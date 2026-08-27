@@ -706,15 +706,14 @@ module Braid {A B C D : ObjTerm}
 
       -- ### the run-order reservoir `Reservoir≤1 ⟪fg⟫ kblk aG`: the full-run
       -- reservoir from linearity (`dom-reservoir-prov` at the trivial
-      -- `range ↭ range`), split at the `gblk ++ kblk` edge-range, bridged to
-      -- the strict post-G stack `aG` by `stacks-agree`.
+      -- `range ↭ range`), split at the `gblk ++ kblk` edge-range.  The
+      -- strict post-G stack `aG` IS the non-strict one.
       res-kblk : SUR.Reservoir≤1 ⟪ fg ⟫ kblk aG
       res-kblk =
-        subst (SUR.Reservoir≤1 ⟪ fg ⟫ kblk) (sym (RF.stacks-agree gblk Hf.dom))
-          (SUR.reservoir-split ⟪ fg ⟫ gblk kblk Hf.dom
-            (subst (λ z → SUR.Reservoir≤1 ⟪ fg ⟫ z Hf.dom) range≡
-              (SUR.dom-reservoir-prov ⟪ fg ⟫ (proj₂ (DAL.⟪⟫-LinearP fg))
-                (range Hf.nE) Perm.↭-refl)))
+        SUR.reservoir-split ⟪ fg ⟫ gblk kblk Hf.dom
+          (subst (λ z → SUR.Reservoir≤1 ⟪ fg ⟫ z Hf.dom) range≡
+            (SUR.dom-reservoir-prov ⟪ fg ⟫ (proj₂ (DAL.⟪⟫-LinearP fg))
+              (range Hf.nE) Perm.↭-refl))
 
       -- ### (1) equivariance onto the block-swapped clean stack.
       ρ : aG Perm.↭ Rsuf ++ sG

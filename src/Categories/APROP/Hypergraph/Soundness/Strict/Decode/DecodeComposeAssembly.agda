@@ -150,14 +150,11 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   s_G_final : List (Fin G.nV)
   s_G_final = proj₁ (RG.process-edgesˢ (range G.nE) G.dom)
 
-  -- `after-G ≡ map injL s_G_final`.  The strict stack = the non-strict stack
-  -- (`RC.stacks-agree` / `RG.stacks-agree`); the non-strict shape is
-  -- `process-edges-↑ˡ-pure-L`.
+  -- `after-G ≡ map injL s_G_final`.  The strict stack IS the non-strict
+  -- stack, so this is exactly `process-edges-↑ˡ-pure-L`.
   after-G-≡ : after-G ≡ map injL s_G_final
   after-G-≡ =
-    trans (RC.stacks-agree gblk C.dom)
-    (trans (LP.process-edges-↑ˡ-pure-L G K bdy lin-G lin-K (range G.nE) G.dom)
-           (cong (map injL) (sym (RG.stacks-agree (range G.nE) G.dom))))
+    LP.process-edges-↑ˡ-pure-L G K bdy lin-G lin-K (range G.nE) G.dom
 
   -- The boundary permutation `after-G ↭ map remapP K.dom`.  Needs the
   -- final-stack permutation of `f` (`finalPermˢ f`) lifted through `injL`,
@@ -171,13 +168,12 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
       (Perm.↭-trans (PermProp.map⁺ injL perm-f)
         (Perm.↭-reflexive (sym (LP.map-remapP-K-dom G K bdy lin-G lin-K))))
 
-  -- Reservoir on the strict post-G stack (transported from non-strict).
+  -- Reservoir on the strict post-G stack (= the non-strict one).
   reservoir-K : SUR.Reservoir≤1 Chg kblk after-G
   reservoir-K =
-    subst (SUR.Reservoir≤1 Chg kblk) (sym (RC.stacks-agree gblk C.dom))
-      (SUR.reservoir-split Chg gblk kblk C.dom
-        (SUR.dom-reservoir-prov Chg (proj₂ lin-C) (gblk ++ kblk)
-          (Perm.↭-reflexive (sym (Inv.range-++ G.nE K.nE)))))
+    SUR.reservoir-split Chg gblk kblk C.dom
+      (SUR.dom-reservoir-prov Chg (proj₂ lin-C) (gblk ++ kblk)
+        (Perm.↭-reflexive (sym (Inv.range-++ G.nE K.nE))))
 
   -- The K-side equivariance: the K-block on `after-G` conjugates onto the
   -- canonical `map remapP K.dom` stack.

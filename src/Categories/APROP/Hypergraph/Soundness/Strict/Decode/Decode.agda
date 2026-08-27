@@ -9,10 +9,10 @@
 --
 -- where `runˢ H = process-edgesˢ (range H.nE) H.dom` is the strict run and
 -- `finalPermˢ f` is the closing permutation of the final stack onto `cod`.
--- Totality is NOT re-proved: the strict and non-strict decoders branch on
--- the SAME `extract-prefix` calls, so their stack evolutions agree
--- (`stacks-agree`) and the success witness of the live decoder
--- (`decode-attempt-LinearP`) transfers verbatim.  WHICH permutation it is
+-- Totality is NOT re-proved: the strict run's stack IS the non-strict
+-- `process-edges` (the strict decoder pairs that fold with its term), so
+-- the success witness of the live decoder (`decode-attempt-LinearP`)
+-- transfers with no cast at all.  WHICH permutation it is
 -- never matters downstream: the atom / σ / Agen / ⊗ shapes collapse
 -- `permuteˢ (finalPermˢ f)` by RIGIDITY (`perm-rigidˢ` at the `Unique`
 -- codomain of `⟪ f ⟫`) and the ∘-shape transports it opaquely, so nothing
@@ -34,8 +34,6 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; range)
 open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
-open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (extract-prefix; edge-step; process-edges)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
   using (decode-attempt-LinearP)
 
@@ -43,10 +41,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟
 
 open import Data.Fin using (Fin)
 open import Data.List using (List; []; _∷_; map)
-open import Data.Maybe using (just; nothing)
 open import Data.Product using (Σ-syntax; proj₁; proj₂)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl; sym; subst)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 
 --------------------------------------------------------------------------------
@@ -62,20 +57,6 @@ module Run (H : Hypergraph FlatGen) where
   s-finˢ : List (Fin H.nV)
   s-finˢ = proj₁ runˢ
 
-  ------------------------------------------------------------------------
-  -- The strict and non-strict decoders branch on the same
-  -- `extract-prefix` calls, hence walk the SAME stacks.
-
-  edge-stack-agree : ∀ s e → proj₁ (edge-stepˢ s e) ≡ (edge-step H s e)
-  edge-stack-agree s e with extract-prefix (H.ein e) s
-  ... | nothing = refl
-  ... | just _  = refl
-
-  stacks-agree : ∀ es s → proj₁ (process-edgesˢ es s) ≡ (process-edges H es s)
-  stacks-agree []       s = refl
-  stacks-agree (e ∷ es) s
-    rewrite edge-stack-agree s e = stacks-agree es ((edge-step H s e))
-
 --------------------------------------------------------------------------------
 -- Transfer of the live decoder's success witness: the strict final stack
 -- permutes onto `H.cod`.
@@ -85,14 +66,10 @@ module _ {A B : ObjTerm} (f : HomTerm A B) where
     module RF = Run ⟪ f ⟫
     module Hf = Hypergraph ⟪ f ⟫
 
-  -- The non-strict totality witness is exactly the permutation
-  -- `process-all-edges ⟪f⟫ dom ↭ cod`; `stacks-agree` transports it onto the
-  -- strict final stack `RF.s-finˢ`.
+  -- The non-strict totality witness IS the strict one: `RF.s-finˢ` is
+  -- `process-all-edges ⟪f⟫ dom` by definition of the strict run.
   finalPermˢ : RF.s-finˢ Perm.↭ Hf.cod
-  finalPermˢ =
-    subst (Perm._↭ Hf.cod)
-      (sym (RF.stacks-agree (range Hf.nE) Hf.dom))
-      (decode-attempt-LinearP f)
+  finalPermˢ = decode-attempt-LinearP f
 
 --------------------------------------------------------------------------------
 -- The full strict decoder.

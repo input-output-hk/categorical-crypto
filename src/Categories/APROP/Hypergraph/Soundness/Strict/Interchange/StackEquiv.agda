@@ -18,7 +18,8 @@
 -- The term-FREE inputs (`fire-stable-*`, `residual-recon`, `fire-μ`,
 -- the `extract-prefix` determinism) are REUSED verbatim from the
 -- non-strict leaves: the strict and non-strict runs walk the SAME stacks
--- (`Run.stacks-agree`), so the reservoir / `Unique` plumbing transfers.
+-- (`pe-stackˢ o s` IS `process-edges H o s`), so the reservoir / `Unique`
+-- plumbing transfers definitionally.
 -- The derivation algebra uses `pvv-transˢ` / `pvv-inverse-{left,right}ˢ`
 -- (the `Equivariantˢ` foundation in the strict `DecodeCompose`); the locating-permute
 -- coherence is consumed by the vertex-level `permˢ-K-H` directly (the
@@ -351,8 +352,8 @@ module EquivStep (H : Hypergraph FlatGen) where
   -- two sandwiches (the middle permutes telescope through ∘ˢ-reassoc,
   -- leaving the outer `ρ` / `↭-sym ρf` intact).  The `Reservoir≤1`
   -- freshness on the PERMUTED stack `s'` is sourced by the caller and
-  -- advanced one strict `edge-stepˢ` per recursion (bridged to the
-  -- non-strict `edge-step` via `edge-stack-agree`).
+  -- advanced one strict `edge-stepˢ` per recursion (whose stack IS the
+  -- non-strict `edge-step`, so it needs no bridge).
   ----------------------------------------------------------------------
   process-edges-equivariantˢ
     : ∀ (qs : List (Fin H.nE)) {s s' : List (Fin H.nV)} (ρ : s' Perm.↭ s)
@@ -369,9 +370,7 @@ module EquivStep (H : Hypergraph FlatGen) where
   ... | ρ1 , step-eq
       with process-edges-equivariantˢ qs
              {proj₁ (edge-stepˢ s e)} {proj₁ (edge-stepˢ s' e)} ρ1
-             (subst (SUR.Reservoir≤1 H qs)
-                    (sym (edge-stack-agree s' e))
-                    (SUR.edge-step-Reservoir≤1 H e qs s' inv))
+             (SUR.edge-step-Reservoir≤1 H e qs s' inv)
   ... | ρf , tail-eq =
         ρf , goal
     where

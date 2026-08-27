@@ -110,20 +110,16 @@ module _ (H : Hypergraph FlatGen)
 
   ------------------------------------------------------------------------
   -- The strict reservoir → `Unique (pe-stackˢ o dom)` bridge.  The
-  -- reservoir invariant is stated over the NON-strict `process-edges`;
-  -- since the strict and non-strict stacks are definitionally/
-  -- propositionally equal (`Run.stacks-agree`), `Unique` transfers.
+  -- reservoir invariant is stated over the NON-strict `process-edges`,
+  -- which IS the strict run's stack, so `Unique` transfers with no cast.
   ------------------------------------------------------------------------
-
-  private module RH = Run H
 
   reached-Uniqueˢ-from
     : ∀ (o : List (Fin H.nE)) → SUR.Reservoir≤1 H (o ++ []) H.dom
     → Unique (pe-stackˢ′ o H.dom)
   reached-Uniqueˢ-from o inv =
-    subst Unique (sym (RH.stacks-agree o H.dom))
-      (SUR.Reservoir≤1⇒Unique H [] ((process-edges H o H.dom))
-        (SUR.reservoir-split H o [] H.dom inv))
+    SUR.Reservoir≤1⇒Unique H [] ((process-edges H o H.dom))
+      (SUR.reservoir-split H o [] H.dom inv)
 
   private
     e'-fires-stable = FMIC.e'-fires-stable H lin

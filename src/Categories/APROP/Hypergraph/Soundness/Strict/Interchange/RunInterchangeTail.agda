@@ -63,7 +63,7 @@ module _ (H : Hypergraph FlatGen)
 
   open EquivStep H
     using ( permuteˢ; pe-stackˢ; pe-termˢ; process-edges-equivariantˢ
-          ; pvv-inverse-leftˢ; stacks-agree )
+          ; pvv-inverse-leftˢ )
 
   -- `Incomp` from `SwapCore` (so the record matches the `run-interchange₀ˢ`
   -- consumer).
@@ -102,9 +102,8 @@ module _ (H : Hypergraph FlatGen)
   -- definition of the strict run — both branch on the same `extract-prefix`).
   ----------------------------------------------------------------------
 
-  -- `pe-stackˢ` IS `(process-edges …)` definitionally?  No — they walk
-  -- the same `extract-prefix` calls but the strict `pe-stackˢ` is from
-  -- `process-edgesˢ`.  Bridge propositionally via `stacks-agree` (above).
+  -- `pe-stackˢ` IS `(process-edges …)` definitionally: the strict run is
+  -- the non-strict stack fold paired with its term, so no bridge is needed.
 
   open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig using (process-edges)
 
@@ -113,27 +112,9 @@ module _ (H : Hypergraph FlatGen)
     → (ps ++ e' ∷ e ∷ qs) Perm.↭ range H.nE
     → SUR.Reservoir≤1 H qs (pe-stackˢ (e' ∷ e ∷ []) (pe-stackˢ ps H.dom))
   tail-reservoir ps qs e e' prov =
-    subst (SUR.Reservoir≤1 H qs) (sym bridge) res-ns
-    where
-      sp = pe-stackˢ ps H.dom
-
-      -- the non-strict split-reservoir at the non-strict 2-prefix stack
-      res-ns
-        : SUR.Reservoir≤1 H qs
-            ((process-edges H (e' ∷ e ∷ []) ((process-edges H ps H.dom))))
-      res-ns =
-        SUR.reservoir-split H (e' ∷ e ∷ []) qs ((process-edges H ps H.dom))
-          (SUR.reservoir-split H ps (e' ∷ e ∷ qs) H.dom
-            (SUR.dom-reservoir-prov H (proj₂ lin) (ps ++ e' ∷ e ∷ qs) prov))
-
-      -- `pe-stackˢ (e'∷e∷[]) sp ≡ (process-edges H (e'∷e∷[]) (proj₁ …))`
-      bridge
-        : pe-stackˢ (e' ∷ e ∷ []) sp
-          ≡ (process-edges H (e' ∷ e ∷ []) ((process-edges H ps H.dom)))
-      bridge =
-        trans (stacks-agree (e' ∷ e ∷ []) sp)
-              (cong (λ z → (process-edges H (e' ∷ e ∷ []) z))
-                    (stacks-agree ps H.dom))
+    SUR.reservoir-split H (e' ∷ e ∷ []) qs ((process-edges H ps H.dom))
+      (SUR.reservoir-split H ps (e' ∷ e ∷ qs) H.dom
+        (SUR.dom-reservoir-prov H (proj₂ lin) (ps ++ e' ∷ e ∷ qs) prov))
 
   ----------------------------------------------------------------------
   -- The tail-extension lemma.

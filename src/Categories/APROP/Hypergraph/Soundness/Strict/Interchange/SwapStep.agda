@@ -18,9 +18,8 @@
 --
 -- The order-theory spine (`Order`/`_↝_`/`swap-step`/`connectivity`/`NoInv`)
 -- is REUSED VERBATIM from the term-free non-strict wiring; `Validˢ o =
--- pe-stackˢ o dom ↭ cod` is the strict run's validity (the same proposition
--- as the non-strict `Valid` modulo `stacks-agree`), so `swap-validityˢ`
--- transports the non-strict `SwapValidity.swap-validity`.  The (N) residual
+-- pe-stackˢ o dom ↭ cod` is DEFINITIONALLY the non-strict `Valid o`, so
+-- `swap-validityˢ` IS `SwapValidity.swap-validity`.  The (N) residual
 -- is `RunInterchangeˢ`; the (K) reconciliation is `perm-rigidˢ`.
 --------------------------------------------------------------------------------
 
@@ -69,9 +68,9 @@ module PerHG (H : Hypergraph FlatGen)
 
   -- `EquivStep H` re-exports (via `open Run`/`open StrictDecoder`/`open
   -- Perm′`) everything we need: `vl`, `permuteˢ`, `pe-stackˢ`, `pe-termˢ`,
-  -- `++-stackˢ`, `stacks-agree` — no separate `open StrictDecoder` (which
+  -- `++-stackˢ` — no separate `open StrictDecoder` (which
   -- would duplicate `permuteˢ`).
-  open EquivStep H using (vl; stacks-agree; permuteˢ; pe-stackˢ; pe-termˢ; ++-stackˢ)
+  open EquivStep H using (vl; permuteˢ; pe-stackˢ; pe-termˢ; ++-stackˢ)
 
   -- The order-theory spine, reused verbatim from the non-strict wiring
   -- (`connectivity` pre-applied to this hypergraph's acyclicity `dih`).
@@ -98,8 +97,8 @@ module PerHG (H : Hypergraph FlatGen)
 
   --------------------------------------------------------------------
   -- STRICT validity + the strict order-indexed decoder.  `Validˢ o`
-  -- is the strict run's final-stack permutation onto `cod` (the same
-  -- proposition the non-strict `Valid` states, modulo `stacks-agree`).
+  -- is the strict run's final-stack permutation onto `cod` — the very
+  -- proposition `PH.Valid o` states, since the two stacks are one term.
   --------------------------------------------------------------------
 
   Validˢ : Order → Set
@@ -108,18 +107,12 @@ module PerHG (H : Hypergraph FlatGen)
   decodeOrdˢ : (o : Order) → Validˢ o → HomS (map vl H.dom) (map vl H.cod)
   decodeOrdˢ o p = permuteˢ p ∘ˢ pe-termˢ o H.dom
 
-  -- Bridge `Validˢ`↔`PH.Valid` along `stacks-agree`.
-  to-PHValid : ∀ o → Validˢ o → PH.Valid o
-  to-PHValid o p = subst (Perm._↭ H.cod) (stacks-agree o H.dom) p
-
-  of-PHValid : ∀ o → PH.Valid o → Validˢ o
-  of-PHValid o p = subst (Perm._↭ H.cod) (sym (stacks-agree o H.dom)) p
-
   --------------------------------------------------------------------
-  -- Validity is preserved by an adjacent-independent swap.
+  -- Validity is preserved by an adjacent-independent swap.  `Validˢ o`
+  -- IS `PH.Valid o` (the strict run's stack is the non-strict one by
+  -- definition), so the non-strict lemma applies with no bridge.
   swap-validityˢ : ∀ {o₁ o₂ : Order} → o₁ ↝ o₂ → Validˢ o₁ → Validˢ o₂
-  swap-validityˢ {o₁} {o₂} s p =
-    of-PHValid o₂ (SV.PerHG.swap-validity H lin s (to-PHValid o₁ p))
+  swap-validityˢ {o₁} {o₂} s p = SV.PerHG.swap-validity H lin s p
 
   -- PLUMBING 1 — the cod-only stack transport `coeCod` and the term-level
   -- factoring of `process-edgesˢ` over `_++_` (`pe-term-++ˢ`), both from the

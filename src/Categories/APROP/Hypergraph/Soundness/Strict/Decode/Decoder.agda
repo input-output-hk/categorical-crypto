@@ -31,7 +31,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (extract-prefix; extract-elem)
+  using (extract-prefix; extract-elem; edge-step; process-edges)
 open import Categories.APROP.Hypergraph.Soundness.Stack.SeparableStack sig
   using (prefix-++ˡ-perm; extract-prefix-++ˡ; extract-prefix-++ˡ-nothing)
 
@@ -75,21 +75,30 @@ module StrictDecoder (H : Hypergraph FlatGen) where
       ((genˢ (H.elab e) ⊗ˢ idˢ {map vl rest})
         ∘ˢ castˢ refl (map-++ vl (H.ein e) rest) (permuteˢ perm))
 
+  -- SPIKE stage A: the strict step's STACK is the non-strict `edge-step`,
+  -- literally; only the term half branches here.
+  step-termˢ
+    : (s : List (Fin H.nV)) (e : Fin H.nE)
+    → HomS (map vl s) (map vl (edge-step H s e))
+  step-termˢ s e with extract-prefix (H.ein e) s
+  ... | nothing            = idˢ
+  ... | just (rest , perm) = fire-termˢ e s rest perm
+
   edge-stepˢ
     : (s : List (Fin H.nV)) (e : Fin H.nE)
     → Σ[ s' ∈ List (Fin H.nV) ] HomS (map vl s) (map vl s')
-  edge-stepˢ s e with extract-prefix (H.ein e) s
-  ... | nothing            = (s , idˢ)
-  ... | just (rest , perm) = (H.eout e ++ rest , fire-termˢ e s rest perm)
+  edge-stepˢ s e = (edge-step H s e , step-termˢ s e)
+
+  run-termˢ
+    : (es : List (Fin H.nE)) (s : List (Fin H.nV))
+    → HomS (map vl s) (map vl (process-edges H es s))
+  run-termˢ []       s = idˢ
+  run-termˢ (e ∷ es) s = run-termˢ es (edge-step H s e) ∘ˢ step-termˢ s e
 
   process-edgesˢ
     : (es : List (Fin H.nE)) (s : List (Fin H.nV))
     → Σ[ s' ∈ List (Fin H.nV) ] HomS (map vl s) (map vl s')
-  process-edgesˢ []       s = (s , idˢ)
-  process-edgesˢ (e ∷ es) s =
-    let (s'  , t)  = edge-stepˢ s e
-        (s'' , t') = process-edgesˢ es s'
-    in (s'' , t' ∘ˢ t)
+  process-edgesˢ es s = (process-edges H es s , run-termˢ es s)
 
   -- STACK factoring over an order split: running `ps ++ rest` from `s`
   -- leaves the same stack as running `rest` from the post-`ps` stack.  The
