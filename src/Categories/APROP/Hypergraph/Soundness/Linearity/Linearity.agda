@@ -239,63 +239,53 @@ Linear-hTensor G K (G-bal , G-bnd) (K-bal , K-bnd) = balance , bound
               (count-map-↑ʳ G.nV j ys))
 
     -- `count (injL i)` of the composite's lists equals `count i` of G's;
-    -- `count (injR j)` equals `count j` of K's.
+    -- `count (injR j)` equals `count j` of K's.  Four faces, ONE proof
+    -- (`count-face`) at two independent binary choices: the BOUNDARY axis
+    -- (`dom`/`eout` vs `cod`/`ein`), which enters as the two blocks plus the
+    -- decomposition of the composite's edge list, and the SIDE axis
+    -- (`injL`/G vs `injR`/K), which enters as that side's own `mixed` lemma
+    -- plus the block selector `pick` it is stated at.
+
+    count-face
+      : ∀ {nZ} {v : Fin (G.nV + K.nV)} {z : Fin nZ}
+          (pick : List (Fin G.nV) → List (Fin K.nV) → List (Fin nZ))
+      → (∀ xs ys → count v (map injL xs ++ map injR ys) ≡ count z (pick xs ys))
+      → ∀ (Bg : List (Fin G.nV)) (Bk : List (Fin K.nV))
+          {Ec : List (Fin (G.nV + K.nV))}
+          {Eg : List (Fin G.nV)} {Ek : List (Fin K.nV)}
+      → Ec ≡ map injL Eg ++ map injR Ek
+      → count v ((map injL Bg ++ map injR Bk) ++ Ec)
+        ≡ count z (pick Bg Bk ++ pick Eg Ek)
+    count-face {v = v} {z} pick mixed Bg Bk {Ec} {Eg} {Ek} eq =
+      trans (count-++ v (map injL Bg ++ map injR Bk) Ec)
+      (trans (cong₂ Nat._+_
+                (mixed Bg Bk)
+                (trans (cong (count v) eq) (mixed Eg Ek)))
+             (sym (count-++ z (pick Bg Bk) (pick Eg Ek))))
 
     count-injL-prod
       : ∀ (i : Fin G.nV)
       → count (injL i) (producedList (hTensor G K)) ≡ count i (producedList G)
     count-injL-prod i =
-      trans (count-++ (injL i)
-                       (map injL G.dom ++ map injR K.dom)
-                       (concat (tabulate eout-c)))
-      (trans (cong₂ Nat._+_
-                (count-injL-mixed i G.dom K.dom)
-                (trans (cong (count (injL i)) eout-tensor-eq)
-                       (count-injL-mixed i (concat (tabulate G.eout))
-                                            (concat (tabulate K.eout)))))
-             (sym (count-++ i G.dom (concat (tabulate G.eout)))))
+      count-face (λ xs _ → xs) (count-injL-mixed i) G.dom K.dom eout-tensor-eq
 
     count-injL-cons
       : ∀ (i : Fin G.nV)
       → count (injL i) (consumedList (hTensor G K)) ≡ count i (consumedList G)
     count-injL-cons i =
-      trans (count-++ (injL i)
-                       (map injL G.cod ++ map injR K.cod)
-                       (concat (tabulate ein-c)))
-      (trans (cong₂ Nat._+_
-                (count-injL-mixed i G.cod K.cod)
-                (trans (cong (count (injL i)) ein-tensor-eq)
-                       (count-injL-mixed i (concat (tabulate G.ein))
-                                            (concat (tabulate K.ein)))))
-             (sym (count-++ i G.cod (concat (tabulate G.ein)))))
+      count-face (λ xs _ → xs) (count-injL-mixed i) G.cod K.cod ein-tensor-eq
 
     count-injR-prod
       : ∀ (j : Fin K.nV)
       → count (injR j) (producedList (hTensor G K)) ≡ count j (producedList K)
     count-injR-prod j =
-      trans (count-++ (injR j)
-                       (map injL G.dom ++ map injR K.dom)
-                       (concat (tabulate eout-c)))
-      (trans (cong₂ Nat._+_
-                (count-injR-mixed j G.dom K.dom)
-                (trans (cong (count (injR j)) eout-tensor-eq)
-                       (count-injR-mixed j (concat (tabulate G.eout))
-                                            (concat (tabulate K.eout)))))
-             (sym (count-++ j K.dom (concat (tabulate K.eout)))))
+      count-face (λ _ ys → ys) (count-injR-mixed j) G.dom K.dom eout-tensor-eq
 
     count-injR-cons
       : ∀ (j : Fin K.nV)
       → count (injR j) (consumedList (hTensor G K)) ≡ count j (consumedList K)
     count-injR-cons j =
-      trans (count-++ (injR j)
-                       (map injL G.cod ++ map injR K.cod)
-                       (concat (tabulate ein-c)))
-      (trans (cong₂ Nat._+_
-                (count-injR-mixed j G.cod K.cod)
-                (trans (cong (count (injR j)) ein-tensor-eq)
-                       (count-injR-mixed j (concat (tabulate G.ein))
-                                            (concat (tabulate K.ein)))))
-             (sym (count-++ j K.cod (concat (tabulate K.ein)))))
+      count-face (λ _ ys → ys) (count-injR-mixed j) G.cod K.cod ein-tensor-eq
 
     balance : ∀ v → count v (producedList (hTensor G K)) ≡ count v (consumedList (hTensor G K))
     balance v with splitAt G.nV v in eq
