@@ -31,7 +31,6 @@ open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Nat
 open import Data.Product using (proj₁; proj₂)
 open import Data.Sum using ([_,_]′)
-open import Function
 open import Relation.Binary.PropositionalEquality
 
 

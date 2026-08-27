@@ -33,7 +33,6 @@ open import Categories.APROP.Hypergraph.Util.Prune
 
 open import Categories.APROP.Hypergraph.Model.Translation sig
   using () renaming (⟪_⟫ to ⟪_⟫ₚ; ⟪⟫-domL to ⟪⟫ₚ-domL; ⟪⟫-codL to ⟪⟫ₚ-codL)
-open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
 
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 

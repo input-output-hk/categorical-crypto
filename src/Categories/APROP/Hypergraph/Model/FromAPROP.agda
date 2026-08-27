@@ -42,8 +42,6 @@ open import Data.Nat
 open import Data.Sum using (inj₁; inj₂; [_,_]′)
 open import Relation.Binary.PropositionalEquality
 
-open import Relation.Binary.PropositionalEquality.Properties
-
 
 --------------------------------------------------------------------------------
 -- Flattening an ObjTerm into its list of atoms.

@@ -10,12 +10,9 @@ open import Data.Sum hiding (reduce)
 open import Data.List renaming (map to mapₗ)
 open import Reflection.AST.Term
 open import Reflection.Tactic
-open import Reflection.Utils
 open import Reflection.Utils.TCI
 open import Class.Monad
-open import Class.Functor
 open import Class.MonadError.Instances
-open import Class.MonadReader.Instances
 open import Class.MonadTC.Instances hiding (_ᵗ)
 
 infix 4 _[_]⇒[_]ᵍ_

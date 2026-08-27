@@ -38,7 +38,6 @@ open import Categories.APROP.Hypergraph.Solver.Signature
 module Categories.APROP.Hypergraph.Solver.Split (sig-dec : APROPSignatureDec) where
 
 open import Categories.APROP
-open import Categories.FreeMonoidal
 
 open APROPSignatureDec sig-dec using (sig; _≟-mor_; _≟-ObjTerm_; uip-ObjTerm)
 open APROP sig

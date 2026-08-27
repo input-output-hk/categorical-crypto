@@ -7,6 +7,8 @@ import categorical-crypto.Prelude as P
 open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
+-- Instance-only: supplies the `Class.MonadTC.TCOptions` every `⇒-solver` call
+-- below resolves against (dropping it gives `InstanceNoCandidate`, no name).
 open import Tactic.Defaults
 
 -- --------------------------------------------------------------------------------

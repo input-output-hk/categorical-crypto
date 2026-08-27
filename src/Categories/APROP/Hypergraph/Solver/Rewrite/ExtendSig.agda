@@ -39,7 +39,6 @@ open import Relation.Binary.Definitions
 open import Relation.Binary.PropositionalEquality
 
 open import Relation.Nullary
-open import Relation.Nullary.Decidable
 
 --------------------------------------------------------------------------------
 -- The extended generator type: every base generator, plus one hole `P → Q`.
