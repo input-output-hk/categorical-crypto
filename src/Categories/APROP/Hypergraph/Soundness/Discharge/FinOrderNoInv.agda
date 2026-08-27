@@ -91,7 +91,7 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
   using (⟪⟫-LinearP; remapP-injective)
 open import Categories.APROP.Hypergraph.Util.Prune
   using (remap-↑ˡ→∈)
-open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Empty using (⊥)
 open import Data.Sum using (inj₁; inj₂)
 
 open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_; splitAt; join)

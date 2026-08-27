@@ -40,7 +40,7 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_ public
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; []; _∷_; map)
+open import Data.List using (List; map)
 open import Data.Product using (Σ-syntax; proj₁; proj₂)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 
