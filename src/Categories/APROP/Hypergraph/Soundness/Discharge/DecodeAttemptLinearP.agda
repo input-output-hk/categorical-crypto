@@ -500,7 +500,7 @@ module _
         trans (cong (λ es → process-edges (hComposeP G K bdy-eq) es
                               (Hypergraph.dom (hComposeP G K bdy-eq)))
                     (Inv.range-++ G.nE K.nE))
-              (process-edges-++-stack (hComposeP G K bdy-eq)
+              (process-edges-++ (hComposeP G K bdy-eq)
                 (map (_↑ˡ K.nE) (range G.nE))
                 (map (G.nE ↑ʳ_) (range K.nE))
                 (Hypergraph.dom (hComposeP G K bdy-eq)))

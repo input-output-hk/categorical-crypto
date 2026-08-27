@@ -50,10 +50,6 @@ decode-attempt-hVar
 decode-attempt-hVar x = Perm.↭-refl
 
 --------------------------------------------------------------------------------
--- Alias of the shared factoring kernel `Decode.process-edges-++`.
-process-edges-++-stack = process-edges-++
-
---------------------------------------------------------------------------------
 -- The per-edge decode lifting, once.
 --
 -- Both binary composites lift a sub-hypergraph's run to the composite along an
@@ -385,14 +381,14 @@ decode-attempt-hTensor G K perm-G perm-K =
               s_G_final K.dom (Perm.↭-reflexive after-G-≡)
 
     -- `proc ≡ process-edges (K-block) after-G-stack` via `range-++` +
-    -- `process-edges-++-stack`.
+    -- `process-edges-++`.
     proc-≡ : proc
              ≡ process-edges (hTensor G K) (map (G.nE ↑ʳ_) (range K.nE)) after-G-stack
     proc-≡ =
       trans (cong (λ es → process-edges (hTensor G K) es
                             (Hypergraph.dom (hTensor G K)))
                   (Inv.range-++ G.nE K.nE))
-            (process-edges-++-stack (hTensor G K)
+            (process-edges-++ (hTensor G K)
               (map (_↑ˡ K.nE) (range G.nE))
               (map (G.nE ↑ʳ_) (range K.nE))
               (Hypergraph.dom (hTensor G K)))

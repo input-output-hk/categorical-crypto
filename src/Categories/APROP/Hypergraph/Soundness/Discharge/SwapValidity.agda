@@ -40,7 +40,8 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (process-edges; edge-step; edge-step-just; edge-step-nothing; extract-prefix)
+  using ( process-edges; process-edges-++; edge-step; edge-step-just
+        ; edge-step-nothing; extract-prefix )
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-↭-residual; extract-prefix-↭-nothing)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
@@ -48,8 +49,6 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using 
 -- Imported read-only: `PH.Valid`, `PH.↝`, `PH.Order`, and the LinExt
 -- instantiation (`Incomp`, `swap-step`).
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig as IW
-open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
-  using (process-edges-++-stack)
 
 -- Shared per-H combinatorics: firing stability + the both-fire multiset
 -- bridge live in the `Discharge/FireMidInterchangeComb` leaf (also consumed
@@ -97,7 +96,7 @@ module PerHG (H : Hypergraph FlatGen) (lin : Linear H) where
   ++-stack
     : ∀ (ps rest : PH.Order) (s : List (Fin H.nV))
     → pe-stack (ps ++ rest) s ≡ pe-stack rest (pe-stack ps s)
-  ++-stack = process-edges-++-stack H
+  ++-stack = process-edges-++ H
 
   ------------------------------------------------------------------------
   -- (2) THE ANALYTIC CORE — front-of-stack two-edge stack permutation.
