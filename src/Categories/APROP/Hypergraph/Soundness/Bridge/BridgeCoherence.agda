@@ -243,6 +243,35 @@ private
     cBC-to   = _≅_.to   (unflatten-++-≅ (flatten B) (flatten C))
     cBC-from = _≅_.from (unflatten-++-≅ (flatten B) (flatten C))
 
+  -- The six-generator solver setup BOTH base cases below run (the four
+  -- `unflatten-flatten-≈` legs of `B`/`C` plus the `unflatten-++-≅` pair).  They
+  -- differ only in the α⇒ prefix their `lhsᵗ` frames — `Var x` under ρ, `unit`
+  -- under λ — so it is carried as the LAST atom: that shares the arity map, the
+  -- interpretation and the `gen` aliases verbatim, and the unit case simply
+  -- never mentions atom 5.
+  module Setup6 (B C P : ObjTerm) where
+    open FT B C public
+    open FinSetup FMC
+      ( B Vec.∷ C
+          Vec.∷ unflatten (flatten B) Vec.∷ unflatten (flatten C)
+          Vec.∷ unflatten (flatten B ++ flatten C) Vec.∷ P Vec.∷ Vec.[] )
+      public using (V; _⊗ᵒ_; module Sig)
+    v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F ; v5 = V 5F
+    -- generators: F-B, F-C, T-B, T-C, cBC-to, cBC-from
+    open Sig {6} (λ { 0F → v0 , v2
+                    ; 1F → v1 , v3
+                    ; 2F → v2 , v0
+                    ; 3F → v3 , v1
+                    ; 4F → v2 ⊗ᵒ v3 , v4
+                    ; 5F → v4 , v2 ⊗ᵒ v3 })
+      public using (module S; genS; gen; module WithGen)
+    open WithGen (λ { (genS 0F) → F-B ; (genS 1F) → F-C
+                    ; (genS 2F) → T-B ; (genS 3F) → T-C
+                    ; (genS 4F) → cBC-to ; (genS 5F) → cBC-from })
+      public using (solveMor!)
+    gFB = gen 0F ; gFC = gen 1F ; gTB = gen 2F ; gTC = gen 3F
+    gcto = gen 4F ; gcfrom = gen 5F
+
   module _ (B C : ObjTerm) where
    open FT B C
 
@@ -269,31 +298,11 @@ bridge-α⇒-is-id-Var x B C = begin
     ≈⟨ id⊗id≈id ⟩
   id ∎
   where
-    open FT B C
-
     -- the free part of the chase: all coherence/naturality/interchange,
-    -- bringing each `from`/`to` leg adjacent to its partner.
-    -- atoms: 0 ↦ Var x, 1 ↦ B, 2 ↦ C, 3 ↦ uf B, 4 ↦ uf C,
-    -- 5 ↦ unflatten (fB++fC)
-    open FinSetup FMC
-      ( Var x Vec.∷ B Vec.∷ C
-          Vec.∷ unflatten (flatten B) Vec.∷ unflatten (flatten C)
-          Vec.∷ unflatten (flatten B ++ flatten C) Vec.∷ Vec.[] )
-    v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
-    v5 = V 5F
-    -- generators: F-B, F-C, T-B, T-C, cBC-to, cBC-from
-    open Sig {6} (λ { 0F → v1 , v3
-                    ; 1F → v2 , v4
-                    ; 2F → v3 , v1
-                    ; 3F → v4 , v2
-                    ; 4F → v3 ⊗ᵒ v4 , v5
-                    ; 5F → v5 , v3 ⊗ᵒ v4 })
-    open WithGen (λ { (genS 0F) → F-B ; (genS 1F) → F-C
-                    ; (genS 2F) → T-B ; (genS 3F) → T-C
-                    ; (genS 4F) → cBC-to ; (genS 5F) → cBC-from })
-    gFB = gen 0F ; gFC = gen 1F ; gTB = gen 2F ; gTC = gen 3F
-    gcto = gen 4F ; gcfrom = gen 5F
-    lhsᵗ rhsᵗ : S.HomTerm (v0 ⊗ᵒ v5) (v0 ⊗ᵒ v5)
+    -- bringing each `from`/`to` leg adjacent to its partner.  Atom 5 is the
+    -- prefix `Var x`, which `lhsᵗ` frames by ρ.
+    open Setup6 B C (Var x)
+    lhsᵗ rhsᵗ : S.HomTerm (v5 ⊗ᵒ v4) (v5 ⊗ᵒ v4)
     lhsᵗ = S._∘_
              (S._∘_ (S._∘_ (S._⊗₁_ S.id S.λ⇒) S.α⇒)
                     (S._⊗₁_ S.ρ⇐ (S._∘_ gcto (S._⊗₁_ gFB gFC))))
@@ -319,28 +328,10 @@ bridge-α⇒-is-id-unit B C = begin
     ≈⟨ collapse-c-FT B C ⟩
   id ∎
   where
-    open FT B C
-
     -- the free part of the chase: all coherence/naturality/interchange,
-    -- bringing each `from`/`to` leg adjacent to its partner.
-    -- atoms: 0 ↦ B, 1 ↦ C, 2 ↦ uf B, 3 ↦ uf C, 4 ↦ unflatten (fB++fC)
-    open FinSetup FMC
-      ( B Vec.∷ C
-          Vec.∷ unflatten (flatten B) Vec.∷ unflatten (flatten C)
-          Vec.∷ unflatten (flatten B ++ flatten C) Vec.∷ Vec.[] )
-    v0 = V 0F ; v1 = V 1F ; v2 = V 2F ; v3 = V 3F ; v4 = V 4F
-    -- generators: F-B, F-C, T-B, T-C, cBC-to, cBC-from
-    open Sig {6} (λ { 0F → v0 , v2
-                    ; 1F → v1 , v3
-                    ; 2F → v2 , v0
-                    ; 3F → v3 , v1
-                    ; 4F → v2 ⊗ᵒ v3 , v4
-                    ; 5F → v4 , v2 ⊗ᵒ v3 })
-    open WithGen (λ { (genS 0F) → F-B ; (genS 1F) → F-C
-                    ; (genS 2F) → T-B ; (genS 3F) → T-C
-                    ; (genS 4F) → cBC-to ; (genS 5F) → cBC-from })
-    gFB = gen 0F ; gFC = gen 1F ; gTB = gen 2F ; gTC = gen 3F
-    gcto = gen 4F ; gcfrom = gen 5F
+    -- bringing each `from`/`to` leg adjacent to its partner.  The prefix atom
+    -- is `unit`, which λ absorbs, so nothing below mentions it.
+    open Setup6 B C unit
     lhsᵗ rhsᵗ : S.HomTerm v4 v4
     lhsᵗ = S._∘_
              (S._∘_ S.λ⇒
