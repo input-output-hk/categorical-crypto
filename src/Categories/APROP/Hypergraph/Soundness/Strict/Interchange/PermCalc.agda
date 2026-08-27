@@ -72,7 +72,6 @@ module Kit (H : Hypergraph FlatGen) where
   -- Existing bridges, threaded at this hypergraph's vertex set.
   private
     perm-rigidˢ′ = perm-rigidˢ H
-    perm-frameˡ′ = permuteˢ-frameˡ
     swap-block′  = BSC.swap-block (Fin H.nV) H.vlab
   open DSS.Scr (Fin H.nV) H.vlab using (bswap)
 
@@ -96,7 +95,7 @@ module Kit (H : Hypergraph FlatGen) where
   ⟦frameˡ⟧
     : ∀ (ls : List (Fin H.nV)) {xs ys : List (Fin H.nV)} (p : xs Perm.↭ ys)
     → permuteˢ (PermProp.++⁺ˡ ls p) ≈̂ idˢ {m ls} ⊗ˢ permuteˢ p
-  ⟦frameˡ⟧ ls p = ≈̂-trans (≈̂-sym cast-≈̂) (≈ˢ⇒≈̂ (perm-frameˡ′ ls p))
+  ⟦frameˡ⟧ ls p = ≈̂-trans (≈̂-sym cast-≈̂) (≈ˢ⇒≈̂ (permuteˢ-frameˡ ls p))
 
   ------------------------------------------------------------------------
   -- ⟦frameʳ⟧ : a `++⁺ʳ R` frame becomes a `_⊗ˢ idˢ` frame.
