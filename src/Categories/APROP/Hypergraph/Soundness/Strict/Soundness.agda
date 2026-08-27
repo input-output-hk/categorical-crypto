@@ -14,7 +14,7 @@
 --     `embF-resp-≈ˢ` from `Strict.Embed`;
 --   * `st-roundtrip : embF (st f) ≈Term bridge f` — by induction on f, with the
 --     atomic content supplied by the EXISTING bridge lemmas
---     (`bridge-*-is-id`, `ρ⇒/ρ⇐-coherence`, BAFC's α cast worker).
+--     (`bridge-*-is-id`, `ρ⇒/ρ⇐-coherence`, the α cast worker).
 --
 -- §2 THE ASSEMBLY.  From
 --   * part (I)ˢ   `st-≈-decodePˢ : st h ≈ˢ decodePˢ h`        (Strict.PartI)
@@ -48,9 +48,7 @@ open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-flatten-≈; _≅_; bridge; subst-id-cod)
 open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig
   using ( bridge-∘; bridge-⊗; bridge-id-is-id; bridge-λ⇒-is-id; bridge-λ⇐-is-id
-        ; ρ⇒-coherence; ρ⇐-coherence )
-import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeAlphaFormCompound
-  sig as BAFC
+        ; ρ⇒-coherence; ρ⇐-coherence; derive-⇐; module Worker )
 
 open import Categories.FreeMonoidal using (v≤v)
 open import Categories.FreeStrictSMC using (module Map)
@@ -124,12 +122,12 @@ st-roundtrip (ρ⇐ {A})  =
   ≡⇒≈Term (embF-coe (sym (++-identityʳ (flatten A)))) ○ ρ⇐-coherence A
 st-roundtrip (α⇒ {A} {B} {C}) =
   ≡⇒≈Term (embF-coe (++-assoc (flatten A) (flatten B) (flatten C)))
-  ○ ⟺ (BAFC.Worker.work A B C)
--- the α⇐ cast is the α⇒ one transposed — BAFC's own `derive-⇐`, which is that
+  ○ ⟺ (Worker.work A B C)
+-- the α⇐ cast is the α⇒ one transposed — the bridge layer's `derive-⇐`, which is that
 -- transposition at an arbitrary object.
 st-roundtrip (α⇐ {A} {B} {C}) =
   ≡⇒≈Term (embF-coe (sym (++-assoc (flatten A) (flatten B) (flatten C))))
-  ○ ⟺ (BAFC.derive-⇐ A B C (BAFC.Worker.work A B C))
+  ○ ⟺ (derive-⇐ A B C (Worker.work A B C))
 st-roundtrip (σ {A} {B} ⦃ v≤v ⦄) =
   ⟺ (center (⟺ σ∘[f⊗g]≈[g⊗f]∘σ)
      ○ (refl⟩∘⟨ cancelInner ⊗-iso-cancel))

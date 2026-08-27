@@ -435,7 +435,7 @@ By induction on $f$, using the action of $⟪dot.c⟫$ on each constructor:
   [*$alpha$*],
   [edge-free, but *not* cheap: $"decode" ⟪alpha⟫$ is a $"permute"$ matched to the associator by a
    well-founded recursion over the object's $times.o$-structure plus a pentagon / `c-iso-assoc` step —
-   $bold(M)$ (`Bridge/BridgeAlphaFormCompound`, `Base/UnflattenMonoidal`; together some
+   $bold(M)$ (`Bridge/BridgeCoherence`, `Base/UnflattenMonoidal`; together some
    seven hundred lines).],
   [*$sigma$*],
   [edge-free; $sigma$ is the generator $sigma_(A,B)$, so $"decode" ⟪sigma⟫$ is the $"permute"$ of
