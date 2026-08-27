@@ -31,7 +31,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
-  using (extract-prefix; extract-elem; edge-step; process-edges)
+  using (extract-prefix; extract-elem; edge-step; process-edges; process-edges-++)
 open import Categories.APROP.Hypergraph.Soundness.Stack.SeparableStack sig
   using (prefix-++ˡ-perm; extract-prefix-++ˡ; extract-prefix-++ˡ-nothing)
 
@@ -100,18 +100,14 @@ module StrictDecoder (H : Hypergraph FlatGen) where
     → Σ[ s' ∈ List (Fin H.nV) ] HomS (map vl s) (map vl s')
   process-edgesˢ es s = (process-edges H es s , run-termˢ es s)
 
-  -- STACK factoring over an order split: running `ps ++ rest` from `s`
-  -- leaves the same stack as running `rest` from the post-`ps` stack.  The
-  -- run recurses on the prefix, so this is a direct induction and the
-  -- per-edge term is irrelevant (refl-pure).  ONE kernel: the decoder
-  -- cluster uses this name, `EdgeStepRel.EdgeStepView` aliases it as
-  -- `++-stackˢ`.
+  -- STACK factoring over an order split — alias of the shared kernel
+  -- `Decode.process-edges-++` (the strict stack IS `process-edges`
+  -- definitionally).  `EdgeStepRel` re-exports it as `++-stackˢ`.
   pe-stack-++ˢ
     : ∀ (ps rest : List (Fin H.nE)) (s : List (Fin H.nV))
     → proj₁ (process-edgesˢ (ps ++ rest) s)
       ≡ proj₁ (process-edgesˢ rest (proj₁ (process-edgesˢ ps s)))
-  pe-stack-++ˢ []       rest s = refl
-  pe-stack-++ˢ (e ∷ ps) rest s = pe-stack-++ˢ ps rest (proj₁ (edge-stepˢ s e))
+  pe-stack-++ˢ = process-edges-++ H
 
   ------------------------------------------------------------------------
   -- Separability, stack level (the term-free half; same 12-line shape as

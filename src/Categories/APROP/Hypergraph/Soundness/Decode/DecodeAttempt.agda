@@ -51,17 +51,8 @@ decode-attempt-hVar
 decode-attempt-hVar x = Perm.↭-refl
 
 --------------------------------------------------------------------------------
--- `process-edges (xs ++ ys) s` factors as `process-edges ys` applied to the
--- result of `process-edges xs`.
-
-process-edges-++-stack
-  : (H : Hypergraph FlatGen)
-      (xs ys : List (Fin (Hypergraph.nE H)))
-      (s : List (Fin (Hypergraph.nV H)))
-  → process-edges H (xs ++ ys) s
-    ≡ process-edges H ys (process-edges H xs s)
-process-edges-++-stack H []       ys s = refl
-process-edges-++-stack H (e ∷ xs) ys s = process-edges-++-stack H xs ys (edge-step H s e)
+-- Alias of the shared factoring kernel `Decode.process-edges-++`.
+process-edges-++-stack = process-edges-++
 
 --------------------------------------------------------------------------------
 -- The per-edge decode lifting, once.

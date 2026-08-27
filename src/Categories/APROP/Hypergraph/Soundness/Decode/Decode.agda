@@ -109,3 +109,13 @@ module _ (H : Hypergraph FlatGen) where
     → List (Fin H.nV)
   process-all-edges = process-edges (range H.nE)
 
+  -- STACK factoring over an order split: running `xs ++ ys` from `s` equals
+  -- running `ys` from the post-`xs` stack.  THE one kernel: the non-strict
+  -- `DecodeAttempt.process-edges-++-stack` and the strict
+  -- `StrictDecoder.pe-stack-++ˢ` are both aliases of this induction.
+  process-edges-++
+    : ∀ (xs ys : List (Fin H.nE)) (s : List (Fin H.nV))
+    → process-edges (xs ++ ys) s ≡ process-edges ys (process-edges xs s)
+  process-edges-++ []       ys s = refl
+  process-edges-++ (e ∷ xs) ys s = process-edges-++ xs ys (edge-step s e)
+
