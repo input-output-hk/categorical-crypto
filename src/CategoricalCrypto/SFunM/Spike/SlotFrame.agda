@@ -21,22 +21,29 @@
 --
 -- Every proof body here is hand-rolled and is to be replaced by a `solveH!`
 -- call (`Categories.Coherence.Symmetric`) once the `string-diagram-solver`
--- branch is merged; the statements are the seam and stay fixed.  Evidence: the
--- σ-arm `solveMorσ!` takes 80% (branch `normaliser-litmus`), `solveH!` takes
--- 100% (branch `spike/sds-slotframe-probe` @ e6a28168).
+-- branch is merged; the statements are the seam and stay fixed.  Evidence:
+-- `solveH!` takes 100% (branch `spike/sds-slotframe-probe` @ e6a28168).
+--
+-- The σ arm the seam used to call is gone: the solver branch deleted the
+-- braided engine and front-end, keeping only the Mon arm.  Most of what the σ
+-- arm was doing here did not need it — a crossing that appears at the SAME
+-- arity on both sides of a goal is just an opaque box, so `solve-mor` (the
+-- reflection frontend of the Mon arm) still discharges it.  What it cannot do
+-- is relate a BLOCK crossing to the atomic ones it splits into: those are
+-- distinct boxes of different arity.  Hence `tuck-swapˡ`/`untuck-swapˡ` below
+-- are hexagons proved by hand from `σ-splitˡ`/`σ-splitʳ`, and `onL-slot₁`
+-- pre-splits with `onL-split` before handing the rest to the macro.
 
 open import Categories.Category
 open import Categories.Category.Monoidal
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
 import Categories.Category.Monoidal.Braided.Properties as BraidedProps
+import Categories.Category.Monoidal.Interchange.Braided as IntBraided
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
-open import Categories.Coherence.Monoidal.Frontend.Core
-open import Categories.Coherence.Monoidal.Frontend.Sigma
-open import Categories.Coherence.Monoidal.Sigma
-open import Categories.FreeMonoidal
-import Categories.Coherence.Monoidal as Coh
+open import Categories.Coherence.Monoidal using (module MorAtoms; module MorSolve)
+open import Categories.Coherence.Monoidal.Tactic using (solve-mor)
 
-open import Data.Fin using (Fin; zero; suc)
+open import Data.Fin using (#_)
 open import Data.Product using (_,_)
 open import Data.Vec using (_∷_; [])
 
@@ -56,6 +63,7 @@ open import Categories.Category.Monoidal.Properties monoidal
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Morphism.Reasoning U
 open BraidedProps braided using (braiding-coherence)
+open IntBraided braided using (swapInner-coherent)
 open MonoidalUtilities monoidal using (pentagon-inv; triangle-inv)
 
 private variable A A′ B B′ C C′ K₁ K₂ L P Q R S W W′ X Y Z : Obj
@@ -301,6 +309,13 @@ slot₂-slot₁ {h = h} = begin
 -- `Ω`-conjugation.
 swapˡ : P ⊗₀ (Q ⊗₀ X) ⇒ Q ⊗₀ (P ⊗₀ X)
 swapˡ = α⇒ ∘ σ⇒ ⊗₁ id ∘ α⇐
+
+-- `Ω` is upstream's four-middle-interchange: `Ω` is `swapInner′.from` and the
+-- right-hand side is `swapInner.from`, both definitionally, so this is exactly
+-- `swapInner-coherent`.  Only the same atomic crossing appears on the two
+-- sides, which is why no hexagon is involved.
+Ω≈swapInner : Ω {P} {Q} {X} {Z} ≈ α⇐ ∘ id ⊗₁ swapˡ ∘ α⇒
+Ω≈swapInner = ⟺ swapInner-coherent
 
 -- An action on the interface alone passes through `onRᵍ` untouched.
 onRᵍ-id⊗ : (h : W ⇒ W′) → onRᵍ {Q = Q} {P = P} (id ⊗₁ h) ≈ id ⊗₁ h
@@ -703,106 +718,24 @@ onR-sim {v = v} {w} {k} {k′} e = begin
     ≈⟨ cancelˡ σ⊗-inv ⟩
   onR k ∘ σ⇒ ⊗₁ id                        ∎
 
-------------------------------------------------------------------------
--- Solver terms mirroring the combinators of `Spike.Mealy`
-------------------------------------------------------------------------
-
--- The solver front-end wants the `MonoidalCategory` bundle.
+-- The reflection frontend wants the `MonoidalCategory` bundle.
 𝕄 : MonoidalCategory o ℓ e
 𝕄 = record { U = U ; monoidal = monoidal }
-
--- Five object atoms, and the DSL shapes of `Spike.Mealy`'s shuffles over one
--- generator.  The two setups below differ only in which state factor the
--- generator acts on, so they share `Shapes`.
-module SymTerms (P Q X Y Z : Obj) where
-  private module Impl = FinSetupσ 𝕄 symmetric (P ∷ Q ∷ X ∷ Y ∷ Z ∷ [])
-
-  open Impl public using (ObjTerm; V; _⊗ᵒ_)
-
-  p q x y z : ObjTerm
-  p = V zero
-  q = V (suc zero)
-  x = V (suc (suc zero))
-  y = V (suc (suc (suc zero)))
-  z = V (suc (suc (suc (suc zero))))
-
-  module Shapes (a b : ObjTerm) (g : Impl.⟦ a ⟧ₒ ⇒ Impl.⟦ b ⟧ₒ) where
-    open Coh.SymSolve 𝕄 symmetric (P ∷ Q ∷ X ∷ Y ∷ Z ∷ []) (((a , b) , g) ∷ []) public
-
-    k′ = gen zero
-
-    swpT : (u v w : ObjTerm) → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ w) ((u ⊗ᵒ w) ⊗ᵒ v)
-    swpT u v w = S.α⇐ S.∘ S.id S.⊗₁ S.σ {v} {w} S.∘ S.α⇒ {u} {v} {w}
-
-    tuckT : (u v w : ObjTerm) → S.HomTerm (u ⊗ᵒ (v ⊗ᵒ w)) ((u ⊗ᵒ w) ⊗ᵒ v)
-    tuckT u v w = S.α⇐ {u} {w} {v} S.∘ S.id {u} S.⊗₁ S.σ {v} {w}
-
-    untuckT : (u v w : ObjTerm) → S.HomTerm ((u ⊗ᵒ w) ⊗ᵒ v) (u ⊗ᵒ (v ⊗ᵒ w))
-    untuckT u v w = S.id {u} S.⊗₁ S.σ {w} {v} S.∘ S.α⇒ {u} {w} {v}
-
-    slot₁T : (u s t w : ObjTerm) → S.HomTerm (u ⊗ᵒ s) (u ⊗ᵒ t)
-           → S.HomTerm (u ⊗ᵒ (s ⊗ᵒ w)) (u ⊗ᵒ (t ⊗ᵒ w))
-    slot₁T u s t w h = S.α⇒ {u} {t} {w} S.∘ h S.⊗₁ S.id {w} S.∘ S.α⇐ {u} {s} {w}
-
-    slot₂T : (u s t w : ObjTerm) → S.HomTerm (u ⊗ᵒ s) (u ⊗ᵒ t)
-           → S.HomTerm (u ⊗ᵒ (w ⊗ᵒ s)) (u ⊗ᵒ (w ⊗ᵒ t))
-    slot₂T u s t w h = untuckT u w t S.∘ h S.⊗₁ S.id {w} S.∘ tuckT u w s
-
-    swapˡT : (u v w : ObjTerm) → S.HomTerm (u ⊗ᵒ (v ⊗ᵒ w)) (v ⊗ᵒ (u ⊗ᵒ w))
-    swapˡT u v w = S.α⇒ {v} {u} {w} S.∘ (S.σ {u} {v} S.⊗₁ S.id {w} S.∘ S.α⇐ {u} {v} {w})
-
-    ΩT : (u v s w : ObjTerm) → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ (s ⊗ᵒ w)) ((u ⊗ᵒ s) ⊗ᵒ (v ⊗ᵒ w))
-    ΩT u v s w = S.α⇒ {u ⊗ᵒ s} {v} {w} S.∘ swpT u v s S.⊗₁ S.id {w}
-                 S.∘ S.α⇐ {u ⊗ᵒ v} {s} {w}
-
-    Ω′T : (u v s w : ObjTerm) → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ (s ⊗ᵒ w)) ((u ⊗ᵒ s) ⊗ᵒ (v ⊗ᵒ w))
-    Ω′T u v s w = S.α⇐ {u} {s} {v ⊗ᵒ w}
-                  S.∘ (S.id {u} S.⊗₁ swapˡT v s w S.∘ S.α⇒ {u} {v} {s ⊗ᵒ w})
-
-    -- The two hexagon instances of `σ-splitˡ`/`σ-splitʳ`, as terms.
-    σsplitˡT : (u v w : ObjTerm) → S.HomTerm (u ⊗ᵒ (v ⊗ᵒ w)) ((v ⊗ᵒ w) ⊗ᵒ u)
-    σsplitˡT u v w = (S.α⇐ {v} {w} {u}
-                      S.∘ (S.id {v} S.⊗₁ S.σ {u} {w}
-                           S.∘ (S.α⇒ {v} {u} {w} S.∘ S.σ {u} {v} S.⊗₁ S.id {w})))
-                     S.∘ S.α⇐ {u} {v} {w}
-
-    σsplitʳT : (u v w : ObjTerm) → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ w) (w ⊗ᵒ (u ⊗ᵒ v))
-    σsplitʳT u v w = S.α⇒ {w} {u} {v}
-      S.∘ (((S.σ {u} {w} S.⊗₁ S.id {v} S.∘ S.α⇐ {u} {w} {v})
-            S.∘ S.id {u} S.⊗₁ S.σ {v} {w}) S.∘ S.α⇒ {u} {v} {w})
 
 -- One generator `k : P ⊗ X ⇒ P ⊗ Y`, four object atoms besides.
 module OneGen (P Q X Y Z : Obj) (k : P ⊗₀ X ⇒ P ⊗₀ Y) where
 
-  open SymTerms P Q X Y Z
-  open Shapes (p ⊗ᵒ x) (p ⊗ᵒ y) k
-
-  private
-    onLT : (u v s t : ObjTerm) → S.HomTerm (u ⊗ᵒ s) (u ⊗ᵒ t)
-         → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ s) ((u ⊗ᵒ v) ⊗ᵒ t)
-    onLT u v s t h = swpT u t v S.∘ h S.⊗₁ S.id {v} S.∘ swpT u v s
-
-  -- The left state factor acting on interface slot 1 is an `Ω`-conjugate: this
-  -- is the half of the interchange the solver decides.
+  -- The left state factor acting on interface slot 1 is an `Ω`-conjugate: the
+  -- same crossing `σ⇒ {Q} {X}` sits on both sides, so it is an opaque box and
+  -- the Mon arm decides the goal.
   slot₁-onL : slot₁ {Z = Z} (onL {Q = Q} k) ≈ Ω ∘ k ⊗₁ id ∘ Ω
-  slot₁-onL = solveMorσ! (slot₁T (p ⊗ᵒ q) x y z (onLT p q x y k′))
-                         (ΩT p y q z S.∘ k′ S.⊗₁ S.id {q ⊗ᵒ z} S.∘ ΩT p q x z)
+  slot₁-onL = solve-mor 𝕄
 
   -- Going the other way round, the padding comes out as `Z ⊗ Q` instead of
   -- `Q ⊗ Z` (`repad-σ`), and `onL` crosses `Q` with the whole interface block —
-  -- a crossing block the solver will not split, so `σ-splitˡ`/`σ-splitʳ` split
-  -- it by hand first and only then is the goal solver food.
+  -- a crossing block the macro cannot split, so `σ-splitˡ`/`σ-splitʳ` split it
+  -- by hand first and only then is the goal solver food.
   private
-    swpSplitˡT : (u v s w : ObjTerm)
-               → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ (s ⊗ᵒ w)) ((u ⊗ᵒ (s ⊗ᵒ w)) ⊗ᵒ v)
-    swpSplitˡT u v s w = S.α⇐ {u} {s ⊗ᵒ w} {v}
-      S.∘ (S.id {u} S.⊗₁ σsplitˡT v s w S.∘ S.α⇒ {u} {v} {s ⊗ᵒ w})
-
-    swpSplitʳT : (u s w v : ObjTerm)
-               → S.HomTerm ((u ⊗ᵒ (s ⊗ᵒ w)) ⊗ᵒ v) ((u ⊗ᵒ v) ⊗ᵒ (s ⊗ᵒ w))
-    swpSplitʳT u s w v = S.α⇐ {u} {v} {s ⊗ᵒ w}
-      S.∘ (S.id {u} S.⊗₁ σsplitʳT s w v S.∘ S.α⇒ {u} {s ⊗ᵒ w} {v})
-
     onL-split : {S₁ S₂ T₁ T₂ : Obj} (h : P ⊗₀ (S₁ ⊗₀ S₂) ⇒ P ⊗₀ (T₁ ⊗₀ T₂))
               → onL {Q = Q} h
               ≈ (α⇐ ∘ (id ⊗₁ (α⇒ ∘ (((σ⇒ ⊗₁ id ∘ α⇐) ∘ id ⊗₁ σ⇒) ∘ α⇒)) ∘ α⇒))
@@ -811,13 +744,39 @@ module OneGen (P Q X Y Z : Obj) (k : P ⊗₀ X ⇒ P ⊗₀ Y) where
     onL-split _ = (refl⟩∘⟨ refl⟩⊗⟨ σ-splitʳ ⟩∘⟨refl)
                     ⟩∘⟨ refl⟩∘⟨ (refl⟩∘⟨ refl⟩⊗⟨ σ-splitˡ ⟩∘⟨refl)
 
+    -- `solve-mor` cannot read this one: after the split the two sides mention
+    -- the same crossings, but the macro's object parser stores some of the
+    -- compound endpoints as fresh atoms and then sees one box at two arities.
+    -- Naming the four crossings as generators sidesteps the parse entirely.
     onL-slot₁ : onL {Q = Q} (slot₁ {Z = Z} k) ≈ (Ω ∘ id ⊗₁ σ⇒) ∘ k ⊗₁ id ∘ (id ⊗₁ σ⇒ ∘ Ω)
-    onL-slot₁ = onL-split (slot₁ k)
-      ○ solveMorσ! (swpSplitʳT p y z q S.∘ slot₁T p x y z k′ S.⊗₁ S.id {q}
-                    S.∘ swpSplitˡT p q x z)
-                   ((ΩT p y q z S.∘ S.id {p ⊗ᵒ y} S.⊗₁ S.σ {z} {q})
-                    S.∘ k′ S.⊗₁ S.id {z ⊗ᵒ q}
-                    S.∘ (S.id {p ⊗ᵒ x} S.⊗₁ S.σ {q} {z} S.∘ ΩT p q x z))
+    onL-slot₁ = onL-split (slot₁ k) ○
+      (let vs = P ∷ Q ∷ X ∷ Y ∷ Z ∷ []
+           open MorAtoms 𝕄 vs
+           open MorSolve 𝕄 vs
+                ( ((V (# 0) ⊗ᵒ V (# 2) , V (# 0) ⊗ᵒ V (# 3)) , k)
+                ∷ ((V (# 1) ⊗ᵒ V (# 2) , V (# 2) ⊗ᵒ V (# 1)) , σ⇒)
+                ∷ ((V (# 1) ⊗ᵒ V (# 4) , V (# 4) ⊗ᵒ V (# 1)) , σ⇒)
+                ∷ ((V (# 3) ⊗ᵒ V (# 1) , V (# 1) ⊗ᵒ V (# 3)) , σ⇒)
+                ∷ ((V (# 4) ⊗ᵒ V (# 1) , V (# 1) ⊗ᵒ V (# 4)) , σ⇒) ∷ [] )
+           p = V (# 0); q = V (# 1); x = V (# 2); y = V (# 3); z = V (# 4)
+           k′ = gen (# 0); σqx = gen (# 1); σqz = gen (# 2)
+           σyq = gen (# 3); σzq = gen (# 4)
+           -- `swp` at the two atom triples, and the two hexagon splits
+           swpᵢ = S.α⇐ S.∘ S.id {p} S.⊗₁ σqx S.∘ S.α⇒
+           swpₒ = S.α⇐ S.∘ S.id {p} S.⊗₁ σyq S.∘ S.α⇒
+           Ωᵢ = S.α⇒ S.∘ swpᵢ S.⊗₁ S.id {z} S.∘ S.α⇐
+           Ωₒ = S.α⇒ S.∘ swpₒ S.⊗₁ S.id {z} S.∘ S.α⇐
+           splitˡ = (S.α⇐ S.∘ (S.id {x} S.⊗₁ σqz S.∘ (S.α⇒ S.∘ σqx S.⊗₁ S.id {z})))
+                      S.∘ S.α⇐
+           splitʳ = S.α⇒ S.∘ (((σyq S.⊗₁ S.id {z} S.∘ S.α⇐) S.∘ S.id {y} S.⊗₁ σzq)
+                      S.∘ S.α⇒)
+           swpSplitˡ = S.α⇐ S.∘ (S.id {p} S.⊗₁ splitˡ S.∘ S.α⇒)
+           swpSplitʳ = S.α⇐ S.∘ (S.id {p} S.⊗₁ splitʳ S.∘ S.α⇒)
+           slot₁ᵀ = S.α⇒ S.∘ k′ S.⊗₁ S.id {z} S.∘ S.α⇐
+       in solveMor! (swpSplitʳ S.∘ slot₁ᵀ S.⊗₁ S.id {q} S.∘ swpSplitˡ)
+                    ((Ωₒ S.∘ S.id {p ⊗ᵒ y} S.⊗₁ σzq)
+                     S.∘ k′ S.⊗₁ S.id {z ⊗ᵒ q}
+                     S.∘ (S.id {p ⊗ᵒ x} S.⊗₁ σqz S.∘ Ωᵢ)))
 
   -- The interface slots commute with the left state factor's action.
   slot₁-onL-comm : slot₁ {Z = Z} (onL {Q = Q} k) ≈ onL (slot₁ k)
@@ -843,44 +802,62 @@ module OneGen (P Q X Y Z : Obj) (k : P ⊗₀ X ⇒ P ⊗₀ Y) where
   -- `Ω` agrees with upstream's `swapInner`, which braids inside the interface
   -- pair rather than the state pair.
   Ω≈Ω′ : Ω {P} {Q} {X} {Z} ≈ α⇐ ∘ id ⊗₁ swapˡ ∘ α⇒
-  Ω≈Ω′ = solveMorσ! (ΩT p q x z) (Ω′T p q x z)
+  Ω≈Ω′ = Ω≈swapInner
 
 -- The right state factor's actions commute with both interface slots.
 module OneGenʳ (P Q X Y Z : Obj) (k : Q ⊗₀ X ⇒ Q ⊗₀ Y) where
 
-  open SymTerms P Q X Y Z
-  open Shapes (q ⊗ᵒ x) (q ⊗ᵒ y) k
-
-  private
-    onRT : (u v s t : ObjTerm) → S.HomTerm (v ⊗ᵒ s) (v ⊗ᵒ t)
-         → S.HomTerm ((u ⊗ᵒ v) ⊗ᵒ s) ((u ⊗ᵒ v) ⊗ᵒ t)
-    onRT u v s t h = S.α⇐ {u} {v} {t} S.∘ S.id {u} S.⊗₁ h S.∘ S.α⇒ {u} {v} {s}
-
   slot₁-onR : slot₁ {Z = Z} (onR {P = P} k) ≈ onR (slot₁ k)
-  slot₁-onR = solveMorσ! (slot₁T (p ⊗ᵒ q) x y z (onRT p q x y k′))
-                         (onRT p q (x ⊗ᵒ z) (y ⊗ᵒ z) (slot₁T q x y z k′))
+  slot₁-onR = solve-mor 𝕄
 
   slot₂-onR : slot₂ {Z = Z} (onR {P = P} k) ≈ onR (slot₂ k)
-  slot₂-onR = solveMorσ! (slot₂T (p ⊗ᵒ q) x y z (onRT p q x y k′))
-                         (onRT p q (z ⊗ᵒ x) (z ⊗ᵒ y) (slot₂T q x y z k′))
+  slot₂-onR = solve-mor 𝕄
 
   private
     -- `tuck`/`untuck` route the interface pair past the state through a single
     -- block crossing; `swapˡ` routes it through two atomic ones, so these two
     -- are hexagon instances (hence `σ-splitˡ`/`σ-splitʳ` first).
     tuck-swapˡ : tuck {P = Q} {Q = Z} {R = X} ≈ σ⇒ ∘ swapˡ
-    tuck-swapˡ = solveMorσ! (tuckT q z x) (σsplitˡT z q x S.∘ swapˡT q z x)
-               ○ ⟺ (σ-splitˡ ⟩∘⟨refl)
+    tuck-swapˡ = ⟺ (begin
+      σ⇒ ∘ swapˡ
+        ≈⟨ σ-splitˡ ⟩∘⟨refl ⟩
+      ((α⇐ ∘ (id ⊗₁ σ⇒ ∘ (α⇒ ∘ σ⇒ ⊗₁ id))) ∘ α⇐) ∘ (α⇒ ∘ (σ⇒ ⊗₁ id ∘ α⇐))
+        ≈⟨ cancelInner associator.isoˡ ⟩
+      (α⇐ ∘ (id ⊗₁ σ⇒ ∘ (α⇒ ∘ σ⇒ ⊗₁ id))) ∘ (σ⇒ ⊗₁ id ∘ α⇐)
+        ≈⟨ (refl⟩∘⟨ sym-assoc) ⟩∘⟨refl ⟩
+      (α⇐ ∘ ((id ⊗₁ σ⇒ ∘ α⇒) ∘ σ⇒ ⊗₁ id)) ∘ (σ⇒ ⊗₁ id ∘ α⇐)
+        ≈⟨ sym-assoc ⟩∘⟨refl ⟩
+      ((α⇐ ∘ (id ⊗₁ σ⇒ ∘ α⇒)) ∘ σ⇒ ⊗₁ id) ∘ (σ⇒ ⊗₁ id ∘ α⇐)
+        ≈⟨ cancelInner σ⊗-inv ⟩
+      (α⇐ ∘ (id ⊗₁ σ⇒ ∘ α⇒)) ∘ α⇐
+        ≈⟨ sym-assoc ⟩∘⟨refl ⟩
+      ((α⇐ ∘ id ⊗₁ σ⇒) ∘ α⇒) ∘ α⇐
+        ≈⟨ cancelʳ associator.isoʳ ⟩
+      tuck ∎)
 
     untuck-swapˡ : untuck {P = Q} {R = Y} {Q = Z} ≈ swapˡ ∘ σ⇒
-    untuck-swapˡ = solveMorσ! (untuckT q z y) (swapˡT z q y S.∘ σsplitʳT q y z)
-                 ○ ⟺ (refl⟩∘⟨ σ-splitʳ)
+    untuck-swapˡ = ⟺ (begin
+      swapˡ ∘ σ⇒
+        ≈⟨ refl⟩∘⟨ σ-splitʳ ⟩
+      (α⇒ ∘ (σ⇒ ⊗₁ id ∘ α⇐)) ∘ (α⇒ ∘ (((σ⇒ ⊗₁ id ∘ α⇐) ∘ id ⊗₁ σ⇒) ∘ α⇒))
+        ≈⟨ sym-assoc ⟩∘⟨refl ⟩
+      ((α⇒ ∘ σ⇒ ⊗₁ id) ∘ α⇐) ∘ (α⇒ ∘ (((σ⇒ ⊗₁ id ∘ α⇐) ∘ id ⊗₁ σ⇒) ∘ α⇒))
+        ≈⟨ cancelInner associator.isoˡ ⟩
+      (α⇒ ∘ σ⇒ ⊗₁ id) ∘ (((σ⇒ ⊗₁ id ∘ α⇐) ∘ id ⊗₁ σ⇒) ∘ α⇒)
+        ≈⟨ refl⟩∘⟨ assoc ⟩
+      (α⇒ ∘ σ⇒ ⊗₁ id) ∘ ((σ⇒ ⊗₁ id ∘ α⇐) ∘ (id ⊗₁ σ⇒ ∘ α⇒))
+        ≈⟨ refl⟩∘⟨ assoc ⟩
+      (α⇒ ∘ σ⇒ ⊗₁ id) ∘ (σ⇒ ⊗₁ id ∘ (α⇐ ∘ (id ⊗₁ σ⇒ ∘ α⇒)))
+        ≈⟨ cancelInner σ⊗-inv ⟩
+      α⇒ ∘ (α⇐ ∘ (id ⊗₁ σ⇒ ∘ α⇒))
+        ≈⟨ cancelˡ associator.isoʳ ⟩
+      untuck ∎)
 
     Ω≈Ω′ᵢ : Ω {P} {Q} {Z} {X} ≈ α⇐ ∘ id ⊗₁ swapˡ ∘ α⇒
-    Ω≈Ω′ᵢ = solveMorσ! (ΩT p q z x) (Ω′T p q z x)
+    Ω≈Ω′ᵢ = Ω≈swapInner
 
     Ω≈Ω′ₒ : Ω {P} {Z} {Q} {Y} ≈ α⇐ ∘ id ⊗₁ swapˡ ∘ α⇒
-    Ω≈Ω′ₒ = solveMorσ! (ΩT p z q y) (Ω′T p z q y)
+    Ω≈Ω′ₒ = Ω≈swapInner
 
   -- Slot 2 acted on by the right state factor is a `swapˡ`-conjugate…
   slot₂-swapˡ : slot₂ {Z = Z} k ≈ swapˡ ∘ id ⊗₁ k ∘ swapˡ
