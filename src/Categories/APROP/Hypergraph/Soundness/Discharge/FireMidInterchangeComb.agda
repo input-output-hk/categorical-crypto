@@ -54,7 +54,6 @@ open import Data.Maybe.Ext using (nothing≢just)
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.Nat using (s≤s⁻¹) renaming (_≤_ to _≤ⁿ_; _<_ to _<ⁿ_; s≤s to s≤sⁿ; z≤n to z≤nⁿ)
 import Data.Nat.Properties as Nat
-open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Relation.Nullary using (¬_)
 

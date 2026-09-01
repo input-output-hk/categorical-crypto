@@ -38,7 +38,6 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟
 
 open import Data.Fin using (Fin)
 open import Data.Maybe using (just; nothing)
-open import Data.Product using (_,_; proj₁; proj₂)
 
 module EdgeStepView (H : Hypergraph FlatGen) where
   private module H = Hypergraph H

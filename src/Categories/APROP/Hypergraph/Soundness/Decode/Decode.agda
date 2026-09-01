@@ -37,7 +37,6 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 
 open import Data.Fin using (Fin)
 open import Data.Maybe using (Maybe; just; nothing)
-open import Data.Product using (_,_)
 
 --------------------------------------------------------------------------------
 -- Multiset search (hypergraph-independent).  `extract-elem`/`extract-prefix`

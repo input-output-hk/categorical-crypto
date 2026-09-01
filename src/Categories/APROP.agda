@@ -31,6 +31,16 @@ open import Relation.Binary.PropositionalEquality public
 open import Data.List public
   hiding (splitAt; zipWith)
 
+-- `Data.Product` likewise, for 36 of the openers, all with a `using` list;
+-- between them they need only `_,_`, `proj₁`, `proj₂`, `Σ`, `Σ-syntax`,
+-- `∃-syntax` and `_×_`.  Eight of the hidden names are the ones
+-- `categorical-crypto.Prelude` hides for this same module; `zip`/`zipWith`
+-- join them because the `Data.List` re-export above already binds them.
+-- NOTE this list is load bearing for that re-export: hiding `map` here is what
+-- leaves `Data.List.map`, which 25 scope modules use, unambiguous.
+open import Data.Product public
+  hiding (assocʳ; assocˡ; map; map₁; map₂; map₂′; swap; _<*>_; zip; zipWith)
+
 -- `Perm` as a re-exported module ALIAS: 36 of the 52 modules that blanket-open
 -- this one spell exactly
 -- `import Data.List.Relation.Binary.Permutation.Propositional as Perm`.

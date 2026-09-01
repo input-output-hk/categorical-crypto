@@ -51,7 +51,6 @@ open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List.Properties using (++-identityʳ; ++-assoc)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Nat using () renaming (_+_ to _+ⁿ_)
-open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open Perm using (_↭_)
 
 --------------------------------------------------------------------------------

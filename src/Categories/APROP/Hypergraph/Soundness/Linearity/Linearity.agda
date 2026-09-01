@@ -42,7 +42,6 @@ import Function as Fun
 open import Data.Nat using (ℕ; zero; suc; s≤s; z≤n; _+_)
 open import Data.Nat as Nat using ()
 import Data.Nat.Properties as Nat
-open import Data.Product using (_×_; _,_)
 open import Data.Sum using (inj₁; inj₂)
 open import Relation.Nullary.Decidable using (yes; no)
 

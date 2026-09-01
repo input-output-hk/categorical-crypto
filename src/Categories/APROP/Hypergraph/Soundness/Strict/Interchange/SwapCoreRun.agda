@@ -52,7 +52,6 @@ open import Data.List.Properties using (++-assoc; ++-identityʳ)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe.Properties using (just-injective)
 open import Data.Maybe.Ext using (nothing≢just)
-open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Nullary using (¬_; yes; no)
 
 --------------------------------------------------------------------------------

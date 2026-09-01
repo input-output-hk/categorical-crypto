@@ -30,7 +30,6 @@ open Kelly's using (coherence₃)
 -- naturality / interchange chases as single `solveMor!` calls at the free
 -- monoidal category itself (cf. `Base/UnflattenMonoidal.agda`).
 open import Categories.Coherence.Monoidal.Frontend using (module FinSetup)
-open import Data.Product using (_,_)
 open import Data.Fin.Patterns using (0F; 1F; 2F; 3F; 4F; 5F; 6F; 7F; 8F; 9F)
 import Data.Vec as Vec
 open import Data.List.Properties using (++-assoc; ++-identityʳ)

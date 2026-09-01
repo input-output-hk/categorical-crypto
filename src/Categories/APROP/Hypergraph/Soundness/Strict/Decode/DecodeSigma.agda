@@ -44,7 +44,6 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List.Properties using (++-identityʳ)
-open import Data.Product using (proj₁; proj₂)
 open Perm using (_↭_)
 
 --------------------------------------------------------------------------------

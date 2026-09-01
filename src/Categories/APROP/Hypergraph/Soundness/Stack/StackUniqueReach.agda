@@ -31,7 +31,6 @@ open import Data.Nat using (ℕ; zero; suc)
 open import Data.List.Properties using (map-++; concat-++; ++-assoc)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just; nothing)
-open import Data.Product using (_,_)
 
 open Perm using (_↭_)
 

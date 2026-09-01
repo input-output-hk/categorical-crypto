@@ -30,7 +30,6 @@ import Data.List.Relation.Unary.All.Properties     as ListAll-Prop
 import Data.List.Relation.Unary.AllPairs           as AllPairs
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
-open import Data.Product using (_,_)
 
 --------------------------------------------------------------------------------
 -- For identity hypergraphs, `dom ≡ cod` as lists (every `hId` branch uses

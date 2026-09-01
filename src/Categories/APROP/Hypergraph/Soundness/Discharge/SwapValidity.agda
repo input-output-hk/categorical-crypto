@@ -61,7 +61,6 @@ open import Data.Fin.Properties using (_≟_)
 open import Data.Maybe using (just; nothing)
 open import Data.Maybe.Properties using (just-injective)
 open import Data.Maybe.Ext using (nothing≢just)
-open import Data.Product using (_,_; proj₁; proj₂)
 open import Relation.Nullary using (¬_; yes; no)
 
 ------------------------------------------------------------------------

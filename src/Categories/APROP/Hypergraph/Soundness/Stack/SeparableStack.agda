@@ -38,7 +38,6 @@ open import Data.Fin using (Fin; _≟_)
 open import Data.List.Properties using (++-assoc)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
 open import Data.Maybe using (just; nothing)
-open import Data.Product using (_,_; ∃-syntax)
 open import Relation.Nullary.Decidable using (yes; no)
 
 --------------------------------------------------------------------------------

@@ -60,7 +60,6 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Iso.IsoTransport sig _≟X_ 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List.Properties using (++-assoc)
-open import Data.Product using (proj₁; proj₂)
 
 ------------------------------------------------------------------------
 -- Per-`f` data: the strict per-HG decoder at the translation `⟪f⟫`, and the
