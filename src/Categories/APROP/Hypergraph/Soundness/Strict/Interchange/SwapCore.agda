@@ -27,8 +27,9 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.EdgeStepRel sig _≟X_
   using (module EdgeStepView)
 
+import Categories.Combinatorics.LinearExtension as LinExt
+
 open import Data.Fin using (Fin)
-open import Relation.Nullary using (¬_)
 
 --------------------------------------------------------------------------------
 
@@ -45,10 +46,13 @@ module _ (H : Hypergraph FlatGen) where
   open EdgeStepView H public
 
   --------------------------------------------------------------------
-  -- Incomparability of two edges.
+  -- Incomparability of two edges — the order-theory kernel's `Incomp` at
+  -- this hypergraph's dependency relation, NOT a strict re-spelling: the
+  -- non-strict wiring (`IsoInvarianceWiring.PerHG`) re-exports the SAME
+  -- `LinExt.Incomp`, which is why `SwapStep.swap-validityˢ` can hand a
+  -- `swap-step`'s incomparability straight to `SwapValidity.swap-validity`.
   --------------------------------------------------------------------
 
-  Incomp : Fin H.nE → Fin H.nE → Set
-  Incomp e e' = (¬ Dep H e e') × (¬ Dep H e' e)
+  open LinExt (Fin H.nE) (Dep H) public using (Incomp)
 
 
