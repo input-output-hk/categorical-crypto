@@ -74,7 +74,7 @@ generator — the arities are `ObjTerm`s over the atoms, the interpretation a
 generators and the solver `solveMor!`, which discharges a goal between
 interpretations of front-end terms whose normal forms agree — handling
 monoidal coherence together with naturality and the interchange law for
-`_⊗₁_`/`_∘_`; see `Categories.GradedKleisli` for a call site. `rewriteMor!`
+`_⊗₁_`/`_∘_`; the example below is a call site. `rewriteMor!`
 and friends additionally fire a user-supplied equational rule in a context
 (`rewriteMorAuto!` locates it automatically); the `Rewrite` module of
 `Categories.Coherence.Monoidal.Test.Frontend` exercises that family.
@@ -89,9 +89,13 @@ to call `solveMor!`.
 The reflection macro `solve-mor C` (`Categories.Coherence.Monoidal.Tactic`)
 synthesises all of this — the atom vector, the generator signature, and both
 front-end terms — from the goal itself; use it when the goal is stated in
-`C`'s own vocabulary, and fall back to `MorSolve` where the goal's type is
-not determined at the call site (a component of a Σ whose record is still
-elaborating, say).
+`C`'s own vocabulary. The macro needs the goal's type to be determined at
+the call site. The common way to lose that is a record literal whose law
+fields' types apply sibling `λ where` fields (`_≈_`, `_∘_`): the siblings
+are still unchecked while the literal elaborates, so the law components'
+types stay stuck on them. Name those operations as top-level definitions —
+`Categories.GradedKleisli` does this for its category's operations — or
+hoist the equation as an ascribed lemma proved by the macro.
 
 ```agda
 module MorAtoms
