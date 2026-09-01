@@ -32,18 +32,7 @@ open import Data.Maybe using (just; nothing)
 -- Per-case lemmas, one per smart constructor of `FromAPROP`.  Each produces
 -- the *bare* totality witness — the permutation of `process-all-edges`'s
 -- final stack onto `H.cod` (what `decode-attempt`'s `just` payload always
--- was; the `Maybe`/`≡ just` wrapping was pre-demotion residue).  The
--- `hEmpty`/`hVar` base cases have `nE = 0` and `dom = cod`, so
--- `process-all-edges` reduces to `dom` and the witness is reflexivity.
-
-decode-attempt-hEmpty
-  : process-all-edges hEmpty (Hypergraph.dom hEmpty) Perm.↭ Hypergraph.cod hEmpty
-decode-attempt-hEmpty = Perm.↭-refl
-
-decode-attempt-hVar
-  : ∀ (x : X)
-  → process-all-edges (hVar x) (Hypergraph.dom (hVar x)) Perm.↭ Hypergraph.cod (hVar x)
-decode-attempt-hVar x = Perm.↭-refl
+-- was; the `Maybe`/`≡ just` wrapping was pre-demotion residue).
 
 --------------------------------------------------------------------------------
 -- The per-edge decode lifting, once.
@@ -425,13 +414,10 @@ decode-attempt-hTensor G K perm-G perm-K =
         ∎
 
 --------------------------------------------------------------------------------
--- `hId A`: structural recursion on `A`.
+-- `hId A`: `nE = 0` and `dom = cod` literally, so `process-all-edges`
+-- reduces to `dom` and the witness is reflexivity.
 
 decode-attempt-hId
   : ∀ (A : ObjTerm)
   → process-all-edges (hId A) (Hypergraph.dom (hId A)) Perm.↭ Hypergraph.cod (hId A)
-decode-attempt-hId unit       = decode-attempt-hEmpty
-decode-attempt-hId (Var x)    = decode-attempt-hVar x
-decode-attempt-hId (A ⊗₀ B)   =
-  decode-attempt-hTensor (hId A) (hId B)
-    (decode-attempt-hId A) (decode-attempt-hId B)
+decode-attempt-hId _ = Perm.↭-refl

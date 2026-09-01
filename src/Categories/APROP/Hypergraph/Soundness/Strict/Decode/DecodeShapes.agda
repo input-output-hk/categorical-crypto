@@ -206,9 +206,7 @@ module Atom {A B : ObjTerm} (f : HomTerm A B)
 -- graph, which has no edges and `dom ≡ cod`.
 
 hId-nE : ∀ A → Hypergraph.nE (hId A) ≡ 0
-hId-nE unit       = refl
-hId-nE (Var x)    = refl
-hId-nE (A ⊗₀ B)   = cong₂ _+ⁿ_ (hId-nE A) (hId-nE B)
+hId-nE _ = refl
 
 hId-dc : ∀ A → Hypergraph.dom (hId A) ≡ Hypergraph.cod (hId A)
 hId-dc A = sym (hId-cod≡dom A)

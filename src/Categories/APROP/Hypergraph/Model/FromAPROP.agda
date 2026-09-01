@@ -11,9 +11,7 @@
 -- lemmas at each constructor.
 --
 -- Smart constructors:
---   hEmpty      empty hypergraph
---   hVar x      single vertex (for `Var x`)
---   hId A       identity on a flattened object, recursive on A
+--   hId A       identity on a flattened object, edge-free
 --   hGen f      single edge for a user generator `mor A B`
 --   hTensor     disjoint union, boundary `domL G ++ domL K` /
 --                                          `codL G ++ codL K`
@@ -125,24 +123,6 @@ map-via : ∀ {m n : ℕ} {v : Fin m → X} {w : Fin n → X} {f : Fin m → Fin
         → (xs : List (Fin m))
         → map v xs ≡ map w (map f xs)
 map-via p xs = sym (map-∘-cong p xs)
-
---------------------------------------------------------------------------------
--- Empty hypergraph: no vertices, no edges, empty boundary.
-
-hEmpty : Hypergraph FlatGen
-hEmpty = record
-  { nV = 0; vlab = λ (); nE = 0
-  ; ein = λ (); eout = λ (); elab = λ ()
-  ; dom = []; cod = []
-  }
-
--- Single vertex hypergraph labeled `x`.
-hVar : (x : X) → Hypergraph FlatGen
-hVar x = record
-  { nV = 1; vlab = λ _ → x; nE = 0
-  ; ein = λ (); eout = λ (); elab = λ ()
-  ; dom = zero ∷ []; cod = zero ∷ []
-  }
 
 --------------------------------------------------------------------------------
 -- The coproduct edge structure, shared by the two binary composites: the
@@ -293,25 +273,30 @@ module _ (G K : Hypergraph FlatGen) where
 
 --------------------------------------------------------------------------------
 -- Identity on an ObjTerm: one fresh vertex per atom, no edges.
+--
+-- Defined DIRECTLY on the flattened atom list rather than by recursion
+-- through `hTensor`, so that `nE (hId A)` is literally `0` and
+-- `dom (hId A)` is literally `cod (hId A)` for an ABSTRACT `A`.  Every
+-- consumer of the five structural atoms (`id`, the four unitors, the two
+-- associators all translate to some `hId`) therefore gets its edge-free
+-- and `dom ≡ cod` facts by `refl` instead of by a parallel induction on
+-- `A` (`Invariant.hId-cod≡dom`, `DecodeShapes.hId-nE`,
+-- `FinOrderNoInv.NoInvH-hId`/`NoSelfDep-hId`, `DecodeAttempt.decode-
+-- attempt-hId`, `Linearity.Linear-hId`).
 
 hId : ObjTerm → Hypergraph FlatGen
-hId unit = hEmpty
-hId (Var x) = hVar x
-hId (A ⊗₀ B) = hTensor (hId A) (hId B)
+hId A = record
+  { nV = length (flatten A); vlab = lookup (flatten A); nE = 0
+  ; ein = λ (); eout = λ (); elab = λ ()
+  ; dom = range (length (flatten A))
+  ; cod = range (length (flatten A))
+  }
 
 domL-hId : ∀ A → domL (hId A) ≡ flatten A
-domL-hId unit       = refl
-domL-hId (Var x)    = refl
-domL-hId (A ⊗₀ B)   =
-  trans (domL-hTensor (hId A) (hId B))
-        (cong₂ _++_ (domL-hId A) (domL-hId B))
+domL-hId A = map-lookup-range (flatten A)
 
 codL-hId : ∀ A → codL (hId A) ≡ flatten A
-codL-hId unit       = refl
-codL-hId (Var x)    = refl
-codL-hId (A ⊗₀ B)   =
-  trans (codL-hTensor (hId A) (hId B))
-        (cong₂ _++_ (codL-hId A) (codL-hId B))
+codL-hId A = map-lookup-range (flatten A)
 
 --------------------------------------------------------------------------------
 -- Shared interface labeling for `hGen` and `hSwap`: vertices = flatten A ++

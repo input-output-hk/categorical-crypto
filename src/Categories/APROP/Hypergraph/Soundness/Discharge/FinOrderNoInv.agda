@@ -41,10 +41,8 @@
 -- The translation's smart constructors lay edges in a topologically-sound
 -- order, so both facts follow constructor-by-constructor:
 --
---   * `hId`-shaped cases (`id`, `λ`, `ρ`, `α`): `nE (hId A)` is not literally
---     `0` for an abstract `A`, so `NoInvH-hId`/`NoSelfDep-hId` recurse on `A`
---     (`hEmpty`/`hVar` have `nE = 0`; `A ⊗₀ B` is the tensor case).
---   * `σ`: `nE (hSwap A B) = 0` literally ⇒ `range 0 = []`.
+--   * `hId`-shaped cases (`id`, `λ`, `ρ`, `α`) and `σ`: `nE` is literally `0`
+--     ⇒ `range 0 = []` and `Dep` is vacuous.
 --   * Single-edge `Agen g`: `range 1`'s singleton has no pairs; on the
 --     diagonal, `ein`/`eout` are disjoint `_↑ˡ_`/`_↑ʳ_` images.
 --   * Tensor `f ⊗₁ g`: `hTensor` lays G-edges (`injL = _↑ˡ_`) before K-edges
@@ -153,9 +151,9 @@ splitE {m} {n} P pl pr e = subst P (join-splitAt m n e) (go (splitAt m e))
     go (inj₂ b) = pr b
 
 --------------------------------------------------------------------------------
--- ## `NoSelfDep` for the single edge.  The zero-edge shapes (`hEmpty`,
--- `hVar`, `hSwap`) need no lemma: `Dep` is vacuous there, and the two
--- inductions below discharge them by an absurd pattern in place.
+-- ## `NoSelfDep` for the single edge.  The zero-edge shapes (`hId`, `hSwap`)
+-- need no lemma: `Dep` is vacuous there, and the two inductions below
+-- discharge them by an absurd pattern in place.
 
 -- `hGen f`: the unique edge has `ein` of `_↑ˡ_` form and `eout` of `_↑ʳ_`
 -- form, disjoint by `Inv.↑ˡ≢↑ʳ`.
@@ -355,25 +353,6 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
            (λ _ d → G-nd (compose-GG-reflect d)) (λ _ d → K-nd (compose-KK-reflect d)) e
 
 --------------------------------------------------------------------------------
--- ## `hId A` has no inversions.
---
--- `nE (hId A)` is not literally `0` for an abstract `A` (it is
--- `nE (hId A₁) + nE (hId A₂)` for a tensor), so we recurse: the base cases
--- (`hEmpty`/`hVar`) are literally `nE = 0` ⇒ `range 0 = []`, and the
--- `A ⊗₀ B` case is `hTensor (hId A) (hId B)` handled by the tensor assembly.
-
-NoInvH-hId : ∀ A → NoInvH (hId A) (range (Hypergraph.nE (hId A)))
-NoInvH-hId unit      = []
-NoInvH-hId (Var x)   = []
-NoInvH-hId (A ⊗₀ B)  =
-  subst (NoInvH (hTensor (hId A) (hId B)))
-        (sym (range-++ (Hypergraph.nE (hId A)) (Hypergraph.nE (hId B))))
-        (NoInvH-tensor (hId A) (hId B)
-          (range (Hypergraph.nE (hId A)))
-          (range (Hypergraph.nE (hId B)))
-          (NoInvH-hId A) (NoInvH-hId B))
-
---------------------------------------------------------------------------------
 -- ## The structural induction.
 --
 -- For every `f`, `NoInvH ⟪ f ⟫ (range (nE ⟪ f ⟫))`.
@@ -385,8 +364,8 @@ fin-order-NoInv-⟪⟫ =
   HomTermRec (λ H → NoInvH H (range (Hypergraph.nE H)))
     -- Single edge: `nE = 1`, `range 1 = zero ∷ []`; the singleton has no pairs.
     (λ _ → [] ∷ [])
-    -- Zero-edge `hId`-shaped cases, via `NoInvH-hId`.
-    NoInvH-hId
+    -- Zero-edge `hId`-shaped cases: `nE (hId A) = 0` ⇒ `range 0 = []`.
+    (λ _ → [])
     -- Composition: `⟪ g ∘ f ⟫ = hComposeP ⟪ f ⟫ ⟪ g ⟫ bdy`.  Split
     -- `range (G.nE + K.nE)` via `range-++` and reuse the IHs.
     (λ f g nf ng →
@@ -406,10 +385,7 @@ fin-order-NoInv-⟪⟫ =
 -- ## The same induction on the diagonal: `NoSelfDep ⟪ f ⟫`.
 
 NoSelfDep-hId : ∀ A → NoSelfDep (hId A)
-NoSelfDep-hId unit      {()}
-NoSelfDep-hId (Var x)   {()}
-NoSelfDep-hId (A ⊗₀ B)  {e} =
-  NoSelfDep-tensor (hId A) (hId B) (NoSelfDep-hId A) (NoSelfDep-hId B) {e}
+NoSelfDep-hId _ {()}
 
 dep-irrefl-⟪⟫ : ∀ {A B} (f : HomTerm A B) → NoSelfDep ⟪ f ⟫
 dep-irrefl-⟪⟫ =

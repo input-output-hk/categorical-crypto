@@ -29,7 +29,8 @@
 -- decoder would emit a `permute Perm.refl`-flavoured `id ⊗₁ (id ⊗₁ …)` tower
 -- of `O(nV)` `id`s.  That tower translates (`⟪_⟫`) to edge-free `hId`s that are
 -- *pruned* at the `hComposeP` seam, so dropping it leaves the translated
--- graph of the emitted frame IDENTICAL.
+-- graph of the emitted frame isomorphic (identical up to the `range-++`
+-- reindexing of the identity block's vertices).
 -- We therefore emit a single `id` (well-typed by the `refl` from the `≟`),
 -- collapsing the bulk identity padding.  A *non*-identity permutation never
 -- passes the `≟` guard, so it is never collapsed.

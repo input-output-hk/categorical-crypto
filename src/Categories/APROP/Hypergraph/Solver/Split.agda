@@ -202,11 +202,14 @@ private
 
   -- Recognise a *fully identity* term: syntactically `id`, or a tensor whose
   -- both sides are themselves fully identity.  Returns `A ≡ B` (the endpoints
-  -- coincide).  `⟪ id{A} ⊗₁ id{B} ⟫` and `⟪ id{A⊗B} ⟫` both reduce to
-  -- `hTensor (hId A) (hId B)`, so collapsing an all-identity tensor leaf to a
-  -- single `id` leaves the translated graph IDENTICAL — used below to spare
-  -- the gate the per-leaf `hTensor` tower that `permute`'s `id ⊗₁ …` padding
-  -- otherwise emits.
+  -- coincide).  `⟪ id{A} ⊗₁ id{B} ⟫ = hTensor (hId A) (hId B)` and
+  -- `⟪ id{A⊗B} ⟫ = hId (A ⊗₀ B)` are both edge-free on `flatten A ++
+  -- flatten B` with `dom = cod`, and differ only by the `Invariant.range-++`
+  -- reindexing of those vertices — ISOMORPHIC, which is all the downstream
+  -- `findIsoᵀ`/`Verify` gate asks.  So collapsing an all-identity tensor leaf
+  -- to a single `id` leaves the gate's verdict unchanged, and spares it the
+  -- per-leaf `hTensor` tower that `permute`'s `id ⊗₁ …` padding otherwise
+  -- emits.
   isIdᵗ : ∀ {A B} → HomTerm A B → Maybe (A ≡ B)
   isIdᵗ id        = just refl
   isIdᵗ (f ⊗₁ g) with isIdᵗ f | isIdᵗ g

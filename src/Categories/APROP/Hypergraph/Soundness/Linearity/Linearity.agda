@@ -27,7 +27,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using ( FlatGen; flatten; range
-        ; hEmpty; hVar; hId; hGen; hSwap; hTensor
+        ; hId; hGen; hSwap; hTensor
         ; module hTensor-impl; module hGenSwap-impl)
 open import Categories.APROP.Hypergraph.Model.Invariant sig using (↑ˡ≢↑ʳ; range-++)
 
@@ -300,12 +300,6 @@ Linear-hTensor G K (G-bal , G-bnd) (K-bal , K-bnd) = balance , bound
 --------------------------------------------------------------------------------
 -- Base cases.
 
-Linear-hEmpty : Linear hEmpty
-Linear-hEmpty = (λ ()) , (λ ())
-
-Linear-hVar : ∀ x → Linear (hVar x)
-Linear-hVar x = (λ { zero → refl }) , (λ { zero → s≤s z≤n })
-
 -- Symmetry: `dom = Lblk ++ Rblk`, `cod = Rblk ++ Lblk`, no edges.  Both sides
 -- count `Lblk`/`Rblk` once each, just permuted; bound by `count-LL-RR-eq-1`.
 Linear-hSwap : ∀ A B → Linear (hSwap A B)
@@ -334,8 +328,11 @@ Linear-hGen {A} {B} _ = balance , bound
     bound : ∀ v → count v (Lblk ++ (Rblk ++ [])) Nat.≤ 1
     bound v rewrite ++-identityʳ Rblk | count-LL-RR-eq-1 nA nB v = s≤s z≤n
 
+-- Identity: no edges, `dom = cod = range (length (flatten A))`, in which
+-- every vertex occurs exactly once (`count-range`).
 Linear-hId : ∀ A → Linear (hId A)
-Linear-hId unit       = Linear-hEmpty
-Linear-hId (Var x)    = Linear-hVar x
-Linear-hId (A ⊗₀ B)   = Linear-hTensor (hId A) (hId B) (Linear-hId A) (Linear-hId B)
+Linear-hId A = (λ _ → refl) , bound
+  where
+    bound : ∀ v → count v (range (length (flatten A)) ++ []) Nat.≤ 1
+    bound v rewrite ++-identityʳ (range (length (flatten A))) | count-range v = s≤s z≤n
 

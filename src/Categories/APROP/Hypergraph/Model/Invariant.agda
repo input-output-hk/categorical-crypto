@@ -31,16 +31,11 @@ open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
 
 --------------------------------------------------------------------------------
--- For identity hypergraphs, `dom ≡ cod` as lists (every `hId` branch uses
--- the same Fin-list on both sides).
+-- For identity hypergraphs, `dom ≡ cod` as lists — literally the same
+-- `range (length (flatten A))` on both sides.
 
 hId-cod≡dom : ∀ A → Hypergraph.cod (hId A) ≡ Hypergraph.dom (hId A)
-hId-cod≡dom unit      = refl
-hId-cod≡dom (Var x)   = refl
-hId-cod≡dom (A ⊗₀ B)  =
-  cong₂ _++_
-    (cong (map (_↑ˡ Hypergraph.nV (hId B))) (hId-cod≡dom A))
-    (cong (map (Hypergraph.nV (hId A) ↑ʳ_)) (hId-cod≡dom B))
+hId-cod≡dom _ = refl
 
 --------------------------------------------------------------------------------
 -- injectivity of `_↑ˡ_`/`_↑ʳ_` and element-level disjointness of their images:
