@@ -101,15 +101,12 @@ module _ {A B : ObjTerm} (f : HomTerm A B) where
       res-full : SUR.Reservoir≤1 F (ps ++ e' ∷ e ∷ qs) (Hypergraph.dom F)
       res-full = SUR.dom-reservoir-prov F (proj₂ lin) (ps ++ e' ∷ e ∷ qs) prov
 
-      assoc-eq : ps ++ e' ∷ e ∷ qs ≡ (ps ++ e' ∷ e ∷ []) ++ qs
-      assoc-eq = sym (++-assoc ps (e' ∷ e ∷ []) qs)
-
       -- prefix drop of `qs`, after re-bracketing.
       res-empty-tail : SUR.Reservoir≤1 F (ps ++ e' ∷ e ∷ []) (Hypergraph.dom F)
       res-empty-tail =
         SUR.reservoir-prefix F (ps ++ e' ∷ e ∷ []) qs (Hypergraph.dom F)
           (subst (λ z → SUR.Reservoir≤1 F z (Hypergraph.dom F))
-                 assoc-eq res-full)
+                 (sym (++-assoc ps (e' ∷ e ∷ []) qs)) res-full)
 
       -- the empty-tail two-edge interchange (UNCONDITIONAL).
       ri₀ = FMD.run-interchange₀ˢ F lin ps inc res-empty-tail
@@ -176,9 +173,7 @@ decodePˢ-resp-iso : ∀ {A B} (f g : HomTerm A B) → ⟪ f ⟫ ≅ᴴ ⟪ g �
 decodePˢ-resp-iso f g iso =
   -- No transport is needed: the boundary lemma's statement IS the goal up to
   -- unfolding `decodePˢ` into `castˢ (⟪⟫-domL _) (⟪⟫-codL _) (decodeOrdˢ …)`.
-  B.decodeOrdˢ-boundary-resp-≈ (vrangeˢ f) (vrangeˢ g) vH wiring≈
+  B.decodeOrdˢ-boundary-resp-≈ (vrangeˢ f) (vrangeˢ g) (proj₁ res) (proj₂ res)
   where
     module B = Boundary f g iso
     res = IT.decode-ordˢ-resp-iso f g iso (run-interchange-H f) (vrangeˢ g)
-    vH      = proj₁ res
-    wiring≈ = proj₂ res
