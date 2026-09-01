@@ -82,25 +82,16 @@ private
          → is-just (findIso ⟪ f ⟫ ⟪ g ⟫) ≡ true → f ≈Term g
   solve! f g ok = soundness {f = f} {g = g} (force! (findIso ⟪ f ⟫ ⟪ g ⟫) ok)
 
-  -- the solver obligations, on the balanced spellings
-  ob₀ᵇ : ρ₁R₀ᵇ ≈Term L₀ᵇ
-  ob₀ᵇ = solve! ρ₁R₀ᵇ L₀ᵇ refl
-
-  ob₁ᵇ : ρ₂R₁ᵇ ≈Term L₁ρ₁ᵇ
-  ob₁ᵇ = solve! ρ₂R₁ᵇ L₁ρ₁ᵇ refl
-
-  ob₂ᵇ : R₂ᵇ ≈Term L₂ρ₂ᵇ
-  ob₂ᵇ = solve! R₂ᵇ L₂ρ₂ᵇ refl
-
--- the obligations at the segment statements (pure-assoc bridges)
+-- the obligations at the segment statements: pure-assoc bridges around the
+-- solver obligation on the balanced spellings
 ob₀ : (ρ₁ᵗ ∘ R₀ᵗ) ≈Term L₀ᵗ
-ob₀ = stepR! (ρ₁ᵗ ∘ R₀ᵗ) ρ₁R₀ᵇ refl ○ ob₀ᵇ ○ stepR! L₀ᵇ L₀ᵗ refl
+ob₀ = stepR! (ρ₁ᵗ ∘ R₀ᵗ) ρ₁R₀ᵇ refl ○ solve! ρ₁R₀ᵇ L₀ᵇ refl ○ stepR! L₀ᵇ L₀ᵗ refl
 
 ob₁ : (ρ₂ᵗ ∘ R₁ᵗ) ≈Term (L₁ᵗ ∘ ρ₁ᵗ)
-ob₁ = stepR! (ρ₂ᵗ ∘ R₁ᵗ) ρ₂R₁ᵇ refl ○ ob₁ᵇ ○ stepR! L₁ρ₁ᵇ (L₁ᵗ ∘ ρ₁ᵗ) refl
+ob₁ = stepR! (ρ₂ᵗ ∘ R₁ᵗ) ρ₂R₁ᵇ refl ○ solve! ρ₂R₁ᵇ L₁ρ₁ᵇ refl ○ stepR! L₁ρ₁ᵇ (L₁ᵗ ∘ ρ₁ᵗ) refl
 
 ob₂ : R₂ᵗ ≈Term (L₂ᵗ ∘ ρ₂ᵗ)
-ob₂ = stepR! R₂ᵗ R₂ᵇ refl ○ ob₂ᵇ ○ stepR! L₂ρ₂ᵇ (L₂ᵗ ∘ ρ₂ᵗ) refl
+ob₂ = stepR! R₂ᵗ R₂ᵇ refl ○ solve! R₂ᵇ L₂ρ₂ᵇ refl ○ stepR! L₂ρ₂ᵇ (L₂ᵗ ∘ ρ₂ᵗ) refl
 
 -- The assembled segment-level equality: the standard three-square paste.
 segments : (R₂ᵗ ∘ R₁ᵗ ∘ R₀ᵗ) ≈Term (L₂ᵗ ∘ L₁ᵗ ∘ L₀ᵗ)
