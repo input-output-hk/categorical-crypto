@@ -232,10 +232,8 @@ private
   repad : ∀ {A B P Q} (place : ObjTerm → ObjTerm)
         → (∀ k → List (Peel k place)) → Foc A B P Q
         → List (Foc A B (place P) (place Q))
-  repad {P = P} {Q = Q} place peels (k , pre , post) = map step (peels k)
-    where
-      step : Peel k place → Foc _ _ _ _
-      step (k₁ , r , u) = k₁ , r P ∘ pre , post ∘ u Q
+  repad {P = P} {Q = Q} place peels (k , pre , post) =
+    map (λ { (k₁ , r , u) → k₁ , r P ∘ pre , post ∘ u Q }) (peels k)
 
   repadR : ∀ {A B P Q} (w : X) → Foc A B P Q → List (Foc A B (P ⊗₀ Var w) (Q ⊗₀ Var w))
   repadR w = repad (λ Xo → Xo ⊗₀ Var w)
