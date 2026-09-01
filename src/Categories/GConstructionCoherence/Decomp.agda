@@ -52,41 +52,5 @@ lhs-decomp =
   ⊕ stepR! lC (L₂ᵗ ∘ L₁ᵗ ∘ L₀ᵗ) refl  -- pure assoc regroup
 
 -- ===== rhs ==================================================================
-private
-  rA rB rB' rC rC' rD rD' rE rE' rF : HomTerm Dom Cod
-  -- pure assoc of rhsᵗ
-  rA  = (αᵗ ⊗₁ id) ∘ (α⇐ ∘ ((id ⊗₁ k₀ᵗ) ∘ (α⇒ ∘ (((h' ⊗₁ id ∘ γᵗ) ⊗₁ id)))))
-  -- leaf: expand (h'⊗id ∘ γ)⊗id
-  rB  = (αᵗ ⊗₁ id) ∘ (α⇐ ∘ ((id ⊗₁ k₀ᵗ) ∘ (α⇒ ∘ ((((h' ⊗₁ id) ⊗₁ id) ∘ (γᵗ ⊗₁ id))))))
-  -- assoc: isolate the (α⇒ ∘ h-layer) unit against γᵗ⊗id
-  rB' = (αᵗ ⊗₁ id) ∘ (α⇐ ∘ ((id ⊗₁ k₀ᵗ) ∘ ((α⇒ ∘ ((h' ⊗₁ id) ⊗₁ id)) ∘ (γᵗ ⊗₁ id))))
-  -- leaf: float h' above α⇒
-  rC  = (αᵗ ⊗₁ id) ∘ (α⇐ ∘ ((id ⊗₁ k₀ᵗ) ∘ (((h' ⊗₁ id) ∘ α⇒) ∘ (γᵗ ⊗₁ id))))
-  -- assoc: pair (id⊗k₀ ∘ h'⊗id) against (α⇒ ∘ γᵗ⊗id)
-  rC' = (αᵗ ⊗₁ id) ∘ (α⇐ ∘ (((id ⊗₁ k₀ᵗ) ∘ (h' ⊗₁ id)) ∘ (α⇒ ∘ (γᵗ ⊗₁ id))))
-  -- leaf: interchange h' past id⊗k₀
-  rD  = (αᵗ ⊗₁ id) ∘ (α⇐ ∘ (((h' ⊗₁ id) ∘ (id ⊗₁ k₀ᵗ)) ∘ (α⇒ ∘ (γᵗ ⊗₁ id))))
-  -- assoc: pair (α⇐ ∘ h'⊗id) against the rest
-  rD' = (αᵗ ⊗₁ id) ∘ ((α⇐ ∘ (h' ⊗₁ id)) ∘ ((id ⊗₁ k₀ᵗ) ∘ (α⇒ ∘ (γᵗ ⊗₁ id))))
-  -- leaf: float h' above α⇐
-  rE  = (αᵗ ⊗₁ id) ∘ ((((h' ⊗₁ id) ⊗₁ id) ∘ α⇐) ∘ ((id ⊗₁ k₀ᵗ) ∘ (α⇒ ∘ (γᵗ ⊗₁ id))))
-  -- assoc: re-nest so id⊗k₀ is the isolated unit
-  rE' = (αᵗ ⊗₁ id) ∘ (((h' ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ ((id ⊗₁ k₀ᵗ) ∘ (α⇒ ∘ (γᵗ ⊗₁ id)))))
-  -- leaf: expand id⊗k₀
-  rF  = (αᵗ ⊗₁ id) ∘ (((h' ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘
-          (((id ⊗₁ αᵗ) ∘ ((id ⊗₁ (g' ⊗₁ id)) ∘ ((id ⊗₁ (id ⊗₁ f')) ∘ (id ⊗₁ γᵗ))))
-           ∘ (α⇒ ∘ (γᵗ ⊗₁ id)))))
-
 rhs-decomp : rhsᵗ ≈Term (R₂ᵗ ∘ R₁ᵗ ∘ R₀ᵗ)
-rhs-decomp =
-      stepR! rhsᵗ rA refl
-  ⊕ step! rA rB refl
-  ⊕ stepR! rB rB' refl
-  ⊕ step! rB' rC refl
-  ⊕ stepR! rC rC' refl
-  ⊕ step! rC' rD refl
-  ⊕ stepR! rD rD' refl
-  ⊕ step! rD' rE refl
-  ⊕ stepR! rE rE' refl
-  ⊕ step! rE' rF refl
-  ⊕ stepR! rF (R₂ᵗ ∘ R₁ᵗ ∘ R₀ᵗ) refl
+rhs-decomp = stepR! rhsᵗ (R₂ᵗ ∘ R₁ᵗ ∘ R₀ᵗ) refl
