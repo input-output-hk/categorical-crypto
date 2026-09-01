@@ -41,6 +41,7 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig as IW
 import Categories.APROP.Hypergraph.Soundness.Discharge.SwapValidity sig as SV
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig using (Linear⇒cod-Unique)
+import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig _≟X_ as SC
@@ -79,13 +80,15 @@ module PerHG (H : Hypergraph FlatGen)
   Incompˢ = SC.Incomp H
 
   -- The (N) residual as a NAMED telescope: for any orders `ps`/`qs` and any
-  -- incomparable adjacent pair carrying the `↭ range nE` provenance, the
-  -- strict run-interchange.  `swap-≈ˢ` below, `Iso.IsoTransport` (twice) and
-  -- `PartII`'s plug all state this socket BY NAME, so it cannot drift.
+  -- incomparable adjacent pair carrying the swap-order RESERVOIR, the strict
+  -- run-interchange.  `swap-≈ˢ` below, `Iso.IsoTransport` (twice) and
+  -- `PartII`'s plug all state this socket BY NAME, so it cannot drift.  The
+  -- reservoir — not the raw `↭ range nE` — is the currency, because both
+  -- halves of the socket need it: `dom-reservoir-prov` runs once, below.
   RunInterchangeAt : Set
   RunInterchangeAt =
     ∀ (ps qs : Order) {e e' : Fin H.nE} (inc : Incompˢ e e')
-    → (ps ++ e' ∷ e ∷ qs) Perm.↭ range H.nE
+    → SUR.Reservoir≤1 H (ps ++ e' ∷ e ∷ qs) H.dom
     → RunInterchangeˢ H lin ps qs inc
 
   --------------------------------------------------------------------
@@ -256,9 +259,13 @@ module _ (H : Hypergraph FlatGen)
         (decodeOrdˢ-factor ps (e ∷ e' ∷ qs) p₁)
         (≈-trans
           (∘-resp (front-swap-≈ˢ ps qs inc
-                     (run-interchange ps qs inc o₂↭range) p₁ p₂)
+                     (run-interchange ps qs inc res₂) p₁ p₂)
                   ≈-refl)
           (≈-sym (decodeOrdˢ-factor ps (e' ∷ e ∷ qs) p₂)))
       where
         o₂↭range : (ps ++ e' ∷ e ∷ qs) Perm.↭ range (Hypergraph.nE H)
         o₂↭range = Perm.↭-trans (PermProp.++⁺ˡ ps (Perm.swap e' e Perm.refl)) o₁↭range
+
+        -- the swap-order reservoir: the socket's currency, produced HERE.
+        res₂ : SUR.Reservoir≤1 H (ps ++ e' ∷ e ∷ qs) (Hypergraph.dom H)
+        res₂ = SUR.dom-reservoir-prov H (proj₂ lin) (ps ++ e' ∷ e ∷ qs) o₂↭range

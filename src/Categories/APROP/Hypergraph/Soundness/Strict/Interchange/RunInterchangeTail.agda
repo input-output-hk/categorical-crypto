@@ -33,7 +33,7 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunInterchangeTa
   where
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
-open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
@@ -89,9 +89,9 @@ module _ (H : Hypergraph FlatGen)
   -- `process-edges-equivariantˢ` needs a `Reservoir≤1 H qs B` freshness
   -- invariant on the permuted tail-input stack `B = pe-stackˢ (e'∷e∷[]) sp`.
   -- We descend it from the GLOBAL reservoir on `H.dom` over the combined
-  -- order — the *bound* half of `Linear H` specialised to that order
-  -- (`dom-reservoir-prov`), TRUE because the order is a PERMUTATION of
-  -- `range nE`.
+  -- order, which the socket hands us: `SwapStep.RunInterchangeAt` is the
+  -- one place `dom-reservoir-prov` turns the `↭ range nE` provenance into
+  -- that reservoir, so it is produced once for both halves of the socket.
   ----------------------------------------------------------------------
 
   -- `pe-stackˢ` IS `(process-edges …)` definitionally: the strict run is
@@ -101,12 +101,11 @@ module _ (H : Hypergraph FlatGen)
 
   tail-reservoir
     : ∀ (ps qs : List (Fin H.nE)) (e e' : Fin H.nE)
-    → (ps ++ e' ∷ e ∷ qs) Perm.↭ range H.nE
+    → SUR.Reservoir≤1 H (ps ++ e' ∷ e ∷ qs) H.dom
     → SUR.Reservoir≤1 H qs (pe-stackˢ (e' ∷ e ∷ []) (pe-stackˢ ps H.dom))
-  tail-reservoir ps qs e e' prov =
+  tail-reservoir ps qs e e' res =
     SUR.reservoir-split H (e' ∷ e ∷ []) qs ((process-edges H ps H.dom))
-      (SUR.reservoir-split H ps (e' ∷ e ∷ qs) H.dom
-        (SUR.dom-reservoir-prov H (proj₂ lin) (ps ++ e' ∷ e ∷ qs) prov))
+      (SUR.reservoir-split H ps (e' ∷ e ∷ qs) H.dom res)
 
   ----------------------------------------------------------------------
   -- The tail-extension lemma.
@@ -114,10 +113,10 @@ module _ (H : Hypergraph FlatGen)
 
   run-interchange-tailˢ
     : ∀ (ps qs : List (Fin H.nE)) {e e' : Fin H.nE} (inc : Incompˢ e e')
-    → (ps ++ e' ∷ e ∷ qs) Perm.↭ range H.nE
+    → SUR.Reservoir≤1 H (ps ++ e' ∷ e ∷ qs) H.dom
     → RunInterchangeˢ ps [] inc
     → RunInterchangeˢ ps qs inc
-  run-interchange-tailˢ ps qs {e} {e'} inc prov RI₀ =
+  run-interchange-tailˢ ps qs {e} {e'} inc res RI₀ =
     record { reshuffle = Perm.↭-sym ρf ; run-eq = run-eq }
     where
       sp : List (Fin H.nV)
@@ -141,7 +140,7 @@ module _ (H : Hypergraph FlatGen)
                     ∘ˢ ( pe-termˢ qs A ∘ˢ permuteˢ (Perm.↭-sym r₀) )
       equivar =
         process-edges-equivariantˢ qs {s = A} {s' = B} (Perm.↭-sym r₀)
-          (tail-reservoir ps qs e e' prov)
+          (tail-reservoir ps qs e e' res)
 
       ρf : pe-stackˢ qs B Perm.↭ pe-stackˢ qs A
       ρf = proj₁ equivar

@@ -91,14 +91,10 @@ module _ {A B : ObjTerm} (f : HomTerm A B) where
   vrangeˢ = finalPermˢ f
 
   run-interchange-H : SS.PerHG.RunInterchangeAt F dih lin
-  run-interchange-H ps qs {e} {e'} inc prov =
-    run-interchange-tailˢ F lin ps qs inc prov
+  run-interchange-H ps qs {e} {e'} inc res-full =
+    run-interchange-tailˢ F lin ps qs inc res-full
       (record { reshuffle = proj₁ ri₀ ; run-eq = proj₂ ri₀ })
     where
-      -- the full swap-order reservoir, from the swap-site provenance.
-      res-full : SUR.Reservoir≤1 F (ps ++ e' ∷ e ∷ qs) (Hypergraph.dom F)
-      res-full = SUR.dom-reservoir-prov F (proj₂ lin) (ps ++ e' ∷ e ∷ qs) prov
-
       -- prefix drop of `qs`, after re-bracketing.
       res-empty-tail : SUR.Reservoir≤1 F (ps ++ e' ∷ e ∷ []) (Hypergraph.dom F)
       res-empty-tail =
