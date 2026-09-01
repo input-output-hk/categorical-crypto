@@ -7,9 +7,9 @@
 -- `(φ, ψ)`, the J-edges whose shape is compatible with `e` together with the
 -- extended `(φ', ψ')`.  `searchAll` is the back-tracker that consumes those
 -- lists: it picks edges in natural order, tries each candidate extension,
--- recurses, and backtracks on failure.  Terminates via a `fuel` argument
--- (bounded by `H.nE × J.nE`); `searchIso` emits the first complete match,
--- not a best one.
+-- recurses, and backtracks on failure.  Terminates via an internal fuel
+-- argument (the search-tree bound `H.nE × J.nE`); `searchIso` emits the
+-- first complete match, not a best one.
 --
 -- Propagation is implicit: pairing up `H.ein e [i] ↔ J.ein e' [i]` adds new
 -- vertex constraints to `φ`, pruning future choices via `extend-bij`'s
@@ -108,27 +108,23 @@ module _
   -- criterion is stricter than the search's (e.g. the rewrite carve, which
   -- additionally requires the matched occurrence to be convex) retry down this
   -- list; `searchIso` is its `head`.  Succeeds if all edges are already
-  -- matched, even at zero fuel.
-  searchAll : (fuel : ℕ) → VertexBij → EdgeBij → List (VertexBij × EdgeBij)
-  searchAll ℕ.zero    φ ψ with firstUnmatched ψ
-  ... | nothing = (φ , ψ) ∷ []
-  ... | just _  = []
-  searchAll (ℕ.suc k) φ ψ with firstUnmatched ψ
-  ... | nothing = (φ , ψ) ∷ []
-  ... | just e  = tryAll (matchEdge φ ψ e)
+  -- matched, even at zero fuel; the fuel is the search-tree upper bound.
+  searchAll : VertexBij → EdgeBij → List (VertexBij × EdgeBij)
+  searchAll = go (nEH * nEJ)
     where
-      tryAll : List (VertexBij × EdgeBij) → List (VertexBij × EdgeBij)
-      tryAll []               = []
-      tryAll ((φ' , ψ') ∷ xs) = searchAll k φ' ψ' ++ tryAll xs
+      go : ℕ → VertexBij → EdgeBij → List (VertexBij × EdgeBij)
+      go ℕ.zero    φ ψ with firstUnmatched ψ
+      ... | nothing = (φ , ψ) ∷ []
+      ... | just _  = []
+      go (ℕ.suc k) φ ψ with firstUnmatched ψ
+      ... | nothing = (φ , ψ) ∷ []
+      ... | just e  = tryAll (matchEdge φ ψ e)
+        where
+          tryAll : List (VertexBij × EdgeBij) → List (VertexBij × EdgeBij)
+          tryAll []               = []
+          tryAll ((φ' , ψ') ∷ xs) = go k φ' ψ' ++ tryAll xs
 
   -- `_++_` is lazy in its second argument, so taking the `head` forces exactly
   -- the failing subtrees a first-match-only recursion would have forced.
-  searchIso : (fuel : ℕ) → VertexBij → EdgeBij → Maybe (VertexBij × EdgeBij)
-  searchIso fuel φ ψ = head (searchAll fuel φ ψ)
-
-  -- Fuel bounded by the search-tree upper bound.
-  searchAll-default : VertexBij → EdgeBij → List (VertexBij × EdgeBij)
-  searchAll-default = searchAll (nEH * nEJ)
-
-  searchIso-default : VertexBij → EdgeBij → Maybe (VertexBij × EdgeBij)
-  searchIso-default = searchIso (nEH * nEJ)
+  searchIso : VertexBij → EdgeBij → Maybe (VertexBij × EdgeBij)
+  searchIso φ ψ = head (searchAll φ ψ)

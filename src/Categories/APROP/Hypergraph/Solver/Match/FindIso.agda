@@ -24,7 +24,7 @@ open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Solver.Match.PBij
   using (PBij; emptyBij; pairUp)
 open import Categories.APROP.Hypergraph.Solver.Match.Search sig-dec
-  using (searchIso-default)
+  using (searchIso)
 open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec
   using (module Verify)
 
@@ -57,12 +57,12 @@ seedFromInterfaces H J =
 --------------------------------------------------------------------------------
 -- Pipeline:
 --   1. Seed φ₀ from `H.dom ↔ J.dom` and `H.cod ↔ J.cod`.
---   2. Search (fuel = nEH * nEJ) for an edge-bijection extension.
+--   2. Search for an edge-bijection extension.
 --   3. Verify every `_≅ᴴ_` invariant.
 -- Each stage returns `nothing` on failure.
 
 findIso : ∀ (H J : Hypergraph FlatGen) → Maybe (H ≅ᴴ J)
 findIso H J =
   seedFromInterfaces H J             >>= λ φ₀ →
-  searchIso-default H J φ₀ emptyBij  >>= λ { (φ , ψ) →
+  searchIso H J φ₀ emptyBij          >>= λ { (φ , ψ) →
   Verify.verify H J φ ψ }

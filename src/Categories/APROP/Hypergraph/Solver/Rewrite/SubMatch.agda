@@ -42,7 +42,7 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Solver.Match.PBij
   using (PBij; forward; backward; emptyBij; totalise)
-open import Categories.APROP.Hypergraph.Solver.Match.Search sig-dec using (searchAll-default)
+open import Categories.APROP.Hypergraph.Solver.Match.Search sig-dec using (searchAll)
 
 open import Data.Fin using (Fin)
 open import Data.List.Base using (List; head; map; mapMaybe)
@@ -95,7 +95,7 @@ verifySub L S φB ψB =
 subMatchAll : (L S : Hypergraph FlatGen) → List (L ↪ᴴ S)
 subMatchAll L S =
   mapMaybe (λ { (φB , ψB) → verifySub L S φB ψB })
-           (searchAll-default L S emptyBij emptyBij)
+           (searchAll L S emptyBij emptyBij)
 
 subMatch : (L S : Hypergraph FlatGen) → Maybe (L ↪ᴴ S)
 subMatch L S = head (subMatchAll L S)
