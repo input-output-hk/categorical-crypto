@@ -6,16 +6,15 @@
 -- part-(I)ˢ roundtrip `st f ≈ˢ decodePˢ f`.
 --
 -- The strict Kelly residual is taken CONCRETELY from `Strict.Perm.PermK`
--- (discharged axiom-free for every vertex set, no parameter); `perm-rigidˢ`
+-- (discharged axiom-free for every vertex set, no parameter); `rigidˢ`
 -- is invoked at EXACTLY the points where the non-strict proof invokes
 -- K-faithfulness.  No postulates, no holes.
 --
 -- Contents (in dependency order):
 --   * `nE0-run`   : the structural-atom run (nE = 0) collapses to `idˢ`,
 --                   leaving the final permutation;
---   * `Atom.shape` (with the `coe`-form `shape-coe`): a generic
---                   "nE = 0, dom ≡ cod" shape giving
---                   `decodePˢ f ≈ˢ coe (boundary cast)` via `perm-rigidˢ`;
+--   * `Atom.shape` : a generic "nE = 0, dom ≡ cod" shape giving
+--                   `decodePˢ f ≈ˢ coe (boundary cast)` via `rigidˢ`;
 --   * the concrete atomic shapes
 --       `decodePˢ-id`, `decodePˢ-λ⇒`, `decodePˢ-λ⇐`,
 --       `decodePˢ-ρ⇒`, `decodePˢ-ρ⇐`, `decodePˢ-α⇒`, `decodePˢ-α⇐`
@@ -47,11 +46,8 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
 open import Data.Fin using (Fin)
-open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List.Properties using (++-identityʳ; ++-assoc)
-open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Nat using () renaming (_+_ to _+ⁿ_)
-open Perm using (_↭_)
 
 --------------------------------------------------------------------------------
 -- A `↭-reflexive` derivation is the boundary cast of `idˢ`.  Needs neither the
@@ -84,30 +80,12 @@ nE0-run
          ; elab = elab ; dom = dom ; cod = cod } refl = refl , refl
 
 --------------------------------------------------------------------------------
--- `perm-trivial`: a permutation between propositionally-equal endpoints
--- (with `Unique` target) evaluates to the corresponding boundary cast of
--- `idˢ`.  This is the single place K-faithfulness is consumed for the
--- structural atoms.
-
-module Triv (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X) where
-  open PK.Support V vlab
-  open Trivial V vlab
-
-  rigidˢ = PK.perm-rigidˢ V _≟V_ vlab
-
-  perm-trivial
-    : ∀ {xs ys : List V} (e : xs ≡ ys) → Unique ys → (p : xs ↭ ys)
-    → permuteˢ p ≈ˢ castˢ refl (cong (map vlab) e) (idˢ {map vlab xs})
-  perm-trivial e uniq p =
-    ≈-trans (rigidˢ uniq p (Perm.↭-reflexive e)) (refl-trivial e)
-
---------------------------------------------------------------------------------
 -- The generic structural-atom shape: `⟪ f ⟫` has no edges and its
 -- `dom`/`cod` Fin-lists coincide PROPOSITIONALLY (true definitionally
 -- for every `hId`-shaped atom).  Then `decodePˢ f ≈ˢ coe (boundary)`.
 --
 -- The final permutation is identified with the identity derivation by
--- `perm-rigidˢ` (the `Unique` codomain coming from linearity), exactly
+-- `rigidˢ` (the `Unique` codomain coming from linearity), exactly
 -- where the non-strict `decode-id-is-id` invokes K-faithfulness.
 --
 -- `dc` is what confines this module to the *structural* atoms: it is FALSE
@@ -140,8 +118,6 @@ module Atom {A B : ObjTerm} (f : HomTerm A B)
            ≡ castˢ refl (cong (map Hf.vlab) (sym s≡)) (idˢ {map Hf.vlab Hf.dom})
     run≡ = trans (proj₂ collapse) (subst-cod≡cast (sym s≡) idˢ)
 
-    module T = Triv (Fin Hf.nV) _≟F_ Hf.vlab
-
     -- the boundary cast the atom collapses to
     bcast : map Hf.vlab Hf.dom ≡ map Hf.vlab Hf.cod
     bcast = cong (map Hf.vlab) dc
@@ -150,8 +126,13 @@ module Atom {A B : ObjTerm} (f : HomTerm A B)
     sc : RF.s-finˢ ≡ Hf.cod
     sc = trans s≡ dc
 
+    -- the single place K-faithfulness is consumed for the structural atoms:
+    -- `finalPermˢ f` and the reflexive derivation of `sc` land on the same
+    -- `Unique` codomain, so `rigidˢ` identifies them.
     perm≡ : RF.permuteˢ (finalPermˢ f) ≈ˢ coe (cong (map Hf.vlab) sc)
-    perm≡ = T.perm-trivial sc (⟪⟫-cod-Unique f) (finalPermˢ f)
+    perm≡ =
+      ≈-trans (RF.rigidˢ (⟪⟫-cod-Unique f) (finalPermˢ f) (Perm.↭-reflexive sc))
+              (Trivial.refl-trivial (Fin Hf.nV) Hf.vlab sc)
 
     run≈ : proj₂ RF.runˢ ≈ˢ coe (cong (map Hf.vlab) (sym s≡))
     run≈ = ≡⇒≈ˢ run≡
@@ -166,11 +147,19 @@ module Atom {A B : ObjTerm} (f : HomTerm A B)
                         (cong (map Hf.vlab) sc))
                  bcast))
 
-  -- the structural-atom shape
-  shape : decodePˢ f ≈ˢ castˢ (⟪⟫-domL f) (trans bcast (⟪⟫-codL f)) (idˢ {domL ⟪ f ⟫})
+    -- a boundary cast of `idˢ` IS the corresponding object-coercion `coe`
+    cast-id-coe
+      : ∀ {xs as bs} (p : xs ≡ as) (q : xs ≡ bs)
+      → castˢ p q (idˢ {xs}) ≈ˢ coe (trans (sym p) q)
+    cast-id-coe refl q = ≈-refl
+
+  -- the structural-atom shape, stated at the `coe` composite the seven
+  -- atomic shapes below close against with `coe-uip`
+  shape : decodePˢ f ≈ˢ coe (trans (sym (⟪⟫-domL f)) (trans bcast (⟪⟫-codL f)))
   shape =
     ≈-trans (cast-resp (⟪⟫-domL f) (⟪⟫-codL f) inner≈)
-      (≡⇒≈ˢ (cast-fuse refl (⟪⟫-domL f) bcast (⟪⟫-codL f) idˢ))
+      (≈-trans (≡⇒≈ˢ (cast-fuse refl (⟪⟫-domL f) bcast (⟪⟫-codL f) idˢ))
+               (cast-id-coe (⟪⟫-domL f) (trans bcast (⟪⟫-codL f))))
 
 --------------------------------------------------------------------------------
 -- `hId`-shape facts: every structural atom translates to an `hId`-shaped
@@ -185,60 +174,43 @@ hId-dc : ∀ A → Hypergraph.dom (hId A) ≡ Hypergraph.cod (hId A)
 hId-dc A = sym (hId-cod≡dom A)
 
 --------------------------------------------------------------------------------
--- A boundary cast of `idˢ` is the corresponding object-coercion `coe`.
-
-cast-id-coe
-  : ∀ {xs as bs} (p : xs ≡ as) (q : xs ≡ bs)
-  → castˢ p q (idˢ {xs}) ≈ˢ coe (trans (sym p) q)
-cast-id-coe refl q = ≈-refl
-
---------------------------------------------------------------------------------
 -- The structural-atom shapes, each `≈ˢ st (atom)`.  `st (id)=st λ⇒=
 -- st λ⇐ = idˢ`; the others are `coe` of the matching `List`-equality, so
--- `coe-uip` closes them against the shape's boundary `coe`.
-
-shape-coe
-  : ∀ {A B} (f : HomTerm A B) (nE≡0 : Hypergraph.nE ⟪ f ⟫ ≡ 0)
-    (dc : Hypergraph.dom ⟪ f ⟫ ≡ Hypergraph.cod ⟪ f ⟫)
-  → decodePˢ f
-    ≈ˢ coe (trans (sym (⟪⟫-domL f))
-                  (trans (cong (map (Hypergraph.vlab ⟪ f ⟫)) dc)
-                         (⟪⟫-codL f)))
-shape-coe f nE≡0 dc = ≈-trans (Atom.shape f nE≡0 dc) (cast-id-coe (⟪⟫-domL f) _)
+-- `coe-uip` closes them against `Atom.shape`'s boundary `coe`.
 
 module _ {A : ObjTerm} where
   -- id, λ⇒, λ⇐  →  idˢ
   decodePˢ-id : decodePˢ (id {A}) ≈ˢ st (id {A})
-  decodePˢ-id = ≈-trans (shape-coe (id {A}) (hId-nE A) (hId-dc A)) (coe-id≈ _)
+  decodePˢ-id = ≈-trans (Atom.shape (id {A}) (hId-nE A) (hId-dc A)) (coe-id≈ _)
 
   decodePˢ-λ⇒ : decodePˢ (λ⇒ {A}) ≈ˢ st (λ⇒ {A})
-  decodePˢ-λ⇒ = ≈-trans (shape-coe (λ⇒ {A}) (hId-nE A) (hId-dc A)) (coe-id≈ _)
+  decodePˢ-λ⇒ = ≈-trans (Atom.shape (λ⇒ {A}) (hId-nE A) (hId-dc A)) (coe-id≈ _)
 
   decodePˢ-λ⇐ : decodePˢ (λ⇐ {A}) ≈ˢ st (λ⇐ {A})
-  decodePˢ-λ⇐ = ≈-trans (shape-coe (λ⇐ {A}) (hId-nE A) (hId-dc A)) (coe-id≈ _)
+  decodePˢ-λ⇐ = ≈-trans (Atom.shape (λ⇐ {A}) (hId-nE A) (hId-dc A)) (coe-id≈ _)
 
   -- ρ⇒, ρ⇐  →  coe (±++-identityʳ)
   decodePˢ-ρ⇒ : decodePˢ (ρ⇒ {A}) ≈ˢ st (ρ⇒ {A})
   decodePˢ-ρ⇒ =
-    ≈-trans (shape-coe (ρ⇒ {A}) (hId-nE (A ⊗₀ unit)) (hId-dc (A ⊗₀ unit)))
+    ≈-trans (Atom.shape (ρ⇒ {A}) (hId-nE (A ⊗₀ unit)) (hId-dc (A ⊗₀ unit)))
             (coe-uip _ (++-identityʳ (flatten A)))
 
   decodePˢ-ρ⇐ : decodePˢ (ρ⇐ {A}) ≈ˢ st (ρ⇐ {A})
   decodePˢ-ρ⇐ =
-    ≈-trans (shape-coe (ρ⇐ {A}) (hId-nE (A ⊗₀ unit)) (hId-dc (A ⊗₀ unit)))
+    ≈-trans (Atom.shape (ρ⇐ {A}) (hId-nE (A ⊗₀ unit)) (hId-dc (A ⊗₀ unit)))
             (coe-uip _ (sym (++-identityʳ (flatten A))))
 
 -- α⇒, α⇐  →  coe (±++-assoc)
 module _ {A B C : ObjTerm} where
   decodePˢ-α⇒ : decodePˢ (α⇒ {A} {B} {C}) ≈ˢ st (α⇒ {A} {B} {C})
   decodePˢ-α⇒ =
-    ≈-trans (shape-coe (α⇒ {A} {B} {C})
+    ≈-trans (Atom.shape (α⇒ {A} {B} {C})
                (hId-nE ((A ⊗₀ B) ⊗₀ C)) (hId-dc ((A ⊗₀ B) ⊗₀ C)))
             (coe-uip _ (++-assoc (flatten A) (flatten B) (flatten C)))
 
   decodePˢ-α⇐ : decodePˢ (α⇐ {A} {B} {C}) ≈ˢ st (α⇐ {A} {B} {C})
   decodePˢ-α⇐ =
-    ≈-trans (shape-coe (α⇐ {A} {B} {C})
+    ≈-trans (Atom.shape (α⇐ {A} {B} {C})
                (hId-nE ((A ⊗₀ B) ⊗₀ C)) (hId-dc ((A ⊗₀ B) ⊗₀ C)))
             (coe-uip _ (sym (++-assoc (flatten A) (flatten B) (flatten C))))
 
