@@ -420,55 +420,36 @@ module Build
         ≡ castˢ refl (cong (map vlab) e) (permuteˢ p)
     permuteˢ-subst refl p = refl
 
-    -- the stdlib residual frame `++⁺ʳ R` factors through `⊗ˢ idˢ`
+    -- the stdlib residual frame `++⁺ʳ R` factors through `⊗ˢ idˢ`.
+    -- HETEROGENEOUS: every consumer reads the `≈̂` form, so the `map-++`
+    -- boundary stays inside the kit's congruences instead of being named at
+    -- each clause (`cast-⊗-frame`/`∘-cast-split` are what that used to cost).
     permuteˢ-frame
       : ∀ {xs ys : List V} (R : List V) (p : xs ↭ ys)
-      → castˢ (map-++ vlab xs R) (map-++ vlab ys R) (permuteˢ (++⁺ʳ R p))
-        ≈ˢ permuteˢ p ⊗ˢ idˢ {map vlab R}
+      → permuteˢ (++⁺ʳ R p) ≈̂ permuteˢ p ⊗ˢ idˢ {map vlab R}
     permuteˢ-frame {xs} R Perm.refl =
-      ≈-trans (cast-id (map-++ vlab xs R) (map-++ vlab xs R)) (≈-sym ⊗-id)
+      ≈̂-trans (idˢ-≈̂ (map-++ vlab xs R)) (≈ˢ⇒≈̂ (≈-sym ⊗-id))
     permuteˢ-frame R (Perm.prep x p) =
-      ≈-trans
-        (cast-⊗-frame (idˢ {vlab x ∷ []})
-          (map-++ vlab _ R) (map-++ vlab _ R) (permuteˢ (++⁺ʳ R p)) _ _)
-        (≈-trans (⊗-resp ≈-refl (permuteˢ-frame R p))
-                 (≈-sym (⊗-assocˢ (idˢ {vlab x ∷ []}) (permuteˢ p) idˢ)))
+      ≈̂-trans (⊗-resp-≈̂ ≈̂-refl (permuteˢ-frame R p))
+              (≈̂-sym (castˢ⇒≈̂ _ _ (⊗-assocˢ _ _ _)))
     permuteˢ-frame R (Perm.swap x y p) =
-      ≈-trans
-        (cast-⊗-frame (σˢ (vlab x ∷ []) (vlab y ∷ []))
-          (map-++ vlab _ R) (map-++ vlab _ R) (permuteˢ (++⁺ʳ R p)) _ _)
-        (≈-trans (⊗-resp ≈-refl (permuteˢ-frame R p))
-                 (≈-sym (⊗-assocˢ (σˢ (vlab x ∷ []) (vlab y ∷ []))
-                                  (permuteˢ p) idˢ)))
+      ≈̂-trans (⊗-resp-≈̂ ≈̂-refl (permuteˢ-frame R p))
+              (≈̂-sym (castˢ⇒≈̂ _ _ (⊗-assocˢ _ _ _)))
     permuteˢ-frame R (Perm.trans p q) =
-      ≈-trans
-        (∘-cast-split (map-++ vlab _ R) (map-++ vlab _ R) (map-++ vlab _ R)
-          (permuteˢ (++⁺ʳ R q)) (permuteˢ (++⁺ʳ R p)))
-        (≈-trans (∘-resp (permuteˢ-frame R q) (permuteˢ-frame R p))
-                 (≈-trans interchangeˢ (⊗-resp ≈-refl idˡ)))
+      ≈̂-trans (∘-resp-≈̂ (permuteˢ-frame R q) (permuteˢ-frame R p))
+              (≈ˢ⇒≈̂ (≈-trans interchangeˢ (⊗-resp ≈-refl idˡ)))
 
     -- the stdlib LEFT residual frame `++⁺ˡ L` factors through `idˢ ⊗ˢ_`
-    -- (`permuteˢ-frame`'s mirror; cons clauses of `map-++`/`++-assoc` reduce,
-    -- so only the `map-++ vlab L _` boundary cast is paid)
+    -- (`permuteˢ-frame`'s mirror; the `[]` clause is a plain unit law, since
+    -- `map vlab [] ++ _` reduces)
     permuteˢ-frameˡ
       : ∀ (L : List V) {xs ys : List V} (p : xs ↭ ys)
-      → castˢ (map-++ vlab L xs) (map-++ vlab L ys) (permuteˢ (++⁺ˡ L p))
-        ≈ˢ idˢ {map vlab L} ⊗ˢ permuteˢ p
-    permuteˢ-frameˡ []       {xs} {ys} p =
-      ≈-trans (≡⇒≈ˢ (cast-irrel (map-++ vlab [] xs) refl
-                                (map-++ vlab [] ys) refl (permuteˢ p)))
-              (≈-sym (⊗-unitˡˢ (permuteˢ p)))
-    permuteˢ-frameˡ (l ∷ L) {xs} {ys} p =
-      ≈-trans
-        (cast-⊗-frame (idˢ {vlab l ∷ []})
-          (map-++ vlab L xs) (map-++ vlab L ys) (permuteˢ (++⁺ˡ L p))
-          (map-++ vlab (l ∷ L) xs) (map-++ vlab (l ∷ L) ys))
-        (≈-trans (⊗-resp (≈-refl {f = idˢ {vlab l ∷ []}}) (permuteˢ-frameˡ L p))
-          (≈-trans (≈-sym (⊗-assocˢ (idˢ {vlab l ∷ []}) (idˢ {map vlab L})
-                                    (permuteˢ p)))
-            (cast-resp (++-assoc (vlab l ∷ []) (map vlab L) _)
-                       (++-assoc (vlab l ∷ []) (map vlab L) _)
-                       (⊗-resp ⊗-id ≈-refl))))
+      → permuteˢ (++⁺ˡ L p) ≈̂ idˢ {map vlab L} ⊗ˢ permuteˢ p
+    permuteˢ-frameˡ []      p = ≈ˢ⇒≈̂ (≈-sym (⊗-unitˡˢ (permuteˢ p)))
+    permuteˢ-frameˡ (l ∷ L) p =
+      ≈̂-trans (⊗-resp-≈̂ ≈̂-refl (permuteˢ-frameˡ L p))
+        (≈̂-trans (≈̂-sym (castˢ⇒≈̂ _ _ (⊗-assocˢ _ _ _)))
+                 (⊗-resp-≈̂ (≈ˢ⇒≈̂ ⊗-id) ≈̂-refl))
 
     -- `permuteˢ` of an inverse derivation is the categorical inverse.
     -- K-FREE: structural on the derivation, so the `Support.PermK` residual is
@@ -822,19 +803,18 @@ module Build
                         ((b ⊗ᵛ idᵛ {rest}) ⊗ᵛ idᵛ {R})))
               (≈ˢ⇒≈̂ (box-suffix-ᵛ b rest R))
 
-    -- the residual frame, CAST-FREE at V level (contrast `permuteˢ-frame`)
+    -- the residual frame, homogeneously at V level: `_⊗ᵛ_`'s own `map-++`
+    -- cast is exactly the one `permuteˢ-frame`'s `≈̂` carries
     permuteᵛ-frame
       : ∀ {as bs : List V} (R : List V) (p : as ↭ bs)
       → permuteᵛ (++⁺ʳ R p) ≈ᵛ permuteᵛ p ⊗ᵛ idᵛ {R}
-    permuteᵛ-frame {as} {bs} R p =
-      cast-flip (map-++ vlab as R) (map-++ vlab bs R) (permuteˢ-frame R p)
+    permuteᵛ-frame R p = ≈̂⇒≈ˢ (≈̂-trans (permuteˢ-frame R p) (≈̂-sym cast-≈̂))
 
     -- its LEFT mirror
     permuteᵛ-frameˡ
       : ∀ (L : List V) {as bs : List V} (p : as ↭ bs)
       → permuteᵛ (++⁺ˡ L p) ≈ᵛ idᵛ {L} ⊗ᵛ permuteᵛ p
-    permuteᵛ-frameˡ L {as} {bs} p =
-      cast-flip (map-++ vlab L as) (map-++ vlab L bs) (permuteˢ-frameˡ L p)
+    permuteᵛ-frameˡ L p = ≈̂⇒≈ˢ (≈̂-trans (permuteˢ-frameˡ L p) (≈̂-sym cast-≈̂))
 
 --------------------------------------------------------------------------------
 -- The homomorphism along a generator translation `J : mor₁ ⇒ mor₂`

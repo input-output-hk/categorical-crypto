@@ -398,7 +398,7 @@ module Braid {A B C D : ObjTerm}
   module Reconcile-e where
     private
       -- the wiring-groupoid calculus at `⟪ fg ⟫` (the `≈̂`-level frames).
-      open PC.Kit ⟪ fg ⟫ using (⟦absorbʳ⟧; ⟦frameˡ⟧; ⟦frameʳ⟧)
+      open PC.Kit ⟪ fg ⟫ using (⟦absorbʳ⟧)
 
       -- the G-output block (all `injL`), and the post-G stack `aG`.
       sG : List (Fin Hf.nV)
@@ -570,8 +570,8 @@ module Braid {A B C D : ObjTerm}
     -- ### The two inner factors of `KBlockσ`'s target, HETEROGENEOUSLY.
     --
     -- `comb`'s reindexing factor is absorbed inside `permuteˢ` (`⟦absorbʳ⟧`)
-    -- and the two lifted sub-permutes are read off the `PermCalc` frames
-    -- (`⟦frameʳ⟧`/`⟦frameˡ⟧` present them heterogeneously, `interchangeˢ`
+    -- and the two lifted sub-permutes are read off the residual frames
+    -- (`permuteˢ-frame{,ˡ}` state them heterogeneously, `interchangeˢ`
     -- merges them), so no intermediate `map-++` endpoint is ever named.  The
     -- `⊗ᵛ`'s own `map-++` cast and the two `sG≡`/`Kfin≡` corrections peel by
     -- `⊗ᵛ-≈̂`/`⊗-resp-≈̂`; no `refl`-matched generic is needed.
@@ -579,8 +579,8 @@ module Braid {A B C D : ObjTerm}
     comb-frame : RF.permuteˢ comb ≈̂ RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR
     comb-frame =
       ≈̂-trans (⟦absorbʳ⟧ (cong₂ _++_ sG≡ Kfin≡))
-      (≈̂-trans (∘-resp-≈̂ (⟦frameˡ⟧ (map injL Gd.cod) pR)
-                         (⟦frameʳ⟧ (map injR s_K_final) pL))
+      (≈̂-trans (∘-resp-≈̂ (RF.permuteˢ-frameˡ (map injL Gd.cod) pR)
+                         (RF.permuteˢ-frame (map injR s_K_final) pL))
                (≈ˢ⇒≈̂ (≈-trans interchangeˢ (⊗-resp idˡ idʳ))))
 
     W-≈̂ : (Gon ⊗ᵛ Kclean) ≈̂ Gon' ⊗ˢ Kclean'

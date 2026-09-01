@@ -20,8 +20,6 @@
 --
 -- The bridges are `≈̂`-restatements of EXISTING lemmas:
 --   ⟦absorbˡ⟧/⟦absorbʳ⟧ — a reindexing factor is absorbed (`idˡ`/`idʳ`)
---   ⟦frameˡ⟧    — `FreeStrictSMC.Perm′.permuteˢ-frameˡ`
---   ⟦frameʳ⟧    — `FreeStrictSMC.Perm′.permuteˢ-frame`
 --   ⟦bswap⟧ᵛ    — `BlockSwapComm.swap-block`
 --   rigid-≈̂     — `StrictDecoder.rigidˢ`   (the rigidity discharge)
 -- plus one COMPOSITE face, ⟦relabel-rigid⟧ (rigidity + both absorptions +
@@ -62,10 +60,6 @@ module Kit (H : Hypergraph FlatGen) where
   open Restrict (Fin H.nV) vl
     using (idᵛ; _⊗ᵛ_; σᵛ; _≈ᵛ_; permuteᵛ)
 
-  private
-    m : List (Fin H.nV) → List X
-    m = map vl
-
   open DSh.Scr (Fin H.nV) H.vlab using (bswap)
 
   ------------------------------------------------------------------------
@@ -81,22 +75,6 @@ module Kit (H : Hypergraph FlatGen) where
     : ∀ {xs ys zs : List (Fin H.nV)} (eq : xs ≡ ys) {p : ys Perm.↭ zs}
     → permuteˢ (Perm.trans (Perm.↭-reflexive eq) p) ≈̂ permuteˢ p
   ⟦absorbʳ⟧ refl = ≈ˢ⇒≈̂ idʳ
-
-  ------------------------------------------------------------------------
-  -- ⟦frameˡ⟧ : a `++⁺ˡ ls` frame becomes a `idˢ ⊗ˢ_` frame.
-  ------------------------------------------------------------------------
-  ⟦frameˡ⟧
-    : ∀ (ls : List (Fin H.nV)) {xs ys : List (Fin H.nV)} (p : xs Perm.↭ ys)
-    → permuteˢ (PermProp.++⁺ˡ ls p) ≈̂ idˢ {m ls} ⊗ˢ permuteˢ p
-  ⟦frameˡ⟧ ls p = ≈̂-trans (≈̂-sym cast-≈̂) (≈ˢ⇒≈̂ (permuteˢ-frameˡ ls p))
-
-  ------------------------------------------------------------------------
-  -- ⟦frameʳ⟧ : a `++⁺ʳ R` frame becomes a `_⊗ˢ idˢ` frame.
-  ------------------------------------------------------------------------
-  ⟦frameʳ⟧
-    : ∀ (R : List (Fin H.nV)) {xs ys : List (Fin H.nV)} (p : xs Perm.↭ ys)
-    → permuteˢ (PermProp.++⁺ʳ R p) ≈̂ permuteˢ p ⊗ˢ idˢ {m R}
-  ⟦frameʳ⟧ R p = ≈̂-trans (≈̂-sym cast-≈̂) (≈ˢ⇒≈̂ (permuteˢ-frame R p))
 
   ------------------------------------------------------------------------
   -- ⟦bswap⟧ᵛ : a `++⁺ʳ Rl`-framed canonical block swap is the strict block
