@@ -77,11 +77,8 @@ module EquivStep (H : Hypergraph FlatGen) where
           ; ⊗-respᵛ; interchangeᵛ )
 
   private
-    _≟V_ : DecidableEquality (Fin H.nV)
-    _≟V_ = _≟F_
-
     permˢ-K-H : PK.Support.PermK (Fin H.nV) H.vlab
-    permˢ-K-H = PK.permˢ-K (Fin H.nV) _≟V_ H.vlab
+    permˢ-K-H = PK.permˢ-K (Fin H.nV) _≟F_ H.vlab
 
   ----------------------------------------------------------------------
   -- The strict fired layer + `EdgeStepRˢ` graph view, shared with
@@ -240,7 +237,7 @@ module EquivStep (H : Hypergraph FlatGen) where
     locate-coherentˢ
       : Perm.trans permH' (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym fire-μ))
         ≅↭ Perm.trans ρ permH
-    locate-coherentˢ = chained
+    locate-coherentˢ i = trans (half₁ i) (half₂ i)
       where
         mid : s' Perm.↭ H.ein e ++ restH
         mid = Perm.trans permHc (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym rpc))
@@ -251,11 +248,6 @@ module EquivStep (H : Hypergraph FlatGen) where
         half₂ : mid ≅↭ Perm.trans ρ permH
         half₂ = SU.residual-recon (H.ein e) s' restH (Perm.trans ρ permH)
                   (SU.Unique-resp-↭ (Perm.trans ρ permH) us')
-
-        chained
-          : Perm.trans permH' (PermProp.++⁺ˡ (H.ein e) (Perm.↭-sym fire-μ))
-            ≅↭ Perm.trans ρ permH
-        chained i = trans (half₁ i) (half₂ i)
 
     ------------------------------------------------------------------
     -- The permute reconciliation consumed by the FIRE/FIRE step.
