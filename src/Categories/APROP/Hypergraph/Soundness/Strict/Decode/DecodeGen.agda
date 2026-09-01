@@ -50,9 +50,8 @@ open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
 open import Categories.APROP.Hypergraph.Model.Invariant sig using (hGen-dom-Unique)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
-open import Data.Fin using (Fin) renaming (_≟_ to _≟F_)
+open import Data.Fin using (Fin)
 open import Data.List.Properties using (++-identityʳ)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just)
@@ -72,7 +71,7 @@ module Gen {A B : ObjTerm} (g : mor A B) where
             ; castᵛ-≈̂; cast-flipᵛ; cast-respᵛ; cast-fuseᵛ; ∘-castᵛ; ⊗-unitʳᵛ
             ; subst-codᵛ )
 
-    rigidˢ = PK.perm-rigidˢ (Fin Hf.nV) _≟F_ Hf.vlab
+    rigidˢ = RF.rigidˢ
 
     -- the single edge.
     e₀ : Fin Hf.nE

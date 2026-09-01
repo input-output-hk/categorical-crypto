@@ -6,7 +6,7 @@
 --
 -- This file STATES the both-fire core (`FireMidInterchangeˢ`) and builds the
 -- four-way firing split around it: it consumes the algebra bricks of
--- `Strict.Interchange.SwapCore` (`EdgeStepRˢ`, `perm-rigidˢ`), plus the
+-- `Strict.Interchange.SwapCore` (`EdgeStepRˢ`, `rigidˢ`), plus the
 -- TERM-FREE combinatorics of `Discharge.FireMidInterchangeComb` (`SimLoc`,
 -- `sim-loc`, the stability lemmas) and `Stack.StackUniqueReach`
 -- (`Reservoir≤1`) to build:

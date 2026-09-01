@@ -162,7 +162,7 @@ module FMS (H : Hypergraph FlatGen) where
   -- The `SwapCore` / `PermCalc` bricks the located coherences below use.
   ------------------------------------------------------------------------
   Incompˢ = Incomp H
-  rigidᵛ  = perm-rigidˢ H
+  rigidᵛ  = rigidˢ
 
   -- The thin wiring-groupoid calculus (F11): ⟦bswap⟧ᵛ.
   open PC.Kit H using (⟦bswap⟧ᵛ)

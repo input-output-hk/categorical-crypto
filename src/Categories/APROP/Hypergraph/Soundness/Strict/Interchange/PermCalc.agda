@@ -23,7 +23,7 @@
 --   ⟦frameˡ⟧    — `FreeStrictSMC.Perm′.permuteˢ-frameˡ`
 --   ⟦frameʳ⟧    — `FreeStrictSMC.Perm′.permuteˢ-frame`
 --   ⟦bswap⟧ᵛ    — `BlockSwapComm.swap-block`
---   rigid-≈̂     — `SwapCore.perm-rigidˢ`   (the rigidity discharge)
+--   rigid-≈̂     — `StrictDecoder.rigidˢ`   (the rigidity discharge)
 -- plus one COMPOSITE face, ⟦relabel-rigid⟧ (rigidity + both absorptions +
 -- `PermRelabel.pvv-≈̂`), which is every located FINAL permute.
 --------------------------------------------------------------------------------
@@ -114,7 +114,7 @@ module Kit (H : Hypergraph FlatGen) where
   rigid-≈̂
     : ∀ {xs ys : List (Fin H.nV)} → Unique ys
     → (p q : xs Perm.↭ ys) → permuteˢ p ≈̂ permuteˢ q
-  rigid-≈̂ u p q = ≈ˢ⇒≈̂ (perm-rigidˢ H u p q)
+  rigid-≈̂ u p q = ≈ˢ⇒≈̂ (rigidˢ u p q)
 
   ------------------------------------------------------------------------
   -- ⟦relabel-rigid⟧ : the CANONICAL "located final permute" discharge — `D`

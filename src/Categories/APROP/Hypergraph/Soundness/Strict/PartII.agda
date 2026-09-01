@@ -51,14 +51,12 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
   using (decodePˢ; finalPermˢ)
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep sig _≟X_ as SS
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunInterchangeTail sig _≟X_
   using (run-interchange-tailˢ)
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.FireMid sig _≟X_ as FMD
 import Categories.APROP.Hypergraph.Soundness.Strict.Iso.IsoTransport sig _≟X_ as IT
 
 open import Data.Fin using (Fin)
-open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List.Properties using (++-assoc)
 
 ------------------------------------------------------------------------
@@ -130,7 +128,7 @@ module Boundary {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ 
     module SF = SS.PerHG F dihF linF
     module SG = SS.PerHG G dihG linG
 
-    perm-rigidˢ-F = PK.perm-rigidˢ (Fin (Hypergraph.nV F)) _≟F_ (StrictDecoder.vl F)
+    perm-rigidˢ-F = StrictDecoder.rigidˢ F
 
     rng-F = range (Hypergraph.nE F)
     rng-G = range (Hypergraph.nE G)

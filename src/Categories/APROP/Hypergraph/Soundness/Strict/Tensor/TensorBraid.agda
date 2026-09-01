@@ -86,7 +86,6 @@ open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; �
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 open import Categories.Morphism.Reasoning SCat using (pullʳ; cancelInner)
 open import Categories.Tactic.Category using (solve)
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
   using (module EquivStep)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
@@ -262,7 +261,7 @@ module Braid {A B C D : ObjTerm}
     module RF = Run ⟪ fg ⟫
     module Hf = Hypergraph ⟪ fg ⟫
     open StrictDecoder ⟪ fg ⟫
-      using (process-edgesˢ; vl; block-disjoint; stack-sepˢ; term-sepᵛ)
+      using (process-edgesˢ; vl; block-disjoint; stack-sepˢ; term-sepᵛ; rigidˢ)
 
     open import Categories.APROP.Hypergraph.Model.Invariant sig using (range-++)
 
@@ -398,8 +397,6 @@ module Braid {A B C D : ObjTerm}
 
   module Reconcile-e where
     private
-      open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-
       -- the wiring-groupoid calculus at `⟪ fg ⟫` (the `≈̂`-level frames).
       open PC.Kit ⟪ fg ⟫ using (⟦absorbʳ⟧; ⟦frameˡ⟧; ⟦frameʳ⟧)
 
@@ -755,10 +752,9 @@ module Braid {A B C D : ObjTerm}
 
       pf-rigid : permuteᵛ pf' ≈ᵛ permuteᵛ pf₀
       pf-rigid =
-        PK.perm-rigidˢ (Fin Hf.nV) _≟F_ Hf.vlab
-          (SU.Unique-resp-↭ (Perm.↭-reflexive sep)
-            (SUR.Reservoir≤1⇒Unique ⟪ fg ⟫ kblk aG res-kblk))
-          pf' pf₀
+        rigidˢ (SU.Unique-resp-↭ (Perm.↭-reflexive sep)
+                 (SUR.Reservoir≤1⇒Unique ⟪ fg ⟫ kblk aG res-kblk))
+               pf' pf₀
 
       -- pure homogeneous regrouping:
       --   (H ∘ (O ∘ (M ∘ I))) ∘ P  ≈ˢ  (H ∘ O) ∘ (M ∘ (I ∘ P))

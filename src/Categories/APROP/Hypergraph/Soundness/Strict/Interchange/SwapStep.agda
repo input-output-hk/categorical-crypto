@@ -13,14 +13,14 @@
 --     kernel, re-exported from `DecodeCompose.RunBlocks`);
 --   * `decodeOrdˢ-factor`     — exposes the prefix term as a right factor;
 --   * `front-swap-≈ˢ`         — the front-of-stack two-edge swap (the locus of
---     the (N) `RunInterchangeˢ` residual and the (K) `perm-rigidˢ`);
+--     the (N) `RunInterchangeˢ` residual and the (K) `rigidˢ`);
 --   * `swap-≈ˢ`               — the assembled per-swap step.
 --
 -- The order-theory spine (`Order`/`_↝_`/`swap-step`/`connectivity`/`NoInv`)
 -- is REUSED VERBATIM from the term-free non-strict wiring; `Validˢ o =
 -- pe-stackˢ o dom ↭ cod` is DEFINITIONALLY the non-strict `Valid o`, so
 -- `swap-validityˢ` IS `SwapValidity.swap-validity`.  The (N) residual
--- is `RunInterchangeˢ`; the (K) reconciliation is `perm-rigidˢ`.
+-- is `RunInterchangeˢ`; the (K) reconciliation is `StrictDecoder.rigidˢ`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -88,9 +88,6 @@ module PerHG (H : Hypergraph FlatGen)
     → (ps ++ e' ∷ e ∷ qs) Perm.↭ range H.nE
     → RunInterchangeˢ H lin ps qs inc
 
-  -- The rigidity discharge `SwapCore` states at this vertex set.
-  perm-rigidˢ = SC.perm-rigidˢ H
-
   --------------------------------------------------------------------
   -- STRICT validity + the strict order-indexed decoder.  `Validˢ o`
   -- is the strict run's final-stack permutation onto `cod` — the very
@@ -149,7 +146,7 @@ module PerHG (H : Hypergraph FlatGen)
 -- The front-of-stack swap.  Fix an INDEPENDENT pair `e e'`; the two runs
 -- of `e ∷ e' ∷ qs` vs `e' ∷ e ∷ qs` from `sp = pe-stackˢ ps dom`, wrapped
 -- between the shared prefix term and the validity-carried final permute,
--- are `≈ˢ`-equal.  (K) `final-permute-cohˢ` = `perm-rigidˢ`; (N) is the
+-- are `≈ˢ`-equal.  (K) `final-permute-cohˢ` = `rigidˢ`; (N) is the
 -- `RunInterchangeˢ` residual.
 ------------------------------------------------------------------------
 
@@ -166,7 +163,7 @@ module FrontSwap (H : Hypergraph FlatGen)
   -- `va : a-stk ↭ cod`, `vb : b-stk ↭ cod`:
   --     permuteˢ va  ≈ˢ  permuteˢ vb ∘ˢ permuteˢ r
   -- because `va` and `trans r vb` both derive into the `Unique` codomain
-  -- `cod` (`Unique` because `H` is `Linear`), identified by `perm-rigidˢ`
+  -- `cod` (`Unique` because `H` is `Linear`), identified by `rigidˢ`
   -- (vertex-level; no `map⁺`-lift).
   --------------------------------------------------------------------
 
@@ -178,8 +175,8 @@ module FrontSwap (H : Hypergraph FlatGen)
     → permuteˢ va ≈ˢ permuteˢ vb ∘ˢ permuteˢ r
   final-permute-cohˢ r va vb =
     -- `permuteˢ (trans r vb) = permuteˢ vb ∘ˢ permuteˢ r` is DEFINITIONAL
-    -- (`pvv-transˢ` is `≈-refl`), so `perm-rigidˢ` closes directly.
-    perm-rigidˢ (Linear⇒cod-Unique H lin) va (Perm.trans r vb)
+    -- (`pvv-transˢ` is `≈-refl`), so `rigidˢ` closes directly.
+    StrictDecoder.rigidˢ H (Linear⇒cod-Unique H lin) va (Perm.trans r vb)
 
   --------------------------------------------------------------------
   -- (N + K) FRONT SWAP — assembled from the `RunInterchangeˢ` residual `RI`

@@ -73,10 +73,8 @@ open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
   sig using (⟪⟫-cod-Unique)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
 open import Data.Fin using (Fin)
-open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open Perm using (_↭_)
 
 --------------------------------------------------------------------------------
@@ -93,7 +91,7 @@ module Reconcile {A B C D : ObjTerm}
     module RF = Run ⟪ fg ⟫
     module Hf = Hypergraph ⟪ fg ⟫
 
-    rigidˢ = PK.perm-rigidˢ (Fin Hf.nV) _≟F_ Hf.vlab
+    rigidˢ = RF.rigidˢ
 
   -- THE `braidˢ` RESIDUAL, named: the C-run inner term post-sorted by
   -- `cand` is the clean tensor at the boundary objects.  At

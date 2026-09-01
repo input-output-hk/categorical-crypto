@@ -36,12 +36,14 @@ open import Categories.APROP.Hypergraph.Soundness.Stack.SeparableStack sig
   using (prefix-++ˡ-perm; extract-prefix-++ˡ; extract-prefix-++ˡ-nothing)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_ public
+import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
 open import Data.Fin using (Fin)
 open import Data.List.Properties using (++-assoc; map-++; ≡-dec)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Axiom.UniquenessOfIdentityProofs using (UIP; module Decidable⇒UIP)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just; nothing)
 
 module StrictDecoder (H : Hypergraph FlatGen) where
@@ -54,6 +56,14 @@ module StrictDecoder (H : Hypergraph FlatGen) where
 
   uipV : UIP (List (Fin H.nV))
   uipV = Decidable⇒UIP.≡-irrelevant (≡-dec _≟F_)
+
+  -- RIGIDITY: any two derivations into a `Unique` stack are `permuteˢ`-equal.
+  -- The strict Kelly residual is discharged by the concrete `Perm.PermK`
+  -- (axiom-free for every vertex set).  Sited ONCE here, at the canonical
+  -- vertex triple `(Fin nV, _≟F_, vlab)` every strict-cone consumer uses.
+  rigidˢ : ∀ {xs ys : List (Fin H.nV)} → Unique ys
+         → (p q : xs Perm.↭ ys) → permuteˢ p ≈ˢ permuteˢ q
+  rigidˢ = PK.perm-rigidˢ (Fin H.nV) _≟F_ H.vlab
 
   ------------------------------------------------------------------------
   -- The strict decoder.

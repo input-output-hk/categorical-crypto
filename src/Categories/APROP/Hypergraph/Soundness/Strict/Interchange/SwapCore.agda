@@ -8,8 +8,6 @@
 --     `EdgeStepRel` leaf under this module's `(H)` telescope.
 --   * `Incomp`, `pe-stackˢ`/`pe-termˢ` — incomparability + `process-edgesˢ`
 --     projection abbreviations.
---   * `perm-rigidˢ` — the rigidity discharge for the located two-box
---     interchange kernel (the strict Kelly residual enters here).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -28,11 +26,8 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.EdgeStepRel sig _≟X_
   using (module EdgeStepView)
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
 open import Data.Fin using (Fin)
-open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Relation.Nullary using (¬_)
 
 --------------------------------------------------------------------------------
@@ -56,15 +51,4 @@ module _ (H : Hypergraph FlatGen) where
   Incomp : Fin H.nE → Fin H.nE → Set
   Incomp e e' = (¬ Dep H e e') × (¬ Dep H e' e)
 
-  --------------------------------------------------------------------
-  -- RIGIDITY: any two derivations into a `Unique` stack are `permuteˢ`-equal.
-  -- The strict Kelly residual is discharged by the concrete `Perm.PermK`
-  -- (axiom-free for every vertex set), instantiated here as at its other
-  -- strict-cone sites.
-  --------------------------------------------------------------------
-
-  perm-rigidˢ
-    : ∀ {xs ys : List (Fin H.nV)} → Unique ys
-      → (p q : xs Perm.↭ ys) → permuteˢ p ≈ˢ permuteˢ q
-  perm-rigidˢ = PK.perm-rigidˢ (Fin H.nV) _≟F_ H.vlab
 
