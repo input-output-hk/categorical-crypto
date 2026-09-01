@@ -450,13 +450,13 @@ private
       ≡ subst Fin (sym (↭-length p)) (eval-↭ p P.⟨$⟩ʳ k)
   flatten-eval {z = z} {zs} p w (el , refl , h) k
     rewrite uipX el refl =
-    trans (sym (eval-respect w (z ∷ zs) refl k))
+    trans (sym (eval-respect z zs w k))
     (trans (cast-push refl L (eval-↭ (⟦ w ⟧↭ (z ∷ zs))) k)
     (trans (cong (subst Fin L) (sym (sound h k)))
            (subst-Fin-uip L (sym (↭-length p)) (eval-↭ p P.⟨$⟩ʳ k))))
     where
     L : length (applyW w (z ∷ zs)) ≡ suc (length zs)
-    L = trans (applyW-length w (z ∷ zs)) refl
+    L = applyW-length w (z ∷ zs)
 
 complete : {p q : xs ↭ ys} → eval-↭ p ≈-fb eval-↭ q → p ≅↭ⁱ q
 complete {xs = []} {ys = ys} {p = p} {q = q} _

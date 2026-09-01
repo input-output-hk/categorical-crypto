@@ -158,27 +158,29 @@ gen-eval {suc n} (fsuc i) (a ∷ xs) len cod k =
 ------------------------------------------------------------------------
 -- The main lemma.
 
-eval-respect : {n : ℕ} (w : Word n) (xs : List X) (len : length xs ≡ suc n)
-             → castFB len (trans (applyW-length w xs) len)
-                      (eval-↭ (⟦ w ⟧↭ xs))
+-- Stated at the ONE shape it is consumed at — a cons list, whose length proof
+-- is definitional.  The generality belongs one level down, to `gen-eval`.
+eval-respect : (z : X) (zs : List X) (w : Word (length zs))
+             → castFB refl (applyW-length w (z ∷ zs))
+                      (eval-↭ (⟦ w ⟧↭ (z ∷ zs)))
                ≈-fb evalW w
-eval-respect [] xs len = cast-id len
+eval-respect z zs [] = cast-id refl
 -- `i ∷ w′`: split the cast over the composition (`comp-cast`), then apply
 -- `gen-eval` to the head factor and the IH to the tail.  Chained at `k`.
-eval-respect {n} (i ∷ w) xs len k =
-  trans (comp-cast {n = n} len lenMid lenCod
-                   (eval-↭ (swapAt-↭ i (applyW w xs)))
-                   (eval-↭ (⟦ w ⟧↭ xs)) k)
+eval-respect z zs (i ∷ w) k =
+  trans (comp-cast {n = length zs} refl lenMid lenCod
+                   (eval-↭ (swapAt-↭ i (applyW w (z ∷ zs))))
+                   (eval-↭ (⟦ w ⟧↭ (z ∷ zs))) k)
         (∘-fb-cong {g = castFB lenMid lenCod
-                              (eval-↭ (swapAt-↭ i (applyW w xs)))}
+                              (eval-↭ (swapAt-↭ i (applyW w (z ∷ zs))))}
                    {g′ = genFB i}
-                   {f = castFB len lenMid (eval-↭ (⟦ w ⟧↭ xs))}
+                   {f = castFB refl lenMid (eval-↭ (⟦ w ⟧↭ (z ∷ zs)))}
                    {f′ = evalW w}
-                   (gen-eval i (applyW w xs) lenMid lenCod)
-                   (eval-respect w xs len)
+                   (gen-eval i (applyW w (z ∷ zs)) lenMid lenCod)
+                   (eval-respect z zs w)
                    k)
   where
-    lenMid : length (applyW w xs) ≡ suc n
-    lenMid = trans (applyW-length w xs) len
-    lenCod : length (applyW (i ∷ w) xs) ≡ suc n
-    lenCod = trans (applyW-length (i ∷ w) xs) len
+    lenMid : length (applyW w (z ∷ zs)) ≡ suc (length zs)
+    lenMid = applyW-length w (z ∷ zs)
+    lenCod : length (applyW (i ∷ w) (z ∷ zs)) ≡ suc (length zs)
+    lenCod = applyW-length (i ∷ w) (z ∷ zs)
