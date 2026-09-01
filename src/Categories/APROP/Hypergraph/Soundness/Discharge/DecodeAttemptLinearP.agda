@@ -32,7 +32,8 @@ open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
 open import Categories.APROP.Hypergraph.Util.Prune
 
 open import Categories.APROP.Hypergraph.Model.Translation sig
-  using () renaming (⟪_⟫ to ⟪_⟫ₚ; ⟪⟫-domL to ⟪⟫ₚ-domL; ⟪⟫-codL to ⟪⟫ₚ-codL)
+  using () renaming (⟪_⟫ to ⟪_⟫ₚ; ⟪⟫-domL to ⟪⟫ₚ-domL; ⟪⟫-codL to ⟪⟫ₚ-codL
+                    ; HomTermRec to HomTermRecₚ)
 
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 
@@ -485,20 +486,12 @@ module _
 -- `⟪⟫-LinearP`.
 
 ⟪⟫-LinearP : ∀ {A B} (f : HomTerm A B) → Lin.Linear ⟪ f ⟫ₚ
-⟪⟫-LinearP (Agen g)        = Lin.Linear-hGen g
-⟪⟫-LinearP (id {A})        = Lin.Linear-hId A
-⟪⟫-LinearP (g ∘ f)         =
-  Linear-hComposeP ⟪ f ⟫ₚ ⟪ g ⟫ₚ
-    (trans (⟪⟫ₚ-codL f) (sym (⟪⟫ₚ-domL g)))
-    (⟪⟫-LinearP f) (⟪⟫-LinearP g)
-⟪⟫-LinearP (f ⊗₁ g)        = Lin.Linear-hTensor ⟪ f ⟫ₚ ⟪ g ⟫ₚ (⟪⟫-LinearP f) (⟪⟫-LinearP g)
-⟪⟫-LinearP (λ⇒ {A})        = Lin.Linear-hId A
-⟪⟫-LinearP (λ⇐ {A})        = Lin.Linear-hId A
-⟪⟫-LinearP (ρ⇒ {A})        = Lin.Linear-hId (A ⊗₀ unit)
-⟪⟫-LinearP (ρ⇐ {A})        = Lin.Linear-hId (A ⊗₀ unit)
-⟪⟫-LinearP (α⇒ {A}{B}{C})  = Lin.Linear-hId ((A ⊗₀ B) ⊗₀ C)
-⟪⟫-LinearP (α⇐ {A}{B}{C})  = Lin.Linear-hId ((A ⊗₀ B) ⊗₀ C)
-⟪⟫-LinearP (σ {A}{B})      = Lin.Linear-hSwap A B
+⟪⟫-LinearP =
+  HomTermRecₚ Lin.Linear Lin.Linear-hGen Lin.Linear-hId
+    (λ f g → Linear-hComposeP ⟪ f ⟫ₚ ⟪ g ⟫ₚ
+               (trans (⟪⟫ₚ-codL f) (sym (⟪⟫ₚ-domL g))))
+    (λ f g → Lin.Linear-hTensor ⟪ f ⟫ₚ ⟪ g ⟫ₚ)
+    Lin.Linear-hSwap
 
 --------------------------------------------------------------------------------
 -- `decode-attempt-LinearP`.
@@ -506,23 +499,14 @@ module _
 decode-attempt-LinearP
   : ∀ {A B} (f : HomTerm A B)
   → process-all-edges ⟪ f ⟫ₚ (Hypergraph.dom ⟪ f ⟫ₚ) Perm.↭ Hypergraph.cod ⟪ f ⟫ₚ
-decode-attempt-LinearP (Agen g)        = decode-attempt-hGen g
-decode-attempt-LinearP (id {A})        = decode-attempt-hId A
-decode-attempt-LinearP (g ∘ f)         =
-  decode-attempt-hComposeP ⟪ f ⟫ₚ ⟪ g ⟫ₚ
-    (trans (⟪⟫ₚ-codL f) (sym (⟪⟫ₚ-domL g)))
-    (⟪⟫-LinearP f) (⟪⟫-LinearP g)
-    (decode-attempt-LinearP f) (decode-attempt-LinearP g)
-decode-attempt-LinearP (f ⊗₁ g)        =
-  decode-attempt-hTensor ⟪ f ⟫ₚ ⟪ g ⟫ₚ
-    (decode-attempt-LinearP f) (decode-attempt-LinearP g)
-decode-attempt-LinearP (λ⇒ {A})        = decode-attempt-hId A
-decode-attempt-LinearP (λ⇐ {A})        = decode-attempt-hId A
-decode-attempt-LinearP (ρ⇒ {A})        = decode-attempt-hId (A ⊗₀ unit)
-decode-attempt-LinearP (ρ⇐ {A})        = decode-attempt-hId (A ⊗₀ unit)
-decode-attempt-LinearP (α⇒ {A}{B}{C})  = decode-attempt-hId ((A ⊗₀ B) ⊗₀ C)
-decode-attempt-LinearP (α⇐ {A}{B}{C})  = decode-attempt-hId ((A ⊗₀ B) ⊗₀ C)
-decode-attempt-LinearP (σ {A}{B})      = decode-attempt-hSwap A B
+decode-attempt-LinearP =
+  HomTermRecₚ (λ H → process-all-edges H (Hypergraph.dom H) Perm.↭ Hypergraph.cod H)
+    decode-attempt-hGen decode-attempt-hId
+    (λ f g → decode-attempt-hComposeP ⟪ f ⟫ₚ ⟪ g ⟫ₚ
+               (trans (⟪⟫ₚ-codL f) (sym (⟪⟫ₚ-domL g)))
+               (⟪⟫-LinearP f) (⟪⟫-LinearP g))
+    (λ f g → decode-attempt-hTensor ⟪ f ⟫ₚ ⟪ g ⟫ₚ)
+    decode-attempt-hSwap
 
 -- NOTE (weak-decoder demotion, Review-2 F2): the non-strict total decoder
 -- `decodeP` (which packaged `proj₁ (decode-attempt-LinearP f)` as a boundary

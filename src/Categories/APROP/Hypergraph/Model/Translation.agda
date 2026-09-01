@@ -89,3 +89,34 @@ open import Data.List.Properties using (++-identityʳ; ++-assoc)
 -- args of a focused goal like `∀ {A B C D} → ⟪ LHS ⟫ ≅ᴴ ⟪ RHS ⟫` by
 -- inverting `⟪_⟫` on the goal's `⟪ LHS ⟫`.
 {-# INJECTIVE_FOR_INFERENCE ⟪_⟫ #-}
+
+--------------------------------------------------------------------------------
+-- The recursor for predicates on the IMAGE of `⟪_⟫`.  Eight of the thirteen
+-- `HomTerm` constructors (`id`, the four unitors, the two associators) all
+-- translate to some `hId`, so their motives coincide once `⟪_⟫` reduces and
+-- one handler serves all eight.  The `∘`/`⊗` handlers keep the SUBTERMS in
+-- scope, not just the recursive results, because consumers routinely need a
+-- *different* predicate's proof there (`⟪⟫-LinearP g`, `⟪_⟫-dom-unique g`).
+
+module _ {ℓ} (Q : Hypergraph FlatGen → Set ℓ)
+  (q-gen  : ∀ {A B} (g : mor A B) → Q (hGen g))
+  (q-id   : ∀ A → Q (hId A))
+  (q-com  : ∀ {A B C} (f : HomTerm A B) (g : HomTerm B C)
+            → Q ⟪ f ⟫ → Q ⟪ g ⟫ → Q ⟪ g ∘ f ⟫)
+  (q-ten  : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
+            → Q ⟪ f ⟫ → Q ⟪ g ⟫ → Q ⟪ f ⊗₁ g ⟫)
+  (q-swap : ∀ A B → Q (hSwap A B))
+  where
+
+  HomTermRec : ∀ {A B} (f : HomTerm A B) → Q ⟪ f ⟫
+  HomTermRec (Agen g)        = q-gen g
+  HomTermRec (id {A})        = q-id A
+  HomTermRec (g ∘ f)         = q-com f g (HomTermRec f) (HomTermRec g)
+  HomTermRec (f ⊗₁ g)        = q-ten f g (HomTermRec f) (HomTermRec g)
+  HomTermRec (λ⇒ {A})        = q-id A
+  HomTermRec (λ⇐ {A})        = q-id A
+  HomTermRec (ρ⇒ {A})        = q-id (A ⊗₀ unit)
+  HomTermRec (ρ⇐ {A})        = q-id (A ⊗₀ unit)
+  HomTermRec (α⇒ {A}{B}{C})  = q-id ((A ⊗₀ B) ⊗₀ C)
+  HomTermRec (α⇐ {A}{B}{C})  = q-id ((A ⊗₀ B) ⊗₀ C)
+  HomTermRec (σ {A}{B})      = q-swap A B
