@@ -89,7 +89,7 @@ module PerHG (H : Hypergraph FlatGen)
   RunInterchangeAt =
     ∀ (ps qs : Order) {e e' : Fin H.nE} (inc : Incompˢ e e')
     → SUR.Reservoir≤1 H (ps ++ e' ∷ e ∷ qs) H.dom
-    → RunInterchangeˢ H lin ps qs inc
+    → RunInterchangeˢ H ps qs inc
 
   --------------------------------------------------------------------
   -- STRICT validity + the strict order-indexed decoder.  `Validˢ o`
@@ -190,7 +190,7 @@ module FrontSwap (H : Hypergraph FlatGen)
   front-swap-≈ˢ
     : ∀ (ps qs : Order) {e e' : Fin H.nE}
         (inc : Incompˢ e e')
-        (RI : RunInterchangeˢ H lin ps qs inc)
+        (RI : RunInterchangeˢ H ps qs inc)
         (p₁ : Validˢ (ps ++ e ∷ e' ∷ qs))
         (p₂ : Validˢ (ps ++ e' ∷ e ∷ qs))
     → ( permuteˢ p₁

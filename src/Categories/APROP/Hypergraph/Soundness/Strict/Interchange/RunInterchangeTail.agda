@@ -34,7 +34,6 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunInterchangeTa
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
-open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 open import Categories.Morphism.Reasoning SCat using (pullʳ)
@@ -48,12 +47,12 @@ import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig
 open import Data.Fin using (Fin)
 
 ------------------------------------------------------------------------
--- Per-hypergraph: fix `H`, `lin`.
+-- Per-hypergraph: fix `H`.  Neither the (N) residual record nor the tail
+-- extension mentions `Linear H` — the socket's linearity content is spent
+-- upstream, in the reservoir `SwapStep` hands in.
 ------------------------------------------------------------------------
 
-module _ (H : Hypergraph FlatGen)
-         (lin : Linear H)
-         where
+module _ (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
 
   open EquivStep H

@@ -92,7 +92,7 @@ module _ {A B : ObjTerm} (f : HomTerm A B) where
 
   run-interchange-H : SS.PerHG.RunInterchangeAt F dih lin
   run-interchange-H ps qs {e} {e'} inc res-full =
-    run-interchange-tailˢ F lin ps qs inc res-full
+    run-interchange-tailˢ F ps qs inc res-full
       (record { reshuffle = proj₁ ri₀ ; run-eq = proj₂ ri₀ })
     where
       -- prefix drop of `qs`, after re-bracketing.
