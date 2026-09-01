@@ -107,12 +107,16 @@ module _ (H : Hypergraph FlatGen)
   -- which IS the strict run's stack, so `Unique` transfers with no cast.
   ------------------------------------------------------------------------
 
+  -- `reservoir-split ps qs` is the only consumer of the hypothesis, so the
+  -- `++ []` its shape wants is manufactured HERE, once, instead of at every
+  -- call site.
   reached-Uniqueˢ-from
-    : ∀ (o : List (Fin H.nE)) → SUR.Reservoir≤1 H (o ++ []) H.dom
+    : ∀ (o : List (Fin H.nE)) → SUR.Reservoir≤1 H o H.dom
     → Unique (pe-stackˢ′ o H.dom)
   reached-Uniqueˢ-from o inv =
     SUR.Reservoir≤1⇒Unique H [] ((process-edges H o H.dom))
-      (SUR.reservoir-split H o [] H.dom inv)
+      (SUR.reservoir-split H o [] H.dom
+        (subst (λ z → SUR.Reservoir≤1 H z H.dom) (sym (++-identityʳ o)) inv))
 
   private
     e'-fires-stable = FMIC.e'-fires-stable H lin
@@ -239,16 +243,14 @@ module _ (H : Hypergraph FlatGen)
         -- and the `Unique` it reaches on the resulting stack.
         res-prefix
           : ∀ (x y : Fin H.nE) → SUR.Reservoir≤1 H (ps ++ x ∷ y ∷ []) H.dom
-          → SUR.Reservoir≤1 H ((ps ++ x ∷ []) ++ []) H.dom
+          → SUR.Reservoir≤1 H (ps ++ x ∷ []) H.dom
         res-prefix x y r =
-          subst (λ z → SUR.Reservoir≤1 H z H.dom)
-            (sym (++-identityʳ (ps ++ x ∷ [])))
-            (SUR.reservoir-prefix H (ps ++ x ∷ []) (y ∷ []) H.dom
-              (subst (λ z → SUR.Reservoir≤1 H z H.dom)
-                     (sym (++-assoc ps (x ∷ []) (y ∷ []))) r))
+          SUR.reservoir-prefix H (ps ++ x ∷ []) (y ∷ []) H.dom
+            (subst (λ z → SUR.Reservoir≤1 H z H.dom)
+                   (sym (++-assoc ps (x ∷ []) (y ∷ []))) r)
 
         us-of
-          : ∀ (o : List (Fin H.nE)) → SUR.Reservoir≤1 H ((ps ++ o) ++ []) H.dom
+          : ∀ (o : List (Fin H.nE)) → SUR.Reservoir≤1 H (ps ++ o) H.dom
           → Unique (pe-stackˢ′ o sp)
         us-of o r = subst Unique (++-stackˢ′ ps o H.dom)
                       (reached-Uniqueˢ-from (ps ++ o) r)
@@ -256,8 +258,7 @@ module _ (H : Hypergraph FlatGen)
         us-sp : Unique sp
         us-sp =
           reached-Uniqueˢ-from ps
-            (subst (λ z → SUR.Reservoir≤1 H z H.dom) (sym (++-identityʳ ps))
-              (SUR.reservoir-prefix H ps (e' ∷ e ∷ []) H.dom res))
+            (SUR.reservoir-prefix H ps (e' ∷ e ∷ []) H.dom res)
 
         us-s1 : Unique (proj₁ (edge-stepˢ sp e))
         us-s1 = us-of (e ∷ []) (res-prefix e e'
@@ -268,6 +269,4 @@ module _ (H : Hypergraph FlatGen)
         us-u1 = us-of (e' ∷ []) (res-prefix e' e res)
 
         us-u2 : Unique (proj₁ (edge-stepˢ (proj₁ (edge-stepˢ sp e')) e))
-        us-u2 = us-of (e' ∷ e ∷ [])
-                  (subst (λ z → SUR.Reservoir≤1 H z H.dom)
-                         (sym (++-identityʳ (ps ++ e' ∷ e ∷ []))) res)
+        us-u2 = us-of (e' ∷ e ∷ []) res
