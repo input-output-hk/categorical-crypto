@@ -112,9 +112,6 @@ module Discharge (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X)
 
       -- The Yang-Baxter braid in the exact shape produced by `permuteˢ` of
       -- the two `swap-braid` derivations; delegated to the `braidX` residual.
-      braid₃ : ∀ (x y z : V) (M : List X) → BG.BraidAt (vlab x) (vlab y) (vlab z) M
-      braid₃ x y z M = braidX (vlab x) (vlab y) (vlab z) M
-
       swap-braid-case
         : ∀ {x y z : V} {xs : List V}
         → permuteˢ (Perm.trans (Perm.swap x y (Perm.refl {xs = z ∷ xs}))
@@ -124,7 +121,7 @@ module Discharge (V : Set) (_≟V_ : DecidableEquality V) (vlab : V → X)
           permuteˢ (Perm.trans (Perm.prep x (Perm.swap y z (Perm.refl {xs = xs})))
                      (Perm.trans (Perm.swap x z (Perm.refl {xs = y ∷ xs}))
                                  (Perm.prep z (Perm.swap x y (Perm.refl {xs = xs})))))
-      swap-braid-case {x} {y} {z} {xs} = braid₃ x y z (map vlab xs)
+      swap-braid-case {x} {y} {z} {xs} = braidX (vlab x) (vlab y) (vlab z) (map vlab xs)
 
     --------------------------------------------------------------------
     -- `permuteˢ` respects `_≅↭ⁱ_`: one strict-SMC axiom per
