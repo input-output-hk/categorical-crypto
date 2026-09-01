@@ -127,10 +127,8 @@ st-roundtrip (α⇐ {A} {B} {C}) =
   ○ ⟺ (derive-⇐ A B C (Worker.work A B C))
 st-roundtrip (σ {A} {B} ⦃ v≤v ⦄) =
   ⟺ (center (⟺ σ∘[f⊗g]≈[g⊗f]∘σ)
-     ○ (refl⟩∘⟨ cancelInner ⊗-iso-cancel))
-  where
-    ⊗-iso-cancel = ⊗-cancel (_≅_.isoʳ (unflatten-flatten-≈ A))
-                            (_≅_.isoʳ (unflatten-flatten-≈ B))
+     ○ (refl⟩∘⟨ cancelInner (⊗-cancel (_≅_.isoʳ (unflatten-flatten-≈ A))
+                                      (_≅_.isoʳ (unflatten-flatten-≈ B)))))
 --------------------------------------------------------------------------------
 -- Inverse bridge + cancellation.  This is their only home.
 
