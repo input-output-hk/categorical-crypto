@@ -245,15 +245,13 @@ module _ (H : Hypergraph FlatGen) where
     → (Rlist : List (Fin H.nV))
     → r₁ Perm.↭ H.ein e' ++ Rlist
     → sp Perm.↭ (H.ein e ++ H.ein e') ++ Rlist
-  block-loc-e {e} {e'} ¬dep sp r₁ r₂ p₁ p₂ Rlist q₁ = loc
+  block-loc-e {e} {e'} ¬dep sp r₁ r₂ p₁ p₂ Rlist q₁ = begin
+    sp                                   ↭⟨ p₁ ⟩
+    H.ein e ++ r₁                        ↭⟨ PermProp.++⁺ˡ (H.ein e) q₁ ⟩
+    H.ein e ++ H.ein e' ++ Rlist         ≡⟨ sym (++-assoc (H.ein e) (H.ein e') Rlist) ⟩
+    (H.ein e ++ H.ein e') ++ Rlist       ∎
     where
       open Perm.PermutationReasoning
-      loc : sp Perm.↭ (H.ein e ++ H.ein e') ++ Rlist
-      loc = begin
-        sp                                   ↭⟨ p₁ ⟩
-        H.ein e ++ r₁                        ↭⟨ PermProp.++⁺ˡ (H.ein e) q₁ ⟩
-        H.ein e ++ H.ein e' ++ Rlist         ≡⟨ sym (++-assoc (H.ein e) (H.ein e') Rlist) ⟩
-        (H.ein e ++ H.ein e') ++ Rlist       ∎
 
   ----------------------------------------------------------------------
   -- The output reshuffle between the two final stacks.
@@ -330,20 +328,18 @@ module _ (H : Hypergraph FlatGen) where
     → H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂
     → r₁ Perm.↭ H.ein e' ++ Rlist
     → (H.eout e ++ H.eout e') ++ Rlist Perm.↭ H.eout e' ++ r₂
-  vout-loc-e {e} {e'} r₁ r₂ Rlist p₂ q₁ = goal
+  vout-loc-e {e} {e'} r₁ r₂ Rlist p₂ q₁ = begin
+    (H.eout e ++ H.eout e') ++ Rlist
+      ≡⟨ ++-assoc (H.eout e) (H.eout e') Rlist ⟩
+    H.eout e ++ H.eout e' ++ Rlist
+      ↭⟨ PermProp.shifts (H.eout e) (H.eout e') ⟩
+    H.eout e' ++ H.eout e ++ Rlist
+      ↭⟨ PermProp.++⁺ˡ (H.eout e') (Perm.↭-sym r₂-eq) ⟩
+    H.eout e' ++ r₂ ∎
     where
       open Perm.PermutationReasoning
       r₂-eq : r₂ Perm.↭ H.eout e ++ Rlist
       r₂-eq = eout-residual {e} {e'} r₁ r₂ Rlist p₂ q₁
-      goal : (H.eout e ++ H.eout e') ++ Rlist Perm.↭ H.eout e' ++ r₂
-      goal = begin
-        (H.eout e ++ H.eout e') ++ Rlist
-          ≡⟨ ++-assoc (H.eout e) (H.eout e') Rlist ⟩
-        H.eout e ++ H.eout e' ++ Rlist
-          ↭⟨ PermProp.shifts (H.eout e) (H.eout e') ⟩
-        H.eout e' ++ H.eout e ++ Rlist
-          ↭⟨ PermProp.++⁺ˡ (H.eout e') (Perm.↭-sym r₂-eq) ⟩
-        H.eout e' ++ r₂ ∎
 
   module _
     {e e' : Fin H.nE} (¬dep-ee' : ¬ (Dep H e e')) (¬dep-e'e : ¬ (Dep H e' e))
