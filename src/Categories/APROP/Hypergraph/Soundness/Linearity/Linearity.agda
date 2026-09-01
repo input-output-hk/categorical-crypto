@@ -28,7 +28,7 @@ open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using ( FlatGen; flatten; range
         ; hEmpty; hVar; hId; hGen; hSwap; hTensor
-        ; module hTensor-impl)
+        ; module hTensor-impl; module hGenSwap-impl)
 open import Categories.APROP.Hypergraph.Model.Invariant sig using (↑ˡ≢↑ʳ; range-++)
 
 open import Data.Empty using (⊥-elim)
@@ -306,45 +306,33 @@ Linear-hEmpty = (λ ()) , (λ ())
 Linear-hVar : ∀ x → Linear (hVar x)
 Linear-hVar x = (λ { zero → refl }) , (λ { zero → s≤s z≤n })
 
--- Symmetry: `dom = LL ++ RR`, `cod = RR ++ LL`, no edges.  Both sides
--- count `LL`/`RR` once each, just permuted; bound by `count-LL-RR-eq-1`.
+-- Symmetry: `dom = Lblk ++ Rblk`, `cod = Rblk ++ Lblk`, no edges.  Both sides
+-- count `Lblk`/`Rblk` once each, just permuted; bound by `count-LL-RR-eq-1`.
 Linear-hSwap : ∀ A B → Linear (hSwap A B)
 Linear-hSwap A B = balance , bound
   where
-    nA = length (flatten A)
-    nB = length (flatten B)
+    open hGenSwap-impl A B using (nA; nB; Lblk; Rblk)
 
-    LL : List (Fin (nA + nB))
-    LL = map (_↑ˡ nB) (range nA)
+    balance : ∀ v → count v ((Lblk ++ Rblk) ++ []) ≡ count v ((Rblk ++ Lblk) ++ [])
+    balance v rewrite ++-identityʳ (Lblk ++ Rblk) | ++-identityʳ (Rblk ++ Lblk) =
+      count-swap v Lblk Rblk
 
-    RR : List (Fin (nA + nB))
-    RR = map (nA ↑ʳ_) (range nB)
+    bound : ∀ v → count v ((Lblk ++ Rblk) ++ []) Nat.≤ 1
+    bound v rewrite ++-identityʳ (Lblk ++ Rblk) | count-LL-RR-eq-1 nA nB v = s≤s z≤n
 
-    balance : ∀ v → count v ((LL ++ RR) ++ []) ≡ count v ((RR ++ LL) ++ [])
-    balance v rewrite ++-identityʳ (LL ++ RR) | ++-identityʳ (RR ++ LL) = count-swap v LL RR
-
-    bound : ∀ v → count v ((LL ++ RR) ++ []) Nat.≤ 1
-    bound v rewrite ++-identityʳ (LL ++ RR) | count-LL-RR-eq-1 nA nB v = s≤s z≤n
-
--- Generator edge: `dom = LL`, `cod = RR`; the single edge has
--- `ein _ = LL`, `eout _ = RR`.  Reduces to the same `LL ⊕ RR` story as hSwap.
+-- Generator edge: `dom = Lblk`, `cod = Rblk`; the single edge has
+-- `ein _ = Lblk`, `eout _ = Rblk`.  Reduces to the same `Lblk ⊕ Rblk` story
+-- as hSwap.
 Linear-hGen : ∀ {A B} (g : mor A B) → Linear (hGen g)
 Linear-hGen {A} {B} _ = balance , bound
   where
-    nA = length (flatten A)
-    nB = length (flatten B)
+    open hGenSwap-impl A B using (nA; nB; Lblk; Rblk)
 
-    LL : List (Fin (nA + nB))
-    LL = map (_↑ˡ nB) (range nA)
+    balance : ∀ v → count v (Lblk ++ (Rblk ++ [])) ≡ count v (Rblk ++ (Lblk ++ []))
+    balance v rewrite ++-identityʳ Rblk | ++-identityʳ Lblk = count-swap v Lblk Rblk
 
-    RR : List (Fin (nA + nB))
-    RR = map (nA ↑ʳ_) (range nB)
-
-    balance : ∀ v → count v (LL ++ (RR ++ [])) ≡ count v (RR ++ (LL ++ []))
-    balance v rewrite ++-identityʳ RR | ++-identityʳ LL = count-swap v LL RR
-
-    bound : ∀ v → count v (LL ++ (RR ++ [])) Nat.≤ 1
-    bound v rewrite ++-identityʳ RR | count-LL-RR-eq-1 nA nB v = s≤s z≤n
+    bound : ∀ v → count v (Lblk ++ (Rblk ++ [])) Nat.≤ 1
+    bound v rewrite ++-identityʳ Rblk | count-LL-RR-eq-1 nA nB v = s≤s z≤n
 
 Linear-hId : ∀ A → Linear (hId A)
 Linear-hId unit       = Linear-hEmpty

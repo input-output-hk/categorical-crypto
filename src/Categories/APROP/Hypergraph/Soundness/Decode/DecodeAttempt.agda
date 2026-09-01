@@ -329,18 +329,16 @@ module _ (G K : Hypergraph FlatGen) where
            hT-impl.ein-c-inj₂-red hT-impl.eout-c-inj₂-red front fold miss public
 
 --------------------------------------------------------------------------------
--- `hSwap A B`: nE = 0, dom = L ++ R, cod = R ++ L.  `process-all-edges`
--- returns `dom` (by `refl`); the boundary permutation `dom ↭ cod` is
--- `++-comm L R`.
+-- `hSwap A B`: nE = 0, dom = Lblk ++ Rblk, cod = Rblk ++ Lblk.
+-- `process-all-edges` returns `dom` (by `refl`); the boundary permutation
+-- `dom ↭ cod` is `++-comm Lblk Rblk`.
 
 decode-attempt-hSwap
   : ∀ (A B : ObjTerm)
   → process-all-edges (hSwap A B) (Hypergraph.dom (hSwap A B))
       Perm.↭ Hypergraph.cod (hSwap A B)
-decode-attempt-hSwap A B =
-    PermProp.++-comm
-      (map (_↑ˡ length (flatten B)) (range (length (flatten A))))
-      (map (length (flatten A) ↑ʳ_) (range (length (flatten B))))
+decode-attempt-hSwap A B = PermProp.++-comm Lblk Rblk
+  where open hGenSwap-impl A B using (Lblk; Rblk)
 
 --------------------------------------------------------------------------------
 -- `hGen g`: nE = 1, ein 0 = dom = L, eout 0 = cod = R.  The single edge

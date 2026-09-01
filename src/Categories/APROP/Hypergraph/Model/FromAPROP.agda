@@ -334,10 +334,21 @@ module hGenSwap-impl (A B : ObjTerm) where
   vlab-inR i = cong [ lookup (flatten A) , lookup (flatten B) ]′
                     (splitAt-↑ʳ nA nB i)
 
-  lem-L : map vlab-c (map (_↑ˡ nB) (range nA)) ≡ flatten A
+  -- The two vertex blocks: the `flatten A` half embedded on the left and
+  -- the `flatten B` half on the right.  These ARE `hGen`'s `ein`/`dom` and
+  -- `eout`/`cod`, and `hSwap`'s two boundary halves; every consumer that
+  -- reasons about those boundaries (`Linearity.Linear-hSwap`/`-hGen`,
+  -- `DecodeAttempt.decode-attempt-hSwap`, `DecodeSigma.Sigma`) names them.
+  Lblk : List (Fin (nA + nB))
+  Lblk = map (_↑ˡ nB) (range nA)
+
+  Rblk : List (Fin (nA + nB))
+  Rblk = map (nA ↑ʳ_) (range nB)
+
+  lem-L : map vlab-c Lblk ≡ flatten A
   lem-L = trans (map-∘-cong vlab-inL (range nA)) (map-lookup-range (flatten A))
 
-  lem-R : map vlab-c (map (nA ↑ʳ_) (range nB)) ≡ flatten B
+  lem-R : map vlab-c Rblk ≡ flatten B
   lem-R = trans (map-∘-cong vlab-inR (range nB)) (map-lookup-range (flatten B))
 
 --------------------------------------------------------------------------------
@@ -348,11 +359,11 @@ hGen {A} {B} f = record
   { nV = nA + nB
   ; vlab = vlab-c
   ; nE = 1
-  ; ein = λ _ → map (_↑ˡ nB) (range nA)
-  ; eout = λ _ → map (nA ↑ʳ_) (range nB)
+  ; ein = λ _ → Lblk
+  ; eout = λ _ → Rblk
   ; elab = λ _ → retype (sym lem-L) (sym lem-R) (flat f)
-  ; dom = map (_↑ˡ nB) (range nA)
-  ; cod = map (nA ↑ʳ_) (range nB)
+  ; dom = Lblk
+  ; cod = Rblk
   }
   where open hGenSwap-impl A B
 
@@ -373,20 +384,16 @@ hSwap A B = record
   ; vlab = vlab-c
   ; nE = 0
   ; ein = λ (); eout = λ (); elab = λ ()
-  ; dom = map (_↑ˡ nB) (range nA) ++ map (nA ↑ʳ_) (range nB)
-  ; cod = map (nA ↑ʳ_) (range nB) ++ map (_↑ˡ nB) (range nA)
+  ; dom = Lblk ++ Rblk
+  ; cod = Rblk ++ Lblk
   }
   where open hGenSwap-impl A B
 
 domL-hSwap : ∀ A B → domL (hSwap A B) ≡ flatten A ++ flatten B
-domL-hSwap A B =
-  trans (map-++ vlab-c (map (_↑ˡ nB) (range nA)) (map (nA ↑ʳ_) (range nB)))
-        (cong₂ _++_ lem-L lem-R)
+domL-hSwap A B = trans (map-++ vlab-c Lblk Rblk) (cong₂ _++_ lem-L lem-R)
   where open hGenSwap-impl A B
 
 codL-hSwap : ∀ A B → codL (hSwap A B) ≡ flatten B ++ flatten A
-codL-hSwap A B =
-  trans (map-++ vlab-c (map (nA ↑ʳ_) (range nB)) (map (_↑ˡ nB) (range nA)))
-        (cong₂ _++_ lem-R lem-L)
+codL-hSwap A B = trans (map-++ vlab-c Rblk Lblk) (cong₂ _++_ lem-R lem-L)
   where open hGenSwap-impl A B
 

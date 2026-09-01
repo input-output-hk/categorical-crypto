@@ -29,7 +29,7 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (flatten; range; module hGenSwap-impl)
+  using (flatten; module hGenSwap-impl)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
   sig using (⟪⟫-cod-Unique)
@@ -40,7 +40,7 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig _≟X_
   as BSC
 
-open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
+open import Data.Fin using (Fin)
 open Perm using (_↭_)
 
 --------------------------------------------------------------------------------
@@ -65,16 +65,11 @@ module Sigma (A B : ObjTerm) where
     s≡ : RF.s-finˢ ≡ Hf.dom
     s≡ = proj₁ collapse
 
-    -- the canonical block-swap derivation, on the hSwap blocks.
-    Lblk Rblk : List (Fin Hf.nV)
-    Lblk = map (_↑ˡ length (flatten B)) (range (length (flatten A)))
-    Rblk = map (length (flatten A) ↑ʳ_) (range (length (flatten B)))
-
-    -- `Hf.dom = Lblk ++ Rblk`, `Hf.cod = Rblk ++ Lblk` (definitional).
-
-    -- per-block vertex-label evaluations: `Hf.vlab` IS `hGenSwap-impl`'s
-    -- `vlab-c` (`⟪ σ ⟫ = hSwap A B`), so its own `lem-L`/`lem-R` apply.
-    open hGenSwap-impl A B using (lem-L; lem-R)
+    -- The hSwap blocks and their vertex-label evaluations, taken from the
+    -- constructor's own `where`-module: `⟪ σ ⟫ = hSwap A B`, so `Hf.vlab` IS
+    -- `hGenSwap-impl`'s `vlab-c` and `Hf.dom = Lblk ++ Rblk`,
+    -- `Hf.cod = Rblk ++ Lblk` hold definitionally.
+    open hGenSwap-impl A B using (Lblk; Rblk; lem-L; lem-R)
 
     -- the canonical derivation `dom ↭ cod`.
     bsw : Hf.dom ↭ Hf.cod
