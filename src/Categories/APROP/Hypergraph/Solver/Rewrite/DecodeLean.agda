@@ -68,7 +68,6 @@ open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List.Properties using (map-++; ≡-dec)
 open import Data.Maybe using (Maybe; just; nothing)
-open import Relation.Binary using (DecidableEquality)
 open import Relation.Nullary using (yes; no)
 
 --------------------------------------------------------------------------------
@@ -109,9 +108,6 @@ module _ (H : Hypergraph FlatGen) where
   private
     module H = Hypergraph H
 
-    _≟L_ : DecidableEquality (List (Fin H.nV))
-    _≟L_ = ≡-dec _≟F_
-
   -- LEAN: the identity-guarded locating permutation, shared by the per-edge step
   -- and the final bridge.  Transporting with `subst` rather than matching `refl`
   -- is forced: `s` occurs in the result type via `map H.vlab s`, so it cannot be
@@ -119,7 +115,7 @@ module _ (H : Hypergraph FlatGen) where
   permOrId
     : {s t : List (Fin H.nV)} → s Perm.↭ t
     → HomTerm (unflatten (map H.vlab s)) (unflatten (map H.vlab t))
-  permOrId {s} {t} perm with s ≟L t
+  permOrId {s} {t} perm with ≡-dec _≟F_ s t
   ... | yes eq = subst (λ z → HomTerm (unflatten (map H.vlab s))
                                       (unflatten (map H.vlab z)))
                        eq id
