@@ -82,7 +82,7 @@ crux1 {suc n} X m =
                                         ∘-fb rotate-fb m)}
             (λ j → cong (swap-fb (suc n) P.⟨$⟩ʳ_)
                         (cons-fb-cong (peel X) (rotate-fb m P.⟨$⟩ʳ j))))
-         (crux-core Z r m (mkGlue r m))
+         (crux-core Z r m)
   where
   r = X P.⟨$⟩ˡ 0F
   Z = remove 0F (X ∘-fb inv-fb (rotate-fb r))

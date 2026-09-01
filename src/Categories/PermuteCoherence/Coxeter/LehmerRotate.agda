@@ -265,12 +265,15 @@ rhs-eq {n} Z r m =
   LZ = liftW (liftW (canonW Z))
   R1 = liftW (rotateW r)
 
+-- Unlike `factor`/`rot-comp`/`lhs-eq`, this conclusion never mentions the
+-- glue, so there is nothing for a caller to choose: it is `mkGlue r m`.
 crux-core : (Z : FinBij (suc n) (suc n)) (r : Fin (suc (suc n)))
-            (m : Fin (suc (suc (suc n)))) (g : Glue r m)
+            (m : Fin (suc (suc (suc n))))
           → canonW (swap-fb (suc n) ∘-fb (cons-fb (cons-fb Z ∘-fb rotate-fb r)
                                           ∘-fb rotate-fb m))
             ~ʷ (0F ∷ (liftW (liftW (canonW Z) ++ rotateW r) ++ rotateW m))
-crux-core {n} Z r m g =
+crux-core {n} Z r m =
   ~trans (lhs-eq Z r m g)
     (~trans (++c-l (liftW (liftW (canonW Z))) (Glue.wglue g))
             (~sym (rhs-eq Z r m)))
+  where g = mkGlue r m
