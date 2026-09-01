@@ -78,7 +78,7 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
 open import Categories.APROP.Hypergraph.Model.Translation sig
-  using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
+  using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL; HomTermRec)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep; Dep-reflect)
 import Categories.APROP.Hypergraph.Model.Invariant sig as Inv
 open Inv using (inject+-inj; raise-inj; disj-L-R; range-++)
@@ -381,47 +381,26 @@ NoInvH-hId (A ⊗₀ B)  =
 fin-order-NoInv-⟪⟫ : ∀ {A B} (f : HomTerm A B)
                 → NoInvH ⟪ f ⟫ (range (Hypergraph.nE ⟪ f ⟫))
 
--- Zero-edge `hId`-shaped cases, via `NoInvH-hId`.
-fin-order-NoInv-⟪⟫ (id {A})       = NoInvH-hId A
-fin-order-NoInv-⟪⟫ (λ⇒ {A})       = NoInvH-hId A
-fin-order-NoInv-⟪⟫ (λ⇐ {A})       = NoInvH-hId A
-fin-order-NoInv-⟪⟫ (ρ⇒ {A})       = NoInvH-hId (A ⊗₀ unit)
-fin-order-NoInv-⟪⟫ (ρ⇐ {A})       = NoInvH-hId (A ⊗₀ unit)
-fin-order-NoInv-⟪⟫ (α⇒ {A}{B}{C}) = NoInvH-hId ((A ⊗₀ B) ⊗₀ C)
-fin-order-NoInv-⟪⟫ (α⇐ {A}{B}{C}) = NoInvH-hId ((A ⊗₀ B) ⊗₀ C)
-
--- `σ`: `⟪ σ ⟫ = hSwap A B`, which has `nE = 0` literally ⇒ `range 0 = []`.
-fin-order-NoInv-⟪⟫ (σ {A}{B})     = []
-
--- Single edge: `nE = 1`, `range 1 = zero ∷ []`; the singleton has no pairs.
-fin-order-NoInv-⟪⟫ (Agen g)       = [] ∷ []
-
--- Tensor: split `range (G.nE + K.nE)` via `range-++` and reuse the IHs.
-fin-order-NoInv-⟪⟫ (f ⊗₁ g) =
-  subst (NoInvH (hTensor F G))
-        (sym (range-++ F.nE G.nE))
-        (NoInvH-tensor F G (range F.nE) (range G.nE)
-          (fin-order-NoInv-⟪⟫ f) (fin-order-NoInv-⟪⟫ g))
-  where
-    F = ⟪ f ⟫
-    G = ⟪ g ⟫
-    module F = Hypergraph F
-    module G = Hypergraph G
-
--- Composition: `⟪ g ∘ f ⟫ = hComposeP ⟪ f ⟫ ⟪ g ⟫ bdy`.  Split and reuse.
-fin-order-NoInv-⟪⟫ (g ∘ f) =
-  subst (NoInvH (hComposeP F G bdy))
-        (sym (range-++ F.nE G.nE))
-        (NoInvH-compose F G bdy (⟪⟫-LinearP f) (⟪⟫-LinearP g)
-          (range F.nE) (range G.nE)
-          (fin-order-NoInv-⟪⟫ f) (fin-order-NoInv-⟪⟫ g))
-  where
-    F = ⟪ f ⟫
-    G = ⟪ g ⟫
-    module F = Hypergraph F
-    module G = Hypergraph G
-    bdy : codL F ≡ domL G
-    bdy = trans (⟪⟫-codL f) (sym (⟪⟫-domL g))
+fin-order-NoInv-⟪⟫ =
+  HomTermRec (λ H → NoInvH H (range (Hypergraph.nE H)))
+    -- Single edge: `nE = 1`, `range 1 = zero ∷ []`; the singleton has no pairs.
+    (λ _ → [] ∷ [])
+    -- Zero-edge `hId`-shaped cases, via `NoInvH-hId`.
+    NoInvH-hId
+    -- Composition: `⟪ g ∘ f ⟫ = hComposeP ⟪ f ⟫ ⟪ g ⟫ bdy`.  Split
+    -- `range (G.nE + K.nE)` via `range-++` and reuse the IHs.
+    (λ f g nf ng →
+      subst (NoInvH (hComposeP ⟪ f ⟫ ⟪ g ⟫ (trans (⟪⟫-codL f) (sym (⟪⟫-domL g)))))
+            (sym (range-++ (Hypergraph.nE ⟪ f ⟫) (Hypergraph.nE ⟪ g ⟫)))
+            (NoInvH-compose ⟪ f ⟫ ⟪ g ⟫ (trans (⟪⟫-codL f) (sym (⟪⟫-domL g)))
+              (⟪⟫-LinearP f) (⟪⟫-LinearP g) _ _ nf ng))
+    -- Tensor: the same split, no linearity needed.
+    (λ f g nf ng →
+      subst (NoInvH (hTensor ⟪ f ⟫ ⟪ g ⟫))
+            (sym (range-++ (Hypergraph.nE ⟪ f ⟫) (Hypergraph.nE ⟪ g ⟫)))
+            (NoInvH-tensor ⟪ f ⟫ ⟪ g ⟫ _ _ nf ng))
+    -- `σ`: `⟪ σ ⟫ = hSwap A B`, which has `nE = 0` literally ⇒ `range 0 = []`.
+    (λ _ _ → [])
 
 --------------------------------------------------------------------------------
 -- ## The same induction on the diagonal: `NoSelfDep ⟪ f ⟫`.
@@ -433,19 +412,11 @@ NoSelfDep-hId (A ⊗₀ B)  {e} =
   NoSelfDep-tensor (hId A) (hId B) (NoSelfDep-hId A) (NoSelfDep-hId B) {e}
 
 dep-irrefl-⟪⟫ : ∀ {A B} (f : HomTerm A B) → NoSelfDep ⟪ f ⟫
-dep-irrefl-⟪⟫ (id {A})       {e} = NoSelfDep-hId A {e}
-dep-irrefl-⟪⟫ (λ⇒ {A})       {e} = NoSelfDep-hId A {e}
-dep-irrefl-⟪⟫ (λ⇐ {A})       {e} = NoSelfDep-hId A {e}
-dep-irrefl-⟪⟫ (ρ⇒ {A})       {e} = NoSelfDep-hId (A ⊗₀ unit) {e}
-dep-irrefl-⟪⟫ (ρ⇐ {A})       {e} = NoSelfDep-hId (A ⊗₀ unit) {e}
-dep-irrefl-⟪⟫ (α⇒ {A}{B}{C}) {e} = NoSelfDep-hId ((A ⊗₀ B) ⊗₀ C) {e}
-dep-irrefl-⟪⟫ (α⇐ {A}{B}{C}) {e} = NoSelfDep-hId ((A ⊗₀ B) ⊗₀ C) {e}
-dep-irrefl-⟪⟫ (σ {A}{B})     {()}
-dep-irrefl-⟪⟫ (Agen g)       {e} = NoSelfDep-hGen g {e}
-dep-irrefl-⟪⟫ (f ⊗₁ g)       {e} =
-  NoSelfDep-tensor ⟪ f ⟫ ⟪ g ⟫ (dep-irrefl-⟪⟫ f) (dep-irrefl-⟪⟫ g) {e}
-dep-irrefl-⟪⟫ (g ∘ f)        {e} =
-  NoSelfDep-compose ⟪ f ⟫ ⟪ g ⟫ (trans (⟪⟫-codL f) (sym (⟪⟫-domL g)))
-    (⟪⟫-LinearP f) (⟪⟫-LinearP g)
-    (dep-irrefl-⟪⟫ f) (dep-irrefl-⟪⟫ g) {e}
+dep-irrefl-⟪⟫ =
+  HomTermRec NoSelfDep NoSelfDep-hGen NoSelfDep-hId
+    (λ f g nf ng → NoSelfDep-compose ⟪ f ⟫ ⟪ g ⟫
+                     (trans (⟪⟫-codL f) (sym (⟪⟫-domL g)))
+                     (⟪⟫-LinearP f) (⟪⟫-LinearP g) nf ng)
+    (λ f g → NoSelfDep-tensor ⟪ f ⟫ ⟪ g ⟫)
+    (λ _ _ → λ { {()} })
 
