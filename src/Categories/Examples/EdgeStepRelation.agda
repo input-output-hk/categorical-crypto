@@ -39,7 +39,6 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 
 open import Data.Fin using (Fin)
 open import Data.Maybe using (just; nothing)
-open import Data.Product using (_,_)
 
 module _ (G : Hypergraph FlatGen) where
   private module G = Hypergraph G
