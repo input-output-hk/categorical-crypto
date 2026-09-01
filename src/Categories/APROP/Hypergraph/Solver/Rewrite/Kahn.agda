@@ -19,7 +19,7 @@ open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List.Base using (List; []; _∷_; _++_)
 open import Data.Maybe.Base as Maybe using (Maybe; just; nothing; _>>=_)
-open import Data.Nat using (ℕ; zero; suc)
+open import Data.Nat using (ℕ)
 open import Data.Product using (_×_; _,_)
 open import Relation.Nullary using (yes; no)
 
@@ -49,10 +49,14 @@ module _ {n : ℕ} where
           Maybe.map (λ { (r , av , rest) → (r , av , e ∷ rest) })
                     (findReady avail es)
 
-    kahn : ℕ → List (Fin n) → List E → Maybe (List E)
-    kahn _          _     []      = just []
-    kahn zero       _     _       = nothing
-    kahn (suc fuel) avail pending with findReady avail pending
-    ... | nothing                  = nothing
-    ... | just (e , avail' , rest) =
-          Maybe.map (e ∷_) (kahn fuel (avail' ++ outs e) rest)
+    -- Each step emits one pending edge, so the pending list is its own fuel.
+    kahn : List (Fin n) → List E → Maybe (List E)
+    kahn avail pending = go pending avail pending
+      where
+        go : List E → List (Fin n) → List E → Maybe (List E)
+        go _        _     []      = just []
+        go []       _     _       = nothing
+        go (_ ∷ fs) avail pending with findReady avail pending
+        ... | nothing                  = nothing
+        ... | just (e , avail' , rest) =
+              Maybe.map (e ∷_) (go fs (avail' ++ outs e) rest)

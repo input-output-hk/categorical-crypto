@@ -142,9 +142,7 @@ module At (P Q : ObjTerm) where
 
     holeGraph : Maybe (Hypergraph F⁺.FlatGen)
     holeGraph = holeEdge >>= λ he →
-      let pending = he ∷ complement
-      in Maybe.map assemble
-           (kahn Edge.ins Edge.outs (suc (length pending)) S.dom pending)
+      Maybe.map assemble (kahn Edge.ins Edge.outs S.dom (he ∷ complement))
 
   ------------------------------------------------------------------------------
   -- The bridge: carve, decode, focus the hole, retract, glue —
