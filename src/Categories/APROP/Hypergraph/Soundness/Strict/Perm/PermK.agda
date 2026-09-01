@@ -37,7 +37,6 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermDischarge X _≟X_ as PD
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.Braid X _≟X_ as BR
 
-open import Data.List using (List)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open Perm using (_↭_)
 

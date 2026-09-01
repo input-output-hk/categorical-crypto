@@ -38,7 +38,6 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (edge-step; extract-prefix)
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; _++_)
 open import Data.Maybe using (just; nothing)
 open import Data.Product using (_,_)
 

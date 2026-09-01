@@ -46,7 +46,6 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics s
   using (++-cancelˡ)
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; _++_)
 open import Data.List.Properties using (++-assoc)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Product using (_,_; proj₁; proj₂)

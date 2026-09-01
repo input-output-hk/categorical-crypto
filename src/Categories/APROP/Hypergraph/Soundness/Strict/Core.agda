@@ -22,7 +22,6 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; flat; flatten)
 open import Categories.FreeStrictSMC using (module Build)
-open import Data.List using (List)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
 
 open Build X _≟X_ FlatGen public

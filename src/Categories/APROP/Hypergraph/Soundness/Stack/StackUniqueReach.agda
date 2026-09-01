@@ -28,7 +28,6 @@ module Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach
 
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Nat using (ℕ; zero; suc)
-open import Data.List using (List; []; _∷_; _++_; map; concat; tabulate)
 open import Data.List.Properties using (map-++; concat-++; ++-assoc)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just; nothing)

@@ -96,7 +96,6 @@ open import Data.Sum using (inj₁; inj₂)
 
 open import Data.Fin using (Fin; zero; _↑ˡ_; _↑ʳ_; splitAt; join)
 open import Data.Fin.Properties using (join-splitAt)
-open import Data.List using (List; []; _∷_; _++_; length; map; concat; tabulate)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Membership.Propositional.Properties
   using (∈-map⁻; ∈-concat⁺′; ∈-tabulate⁺)

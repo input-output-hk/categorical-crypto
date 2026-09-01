@@ -46,7 +46,6 @@ import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig
   as SUR
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; []; _∷_; _++_)
 open import Data.Product using (Σ-syntax; proj₁; proj₂)
 
 ------------------------------------------------------------------------

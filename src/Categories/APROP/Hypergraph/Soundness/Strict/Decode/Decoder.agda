@@ -38,7 +38,6 @@ open import Categories.APROP.Hypergraph.Soundness.Stack.SeparableStack sig
 open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_ public
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (++-assoc; map-++; ≡-dec)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Axiom.UniquenessOfIdentityProofs using (UIP; module Decidable⇒UIP)

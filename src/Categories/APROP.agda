@@ -23,6 +23,14 @@ open import Categories.FreeMonoidal public
 open import Relation.Binary.PropositionalEquality public
   hiding (preorder; isPreorder; setoid; [_]; J)
 
+-- `Data.List` for the whole tree: 46 of the 52 blanket-openers imported it
+-- themselves, 44 of them with a `using` list.  Only two names are hidden, and
+-- in both cases because a scope module wants a DIFFERENT module's function of
+-- that name: `splitAt` is `Data.Fin`'s in `Model/FromAPROP`, and `zipWith` is
+-- `Data.Maybe.Base`'s in `Solver/Split`.
+open import Data.List public
+  hiding (splitAt; zipWith)
+
 -- `Perm` as a re-exported module ALIAS: 36 of the 52 modules that blanket-open
 -- this one spell exactly
 -- `import Data.List.Relation.Binary.Permutation.Propositional as Perm`.

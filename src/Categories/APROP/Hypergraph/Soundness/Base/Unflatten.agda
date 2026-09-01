@@ -14,8 +14,6 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (flatten)
 
-open import Data.List using (List; _∷_)
-
 
 open import Categories.Category.Monoidal using (Monoidal)
 open import Categories.Category.Monoidal.Utilities Monoidal-FreeMonoidal using (_⊗ᵢ_)

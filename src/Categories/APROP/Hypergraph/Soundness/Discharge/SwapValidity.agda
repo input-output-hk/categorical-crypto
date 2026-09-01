@@ -58,7 +58,6 @@ import Categories.APROP.Hypergraph.Soundness.Discharge.FireMidInterchangeComb si
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using (_≟_)
-open import Data.List using (List; []; _∷_; _++_)
 open import Data.Maybe using (just; nothing)
 open import Data.Maybe.Properties using (just-injective)
 open import Data.Maybe.Ext using (nothing≢just)

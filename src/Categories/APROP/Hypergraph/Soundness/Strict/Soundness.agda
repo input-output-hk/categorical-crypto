@@ -59,7 +59,6 @@ import Categories.APROP.Hypergraph.Soundness.Strict.PartII sig _≟X_ as PII
 import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorBraid sig _≟X_
   as TB
 
-open import Data.List using (List)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
 
 open import Categories.Category using (Category)

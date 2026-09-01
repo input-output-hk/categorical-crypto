@@ -58,7 +58,6 @@ open import Categories.PermuteCoherence.Rigid using (_≅↭_)
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just; nothing)
 open import Data.Maybe.Properties using (just-injective)

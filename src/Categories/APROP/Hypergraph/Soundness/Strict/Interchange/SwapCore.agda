@@ -32,7 +32,6 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (List)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Product using (_×_)
 open import Relation.Nullary using (¬_)

@@ -34,7 +34,6 @@ open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
 
 open import Categories.FreeStrictSMC using (module Build)
 
-open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
 
 open import Categories.Category using (Category)

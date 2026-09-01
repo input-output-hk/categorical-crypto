@@ -19,7 +19,6 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 open import Data.Fin as Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using (suc-injective)
 open import Data.Nat using (ℕ; zero; suc; _+_)
-open import Data.List using (List; []; _∷_; _++_; map; length)
 open import Data.List.Properties using (map-id; map-cong; map-++; map-∘)
 open import Data.List.Properties.Ext using (map-∘-cong)
 open import Data.List.Membership.Propositional.Properties

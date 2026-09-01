@@ -25,7 +25,6 @@ module Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
 open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ) renaming (_≤_ to _≤ⁿ_)
 import Data.Nat.Properties as Nat
-open import Data.List using (List; _++_; concat; tabulate)
 open import Data.Product using (_,_; proj₁; proj₂)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 

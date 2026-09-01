@@ -108,7 +108,6 @@ open import Data.Fin.Properties using (↑ˡ-injective; ↑ʳ-injective; splitAt
 import Data.Fin.Properties as FinP
 open import Data.Maybe using (nothing)
 open import Relation.Nullary using (yes; no)
-open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open Perm using (_↭_)

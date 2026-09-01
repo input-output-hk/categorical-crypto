@@ -45,7 +45,6 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermRelabel sig _≟X_
   as PVV
 
 open import Data.Fin using (Fin)
-open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (map-++)
 open import Data.List.Properties.Ext using (map-∘-cong)
 open import Data.Maybe using (just; nothing)

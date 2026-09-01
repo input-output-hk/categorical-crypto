@@ -23,7 +23,6 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Fin.Properties using (_≟_)
-open import Data.List using (List; []; _∷_; _++_; map; concat; length; filter; tabulate)
 open import Data.List.Membership.Propositional using (_∈_)
 import Data.List.Relation.Unary.All as All
 import Data.List.Relation.Unary.AllPairs as AllPairs

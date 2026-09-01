@@ -48,7 +48,6 @@ import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe.Properties using (just-injective)

@@ -37,7 +37,6 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_
 
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)
-open import Data.List using (List; []; _∷_; map)
 open import Data.List.Properties.Ext using (map-∘-cong)
 
 --------------------------------------------------------------------------------

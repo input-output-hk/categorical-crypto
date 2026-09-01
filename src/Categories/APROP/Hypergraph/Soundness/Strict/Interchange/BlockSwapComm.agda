@@ -50,7 +50,6 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig 
 open import Categories.Morphism.Reasoning SCat using (pullʳ; cancelˡ)
 open import Categories.Morphism.Reasoning.Ext SCat using (inv-resp)
 
-open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (++-assoc)
 
 --------------------------------------------------------------------------------

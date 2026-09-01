@@ -21,7 +21,6 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; domL-hComposeP; codL-hComposeP)
 
-open import Data.List using (List; _++_)
 open import Data.List.Properties using (++-identityʳ; ++-assoc)
 
 --------------------------------------------------------------------------------

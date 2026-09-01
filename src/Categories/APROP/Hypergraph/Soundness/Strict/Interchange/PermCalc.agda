@@ -50,7 +50,6 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermRelabel sig _≟X_ 
 
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)
-open import Data.List using (List; map)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 
 --------------------------------------------------------------------------------

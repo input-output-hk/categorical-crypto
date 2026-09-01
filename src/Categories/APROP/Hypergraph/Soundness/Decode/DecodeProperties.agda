@@ -29,7 +29,6 @@ open import Categories.Combinatorics.ExtractPrefixEvalPhi
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Properties using (_≟_)
-open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Relation.Unary.All using (universal)
 open import Data.List.Relation.Unary.All.Properties using (map⁺)

@@ -71,7 +71,6 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _�
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
 
 open import Data.Fin.Base using (Fin)
-open import Data.List using (List; map)
 open import Data.List.Properties using (map-injective)
 open import Data.List.Properties.Ext using (map-∘-id)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)

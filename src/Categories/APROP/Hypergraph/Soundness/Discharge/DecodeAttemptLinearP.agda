@@ -50,7 +50,6 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
 
 
 open import Data.Nat
-open import Data.List
 open import Data.List.Properties
 open import Data.Maybe using (just; nothing)
 open import Data.Product using (∃-syntax; _,_; proj₁; proj₂)

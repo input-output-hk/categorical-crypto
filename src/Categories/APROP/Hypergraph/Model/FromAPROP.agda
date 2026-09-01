@@ -35,7 +35,6 @@ open import Categories.APROP.Hypergraph.Model.Core
 
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
 open import Data.Fin.Properties as Fin
-open import Data.List using (List; []; _∷_; _++_; length; map; lookup)
 open import Data.List.Properties
 open import Data.List.Properties.Ext using (map-∘-cong)
 open import Data.Nat

@@ -66,7 +66,6 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (map-++; ≡-dec)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (Σ-syntax; _,_)
