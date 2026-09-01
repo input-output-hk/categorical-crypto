@@ -404,11 +404,8 @@ open import Categories.Category.Monoidal.Braided.Properties
   T xs [] ∘ ρ⇐
     ≈⟨ TR xs ⟩
   subst-id-cod (sym (++-identityʳ xs))
-    ≈⟨ rhs ⟨
+    ≈⟨ emb-cast-conj refl (sym (++-identityʳ xs)) _ ○ (refl⟩∘⟨ idˡ) ○ idʳ ⟨
   emb (castˢ refl (sym (++-identityʳ xs)) (idˢ {xs})) ∎
-  where
-    rhs : emb (castˢ refl (sym (++-identityʳ xs)) (idˢ {xs})) ≈Term subst-id-cod (sym (++-identityʳ xs))
-    rhs = emb-cast-conj refl (sym (++-identityʳ xs)) _ ○ (refl⟩∘⟨ idˡ) ○ idʳ
 
 --------------------------------------------------------------------------------
 -- `emb` respects `_≈ˢ_` — all sixteen cases closed: the cheap ones inline, the
