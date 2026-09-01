@@ -422,8 +422,6 @@ module Braid {A B C D : ObjTerm}
       KCln : HomV (sG ++ Rsuf) (sG ++ Kfin)
       KCln = idᵛ {sG} ⊗ᵛ Kclean
 
-      perm-rigidᵛ = PK.perm-rigidˢ (Fin Hf.nV) _≟F_ Hf.vlab
-
       open DSS.Scr (Fin Hf.nV) Hf.vlab using (bswap)
       open EquivStep ⟪ fg ⟫
         using (process-edges-equivariantˢ; pvv-transˢ; pvv-inverse-leftˢ)
@@ -757,7 +755,7 @@ module Braid {A B C D : ObjTerm}
 
       pf-rigid : permuteᵛ pf' ≈ᵛ permuteᵛ pf₀
       pf-rigid =
-        perm-rigidᵛ
+        PK.perm-rigidˢ (Fin Hf.nV) _≟F_ Hf.vlab
           (SU.Unique-resp-↭ (Perm.↭-reflexive sep)
             (SUR.Reservoir≤1⇒Unique ⟪ fg ⟫ kblk aG res-kblk))
           pf' pf₀
