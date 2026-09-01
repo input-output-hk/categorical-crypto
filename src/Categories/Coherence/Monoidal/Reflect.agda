@@ -201,16 +201,27 @@ module DecideCore
 
   module Decide
     ⦃ _ : DecEq SCmp.Gen ⦄
-    (norm : ∀ {n m} (d : Diag n m) → Σ[ d' ∈ Diag n m ] (Theory._≈ʷ_ R⊥ ⟦ d ⟧ˢ ⟦ d' ⟧ˢ))
+    (norm : ∀ {n m} (d : Diag n m)
+          → Σ[ d' ∈ Diag n m ] ((Theory._≈ʷ_ R⊥ ⟦ d ⟧ˢ ⟦ d' ⟧ˢ) × NormStatus))
     where
 
     open SCmp.Decide
     open Theory R⊥
 
+    -- A non-`converged` verdict does not disable the comparison: the
+    -- normalization witness is sound wherever the loop stops, so a match
+    -- between two cut trajectories is still a real proof.
     decideW : ∀ {n m} (f g : WTerm n m) → Maybe (embed f ≈Term embed g)
     decideW f g = case norm (reflect f) , norm (reflect g) of λ where
-      ((df' , sndf) , (dg' , sndg)) → case df' ≟Diag dg' of λ where
+      ((df' , sndf , _) , (dg' , sndg , _)) → case df' ≟Diag dg' of λ where
         (no  _)     → nothing
         (yes refl)  → just (embed-resp-≈
           (transʷ (symʷ (reflect-soundˢ f))
             (transʷ sndf (transʷ (symʷ sndg) (reflect-soundˢ g)))))
+
+    -- Diagnostic: the loop's verdict on one side.  A `nothing` from
+    -- `decideW` under a `cycled`/`exhausted` verdict is the normalizer's
+    -- non-termination on degenerate signatures, not a genuine
+    -- normal-form mismatch (see `Test.Limitations`).
+    statusW : ∀ {n m} (f : WTerm n m) → NormStatus
+    statusW f = proj₂ (proj₂ (norm (reflect f)))

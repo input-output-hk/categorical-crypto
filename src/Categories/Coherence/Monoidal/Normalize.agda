@@ -24,6 +24,13 @@ open import Categories.Coherence.Monoidal.Diagram
 open import Categories.FreeMonoidal
 open import Categories.FreeStrictMonoidal
 
+-- The rewrite loop's verdict.  `converged` — no step applies to the result;
+-- `cycled` — the step relation revisited a state, so it loops forever on this
+-- input (degenerate signatures with empty-arity generators do this);
+-- `exhausted` — the fuel budget ran out before either.
+data NormStatus : Set where
+  converged cycled exhausted : NormStatus
+
 module NormalizeI {X : Set} (Mor : List X → List X → Set)
                   ⦃ _ : DecEq X ⦄ where
 
@@ -246,6 +253,33 @@ module NormalizeI {X : Set} (Mor : List X → List X → Set)
           let (d'' , w') = normFuelWith step c d'
           in  d'' , transᴰ w w'
 
+      -- `normFuelWith` with cycle detection and an explicit verdict.  `step`
+      -- is a function, so a trajectory that revisits any state loops forever;
+      -- Brent's doubling checkpoint (one comparison per step, one stored
+      -- diagram) catches every cycle the budget can reach, and stopping at
+      -- the first detected repeat makes the result independent of the exact
+      -- budget.  A converging trajectory never revisits a state, so its
+      -- result is unchanged from `normFuelWith`.
+      normDetectWith :
+          (_≟D_ : ∀ {n' m'} (d d' : Diag n' m') → Dec (d ≡ d'))
+        → (∀ {n' m'} (d : Diag n' m') → Maybe (Σ[ d' ∈ Diag n' m' ] (d ⤳D d')))
+        → ℕ → ∀ {n m} (d : Diag n m) → Σ[ d' ∈ Diag n m ] ((d ⤳D d') × NormStatus)
+      normDetectWith _≟D_ step fuel {n} {m} d₀ = go fuel 1 1 d₀ d₀ reflᴰ
+        where
+        -- `lap` counts the comparisons left against the current checkpoint
+        -- `chk`; when it runs out the checkpoint jumps to the current state
+        -- and the lap length `pow` doubles.
+        go : (fuel lap pow : ℕ) (chk cur : Diag n m) → d₀ ⤳D cur
+           → Σ[ d' ∈ Diag n m ] ((d₀ ⤳D d') × NormStatus)
+        go zero    _   _   _   cur w = cur , w , exhausted
+        go (suc c) lap pow chk cur w = case step cur of λ where
+          nothing         → cur , w , converged
+          (just (d' , s)) → case chk ≟D d' of λ where
+            (yes _) → d' , transᴰ w s , cycled
+            (no  _) → case lap of λ where
+              (suc (suc l)) → go c (suc l) pow chk d' (transᴰ w s)
+              _             → go c (pow + pow) (pow + pow) d' d' (transᴰ w s)
+
       -- The strict normalization witness: the same loop, discharged with
       -- `⤳D-soundˢ`.
       normSoundˢ : (∀ {n k} {d d' : Diag n k} → Prim d d' → ⟦ d ⟧ˢ ≈ʷ ⟦ d' ⟧ˢ)
@@ -255,3 +289,14 @@ module NormalizeI {X : Set} (Mor : List X → List X → Set)
       normSoundˢ prim-sound step fuel d =
         let (d' , w) = normFuelWith step (fuel (depthD d)) d
         in  d' , ⤳D-soundˢ prim-sound w
+
+      -- `normSoundˢ` on the detecting loop, verdict carried along.
+      normDetectSoundˢ :
+          (∀ {n k} {d d' : Diag n k} → Prim d d' → ⟦ d ⟧ˢ ≈ʷ ⟦ d' ⟧ˢ)
+        → (∀ {n' m'} (d d' : Diag n' m') → Dec (d ≡ d'))
+        → (∀ {n' m'} (d : Diag n' m') → Maybe (Σ[ d' ∈ Diag n' m' ] (d ⤳D d')))
+        → (ℕ → ℕ)
+        → ∀ {n m} (d : Diag n m) → Σ[ d' ∈ Diag n m ] ((⟦ d ⟧ˢ ≈ʷ ⟦ d' ⟧ˢ) × NormStatus)
+      normDetectSoundˢ prim-sound _≟D_ step fuel d =
+        let (d' , w , st) = normDetectWith _≟D_ step (fuel (depthD d)) d
+        in  d' , ⤳D-soundˢ prim-sound w , st
