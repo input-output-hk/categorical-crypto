@@ -32,10 +32,8 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-prefix)
-open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
-  using (extract-prefix-via-injective-just; extract-prefix-via-injective-nothing)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
-  using (module StackLift)
+  using (module StackLiftEmb)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_ public
 
@@ -188,28 +186,17 @@ module TermEmbedˢ
   vlab-φ s = map-∘-cong φ-lab s
 
   ----------------------------------------------------------------------
-  -- J-side extract-prefix lock-step with the H-side (term-free; copy of
-  -- the non-strict `extract-prefix-J-{nothing,just}`).
+  -- The term-free half, WHOLESALE: the J-side `extract-prefix` lock-step
+  -- and the per-edge/iterated STACK agreement are the derived kernel
+  -- `DecodeAttempt.StackLiftEmb` at `(φ, ψ)` — the strict stack IS
+  -- `edge-step`/`process-edges` on the nose (`edge-stepˢ s e =
+  -- (edge-step H s e , _)`), so nothing strict enters below.
 
-  extract-prefix-J-nothing
-    : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
-    → extract-prefix (H.ein e) sH ≡ nothing
-    → extract-prefix (J.ein (ψ e)) (map φ sH) ≡ nothing
-  extract-prefix-J-nothing e sH eqH =
-    subst (λ ks → extract-prefix ks (map φ sH) ≡ nothing) (sym (ψ-ein e))
-          (extract-prefix-via-injective-nothing φ φ-inj (H.ein e) sH eqH)
-
-  extract-prefix-J-just
-    : ∀ (e : Fin H.nE) (sH restH : List (Fin H.nV))
-        (pH : sH Perm.↭ H.ein e ++ restH)
-    → extract-prefix (H.ein e) sH ≡ just (restH , pH)
-    → Σ[ q ∈ map φ sH Perm.↭ J.ein (ψ e) ++ map φ restH ]
-        extract-prefix (J.ein (ψ e)) (map φ sH) ≡ just (map φ restH , q)
-  extract-prefix-J-just e sH restH pH eqH =
-    subst (λ ks → Σ[ q ∈ map φ sH Perm.↭ ks ++ map φ restH ]
-                    extract-prefix ks (map φ sH) ≡ just (map φ restH , q))
-          (sym (ψ-ein e))
-          (extract-prefix-via-injective-just φ φ-inj (H.ein e) sH restH pH eqH)
+  open StackLiftEmb J H ψ φ φ-inj ψ-ein ψ-eout public
+    renaming ( hit  to extract-prefix-J-just
+             ; miss to extract-prefix-J-nothing
+             ; edge-step-lift     to edge-step-stack-embˢ
+             ; process-edges-lift to proc-stack-embˢ )
 
   ----------------------------------------------------------------------
   -- FIRE box factor.  `genˢ (J.elab (ψe)) ⊗ˢ idˢ` casts to
@@ -342,18 +329,6 @@ module TermEmbedˢ
         (≈̂-trans (castˢ⇒≈̂ pDom Qp (perm-emb e sH restH permH eqH restJ permJ eqJ pDom Qp))
                  (≈̂-sym (cast-≈̂ {p = refl} {q = map-++ vlH (H.ein e) restH})))
 
-
-  ----------------------------------------------------------------------
-  -- Per-edge and iterated STACK agreement (term-free).  The strict stack IS
-  -- `edge-step`/`process-edges` on the nose (`edge-stepˢ s e = (edge-step H
-  -- s e , _)`), so both ARE the shared kernel `DecodeAttempt.StackLift` at
-  -- `out ≔ map φ`, `κ ≔ ψ`; only `fold` is embedding-specific.
-
-  open StackLift J H ψ (map φ) extract-prefix-J-just extract-prefix-J-nothing
-       (λ e rest → trans (cong (_++ map φ rest) (ψ-eout e))
-                         (sym (map-++ φ (H.eout e) rest)))
-    public renaming (edge-step-lift    to edge-step-stack-embˢ;
-                     process-edges-lift to proc-stack-embˢ)
 
   ----------------------------------------------------------------------
   -- Per-edge term-twin (dispatch on `extract-prefix`, both sides).

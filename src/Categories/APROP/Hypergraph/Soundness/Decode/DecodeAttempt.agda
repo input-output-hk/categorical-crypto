@@ -96,6 +96,54 @@ module StackLift
   process-edges-lift (e ∷ es) xs
     rewrite edge-step-lift e xs = process-edges-lift es (edge-step G xs e)
 
+-- `StackLift` at an INJECTIVE vertex embedding, where the whole parameter
+-- block is DERIVED from the raw endpoint reductions: `hit`/`miss` are
+-- `extract-prefix-via-injective-{just,nothing}` transported along `ein-red`,
+-- and `fold` is `eout-red` then `map-++`.  This — not the raw `StackLift` —
+-- is what both unframed lifting sites want (`DecodeAttemptLinearP`'s pruned
+-- G-side, `DecodeCompose.TermEmbedˢ`'s strict stack half, which also consume
+-- `hit`/`miss` on their own).  `hTensor`'s two sides stay on the raw kernel:
+-- their stack formers carry a FRAME, so neither is `map φ`.
+module StackLiftEmb
+  (C G : Hypergraph FlatGen)
+  (κ : Fin (Hypergraph.nE G) → Fin (Hypergraph.nE C))
+  (φ : Fin (Hypergraph.nV G) → Fin (Hypergraph.nV C))
+  (φ-inj : ∀ {x y} → φ x ≡ φ y → x ≡ y)
+  (ein-red : ∀ (e : Fin (Hypergraph.nE G))
+           → Hypergraph.ein C (κ e) ≡ map φ (Hypergraph.ein G e))
+  (eout-red : ∀ (e : Fin (Hypergraph.nE G))
+            → Hypergraph.eout C (κ e) ≡ map φ (Hypergraph.eout G e))
+  where
+
+  private
+    module G = Hypergraph G
+    module C = Hypergraph C
+
+  hit : ∀ (e : Fin G.nE) (xs rest : List (Fin G.nV))
+          (p : xs Perm.↭ G.ein e ++ rest)
+      → extract-prefix (G.ein e) xs ≡ just (rest , p)
+      → ∃[ q ] extract-prefix (C.ein (κ e)) (map φ xs) ≡ just (map φ rest , q)
+  hit e xs rest p eq =
+    subst (λ ks → ∃[ q ] extract-prefix ks (map φ xs) ≡ just (map φ rest , q))
+          (sym (ein-red e))
+          (extract-prefix-via-injective-just φ φ-inj (G.ein e) xs rest p eq)
+
+  miss : ∀ (e : Fin G.nE) (xs : List (Fin G.nV))
+       → extract-prefix (G.ein e) xs ≡ nothing
+       → extract-prefix (C.ein (κ e)) (map φ xs) ≡ nothing
+  miss e xs eq =
+    subst (λ ks → extract-prefix ks (map φ xs) ≡ nothing)
+          (sym (ein-red e))
+          (extract-prefix-via-injective-nothing φ φ-inj (G.ein e) xs eq)
+
+  private
+    fold : ∀ (e : Fin G.nE) (rest : List (Fin G.nV))
+         → C.eout (κ e) ++ map φ rest ≡ map φ (G.eout e ++ rest)
+    fold e rest = trans (cong (_++ map φ rest) (eout-red e))
+                        (sym (map-++ φ (G.eout e) rest))
+
+  open StackLift C G κ (map φ) hit miss fold public
+
 module PermLift
   (C K : Hypergraph FlatGen)
   (κ : Fin (Hypergraph.nE K) → Fin (Hypergraph.nE C))

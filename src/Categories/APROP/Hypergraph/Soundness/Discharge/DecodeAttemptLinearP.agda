@@ -373,45 +373,14 @@ module _
   Linear-hComposeP = balance , bound
 
   ------------------------------------------------------------------------
-  -- G-side: the frame-free instance of `DecodeAttempt.StackLift` — the stack
-  -- former is `map injL` and `fold` is one `map-++`.
+  -- G-side: `injL` is injective and the endpoint reductions are the raw
+  -- `ein-c-inj₁-red`/`eout-c-inj₁-red`, so the whole lifting is the derived
+  -- kernel `DecodeAttempt.StackLiftEmb` with nothing left to supply.
 
   private
-    module PureL where
-      out : List (Fin G.nV) → List (Fin nV-P)
-      out = map injL
-
-      hit : ∀ (e : Fin G.nE) (xs rest : List (Fin G.nV))
-              (p : xs Perm.↭ G.ein e ++ rest)
-          → extract-prefix (G.ein e) xs ≡ just (rest , p)
-          → ∃[ q ] extract-prefix
-                     (Hypergraph.ein (hComposeP G K bdy-eq) (e ↑ˡ K.nE)) (out xs)
-                   ≡ just (out rest , q)
-      hit e xs rest p eq =
-        subst (λ ks → ∃[ q ] extract-prefix ks (out xs) ≡ just (out rest , q))
-              (sym (ein-c-inj₁-red e))
-              (extract-prefix-via-injective-just injL (Inv.inject+-inj cn)
-                                                  (G.ein e) xs rest p eq)
-
-      miss : ∀ (e : Fin G.nE) (xs : List (Fin G.nV))
-           → extract-prefix (G.ein e) xs ≡ nothing
-           → extract-prefix
-               (Hypergraph.ein (hComposeP G K bdy-eq) (e ↑ˡ K.nE)) (out xs)
-             ≡ nothing
-      miss e xs eq =
-        subst (λ ks → extract-prefix ks (out xs) ≡ nothing)
-              (sym (ein-c-inj₁-red e))
-              (extract-prefix-via-injective-nothing injL (Inv.inject+-inj cn)
-                                                     (G.ein e) xs eq)
-
-      fold : ∀ (e : Fin G.nE) (rest : List (Fin G.nV))
-           → Hypergraph.eout (hComposeP G K bdy-eq) (e ↑ˡ K.nE) ++ out rest
-             ≡ out (G.eout e ++ rest)
-      fold e rest =
-        trans (cong (_++ out rest) (eout-c-inj₁-red e))
-              (sym (map-++ injL (G.eout e) rest))
-
-      open StackLift (hComposeP G K bdy-eq) G (_↑ˡ K.nE) out hit miss fold public
+    module PureL =
+      StackLiftEmb (hComposeP G K bdy-eq) G (_↑ˡ K.nE) injL (Inv.inject+-inj cn)
+                   ein-c-inj₁-red eout-c-inj₁-red
 
   process-edges-↑ˡ-pure-L
     : ∀ (es : List (Fin G.nE)) (xs : List (Fin G.nV))
