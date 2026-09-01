@@ -67,17 +67,13 @@ extract-elem-skip-nothing k x xs x≢k eq with x ≟ k
 -- `extract-elem` on a disjoint-injection mismatch returns `nothing` for
 -- any list whose elements are all on the wrong side.
 
-private
-  ↑ʳ≢↑ˡ : ∀ {nA nB} (i : Fin nA) (j : Fin nB) → ¬ (nA ↑ʳ j ≡ i ↑ˡ nB)
-  ↑ʳ≢↑ˡ i j p = ↑ˡ≢↑ʳ i j (sym p)
-
 extract-elem-↑ˡ-on-↑ʳ-list
   : ∀ {nA nB} (i : Fin nA) (xs : List (Fin nB))
   → extract-elem (i ↑ˡ nB) (map (nA ↑ʳ_) xs) ≡ nothing
 extract-elem-↑ˡ-on-↑ʳ-list i []       = refl
 extract-elem-↑ˡ-on-↑ʳ-list {nA} {nB} i (x ∷ xs) =
   extract-elem-skip-nothing (i ↑ˡ nB) (nA ↑ʳ x) (map (nA ↑ʳ_) xs)
-    (↑ʳ≢↑ˡ i x)
+    (λ p → ↑ˡ≢↑ʳ i x (sym p))
     (extract-elem-↑ˡ-on-↑ʳ-list i xs)
 
 -- R-side key on an L-side list: mirror of `extract-elem-↑ˡ-on-↑ʳ-list`,
