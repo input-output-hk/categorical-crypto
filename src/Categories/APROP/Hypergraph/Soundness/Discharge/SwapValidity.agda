@@ -11,8 +11,8 @@
 --
 -- Decomposition:
 --
---   (1) `++-stack` (imported): reduces the general swap to a FRONT swap
---       (`ps = []`) on the shared post-prefix stack.
+--   (1) `process-edges-++` (the shared stack kernel): reduces the general
+--       swap to a FRONT swap (`ps = []`) on the shared post-prefix stack.
 --
 --   (2) the front swap, reduced (via `pe-stack-resp-↭`) to the
 --       two-edge head bridge `two-edge-swap-stack-↭`, which case-splits
@@ -86,13 +86,6 @@ module PerHG (H : Hypergraph FlatGen) (lin : Linear H) where
 
   pe-stack : PH.Order → List (Fin H.nV) → List (Fin H.nV)
   pe-stack o s = (process-edges H o s)
-
-  -- The final stack of `ps ++ rest` from `s` is that of `rest` from the
-  -- post-`ps` stack.
-  ++-stack
-    : ∀ (ps rest : PH.Order) (s : List (Fin H.nV))
-    → pe-stack (ps ++ rest) s ≡ pe-stack rest (pe-stack ps s)
-  ++-stack = process-edges-++ H
 
   ------------------------------------------------------------------------
   -- (2) THE ANALYTIC CORE — front-of-stack two-edge stack permutation.
@@ -256,8 +249,8 @@ module PerHG (H : Hypergraph FlatGen) (lin : Linear H) where
       (edge-step-graph s e') (edge-step-graph (edge-step H s e') e )
 
   ------------------------------------------------------------------------
-  -- (general swap) reduce to the FRONT swap via `++-stack`, then thread the
-  -- shared tail `qs` through `pe-stack-resp-↭` onto the two-edge head
+  -- (general swap) reduce to the FRONT swap via `process-edges-++`, then thread
+  -- the shared tail `qs` through `pe-stack-resp-↭` onto the two-edge head
   -- bridge, at the shared post-prefix stack.
   ------------------------------------------------------------------------
 
@@ -267,9 +260,9 @@ module PerHG (H : Hypergraph FlatGen) (lin : Linear H) where
       Perm.↭ pe-stack (ps ++ e' ∷ e ∷ qs) H.dom
   swap-stack-↭ ps qs {e} {e'} inc =
     subst (Perm._↭ pe-stack (ps ++ e' ∷ e ∷ qs) H.dom)
-          (sym (++-stack ps (e ∷ e' ∷ qs) H.dom))
+          (sym (process-edges-++ H ps (e ∷ e' ∷ qs) H.dom))
       (subst (pe-stack (e ∷ e' ∷ qs) (pe-stack ps H.dom) Perm.↭_)
-             (sym (++-stack ps (e' ∷ e ∷ qs) H.dom))
+             (sym (process-edges-++ H ps (e' ∷ e ∷ qs) H.dom))
         (pe-stack-resp-↭ qs (two-edge-swap-stack-↭ inc (pe-stack ps H.dom))))
 
   ------------------------------------------------------------------------

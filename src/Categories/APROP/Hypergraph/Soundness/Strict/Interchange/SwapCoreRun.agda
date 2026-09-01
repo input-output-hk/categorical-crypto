@@ -69,7 +69,6 @@ module _ (H : Hypergraph FlatGen)
   Incompˢ     = Incomp H
   pe-stackˢ′  = pe-stackˢ H
   pe-termˢ′   = pe-termˢ H
-  ++-stackˢ′  = ++-stackˢ H
 
   -- EdgeStepRˢ view aliases.
   EdgeStepRˢ′      = EdgeStepRˢ H
@@ -250,7 +249,7 @@ module _ (H : Hypergraph FlatGen)
         us-of
           : ∀ (o : List (Fin H.nE)) → SUR.Reservoir≤1 H (ps ++ o) H.dom
           → Unique (pe-stackˢ′ o sp)
-        us-of o r = subst Unique (++-stackˢ′ ps o H.dom)
+        us-of o r = subst Unique (++-stackˢ H ps o H.dom)
                       (reached-Uniqueˢ-from (ps ++ o) r)
 
         us-sp : Unique sp
