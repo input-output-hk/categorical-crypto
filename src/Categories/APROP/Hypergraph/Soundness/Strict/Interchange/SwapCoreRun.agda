@@ -51,7 +51,6 @@ open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe.Properties using (just-injective)
 open import Data.Maybe.Ext using (nothing≢just)

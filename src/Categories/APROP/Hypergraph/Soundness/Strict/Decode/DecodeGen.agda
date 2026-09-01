@@ -58,7 +58,6 @@ open import Data.List.Properties using (++-identityʳ)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just)
 open import Data.Product using (_,_; proj₁; proj₂)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 
 --------------------------------------------------------------------------------
 -- The Agen shape.

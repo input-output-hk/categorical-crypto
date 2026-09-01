@@ -29,7 +29,6 @@ import Data.List.Relation.Unary.All as All
 import Data.List.Relation.Unary.AllPairs as AllPairs
 open import Data.List.Relation.Unary.Any using (here; there)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 import Data.List.Relation.Binary.Permutation.Setoid.Properties as SetoidPropM
 open import Data.Maybe using (just)

@@ -37,7 +37,6 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 
 open import Data.Fin using (Fin)
 open import Data.List using (List; []; _∷_; _++_)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (_,_)

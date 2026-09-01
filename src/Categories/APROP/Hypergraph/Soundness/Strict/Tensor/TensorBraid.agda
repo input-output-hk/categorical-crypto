@@ -111,7 +111,6 @@ open import Relation.Nullary using (yes; no)
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 

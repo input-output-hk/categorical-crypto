@@ -52,7 +52,6 @@ open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)
 open import Data.List using (List; map)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
 --------------------------------------------------------------------------------

@@ -51,7 +51,6 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunIntercha
 open import Data.Fin using (Fin)
 open import Data.List using (List; _∷_; _++_; map)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Relation.Nullary using (¬_)
 

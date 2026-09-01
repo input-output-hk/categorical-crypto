@@ -40,7 +40,6 @@ open import Data.Fin using (Fin)
 open import Data.List using (List; _++_; map)
 open import Data.Maybe using (just; nothing)
 open import Data.Product using (_,_; proj₁; proj₂)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 
 module EdgeStepView (H : Hypergraph FlatGen) where
   private module H = Hypergraph H

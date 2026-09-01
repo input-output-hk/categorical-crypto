@@ -42,7 +42,6 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟
 open import Data.Fin using (Fin)
 open import Data.List using (List; map)
 open import Data.Product using (Σ-syntax; proj₁; proj₂)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 
 --------------------------------------------------------------------------------
 -- Per-hypergraph strict run.

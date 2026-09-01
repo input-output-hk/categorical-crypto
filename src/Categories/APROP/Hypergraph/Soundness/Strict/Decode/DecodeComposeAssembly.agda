@@ -60,7 +60,6 @@ open import Data.List using (List; _++_; map)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as UniqueProp
 open import Data.Product using (proj₁; proj₂)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
 --------------------------------------------------------------------------------

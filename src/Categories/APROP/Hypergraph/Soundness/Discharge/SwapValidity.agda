@@ -59,7 +59,6 @@ open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin)
 open import Data.Fin.Properties using (_≟_)
 open import Data.List using (List; []; _∷_; _++_)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (just; nothing)
 open import Data.Maybe.Properties using (just-injective)

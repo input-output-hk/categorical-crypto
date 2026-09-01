@@ -52,7 +52,6 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
 open import Data.Nat
 open import Data.List
 open import Data.List.Properties
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (just; nothing)
 open import Data.Product using (∃-syntax; _,_; proj₁; proj₂)

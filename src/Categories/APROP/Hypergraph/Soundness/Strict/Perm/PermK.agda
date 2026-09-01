@@ -39,7 +39,6 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Perm.Braid X _≟X_ as BR
 
 open import Data.List using (List)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 
 open import Categories.PermuteCoherence.Eval using (eval-↭)

@@ -38,7 +38,6 @@ open import Data.Fin.Properties using
 open import Data.List as List using (List; []; _∷_; _++_; length; map; tabulate; concat)
 open import Data.List.Properties using
   (++-identityʳ; tabulate-cong; map-tabulate; concat-map; concat-++)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 import Function as Fun
 open import Data.Nat using (ℕ; zero; suc; s≤s; z≤n; _+_)

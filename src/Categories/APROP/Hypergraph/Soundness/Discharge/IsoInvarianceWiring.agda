@@ -41,7 +41,6 @@ import Data.Nat as Nat
 open import Data.List using (List; _∷_; map; tabulate)
 open import Data.List.Properties using (map-tabulate)
 open import Data.List.Properties.Ext using (map-∘-cong)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open import Relation.Nullary using (¬_)
 
 ------------------------------------------------------------------------

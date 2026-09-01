@@ -34,7 +34,6 @@ open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just; nothing)
 open import Data.Product using (_,_)
 
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 

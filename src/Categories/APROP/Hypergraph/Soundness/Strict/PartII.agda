@@ -62,7 +62,6 @@ open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List; []; _∷_; _++_)
 open import Data.List.Properties using (++-assoc)
 open import Data.Product using (proj₁; proj₂)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 
 ------------------------------------------------------------------------
 -- Per-`f` data: the strict per-HG decoder at the translation `⟪f⟫`, and the

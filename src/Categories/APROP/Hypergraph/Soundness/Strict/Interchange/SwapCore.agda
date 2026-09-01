@@ -34,7 +34,6 @@ open import Data.Fin using (Fin)
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Data.List using (List)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open import Data.Product using (_×_)
 open import Relation.Nullary using (¬_)
 

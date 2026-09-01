@@ -39,7 +39,6 @@ open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)
 open import Data.List using (List; []; _∷_; map)
 open import Data.List.Properties.Ext using (map-∘-cong)
-import Data.List.Relation.Binary.Permutation.Propositional as Perm
 import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
 --------------------------------------------------------------------------------

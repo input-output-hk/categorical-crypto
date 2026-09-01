@@ -23,6 +23,16 @@ open import Categories.FreeMonoidal public
 open import Relation.Binary.PropositionalEquality public
   hiding (preorder; isPreorder; setoid; [_]; J)
 
+-- `Perm` as a re-exported module ALIAS: 36 of the 52 modules that blanket-open
+-- this one spell exactly
+-- `import Data.List.Relation.Binary.Permutation.Propositional as Perm`.
+-- An alias adds no unqualified name, so unlike the re-export above it cannot
+-- make a use site ambiguous — but every sibling alias of the name must go,
+-- including indented and multi-line spellings, or Agda reports an
+-- `AmbiguousName` between two aliases denoting the same module.
+import Data.List.Relation.Binary.Permutation.Propositional
+module Perm = Data.List.Relation.Binary.Permutation.Propositional
+
 record APROPSignature : Set₁ where
   field X : Set
 
