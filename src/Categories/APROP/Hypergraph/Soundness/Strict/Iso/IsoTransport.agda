@@ -55,7 +55,6 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
-open import Categories.APROP.Hypergraph.Model.HomTermInvariant sig using (⟪_⟫-cod-unique)
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.FinOrderNoInv sig
@@ -63,6 +62,7 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.FinOrderNoInv sig
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig as IW
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as DAL
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
+open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig using (Linear⇒cod-Unique)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_ using (module Run)
@@ -73,7 +73,6 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _�
 open import Data.Fin.Base using (Fin)
 open import Data.List.Properties using (map-injective)
 open import Data.List.Properties.Ext using (map-∘-id)
-open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Function using (Injective)
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive using (ε; _◅_)
 open import Relation.Nullary using (¬_)
@@ -86,7 +85,6 @@ open import Relation.Nullary using (¬_)
 module PerHG (H : Hypergraph FlatGen)
              (dih : ∀ {e} → ¬ (Dep H e e))
              (lin : Linear H)
-             (uniq-cod : Unique (Hypergraph.cod H))
              (run-interchange : SS.PerHG.RunInterchangeAt H dih lin) where
   open SS.PerHG H dih lin
     using (Order; Validˢ; decodeOrdˢ; _↝_; _↝*_; NoInv; connectivity
@@ -97,7 +95,7 @@ module PerHG (H : Hypergraph FlatGen)
           → o₁ Perm.↭ range (Hypergraph.nE H)
           → (p₁ : Validˢ o₁) (p₂ : Validˢ o₂)
           → decodeOrdˢ o₁ p₁ ≈ˢ decodeOrdˢ o₂ p₂
-  swap-≈ˢ = SS.swap-≈ˢ H dih lin uniq-cod run-interchange
+  swap-≈ˢ = SS.swap-≈ˢ H dih lin run-interchange
 
   -- An adjacent-independent swap IS a permutation (a transposition under
   -- the prefix `ps`), so it preserves the `↭ range nE` provenance.
@@ -247,7 +245,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
     : (vJ : SG.Validˢ (range J.nE))
     → RJ.permuteˢ vJ ≈̂ RH.permuteˢ (iso-validˢ vJ)
   permute-relabel-freeˢ vJ =
-    ⟦relabel-rigid⟧ H.vlab φ φ-lab (⟪ g ⟫-cod-unique) fin-eq (sym φ-cod)
+    ⟦relabel-rigid⟧ H.vlab φ φ-lab (Linear⇒cod-Unique J linJ) fin-eq (sym φ-cod)
                     vJ (iso-validˢ vJ)
 
   ------------------------------------------------------------------------
@@ -282,7 +280,7 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
   ------------------------------------------------------------------------
 
   private
-    module CPH = PerHG H dihH linH (⟪ f ⟫-cod-unique) run-interchange-H
+    module CPH = PerHG H dihH linH run-interchange-H
 
   -- the natural-order no-inversion witnesses (`FinOrderNoInv`, BUILT).
   noInvH : SF.NoInv (range H.nE)

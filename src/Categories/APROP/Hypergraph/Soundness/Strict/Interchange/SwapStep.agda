@@ -40,6 +40,7 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig as IW
 import Categories.APROP.Hypergraph.Soundness.Discharge.SwapValidity sig as SV
+open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig using (Linear⇒cod-Unique)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig _≟X_ as SC
@@ -49,7 +50,6 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunIntercha
   using (RunInterchangeˢ)
 
 open import Data.Fin using (Fin)
-open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Relation.Nullary using (¬_)
 
 ------------------------------------------------------------------------
@@ -156,7 +156,6 @@ module PerHG (H : Hypergraph FlatGen)
 module FrontSwap (H : Hypergraph FlatGen)
                  (dih : ∀ {e} → ¬ (Dep H e e))
                  (lin : Linear H)
-                 (uniq-cod : Unique (Hypergraph.cod H))
                  where
   private module H = Hypergraph H
   open PerHG H dih lin
@@ -167,7 +166,8 @@ module FrontSwap (H : Hypergraph FlatGen)
   -- `va : a-stk ↭ cod`, `vb : b-stk ↭ cod`:
   --     permuteˢ va  ≈ˢ  permuteˢ vb ∘ˢ permuteˢ r
   -- because `va` and `trans r vb` both derive into the `Unique` codomain
-  -- `cod`, identified by `perm-rigidˢ` (vertex-level; no `map⁺`-lift).
+  -- `cod` (`Unique` because `H` is `Linear`), identified by `perm-rigidˢ`
+  -- (vertex-level; no `map⁺`-lift).
   --------------------------------------------------------------------
 
   final-permute-cohˢ
@@ -179,7 +179,7 @@ module FrontSwap (H : Hypergraph FlatGen)
   final-permute-cohˢ r va vb =
     -- `permuteˢ (trans r vb) = permuteˢ vb ∘ˢ permuteˢ r` is DEFINITIONAL
     -- (`pvv-transˢ` is `≈-refl`), so `perm-rigidˢ` closes directly.
-    perm-rigidˢ uniq-cod va (Perm.trans r vb)
+    perm-rigidˢ (Linear⇒cod-Unique H lin) va (Perm.trans r vb)
 
   --------------------------------------------------------------------
   -- (N + K) FRONT SWAP — assembled from the `RunInterchangeˢ` residual `RI`
@@ -242,10 +242,9 @@ module FrontSwap (H : Hypergraph FlatGen)
 module _ (H : Hypergraph FlatGen)
          (dih : ∀ {e} → ¬ (Dep H e e))
          (lin : Linear H)
-         (uniq-cod : Unique (Hypergraph.cod H))
          where
   open PerHG H dih lin
-  module FS = FrontSwap H dih lin uniq-cod
+  module FS = FrontSwap H dih lin
   open FS using (front-swap-≈ˢ)
 
   module _ (run-interchange : RunInterchangeAt) where

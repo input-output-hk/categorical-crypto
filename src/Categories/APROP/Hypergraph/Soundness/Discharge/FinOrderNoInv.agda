@@ -347,8 +347,7 @@ module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
   ------------------------------------------------------------------------------
   -- The diagonal, exactly as in the tensor case: `splitE`-dispatch, then the
   -- two block reflections at `ea ≡ eb`.  Note that `remapP`-injectivity comes
-  -- from `Linear G`/`Linear K` here — the `Unique`-boundary route
-  -- (`PrunedCompose.remapP-injective-from-unique`) is not needed.
+  -- from `Linear G`/`Linear K` here.
 
   NoSelfDep-compose : NoSelfDep G → NoSelfDep K → NoSelfDep Hc
   NoSelfDep-compose G-nd K-nd {e} =

@@ -39,12 +39,12 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (range)
 open import Categories.APROP.Hypergraph.Model.Translation sig
   using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
-open import Categories.APROP.Hypergraph.Model.HomTermInvariant sig using (⟪_⟫-cod-unique)
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.FinOrderNoInv sig using (dep-irrefl-⟪⟫)
 import Categories.APROP.Hypergraph.Soundness.Discharge.IsoInvarianceWiring sig as IW
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as DAL
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
+open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig using (Linear⇒cod-Unique)
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
@@ -144,7 +144,7 @@ module Boundary {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ 
   decodeOrdˢ-witness-coh
     : ∀ (v w : SF.Validˢ rng-F)
     → SF.decodeOrdˢ rng-F v ≈ˢ SF.decodeOrdˢ rng-F w
-  decodeOrdˢ-witness-coh v w = ∘-resp (perm-rigidˢ-F (⟪ f ⟫-cod-unique) v w) ≈-refl
+  decodeOrdˢ-witness-coh v w = ∘-resp (perm-rigidˢ-F (Linear⇒cod-Unique F linF) v w) ≈-refl
 
   -- The headline boundary lemma.  `wiring≈ : castˢ di ci (decodeOrdˢ-G vg)
   -- ≈ˢ decodeOrdˢ-F vH` is the cross-iso decoder agreement.
