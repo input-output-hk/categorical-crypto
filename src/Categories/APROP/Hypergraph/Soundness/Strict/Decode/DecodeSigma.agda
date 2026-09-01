@@ -41,7 +41,6 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm si
   as BSC
 
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
-open import Data.List.Properties using (++-identityʳ)
 open Perm using (_↭_)
 
 --------------------------------------------------------------------------------

@@ -29,8 +29,6 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCoreRun
   (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
-open APROP sig using (X)
-
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig

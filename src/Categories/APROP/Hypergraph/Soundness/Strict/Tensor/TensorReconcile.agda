@@ -74,7 +74,6 @@ open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 
-open import Data.Fin using (Fin)
 open Perm using (_↭_)
 
 --------------------------------------------------------------------------------

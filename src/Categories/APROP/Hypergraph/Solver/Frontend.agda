@@ -38,7 +38,6 @@ open APROPSignatureDec sig-dec using (sig)
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
-open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig-dec using (findIso; findIsoᵀ)
 open import Categories.APROP.Hypergraph.Solver.Split sig-dec using (solveSplitR?; reassocBal)
@@ -46,7 +45,7 @@ open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig-dec using (focu
 open import Categories.APROP.Hypergraph.Solver.Rewrite.Deep sig-dec using (deepFocₙ)
 open import Categories.APROP.Hypergraph.Soundness sig-dec using (soundness)
 
-open import Level using (Level; _⊔_)
+open import Level using (_⊔_)
 open import Data.List.Base using (List; []; _∷_)
 open import Data.Maybe.Base using (Maybe; just; nothing; is-just; _<∣>_)
 -- `to-witness-T`, not `from-just`: the `just`-proof is a separate argument, so
