@@ -729,7 +729,6 @@ module Build
         a = m as ; b = m bs ; c = m cs
 
         Cinner = castˢ refl (sym (++-assoc a c b)) (idˢ {a} ⊗ˢ σˢ b c)
-        C = (σˢ a c ⊗ˢ idˢ {b}) ∘ˢ Cinner
 
         leftC : (σᵛ as cs ⊗ᵛ idᵛ {bs}) ≈̂ (σˢ a c ⊗ˢ idˢ {b})
         leftC =
@@ -748,7 +747,7 @@ module Build
         rhs≈ : castᵛ (sym (++-assoc as bs cs)) (++-assoc cs as bs)
                  ((σᵛ as cs ⊗ᵛ idᵛ {bs})
                    ∘ᵛ castᵛ refl (sym (++-assoc as cs bs)) (idᵛ {as} ⊗ᵛ σᵛ bs cs))
-               ≈̂ castˢ (sym (++-assoc a b c)) (++-assoc c a b) C
+               ≈̂ castˢ (sym (++-assoc a b c)) (++-assoc c a b) ((σˢ a c ⊗ˢ idˢ {b}) ∘ˢ Cinner)
         rhs≈ =
           ≈̂-trans (castᵛ-≈̂ (sym (++-assoc as bs cs)) (++-assoc cs as bs) _)
           (≈̂-trans (∘-resp-≈̂ leftC rightC)
