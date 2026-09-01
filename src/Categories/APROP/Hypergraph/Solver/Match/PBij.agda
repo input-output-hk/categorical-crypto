@@ -78,10 +78,10 @@ pairUp b (i ∷ is) (j ∷ js) = extend-bij b i j >>= λ b' → pairUp b' is js
 --------------------------------------------------------------------------------
 -- Total-function extraction.  When the search succeeds, `totalise` demands a
 -- `just`-value at every `Fin n` position and returns the total function it
--- reads off.  It carries NO pointwise witness `∀ i → p i ≡ just (f i)`: the
--- two consumers (`Verify.verify`, `SubMatch.verifySub`) re-derive every
--- `_≅ᴴ_`/`_↪ᴴ_` law they need by their own decidable checks and discarded
--- that witness at all six call sites.
+-- reads off.  It carries NO pointwise witness `∀ i → p i ≡ just (f i)`:
+-- `Verify.verify` re-derives every `_≅ᴴ_` law it needs by its own decidable
+-- checks, and `SubMatch.verifySub` states no law at all, so the witness was
+-- discarded at every call site.
 
 totalise : ∀ {n m} (p : PartialMap n m) → Maybe (Fin n → Fin m)
 totalise {ℕ.zero}  p = just λ ()
@@ -92,9 +92,8 @@ totalise {ℕ.suc n} p with p zero
                 (totalise {n} (λ i → p (suc i)))
 
 -- `map vlab₂ ys ≡ map vlab₁ xs` from `ys ≡ map φ xs` and the pointwise
--- label-agreement `vlab₂ (φ i) ≡ vlab₁ i`.  Shared by `Verify` (H/J labels)
--- and `Verify-Sub` (L/S labels); both invoke it per edge (verify body and the
--- atom-ein/atom-eout record fields).
+-- label-agreement `vlab₂ (φ i) ≡ vlab₁ i`.  Used by `Verify` (H/J labels),
+-- per edge, in the verify body and in the atom-ein/atom-eout record fields.
 deriveAtomEq
   : ∀ {V₁ V₂ X : Set} {vlab₁ : V₁ → X} {vlab₂ : V₂ → X} {φ : V₁ → V₂}
   → (∀ i → vlab₂ (φ i) ≡ vlab₁ i)

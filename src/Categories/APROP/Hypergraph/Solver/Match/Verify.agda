@@ -51,8 +51,8 @@ open import Relation.Nullary.Decidable using (dec⇒maybe)
   just λ { zero → p₀ ; (suc i) → ps i }
 
 --------------------------------------------------------------------------------
--- Decidable equality on Fin-index lists, at any arity: the endpoint and
--- boundary checks of `Verify` and of `SubMatch`'s `verifySub` share it.
+-- Decidable equality on Fin-index lists, at any arity: `verify`'s endpoint
+-- and boundary checks share it.
 
 _≟LF_ : ∀ {n} → DecidableEquality (List (Fin n))
 _≟LF_ = ≡-dec _≟F_
