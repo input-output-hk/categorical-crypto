@@ -76,25 +76,13 @@ emb (_⊗ˢ_ {xs} {ys} {us} {vs} f g)   = T ys vs ∘ (emb f ⊗₁ emb g) ∘ F
 emb (genˢ t)                         = t
 emb (σˢ xs ys)                       = T ys xs ∘ σ ∘ F xs ys
 
-emb-cast
-  : ∀ {xs xs' ys ys'} (p : xs ≡ xs') (q : ys ≡ ys') (t : HomS xs ys)
-  → emb (castˢ p q t)
-    ≡ subst₂ HomTerm (cong U p) (cong U q) (emb t)
-emb-cast refl refl t = refl
-
--- a subst₂ over `cong U` re-expressed as conjugation by transported ids
-subst₂-conj
-  : ∀ {a b c d} (p : a ≡ b) (q : c ≡ d) (t : HomTerm (U a) (U c))
-  → subst₂ HomTerm (cong U p) (cong U q) t
-    ≈Term subst-id-cod q ∘ t ∘ subst-id-dom p
-subst₂-conj refl refl t = ≈-Term-sym (≈-Term-trans idˡ idʳ)
-
--- the de-casting step, used at every `castˢ` case below
+-- the de-casting step, used at every `castˢ` case below.  At `refl`/`refl`
+-- `castˢ` vanishes and the two conjugating `subst-id-*` are `id`, so the
+-- whole statement is the unit pair read backwards.
 emb-cast-conj
   : ∀ {xs xs' ys ys'} (p : xs ≡ xs') (q : ys ≡ ys') (t : HomS xs ys)
   → emb (castˢ p q t) ≈Term subst-id-cod q ∘ emb t ∘ subst-id-dom p
-emb-cast-conj p q t =
-  ≈-Term-trans (≡⇒≈Term (emb-cast p q t)) (subst₂-conj p q (emb t))
+emb-cast-conj refl refl t = ≈-Term-sym (≈-Term-trans idˡ idʳ)
 
 
 --------------------------------------------------------------------------------
