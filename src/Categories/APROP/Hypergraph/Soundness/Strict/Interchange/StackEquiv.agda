@@ -15,7 +15,7 @@
 -- by a direct `interchangeᵛ` computation in the presented
 -- strict SMC — NO `box-of`/`unflatten-++-≅` detour.
 --
--- The term-FREE inputs (`fire-stable-*`, `residual-recon`, `fire-μ`,
+-- The term-FREE inputs (`extract-prefix-↭-*`, `residual-recon`, `fire-μ`,
 -- the `extract-prefix` determinism) are REUSED verbatim from the
 -- non-strict leaves: the strict and non-strict runs walk the SAME stacks
 -- (`pe-stackˢ o s` IS `process-edges H o s`), so the reservoir / `Unique`
@@ -86,31 +86,6 @@ module EquivStep (H : Hypergraph FlatGen) where
   ----------------------------------------------------------------------
 
   open EdgeStepView H public
-
-  ----------------------------------------------------------------------
-  -- FIRING STABILITY under a stack permutation (term-free; reused
-  -- verbatim from the former non-strict `StackEquivariance`).
-  ----------------------------------------------------------------------
-
-  fire-stable-just
-    : ∀ (e : Fin H.nE) {s s' : List (Fin H.nV)} (ρ : s' Perm.↭ s)
-        {restH : List (Fin H.nV)} (permH : s Perm.↭ H.ein e ++ restH)
-    → extract-prefix (H.ein e) s ≡ just (restH , permH)
-    → Σ[ restH' ∈ List (Fin H.nV) ]
-      Σ[ permH' ∈ s' Perm.↭ H.ein e ++ restH' ]
-        extract-prefix (H.ein e) s' ≡ just (restH' , permH')
-        × restH Perm.↭ restH'
-  fire-stable-just e {s} {s'} ρ {restH} permH eqH =
-    let step = extract-prefix-↭-residual (H.ein e) s' restH (Perm.↭-trans ρ permH)
-    in proj₁ step , proj₁ (proj₂ step)
-       , proj₁ (proj₂ (proj₂ step)) , proj₂ (proj₂ (proj₂ step))
-
-  fire-stable-nothing
-    : ∀ (e : Fin H.nE) {s s' : List (Fin H.nV)} (ρ : s' Perm.↭ s)
-    → extract-prefix (H.ein e) s ≡ nothing
-    → extract-prefix (H.ein e) s' ≡ nothing
-  fire-stable-nothing e {s} {s'} ρ eqH =
-    extract-prefix-↭-nothing (H.ein e) s s' (Perm.↭-sym ρ) eqH
 
   ----------------------------------------------------------------------
   -- BOX-CORE NATURALITY (the genuine strict box-naturality content).
@@ -309,12 +284,14 @@ module EquivStep (H : Hypergraph FlatGen) where
   edge-step-equivariantˢ e ρ (skipRˢ eqH) (skipRˢ eqH') us' =
     ρ , ≈-sym (≈-trans (∘-resp ≈-refl idˡ) (pvv-inverse-leftˢ ρ))
   -- SKIP/FIRE & FIRE/SKIP: impossible by firing stability.
-  edge-step-equivariantˢ e ρ (skipRˢ eqH) (fireRˢ restH' permH' eqH') us' =
-    ⊥-elim (just≢nothing (trans (sym eqH') (fire-stable-nothing e ρ eqH)))
+  edge-step-equivariantˢ e {s} {s'} ρ (skipRˢ eqH) (fireRˢ restH' permH' eqH') us' =
+    ⊥-elim (just≢nothing
+      (trans (sym eqH') (extract-prefix-↭-nothing (H.ein e) s s' (Perm.↭-sym ρ) eqH)))
   edge-step-equivariantˢ e {s} {s'} ρ (fireRˢ restH permH eqH) (skipRˢ eqH') us' =
     ⊥-elim (just≢nothing
-      (let fsj = fire-stable-just e ρ permH eqH
-       in trans (sym (proj₁ (proj₂ (proj₂ fsj)))) eqH'))
+      (trans (sym (proj₁ (proj₂ (proj₂
+                (extract-prefix-↭-residual (H.ein e) s' restH (Perm.trans ρ permH))))))
+             eqH'))
   -- FIRE/FIRE.
   edge-step-equivariantˢ e {s} {s'} ρ
       (fireRˢ restH permH eqH) (fireRˢ restH' permH' eqH') us' =
