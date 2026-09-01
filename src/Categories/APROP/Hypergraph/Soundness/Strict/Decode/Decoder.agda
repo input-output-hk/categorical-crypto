@@ -145,7 +145,7 @@ module StrictDecoder (H : Hypergraph FlatGen) where
   -- Both statements are about VERTEX stacks, so the only transports are
   -- `castᵛ` (a `List (Fin nV)` equality) and the endpoint bookkeeping the
   -- label-level spelling needed (`map-++ vl xs R`, the `W`/`QIH`
-  -- map-distribution proofs, `cast-⊗-frame`, `∘-cast-split`) is gone.
+  -- map-distribution proofs, `∘-cast-split`) is gone.
 
   open Restrict (Fin H.nV) vl
     using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; castᵛ; _≈ᵛ_; permuteᵛ; permuteᵛ-frame

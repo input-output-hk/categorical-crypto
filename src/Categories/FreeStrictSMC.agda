@@ -171,16 +171,6 @@ module Build
     : ∀ {xs xs'} (p q : xs ≡ xs') → castˢ p q (idˢ {xs}) ≈ˢ idˢ {xs'}
   cast-id refl q rewrite uipL q refl = ≈-refl
 
-  -- a cast that only moves the RIGHT ⊗-factor's endpoints commutes with a
-  -- fixed left frame (arbitrary proofs P, Q absorbed by UIP)
-  cast-⊗-frame
-    : ∀ {ls ls'} (h : HomS ls ls')
-        {us us' vs vs'} (p' : us ≡ us') (q' : vs ≡ vs') (f : HomS us vs)
-        (P : ls ++ us ≡ ls ++ us') (Q : ls' ++ vs ≡ ls' ++ vs')
-    → castˢ P Q (h ⊗ˢ f) ≈ˢ h ⊗ˢ castˢ p' q' f
-  cast-⊗-frame h refl refl f P Q
-    rewrite uipL P refl | uipL Q refl = ≈-refl
-
   -- split a cast over a composition through a chosen middle proof
   ∘-cast-split
     : ∀ {as as' bs bs' cs cs'}
@@ -423,7 +413,7 @@ module Build
     -- the stdlib residual frame `++⁺ʳ R` factors through `⊗ˢ idˢ`.
     -- HETEROGENEOUS: every consumer reads the `≈̂` form, so the `map-++`
     -- boundary stays inside the kit's congruences instead of being named at
-    -- each clause (`cast-⊗-frame`/`∘-cast-split` are what that used to cost).
+    -- each clause (`∘-cast-split` is what that used to cost).
     permuteˢ-frame
       : ∀ {xs ys : List V} (R : List V) (p : xs ↭ ys)
       → permuteˢ (++⁺ʳ R p) ≈̂ permuteˢ p ⊗ˢ idˢ {map vlab R}
