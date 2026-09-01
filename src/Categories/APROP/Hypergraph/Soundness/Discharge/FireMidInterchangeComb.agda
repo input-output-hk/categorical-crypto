@@ -46,7 +46,6 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using
 
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; zero; suc)
-open import Data.List.Base using (tabulate)
 open import Data.List.Properties using (++-assoc)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.Maybe using (Maybe; just; nothing)

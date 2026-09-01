@@ -33,7 +33,6 @@ module Categories.APROP.Hypergraph.Solver.Rewrite.ExtendSig
   (P Q : ObjTerm)
   where
 
-open import Data.List.Base using (_++_)
 open import Data.Maybe.Base
 open import Relation.Binary.Definitions
 

@@ -27,8 +27,6 @@ module Categories.APROP.Hypergraph.Soundness.Strict.PartI
 
 open APROP sig
 
-open import Categories.FreeMonoidal using (v≤v)
-
 open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_ using (decodePˢ)
 

@@ -50,7 +50,6 @@ open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig
   using ( bridge-∘; bridge-⊗; bridge-id-is-id; bridge-λ⇒-is-id; bridge-λ⇐-is-id
         ; ρ⇒-coherence; ρ⇐-coherence; derive-⇐; module Worker )
 
-open import Categories.FreeMonoidal using (v≤v)
 open import Categories.FreeStrictSMC using (module Map)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Embed sig _≟X_ as E

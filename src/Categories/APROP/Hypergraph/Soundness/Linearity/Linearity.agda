@@ -35,7 +35,6 @@ open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
 open import Data.Fin.Properties using
   (_≟_; suc-injective; ↑ˡ-injective; ↑ʳ-injective; splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ)
-open import Data.List as List using (List; []; _∷_; _++_; length; map; tabulate; concat)
 open import Data.List.Properties using
   (++-identityʳ; tabulate-cong; map-tabulate; concat-map; concat-++)
 import Function as Fun
