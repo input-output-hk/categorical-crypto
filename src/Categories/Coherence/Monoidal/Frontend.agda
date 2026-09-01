@@ -76,15 +76,27 @@ module Frontend
       step? : ∀ {n m} (d : Diag n m) → Maybe (Σ[ d' ∈ Diag n m ] (d ⤳D d'))
       step? = stepWith (interchangeGo rankW)
 
-      -- a fuel-bounded bubble sort.
-      norm = normSoundˢ prim-swap-soundˢ step? (λ k → nsuc (k * k))
+      open DC.SCmp.Decide using (_≟Diag_)
 
-    open DC.Decide norm using () renaming (decideW to decide?W)
+      -- a fuel-bounded bubble sort, stopping at the first revisited state
+      -- (the step function is deterministic, so a revisit is a genuine
+      -- cycle) and carrying the loop's verdict.
+      norm = normDetectSoundˢ prim-swap-soundˢ _≟Diag_ step? (λ k → nsuc (k * k))
+
+    open DC.Decide norm using () renaming (decideW to decide?W; statusW to status?W)
 
     -- front-end decision: a hit is a genuine `_≈Term_` of the free monoidal
     -- category over the ObjTerm-arity generators.
     decide?F : ∀ {Y Z} (l r : F.HomTerm Y Z) → Maybe (l F.≈Term r)
     decide?F l r = Data.Maybe.map solveF (decide?W (reflectF l) (reflectF r))
+
+    -- Diagnostic mirror of `decide?F`, per side: `converged` means the
+    -- compared form is a genuine normal form; `cycled`/`exhausted` mean
+    -- the normalizer did not terminate on this input (degenerate
+    -- signatures with empty-arity generators — see `Test.Limitations`),
+    -- so a failed decision says nothing about the equation.
+    statusF : ∀ {Y Z} (t : F.HomTerm Y Z) → NormStatus
+    statusF t = status?W (reflectF t)
 
 --------------------------------------------------------------------------------
 -- `FinSetup`: the call-site convenience wrapper.  From a target monoidal
@@ -115,7 +127,14 @@ module FinSetup
     -- build the front-end's decision procedure at this signature, then run
     -- the transport pipeline at the target.
     open Frontend {Fin nA} GenS
-    open Decide rankS
+    private module D = Decide rankS
+    open D
 
     open FSolve GenS decide?F public using (solveTerm!; module Into)
     open Into C (lookup vars) public
+
+    -- Diagnostic mate of `solveMor!`, on the same front-end terms: a failed
+    -- decision under a non-`converged` verdict is the normalizer's
+    -- non-termination on degenerate signatures (see `Test.Limitations`),
+    -- not a genuine normal-form mismatch.
+    statusMor = D.statusF

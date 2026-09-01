@@ -25,7 +25,8 @@
 --   * No canonicity for `norm ∘ reflect`   {meta-property, prose only}
 --   * Monoidal targets only                {meta-property, prose only}
 --   * Fin-indexed call-site wrapper only   {meta-property, prose only}
---   * Fuel exhaustion is silent            {meta-property, prose only}
+--   * Non-termination on degenerate
+--     signatures (reported, not fixed)     {machine-checked — `lim-cycle-*`}
 --
 -- Soundness without completeness.  The solver is sound — every `just` it
 -- returns is a real proof — but not complete: it may return `nothing` on a
@@ -61,15 +62,23 @@
 -- directly.  This is an API-shape constraint, not a crisp type error, so it is
 -- prose only.
 --
--- Fuel exhaustion is silent.  The normalizer is a fuel-bounded loop
--- (`Normalize.normFuelWith`) whose budget is `1 + k²` in the diagram depth `k`
--- (`Frontend.Decide.norm`).  On exhaustion it returns its *input* paired with
--- the reflexive witness — exactly what it returns when no step applies — so a
--- caller cannot distinguish "no rewrite was needed" from "the budget ran out",
--- and `decide?F` then reports a plain `nothing`.  The budget is a heuristic,
--- not a proven bound: it is only sufficient if every fired swap strictly
--- decreases the number of out-of-order pairs, which the rank tiebreak does not
--- guarantee for ambiguous pairs.
+-- Non-termination on degenerate signatures — reported, not fixed.  On a
+-- signature with an empty-arity generator side the guarded step relation has
+-- genuine cycles (a scalar orbiting a state/effect pair; period 4 at the
+-- minimal instance below), so no fuel budget normalizes such inputs and the
+-- equation is refused even when true.  The loop (`Normalize.normDetectWith`,
+-- budget `1 + k²` in the diagram depth `k`) detects this: the step function is
+-- deterministic, so a revisited state is a proof of divergence, and the loop
+-- stops there with the verdict `cycled` (`exhausted` when the budget ran out
+-- first, `converged` when the result is a genuine normal form).  The verdict
+-- is exposed per side as `Frontend.Decide.statusF` / the call-site `statusMor`,
+-- so a caller CAN distinguish "the normal forms differ" from "the normalizer
+-- did not terminate" — `lim-cycle-status` pins the verdict on the minimal
+-- cycling family and `lim-cycle-nothing` that the true equation is still
+-- refused; `lim-converged` pins the honest verdict on a decided goal.
+-- Completeness on such signatures is out of reach for this normalizer family
+-- (an insertion-order-free counterexample exists); nondegenerate signatures
+-- have no cycles.
 --------------------------------------------------------------------------------
 
 module Categories.Coherence.Monoidal.Test.Limitations where
@@ -77,10 +86,12 @@ module Categories.Coherence.Monoidal.Test.Limitations where
 open import categorical-crypto.Prelude hiding (_∘_; id; map; merge; zero; suc; [_]; [_,_]; _∷_; [])
 
 open import Data.Fin
+open import Data.Maybe using (is-just)
 
 open import Categories.FreeMonoidal
 open import Categories.Coherence.Monoidal.Frontend
 open import Categories.Coherence.Monoidal.Frontend.Core
+open import Categories.Coherence.Monoidal.Normalize using (NormStatus; converged; cycled; exhausted)
 
 ------------------------------------------------------------------------
 -- Machine-checked: the non-injective-rank and generator-naturality
@@ -149,3 +160,74 @@ module MonLimits where
 
   lim-equal-rank : D₀.decide?F (u' ∘ᴵ v') (v' ∘ᴵ u') ≡ nothing
   lim-equal-rank = refl
+
+  -- The honest verdict on a decided goal: the compared form is a genuine
+  -- normal form.
+  lim-converged : statusF (s' ∘ᴵ μ') ≡ converged
+  lim-converged = refl
+
+------------------------------------------------------------------------
+-- Machine-checked: non-termination on a degenerate signature, reported.
+--
+-- The minimal cycling family: e : ⋆ → unit, w : unit → unit, u : unit → ⋆.
+-- `rankS` gives rank e = 0 < rank w = 1 < rank u = 2, and exactly this order
+-- closes the scalar `w`'s orbit around the `u`/`e` pair into a period-4
+-- cycle, so the true scalar equation below is refused — with the verdict
+-- saying why.
+
+module CycleLimits where
+
+  data Ty : Set where ⋆ : Ty
+
+  instance
+    DecEq-Ty : DecEq Ty
+    DecEq-Ty .DecEq._≟_ = λ where ⋆ ⋆ → yes refl
+
+  open FreeMonoidalHelper Mon Ty using () renaming (ObjTerm to ObjTermᴵ; unit to unitᴵ; Var to Varᴵ)
+
+  arityT : Fin 3 → ObjTermᴵ × ObjTermᴵ
+  arityT zero             = Varᴵ ⋆ , unitᴵ    -- 0 → e : ⋆ → unit
+  arityT (suc zero)       = unitᴵ , unitᴵ     -- 1 → w : unit → unit
+  arityT (suc (suc zero)) = unitᴵ , Varᴵ ⋆    -- 2 → u : unit → ⋆
+
+  private module FS = FinSig {Ty} arityT
+  open FS
+  open Frontend {Ty} GenS
+  open Decide rankS
+
+  private
+    infixr 9 _∘ᴵ_
+    _∘ᴵ_ : ∀ {A B C} → S.HomTerm B C → S.HomTerm A B → S.HomTerm A C
+    _∘ᴵ_ = S._∘_
+    e' = gen zero
+    w' = gen (suc zero)
+    u' = gen (suc (suc zero))
+
+    -- the same scalar equation, laid out with `w` before and after `u ∘ e`
+    t₀ = e' ∘ᴵ (u' ∘ᴵ w')
+    t₂ = w' ∘ᴵ (e' ∘ᴵ u')
+
+  -- both sides cycle, and the loop says so …
+  lim-cycle-status : statusF t₀ ≡ cycled
+  lim-cycle-status = refl
+
+  lim-cycle-statusʳ : statusF t₂ ≡ cycled
+  lim-cycle-statusʳ = refl
+
+  -- … and the true equation is refused.
+  lim-cycle-nothing : decide?F t₀ t₂ ≡ nothing
+  lim-cycle-nothing = refl
+
+  -- The machine check that the refused equation IS true (solver soundness):
+  -- the identical pair under a rank making `w` minimal converges and is
+  -- decided.
+  private
+    rankW : GenΣ → ℕ
+    rankW (_ , _ , genS zero)          = 1
+    rankW (_ , _ , genS (suc zero))    = 0
+    rankW (_ , _ , genS (suc (suc _))) = 2
+
+    module DW = Decide rankW
+
+  lim-cycle-true : is-just (DW.decide?F t₀ t₂) ≡ true
+  lim-cycle-true = refl

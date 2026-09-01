@@ -33,6 +33,10 @@ open import Categories.Category.Monoidal
 open import Categories.FreeMonoidal
 open import Categories.Coherence.Monoidal.MacLane
 open import Categories.Coherence.Monoidal.Frontend
+
+-- the normalizer's verdict type, for callers of `statusMor` below
+open import Categories.Coherence.Monoidal.Normalize public
+  using (NormStatus; converged; cycled; exhausted)
 ```
 
 ## `Structural`: coherence of structural isomorphisms
@@ -74,9 +78,20 @@ monoidal coherence together with naturality and the interchange law for
 and friends additionally fire a user-supplied equational rule in a context
 (`rewriteMorAuto!` locates it automatically); the `Rewrite` module of
 `Categories.Coherence.Monoidal.Test.Frontend` exercises that family.
+`statusMor` reports the normalizer's verdict on a front-end term: a failed
+`solveMor!` whose sides report `cycled` or `exhausted` hit the rewrite
+loop's non-termination on degenerate signatures (a generator with an empty
+arity side), not a decided inequality — see `Test.Limitations`.
 
 Warning: `MorRewrite` is slow to `open`. Prefer `MorSolve` if you simply want
 to call `solveMor!`.
+
+The reflection macro `solve-mor C` (`Categories.Coherence.Monoidal.Tactic`)
+synthesises all of this — the atom vector, the generator signature, and both
+front-end terms — from the goal itself; use it when the goal is stated in
+`C`'s own vocabulary, and fall back to `MorSolve` where the goal's type is
+not determined at the call site (a component of a Σ whose record is still
+elaborating, say).
 
 ```agda
 module MorAtoms
@@ -94,7 +109,7 @@ module MorRewrite
                       (C .MonoidalCategory.U [ Impl.⟦ proj₁ st ⟧ₒ , Impl.⟦ proj₂ st ⟧ₒ ])) nG)
   (let module ImplS = Impl.Sig (λ i → proj₁ (lookup gens i)))
   where
-  open ImplS public using (module S; gen)
+  open ImplS public using (module S; gen; statusMor)
   open ImplS using (genS)
 
   private module ImplW = ImplS.WithGen (λ { (genS i) → proj₂ (lookup gens i) })
@@ -113,7 +128,7 @@ module MorSolve
   (let module Impl = FinSetup C vars)
   {nG} (gens : Vec (Σ[ st ∈ Impl.ObjTerm × Impl.ObjTerm ]
                       (C .MonoidalCategory.U [ Impl.⟦ proj₁ st ⟧ₒ , Impl.⟦ proj₂ st ⟧ₒ ])) nG)
-  = MorRewrite C vars gens using (solveMor!; gen; module S)
+  = MorRewrite C vars gens using (solveMor!; gen; module S; statusMor)
 ```
 
 ### Example
