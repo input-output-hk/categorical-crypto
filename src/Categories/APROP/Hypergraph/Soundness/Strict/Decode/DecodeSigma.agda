@@ -104,7 +104,8 @@ module _
       module RF = Run ⟪ f ⟫
       module Hf = Hypergraph ⟪ f ⟫
       open Restrict (Fin Hf.nV) Hf.vlab
-        using (idᵛ; _∘ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; ∘-castᵛ; subst-codᵛ; σᵛ-≈̂)
+        using (idᵛ; _∘ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; permuteᵛ-subst-dom
+              ; ∘-castᵛ; subst-codᵛ; σᵛ-≈̂)
 
       rigidˢ = PK.perm-rigidˢ (Fin Hf.nV) _≟F_ Hf.vlab
 
@@ -153,13 +154,7 @@ module _
       -- of `permuteᵛ bsw`.
       permsub≡ : RF.permuteˢ (subst (Perm._↭ Hf.cod) (sym s≡) bsw)
                  ≡ castᵛ (sym s≡) refl (permuteᵛ bsw)
-      permsub≡ = permuteˢ-subst-dom (sym s≡) bsw
-        where
-          permuteˢ-subst-dom
-            : ∀ {xs xs' ys : List (Fin Hf.nV)} (e : xs ≡ xs') (p : xs ↭ ys)
-            → RF.permuteˢ (subst (Perm._↭ ys) e p)
-              ≡ castᵛ e refl (permuteᵛ p)
-          permuteˢ-subst-dom refl p = refl
+      permsub≡ = permuteᵛ-subst-dom (sym s≡) bsw
 
     -- the inner term `permuteˢ (finalPermˢ σ) ∘ᵛ proj₂ runˢ` IS the block
     -- braiding: the two `s≡` transports meet at the collapsed run and cancel.

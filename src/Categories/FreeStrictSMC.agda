@@ -557,6 +557,12 @@ module Build
     permuteᵛ : ∀ {as bs : List V} → as ↭ bs → HomV as bs
     permuteᵛ = permuteˢ
 
+    -- the domain mirror of `permuteˢ-subst`, at the `castᵛ` its consumer reads
+    permuteᵛ-subst-dom
+      : ∀ {as as' bs : List V} (e : as ≡ as') (p : as ↭ bs)
+      → permuteᵛ (subst (_↭ bs) e p) ≡ castᵛ e refl (permuteᵛ p)
+    permuteᵛ-subst-dom refl p = refl
+
     ------------------------------------------------------------------------
     -- The cast/heterogeneous kit at V level.  `castᵛ` is the `List V`-indexed
     -- transport; it is a `castˢ` along `cong m`.
