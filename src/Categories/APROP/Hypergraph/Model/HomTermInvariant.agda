@@ -80,8 +80,7 @@ import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
     (hCP.remapP-injective-from-unique (⟪_⟫-cod-unique h) (⟪_⟫-dom-unique g))
     (⟪_⟫-cod-unique g)
   where
-    bdy = trans (⟪⟫-codL h) (sym (⟪⟫-domL g))
-    module hCP = hComposeP-impl ⟪ h ⟫ ⟪ g ⟫ bdy
+    module hCP = hComposeP-impl ⟪ h ⟫ ⟪ g ⟫ (trans (⟪⟫-codL h) (sym (⟪⟫-domL g)))
 
 -- Tensor: cod = map injL ⟪f⟫.cod ++ map injR ⟪g⟫.cod (disjoint).
 ⟪ f ⊗₁ g ⟫-cod-unique =
