@@ -12,10 +12,11 @@
 --
 -- Performance-critical call pattern (docs/smc-solver-performance.md,
 -- "the 8-atom wall" + follow-ups):
---   * forcing routed through refl-checked equations (`force!`), never
---     `from-just`/inferred witnesses (slow elaborator path);
---   * ⟪_⟫ spelled EXACTLY as Soundness's instantiated signature
---     spells it (syntactic fast path in conversion);
+--   * forcing routed through refl-checked equations (`solve!`/`stepR!` from
+--     `Terms`), never `from-just`/inferred witnesses (slow elaborator path);
+--   * the gate itself lives in `Split`, where `⟪_⟫` and `soundness` are
+--     instantiated from the SAME `sig-dec` and so spell the translation
+--     identically (syntactic fast path in conversion);
 --   * one module for all three obligations (a merge with `Decomp` would be
 --     perf-neutral — measured 0.5 % — since `Split` already gives both the
 --     same import cone; the boundary is narrative, not a cost);
@@ -28,16 +29,9 @@
 
 module Categories.GConstructionCoherence.Wiring where
 
-open import Data.Bool.Base using (true)
-open import Data.Maybe.Base using (is-just)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality using (refl)
 open import Categories.FreeMonoidal using (Symm; _≤_; v≤v)
 open import Categories.GConstructionCoherence.Terms
-open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
-open import Categories.APROP.Hypergraph.Model.Translation (APROPSignatureDec.sig gSigDec) using (⟪_⟫)
-open import Categories.APROP.Hypergraph.Solver.Match.FindIso gSigDec using (findIso)
-open import Categories.APROP.Hypergraph.Soundness gSigDec
-  using (soundness)
 open import Categories.Category using (Category)
 open import Categories.Morphism.Reasoning FreeMonoidal using (center; pullʳ)
 open Category.HomReasoning FreeMonoidal using (_○_; _⟩∘⟨refl; refl⟩∘⟨_)
@@ -76,11 +70,6 @@ private
   R₂ᵇ = (αᵇ ⊗₁ id ∘ (h' ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ id ⊗₁ αᵇ)
   L₂ρ₂ᵇ = ((βᵇ ∘ αᵇ ⊗₁ id) ∘ (βᵇ ∘ αᵇ ⊗₁ id)) ∘ ((h' ⊗₁ id) ⊗₁ id ∘ α⇐)
 
-  -- one leaf, one line: the search's success is discharged by a refl-checked
-  -- equation, never by an inferred witness (the `Decomp.step!` idiom)
-  solve! : ∀ {A B} (f g : HomTerm A B)
-         → is-just (findIso ⟪ f ⟫ ⟪ g ⟫) ≡ true → f ≈Term g
-  solve! f g ok = soundness {f = f} {g = g} (force! (findIso ⟪ f ⟫ ⟪ g ⟫) ok)
 
 -- the obligations at the segment statements: pure-assoc bridges around the
 -- solver obligation on the balanced spellings

@@ -16,18 +16,16 @@
 --------------------------------------------------------------------------------
 
 -- Call-pattern performance rule (docs/smc-solver-performance.md, "the 8-atom
--- wall"): forcing must be routed through refl-checked equations (`force!`,
--- from `Terms`), never `from-just`/inferred witnesses (slow elaborator path).
--- The companion spelling rule for instantiated signature types belongs to the
--- modules that instantiate `Translation` — `Wiring` and `GCohId`.
+-- wall"): forcing must be routed through refl-checked equations (`step!`/
+-- `stepR!`, from `Terms`), never `from-just`/inferred witnesses (slow path).
+-- The companion spelling rule for instantiated signature types now belongs to
+-- `Split`, which owns the gate and spells `⟪_⟫`/`soundness` from one
+-- `sig-dec`.
 module Categories.GConstructionCoherence.Decomp where
 
-open import Data.Bool.Base using (true)
-open import Data.Maybe.Base using (is-just)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality using (refl)
 
 open import Categories.GConstructionCoherence.Terms
-open import Categories.APROP.Hypergraph.Solver.Split gSigDec using (solveSplit?)
 
 private
   Dom Cod : ObjTerm
@@ -37,11 +35,6 @@ private
   _⊕_ : ∀ {f g h : HomTerm Dom Cod} → f ≈Term g → g ≈Term h → f ≈Term h
   _⊕_ = ≈-Term-trans
   infixr 4 _⊕_
-
-  -- refl-routed forcing (`force!`/`stepR!` come from `Terms`; never
-  -- from-just: see "the 8-atom wall")
-  step!  : ∀ {A B} (f g : HomTerm A B) → is-just (solveSplit?  f g) ≡ true → f ≈Term g
-  step!  f g ok = force! (solveSplit?  f g) ok
 
 -- ===== lhs ==================================================================
 private

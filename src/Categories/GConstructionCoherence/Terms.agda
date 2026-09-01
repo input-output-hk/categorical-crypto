@@ -24,13 +24,11 @@
 
 module Categories.GConstructionCoherence.Terms where
 
-open import Data.Bool.Base using (true)
 open import Data.Fin using (Fin)
 open import Data.Fin.Patterns
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.Maybe.Base using (Maybe; just; is-just)
 open import Relation.Binary.Definitions using (DecidableEquality)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality using (refl)
 open import Relation.Nullary using (yes)
 
 open import Categories.APROP using (APROPSignature; module APROP)
@@ -152,14 +150,11 @@ R₂ᵗ = αᵗ ⊗₁ id ∘ (h' ⊗₁ id) ⊗₁ id ∘ α⇐ ∘ id ⊗₁ �
               (((D⁺ ⊗₀ E⁻) ⊗₀ (B⁻ ⊗₀ D⁺)) ⊗₀ (A⁻ ⊗₀ B⁺))
 ρ₂ᵗ = α⇐
 
--- The forcing vocabulary shared by `Decomp` and `Wiring`, which used to define
--- both verbatim: refl-checked forcing (never `from-just` — "the 8-atom wall"),
--- and the pure-assoc respelling `stepR!` (reassoc + refl, no solver leaf).
+-- The solver's term-level gate (`Split`), re-exported under the short names
+-- `Decomp` and `Wiring` state their hops in: refl-checked forcing (never
+-- `from-just` — "the 8-atom wall"), the pure-assoc respelling `stepR!`
+-- (reassoc + refl, no solver leaf), and the one-leaf `solve!`.
 
-open import Categories.APROP.Hypergraph.Solver.Split gSigDec using (solveSplitR?)
-
-force! : ∀ {a} {A : Set a} (m : Maybe A) → is-just m ≡ true → A
-force! (just x) _ = x
-
-stepR! : ∀ {A B} (f g : HomTerm A B) → is-just (solveSplitR? f g) ≡ true → f ≈Term g
-stepR! f g ok = force! (solveSplitR? f g) ok
+open import Categories.APROP.Hypergraph.Solver.Split gSigDec
+  using (force!) renaming (stepSplit! to step!; stepSplitR! to stepR!;
+                           solveTerm! to solve!) public

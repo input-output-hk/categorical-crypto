@@ -30,13 +30,11 @@
 
 module Categories.GConstructionIdentityCoherence where
 
-open import Data.Bool.Base using (true)
 open import Data.Fin using (Fin)
 open import Data.Fin.Patterns
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Data.Maybe.Base using (Maybe; just; is-just)
 open import Relation.Binary.Definitions using (DecidableEquality)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality using (refl)
 open import Relation.Nullary using (yes)
 
 open import Categories.APROP using (APROPSignature; module APROP)
@@ -153,20 +151,10 @@ RSᵗ-rhs = hLᵗ
 --------------------------------------------------------------------------------
 -- Solver obligations (call-pattern rules per docs/smc-solver-performance.md)
 
-open import Categories.APROP.Hypergraph.Model.Translation (APROPSignatureDec.sig iSigDec) using (⟪_⟫)
-open import Categories.APROP.Hypergraph.Solver.Match.FindIsoTab iSigDec using (findIsoᵀ)
-open import Categories.APROP.Hypergraph.Soundness iSigDec
-  using (soundness)
-
-private
-  force! : ∀ {a} {A : Set a} (m : Maybe A) → is-just m ≡ true → A
-  force! (just x) _ = x
-
-  -- one leaf, one line, with the search's success discharged by a refl-checked
-  -- equation and never by an inferred witness (the `Decomp.step!` idiom).
-  solve! : ∀ {A B} (f g : HomTerm A B)
-         → is-just (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫) ≡ true → f ≈Term g
-  solve! f g ok = soundness {f = f} {g = g} (force! (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫) ok)
+-- One leaf, one line, with the search's success discharged by a refl-checked
+-- equation and never by an inferred witness ("the 8-atom wall").
+open import Categories.APROP.Hypergraph.Solver.Split iSigDec
+  using () renaming (solveTerm!ᵀ to solve!)
 
 C1Lᵗ : C1Lᵗ-lhs ≈Term C1Lᵗ-rhs
 C1Lᵗ = solve! C1Lᵗ-lhs C1Lᵗ-rhs refl

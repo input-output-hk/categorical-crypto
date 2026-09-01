@@ -43,9 +43,11 @@ open APROPSignatureDec sig-dec using (sig; _≟-mor_; _≟-ObjTerm_; uip-ObjTerm
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Translation sig
+open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig-dec using (findIso)
 open import Categories.APROP.Hypergraph.Solver.Match.FindIsoTab sig-dec
 open import Categories.APROP.Hypergraph.Soundness sig-dec
 
+open import Data.Bool.Base using (true)
 open import Data.Maybe.Base as Maybe
 open import Data.Nat.Base
 
@@ -269,3 +271,26 @@ solveSplitR? f g with reassocS f | reassocS g
   Maybe.map
     (λ p → ≈-Term-trans (≈-Term-sym pf) (≈-Term-trans p pg))
     (solveSplit? f' g')
+
+--------------------------------------------------------------------------------
+-- The term-level gate.  `Solver.Frontend` exports the solve theorems already
+-- pre-composed into a target category; consumers that want the equation in the
+-- FREE category take these.  Call-pattern rule (docs/smc-solver-performance.md,
+-- "the 8-atom wall"): the search's success is discharged by a refl-checked
+-- `is-just … ≡ true` equation, never by `from-just`/an inferred witness, which
+-- sends the elaborator down the slow path — `force!` is what keeps that shape.
+
+force! : ∀ {a} {A : Set a} (m : Maybe A) → is-just m ≡ true → A
+force! (just x) _ = x
+
+solveTerm! : ∀ {A B} (f g : HomTerm A B) → is-just (findIso ⟪ f ⟫ ⟪ g ⟫) ≡ true → f ≈Term g
+solveTerm! f g ok = soundness {f = f} {g = g} (force! (findIso ⟪ f ⟫ ⟪ g ⟫) ok)
+
+solveTerm!ᵀ : ∀ {A B} (f g : HomTerm A B) → is-just (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫) ≡ true → f ≈Term g
+solveTerm!ᵀ f g ok = soundness {f = f} {g = g} (force! (findIsoᵀ ⟪ f ⟫ ⟪ g ⟫) ok)
+
+stepSplit! : ∀ {A B} (f g : HomTerm A B) → is-just (solveSplit? f g) ≡ true → f ≈Term g
+stepSplit! f g ok = force! (solveSplit? f g) ok
+
+stepSplitR! : ∀ {A B} (f g : HomTerm A B) → is-just (solveSplitR? f g) ≡ true → f ≈Term g
+stepSplitR! f g ok = force! (solveSplitR? f g) ok
