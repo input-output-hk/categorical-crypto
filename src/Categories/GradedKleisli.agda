@@ -2,23 +2,21 @@
 
 module Categories.GradedKleisli where
 
-open import Level using (Level; _⊔_) renaming (suc to lsuc)
+open import Level renaming (suc to lsuc)
 
-open import Categories.Category using (Category; _[_,_]; _[_≈_])
-open import Categories.Category.EquivClosureHelper using (categoryHelperᵉ)
-open import Categories.Category.Instance.Sets using (Sets)
-open import Categories.Category.Monoidal using (MonoidalCategory)
+open import Categories.Category
+open import Categories.Category.EquivClosureHelper
+open import Categories.Category.Instance.Sets
+open import Categories.Category.Monoidal
 import Categories.Category.Monoidal.Reasoning as MonR
-open import Categories.Coherence.Monoidal using (module MorAtoms; module MorSolve)
-open import Categories.Functor using (Functor)
-open import Categories.Functor.Presheaf using (Presheaf)
-open import Categories.Monad.Graded using (GradedMonad; GradedKleisliTriple)
+open import Categories.Coherence.Monoidal.Tactic
+open import Categories.Functor
+open import Categories.Functor.Presheaf
+open import Categories.Monad.Graded
 import Categories.Morphism.Reasoning as MR
-open import Categories.Tactic.Category using (solve)
+open import Categories.Tactic.Category
 
-open import Data.Fin using (Fin; #_)
-open import Data.Product using (_×_; Σ-syntax; ∃-syntax; _,_)
-open import Data.Vec using (_∷_; [])
+open import Data.Product
 
 record UC-model {o ℓ e o′ ℓ′ e′ ℓs : Level}
               : Set (lsuc (o ⊔ ℓ ⊔ e ⊔ o′ ⊔ ℓ′ ⊔ e′ ⊔ ℓs)) where
@@ -47,16 +45,30 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
     μT : ∀ {u v X Y} (k : C [ X , T₀ v Y ]) → C [ μ u v C.∘ T₁ u k ≈ ext u k ]
     μT k = let open C in ext-T-fusion ○ ext-resp-≈ C.identityˡ
 
+    Objᴳ : Set (o ⊔ o′)
+    Objᴳ = I.Obj × C.Obj
+
+    _⇒ᴳ_ : Objᴳ → Objᴳ → Set (o ⊔ ℓ ⊔ ℓ′)
+    (i , c) ⇒ᴳ (j , d) = ∃[ k ] (C [ c , T₀ k d ]) × (I.U [ i ⊗₀ k , j ])
+
+    _≈ᴳ_ : ∀ {A B} → (A ⇒ᴳ B) → (A ⇒ᴳ B) → Set (ℓ ⊔ e ⊔ e′)
+    _≈ᴳ_ {ai , _} (i , f , α) (j , g , β) =
+      Σ[ φ ∈ I.U [ i , j ] ] C [ sub φ C.∘ f ≈ g ] × I.U [ β I.∘ (₁ (ai ⊗-) φ) ≈ α ]
+
+    idᴳ : ∀ {A} → A ⇒ᴳ A
+    idᴳ = I.unit , return , ρ⇒
+
+    _∘ᴳ_ : ∀ {A B D} → (B ⇒ᴳ D) → (A ⇒ᴳ B) → (A ⇒ᴳ D)
+    (j , g , β) ∘ᴳ (i , f , α) =
+      i ⊗₀ j , μ i j C.∘ T₁ i g C.∘ f , β I.∘ (₁ (-⊗ j) α) I.∘ α⇐
+
   GradedKleisli : Category (o ⊔ o′) (o ⊔ ℓ ⊔ ℓ′) (o ⊔ ℓ ⊔ ℓ′ ⊔ e ⊔ e′)
   GradedKleisli = categoryHelperᵉ record
-    { Obj       = I.Obj × C.Obj
-    ; _⇒_       = λ where (i , c) (j , d) → ∃[ k ] (C [ c , T₀ k d ]) × (I.U [ i ⊗₀ k , j ])
-    ; _≈_       = λ where
-      {ai , _} (i , f , α) (j , g , β) →
-        Σ[ φ ∈ I.U [ i , j ] ] C [ sub φ C.∘ f ≈ g ] × I.U [ β I.∘ (₁ (ai ⊗-) φ) ≈ α ]
-    ; id        = I.unit , return , ρ⇒
-    ; _∘_       = λ where
-      (j , g , β) (i , f , α) → i ⊗₀ j , μ i j C.∘ T₁ i g C.∘ f , β I.∘ (₁ (-⊗ j) α) I.∘ α⇐
+    { Obj       = Objᴳ
+    ; _⇒_       = _⇒ᴳ_
+    ; _≈_       = _≈ᴳ_
+    ; id        = idᴳ
+    ; _∘_       = _∘ᴳ_
     ; assoc     = λ where
       {Xi , _} {Yi , _} {Zi , _} {Wi , _} {a , f₀ , φf} {b , g₀ , φg} {c , h₀ , φh} →
           α⇐
@@ -76,32 +88,17 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
              ((μ (a ⊗₀ b) c C.∘ T₁ (a ⊗₀ b) h₀) C.∘ (μ a b C.∘ T₁ a g₀)) C.∘ f₀
                ≈⟨ solve C ⟩
              μ (a ⊗₀ b) c C.∘ T₁ (a ⊗₀ b) h₀ C.∘ μ a b C.∘ T₁ a g₀ C.∘ f₀ ∎)
-        , (let vs = Xi ∷ a ∷ b ∷ c ∷ Yi ∷ Zi ∷ Wi ∷ []
-               open MorAtoms I vs
-               open MorSolve I vs
-                    ( ((V (# 0) ⊗ᵒ V (# 1) , V (# 4)) , φf)
-                    ∷ ((V (# 4) ⊗ᵒ V (# 2) , V (# 5)) , φg)
-                    ∷ ((V (# 5) ⊗ᵒ V (# 3) , V (# 6)) , φh) ∷ [] )
-           in solveMor!
-                ((gen (# 2) S.∘ (gen (# 1) S.∘ gen (# 0) S.⊗₁ S.id S.∘ S.α⇐) S.⊗₁ S.id S.∘ S.α⇐)
-                   S.∘ S.id S.⊗₁ S.α⇐)
-                ((gen (# 2) S.∘ gen (# 1) S.⊗₁ S.id S.∘ S.α⇐) S.∘ gen (# 0) S.⊗₁ S.id S.∘ S.α⇐))
+        , solve-mor I
     ; identityˡ = λ where
       {ai , _} {B , _} {i , _ , α} →
           ρ⇒
         , (let open C in assoc²εβ ○ elimˡ μ-identityʳ)
-        , (let vs = ai ∷ i ∷ B ∷ []
-               open MorAtoms I vs
-               open MorSolve I vs (((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , α) ∷ [])
-           in solveMor! (gen (# 0) S.∘ S.id S.⊗₁ S.ρ⇒) (S.ρ⇒ S.∘ gen (# 0) S.⊗₁ S.id S.∘ S.α⇐))
+        , solve-mor I
     ; identityʳ = λ where
       {ai , _} {B , _} {i , _ , α} →
           λ⇒
         , (let open C in (refl⟩∘⟨ refl⟩∘⟨ ⟺ return-commute) ○ assoc²εβ ○ elimˡ μ-identityˡ)
-        , (let vs = ai ∷ i ∷ B ∷ []
-               open MorAtoms I vs
-               open MorSolve I vs (((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , α) ∷ [])
-           in solveMor! (gen (# 0) S.∘ S.id S.⊗₁ S.λ⇒) (gen (# 0) S.∘ S.ρ⇒ S.⊗₁ S.id S.∘ S.α⇐))
+        , solve-mor I
     ; ∘-resp-≈ = λ where
       {Ai , _} {Bi , _} {Ci , _}
         {fk , ff , fα} {hk , hf , hα} {gk , gf , gα} {ik , if′ , iα}
@@ -115,19 +112,9 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
              ext ik hf C.∘ if′                               ≈⟨ ⟺ (pullˡ (μT hf)) ⟩
              μ ik hk C.∘ T₁ ik hf C.∘ if′ ∎)
         , (let open Category.HomReasoning (I.U)
-               vs = Ai ∷ Bi ∷ Ci ∷ fk ∷ gk ∷ hk ∷ ik ∷ []
-               open MorAtoms I vs
-               open MorSolve I vs
-                    ( ((V (# 1) ⊗ᵒ V (# 5) , V (# 2)) , hα)
-                    ∷ ((V (# 0) ⊗ᵒ V (# 6) , V (# 1)) , iα)
-                    ∷ ((V (# 3)             , V (# 5)) , φ)
-                    ∷ ((V (# 4)             , V (# 6)) , ψ) ∷ [] )
            in begin
              (hα I.∘ (iα ⊗₁ I.id) I.∘ α⇐) I.∘ (I.id ⊗₁ (ψ ⊗₁ φ))
-               ≈⟨ solveMor! ((gen (# 0) S.∘ (gen (# 1) S.⊗₁ S.id) S.∘ S.α⇐)
-                               S.∘ S.id S.⊗₁ (gen (# 3) S.⊗₁ gen (# 2)))
-                            ((gen (# 0) S.∘ S.id S.⊗₁ gen (# 2))
-                               S.∘ (gen (# 1) S.∘ S.id S.⊗₁ gen (# 3)) S.⊗₁ S.id S.∘ S.α⇐) ⟩
+               ≈⟨ solve-mor I ⟩
              (hα I.∘ I.id ⊗₁ φ) I.∘ (iα I.∘ I.id ⊗₁ ψ) ⊗₁ I.id I.∘ α⇐
                ≈⟨ ifh ⟩∘⟨ (igi ⟩⊗⟨refl ⟩∘⟨refl) ⟩
              fα I.∘ (gα ⊗₁ I.id) I.∘ α⇐ ∎)
