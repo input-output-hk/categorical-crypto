@@ -266,17 +266,6 @@ module _ (G K : Hypergraph FlatGen) where
 
     open StackLift (hTensor G K) G (_↑ˡ K.nE) out hit miss fold public
 
-  -- Iterate the G-side lifting over a list of G-edges.
-  process-edges-↑ˡ-on-mixed
-    : ∀ (es : List (Fin G.nE))
-        (xs-G : List (Fin G.nV))
-        (ys : List (Fin K.nV))
-    → process-edges (hTensor G K)
-                    (map (_↑ˡ K.nE) es)
-                    (map (_↑ˡ K.nV) xs-G ++ map (G.nV ↑ʳ_) ys)
-      ≡ map (_↑ˡ K.nV) (process-edges G es xs-G) ++ map (G.nV ↑ʳ_) ys
-  process-edges-↑ˡ-on-mixed es xs-G ys = GSide.process-edges-lift ys es xs-G
-
   --------------------------------------------------------------------
   -- K-side per-edge lifting on a permutation-equivalent input: K-edges'
   -- eouts get prepended, breaking the `(map injL ?) ++ (map injR ?)`
@@ -339,17 +328,6 @@ module _ (G K : Hypergraph FlatGen) where
     open PermLift (hTensor G K) K (G.nE ↑ʳ_) (G.nV ↑ʳ_) out
            hT-impl.ein-c-inj₂-red hT-impl.eout-c-inj₂-red front fold miss public
 
-  -- Iterate the K-side lifting over a list of K-edges.
-  process-edges-↑ʳ-on-perm
-    : ∀ (es : List (Fin K.nE))
-        (s : List (Fin (G.nV + K.nV)))
-        (xs : List (Fin G.nV)) (ys : List (Fin K.nV))
-    → s Perm.↭ map (_↑ˡ K.nV) xs ++ map (G.nV ↑ʳ_) ys
-    → process-edges (hTensor G K) (map (G.nE ↑ʳ_) es) s
-        Perm.↭ map (_↑ˡ K.nV) xs
-                 ++ map (G.nV ↑ʳ_) (process-edges K es ys)
-  process-edges-↑ʳ-on-perm es s xs ys = KSide.process-edges-lift xs es s ys
-
 --------------------------------------------------------------------------------
 -- `hSwap A B`: nE = 0, dom = L ++ R, cod = R ++ L.  `process-all-edges`
 -- returns `dom` (by `refl`); the boundary permutation `dom ↭ cod` is
@@ -389,8 +367,8 @@ decode-attempt-hGen {A} {B} g = perm
 
 --------------------------------------------------------------------------------
 -- `decode-attempt-hTensor`: combines the per-edge / process-edges
--- liftings.  Run the G-edges block (`process-edges-↑ˡ-on-mixed`) then the
--- K-edges block (`process-edges-↑ʳ-on-perm`), then combine the two side
+-- liftings.  Run the G-edges block (`GSide.process-edges-lift`) then the
+-- K-edges block (`KSide.process-edges-lift`), then combine the two side
 -- permutations with `PermProp.++⁺`/`map⁺` in the local `perm-final` chain.
 
 decode-attempt-hTensor
@@ -417,12 +395,12 @@ decode-attempt-hTensor G K perm-G perm-K =
                       (Hypergraph.dom (hTensor G K))
 
     after-G-≡ : after-G-stack ≡ map (_↑ˡ K.nV) s_G_final ++ map (G.nV ↑ʳ_) K.dom
-    after-G-≡ = process-edges-↑ˡ-on-mixed G K (range G.nE) G.dom K.dom
+    after-G-≡ = GSide.process-edges-lift G K K.dom (range G.nE) G.dom
 
     K-lift : process-edges (hTensor G K) (map (G.nE ↑ʳ_) (range K.nE)) after-G-stack
                Perm.↭ map (_↑ˡ K.nV) s_G_final ++ map (G.nV ↑ʳ_) s_K_final
-    K-lift = process-edges-↑ʳ-on-perm G K (range K.nE) after-G-stack
-              s_G_final K.dom (Perm.↭-reflexive after-G-≡)
+    K-lift = KSide.process-edges-lift G K s_G_final (range K.nE) after-G-stack
+              K.dom (Perm.↭-reflexive after-G-≡)
 
     -- `proc ≡ process-edges (K-block) after-G-stack` via `range-++` +
     -- `process-edges-++`.
