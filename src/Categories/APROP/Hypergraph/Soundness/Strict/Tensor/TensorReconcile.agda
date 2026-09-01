@@ -91,8 +91,6 @@ module Reconcile {A B C D : ObjTerm}
     module RF = Run ⟪ fg ⟫
     module Hf = Hypergraph ⟪ fg ⟫
 
-    rigidˢ = RF.rigidˢ
-
   -- THE `braidˢ` RESIDUAL, named: the C-run inner term post-sorted by
   -- `cand` is the clean tensor at the boundary objects.  At
   -- `cand := finalPermˢ fg` this signature IS the ⊗-shape conjugated by
@@ -115,7 +113,7 @@ module Reconcile {A B C D : ObjTerm}
   final-resortˢ
     : (cand : RF.s-finˢ ↭ Hf.cod)
     → RF.permuteˢ (finalPermˢ fg) ≈ˢ RF.permuteˢ cand
-  final-resortˢ cand = rigidˢ (⟪⟫-cod-Unique fg) (finalPermˢ fg) cand
+  final-resortˢ cand = RF.rigidˢ (⟪⟫-cod-Unique fg) (finalPermˢ fg) cand
 
   ----------------------------------------------------------------------
   -- ## The REDUCTION: ⊗-shape ⇐ K-block braid.

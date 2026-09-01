@@ -71,8 +71,6 @@ module Gen {A B : ObjTerm} (g : mor A B) where
             ; castᵛ-≈̂; cast-flipᵛ; cast-respᵛ; cast-fuseᵛ; ∘-castᵛ; ⊗-unitʳᵛ
             ; subst-codᵛ )
 
-    rigidˢ = RF.rigidˢ
-
     -- the single edge.
     e₀ : Fin Hf.nE
     e₀ = Data.Fin.zero
@@ -111,7 +109,7 @@ module Gen {A B : ObjTerm} (g : mor A B) where
       : ∀ {xs ys : List (Fin Hf.nV)} → Unique ys
       → (p : xs Perm.↭ ys) (e : xs ≡ ys)
       → permuteᵛ p ≈ᵛ castᵛ refl e (idᵛ {xs})
-    rigid-reflexiveᵛ u p refl = rigidˢ u p Perm.refl
+    rigid-reflexiveᵛ u p refl = RF.rigidˢ u p Perm.refl
 
   --------------------------------------------------------------------------
   -- Step A: `proj₂ runˢ ≈ᵛ castᵛ refl (sym s≡) layer`.

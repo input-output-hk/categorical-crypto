@@ -59,8 +59,6 @@ module Sigma (A B : ObjTerm) where
       using (idᵛ; _∘ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; permuteᵛ-subst-dom
             ; ∘-castᵛ; subst-codᵛ; σᵛ-≈̂)
 
-    rigidˢ = RF.rigidˢ
-
     nE≡0 : Hf.nE ≡ 0
     nE≡0 = refl
 
@@ -88,7 +86,7 @@ module Sigma (A B : ObjTerm) where
     -- non-strict proof invokes K-faithfulness).
     perm≈ : RF.permuteˢ (finalPermˢ f)
             ≈ˢ RF.permuteˢ (subst (Perm._↭ Hf.cod) (sym s≡) bsw)
-    perm≈ = rigidˢ (⟪⟫-cod-Unique f) (finalPermˢ f)
+    perm≈ = RF.rigidˢ (⟪⟫-cod-Unique f) (finalPermˢ f)
               (subst (Perm._↭ Hf.cod) (sym s≡) bsw)
 
   -- the block-swap identity at the hSwap blocks (the residual `bswap-σ`),
