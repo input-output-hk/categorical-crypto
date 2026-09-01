@@ -144,12 +144,6 @@ module _ (H : Hypergraph FlatGen) where
       ρf : pe-stackˢ qs B Perm.↭ pe-stackˢ qs A
       ρf = proj₁ equivar
 
-      eqv
-        : pe-termˢ qs B
-          ≈ˢ permuteˢ (Perm.↭-sym ρf)
-                ∘ˢ ( pe-termˢ qs A ∘ˢ permuteˢ (Perm.↭-sym r₀) )
-      eqv = proj₂ equivar
-
       ----------------------------------------------------------------
       -- Prefix-split of the two runs, by DEFINITIONAL unfolding of
       -- `process-edgesˢ` on the concrete 2-edge prefix.  Both runs share
@@ -169,7 +163,7 @@ module _ (H : Hypergraph FlatGen) where
       run-eq =
         ≈-trans split₂
           (≈-trans
-            (∘-resp eqv run-eq₀)
+            (∘-resp (proj₂ equivar) run-eq₀)
             (≈-trans
               -- reassociate into `… ∘ˢ (… ∘ˢ ((p⁻¹ ∘ˢ p) ∘ˢ …))`; both
               -- endpoints are pinned by the neighbouring steps.
