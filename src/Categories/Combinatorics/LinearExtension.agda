@@ -210,8 +210,8 @@ connectivity {L = []} R-irrefl perm _ noM =
   -- A permutation of [] is []; so M = [] and L = M reflexively.
   subst ([] ↝*_) (sym (↭-empty-inv (↭-sym perm))) ε
 connectivity {L = x ∷ L′} {M = M} R-irrefl perm noL noM =
-  -- (1) locate x in M, (2) bubble it to the front, (3) recurse on tails.
-  bubbled-then-tail
+  -- (1) locate x in M, (2) recurse on the tails, (3) undo the bubbling.
+  ↝*-trans (↝*-cons x tails) (↝*-sym M↝*xM′)
   where
   i : x ∈ M
   i = ∈-resp-↭ perm (here refl)
@@ -231,12 +231,10 @@ connectivity {L = x ∷ L′} {M = M} R-irrefl perm noL noM =
   M↝*xM′ : M ↝* (x ∷ M′)
   M↝*xM′ = bubble M i noM x-min
 
-  -- M ↭ x ∷ M′, hence x ∷ L′ ↭ x ∷ M′, hence L′ ↭ M′ by cancellation.
-  M↭xM′ : M ↭ (x ∷ M′)
-  M↭xM′ = remove-↭ M i
-
+  -- `remove-↭` gives M ↭ x ∷ M′, hence x ∷ L′ ↭ x ∷ M′, hence L′ ↭ M′ by
+  -- cancellation.
   L′↭M′ : L′ ↭ M′
-  L′↭M′ = drop-∷ (↭-trans perm M↭xM′)
+  L′↭M′ = drop-∷ (↭-trans perm (remove-↭ M i))
 
   noM′ : NoInv M′
   noM′ = NoInv-─ M i noM
@@ -247,7 +245,3 @@ connectivity {L = x ∷ L′} {M = M} R-irrefl perm noL noM =
   -- IH on the structural subterm `L′` (the tail of `x ∷ L′`).
   tails : L′ ↝* M′
   tails = connectivity R-irrefl L′↭M′ noL′ noM′
-
-  -- x ∷ L′ ↝* x ∷ M′, then ←↝* M  (reverse of bubbling).
-  bubbled-then-tail : (x ∷ L′) ↝* M
-  bubbled-then-tail = ↝*-trans (↝*-cons x tails) (↝*-sym M↝*xM′)
