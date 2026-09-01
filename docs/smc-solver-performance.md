@@ -49,7 +49,8 @@ equal `id` but grow the term):
 The striking datum: a **single** associator pair at 3 wires costs 541 ms — **10×** the bare
 3-wire identity (51 ms). Each `α` drags in the heavy per-constructor `bridge`-α decode machinery
 (`Soundness/Bridge/BridgeCoherence`, a pentagon + well-founded recursion); each `σ`
-pulls in the even-heavier σ-block-hexagon family (`Sub/SigmaBlockHexagon`, …).
+pulls in the even-heavier σ-block family (`Strict/Decode/DecodeSigma`,
+`Strict/Perm/Braid`, …).
 
 ## Root cause
 
