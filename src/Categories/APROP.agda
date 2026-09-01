@@ -15,7 +15,7 @@ module Categories.APROP where
 
 open import Categories.FreeMonoidal public
 
--- Propositional equality for the whole APROP tree: 47 of the 53 modules that
+-- Propositional equality for the whole APROP tree: 47 of the 51 modules that
 -- blanket-open this one imported it themselves.  The hidden names are the four
 -- the island prelude hides (`[_]` clashes with `Data.List`'s) plus `J`, which
 -- `Strict/Embed` defines as a lemma of its own — a name this re-export would
@@ -23,7 +23,7 @@ open import Categories.FreeMonoidal public
 open import Relation.Binary.PropositionalEquality public
   hiding (preorder; isPreorder; setoid; [_]; J)
 
--- `Data.List` for the whole tree: 46 of the 52 blanket-openers imported it
+-- `Data.List` for the whole tree: 46 of the 51 blanket-openers imported it
 -- themselves, 44 of them with a `using` list.  Only two names are hidden, and
 -- in both cases because a scope module wants a DIFFERENT module's function of
 -- that name: `splitAt` is `Data.Fin`'s in `Model/FromAPROP`, and `zipWith` is
@@ -41,7 +41,7 @@ open import Data.List public
 open import Data.Product public
   hiding (assocʳ; assocˡ; map; map₁; map₂; map₂′; swap; _<*>_; zip; zipWith)
 
--- `Perm` as a re-exported module ALIAS: 36 of the 52 modules that blanket-open
+-- `Perm` as a re-exported module ALIAS: 36 of the 51 modules that blanket-open
 -- this one spell exactly
 -- `import Data.List.Relation.Binary.Permutation.Propositional as Perm`.
 -- An alias adds no unqualified name, so unlike the re-export above it cannot
