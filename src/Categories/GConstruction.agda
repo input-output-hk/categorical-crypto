@@ -158,7 +158,7 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
             ≈⟨ trace-∘ˡ ⟩
           C.trace (C.σ⇒ C.⊗₁ C.id C.∘ (C.α⇐ C.∘ C.id C.⊗₁ f' C.∘ C.α⇒) C.∘ C.σ⇒ C.⊗₁ C.id)
             -- coherence: the transported free-level solver result
-            ≈⟨ trace-resp-≈ coherence ⟩
+            ≈⟨ trace-resp-≈ (GCohId.Transport.WithGen.RS Cˢ A' B' X X Y f') ⟩
           C.trace (β C.∘ f' C.⊗₁ C.id C.∘ β)
           ∎
           where -- introduce σ⇒ ∘ σ⇒ ≈ id on the left, then braiding naturality
@@ -166,8 +166,6 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
                   C.σ⇒ {Y} {B'} C.∘ C.id C.⊗₁ C.trace f' C.∘ C.σ⇒
                 braiding-swap = C.introˡ C.commutative
                               ○ C.pullʳ (C.braiding.⇒.commute _)
-
-                coherence = GCohId.Transport.WithGen.RS Cˢ A' B' X X Y f'
 
         -- Associativity
         assoc' : ∀ {A B D E : C.Obj × C.Obj}
