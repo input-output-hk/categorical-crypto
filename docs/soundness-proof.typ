@@ -26,8 +26,9 @@
   equal in the free category. The proof sequentialises a string diagram into a term via a
   *decoder*, and quotients by the order in which independent generator-boxes are processed.
   Its one mathematical kernel is symmetric-monoidal coherence on the permutation fragment
-  (Kelly 1964); the bijection-level (`FinBij`) coherence underneath it is treated elsewhere and
-  out of scope here.]
+  (Kelly 1964); the bijection-level (`FinBij`) coherence underneath it is out of scope for this
+  report, though it too is discharged — axiom-free — in the same development
+  (`Categories/PermuteCoherence/*`).]
 ])
 
 #block(inset: (x: 1.2em), stroke: (left: 2pt + luma(60%)), [
@@ -35,9 +36,10 @@
   but the Agda development has since been *strictified*: the decoder and every shape lemma
   now live in a presented strict SMC (`Categories.FreeStrictSMC`), and the Mac-Lane
   re-bracketing $bold(M)$ is paid *once*, at the boundary functor `Soundness/Strict/Embed.agda`,
-  instead of per positional case. Consequently the claim below that $bold(M)$ is "by far the
-  largest part of the formalization" describes the *former* non-strict architecture and is no
+  instead of per positional case. The report's original claim that $bold(M)$ is "by far the
+  largest part of the formalization" described the *former* non-strict architecture and is no
   longer true of `src/`: the large modules today are the K-block / interchange combinatorics.
+  The per-step ingredient attributions below have been brought into line with the live tree.
   Module names in this report have been repointed to their live homes; the deleted non-strict
   modules (`Sub/DecodeTensorShape`, the `Sub/BlockNF*` family, `DecodeComposeShape`,
   `DecodeAgenSigmaShape`, `SigmaBlockCommRaw`, `BlockNFBraid`) do not exist in the tree.]
@@ -87,8 +89,10 @@ The translation $⟪f⟫$ of a term $f : A -> B$ is a finite labelled hypergraph
 
 The translated hypergraph is *monogamous and acyclic*: each wire is produced once and
 consumed once (the `Linear` invariant), and the producer/consumer relation among edges is a
-strict partial order. These properties hold for every $⟪f⟫$ and are what make the decoder
-below total.
+strict partial order. Both hold for every $⟪f⟫$ and are what make the decoder below total, but
+they are *independent*: monogamy does not by itself give irreflexivity (see the remark after
+Lemma C), and each is established by its own induction over the term (`Linearity.Linear`;
+`Discharge/FinOrderNoInv`'s `dep-irrefl-⟪⟫` and `fin-order-NoInv-⟪⟫`).
 
 == The decoder
 
@@ -109,7 +113,9 @@ $ <layer>
 where $pi_e$ is the permutation bringing $"ein" e$ to the front of the current stack (updating
 it to $"eout" e space "++" space "rest"$), and $pi_("cod")$ matches the final stack to $"cod"$.
 *Every $"permute"(dot.c)$ and every coercion is built solely from $sigma, alpha, lambda, rho,
-"id"$ — no generator occurs in them.* Thus $"decode" H$ is a *canonical sequentialisation* of
+"id"$ — no generator occurs in them.* (In the strictified development the coercions are instead
+UIP casts — see the front-matter note; what matters here, that no generator occurs in them, is
+unchanged.) Thus $"decode" H$ is a *canonical sequentialisation* of
 $H$: a composite of one box-layer per edge, framed by pure wiring.
 
 == Isomorphisms
@@ -209,13 +215,19 @@ $"map" phi$-related. #h(1fr) $square.stroked$]
   transport that aligns the two runs' types along Lemma 0a and $"vlab"_H = "vlab"_J compose phi$ —
   $ T space ("term" J space ("map" psi space "es") space ("map" phi space s))
       quad approx quad "term" H space "es" space s, $
-  but *not* on the nose. Per layer @layer the reconciliation has irreducible content:
-  - the wire-permute factor $"permute"(pi_e)$ — $"extract-prefix"$ returns a $↭$-derivation
-    realising the correct wire-bijection but not the syntactic $phi$-image of the H-side's, so
-    the two $"permute"$ terms agree only by *$bold(K)$* (at the $"map" "vlab"$ level, repeated
-    atom labels block a propositional equality);
+  but *not* on the nose. Per layer @layer the reconciliation has two factors, *neither of them
+  deep*:
+  - the wire-permute factor $"permute"(pi_e)$ — $"extract-prefix"$ hands back the J-side
+    $↭$-derivation as literally the $"map"^+ phi$-image of the H-side's, so the two
+    $"permute"$ terms agree by plain *functoriality*, with no $bold(K)$
+    (`Strict/Decode/DecodeCompose`'s `perm-emb`, `Strict/Perm/PermRelabel`'s `pvv-≈̂`);
   - the box factor $(#raw("Agen") g_e times.o "id")$ framed by the $"unflatten-++-≅"$
-    coercions — by *$bold(M)$* (Mac-Lane / monoidal coherence).
+    coercions — a *cast collapse* (`box-emb` + `Strict/Core`'s `gen-cast`), not $bold(M)$.
+
+  #v(0.3em)
+  $bold(K)$ enters Lemma 0 exactly *once*, and not per layer: at the *final* permute, where the
+  two derivations really are unrelated and rigidity is the content
+  (`Strict/Iso/IsoTransport`'s `permute-relabel-freeˢ`).
 ]
 
 #text(9.5pt)[*Proof of 0b.* By the free-category extension of §4 it suffices to compare a
@@ -224,27 +236,32 @@ stacks $"map" phi$-related. By Lemma 0a the two runs take the *same* fire/skip b
 both layers are $"id"$. *Fire:* write the layer @layer as
 $("coerce") compose (#raw("Agen") g times.o "id") compose ("coerce") compose "permute"(pi)$ and
 compare the two factors.
-- *Box — by $bold(M)$.* The generator is preserved, $g_(psi e) = g_e$, and the framing
-  $"unflatten-++-≅"$ coercions relate the *equal* label-lists
+- *Box — by cast collapse.* The generator is preserved, $g_(psi e) = g_e$, and the framing
+  coercions relate the *equal* label-lists
   $"map" "vlab"_J ("ein"_J (psi e)) = "map" "vlab"_H ("ein"_H e)$ — from
-  $"vlab"_J compose phi = "vlab"_H$, and likewise $"eout"$ and $"rest"$ — so the two framed
-  boxes agree up to those coherence isos.
-- *Permute — by $bold(K)$.* The two search-permutations $pi^H : s_H ↭ "ein"_H e "++" "rest"_H$ and
+  $"vlab"_J compose phi = "vlab"_H$, and likewise $"eout"$ and $"rest"$. So the two framed
+  boxes are the *same* box read at propositionally equal types, and the transport between them
+  collapses by uniqueness of identity proofs; no coherence isomorphism is chased.
+- *Permute — by functoriality.* The two search-permutations
+  $pi^H : s_H ↭ "ein"_H e "++" "rest"_H$ and
   $pi^J : "map" phi space s_H ↭ "map" phi ("ein"_H e) "++" "rest"_J$ realise the *same*
   wire-bijection: by Lemma 0a the search makes the same positional choices on $phi$-related
-  stacks, so $"rest"_J = "map" phi space "rest"_H$ and $pi^J$ is the $phi$-image of $pi^H$ at
-  the position level. Hence their *evaluated* bijections coincide ($phi$-equivariance of
-  $"eval"$, using $"vlab"_J compose phi = "vlab"_H$), and the two $"permute"$ terms agree by
-  @K. Note we route through $"eval"$, not a syntactic identity of the derivations: $bold(K)$
-  consumes only the evaluated bijection, which is what sidesteps the $≡$/$approx$ gap.
+  stacks, so $"rest"_J = "map" phi space "rest"_H$. In fact more is true, and this is what the
+  development uses: $"extract-prefix"$ *pins* $pi^J$ to be the syntactic $"map"^+ phi$-image of
+  $pi^H$, and $"permute"$ of a $"map"^+ phi$-image is the same wiring term up to the
+  relabelling of its atoms. The two therefore agree by a structural induction on the
+  derivation — no appeal to @K, and no route through $"eval"$.
 Composing the two ($compose$-resp-$approx$) gives the layer agreement; the induction lifts it to
 all of $"decode"$. #h(1fr) $square.stroked$]
 
 The two lemmas are the *same naturality square* for $"process-edges"$ under $Phi$ — once on
 $"stack"$ (holds propositionally, 0a) and once on $"term"$ (holds up to $approx$, 0b). So $phi$
-is *genuinely used*, not vacuously discarded: it is free at the stack level, but the term-level
-square (0b) invokes $bold(K)$ — which is exactly what makes the use of the isomorphism *sound*.
-Lemma 0b bottoms out in the same $bold(K) + bold(M)$ kernel as parts (I) and (II).
+is *genuinely used*, not vacuously discarded: it is free at the stack level, and at the term
+level it is paid for by the relabelling functoriality above plus the one $bold(K)$ step at the
+final permute — which is what makes the use of the isomorphism *sound*. The relabelling engine
+carrying 0b (`TermEmbedˢ`) is a *single* engine, reused below at $phi = "injL"/"injR"$ for the
+$times.o$-shape and at $phi = "injL"/"remapP"$ for the $compose$-shape; the three-separate-steps
+presentation of this report hides that economy.
 
 #block(inset: (left: 1em), above: 0.6em, below: 0.6em)[
   #text(9.5pt)[*Remark (the relabelling does not collapse $sigma$ and $"id"$).* For
@@ -279,8 +296,10 @@ decodings we must know the order-difference lives over *one* poset; this is brid
 following.
 
 #block(stroke: 0.5pt + luma(60%), inset: 10pt, radius: 3pt)[
-  *Lemma A (an isomorphism is a dependency-order isomorphism).* #h(0.3em)
-  $e prec_H e' <=> psi space e prec_J psi space e'$.
+  *Lemma A (an isomorphism preserves the dependency order).* #h(0.3em)
+  $e prec_H e' => psi space e prec_J psi space e'$.
+  #h(0.3em) #text(9.5pt)[(The converse is this same statement applied to $Phi^(-1)$; the
+  development proves and uses only the forward direction, `EdgeDependency.≺⇒ψ≺`.)]
 
   #v(0.3em)
   #text(9.5pt)[*Proof.* From $"eout"_J (psi space e) = "map" phi ("eout"_H space e)$ and
@@ -288,8 +307,8 @@ following.
   $ ("wires of " "eout"_J (psi space e)) inter ("wires of " "ein"_J (psi space e'))
     = phi("eout"_H space e) inter phi("ein"_H space e')
     = phi(("eout"_H space e) inter ("ein"_H space e')), $
-  the last step by injectivity of $phi$. As $phi$ is a bijection, the right side is nonempty
-  iff $("eout"_H space e) inter ("ein"_H space e')$ is. $square.stroked$]
+  the last step by injectivity of $phi$. A shared wire on the left therefore gives one on the
+  right. $square.stroked$]
 ]
 
 Pulling $J$'s processing order back through $psi$ to an order $tau$ on $H$'s edges, Lemma A
@@ -298,19 +317,34 @@ $prec_J$. That the natural orders *are* such linear extensions is *topological v
 
 #block(stroke: 0.5pt + luma(60%), inset: 10pt, radius: 3pt)[
   *Lemma C (topological validity).* #h(0.3em) The natural edge order of $⟪f⟫$ is a linear
-  extension of $prec_(⟪f⟫)$, and processing edges in that order fires every edge
-  successfully — the latter implies (is strictly stronger than) the former, since a linear
-  extension leaves an edge whose inputs are never produced unfired.
-  (This is *not* automatic for an arbitrary hypergraph, whose $prec$ may have
-  cycles; it holds because $⟪f⟫$ comes from a term.)
+  extension of $prec_(⟪f⟫)$. (This is *not* automatic for an arbitrary hypergraph, whose $prec$
+  may have cycles; it holds because $⟪f⟫$ comes from a term.)
+
+  #v(0.3em)
+  #text(9.5pt)[The strictly stronger statement — that processing in that order *fires every
+  edge* — is also true of $⟪f⟫$, but it is neither formalized nor needed: the development runs
+  on *skip-blind* validity ("the run's final stack is $↭ "cod"$", `IsoInvarianceWiring.Valid`)
+  together with `NoInv` and `Linear`, and never on a firing witness.]
 ]
 
 Two supporting facts complete the bridge, both incidence-only rather than coherence content:
-*monogamy* (each wire produced once, consumed once — the `Linear` invariant), which makes
-$prec$ a strict order and the notion of *independent* (incomparable) edges meaningful; and the
-fact that topological validity *transports across the isomorphism* (firing depends only on
-incidence, which $phi$/$psi$ preserve — the same propositional, coherence-free flavour as
-Lemma 0a).
+*monogamy* (each wire produced once, consumed once — the `Linear` invariant), which makes the
+notion of *independent* (incomparable) edges meaningful; and the fact that topological validity
+*transports across the isomorphism* (firing depends only on incidence, which $phi$/$psi$
+preserve — the same propositional, coherence-free flavour as Lemma 0a).
+
+#block(inset: (left: 1em), above: 0.5em)[
+  #text(9.5pt)[*Remark (monogamy does not make $prec$ strict).* It is tempting to read
+  irreflexivity off the `Linear` invariant, and that is *false*: the one-vertex, one-edge
+  hypergraph with $"ein" = "eout" = [v_0]$ and $"dom" = "cod" = []$ is monogamous — $v_0$ is
+  produced once and consumed once — and passes the skip-blind validity test (the edge simply
+  never fires), yet $e prec e$. The same shape at two edges gives a monogamous, valid 2-cycle,
+  so acyclicity is not implied either. Both facts are therefore *specific to the translation*
+  and are proved by induction over the term, not over the hypergraph
+  (`Discharge/FinOrderNoInv`'s `dep-irrefl-⟪⟫` and `fin-order-NoInv-⟪⟫`, which record these
+  two counterexamples). The case analysis this forces on the formal side is not a detour; the
+  invariant it replaces is the thing that was wrong.]
+]
 
 == The combinatorial core
 
@@ -404,23 +438,29 @@ decomposes into exactly one piece per ledger class:
   commute"; for disjoint *aligned* blocks plain bifunctoriality suffices, so there is *no braiding
   on the boxes themselves* (the braiding lives entirely in the reshuffle, item 4).
 
-+ *Re-bracketing ($bold(M)$).* The two orders thread the stack through *different* intermediate
-  shapes (after $e$ fires, $e'$ sees residual $"eout" e ++ dots.c$; after $e'$ fires, $e$ sees
-  $"eout" e' ++ dots.c$). To bring both boxes to the common disjoint-aligned form that
-  `⊗-∘-dist` needs, the `unflatten-++-≅` coercions must be re-associated — pure Mac-Lane
-  coherence ($alpha, lambda, rho$ + coercion naturality). This is the bulk of the work: it has
-  no canonical-form solver in the symmetric fragment, so it is chased per positional case.
++ *Re-bracketing ($bold(S)$ + $bold(K)$).* The two orders thread the stack through *different*
+  intermediate shapes (after $e$ fires, $e'$ sees residual $"eout" e ++ dots.c$; after $e'$
+  fires, $e$ sees $"eout" e' ++ dots.c$), and both boxes must be brought to the common
+  disjoint-aligned form that `⊗-∘-dist` needs. In the *strict* setting this re-association is
+  not $bold(M)$ at all — it is one `⊗-assocˢ` / interchange step
+  (`FireMid`'s `box-resid3ᵛ`, marked K-free in the source). What is actually large in
+  `Strict/Interchange/*` is something else: *locating* the two blocks in the surrounding stack
+  (`FireMid`'s `vin-cohᵛ`/`vout-cohᵛ`, which are $bold(K)$-rigidity faces) and the stack
+  combinatorics of firing-stability (`Discharge/FireMidInterchangeComb`, item 1's real content).
 
 + *Reshuffle ($bold(K)$).* The two orders bring the input wires forward in different orders and
   leave the output blocks in swapped positions; the net difference is a pure wire-permutation,
   realised by $"permute"(r)$. Matching it is @K. Plus a tail recursion: the suffix runs on the
-  reshuffled stack and commutes with $r$ by naturality.
+  reshuffled stack and commutes with $r$ — a half-sentence here, but a named keystone in the
+  development, `Strict/Interchange/StackEquiv`'s `process-edges-equivariantˢ` (stack
+  *equivariance*, threaded through a freshness invariant). It is reused in three places: this
+  tail, the $times.o$-shape's K-block, and the $compose$-shape's gluing frontier.
 
-So @runeq is *$bold(S)$ (disjointness) $+$ plain bifunctoriality (the boxes commute) $+ bold(M)$
-(the re-association bulk) $+ bold(K)$ (the reshuffle)*. The braiding lives entirely in the
-reshuffle, absorbed by $bold(K)$; and the genuine bulk is the $bold(M)$ re-bracketing — the
-solver-unfriendly heart of braided-monoidal coherence, and by far the largest part of the
-formalization (`Strict/Interchange/*` here, `Strict/Tensor/*` in part (I); see the note in the front matter).
+So @runeq is *$bold(S)$ (disjointness) $+$ plain bifunctoriality (the boxes commute) $+ bold(K)$
+(block location and the reshuffle)*. The braiding lives entirely in the reshuffle, absorbed by
+$bold(K)$. The genuine bulk is *not* $bold(M)$: `Strict/Interchange/*` contains almost none, and
+its mass is the $bold(S)$ firing combinatorics plus the $bold(K)$ rigidity faces named in items
+1, 3 and 4 (see the note in the front matter).
 
 = The normal-form theorem, part (I)
 
@@ -446,22 +486,33 @@ By induction on $f$, using the action of $⟪dot.c⟫$ on each constructor:
    (`Strict/Decode/DecodeSigma`, `Strict/Interchange/BlockSwapComm`).],
   [*$"Agen" u$*],
   [one edge; $"decode" ⟪"Agen" u⟫ = ("coerce") compose ("Agen" u times.o "id") compose ("coerce") compose "permute"("id")$,
-   equal to $"Agen" u$ by $bold(M)$ (unitor/associator isos around the single box).],
+   equal to $"Agen" u$ — strictly, by $bold(K)$ and casts rather than $bold(M)$: the permute
+   collapses by rigidity at the `Unique` codomain (`perm-rigidˢ`), the empty frame by the
+   $times.o$-unit law, and the box by the `gen-cast` UIP step
+   (`Strict/Decode/DecodeGen`).],
   [*$g compose h$*],
   [$⟪g compose h⟫$ glues $"cod" ⟪h⟫$ to $"dom" ⟪g⟫$ and unions edges; $"decode"$ factors as
    $"decode" ⟪g⟫ compose "decode" ⟪h⟫$ (the stack at the gluing frontier *is*
    $"decode" ⟪h⟫$'s output) — the $compose$-shape lemma — then the IH. The shape lemma itself is
-   $bold(M)$ (frame re-bracketing) $+ bold(K)$ (final-permute collapse), *not* mere combinatorics
+   *not* mere combinatorics, but strictly it carries no $bold(M)$: it is the run-split
+   ($bold(S)$), the shared relabelling engine `TermEmbedˢ` at
+   $phi = "injL"/"remapP"$ (functoriality, as in Lemma 0b), stack equivariance at the frontier
+   (`StackEquiv`), and $bold(K)$ for the final-permute collapse (`perm-rigidˢ`)
    (`Strict/Decode/DecodeCompose`, `Strict/Decode/DecodeComposeAssembly`).],
   [*$g times.o h$*],
   [$⟪g times.o h⟫$ is the disjoint juxtaposition; $"decode"$ factors as
    $("coerce") compose ("decode" ⟪g⟫ times.o "decode" ⟪h⟫) compose ("coerce")$ after
    interleaving the two edge-streams — the $times.o$-shape lemma — then the IH. This lemma is a
    *major part of the development* (`Strict/Tensor/{TensorBraid, TensorReconcile}`, with the
-   relabelling engine in `Strict/Perm/PermRelabel`; the interchange cluster is larger still):
-   its bulk is the per-edge `box-suffix` (`FreeStrictSMC`) Mac-Lane re-bracketing ($bold(M)$)
-   that aligns the two box-streams onto disjoint factors, closed by $bold(K)$ — not the light
-   $bold(S)$ glue the one-line shape equation suggests.],
+   relabelling engine in `Strict/Perm/PermRelabel`; the interchange cluster is larger still) —
+   not the light $bold(S)$ glue the one-line shape equation suggests. Its bulk is the *K-block
+   braid*: after the G-block fires, the K-block prepends its outputs in front of G's, so the
+   residual is a braided stack, discharged by equivariance (`StackEquiv`), right-frame
+   separability, $sigma$-conjugation and rigidity — $bold(S) + bold(K)$. The per-edge
+   `box-suffix` alignment, which the non-strict architecture paid as Mac-Lane re-bracketing, is
+   strictly two $times.o$ axioms (`FreeStrictSMC`, "MEASUREMENT 1"). A further asymmetry the
+   one-line equation hides: the shape does *not* split into two separability frames — the
+   left-frame mirror is outright false (`TensorReconcile`'s "critical asymmetry").],
 )
 
 #h(1fr) $square.stroked$
@@ -477,29 +528,40 @@ Every step above draws on one of four kinds of ingredient.
   stroke: 0.5pt + luma(70%),
   table.header([*Ingredient*], [*Where used*]),
 
-  [$bold(K)$ — generator-free permutation coherence (Kelly 1964); *deep, but out of scope*],
-  [(I) $sigma$ block-swap, the final-permute collapse of the $compose$/$times.o$-shape lemmas;
-   (II) wiring match; Lemma 0b permute factor],
+  [$bold(K)$ — generator-free permutation coherence (Kelly 1964); *the one deep ingredient, and
+   the one most consumed*],
+  [(I) $sigma$ block-swap, $"Agen"$, the final-permute collapse of the
+   $compose$/$times.o$-shape lemmas; (II) wiring match *and* the block-location faces of the
+   per-swap step; Lemma 0's final permute],
 
-  [$bold(M)$ — monoidal ($alpha, lambda, rho$) coherence $+$ plain bifunctoriality; *the bulk of
-   the formalization*],
-  [(I) $alpha$, $"Agen"$, base / coercion cases, *and the box re-bracketing inside the
-   $compose$/$times.o$-shape lemmas* (`Strict/Tensor/*`); (II) the per-swap
-   re-bracketing (`Strict/Interchange/*`); Lemma 0b box factor],
+  [$bold(M)$ — monoidal ($alpha, lambda, rho$) coherence $+$ plain bifunctoriality; *paid once,
+   at the boundary*],
+  [$alpha$ and the strictification boundary (`Strict/Embed`, `Bridge/BridgeCoherence`,
+   `Base/Unflatten{,Monoidal}`) — and, apart from plain bifunctoriality in the per-swap step,
+   nowhere else: neither shape lemma nor the interchange cluster carries $bold(M)$],
 
-  [$bold(S)$ — structural combinatorics: Lemma 0a, Lemma A, connectivity, Lemma C, monogamy],
+  [$bold(S)$ — structural combinatorics: Lemma 0a, Lemma A, connectivity, Lemma C, monogamy,
+   firing stability, stack equivariance],
   [(I), (II)],
 )
 
 $bold(K)$ is the one *conceptually deep* ingredient: the symmetric-monoidal coherence theorem
 restricted to the permutation fragment — two derivations of the same permutation give
 $approx$-equal $"permute"$ terms. It reduces to coherence at the bijection (`FinBij`) level —
-$"permute"(pi) approx "permute"(pi')$ whenever $"eval"(pi) = "eval"(pi')$ — which is treated
-separately and out of scope here. $bold(M)$ — Mac-Lane (associator / unitor) coherence with plain
-bifunctoriality — is by contrast the one *large* ingredient: it has no canonical-form solver in
-the symmetric fragment, so it is chased per positional case, and the box re-bracketing it demands
-(now paid once in `Soundness/Strict/Embed.agda`) was by far the largest part of the
-formalization before strictification (see the note in the front matter). $bold(S)$ is finite combinatorics.
+$"permute"(pi) approx "permute"(pi')$ whenever $"eval"(pi) = "eval"(pi')$ — which is out of scope
+for this report, but is *not* an assumption: it is discharged in the same development, without
+postulates (`Strict/Perm/PermK`, `PermDischarge`, `Braid`, and the Coxeter kernel
+`PermuteCoherence/Coxeter/FaithfulnessInductive`). One caveat on the form: the equation @K above,
+with its explicit $"eval"$ hypothesis, is almost never the form actually consumed. What consumers
+use is *rigidity* — at a codomain whose wire-list is duplicate-free, any two $↭$-derivations
+already give $approx$-equal $"permute"$ terms (`perm-rigidˢ`, `eval-rigid`), the duplicate-freeness
+being supplied mid-run by the decoder's freshness invariant (`Stack/StackUniqueReach`'s
+`Reservoir≤1`). $bold(M)$ — Mac-Lane (associator / unitor) coherence with plain bifunctoriality —
+was by far the largest part of the formalization *before* strictification; it is now paid once, at
+the boundary (see the note in the front matter). Its residue there is also no longer chased per
+positional case: the surviving chases are largely single `solveMor!` calls to the
+morphism-variable solver (`BridgeCoherence`'s `bridge-⊗` and `pentagon-rewrite`,
+`UnflattenMonoidal`'s `c-iso-assoc-from`). $bold(S)$ is finite combinatorics.
 
 = Conclusion
 
@@ -508,9 +570,10 @@ symmetric monoidal categories — follows from the round-trip and decoder agreem
 the iso-invariance through linear-extension connectivity and the per-swap commutation (part
 (II)), and the naturality of the decoder under relabelling (Lemma 0). Each step is one of the
 three ingredients $bold(K), bold(M), bold(S)$; the only *conceptually deep* one is the
-permutation-coherence kernel $bold(K)$, while the *bulk* of the formalization is the Mac-Lane
-re-bracketing $bold(M)$.
+permutation-coherence kernel $bold(K)$, and after strictification it is also the one the
+formalization spends most on, together with the $bold(S)$ combinatorics of firing and stack
+equivariance — the Mac-Lane re-bracketing $bold(M)$ now costs a single boundary payment.
 
 $bold(K)$ bottoms out in coherence at the bijection (`FinBij`) level — in effect the word problem
-for the symmetric group — which is out of scope for this report. Everything above the bijection
-level is covered here in full.
+for the symmetric group — which is out of scope for *this report*, but is proved, axiom-free, in
+the same development. Everything above the bijection level is covered here in full.
