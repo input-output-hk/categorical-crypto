@@ -34,8 +34,8 @@
 --
 -- `tab-≅ᴴ : tabH H ≅ᴴ H` (identity bijections) lets callers transport an
 -- iso found on the tabulated graphs back to the originals; see
--- `Solver.Match.FindIsoTab`.  Its `ψ-elab` is a `lookup∘tabulate` roundtrip,
--- provable from `elab-ok`.
+-- `Solver.Match.FindIso.findIsoᵀ`.  Its `ψ-elab` is a `lookup∘tabulate`
+-- roundtrip, provable from `elab-ok`.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Solver.Tabulate where

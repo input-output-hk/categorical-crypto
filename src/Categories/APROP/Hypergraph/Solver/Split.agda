@@ -43,8 +43,7 @@ open APROPSignatureDec sig-dec using (sig; _≟-mor_; _≟-ObjTerm_; uip-ObjTerm
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Translation sig
-open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig-dec using (findIso)
-open import Categories.APROP.Hypergraph.Solver.Match.FindIsoTab sig-dec
+open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig-dec using (findIso; findIsoᵀ)
 open import Categories.APROP.Hypergraph.Soundness sig-dec
 
 open import Data.Bool.Base using (true)
