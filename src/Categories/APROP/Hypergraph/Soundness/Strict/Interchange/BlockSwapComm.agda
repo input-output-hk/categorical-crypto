@@ -64,7 +64,7 @@ open import Data.List.Properties using (++-assoc)
         ∘ˢ (((idˢ {b} ⊗ˢ σˢ a c)
               ∘ˢ coe (++-assoc b a c) ∘ˢ (σˢ a b ⊗ˢ idˢ {c}))
             ∘ˢ coe (sym (++-assoc a b c)))
-σ-hexˢʳ a b c = H
+σ-hexˢʳ a b c = inv-resp σ-σˢ cancel ≈-refl
   where
     P = ++-assoc a b c
     Q = ++-assoc b c a
@@ -111,9 +111,6 @@ open import Data.List.Properties using (++-assoc)
       (≈-trans (∘-resp ≈-refl (cancelˡ step-σˡ))
         (coe-cancelʳ P)))))))))
 
-    H : σˢ a (b ++ c) ≈ˢ coe (sym Q) ∘ˢ (L ∘ˢ coe (sym P))
-    H = inv-resp σ-σˢ cancel ≈-refl
-
 --------------------------------------------------------------------------------
 
 module _ (V : Set) (vlab : V → X) where
@@ -124,10 +121,6 @@ module _ (V : Set) (vlab : V → X) where
     using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; permuteᵛ-frame
           ; ⊗-respᵛ; interchangeᵛ; σ-hexᵛ; castᵛ-≈̂; ⊗-resp-≈̂ᵛ
           ; ⊗-assoc-≈̂ᵛ; box-suffix-≈̂ᵛ; σᵛ-≈̂ )
-
-  private
-    m : List V → List X
-    m = map vlab
 
   --------------------------------------------------------------------------
   -- (A)  The RIGHT hexagon at singleton frames.  `++-assoc (_ ∷ [])` is
@@ -143,7 +136,7 @@ module _ (V : Set) (vlab : V → X) where
       a b c : List X
       a = vlab v ∷ []
       b = vlab x ∷ []
-      c = m R
+      c = map vlab R
 
       hex' : σˢ a (b ++ c) ≈ˢ (idˢ {b} ⊗ˢ σˢ a c) ∘ˢ (σˢ a b ⊗ˢ idˢ {c})
       hex' =
