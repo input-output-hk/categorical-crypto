@@ -2,7 +2,7 @@
 
 --------------------------------------------------------------------------------
 -- The strict block-swap-commutation residual `bswap-σ` of
--- `Strict/Decode/DecodeSigma.agda` (its parameter of type `Scr.BswapSig`).
+-- `Strict/Decode/DecodeSigma.agda` (its σ-shape's block-swap keystone).
 --
 --   block-swap-comm : ∀ (L R : List V) → permuteᵛ (bswap L R) ≈ᵛ σᵛ L R
 --
@@ -11,7 +11,7 @@
 -- `BlockNFBraid` in round 6), proven entirely from the
 -- `FreeStrictSMC.Build` axioms + the RIGHT-hexagon companion lemma `σ-hexˢʳ`
 -- (below, generic on `List X`; this module is its only consumer) and the `[]`
--- base cases proven in `DecodeSigma`.
+-- base cases proven in `DecodeShapes.Scr`.
 --
 -- The whole module runs in the `Restrict` layer (F7): `HomV as bs = HomS
 -- (map vlab as) (map vlab bs)`, whose `_⊗ᵛ_`/`σᵛ` absorb the `map-++`
@@ -45,7 +45,7 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟X_
   using (module Scr)
 open import Categories.Morphism.Reasoning SCat using (pullʳ; cancelˡ)
 open import Categories.Morphism.Reasoning.Ext SCat using (inv-resp)

@@ -36,7 +36,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore si
 
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCoreRun sig _≟X_ as SCR
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
-import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_ as DSS
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟X_ as DSh
 
 import Categories.APROP.Hypergraph.Soundness.Discharge.FireMidInterchangeComb sig
   as FMIC
@@ -167,7 +167,7 @@ module FMS (H : Hypergraph FlatGen) where
   -- The thin wiring-groupoid calculus (F11): ⟦bswap⟧ᵛ.
   open PC.Kit H using (⟦bswap⟧ᵛ)
 
-  open DSS.Scr (Fin H.nV) H.vlab using (bswap)
+  open DSh.Scr (Fin H.nV) H.vlab using (bswap)
 
   ------------------------------------------------------------------------
   -- The per-pair located frames + coherences.  `SimLoc` (from FMIC) is
@@ -257,7 +257,7 @@ module _ (H : Hypergraph FlatGen)
   cross-NFᵛ′   = FMS.cross-NFᵛ H
   box-resid3ᵛ′ = FMS.box-resid3ᵛ H
 
-  open DSS.Scr (Fin H.nV) H.vlab using (bswap)
+  open DSh.Scr (Fin H.nV) H.vlab using (bswap)
 
   FireMidInterchangeˢ : Set
   FireMidInterchangeˢ = SCR.FireMidInterchangeˢ H lin

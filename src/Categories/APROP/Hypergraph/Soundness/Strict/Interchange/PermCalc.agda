@@ -45,7 +45,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟
 open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig _≟X_
 
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig _≟X_ as BSC
-import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_ as DSS
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟X_ as DSh
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermRelabel sig _≟X_ as PVV
 
 open import Data.Nat using (ℕ)
@@ -66,7 +66,7 @@ module Kit (H : Hypergraph FlatGen) where
     m : List (Fin H.nV) → List X
     m = map vl
 
-  open DSS.Scr (Fin H.nV) H.vlab using (bswap)
+  open DSh.Scr (Fin H.nV) H.vlab using (bswap)
 
   ------------------------------------------------------------------------
   -- ⟦absorbˡ⟧/⟦absorbʳ⟧ : a reindexing FACTOR of a sequential derivation is

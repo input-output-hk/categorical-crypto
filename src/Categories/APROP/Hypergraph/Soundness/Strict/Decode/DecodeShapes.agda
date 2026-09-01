@@ -48,11 +48,12 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
 open import Data.Fin using (Fin)
 open import Data.List.Properties using (++-identityʳ; ++-assoc)
 open import Data.Nat using () renaming (_+_ to _+ⁿ_)
+open Perm using (_↭_)
 
 --------------------------------------------------------------------------------
 -- A `↭-reflexive` derivation is the boundary cast of `idˢ`.  Needs neither the
 -- K-faithfulness residual nor a `DecidableEquality`, hence its home ABOVE the
--- residual block: that is what `DecodeSigma.Scr` can consume.
+-- residual block: that is what `Scr` below can consume.
 
 module Trivial (V : Set) (vlab : V → X) where
   open PK.Support V vlab
@@ -62,6 +63,45 @@ module Trivial (V : Set) (vlab : V → X) where
     → permuteˢ (Perm.↭-reflexive e)
       ≈ˢ castˢ refl (cong (map vlab) e) (idˢ {map vlab xs})
   refl-trivial refl = ≈-refl
+
+--------------------------------------------------------------------------------
+-- The canonical block-swap derivation + its `permuteˢ ≈ σˢ` identity (the
+-- vertex-level keystone).  Recursion on the LEFT block.
+
+module Scr (V : Set) (vlab : V → X) where
+  open PK.Support V vlab public
+  open Trivial V vlab public
+  open Restrict V vlab
+    using (idᵛ; _⊗ᵛ_; σᵛ; _≈ᵛ_; permuteᵛ; castᵛ-cast; σ-unitᵛ)
+
+  bswap : (L R : List V) → (L ++ R) ↭ (R ++ L)
+  bswap []      R = Perm.↭-reflexive (sym (++-identityʳ R))
+  bswap (v ∷ L) R = Perm.trans (Perm.prep v (bswap L R)) (Perm.↭-sym (PermProp.shift v R L))
+
+  -- `permuteᵛ (↭-sym (shift v R L))` is the braiding of `v ∷ []` past the
+  -- block `R`, framed by `idᵛ {L}` — stated in the `Restrict` layer, so the
+  -- former `mdom`/`mcod` map-distribution endpoints are gone.  BASE proven
+  -- here (both sides reduce to `idˢ`); the `(x ∷ R)` step is the `σ-hexˢʳ`
+  -- reconciliation `Interchange.BlockSwapComm.shift-symᵛ`.
+  permuteˢ-shift-sym-base
+    : (v : V) (L : List V)
+    → permuteᵛ (Perm.↭-sym (PermProp.shift v [] L))
+      ≈ᵛ σᵛ (v ∷ []) [] ⊗ᵛ idᵛ {L}
+  permuteˢ-shift-sym-base v L =
+    ≈-sym (≈-trans (⊗-resp (σ-unitʳˢ (vlab v ∷ [])) ≈-refl) ⊗-id)
+
+  -- `permuteᵛ (bswap L R) ≈ᵛ σᵛ L R`.  BASE proven; the `(v ∷ L)` step is the
+  -- `σ-hexᵛ` reconciliation `Interchange.BlockSwapComm.block-swap-comm`.
+  bswap-σ-base : (R : List V) → permuteᵛ (bswap [] R) ≈ᵛ σᵛ [] R
+  bswap-σ-base R =
+    ≈-trans (refl-trivial (sym (++-identityʳ R)))
+      (≈-sym (≈-trans (σ-unitᵛ R)
+                      (≡⇒≈ˢ (castᵛ-cast refl (sym (++-identityʳ R)) idᵛ))))
+
+  -- The full block-swap identity (statement) — the strict vertex-level
+  -- block-swap-commutes keystone.  `bswap-σ-base` is the [] case.
+  BswapSig : Set
+  BswapSig = ∀ (L R : List V) → permuteᵛ (bswap L R) ≈ᵛ σᵛ L R
 
 --------------------------------------------------------------------------------
 -- `nE = 0` collapse: a hypergraph with no edges has `runˢ ≡ (dom , idˢ)`.

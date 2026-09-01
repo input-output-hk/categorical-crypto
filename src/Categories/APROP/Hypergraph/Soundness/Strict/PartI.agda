@@ -6,8 +6,8 @@
 --     st-≈-decodePˢ : ∀ f → st f ≈ˢ decodePˢ f
 --
 -- by induction on `f`, combining the per-constructor decoder shape lemmas.
--- Every shape is wired CONCRETELY: the σ-shape's `bswap-σ` by
--- `Strict.Interchange.BlockSwapComm`, `Agen` by `Strict.Decode.DecodeGen`,
+-- Every shape is wired CONCRETELY: σ by `Strict.Decode.DecodeSigma`,
+-- `Agen` by `Strict.Decode.DecodeGen`,
 -- and ⊗ (via the K-prepend box-braid `KBlockσ`) by
 -- `Strict.Tensor.TensorBraid.decodePˢ-⊗-concrete`.  So the assembly is
 -- unconditional.
@@ -35,7 +35,6 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes   sig _≟X_ as DSh
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma   sig _≟X_ as DSig
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeComposeAssembly sig _≟X_ as DComp
-import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm  sig _≟X_ as BSC
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeGen      sig _≟X_ as DGen
 import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorBraid    sig _≟X_ as TB
 
@@ -59,4 +58,4 @@ st-≈-decodePˢ (ρ⇐ {A})        = ≈-sym (DSh.decodePˢ-ρ⇐ {A})
 st-≈-decodePˢ (α⇒ {A} {B} {C}) = ≈-sym (DSh.decodePˢ-α⇒ {A} {B} {C})
 st-≈-decodePˢ (α⇐ {A} {B} {C}) = ≈-sym (DSh.decodePˢ-α⇐ {A} {B} {C})
 st-≈-decodePˢ (σ {A} {B} ⦃ v≤v ⦄) =
-  ≈-sym (DSig.Sigma.decodePˢ-σ BSC.block-swap-comm A B)
+  ≈-sym (DSig.Sigma.decodePˢ-σ A B)

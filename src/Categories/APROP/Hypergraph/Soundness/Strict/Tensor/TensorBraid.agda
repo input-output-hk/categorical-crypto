@@ -91,7 +91,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv 
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-elem)
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ as DC
-import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma sig _≟X_ as DSS
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟X_ as DSh
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig _≟X_ as BSC
 import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorReconcile sig _≟X_ as TR
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
@@ -419,7 +419,7 @@ module Braid {A B C D : ObjTerm}
       KCln : HomV (sG ++ Rsuf) (sG ++ Kfin)
       KCln = idᵛ {sG} ⊗ᵛ Kclean
 
-      open DSS.Scr (Fin Hf.nV) Hf.vlab using (bswap)
+      open DSh.Scr (Fin Hf.nV) Hf.vlab using (bswap)
       open EquivStep ⟪ fg ⟫
         using (process-edges-equivariantˢ; pvv-transˢ; pvv-inverse-leftˢ)
 
