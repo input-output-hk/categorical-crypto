@@ -66,10 +66,6 @@ module Kit (H : Hypergraph FlatGen) where
     m : List (Fin H.nV) → List X
     m = map vl
 
-  -- Existing bridges, threaded at this hypergraph's vertex set.
-  private
-    perm-rigidˢ′ = perm-rigidˢ H
-    swap-block′  = BSC.swap-block (Fin H.nV) H.vlab
   open DSS.Scr (Fin H.nV) H.vlab using (bswap)
 
   ------------------------------------------------------------------------
@@ -109,7 +105,7 @@ module Kit (H : Hypergraph FlatGen) where
   ⟦bswap⟧ᵛ
     : ∀ (L R Rl : List (Fin H.nV))
     → permuteᵛ (PermProp.++⁺ʳ Rl (bswap L R)) ≈ᵛ σᵛ L R ⊗ᵛ idᵛ {Rl}
-  ⟦bswap⟧ᵛ = swap-block′
+  ⟦bswap⟧ᵛ = BSC.swap-block (Fin H.nV) H.vlab
 
   ------------------------------------------------------------------------
   -- rigid-≈̂ : the RIGIDITY discharge — any two derivations into a `Unique`
@@ -118,7 +114,7 @@ module Kit (H : Hypergraph FlatGen) where
   rigid-≈̂
     : ∀ {xs ys : List (Fin H.nV)} → Unique ys
     → (p q : xs Perm.↭ ys) → permuteˢ p ≈̂ permuteˢ q
-  rigid-≈̂ u p q = ≈ˢ⇒≈̂ (perm-rigidˢ′ u p q)
+  rigid-≈̂ u p q = ≈ˢ⇒≈̂ (perm-rigidˢ H u p q)
 
   ------------------------------------------------------------------------
   -- ⟦relabel-rigid⟧ : the CANONICAL "located final permute" discharge — `D`
