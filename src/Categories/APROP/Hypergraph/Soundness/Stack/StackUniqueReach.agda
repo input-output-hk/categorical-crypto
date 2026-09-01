@@ -38,15 +38,14 @@ open Perm using (_↭_)
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
-  using (count; count-++; producedList)
+  using (count; producedList)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (process-edges; edge-step; extract-prefix)
 
 open import Data.Nat using () renaming (_≤_ to _≤ⁿ_)
-import Data.Nat.Properties as Nat
 
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig
-  using (count≤1⇒Unique; Unique⇒count≤1; Unique-resp-↭)
+  using (count≤1⇒Unique; Unique⇒count≤1; count-++-bndˡ; count-++-bndʳ; Unique-resp-↭)
 
 private
   variable
@@ -84,16 +83,13 @@ module _ (H : Hypergraph FlatGen) where
     reservoir-++ o rest =
       trans (cong concat (map-++ H.eout o rest)) (sym (concat-++ (map H.eout o) (map H.eout rest)))
 
-    -- `Unique`-of-`++` splitting (stdlib lacks `++⁻`; via the count bridge).
+    -- `Unique`-of-`++` splitting (stdlib lacks `++⁻`): the count bridge in
+    -- both directions around `CountCombinatorics`' two `count-++` bounds.
     Unique-++ˡ : ∀ {xs ys : List (Fin H.nV)} → Unique (xs ++ ys) → Unique xs
-    Unique-++ˡ {xs} {ys} u = count≤1⇒Unique λ v →
-      Nat.≤-trans (Nat.m≤m+n (count v xs) (count v ys))
-        (Nat.≤-trans (Nat.≤-reflexive (sym (count-++ v xs ys))) (Unique⇒count≤1 u v))
+    Unique-++ˡ {xs} {ys} u = count≤1⇒Unique λ v → count-++-bndˡ v xs ys (Unique⇒count≤1 u v)
 
     Unique-++ʳ : ∀ {xs ys : List (Fin H.nV)} → Unique (xs ++ ys) → Unique ys
-    Unique-++ʳ {xs} {ys} u = count≤1⇒Unique λ v →
-      Nat.≤-trans (Nat.m≤n+m (count v ys) (count v xs))
-        (Nat.≤-trans (Nat.≤-reflexive (sym (count-++ v xs ys))) (Unique⇒count≤1 u v))
+    Unique-++ʳ {xs} {ys} u = count≤1⇒Unique λ v → count-++-bndʳ v xs ys (Unique⇒count≤1 u v)
 
   ------------------------------------------------------------------------
   -- 1.  The invariant gives a `Unique` stack, and is preserved by a step.

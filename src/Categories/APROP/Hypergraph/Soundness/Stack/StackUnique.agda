@@ -50,13 +50,14 @@ private
 --------------------------------------------------------------------------------
 -- 0.  `↭`-invariance of `count` and the `Unique` ⇔ `count ≤ 1` bridge, both
 --     from the shared leaf.  The bridge is re-exported because
---     `StackUniqueReach` reads it from here (`DecodeComposeAssembly` takes
---     only `Linear⇒cod-Unique`).  ONE module application, opened twice:
+--     `StackUniqueReach` reads them from here, together with the two
+--     `count-++` bounds its `Unique`-of-`++` splits are (`DecodeComposeAssembly`
+--     takes only `Linear⇒cod-Unique`).  ONE module application, opened twice:
 --     `open import … sig` twice would apply the section twice.
 
 import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig as CC
 open CC using (↭⇒count)
-open CC using (Unique⇒count≤1; count≤1⇒Unique) public
+open CC using (Unique⇒count≤1; count≤1⇒Unique; count-++-bndˡ; count-++-bndʳ) public
 
 --------------------------------------------------------------------------------
 -- 1.  `Unique-resp-↭` — the actual enabler.  `↭` preserves `count` (`↭⇒count`),
