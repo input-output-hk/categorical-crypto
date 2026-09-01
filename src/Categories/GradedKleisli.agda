@@ -15,14 +15,18 @@ open import Categories.Category
 open import Categories.Category.EquivClosureHelper
 open import Categories.Category.Monoidal
 import Categories.Category.Monoidal.Reasoning as MonR
+open import Categories.Coherence.Monoidal using (module MorAtoms; module MorSolve)
 open import Categories.Coherence.Monoidal.Tactic
-open import Categories.Functor
+-- `using`: a bare open would clash `Functor.id` with `Iᵁ.id` (house rule 11)
+open import Categories.Functor using (Functor)
 open import Categories.Monad.Graded
 import Categories.Morphism.Reasoning as MR
 open import Categories.NaturalTransformation using (NaturalTransformation; ntHelper)
 open import Categories.Tactic.Category
 
+open import Data.Fin using (#_)
 open import Data.Product
+open import Data.Vec using (_∷_; [])
 
 open import Relation.Binary.Construct.Closure.Equivalence as EqC using (gfold; symmetric)
 
@@ -99,7 +103,13 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
              (ext ik (sub φ C.∘ ff) C.∘ sub ψ) C.∘ gf  ≈⟨ C.assoc ⟩
              ext ik (sub φ C.∘ ff) C.∘ (sub ψ C.∘ gf)  ≈⟨ ext-resp-≈ cf ⟩∘⟨ cg ⟩
              ext ik hf C.∘ if′ ∎)
-        , solve-mor I
+        , (let open Category.HomReasoning (I.U)
+           in begin
+             (hα I.∘ (iα ⊗₁ I.id) I.∘ α⇐) I.∘ (I.id ⊗₁ (ψ ⊗₁ φ))
+               ≈⟨ solve-mor I ⟩
+             (hα I.∘ I.id ⊗₁ φ) I.∘ (iα I.∘ I.id ⊗₁ ψ) ⊗₁ I.id I.∘ α⇐
+               ≈⟨ ifh ⟩∘⟨ (igi ⟩⊗⟨refl ⟩∘⟨refl) ⟩
+             fα I.∘ (gα ⊗₁ I.id) I.∘ α⇐ ∎)
     }
 
   ≈-components : ∀ {i j k : I.Obj} {c d : C.Obj} {f g : C [ c , T₀ k d ]}
@@ -253,7 +263,11 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
                    (sub λ⇐ ∘ sub φx) ∘ (μ j kx ∘ T₁ j fx)
                      ≈⟨ assoc ○ (refl⟩∘⟨ refl⟩∘⟨ μT fx) ⟩
                    sub λ⇐ ∘ (sub φx ∘ ext j fx) ∎))
-            , solve-mor I))) }
+            , (let vs = j ∷ kx ∷ j′ ∷ []
+                   open MorAtoms I vs
+                   open MorSolve I vs (((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , φx) ∷ [])
+               in solveMor! ((S.λ⇒ S.∘ (S.ρ⇒ S.⊗₁ S.id) S.∘ S.α⇐) S.∘ S.id S.⊗₁ (S.λ⇐ S.∘ gen (# 0)))
+                            (gen (# 0) S.∘ (S.λ⇒ S.⊗₁ S.id) S.∘ S.α⇐)))) }
       }
     ; zig = EqC.return (λ⇒
       , (let open C in begin
