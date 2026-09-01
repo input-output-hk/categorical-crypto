@@ -3,9 +3,7 @@
 open import categorical-crypto.Prelude
 
 open import Class.Core
-open import Class.Monad
-open import Class.Prelude using (Typeω)
-open import Data.Product
+open import Class.Prelude
 
 module Class.Monad.Ext where
 
@@ -66,7 +64,7 @@ instance
 
 
 import Categories.Monad as C
-open import Categories.Category
+open import Categories.Category.Core
 open import Categories.Category.Construction.Kleisli
 open import Categories.Category.Instance.Sets
 open import Categories.Monad.Construction.Kleisli

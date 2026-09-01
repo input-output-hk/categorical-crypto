@@ -2,17 +2,14 @@
 
 module Categories.Discrete where
 
-open import Level renaming (zero to ℓ0)
+open import Level
 
 open import Categories.Category
-open import Categories.Category.Discrete
 open import Categories.Category.Helper
 open import Categories.Functor
 
-open import Categories.NaturalTransformationHelper
-
 open import Data.Unit
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans)
+open import Relation.Binary.PropositionalEquality
 
 module Discrete (X : Set) where
 
@@ -23,38 +20,24 @@ module Discrete (X : Set) where
     ; _≈_       = λ _ _ → ⊤ -- if we used _≡_ here then it's only discrete if we assume K
     ; id        = refl
     ; _∘_       = λ p q → trans q p
-    ; assoc     = λ where {_} {_} {_} {_} {refl} {refl} {refl} → _
-    ; identityˡ = λ where {_} {_} {refl} → _
-    ; identityʳ = λ where {_} {_} {refl} → _
-    ; equiv     = record { refl = _ ; sym = λ _ → _ ; trans = λ _ _ → _ }
-    ; ∘-resp-≈  = λ _ _ → _
+    ; assoc     = _
+    ; identityˡ = _
+    ; identityʳ = _
+    ; equiv     = record { refl = _ ; sym = _ ; trans = _ }
+    ; ∘-resp-≈  = _
     }
 
-  IsDiscrete-Discrete : IsDiscrete Discrete
-  IsDiscrete-Discrete = record
-    { isGroupoid = record { _⁻¹ = sym ; iso = record { isoˡ = _ ; isoʳ = _ } }
-    ; preorder = λ where _ _ → _ }
-
-  Discrete-NaturalD : {D : Category 0ℓ 0ℓ 0ℓ} {F G : Functor Discrete D} (η : Family F G)
-                    → Natural F G η
-  Discrete-NaturalD {C} {F} {G} η refl = begin
-    η _ C.∘ Functor.F₁ F _
+  Discrete-NaturalD : {D : Category 0ℓ 0ℓ 0ℓ} {F G : Functor Discrete D}
+                      (η : ∀ X → D [ Functor.F₀ F X , Functor.F₀ G X ])
+                    → ∀ {X Y} (f : Discrete [ X , Y ])
+                        → D [ D [ η Y ∘ Functor.F₁ F f ] ≈ D [ Functor.F₁ G f ∘ η X ] ]
+  Discrete-NaturalD {D} {F} {G} η refl = begin
+    η _ D.∘ Functor.F₁ F _
       ≈⟨ refl⟩∘⟨ Functor.identity F ⟩
-    η _ C.∘ C.id
-      ≈⟨ C.identityʳ ○ ⟺ C.identityˡ ⟩
-    C.id C.∘ η _
+    η _ D.∘ D.id
+      ≈⟨ D.identityʳ ○ ⟺ D.identityˡ ⟩
+    D.id D.∘ η _
       ≈⟨ Functor.identity G ⟩∘⟨refl ⟨
-    Functor.F₁ G _ C.∘ η _ ∎
-    where module C = Category C
-          open C.HomReasoning
-
-module Properties {o ℓ e} (CD : DiscreteCategory o ℓ e) where
-  open DiscreteCategory CD renaming (category to C)
-  open Category C
-
-  all-Comm-Discrete : ∀ {A B} (f g : A ⇒ B) → f ≈ g
-  all-Comm-Discrete = preorder
-
-  Discrete-NaturalR : {D : Category 0ℓ 0ℓ 0ℓ} {F G : Functor D C} (η : Family F G)
-                    → Natural F G η
-  Discrete-NaturalR η f = all-Comm-Discrete _ _
+    Functor.F₁ G _ D.∘ η _ ∎
+    where module D = Category D
+          open D.HomReasoning
