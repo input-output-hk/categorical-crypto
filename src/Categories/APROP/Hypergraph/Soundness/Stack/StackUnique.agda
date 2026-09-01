@@ -30,7 +30,6 @@ open import Data.Product using (_,_; proj₁; proj₂)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 
 open Perm using (_↭_)
-import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
 
 open APROP sig using (HomTerm)

@@ -75,7 +75,6 @@ open import Data.List using (List; map)
 open import Data.List.Properties using (map-injective)
 open import Data.List.Properties.Ext using (map-∘-id)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Function using (Injective)
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive using (ε; _◅_)

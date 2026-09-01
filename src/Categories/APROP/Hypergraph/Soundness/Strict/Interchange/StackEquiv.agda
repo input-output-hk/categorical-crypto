@@ -65,7 +65,6 @@ open import Data.Maybe.Properties using (just-injective)
 open import Data.Maybe.Ext using (just≢nothing)
 open import Data.Empty using (⊥-elim)
 open import Data.Product using (Σ-syntax; _,_; _×_; proj₁; proj₂)
-import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
 --------------------------------------------------------------------------------
 -- ## The equivariance module, per hypergraph.

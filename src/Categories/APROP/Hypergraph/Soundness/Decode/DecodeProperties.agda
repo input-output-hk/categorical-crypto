@@ -34,7 +34,6 @@ open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Relation.Unary.All using (universal)
 open import Data.List.Relation.Unary.All.Properties using (map⁺)
 open import Data.List.Relation.Unary.Any using (here; there)
-import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (Σ-syntax; ∃-syntax; _,_; _×_)
 open import Relation.Nullary using (yes; no)

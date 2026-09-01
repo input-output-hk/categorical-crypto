@@ -50,7 +50,6 @@ open import Data.List using (List; _++_; concat)
 open import Data.List.Base using (tabulate)
 open import Data.List.Properties using (++-assoc)
 open import Data.List.Membership.Propositional using (_∈_)
-import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Maybe.Ext using (nothing≢just)
 open import Data.Nat using (ℕ; zero; suc; _+_)

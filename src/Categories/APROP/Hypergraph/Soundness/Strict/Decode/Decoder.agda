@@ -139,9 +139,6 @@ module StrictDecoder (H : Hypergraph FlatGen) where
   -- label-level spelling needed (`map-++ vl xs R`, the `W`/`QIH`
   -- map-distribution proofs, `cast-⊗-frame`, `∘-cast-split`) is gone.
 
-  import Data.List.Relation.Binary.Permutation.Propositional.Properties
-    as PermProp
-
   open Restrict (Fin H.nV) vl
     using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; castᵛ; _≈ᵛ_; permuteᵛ; permuteᵛ-frame
           ; castᵛ-≈̂; castᵛ⇒≈̂; ⊗ᵛ-≈̂; ⊗-respᵛ; ⊗-resp-≈̂ᵛ; ⊗-idᵛ; interchangeᵛ; ⊗id-distᵛ

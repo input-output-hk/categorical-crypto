@@ -35,7 +35,6 @@ open import Data.Maybe using (just; nothing)
 open import Data.Product using (_,_)
 
 open Perm using (_↭_)
-import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)

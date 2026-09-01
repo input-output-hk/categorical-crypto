@@ -52,7 +52,6 @@ open import Categories.Morphism.Reasoning.Ext SCat using (inv-resp)
 
 open import Data.List using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (++-assoc)
-import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
 --------------------------------------------------------------------------------
 -- The RIGHT hexagon: `σˢ a (b ++ c)` decomposed.  Derived from the `σ-hexˢ`

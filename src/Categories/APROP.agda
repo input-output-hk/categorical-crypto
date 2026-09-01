@@ -33,6 +33,10 @@ open import Relation.Binary.PropositionalEquality public
 import Data.List.Relation.Binary.Permutation.Propositional
 module Perm = Data.List.Relation.Binary.Permutation.Propositional
 
+-- `PermProp` likewise, for 25 of the same modules.
+import Data.List.Relation.Binary.Permutation.Propositional.Properties
+module PermProp = Data.List.Relation.Binary.Permutation.Propositional.Properties
+
 record APROPSignature : Set₁ where
   field X : Set
 

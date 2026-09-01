@@ -54,7 +54,6 @@ open import Data.Empty using (⊥-elim)
 open import Data.Product using (Σ-syntax; _,_; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality.Properties.Ext
   using (subst₂-sym-flip; subst₂-trans)
-import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
 --------------------------------------------------------------------------------
 -- ## §1.  Per-hypergraph block factoring (strict).

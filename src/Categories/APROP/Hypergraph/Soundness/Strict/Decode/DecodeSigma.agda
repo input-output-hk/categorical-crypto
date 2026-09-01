@@ -47,7 +47,6 @@ open import Data.List using (List; []; _∷_; _++_; map; length)
 open import Data.List.Properties using (++-identityʳ)
 open import Data.Product using (proj₁; proj₂)
 open Perm using (_↭_)
-import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
 
 --------------------------------------------------------------------------------
 -- The canonical block-swap derivation + its `permuteˢ ≈ σˢ` identity (the
