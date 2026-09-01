@@ -51,7 +51,7 @@ tabulate-bij-↭
   → tabulate (f Fun.∘ π) Perm.↭ tabulate f
 tabulate-bij-↭ {n = zero}    f π π⁻¹ _      _       = Perm.refl
 tabulate-bij-↭ {n = suc n'}  f π π⁻¹ leftInv rightInv =
-  Perm.trans (Perm.prep (f (π zero)) ih) (Perm.↭-sym shift)
+  Perm.trans (Perm.prep (f (π zero)) ih) (Perm.↭-sym (tabulate-shift-↭ f k))
   where
     k = π zero
 
@@ -102,9 +102,6 @@ tabulate-bij-↭ {n = suc n'}  f π π⁻¹ leftInv rightInv =
     ih = subst (λ xs → xs Perm.↭ tabulate (f Fun.∘ punchIn k))
                (sym (tabulate-cong pointwise-eq))
                (tabulate-bij-↭ (f Fun.∘ punchIn k) π' π'⁻¹ π'-left π'-rght)
-
-    shift : tabulate f Perm.↭ f k ∷ tabulate (f Fun.∘ punchIn k)
-    shift = tabulate-shift-↭ f k
 
 --------------------------------------------------------------------------------
 -- `tabulate-bij-↭` generalized to bijections between different `Fin` types.
