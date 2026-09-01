@@ -534,7 +534,7 @@ module _ (H : Hypergraph FlatGen)
   fire-mid-interchangeˢ : FireMidInterchangeˢ
   fire-mid-interchangeˢ {e} {e'} inc sp r₁ p₁ r₂ p₂ r₂' p₂' r₁' p₁'
                         us-sp us-mid₁ us-mid₂ us-cod =
-    r-stk , goal
+    r-stk , ≈-trans nf₂-eqᵛ (≈-trans cross (∘-resp ≈-refl (≈-sym nf₁-eqᵛ)))
     where
       -- `Located` already built the `SimLoc` bundle and re-exports it, so the
       -- 12-argument `sim-loc` application is NOT respelled here.
@@ -561,10 +561,8 @@ module _ (H : Hypergraph FlatGen)
         ρ₂ : ry Perm.↭ H.eout x ++ Rlist
         ρ₂ = ++-cancelˡ (H.ein y)
                (Perm.trans (Perm.↭-sym py)
-                 (Perm.trans (PermProp.++⁺ˡ (H.eout x) ρ₁) eo-shift))
-          where
-            eo-shift : H.eout x ++ (H.ein y ++ Rlist) Perm.↭ H.ein y ++ (H.eout x ++ Rlist)
-            eo-shift = PermProp.shifts (H.eout x) (H.ein y)
+                 (Perm.trans (PermProp.++⁺ˡ (H.eout x) ρ₁)
+                             (PermProp.shifts (H.eout x) (H.ein y))))
 
         us-in-a : Unique (H.ein x ++ rx)
         us-in-a = SU.Unique-resp-↭ px us-sp
@@ -602,10 +600,6 @@ module _ (H : Hypergraph FlatGen)
                                   ∘ᵛ Lin₁ ) )
       cross = cross-NFᵛ′ (genˢ (H.elab e)) (genˢ (H.elab e'))
                 Lin₁ Lin₂ Lout₁ Lout₂ Pr vin-cohᵛ vout-cohᵛ
-
-      -- `goal` is `FireMidInterchangeˢ`'s second component at this
-      -- instantiation, so it is NOT re-spelled here.
-      goal = ≈-trans nf₂-eqᵛ (≈-trans cross (∘-resp ≈-refl (≈-sym nf₁-eqᵛ)))
 
   ----------------------------------------------------------------------
   -- THE UNCONDITIONAL EMPTY-TAIL TWO-EDGE INTERCHANGE `run-interchange₀ˢ`,
