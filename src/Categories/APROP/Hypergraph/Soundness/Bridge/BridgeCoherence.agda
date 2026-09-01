@@ -49,7 +49,7 @@ bridge-∘
 -- drawer's `cancel-mid-iso` shape with `isoˡ B` as the middle iso, whose
 -- conclusion already brackets the middle run as `(g ∘ f)`.
 bridge-∘ {B = B} g f =
-  ⟺ (cancel-mid-iso _ _ _ _ _ _ (_≅_.isoˡ (unflatten-flatten-≈ B)))
+  ⟺ (cancel-mid-iso (_≅_.isoˡ (unflatten-flatten-≈ B)))
 
 -- bridge-⊗: bridge distributes over tensor (modulo unflatten-++-≅ coherence).
 bridge-⊗
