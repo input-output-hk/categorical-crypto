@@ -298,8 +298,10 @@ $prec_J$. That the natural orders *are* such linear extensions is *topological v
 
 #block(stroke: 0.5pt + luma(60%), inset: 10pt, radius: 3pt)[
   *Lemma C (topological validity).* #h(0.3em) The natural edge order of $⟪f⟫$ is a linear
-  extension of $prec_(⟪f⟫)$; equivalently, processing edges in that order fires every edge
-  successfully. (This is *not* automatic for an arbitrary hypergraph, whose $prec$ may have
+  extension of $prec_(⟪f⟫)$, and processing edges in that order fires every edge
+  successfully — the latter implies (is strictly stronger than) the former, since a linear
+  extension leaves an edge whose inputs are never produced unfired.
+  (This is *not* automatic for an arbitrary hypergraph, whose $prec$ may have
   cycles; it holds because $⟪f⟫$ comes from a term.)
 ]
 
