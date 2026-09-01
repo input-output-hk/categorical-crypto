@@ -91,10 +91,7 @@ module _ (H : Hypergraph FlatGen)
   -- We descend it from the GLOBAL reservoir on `H.dom` over the combined
   -- order — the *bound* half of `Linear H` specialised to that order
   -- (`dom-reservoir-prov`), TRUE because the order is a PERMUTATION of
-  -- `range nE`.  `reservoir-split` is term-free; its codomain is the
-  -- NON-strict stack `(process-edges …)`, which is propositionally
-  -- equal to the strict `pe-stackˢ` (`pe-stackˢ ≡ proj₁ process-edges` by
-  -- definition of the strict run — both branch on the same `extract-prefix`).
+  -- `range nE`.
   ----------------------------------------------------------------------
 
   -- `pe-stackˢ` IS `(process-edges …)` definitionally: the strict run is
