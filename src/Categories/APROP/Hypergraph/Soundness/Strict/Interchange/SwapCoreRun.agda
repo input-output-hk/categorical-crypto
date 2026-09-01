@@ -130,7 +130,7 @@ module _ (H : Hypergraph FlatGen)
   module RunInterchange (FMI : FireMidInterchangeˢ) where
 
     private
-      -- `build`: the abstract-index four-way split.  The three `Unique`
+      -- `build`: the abstract-index four-way split.  The four `Unique`
       -- arguments feed the both-fire branch only.
       build
         : ∀ {e e' : Fin H.nE} (e≢e' : ¬ (e ≡ e')) (inc : Incompˢ e e')
