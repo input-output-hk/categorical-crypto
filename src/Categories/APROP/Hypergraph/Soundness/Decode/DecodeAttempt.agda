@@ -350,7 +350,8 @@ decode-attempt-hSwap A B =
 decode-attempt-hGen
   : ∀ {A B : ObjTerm} (g : mor A B)
   → process-all-edges (hGen g) (Hypergraph.dom (hGen g)) Perm.↭ Hypergraph.cod (hGen g)
-decode-attempt-hGen {A} {B} g = perm
+decode-attempt-hGen {A} {B} g =
+  subst (Perm._↭ H.cod) (sym proc-≡) (PermProp.++-identityʳ H.cod)
   where
     H = hGen g
     module H = Hypergraph H
@@ -362,8 +363,6 @@ decode-attempt-hGen {A} {B} g = perm
     -- single `edge-step`, which fires to `H.eout zero ++ [] = H.cod ++ []`.
     proc-≡ : process-all-edges H H.dom ≡ H.eout zero ++ []
     proc-≡ = edge-step-just H H.dom zero (proj₂ self)
-    perm : process-all-edges H H.dom Perm.↭ H.cod
-    perm = subst (Perm._↭ H.cod) (sym proc-≡) (PermProp.++-identityʳ H.cod)
 
 --------------------------------------------------------------------------------
 -- `decode-attempt-hTensor`: combines the per-edge / process-edges
