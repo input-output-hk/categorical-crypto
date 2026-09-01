@@ -209,8 +209,10 @@ module _ {A B : ObjTerm} (f g : HomTerm A B) (iso : ⟪ f ⟫ ≅ᴴ ⟪ g ⟫)
           (TE.proc-stack-embˢ τ H.dom)
 
   ------------------------------------------------------------------------
-  -- §3.  Validity (stack) transport.  `map φ` reflects `↭` (φ injective),
-  -- exactly the non-strict `iso-valid`.
+  -- §3.  Validity (stack) transport.  `map φ` reflects `↭` (φ injective).
+  -- Term-free: the proposition being moved is the non-strict
+  -- `IsoInvarianceWiring.PerHG.Valid`, which `SwapStep.Validˢ` is
+  -- definitionally, so nothing strict is involved.
   ------------------------------------------------------------------------
 
   map-φ-↭⁻ : ∀ {xs ys : List (Fin H.nV)} → map φ xs Perm.↭ map φ ys → xs Perm.↭ ys

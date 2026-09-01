@@ -116,8 +116,10 @@ module StrictDecoder (H : Hypergraph FlatGen) where
   pe-stack-++ˢ = process-edges-++ H
 
   ------------------------------------------------------------------------
-  -- Separability, stack level (the term-free half; same 12-line shape as
-  -- the non-strict `process-edges-stack-sep`).
+  -- Separability, stack level (the term-free half: a `process-edges`
+  -- statement in strict clothing, run on `SeparableStack`'s right-frame
+  -- `extract-prefix-++ˡ`/`-nothing`.  There is no non-strict counterpart —
+  -- `SeparableStack` §1 exists for exactly this consumer).
 
   ein-disjoint : Fin H.nE → List (Fin H.nV) → Set
   ein-disjoint e R = All (λ k → extract-elem k R ≡ nothing) (H.ein e)
