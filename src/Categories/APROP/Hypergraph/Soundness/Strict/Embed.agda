@@ -27,8 +27,7 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using ( unflatten; unflatten-++-≅
         ; subst-id-dom; subst-id-cod
-        ; cast-dc; cast-cancel′; cod-cancel; dom-cancel
-        ; subst-cod-cons )
+        ; cast-dc; cod-cancel; dom-cancel )
 open import Categories.APROP.Hypergraph.Soundness.Base.UnflattenMonoidal sig
   using (c-iso-assoc-to; c-iso-assoc-from)
 
@@ -39,7 +38,7 @@ open import Data.List.Properties using (++-assoc; ++-identityʳ)
 open import Categories.Category using (Category)
 open import Categories.Morphism FreeMonoidal using (_≅_)
 open import Categories.Morphism.Reasoning FreeMonoidal
-  using ( pullˡ; pullʳ; cancelˡ; cancelʳ; cancelInner; elimʳ )
+  using ( pullˡ; pullʳ; cancelˡ; cancelʳ; cancelInner )
 open import Categories.Category.Monoidal.Reasoning Monoidal-FreeMonoidal
   using ( merge₁ʳ; merge₂ʳ; split₁ˡ; split₁ʳ )
 
@@ -151,45 +150,32 @@ private
       ○ cancelˡ (cod-cancel A₂)
 
 --------------------------------------------------------------------------------
--- The `⊗-unitʳˢ` case — the right-unit payment (a small induction on the
--- left block, closed by Kelly's coherence₂/₃).
+-- The `⊗-unitʳˢ` case — the right-unit payment.
+--
+-- The `ρ⇒ ∘ F a []` collapse is NOT re-derived here: it IS the boundary
+-- layer's list coherence `BridgeCoherence.ρ⇒-coh-list`, whose statement
+-- `subst-id-cod (++-identityʳ a) ≈Term ρ⇒ ∘ from (unflatten-++-≅ a [])`
+-- is this one read through `Unflatten.cast-dc` (`subst-id-dom (sym p)` IS
+-- `subst-id-cod p`).  `TR` is then its inverse composite.
 
-open import Categories.Category.Monoidal.Properties Monoidal-FreeMonoidal using (module Kelly's)
-open Kelly's using (coherence₂; coherence₃)
+import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig as BC
 
 private
-  -- the ρ-flavoured triangle: α⇒ ∘ ρ⇐ ≈ id ⊗ ρ⇐
-  ρ⇐-tri : ∀ {A B} → α⇒ {A} {B} {unit} ∘ ρ⇐ {A ⊗₀ B} ≈Term id ⊗₁ ρ⇐
-  ρ⇐-tri {A} {B} =
-    ⟺ (cancelˡ (id⊗-cancel ρ⇐∘ρ⇒≈id)) ○ (refl⟩∘⟨ pullˡ coherence₂)
-      ○ elimʳ ρ⇒∘ρ⇐≈id
-
-  -- T a [] ∘ ρ⇐  collapses to a pure cast
-  TR : ∀ a → T a [] ∘ ρ⇐ ≈Term subst-id-cod (sym (++-identityʳ a))
-  TR [] = begin λ⇒ ∘ ρ⇐    ≈⟨ coherence₃ ⟩∘⟨refl ⟩ ρ⇒ ∘ ρ⇐    ≈⟨ ρ⇒∘ρ⇐≈id ⟩ id ∎
-  TR (x ∷ a) =
-    -- reassociate onto the ρ-triangle, fold the two right frames, recurse,
-    -- then re-spell the cons cast by UIP
-    FM.assoc
-    ○ (refl⟩∘⟨ ρ⇐-tri)
-    ○ ≈-Term-sym ⊗-∘-dist
-    ○ ⊗-resp-≈ idˡ (TR a)
-    ○ subst-cod-cons (sym (++-identityʳ a))
-    ○ ≡⇒≈Term (cong subst-id-cod
-        (uipL (cong (x ∷_) (sym (++-identityʳ a)))
-              (sym (++-identityʳ (x ∷ a)))))
+  -- ρ⇒ ∘ F a []  collapses to a pure cast
+  FR : ∀ a → ρ⇒ ∘ F a [] ≈Term subst-id-dom (sym (++-identityʳ a))
+  FR a = ⟺ (BC.ρ⇒-coh-list a) ○ ⟺ (cast-dc (++-identityʳ a))
 
   -- its inverse composite, by uniqueness of inverses
-  FR : ∀ a → ρ⇒ ∘ F a [] ≈Term subst-id-dom (sym (++-identityʳ a))
-  FR a =
-    ⟺ (cancelˡ (cast-cancel′ (sym (++-identityʳ a))))
-    ○ (refl⟩∘⟨ (⟺ (TR a) ⟩∘⟨refl))
+  TR : ∀ a → T a [] ∘ ρ⇐ ≈Term subst-id-cod (sym (++-identityʳ a))
+  TR a =
+    ⟺ (cancelˡ (cod-cancel (sym (++-identityʳ a))))
+    ○ (refl⟩∘⟨ (⟺ (FR a) ⟩∘⟨refl))
     ○ (refl⟩∘⟨ collapse)
     ○ idʳ
     where
-      collapse : (T a [] ∘ ρ⇐) ∘ (ρ⇒ ∘ F a []) ≈Term id
+      collapse : (ρ⇒ ∘ F a []) ∘ (T a [] ∘ ρ⇐) ≈Term id
       collapse =
-        cancelInner ρ⇐∘ρ⇒≈id ○ _≅_.isoˡ (unflatten-++-≅ a [])
+        cancelInner (_≅_.isoʳ (unflatten-++-≅ a [])) ○ ρ⇒∘ρ⇐≈id
 
 ⊗-unitʳ-case
   : ∀ {xs ys} (f : HomS xs ys)
