@@ -39,6 +39,7 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; hId)
 open import Categories.APROP.Hypergraph.Model.Invariant sig using (hId-cod≡dom)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
+import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig as DA
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
   sig using (⟪⟫-cod-Unique)
 
@@ -65,8 +66,12 @@ module Trivial (V : Set) (vlab : V → X) where
   refl-trivial refl = ≈-refl
 
 --------------------------------------------------------------------------------
--- The canonical block-swap derivation + its `permuteˢ ≈ σˢ` identity (the
+-- The canonical block-swap derivation's `permuteˢ ≈ σˢ` identity (the
 -- vertex-level keystone).  Recursion on the LEFT block.
+--
+-- `bswap` itself is `DecodeAttempt`'s, re-exported: it IS the `hSwap`
+-- totality witness, so `finalPermˢ (σ {A}{B})` REDUCES to it and the σ-shape
+-- (`DecodeSigma`) pays no rigidity.
 
 module Scr (V : Set) (vlab : V → X) where
   open PK.Support V vlab public
@@ -74,9 +79,7 @@ module Scr (V : Set) (vlab : V → X) where
   open Restrict V vlab
     using (idᵛ; _⊗ᵛ_; σᵛ; _≈ᵛ_; permuteᵛ; castᵛ-cast; σ-unitᵛ)
 
-  bswap : (L R : List V) → (L ++ R) ↭ (R ++ L)
-  bswap []      R = Perm.↭-reflexive (sym (++-identityʳ R))
-  bswap (v ∷ L) R = Perm.trans (Perm.prep v (bswap L R)) (Perm.↭-sym (PermProp.shift v R L))
+  open DA using (bswap) public
 
   -- `permuteᵛ (↭-sym (shift v R L))` is the braiding of `v ∷ []` past the
   -- block `R`, framed by `idᵛ {L}` — stated in the `Restrict` layer, so the

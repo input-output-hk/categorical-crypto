@@ -320,13 +320,23 @@ module _ (G K : Hypergraph FlatGen) where
 --------------------------------------------------------------------------------
 -- `hSwap A B`: nE = 0, dom = Lblk ++ Rblk, cod = Rblk ++ Lblk.
 -- `process-all-edges` returns `dom` (by `refl`); the boundary permutation
--- `dom ↭ cod` is `++-comm Lblk Rblk`.
+-- `dom ↭ cod` is the canonical block swap `bswap` — stdlib's `++-comm` with
+-- its `PermutationReasoning` tail (a trailing `↭-trans _ ↭-refl`) normalised
+-- away.  Spelling it here rather than calling `++-comm` is load bearing: the
+-- strict σ-shape's keystone `Interchange.BlockSwapComm.block-swap-comm` runs
+-- on `bswap`, so `finalPermˢ (σ {A}{B})` — which REDUCES to this witness —
+-- needs to BE `bswap` for that shape to pay no rigidity at all.
+-- `Strict/Decode/DecodeShapes.Scr` re-exports it.
+
+bswap : ∀ {a} {A : Set a} (L R : List A) → (L ++ R) Perm.↭ (R ++ L)
+bswap []      R = Perm.↭-reflexive (sym (++-identityʳ R))
+bswap (v ∷ L) R = Perm.trans (Perm.prep v (bswap L R)) (Perm.↭-sym (PermProp.shift v R L))
 
 decode-attempt-hSwap
   : ∀ (A B : ObjTerm)
   → process-all-edges (hSwap A B) (Hypergraph.dom (hSwap A B))
       Perm.↭ Hypergraph.cod (hSwap A B)
-decode-attempt-hSwap A B = PermProp.++-comm Lblk Rblk
+decode-attempt-hSwap A B = bswap Lblk Rblk
   where open hGenSwap-impl A B using (Lblk; Rblk)
 
 --------------------------------------------------------------------------------

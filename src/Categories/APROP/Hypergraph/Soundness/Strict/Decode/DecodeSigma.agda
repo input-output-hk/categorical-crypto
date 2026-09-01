@@ -5,12 +5,13 @@
 --
 --   decodePˢ-σ : decodePˢ (σ {A}{B}) ≈ˢ σˢ (flatten A) (flatten B)
 --
--- `⟪ σ {A}{B} ⟫ = hSwap A B` has `nE ≡ 0`, so (exactly as in
--- `DecodeShapes.Atom`) the run collapses to `idˢ` and `decodePˢ σ` reduces to
--- `castˢ (boundary) (permuteˢ (finalPermˢ σ))`.  `finalPermˢ σ` is a derivation
--- `dom(hSwap) ↭ cod(hSwap)` into the `Unique` codomain `cod`; via `rigidˢ`
--- it is identified with the CANONICAL block-swap derivation `bswap Lblk Rblk`
--- (`DecodeShapes.Scr`), whose `permuteˢ` is the strict block braiding `σˢ`.
+-- `⟪ σ {A}{B} ⟫ = hSwap A B` has `nE` LITERALLY `0`, so the run reduces to
+-- `idˢ` and `decodePˢ σ` to `castˢ (boundary) (permuteˢ (finalPermˢ σ))` — with
+-- no stack equality to transport along.  And `finalPermˢ σ` reduces in turn to
+-- the CANONICAL block-swap derivation `bswap Lblk Rblk`, because that is how
+-- `DecodeAttempt.decode-attempt-hSwap` (which `decode-attempt-LinearP`'s
+-- `q-swap` branch IS) is spelled.  So this shape pays no rigidity at all; what
+-- is left is `permuteˢ (bswap Lblk Rblk) ≈ σˢ`.
 --
 -- That last fact — the strict vertex-level block-swap-commutes keystone,
 -- whose two inductive steps carry the hexagon-reconciliation content — is
@@ -31,8 +32,6 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (flatten; module hGenSwap-impl)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
-open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
-  sig using (⟪⟫-cod-Unique)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟X_
@@ -45,7 +44,7 @@ open Perm using (_↭_)
 
 --------------------------------------------------------------------------------
 -- The σ-shape, assembled from `BlockSwapComm.block-swap-comm` (the block-swap
--- keystone) via the `nE ≡ 0` collapse and `rigidˢ`.
+-- keystone) alone: the `nE = 0` collapse is definitional.
 
 module Sigma (A B : ObjTerm) where
   private
@@ -54,34 +53,20 @@ module Sigma (A B : ObjTerm) where
 
     module RF = Run ⟪ f ⟫
     module Hf = Hypergraph ⟪ f ⟫
-    open Restrict (Fin Hf.nV) Hf.vlab
-      using (idᵛ; _∘ᵛ_; σᵛ; castᵛ; _≈ᵛ_; permuteᵛ; permuteᵛ-subst-dom
-            ; ∘-castᵛ; subst-codᵛ; σᵛ-≈̂)
-
-    nE≡0 : Hf.nE ≡ 0
-    nE≡0 = refl
-
-    collapse = DShapes.nE0-run ⟪ f ⟫ nE≡0
-    s≡ : RF.s-finˢ ≡ Hf.dom
-    s≡ = proj₁ collapse
+    open Restrict (Fin Hf.nV) Hf.vlab using (_∘ᵛ_; σᵛ; _≈ᵛ_; σᵛ-≈̂)
 
     -- The hSwap blocks and their vertex-label evaluations, taken from the
     -- constructor's own `where`-module: `⟪ σ ⟫ = hSwap A B`, so `Hf.vlab` IS
     -- `hGenSwap-impl`'s `vlab-c` and `Hf.dom = Lblk ++ Rblk`,
     -- `Hf.cod = Rblk ++ Lblk` hold definitionally.
     open hGenSwap-impl A B using (Lblk; Rblk; lem-L; lem-R)
+    open DShapes.Scr (Fin Hf.nV) Hf.vlab using (bswap)
 
-    -- the canonical derivation `dom ↭ cod`.
+    -- the canonical derivation `dom ↭ cod`.  `finalPermˢ f` REDUCES to it:
+    -- `⟪ σ ⟫ = hSwap A B`, so `decode-attempt-LinearP` takes its `q-swap`
+    -- branch, and `decode-attempt-hSwap` is spelled as `bswap`.
     bsw : Hf.dom ↭ Hf.cod
-    bsw = DShapes.Scr.bswap (Fin Hf.nV) Hf.vlab Lblk Rblk
-
-    -- the algorithm's final permutation equals `bsw` under `permuteˢ`,
-    -- by `perm-rigidˢ` into the `Unique` codomain (exactly where the
-    -- non-strict proof invokes K-faithfulness).
-    perm≈ : RF.permuteˢ (finalPermˢ f)
-            ≈ˢ RF.permuteˢ (subst (Perm._↭ Hf.cod) (sym s≡) bsw)
-    perm≈ = RF.rigidˢ (⟪⟫-cod-Unique f) (finalPermˢ f)
-              (subst (Perm._↭ Hf.cod) (sym s≡) bsw)
+    bsw = bswap Lblk Rblk
 
   -- the block-swap identity at the hSwap blocks (the residual `bswap-σ`),
   -- V-level: `Hf.dom = Lblk ++ Rblk` and `Hf.cod = Rblk ++ Lblk` hold
@@ -89,24 +74,12 @@ module Sigma (A B : ObjTerm) where
   σ-block-≈ : RF.permuteˢ bsw ≈ᵛ σᵛ Lblk Rblk
   σ-block-≈ = BSC.block-swap-comm (Fin Hf.nV) Hf.vlab Lblk Rblk
 
-  private
-    -- the run collapses to `coe` of the stack-equality (nE ≡ 0).
-    run≡ : proj₂ RF.runˢ ≡ castᵛ refl (sym s≡) (idᵛ {Hf.dom})
-    run≡ = trans (proj₂ collapse) (subst-codᵛ (sym s≡) idᵛ)
-
-    -- `permuteᵛ` of the `s≡`-substituted canonical derivation is a `castᵛ`
-    -- of `permuteᵛ bsw`.
-    permsub≡ : RF.permuteˢ (subst (Perm._↭ Hf.cod) (sym s≡) bsw)
-               ≡ castᵛ (sym s≡) refl (permuteᵛ bsw)
-    permsub≡ = permuteᵛ-subst-dom (sym s≡) bsw
-
   -- the inner term `permuteˢ (finalPermˢ σ) ∘ᵛ proj₂ runˢ` IS the block
-  -- braiding: the two `s≡` transports meet at the collapsed run and cancel.
+  -- braiding, on the nose: `Hf.nE` is literally `0`, so the run reduces to
+  -- `idᵛ` with no stack-equality to transport along, and `finalPermˢ f`
+  -- reduces to `bsw`.  Only the unit law is left to say.
   inner≈ : RF.permuteˢ (finalPermˢ f) ∘ᵛ proj₂ RF.runˢ ≈ᵛ σᵛ Lblk Rblk
-  inner≈ =
-    ≈-trans (∘-resp (≈-trans perm≈ (≡⇒≈ˢ permsub≡)) (≡⇒≈ˢ run≡))
-    (≈-trans (∘-castᵛ refl (sym s≡) refl (permuteᵛ bsw) idᵛ)
-      (≈-trans idʳ σ-block-≈))
+  inner≈ = ≈-trans idʳ σ-block-≈
 
   -- the full σ-shape.  `decodePˢ f` IS `castˢ (⟪⟫-domL f) (⟪⟫-codL f) inner`
   -- and every remaining endpoint mismatch is a cast the `≈̂` layer carries:
@@ -124,6 +97,6 @@ module Sigma (A B : ObjTerm) where
 --------------------------------------------------------------------------------
 -- The σ-shape rests on the block-swap keystone `BlockSwapComm.block-swap-comm`
 -- (whose `[]` base is `DecodeShapes.Scr.bswap-σ-base`; the `(v ∷ L)` step is
--- the σ-hexˢ reconciliation).  Fed with `rigidˢ` it collapses `finalPermˢ σ`
--- onto `bswap`, giving `decodePˢ (σ {A}{B}) ≈ σˢ (flatten A) (flatten B)`.
+-- the σ-hexˢ reconciliation) — `finalPermˢ σ` already IS `bswap`, so the
+-- keystone plus one unit law gives `decodePˢ (σ {A}{B}) ≈ σˢ (flatten A) (flatten B)`.
 --------------------------------------------------------------------------------
