@@ -34,6 +34,8 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-prefix)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-via-injective-just; extract-prefix-via-injective-nothing)
+open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
+  using (module StackLift)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_ public
 
@@ -342,18 +344,16 @@ module TermEmbedˢ
 
 
   ----------------------------------------------------------------------
-  -- Per-edge STACK agreement (term-free; lock-step on `extract-prefix`).
+  -- Per-edge and iterated STACK agreement (term-free).  The strict stack IS
+  -- `edge-step`/`process-edges` on the nose (`edge-stepˢ s e = (edge-step H
+  -- s e , _)`), so both ARE the shared kernel `DecodeAttempt.StackLift` at
+  -- `out ≔ map φ`, `κ ≔ ψ`; only `fold` is embedding-specific.
 
-  edge-step-stack-embˢ
-    : ∀ (e : Fin H.nE) (sH : List (Fin H.nV))
-    → proj₁ (RJ.edge-stepˢ (map φ sH) (ψ e))
-      ≡ map φ (proj₁ (RH.edge-stepˢ sH e))
-  edge-step-stack-embˢ e sH with extract-prefix (H.ein e) sH in eqH
-  ... | nothing rewrite extract-prefix-J-nothing e sH eqH = refl
-  ... | just (restH , permH)
-        rewrite proj₂ (extract-prefix-J-just e sH restH permH eqH)
-        = trans (cong (_++ map φ restH) (ψ-eout e))
-                (sym (map-++ φ (H.eout e) restH))
+  open StackLift J H ψ (map φ) extract-prefix-J-just extract-prefix-J-nothing
+       (λ e rest → trans (cong (_++ map φ rest) (ψ-eout e))
+                         (sym (map-++ φ (H.eout e) rest)))
+    public renaming (edge-step-lift    to edge-step-stack-embˢ;
+                     process-edges-lift to proc-stack-embˢ)
 
   ----------------------------------------------------------------------
   -- Per-edge term-twin (dispatch on `extract-prefix`, both sides).
@@ -381,18 +381,6 @@ module TermEmbedˢ
           restJ≡ = just-injective-fst
                      (trans (sym eqJ)
                             (proj₂ (extract-prefix-J-just e sH restH permH eqH)))
-
-  ----------------------------------------------------------------------
-  -- Iterated STACK agreement (term-free).
-
-  proc-stack-embˢ
-    : ∀ (es : List (Fin H.nE)) (sH : List (Fin H.nV))
-    → proj₁ (RJ.process-edgesˢ (map ψ es) (map φ sH))
-      ≡ map φ (proj₁ (RH.process-edgesˢ es sH))
-  proc-stack-embˢ []       sH = refl
-  proc-stack-embˢ (e ∷ es) sH
-    rewrite edge-step-stack-embˢ e sH =
-      proc-stack-embˢ es (proj₁ (RH.edge-stepˢ sH e))
 
   ----------------------------------------------------------------------
   -- Iterated term-twin, GENERALISED over the J-start stack `sJ`
