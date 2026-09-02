@@ -5,7 +5,7 @@
 -- palette order of `Categories.Coherence.Symmetric.Test`, which is the root
 -- that checks this module:
 --
---   1. `solveH!`               — `Cycle3`, `Braiding`, `Crossings` (+ `Atoms3`)
+--   1. `solveH!`               — `Cycle3`, `Braiding`, `Crossings`
 --   2. `rewriteH!`/`rewriteAuto(ₙ)!` — `MonoidRewrite`
 --   3. `rewriteDeep(ₙ)!`/`rewriteDeepTo!` — `DeepRewrite`, `DeepArity`
 --   4. `normalize(To)!`        — `MonoidNormalize`
@@ -416,17 +416,7 @@ module DeepRewrite (A₀ A₁ A₂ : C.Obj)
   (pᴹ qᴹ : A₀ C.⇒ A₁) (wᴹ : A₁ C.⇒ A₂)
   where
 
-  open FreeMonoidalHelper Symm (Fin 3) using (ObjTerm; Var)
-
-  a₀ a₁ a₂ : ObjTerm
-  a₀ = Var zero
-  a₁ = Var (suc zero)
-  a₂ = Var (suc (suc zero))
-
-  ⟦_⟧ᵖ₀ : Fin 3 → C.Obj
-  ⟦ zero        ⟧ᵖ₀ = A₀
-  ⟦ suc zero    ⟧ᵖ₀ = A₁
-  ⟦ suc (suc _) ⟧ᵖ₀ = A₂
+  open Atoms3 A₀ A₁ A₂
 
   arity : Fin 3 → ObjTerm × ObjTerm
   arity zero          = a₀ , a₁
