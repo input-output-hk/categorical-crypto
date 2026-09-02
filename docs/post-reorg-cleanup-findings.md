@@ -5,6 +5,13 @@
 > exported as `NoSelfDep` (types byte-identical).  Read every `DepIrrefl` below — including
 > the file paths in the findings' `files:` lines — as `FinOrderNoInv`.
 
+> **Repointing note (2026-09-02).** Two more paths in the findings' `files:` lines are gone:
+> `Soundness/Discharge/BridgeAlphaFormCompound.agda` (Discharge-5, `:393-395`) was folded into
+> `Soundness/Bridge/BridgeCoherence.agda`, and `Strict/Perm/PermSupport.agda` (Strict-8,
+> `:448-451`) was dissolved into `Strict/Perm/PermK.agda`, which is where the `permˢ-K`
+> discharge that finding asks to document now lives. Both findings' recommendations were
+> overtaken by those moves; this is an archived corpus, read it as of 2026-06-17.
+
 Produced by the `post-reorg-cleanup-discovery` workflow: one read-only auditor per major
 subtree -> adversarial verification of every finding -> cross-cutting synthesis.
 58 findings: 49 confirmed, 9 needs-care, 1 dropped as false-positive.

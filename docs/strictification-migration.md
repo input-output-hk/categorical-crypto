@@ -7,6 +7,16 @@
 > `bridge-cancel`, `st-resp-iso`, `soundness-strict`) now lives, concrete, in
 > `Strict/Soundness.agda`.
 
+> **Repointing note (2026-09-02), superseding the paragraph above.**
+> `Strict/Perm/PermSupport.agda` no longer exists either, so `permˢ-K` has no
+> module-parameter definition site left outside `Perm/PermK.agda`, which both
+> states it (`:80`) and discharges it axiom-free (its own `module _ (permˢ-K :
+> PermK)` at `:61` is the internal abstraction, not a threaded parameter). Three
+> further names below are gone from `src/`: `stacks-agree` and
+> `extract-exact-total` (the phase-1 totality transfer they name was reworked),
+> and `SoundnessFullWired`, which is now the capstone `Soundness.agda` exporting
+> `soundness`. Read the phase log as a record of the plan, not of live wiring.
+
 Goal: re-base the soundness proof `soundness-full-wired : ⟪f⟫ ≅ᴴ ⟪g⟫ → f ≈Term g`
 on a presented strict SMC `S`, collapsing the per-site Mac-Lane tax
 (`unflatten-++-≅` conjugation + `subst₂` transport) into a one-time boundary.

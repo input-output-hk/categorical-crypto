@@ -109,7 +109,8 @@ module PerHG (H : Hypergraph FlatGen)
   -- PLUMBING 1 — the cod-only stack transport `coeCod` and the term-level
   -- factoring of `process-edgesˢ` over `_++_` (`pe-term-++ˢ`), both from the
   -- strict `DecodeCompose` run blocks: `pe-term-++ˢ` IS this cluster's
-  -- `process-edges-++-≈ˢ` face, once `++-stackˢ` is the shared stack kernel.
+  -- `_++_`-factoring face, and `++-stackˢ` (`EdgeStepRel:67`) is the shared
+  -- stack kernel it factors through.
   open RunBlocks H using (coeCod; pe-term-++ˢ) public
 
   ------------------------------------------------------------------------
