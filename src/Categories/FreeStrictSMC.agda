@@ -47,6 +47,8 @@ open import Relation.Binary.PropositionalEquality
 open import Axiom.UniquenessOfIdentityProofs using (UIP; module Decidable⇒UIP)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
+open import Data.List.Relation.Binary.Permutation.Propositional.Properties
+  using (++⁺ʳ; ++⁺ˡ; ↭-sym-involutive)
 
 module Build
   (X : Set) (_≟X_ : DecidableEquality X)
@@ -394,9 +396,6 @@ module Build
 
   module Perm′ (V : Set) (vlab : V → X) where
 
-    open import Data.List.Relation.Binary.Permutation.Propositional.Properties
-      using (++⁺ʳ; ++⁺ˡ; ↭-sym-involutive)
-
     permuteˢ : ∀ {xs ys : List V} → xs ↭ ys → HomS (map vlab xs) (map vlab ys)
     permuteˢ Perm.refl         = idˢ
     permuteˢ (Perm.prep x p)   = idˢ {vlab x ∷ []} ⊗ˢ permuteˢ p
@@ -488,9 +487,6 @@ module Build
   module Restrict (V : Set) (vlab : V → X) where
 
     open Perm′ V vlab using (permuteˢ; permuteˢ-frame; permuteˢ-frameˡ)
-
-    open import Data.List.Relation.Binary.Permutation.Propositional.Properties
-      using (++⁺ʳ; ++⁺ˡ)
 
     private
       m : List V → List X
