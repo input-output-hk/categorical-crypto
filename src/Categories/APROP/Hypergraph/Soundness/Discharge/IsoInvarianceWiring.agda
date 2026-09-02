@@ -34,10 +34,8 @@ open import Categories.Combinatorics.TabulateBij
 
 import Categories.Combinatorics.LinearExtension as LinExt
 
-open import Data.Fin using (Fin)
-import Data.Fin as Fin
-open import Data.Nat using (ℕ)
-import Data.Nat as Nat
+open import Data.Fin as Fin using (Fin)
+open import Data.Nat as Nat using (ℕ)
 open import Data.List.Properties using (map-tabulate)
 open import Data.List.Properties.Ext using (map-∘-cong)
 open import Relation.Nullary using (¬_)

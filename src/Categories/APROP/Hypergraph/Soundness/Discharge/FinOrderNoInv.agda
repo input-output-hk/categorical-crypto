@@ -99,8 +99,7 @@ open import Data.List.Membership.Propositional.Properties
   using (∈-map⁻; ∈-concat⁺′; ∈-tabulate⁺)
 open import Data.List.Relation.Unary.All using (All; []; _∷_; universal)
 import Data.List.Relation.Unary.All.Properties as AllProp
-open import Data.List.Relation.Unary.AllPairs using (AllPairs; []; _∷_)
-import Data.List.Relation.Unary.AllPairs as AP
+open import Data.List.Relation.Unary.AllPairs as AP using (AllPairs; []; _∷_)
 import Data.List.Relation.Unary.AllPairs.Properties as AllPairsProp
 open import Data.Nat using (_+_)
 open import Relation.Nullary using (¬_)
