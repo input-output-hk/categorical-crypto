@@ -17,9 +17,10 @@
 ------------------------------------------------------------------------
 
 open import Categories.FreeMonoidal
+open import Level using (Level)
 
 module Categories.PermuteCoherence.Unflatten
-  (d : FreeMonoidalData) ⦃ s≤v : Symm ≤ FreeMonoidalData.v d ⦄ where
+  {ℓ′ : Level} (d : FreeMonoidalData {ℓ′}) ⦃ s≤v : Symm ≤ FreeMonoidalData.v d ⦄ where
 
 open FreeMonoidal d
 open FreeMonoidalData d using (v; X; mor)

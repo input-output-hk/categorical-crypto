@@ -249,12 +249,12 @@ module FreeMonoidalHelper (v : Variant) (X : Set ℓ′) where
 
     cancel-mid-iso
       : ∀ {A₀ A₁ A₂ A₃ A₄ A₅ : ObjTerm}
-          (To : HomTerm A₄ A₅) (M₁ : HomTerm A₂ A₄) (Fm : HomTerm A₃ A₂)
-          (Tm : HomTerm A₂ A₃) (M₂ : HomTerm A₁ A₂) (Ff : HomTerm A₀ A₁)
+          {To : HomTerm A₄ A₅} {M₁ : HomTerm A₂ A₄} {Fm : HomTerm A₃ A₂}
+          {Tm : HomTerm A₂ A₃} {M₂ : HomTerm A₁ A₂} {Ff : HomTerm A₀ A₁}
       → Fm ∘ Tm ≈Term id
       → (To ∘ M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
         ≈Term To ∘ (M₁ ∘ M₂) ∘ Ff
-    cancel-mid-iso _ _ _ _ _ _ m-iso = center (cancelʳ m-iso) ○ (refl⟩∘⟨ ≈-Term-sym assoc)
+    cancel-mid-iso m-iso = center (cancelʳ m-iso) ○ (refl⟩∘⟨ ≈-Term-sym assoc)
 
     cancel₃
       : ∀ {A₀ A₁ A₂ A₃ : ObjTerm}
@@ -262,7 +262,7 @@ module FreeMonoidalHelper (v : Variant) (X : Set ℓ′) where
           {c⁻ : HomTerm A₁ A₀} {b⁻ : HomTerm A₂ A₁} {a⁻ : HomTerm A₃ A₂}
       → c ∘ c⁻ ≈Term id → b ∘ b⁻ ≈Term id → a ∘ a⁻ ≈Term id
       → (a ∘ b ∘ c) ∘ (c⁻ ∘ b⁻ ∘ a⁻) ≈Term id
-    cancel₃ hc hb ha = cancel-mid-iso _ _ _ _ _ _ hc ○ (refl⟩∘⟨ elimˡ hb) ○ ha
+    cancel₃ hc hb ha = cancel-mid-iso hc ○ (refl⟩∘⟨ elimˡ hb) ○ ha
 
     α-conj : ∀ {A B C D E G} (f : HomTerm A B) (g : HomTerm C D) (h : HomTerm E G)
            → α⇒ ∘ (f ⊗₁ g) ⊗₁ h ∘ α⇐ ≈Term f ⊗₁ (g ⊗₁ h)
