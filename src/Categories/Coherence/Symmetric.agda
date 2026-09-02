@@ -110,7 +110,7 @@ module Wiring
   -- locatable — in the frontend's own terms.  `⟪_⟫`/`subMatch` are the STAGE
   -- BEFORE `deepFoc`: a `deepFoc` failure alone cannot say whether the
   -- sub-hypergraph match or the hole-carve was what refused, and the two are
-  -- different limitations (see `Test.Deep`, both configurations).
+  -- different limitations (see `Test.Suite.{DeepRewrite,DeepArity}`).
   open import Categories.APROP.Hypergraph.Model.Translation finSig public
     using (⟪_⟫)
   open import Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch finSig public

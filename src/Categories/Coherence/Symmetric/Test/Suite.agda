@@ -559,8 +559,8 @@ module DeepRewrite (A₀ A₁ A₂ : C.Obj)
                    ((q S.⊗₁ S.id {a₀}) S.⊗₁ S.id {a₁}) padded²
 
 --------------------------------------------------------------------------------
--- Configuration 2 (folded in from `Test.DeepArity`): `rewriteDeep!` on
--- multi-arity generators, and the convexity/retry story.  A merge
+-- Configuration 2: `rewriteDeep!` on multi-arity generators, and the
+-- convexity/retry story.  A merge
 -- `m : a ⊗ a → a`, a split `e : a → a ⊗ a`, a unary `k : a → a`, and a
 -- scalar-ish `u : unit → a`.
 
