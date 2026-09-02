@@ -51,10 +51,6 @@ module CompareI {X : Set}
       encode ([]_ n)               = []
       encode (pre ▸ suf ∷ f ⟨ d ⟩) = (pre , suf , gen f) ∷ encode d
 
-      instance
-        DecEq-LayerE : DecEq LayerE
-        DecEq-LayerE = DecEq-× ⦃ it ⦄ ⦃ DecEq-× ⦄
-
       -- `encode` is injective on equal-endpoint diagrams.  The `[]`-diagonal
       -- ties both endpoints, so exactly one of the two endpoint equations can
       -- be refl-matched; the other goes through Hedberg UIP on `List X`.
