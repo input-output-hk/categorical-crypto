@@ -46,7 +46,7 @@ open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
   using (unflatten; unflatten-flatten-≈; _≅_; bridge; subst-id-cod)
 open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig
   using ( bridge-∘; bridge-⊗; bridge-id-is-id; bridge-λ⇒-is-id; bridge-λ⇐-is-id
-        ; ρ⇒-coherence; ρ⇐-coherence; derive-⇐; module Worker )
+        ; ρ⇒-coherence; ρ⇐-coherence; module Worker )
 
 open import Categories.FreeStrictSMC using (module Map)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig
@@ -119,7 +119,7 @@ st-roundtrip (α⇒ {A} {B} {C}) =
 -- transposition at an arbitrary object.
 st-roundtrip (α⇐ {A} {B} {C}) =
   ≡⇒≈Term (embF-coe (sym (++-assoc (flatten A) (flatten B) (flatten C))))
-  ○ ⟺ (derive-⇐ A B C (Worker.work A B C))
+  ○ ⟺ (Worker.derive-⇐ A B C)
 st-roundtrip (σ {A} {B} ⦃ v≤v ⦄) =
   ⟺ (center (⟺ σ∘[f⊗g]≈[g⊗f]∘σ)
      ○ (refl⟩∘⟨ cancelInner (⊗-cancel (_≅_.isoʳ (unflatten-flatten-≈ A))

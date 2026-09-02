@@ -342,29 +342,13 @@ bridge-α⇒-is-id-unit B C = begin
 -- `pentagon-rewrite`, distributes via `bridge-∘`/`bridge-⊗`, and recurses on
 -- the structural subterms `A₁` and `A₂` — the prefix `A₁` needs no case
 -- analysis because every ingredient below is stated at an arbitrary prefix
--- LIST.  The α⇐ factor is derived non-recursively (`derive-⇐`).
+-- LIST.  The α⇐ factor is `derive-⇐`, mutual with `work` but not recursive.
 --
 -- Because the target is a CAST, the residue is discharged by eliminating
 -- equality proofs (`cast-inˡ`/`cast-inʳ` are one `refl` split each) plus the
 -- pentagon for `++-assoc` PROOF TERMS (`cast-pentagon`, induction on the
 -- prefix list) — no free-monoidal coherence chase, hence no solver call.
 --------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
--- `derive-⇐`: the α⇐ cast derived from the α⇒ result at the SAME object, via
--- the α⇒/α⇐ iso.  Non-recursive (takes the α⇒ result as an explicit argument),
--- so it stays outside `work`'s recursion; exported because `Strict.Soundness`'s
--- α⇐ boundary case is exactly this instance.
-
-derive-⇐
-  : ∀ A B C
-  → bridge (α⇒ {A} {B} {C})
-    ≈Term subst-id-cod (++-assoc (flatten A) (flatten B) (flatten C))
-  → bridge (α⇐ {A} {B} {C})
-    ≈Term subst-id-cod (sym (++-assoc (flatten A) (flatten B) (flatten C)))
-derive-⇐ A B C =
-  inv-resp (bridge-inv-id α⇐ α⇒ α⇐∘α⇒≈id)
-           (cod-cancel (++-assoc (flatten A) (flatten B) (flatten C)))
 
 --------------------------------------------------------------------------------
 -- The cast kit `work`'s tensor clause bottoms out in.  Every lemma here is a
@@ -478,6 +462,20 @@ module Worker where
     → bridge (α⇒ {A} {B} {C})
     ≈Term subst-id-cod (++-assoc (flatten A) (flatten B) (flatten C))
 
+  -- `derive-⇐`: the α⇐ cast, the α⇒ one at the SAME object transposed through
+  -- the α⇒/α⇐ iso.  Mutual with `work` (its tensor clause needs the α⇐ leg, as
+  -- does `Strict.Soundness`'s α⇐ boundary case), but not itself recursive: the
+  -- composite call `work → derive-⇐ → work` drops to a structural subterm of
+  -- the matched first argument, which the termination checker accepts.
+  derive-⇐
+    : ∀ A B C
+    → bridge (α⇐ {A} {B} {C})
+    ≈Term subst-id-cod (sym (++-assoc (flatten A) (flatten B) (flatten C)))
+  derive-⇐ A B C =
+    inv-resp (bridge-inv-id α⇐ α⇒ α⇐∘α⇒≈id)
+             (cod-cancel (++-assoc (flatten A) (flatten B) (flatten C)))
+             (work A B C)
+
   -- `++-assoc [] ys zs` and `++-assoc (x ∷ []) ys zs` are both `refl`, so both
   -- base casts ARE `id` — which is what the two base lemmas prove.
   work unit    B C = bridge-α⇒-is-id-unit B C
@@ -504,7 +502,7 @@ module Worker where
       ∘ bridge (id {A₁} ⊗₁ α⇒ {A₂} {B} {C})
       ∘ bridge (α⇒ {A₁} {A₂ ⊗₀ B} {C})
       ∘ bridge (α⇒ {A₁} {A₂} {B} ⊗₁ id {C})
-      ≈⟨ derive-⇐ A₁ A₂ (B ⊗₀ C) (work A₁ A₂ (B ⊗₀ C))
+      ≈⟨ derive-⇐ A₁ A₂ (B ⊗₀ C)
          ⟩∘⟨ ( bridge-⊗-resp (id {A₁}) (α⇒ {A₂} {B} {C})
                              (bridge-id-is-id A₁) (work A₂ B C)
                ○ cast-inʳ (flatten A₁) (++-assoc (flatten A₂) (flatten B) (flatten C)) )
