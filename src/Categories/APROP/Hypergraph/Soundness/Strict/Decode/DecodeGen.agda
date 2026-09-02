@@ -225,9 +225,3 @@ module Gen {A B : ObjTerm} (g : mor A B) where
       (≈̂-trans (≈̂-trans (≈ˢ⇒≈̂ inner≈) (castᵛ-≈̂ refl (trans Qrun sc) G0))
                (≈̂-trans (≈ˢ⇒≈̂ G0≈) (cast-≈̂ {p = Pin} {q = Pout})))
       (⟪⟫-domL f) (⟪⟫-codL f)
-
---------------------------------------------------------------------------------
--- The exported Agen shape (the part-(I)ˢ base case).
-
-decodePˢ-Agen : ∀ {A B} (g : mor A B) → decodePˢ (Agen g) ≈ˢ st (Agen g)
-decodePˢ-Agen g = Gen.decodePˢ-Agen g

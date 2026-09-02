@@ -54,7 +54,6 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunIntercha
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.FireMid sig as FMD
 import Categories.APROP.Hypergraph.Soundness.Strict.Iso.IsoTransport sig as IT
 
-open import Data.Fin using (Fin)
 open import Data.List.Properties using (++-assoc)
 
 ------------------------------------------------------------------------

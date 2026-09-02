@@ -31,9 +31,9 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (flatten; module hGenSwap-impl)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 
+open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
+  using (bswap)
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig
-import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig
-  as DShapes
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig
   as BSC
 
@@ -58,7 +58,6 @@ module Sigma (A B : ObjTerm) where
     -- `hGenSwap-impl`'s `vlab-c` and `Hf.dom = Lblk ++ Rblk`,
     -- `Hf.cod = Rblk ++ Lblk` hold definitionally.
     open hGenSwap-impl A B using (Lblk; Rblk; lem-L; lem-R)
-    open DShapes.Scr (Fin Hf.nV) Hf.vlab using (bswap)
 
     -- the canonical derivation `dom ↭ cod`.  `finalPermˢ f` REDUCES to it:
     -- `⟪ σ ⟫ = hSwap A B`, so `decode-attempt-LinearP` takes its `q-swap`

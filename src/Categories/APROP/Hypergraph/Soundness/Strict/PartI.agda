@@ -39,7 +39,7 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorBraid    sig as
 -- re-ascribing a statement as a module parameter here would only restate it.
 
 st-≈-decodePˢ : ∀ {A B} (f : HomTerm A B) → st f ≈ˢ decodePˢ f
-st-≈-decodePˢ (Agen g)        = ≈-sym (DGen.decodePˢ-Agen g)
+st-≈-decodePˢ (Agen g)        = ≈-sym (DGen.Gen.decodePˢ-Agen g)
 st-≈-decodePˢ (id {A})        = ≈-sym (DSh.decodePˢ-id {A})
 st-≈-decodePˢ (g ∘ f)         =
   ≈-trans (∘-resp (st-≈-decodePˢ g) (st-≈-decodePˢ f))

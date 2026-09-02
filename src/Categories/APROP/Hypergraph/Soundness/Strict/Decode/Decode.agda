@@ -13,10 +13,11 @@
 -- `process-edges` (the strict decoder pairs that fold with its term), so
 -- the success witness of the live decoder (`decode-attempt-LinearP`)
 -- transfers with no cast at all.  WHICH permutation it is
--- never matters downstream: the atom / σ / Agen / ⊗ shapes collapse
--- `permuteˢ (finalPermˢ f)` by RIGIDITY (`perm-rigidˢ` at the `Unique`
--- codomain of `⟪ f ⟫`) and the ∘-shape transports it opaquely, so nothing
--- ever reads an `extract-exact ... ≡ just _` equation for it.
+-- never matters downstream: the atom and σ shapes REDUCE it (their `⟪ f ⟫`
+-- is a literal `hId`/`hSwap`, so it is `Perm.↭-refl` / `bswap` on the nose),
+-- the Agen and ⊗ shapes collapse it by RIGIDITY (`perm-rigidˢ` at the
+-- `Unique` codomain of `⟪ f ⟫`), and the ∘-shape transports it opaquely, so
+-- nothing ever reads an `extract-exact ... ≡ just _` equation for it.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

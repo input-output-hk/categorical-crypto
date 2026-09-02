@@ -39,20 +39,6 @@ import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig as PK
 open import Data.List.Properties using (++-identityʳ; ++-assoc)
 
 --------------------------------------------------------------------------------
--- A `↭-reflexive` derivation is the boundary cast of `idˢ`.  Needs neither the
--- K-faithfulness residual nor a `DecidableEquality`, hence its home ABOVE the
--- residual block: that is what `Scr` below can consume.
-
-module Trivial (V : Set) (vlab : V → X) where
-  open PK.Support V vlab
-
-  refl-trivial
-    : ∀ {xs ys : List V} (e : xs ≡ ys)
-    → permuteˢ (Perm.↭-reflexive e)
-      ≈ˢ castˢ refl (cong (map vlab) e) (idˢ {map vlab xs})
-  refl-trivial refl = ≈-refl
-
---------------------------------------------------------------------------------
 -- The canonical block-swap derivation's `permuteˢ ≈ σˢ` identity (the
 -- vertex-level keystone).  Recursion on the LEFT block.
 --
@@ -62,11 +48,17 @@ module Trivial (V : Set) (vlab : V → X) where
 
 module Scr (V : Set) (vlab : V → X) where
   open PK.Support V vlab public
-  open Trivial V vlab public
   open Restrict V vlab
     using (idᵛ; _⊗ᵛ_; σᵛ; _≈ᵛ_; permuteᵛ; castᵛ-cast; σ-unitᵛ)
 
   open DA using (bswap) public
+
+  -- a `↭-reflexive` derivation is the boundary cast of `idˢ`
+  refl-trivial
+    : ∀ {xs ys : List V} (e : xs ≡ ys)
+    → permuteˢ (Perm.↭-reflexive e)
+      ≈ˢ castˢ refl (cong (map vlab) e) (idˢ {map vlab xs})
+  refl-trivial refl = ≈-refl
 
   -- `permuteᵛ (↭-sym (shift v R L))` is the braiding of `v ∷ []` past the
   -- block `R`, framed by `idᵛ {L}` — stated in the `Restrict` layer, so the
