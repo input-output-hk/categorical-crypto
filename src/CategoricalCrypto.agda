@@ -1,4 +1,11 @@
 {-# OPTIONS --safe #-}
+
+------------------------------------------------------------------------
+-- Root of the channel/machine layer: channels, machines, and example
+-- protocols.  The UC layer proper (`UCSetup`, `StandardTV`, `VanishingTV`,
+-- `Examples.MerkleDamgard.UC`) has its own roots and is not re-exported here.
+------------------------------------------------------------------------
+
 module CategoricalCrypto where
 
 -- Open problems

@@ -9,12 +9,10 @@ open import Categories.Category.Helper
 open import Categories.Category.Monoidal
 open import Categories.Category.Monoidal.Braided
 open import Categories.Category.Monoidal.Symmetric
-open import Categories.Object.Coproduct
 open import Categories.Functor
 open import Categories.Functor.Monoidal
 open import Categories.Functor.Bifunctor
-open import Relation.Binary.PropositionalEquality
-open import categorical-crypto.Prelude hiding (Functor ; Bifunctor)
+open import categorical-crypto.Prelude hiding (Functor)
 
 opaque
   unfolding _⊗₀_
