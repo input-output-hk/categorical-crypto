@@ -25,16 +25,16 @@
 -- failures do not re-enter the search, the whole query fails spuriously.
 --------------------------------------------------------------------------------
 
-open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
+open import Categories.APROP using (APROPSignature)
 
-module Categories.APROP.Hypergraph.Solver.Match.Search (sig-dec : APROPSignatureDec) where
+module Categories.APROP.Hypergraph.Solver.Match.Search (sig : APROPSignature) where
 
-open APROPSignatureDec sig-dec
+open APROPSignature sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Solver.Match.PBij
   using (PBij; forward; extend-bij; pairUp)
-open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec using (flat-match-subst)
+open import Categories.APROP.Hypergraph.Solver.Match.Verify sig using (flat-match-subst)
 
 open import Data.Bool.Base using (not)
 open import Data.Fin using (Fin; zero; suc)

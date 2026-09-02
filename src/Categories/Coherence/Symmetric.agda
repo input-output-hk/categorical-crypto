@@ -100,9 +100,9 @@ module Wiring
   (arity : Fin n → ObjTerm × ObjTerm)
   (⟦_⟧ᵖ₀ : Atom → C.Obj)
   where
-  open FinSig _≟A_ arity public using (dom; cod; gen; genElim; finSig; finSigDec)
+  open FinSig _≟A_ arity public using (dom; cod; gen; genElim; finSig)
   module S = APROP finSig
-  open Interp finSigDec public
+  open Interp finSig public
     using (module Solver; module ObjInterp)
 
   -- The underlying search vocabulary, re-exported so clients (and the test
@@ -113,11 +113,11 @@ module Wiring
   -- different limitations (see `Test.Deep`, both configurations).
   open import Categories.APROP.Hypergraph.Model.Translation finSig public
     using (⟪_⟫)
-  open import Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch finSigDec public
+  open import Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch finSig public
     using (subMatch)
-  open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve finSigDec public
+  open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve finSig public
     using (focusAll; focusAtₙ; focusAt)
-  open import Categories.APROP.Hypergraph.Solver.Rewrite.Deep finSigDec public
+  open import Categories.APROP.Hypergraph.Solver.Rewrite.Deep finSig public
     using (deepFoc)
   open ObjInterp C ⟦_⟧ᵖ₀ public using (⟦_⟧₀)
 

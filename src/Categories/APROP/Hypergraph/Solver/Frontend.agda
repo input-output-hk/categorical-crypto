@@ -25,25 +25,23 @@
 -- and the deep-rewrite drivers they feed.
 --------------------------------------------------------------------------------
 
-open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
+open import Categories.APROP using (APROPSignature; module APROP)
 
-module Categories.APROP.Hypergraph.Solver.Frontend (sig-dec : APROPSignatureDec) where
+module Categories.APROP.Hypergraph.Solver.Frontend (sig : APROPSignature) where
 
-open import Categories.APROP using (module APROP)
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
 open import Categories.FreeMonoidal
 open import Categories.Functor using (Functor)
 
-open APROPSignatureDec sig-dec using (sig)
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
-open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig-dec using (findIso; findIsoᵀ)
-open import Categories.APROP.Hypergraph.Solver.Split sig-dec using (solveSplitR?; reassocBal)
-open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig-dec using (focusAtₙ; Foc)
-open import Categories.APROP.Hypergraph.Solver.Rewrite.Deep sig-dec using (deepFocₙ)
-open import Categories.APROP.Hypergraph.Soundness sig-dec using (soundness)
+open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig using (findIso; findIsoᵀ)
+open import Categories.APROP.Hypergraph.Solver.Split sig using (solveSplitR?; reassocBal)
+open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig using (focusAtₙ; Foc)
+open import Categories.APROP.Hypergraph.Solver.Rewrite.Deep sig using (deepFocₙ)
+open import Categories.APROP.Hypergraph.Soundness sig using (soundness)
 
 open import Level using (_⊔_)
 open import Data.List.Base using (List; []; _∷_)

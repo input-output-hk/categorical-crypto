@@ -23,7 +23,6 @@ open import Relation.Nullary using (yes)
 
 open import Categories.APROP using (APROPSignature)
 open import Categories.FreeMonoidal
-open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
 
 X : Set
 X = Fin 3
@@ -49,7 +48,4 @@ g ≟-MyMor g = yes refl
 h ≟-MyMor h = yes refl
 
 mySig : APROPSignature
-mySig = record { X = X ; mor = MyMor }
-
-mySigDec : APROPSignatureDec
-mySigDec = record { sig = mySig ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-MyMor_ }
+mySig = record { X = X ; mor = MyMor ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-MyMor_ }

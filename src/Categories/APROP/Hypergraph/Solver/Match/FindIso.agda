@@ -16,19 +16,19 @@
 -- every caller in the tree actually uses.
 --------------------------------------------------------------------------------
 
-open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
+open import Categories.APROP using (APROPSignature)
 
-module Categories.APROP.Hypergraph.Solver.Match.FindIso (sig-dec : APROPSignatureDec) where
+module Categories.APROP.Hypergraph.Solver.Match.FindIso (sig : APROPSignature) where
 
-open APROPSignatureDec sig-dec
+open APROPSignature sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Model.Iso using (_≅ᴴ_; sym-≅ᴴ; trans-≅ᴴ)
 open import Categories.APROP.Hypergraph.Solver.Match.PBij
   using (PBij; emptyBij; pairUp)
-open import Categories.APROP.Hypergraph.Solver.Match.Search sig-dec
+open import Categories.APROP.Hypergraph.Solver.Match.Search sig
   using (searchIso)
-open import Categories.APROP.Hypergraph.Solver.Match.Verify sig-dec
+open import Categories.APROP.Hypergraph.Solver.Match.Verify sig
   using (module Verify)
 open import Categories.APROP.Hypergraph.Solver.Tabulate using (tabH; tab-≅ᴴ)
 

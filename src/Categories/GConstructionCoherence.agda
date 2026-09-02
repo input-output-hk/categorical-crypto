@@ -40,7 +40,7 @@ open import Data.Fin using (Fin)
 open import Data.Fin.Patterns
 import Categories.APROP.Hypergraph.Solver.Frontend as Interp
 
-private module IM = Interp gSigDec
+private module IM = Interp gSig
 
 module Transport {o ℓ e : Level} (C : SymmetricMonoidalCategory o ℓ e)
   (let module C = SymmetricMonoidalCategory C)

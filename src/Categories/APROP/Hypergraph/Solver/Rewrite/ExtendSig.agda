@@ -10,8 +10,8 @@
 -- The atom alphabet `X` is unchanged, so `ObjTerm`, `flatten`, `unflatten`
 -- all coincide between `sig` and `sig⁺`; only the generator type grows.
 --
--- Provides, for a base `sig-dec` and hole arity `P Q`:
---   * `Mor⁺`/`sig⁺`/`sig⁺-dec` — the extended signature (with decidable eq);
+-- Provides, for a base `sig` and hole arity `P Q`:
+--   * `Mor⁺`/`sig⁺` — the extended signature (with decidable eq);
 --   * `relabel` — `FlatGen → FlatGen⁺` edge-label inclusion (for the carved
 --     graph's complement edges);
 --   * `retract` — `HomTerm⁺ A B → Maybe (HomTerm A B)`, total on hole-free
@@ -21,15 +21,12 @@
 -- solely on the final `findIso` certification at the base signature.
 --------------------------------------------------------------------------------
 
-open import Categories.APROP.Hypergraph.Solver.Signature
-
 open import Categories.APROP
 
 module Categories.APROP.Hypergraph.Solver.Rewrite.ExtendSig
-  (sig-dec : APROPSignatureDec)
-  (let open APROPSignatureDec sig-dec
-         using (sig; _≟X_; _≟-mor_; uip-ObjTerm; ObjTerm; unit; _⊗₀_; Var))
+  (sig : APROPSignature)
   (let open APROPSignature sig)
+  (let open FreeMonoidalHelper Symm X using (ObjTerm; unit; _⊗₀_; Var))
   (P Q : ObjTerm)
   where
 
@@ -53,9 +50,6 @@ data Mor⁺ : ObjTerm → ObjTerm → Set where
 hole! : Mor⁺ P Q
 hole! = hole refl refl
 
-sig⁺ : APROPSignature
-sig⁺ = record { X = X ; mor = Mor⁺ }
-
 private
   old-inj : ∀ {A B} {f g : mor A B} → old f ≡ old g → f ≡ g
   old-inj refl = refl
@@ -66,8 +60,8 @@ old f    ≟-Mor⁺ hole _ _  = no λ ()
 hole _ _ ≟-Mor⁺ old g     = no λ ()
 hole p q ≟-Mor⁺ hole p' q' = yes (cong₂ hole (uip-ObjTerm p p') (uip-ObjTerm q q'))
 
-sig⁺-dec : APROPSignatureDec
-sig⁺-dec = record { sig = sig⁺ ; _≟X_ = _≟X_ ; _≟-mor_ = _≟-Mor⁺_ }
+sig⁺ : APROPSignature
+sig⁺ = record { X = X ; mor = Mor⁺ ; _≟X_ = _≟X_ ; _≟-mor_ = _≟-Mor⁺_ }
 
 --------------------------------------------------------------------------------
 -- Edge-label inclusion.  `flatten` depends only on `X`, so the two `FlatGen`s

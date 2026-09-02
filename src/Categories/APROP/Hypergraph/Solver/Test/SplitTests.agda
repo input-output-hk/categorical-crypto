@@ -60,7 +60,7 @@ module SplitConfig (A₀ A₁ A₂ : C.Obj)
 
   module FS = FinSig _≟F_ arity
   module S = APROP FS.finSig
-  module IM = Interp FS.finSigDec
+  module IM = Interp FS.finSig
   module OI = IM.ObjInterp C ⟦_⟧ᵖ₀
 
   ⟦gen⟧ : (i : Fin 3) → OI.⟦ FS.dom i ⟧₀ C.⇒ OI.⟦ FS.cod i ⟧₀

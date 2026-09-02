@@ -33,7 +33,6 @@ open import Relation.Nullary using (yes)
 
 open import Categories.APROP using (APROPSignature; module APROP)
 open import Categories.FreeMonoidal
-open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
 
 private instance S≤S : Symm ≤ Symm
                  S≤S = v≤v
@@ -58,10 +57,7 @@ gg ≟-GMor gg = yes refl
 gh ≟-GMor gh = yes refl
 
 gSig : APROPSignature
-gSig = record { X = X8 ; mor = GMor }
-
-gSigDec : APROPSignatureDec
-gSigDec = record { sig = gSig ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-GMor_ }
+gSig = record { X = X8 ; mor = GMor ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-GMor_ }
 
 open APROP gSig public
   using (FreeMonoidal; HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_;
@@ -155,6 +151,6 @@ R₂ᵗ = αᵗ ⊗₁ id ∘ (h' ⊗₁ id) ⊗₁ id ∘ α⇐ ∘ id ⊗₁ �
 -- `from-just` — "the 8-atom wall"), the pure-assoc respelling `stepR!`
 -- (reassoc + refl, no solver leaf), and the one-leaf `solve!`.
 
-open import Categories.APROP.Hypergraph.Solver.Split gSigDec
+open import Categories.APROP.Hypergraph.Solver.Split gSig
   using (force!) renaming (stepSplit! to step!; stepSplitR! to stepR!;
                            solveTerm! to solve!) public

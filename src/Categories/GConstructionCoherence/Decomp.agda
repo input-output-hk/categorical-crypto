@@ -20,7 +20,7 @@
 -- `stepR!`, from `Terms`), never `from-just`/inferred witnesses (slow path).
 -- The companion spelling rule for instantiated signature types now belongs to
 -- `Split`, which owns the gate and spells `⟪_⟫`/`soundness` from one
--- `sig-dec`.
+-- `sig`.
 module Categories.GConstructionCoherence.Decomp where
 
 open import Relation.Binary.PropositionalEquality using (refl)

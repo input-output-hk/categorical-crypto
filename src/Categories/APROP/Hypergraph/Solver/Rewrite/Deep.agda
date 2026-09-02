@@ -25,13 +25,14 @@
 -- dumb and robust.
 --------------------------------------------------------------------------------
 
-open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
+open import Categories.APROP using (APROPSignature; module APROP)
 
-module Categories.APROP.Hypergraph.Solver.Rewrite.Deep (sig-dec : APROPSignatureDec) where
+module Categories.APROP.Hypergraph.Solver.Rewrite.Deep (sig : APROPSignature) where
 
-open APROPSignatureDec sig-dec using (sig; _≟X_; _≟-ObjTerm_)
-open import Categories.APROP using (module APROP)
 open APROP sig
+-- `_≟X_` is the one field `APROP` withholds this commit (see there); it comes
+-- back with the blanket open once the strict cone drops its parameter.
+open APROPSignature sig using (_≟X_)
 
 open import Data.Fin using (Fin)
 open import Data.List.Base
@@ -49,9 +50,9 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; flatten; range)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
-open import Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch sig-dec
+open import Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch sig
   using (subMatchAll; _↪ᴴ_)
-open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig-dec
+open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig
   using (Foc)
 open import Categories.APROP.Hypergraph.Solver.Rewrite.Kahn using (kahn)
 open import Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig
@@ -71,13 +72,13 @@ private
 
 module At (P Q : ObjTerm) where
 
-  module Ext = Categories.APROP.Hypergraph.Solver.Rewrite.ExtendSig sig-dec P Q
-  open Ext using (hole!; sig⁺; sig⁺-dec; relabel; retract)
+  module Ext = Categories.APROP.Hypergraph.Solver.Rewrite.ExtendSig sig P Q
+  open Ext using (hole!; sig⁺; relabel; retract)
 
   module F⁺ = Categories.APROP.Hypergraph.Model.FromAPROP sig⁺
   module DL⁺ = Categories.APROP.Hypergraph.Solver.Rewrite.DecodeLean sig⁺
   module U⁺ = Categories.APROP.Hypergraph.Soundness.Base.Unflatten sig⁺
-  module C⁺ = Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig⁺-dec
+  module C⁺ = Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig⁺
 
   open APROP sig⁺ using () renaming (Agen to Agen⁺)
 

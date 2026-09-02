@@ -39,7 +39,6 @@ open import Relation.Nullary using (yes)
 
 open import Categories.APROP using (APROPSignature; module APROP)
 open import Categories.FreeMonoidal
-open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
 
 private instance S≤S : Symm ≤ Symm
                  S≤S = v≤v
@@ -64,10 +63,7 @@ _≟-IMor_ : ∀ {A B} → DecidableEquality (IMor A B)
 gf ≟-IMor gf = yes refl
 
 iSig : APROPSignature
-iSig = record { X = X5 ; mor = IMor }
-
-iSigDec : APROPSignatureDec
-iSigDec = record { sig = iSig ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-IMor_ }
+iSig = record { X = X5 ; mor = IMor ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-IMor_ }
 
 open APROP iSig public
   using (HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_)
@@ -153,7 +149,7 @@ RSᵗ-rhs = hLᵗ
 
 -- One leaf, one line, with the search's success discharged by a refl-checked
 -- equation and never by an inferred witness ("the 8-atom wall").
-open import Categories.APROP.Hypergraph.Solver.Split iSigDec
+open import Categories.APROP.Hypergraph.Solver.Split iSig
   using () renaming (solveTerm!ᵀ to solve!)
 
 C1Lᵗ : C1Lᵗ-lhs ≈Term C1Lᵗ-rhs
@@ -175,7 +171,7 @@ open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory
 open import Categories.Functor using (Functor)
 import Categories.APROP.Hypergraph.Solver.Frontend as Interp
 
-private module IM = Interp iSigDec
+private module IM = Interp iSig
 
 -- One scaffold for both readings of the signature: the identity laws do not
 -- mention the fifth atom (pass any object for `u`), while `right-superposing`

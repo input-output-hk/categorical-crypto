@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Building an `APROPSignatureDec` from a *finite, arity-tagged* set of
+-- Building an `APROPSignature` from a *finite, arity-tagged* set of
 -- generators, instead of a hand-rolled `data` type.
 --
 -- A signature's generators are described by:
@@ -38,9 +38,7 @@ open import Data.Fin.Properties using () renaming (_≟_ to _≟Fin_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 open import Relation.Nullary using (yes; no)
 
-open import Categories.APROP using (APROPSignature)
-open import Categories.APROP.Hypergraph.Solver.Signature
-  using (APROPSignatureDec; module ObjTermDec)
+open import Categories.APROP using (APROPSignature; module ObjTermDec)
 
 open ObjTermDec _≟X_ using (uip-ObjTerm)
 
@@ -79,7 +77,4 @@ _≟-FinMor_ : ∀ {A B} → DecidableEquality (FinMor A B)
   rewrite uip-ObjTerm p p' | uip-ObjTerm q q' = yes refl
 
 finSig : APROPSignature
-finSig = record { X = X ; mor = FinMor }
-
-finSigDec : APROPSignatureDec
-finSigDec = record { sig = finSig ; _≟X_ = _≟X_ ; _≟-mor_ = _≟-FinMor_ }
+finSig = record { X = X ; mor = FinMor ; _≟X_ = _≟X_ ; _≟-mor_ = _≟-FinMor_ }

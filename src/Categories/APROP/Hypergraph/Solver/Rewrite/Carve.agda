@@ -24,12 +24,10 @@
 -- route instead.
 --------------------------------------------------------------------------------
 
-open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
+open import Categories.APROP using (APROPSignature; module APROP)
 
-module Categories.APROP.Hypergraph.Solver.Rewrite.Carve (sig-dec : APROPSignatureDec) where
+module Categories.APROP.Hypergraph.Solver.Rewrite.Carve (sig : APROPSignature) where
 
-open APROPSignatureDec sig-dec using (sig; _≟-ObjTerm_)
-open import Categories.APROP using (module APROP)
 open APROP sig
 
 open import Data.Maybe.Base as Maybe using (Maybe; just; nothing)
@@ -41,7 +39,7 @@ open import Relation.Nullary using (yes)
 open import Relation.Binary.PropositionalEquality using (refl)
 
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
-open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig-dec using (findIso)
+open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig using (findIso)
 
 --------------------------------------------------------------------------------
 -- A focus result: the pad object `k` and the two context terms.

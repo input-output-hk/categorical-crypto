@@ -15,7 +15,7 @@
 --   * forcing routed through refl-checked equations (`solve!`/`stepR!` from
 --     `Terms`), never `from-just`/inferred witnesses (slow elaborator path);
 --   * the gate itself lives in `Split`, where `⟪_⟫` and `soundness` are
---     instantiated from the SAME `sig-dec` and so spell the translation
+--     instantiated from the SAME `sig` and so spell the translation
 --     identically (syntactic fast path in conversion);
 --   * one module for all three obligations (a merge with `Decomp` would be
 --     perf-neutral — measured 0.5 % — since `Split` already gives both the

@@ -33,18 +33,15 @@
 -- fast path, never soundness.
 --------------------------------------------------------------------------------
 
-open import Categories.APROP.Hypergraph.Solver.Signature
-
-module Categories.APROP.Hypergraph.Solver.Split (sig-dec : APROPSignatureDec) where
-
 open import Categories.APROP
 
-open APROPSignatureDec sig-dec using (sig; _≟-mor_; _≟-ObjTerm_; uip-ObjTerm)
+module Categories.APROP.Hypergraph.Solver.Split (sig : APROPSignature) where
+
 open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Translation sig
-open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig-dec using (findIso; findIsoᵀ)
-open import Categories.APROP.Hypergraph.Soundness sig-dec
+open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig using (findIso; findIsoᵀ)
+open import Categories.APROP.Hypergraph.Soundness sig
 
 open import Data.Bool.Base using (true)
 open import Data.Maybe.Base as Maybe

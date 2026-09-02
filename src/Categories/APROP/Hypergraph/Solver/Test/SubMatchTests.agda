@@ -17,10 +17,10 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 open import Categories.APROP using (module APROP)
 open import Categories.APROP.Hypergraph.Solver.Test.ThreeGens
-  using (a₁; f; g; h; mySig; mySigDec)
+  using (a₁; f; g; h; mySig)
 
 open import Categories.APROP.Hypergraph.Model.Translation mySig using (⟪_⟫)
-open import Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch mySigDec using (subMatch)
+open import Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch mySig using (subMatch)
 open APROP mySig
 
 --------------------------------------------------------------------------------

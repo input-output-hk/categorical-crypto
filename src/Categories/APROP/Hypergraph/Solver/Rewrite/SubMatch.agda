@@ -33,16 +33,16 @@
 -- content, so this is not a limitation in practice.
 --------------------------------------------------------------------------------
 
-open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
+open import Categories.APROP using (APROPSignature)
 
-module Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch (sig-dec : APROPSignatureDec) where
+module Categories.APROP.Hypergraph.Solver.Rewrite.SubMatch (sig : APROPSignature) where
 
-open APROPSignatureDec sig-dec
+open APROPSignature sig
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Solver.Match.PBij
   using (PBij; forward; backward; emptyBij; totalise)
-open import Categories.APROP.Hypergraph.Solver.Match.Search sig-dec using (searchAll)
+open import Categories.APROP.Hypergraph.Solver.Match.Search sig using (searchAll)
 
 open import Data.Fin using (Fin)
 open import Data.List.Base using (List; head; map; mapMaybe)

@@ -13,13 +13,14 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
 
 module Categories.APROP.Hypergraph.Soundness
-  (sig-dec : APROPSignatureDec) where
+  (sig : APROPSignature) where
 
-open APROPSignatureDec sig-dec using (sig; _≟X_)
 open APROP sig
+-- `_≟X_` is the one field `APROP` withholds this commit (see there); it comes
+-- back with the blanket open once the strict cone drops its parameter.
+open APROPSignature sig using (_≟X_)
 open import Categories.APROP.Hypergraph.Model.Iso
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 

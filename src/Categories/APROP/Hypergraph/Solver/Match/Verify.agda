@@ -18,11 +18,12 @@
 -- `hGen`-generated edges with preserved hidden indices.
 --------------------------------------------------------------------------------
 
-open import Categories.APROP.Hypergraph.Solver.Signature
+open import Categories.APROP using (APROPSignature; module APROP)
 
-module Categories.APROP.Hypergraph.Solver.Match.Verify (sig-dec : APROPSignatureDec) where
+module Categories.APROP.Hypergraph.Solver.Match.Verify (sig : APROPSignature) where
 
-open APROPSignatureDec sig-dec
+open APROPSignature sig
+open APROP sig using (ObjTerm)
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 

@@ -24,19 +24,19 @@ open import Data.Maybe using (is-just; to-witness-T)
 
 open import Categories.APROP using (module APROP)
 open import Categories.APROP.Hypergraph.Solver.Test.ThreeGens
-  using (a₀; a₁; a₂; f; g; h; mySig; mySigDec)
+  using (a₀; a₁; a₂; f; g; h; mySig)
 
 --------------------------------------------------------------------------------
 -- Bring in the term language, the solver, and the soundness theorem.
 
 open import Categories.APROP.Hypergraph.Model.Translation mySig using (⟪_⟫)
-open import Categories.APROP.Hypergraph.Solver.Match.FindIso mySigDec using (findIso)
+open import Categories.APROP.Hypergraph.Solver.Match.FindIso mySig using (findIso)
 open APROP mySig
 
 --------------------------------------------------------------------------------
 -- The soundness theorem (axiom-free), giving closed `--safe` test theorems.
 
-open import Categories.APROP.Hypergraph.Soundness mySigDec using (soundness)
+open import Categories.APROP.Hypergraph.Soundness mySig using (soundness)
 
 -- The gate the tests below go through.  (`GConstructionCoherence.Wiring.solve!`
 -- is the same door with an explicit `is-just … ≡ true` argument.)
