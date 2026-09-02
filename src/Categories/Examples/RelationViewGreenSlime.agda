@@ -6,8 +6,7 @@
 --
 -- This is the technique used to discharge `edge-step` (Lemma 0b of the APROP
 -- soundness proof); the load-bearing copy is `Discharge.SwapValidity`'s own
--- `EdgeStepR`/`edge-step-graph`, and `Categories.Examples.EdgeStepRelation` is
--- its off-cone transcription.  Here the pattern is distilled to toy types
+-- `EdgeStepR`/`edge-step-graph`.  Here the pattern is distilled to toy types
 -- (ℕ and `List ℕ`) so it is visible in isolation.
 --
 -- OFF-CONE DEMONSTRATION: nothing imports this module, and nothing should —
