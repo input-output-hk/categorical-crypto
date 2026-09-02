@@ -29,8 +29,6 @@ module Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep
   (sig : APROPSignature)
   where
 
-open APROP sig using (X)
-
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
