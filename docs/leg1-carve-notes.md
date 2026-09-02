@@ -1,5 +1,7 @@
 # LEG 1 (carve combinatorics) — proof notes
 
+> **Status note (2026-09-02).** A dated spike log. `Leg1Carve.agda` lives in `spikes/`, never in `src/`; read every path and name below as of its own entry's date.
+
 GOAL: `H'[h↦⟪lᵗ⟫] ≅ᴴ ⟪s⟫`. New module src/Leg1Carve.agda, --safe --without-K.
 Sub-proofs: (a) kahn output ↭ (holeEdge ∷ complement); (b) carve+substitute = id up to perm + emb.
 
