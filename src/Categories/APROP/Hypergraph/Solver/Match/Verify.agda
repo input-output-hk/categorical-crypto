@@ -22,8 +22,7 @@ open import Categories.APROP using (APROPSignature; module APROP)
 
 module Categories.APROP.Hypergraph.Solver.Match.Verify (sig : APROPSignature) where
 
-open APROPSignature sig
-open APROP sig using (ObjTerm)
+open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 

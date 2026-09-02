@@ -11,7 +11,7 @@
 
 module Categories.APROP.Hypergraph.Solver.Test.SubMatchTests where
 
-open import Data.Bool.Base using (Bool; true; false)
+open import Data.Bool.Base using (true; false)
 open import Data.Maybe.Base using (is-just)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 

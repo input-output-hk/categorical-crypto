@@ -37,9 +37,9 @@ open import Data.List.Base
 open import Data.List.Properties using (≡-dec)
 open import Data.List.Properties.Ext using (lookupMaybe)
 open import Data.Maybe.Base as Maybe using (Maybe; just; nothing; _>>=_)
-open import Data.Nat using (ℕ; suc)
+open import Data.Nat using (ℕ)
 open import Data.Product using (Σ; _×_; _,_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; subst; subst₂)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; subst)
 open import Relation.Nullary using (yes; no)
 open import Relation.Nullary.Decidable using (dec⇒maybe)
 
@@ -114,7 +114,7 @@ module At (P Q : ObjTerm) where
          | map S.vlab boundary-cod ≟LX F⁺.flatten Q
     ... | yes p | yes q =
           just (edge boundary-dom boundary-cod
-                     (subst₂ F⁺.FlatGen (sym p) (sym q) (F⁺.flat hole!)))
+                     (F⁺.flat-rec (sym p) (sym q) hole!))
     ... | _ | _ = nothing
 
     -- Kahn topological ordering (shared generic engine in `Rewrite.Kahn`,

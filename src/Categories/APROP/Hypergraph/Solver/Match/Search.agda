@@ -29,7 +29,7 @@ open import Categories.APROP using (APROPSignature)
 
 module Categories.APROP.Hypergraph.Solver.Match.Search (sig : APROPSignature) where
 
-open APROPSignature sig
+open APROPSignature sig using (X; _≟X_)
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Solver.Match.PBij
@@ -37,7 +37,7 @@ open import Categories.APROP.Hypergraph.Solver.Match.PBij
 open import Categories.APROP.Hypergraph.Solver.Match.Verify sig using (flat-match-subst)
 
 open import Data.Bool.Base using (not)
-open import Data.Fin using (Fin; zero; suc)
+open import Data.Fin using (Fin)
 open import Data.List.Base using (List; []; _∷_; _++_; head; map; mapMaybe; findᵇ)
 open import Data.List.Properties using (≡-dec)
 open import Data.Maybe.Base using (Maybe; just; nothing; is-just; _>>=_)
