@@ -14,8 +14,9 @@
 -- The sections are independent: each configuration sub-module is parameterised
 -- by the objects and morphisms of `C` interpreting its own generators, and
 -- nothing crosses a section boundary.  They share one preamble — the `C`
--- telescope, the `Fin`/`_≟F_` generator-index kit and `Coherence.Symmetric C`
--- — which is the whole reason they live in one file.
+-- telescope, the `Fin`/`_≟F_` generator-index kit, `Coherence.Symmetric C` and
+-- the two ready-made alphabets `Atoms3`/`Atom1` — which is the whole reason
+-- they live in one file.
 --------------------------------------------------------------------------------
 
 open import Level using (Level)
@@ -76,6 +77,20 @@ module Atoms3 (A₀ A₁ A₂ : C.Obj) where
   ⟦ zero        ⟧ᵖ₀ = A₀
   ⟦ suc zero    ⟧ᵖ₀ = A₁
   ⟦ suc (suc _) ⟧ᵖ₀ = A₂
+
+--------------------------------------------------------------------------------
+-- A ready-made one-atom alphabet `a` and its interpretation `A`, shared by the
+-- four single-object configurations below.
+
+module Atom1 (A : C.Obj) where
+  open FreeMonoidalHelper Symm (Fin 1) using (ObjTerm; Var; _⊗₀_)
+    renaming (unit to unitᵗ) public
+
+  a : ObjTerm
+  a = Var zero
+
+  ⟦_⟧ᵖ₀ : Fin 1 → C.Obj
+  ⟦ _ ⟧ᵖ₀ = A
 
 --------------------------------------------------------------------------------
 -- Configuration 1: generators f,g,h forming the 3-cycle a₀ → a₁ → a₂ → a₀.
@@ -278,14 +293,7 @@ module MonoidRewrite (A : C.Obj)
   (mᴹ : (A C.⊗₀ A) C.⇒ A) (uᴹ : C.unit C.⇒ A)
   where
 
-  open FreeMonoidalHelper Symm (Fin 1) using (ObjTerm; Var; _⊗₀_)
-    renaming (unit to unitᵗ)
-
-  a₀ : ObjTerm
-  a₀ = Var zero
-
-  ⟦_⟧ᵖ₀ : Fin 1 → C.Obj
-  ⟦ _ ⟧ᵖ₀ = A
+  open Atom1 A renaming (a to a₀)
 
   -- m : a₀ ⊗ a₀ → a₀  (index 0),  u : unit → a₀  (index 1).
   arity : Fin 2 → ObjTerm × ObjTerm
@@ -569,14 +577,7 @@ module DeepArity (A : C.Obj)
   (kᴹ : A C.⇒ A) (uᴹ : C.unit C.⇒ A)
   where
 
-  open FreeMonoidalHelper Symm (Fin 1) using (ObjTerm; Var; _⊗₀_)
-    renaming (unit to unitᵗ)
-
-  a : ObjTerm
-  a = Var zero
-
-  ⟦_⟧ᵖ₀ : Fin 1 → C.Obj
-  ⟦ _ ⟧ᵖ₀ = A
+  open Atom1 A
 
   arity : Fin 4 → ObjTerm × ObjTerm
   arity zero                = (a ⊗₀ a) , a
@@ -682,14 +683,7 @@ module MonoidNormalize (A : C.Obj)
   (mᴹ : (A C.⊗₀ A) C.⇒ A) (uᴹ : C.unit C.⇒ A)
   where
 
-  open FreeMonoidalHelper Symm (Fin 1) using (ObjTerm; Var; _⊗₀_)
-    renaming (unit to unitᵗ)
-
-  a : ObjTerm
-  a = Var zero
-
-  ⟦_⟧ᵖ₀ : Fin 1 → C.Obj
-  ⟦ _ ⟧ᵖ₀ = A
+  open Atom1 A
 
   arity : Fin 2 → ObjTerm × ObjTerm
   arity zero    = (a ⊗₀ a) , a
@@ -784,14 +778,7 @@ module FrobeniusAlgebra (A : C.Obj)
   (nᴹ : A C.⇒ (A C.⊗₀ A)) (vᴹ : A C.⇒ C.unit)
   where
 
-  open FreeMonoidalHelper Symm (Fin 1) using (ObjTerm; Var; _⊗₀_)
-    renaming (unit to unitᵗ)
-
-  a : ObjTerm
-  a = Var zero
-
-  ⟦_⟧ᵖ₀ : Fin 1 → C.Obj
-  ⟦ _ ⟧ᵖ₀ = A
+  open Atom1 A
 
   arity : Fin 4 → ObjTerm × ObjTerm
   arity zero                = (a ⊗₀ a) , a        -- m
