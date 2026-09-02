@@ -136,7 +136,7 @@ module KBlockDisjoint (G K : Hypergraph FlatGen) where
   ψG : Fin G.nE → Fin C.nE
   ψG eG = eG ↑ˡ K.nE
 
-  -- `ein-disjⁱ (ψK eK) (map injL P)` / `ein-disjⁱ (ψG eG) (map injR Q)` at
+  -- `ein-disjoint (ψK eK) (map injL P)` / `(ψG eG) (map injR Q)` at
   -- `H = hTensor G K`: the block's inputs are all on the other side.  The
   -- element-level facts are the decode layer's own
   -- `extract-elem-↑ʳ-on-↑ˡ-list` / `-↑ˡ-on-↑ʳ-list` at `injR = G.nV ↑ʳ_`,
@@ -210,7 +210,7 @@ module Embeds (G K : Hypergraph FlatGen) where
 --
 -- The strict Kelly residual is taken CONCRETELY from `Perm.PermK` (axiom-free
 -- for every vertex set), used by `TensorReconcile.final-resortˢ` and by
--- `perm-rigidᵛ` below.
+-- `Braid.pf-rigid` below (through `StrictDecoder.rigidˢ`).
 
 module Braid {A B C D : ObjTerm}
   (f : HomTerm A B) (g : HomTerm C D)
@@ -641,7 +641,7 @@ module Braid {A B C D : ObjTerm}
     ----------------------------------------------------------------
 
     private
-      -- ### the K-block disjointness `All (ein-disjⁱ · sG) kblk`, transported
+      -- ### the K-block disjointness `block-disjoint kblk sG`, transported
       -- from `kblock-ein-disjoint` (stated at `map injL s_G_final`) along
       -- `sG≡`.
       disj-kblk : block-disjoint kblk sG
