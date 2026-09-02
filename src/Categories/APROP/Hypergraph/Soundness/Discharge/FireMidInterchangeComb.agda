@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------
 -- The stack combinatorics of the two-edge interchange, in two independent
 -- families.  Pure `_↭_` / `count` work throughout; the categorical bracketing
--- is left to the consumer (`Strict.Interchange.FireMid`).
+-- is left to the consumers (bracketing: `Strict.Interchange.FireMid`).
 -- `Linear H` is a parameter of family (1) ONLY (a nested `module _ (lin …)`);
 -- family (2) is stated in `¬ Dep` alone.
 --
@@ -23,9 +23,9 @@
 --
 --     (the two orders differing only by the `ein` block swap) plus the output
 --     reshuffle `r-stk : eout e' ++ r₂ ↭ eout e ++ r₁'`.  Assembled from
---     `extract-ein'`, `block-loc-e`, `vout-loc-e`, `eout-residual` and
---     `post-swap-stack-↭` (an equation in the free commutative monoid on
---     `Fin H.nV`).
+--     `extract-ein'`, `block-loc-e` and `vout-loc-e` (through which
+--     `eout-residual` enters), plus `post-swap-stack-↭` (an equation in the
+--     free commutative monoid on `Fin H.nV`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -96,7 +96,7 @@ module _ (H : Hypergraph FlatGen) where
   private module H = Hypergraph H
 
   ----------------------------------------------------------------------
-  -- Disjointness + the count transport that need `¬ Dep` (Incomp) ALONE.
+  -- Disjointness + the count transport: no `Linear`, and one `¬ Dep` (Incomp).
   ----------------------------------------------------------------------
 
   -- `eout e ⊥ ein e'` (Incomp / ¬Dep): `e` does not produce a wire `e'`

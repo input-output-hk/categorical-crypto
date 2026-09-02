@@ -6,8 +6,8 @@
 -- `FinBij n m` is the type of bijections between `Fin n` and `Fin m`.
 -- This type is empty whenever `n ≢ m` (see `Data.Fin.Permutation.↔⇒≡`).
 --
--- The module is a thin wrapper around stdlib's `Data.Fin.Permutation`
--- providing the small API expected by `Categories.PermuteCoherence.Eval`.
+-- A thin wrapper around stdlib's `Data.Fin.Permutation`.  `Eval` takes five of
+-- its eight exports; `Rigid`, the Coxeter words and the strict cone the rest.
 ------------------------------------------------------------------------
 
 module Categories.PermuteCoherence.FinBij where

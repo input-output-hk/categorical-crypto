@@ -106,8 +106,8 @@ pop-graph k (x ∷ xs) with x ≟ k
 
 --------------------------------------------------------------------------------
 -- §5.  Soundness — the relation PINS the function values (the other half of
--- "the function computes a value iff the relation holds").  Analogue of
--- `edge-step-sound`.
+-- "the function computes a value iff the relation holds").  The load-bearing
+-- copy is the `go` clause pattern under `edge-step-stack-resp-↭`.
 
 pop-sound : ∀ {k xs t ys} → PopR k xs t ys
           → pop-tag k xs ≡ t × pop k xs ≡ ys

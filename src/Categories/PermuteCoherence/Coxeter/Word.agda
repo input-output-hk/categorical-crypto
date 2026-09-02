@@ -225,9 +225,9 @@ peel {n} b i = sym (trans stepC stepD)
 -- `Far i j` witnesses that generators `i` and `j` act on disjoint
 -- position pairs (`|i − j| ≥ 2`), so they commute.  It is structural,
 -- hence trivially closed under simultaneous `fsuc` (the `farS` rule),
--- which is what makes `_~ʷ_` closed under `lift~`.  Only the `0F`-on-the-
--- LEFT base is a constructor: the other orientation is `~sym` of `c2`,
--- and nothing in the tree ever needs it as a `Far`.
+-- which, with `adjS`, is what makes `_~ʷ_` closed under `lift~`.  Only the
+-- `0F`-on-the-LEFT base is a constructor: the other orientation is `~sym`
+-- of `c2`, and nothing in the tree ever needs it as a `Far`.
 data Far : {n : ℕ} → Fin n → Fin n → Set where
   far0ˡ : {n : ℕ} {j : Fin n} → Far {suc (suc n)} 0F (fsuc (fsuc j))
   farS  : {n : ℕ} {i j : Fin n} → Far i j → Far (fsuc i) (fsuc j)

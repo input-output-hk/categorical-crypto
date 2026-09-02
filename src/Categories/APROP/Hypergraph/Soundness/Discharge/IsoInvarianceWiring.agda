@@ -3,12 +3,12 @@
 --
 --   * `Discharge.EdgeDependency`   (Lemma A: iso ⇒ dependency-order iso),
 --   * `Combinatorics.LinearExtension` (connectivity of linear extensions),
+--   * `Combinatorics.TabulateBij`  (the whole content of `τ↭range`),
 --
--- into iso-invariance of the order-indexed decoder.
--- Defines `Order`/`Valid` (per-hypergraph) and the cross-iso
--- boundary identifications + ψ-pullback order `τ` and its no-inversion
--- transport `NoInv-τ` (Lemma 4).  The analytic steps live downstream, and
--- only in their STRICT form — `SwapStep.swap-≈ˢ`,
+-- into the cross-iso boundary identifications and the ψ-pullback order.
+-- Defines `Order`/`Valid` (per-hypergraph) and, across an iso, `domL-iso`,
+-- `codL-iso`, `τ` and its `NoInv-τ` transport (Lemma 4).  The analytic steps
+-- live downstream, and only in their STRICT form — `SwapStep.swap-≈ˢ`,
 -- `IsoTransport.order-invariantˢ`/`iso-transportˢ`; the unstarred names died
 -- with the weak morphism apparatus.
 {-# OPTIONS --safe --without-K #-}
@@ -58,7 +58,7 @@ tabulate-as-map-range {n = n} f =
         (cong (map f) (sym (range≡tabulate-id n)))
 
 ------------------------------------------------------------------------
--- Per-hypergraph: order-indexed decoder and order-invariance.
+-- Per-hypergraph: the edge orders and their stack-level validity witness.
 ------------------------------------------------------------------------
 
 module PerHG (H : Hypergraph FlatGen) where
@@ -83,7 +83,7 @@ module PerHG (H : Hypergraph FlatGen) where
   -- the totality witness at the fixed codomain.
   --
   -- NOTE (weak-decoder demotion, Review-2 F2): the CONCRETE order-indexed
-  -- decoder `decodeOrd` (`permute-via-vlab H.vlab p ∘ proj₂ (process-edges …)`)
+  -- decoder `decodeOrd` (`permute-via-vlab H.vlab p` over `process-edges …`)
   -- had zero live consumers — downstream (`IsoTransport`, `SwapStep`,
   -- `PartII`) uses only `Order`/`Valid`
   -- and the strict twin `decodeOrdˢ`.  It has been deleted with the weak
@@ -92,7 +92,7 @@ module PerHG (H : Hypergraph FlatGen) where
   Valid o = process-edges H o H.dom Perm.↭ H.cod
 
 ------------------------------------------------------------------------
--- Across an isomorphism: iso-invariance of the decoder.
+-- Across an isomorphism: the boundary identifications and the ψ-pullback order.
 ------------------------------------------------------------------------
 
 module _ {H J : Hypergraph FlatGen} (Φ : H ≅ᴴ J) where

@@ -18,10 +18,10 @@
 --
 -- Structure (§0-§6):
 --
---   * `order-invariantˢ` (§0, BUILT) bridges any two `NoInv` orders of one
---     hypergraph: PURE `≈ˢ`-transitivity plumbing over the adjacent-swap
---     closure, threading the strict validity witness `Validˢ` and the swap-site
---     `↭ range nE` provenance.  No Mac-Lane content.
+--   * `order-invariantˢ` (§0, BUILT) bridges any `NoInv` order of a hypergraph
+--     to the NATURAL order `range nE`: PURE `≈ˢ`-transitivity plumbing over the
+--     adjacent-swap closure, threading the strict validity witness `Validˢ` and
+--     the swap-site `↭ range nE` provenance.  No Mac-Lane content.
 --   * `iso-transportˢ`   transports the J=⟪g⟫-side natural-order decoding to
 --     the H=⟪f⟫-side ψ-pullback order `τ = IW.τ iso` (which IS
 --     `map ψ⁻¹ (range J.nE)`, but is taken from the wiring, not rebuilt

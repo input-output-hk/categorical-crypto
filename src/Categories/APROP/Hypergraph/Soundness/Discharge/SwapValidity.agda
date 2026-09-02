@@ -179,7 +179,7 @@ module PerHG (H : Hypergraph FlatGen) (lin : Linear H) where
   -- `EdgeStepR` view: the non-strict twin of
   -- `Interchange.SwapCoreRun.RunInterchange.build`, and flat for the same
   -- reason — each witness's output stack is its constructor's index, so the
-  -- nine impossible combinations are one `⊥-elim` each and the three real
+  -- eight impossible combinations are one `⊥-elim` each and the four real
   -- ones need no transport.
   two-edge-swap-gen
     : ∀ {e e' : Fin H.nE} (e≢e' : ¬ (e ≡ e')) (inc : Incomp e e')

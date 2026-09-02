@@ -151,8 +151,8 @@ splitE {m} {n} P pl pr e = subst P (join-splitAt m n e) (go (splitAt m e))
 
 --------------------------------------------------------------------------------
 -- ## `NoSelfDep` for the single edge.  The zero-edge shapes (`hId`, `hSwap`)
--- need no lemma: `Dep` is vacuous there, and the two inductions below
--- discharge them by an absurd pattern in place.
+-- need no proof effort: `Dep` is vacuous there, so `hId` gets the one-line
+-- `NoSelfDep-hId` below and `hSwap` an absurd pattern inside its induction.
 
 -- `hGen f`: the unique edge has `ein` of `_↑ˡ_` form and `eout` of `_↑ʳ_`
 -- form, disjoint by `Inv.↑ˡ≢↑ʳ`.
