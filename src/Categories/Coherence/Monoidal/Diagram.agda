@@ -10,7 +10,7 @@ module Categories.Coherence.Monoidal.Diagram where
 -- its interpretation `⟦_⟧ˢ` into the free strict monoidal category
 -- over flat "n-wire" objects.
 --
--- The box-free wire coherence (`castW`/`assocW`/`liftW-merge`/…)
+-- The box-free wire coherence (`castW`/`assocW`/…)
 -- lives in `WireCoherence`; `⟦_⟧ˢ` and its builder soundness
 -- `DiagSoundˢ` land in the free strict monoidal category.
 --

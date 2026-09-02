@@ -2,9 +2,9 @@
 
 --------------------------------------------------------------------------------
 -- Wire-coherence theory: the box-free coherence of the structural
--- `wires`/`HomTerm` layer — the `castW` object-transport algebra, the
--- ++-associators and the flat-shift/merge-split bridge (`WireCoh`), plus the
--- DecEq-dependent merge/split unitor & pentagon coherence (`WireCohDec`).
+-- `wires`/`HomTerm` layer — the `castW` object-transport algebra and
+-- the ++-associators, plus the DecEq-dependent merge/split unitor &
+-- pentagon coherence.
 --------------------------------------------------------------------------------
 
 module Categories.Coherence.Monoidal.WireCoherence where
@@ -52,25 +52,6 @@ module WireCoh (X : Set)
 
   assocW⁻∘assocW : ∀ (p q s : List X) → assocW⁻ p q s ∘ assocW p q s ≈Term id
   assocW⁻∘assocW p q s = castW-isoʳ (++-assoc p q s)
-  liftW-merge : ∀ (p : List X) {u v} (W : HomTerm (wires u) (wires v))
-              → liftW p W ≈Term merge p ∘ (id ⊗₁ W) ∘ split p
-  liftW-merge []      W = introʳ λ⇒∘λ⇐≈id ○ pullˡ (⟺ λ⇒∘id⊗f≈f∘λ⇒) ○ assoc
-  liftW-merge (x ∷ p) {u} {v} W =
-    (refl⟩⊗⟨ liftW-merge p W)
-      ○ (⟺ (id⊗-∘3 (merge p) (id ⊗₁ W) (split p)))
-      ○ reassoc-suc
-    where
-      reassoc-suc :
-          id ⊗₁ merge p ∘ (id ⊗₁ (id ⊗₁ W) ∘ id ⊗₁ split p)
-        ≈Term (id ⊗₁ merge p ∘ α⇒) ∘ id ⊗₁ W ∘ (α⇐ ∘ id ⊗₁ split p)
-      reassoc-suc = begin
-        id ⊗₁ merge p ∘ (id ⊗₁ (id ⊗₁ W) ∘ id ⊗₁ split p)
-          ≈⟨ refl⟩∘⟨ insertInner α⇒∘α⇐≈id ⟩
-        id ⊗₁ merge p ∘ ((id ⊗₁ (id ⊗₁ W) ∘ α⇒) ∘ (α⇐ ∘ id ⊗₁ split p))
-          ≈⟨ refl⟩∘⟨ ((⟺ α-comm) ○ (refl⟩∘⟨ (id⊗id≈id ⟩⊗⟨refl))) ⟩∘⟨refl ⟩
-        id ⊗₁ merge p ∘ ((α⇒ ∘ id ⊗₁ W) ∘ (α⇐ ∘ id ⊗₁ split p))
-          ≈⟨ center ≈-Term-refl ⟨
-        (id ⊗₁ merge p ∘ α⇒) ∘ id ⊗₁ W ∘ (α⇐ ∘ id ⊗₁ split p) ∎
 
   --------------------------------------------------------------------------------
   -- The DecEq-dependent layer: the `castW` helper kit and the merge/split

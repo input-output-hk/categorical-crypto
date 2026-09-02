@@ -93,3 +93,19 @@ module _ (C : MonoidalCategory o ℓ e) where
 
     test-F₁-nat : MC.U [ Functor.F₁ (-⊗ B) s ∘ (id ⊗₁ t) ≈ (id ⊗₁ t) ∘ (s ⊗₁ id) ]
     test-F₁-nat = solve-mor C
+
+    private
+      s′ : MC.U [ A , A ]
+      s′ = s
+
+      wrap : MC.U [ A , A ] → MC.U [ A , A ]
+      wrap f = f
+
+    test-alias : MC.U [ s ≈ s′ ]
+    test-alias = solve-mor C
+
+    test-alias-∘ : MC.U [ s′ ∘ s ≈ s ∘ s′ ]
+    test-alias-∘ = solve-mor C
+
+    test-alias-wrap : MC.U [ wrap s ∘ s ≈ s ∘ wrap s ]
+    test-alias-wrap = solve-mor C

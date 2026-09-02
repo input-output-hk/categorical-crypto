@@ -110,15 +110,7 @@ open import Categories.Coherence.Monoidal.Normalize using (NormStatus; converged
 
 module MonLimits where
 
-  data Ty : Set where ⋆ • : Ty
-
-  instance
-    DecEq-Ty : DecEq Ty
-    DecEq-Ty .DecEq._≟_ = λ where
-      ⋆ ⋆ → yes refl
-      ⋆ • → no λ ()
-      • ⋆ → no λ ()
-      • • → yes refl
+  open import Categories.Coherence.Monoidal.Test.Frontend using (Ty; ⋆; •; DecEq-Ty)
 
   open FreeMonoidalHelper Mon Ty using () renaming (ObjTerm to ObjTermᴵ; unit to unitᴵ; _⊗₀_ to _⊗₀ᴵ_; Var to Varᴵ)
 
