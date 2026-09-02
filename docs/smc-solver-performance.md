@@ -501,11 +501,15 @@ call-pattern bugs**, neither in the solver:
    equation — `force! : (m : Maybe A) → is-just m ≡ true → A` applied to a stated `refl`, whose
    validation runs on the fast call-by-need conversion machine.
 2. **Type-spelling mismatch.** Writing `Translation gSig` where the consuming signature
-   (`SoundnessFullWired gSigDec`) elaborates `Translation (APROPSignatureDec.sig gSigDec)`:
-   definitionally equal by one projection step, but the missed *syntactic* fast path sends
-   conversion into field-by-field deep normalization of both translated hypergraphs. Invisible at
-   Fin-3 (no committed test ever saw it); catastrophic at 8 atoms. *Fix:* spell instantiated
-   types exactly as the consuming signature spells them.
+   elaborated a *projection* out of the decidable signature record — at the time the decidable
+   layer was a separate `APROPSignatureDec` wrapping the plain one, so the consumer's spelling
+   was `Translation (APROPSignatureDec.sig …)`: definitionally equal by one projection step, but
+   the missed *syntactic* fast path sends conversion into field-by-field deep normalization of
+   both translated hypergraphs. Invisible at Fin-3 (no committed test ever saw it); catastrophic
+   at 8 atoms. *Fix:* spell instantiated types exactly as the consuming signature spells them.
+   (This particular projection no longer exists — `APROPSignatureDec` has since been merged into
+   `APROPSignature`, which now carries `_≟X_`/`_≟-mor_` itself, and `gSig` is the only
+   instance — but the fast-path hazard the mismatch exposes is general.)
 
 With both fixes the `assoc'-coherence` chain completes interactively: obligations 27/24/33 s, the
 15-hop Decomp 25 s, assembly + transport ~30 s, and the GConstruction fill 27 s — **`assoc'` is

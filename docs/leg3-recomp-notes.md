@@ -51,7 +51,7 @@ DONE:
     * mutual focusAll-sound/go-all-sound (∘ both operands, ⊗ both factors, leaf, units)
     * lookup-Pred + focusAtₙ-sound corollary:
         focusAtₙ s lᵗ n ≡ just (k,pre,post) → s ≈Term post∘((id{k}⊗lᵗ)∘pre)
-  ~480 LOC. Works over ARBITRARY APROPSignatureDec, so applies at Deep's C⁺ (sig⁺) too.
+  ~480 LOC. Works over an ARBITRARY APROPSignature, so applies at Deep's C⁺ (sig⁺) too.
 
 REMAINING: (3) retract soundness, (4) hole-subst-commutes, (5) pad layer, final assembly.
 
@@ -91,7 +91,7 @@ Per sub-proof:
       focusAll-sound / go-all-sound (mutual; ∘ both, ⊗ both factors incl. σ-braid
       left-factor, leaf via reverse soundness), focusAtₙ-sound corollary.
       NB lfactor-coh (σ+α braid chase) was planned as temp-postulate but DISCHARGED.
-      Works over ANY APROPSignatureDec ⇒ directly applicable at Deep's C⁺/sig⁺.
+      Works over ANY APROPSignature ⇒ directly applicable at Deep's C⁺/sig⁺.
 - (3) retract soundness ................... DONE, FULLY PROVEN (~85 LOC).
       incl + retract-incl (section) + retract-faithful (faithfulness on hole-free).
 - (5) pad-layer soundness ................. PARTIAL, proven kernel (~95 LOC).
