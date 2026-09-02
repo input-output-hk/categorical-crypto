@@ -5,8 +5,8 @@
 --
 -- The decode pipeline relies on structural properties of the translation
 -- that are universal but not captured by the `Hypergraph` record fields
--- alone (`dom ≡ cod` for the identity hypergraph, `Unique` witnesses for
--- `range n` and `hGen`'s dom, and the `range`/`_++_` split).
+-- alone (`Unique` witnesses for `range n` and `hGen`'s dom, and the
+-- `range`/`_++_` split).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -29,13 +29,6 @@ import Data.List.Relation.Unary.All.Properties     as ListAll-Prop
 import Data.List.Relation.Unary.AllPairs           as AllPairs
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 import Data.List.Relation.Unary.Unique.Propositional.Properties as Uniq-Prop
-
---------------------------------------------------------------------------------
--- For identity hypergraphs, `dom ≡ cod` as lists — literally the same
--- `range (length (flatten A))` on both sides.
-
-hId-cod≡dom : ∀ A → Hypergraph.cod (hId A) ≡ Hypergraph.dom (hId A)
-hId-cod≡dom _ = refl
 
 --------------------------------------------------------------------------------
 -- injectivity of `_↑ˡ_`/`_↑ʳ_` and element-level disjointness of their images:
