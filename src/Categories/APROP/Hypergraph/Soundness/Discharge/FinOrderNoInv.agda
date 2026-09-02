@@ -109,7 +109,7 @@ open import Relation.Nullary using (¬_)
 -- The one count fact the `∘` cross-acyclicity needs, from the shared
 -- `CountCombinatorics` leaf: a `count ≤ 1` bound on a `_++_` makes its two
 -- sides disjoint.
-open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig
+open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics
   using (++-bnd→disjoint)
 
 --------------------------------------------------------------------------------

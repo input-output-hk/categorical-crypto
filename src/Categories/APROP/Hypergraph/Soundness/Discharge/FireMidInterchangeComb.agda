@@ -40,7 +40,7 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-prefix)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
-  using (Linear; count; count-++; consumedList)
+  using (Linear; consumedList)
 
 open import Categories.APROP.Hypergraph.Soundness.Discharge.EdgeDependency using (Dep)
 
@@ -56,9 +56,9 @@ import Data.Nat.Properties as Nat
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Relation.Nullary using (¬_)
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig
-  using ( ↭⇒count; count-≡⇒↭; count-pos→∈; count-≤→extract-prefix; ++-cancelˡ
-        ; count-++-bndʳ
+open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics
+  using ( count; count-++; ↭⇒count; count-≡⇒↭; count-pos→∈
+        ; count-≤→extract-prefix; ++-cancelˡ; count-++-bndʳ
         ; extract-prefix-just→count-≤
         ; count-concat-tabulate-pair-≤)
 

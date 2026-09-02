@@ -3,22 +3,19 @@
 --------------------------------------------------------------------------------
 -- Shared `count` / `extract-prefix` combinatorics leaf (H-agnostic).
 --
--- Generic lemmas over `List (Fin n)`, collected in one leaf.  `count` is
--- from `Soundness.Linearity.Linearity`; `extract-elem`/`extract-prefix` from
--- `Soundness.Decode.Decode` (which re-exports them from
--- `Combinatorics.ExtractPrefix`).  Also hosts the `Unique` ⇔ `count ≤ 1`
--- bridge, shared by `Stack.StackUnique` and `Discharge.DecodeAttemptLinearP`.
+-- Generic lemmas over `List (Fin n)`, collected in one leaf.  Signature-FREE
+-- (no parameter): `count` is defined HERE, not in the sig-parameterised
+-- `Linearity` which imports it back, and `extract-elem`/`extract-prefix` come
+-- straight from `Combinatorics.ExtractPrefix`.  Also hosts the `Unique` ⇔
+-- `count ≤ 1` bridge, shared by `Stack.StackUnique` and
+-- `Discharge.DecodeAttemptLinearP`.
 --------------------------------------------------------------------------------
 
+module Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics where
+
 open import Categories.APROP
-
-module Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics
-  (sig : APROPSignature) where
-
-open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
+open import Categories.Combinatorics.ExtractPrefix
   using (extract-prefix; extract-elem)
-open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
-  using (count; count-++)
 
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin using (Fin; zero; suc)
@@ -41,6 +38,21 @@ private
     n : ℕ
 
 module SetoidProp {n} = SetoidPropM (≡-setoid (Fin n))
+
+--------------------------------------------------------------------------------
+-- `count v xs`: occurrences of `v` in `xs`; and its `_++_` distribution.
+
+count : Fin n → List (Fin n) → ℕ
+count v []       = 0
+count v (x ∷ xs) with v ≟ x
+... | yes _ = suc (count v xs)
+... | no  _ = count v xs
+
+count-++ : (v : Fin n) (xs ys : List (Fin n)) → count v (xs ++ ys) ≡ count v xs + count v ys
+count-++ v []       ys = refl
+count-++ v (x ∷ xs) ys with v ≟ x
+... | yes _ = cong suc (count-++ v xs ys)
+... | no  _ = count-++ v xs ys
 
 --------------------------------------------------------------------------------
 -- `count` cons reductions.

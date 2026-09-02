@@ -30,6 +30,10 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
         ; hId; hGen; hSwap; hTensor
         ; module hTensor-impl; module hGenSwap-impl)
 open import Categories.APROP.Hypergraph.Model.Invariant sig using (↑ˡ≢↑ʳ; range-++)
+-- `count v xs` (occurrences of `v` in `xs`) and its `_++_` distribution law
+-- live in the signature-free count leaf `Discharge.CountCombinatorics`.
+open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics
+  using (count; count-++)
 
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
@@ -43,22 +47,6 @@ open import Data.Nat as Nat using ()
 import Data.Nat.Properties as Nat
 open import Data.Sum using (inj₁; inj₂)
 open import Relation.Nullary.Decidable using (yes; no)
-
--- count v xs : number of occurrences of `v` in `xs`.
-
-count : ∀ {n} → Fin n → List (Fin n) → ℕ
-count v []       = 0
-count v (x ∷ xs) with v ≟ x
-... | yes _ = suc (count v xs)
-... | no  _ = count v xs
-
--- count distributes over `_++_`.
-
-count-++ : ∀ {n} (v : Fin n) (xs ys : List (Fin n)) → count v (xs ++ ys) ≡ count v xs + count v ys
-count-++ v []       ys = refl
-count-++ v (x ∷ xs) ys with v ≟ x
-... | yes _ = cong suc (count-++ v xs ys)
-... | no  _ = count-++ v xs ys
 
 -- Generic `count` behaviour under `map f`: an injective `f` preserves the
 -- count of any preimage, and a value with no `f`-preimage has count 0.  All

@@ -37,12 +37,13 @@ open Perm using (_↭_)
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
-  using (count; producedList)
+  using (producedList)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (process-edges; edge-step; extract-prefix)
 
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig
-  using (count≤1⇒Unique; Unique⇒count≤1; count-++-bndˡ; count-++-bndʳ; Unique-resp-↭)
+  using (count; count≤1⇒Unique; Unique⇒count≤1; count-++-bndˡ; count-++-bndʳ
+        ; Unique-resp-↭)
 
 private
   variable

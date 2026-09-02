@@ -35,7 +35,7 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
-  using (count; count-++; Linear)
+  using (Linear)
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-↭-residual)
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
@@ -55,9 +55,9 @@ private
 --     takes only `Linear⇒cod-Unique`).  ONE module application, opened twice:
 --     `open import … sig` twice would apply the section twice.
 
-import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig as CC
-open CC using (↭⇒count)
-open CC using (Unique⇒count≤1; count≤1⇒Unique; count-++-bndˡ; count-++-bndʳ) public
+import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics as CC
+open CC using (count-++; ↭⇒count)
+open CC using (count; Unique⇒count≤1; count≤1⇒Unique; count-++-bndˡ; count-++-bndʳ) public
 
 --------------------------------------------------------------------------------
 -- 1.  `Unique-resp-↭` — the actual enabler.  `↭` preserves `count` (`↭⇒count`),

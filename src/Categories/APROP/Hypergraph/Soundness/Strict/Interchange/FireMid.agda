@@ -40,7 +40,7 @@ import Categories.APROP.Hypergraph.Soundness.Discharge.FireMidInterchangeComb si
   as FMIC
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig
   as SU
-open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig
+open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics
   using (++-cancelˡ)
 
 open import Data.Fin using (Fin)

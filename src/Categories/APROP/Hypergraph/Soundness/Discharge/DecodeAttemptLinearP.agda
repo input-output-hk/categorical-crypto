@@ -42,7 +42,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
 import Categories.APROP.Hypergraph.Model.Invariant sig as Inv
 import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
-  using ( count; count-++; count-map-↑ˡ; count-map-inj
+  using ( count-map-↑ˡ; count-map-inj
         ; count-map-↑ˡ-mismatch; count-swap
         ; producedList; consumedList; Linear; concat-tabulate-blocks)
 
@@ -74,8 +74,9 @@ open import Relation.Nullary.Decidable using (yes; no)
 --------------------------------------------------------------------------------
 -- Count / permutation helpers.
 
-open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics sig
-  using ( count≤1⇒Unique; ∉→count-zero; count-++-bndˡ; count-++-bndʳ
+open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics
+  using ( count; count-++; count≤1⇒Unique; ∉→count-zero
+        ; count-++-bndˡ; count-++-bndʳ
         ; count-map-resp; ++-bnd→disjoint)
 
 private
