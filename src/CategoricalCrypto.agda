@@ -24,6 +24,7 @@ open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.GamePlaying
 open import CategoricalCrypto.Examples.Basic
 open import CategoricalCrypto.Examples.Commitment
+open import CategoricalCrypto.Examples.Possibilistic
 open import CategoricalCrypto.Examples.Signatures
 open import CategoricalCrypto.Examples.RandomOracle
 

@@ -5,7 +5,7 @@ module Categories.FreeMonoidal where
 --------------------------------------------------------------------------------
 -- Various free monoidal categories.  Two entry points: `FreeMonoidalHelper`
 -- (the term syntax — ObjTerm/HomTerm, wires/flatten, merge/split and the
--- pad algebra) is what the solver front-ends build on; `FreeMonoidalData` plus
+-- flat-shift algebra) is what the solver front-ends build on; `FreeMonoidalData` plus
 -- the `FreeMonoidal`/`FreeFunctor` modules package a free category and its
 -- interpretation functor into a concrete monoidal category.
 --------------------------------------------------------------------------------
@@ -17,7 +17,7 @@ open import Categories.Category.Helper
 open import Categories.Category.Monoidal
 open import Categories.Category.Monoidal.Symmetric
 open import Categories.Functor using (Functor)
-open import Categories.Functor.Monoidal
+open import Categories.Functor.Monoidal using (IsMonoidalFunctor)
 open import Categories.NaturalTransformation using (ntHelper)
 open import Categories.NaturalTransformation.NaturalIsomorphism.Properties
 
@@ -36,16 +36,18 @@ private variable o ℓ ℓ′ e : Level
 data Variant : Set where
   Mon Symm : Variant
 
+-- NOTE: this is deliberately not a global `instance`.  A global
+-- `v≤v : ∀ {v} → v ≤ v` makes the `Symm ≤ v` instance searches of any
+-- downstream tree that declares its own per-signature instances
+-- ambiguous/stuck; each such tree declares a `private instance Symm≤Symm`
+-- itself, and consumers pass `⦃ v≤v ⦄` explicitly where needed.
 data _≤_ : Variant → Variant → Set where
-  instance
-    v≤v : ∀ {v} → v ≤ v
-    M≤S : Mon ≤ Symm
+  v≤v : ∀ {v} → v ≤ v
 
--- The `Mon`-variant "symmetry": `Symm ≤ Mon` is uninhabited, so this is the
--- canonical absurd witness.  Sharing ONE definition (rather than an inline
--- `λ where ⦃ () ⦄` at each use site) keeps the `Symmetric-C` field of a Mon
--- `⟦_⟧ᵥ` definitionally equal across constructions — distinct extended lambdas
--- are not, even when both are absurd.
+-- The `Mon`-variant "symmetry": `Symm ≤ Mon` is uninhabited.  Sharing ONE
+-- definition keeps the `Symmetric-C` field of a Mon `⟦_⟧ᵥ` definitionally
+-- equal across constructions — distinct extended lambdas are not, even when
+-- both are absurd.
 noSymmetric : {C : Category o ℓ e} {M : Monoidal C} → ⦃ Symm ≤ Mon ⦄ → Symmetric M
 noSymmetric ⦃ () ⦄
 
@@ -66,8 +68,6 @@ record ⟦_⟧ᵥ (v : Variant) {o ℓ e} : Set (suc (o ⊔ ℓ ⊔ e)) where
       σ {X} {Y} = braiding.⇒.η (X , Y)
 
 -- A `⟦ v ⟧ᵥ` from a bundled `MonoidalCategory` plus its `v`-gated symmetry.
--- One shared builder so the variant interpretation reads the same wherever a
--- target category is reflected into (the free functor, the object map, FSolve.Into).
 fromMC : ∀ {v} (C : MonoidalCategory o ℓ e)
        → (⦃ Symm ≤ v ⦄ → Symmetric (C .MonoidalCategory.monoidal))
        → ⟦ v ⟧ᵥ
@@ -133,7 +133,7 @@ module FreeMonoidalHelper (v : Variant) (X : Set ℓ′) where
     data HomTerm : ObjTerm → ObjTerm → Set ℓ′ where
       var : mor A B → HomTerm A B
       id : HomTerm A A
-      _∘_ : HomTerm B C → HomTerm A B → HomTerm A C
+      _∘_ : ∀ {A B C} → HomTerm B C → HomTerm A B → HomTerm A C
       _⊗₁_ : HomTerm A B → HomTerm C D → HomTerm (A ⊗₀ C) (B ⊗₀ D)
       λ⇒ : HomTerm (unit ⊗₀ A) A
       λ⇐ : HomTerm A (unit ⊗₀ A)
@@ -208,6 +208,10 @@ module FreeMonoidalHelper (v : Variant) (X : Set ℓ′) where
       ; pentagon        = pentagon
       }
 
+    -- the free monoidal category itself
+    FMC : MonoidalCategory _ _ _
+    FMC = record { U = FreeMonoidal ; monoidal = Monoidal-FreeMonoidal }
+
     --------------------------------------------------------------------------
     -- Structural merge / split isos between `wires a ⊗₀ wires suf` and the
     -- flat `wires (a ++ suf)`.  Only λ/α coherence morphisms appear, so they
@@ -222,7 +226,7 @@ module FreeMonoidalHelper (v : Variant) (X : Set ℓ′) where
     split (x ∷ a) = α⇐ ∘ id ⊗₁ split a
 
     open MR FreeMonoidal
-    open MonR Monoidal-FreeMonoidal using (refl⟩⊗⟨_; _⟩⊗⟨refl; _⟩⊗⟨_; split₁ʳ; merge₂ʳ)
+    open MonR Monoidal-FreeMonoidal using (refl⟩⊗⟨_; _⟩⊗⟨_; merge₂ʳ)
     open Category.HomReasoning FreeMonoidal
 
     id⊗-∘ : ∀ {Z} {A B C} (P : HomTerm B C) (Q : HomTerm A B)
@@ -236,6 +240,29 @@ module FreeMonoidalHelper (v : Variant) (X : Set ℓ′) where
     id⊗-cancel : ∀ {Z} {A B} {P : HomTerm B A} {Q : HomTerm A B}
                → P ∘ Q ≈Term id → id {Z} ⊗₁ P ∘ id {Z} ⊗₁ Q ≈Term id
     id⊗-cancel {P = P} {Q} PQ = id⊗-∘ P Q ○ (refl⟩⊗⟨ PQ) ○ id⊗id≈id
+
+    ⊗-cancel : ∀ {A A' B B'} {P : HomTerm A' A} {Q : HomTerm A A'}
+                 {R : HomTerm B' B} {S : HomTerm B B'}
+             → P ∘ Q ≈Term id → R ∘ S ≈Term id
+             → (P ⊗₁ R) ∘ (Q ⊗₁ S) ≈Term id
+    ⊗-cancel PQ RS = ⟺ ⊗-∘-dist ○ (PQ ⟩⊗⟨ RS) ○ id⊗id≈id
+
+    cancel-mid-iso
+      : ∀ {A₀ A₁ A₂ A₃ A₄ A₅ : ObjTerm}
+          (To : HomTerm A₄ A₅) (M₁ : HomTerm A₂ A₄) (Fm : HomTerm A₃ A₂)
+          (Tm : HomTerm A₂ A₃) (M₂ : HomTerm A₁ A₂) (Ff : HomTerm A₀ A₁)
+      → Fm ∘ Tm ≈Term id
+      → (To ∘ M₁ ∘ Fm) ∘ (Tm ∘ M₂ ∘ Ff)
+        ≈Term To ∘ (M₁ ∘ M₂) ∘ Ff
+    cancel-mid-iso _ _ _ _ _ _ m-iso = center (cancelʳ m-iso) ○ (refl⟩∘⟨ ≈-Term-sym assoc)
+
+    cancel₃
+      : ∀ {A₀ A₁ A₂ A₃ : ObjTerm}
+          {a : HomTerm A₂ A₃} {b : HomTerm A₁ A₂} {c : HomTerm A₀ A₁}
+          {c⁻ : HomTerm A₁ A₀} {b⁻ : HomTerm A₂ A₁} {a⁻ : HomTerm A₃ A₂}
+      → c ∘ c⁻ ≈Term id → b ∘ b⁻ ≈Term id → a ∘ a⁻ ≈Term id
+      → (a ∘ b ∘ c) ∘ (c⁻ ∘ b⁻ ∘ a⁻) ≈Term id
+    cancel₃ hc hb ha = cancel-mid-iso _ _ _ _ _ _ hc ○ (refl⟩∘⟨ elimˡ hb) ○ ha
 
     α-conj : ∀ {A B C D E G} (f : HomTerm A B) (g : HomTerm C D) (h : HomTerm E G)
            → α⇒ ∘ (f ⊗₁ g) ⊗₁ h ∘ α⇐ ≈Term f ⊗₁ (g ⊗₁ h)
@@ -264,34 +291,18 @@ module FreeMonoidalHelper (v : Variant) (X : Set ℓ′) where
 
     flat⇐∘flat⇒ : ∀ (Y : ObjTerm) → flat⇐ Y ∘ flat⇒ Y ≈Term id
     flat⇐∘flat⇒ unit = idˡ
-    flat⇐∘flat⇒ (Y ⊗₀ Z) =
-      cancelInner (split∘merge (flatten Y))
-      ○ ⟺ ⊗-∘-dist
-      ○ (flat⇐∘flat⇒ Y ⟩⊗⟨ flat⇐∘flat⇒ Z)
-      ○ id⊗id≈id
+    flat⇐∘flat⇒ (Y ⊗₀ Z) = cancelInner (split∘merge (flatten Y)) ○ ⊗-cancel (flat⇐∘flat⇒ Y) (flat⇐∘flat⇒ Z)
     flat⇐∘flat⇒ (Var x) = ρ⇒∘ρ⇐≈id
 
     --------------------------------------------------------------------------
-    -- The flat-shift wire-frame algebra: `rpad` (suffix idle wires), `liftW`
-    -- (prefix idle wires), `pad` (both), and their functoriality lemmas.
+    -- The flat-shift wire-frame algebra.
     --------------------------------------------------------------------------
-
-    -- right-pad a morphism g : wires a ⇒ wires b by `suf` idle wires.
-    rpad : ∀ {a b} (suf : List X) → HomTerm (wires a) (wires b)
-         → HomTerm (wires (a ++ suf)) (wires (b ++ suf))
-    rpad {a} {b} suf g = merge b ∘ (g ⊗₁ id) ∘ split a
 
     -- `liftW p W` : prepend `p` idle wires to a flat morphism on `wires u`.
     liftW : (p : List X) {u v : List X} → HomTerm (wires u) (wires v)
           → HomTerm (wires (p ++ u)) (wires (p ++ v))
     liftW []      W = W
     liftW (x ∷ p) W = id ⊗₁ liftW p W
-
-    -- full padding: `pre` idle wires, the box, then `suf` idle wires.
-    -- `pad pre suf g = liftW pre (rpad suf g)` definitionally.
-    pad : ∀ {a b} (pre : List X) (suf : List X) → HomTerm (wires a) (wires b)
-        → HomTerm (wires (pre ++ (a ++ suf))) (wires (pre ++ (b ++ suf)))
-    pad pre suf g = liftW pre (rpad suf g)
 
     module _ ⦃ _ : Symm ≤ v ⦄ where
       open import Categories.Morphism FreeMonoidal
@@ -306,14 +317,39 @@ module FreeMonoidalHelper (v : Variant) (X : Set ℓ′) where
         ; hexagon     = hexagon
         }
 
+      open Symmetric Symmetric-Monoidal using () renaming (hexagon₂ to S-hexagon₂)
+
+      -- the dual hexagon at the α⇐ level.
+      private
+        hexagon₂
+          : ∀ {X Y Z : ObjTerm}
+          → (σ {A = X} {B = Z} ⊗₁ id {A = Y}) ∘ α⇐ {A = X} {B = Z} {C = Y}
+              ∘ (id {A = X} ⊗₁ σ {A = Y} {B = Z})
+            ≈Term α⇐ {A = Z} {B = X} {C = Y} ∘ σ {A = X ⊗₀ Y} {B = Z}
+              ∘ α⇐ {A = X} {B = Y} {C = Z}
+        hexagon₂ = ≈-Term-sym assoc ○ S-hexagon₂ ○ assoc
+
+      σ-A⊗B-expand
+        : ∀ {A B C : ObjTerm}
+        → σ {A = A ⊗₀ B} {B = C}
+          ≈Term α⇒ {A = C} {B = A} {C = B}
+                  ∘ (σ {A = A} {B = C} ⊗₁ id {A = B})
+                  ∘ α⇐ {A = A} {B = C} {C = B}
+                  ∘ (id {A = A} ⊗₁ σ {A = B} {B = C})
+                  ∘ α⇒ {A = A} {B = B} {C = C}
+      σ-A⊗B-expand =
+        ⟺ ( (refl⟩∘⟨ assoc²εβ)
+          ○ (refl⟩∘⟨ (hexagon₂ ⟩∘⟨refl))
+          ○ (refl⟩∘⟨ assoc)
+          ○ cancelˡ α⇒∘α⇐≈id
+          ○ cancelʳ α⇐∘α⇒≈id )
+
   --------------------------------------------------------------------------
   -- Generator bind: the free monoidal category construction is functorial in
   -- its generator family.  A map `h` from one generator family into the free
   -- category over another (both over the SAME atoms) extends homomorphically,
-  -- identity on objects.  This is the case `FreeFunctor` cannot express — its
-  -- object map is a recursion, not the identity — so it is the library-level
-  -- functoriality fact any such injection is an instance of, rather than a
-  -- clone of the equational-respect table.
+  -- identity on objects.  `FreeFunctor` cannot express this case: its object
+  -- map is a recursion, not the identity.
   --------------------------------------------------------------------------
   module Bind {mor₁ mor₂ : ObjTerm → ObjTerm → Set}
               (h : ∀ {A B} → mor₁ A B → Mor.HomTerm mor₂ A B)
@@ -372,16 +408,14 @@ record FreeMonoidalData {ℓ′ : Level} : Set (suc ℓ′) where
 
 module FreeMonoidal {ℓ} (d : FreeMonoidalData {ℓ}) where
   open FreeMonoidalData d
-  open FreeMonoidalHelper v X hiding (module Mor) public
-  open FreeMonoidalHelper.Mor v X mor public
+  open FreeMonoidalHelper v X hiding (module Mor; wires; flatten; ≟ObjTerm) public
+  open FreeMonoidalHelper.Mor v X mor public hiding (liftW; merge; merge∘split; split; split∘merge)
 
 -- The object action of the free functor depends only on the atoms'
--- interpretation `⟦_⟧ᵖ₀`, never on the generating morphisms `mor`.  Hoisting
--- it out of the `FreeMonoidalData`-parametrised `FreeFunctorHelper` means two
--- free functors over the SAME atoms but DIFFERENT generators share ONE object
--- map, *definitionally* — which is what lets a caller state a generator's
--- interpretation type (`⟦ Y ⟧₀ ⇒ ⟦ Z ⟧₀`) before fixing the generator
--- signature.
+-- interpretation `⟦_⟧ᵖ₀`.  Hoisting it out of the generator-parametrised
+-- helper means two free functors over the same atoms but different generators
+-- share one object map definitionally, which is what lets a caller state a
+-- generator's interpretation type before fixing the generator signature.
 module FreeObjInterp
   (v : Variant) (X : Set ℓ′) (⟦v⟧ : ⟦ v ⟧ᵥ {o} {ℓ} {e})
   (let module C = ⟦_⟧ᵥ.Cat ⟦v⟧) (⟦_⟧ᵖ₀ : X → C.Obj) where
@@ -485,4 +519,4 @@ module FreeFunctor {d : FreeMonoidalData {ℓ′}} (ffd : FreeFunctorData d {o} 
     ; unitaryʳ = elimʳ (C.identityˡ ○ C.⊗.identity)
     }
     where open Category.HomReasoning C
-          open import Categories.Morphism.Reasoning C
+          open MR C

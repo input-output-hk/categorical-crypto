@@ -11,18 +11,20 @@ module Categories.GradedKleisli where
 open import Level using (Level; _⊔_) renaming (suc to lsuc)
 
 open import Categories.Adjoint
-open import Categories.Category using (Category; _[_,_]; _[_≈_])
-open import Categories.Category.EquivClosureHelper using (categoryHelperᵉ)
-open import Categories.Category.Monoidal using (MonoidalCategory)
+open import Categories.Category
+open import Categories.Category.EquivClosureHelper
+open import Categories.Category.Monoidal
 import Categories.Category.Monoidal.Reasoning as MonR
 open import Categories.Coherence.Monoidal using (module MorAtoms; module MorSolve)
+open import Categories.Coherence.Monoidal.Tactic
+-- `using`: a bare open would clash `Functor.id` with `Iᵁ.id` (house rule 11)
 open import Categories.Functor using (Functor)
-open import Categories.Monad.Graded using (GradedMonad; GradedKleisliTriple)
+open import Categories.Monad.Graded
 import Categories.Morphism.Reasoning as MR
 open import Categories.NaturalTransformation using (NaturalTransformation; ntHelper)
-open import Categories.Tactic.Category using (solve)
+open import Categories.Tactic.Category
 
-open import Data.Fin using (Fin; #_)
+open import Data.Fin using (#_)
 open import Data.Product
 open import Data.Vec using (_∷_; [])
 
@@ -50,53 +52,47 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
   open Shorthands
 
   private
-    -- ∫^k hom_C(c, T k d) × hom_I(i ⊗ k, j), with Slide being the generator of the equivalence relation
-    OHom : (I.Obj × C.Obj) → (I.Obj × C.Obj) → Set (o ⊔ ℓ ⊔ ℓ′)
-    OHom (i , c) (j , d) = ∃[ k ] (C [ c , T₀ k d ]) × (I.U [ i ⊗₀ k , j ])
+    Objᴳ : Set (o ⊔ o′)
+    Objᴳ = I.Obj × C.Obj
 
-    Slide : ∀ {A B} → OHom A B → OHom A B → Set (ℓ ⊔ e ⊔ e′)
-    Slide {ai , _} (i , f , α) (j , g , β) =
+    -- ∫^k hom_C(c, T k d) × hom_I(i ⊗ k, j), with `_≈ᴳ_` the generator of the
+    -- equivalence relation
+    _⇒ᴳ_ : Objᴳ → Objᴳ → Set (o ⊔ ℓ ⊔ ℓ′)
+    (i , c) ⇒ᴳ (j , d) = ∃[ k ] (C [ c , T₀ k d ]) × (I.U [ i ⊗₀ k , j ])
+
+    _≈ᴳ_ : ∀ {A B} → (A ⇒ᴳ B) → (A ⇒ᴳ B) → Set (ℓ ⊔ e ⊔ e′)
+    _≈ᴳ_ {ai , _} (i , f , α) (j , g , β) =
       Σ[ φ ∈ I.U [ i , j ] ] C [ sub φ C.∘ f ≈ g ] × I.U [ β I.∘ (₁ (ai ⊗-) φ) ≈ α ]
+
+    idᴳ : ∀ {A} → A ⇒ᴳ A
+    idᴳ = I.unit , return , ρ⇒
+
+    _∘ᴳ_ : ∀ {A B D} → (B ⇒ᴳ D) → (A ⇒ᴳ B) → (A ⇒ᴳ D)
+    (j , g , β) ∘ᴳ (i , f , α) = i ⊗₀ j , g ⊙ f , β I.∘ (₁ (-⊗ j) α) I.∘ α⇐
 
   GradedKleisli : Category (o ⊔ o′) (o ⊔ ℓ ⊔ ℓ′) (o ⊔ ℓ ⊔ ℓ′ ⊔ e ⊔ e′)
   GradedKleisli = categoryHelperᵉ record
-    { Obj       = I.Obj × C.Obj
-    ; _⇒_       = OHom
-    ; _≈_       = Slide
-    ; id        = I.unit , return , ρ⇒
-    ; _∘_       = λ where
-      (j , g , β) (i , f , α) → i ⊗₀ j , g ⊙ f , β I.∘ (₁ (-⊗ j) α) I.∘ α⇐
+    { Obj       = Objᴳ
+    ; _⇒_       = _⇒ᴳ_
+    ; _≈_       = _≈ᴳ_
+    ; id        = idᴳ
+    ; _∘_       = _∘ᴳ_
     ; assoc     = λ where
       {Xi , _} {Yi , _} {Zi , _} {Wi , _} {a , f₀ , φf} {b , g₀ , φg} {c , h₀ , φh} →
           α⇐
         , (let open C in (refl⟩∘⟨ ⊙-assoc)
              ○ cancelˡ (⟺ sub-homomorphism ○ sub-resp-≈ associator.isoˡ ○ sub-identity))
-        , (let vs = Xi ∷ a ∷ b ∷ c ∷ Yi ∷ Zi ∷ Wi ∷ []
-               open MorAtoms I vs
-               open MorSolve I vs
-                    ( ((V (# 0) ⊗ᵒ V (# 1) , V (# 4)) , φf)
-                    ∷ ((V (# 4) ⊗ᵒ V (# 2) , V (# 5)) , φg)
-                    ∷ ((V (# 5) ⊗ᵒ V (# 3) , V (# 6)) , φh) ∷ [] )
-           in solveMor!
-                ((gen (# 2) S.∘ (gen (# 1) S.∘ gen (# 0) S.⊗₁ S.id S.∘ S.α⇐) S.⊗₁ S.id S.∘ S.α⇐)
-                   S.∘ S.id S.⊗₁ S.α⇐)
-                ((gen (# 2) S.∘ gen (# 1) S.⊗₁ S.id S.∘ S.α⇐) S.∘ gen (# 0) S.⊗₁ S.id S.∘ S.α⇐))
+        , solve-mor I
     ; identityˡ = λ where
       {ai , _} {B , _} {i , _ , α} →
           ρ⇒
         , ⊙-identityˡ
-        , (let vs = ai ∷ i ∷ B ∷ []
-               open MorAtoms I vs
-               open MorSolve I vs (((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , α) ∷ [])
-           in solveMor! (gen (# 0) S.∘ S.id S.⊗₁ S.ρ⇒) (S.ρ⇒ S.∘ gen (# 0) S.⊗₁ S.id S.∘ S.α⇐))
+        , solve-mor I
     ; identityʳ = λ where
       {ai , _} {B , _} {i , _ , α} →
           λ⇒
         , ⊙-identityʳ
-        , (let vs = ai ∷ i ∷ B ∷ []
-               open MorAtoms I vs
-               open MorSolve I vs (((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , α) ∷ [])
-           in solveMor! (gen (# 0) S.∘ S.id S.⊗₁ S.λ⇒) (gen (# 0) S.∘ S.ρ⇒ S.⊗₁ S.id S.∘ S.α⇐))
+        , solve-mor I
     ; ∘-resp-≈ = λ where
       {Ai , _} {Bi , _} {Ci , _}
         {fk , ff , fα} {hk , hf , hα} {gk , gf , gα} {ik , if′ , iα}
@@ -108,19 +104,9 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
              ext ik (sub φ C.∘ ff) C.∘ (sub ψ C.∘ gf)  ≈⟨ ext-resp-≈ cf ⟩∘⟨ cg ⟩
              ext ik hf C.∘ if′ ∎)
         , (let open Category.HomReasoning (I.U)
-               vs = Ai ∷ Bi ∷ Ci ∷ fk ∷ gk ∷ hk ∷ ik ∷ []
-               open MorAtoms I vs
-               open MorSolve I vs
-                    ( ((V (# 1) ⊗ᵒ V (# 5) , V (# 2)) , hα)
-                    ∷ ((V (# 0) ⊗ᵒ V (# 6) , V (# 1)) , iα)
-                    ∷ ((V (# 3)             , V (# 5)) , φ)
-                    ∷ ((V (# 4)             , V (# 6)) , ψ) ∷ [] )
            in begin
              (hα I.∘ (iα ⊗₁ I.id) I.∘ α⇐) I.∘ (I.id ⊗₁ (ψ ⊗₁ φ))
-               ≈⟨ solveMor! ((gen (# 0) S.∘ (gen (# 1) S.⊗₁ S.id) S.∘ S.α⇐)
-                               S.∘ S.id S.⊗₁ (gen (# 3) S.⊗₁ gen (# 2)))
-                            ((gen (# 0) S.∘ S.id S.⊗₁ gen (# 2))
-                               S.∘ (gen (# 1) S.∘ S.id S.⊗₁ gen (# 3)) S.⊗₁ S.id S.∘ S.α⇐) ⟩
+               ≈⟨ solve-mor I ⟩
              (hα I.∘ I.id ⊗₁ φ) I.∘ (iα I.∘ I.id ⊗₁ ψ) ⊗₁ I.id I.∘ α⇐
                ≈⟨ ifh ⟩∘⟨ (igi ⟩⊗⟨refl ⟩∘⟨refl) ⟩
              fα I.∘ (gα ⊗₁ I.id) I.∘ α⇐ ∎)
@@ -145,7 +131,7 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
   U-resp : ∀ {A B} {x y : GradedKleisli [ A , B ]} → x K.≈ y → C [ U₁ x ≈ U₁ y ]
   U-resp p = gfold C.equiv U₁ U-slide p
     where
-      U-slide : ∀ {A B} {x y : OHom A B} → Slide x y → C [ U₁ x ≈ U₁ y ]
+      U-slide : ∀ {A B} {x y : A ⇒ᴳ B} → x ≈ᴳ y → C [ U₁ x ≈ U₁ y ]
       U-slide {ai , _} {x = i , f , α} {y = j , g , β} (φ , p , q) = let open C in begin
           sub α ∘ μ ai i ∘ T₁ ai f
             ≈⟨ ⟺ (sub-resp-≈ q) ⟩∘⟨refl ⟩
@@ -185,13 +171,7 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
       (sub β ∘ μ Q j ∘ T₁ Q g) ∘ (sub α ∘ μ P i ∘ T₁ P f) ∎
     where
       I-eq : I.U [ (β I.∘ ₁ (-⊗ j) α I.∘ α⇐) I.∘ α⇒ ≈ β I.∘ ₁ (-⊗ j) α ]
-      I-eq = let vs = P ∷ i ∷ j ∷ Q ∷ R ∷ []
-                 open MorAtoms I vs
-                 open MorSolve I vs
-                      ( ((V (# 0) ⊗ᵒ V (# 1) , V (# 3)) , α)
-                      ∷ ((V (# 3) ⊗ᵒ V (# 2) , V (# 4)) , β) ∷ [] )
-             in solveMor! ((gen (# 1) S.∘ (gen (# 0) S.⊗₁ S.id) S.∘ S.α⇐) S.∘ S.α⇒)
-                          (gen (# 1) S.∘ (gen (# 0) S.⊗₁ S.id))
+      I-eq = solve-mor I
 
   U-functor : Functor GradedKleisli C
   U-functor = record
@@ -265,7 +245,7 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
     ; counit = ntHelper record
       { η       = λ where (j , d) → j , C.id , λ⇒
       ; commute = λ { {j , _} {j′ , d′} (kx , fx , φx) →
-          symmetric Slide (EqC.return (λ⇐ I.∘ φx
+          symmetric _≈ᴳ_ (EqC.return (λ⇐ I.∘ φx
             , (let open C in
                  (begin
                    sub (λ⇐ I.∘ φx) ∘ (ext j fx ∘ id)
