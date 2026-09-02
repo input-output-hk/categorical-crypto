@@ -3,9 +3,11 @@
 --------------------------------------------------------------------------------
 -- The STRICT `EdgeStepRˢ` algebra bricks for the two-edge interchange.
 --
---   * `fire-termˢ`/`EdgeStepRˢ`/`edge-stepˢ-graph` — the strict fired layer
---     and the inductive graph of `edge-stepˢ`, re-exported from the shared
---     `EdgeStepRel` leaf under this module's `(H)` telescope.
+--   * `EdgeStepRˢ`/`edge-stepˢ-graph` — the inductive graph of `edge-stepˢ`,
+--     re-exported from the shared `EdgeStepRel` leaf under this module's
+--     `(H)` telescope.  `fire-termˢ` is NOT among them: `EdgeStepView`'s
+--     `open StrictDecoder H` is deliberately not `public`, so every consumer
+--     reads the fired layer from its own `open StrictDecoder`.
 --   * `Incomp`, `pe-stackˢ`/`pe-termˢ` — incomparability + `process-edgesˢ`
 --     projection abbreviations.
 --------------------------------------------------------------------------------

@@ -106,7 +106,7 @@ module StrictDecoder (H : Hypergraph FlatGen) where
 
   -- STACK factoring over an order split — alias of the shared kernel
   -- `Decode.process-edges-++` (the strict stack IS `process-edges`
-  -- definitionally).  `EdgeStepRel` re-exports it as `++-stackˢ`.
+  -- definitionally).  The tree's ONE name for this face.
   pe-stack-++ˢ
     : ∀ (ps rest : List (Fin H.nE)) (s : List (Fin H.nV))
     → proj₁ (process-edgesˢ (ps ++ rest) s)

@@ -61,9 +61,9 @@ module PerHG (H : Hypergraph FlatGen)
 
   -- `EquivStep H` re-exports (via `open Run`/`open StrictDecoder`/`open
   -- Perm′`) everything we need: `vl`, `permuteˢ`, `pe-stackˢ`, `pe-termˢ`,
-  -- `++-stackˢ` — no separate `open StrictDecoder` (which
-  -- would duplicate `permuteˢ`).
-  open EquivStep H using (vl; permuteˢ; pe-stackˢ; pe-termˢ; ++-stackˢ)
+  -- `pe-stack-++ˢ` — no separate `open StrictDecoder` (would duplicate
+  -- `permuteˢ`).
+  open EquivStep H using (vl; permuteˢ; pe-stackˢ; pe-termˢ; pe-stack-++ˢ)
 
   -- The order-theory spine, reused verbatim from the non-strict wiring
   -- (`connectivity` pre-applied to this hypergraph's acyclicity `dih`).
@@ -109,7 +109,7 @@ module PerHG (H : Hypergraph FlatGen)
   -- PLUMBING 1 — the cod-only stack transport `coeCod` and the term-level
   -- factoring of `process-edgesˢ` over `_++_` (`pe-term-++ˢ`), both from the
   -- strict `DecodeCompose` run blocks: `pe-term-++ˢ` IS this cluster's
-  -- `_++_`-factoring face, and `++-stackˢ` (`EdgeStepRel:67`) is the shared
+  -- `_++_`-factoring face, and `StrictDecoder.pe-stack-++ˢ` is the shared
   -- stack kernel it factors through.
   open RunBlocks H using (coeCod; pe-term-++ˢ) public
 
@@ -122,7 +122,7 @@ module PerHG (H : Hypergraph FlatGen)
     : ∀ (ps rest : Order) (p : Validˢ (ps ++ rest))
     → decodeOrdˢ (ps ++ rest) p
       ≈ˢ ( permuteˢ p
-            ∘ˢ coeCod (sym (++-stackˢ ps rest H.dom))
+            ∘ˢ coeCod (sym (pe-stack-++ˢ ps rest H.dom))
                        (pe-termˢ rest (pe-stackˢ ps H.dom)) )
           ∘ˢ pe-termˢ ps H.dom
   decodeOrdˢ-factor ps rest p =
@@ -130,7 +130,7 @@ module PerHG (H : Hypergraph FlatGen)
       (∘-resp ≈-refl (pe-term-++ˢ ps rest H.dom))
       (≈-trans
         (∘-resp ≈-refl
-          (coeCod-∘ (sym (++-stackˢ ps rest H.dom))
+          (coeCod-∘ (sym (pe-stack-++ˢ ps rest H.dom))
                      (pe-termˢ rest (pe-stackˢ ps H.dom))
                      (pe-termˢ ps H.dom)))
         (≈-sym assocˢ))
@@ -156,7 +156,7 @@ module FrontSwap (H : Hypergraph FlatGen)
                  where
   private module H = Hypergraph H
   open PerHG H dih lin
-  open EquivStep H using (vl; permuteˢ; pe-stackˢ; pe-termˢ; ++-stackˢ)
+  open EquivStep H using (vl; permuteˢ; pe-stackˢ; pe-termˢ; pe-stack-++ˢ)
 
   --------------------------------------------------------------------
   -- (K)  THE FINAL-PERMUTE RECONCILIATION.  For `r : a-stk ↭ b-stk`,
@@ -191,16 +191,16 @@ module FrontSwap (H : Hypergraph FlatGen)
         (p₁ : Validˢ (ps ++ e ∷ e' ∷ qs))
         (p₂ : Validˢ (ps ++ e' ∷ e ∷ qs))
     → ( permuteˢ p₁
-          ∘ˢ coeCod (sym (++-stackˢ ps (e ∷ e' ∷ qs) H.dom))
+          ∘ˢ coeCod (sym (pe-stack-++ˢ ps (e ∷ e' ∷ qs) H.dom))
                      (pe-termˢ (e ∷ e' ∷ qs) (pe-stackˢ ps H.dom)) )
       ≈ˢ
       ( permuteˢ p₂
-          ∘ˢ coeCod (sym (++-stackˢ ps (e' ∷ e ∷ qs) H.dom))
+          ∘ˢ coeCod (sym (pe-stack-++ˢ ps (e' ∷ e ∷ qs) H.dom))
                      (pe-termˢ (e' ∷ e ∷ qs) (pe-stackˢ ps H.dom)) )
   front-swap-≈ˢ ps qs {e} {e'} inc RI p₁ p₂ =
-    ≈-trans (coe-vanish (++-stackˢ ps (e ∷ e' ∷ qs) H.dom) p₁ run₁)
+    ≈-trans (coe-vanish (pe-stack-++ˢ ps (e ∷ e' ∷ qs) H.dom) p₁ run₁)
       (≈-trans assembled
-        (≈-sym (coe-vanish (++-stackˢ ps (e' ∷ e ∷ qs) H.dom) p₂ run₂)))
+        (≈-sym (coe-vanish (pe-stack-++ˢ ps (e' ∷ e ∷ qs) H.dom) p₂ run₂)))
     where
       open RunInterchangeˢ RI
 
@@ -210,9 +210,9 @@ module FrontSwap (H : Hypergraph FlatGen)
 
       -- Re-express the validity witnesses at the `fs` level.
       p₁' : pe-stackˢ (e ∷ e' ∷ qs) sp Perm.↭ H.cod
-      p₁' = subst (Perm._↭ H.cod) (++-stackˢ ps (e ∷ e' ∷ qs) H.dom) p₁
+      p₁' = subst (Perm._↭ H.cod) (pe-stack-++ˢ ps (e ∷ e' ∷ qs) H.dom) p₁
       p₂' : pe-stackˢ (e' ∷ e ∷ qs) sp Perm.↭ H.cod
-      p₂' = subst (Perm._↭ H.cod) (++-stackˢ ps (e' ∷ e ∷ qs) H.dom) p₂
+      p₂' = subst (Perm._↭ H.cod) (pe-stack-++ˢ ps (e' ∷ e ∷ qs) H.dom) p₂
 
       -- `coe-vanish`: with the stack-equality matched at `refl`, the
       -- codomain `coeCod` collapses onto the un-transported run.

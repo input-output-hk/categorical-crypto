@@ -6,7 +6,8 @@
 --
 -- This file STATES the both-fire core (`FireMidInterchangeˢ`) and builds the
 -- four-way firing split around it: it consumes the algebra bricks of
--- `Strict.Interchange.SwapCore` (`EdgeStepRˢ`, `rigidˢ`), plus the
+-- `Strict.Interchange.SwapCore` (`EdgeStepRˢ`, `Incomp`; the fired layer
+-- `fire-termˢ` comes from its own `open StrictDecoder`), plus the
 -- TERM-FREE combinatorics of `Discharge.FireMidInterchangeComb` (`SimLoc`,
 -- `sim-loc`, the stability lemmas) and `Stack.StackUniqueReach`
 -- (`Reservoir≤1`) to build:
@@ -247,7 +248,7 @@ module _ (H : Hypergraph FlatGen)
         us-of
           : ∀ (o : List (Fin H.nE)) → SUR.Reservoir≤1 H (ps ++ o) H.dom
           → Unique (pe-stackˢ′ o sp)
-        us-of o r = subst Unique (++-stackˢ H ps o H.dom)
+        us-of o r = subst Unique (pe-stack-++ˢ ps o H.dom)
                       (reached-Uniqueˢ-from (ps ++ o) r)
 
         us-sp : Unique sp

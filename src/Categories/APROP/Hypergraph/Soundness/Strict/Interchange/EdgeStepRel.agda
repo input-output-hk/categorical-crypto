@@ -3,19 +3,17 @@
 --------------------------------------------------------------------------------
 -- The strict `EdgeStepRˢ` step relation, factored ONCE.
 --
--- Supplies the strict fired layer and the inductive graph of the strict
--- decoder's `edge-stepˢ`, per hypergraph:
+-- Supplies the inductive graph of the strict decoder's `edge-stepˢ`, per
+-- hypergraph (`fire-termˢ`, the strict fired layer whose shape `fireRˢ`'s
+-- morphism index matches DEFINITIONALLY, is READ from `StrictDecoder`, not
+-- exported here):
 --
---   * `fire-termˢ` — the strict fired layer, matching `edge-stepˢ`'s FIRE
---     branch on the nose (so `EdgeStepRˢ`'s `fireRˢ` index is DEFINITIONALLY
---     `proj₂ (edge-stepˢ s e)`).
 --   * `EdgeStepRˢ` — the inductive graph of `edge-stepˢ`; matching its
 --     `skipRˢ`/`fireRˢ` constructors refines the otherwise-stuck
 --     `edge-stepˢ` redex (dodges green-slime).
 --   * `edge-stepˢ-graph` — the function realises the relation.
---   * `pe-stackˢ`/`pe-termˢ`/`++-stackˢ` — the two `process-edgesˢ`
---     projection abbreviations every consumer of this view reads, plus the
---     decoder's one order-split stack kernel under the `pe-stackˢ` spelling.
+--   * `pe-stackˢ`/`pe-termˢ` — the two `process-edgesˢ` projection
+--     abbreviations every consumer of this view reads.
 --
 -- Shared by `Interchange.SwapCore` (which re-exports it under its `(H)`
 -- telescope) and `Interchange.StackEquiv`'s `EquivStep`.
@@ -60,11 +58,6 @@ module EdgeStepView (H : Hypergraph FlatGen) where
   pe-termˢ : (o : List (Fin H.nE)) (s : List (Fin H.nV))
            → HomS (map vl s) (map vl (pe-stackˢ o s))
   pe-termˢ o s = proj₂ (process-edgesˢ o s)
-
-  -- `process-edgesˢ` factors over an order split.  The ONE kernel lives with
-  -- the decoder (`StrictDecoder.pe-stack-++ˢ`); this view exports it under
-  -- the `pe-stackˢ`-spelled name its consumers use.
-  ++-stackˢ = pe-stack-++ˢ
 
   -- The function realises the relation.
   edge-stepˢ-graph
