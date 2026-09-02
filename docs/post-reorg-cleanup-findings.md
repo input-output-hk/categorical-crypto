@@ -12,6 +12,15 @@
 > discharge that finding asks to document now lives. Both findings' recommendations were
 > overtaken by those moves; this is an archived corpus, read it as of 2026-06-17.
 
+> **Repointing note (2026-09-02, round 12).** Three more claims below are overtaken:
+> (a) `Invariant.hId-cod≡dom`, on the KEEP lists at `:47` and `:273`, has been DELETED —
+> the seven structural atoms re-derive at the literal `hId`, so no `dom ≡ cod` lemma is
+> needed at all; (b) Model-5's "the local copies are genuine stdlib reimplementations"
+> (`:285`) no longer holds — `Invariant.inject+-inj`/`raise-inj` are the one-line
+> delegations to `↑ˡ-injective`/`↑ʳ-injective` that finding recommended; (c) Discharge-3's
+> "`StackUnique:74` already imports `CountCombinatorics sig`" (`:394`) is stale — the count
+> leaf takes no signature parameter any more.
+
 Produced by the `post-reorg-cleanup-discovery` workflow: one read-only auditor per major
 subtree -> adversarial verification of every finding -> cross-cutting synthesis.
 58 findings: 49 confirmed, 9 needs-care, 1 dropped as false-positive.

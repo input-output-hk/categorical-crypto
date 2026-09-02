@@ -1,5 +1,7 @@
 # Performance of the APROP SMC solver
 
+> **Status note (2026-09-02).** A campaign record, not a specification: the `matrix-faithful`/`decBijLaws`/`decCanonMatch`/`canonMat`/`readPerm` family below is probe-branch code that never entered `src/`. Read every measurement as of its own dated section.
+
 The `Categories.APROP.Hypergraph.Solver` decision procedure proves free-symmetric-monoidal
 term equalities by
 
@@ -508,8 +510,9 @@ call-pattern bugs**, neither in the solver:
    both translated hypergraphs. Invisible at Fin-3 (no committed test ever saw it); catastrophic
    at 8 atoms. *Fix:* spell instantiated types exactly as the consuming signature spells them.
    (This particular projection no longer exists — `APROPSignatureDec` has since been merged into
-   `APROPSignature`, which now carries `_≟X_`/`_≟-mor_` itself, and `gSig` is the only
-   instance — but the fast-path hazard the mismatch exposes is general.)
+   `APROPSignature`, which now carries `_≟X_`/`_≟-mor_` itself; the tree has five
+   instances of it — `gSig`, `iSig`, `mySig`, `finSig`, `sig⁺` — but the fast-path hazard
+   the mismatch exposes is general.)
 
 With both fixes the `assoc'-coherence` chain completes interactively: obligations 27/24/33 s, the
 15-hop Decomp 25 s, assembly + transport ~30 s, and the GConstruction fill 27 s — **`assoc'` is

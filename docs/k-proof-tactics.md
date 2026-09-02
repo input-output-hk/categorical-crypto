@@ -1,5 +1,7 @@
 # Tactics for the K reproofs
 
+> **Status note (2026-09-02).** PROPOSAL ONLY — nothing described here was built. `eval-canonW` and `SolverReflect` do not exist in `src/`; the other names are Lean/Coq/stdlib-meta, i.e. legitimately external.
+
 The deep-dive established *why* Carlier (Lean) and Coq-Combi (Coq) are shorter than
 our `PermuteCoherence` K proof: **automation we lack** — Lean's `grind`/`simp`/
 `Quotient.lift` + classical `CoxeterSystem`, Coq's SSReflect `gencongr_hom` +
