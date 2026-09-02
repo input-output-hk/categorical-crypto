@@ -122,13 +122,17 @@ infixr 10 _⇒ₜ_
 
 infixr 9 _⊗₀_
 
-opaque 
+opaque
   _⊗₀_ : Fun₂ Channel
   A ⊗₀ B = (inType A ⊎ inType B) ⇿ (outType A ⊎ outType B)
 
   destruct-⊗ : ∀ {A B m} → modeType m (A ⊗₀ B) → modeType m A ⊎ modeType m B
   destruct-⊗ {m = Out} = id
   destruct-⊗ {m = In} = id
+
+  construct-⊗ : ∀ {A B m} → modeType m A ⊎ modeType m B → modeType m (A ⊗₀ B)
+  construct-⊗ {m = Out} = id
+  construct-⊗ {m = In}  = id
 
 -----------------------------------
 -- Forwarding tensorial products --

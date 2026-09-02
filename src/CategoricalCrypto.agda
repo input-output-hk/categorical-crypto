@@ -18,6 +18,7 @@ open import CategoricalCrypto.Channel.Core public
 open import CategoricalCrypto.Channel.Selection public
 open import CategoricalCrypto.Machine.Constraints public
 open import CategoricalCrypto.Machine.Core public
+open import CategoricalCrypto.Machine.Iso public
 open import CategoricalCrypto.SFunM public 
 open import CategoricalCrypto.Examples.Basic
 open import CategoricalCrypto.Examples.Commitment
