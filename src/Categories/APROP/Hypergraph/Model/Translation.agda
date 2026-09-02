@@ -91,10 +91,10 @@ open import Data.List.Properties using (++-identityʳ; ++-assoc)
 {-# INJECTIVE_FOR_INFERENCE ⟪_⟫ #-}
 
 --------------------------------------------------------------------------------
--- The recursor for predicates on the IMAGE of `⟪_⟫`.  Eight of the thirteen
+-- The recursor for predicates on the IMAGE of `⟪_⟫`.  Seven of the eleven
 -- `HomTerm` constructors (`id`, the four unitors, the two associators) all
 -- translate to some `hId`, so their motives coincide once `⟪_⟫` reduces and
--- one handler serves all eight.  The `∘`/`⊗` handlers keep the SUBTERMS in
+-- one handler serves all seven.  The `∘`/`⊗` handlers keep the SUBTERMS in
 -- scope, not just the recursive results, because consumers routinely need a
 -- *different* predicate's proof there (`⟪⟫-LinearP g`, `⟪_⟫-dom-unique g`).
 

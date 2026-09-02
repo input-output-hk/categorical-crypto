@@ -131,7 +131,7 @@ solveSplit? f g | nothing = fallback f g
 -- rules — no coherence.
 
 -- The graft and its soundness proof in ONE recursion: pairing the term with
--- its witness lets the nine non-`∘` constructors be covered by the CATCH-ALL
+-- its witness lets the ten non-`∘` constructors be covered by the CATCH-ALL
 -- clause.  Split into a `comp`/`comp-sound` pair they would each have to be
 -- enumerated, because `comp g f` does not reduce at a variable `g` — and
 -- nothing outside this module ever needed either half separately.

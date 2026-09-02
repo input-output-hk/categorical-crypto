@@ -20,9 +20,9 @@
 -- explicitly (so the goal need not pin them down through the non-injective
 -- `⟦_⟧₁`), plus the hypergraph isomorphism.
 --
--- The second half of the file (the focus frames onward) is the REWRITE/DRIVER layer:
--- the focus frames (`frameM` and its two entry points), the `rewriteH!`-family gates,
--- and the deep-rewrite drivers they feed.
+-- The focus frames (`frameM`, `focFrame`, `deepFrame`) come FIRST, since both
+-- layers use them; from the `rewriteH!`-family gates onward the file is the
+-- REWRITE/DRIVER layer, ending in the deep-rewrite drivers they feed.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP using (APROPSignature; module APROP)

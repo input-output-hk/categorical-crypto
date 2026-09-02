@@ -37,12 +37,12 @@ open import Data.List public
 -- `categorical-crypto.Prelude` hides for this same module; `zip`/`zipWith`
 -- join them because the `Data.List` re-export above already binds them.
 -- NOTE this list is load bearing for that re-export: hiding `map` here is what
--- leaves `Data.List.map`, which 25 scope modules use, unambiguous.
+-- leaves `Data.List.map`, which 32 scope modules use, unambiguous.
 open import Data.Product public
   hiding (assocʳ; assocˡ; map; map₁; map₂; map₂′; swap; _<*>_; zip; zipWith)
 
--- `Perm` as a re-exported module ALIAS: 36 of the 51 modules that blanket-open
--- this one spell exactly
+-- `Perm` as a re-exported module ALIAS, consumed `Perm.`-qualified by 30 of
+-- the openers, so none of them needs its own
 -- `import Data.List.Relation.Binary.Permutation.Propositional as Perm`.
 -- An alias adds no unqualified name, so unlike the re-export above it cannot
 -- make a use site ambiguous — but every sibling alias of the name must go,
@@ -51,7 +51,7 @@ open import Data.Product public
 import Data.List.Relation.Binary.Permutation.Propositional
 module Perm = Data.List.Relation.Binary.Permutation.Propositional
 
--- `PermProp` likewise, for 25 of the same modules.
+-- `PermProp` likewise, consumed by 24 of the same modules.
 import Data.List.Relation.Binary.Permutation.Propositional.Properties
 module PermProp = Data.List.Relation.Binary.Permutation.Propositional.Properties
 
@@ -88,7 +88,9 @@ record APROPSignature : Set₁ where
   -- The hypergraph-isomorphism decision procedure `findIso` (TensorRocq §4.2,
   -- arXiv:2604.17592) needs decidable equality on `X` (atom labels) and on
   -- `mor A B` (edge labels); `_≟-ObjTerm_` below (used for comparing labelled
-  -- arities when matching edges) then comes for free.
+  -- arities when matching edges) then comes for free.  `findIso` is not the only
+  -- consumer: the whole strict soundness cone needs `_≟X_` too, because
+  -- `FreeStrictSMC.Build` derives its `uipL` from `≡-dec _≟X_`.
   --
   -- Decidable equality on `FlatGen` itself is avoided (its `flat` constructor
   -- is generalised in `A, B` and `flatten` is not injective in general);

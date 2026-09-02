@@ -13,7 +13,8 @@
 -- cull-by-label pruning.  (In practice complete on `⟪_⟫`-translated graphs.)
 --
 -- `findIsoᵀ`, at the foot of this file, is the tabulated (literalized) finder
--- every caller in the tree actually uses.
+-- the tabulated gates use; plain `findIso` is still the door for `solveH!`,
+-- `solveTerm!`, `leaf-try` and `Wiring`'s measured 1-box cross-pairs.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP using (APROPSignature)

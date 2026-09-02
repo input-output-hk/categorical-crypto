@@ -12,8 +12,9 @@
 -- `HomTerm` alongside its stack, but Review-2 F2 (commit `d82a7be`) demoted it
 -- to a bare-stack TOTALITY skeleton: its `edge-step`/`process-edges` now return
 -- plain `List (Fin H.nV)` stacks and `decode-attempt` returns only a
--- `Maybe (↭)` totality witness.  `DecodeLean` is therefore the ONLY decoder
--- that still emits a term.  It reuses `Decode`'s shared search primitives
+-- `Maybe (↭)` totality witness.  `DecodeLean` is therefore the only decoder
+-- emitting a free-SMC `HomTerm` (`Strict.Decode.Decode.decodePˢ` emits a
+-- `HomS`, in the strictified language).  It reuses `Decode`'s search primitives
 -- (`extract-prefix`, `extract-exact`) and its generic per-edge generator
 -- (`Agen-edge-aux`), so its stack trajectory over `range H.nE` (in kahn order)
 -- coincides definitionally with `Decode`'s bare-stack fold — that stack
@@ -35,9 +36,9 @@
 -- collapsing the bulk identity padding.  A *non*-identity permutation never
 -- passes the `≟` guard, so it is never collapsed.
 --
--- Because the identity-guard collapse keeps the translated graph identical,
--- the produced frame is iso-equivalent to the full-permute reference frame, so
--- this needs no `decode-lean ≈Term …` correctness proof: correctness comes
+-- Because the identity-guard collapse keeps the translated graph iso-equivalent
+-- to the reference frame's (identical up to that `range-++` reindexing), this
+-- needs no `decode-lean ≈Term …` correctness proof: correctness comes
 -- from the downstream `findIso ⟪ s ⟫ ⟪ frame ⟫` gate, which is decidable and
 -- fails closed if a candidate is ever wrong.
 --------------------------------------------------------------------------------
@@ -77,8 +78,8 @@ open import Relation.Nullary using (yes; no)
 -- on each side.  Top-level (not under the `H` module) so `Agen-edge` below can
 -- be `cong`-rewritten along `elab` equations without an `H` argument.  This is
 -- the ONLY term-emitting piece of the old decoder that survived the Review-2
--- demotion, and this is the only decoder that emits a term — so it lives here
--- rather than in the now-`List`-only `Soundness.Decode.Decode`.
+-- demotion, and this is the only decoder emitting a free-SMC `HomTerm` — so it
+-- lives here rather than in the now-`List`-only `Soundness.Decode.Decode`.
 Agen-edge-aux
   : ∀ {ins outs : List X} → FlatGen ins outs
   → HomTerm (unflatten ins) (unflatten outs)
