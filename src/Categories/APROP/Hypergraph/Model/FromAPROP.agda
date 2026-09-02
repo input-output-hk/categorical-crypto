@@ -32,12 +32,11 @@ open APROP sig
 open import Categories.APROP.Hypergraph.Model.Core
 
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
-open import Data.Fin.Properties as Fin
+open import Data.Fin.Properties
 open import Data.List.Properties
 open import Data.List.Properties.Ext using (map-∘-cong)
 open import Data.Nat
 open import Data.Sum using (inj₁; inj₂; [_,_]′)
-
 
 --------------------------------------------------------------------------------
 -- Flattening an ObjTerm into its list of atoms.
@@ -381,4 +380,3 @@ domL-hSwap A B = trans (map-++ vlab-c Lblk Rblk) (cong₂ _++_ lem-L lem-R)
 codL-hSwap : ∀ A B → codL (hSwap A B) ≡ flatten B ++ flatten A
 codL-hSwap A B = trans (map-++ vlab-c Rblk Lblk) (cong₂ _++_ lem-R lem-L)
   where open hGenSwap-impl A B
-

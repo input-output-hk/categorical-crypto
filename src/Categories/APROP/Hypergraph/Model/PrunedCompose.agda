@@ -22,13 +22,11 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
 
 open import Categories.APROP.Hypergraph.Util.Prune
 
-
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; splitAt; cast)
 open import Data.Fin.Properties
 open import Data.List.Properties
 open import Data.Nat
 open import Data.Sum using ([_,_]′)
-
 
 --------------------------------------------------------------------------------
 -- "Boundary lookup" lemma: two lists with matching mapped images have
