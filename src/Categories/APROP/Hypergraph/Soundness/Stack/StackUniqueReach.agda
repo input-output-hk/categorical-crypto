@@ -27,13 +27,12 @@ module Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach
   (sig : APROPSignature) where
 
 open import Data.Fin using (Fin; zero; suc)
-open import Data.Nat using (ℕ; zero; suc)
-open import Data.List.Properties using (map-++; concat-++; ++-assoc)
+open import Data.Nat using (ℕ; zero; suc) renaming (_≤_ to _≤ⁿ_)
+open import Data.List.Properties using (map-++; map-∘; concat-++; ++-assoc)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe using (just; nothing)
 
 open Perm using (_↭_)
-
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; range)
@@ -41,8 +40,6 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
   using (count; producedList)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (process-edges; edge-step; extract-prefix)
-
-open import Data.Nat using () renaming (_≤_ to _≤ⁿ_)
 
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig
   using (count≤1⇒Unique; Unique⇒count≤1; count-++-bndˡ; count-++-bndʳ; Unique-resp-↭)
@@ -147,19 +144,13 @@ module _ (H : Hypergraph FlatGen) where
   --     (range nE)`.
 
   private
-    map-map-suc
-      : ∀ {A : Set} {m} (f : Fin (suc m) → A) (xs : List (Fin m))
-      → map f (map suc xs) ≡ map (λ i → f (suc i)) xs
-    map-map-suc f []       = refl
-    map-map-suc f (x ∷ xs) = cong (f (suc x) ∷_) (map-map-suc f xs)
-
     map-range≡tabulate
       : ∀ {A : Set} {m} (f : Fin m → A)
       → map f (range m) ≡ tabulate f
     map-range≡tabulate {m = zero}  f = refl
     map-range≡tabulate {m = suc m} f =
       cong (f zero ∷_)
-        (trans (map-map-suc f (range m)) (map-range≡tabulate (λ i → f (suc i))))
+        (trans (sym (map-∘ (range m))) (map-range≡tabulate (λ i → f (suc i))))
 
     reservoir-range≡producedList
       : H.dom ++ reservoir (range H.nE) ≡ producedList H
