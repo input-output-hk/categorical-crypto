@@ -52,7 +52,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
 
 open import Data.Nat
 open import Data.List.Properties
-open import Data.Maybe using (just; nothing)
+open import Data.Maybe using (nothing)
 
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; cast; toℕ)

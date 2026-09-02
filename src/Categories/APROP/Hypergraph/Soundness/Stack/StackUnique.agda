@@ -10,11 +10,11 @@
 -- comparison in one line.  (The uniqueness-FREE generic form is actually
 -- FALSE: a duplicated vertex breaks it.)
 --
--- Exports (postulate-free): the two `count≤1` bridge directions re-exported
--- from `CountCombinatorics`, `Unique-resp-↭` (`↭` preserves `Unique`, via that
--- bridge), `residual-recon`, and the two codomain-uniqueness faces
--- `Linear⇒cod-Unique` / `⟪⟫-cod-Unique` (the latter is the one four decoder
--- shape modules read).
+-- Exports (postulate-free): `count`, the two `count≤1` bridge directions and
+-- the two `count-++` bounds, all re-exported from `CountCombinatorics`;
+-- `Unique-resp-↭` (`↭` preserves `Unique`, via that bridge), `residual-recon`,
+-- and the two codomain-uniqueness faces `Linear⇒cod-Unique` / `⟪⟫-cod-Unique`
+-- (the latter is read by `DecodeGen` and `TensorReconcile`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
@@ -50,10 +50,10 @@ private
 --------------------------------------------------------------------------------
 -- 0.  `↭`-invariance of `count` and the `Unique` ⇔ `count ≤ 1` bridge, both
 --     from the shared leaf.  The bridge is re-exported because
---     `StackUniqueReach` reads them from here, together with the two
---     `count-++` bounds its `Unique`-of-`++` splits are (`DecodeComposeAssembly`
---     takes only `Linear⇒cod-Unique`).  ONE module application, opened twice:
---     `open import … sig` twice would apply the section twice.
+--     `StackUniqueReach` reads them from here, together with `count` itself and
+--     the two `count-++` bounds its `Unique`-of-`++` splits are
+--     (`DecodeComposeAssembly` takes only `Linear⇒cod-Unique`).  One import,
+--     opened twice — the second `open` is the `public` half.
 
 import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics as CC
 open CC using (count-++; ↭⇒count)
