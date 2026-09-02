@@ -13,6 +13,16 @@
 > "module parameter" passages below as a record of the discharge plan, not of the
 > live wiring.
 
+> **Repointing note (2026-09-02), superseding the paragraph above.**
+> `Strict/Perm/PermSupport.agda` no longer exists, so there is no "definition
+> site" below which `permˢ-K` could be threaded: `Perm/PermK.agda` both states
+> and discharges it. Two more corrections to the tables below: the
+> `Categories.PermuteCoherence` namespace has no `Canonical` module (the
+> `{Eval,Rigid,Canonical}` brace list in the reuse table is `{Eval,Rigid}`), and
+> the reuse table's `Sub/` path prefix and LOC column are both stale — that
+> directory is gone and every file has since been resized by the simplification
+> campaign. Take the table as the reconnaissance record it says it is.
+
 Status: reconnaissance over commit `2d2c8e5` ("Strictification phase 0").
 Companion deliverables `Strict/PermAlgebra.agda` and `Strict/SwapCore.agda` (§4) are
 DESIGNED here but not yet written.

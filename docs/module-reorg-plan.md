@@ -6,6 +6,11 @@ at the bottom. The text below is the original plan (produced after the WIP-name 
 `cf11498`/`f8a8305`; reviewed by two adversarial passes) and is retained as the design record,
 including the two execution blockers and five owner decisions that governed the run.
 
+> **Repointing note (2026-09-02).** Read the pre-rename name `SoundnessFullWired` (below at
+> the tree sketch, the `…S`-drop paragraph and the baseline step) as the capstone
+> `Soundness.agda` this plan created: the rename landed, so the old name no longer exists in
+> `src/`. The plan text keeps it deliberately, as the record of what was renamed *from*.
+
 ## Organising principles
 
 1. **Separate the three layers** under `Categories/APROP/Hypergraph/`:
