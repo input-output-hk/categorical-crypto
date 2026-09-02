@@ -62,7 +62,6 @@ instance
   Commutative-Maybe .>>=-comm {x = nothing} {just  _} = refl
   Commutative-Maybe .>>=-comm {x = nothing} {nothing} = refl
 
-
 import Categories.Monad as C
 open import Categories.Category.Core
 open import Categories.Category.Construction.Kleisli

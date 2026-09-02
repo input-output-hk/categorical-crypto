@@ -30,7 +30,7 @@ open import Relation.Binary.PropositionalEquality.Core
   using (_≡_; refl; sym; cong; cong₂; trans; subst; subst₂)
 
 open import Categories.PermuteCoherence.FinBij
-open import Categories.PermuteCoherence.Coxeter.EvalSoundness as Snd
+open import Categories.PermuteCoherence.Coxeter.EvalSoundness
   using (cons-fb-functor-comp; swap-fb-natural)
 open import Categories.PermuteCoherence.Coxeter.Word
 open import Categories.PermuteCoherence.Coxeter.LehmerStaircase

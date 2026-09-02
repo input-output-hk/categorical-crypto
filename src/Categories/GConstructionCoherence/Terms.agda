@@ -152,5 +152,5 @@ R₂ᵗ = αᵗ ⊗₁ id ∘ (h' ⊗₁ id) ⊗₁ id ∘ α⇐ ∘ id ⊗₁ �
 -- (reassoc + refl, no solver leaf), and the one-leaf `solve!`.
 
 open import Categories.APROP.Hypergraph.Solver.Split gSig
-  using (force!) renaming (stepSplit! to step!; stepSplitR! to stepR!;
-                           solveTerm! to solve!) public
+  using () renaming (stepSplit! to step!; stepSplitR! to stepR!;
+                     solveTerm! to solve!) public
