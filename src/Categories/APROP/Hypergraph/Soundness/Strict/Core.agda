@@ -47,10 +47,6 @@ coe-id≈ p = cast-id refl p
 coe-uip : ∀ {xs ys} (p q : xs ≡ ys) → coe p ≈ˢ coe q
 coe-uip p q = ≡⇒≈ˢ (cast-irrel refl refl p q idˢ)
 
-coe-trans : ∀ {xs ys zs} (p : xs ≡ ys) (q : ys ≡ zs)
-          → coe q ∘ˢ coe p ≈ˢ coe (trans p q)
-coe-trans refl q = idʳ
-
 coe-cancel : ∀ {xs ys} (p : xs ≡ ys) → coe (sym p) ∘ˢ coe p ≈ˢ idˢ
 coe-cancel refl = idˡ
 
