@@ -33,7 +33,7 @@ open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Relation.Unary.All using (universal)
 open import Data.List.Relation.Unary.All.Properties using (map⁺)
 open import Data.List.Relation.Unary.Any using (here; there)
-open import Data.Maybe using (Maybe; just; nothing)
+open import Data.Maybe using (just; nothing)
 open import Relation.Nullary using (yes; no)
 open import Relation.Nullary.Negation using (¬_)
 
