@@ -215,8 +215,8 @@ module Build
   -- A cast is heterogeneously equal to its content.  This is what lets a chain
   -- of `≈̂`-steps avoid `cast-fuse`/`cast-irrel` at the STATEMENT BOUNDARY — it
   -- does NOT retire them: they survive wherever a congruence UNDER a cast that
-  -- must reach the next statement is needed (`Strict.Core.coe-uip`,
-  -- `DecodeShapes.shape`, `DecodeGen`'s Steps A–C; all three were measured
+  -- must reach the next statement is needed (`Strict.Core.coe-uip` and
+  -- `DecodeGen`'s Steps A–C, the two remaining consumers; both were measured
   -- line-neutral-or-worse under `≈̂`).  `cast-flip` IS retired — its only
   -- remaining uses are inside this kit.
   cast-≈̂ : ∀ {as bs as' bs'} {p : as ≡ as'} {q : bs ≡ bs'} {f : HomS as bs}

@@ -18,7 +18,7 @@
 -- Because `e' ∷ e ∷ []` is a CONCRETE 2-prefix, `pe-stackˢ qs A ≡ pe-stackˢ
 -- (e ∷ e' ∷ qs) sp` etc. hold DEFINITIONALLY (`process-edgesˢ` recurses on the
 -- prefix), so `↭-sym ρf` is the `reshuffle` field; the run equation splits
--- both runs at the 2-prefix, feeds `eqv`/`run-eq₀`, telescopes the inner
+-- both runs at the 2-prefix, feeds `equivar`/`run-eq₀`, telescopes the inner
 -- inverse permute (`pvv-inverse-leftˢ`), and re-associates — a 1:1 port of the
 -- non-strict plumbing, the Mac-Lane `permute-via-vlab` collapsing to the
 -- vertex-level `permuteˢ`.

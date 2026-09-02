@@ -32,7 +32,7 @@
 --     linearity) the algorithm's `finalPermˢ (f ⊗₁ g)` is collapsed onto ANY
 --     chosen canonical derivation `cand : s-finˢ ↭ C.cod`, so
 --         permuteˢ (finalPermˢ (f ⊗₁ g)) ≈ˢ permuteˢ cand.
---     This is the strict, tensor-level analogue of `DecodeSigma`'s `perm≈`
+--     This is the strict, tensor-level analogue of `DecodeGen`'s `finalP≈`
 --     and is exactly where the non-strict proof invokes K-faithfulness.
 --
 --   * `reconcile-from-braid` — the REDUCTION: GIVEN the single K-block braid
@@ -118,10 +118,10 @@ module Reconcile {A B C D : ObjTerm}
   -- The K-block braid `braidˢ` is the single clearly-typed `≈ˢ` fact: the
   -- C-run inner term, with the final permute REPLACED by the canonical
   -- derivation `cand`, equals the clean tensor at the boundary objects.
-  -- (Cast-FREE: stated at the boundary objects, like `reconcileˢ` itself.)
+  -- (Cast-FREE: at the boundary objects, like `decodePˢ-⊗-from-braid`.)
   --
-  -- Given `braidˢ`, `reconcileˢ` follows by rewriting the algorithm's
-  -- `permuteˢ (finalPermˢ fg)` to `permuteˢ cand` via `final-resortˢ`.
+  -- Given `braidˢ`, `reconcile-from-braid` follows via `final-resortˢ`,
+  -- rewriting the algorithm's `permuteˢ (finalPermˢ fg)` to `permuteˢ cand`.
 
   reconcile-from-braid
     : (cand : RF.s-finˢ ↭ Hf.cod) → BraidSigˢ cand → BraidSigˢ (finalPermˢ fg)
