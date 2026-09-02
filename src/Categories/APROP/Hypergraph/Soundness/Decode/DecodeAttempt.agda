@@ -1,10 +1,10 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Per-smart-constructor decode totality witnesses (hEmpty/hVar/hId/hGen/
--- hSwap/hTensor), each the bare permutation `process-all-edges H dom ↭ cod`,
--- plus the generic edge-step/process-edges lifting machinery, shared by the
--- pruned totality (`DecodeAttemptLinearP.decode-attempt-LinearP`).
+-- Per-smart-constructor decode totality witnesses (hId/hGen/hSwap/hTensor),
+-- each the bare permutation `process-all-edges H dom ↭ cod`, plus the generic
+-- edge-step/process-edges lifting machinery, shared by the pruned totality
+-- (`DecodeAttemptLinearP.decode-attempt-LinearP`).
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

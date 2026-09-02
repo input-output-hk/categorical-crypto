@@ -281,8 +281,8 @@ module _ (G K : Hypergraph FlatGen) where
 -- associators all translate to some `hId`) therefore gets its edge-free
 -- and `dom ≡ cod` facts by `refl` instead of by a parallel induction on
 -- `A` (`Invariant.hId-cod≡dom`, `DecodeShapes.hId-nE`,
--- `FinOrderNoInv.NoInvH-hId`/`NoSelfDep-hId`, `DecodeAttempt.decode-
--- attempt-hId`, `Linearity.Linear-hId`).
+-- `FinOrderNoInv.NoSelfDep-hId`, `DecodeAttempt.decode-attempt-hId`,
+-- `Linearity.Linear-hId`).
 
 hId : ObjTerm → Hypergraph FlatGen
 hId A = record
