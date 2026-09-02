@@ -21,12 +21,10 @@
 -- temporary-postulate ledger.
 --------------------------------------------------------------------------------
 
-open import Categories.APROP.Hypergraph.Solver.Signature using (APROPSignatureDec)
+open import Categories.APROP using (APROPSignature; module APROP)
 
-module Leg3Recomp (sig-dec : APROPSignatureDec) where
+module Leg3Recomp (sig : APROPSignature) where
 
-open APROPSignatureDec sig-dec using (sig; _≟X_; _≟-ObjTerm_)
-open import Categories.APROP using (module APROP)
 open APROP sig
 
 open import Data.Maybe.Base using (Maybe; just; nothing; is-just)
