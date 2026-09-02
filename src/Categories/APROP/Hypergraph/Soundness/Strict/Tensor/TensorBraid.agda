@@ -88,6 +88,8 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv 
   using (module EquivStep)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-elem)
+open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
+  using (extract-elem-↑ˡ-on-↑ʳ-list; extract-elem-↑ʳ-on-↑ˡ-list)
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig as DC
 import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig as DSh
 import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig as BSC
@@ -99,13 +101,11 @@ import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig 
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig as SU
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR
 
-open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_; splitAt)
-open import Data.Fin.Properties using (↑ˡ-injective; ↑ʳ-injective; splitAt-↑ˡ; splitAt-↑ʳ)
-import Data.Fin.Properties as FinP
+open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
+open import Data.Fin.Properties using (↑ˡ-injective; ↑ʳ-injective)
 open import Data.Maybe using (nothing)
-open import Relation.Nullary using (yes; no)
-open import Data.List.Relation.Unary.All using (All; []; _∷_)
+open import Data.List.Relation.Unary.All using (All; universal)
+open import Data.List.Relation.Unary.All.Properties using (map⁺)
 open Perm using (_↭_)
 
 --------------------------------------------------------------------------------
@@ -116,7 +116,7 @@ open Perm using (_↭_)
 -- `disj-kblk` needs at `P = s_G_final`, `e = ψK eK`, and through it the
 -- `stack-sepˢ`/`term-sepᵛ` separability of the K-block run on the
 -- block-swapped stack.
--- G-side (the mirror `injL∉injRs`/`gblock-disjoint`): the whole G-block's
+-- G-side (the mirror `gblock-ein-disjoint`/`gblock-disjoint`): the G-block's
 -- inputs are absent from the `injR` residual `map injR K.dom` — the
 -- `stack-sepˢ`/`term-sepᵛ` side condition the G-frame (`Braid.gframe`)
 -- consumes.
@@ -136,64 +136,33 @@ module KBlockDisjoint (G K : Hypergraph FlatGen) where
   ψG : Fin G.nE → Fin C.nE
   ψG eG = eG ↑ˡ K.nE
 
-  private
-    -- `x` is absent from an `f`-block whenever `f` never hits `x`.
-    ∉-map : ∀ {m} {f : Fin m → Fin C.nV} {x : Fin C.nV} (P : List (Fin m))
-          → (∀ k → f k ≡ x → ⊥) → extract-elem x (map f P) ≡ nothing
-    ∉-map []       _  = refl
-    ∉-map {f = f} {x} (k ∷ ks) ne with f k FinP.≟ x
-    ... | yes p  = ⊥-elim (ne k p)
-    ... | no  _  rewrite ∉-map ks ne = refl
-
-    -- an `f`-block avoids `blk` pointwise ⇒ it avoids it as a list.
-    all-∉-map
-      : ∀ {m} {f : Fin m → Fin C.nV} (blk : List (Fin C.nV))
-      → (∀ k → extract-elem (f k) blk ≡ nothing)
-      → ∀ (ks : List (Fin m))
-      → All (λ k → extract-elem k blk ≡ nothing) (map f ks)
-    all-∉-map blk h []       = []
-    all-∉-map blk h (k ∷ ks) = h k ∷ all-∉-map blk h ks
-
-  -- the two injections are disjoint (`splitAt` lands in `inj₂` vs `inj₁`).
-  injR≢injL : ∀ {j : Fin K.nV} {k : Fin G.nV} → injR j ≡ injL k → ⊥
-  injR≢injL {j} {k} eq with trans (sym (splitAt-↑ʳ G.nV K.nV j))
-                            (trans (cong (splitAt G.nV) eq)
-                                   (splitAt-↑ˡ G.nV k K.nV))
-  ... | ()
-
-  -- `injR j` is absent from any `injL`-block, and dually.
-  injR∉injLs : ∀ (j : Fin K.nV) (P : List (Fin G.nV)) → extract-elem (injR j) (map injL P) ≡ nothing
-  injR∉injLs j P = ∉-map P (λ _ eq → injR≢injL (sym eq))
-
-  injL∉injRs : ∀ (k : Fin G.nV) (Q : List (Fin K.nV)) → extract-elem (injL k) (map injR Q) ≡ nothing
-  injL∉injRs k Q = ∉-map Q (λ _ → injR≢injL)
-
   -- `ein-disjⁱ (ψK eK) (map injL P)` / `ein-disjⁱ (ψG eG) (map injR Q)` at
-  -- `H = hTensor G K`: the block's inputs are all on the other side.
+  -- `H = hTensor G K`: the block's inputs are all on the other side.  The
+  -- element-level facts are the decode layer's own
+  -- `extract-elem-↑ʳ-on-↑ˡ-list` / `-↑ˡ-on-↑ʳ-list` at `injR = G.nV ↑ʳ_`,
+  -- `injL = _↑ˡ K.nV`; `map⁺ ∘ universal` lifts them over the block, exactly
+  -- as `DecodeProperties`' own `extract-prefix-↑*-on-mixed-nothing` do.
   kblock-ein-disjoint
     : ∀ (eK : Fin K.nE) (P : List (Fin G.nV))
     → All (λ k → extract-elem k (map injL P) ≡ nothing) (C.ein (ψK eK))
   kblock-ein-disjoint eK P =
     subst (All (λ k → extract-elem k (map injL P) ≡ nothing))
           (sym (ein-c-inj₂-red eK))
-          (all-∉-map (map injL P) (λ j → injR∉injLs j P) (K.ein eK))
+          (map⁺ (universal (λ j → extract-elem-↑ʳ-on-↑ˡ-list G.nV j P) (K.ein eK)))
 
   gblock-ein-disjoint : ∀ (eG : Fin G.nE) (Q : List (Fin K.nV)) → ein-disjoint (ψG eG) (map injR Q)
   gblock-ein-disjoint eG Q =
     subst (All (λ k → extract-elem k (map injR Q) ≡ nothing))
           (sym (ein-c-inj₁-red eG))
-          (all-∉-map (map injR Q) (λ k → injL∉injRs k Q) (G.ein eG))
+          (map⁺ (universal (λ k → extract-elem-↑ˡ-on-↑ʳ-list k Q) (G.ein eG)))
 
   gblk : List (Fin C.nE)
   gblk = map (_↑ˡ K.nE) (range G.nE)
 
   -- the whole G-block's inputs are absent from the `injR` residual.
   gblock-disjoint : block-disjoint gblk (map injR K.dom)
-  gblock-disjoint = all-gblk (range G.nE)
-    where
-      all-gblk : ∀ (es : List (Fin G.nE)) → block-disjoint (map (_↑ˡ K.nE) es) (map injR K.dom)
-      all-gblk []       = []
-      all-gblk (e ∷ es) = gblock-ein-disjoint e K.dom ∷ all-gblk es
+  gblock-disjoint =
+    map⁺ (universal (λ e → gblock-ein-disjoint e K.dom) (range G.nE))
 
 --------------------------------------------------------------------------------
 -- ## The two block embeddings.
@@ -676,18 +645,12 @@ module Braid {A B C D : ObjTerm}
       -- from `kblock-ein-disjoint` (stated at `map injL s_G_final`) along
       -- `sG≡`.
       disj-kblk : block-disjoint kblk sG
-      disj-kblk = aux (range Kd.nE)
-        where
-          aux : ∀ (es : List (Fin Kd.nE))
-              → All (λ e → All (λ k → extract-elem k sG ≡ nothing) (Hf.ein e))
-                    (map (Gd.nE ↑ʳ_) es)
-          aux []       = []
-          aux (e ∷ es) =
-            subst (λ z → All (λ k → extract-elem k z ≡ nothing)
-                             (Hf.ein (Gd.nE ↑ʳ e)))
-                  (sym sG≡)
-                  (KBD.kblock-ein-disjoint e s_G_final)
-            ∷ aux es
+      disj-kblk =
+        map⁺ (universal (λ e → subst (λ z → All (λ k → extract-elem k z ≡ nothing)
+                                                (Hf.ein (Gd.nE ↑ʳ e)))
+                                     (sym sG≡)
+                                     (KBD.kblock-ein-disjoint e s_G_final))
+                        (range Kd.nE))
 
       -- ### the run-order reservoir `Reservoir≤1 ⟪fg⟫ kblk aG`: the full-run
       -- reservoir from linearity (`dom-reservoir-prov` at the trivial
