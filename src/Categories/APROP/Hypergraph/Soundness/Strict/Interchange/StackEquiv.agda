@@ -28,11 +28,9 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open APROP sig
@@ -44,12 +42,12 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
   using (extract-prefix-↭-residual; extract-prefix-↭-nothing)
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ public
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig public
 open import Categories.Morphism.Reasoning SCat using (pullˡ; pullʳ)
-open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.EdgeStepRel sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.EdgeStepRel sig
   using (module EdgeStepView)
 
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
+import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig as PK
 
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig as SU
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR

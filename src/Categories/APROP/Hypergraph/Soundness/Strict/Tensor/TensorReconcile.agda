@@ -58,11 +58,9 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorReconcile
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open APROP sig
@@ -72,7 +70,7 @@ open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; �
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
   sig using (⟪⟫-cod-Unique)
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig
 
 open Perm using (_↭_)
 

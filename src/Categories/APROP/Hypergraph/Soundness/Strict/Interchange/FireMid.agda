@@ -19,24 +19,22 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Interchange.FireMid
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig
 open import Categories.Morphism.Reasoning SCat using (pullʳ)
-open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig
 
-import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCoreRun sig _≟X_ as SCR
-import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
-import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟X_ as DSh
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCoreRun sig as SCR
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig as PC
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig as DSh
 
 import Categories.APROP.Hypergraph.Soundness.Discharge.FireMidInterchangeComb sig
   as FMIC

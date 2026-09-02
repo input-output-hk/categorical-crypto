@@ -42,11 +42,9 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Iso.IsoTransport
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open APROP sig
@@ -64,11 +62,11 @@ import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig 
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig using (Linear⇒cod-Unique)
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_ using (module Run)
-import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep sig _≟X_ as SS
-import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ as DC2
-import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig using (module Run)
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep sig as SS
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig as DC2
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig as PC
 
 open import Data.Fin.Base using (Fin)
 open import Data.List.Properties using (map-injective)

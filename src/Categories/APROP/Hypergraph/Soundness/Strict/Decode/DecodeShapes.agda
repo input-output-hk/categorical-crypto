@@ -25,11 +25,9 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open APROP sig
@@ -43,8 +41,8 @@ import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig as DA
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
   sig using (⟪⟫-cod-Unique)
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig
+import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig as PK
 
 open import Data.Fin using (Fin)
 open import Data.List.Properties using (++-identityʳ; ++-assoc)

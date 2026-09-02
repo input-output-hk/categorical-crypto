@@ -24,11 +24,9 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeComposeAssembly
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open APROP sig
@@ -46,12 +44,12 @@ import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
 
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as LP
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_ public
+open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig public
 
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig
   using (Linear⇒cod-Unique)
-import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig as PC
 open import Categories.Tactic.Category using (solve)
 
 open import Data.Nat using (ℕ)

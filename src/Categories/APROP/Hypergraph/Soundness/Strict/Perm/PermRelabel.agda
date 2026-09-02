@@ -24,16 +24,14 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermRelabel
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig
 
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)

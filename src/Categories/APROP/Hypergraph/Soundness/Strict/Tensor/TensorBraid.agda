@@ -69,11 +69,9 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorBraid
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open APROP sig
@@ -83,19 +81,19 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; range; hTensor; module hTensor-impl; map-via)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig
 open import Categories.Morphism.Reasoning SCat using (pullʳ; cancelInner)
 open import Categories.Tactic.Category using (solve)
-open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig
   using (module EquivStep)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-elem)
-import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig _≟X_ as DC
-import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟X_ as DSh
-import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig _≟X_ as BSC
-import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorReconcile sig _≟X_ as TR
-import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig _≟X_ as PC
-open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermRelabel sig _≟X_
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig as DC
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig as DSh
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig as BSC
+import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorReconcile sig as TR
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig as PC
+open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermRelabel sig
   using (pvv-≈̂)
 import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as DAL
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig as SU

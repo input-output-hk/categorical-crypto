@@ -18,23 +18,21 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.PartI
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_ using (decodePˢ)
+open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig using (decodePˢ)
 
-import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes   sig _≟X_ as DSh
-import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma   sig _≟X_ as DSig
-import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeComposeAssembly sig _≟X_ as DComp
-import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeGen      sig _≟X_ as DGen
-import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorBraid    sig _≟X_ as TB
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes   sig as DSh
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma   sig as DSig
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeComposeAssembly sig as DComp
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeGen      sig as DGen
+import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorBraid    sig as TB
 
 --------------------------------------------------------------------------------
 -- The induction.  Every clause names its discharging lemma directly:

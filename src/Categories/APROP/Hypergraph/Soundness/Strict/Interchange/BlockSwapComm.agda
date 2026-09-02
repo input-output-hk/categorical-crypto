@@ -35,17 +35,15 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open APROP sig
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig
   using (module Scr)
 open import Categories.Morphism.Reasoning SCat using (pullʳ; cancelˡ)
 open import Categories.Morphism.Reasoning.Ext SCat using (inv-resp)

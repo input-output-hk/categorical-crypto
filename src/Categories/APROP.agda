@@ -135,11 +135,7 @@ record APROPSignature : Set₁ where
   asFreeMonoidalData = record { v = Symm ; X = X ; mor = mor }
 
 module APROP (sig : APROPSignature) where
-  -- `_≟X_` is withheld from this re-export for exactly one commit: the strict
-  -- cone still binds it as a module parameter, and a blanket `open APROP sig`
-  -- there would make the name ambiguous (a parameter does not shadow an opened
-  -- field).  The next commit deletes those parameters and this `hiding`.
-  open APROPSignature sig public hiding (_≟X_)
+  open APROPSignature sig public
   open FreeMonoidal asFreeMonoidalData public renaming (var to Agen)
 
   -- `Symm ≤ Symm` for instance search, so `σ` needs no explicit `⦃ v≤v ⦄`.

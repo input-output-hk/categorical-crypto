@@ -27,11 +27,9 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open APROP sig using (X)
@@ -39,12 +37,12 @@ open APROP sig using (X)
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig
+open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig
 
-import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig _≟X_ as BSC
-import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟X_ as DSh
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermRelabel sig _≟X_ as PVV
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig as BSC
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig as DSh
+import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermRelabel sig as PVV
 
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin)

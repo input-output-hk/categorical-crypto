@@ -30,9 +30,6 @@ open import Categories.APROP using (APROPSignature; module APROP)
 module Categories.APROP.Hypergraph.Solver.Rewrite.Deep (sig : APROPSignature) where
 
 open APROP sig
--- `_≟X_` is the one field `APROP` withholds this commit (see there); it comes
--- back with the blanket open once the strict cone drops its parameter.
-open APROPSignature sig using (_≟X_)
 
 open import Data.Fin using (Fin)
 open import Data.List.Base

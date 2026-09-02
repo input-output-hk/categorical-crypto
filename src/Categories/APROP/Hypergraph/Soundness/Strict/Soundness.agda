@@ -31,11 +31,9 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Soundness
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open APROP sig
@@ -51,10 +49,10 @@ open import Categories.APROP.Hypergraph.Soundness.Bridge.BridgeCoherence sig
         ; ρ⇒-coherence; ρ⇐-coherence; derive-⇐; module Worker )
 
 open import Categories.FreeStrictSMC using (module Map)
-open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_
-import Categories.APROP.Hypergraph.Soundness.Strict.Embed sig _≟X_ as E
-import Categories.APROP.Hypergraph.Soundness.Strict.PartI  sig _≟X_ as PI
-import Categories.APROP.Hypergraph.Soundness.Strict.PartII sig _≟X_ as PII
+open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig
+import Categories.APROP.Hypergraph.Soundness.Strict.Embed sig as E
+import Categories.APROP.Hypergraph.Soundness.Strict.PartI  sig as PI
+import Categories.APROP.Hypergraph.Soundness.Strict.PartII sig as PII
 
 open import Data.List.Properties using (++-assoc; ++-identityʳ)
 

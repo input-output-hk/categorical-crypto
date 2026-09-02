@@ -18,13 +18,10 @@ module Categories.APROP.Hypergraph.Soundness
   (sig : APROPSignature) where
 
 open APROP sig
--- `_≟X_` is the one field `APROP` withholds this commit (see there); it comes
--- back with the blanket open once the strict cone drops its parameter.
-open APROPSignature sig using (_≟X_)
 open import Categories.APROP.Hypergraph.Model.Iso
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 
-import Categories.APROP.Hypergraph.Soundness.Strict.Soundness sig _≟X_ as SA
+import Categories.APROP.Hypergraph.Soundness.Strict.Soundness sig as SA
 
 --------------------------------------------------------------------------------
 -- The soundness theorem.

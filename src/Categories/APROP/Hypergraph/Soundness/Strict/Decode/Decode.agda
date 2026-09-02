@@ -20,11 +20,9 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open APROP sig
@@ -37,7 +35,7 @@ open import Categories.APROP.Hypergraph.Model.Translation sig
 open import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig
   using (decode-attempt-LinearP)
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_ public
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig public
 
 open import Data.Fin using (Fin)
 

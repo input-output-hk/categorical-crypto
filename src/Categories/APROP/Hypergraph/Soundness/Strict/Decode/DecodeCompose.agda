@@ -18,11 +18,9 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open APROP sig
@@ -35,13 +33,13 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
   using (module StackLiftEmb)
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_ public
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig public
 
 -- The search's φ-naturality: the relabelled search PRODUCES `map⁺ φ permH`.
 open import Categories.Combinatorics.ExtractPrefixEvalPhi using (extract-prefix-pin)
 -- The cross-vertex-type permute relabel (functoriality of `map⁺` under
 -- `permuteˢ`); it imports only `Strict.Decode.Decode`, so no cycle.
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermRelabel sig _≟X_
+import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermRelabel sig
   as PVV
 
 open import Data.Fin using (Fin)

@@ -25,21 +25,19 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunInterchangeTail
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig
 open import Categories.Morphism.Reasoning SCat using (pullʳ)
-open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig
   using (module EquivStep)
-import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig _≟X_ as SC
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig as SC
 
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig
   as SUR

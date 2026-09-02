@@ -22,11 +22,9 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Interchange.EdgeStepRel
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
@@ -34,7 +32,7 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
 open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (extract-prefix)
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig
 
 open import Data.Fin using (Fin)
 open import Data.Maybe using (just; nothing)

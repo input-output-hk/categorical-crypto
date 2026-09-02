@@ -26,13 +26,12 @@ open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
-open APROP sig using (X)
+open APROP sig using (X; _≟X_)
 
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen)
-open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig
 
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermDischarge X _≟X_ as PD
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.Braid X _≟X_ as BR

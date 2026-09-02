@@ -19,11 +19,9 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeSigma
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open APROP sig
@@ -33,10 +31,10 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (flatten; module hGenSwap-impl)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
-import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig
   as DShapes
-import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig _≟X_
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig
   as BSC
 
 open import Data.Fin using (Fin)

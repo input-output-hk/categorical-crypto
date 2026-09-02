@@ -25,11 +25,9 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.PartII
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open APROP sig
@@ -47,14 +45,14 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using 
 open import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig using (Linear⇒cod-Unique)
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig
   using (decodePˢ; finalPermˢ)
-import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep sig _≟X_ as SS
-open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunInterchangeTail sig _≟X_
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapStep sig as SS
+open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.RunInterchangeTail sig
   using (run-interchange-tailˢ)
-import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.FireMid sig _≟X_ as FMD
-import Categories.APROP.Hypergraph.Soundness.Strict.Iso.IsoTransport sig _≟X_ as IT
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.FireMid sig as FMD
+import Categories.APROP.Hypergraph.Soundness.Strict.Iso.IsoTransport sig as IT
 
 open import Data.Fin using (Fin)
 open import Data.List.Properties using (++-assoc)

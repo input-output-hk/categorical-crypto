@@ -19,11 +19,9 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open APROP sig
@@ -35,8 +33,8 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.Stack.SeparableStack sig
   using (prefix-++ˡ-perm; extract-prefix-++ˡ; extract-prefix-++ˡ-nothing)
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig _≟X_ public
-import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig _≟X_ as PK
+open import Categories.APROP.Hypergraph.Soundness.Strict.Core sig public
+import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermK sig as PK
 
 open import Data.Fin using (Fin)
 open import Data.List.Properties using (++-assoc; map-++; ≡-dec)

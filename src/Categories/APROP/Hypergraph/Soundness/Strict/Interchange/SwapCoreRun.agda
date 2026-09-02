@@ -22,11 +22,9 @@
 --------------------------------------------------------------------------------
 
 open import Categories.APROP
-open import Relation.Binary using (DecidableEquality)
 
 module Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCoreRun
   (sig : APROPSignature)
-  (_≟X_ : DecidableEquality (APROPSignature.X sig))
   where
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
@@ -35,8 +33,8 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
   using (process-edges)
 open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig using (Linear)
 
-open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig _≟X_
-open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig _≟X_
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decoder sig
+open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.SwapCore sig
 
 import Categories.APROP.Hypergraph.Soundness.Discharge.FireMidInterchangeComb sig
   as FMIC
