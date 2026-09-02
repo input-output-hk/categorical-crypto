@@ -228,9 +228,14 @@ pentagon-rewrite {A} {B} {C} {D} = solveMor! lhsᵗ rhsᵗ
 -- (which lie OUTSIDE the free-monoidal fragment `solveMor!` decides).
 
 private
-  -- the six `unflatten-flatten-≈`/`unflatten-++-≅` legs the three lemmas below
-  -- all name; opened in place at each one's own `B`/`C`.
-  module FT (B C : ObjTerm) where
+  -- The six-generator solver setup BOTH base cases below run (the four
+  -- `unflatten-flatten-≈` legs of `B`/`C` plus the `unflatten-++-≅` pair), the
+  -- six leg abbreviations they and `collapse-c-FT` name, and the collapse
+  -- itself.  The two cases differ only in the α⇒ prefix their `lhsᵗ` frames —
+  -- `Var x` under ρ, `unit` under λ — so it is carried as the LAST atom: that
+  -- shares the arity map, the interpretation and the `gen` aliases verbatim,
+  -- and the unit case simply never mentions atom 5 (nor does the collapse).
+  module Setup6 (B C P : ObjTerm) where
     F-B = _≅_.from (unflatten-flatten-≈ B)
     F-C = _≅_.from (unflatten-flatten-≈ C)
     T-B = _≅_.to   (unflatten-flatten-≈ B)
@@ -238,14 +243,6 @@ private
     cBC-to   = _≅_.to   (unflatten-++-≅ (flatten B) (flatten C))
     cBC-from = _≅_.from (unflatten-++-≅ (flatten B) (flatten C))
 
-  -- The six-generator solver setup BOTH base cases below run (the four
-  -- `unflatten-flatten-≈` legs of `B`/`C` plus the `unflatten-++-≅` pair).  They
-  -- differ only in the α⇒ prefix their `lhsᵗ` frames — `Var x` under ρ, `unit`
-  -- under λ — so it is carried as the LAST atom: that shares the arity map, the
-  -- interpretation and the `gen` aliases verbatim, and the unit case simply
-  -- never mentions atom 5.
-  module Setup6 (B C P : ObjTerm) where
-    open FT B C public
     open FinSetup FMC
       ( B Vec.∷ C
           Vec.∷ unflatten (flatten B) Vec.∷ unflatten (flatten C)
@@ -267,16 +264,13 @@ private
     gFB = gen 0F ; gFC = gen 1F ; gTB = gen 2F ; gTC = gen 3F
     gcto = gen 4F ; gcfrom = gen 5F
 
-  module _ (B C : ObjTerm) where
-   open FT B C
-
-   collapse-c-FT : cBC-to ∘ ((F-B ∘ T-B) ⊗₁ (F-C ∘ T-C)) ∘ cBC-from ≈Term id
-   collapse-c-FT =
-    -- the ⊗ of two iso cancellations IS the identity, so `elim-center` drops it
-    elim-center (⊗-resp-≈ (_≅_.isoʳ (unflatten-flatten-≈ B))
-                          (_≅_.isoʳ (unflatten-flatten-≈ C))
-                 ○ id⊗id≈id)
-    ○ _≅_.isoˡ (unflatten-++-≅ (flatten B) (flatten C))
+    collapse-c-FT : cBC-to ∘ ((F-B ∘ T-B) ⊗₁ (F-C ∘ T-C)) ∘ cBC-from ≈Term id
+    collapse-c-FT =
+      -- the ⊗ of two iso cancellations IS the identity, so `elim-center` drops it
+      elim-center (⊗-resp-≈ (_≅_.isoʳ (unflatten-flatten-≈ B))
+                            (_≅_.isoʳ (unflatten-flatten-≈ C))
+                   ○ id⊗id≈id)
+      ○ _≅_.isoˡ (unflatten-++-≅ (flatten B) (flatten C))
 
 --------------------------------------------------------------------------------
 -- Var-base case of the bridge-α⇒ cast: `++-assoc (x ∷ []) _ _` is `refl`, so
@@ -288,7 +282,7 @@ bridge-α⇒-is-id-Var x B C = begin
   bridge (α⇒ {Var x} {B} {C})
     ≈⟨ solveMor! lhsᵗ rhsᵗ ⟩
   id {Var x} ⊗₁ (cBC-to ∘ ((F-B ∘ T-B) ⊗₁ (F-C ∘ T-C)) ∘ cBC-from)
-    ≈⟨ ⊗-resp-≈ ≈-Term-refl (collapse-c-FT B C) ⟩
+    ≈⟨ ⊗-resp-≈ ≈-Term-refl collapse-c-FT ⟩
   id {Var x} ⊗₁ id
     ≈⟨ id⊗id≈id ⟩
   id ∎
@@ -320,7 +314,7 @@ bridge-α⇒-is-id-unit B C = begin
   bridge (α⇒ {unit} {B} {C})
     ≈⟨ solveMor! lhsᵗ rhsᵗ ⟩
   cBC-to ∘ ((F-B ∘ T-B) ⊗₁ (F-C ∘ T-C)) ∘ cBC-from
-    ≈⟨ collapse-c-FT B C ⟩
+    ≈⟨ collapse-c-FT ⟩
   id ∎
   where
     -- the free part of the chase: all coherence/naturality/interchange,
