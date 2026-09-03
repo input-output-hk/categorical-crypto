@@ -12,12 +12,12 @@
 -- Totality is NOT re-proved: the strict run's stack IS the non-strict
 -- `process-edges` (the strict decoder pairs that fold with its term), so
 -- the success witness of the live decoder (`decode-attempt-LinearP`)
--- transfers with no cast at all.  WHICH permutation it is
--- never matters downstream: the atom and σ shapes REDUCE it (their `⟪ f ⟫`
--- is a literal `hId`/`hSwap`, so it is `Perm.↭-refl` / `bswap` on the nose),
--- the Agen and ⊗ shapes collapse it by RIGIDITY (`perm-rigidˢ` at the
--- `Unique` codomain of `⟪ f ⟫`), and the ∘-shape transports it opaquely, so
--- nothing ever reads an `extract-exact ... ≡ just _` equation for it.
+-- transfers with no cast at all.  WHICH permutation it is never matters
+-- downstream: the atom and σ shapes REDUCE it (their `⟪ f ⟫` is a literal
+-- `hId`/`hSwap`, so it is `Perm.↭-refl` / `bswap` on the nose); Agen, ⊗ and
+-- ∘ collapse it by RIGIDITY at a `Unique` codomain — `⟪ f ⟫`'s for Agen, the
+-- COMPOSITE hypergraph's for ⊗ and ∘; the ∘-shape ALSO transports its own
+-- `finalPermˢ (g ∘ f)` opaquely.  No `extract-exact ... ≡ just _` is read.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

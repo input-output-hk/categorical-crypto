@@ -6,11 +6,11 @@
 --     st-≈-decodePˢ : ∀ f → st f ≈ˢ decodePˢ f
 --
 -- by induction on `f`, combining the per-constructor decoder shape lemmas.
--- Every shape is wired CONCRETELY: σ by `Strict.Decode.DecodeSigma`,
--- `Agen` by `Strict.Decode.DecodeGen`,
--- and ⊗ (via the K-prepend box-braid `KBlockσ`) by
--- `Strict.Tensor.TensorBraid.decodePˢ-⊗-concrete`.  So the assembly is
--- unconditional.
+-- Every shape is wired CONCRETELY: the seven atoms by `DecodeShapes`, σ by
+-- `DecodeSigma`, `Agen` by `DecodeGen`, ⊗ (via the K-prepend box-braid
+-- `KBlockσ`) by `TensorBraid.decodePˢ-⊗-concrete`, and ∘ by
+-- `DecodeComposeAssembly.ComposeShape.decodePˢ-∘-shape`.  So the assembly
+-- is unconditional.
 --
 -- Composed with `Strict.Soundness.st-roundtrip` (embF (st f) ≈Term bridge f) and
 -- part (II)ˢ (`decodePˢ`-iso-invariance), this yields the re-pointed

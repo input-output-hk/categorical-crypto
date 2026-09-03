@@ -38,7 +38,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig publi
 -- The search's φ-naturality: the relabelled search PRODUCES `map⁺ φ permH`.
 open import Categories.Combinatorics.ExtractPrefixEvalPhi using (extract-prefix-pin)
 -- The cross-vertex-type permute relabel (functoriality of `map⁺` under
--- `permuteˢ`); it imports only `Strict.Decode.Decode`, so no cycle.
+-- `permuteˢ`); it imports `Strict.Core`, not this module, so no cycle.
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermRelabel sig
   as PVV
 

@@ -5,8 +5,8 @@
 --
 -- The decode pipeline relies on structural properties of the translation
 -- that are universal but not captured by the `Hypergraph` record fields
--- alone (`Unique` witnesses for `range n` and `hGen`'s dom, and the
--- `range`/`_++_` split).
+-- alone: `Unique` witnesses for `range n` and `hGen`'s dom, the
+-- `range`/`_++_` split, `disj-L-R`, and the `Util.Prune` re-export block.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP

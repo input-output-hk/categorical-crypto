@@ -230,7 +230,7 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   run-split = RB.run-split-atˢ gblk kblk range-eq C.dom
 
   ----------------------------------------------------------------------
-  -- ## The core composite equation (strict mirror of `Pcomp-eq`).
+  -- ## The core composite equation `Pcomp-eqˢ`.
 
   -- The absorbed final permutation, on the post-`kblk` stack.
   perm-C2ˢ : proj₁ (RC.process-edgesˢ kblk after-G) Perm.↭ C.cod
