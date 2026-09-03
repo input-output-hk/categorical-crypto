@@ -38,7 +38,7 @@ open APROP mySig
 
 open import Categories.APROP.Hypergraph.Soundness mySig using (soundness)
 
--- The gate the tests below go through.  (`GConstructionCoherence.Wiring.solve!`
+-- The gate the tests below go through.  (`GConstructionCoherence.Terms.solve!`
 -- is the same door with an explicit `is-just … ≡ true` argument.)
 -- (`lhs`/`rhs`, not `f`/`g`: the fixture's generators are already called
 -- `f`/`g`/`h`, so those names cannot be pattern variables here.)

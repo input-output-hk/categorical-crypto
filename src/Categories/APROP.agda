@@ -15,7 +15,7 @@ module Categories.APROP where
 
 open import Categories.FreeMonoidal public
 
--- Propositional equality for the whole APROP tree: 47 of the 51 modules that
+-- Propositional equality for the whole APROP tree: 47 of the modules that
 -- blanket-open this one imported it themselves.  The hidden names are the four
 -- the island prelude hides (`[_]` clashes with `Data.List`'s) plus `J`, which
 -- `Strict/Embed` defines as a lemma of its own — a name this re-export would
@@ -23,7 +23,7 @@ open import Categories.FreeMonoidal public
 open import Relation.Binary.PropositionalEquality public
   hiding (preorder; isPreorder; setoid; [_]; J)
 
--- `Data.List` for the whole tree: 46 of the 51 blanket-openers imported it
+-- `Data.List` for the whole tree: 46 of the blanket-openers imported it
 -- themselves, 44 of them with a `using` list.  Only two names are hidden, and
 -- in both cases because a scope module wants a DIFFERENT module's function of
 -- that name: `splitAt` is `Data.Fin`'s in `Model/FromAPROP`, and `zipWith` is
@@ -31,9 +31,9 @@ open import Relation.Binary.PropositionalEquality public
 open import Data.List public
   hiding (splitAt; zipWith)
 
--- `Data.Product` likewise, for 36 of the openers, all with a `using` list;
--- between them they need only `_,_`, `proj₁`, `proj₂`, `Σ`, `Σ-syntax`,
--- `∃-syntax` and `_×_`.  Eight of the hidden names are the ones
+-- `Data.Product` likewise: 36 of them imported it themselves, all with a
+-- `using` list; between them they need only `_,_`, `proj₁`, `proj₂`, `Σ`,
+-- `Σ-syntax`, `∃-syntax` and `_×_`.  Eight of the hidden names are the ones
 -- `categorical-crypto.Prelude` hides for this same module; `zip`/`zipWith`
 -- join them because the `Data.List` re-export above already binds them.
 -- NOTE this list is load bearing for that re-export: hiding `map` here is what

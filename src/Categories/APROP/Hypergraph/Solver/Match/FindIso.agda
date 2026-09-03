@@ -14,7 +14,8 @@
 --
 -- `findIsoᵀ`, at the foot of this file, is the tabulated (literalized) finder
 -- the tabulated gates use; plain `findIso` is still the door for `solveH!`,
--- `solveTerm!`, `leaf-try` and `Wiring`'s measured 1-box cross-pairs.
+-- `solveTerm!`, `leaf-try`, the `FindIsoTests` fixture and the 1-box
+-- cross-pairs measured in `GConstructionCoherence.Wiring`.
 --------------------------------------------------------------------------------
 
 open import Categories.APROP using (APROPSignature)

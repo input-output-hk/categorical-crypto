@@ -20,8 +20,9 @@
 -- explicitly (so the goal need not pin them down through the non-injective
 -- `⟦_⟧₁`), plus the hypergraph isomorphism.
 --
--- The focus frames (`frameM`, `focFrame`, `deepFrame`) come FIRST, since both
--- layers use them; from the `rewriteH!`-family gates onward the file is the
+-- The focus frames (`frameM`, `focFrame`, `deepFrame`) come FIRST, since
+-- `frame-rule-step` — the step both automatic rewrite gates share — is stated
+-- over them; from the `rewriteH!`-family gates onward the file is the
 -- REWRITE/DRIVER layer, ending in the deep-rewrite drivers they feed.
 --------------------------------------------------------------------------------
 
