@@ -12,22 +12,19 @@
 --   * `count-non xs`  — its length (the "survivors").
 --   * `classify xs v` — cases `v` as a position in `xs` or in `nonMem xs`, and
 --                       `ClassifyV`/`classify-view` (constructors `is-mem` /
---                       `is-non`) — the VIEW consumers should use: writing
---                       `with classify xs v | classify-view xs v` reads the
---                       membership witness and the refined sum value off one
---                       pattern, replacing the `with … in cls`-plus-inversion
---                       idiom every consumer used to hand-roll.
---                       `classify-lookup-Unique` pins the index for `Unique`
---                       `xs`.
+--                       `is-non`) — the view the `remap` lemmas below are
+--                       written against: `with classify xs v | classify-view
+--                       xs v` reads the membership witness and the refined
+--                       sum value off one pattern, replacing the
+--                       `with … in cls`-plus-inversion idiom every consumer
+--                       used to hand-roll.  `classify-lookup-Unique` pins the
+--                       index for `Unique` `xs`.
 --   * `remap xs f`    — routes members of `xs` to an arbitrary target space
 --                       via `f`, non-members to the fresh pruned space of
 --                       size `count-non xs`; with `remap-inj₁`,
 --                       `remap-↑ˡ→∈` (only members reach the `_↑ˡ_` slots),
 --                       `remap-injective`, and the two label-transport faces
 --                       `remap-vlab` / `map-via-remap`.
---
--- Also re-exports (`public`) `Data.List.Properties.Ext`'s generic
--- `lookup-injective-unique`, so the pruning consumers reach it through here.
 --------------------------------------------------------------------------------
 
 module Categories.APROP.Hypergraph.Util.Prune where
@@ -39,9 +36,7 @@ open import Data.List using (List; length; filter; allFin; lookup; map)
 open import Data.List.Membership.Propositional using (_∈_; _∉_)
 open import Data.List.Membership.Propositional.Properties
   using (∈-filter⁺; ∈-allFin; ∈-lookup)
-open import Data.List.Properties.Ext using (map-∘-cong)
--- generic (not Fin-specific); re-exported for the pruning consumers.
-open import Data.List.Properties.Ext using (lookup-injective-unique) public
+open import Data.List.Properties.Ext using (map-∘-cong; lookup-injective-unique)
 open import Data.List.Relation.Unary.Any using (index)
 open import Data.List.Relation.Unary.Any.Properties using (lookup-index)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)

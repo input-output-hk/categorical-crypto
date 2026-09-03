@@ -61,6 +61,7 @@ open import Data.Fin.Properties using
   ; toℕ-cast; toℕ-injective)
   -- `Data.Nat`, opened wholesale for the decode half, also exports `_≟_`.
   renaming (_≟_ to _≟F_)
+open import Data.List.Properties.Ext using (lookup-injective-unique)
 open import Data.List.Membership.Propositional.Properties using (∈-map⁻)
 open import Data.List.Relation.Unary.Any using (any?)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
