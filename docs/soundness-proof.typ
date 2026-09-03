@@ -519,7 +519,7 @@ By induction on $f$, using the action of $⟪dot.c⟫$ on each constructor:
 
 = The ingredients
 
-Every step above draws on one of four kinds of ingredient.
+Every step above draws on one of three kinds of ingredient.
 
 #table(
   columns: (auto, 1fr),
