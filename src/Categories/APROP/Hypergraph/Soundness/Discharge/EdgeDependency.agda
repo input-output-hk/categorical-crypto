@@ -37,8 +37,6 @@ module _ {X : Set} {Gen : List X → List X → Set} where
   Dep : (G : Hypergraph Gen) → Fin (nE G) → Fin (nE G) → Set
   Dep G e e' = ∃[ v ] (v ∈ eout G e × v ∈ ein G e')
 
-  syntax Dep G e e' = e ≺[ G ] e'
-
   -- Reflect a dependency in a composite `H` back to a sub-hypergraph `sub`
   -- along an edge embedding `embE` and an injective vertex embedding `embV`,
   -- given that `sub`'s in/out ports transport to `H`'s along `embV`.  This is
@@ -70,7 +68,7 @@ module _ {X : Set} {Gen : List X → List X → Set}
     module H = Hypergraph H
     module J = Hypergraph J
 
-  ≺⇒ψ≺ : ∀ {e e'} → e ≺[ H ] e' → ψ e ≺[ J ] ψ e'
+  ≺⇒ψ≺ : ∀ {e e'} → Dep H e e' → Dep J (ψ e) (ψ e')
   ≺⇒ψ≺ {e} {e'} (v , v∈out , v∈in) =
     φ v
     , subst (φ v ∈_) (sym (ψ-eout e )) (∈-map⁺ φ v∈out)
