@@ -71,8 +71,8 @@ module PerHG (H : Hypergraph FlatGen) where
   -- `H = ⟪f⟫`/`⟪g⟫` via the proven `FinOrderNoInv.dep-irrefl-⟪⟫`.
   module L = LinExt (Fin H.nE) (Dep H)
   -- The swap relation's constructor and its incomparability side condition
-  -- are part of this interface: both downstream consumers pattern-match on
-  -- `swap-step`, and `SwapValidity` states its hypotheses with `Incomp`.
+  -- are part of this interface: `SwapStep`, `SwapValidity` and (through
+  -- `SwapStep`) `IsoTransport` match `swap-step`; `SwapValidity` uses `Incomp`.
   open L public using (NoInv; _↝_; _↝*_; connectivity; swap-step; Incomp)
 
   Order : Set

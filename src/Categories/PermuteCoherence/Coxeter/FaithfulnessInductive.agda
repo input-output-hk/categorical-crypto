@@ -45,8 +45,7 @@ open import Data.Fin.Patterns using (0F)
 import Data.Fin.Permutation as P
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; subst; subst₂)
-open import Data.List.Properties using () renaming (≡-dec to List-≡-dec)
-import Axiom.UniquenessOfIdentityProofs as UIPmod
+import Data.List.Properties.Ext as ListExt
 open import Data.List.Relation.Binary.Permutation.Propositional.Properties using (↭-length)
 open import Data.Product using (_,_; Σ-syntax)
 
@@ -76,7 +75,7 @@ private
 -- Used to discharge constrained `List X` endpoint equalities in the
 -- heterogeneous wrapper without `--with-K`.
 uipX : ∀ {us vs : List X} (p q : us ≡ vs) → p ≡ q
-uipX = UIPmod.Decidable⇒UIP.≡-irrelevant (List-≡-dec _≟X_)
+uipX = ListExt.≡-irrelevant _≟X_
 
 ------------------------------------------------------------------------
 -- 1. The inductive congruence `_≅↭ⁱ_`.
