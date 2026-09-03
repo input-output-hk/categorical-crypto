@@ -383,4 +383,3 @@ dep-irrefl-⟪⟫ =
                      (⟪⟫-LinearP f) (⟪⟫-LinearP g) nf ng)
     (λ f g → NoSelfDep-tensor ⟪ f ⟫ ⟪ g ⟫)
     (λ _ _ → λ { {()} })
-

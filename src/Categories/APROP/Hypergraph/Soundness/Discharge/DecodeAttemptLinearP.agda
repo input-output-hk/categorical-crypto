@@ -48,7 +48,6 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
 -- Reused-as-is generic decode lemmas (arbitrary `H`).
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
 
-
 open import Data.Nat as Nat
 open import Data.List.Properties
 open import Data.Maybe using (nothing)
@@ -200,7 +199,6 @@ module _
 
   ------------------------------------------------------------------------
   -- Structural decompositions of `concat (tabulate eout-c / ein-c)`.
-
 
   eout-comp-eq : concat (tabulate eout-c) ≡ map injL G-eb ++ map remapP K-eb
   eout-comp-eq = concat-tabulate-blocks eout-c G.eout K.eout injL remapP

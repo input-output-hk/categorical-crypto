@@ -64,4 +64,3 @@ yang-baxter 0F                   = refl
 yang-baxter (suc 0F)             = refl
 yang-baxter (suc (suc 0F))       = refl
 yang-baxter (suc (suc (suc i)))  = refl
-

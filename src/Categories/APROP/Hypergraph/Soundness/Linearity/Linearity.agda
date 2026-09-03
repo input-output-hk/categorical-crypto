@@ -322,4 +322,3 @@ Linear-hId A = (λ _ → refl) , bound
   where
     bound : ∀ v → count v (range (length (flatten A)) ++ []) Nat.≤ 1
     bound v rewrite ++-identityʳ (range (length (flatten A))) | count-range v = s≤s z≤n
-
