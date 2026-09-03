@@ -4,9 +4,10 @@
 -- Various free monoidal categories.  There are TWO client entry points:
 --
 --   * `FreeMonoidalHelper v X` (below) — the unbundled vocabulary
---     (`ObjTerm`, `Var`, `_⊗₀_`, `unit`, `HomTerm`, …).  This is the one
---     most consumers open, including every configuration of the symmetric
---     solver's test suite and `Coherence.Symmetric` itself.
+--     (`ObjTerm`, `Var`, `_⊗₀_`, `unit`, `HomTerm`, …).  This is the one most
+--     consumers have in SCOPE: `Coherence.Symmetric` opens it, and every
+--     configuration of its test suite reaches it through the `public` atom
+--     preambles `Atoms3`/`Atom1` (`Crossings` also opens it directly).
 --   * `FreeMonoidalData` + the `FreeMonoidal` module (further below) — the
 --     bundled form, which re-exports the helper `public` and adds the
 --     morphism layer `Mor`; the APROP cone and `PermuteCoherence` use this.
@@ -466,8 +467,8 @@ module FreeMonoidal (d : FreeMonoidalData) where
   -- The wire-combinator helpers (`split`/`merge`/`liftW`/`pad`/`rpad`/…) live
   -- in `Mor` for the solver's benefit and are NOT re-exported here.  The
   -- blocking name is `merge`: stdlib's `Data.List.Base` exports one, and
-  -- `Soundness/Decode/Decode.agda` has a bare `open import Data.List`, so
-  -- re-exporting ours makes that module genuinely ambiguous.  The rest travel
+  -- `Categories.APROP` re-exports `Data.List` `public`, so ours would be
+  -- ambiguous in every module that blanket-opens that hub.  The rest travel
   -- with it rather than being individually contested.  The solver opens
   -- `FreeMonoidalHelper.Mor` directly and is unaffected.
   open FreeMonoidalHelper.Mor v X mor public
