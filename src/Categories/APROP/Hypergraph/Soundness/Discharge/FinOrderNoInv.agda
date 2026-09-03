@@ -72,7 +72,7 @@ open APROP sig
 
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph; domL; codL)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
-  using (FlatGen; range; flatten; hGen; hId; hTensor; module hTensor-impl)
+  using (FlatGen; range; flatten; hGen; hTensor; module hTensor-impl)
 open import Categories.APROP.Hypergraph.Model.PrunedCompose sig
   using (hComposeP; module hComposeP-impl)
 open import Categories.APROP.Hypergraph.Model.Translation sig
@@ -151,8 +151,8 @@ splitE {m} {n} P pl pr e = subst P (join-splitAt m n e) (go (splitAt m e))
 
 --------------------------------------------------------------------------------
 -- ## `NoSelfDep` for the single edge.  The zero-edge shapes (`hId`, `hSwap`)
--- need no proof effort: `Dep` is vacuous there, so `hId` gets the one-line
--- `NoSelfDep-hId` below and `hSwap` an absurd pattern inside its induction.
+-- need no lemma: `Dep` is vacuous there, so both are discharged by an absurd
+-- pattern inside the induction below.
 
 -- `hGen f`: the unique edge has `ein` of `_↑ˡ_` form and `eout` of `_↑ʳ_`
 -- form, disjoint by `Inv.↑ˡ≢↑ʳ`.
@@ -375,12 +375,9 @@ fin-order-NoInv-⟪⟫ =
 --------------------------------------------------------------------------------
 -- ## The same induction on the diagonal: `NoSelfDep ⟪ f ⟫`.
 
-NoSelfDep-hId : ∀ A → NoSelfDep (hId A)
-NoSelfDep-hId _ {()}
-
 dep-irrefl-⟪⟫ : ∀ {A B} (f : HomTerm A B) → NoSelfDep ⟪ f ⟫
 dep-irrefl-⟪⟫ =
-  HomTermRec NoSelfDep NoSelfDep-hGen NoSelfDep-hId
+  HomTermRec NoSelfDep NoSelfDep-hGen (λ _ → λ { {()} })
     (λ f g nf ng → NoSelfDep-compose ⟪ f ⟫ ⟪ g ⟫
                      (trans (⟪⟫-codL f) (sym (⟪⟫-domL g)))
                      (⟪⟫-LinearP f) (⟪⟫-LinearP g) nf ng)
