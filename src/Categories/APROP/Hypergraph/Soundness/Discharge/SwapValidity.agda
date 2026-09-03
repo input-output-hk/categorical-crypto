@@ -75,8 +75,8 @@ module PerHG (H : Hypergraph FlatGen) (lin : Linear H) where
   module PH = IW.PerHG H
 
   -- `Incomp e e' = (¬ Dep H e e') × (¬ Dep H e' e)` and the swap-step
-  -- constructor, from `PerHG`'s order-theory interface.  Internal: this
-  -- module's only external export is `swap-validity`.
+  -- constructor, from `PerHG`'s order-theory interface.  The lemmas below are
+  -- visible too, but `swap-validity` is all the sole importer `SwapStep` reads.
   open PH using (Incomp; swap-step)
 
   ------------------------------------------------------------------------
@@ -178,9 +178,9 @@ module PerHG (H : Hypergraph FlatGen) (lin : Linear H) where
   -- The four-way firing split at ABSTRACT stack indices, over the
   -- `EdgeStepR` view: the non-strict twin of
   -- `Interchange.SwapCoreRun.RunInterchange.build`, and flat for the same
-  -- reason — each witness's output stack is its constructor's index, so the
-  -- eight impossible combinations are one `⊥-elim` each and the four real
-  -- ones need no transport.
+  -- reason — each witness's output stack is its constructor's index.  Twelve
+  -- impossible combinations, discharged by eight `⊥-elim` clauses (four of
+  -- them wildcard the last witness), and four real ones.
   two-edge-swap-gen
     : ∀ {e e' : Fin H.nE} (e≢e' : ¬ (e ≡ e')) (inc : Incomp e e')
         (s : List (Fin H.nV))
