@@ -236,15 +236,14 @@ module _ (H : Hypergraph FlatGen) where
   --   loc₁ : sp ↭ (ein e ++ ein e') ++ Rlist.
   ----------------------------------------------------------------------
 
+  -- Pure `↭`-reassociation: `¬ Dep` and `p₂` are read by `extract-ein'`, not here.
   block-loc-e
-    : ∀ {e e' : Fin H.nE} → ¬ (Dep H e e')
-    → (sp r₁ r₂ : List (Fin H.nV))
+    : ∀ {e e' : Fin H.nE} (sp r₁ : List (Fin H.nV))
     → sp Perm.↭ H.ein e ++ r₁
-    → H.eout e ++ r₁ Perm.↭ H.ein e' ++ r₂
     → (Rlist : List (Fin H.nV))
     → r₁ Perm.↭ H.ein e' ++ Rlist
     → sp Perm.↭ (H.ein e ++ H.ein e') ++ Rlist
-  block-loc-e {e} {e'} ¬dep sp r₁ r₂ p₁ p₂ Rlist q₁ = begin
+  block-loc-e {e} {e'} sp r₁ p₁ Rlist q₁ = begin
     sp                                   ↭⟨ p₁ ⟩
     H.ein e ++ r₁                        ↭⟨ PermProp.++⁺ˡ (H.ein e) q₁ ⟩
     H.ein e ++ H.ein e' ++ Rlist         ≡⟨ sym (++-assoc (H.ein e) (H.ein e') Rlist) ⟩
@@ -374,7 +373,7 @@ module _ (H : Hypergraph FlatGen) where
         q₁ = proj₂ (extract-ein' ¬dep-ee' r₁ r₂ p₂)
 
         loc₁ : sp Perm.↭ (H.ein e ++ H.ein e') ++ Rlist
-        loc₁ = block-loc-e ¬dep-ee' sp r₁ r₂ p₁ p₂ Rlist q₁
+        loc₁ = block-loc-e sp r₁ p₁ Rlist q₁
 
         vout-loc₁ : (H.eout e ++ H.eout e') ++ Rlist Perm.↭ H.eout e' ++ r₂
         vout-loc₁ = vout-loc-e {e} {e'} r₁ r₂ Rlist p₂ q₁
@@ -386,7 +385,7 @@ module _ (H : Hypergraph FlatGen) where
         q₂' = proj₂ (extract-ein' ¬dep-e'e r₂' r₁' p₁')
 
         loc₂' : sp Perm.↭ (H.ein e' ++ H.ein e) ++ Rlist'
-        loc₂' = block-loc-e ¬dep-e'e sp r₂' r₁' p₂' p₁' Rlist' q₂'
+        loc₂' = block-loc-e sp r₂' p₂' Rlist' q₂'
 
         vout-loc₂' : (H.eout e' ++ H.eout e) ++ Rlist' Perm.↭ H.eout e ++ r₁'
         vout-loc₂' = vout-loc-e {e'} {e} r₂' r₁' Rlist' p₁' q₂'
