@@ -18,8 +18,7 @@
 module Categories.PermuteCoherence.Coxeter.WordInterp {a} {X : Set a} where
 
 open import Data.Nat.Base using (ℕ; suc)
-open import Data.Nat.Properties
-  using (suc-injective) renaming (≡-irrelevant to ℕ-≡-irrelevant)
+open import Data.Nat.Properties using (suc-injective) renaming (≡-irrelevant to ℕ-≡-irrelevant)
 open import Data.Fin.Base using (Fin) renaming (suc to fsuc)
 open import Data.Fin.Patterns using (0F)
 open import Data.List.Base using (List; []; _∷_; length)

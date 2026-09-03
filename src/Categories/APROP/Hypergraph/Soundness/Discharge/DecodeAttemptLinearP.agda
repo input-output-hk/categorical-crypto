@@ -54,9 +54,8 @@ open import Data.List.Properties
 open import Data.Maybe using (nothing)
 
 open import Data.Empty using (⊥-elim)
-open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; cast; toℕ)
 -- `Data.List`, opened wholesale for the decode half, also exports `splitAt`.
-open import Data.Fin using () renaming (splitAt to splitAtF)
+open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; cast; toℕ) renaming (splitAt to splitAtF)
 open import Data.Fin.Properties using
   ( splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ
   ; toℕ-cast; toℕ-injective)

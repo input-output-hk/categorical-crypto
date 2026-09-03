@@ -39,8 +39,7 @@ open import Data.List.Base using (List; []; _∷_; _++_; length)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 open import Data.Nat.Base using (ℕ; suc; pred)
-open import Data.Nat.Properties
-  using (suc-injective) renaming (≡-irrelevant to ℕ-≡-irrelevant)
+open import Data.Nat.Properties using (suc-injective) renaming (≡-irrelevant to ℕ-≡-irrelevant)
 open import Data.Fin.Base using (Fin) renaming (suc to fsuc)
 open import Data.Fin.Patterns using (0F)
 import Data.Fin.Permutation as P
