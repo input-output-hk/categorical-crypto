@@ -839,12 +839,10 @@ module FrobeniusAlgebra (A : C.Obj)
       step₅ : ⟦ T₄ ⟧₁ C.≈ ⟦ n S.∘ m ⟧₁
       step₅ = rewriteDeepTo! T₄ (n S.∘ m) unitLᵗ S.λ⇒ 0 unitL
 
+    open C.HomReasoning
+
     frobL : (id ⊗₁ mᴹ) ∘ α⇒ ∘ (nᴹ ⊗₁ id) ≈ nᴹ ∘ mᴹ
-    frobL =
-      C.Equiv.trans (C.Equiv.sym step₁)
-        (C.Equiv.trans step₂
-          (C.Equiv.trans step₃
-            (C.Equiv.trans step₄ step₅)))
+    frobL = ⟺ step₁ ○ step₂ ○ step₃ ○ step₄ ○ step₅
 
     frobR : (mᴹ ⊗₁ id) ∘ α⇐ ∘ (id ⊗₁ nᴹ) ≈ nᴹ ∘ mᴹ
-    frobR = C.Equiv.trans (C.Equiv.sym frobH) frobL
+    frobR = ⟺ frobH ○ frobL
