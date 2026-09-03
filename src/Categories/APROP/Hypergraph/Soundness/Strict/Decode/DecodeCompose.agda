@@ -129,7 +129,6 @@ module RunBlocks (H : Hypergraph FlatGen) where
   -- clause is `pe-term-++ˢ` itself rather than that lemma re-cast by hand.
   run-split-atˢ gblk kblk refl s = pe-term-++ˢ gblk kblk s
 
-
 --------------------------------------------------------------------------------
 -- ## Local plumbing.
 
@@ -266,7 +265,6 @@ module TermEmbedˢ
           pinned : pJ ≡ subst (λ z → map φ sH Perm.↭ z) mpp lift
           pinned = extract-prefix-pin φ φ-inj (H.ein e) sH restH permH pJ eqH eJ
 
-
   ----------------------------------------------------------------------
   -- FIRE/FIRE per-edge term-twin, assembled from box-emb + perm-emb.
 
@@ -326,7 +324,6 @@ module TermEmbedˢ
         ≈̂-trans (cast-≈̂ {p = refl} {q = map-++ vlJ (J.ein (ψ e)) restJ})
         (≈̂-trans (castˢ⇒≈̂ pDom Qp (perm-emb e sH restH permH eqH restJ permJ eqJ pDom Qp))
                  (≈̂-sym (cast-≈̂ {p = refl} {q = map-++ vlH (H.ein e) restH})))
-
 
   ----------------------------------------------------------------------
   -- Per-edge term-twin (dispatch on `extract-prefix`, both sides).

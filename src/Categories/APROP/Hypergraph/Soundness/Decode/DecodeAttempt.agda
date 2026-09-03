@@ -27,7 +27,6 @@ open import Data.Nat
 open import Data.List.Properties
 open import Data.Maybe using (just; nothing)
 
-
 --------------------------------------------------------------------------------
 -- Per-case lemmas, one per smart constructor of `FromAPROP`.  Each produces
 -- the *bare* totality witness — the permutation of `process-all-edges`'s

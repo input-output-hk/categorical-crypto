@@ -113,4 +113,3 @@ module _ (H : Hypergraph FlatGen) where
     → process-edges (xs ++ ys) s ≡ process-edges ys (process-edges xs s)
   process-edges-++ []       ys s = refl
   process-edges-++ (e ∷ xs) ys s = process-edges-++ xs ys (edge-step s e)
-
