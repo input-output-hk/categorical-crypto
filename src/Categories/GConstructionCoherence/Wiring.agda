@@ -70,7 +70,6 @@ private
   R₂ᵇ = (αᵇ ⊗₁ id ∘ (h' ⊗₁ id) ⊗₁ id) ∘ (α⇐ ∘ id ⊗₁ αᵇ)
   L₂ρ₂ᵇ = ((βᵇ ∘ αᵇ ⊗₁ id) ∘ (βᵇ ∘ αᵇ ⊗₁ id)) ∘ ((h' ⊗₁ id) ⊗₁ id ∘ α⇐)
 
-
 -- the obligations at the segment statements: pure-assoc bridges around the
 -- solver obligation on the balanced spellings
 ob₀ : (ρ₁ᵗ ∘ R₀ᵗ) ≈Term L₀ᵗ
