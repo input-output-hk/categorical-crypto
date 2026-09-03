@@ -24,7 +24,7 @@ module Categories.Examples.RelationViewGreenSlime where
 
 open import Data.Nat using (ℕ; _≟_)
 open import Data.Bool using (Bool; true; false)
-open import Data.List using (List; []; _∷_)
+open import Data.List using (List; []; _∷_; map)
 open import Data.Product using (_×_; _,_)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Empty using (⊥-elim)
@@ -150,8 +150,6 @@ fired-or-skip-fn k xs = fired-or-skip (pop-graph k xs)
 -- makes one branch of each pair ABSURD — so the neutral test is decided, never
 -- left open, and no proof of `f x ≡ f x` is ever matched (which is where a
 -- `--without-K` wall would be).
-
-open import Data.List using (map)
 
 pop-natural
   : ∀ (f : ℕ → ℕ) (f-inj : ∀ {a b} → f a ≡ f b → a ≡ b)
