@@ -558,9 +558,8 @@ module DeepRewrite (A₀ A₁ A₂ : C.Obj)
 
 --------------------------------------------------------------------------------
 -- Configuration 2: `rewriteDeep!` on multi-arity generators, and the
--- convexity/retry story.  A merge
--- `m : a ⊗ a → a`, a split `e : a → a ⊗ a`, a unary `k : a → a`, and a
--- scalar-ish `u : unit → a`.
+-- convexity/retry story.  A merge `m : a ⊗ a → a`, a split `e : a → a ⊗ a`,
+-- a unary `k : a → a`, and a scalar-ish `u : unit → a`.
 
 module DeepArity (A : C.Obj)
   (mᴹ : (A C.⊗₀ A) C.⇒ A) (eᴹ : A C.⇒ (A C.⊗₀ A))

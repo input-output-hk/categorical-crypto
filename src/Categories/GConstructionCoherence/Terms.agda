@@ -147,9 +147,9 @@ R₂ᵗ = αᵗ ⊗₁ id ∘ (h' ⊗₁ id) ⊗₁ id ∘ α⇐ ∘ id ⊗₁ �
 ρ₂ᵗ = α⇐
 
 -- The solver's term-level gate (`Split`), re-exported under the short names
--- `Decomp` and `Wiring` state their hops in: refl-checked forcing (never
--- `from-just` — "the 8-atom wall"), the pure-assoc respelling `stepR!`
--- (reassoc + refl, no solver leaf), and the one-leaf `solve!`.
+-- `Decomp` and `Wiring` state their hops in: `step!` (split along shared
+-- structure), `stepR!` (the same after reassociation), `solve!` (one
+-- whole-term leaf) — all refl-checked, never `from-just` ("the 8-atom wall").
 
 open import Categories.APROP.Hypergraph.Solver.Split gSig
   using () renaming (stepSplit! to step!; stepSplitR! to stepR!;
