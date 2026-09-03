@@ -49,7 +49,6 @@ open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 
 --------------------------------------------------------------------------------
 
-
 --------------------------------------------------------------------------------
 -- ===== submodule FMS =====
 --------------------------------------------------------------------------------
@@ -608,4 +607,3 @@ module _ (H : Hypergraph FlatGen)
 
   -- Re-export the headline result.
   open RunInterchangeˢ using (run-interchange₀ˢ) public
-

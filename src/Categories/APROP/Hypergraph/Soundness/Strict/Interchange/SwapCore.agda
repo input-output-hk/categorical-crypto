@@ -54,5 +54,3 @@ module _ (H : Hypergraph FlatGen) where
   --------------------------------------------------------------------
 
   open LinExt (Fin H.nE) (Dep H) public using (Incomp)
-
-
