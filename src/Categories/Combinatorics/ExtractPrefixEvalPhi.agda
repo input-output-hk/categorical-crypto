@@ -10,9 +10,10 @@
 -- `extract-prefix-map⁺`, both consumed directly by `Decode.DecodeProperties`).
 --
 -- §2 turns that into the form the strict decoder's per-edge permute twin
--- consumes: since the result type is a `Maybe (List (Fin nJ) × _)` and
--- `List (Fin nJ)` has decidable equality (hence UIP), the derivation is PINNED —
+-- consumes: since the result type is a `Maybe (List (Fin m) × _)` and
+-- `List (Fin m)` has decidable equality (hence UIP), the derivation is PINNED —
 -- whatever `permJ` the caller holds must BE that lift (`extract-prefix-pin`).
+-- It shares §1's `(f , f-inj)` telescope, so it needs no second one.
 --------------------------------------------------------------------------------
 
 module Categories.Combinatorics.ExtractPrefixEvalPhi where
@@ -114,27 +115,23 @@ module _ {n m : ℕ} (f : Fin n → Fin m)
               (sym (push-subst-cons (PermProp.map⁺ f p-e) (PermProp.map⁺ f q-pre)
                                     (map-++ f ks rest')))
 
---------------------------------------------------------------------------------
--- §2.  The pinned derivation.
---
--- `extract-prefix-map⁺` says the relabelled search *produces* the `map⁺ φ`-lift
--- of the H-side derivation.  Since `extract-prefix`'s result is a `Maybe` pair
--- and the index type is a `List (Fin nJ)` (decidable, hence UIP), that pins the
--- SECOND component too: any `permJ` the caller happens to be holding IS
--- `map⁺ φ permH` transported along `map-++`.
-
-module _ {nH nJ : ℕ}
-         (φ : Fin nH → Fin nJ) (φ-inj : ∀ {x y} → φ x ≡ φ y → x ≡ y) where
-
+  ------------------------------------------------------------------------------
+  -- §2.  The pinned derivation.
+  --
+  -- `extract-prefix-map⁺` says the relabelled search *produces* the `map⁺ f`-lift
+  -- of the H-side derivation.  Since `extract-prefix`'s result is a `Maybe` pair
+  -- and the index type is a `List (Fin m)` (decidable, hence UIP), that pins the
+  -- SECOND component too: any `permJ` the caller holds IS `map⁺ f permH`
+  -- transported along `map-++`.
   extract-prefix-pin
-    : ∀ (ks xs rest : List (Fin nH))
+    : ∀ (ks xs rest : List (Fin n))
         (permH : xs ↭ ks ++ rest)
-        (permJ : map φ xs ↭ map φ ks ++ map φ rest)
+        (permJ : map f xs ↭ map f ks ++ map f rest)
     → extract-prefix ks xs ≡ just (rest , permH)
-    → extract-prefix (map φ ks) (map φ xs) ≡ just (map φ rest , permJ)
-    → permJ ≡ subst (λ z → map φ xs ↭ z) (map-++ φ ks rest)
-                    (PermProp.map⁺ φ permH)
+    → extract-prefix (map f ks) (map f xs) ≡ just (map f rest , permJ)
+    → permJ ≡ subst (λ z → map f xs ↭ z) (map-++ f ks rest)
+                    (PermProp.map⁺ f permH)
   extract-prefix-pin ks xs rest permH permJ eqH eqJ =
     ,-injectiveʳ-UIP (≡-irrelevant _≟_)
       (just-injective
-        (trans (sym eqJ) (extract-prefix-map⁺ φ φ-inj ks xs rest permH eqH)))
+        (trans (sym eqJ) (extract-prefix-map⁺ ks xs rest permH eqH)))
