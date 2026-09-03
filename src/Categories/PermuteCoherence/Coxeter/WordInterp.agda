@@ -18,16 +18,15 @@
 module Categories.PermuteCoherence.Coxeter.WordInterp {a} {X : Set a} where
 
 open import Data.Nat.Base using (ℕ; suc)
-open import Data.Nat.Properties using (suc-injective)
-open import Data.Nat.Properties using () renaming (≡-irrelevant to ℕ-≡-irrelevant)
+open import Data.Nat.Properties
+  using (suc-injective) renaming (≡-irrelevant to ℕ-≡-irrelevant)
 open import Data.Fin.Base using (Fin) renaming (suc to fsuc)
 open import Data.Fin.Patterns using (0F)
 open import Data.List.Base using (List; []; _∷_; length)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
-open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; refl; sym; cong; trans)
-open import Relation.Binary.PropositionalEquality using (subst; subst₂)
+open import Relation.Binary.PropositionalEquality
+  using (_≡_; refl; sym; cong; trans; subst; subst₂)
 
 import Data.Fin.Permutation as P
 

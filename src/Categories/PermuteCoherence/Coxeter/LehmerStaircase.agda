@@ -25,7 +25,7 @@ open import Data.Fin.Patterns using (0F)
 open import Data.List.Base using ([]; _∷_; _++_)
 open import Data.List.Properties using (++-identityʳ)
 open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; refl; sym; cong; trans; subst)
+  using (_≡_; sym; cong; trans; subst)
 
 open import Categories.PermuteCoherence.Coxeter.Word
 
@@ -42,11 +42,6 @@ private
 ++c-l : (u : Word n) {v w : Word n} → v ~ʷ w → (u ++ v) ~ʷ (u ++ w)
 ++c-l []      r = r
 ++c-l (i ∷ u) r = ∷-cong i (++c-l u r)
-
--- `liftW` distributes over `_++_` (definitional, stated for reuse).
-liftW-++ : (v w : Word n) → liftW (v ++ w) ≡ liftW v ++ liftW w
-liftW-++ []      w = refl
-liftW-++ (i ∷ v) w = cong (fsuc i ∷_) (liftW-++ v w)
 
 -- The c2 engine `comm₀`: a leading `0F` commutes right past a
 -- doubly-lifted word (all letters ≥ 2), using c2 (far0ˡ) only.

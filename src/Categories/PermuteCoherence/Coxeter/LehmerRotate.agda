@@ -22,7 +22,7 @@ open import Data.Fin.Base using (Fin; toℕ; fromℕ<) renaming (suc to fsuc)
 open import Data.Fin.Patterns using (0F)
 open import Data.Fin.Properties using (toℕ-fromℕ<; toℕ≤pred[n])
 open import Data.List.Base using (_∷_; _++_)
-open import Data.List.Properties using (++-assoc)
+open import Data.List.Properties using (++-assoc; map-++)
 open import Relation.Nullary using (yes; no)
 import Data.Fin.Permutation as P
 open P using (remove)
@@ -60,7 +60,7 @@ canonW-cons-rotate {n} X k =
 
   -- Y ∘ ρ_mY⁻¹ ≈ cons-fb X  (with mY substituted to k, the ρ's cancel), and
   -- `remove 0F` of that lift is `X` again (`cons-fb-injective`, upstream in
-  -- `Word`, shared with `remove-0-of-≈id`).
+  -- `Word`, shared with `remove-0-of-id`).
   resid≈X : resid ≈-fb X
   resid≈X = ≈-fb-trans {b = resid} {b′ = remove 0F (cons-fb X)} {b″ = X}
               (residual-pw-cong (Y ∘-fb inv-fb (rotate-fb mY)) (cons-fb X) collapse)
@@ -247,7 +247,7 @@ lhs-eq {n} Z r m g =
   L1 = liftW (rotateW r′)
   step-in : liftW (canonW (cons-fb Z ∘-fb rotate-fb r′)) ~ʷ (LZ ++ L1)
   step-in = subst (liftW (canonW (cons-fb Z ∘-fb rotate-fb r′)) ~ʷ_)
-                  (liftW-++ (liftW (canonW Z)) (rotateW r′))
+                  (map-++ fsuc (liftW (canonW Z)) (rotateW r′))
                   (lift~ (canonW-cons-rotate Z r′))
 
 -- RHS: reshape then absorb the head `0F` via `comm₀`.
@@ -257,7 +257,7 @@ rhs-eq : (Z : FinBij (suc n) (suc n)) (r : Fin (suc (suc n)))
          ~ʷ (liftW (liftW (canonW Z)) ++ (rotateW (fsuc r) ++ rotateW m))
 rhs-eq {n} Z r m =
   subst (λ u → (0F ∷ (u ++ rotateW m)) ~ʷ (LZ ++ (rotateW (fsuc r) ++ rotateW m)))
-        (sym (liftW-++ (liftW (canonW Z)) (rotateW r)))
+        (sym (map-++ fsuc (liftW (canonW Z)) (rotateW r)))
   (subst (λ u → (0F ∷ u) ~ʷ (LZ ++ (rotateW (fsuc r) ++ rotateW m)))
          (sym (++-assoc LZ R1 (rotateW m)))
          (comm₀ (canonW Z) (R1 ++ rotateW m)))

@@ -22,8 +22,8 @@ module Categories.PermuteCoherence.Coxeter.Word where
 open import Data.Nat.Base using (ℕ; zero; suc)
 open import Data.Fin.Base using (Fin; zero; punchOut) renaming (suc to fsuc)
 open import Data.Fin.Patterns using (0F)
-open import Data.Fin.Properties using (punchOut-cong)
-open import Data.List.Base using (List; []; _∷_; _++_)
+open import Data.Fin.Properties using (punchOut-cong; suc-injective)
+open import Data.List.Base using (List; []; _∷_; _++_; map)
 open import Data.List.Properties using (++-identityʳ)
 import Data.Fin.Permutation as P
 open P using (remove)
@@ -105,10 +105,10 @@ evalW-++ : (v w : Word n) → evalW (v ++ w) ≈-fb (evalW v ∘-fb evalW w)
 evalW-++ []      w i = refl
 evalW-++ (g ∷ v) w i = cong (genFB g P.⟨$⟩ʳ_) (evalW-++ v w i)
 
--- Lift every generator one level (`i ↦ suc i`); acts on the tail.
+-- Lift every generator one level (`i ↦ suc i`): it IS `map fsuc`, so the
+-- stdlib `map`-laws apply verbatim (`LehmerRotate` uses `map-++` for it).
 liftW : Word n → Word (suc n)
-liftW []      = []
-liftW (i ∷ w) = fsuc i ∷ liftW w
+liftW = map fsuc
 
 -- `evalW (liftW w) ≈ cons-fb (evalW w)`.
 eval-liftW : (w : Word n) → evalW (liftW w) ≈-fb cons-fb (evalW w)
@@ -145,8 +145,7 @@ rotateW-sound {suc n} (fsuc m) =
 -- The defining property: the rotation brings `m` to the front.
 rotate-fb-front : {n : ℕ} (m : Fin (suc n)) → rotate-fb m P.⟨$⟩ʳ m ≡ 0F
 rotate-fb-front {n}     0F       = refl
-rotate-fb-front {suc n} (fsuc m) =
-  trans (cong (λ z → swap-fb n P.⟨$⟩ʳ fsuc z) (rotate-fb-front m)) refl
+rotate-fb-front {suc n} (fsuc m) = cong (λ z → swap-fb n P.⟨$⟩ʳ fsuc z) (rotate-fb-front m)
 
 -- The inverse rotation sends `0F` back to `m`.
 inv-rotate-fb-0 : {n : ℕ} (m : Fin (suc n)) → inv-fb (rotate-fb m) P.⟨$⟩ʳ 0F ≡ m
@@ -399,19 +398,15 @@ canonW-resp-≈ {suc n} {b} {b′} eq =
 cons-fb-injective : {f g : FinBij n m}
                   → cons-fb f ≈-fb cons-fb g → f ≈-fb g
 cons-fb-injective h j = suc-injective (h (fsuc j))
-  where
-  suc-injective : {a b : Fin _} → fsuc a ≡ fsuc b → a ≡ b
-  suc-injective refl = refl
 
--- `remove 0F X ≈ id-fb` whenever `X ≈ id-fb`: `lift₀-remove` turns the
--- residual into a `cons-fb`, and `cons-fb-injective` at `g = id-fb`
--- (whose `cons-fb-functor-id` step is the only reason `id-fb` needs
--- unfolding) strips it.
-remove-0-of-≈id : {n : ℕ} (X : FinBij (suc n) (suc n))
-                → X ≈-fb id-fb → remove 0F X ≈-fb id-fb
-remove-0-of-≈id X h =
+-- The residual of `canonW`'s identity step is `≈ id-fb`: `lift₀-remove` turns
+-- it into a `cons-fb`, and `cons-fb-injective` at `g = id-fb` (whose
+-- `cons-fb-functor-id` step is the only reason `id-fb` needs unfolding) strips
+-- it.  Stated at the ONE argument `canonW-id` supplies (`≈ id-fb` = `refl`).
+remove-0-of-id : {n : ℕ} → remove 0F (id-fb {n = suc n} ∘-fb inv-fb id-fb) ≈-fb id-fb
+remove-0-of-id {n} =
   cons-fb-injective
-    (λ j → trans (trans (P.lift₀-remove X (h 0F) j) (h j))
+    (λ j → trans (P.lift₀-remove (id-fb {n = suc n} ∘-fb inv-fb id-fb) refl j)
                  (sym (Snd.cons-fb-functor-id j)))
 
 -- The canonical word of the identity is empty (up to `~ʷ`).
@@ -423,7 +418,7 @@ canonW-id {suc n} =
   subst (_~ʷ []) (sym (++-identityʳ (liftW (canonW _))))
     (~trans (lift~ (canonW-resp-≈ {b = remove 0F (id-fb ∘-fb inv-fb id-fb)}
                                   {b′ = id-fb {n = suc n}}
-                                  (remove-0-of-≈id (id-fb ∘-fb inv-fb id-fb) (λ _ → refl))))
+                                  remove-0-of-id))
             (lift~ canonW-id))
 
 -- Straightening (every word is `~ʷ` its canonical form) needs the
