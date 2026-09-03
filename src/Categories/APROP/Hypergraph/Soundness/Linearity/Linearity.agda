@@ -29,7 +29,8 @@ open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using ( FlatGen; flatten; range
         ; hId; hGen; hSwap; hTensor
         ; module hTensor-impl; module hGenSwap-impl)
-open import Categories.APROP.Hypergraph.Model.Invariant sig using (↑ˡ≢↑ʳ; range-++)
+open import Categories.APROP.Hypergraph.Model.Invariant sig
+  using (inject+-inj; raise-inj; ↑ˡ≢↑ʳ; range-++)
 -- `count v xs` (occurrences of `v` in `xs`) and its `_++_` distribution law
 -- live in the signature-free count leaf `Discharge.CountCombinatorics`.
 open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics
@@ -37,8 +38,7 @@ open import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics
 
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; splitAt)
-open import Data.Fin.Properties using
-  (_≟_; suc-injective; ↑ˡ-injective; ↑ʳ-injective; splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ)
+open import Data.Fin.Properties using (_≟_; suc-injective; splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ)
 open import Data.List.Properties using
   (++-identityʳ; tabulate-cong; map-tabulate; concat-map; concat-++)
 import Function as Fun
@@ -92,11 +92,11 @@ count-range {n = suc n} (suc i) with suc i ≟ zero
 -- `_↑ˡ nB` / `nA ↑ʳ_` (instances of `count-map-inj`).
 count-map-↑ˡ : ∀ {nA} nB (i : Fin nA) (xs : List (Fin nA))
              → count (i ↑ˡ nB) (map (_↑ˡ nB) xs) ≡ count i xs
-count-map-↑ˡ nB = count-map-inj (_↑ˡ nB) (λ {a} {b} → ↑ˡ-injective nB a b)
+count-map-↑ˡ nB = count-map-inj (_↑ˡ nB) (inject+-inj nB)
 
 count-map-↑ʳ : ∀ nA {nB} (j : Fin nB) (xs : List (Fin nB))
              → count (nA ↑ʳ j) (map (nA ↑ʳ_) xs) ≡ count j xs
-count-map-↑ʳ nA = count-map-inj (nA ↑ʳ_) (λ {a} {b} → ↑ʳ-injective nA a b)
+count-map-↑ʳ nA = count-map-inj (nA ↑ʳ_) (raise-inj nA)
 
 -- The "mismatch" cases: a `nA ↑ʳ j` never appears in an `_↑ˡ_` image,
 -- and vice versa (instances of `count-map-miss`).
