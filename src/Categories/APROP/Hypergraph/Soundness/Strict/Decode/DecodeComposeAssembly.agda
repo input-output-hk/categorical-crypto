@@ -154,11 +154,14 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   perm-f : RG.s-finˢ Perm.↭ G.cod
   perm-f = finalPermˢ f
 
+  map-rKd : map remapP K.dom ≡ map injL G.cod
+  map-rKd = LP.map-remapP-K-dom G K bdy lin-G lin-K
+
   after-G-↭ : after-G Perm.↭ map remapP K.dom
   after-G-↭ =
     Perm.↭-trans (Perm.↭-reflexive after-G-≡)
       (Perm.↭-trans (PermProp.map⁺ injL perm-f)
-        (Perm.↭-reflexive (sym (LP.map-remapP-K-dom G K bdy lin-G lin-K))))
+        (Perm.↭-reflexive (sym map-rKd)))
 
   -- Reservoir on the strict post-G stack (= the non-strict one).
   reservoir-K : SUR.Reservoir≤1 Chg kblk after-G
@@ -178,7 +181,7 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   uCcod = Linear⇒cod-Unique Chg lin-C
   uRemapKdom : Unique (map remapP K.dom)
   uRemapKdom =
-    subst Unique (sym (LP.map-remapP-K-dom G K bdy lin-G lin-K))
+    subst Unique (sym map-rKd)
       (UniqueProp.map⁺ (λ {x} {y} → inject+-inj cn {x} {y})
                        (Linear⇒cod-Unique G lin-G))
 
@@ -286,10 +289,6 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
 
   PGˢ : HomS (map K.vlab s_K_final) (map K.vlab K.cod)
   PGˢ = RK.permuteˢ perm-g
-
-  -- Boundary equalities for the G-block.
-  map-rKd : map remapP K.dom ≡ map injL G.cod
-  map-rKd = LP.map-remapP-K-dom G K bdy lin-G lin-K
 
   ----------------------------------------------------------------------
   -- Y-twin, HETEROGENEOUSLY: the G-part IS `PFˢ ∘ˢ pterm-f`, factor by
