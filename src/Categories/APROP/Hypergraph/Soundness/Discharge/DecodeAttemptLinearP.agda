@@ -40,8 +40,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
 
 import Categories.APROP.Hypergraph.Model.Invariant sig as Inv
-import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
-open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
+open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
   using ( count-map-↑ˡ; count-map-inj
         ; count-map-↑ˡ-mismatch; count-swap
         ; producedList; consumedList; Linear; concat-tabulate-blocks)
@@ -50,7 +49,7 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
 
 
-open import Data.Nat
+open import Data.Nat as Nat
 open import Data.List.Properties
 open import Data.Maybe using (nothing)
 
@@ -66,7 +65,6 @@ open import Data.Fin.Properties using
 open import Data.List.Membership.Propositional.Properties using (∈-map⁻)
 open import Data.List.Relation.Unary.Any using (any?)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-open import Data.Nat as Nat using ()
 import Data.Nat.Properties as Nat
 open import Data.Sum using (inj₁; inj₂)
 open import Relation.Nullary.Decidable using (yes; no)
