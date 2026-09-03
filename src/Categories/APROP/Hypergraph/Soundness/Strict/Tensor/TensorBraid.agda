@@ -58,8 +58,8 @@
 --     So the conditional theorem above is discharged IN THIS FILE and nothing
 --     downstream carries `KBlockσ` as a hypothesis.
 --   * `decodePˢ-⊗-concrete` — the final wiring: the UNCONDITIONAL ⊗-shape,
---     at the exact type of `PartI`'s / `Strict.Soundness`'s `decodePˢ-⊗`
---     parameter.  This is the file's last definition.
+--     applied directly by `PartI.st-≈-decodePˢ`'s ⊗ clause (`PartI` takes no
+--     ⊗-shape parameter).  This is the file's last definition.
 --   * `Reconcile-e`'s own statements are HETEROGENEOUS (`_≈̂_`) wherever a
 --     homogeneous one would have to name a cast path (`Gc-≈̂`, `Kc-≈̂`,
 --     `comb-frame`, `W-≈̂`, `stepD`, `target-≈̂`, and
@@ -80,6 +80,8 @@ open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
 open import Categories.APROP.Hypergraph.Model.FromAPROP sig
   using (FlatGen; range; hTensor; module hTensor-impl; map-via)
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
+open import Categories.APROP.Hypergraph.Model.Invariant sig
+  using (range-++; inject+-inj; raise-inj)
 
 open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig
 open import Categories.Morphism.Reasoning SCat using (pullʳ; cancelInner)
@@ -102,7 +104,6 @@ import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig as SU
 import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR
 
 open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
-open import Data.Fin.Properties using (↑ˡ-injective; ↑ʳ-injective)
 open import Data.Maybe using (nothing)
 open import Data.List.Relation.Unary.All using (All; universal)
 open import Data.List.Relation.Unary.All.Properties using (map⁺)
@@ -193,7 +194,7 @@ module Embeds (G K : Hypergraph FlatGen) where
   -- `DecodeComposeAssembly` uses for the `hComposeP` twin).
 
   module TG = DC.EmbedGlue {H = G} {J = hTensor G K}
-                injL (λ {x} {y} → ↑ˡ-injective K.nV x y) vlab-injL
+                injL (inject+-inj K.nV) vlab-injL
                 ψG ein-c-inj₁-red eout-c-inj₁-red
                 (map-via vlab-injL) elab-c-inj₁
 
@@ -201,7 +202,7 @@ module Embeds (G K : Hypergraph FlatGen) where
   -- K-side embedding: φ = injR, ψ = G.nE ↑ʳ_, H = K, J = hTensor G K.
 
   module TK = DC.EmbedGlue {H = K} {J = hTensor G K}
-                injR (λ {x} {y} → ↑ʳ-injective G.nV x y) vlab-injR
+                injR (raise-inj G.nV) vlab-injR
                 ψK ein-c-inj₂-red eout-c-inj₂-red
                 (map-via vlab-injR) elab-c-inj₂
 
@@ -229,8 +230,6 @@ module Braid {A B C D : ObjTerm}
     module Hf = Hypergraph ⟪ fg ⟫
     open StrictDecoder ⟪ fg ⟫
       using (process-edgesˢ; vl; block-disjoint; stack-sepˢ; term-sepᵛ; rigidˢ)
-
-    open import Categories.APROP.Hypergraph.Model.Invariant sig using (range-++)
 
     gblk kblk : List (Fin Hf.nE)
     gblk = map (_↑ˡ Kd.nE) (range Gd.nE)
@@ -300,7 +299,7 @@ module Braid {A B C D : ObjTerm}
     Krun = proj₂ (process-edgesˢ kblk (proj₁ (process-edgesˢ gblk Hf.dom)))
 
     stkSplit₀ : proj₁ (process-edgesˢ kblk (proj₁ (process-edgesˢ gblk Hf.dom)))
-                ≡ proj₁ (process-edgesˢ (range Hf.nE) Hf.dom)
+                ≡ RF.s-finˢ
     stkSplit₀ =
       sym (trans (cong (λ z → proj₁ (process-edgesˢ z Hf.dom)) range≡)
                  (pe-stack-++ˢ gblk kblk Hf.dom))
@@ -329,7 +328,7 @@ module Braid {A B C D : ObjTerm}
   braidˢ-from-kblock (cand , kb) =
     cand , ≈-trans (∘-resp ≈-refl split-eq) kb
     where
-      -- `proj₂ runˢ ≈ castˢ refl (sym stkSplit) (Krun ∘ (G-framed))`.
+      -- `proj₂ runˢ ≈ castˢ refl (sym stkSplit₀) (Krun ∘ (G-framed))`.
       split-eq
         : proj₂ (Run.runˢ ⟪ fg ⟫)
           ≈ˢ coeCod stkSplit₀
@@ -396,11 +395,8 @@ module Braid {A B C D : ObjTerm}
     module Gd' = Run G
     module Kd' = Run K
 
-    s_G_final : List (Fin Gd.nV)
-    s_G_final = proj₁ (Gd'.process-edgesˢ (range Gd.nE) Gd.dom)
-
-    s_K_final : List (Fin Kd.nV)
-    s_K_final = proj₁ (Kd'.process-edgesˢ (range Kd.nE) Kd.dom)
+    s_G_final = Gd'.s-finˢ
+    s_K_final = Kd'.s-finˢ
 
     -- `sG ≡ map injL s_G_final` (G-block stack-emb, via `TG.proc-stack-embˢ`).
     sG≡ : sG ≡ map injL s_G_final
@@ -418,10 +414,10 @@ module Braid {A B C D : ObjTerm}
     -- (`map ψG (range Gd.nE) = gblk`, `map injL Gd.dom = Lpre`, dually for K.)
 
     Grun : HomS (map Gd.vlab Gd.dom) (map Gd.vlab s_G_final)
-    Grun = proj₂ (Run.runˢ G)
+    Grun = proj₂ Gd'.runˢ
 
     Krun-K : HomS (map Kd.vlab Kd.dom) (map Kd.vlab s_K_final)
-    Krun-K = proj₂ (Run.runˢ K)
+    Krun-K = proj₂ Kd'.runˢ
 
     ------------------------------------------------------------------
     -- ### The two sub-final-permutes, relabelled to the C-level.
@@ -751,11 +747,11 @@ module Braid {A B C D : ObjTerm}
 -- ## Phase 8 — THE FINAL WIRING.  The UNCONDITIONAL ⊗-shape, `Braid`'s
 -- conditional theorem fed its own last hypothesis:
 --
---     decodePˢ-⊗ : decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g    (UNCOND.)
+--     decodePˢ-⊗-concrete : decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g
 --
--- This has the EXACT type of `PartI`'s / `Strict.Soundness`'s `decodePˢ-⊗`
--- parameter, so it closes the last residual of the strict soundness assembly.
--- ZERO postulates, `--safe --without-K`.
+-- This is the shape `PartI.st-≈-decodePˢ`'s ⊗ clause applies, so it closes the
+-- last residual of the strict soundness assembly.  ZERO postulates,
+-- `--safe --without-K`.
 
 decodePˢ-⊗-concrete
   : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
