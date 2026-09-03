@@ -24,11 +24,7 @@ module Categories.APROP.Hypergraph.Soundness.Stack.StackUnique
 
 open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ) renaming (_≤_ to _≤ⁿ_)
-import Data.Nat.Properties as Nat
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-
-open Perm using (_↭_)
-
 
 open APROP sig using (HomTerm)
 open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
@@ -56,7 +52,7 @@ private
 --     opened twice — the second `open` is the `public` half.
 
 import Categories.APROP.Hypergraph.Soundness.Discharge.CountCombinatorics as CC
-open CC using (count-++; ↭⇒count)
+open CC using (↭⇒count)
 open CC using (count; Unique⇒count≤1; count≤1⇒Unique; count-++-bndˡ; count-++-bndʳ) public
 
 --------------------------------------------------------------------------------
@@ -89,10 +85,10 @@ residual-recon ks xs rest perm-in uniq =
 --------------------------------------------------------------------------------
 -- 3.  `Linear H ⇒ Unique (cod H)` (sig-level).  A linear hypergraph has a
 --     `count`-balanced, `count ≤ 1`-bounded codomain, hence a `Unique` one.
---     This is the tree's ONLY route to codomain uniqueness: the structural
---     `HomTerm`-induction twin that used to live in `Model.HomTermInvariant`
---     proved the same fact at the special case `H = ⟪f⟫` and is gone, since
---     every consumer already carries the `Linear` witness this route needs.
+--     This is the general route.  The `H = ⟪f⟫` pairing is `⟪⟫-cod-Unique`
+--     below; `DecodeAttemptLinearP` derives its own G-side face from the same
+--     `count≤1⇒Unique` bridge, since it sits below this module in the import
+--     graph.  The `HomTerm`-induction twin in `Model.HomTermInvariant` is gone.
 
 Linear⇒cod-Unique : (H : Hypergraph FlatGen) → Linear H → Unique (Hypergraph.cod H)
 Linear⇒cod-Unique H (bal , bnd) = count≤1⇒Unique cod-bnd
@@ -100,11 +96,7 @@ Linear⇒cod-Unique H (bal , bnd) = count≤1⇒Unique cod-bnd
     module H = Hypergraph H
     cod-bnd : ∀ v → count v H.cod ≤ⁿ 1
     cod-bnd v =
-      Nat.≤-trans
-        (Nat.≤-trans
-          (Nat.m≤m+n (count v H.cod) (count v (concat (tabulate H.ein))))
-          (Nat.≤-reflexive (sym (count-++ v H.cod (concat (tabulate H.ein))))))
-        (Nat.≤-trans (Nat.≤-reflexive (sym (bal v))) (bnd v))
+      count-++-bndˡ v H.cod (concat (tabulate H.ein)) (subst (_≤ⁿ 1) (bal v) (bnd v))
 
 -- …at the ONE hypergraph the decoder ever asks about.  Four decoder shape
 -- modules used to spell this composite (`Linear⇒cod-Unique ⟪ f ⟫ (⟪⟫-LinearP
