@@ -97,7 +97,7 @@ open import Data.Fin.Properties using (join-splitAt)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Membership.Propositional.Properties
   using (∈-map⁻; ∈-concat⁺′; ∈-tabulate⁺)
-open import Data.List.Relation.Unary.All using (All; []; _∷_; universal)
+open import Data.List.Relation.Unary.All using ([]; universal)
 import Data.List.Relation.Unary.All.Properties as AllProp
 open import Data.List.Relation.Unary.AllPairs as AP using (AllPairs; []; _∷_)
 import Data.List.Relation.Unary.AllPairs.Properties as AllPairsProp
@@ -200,7 +200,8 @@ module Assemble
       (AllProp.map⁺ (universal (λ _ → AllProp.map⁺ (universal (λ _ → cross) ks)) gs))
 
 --------------------------------------------------------------------------------
--- ## Tensor case.
+-- ## The two-block cases: tensor here, composition nested below under the
+-- extra `bdy`/`Linear` parameters it alone needs.  Shared: `injLE`/`injRE`.
 
 module _ (G K : Hypergraph FlatGen) where
   private
@@ -210,7 +211,8 @@ module _ (G K : Hypergraph FlatGen) where
 
   H = hTensor G K
 
-  -- Edge embeddings into the tensor's edge index `Fin (G.nE + K.nE)`.
+  -- Edge embeddings into the two-block edge index `Fin (G.nE + K.nE)` — the
+  -- same for `hTensor` and `hComposeP`, which both lay G-edges before K-edges.
   injLE : Fin G.nE → Fin (G.nE + K.nE)
   injLE eG = eG ↑ˡ K.nE
 
@@ -262,94 +264,84 @@ module _ (G K : Hypergraph FlatGen) where
     splitE {G.nE} {K.nE} (λ x → ¬ Dep H x x)
            (λ _ d → G-nd (tensor-GG-reflect d)) (λ _ d → K-nd (tensor-KK-reflect d)) e
 
---------------------------------------------------------------------------------
--- ## Composition case.  `hComposeP G K bdy` lays G-edges (`injL = _↑ˡ_`)
--- before K-edges (pruning `remapP`).  `Linear G`/`Linear K` are threaded in
--- as parameters for the K-block reflection and cross-block acyclicity; the
--- call site supplies `⟪⟫-LinearP`.
+  ----------------------------------------------------------------------------
+  -- ## Composition case.  `hComposeP G K bdy` lays G-edges (`injL = _↑ˡ_`)
+  -- before K-edges (pruning `remapP`).  `Linear G`/`Linear K` are threaded in
+  -- as parameters for the K-block reflection and cross-block acyclicity; the
+  -- call site supplies `⟪⟫-LinearP`.
 
-module _ (G K : Hypergraph FlatGen) (bdy : codL G ≡ domL K)
-         (lin-G : Linear G) (lin-K : Linear K) where
-  private
-    module G = Hypergraph G
-    module K = Hypergraph K
-    module C = hComposeP-impl G K bdy
+  module _ (bdy : codL G ≡ domL K) (lin-G : Linear G) (lin-K : Linear K) where
+    private module C = hComposeP-impl G K bdy
 
-  Hc = hComposeP G K bdy
+    Hc = hComposeP G K bdy
 
-  injLEc : Fin G.nE → Fin (G.nE + K.nE)
-  injLEc eG = eG ↑ˡ K.nE
+    -- G-block dependency reflects to G (like `tensor-GG-reflect`; no Linearity).
+    compose-GG-reflect : ∀ {ea eb : Fin G.nE}
+                       → Dep Hc (injLE eb) (injLE ea) → Dep G eb ea
+    compose-GG-reflect =
+      Dep-reflect {sub = G} {H = Hc} C.injL (inject+-inj _) injLE
+        C.eout-c-inj₁-red C.ein-c-inj₁-red
 
-  injREc : Fin K.nE → Fin (G.nE + K.nE)
-  injREc eK = G.nE ↑ʳ eK
+    -- K-block dependency reflects to K (like `tensor-KK-reflect`, with `injR`
+    -- replaced by `remapP` and `raise-inj` by `remapP`'s injectivity on
+    -- edge-port vertices = `DecodeAttemptLinearP.remapP-injective`).
+    remapP-inj : ∀ {v v'} → C.remapP v ≡ C.remapP v' → v ≡ v'
+    remapP-inj = remapP-injective G K bdy lin-G lin-K
 
-  -- G-block dependency reflects to G (like `tensor-GG-reflect`; no Linearity).
-  compose-GG-reflect : ∀ {ea eb : Fin G.nE}
-                     → Dep Hc (injLEc eb) (injLEc ea) → Dep G eb ea
-  compose-GG-reflect =
-    Dep-reflect {sub = G} {H = Hc} C.injL (inject+-inj _) injLEc
-      C.eout-c-inj₁-red C.ein-c-inj₁-red
+    compose-KK-reflect : ∀ {ea eb : Fin K.nE}
+                       → Dep Hc (injRE eb) (injRE ea) → Dep K eb ea
+    compose-KK-reflect =
+      Dep-reflect {sub = K} {H = Hc} C.remapP remapP-inj injRE
+        C.eout-c-inj₂-red C.ein-c-inj₂-red
 
-  -- K-block dependency reflects to K (like `tensor-KK-reflect`, with `injR`
-  -- replaced by `remapP` and `raise-inj` by `remapP`'s injectivity on
-  -- edge-port vertices = `DecodeAttemptLinearP.remapP-injective`).
-  remapP-inj : ∀ {v v'} → C.remapP v ≡ C.remapP v' → v ≡ v'
-  remapP-inj = remapP-injective G K bdy lin-G lin-K
+    -- The cross-block acyclicity — no K-block edge produces a wire an earlier
+    -- G-block edge consumes.  A shared vertex `v` would be both a `remapP`-image
+    -- of a K-output `k₀ ∈ K.eout eb` and an `injL`-image (`_↑ˡ cn`), so
+    -- `Prune.remap-↑ˡ→∈` puts `k₀ ∈ K.dom` — whence `k₀` occurs in BOTH
+    -- summands of `producedList K` (`count ≥ 2`), contradicting `Linear K`'s
+    -- bound `≤ 1`.
+    private
+      -- An edge-output that is also in `K.dom` occurs in BOTH summands of
+      -- `producedList K = K.dom ++ concat (tabulate eout)`, so `Linear K`'s
+      -- `count ≤ 1` bound on that concatenation refutes it.
+      dom-and-out→absurd
+        : ∀ (k : Fin K.nV) (eb : Fin K.nE)
+        → k ∈ K.dom → k ∈ K.eout eb → ⊥
+      dom-and-out→absurd k eb k∈dom k∈out =
+        ++-bnd→disjoint K.dom (concat (tabulate K.eout)) (proj₂ lin-K k)
+                        k∈dom (∈-concat⁺′ k∈out (∈-tabulate⁺ eb))
 
-  compose-KK-reflect : ∀ {ea eb : Fin K.nE}
-                     → Dep Hc (injREc eb) (injREc ea) → Dep K eb ea
-  compose-KK-reflect =
-    Dep-reflect {sub = K} {H = Hc} C.remapP remapP-inj injREc
-      C.eout-c-inj₂-red C.ein-c-inj₂-red
+    compose-cross-acyclic : ∀ {ea : Fin G.nE} {eb : Fin K.nE}
+                          → ¬ Dep Hc (injRE eb) (injLE ea)
+    compose-cross-acyclic {ea} {eb} (v , v∈out , v∈in)
+      with subst (v ∈_) (C.eout-c-inj₂-red eb) v∈out
+         | subst (v ∈_) (C.ein-c-inj₁-red ea) v∈in
+    ... | v∈out' | v∈in' with ∈-map⁻ C.remapP v∈out' | ∈-map⁻ C.injL v∈in'
+    ... | k₀ , k₀∈out , v≡rk | i₀ , i₀∈in , v≡injL =
+          dom-and-out→absurd k₀ eb
+            (remap-↑ˡ→∈ K.dom C.lookup-cod k₀ i₀ (trans (sym v≡rk) v≡injL))
+            k₀∈out
 
-  -- The cross-block acyclicity — no K-block edge produces a wire an earlier
-  -- G-block edge consumes.  A shared vertex `v` would be both a `remapP`-image
-  -- of a K-output `k₀ ∈ K.eout eb` and an `injL`-image (`_↑ˡ cn`), so
-  -- `Prune.remap-↑ˡ→∈` puts `k₀ ∈ K.dom` — whence `k₀` occurs in BOTH
-  -- summands of `producedList K` (`count ≥ 2`), contradicting `Linear K`'s
-  -- bound `≤ 1`.
-  private
-    -- An edge-output that is also in `K.dom` occurs in BOTH summands of
-    -- `producedList K = K.dom ++ concat (tabulate eout)`, so `Linear K`'s
-    -- `count ≤ 1` bound on that concatenation refutes it.
-    dom-and-out→absurd
-      : ∀ (k : Fin K.nV) (eb : Fin K.nE)
-      → k ∈ K.dom → k ∈ K.eout eb → ⊥
-    dom-and-out→absurd k eb k∈dom k∈out =
-      ++-bnd→disjoint K.dom (concat (tabulate K.eout)) (proj₂ lin-K k)
-                      k∈dom (∈-concat⁺′ k∈out (∈-tabulate⁺ eb))
+    ------------------------------------------------------------------------------
+    -- Assembly of `NoInvH Hc (range …)`, parallel to the tensor assembly.
 
-  compose-cross-acyclic : ∀ {ea : Fin G.nE} {eb : Fin K.nE}
-                        → ¬ Dep Hc (injREc eb) (injLEc ea)
-  compose-cross-acyclic {ea} {eb} (v , v∈out , v∈in)
-    with subst (v ∈_) (C.eout-c-inj₂-red eb) v∈out
-       | subst (v ∈_) (C.ein-c-inj₁-red ea) v∈in
-  ... | v∈out' | v∈in' with ∈-map⁻ C.remapP v∈out' | ∈-map⁻ C.injL v∈in'
-  ... | k₀ , k₀∈out , v≡rk | i₀ , i₀∈in , v≡injL =
-        dom-and-out→absurd k₀ eb
-          (remap-↑ˡ→∈ K.dom C.lookup-cod k₀ i₀ (trans (sym v≡rk) v≡injL))
-          k₀∈out
+    -- Assemble via the shared `Assemble` skeleton with the composition reflections.
+    NoInvH-compose : ∀ (gs : List (Fin G.nE)) (ks : List (Fin K.nE))
+                   → NoInvH G gs → NoInvH K ks
+                   → NoInvH Hc (map injLE gs ++ map injRE ks)
+    NoInvH-compose =
+      Assemble.NoInvH-assemble G K Hc injLE injRE
+        compose-GG-reflect compose-KK-reflect compose-cross-acyclic
 
-  ------------------------------------------------------------------------------
-  -- Assembly of `NoInvH Hc (range …)`, parallel to the tensor assembly.
+    ------------------------------------------------------------------------------
+    -- The diagonal, exactly as in the tensor case: `splitE`-dispatch, then the
+    -- two block reflections at `ea ≡ eb`.  Note that `remapP`-injectivity comes
+    -- from `Linear G`/`Linear K` here.
 
-  -- Assemble via the shared `Assemble` skeleton with the composition reflections.
-  NoInvH-compose : ∀ (gs : List (Fin G.nE)) (ks : List (Fin K.nE))
-                 → NoInvH G gs → NoInvH K ks
-                 → NoInvH Hc (map injLEc gs ++ map injREc ks)
-  NoInvH-compose =
-    Assemble.NoInvH-assemble G K Hc injLEc injREc
-      compose-GG-reflect compose-KK-reflect compose-cross-acyclic
-
-  ------------------------------------------------------------------------------
-  -- The diagonal, exactly as in the tensor case: `splitE`-dispatch, then the
-  -- two block reflections at `ea ≡ eb`.  Note that `remapP`-injectivity comes
-  -- from `Linear G`/`Linear K` here.
-
-  NoSelfDep-compose : NoSelfDep G → NoSelfDep K → NoSelfDep Hc
-  NoSelfDep-compose G-nd K-nd {e} =
-    splitE {G.nE} {K.nE} (λ x → ¬ Dep Hc x x)
-           (λ _ d → G-nd (compose-GG-reflect d)) (λ _ d → K-nd (compose-KK-reflect d)) e
+    NoSelfDep-compose : NoSelfDep G → NoSelfDep K → NoSelfDep Hc
+    NoSelfDep-compose G-nd K-nd {e} =
+      splitE {G.nE} {K.nE} (λ x → ¬ Dep Hc x x)
+             (λ _ d → G-nd (compose-GG-reflect d)) (λ _ d → K-nd (compose-KK-reflect d)) e
 
 --------------------------------------------------------------------------------
 -- ## The structural induction.
