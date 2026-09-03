@@ -39,10 +39,10 @@ open import Relation.Binary.PropositionalEquality
 open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫)
 open import Categories.APROP.Hypergraph.Model.Iso
   using (_≅ᴴ_; refl-≅ᴴ; sym-≅ᴴ; trans-≅ᴴ)
-open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig-dec
+open import Categories.APROP.Hypergraph.Solver.Rewrite.Carve sig
   using (Foc; leaf-try; go-all; focusAll; focusAtₙ; lookupMaybe)
-open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig-dec using (findIso)
-import Categories.APROP.Hypergraph.Soundness sig-dec as SFW
+open import Categories.APROP.Hypergraph.Solver.Match.FindIso sig using (findIso)
+import Categories.APROP.Hypergraph.Soundness sig as SFW
 import Categories.APROP.Hypergraph.Solver.Rewrite.ExtendSig
 
 --------------------------------------------------------------------------------
@@ -616,7 +616,7 @@ focusAtₙ-sound s lᵗ n eq =
 
 module RetractSound (P Q : ObjTerm) where
 
-  module Ext = Categories.APROP.Hypergraph.Solver.Rewrite.ExtendSig sig-dec P Q
+  module Ext = Categories.APROP.Hypergraph.Solver.Rewrite.ExtendSig sig P Q
   open Ext using (old; sig⁺; retract)
   open APROP sig⁺ using ()
     renaming ( HomTerm to HomTerm⁺ ; Agen to Agen⁺ ; id to id⁺ ; _∘_ to _∘⁺_
