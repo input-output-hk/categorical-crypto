@@ -377,18 +377,13 @@ module _
   ------------------------------------------------------------------------
   -- G-side: `injL` is injective and the endpoint reductions are the raw
   -- `ein-c-inj₁-red`/`eout-c-inj₁-red`, so the whole lifting is the derived
-  -- kernel `DecodeAttempt.StackLiftEmb` with nothing left to supply.
+  -- kernel `DecodeAttempt.StackLiftEmb` with nothing left to supply.  Its
+  -- `process-edges-lift` is read directly, here and by
+  -- `Strict.Decode.DecodeComposeAssembly`.
 
-  private
-    module PureL =
-      StackLiftEmb (hComposeP G K bdy-eq) G (_↑ˡ K.nE) injL (Inv.inject+-inj cn)
-                   ein-c-inj₁-red eout-c-inj₁-red
-
-  process-edges-↑ˡ-pure-L
-    : ∀ (es : List (Fin G.nE)) (xs : List (Fin G.nV))
-    → process-edges (hComposeP G K bdy-eq) (map (_↑ˡ K.nE) es) (map injL xs)
-      ≡ map injL (process-edges G es xs)
-  process-edges-↑ˡ-pure-L = PureL.process-edges-lift
+  module PureL =
+    StackLiftEmb (hComposeP G K bdy-eq) G (_↑ˡ K.nE) injL (Inv.inject+-inj cn)
+                 ein-c-inj₁-red eout-c-inj₁-red
 
   --------------------------------------------------------------------
   -- K-side: the frame-free instance of `DecodeAttempt.PermLift` — with no

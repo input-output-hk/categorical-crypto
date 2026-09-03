@@ -143,10 +143,10 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   s_G_final = proj₁ (RG.process-edgesˢ (range G.nE) G.dom)
 
   -- `after-G ≡ map injL s_G_final`.  The strict stack IS the non-strict
-  -- stack, so this is exactly `process-edges-↑ˡ-pure-L`.
+  -- stack, so this is exactly the G-side stack lift.
   after-G-≡ : after-G ≡ map injL s_G_final
   after-G-≡ =
-    LP.process-edges-↑ˡ-pure-L G K bdy lin-G lin-K (range G.nE) G.dom
+    LP.PureL.process-edges-lift G K bdy lin-G lin-K (range G.nE) G.dom
 
   -- The boundary permutation `after-G ↭ map remapP K.dom`.  Needs the
   -- final-stack permutation of `f` (`finalPermˢ f`) lifted through `injL`,
