@@ -283,15 +283,15 @@ module Braid {A B C D : ObjTerm}
   ----------------------------------------------------------------------
   -- ## The K-BLOCK BRAID residual `KBlockσ`.
   --
-  -- The strict, whole-run-level twin of `DecodeTensorShape`'s `Pcomp-eq`:
-  -- with the run SPLIT over `gblk ++ kblk` (the K-block run on the post-G
-  -- stack `after-G` precomposed with the G-block run on `Hf.dom`), there is
-  -- a canonical re-sort derivation `cand : s-finˢ ↭ Hf.cod` such that the
-  -- run-split inner term post-sorted by `cand` is the clean tensor at the
-  -- boundary objects.  This packages: the K-block prepend braid (`σˢ` slide
-  -- of the K-outputs back past `map injL G.cod`), the two block embeddings
-  -- `TG`/`TK` (bridging the block runs to `decodePˢ f`/`decodePˢ g`), and
-  -- the final collapse.  Cast-FREE at the boundary objects.
+  -- The strict, whole-run-level twin of the former `DecodeTensorShape`'s
+  -- `Pcomp-eq`: with the run SPLIT over `gblk ++ kblk` (the K-block run on the
+  -- post-G stack `after-G` precomposed with the G-block run on `Hf.dom`),
+  -- there is a canonical re-sort derivation `cand : s-finˢ ↭ Hf.cod` such that
+  -- the run-split inner term post-sorted by `cand` is the clean tensor at the
+  -- boundary objects.  This packages: the K-block prepend braid (`σˢ` slide of
+  -- the K-outputs back past `map injL G.cod`), the two block embeddings
+  -- `TG`/`TK` (bridging the block runs to `decodePˢ f`/`decodePˢ g`), and the
+  -- final collapse.  Cast-FREE at the boundary objects.
   -- the K-block run on the post-G stack.
   private
     Krun : HomV (proj₁ (process-edgesˢ gblk Hf.dom))

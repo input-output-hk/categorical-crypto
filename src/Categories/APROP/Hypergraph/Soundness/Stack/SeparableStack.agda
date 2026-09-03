@@ -71,7 +71,7 @@ extract-elem-++ˡ k (x ∷ xs) R eq | no ¬q | just (rest' , q') with eq
 
 -- `extract-prefix` on `xs ++ R`: if `ks` is found in `xs` with residual `rest`
 -- via `p`, it is found in `xs ++ R` with residual `rest ++ R` via the EXACT
--- proof `subst₂ _↭_ refl (assoc-of-cod) (++⁺ʳ R p)` — the genuine recursion
+-- proof `subst (_ ↭_) (++-assoc ks rest R) (++⁺ʳ R p)` — the genuine recursion
 -- rebuilds `p`'s tree with `R` appended, then the cod rebrackets from
 -- `(ks ++ rest) ++ R` to `ks ++ (rest ++ R)` by `++-assoc`.
 prefix-++ˡ-perm
