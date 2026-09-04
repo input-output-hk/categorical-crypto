@@ -91,6 +91,17 @@ record Elgot : Set (levelOfTerm 𝒱) where
     iter-cod : (w : S ⊗₀ A ⇒ S ⊗₀ ((B + A) + A))
              → iter (iter w) ≈ iter (id ⊗₁ [ id , i₂ ] ∘ w)
 
+    -- The transfers `vanishing₂` and `trace-comm` take reindex the LOOP
+    -- VARIABLE by the coproduct structure, so `𝒫` has to contain it.  These
+    -- cannot be fields of `PureSub`, which is stated over `𝒱` alone.
+    pure-i₁ : Pure (i₁ {A} {B})
+    pure-i₂ : Pure (i₂ {A} {B})
+    pure-[] : {f : A ⇒ C} {g : B ⇒ C} → Pure f → Pure g → Pure [ f , g ]
+
+  pure-+₁ : {f : A ⇒ B} {g : C ⇒ P} → Pure f → Pure g → Pure (f +₁ g)
+  pure-+₁ pf pg = pure-resp-≈ (+-unique +₁∘i₁ +₁∘i₂)
+                              (pure-[] (pure-∘ pure-i₁ pf) (pure-∘ pure-i₂ pg))
+
   iter-uniform : {S T A B : Obj} {u : S ⊗₀ A ⇒ S ⊗₀ (B + A)} (θ : S ⇒ T) → Pure θ
                → {v : T ⊗₀ A ⇒ T ⊗₀ (B + A)}
                → v ∘ pad θ ≈ pad θ ∘ u → iter v ∘ pad θ ≈ pad θ ∘ iter u

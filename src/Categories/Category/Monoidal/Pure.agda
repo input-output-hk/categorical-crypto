@@ -26,6 +26,7 @@ module Categories.Category.Monoidal.Pure
 
 open SymmetricMonoidalCategory 𝒱
 open BraidedProps.Shorthands braided using (σ⇒)
+open Equiv
 open MonoidalUtilities.Shorthands monoidal
 
 private variable A B C D : Obj
@@ -34,6 +35,7 @@ record PureSub : Set (o ⊔ suc (ℓ ⊔ e)) where
   field
     Pure : {A B : Obj} → A ⇒ B → Set (ℓ ⊔ e)
 
+    pure-resp-≈ : {f g : A ⇒ B} → f ≈ g → Pure f → Pure g
     pure-id : Pure (id {A})
     pure-∘  : {f : B ⇒ C} {g : A ⇒ B} → Pure f → Pure g → Pure (f ∘ g)
     pure-⊗₁ : {f : A ⇒ B} {g : C ⇒ D} → Pure f → Pure g → Pure (f ⊗₁ g)

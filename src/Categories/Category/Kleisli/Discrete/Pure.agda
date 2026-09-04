@@ -16,6 +16,7 @@ open import Categories.Monad.Discrete using (DiscreteMonad)
 import Categories.Category.Kleisli.Discrete as KD
 
 open import Data.Product.Base using (proj₁; proj₂; map; swap; assocʳ′)
+open import Data.Sum.Base using (inj₁; inj₂; [_,_])
 open import Function.Base using (id; _∘_)
 
 module Categories.Category.Kleisli.Discrete.Pure {ℓ} (Mo : DiscreteMonad ℓ) where
@@ -30,7 +31,11 @@ record IsPure (f : A → M B) : Set ℓ where
     fn    : A → B
     is-fn : f ≈ᵏ pureᵏ fn
 
-open IsPure
+open IsPure public
+
+≈-pure : {f g : A → M B} → f ≈ᵏ g → IsPure f → IsPure g
+≈-pure f≈g p = record
+  { fn = fn p ; is-fn = λ a → ≈ᴹ.trans (≈ᴹ.sym (f≈g a)) (is-fn p a) }
 
 structural : (h : A → B) → IsPure (pureᵏ h)
 structural h = record { fn = h ; is-fn = λ _ → ≈ᴹ.refl }
@@ -49,14 +54,25 @@ structural h = record { fn = h ; is-fn = λ _ → ≈ᴹ.refl }
                            (pureᵏ-⊗ (fn p) (fn q) r)
   }
 
+-- The coproduct at these objects is `_⊎_`, so a copairing of pure maps is the
+-- copairing of their functions; `Machines.Iteration`'s `Elgot` asks for this and
+-- the two injections, which its loop-variable transfers are built from.
+[]-pure : {f : A → M C} {g : B → M C} → IsPure f → IsPure g → IsPure [ f , g ]
+[]-pure p q = record
+  { fn    = [ fn p , fn q ]
+  ; is-fn = λ where (inj₁ a) → is-fn p a
+                    (inj₂ b) → is-fn q b
+  }
+
 PureSubᵏ : PureSub Klᴹ-SymmetricMonoidal
 PureSubᵏ = record
-  { Pure    = IsPure
-  ; pure-id = structural id
-  ; pure-∘  = ∘-pure
-  ; pure-⊗₁ = ⊗-pure
-  ; pure-λ⇒ = structural proj₂
-  ; pure-ρ⇒ = structural proj₁
-  ; pure-α⇒ = structural assocʳ′
-  ; pure-σ⇒ = structural swap
+  { Pure        = IsPure
+  ; pure-resp-≈ = ≈-pure
+  ; pure-id     = structural id
+  ; pure-∘      = ∘-pure
+  ; pure-⊗₁     = ⊗-pure
+  ; pure-λ⇒     = structural proj₂
+  ; pure-ρ⇒     = structural proj₁
+  ; pure-α⇒     = structural assocʳ′
+  ; pure-σ⇒     = structural swap
   }
