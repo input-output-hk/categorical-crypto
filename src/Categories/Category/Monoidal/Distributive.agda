@@ -13,9 +13,10 @@
 
 open import Categories.Category.Cocartesian
 open import Categories.Category.Monoidal.Bundle
-open import Level
 
 import Categories.Morphism as M
+
+open import Level
 
 module Categories.Category.Monoidal.Distributive
   {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e) where

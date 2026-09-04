@@ -13,9 +13,9 @@
 -- The dummy-adversary form is *equivalent* here, not merely implied: taking
 -- `a := id` inverts `dummy-complete`.
 
-open import Data.Product.Base
 import Categories.Morphism.Reasoning as MR
 
+open import Data.Product.Base
 open import Level
 
 open import CategoricalCrypto.UC.Base

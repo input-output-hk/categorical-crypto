@@ -11,9 +11,9 @@
 -- `Categories.Monad.Setoids.Discrete` derives the same vocabulary from a full
 -- triple.
 
-open import Level
 open import Data.Product
 open import Function.Base
+open import Level
 open import Relation.Binary.Bundles
 import Relation.Binary.Reasoning.Setoid as R-Setoid
 

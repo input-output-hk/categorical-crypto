@@ -26,9 +26,9 @@
 open import Categories.Category.Monoidal.Bundle
 open import Categories.Category.Monoidal.Pure
 import Categories.Category.Monoidal.Distributive as MD
-open import Level
-
 import Categories.Category.Monoidal.Distributive.Properties as MDP
+
+open import Level
 
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Frame as Frame

@@ -37,9 +37,10 @@ open MonoidalUtilities monoidal
 
 private variable A B K₁ K₂ L P Q R S W W′ X Y Z : Obj
 
--- The reflection frontend wants the `MonoidalCategory` bundle.
+-- The reflection frontend wants the `MonoidalCategory` bundle, which the
+-- symmetric one projects (`Categories.Category.Monoidal.Bundle`).
 𝕄 : MonoidalCategory o ℓ e
-𝕄 = record { U = U ; monoidal = monoidal }
+𝕄 = monoidalCategory
 
 ------------------------------------------------------------------------
 -- Shuffles and paddings

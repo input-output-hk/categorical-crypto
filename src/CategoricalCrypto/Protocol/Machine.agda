@@ -37,9 +37,9 @@ open import Data.Unit.Polymorphic.Base
 open import Level
 open import Relation.Binary.PropositionalEquality using (_≡_)
 
+open import ProbabilisticLogic.Distribution.Uniform
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Coin
-open import ProbabilisticLogic.Distribution.Uniform
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base

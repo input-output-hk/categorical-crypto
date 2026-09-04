@@ -25,9 +25,9 @@ open import Class.DecEq
 
 open import Data.Bool.Base
 open import Data.List.Base using (List; []; _∷_; map; foldl; null)
-open import Data.Nat.ListAction
 open import Data.Maybe.Base renaming (map to mapᵐ)
 open import Data.Nat.Base renaming (_≡ᵇ_ to _≡ᴺ_)
+open import Data.Nat.ListAction
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Vec.Base using (Vec; replicate)
 open import Function.Base
