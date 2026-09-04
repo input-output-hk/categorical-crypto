@@ -24,7 +24,7 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 | M2 wave 1: `Dₚ`, `Kl(Dₚ)`, `Mealy` + `Mealy-Category` + the ⊕-trace | **DONE** — all green, hatches 21 = baseline |
 | M2 wave 2: the four residual trace laws + `Elgot` at `Kl(Dₚ)` | **DONE** — the machine layer is hypothesis-free; hatches 21 = baseline |
 | M2 wave 3: the machine SMC bundle, `Traced`, GConstruction, `morphism`/`Pr-agree` | **the machine layer is DONE** — `ℳₚ` symmetric monoidal, `Tracedₚ`, `𝒢ₚ` all closed terms; `morphism` landed, `Morphism-∘`/`PrAgree` stated and priced; hatches 21 = baseline |
-| M3: the UC layer | not started |
+| M3: the UC layer | **the statement layer is DONE** — `_≈ℰ_`/`grade-stable`/`absorb`/`_≤UC_` and its metatheorems are theorems, no K island, no `HomTransportTrivial`; the intended instance's observation is a theorem and its grading action is data with `Grading 𝒫ᴵ` priced; hatches 21 = baseline |
 
 ## Modules (M1: 10 files, 795 LOC, all `--safe --without-K`)
 
@@ -474,9 +474,143 @@ symmetric solver as unusable here because
 `b746517c` restored it, so `solveH!`/`rewriteH!` are available again — no law in
 this layer needed them.)
 
-## M3 pointers
+## M3: the UC layer (11 files, 1513 LOC)
 
-M3 harvests: `sfunm-setoid`'s ℰᵗᵛ/StandardTV statements, the α query-bound +
-counting theorem, restated over `Iface` with the ancilla parameterized (no K
-island). Assumption ledger of M1: `ser`(+`ser-inj` at `AtBirthday`) — module
-parameters, maintainer-sanctioned; zero postulates.
+| module | LOC | role |
+|---|---|---|
+| `ProbabilisticLogic.Dp.Advantage` | 107 | `Pr≤`, `_≼ₚ[_]_`/`_≈ₚ[_]_` — advantage as an ε-indexed relation, with the pseudometric laws |
+| `CategoricalCrypto.UC.Base` | 156 | `Grading`, `Budget`, `Observation`, `UCBase`; the derived agreement `_∼_` and its ε/2 equivalence |
+| `…UC.Environment` | 173 | `SameTV` (ancilla a parameter), `Tests`, `ℰᵗᵛ`, `_≈ℰ_`, its congruences, `grade-stable`, `_≈ℰ[_]_`, `absorbᵘ` |
+| `…UC.Emulation` | 88 | `_≤UC_`, `_≤UC⁺_`, `≤UC-refl`/`≤UC-trans`/`dummy-complete`/`≤UC⁺⇒≤UC`, `_⊙_`, `_⊛₁_`, `UC-compose` (stated) |
+| `…UC.Family` | 189 | `𝒞^ω` at a parameterized index, `PolyQB`, `Fam`, `Grading^ω`, `Observation^ω`, `UCBase^ω`, `_≈ℰ[_]_`, `VanishingBound`, `absorb` |
+| `…UC.Machine` | 219 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Observationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `GradingLawsᴹ`, `UCBaseᴹ` |
+| `…UC.Machine.Run` | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
+| `…UC.QueryBound` | 265 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `CountBound`, `Counting` (stated), `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `BudgetLawsᴹ` (stated) |
+| `…UC.Bridge` | 77 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `Reflects` (stated) |
+| `…UC.Seam` | 50 | `AgreeToAdv` (stated), `pov-carry` (proved) |
+| `…UC` | 32 | the one entry point |
+
+All `--safe --without-K`; the `Dₚ`-facing six add `--guardedness` and nothing
+adds anything else. **There is no K island**, which was the acceptance test.
+
+### The defects the redesign fixes at birth
+
+* **`HomTransportTrivial` never arises.** The reference arc's environment
+  carrier was `Σ[ Y ] Test (Y ⊗ A)`, so its agreement constructor forced an
+  ancilla equation; a consumer whose scrutinee had a defined function in that
+  index could not match it, and routing through a Σ-projection instead handed
+  back a loop `Y ≡ Y` that only axiom K can consume.  The hypothesis that
+  bought is *refuted* under univalence at its own instance (an `Iface` loop
+  from `not : Bool ≃ Bool` permutes the verdict alphabet), and was discharged
+  in a two-module K island.  Here `SameTV Y A` is a one-field record at a
+  **fixed ancilla**: no equation is generated, `same` is a projection that
+  reduces by eta, and `grade-stable` is a theorem whose only input is the
+  action's associativity.
+* **`_≈ℰ_` is the adaptive single-ancilla relation by definition**, not the
+  kernel congruence of a presheaf.  The reference had to *prove* the two equal,
+  and that proof (`≈ℰ⇒R`) is the direction that needed the hypothesis.  `ℰᵗᵛ`
+  is still built — it is a genuine `Presheaf 𝒞 (Setoids _ _)` for each ancilla
+  — and `≈ℰ⇒tv`/`tv⇒≈ℰ` are the identity pair witnessing that the definition is
+  its kernel relation ancilla by ancilla.
+* **The advantage is a RELATION, not a function.**  `Dₚ`'s termination mass is
+  a supremum the layer never forms, so `MachineAxioms.adv : Obs → Obs → ℚ` is
+  uninhabited at the intended instance.  `_≈ₚ[ ε ]_` relaxes `_≼ₚ_`'s
+  budget-matching by a rational slack instead, and carries exactly the three
+  pseudometric laws the vanishing layer spends.  Agreement is then *derived*
+  (`x ∼ y = ∀ ε > 0 → x ≈[ ε ] y`) and its transitivity is the ε/2 argument,
+  proved once in `UC.Base` rather than once per instance.  This is the
+  absorb/ε misfit, closed.
+* **`𝒞^ω` takes its index as a parameter** `(Ix , κ : Ix → ℕ)`.  Only three
+  things ever needed `ℕ` in the reference: the polynomial's argument, the
+  asymptotics' order, and the budget arithmetic, and all three read the index
+  through `κ`.  `Ix = ℕ × ℕ`, `κ = proj₁` gives a second axis for free;
+  `(ℕ , id)` recovers the reference.
+* **Objects are `Iface` everywhere.** `𝒫ᴵ` presents `𝒢ₚ` with interfaces as its
+  objects (`⟦_⟧ᴵ` is a bijection on objects), so `_⊗ᴵ_` — layer 0's own
+  interface tensor — is the grading action.  No `Channel`, and no raw pair of
+  sets, occurs in the layer.
+* **The verdict interface is ticked.** `Ωᴵ = Bool ⇿ ⊤`.  A machine is reactive,
+  so the reference's `Pos = Bool , Neg = ⊥` verdict can never be activated by a
+  closed composite; the tick is the environment's single activation and the
+  observation is layer 1's own `runᴹ` at `ask tt out`.
+* **The `Reflects` quantifier order is sound.** The reference's applied form put
+  `Σ[ d ]` before `∀ u v` with *deterministic* strategies, which is false: a
+  context that flips a fair coin and asks one of two questions gets advantage ½
+  against two different pairs, while any deterministic one-ask tree scores zero
+  against one of them.  Layer 0's `Strat` has carried the coin node since M1, so
+  the strong order is available unchanged.
+
+### What is proved, and what is priced
+
+Proved, hypothesis-free: the whole `Dp.Advantage` layer; `UC.Base`'s derived
+`_∼_` equivalence; `UC.Environment` in full (`ℰᵗᵛ` a presheaf, `_≈ℰ_` an
+equivalence and a congruence, `grade-stable`, `absorbᵘ`); `UC.Emulation`'s four
+metatheorems and the equivalence of the plain and dummy-adversary forms;
+`UC.Family` in full (`Fam` a category, the grading and observation lifted,
+`absorb`); `UC.Machine.Run`'s `runᴹ-resp-≈ᴹ`, hence `Observationᴹ`;
+`UC.QueryBound`'s `qbᵢ-mono`, `qb-resp-≈`, `qb-mono` and the inhabitation
+`qbᵢ-wire`; `UC.Seam`'s `pov-carry`.
+
+Stated as types with nothing inhabiting them — the `TrajectoryFromAudit`
+pattern, no postulate and no hole anywhere:
+
+| statement | where | price |
+|---|---|---|
+| `Grading 𝒫ᴵ` (via `GradingLawsᴹ`'s eight fields) | `UC.Machine` | four are trace-free (~40–60 LOC each); `T₁-∘`, `sub-∘`, `a-isoˡ`, `a-nat` are M2 task 3's trace-fusion gate |
+| `Counting` | `UC.QueryBound` | 250–350 LOC; the reference's 248 plus an effectful recursion |
+| `BudgetLawsᴹ` (four closure laws) | `UC.QueryBound` | `qb-T₁`/`qb-sub` ~50 each, `qb-id` ~30, `qb-∘` 250–400 (the reference's token walk over a ⊕-trace) |
+| `Reflects` | `UC.Bridge` | ~250 LOC, instance-specific reifier; spike the two-machine skeleton first |
+| `AgreeToAdv` | `UC.Seam` | `Reflects` + `PrAgree`, no new content |
+| `UC-compose` | `UC.Emulation` | two more `Grading` fields (`sub`/`T₁` interchange, `a⇒` naturality in its first two slots) |
+
+`Budget`'s `qb-T₁`/`qb-sub` land at `c ⊔ 1`, not `c`, and that is not
+bookkeeping: the ancilla's own downward relay is a completed event an activation
+from above must have deposited for, so a rate of zero cannot survive the
+action.  `qbᵢ-wire` is where this is visible.
+
+### Two perf findings, both recorded in the source
+
+* **The reindexing record needs every object implicit passed explicitly.** Left
+  to inference, each field of `𝒫ᴵ` asks Agda to invert
+  `Machine (Pos A + Neg B) (Neg A + Pos B)` for the pair `(Pos A , Neg B)`, and
+  `_+_` is not a constructor; the resulting normalization of `𝒢ₚ` — which
+  carries the whole Elgot instance under it — exhausts a 10 GiB heap.  With the
+  implicits pinned the module checks in seconds.
+* **A record whose field types project a step out of a general `Proc` hits the
+  `GradedKleisli` eta cliff.**  Declaring `QBᵢ` over `M : Proc A B` makes the
+  level solver compare `Machine (Mealy-Monoidal … .⊗₀ (Pos A) (Neg B)) …`
+  against the `_⊎_` spelling, and the record-eta comparison of the two
+  spellings of the base instance exhausts the same heap.  The cure is to take
+  the state, point and step as **parameters** and let a process supply them at
+  the use site, where the identical conversion is a plain application and costs
+  nothing (`UC.QueryBound.Certificate`, `Certified`).  The same medicine is the
+  obvious next attempt at `Gradingᴹ : GradingLawsᴹ → Grading 𝒫ᴵ`, which does
+  not assemble for exactly this reason — which is why the obligation is taken
+  at `Grading 𝒫ᴵ` itself.
+
+### Compatibility with the inherited MD line
+
+The old UC modules are all still consumed by inherited code:
+`MachineAxioms`, `FamilyCategory`, `VanishingTV`, `StandardTV` and
+`OutputOnly` by `Machine/Probabilistic/Model` and `Examples/MerkleDamgard{,/UC}`;
+`UCSetup`/`Abstract{,2}`/`Standard{,2}` by the `RandomOracle`/`RelSetup` line.
+None was edited: M3 is built **alongside** them, under `CategoricalCrypto.UC.*`,
+so the MD line is bit-for-bit unaffected.  Superseding them is a deletion pass
+once the MD line is replayed onto this layer, and the mapping is one-to-one —
+`MachineAxioms` → `UC.Base`'s three records, `FamilyCategory` → `UC.Family`,
+`VanishingTV` → `UC.Environment` + `UC.Family`'s ingestion half, `StandardTV` →
+`UC.Machine`, `OutputOnly` → `UC.Bridge` + `UC.Seam`.
+
+One module of M2 changed: `Protocol.Machine`'s `runᴹFrom` now calls a named
+continuation `resumeᴹ` instead of a `where`-local one, extensionally the same
+step, so that `UC.Machine.Run` can quantify over it.  `Protocol.Machine.Pin`
+still computes both verdicts by `refl`.
+
+### Assumption ledger
+
+Still empty of escape hatches: whole-`src` hatch grep 21 before and after (the
+M1 baseline).  `Machines.Iteration.Elgot` and `Machines.Trace.Remaining` remain
+discharged at the intended base; the six statements in the table above are
+`Set`s with nothing inhabiting them and are not assumed anywhere; `UC.Seam` and
+`UC.Family` take their `Grading`/`Budget` as module parameters, which is what
+keeps them generic.
