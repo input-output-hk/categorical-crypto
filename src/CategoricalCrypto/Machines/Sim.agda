@@ -92,6 +92,17 @@ mk-cong eq = sim id pure-id identityʳ identityˡ
 ≲⇒≈ᴹ˘ : {f g : Machine A B} → f ≲ g → g ≈ᴹ f
 ≲⇒≈ᴹ˘ s = EqC.symmetric _≲_ (EqC.return s)
 
+infixr 9 _○ᴹ_
+
+reflᴹ : {f : Machine A B} → f ≈ᴹ f
+reflᴹ = IsEquivalence.refl ≈ᴹ-isEquivalence
+
+⟺ᴹ : {f g : Machine A B} → f ≈ᴹ g → g ≈ᴹ f
+⟺ᴹ = IsEquivalence.sym ≈ᴹ-isEquivalence
+
+_○ᴹ_ : {f g h : Machine A B} → f ≈ᴹ g → g ≈ᴹ h → f ≈ᴹ h
+_○ᴹ_ = IsEquivalence.trans ≈ᴹ-isEquivalence
+
 ------------------------------------------------------------------------
 -- Collapsing a trivial state factor
 

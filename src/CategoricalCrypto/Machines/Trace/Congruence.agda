@@ -14,6 +14,8 @@ open import Categories.Category.Monoidal.Pure using (PureSub)
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Distributive.Properties as MDP
 
+import Relation.Binary.Construct.Closure.Equivalence as EqC
+
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Frame as Frame
 import CategoricalCrypto.Machines.Iteration as Iteration
@@ -72,3 +74,7 @@ trace-resp-≲ : {A B X : Obj} {f g : Machine (A + X) (B + X)}
 trace-resp-≲ {A} {B} {X} {f} {g} s =
   sim (θ s) (θ-pure s) (θ-discard s) (θ-point s)
       (traceStep-sim (state f) (state g) A B X (θ s) (θ-pure s) (θ-step s))
+
+trace-resp-≈ᴹ : {A B X : Obj} {f g : Machine (A + X) (B + X)}
+              → f ≈ᴹ g → traceᴹ A B X f ≈ᴹ traceᴹ A B X g
+trace-resp-≈ᴹ = EqC.gmap (traceᴹ _ _ _) trace-resp-≲
