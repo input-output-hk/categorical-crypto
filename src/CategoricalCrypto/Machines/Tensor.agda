@@ -10,11 +10,8 @@
 -- coherence chains.  And `pureᴹ` is a monoidal functor from the base, so every
 -- structural machine and all of its coherence comes from `+`-monoidal upstream.
 --
--- The tensor's congruence is where the simulation equality pays for itself: it
--- pairs the two given state maps (`tstep-sim` on `onL-sim`/`onR-sim`).  Against
--- a behavioural equality it instead needed `eval (f ⊗ᵉ g) n` recognized as a
--- finite reindexing of the two arguments' behaviours, i.e. a 2ⁿ-fold
--- decomposition of a word over the two letters.
+-- The tensor's congruence pairs the two given state maps (`tstep-sim` on
+-- `onL-sim`/`onR-sim`).
 
 open import Categories.Category.Monoidal.Bundle
 open import Categories.Category.Monoidal.Pure

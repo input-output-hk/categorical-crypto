@@ -4,11 +4,9 @@
 --
 -- A process carrying an adversary interface is a hom `A ⇒ X ⊛ B`; `f ≤UC g`
 -- says a simulator `s : Y ⇒ X` turns the ideal `g` into something no
--- environment tells apart from the real `f`.  The reference arc reached the
--- same statement through a graded Kleisli category and its coherence-iso
--- regrading (`Abstract`/`Abstract2`, ~540 LOC); none of that tower is needed
--- for the four metatheorems, which are `sub`'s functoriality plus `_≈ℰ_`'s
--- congruence.
+-- environment tells apart from the real `f`.  No graded Kleisli category and
+-- no coherence-iso regrading appears: the four metatheorems are `sub`'s
+-- functoriality plus `_≈ℰ_`'s congruence, and nothing more.
 --
 -- The dummy-adversary form is *equivalent* here, not merely implied: taking
 -- `a := id` inverts `dummy-complete`.

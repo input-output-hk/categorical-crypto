@@ -1,10 +1,10 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- `traceᴹ` respects simulation.  This is the ⊕-trace law the layer's
--- axiom-freeness turns on, and the reason the hom equality is a simulation: the
+-- axiom-freeness turns on, and the one `Machines.Sim`'s header is about: the
 -- two loops being related run at two different state objects, and the only
--- thing that can carry one to the other is uniformity along the map between
--- them — `iter-uniform` at the simulation's own `𝒫`-map.
+-- thing that can carry one to the other is `iter-uniform` at the simulation's
+-- own `𝒫`-map.
 --
 -- Everything outside the loop is `pad-transport`: a state map commutes with an
 -- action on the interface alone.

@@ -75,10 +75,9 @@ record Grading {o ℓ e} (𝒞 : Category o ℓ e) : Set (o ⊔ ℓ ⊔ e) where
 -- degenerate `QB c f = ⊤`; here `QB` is a parameter, so the laws alone cannot
 -- forbid it.
 --
--- Where the reference arc asked eleven laws, eight suffice: the tensor law
--- splits into `qb-T₁`/`qb-sub` (the action's two one-sided halves), and the
--- four unitor laws are gone with the unitors — `grade-stable` never needs
--- `unit ⊛ A ≅ A`.
+-- There are no unitor laws because there are no unitors: `grade-stable` never
+-- needs `unit ⊛ A ≅ A`.  `qb-T₁`/`qb-sub` are the action's two one-sided
+-- halves.
 record Budget {o ℓ e} (𝒞 : Category o ℓ e) (G : Grading 𝒞) (qs : Level)
             : Set (o ⊔ ℓ ⊔ e ⊔ suc qs) where
   open Category 𝒞
@@ -93,8 +92,8 @@ record Budget {o ℓ e} (𝒞 : Category o ℓ e) (G : Grading 𝒞) (qs : Level
     qb-mono   : {A B : Obj} {c c′ : ℕ} {f : A ⇒ B} → c ℕ.≤ c′ → QB c f → QB c′ f
     -- `_⊔ 1_`, not `c`: the bypassed interface's own downward relay is one
     -- completed event that an activation from above must have deposited for,
-    -- so a rate of zero cannot survive the action.  This is the reference
-    -- arc's `qb-⊗` at `c ⊔ 1`, the identity leg's budget being 1.
+    -- so a rate of zero cannot survive the action (`UC.QueryBound.qbᵢ-wire`
+    -- is where it is visible).
     qb-T₁     : {Y A B : Obj} {c : ℕ} {f : A ⇒ B} → QB c f → QB (c ℕ.⊔ 1) (T₁ Y f)
     qb-sub    : {X Y A : Obj} {c : ℕ} {s : X ⇒ Y} → QB c s → QB (c ℕ.⊔ 1) (sub {A = A} s)
     qb-a⇒     : {X Y A : Obj} → QB 1 (a⇒ {X} {Y} {A})
@@ -142,8 +141,6 @@ record Observation {o ℓ e} (𝒞 : Category o ℓ e) (os ℓs : Level)
   -- Transporting an agreement along the ambient hom equality at both ends.
   ∼-cast : {u u′ v v′ : 𝟙 ⇒ Ω} → u ≈ u′ → v ≈ v′ → ⟦ u ⟧ ∼ ⟦ v ⟧ → ⟦ u′ ⟧ ∼ ⟦ v′ ⟧
   ∼-cast eu ev h = ∼-trans (∼-sym (⟦⟧-resp-∼ eu)) (∼-trans h (⟦⟧-resp-∼ ev))
-
-------------------------------------------------------------------------
 
 record UCBase (o ℓ e os ℓs : Level) : Set (suc (o ⊔ ℓ ⊔ e ⊔ os ⊔ ℓs)) where
   field

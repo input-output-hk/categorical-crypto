@@ -232,18 +232,14 @@ module _ (P S : State) (A B X : Obj) (k : obj S ⊗₀ (A + X) ⇒ obj S ⊗₀ 
 βᴹ : Machine ((A + B) + C) ((A + C) + B)
 βᴹ = α⇐ᴹ ∘ᴹ (idᴹ ⊗ᵉ σᴹ) ∘ᴹ α⇒ᴹ
 
--- The four laws left for wave 2, as a record whose field TYPES typecheck: no
--- term in this file is an axiom, and a consumer takes the record as a module
--- parameter.
+-- The four residual laws as a record, so that no term in this file is an
+-- axiom; `Machines.Trace.Laws.Remainingᴹ` proves all four and
+-- `Machines.Base.Remainingₚ` is the closed instance at `Kl(Dₚ)`.
 --
 -- `trace-resp-≲` is asked in the *generator* form, which is the minimal
 -- obligation: `trace-resp-≈ᴹ` below lifts it to the category's own equality.
--- It is the field on which the layer's axiom-freeness turns, and the one that
--- forced the hom equality to be a simulation: a behavioural equality relates
--- machines with no morphism between their state objects, and no base-level
--- `iter` law can then relate the two loops.  Discharging it is an instance of
--- `iter-uniform` at the simulation's own state map, which is why both are
--- restricted to `𝒫`.
+-- Discharging it is an instance of `iter-uniform` at the simulation's own
+-- state map, which is why both are restricted to `𝒫` (see `Machines.Sim`).
 record Remaining : Set (o ⊔ ℓ ⊔ e) where
   field
     trace-resp-≲ : {f g : Machine (A + X) (B + X)}

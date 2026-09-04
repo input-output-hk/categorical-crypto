@@ -22,11 +22,6 @@
 --   `UC.Emulation`       `_≤UC_` and its four metatheorems
 --   `UC.Family`          `𝒞^ω` at a parameterized index, `absorb`
 --   `UC.Seam.Grounding`  the seam's one grading-dependent statement
---
--- Everything is `--safe --without-K`; the `Dₚ`-facing modules add
--- `--guardedness` and nothing adds anything else.  In particular there is no K
--- island: the reference arc needed one because its environment relation
--- bundled the ancilla existentially, and `UC.Environment` does not.
 
 module CategoricalCrypto.UC where
 

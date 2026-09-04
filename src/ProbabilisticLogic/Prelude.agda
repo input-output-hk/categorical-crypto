@@ -3,9 +3,8 @@
 -- The probability vocabulary, in one import: carriers, the monad and its
 -- equality, sub-probability, expectation, advantage, uniform sampling.
 --
--- Pure re-export, curated to what consumers reference.  `Partial` is
--- re-exported unrestricted because it carries the `Dist⊥` instances, which
--- instance resolution must see at every consumer.
+-- `Partial` is re-exported unrestricted because it carries the `Dist⊥`
+-- instances, which instance resolution must see at every consumer.
 
 module ProbabilisticLogic.Prelude where
 
