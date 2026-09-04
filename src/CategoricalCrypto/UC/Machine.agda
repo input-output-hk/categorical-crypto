@@ -176,8 +176,8 @@ a⇐ᴵ = wireᴹ ⊎assocʳ ⊎assocˡ
 -- `pureᴹ` spends.  The other four each compare a `𝒫ᴵ`-composite, and
 -- composition here is the ⊕-trace, so each needs the trace-fusion step M2's
 -- task 3 left open — the same gate as `Monoidal (GConstruction C)`'s
--- `homomorphism`.  Stated as a record, inhabited by nothing: no postulate, no
--- hole.
+-- `homomorphism`.  Stated as a record and inhabited by nothing — no escape
+-- hatch, as everywhere in this branch.
 record GradingLawsᴹ : Set (suc 0ℓ) where
   field
     T₁-resp-≈  : {Y A B : Iface} {f g : Proc A B}
