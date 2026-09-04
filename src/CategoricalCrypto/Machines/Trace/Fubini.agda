@@ -18,11 +18,9 @@ open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory
 open import Categories.Category.Monoidal.Pure using (PureSub)
 import Categories.Category.Cocartesian.Ext as CE
 import Categories.Category.Monoidal.Distributive as MD
-import Categories.Category.Monoidal.Distributive.Properties as MDP
 
 import CategoricalCrypto.Machines.Category as MCat
 import CategoricalCrypto.Machines.Core as Core
-import CategoricalCrypto.Machines.Frame as Frame
 import CategoricalCrypto.Machines.Iteration as Iteration
 import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Tensor as Tensor
@@ -39,11 +37,9 @@ open SymmetricMonoidalCategory 𝒱
 open Congruence 𝒱 dist 𝒫 E
 open Core 𝒱
 open Equiv
-open Frame 𝒱
 open Iteration.Elgot E
 open MCat 𝒱 𝒫 using (∘ᴹ-resp-≈ᴹ)
 open MD.MonoidalDistributive dist
-open MDP 𝒱 dist
 open PureSub 𝒫
 open Sim 𝒱 𝒫
 open Tensor 𝒱 dist 𝒫
