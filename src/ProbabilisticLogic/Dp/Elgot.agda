@@ -20,7 +20,6 @@ open import Level
 open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Dp
-open import ProbabilisticLogic.Dp.Commutative
 open import ProbabilisticLogic.Dp.Iter
 import ProbabilisticLogic.Dp.Iter.Codiagonal
 import ProbabilisticLogic.Dp.Iter.Out

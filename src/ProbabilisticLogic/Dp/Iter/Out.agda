@@ -26,7 +26,6 @@ open import Level using (Level)
 open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Dp
-open import ProbabilisticLogic.Dp.Commutative
 open import ProbabilisticLogic.Dp.Iter
 
 module ProbabilisticLogic.Dp.Iter.Out where

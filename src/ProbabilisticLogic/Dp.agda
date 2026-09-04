@@ -25,7 +25,7 @@
 
 open import Data.Bool.Base
 open import Data.Nat.Base renaming (_+_ to _+ℕ_; _≤_ to _≤ℕ_)
-open import Data.Nat.Properties using (m≤m⊔n; m≤m+n; m≤n+m; n≤1+n) renaming (⊔-comm to ⊔ℕ-comm)
+open import Data.Nat.Properties using (m≤m⊔n; m≤n⊔m; m≤n+m; n≤1+n)
 open import Data.Product.Base
 open import Data.Rational as ℚ using (ℚ; 0ℚ; 1ℚ)
 open import Data.Rational.Properties as ℚP
@@ -146,9 +146,8 @@ node-mono w₁ w₂ n₁ n₂ le₁ le₂ =
 node-dirac : (x y : ℚ) → 1ℚ ℚ.* x ℚ.+ 0ℚ ℚ.* y ≡ x
 node-dirac x y = trans (cong₂ ℚ._+_ (*-identityˡ x) (*-zeroˡ y)) (+-identityʳ x)
 
-private
-  node-zero : (w₁ w₂ : ℚ) → w₁ ℚ.* 0ℚ ℚ.+ w₂ ℚ.* 0ℚ ≡ 0ℚ
-  node-zero w₁ w₂ = trans (cong₂ ℚ._+_ (*-zeroʳ w₁) (*-zeroʳ w₂)) (+-identityʳ 0ℚ)
+node-zero : (w₁ w₂ : ℚ) → w₁ ℚ.* 0ℚ ℚ.+ w₂ ℚ.* 0ℚ ≡ 0ℚ
+node-zero w₁ w₂ = trans (cong₂ ℚ._+_ (*-zeroʳ w₁) (*-zeroʳ w₂)) (+-identityʳ 0ℚ)
 
 ------------------------------------------------------------------------
 -- `cum` is non-negative, and monotone in the budget and in the test
@@ -187,6 +186,18 @@ mutual
                → leafₚ n x P ℚ.≤ leafₚ n x Q
   leafₚ-mono-P n (inj₁ p)  P Q le = le p
   leafₚ-mono-P n (inj₂ d′) P Q le = cum-mono-P n d′ P Q le
+
+mutual
+  cum-cong-P : (n : ℕ) (d : Dₚ A) (F G : A → ℚ) → (∀ p → F p ≡ G p) → cum n d F ≡ cum n d G
+  cum-cong-P zero    d F G eq = refl
+  cum-cong-P (suc n) d F G eq =
+    cong₂ ℚ._+_ (cong (wt d true ℚ.*_) (leafₚ-cong-P n (br d true) F G eq))
+                (cong (wt d false ℚ.*_) (leafₚ-cong-P n (br d false) F G eq))
+
+  leafₚ-cong-P : (n : ℕ) (x : A ⊎ Dₚ A) (F G : A → ℚ) → (∀ p → F p ≡ G p)
+               → leafₚ n x F ≡ leafₚ n x G
+  leafₚ-cong-P n (inj₁ p)  F G eq = eq p
+  leafₚ-cong-P n (inj₂ d′) F G eq = cum-cong-P n d′ F G eq
 
 ------------------------------------------------------------------------
 -- Depth-`n` support
@@ -242,8 +253,7 @@ mutual
         i₂ , s₂ = uniformizeL Φ up w n (br d false)
     in i₁ ⊔ i₂
      , SuppL-mono Φ (λ p → up p) (m≤m⊔n i₁ i₂) n (br d true) s₁
-     , SuppL-mono Φ (λ p → up p)
-                  (subst (i₂ ≤ℕ_) (⊔ℕ-comm i₂ i₁) (m≤m⊔n i₂ i₁)) n (br d false) s₂
+     , SuppL-mono Φ (λ p → up p) (m≤n⊔m i₁ i₂) n (br d false) s₂
 
   uniformizeL : (Φ : A → ℕ → Set b) → (∀ p {i i′} → i ≤ℕ i′ → Φ p i → Φ p i′)
               → (∀ p → Σ[ i ∈ ℕ ] Φ p i)
