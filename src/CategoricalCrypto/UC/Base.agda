@@ -18,6 +18,7 @@
 
 open import Categories.Category.Core using (Category)
 
+open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Rational as ℚ using (ℚ; 0ℚ; ½)
 open import Data.Rational.Properties
   using (*-distribʳ-+; *-identityˡ; *-monoʳ-<-pos; *-zeroʳ; <⇒≤; ≤-reflexive)
@@ -63,6 +64,37 @@ record Grading {o ℓ e} (𝒞 : Category o ℓ e) : Set (o ⊔ ℓ ⊔ e) where
     a-isoˡ     : {X Y A : Obj} → a⇐ {X} {Y} {A} ∘ a⇒ ≈ id
     a-nat      : {X Y A B : Obj} {f : A ⇒ B}
                → a⇒ ∘ T₁ X (T₁ Y f) ≈ T₁ (X ⊛ Y) f ∘ a⇒
+
+------------------------------------------------------------------------
+-- Query budgets
+
+-- The closure properties the indexed family category consumes, and nothing
+-- else: this record is PLUMBING, not the definition of a query bound.  A query
+-- bound with content is the amortised-potential certificate of
+-- `CategoricalCrypto.UC.QueryBound`, whose counting theorem is what forbids the
+-- degenerate `QB c f = ⊤`; here `QB` is a parameter, so the laws alone cannot
+-- forbid it.
+--
+-- Where the reference arc asked eleven laws, eight suffice: the tensor law
+-- splits into `qb-T₁`/`qb-sub` (the action's two one-sided halves), and the
+-- four unitor laws are gone with the unitors — `grade-stable` never needs
+-- `unit ⊛ A ≅ A`.
+record Budget {o ℓ e} (𝒞 : Category o ℓ e) (G : Grading 𝒞) (qs : Level)
+            : Set (o ⊔ ℓ ⊔ e ⊔ suc qs) where
+  open Category 𝒞
+  open Grading G
+
+  field
+    QB        : ℕ → {A B : Obj} → A ⇒ B → Set qs
+    qb-id     : {A : Obj} → QB 1 (id {A})
+    qb-∘      : {A B C : Obj} {c c′ : ℕ} {g : B ⇒ C} {f : A ⇒ B}
+              → QB c g → QB c′ f → QB (c ℕ.* c′) (g ∘ f)
+    qb-resp-≈ : {A B : Obj} {c : ℕ} {f g : A ⇒ B} → f ≈ g → QB c f → QB c g
+    qb-mono   : {A B : Obj} {c c′ : ℕ} {f : A ⇒ B} → c ℕ.≤ c′ → QB c f → QB c′ f
+    qb-T₁     : {Y A B : Obj} {c : ℕ} {f : A ⇒ B} → QB c f → QB c (T₁ Y f)
+    qb-sub    : {X Y A : Obj} {c : ℕ} {s : X ⇒ Y} → QB c s → QB c (sub {A = A} s)
+    qb-a⇒     : {X Y A : Obj} → QB 1 (a⇒ {X} {Y} {A})
+    qb-a⇐     : {X Y A : Obj} → QB 1 (a⇐ {X} {Y} {A})
 
 ------------------------------------------------------------------------
 -- Closed runs and their comparison
