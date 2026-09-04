@@ -20,9 +20,13 @@
 -- `Grading 𝒫ᴵ` this branch still owes) and so are imported directly:
 --
 --   `UC.Environment`     the environment presheaf, `_≈ℰ_`, `grade-stable`
---   `UC.Emulation`       `_≤UC_` and its four metatheorems
+--   `UC.Emulation`       `_≤UC_`, its four metatheorems, and the collapse at a
+--                        degenerate grade (`unit-grade`)
 --   `UC.Family`          `𝒞^ω` at a parameterized index, `absorb`
---   `UC.Seam.Grounding`  the seam's one grading-dependent statement
+--   `UC.Audit`           `audit-carry`: an audit-form bound across an emulation,
+--                        the simulator absorbed into the environment leg
+--   `UC.Seam.Grounding`  the seam's grading-dependent statements
+--   `UC.Seam.Audit`      `UC.Audit` at the intended instance
 --
 -- Everything is `--safe --without-K`; the `Dₚ`-facing modules add
 -- `--guardedness` and nothing adds anything else.  In particular there is no K
