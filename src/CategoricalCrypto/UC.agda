@@ -14,6 +14,10 @@
 --                                  `grade-stable`
 --                `UC.Emulation`    `_≤UC_`, its four metatheorems, the collapse
 --                                  at a degenerate grade (`unit-grade`)
+--                `UC.Core.Standard`
+--                                  `gradingᵗ`: a monoidal category grades
+--                                  itself — the inherited `UCSetup` doctrine's
+--                                  action, weakened to what the core asks
 --   enrichment   `UC.Approximate`  `ErrorAlgebra`, `Approximation`,
 --                                  `ApproximateObservation`, `Induced`, `Mass`
 --                `UC.Budget`       `Budget`, `ctxBudget` — the resource doctrine
