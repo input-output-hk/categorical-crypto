@@ -59,6 +59,26 @@ machine = refl
 agree : cum 6 (runᴹ (morphism flip) echo) bool→ℚ ≡ Pr flip echo
 agree = refl
 
+-- `PrAgree` asserts the mass STAYS at the verdict probability past its witness,
+-- so one budget is a point sample: these pin the next two.
+agree₊₁ : cum 7 (runᴹ (morphism flip) echo) bool→ℚ ≡ Pr flip echo
+agree₊₁ = refl
+
+agree₊₂ : cum 8 (runᴹ (morphism flip) echo) bool→ℚ ≡ Pr flip echo
+agree₊₂ = refl
+
+-- Divergence: `drive dead` is `botₚ`, whose mass `cum` never counts, and layer
+-- 1's `evalC dead` parks the same mass on `nothing`.  Both branches of the
+-- header's claim about `dead`, at one instance.
+stuck : Protocol unitᴵ Coin
+stuck = record { St = ⊤ ; init = tt ; step = λ _ _ → dead }
+
+layer₁-dead : Pr stuck echo ≡ 0ℚ
+layer₁-dead = refl
+
+machine-dead : cum 8 (runᴹ (morphism stuck) echo) bool→ℚ ≡ 0ℚ
+machine-dead = refl
+
 ------------------------------------------------------------------------
 -- Through a composite
 
@@ -71,3 +91,8 @@ layer₁-∘ = refl
 
 machine-∘ : cum 8 (runᴹ (morphism relayed) echo) bool→ℚ ≡ half
 machine-∘ = refl
+
+-- The composite half of `PrAgree`, which is the pin that would break if
+-- `_∘ᵖ_`'s `graft`/`serve` and `𝒢`'s trace-composition ever disagreed.
+agree-∘ : cum 8 (runᴹ (morphism relayed) echo) bool→ℚ ≡ Pr relayed echo
+agree-∘ = refl
