@@ -107,7 +107,5 @@ record Elgot : Set (levelOfTerm 𝒱) where
                → v ∘ pad θ ≈ pad θ ∘ u → iter v ∘ pad θ ≈ pad θ ∘ iter u
   iter-uniform {A = A} {B} {u} θ θᵖ {v} hyp =
     iter-transfer (θ ⊗₁ id {A}) (θ ⊗₁ id {B})
-                  (pure-⊗₁ θᵖ pure-id) (pure-⊗₁ θᵖ pure-id) {u} {v} tr
-    where
-      tr : v ∘ pad θ ≈ tstep (θ ⊗₁ id {B}) (θ ⊗₁ id {A}) ∘ u
-      tr = hyp ○ (⟺ (tstep-pad θ) ⟩∘⟨refl)
+                  (pure-⊗₁ θᵖ pure-id) (pure-⊗₁ θᵖ pure-id) {u} {v}
+                  (hyp ○ (⟺ (tstep-pad θ) ⟩∘⟨refl))

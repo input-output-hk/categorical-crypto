@@ -54,8 +54,7 @@ dummy-complete : {f : A ⇒ X ⊛ B′} {g : A ⇒ Y ⊛ B′} → f ≤UC g →
 dummy-complete (s , e) a = a ∘ s , ≈ℰ-trans (≈ℰ-congˡ (sub a) e) (≈⇒≈ℰ merge)
 
 ≤UC⁺⇒≤UC : {f : A ⇒ X ⊛ B′} {g : A ⇒ Y ⊛ B′} → f ≤UC⁺ g → f ≤UC g
-≤UC⁺⇒≤UC h with h id
-... | s , e = s , ≈ℰ-trans (≈⇒≈ℰ (⟺ (elimˡ sub-id))) e
+≤UC⁺⇒≤UC h = let s , e = h id in s , ≈ℰ-trans (≈⇒≈ℰ (⟺ (elimˡ sub-id))) e
 
 ------------------------------------------------------------------------
 -- Universal composition
