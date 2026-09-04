@@ -84,3 +84,7 @@ Mealy-Category = categoryHelperᵉ record
   ; identityʳ = identityʳ-∘ᴹ
   ; ∘-resp-≈  = ∘ᴹ-resp-≲
   }
+
+∘ᴹ-resp-≈ᴹ : {f h : Machine B C} {g i : Machine A B}
+           → f ≈ᴹ h → g ≈ᴹ i → (f ∘ᴹ g) ≈ᴹ (h ∘ᴹ i)
+∘ᴹ-resp-≈ᴹ = Category.∘-resp-≈ Mealy-Category
