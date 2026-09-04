@@ -18,7 +18,7 @@
 
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
 open import Categories.Category.Monoidal.Pure using (PureSub)
-import Categories.Category.Cocartesian as Cocart
+import Categories.Category.Cocartesian.Ext as CE
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Distributive.Properties as MDP
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
@@ -36,6 +36,7 @@ open Core 𝒱
 open Equiv
 open Frame 𝒱
 open MD.MonoidalDistributive dist
+open CE U cocartesian
 open MDP 𝒱 dist
 open MonoidalUtilities.Shorthands monoidal
 open PureSub 𝒫
@@ -153,14 +154,11 @@ pure-∘ʳ h M = collapseʳ ((refl⟩∘⟨ refl⟩∘⟨ onRᵍ-id⊗ h) ○ pu
 ------------------------------------------------------------------------
 -- The structural machines
 
-private
-  module ⊕ = Cocart.CocartesianMonoidal U cocartesian
-
 α⇒ᴹ : Machine ((A + B) + C) (A + (B + C))
-α⇒ᴹ = pureᴹ ⊕.associator.from
+α⇒ᴹ = pureᴹ α+⇒
 
 α⇐ᴹ : Machine (A + (B + C)) ((A + B) + C)
-α⇐ᴹ = pureᴹ ⊕.associator.to
+α⇐ᴹ = pureᴹ α+⇐
 
 σᴹ : Machine (A + B) (B + A)
 σᴹ = pureᴹ +-swap

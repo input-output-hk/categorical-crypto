@@ -18,7 +18,7 @@ open MD.MonoidalDistributive dist
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Morphism.Reasoning U
 
-private variable A B X Y Z : Obj
+private variable A B X Y : Obj
 
 δ-unique : {u v : X ⊗₀ (A + B) ⇒ Y}
          → u ∘ id ⊗₁ i₁ ≈ v ∘ id ⊗₁ i₁ → u ∘ id ⊗₁ i₂ ≈ v ∘ id ⊗₁ i₂ → u ≈ v
@@ -31,12 +31,6 @@ private variable A B X Y Z : Obj
 
 δ⇐-i₂ : δ⇐ ∘ id {X} ⊗₁ i₂ ≈ i₂ {X ⊗₀ A} {X ⊗₀ B}
 δ⇐-i₂ = (refl⟩∘⟨ ⟺ inject₂) ○ cancelˡ distributeˡ.isoˡ
-
-+-unique₂ : {u v : A + B ⇒ Y} → u ∘ i₁ ≈ v ∘ i₁ → u ∘ i₂ ≈ v ∘ i₂ → u ≈ v
-+-unique₂ e₁ e₂ = ⟺ +-g-η ○ []-cong₂ e₁ e₂ ○ +-g-η
-
-+₁-id : id {A} +₁ id {B} ≈ id
-+₁-id = ⟺ (+-unique (+₁∘i₁ ○ identityʳ) (+₁∘i₂ ○ identityʳ)) ○ +-η
 
 private
   -- `[ id , id ] : ⊥ + ⊥ ⇒ ⊥` is an iso, its inverse `i₁`, because maps out of
