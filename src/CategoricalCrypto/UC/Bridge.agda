@@ -32,23 +32,23 @@
 
 open import Categories.Category using (Category)
 
-open import Data.Bool.Base using (Bool)
-open import Data.Empty using (⊥-elim)
-open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Product.Base using (Σ-syntax; _×_)
+open import Data.Bool.Base
+open import Data.Empty
+open import Data.Nat.Base as ℕ
+open import Data.Product.Base
 open import Data.Rational using (ℚ)
-open import Data.Sum.Base using ([_,_]; inj₂)
-open import Function.Base using (id)
-open import Level using (0ℓ)
+open import Data.Sum.Base
+open import Function.Base
+open import Level
 
-open import ProbabilisticLogic.Dp using (Dₚ)
-open import ProbabilisticLogic.Dp.Advantage using (_≈ₚ[_]_)
+open import ProbabilisticLogic.Dp
+open import ProbabilisticLogic.Dp.Advantage
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Protocol.Machine using (runᴹ)
-open import CategoricalCrypto.Strategy using (Strat; asks≤)
-open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; Ωᴵ; ⟦_⟧ᴼ; T₁ᴵ; wireᴹ)
-open import CategoricalCrypto.UC.QueryBound using (QB)
+open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Strategy
+open import CategoricalCrypto.UC.Machine
+open import CategoricalCrypto.UC.QueryBound
 
 module CategoricalCrypto.UC.Bridge where
 

@@ -14,14 +14,14 @@
 -- crossings named as generators, the object parser being unable to recover
 -- them itself.
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
+open import Categories.Category.Monoidal.Bundle
 open import Categories.Coherence.Monoidal
-open import Categories.Coherence.Monoidal.Tactic using (solve-mor)
+open import Categories.Coherence.Monoidal.Tactic
 import Categories.Category.Monoidal.Braided.Properties as BraidedProps
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
-open import Data.Fin using (#_)
-open import Data.Product using (_,_)
+open import Data.Fin
+open import Data.Product
 open import Data.Vec using (_∷_; [])
 
 import CategoricalCrypto.Machines.Core as Core

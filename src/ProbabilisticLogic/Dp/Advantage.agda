@@ -16,14 +16,14 @@
 -- exactly the pseudometric laws the vanishing-advantage layer spends, so
 -- nothing is lost by never naming the number.
 
-open import Data.Bool.Base using (Bool; true; false)
-open import Data.Nat.Base using (ℕ) renaming (_≤_ to _≤ℕ_)
-open import Data.Product.Base using (Σ-syntax; _×_; _,_)
-open import Data.Rational as ℚ using (ℚ; 0ℚ)
+open import Data.Bool.Base
+open import Data.Nat.Base renaming (_≤_ to _≤ℕ_)
+open import Data.Product.Base
+open import Data.Rational as ℚ
 open import Data.Rational.Properties as ℚP
-  using (+-assoc; +-comm; +-identityʳ; +-monoˡ-≤; +-monoʳ-≤; ≤-refl; ≤-reflexive; ≤-trans)
-open import Data.Rational.Properties.Ext using (0≤1ℚ)
-open import Relation.Binary.PropositionalEquality using (_≡_; cong; sym; trans)
+
+open import Data.Rational.Properties.Ext
+open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Distribution.Uniform using (bool→ℚ)
 open import ProbabilisticLogic.Dp

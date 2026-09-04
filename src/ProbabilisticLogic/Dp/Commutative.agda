@@ -11,21 +11,20 @@
 -- `ProbabilisticLogic.Distribution.RationalDist.lookupᴰℚ-swap` and its linearity
 -- family.
 
-open import Data.Bool.Base using (true; false)
-open import Data.Nat.Base using (ℕ; zero; suc) renaming (_+_ to _+ℕ_)
+open import Data.Bool.Base
+open import Data.Nat.Base renaming (_+_ to _+ℕ_)
 open import Data.Nat.Properties using (n≤1+n)
-open import Data.Product.Base using (_×_; _,_)
-open import Data.Rational as ℚ using (ℚ; 0ℚ)
+open import Data.Product.Base
+open import Data.Rational as ℚ
 open import Data.Rational.Properties
-  using ( +-assoc; +-comm; +-identityʳ; *-assoc; *-comm; *-distribˡ-+; *-zeroʳ
-        ; ≤-refl; ≤-reflexive; ≤-trans )
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Function.Base using (_∘′_)
+
+open import Data.Sum.Base
+open import Function.Base
 open import Level using (Level)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; cong₂)
+open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Dp
-open import ProbabilisticLogic.Dp.Iter using (mapₚ-cum)
+open import ProbabilisticLogic.Dp.Iter
 
 module ProbabilisticLogic.Dp.Commutative where
 

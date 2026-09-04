@@ -24,15 +24,15 @@
 -- proved once in `UC.Base`.
 
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Nat.Poly using (Poly; poly-*; poly-const; poly-⊔)
-open import Data.Nat.Properties using (m≤m⊔n; m≤n⊔m; ≤-trans)
-open import Data.Product.Base using (Σ; Σ-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Nat.Poly
+open import Data.Nat.Properties
+open import Data.Product.Base
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
-open import Level using (Level; _⊔_)
+open import Level
 
-open import Categories.Category.Core using (Category)
+open import Categories.Category.Core
 
-open import CategoricalCrypto.UC.Base using (UCBase; Budget; Grading; Observation)
+open import CategoricalCrypto.UC.Base
 import CategoricalCrypto.UC.Emulation as Em
 
 module CategoricalCrypto.UC.Family

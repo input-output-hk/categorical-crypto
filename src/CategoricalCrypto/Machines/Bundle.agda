@@ -7,16 +7,16 @@
 -- by conjugation and `symmetricHelper` the second hexagon from the first, so
 -- `Tensor.Structural` proves each law only once.
 
-open import Categories.Category.Monoidal using (Monoidal; monoidalHelper)
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Pure using (PureSub)
-open import Categories.Category.Monoidal.Symmetric using (Symmetric; symmetricHelper)
-open import Categories.Functor.Bifunctor using (Bifunctor)
-open import Categories.NaturalTransformation.NaturalIsomorphism using (niHelper)
+open import Categories.Category.Monoidal
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
+open import Categories.Category.Monoidal.Symmetric
+open import Categories.Functor.Bifunctor
+open import Categories.NaturalTransformation.NaturalIsomorphism
 import Categories.Category.Monoidal.Distributive as MD
 
-open import Data.Product using (_,_)
-open import Level using (_⊔_)
+open import Data.Product
+open import Level
 
 import CategoricalCrypto.Machines.Category as MCat
 import CategoricalCrypto.Machines.Sim as Sim

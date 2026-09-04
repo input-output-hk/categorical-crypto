@@ -9,8 +9,8 @@
 -- Everything outside the loop is `pad-transport`: a state map commutes with an
 -- action on the interface alone.
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Pure using (PureSub)
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Distributive.Properties as MDP
 
@@ -31,7 +31,7 @@ open SymmetricMonoidalCategory 𝒱
 open Core 𝒱
 open Equiv
 open Frame 𝒱
-open Iteration 𝒱 dist 𝒫 using (pad)
+open Iteration 𝒱 dist 𝒫
 open Iteration.Elgot E
 open MD.MonoidalDistributive dist
 open MDP 𝒱 dist

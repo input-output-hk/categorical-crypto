@@ -16,14 +16,14 @@
 -- `≈[]-mono`, and agreement `_∼_` — closeness at every positive slack — is
 -- then an equivalence by the ε/2 argument, derived here once.
 
-open import Categories.Category.Core using (Category)
+open import Categories.Category.Core
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Rational as ℚ using (ℚ; 0ℚ; ½)
 open import Data.Rational.Properties
-  using (*-distribʳ-+; *-identityˡ; *-monoʳ-<-pos; *-zeroʳ; <⇒≤; ≤-reflexive)
-open import Level using (Level; _⊔_; suc)
-open import Relation.Binary.PropositionalEquality using (_≡_; subst; sym; trans)
+
+open import Level
+open import Relation.Binary.PropositionalEquality
 
 module CategoricalCrypto.UC.Base where
 

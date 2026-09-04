@@ -20,24 +20,24 @@
 -- trace appears in them, and the two ancilla reassociators are stateless wires.
 -- The laws are collected in `GradingLawsᴹ` and priced — see its comment.
 
-open import Categories.Category using (Category; _[_,_]; _[_≈_])
+open import Categories.Category
 
-open import Data.Bool.Base using (Bool)
-open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
+open import Data.Bool.Base
+open import Data.Product.Base
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Data.Unit.Base using (⊤; tt)
+open import Data.Unit.Base
 import Data.Unit.Polymorphic.Base as PolyUnit
-open import Level using (0ℓ; suc)
+open import Level
 
-open import ProbabilisticLogic.Dp using (Dₚ; mapₚ; returnₚ)
+open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Advantage
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Machines.Base using (𝒱ₚ; 𝒢ₚ)
-open import CategoricalCrypto.Protocol.Machine using (⟦_⟧ᴵ; runᴹ)
-open import CategoricalCrypto.Strategy using (ask; out)
-open import CategoricalCrypto.UC.Base using (Grading; Observation; UCBase)
-open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
+open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Strategy
+open import CategoricalCrypto.UC.Base
+open import CategoricalCrypto.UC.Machine.Run
 
 import CategoricalCrypto.Machines.Core as Core
 

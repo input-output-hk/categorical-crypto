@@ -5,8 +5,8 @@
 -- `[_,_]`s and every equation below is `inject₁`/`inject₂`; the ⊕-side
 -- bookkeeping of the machine layer's trace laws is exactly these facts.
 
-open import Categories.Category.Core using (Category)
-open import Categories.Category.Cocartesian using (Cocartesian)
+open import Categories.Category.Core
+open import Categories.Category.Cocartesian
 
 import Categories.Category.Cocartesian as Cocart
 

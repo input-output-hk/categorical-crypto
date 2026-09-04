@@ -20,18 +20,18 @@
 
 module Categories.GConstructionEmbeddingCoherence where
 
-open import Level using (Level)
+open import Level
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
+open import Categories.Category.Monoidal.Bundle
 open import Categories.Functor using (Functor)
 open import Data.Fin using (Fin)
 open import Data.Fin.Patterns
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
-open import Relation.Binary.Definitions using (DecidableEquality)
-open import Relation.Binary.PropositionalEquality using (refl)
-open import Relation.Nullary using (yes)
+open import Relation.Binary.Definitions
+open import Relation.Binary.PropositionalEquality
+open import Relation.Nullary
 
-open import Categories.APROP using (APROPSignature; module APROP)
+open import Categories.APROP
 open import Categories.FreeMonoidal
 
 import Categories.APROP.Hypergraph.Solver.Frontend as Interp

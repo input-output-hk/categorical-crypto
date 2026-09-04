@@ -22,23 +22,23 @@
 -- pair witnessing that the definition is its kernel relation ancilla by
 -- ancilla.  `grade-stable` is then a theorem with no hypothesis under it.
 
-open import Categories.Category.Instance.Setoids using (Setoids)
-open import Categories.Functor.Presheaf using (Presheaf)
+open import Categories.Category.Instance.Setoids
+open import Categories.Functor.Presheaf
 import Categories.Morphism.Reasoning as MR
 
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
-open import Level using (_⊔_)
-open import Relation.Binary.Bundles using (Setoid)
-open import Relation.Binary.Structures using (IsEquivalence)
+open import Level
+open import Relation.Binary.Bundles
+open import Relation.Binary.Structures
 
-open import CategoricalCrypto.UC.Base using (UCBase)
+open import CategoricalCrypto.UC.Base
 
 module CategoricalCrypto.UC.Environment
   {o ℓ e os ℓs} (base : UCBase o ℓ e os ℓs) where
 
 open UCBase base public
 open HomReasoning
-open MR 𝒞 using (cancelˡ; elimʳ)
+open MR 𝒞
 
 private variable A B′ C′ X Y : Obj
 

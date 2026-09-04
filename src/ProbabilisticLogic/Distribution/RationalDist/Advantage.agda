@@ -8,16 +8,16 @@
 -- `0ℚ`, so a diverging experiment moves the advantage the same way a `false`
 -- one does.
 
-open import Data.Bool.Base using (Bool)
-open import Data.Rational using (ℚ; 0ℚ)
+open import Data.Bool.Base
+open import Data.Rational
   renaming (_+_ to _+ℚ_; _-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
-open import Data.Rational.Properties using (+-inverseʳ; ∣-p∣≡∣p∣; ∣p+q∣≤∣p∣+∣q∣)
-open import Data.Rational.Properties.Ext using (neg-sub; telescope)
-open import Relation.Binary.PropositionalEquality using (_≡_; cong; subst; sym; trans)
+open import Data.Rational.Properties
+open import Data.Rational.Properties.Ext
+open import Relation.Binary.PropositionalEquality
 
-open import ProbabilisticLogic.Distribution.RationalDist using (_≈Mℚ_)
-open import ProbabilisticLogic.Distribution.RationalDist.Expectation using (Pr₁⊥; mb)
-open import ProbabilisticLogic.Distribution.RationalDist.Partial using (Dist⊥)
+open import ProbabilisticLogic.Distribution.RationalDist
+open import ProbabilisticLogic.Distribution.RationalDist.Expectation
+open import ProbabilisticLogic.Distribution.RationalDist.Partial
 
 module ProbabilisticLogic.Distribution.RationalDist.Advantage where
 

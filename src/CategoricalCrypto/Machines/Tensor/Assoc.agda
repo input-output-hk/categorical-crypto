@@ -8,9 +8,9 @@
 -- alone and the associator's naturality only has to hold one generator at a
 -- time.  What is left is ⊕-side, namely `tstep-α`.
 
-open import Categories.Category.Core using (Category)
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Pure using (PureSub)
+open import Categories.Category.Core
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
 import Categories.Category.Cocartesian.Ext as CE
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Distributive.Properties as MDP
@@ -42,7 +42,7 @@ open Sim 𝒱 𝒫
 open Structural 𝒱 dist 𝒫
 open Tensor 𝒱 dist 𝒫
 
-open import Categories.Category.Monoidal.Properties monoidal using (coherence₃)
+open import Categories.Category.Monoidal.Properties monoidal
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Morphism.Reasoning U
 

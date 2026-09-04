@@ -23,10 +23,10 @@
 -- state-only uniformity can do that.  The classical state-only form
 -- (`iter-uniform`) is derived below.
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Pure using (PureSub)
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
 import Categories.Category.Monoidal.Distributive as MD
-open import Level using (levelOfTerm)
+open import Level
 
 import Categories.Category.Monoidal.Distributive.Properties as MDP
 
@@ -39,13 +39,13 @@ module CategoricalCrypto.Machines.Iteration
   (dist : MD.MonoidalDistributive 𝒱) (𝒫 : PureSub 𝒱) where
 
 open SymmetricMonoidalCategory 𝒱
-open Core 𝒱 using (onR)
+open Core 𝒱
 open Equiv
-open Frame 𝒱 using (pad-transport)
+open Frame 𝒱
 open MD.MonoidalDistributive dist
-open MDP 𝒱 dist using (δ-unique)
+open MDP 𝒱 dist
 open PureSub 𝒫
-open Tensor 𝒱 dist 𝒫 using (tstep; tstep-i₁; tstep-i₂)
+open Tensor 𝒱 dist 𝒫
 
 open import Categories.Category.Monoidal.Reasoning monoidal
 

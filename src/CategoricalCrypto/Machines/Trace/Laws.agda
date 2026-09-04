@@ -8,8 +8,8 @@
 -- because each field's generalized implicit telescope need not be in the order
 -- its proof happens to bind.
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Pure using (PureSub)
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
 import Categories.Category.Monoidal.Distributive as MD
 
 import CategoricalCrypto.Machines.Iteration as Iteration
@@ -24,11 +24,11 @@ module CategoricalCrypto.Machines.Trace.Laws
   (dist : MD.MonoidalDistributive 𝒱) (𝒫 : PureSub 𝒱)
   (E : Iteration.Elgot 𝒱 dist 𝒫) where
 
-open Congruence 𝒱 dist 𝒫 E using (trace-resp-≲)
-open Fubini 𝒱 dist 𝒫 E using (trace-comm)
-open Superposing 𝒱 dist 𝒫 E using (superposing)
-open Trace 𝒱 dist 𝒫 E using (Remaining)
-open Vanishing 𝒱 dist 𝒫 E using (vanishing₂)
+open Congruence 𝒱 dist 𝒫 E
+open Fubini 𝒱 dist 𝒫 E
+open Superposing 𝒱 dist 𝒫 E
+open Trace 𝒱 dist 𝒫 E
+open Vanishing 𝒱 dist 𝒫 E
 
 Remainingᴹ : Remaining
 Remainingᴹ = record

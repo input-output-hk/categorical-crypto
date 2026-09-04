@@ -23,16 +23,16 @@
 
 open import Class.DecEq
 
-open import Data.Bool.Base using (Bool; true; false; not; if_then_else_; _∧_)
+open import Data.Bool.Base
 open import Data.List.Base using (List; []; _∷_; map; foldl; null)
-open import Data.Nat.ListAction using (sum)
-open import Data.Maybe.Base using (Maybe; just; nothing; is-just) renaming (map to mapᵐ)
-open import Data.Nat.Base using (ℕ; zero; suc; _+_; _∸_; _≤ᵇ_) renaming (_≡ᵇ_ to _≡ᴺ_)
+open import Data.Nat.ListAction
+open import Data.Maybe.Base renaming (map to mapᵐ)
+open import Data.Nat.Base renaming (_≡ᵇ_ to _≡ᴺ_)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Vec.Base using (Vec; replicate)
-open import Function.Base using (_∘_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open import Relation.Nullary.Decidable.Core using (⌊_⌋)
+open import Function.Base
+open import Relation.Binary.PropositionalEquality
+open import Relation.Nullary.Decidable.Core
 
 open import CategoricalCrypto.OracleCall
 

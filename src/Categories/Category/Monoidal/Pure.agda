@@ -15,17 +15,17 @@
 -- purity (`∃ h. f ≈ pure h` at `Kl(Dₚ)`) lands there, and a level parameter
 -- would propagate into every hom-set level of the layer.
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
+open import Categories.Category.Monoidal.Bundle
 import Categories.Category.Monoidal.Braided.Properties as BraidedProps
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
-open import Level using (_⊔_; suc)
+open import Level
 
 module Categories.Category.Monoidal.Pure
   {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e) where
 
 open SymmetricMonoidalCategory 𝒱
-open BraidedProps.Shorthands braided using (σ⇒)
+open BraidedProps.Shorthands braided
 open Equiv
 open MonoidalUtilities.Shorthands monoidal
 

@@ -7,13 +7,13 @@
 -- congruence pairs the two given state maps.  Nothing here unrolls a machine,
 -- because a simulation is a statement about one step.
 
-open import Categories.Category.Core using (Category)
-open import Categories.Category.EquivClosureHelper using (categoryHelperᵉ)
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Pure using (PureSub)
+open import Categories.Category.Core
+open import Categories.Category.EquivClosureHelper
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
-open import Level using (_⊔_)
+open import Level
 
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Frame as Frame

@@ -13,12 +13,12 @@
 -- The dummy-adversary form is *equivalent* here, not merely implied: taking
 -- `a := id` inverts `dummy-complete`.
 
-open import Data.Product.Base using (Σ-syntax; _,_)
+open import Data.Product.Base
 import Categories.Morphism.Reasoning as MR
 
-open import Level using (_⊔_)
+open import Level
 
-open import CategoricalCrypto.UC.Base using (UCBase)
+open import CategoricalCrypto.UC.Base
 
 module CategoricalCrypto.UC.Emulation
   {o ℓ e os ℓs} (base : UCBase o ℓ e os ℓs) where
@@ -26,7 +26,7 @@ module CategoricalCrypto.UC.Emulation
 open import CategoricalCrypto.UC.Environment base public
 
 open HomReasoning
-open MR 𝒞 using (elimˡ)
+open MR 𝒞
 
 private variable A B′ C′ X X′ Y Y′ Z : Obj
 

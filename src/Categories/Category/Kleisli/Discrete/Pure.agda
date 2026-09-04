@@ -10,14 +10,14 @@
 -- only `≈ᵏ`-pure, the junction delays of `_>>=_` standing between it and its
 -- underlying function.
 
-open import Categories.Category.Monoidal.Pure using (PureSub)
-open import Categories.Monad.Discrete using (DiscreteMonad)
+open import Categories.Category.Monoidal.Pure
+open import Categories.Monad.Discrete
 
 import Categories.Category.Kleisli.Discrete as KD
 
-open import Data.Product.Base using (proj₁; proj₂; map; swap; assocʳ′)
+open import Data.Product.Base
 open import Data.Sum.Base using (inj₁; inj₂; [_,_])
-open import Function.Base using (id; _∘_)
+open import Function.Base
 
 module Categories.Category.Kleisli.Discrete.Pure {ℓ} (Mo : DiscreteMonad ℓ) where
 

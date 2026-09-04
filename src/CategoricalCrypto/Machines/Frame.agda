@@ -12,28 +12,28 @@
 -- whole block and has to be split by the hexagon (`σ-splitˡ`/`σ-splitʳ`).
 
 open import Categories.Category.Monoidal.Bundle
-  using (MonoidalCategory; SymmetricMonoidalCategory)
+
 import Categories.Category.Monoidal.Braided.Properties as BraidedProps
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
-open import Data.Product.Base using (_,_)
+open import Data.Product.Base
 
 import CategoricalCrypto.Machines.Core as Core
 
 module CategoricalCrypto.Machines.Frame {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e) where
 
 open SymmetricMonoidalCategory 𝒱
-open BraidedProps.Shorthands braided using (σ⇒)
+open BraidedProps.Shorthands braided
 open Core 𝒱
 open Equiv
 open MonoidalUtilities.Shorthands monoidal
 
 open import Categories.Category.Monoidal.Properties monoidal
-  using (coherence₁; coherence₂; coherence₃)
+
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Morphism.Reasoning U
-open BraidedProps braided using (braiding-coherence)
-open MonoidalUtilities monoidal using (triangle-inv)
+open BraidedProps braided
+open MonoidalUtilities monoidal
 
 private variable A B K₁ K₂ L P Q R S W W′ X Y Z : Obj
 

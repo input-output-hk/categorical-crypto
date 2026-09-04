@@ -9,8 +9,8 @@
 -- none for an audit); a deterministic multi-call step like Merkle–Damgård's
 -- writes its `Calls` tree directly.
 
-open import Data.Product.Base using (_×_; _,_)
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
+open import Data.Product.Base
+open import Data.Sum.Base
 
 module CategoricalCrypto.OracleCall where
 

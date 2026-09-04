@@ -4,8 +4,8 @@
 -- `Pos` travels rightwards (out of a protocol towards its caller), `Neg`
 -- leftwards (queries into it).
 
-open import Data.Empty using (⊥)
-open import Data.Sum.Base using (_⊎_)
+open import Data.Empty
+open import Data.Sum.Base
 
 module CategoricalCrypto.Iface where
 

@@ -11,16 +11,16 @@
 -- on the `⊎`-summand while a padded state map does not, so the two agree pointwise
 -- but not as terms; `mapₚ-fn` bridges that.
 
-open import Data.Nat.Base using (ℕ; zero; suc)
-open import Data.Product.Base using (_×_; _,_)
-open import Data.Rational using (ℚ)
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Function.Base using (_∘′_)
-open import Level using (Level)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
+open import Data.Nat.Base
+open import Data.Product.Base
+open import Data.Rational
+open import Data.Sum.Base
+open import Function.Base
+open import Level
+open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Dp
-open import ProbabilisticLogic.Dp.Commutative using (cum-cong-P)
+open import ProbabilisticLogic.Dp.Commutative
 open import ProbabilisticLogic.Dp.Iter
 import ProbabilisticLogic.Dp.Iter.Codiagonal
 import ProbabilisticLogic.Dp.Iter.Out

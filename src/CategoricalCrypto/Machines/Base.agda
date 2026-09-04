@@ -15,16 +15,16 @@
 -- `Dp` iteration hierarchy modulo the `returnₚ` junctions the point-free
 -- structural morphisms spend; absorbing those is all `Elgotᵏ` below does.
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Pure using (PureSub)
-open import Categories.Monad.Discrete using (DiscreteMonad)
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
+open import Categories.Monad.Discrete
 import Categories.Category.Kleisli.Discrete as KD
 import Categories.Category.Kleisli.Discrete.Distributive as KDD
 import Categories.Category.Kleisli.Discrete.Pure as KDP
 import Categories.Category.Monoidal.Distributive as MD
 
-open import Categories.Category.Core using (Category)
-open import Categories.Category.Monoidal.Traced using (Traced)
+open import Categories.Category.Core
+open import Categories.Category.Monoidal.Traced
 
 import CategoricalCrypto.Machines.Bundle as Bundle
 import CategoricalCrypto.Machines.Core as Core
@@ -34,13 +34,13 @@ import CategoricalCrypto.Machines.Tensor as Tensor
 import CategoricalCrypto.Machines.Trace as Trace
 import CategoricalCrypto.Machines.Trace.Laws as Laws
 
-open import Data.Product.Base using (_×_; _,_)
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂; [_,_])
-open import Level using (Level; suc)
-open import Relation.Binary.Bundles using (Setoid)
+open import Data.Product.Base
+open import Data.Sum.Base
+open import Level
+open import Relation.Binary.Bundles
 
 open import ProbabilisticLogic.Dp
-open import ProbabilisticLogic.Dp.Commutative using (>>=ₚ-comm)
+open import ProbabilisticLogic.Dp.Commutative
 open import ProbabilisticLogic.Dp.Elgot
 open import ProbabilisticLogic.Dp.Iter
 open import ProbabilisticLogic.Dp.Iter.Codiagonal

@@ -22,11 +22,11 @@ module Categories.GConstructionEmbedding where
 
 open import Categories.Category
 open import Categories.Category.Monoidal
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
+open import Categories.Category.Monoidal.Bundle
 open import Categories.Category.Monoidal.Traced
-open import Categories.GConstruction using (GConstruction)
+open import Categories.GConstruction
 
-open import Data.Product using (_×_; _,_)
+open import Data.Product
 
 import Categories.Category.Monoidal.Braided.Properties as BProps
 import Categories.Category.Monoidal.Utilities as U

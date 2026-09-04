@@ -11,8 +11,8 @@
 -- split is the whole speedup: measured warm, the two apart were 7 s + 7 s where
 -- together in one file they were 397 s, for an identical proof term.
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Pure using (PureSub)
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 

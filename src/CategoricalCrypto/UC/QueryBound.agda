@@ -30,24 +30,24 @@
 -- inhabited without exhibiting the potential, and `Counting` is what makes the
 -- potential mean something about runs.
 
-open import Categories.Category using (Category; _[_≈_])
+open import Categories.Category
 
-open import Data.List.Base using (List; []; _∷_)
-open import Data.Nat.Base as ℕ using (ℕ; suc; z≤n; s≤s)
-open import Data.Nat.Properties using (+-monoʳ-≤; ≤-trans)
-open import Data.Product.Base using (Σ; Σ-syntax; _×_; _,_; proj₁; proj₂)
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Data.Unit.Polymorphic.Base using (tt)
-open import Function.Base using (_∘′_)
+open import Data.List.Base
+open import Data.Nat.Base as ℕ
+open import Data.Nat.Properties
+open import Data.Product.Base
+open import Data.Sum.Base
+open import Data.Unit.Polymorphic.Base
+open import Function.Base
 open import Level using (0ℓ)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Dp
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Machines.Base using (𝒱ₚ)
+open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.UC.Machine
-  using (Proc; 𝒫ᴵ; T₁ᴵ; subᴵ; a⇒ᴵ; a⇐ᴵ; wireStep; ⊤ᵛ)
+
 
 import CategoricalCrypto.Machines.Core as Core
 

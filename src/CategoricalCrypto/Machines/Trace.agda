@@ -14,14 +14,14 @@
 -- coproduct *projection*, not a constructor, so Agda cannot recover `X` from
 -- the type of a machine `Machine (A + X) (B + X)`.
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Pure using (PureSub)
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
 import Categories.Category.Monoidal.Braided.Properties as BraidedProps
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Distributive.Properties as MDP
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
-open import Level using (_⊔_)
+open import Level
 import Relation.Binary.Construct.Closure.Equivalence as EqC
 
 import CategoricalCrypto.Machines.Core as Core
@@ -36,11 +36,11 @@ module CategoricalCrypto.Machines.Trace
   (E : Iteration.Elgot 𝒱 dist 𝒫) where
 
 open SymmetricMonoidalCategory 𝒱
-open BraidedProps.Shorthands braided using (σ⇒)
+open BraidedProps.Shorthands braided
 open Core 𝒱
 open Equiv
 open Frame 𝒱
-open Iteration 𝒱 dist 𝒫 using (pad)
+open Iteration 𝒱 dist 𝒫
 open Iteration.Elgot E
 open MD.MonoidalDistributive dist
 open MDP 𝒱 dist

@@ -26,25 +26,25 @@
 -- `returnₚ (tt , inj₂ a⁺)`, so neither simulates the other.  `morphism` is a
 -- map of composites, not of identities; `wireᵖ` is the *sequential* wire.
 
-open import Categories.Category using (Category; _[_,_]; _[_≈_])
+open import Categories.Category
 
-open import Data.Bool.Base using (Bool)
-open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Nat.Base using (ℕ; _+_)
-open import Data.Product.Base using (Σ-syntax; _×_; _,_)
+open import Data.Bool.Base
+open import Data.Empty
+open import Data.Nat.Base
+open import Data.Product.Base
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Data.Unit.Polymorphic.Base using (tt)
-open import Level using (0ℓ)
+open import Data.Unit.Polymorphic.Base
+open import Level
 open import Relation.Binary.PropositionalEquality using (_≡_)
 
 open import ProbabilisticLogic.Dp
-open import ProbabilisticLogic.Dp.Coin using (coinₚ)
-open import ProbabilisticLogic.Distribution.Uniform using (bool→ℚ)
+open import ProbabilisticLogic.Dp.Coin
+open import ProbabilisticLogic.Distribution.Uniform
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Machines.Base using (𝒱ₚ; 𝒢ₚ)
+open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Protocol
-open import CategoricalCrypto.Protocol.Observe using (Pr)
+open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
 
 import CategoricalCrypto.Machines.Core as Core

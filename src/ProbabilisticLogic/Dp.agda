@@ -23,20 +23,19 @@
 -- identities the monad laws are proved from — no splicing of distributions, hence
 -- no list recursion.
 
-open import Data.Bool.Base using (Bool; true; false)
-open import Data.Nat.Base using (ℕ; zero; suc; z≤n; s≤s; _⊔_) renaming (_+_ to _+ℕ_; _≤_ to _≤ℕ_)
+open import Data.Bool.Base
+open import Data.Nat.Base renaming (_+_ to _+ℕ_; _≤_ to _≤ℕ_)
 open import Data.Nat.Properties using (m≤m⊔n; m≤m+n; m≤n+m; n≤1+n) renaming (⊔-comm to ⊔ℕ-comm)
-open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂; swap)
+open import Data.Product.Base
 open import Data.Rational as ℚ using (ℚ; 0ℚ; 1ℚ)
 open import Data.Rational.Properties as ℚP
-  using ( +-identityʳ; +-mono-≤; *-identityˡ; *-monoˡ-≤-nonNeg; *-zeroˡ; *-zeroʳ
-        ; ≤-refl; ≤-reflexive; ≤-trans )
-open import Data.Rational.Properties.Ext using (0≤1ℚ; 0≤*)
+
+open import Data.Rational.Properties.Ext
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Data.Unit.Polymorphic.Base using (⊤; tt)
-open import Function.Base using (_∘′_)
+open import Data.Unit.Polymorphic.Base
+open import Function.Base
 open import Level using (Level)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; cong₂; subst)
+open import Relation.Binary.PropositionalEquality
 
 module ProbabilisticLogic.Dp where
 

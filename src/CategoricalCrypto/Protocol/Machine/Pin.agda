@@ -12,20 +12,20 @@
 -- (16 s) the mass has not reached a value at all, so `Morphism-∘` has to be
 -- proved rather than computed.
 
-open import Data.Bool.Base using (Bool)
+open import Data.Bool.Base
 open import Data.Integer.Base using (+_)
-open import Data.Product.Base using (_,_)
-open import Data.Rational using (ℚ; _/_)
-open import Data.Unit.Base using (⊤; tt)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Data.Product.Base
+open import Data.Rational
+open import Data.Unit.Base
+open import Relation.Binary.PropositionalEquality
 
-open import ProbabilisticLogic.Distribution.Uniform using (bool→ℚ; uniform-Bool)
-open import ProbabilisticLogic.Dp using (cum)
+open import ProbabilisticLogic.Distribution.Uniform
+open import ProbabilisticLogic.Dp
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Observe using (Pr)
+open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
 
 module CategoricalCrypto.Protocol.Machine.Pin where
