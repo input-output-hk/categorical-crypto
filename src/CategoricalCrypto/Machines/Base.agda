@@ -11,9 +11,11 @@
 -- spent.
 
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
+open import Categories.Category.Monoidal.Pure using (PureSub)
 open import Categories.Monad.Discrete using (DiscreteMonad)
 import Categories.Category.Kleisli.Discrete as KD
 import Categories.Category.Kleisli.Discrete.Distributive as KDD
+import Categories.Category.Kleisli.Discrete.Pure as KDP
 import Categories.Category.Monoidal.Distributive as MD
 
 open import Data.Product.Base using (_,_)
@@ -55,3 +57,7 @@ Dₚ-DiscreteMonad = record
 
 distₚ : (ℓ : Level) → MD.MonoidalDistributive (𝒱ₚ ℓ)
 distₚ ℓ = KDD.MonoidalDistributiveᵏ (Dₚ-DiscreteMonad {ℓ})
+
+-- The pure state maps: `iterₚ` transfers along these and no others.
+𝒫ₚ : (ℓ : Level) → PureSub (𝒱ₚ ℓ)
+𝒫ₚ ℓ = KDP.PureSubᵏ (Dₚ-DiscreteMonad {ℓ})

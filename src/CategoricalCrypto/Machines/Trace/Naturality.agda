@@ -12,18 +12,21 @@
 -- together in one file they were 397 s, for an identical proof term.
 
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
+open import Categories.Category.Monoidal.Pure using (PureSub)
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Frame as Frame
 import CategoricalCrypto.Machines.Iteration as Iteration
+import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Tensor as Tensor
 import CategoricalCrypto.Machines.Trace as Trace
 
 module CategoricalCrypto.Machines.Trace.Naturality
   {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e)
-  (dist : MD.MonoidalDistributive 𝒱) (E : Iteration.Elgot 𝒱 dist) where
+  (dist : MD.MonoidalDistributive 𝒱) (𝒫 : PureSub 𝒱)
+  (E : Iteration.Elgot 𝒱 dist 𝒫) where
 
 open SymmetricMonoidalCategory 𝒱
 open Core 𝒱
@@ -31,8 +34,10 @@ open Equiv
 open Frame 𝒱
 open MD.MonoidalDistributive dist
 open MonoidalUtilities.Shorthands monoidal
-open Tensor 𝒱 dist
-open Trace 𝒱 dist E
+open PureSub 𝒫
+open Sim 𝒱 𝒫
+open Tensor 𝒱 dist 𝒫
+open Trace 𝒱 dist 𝒫 E
 
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Morphism.Reasoning U
@@ -46,7 +51,7 @@ private
 trace-∘ˡ : {A B C X : Obj} (g : Machine B C) (f : Machine (A + X) (B + X))
          → (g ∘ᴹ traceᴹ A B X f) ≈ᴹ traceᴹ A C X ((g ⊗ᵉ idᴹ {X}) ∘ᴹ f)
 trace-∘ˡ {A} {B} {C} {X} g f =
-  ≲⇒≈ᴹ˘ (≲-trans (mk-cong reduce) (sim (ρ⇒ ⊗₁ id) d-ok p-ok s-ok))
+  ≲⇒≈ᴹ˘ (≲-trans (mk-cong reduce) (sim (ρ⇒ ⊗₁ id) (pure-⊗₁ pure-ρ⇒ pure-id) d-ok p-ok s-ok))
   where
     S′ = (state g ⊛ Iˢ) ⊛ state f
     m  = onL {Q = obj (state f)} (onL {Q = unit} (step g))
@@ -70,7 +75,7 @@ trace-∘ˡ {A} {B} {C} {X} g f =
 trace-∘ʳ : {A B C X : Obj} (f : Machine (A + X) (B + X)) (h : Machine C A)
          → (traceᴹ A B X f ∘ᴹ h) ≈ᴹ traceᴹ C B X (f ∘ᴹ (h ⊗ᵉ idᴹ {X}))
 trace-∘ʳ {A} {B} {C} {X} f h =
-  ≲⇒≈ᴹ˘ (≲-trans (mk-cong reduce) (sim (id ⊗₁ ρ⇒) d-ok p-ok s-ok))
+  ≲⇒≈ᴹ˘ (≲-trans (mk-cong reduce) (sim (id ⊗₁ ρ⇒) (pure-⊗₁ pure-id pure-ρ⇒) d-ok p-ok s-ok))
   where
     S″ = state f ⊛ (state h ⊛ Iˢ)
     n  = onR {P = obj (state f)} (onL {Q = unit} (step h))

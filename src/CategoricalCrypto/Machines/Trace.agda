@@ -15,6 +15,7 @@
 -- the type of a machine `Machine (A + X) (B + X)`.
 
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
+open import Categories.Category.Monoidal.Pure using (PureSub)
 import Categories.Category.Monoidal.Braided.Properties as BraidedProps
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Distributive.Properties as MDP
@@ -26,23 +27,27 @@ import Relation.Binary.Construct.Closure.Equivalence as EqC
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Frame as Frame
 import CategoricalCrypto.Machines.Iteration as Iteration
+import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Tensor as Tensor
 
 module CategoricalCrypto.Machines.Trace
   {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e)
-  (dist : MD.MonoidalDistributive 𝒱) (E : Iteration.Elgot 𝒱 dist) where
+  (dist : MD.MonoidalDistributive 𝒱) (𝒫 : PureSub 𝒱)
+  (E : Iteration.Elgot 𝒱 dist 𝒫) where
 
 open SymmetricMonoidalCategory 𝒱
 open BraidedProps.Shorthands braided using (σ⇒)
 open Core 𝒱
 open Equiv
 open Frame 𝒱
-open Iteration 𝒱 dist using (pad)
+open Iteration 𝒱 dist 𝒫 using (pad)
 open Iteration.Elgot E
 open MD.MonoidalDistributive dist
 open MDP 𝒱 dist
 open MonoidalUtilities.Shorthands monoidal
-open Tensor 𝒱 dist
+open PureSub 𝒫
+open Sim 𝒱 𝒫
+open Tensor 𝒱 dist 𝒫
 
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Morphism.Reasoning U
@@ -99,7 +104,7 @@ iter-onL : {P Q A B : Obj} {u : P ⊗₀ A ⇒ P ⊗₀ (B + A)}
          → iter (onL {Q = Q} u) ≈ onL (iter u)
 iter-onL {u = u} = begin
   iter (onL u)                          ≈˘⟨ cancelˡ σ⊗-inv ⟩
-  σ⇒ ⊗₁ id ∘ (σ⇒ ⊗₁ id ∘ iter (onL u))  ≈˘⟨ refl⟩∘⟨ iter-uniform σ⇒ (⟺ σ-onL) ⟩
+  σ⇒ ⊗₁ id ∘ (σ⇒ ⊗₁ id ∘ iter (onL u))  ≈˘⟨ refl⟩∘⟨ iter-uniform σ⇒ pure-σ⇒ (⟺ σ-onL) ⟩
   σ⇒ ⊗₁ id ∘ (iter (onR u) ∘ σ⇒ ⊗₁ id)  ≈⟨ refl⟩∘⟨ iter-ctx ⟩∘⟨refl ⟩
   σ⇒ ⊗₁ id ∘ (onR (iter u) ∘ σ⇒ ⊗₁ id)  ≈˘⟨ refl⟩∘⟨ σ-onL ⟩
   σ⇒ ⊗₁ id ∘ (σ⇒ ⊗₁ id ∘ onL (iter u))  ≈⟨ cancelˡ σ⊗-inv ⟩
@@ -238,9 +243,8 @@ module _ (P S : State) (A B X : Obj) (k : obj S ⊗₀ (A + X) ⇒ obj S ⊗₀ 
 -- forced the hom equality to be a simulation: a behavioural equality relates
 -- machines with no morphism between their state objects, and no base-level
 -- `iter` law can then relate the two loops.  Discharging it is an instance of
--- `iter-uniform` at the simulation's own state map — which is what makes
--- `Iteration`'s statement deviation load-bearing, and what the restriction of
--- both to a wide subcategory of pure maps is for.
+-- `iter-uniform` at the simulation's own state map, which is why both are
+-- restricted to `𝒫`.
 record Remaining : Set (o ⊔ ℓ ⊔ e) where
   field
     trace-resp-≲ : {f g : Machine (A + X) (B + X)}

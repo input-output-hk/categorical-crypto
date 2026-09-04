@@ -17,6 +17,7 @@
 -- decomposition of a word over the two letters.
 
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
+open import Categories.Category.Monoidal.Pure using (PureSub)
 import Categories.Category.Cocartesian as Cocart
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Distributive.Properties as MDP
@@ -24,10 +25,11 @@ import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Frame as Frame
+import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.Machines.Tensor
   {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e)
-  (dist : MD.MonoidalDistributive 𝒱) where
+  (dist : MD.MonoidalDistributive 𝒱) (𝒫 : PureSub 𝒱) where
 
 open SymmetricMonoidalCategory 𝒱
 open Core 𝒱
@@ -36,6 +38,8 @@ open Frame 𝒱
 open MD.MonoidalDistributive dist
 open MDP 𝒱 dist
 open MonoidalUtilities.Shorthands monoidal
+open PureSub 𝒫
+open Sim 𝒱 𝒫
 
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Morphism.Reasoning U
@@ -101,6 +105,7 @@ f ⊗ᵉ g = mk (state f ⊛ state g) (tstep (onL (step f)) (onR (step g)))
           → f ≲ h → g ≲ i → (f ⊗ᵉ g) ≲ (h ⊗ᵉ i)
 ⊗ᵉ-resp-≲ {f = f} {h} {g} {i} u v = record
   { θ         = θ u ⊗₁ θ v
+  ; θ-pure    = pure-⊗₁ (θ-pure u) (θ-pure v)
   ; θ-discard = ⊛-discard₂ (state f) (state h) (state g) (state i)
                            (θ-discard u) (θ-discard v)
   ; θ-point   = ⊛-point₂ (state f) (state h) (state g) (state i)

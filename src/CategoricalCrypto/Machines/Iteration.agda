@@ -11,17 +11,16 @@
 -- first factor is the context (the machine's state), threaded through every
 -- pass; that threading is what collapses the delay.
 --
--- Statement deviation, deliberate: `iter-uniform` is stated along an arbitrary
--- state map rather than along a state *iso*.  The iso form suffices for every
--- state reconciliation the trace laws below perform, but the simulation
--- equality's congruence for `traceᴹ` needs uniformity along the simulation's
--- own state map, which is not invertible.  At a Kleisli base neither form is
--- inhabited as literally stated — an arbitrary Kleisli map is effectful, and
--- iteration transfers along *pure* maps only — so the promotion restricts both
--- this field and `_≲_`'s state map to a wide subcategory of pure maps.  That
--- restriction is the fourth residual of `CategoricalCrypto.Machines.Trace`.
+-- `iter-uniform` is stated along an arbitrary `𝒫`-map, not along a state *iso*:
+-- the iso form suffices for every state reconciliation the trace laws perform,
+-- but the simulation equality's congruence for `traceᴹ` needs uniformity along
+-- the simulation's own state map, which is not invertible.  `𝒫` is what makes
+-- both inhabited at a Kleisli base, where an arbitrary hom is effectful and
+-- iteration transfers along the pure homs only; `_≲_`'s state map is drawn from
+-- the same class, so the congruence lines up.
 
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
+open import Categories.Category.Monoidal.Pure using (PureSub)
 import Categories.Category.Monoidal.Distributive as MD
 open import Level using (levelOfTerm)
 
@@ -30,12 +29,13 @@ import CategoricalCrypto.Machines.Tensor as Tensor
 
 module CategoricalCrypto.Machines.Iteration
   {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e)
-  (dist : MD.MonoidalDistributive 𝒱) where
+  (dist : MD.MonoidalDistributive 𝒱) (𝒫 : PureSub 𝒱) where
 
 open SymmetricMonoidalCategory 𝒱
 open Core 𝒱 using (onR)
 open MD.MonoidalDistributive dist
-open Tensor 𝒱 dist using (tstep)
+open PureSub 𝒫
+open Tensor 𝒱 dist 𝒫 using (tstep)
 
 private variable A B C P S T : Obj
 private variable u v : S ⊗₀ A ⇒ S ⊗₀ (B + A)
@@ -63,7 +63,7 @@ record Elgot : Set (levelOfTerm 𝒱) where
     -- Superposing: a context factor the body never touches passes through.
     iter-ctx : iter (onR {P = P} u) ≈ onR (iter u)
 
-    iter-uniform : (θ : S ⇒ T) {v : T ⊗₀ A ⇒ T ⊗₀ (B + A)}
+    iter-uniform : (θ : S ⇒ T) → Pure θ → {v : T ⊗₀ A ⇒ T ⊗₀ (B + A)}
                  → v ∘ pad θ ≈ pad θ ∘ u → iter v ∘ pad θ ≈ pad θ ∘ iter u
 
     -- Codiagonal: a loop whose body is itself a loop over the same variable is

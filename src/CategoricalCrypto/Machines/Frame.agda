@@ -390,16 +390,3 @@ private
   point S ⊗₁ (point T ⊗₁ point R) ∘ (id ⊗₁ λ⇐ ∘ λ⇐)
     ≈⟨ sym-assoc ○ (⟺ split₂ʳ ⟩∘⟨refl) ⟩
   point S ⊗₁ (point T ⊗₁ point R ∘ λ⇐) ∘ λ⇐  ∎
-
-------------------------------------------------------------------------
--- Collapsing a trivial state factor, as a simulation
-
-collapseˡ : {S : State} {k : (unit ⊗₀ obj S) ⊗₀ A ⇒ (unit ⊗₀ obj S) ⊗₀ B}
-            {k′ : obj S ⊗₀ A ⇒ obj S ⊗₀ B}
-          → λ⇒ ⊗₁ id ∘ k ≈ k′ ∘ λ⇒ ⊗₁ id → mk (Iˢ ⊛ S) k ≲ mk S k′
-collapseˡ {S = S} = sim λ⇒ (λ-discard S) (λ-point S)
-
-collapseʳ : {S : State} {k : (obj S ⊗₀ unit) ⊗₀ A ⇒ (obj S ⊗₀ unit) ⊗₀ B}
-            {k′ : obj S ⊗₀ A ⇒ obj S ⊗₀ B}
-          → ρ⇒ ⊗₁ id ∘ k ≈ k′ ∘ ρ⇒ ⊗₁ id → mk (S ⊛ Iˢ) k ≲ mk S k′
-collapseʳ {S = S} = sim ρ⇒ (ρ-discard S) (ρ-point S)

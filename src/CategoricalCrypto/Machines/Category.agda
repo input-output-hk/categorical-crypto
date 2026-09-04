@@ -10,6 +10,7 @@
 open import Categories.Category.Core using (Category)
 open import Categories.Category.EquivClosureHelper using (categoryHelperᵉ)
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
+open import Categories.Category.Monoidal.Pure using (PureSub)
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
 open import Level using (_⊔_)
@@ -17,16 +18,19 @@ open import Level using (_⊔_)
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Frame as Frame
 import CategoricalCrypto.Machines.Reassoc as Reassoc
+import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.Machines.Category
-  {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e) where
+  {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e) (𝒫 : PureSub 𝒱) where
 
 open SymmetricMonoidalCategory 𝒱
 open Core 𝒱
 open Equiv
 open Frame 𝒱
 open MonoidalUtilities.Shorthands monoidal
+open PureSub 𝒫
 open Reassoc 𝒱
+open Sim 𝒱 𝒫
 
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Morphism.Reasoning U
@@ -35,7 +39,7 @@ private variable A B C D : Obj
 
 assoc-∘ᴹ : {f : Machine A B} {g : Machine B C} {h : Machine C D}
          → ((h ∘ᴹ g) ∘ᴹ f) ≲ (h ∘ᴹ (g ∘ᴹ f))
-assoc-∘ᴹ {f = f} {g} {h} = sim α⇒
+assoc-∘ᴹ {f = f} {g} {h} = sim α⇒ pure-α⇒
   (⊛-assoc-discard (state h) (state g) (state f))
   (⊛-assoc-point (state h) (state g) (state f))
   ( (refl⟩∘⟨ (onL-∘ ⟩∘⟨refl))
@@ -59,6 +63,7 @@ identityʳ-∘ᴹ = collapseʳ ((refl⟩∘⟨ ((refl⟩∘⟨ onR-id) ○ ident
           → f ≲ h → g ≲ i → (f ∘ᴹ g) ≲ (h ∘ᴹ i)
 ∘ᴹ-resp-≲ {f = f} {h} {g} {i} u v = record
   { θ         = θ u ⊗₁ θ v
+  ; θ-pure    = pure-⊗₁ (θ-pure u) (θ-pure v)
   ; θ-discard = ⊛-discard₂ (state f) (state h) (state g) (state i)
                            (θ-discard u) (θ-discard v)
   ; θ-point   = ⊛-point₂ (state f) (state h) (state g) (state i)
