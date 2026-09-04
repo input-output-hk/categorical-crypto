@@ -10,14 +10,18 @@
 --   `UC.QueryBound`  the amortised-potential certificate and the counting
 --                    statement — a query bound with content
 --   `UC.Bridge`      `Reflects`, the interface to layer 1's concrete theorems
+--   `UC.Seam`        where layer 1's `transfer` meets an emulation: a strategy
+--                    as an environment, `Adequacy`, the POV carry
+--                    (`UC.Seam.Carry` proves the carry's premise from
+--                    `Adequacy` and `PrAgree`)
 --
--- The four parameterized layers take a `UCBase` (or, for the last two, the
+-- The parameterized layers take a `UCBase` (or, for the last two, the
 -- `Grading 𝒫ᴵ` this branch still owes) and so are imported directly:
 --
---   `UC.Environment`  the environment presheaf, `_≈ℰ_`, `grade-stable`
---   `UC.Emulation`    `_≤UC_` and its four metatheorems
---   `UC.Family`       `𝒞^ω` at a parameterized index, `absorb`
---   `UC.Seam`         where layer 1's `transfer` meets an emulation
+--   `UC.Environment`     the environment presheaf, `_≈ℰ_`, `grade-stable`
+--   `UC.Emulation`       `_≤UC_` and its four metatheorems
+--   `UC.Family`          `𝒞^ω` at a parameterized index, `absorb`
+--   `UC.Seam.Grounding`  the seam's one grading-dependent statement
 --
 -- Everything is `--safe --without-K`; the `Dₚ`-facing modules add
 -- `--guardedness` and nothing adds anything else.  In particular there is no K
