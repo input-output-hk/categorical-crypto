@@ -25,7 +25,7 @@
 -- over a state, a point and a step given as PARAMETERS rather than projected
 -- from a process — see the note above `Certificate`.
 --
--- This is a definition, not an axiom list: `UC.Base.Budget`'s `QB` is a
+-- This is a definition, not an axiom list: `UC.Budget`'s `QB` is a
 -- parameter and admits the degenerate `QB c f = ⊤`, whereas `QBᵢ` cannot be
 -- inhabited without exhibiting the potential, and `Counting` is what makes the
 -- potential mean something about runs.
@@ -248,7 +248,7 @@ qb-mono le (N , q , e) = N , qbᵢ-mono _ _ _ le q , e
 -- The closure properties still owed
 
 -- `qb-resp-≈`/`qb-mono` are theorems and the two ancilla reassociators are
--- `qbᵢ-wire`; these four are what `UC.Base.Budget` still wants at this
+-- `qbᵢ-wire`; these four are what `UC.Budget` still wants at this
 -- instance.  `qb-T₁`/`qb-sub` are trace-free — the action keeps the state and
 -- the potential, and each adds two bypass cases that are one relay apiece —
 -- and it is exactly there that the rate must be `c ⊔ 1`.  `qb-id` needs only

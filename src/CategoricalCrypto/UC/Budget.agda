@@ -1,0 +1,64 @@
+{-# OPTIONS --safe --without-K #-}
+
+-- Query budgets: the resource doctrine, one layer out from the qualitative
+-- core.
+--
+-- Natural-number rates are a model datum, not part of general UC — a setup with
+-- no cost algebra still has grading, environments, simulators and `_≤UC_`.  So
+-- `Budget` is a separate record parameterized by a `Grading`, and the layers
+-- that want it (`UC.Audit`, `UC.Family`) take it as a module parameter.
+
+open import Categories.Category.Core using (Category)
+
+open import Data.Nat.Base as ℕ using (ℕ)
+open import Level using (Level; _⊔_; suc)
+
+open import CategoricalCrypto.UC.Core using (Grading)
+
+module CategoricalCrypto.UC.Budget where
+
+-- The closure properties the indexed family category consumes, and nothing
+-- else: this record is PLUMBING, not the definition of a query bound.  A query
+-- bound with content is the amortised-potential certificate of
+-- `CategoricalCrypto.UC.QueryBound`, whose counting theorem is what forbids the
+-- degenerate `QB c f = ⊤`; here `QB` is a parameter, so the laws alone cannot
+-- forbid it.
+--
+-- Where the reference arc asked eleven laws, eight suffice: the tensor law
+-- splits into `qb-T₁`/`qb-sub` (the action's two one-sided halves), and the
+-- four unitor laws are gone with the unitors — `grade-stable` never needs
+-- `unit ⊛ A ≅ A`.
+record Budget {o ℓ e} (𝒞 : Category o ℓ e) (G : Grading 𝒞) (qs : Level)
+            : Set (o ⊔ ℓ ⊔ e ⊔ suc qs) where
+  open Category 𝒞
+  open Grading G
+
+  field
+    QB        : ℕ → {A B : Obj} → A ⇒ B → Set qs
+    qb-id     : {A : Obj} → QB 1 (id {A})
+    qb-∘      : {A B C : Obj} {c c′ : ℕ} {g : B ⇒ C} {f : A ⇒ B}
+              → QB c g → QB c′ f → QB (c ℕ.* c′) (g ∘ f)
+    qb-resp-≈ : {A B : Obj} {c : ℕ} {f g : A ⇒ B} → f ≈ g → QB c f → QB c g
+    qb-mono   : {A B : Obj} {c c′ : ℕ} {f : A ⇒ B} → c ℕ.≤ c′ → QB c f → QB c′ f
+    -- `_⊔ 1_`, not `c`: the bypassed interface's own downward relay is one
+    -- completed event that an activation from above must have deposited for,
+    -- so a rate of zero cannot survive the action.  This is the reference
+    -- arc's `qb-⊗` at `c ⊔ 1`, the identity leg's budget being 1.
+    qb-T₁     : {Y A B : Obj} {c : ℕ} {f : A ⇒ B} → QB c f → QB (c ℕ.⊔ 1) (T₁ Y f)
+    qb-sub    : {X Y A : Obj} {c : ℕ} {s : X ⇒ Y} → QB c s → QB (c ℕ.⊔ 1) (sub {A = A} s)
+    qb-a⇒     : {X Y A : Obj} → QB 1 (a⇒ {X} {Y} {A})
+    qb-a⇐     : {X Y A : Obj} → QB 1 (a⇐ {X} {Y} {A})
+
+-- The budget a context's two legs afford a strategy playing in its place.  The
+-- test's own `c` is what bounds crossings into the plugged interface: the
+-- closure of a CLOSED context supplies only ancilla and input responses, so the
+-- conservative bound is `c` alone.  The product form is kept for the closures
+-- that do relay downwards, but GUARDED at `c′ ⊔ 1`, because a closure with no
+-- downward port certifies at `QB 0` and an unguarded `c * 0` charges a context
+-- that genuinely queries to a strategy that cannot query at all (external theory
+-- review, finding 1).  This is `qb-T₁`'s `c ⊔ 1` guard, one level up and for the
+-- same reason.  The principled eventual form is a port-specific bound on
+-- crossings into the DISTINGUISHED hole rather than a product of two whole-hom
+-- budgets; `docs/protocol-rewrite.md` prices it, and it is not built.
+ctxBudget : ℕ → ℕ → ℕ
+ctxBudget c c′ = c ℕ.* (c′ ℕ.⊔ 1)

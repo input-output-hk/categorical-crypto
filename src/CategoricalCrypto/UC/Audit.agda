@@ -28,13 +28,14 @@ open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Properties using (*-assoc; *-comm; ⊔-assoc; ⊔-idem)
 open import Data.Product.Base using (_,_)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
-open import Data.Rational.Properties
-  using (+-identityʳ; +-mono-≤; ≤-reflexive; module ≤-Reasoning)
+open import Data.Rational.Properties using (+-monoˡ-≤; module ≤-Reasoning)
 open import Level using (Level; _⊔_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; cong; subst; trans; module ≡-Reasoning)
 
-open import CategoricalCrypto.UC.Base using (UCBase; Budget; Mass; ctxBudget)
+open import CategoricalCrypto.UC.Approximate using (Mass)
+open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget)
+open import CategoricalCrypto.UC.Core using (UCBase)
 
 module CategoricalCrypto.UC.Audit
   {o ℓ e os ℓs qs : Level} (base : UCBase o ℓ e os ℓs)
@@ -121,12 +122,12 @@ audit-carry {A} {X} {B′} {Y} f g {cs} em ε δ δ>0 bnd W Et m {c} {c′} qEt 
   slide : (Et ∘ T₁ W (sub s ∘ g)) ∘ m ≈ (Et′ ∘ T₁ W g) ∘ m
   slide = ∘-resp-≈ˡ (Equiv.trans (∘-resp-≈ʳ T₁-∘) sym-assoc)
 
-  near : x ≈[ δ ℚ.+ 0ℚ ] z
-  near = ≈[]-trans (emulate em W Et m δ δ>0) (⟦⟧-resp-≈ slide)
+  near : x ∼ z
+  near = ∼-trans (emulate em W Et m) (⟦⟧-resp-≈ slide)
 
   bound : at n x ℚ.≤ ε (ctxBudget (c ℕ.* ((cs ℕ.⊔ 1) ℕ.⊔ 1)) c′) ℚ.+ δ
-  bound = let k , le = dominate near n in begin
-    at n x                 ≤⟨ le ⟩
-    at k z ℚ.+ (δ ℚ.+ 0ℚ)  ≤⟨ +-mono-≤ (bnd W Et′ m qEt′ qm k) (≤-reflexive (+-identityʳ δ)) ⟩
-    ε _ ℚ.+ δ              ∎
+  bound = let k , le = dominate near δ δ>0 n in begin
+    at n x        ≤⟨ le ⟩
+    at k z ℚ.+ δ  ≤⟨ +-monoˡ-≤ δ (bnd W Et′ m qEt′ qm k) ⟩
+    ε _ ℚ.+ δ     ∎
     where open ≤-Reasoning

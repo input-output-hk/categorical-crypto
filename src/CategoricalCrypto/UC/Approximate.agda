@@ -1,0 +1,183 @@
+{-# OPTIONS --safe --without-K #-}
+
+-- The quantitative enrichment of a qualitative observation.
+--
+-- `UC.Core.Observation` compares two closed runs by an equivalence and says
+-- nothing numerical.  A model may know more: that two runs are close to within
+-- a measurable error, and that an error small enough is no difference at all.
+-- Those two are `Approximation` and `induces`, and together they run the arrow
+--
+--     quantitative closeness at every positive error
+--                      │  induces
+--                      ▼
+--            qualitative observational equivalence
+--
+-- in both readings.  `ApproximateObservation` enriches an observation that
+-- already exists, with `induces` as the field connecting the two;
+-- `Induced.observation` goes the other way and CONSTRUCTS an observation out of
+-- an approximation — its `_∼_` is closeness at every positive error, and the
+-- ε/2 argument for transitivity is proved once, here, over an abstract error
+-- algebra.  The intended `Dₚ` model and the asymptotic family (`UC.Machine`,
+-- `UC.Family`) both arrive by the second route.
+--
+-- The error object is NOT fixed by the interface: `ErrorAlgebra` is what the
+-- ε/2 argument needs of it and no more (a zero, an addition, an order, a
+-- positivity predicate and a halving).  `ℚ-errors` is the rational instance
+-- both current models use; another model may measure error differently, or
+-- offer no quantitative enrichment at all.
+
+open import Categories.Category using (Category; _[_,_]; _[_≈_])
+
+open import Data.Nat.Base as ℕ using (ℕ)
+open import Data.Nat.Poly using (Poly)
+open import Data.Product.Base using (Σ-syntax)
+open import Data.Rational as ℚ using (ℚ; 0ℚ; ½)
+open import Data.Rational.Properties
+  using (*-distribʳ-+; *-identityˡ; *-monoʳ-<-pos; *-zeroʳ; <⇒≤; ≤-reflexive)
+open import Level using (Level; 0ℓ; _⊔_; suc)
+open import Relation.Binary.PropositionalEquality using (_≡_; subst; sym; trans)
+open import Relation.Binary.Structures using (IsEquivalence)
+
+open import CategoricalCrypto.UC.Core using (Observation)
+
+module CategoricalCrypto.UC.Approximate where
+
+private variable os ℓs es ℓe ℓa : Level
+
+------------------------------------------------------------------------
+-- Errors
+
+-- What an approximate observation measures its slack in: exactly the structure
+-- the ε/2 argument spends.
+record ErrorAlgebra (es ℓe : Level) : Set (suc (es ⊔ ℓe)) where
+  infixl 6 _⊕_
+  infix 4 _⊑_
+
+  field
+    Error    : Set es
+    ε₀       : Error
+    _⊕_      : Error → Error → Error
+    _⊑_      : Error → Error → Set ℓe
+    Positive : Error → Set ℓe
+    half     : Error → Error
+
+    ε₀-least : {ε : Error} → Positive ε → ε₀ ⊑ ε
+    half-pos : {ε : Error} → Positive ε → Positive (half ε)
+    half-sum : (ε : Error) → half ε ⊕ half ε ⊑ ε
+
+private
+  half-positive : {ε : ℚ} → 0ℚ ℚ.< ε → 0ℚ ℚ.< ½ ℚ.* ε
+  half-positive {ε} ε>0 = subst (ℚ._< ½ ℚ.* ε) (*-zeroʳ ½) (*-monoʳ-<-pos ½ ε>0)
+
+  half+half : (ε : ℚ) → ½ ℚ.* ε ℚ.+ ½ ℚ.* ε ≡ ε
+  half+half ε = trans (sym (*-distribʳ-+ ε ½ ½)) (*-identityˡ ε)
+
+ℚ-errors : ErrorAlgebra 0ℓ 0ℓ
+ℚ-errors = record
+  { Error    = ℚ
+  ; ε₀       = 0ℚ
+  ; _⊕_      = ℚ._+_
+  ; _⊑_      = ℚ._≤_
+  ; Positive = 0ℚ ℚ.<_
+  ; half     = ½ ℚ.*_
+  ; ε₀-least = <⇒≤
+  ; half-pos = half-positive
+  ; half-sum = λ ε → ≤-reflexive (half+half ε)
+  }
+
+-- Negligibility, and the shape a concrete security bound has: an error
+-- vanishing in the security parameter at every polynomial budget.  This is what
+-- the asymptotic layer closes over (`UC.Family.absorb`).
+infix 4 _→0
+
+_→0 : (ℕ → ℚ) → Set
+s →0 = (ε : ℚ) → 0ℚ ℚ.< ε → Σ[ N ∈ ℕ ] ((n : ℕ) → N ℕ.≤ n → s n ℚ.≤ ε)
+
+VanishingBound : (ℕ → ℕ → ℚ) → Set
+VanishingBound ε = (p : ℕ → ℕ) → Poly p → (λ n → ε n (p n)) →0
+
+------------------------------------------------------------------------
+-- Approximate closeness
+
+record Approximation (Obs : Set os) (E : ErrorAlgebra es ℓe) (ℓa : Level)
+                   : Set (os ⊔ es ⊔ ℓe ⊔ suc ℓa) where
+  open ErrorAlgebra E public
+
+  infix 4 _≈[_]_ _∼ᵃ_
+
+  field
+    _≈[_]_    : Obs → Error → Obs → Set ℓa
+    ≈[]-refl  : {x : Obs} → x ≈[ ε₀ ] x
+    ≈[]-sym   : {x y : Obs} {ε : Error} → x ≈[ ε ] y → y ≈[ ε ] x
+    ≈[]-trans : {x y z : Obs} {ε δ : Error} → x ≈[ ε ] y → y ≈[ δ ] z → x ≈[ ε ⊕ δ ] z
+    ≈[]-mono  : {x y : Obs} {ε δ : Error} → ε ⊑ δ → x ≈[ ε ] y → x ≈[ δ ] y
+
+  -- No positive error separates the two.  This is the relation a qualitative
+  -- observation exposes; at the asymptotic instance it is vanishing advantage.
+  _∼ᵃ_ : Obs → Obs → Set (es ⊔ ℓe ⊔ ℓa)
+  x ∼ᵃ y = (ε : Error) → Positive ε → x ≈[ ε ] y
+
+  ∼ᵃ-isEquivalence : IsEquivalence _∼ᵃ_
+  ∼ᵃ-isEquivalence = record
+    { refl  = λ _ pos → ≈[]-mono (ε₀-least pos) ≈[]-refl
+    ; sym   = λ h ε pos → ≈[]-sym (h ε pos)
+    ; trans = λ h k ε pos → ≈[]-mono (half-sum ε)
+        (≈[]-trans (h (half ε) (half-pos pos)) (k (half ε) (half-pos pos)))
+    }
+
+-- The enrichment: an observation that already exists, refined by a measurable
+-- error whose vanishing implies its equivalence.
+record ApproximateObservation {o ℓ e} {𝒞 : Category o ℓ e} (O : Observation 𝒞 os ℓs)
+                              (E : ErrorAlgebra es ℓe) (ℓa : Level)
+                            : Set (ℓ ⊔ e ⊔ os ⊔ ℓs ⊔ es ⊔ ℓe ⊔ suc ℓa) where
+  open Category 𝒞
+  open Observation O
+  field approx : Approximation Obs E ℓa
+  open Approximation approx public
+
+  field
+    induces : {x y : Obs} → x ∼ᵃ y → x ∼ y
+    -- The ambient hom equality is observed EXACTLY, where `⟦⟧-resp-≈` only
+    -- says it is observed up to every positive error.  The asymptotic
+    -- construction spends this: an error that vanishes has to start at zero
+    -- for a hom equality (`UC.Family.Approximation^ω`).
+    ⟦⟧-resp-≈₀ : {u v : 𝟙 ⇒ Ω} → u ≈ v → ⟦ u ⟧ ≈[ ε₀ ] ⟦ v ⟧
+
+-- …and the constructor: an approximation of what closed runs show, plus the
+-- runs themselves, IS a qualitative observation, enriched by construction.
+module Induced {o ℓ e os es ℓe ℓa} (𝒞 : Category o ℓ e) {Obs : Set os}
+               {E : ErrorAlgebra es ℓe} (A : Approximation Obs E ℓa)
+               (𝟙 Ω : Category.Obj 𝒞) (⟦_⟧ : 𝒞 [ 𝟙 , Ω ] → Obs)
+               (resp : {u v : 𝒞 [ 𝟙 , Ω ]} → 𝒞 [ u ≈ v ]
+                     → Approximation._≈[_]_ A ⟦ u ⟧ (Approximation.ε₀ A) ⟦ v ⟧) where
+  open Approximation A
+
+  observation : Observation 𝒞 os (es ⊔ ℓe ⊔ ℓa)
+  observation = record
+    { 𝟙 = 𝟙 ; Ω = Ω ; Obs = Obs ; ⟦_⟧ = ⟦_⟧
+    ; _∼_ = _∼ᵃ_
+    ; ∼-isEquivalence = ∼ᵃ-isEquivalence
+    ; ⟦⟧-resp-≈ = λ eq _ pos → ≈[]-mono (ε₀-least pos) (resp eq)
+    }
+
+  approximate : ApproximateObservation observation E ℓa
+  approximate = record { approx = A ; induces = λ h → h ; ⟦⟧-resp-≈₀ = resp }
+
+------------------------------------------------------------------------
+-- A one-sided reading
+
+-- `Observation` deliberately compares observations without valuing one, which
+-- is what keeps it inhabited at `Dₚ` (whose termination mass is a supremum the
+-- layer never forms).  A BOUND on a single observation — what an audit-form
+-- security statement is — needs exactly this much more and no more: a budgeted
+-- value, and that an agreement dominates it up to any positive slack.  At the
+-- intended instance `at` is `Pr≤` and `dominate` is the left half of `_≈ₚ[_]_`
+-- (`UC.Seam.Audit.massᴹ`), so nothing new is assumed.
+record Mass {o ℓ e} {𝒞 : Category o ℓ e} (O : Observation 𝒞 os ℓs)
+          : Set (os ⊔ ℓs) where
+  open Observation O
+
+  field
+    at       : ℕ → Obs → ℚ
+    dominate : {x y : Obs} → x ∼ y → (δ : ℚ) → 0ℚ ℚ.< δ
+             → (n : ℕ) → Σ[ m ∈ ℕ ] at n x ℚ.≤ at m y ℚ.+ δ

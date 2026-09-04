@@ -15,33 +15,42 @@
 -- bookkeeping: eventual closeness quantifies over the indices above a
 -- threshold, so a bounded `κ` (constantly zero, say) makes every eventual
 -- statement — hence the whole UC preorder — vacuously true.  `κ-cofinal` is
--- what `≈^ω-witness` spends.
+-- what `≈^ω-witness` spends.  It is an ASYMPTOTIC-INSTANCE requirement and not
+-- a requirement of general UC: nothing in the core, the environment layer or
+-- the emulation metatheory mentions an index at all.
 --
--- Everything categorical is levelwise, so the whole `UCBase` transports: the
--- observation becomes an `Ix`-sequence of observations, `_≈[ ε ]_` becomes
--- *eventual* ε-closeness in `κ`, and the derived agreement `_∼_` is then
--- literally the vanishing-advantage relation, with its ε/2 transitivity already
--- proved once in `UC.Base`.
+-- This layer is where the notes' quantitative-to-qualitative arrow runs.
+-- Everything categorical is levelwise, so the whole `UCBase` transports; the
+-- observation, however, is CONSTRUCTED rather than transported — the base's
+-- ε-closeness becomes *eventual* ε-closeness in `κ`, and
+-- `UC.Approximate.Induced` turns that into the qualitative agreement the core
+-- consumes, which is then literally the vanishing-advantage relation (its ε/2
+-- transitivity proved once, there).  `absorb` is that construction's `induces`
+-- read at a negligible error.
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly using (Poly; poly-*; poly-const; poly-⊔)
 open import Data.Nat.Properties using (m≤m⊔n; m≤n⊔m; ≤-trans)
 open import Data.Product.Base using (Σ; Σ-syntax; _×_; _,_; proj₁; proj₂)
-open import Data.Rational as ℚ using (ℚ; 0ℚ)
+open import Data.Rational as ℚ using (ℚ)
 open import Level using (Level; _⊔_)
 
 open import Categories.Category.Core using (Category)
 
-open import CategoricalCrypto.UC.Base
-  using (UCBase; Budget; Grading; Observation; ctxBudget)
+open import CategoricalCrypto.UC.Approximate
+  using (Approximation; ApproximateObservation; VanishingBound; ℚ-errors; module Induced)
+open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget)
+open import CategoricalCrypto.UC.Core using (UCBase; Grading; Observation)
 import CategoricalCrypto.UC.Emulation as Em
 
 module CategoricalCrypto.UC.Family
-  {o ℓ e os ℓs qs : Level} (base : UCBase o ℓ e os ℓs)
+  {o ℓ e os ℓs ℓa qs : Level} (base : UCBase o ℓ e os ℓs)
+  (qapx : ApproximateObservation (UCBase.observation base) ℚ-errors ℓa)
   (bud : Budget (UCBase.𝒞 base) (UCBase.grading base) qs)
   (Ix : Set) (κ : Ix → ℕ) (κ-cofinal : (N : ℕ) → Σ[ i ∈ Ix ] N ℕ.≤ κ i) where
 
 open UCBase base
+open ApproximateObservation qapx
 open Budget bud
 
 ------------------------------------------------------------------------
@@ -131,11 +140,10 @@ Grading^ω = record
 ------------------------------------------------------------------------
 -- The observation, asymptotically
 
-infix 4 _≈^ω[_]_ _→0
+infix 4 _≈^ω[_]_
 
--- Eventually ε-close in the security parameter.  `UC.Base` then derives the
--- vanishing-advantage relation and its equivalence from this.
-_≈^ω[_]_ : (Ix → Obs) → ℚ → (Ix → Obs) → Set ℓs
+-- Eventually ε-close in the security parameter.
+_≈^ω[_]_ : (Ix → Obs) → ℚ → (Ix → Obs) → Set ℓa
 μ ≈^ω[ ε ] ν = Σ[ N ∈ ℕ ] ((i : Ix) → N ℕ.≤ κ i → μ i ≈[ ε ] ν i)
 
 -- Cofinality is what keeps the eventual relation from being satisfiable by
@@ -144,25 +152,29 @@ _≈^ω[_]_ : (Ix → Obs) → ℚ → (Ix → Obs) → Set ℓs
 ≈^ω-witness : {μ ν : Ix → Obs} {ε : ℚ} → μ ≈^ω[ ε ] ν → Σ[ i ∈ Ix ] μ i ≈[ ε ] ν i
 ≈^ω-witness (N , h) = let i , le = κ-cofinal N in i , h i le
 
-_→0 : (ℕ → ℚ) → Set
-s →0 = (ε : ℚ) → 0ℚ ℚ.< ε → Σ[ N ∈ ℕ ] ((n : ℕ) → N ℕ.≤ n → s n ℚ.≤ ε)
-
-Observation^ω : Observation Fam os ℓs
-Observation^ω = record
-  { 𝟙 = Δ 𝟙
-  ; Ω = Δ Ω
-  ; Obs = Ix → Obs
-  ; ⟦_⟧ = λ u i → ⟦ proj₁ u i ⟧
-  ; _≈[_]_ = _≈^ω[_]_
+Approximation^ω : Approximation (Ix → Obs) ℚ-errors ℓa
+Approximation^ω = record
+  { _≈[_]_    = _≈^ω[_]_
   ; ≈[]-refl  = 0 , λ _ _ → ≈[]-refl
   ; ≈[]-sym   = λ (N , h) → N , λ i le → ≈[]-sym (h i le)
   ; ≈[]-trans = λ (N₁ , h₁) (N₂ , h₂) → N₁ ℕ.⊔ N₂ , λ i le →
       ≈[]-trans (h₁ i (≤-trans (m≤m⊔n N₁ N₂) le)) (h₂ i (≤-trans (m≤n⊔m N₁ N₂) le))
   ; ≈[]-mono  = λ le (N , h) → N , λ i le′ → ≈[]-mono le (h i le′)
-  ; ⟦⟧-resp-≈ = λ eq → 0 , λ i _ → ⟦⟧-resp-≈ (eq i)
   }
 
-UCBase^ω : UCBase o (ℓ ⊔ qs) e os ℓs
+private
+  module I = Induced Fam Approximation^ω (Δ 𝟙) (Δ Ω) (λ u i → ⟦ proj₁ u i ⟧)
+                     (λ eq → 0 , λ i _ → ⟦⟧-resp-≈₀ (eq i))
+
+-- The qualitative observation the core consumes: `_∼_` is vanishing advantage.
+Observation^ω : Observation Fam os ℓa
+Observation^ω = I.observation
+
+-- …and the family is again a quantitative model, so the construction iterates.
+Approximate^ω : ApproximateObservation Observation^ω ℚ-errors ℓa
+Approximate^ω = I.approximate
+
+UCBase^ω : UCBase o (ℓ ⊔ qs) e os ℓa
 UCBase^ω = record { 𝒞 = Fam ; grading = Grading^ω ; observation = Observation^ω }
 
 ------------------------------------------------------------------------
@@ -180,7 +192,7 @@ infix 4 _≈ℰ[_]_
 
 -- The budget a context's two legs CARRY, as one polynomial: `ctxBudget`
 -- levelwise, so a closure certifying at `QB 0` cannot evaluate a concrete bound
--- at budget zero against a context that genuinely queries (`UC.Base`'s comment
+-- at budget zero against a context that genuinely queries (`UC.Budget`'s comment
 -- has the accounting).
 ctxQB : (p q : ℕ → ℕ) → ℕ → ℕ
 ctxQB p q n = ctxBudget (p n) (q n)
@@ -193,14 +205,11 @@ ctxQB-poly Pp Pq = poly-* Pp (poly-⊔ Pq (poly-const 1))
 -- polynomial budget the context's two legs CARRY.  This is the only place the
 -- query bound earns its keep — an unbudgeted context would make `ε` a function
 -- of nothing, and `absorb` below would have no polynomial to close over.
-_≈ℰ[_]_ : {A B : Obj^ω} → A ⇒^ω B → (ℕ → ℕ → ℚ) → A ⇒^ω B → Set (o ⊔ ℓ ⊔ ℓs ⊔ qs)
+_≈ℰ[_]_ : {A B : Obj^ω} → A ⇒^ω B → (ℕ → ℕ → ℚ) → A ⇒^ω B → Set (o ⊔ ℓ ⊔ ℓa ⊔ qs)
 _≈ℰ[_]_ {A} {B} f ε g =
   (Y : Obj^ω) (Et : Test (Y ⊛ω B)) (m : Closure (Y ⊛ω A)) (i : Ix)
   → obs (tv₁ Y f Et) m i ≈[ ε (κ i) (ctxQB (qbOf Et) (qbOf m) (κ i)) ]
     obs (tv₁ Y g Et) m i
-
-VanishingBound : (ℕ → ℕ → ℚ) → Set
-VanishingBound ε = (p : ℕ → ℕ) → Poly p → (λ n → ε n (p n)) →0
 
 -- A vanishing bound collapses the quantitative statement to environment
 -- agreement.  The context supplies the polynomial; `poly-*` closes it.

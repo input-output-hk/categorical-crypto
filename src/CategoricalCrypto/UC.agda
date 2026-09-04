@@ -2,31 +2,46 @@
 
 -- The UC layer's entry point: one import for a consumer.
 --
---   `UC.Base`        what the layer asks of an ambient category — the grading
---                    action, the ε-indexed observation, the query-budget
---                    plumbing
---   `UC.Machine`     the intended model: `𝒫ᴵ`, processes on `Iface`s, the
---                    ticked verdict interface, the observation at `Dₚ`
---   `UC.QueryBound`  the amortised-potential certificate and the counting
---                    statement — a query bound with content
---   `UC.Bridge`      `ContextDominated`, the interface to layer 1's concrete
---                    theorems, and the budget a context affords a strategy
---   `UC.Seam`        where layer 1's `transfer` meets an emulation: a strategy
---                    as an environment, `Adequacy`, the POV carry
---                    (`UC.Seam.Carry` proves the carry's premise from
---                    `Adequacy` and `PrAgree`)
+-- The layer is three tiers, and the split is the point.  The CORE is
+-- qualitative: a category, the grading action of adversary interfaces, and an
+-- equivalence on what closed runs show.  The ENRICHMENT adds what a model may
+-- know and general UC must not assume — a measurable error, a query budget, a
+-- mass.  The MODEL is the `Dₚ` machine instance, where the enrichment is
+-- discharged and the core's equivalence is CONSTRUCTED from rational advantage.
 --
--- The parameterized layers take a `UCBase` (or, for the last two, the
--- `Grading 𝒫ᴵ` this branch still owes) and so are imported directly:
+--   core         `UC.Core`         `Grading`, `Observation`, `UCBase`
+--                `UC.Environment`  the environment presheaf, `_≈ℰ_`,
+--                                  `grade-stable`
+--                `UC.Emulation`    `_≤UC_`, its four metatheorems, the collapse
+--                                  at a degenerate grade (`unit-grade`)
+--   enrichment   `UC.Approximate`  `ErrorAlgebra`, `Approximation`,
+--                                  `ApproximateObservation`, `Induced`, `Mass`
+--                `UC.Budget`       `Budget`, `ctxBudget` — the resource doctrine
+--                `UC.Environment.Approximate`
+--                                  `_≈ℰ[ ε ]_` and its collapse
+--                `UC.Audit`        `audit-carry`: an audit-form bound across an
+--                                  emulation, the simulator absorbed into the
+--                                  environment leg
+--                `UC.Family`       the asymptotic constructor — `𝒞^ω` at a
+--                                  parameterized index, and `absorb`, where a
+--                                  vanishing bound BECOMES the core's `_≈ℰ_`
+--   model        `UC.Machine`      `𝒫ᴵ`, processes on `Iface`s, the ticked
+--                                  verdict interface, the observation at `Dₚ`
+--                `UC.QueryBound`   the amortised-potential certificate and the
+--                                  counting statement — a query bound with
+--                                  content
+--                `UC.Machine.Bridge`
+--                                  `ContextDominated`, the interface to layer
+--                                  1's concrete theorems
+--                `UC.Seam`         where layer 1's `transfer` meets an
+--                                  emulation: a strategy as an environment,
+--                                  `Adequacy`, the POV carry (`UC.Seam.Carry`
+--                                  proves its premise from `Adequacy` and
+--                                  `PrAgree`); `UC.Seam.Grounding` and
+--                                  `UC.Seam.Audit` name what the instance owes
 --
---   `UC.Environment`     the environment presheaf, `_≈ℰ_`, `grade-stable`
---   `UC.Emulation`       `_≤UC_`, its four metatheorems, and the collapse at a
---                        degenerate grade (`unit-grade`)
---   `UC.Family`          `𝒞^ω` at a parameterized index, `absorb`
---   `UC.Audit`           `audit-carry`: an audit-form bound across an emulation,
---                        the simulator absorbed into the environment leg
---   `UC.Seam.Grounding`  the seam's grading-dependent statements
---   `UC.Seam.Audit`      `UC.Audit` at the intended instance
+-- The parameterized modules take a `UCBase` (or the `Grading 𝒫ᴵ` this branch
+-- still owes) and so are imported directly rather than re-exported here.
 --
 -- Everything is `--safe --without-K`; the `Dₚ`-facing modules add
 -- `--guardedness` and nothing adds anything else.  In particular there is no K
@@ -35,7 +50,9 @@
 
 module CategoricalCrypto.UC where
 
-open import CategoricalCrypto.UC.Base public
-open import CategoricalCrypto.UC.Bridge public
+open import CategoricalCrypto.UC.Approximate public
+open import CategoricalCrypto.UC.Budget public
+open import CategoricalCrypto.UC.Core public
 open import CategoricalCrypto.UC.Machine public
+open import CategoricalCrypto.UC.Machine.Bridge public
 open import CategoricalCrypto.UC.QueryBound public
