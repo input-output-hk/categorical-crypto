@@ -1,6 +1,6 @@
 # Rewrite verdict: `protocol-rewrite` vs the old lineage
 
-Comparison of `protocol-rewrite` (M1–M3, 63 files / +8095 LOC over `f71a2381`) against
+Comparison of `protocol-rewrite` (M1–M3, 67 files / +8732 LOC over `f71a2381`) against
 the old lineage's tip (`sfunm-setoid` + `spike/pov-tower`, 59 files / +9592/−1888 over
 the same base). Quality-pass addendum pending; nothing below depends on it.
 
@@ -11,7 +11,7 @@ old lineage are enumerable ports, not regressions in kind.
 
 | axis | protocol-rewrite | old lineage |
 |---|---|---|
-| statement honesty | POV over the state trajectory at a pinned genesis; randomized strategies native (`coin`); **no budget in any statement**; `SameTV` ancilla-parametric ⇒ **no K island**; ε-indexed `≈ₚ[ε]` replaces the (at Dₚ uninhabitable) ℚ-valued `adv`; `Reflects` per compared pair over randomized trees, and the seam built along the embedding (addendum) | budget-parametric statements needing calibration remarks; 2-module K island; deterministic `Dgr` (`Reflects` refuted once); ledger `valid` had two value-leak bugs making POV(inputConsuming) **false** |
+| statement honesty | POV over the state trajectory at a pinned genesis; randomized strategies native (`coin`); **no budget in any statement**; `SameTV` ancilla-parametric ⇒ **no K island**; ε-indexed `≈ₚ[ε]` replaces the (at Dₚ uninhabitable) ℚ-valued `adv`; the bridge quantifies over the budgeted strategies instead of witnessing a dominating one, a context's budget is guarded against zero, and the seam is built along the embedding with a simulator-aware carry at both grades (addenda) | budget-parametric statements needing calibration remarks; 2-module K island; deterministic `Dgr` (`Reflects` refuted once); ledger `valid` had two value-leak bugs making POV(inputConsuming) **false** |
 | reach | machine category = `Traced` + **`GConstruction` verbatim, zero hypotheses** (`𝒢ₚ` closed); unbounded machines native — infinite traces with no towers, no `Stabilizes`, no `clip` | never reached `𝒢` (blocked at ro-model phase 1); infinite traces only via the tower workaround |
 | example | `ChimericLedger.POV` = 190 lines, 3 layer imports, plain-Agda ledger, `Sys = ledger ∘ᵖ oracle`, pins by `refl` | same shape achieved only after three API redesign passes; rests on `System` certificate luggage |
 | equalities | one hom-equality (simulation zigzag) from birth | four-relation zoo (`≈ᴹᶜ/≲/≲ᵒ/≈ˢ`) + ~780 LOC of word machinery with no counterpart in the rewrite |
@@ -32,9 +32,11 @@ old lineage are enumerable ports, not regressions in kind.
    `Dist⊥ → Dₚ` embedding, `Dp.Coin` is the Bool case).
 5. **`Monoidal (GConstruction C)`**: one compound-object σ-coherence (`⌜⌝-⊗`) gates the
    bifunctor field; embedding layer landed.
-6. **The seam's two steps**: `StratIsEnv` (~80–120) and `Adequacy` (~250–350), after
-   which `AgreeToAdv` and `pov-carry` are theorems (see the addendum); the `Reflects`
-   reifier (~250, instance-specific); `Grading 𝒫ᴵ` (record-eta cliff, medicine known);
+6. **The seam's remaining steps**: `StratIsEnv` (~80–120) and `Adequacy` (~250–350),
+   after which `AgreeToAdv` and `pov-carry` are theorems (addendum 1); the trivial
+   grade's `SubBlind`/`IotaBlind` (~60–90 each) and `AuditIsBounded` (~120–180), after
+   which both simulator carries reach layer 1 (addendum 2); `ContextDominated`
+   (~250, instance-specific); `Grading 𝒫ᴵ` (record-eta cliff, medicine known);
    `UC-compose` (two `Grading` fields).
 
 Total to parity-and-beyond: ≈1400–2300 LOC, all routine-to-medium, none research-grade.
@@ -91,3 +93,25 @@ resolved on this branch.
 4. **κ cofinality.** `UC.Family` now takes `κ-cofinal : ∀ N → Σ[ i ] N ≤ κ i`, without
    which a bounded `κ` makes every eventual statement — hence the UC preorder — vacuous.
    `≈^ω-witness` is what it buys.
+
+## Addendum 2: second external theory review, findings and resolutions
+
+Reviewed at `f096c5d5`; round 1's four resolutions are confirmed there, and all three
+new findings are resolved on this branch.
+
+1. **Context budgets collapsing to zero.** `c * c′` charges a genuinely querying
+   context nothing when the closure certifies at `QB 0` (an ancilla with no downward
+   port). `UC.Base.ctxBudget c c′ = c * (c′ ⊔ 1)` replaces it in `UC.Bridge`, in
+   `UC.Family`'s `_≈ℰ[_]_` (as `ctxQB`, still polynomial) and in `UC.Audit`; the
+   port-specific bound on crossings of the distinguished hole is priced, not built.
+2. **A simulator-aware carry.** `UC.Emulation.unit-grade` proves the unit-grade
+   specialization (an emulation at a blind grade IS `pov-carry`'s direct premise) and
+   `UC.Audit.audit-carry` proves the graded one (an interface-observable audit bound
+   crosses `_≤UC_` at the emulation's slack, the simulator absorbed into the test and
+   its queries charged there). Both are proved over an arbitrary base because at the
+   machine instance an `≈ℰ` between composites cannot be a term's type; the instance
+   modules name the residue (`SubBlind`/`IotaBlind`, `AuditIsBounded`).
+3. **The existential reflection.** Gone: `UC.Bridge.ContextDominated` quantifies over
+   the strategies the context's budget affords and concludes at `ε + δ` for an
+   arbitrary positive δ, which is what a convexity argument over a supremum-valued
+   mass delivers and what layer 1's budget-quantified theorems feed directly.

@@ -24,7 +24,7 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 | M2 wave 1: `Dₚ`, `Kl(Dₚ)`, `Mealy` + `Mealy-Category` + the ⊕-trace | **DONE** — all green, hatches 21 = baseline |
 | M2 wave 2: the four residual trace laws + `Elgot` at `Kl(Dₚ)` | **DONE** — the machine layer is hypothesis-free; hatches 21 = baseline |
 | M2 wave 3: the machine SMC bundle, `Traced`, GConstruction, `morphism`/`Pr-agree` | **the machine layer is DONE** — `ℳₚ` symmetric monoidal, `Tracedₚ`, `𝒢ₚ` all closed terms; `morphism` landed, `Morphism-∘`/`PrAgree` stated and priced; hatches 21 = baseline |
-| M3: the UC layer | **the statement layer is DONE**, and the external theory review's four findings are resolved (`docs/rewrite-verdict.md`'s addendum) — `_≈ℰ_`/`grade-stable`/`absorb`/`_≤UC_` and its metatheorems are theorems, no K island, no `HomTransportTrivial`; the intended instance's observation is a theorem and its grading action is data with `Grading 𝒫ᴵ` priced; hatches 21 = baseline |
+| M3: the UC layer | **the statement layer is DONE**, and both external theory reviews' findings are resolved (`docs/rewrite-verdict.md`'s two addenda) — `_≈ℰ_`/`grade-stable`/`absorb`/`_≤UC_` and its metatheorems are theorems, no K island, no `HomTransportTrivial`; the simulator carry is a theorem in both its degenerate (`unit-grade`) and graded (`audit-carry`) form; the intended instance's observation is a theorem and its grading action is data with `Grading 𝒫ᴵ` priced; hatches 21 = baseline |
 
 ## Modules (M1: 10 files, 874 LOC, all `--safe --without-K`)
 
@@ -479,23 +479,25 @@ symmetric solver as unusable here because
 `b746517c` restored it, so `solveH!`/`rewriteH!` are available again — no law in
 this layer needed them.)
 
-## M3: the UC layer (13 files, 1760 LOC)
+## M3: the UC layer (15 files, 1993 LOC)
 
 | module | LOC | role |
 |---|---|---|
 | `ProbabilisticLogic.Dp.Advantage` | 107 | `Pr≤`, `_≼ₚ[_]_`/`_≈ₚ[_]_` — advantage as an ε-indexed relation, with the pseudometric laws |
-| `CategoricalCrypto.UC.Base` | 156 | `Grading`, `Budget`, `Observation`, `UCBase`; the derived agreement `_∼_` and its ε/2 equivalence |
+| `CategoricalCrypto.UC.Base` | 187 | `Grading`, `Budget`, `ctxBudget`, `Observation`, `Mass`, `UCBase`; the derived agreement `_∼_` and its ε/2 equivalence |
 | `…UC.Environment` | 173 | `SameTV` (ancilla a parameter), `Tests`, `ℰᵗᵛ`, `_≈ℰ_`, its congruences, `grade-stable`, `_≈ℰ[_]_`, `absorbᵘ` |
-| `…UC.Emulation` | 88 | `_≤UC_`, `_≤UC⁺_`, `≤UC-refl`/`≤UC-trans`/`dummy-complete`/`≤UC⁺⇒≤UC`, `_⊙_`, `_⊛₁_`, `UC-compose` (stated) |
-| `…UC.Family` | 201 | `𝒞^ω` at a parameterized index, `PolyQB`, `Fam`, `Grading^ω`, `Observation^ω`, `UCBase^ω`, `_≈ℰ[_]_`, `VanishingBound`, `absorb` |
+| `…UC.Emulation` | 114 | `_≤UC_`, `_≤UC⁺_`, `≤UC-refl`/`≤UC-trans`/`dummy-complete`/`≤UC⁺⇒≤UC`, `blind-grade`/`unit-grade`, `_⊙_`, `_⊛₁_`, `UC-compose` (stated) |
+| `…UC.Family` | 212 | `𝒞^ω` at a parameterized index, `PolyQB`, `Fam`, `Grading^ω`, `Observation^ω`, `UCBase^ω`, `ctxQB`, `_≈ℰ[_]_`, `VanishingBound`, `absorb` |
+| `…UC.Audit` | 132 | `_≤UC[_]_` (a budgeted simulator), `simCost`, `AuditBound`, `audit-carry` — the graded carry, proved |
 | `…UC.Machine` | 219 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Observationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `GradingLawsᴹ`, `UCBaseᴹ` |
 | `…UC.Machine.Run` | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
 | `…UC.QueryBound` | 265 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `CountBound`, `Counting` (stated), `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `BudgetLawsᴹ` (stated) |
-| `…UC.Bridge` | 87 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `Reflects` (stated) |
-| `…UC.Seam` | 166 | `strategyEnv` (a strategy as an environment), `ctxRunˢ`/`runˢ`, `Agreeˢ`, `Adequacy`/`AgreeToAdv` (stated), `pov-carry` (proved) |
+| `…UC.Bridge` | 90 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `ContextDominated` (stated) |
+| `…UC.Seam` | 171 | `strategyEnv` (a strategy as an environment), `ctxRunˢ`/`runˢ`, `Agreeˢ`, `Adequacy`/`AgreeToAdv` (stated), `pov-carry` (proved) |
 | `…UC.Seam.Carry` | 79 | `run-agree`, `agree-to-adv` — `AgreeToAdv` from `Adequacy` and `PrAgree`, proved |
-| `…UC.Seam.Grounding` | 30 | `StratIsEnv` (stated), the seam's one grading-dependent step |
-| `…UC` | 32 | the one entry point |
+| `…UC.Seam.Grounding` | 80 | `StratIsEnv`, and the trivial grade's `SubBlind`/`IotaBlind`/`UnitGrade` — the grading-dependent statements |
+| `…UC.Seam.Audit` | 66 | `massᴹ` (`Pr≤` as a `Mass`), `UC.Audit` at the instance, `AuditIsBounded` (stated) |
+| `…UC` | 41 | the one entry point |
 
 All `--safe --without-K`; the `Dₚ`-facing six add `--guardedness` and nothing
 adds anything else. **There is no K island**, which was the acceptance test.
@@ -540,17 +542,26 @@ adds anything else. **There is no K island**, which was the acceptance test.
   so the reference's `Pos = Bool , Neg = ⊥` verdict can never be activated by a
   closed composite; the tick is the environment's single activation and the
   observation is layer 1's own `runᴹ` at `ask tt out`.
-* **`Reflects` reflects per compared pair.** The reference's applied form put
-  `Σ[ d ]` before `∀ u v` with *deterministic* strategies, which is false: a
-  context that flips a fair coin and asks one of two questions gets advantage ½
-  against two different pairs, while any deterministic one-ask tree scores zero
-  against one of them.  Layer 0's `Strat` has carried the coin node since M1,
-  which answers that objection but not the sampling one the external review
-  raised: a finite tree mentions finitely many first queries, while a `Dₚ`
-  context may ask an unbounded-support sampled question at query bound one.  So
-  the order is `∀ u v` before `Σ[ d ]` — the form the consumers use anyway.  The
-  uniform form needs a `Dₚ`-valued or coinductive strategy language, or a
-  finitary restriction of UC contexts; neither is built.
+* **The bridge quantifies over strategies; it does not witness one.**  The
+  reference's applied form put `Σ[ d ]` before `∀ u v` with *deterministic*
+  strategies, which is false twice over — a context flipping a fair coin and
+  asking one of two questions gets advantage ½ against two different pairs while
+  any deterministic one-ask tree scores zero against one of them (fixed by layer
+  0's `coin` node, there since M1), and a finite tree mentions finitely many
+  first queries while a `Dₚ` context may ask an unbounded-support sampled
+  question at query bound one (fixed by moving the pair in front, round 1).  What
+  the second round found is that the surviving existential still asks for a
+  finite strategy *exactly dominating* a `Dₚ` context at every slack, i.e. for
+  constructive extraction of an optimal deterministic policy with attainment
+  rather than approximation.  `ContextDominated` therefore quantifies
+  universally: if every strategy of the context's carried budget leaves the two
+  direct runs ε-close, the context separates them by at most ε + δ.  That is the
+  shape the consumers have anyway (`_≈adv[_]_`/`Bounded` are quantified over
+  budgeted strategies, instantiated at `q := ctxBudget c c′`), and the arbitrary
+  positive δ is what a convexity argument delivers: a `Dₚ` mass is a supremum
+  over budgets the layer never forms, so decomposing a context into the branches
+  a strategy plays leaves a residue only a positive δ absorbs.  `_∼_` quantifies
+  over every positive slack, so the δ costs a consumer nothing.
 
 ### What is proved, and what is priced
 
@@ -565,6 +576,36 @@ metatheorems and the equivalence of the plain and dummy-adversary forms;
 `run-agree`/`agree-to-adv` — so `AgreeToAdv` holds as soon as `Adequacy` and
 `PrAgree` do, where it used to be an assumption of its own.
 
+Proved as of the second review, and both about the SIMULATOR the emulation
+carries — `pov-carry`'s premise being direct agreement, which `_≤UC_` does not
+hand over:
+
+* `UC.Emulation.unit-grade` — at a grade both ends are blind to, an emulation
+  *is* the direct agreement: the simulator collapses by `sub s ∘ g ≈ℰ g` and the
+  inflating wire by the ancilla quantifier.  Two lines over `blind-grade`, with
+  the two blindness facts as hypotheses (named, and priced, at the instance in
+  `UC.Seam.Grounding`).
+* `UC.Audit.audit-carry` — the graded carry: from `f ≤UC[ cs ] g` (an emulation
+  whose simulator carries a query budget) and an ideal-side `AuditBound g ε`,
+  the real side inherits `AuditBound f (λ q → ε (simCost q cs) + δ)` for any
+  positive δ.  The mechanism is that `sub s` slides off the process and onto the
+  test — `Et ∘ T₁ W (sub s)`, the same context with the simulator in front of it
+  — so the simulator's queries are charged to the environment leg
+  (`simCost q cs = q * (cs ⊔ 1)`) and the emulation's slack is what separates the
+  two masses.  `UC.Base.Mass` is the one-sided reading it needs, and at the
+  intended instance that is `Pr≤` with `_≈ₚ[_]_`'s left half (`UC.Seam.Audit`'s
+  `massᴹ`), so nothing new is assumed.
+
+  The carried event must be INTERFACE-OBSERVABLE, which is content and not
+  convenience: what a test reads is what an emulation preserves, and a state
+  trajectory is not that (the simulator's state is not the ideal process's).
+  That is exactly the division of labour the ledger example already has, and the
+  path is now closed both ways: `audit-carry` moves `POVaudit` from the ideal
+  system to the real one across an emulation, `TrajectoryFromAudit` turns an
+  audit bound back into the trajectory statement `POV`, and `pov-via-audit` is
+  the consumer that composes them.  `pov-carry` is the same route with the
+  simulator collapsed instead of kept.
+
 Stated as types with nothing inhabiting them — the `TrajectoryFromAudit`
 pattern, no postulate and no hole anywhere:
 
@@ -573,17 +614,48 @@ pattern, no postulate and no hole anywhere:
 | `Grading 𝒫ᴵ` (via `GradingLawsᴹ`'s eight fields) | `UC.Machine` | four are trace-free (~40–60 LOC each); `T₁-∘`, `sub-∘`, `a-isoˡ`, `a-nat` are M2 task 3's trace-fusion gate |
 | `Counting` | `UC.QueryBound` | 250–350 LOC; the reference's 248 plus an effectful recursion |
 | `BudgetLawsᴹ` (four closure laws) | `UC.QueryBound` | `qb-T₁`/`qb-sub` ~50 each, `qb-id` ~30, `qb-∘` 250–400 (the reference's token walk over a ⊕-trace) |
-| `Reflects` | `UC.Bridge` | ~250 LOC, instance-specific reifier; spike the two-machine skeleton first |
+| `ContextDominated` | `UC.Bridge` | ~250 LOC, instance-specific; the branchwise decomposition of a context against a budgeted strategy, reassembled by convexity of `Pr≤`.  Spike the two-machine skeleton first |
 | `StratIsEnv` | `UC.Seam.Grounding` | ~80–120 LOC; the degenerate-ancilla collapse, trace-fusion gated |
+| `SubBlind`, `IotaBlind` | `UC.Seam.Grounding` | ~60–90 LOC each, same gate: the trivial grade's summand cannot fire (`⊥-unique`), but the equation is between `𝒫ᴵ`-composites |
+| `UnitGrade` | `UC.Seam.Grounding` | the reduction is PROVED generically (`UC.Emulation.unit-grade`); what is owed is the two blindness facts, `StratIsEnv`, and the closing application, which is the eta cliff below |
+| `AuditIsBounded` | `UC.Seam.Audit` | ~120–180 LOC on `Adequacy`: recognize `strategyEnv B (bad d)`, plugged through the wires that kill the trivial grade and the ancilla, as one of the contexts `AuditBound` quantifies over — `Counting` for its certificate (`ctxBudget q 1 = q`), `PrAgree` for its mass |
 | `Adequacy` | `UC.Seam` | 250–350 LOC, one module; `PrAgree`'s unrolling, over `𝒫.∘` instead of `Dist⊥`'s bind |
 | `UC-compose` | `UC.Emulation` | two more `Grading` fields (`sub`/`T₁` interchange, `a⇒` naturality in its first two slots) |
+
+### Budget accounting, as corrected
 
 `Budget`'s `qb-T₁`/`qb-sub` land at `c ⊔ 1`, not `c`, and that is not
 bookkeeping: the ancilla's own downward relay is a completed event an activation
 from above must have deposited for, so a rate of zero cannot survive the
 action.  `qbᵢ-wire` is where this is visible.
 
-### Three perf findings, all recorded in the source
+The same guard was missing one level up, and the second review's first finding
+is that its absence is unsound rather than untidy.  A *context* was charged
+`c * c′` — the test's budget times the closure's — and a closure with no
+downward port certifies at `QB 0`: take the ancilla to be `unitᴵ`, and a
+1-bounded test that spends its tick on one query to the plugged interface is
+paired with `1 * 0 = 0`, so the witnessing strategy may make no queries at all
+and cannot distinguish implementations the context distinguishes perfectly.  The
+family-level `_≈ℰ[_]_` had the same product, evaluating a concrete bound at
+`ε (κ i) 0`.
+
+`UC.Base.ctxBudget c c′ = c * (c′ ⊔ 1)` is the correction, used by
+`UC.Bridge.ContextDominated`, by `UC.Family`'s `_≈ℰ[_]_` (levelwise, as `ctxQB`,
+still polynomial by `poly-*`/`poly-⊔`) and by `UC.Audit.AuditBound`.  The honest
+reading of the product is conservative: for a CLOSED context the test is what
+controls crossings into the plugged process, the closure only supplying ancilla
+and input responses, so `c` alone would already be a bound; the product is kept
+for closures that do relay downwards and the guard is what makes it sound at
+zero certificates.  The principled form is a port-specific bound — crossings of
+the DISTINGUISHED hole rather than a product of two whole-hom budgets — and it
+is priced, not built: it needs `QB` to be indexed by a port of the interface
+(`QBᵢ`'s potential split per summand, ~120–200 LOC over `UC.QueryBound`) and
+`Budget`'s four closure laws restated per port (`qb-T₁` becoming "the bypassed
+port's rate is unchanged, the plugged port's is `c`"), after which `ctxBudget`
+is replaced by the test's hole-rate alone and the closure drops out of the
+statement.
+
+### Four perf findings, all recorded in the source
 
 * **The reindexing record needs every object implicit passed explicitly.** Left
   to inference, each field of `𝒫ᴵ` asks Agda to invert
@@ -612,6 +684,22 @@ action.  `qbᵢ-wire` is where this is visible.
   the arithmetic corollary to `UC.Seam.Carry` and the `Grading`-dependent
   statement to `UC.Seam.Grounding`, since instantiating the environment layer
   at a grading costs a budget of the same order.
+* **An `≈ℰ` between machine composites cannot appear as a term's type at this
+  instance, at any heap.**  Bisected while building the second review's
+  simulator carry: at `Grading 𝒫ᴵ` the statements are cheap (`SubBlind`,
+  `IotaBlind`, `UnitGrade` check in 9 s as `Set₁`s) but the identity
+  application `h u v e = h u v e` over them exhausts 3 GiB, because `≈ℰ`
+  unfolds through the observation's projections and η-expands `Observationᴹ`,
+  whose `⟦⟧-resp-≈` drags the machine equality in with it.  Naming the
+  intermediate, pinning the object implicits and spelling composition as the
+  environment layer's own `_∘_` all fail to move it, and it is not the graded
+  codomain either: the same statement at a *variable* of that type is 9 s.  The
+  cure is not local — it is the `opaque` boundary or one-spelling discipline
+  `Gradingᴹ` also waits for — so the reasoning moves to where nothing unfolds:
+  `UC.Emulation.unit-grade` and `UC.Audit.audit-carry` are proved over an
+  arbitrary `UCBase` and the instance modules only name their obligations.  This
+  is the same medicine `UC.Seam.Agreeˢ` already takes by being spelled in the
+  `Dₚ` vocabulary.
 
 ### Compatibility with the inherited MD line
 
@@ -635,8 +723,15 @@ still computes both verdicts by `refl`.
 
 Still empty of escape hatches: whole-`src` hatch grep 21 before and after (the
 M1 baseline).  `Machines.Iteration.Elgot` and `Machines.Trace.Remaining` remain
-discharged at the intended base; the six statements in the table above are
-`Set`s with nothing inhabiting them and are not assumed anywhere;
-`UC.Seam.Grounding` and `UC.Family` take their `Grading`/`Budget` as module
-parameters, which is what keeps them generic, and `UC.Family` additionally
-takes `κ`'s cofinality.
+discharged at the intended base; every statement in the table above is a `Set`
+with nothing inhabiting it and is not assumed anywhere;
+`UC.Seam.Grounding`, `UC.Seam.Audit`, `UC.Audit` and `UC.Family` take their
+`Grading`/`Budget`/`Mass` as module parameters, which is what keeps them
+generic, and `UC.Family` additionally takes `κ`'s cofinality.
+
+`UC.Base.Mass` is a new hypothesis in form only: it is one field with content
+(`_≈[ ε ]_` implies ε-domination of the budgeted masses) and the intended
+instance discharges it by `proj₁` (`UC.Seam.Audit.massᴹ`).  It exists because
+`Observation` deliberately compares observations without valuing one, which is
+what keeps it inhabited at `Dₚ`, while an audit-form statement bounds a single
+observation.

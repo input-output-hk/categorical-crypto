@@ -1,60 +1,55 @@
 # Theoretical review of `protocol-rewrite`
 
-Reviewed at `ebb3f2a5`, over the range `f71a2381..ebb3f2a5`. This review focuses on the mathematical content rather than compilation, tests, or proof completion.
+Reviewed at `f096c5d5`, concentrating on the commits after the previous review (`ebb3f2a5..f096c5d5`). This review concerns the mathematical content rather than compilation, tests, or proof completion.
 
 ## Summary
 
-The rewrite is a substantially better foundation than `spike/pov-tower`. It replaces clocked towers and stabilization arguments with a direct protocol semantics, makes randomness explicit in the syntax, validates ledger effects sequentially, separates the security parameter from interaction budgets, and gives the UC layer a contentful probabilistic observation.
+The new commits materially improve the rewrite. The birthday experiment is now live, the asymptotic family requires a cofinal security-parameter map, and the protocol/UC seam is oriented through an embedding of strategies as environments rather than through the converse reflection theorem.
 
-Two issues currently prevent the advertised POV-to-UC story from going through, however. First, the concrete birthday target is vacuous at the chosen genesis state. Second, the proposed bridge from arbitrary `Dₚ` machine contexts to finite protocol strategies is false at that level of generality. There is also a direction mismatch in the theorem intended to carry protocol agreement into UC advantage, and the indexed asymptotic definition needs a cofinality condition.
+Two central issues remain. First, the query budget assigned to a context can collapse to zero even when the context makes a real query. Second, the new carry theorem still starts from direct agreement between closed protocol images rather than from simulator-based UC emulation. The bridge statement also retains an avoidable constructive risk by asking for an exactly dominating finite strategy.
 
-## Main findings
+## Findings
 
-### 1. The birthday target is vacuous
+### 1. Context query budgets can collapse to zero
 
-`Examples.ChimericLedger.POV.AtBirthday.genesis` starts with an empty UTxO set and all value in an account. But `inputConsuming` requires a transaction to have at least one input, while `checkIns` rejects every input against the empty UTxO set. Therefore no submitted transaction is accepted, the oracle is never queried, and the ledger state never changes. The claimed birthday bound is consequently true for the trivial reason that the bad event has probability zero.
+`UC.Bridge.Reflects` assigns its reified strategy the bound `c * c′`, where `c′` bounds the closure `m`. Take the ancilla to be `unitᴵ`. A closure `m : Proc unitᴵ (unitᴵ ⊗ᴵ unitᴵ)` has no downward port and therefore admits a `QB 0` certificate. A 1-bounded test `E` may nevertheless use its initial tick to query the plugged interface `B` once.
 
-The example needs a nonempty initial UTxO set, or a controlled mint/account-funded transaction rule. If existing UTxO identifiers contribute collision opportunities, their namespace or contribution to the bound must be handled explicitly.
+For implementations that answer that query differently, the context distinguishes perfectly, but `1 * 0` requires the witnessing strategy to make no queries. Such a strategy cannot distinguish the implementations, so `Reflects` is false.
 
-### 2. Finite strategies cannot represent arbitrary `Dₚ` contexts
+The same multiplication appears in `UC.Family._≈ℰ[_]_`. A one-query test paired with a zero-bounded closure is charged budget zero, so a concrete bound is evaluated at `ε (κ i) 0`.
 
-`CategoricalCrypto.Strategy.Strat` is a finite inductive tree. Even though `Dₚ` supports countably supported computation, a finite strategy can mention only finitely many possible first queries. An unrestricted machine context can sample a natural number with unbounded support and issue that value as its sole query while still satisfying query bound one.
+For a closed context, the test controls crossings into the plugged process while the closure only supplies ancillary/input responses. The conservative bound therefore appears to be `c` alone. If both numbers genuinely contribute, the multiplication needs a proved operational justification and at least a `c′ ⊔ 1` guard. A port-specific bound for crossings of the distinguished hole would be the principled formulation.
 
-Hence `UC.Bridge.Reflects`, which asks for one finite strategy before quantifying over implementations `u` and `v`, cannot hold for arbitrary `Dₚ` contexts: choose implementations that differ only on a query outside the finite strategy's support.
+### 2. The carry is not yet simulator-aware
 
-There are three coherent repairs: restrict UC contexts to a finitary fragment, enlarge strategies to a `Dₚ`-valued or coinductive representation, or weaken/reorder the quantifiers so the witnessing experiment may depend on the compared implementations. The first two preserve a useful uniform reflection theorem; the third changes its meaning.
+The new seam has the correct local direction: environment agreement leads to embedded-strategy agreement, then direct-run agreement, and finally protocol advantage. `strategyEnv`, `Adequacy`, `PrAgree`, and `agree-to-adv` form a coherent decomposition of that argument.
 
-### 3. The proposed seam has the wrong implication direction
+However, `pov-carry` assumes `Agreeˢ` directly between two closed protocol images. A UC emulation instead supplies an agreement `f ≈ℰ sub s ∘ g` at a graded codomain, with a simulator `s`. No current theorem turns this graded, simulator-bearing agreement into the premise of `pov-carry`. `StratIsEnv` only grounds an already-direct environment agreement between two closed processes.
 
-`UC.Bridge.Reflects` turns closeness of direct protocol runs into closeness under a machine context. `UC.Seam.AgreeToAdv` needs the converse kind of step: a UC/contextual hypothesis must imply closeness of the direct protocol observations used by `transfer`.
+The missing result should either be a closed/unit-grade specialization from `conjᴵ (morphism P) ≤UC conjᴵ (morphism Q)` to `Agreeˢ B (morphism P) (morphism Q)`, or, more usefully, a genuinely graded audit theorem carrying an ideal audit bound across `_≤UC_` and its simulator. `TrajectoryFromAudit` can then recover the state-trajectory statement. Until such a theorem is stated, the earlier simulator-accounting concern is only partially resolved.
 
-Reflection alone therefore cannot justify `AgreeToAdv`. A sound seam needs an embedding of each protocol strategy as a UC environment, plus a run-agreement theorem for that embedding. It must also account for the simulator quantified by `_≤UC_`; the present `pov-carry` premise is only a direct environment agreement.
+### 3. `Reflects` still asks for a stronger witness than its consumers need
 
-### 4. The security-parameter map must be cofinal
+Moving `u` and `v` before the existential strategy fixes the original uniform finite-support counterexample. It still asks for one finite strategy that exactly dominates a possibly countably supported `Dₚ` context at every slack. Producing that strategy may require constructive extraction of an optimal deterministic policy, including exact attainment rather than approximation.
 
-`UC.Family` defines eventual comparison using an arbitrary map `κ : Ix → ℕ`. If `κ` is bounded—for example, constantly zero—then choosing a threshold above its range makes every eventual statement vacuously true. This collapses the UC preorder.
+A safer statement says that if every bounded strategy makes the two direct runs ε-close, then the context runs are ε-close. This directly consumes a protocol theorem quantified over all bounded strategies and can be proved through convexity of probabilistic choice. If exact preservation is unavailable, an arbitrary positive approximation slack is sufficient for the asymptotic layer.
 
-The family construction should require `κ` to be cofinal/unbounded: for every threshold `N`, some index `i` satisfies `N ≤ κ i`. Alternatively, use `ℕ` directly as the security-parameter index.
+## Resolved findings
 
-## Comparison with `spike/pov-tower`
+- The birthday target is no longer vacuous. Genesis contains a spendable UTxO, and the pins demonstrate acceptance and a state transition.
+- The additional `+ q` term correctly accounts for fresh oracle outputs colliding with the genesis hash `h₀`.
+- Requiring `κ` to be cofinal prevents eventual equality and the UC preorder from becoming vacuous.
+- The old implication-direction error is repaired locally: extraction of protocol advantage now proceeds through the strategy-to-environment embedding.
 
-| Aspect | `spike/pov-tower` | `protocol-rewrite` |
-|---|---|---|
-| Operational semantics | Clocked tower with eventual equality and stabilization | Direct finite protocol execution; no clocks or stabilization |
-| Probability | Tower observations conflict with equality that forgets finite prefixes | Direct `Pr`/`PrHit`; avoids that well-definedness problem |
-| Random computation | Clocking excludes genuinely unbounded probabilistic work | `Dₚ` supports countably supported computations |
-| Ledger validation | Duplicate inputs/withdrawals can create value | Sequential consumption/debit fixes the preservation bug |
-| POV observation | Audit transformation plus stabilization machinery | Trajectory observation is direct; audit form is a derived bridge |
-| Parameters | Interaction budget and security level are entangled | Indexed families separate security parameters from query bounds |
-| Machine equality | Multiple layers of tower/cofinal reasoning | One simulation-zigzag equality |
-| UC content | Terminal-presheaf setup is too weak to express the intended experiment | Ticked `Dₚ Bool` observations are meaningful, but the bridge is not yet valid |
-| Current result | Some specialized relay/transfer results are proved, but on a flawed base | Better architecture, but central bridge and seam remain specifications |
+## Assessment
 
-## Recommendation
+The rewrite remains the right foundation and is substantially better than `spike/pov-tower`. The live example and cofinal family repair the two clearest semantic defects, while the new seam identifies sensible proof obligations instead of assuming the desired transfer outright.
 
-Continue with the rewrite rather than repairing the tower. Before investing in the remaining proofs, settle two design choices:
+The next theoretical priorities should be:
 
-1. Make the ledger experiment nontrivial and state the collision bound for that actual initial state.
-2. Decide whether protocol adversaries and UC contexts are both finitary, or both live in a richer `Dₚ` strategy language.
+1. Correct the context-budget accounting in both `Reflects` and the family-level quantitative relation.
+2. Replace or weaken the existential reflection principle before investing in its proof.
+3. State and prove the graded, simulator-aware audit carry connecting `_≤UC_` to the protocol-level POV theorem.
 
-After that, replace `Reflects`/`AgreeToAdv` with a directionally sound strategy-to-environment adequacy theorem, add cofinality to `κ`, and only then prove the trajectory/audit and UC composition obligations. That would preserve the rewrite's cleaner architecture while giving the POV theorem genuine cryptographic content.
+No compilation or test checks were run for this theory-focused review.
+
