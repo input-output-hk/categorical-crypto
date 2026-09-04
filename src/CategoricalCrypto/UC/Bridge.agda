@@ -4,21 +4,31 @@
 --
 -- An ℰ-statement quantifies over ancilla CONTEXTS; a hand-written security
 -- theorem quantifies over adaptive STRATEGIES.  `Reflects` is the obligation
--- that lets the second be read as the first: every budgeted context around a
--- closed process is dominated by one strategy whose ask-depth is the context's
--- carried budget.  It is what makes an abstract query bound contribute — with
--- no such law, `QB` may as well be `⊤` (the reference arc records exactly this
--- gap).
+-- that lets the second be read as the first: a budgeted context around a
+-- closed process is dominated, at each pair of processes it compares, by a
+-- strategy whose ask-depth is the context's carried budget.  It is what makes
+-- an abstract query bound contribute — with no such law, `QB` may as well be
+-- `⊤` (the reference arc records exactly this gap).
 --
--- The quantifier order is Σ-before-∀: ONE strategy, for every pair of
--- processes plugged into the context.  That order was REFUTED in the reference
--- arc, where strategies were deterministic — a context flipping a fair coin and
--- asking one of two questions gets advantage ½ against two different pairs,
--- while any deterministic one-ask tree scores zero against one of them, so the
--- averaging argument only ever worked per fixed pair.  Layer 0's `Strat`
--- carries the coin node from the start
--- (`CategoricalCrypto.Strategy`), so the reifier can internalize the context's
--- own coins and the strong order is sound.
+-- The quantifier order is ∀-before-Σ: the reifying strategy may depend on the
+-- pair of processes compared.  The uniform order (ONE strategy for every pair)
+-- is REFUTED at this level of generality: `Strat` is a finite tree, so it
+-- mentions finitely many possible first queries, while a `Dₚ` context may
+-- sample a natural number of unbounded support and ask that one question at
+-- query bound one — pick two implementations differing only outside the tree's
+-- support (external theory review, finding 2).  The uniform form is recoverable
+-- only by enlarging strategies to a `Dₚ`-valued or coinductive language, or by
+-- restricting UC contexts to a finitary fragment; neither is built here, and
+-- the per-pair form is what the consumers below need anyway, each applying it
+-- at one pair.
+--
+-- This is the same refutation one level up from the reference arc's, which
+-- killed the uniform order for *deterministic* strategies — a context flipping
+-- a fair coin and asking one of two questions gets advantage ½ against two
+-- different pairs, while any deterministic one-ask tree scores zero against one
+-- of them.  Layer 0's `Strat` carries the coin node from the start
+-- (`CategoricalCrypto.Strategy`), which answers that objection; the sampling
+-- one it does not.
 
 open import Categories.Category using (Category)
 
@@ -71,7 +81,7 @@ Reflects : Set₁
 Reflects = (B Y : Iface)
            (E : Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
            {c c′ : ℕ} → QB c E → QB c′ m
+         → (u v : Proc unitᴵ B)
          → Σ[ d ∈ Strat (Neg B) (Pos B) ] asks≤ (c ℕ.* c′) d ×
-           ((u v : Proc unitᴵ B) (ε : ℚ)
-            → runᴹ u d ≈ₚ[ ε ] runᴹ v d
-            → ctxRun Y E m (conjᴵ u) ≈ₚ[ ε ] ctxRun Y E m (conjᴵ v))
+           ((ε : ℚ) → runᴹ u d ≈ₚ[ ε ] runᴹ v d
+                    → ctxRun Y E m (conjᴵ u) ≈ₚ[ ε ] ctxRun Y E m (conjᴵ v))
