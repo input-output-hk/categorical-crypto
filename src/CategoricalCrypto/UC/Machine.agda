@@ -26,6 +26,7 @@ open import Data.Bool.Base using (Bool)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Base using (⊤; tt)
+import Data.Unit.Polymorphic.Base as PolyUnit
 open import Level using (0ℓ; suc)
 
 open import ProbabilisticLogic.Dp using (Dₚ; mapₚ; returnₚ)
@@ -77,11 +78,21 @@ Proc A B = 𝒢ₚ 0ℓ [ ⟦ A ⟧ᴵ , ⟦ B ⟧ᴵ ]
 
 private module 𝒫 = Category 𝒫ᴵ
 
+-- The base category's tensor unit, which is also the state object of every
+-- stateless machine.
+⊤ᵛ : Set
+⊤ᵛ = PolyUnit.⊤ {0ℓ}
+
 -- A stateless forwarder: a positive message travels up, a negative one down.
+-- The step is a named function so that a statement about it can be made
+-- without projecting one out of a `Proc` (`UC.QueryBound`).
+wireStep : {A B : Iface} → (Pos A → Pos B) → (Neg B → Neg A)
+         → ⊤ᵛ × (Pos A ⊎ Neg B) → Dₚ (⊤ᵛ × (Neg A ⊎ Pos B))
+wireStep up down (s , inj₁ p) = returnₚ (s , inj₂ (up p))
+wireStep up down (s , inj₂ n) = returnₚ (s , inj₁ (down n))
+
 wireᴹ : {A B : Iface} → (Pos A → Pos B) → (Neg B → Neg A) → Proc A B
-wireᴹ up down = MC.mk MC.Iˢ λ where
-  (s , inj₁ p) → returnₚ (s , inj₂ (up p))
-  (s , inj₂ n) → returnₚ (s , inj₁ (down n))
+wireᴹ up down = MC.mk MC.Iˢ (wireStep up down)
 
 ------------------------------------------------------------------------
 -- The observation
