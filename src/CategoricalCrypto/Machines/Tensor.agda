@@ -23,6 +23,8 @@ import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Distributive.Properties as MDP
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
+import Relation.Binary.Construct.Closure.Equivalence as EqC
+
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Frame as Frame
 import CategoricalCrypto.Machines.Sim as Sim
@@ -115,6 +117,12 @@ f ⊗ᵉ g = mk (state f ⊛ state g) (tstep (onL (step f)) (onR (step g)))
                          (θ-point u) (θ-point v)
   ; θ-step    = tstep-sim (onL-sim (θ-step u)) (onR-sim (θ-step v))
   }
+
+⊗ᵉ-resp-≈ᴹ : {f h : Machine A B} {g i : Machine C D}
+           → f ≈ᴹ h → g ≈ᴹ i → (f ⊗ᵉ g) ≈ᴹ (h ⊗ᵉ i)
+⊗ᵉ-resp-≈ᴹ {g = g} {i} e₁ e₂ =
+    EqC.gmap (_⊗ᵉ g) (λ s → ⊗ᵉ-resp-≲ s ≲-refl) e₁
+  ○ᴹ EqC.gmap (_ ⊗ᵉ_) (⊗ᵉ-resp-≲ ≲-refl) e₂
 
 ------------------------------------------------------------------------
 -- Pure machines

@@ -63,8 +63,9 @@ private variable A B C D W X Y Z : Obj
 ------------------------------------------------------------------------
 -- `tstep` is functorial
 
-tstep-∘ : {k₂ : Y ⊗₀ B ⇒ Z ⊗₀ C} {l₂ : Y ⊗₀ D ⇒ Z ⊗₀ W}
-          {k₁ : X ⊗₀ A ⇒ Y ⊗₀ B} {l₁ : X ⊗₀ W ⇒ Y ⊗₀ D}
+tstep-∘ : {S T V A₁ A₂ A₃ B₁ B₂ B₃ : Obj}
+          {k₂ : T ⊗₀ A₂ ⇒ V ⊗₀ A₃} {l₂ : T ⊗₀ B₂ ⇒ V ⊗₀ B₃}
+          {k₁ : S ⊗₀ A₁ ⇒ T ⊗₀ A₂} {l₁ : S ⊗₀ B₁ ⇒ T ⊗₀ B₂}
         → tstep k₂ l₂ ∘ tstep k₁ l₁ ≈ tstep (k₂ ∘ k₁) (l₂ ∘ l₁)
 tstep-∘ = assoc ○ (refl⟩∘⟨ assoc)
         ○ (refl⟩∘⟨ refl⟩∘⟨ cancelˡ distributeˡ.isoˡ)
