@@ -71,8 +71,7 @@ private variable A B C D E F X : Obj
     dsc-u = assoc ○ (refl⟩∘⟨ ⟺ ⊗.homomorphism)
           ○ (refl⟩∘⟨ (ρ-discard (state f) ⟩⊗⟨ λ-discard (state g)))
 
-    pt-u : (ρ⇒ ⊗₁ λ⇒) ∘ point ((state f ⊛ Iˢ) ⊛ (Iˢ ⊛ state g))
-         ≈ point (state f ⊛ state g)
+    pt-u : (ρ⇒ ⊗₁ λ⇒) ∘ point ((state f ⊛ Iˢ) ⊛ (Iˢ ⊛ state g)) ≈ point (state f ⊛ state g)
     pt-u = ⊛-point₂ (state f ⊛ Iˢ) (state f) (Iˢ ⊛ state g) (state g)
                     (ρ-point (state f)) (λ-point (state g))
 
@@ -85,8 +84,7 @@ private variable A B C D E F X : Obj
 
 private
   -- Tensoring on the left is tensoring on the right, conjugated by the braiding.
-  braid-conj : (M : Machine A B) (N : Machine C D)
-             → (M ⊗ᵉ N) ≈ᴹ (σᴹ ∘ᴹ ((N ⊗ᵉ M) ∘ᴹ σᴹ))
+  braid-conj : (M : Machine A B) (N : Machine C D) → (M ⊗ᵉ N) ≈ᴹ (σᴹ ∘ᴹ ((N ⊗ᵉ M) ∘ᴹ σᴹ))
   braid-conj M N = ≲⇒≈ᴹ˘ identityˡ-∘ᴹ ○ᴹ (≲⇒≈ᴹ˘ σᴹ-involutive ⟩∘ᴹ⟨reflᴹ)
                  ○ᴹ ≲⇒≈ᴹ assoc-∘ᴹ ○ᴹ (reflᴹ⟩∘ᴹ⟨ braiding-commuteᴹ)
 

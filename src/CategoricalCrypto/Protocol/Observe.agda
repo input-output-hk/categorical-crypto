@@ -19,8 +19,7 @@ open import Data.Bool.Base
 open import Data.Empty
 open import Data.Nat.Base
 open import Data.Product.Base
-open import Data.Rational
-  renaming (_+_ to _+ℚ_; _-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
+open import Data.Rational renaming (_+_ to _+ℚ_; _-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
 open import Data.Rational.Properties
 open import Data.Rational.Properties.Ext
 open import Data.Maybe.Base

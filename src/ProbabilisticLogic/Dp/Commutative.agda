@@ -43,8 +43,7 @@ private
            (sym (+-assoc w y (x ℚ.+ z))))
 
   scalar : ∀ w c x → w ℚ.* (c ℚ.* x) ≡ c ℚ.* (w ℚ.* x)
-  scalar w c x = trans (sym (*-assoc w c x))
-                       (trans (cong (ℚ._* x) (*-comm w c)) (*-assoc c w x))
+  scalar w c x = trans (sym (*-assoc w c x)) (trans (cong (ℚ._* x) (*-comm w c)) (*-assoc c w x))
 
   node-+ : ∀ w₁ w₂ x₁ y₁ x₂ y₂
          → w₁ ℚ.* (x₁ ℚ.+ y₁) ℚ.+ w₂ ℚ.* (x₂ ℚ.+ y₂)
@@ -66,8 +65,7 @@ private
 -- `cum n d` is a linear functional in its test
 
 mutual
-  cum-cong-P : (n : ℕ) (d : Dₚ A) (F G : A → ℚ) → (∀ p → F p ≡ G p)
-             → cum n d F ≡ cum n d G
+  cum-cong-P : (n : ℕ) (d : Dₚ A) (F G : A → ℚ) → (∀ p → F p ≡ G p) → cum n d F ≡ cum n d G
   cum-cong-P zero    d F G eq = refl
   cum-cong-P (suc n) d F G eq =
     cong₂ ℚ._+_ (cong (wt d true ℚ.*_) (leafₚ-cong-P n (br d true) F G eq))
@@ -107,8 +105,7 @@ mutual
   leafₚ-test-+ n (inj₂ d′) F G = cum-test-+ n d′ F G
 
 mutual
-  cum-test-* : (n : ℕ) (d : Dₚ A) (c : ℚ) (F : A → ℚ)
-             → cum n d (λ p → c ℚ.* F p) ≡ c ℚ.* cum n d F
+  cum-test-* : (n : ℕ) (d : Dₚ A) (c : ℚ) (F : A → ℚ) → cum n d (λ p → c ℚ.* F p) ≡ c ℚ.* cum n d F
   cum-test-* zero    d c F = sym (*-zeroʳ c)
   cum-test-* (suc n) d c F =
     trans (cong₂ ℚ._+_ (cong (wt d true ℚ.*_) (leafₚ-test-* n (br d true) c F))

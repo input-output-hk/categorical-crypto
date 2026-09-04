@@ -177,8 +177,7 @@ module _ (V : State) (A B X P : Obj)
              ○ (refl⟩∘⟨ (solve′-c ⟩∘⟨refl)) ○ (refl⟩∘⟨ sym-assoc)
 
     iterw : iter w ≈ v
-    iterw = δ-unique (iterw-i₁ ○ ⟺ assoc)
-                     (iterw-i₂ ○ ⟺ (assoc ○ (refl⟩∘⟨ q-i₂)))
+    iterw = δ-unique (iterw-i₁ ○ ⟺ assoc) (iterw-i₂ ○ ⟺ (assoc ○ (refl⟩∘⟨ q-i₂)))
 
     -- One loop over `X + P` after all: `∇ψ` cancels the sorting map.
     iterv : iter v ≈ iter b
@@ -250,7 +249,6 @@ vanishing₂ {A} {B} {P} {X} f = ≲⇒≈ᴹ
   (≲-trans (trace-resp-≲ {A} {B} {X} (trace-resp-≲ {A + X} {B + X} {P} reconcile))
            (mk-cong (vanish-step (state f) A B X P (step f))))
   where
-    reconcile : (α⇐ᴹ ∘ᴹ f ∘ᴹ α⇒ᴹ)
-              ≲ mk (state f) (id ⊗₁ α+⇐ ∘ (step f ∘ id ⊗₁ α+⇒))
+    reconcile : (α⇐ᴹ ∘ᴹ f ∘ᴹ α⇒ᴹ) ≲ mk (state f) (id ⊗₁ α+⇐ ∘ (step f ∘ id ⊗₁ α+⇒))
     reconcile = ≲-trans (∘ᴹ-resp-≲ ≲-refl (pure-∘ʳ α+⇒ f))
                         (pure-∘ˡ α+⇐ (mk (state f) (step f ∘ id ⊗₁ α+⇒)))

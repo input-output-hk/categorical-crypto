@@ -58,6 +58,5 @@ unflatten-++-≅ xs ys = record
 permute : ∀ {xs ys : List X} → xs Perm.↭ ys → HomTerm (unflatten xs) (unflatten ys)
 permute Perm.refl         = id
 permute (Perm.prep x p)   = id ⊗₁ permute p
-permute (Perm.swap x y p) =
-  (id ⊗₁ (id ⊗₁ permute p)) ∘ α⇒ ∘ (σ ⊗₁ id) ∘ α⇐
+permute (Perm.swap x y p) = (id ⊗₁ (id ⊗₁ permute p)) ∘ α⇒ ∘ (σ ⊗₁ id) ∘ α⇐
 permute (Perm.trans p q)  = permute q ∘ permute p

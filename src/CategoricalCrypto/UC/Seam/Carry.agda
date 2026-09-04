@@ -8,26 +8,26 @@
 -- of them: past `run-agree`, which is one `≈ₚ[]-resp`, everything is about `Dₚ`
 -- masses and ℚ, and the two processes are opaque carriers.
 
-open import Data.Bool.Base using (Bool)
-open import Data.Nat.Base as ℕ using (ℕ)
+open import Data.Bool.Base
+open import Data.Nat.Base as ℕ
 open import Data.Nat.Properties using (m≤n+m)
-open import Data.Product.Base using (Σ-syntax; _,_)
-open import Data.Rational as ℚ using (ℚ; 0ℚ)
-open import Data.Rational.Properties using (+-comm; +-monoˡ-≤; module ≤-Reasoning)
-open import Data.Rational.Properties.Ext using (+-−-cancel; neg-sub; ∣∣≤)
-open import Relation.Binary.PropositionalEquality using (_≡_; cong; subst; sym)
+open import Data.Product.Base
+open import Data.Rational as ℚ
+open import Data.Rational.Properties
+open import Data.Rational.Properties.Ext
+open import Relation.Binary.PropositionalEquality
 
-open import ProbabilisticLogic.Dp using (Dₚ)
+open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Advantage
-  using (Pr≤; Pr≤-mono; _≼ₚ[_]_; _≈ₚ[_]_; ≈ₚ[]-resp)
+
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Protocol using (Protocol)
-open import CategoricalCrypto.Protocol.Machine using (PrAgree; morphism)
-open import CategoricalCrypto.Protocol.Observe using (Pr)
-open import CategoricalCrypto.Strategy using (Strat)
-open import CategoricalCrypto.UC.Machine using (Proc)
-open import CategoricalCrypto.UC.Seam using (Adequacy; AgreeToAdv; Agreeˢ; runˢ)
+open import CategoricalCrypto.Protocol
+open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Observe
+open import CategoricalCrypto.Strategy
+open import CategoricalCrypto.UC.Machine
+open import CategoricalCrypto.UC.Seam
 
 module CategoricalCrypto.UC.Seam.Carry where
 

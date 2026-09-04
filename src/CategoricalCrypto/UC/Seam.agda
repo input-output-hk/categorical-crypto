@@ -44,28 +44,28 @@
 -- environment layer at it costs a budget of the same order while only
 -- `StratIsEnv` needs it.
 
-open import Categories.Category using (Category)
+open import Categories.Category
 
-open import Data.Bool.Base using (Bool)
-open import Data.Nat.Base using (ℕ)
-open import Data.Product.Base using (_×_; _,_)
-open import Data.Rational as ℚ using (ℚ; 0ℚ)
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
+open import Data.Bool.Base
+open import Data.Nat.Base
+open import Data.Product.Base
+open import Data.Rational as ℚ
+open import Data.Sum.Base
 open import Data.Unit.Base using (⊤)
 open import Data.Unit.Polymorphic.Base using (tt)
-open import Level using (0ℓ)
+open import Level
 
-open import ProbabilisticLogic.Dp using (Dₚ; _>>=ₚ_; returnₚ; botₚ; _≈ₚ_)
-open import ProbabilisticLogic.Dp.Advantage using (_≈ₚ[_]_; ≈ₚ[]-sym)
-open import ProbabilisticLogic.Dp.Coin using (coinₚ)
+open import ProbabilisticLogic.Dp
+open import ProbabilisticLogic.Dp.Advantage
+open import ProbabilisticLogic.Dp.Coin
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Machines.Base using (𝒱ₚ)
-open import CategoricalCrypto.Protocol using (Protocol)
-open import CategoricalCrypto.Protocol.Machine using (morphism; runᴹ)
-open import CategoricalCrypto.Protocol.Observe using (Bounded; _≈adv[_]_; transfer)
-open import CategoricalCrypto.Strategy using (Strat; out; ask; coin; asks≤)
-open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; Ωᴵ; ⟦_⟧ᴼ)
+open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Protocol
+open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Observe
+open import CategoricalCrypto.Strategy
+open import CategoricalCrypto.UC.Machine
 
 import CategoricalCrypto.Machines.Core as Core
 

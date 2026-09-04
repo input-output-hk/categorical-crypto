@@ -13,26 +13,25 @@
 -- report honestly.  The audit form survives below as the gadget the transfer
 -- lemma applies to.
 
-open import Class.DecEq using (DecEq-List; DecEq-Bool)
+open import Class.DecEq
 
-open import Data.Bool.Base using (Bool; true; false; not; if_then_else_)
+open import Data.Bool.Base
 open import Data.Fin.Base using () renaming (zero to fzero)
-open import Data.List.Base using (List; []; _∷_)
-open import Data.Maybe.Base using (Maybe; just; nothing)
-open import Data.Nat.Base using (ℕ; zero; suc)
-  renaming (_+_ to _+ᴺ_; _*_ to _*ᴺ_; _≡ᵇ_ to _≡ᴺ_)
-open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
-open import Data.Rational using (ℚ; _*_) renaming (_+_ to _+ℚ_; _≤_ to _≤ℚ_)
-open import Data.Rational.Properties using (≤-trans)
-open import Data.Unit.Base using (tt)
-open import Relation.Binary.PropositionalEquality using (_≡_)
+open import Data.List.Base
+open import Data.Maybe.Base
+open import Data.Nat.Base renaming (_+_ to _+ᴺ_; _*_ to _*ᴺ_; _≡ᵇ_ to _≡ᴺ_)
+open import Data.Product.Base
+open import Data.Rational renaming (_+_ to _+ℚ_; _≤_ to _≤ℚ_)
+open import Data.Rational.Properties
+open import Data.Unit.Base
+open import Relation.Binary.PropositionalEquality
 
-open import ProbabilisticLogic.Prelude using (fromℕ; inv-pow-2)
+open import ProbabilisticLogic.Prelude
 
 open import CategoricalCrypto.Examples.ChimericLedger
-open import CategoricalCrypto.Examples.RandomOracle using (module RandomOracle)
+open import CategoricalCrypto.Examples.RandomOracle
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.OracleCall using (mapCall; reCall)
+open import CategoricalCrypto.OracleCall
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy

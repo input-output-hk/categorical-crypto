@@ -109,8 +109,7 @@ module _ {S A B : Set ℓ} (v : Body S A (B ⊎ A)) (P : S × B → ℚ) (nn : N
 
     up : ∀ r {i i₂} → i ≤ℕ i₂ → Ψ r i → Ψ r i₂
     up (s , inj₁ (inj₁ b)) le q = q
-    up (s , inj₁ (inj₂ p)) le q =
-      ≤-trans q (cum-mono le (iterₚ (iterₚ v) (s , p)) P nn)
+    up (s , inj₁ (inj₂ p)) le q = ≤-trans q (cum-mono le (iterₚ (iterₚ v) (s , p)) P nn)
     up (s , inj₂ p) {i} {i₂} le q = ≤-trans q
       (≤-trans (cum-mono le (iterₚ v (s , p)) (Tᵗ (iterₚ v) P i)
                          (Tᵗ-nn (iterₚ v) P i nn))

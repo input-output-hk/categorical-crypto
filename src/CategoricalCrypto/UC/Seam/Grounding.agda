@@ -10,9 +10,9 @@
 -- (`agree-to-adv`, `pov-carry`) runs on `_≈ℰˢ_` alone.
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.UC.Base using (Grading)
-open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; UCBaseᴹ)
-open import CategoricalCrypto.UC.Seam using (Agreeˢ)
+open import CategoricalCrypto.UC.Base
+open import CategoricalCrypto.UC.Machine
+open import CategoricalCrypto.UC.Seam
 
 import CategoricalCrypto.UC.Emulation as Em
 

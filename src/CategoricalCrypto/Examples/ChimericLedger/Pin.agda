@@ -3,18 +3,18 @@
 -- Computed pins: the whole system — oracle sampling, protocol composition,
 -- state trajectory, ℚ arithmetic — runs by `refl` at 1-bit hashes.
 
-open import Data.Bool.Base using (false; true)
+open import Data.Bool.Base
 open import Data.List.Base using (List; []; _∷_)
-open import Data.Nat.Base using (ℕ)
-open import Data.Product.Base using (_,_; proj₁)
-open import Data.Rational using (0ℚ; 1ℚ)
-open import Data.Unit.Base using (tt)
-open import Data.Vec.Base using (replicate)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Data.Nat.Base
+open import Data.Product.Base
+open import Data.Rational
+open import Data.Unit.Base
+open import Data.Vec.Base
+open import Relation.Binary.PropositionalEquality
 
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Examples.ChimericLedger.POV 1 (λ _ → [])
-open import CategoricalCrypto.OracleCall using (runCall)
+open import CategoricalCrypto.OracleCall
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
 
@@ -22,7 +22,7 @@ module CategoricalCrypto.Examples.ChimericLedger.Pin where
 
 open Ledger 1
 open Step (λ _ → [])
-open Replay using (s₀; txᵃ)
+open Replay
 
 -- Submit the same no-input transaction twice, adaptively but blindly.
 replay : Strat Query Answer

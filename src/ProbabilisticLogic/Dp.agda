@@ -177,8 +177,7 @@ mutual
   leafₚ-mono le (inj₂ d′) P nn = cum-mono le d′ P nn
 
 mutual
-  cum-mono-P : (n : ℕ) (d : Dₚ A) (P Q : A → ℚ) → (∀ p → P p ℚ.≤ Q p)
-             → cum n d P ℚ.≤ cum n d Q
+  cum-mono-P : (n : ℕ) (d : Dₚ A) (P Q : A → ℚ) → (∀ p → P p ℚ.≤ Q p) → cum n d P ℚ.≤ cum n d Q
   cum-mono-P zero    d P Q le = ≤-refl
   cum-mono-P (suc n) d P Q le =
     node-mono (wt d true) (wt d false) (wt-nn d true) (wt-nn d false)
@@ -266,8 +265,7 @@ mutual
 infix 4 _≼ₚ_ _≈ₚ_
 
 _≼ₚ_ : Dₚ A → Dₚ A → Set _
-_≼ₚ_ {A = A} d d′ =
-  (P : A → ℚ) → NNF P → (n : ℕ) → Σ[ m ∈ ℕ ] (cum n d P ℚ.≤ cum m d′ P)
+_≼ₚ_ {A = A} d d′ = (P : A → ℚ) → NNF P → (n : ℕ) → Σ[ m ∈ ℕ ] (cum n d P ℚ.≤ cum m d′ P)
 
 _≈ₚ_ : Dₚ A → Dₚ A → Set _
 d ≈ₚ d′ = (d ≼ₚ d′) × (d′ ≼ₚ d)
@@ -333,8 +331,7 @@ botₚ-cum (suc n) P = trans (dirac-cum n (inj₂ botₚ) P) (botₚ-cum n P)
 >>=ₚ-identityˡ-cum n p f P = node-dirac (cum n (f p) P) (cum n (f p) P)
 
 >>=ₚ-identityˡ : (p : A) (f : A → Dₚ B) → (returnₚ p >>=ₚ f) ≈ₚ f p
->>=ₚ-identityˡ p f =
-  shift⇒≈ₚ (returnₚ p >>=ₚ f) (f p) λ P n → >>=ₚ-identityˡ-cum n p f P
+>>=ₚ-identityˡ p f = shift⇒≈ₚ (returnₚ p >>=ₚ f) (f p) λ P n → >>=ₚ-identityˡ-cum n p f P
 
 -- Budget 0 sees nothing of a bind: every branch of `d >>=ₚ f` is an `inj₂`.
 leafₚ-tag-zero : (x : A ⊎ Dₚ A) (f : A → Dₚ B) (P : B → ℚ) → leafₚ 0 (tagₚ x f) P ≡ 0ℚ

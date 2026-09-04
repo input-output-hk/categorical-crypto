@@ -146,8 +146,7 @@ grade-stable : {A B′ : Obj} (Y : Obj) {h h′ : A ⇒ B′} → h ≈ℰ h′ 
 grade-stable {A} {B′} Y {h} {h′} r W E m =
   ∼-cast (step h) (step h′) (r (W ⊛ Y) (E ∘ a⇐) (a⇒ ∘ m))
   where
-  step : (u : A ⇒ B′)
-       → ((E ∘ a⇐) ∘ T₁ (W ⊛ Y) u) ∘ (a⇒ ∘ m) ≈ (E ∘ T₁ W (T₁ Y u)) ∘ m
+  step : (u : A ⇒ B′) → ((E ∘ a⇐) ∘ T₁ (W ⊛ Y) u) ∘ (a⇒ ∘ m) ≈ (E ∘ T₁ W (T₁ Y u)) ∘ m
   step u = begin
     ((E ∘ a⇐) ∘ T₁ (W ⊛ Y) u) ∘ (a⇒ ∘ m)   ≈⟨ assoc ⟩
     (E ∘ a⇐) ∘ (T₁ (W ⊛ Y) u ∘ (a⇒ ∘ m))   ≈⟨ refl⟩∘⟨ sym-assoc ⟩

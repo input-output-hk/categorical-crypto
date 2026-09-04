@@ -122,8 +122,7 @@ private
           ○ (refl⟩∘⟨ δ⇐-i₁) ○ inject₁
 
   yank-step : {X : Obj} → traceStep Iˢ X X X (step (σᴹ {X} {X})) ≈ id
-  yank-step {X} =
-    (refl⟩∘⟨ (merge₂ʳ ○ refl⟩⊗⟨ inject₁)) ○ solve-i₂ Iˢ X X X _ ○ iter-σᴹ
+  yank-step {X} = (refl⟩∘⟨ (merge₂ʳ ○ refl⟩⊗⟨ inject₁)) ○ solve-i₂ Iˢ X X X _ ○ iter-σᴹ
 
 yankingᴹ : {X : Obj} → traceᴹ X X X (σᴹ {X} {X}) ≲ idᴹ
 yankingᴹ = mk-cong yank-step

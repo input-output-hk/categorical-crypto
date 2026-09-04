@@ -51,8 +51,7 @@ mapₚ-fn-cum (suc n) h h′ d P eq =
 
 mapₚ-fn : {A B : Set ℓ} (h h′ : A → B) (d : Dₚ A)
         → (∀ p → h p ≡ h′ p) → mapₚ h d ≈ₚ mapₚ h′ d
-mapₚ-fn h h′ d eq =
-  exact⇒≈ₚ (mapₚ h d) (mapₚ h′ d) λ P n → mapₚ-fn-cum n h h′ d P eq
+mapₚ-fn h h′ d eq = exact⇒≈ₚ (mapₚ h d) (mapₚ h′ d) λ P n → mapₚ-fn-cum n h h′ d P eq
 
 ------------------------------------------------------------------------
 -- Uniformity along an arbitrary PURE state map

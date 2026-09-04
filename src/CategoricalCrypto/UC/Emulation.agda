@@ -53,8 +53,7 @@ private
   s ∘ t , ≈ℰ-trans e (≈ℰ-trans (≈ℰ-congˡ (sub s) d) (≈⇒≈ℰ merge))
 
 dummy-complete : {f : A ⇒ X ⊛ B′} {g : A ⇒ Y ⊛ B′} → f ≤UC g → f ≤UC⁺ g
-dummy-complete (s , e) a =
-  a ∘ s , ≈ℰ-trans (≈ℰ-congˡ (sub a) e) (≈⇒≈ℰ merge)
+dummy-complete (s , e) a = a ∘ s , ≈ℰ-trans (≈ℰ-congˡ (sub a) e) (≈⇒≈ℰ merge)
 
 ≤UC⁺⇒≤UC : {f : A ⇒ X ⊛ B′} {g : A ⇒ Y ⊛ B′} → f ≤UC⁺ g → f ≤UC g
 ≤UC⁺⇒≤UC h with h id

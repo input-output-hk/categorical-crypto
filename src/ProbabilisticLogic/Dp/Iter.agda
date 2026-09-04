@@ -138,8 +138,7 @@ Tᵗ-nn : (u : Body S A B) (P : S × B → ℚ) (j : ℕ) → NNF P → NNF (T�
 Tᵗ-nn u P j nn (s , inj₁ b) = nn (s , b)
 Tᵗ-nn u P j nn (s , inj₂ p) = cum-nn j (iterₚ u (s , p)) P nn
 
-Tᵗ-mono : (u : Body S A B) (P : S × B → ℚ) → NNF P → j ≤ℕ k
-        → ∀ r → Tᵗ u P j r ℚ.≤ Tᵗ u P k r
+Tᵗ-mono : (u : Body S A B) (P : S × B → ℚ) → NNF P → j ≤ℕ k → ∀ r → Tᵗ u P j r ℚ.≤ Tᵗ u P k r
 Tᵗ-mono u P nn le (s , inj₁ b) = ≤-refl
 Tᵗ-mono u P nn le (s , inj₂ p) = cum-mono le (iterₚ u (s , p)) P nn
 
