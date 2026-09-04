@@ -23,7 +23,12 @@ import Categories.Category.Kleisli.Discrete.Distributive as KDD
 import Categories.Category.Kleisli.Discrete.Pure as KDP
 import Categories.Category.Monoidal.Distributive as MD
 
+open import Categories.Category.Core using (Category)
+open import Categories.Category.Monoidal.Traced using (Traced)
+
+import CategoricalCrypto.Machines.Bundle as Bundle
 import CategoricalCrypto.Machines.Core as Core
+import CategoricalCrypto.Machines.G as G
 import CategoricalCrypto.Machines.Iteration as Iteration
 import CategoricalCrypto.Machines.Tensor as Tensor
 import CategoricalCrypto.Machines.Trace as Trace
@@ -258,3 +263,19 @@ Elgotₚ ℓ = record
 -- hypotheses under it, which is what makes the whole machine layer axiom-free.
 Remainingₚ : (ℓ : Level) → Trace.Remaining (𝒱ₚ ℓ) (distₚ ℓ) (𝒫ₚ ℓ) (Elgotₚ ℓ)
 Remainingₚ ℓ = Laws.Remainingᴹ (𝒱ₚ ℓ) (distₚ ℓ) (𝒫ₚ ℓ) (Elgotₚ ℓ)
+
+------------------------------------------------------------------------
+-- The machine category
+
+-- Probabilistic Mealy machines under interface composition, with simulation as
+-- the hom equality: symmetric monoidal in the interface sum, traced by the
+-- ⊕-trace, and hypothesis-free.
+ℳₚ : (ℓ : Level) → SymmetricMonoidalCategory (suc ℓ) (suc ℓ) (suc ℓ)
+ℳₚ ℓ = Bundle.Mealy-SymmetricMonoidal (𝒱ₚ ℓ) (distₚ ℓ) (𝒫ₚ ℓ)
+
+Tracedₚ : (ℓ : Level) → Traced (Bundle.Mealy-Monoidal (𝒱ₚ ℓ) (distₚ ℓ) (𝒫ₚ ℓ))
+Tracedₚ ℓ = G.Mealy-Traced (𝒱ₚ ℓ) (distₚ ℓ) (𝒫ₚ ℓ) (Elgotₚ ℓ)
+
+-- States and processes over `ℳₚ`: `GConstruction` instantiated unchanged.
+𝒢ₚ : (ℓ : Level) → Category (suc ℓ) (suc ℓ) (suc ℓ)
+𝒢ₚ ℓ = G.Mealy-G (𝒱ₚ ℓ) (distₚ ℓ) (𝒫ₚ ℓ) (Elgotₚ ℓ)
