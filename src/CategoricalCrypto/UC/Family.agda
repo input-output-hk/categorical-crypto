@@ -177,6 +177,23 @@ open E public using
 
 infix 4 _≈ℰ[_]_
 
+-- The budget a context's two legs CARRY, as one polynomial.  The test's own is
+-- what bounds crossings into the plugged process: the closure of a closed
+-- context supplies only ancilla and input responses, so the conservative bound
+-- is the test's polynomial alone.  The product form is kept for the closures
+-- that do relay downwards, but GUARDED at `q n ⊔ 1`, because a closure with no
+-- downward port certifies at `QB 0` and an unguarded `p n * 0` evaluates a
+-- concrete bound at budget zero against a context that genuinely queries
+-- (external theory review, finding 1) — the same guard, and the same reason, as
+-- `Budget.qb-T₁`'s `c ⊔ 1`.  The principled eventual form is a port-specific
+-- bound on crossings into the distinguished hole rather than a product of two
+-- whole-hom budgets; `docs/protocol-rewrite.md` prices it, and it is not built.
+ctxQB : (p q : ℕ → ℕ) → ℕ → ℕ
+ctxQB p q n = p n ℕ.* (q n ℕ.⊔ 1)
+
+ctxQB-poly : {p q : ℕ → ℕ} → Poly p → Poly q → Poly (ctxQB p q)
+ctxQB-poly Pp Pq = poly-* Pp (poly-⊔ Pq (poly-const 1))
+
 -- The shape a concrete security theorem has: at every ancilla context, the
 -- level-`i` advantage is at most `ε` of the security parameter and of the
 -- polynomial budget the context's two legs CARRY.  This is the only place the
@@ -185,7 +202,7 @@ infix 4 _≈ℰ[_]_
 _≈ℰ[_]_ : {A B : Obj^ω} → A ⇒^ω B → (ℕ → ℕ → ℚ) → A ⇒^ω B → Set (o ⊔ ℓ ⊔ ℓs ⊔ qs)
 _≈ℰ[_]_ {A} {B} f ε g =
   (Y : Obj^ω) (Et : Test (Y ⊛ω B)) (m : Closure (Y ⊛ω A)) (i : Ix)
-  → obs (tv₁ Y f Et) m i ≈[ ε (κ i) (qbOf Et (κ i) ℕ.* qbOf m (κ i)) ]
+  → obs (tv₁ Y f Et) m i ≈[ ε (κ i) (ctxQB (qbOf Et) (qbOf m) (κ i)) ]
     obs (tv₁ Y g Et) m i
 
 VanishingBound : (ℕ → ℕ → ℚ) → Set
@@ -196,6 +213,6 @@ VanishingBound ε = (p : ℕ → ℕ) → Poly p → (λ n → ε n (p n)) →0
 absorb : {A B : Obj^ω} {f g : A ⇒^ω B} {ε : ℕ → ℕ → ℚ}
        → f ≈ℰ[ ε ] g → VanishingBound ε → f ≈ℰ g
 absorb {f = f} {g} {ε} bnd van Y Et m δ δ>0 =
-  let N , hN = van (λ n → qbOf Et n ℕ.* qbOf m n)
-                   (poly-* (qbOf-poly Et) (qbOf-poly m)) δ δ>0
+  let N , hN = van (ctxQB (qbOf Et) (qbOf m))
+                   (ctxQB-poly (qbOf-poly Et) (qbOf-poly m)) δ δ>0
   in N , λ i le → ≈[]-mono (hN (κ i) le) (bnd Y Et m i)

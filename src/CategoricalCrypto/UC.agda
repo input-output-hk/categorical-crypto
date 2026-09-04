@@ -9,7 +9,8 @@
 --                    ticked verdict interface, the observation at `Dₚ`
 --   `UC.QueryBound`  the amortised-potential certificate and the counting
 --                    statement — a query bound with content
---   `UC.Bridge`      `Reflects`, the interface to layer 1's concrete theorems
+--   `UC.Bridge`      `ContextDominated`, the interface to layer 1's concrete
+--                    theorems, and the budget a context affords a strategy
 --   `UC.Seam`        where layer 1's `transfer` meets an emulation: a strategy
 --                    as an environment, `Adequacy`, the POV carry
 --                    (`UC.Seam.Carry` proves the carry's premise from

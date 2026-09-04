@@ -3,40 +3,42 @@
 -- The bridge between the environment layer and layer 1's concrete statements.
 --
 -- An ℰ-statement quantifies over ancilla CONTEXTS; a hand-written security
--- theorem quantifies over adaptive STRATEGIES.  `Reflects` is the obligation
--- that lets the second be read as the first: a budgeted context around a
--- closed process is dominated, at each pair of processes it compares, by a
--- strategy whose ask-depth is the context's carried budget.  It is what makes
--- an abstract query bound contribute — with no such law, `QB` may as well be
--- `⊤` (the reference arc records exactly this gap).
+-- theorem quantifies over adaptive STRATEGIES.  `ContextDominated` is the
+-- obligation that lets the second be read as the first: once every strategy the
+-- context's carried budget can afford leaves the two direct runs ε-close, the
+-- context itself separates them by no more than ε + δ.  It is what makes an
+-- abstract query bound contribute — with no such law, `QB` may as well be `⊤`
+-- (the reference arc records exactly this gap).
 --
--- The quantifier order is ∀-before-Σ: the reifying strategy may depend on the
--- pair of processes compared.  The uniform order (ONE strategy for every pair)
--- is REFUTED at this level of generality: `Strat` is a finite tree, so it
--- mentions finitely many possible first queries, while a `Dₚ` context may
--- sample a natural number of unbounded support and ask that one question at
--- query bound one — pick two implementations differing only outside the tree's
--- support (external theory review, finding 2).  The uniform form is recoverable
--- only by enlarging strategies to a `Dₚ`-valued or coinductive language, or by
--- restricting UC contexts to a finitary fragment; neither is built here, and
--- the per-pair form is what the consumers below need anyway, each applying it
--- at one pair.
+-- The statement is UNIVERSAL in the strategy, which is also the shape its
+-- consumers have: a layer-1 theorem (`_≈adv[_]_`, `Bounded`) is already
+-- quantified over budgeted strategies, so it feeds this hypothesis by
+-- instantiating its own budget at `ctxBudget c c′`.  Asking instead for ONE
+-- finite strategy that dominates the context — the form this module carried
+-- before — is constructively overdemanding twice over: the witness is an
+-- optimal deterministic policy of a `Dₚ` context, and it must ATTAIN the
+-- context's advantage rather than approximate it.  Its uniform variant (one
+-- strategy before the compared pair) is outright refuted: `Strat` is a finite
+-- tree, so it mentions finitely many possible first queries, while a `Dₚ`
+-- context may sample a question of unbounded support and ask that one at query
+-- bound one, and two implementations differing only outside the tree's support
+-- separate the context but not the strategy.  Moving the pair in front of the
+-- witness answers that refutation but leaves the extraction, so the existential
+-- is gone rather than demoted (external theory review, findings 2 and 3).
 --
--- This is the same refutation one level up from the reference arc's, which
--- killed the uniform order for *deterministic* strategies — a context flipping
--- a fair coin and asking one of two questions gets advantage ½ against two
--- different pairs, while any deterministic one-ask tree scores zero against one
--- of them.  Layer 0's `Strat` carries the coin node from the start
--- (`CategoricalCrypto.Strategy`), which answers that objection; the sampling
--- one it does not.
+-- The slack δ is arbitrary and positive rather than zero, and that is what a
+-- convexity proof delivers here: a `Dₚ` observation's mass is a supremum over
+-- budgets that this layer never forms, so decomposing a context into the
+-- finitely many branches a strategy plays leaves a residue that only a positive
+-- δ absorbs.  Since `_∼_` — hence `_≈ℰ_` — quantifies over every positive
+-- slack anyway, the δ costs a consumer nothing.
 
 open import Categories.Category using (Category)
 
 open import Data.Bool.Base using (Bool)
 open import Data.Empty using (⊥-elim)
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Product.Base using (Σ-syntax; _×_)
-open import Data.Rational using (ℚ)
+open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Sum.Base using ([_,_]; inj₂)
 open import Function.Base using (id)
 open import Level using (0ℓ)
@@ -69,19 +71,33 @@ ctxRun : {A B : Iface} (Y : Iface)
        → Proc (Y ⊗ᴵ B) Ωᴵ → Proc unitᴵ (Y ⊗ᴵ A) → Proc A B → Dₚ Bool
 ctxRun Y E m f = ⟦ (E 𝒫.∘ T₁ᴵ Y f) 𝒫.∘ m ⟧ᴼ
 
--- Stated and priced.  The reifier recurses on the context's remaining query
--- potential (from `E`'s and `m`'s certificates): a crossing to the plugged
--- interface becomes an `ask`, a coin becomes a `coin`, a verdict becomes an
--- `out`, and `asks≤` falls out of the measure.  It is instance-specific —
--- reading "given this answer, the next query" needs an inspectable step — so
--- it belongs beside `UC.Machine`, not in the abstract layer.  The reference
--- arc prices the two-machine skeleton at ~250 LOC and recommends spiking it
--- before committing.
-Reflects : Set₁
-Reflects = (B Y : Iface)
-           (E : Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
-           {c c′ : ℕ} → QB c E → QB c′ m
-         → (u v : Proc unitᴵ B)
-         → Σ[ d ∈ Strat (Neg B) (Pos B) ] asks≤ (c ℕ.* c′) d ×
-           ((ε : ℚ) → runᴹ u d ≈ₚ[ ε ] runᴹ v d
-                    → ctxRun Y E m (conjᴵ u) ≈ₚ[ ε ] ctxRun Y E m (conjᴵ v))
+-- The budget a context's two legs afford a strategy playing in its place.  The
+-- test's own `c` is what bounds crossings into the plugged interface: the
+-- closure of a CLOSED context supplies only ancilla and input responses, so the
+-- conservative bound is `c` alone.  The product form is kept for the closures
+-- that do relay downwards, but GUARDED at `c′ ⊔ 1`, because a closure with no
+-- downward port certifies at `QB 0` and an unguarded `c * 0` charges a context
+-- that genuinely queries to a strategy that cannot query at all (external
+-- theory review, finding 1).  This is `Budget.qb-T₁`'s `c ⊔ 1` guard, one level
+-- up and for the same reason.  The principled eventual form is a port-specific
+-- bound on crossings into the DISTINGUISHED hole rather than a product of two
+-- whole-hom budgets; `docs/protocol-rewrite.md` prices it, and it is not built.
+ctxBudget : ℕ → ℕ → ℕ
+ctxBudget c c′ = c ℕ.* (c′ ℕ.⊔ 1)
+
+-- Stated and priced.  The proof decomposes the context's activation sequence
+-- against a strategy of that budget: a crossing to the plugged interface is an
+-- `ask`, a coin is a `coin`, a verdict is an `out`, and the hypothesis is
+-- applied branchwise and reassembled by convexity of `Pr≤` in the branch
+-- distribution.  It is instance-specific — reading "given this answer, the next
+-- query" needs an inspectable step — so it belongs beside `UC.Machine`, not in
+-- the abstract layer.  The reference arc prices the two-machine skeleton at
+-- ~250 LOC and recommends spiking it before committing.
+ContextDominated : Set₁
+ContextDominated = (B Y : Iface)
+                   (E : Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
+                   {c c′ : ℕ} → QB c E → QB c′ m
+                 → (u v : Proc unitᴵ B) (ε δ : ℚ) → 0ℚ ℚ.< δ
+                 → ((d : Strat (Neg B) (Pos B)) → asks≤ (ctxBudget c c′) d
+                    → runᴹ u d ≈ₚ[ ε ] runᴹ v d)
+                 → ctxRun Y E m (conjᴵ u) ≈ₚ[ ε ℚ.+ δ ] ctxRun Y E m (conjᴵ v)
