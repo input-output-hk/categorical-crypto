@@ -108,14 +108,18 @@ Morphism-∘ = {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B)
 -- is `point`, which at a Kleisli base is itself effectful.
 module _ {B : Iface} (M : MC.Machine (⊥ ⊎ Neg B) (⊥ ⊎ Pos B)) where
 
+  -- What the strategy does with the answer.  A named continuation rather than a
+  -- `where`-local one, so that a lemma about a run can quantify over it: the
+  -- domain summand is empty, so the only reachable case is the strategy's own.
+  resumeᴹ : (MC.St M → Pos B → Dₚ Bool) → MC.St M × (⊥ ⊎ Pos B) → Dₚ Bool
+  resumeᴹ c (_  , inj₁ a) = ⊥-elim a
+  resumeᴹ c (m′ , inj₂ r) = c m′ r
+
   runᴹFrom : MC.St M → Strat (Neg B) (Pos B) → Dₚ Bool
   runᴹFrom m (out b)    = returnₚ b
   runᴹFrom m (coin μ k) = coinₚ μ >>=ₚ λ b → runᴹFrom m (k b)
-  runᴹFrom m (ask q k)  = MC.step M (m , inj₂ q) >>=ₚ resume
-    where
-      resume : MC.St M × (⊥ ⊎ Pos B) → Dₚ Bool
-      resume (_  , inj₁ a) = ⊥-elim a
-      resume (m′ , inj₂ r) = runᴹFrom m′ (k r)
+  runᴹFrom m (ask q k)  =
+    MC.step M (m , inj₂ q) >>=ₚ resumeᴹ λ m′ r → runᴹFrom m′ (k r)
 
   runᴹ : Strat (Neg B) (Pos B) → Dₚ Bool
   runᴹ d = MC.point (MC.state M) tt >>=ₚ λ m → runᴹFrom m d

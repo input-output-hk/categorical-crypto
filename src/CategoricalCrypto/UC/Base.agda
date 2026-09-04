@@ -91,8 +91,12 @@ record Budget {o ℓ e} (𝒞 : Category o ℓ e) (G : Grading 𝒞) (qs : Level
               → QB c g → QB c′ f → QB (c ℕ.* c′) (g ∘ f)
     qb-resp-≈ : {A B : Obj} {c : ℕ} {f g : A ⇒ B} → f ≈ g → QB c f → QB c g
     qb-mono   : {A B : Obj} {c c′ : ℕ} {f : A ⇒ B} → c ℕ.≤ c′ → QB c f → QB c′ f
-    qb-T₁     : {Y A B : Obj} {c : ℕ} {f : A ⇒ B} → QB c f → QB c (T₁ Y f)
-    qb-sub    : {X Y A : Obj} {c : ℕ} {s : X ⇒ Y} → QB c s → QB c (sub {A = A} s)
+    -- `_⊔ 1_`, not `c`: the bypassed interface's own downward relay is one
+    -- completed event that an activation from above must have deposited for,
+    -- so a rate of zero cannot survive the action.  This is the reference
+    -- arc's `qb-⊗` at `c ⊔ 1`, the identity leg's budget being 1.
+    qb-T₁     : {Y A B : Obj} {c : ℕ} {f : A ⇒ B} → QB c f → QB (c ℕ.⊔ 1) (T₁ Y f)
+    qb-sub    : {X Y A : Obj} {c : ℕ} {s : X ⇒ Y} → QB c s → QB (c ℕ.⊔ 1) (sub {A = A} s)
     qb-a⇒     : {X Y A : Obj} → QB 1 (a⇒ {X} {Y} {A})
     qb-a⇐     : {X Y A : Obj} → QB 1 (a⇐ {X} {Y} {A})
 

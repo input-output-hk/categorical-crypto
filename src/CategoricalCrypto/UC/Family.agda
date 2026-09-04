@@ -18,7 +18,7 @@
 -- proved once in `UC.Base`.
 
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Nat.Poly using (Poly; poly-*; poly-const)
+open import Data.Nat.Poly using (Poly; poly-*; poly-const; poly-⊔)
 open import Data.Nat.Properties using (m≤m⊔n; m≤n⊔m; ≤-trans)
 open import Data.Product.Base using (Σ; Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
@@ -104,9 +104,10 @@ _⊛ω_ : Obj^ω → Obj^ω → Obj^ω
 Grading^ω : Grading Fam
 Grading^ω = record
   { _⊛_ = _⊛ω_
-  ; T₁  = λ Y (f , p , Pp , w) →
-      (λ i → T₁ (Y i) (f i)) , p , Pp , λ i → qb-T₁ (w i)
-  ; sub = λ (s , p , Pp , w) → (λ i → sub (s i)) , p , Pp , λ i → qb-sub (w i)
+  ; T₁  = λ Y (f , p , Pp , w) → (λ i → T₁ (Y i) (f i))
+        , (λ n → p n ℕ.⊔ 1) , poly-⊔ Pp (poly-const 1) , λ i → qb-T₁ (w i)
+  ; sub = λ (s , p , Pp , w) → (λ i → sub (s i))
+        , (λ n → p n ℕ.⊔ 1) , poly-⊔ Pp (poly-const 1) , λ i → qb-sub (w i)
   ; a⇒  = (λ _ → a⇒) , qb1 (λ _ → qb-a⇒)
   ; a⇐  = (λ _ → a⇐) , qb1 (λ _ → qb-a⇐)
 
