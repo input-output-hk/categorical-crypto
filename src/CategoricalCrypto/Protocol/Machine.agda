@@ -102,28 +102,30 @@ Morphism-∘ : Set₁
 Morphism-∘ = {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B)
            → 𝒢ₚ 0ℓ [ morphism (P₂ ∘ᵖ P₁) ≈ morphism P₂ 𝒢.∘ morphism P₁ ]
 
-module _ {B : Iface} (P : Protocol unitᴵ B) where
+-- The closed-machine run, against any machine of the shape a closed protocol's
+-- image has: a strategy's ask goes in on the right summand and an answer can
+-- only come back on the right one, `Pos unitᴵ` being empty.  The initial state
+-- is `point`, which at a Kleisli base is itself effectful.
+module _ {B : Iface} (M : MC.Machine (⊥ ⊎ Neg B) (⊥ ⊎ Pos B)) where
 
-  -- The minimal closed-machine run: a closed protocol's machine has interface
-  -- `⊥ + Neg B`, so a strategy's ask goes in on the right summand and the
-  -- machine's answer can only come back on the right one.
-  runᴹFrom : MSt P → Strat (Neg B) (Pos B) → Dₚ Bool
+  runᴹFrom : MC.St M → Strat (Neg B) (Pos B) → Dₚ Bool
   runᴹFrom m (out b)    = returnₚ b
   runᴹFrom m (coin μ k) = coinₚ μ >>=ₚ λ b → runᴹFrom m (k b)
-  runᴹFrom m (ask q k)  = stepᴹ P (m , inj₂ q) >>=ₚ resume
+  runᴹFrom m (ask q k)  = MC.step M (m , inj₂ q) >>=ₚ resume
     where
-      resume : MSt P × (⊥ ⊎ Pos B) → Dₚ Bool
+      resume : MC.St M × (⊥ ⊎ Pos B) → Dₚ Bool
       resume (_  , inj₁ a) = ⊥-elim a
       resume (m′ , inj₂ r) = runᴹFrom m′ (k r)
 
   runᴹ : Strat (Neg B) (Pos B) → Dₚ Bool
-  runᴹ = runᴹFrom (idle (init P))
+  runᴹ d = MC.point (MC.state M) tt >>=ₚ λ m → runᴹFrom m d
 
-  -- The interaction is finite — the strategy tree bounds it and every call tree
-  -- is inductive — so past some depth the coin tree's cumulative mass is
-  -- *exactly* layer 1's verdict probability.  `Dₚ`'s probability is a
-  -- supremum, which the layer never forms; a budget and a value is the
-  -- `cum`-level statement of the same thing.
-  PrAgree : Set
-  PrAgree = (d : Strat (Neg B) (Pos B))
-          → Σ[ n ∈ ℕ ] ((m : ℕ) → cum (n + m) (runᴹ d) bool→ℚ ≡ Pr P d)
+-- The interaction is finite — the strategy tree bounds it and every call tree
+-- is inductive — so past some depth the coin tree's cumulative mass is
+-- *exactly* layer 1's verdict probability.  `Dₚ`'s probability is a supremum,
+-- which the layer never forms; a budget and a value is the `cum`-level
+-- statement of the same thing.  `Machine.Pin` computes both sides at one
+-- instance.
+PrAgree : Set₁
+PrAgree = {B : Iface} (P : Protocol unitᴵ B) (d : Strat (Neg B) (Pos B))
+        → Σ[ n ∈ ℕ ] ((m : ℕ) → cum (n + m) (runᴹ (morphism P) d) bool→ℚ ≡ Pr P d)
