@@ -39,6 +39,9 @@
 --                                  proves its premise from `Adequacy` and
 --                                  `PrAgree`); `UC.Seam.Grounding` and
 --                                  `UC.Seam.Audit` name what the instance owes
+--                `UC.Saturated`    the saturated form of a concrete safety
+--                                  bound, the shape invariant under the core's
+--                                  equivalence
 --
 -- The parameterized modules take a `UCBase` (or the `Grading 𝒫ᴵ` this branch
 -- still owes) and so are imported directly rather than re-exported here.
@@ -56,3 +59,4 @@ open import CategoricalCrypto.UC.Core public
 open import CategoricalCrypto.UC.Machine public
 open import CategoricalCrypto.UC.Machine.Bridge public
 open import CategoricalCrypto.UC.QueryBound public
+open import CategoricalCrypto.UC.Saturated public
