@@ -46,10 +46,10 @@ private variable B : ℕ → Iface
 -- A family of closed systems indexed by the security parameter: a negligible
 -- slack needs a parameter to vanish in, and the exact-versus-saturated
 -- distinction only exists asymptotically.
-Family : (ℕ → Iface) → Set₁
-Family B = (n : ℕ) → Protocol unitᴵ (B n)
+Systems : (ℕ → Iface) → Set₁
+Systems B = (n : ℕ) → Protocol unitᴵ (B n)
 
-Bad : Family B → Set
+Bad : Systems B → Set
 Bad {B} P = (n : ℕ) → St (P n) → Bool
 
 Watch : (B : ℕ → Iface) → Set
@@ -59,14 +59,14 @@ Watch B = (n : ℕ) → Strat (Neg (B n)) (Pos (B n))
 -- The audit form, saturated: no budget-`q` strategy makes the watched event's
 -- probability exceed `ε n q`, up to one negligible `ν` chosen once for the
 -- whole family.
-SaturatedBounded : (P : Family B) → Watch B → (ℕ → ℕ → ℚ) → Set
+SaturatedBounded : (P : Systems B) → Watch B → (ℕ → ℕ → ℚ) → Set
 SaturatedBounded {B} P bad ε = Σ[ ν ∈ (ℕ → ℚ) ] ν →0
   × ((n q : ℕ) (d : Strat (Neg (B n)) (Pos (B n))) → asks≤ q d
      → Pr (P n) (bad n d) ℚ.≤ ε n q ℚ.+ ν n)
 
 -- The trajectory form, saturated the same way — and see the header for why the
 -- invariance below is stated for the audit form only.
-SaturatedHit : (P : Family B) → Bad P → (ℕ → ℕ → ℚ) → Set
+SaturatedHit : (P : Systems B) → Bad P → (ℕ → ℕ → ℚ) → Set
 SaturatedHit {B} P bad ε = Σ[ ν ∈ (ℕ → ℚ) ] ν →0
   × ((n q : ℕ) (d : Strat (Neg (B n)) (Pos (B n))) → asks≤ q d
      → PrHit (P n) (bad n) d ℚ.≤ ε n q ℚ.+ ν n)
@@ -78,7 +78,7 @@ SaturatedHit {B} P bad ε = Σ[ ν ∈ (ℕ → ℚ) ] ν →0
 -- under `+` and under precomposition with a polynomial.  Both closure lemmas
 -- are ℚ/ℕ facts with no UC content; neither exists yet.
 SaturatedRespects : Set₁
-SaturatedRespects = {B : ℕ → Iface} (P Q : Family B) (bad : Watch B)
+SaturatedRespects = {B : ℕ → Iface} (P Q : Systems B) (bad : Watch B)
                     (ε δ : ℕ → ℕ → ℚ)
                   → ((n : ℕ) → P n ≈adv[ δ n ] Q n) → VanishingBound δ
                   → ((n q : ℕ) (d : Strat (Neg (B n)) (Pos (B n)))
