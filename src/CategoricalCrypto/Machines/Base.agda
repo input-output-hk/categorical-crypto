@@ -26,6 +26,8 @@ import Categories.Category.Monoidal.Distributive as MD
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Iteration as Iteration
 import CategoricalCrypto.Machines.Tensor as Tensor
+import CategoricalCrypto.Machines.Trace as Trace
+import CategoricalCrypto.Machines.Trace.Laws as Laws
 
 open import Data.Product.Base using (_×_; _,_)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂; [_,_])
@@ -251,3 +253,8 @@ Elgotₚ ℓ = record
   where
   open Elgotᵏ ℓ
   open KDP (Dₚ-DiscreteMonad {ℓ})
+
+-- The ⊕-trace's four laws at the intended base: `Remaining` is a term with no
+-- hypotheses under it, which is what makes the whole machine layer axiom-free.
+Remainingₚ : (ℓ : Level) → Trace.Remaining (𝒱ₚ ℓ) (distₚ ℓ) (𝒫ₚ ℓ) (Elgotₚ ℓ)
+Remainingₚ ℓ = Laws.Remainingᴹ (𝒱ₚ ℓ) (distₚ ℓ) (𝒫ₚ ℓ) (Elgotₚ ℓ)
