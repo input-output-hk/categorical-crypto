@@ -8,15 +8,29 @@ module ProbabilisticLogic.Distribution.Uniform where
 
 open import categorical-crypto.Prelude hiding (_/_; _>>=_; _*_)
 
-open import Data.Integer using (+_; +≤+)
+open import Algebra.Bundles using (CommutativeMonoid)
+open import Data.Integer as ℤ using (+_; +≤+)
+import Data.Integer.Properties as ℤₚ
 import Data.List.NonEmpty as NE
 import Data.List.Relation.Unary.All as All
-open import Data.Rational using (ℚ; 0ℚ; 1ℚ; _/_; _+_; _*_; _≤_; *≤*)
+import Data.Nat as ℕ
+import Data.Nat.Properties as ℕₚ
+open import Data.Rational using (ℚ; 0ℚ; 1ℚ; mkℚ; _/_; _+_; _*_; _≤_; _<_; *≤*; *<*)
 open import Data.Rational.Properties using
-  (*-zeroʳ; *-identityˡ; +-identityˡ; +-identityʳ; *-distribʳ-+)
+  ( *-zeroˡ; *-zeroʳ; *-identityˡ; *-identityʳ; *-1-commutativeMonoid
+  ; +-assoc; +-identityˡ; +-identityʳ; +-monoˡ-≤; +-monoʳ-≤; *-distribʳ-+
+  ; ≤-refl; ≤-reflexive; ≤-trans; <-≤-trans; /-cong; positive⁻¹; ↥p/↧p≡p )
+open import Data.Rational.Properties.Ext using (0≤1ℚ; 0≤*; /-*-/; /-+-/; /-mono-≤)
 open import Data.Vec using (Vec; []; _∷_)
 
+import Algebra.Properties.CommutativeSemigroup as CommutativeSemigroupProperties
+import Data.Rational.Properties as ℚₚ
+
 open import ProbabilisticLogic.Distribution.RationalDist renaming (_>>=ᴹ_ to _>>=_)
+
+private
+  module *-CS =
+    CommutativeSemigroupProperties (CommutativeMonoid.commutativeSemigroup *-1-commutativeMonoid)
 
 ------------------------------------------------------------------------
 -- ℚ-valued indicator function on bit-strings.
@@ -64,14 +78,100 @@ suc·c : ∀ n c → c + n * c ≡ (1ℚ + n) * c
 suc·c n c = trans (cong (_+ n * c) (sym (*-identityˡ c)))
                   (sym (*-distribʳ-+ c 1ℚ n))
 
+0≤½ : 0ℚ ≤ (+ 1 / 2)
+0≤½ = *≤* (+≤+ z≤n)
+
+------------------------------------------------------------------------
+-- `fromℕ` as a semiring map, `inv-pow-2 k` as the inverse of `fromℕ (2 ^ k)`,
+-- and the Archimedean property of ℚ in the shape the vanishing bounds of
+-- `ProbabilisticLogic.Distribution.Uniform.Decay` consume.
+
+private
+  x≤1+x : ∀ x → x ≤ 1ℚ + x
+  x≤1+x x = ≤-trans (≤-reflexive (sym (+-identityˡ x))) (+-monoˡ-≤ x 0≤1ℚ)
+
+0≤fromℕ : ∀ n → 0ℚ ≤ fromℕ n
+0≤fromℕ zero    = ≤-refl
+0≤fromℕ (suc m) = ≤-trans (0≤fromℕ m) (x≤1+x (fromℕ m))
+
+0<fromℕ-suc : ∀ m → 0ℚ < fromℕ (suc m)
+0<fromℕ-suc m = <-≤-trans (positive⁻¹ 1ℚ)
+  (≤-trans (≤-reflexive (sym (+-identityʳ 1ℚ))) (+-monoʳ-≤ 1ℚ (0≤fromℕ m)))
+
+fromℕ-mono-≤ : ∀ {m n} → m ℕ.≤ n → fromℕ m ≤ fromℕ n
+fromℕ-mono-≤ {n = n} z≤n = 0≤fromℕ n
+fromℕ-mono-≤ (s≤s m≤n)   = +-monoʳ-≤ 1ℚ (fromℕ-mono-≤ m≤n)
+
+fromℕ-+ : ∀ m n → fromℕ (m ℕ.+ n) ≡ fromℕ m + fromℕ n
+fromℕ-+ zero    n = sym (+-identityˡ (fromℕ n))
+fromℕ-+ (suc m) n = trans (cong (λ z → 1ℚ + z) (fromℕ-+ m n))
+                          (sym (+-assoc 1ℚ (fromℕ m) (fromℕ n)))
+
+fromℕ-* : ∀ m n → fromℕ (m ℕ.* n) ≡ fromℕ m * fromℕ n
+fromℕ-* zero    n = sym (*-zeroˡ (fromℕ n))
+fromℕ-* (suc m) n = trans (fromℕ-+ n (m ℕ.* n))
+  (trans (cong (λ z → fromℕ n + z) (fromℕ-* m n)) (suc·c (fromℕ m) (fromℕ n)))
+
+fromℕ-/ : ∀ n → fromℕ n ≡ + n / 1
+fromℕ-/ zero    = refl
+fromℕ-/ (suc m) = begin
+  1ℚ + fromℕ m                                ≡⟨ cong (λ z → 1ℚ + z) (fromℕ-/ m) ⟩
+  (+ 1 / 1) + (+ m / 1)                       ≡⟨ /-+-/ (+ 1) 0 (+ m) 0 ⟩
+  (+ 1 ℤ.* (+ 1) ℤ.+ + m ℤ.* (+ 1)) / (1 ℕ.* 1)
+    ≡⟨ /-cong (cong (λ z → + 1 ℤ.* (+ 1) ℤ.+ z) (ℤₚ.*-identityʳ (+ m))) refl ⟩
+  + suc m / 1                                 ∎
+  where open ≡-Reasoning
+
+0≤inv-pow-2 : ∀ k → 0ℚ ≤ inv-pow-2 k
+0≤inv-pow-2 zero    = 0≤1ℚ
+0≤inv-pow-2 (suc k) = 0≤* 0≤½ (0≤inv-pow-2 k)
+
+fromℕ-inv-pow-2 : ∀ k → fromℕ (2 ℕ.^ k) * inv-pow-2 k ≡ 1ℚ
+fromℕ-inv-pow-2 zero    = trans (*-identityʳ (fromℕ 1)) (+-identityʳ 1ℚ)
+fromℕ-inv-pow-2 (suc k) = begin
+  fromℕ (2 ℕ.* 2 ℕ.^ k) * ((+ 1 / 2) * inv-pow-2 k)
+    ≡⟨ cong (_* ((+ 1 / 2) * inv-pow-2 k)) (fromℕ-* 2 (2 ℕ.^ k)) ⟩
+  fromℕ 2 * fromℕ (2 ℕ.^ k) * ((+ 1 / 2) * inv-pow-2 k)
+    ≡⟨ *-CS.interchange (fromℕ 2) (fromℕ (2 ℕ.^ k)) (+ 1 / 2) (inv-pow-2 k) ⟩
+  fromℕ 2 * (+ 1 / 2) * (fromℕ (2 ℕ.^ k) * inv-pow-2 k)
+    ≡⟨ cong (fromℕ 2 * (+ 1 / 2) *_) (fromℕ-inv-pow-2 k) ⟩
+  1ℚ                                                    ∎
+  where open ≡-Reasoning
+
+-- Every positive ε has `1 ≤ (M + 1) · ε` for some M: ε's own denominator is
+-- such an M, since its numerator is at least 1.
+archimedean : ∀ {ε} → 0ℚ < ε → Σ[ M ∈ ℕ ] 1ℚ ≤ fromℕ (suc M) * ε
+archimedean {ε@(mkℚ i d-1 _)} (*<* 0<i) = d-1 , bnd
+  where
+  D = suc d-1
+
+  1≤i : + 1 ℤ.≤ i
+  1≤i = ℤₚ.i<j⇒suc[i]≤j (subst₂ ℤ._<_ (ℤₚ.*-zeroˡ (+ D)) (ℤₚ.*-identityʳ i) 0<i)
+
+  ineq : + 1 ℤ.* + (1 ℕ.* D) ℤ.≤ (+ D ℤ.* i) ℤ.* + 1
+  ineq = begin
+    + 1 ℤ.* + (1 ℕ.* D)  ≡⟨ ℤₚ.*-identityˡ (+ (1 ℕ.* D)) ⟩
+    + (1 ℕ.* D)          ≡⟨ cong +_ (ℕₚ.*-identityˡ D) ⟩
+    + D                  ≡⟨ sym (ℤₚ.*-identityʳ (+ D)) ⟩
+    + D ℤ.* + 1          ≤⟨ ℤₚ.*-monoˡ-≤-nonNeg (+ D) 1≤i ⟩
+    + D ℤ.* i            ≡⟨ sym (ℤₚ.*-identityʳ (+ D ℤ.* i)) ⟩
+    (+ D ℤ.* i) ℤ.* + 1  ∎
+    where open ℤₚ.≤-Reasoning
+
+  bnd : 1ℚ ≤ fromℕ D * ε
+  bnd = begin
+    1ℚ                       ≤⟨ /-mono-≤ (+ 1) 1 (+ D ℤ.* i) (1 ℕ.* D) ineq ⟩
+    (+ D ℤ.* i) / (1 ℕ.* D)  ≡⟨ sym (/-*-/ (+ D) 0 i d-1) ⟩
+    (+ D / 1) * (i / D)      ≡⟨ cong₂ _*_ (sym (fromℕ-/ D)) (↥p/↧p≡p ε) ⟩
+    fromℕ D * ε              ∎
+    where open ℚₚ.≤-Reasoning
+
 ------------------------------------------------------------------------
 -- Uniform sampling.
 
 uniform-Bool : Dist-ℚ Bool
 uniform-Bool = mk-Dist (((+ 1 / 2) , false) NE.∷ ((+ 1 / 2) , true) ∷ []) refl
                        (0≤½ All.∷ 0≤½ All.∷ All.[])
-  where 0≤½ : 0ℚ ≤ (+ 1 / 2)
-        0≤½ = *≤* (+≤+ z≤n)
 
 uniform-Vec : (k : ℕ) → Dist-ℚ (Vec Bool k)
 uniform-Vec zero    = return-ℚ []
