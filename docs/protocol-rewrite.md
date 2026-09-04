@@ -23,7 +23,7 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 | M1: layers 0–1 + the ledger example | **DONE** — all green, pins by `refl`, hatches 21 = baseline |
 | M2 wave 1: `Dₚ`, `Kl(Dₚ)`, `Mealy` + `Mealy-Category` + the ⊕-trace | **DONE** — all green, hatches 21 = baseline |
 | M2 wave 2: the four residual trace laws + `Elgot` at `Kl(Dₚ)` | **DONE** — the machine layer is hypothesis-free; hatches 21 = baseline |
-| M2 wave 3: the machine SMC bundle, `Traced`, GConstruction, `morphism`/`Pr-agree` | not started |
+| M2 wave 3: the machine SMC bundle, `Traced`, GConstruction, `morphism`/`Pr-agree` | **the machine layer is DONE** — `ℳₚ` symmetric monoidal, `Tracedₚ`, `𝒢ₚ` all closed terms; `morphism` landed, `Morphism-∘`/`PrAgree` stated and priced; hatches 21 = baseline |
 | M3: the UC layer | not started |
 
 ## Modules (M1: 10 files, 795 LOC, all `--safe --without-K`)
@@ -95,7 +95,7 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 | `…Machines.Frame` | 392 | the point-free coherence library the layer runs on |
 | `…Machines.Reassoc` | 95 | the three state-reassociation squares |
 | `…Machines.Category` | 90 | `Mealy-Category`, `∘ᴹ-resp-≈ᴹ` |
-| `…Machines.Tensor` | 166 | `tstep`, `_⊗ᵉ_`, `⊗ᵉ-resp-≲`, `pureᴹ` + functoriality, `α⇒ᴹ`/`α⇐ᴹ`/`σᴹ` |
+| `…Machines.Tensor` | 174 | `tstep`, `_⊗ᵉ_`, `⊗ᵉ-resp-≲`/`⊗ᵉ-resp-≈ᴹ`, `pureᴹ` + functoriality, `α⇒ᴹ`/`α⇐ᴹ`/`σᴹ` |
 | `…Machines.Iteration` | 113 | the `Elgot` hypothesis record, `tstep-pad`, the derived `iter-uniform`/`pure-+₁` |
 | `…Machines.Trace` | 267 | `solve`/`traceStep`/`traceᴹ`, `iter-onL`, yanking, vanishing₁, step-level naturality, state extension, `Remaining` |
 | `…Machines.Trace.Naturality` | 97 | `trace-∘ˡ`, `trace-∘ʳ` for arbitrary machines |
@@ -104,7 +104,7 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 | `…Machines.Trace.Vanishing` | 256 | `vanishing₂`, `vanish-step`, `[]-δ⇐` |
 | `…Machines.Trace.Fubini` | 202 | `trace-comm`, `relabel-step`, `β+` |
 | `…Machines.Trace.Laws` | 39 | `Remaining`, as a term |
-| `…Machines.Base` | 260 | `Dₚ-DiscreteMonad`, `𝒱ₚ`, `distₚ`, `𝒫ₚ`, `Elgotₚ`, `Remainingₚ` — the intended instance, hypothesis-free |
+| `…Machines.Base` | 281 | `Dₚ-DiscreteMonad`, `𝒱ₚ`, `distₚ`, `𝒫ₚ`, `Elgotₚ`, `Remainingₚ`, `ℳₚ`, `Tracedₚ`, `𝒢ₚ` — the intended instance, hypothesis-free |
 
 Cost: the whole machine closure elaborates in ~40 s; no module is over 8 s warm
 and each `Dₚ` module is ~4 s.  `Trace.Naturality` is split off `Trace` on the
@@ -253,33 +253,214 @@ nest of `[_,_]`s and every injection equation is `inject₁`/`inject₂`.  `+₁
 and `+-unique₂` moved there from `Monoidal.Distributive.Properties`, whose
 distributivity they never needed.
 
-### What wave 3 owes
+### What wave 3 owed
 
-* **The machine SMC bundle** — `triangleᴹ`/`pentagonᴹ`/`hexagonᴹ`, the unitor,
-  associator and braiding naturalities, `⊗ᵉ-homomorphism`, hence `Monoidal` and
-  `Symmetric` for `Mealy-Category`.  All of them are `pureᴹ`-conjugations of a
-  base coherence law, which is why `pureᴹ-cong`/`pureᴹ-id`/`pureᴹ-∘`/`⊗ᵉ-pureᴹ`/
-  `pure-∘ˡ`/`pure-∘ʳ` are already proved here; `⊗ᵉ-homomorphism` and
-  `assoc-commuteᴹ` additionally want `Ω`, `slot-comm` and `tstep-α`, which is why
-  `Ω`/`tuck`/`untuck` are not in `Machines.Core` yet.
-* **`Mealy-Traced` and `GConstruction`** — both are *blocked on the bundle*, not
-  on the laws: `Traced` is indexed by `Monoidal Mealy-Category` and
-  `GConstruction` takes `(C , Monoidal , Traced)`.  Every field they need is now
-  a term (`vanishing₁ᴹ`, `yankingᴹ`, `vanishing₂`, `superposing`,
-  `trace-resp-≈ᴹ`, `trace-∘ˡ`, `trace-∘ʳ`, `trace-comm`), so once the bundle
-  exists the assembly is the elgot spike's `Assemble.agda` verbatim — two record
-  literals.
-* **`Monoidal (GConstruction C)`** — inherited, unchanged, 300–600 LOC HIGH.
-* **`morphism`/`morphism-∘`/`Pr-agree`** — the agreement theorems that connect
-  layer 1's `Protocol` to the machine category.
+* **The machine SMC bundle** — done, and the estimate that every law is a
+  `pureᴹ`-conjugation of a base coherence law held: `Tensor.Structural` is 219
+  lines and `Tensor.Assoc` 219, against ~750 for the same content over the
+  behavioural equality on `ro-model`.  `Ω`/`tuck`/`untuck` were **not** needed
+  after all — see the `⊗-split` note below.
+* **`Mealy-Traced` and `GConstruction`** — done, two record literals as
+  predicted, and **zero hypotheses survive**.
+* **`Monoidal (GConstruction C)`** — the embedding layer landed; the
+  `⊗`-homomorphism wall is still open, priced below.
+* **`morphism`/`morphism-∘`/`Pr-agree`** — `morphism` landed; the two agreement
+  theorems are stated as types (no postulate, no hole) and priced below.
+
+## M2 wave 3 (11 new/changed files, +1213 LOC)
+
+| module | LOC | role |
+|---|---|---|
+| `…Machines.Tensor` (+8) | 174 | `⊗ᵉ-resp-≈ᴹ`, the `EqClosure` lift of `⊗ᵉ-resp-≲` |
+| `…Machines.Tensor.Structural` | 219 | `tstep-∘`, `λ⇒ᴹ`/`ρ⇒ᴹ`, the six iso laws, `triangleᴹ`/`pentagonᴹ`/`hexagonᴹ`, unitor and braiding naturality, the two one-sided collapses |
+| `…Machines.Tensor.Assoc` | 219 | `⊗-split`/`⊗-split′`, `⊗ᵉ-homomorphism`, `tstep-α`, `assoc-commuteᴹ` |
+| `…Machines.Bundle` | 82 | `⊗ᴹ`, `Mealy-Monoidal`, `Mealy-Symmetric`, `Mealy-SymmetricMonoidal` |
+| `…Machines.G` | 56 | `Mealy-Traced`, `Mealy-G` — `GConstruction` instantiated unchanged |
+| `…Machines.Base` (+21) | 281 | `ℳₚ`, `Tracedₚ`, `𝒢ₚ`: the closed instances |
+| `Categories.GConstructionEmbedding` | 157 | harvested: `⌜_,_⌝`, `absorbˡ`/`absorbʳ`, `⌜⌝-∘`, `⌜⌝-≅`, `unitorˡᴳ`/`unitorʳᴳ`/`associatorᴳ` |
+| `…GConstructionEmbeddingCoherence` | 173 | harvested: the two absorption coherence obligations, APROP-solved |
+| `ProbabilisticLogic.Dp.Coin` | 74 | `coinₚ` — a `Dist-ℚ Bool` as one biased coin — and `coinₚ-cum` |
+| `CategoricalCrypto.Protocol.Machine` | 131 | `⟦_⟧ᴵ`, `MSt`, `drive`, `morphism`, `runᴹ`, `Morphism-∘`, `PrAgree` |
+| `…Protocol.Machine.Pin` | 73 | layer 1 and the machine image agree by `refl` |
+
+Cost: every module is a warm single-module check of 5–16 s; the whole
+`Machines.G` closure from cold (including `GConstruction*`) is 37 s.
+
+### The bundle, as landed
+
+Every coherence law is its `+`-monoidal instance conjugated by `pureᴹ`, exactly
+as wave 2 predicted, and the two structural lemmas that carry it are
+
+    ⊗ᵉ-pureˡ : (idᴹ {A} ⊗ᵉ pureᴹ h) ≲ pureᴹ (id +₁ h)
+    ⊗ᵉ-pureʳ : (pureᴹ h ⊗ᵉ idᴹ {C}) ≲ pureᴹ (h +₁ id)
+
+so `triangleᴹ`, `pentagonᴹ` and `hexagonᴹ` are one `pureᴹ-cong` at `⊕.triangle`,
+`⊕.pentagon` and `⊕Br.hexagon₁` each.  The unitor naturalities hold because
+`X ⊗₀ ⊥` is initial (`⊥-unique`), so the summand that would carry the other
+machine cannot fire; the braiding's is `σ-onL`/`σ-onR` (the state braiding
+exchanges the two state actions) against `tstep-swap` (the interface swap
+exchanges the two arms).
+
+The two laws wave 2 flagged as wanting `Ω`/`slot-comm` — `⊗ᵉ-homomorphism` and
+`assoc-commuteᴹ` — did **not**.  `⊗-split` (`f ⊗ᵉ g ≈ᴹ (f ⊗ᵉ id) ∘ᴹ (id ⊗ᵉ g)`)
+is the whole trick: both sides pair the same two states up to the unitors the
+one-sided halves contribute, so its step obligation is one `tstep-∘` plus
+`tstep-sim` on the two collapses, and afterwards every homomorphism is
+one-sided, where `⊗idᵉ-collapse` erases the trivial state factor and no state
+tree is ever re-bracketed.  Associator naturality then holds one generator at a
+time (`natˡ`/`natᶜ`/`natʳ`), each of which is `pure-∘ˡ`/`pure-∘ʳ` around a
+single `tstep-α`.  The 280 LOC of word-splitting `ro-model` needed for
+`⊗ᵉ-resp-≈ᵉ` (`Spike.Distributor`'s second half) has no counterpart: at the
+simulation equality the congruence is `⊗ᵉ-resp-≲`, three lines, and its
+`EqClosure` lift is four more.
+
+### Task 3: `Monoidal (GConstruction C)` — what remains
+
+`Categories.GConstructionEmbedding{,Coherence}` transfer verbatim (the
+`GConstruction*` modules are byte-identical on both branches) and add **no**
+trace hypothesis: the four `GConstruction` already takes are enough, and at the
+machine layer all four are terms, so nothing on the instance side is at risk.
+`⌜ u , v ⌝ = σ⇒ ∘ u ⊗₁ v`, `absorbˡ`/`absorbʳ`, `⌜⌝-∘`, `⌜⌝-≅` and hence
+`unitorˡᴳ`/`unitorʳᴳ`/`associatorᴳ` as `𝒢`-isos are all available (12.3 s over
+the existing solver closure).
+
+What is missing is the bifunctor.  With
+`(A⁺,A⁻) ⊗ᴳ (B⁺,B⁻) = (A⁺ ⊗₀ B⁺ , A⁻ ⊗₀ B⁻)`, `unitᴳ = (I , I)` and
+`f ⊗₁ᴳ g = w⁻ ∘ f ⊗₁ g ∘ w` for the two middle-four interchanges `w`, `w⁻`
+(no trace), the residue is, in dependency order:
+
+1. `⌜⌝-⊗ : ⌜u,v⌝ ⊗₁ᴳ ⌜p,q⌝ ≈ ⌜ u ⊗₁ p , v ⊗₁ q ⌝`.  A 4-generator symmetric
+   coherence whose `σ⇒` sits at the **compound** objects `A⁺ ⊗₀ C⁺` and
+   `B⁻ ⊗₀ D⁻`, and the normalizer never splits a crossing block
+   (`Coherence.Monoidal.Test.Limitations.lim-hexagon`) — so it needs the
+   hand-split `solveMor!` treatment `Machines.Reassoc.onL-α` uses, ~40–60 LOC.
+2. `identity`, `triangle`, `pentagon`, `unitor*-commute`, `assoc-commute`: each
+   is (1) + `⌜⌝-∘` + `absorbˡ`/`absorbʳ` transporting the base law; the two
+   commute laws become 1-generator base solves once absorbed.
+3. `homomorphism : (f′ ∘ᴳ f) ⊗₁ᴳ (g′ ∘ᴳ g) ≈ (f′ ⊗₁ᴳ g′) ∘ᴳ (f ⊗₁ᴳ g)` — the
+   gate, since `Monoidal`'s `⊗` is a `Bifunctor` and nothing above assembles
+   without it.  Route: `superposing` + `right-superposing` + `trace-∘ˡ/ʳ` +
+   `trace-comm` fuse `trace ⊗ trace` into a double trace, then one coherence
+   step over 8 atoms / 4 generators; splitting by
+   `f ⊗ᴳ g = (f ⊗ᴳ id) ∘ᴳ (id ⊗ᴳ g)` cuts each half to 2 generators.
+   `GConstruction`'s `right-superposing`, `trace-βyank` and `trace-gyank` are
+   `where`-local to its `categoryHelper` literal and have to be lifted out or
+   re-derived; the `RS` coherence they rest on *is* exported, from
+   `GConstructionIdentityCoherence`.
+
+`Braided`/`Symmetric` on `𝒢` is not needed downstream.
+
+### Task 4: the semantics functor
+
+An interface is a **pair** of objects and a protocol is a machine on the sum of
+the two polarities — which is exactly a `GConstruction` hom, since
+`(A⁺,A⁻) ⇒𝒢 (B⁺,B⁻)` unfolds to `Machine (A⁺ + B⁻) (A⁻ + B⁺)`.  So
+
+    ⟦_⟧ᴵ    : Iface → Category.Obj (𝒢ₚ 0ℓ)
+    ⟦ A ⟧ᴵ  = Pos A , Neg A
+
+    morphism : Protocol A B → 𝒢ₚ 0ℓ [ ⟦ A ⟧ᴵ , ⟦ B ⟧ᴵ ]
+
+typechecks with no coercion, and no `Monoidal` structure on `𝒢` is used — the
+seam task 3 leaves open is not in the way (`⟦_⟧ᴵ` is monoidal only *if* task 3
+lands, which is what M3 will want for `_⊗ᴵ_`).
+
+A protocol step makes finitely many calls, which a Mealy step cannot, so each
+call is one activation and the pending continuation is state:
+
+    data MSt : Set where
+      idle : St P → MSt
+      wait : (Pos A → Calls A (St P × Pos B)) → MSt
+
+    drive : Calls A (St P × Pos B) → Dₚ (MSt × (Neg A ⊎ Pos B))
+
+`drive` is **structural recursion on `Calls`** — the tree is inductive, so no
+iteration, clock or fuel appears here either.  `coin` becomes one biased-coin
+step (`coinₚ`, the new `Dp.Coin`), `dead` becomes `botₚ`, whose mass `cum` never
+counts.
+
+`Machine.Pin` computes both verdicts at a coin-flipping protocol and gets the
+same rational by `refl`, before and after one `_∘ᵖ_` (which exercises
+`graft`/`serve` and `drive` on a `call` node).
+
+#### Finding: `morphism` preserves composites, not identities
+
+`𝒢.id` is `σ⇒`, a **stateless** forwarder that accepts `inj₁ a⁺` at any time.
+`morphism wireᵖ` demands a query first: at `(idle tt , inj₁ a⁺)` the two steps
+are `botₚ` and `returnₚ (tt , inj₂ a⁺)`, so neither simulates the other.
+`wireᵖ` is the *sequential* wire, and divergence on an unasked-for answer is
+forced for a general protocol — `Pos A` and `Pos B` are different types, so
+there is nothing to forward.  Layer 1 states no identity law (M1 has `_∘ᵖ_` and
+no `Protocol` category), so nothing breaks; but a *functor* out of protocols
+would have to land in a subcategory of `𝒢`, or restrict to on-protocol
+environments.  Recording this is the point of the seam.
+
+#### The two agreement theorems, stated and priced
+
+Both are types in `Protocol.Machine`, so their shapes are certified; neither is
+postulated.
+
+    Morphism-∘ = (P₂ : Protocol B C) (P₁ : Protocol A B)
+               → 𝒢ₚ 0ℓ [ morphism (P₂ ∘ᵖ P₁) ≈ morphism P₂ 𝒢.∘ morphism P₁ ]
+
+**Price 300–500 LOC, one module.**  The direction that has a witness is
+`morphism P₂ ∘𝒢 morphism P₁ ≲ morphism (P₂ ∘ᵖ P₁)`: the state map
+`⊤ × ((MSt P₂ × MSt P₁) × ⊤) → MSt (P₂ ∘ᵖ P₁)` grafts the two pending
+continuations with `serve`, and being a function it is `Pure` for free.  The
+reverse direction has **no** state map — a grafted `wait` continuation does not
+decompose — which is a second reason the equality has to be the equivalence
+closure.  The step square is an `iter-fix` unrolling: `_∘ᵖ_`'s `graft`/`serve`
+mutual recursion *is* the loop the ⊕-trace's `iter` performs, one internal
+`B`-message per pass, so the proof is an induction on `P₂`'s call tree against
+`solve-loop`.  Two cheap prerequisites: `graft`/`serve` are `private` inside
+`_∘ᵖ_` and must be exported, and `GConstruction`'s `α`/`γ` have to be absorbed
+(that is what `absorbˡ`/`absorbʳ` from task 3's embedding layer are for).
+
+    PrAgree = (P : Protocol unitᴵ B) (d : Strat (Neg B) (Pos B))
+            → Σ[ n ∈ ℕ ] ((m : ℕ) → cum (n + m) (runᴹ (morphism P) d) bool→ℚ
+                                  ≡ Pr P d)
+
+**Price 250–450 LOC, two modules.**  `runᴹ` (the minimal closed-machine run,
+against any machine of the closed shape) is landed, so only the theorem is
+open.  It factors as (i) `drive` agrees with `Observe.evalC` at the `cum` level,
+by induction on `Calls` with `coinₚ-cum` (landed) at each coin node, and (ii)
+induction on the `Strat` tree threading the budget.  The one piece of real work
+is (i)'s bind step: `Dist⊥`'s bind splices lists while `Dₚ`'s builds a coin
+tree, so agreement needs `cum` of a bind factored as an expectation of `cum`s —
+`Dp` has the exact `cum`/bind identities and `Dp.Commutative` has `cum` linear
+in its test, so the ingredients are there.  A cheaper and more reusable route
+is a general embedding `Dist⊥ X → Dₚ X` with a `cum` agreement and a
+monad-morphism law up to `≈ₚ`; that is the missing link between the two
+probability carriers in the repo (`Dp`'s header asserts it exists but nothing
+proves it), and it makes `PrAgree` an induction on `Strat` alone.
+
+`Morphism-∘` cannot be pinned by computation, and that is measured: `cum n`
+expands `2ⁿ` branches, while `𝒢`'s point-free composite spends one delay
+junction per structural morphism of `α`, `γ`, two `∘ᴹ` towers and the trace's
+`iter` — several dozen.  At `n = 16` (16 s of normalization) the composite's
+mass has not reached a value at all.
 
 ### Assumption ledger
 
 Empty.  Every term in every module of M2 is total; zero postulates, zero
 `TERMINATING`, zero holes; whole-`src` hatch grep 21 before and after (the M1
 baseline).  `Machines.Iteration.Elgot` and `Machines.Trace.Remaining` are still
-module *parameters* of the generic layer — that is what keeps it generic — but
-both are discharged at the intended base in `Machines.Base`.
+module *parameters* of the generic layer — that is what keeps it generic — and
+both are discharged at the intended base in `Machines.Base`, where `ℳₚ`,
+`Tracedₚ` and `𝒢ₚ` are closed terms.
+
+`Morphism-∘` and `PrAgree` (`Protocol.Machine`) are stated `Set`s with nothing
+inhabiting them — the `TrajectoryFromAudit` pattern: the statement is certified
+to typecheck against the real definitions, and it is not assumed anywhere.
+
+Two shape seams are open and neither is load-bearing today:
+
+* `⟦ unitᴵ ⟧ᴵ` is `(Data.Empty.⊥ , Data.Empty.⊥)` while `Mealy-Monoidal`'s unit
+  is `Data.Empty.Polymorphic.⊥` — isomorphic, not identical.  It bites only when
+  M3 wants `⟦_⟧ᴵ` monoidal, and the cure is the `Iface`-polymorphism M3 plans
+  anyway.
+* `Monoidal (GConstruction C)` is still absent, so `⟦_⟧ᴵ` is a map of objects
+  and `morphism` a map of homs, against the bare `Category`.
 
 ### Solver use
 
