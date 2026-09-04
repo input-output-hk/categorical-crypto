@@ -11,6 +11,12 @@
 -- graded by the security parameter and anything else, and `(ℕ , id)` recovers
 -- the reference.
 --
+-- `κ` must be COFINAL, and that is a soundness requirement rather than
+-- bookkeeping: eventual closeness quantifies over the indices above a
+-- threshold, so a bounded `κ` (constantly zero, say) makes every eventual
+-- statement — hence the whole UC preorder — vacuously true.  `κ-cofinal` is
+-- what `≈^ω-witness` spends.
+--
 -- Everything categorical is levelwise, so the whole `UCBase` transports: the
 -- observation becomes an `Ix`-sequence of observations, `_≈[ ε ]_` becomes
 -- *eventual* ε-closeness in `κ`, and the derived agreement `_∼_` is then
@@ -32,7 +38,7 @@ import CategoricalCrypto.UC.Emulation as Em
 module CategoricalCrypto.UC.Family
   {o ℓ e os ℓs qs : Level} (base : UCBase o ℓ e os ℓs)
   (bud : Budget (UCBase.𝒞 base) (UCBase.grading base) qs)
-  (Ix : Set) (κ : Ix → ℕ) where
+  (Ix : Set) (κ : Ix → ℕ) (κ-cofinal : (N : ℕ) → Σ[ i ∈ Ix ] N ℕ.≤ κ i) where
 
 open UCBase base
 open Budget bud
@@ -130,6 +136,12 @@ infix 4 _≈^ω[_]_ _→0
 -- vanishing-advantage relation and its equivalence from this.
 _≈^ω[_]_ : (Ix → Obs) → ℚ → (Ix → Obs) → Set ℓs
 μ ≈^ω[ ε ] ν = Σ[ N ∈ ℕ ] ((i : Ix) → N ℕ.≤ κ i → μ i ≈[ ε ] ν i)
+
+-- Cofinality is what keeps the eventual relation from being satisfiable by
+-- fiat: every threshold is met by some index, so an eventual closeness is
+-- witnessed by an actual one.
+≈^ω-witness : {μ ν : Ix → Obs} {ε : ℚ} → μ ≈^ω[ ε ] ν → Σ[ i ∈ Ix ] μ i ≈[ ε ] ν i
+≈^ω-witness (N , h) = let i , le = κ-cofinal N in i , h i le
 
 _→0 : (ℕ → ℚ) → Set
 s →0 = (ε : ℚ) → 0ℚ ℚ.< ε → Σ[ N ∈ ℕ ] ((n : ℕ) → N ℕ.≤ n → s n ℚ.≤ ε)
