@@ -19,6 +19,7 @@
 open import Categories.Category.Core using (Category)
 
 open import Data.Nat.Base as ℕ using (ℕ)
+open import Data.Product.Base using (Σ-syntax)
 open import Data.Rational as ℚ using (ℚ; 0ℚ; ½)
 open import Data.Rational.Properties
   using (*-distribʳ-+; *-identityˡ; *-monoʳ-<-pos; *-zeroʳ; <⇒≤; ≤-reflexive)
@@ -100,6 +101,20 @@ record Budget {o ℓ e} (𝒞 : Category o ℓ e) (G : Grading 𝒞) (qs : Level
     qb-a⇒     : {X Y A : Obj} → QB 1 (a⇒ {X} {Y} {A})
     qb-a⇐     : {X Y A : Obj} → QB 1 (a⇐ {X} {Y} {A})
 
+-- The budget a context's two legs afford a strategy playing in its place.  The
+-- test's own `c` is what bounds crossings into the plugged interface: the
+-- closure of a CLOSED context supplies only ancilla and input responses, so the
+-- conservative bound is `c` alone.  The product form is kept for the closures
+-- that do relay downwards, but GUARDED at `c′ ⊔ 1`, because a closure with no
+-- downward port certifies at `QB 0` and an unguarded `c * 0` charges a context
+-- that genuinely queries to a strategy that cannot query at all (external theory
+-- review, finding 1).  This is `qb-T₁`'s `c ⊔ 1` guard, one level up and for the
+-- same reason.  The principled eventual form is a port-specific bound on
+-- crossings into the DISTINGUISHED hole rather than a product of two whole-hom
+-- budgets; `docs/protocol-rewrite.md` prices it, and it is not built.
+ctxBudget : ℕ → ℕ → ℕ
+ctxBudget c c′ = c ℕ.* (c′ ℕ.⊔ 1)
+
 ------------------------------------------------------------------------
 -- Closed runs and their comparison
 
@@ -142,6 +157,22 @@ record Observation {o ℓ e} (𝒞 : Category o ℓ e) (os ℓs : Level)
   -- Transporting an agreement along the ambient hom equality at both ends.
   ∼-cast : {u u′ v v′ : 𝟙 ⇒ Ω} → u ≈ u′ → v ≈ v′ → ⟦ u ⟧ ∼ ⟦ v ⟧ → ⟦ u′ ⟧ ∼ ⟦ v′ ⟧
   ∼-cast eu ev h = ∼-trans (∼-sym (⟦⟧-resp-∼ eu)) (∼-trans h (⟦⟧-resp-∼ ev))
+
+-- A one-sided reading of an observation: the mass it has reached within a
+-- budget.  `Observation` compares two observations and never values one, which
+-- is what keeps it inhabited at `Dₚ` (see the header); a BOUND on a single
+-- observation — what an audit-form security statement is — needs exactly this
+-- much more, and no more: a budgeted value and the ε-domination that `_≈[ ε ]_`
+-- already implies.  At the intended instance `at` is `Pr≤` and `dominate` is the
+-- left half of `_≈ₚ[_]_`, so nothing new is assumed.
+record Mass {o ℓ e os ℓs} {𝒞 : Category o ℓ e} (O : Observation 𝒞 os ℓs)
+          : Set (os ⊔ ℓs) where
+  open Observation O
+
+  field
+    at       : ℕ → Obs → ℚ
+    dominate : {x y : Obs} {ε : ℚ} → x ≈[ ε ] y
+             → (n : ℕ) → Σ[ m ∈ ℕ ] at n x ℚ.≤ at m y ℚ.+ ε
 
 ------------------------------------------------------------------------
 

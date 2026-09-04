@@ -28,10 +28,15 @@
 --
 -- Simulator accounting: `f ≤UC g` is `f ≈ℰ sub s ∘ g` at a GRADED codomain
 -- `X ⊛ B`, so an embedded strategy playing against that agreement sees the
--- adversary interface as well.  A bad event carried across an emulation must
--- therefore be interface-observable — the audit form, `POVaudit`/`watch` in
--- `Examples.ChimericLedger.POV`, which is what that gadget is for — and the
--- state trajectory comes back from it through the same example's
+-- adversary interface as well, and two theorems cover the two ends.  At the
+-- TRIVIAL grade the simulator collapses and the emulation *is* the premise
+-- `pov-carry` takes (`UC.Emulation.unit-grade`, named at this instance in
+-- `UC.Seam.Grounding`).  At a real grade it does not collapse, and what carries
+-- is a bound on an INTERFACE-OBSERVABLE event — the audit form,
+-- `POVaudit`/`watch` in `Examples.ChimericLedger.POV`, which is what that gadget
+-- is for — with the simulator absorbed into the environment leg
+-- (`UC.Audit.audit-carry`, at this instance `UC.Seam.Audit`); the state
+-- trajectory comes back from it through the same example's
 -- `TrajectoryFromAudit`.  `pov-carry` is the ungraded end of the chain:
 -- agreement of two closed processes, which is what `transfer` consumes.
 --

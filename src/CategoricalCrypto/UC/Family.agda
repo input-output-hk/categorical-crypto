@@ -32,7 +32,8 @@ open import Level using (Level; _⊔_)
 
 open import Categories.Category.Core using (Category)
 
-open import CategoricalCrypto.UC.Base using (UCBase; Budget; Grading; Observation)
+open import CategoricalCrypto.UC.Base
+  using (UCBase; Budget; Grading; Observation; ctxBudget)
 import CategoricalCrypto.UC.Emulation as Em
 
 module CategoricalCrypto.UC.Family
@@ -177,19 +178,12 @@ open E public using
 
 infix 4 _≈ℰ[_]_
 
--- The budget a context's two legs CARRY, as one polynomial.  The test's own is
--- what bounds crossings into the plugged process: the closure of a closed
--- context supplies only ancilla and input responses, so the conservative bound
--- is the test's polynomial alone.  The product form is kept for the closures
--- that do relay downwards, but GUARDED at `q n ⊔ 1`, because a closure with no
--- downward port certifies at `QB 0` and an unguarded `p n * 0` evaluates a
--- concrete bound at budget zero against a context that genuinely queries
--- (external theory review, finding 1) — the same guard, and the same reason, as
--- `Budget.qb-T₁`'s `c ⊔ 1`.  The principled eventual form is a port-specific
--- bound on crossings into the distinguished hole rather than a product of two
--- whole-hom budgets; `docs/protocol-rewrite.md` prices it, and it is not built.
+-- The budget a context's two legs CARRY, as one polynomial: `ctxBudget`
+-- levelwise, so a closure certifying at `QB 0` cannot evaluate a concrete bound
+-- at budget zero against a context that genuinely queries (`UC.Base`'s comment
+-- has the accounting).
 ctxQB : (p q : ℕ → ℕ) → ℕ → ℕ
-ctxQB p q n = p n ℕ.* (q n ℕ.⊔ 1)
+ctxQB p q n = ctxBudget (p n) (q n)
 
 ctxQB-poly : {p q : ℕ → ℕ} → Poly p → Poly q → Poly (ctxQB p q)
 ctxQB-poly Pp Pq = poly-* Pp (poly-⊔ Pq (poly-const 1))

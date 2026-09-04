@@ -37,7 +37,7 @@ open import Categories.Category using (Category)
 
 open import Data.Bool.Base using (Bool)
 open import Data.Empty using (⊥-elim)
-open import Data.Nat.Base as ℕ using (ℕ)
+open import Data.Nat.Base using (ℕ)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Sum.Base using ([_,_]; inj₂)
 open import Function.Base using (id)
@@ -49,6 +49,7 @@ open import ProbabilisticLogic.Dp.Advantage using (_≈ₚ[_]_)
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol.Machine using (runᴹ)
 open import CategoricalCrypto.Strategy using (Strat; asks≤)
+open import CategoricalCrypto.UC.Base using (ctxBudget)
 open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; Ωᴵ; ⟦_⟧ᴼ; T₁ᴵ; wireᴹ)
 open import CategoricalCrypto.UC.QueryBound using (QB)
 
@@ -70,20 +71,6 @@ conjᴵ u = λᴵ⇐ 𝒫.∘ u
 ctxRun : {A B : Iface} (Y : Iface)
        → Proc (Y ⊗ᴵ B) Ωᴵ → Proc unitᴵ (Y ⊗ᴵ A) → Proc A B → Dₚ Bool
 ctxRun Y E m f = ⟦ (E 𝒫.∘ T₁ᴵ Y f) 𝒫.∘ m ⟧ᴼ
-
--- The budget a context's two legs afford a strategy playing in its place.  The
--- test's own `c` is what bounds crossings into the plugged interface: the
--- closure of a CLOSED context supplies only ancilla and input responses, so the
--- conservative bound is `c` alone.  The product form is kept for the closures
--- that do relay downwards, but GUARDED at `c′ ⊔ 1`, because a closure with no
--- downward port certifies at `QB 0` and an unguarded `c * 0` charges a context
--- that genuinely queries to a strategy that cannot query at all (external
--- theory review, finding 1).  This is `Budget.qb-T₁`'s `c ⊔ 1` guard, one level
--- up and for the same reason.  The principled eventual form is a port-specific
--- bound on crossings into the DISTINGUISHED hole rather than a product of two
--- whole-hom budgets; `docs/protocol-rewrite.md` prices it, and it is not built.
-ctxBudget : ℕ → ℕ → ℕ
-ctxBudget c c′ = c ℕ.* (c′ ℕ.⊔ 1)
 
 -- Stated and priced.  The proof decomposes the context's activation sequence
 -- against a strategy of that budget: a crossing to the plugged interface is an
