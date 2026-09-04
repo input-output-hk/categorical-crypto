@@ -1,0 +1,632 @@
+{
+ "sweep": "join-lines",
+ "root": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-protocol-rewrite",
+ "files": {
+  "src/CategoricalCrypto/Channel/Category.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/POV.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Pin.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Iface.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Base.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Bundle.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Category.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Core.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Frame.agda": {
+   "candidates": 6,
+   "kept": [
+    {
+     "line": 113,
+     "edit": "join 2 lines: `swp-nat : (u : P ⇒ R) (v : Q ⇒ Z) (t : X ⇒ Y) → (u…`"
+    },
+    {
+     "line": 247,
+     "edit": "join 2 lines: `inn = (σ-splitˡ ⟩∘⟨refl) ○ cancelʳ associator.isoˡ…`"
+    },
+    {
+     "line": 278,
+     "edit": "join 2 lines: `dsc-swp {d = d} = (split₁ˡ ⟩∘⟨refl) ○ assoc ○ (ref…`"
+    },
+    {
+     "line": 352,
+     "edit": "join 2 lines: `ρ-point S = pullˡ unitorʳ-commute-from ○ cancelʳ (…`"
+    },
+    {
+     "line": 368,
+     "edit": "join 2 lines: `⊛-assoc-discard : (S T R : State) → discard (S ⊛ (…`"
+    },
+    {
+     "line": 381,
+     "edit": "join 2 lines: `⊛-assoc-point : (S T R : State) → α⇒ ∘ point ((S ⊛…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 8.1
+  },
+  "src/CategoricalCrypto/Machines/G.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Iteration.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Reassoc.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 62,
+     "edit": "join 2 lines: `split = (refl⟩∘⟨ refl⟩⊗⟨ σ-splitˡ ⟩∘⟨refl) ⟩∘⟨ ref…`"
+    },
+    {
+     "line": 86,
+     "edit": "join 2 lines: `splitˡ = (S.α⇐ S.∘ (S.id {q} S.⊗₁ σyr S.∘ (S.α⇒ S.…`"
+    },
+    {
+     "line": 88,
+     "edit": "join 2 lines: `splitʳ = S.α⇒ S.∘ (((σqx S.⊗₁ S.id {r} S.∘ S.α⇐) S…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 27.4
+  },
+  "src/CategoricalCrypto/Machines/Sim.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Tensor.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Assoc.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 74,
+     "edit": "join 2 lines: `pt-u : (ρ⇒ ⊗₁ λ⇒) ∘ point ((state f ⊛ Iˢ) ⊛ (Iˢ ⊛ …`"
+    },
+    {
+     "line": 88,
+     "edit": "join 2 lines: `braid-conj : (M : Machine A B) (N : Machine C D) →…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 28.7
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Structural.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Trace.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 125,
+     "edit": "join 2 lines: `yank-step {X} = (refl⟩∘⟨ (merge₂ʳ ○ refl⟩⊗⟨ inject…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 11.2
+  },
+  "src/CategoricalCrypto/Machines/Trace/Congruence.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Trace/Fubini.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Trace/Laws.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Trace/Naturality.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 72,
+     "edit": "join 2 lines: `s-ok = pullˡ (onL-sim onL-collapseʳ) ○ assoc ○ (re…`"
+    },
+    {
+     "line": 96,
+     "edit": "join 2 lines: `s-ok = pullˡ (onL-sim id⊗id-comm) ○ assoc ○ (refl⟩…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 10.2
+  },
+  "src/CategoricalCrypto/Machines/Trace/Superposing.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Trace/Vanishing.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 180,
+     "edit": "join 2 lines: `iterw = δ-unique (iterw-i₁ ○ ⟺ assoc) (iterw-i₂ ○ …`"
+    },
+    {
+     "line": 253,
+     "edit": "join 2 lines: `reconcile : (α⇐ᴹ ∘ᴹ f ∘ᴹ α⇒ᴹ) ≲ mk (state f) (id ⊗…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 23.6
+  },
+  "src/CategoricalCrypto/OracleCall.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Protocol.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Protocol/Machine.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Pin.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Protocol/Observe.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 22,
+     "edit": "join 2 lines: `open import Data.Rational renaming (_+_ to _+ℚ_; _…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 16.8
+  },
+  "src/CategoricalCrypto/Strategy.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Base.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Bridge.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Emulation.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 56,
+     "edit": "join 2 lines: `dummy-complete (s , e) a = a ∘ s , ≈ℰ-trans (≈ℰ-co…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 12.6
+  },
+  "src/CategoricalCrypto/UC/Environment.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 149,
+     "edit": "join 2 lines: `step : (u : A ⇒ B′) → ((E ∘ a⇐) ∘ T₁ (W ⊛ Y) u) ∘ …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 13.1
+  },
+  "src/CategoricalCrypto/UC/Family.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Machine.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Machine/Run.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/QueryBound.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Seam.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Cocartesian/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Kleisli/Discrete.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 246,
+     "edit": "join 2 lines: `pentagonᵏ : ((return ⊗ᵏ α⇒ᵏ {B} {C} {D}) <=< (α⇒ᵏ …`"
+    },
+    {
+     "line": 254,
+     "edit": "join 2 lines: `hexagonᵏ : ((return ⊗ᵏ σᵏ {A} {C}) <=< (α⇒ᵏ <=< (σ…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 6.5
+  },
+  "src/Categories/Category/Kleisli/Discrete/Distributive.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Kleisli/Discrete/Pure.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Monoidal/Distributive.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Monoidal/Distributive/Properties.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Monoidal/Pure.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/FreeMonoidal.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/GConstructionEmbedding.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 56,
+     "edit": "join 2 lines: `⌜_,_⌝ : ∀ {A⁺ A⁻ B⁺ B⁻ : C.Obj} → A⁺ C.⇒ B⁺ → B⁻ C…`"
+    },
+    {
+     "line": 130,
+     "edit": "join 2 lines: `⌜⌝-≅ : ∀ {A⁺ A⁻ B⁺ B⁻ : C.Obj} → MC._≅_ A⁺ B⁺ → MC…`"
+    },
+    {
+     "line": 146,
+     "edit": "join 2 lines: `unitorˡᴳ : ∀ {A⁺ A⁻ : C.Obj} → MG._≅_ (C.unit C.⊗₀…`"
+    },
+    {
+     "line": 150,
+     "edit": "join 2 lines: `unitorʳᴳ : ∀ {A⁺ A⁻ : C.Obj} → MG._≅_ (A⁺ C.⊗₀ C.u…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 60.3
+  },
+  "src/Categories/GConstructionEmbeddingCoherence.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Monad/Discrete.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/PermuteCoherence/Unflatten.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 61,
+     "edit": "join 2 lines: `permute (Perm.swap x y p) = (id ⊗₁ (id ⊗₁ permute …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 10.4
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Advantage.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp.agda": {
+   "candidates": 5,
+   "kept": [
+    {
+     "line": 180,
+     "edit": "join 2 lines: `cum-mono-P : (n : ℕ) (d : Dₚ A) (P Q : A → ℚ) → (∀…`"
+    },
+    {
+     "line": 269,
+     "edit": "join 2 lines: `_≼ₚ_ {A = A} d d′ = (P : A → ℚ) → NNF P → (n : ℕ) …`"
+    },
+    {
+     "line": 336,
+     "edit": "join 2 lines: `>>=ₚ-identityˡ p f = shift⇒≈ₚ (returnₚ p >>=ₚ f) (…`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 279,
+     "edit": "join 4 lines: `≼ₚ-trans d e h de eh P nn n = let m , le  = de P n…`"
+    },
+    {
+     "line": 300,
+     "edit": "join 4 lines: `exactˢ⇒≈ₚ d e eq = exact⇒≈ₚ d e λ where P zero    …`"
+    }
+   ],
+   "skipped": [],
+   "checks": 9,
+   "seconds": 24.8
+  },
+  "src/ProbabilisticLogic/Dp/Advantage.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Coin.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Commutative.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 46,
+     "edit": "join 2 lines: `scalar w c x = trans (sym (*-assoc w c x)) (trans …`"
+    },
+    {
+     "line": 69,
+     "edit": "join 2 lines: `cum-cong-P : (n : ℕ) (d : Dₚ A) (F G : A → ℚ) → (∀…`"
+    },
+    {
+     "line": 110,
+     "edit": "join 2 lines: `cum-test-* : (n : ℕ) (d : Dₚ A) (c : ℚ) (F : A → ℚ…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 12.8
+  },
+  "src/ProbabilisticLogic/Dp/Elgot.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 54,
+     "edit": "join 2 lines: `mapₚ-fn h h′ d eq = exact⇒≈ₚ (mapₚ h d) (mapₚ h′ d…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 13.0
+  },
+  "src/ProbabilisticLogic/Dp/Iter.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 141,
+     "edit": "join 2 lines: `Tᵗ-mono : (u : Body S A B) (P : S × B → ℚ) → NNF P…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 12.8
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Codiagonal.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 112,
+     "edit": "join 2 lines: `up (s , inj₁ (inj₂ p)) le q = ≤-trans q (cum-mono …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 12.7
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Out.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Transfer.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Prelude.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  }
+ },
+ "totalChecks": 58
+}

@@ -1,0 +1,1099 @@
+{
+ "sweep": "enum-where",
+ "root": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-protocol-rewrite",
+ "files": {
+  "src/CategoricalCrypto/Channel/Category.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger.agda": {
+   "sites": [
+    {
+     "line": 121,
+     "binding": "found",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 150,
+     "binding": "accept",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/POV.agda": {
+   "sites": [
+    {
+     "line": 70,
+     "binding": "go",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 73,
+     "binding": "found",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Pin.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Iface.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Base.agda": {
+   "sites": [
+    {
+     "line": 223,
+     "binding": "sim",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Bundle.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Category.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Core.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Frame.agda": {
+   "sites": [
+    {
+     "line": 99,
+     "binding": "step-α",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 102,
+     "binding": "step-σ",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 241,
+     "binding": "out",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 245,
+     "binding": "inn",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 307,
+     "binding": "dsc-id",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 357,
+     "binding": "lhs",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 361,
+     "binding": "rhs",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/G.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Iteration.agda": {
+   "sites": [
+    {
+     "line": 112,
+     "binding": "tr",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Reassoc.agda": {
+   "sites": [
+    {
+     "line": 58,
+     "binding": "split",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 64,
+     "binding": "solved",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Sim.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Tensor.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Assoc.agda": {
+   "sites": [
+    {
+     "line": 69,
+     "binding": "dsc-u",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 74,
+     "binding": "pt-u",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 78,
+     "binding": "step-u",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 141,
+     "binding": "fuse",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 145,
+     "binding": "brA",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 153,
+     "binding": "brC",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 163,
+     "binding": "brE",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 212,
+     "binding": "decompˡ",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 215,
+     "binding": "decompʳ",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Structural.agda": {
+   "sites": [
+    {
+     "line": 203,
+     "binding": "discard-σ",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 206,
+     "binding": "point-σ",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Trace.agda": {
+   "sites": [
+    {
+     "line": 158,
+     "binding": "lb",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 161,
+     "binding": "sv",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 164,
+     "binding": "ent",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 174,
+     "binding": "branch₁",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 178,
+     "binding": "branch₂",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Trace/Congruence.agda": {
+   "sites": [
+    {
+     "line": 57,
+     "binding": "branch₁",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 61,
+     "binding": "branch₂",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 69,
+     "binding": "enter",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Trace/Fubini.agda": {
+   "sites": [
+    {
+     "line": 74,
+     "binding": "tensor",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 77,
+     "binding": "inner",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 98,
+     "binding": "shift",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 107,
+     "binding": "cancel-s",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 110,
+     "binding": "hyp",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 123,
+     "binding": "enter",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 196,
+     "binding": "reduce",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Trace/Laws.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace/Naturality.agda": {
+   "sites": [
+    {
+     "line": 56,
+     "binding": "S′",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 57,
+     "binding": "m",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 59,
+     "binding": "reduce",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 66,
+     "binding": "d-ok",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 67,
+     "binding": "p-ok",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 69,
+     "binding": "s-ok",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 79,
+     "binding": "S″",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 80,
+     "binding": "n",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Trace/Superposing.agda": {
+   "sites": [
+    {
+     "line": 56,
+     "binding": "k′",
+     "approxUses": 6,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 59,
+     "binding": "enter₁",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 65,
+     "binding": "enter₂",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 72,
+     "binding": "loop-relabel",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 77,
+     "binding": "exit-relabel",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 88,
+     "binding": "branch₁",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 92,
+     "binding": "branch₂",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 105,
+     "binding": "M",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 106,
+     "binding": "V",
+     "approxUses": 6,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 108,
+     "binding": "k",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 111,
+     "binding": "reconcile",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 114,
+     "binding": "step-eq",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Trace/Vanishing.agda": {
+   "sites": [
+    {
+     "line": 60,
+     "binding": "δ⇐-+₁",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 79,
+     "binding": "∇ν",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 186,
+     "binding": "collapse",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 195,
+     "binding": "tstep-ν",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 212,
+     "binding": "branch₁",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 219,
+     "binding": "nested₁",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 226,
+     "binding": "nested₂",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 231,
+     "binding": "branch₂",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 252,
+     "binding": "reconcile",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/OracleCall.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Pin.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Observe.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Strategy.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Base.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Bridge.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Emulation.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Environment.agda": {
+   "sites": [
+    {
+     "line": 133,
+     "binding": "step",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Family.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine.agda": {
+   "sites": [
+    {
+     "line": 139,
+     "binding": "outT",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 143,
+     "binding": "relay",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 147,
+     "binding": "stepT",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 159,
+     "binding": "outS",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 167,
+     "binding": "stepS",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Run.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/QueryBound.agda": {
+   "sites": [
+    {
+     "line": 138,
+     "binding": "widen",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 143,
+     "binding": "agree",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Cocartesian/Ext.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Kleisli/Discrete.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Kleisli/Discrete/Distributive.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Kleisli/Discrete/Pure.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Monoidal/Distributive.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Monoidal/Distributive/Properties.agda": {
+   "sites": [
+    {
+     "line": 60,
+     "binding": "i-collapse",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/Categories/Category/Monoidal/Pure.agda": {
+   "sites": []
+  },
+  "src/Categories/FreeMonoidal.agda": {
+   "sites": [
+    {
+     "line": 109,
+     "binding": "go",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    }
+   ]
+  },
+  "src/Categories/GConstructionEmbedding.agda": {
+   "sites": []
+  },
+  "src/Categories/GConstructionEmbeddingCoherence.agda": {
+   "sites": []
+  },
+  "src/Categories/Monad/Discrete.agda": {
+   "sites": []
+  },
+  "src/Categories/PermuteCoherence/Unflatten.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Advantage.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp.agda": {
+   "sites": [
+    {
+     "line": 431,
+     "binding": "up",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 434,
+     "binding": "wit",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Advantage.agda": {
+   "sites": [
+    {
+     "line": 77,
+     "binding": "shuffle",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Coin.agda": {
+   "sites": [
+    {
+     "line": 43,
+     "binding": "sum-1",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 59,
+     "binding": "branches",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 64,
+     "binding": "pull",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 70,
+     "binding": "split",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Commutative.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Elgot.agda": {
+   "sites": [
+    {
+     "line": 73,
+     "binding": "sim",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter.agda": {
+   "sites": [
+    {
+     "line": 197,
+     "binding": "Φ",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 200,
+     "binding": "up",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 204,
+     "binding": "wit",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Codiagonal.agda": {
+   "sites": [
+    {
+     "line": 56,
+     "binding": "Φ",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 59,
+     "binding": "up",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 66,
+     "binding": "wit",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 71,
+     "binding": "unif",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 72,
+     "binding": "i′",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 74,
+     "binding": "f1",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 75,
+     "binding": "f2",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 77,
+     "binding": "f3",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 78,
+     "binding": "f4",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 94,
+     "binding": "K2",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 107,
+     "binding": "Ψ",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 127,
+     "binding": "d1",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 128,
+     "binding": "d2",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 129,
+     "binding": "d3",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 131,
+     "binding": "d4",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 132,
+     "binding": "d5",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Out.agda": {
+   "sites": [
+    {
+     "line": 81,
+     "binding": "Q",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 84,
+     "binding": "nnQ",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 87,
+     "binding": "Φ",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 90,
+     "binding": "up",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 97,
+     "binding": "wit",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 106,
+     "binding": "unif",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 107,
+     "binding": "i′",
+     "approxUses": 8,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 109,
+     "binding": "c1",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 110,
+     "binding": "c2",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 112,
+     "binding": "c3",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 114,
+     "binding": "c4",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 128,
+     "binding": "Ψ",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 147,
+     "binding": "e1",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 148,
+     "binding": "e2",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 154,
+     "binding": "e3",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 157,
+     "binding": "e4",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 163,
+     "binding": "fst",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 168,
+     "binding": "snd",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Transfer.agda": {
+   "sites": [
+    {
+     "line": 58,
+     "binding": "Φ",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 61,
+     "binding": "up",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 65,
+     "binding": "wit",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 69,
+     "binding": "unif",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 70,
+     "binding": "i′",
+     "approxUses": 8,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 72,
+     "binding": "s1",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 73,
+     "binding": "s2",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 75,
+     "binding": "s3",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 77,
+     "binding": "dom",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 78,
+     "binding": "j",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 79,
+     "binding": "s4",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 80,
+     "binding": "s5",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 91,
+     "binding": "Ψ",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 103,
+     "binding": "t1",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 107,
+     "binding": "t2",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 108,
+     "binding": "t2′",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 109,
+     "binding": "t3",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 114,
+     "binding": "t4",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 116,
+     "binding": "t5",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 124,
+     "binding": "fst",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 129,
+     "binding": "snd",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Prelude.agda": {
+   "sites": []
+  }
+ },
+ "totalChecks": 0
+}

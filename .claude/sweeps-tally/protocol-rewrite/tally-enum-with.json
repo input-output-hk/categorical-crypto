@@ -1,0 +1,202 @@
+{
+ "sweep": "enum-with",
+ "root": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-protocol-rewrite",
+ "files": {
+  "src/CategoricalCrypto/Channel/Category.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/POV.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Pin.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Iface.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Base.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Bundle.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Category.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Core.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Frame.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/G.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Iteration.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Reassoc.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Sim.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Tensor.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Assoc.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Structural.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace/Congruence.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace/Fubini.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace/Laws.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace/Naturality.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace/Superposing.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace/Vanishing.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/OracleCall.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Pin.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Observe.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Strategy.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Base.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Bridge.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Emulation.agda": {
+   "sites": [
+    {
+     "line": 59,
+     "with": "with h id",
+     "clause": "≤UC⁺⇒≤UC h with h id"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Environment.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Family.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/Run.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/QueryBound.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Seam.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Cocartesian/Ext.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Kleisli/Discrete.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Kleisli/Discrete/Distributive.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Kleisli/Discrete/Pure.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Monoidal/Distributive.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Monoidal/Distributive/Properties.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Monoidal/Pure.agda": {
+   "sites": []
+  },
+  "src/Categories/FreeMonoidal.agda": {
+   "sites": []
+  },
+  "src/Categories/GConstructionEmbedding.agda": {
+   "sites": []
+  },
+  "src/Categories/GConstructionEmbeddingCoherence.agda": {
+   "sites": []
+  },
+  "src/Categories/Monad/Discrete.agda": {
+   "sites": []
+  },
+  "src/Categories/PermuteCoherence/Unflatten.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Advantage.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Advantage.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Coin.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Commutative.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Elgot.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Iter.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Codiagonal.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Out.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Transfer.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Prelude.agda": {
+   "sites": []
+  }
+ },
+ "totalChecks": 0
+}

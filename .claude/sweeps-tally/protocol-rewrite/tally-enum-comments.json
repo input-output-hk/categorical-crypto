@@ -1,0 +1,3390 @@
+{
+ "sweep": "enum-comments",
+ "root": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-protocol-rewrite",
+ "files": {
+  "src/CategoricalCrypto/Channel/Category.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger.agda": {
+   "sites": [
+    {
+     "lines": "3-22",
+     "kind": "header",
+     "nLines": 20,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- The chimeric UTxO ledger kernel of `talk/slides.typ`, machine-free. -- -- State is two "
+    },
+    {
+     "lines": "41-42",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "chimeric",
+     "preview": "-- `DecEq-×` is not an upstream instance (it competes with the `--with-K` -- `DecEq-Σ`); r"
+    },
+    {
+     "lines": "45-46",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "chimeric",
+     "preview": "-- Which transactions the ledger accepts. `chimeric` is the slides' broken -- variant; `in"
+    },
+    {
+     "lines": "57-57",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Tx",
+     "preview": "-- `(ins , wdrls , outs)`"
+    },
+    {
+     "lines": "64-66",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "lookupU",
+     "preview": "------------------------------------------------------------------------ -- The two finite"
+    },
+    {
+     "lines": "76-77",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "insertNew",
+     "preview": "-- Union favouring the entry already present. This is what swallows a -- replayed transact"
+    },
+    {
+     "lines": "93-95",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "balance",
+     "preview": "------------------------------------------------------------------------ -- Value --------"
+    },
+    {
+     "lines": "112-114",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "checkIns",
+     "preview": "------------------------------------------------------------------------ -- The step rule:"
+    },
+    {
+     "lines": "116-117",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "checkIns",
+     "preview": "-- Consume the inputs one at a time against the REMAINING set: a duplicate -- fails its lo"
+    },
+    {
+     "lines": "126-127",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "checkWdrls",
+     "preview": "-- Debit the withdrawals one at a time: each is checked against the -- already-debited acc"
+    },
+    {
+     "lines": "137-137",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "outsAt",
+     "preview": "-- The new UTxO entries a transaction creates, keyed by its hash."
+    },
+    {
+     "lines": "142-143",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Step",
+     "preview": "-- `ser` serializes a transaction for hashing; its injectivity lives at the -- module stat"
+    },
+    {
+     "lines": "157-159",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Replay",
+     "preview": "------------------------------------------------------------------------ -- The replay att"
+    },
+    {
+     "lines": "161-162",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Replay",
+     "preview": "-- One bit of hash is enough: the attack does not need a collision, only the -- determinis"
+    },
+    {
+     "lines": "166-166",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "s₀",
+     "preview": "-- the attack discards the query, so any `ser` will do"
+    },
+    {
+     "lines": "171-171",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "txᵃ",
+     "preview": "-- no inputs; move 1 from account 0"
+    },
+    {
+     "lines": "187-187",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "destroyed",
+     "preview": "-- a unit of value is gone"
+    },
+    {
+     "lines": "190-190",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "rejected",
+     "preview": "-- The repair rejects the transaction outright, so there is nothing to replay."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/POV.agda": {
+   "sites": [
+    {
+     "lines": "3-14",
+     "kind": "header",
+     "nLines": 12,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- The chimeric ledger over a random oracle, and preservation of value. -- -- oracle : Pro"
+    },
+    {
+     "lines": "45-46",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "submit",
+     "preview": "-- One party, hashing BITSTRINGS to ℓ bits: keying the oracle on `Tx` would -- hide the se"
+    },
+    {
+     "lines": "49-51",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "submit",
+     "preview": "------------------------------------------------------------------------ -- The interfaces"
+    },
+    {
+     "lines": "65-66",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "oracle",
+     "preview": "-- The lazily sampled random oracle: repeats from the table, fresh answers one -- fair coi"
+    },
+    {
+     "lines": "77-79",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "ledger",
+     "preview": "-- `submit` serializes and calls; `audit` answers purely. `reCall` tags the -- query and d"
+    },
+    {
+     "lines": "91-93",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "ledgerOf",
+     "preview": "------------------------------------------------------------------------ -- The statement "
+    },
+    {
+     "lines": "95-95",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "ledgerOf",
+     "preview": "-- The system's state is the two components' — the ledger's is a projection."
+    },
+    {
+     "lines": "102-103",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "POV",
+     "preview": "-- THE STATEMENT: the bad event is a reached state, not an answer the ledger -- gave about"
+    },
+    {
+     "lines": "107-109",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "module",
+     "preview": "------------------------------------------------------------------------ -- The audit-form"
+    },
+    {
+     "lines": "111-113",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "module",
+     "preview": "-- Reading the ledger's own answers is not the statement, but it is the form -- the transf"
+    },
+    {
+     "lines": "138-139",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "audited",
+     "preview": "-- `d` with an audit after every answer: the invariant is queried at exactly -- the activa"
+    },
+    {
+     "lines": "150-152",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "TrajectoryFromAudit",
+     "preview": "-- The link to `POV`, STATED and not proved (`docs/protocol-rewrite.md` has -- the persist"
+    },
+    {
+     "lines": "157-157",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "pov-via-audit",
+     "preview": "-- …and how it is consumed, which IS proved."
+    },
+    {
+     "lines": "163-164",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "pov-transfer",
+     "preview": "-- An emulation at advantage `δ` carries an audit-form bound across: -- `POVaudit` is `Bou"
+    },
+    {
+     "lines": "171-173",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "AtBirthday",
+     "preview": "------------------------------------------------------------------------ -- The birthday t"
+    },
+    {
+     "lines": "175-179",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "AtBirthday",
+     "preview": "-- The headline statement is pinned at a GENESIS state — empty UTxO set, all -- value in o"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Pin.agda": {
+   "sites": [
+    {
+     "lines": "3-4",
+     "kind": "header",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- Computed pins: the whole system — oracle sampling, protocol composition, -- state traje"
+    },
+    {
+     "lines": "23-23",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "replay",
+     "preview": "-- Submit the same no-input transaction twice, adaptively but blindly."
+    },
+    {
+     "lines": "30-30",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "chimeric-violates",
+     "preview": "-- The chimeric ledger loses a unit of value with probability 1 …"
+    },
+    {
+     "lines": "34-34",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "consuming-safe",
+     "preview": "-- … and the input-consuming repair never leaves the initial total."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Iface.agda": {
+   "sites": [
+    {
+     "lines": "3-5",
+     "kind": "header",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Data.Empty",
+     "preview": "-- Interfaces: a pair of message types, named by direction of travel. -- `Pos` travels rig"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Base.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- The base category the machine layer is meant to run over: the Kleisli -- category of th"
+    },
+    {
+     "lines": "82-82",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "𝒫ₚ",
+     "preview": "-- The pure state maps: `iterₚ` transfers along these and no others."
+    },
+    {
+     "lines": "99-100",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "onR-padₛ",
+     "preview": "-------------------------------------------------------------------- -- The structural mor"
+    },
+    {
+     "lines": "115-116",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "δ⇐-contᵢ",
+     "preview": "-- `undistribute` is exactly the case split `contᵢ` performs, so the two -- differ by the "
+    },
+    {
+     "lines": "141-142",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "tstep-φ",
+     "preview": "-- A `tstep` of two pure maps relabels a sum interface summandwise, which is -- exactly `D"
+    },
+    {
+     "lines": "172-173",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "iter-congₚ",
+     "preview": "-------------------------------------------------------------------- -- The laws"
+    },
+    {
+     "lines": "262-263",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Remainingₚ",
+     "preview": "-- The ⊕-trace's four laws at the intended base: `Remaining` is a term with no -- hypothes"
+    },
+    {
+     "lines": "267-268",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "ℳₚ",
+     "preview": "------------------------------------------------------------------------ -- The machine ca"
+    },
+    {
+     "lines": "270-272",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "ℳₚ",
+     "preview": "-- Probabilistic Mealy machines under interface composition, with simulation as -- the hom"
+    },
+    {
+     "lines": "279-279",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "𝒢ₚ",
+     "preview": "-- States and processes over `ℳₚ`: `GConstruction` instantiated unchanged."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Bundle.agda": {
+   "sites": [
+    {
+     "lines": "3-8",
+     "kind": "header",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal",
+     "preview": "-- The machine layer as a symmetric monoidal category. Two shapes are worth -- noting: the"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Category.agda": {
+   "sites": [
+    {
+     "lines": "3-8",
+     "kind": "header",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "Categories.Category.Core",
+     "preview": "-- The category of Mealy machines, with the simulation zig-zag as its equality. -- -- Each"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Core.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- Mealy machines over a symmetric monoidal category, with *simulation* as the -- hom equa"
+    },
+    {
+     "lines": "28-28",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "swp",
+     "preview": "-- Swaps the second and third state factor; its own inverse."
+    },
+    {
+     "lines": "32-33",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "State",
+     "preview": "------------------------------------------------------------------------ -- Machines"
+    },
+    {
+     "lines": "35-39",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "State",
+     "preview": "-- A state object comes with a point (the initial state) and a discard. Both -- are real d"
+    },
+    {
+     "lines": "75-76",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "onL",
+     "preview": "------------------------------------------------------------------------ -- The ways a ste"
+    },
+    {
+     "lines": "78-78",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "onL",
+     "preview": "-- The left factor of a paired state acts on the whole interface."
+    },
+    {
+     "lines": "82-82",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "onR",
+     "preview": "-- The right factor of a paired state acts on the whole interface."
+    },
+    {
+     "lines": "86-87",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "onRᵍ",
+     "preview": "-- `onR` with the codomain state freed, hence definitionally `onR` wherever -- both apply;"
+    },
+    {
+     "lines": "91-92",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "idᴹ",
+     "preview": "------------------------------------------------------------------------ -- Composition"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Frame.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- The coherence library the machine layer runs on: how the two actions of a -- paired sta"
+    },
+    {
+     "lines": "40-40",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "𝕄",
+     "preview": "-- The reflection frontend wants the `MonoidalCategory` bundle."
+    },
+    {
+     "lines": "44-45",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "pad-inv",
+     "preview": "------------------------------------------------------------------------ -- Shuffles and p"
+    },
+    {
+     "lines": "47-47",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "pad-inv",
+     "preview": "-- `id ⊗₁ _` preserves invertibility."
+    },
+    {
+     "lines": "60-60",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "pad-transport",
+     "preview": "-- Both sides are `h ⊗₁ s`: a generator never sees its padding."
+    },
+    {
+     "lines": "64-65",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "pad-braid",
+     "preview": "-- A left padding is a braided right padding, so a left-padded conjugate is a -- right-pad"
+    },
+    {
+     "lines": "74-75",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "σ-splitˡ",
+     "preview": "-- The hexagon, solved for a *block* crossing: a crossing block is the only -- genuinely b"
+    },
+    {
+     "lines": "86-87",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "swp-natural",
+     "preview": "------------------------------------------------------------------------ -- `swp` is natur"
+    },
+    {
+     "lines": "128-129",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "onL-∘",
+     "preview": "------------------------------------------------------------------------ -- The two state "
+    },
+    {
+     "lines": "153-153",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "onL-str",
+     "preview": "-- An action on the interface alone passes through either action untouched."
+    },
+    {
+     "lines": "160-160",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "onRᵍ-⊗id",
+     "preview": "-- An action on one factor of a paired state passes through `onRᵍ` as itself."
+    },
+    {
+     "lines": "164-165",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "onL-branch",
+     "preview": "------------------------------------------------------------------------ -- Both actions c"
+    },
+    {
+     "lines": "193-194",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "onL-sim",
+     "preview": "------------------------------------------------------------------------ -- A state map on"
+    },
+    {
+     "lines": "228-229",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "σ-onR",
+     "preview": "------------------------------------------------------------------------ -- The state brai"
+    },
+    {
+     "lines": "255-256",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "σ-unit",
+     "preview": "-- The braiding is trivial on the unit, so it leaves a paired point and a -- paired discar"
+    },
+    {
+     "lines": "261-262",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "ρα-λ",
+     "preview": "------------------------------------------------------------------------ -- Collapsing a t"
+    },
+    {
+     "lines": "273-273",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "dsc",
+     "preview": "-- Discarding the second factor of a paired state."
+    },
+    {
+     "lines": "281-281",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "discard-onL",
+     "preview": "-- `onL` does not see the second state factor, so closing it passes through."
+    },
+    {
+     "lines": "296-296",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "onR-collapseˡ",
+     "preview": "-- A trivial left state factor sees an `onR` action as the action itself…"
+    },
+    {
+     "lines": "305-305",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "onL-collapseʳ",
+     "preview": "-- …and a trivial right one an `onL` action, which is `discard-onL` at `id`."
+    },
+    {
+     "lines": "313-314",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊛-discard₂",
+     "preview": "------------------------------------------------------------------------ -- The point and "
+    },
+    {
+     "lines": "356-356",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "⊛-assoc-discard",
+     "preview": "-- The generator-free residue of the two laws below, at all-unit objects."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/G.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Categories.Category.Core",
+     "preview": "-- The machine layer as a traced symmetric monoidal category, and the -- G construction ov"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Iteration.agda": {
+   "sites": [
+    {
+     "lines": "3-24",
+     "kind": "header",
+     "nLines": 22,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- The iteration hypothesis the machine layer's ⊕-trace needs, stated in the -- base's own"
+    },
+    {
+     "lines": "55-56",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "pad",
+     "preview": "-- A state map padded out to a machine interface: the shape every state -- reconciliation "
+    },
+    {
+     "lines": "60-61",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "tstep-pad",
+     "preview": "-- A padded state map relabels a sum interface summandwise, hence is its own -- `tstep`: t"
+    },
+    {
+     "lines": "72-72",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- Elgot's fixpoint: run one pass, then exit or recurse."
+    },
+    {
+     "lines": "75-78",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- Naturality in the output. `k` may act on the context as well, which is -- what makes th"
+    },
+    {
+     "lines": "81-81",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- Superposing: a context factor the body never touches passes through."
+    },
+    {
+     "lines": "89-90",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- Codiagonal: a loop whose body is itself a loop over the same variable is -- one loop. `"
+    },
+    {
+     "lines": "94-96",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The transfers `vanishing₂` and `trace-comm` take reindex the LOOP -- VARIABLE by the co"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Reassoc.agda": {
+   "sites": [
+    {
+     "lines": "3-15",
+     "kind": "header",
+     "nLines": 13,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- Re-bracketing a Mealy composite's state tree leaves each leaf's action where -- it was;"
+    },
+    {
+     "lines": "52-52",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "onL-α",
+     "preview": "-- The objects are bound on the left because the solver's atom vector needs them."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Sim.agda": {
+   "sites": [
+    {
+     "lines": "3-15",
+     "kind": "header",
+     "nLines": 13,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- The machine layer's hom equality: a state *simulation* (`_≲_`) rather than a -- behavio"
+    },
+    {
+     "lines": "43-44",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_≲_",
+     "preview": "-- `θ` respects the point, the discard and the step, so `g` can run `f`'s state -- through"
+    },
+    {
+     "lines": "60-60",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "sim",
+     "preview": "-- The named-state form every proof in the layer is written in."
+    },
+    {
+     "lines": "68-68",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "mk-cong",
+     "preview": "-- Same state, `≈`-equal steps: the identity simulation."
+    },
+    {
+     "lines": "106-107",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "collapseˡ",
+     "preview": "------------------------------------------------------------------------ -- Collapsing a t"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Tensor.agda": {
+   "sites": [
+    {
+     "lines": "3-17",
+     "kind": "header",
+     "nLines": 15,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- The interface tensor. `_⊛_` pairs STATES; this pairs INTERFACES, by the -- coproduct of"
+    },
+    {
+     "lines": "52-53",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "tstep",
+     "preview": "------------------------------------------------------------------------ -- Acting on a su"
+    },
+    {
+     "lines": "55-56",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "tstep",
+     "preview": "-- The codomain state is free: a `tstep` is also the `+`-side relabelling a -- state-and-l"
+    },
+    {
+     "lines": "75-76",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "tstep-str",
+     "preview": "-- A tensor of steps that ignore the state is the state-ignoring step of the -- sum: the d"
+    },
+    {
+     "lines": "81-81",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "tstep-sim",
+     "preview": "-- A state map that conjugates both arms conjugates the tensor."
+    },
+    {
+     "lines": "92-93",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "onL-tstep",
+     "preview": "-- Both state-side actions carry a square natural in the interface, hence both -- distribu"
+    },
+    {
+     "lines": "127-128",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "pureᴹ",
+     "preview": "------------------------------------------------------------------------ -- Pure machines"
+    },
+    {
+     "lines": "143-143",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "pure-∘ˡ",
+     "preview": "-- Composing with a pure machine only pre- or post-composes the step."
+    },
+    {
+     "lines": "154-154",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "⊗ᵉ-pureᴹ",
+     "preview": "-- `pureᴹ` is monoidal, which is what carries the interface tensor's coherence."
+    },
+    {
+     "lines": "164-165",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "α⇒ᴹ",
+     "preview": "------------------------------------------------------------------------ -- The structural"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Assoc.agda": {
+   "sites": [
+    {
+     "lines": "3-9",
+     "kind": "header",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "Categories.Category.Core",
+     "preview": "-- The interface tensor's functoriality and associator naturality — the two laws -- that l"
+    },
+    {
+     "lines": "58-59",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊗-split",
+     "preview": "------------------------------------------------------------------------ -- Splitting the "
+    },
+    {
+     "lines": "61-63",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "⊗-split",
+     "preview": "-- The only place a *state* interchange is needed: both sides pair the same two -- states,"
+    },
+    {
+     "lines": "87-87",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "⊗-split′",
+     "preview": "-- Tensoring on the left is tensoring on the right, conjugated by the braiding."
+    },
+    {
+     "lines": "93-94",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊗-split′",
+     "preview": "-- …so the tensor splits the other way round too, and the two splittings say -- that the t"
+    },
+    {
+     "lines": "102-103",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊗idᵉ-hom",
+     "preview": "------------------------------------------------------------------------ -- Functoriality"
+    },
+    {
+     "lines": "105-106",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊗idᵉ-hom",
+     "preview": "-- A one-sided homomorphism never re-brackets a state tree: both sides pair the -- same tw"
+    },
+    {
+     "lines": "132-133",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "tstep-α",
+     "preview": "------------------------------------------------------------------------ -- Associator nat"
+    },
+    {
+     "lines": "135-136",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "tstep-α",
+     "preview": "-- Re-bracketing the interface sum: `δ-unique` twice, then each of the three -- leaves is "
+    },
+    {
+     "lines": "173-175",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "assoc-commuteᴹ",
+     "preview": "-- Naturality in one factor at a time. The other two factors are `idᴹ`, so -- the two coll"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Structural.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Categories.Category.Core",
+     "preview": "-- The interface tensor's unit and braiding coherence. Every law here is its -- `+`-monoid"
+    },
+    {
+     "lines": "63-64",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "tstep-∘",
+     "preview": "------------------------------------------------------------------------ -- `tstep` is fun"
+    },
+    {
+     "lines": "74-75",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "λ⇒ᴹ",
+     "preview": "------------------------------------------------------------------------ -- The structural"
+    },
+    {
+     "lines": "89-90",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊗ᵉ-pureˡ",
+     "preview": "-- `idᴹ` and `pureᴹ id` differ only in their step, so they are interchangeable -- under `_"
+    },
+    {
+     "lines": "99-100",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "pure-iso",
+     "preview": "------------------------------------------------------------------------ -- Coherence: eve"
+    },
+    {
+     "lines": "145-146",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "tstep-ρ",
+     "preview": "------------------------------------------------------------------------ -- Unitor natural"
+    },
+    {
+     "lines": "155-156",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "tstep-ρ",
+     "preview": "-- Cutting the empty summand: the other branch cannot fire, because `X ⊗₀ ⊥` is -- initial"
+    },
+    {
+     "lines": "182-183",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "tstep-swap",
+     "preview": "------------------------------------------------------------------------ -- Braiding natur"
+    },
+    {
+     "lines": "185-185",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "tstep-swap",
+     "preview": "-- Swapping the interface summands swaps the two arms."
+    },
+    {
+     "lines": "210-211",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊗idᵉ-collapse",
+     "preview": "------------------------------------------------------------------------ -- Collapsing the"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Trace.agda": {
+   "sites": [
+    {
+     "lines": "3-15",
+     "kind": "header",
+     "nLines": 13,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- The ⊕-trace on the machine layer, built from the base's iteration. -- -- One external s"
+    },
+    {
+     "lines": "57-58",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "S",
+     "preview": "------------------------------------------------------------------------ -- Solving the lo"
+    },
+    {
+     "lines": "62-62",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "loopBody",
+     "preview": "-- One pass of the loop: re-enter the body on the `X` summand."
+    },
+    {
+     "lines": "66-66",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "solve",
+     "preview": "-- Exit on `B`, iterate on `X`."
+    },
+    {
+     "lines": "79-79",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "solve-loop",
+     "preview": "-- The fixpoint law, in the form the trace laws consume it."
+    },
+    {
+     "lines": "97-98",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "iter-onL",
+     "preview": "------------------------------------------------------------------------ -- The left-conte"
+    },
+    {
+     "lines": "100-102",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "iter-onL",
+     "preview": "-- `iter-ctx` puts an untouched context factor on the left of the state; the -- braiding m"
+    },
+    {
+     "lines": "113-114",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "yankingᴹ",
+     "preview": "------------------------------------------------------------------------ -- Yanking"
+    },
+    {
+     "lines": "116-118",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "yankingᴹ",
+     "preview": "-- The braiding's loop body exits on its first pass, so `iter` collapses after -- one unfo"
+    },
+    {
+     "lines": "131-132",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "vanishing₁ᴹ",
+     "preview": "------------------------------------------------------------------------ -- Vanishing on t"
+    },
+    {
+     "lines": "134-136",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "vanishing₁ᴹ",
+     "preview": "-- The loop wire is `⊥`, so the loop branch is a map out of the initial object -- `St ⊗₀ ⊥"
+    },
+    {
+     "lines": "148-149",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "traceStep-∘ʳ",
+     "preview": "------------------------------------------------------------------------ -- Naturality at "
+    },
+    {
+     "lines": "151-152",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "traceStep-∘ʳ",
+     "preview": "-- Right naturality is ⊕-side only: `tstep n id` leaves the loop branch alone, -- so the l"
+    },
+    {
+     "lines": "168-169",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "solve-∘ˡ",
+     "preview": "-- Left naturality is where `iter-out` is spent: post-composing the exit branch -- of the "
+    },
+    {
+     "lines": "190-191",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "onR-pre",
+     "preview": "------------------------------------------------------------------------ -- Extending the "
+    },
+    {
+     "lines": "193-195",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "onR-pre",
+     "preview": "-- Both actions are functorial in the interface, which is all that is needed to -- slide o"
+    },
+    {
+     "lines": "228-229",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "βᴹ",
+     "preview": "------------------------------------------------------------------------ -- What is left"
+    },
+    {
+     "lines": "231-232",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "βᴹ",
+     "preview": "-- The swap of the last two summands, which `Traced`'s Fubini law is stated -- with."
+    },
+    {
+     "lines": "236-247",
+     "kind": "standalone",
+     "nLines": 12,
+     "flags": [],
+     "attachedTo": "Remaining",
+     "preview": "-- The four laws left for wave 2, as a record whose field TYPES typecheck: no -- term in t"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Trace/Congruence.agda": {
+   "sites": [
+    {
+     "lines": "3-10",
+     "kind": "header",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- `traceᴹ` respects simulation. This is the ⊕-trace law the layer's -- axiom-freeness tur"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Trace/Fubini.agda": {
+   "sites": [
+    {
+     "lines": "3-15",
+     "kind": "header",
+     "nLines": 13,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- `trace-comm`, the ⊕-trace's Fubini law: two nested traces may be exchanged. -- -- It ne"
+    },
+    {
+     "lines": "56-57",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "β+",
+     "preview": "------------------------------------------------------------------------ -- The ⊕-side swa"
+    },
+    {
+     "lines": "80-81",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "V",
+     "preview": "------------------------------------------------------------------------ -- The trace does"
+    },
+    {
+     "lines": "129-130",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "norm",
+     "preview": "------------------------------------------------------------------------ -- Exchanging the"
+    },
+    {
+     "lines": "132-133",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "norm",
+     "preview": "-- Both fusions and both `β+`s are two-sided interface relabellings, so each -- side norma"
+    },
+    {
+     "lines": "154-154",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "comm-step",
+     "preview": "-- The fusion's two associators cancel, so the fused body is `m` again."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Trace/Laws.agda": {
+   "sites": [
+    {
+     "lines": "3-9",
+     "kind": "header",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- `Machines.Trace.Remaining`, closed: all four laws are theorems, so the record -- is a t"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Trace/Naturality.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- The ⊕-trace's two naturality laws, for arbitrary machines. -- -- The `⊗ᵉ idᴹ` on the ri"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Trace/Superposing.agda": {
+   "sites": [
+    {
+     "lines": "3-9",
+     "kind": "header",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- Superposing: an interface summand `P` the traced machine never sees. -- -- Both sides r"
+    },
+    {
+     "lines": "48-49",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "super-step",
+     "preview": "------------------------------------------------------------------------ -- One step"
+    },
+    {
+     "lines": "96-97",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "superposing",
+     "preview": "------------------------------------------------------------------------ -- The law"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Trace/Vanishing.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- Vanishing: a loop over `X` wrapped around a loop over `P` is one loop over -- `X + P`. "
+    },
+    {
+     "lines": "52-53",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "[]-δ⇐",
+     "preview": "------------------------------------------------------------------------ -- Two ⊕-side hel"
+    },
+    {
+     "lines": "71-71",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "V",
+     "preview": "-- `ψ` sorts an exit on `B + (X + P)` into \"outer exit\" and \"outer loop\"."
+    },
+    {
+     "lines": "75-75",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "V",
+     "preview": "-- The codiagonal of `iter-cod` collapses the sorting map."
+    },
+    {
+     "lines": "90-91",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "V",
+     "preview": "------------------------------------------------------------------------ -- The step-level"
+    },
+    {
+     "lines": "127-128",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "vanish-step",
+     "preview": "-- `α+⇒` merges the two nested injections into one: entering `k′` on the -- inner loop wir"
+    },
+    {
+     "lines": "183-183",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "vanish-step",
+     "preview": "-- One loop over `X + P` after all: `∇ψ` cancels the sorting map."
+    },
+    {
+     "lines": "243-244",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "vanishing₂",
+     "preview": "------------------------------------------------------------------------ -- The machine-le"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/OracleCall.agda": {
+   "sites": [
+    {
+     "lines": "3-10",
+     "kind": "header",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "Data.Product.Base",
+     "preview": "-- One-shot oracle calls: a computation that either answers outright or asks its -- oracle"
+    },
+    {
+     "lines": "28-28",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "runCall",
+     "preview": "-- Answer the call from a given oracle: what a computable pin does."
+    },
+    {
+     "lines": "37-38",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "reCall",
+     "preview": "-- Re-index the oracle's channel: tag the query, untag the reply. This is what -- puts a b"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Protocol.agda": {
+   "sites": [
+    {
+     "lines": "3-15",
+     "kind": "header",
+     "nLines": 13,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- Protocols: stateful, effectful, interactive programs in plain Agda. -- -- A step answer"
+    },
+    {
+     "lines": "34-36",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "------------------------------------------------------------------------ -- Call trees ---"
+    },
+    {
+     "lines": "54-54",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "uniformVec",
+     "preview": "-- Sample a uniform bit vector, one fair coin per bit."
+    },
+    {
+     "lines": "59-61",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Protocol",
+     "preview": "------------------------------------------------------------------------ -- Protocols ----"
+    },
+    {
+     "lines": "73-75",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "P₂",
+     "preview": "------------------------------------------------------------------------ -- Composition --"
+    },
+    {
+     "lines": "80-80",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "_∘ᵖ_",
+     "preview": "-- Walk P₂'s tree; each of its calls runs one activation of P₁."
+    },
+    {
+     "lines": "87-87",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "_∘ᵖ_",
+     "preview": "-- Walk P₁'s answer tree, forwarding its own calls upward."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Protocol/Machine.agda": {
+   "sites": [
+    {
+     "lines": "3-27",
+     "kind": "header",
+     "nLines": 25,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The semantics functor: layer 1's `Protocol` as a morphism of the machine -- layer. An i"
+    },
+    {
+     "lines": "60-60",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "⟦_⟧ᴵ",
+     "preview": "-- An interface is a pair of objects, positive polarity first."
+    },
+    {
+     "lines": "66-67",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "idle",
+     "preview": "-- Between activations a protocol is either idle or holding the continuation -- of a call "
+    },
+    {
+     "lines": "72-73",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "drive",
+     "preview": "-- Run a call tree to its next interface boundary: an answer on `B`, or a -- call on `A` w"
+    },
+    {
+     "lines": "96-97",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Morphism-∘",
+     "preview": "------------------------------------------------------------------------ -- What the agree"
+    },
+    {
+     "lines": "99-100",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Morphism-∘",
+     "preview": "-- Functoriality: `_∘ᵖ_` grafts two call trees; `𝒢`'s composition traces the -- tensor of "
+    },
+    {
+     "lines": "105-108",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "-- The closed-machine run, against any machine of the shape a closed protocol's -- image h"
+    },
+    {
+     "lines": "111-113",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "resumeᴹ",
+     "preview": "-- What the strategy does with the answer. A named continuation rather than a -- `where`-l"
+    },
+    {
+     "lines": "127-132",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "PrAgree",
+     "preview": "-- The interaction is finite — the strategy tree bounds it and every call tree -- is induc"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Pin.agda": {
+   "sites": [
+    {
+     "lines": "3-13",
+     "kind": "header",
+     "nLines": 11,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- Computed pins for the semantics functor: layer 1's verdict probability and -- the machi"
+    },
+    {
+     "lines": "33-33",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Coin",
+     "preview": "-- Ask once, answer with a fair coin."
+    },
+    {
+     "lines": "44-44",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "echo",
+     "preview": "-- Ask once and report the answer."
+    },
+    {
+     "lines": "54-55",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "machine",
+     "preview": "-- Five steps: the coin's branch, and the `>>=ₚ` junctions the point, the -- machine's ste"
+    },
+    {
+     "lines": "62-63",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "relayed",
+     "preview": "------------------------------------------------------------------------ -- Through a comp"
+    },
+    {
+     "lines": "65-65",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "relayed",
+     "preview": "-- `wireᵖ` relays the coin, so composing costs one call node and one grafting."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Protocol/Observe.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- Observing a closed protocol: play a strategy against it and read the verdict -- distrib"
+    },
+    {
+     "lines": "40-42",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "evalC",
+     "preview": "------------------------------------------------------------------------ -- Running a stra"
+    },
+    {
+     "lines": "44-44",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "evalC",
+     "preview": "-- A closed call tree has no one to call: it collapses to a distribution."
+    },
+    {
+     "lines": "64-65",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Bad",
+     "preview": "-- The verdict is \"a state satisfying `Bad` was reached\", regardless of what -- the strate"
+    },
+    {
+     "lines": "80-82",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Bounded",
+     "preview": "------------------------------------------------------------------------ -- Statements ---"
+    },
+    {
+     "lines": "93-93",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "_≈adv[_]_",
+     "preview": "-- No budget-`q` strategy separates the two systems by more than `δ q`."
+    },
+    {
+     "lines": "108-108",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "transfer",
+     "preview": "-- A bound on `P` becomes a bound on an indistinguishable `P′`, at `ε + δ`."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Strategy.agda": {
+   "sites": [
+    {
+     "lines": "3-9",
+     "kind": "header",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- Adaptive query strategies (distinguishers): decision trees over a query -- interface, w"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC.agda": {
+   "sites": [
+    {
+     "lines": "3-25",
+     "kind": "header",
+     "nLines": 23,
+     "flags": [],
+     "attachedTo": "CategoricalCrypto.UC",
+     "preview": "-- The UC layer's entry point: one import for a consumer. -- -- `UC.Base` what the layer a"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Base.agda": {
+   "sites": [
+    {
+     "lines": "3-17",
+     "kind": "header",
+     "nLines": 15,
+     "flags": [],
+     "attachedTo": "Categories.Category.Core",
+     "preview": "-- What the UC layer asks of its ambient category. -- -- Two records, deliberately separat"
+    },
+    {
+     "lines": "37-38",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "Grading",
+     "preview": "------------------------------------------------------------------------ -- The grading ac"
+    },
+    {
+     "lines": "40-43",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "Grading",
+     "preview": "-- `T₁ Y f` runs `f` with an ancilla interface `Y` bypassing it; `sub s` acts on -- the an"
+    },
+    {
+     "lines": "68-69",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "Budget",
+     "preview": "------------------------------------------------------------------------ -- Query budgets"
+    },
+    {
+     "lines": "71-81",
+     "kind": "standalone",
+     "nLines": 11,
+     "flags": [],
+     "attachedTo": "Budget",
+     "preview": "-- The closure properties the indexed family category consumes, and nothing -- else: this "
+    },
+    {
+     "lines": "94-97",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "Observation",
+     "preview": "-- `_⊔ 1_`, not `c`: the bypassed interface's own downward relay is one -- completed event"
+    },
+    {
+     "lines": "103-104",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "Observation",
+     "preview": "------------------------------------------------------------------------ -- Closed runs an"
+    },
+    {
+     "lines": "124-125",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "UCBase",
+     "preview": "-- Agreement: no positive slack separates the two. At the family instance -- this unfolds "
+    },
+    {
+     "lines": "142-142",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "UCBase",
+     "preview": "-- Transporting an agreement along the ambient hom equality at both ends."
+    },
+    {
+     "lines": "146-146",
+     "kind": "banner",
+     "nLines": 1,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "UCBase",
+     "preview": "------------------------------------------------------------------------"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Bridge.agda": {
+   "sites": [
+    {
+     "lines": "3-21",
+     "kind": "header",
+     "nLines": 19,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The bridge between the environment layer and layer 1's concrete statements. -- -- An ℰ-"
+    },
+    {
+     "lines": "47-49",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "λᴵ⇐",
+     "preview": "-- The unitor wire. `Proc unitᴵ B` is a closed process at `B`; a graded -- statement wants"
+    },
+    {
+     "lines": "56-57",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "ctxRun",
+     "preview": "-- What a budgeted ancilla context observes when a process is plugged into it: -- exactly "
+    },
+    {
+     "lines": "62-69",
+     "kind": "standalone",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "Reflects",
+     "preview": "-- Stated and priced. The reifier recurses on the context's remaining query -- potential ("
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Emulation.agda": {
+   "sites": [
+    {
+     "lines": "3-14",
+     "kind": "header",
+     "nLines": 12,
+     "flags": [],
+     "attachedTo": "Data.Product.Base",
+     "preview": "-- UC emulation, stated directly on the grading action. -- -- A process carrying an advers"
+    },
+    {
+     "lines": "63-64",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_⊙_",
+     "preview": "------------------------------------------------------------------------ -- Universal comp"
+    },
+    {
+     "lines": "66-67",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_⊙_",
+     "preview": "-- Plugging one graded process on top of another: the lower one's adversary -- interface b"
+    },
+    {
+     "lines": "73-74",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_⊛₁_",
+     "preview": "-- Two simulators acting side by side: `sub` on the left factor, `T₁` on the -- right. Thi"
+    },
+    {
+     "lines": "78-83",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "UC-compose",
+     "preview": "-- Monotonicity of `_⊙_` in both arguments. Stated, not proved: the chain needs -- two `Gr"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Environment.agda": {
+   "sites": [
+    {
+     "lines": "3-23",
+     "kind": "header",
+     "nLines": 21,
+     "flags": [],
+     "attachedTo": "Categories.Category.Instance.Setoids",
+     "preview": "-- The environment layer: joint ancilla-tests, and when two processes are -- indistinguish"
+    },
+    {
+     "lines": "45-46",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Test",
+     "preview": "------------------------------------------------------------------------ -- Tests, closure"
+    },
+    {
+     "lines": "57-57",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "SameTV",
+     "preview": "-- Two tests at the same ancilla agree when no closure separates them."
+    },
+    {
+     "lines": "77-77",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "tv₁",
+     "preview": "-- Plugging a process into a test at a fixed ancilla."
+    },
+    {
+     "lines": "94-95",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_≈ℰ_",
+     "preview": "------------------------------------------------------------------------ -- Environment ag"
+    },
+    {
+     "lines": "142-144",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "grade-stable",
+     "preview": "-- Grade stability: the ancilla quantifier absorbs a bypass wire. Where the -- reference n"
+    },
+    {
+     "lines": "161-162",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_≈ℰ[_]_",
+     "preview": "------------------------------------------------------------------------ -- The quantitati"
+    },
+    {
+     "lines": "164-167",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "_≈ℰ[_]_",
+     "preview": "-- Agreement with an explicit slack in place of the `∀ ε > 0`. A concrete -- security theo"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Family.agda": {
+   "sites": [
+    {
+     "lines": "3-18",
+     "kind": "header",
+     "nLines": 16,
+     "flags": [],
+     "attachedTo": "Data.Nat.Base",
+     "preview": "-- `𝒞^ω`, the indexed family layer: objects are `Ix`-indexed object families and -- homs c"
+    },
+    {
+     "lines": "40-41",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Obj^ω",
+     "preview": "------------------------------------------------------------------------ -- Objects, homs "
+    },
+    {
+     "lines": "51-51",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "PolyQB",
+     "preview": "-- Polynomial in the SECURITY PARAMETER, which is what `κ` reads off the index."
+    },
+    {
+     "lines": "67-68",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qbOf",
+     "preview": "-- The budget a hom CARRIES, as opposed to one an obligation invents: this is -- what make"
+    },
+    {
+     "lines": "96-97",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_⊛ω_",
+     "preview": "------------------------------------------------------------------------ -- The grading, l"
+    },
+    {
+     "lines": "124-125",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_≈^ω[_]_",
+     "preview": "------------------------------------------------------------------------ -- The observatio"
+    },
+    {
+     "lines": "129-130",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_≈^ω[_]_",
+     "preview": "-- Eventually ε-close in the security parameter. `UC.Base` then derives the -- vanishing-a"
+    },
+    {
+     "lines": "155-156",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "E",
+     "preview": "------------------------------------------------------------------------ -- Ingestion: a c"
+    },
+    {
+     "lines": "168-172",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "_≈ℰ[_]_",
+     "preview": "-- The shape a concrete security theorem has: at every ancilla context, the -- level-`i` a"
+    },
+    {
+     "lines": "182-183",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "absorb",
+     "preview": "-- A vanishing bound collapses the quantitative statement to environment -- agreement. The"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine.agda": {
+   "sites": [
+    {
+     "lines": "3-21",
+     "kind": "header",
+     "nLines": 19,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The intended model: the UC layer over the machine layer, with `Iface` -- objects. -- --"
+    },
+    {
+     "lines": "50-51",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Proc",
+     "preview": "------------------------------------------------------------------------ -- Processes on i"
+    },
+    {
+     "lines": "53-54",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Proc",
+     "preview": "-- A `𝒢ₚ`-hom read at interfaces: `Machine (A⁺ + B⁻) (A⁻ + B⁺)`, a process that -- answers"
+    },
+    {
+     "lines": "58-62",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "𝒫ᴵ",
+     "preview": "-- Every object implicit is passed explicitly. Left to inference, each field -- asks Agda "
+    },
+    {
+     "lines": "81-82",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊤ᵛ",
+     "preview": "-- The base category's tensor unit, which is also the state object of every -- stateless m"
+    },
+    {
+     "lines": "86-88",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "wireStep",
+     "preview": "-- A stateless forwarder: a positive message travels up, a negative one down. -- The step "
+    },
+    {
+     "lines": "97-98",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Ωᴵ",
+     "preview": "------------------------------------------------------------------------ -- The observatio"
+    },
+    {
+     "lines": "120-121",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "T₁ᴵ",
+     "preview": "------------------------------------------------------------------------ -- The grading ac"
+    },
+    {
+     "lines": "134-135",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "T₁ᴵ",
+     "preview": "-- An ancilla interface bypassing a process: the process's own messages go -- through it, "
+    },
+    {
+     "lines": "154-155",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "subᴵ",
+     "preview": "-- A simulator acting on the ancilla alone; this time it is the bypassed -- interface that"
+    },
+    {
+     "lines": "180-181",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "GradingLawsᴹ",
+     "preview": "------------------------------------------------------------------------ -- …and its laws,"
+    },
+    {
+     "lines": "183-191",
+     "kind": "standalone",
+     "nLines": 9,
+     "flags": [],
+     "attachedTo": "GradingLawsᴹ",
+     "preview": "-- Four of the eight are TRACE-FREE: `T₁ᴵ`/`subᴵ` keep the plugged process's -- state and "
+    },
+    {
+     "lines": "208-217",
+     "kind": "standalone",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "UCBaseᴹ",
+     "preview": "-- `Gradingᴹ : GradingLawsᴹ → Grading 𝒫ᴵ` does NOT assemble, and the reason is -- not the "
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Run.agda": {
+   "sites": [
+    {
+     "lines": "3-11",
+     "kind": "header",
+     "nLines": 9,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- A simulation is invisible to a closed run. -- -- `Machines.Sim`'s generator carries a P"
+    },
+    {
+     "lines": "44-44",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Closed",
+     "preview": "-- A closed machine at an interface: nothing can be asked of its domain side."
+    },
+    {
+     "lines": "48-50",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "X",
+     "preview": "------------------------------------------------------------------------ -- `Dₚ` shorthand"
+    },
+    {
+     "lines": "78-79",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "X",
+     "preview": "------------------------------------------------------------------------ -- What a simulat"
+    },
+    {
+     "lines": "108-109",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "------------------------------------------------------------------------ -- …and to a whol"
+    },
+    {
+     "lines": "140-140",
+     "kind": "banner",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "------------------------------------------------------------------------"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/QueryBound.agda": {
+   "sites": [
+    {
+     "lines": "3-31",
+     "kind": "header",
+     "nLines": 29,
+     "flags": [
+      "headerOverTier"
+     ],
+     "attachedTo": "Categories.Category",
+     "preview": "-- Query bounds with content: the amortised-potential certificate, and the -- run-level co"
+    },
+    {
+     "lines": "83-84",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Below",
+     "preview": "------------------------------------------------------------------------ -- The refined an"
+    },
+    {
+     "lines": "99-100",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Certificate",
+     "preview": "------------------------------------------------------------------------ -- The certificat"
+    },
+    {
+     "lines": "102-111",
+     "kind": "standalone",
+     "nLines": 10,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Certificate",
+     "preview": "-- The state, point and step are PARAMETERS, not projections out of a `Proc`. -- Declaring"
+    },
+    {
+     "lines": "126-126",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "qbᵢ-mono",
+     "preview": "-- Only `onRᵍ` mentions `c`, so only its answers are widened."
+    },
+    {
+     "lines": "148-149",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "traceᵍ",
+     "preview": "------------------------------------------------------------------------ -- What the poten"
+    },
+    {
+     "lines": "151-153",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "traceᵍ",
+     "preview": "-- The environment chooses an activation word; the machine answers with one -- output per "
+    },
+    {
+     "lines": "163-164",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "------------------------------------------------------------------------ -- Counting"
+    },
+    {
+     "lines": "188-195",
+     "kind": "standalone",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "Counting",
+     "preview": "-- The counting theorem, stated and priced. The reference arc proves it in 248 -- LOC by r"
+    },
+    {
+     "lines": "201-202",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qbᵢ-wire",
+     "preview": "------------------------------------------------------------------------ -- Inhabitation"
+    },
+    {
+     "lines": "204-208",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "qbᵢ-wire",
+     "preview": "-- A stateless forwarder answers each activation with exactly one output, so it -- is 1-bo"
+    },
+    {
+     "lines": "221-222",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Certified",
+     "preview": "------------------------------------------------------------------------ -- The hom-level "
+    },
+    {
+     "lines": "224-224",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Certified",
+     "preview": "-- A process's certificate, read off its own state, point and step."
+    },
+    {
+     "lines": "228-233",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "QB",
+     "preview": "-- `Certified` is not invariant under the machine equality: a simulation's state -- map is"
+    },
+    {
+     "lines": "247-248",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "BudgetLawsᴹ",
+     "preview": "------------------------------------------------------------------------ -- The closure pr"
+    },
+    {
+     "lines": "250-256",
+     "kind": "standalone",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "BudgetLawsᴹ",
+     "preview": "-- `qb-resp-≈`/`qb-mono` are theorems and the two ancilla reassociators are -- `qbᵢ-wire`;"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam.agda": {
+   "sites": [
+    {
+     "lines": "3-15",
+     "kind": "header",
+     "nLines": 13,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Data.Nat.Base",
+     "preview": "-- Where layer 1's `POV`/`_≈adv[_]_`/`transfer` sit relative to `_≤UC_`. -- -- Layer 1 alr"
+    },
+    {
+     "lines": "34-35",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "AgreeToAdv",
+     "preview": "-- Environment agreement at the machine layer gives layer 1's advantage bound -- at every "
+    },
+    {
+     "lines": "41-42",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "pov-carry",
+     "preview": "-- The POV carry: a bound on the ideal system's bad event becomes one on the -- real syste"
+    }
+   ]
+  },
+  "src/Categories/Category/Cocartesian/Ext.agda": {
+   "sites": [
+    {
+     "lines": "3-6",
+     "kind": "header",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "Categories.Category.Core",
+     "preview": "-- The coproduct associator and braiding, read off on the injections. Upstream -- builds `"
+    },
+    {
+     "lines": "57-59",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "α+⇐-i₂",
+     "preview": "-- The form the ⊕-trace's `vanishing₂` and `superposing` consume: entering -- `A + (B + D)"
+    }
+   ]
+  },
+  "src/Categories/Category/Kleisli/Discrete.agda": {
+   "sites": [
+    {
+     "lines": "3-13",
+     "kind": "header",
+     "nLines": 11,
+     "flags": [],
+     "attachedTo": "Categories.Category.Core",
+     "preview": "-- The Kleisli category of a `DiscreteMonad` at the discrete objects — TYPES and -- maps `"
+    },
+    {
+     "lines": "37-39",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "_≈ᵏ_",
+     "preview": "------------------------------------------------------------------------ -- The category -"
+    },
+    {
+     "lines": "71-73",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "pureᵏ",
+     "preview": "------------------------------------------------------------------------ -- Pure morphisms"
+    },
+    {
+     "lines": "75-75",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "pureᵏ",
+     "preview": "-- Every structural morphism of the cartesian tensor is a function."
+    },
+    {
+     "lines": "85-87",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "_⊗ᵏ_",
+     "preview": "------------------------------------------------------------------------ -- The tensor ---"
+    },
+    {
+     "lines": "91-93",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "_⊗ᵏ_",
+     "preview": "-- Projections rather than a pattern-matching lambda: `_⊗ᵏ_` then reduces on an -- argumen"
+    },
+    {
+     "lines": "97-97",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "⊗ᵏ-expand",
+     "preview": "-- The workhorse behind every law below."
+    },
+    {
+     "lines": "111-112",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊗ᵏ-homomorphism",
+     "preview": "-- The interchange law is the one place the tensor needs `>>=-comm-y`: the two -- factors'"
+    },
+    {
+     "lines": "138-140",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "⊤ᵏ",
+     "preview": "------------------------------------------------------------------------ -- The structural"
+    },
+    {
+     "lines": "187-189",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "unitorˡ-commuteᵏ",
+     "preview": "------------------------------------------------------------------------ -- Naturality ---"
+    },
+    {
+     "lines": "228-228",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "braiding-commuteᵏ",
+     "preview": "-- The braiding is the second and last place `>>=-comm-y` is needed."
+    },
+    {
+     "lines": "239-241",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "triangleᵏ",
+     "preview": "------------------------------------------------------------------------ -- Coherence ----"
+    },
+    {
+     "lines": "262-264",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Klᴹ-Monoidal",
+     "preview": "------------------------------------------------------------------------ -- The bundles --"
+    }
+   ]
+  },
+  "src/Categories/Category/Kleisli/Discrete/Distributive.agda": {
+   "sites": [
+    {
+     "lines": "3-9",
+     "kind": "header",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "Categories.Category.Cocartesian",
+     "preview": "-- `Klᴹ` is monoidal distributive, with `_⊎_` for the coproduct. Both halves are -- one-li"
+    },
+    {
+     "lines": "31-31",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "undistribute",
+     "preview": "-- The pure shuffle the distributor inverts."
+    }
+   ]
+  },
+  "src/Categories/Category/Kleisli/Discrete/Pure.agda": {
+   "sites": [
+    {
+     "lines": "3-11",
+     "kind": "header",
+     "nLines": 9,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Pure",
+     "preview": "-- The pure morphisms of `Klᴹ` — those `≈ᵏ`-equal to a `return`-composed -- function — for"
+    },
+    {
+     "lines": "57-59",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "[]-pure",
+     "preview": "-- The coproduct at these objects is `_⊎_`, so a copairing of pure maps is the -- copairin"
+    }
+   ]
+  },
+  "src/Categories/Category/Monoidal/Distributive.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Categories.Category.Cocartesian",
+     "preview": "-- Upstream's `Categories.Category.Distributive` with the cartesian product -- replaced by"
+    }
+   ]
+  },
+  "src/Categories/Category/Monoidal/Distributive/Properties.agda": {
+   "sites": [
+    {
+     "lines": "3-5",
+     "kind": "header",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- One letter of the distributor. `δ-unique` is the lever that replaces the -- coproduct s"
+    },
+    {
+     "lines": "36-37",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊥-unique",
+     "preview": "-- `[ id , id ] : ⊥ + ⊥ ⇒ ⊥` is an iso, its inverse `i₁`, because maps out of -- the initi"
+    },
+    {
+     "lines": "55-56",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊥-unique",
+     "preview": "-- Binary distributivity already makes `X ⊗₀ ⊥` initial: the injections of -- `(X ⊗₀ ⊥) + "
+    }
+   ]
+  },
+  "src/Categories/Category/Monoidal/Pure.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- A wide symmetric monoidal subcategory of `𝒱`, presented as a predicate on -- morphisms:"
+    }
+   ]
+  },
+  "src/Categories/FreeMonoidal.agda": {
+   "sites": [
+    {
+     "lines": "5-11",
+     "kind": "banner",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "Level",
+     "preview": "-------------------------------------------------------------------------------- -- Variou"
+    },
+    {
+     "lines": "39-43",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Variant",
+     "preview": "-- NOTE: this is deliberately not a global `instance`. A global -- `v≤v : ∀ {v} → v ≤ v` m"
+    },
+    {
+     "lines": "47-50",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "noSymmetric",
+     "preview": "-- The `Mon`-variant \"symmetry\": `Symm ≤ Mon` is uninhabited. Sharing ONE -- definition ke"
+    },
+    {
+     "lines": "70-70",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "fromMC",
+     "preview": "-- A `⟦ v ⟧ᵥ` from a bundled `MonoidalCategory` plus its `v`-gated symmetry."
+    },
+    {
+     "lines": "88-88",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "wires",
+     "preview": "-- the parallel wires named by a list of labels, right-nested"
+    },
+    {
+     "lines": "211-211",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Bind",
+     "preview": "-- the free monoidal category itself"
+    },
+    {
+     "lines": "215-219",
+     "kind": "banner",
+     "nLines": 5,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "Bind",
+     "preview": "-------------------------------------------------------------------------- -- Structural m"
+    },
+    {
+     "lines": "279-281",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "Bind",
+     "preview": "-------------------------------------------------------------------------- -- The canonica"
+    },
+    {
+     "lines": "297-299",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "Bind",
+     "preview": "-------------------------------------------------------------------------- -- The flat-shi"
+    },
+    {
+     "lines": "301-301",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Bind",
+     "preview": "-- `liftW p W` : prepend `p` idle wires to a flat morphism on `wires u`."
+    },
+    {
+     "lines": "322-322",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Bind",
+     "preview": "-- the dual hexagon at the α⇐ level."
+    },
+    {
+     "lines": "347-353",
+     "kind": "banner",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "Bind",
+     "preview": "-------------------------------------------------------------------------- -- Generator bi"
+    },
+    {
+     "lines": "374-374",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "FreeMonoidalData",
+     "preview": "-- bind preserves the equational theory (each axiom maps to the same axiom)."
+    },
+    {
+     "lines": "414-418",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "FreeObjInterp",
+     "preview": "-- The object action of the free functor depends only on the atoms' -- interpretation `⟦_⟧"
+    }
+   ]
+  },
+  "src/Categories/GConstructionEmbedding.agda": {
+   "sites": [
+    {
+     "lines": "3-19",
+     "kind": "header",
+     "nLines": 17,
+     "flags": [],
+     "attachedTo": "Categories.GConstructionEmbedding",
+     "preview": "------------------------------------------------------------------------ -- Embedding a pa"
+    },
+    {
+     "lines": "54-55",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⌜_,_⌝",
+     "preview": "-- `u` acts on the positive polarity, `v` on the negative one. The -- G-identity at `(A⁺ ,"
+    },
+    {
+     "lines": "107-107",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- Embedding is functorial: contravariant on the negative polarity."
+    },
+    {
+     "lines": "128-129",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- Hence a pair of base isos embeds as a G-iso, which is what makes every -- structural mo"
+    },
+    {
+     "lines": "143-145",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The structural isos of the pairwise tensor `(A⁺,A⁻) ⊗ (B⁺,B⁻) = -- (A⁺⊗B⁺ , A⁻⊗B⁻)` wit"
+    }
+   ]
+  },
+  "src/Categories/GConstructionEmbeddingCoherence.agda": {
+   "sites": [
+    {
+     "lines": "3-19",
+     "kind": "header",
+     "nLines": 17,
+     "flags": [],
+     "attachedTo": "Categories.GConstructionEmbeddingCoherence",
+     "preview": "-------------------------------------------------------------------------------- -- The co"
+    },
+    {
+     "lines": "51-52",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "L",
+     "preview": "-------------------------------------------------------------------------------- -- absorb"
+    },
+    {
+     "lines": "113-114",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "R",
+     "preview": "-------------------------------------------------------------------------------- -- absorb"
+    }
+   ]
+  },
+  "src/Categories/Monad/Discrete.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Level",
+     "preview": "-- A commutative monad presented elementwise: the raw `return`/`_>>=_` a -- consumer compu"
+    },
+    {
+     "lines": "51-54",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- Commutativity at the *discrete* objects: what a cartesian tensor over -- this monad nee"
+    },
+    {
+     "lines": "87-87",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- Yoneda variant of `>>=-comm`"
+    }
+   ]
+  },
+  "src/Categories/PermuteCoherence/Unflatten.agda": {
+   "sites": [
+    {
+     "lines": "3-17",
+     "kind": "header",
+     "nLines": 15,
+     "flags": [],
+     "attachedTo": "Categories.FreeMonoidal",
+     "preview": "------------------------------------------------------------------------ -- Generic term-l"
+    },
+    {
+     "lines": "33-34",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "FreeMonoidalHelper",
+     "preview": "-- the wire kit, which `FreeMonoidal d`'s `hiding` list keeps out of the APROP -- namespac"
+    },
+    {
+     "lines": "38-40",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "unflatten",
+     "preview": "------------------------------------------------------------------------ -- 1. Generic `un"
+    },
+    {
+     "lines": "44-46",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "unflatten-++-≅",
+     "preview": "------------------------------------------------------------------------ -- 1b. `unflatten"
+    },
+    {
+     "lines": "55-56",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "permute",
+     "preview": "------------------------------------------------------------------------ -- 2. Generic `pe"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Advantage.agda": {
+   "sites": [
+    {
+     "lines": "3-9",
+     "kind": "header",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The distinguishing advantage between two partial verdict distributions: the -- gap betw"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp.agda": {
+   "sites": [
+    {
+     "lines": "3-24",
+     "kind": "header",
+     "nLines": 22,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The rational probabilistic delay monad `Dₚ A = ν X. S_ℚ (A ⊎ X)`, with a -- delay-insen"
+    },
+    {
+     "lines": "48-49",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Dₚ",
+     "preview": "------------------------------------------------------------------------ -- The carrier"
+    },
+    {
+     "lines": "75-76",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "botₚ",
+     "preview": "-- Written out rather than as `dirac (inj₂ botₚ)`: the corecursive call may sit -- under c"
+    },
+    {
+     "lines": "110-115",
+     "kind": "banner",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "NNF",
+     "preview": "------------------------------------------------------------------------ -- Depth-`n` cumu"
+    },
+    {
+     "lines": "127-128",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "NNF",
+     "preview": "-- Non-negative tests: `cum` is monotone in the budget only for these, and the -- equivale"
+    },
+    {
+     "lines": "132-133",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "node-nn",
+     "preview": "------------------------------------------------------------------------ -- The two-term a"
+    },
+    {
+     "lines": "154-155",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "_≼ₚ_",
+     "preview": "------------------------------------------------------------------------ -- `cum` is non-n"
+    },
+    {
+     "lines": "193-199",
+     "kind": "banner",
+     "nLines": 7,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "_≼ₚ_",
+     "preview": "------------------------------------------------------------------------ -- Depth-`n` supp"
+    },
+    {
+     "lines": "256-265",
+     "kind": "banner",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "_≼ₚ_",
+     "preview": "------------------------------------------------------------------------ -- The equivalenc"
+    },
+    {
+     "lines": "294-295",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "exact⇒≈ₚ",
+     "preview": "-- Both sides are blind at budget 0, so an exact `cum` identity from budget 1 on -- suffic"
+    },
+    {
+     "lines": "310-311",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "dirac-cum",
+     "preview": "------------------------------------------------------------------------ -- Delays are inv"
+    },
+    {
+     "lines": "329-330",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": ">>=ₚ-identityˡ-cum",
+     "preview": "------------------------------------------------------------------------ -- Monad laws, as"
+    },
+    {
+     "lines": "340-340",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "leafₚ-tag-zero",
+     "preview": "-- Budget 0 sees nothing of a bind: every branch of `d >>=ₚ f` is an `inj₂`."
+    },
+    {
+     "lines": "385-390",
+     "kind": "banner",
+     "nLines": 6,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": ">>=ₚ-congᵖ",
+     "preview": "------------------------------------------------------------------------ -- The bind sandw"
+    },
+    {
+     "lines": "421-422",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": ">>=ₚ-congᵖ",
+     "preview": "------------------------------------------------------------------------ -- The bind congr"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Advantage.agda": {
+   "sites": [
+    {
+     "lines": "3-17",
+     "kind": "header",
+     "nLines": 15,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- Distinguishing advantage on `Dₚ Bool`, as a RELATION indexed by a rational -- slack rat"
+    },
+    {
+     "lines": "36-36",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Pr≤",
+     "preview": "-- The verdict mass reached within `n` steps."
+    },
+    {
+     "lines": "55-56",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "≼ₚ⇒≼ₚ[0]",
+     "preview": "------------------------------------------------------------------------ -- The pseudometr"
+    },
+    {
+     "lines": "80-81",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "≼ₚ[]-resp",
+     "preview": "-- The left and right ends can be replaced by `_≼ₚ_`-comparable ones; this is -- how an ob"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Coin.agda": {
+   "sites": [
+    {
+     "lines": "3-8",
+     "kind": "header",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- A finite rational distribution on `Bool` as a single biased coin. `Dₚ`'s -- step is del"
+    },
+    {
+     "lines": "27-27",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "ind˘",
+     "preview": "-- The indicator of `false`; `bool→ℚ` is the indicator of `true`."
+    },
+    {
+     "lines": "39-39",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "coinₚ",
+     "preview": "-- The two masses add to one because the two indicators do, pointwise."
+    },
+    {
+     "lines": "52-52",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "coinₚ-cum",
+     "preview": "-- Both branches spend one delay step, so the budget is `suc (suc n)`."
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Commutative.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- `Dₚ` is a commutative monad up to `_≈ₚ_`. -- -- `cum n (d >>=ₚ f) P` is NOT a product o"
+    },
+    {
+     "lines": "36-37",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "mapₚ-≤",
+     "preview": "------------------------------------------------------------------------ -- The `ℚ` rearra"
+    },
+    {
+     "lines": "66-67",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "mapₚ-≤",
+     "preview": "------------------------------------------------------------------------ -- `cum n d` is a"
+    },
+    {
+     "lines": "125-126",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "mapₚ-≤",
+     "preview": "------------------------------------------------------------------------ -- Fubini at two "
+    },
+    {
+     "lines": "146-147",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "mapₚ-≤",
+     "preview": "------------------------------------------------------------------------ -- Commutativity"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Elgot.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Data.Nat.Base",
+     "preview": "-- Uniformity and the context law for `iterₚ`, and the single entry point for the -- itera"
+    },
+    {
+     "lines": "31-33",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "ProbabilisticLogic.Dp.Iter",
+     "preview": "-- Object variables are bound explicitly in every signature below: the `where` -- blocks m"
+    },
+    {
+     "lines": "41-42",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "mapₚ-fn-cum",
+     "preview": "------------------------------------------------------------------------ -- `mapₚ` in its "
+    },
+    {
+     "lines": "57-58",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "padₛ",
+     "preview": "------------------------------------------------------------------------ -- Uniformity alo"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter.agda": {
+   "sites": [
+    {
+     "lines": "3-15",
+     "kind": "header",
+     "nLines": 13,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- Elgot iteration on the Kleisli category of `Dₚ`, elementwise. A body -- `S × A → Dₚ (S "
+    },
+    {
+     "lines": "37-38",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "mapₚ-≈ₚ",
+     "preview": "------------------------------------------------------------------------ -- `mapₚ`, exactl"
+    },
+    {
+     "lines": "56-57",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Body",
+     "preview": "------------------------------------------------------------------------ -- The operator"
+    },
+    {
+     "lines": "62-63",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "iterₚ",
+     "preview": "-- `stepᵢ` consumes the body's own steps and adds one per turn, so the only -- self-call i"
+    },
+    {
+     "lines": "79-80",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "contᵢ",
+     "preview": "------------------------------------------------------------------------ -- Unfolding (the"
+    },
+    {
+     "lines": "86-86",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "returnₚ-cum-≤",
+     "preview": "-- `returnₚ` is only reached after a step, so budget 0 sees nothing of it."
+    },
+    {
+     "lines": "91-91",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "iterₚ-fix",
+     "preview": "-- The unfolded loop is behind by exactly the one step the junction spends."
+    },
+    {
+     "lines": "127-131",
+     "kind": "banner",
+     "nLines": 5,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Tᵗ",
+     "preview": "------------------------------------------------------------------------ -- The loop sandw"
+    },
+    {
+     "lines": "178-179",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "S",
+     "preview": "------------------------------------------------------------------------ -- `iterₚ` respec"
+    },
+    {
+     "lines": "181-183",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "S",
+     "preview": "-- `S`/`A`/`B` are module parameters, not `private variable`s: the `where` block's -- own "
+    },
+    {
+     "lines": "218-223",
+     "kind": "banner",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "φ",
+     "preview": "------------------------------------------------------------------------ -- Pure reindexin"
+    },
+    {
+     "lines": "233-237",
+     "kind": "banner",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "iterₚ-turn",
+     "preview": "------------------------------------------------------------------------ -- Replaying a de"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Codiagonal.agda": {
+   "sites": [
+    {
+     "lines": "3-22",
+     "kind": "header",
+     "nLines": 20,
+     "flags": [],
+     "attachedTo": "Data.Nat.Base",
+     "preview": "-- `iterₚ-codiagonal` — a loop whose body is itself a loop over the same variable -- is on"
+    },
+    {
+     "lines": "93-93",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "iterₚ-codiagonal",
+     "preview": "-- The inner loop's test re-exposed: one more `stepᵢ-boundA` past `K1`."
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Out.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Data.Nat.Base",
+     "preview": "-- `iterₚ-out` — naturality of `iterₚ` in its output, for an EFFECTFUL -- post-composition"
+    },
+    {
+     "lines": "36-37",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "inlₒ",
+     "preview": "------------------------------------------------------------------------ -- Post-composing"
+    },
+    {
+     "lines": "49-50",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Tᵗ-inlₒ",
+     "preview": "-- `Tᵗ`'s exit clause is `P` composed with `inlₒ` up to `Σ`-eta, so relabelling -- the tes"
+    },
+    {
+     "lines": "68-69",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "S",
+     "preview": "------------------------------------------------------------------------ -- The two indepe"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Transfer.agda": {
+   "sites": [
+    {
+     "lines": "3-21",
+     "kind": "header",
+     "nLines": 19,
+     "flags": [],
+     "attachedTo": "Data.Nat.Base",
+     "preview": "-- `iterₚ-transfer` — transfer of `iterₚ` along a PURE simulation. -- -- `mapₚ` inserts a "
+    },
+    {
+     "lines": "40-41",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "S",
+     "preview": "-- `S`…`B′`, the two bodies, the two pure relabellings and the test are all module -- para"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Prelude.agda": {
+   "sites": [
+    {
+     "lines": "3-8",
+     "kind": "header",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "ProbabilisticLogic.Prelude",
+     "preview": "-- The probability vocabulary, in one import: carriers, the monad and its -- equality, sub"
+    }
+   ]
+  }
+ },
+ "totalChecks": 0
+}

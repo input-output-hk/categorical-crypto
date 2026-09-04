@@ -1,0 +1,61 @@
+{
+ "sweep": "join-lines",
+ "root": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-protocol-rewrite",
+ "files": {
+  "src/CategoricalCrypto/Examples/ChimericLedger/POV.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 22,
+     "edit": "join 2 lines: `open import Data.Nat.Base renaming (_+_ to _+ᴺ_; _…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 18.9
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Pin.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Protocol/Observe.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 22,
+     "edit": "join 2 lines: `open import Data.Rational renaming (_+_ to _+ℚ_; _…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 17.4
+  },
+  "src/CategoricalCrypto/UC/Seam.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Seam/Carry.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Seam/Grounding.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  }
+ },
+ "totalChecks": 6
+}
