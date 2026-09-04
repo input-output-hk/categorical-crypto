@@ -19,7 +19,8 @@ open import Data.Bool.Base using (Bool; true; false; not; if_then_else_)
 open import Data.Fin.Base using () renaming (zero to fzero)
 open import Data.List.Base using (List; []; _∷_)
 open import Data.Maybe.Base using (Maybe; just; nothing)
-open import Data.Nat.Base using (ℕ; zero; suc) renaming (_*_ to _*ᴺ_; _≡ᵇ_ to _≡ᴺ_)
+open import Data.Nat.Base using (ℕ; zero; suc)
+  renaming (_+_ to _+ᴺ_; _*_ to _*ᴺ_; _≡ᵇ_ to _≡ᴺ_)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Rational using (ℚ; _*_) renaming (_+_ to _+ℚ_; _≤_ to _≤ℚ_)
 open import Data.Rational.Properties using (≤-trans)
@@ -172,18 +173,36 @@ pov-transfer v₁ v₂ s₀ {ε} {δ} =
 -- The birthday target
 ------------------------------------------------------------------------
 
--- The headline statement is pinned at a GENESIS state — empty UTxO set, all
--- value in one account — because a fresh hash can collide with a pre-existing
--- UTxO key, so a nonempty initial set would add a `q · |s₀|` term to the
--- bound.  `ser`'s injectivity sits here because only the birthday bound
--- consumes it (a hash collision must come from two different transactions).
-module AtBirthday (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) where
+-- The headline statement is pinned at a GENESIS state: all the value in ONE
+-- UTxO output, keyed by a genesis hash `h₀`.  An account-only genesis (empty
+-- UTxO set, all value in one account) is what the branch first stated, and it
+-- is VACUOUS — `consumes inputConsuming` demands an input while `checkIns`
+-- rejects every input against an empty UTxO set, so no transaction is ever
+-- accepted, the oracle is never queried, the state never moves and the bad
+-- event has probability zero (external theory review, finding 1).
+-- `ChimericLedger.Pin` pins the liveness of the state below by `refl`, so the
+-- vacuity cannot come back unnoticed.
+genesis : Hash → Addr → ℕ → LState
+genesis h₀ a V = ((h₀ , 0) , (a , V)) ∷ [] , []
 
+-- The transaction that spends the genesis output, paying the value straight
+-- back to the same address: the witness that the experiment runs.
+spendGenesis : Hash → Addr → ℕ → Tx
+spendGenesis h₀ a V = ((h₀ , 0) ∷ []) , [] , ((a , V) ∷ [])
+
+accepted : Answer → Bool
+accepted (ok b)      = b
+accepted (totalIs _) = false
+
+-- `ser`'s injectivity sits here because only the birthday bound consumes it (a
+-- hash collision must come from two different transactions).
+module AtBirthday (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) where
+
+  -- `q²` fresh-hash pairs, plus `q` chances for a fresh hash to hit `h₀`
+  -- itself: the genesis key is in the namespace the oracle samples from, and
+  -- an output keyed by an already-present key is swallowed by `unionNew`.
   εbirthday : ℕ → ℚ
-  εbirthday q = fromℕ (q *ᴺ q) * inv-pow-2 ℓ
-
-  genesis : Addr → ℕ → LState
-  genesis a V = [] , (a , V) ∷ []
+  εbirthday q = fromℕ (q *ᴺ q +ᴺ q) * inv-pow-2 ℓ
 
   Target : Addr → ℕ → Set
-  Target a V = POV inputConsuming (genesis a V) εbirthday
+  Target a V = POV inputConsuming (genesis h₀ a V) εbirthday
