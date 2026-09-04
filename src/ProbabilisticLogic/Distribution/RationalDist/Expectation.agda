@@ -19,7 +19,9 @@ open import ProbabilisticLogic.Distribution.Uniform using (bool→ℚ)
 
 module ProbabilisticLogic.Distribution.RationalDist.Expectation where
 
-private variable A B : Type
+private variable
+  ℓ : Level
+  A B : Type
 
 -- Expectation (= `lookupᴰℚ` over the entries) and the probability of `true`.
 E : Dist-ℚ A → (A → ℚ) → ℚ
@@ -59,10 +61,17 @@ Pr₁-bind μ k = lookupᴰℚ-bind (entries μ) (λ a → entries (k a)) bool�
 ------------------------------------------------------------------------
 -- The partial (`Dist⊥`) reading: the divergence sink `nothing` scores `0`.
 
-mb : Maybe Bool → ℚ
-mb (just b) = bool→ℚ b
-mb nothing  = 0ℚ
+maybeℚ : {A : Type ℓ} → (A → ℚ) → Maybe A → ℚ
+maybeℚ P (just a) = P a
+maybeℚ P nothing  = 0ℚ
 
+E⊥ : {A : Type ℓ} → Dist⊥ A → (A → ℚ) → ℚ
+E⊥ μ P = lookupᴰℚ (entries μ) (maybeℚ P)
+
+mb : Maybe Bool → ℚ
+mb = maybeℚ bool→ℚ
+
+-- `Pr₁⊥` is `E⊥` at the verdict indicator, on the nose.
 Pr₁⊥ : Dist⊥ Bool → ℚ
 Pr₁⊥ μ = E μ mb
 

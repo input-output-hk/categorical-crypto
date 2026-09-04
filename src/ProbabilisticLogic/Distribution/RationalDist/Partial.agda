@@ -56,8 +56,8 @@ private
     (cong (w ℚ.* q ℚ.+_) (lookup-L-const xs q))
     (sym (*-distribʳ-+ q w (mass-L xs)))
 
-  mass-L-toList : (μ : DistData A) → mass-L (NE.toList μ) ≡ mass μ
-  mass-L-toList (h NE.∷ t) = refl
+mass-L-toList : (μ : DistData A) → mass-L (NE.toList μ) ≡ mass μ
+mass-L-toList (h NE.∷ t) = refl
 
 lookupᴰℚ-const : (μ : Dist-ℚ A) (q : ℚ) → lookupᴰℚ (entries μ) (λ _ → q) ≡ q
 lookupᴰℚ-const μ q = trans (lookup-L-const (NE.toList (entries μ)) q)
