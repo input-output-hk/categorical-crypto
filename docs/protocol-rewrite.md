@@ -22,7 +22,8 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 |---|---|
 | M1: layers 0–1 + the ledger example | **DONE** — all green, pins by `refl`, hatches 21 = baseline |
 | M2 wave 1: `Dₚ`, `Kl(Dₚ)`, `Mealy` + `Mealy-Category` + the ⊕-trace | **DONE** — all green, hatches 21 = baseline |
-| M2 wave 2: the four residual trace laws, `Traced`, GConstruction, `morphism`/`Pr-agree` | not started |
+| M2 wave 2: the four residual trace laws + `Elgot` at `Kl(Dₚ)` | **DONE** — the machine layer is hypothesis-free; hatches 21 = baseline |
+| M2 wave 3: the machine SMC bundle, `Traced`, GConstruction, `morphism`/`Pr-agree` | not started |
 | M3: the UC layer | not started |
 
 ## Modules (M1: 10 files, 795 LOC, all `--safe --without-K`)
@@ -70,36 +71,46 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
   `acctΣ`∘`checkWdrls`, all lemma-friendly in the sequential form) plus one run
   induction relating `d` to `audited d`.
 
-## M2 wave 1 (21 files, 3379 LOC)
+## M2: the machine layer (30 files, 4567 LOC, all `--safe --without-K`)
 
 | module | LOC | role |
 |---|---|---|
 | `ProbabilisticLogic.Dp` | 445 | the biased-coin carrier, `cum`/`Supp`/`uniformize`, `_≼ₚ_`/`_≈ₚ_`, monad laws, bind sandwich, bind congruence |
 | `…Dp.Commutative` | 186 | `cum` linear in its test, Fubini at two budgets, `>>=ₚ-comm` |
 | `…Dp.Iter` | 250 | `Body`, `iterₚ`, `iterₚ-fix`, the loop sandwich, `iterₚ-cong` |
-| `…Dp.Iter.Transfer` | 133 | `iterₚ-transfer` — transfer along a pure simulation |
+| `…Dp.Iter.Transfer` | 133 | `iterₚ-transfer` — transfer along a pure reindexing of state, loop variable and output |
 | `…Dp.Iter.Out` | 171 | `iterₚ-out` — naturality for an *effectful* post-composition |
 | `…Dp.Iter.Codiagonal` | 137 | `iterₚ-codiagonal` |
 | `…Dp.Elgot` | 82 | `iterₚ-uniform`/`iterₚ-ctx`; the one-import entry to the law set |
 | `Categories.Monad.Discrete` | 106 | `DiscreteMonad` — the elementwise commutative-monad interface |
 | `Categories.Category.Kleisli.Discrete` | 293 | `Klᴹ` + its symmetric monoidal structure |
 | `…Kleisli.Discrete.Distributive` | 74 | `MonoidalDistributiveᵏ` |
+| `…Kleisli.Discrete.Pure` | 78 | `IsPure` + `PureSubᵏ` — the pure homs of `Klᴹ` |
 | `Categories.Category.Monoidal.Distributive` | 44 | the `MonoidalDistributive` record |
-| `…Monoidal.Distributive.Properties` | 68 | `δ-unique`, `δ⇐-i₁/₂`, `⊥-unique` |
-| `CategoricalCrypto.Machines.Core` | 164 | `State`, `Machine`, `onL`/`onR`, `_∘ᴹ_`, `_≲_`, `_≈ᴹ_` |
-| `…Machines.Frame` | 405 | the point-free coherence library the layer runs on |
+| `…Monoidal.Distributive.Properties` | 62 | `δ-unique`, `δ⇐-i₁/₂`, `⊥-unique` |
+| `Categories.Category.Monoidal.Pure` | 45 | the `PureSub` record — a wide symmetric monoidal subcategory |
+| `Categories.Category.Cocartesian.Ext` | 68 | the coproduct associator and braiding on the injections, `+₁-id`, `+-unique₂` |
+| `CategoricalCrypto.Machines.Core` | 100 | `State`, `Machine`, `onL`/`onR`, `_∘ᴹ_` |
+| `…Machines.Sim` | 117 | `_≲_`, `_≈ᴹ_` and its combinators, `collapseˡ`/`collapseʳ` |
+| `…Machines.Frame` | 392 | the point-free coherence library the layer runs on |
 | `…Machines.Reassoc` | 95 | the three state-reassociation squares |
-| `…Machines.Category` | 81 | `Mealy-Category` |
-| `…Machines.Tensor` | 161 | `tstep`, `_⊗ᵉ_`, `⊗ᵉ-resp-≲`, `pureᴹ` + functoriality, `α⇒ᴹ`/`α⇐ᴹ`/`σᴹ` |
-| `…Machines.Iteration` | 72 | the `Elgot` hypothesis record |
-| `…Machines.Trace` | 263 | `solve`/`traceStep`/`traceᴹ`, `iter-onL`, yanking, vanishing₁, step-level naturality, state extension, `Remaining` |
-| `…Machines.Trace.Naturality` | 92 | `trace-∘ˡ`, `trace-∘ʳ` for arbitrary machines |
-| `…Machines.Base` | 57 | `Dₚ-DiscreteMonad`, `𝒱ₚ`, `distₚ` — the intended instance |
+| `…Machines.Category` | 90 | `Mealy-Category`, `∘ᴹ-resp-≈ᴹ` |
+| `…Machines.Tensor` | 166 | `tstep`, `_⊗ᵉ_`, `⊗ᵉ-resp-≲`, `pureᴹ` + functoriality, `α⇒ᴹ`/`α⇐ᴹ`/`σᴹ` |
+| `…Machines.Iteration` | 113 | the `Elgot` hypothesis record, `tstep-pad`, the derived `iter-uniform`/`pure-+₁` |
+| `…Machines.Trace` | 267 | `solve`/`traceStep`/`traceᴹ`, `iter-onL`, yanking, vanishing₁, step-level naturality, state extension, `Remaining` |
+| `…Machines.Trace.Naturality` | 97 | `trace-∘ˡ`, `trace-∘ʳ` for arbitrary machines |
+| `…Machines.Trace.Congruence` | 80 | `trace-resp-≲`, `trace-resp-≈ᴹ` |
+| `…Machines.Trace.Superposing` | 119 | `superposing`, `super-step` |
+| `…Machines.Trace.Vanishing` | 256 | `vanishing₂`, `vanish-step`, `[]-δ⇐` |
+| `…Machines.Trace.Fubini` | 202 | `trace-comm`, `relabel-step`, `β+` |
+| `…Machines.Trace.Laws` | 39 | `Remaining`, as a term |
+| `…Machines.Base` | 260 | `Dₚ-DiscreteMonad`, `𝒱ₚ`, `distₚ`, `𝒫ₚ`, `Elgotₚ`, `Remainingₚ` — the intended instance, hypothesis-free |
 
-Cost: the whole machine closure elaborates in ~15 s (`Core`+`Frame`+`Reassoc`+
-`Category` 11 s, `Tensor`+`Iteration`+`Trace`+`Naturality` 4 s); each `Dₚ` module
-is ~4 s. `Trace.Naturality` is split off `Trace` on the elgot spike's measurement
-that the two together cost 397 s against 7 s + 7 s apart, for the same proof term.
+Cost: the whole machine closure elaborates in ~40 s; no module is over 8 s warm
+and each `Dₚ` module is ~4 s.  `Trace.Naturality` is split off `Trace` on the
+elgot spike's measurement that the two together cost 397 s against 7 s + 7 s
+apart, for the same proof term; the four law modules are split for the same
+reason and each came in at 7–8 s.
 
 ### What the simulation equality changed
 
@@ -126,18 +137,14 @@ crossings named as generators.
 
 ### Statement deviations from the spikes
 
-* **`iter-uniform` is stated along an arbitrary state map, not a state iso.**  The
-  iso form suffices for every reconciliation the trace laws perform, but the
-  simulation equality's congruence for `traceᴹ` needs uniformity along the
-  simulation's own state map, which is not invertible.  At `Kl(Dₚ)` *neither* form
-  is inhabited as literally stated — an arbitrary Kleisli map is effectful and
-  `iterₚ-uniform` transfers along *pure* maps only — so the promotion restricts
-  both this field and `_≲_`'s state map to a wide subcategory 𝒫 of pure maps.
-  That restriction is wave 2's fourth residual and the only knowingly
-  un-inhabited hypothesis in the layer; it is confined to one record field.
+* **Uniformity is asked in TRANSFER form, and along `𝒫` only** (see the wave-2
+  section below).  The spikes asked for uniformity along a state *iso*; that is
+  both too weak (it cannot carry the trace congruence, whose state map is not
+  invertible) and, at a Kleisli base, uninhabited (an arbitrary hom is
+  effectful).
 * **`Remaining.trace-resp-≲` is asked in generator form** (`f ≲ g → traceᴹ f ≲
   traceᴹ g`), the minimal obligation; the `≈ᴹ` form `GConstruction` wants is
-  derived inside the record by `EqClosure`'s `gmap`.
+  derived by `EqClosure`'s `gmap` (`Trace.Congruence.trace-resp-≈ᴹ`).
 * **`DiscreteMonad` replaces `KleisliTriple (Setoids ℓ ℓ)`** as the base's
   parameter, with commutativity folded in as a field rather than a second
   parameter.  Same hypotheses, repackaged: `Dₚ` cannot supply a setoid-wide
@@ -147,30 +154,107 @@ crossings named as generators.
 * The `Dₚ` spike's `DpIter.Remaining` record is dropped: all four of its fields
   are now theorems.
 
-### What wave 2 owes
+## M2 wave 2
 
-Exactly the four fields of `CategoricalCrypto.Machines.Trace.Remaining`:
+All four residual trace laws are theorems and `Elgot` is inhabited at `Kl(Dₚ)`,
+so the machine layer has no hypothesis left: `Machines.Base.Remainingₚ` is a
+closed term of `Trace.Remaining (𝒱ₚ ℓ) (distₚ ℓ) (𝒫ₚ ℓ) (Elgotₚ ℓ)`.
 
-| field | statement | route | LOC | risk |
-|---|---|---|---|---|
-| `trace-resp-≲` | `f ≲ g → traceᴹ A B X f ≲ traceᴹ A B X g` | `iter-uniform` at the simulation's own state map, after restricting both to 𝒫 | net ≈ 0 | MED |
-| `vanishing₂` | `traceᴹ A B X (traceᴹ … P (α⇐ᴹ ∘ᴹ f ∘ᴹ α⇒ᴹ)) ≈ᴹ traceᴹ A B (X + P) f` | `iter-cod` + the ⊕-side regrouping of `(B+X)+P` under `δ` | 120–200 | MED |
-| `superposing` | `traceᴹ (P + A) (P + B) X (α⇐ᴹ ∘ᴹ (idᴹ ⊗ᵉ f) ∘ᴹ α⇒ᴹ) ≈ᴹ (idᴹ ⊗ᵉ traceᴹ A B X f)` | `iter-ctx` / the derived `iter-onL` + ⊕ bookkeeping | 100–160 | MED |
-| `trace-comm` | `traceᴹ A B X (traceᴹ … P f) ≈ᴹ traceᴹ A B P (traceᴹ … X (βᴹ ∘ᴹ f ∘ᴹ βᴹ))` | `iter-cod` + `iter-uniform` at the ⊕-side swap | 200–320 | MED–HIGH |
+| deliverable | LOC (est → real) | verdict |
+|---|---|---|
+| the 𝒫 restriction | ≈0 → 240 new + 8 files retouched | landed as `PureSub`; grew, see below |
+| `Elgot` at `Kl(Dₚ)` | 250–450 → 197 | landed; `Machines.Base` 63 → 260 |
+| `trace-resp-≲` | ≈0 → 80 | `iter-uniform` at the simulation's own state map, exactly as predicted |
+| `superposing` | 100–160 → 119 | `iter-out` only — *not* `iter-ctx`; `traceStep-onR` already absorbs the context |
+| `vanishing₂` | 120–200 → 256 | `iter-cod` + **two `iter-transfer`s**; the estimate missed that this law moves the loop variable |
+| `trace-comm` | 200–320 → 202 | `vanishing₂` twice + one loop-variable relabelling; the predicted `Dp.Commutative` Fubini was *not* needed |
 
-and, beyond the record, four things the wave-1 deliverable deliberately stops
-short of:
+### The 𝒫 design, as landed
 
-* **The 𝒫 restriction** (above): a wide subcategory of state maps, closed under
-  `id`/`∘`/`⊗₁` and containing the structural morphisms, threaded through `_≲_`
-  and `iter-uniform`.  Mechanically a one-field addition to `_≲_` plus one extra
-  argument at the ~12 simulation sites.
-* **`Elgot` at `Kl(Dₚ)`** — the elementwise-to-point-free translation.  `Dₚ`
-  proves all six fields elementwise up to `_≈ₚ_`; each point-free field differs
-  from its witness by a bounded, statically known number of junction delays,
-  which `_≈ₚ_` absorbs but which have to be written.  250–450 LOC, MED, largest
-  non-inherited row; the risk is concentrated in `iter-fix`, where `δ⇐`'s two
-  `Dₚ`-junctions have to be matched against `contᵢ`'s one.
+`Categories.Category.Monoidal.Pure.PureSub` is a predicate `Pure : A ⇒ B → Set
+(ℓ ⊔ e)` on the morphisms of `𝒱`, closed under `≈`, `id`, `_∘_`, `_⊗₁_` and
+containing `λ⇒`/`ρ⇒`/`α⇒`/`σ⇒`.  Its level is fixed at `ℓ ⊔ e` rather than being
+a parameter, which is what keeps every hom-set level of the layer unchanged; the
+intended instance's purity lands there.  `_≲_` gains one field,
+
+    record _≲_ {A B : Obj} (f g : Machine A B) : Set (ℓ ⊔ e) where
+      field
+        θ         : St f ⇒ St g
+        θ-pure    : Pure θ
+        θ-discard : discard (state g) ∘ θ ≈ discard (state f)
+        θ-point   : θ ∘ point (state f) ≈ point (state g)
+        θ-step    : θ ⊗₁ id ∘ step f ≈ step g ∘ θ ⊗₁ id
+
+and the iteration hypothesis is asked in **transfer** form rather than the
+state-only form wave 1 wrote:
+
+    iter-transfer : {S T A A′ B B′ : Obj}
+                    (κ : S ⊗₀ A ⇒ T ⊗₀ A′) (μ : S ⊗₀ B ⇒ T ⊗₀ B′) → Pure κ → Pure μ
+                  → {u : S ⊗₀ A ⇒ S ⊗₀ (B + A)} {v : T ⊗₀ A′ ⇒ T ⊗₀ (B′ + A′)}
+                  → v ∘ κ ≈ tstep μ κ ∘ u → iter v ∘ κ ≈ μ ∘ iter u
+
+    iter-uniform : {S T A B : Obj} {u : S ⊗₀ A ⇒ S ⊗₀ (B + A)} (θ : S ⇒ T) → Pure θ
+                 → {v : T ⊗₀ A ⇒ T ⊗₀ (B + A)}
+                 → v ∘ pad θ ≈ pad θ ∘ u → iter v ∘ pad θ ≈ pad θ ∘ iter u
+
+`iter-uniform` is now *derived* (κ = μ = `pad θ`, off `tstep-pad`: the
+distributor is natural in the state).  Three things forced the transfer form:
+
+* it is what the instance proves — `Dp.Iter.Transfer.iterₚ-transfer` is the
+  primitive there and `iterₚ-uniform` its corollary, so the strong field is
+  *cheaper* (27 lines) than the weak one would have been;
+* `vanishing₂` and `trace-comm` relate a loop over `X + P` to nested loops over
+  `X` and `P`, which **moves the loop variable**; no state-only uniformity can
+  do that, and this is the one place the wave-1 route table was wrong;
+* it makes `tstep`'s codomain state free, which is the same `δ⇒ ∘ (μ +₁ κ) ∘ δ⇐`
+  the tensor already used.
+
+Because a loop-variable transfer is built from `i₁`/`i₂`/`[_,_]`, the pure class
+must contain the coproduct structure.  `PureSub` is stated over `𝒱` alone and
+cannot say so, so `Elgot` carries `pure-i₁`, `pure-i₂`, `pure-[]` as fields and
+derives `pure-+₁` from them; at `Kl(Dₚ)` all three are one-liners.
+
+`Machines.Sim` is a new module holding `_≲_`/`_≈ᴹ_`/`collapseˡ`/`collapseʳ`: the
+simulation equality is the only thing that needs 𝒫, and splitting it out of
+`Machines.Core` keeps the two coherence-only modules (`Frame`, `Reassoc`) free of
+the parameter.
+
+### How the four laws go
+
+* **`trace-resp-≲`** — `δ-unique` peels the dispatch off `solve`, `pad-transport`
+  slides the state map past every action on the interface alone, and the loop is
+  carried by `iter-uniform` at the simulation's own `θ`.  Nothing else.
+* **`superposing`** — `pure-∘ˡ`/`pure-∘ʳ` reconcile the argument onto `state f`,
+  `traceStep-onR` moves the context factor out, and the residue is a `δ-unique`
+  whose loop branch is one `iter-out` at `id ⊗₁ i₂` (relabelling the exit branch
+  by `i₂ : B ⇒ P + B`).  `iter-ctx` is spent only indirectly, inside
+  `traceStep-onR`.
+* **`vanishing₂`** — the hard one, and the one the wave-1 estimate under-priced.
+  With `b` the `X + P`-loop's body, `c = id ⊗₁ α+⇐ ∘ b`, `q` the `P`-loop applied
+  to `c`, `ν = id +₁ i₁` and `ψ = (ν +₁ i₂) ∘ α+⇐`, the proof is:
+  `iter (id ⊗₁ ψ ∘ b) ≈ id ⊗₁ ν ∘ q` (one `iter-transfer` at `id ⊗₁ i₂` for the
+  `P`-entries, `iter-fix` + `[]-δ⇐` for the `X`-entries), then `iter-cod` at
+  `id ⊗₁ ψ ∘ b` — whose codiagonal collapses `ψ` to the identity, because
+  `[ id , i₂ ] ∘ (ν +₁ i₂) ≈ α+⇒`.  That normalizes the `X + P`-loop to one whose
+  loop branch only ever produces `X`, and a second `iter-transfer` at `id ⊗₁ i₁`
+  splits it into the two nested loops.
+* **`trace-comm`** — no new iteration content.  `vanishing₂` fuses each side into
+  a single trace (over `X + P` on the left, `P + X` on the right), and the two
+  are related by `relabel-step`: a trace does not see a pure iso of its loop
+  variable, one `iter-transfer` at `id ⊗₁ +-swap`.  Recognizing `βᴹ` as the pure
+  machine of `β+ = α+⇐ ∘ (id +₁ +-swap) ∘ α+⇒` is what makes the fusions'
+  associators cancel against `βᴹ`'s own, leaving `+-swap` alone.  The wave-1
+  table's guess that `Dp.Commutative`'s Fubini might reappear here was wrong: it
+  does not.
+
+`Categories.Category.Cocartesian.Ext` collects the ⊕-side bookkeeping all four
+laws do: upstream builds `+-monoidal` by dualizing `-×-`, so its associator is a
+nest of `[_,_]`s and every injection equation is `inject₁`/`inject₂`.  `+₁-id`
+and `+-unique₂` moved there from `Monoidal.Distributive.Properties`, whose
+distributivity they never needed.
+
+### What wave 3 owes
+
 * **The machine SMC bundle** — `triangleᴹ`/`pentagonᴹ`/`hexagonᴹ`, the unitor,
   associator and braiding naturalities, `⊗ᵉ-homomorphism`, hence `Monoidal` and
   `Symmetric` for `Mealy-Category`.  All of them are `pureᴹ`-conjugations of a
@@ -178,26 +262,36 @@ short of:
   `pure-∘ˡ`/`pure-∘ʳ` are already proved here; `⊗ᵉ-homomorphism` and
   `assoc-commuteᴹ` additionally want `Ω`, `slot-comm` and `tstep-α`, which is why
   `Ω`/`tuck`/`untuck` are not in `Machines.Core` yet.
+* **`Mealy-Traced` and `GConstruction`** — both are *blocked on the bundle*, not
+  on the laws: `Traced` is indexed by `Monoidal Mealy-Category` and
+  `GConstruction` takes `(C , Monoidal , Traced)`.  Every field they need is now
+  a term (`vanishing₁ᴹ`, `yankingᴹ`, `vanishing₂`, `superposing`,
+  `trace-resp-≈ᴹ`, `trace-∘ˡ`, `trace-∘ʳ`, `trace-comm`), so once the bundle
+  exists the assembly is the elgot spike's `Assemble.agda` verbatim — two record
+  literals.
 * **`Monoidal (GConstruction C)`** — inherited, unchanged, 300–600 LOC HIGH.
+* **`morphism`/`morphism-∘`/`Pr-agree`** — the agreement theorems that connect
+  layer 1's `Protocol` to the machine category.
 
-### Assumption ledger of M2 wave 1
+### Assumption ledger
 
-Two explicitly parameterized records and nothing else: `Machines.Iteration.Elgot`
-(the base's iteration, with the deviation above) and `Machines.Trace.Remaining`
-(the four laws).  Every term in every module is total; zero postulates, zero
-`TERMINATING`, zero holes; whole-`src` hatch grep 21 before and after.
+Empty.  Every term in every module of M2 is total; zero postulates, zero
+`TERMINATING`, zero holes; whole-`src` hatch grep 21 before and after (the M1
+baseline).  `Machines.Iteration.Elgot` and `Machines.Trace.Remaining` are still
+module *parameters* of the generic layer — that is what keeps it generic — but
+both are discharged at the intended base in `Machines.Base`.
 
-### Unrelated branch defect found on the way
+### Solver use
 
-`src/Categories/PermuteCoherence/Unflatten.agda:22` does not typecheck
-(`UnsolvedMetaVariables`): commit `2c638829`'s `using`-list cleanup removed both
-`open import Level using (Level)` and the module's `{ℓ′ : Level}` binder, and
-`FreeMonoidalData` takes that level explicitly.  This breaks the whole
-APROP/hypergraph closure, so `Categories.Coherence.Symmetric` (`solveH!`,
-`rewriteH!`, `rewriteDeep*!`, `normalize*!`) is unusable on this branch.  Not
-touched here — a one-line restoration under `src/Categories/`, flagged for the
-maintainer.  It is why `onL-α` went to `solveMor!` rather than the symmetric
-solver.
+`onL-α` (`Machines.Reassoc`) is the layer's only solver call, and it goes to
+`solveMor!` with the four atomic crossings named as generators; `solve-mor`, the
+macro, is weaker on goals mixing `α`/`σ` with compound endpoints.  A solver call
+gets its own ascribed lemma — never inlined in a `_○_` chain — which is what
+keeps the surrounding chain's endpoints inferable.  (Wave 1 recorded the
+symmetric solver as unusable here because
+`Categories/PermuteCoherence/Unflatten.agda` had lost its level binder; commit
+`b746517c` restored it, so `solveH!`/`rewriteH!` are available again — no law in
+this layer needed them.)
 
 ## M3 pointers
 
