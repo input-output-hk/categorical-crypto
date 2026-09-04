@@ -11,7 +11,7 @@ old lineage are enumerable ports, not regressions in kind.
 
 | axis | protocol-rewrite | old lineage |
 |---|---|---|
-| statement honesty | POV over the state trajectory at a pinned genesis; randomized strategies native (`coin`); **no budget in any statement**; `SameTV` ancilla-parametric ⇒ **no K island**; ε-indexed `≈ₚ[ε]` replaces the (at Dₚ uninhabitable) ℚ-valued `adv`; `Reflects` in the sound quantifier order over randomized trees | budget-parametric statements needing calibration remarks; 2-module K island; deterministic `Dgr` (`Reflects` refuted once); ledger `valid` had two value-leak bugs making POV(inputConsuming) **false** |
+| statement honesty | POV over the state trajectory at a pinned genesis; randomized strategies native (`coin`); **no budget in any statement**; `SameTV` ancilla-parametric ⇒ **no K island**; ε-indexed `≈ₚ[ε]` replaces the (at Dₚ uninhabitable) ℚ-valued `adv`; `Reflects` per compared pair over randomized trees, and the seam built along the embedding (addendum) | budget-parametric statements needing calibration remarks; 2-module K island; deterministic `Dgr` (`Reflects` refuted once); ledger `valid` had two value-leak bugs making POV(inputConsuming) **false** |
 | reach | machine category = `Traced` + **`GConstruction` verbatim, zero hypotheses** (`𝒢ₚ` closed); unbounded machines native — infinite traces with no towers, no `Stabilizes`, no `clip` | never reached `𝒢` (blocked at ro-model phase 1); infinite traces only via the tower workaround |
 | example | `ChimericLedger.POV` = 190 lines, 3 layer imports, plain-Agda ledger, `Sys = ledger ∘ᵖ oracle`, pins by `refl` | same shape achieved only after three API redesign passes; rests on `System` certificate luggage |
 | equalities | one hom-equality (simulation zigzag) from birth | four-relation zoo (`≈ᴹᶜ/≲/≲ᵒ/≈ˢ`) + ~780 LOC of word machinery with no counterpart in the rewrite |
@@ -32,8 +32,9 @@ old lineage are enumerable ports, not regressions in kind.
    `Dist⊥ → Dₚ` embedding, `Dp.Coin` is the Bool case).
 5. **`Monoidal (GConstruction C)`**: one compound-object σ-coherence (`⌜⌝-⊗`) gates the
    bifunctor field; embedding layer landed.
-6. **The `Reflects` reifier** (~250, instance-specific) and `AgreeToAdv` (= reifier +
-   `PrAgree`, no new content); `Grading 𝒫ᴵ` (record-eta cliff, medicine known);
+6. **The seam's two steps**: `StratIsEnv` (~80–120) and `Adequacy` (~250–350), after
+   which `AgreeToAdv` and `pov-carry` are theorems (see the addendum); the `Reflects`
+   reifier (~250, instance-specific); `Grading 𝒫ᴵ` (record-eta cliff, medicine known);
    `UC-compose` (two `Grading` fields).
 
 Total to parity-and-beyond: ≈1400–2300 LOC, all routine-to-medium, none research-grade.
@@ -63,3 +64,30 @@ harvested; its MD-relocation plan docs remain the map for item 3. `spike/pov-dp`
 `spike-dp`, `spike-elgot`: fully harvested, archive. The MD line inherited at
 `f71a2381` stays green and untouched on this branch until item 3 replaces it; the M3
 doc records the one-to-one supersession map for the deletion pass.
+
+## Addendum: external theory review, findings and resolutions
+
+Reviewed at `ebb3f2a5` (`docs/protocol-rewrite-theory-review.md`); all four findings are
+resolved on this branch.
+
+1. **Vacuous birthday target.** `AtBirthday`'s account-only genesis dead-locked the
+   input-consuming ledger, so the bound held with probability zero. Genesis is now all the
+   value in ONE UTxO output keyed by a genesis hash `h₀` (an `AtBirthday` parameter beside
+   `ser-inj`), the bound is `ε q = (q² + q)·2⁻ˡ` — the `+ q` for fresh hashes colliding
+   with `h₀` — and `ChimericLedger.Pin` pins acceptance-with-probability-1 and the state
+   change by `refl`, so the vacuity cannot return unnoticed.
+2. **`Reflects` quantifier order.** A finite `Strat` mentions finitely many first queries
+   and so cannot reflect a `Dₚ` context that samples an unbounded-support question at
+   query bound one. `UC.Bridge.Reflects` now quantifies over the compared pair *before*
+   witnessing the strategy; the uniform form is priced as a `Dₚ`-valued or coinductive
+   strategy language, not built.
+3. **Seam direction.** `AgreeToAdv` cannot follow from `Reflects` (wrong direction).
+   `UC.Seam` is rebuilt along the embedding instead: `strategyEnv` (a finite strategy as
+   an environment) is constructive, `StratIsEnv` (`UC.Seam.Grounding`) and `Adequacy` are
+   the two stated-and-priced steps, and `AgreeToAdv` — hence `pov-carry` — is now a
+   THEOREM of those plus `PrAgree` (`UC.Seam.Carry`). Carrying a bound across `_≤UC_`
+   needs the interface-observable audit form, the simulator being quantified at a graded
+   codomain; recorded in the module header.
+4. **κ cofinality.** `UC.Family` now takes `κ-cofinal : ∀ N → Σ[ i ] N ≤ κ i`, without
+   which a bounded `κ` makes every eventual statement — hence the UC preorder — vacuous.
+   `≈^ω-witness` is what it buys.

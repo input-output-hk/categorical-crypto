@@ -24,9 +24,9 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 | M2 wave 1: `Dₚ`, `Kl(Dₚ)`, `Mealy` + `Mealy-Category` + the ⊕-trace | **DONE** — all green, hatches 21 = baseline |
 | M2 wave 2: the four residual trace laws + `Elgot` at `Kl(Dₚ)` | **DONE** — the machine layer is hypothesis-free; hatches 21 = baseline |
 | M2 wave 3: the machine SMC bundle, `Traced`, GConstruction, `morphism`/`Pr-agree` | **the machine layer is DONE** — `ℳₚ` symmetric monoidal, `Tracedₚ`, `𝒢ₚ` all closed terms; `morphism` landed, `Morphism-∘`/`PrAgree` stated and priced; hatches 21 = baseline |
-| M3: the UC layer | **the statement layer is DONE** — `_≈ℰ_`/`grade-stable`/`absorb`/`_≤UC_` and its metatheorems are theorems, no K island, no `HomTransportTrivial`; the intended instance's observation is a theorem and its grading action is data with `Grading 𝒫ᴵ` priced; hatches 21 = baseline |
+| M3: the UC layer | **the statement layer is DONE**, and the external theory review's four findings are resolved (`docs/rewrite-verdict.md`'s addendum) — `_≈ℰ_`/`grade-stable`/`absorb`/`_≤UC_` and its metatheorems are theorems, no K island, no `HomTransportTrivial`; the intended instance's observation is a theorem and its grading action is data with `Grading 𝒫ᴵ` priced; hatches 21 = baseline |
 
-## Modules (M1: 10 files, 795 LOC, all `--safe --without-K`)
+## Modules (M1: 10 files, 874 LOC, all `--safe --without-K`)
 
 | module | LOC | role |
 |---|---|---|
@@ -38,8 +38,8 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 | `CategoricalCrypto.Protocol` | 106 | `Calls` trees (`ret`/`call`/`coin`/`dead`), `Protocol`, `wireᵖ`, `_∘ᵖ_`, `uniformVec` |
 | `CategoricalCrypto.Protocol.Observe` | 134 | `run`/`Pr`, `hitRun`/`PrHit`, `Bounded`/`BoundedHit`, `_≈adv[_]_`, `transfer` |
 | `Examples.ChimericLedger` | 186 | the ledger kernel + `Replay` (computed) |
-| `Examples.ChimericLedger.POV` | 172 | oracle/ledger/`Sys = ledger ∘ᵖ oracle`, `POV`, audit gadget, `AtBirthday` |
-| `Examples.ChimericLedger.Pin` | 31 | `chimeric-violates ≡ 1ℚ`, `consuming-safe ≡ 0ℚ`, by `refl` |
+| `Examples.ChimericLedger.POV` | 208 | oracle/ledger/`Sys = ledger ∘ᵖ oracle`, `POV`, audit gadget, `AtBirthday` |
+| `Examples.ChimericLedger.Pin` | 74 | `chimeric-violates ≡ 1ℚ`, `consuming-safe ≡ 0ℚ`, the genesis liveness, all by `refl` |
 
 ## What changed vs the reference branches
 
@@ -59,10 +59,15 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
   withdrawals (checked against undebited accounts, debited with truncating `∸`) both
   broke preservation of value with no hash collision — `POV inputConsuming` was
   deterministically false there.
-* **The birthday target is pinned at a genesis state** (`AtBirthday.genesis a V` — empty
-  UTxO set, all value in one account): a fresh hash can collide with a pre-existing
-  UTxO key, so an arbitrary `s₀` would add a `q · |s₀|` term to `ε`. General-`s₀` forms
-  are kept everywhere else.
+* **The birthday target is pinned at a genesis state** (`genesis h₀ a V` — all the value
+  in one UTxO output keyed by a genesis hash): a fresh hash can collide with a
+  pre-existing UTxO key, so `ε q = (q² + q)·2⁻ˡ` carries a `+ q` for collisions with
+  `h₀` and an arbitrary `s₀` would add a `q · |s₀|` term. General-`s₀` forms are kept
+  everywhere else. The first version of this genesis put all the value in an *account*
+  with an empty UTxO set, which the external review found VACUOUS — `checkIns` rejects
+  every input against an empty set while `consumes inputConsuming` demands one, so no
+  transaction is accepted and the bad event has probability zero. `ChimericLedger.Pin`
+  now pins the genesis live (accepted with probability 1, state changed) by `refl`.
 * `TrajectoryFromAudit` (trajectory probability ≤ audit-form probability of the
   audit-interleaved strategy) is a stated `Set` with its consumer proved, as in the
   reference; the persistence argument (audit answers are definitionally truthful;
@@ -474,7 +479,7 @@ symmetric solver as unusable here because
 `b746517c` restored it, so `solveH!`/`rewriteH!` are available again — no law in
 this layer needed them.)
 
-## M3: the UC layer (11 files, 1513 LOC)
+## M3: the UC layer (13 files, 1760 LOC)
 
 | module | LOC | role |
 |---|---|---|
@@ -482,12 +487,14 @@ this layer needed them.)
 | `CategoricalCrypto.UC.Base` | 156 | `Grading`, `Budget`, `Observation`, `UCBase`; the derived agreement `_∼_` and its ε/2 equivalence |
 | `…UC.Environment` | 173 | `SameTV` (ancilla a parameter), `Tests`, `ℰᵗᵛ`, `_≈ℰ_`, its congruences, `grade-stable`, `_≈ℰ[_]_`, `absorbᵘ` |
 | `…UC.Emulation` | 88 | `_≤UC_`, `_≤UC⁺_`, `≤UC-refl`/`≤UC-trans`/`dummy-complete`/`≤UC⁺⇒≤UC`, `_⊙_`, `_⊛₁_`, `UC-compose` (stated) |
-| `…UC.Family` | 189 | `𝒞^ω` at a parameterized index, `PolyQB`, `Fam`, `Grading^ω`, `Observation^ω`, `UCBase^ω`, `_≈ℰ[_]_`, `VanishingBound`, `absorb` |
+| `…UC.Family` | 201 | `𝒞^ω` at a parameterized index, `PolyQB`, `Fam`, `Grading^ω`, `Observation^ω`, `UCBase^ω`, `_≈ℰ[_]_`, `VanishingBound`, `absorb` |
 | `…UC.Machine` | 219 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Observationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `GradingLawsᴹ`, `UCBaseᴹ` |
 | `…UC.Machine.Run` | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
 | `…UC.QueryBound` | 265 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `CountBound`, `Counting` (stated), `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `BudgetLawsᴹ` (stated) |
-| `…UC.Bridge` | 77 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `Reflects` (stated) |
-| `…UC.Seam` | 50 | `AgreeToAdv` (stated), `pov-carry` (proved) |
+| `…UC.Bridge` | 87 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `Reflects` (stated) |
+| `…UC.Seam` | 166 | `strategyEnv` (a strategy as an environment), `ctxRunˢ`/`runˢ`, `Agreeˢ`, `Adequacy`/`AgreeToAdv` (stated), `pov-carry` (proved) |
+| `…UC.Seam.Carry` | 79 | `run-agree`, `agree-to-adv` — `AgreeToAdv` from `Adequacy` and `PrAgree`, proved |
+| `…UC.Seam.Grounding` | 30 | `StratIsEnv` (stated), the seam's one grading-dependent step |
 | `…UC` | 32 | the one entry point |
 
 All `--safe --without-K`; the `Dₚ`-facing six add `--guardedness` and nothing
@@ -533,12 +540,17 @@ adds anything else. **There is no K island**, which was the acceptance test.
   so the reference's `Pos = Bool , Neg = ⊥` verdict can never be activated by a
   closed composite; the tick is the environment's single activation and the
   observation is layer 1's own `runᴹ` at `ask tt out`.
-* **The `Reflects` quantifier order is sound.** The reference's applied form put
+* **`Reflects` reflects per compared pair.** The reference's applied form put
   `Σ[ d ]` before `∀ u v` with *deterministic* strategies, which is false: a
   context that flips a fair coin and asks one of two questions gets advantage ½
   against two different pairs, while any deterministic one-ask tree scores zero
-  against one of them.  Layer 0's `Strat` has carried the coin node since M1, so
-  the strong order is available unchanged.
+  against one of them.  Layer 0's `Strat` has carried the coin node since M1,
+  which answers that objection but not the sampling one the external review
+  raised: a finite tree mentions finitely many first queries, while a `Dₚ`
+  context may ask an unbounded-support sampled question at query bound one.  So
+  the order is `∀ u v` before `Σ[ d ]` — the form the consumers use anyway.  The
+  uniform form needs a `Dₚ`-valued or coinductive strategy language, or a
+  finitary restriction of UC contexts; neither is built.
 
 ### What is proved, and what is priced
 
@@ -549,7 +561,9 @@ metatheorems and the equivalence of the plain and dummy-adversary forms;
 `UC.Family` in full (`Fam` a category, the grading and observation lifted,
 `absorb`); `UC.Machine.Run`'s `runᴹ-resp-≈ᴹ`, hence `Observationᴹ`;
 `UC.QueryBound`'s `qbᵢ-mono`, `qb-resp-≈`, `qb-mono` and the inhabitation
-`qbᵢ-wire`; `UC.Seam`'s `pov-carry`.
+`qbᵢ-wire`; `UC.Seam`'s `strategyEnv` and `pov-carry`, and `UC.Seam.Carry`'s
+`run-agree`/`agree-to-adv` — so `AgreeToAdv` holds as soon as `Adequacy` and
+`PrAgree` do, where it used to be an assumption of its own.
 
 Stated as types with nothing inhabiting them — the `TrajectoryFromAudit`
 pattern, no postulate and no hole anywhere:
@@ -560,7 +574,8 @@ pattern, no postulate and no hole anywhere:
 | `Counting` | `UC.QueryBound` | 250–350 LOC; the reference's 248 plus an effectful recursion |
 | `BudgetLawsᴹ` (four closure laws) | `UC.QueryBound` | `qb-T₁`/`qb-sub` ~50 each, `qb-id` ~30, `qb-∘` 250–400 (the reference's token walk over a ⊕-trace) |
 | `Reflects` | `UC.Bridge` | ~250 LOC, instance-specific reifier; spike the two-machine skeleton first |
-| `AgreeToAdv` | `UC.Seam` | `Reflects` + `PrAgree`, no new content |
+| `StratIsEnv` | `UC.Seam.Grounding` | ~80–120 LOC; the degenerate-ancilla collapse, trace-fusion gated |
+| `Adequacy` | `UC.Seam` | 250–350 LOC, one module; `PrAgree`'s unrolling, over `𝒫.∘` instead of `Dist⊥`'s bind |
 | `UC-compose` | `UC.Emulation` | two more `Grading` fields (`sub`/`T₁` interchange, `a⇒` naturality in its first two slots) |
 
 `Budget`'s `qb-T₁`/`qb-sub` land at `c ⊔ 1`, not `c`, and that is not
@@ -568,7 +583,7 @@ bookkeeping: the ancilla's own downward relay is a completed event an activation
 from above must have deposited for, so a rate of zero cannot survive the
 action.  `qbᵢ-wire` is where this is visible.
 
-### Two perf findings, both recorded in the source
+### Three perf findings, all recorded in the source
 
 * **The reindexing record needs every object implicit passed explicitly.** Left
   to inference, each field of `𝒫ᴵ` asks Agda to invert
@@ -587,6 +602,16 @@ action.  `qbᵢ-wire` is where this is visible.
   obvious next attempt at `Gradingᴹ : GradingLawsᴹ → Grading 𝒫ᴵ`, which does
   not assemble for exactly this reason — which is why the obligation is taken
   at `Grading 𝒫ᴵ` itself.
+* **The same inversion is what the seam is split for.**  Every occurrence of a
+  `Proc`-typed argument whose interface is left implicit costs one of those
+  inversions, ~1 GiB each: the seam's embedding and statements alone reach a
+  3 GiB heap, and adding a proof over them exhausts 6 GiB.  Three measures
+  together bring `UC.Seam` back to a normal check: interfaces are explicit in
+  every definition, each observation of a process is named once
+  (`ctxRunˢ`/`runˢ`) and used by name, and the two dependent layers move out —
+  the arithmetic corollary to `UC.Seam.Carry` and the `Grading`-dependent
+  statement to `UC.Seam.Grounding`, since instantiating the environment layer
+  at a grading costs a budget of the same order.
 
 ### Compatibility with the inherited MD line
 
@@ -611,6 +636,7 @@ still computes both verdicts by `refl`.
 Still empty of escape hatches: whole-`src` hatch grep 21 before and after (the
 M1 baseline).  `Machines.Iteration.Elgot` and `Machines.Trace.Remaining` remain
 discharged at the intended base; the six statements in the table above are
-`Set`s with nothing inhabiting them and are not assumed anywhere; `UC.Seam` and
-`UC.Family` take their `Grading`/`Budget` as module parameters, which is what
-keeps them generic.
+`Set`s with nothing inhabiting them and are not assumed anywhere;
+`UC.Seam.Grounding` and `UC.Family` take their `Grading`/`Budget` as module
+parameters, which is what keeps them generic, and `UC.Family` additionally
+takes `κ`'s cofinality.
