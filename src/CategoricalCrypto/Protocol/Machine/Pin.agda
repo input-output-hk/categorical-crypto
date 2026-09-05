@@ -79,6 +79,22 @@ layer₁-dead = refl
 machine-dead : cum 8 (runᴹ (morphism stuck) echo) bool→ℚ ≡ 0ℚ
 machine-dead = refl
 
+-- …and what observing the SECOND verdict buys, at that instance: `nay` answers
+-- `false` where `stuck` diverges, so the two agree on the `true`-mass and are a
+-- whole unit apart on the `false`-mass.  A one-sided observation identified
+-- them (proposal §1, `docs/kb/frontier/15-probabilistic-uc-model.typ`).
+nay : Protocol unitᴵ Coin
+nay = record { St = ⊤ ; init = tt ; step = λ _ _ → ret (tt , false) }
+
+nay-true : Pr nay echo ≡ Pr stuck echo
+nay-true = refl
+
+nay-false : cum 8 (runᴹ (morphism nay) echo) (indᵇ false) ≡ 1ℚ
+nay-false = refl
+
+stuck-false : cum 8 (runᴹ (morphism stuck) echo) (indᵇ false) ≡ 0ℚ
+stuck-false = refl
+
 ------------------------------------------------------------------------
 -- Through a composite
 

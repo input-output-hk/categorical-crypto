@@ -36,7 +36,7 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 | `CategoricalCrypto.Strategy` | 33 | strategies with the `coin` node; `asks≤` (coins free) |
 | `CategoricalCrypto.OracleCall` | 40 | the plain zero-or-one-call shape (ported) |
 | `CategoricalCrypto.Protocol` | 106 | `Calls` trees (`ret`/`call`/`coin`/`dead`), `Protocol`, `wireᵖ`, `_∘ᵖ_`, `uniformVec` |
-| `CategoricalCrypto.Protocol.Observe` | 134 | `run`/`Pr`, `hitRun`/`PrHit`, `Bounded`/`BoundedHit`, `_≈adv[_]_`, `transfer` |
+| `CategoricalCrypto.Protocol.Observe` | 128 | `run`/`Pr`/`Prᵇ`, `hitRun`/`PrHit`, `Bounded`/`BoundedHit`, `_≈adv[_]_` (both verdicts), `transfer` |
 | `Examples.ChimericLedger` | 186 | the ledger kernel + `Replay` (computed) |
 | `Examples.ChimericLedger.POV` | 208 | oracle/ledger/`Sys = ledger ∘ᵖ oracle`, `POV`, audit gadget, `AtBirthday` |
 | `Examples.ChimericLedger.Pin` | 74 | `chimeric-violates ≡ 1ℚ`, `consuming-safe ≡ 0ℚ`, the genesis liveness, all by `refl` |
@@ -286,8 +286,8 @@ distributivity they never needed.
 | `…GConstructionEmbeddingCoherence` | 173 | harvested: the two absorption coherence obligations, APROP-solved |
 | `ProbabilisticLogic.Dp.Coin` | 74 | `coinₚ` — a `Dist-ℚ Bool` as one biased coin — and `coinₚ-cum` |
 | `…Dp.Embed` | 213 | `embed : Dist⊥ A → Dₚ A` as a cascade of conditional coins, `embed-cum` (exact past its depth), `embed-cong` |
-| `CategoricalCrypto.Protocol.Machine` | 131 | `⟦_⟧ᴵ`, `MSt`, `drive`, `morphism`, `runᴹ`, `Morphism-∘`, `PrAgree` |
-| `…Protocol.Machine.Pin` | 73 | layer 1 and the machine image agree by `refl` |
+| `CategoricalCrypto.Protocol.Machine` | 137 | `⟦_⟧ᴵ`, `MSt`, `drive`, `morphism`, `runᴹ`, `Morphism-∘`, `PrAgree` (at either verdict) |
+| `…Protocol.Machine.Pin` | 114 | layer 1 and the machine image agree by `refl`; `nay`/`stuck` pin `false` apart from divergence |
 
 Cost: every module is a warm single-module check of 5–16 s; the whole
 `Machines.G` closure from cold (including `GConstruction*`) is 37 s.
@@ -456,8 +456,10 @@ both are discharged at the intended base in `Machines.Base`, where `ℳₚ`,
 `Tracedₚ` and `𝒢ₚ` are closed terms.
 
 `Morphism-∘` and `PrAgree` (`Protocol.Machine`) are stated `Set`s with nothing
-inhabiting them — the `TrajectoryFromAudit` pattern: the statement is certified
-to typecheck against the real definitions, and it is not assumed anywhere.
+inhabiting them — `PrAgree` now at either verdict, which is the same induction
+twice over (`indᵇ b` is never inspected) — the `TrajectoryFromAudit` pattern:
+the statement is certified to typecheck against the real definitions, and it is
+not assumed anywhere.
 
 Two shape seams are open and neither is load-bearing today:
 
@@ -488,21 +490,21 @@ this layer needed them.)
 | `…UC.Environment` | core | 172 | `SameTV` (ancilla a parameter), `Tests`, `ℰᵗᵛ`, `_≈ℰ_`, its congruences, `≈ℰ-at`, `grade-stable` |
 | `…UC.Emulation` | core | 114 | `_≤UC_`, `_≤UC⁺_`, `≤UC-refl`/`≤UC-trans`/`dummy-complete`/`≤UC⁺⇒≤UC`, `blind-grade`/`unit-grade`, `_⊙_`, `_⊛₁_`, `UC-compose` (stated) |
 | `…UC.Core.Standard` | core | 49 | `gradingᵗ` — a monoidal category grades itself; the inherited doctrine's action |
-| `ProbabilisticLogic.Dp.Advantage` | enrichment | 107 | `Pr≤`, `_≼ₚ[_]_`/`_≈ₚ[_]_` — advantage as an ε-indexed relation, with the pseudometric laws |
-| `…UC.Approximate` | enrichment | 183 | `ErrorAlgebra`, `ℚ-errors`, `_→0`/`VanishingBound`, `Approximation` + the ε/2 equivalence, `ApproximateObservation`, `Induced`, `Mass` |
+| `ProbabilisticLogic.Dp.Advantage` | enrichment | 121 | `Pr≤[_]`/`Pr≤`, `_≼ₚ[_]_`/`_≈ₚ[_]_` — advantage as an ε-indexed relation on BOTH verdict masses, with the pseudometric laws |
+| `…UC.Approximate` | enrichment | 212 | `ErrorAlgebra`, `ℚ-errors`, `_→0`/`VanishingBound`, `Negligible`/`NegligibleBound` and the two collapses, `Approximation` + the ε/2 equivalence, `ApproximateObservation`, `Induced`, `Mass` |
 | `…UC.Budget` | enrichment | 64 | `Budget`, `ctxBudget` — the resource doctrine |
 | `…UC.Environment.Approximate` | enrichment | 38 | `_≈ℰ[_]_`, `absorbᵘ` |
 | `…UC.Audit` | enrichment | 133 | `_≤UC[_]_` (a budgeted simulator), `simCost`, `AuditBound`, `audit-carry` — the graded carry, proved |
-| `…UC.Family` | enrichment | 221 | `𝒞^ω` at a parameterized index, `PolyQB`, `Fam`, `Grading^ω`, `Approximation^ω`, `Observation^ω`/`Approximate^ω`, `UCBase^ω`, `ctxQB`, `_≈ℰ[_]_`, `absorb` |
-| `…UC.Machine` | model | 203 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Approximationᴹ`/`Observationᴹ`/`ApproximateObservationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `UCBaseᴹ` |
+| `…UC.Family` | enrichment | 252 | `𝒞^ω` at a parameterized index, `PolyQB`, `Fam`, `Grading^ω`, `Approximation^ω`, `Observation^ω`/`Approximate^ω`, `UCBase^ω`, `ctxQB`, `_≈ℰ[_]_`, `absorb`, and the negligible layer `CarriedNegligible`/`carried-negligible`/`absorb-negl` |
+| `…UC.Machine` | model | 206 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Approximationᴹ`/`Observationᴹ`/`ApproximateObservationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `UCBaseᴹ` |
 | `…UC.Machine.Grading` | model | 129 | `GradingLawsᴹ` (implicit-pinned), `Gradingᴹ` and `Budgetᴹ` — the ASSEMBLIES, proved; `qb-a⇒ᴹ`/`qb-a⇐ᴹ` |
 | `…UC.Machine.Run` | model | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
 | `…UC.QueryBound` | model | 488 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `CountBound`, `Counting` (stated), `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `qbᵢ-resp-step`, `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` and their hom-level forms, `BudgetLawsᴹ` (stated) |
-| `…UC.Machine.Bridge` | model | 95 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `ContextDominated` (stated) |
+| `…UC.Machine.Bridge` | model | 96 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `ContextDominated` (stated) |
 | `…UC.Seam` | model | 171 | `strategyEnv` (a strategy as an environment), `ctxRunˢ`/`runˢ`, `Agreeˢ`, `Adequacy`/`AgreeToAdv` (stated), `pov-carry` (proved) |
 | `…UC.Seam.Carry` | model | 79 | `run-agree`, `agree-to-adv` — `AgreeToAdv` from `Adequacy` and `PrAgree`, proved |
 | `…UC.Seam.Grounding` | model | 118 | `StratIsEnv`, its reduction `EnvCtx`/`EnvAsCtx`, and the trivial grade's `SubBlind`/`IotaBlind`/`UnitGrade` — the grading-dependent statements |
-| `…UC.Seam.Audit` | model | 69 | `massᴹ` (`Pr≤` as a `Mass`), `UC.Audit` at the instance, `AuditIsBounded` (stated) |
+| `…UC.Seam.Audit` | model | 71 | `massᴹ` (`Pr≤`, the `true` half, as a `Mass`), `UC.Audit` at the instance, `AuditIsBounded` (stated) |
 | `…UC.Saturated` | frontend | 86 | `SaturatedBounded`/`SaturatedHit`, `SaturatedRespects` (stated) |
 | `…UC` | — | 66 | the one entry point, with the layering as its orientation |
 
@@ -598,7 +600,7 @@ proved exactly once, over the abstract algebra, and neither model reproves it:
   `Approximationᴹ = ≈ₚ[_]` over `ℚ-errors`;
 * `UC.Family.Observation^ω = Induced.observation Fam Approximation^ω …` at
   eventual ε-closeness in `κ`, which is why the family's `_∼_` is *literally*
-  vanishing advantage and `absorb` is `induces` at a negligible error.  The
+  vanishing advantage and `absorb` is `induces` at a vanishing error.  The
   family also re-exports `Approximate^ω`, so the construction iterates.
 
 `⟦⟧-resp-≈₀` is the one field the notes' list does not name and the
@@ -691,10 +693,17 @@ one above plus the module-level map already recorded (`MachineAxioms` →
   a supremum the layer never forms, so `MachineAxioms.adv : Obs → Obs → ℚ` is
   uninhabited at the intended instance.  `_≈ₚ[ ε ]_` relaxes `_≼ₚ_`'s
   budget-matching by a rational slack instead, and carries exactly the three
-  pseudometric laws the vanishing layer spends.  Agreement is then *derived*
-  (`x ∼ y = ∀ ε > 0 → x ≈[ ε ] y`) and its transitivity is the ε/2 argument,
-  proved once in `UC.Approximate`, over an abstract error algebra, rather than
-  once per instance.  This is the absorb/ε misfit, closed.
+  pseudometric laws the vanishing layer spends.  It compares BOTH verdict
+  masses, `Pr≤[ true ]` and `Pr≤[ false ]`: divergence weighs 0 under either
+  indicator, so the `true`-mass alone would identify a process that answers
+  `false` with one that diverges, which the proposal's §1 forbids
+  (`docs/kb/frontier/15-probabilistic-uc-model.typ`; `Machine.Pin`'s
+  `nay`/`stuck` pin the separation).  `Pr≤` stays as the `true` reading, which
+  is what the one-sided `Mass`/`Bounded`/`transfer` statements read.
+  Agreement is then *derived* (`x ∼ y = ∀ ε > 0 → x ≈[ ε ] y`) and its
+  transitivity is the ε/2 argument, proved once in `UC.Approximate`, over an
+  abstract error algebra, rather than once per instance.  This is the absorb/ε
+  misfit, closed.
 * **`𝒞^ω` takes its index as a parameter** `(Ix , κ : Ix → ℕ)`.  Only three
   things ever needed `ℕ` in the reference: the polynomial's argument, the
   asymptotics' order, and the budget arithmetic, and all three read the index
@@ -737,7 +746,8 @@ Proved, hypothesis-free: the whole `Dp.Advantage` layer; `UC.Approximate`'s
 congruence, `grade-stable`) and `…Environment.Approximate`'s `absorbᵘ`; `UC.Emulation`'s four
 metatheorems and the equivalence of the plain and dummy-adversary forms;
 `UC.Family` in full (`Fam` a category, the grading and observation lifted,
-`absorb`); `UC.Machine.Run`'s `runᴹ-resp-≈ᴹ`, hence `Observationᴹ`;
+`absorb`, and the negligible layer `carried-negligible`/`absorb-negl`);
+`UC.Machine.Run`'s `runᴹ-resp-≈ᴹ`, hence `Observationᴹ`;
 `UC.QueryBound`'s `qbᵢ-mono`, `qb-resp-≈`, `qb-mono`, the inhabitation
 `qbᵢ-wire` and the three trace-free closure laws `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub`
 (`qbᵢ-resp-step` is what carries them); `UC.Environment.≈ℰ-at`; `UC.Seam`'s
@@ -836,6 +846,30 @@ byte-identical at the merge base, so it is a clean additive port.  `Decay`'s
 `_→0` is spelled to match `UC.Family._→0` on the nose, so `VanishingBound` is
 inhabitable at a birthday-shaped numerator (`vanishing-bound`) as soon as one is
 supplied.
+
+Above it sits the **negligible** layer, because `_→0` is not the cryptographic
+condition — `1/n` vanishes and is not negligible (proposal §3,
+`docs/kb/frontier/15-probabilistic-uc-model.typ`).  Both are kept: the `_→0`
+forms are what `absorb` actually spends, the negligible forms are what a
+concrete security theorem is held to.
+
+| statement | module | what it asks |
+|---|---|---|
+| `_→0` | `UC.Approximate` | convergence; `absorb` spends only this |
+| `Negligible` | `UC.Approximate` | every polynomially magnified copy still vanishes — equivalently, eventually below every inverse polynomial |
+| `Negligible⇒→0` | `UC.Approximate` | proved: negligible is the stronger of the two |
+| `VanishingBound ε` | `UC.Approximate` | `ε(n, p n) →0` at every polynomial allowance |
+| `NegligibleBound ε` | `UC.Approximate` | `ε(n, p n)` NEGLIGIBLE at every polynomial allowance — the §3 discipline; no slack uniform over arbitrary, possibly exponential, `q` |
+| `NegligibleBound⇒VanishingBound` | `UC.Approximate` | proved |
+| `CarriedNegligible ε` | `UC.Family` | the same, read at the allowance a context's two legs CARRY (`ctxQB` of two `PolyQB`s) |
+| `carried-negligible` | `UC.Family` | proved: `ctxQB-poly` is the polynomial witness, so this is no extra assumption |
+| `absorb-negl` | `UC.Family` | proved: `absorb` at the negligible hypothesis |
+
+`Negligible` is stated multiplicatively (`p n · s n` still vanishing) rather
+than as `s n ≤ 1/p n`: it is the same condition, it reuses `Poly` and `_→0`
+instead of a second ε-quantifier, and it keeps every nonzero-denominator side
+condition out of the statement.  It also means `Decay.poly-inv-pow-2-→0`
+already has the shape a negligibility witness for a `2⁻ⁿ`-sized bound needs.
 
 ### The `Dist⊥ → Dₚ` embedding
 

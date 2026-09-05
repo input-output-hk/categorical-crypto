@@ -84,7 +84,8 @@ ctxRun Y E m f = ⟦ (E 𝒫.∘ T₁ᴵ Y f) 𝒫.∘ m ⟧ᴼ
 -- distribution.  It is instance-specific — reading "given this answer, the next
 -- query" needs an inspectable step — so it belongs beside `UC.Machine`, not in
 -- the abstract layer.  The reference arc prices the two-machine skeleton at
--- ~250 LOC and recommends spiking it before committing.
+-- ~250 LOC and recommends spiking it before committing.  The decomposition runs
+-- once per verdict, `_≈ₚ[_]_` comparing both masses.
 ContextDominated : Set₁
 ContextDominated = (B Y : Iface)
                    (E : Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))

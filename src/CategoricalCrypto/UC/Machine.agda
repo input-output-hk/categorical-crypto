@@ -110,7 +110,10 @@ wireᴹ up down = MC.mk MC.Iˢ (wireStep up down)
 -- supremum this layer never forms, so an `adv : Obs → Obs → ℚ` would be
 -- uninhabited here (`ProbabilisticLogic.Dp.Advantage`'s header).  Rational
 -- slack is what survives, and it carries exactly the four laws the abstract
--- error layer asks for.
+-- error layer asks for.  It compares BOTH verdict masses, since divergence
+-- weighs 0 under either indicator and the `true`-mass alone would identify a
+-- process that answers `false` with one that diverges (proposal §1,
+-- `docs/kb/frontier/15-probabilistic-uc-model.typ`).
 Approximationᴹ : Approximation (Dₚ Bool) ℚ-errors 0ℓ
 Approximationᴹ = record
   { _≈[_]_    = _≈ₚ[_]_

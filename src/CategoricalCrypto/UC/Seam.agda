@@ -152,8 +152,8 @@ Adequacy = (B : Iface) (u : Proc unitᴵ B) (d : Strat (Neg B) (Pos B))
 -- Its proof from `Adequacy` and `PrAgree` is ARITHMETIC ONLY, and is written
 -- out in `UC.Seam.Carry`: `≈ₚ[]-resp` transports the agreement onto the two
 -- runs, each side's `PrAgree` witness reads its verdict probability off a
--- budget the ε-domination reaches (`Pr≤` being monotone), and `∣∣≤` closes the
--- two-sided bound.
+-- budget the ε-domination reaches (`Pr≤[ b ]` being monotone), and `∣∣≤` closes
+-- the bound — once per verdict, both being observed.
 AgreeToAdv : Set₁
 AgreeToAdv = {B : Iface} (P Q : Protocol unitᴵ B)
            → Agreeˢ B (morphism P) (morphism Q)
