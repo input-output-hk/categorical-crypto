@@ -1049,3 +1049,171 @@ positive slack) and the intended instance discharges it by one `proj₁`
 `Observation` deliberately compares observations without valuing one, which is
 what keeps it inhabited at `Dₚ`, while an audit-form statement bounds a single
 observation.
+
+## M4: the UC setup at the machine model (7 files, 440 LOC)
+
+The maintainer's ruled direction, executed: **no parallel UC definition in this
+cone.** The abstract theory is `CategoricalCrypto.UCSetup` + `Abstract2`,
+reached through `Standard2.StdUC`, and the model inherits `_≈ᵁ_`, `_≤UC_`,
+`≤UC-refl`, `dummy-complete`, `≤UC-trans`, `UC-compose` and `≈ᵁ⇒≈ℰ` **already
+proved**. Semantic target: `docs/kb/frontier/15-probabilistic-uc-model.typ`,
+§§1–2. Root: `CategoricalCrypto.UC.Model`.
+
+| module | LOC | warm | role |
+|---|---:|---:|---|
+| `…UC.Model.Seal` | 76 | 8.5 s | `opaque 𝔾ᵒ = 𝒢ₚᴹ 0ℓ`, `∣𝔾ᵒ∣`, and the coercions `ifaceᵒ`/`procᵒ`/`unprocᵒ`/`≈ᴹ⇒≈ᵒ`/`≈ᵒ⇒≈ᴹ`/`⊗ᵒ`/`gradedᵒ` |
+| `…UC.Model.Observation` | 80 | 8.7 s | `Ωᵒ`/`𝟘ᵒ`, `Test`/`Closure`, `Obs` (the one-ask closed run), `_∼ᴼ_`, `≈ₚ⇒∼ᴼ`, `∼ᴼ-resp`, `obs-resp` |
+| `…UC.Model.Environment` | 64 | 8.7 s | `_≋_` and `≋-isEquivalence`, `≈ᵒ⇒≋`, `ℰ₀`, `ℰᵒ` — the presheaf, laws proved |
+| `…UC.Model.Setup` | 20 | 9.2 s | `open StdUC 𝔾ᵒ ℰᵒ public` — nothing else |
+| `…UC.Model.Pin` | 92 | 9.1 s | the six application-site shapes, `relayᵒ`, `relay-emulates`, `relay-compose` |
+| `…UC.Model.Reading` | 76 | 9.2 s | `_≈ᴬ_`, `≈ᵁ⇒≈ᴬ`, `≈ᴬ⇒≈ᵁ`, `≈ᵁ⇔≈ᴬ` — proposal §2's displayed form, proved |
+| `…UC.Model` | 32 | 8.8 s | the cone root and its orientation |
+
+Plus 21 lines in `Categories.Functor.Monoidal.CurriedTensor.Properties`
+(`sub-⊗`, `return-λ⇐`, `ext-⊗`, `μ-α⇐`, `μT₁-α⇐`, next to the existing
+`T₁-⊗`): the curried tensor's graded triple read back in the monoidal
+vocabulary. All five are generic in the monoidal category, which is exactly why
+they are usable **through** the seal — a consumer that reasoned by unfolding
+`sub`/`μ`/`T₁` at `𝔾ᵒ` instead would have to see inside it.
+
+All `--safe --without-K --guardedness`. Escape-hatch grep 21 before and after.
+
+### The recipe, normative
+
+Every line below is a measured fact from `spike-stduc-perf`
+(`src/CategoricalCrypto/Spike.agda` carries the table); deviate only with a new
+measurement.
+
+1. **Seal the whole `MonoidalCategory` bundle**, one `opaque` definition
+   `𝔾ᵒ = 𝒢ₚᴹ 0ℓ`. Sealing only the `monoidal` field is 5.7× *worse* than
+   sealing nothing; passing a re-assembled `record { U = …; monoidal = … }`
+   OOMs at 8 GiB.
+2. **One spelling of the index.** `𝔾ᵒ` is the only name the setup is given and
+   `∣𝔾ᵒ∣ = MonoidalCategory.U 𝔾ᵒ` is defined once from it.
+3. **Export every coercion from inside the `opaque` block** — the only scope
+   where the seal is transparent. A consumer then needs no `unfolding`.
+4. **`gradedᵒ` is not optional.** The seal hides `_⊗₀_`, so `A ⇒ T₀ X B` cannot
+   be met by a machine on the interface sum without a coercion out of the
+   block; `⊗ᵒ` is the same fact as an object equation.
+5. **Three modules, not one**: the seal, then `open StdUC`, then statements.
+6. **A concrete presheaf is fine.** `ℰ` need not stay a module parameter,
+   because `ifaceᵒ` names objects of the seal without breaking it.
+7. **Without a seal**, the two cures that remain are to apply an `Abstract2`
+   lemma eta-expanded *and* pin the applied lemma's implicits: together
+   158.8 s → 33.4 s. With the seal neither is needed.
+
+### Measured costs
+
+| experiment | transparent | sealed |
+|---|---:|---:|
+| `open StdUC` at `𝒢ₚᴹ 0ℓ`, setup only | OOM at 12 GiB in 50 s | 8.7 s |
+| the six application-site shapes | OOM (12 GiB) at `𝒢ₚᴹ`; 158.8 s at `ℳₚ` | 9.1 s |
+| the test presheaf, its laws, and `StdUC` on it | not attempted | 8.7 s + 9.2 s |
+| the operational reading `≈ᵁ⇔≈ᴬ` | not attempted | 9.2 s |
+
+The startup-plus-interface-loading floor is ~7 s here, so **every module of M4
+is at the floor**: nothing in the model costs measurable elaboration.
+
+The spike flagged the setoid quotient as extrapolated rather than measured,
+since its own `ℰ` was the representable `Hom[-, Ω]`. Measured: it is free.
+Behind the seal a test is a stuck `𝔾ᵒ [ A , Ωᵒ ]`, `Obs` is `unprocᵒ` (an
+opaque function) followed by the machine layer's own run, and the three presheaf
+laws are one `≈ᵒ⇒≋` each — so the quotient never gives the elaborator an object
+meta to solve, which is the only thing the transparent index was ever expensive
+about.
+
+### The operational reading
+
+For `f, g : A → X ⊗ B`, `UC.Model.Reading` proves `f ≈ᵁ g` **equivalent** to
+
+    ∀ Y, e : Y ⊗ (X ⊗ B) → Ω, m : 𝟘 → Y ⊗ A.
+      Obs (e ∘ (id ⊗ f) ∘ m) ∼ Obs (e ∘ (id ⊗ g) ∘ m)
+
+which is the proposal's display. It is the stated bracketing shuffle and nothing
+more: `μ Y X ∘ T₁ Y f ≈ α⇐ ∘ id ⊗₁ f` (`μT₁-α⇐`) re-brackets the test's domain,
+and the two quantifications over tests correspond under `α⇒`/`α⇐`, whose
+cancellation is `associator.isoʳ`. Consequences worth naming:
+
+* The ancillas of the graded context closure **are** the ancillas of the
+  displayed experiment. No second environment construction, and in particular
+  no ancilla inside the presheaf's carrier — which is the one structural
+  difference from `VanishingTV.ℰᵗᵛ`, whose carrier is a dependent pair
+  `(Y , test on Y ⊗ A)` and which is why that layer needed a `SameTV` datatype
+  and a `substCl` transport.
+* `GradeStable` is **not** assumed, and no claim is made that `_≈ᵁ_` agrees with
+  every presentation in `Abstract`. `≈ᵁ⇒≈ℰ` is inherited; its converse is not
+  used anywhere in M4.
+
+### The dictionary, and what it supersedes
+
+`…UC.Machine.Dictionary` (374 LOC, warm 50.5 s) reads the direct relays of the
+parallel `UC.*` stack as the MONOIDAL spellings of the same processes, at the
+TRANSPARENT machine layer — these are `𝒢ₚ`-hom equalities, not statements behind
+the seal. Nothing in `UC.*` is edited or rewired; the module only adds.
+
+| relay | monoidal spelling | status |
+|---|---|---|
+| `a⇒ᴵ` | `associator.to` at `⟦X⟧ᴵ,⟦Y⟧ᴵ,⟦A⟧ᴵ` | proved (`a⇒-α⇐`) |
+| `a⇐ᴵ` | `associator.from` | proved (`a⇐-α⇒`) |
+| `T₁ᴵ Y f` | `id ⊗₁ᴳ f` | proved (`T₁-⊗₁`) |
+| `subᴵ s` | `s ⊗₁ᴳ id` | proved (`sub-⊗₁`) |
+
+Each proof is the same shape: `mid` and every structural machine is `pureᴹ`
+(`pureᴹ-∘`, `⊗ᵉ-pureᴹ`, `pureᴹ-id` collapse the whole conjugation into `pureᴹ`
+of one base map), `pure-∘ˡ`/`pure-∘ʳ` absorb the two `mid`s into the step, the
+new generic `⊗ᵉ-pureˡ`/`⊗ᵉ-pureʳ` collapse the pure side's trivial state factor,
+and only the residual step equality is elementwise — four sum cases, because
+`T₁ᴵ`/`subᴵ` are defined by pattern matching. `GConstructionTrace` need not be
+imported: `mid` can be written out in `pureᴹ`s by hand.
+
+Hence the supersession map for `GradingLawsᴹ`'s eight fields:
+
+| field | status | why |
+|---|---|---|
+| `T₁-resp-≈` | corollary (`T₁-resp-≈ᴹ`) | `𝔾.⊗.F-resp-≈` |
+| `T₁-id` | corollary (`T₁-idᴹ`) | `𝔾.⊗.identity` |
+| `sub-resp-≈` | corollary (`sub-resp-≈ᴹ`) | `𝔾.⊗.F-resp-≈` |
+| `sub-id` | corollary (`sub-idᴹ`) | `𝔾.⊗.identity` |
+| `T₁-∘` | **priced** | `𝔾.⊗.homomorphism` |
+| `sub-∘` | **priced** | `𝔾.⊗.homomorphism` |
+| `a-isoˡ` | **priced** | `𝔾.associator.isoʳ` |
+| `a-nat` | **priced** | `𝔾.assoc-commute-to` |
+
+The split is exactly the one `UC.Machine.Grading`'s own note predicted: the four
+that land are the trace-free ones, and the four that do not each compare a
+`𝒫ᴵ`-COMPOSITE, hence the ⊕-trace. The obstruction is cost, not a missing
+lemma — every 𝒢-law that would discharge one spends a trace absorption
+(`GConstructionEmbedding.absorbˡ`/`absorbʳ`). Minimal reproducer: the projection
+`𝔾.associator.isoʳ` alone, at `⟦X⟧ᴵ,⟦Y⟧ᴵ,⟦A⟧ᴵ` with every implicit pinned, was
+still running after 900 s at 12.8 GiB resident, and dies at `-M8G`, `-M12G` and
+`-M16G` alike. `𝒫.∘-resp-≈` is not the culprit.
+
+So closing the *mathematical* gate (`⊗-trace-mid`, `trace-mid`, hence
+`Monoidal (𝒢ₚ ℓ)`) did not close the *elaboration* gate. The recommended next
+step is the same medicine as M4's: an `opaque`-sealed re-export of
+`absorbˡ`/`absorbʳ`/`isoʳ` at the machine layer, so a consumer of those laws
+never reduces through the `GConstruction` record.
+
+Two smaller findings worth carrying forward:
+
+* **The pinning discipline extends to the borrowed 𝒢-law's own implicits.**
+  `T₁-resp-≈ᴹ` costs +83 s with `𝔾.⊗.F-resp-≈`'s implicits inferred and +10 s
+  with them given. Same failure mode as the one `UC.Machine.Grading`'s header
+  documents, and mechanical to apply.
+* **`_⊗₁ᴳ_` being trace-free is what makes the dictionary affordable.** Every
+  proof that stays inside `⊗₁ᴳ` is 10–30 s; the moment a 𝒢-composition's
+  *proof* appears the cost is unbounded.
+
+### What remains priced
+
+| item | where | status |
+|---|---|---|
+| `GradingLawsᴹ`'s four trace-touching fields | `UC.Machine.Dictionary` header | priced, with a measured reproducer and a named cure |
+| `ifaceᵒ unitᴵ ≅ 𝔾ᵒ`'s monoidal unit | `UC.Model.Observation` header | not proved; a G-composite is a trace, so `isoˡ` is not the one-line argument the bijection of empty types suggests. Nothing depends on it — `ℰᵒ` is a presheaf for either family of closures |
+| whether the model satisfies `GradeStable` | — | not investigated. `UC.Model.Reading` deliberately does not need it, and the proposal asks that it not be assumed |
+| direct-run adequacy, the confidential-ledger refinement | proposal §§3–4 | out of M4's scope; `Protocol.Machine.PrAgree`/`Morphism-∘` are still statements |
+
+Whether the M4 cone should supersede the `UC.*` stack is the maintainer's
+call and is not acted on here: `UC.*` is untouched, `UC.Machine.Dictionary` only
+documents how its relays sit inside the monoidal structure, and nothing in M4
+imports `UC.Core`, `UC.Emulation` or `UC.Environment`.
