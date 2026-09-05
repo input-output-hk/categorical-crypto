@@ -329,3 +329,40 @@ sub-⊗₁ {X} {Y} {A} s = ⟺ᴹ
   ○ᴹ ≲⇒≈ᴹ (∘ᴹ-resp-≲ ≲-refl (pure-∘ʳ (pureᵏ midfn) _))
   ○ᴹ ≲⇒≈ᴹ (pure-∘ˡ (pureᵏ midfn) _)
   ○ᴹ ≲⇒≈ᴹ (mk-cong (sub-step {X} {Y} {A} s)) )
+
+------------------------------------------------------------------------
+-- The grading laws, as corollaries of `𝒢ₚᴹ 0ℓ`'s monoidal structure
+
+-- Every implicit of the borrowed law is passed too, and for the same reason:
+-- inferring one asks Agda to invert `_⊗₁ᴳ_`, which is measured at +80 s per
+-- law against +10 s pinned.
+
+T₁-resp-≈ᴹ : {Y A B : Iface} {f g : Proc A B}
+           → 𝒫._≈_ {A} {B} f g
+           → 𝒫._≈_ {Y ⊗ᴵ A} {Y ⊗ᴵ B} (T₁ᴵ Y {A} {B} f) (T₁ᴵ Y {A} {B} g)
+T₁-resp-≈ᴹ {Y} {A} {B} {f} {g} e =
+     T₁-⊗₁ {Y} {A} {B} f
+  ○ᴹ 𝔾.⊗.F-resp-≈ {⟦ Y ⟧ᴵ , ⟦ A ⟧ᴵ} {⟦ Y ⟧ᴵ , ⟦ B ⟧ᴵ}
+       {𝒫.id {Y} , f} {𝒫.id {Y} , g} (𝔾.Equiv.refl {x = 𝒫.id {Y}} , e)
+  ○ᴹ ⟺ᴹ (T₁-⊗₁ {Y} {A} {B} g)
+
+T₁-idᴹ : {Y A : Iface}
+       → 𝒫._≈_ {Y ⊗ᴵ A} {Y ⊗ᴵ A} (T₁ᴵ Y {A} {A} (𝒫.id {A})) (𝒫.id {Y ⊗ᴵ A})
+T₁-idᴹ {Y} {A} =
+     T₁-⊗₁ {Y} {A} {A} (𝒫.id {A})
+  ○ᴹ 𝔾.⊗.identity {⟦ Y ⟧ᴵ , ⟦ A ⟧ᴵ}
+
+sub-resp-≈ᴹ : {X Y A : Iface} {s t : Proc X Y}
+            → 𝒫._≈_ {X} {Y} s t
+            → 𝒫._≈_ {X ⊗ᴵ A} {Y ⊗ᴵ A} (subᴵ′ {X} {Y} {A} s) (subᴵ′ {X} {Y} {A} t)
+sub-resp-≈ᴹ {X} {Y} {A} {s} {t} e =
+     sub-⊗₁ {X} {Y} {A} s
+  ○ᴹ 𝔾.⊗.F-resp-≈ {⟦ X ⟧ᴵ , ⟦ A ⟧ᴵ} {⟦ Y ⟧ᴵ , ⟦ A ⟧ᴵ}
+       {s , 𝒫.id {A}} {t , 𝒫.id {A}} (e , 𝔾.Equiv.refl {x = 𝒫.id {A}})
+  ○ᴹ ⟺ᴹ (sub-⊗₁ {X} {Y} {A} t)
+
+sub-idᴹ : {X A : Iface}
+        → 𝒫._≈_ {X ⊗ᴵ A} {X ⊗ᴵ A} (subᴵ′ {X} {X} {A} (𝒫.id {X})) (𝒫.id {X ⊗ᴵ A})
+sub-idᴹ {X} {A} =
+     sub-⊗₁ {X} {X} {A} (𝒫.id {X})
+  ○ᴹ 𝔾.⊗.identity {⟦ X ⟧ᴵ , ⟦ A ⟧ᴵ}
