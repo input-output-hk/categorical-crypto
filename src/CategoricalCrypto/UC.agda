@@ -31,9 +31,11 @@
 --                                  vanishing bound BECOMES the core's `_≈ℰ_`
 --   model        `UC.Machine`      `𝒫ᴵ`, processes on `Iface`s, the ticked
 --                                  verdict interface, the observation at `Dₚ`
---                `UC.QueryBound`   the amortised-potential certificate and the
---                                  counting statement — a query bound with
---                                  content
+--                `UC.QueryBound`   the amortised-potential certificate — a
+--                                  query bound with content; what it means on a
+--                                  run is `UC.QueryBound.Counting`, and it
+--                                  multiplies along composition by
+--                                  `UC.QueryBound.Compose`
 --                `UC.Machine.Grading`
 --                                  the grading laws, and the `Grading`/`Budget`
 --                                  assemblies they buy
@@ -67,4 +69,5 @@ open import CategoricalCrypto.UC.Machine public
 open import CategoricalCrypto.UC.Machine.Bridge public
 open import CategoricalCrypto.UC.Machine.Grading public
 open import CategoricalCrypto.UC.QueryBound public
+open import CategoricalCrypto.UC.QueryBound.Counting public
 open import CategoricalCrypto.UC.Saturated public
