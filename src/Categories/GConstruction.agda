@@ -37,7 +37,7 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
       open import Categories.Category.Monoidal.Reasoning Monoidal public
         using (serialize₁₂; serialize₂₁; _⟩⊗⟨_)
       open import Categories.Morphism.Reasoning C public
-        using (pullʳ; pullˡ; pushˡ; elimˡ; cancelˡ)
+        using (pullˡ; pushˡ; elimˡ; cancelˡ)
       open BProps.Shorthands braided public
 
     -- the bundle the transported coherence lemmas are instantiated at

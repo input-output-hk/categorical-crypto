@@ -23,7 +23,7 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 | M1: layers 0–1 + the ledger example | **DONE** — all green, pins by `refl`, hatches 21 = baseline |
 | M2 wave 1: `Dₚ`, `Kl(Dₚ)`, `Mealy` + `Mealy-Category` + the ⊕-trace | **DONE** — all green, hatches 21 = baseline |
 | M2 wave 2: the four residual trace laws + `Elgot` at `Kl(Dₚ)` | **DONE** — the machine layer is hypothesis-free; hatches 21 = baseline |
-| M2 wave 3: the machine SMC bundle, `Traced`, GConstruction, `morphism`/`Pr-agree` | **the machine layer is DONE** — `ℳₚ` symmetric monoidal, `Tracedₚ`, `𝒢ₚ` all closed terms; `morphism` landed, `Morphism-∘`/`PrAgree` stated and priced; hatches 21 = baseline |
+| M2 wave 3: the machine SMC bundle, `Traced`, GConstruction, `morphism`/`Pr-agree` | **the machine layer is DONE** — `ℳₚ` symmetric monoidal, `Tracedₚ`, `𝒢ₚ` all closed terms, and `𝒢ₚᴹ` monoidal (task 3, `Monoidal (GConstruction C)`, is closed); `morphism` landed, `Morphism-∘`/`PrAgree` stated and priced; hatches 21 = baseline |
 | M3: the UC layer | **the statement layer is DONE**, and both external theory reviews' findings are resolved (`docs/rewrite-verdict.md`'s two addenda) — `_≈ℰ_`/`grade-stable`/`absorb`/`_≤UC_` and its metatheorems are theorems, no K island, no `HomTransportTrivial`; the simulator carry is a theorem in both its degenerate (`unit-grade`) and graded (`audit-carry`) form; the intended instance's observation is a theorem and its grading action is data with `Grading 𝒫ᴵ` priced.  **The layer is now split three ways** (abstraction notes §1/§3): a qualitative core that mentions no number, an optional quantitative enrichment over an abstract error algebra, and the `Dₚ` model, with the inherited `UCSetup` doctrine reconciled by `UC.Core.Standard.gradingᵗ`; hatches 21 = baseline |
 
 ## Modules (M1: 10 files, 874 LOC, all `--safe --without-K`)
@@ -393,15 +393,28 @@ monoidal layer could not reach them; they moved verbatim into
 
 `Braided`/`Symmetric` on `𝒢` was not built.
 
+The **instantiation** hit the branch's recorded conversion cliff in its sharpest
+form yet.  Declaring `Mealy-G-Monoidal : Monoidal Mealy-G`, with the category
+and its structure spelled as two separate `GConstruction*` applications, makes
+Agda reduce both sides to `Category` record values and compare them field by
+field — and `assoc`/`identityˡ`/`identityʳ` there *are* the transported solver
+witnesses.  Measured on `Machines.G` alone: heap exhausted at 8 GB after 118 s.
+The cure is the bundle.  `GConstructionMonoidalCategory` returns a
+`MonoidalCategory`, and the instance takes both the category and the structure
+as **projections of one application** (`Machines.G.Mealy-Gᴹ`,
+`Machines.Base.𝒢ₚᴹ`), so every field is syntactically shared and the comparison
+never happens: 12.7 s at 1.7 GB.  That is the entry point an instance should
+use; `Monoidal <the category spelled a second time>` is the shape to avoid.
+
 | new module | LOC | warm check | role |
 |---|---|---|---|
-| `Categories.GConstructionTrace` | 149 | 7 s | `β`/`α`/`γ`/`mid`, the yanks, `right-superposing`, `⊗-trace`, `⊗-trace-mid` |
-| `…GConstructionTraceCoherence` | 101 | 9 s | `TM`, `⊗-trace-mid`'s coherence (6 atoms, 2 generators) |
-| `…GConstructionLoop` | 98 | 7 s | `trace-mid`, `trace-conj` |
+| `Categories.GConstructionTrace` | 145 | 7 s | `β`/`α`/`γ`/`mid`, the yanks, `right-superposing`, `⊗-trace`, `⊗-trace-mid` |
+| `…GConstructionTraceCoherence` | 94 | 9 s | `TM`, `⊗-trace-mid`'s coherence (6 atoms, 2 generators) |
+| `…GConstructionLoop` | 97 | 7 s | `trace-mid`, `trace-conj` |
 | `…GConstructionLoopCoherence` | 123 | 67 s | `LC`, `trace-mid`'s coherence (6 atoms, 1 generator) |
-| `…GConstructionTensorCoherence` | 264 | 59 s | `TX`, `UL`/`UR`, `AC` |
-| `…GConstructionHomCoherence` | 197 | 29 s | `HOM`, by the three-obligation split |
-| `…GConstructionMonoidal` | 240 | 10 s | the `Monoidal` record |
+| `…GConstructionTensorCoherence` | 251 | 59 s | `TX`, `UL`/`UR`, `AC` |
+| `…GConstructionHomCoherence` | 177 | 29 s | `HOM`, by the three-obligation split |
+| `…GConstructionMonoidal` | 250 | 10 s | the `Monoidal` record and its bundle |
 
 ### Task 4: the semantics functor
 

@@ -10,8 +10,8 @@
 -- (embedding is monoidal) with `⌜⌝-∘` and `absorbˡ`/`absorbʳ` transports
 -- each base coherence law.  The bifunctor's `homomorphism` is the one
 -- law that meets the trace: it compares the two composites' loops with
--- the tensor's single loop, which `⊗-trace` fuses and `trace-mid`
--- re-brackets.  All base-level residues are solver-discharged, in
+-- the tensor's single loop, which `⊗-trace-mid` fuses and `trace-mid`
+-- re-brackets.  Its base-level residues are solver-discharged, in
 -- `GConstructionTensorCoherence` and `GConstructionHomCoherence`.
 ------------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
 
     open E₀.WithTrace trace-resp-≈ trace-∘ˡ trace-∘ʳ trace-comm
     open GL.WithTrace C M T trace-resp-≈ trace-∘ˡ trace-∘ʳ trace-comm
-    open W.WithTrace trace-resp-≈ trace-∘ˡ trace-∘ʳ trace-comm using (⊗-trace-mid)
+    open W.WithTrace trace-resp-≈ trace-∘ˡ trace-∘ʳ trace-comm
 
     -- `⌜⌝-⊗` with one factor the G-identity, which is `⌜ id , id ⌝`.
     ⌜⌝-⊗ˡ : ∀ {A⁺ A⁻ D⁺ D⁻ E⁺ E⁻ : C.Obj} {p : D⁺ C.⇒ E⁺} {q : E⁻ C.⇒ D⁻} →

@@ -12,11 +12,10 @@
 -- `a-nat` is `μ`'s naturality.  So `Grading` is a WEAKENING of the inherited
 -- graded Kleisli triple, not a third parallel abstraction.
 --
--- What it drops is what the intended model cannot supply: the unitors,
--- `return`/`ext`, and — decisively — that the grades form a monoidal category
--- at all.  `Monoidal (GConstruction …)` is still open (`docs/protocol-rewrite.md`,
--- M2 task 3), so `UCSetup` is uninhabited at `𝒫ᴵ` while `Grading 𝒫ᴵ` is not.
--- The same document has the supersession map for the rest of the vocabulary.
+-- What it drops is what the intended model cannot supply: the unitors and
+-- `return`/`ext`.  So `UCSetup` is uninhabited at `𝒫ᴵ` while `Grading 𝒫ᴵ` is
+-- not — see `docs/protocol-rewrite.md` for the supersession map for the rest
+-- of the vocabulary.
 
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 import Categories.Category.Monoidal.Reasoning as MonR

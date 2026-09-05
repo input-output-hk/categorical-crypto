@@ -2,14 +2,17 @@
 
 ------------------------------------------------------------------------
 -- The wiring and the trace algebra the G construction runs on: the
--- structural morphisms `β`, `α`, `γ` of a G-composite's loop body, and
--- the three consequences of the trace hypotheses that its laws need.
+-- structural morphisms `β`, `α`, `γ` of a G-composite's loop body, `mid`
+-- for its monoidal structure, and the consequences of the trace
+-- hypotheses that its laws need.
 --
--- All of this was `where`-local to `Categories.GConstruction`'s category
--- literal; the monoidal layer needs the same lemmas, so it lives here
--- instead.  `right-superposing` is the mirror of `Traced.superposing`
--- and is the one that needs a coherence step (`RS`, solved in
--- `Categories.GConstructionIdentityCoherence`).
+-- `β`, `α`, `γ` and the three yanking/superposing lemmas were
+-- `where`-local to `Categories.GConstruction`'s category literal; the
+-- monoidal layer needs the same lemmas, so they live here instead.
+-- `right-superposing` is the mirror of `Traced.superposing` and is the
+-- one that needs a coherence step (`RS`, solved in
+-- `Categories.GConstructionIdentityCoherence`); `⊗-trace`/`⊗-trace-mid`
+-- are the traced category's own "the trace is monoidal".
 ------------------------------------------------------------------------
 
 open import Categories.Category

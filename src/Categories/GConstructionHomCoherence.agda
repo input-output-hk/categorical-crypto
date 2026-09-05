@@ -91,14 +91,11 @@ open Category.HomReasoning FreeMonoidal using (_○_; _⟩∘⟨_; _⟩∘⟨ref
 midᵗ : ∀ {P Q R S} → HomTerm ((P ⊗₀ Q) ⊗₀ (R ⊗₀ S)) ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S))
 midᵗ = α⇐ ∘ id ⊗₁ (α⇒ ∘ σ ⊗₁ id ∘ α⇐) ∘ α⇒
 
--- The two composites' interfaces (`A`/`B`, `A′`/`B′`) and loops (`X`/`Y`), the
--- tensor's interfaces (`W`/`W′`) and its loop (`Z`).
-A A′ B B′ X Y W W′ Z : ObjTerm
-A  = a⁺ ⊗₀ d⁻                  ; B  = a⁻ ⊗₀ d⁺
-A′ = p⁺ ⊗₀ r⁻                  ; B′ = p⁻ ⊗₀ r⁺
-X  = b⁻ ⊗₀ b⁺                  ; Y  = q⁻ ⊗₀ q⁺
-W  = (a⁺ ⊗₀ p⁺) ⊗₀ (d⁻ ⊗₀ r⁻) ; W′ = (a⁻ ⊗₀ p⁻) ⊗₀ (d⁺ ⊗₀ r⁺)
-Z  = (b⁻ ⊗₀ q⁻) ⊗₀ (b⁺ ⊗₀ q⁺)
+-- The two composites' loops (`X`/`Y` — the fused loop is `X ⊗ Y`) and the
+-- tensor's interfaces (`W`/`W′`).
+X Y W W′ : ObjTerm
+X = b⁻ ⊗₀ b⁺                  ; Y  = q⁻ ⊗₀ q⁺
+W = (a⁺ ⊗₀ p⁺) ⊗₀ (d⁻ ⊗₀ r⁻) ; W′ = (a⁻ ⊗₀ p⁻) ⊗₀ (d⁺ ⊗₀ r⁺)
 
 -- The four boxes, grouped the two ways the two sides group them.
 BoxL : HomTerm (((b⁺ ⊗₀ d⁻) ⊗₀ (a⁺ ⊗₀ b⁻)) ⊗₀ ((q⁺ ⊗₀ r⁻) ⊗₀ (p⁺ ⊗₀ q⁻)))
