@@ -31,7 +31,7 @@ private
     open Traced Traced public
     open U.Shorthands Monoidal public
     open import Categories.Category.Monoidal.Reasoning Monoidal public
-      using (refl⟩⊗⟨_)
+      using (serialize₁₂; refl⟩⊗⟨_)
     open import Categories.Morphism.Reasoning C public using (introˡ; pullʳ; elimʳ)
     open BProps.Shorthands braided public
 
@@ -55,6 +55,12 @@ open C.HomReasoning
     (A⁺ C.⊗₀ C⁻) C.⊗₀ (B⁻ C.⊗₀ B⁺) C.⇒ (B⁺ C.⊗₀ C⁻) C.⊗₀ (A⁺ C.⊗₀ B⁻)
 γ = C.α⇒ C.∘ C.σ⇒ C.⊗₁ C.id C.∘ C.α⇐ C.∘ C.id C.⊗₁ (C.σ⇒ C.⊗₁ C.id)
   C.∘ C.id C.⊗₁ C.α⇐ C.∘ C.α⇒ C.∘ C.id C.⊗₁ C.σ⇒
+
+-- The middle-four interchange: an involution, and the only structural
+-- morphism the G-construction's tensor of morphisms needs.
+mid : ∀ {P Q R S : C.Obj} →
+      (P C.⊗₀ Q) C.⊗₀ (R C.⊗₀ S) C.⇒ (P C.⊗₀ R) C.⊗₀ (Q C.⊗₀ S)
+mid = C.α⇐ C.∘ C.id C.⊗₁ (C.α⇒ C.∘ C.σ⇒ C.⊗₁ C.id C.∘ C.α⇐) C.∘ C.α⇒
 
 module WithTrace
   (trace-resp-≈ : ∀ {X A B} {f g : A C.⊗₀ X C.⇒ B C.⊗₀ X} →
@@ -99,3 +105,28 @@ module WithTrace
             C.σ⇒ {Y} {B'} C.∘ C.id C.⊗₁ C.trace f' C.∘ C.σ⇒
           braiding-swap = C.introˡ C.commutative
                         ○ C.pullʳ (C.braiding.⇒.commute _)
+
+  -- A tensor of traces is one nested double trace: serialize, superpose
+  -- each factor over the other's loop, then merge with the two
+  -- naturalities.  No coherence step and no Fubini — the two loops keep
+  -- the order the serialization gave them.
+  ⊗-trace : ∀ {X Y A A' B B' : C.Obj}
+              {u : A C.⊗₀ X C.⇒ B C.⊗₀ X} {v : A' C.⊗₀ Y C.⇒ B' C.⊗₀ Y} →
+            C.trace u C.⊗₁ C.trace v C.≈
+            C.trace (C.trace ((β C.∘ u C.⊗₁ C.id C.∘ β) C.⊗₁ C.id C.∘ β
+                              C.∘ (C.α⇐ C.∘ C.id C.⊗₁ v C.∘ C.α⇒) C.⊗₁ C.id C.∘ β))
+  ⊗-trace {X} {Y} {A} {A'} {B} {B'} {u} {v} = begin
+    C.trace u C.⊗₁ C.trace v
+      ≈⟨ C.serialize₁₂ ⟩
+    C.trace u C.⊗₁ C.id C.∘ C.id C.⊗₁ C.trace v
+      ≈⟨ right-superposing ⟩∘⟨ C.Equiv.sym C.superposing ⟩
+    C.trace body₁ C.∘ C.trace body₂
+      ≈⟨ trace-∘ʳ ⟩
+    C.trace (body₁ C.∘ C.trace body₂ C.⊗₁ C.id)
+      ≈⟨ trace-resp-≈ (refl⟩∘⟨ right-superposing) ⟩
+    C.trace (body₁ C.∘ C.trace (β C.∘ body₂ C.⊗₁ C.id C.∘ β))
+      ≈⟨ trace-resp-≈ trace-∘ˡ ⟩
+    C.trace (C.trace (body₁ C.⊗₁ C.id C.∘ β C.∘ body₂ C.⊗₁ C.id C.∘ β))
+    ∎
+    where body₁ = β C.∘ u C.⊗₁ C.id {B'} C.∘ β
+          body₂ = C.α⇐ C.∘ C.id {A} C.⊗₁ v C.∘ C.α⇒
