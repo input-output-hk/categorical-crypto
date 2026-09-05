@@ -25,13 +25,18 @@
 -- positivity predicate and a halving).  `ℚ-errors` is the rational instance
 -- both current models use; another model may measure error differently, or
 -- offer no quantitative enrichment at all.
+--
+-- `Negligible` sits beside `_→0` because a cryptographic bound has to beat
+-- every inverse polynomial and mere convergence does not — `1/n` is `_→0`
+-- (proposal §3, `docs/kb/frontier/15-probabilistic-uc-model.typ`).
 
 open import Categories.Category using (Category; _[_,_]; _[_≈_])
 
+open import Data.Integer.Base using (+_)
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Nat.Poly using (Poly)
-open import Data.Product.Base using (Σ-syntax)
-open import Data.Rational as ℚ using (ℚ; 0ℚ; ½)
+open import Data.Nat.Poly using (Poly; poly-const)
+open import Data.Product.Base using (Σ-syntax; _,_)
+open import Data.Rational as ℚ using (ℚ; 0ℚ; ½; _/_)
 open import Data.Rational.Properties
   using (*-distribʳ-+; *-identityˡ; *-monoʳ-<-pos; *-zeroʳ; <⇒≤; ≤-reflexive)
 open import Level using (Level; 0ℓ; _⊔_; suc)
@@ -85,9 +90,9 @@ private
   ; half-sum = λ ε → ≤-reflexive (half+half ε)
   }
 
--- Negligibility, and the shape a concrete security bound has: an error
--- vanishing in the security parameter at every polynomial budget.  This is what
--- the asymptotic layer closes over (`UC.Family.absorb`).
+-- Vanishing, and the shape a concrete security bound has: an error vanishing in
+-- the security parameter at every polynomial budget.  This is what the
+-- asymptotic layer closes over (`UC.Family.absorb`).
 infix 4 _→0
 
 _→0 : (ℕ → ℚ) → Set
@@ -95,6 +100,30 @@ s →0 = (ε : ℚ) → 0ℚ ℚ.< ε → Σ[ N ∈ ℕ ] ((n : ℕ) → N ℕ.�
 
 VanishingBound : (ℕ → ℕ → ℚ) → Set
 VanishingBound ε = (p : ℕ → ℕ) → Poly p → (λ n → ε n (p n)) →0
+
+-- Negligible: eventually below every inverse polynomial, which is strictly more
+-- than `_→0` (`1/n` vanishes and is not negligible).  Stated by MAGNIFICATION —
+-- every polynomially magnified copy still vanishes — rather than as
+-- `s n ≤ 1/p n`: the same condition, reusing `Poly` and `_→0` instead of a
+-- second ε-quantifier, and with no nonzero-denominator side condition in the
+-- statement.
+Negligible : (ℕ → ℚ) → Set
+Negligible s = (p : ℕ → ℕ) → Poly p → (λ n → (+ p n / 1) ℚ.* s n) →0
+
+Negligible⇒→0 : {s : ℕ → ℚ} → Negligible s → s →0
+Negligible⇒→0 {s} neg ε ε>0 =
+  let N , bnd = neg (λ _ → 1) (poly-const 1) ε ε>0
+  in N , λ n le → subst (ℚ._≤ ε) (*-identityˡ (s n)) (bnd n le)
+
+-- The discipline the proposal asks of a concrete two-argument bound (§3): it is
+-- admitted when `ε(n, p n)` is NEGLIGIBLE at every polynomial allowance `p`,
+-- which is what the model's own allowance supplies (`UC.Family.PolyQB`).  It
+-- yields no single slack uniform over arbitrary, possibly exponential, `q`.
+NegligibleBound : (ℕ → ℕ → ℚ) → Set
+NegligibleBound ε = (p : ℕ → ℕ) → Poly p → Negligible (λ n → ε n (p n))
+
+NegligibleBound⇒VanishingBound : {ε : ℕ → ℕ → ℚ} → NegligibleBound ε → VanishingBound ε
+NegligibleBound⇒VanishingBound neg p Pp = Negligible⇒→0 (neg p Pp)
 
 ------------------------------------------------------------------------
 -- Approximate closeness

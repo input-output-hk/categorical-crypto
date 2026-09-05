@@ -26,7 +26,12 @@
 -- `UC.Approximate.Induced` turns that into the qualitative agreement the core
 -- consumes, which is then literally the vanishing-advantage relation (its ε/2
 -- transitivity proved once, there).  `absorb` is that construction's `induces`
--- read at a negligible error.
+-- read at a vanishing error.
+--
+-- Vanishing is all `absorb` spends, but it is not what a cryptographic bound
+-- must satisfy: that is NEGLIGIBILITY, eventually below every inverse
+-- polynomial (proposal §3, `docs/kb/frontier/15-probabilistic-uc-model.typ`).
+-- Hence the negligible layer below, over the same `PolyQB` allowance.
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly using (Poly; poly-*; poly-const; poly-⊔)
@@ -38,7 +43,8 @@ open import Level using (Level; _⊔_)
 open import Categories.Category.Core using (Category)
 
 open import CategoricalCrypto.UC.Approximate
-  using (Approximation; ApproximateObservation; VanishingBound; ℚ-errors; module Induced)
+  using ( Approximation; ApproximateObservation; Negligible; NegligibleBound
+        ; NegligibleBound⇒VanishingBound; VanishingBound; ℚ-errors; module Induced )
 open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget)
 open import CategoricalCrypto.UC.Core using (UCBase; Grading; Observation)
 import CategoricalCrypto.UC.Emulation as Em
@@ -219,3 +225,28 @@ absorb {f = f} {g} {ε} bnd van Y Et m δ δ>0 =
   let N , hN = van (ctxQB (qbOf Et) (qbOf m))
                    (ctxQB-poly (qbOf-poly Et) (qbOf-poly m)) δ δ>0
   in N , λ i le → ≈[]-mono (hN (κ i) le) (bnd Y Et m i)
+
+------------------------------------------------------------------------
+-- The negligible layer
+
+-- `VanishingBound` is the WEAKER enrichment, and stays: `absorb` spends nothing
+-- more than convergence.  A cryptographic bound is held to `Negligible` instead
+-- (proposal §3, `docs/kb/frontier/15-probabilistic-uc-model.typ`), and the
+-- allowance it is negligible at is the one the model already supplies —
+-- `PolyQB`, the polynomial a context's two legs carry.
+
+-- The §3 discipline read at exactly the budgets `_≈ℰ[_]_` evaluates `ε` on.
+CarriedNegligible : (ℕ → ℕ → ℚ) → Set (o ⊔ ℓ ⊔ qs)
+CarriedNegligible ε = {A B : Obj^ω} (Y : Obj^ω) (Et : Test (Y ⊛ω B))
+                      (m : Closure (Y ⊛ω A))
+                    → Negligible (λ n → ε n (ctxQB (qbOf Et) (qbOf m) n))
+
+-- …and it is no extra assumption: `ctxQB-poly` is the polynomial witness.
+carried-negligible : {ε : ℕ → ℕ → ℚ} → NegligibleBound ε → CarriedNegligible ε
+carried-negligible neg Y Et m =
+  neg (ctxQB (qbOf Et) (qbOf m)) (ctxQB-poly (qbOf-poly Et) (qbOf-poly m))
+
+absorb-negl : {A B : Obj^ω} {f g : A ⇒^ω B} {ε : ℕ → ℕ → ℚ}
+            → f ≈ℰ[ ε ] g → NegligibleBound ε → f ≈ℰ g
+absorb-negl {A} {B} {f} {g} {ε} bnd neg =
+  absorb {A} {B} {f} {g} {ε} bnd (NegligibleBound⇒VanishingBound {ε} neg)
