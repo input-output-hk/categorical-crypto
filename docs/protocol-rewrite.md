@@ -346,7 +346,7 @@ Where the pricing was wrong, in both directions:
   are `⌜⌝-⊗` + `⌜⌝-∘` + `⌜⌝-resp-≈` around the base law, with `Utilities`'
   `triangle-inv`/`pentagon-inv` for the negative polarity; the two unitor
   squares and the associator square are `absorbˡ`/`absorbʳ` around one solver
-  call each.  The monoidal module is 240 LOC and a 10 s warm check.
+  call each.  The monoidal module is 250 LOC and a 10 s warm check.
 * **`homomorphism` needed one general lemma the plan did not name, and its
   "one coherence step over 8 atoms / 4 generators" is not affordable.**  The
   route is right as far as it goes: `serialize₁₂` + `right-superposing` +

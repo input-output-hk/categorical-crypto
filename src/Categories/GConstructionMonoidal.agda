@@ -115,8 +115,8 @@ module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
               ○ ⌜⌝-id
 
     -- The gate: the two composites' loops `B⁻⊗B⁺` and `Q⁻⊗Q⁺` fuse into
-    -- one nested double trace, and the tensor's own loop
-    -- `(B⁻⊗Q⁻)⊗(B⁺⊗Q⁺)` re-brackets to the same four wires.
+    -- their tensor, and the tensor's own loop `(B⁻⊗Q⁻)⊗(B⁺⊗Q⁺)` re-brackets
+    -- to that same tensor — the four wires interleaved the other way.
     homomorphismᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ P⁺ P⁻ Q⁺ Q⁻ R⁺ R⁻ : C.Obj}
                       {f : A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺}
                       {f′ : B⁺ C.⊗₀ D⁻ C.⇒ B⁻ C.⊗₀ D⁺}
