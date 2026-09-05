@@ -1,7 +1,8 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- The seam's corollary: `Adequacy` and `PrAgree` inhabit `AgreeToAdv`, so the
--- POV carry rests on those two statements and nothing else.
+-- The seam's corollary: `Adequacy` and `PrAgree` inhabit `AgreeToAdv`, and both
+-- are theorems (`UC.Seam.Adequacy`, `Protocol.Machine.Agree`), so `agreeToAdv`
+-- and the POV carry below are closed terms.
 --
 -- It is a module of its own because `UC.Seam` pays the machine-layer
 -- conversions once, in its interface, and the arithmetic here re-derives none
@@ -24,10 +25,12 @@ open import ProbabilisticLogic.Dp.Advantage
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Machine.Agree
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Seam
+open import CategoricalCrypto.UC.Seam.Adequacy
 
 module CategoricalCrypto.UC.Seam.Carry where
 
@@ -77,3 +80,17 @@ agree-to-adv ad pa {B} P Q ag ε ε>0 b _ d _ =
          (subst (ℚ._≤ ε) (neg-sub (Prᵇ Q b d) (Prᵇ P b d))
                 (shift (Prᵇ Q b d) (Prᵇ P b d) ε
                        (one-sided b y x (Prᵇ Q b d) (Prᵇ P b d) ε (pa b Q d) (pa b P d) el)))
+
+------------------------------------------------------------------------
+-- Both hypotheses discharged
+
+agreeToAdv : AgreeToAdv
+agreeToAdv = agree-to-adv adequacy prAgree
+
+povCarry : {B : Iface} (P Q : Protocol unitᴵ B)
+         → Agreeˢ B (morphism P) (morphism Q)
+         → {bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)} {ε : ℕ → ℚ}
+         → ((q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d → asks≤ q (bad d))
+         → (δ : ℚ) → 0ℚ ℚ.< δ
+         → Bounded Q bad ε → Bounded P bad (λ q → ε q ℚ.+ δ)
+povCarry = pov-carry agreeToAdv
