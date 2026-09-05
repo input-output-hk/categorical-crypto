@@ -1,10 +1,10 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- The machine layer as a traced symmetric monoidal category, and the
--- G construction over it.
+-- G construction over it with its monoidal structure.
 --
 -- Nothing here is a hypothesis: `Machines.Trace.Remaining`'s four laws are
--- theorems (`Machines.Trace.Laws`), and both records below are assembled from
+-- theorems (`Machines.Trace.Laws`), and the records below are assembled from
 -- terms.  What they certify is that the shapes line up — that `traceᴹ` inhabits
 -- `Traced`'s `trace` field at *this* interface tensor, that `vanishing₁ᴹ` and
 -- `yankingᴹ` are `Traced`'s own laws rather than lookalikes, and that the two
@@ -13,9 +13,10 @@
 
 open import Categories.Category.Core
 open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Core using (Monoidal)
 open import Categories.Category.Monoidal.Pure
 open import Categories.Category.Monoidal.Traced
-open import Categories.GConstruction
+open import Categories.GConstructionMonoidal
 import Categories.Category.Monoidal.Distributive as MD
 
 open import Level
@@ -51,6 +52,16 @@ Mealy-Traced = record
   ; yanking     = ≲⇒≈ᴹ yankingᴹ
   }
 
+-- States and processes over the machine layer, monoidal.  One application, then
+-- projections: writing the category and its monoidal structure as two separate
+-- `GConstruction*` applications instead makes Agda compare two `GConstruction`
+-- record values field by field, which does not fit in 8 GB.
+Mealy-Gᴹ : MonoidalCategory o (o ⊔ ℓ) (o ⊔ ℓ ⊔ e)
+Mealy-Gᴹ = GConstructionMonoidalCategory Mealy-Category Mealy-Monoidal Mealy-Traced
+             trace-resp-≈ᴹ (trace-∘ˡ _ _) (trace-∘ʳ _ _) (trace-comm _)
+
 Mealy-G : Category o (o ⊔ ℓ) (o ⊔ ℓ ⊔ e)
-Mealy-G = GConstruction Mealy-Category Mealy-Monoidal Mealy-Traced
-            trace-resp-≈ᴹ (trace-∘ˡ _ _) (trace-∘ʳ _ _) (trace-comm _)
+Mealy-G = MonoidalCategory.U Mealy-Gᴹ
+
+Mealy-G-Monoidal : Monoidal Mealy-G
+Mealy-G-Monoidal = MonoidalCategory.monoidal Mealy-Gᴹ

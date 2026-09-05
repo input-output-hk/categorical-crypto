@@ -23,7 +23,7 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 | M1: layers 0–1 + the ledger example | **DONE** — all green, pins by `refl`, hatches 21 = baseline |
 | M2 wave 1: `Dₚ`, `Kl(Dₚ)`, `Mealy` + `Mealy-Category` + the ⊕-trace | **DONE** — all green, hatches 21 = baseline |
 | M2 wave 2: the four residual trace laws + `Elgot` at `Kl(Dₚ)` | **DONE** — the machine layer is hypothesis-free; hatches 21 = baseline |
-| M2 wave 3: the machine SMC bundle, `Traced`, GConstruction, `morphism`/`Pr-agree` | **the machine layer is DONE** — `ℳₚ` symmetric monoidal, `Tracedₚ`, `𝒢ₚ` all closed terms; `morphism` landed, `Morphism-∘`/`PrAgree` stated and priced; hatches 21 = baseline |
+| M2 wave 3: the machine SMC bundle, `Traced`, GConstruction, `morphism`/`Pr-agree` | **the machine layer is DONE** — `ℳₚ` symmetric monoidal, `Tracedₚ`, `𝒢ₚ` all closed terms, and `𝒢ₚᴹ` monoidal (task 3, `Monoidal (GConstruction C)`, is closed); `morphism` landed, `Morphism-∘`/`PrAgree` stated and priced; hatches 21 = baseline |
 | M3: the UC layer | **the statement layer is DONE**, and both external theory reviews' findings are resolved (`docs/rewrite-verdict.md`'s two addenda) — `_≈ℰ_`/`grade-stable`/`absorb`/`_≤UC_` and its metatheorems are theorems, no K island, no `HomTransportTrivial`; the simulator carry is a theorem in both its degenerate (`unit-grade`) and graded (`audit-carry`) form; the intended instance's observation is a theorem and its grading action is data with `Grading 𝒫ᴵ` priced.  **The layer is now split three ways** (abstraction notes §1/§3): a qualitative core that mentions no number, an optional quantitative enrichment over an abstract error algebra, and the `Dₚ` model, with the inherited `UCSetup` doctrine reconciled by `UC.Core.Standard.gradingᵗ`; hatches 21 = baseline |
 
 ## Modules (M1: 10 files, 874 LOC, all `--safe --without-K`)
@@ -267,8 +267,8 @@ distributivity they never needed.
   after all — see the `⊗-split` note below.
 * **`Mealy-Traced` and `GConstruction`** — done, two record literals as
   predicted, and **zero hypotheses survive**.
-* **`Monoidal (GConstruction C)`** — the embedding layer landed; the
-  `⊗`-homomorphism wall is still open, priced below.
+* **`Monoidal (GConstruction C)`** — done, including the `⊗`-homomorphism wall;
+  see task 3 below for where its pricing was wrong.
 * **`morphism`/`morphism-∘`/`Pr-agree`** — `morphism` landed; the two agreement
   theorems are stated as types (no postulate, no hole) and priced below.
 
@@ -320,41 +320,101 @@ single `tstep-α`.  The 280 LOC of word-splitting `ro-model` needed for
 simulation equality the congruence is `⊗ᵉ-resp-≲`, three lines, and its
 `EqClosure` lift is four more.
 
-### Task 3: `Monoidal (GConstruction C)` — what remains
+### Task 3: `Monoidal (GConstruction C)` — done
 
-`Categories.GConstructionEmbedding{,Coherence}` transfer verbatim (the
-`GConstruction*` modules are byte-identical on both branches) and add **no**
-trace hypothesis: the four `GConstruction` already takes are enough, and at the
-machine layer all four are terms, so nothing on the instance side is at risk.
-`⌜ u , v ⌝ = σ⇒ ∘ u ⊗₁ v`, `absorbˡ`/`absorbʳ`, `⌜⌝-∘`, `⌜⌝-≅` and hence
-`unitorˡᴳ`/`unitorʳᴳ`/`associatorᴳ` as `𝒢`-isos are all available (12.3 s over
-the existing solver closure).
+`Categories.GConstructionMonoidal`, generic over the four trace hypotheses
+`GConstruction` already took — **no new hypothesis** — and instantiated at the
+machine layer as `Machines.G.Mealy-G-Monoidal` and `Machines.Base.𝒢ₚ-Monoidal`,
+with `𝒢ₚᴹ` the `MonoidalCategory` bundle the UCSetup route consumes.  Objects
+and tensor are as priced: `(A⁺,A⁻) ⊗ᴳ (B⁺,B⁻) = (A⁺ ⊗₀ B⁺ , A⁻ ⊗₀ B⁻)`,
+`unitᴳ = (I , I)`, and `f ⊗₁ᴳ g = mid ∘ f ⊗₁ g ∘ mid` for the middle-four
+interchange `mid : (P ⊗ Q) ⊗ (R ⊗ S) ⇒ (P ⊗ R) ⊗ (Q ⊗ S)`, which is its own
+inverse — one `mid`, not a `w`/`w⁻` pair — and spends no trace.
 
-What is missing is the bifunctor.  With
-`(A⁺,A⁻) ⊗ᴳ (B⁺,B⁻) = (A⁺ ⊗₀ B⁺ , A⁻ ⊗₀ B⁻)`, `unitᴳ = (I , I)` and
-`f ⊗₁ᴳ g = w⁻ ∘ f ⊗₁ g ∘ w` for the two middle-four interchanges `w`, `w⁻`
-(no trace), the residue is, in dependency order:
+Where the pricing was wrong, in both directions:
 
-1. `⌜⌝-⊗ : ⌜u,v⌝ ⊗₁ᴳ ⌜p,q⌝ ≈ ⌜ u ⊗₁ p , v ⊗₁ q ⌝`.  A 4-generator symmetric
-   coherence whose `σ⇒` sits at the **compound** objects `A⁺ ⊗₀ C⁺` and
-   `B⁻ ⊗₀ D⁻`, and the normalizer never splits a crossing block
-   (`Coherence.Monoidal.Test.Limitations.lim-hexagon`) — so it needs the
-   hand-split `solveMor!` treatment `Machines.Reassoc.onL-α` uses, ~40–60 LOC.
-2. `identity`, `triangle`, `pentagon`, `unitor*-commute`, `assoc-commute`: each
-   is (1) + `⌜⌝-∘` + `absorbˡ`/`absorbʳ` transporting the base law; the two
-   commute laws become 1-generator base solves once absorbed.
-3. `homomorphism : (f′ ∘ᴳ f) ⊗₁ᴳ (g′ ∘ᴳ g) ≈ (f′ ⊗₁ᴳ g′) ∘ᴳ (f ⊗₁ᴳ g)` — the
-   gate, since `Monoidal`'s `⊗` is a `Bifunctor` and nothing above assembles
-   without it.  Route: `superposing` + `right-superposing` + `trace-∘ˡ/ʳ` +
-   `trace-comm` fuse `trace ⊗ trace` into a double trace, then one coherence
-   step over 8 atoms / 4 generators; splitting by
-   `f ⊗ᴳ g = (f ⊗ᴳ id) ∘ᴳ (id ⊗ᴳ g)` cuts each half to 2 generators.
-   `GConstruction`'s `right-superposing`, `trace-βyank` and `trace-gyank` are
-   `where`-local to its `categoryHelper` literal and have to be lifted out or
-   re-derived; the `RS` coherence they rest on *is* exported, from
-   `GConstructionIdentityCoherence`.
+* **`⌜⌝-⊗` is one solver call, not a hand split.**  It was priced at 40–60 LOC
+  of `Machines.Reassoc`-style `solveMor!` on the ground that the normalizer
+  never splits a crossing block.  That limitation is the *other* solver's
+  (`Coherence.Monoidal.*`, whose `lim-hexagon` records it); the APROP
+  hypergraph solver does not care where `σ⇒` sits, so `⌜⌝-⊗` is
+  `solveTerm!ᵀ lhs rhs refl` over an 8-atom, 4-generator signature.  The
+  associator naturality square goes the same way at 12 atoms and three
+  generators.  All four residues share one 59 s module,
+  `GConstructionTensorCoherence`.
+* **Everything in item 2 held exactly.**  `identity`, `triangle` and `pentagon`
+  are `⌜⌝-⊗` + `⌜⌝-∘` + `⌜⌝-resp-≈` around the base law, with `Utilities`'
+  `triangle-inv`/`pentagon-inv` for the negative polarity; the two unitor
+  squares and the associator square are `absorbˡ`/`absorbʳ` around one solver
+  call each.  The monoidal module is 250 LOC and a 10 s warm check.
+* **`homomorphism` needed one general lemma the plan did not name, and its
+  "one coherence step over 8 atoms / 4 generators" is not affordable.**  The
+  route is right as far as it goes: `serialize₁₂` + `right-superposing` +
+  `superposing` + `trace-∘ˡ/ʳ` fuse `trace ⊗ trace` into a nested double trace
+  (`⊗-trace`).  But the two sides' loops are `(B⁻⊗B⁺)⊗(Q⁻⊗Q⁺)` and
+  `(B⁻⊗Q⁻)⊗(B⁺⊗Q⁺)` — the same four wires *interleaved* — so `vanishing₂`
+  cannot merge the fused pair into the tensor's loop, and `trace-comm` on its
+  own cannot reorder them.  Two lemmas close that gap, both plain facts about
+  traced categories with no G-construction wiring in them:
 
-`Braided`/`Symmetric` on `𝒢` is not needed downstream.
+      ⊗-trace-mid : trace u ⊗₁ trace v ≈ trace (mid ∘ u ⊗₁ v ∘ mid)
+      trace-mid   : trace f ≈ trace (id ⊗₁ mid ∘ f ∘ id ⊗₁ mid)
+
+  the first "the trace is monoidal" (`⊗-trace`, one 2-generator coherence,
+  `vanishing₂`), the second "a loop object re-brackets along `mid`": four
+  `vanishing₂` splits down to single wires, one Fubini step transposing the
+  middle two, one 1-generator coherence.  `trace-mid` is the piece the plan was
+  missing, and it does **not** need sliding/dinaturality — the four hypotheses
+  suffice, which is why the instance side stayed safe.
+
+  What is then left is one equation between the two loop bodies, and **solving
+  it whole is out of reach**: ~50 boxes a side over 12 atoms and four
+  generators, no answer in 900 s.  (The `assoc'` precedent —
+  `GConstructionCoherence`'s "the 50-morphism equation is never solved whole" —
+  holds here too.)  It splits at the one place the two sides genuinely differ:
+  both apply the same four boxes, the left grouped `(f′⊗f) ⊗ (g′⊗g)` and the
+  right `(f′⊗g′) ⊗ (f⊗g)`, and those two groupings are conjugate by `mid`.  So
+  with `Lout`/`Lin`/`Rout`/`Rin` the wiring on either side of the boxes,
+
+      ob-out : Lout ≈ Rout ∘ mid           (no generators)
+      ob-nat : mid ∘ BoxL ∘ mid ≈ BoxR     (`mid`'s naturality, four one-box legs)
+      ob-in  : Lin ≈ mid ∘ Rin             (no generators)
+
+  paste by congruence, with the re-bracketings bridged by `stepR!` (pure
+  assoc, no solver leaf).  29 s, against >900 s for the equation whole.
+
+`GConstruction`'s `β`, `α`, `γ`, `trace-βyank`, `trace-gyank` and
+`right-superposing` were `where`-local to its `categoryHelper` literal, so the
+monoidal layer could not reach them; they moved verbatim into
+`Categories.GConstructionTrace` under the same four hypotheses, taking
+`GConstructionEmbedding`'s duplicate `β` with them.  No statement changed, and
+`GConstructionEmbedding`'s two anonymous modules were named (`Embed`,
+`Embed.WithTrace`) so that a consumer can `open` them at its own parameters.
+
+`Braided`/`Symmetric` on `𝒢` was not built.
+
+The **instantiation** hit the branch's recorded conversion cliff in its sharpest
+form yet.  Declaring `Mealy-G-Monoidal : Monoidal Mealy-G`, with the category
+and its structure spelled as two separate `GConstruction*` applications, makes
+Agda reduce both sides to `Category` record values and compare them field by
+field — and `assoc`/`identityˡ`/`identityʳ` there *are* the transported solver
+witnesses.  Measured on `Machines.G` alone: heap exhausted at 8 GB after 118 s.
+The cure is the bundle.  `GConstructionMonoidalCategory` returns a
+`MonoidalCategory`, and the instance takes both the category and the structure
+as **projections of one application** (`Machines.G.Mealy-Gᴹ`,
+`Machines.Base.𝒢ₚᴹ`), so every field is syntactically shared and the comparison
+never happens: 12.7 s at 1.7 GB.  That is the entry point an instance should
+use; `Monoidal <the category spelled a second time>` is the shape to avoid.
+
+| new module | LOC | warm check | role |
+|---|---|---|---|
+| `Categories.GConstructionTrace` | 145 | 7 s | `β`/`α`/`γ`/`mid`, the yanks, `right-superposing`, `⊗-trace`, `⊗-trace-mid` |
+| `…GConstructionTraceCoherence` | 94 | 9 s | `TM`, `⊗-trace-mid`'s coherence (6 atoms, 2 generators) |
+| `…GConstructionLoop` | 97 | 7 s | `trace-mid`, `trace-conj` |
+| `…GConstructionLoopCoherence` | 123 | 67 s | `LC`, `trace-mid`'s coherence (6 atoms, 1 generator) |
+| `…GConstructionTensorCoherence` | 251 | 59 s | `TX`, `UL`/`UR`, `AC` |
+| `…GConstructionHomCoherence` | 177 | 29 s | `HOM`, by the three-obligation split |
+| `…GConstructionMonoidal` | 250 | 10 s | the `Monoidal` record and its bundle |
 
 ### Task 4: the semantics functor
 
@@ -461,14 +521,10 @@ twice over (`indᵇ b` is never inspected) — the `TrajectoryFromAudit` pattern
 the statement is certified to typecheck against the real definitions, and it is
 not assumed anywhere.
 
-Two shape seams are open and neither is load-bearing today:
-
-* `⟦ unitᴵ ⟧ᴵ` is `(Data.Empty.⊥ , Data.Empty.⊥)` while `Mealy-Monoidal`'s unit
-  is `Data.Empty.Polymorphic.⊥` — isomorphic, not identical.  It bites only when
-  M3 wants `⟦_⟧ᴵ` monoidal, and the cure is the `Iface`-polymorphism M3 plans
-  anyway.
-* `Monoidal (GConstruction C)` is still absent, so `⟦_⟧ᴵ` is a map of objects
-  and `morphism` a map of homs, against the bare `Category`.
+One shape seam is open and it is not load-bearing today: `⟦ unitᴵ ⟧ᴵ` is
+`(Data.Empty.⊥ , Data.Empty.⊥)` while `Mealy-Monoidal`'s unit is
+`Data.Empty.Polymorphic.⊥` — isomorphic, not identical.  It bites only when M3
+wants `⟦_⟧ᴵ` monoidal, and the cure is the `Iface`-polymorphism M3 plans anyway.
 
 ### Solver use
 
@@ -644,10 +700,9 @@ What blocks the converse instantiation is not style but inhabitation, in two
 places:
 
 1. **`UCSetup` asks for `ℐ : MonoidalCategory` and `ℳ : GradedKleisliTriple ℐ 𝒞`.**
-   The intended model has neither: `Monoidal (GConstruction C)` is exactly the
-   gate M2's task 3 leaves open (the `homomorphism` field, priced above), so
-   `𝒢ₚ` is only a `Category` and `𝒫ᴵ` cannot be presented as a graded Kleisli
-   category at all.  `Grading` is the subset of that structure `grade-stable`
+   The `MonoidalCategory` half is now available — task 3 landed, and
+   `Machines.Base.𝒢ₚᴹ` is the bundle — but `𝒫ᴵ` still cannot be presented as a
+   graded Kleisli category.  `Grading` is the subset of that structure `grade-stable`
    and the emulation metatheory actually spend — no unitors, no `return`/`ext`,
    no monoidal structure on the grades — and that subset IS inhabitable at
    `𝒫ᴵ` (`GradingLawsᴹ` prices the eight laws; the data is already there).

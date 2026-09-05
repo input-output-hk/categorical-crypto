@@ -17,6 +17,7 @@
 
 open import Categories.Category.Core
 open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Core using (Monoidal)
 open import Categories.Category.Monoidal.Pure
 open import Categories.Category.Monoidal.Traced
 open import Categories.Monad.Discrete
@@ -275,6 +276,15 @@ Remainingₚ ℓ = Laws.Remainingᴹ (𝒱ₚ ℓ) (distₚ ℓ) (𝒫ₚ ℓ) (
 Tracedₚ : (ℓ : Level) → Traced (Bundle.Mealy-Monoidal (𝒱ₚ ℓ) (distₚ ℓ) (𝒫ₚ ℓ))
 Tracedₚ ℓ = G.Mealy-Traced (𝒱ₚ ℓ) (distₚ ℓ) (𝒫ₚ ℓ) (Elgotₚ ℓ)
 
--- States and processes over `ℳₚ`: `GConstruction` instantiated unchanged.
+-- States and processes over `ℳₚ`: `GConstruction` instantiated unchanged, with
+-- its monoidal structure — the bundle a UC setup over `𝒢ₚ` consumes.  Both the
+-- category and the structure are projections of ONE application; see
+-- `Machines.G` for why that matters.
+𝒢ₚᴹ : (ℓ : Level) → MonoidalCategory (suc ℓ) (suc ℓ) (suc ℓ)
+𝒢ₚᴹ ℓ = G.Mealy-Gᴹ (𝒱ₚ ℓ) (distₚ ℓ) (𝒫ₚ ℓ) (Elgotₚ ℓ)
+
 𝒢ₚ : (ℓ : Level) → Category (suc ℓ) (suc ℓ) (suc ℓ)
-𝒢ₚ ℓ = G.Mealy-G (𝒱ₚ ℓ) (distₚ ℓ) (𝒫ₚ ℓ) (Elgotₚ ℓ)
+𝒢ₚ ℓ = MonoidalCategory.U (𝒢ₚᴹ ℓ)
+
+𝒢ₚ-Monoidal : (ℓ : Level) → Monoidal (𝒢ₚ ℓ)
+𝒢ₚ-Monoidal ℓ = MonoidalCategory.monoidal (𝒢ₚᴹ ℓ)

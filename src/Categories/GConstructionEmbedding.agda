@@ -31,9 +31,10 @@ open import Data.Product
 import Categories.Category.Monoidal.Braided.Properties as BProps
 import Categories.Category.Monoidal.Utilities as U
 import Categories.GConstructionEmbeddingCoherence as ECoh
+import Categories.GConstructionTrace as GT
 import Categories.Morphism as Mor
 
-module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced Monoidal) where
+module Embed {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced Monoidal) where
 
   private
     module C where
@@ -48,8 +49,7 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
     Cˢ : SymmetricMonoidalCategory a b c
     Cˢ = record { U = C ; monoidal = Monoidal ; symmetric = C.symmetric }
 
-    β : ∀ {P Q R : C.Obj} → (P C.⊗₀ Q) C.⊗₀ R C.⇒ (P C.⊗₀ R) C.⊗₀ Q
-    β = C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒
+  open GT C Monoidal Traced using (β)
 
   -- `u` acts on the positive polarity, `v` on the negative one.  The
   -- G-identity at `(A⁺ , A⁻)` is `⌜ id , id ⌝`.
@@ -64,15 +64,16 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
               u C.≈ u' → v C.≈ v' → ⌜ u , v ⌝ C.≈ ⌜ u' , v' ⌝
   ⌜⌝-resp-≈ e₁ e₂ = refl⟩∘⟨ (e₁ C.⟩⊗⟨ e₂)
 
-  module _ (trace-resp-≈ : ∀ {X A B} {f g : A C.⊗₀ X C.⇒ B C.⊗₀ X} →
-                           f C.≈ g → C.trace f C.≈ C.trace g)
-           (trace-∘ˡ : ∀ {X A B B'} {g : B C.⇒ B'} {f : A C.⊗₀ X C.⇒ B C.⊗₀ X} →
-                       g C.∘ C.trace f C.≈ C.trace (g C.⊗₁ C.id C.∘ f))
-           (trace-∘ʳ : ∀ {X A A' B} {f : A C.⊗₀ X C.⇒ B C.⊗₀ X} {h : A' C.⇒ A} →
-                       C.trace f C.∘ h C.≈ C.trace (f C.∘ h C.⊗₁ C.id))
-           (trace-comm : ∀ {X Y A B} {f : (A C.⊗₀ X) C.⊗₀ Y C.⇒ (B C.⊗₀ X) C.⊗₀ Y} →
-                         C.trace (C.trace f) C.≈ C.trace (C.trace (β C.∘ f C.∘ β)))
-           where
+  module WithTrace
+    (trace-resp-≈ : ∀ {X A B} {f g : A C.⊗₀ X C.⇒ B C.⊗₀ X} →
+                    f C.≈ g → C.trace f C.≈ C.trace g)
+    (trace-∘ˡ : ∀ {X A B B'} {g : B C.⇒ B'} {f : A C.⊗₀ X C.⇒ B C.⊗₀ X} →
+                g C.∘ C.trace f C.≈ C.trace (g C.⊗₁ C.id C.∘ f))
+    (trace-∘ʳ : ∀ {X A A' B} {f : A C.⊗₀ X C.⇒ B C.⊗₀ X} {h : A' C.⇒ A} →
+                C.trace f C.∘ h C.≈ C.trace (f C.∘ h C.⊗₁ C.id))
+    (trace-comm : ∀ {X Y A B} {f : (A C.⊗₀ X) C.⊗₀ Y C.⇒ (B C.⊗₀ X) C.⊗₀ Y} →
+                  C.trace (C.trace f) C.≈ C.trace (C.trace (β C.∘ f C.∘ β)))
+    where
 
     private
       G' : Category a b c

@@ -28,9 +28,10 @@ private module 𝒫 = Category 𝒫ᴵ
 -- `_≲_` at the given simulation's own state map, and `T₁-id`/`sub-id` compare
 -- two stateless wires (`𝒫.id` is `σᴹ = pureᴹ +-swap`) up to the junctions a
 -- `pureᴹ` spends.  The other four each compare a `𝒫ᴵ`-composite, and
--- composition here is the ⊕-trace, so each needs the trace-fusion step M2's
--- task 3 left open — the same gate as `Monoidal (GConstruction C)`'s
--- `homomorphism`.  Stated as a record and inhabited by nothing — no escape
+-- composition here is the ⊕-trace, so each needs a trace-fusion step of the
+-- kind `Monoidal (GConstruction C)`'s `homomorphism` needed.  That gate is now
+-- closed (`GConstructionTrace.⊗-trace-mid`, `GConstructionLoop.trace-mid`);
+-- these four are still only stated — a record inhabited by nothing, no escape
 -- hatch, as everywhere in this branch.
 -- EVERY object implicit is passed explicitly, for the same reason `𝒫ᴵ` does it
 -- one section up.  Left to inference, the object arguments of `𝒫._≈_`/`𝒫._∘_`
