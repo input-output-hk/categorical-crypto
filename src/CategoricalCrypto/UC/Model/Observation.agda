@@ -15,10 +15,15 @@
 -- equivalence `UC.Approximate.Induced` already builds an `Observation` out of.
 --
 -- Closures are taken at `𝟘ᵒ = ifaceᵒ unitᴵ` rather than at the seal's monoidal
--- unit.  Both objects are the empty interface — the unit is the base's
--- polymorphic `⊥` in both polarities — so they carry the same closures and cut
--- the same quotient, and `𝟘ᵒ` is the one the machine layer's closed run is
--- already typed at (`UC.Machine.Run.Closed`).
+-- unit.  Both objects are the empty interface, differing only in which empty
+-- type spells each polarity — `Data.Empty.⊥` against the base's polymorphic
+-- one — and `𝟘ᵒ` is the spelling the machine layer's closed run is already
+-- typed at (`UC.Machine.Run.Closed`), which is what lets that run and its
+-- simulation-invariance be reused unchanged.  That the two objects are
+-- isomorphic in `𝔾ᵒ`, hence that the choice is immaterial, is NOT proved here:
+-- a G-composite is a trace, so `isoˡ` is not the one-line argument the
+-- underlying bijection of empty types suggests.  Nothing downstream depends on
+-- it — `ℰ` is a presheaf for either family of closures.
 
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 
