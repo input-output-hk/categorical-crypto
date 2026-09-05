@@ -22,7 +22,9 @@
 
 open import Data.Empty using (⊥-elim)
 open import Data.Nat.Base as ℕ using (ℕ; zero; suc)
-open import Data.Nat.Properties using (*-distribʳ-+; *-monoˡ-≤; +-assoc; +-comm; +-monoˡ-≤; +-monoʳ-<; +-monoʳ-≤; n≤0⇒n≡0; n≮0; ≤-pred; ≤-refl; ≤-reflexive; ≤-trans)
+open import Data.Nat.Properties
+  using (*-distribʳ-+; *-monoˡ-≤; +-assoc; +-comm; +-monoˡ-≤; +-monoʳ-<; +-monoʳ-≤;
+         n≤0⇒n≡0; n≮0; ≤-pred; ≤-refl; ≤-reflexive; ≤-trans)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Function.Base using (_∘′_)
