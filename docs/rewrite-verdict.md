@@ -33,8 +33,9 @@ old lineage are enumerable ports, not regressions in kind.
    reverse needs thought — flagged) and `PrAgree` (250–450), whose missing link — a
    general `Dist⊥ → Dₚ` embedding — LANDED as `Dp.Embed` (addendum 3): `embed-cum`
    is exact at every budget past `suc |entries|`, so what remains is the unrolling.
-5. **`Monoidal (GConstruction C)`**: one compound-object σ-coherence (`⌜⌝-⊗`) gates the
-   bifunctor field; embedding layer landed.
+5. ~~**`Monoidal (GConstruction C)`**~~ — PROVED (addendum 4): generic over the four
+   existing trace hypotheses, instantiated as `Machines.Base.𝒢ₚᴹ` with
+   `𝒢ₚ-Monoidal : Monoidal (𝒢ₚ ℓ)`.
 6. **The seam's remaining steps**: `EnvAsCtx` (~80–120, REPLACES `StratIsEnv` as the
    obligation — the reduction is proved generically as `UC.Environment.≈ℰ-at`) and
    `Adequacy` (~250–350), after which `AgreeToAdv` and `pov-carry` are theorems
@@ -176,3 +177,41 @@ which also carries the updated priced table: the statement-only surface is now
 `SubBlind`/`IotaBlind`, `AuditIsBounded`, `TrajectoryFromAudit`,
 `GradingLawsᴹ`'s eight fields, `UC-compose`'s two, and `SaturatedRespects` —
 every one a type with a price, none a postulate.
+
+## Addendum 4: direction ruled, gate closed, observation honest (2026-09-05)
+
+The maintainer accepted `docs/kb/frontier/15-probabilistic-uc-model.typ` and RULED
+that the UC layer is to be built by instantiating the inherited, proven
+`UCSetup`/`Abstract2` metatheory (`Standard2.StdUC`) at the machine model — no
+parallel UC definition. Three consequences landed, all green (four-root sweep,
+warn-gate empty, hatches 21):
+
+1. **`Monoidal (GConstruction C)` is proved** (`Categories.GConstructionMonoidal`,
+   generic, NO new hypotheses — the four trace assumptions `GConstruction` already
+   took suffice), with the machine bundle `Machines.Base.𝒢ₚᴹ : MonoidalCategory`.
+   The plan's pricing was pessimistic twice (the hypergraph solver takes the
+   compound-object `σ⇒` whole; `homomorphism` needed one new loop-re-bracketing
+   lemma `trace-mid` and no dinaturality) and optimistic once (the one-shot
+   8-atom coherence is unaffordable at 900 s; split at the single differing
+   segment it is 29 s). Sharpest perf law yet: state the category and its
+   monoidal structure as projections of ONE `GConstruction*` application — two
+   separate applications heap-exhaust 8 GiB where the bundle costs 12.7 s.
+2. **The observation is two-sided** (`≼ₚ[ε]` quantifies the verdict indicator):
+   answers-`false` is no longer identified with diverges, refuted by `refl`-pins
+   (`nay`/`stuck`); `indᵇ true = bool→ℚ` definitionally, so the one-sided API and
+   the MD suite were untouched. Layer 1's `_≈adv[_]_` had the identical defect
+   and is fixed the same way.
+3. **Crypto-grade negligibility** (`Negligible`, magnification form) sits beside
+   `_→0`, with `NegligibleBound⇒VanishingBound`, `CarriedNegligible` (the
+   proposal's §3 discipline, PROVED at the `ctxQB` budgets via `PolyQB`) and
+   `absorb-negl`.
+
+**Consequences for the ledger above.** Port item 5 is closed; `GradingLawsᴹ`'s
+four trace-carrying fields now have their fusion tools — and under the ruled
+direction they may dissolve entirely: `UC.Core.Standard.gradingᵗ` applied to the
+genuine `𝒢ₚᴹ` yields the grading from the monoidal structure, leaving only the
+zigzag between the direct relays (`T₁ᴵ`/`subᴵ`) and their monoidal spellings.
+The degenerate-`Grading` defect of addendum 3 is likewise expected to dissolve
+(the ruled route's grading is the curried tensor by construction, not an
+abstract record); to be re-assessed after the `StdUC` instantiation. In flight:
+the `StdUC`-at-machines performance spike, whose verdict gates the build.
