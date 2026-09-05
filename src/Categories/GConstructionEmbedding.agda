@@ -31,6 +31,7 @@ open import Data.Product
 import Categories.Category.Monoidal.Braided.Properties as BProps
 import Categories.Category.Monoidal.Utilities as U
 import Categories.GConstructionEmbeddingCoherence as ECoh
+import Categories.GConstructionTrace as GT
 import Categories.Morphism as Mor
 
 module Embed {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced Monoidal) where
@@ -48,8 +49,7 @@ module Embed {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Trac
     Cˢ : SymmetricMonoidalCategory a b c
     Cˢ = record { U = C ; monoidal = Monoidal ; symmetric = C.symmetric }
 
-    β : ∀ {P Q R : C.Obj} → (P C.⊗₀ Q) C.⊗₀ R C.⇒ (P C.⊗₀ R) C.⊗₀ Q
-    β = C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒
+  open GT C Monoidal Traced using (β)
 
   -- `u` acts on the positive polarity, `v` on the negative one.  The
   -- G-identity at `(A⁺ , A⁻)` is `⌜ id , id ⌝`.

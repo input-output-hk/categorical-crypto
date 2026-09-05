@@ -2,14 +2,13 @@
 
 ------------------------------------------------------------------------
 -- The G construction: the category of states-and-processes over a
--- traced symmetric monoidal category, with its own (traced) monoidal
--- structure.  OFF-CONE SHOWCASE: nothing in the library imports this
--- island (`GConstruction*`, 6 modules); it exists as the flagship
--- application of the coherence solver — the associativity and identity
--- obligations are solver-discharged in `GConstructionCoherence` and
--- `GConstructionIdentityCoherence`.  Note the four trace laws marked
--- below are taken as hypotheses because agda-categories' `Traced`
--- omits them.
+-- traced symmetric monoidal category.  The flagship application of the
+-- coherence solver — the associativity and identity obligations are
+-- solver-discharged in `GConstructionCoherence` and
+-- `GConstructionIdentityCoherence`; the loop wiring and the trace
+-- algebra live in `GConstructionTrace`, and the monoidal structure in
+-- `GConstructionMonoidal`.  Note the four trace laws marked below are
+-- taken as hypotheses because agda-categories' `Traced` omits them.
 ------------------------------------------------------------------------
 
 module Categories.GConstruction where
@@ -26,6 +25,7 @@ import Categories.Category.Monoidal.Utilities as U
 
 import Categories.GConstructionCoherence as GCoh
 import Categories.GConstructionIdentityCoherence as GCohId
+import Categories.GConstructionTrace as GT
 
 module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced Monoidal) where
 
@@ -35,14 +35,18 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
       open Traced Traced public
       open U.Shorthands Monoidal public
       open import Categories.Category.Monoidal.Reasoning Monoidal public
-        using (serialize₁₂; serialize₂₁; _⟩⊗⟨_; refl⟩⊗⟨_)
+        using (serialize₁₂; serialize₂₁; _⟩⊗⟨_)
       open import Categories.Morphism.Reasoning C public
-        using (introˡ; pullʳ; pullˡ; pushˡ; elimˡ; elimʳ; cancelˡ)
+        using (pullʳ; pullˡ; pushˡ; elimˡ; cancelˡ)
       open BProps.Shorthands braided public
 
     -- the bundle the transported coherence lemmas are instantiated at
     Cˢ : SymmetricMonoidalCategory a b c
     Cˢ = record { U = C ; monoidal = Monoidal ; symmetric = C.symmetric }
+
+    module W = GT C Monoidal Traced
+
+  open W using (α; β; γ)
 
   -- Trace properties needed for the G-construction, taken as HYPOTHESES — the
   -- `module _` below makes all four parameters the caller discharges:
@@ -52,11 +56,6 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
   -- a bare field with only `vanishing₁/₂`, `superposing` and `yanking` — no
   -- congruence and no naturality — although its own header cites a *natural*
   -- family.  So the standard (Joyal-Street-Verity) laws it omits are assumed.
-  -- β swaps the last two factors: (A ⊗ Y) ⊗ X → (A ⊗ X) ⊗ Y
-  private
-    β : ∀ {P Q R : C.Obj} → (P C.⊗₀ Q) C.⊗₀ R C.⇒ (P C.⊗₀ R) C.⊗₀ Q
-    β = C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒
-
   module _ (trace-resp-≈ : ∀ {X A B} {f g : A C.⊗₀ X C.⇒ B C.⊗₀ X} →
                            f C.≈ g → C.trace f C.≈ C.trace g)
            (trace-∘ˡ : ∀ {X A B B'} {g : B C.⇒ B'} {f : A C.⊗₀ X C.⇒ B C.⊗₀ X} →
@@ -83,34 +82,13 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
       }
       where
         open C.HomReasoning
-
-        -- Coherence isomorphisms for the G-construction composition
-        α : ∀ {A⁻ B⁺ B⁻ C⁺ : C.Obj} →
-            (B⁻ C.⊗₀ C⁺) C.⊗₀ (A⁻ C.⊗₀ B⁺) C.⇒ (A⁻ C.⊗₀ C⁺) C.⊗₀ (B⁻ C.⊗₀ B⁺)
-        α = C.α⇒ C.∘ C.σ⇒ C.⊗₁ C.id C.∘ C.α⇐ C.∘ C.id C.⊗₁ (C.σ⇒ C.⊗₁ C.id) C.∘ C.id C.⊗₁ C.α⇐ C.∘ C.α⇒
-
-        γ : ∀ {A⁺ B⁺ B⁻ C⁻ : C.Obj} →
-            (A⁺ C.⊗₀ C⁻) C.⊗₀ (B⁻ C.⊗₀ B⁺) C.⇒ (B⁺ C.⊗₀ C⁻) C.⊗₀ (A⁺ C.⊗₀ B⁻)
-        γ = C.α⇒ C.∘ C.σ⇒ C.⊗₁ C.id C.∘ C.α⇐ C.∘ C.id C.⊗₁ (C.σ⇒ C.⊗₁ C.id)
-          C.∘ C.id C.⊗₁ C.α⇐ C.∘ C.α⇒ C.∘ C.id C.⊗₁ C.σ⇒
+        open W.WithTrace trace-resp-≈ trace-∘ˡ trace-∘ʳ trace-comm
 
         -- Identity laws.
         -- Strategy: split the two-wire loop with vanishing₂, rewrite each
         -- one-wire loop body into a framed yanking canonical form (the SMC
         -- coherence steps are solver lemmas in GConstructionIdentityCoherence),
         -- then collapse with trace-∘ˡ/∘ʳ + superposing + yanking.
-
-        -- trace of the yanking core: β at Q = R = X swaps the loop wire with
-        -- a parallel copy of itself, so its trace is the identity.
-        trace-βyank : ∀ {Y X : C.Obj} → C.trace (β {Y} {X} {X}) C.≈ C.id
-        trace-βyank =
-          C.superposing ○ (C.refl⟩⊗⟨ C.yanking) ○ C.⊗.identity
-
-        -- framed yanking: a loop whose body is a yanking core followed by
-        -- loop-independent processing g collapses to g.
-        trace-gyank : ∀ {Y X B' : C.Obj} {g : Y C.⊗₀ X C.⇒ B'} →
-                      C.trace (g C.⊗₁ C.id C.∘ β {Y} {X} {X}) C.≈ g
-        trace-gyank = ⟺ trace-∘ˡ ○ C.elimʳ trace-βyank
 
         -- identityˡ: id ∘G f ≈ f, i.e. trace(α ∘ σ⇒ ⊗₁ f ∘ γ) ≈ f
         identityˡ' : ∀ {A B : C.Obj × C.Obj}
@@ -139,33 +117,6 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
           where
             module ICW = GCohId.Transport.WithGen Cˢ
               (proj₁ A) (proj₂ A) (proj₁ B) (proj₂ B) (proj₁ A) f
-
-        -- Right superposing: trace(f) ⊗₁ id ≈ trace(β ∘ f ⊗₁ id ∘ β)
-        right-superposing : ∀ {X Y A' B'} {f' : A' C.⊗₀ X C.⇒ B' C.⊗₀ X} →
-          C.trace f' C.⊗₁ C.id {Y} C.≈ C.trace (β C.∘ f' C.⊗₁ C.id C.∘ β)
-        right-superposing {X} {Y} {A'} {B'} {f'} = begin
-          C.trace f' C.⊗₁ C.id
-            -- braiding: a ⊗₁ b ≈ σ⇒ ∘ (b ⊗₁ a) ∘ σ⇒ (from braiding naturality)
-            ≈⟨ braiding-swap ⟩
-          C.σ⇒ C.∘ C.id C.⊗₁ C.trace f' C.∘ C.σ⇒
-            -- superposing⁻¹: id ⊗₁ trace(f') → trace(α⇐ ∘ id ⊗₁ f' ∘ α⇒)
-            ≈⟨ refl⟩∘⟨ C.Equiv.sym C.superposing ⟩∘⟨refl ⟩
-          C.σ⇒ C.∘ C.trace (C.α⇐ C.∘ C.id C.⊗₁ f' C.∘ C.α⇒) C.∘ C.σ⇒
-            -- right naturality: trace(X) ∘ σ⇒ → trace(X ∘ (σ⇒ ⊗₁ id))
-            ≈⟨ refl⟩∘⟨ trace-∘ʳ ⟩
-          C.σ⇒ C.∘ C.trace ((C.α⇐ C.∘ C.id C.⊗₁ f' C.∘ C.α⇒) C.∘ C.σ⇒ C.⊗₁ C.id)
-            -- left naturality: σ⇒ ∘ trace(X) → trace((σ⇒ ⊗₁ id) ∘ X)
-            ≈⟨ trace-∘ˡ ⟩
-          C.trace (C.σ⇒ C.⊗₁ C.id C.∘ (C.α⇐ C.∘ C.id C.⊗₁ f' C.∘ C.α⇒) C.∘ C.σ⇒ C.⊗₁ C.id)
-            -- coherence: the transported free-level solver result
-            ≈⟨ trace-resp-≈ (GCohId.Transport.WithGen.RS Cˢ A' B' X X Y f') ⟩
-          C.trace (β C.∘ f' C.⊗₁ C.id C.∘ β)
-          ∎
-          where -- introduce σ⇒ ∘ σ⇒ ≈ id on the left, then braiding naturality
-                braiding-swap : C.trace f' C.⊗₁ C.id C.≈
-                  C.σ⇒ {Y} {B'} C.∘ C.id C.⊗₁ C.trace f' C.∘ C.σ⇒
-                braiding-swap = C.introˡ C.commutative
-                              ○ C.pullʳ (C.braiding.⇒.commute _)
 
         -- Associativity
         assoc' : ∀ {A B D E : C.Obj × C.Obj}

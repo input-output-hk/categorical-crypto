@@ -29,6 +29,7 @@ open import Data.Product using (_×_; _,_)
 import Categories.Category.Monoidal.Braided.Properties as BProps
 import Categories.Category.Monoidal.Utilities as U
 import Categories.GConstructionTensorCoherence as TCoh
+import Categories.GConstructionTrace as GT
 
 module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced Monoidal) where
 
@@ -45,13 +46,12 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
     Cˢ : SymmetricMonoidalCategory a b c
     Cˢ = record { U = C ; monoidal = Monoidal ; symmetric = C.symmetric }
 
-    β : ∀ {P Q R : C.Obj} → (P C.⊗₀ Q) C.⊗₀ R C.⇒ (P C.⊗₀ R) C.⊗₀ Q
-    β = C.α⇐ C.∘ C.id C.⊗₁ C.σ⇒ C.∘ C.α⇒
-
     module E₀ = Embed C Monoidal Traced
+    module W = GT C Monoidal Traced
 
   open C.HomReasoning
   open E₀ using (⌜_,_⌝; ⌜⌝-resp-≈)
+  open W using (α; β; γ)
 
   -- The middle-four interchange: an involution, and the only structural
   -- morphism the tensor of G-morphisms needs.
