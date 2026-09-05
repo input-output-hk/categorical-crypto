@@ -240,3 +240,11 @@ module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
       ; triangle = triangleᴳ
       ; pentagon = pentagonᴳ
       }
+
+    -- The bundle, and the entry point an instance should use.  Asking instead
+    -- for `Monoidal <the category spelled a second time>` makes Agda compare
+    -- two `GConstruction` record values field by field, and those fields are
+    -- solver witnesses — measured at the machine layer: >8 GB.  Projected from
+    -- ONE application, every field is syntactically shared.
+    GConstructionMonoidalCategory : MonoidalCategory a b c
+    GConstructionMonoidalCategory = record { U = G' ; monoidal = GConstructionMonoidal }
