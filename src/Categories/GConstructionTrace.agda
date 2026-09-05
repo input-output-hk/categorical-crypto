@@ -24,6 +24,7 @@ open import Categories.Category.Monoidal.Bundle
 import Categories.Category.Monoidal.Braided.Properties as BProps
 import Categories.Category.Monoidal.Utilities as U
 import Categories.GConstructionIdentityCoherence as GCohId
+import Categories.GConstructionTraceCoherence as TCoh
 
 private
   module C where
@@ -130,3 +131,15 @@ module WithTrace
     ∎
     where body₁ = β C.∘ u C.⊗₁ C.id {B'} C.∘ β
           body₂ = C.α⇐ C.∘ C.id {A} C.⊗₁ v C.∘ C.α⇒
+
+  -- …and that double trace is one trace over `X ⊗ Y`: the β-conjugations
+  -- `⊗-trace` leaves are the middle-four interchange of `u ⊗ v` (`TM`), so
+  -- `vanishing₂` merges the loops.  This is the traced category's own
+  -- "trace is monoidal", with no G-construction wiring in it.
+  ⊗-trace-mid : ∀ {X Y A A' B B' : C.Obj}
+                  {u : A C.⊗₀ X C.⇒ B C.⊗₀ X} {v : A' C.⊗₀ Y C.⇒ B' C.⊗₀ Y} →
+                C.trace u C.⊗₁ C.trace v C.≈ C.trace (mid C.∘ u C.⊗₁ v C.∘ mid)
+  ⊗-trace-mid {X} {Y} {A} {A'} {B} {B'} {u} {v} =
+    ⊗-trace
+    ○ trace-resp-≈ (trace-resp-≈ (TCoh.Transport.WithGens.TM Cˢ A A' B B' X Y u v))
+    ○ C.vanishing₂

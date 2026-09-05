@@ -4,22 +4,21 @@
 -- The monoidal structure of the G construction.  Objects tensor
 -- polarity-wise, `(A⁺,A⁻) ⊗ (B⁺,B⁻) = (A⁺ ⊗ B⁺ , A⁻ ⊗ B⁻)` with unit
 -- `(I,I)`, and morphisms tensor by conjugating the base tensor with the
--- middle-four interchange
+-- middle-four interchange `mid`, so `f ⊗₁ᴳ g` uses NO trace.
 --
---   mid : (P ⊗ Q) ⊗ (R ⊗ S) ⇒ (P ⊗ R) ⊗ (Q ⊗ S)
---
--- so `f ⊗₁ᴳ g = mid ∘ f ⊗₁ g ∘ mid` uses NO trace.  Every structural
--- morphism is an embedding `⌜ u , v ⌝`, so `⌜⌝-⊗` (embedding is
--- monoidal) plus `⌜⌝-∘` and `absorbˡ`/`absorbʳ` transport each base
--- coherence law; the base-level residues are solved in
--- `Categories.GConstructionTensorCoherence`.
+-- Every structural morphism is an embedding `⌜ u , v ⌝`, so `⌜⌝-⊗`
+-- (embedding is monoidal) with `⌜⌝-∘` and `absorbˡ`/`absorbʳ` transports
+-- each base coherence law.  The bifunctor's `homomorphism` is the one
+-- law that meets the trace: it compares the two composites' loops with
+-- the tensor's single loop, which `⊗-trace` fuses and `trace-mid`
+-- re-brackets.  All base-level residues are solver-discharged, in
+-- `GConstructionTensorCoherence` and `GConstructionHomCoherence`.
 ------------------------------------------------------------------------
 
 module Categories.GConstructionMonoidal where
 
 open import Categories.Category
 open import Categories.Category.Monoidal
-open import Categories.Category.Monoidal.Bundle
 open import Categories.Category.Monoidal.Traced
 open import Categories.GConstruction
 open import Categories.GConstructionEmbedding
@@ -28,36 +27,32 @@ open import Data.Product using (_×_; _,_)
 
 import Categories.Category.Monoidal.Braided.Properties as BProps
 import Categories.Category.Monoidal.Utilities as U
+import Categories.GConstructionHomCoherence as HCoh
+import Categories.GConstructionLoop as GL
 import Categories.GConstructionTensorCoherence as TCoh
 import Categories.GConstructionTrace as GT
 
-module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced Monoidal) where
+module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
 
   private
     module C where
       open Category C public
-      open Traced Traced public
-      open U Monoidal public using (triangle-inv; pentagon-inv)
-      open U.Shorthands Monoidal public
-      open import Categories.Category.Monoidal.Reasoning Monoidal public
-        using (_⟩⊗⟨_; refl⟩⊗⟨_)
+      open Traced T public
+      open U M public using (triangle-inv; pentagon-inv)
+      open U.Shorthands M public
+      open import Categories.Category.Monoidal.Reasoning M public
+        using (⊗-distrib-over-∘; _⟩⊗⟨_; refl⟩⊗⟨_)
       open BProps.Shorthands braided public
 
     Cˢ : SymmetricMonoidalCategory a b c
-    Cˢ = record { U = C ; monoidal = Monoidal ; symmetric = C.symmetric }
+    Cˢ = record { U = C ; monoidal = M ; symmetric = C.symmetric }
 
-    module E₀ = Embed C Monoidal Traced
-    module W = GT C Monoidal Traced
+    module E₀ = Embed C M T
+    module W = GT C M T
 
   open C.HomReasoning
   open E₀ using (⌜_,_⌝; ⌜⌝-resp-≈)
-  open W using (α; β; γ)
-
-  -- The middle-four interchange: an involution, and the only structural
-  -- morphism the tensor of G-morphisms needs.
-  mid : ∀ {P Q R S : C.Obj} →
-        (P C.⊗₀ Q) C.⊗₀ (R C.⊗₀ S) C.⇒ (P C.⊗₀ R) C.⊗₀ (Q C.⊗₀ S)
-  mid = C.α⇐ C.∘ C.id C.⊗₁ (C.α⇒ C.∘ C.σ⇒ C.⊗₁ C.id C.∘ C.α⇐) C.∘ C.α⇒
+  open W using (α; β; γ; mid)
 
   _⊗₀ᴳ_ : C.Obj × C.Obj → C.Obj × C.Obj → C.Obj × C.Obj
   (A⁺ , A⁻) ⊗₀ᴳ (B⁺ , B⁻) = A⁺ C.⊗₀ B⁺ , A⁻ C.⊗₀ B⁻
@@ -77,7 +72,7 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
                f C.≈ f' → g C.≈ g' → f ⊗₁ᴳ g C.≈ f' ⊗₁ᴳ g'
   ⊗₁ᴳ-resp-≈ e₁ e₂ = refl⟩∘⟨ ((e₁ C.⟩⊗⟨ e₂) ⟩∘⟨refl)
 
-  -- Embedding is monoidal, hence so are the identities it produces.
+  -- Embedding is monoidal.
   ⌜⌝-⊗ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ : C.Obj}
            {u : A⁺ C.⇒ B⁺} {v : B⁻ C.⇒ A⁻} {p : D⁺ C.⇒ E⁺} {q : E⁻ C.⇒ D⁻} →
          ⌜ u , v ⌝ ⊗₁ᴳ ⌜ p , q ⌝ C.≈ ⌜ u C.⊗₁ p , v C.⊗₁ q ⌝
@@ -96,10 +91,12 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
 
     private
       G' : Category a b c
-      G' = GConstruction C Monoidal Traced trace-resp-≈ trace-∘ˡ trace-∘ʳ trace-comm
+      G' = GConstruction C M T trace-resp-≈ trace-∘ˡ trace-∘ʳ trace-comm
       module G = Category G'
 
     open E₀.WithTrace trace-resp-≈ trace-∘ˡ trace-∘ʳ trace-comm
+    open GL.WithTrace C M T trace-resp-≈ trace-∘ˡ trace-∘ʳ trace-comm
+    open W.WithTrace trace-resp-≈ trace-∘ˡ trace-∘ʳ trace-comm using (⊗-trace-mid)
 
     -- `⌜⌝-⊗` with one factor the G-identity, which is `⌜ id , id ⌝`.
     ⌜⌝-⊗ˡ : ∀ {A⁺ A⁻ D⁺ D⁻ E⁺ E⁻ : C.Obj} {p : D⁺ C.⇒ E⁺} {q : E⁻ C.⇒ D⁻} →
@@ -116,6 +113,68 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
               ○ ⌜⌝-⊗
               ○ ⌜⌝-resp-≈ C.⊗.identity C.⊗.identity
               ○ ⌜⌝-id
+
+    -- The gate: the two composites' loops `B⁻⊗B⁺` and `Q⁻⊗Q⁺` fuse into
+    -- one nested double trace, and the tensor's own loop
+    -- `(B⁻⊗Q⁻)⊗(B⁺⊗Q⁺)` re-brackets to the same four wires.
+    homomorphismᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ P⁺ P⁻ Q⁺ Q⁻ R⁺ R⁻ : C.Obj}
+                      {f : A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺}
+                      {f′ : B⁺ C.⊗₀ D⁻ C.⇒ B⁻ C.⊗₀ D⁺}
+                      {g : P⁺ C.⊗₀ Q⁻ C.⇒ P⁻ C.⊗₀ Q⁺}
+                      {g′ : Q⁺ C.⊗₀ R⁻ C.⇒ Q⁻ C.⊗₀ R⁺} →
+                    G._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {D⁺ , D⁻} f′ f
+                      ⊗₁ᴳ G._∘_ {P⁺ , P⁻} {Q⁺ , Q⁻} {R⁺ , R⁻} g′ g
+                      C.≈ G._∘_ {A⁺ C.⊗₀ P⁺ , A⁻ C.⊗₀ P⁻}
+                                {B⁺ C.⊗₀ Q⁺ , B⁻ C.⊗₀ Q⁻}
+                                {D⁺ C.⊗₀ R⁺ , D⁻ C.⊗₀ R⁻}
+                                (f′ ⊗₁ᴳ g′) (f ⊗₁ᴳ g)
+    homomorphismᴳ {A⁺} {A⁻} {B⁺} {B⁻} {D⁺} {D⁻} {P⁺} {P⁻} {Q⁺} {Q⁻} {R⁺} {R⁻}
+                  {f} {f′} {g} {g′} = begin
+      mid C.∘ (C.trace Φ₁ C.⊗₁ C.trace Φ₂) C.∘ mid
+        ≈⟨ refl⟩∘⟨ (⊗-trace-mid ⟩∘⟨refl) ⟩
+      mid C.∘ C.trace (mid C.∘ Φ₁ C.⊗₁ Φ₂ C.∘ mid) C.∘ mid
+        ≈⟨ refl⟩∘⟨ trace-∘ʳ ⟩
+      mid C.∘ C.trace ((mid C.∘ Φ₁ C.⊗₁ Φ₂ C.∘ mid) C.∘ mid C.⊗₁ C.id)
+        ≈⟨ trace-∘ˡ ⟩
+      C.trace (mid C.⊗₁ C.id C.∘ (mid C.∘ Φ₁ C.⊗₁ Φ₂ C.∘ mid) C.∘ mid C.⊗₁ C.id)
+        ≈⟨ trace-resp-≈ (refl⟩∘⟨ ((refl⟩∘⟨ (⊗-expand ⟩∘⟨refl)) ⟩∘⟨refl)) ⟩
+      C.trace (mid C.⊗₁ C.id
+               C.∘ (mid C.∘ (α C.⊗₁ α C.∘ BoxL C.∘ γ C.⊗₁ γ) C.∘ mid) C.∘ mid C.⊗₁ C.id)
+        ≈⟨ trace-resp-≈ residue ⟩
+      C.trace (C.id C.⊗₁ mid
+               C.∘ (α C.∘ (mid C.⊗₁ mid C.∘ BoxR C.∘ mid C.⊗₁ mid) C.∘ γ) C.∘ C.id C.⊗₁ mid)
+        ≈˘⟨ trace-resp-≈ (refl⟩∘⟨ ((refl⟩∘⟨ (⊗-expand ⟩∘⟨refl)) ⟩∘⟨refl)) ⟩
+      C.trace (C.id C.⊗₁ mid C.∘ Ψ C.∘ C.id C.⊗₁ mid)
+        ≈˘⟨ trace-mid ⟩
+      C.trace Ψ
+      ∎
+      where
+        Φ₁ : (A⁺ C.⊗₀ D⁻) C.⊗₀ (B⁻ C.⊗₀ B⁺) C.⇒ (A⁻ C.⊗₀ D⁺) C.⊗₀ (B⁻ C.⊗₀ B⁺)
+        Φ₁ = α C.∘ f′ C.⊗₁ f C.∘ γ
+
+        Φ₂ : (P⁺ C.⊗₀ R⁻) C.⊗₀ (Q⁻ C.⊗₀ Q⁺) C.⇒ (P⁻ C.⊗₀ R⁺) C.⊗₀ (Q⁻ C.⊗₀ Q⁺)
+        Φ₂ = α C.∘ g′ C.⊗₁ g C.∘ γ
+
+        Ψ : ((A⁺ C.⊗₀ P⁺) C.⊗₀ (D⁻ C.⊗₀ R⁻))
+              C.⊗₀ ((B⁻ C.⊗₀ Q⁻) C.⊗₀ (B⁺ C.⊗₀ Q⁺)) C.⇒
+            ((A⁻ C.⊗₀ P⁻) C.⊗₀ (D⁺ C.⊗₀ R⁺))
+              C.⊗₀ ((B⁻ C.⊗₀ Q⁻) C.⊗₀ (B⁺ C.⊗₀ Q⁺))
+        Ψ = α C.∘ (f′ ⊗₁ᴳ g′) C.⊗₁ (f ⊗₁ᴳ g) C.∘ γ
+
+        BoxL = (f′ C.⊗₁ f) C.⊗₁ (g′ C.⊗₁ g)
+        BoxR = (f′ C.⊗₁ g′) C.⊗₁ (f C.⊗₁ g)
+
+        -- both sides' box product is `wiring ∘ boxes ∘ wiring`, by
+        -- ⊗-∘-distributivity twice
+        ⊗-expand : ∀ {V₀ V V′ V″ U₀ U U′ U″ : C.Obj}
+                     {u₂ : V′ C.⇒ V″} {u₁ : V C.⇒ V′} {u₀ : V₀ C.⇒ V}
+                     {v₂ : U′ C.⇒ U″} {v₁ : U C.⇒ U′} {v₀ : U₀ C.⇒ U} →
+                   (u₂ C.∘ u₁ C.∘ u₀) C.⊗₁ (v₂ C.∘ v₁ C.∘ v₀)
+                     C.≈ u₂ C.⊗₁ v₂ C.∘ u₁ C.⊗₁ v₁ C.∘ u₀ C.⊗₁ v₀
+        ⊗-expand = C.⊗-distrib-over-∘ ○ (refl⟩∘⟨ C.⊗-distrib-over-∘)
+
+        residue = HCoh.Transport.WithGens.HOM Cˢ A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ P⁺ P⁻ Q⁺ Q⁻ R⁺ R⁻
+                    f f′ g g′
 
     triangleᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ : C.Obj} →
                 G._∘_ (G.id {A⁺ , A⁻} ⊗₁ᴳ ⌜ C.λ⇒ , C.λ⇐ ⌝) ⌜ C.α⇒ , C.α⇐ ⌝
@@ -161,3 +220,23 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
       absorbˡ
       ○ TCoh.A.Transport.WithGens.AC Cˢ A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ P⁺ P⁻ Q⁺ Q⁻ f g h
       ○ ⟺ absorbʳ
+
+    GConstructionMonoidal : Monoidal G'
+    GConstructionMonoidal = monoidalHelper G' record
+      { ⊗ = record
+        { F₀ = λ (X , Y) → X ⊗₀ᴳ Y
+        ; F₁ = λ (u , v) → u ⊗₁ᴳ v
+        ; identity = identityᴳ
+        ; homomorphism = homomorphismᴳ
+        ; F-resp-≈ = λ (p , q) → ⊗₁ᴳ-resp-≈ p q
+        }
+      ; unit = unitᴳ
+      ; unitorˡ = unitorˡᴳ
+      ; unitorʳ = unitorʳᴳ
+      ; associator = associatorᴳ
+      ; unitorˡ-commute = unitorˡ-commuteᴳ
+      ; unitorʳ-commute = unitorʳ-commuteᴳ
+      ; assoc-commute = assoc-commuteᴳ
+      ; triangle = triangleᴳ
+      ; pentagon = pentagonᴳ
+      }
