@@ -33,9 +33,15 @@
 --                                  verdict interface, the observation at `Dₚ`
 --                `UC.QueryBound`   the amortised-potential certificate — a
 --                                  query bound with content; what it means on a
---                                  run is `UC.QueryBound.Counting`, and it
---                                  multiplies along composition by
---                                  `UC.QueryBound.Compose`
+--                                  run is `UC.QueryBound.Counting`, and
+--                                  `UC.QueryBound.Compose{,.Step,.Laws}` is
+--                                  where it multiplies along composition, up to
+--                                  `BudgetLawsᴹ`.  Only the counting theorem is
+--                                  re-exported below: the composition line
+--                                  spends the `Proc` inversion per field (its
+--                                  headers carry the measured costs), which no
+--                                  consumer of this entry point should pay
+--                                  unless it is assembling a `Budget`
 --                `UC.Machine.Grading`
 --                                  the grading laws, and the `Grading`/`Budget`
 --                                  assemblies they buy

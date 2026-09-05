@@ -19,6 +19,14 @@
 -- header describes: `γ` feeds `f` the external `Pos A` and the loop's `Neg B`,
 -- and `g` the external `Neg C` and the loop's `Pos B`; `α` sends `f`'s `Neg A`
 -- and `g`'s `Pos C` out of the composite and the other two back onto the loop.
+--
+-- MEASURED WARM COST 721 s, over this module's budget, and the profile says a
+-- split cannot fix it: `qbᵢ-∘` is 483 s, `Bd≈` 164 s and its `inner` 90 s — 96%
+-- of the total in three terms — while the whole `Pt` layer and both wire
+-- collapses come to 3 s.  All three are conversion rather than elaboration:
+-- each compares two spellings of one `Machine` at an interface sum, which is
+-- the `Proc` inversion `UC.QueryBound`'s header measures at ~1 GiB apiece.
+-- Splitting the cheap generic half out would leave 96% of the cost where it is.
 
 open import Categories.Category using (Category; _[_≈_])
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
