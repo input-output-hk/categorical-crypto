@@ -14,16 +14,16 @@
 -- Bodies, delays and continuations are explicit arguments throughout; that is what
 -- keeps the modules of this hierarchy elaborating in seconds.
 
-open import Data.Bool.Base using (true; false)
-open import Data.Nat.Base using (ℕ; zero; suc) renaming (_+_ to _+ℕ_; _≤_ to _≤ℕ_)
+open import Data.Bool.Base
+open import Data.Nat.Base renaming (_+_ to _+ℕ_; _≤_ to _≤ℕ_)
 open import Data.Nat.Properties using (m≤n+m; n≤1+n)
-open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
-open import Data.Rational as ℚ using (ℚ)
-open import Data.Rational.Properties using (≤-refl; ≤-reflexive; ≤-trans)
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Function.Base using (_∘′_)
+open import Data.Product.Base
+open import Data.Rational as ℚ
+open import Data.Rational.Properties
+open import Data.Sum.Base
+open import Function.Base
 open import Level using (Level)
-open import Relation.Binary.PropositionalEquality using (_≡_; sym; trans; cong; cong₂)
+open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Dp
 
@@ -138,8 +138,7 @@ Tᵗ-nn : (u : Body S A B) (P : S × B → ℚ) (j : ℕ) → NNF P → NNF (T�
 Tᵗ-nn u P j nn (s , inj₁ b) = nn (s , b)
 Tᵗ-nn u P j nn (s , inj₂ p) = cum-nn j (iterₚ u (s , p)) P nn
 
-Tᵗ-mono : (u : Body S A B) (P : S × B → ℚ) → NNF P → j ≤ℕ k
-        → ∀ r → Tᵗ u P j r ℚ.≤ Tᵗ u P k r
+Tᵗ-mono : (u : Body S A B) (P : S × B → ℚ) → NNF P → j ≤ℕ k → ∀ r → Tᵗ u P j r ℚ.≤ Tᵗ u P k r
 Tᵗ-mono u P nn le (s , inj₁ b) = ≤-refl
 Tᵗ-mono u P nn le (s , inj₂ p) = cum-mono le (iterₚ u (s , p)) P nn
 

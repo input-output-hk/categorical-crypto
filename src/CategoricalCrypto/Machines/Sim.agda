@@ -14,11 +14,11 @@
 -- this module alone, which is what keeps it out of the two coherence-only
 -- modules (`Machines.Frame`, `Machines.Reassoc`).
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Pure using (PureSub)
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
-open import Level using (_⊔_)
+open import Level
 open import Relation.Binary using (IsEquivalence)
 import Relation.Binary.Construct.Closure.Equivalence as EqC
 

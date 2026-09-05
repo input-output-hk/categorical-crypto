@@ -13,26 +13,26 @@
 -- report honestly.  The audit form survives below as the gadget the transfer
 -- lemma applies to.
 
-open import Class.DecEq using (DecEq-List; DecEq-Bool)
+open import Class.DecEq
 
-open import Data.Bool.Base using (Bool; true; false; not; if_then_else_)
+open import Data.Bool.Base
 open import Data.Fin.Base using () renaming (zero to fzero)
-open import Data.List.Base using (List; []; _∷_)
-open import Data.Maybe.Base using (Maybe; just; nothing)
-open import Data.Nat.Base using (ℕ; zero; suc)
-  renaming (_+_ to _+ᴺ_; _*_ to _*ᴺ_; _≡ᵇ_ to _≡ᴺ_)
-open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
-open import Data.Rational using (ℚ; _*_) renaming (_+_ to _+ℚ_; _≤_ to _≤ℚ_)
-open import Data.Rational.Properties using (≤-trans)
-open import Data.Unit.Base using (tt)
-open import Relation.Binary.PropositionalEquality using (_≡_)
+open import Data.List.Base
+open import Data.Maybe.Base
+open import Data.Nat.Base renaming (_+_ to _+ᴺ_; _*_ to _*ᴺ_; _≡ᵇ_ to _≡ᴺ_)
+open import Data.Product.Base
+open import Data.Rational renaming (_+_ to _+ℚ_; _≤_ to _≤ℚ_)
+open import Data.Rational.Properties
+open import Function.Base
+open import Data.Unit.Base
+open import Relation.Binary.PropositionalEquality
 
-open import ProbabilisticLogic.Prelude using (fromℕ; inv-pow-2)
+open import ProbabilisticLogic.Prelude
 
 open import CategoricalCrypto.Examples.ChimericLedger
-open import CategoricalCrypto.Examples.RandomOracle using (module RandomOracle)
+open import CategoricalCrypto.Examples.RandomOracle
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.OracleCall using (mapCall; reCall)
+open import CategoricalCrypto.OracleCall
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
@@ -69,11 +69,9 @@ oracle : Protocol unitᴵ HashIf
 oracle = record { St = RO.Table ; init = [] ; step = go }
   where
     go : RO.Table → RO.Input → Calls unitᴵ (RO.Table × RO.Output)
-    go tbl (i , q) = found (RO.lookup-bs tbl q)
-      where
-        found : Maybe RO.Out → Calls unitᴵ (RO.Table × RO.Output)
-        found (just h) = ret (tbl , (i , h))
-        found nothing  = uniformVec ℓ λ h → ret ((q , h) ∷ tbl , (i , h))
+    go tbl (i , q) = case RO.lookup-bs tbl q of λ where
+      (just h) → ret (tbl , (i , h))
+      nothing  → uniformVec ℓ λ h → ret ((q , h) ∷ tbl , (i , h))
 
 -- `submit` serializes and calls; `audit` answers purely.  `reCall` tags the
 -- query and drops the party index from the reply, `mapCall` wraps the
@@ -93,15 +91,10 @@ Sys vr s₀ = ledger vr s₀ ∘ᵖ oracle
 -- The statement
 ------------------------------------------------------------------------
 
--- The system's state is the two components' — the ledger's is a projection.
-ledgerOf : LState × RO.Table → LState
-ledgerOf = proj₁
-
+-- The system's state is the two components'; the ledger's is the first.
 badTotal : LState → LState × RO.Table → Bool
-badTotal s₀ st = not (total (ledgerOf st) ≡ᴺ total s₀)
+badTotal s₀ st = not (total (proj₁ st) ≡ᴺ total s₀)
 
--- THE STATEMENT: the bad event is a reached state, not an answer the ledger
--- gave about itself.
 POV : Variant → LState → (ℕ → ℚ) → Set
 POV vr s₀ = BoundedHit (Sys vr s₀) (badTotal s₀)
 
@@ -109,9 +102,8 @@ POV vr s₀ = BoundedHit (Sys vr s₀) (badTotal s₀)
 -- The audit-form gadget
 ------------------------------------------------------------------------
 
--- Reading the ledger's own answers is not the statement, but it is the form
--- the transfer lemma applies to.  `watch` depends only on the audited
--- invariant, so both variants are watched by the same transformation.
+-- `watch` depends only on the audited invariant, so both variants are watched
+-- by the same transformation.
 module _ (s₀ : LState) where
 
   violates : Answer → Bool

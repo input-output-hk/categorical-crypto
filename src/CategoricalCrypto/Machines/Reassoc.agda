@@ -14,14 +14,14 @@
 -- crossings named as generators, the object parser being unable to recover
 -- them itself.
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
+open import Categories.Category.Monoidal.Bundle
 open import Categories.Coherence.Monoidal
-open import Categories.Coherence.Monoidal.Tactic using (solve-mor)
+open import Categories.Coherence.Monoidal.Tactic
 import Categories.Category.Monoidal.Braided.Properties as BraidedProps
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
-open import Data.Fin using (#_)
-open import Data.Product using (_,_)
+open import Data.Fin
+open import Data.Product
 open import Data.Vec using (_∷_; [])
 
 import CategoricalCrypto.Machines.Core as Core
@@ -59,8 +59,7 @@ onL-α {P = P} {X = X} {Y = Y} {Q = Q} {R = R} h = solved ○ ⟺ (split ⟩∘�
           ≈ (α⇐ ∘ id {P} ⊗₁ ((α⇐ ∘ (id ⊗₁ σ⇒ ∘ (α⇒ ∘ σ⇒ ⊗₁ id))) ∘ α⇐) ∘ α⇒)
             ∘ (h ⊗₁ id
             ∘ (α⇐ ∘ id {P} ⊗₁ (α⇒ ∘ (((σ⇒ ⊗₁ id ∘ α⇐) ∘ id ⊗₁ σ⇒) ∘ α⇒)) ∘ α⇒))
-    split = (refl⟩∘⟨ refl⟩⊗⟨ σ-splitˡ ⟩∘⟨refl)
-              ⟩∘⟨ refl⟩∘⟨ (refl⟩∘⟨ refl⟩⊗⟨ σ-splitʳ ⟩∘⟨refl)
+    split = (refl⟩∘⟨ refl⟩⊗⟨ σ-splitˡ ⟩∘⟨refl) ⟩∘⟨ refl⟩∘⟨ (refl⟩∘⟨ refl⟩⊗⟨ σ-splitʳ ⟩∘⟨refl)
 
     solved : α⇒ {P} {Q} {R} ⊗₁ id ∘ onL {Q = R} (onL {Q = Q} h)
            ≈ ((α⇐ ∘ id {P} ⊗₁ ((α⇐ ∘ (id ⊗₁ σ⇒ ∘ (α⇒ ∘ σ⇒ ⊗₁ id))) ∘ α⇐) ∘ α⇒)
@@ -83,10 +82,8 @@ onL-α {P = P} {X = X} {Y = Y} {Q = Q} {R = R} h = solved ○ ⟺ (split ⟩∘�
           swpQₒ = S.α⇐ S.∘ S.id {p} S.⊗₁ σyq S.∘ S.α⇒
           swpRᵢ = S.α⇐ S.∘ S.id {p ⊗ᵒ q} S.⊗₁ σrx S.∘ S.α⇒
           swpRₒ = S.α⇐ S.∘ S.id {p ⊗ᵒ q} S.⊗₁ σyr S.∘ S.α⇒
-          splitˡ = (S.α⇐ S.∘ (S.id {q} S.⊗₁ σyr S.∘ (S.α⇒ S.∘ σyq S.⊗₁ S.id {r})))
-                     S.∘ S.α⇐
-          splitʳ = S.α⇒ S.∘ (((σqx S.⊗₁ S.id {r} S.∘ S.α⇐) S.∘ S.id {q} S.⊗₁ σrx)
-                     S.∘ S.α⇒)
+          splitˡ = (S.α⇐ S.∘ (S.id {q} S.⊗₁ σyr S.∘ (S.α⇒ S.∘ σyq S.⊗₁ S.id {r}))) S.∘ S.α⇐
+          splitʳ = S.α⇒ S.∘ (((σqx S.⊗₁ S.id {r} S.∘ S.α⇐) S.∘ S.id {q} S.⊗₁ σrx) S.∘ S.α⇒)
           onLᵗ = swpQₒ S.∘ hᵗ S.⊗₁ S.id {q} S.∘ swpQᵢ
       in solveMor! (S.α⇒ S.⊗₁ S.id {y} S.∘ swpRₒ S.∘ onLᵗ S.⊗₁ S.id {r} S.∘ swpRᵢ)
                    (((S.α⇐ S.∘ S.id {p} S.⊗₁ splitˡ S.∘ S.α⇒)

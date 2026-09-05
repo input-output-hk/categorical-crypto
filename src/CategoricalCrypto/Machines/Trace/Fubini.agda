@@ -14,8 +14,8 @@
 -- fusion then cancel against `β+`'s own (`α+⇒-β+`, `β+-α+⇐`), which is why the
 -- swap that survives is `+-swap` alone.
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Pure using (PureSub)
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
 import Categories.Category.Cocartesian.Ext as CE
 import Categories.Category.Monoidal.Distributive as MD
 
@@ -38,13 +38,13 @@ open Congruence 𝒱 dist 𝒫 E
 open Core 𝒱
 open Equiv
 open Iteration.Elgot E
-open MCat 𝒱 𝒫 using (∘ᴹ-resp-≈ᴹ)
+open MCat 𝒱 𝒫
 open MD.MonoidalDistributive dist
 open PureSub 𝒫
 open Sim 𝒱 𝒫
 open Tensor 𝒱 dist 𝒫
 open Trace 𝒱 dist 𝒫 E
-open Vanishing 𝒱 dist 𝒫 E using ([]-δ⇐; vanish-step)
+open Vanishing 𝒱 dist 𝒫 E
 
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Morphism.Reasoning U

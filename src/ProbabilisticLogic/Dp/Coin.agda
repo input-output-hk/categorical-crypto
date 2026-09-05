@@ -7,17 +7,17 @@
 -- for.  `coinₚ-cum` is the agreement: the coin scores every test the
 -- distribution does, exactly, at any budget past the two branch steps.
 
-open import Data.Bool.Base using (Bool; true; false; not)
-open import Data.Nat.Base using (ℕ; suc)
-open import Data.Rational as ℚ using (ℚ; 0ℚ; 1ℚ)
-open import Data.Rational.Properties as ℚP using (≤-refl; ≤-reflexive; ≤-trans)
-open import Data.Rational.Properties.Ext using (0≤1ℚ)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; cong₂)
+open import Data.Bool.Base
+open import Data.Nat.Base
+open import Data.Rational as ℚ
+open import Data.Rational.Properties as ℚP
+open import Data.Rational.Properties.Ext
+open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Distribution.RationalDist
-  using (Dist-ℚ; entries; lookupᴰℚ; lookupᴰℚ-cong-P; lookupᴰℚ-+; lookupᴰℚ-*ₗ)
-open import ProbabilisticLogic.Distribution.RationalDist.Expectation using (E; E-const; E-mono)
-open import ProbabilisticLogic.Distribution.Uniform using (bool→ℚ)
+
+open import ProbabilisticLogic.Distribution.RationalDist.Expectation
+open import ProbabilisticLogic.Distribution.Uniform
 open import ProbabilisticLogic.Dp
 
 module ProbabilisticLogic.Dp.Coin where

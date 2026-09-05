@@ -243,16 +243,14 @@ braiding-commuteᵏ {f = f} {g} (a , b) = begin
 triangleᵏ : ((return ⊗ᵏ λ⇒ᵏ {B}) <=< α⇒ᵏ {A} {⊤ᵏ}) ≈ᵏ (ρ⇒ᵏ ⊗ᵏ return)
 triangleᵏ ((_ , _) , _) = >>=-identityˡ-≈
 
-pentagonᵏ : ((return ⊗ᵏ α⇒ᵏ {B} {C} {D}) <=< (α⇒ᵏ <=< (α⇒ᵏ {A} ⊗ᵏ return)))
-          ≈ᵏ (α⇒ᵏ <=< α⇒ᵏ)
+pentagonᵏ : ((return ⊗ᵏ α⇒ᵏ {B} {C} {D}) <=< (α⇒ᵏ <=< (α⇒ᵏ {A} ⊗ᵏ return))) ≈ᵏ (α⇒ᵏ <=< α⇒ᵏ)
 pentagonᵏ = pureᵏ-⊗ id assocʳ′ ⟩∘⟨ (refl⟩∘⟨ pureᵏ-⊗ assocʳ′ id)
           ○ refl⟩∘⟨ pureᵏ-∘ _ _
           ○ pureᵏ-∘ _ _
           ○ pureᵏ-cong (λ where (((_ , _) , _) , _) → refl)
           ○ ⟺ (pureᵏ-∘ _ _)
 
-hexagonᵏ : ((return ⊗ᵏ σᵏ {A} {C}) <=< (α⇒ᵏ <=< (σᵏ {A} {B} ⊗ᵏ return)))
-         ≈ᵏ (α⇒ᵏ <=< (σᵏ <=< α⇒ᵏ))
+hexagonᵏ : ((return ⊗ᵏ σᵏ {A} {C}) <=< (α⇒ᵏ <=< (σᵏ {A} {B} ⊗ᵏ return))) ≈ᵏ (α⇒ᵏ <=< (σᵏ <=< α⇒ᵏ))
 hexagonᵏ = pureᵏ-⊗ id swap ⟩∘⟨ (refl⟩∘⟨ pureᵏ-⊗ swap id)
          ○ refl⟩∘⟨ pureᵏ-∘ _ _
          ○ pureᵏ-∘ _ _

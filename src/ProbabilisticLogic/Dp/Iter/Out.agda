@@ -15,18 +15,17 @@
 -- needs no such split because on that side the sandwich is applied in the opposite
 -- order.
 
-open import Data.Nat.Base using (ℕ; zero; suc) renaming (_+_ to _+ℕ_; _≤_ to _≤ℕ_)
+open import Data.Nat.Base renaming (_+_ to _+ℕ_; _≤_ to _≤ℕ_)
 open import Data.Nat.Properties using (n≤1+n)
-open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
-open import Data.Rational as ℚ using (ℚ)
-open import Data.Rational.Properties using (≤-refl; ≤-reflexive; ≤-trans)
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Function.Base using (_∘′_)
+open import Data.Product.Base
+open import Data.Rational as ℚ
+open import Data.Rational.Properties
+open import Data.Sum.Base
+open import Function.Base
 open import Level using (Level)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans)
+open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Dp
-open import ProbabilisticLogic.Dp.Commutative using (cum-cong-P)
 open import ProbabilisticLogic.Dp.Iter
 
 module ProbabilisticLogic.Dp.Iter.Out where

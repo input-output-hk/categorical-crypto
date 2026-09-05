@@ -11,16 +11,16 @@
 -- The hom equality lives in `CategoricalCrypto.Machines.Sim`, which needs a
 -- class of state maps this module does not.
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
+open import Categories.Category.Monoidal.Bundle
 import Categories.Category.Monoidal.Braided.Properties as BraidedProps
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
-open import Level using (_⊔_)
+open import Level
 
 module CategoricalCrypto.Machines.Core {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e) where
 
 open SymmetricMonoidalCategory 𝒱
-open BraidedProps.Shorthands braided using (σ⇒)
+open BraidedProps.Shorthands braided
 open MonoidalUtilities.Shorthands monoidal
 
 private variable A B P Q R X Y : Obj

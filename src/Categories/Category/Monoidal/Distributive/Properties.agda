@@ -4,7 +4,7 @@
 -- coproduct side's coherence chains: a map out of a distributed sum is its two
 -- branches, so a ⊕-side equation is a pair of branch goals.
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
+open import Categories.Category.Monoidal.Bundle
 import Categories.Category.Monoidal.Distributive as MD
 
 module Categories.Category.Monoidal.Distributive.Properties

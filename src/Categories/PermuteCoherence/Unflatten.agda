@@ -17,18 +17,18 @@
 ------------------------------------------------------------------------
 
 open import Categories.FreeMonoidal
-open import Level using (Level)
+open import Level
 
 module Categories.PermuteCoherence.Unflatten
   {ℓ′ : Level} (d : FreeMonoidalData {ℓ′}) ⦃ s≤v : Symm ≤ FreeMonoidalData.v d ⦄ where
 
 open FreeMonoidal d
-open FreeMonoidalData d using (v; X; mor)
+open FreeMonoidalData d
 
 open import Data.List.Base using (List; _++_)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 
-open import Categories.Morphism FreeMonoidal using (_≅_)
+open import Categories.Morphism FreeMonoidal
 
 -- the wire kit, which `FreeMonoidal d`'s `hiding` list keeps out of the APROP
 -- namespace (the solver stack opens `Mor` directly for the same reason)
@@ -58,6 +58,5 @@ unflatten-++-≅ xs ys = record
 permute : ∀ {xs ys : List X} → xs Perm.↭ ys → HomTerm (unflatten xs) (unflatten ys)
 permute Perm.refl         = id
 permute (Perm.prep x p)   = id ⊗₁ permute p
-permute (Perm.swap x y p) =
-  (id ⊗₁ (id ⊗₁ permute p)) ∘ α⇒ ∘ (σ ⊗₁ id) ∘ α⇐
+permute (Perm.swap x y p) = (id ⊗₁ (id ⊗₁ permute p)) ∘ α⇒ ∘ (σ ⊗₁ id) ∘ α⇐
 permute (Perm.trans p q)  = permute q ∘ permute p

@@ -8,12 +8,12 @@
 --
 -- `asks≤ n` bounds the ask-depth of every branch; coins are free.
 
-open import Data.Bool.Base using (Bool)
-open import Data.Empty using (⊥)
-open import Data.Nat.Base using (ℕ; zero; suc)
-open import Data.Unit.Base using (⊤)
+open import Data.Bool.Base
+open import Data.Empty
+open import Data.Nat.Base
+open import Data.Unit.Base
 
-open import ProbabilisticLogic.Prelude using (Dist-ℚ)
+open import ProbabilisticLogic.Prelude
 
 module CategoricalCrypto.Strategy where
 

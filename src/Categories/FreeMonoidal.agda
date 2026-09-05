@@ -17,7 +17,7 @@ open import Categories.Category.Helper
 open import Categories.Category.Monoidal
 open import Categories.Category.Monoidal.Symmetric
 open import Categories.Functor using (Functor)
-open import Categories.Functor.Monoidal using (IsMonoidalFunctor)
+open import Categories.Functor.Monoidal
 open import Categories.NaturalTransformation using (ntHelper)
 open import Categories.NaturalTransformation.NaturalIsomorphism.Properties
 

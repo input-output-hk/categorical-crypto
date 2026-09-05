@@ -22,11 +22,11 @@ module Categories.GConstructionEmbedding where
 
 open import Categories.Category
 open import Categories.Category.Monoidal
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
+open import Categories.Category.Monoidal.Bundle
 open import Categories.Category.Monoidal.Traced
-open import Categories.GConstruction using (GConstruction)
+open import Categories.GConstruction
 
-open import Data.Product using (_×_; _,_)
+open import Data.Product
 
 import Categories.Category.Monoidal.Braided.Properties as BProps
 import Categories.Category.Monoidal.Utilities as U
@@ -53,8 +53,7 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
 
   -- `u` acts on the positive polarity, `v` on the negative one.  The
   -- G-identity at `(A⁺ , A⁻)` is `⌜ id , id ⌝`.
-  ⌜_,_⌝ : ∀ {A⁺ A⁻ B⁺ B⁻ : C.Obj} → A⁺ C.⇒ B⁺ → B⁻ C.⇒ A⁻ →
-          A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺
+  ⌜_,_⌝ : ∀ {A⁺ A⁻ B⁺ B⁻ : C.Obj} → A⁺ C.⇒ B⁺ → B⁻ C.⇒ A⁻ → A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺
   ⌜ u , v ⌝ = C.σ⇒ C.∘ u C.⊗₁ v
 
   private module MC = Mor C
@@ -127,8 +126,7 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
 
     -- Hence a pair of base isos embeds as a G-iso, which is what makes every
     -- structural morphism of the Int/G construction invertible.
-    ⌜⌝-≅ : ∀ {A⁺ A⁻ B⁺ B⁻ : C.Obj} → MC._≅_ A⁺ B⁺ → MC._≅_ B⁻ A⁻ →
-           MG._≅_ (A⁺ , A⁻) (B⁺ , B⁻)
+    ⌜⌝-≅ : ∀ {A⁺ A⁻ B⁺ B⁻ : C.Obj} → MC._≅_ A⁺ B⁺ → MC._≅_ B⁻ A⁻ → MG._≅_ (A⁺ , A⁻) (B⁺ , B⁻)
     ⌜⌝-≅ u v = record
       { from = ⌜ u.from , v.from ⌝
       ; to   = ⌜ u.to , v.to ⌝
@@ -143,12 +141,10 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
     -- The structural isos of the pairwise tensor `(A⁺,A⁻) ⊗ (B⁺,B⁻) =
     -- (A⁺⊗B⁺ , A⁻⊗B⁻)` with unit `(I,I)`: each polarity gets the base iso, the
     -- negative one reversed.
-    unitorˡᴳ : ∀ {A⁺ A⁻ : C.Obj} →
-               MG._≅_ (C.unit C.⊗₀ A⁺ , C.unit C.⊗₀ A⁻) (A⁺ , A⁻)
+    unitorˡᴳ : ∀ {A⁺ A⁻ : C.Obj} → MG._≅_ (C.unit C.⊗₀ A⁺ , C.unit C.⊗₀ A⁻) (A⁺ , A⁻)
     unitorˡᴳ = ⌜⌝-≅ C.unitorˡ (MC.≅.sym C.unitorˡ)
 
-    unitorʳᴳ : ∀ {A⁺ A⁻ : C.Obj} →
-               MG._≅_ (A⁺ C.⊗₀ C.unit , A⁻ C.⊗₀ C.unit) (A⁺ , A⁻)
+    unitorʳᴳ : ∀ {A⁺ A⁻ : C.Obj} → MG._≅_ (A⁺ C.⊗₀ C.unit , A⁻ C.⊗₀ C.unit) (A⁺ , A⁻)
     unitorʳᴳ = ⌜⌝-≅ C.unitorʳ (MC.≅.sym C.unitorʳ)
 
     associatorᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : C.Obj} →

@@ -5,8 +5,8 @@
 -- `[_,_]`s and every equation below is `inject₁`/`inject₂`; the ⊕-side
 -- bookkeeping of the machine layer's trace laws is exactly these facts.
 
-open import Categories.Category.Core using (Category)
-open import Categories.Category.Cocartesian using (Cocartesian)
+open import Categories.Category.Cocartesian
+open import Categories.Category.Core
 
 import Categories.Category.Cocartesian as Cocart
 
@@ -28,7 +28,7 @@ module ⊕ = Cocart.CocartesianMonoidal C cocart
 +-unique₂ e₁ e₂ = ⟺ +-g-η ○ []-cong₂ e₁ e₂ ○ +-g-η
 
 +₁-id : id {A} +₁ id {B} ≈ id
-+₁-id = ⟺ (+-unique (+₁∘i₁ ○ identityʳ) (+₁∘i₂ ○ identityʳ)) ○ +-η
++₁-id = ⊕.⊗.identity
 
 α+⇒ : (A + B) + D ⇒ A + (B + D)
 α+⇒ = ⊕.associator.from

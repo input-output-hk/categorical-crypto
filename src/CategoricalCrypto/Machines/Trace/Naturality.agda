@@ -11,8 +11,8 @@
 -- split is the whole speedup: measured warm, the two apart were 7 s + 7 s where
 -- together in one file they were 397 s, for an identical proof term.
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Pure using (PureSub)
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
@@ -69,8 +69,7 @@ trace-∘ˡ {A} {B} {C} {X} g f =
     s-ok : (ρ⇒ ⊗₁ id) ⊗₁ id ∘ (m ∘ onR (traceStep (state f) A B X (step f)))
          ≈ (onL (step g) ∘ onR (traceStep (state f) A B X (step f)))
            ∘ (ρ⇒ ⊗₁ id) ⊗₁ id
-    s-ok = pullˡ (onL-sim onL-collapseʳ) ○ assoc
-         ○ (refl⟩∘⟨ onR-sim id⊗id-comm) ○ sym-assoc
+    s-ok = pullˡ (onL-sim onL-collapseʳ) ○ assoc ○ (refl⟩∘⟨ onR-sim id⊗id-comm) ○ sym-assoc
 
 trace-∘ʳ : {A B C X : Obj} (f : Machine (A + X) (B + X)) (h : Machine C A)
          → (traceᴹ A B X f ∘ᴹ h) ≈ᴹ traceᴹ C B X (f ∘ᴹ (h ⊗ᵉ idᴹ {X}))
@@ -93,5 +92,4 @@ trace-∘ʳ {A} {B} {C} {X} f h =
     s-ok : (id ⊗₁ ρ⇒) ⊗₁ id ∘ (onL (traceStep (state f) A B X (step f)) ∘ n)
          ≈ (onL (traceStep (state f) A B X (step f)) ∘ onR (step h))
            ∘ (id ⊗₁ ρ⇒) ⊗₁ id
-    s-ok = pullˡ (onL-sim id⊗id-comm) ○ assoc
-         ○ (refl⟩∘⟨ onR-sim onL-collapseʳ) ○ sym-assoc
+    s-ok = pullˡ (onL-sim id⊗id-comm) ○ assoc ○ (refl⟩∘⟨ onR-sim onL-collapseʳ) ○ sym-assoc

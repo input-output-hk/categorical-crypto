@@ -15,16 +15,15 @@
 -- indistinguishable one with `δ` added, which is how a UC emulation carries a
 -- safety property from the ideal world to the real one.
 
-open import Data.Bool.Base using (Bool; _∨_)
-open import Data.Empty using (⊥-elim)
-open import Data.Nat.Base using (ℕ)
-open import Data.Product.Base using (_×_; _,_)
-open import Data.Rational using (ℚ)
-  renaming (_+_ to _+ℚ_; _-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
-open import Data.Rational.Properties using (+-comm; +-mono-≤; +-monoˡ-≤; module ≤-Reasoning)
-open import Data.Rational.Properties.Ext using (p≤∣p∣; −-+-cancel)
-open import Data.Maybe.Base using (nothing)
-open import Relation.Binary.PropositionalEquality using (subst; sym)
+open import Data.Bool.Base
+open import Data.Empty
+open import Data.Maybe.Base
+open import Data.Nat.Base
+open import Data.Product.Base
+open import Data.Rational renaming (_+_ to _+ℚ_; _-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
+open import Data.Rational.Properties
+open import Data.Rational.Properties.Ext
+open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Prelude
 

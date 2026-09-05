@@ -11,11 +11,11 @@
 -- braiding's is the state braiding `σ⇒` exchanging the two state actions
 -- (`σ-onL`/`σ-onR`) while `tstep-swap` exchanges the interface summands.
 
-open import Categories.Category.Core using (Category)
-open import Categories.Category.Monoidal.Braided using (Braided)
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Pure using (PureSub)
-open import Categories.Category.Monoidal.Symmetric using (Symmetric)
+open import Categories.Category.Core
+open import Categories.Category.Monoidal.Braided
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
+open import Categories.Category.Monoidal.Symmetric
 import Categories.Category.Cocartesian as Cocart
 import Categories.Category.Cocartesian.Ext as CE
 import Categories.Category.Monoidal.Braided.Properties as BraidedProps
@@ -34,7 +34,7 @@ module CategoricalCrypto.Machines.Tensor.Structural
   (dist : MD.MonoidalDistributive 𝒱) (𝒫 : PureSub 𝒱) where
 
 open SymmetricMonoidalCategory 𝒱
-open BraidedProps.Shorthands braided using (σ⇒)
+open BraidedProps.Shorthands braided
 open Core 𝒱
 open Equiv
 open Frame 𝒱

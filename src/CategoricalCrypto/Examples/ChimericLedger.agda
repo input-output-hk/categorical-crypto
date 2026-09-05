@@ -23,16 +23,16 @@
 
 open import Class.DecEq
 
-open import Data.Bool.Base using (Bool; true; false; not; if_then_else_; _∧_)
+open import Data.Bool.Base
 open import Data.List.Base using (List; []; _∷_; map; foldl; null)
-open import Data.Nat.ListAction using (sum)
-open import Data.Maybe.Base using (Maybe; just; nothing; is-just) renaming (map to mapᵐ)
-open import Data.Nat.Base using (ℕ; zero; suc; _+_; _∸_; _≤ᵇ_) renaming (_≡ᵇ_ to _≡ᴺ_)
+open import Data.Maybe.Base renaming (map to mapᵐ)
+open import Data.Nat.Base renaming (_≡ᵇ_ to _≡ᴺ_)
+open import Data.Nat.ListAction
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Vec.Base using (Vec; replicate)
-open import Function.Base using (_∘_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open import Relation.Nullary.Decidable.Core using (⌊_⌋)
+open import Function.Base
+open import Relation.Binary.PropositionalEquality
+open import Relation.Nullary.Decidable.Core
 
 open import CategoricalCrypto.OracleCall
 
@@ -117,11 +117,9 @@ module Ledger (ℓ : ℕ) where
   -- fails its lookup.  Returns the value consumed and the surviving UTxO set.
   checkIns : Utxo → List TxIn → Maybe (ℕ × Utxo)
   checkIns u []       = just (0 , u)
-  checkIns u (i ∷ is) = found (lookupU u i)
-    where found : Maybe TxOut → Maybe (ℕ × Utxo)
-          found nothing  = nothing
-          found (just o) = mapᵐ (λ vu → proj₂ o + proj₁ vu , proj₂ vu)
-                                (checkIns (removeIn i u) is)
+  checkIns u (i ∷ is) = case lookupU u i of λ where
+    nothing  → nothing
+    (just o) → mapᵐ (λ vu → proj₂ o + proj₁ vu , proj₂ vu) (checkIns (removeIn i u) is)
 
   -- Debit the withdrawals one at a time: each is checked against the
   -- already-debited accounts, so the debit is always exact.
@@ -145,14 +143,12 @@ module Ledger (ℓ : ℕ) where
 
     applyTx : Variant → LState → Tx → Call (List Bool) Hash (LState × Bool)
     applyTx vr s@(u , a) tx@(ins , wds , outs) =
-      accept (checkIns u ins) (checkWdrls a wds)
-      where
-        accept : Maybe (ℕ × Utxo) → Maybe Accts → Call (List Bool) Hash (LState × Bool)
-        accept (just (vIn , u′)) (just a′) =
+      case checkIns u ins , checkWdrls a wds of λ where
+        (just (vIn , u′) , just a′) →
           if (vIn + wdrlΣ wds ≡ᴺ valΣ outs) ∧ consumes vr ins
             then callᶜ (ser tx) (λ h → (unionNew u′ (outsAt h 0 outs) , a′) , true)
             else pureᶜ (s , false)
-        accept _ _ = pureᶜ (s , false)
+        _ → pureᶜ (s , false)
 
 ------------------------------------------------------------------------
 -- The replay attack, computed

@@ -6,27 +6,26 @@
 -- machine's step differs from the simulated one's only in a state factor the
 -- run discards.  Hence a closed observation is a function of the machine
 -- category's own hom equality, which is what makes the UC layer's
--- `⟦⟧-resp-≈` a theorem rather than a field: the reference arc's `≈ˢ⇒run⊥`,
--- and the only place where the machine layer's equality has to be reconciled
--- with `Dₚ`'s.
+-- `⟦⟧-resp-≈` a theorem rather than a field, and the only place where the
+-- machine layer's equality has to be reconciled with `Dₚ`'s.
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
+open import Categories.Category.Monoidal.Bundle
 
-open import Data.Bool.Base using (Bool)
-open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Data.Unit.Polymorphic.Base using (tt)
-open import Function.Base using (_∘′_)
-open import Level using (0ℓ)
-open import Relation.Binary.Structures using (IsEquivalence)
+open import Data.Bool.Base
+open import Data.Empty
+open import Data.Product.Base
+open import Data.Sum.Base
+open import Data.Unit.Polymorphic.Base
+open import Function.Base
+open import Level
+open import Relation.Binary.Structures
 import Relation.Binary.Construct.Closure.Equivalence as EqC
 
 open import ProbabilisticLogic.Dp
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Machines.Base using (Dₚ-DiscreteMonad; 𝒫ₚ; 𝒱ₚ)
-open import CategoricalCrypto.Protocol.Machine using (resumeᴹ; runᴹ; runᴹFrom)
+open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Strategy
 
 import Categories.Category.Kleisli.Discrete.Pure as KDP
@@ -136,8 +135,6 @@ module _ {B : Iface} {f g : Closed B} (sim : f S.≲ g) where
   run-sim d = bindᶠ (λ m → runFrom-sim m d)
         ⟨≈⟩ ≈sym (bind-map (MC.point (MC.state f) tt) (ϕ sim) (λ m → runᴹFrom g m d))
         ⟨≈⟩ bindˣ (point-sim sim)
-
-------------------------------------------------------------------------
 
 module _ {B : Iface} where
 

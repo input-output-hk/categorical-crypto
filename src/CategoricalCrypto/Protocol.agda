@@ -14,17 +14,17 @@
 -- deterministic multi-call protocol like Merkle–Damgård writes its step
 -- directly in `Calls`.
 
-open import Data.Bool.Base using (Bool)
-open import Data.Nat.Base using (ℕ; zero; suc)
-open import Data.Product.Base using (_×_; _,_)
-open import Data.Sum.Base using (inj₁; inj₂)
-open import Data.Unit.Base using (⊤; tt)
+open import Data.Bool.Base
+open import Data.Nat.Base
+open import Data.Product.Base
+open import Data.Sum.Base
+open import Data.Unit.Base
 open import Data.Vec.Base using (Vec; []; _∷_)
 
-open import ProbabilisticLogic.Prelude using (Dist-ℚ; uniform-Bool)
+open import ProbabilisticLogic.Prelude
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.OracleCall using (Call)
+open import CategoricalCrypto.OracleCall
 
 module CategoricalCrypto.Protocol where
 

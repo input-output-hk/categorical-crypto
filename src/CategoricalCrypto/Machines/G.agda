@@ -11,14 +11,14 @@
 -- step-level naturalities are the ones `GConstruction` asks for.  In
 -- particular, `GConstruction`'s `β` reduces to `Machines.Trace.βᴹ`.
 
-open import Categories.Category.Core using (Category)
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Pure using (PureSub)
-open import Categories.Category.Monoidal.Traced using (Traced)
-open import Categories.GConstruction using (GConstruction)
+open import Categories.Category.Core
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
+open import Categories.Category.Monoidal.Traced
+open import Categories.GConstruction
 import Categories.Category.Monoidal.Distributive as MD
 
-open import Level using (_⊔_)
+open import Level
 
 import CategoricalCrypto.Machines.Bundle as Bundle
 import CategoricalCrypto.Machines.Category as MCat

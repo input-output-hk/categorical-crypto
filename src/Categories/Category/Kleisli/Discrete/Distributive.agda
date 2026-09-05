@@ -15,10 +15,10 @@ import Categories.Category.Kleisli.Discrete as KD
 import Categories.Category.Monoidal.Distributive as MD
 
 open import Data.Empty.Polymorphic
-open import Data.Product.Algebra using (×-distribˡ-⊎)
-open import Data.Product.Base using (_×_; _,_)
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂; [_,_])
-open import Function.Bundles using (Inverse)
+open import Data.Product.Algebra
+open import Data.Product.Base
+open import Data.Sum.Base
+open import Function.Bundles
 
 module Categories.Category.Kleisli.Discrete.Distributive {ℓ} (Mo : DiscreteMonad ℓ) where
 

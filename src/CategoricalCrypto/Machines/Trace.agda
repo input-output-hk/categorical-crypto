@@ -14,14 +14,14 @@
 -- coproduct *projection*, not a constructor, so Agda cannot recover `X` from
 -- the type of a machine `Machine (A + X) (B + X)`.
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Pure using (PureSub)
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
 import Categories.Category.Monoidal.Braided.Properties as BraidedProps
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Distributive.Properties as MDP
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
-open import Level using (_⊔_)
+open import Level
 import Relation.Binary.Construct.Closure.Equivalence as EqC
 
 import CategoricalCrypto.Machines.Core as Core
@@ -36,11 +36,11 @@ module CategoricalCrypto.Machines.Trace
   (E : Iteration.Elgot 𝒱 dist 𝒫) where
 
 open SymmetricMonoidalCategory 𝒱
-open BraidedProps.Shorthands braided using (σ⇒)
+open BraidedProps.Shorthands braided
 open Core 𝒱
 open Equiv
 open Frame 𝒱
-open Iteration 𝒱 dist 𝒫 using (pad)
+open Iteration 𝒱 dist 𝒫
 open Iteration.Elgot E
 open MD.MonoidalDistributive dist
 open MDP 𝒱 dist
@@ -122,8 +122,7 @@ private
           ○ (refl⟩∘⟨ δ⇐-i₁) ○ inject₁
 
   yank-step : {X : Obj} → traceStep Iˢ X X X (step (σᴹ {X} {X})) ≈ id
-  yank-step {X} =
-    (refl⟩∘⟨ (merge₂ʳ ○ refl⟩⊗⟨ inject₁)) ○ solve-i₂ Iˢ X X X _ ○ iter-σᴹ
+  yank-step {X} = (refl⟩∘⟨ (merge₂ʳ ○ refl⟩⊗⟨ inject₁)) ○ solve-i₂ Iˢ X X X _ ○ iter-σᴹ
 
 yankingᴹ : {X : Obj} → traceᴹ X X X (σᴹ {X} {X}) ≲ idᴹ
 yankingᴹ = mk-cong yank-step
@@ -233,18 +232,14 @@ module _ (P S : State) (A B X : Obj) (k : obj S ⊗₀ (A + X) ⇒ obj S ⊗₀ 
 βᴹ : Machine ((A + B) + C) ((A + C) + B)
 βᴹ = α⇐ᴹ ∘ᴹ (idᴹ ⊗ᵉ σᴹ) ∘ᴹ α⇒ᴹ
 
--- The four laws left for wave 2, as a record whose field TYPES typecheck: no
--- term in this file is an axiom, and a consumer takes the record as a module
--- parameter.
+-- The four residual laws as a record, so that no term in this file is an
+-- axiom; `Machines.Trace.Laws.Remainingᴹ` proves all four and
+-- `Machines.Base.Remainingₚ` is the closed instance at `Kl(Dₚ)`.
 --
 -- `trace-resp-≲` is asked in the *generator* form, which is the minimal
 -- obligation: `trace-resp-≈ᴹ` below lifts it to the category's own equality.
--- It is the field on which the layer's axiom-freeness turns, and the one that
--- forced the hom equality to be a simulation: a behavioural equality relates
--- machines with no morphism between their state objects, and no base-level
--- `iter` law can then relate the two loops.  Discharging it is an instance of
--- `iter-uniform` at the simulation's own state map, which is why both are
--- restricted to `𝒫`.
+-- Discharging it is an instance of `iter-uniform` at the simulation's own
+-- state map, which is why both are restricted to `𝒫` (see `Machines.Sim`).
 record Remaining : Set (o ⊔ ℓ ⊔ e) where
   field
     trace-resp-≲ : {f g : Machine (A + X) (B + X)}

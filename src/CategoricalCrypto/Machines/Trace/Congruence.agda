@@ -1,16 +1,16 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- `traceᴹ` respects simulation.  This is the ⊕-trace law the layer's
--- axiom-freeness turns on, and the reason the hom equality is a simulation: the
+-- axiom-freeness turns on, and the one `Machines.Sim`'s header is about: the
 -- two loops being related run at two different state objects, and the only
--- thing that can carry one to the other is uniformity along the map between
--- them — `iter-uniform` at the simulation's own `𝒫`-map.
+-- thing that can carry one to the other is `iter-uniform` at the simulation's
+-- own `𝒫`-map.
 --
 -- Everything outside the loop is `pad-transport`: a state map commutes with an
 -- action on the interface alone.
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Pure using (PureSub)
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Distributive.Properties as MDP
 
@@ -31,7 +31,7 @@ open SymmetricMonoidalCategory 𝒱
 open Core 𝒱
 open Equiv
 open Frame 𝒱
-open Iteration 𝒱 dist 𝒫 using (pad)
+open Iteration 𝒱 dist 𝒫
 open Iteration.Elgot E
 open MD.MonoidalDistributive dist
 open MDP 𝒱 dist

@@ -8,9 +8,9 @@
 -- alone and the associator's naturality only has to hold one generator at a
 -- time.  What is left is ⊕-side, namely `tstep-α`.
 
-open import Categories.Category.Core using (Category)
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Pure using (PureSub)
+open import Categories.Category.Core
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
 import Categories.Category.Cocartesian.Ext as CE
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Distributive.Properties as MDP
@@ -42,7 +42,7 @@ open Sim 𝒱 𝒫
 open Structural 𝒱 dist 𝒫
 open Tensor 𝒱 dist 𝒫
 
-open import Categories.Category.Monoidal.Properties monoidal using (coherence₃)
+open import Categories.Category.Monoidal.Properties monoidal
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Morphism.Reasoning U
 
@@ -71,8 +71,7 @@ private variable A B C D E F X : Obj
     dsc-u = assoc ○ (refl⟩∘⟨ ⟺ ⊗.homomorphism)
           ○ (refl⟩∘⟨ (ρ-discard (state f) ⟩⊗⟨ λ-discard (state g)))
 
-    pt-u : (ρ⇒ ⊗₁ λ⇒) ∘ point ((state f ⊛ Iˢ) ⊛ (Iˢ ⊛ state g))
-         ≈ point (state f ⊛ state g)
+    pt-u : (ρ⇒ ⊗₁ λ⇒) ∘ point ((state f ⊛ Iˢ) ⊛ (Iˢ ⊛ state g)) ≈ point (state f ⊛ state g)
     pt-u = ⊛-point₂ (state f ⊛ Iˢ) (state f) (Iˢ ⊛ state g) (state g)
                     (ρ-point (state f)) (λ-point (state g))
 
@@ -85,8 +84,7 @@ private variable A B C D E F X : Obj
 
 private
   -- Tensoring on the left is tensoring on the right, conjugated by the braiding.
-  braid-conj : (M : Machine A B) (N : Machine C D)
-             → (M ⊗ᵉ N) ≈ᴹ (σᴹ ∘ᴹ ((N ⊗ᵉ M) ∘ᴹ σᴹ))
+  braid-conj : (M : Machine A B) (N : Machine C D) → (M ⊗ᵉ N) ≈ᴹ (σᴹ ∘ᴹ ((N ⊗ᵉ M) ∘ᴹ σᴹ))
   braid-conj M N = ≲⇒≈ᴹ˘ identityˡ-∘ᴹ ○ᴹ (≲⇒≈ᴹ˘ σᴹ-involutive ⟩∘ᴹ⟨reflᴹ)
                  ○ᴹ ≲⇒≈ᴹ assoc-∘ᴹ ○ᴹ (reflᴹ⟩∘ᴹ⟨ braiding-commuteᴹ)
 

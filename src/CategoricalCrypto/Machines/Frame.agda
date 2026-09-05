@@ -12,34 +12,35 @@
 -- whole block and has to be split by the hexagon (`σ-splitˡ`/`σ-splitʳ`).
 
 open import Categories.Category.Monoidal.Bundle
-  using (MonoidalCategory; SymmetricMonoidalCategory)
+
 import Categories.Category.Monoidal.Braided.Properties as BraidedProps
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
-open import Data.Product.Base using (_,_)
+open import Data.Product.Base
 
 import CategoricalCrypto.Machines.Core as Core
 
 module CategoricalCrypto.Machines.Frame {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e) where
 
 open SymmetricMonoidalCategory 𝒱
-open BraidedProps.Shorthands braided using (σ⇒)
+open BraidedProps.Shorthands braided
 open Core 𝒱
 open Equiv
 open MonoidalUtilities.Shorthands monoidal
 
 open import Categories.Category.Monoidal.Properties monoidal
-  using (coherence₁; coherence₂; coherence₃)
+
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Morphism.Reasoning U
-open BraidedProps braided using (braiding-coherence)
-open MonoidalUtilities monoidal using (triangle-inv)
+open BraidedProps braided
+open MonoidalUtilities monoidal
 
 private variable A B K₁ K₂ L P Q R S W W′ X Y Z : Obj
 
--- The reflection frontend wants the `MonoidalCategory` bundle.
+-- The reflection frontend wants the `MonoidalCategory` bundle, which the
+-- symmetric one projects (`Categories.Category.Monoidal.Bundle`).
 𝕄 : MonoidalCategory o ℓ e
-𝕄 = record { U = U ; monoidal = monoidal }
+𝕄 = monoidalCategory
 
 ------------------------------------------------------------------------
 -- Shuffles and paddings
@@ -110,8 +111,7 @@ swp-natural′ g = begin
   swp ∘ (swp ∘ (id ⊗₁ g ∘ swp))         ≈⟨ cancelˡ swp-swp ⟩
   id ⊗₁ g ∘ swp                         ∎
 
-swp-nat : (u : P ⇒ R) (v : Q ⇒ Z) (t : X ⇒ Y)
-        → (u ⊗₁ t) ⊗₁ v ∘ swp ≈ swp ∘ (u ⊗₁ v) ⊗₁ t
+swp-nat : (u : P ⇒ R) (v : Q ⇒ Z) (t : X ⇒ Y) → (u ⊗₁ t) ⊗₁ v ∘ swp ≈ swp ∘ (u ⊗₁ v) ⊗₁ t
 swp-nat u v t = begin
   (u ⊗₁ t) ⊗₁ v ∘ (α⇐ ∘ (id ⊗₁ σ⇒ ∘ α⇒))
     ≈⟨ pullˡ (⟺ assoc-commute-to) ○ assoc ⟩
@@ -244,8 +244,7 @@ onR-sim {v = v} {w} e = begin
         ○ (refl⟩∘⟨ assoc) ○ (refl⟩∘⟨ assoc) ○ cancelˡ σ⊗-inv
 
     inn : σ⇒ {P} {Q ⊗₀ A} ∘ α⇒ ≈ swp ∘ σ⇒ ⊗₁ id
-    inn = (σ-splitˡ ⟩∘⟨refl) ○ cancelʳ associator.isoˡ
-        ○ (refl⟩∘⟨ sym-assoc) ○ sym-assoc
+    inn = (σ-splitˡ ⟩∘⟨refl) ○ cancelʳ associator.isoˡ ○ (refl⟩∘⟨ sym-assoc) ○ sym-assoc
 
 σ-onL : {k : P ⊗₀ A ⇒ P ⊗₀ B}
       → σ⇒ {P} {Q} ⊗₁ id {B} ∘ onL {Q = Q} k ≈ onR {P = Q} k ∘ σ⇒ ⊗₁ id {A}
@@ -275,8 +274,7 @@ dsc : (Q ⇒ unit) → P ⊗₀ Q ⇒ P
 dsc d = ρ⇒ ∘ id ⊗₁ d
 
 dsc-swp : {d : Q ⇒ unit} → dsc {P = P} d ⊗₁ id {A} ∘ swp ≈ ρ⇒ ∘ id ⊗₁ d
-dsc-swp {d = d} = (split₁ˡ ⟩∘⟨refl) ○ assoc ○ (refl⟩∘⟨ ⟺ (swp-natural d))
-                ○ pullˡ ρ-swp
+dsc-swp {d = d} = (split₁ˡ ⟩∘⟨refl) ○ assoc ○ (refl⟩∘⟨ ⟺ (swp-natural d)) ○ pullˡ ρ-swp
 
 -- `onL` does not see the second state factor, so closing it passes through.
 discard-onL : {d : Q ⇒ unit} {k : P ⊗₀ A ⇒ P ⊗₀ B}
@@ -349,8 +347,7 @@ onL-collapseʳ {P = P} =
 ρ-discard S = ⟺ unitorʳ-commute-from ○ ((⟺ coherence₃) ⟩∘⟨refl)
 
 ρ-point : (S : State) → ρ⇒ ∘ point (S ⊛ Iˢ) ≈ point S
-ρ-point S = pullˡ unitorʳ-commute-from
-          ○ cancelʳ ((⟺ coherence₃) ⟩∘⟨refl ○ unitorˡ.isoʳ)
+ρ-point S = pullˡ unitorʳ-commute-from ○ cancelʳ ((⟺ coherence₃) ⟩∘⟨refl ○ unitorˡ.isoʳ)
 
 private
   -- The generator-free residue of the two laws below, at all-unit objects.
@@ -365,8 +362,7 @@ private
       rhs : λ⇒ ∘ (id ⊗₁ λ⇐ ∘ λ⇐ {unit}) ≈ λ⇐
       rhs = pullˡ unitorˡ-commute-from ○ cancelʳ unitorˡ.isoʳ
 
-⊛-assoc-discard : (S T R : State)
-                → discard (S ⊛ (T ⊛ R)) ∘ α⇒ ≈ discard ((S ⊛ T) ⊛ R)
+⊛-assoc-discard : (S T R : State) → discard (S ⊛ (T ⊛ R)) ∘ α⇒ ≈ discard ((S ⊛ T) ⊛ R)
 ⊛-assoc-discard S T R = begin
   (λ⇒ ∘ discard S ⊗₁ (λ⇒ ∘ discard T ⊗₁ discard R)) ∘ α⇒
     ≈⟨ ((refl⟩∘⟨ split₂ˡ) ○ pullˡ unitorˡ-commute-from) ⟩∘⟨refl ⟩
@@ -378,8 +374,7 @@ private
     ≈⟨ assoc ○ (refl⟩∘⟨ merge₁ˡ) ⟩
   λ⇒ ∘ (λ⇒ ∘ discard S ⊗₁ discard T) ⊗₁ discard R  ∎
 
-⊛-assoc-point : (S T R : State)
-              → α⇒ ∘ point ((S ⊛ T) ⊛ R) ≈ point (S ⊛ (T ⊛ R))
+⊛-assoc-point : (S T R : State) → α⇒ ∘ point ((S ⊛ T) ⊛ R) ≈ point (S ⊛ (T ⊛ R))
 ⊛-assoc-point S T R = begin
   α⇒ ∘ ((point S ⊗₁ point T ∘ λ⇐) ⊗₁ point R ∘ λ⇐)
     ≈⟨ refl⟩∘⟨ (split₁ʳ ⟩∘⟨refl) ○ (refl⟩∘⟨ assoc) ⟩

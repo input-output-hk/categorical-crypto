@@ -11,21 +11,29 @@
 -- `ProbabilisticLogic.Distribution.RationalDist.lookupᴰℚ-swap` and its linearity
 -- family.
 
-open import Data.Bool.Base using (true; false)
-open import Data.Nat.Base using (ℕ; zero; suc) renaming (_+_ to _+ℕ_)
+open import Data.Bool.Base
+open import Data.Nat.Base renaming (_+_ to _+ℕ_)
 open import Data.Nat.Properties using (n≤1+n)
-open import Data.Product.Base using (_×_; _,_)
-open import Data.Rational as ℚ using (ℚ; 0ℚ)
+open import Data.Product.Base
+open import Data.Rational as ℚ
 open import Data.Rational.Properties
-  using ( +-assoc; +-comm; +-identityʳ; *-assoc; *-comm; *-distribˡ-+; *-zeroʳ
-        ; ≤-refl; ≤-reflexive; ≤-trans )
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Function.Base using (_∘′_)
+open import Data.Sum.Base
+open import Function.Base
 open import Level using (Level)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; cong₂)
+open import Relation.Binary.PropositionalEquality
+
+open import Algebra.Bundles using (CommutativeMonoid)
+
+-- `Distribution.Linearity` spends the same two rearrangements on the list carrier.
+open import Algebra.Properties.CommutativeSemigroup
+  (CommutativeMonoid.commutativeSemigroup +-0-commutativeMonoid)
+  using () renaming (interchange to +-interchange)
+open import Algebra.Properties.CommutativeSemigroup
+  (CommutativeMonoid.commutativeSemigroup *-1-commutativeMonoid)
+  using (x∙yz≈y∙xz)
 
 open import ProbabilisticLogic.Dp
-open import ProbabilisticLogic.Dp.Iter using (mapₚ-cum)
+open import ProbabilisticLogic.Dp.Iter
 
 module ProbabilisticLogic.Dp.Commutative where
 
@@ -37,47 +45,21 @@ private variable
 -- The `ℚ` rearrangements the two-branch node needs
 
 private
-  exch : ∀ w x y z → (w ℚ.+ x) ℚ.+ (y ℚ.+ z) ≡ (w ℚ.+ y) ℚ.+ (x ℚ.+ z)
-  exch w x y z = trans (+-assoc w x (y ℚ.+ z))
-    (trans (cong (w ℚ.+_) (trans (sym (+-assoc x y z))
-                            (trans (cong (ℚ._+ z) (+-comm x y)) (+-assoc y x z))))
-           (sym (+-assoc w y (x ℚ.+ z))))
-
-  scalar : ∀ w c x → w ℚ.* (c ℚ.* x) ≡ c ℚ.* (w ℚ.* x)
-  scalar w c x = trans (sym (*-assoc w c x))
-                       (trans (cong (ℚ._* x) (*-comm w c)) (*-assoc c w x))
-
   node-+ : ∀ w₁ w₂ x₁ y₁ x₂ y₂
          → w₁ ℚ.* (x₁ ℚ.+ y₁) ℚ.+ w₂ ℚ.* (x₂ ℚ.+ y₂)
          ≡ (w₁ ℚ.* x₁ ℚ.+ w₂ ℚ.* x₂) ℚ.+ (w₁ ℚ.* y₁ ℚ.+ w₂ ℚ.* y₂)
   node-+ w₁ w₂ x₁ y₁ x₂ y₂ =
     trans (cong₂ ℚ._+_ (*-distribˡ-+ w₁ x₁ y₁) (*-distribˡ-+ w₂ x₂ y₂))
-          (exch (w₁ ℚ.* x₁) (w₁ ℚ.* y₁) (w₂ ℚ.* x₂) (w₂ ℚ.* y₂))
+          (+-interchange (w₁ ℚ.* x₁) (w₁ ℚ.* y₁) (w₂ ℚ.* x₂) (w₂ ℚ.* y₂))
 
   node-* : ∀ w₁ w₂ c x₁ x₂
          → w₁ ℚ.* (c ℚ.* x₁) ℚ.+ w₂ ℚ.* (c ℚ.* x₂) ≡ c ℚ.* (w₁ ℚ.* x₁ ℚ.+ w₂ ℚ.* x₂)
   node-* w₁ w₂ c x₁ x₂ =
-    trans (cong₂ ℚ._+_ (scalar w₁ c x₁) (scalar w₂ c x₂))
+    trans (cong₂ ℚ._+_ (x∙yz≈y∙xz w₁ c x₁) (x∙yz≈y∙xz w₂ c x₂))
           (sym (*-distribˡ-+ c (w₁ ℚ.* x₁) (w₂ ℚ.* x₂)))
-
-  node-0 : ∀ w₁ w₂ → w₁ ℚ.* 0ℚ ℚ.+ w₂ ℚ.* 0ℚ ≡ 0ℚ
-  node-0 w₁ w₂ = trans (cong₂ ℚ._+_ (*-zeroʳ w₁) (*-zeroʳ w₂)) (+-identityʳ 0ℚ)
 
 ------------------------------------------------------------------------
 -- `cum n d` is a linear functional in its test
-
-mutual
-  cum-cong-P : (n : ℕ) (d : Dₚ A) (F G : A → ℚ) → (∀ p → F p ≡ G p)
-             → cum n d F ≡ cum n d G
-  cum-cong-P zero    d F G eq = refl
-  cum-cong-P (suc n) d F G eq =
-    cong₂ ℚ._+_ (cong (wt d true ℚ.*_) (leafₚ-cong-P n (br d true) F G eq))
-                (cong (wt d false ℚ.*_) (leafₚ-cong-P n (br d false) F G eq))
-
-  leafₚ-cong-P : (n : ℕ) (x : A ⊎ Dₚ A) (F G : A → ℚ) → (∀ p → F p ≡ G p)
-               → leafₚ n x F ≡ leafₚ n x G
-  leafₚ-cong-P n (inj₁ p)  F G eq = eq p
-  leafₚ-cong-P n (inj₂ d′) F G eq = cum-cong-P n d′ F G eq
 
 mutual
   cum-test-0 : (n : ℕ) (d : Dₚ A) → cum n d (λ _ → 0ℚ) ≡ 0ℚ
@@ -85,7 +67,7 @@ mutual
   cum-test-0 (suc n) d =
     trans (cong₂ ℚ._+_ (cong (wt d true ℚ.*_) (leafₚ-test-0 n (br d true)))
                        (cong (wt d false ℚ.*_) (leafₚ-test-0 n (br d false))))
-          (node-0 (wt d true) (wt d false))
+          (node-zero (wt d true) (wt d false))
 
   leafₚ-test-0 : (n : ℕ) (x : A ⊎ Dₚ A) → leafₚ n x (λ _ → 0ℚ) ≡ 0ℚ
   leafₚ-test-0 n (inj₁ p)  = refl
@@ -108,8 +90,7 @@ mutual
   leafₚ-test-+ n (inj₂ d′) F G = cum-test-+ n d′ F G
 
 mutual
-  cum-test-* : (n : ℕ) (d : Dₚ A) (c : ℚ) (F : A → ℚ)
-             → cum n d (λ p → c ℚ.* F p) ≡ c ℚ.* cum n d F
+  cum-test-* : (n : ℕ) (d : Dₚ A) (c : ℚ) (F : A → ℚ) → cum n d (λ p → c ℚ.* F p) ≡ c ℚ.* cum n d F
   cum-test-* zero    d c F = sym (*-zeroʳ c)
   cum-test-* (suc n) d c F =
     trans (cong₂ ℚ._+_ (cong (wt d true ℚ.*_) (leafₚ-test-* n (br d true) c F))
