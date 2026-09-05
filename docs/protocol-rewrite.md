@@ -23,7 +23,7 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 | M1: layers 0–1 + the ledger example | **DONE** — all green, pins by `refl`, hatches 21 = baseline |
 | M2 wave 1: `Dₚ`, `Kl(Dₚ)`, `Mealy` + `Mealy-Category` + the ⊕-trace | **DONE** — all green, hatches 21 = baseline |
 | M2 wave 2: the four residual trace laws + `Elgot` at `Kl(Dₚ)` | **DONE** — the machine layer is hypothesis-free; hatches 21 = baseline |
-| M2 wave 3: the machine SMC bundle, `Traced`, GConstruction, `morphism`/`Pr-agree` | **the machine layer is DONE** — `ℳₚ` symmetric monoidal, `Tracedₚ`, `𝒢ₚ` all closed terms, and `𝒢ₚᴹ` monoidal (task 3, `Monoidal (GConstruction C)`, is closed); `morphism` landed, `Morphism-∘`/`PrAgree` stated and priced; hatches 21 = baseline |
+| M2 wave 3: the machine SMC bundle, `Traced`, GConstruction, `morphism`/`Pr-agree` | **the machine layer is DONE** — `ℳₚ` symmetric monoidal, `Tracedₚ`, `𝒢ₚ` all closed terms, and `𝒢ₚᴹ` monoidal (task 3, `Monoidal (GConstruction C)`, is closed); `morphism` landed, **`PrAgree` is a theorem** (`Protocol.Machine.Agree`), `Morphism-∘` stated and priced; hatches 21 = baseline |
 | M3: the UC layer | **the statement layer is DONE**, and both external theory reviews' findings are resolved (`docs/rewrite-verdict.md`'s two addenda) — `_≈ℰ_`/`grade-stable`/`absorb`/`_≤UC_` and its metatheorems are theorems, no K island, no `HomTransportTrivial`; the simulator carry is a theorem in both its degenerate (`unit-grade`) and graded (`audit-carry`) form; the intended instance's observation is a theorem and its grading action is data with `Grading 𝒫ᴵ` priced.  **The layer is now split three ways** (abstraction notes §1/§3): a qualitative core that mentions no number, an optional quantitative enrichment over an abstract error algebra, and the `Dₚ` model, with the inherited `UCSetup` doctrine reconciled by `UC.Core.Standard.gradingᵗ`; hatches 21 = baseline |
 
 ## Modules (M1: 10 files, 874 LOC, all `--safe --without-K`)
@@ -40,6 +40,7 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 | `Examples.ChimericLedger` | 186 | the ledger kernel + `Replay` (computed) |
 | `Examples.ChimericLedger.POV` | 208 | oracle/ledger/`Sys = ledger ∘ᵖ oracle`, `POV`, audit gadget, `AtBirthday` |
 | `Examples.ChimericLedger.Pin` | 74 | `chimeric-violates ≡ 1ℚ`, `consuming-safe ≡ 0ℚ`, the genesis liveness, all by `refl` |
+| `Examples.ChimericLedger.Carry` | 46 | `Emulᴸ`/`advᴸ`/`pov-carryᴸ` — `pov-transfer`'s premise from the seam (a later addition; M3's model is what closes it) |
 
 ## What changed vs the reference branches
 
@@ -286,7 +287,9 @@ distributivity they never needed.
 | `…GConstructionEmbeddingCoherence` | 173 | harvested: the two absorption coherence obligations, APROP-solved |
 | `ProbabilisticLogic.Dp.Coin` | 74 | `coinₚ` — a `Dist-ℚ Bool` as one biased coin — and `coinₚ-cum` |
 | `…Dp.Embed` | 213 | `embed : Dist⊥ A → Dₚ A` as a cascade of conditional coins, `embed-cum` (exact past its depth), `embed-cong` |
+| `…Dp.Stable` | 97 | `Stable` — an eventually-constant `cum` — and its closure under a value, a divergence, a bind junction and a coin node |
 | `CategoricalCrypto.Protocol.Machine` | 137 | `⟦_⟧ᴵ`, `MSt`, `drive`, `morphism`, `runᴹ`, `Morphism-∘`, `PrAgree` (at either verdict) |
+| `…Protocol.Machine.Agree` | 73 | `callAgree`/`runAgree`, `prAgree` — `PrAgree`, proved |
 | `…Protocol.Machine.Pin` | 114 | layer 1 and the machine image agree by `refl`; `nay`/`stuck` pin `false` apart from divergence |
 
 Cost: every module is a warm single-module check of 5–16 s; the whole
@@ -482,23 +485,23 @@ mutual recursion *is* the loop the ⊕-trace's `iter` performs, one internal
 `_∘ᵖ_` and must be exported, and `GConstruction`'s `α`/`γ` have to be absorbed
 (that is what `absorbˡ`/`absorbʳ` from task 3's embedding layer are for).
 
-    PrAgree = (P : Protocol unitᴵ B) (d : Strat (Neg B) (Pos B))
-            → Σ[ n ∈ ℕ ] ((m : ℕ) → cum (n + m) (runᴹ (morphism P) d) bool→ℚ
-                                  ≡ Pr P d)
+    PrAgree = (b : Bool) (P : Protocol unitᴵ B) (d : Strat (Neg B) (Pos B))
+            → Σ[ n ∈ ℕ ] ((m : ℕ) → cum (n + m) (runᴹ (morphism P) d) (indᵇ b)
+                                  ≡ Prᵇ P b d)
 
-**Price 250–450 LOC, two modules.**  `runᴹ` (the minimal closed-machine run,
-against any machine of the closed shape) is landed, so only the theorem is
-open.  It factors as (i) `drive` agrees with `Observe.evalC` at the `cum` level,
-by induction on `Calls` with `coinₚ-cum` (landed) at each coin node, and (ii)
-induction on the `Strat` tree threading the budget.  The one piece of real work
-is (i)'s bind step: `Dist⊥`'s bind splices lists while `Dₚ`'s builds a coin
-tree, so agreement needs `cum` of a bind factored as an expectation of `cum`s —
-`Dp` has the exact `cum`/bind identities and `Dp.Commutative` has `cum` linear
-in its test, so the ingredients are there.  A cheaper and more reusable route
-is a general embedding `Dist⊥ X → Dₚ X` with a `cum` agreement and a
-monad-morphism law up to `≈ₚ`; that is the missing link between the two
-probability carriers in the repo (`Dp`'s header asserts it exists but nothing
-proves it), and it makes `PrAgree` an induction on `Strat` alone.
+**PROVED** (`Protocol.Machine.Agree`, 73 LOC, on `Dp.Stable`'s 97), against a
+price of 250–450 in two modules.  The route taken is neither of the two the
+price anticipated: the budget bookkeeping factors out as `Stable P d u` — "every
+budget past some witness scores `u`" — which is closed under the four ways a run
+is built (a value, a divergence, a bind junction, a coin node), and once that is
+in hand the theorem is two nested inductions with no arithmetic left in them,
+one on the call tree an activation drives against `Observe.evalC`, one on the
+strategy against `runFrom`.  The `Dist⊥`-vs-`Dₚ` bind mismatch the price called
+"the one piece of real work" never arises: `Stable-coin` reads a coin node
+directly as an `E μ`, so `Dp.Embed`'s cascade — the general embedding, landed —
+is not on the path at all.  The test is a parameter throughout, so "at either
+verdict" costs nothing.  One general lemma was owed and added:
+`E⊥-bind`, the partial expectation's bind law.
 
 `Morphism-∘` cannot be pinned by computation, and that is measured: `cum n`
 expands `2ⁿ` branches, while `𝒢`'s point-free composite spends one delay
@@ -515,11 +518,10 @@ module *parameters* of the generic layer — that is what keeps it generic — a
 both are discharged at the intended base in `Machines.Base`, where `ℳₚ`,
 `Tracedₚ` and `𝒢ₚ` are closed terms.
 
-`Morphism-∘` and `PrAgree` (`Protocol.Machine`) are stated `Set`s with nothing
-inhabiting them — `PrAgree` now at either verdict, which is the same induction
-twice over (`indᵇ b` is never inspected) — the `TrajectoryFromAudit` pattern:
-the statement is certified to typecheck against the real definitions, and it is
-not assumed anywhere.
+`Morphism-∘` (`Protocol.Machine`) is a stated `Set` with nothing inhabiting it —
+the `TrajectoryFromAudit` pattern: the statement is certified to typecheck
+against the real definitions, and it is not assumed anywhere.  `PrAgree` was the
+other one and is now a theorem (`Protocol.Machine.Agree.prAgree`).
 
 One shape seam is open and it is not load-bearing today: `⟦ unitᴵ ⟧ᴵ` is
 `(Data.Empty.⊥ , Data.Empty.⊥)` while `Mealy-Monoidal`'s unit is
@@ -557,8 +559,10 @@ this layer needed them.)
 | `…UC.Machine.Run` | model | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
 | `…UC.QueryBound` | model | 488 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `CountBound`, `Counting` (stated), `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `qbᵢ-resp-step`, `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` and their hom-level forms, `BudgetLawsᴹ` (stated) |
 | `…UC.Machine.Bridge` | model | 96 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `ContextDominated` (stated) |
-| `…UC.Seam` | model | 171 | `strategyEnv` (a strategy as an environment), `ctxRunˢ`/`runˢ`, `Agreeˢ`, `Adequacy`/`AgreeToAdv` (stated), `pov-carry` (proved) |
-| `…UC.Seam.Carry` | model | 79 | `run-agree`, `agree-to-adv` — `AgreeToAdv` from `Adequacy` and `PrAgree`, proved |
+| `…UC.Seam` | model | 171 | `strategyEnv` (a strategy as an environment), `ctxRunˢ`/`runˢ`, `Agreeˢ`, `Adequacy`/`AgreeToAdv` (stated here, both inhabited below), `pov-carry` (proved) |
+| `…UC.Seam.Adequacy.Wiring` | model | 358 | the G-composite's structural wiring collapsed to pure machines (`α-pure`/`γ-pure`), `kᵂ` (the loop's one-pass dispatch), `pairedᴹ`, `compose-≈ᴹ` |
+| `…UC.Seam.Adequacy` | model | 188 | `bodyᵂ`/`verdictᵂ`/`contᵂ`, `play-run`/`step-run`, `adequacy` — `Adequacy`, proved |
+| `…UC.Seam.Carry` | model | 96 | `run-agree`, `agree-to-adv`, and the now-closed `agreeToAdv`/`povCarry` |
 | `…UC.Seam.Grounding` | model | 118 | `StratIsEnv`, its reduction `EnvCtx`/`EnvAsCtx`, and the trivial grade's `SubBlind`/`IotaBlind`/`UnitGrade` — the grading-dependent statements |
 | `…UC.Seam.Audit` | model | 71 | `massᴹ` (`Pr≤`, the `true` half, as a `Mass`), `UC.Audit` at the instance, `AuditIsBounded` (stated) |
 | `…UC.Saturated` | frontend | 86 | `SaturatedBounded`/`SaturatedHit`, `SaturatedRespects` (stated) |
@@ -807,8 +811,28 @@ metatheorems and the equivalence of the plain and dummy-adversary forms;
 `qbᵢ-wire` and the three trace-free closure laws `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub`
 (`qbᵢ-resp-step` is what carries them); `UC.Environment.≈ℰ-at`; `UC.Seam`'s
 `strategyEnv` and `pov-carry`, and `UC.Seam.Carry`'s `run-agree`/`agree-to-adv`
-— so `AgreeToAdv` holds as soon as `Adequacy` and `PrAgree` do, where it used to
-be an assumption of its own.
+— and since `Adequacy` and `PrAgree` are now theorems, `UC.Seam.Carry`'s
+`agreeToAdv` and `povCarry` are closed terms, where `AgreeToAdv` used to be an
+assumption of its own.  `Examples.ChimericLedger.Carry.pov-carryᴸ` is that at
+the ledger instance: an environment agreement between the two variants' machine
+images is now all `pov-transfer`'s premise costs.
+
+`Adequacy` was priced at 250–350 LOC in one module and landed as 188 + 358 in
+two, and the split is where the cost actually is.  The ⊕-trace's loop — what the
+price anticipated — is the 188: `play-run` is one induction on the strategy
+tree, `iterₚ-fix` unrolling the two passes an `ask` costs (the process
+answering, the environment resuming).  The other 358 is the G construction's own
+wiring: `α` and `γ` are six-fold composites of structural machines, and
+collapsing each to a single `pureᴹ` of a `⊎`-relabelling — which
+`Machines.Tensor`'s `pureᴹ-∘`/`⊗ᵉ-pureᴹ`/`pure-∘ˡ`/`pure-∘ʳ` do outright — is
+what makes the loop's one-pass dispatch writable at all.  That collapse is
+object-polymorphic, so it is exactly the "`α`/`γ` have to be absorbed"
+prerequisite `Morphism-∘` is priced as needing, now available.  Measured: the
+wiring module is a 234 s warm check of which **219 s is one conversion**,
+projecting `_∘_` out of `𝒢ₚ`'s G-construction record — a cost any consumer of
+`𝒫.∘` pays once, with no lever on this side (the module header records the
+restructure that was tried and was worse); everything the module itself defines
+measures under 5 s.
 
 Proved as of the second review, and both about the SIMULATOR the emulation
 carries — `pov-carry`'s premise being direct agreement, which `_≤UC_` does not
@@ -852,8 +876,7 @@ pattern, no postulate and no hole anywhere:
 | `EnvAsCtx` | `UC.Seam.Grounding` | ~80–120 LOC; the degenerate-ancilla collapse, trace-fusion gated.  It REPLACES `StratIsEnv` as the obligation: `UC.Environment.≈ℰ-at` proves the reduction generically, so what is owed is one ancilla, one test, one closure and one hom equation, with no quantitative content.  Closing `EnvAsCtx → StratIsEnv` at the instance is blocked by the eta cliff below, measured in four spellings |
 | `SubBlind`, `IotaBlind` | `UC.Seam.Grounding` | ~60–90 LOC each, same gate: the trivial grade's summand cannot fire (`⊥-unique`), but the equation is between `𝒫ᴵ`-composites |
 | `UnitGrade` | `UC.Seam.Grounding` | the reduction is PROVED generically (`UC.Emulation.unit-grade`); what is owed is the two blindness facts, `EnvAsCtx`, and the closing application, which is the eta cliff below |
-| `AuditIsBounded` | `UC.Seam.Audit` | ~120–180 LOC on `Adequacy`: recognize `strategyEnv B (bad d)`, plugged through the wires that kill the trivial grade and the ancilla, as one of the contexts `AuditBound` quantifies over — `Counting` for its certificate (`ctxBudget q 1 = q`), `PrAgree` for its mass |
-| `Adequacy` | `UC.Seam` | 250–350 LOC, one module; `PrAgree`'s unrolling, over `𝒫.∘` instead of `Dist⊥`'s bind |
+| `AuditIsBounded` | `UC.Seam.Audit` | ~120–180 LOC, and both of its inputs are now theorems: recognize `strategyEnv B (bad d)`, plugged through the wires that kill the trivial grade and the ancilla, as one of the contexts `AuditBound` quantifies over — `Counting` for its certificate (`ctxBudget q 1 = q`), `PrAgree` for its mass, `Adequacy` for the run |
 | `UC-compose` | `UC.Emulation` | two more `Grading` fields (`sub`/`T₁` interchange, `a⇒` naturality in its first two slots) |
 | `SaturatedRespects` | `UC.Saturated` | ~60–100 LOC; `transfer` at each index plus two negligibility-closure lemmas — `_→0` under `+`, and under precomposition with a polynomial — neither of which exists yet.  ℚ/ℕ arithmetic with no UC content |
 
@@ -944,11 +967,12 @@ at `n = 1 + |entries μ|` — an equality, not a domination, which is what
 `PrAgree` compares.  The induction is divisor-free because it is stated scaled
 by the mass (`mass-L xs * cum … ≡ lookup-L xs (maybeℚ P)`), so the normalization
 cancels one node at a time.  `E⊥`/`maybeℚ` join `Pr₁⊥` in the expectation module
-with `mb = maybeℚ bool→ℚ`, so `Pr₁⊥ μ` IS `E⊥ μ bool→ℚ`.  What `PrAgree` still
-owes on top of this is the monad-morphism law up to `≈ₚ` and the induction on
-the `Strat` tree.
+with `mb = maybeℚ bool→ℚ`, so `Pr₁⊥ μ` IS `E⊥ μ bool→ℚ`.  In the event
+`PrAgree` did not need this: `Dp.Stable`'s `Stable-coin` reads a coin node as an
+`E μ` directly, so the proof never leaves `Dₚ` for a `Dist⊥` it has to embed.
+The embedding stands as the link between the two carriers, unspent.
 
-### Six perf findings, all recorded in the source
+### Seven perf findings, all recorded in the source
 
 * **The reindexing record needs every object implicit passed explicitly.** Left
   to inference, each field of `𝒫ᴵ` asks Agda to invert
@@ -1012,6 +1036,14 @@ the `Strat` tree.
   module parameters.  For the same reason `BudgetLawsᴹ` is left unassembled: its
   four fields take their interfaces implicitly, so filling them pays the
   inversion once per field.
+* **"Name the observation once" survives all the way down to the example.**
+  `Examples.ChimericLedger.Carry` applies the seam's `agreeToAdv` at the two
+  concrete ledger systems and hands the result to the example's `pov-transfer`.
+  Written as one term it does not finish in 1750 s; with the advantage named
+  (`advᴸ`) and `pov-carryᴸ` built on the name, the module is a **16 s** warm
+  check.  Bisected: the STATEMENT (`Emulᴸ`, the `Agreeˢ` at the two machine
+  images) is cheap and so is `advᴸ` — only the seam-as-a-subterm is not.  This
+  is `UC.Seam`'s own discipline, and it does not stop at the seam's boundary.
 
 ### Compatibility with the inherited MD line
 
@@ -1211,7 +1243,8 @@ Two smaller findings worth carrying forward:
 | `GradingLawsᴹ`'s four trace-touching fields | `UC.Machine.Dictionary` header | priced, with a measured reproducer and a named cure |
 | `ifaceᵒ unitᴵ ≅ 𝔾ᵒ`'s monoidal unit | `UC.Model.Observation` header | not proved; a G-composite is a trace, so `isoˡ` is not the one-line argument the bijection of empty types suggests. Nothing depends on it — `ℰᵒ` is a presheaf for either family of closures |
 | whether the model satisfies `GradeStable` | — | not investigated. `UC.Model.Reading` deliberately does not need it, and the proposal asks that it not be assumed |
-| direct-run adequacy, the confidential-ledger refinement | proposal §§3–4 | out of M4's scope; `Protocol.Machine.PrAgree`/`Morphism-∘` are still statements |
+| the confidential-ledger refinement | proposal §4 | out of M4's scope |
+| `Morphism-∘` | `Protocol.Machine` | still a statement.  Its siblings are not: `PrAgree` (`Protocol.Machine.Agree`) and `Adequacy` (`UC.Seam.Adequacy`) are theorems, so direct-run adequacy is closed |
 
 Whether the M4 cone should supersede the `UC.*` stack is the maintainer's
 call and is not acted on here: `UC.*` is untouched, `UC.Machine.Dictionary` only
