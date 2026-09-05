@@ -139,6 +139,17 @@ tv⇒≈ℰ h Y E = same (h Y E)
   step : (u : A ⇒ B′) → (E ∘ T₁ Y u) ∘ (T₁ Y l ∘ m) ≈ (E ∘ T₁ Y (u ∘ l)) ∘ m
   step u = assoc ○ (refl⟩∘⟨ (sym-assoc ○ ∘-resp-≈ˡ (⟺ T₁-∘))) ○ sym-assoc
 
+-- An agreement read at ONE context, presented uniformly in the process: if a
+-- single ancilla, test and closure realize `k w` for every `w`, then closeness
+-- of the two `k`-observations is the whole of it.  Proved here, over an
+-- arbitrary base, because at the intended instance a `∼-cast` between machine
+-- COMPOSITES is the eta cliff `UC.Seam.Grounding`'s header measures; that module
+-- supplies the three components and nothing else.
+≈ℰ-at : {A B′ : Obj} (Y : Obj) (Et : Test (Y ⊛ B′)) (m : Closure (Y ⊛ A))
+        (k : A ⇒ B′ → 𝟙 ⇒ Ω) → ((w : A ⇒ B′) → (Et ∘ T₁ Y w) ∘ m ≈ k w)
+      → {f g : A ⇒ B′} → f ≈ℰ g → ⟦ k f ⟧ ∼ ⟦ k g ⟧
+≈ℰ-at Y Et m k eq {f} {g} r = ∼-cast (eq f) (eq g) (r Y Et m)
+
 -- Grade stability: the ancilla quantifier absorbs a bypass wire.  Where the
 -- reference needed `HomTransportTrivial` for this, here it is the associativity
 -- of the action and nothing else.
