@@ -129,7 +129,9 @@ module _ {B : Iface} (M : MC.Machine (⊥ ⊎ Neg B) (⊥ ⊎ Pos B)) where
 -- *exactly* layer 1's verdict probability.  `Dₚ`'s probability is a supremum,
 -- which the layer never forms; a budget and a value is the `cum`-level
 -- statement of the same thing.  `Machine.Pin` computes both sides at one
--- instance.
+-- instance.  It is asked at EITHER verdict, since that is what the observation
+-- relation compares (`Dp.Advantage`'s header); the proof is the same induction
+-- for both, `indᵇ b` never being inspected.
 PrAgree : Set₁
-PrAgree = {B : Iface} (P : Protocol unitᴵ B) (d : Strat (Neg B) (Pos B))
-        → Σ[ n ∈ ℕ ] ((m : ℕ) → cum (n + m) (runᴹ (morphism P) d) bool→ℚ ≡ Pr P d)
+PrAgree = {B : Iface} (b : Bool) (P : Protocol unitᴵ B) (d : Strat (Neg B) (Pos B))
+        → Σ[ n ∈ ℕ ] ((m : ℕ) → cum (n + m) (runᴹ (morphism P) d) (indᵇ b) ≡ Prᵇ P b d)

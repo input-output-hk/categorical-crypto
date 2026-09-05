@@ -14,6 +14,7 @@
 -- into the trajectory statement `POV`.  That is the route `pov-carry` takes
 -- through direct agreement, with the simulator kept instead of collapsed.
 
+open import Data.Bool.Base using (true)
 open import Data.Nat.Base using (ℕ)
 open import Data.Product.Base using (proj₁)
 open import Data.Rational using (ℚ)
@@ -39,9 +40,10 @@ module CategoricalCrypto.UC.Seam.Audit
 
 -- The reading `Observation` deliberately lacks: a mass at a budget, and the
 -- ε-domination that `_≈ₚ[_]_`'s left half already is, read off the agreement at
--- the slack asked for.
+-- the slack asked for.  `Mass` is one-sided — an audit bound is a probability of
+-- an event — so it takes the `true` half of the two-sided domination.
 massᴹ : Mass Observationᴹ
-massᴹ = record { at = Pr≤ ; dominate = λ h δ δ>0 → proj₁ (h δ δ>0) }
+massᴹ = record { at = Pr≤ ; dominate = λ h δ δ>0 → proj₁ (h δ δ>0) true }
 
 private
   module A = Aud (UCBaseᴹ G) bud massᴹ

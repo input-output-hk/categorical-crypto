@@ -11,9 +11,11 @@
 --
 -- and the statement vocabulary: `Bounded`/`BoundedHit` (a safety bound against
 -- every budget-`q` strategy), `_≈adv[_]_` (indistinguishability at advantage
--- `δ`), and `transfer` — a bound on one system becomes a bound on an
--- indistinguishable one with `δ` added, which is how a UC emulation carries a
--- safety property from the ideal world to the real one.
+-- `δ`, read at BOTH verdicts so that an implementation which answers `false` is
+-- not identified with one which diverges), and `transfer` — a bound on one
+-- system becomes a bound on an indistinguishable one with `δ` added, which is
+-- how a UC emulation carries a safety property from the ideal world to the real
+-- one.
 
 open import Data.Bool.Base
 open import Data.Empty
@@ -57,8 +59,14 @@ module _ (P : Protocol unitᴵ B) where
   run : Strat (Neg B) (Pos B) → Dist⊥ Bool
   run = runFrom (init P)
 
+  -- The mass of verdict `b`.  `Pr` is the `true` reading, which is the one a
+  -- probability-of-event statement (`Bounded`) asks for; `_≈adv[_]_` compares
+  -- both, divergence weighing 0 under either indicator.
+  Prᵇ : Bool → Strat (Neg B) (Pos B) → ℚ
+  Prᵇ b d = Prᵇ⊥ b (run d)
+
   Pr : Strat (Neg B) (Pos B) → ℚ
-  Pr d = Pr₁⊥ (run d)
+  Pr = Prᵇ true
 
   -- The verdict is "a state satisfying `Bad` was reached", regardless of what
   -- the strategy outputs; divergence weighs 0 (a violation must be reached).
@@ -89,10 +97,15 @@ BoundedHit {B} P Bad ε = (q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d 
 
 infix 4 _≈adv[_]_
 
--- No budget-`q` strategy separates the two systems by more than `δ q`.
+-- No budget-`q` strategy separates the two systems by more than `δ q`, at
+-- EITHER verdict: at a fixed `b` divergence moves the advantage exactly as a
+-- `¬ b` answer does, so it is the `false` reading that tells an implementation
+-- which answers `false` from one which diverges (proposal §1,
+-- `docs/kb/frontier/15-probabilistic-uc-model.typ`).
 _≈adv[_]_ : Protocol unitᴵ B → (ℕ → ℚ) → Protocol unitᴵ B → Set
 _≈adv[_]_ {B} P δ P′ =
-  (q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d → adv⊥ (run P d) (run P′ d) ≤ℚ δ q
+  (b : Bool) (q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d
+  → advᵇ⊥ b (run P d) (run P′ d) ≤ℚ δ q
 
 private
   ≤-shift : (x y a b : ℚ) → x ≤ℚ a → ∣ y -ℚ x ∣ℚ ≤ℚ b → y ≤ℚ (a +ℚ b)
@@ -112,4 +125,4 @@ transfer : {P P′ : Protocol unitᴵ B}
 transfer {P = P} {P′} {bad} {ε} {δ} bad-asks near bound q d a =
   ≤-shift (Pr P (bad d)) (Pr P′ (bad d)) (ε q) (δ q) (bound q d a)
     (subst (_≤ℚ δ q) (adv⊥-sym (run P (bad d)) (run P′ (bad d)))
-           (near q (bad d) (bad-asks q d a)))
+           (near true q (bad d) (bad-asks q d a)))
