@@ -23,7 +23,7 @@
 -- simulation closure; that is what `unprocᵒ`/`≈ᵒ⇒≈ᴹ` say, and it is what lets
 -- the observation reuse the existing closed run verbatim.
 
-open import Categories.Category using (Category; _[_,_]; _[_≈_])
+open import Categories.Category using (Category; _[_≈_])
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 
 open import Level using (0ℓ; suc)
