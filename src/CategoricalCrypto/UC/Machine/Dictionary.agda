@@ -1,11 +1,22 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- The grading dictionary: `UC.Machine`'s direct relays read as the monoidal
--- spellings of the same processes, so that each stated field of
+-- spellings of the same processes, so that a stated field of
 -- `UC.Machine.Grading.GradingLawsᴹ` becomes a corollary of a law of `𝒢ₚᴹ 0ℓ`.
 --
 -- Every object implicit is passed explicitly, for the reason
--- `UC.Machine.Grading`'s header gives.
+-- `UC.Machine.Grading`'s header gives — and so is every implicit of the
+-- borrowed 𝒢-law, for the same one: inferring one asks Agda to invert
+-- `_⊗₁ᴳ_`, measured at +83 s for a single law against +10 s pinned.
+--
+-- Four of the eight fields land, and they are exactly the trace-free four
+-- `UC.Machine.Grading`'s own note predicts.  The other four each compare a
+-- `𝒫ᴵ`-composite, hence the ⊕-trace, and every 𝒢-law that would discharge one
+-- (`associator.isoʳ`, `⊗.homomorphism`, `assoc-commute-to`) spends a trace
+-- absorption (`GConstructionEmbedding`'s `absorbˡ`/`absorbʳ`).  Instantiating
+-- one of those at the machine layer does not finish: `associator.isoʳ` alone,
+-- with every implicit pinned, was still running after 900 s under a 16 GiB
+-- heap cap, 12.8 GiB resident.
 
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal.Bundle
@@ -17,10 +28,9 @@ import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Utilities as MU
 
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
+open import Data.Sum.Base as Sum using (_⊎_; inj₁; inj₂)
 open import Level using (0ℓ)
 open import Relation.Binary.PropositionalEquality using (refl)
-import Data.Sum.Base as Sum
 
 open import ProbabilisticLogic.Dp using (Dₚ; returnₚ)
 
@@ -331,11 +341,7 @@ sub-⊗₁ {X} {Y} {A} s = ⟺ᴹ
   ○ᴹ ≲⇒≈ᴹ (mk-cong (sub-step {X} {Y} {A} s)) )
 
 ------------------------------------------------------------------------
--- The grading laws, as corollaries of `𝒢ₚᴹ 0ℓ`'s monoidal structure
-
--- Every implicit of the borrowed law is passed too, and for the same reason:
--- inferring one asks Agda to invert `_⊗₁ᴳ_`, which is measured at +80 s per
--- law against +10 s pinned.
+-- The trace-free grading laws, as corollaries of the 𝒢-tensor
 
 T₁-resp-≈ᴹ : {Y A B : Iface} {f g : Proc A B}
            → 𝒫._≈_ {A} {B} f g
