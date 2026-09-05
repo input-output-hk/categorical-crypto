@@ -68,6 +68,13 @@ maybeℚ P nothing  = 0ℚ
 E⊥ : {A : Type ℓ} → Dist⊥ A → (A → ℚ) → ℚ
 E⊥ μ P = lookupᴰℚ (entries μ) (maybeℚ P)
 
+-- The `nothing` sink is absorbing, so the bind law survives the Maybe layer.
+E⊥-bind : (μ : Dist⊥ A) (h : A → Dist⊥ B) (P : B → ℚ)
+        → E⊥ (μ >>=⊥ h) P ≡ E⊥ μ (λ a → E⊥ (h a) P)
+E⊥-bind μ h P = trans (E-bind μ (kmaybe h) (maybeℚ P)) (lookupᴰℚ-cong-P (entries μ) λ where
+  (just a) → refl
+  nothing  → lookupᴰℚ-return nothing (maybeℚ P))
+
 mb : Maybe Bool → ℚ
 mb = maybeℚ bool→ℚ
 
