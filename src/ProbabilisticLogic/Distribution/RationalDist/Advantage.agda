@@ -1,12 +1,14 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- The distinguishing advantage between two partial verdict distributions: the
--- gap between their probabilities of answering `true`.
+-- gap between their probabilities of answering `b`.
 --
 -- It is a pseudometric — symmetric, subadditive, and zero on `≈Mℚ`-equal
--- arguments.  `nothing` mass counts as neither verdict, `mb` sending it to
--- `0ℚ`, so a diverging experiment moves the advantage the same way a `false`
--- one does.
+-- arguments.  `nothing` mass counts as neither verdict, `maybeℚ` sending it to
+-- `0ℚ`, so at a FIXED `b` a diverging experiment moves the advantage the same
+-- way a `¬ b` one does; observing both verdicts is what separates them
+-- (proposal §1, `docs/kb/frontier/15-probabilistic-uc-model.typ`).  `adv⊥` is
+-- the `true` reading, which is all a probability-of-event statement needs.
 
 open import Data.Bool.Base
 open import Data.Rational
@@ -21,8 +23,11 @@ open import ProbabilisticLogic.Distribution.RationalDist.Partial
 
 module ProbabilisticLogic.Distribution.RationalDist.Advantage where
 
+advᵇ⊥ : Bool → Dist⊥ Bool → Dist⊥ Bool → ℚ
+advᵇ⊥ b μ ν = ∣ Prᵇ⊥ b μ -ℚ Prᵇ⊥ b ν ∣ℚ
+
 adv⊥ : Dist⊥ Bool → Dist⊥ Bool → ℚ
-adv⊥ μ ν = ∣ Pr₁⊥ μ -ℚ Pr₁⊥ ν ∣ℚ
+adv⊥ = advᵇ⊥ true
 
 adv⊥-sym : ∀ μ ν → adv⊥ μ ν ≡ adv⊥ ν μ
 adv⊥-sym μ ν = trans (cong ∣_∣ℚ (neg-sub (Pr₁⊥ μ) (Pr₁⊥ ν))) (∣-p∣≡∣p∣ _)

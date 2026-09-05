@@ -15,7 +15,7 @@ open import Data.Rational.Properties.Ext
 
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
-open import ProbabilisticLogic.Distribution.Uniform using (bool→ℚ)
+open import ProbabilisticLogic.Distribution.Uniform using (bool→ℚ; indᵇ)
 
 module ProbabilisticLogic.Distribution.RationalDist.Expectation where
 
@@ -71,9 +71,15 @@ E⊥ μ P = lookupᴰℚ (entries μ) (maybeℚ P)
 mb : Maybe Bool → ℚ
 mb = maybeℚ bool→ℚ
 
+-- The mass of verdict `b`, with `nothing` scoring 0 for EITHER indicator: that
+-- is what keeps a diverging experiment distinct from one answering `false`
+-- (`ProbabilisticLogic.Dp.Advantage`'s header).
+Prᵇ⊥ : Bool → Dist⊥ Bool → ℚ
+Prᵇ⊥ b μ = E μ (maybeℚ (indᵇ b))
+
 -- `Pr₁⊥` is `E⊥` at the verdict indicator, on the nose.
 Pr₁⊥ : Dist⊥ Bool → ℚ
-Pr₁⊥ μ = E μ mb
+Pr₁⊥ = Prᵇ⊥ true
 
 Pr₁⊥-just : (μ : Dist-ℚ Bool) → Pr₁⊥ (Dmap just μ) ≡ Pr₁ μ
 Pr₁⊥-just μ = lookupᴰℚ-Dmap just μ mb

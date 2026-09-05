@@ -39,6 +39,13 @@ bool→ℚ : Bool → ℚ
 bool→ℚ true  = 1ℚ
 bool→ℚ false = 0ℚ
 
+-- The indicator of a Boolean OUTCOME, `bool→ℚ` being the `true` one.  The
+-- ε-relations observe both, which is what keeps an answer of `false` distinct
+-- from divergence (`ProbabilisticLogic.Dp.Advantage`'s header).
+indᵇ : Bool → Bool → ℚ
+indᵇ true  = bool→ℚ
+indᵇ false = bool→ℚ ∘ not
+
 δ : ∀ {k} → Vec Bool k → Vec Bool k → ℚ
 δ y x = bool→ℚ ⌊ x ≟ y ⌋
 

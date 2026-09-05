@@ -18,13 +18,13 @@ open import ProbabilisticLogic.Distribution.RationalDist public using
 open import ProbabilisticLogic.Distribution.RationalDist.Partial public
 
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation public using
-  ( E; mb; Pr₁; Pr₁-bind; Pr₁⊥; Pr₁⊥-just; Pr₁⊥-cong )
+  ( E; mb; Pr₁; Pr₁-bind; Prᵇ⊥; Pr₁⊥; Pr₁⊥-just; Pr₁⊥-cong )
 
 open import ProbabilisticLogic.Distribution.RationalDist.Setoid public using
   ( Mℚ-setoid; module Mℚ )
 
 open import ProbabilisticLogic.Distribution.RationalDist.Advantage public using
-  ( adv⊥; adv⊥-sym; adv⊥-triangle; adv⊥-≈⇒0 )
+  ( advᵇ⊥; adv⊥; adv⊥-sym; adv⊥-triangle; adv⊥-≈⇒0 )
 
 open import ProbabilisticLogic.Distribution.Uniform public using
-  ( bool→ℚ; δ; fromℕ; inv-pow-2; uniform-Bool; uniform-Vec )
+  ( bool→ℚ; indᵇ; δ; fromℕ; inv-pow-2; uniform-Bool; uniform-Vec )

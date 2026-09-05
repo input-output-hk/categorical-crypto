@@ -15,6 +15,13 @@
 -- carries `ε + δ`) and degenerates to `_≈ₚ_` at `ε = 0`.  Those three are
 -- exactly the pseudometric laws the vanishing-advantage layer spends, so
 -- nothing is lost by never naming the number.
+--
+-- BOTH verdict masses are compared, `Pr≤[ b ]` for either `b`, and that is the
+-- proposal's §1 requirement (`docs/kb/frontier/15-probabilistic-uc-model.typ`):
+-- observing only the `true`-mass identifies an implementation that answers
+-- `false` with one that diverges, since divergence weighs 0 under either
+-- indicator.  Comparing both retains the distinction while still identifying an
+-- almost-surely terminating loop with an immediate return.
 
 open import Data.Bool.Base
 open import Data.Nat.Base renaming (_≤_ to _≤ℕ_)
@@ -25,7 +32,7 @@ open import Data.Rational.Properties as ℚP
 open import Data.Rational.Properties.Ext
 open import Relation.Binary.PropositionalEquality
 
-open import ProbabilisticLogic.Distribution.Uniform using (bool→ℚ)
+open import ProbabilisticLogic.Distribution.Uniform using (indᵇ)
 open import ProbabilisticLogic.Dp
 
 module ProbabilisticLogic.Dp.Advantage where
@@ -33,21 +40,28 @@ module ProbabilisticLogic.Dp.Advantage where
 private variable d e h d′ e′ : Dₚ Bool
                  ε δ : ℚ
 
--- The verdict mass reached within `n` steps.
+-- The mass of verdict `b` reached within `n` steps.
+Pr≤[_] : Bool → ℕ → Dₚ Bool → ℚ
+Pr≤[ b ] n d = cum n d (indᵇ b)
+
+-- The `true` reading alone, which is what a one-sided probability-of-event
+-- statement asks for (`CategoricalCrypto.UC.Approximate.Mass`).
 Pr≤ : ℕ → Dₚ Bool → ℚ
-Pr≤ n d = cum n d bool→ℚ
+Pr≤ = Pr≤[ true ]
 
-ind-nn : NNF bool→ℚ
-ind-nn true  = 0≤1ℚ
-ind-nn false = ≤-refl
+indᵇ-nn : (b : Bool) → NNF (indᵇ b)
+indᵇ-nn true  true  = 0≤1ℚ
+indᵇ-nn true  false = ≤-refl
+indᵇ-nn false true  = ≤-refl
+indᵇ-nn false false = 0≤1ℚ
 
-Pr≤-mono : {n m : ℕ} (d : Dₚ Bool) → n ≤ℕ m → Pr≤ n d ℚ.≤ Pr≤ m d
-Pr≤-mono d le = cum-mono le d bool→ℚ ind-nn
+Pr≤-mono : {n m : ℕ} (b : Bool) (d : Dₚ Bool) → n ≤ℕ m → Pr≤[ b ] n d ℚ.≤ Pr≤[ b ] m d
+Pr≤-mono b d le = cum-mono le d (indᵇ b) (indᵇ-nn b)
 
 infix 4 _≼ₚ[_]_ _≈ₚ[_]_
 
 _≼ₚ[_]_ : Dₚ Bool → ℚ → Dₚ Bool → Set
-d ≼ₚ[ ε ] e = (n : ℕ) → Σ[ m ∈ ℕ ] (Pr≤ n d ℚ.≤ Pr≤ m e ℚ.+ ε)
+d ≼ₚ[ ε ] e = (b : Bool) (n : ℕ) → Σ[ m ∈ ℕ ] (Pr≤[ b ] n d ℚ.≤ Pr≤[ b ] m e ℚ.+ ε)
 
 _≈ₚ[_]_ : Dₚ Bool → ℚ → Dₚ Bool → Set
 d ≈ₚ[ ε ] e = (d ≼ₚ[ ε ] e) × (e ≼ₚ[ ε ] d)
@@ -56,23 +70,23 @@ d ≈ₚ[ ε ] e = (d ≼ₚ[ ε ] e) × (e ≼ₚ[ ε ] d)
 -- The pseudometric laws
 
 ≼ₚ⇒≼ₚ[0] : d ≼ₚ e → d ≼ₚ[ 0ℚ ] e
-≼ₚ⇒≼ₚ[0] {e = e} le n =
-  let m , b = le bool→ℚ ind-nn n
-  in m , ≤-trans b (≤-reflexive (sym (+-identityʳ (Pr≤ m e))))
+≼ₚ⇒≼ₚ[0] {e = e} le b n =
+  let m , bd = le (indᵇ b) (indᵇ-nn b) n
+  in m , ≤-trans bd (≤-reflexive (sym (+-identityʳ (Pr≤[ b ] m e))))
 
 ≼ₚ[]-refl : d ≼ₚ[ 0ℚ ] d
 ≼ₚ[]-refl {d} = ≼ₚ⇒≼ₚ[0] (≼ₚ-refl d)
 
 ≼ₚ[]-mono : ε ℚ.≤ δ → d ≼ₚ[ ε ] e → d ≼ₚ[ δ ] e
-≼ₚ[]-mono {ε} {δ} le b n =
-  let m , bd = b n in m , ≤-trans bd (+-monoʳ-≤ (Pr≤ m _) le)
+≼ₚ[]-mono {ε} {δ} le h b n =
+  let m , bd = h b n in m , ≤-trans bd (+-monoʳ-≤ (Pr≤[ b ] m _) le)
 
 ≼ₚ[]-trans : d ≼ₚ[ ε ] e → e ≼ₚ[ δ ] h → d ≼ₚ[ ε ℚ.+ δ ] h
-≼ₚ[]-trans {ε = ε} {δ = δ} {h = h} b c n =
-  let m , bd = b n
-      i , cd = c m
+≼ₚ[]-trans {ε = ε} {δ = δ} {h = h} p q b n =
+  let m , bd = p b n
+      i , cd = q b m
   in i , ≤-trans bd (≤-trans (+-monoˡ-≤ ε cd)
-                             (≤-reflexive (shuffle (Pr≤ i h) δ ε)))
+                             (≤-reflexive (shuffle (Pr≤[ b ] i h) δ ε)))
   where
   shuffle : ∀ x y z → (x ℚ.+ y) ℚ.+ z ≡ x ℚ.+ (z ℚ.+ y)
   shuffle x y z = trans (+-assoc x y z) (cong (x ℚ.+_) (+-comm y z))
@@ -80,10 +94,10 @@ d ≈ₚ[ ε ] e = (d ≼ₚ[ ε ] e) × (e ≼ₚ[ ε ] d)
 -- The left and right ends can be replaced by `_≼ₚ_`-comparable ones; this is
 -- how an observation is transported along the ambient hom equality.
 ≼ₚ[]-resp : d′ ≼ₚ d → e ≼ₚ e′ → d ≼ₚ[ ε ] e → d′ ≼ₚ[ ε ] e′
-≼ₚ[]-resp {d′} {d} {e} {e′} {ε} l r b n =
-  let m , bl = l bool→ℚ ind-nn n
-      i , bd = b m
-      j , br = r bool→ℚ ind-nn i
+≼ₚ[]-resp {d′} {d} {e} {e′} {ε} l r p b n =
+  let m , bl = l (indᵇ b) (indᵇ-nn b) n
+      i , bd = p b m
+      j , br = r (indᵇ b) (indᵇ-nn b) i
   in j , ≤-trans bl (≤-trans bd (+-monoˡ-≤ ε br))
 
 ≈ₚ⇒≈ₚ[0] : d ≈ₚ e → d ≈ₚ[ 0ℚ ] e
@@ -96,12 +110,12 @@ d ≈ₚ[ ε ] e = (d ≼ₚ[ ε ] e) × (e ≼ₚ[ ε ] d)
 ≈ₚ[]-sym (le , el) = el , le
 
 ≈ₚ[]-mono : ε ℚ.≤ δ → d ≈ₚ[ ε ] e → d ≈ₚ[ δ ] e
-≈ₚ[]-mono le (b , c) = ≼ₚ[]-mono le b , ≼ₚ[]-mono le c
+≈ₚ[]-mono le (p , q) = ≼ₚ[]-mono le p , ≼ₚ[]-mono le q
 
 ≈ₚ[]-trans : d ≈ₚ[ ε ] e → e ≈ₚ[ δ ] h → d ≈ₚ[ ε ℚ.+ δ ] h
-≈ₚ[]-trans {ε = ε} {δ = δ} (b , b′) (c , c′) =
-  ≼ₚ[]-trans b c , ≼ₚ[]-mono (≤-reflexive (+-comm δ ε)) (≼ₚ[]-trans c′ b′)
+≈ₚ[]-trans {ε = ε} {δ = δ} (p , p′) (q , q′) =
+  ≼ₚ[]-trans p q , ≼ₚ[]-mono (≤-reflexive (+-comm δ ε)) (≼ₚ[]-trans q′ p′)
 
 ≈ₚ[]-resp : d ≈ₚ d′ → e ≈ₚ e′ → d ≈ₚ[ ε ] e → d′ ≈ₚ[ ε ] e′
-≈ₚ[]-resp (dd , dd′) (ee , ee′) (b , c) =
-  ≼ₚ[]-resp dd′ ee b , ≼ₚ[]-resp ee′ dd c
+≈ₚ[]-resp (dd , dd′) (ee , ee′) (p , q) =
+  ≼ₚ[]-resp dd′ ee p , ≼ₚ[]-resp ee′ dd q
