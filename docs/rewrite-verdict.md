@@ -1,8 +1,8 @@
 # Rewrite verdict: `protocol-rewrite` vs the old lineage
 
-Comparison of `protocol-rewrite` (M1–M3, 67 files / +8732 LOC over `f71a2381`) against
-the old lineage's tip (`sfunm-setoid` + `spike/pov-tower`, 59 files / +9592/−1888 over
-the same base). Quality-pass addendum pending; nothing below depends on it.
+Comparison of `protocol-rewrite` (M1–M3, at the addendum-3 integration
+86 files / +11883/−295 over `f71a2381`) against the old lineage's tip
+(`sfunm-setoid` + `spike/pov-tower`, 59 files / +9592/−1888 over the same base).
 
 ## Verdict: ADOPT the rewrite as the mainline
 
@@ -16,30 +16,36 @@ old lineage are enumerable ports, not regressions in kind.
 | example | `ChimericLedger.POV` = 190 lines, 3 layer imports, plain-Agda ledger, `Sys = ledger ∘ᵖ oracle`, pins by `refl` | same shape achieved only after three API redesign passes; rests on `System` certificate luggage |
 | equalities | one hom-equality (simulation zigzag) from birth | four-relation zoo (`≈ᴹᶜ/≲/≲ᵒ/≈ˢ`) + ~780 LOC of word machinery with no counterpart in the rewrite |
 | hatches / flags | 21 = baseline; zero postulates; `--without-K` everywhere incl. all of `UC.*`; `--guardedness` on 18 Dₚ-facing modules only | 21 = baseline; K island (2 modules) |
-| perf | no module over ~12 s warm; machine closure ~40 s | 450 s MD remainder (slated for deletion); two conversion-wall incidents |
+| perf | typical module 2–12 s warm; the measured outliers are `UC.Machine` 74 s, `UC.Machine.Grading` 22 s and the ledger pin ~3 min, each documented at its site | 450 s MD remainder (slated for deletion); two conversion-wall incidents |
 
 ## What the old lineage still has (the port ledger, in harvest order)
 
-1. **`van-bound`** — the vanishing-bound analysis: pure ℚ, ports verbatim. (~0 adaptation)
-2. **The α query-bound content**: counting theorem + full `qb` calculus + closed-leg
-   discharges — proved on the old branch, stated-and-priced on the new (`Counting`
-   250–350, `qb-∘` 250–400, `BudgetLawsᴹ` ~180). The design re-types; the proofs adapt.
+1. ~~**`van-bound`**~~ — PORTED verbatim (addendum 3): `Uniform/Decay`,
+   `Nat/Properties/Ext`, consumed by `UC.Family.VanishingBound`.
+2. **The α query-bound content**: the trace-free `qb` calculus is now PROVED
+   hypothesis-free (`qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` + hom-level forms + the two
+   reassociators, addendum 3); what remains of the old branch's content is
+   `Counting` (250–350) and `qb-∘` (250–400, the token walk over a ⊕-trace).
 3. **The MD example**: its crypto core (`MerkleDamgard/Core`, machine-free) ports
    verbatim; the machine side becomes a `Protocol` with the free-monad `Call`
    (k calls per message) — replacing the old `_∘ᵍ_`/`stableN`/clock apparatus outright.
 4. **The functor seam**: `Morphism-∘` (300–500; the ≲ direction has the state map, the
-   reverse needs thought — flagged) and `PrAgree` (250–450; missing link = a general
-   `Dist⊥ → Dₚ` embedding, `Dp.Coin` is the Bool case).
+   reverse needs thought — flagged) and `PrAgree` (250–450), whose missing link — a
+   general `Dist⊥ → Dₚ` embedding — LANDED as `Dp.Embed` (addendum 3): `embed-cum`
+   is exact at every budget past `suc |entries|`, so what remains is the unrolling.
 5. **`Monoidal (GConstruction C)`**: one compound-object σ-coherence (`⌜⌝-⊗`) gates the
    bifunctor field; embedding layer landed.
-6. **The seam's remaining steps**: `StratIsEnv` (~80–120) and `Adequacy` (~250–350),
-   after which `AgreeToAdv` and `pov-carry` are theorems (addendum 1); the trivial
-   grade's `SubBlind`/`IotaBlind` (~60–90 each) and `AuditIsBounded` (~120–180), after
-   which both simulator carries reach layer 1 (addendum 2); `ContextDominated`
-   (~250, instance-specific); `Grading 𝒫ᴵ` (record-eta cliff, medicine known);
-   `UC-compose` (two `Grading` fields).
+6. **The seam's remaining steps**: `EnvAsCtx` (~80–120, REPLACES `StratIsEnv` as the
+   obligation — the reduction is proved generically as `UC.Environment.≈ℰ-at`) and
+   `Adequacy` (~250–350), after which `AgreeToAdv` and `pov-carry` are theorems
+   (addendum 1); the trivial grade's `SubBlind`/`IotaBlind` (~60–90 each) and
+   `AuditIsBounded` (~120–180), after which both simulator carries reach layer 1
+   (addendum 2); `ContextDominated` (~250, instance-specific);
+   `GradingLawsᴹ`'s eight fields — the ASSEMBLIES `Gradingᴹ`/`Budgetᴹ` are now
+   proved (addendum 3), so the laws alone stand between `𝒫ᴵ` and a full
+   `UCBase`+`Budget`; `UC-compose` (two `Grading` fields).
 
-Total to parity-and-beyond: ≈1400–2300 LOC, all routine-to-medium, none research-grade.
+Total to parity-and-beyond: ≈1200–1900 LOC, all routine-to-medium, none research-grade.
 
 ## Honest liabilities of the rewrite
 
@@ -115,3 +121,58 @@ new findings are resolved on this branch.
    the strategies the context's budget affords and concludes at `ε + δ` for an
    arbitrary positive δ, which is what a convexity argument over a supremum-valued
    mass delivers and what layer 1's budget-quantified theorems feed directly.
+
+## Addendum 3: the integration (2026-09-05)
+
+Three streams merged onto the branch, all green (closure + pins rc=0 with the
+extended warning gate empty; hatch grep 21 = baseline; K island still absent).
+
+1. **The cheap bundle** (5 commits): the van-bound port (ledger item 1, done);
+   `Dp.Embed` (`embed-cum` exact via a conditional-coin cascade — structural, no
+   guardedness, divisor-free by stating the induction mass-scaled); the three
+   trace-free budget laws, proved; and `StratIsEnv` reduced to `EnvCtx`/`EnvAsCtx`
+   through the generic `≈ℰ-at`. One honest BLOCKED mark: the closing application
+   `EnvAsCtx → StratIsEnv` does not come back at the instance (measured in four
+   spellings; the residue is the instance's own unfolding under application —
+   the same class the pinning below cures, recorded in `UC.Seam.Grounding`).
+2. **The qualitative core split** (5 commits): `UC.Base` split into a
+   quantity-free core (`UC.Core`: `Grading` + a qualitative `Observation`) and
+   optional enrichments (`UC.Approximate`'s abstract `ErrorAlgebra` with the ε/2
+   argument proved once; `UC.Budget`; `UC.Environment.Approximate`), the
+   `Induced` construction giving both machine and asymptotic observations from
+   their ε-relations, `UC.Saturated` stating the transportable POV form, and
+   `UC.Core.Standard` PROVING the reconciliation with the inherited `UCSetup`
+   doctrine (a monoidal category grades itself; `a⇐`/`a-isoˡ` land exactly on
+   `GradeStableFromTests`' `θ`/`θ-μ`). `UCSetup` itself is not instantiable at
+   the machine model — `𝒢ₚ` has no monoidal structure yet, and the core is the
+   test-generated case of the presheaf interface — which is the precise sense
+   in which the abstraction-notes layering is realized rather than duplicated.
+3. **The quality pass** (9 mechanical commits + `QUALITY-REVIEW.md`, 27
+   judgment items): landed for the protocol/machine/Dₚ layers; its edits to the
+   UC layer were superseded by the core split (conflicts resolved in the
+   split's favor), so a style re-sweep of the restructured `UC.*` is owed.
+4. **`Gradingᴹ`/`Budgetᴹ` assembled** (from the quality review's crux spike):
+   the eta-cliff verdict in `UC.Machine` was WRONG — with every object implicit
+   pinned the assembly typechecks, and it lives in `UC.Machine.Grading` because
+   the same text inside `UC.Machine` costs 852 s against 74 + 22 s split. The
+   grading obligation is now exactly `GradingLawsᴹ`'s eight fields.
+
+**Open defect worth the maintainer's eye — a degenerate `Grading`.** The
+`Grading` record's ten laws are satisfied by the constant grading
+`_⊛_ = λ _ B → B` (every `T₁`/`sub` the identity), under which `_≈ℰ_` collapses
+to plain observational closure and `_≤UC_` between closed processes becomes
+nearly trivial to inhabit. This is the same vacuity class the two theory
+reviews flagged (`QB c f = ⊤`, bounded `κ`): nothing false is provable, but a
+theorem quantified over an ABSTRACT grading proves less than its reading
+suggests. The intended instance (`Gradingᴹ`, where `_⊛_ = _⊗ᴵ_` is injective on
+messages) is now assembled, which contains the risk at the model; a
+non-degeneracy field (or stating emulation theorems at the instance) is the
+principled fix, priced but not chosen here.
+
+The layering after the merge (core / enrichment / model / frontend, with what
+each may not assume) is recorded in `docs/protocol-rewrite.md`'s M3 section,
+which also carries the updated priced table: the statement-only surface is now
+`Counting`, `qb-∘`, `EnvAsCtx`, `Adequacy`, `ContextDominated`,
+`SubBlind`/`IotaBlind`, `AuditIsBounded`, `TrajectoryFromAudit`,
+`GradingLawsᴹ`'s eight fields, `UC-compose`'s two, and `SaturatedRespects` —
+every one a type with a price, none a postulate.
