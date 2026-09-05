@@ -555,7 +555,9 @@ this layer needed them.)
 | `…UC.Machine` | model | 206 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Approximationᴹ`/`Observationᴹ`/`ApproximateObservationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `UCBaseᴹ` |
 | `…UC.Machine.Grading` | model | 129 | `GradingLawsᴹ` (implicit-pinned), `Gradingᴹ` and `Budgetᴹ` — the ASSEMBLIES, proved; `qb-a⇒ᴹ`/`qb-a⇐ᴹ` |
 | `…UC.Machine.Run` | model | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
-| `…UC.QueryBound` | model | 488 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `CountBound`, `Counting` (stated), `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `qbᵢ-resp-step`, `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` and their hom-level forms, `BudgetLawsᴹ` (stated) |
+| `…UC.QueryBound` | model | 480 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `#inj₁`/`#inj₂`, `CountBound`, `Counting`, `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `qbᵢ-resp-step`, `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` and their hom-level forms, `BudgetLawsᴹ` |
+| `…UC.QueryBound.Counting` | model | 237 | `CountedRun`, `countᵍ`/`countᵍ-erase`, `qbᵢ⇒count` — `Counting` inhabited |
+| `…UC.QueryBound.Compose` | model | 329 | `resumeF`/`resumeG`, `Unfolding` (the composite step's six equations), `qbᵢ-∘ᵍ` — the two-position token walk at rate `c * c′` |
 | `…UC.Machine.Bridge` | model | 96 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `ContextDominated` (stated) |
 | `…UC.Seam` | model | 171 | `strategyEnv` (a strategy as an environment), `ctxRunˢ`/`runˢ`, `Agreeˢ`, `Adequacy`/`AgreeToAdv` (stated), `pov-carry` (proved) |
 | `…UC.Seam.Carry` | model | 79 | `run-agree`, `agree-to-adv` — `AgreeToAdv` from `Adequacy` and `PrAgree`, proved |
@@ -805,7 +807,9 @@ metatheorems and the equivalence of the plain and dummy-adversary forms;
 `UC.Machine.Run`'s `runᴹ-resp-≈ᴹ`, hence `Observationᴹ`;
 `UC.QueryBound`'s `qbᵢ-mono`, `qb-resp-≈`, `qb-mono`, the inhabitation
 `qbᵢ-wire` and the three trace-free closure laws `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub`
-(`qbᵢ-resp-step` is what carries them); `UC.Environment.≈ℰ-at`; `UC.Seam`'s
+(`qbᵢ-resp-step` is what carries them), and the run-level meaning of the
+certificate — `UC.QueryBound.Counting`'s `qbᵢ⇒count`, which inhabits `Counting`
+and is what forbids a degenerate reading of the bound; `UC.Environment.≈ℰ-at`; `UC.Seam`'s
 `strategyEnv` and `pov-carry`, and `UC.Seam.Carry`'s `run-agree`/`agree-to-adv`
 — so `AgreeToAdv` holds as soon as `Adequacy` and `PrAgree` do, where it used to
 be an assumption of its own.
@@ -846,7 +850,6 @@ pattern, no postulate and no hole anywhere:
 | statement | where | price |
 |---|---|---|
 | `GradingLawsᴹ`'s eight fields | `UC.Machine.Grading` | the assemblies `Gradingᴹ`/`Budgetᴹ` are PROVED (implicit-pinning), so the laws are all that stands between `𝒫ᴵ` and a full `UCBase`+`Budget`; four are trace-free (~40–60 LOC each), `T₁-∘`, `sub-∘`, `a-isoˡ`, `a-nat` are M2 task 3's trace-fusion gate |
-| `Counting` | `UC.QueryBound` | 250–350 LOC; the reference's 248 plus an effectful recursion |
 | `BudgetLawsᴹ` — `qb-∘` alone | `UC.QueryBound` | 250–400 (the reference's token walk over a ⊕-trace).  `qb-id`/`qb-T₁`/`qb-sub` are now THEOREMS (`qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` at the certificate level, `qb-idᴹ`/`qb-T₁ᴹ`/`qb-subᴹ` at the hom level); the record itself is not assembled, its fields taking their interfaces implicitly |
 | `ContextDominated` | `UC.Machine.Bridge` | ~250 LOC, instance-specific; the branchwise decomposition of a context against a budgeted strategy, reassembled by convexity of `Pr≤`.  Spike the two-machine skeleton first |
 | `EnvAsCtx` | `UC.Seam.Grounding` | ~80–120 LOC; the degenerate-ancilla collapse, trace-fusion gated.  It REPLACES `StratIsEnv` as the obligation: `UC.Environment.≈ℰ-at` proves the reduction generically, so what is owed is one ancilla, one test, one closure and one hom equation, with no quantitative content.  Closing `EnvAsCtx → StratIsEnv` at the instance is blocked by the eta cliff below, measured in four spellings |
