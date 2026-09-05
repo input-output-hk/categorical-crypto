@@ -285,6 +285,7 @@ distributivity they never needed.
 | `Categories.GConstructionEmbedding` | 157 | harvested: `⌜_,_⌝`, `absorbˡ`/`absorbʳ`, `⌜⌝-∘`, `⌜⌝-≅`, `unitorˡᴳ`/`unitorʳᴳ`/`associatorᴳ` |
 | `…GConstructionEmbeddingCoherence` | 173 | harvested: the two absorption coherence obligations, APROP-solved |
 | `ProbabilisticLogic.Dp.Coin` | 74 | `coinₚ` — a `Dist-ℚ Bool` as one biased coin — and `coinₚ-cum` |
+| `…Dp.Embed` | 213 | `embed : Dist⊥ A → Dₚ A` as a cascade of conditional coins, `embed-cum` (exact past its depth), `embed-cong` |
 | `CategoricalCrypto.Protocol.Machine` | 131 | `⟦_⟧ᴵ`, `MSt`, `drive`, `morphism`, `runᴹ`, `Morphism-∘`, `PrAgree` |
 | `…Protocol.Machine.Pin` | 73 | layer 1 and the machine image agree by `refl` |
 
@@ -485,17 +486,17 @@ this layer needed them.)
 |---|---|---|
 | `ProbabilisticLogic.Dp.Advantage` | 107 | `Pr≤`, `_≼ₚ[_]_`/`_≈ₚ[_]_` — advantage as an ε-indexed relation, with the pseudometric laws |
 | `CategoricalCrypto.UC.Base` | 187 | `Grading`, `Budget`, `ctxBudget`, `Observation`, `Mass`, `UCBase`; the derived agreement `_∼_` and its ε/2 equivalence |
-| `…UC.Environment` | 173 | `SameTV` (ancilla a parameter), `Tests`, `ℰᵗᵛ`, `_≈ℰ_`, its congruences, `grade-stable`, `_≈ℰ[_]_`, `absorbᵘ` |
+| `…UC.Environment` | 184 | `SameTV` (ancilla a parameter), `Tests`, `ℰᵗᵛ`, `_≈ℰ_`, its congruences, `≈ℰ-at`, `grade-stable`, `_≈ℰ[_]_`, `absorbᵘ` |
 | `…UC.Emulation` | 114 | `_≤UC_`, `_≤UC⁺_`, `≤UC-refl`/`≤UC-trans`/`dummy-complete`/`≤UC⁺⇒≤UC`, `blind-grade`/`unit-grade`, `_⊙_`, `_⊛₁_`, `UC-compose` (stated) |
 | `…UC.Family` | 212 | `𝒞^ω` at a parameterized index, `PolyQB`, `Fam`, `Grading^ω`, `Observation^ω`, `UCBase^ω`, `ctxQB`, `_≈ℰ[_]_`, `VanishingBound`, `absorb` |
 | `…UC.Audit` | 132 | `_≤UC[_]_` (a budgeted simulator), `simCost`, `AuditBound`, `audit-carry` — the graded carry, proved |
 | `…UC.Machine` | 219 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Observationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `GradingLawsᴹ`, `UCBaseᴹ` |
 | `…UC.Machine.Run` | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
-| `…UC.QueryBound` | 265 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `CountBound`, `Counting` (stated), `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `BudgetLawsᴹ` (stated) |
+| `…UC.QueryBound` | 487 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `CountBound`, `Counting` (stated), `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `qbᵢ-resp-step`, `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` and their hom-level forms, `BudgetLawsᴹ` (stated) |
 | `…UC.Bridge` | 90 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `ContextDominated` (stated) |
 | `…UC.Seam` | 171 | `strategyEnv` (a strategy as an environment), `ctxRunˢ`/`runˢ`, `Agreeˢ`, `Adequacy`/`AgreeToAdv` (stated), `pov-carry` (proved) |
 | `…UC.Seam.Carry` | 79 | `run-agree`, `agree-to-adv` — `AgreeToAdv` from `Adequacy` and `PrAgree`, proved |
-| `…UC.Seam.Grounding` | 80 | `StratIsEnv`, and the trivial grade's `SubBlind`/`IotaBlind`/`UnitGrade` — the grading-dependent statements |
+| `…UC.Seam.Grounding` | 118 | `StratIsEnv`, its reduction `EnvCtx`/`EnvAsCtx`, and the trivial grade's `SubBlind`/`IotaBlind`/`UnitGrade` — the grading-dependent statements |
 | `…UC.Seam.Audit` | 66 | `massᴹ` (`Pr≤` as a `Mass`), `UC.Audit` at the instance, `AuditIsBounded` (stated) |
 | `…UC` | 41 | the one entry point |
 
@@ -571,10 +572,12 @@ equivalence and a congruence, `grade-stable`, `absorbᵘ`); `UC.Emulation`'s fou
 metatheorems and the equivalence of the plain and dummy-adversary forms;
 `UC.Family` in full (`Fam` a category, the grading and observation lifted,
 `absorb`); `UC.Machine.Run`'s `runᴹ-resp-≈ᴹ`, hence `Observationᴹ`;
-`UC.QueryBound`'s `qbᵢ-mono`, `qb-resp-≈`, `qb-mono` and the inhabitation
-`qbᵢ-wire`; `UC.Seam`'s `strategyEnv` and `pov-carry`, and `UC.Seam.Carry`'s
-`run-agree`/`agree-to-adv` — so `AgreeToAdv` holds as soon as `Adequacy` and
-`PrAgree` do, where it used to be an assumption of its own.
+`UC.QueryBound`'s `qbᵢ-mono`, `qb-resp-≈`, `qb-mono`, the inhabitation
+`qbᵢ-wire` and the three trace-free closure laws `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub`
+(`qbᵢ-resp-step` is what carries them); `UC.Environment.≈ℰ-at`; `UC.Seam`'s
+`strategyEnv` and `pov-carry`, and `UC.Seam.Carry`'s `run-agree`/`agree-to-adv`
+— so `AgreeToAdv` holds as soon as `Adequacy` and `PrAgree` do, where it used to
+be an assumption of its own.
 
 Proved as of the second review, and both about the SIMULATOR the emulation
 carries — `pov-carry`'s premise being direct agreement, which `_≤UC_` does not
@@ -613,11 +616,11 @@ pattern, no postulate and no hole anywhere:
 |---|---|---|
 | `Grading 𝒫ᴵ` (via `GradingLawsᴹ`'s eight fields) | `UC.Machine` | four are trace-free (~40–60 LOC each); `T₁-∘`, `sub-∘`, `a-isoˡ`, `a-nat` are M2 task 3's trace-fusion gate |
 | `Counting` | `UC.QueryBound` | 250–350 LOC; the reference's 248 plus an effectful recursion |
-| `BudgetLawsᴹ` (four closure laws) | `UC.QueryBound` | `qb-T₁`/`qb-sub` ~50 each, `qb-id` ~30, `qb-∘` 250–400 (the reference's token walk over a ⊕-trace) |
+| `BudgetLawsᴹ` — `qb-∘` alone | `UC.QueryBound` | 250–400 (the reference's token walk over a ⊕-trace).  `qb-id`/`qb-T₁`/`qb-sub` are now THEOREMS (`qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` at the certificate level, `qb-idᴹ`/`qb-T₁ᴹ`/`qb-subᴹ` at the hom level); the record itself is not assembled, its fields taking their interfaces implicitly |
 | `ContextDominated` | `UC.Bridge` | ~250 LOC, instance-specific; the branchwise decomposition of a context against a budgeted strategy, reassembled by convexity of `Pr≤`.  Spike the two-machine skeleton first |
-| `StratIsEnv` | `UC.Seam.Grounding` | ~80–120 LOC; the degenerate-ancilla collapse, trace-fusion gated |
+| `EnvAsCtx` | `UC.Seam.Grounding` | ~80–120 LOC; the degenerate-ancilla collapse, trace-fusion gated.  It REPLACES `StratIsEnv` as the obligation: `UC.Environment.≈ℰ-at` proves the reduction generically, so what is owed is one ancilla, one test, one closure and one hom equation, with no quantitative content.  Closing `EnvAsCtx → StratIsEnv` at the instance is blocked by the eta cliff below, measured in four spellings |
 | `SubBlind`, `IotaBlind` | `UC.Seam.Grounding` | ~60–90 LOC each, same gate: the trivial grade's summand cannot fire (`⊥-unique`), but the equation is between `𝒫ᴵ`-composites |
-| `UnitGrade` | `UC.Seam.Grounding` | the reduction is PROVED generically (`UC.Emulation.unit-grade`); what is owed is the two blindness facts, `StratIsEnv`, and the closing application, which is the eta cliff below |
+| `UnitGrade` | `UC.Seam.Grounding` | the reduction is PROVED generically (`UC.Emulation.unit-grade`); what is owed is the two blindness facts, `EnvAsCtx`, and the closing application, which is the eta cliff below |
 | `AuditIsBounded` | `UC.Seam.Audit` | ~120–180 LOC on `Adequacy`: recognize `strategyEnv B (bad d)`, plugged through the wires that kill the trivial grade and the ancilla, as one of the contexts `AuditBound` quantifies over — `Counting` for its certificate (`ctxBudget q 1 = q`), `PrAgree` for its mass |
 | `Adequacy` | `UC.Seam` | 250–350 LOC, one module; `PrAgree`'s unrolling, over `𝒫.∘` instead of `Dist⊥`'s bind |
 | `UC-compose` | `UC.Emulation` | two more `Grading` fields (`sub`/`T₁` interchange, `a⇒` naturality in its first two slots) |
@@ -655,7 +658,41 @@ port's rate is unchanged, the plugged port's is `c`"), after which `ctxBudget`
 is replaced by the test's hole-rate alone and the closure drops out of the
 statement.
 
-### Four perf findings, all recorded in the source
+### The vanishing layer, ported
+
+`Data.Nat.Properties.Ext` (153, new), `Data.Nat.Poly`'s `poly-≤2^`,
+`Data.Rational.Properties.Ext`'s `_/_` arithmetic and halving facts,
+`ProbabilisticLogic.Distribution.Uniform`'s `archimedean`/`fromℕ-inv-pow-2`, and
+`…Uniform.Decay` (115, new: the `_→0` closure rules and `poly-inv-pow-2-→0`)
+come over from the reference arc unchanged — the four pre-images were
+byte-identical at the merge base, so it is a clean additive port.  `Decay`'s
+`_→0` is spelled to match `UC.Family._→0` on the nose, so `VanishingBound` is
+inhabitable at a birthday-shaped numerator (`vanishing-bound`) as soon as one is
+supplied.
+
+### The `Dist⊥ → Dₚ` embedding
+
+`Dp`'s header asserts that binary trees of rational coins realise every finite
+rational distribution; `Dp.Embed` is that, and exactly: `embed` is the
+right-nested cascade whose node at `(w , x)` flips `(w/M , R/M)` for `M` the mass
+of the list from there on, so `choiceₚ`'s `q + r ≡ 1` holds with no
+renormalization of the list and the recursion stays structural.  `Dist-ℚ`'s
+non-negativity is spent twice — the two conditional weights, and the one place
+the normalization is undefined (a zero-mass suffix, which then carries no mass
+either, so `botₚ` is exact rather than convenient).
+
+    embed-cum : (μ : Dist⊥ A) (P : A → ℚ)
+              → Σ[ n ∈ ℕ ] ((m : ℕ) → cum (n + m) (embed μ) P ≡ E⊥ μ P)
+
+at `n = 1 + |entries μ|` — an equality, not a domination, which is what
+`PrAgree` compares.  The induction is divisor-free because it is stated scaled
+by the mass (`mass-L xs * cum … ≡ lookup-L xs (maybeℚ P)`), so the normalization
+cancels one node at a time.  `E⊥`/`maybeℚ` join `Pr₁⊥` in the expectation module
+with `mb = maybeℚ bool→ℚ`, so `Pr₁⊥ μ` IS `E⊥ μ bool→ℚ`.  What `PrAgree` still
+owes on top of this is the monad-morphism law up to `≈ₚ` and the induction on
+the `Strat` tree.
+
+### Six perf findings, all recorded in the source
 
 * **The reindexing record needs every object implicit passed explicitly.** Left
   to inference, each field of `𝒫ᴵ` asks Agda to invert
@@ -700,6 +737,22 @@ statement.
   arbitrary `UCBase` and the instance modules only name their obligations.  This
   is the same medicine `UC.Seam.Agreeˢ` already takes by being spelled in the
   `Dₚ` vocabulary.
+* **…and it is neither the transport nor the bundling.**  Measured again while
+  reducing `StratIsEnv`: the closing `EnvAsCtx → StratIsEnv` does not return
+  inside 300 s at 8 GiB, against 13 s for every statement in that file, in four
+  spellings — inline `∼-cast`; the generic `≈ℰ-at` with both object implicits
+  passed; `Dp.Advantage.≈ₚ[]-resp` against an observation-level obligation that
+  mentions no machine equality at all; and the same with the three components as
+  module parameters rather than record fields.  The `∼ ⇝ Agreeˢ` conversion is
+  free on its own at a variable of that type, so what is left is the instance's
+  unfolding under the application, and the cure is the same non-local one.
+* **The `~1 GiB` inversion is a 200-second wall in `UC.QueryBound` too.**  The
+  three trace-free budget laws are 29 s with every interface explicit and do not
+  come back inside 200 s with them implicit; the certificate-level halves
+  (`qbᵢ-T₁`/`qbᵢ-sub`) are 5 s each either way, because their interfaces are
+  module parameters.  For the same reason `BudgetLawsᴹ` is left unassembled: its
+  four fields take their interfaces implicitly, so filling them pays the
+  inversion once per field.
 
 ### Compatibility with the inherited MD line
 
