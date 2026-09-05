@@ -163,16 +163,15 @@ open Certificate public using (QBᵢ; qbᵢ-mono; traceᵍ; behᵍ)
 ------------------------------------------------------------------------
 -- Counting
 
-private
-  #inj₁ : List (A′ ⊎ B′) → ℕ
-  #inj₁ []            = 0
-  #inj₁ (inj₁ _ ∷ xs) = suc (#inj₁ xs)
-  #inj₁ (inj₂ _ ∷ xs) = #inj₁ xs
+#inj₁ : List (A′ ⊎ B′) → ℕ
+#inj₁ []            = 0
+#inj₁ (inj₁ _ ∷ xs) = suc (#inj₁ xs)
+#inj₁ (inj₂ _ ∷ xs) = #inj₁ xs
 
-  #inj₂ : List (A′ ⊎ B′) → ℕ
-  #inj₂ []            = 0
-  #inj₂ (inj₁ _ ∷ xs) = #inj₂ xs
-  #inj₂ (inj₂ _ ∷ xs) = suc (#inj₂ xs)
+#inj₂ : List (A′ ⊎ B′) → ℕ
+#inj₂ []            = 0
+#inj₂ (inj₁ _ ∷ xs) = #inj₂ xs
+#inj₂ (inj₂ _ ∷ xs) = suc (#inj₂ xs)
 
 module _ {A B : Iface} (S : Set) (point : Dₚ S)
          (step : S × (Pos A ⊎ Neg B) → Dₚ (S × (Neg A ⊎ Pos B)))
