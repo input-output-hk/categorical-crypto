@@ -34,11 +34,11 @@ open import Categories.Category using (Category; _[_≈_])
 
 open import Data.List.Base using (List; []; _∷_)
 open import Data.Nat.Base as ℕ using (ℕ; suc; z≤n; s≤s)
-open import Data.Nat.Properties using (+-monoʳ-≤; ≤-trans)
+open import Data.Nat.Properties using (+-monoʳ-≤; m<m+n; m≤m⊔n; m≤n⊔m; ≤-refl; ≤-trans)
 open import Data.Product.Base using (Σ; Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Polymorphic.Base using (tt)
-open import Function.Base using (_∘′_)
+open import Function.Base using (_∘′_; id)
 open import Level using (0ℓ)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
@@ -245,15 +245,236 @@ qb-mono : {A B : Iface} {c c′ : ℕ} {M : Proc A B} → c ℕ.≤ c′ → QB 
 qb-mono le (N , q , e) = N , qbᵢ-mono _ _ _ le q , e
 
 ------------------------------------------------------------------------
--- The closure properties still owed
+-- The three trace-free closure properties
+--
+-- `T₁ᴵ`/`subᴵ` keep the plugged process's state, so its potential IS the
+-- action's and `pointᵍ`/`coh₀` carry over untouched; what changes is the tagging
+-- of the answers and the two bypass cases the ancilla contributes, one relay
+-- apiece.  The DOWNWARD one is a completed activation, so it must withdraw a
+-- unit that an activation from above deposited, and a rate of zero has none to
+-- give: `c ⊔ 1` is what pays for it, and `qbᵢ-wire`'s `1` is the same fact at
+-- the bare wire.  Nothing here unrolls a machine or touches the ⊕-trace.
 
--- `qb-resp-≈`/`qb-mono` are theorems and the two ancilla reassociators are
--- `qbᵢ-wire`; these four are what `UC.Base.Budget` still wants at this
--- instance.  `qb-T₁`/`qb-sub` are trace-free — the action keeps the state and
--- the potential, and each adds two bypass cases that are one relay apiece —
--- and it is exactly there that the rate must be `c ⊔ 1`.  `qb-id` needs only
--- that `𝒫.id` is behaviourally the wire; `qb-∘` is the reference arc's 231-LOC
--- two-position token walk, with a ⊕-trace on top of it here.
+private
+  map-arg : {d e : Dₚ A′} (h : A′ → B′) → d ≈ₚ e → mapₚ h d ≈ₚ mapₚ h e
+  map-arg {d = d} {e} h de = >>=ₚ-cong d e (returnₚ ∘′ h) (returnₚ ∘′ h) de λ _ → ≈ₚ-refl _
+
+  -- The bypassed interface can always afford its one downward relay.
+  0<⊔1 : (c : ℕ) → 0 ℕ.< c ℕ.⊔ 1
+  0<⊔1 c = m≤n⊔m c 1
+
+-- A certificate sees its step only up to `_≈ₚ_`.  That is what lets the two
+-- action laws below be built against an explicit step — one whose relay reduces
+-- — and then transported onto the action's own.
+qbᵢ-resp-step : {A B : Iface} (S : Set) (point : Dₚ S)
+                (step step′ : S × (Pos A ⊎ Neg B) → Dₚ (S × (Neg A ⊎ Pos B)))
+              → ((p : S × (Pos A ⊎ Neg B)) → step p ≈ₚ step′ p)
+              → {c : ℕ} → QBᵢ S point step c → QBᵢ S point step′ c
+qbᵢ-resp-step S point step step′ eq q = record
+  { Φ = Φ ; pointᵍ = pointᵍ ; coh₀ = coh₀ ; onLᵍ = onLᵍ ; onRᵍ = onRᵍ
+  ; cohL = λ s a → cohL s a ⟨≈⟩ eq (s , inj₁ a)
+  ; cohR = λ s b → cohR s b ⟨≈⟩ eq (s , inj₂ b)
+  }
+  where open QBᵢ q
+
+-- The identity is `σᴹ`, a pure machine, where the wire case-splits the sum; the
+-- two are the same relay up to the junctions a `pureᴹ` spends.
+qbᵢ-id : {A : Iface} → Certified 1 (𝒫.id {A})
+qbᵢ-id {A} =
+  qbᵢ-resp-step ⊤ᵛ (returnₚ tt) (wireStep {A} {A} id id) (MC.step (𝒫.id {A}))
+                id-step (qbᵢ-wire id id)
+  where
+  id-step : (p : ⊤ᵛ × (Pos A ⊎ Neg A))
+          → wireStep {A} {A} id id p ≈ₚ MC.step (𝒫.id {A}) p
+  id-step (s , inj₁ p) =
+    ≈ₚ-sym _ _ (>>=ₚ-identityˡ s _ ⟨≈⟩ >>=ₚ-identityˡ (inj₂ p) _)
+  id-step (s , inj₂ n) =
+    ≈ₚ-sym _ _ (>>=ₚ-identityˡ s _ ⟨≈⟩ >>=ₚ-identityˡ (inj₁ n) _)
+
+------------------------------------------------------------------------
+
+module _ (Y A B : Iface) {c : ℕ} (f : Proc A B) (q : Certified c f) where
+
+  private
+    open QBᵢ q
+
+    relayT : MC.St f × (Neg A ⊎ Pos B)
+           → MC.St f × ((Neg Y ⊎ Neg A) ⊎ (Pos Y ⊎ Pos B))
+    relayT (s , inj₁ a) = s , inj₁ (inj₂ a)
+    relayT (s , inj₂ b) = s , inj₂ (inj₂ b)
+
+    stepT : MC.St f × ((Pos Y ⊎ Pos A) ⊎ (Neg Y ⊎ Neg B))
+          → Dₚ (MC.St f × ((Neg Y ⊎ Neg A) ⊎ (Pos Y ⊎ Pos B)))
+    stepT (s , inj₁ (inj₁ y)) = returnₚ (s , inj₂ (inj₁ y))
+    stepT (s , inj₁ (inj₂ a)) = mapₚ relayT (MC.step f (s , inj₁ a))
+    stepT (s , inj₂ (inj₁ y)) = returnₚ (s , inj₁ (inj₁ y))
+    stepT (s , inj₂ (inj₂ b)) = mapₚ relayT (MC.step f (s , inj₂ b))
+
+    stepT-eq : (p : MC.St f × ((Pos Y ⊎ Pos A) ⊎ (Neg Y ⊎ Neg B)))
+             → stepT p ≈ₚ MC.step (T₁ᴵ Y f) p
+    stepT-eq (s , inj₁ (inj₁ y)) = ≈ₚ-refl _
+    stepT-eq (s , inj₁ (inj₂ a)) = map-cong (MC.step f (s , inj₁ a))
+      λ where (_ , inj₁ _) → refl
+              (_ , inj₂ _) → refl
+    stepT-eq (s , inj₂ (inj₁ y)) = ≈ₚ-refl _
+    stepT-eq (s , inj₂ (inj₂ b)) = map-cong (MC.step f (s , inj₂ b))
+      λ where (_ , inj₁ _) → refl
+              (_ , inj₂ _) → refl
+
+    -- The plugged process's answer, retagged into the second summand; the
+    -- reference potential only ever grows, so the witnesses survive.
+    liftT : {r r′ : ℕ} → r ℕ.≤ r′
+          → Ans Φ (Neg A) (Pos B) r → Ans Φ (Neg Y ⊎ Neg A) (Pos Y ⊎ Pos B) r′
+    liftT le (inj₁ ((s , lt) , a)) = inj₁ ((s , ≤-trans lt le) , inj₂ a)
+    liftT le (inj₂ ((s , l)  , b)) = inj₂ ((s , ≤-trans l  le) , inj₂ b)
+
+    liftT-forget : {r r′ : ℕ} (le : r ℕ.≤ r′) (y : Ans Φ (Neg A) (Pos B) r)
+                 → forget (liftT le y) ≡ relayT (forget y)
+    liftT-forget le (inj₁ _) = refl
+    liftT-forget le (inj₂ _) = refl
+
+    relayed : {r r′ : ℕ} (le : r ℕ.≤ r′) (X : Dₚ (Ans Φ (Neg A) (Pos B) r))
+              (t : Dₚ (MC.St f × (Neg A ⊎ Pos B))) → mapₚ forget X ≈ₚ t
+            → mapₚ forget (mapₚ (liftT le) X) ≈ₚ mapₚ relayT t
+    relayed le X t coh = map-map X (liftT le) forget
+                   ⟨≈⟩ map-cong X (liftT-forget le)
+                   ⟨≈⟩ ≈ₚ-sym _ _ (map-map X forget relayT)
+                   ⟨≈⟩ map-arg relayT coh
+
+    certT : QBᵢ (MC.St f) (MC.point (MC.state f) tt) stepT (c ℕ.⊔ 1)
+    certT = record
+      { Φ = Φ ; pointᵍ = pointᵍ ; coh₀ = coh₀ ; onLᵍ = onL ; onRᵍ = onR
+      ; cohL = cohL′ ; cohR = cohR′
+      }
+      where
+      onL : (s : MC.St f) (x : Pos Y ⊎ Pos A)
+          → Dₚ (Ans Φ (Neg Y ⊎ Neg A) (Pos Y ⊎ Pos B) (Φ s))
+      onL s (inj₁ y) = returnₚ (inj₂ ((s , ≤-refl) , inj₁ y))
+      onL s (inj₂ a) = mapₚ (liftT ≤-refl) (onLᵍ s a)
+
+      onR : (s : MC.St f) (x : Neg Y ⊎ Neg B)
+          → Dₚ (Ans Φ (Neg Y ⊎ Neg A) (Pos Y ⊎ Pos B) (Φ s ℕ.+ (c ℕ.⊔ 1)))
+      onR s (inj₁ y) = returnₚ (inj₁ ((s , m<m+n (Φ s) (0<⊔1 c)) , inj₁ y))
+      onR s (inj₂ b) = mapₚ (liftT (+-monoʳ-≤ (Φ s) (m≤m⊔n c 1))) (onRᵍ s b)
+
+      cohL′ : (s : MC.St f) (x : Pos Y ⊎ Pos A)
+            → mapₚ forget (onL s x) ≈ₚ stepT (s , inj₁ x)
+      cohL′ s (inj₁ y) = >>=ₚ-identityˡ _ (returnₚ ∘′ forget)
+      cohL′ s (inj₂ a) = relayed ≤-refl (onLᵍ s a) _ (cohL s a)
+
+      cohR′ : (s : MC.St f) (x : Neg Y ⊎ Neg B)
+            → mapₚ forget (onR s x) ≈ₚ stepT (s , inj₂ x)
+      cohR′ s (inj₁ y) = >>=ₚ-identityˡ _ (returnₚ ∘′ forget)
+      cohR′ s (inj₂ b) = relayed _ (onRᵍ s b) _ (cohR s b)
+
+  qbᵢ-T₁ : Certified (c ℕ.⊔ 1) (T₁ᴵ Y f)
+  qbᵢ-T₁ = qbᵢ-resp-step _ _ stepT (MC.step (T₁ᴵ Y f)) stepT-eq certT
+
+------------------------------------------------------------------------
+
+module _ (X Y A : Iface) {c : ℕ} (s : Proc X Y) (q : Certified c s) where
+
+  private
+    open QBᵢ q
+
+    relayS : MC.St s × (Neg X ⊎ Pos Y)
+           → MC.St s × ((Neg X ⊎ Neg A) ⊎ (Pos Y ⊎ Pos A))
+    relayS (t , inj₁ x) = t , inj₁ (inj₁ x)
+    relayS (t , inj₂ y) = t , inj₂ (inj₁ y)
+
+    stepS : MC.St s × ((Pos X ⊎ Pos A) ⊎ (Neg Y ⊎ Neg A))
+          → Dₚ (MC.St s × ((Neg X ⊎ Neg A) ⊎ (Pos Y ⊎ Pos A)))
+    stepS (t , inj₁ (inj₁ x)) = mapₚ relayS (MC.step s (t , inj₁ x))
+    stepS (t , inj₁ (inj₂ a)) = returnₚ (t , inj₂ (inj₂ a))
+    stepS (t , inj₂ (inj₁ y)) = mapₚ relayS (MC.step s (t , inj₂ y))
+    stepS (t , inj₂ (inj₂ a)) = returnₚ (t , inj₁ (inj₂ a))
+
+    stepS-eq : (p : MC.St s × ((Pos X ⊎ Pos A) ⊎ (Neg Y ⊎ Neg A)))
+             → stepS p ≈ₚ MC.step (subᴵ s {A}) p
+    stepS-eq (t , inj₁ (inj₁ x)) = map-cong (MC.step s (t , inj₁ x))
+      λ where (_ , inj₁ _) → refl
+              (_ , inj₂ _) → refl
+    stepS-eq (t , inj₁ (inj₂ a)) = ≈ₚ-refl _
+    stepS-eq (t , inj₂ (inj₁ y)) = map-cong (MC.step s (t , inj₂ y))
+      λ where (_ , inj₁ _) → refl
+              (_ , inj₂ _) → refl
+    stepS-eq (t , inj₂ (inj₂ a)) = ≈ₚ-refl _
+
+    liftS : {r r′ : ℕ} → r ℕ.≤ r′
+          → Ans Φ (Neg X) (Pos Y) r → Ans Φ (Neg X ⊎ Neg A) (Pos Y ⊎ Pos A) r′
+    liftS le (inj₁ ((t , lt) , x)) = inj₁ ((t , ≤-trans lt le) , inj₁ x)
+    liftS le (inj₂ ((t , l)  , y)) = inj₂ ((t , ≤-trans l  le) , inj₁ y)
+
+    liftS-forget : {r r′ : ℕ} (le : r ℕ.≤ r′) (y : Ans Φ (Neg X) (Pos Y) r)
+                 → forget (liftS le y) ≡ relayS (forget y)
+    liftS-forget le (inj₁ _) = refl
+    liftS-forget le (inj₂ _) = refl
+
+    relayedS : {r r′ : ℕ} (le : r ℕ.≤ r′) (Z : Dₚ (Ans Φ (Neg X) (Pos Y) r))
+               (t : Dₚ (MC.St s × (Neg X ⊎ Pos Y))) → mapₚ forget Z ≈ₚ t
+             → mapₚ forget (mapₚ (liftS le) Z) ≈ₚ mapₚ relayS t
+    relayedS le Z t coh = map-map Z (liftS le) forget
+                    ⟨≈⟩ map-cong Z (liftS-forget le)
+                    ⟨≈⟩ ≈ₚ-sym _ _ (map-map Z forget relayS)
+                    ⟨≈⟩ map-arg relayS coh
+
+    certS : QBᵢ (MC.St s) (MC.point (MC.state s) tt) stepS (c ℕ.⊔ 1)
+    certS = record
+      { Φ = Φ ; pointᵍ = pointᵍ ; coh₀ = coh₀ ; onLᵍ = onL ; onRᵍ = onR
+      ; cohL = cohL′ ; cohR = cohR′
+      }
+      where
+      onL : (t : MC.St s) (x : Pos X ⊎ Pos A)
+          → Dₚ (Ans Φ (Neg X ⊎ Neg A) (Pos Y ⊎ Pos A) (Φ t))
+      onL t (inj₁ x) = mapₚ (liftS ≤-refl) (onLᵍ t x)
+      onL t (inj₂ a) = returnₚ (inj₂ ((t , ≤-refl) , inj₂ a))
+
+      onR : (t : MC.St s) (x : Neg Y ⊎ Neg A)
+          → Dₚ (Ans Φ (Neg X ⊎ Neg A) (Pos Y ⊎ Pos A) (Φ t ℕ.+ (c ℕ.⊔ 1)))
+      onR t (inj₁ y) = mapₚ (liftS (+-monoʳ-≤ (Φ t) (m≤m⊔n c 1))) (onRᵍ t y)
+      onR t (inj₂ a) = returnₚ (inj₁ ((t , m<m+n (Φ t) (0<⊔1 c)) , inj₂ a))
+
+      cohL′ : (t : MC.St s) (x : Pos X ⊎ Pos A)
+            → mapₚ forget (onL t x) ≈ₚ stepS (t , inj₁ x)
+      cohL′ t (inj₁ x) = relayedS ≤-refl (onLᵍ t x) _ (cohL t x)
+      cohL′ t (inj₂ a) = >>=ₚ-identityˡ _ (returnₚ ∘′ forget)
+
+      cohR′ : (t : MC.St s) (x : Neg Y ⊎ Neg A)
+            → mapₚ forget (onR t x) ≈ₚ stepS (t , inj₂ x)
+      cohR′ t (inj₁ y) = relayedS _ (onRᵍ t y) _ (cohR t y)
+      cohR′ t (inj₂ a) = >>=ₚ-identityˡ _ (returnₚ ∘′ forget)
+
+  qbᵢ-sub : Certified (c ℕ.⊔ 1) (subᴵ s {A})
+  qbᵢ-sub = qbᵢ-resp-step _ _ stepS (MC.step (subᴵ s {A})) stepS-eq certS
+
+------------------------------------------------------------------------
+
+qb-idᴹ : {A : Iface} → QB 1 (𝒫.id {A})
+qb-idᴹ = certified⇒QB qbᵢ-id
+
+-- The hom-level forms need the action to respect `_≈_`, because `QB` is the
+-- `≈`-closure of `Certified` and the certificate lives on a representative;
+-- those two are `GradingLawsᴹ`'s other trace-free fields.  Every interface is
+-- EXPLICIT here, and that is measured rather than tidy: left implicit, a `Proc`
+-- argument makes Agda invert `Machine (Pos A + Neg B) …` for the pair, and this
+-- module stops coming back inside 200 s (`UC.Machine`'s header records the same
+-- inversion at ~1 GiB apiece).  Which is also why `BudgetLawsᴹ` is not assembled
+-- here: its four fields take their interfaces implicitly, so filling them costs
+-- exactly that, and the record wants `qb-∘` anyway.
+qb-T₁ᴹ : ({Y A B : Iface} {f g : Proc A B} → 𝒫ᴵ [ f ≈ g ] → 𝒫ᴵ [ T₁ᴵ Y f ≈ T₁ᴵ Y g ])
+       → (Y A B : Iface) {c : ℕ} (f : Proc A B) → QB c f → QB (c ℕ.⊔ 1) (T₁ᴵ Y f)
+qb-T₁ᴹ resp Y A B f (N , cert , e) = T₁ᴵ Y N , qbᵢ-T₁ Y A B N cert , resp e
+
+qb-subᴹ : ({X Y A : Iface} {s t : Proc X Y} → 𝒫ᴵ [ s ≈ t ] → 𝒫ᴵ [ subᴵ s {A} ≈ subᴵ t ])
+        → (X Y A : Iface) {c : ℕ} (s : Proc X Y) → QB c s → QB (c ℕ.⊔ 1) (subᴵ s {A})
+qb-subᴹ resp X Y A s (N , cert , e) = subᴵ N , qbᵢ-sub X Y A N cert , resp e
+
+------------------------------------------------------------------------
+-- The closure property still owed
+
+-- `qb-∘` is the reference arc's 231-LOC two-position token walk, with a ⊕-trace
+-- on top of it here.  The other three fields are the theorems above, at their
+-- explicit-interface spellings.
 record BudgetLawsᴹ : Set₁ where
   field
     qb-id  : {A : Iface} → QB 1 (𝒫.id {A})
@@ -263,3 +484,4 @@ record BudgetLawsᴹ : Set₁ where
            → QB c f → QB (c ℕ.⊔ 1) (T₁ᴵ Y f)
     qb-sub : {X Y A : Iface} {c : ℕ} {s : Proc X Y}
            → QB c s → QB (c ℕ.⊔ 1) (subᴵ s {A})
+
