@@ -557,7 +557,9 @@ this layer needed them.)
 | `…UC.Machine.Run` | model | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
 | `…UC.QueryBound` | model | 480 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `#inj₁`/`#inj₂`, `CountBound`, `Counting`, `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `qbᵢ-resp-step`, `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` and their hom-level forms, `BudgetLawsᴹ` |
 | `…UC.QueryBound.Counting` | model | 237 | `CountedRun`, `countᵍ`/`countᵍ-erase`, `qbᵢ⇒count` — `Counting` inhabited |
-| `…UC.QueryBound.Compose` | model | 329 | `resumeF`/`resumeG`, `Unfolding` (the composite step's six equations), `qbᵢ-∘ᵍ` — the two-position token walk at rate `c * c′` |
+| `…UC.QueryBound.Compose` | model | 330 | `resumeF`/`resumeG`, `Unfolding` (the composite step's six equations), `qbᵢ-∘ᵍ` — the two-position token walk at rate `c * c′` |
+| `…UC.QueryBound.Compose.Step` | model | 495 | `Pt` and the `pt-*` routings, `onLₑ`/`tstepₑ`, `α⁰`/`γ⁰`/`Hα`/`Hγ` with `α-pure`/`γ-pure`, `unfoldᶜ` — `Unfolding` discharged at the real composite — and `qbᵢ-∘`/`qb-∘` |
+| `…UC.QueryBound.Compose.Laws` | model | 27 | `budgetLawsᴹ` — `BudgetLawsᴹ` assembled, given the two respect-`≈` hypotheses `qb-T₁ᴹ`/`qb-subᴹ` already take |
 | `…UC.Machine.Bridge` | model | 96 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `ContextDominated` (stated) |
 | `…UC.Seam` | model | 171 | `strategyEnv` (a strategy as an environment), `ctxRunˢ`/`runˢ`, `Agreeˢ`, `Adequacy`/`AgreeToAdv` (stated), `pov-carry` (proved) |
 | `…UC.Seam.Carry` | model | 79 | `run-agree`, `agree-to-adv` — `AgreeToAdv` from `Adequacy` and `PrAgree`, proved |
@@ -849,8 +851,7 @@ pattern, no postulate and no hole anywhere:
 
 | statement | where | price |
 |---|---|---|
-| `GradingLawsᴹ`'s eight fields | `UC.Machine.Grading` | the assemblies `Gradingᴹ`/`Budgetᴹ` are PROVED (implicit-pinning), so the laws are all that stands between `𝒫ᴵ` and a full `UCBase`+`Budget`; four are trace-free (~40–60 LOC each), `T₁-∘`, `sub-∘`, `a-isoˡ`, `a-nat` are M2 task 3's trace-fusion gate |
-| `BudgetLawsᴹ` — `qb-∘` alone | `UC.QueryBound` | 250–400 (the reference's token walk over a ⊕-trace).  `qb-id`/`qb-T₁`/`qb-sub` are now THEOREMS (`qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` at the certificate level, `qb-idᴹ`/`qb-T₁ᴹ`/`qb-subᴹ` at the hom level); the record itself is not assembled, its fields taking their interfaces implicitly |
+| `GradingLawsᴹ`'s eight fields | `UC.Machine.Grading` | the assemblies `Gradingᴹ`/`Budgetᴹ` are PROVED (implicit-pinning) and `BudgetLawsᴹ` is now inhabited (`UC.QueryBound.Compose.Laws`), so these laws are the ONLY thing left between `𝒫ᴵ` and a full `UCBase`+`Budget` — two of them, `T₁-resp-≈` and `sub-resp-≈`, are also the hypotheses `budgetLawsᴹ` takes; four are trace-free (~40–60 LOC each), `T₁-∘`, `sub-∘`, `a-isoˡ`, `a-nat` are M2 task 3's trace-fusion gate |
 | `ContextDominated` | `UC.Machine.Bridge` | ~250 LOC, instance-specific; the branchwise decomposition of a context against a budgeted strategy, reassembled by convexity of `Pr≤`.  Spike the two-machine skeleton first |
 | `EnvAsCtx` | `UC.Seam.Grounding` | ~80–120 LOC; the degenerate-ancilla collapse, trace-fusion gated.  It REPLACES `StratIsEnv` as the obligation: `UC.Environment.≈ℰ-at` proves the reduction generically, so what is owed is one ancilla, one test, one closure and one hom equation, with no quantitative content.  Closing `EnvAsCtx → StratIsEnv` at the instance is blocked by the eta cliff below, measured in four spellings |
 | `SubBlind`, `IotaBlind` | `UC.Seam.Grounding` | ~60–90 LOC each, same gate: the trivial grade's summand cannot fire (`⊥-unique`), but the equation is between `𝒫ᴵ`-composites |
@@ -1012,9 +1013,10 @@ the `Strat` tree.
   three trace-free budget laws are 29 s with every interface explicit and do not
   come back inside 200 s with them implicit; the certificate-level halves
   (`qbᵢ-T₁`/`qbᵢ-sub`) are 5 s each either way, because their interfaces are
-  module parameters.  For the same reason `BudgetLawsᴹ` is left unassembled: its
-  four fields take their interfaces implicitly, so filling them pays the
-  inversion once per field.
+  module parameters.  `BudgetLawsᴹ` IS now assembled, and the prediction held:
+  its four fields take their interfaces implicitly, so filling them pays the
+  inversion once per field — 27 lines that check in ~220 s, which is why
+  `UC.QueryBound.Compose.Laws` is a module of its own.
 
 ### Compatibility with the inherited MD line
 
