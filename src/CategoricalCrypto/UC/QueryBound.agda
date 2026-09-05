@@ -163,16 +163,15 @@ open Certificate public using (QBᵢ; qbᵢ-mono; traceᵍ; behᵍ)
 ------------------------------------------------------------------------
 -- Counting
 
-private
-  #inj₁ : List (A′ ⊎ B′) → ℕ
-  #inj₁ []            = 0
-  #inj₁ (inj₁ _ ∷ xs) = suc (#inj₁ xs)
-  #inj₁ (inj₂ _ ∷ xs) = #inj₁ xs
+#inj₁ : List (A′ ⊎ B′) → ℕ
+#inj₁ []            = 0
+#inj₁ (inj₁ _ ∷ xs) = suc (#inj₁ xs)
+#inj₁ (inj₂ _ ∷ xs) = #inj₁ xs
 
-  #inj₂ : List (A′ ⊎ B′) → ℕ
-  #inj₂ []            = 0
-  #inj₂ (inj₁ _ ∷ xs) = #inj₂ xs
-  #inj₂ (inj₂ _ ∷ xs) = suc (#inj₂ xs)
+#inj₂ : List (A′ ⊎ B′) → ℕ
+#inj₂ []            = 0
+#inj₂ (inj₁ _ ∷ xs) = #inj₂ xs
+#inj₂ (inj₂ _ ∷ xs) = suc (#inj₂ xs)
 
 module _ {A B : Iface} (S : Set) (point : Dₚ S)
          (step : S × (Pos A ⊎ Neg B) → Dₚ (S × (Neg A ⊎ Pos B)))
@@ -185,14 +184,8 @@ module _ {A B : Iface} (S : Set) (point : Dₚ S)
       erases : (w : List (Pos A ⊎ Neg B))
              → mapₚ proj₁ (runs w) ≈ₚ behᵍ S point step w
 
--- The counting theorem, stated and priced.  The reference arc proves it in 248
--- LOC by recursing on the activation word against the certificate's own
--- refined activations, carrying the invariant with the FINAL potential retained
--- (`#inj₁ os + Φ final ≤ Φ s + c * #inj₂ w`) — the version that composes — and
--- cashing a deposit at each activation from above.  Two things change here: the
--- recursion is effectful (`Dₚ`, so each cons step is a `>>=ₚ` rather than a
--- functorial action), and the initial slack is zeroed by `pointᵍ` rather than
--- by a `subst` on `Φ (init M) ≡ 0`.
+-- The counting theorem, proved by `UC.QueryBound.Counting.counting` — a
+-- separate module only because this one is at its measured typechecking budget.
 Counting : Set₁
 Counting = {A B : Iface} (S : Set) (point : Dₚ S)
            (step : S × (Pos A ⊎ Neg B) → Dₚ (S × (Neg A ⊎ Pos B))) (c : ℕ)
