@@ -79,7 +79,7 @@ EnvAsCtx = (B : Iface) (d : Strat (Neg B) (Pos B)) → EnvCtx B d
 -- the conversion `⟦ strategyEnv B d ∘ u ⟧ ∼ … ⇝ Agreeˢ B u v` is free on its own
 -- (measured at a variable of that type), and what is left is the instance's own
 -- unfolding under the application.  The cure is the `opaque` boundary or the
--- one-spelling discipline `Gradingᴹ` waits for.
+-- implicit-pinning that assembled `UC.Machine.Grading.Gradingᴹ`.
 
 ------------------------------------------------------------------------
 -- The trivial grade

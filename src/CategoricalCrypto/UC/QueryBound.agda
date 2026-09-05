@@ -458,9 +458,8 @@ qb-idᴹ = certified⇒QB qbᵢ-id
 -- EXPLICIT here, and that is measured rather than tidy: left implicit, a `Proc`
 -- argument makes Agda invert `Machine (Pos A + Neg B) …` for the pair, and this
 -- module stops coming back inside 200 s (`UC.Machine`'s header records the same
--- inversion at ~1 GiB apiece).  Which is also why `BudgetLawsᴹ` is not assembled
--- here: its four fields take their interfaces implicitly, so filling them costs
--- exactly that, and the record wants `qb-∘` anyway.
+-- inversion at ~1 GiB apiece).  The assembly into a `Budget` lives in
+-- `UC.Machine.Grading` (`Budgetᴹ`), behind the same implicit-pinning.
 qb-T₁ᴹ : ({Y A B : Iface} {f g : Proc A B} → 𝒫ᴵ [ f ≈ g ] → 𝒫ᴵ [ T₁ᴵ Y f ≈ T₁ᴵ Y g ])
        → (Y A B : Iface) {c : ℕ} (f : Proc A B) → QB c f → QB (c ℕ.⊔ 1) (T₁ᴵ Y f)
 qb-T₁ᴹ resp Y A B f (N , cert , e) = T₁ᴵ Y N , qbᵢ-T₁ Y A B N cert , resp e

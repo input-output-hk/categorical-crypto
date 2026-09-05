@@ -18,7 +18,8 @@
 -- The grading's DATA is direct: `T₁ᴵ` and `subᴵ` keep the plugged process's
 -- state and only relabel the interface sum, so no coherence morphism and no
 -- trace appears in them, and the two ancilla reassociators are stateless wires.
--- The laws are collected in `GradingLawsᴹ` and priced — see its comment.
+-- The laws are collected in `UC.Machine.Grading.GradingLawsᴹ` and priced
+-- there, next to the assemblies (`Gradingᴹ`, `Budgetᴹ`) they buy.
 
 open import Categories.Category using (Category; _[_,_]; _[_≈_])
 
@@ -134,16 +135,16 @@ ApproximateObservationᴹ = I.approximate
 ------------------------------------------------------------------------
 -- The grading action, as data
 
-private
-  ⊎assocˡ : {P Q R : Set} → P ⊎ (Q ⊎ R) → (P ⊎ Q) ⊎ R
-  ⊎assocˡ (inj₁ p)        = inj₁ (inj₁ p)
-  ⊎assocˡ (inj₂ (inj₁ q)) = inj₁ (inj₂ q)
-  ⊎assocˡ (inj₂ (inj₂ r)) = inj₂ r
+-- Public: `UC.QueryBound`'s `qbᵢ-wire` certificates for `a⇒ᴵ`/`a⇐ᴵ` name them.
+⊎assocˡ : {P Q R : Set} → P ⊎ (Q ⊎ R) → (P ⊎ Q) ⊎ R
+⊎assocˡ (inj₁ p)        = inj₁ (inj₁ p)
+⊎assocˡ (inj₂ (inj₁ q)) = inj₁ (inj₂ q)
+⊎assocˡ (inj₂ (inj₂ r)) = inj₂ r
 
-  ⊎assocʳ : {P Q R : Set} → (P ⊎ Q) ⊎ R → P ⊎ (Q ⊎ R)
-  ⊎assocʳ (inj₁ (inj₁ p)) = inj₁ p
-  ⊎assocʳ (inj₁ (inj₂ q)) = inj₂ (inj₁ q)
-  ⊎assocʳ (inj₂ r)        = inj₂ (inj₂ r)
+⊎assocʳ : {P Q R : Set} → (P ⊎ Q) ⊎ R → P ⊎ (Q ⊎ R)
+⊎assocʳ (inj₁ (inj₁ p)) = inj₁ p
+⊎assocʳ (inj₁ (inj₂ q)) = inj₂ (inj₁ q)
+⊎assocʳ (inj₂ r)        = inj₂ (inj₂ r)
 
 -- An ancilla interface bypassing a process: the process's own messages go
 -- through it, the ancilla's are forwarded, and the state is the process's.
@@ -185,49 +186,18 @@ subᴵ {X} {Y} s {A} = MC.mk (MC.state s) stepS
   stepS (t , inj₂ (inj₁ y)) = relay (MC.step s (t , inj₂ y))
   stepS (t , inj₂ (inj₂ a)) = returnₚ (t , inj₁ (inj₂ a))
 
+-- `Grading.sub` takes the bypassed interface implicit BEFORE the simulator, so
+-- the field value is this reordering; definitionally `subᴵ′ s = subᴵ s`.
+-- Giving the field a bare definition rather than a lambda keeps the later
+-- fields' expected types free of a beta-redex.
+subᴵ′ : {X Y A : Iface} → Proc X Y → Proc (X ⊗ᴵ A) (Y ⊗ᴵ A)
+subᴵ′ {A = A} s = subᴵ s {A}
+
 a⇒ᴵ : {X Y A : Iface} → Proc (X ⊗ᴵ (Y ⊗ᴵ A)) ((X ⊗ᴵ Y) ⊗ᴵ A)
 a⇒ᴵ = wireᴹ ⊎assocˡ ⊎assocʳ
 
 a⇐ᴵ : {X Y A : Iface} → Proc ((X ⊗ᴵ Y) ⊗ᴵ A) (X ⊗ᴵ (Y ⊗ᴵ A))
 a⇐ᴵ = wireᴹ ⊎assocʳ ⊎assocˡ
 
-------------------------------------------------------------------------
--- …and its laws, priced
-
--- Four of the eight are TRACE-FREE: `T₁ᴵ`/`subᴵ` keep the plugged process's
--- state and only relabel the interface, so `T₁-resp-≈`/`sub-resp-≈` are one
--- `_≲_` at the given simulation's own state map, and `T₁-id`/`sub-id` compare
--- two stateless wires (`𝒫.id` is `σᴹ = pureᴹ +-swap`) up to the junctions a
--- `pureᴹ` spends.  The other four each compare a `𝒫ᴵ`-composite, and
--- composition here is the ⊕-trace, so each needs the trace-fusion step M2's
--- task 3 left open — the same gate as `Monoidal (GConstruction C)`'s
--- `homomorphism`.  Stated as a record and inhabited by nothing — no escape
--- hatch, as everywhere in this branch.
-record GradingLawsᴹ : Set (suc 0ℓ) where
-  field
-    T₁-resp-≈  : {Y A B : Iface} {f g : Proc A B}
-               → 𝒫ᴵ [ f ≈ g ] → 𝒫ᴵ [ T₁ᴵ Y f ≈ T₁ᴵ Y g ]
-    T₁-id      : {Y A : Iface} → 𝒫ᴵ [ T₁ᴵ Y (𝒫.id {A}) ≈ 𝒫.id ]
-    T₁-∘       : {Y A B C : Iface} {g : Proc B C} {f : Proc A B}
-               → 𝒫ᴵ [ T₁ᴵ Y (g 𝒫.∘ f) ≈ T₁ᴵ Y g 𝒫.∘ T₁ᴵ Y f ]
-    sub-resp-≈ : {X Y A : Iface} {s t : Proc X Y}
-               → 𝒫ᴵ [ s ≈ t ] → 𝒫ᴵ [ subᴵ s {A} ≈ subᴵ t ]
-    sub-id     : {X A : Iface} → 𝒫ᴵ [ subᴵ (𝒫.id {X}) {A} ≈ 𝒫.id ]
-    sub-∘      : {X Y Z A : Iface} {t : Proc Y Z} {s : Proc X Y}
-               → 𝒫ᴵ [ subᴵ (t 𝒫.∘ s) {A} ≈ subᴵ t 𝒫.∘ subᴵ s ]
-    a-isoˡ     : {X Y A : Iface} → 𝒫ᴵ [ a⇐ᴵ {X} {Y} {A} 𝒫.∘ a⇒ᴵ ≈ 𝒫.id ]
-    a-nat      : {X Y A B : Iface} {f : Proc A B}
-               → 𝒫ᴵ [ a⇒ᴵ 𝒫.∘ T₁ᴵ X (T₁ᴵ Y f) ≈ T₁ᴵ (X ⊗ᴵ Y) f 𝒫.∘ a⇒ᴵ ]
-
--- `Gradingᴹ : GradingLawsᴹ → Grading 𝒫ᴵ` does NOT assemble, and the reason is
--- not the laws: matching the data above against `Grading`'s field types makes
--- Agda compare `Proc X Y` with `Category._⇒_ 𝒫ᴵ X Y` after whnf-ing both to
--- `Machine (Mealy-Monoidal (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) .⊗₀ …) …`, and the
--- record-eta comparison of those two spellings of the base exhausts a 10 GiB
--- heap — the `GradedKleisli` eta cliff, at a different index.  So the
--- obligation is taken at `Grading 𝒫ᴵ` itself: `GradingLawsᴹ` says what has to
--- be proved, `UCBaseᴹ` says what it buys, and the assembly wants either the
--- one-spelling discipline that cures the cliff or an `opaque` boundary around
--- the base instance.
 UCBaseᴹ : Grading 𝒫ᴵ → UCBase (suc 0ℓ) (suc 0ℓ) (suc 0ℓ) 0ℓ 0ℓ
 UCBaseᴹ G = record { 𝒞 = 𝒫ᴵ ; grading = G ; observation = Observationᴹ }

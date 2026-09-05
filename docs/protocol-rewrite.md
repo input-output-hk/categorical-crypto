@@ -480,7 +480,7 @@ symmetric solver as unusable here because
 `b746517c` restored it, so `solveH!`/`rewriteH!` are available again — no law in
 this layer needed them.)
 
-## M3: the UC layer (19 files, 2636 LOC)
+## M3: the UC layer (20 files, 2735 LOC)
 
 | module | layer | LOC | role |
 |---|---|---|---|
@@ -494,7 +494,8 @@ this layer needed them.)
 | `…UC.Environment.Approximate` | enrichment | 38 | `_≈ℰ[_]_`, `absorbᵘ` |
 | `…UC.Audit` | enrichment | 133 | `_≤UC[_]_` (a budgeted simulator), `simCost`, `AuditBound`, `audit-carry` — the graded carry, proved |
 | `…UC.Family` | enrichment | 221 | `𝒞^ω` at a parameterized index, `PolyQB`, `Fam`, `Grading^ω`, `Approximation^ω`, `Observation^ω`/`Approximate^ω`, `UCBase^ω`, `ctxQB`, `_≈ℰ[_]_`, `absorb` |
-| `…UC.Machine` | model | 233 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Approximationᴹ`/`Observationᴹ`/`ApproximateObservationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `GradingLawsᴹ`, `UCBaseᴹ` |
+| `…UC.Machine` | model | 203 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Approximationᴹ`/`Observationᴹ`/`ApproximateObservationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `UCBaseᴹ` |
+| `…UC.Machine.Grading` | model | 129 | `GradingLawsᴹ` (implicit-pinned), `Gradingᴹ` and `Budgetᴹ` — the ASSEMBLIES, proved; `qb-a⇒ᴹ`/`qb-a⇐ᴹ` |
 | `…UC.Machine.Run` | model | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
 | `…UC.QueryBound` | model | 488 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `CountBound`, `Counting` (stated), `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `qbᵢ-resp-step`, `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` and their hom-level forms, `BudgetLawsᴹ` (stated) |
 | `…UC.Machine.Bridge` | model | 95 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `ContextDominated` (stated) |
@@ -779,7 +780,7 @@ pattern, no postulate and no hole anywhere:
 
 | statement | where | price |
 |---|---|---|
-| `Grading 𝒫ᴵ` (via `GradingLawsᴹ`'s eight fields) | `UC.Machine` | four are trace-free (~40–60 LOC each); `T₁-∘`, `sub-∘`, `a-isoˡ`, `a-nat` are M2 task 3's trace-fusion gate |
+| `GradingLawsᴹ`'s eight fields | `UC.Machine.Grading` | the assemblies `Gradingᴹ`/`Budgetᴹ` are PROVED (implicit-pinning), so the laws are all that stands between `𝒫ᴵ` and a full `UCBase`+`Budget`; four are trace-free (~40–60 LOC each), `T₁-∘`, `sub-∘`, `a-isoˡ`, `a-nat` are M2 task 3's trace-fusion gate |
 | `Counting` | `UC.QueryBound` | 250–350 LOC; the reference's 248 plus an effectful recursion |
 | `BudgetLawsᴹ` — `qb-∘` alone | `UC.QueryBound` | 250–400 (the reference's token walk over a ⊕-trace).  `qb-id`/`qb-T₁`/`qb-sub` are now THEOREMS (`qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` at the certificate level, `qb-idᴹ`/`qb-T₁ᴹ`/`qb-subᴹ` at the hom level); the record itself is not assembled, its fields taking their interfaces implicitly |
 | `ContextDominated` | `UC.Machine.Bridge` | ~250 LOC, instance-specific; the branchwise decomposition of a context against a budgeted strategy, reassembled by convexity of `Pr≤`.  Spike the two-machine skeleton first |
@@ -873,10 +874,13 @@ the `Strat` tree.
   spellings of the base instance exhausts the same heap.  The cure is to take
   the state, point and step as **parameters** and let a process supply them at
   the use site, where the identical conversion is a plain application and costs
-  nothing (`UC.QueryBound.Certificate`, `Certified`).  The same medicine is the
-  obvious next attempt at `Gradingᴹ : GradingLawsᴹ → Grading 𝒫ᴵ`, which does
-  not assemble for exactly this reason — which is why the obligation is taken
-  at `Grading 𝒫ᴵ` itself.
+  nothing (`UC.QueryBound.Certificate`, `Certified`).  The same medicine — every
+  object implicit passed EXPLICITLY, so both sides of every field are one
+  spelling — is what assembles `Gradingᴹ : GradingLawsᴹ → Grading 𝒫ᴵ` and
+  `Budgetᴹ` (`UC.Machine.Grading`); unpinned, the assembly exhausts a 10 GiB
+  heap.  One more finding on top: the pinned section INSIDE `UC.Machine` costs
+  a measured 852 s against 74 s for the rest of the module, while split into its
+  own module the two cost 74 s + 22 s — heavy assemblies get their own module.
 * **The same inversion is what the seam is split for.**  Every occurrence of a
   `Proc`-typed argument whose interface is left implicit costs one of those
   inversions, ~1 GiB each: the seam's embedding and statements alone reach a

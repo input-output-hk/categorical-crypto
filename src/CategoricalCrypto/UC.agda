@@ -34,6 +34,9 @@
 --                `UC.QueryBound`   the amortised-potential certificate and the
 --                                  counting statement — a query bound with
 --                                  content
+--                `UC.Machine.Grading`
+--                                  the grading laws, and the `Grading`/`Budget`
+--                                  assemblies they buy
 --                `UC.Machine.Bridge`
 --                                  `ContextDominated`, the interface to layer
 --                                  1's concrete theorems
@@ -62,5 +65,6 @@ open import CategoricalCrypto.UC.Budget public
 open import CategoricalCrypto.UC.Core public
 open import CategoricalCrypto.UC.Machine public
 open import CategoricalCrypto.UC.Machine.Bridge public
+open import CategoricalCrypto.UC.Machine.Grading public
 open import CategoricalCrypto.UC.QueryBound public
 open import CategoricalCrypto.UC.Saturated public
