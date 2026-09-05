@@ -24,7 +24,7 @@
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Strategy using (Strat)
-open import CategoricalCrypto.UC.Base using (Grading)
+open import CategoricalCrypto.UC.Core using (Grading)
 open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; UCBaseᴹ)
 open import CategoricalCrypto.UC.Seam using (Agreeˢ; strategyEnv)
 
@@ -86,7 +86,7 @@ EnvAsCtx = (B : Iface) (d : Strat (Neg B) (Pos B)) → EnvCtx B d
 
 -- The degenerate end of the grading: a grade object that can carry no message,
 -- and the wire that inflates a closed process to it.  At the intended instance
--- `𝟘 = unitᴵ` and `ι = UC.Bridge.λᴵ⇐`, where `ι B ∘ u` is `conjᴵ u`.  Both are
+-- `𝟘 = unitᴵ` and `ι = UC.Machine.Bridge.λᴵ⇐`, where `ι B ∘ u` is `conjᴵ u`.  Both are
 -- module PARAMETERS rather than fields of a record bundling them, which is the
 -- medicine `UC.QueryBound.Certified` takes for the same cliff: a use site
 -- supplies them where the conversion is a plain application.

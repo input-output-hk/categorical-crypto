@@ -2,6 +2,11 @@
 
 -- The bridge between the environment layer and layer 1's concrete statements.
 --
+-- It lives under `UC.Machine` because it is a statement about the `Dₚ` MODEL,
+-- not about UC: reading "given this answer, the next query" off a context needs
+-- an inspectable step, and the budget it charges is that model's resource
+-- doctrine.  Nothing in the qualitative core mentions a strategy.
+--
 -- An ℰ-statement quantifies over ancilla CONTEXTS; a hand-written security
 -- theorem quantifies over adaptive STRATEGIES.  `ContextDominated` is the
 -- obligation that lets the second be read as the first: once every strategy the
@@ -49,11 +54,11 @@ open import ProbabilisticLogic.Dp.Advantage using (_≈ₚ[_]_)
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol.Machine using (runᴹ)
 open import CategoricalCrypto.Strategy using (Strat; asks≤)
-open import CategoricalCrypto.UC.Base using (ctxBudget)
+open import CategoricalCrypto.UC.Budget using (ctxBudget)
 open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; Ωᴵ; ⟦_⟧ᴼ; T₁ᴵ; wireᴹ)
 open import CategoricalCrypto.UC.QueryBound using (QB)
 
-module CategoricalCrypto.UC.Bridge where
+module CategoricalCrypto.UC.Machine.Bridge where
 
 private module 𝒫 = Category 𝒫ᴵ
 

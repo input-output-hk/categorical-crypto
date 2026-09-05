@@ -26,7 +26,9 @@ open import CategoricalCrypto.Protocol using (Protocol)
 open import CategoricalCrypto.Protocol.Machine using (morphism)
 open import CategoricalCrypto.Protocol.Observe using (Bounded)
 open import CategoricalCrypto.Strategy using (Strat)
-open import CategoricalCrypto.UC.Base using (Budget; Grading; Mass)
+open import CategoricalCrypto.UC.Approximate using (Mass)
+open import CategoricalCrypto.UC.Budget using (Budget)
+open import CategoricalCrypto.UC.Core using (Grading)
 open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; Observationᴹ; UCBaseᴹ)
 
 import CategoricalCrypto.UC.Audit as Aud
@@ -36,9 +38,10 @@ module CategoricalCrypto.UC.Seam.Audit
   {qs : Level} (G : Grading 𝒫ᴵ) (bud : Budget 𝒫ᴵ G qs) where
 
 -- The reading `Observation` deliberately lacks: a mass at a budget, and the
--- ε-domination `_≈ₚ[_]_`'s left half already is.
+-- ε-domination that `_≈ₚ[_]_`'s left half already is, read off the agreement at
+-- the slack asked for.
 massᴹ : Mass Observationᴹ
-massᴹ = record { at = Pr≤ ; dominate = proj₁ }
+massᴹ = record { at = Pr≤ ; dominate = λ h δ δ>0 → proj₁ (h δ δ>0) }
 
 private
   module A = Aud (UCBaseᴹ G) bud massᴹ

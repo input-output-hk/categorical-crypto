@@ -36,7 +36,9 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base using (𝒱ₚ; 𝒢ₚ)
 open import CategoricalCrypto.Protocol.Machine using (⟦_⟧ᴵ; runᴹ)
 open import CategoricalCrypto.Strategy using (ask; out)
-open import CategoricalCrypto.UC.Base using (Grading; Observation; UCBase)
+open import CategoricalCrypto.UC.Approximate
+  using (Approximation; ApproximateObservation; ℚ-errors; module Induced)
+open import CategoricalCrypto.UC.Core using (Grading; Observation; UCBase)
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
 
 import CategoricalCrypto.Machines.Core as Core
@@ -103,19 +105,31 @@ wireᴹ up down = MC.mk MC.Iˢ (wireStep up down)
 ⟦_⟧ᴼ : Proc unitᴵ Ωᴵ → Dₚ Bool
 ⟦ M ⟧ᴼ = runᴹ M (ask tt out)
 
-Observationᴹ : Observation 𝒫ᴵ 0ℓ 0ℓ
-Observationᴹ = record
-  { 𝟙 = unitᴵ
-  ; Ω = Ωᴵ
-  ; Obs = Dₚ Bool
-  ; ⟦_⟧ = ⟦_⟧ᴼ
-  ; _≈[_]_    = _≈ₚ[_]_
+-- The advantage is a RELATION, not a function: `Dₚ`'s termination mass is a
+-- supremum this layer never forms, so an `adv : Obs → Obs → ℚ` would be
+-- uninhabited here (`ProbabilisticLogic.Dp.Advantage`'s header).  Rational
+-- slack is what survives, and it carries exactly the four laws the abstract
+-- error layer asks for.
+Approximationᴹ : Approximation (Dₚ Bool) ℚ-errors 0ℓ
+Approximationᴹ = record
+  { _≈[_]_    = _≈ₚ[_]_
   ; ≈[]-refl  = ≈ₚ[]-refl
   ; ≈[]-sym   = ≈ₚ[]-sym
   ; ≈[]-trans = ≈ₚ[]-trans
   ; ≈[]-mono  = ≈ₚ[]-mono
-  ; ⟦⟧-resp-≈ = λ eq → ≈ₚ⇒≈ₚ[0] (runᴹ-resp-≈ᴹ {Ωᴵ} eq (ask tt out))
   }
+
+private
+  module I = Induced 𝒫ᴵ Approximationᴹ unitᴵ Ωᴵ ⟦_⟧ᴼ
+                     (λ eq → ≈ₚ⇒≈ₚ[0] (runᴹ-resp-≈ᴹ {Ωᴵ} eq (ask tt out)))
+
+-- The qualitative observation, as the core wants it: two closed runs agree when
+-- no positive slack separates their verdict masses.
+Observationᴹ : Observation 𝒫ᴵ 0ℓ 0ℓ
+Observationᴹ = I.observation
+
+ApproximateObservationᴹ : ApproximateObservation Observationᴹ ℚ-errors 0ℓ
+ApproximateObservationᴹ = I.approximate
 
 ------------------------------------------------------------------------
 -- The grading action, as data

@@ -18,7 +18,7 @@ import Categories.Morphism.Reasoning as MR
 
 open import Level using (_⊔_)
 
-open import CategoricalCrypto.UC.Base using (UCBase)
+open import CategoricalCrypto.UC.Core using (UCBase)
 
 module CategoricalCrypto.UC.Emulation
   {o ℓ e os ℓs} (base : UCBase o ℓ e os ℓs) where

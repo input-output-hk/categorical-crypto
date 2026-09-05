@@ -21,17 +21,19 @@
 -- the hypothesis).  `ℰᵗᵛ` is still built, and `≈ℰ⇒tv`/`tv⇒≈ℰ` are the identity
 -- pair witnessing that the definition is its kernel relation ancilla by
 -- ancilla.  `grade-stable` is then a theorem with no hypothesis under it.
+--
+-- Everything here consumes the QUALITATIVE observation alone; the ε-indexed
+-- form of the relation and its collapse live in `UC.Environment.Approximate`.
 
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Functor.Presheaf using (Presheaf)
 import Categories.Morphism.Reasoning as MR
 
-open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Level using (_⊔_)
 open import Relation.Binary.Bundles using (Setoid)
 open import Relation.Binary.Structures using (IsEquivalence)
 
-open import CategoricalCrypto.UC.Base using (UCBase)
+open import CategoricalCrypto.UC.Core using (UCBase)
 
 module CategoricalCrypto.UC.Environment
   {o ℓ e os ℓs} (base : UCBase o ℓ e os ℓs) where
@@ -61,7 +63,7 @@ record SameTV (Y A : Obj) (E₁ E₂ : Test (Y ⊛ A)) : Set (ℓ ⊔ ℓs) wher
 open SameTV public
 
 same-≈ : {E₁ E₂ : Test (Y ⊛ A)} → E₁ ≈ E₂ → SameTV Y A E₁ E₂
-same-≈ eq = record { same = λ m → ⟦⟧-resp-∼ (∘-resp-≈ˡ eq) }
+same-≈ eq = record { same = λ m → ⟦⟧-resp-≈ (∘-resp-≈ˡ eq) }
 
 Tests : (Y A : Obj) → Setoid ℓ (ℓ ⊔ ℓs)
 Tests Y A = record
@@ -94,7 +96,7 @@ tv₁-cong Y f h = record { same = λ m → ∼-cast sym-assoc sym-assoc (same h
 ------------------------------------------------------------------------
 -- Environment agreement
 
-infix 4 _≈ℰ_ _≈ℰ[_]_
+infix 4 _≈ℰ_
 
 _≈ℰ_ : {A B′ : Obj} (f g : A ⇒ B′) → Set (o ⊔ ℓ ⊔ ℓs)
 _≈ℰ_ {A} {B′} f g = (Y : Obj) (E : Test (Y ⊛ B′)) (m : Closure (Y ⊛ A))
@@ -125,7 +127,7 @@ tv⇒≈ℰ h Y E = same (h Y E)
   { Carrier = A ⇒ B′ ; _≈_ = _≈ℰ_ ; isEquivalence = ≈ℰ-isEquivalence }
 
 ≈⇒≈ℰ : {f g : A ⇒ B′} → f ≈ g → f ≈ℰ g
-≈⇒≈ℰ eq _ _ _ = ⟦⟧-resp-∼ (∘-resp-≈ˡ (∘-resp-≈ʳ (T₁-resp-≈ eq)))
+≈⇒≈ℰ eq _ _ _ = ⟦⟧-resp-≈ (∘-resp-≈ˡ (∘-resp-≈ʳ (T₁-resp-≈ eq)))
 
 ≈ℰ-congˡ : {A B′ C′ : Obj} (k : B′ ⇒ C′) {f g : A ⇒ B′} → f ≈ℰ g → (k ∘ f) ≈ℰ (k ∘ g)
 ≈ℰ-congˡ {A} {B′} k {f} {g} h Y E m = ∼-cast (step f) (step g) (h Y (E ∘ T₁ Y k) m)
@@ -168,17 +170,3 @@ grade-stable {A} {B′} Y {h} {h′} r W E m =
     E ∘ (a⇐ ∘ (a⇒ ∘ (T₁ W (T₁ Y u) ∘ m)))  ≈⟨ refl⟩∘⟨ cancelˡ a-isoˡ ⟩
     E ∘ (T₁ W (T₁ Y u) ∘ m)                ≈⟨ sym-assoc ⟩
     (E ∘ T₁ W (T₁ Y u)) ∘ m                ∎
-
-------------------------------------------------------------------------
--- The quantitative form
-
--- Agreement with an explicit slack in place of the `∀ ε > 0`.  A concrete
--- security theorem lands here; `absorbᵘ` is the collapse, and the polynomial
--- budget the slack is allowed to depend on lives one layer up
--- (`CategoricalCrypto.UC.Family`).
-_≈ℰ[_]_ : {A B′ : Obj} → A ⇒ B′ → ℚ → A ⇒ B′ → Set (o ⊔ ℓ ⊔ ℓs)
-_≈ℰ[_]_ {A} {B′} f ε g = (Y : Obj) (E : Test (Y ⊛ B′)) (m : Closure (Y ⊛ A))
-                       → obs (tv₁ Y f E) m ≈[ ε ] obs (tv₁ Y g E) m
-
-absorbᵘ : {A B′ : Obj} {f g : A ⇒ B′} → ((ε : ℚ) → 0ℚ ℚ.< ε → f ≈ℰ[ ε ] g) → f ≈ℰ g
-absorbᵘ h Y E m ε ε>0 = h ε ε>0 Y E m

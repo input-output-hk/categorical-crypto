@@ -25,7 +25,7 @@
 -- over a state, a point and a step given as PARAMETERS rather than projected
 -- from a process — see the note above `Certificate`.
 --
--- This is a definition, not an axiom list: `UC.Base.Budget`'s `QB` is a
+-- This is a definition, not an axiom list: `UC.Budget`'s `QB` is a
 -- parameter and admits the degenerate `QB c f = ⊤`, whereas `QBᵢ` cannot be
 -- inhabited without exhibiting the potential, and `Counting` is what makes the
 -- potential mean something about runs.
@@ -474,7 +474,8 @@ qb-subᴹ resp X Y A s (N , cert , e) = subᴵ N , qbᵢ-sub X Y A N cert , resp
 
 -- `qb-∘` is the reference arc's 231-LOC two-position token walk, with a ⊕-trace
 -- on top of it here.  The other three fields are the theorems above, at their
--- explicit-interface spellings.
+-- explicit-interface spellings; they are what `UC.Budget` still wants at this
+-- instance.
 record BudgetLawsᴹ : Set₁ where
   field
     qb-id  : {A : Iface} → QB 1 (𝒫.id {A})

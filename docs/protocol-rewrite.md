@@ -24,7 +24,7 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 | M2 wave 1: `Dₚ`, `Kl(Dₚ)`, `Mealy` + `Mealy-Category` + the ⊕-trace | **DONE** — all green, hatches 21 = baseline |
 | M2 wave 2: the four residual trace laws + `Elgot` at `Kl(Dₚ)` | **DONE** — the machine layer is hypothesis-free; hatches 21 = baseline |
 | M2 wave 3: the machine SMC bundle, `Traced`, GConstruction, `morphism`/`Pr-agree` | **the machine layer is DONE** — `ℳₚ` symmetric monoidal, `Tracedₚ`, `𝒢ₚ` all closed terms; `morphism` landed, `Morphism-∘`/`PrAgree` stated and priced; hatches 21 = baseline |
-| M3: the UC layer | **the statement layer is DONE**, and both external theory reviews' findings are resolved (`docs/rewrite-verdict.md`'s two addenda) — `_≈ℰ_`/`grade-stable`/`absorb`/`_≤UC_` and its metatheorems are theorems, no K island, no `HomTransportTrivial`; the simulator carry is a theorem in both its degenerate (`unit-grade`) and graded (`audit-carry`) form; the intended instance's observation is a theorem and its grading action is data with `Grading 𝒫ᴵ` priced; hatches 21 = baseline |
+| M3: the UC layer | **the statement layer is DONE**, and both external theory reviews' findings are resolved (`docs/rewrite-verdict.md`'s two addenda) — `_≈ℰ_`/`grade-stable`/`absorb`/`_≤UC_` and its metatheorems are theorems, no K island, no `HomTransportTrivial`; the simulator carry is a theorem in both its degenerate (`unit-grade`) and graded (`audit-carry`) form; the intended instance's observation is a theorem and its grading action is data with `Grading 𝒫ᴵ` priced.  **The layer is now split three ways** (abstraction notes §1/§3): a qualitative core that mentions no number, an optional quantitative enrichment over an abstract error algebra, and the `Dₚ` model, with the inherited `UCSetup` doctrine reconciled by `UC.Core.Standard.gradingᵗ`; hatches 21 = baseline |
 
 ## Modules (M1: 10 files, 874 LOC, all `--safe --without-K`)
 
@@ -480,28 +480,192 @@ symmetric solver as unusable here because
 `b746517c` restored it, so `solveH!`/`rewriteH!` are available again — no law in
 this layer needed them.)
 
-## M3: the UC layer (15 files, 1993 LOC)
+## M3: the UC layer (19 files, 2636 LOC)
 
-| module | LOC | role |
+| module | layer | LOC | role |
+|---|---|---|---|
+| `CategoricalCrypto.UC.Core` | core | 100 | `Grading`, `Observation` (qualitative), `UCBase` |
+| `…UC.Environment` | core | 172 | `SameTV` (ancilla a parameter), `Tests`, `ℰᵗᵛ`, `_≈ℰ_`, its congruences, `≈ℰ-at`, `grade-stable` |
+| `…UC.Emulation` | core | 114 | `_≤UC_`, `_≤UC⁺_`, `≤UC-refl`/`≤UC-trans`/`dummy-complete`/`≤UC⁺⇒≤UC`, `blind-grade`/`unit-grade`, `_⊙_`, `_⊛₁_`, `UC-compose` (stated) |
+| `…UC.Core.Standard` | core | 49 | `gradingᵗ` — a monoidal category grades itself; the inherited doctrine's action |
+| `ProbabilisticLogic.Dp.Advantage` | enrichment | 107 | `Pr≤`, `_≼ₚ[_]_`/`_≈ₚ[_]_` — advantage as an ε-indexed relation, with the pseudometric laws |
+| `…UC.Approximate` | enrichment | 183 | `ErrorAlgebra`, `ℚ-errors`, `_→0`/`VanishingBound`, `Approximation` + the ε/2 equivalence, `ApproximateObservation`, `Induced`, `Mass` |
+| `…UC.Budget` | enrichment | 64 | `Budget`, `ctxBudget` — the resource doctrine |
+| `…UC.Environment.Approximate` | enrichment | 38 | `_≈ℰ[_]_`, `absorbᵘ` |
+| `…UC.Audit` | enrichment | 133 | `_≤UC[_]_` (a budgeted simulator), `simCost`, `AuditBound`, `audit-carry` — the graded carry, proved |
+| `…UC.Family` | enrichment | 221 | `𝒞^ω` at a parameterized index, `PolyQB`, `Fam`, `Grading^ω`, `Approximation^ω`, `Observation^ω`/`Approximate^ω`, `UCBase^ω`, `ctxQB`, `_≈ℰ[_]_`, `absorb` |
+| `…UC.Machine` | model | 233 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Approximationᴹ`/`Observationᴹ`/`ApproximateObservationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `GradingLawsᴹ`, `UCBaseᴹ` |
+| `…UC.Machine.Run` | model | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
+| `…UC.QueryBound` | model | 488 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `CountBound`, `Counting` (stated), `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `qbᵢ-resp-step`, `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` and their hom-level forms, `BudgetLawsᴹ` (stated) |
+| `…UC.Machine.Bridge` | model | 95 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `ContextDominated` (stated) |
+| `…UC.Seam` | model | 171 | `strategyEnv` (a strategy as an environment), `ctxRunˢ`/`runˢ`, `Agreeˢ`, `Adequacy`/`AgreeToAdv` (stated), `pov-carry` (proved) |
+| `…UC.Seam.Carry` | model | 79 | `run-agree`, `agree-to-adv` — `AgreeToAdv` from `Adequacy` and `PrAgree`, proved |
+| `…UC.Seam.Grounding` | model | 118 | `StratIsEnv`, its reduction `EnvCtx`/`EnvAsCtx`, and the trivial grade's `SubBlind`/`IotaBlind`/`UnitGrade` — the grading-dependent statements |
+| `…UC.Seam.Audit` | model | 69 | `massᴹ` (`Pr≤` as a `Mass`), `UC.Audit` at the instance, `AuditIsBounded` (stated) |
+| `…UC.Saturated` | frontend | 86 | `SaturatedBounded`/`SaturatedHit`, `SaturatedRespects` (stated) |
+| `…UC` | — | 66 | the one entry point, with the layering as its orientation |
+
+All `--safe --without-K`; the `Dₚ`-facing nine add `--guardedness` and nothing
+adds anything else — the whole core and the whole enrichment are `Dₚ`-free. **There is no K island**, which was the acceptance test.
+Every module is a warm single-module check of 8–10 s; `UC.Machine`'s closure
+from cold is 85 s.
+
+### The qualitative core, and its enrichment
+
+The abstraction notes' governing constraint is that a general UC setup need not
+support quantitative observations, so the layer is split three ways and the
+split is load-bearing rather than cosmetic: rational advantage, security
+parameters, negligible functions and ℕ query bounds are all model data, and the
+core is what survives without them.
+
+| layer | contains | does not assume |
 |---|---|---|
-| `ProbabilisticLogic.Dp.Advantage` | 107 | `Pr≤`, `_≼ₚ[_]_`/`_≈ₚ[_]_` — advantage as an ε-indexed relation, with the pseudometric laws |
-| `CategoricalCrypto.UC.Base` | 187 | `Grading`, `Budget`, `ctxBudget`, `Observation`, `Mass`, `UCBase`; the derived agreement `_∼_` and its ε/2 equivalence |
-| `…UC.Environment` | 184 | `SameTV` (ancilla a parameter), `Tests`, `ℰᵗᵛ`, `_≈ℰ_`, its congruences, `≈ℰ-at`, `grade-stable`, `_≈ℰ[_]_`, `absorbᵘ` |
-| `…UC.Emulation` | 114 | `_≤UC_`, `_≤UC⁺_`, `≤UC-refl`/`≤UC-trans`/`dummy-complete`/`≤UC⁺⇒≤UC`, `blind-grade`/`unit-grade`, `_⊙_`, `_⊛₁_`, `UC-compose` (stated) |
-| `…UC.Family` | 212 | `𝒞^ω` at a parameterized index, `PolyQB`, `Fam`, `Grading^ω`, `Observation^ω`, `UCBase^ω`, `ctxQB`, `_≈ℰ[_]_`, `VanishingBound`, `absorb` |
-| `…UC.Audit` | 132 | `_≤UC[_]_` (a budgeted simulator), `simCost`, `AuditBound`, `audit-carry` — the graded carry, proved |
-| `…UC.Machine` | 219 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Observationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `GradingLawsᴹ`, `UCBaseᴹ` |
-| `…UC.Machine.Run` | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
-| `…UC.QueryBound` | 487 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `CountBound`, `Counting` (stated), `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `qbᵢ-resp-step`, `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` and their hom-level forms, `BudgetLawsᴹ` (stated) |
-| `…UC.Bridge` | 90 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `ContextDominated` (stated) |
-| `…UC.Seam` | 171 | `strategyEnv` (a strategy as an environment), `ctxRunˢ`/`runˢ`, `Agreeˢ`, `Adequacy`/`AgreeToAdv` (stated), `pov-carry` (proved) |
-| `…UC.Seam.Carry` | 79 | `run-agree`, `agree-to-adv` — `AgreeToAdv` from `Adequacy` and `PrAgree`, proved |
-| `…UC.Seam.Grounding` | 118 | `StratIsEnv`, its reduction `EnvCtx`/`EnvAsCtx`, and the trivial grade's `SubBlind`/`IotaBlind`/`UnitGrade` — the grading-dependent statements |
-| `…UC.Seam.Audit` | 66 | `massᴹ` (`Pr≤` as a `Mass`), `UC.Audit` at the instance, `AuditIsBounded` (stated) |
-| `…UC` | 41 | the one entry point |
+| core (`UC.Core`, `UC.Environment`, `UC.Emulation`) | category, grading action, qualitative observation, environments, simulators, `_≤UC_` and its metatheorems | probability, rationals, ℕ bounds, negligible functions, an index |
+| enrichment (`UC.Approximate`, `UC.Budget`, `UC.Audit`, `UC.Family`, `…Environment.Approximate`) | an abstract error algebra, approximate closeness, query-budget closure laws, a one-sided mass, the asymptotic construction | any particular error carrier; finite protocol syntax |
+| model (`UC.Machine`, `UC.QueryBound`, `UC.Machine.Bridge`, `UC.Seam*`) | `Dₚ`, `𝒫ᴵ`, the ticked verdict, the amortised-potential certificate, the strategy embedding | — |
+| frontend (`UC.Saturated`, layer 1's `Protocol`/`Strat`) | executable statements over protocols and strategies | completeness for arbitrary `Dₚ` contexts |
 
-All `--safe --without-K`; the `Dₚ`-facing six add `--guardedness` and nothing
-adds anything else. **There is no K island**, which was the acceptance test.
+The core's two records, verbatim minus the `Grading` fields the previous section
+already lists:
+
+    record Observation {o ℓ e} (𝒞 : Category o ℓ e) (os ℓs : Level)
+                     : Set (o ⊔ ℓ ⊔ e ⊔ suc os ⊔ suc ℓs) where
+      open Category 𝒞
+      field
+        𝟙 Ω : Obj
+        Obs : Set os
+        ⟦_⟧ : 𝟙 ⇒ Ω → Obs
+
+        _∼_             : Obs → Obs → Set ℓs
+        ∼-isEquivalence : IsEquivalence _∼_
+        ⟦⟧-resp-≈       : {u v : 𝟙 ⇒ Ω} → u ≈ v → ⟦ u ⟧ ∼ ⟦ v ⟧
+
+    record UCBase (o ℓ e os ℓs : Level) : Set (suc (o ⊔ ℓ ⊔ e ⊔ os ⊔ ℓs)) where
+      field
+        𝒞           : Category o ℓ e
+        grading     : Grading 𝒞
+        observation : Observation 𝒞 os ℓs
+
+The observation carrier `Obs` stays (the notes permit it, and every consumer
+reads a run *through* it), but the comparison is now an equivalence and nothing
+else.  The enrichment is where the number returns:
+
+    record ErrorAlgebra (es ℓe : Level) : Set (suc (es ⊔ ℓe)) where
+      field
+        Error    : Set es
+        ε₀       : Error
+        _⊕_      : Error → Error → Error
+        _⊑_      : Error → Error → Set ℓe
+        Positive : Error → Set ℓe
+        half     : Error → Error
+        ε₀-least : {ε : Error} → Positive ε → ε₀ ⊑ ε
+        half-pos : {ε : Error} → Positive ε → Positive (half ε)
+        half-sum : (ε : Error) → half ε ⊕ half ε ⊑ ε
+
+    record Approximation (Obs : Set os) (E : ErrorAlgebra es ℓe) (ℓa : Level)
+                       : Set (os ⊔ es ⊔ ℓe ⊔ suc ℓa) where
+      open ErrorAlgebra E public
+      field
+        _≈[_]_    : Obs → Error → Obs → Set ℓa
+        ≈[]-refl  : {x : Obs} → x ≈[ ε₀ ] x
+        ≈[]-sym   : {x y : Obs} {ε : Error} → x ≈[ ε ] y → y ≈[ ε ] x
+        ≈[]-trans : {x y z : Obs} {ε δ : Error}
+                  → x ≈[ ε ] y → y ≈[ δ ] z → x ≈[ ε ⊕ δ ] z
+        ≈[]-mono  : {x y : Obs} {ε δ : Error} → ε ⊑ δ → x ≈[ ε ] y → x ≈[ δ ] y
+
+      _∼ᵃ_ : Obs → Obs → Set (es ⊔ ℓe ⊔ ℓa)
+      x ∼ᵃ y = (ε : Error) → Positive ε → x ≈[ ε ] y
+
+      ∼ᵃ-isEquivalence : IsEquivalence _∼ᵃ_        -- the ε/2 argument, once
+
+    record ApproximateObservation {𝒞 : Category o ℓ e} (O : Observation 𝒞 os ℓs)
+                                  (E : ErrorAlgebra es ℓe) (ℓa : Level) … where
+      open Category 𝒞; open Observation O
+      field approx : Approximation Obs E ℓa
+      open Approximation approx public
+      field
+        induces    : {x y : Obs} → x ∼ᵃ y → x ∼ y
+        ⟦⟧-resp-≈₀ : {u v : 𝟙 ⇒ Ω} → u ≈ v → ⟦ u ⟧ ≈[ ε₀ ] ⟦ v ⟧
+
+`induces` is the notes' quantitative-to-qualitative constructor, and
+`UC.Approximate.Induced` runs it in the direction both models actually need —
+an approximation plus the runs it measures IS an observation, whose `_∼_` is
+`_∼ᵃ_` and whose `induces` is then the identity.  So the ε/2 equivalence is
+proved exactly once, over the abstract algebra, and neither model reproves it:
+
+* `UC.Machine.Observationᴹ = Induced.observation 𝒫ᴵ Approximationᴹ …` at
+  `Approximationᴹ = ≈ₚ[_]` over `ℚ-errors`;
+* `UC.Family.Observation^ω = Induced.observation Fam Approximation^ω …` at
+  eventual ε-closeness in `κ`, which is why the family's `_∼_` is *literally*
+  vanishing advantage and `absorb` is `induces` at a negligible error.  The
+  family also re-exports `Approximate^ω`, so the construction iterates.
+
+`⟦⟧-resp-≈₀` is the one field the notes' list does not name and the
+construction needs: the core's `⟦⟧-resp-≈` only says a hom equality is observed
+up to every *positive* error, while the asymptotic layer has to start its
+eventual relation at zero.
+
+Two consequences worth recording.  `Mass` is now a reading of the QUALITATIVE
+agreement — `dominate : x ∼ y → (δ : ℚ) → 0ℚ < δ → (n : ℕ) → Σ[ m ] at n x ≤ at
+m y + δ` — which makes `audit-carry` shorter than it was (the `δ + 0ℚ` shuffle
+and its two ℚ lemmas are gone) and keeps the audit layer's only quantitative
+commitment in one field.  And κ-cofinality is now documented where it sits, as
+an asymptotic-instance requirement: nothing in the core, the environment layer
+or the emulation metatheory mentions an index at all.
+
+### Reconciliation with the inherited abstract layer
+
+The inherited `CategoricalCrypto.UCSetup` and the new core are the same
+intent, and the relation between them is now a **proved weakening in one
+direction and a documented obstruction in the other**, not a third parallel
+abstraction.
+
+`UC.Core.Standard.gradingᵗ` derives a `Grading (MonoidalCategory.U M)` from any
+monoidal category acting on itself.  That is exactly what
+`CategoricalCrypto.Standard` feeds `UCSetup` (`𝒞 = ℐ = machines`,
+`ℳ = curriedTensor`, so `T₀ X A = X ⊗ A`), so the dictionary is:
+
+| new core | inherited `UCSetup` |
+|---|---|
+| `_⊛_` | `T₀`, at grades that are also 𝒞-objects |
+| `T₁`, `sub` | `T₁`, `sub` — same names, same one-sided actions |
+| `a⇒` | `μ X Y` |
+| `a⇐`, `a-isoˡ` | the retraction `θ` and its `θ-μ`, which `UCSetup.GradeStableFromTests` already asks for as parameters |
+| `a-nat` | `μ-commute` |
+| `_≈ℰ_`, `≈ℰ-refl/sym/trans`, `≈⇒≈ℰ`, `≈ℰ-congˡ/congʳ` | the kernel congruence of `ℰ` and its congruences — same names, opposite construction (see below) |
+| `grade-stable` | `GradeStable`, there a *statement*, here a theorem |
+| `_≤UC_`, `≤UC-refl`, `≤UC-trans`, `dummy-complete`, `UC-compose` | `Abstract2.AbstractUC`'s five, over `≈ᵁ` instead of `≈ℰ` |
+| `UCBase` | `UCSetup` — deliberately NOT the same name, to avoid shadowing (rule 29) |
+
+What blocks the converse instantiation is not style but inhabitation, in two
+places:
+
+1. **`UCSetup` asks for `ℐ : MonoidalCategory` and `ℳ : GradedKleisliTriple ℐ 𝒞`.**
+   The intended model has neither: `Monoidal (GConstruction C)` is exactly the
+   gate M2's task 3 leaves open (the `homomorphism` field, priced above), so
+   `𝒢ₚ` is only a `Category` and `𝒫ᴵ` cannot be presented as a graded Kleisli
+   category at all.  `Grading` is the subset of that structure `grade-stable`
+   and the emulation metatheory actually spend — no unitors, no `return`/`ext`,
+   no monoidal structure on the grades — and that subset IS inhabitable at
+   `𝒫ᴵ` (`GradingLawsᴹ` prices the eight laws; the data is already there).
+2. **The observation runs the other way.** `UCSetup` takes a presheaf `ℰ` as
+   *given* and defines `_≈ℰ_` as its kernel congruence; the core takes a
+   comparison of CLOSED runs (`𝟙`, `Ω`, `_∼_`) and *derives* the relation on
+   open homs by quantifying over ancilla, test and closure.  Neither direction
+   is a special case of the other in general — an arbitrary presheaf has no
+   `𝟙`/`Ω` to project — but the new layer does produce the inherited datum:
+   `UC.Environment.ℰᵗᵛ Y : Presheaf 𝒞 (Setoids ℓ (ℓ ⊔ ℓs))` is an `ℰ` for each
+   ancilla, and `≈ℰ⇒tv`/`tv⇒≈ℰ` witness that the derived relation is its kernel
+   ancilla by ancilla.  So the core is the *test-generated* case of the
+   inherited interface, one presheaf per ancilla instead of one presheaf.
+
+Supersession, then, is one-way: the inherited records stay for the MD line
+(which consumes them unchanged — see the compatibility section below), the new
+core supersedes them for anything built on this branch, and the mapping is the
+one above plus the module-level map already recorded (`MachineAxioms` →
+`UC.Core` + `UC.Budget` + `UC.Approximate`, `FamilyCategory` → `UC.Family`,
+`VanishingTV` → `UC.Environment` + `UC.Family`, `StandardTV` → `UC.Machine`,
+`OutputOnly` → `UC.Machine.Bridge` + `UC.Seam`).  Nothing inherited was edited.
 
 ### The defects the redesign fixes at birth
 
@@ -528,8 +692,8 @@ adds anything else. **There is no K island**, which was the acceptance test.
   budget-matching by a rational slack instead, and carries exactly the three
   pseudometric laws the vanishing layer spends.  Agreement is then *derived*
   (`x ∼ y = ∀ ε > 0 → x ≈[ ε ] y`) and its transitivity is the ε/2 argument,
-  proved once in `UC.Base` rather than once per instance.  This is the
-  absorb/ε misfit, closed.
+  proved once in `UC.Approximate`, over an abstract error algebra, rather than
+  once per instance.  This is the absorb/ε misfit, closed.
 * **`𝒞^ω` takes its index as a parameter** `(Ix , κ : Ix → ℕ)`.  Only three
   things ever needed `ℕ` in the reference: the polynomial's argument, the
   asymptotics' order, and the budget arithmetic, and all three read the index
@@ -566,9 +730,10 @@ adds anything else. **There is no K island**, which was the acceptance test.
 
 ### What is proved, and what is priced
 
-Proved, hypothesis-free: the whole `Dp.Advantage` layer; `UC.Base`'s derived
-`_∼_` equivalence; `UC.Environment` in full (`ℰᵗᵛ` a presheaf, `_≈ℰ_` an
-equivalence and a congruence, `grade-stable`, `absorbᵘ`); `UC.Emulation`'s four
+Proved, hypothesis-free: the whole `Dp.Advantage` layer; `UC.Approximate`'s
+`∼ᵃ-isEquivalence` and the `Induced` construction; `UC.Core.Standard.gradingᵗ`;
+`UC.Environment` in full (`ℰᵗᵛ` a presheaf, `_≈ℰ_` an equivalence and a
+congruence, `grade-stable`) and `…Environment.Approximate`'s `absorbᵘ`; `UC.Emulation`'s four
 metatheorems and the equivalence of the plain and dummy-adversary forms;
 `UC.Family` in full (`Fam` a category, the grading and observation lifted,
 `absorb`); `UC.Machine.Run`'s `runᴹ-resp-≈ᴹ`, hence `Observationᴹ`;
@@ -595,9 +760,9 @@ hand over:
   test — `Et ∘ T₁ W (sub s)`, the same context with the simulator in front of it
   — so the simulator's queries are charged to the environment leg
   (`simCost q cs = q * (cs ⊔ 1)`) and the emulation's slack is what separates the
-  two masses.  `UC.Base.Mass` is the one-sided reading it needs, and at the
-  intended instance that is `Pr≤` with `_≈ₚ[_]_`'s left half (`UC.Seam.Audit`'s
-  `massᴹ`), so nothing new is assumed.
+  two masses.  `UC.Approximate.Mass` is the one-sided reading it needs, and at
+  the intended instance that is `Pr≤` with `_≈ₚ[_]_`'s left half
+  (`UC.Seam.Audit`'s `massᴹ`), so nothing new is assumed.
 
   The carried event must be INTERFACE-OBSERVABLE, which is content and not
   convenience: what a test reads is what an emulation preserves, and a state
@@ -617,13 +782,14 @@ pattern, no postulate and no hole anywhere:
 | `Grading 𝒫ᴵ` (via `GradingLawsᴹ`'s eight fields) | `UC.Machine` | four are trace-free (~40–60 LOC each); `T₁-∘`, `sub-∘`, `a-isoˡ`, `a-nat` are M2 task 3's trace-fusion gate |
 | `Counting` | `UC.QueryBound` | 250–350 LOC; the reference's 248 plus an effectful recursion |
 | `BudgetLawsᴹ` — `qb-∘` alone | `UC.QueryBound` | 250–400 (the reference's token walk over a ⊕-trace).  `qb-id`/`qb-T₁`/`qb-sub` are now THEOREMS (`qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` at the certificate level, `qb-idᴹ`/`qb-T₁ᴹ`/`qb-subᴹ` at the hom level); the record itself is not assembled, its fields taking their interfaces implicitly |
-| `ContextDominated` | `UC.Bridge` | ~250 LOC, instance-specific; the branchwise decomposition of a context against a budgeted strategy, reassembled by convexity of `Pr≤`.  Spike the two-machine skeleton first |
+| `ContextDominated` | `UC.Machine.Bridge` | ~250 LOC, instance-specific; the branchwise decomposition of a context against a budgeted strategy, reassembled by convexity of `Pr≤`.  Spike the two-machine skeleton first |
 | `EnvAsCtx` | `UC.Seam.Grounding` | ~80–120 LOC; the degenerate-ancilla collapse, trace-fusion gated.  It REPLACES `StratIsEnv` as the obligation: `UC.Environment.≈ℰ-at` proves the reduction generically, so what is owed is one ancilla, one test, one closure and one hom equation, with no quantitative content.  Closing `EnvAsCtx → StratIsEnv` at the instance is blocked by the eta cliff below, measured in four spellings |
 | `SubBlind`, `IotaBlind` | `UC.Seam.Grounding` | ~60–90 LOC each, same gate: the trivial grade's summand cannot fire (`⊥-unique`), but the equation is between `𝒫ᴵ`-composites |
 | `UnitGrade` | `UC.Seam.Grounding` | the reduction is PROVED generically (`UC.Emulation.unit-grade`); what is owed is the two blindness facts, `EnvAsCtx`, and the closing application, which is the eta cliff below |
 | `AuditIsBounded` | `UC.Seam.Audit` | ~120–180 LOC on `Adequacy`: recognize `strategyEnv B (bad d)`, plugged through the wires that kill the trivial grade and the ancilla, as one of the contexts `AuditBound` quantifies over — `Counting` for its certificate (`ctxBudget q 1 = q`), `PrAgree` for its mass |
 | `Adequacy` | `UC.Seam` | 250–350 LOC, one module; `PrAgree`'s unrolling, over `𝒫.∘` instead of `Dist⊥`'s bind |
 | `UC-compose` | `UC.Emulation` | two more `Grading` fields (`sub`/`T₁` interchange, `a⇒` naturality in its first two slots) |
+| `SaturatedRespects` | `UC.Saturated` | ~60–100 LOC; `transfer` at each index plus two negligibility-closure lemmas — `_→0` under `+`, and under precomposition with a polynomial — neither of which exists yet.  ℚ/ℕ arithmetic with no UC content |
 
 ### Budget accounting, as corrected
 
@@ -642,8 +808,8 @@ and cannot distinguish implementations the context distinguishes perfectly.  The
 family-level `_≈ℰ[_]_` had the same product, evaluating a concrete bound at
 `ε (κ i) 0`.
 
-`UC.Base.ctxBudget c c′ = c * (c′ ⊔ 1)` is the correction, used by
-`UC.Bridge.ContextDominated`, by `UC.Family`'s `_≈ℰ[_]_` (levelwise, as `ctxQB`,
+`UC.Budget.ctxBudget c c′ = c * (c′ ⊔ 1)` is the correction, used by
+`UC.Machine.Bridge.ContextDominated`, by `UC.Family`'s `_≈ℰ[_]_` (levelwise, as `ctxQB`,
 still polynomial by `poly-*`/`poly-⊔`) and by `UC.Audit.AuditBound`.  The honest
 reading of the product is conservative: for a CLOSED context the test is what
 controls crossings into the plugged process, the closure only supplying ancilla
@@ -763,9 +929,10 @@ The old UC modules are all still consumed by inherited code:
 None was edited: M3 is built **alongside** them, under `CategoricalCrypto.UC.*`,
 so the MD line is bit-for-bit unaffected.  Superseding them is a deletion pass
 once the MD line is replayed onto this layer, and the mapping is one-to-one —
-`MachineAxioms` → `UC.Base`'s three records, `FamilyCategory` → `UC.Family`,
-`VanishingTV` → `UC.Environment` + `UC.Family`'s ingestion half, `StandardTV` →
-`UC.Machine`, `OutputOnly` → `UC.Bridge` + `UC.Seam`.
+`MachineAxioms` → `UC.Core` + `UC.Budget` + `UC.Approximate`,
+`FamilyCategory` → `UC.Family`, `VanishingTV` → `UC.Environment` + `UC.Family`'s
+ingestion half, `StandardTV` → `UC.Machine`, `OutputOnly` →
+`UC.Machine.Bridge` + `UC.Seam`.
 
 One module of M2 changed: `Protocol.Machine`'s `runᴹFrom` now calls a named
 continuation `resumeᴹ` instead of a `where`-local one, extensionally the same
@@ -782,9 +949,10 @@ with nothing inhabiting it and is not assumed anywhere;
 `Grading`/`Budget`/`Mass` as module parameters, which is what keeps them
 generic, and `UC.Family` additionally takes `κ`'s cofinality.
 
-`UC.Base.Mass` is a new hypothesis in form only: it is one field with content
-(`_≈[ ε ]_` implies ε-domination of the budgeted masses) and the intended
-instance discharges it by `proj₁` (`UC.Seam.Audit.massᴹ`).  It exists because
+`UC.Approximate.Mass` is a new hypothesis in form only: it is one field with
+content (an agreement implies ε-domination of the budgeted masses at every
+positive slack) and the intended instance discharges it by one `proj₁`
+(`UC.Seam.Audit.massᴹ`).  It exists because
 `Observation` deliberately compares observations without valuing one, which is
 what keeps it inhabited at `Dₚ`, while an audit-form statement bounds a single
 observation.
