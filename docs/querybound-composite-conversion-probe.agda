@@ -1,8 +1,10 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- PROBE MODULE — NOT FOR A BUILD TARGET.  This one `refl` costs 421 s; nothing
--- imports it and nothing should, since adding it to the library closure would
--- put that on every build.  It exists to price, in isolation, the conversion
+-- PROBE MODULE.  It lives in `docs/` and not under `src/` on purpose: the
+-- library is `include: src`, so anything there is on every build, and this one
+-- `refl` costs 421 s.  To run it, copy to
+-- `src/CategoricalCrypto/UC/QueryBound/Compose/StepP.agda`, check it, delete it
+-- again.  It exists to price, in isolation, the conversion
 -- `𝒫._∘_ g f ≟ traceᴹ … (W.α ∘ᴹ ((g ⊗ᵉ f) ∘ᴹ W.γ))` — projecting `_∘_` out of
 -- `𝒢ₚ`'s G-construction record and matching it against the hand-spelled
 -- composite, which is what `Compose.Step`'s `qbᵢ-∘` and `Seam.Adequacy.

@@ -28,8 +28,9 @@
 -- the `Proc` inversion `UC.QueryBound`'s header measures at ~1 GiB apiece.
 -- Splitting the cheap generic half out would leave 96% of the cost where it is.
 --
--- `qbᵢ-∘`'s share is ONE conversion, priced on its own in `Compose.StepP` at
--- 421 s: `𝒫._∘_ g f` against the traced composite below.  So it is not a sum to
+-- `qbᵢ-∘`'s share is ONE conversion, priced on its own at 421 s by
+-- `docs/querybound-composite-conversion-probe.agda`: `𝒫._∘_ g f` against the
+-- traced composite below.  So it is not a sum to
 -- be whittled down, and sealing the local composites does not reach it —
 -- `α⁰`/`γ⁰` behind `opaque`, with `α-pt`/`γ-pt`/`α-pure`/`γ-pure` in an
 -- `unfolding` block, measured 893 s against a 780 s same-session baseline, with
