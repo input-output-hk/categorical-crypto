@@ -333,6 +333,17 @@ botₚ-cum : (n : ℕ) (P : A → ℚ) → cum n (botₚ {A = A}) P ≡ 0ℚ
 botₚ-cum zero    P = refl
 botₚ-cum (suc n) P = trans (dirac-cum n (inj₂ botₚ) P) (botₚ-cum n P)
 
+-- A junction on a divergence diverges: `botₚ >>=ₚ f` is not a `dirac`, but its
+-- weights are, so the same two-term arithmetic settles it.
+bot-bind-cum : (n : ℕ) (f : A → Dₚ B) (P : B → ℚ) → cum n (botₚ >>=ₚ f) P ≡ 0ℚ
+bot-bind-cum zero    f P = refl
+bot-bind-cum (suc n) f P =
+  trans (node-dirac (cum n (botₚ >>=ₚ f) P) (cum n (botₚ >>=ₚ f) P)) (bot-bind-cum n f P)
+
+bot-bind-≈ₚ : (f : A → Dₚ B) → (botₚ >>=ₚ f) ≈ₚ botₚ
+bot-bind-≈ₚ f = exact⇒≈ₚ (botₚ >>=ₚ f) botₚ λ P n →
+  trans (bot-bind-cum n f P) (sym (botₚ-cum n P))
+
 ------------------------------------------------------------------------
 -- Monad laws, as exact `cum` identities
 
