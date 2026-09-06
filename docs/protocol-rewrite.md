@@ -24,7 +24,7 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 | M2 wave 1: `Dₚ`, `Kl(Dₚ)`, `Mealy` + `Mealy-Category` + the ⊕-trace | **DONE** — all green, hatches 21 = baseline |
 | M2 wave 2: the four residual trace laws + `Elgot` at `Kl(Dₚ)` | **DONE** — the machine layer is hypothesis-free; hatches 21 = baseline |
 | M2 wave 3: the machine SMC bundle, `Traced`, GConstruction, `morphism`/`Pr-agree` | **the machine layer is DONE** — `ℳₚ` symmetric monoidal, `Tracedₚ`, `𝒢ₚ` all closed terms, and `𝒢ₚᴹ` monoidal (task 3, `Monoidal (GConstruction C)`, is closed); `morphism` landed, `Morphism-∘`/`PrAgree` stated and priced; hatches 21 = baseline |
-| M3: the UC layer | **the statement layer is DONE**, and both external theory reviews' findings are resolved (`docs/rewrite-verdict.md`'s two addenda) — `_≈ℰ_`/`grade-stable`/`absorb`/`_≤UC_` and its metatheorems are theorems, no K island, no `HomTransportTrivial`; the simulator carry is a theorem in both its degenerate (`unit-grade`) and graded (`audit-carry`) form; the intended instance's observation is a theorem and its grading action is data with `Grading 𝒫ᴵ` priced.  **The layer is now split three ways** (abstraction notes §1/§3): a qualitative core that mentions no number, an optional quantitative enrichment over an abstract error algebra, and the `Dₚ` model, with the inherited `UCSetup` doctrine reconciled by `UC.Core.Standard.gradingᵗ`; hatches 21 = baseline |
+| M3: the UC layer | **the statement layer is DONE**, and both external theory reviews' findings are resolved (`docs/rewrite-verdict.md`'s two addenda) — `_≈ℰ_`/`grade-stable`/`absorb`/`_≤UC_` and its metatheorems are theorems, no K island, no `HomTransportTrivial`; the simulator carry is a theorem in both its degenerate (`unit-grade`) and graded (`audit-carry`) form; the intended instance's observation is a theorem and its grading action is data, with `Grading 𝒫ᴵ` and `UCBase` now CLOSED TERMS (`UC.Machine.Setup`).  **The layer is now split three ways** (abstraction notes §1/§3): a qualitative core that mentions no number, an optional quantitative enrichment over an abstract error algebra, and the `Dₚ` model, with the inherited `UCSetup` doctrine reconciled by `UC.Core.Standard.gradingᵗ`; hatches 21 = baseline |
 
 ## Modules (M1: 10 files, 874 LOC, all `--safe --without-K`)
 
@@ -553,7 +553,7 @@ this layer needed them.)
 | `…UC.Audit` | enrichment | 133 | `_≤UC[_]_` (a budgeted simulator), `simCost`, `AuditBound`, `audit-carry` — the graded carry, proved |
 | `…UC.Family` | enrichment | 252 | `𝒞^ω` at a parameterized index, `PolyQB`, `Fam`, `Grading^ω`, `Approximation^ω`, `Observation^ω`/`Approximate^ω`, `UCBase^ω`, `ctxQB`, `_≈ℰ[_]_`, `absorb`, and the negligible layer `CarriedNegligible`/`carried-negligible`/`absorb-negl` |
 | `…UC.Machine` | model | 206 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Approximationᴹ`/`Observationᴹ`/`ApproximateObservationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `UCBaseᴹ` |
-| `…UC.Machine.Grading` | model | 129 | `GradingLawsᴹ` (implicit-pinned), `Gradingᴹ` and `Budgetᴹ` — the ASSEMBLIES, proved; `qb-a⇒ᴹ`/`qb-a⇐ᴹ` |
+| `…UC.Machine.Grading` | model | 129 | `GradingLawsᴹ` (implicit-pinned), `Gradingᴹ` and `Budgetᴹ` — the ASSEMBLIES, proved; `qb-a⇒ᴹ`/`qb-a⇐ᴹ`.  The record is inhabited in `…UC.Machine.Setup` |
 | `…UC.Machine.Run` | model | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
 | `…UC.QueryBound` | model | 488 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `CountBound`, `Counting` (stated), `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `qbᵢ-resp-step`, `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` and their hom-level forms, `BudgetLawsᴹ` (stated) |
 | `…UC.Machine.Bridge` | model | 96 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `ContextDominated` (stated) |
@@ -705,7 +705,8 @@ places:
    graded Kleisli category.  `Grading` is the subset of that structure `grade-stable`
    and the emulation metatheory actually spend — no unitors, no `return`/`ext`,
    no monoidal structure on the grades — and that subset IS inhabitable at
-   `𝒫ᴵ` (`GradingLawsᴹ` prices the eight laws; the data is already there).
+   `𝒫ᴵ` (`GradingLawsᴹ`'s eight laws; both the data and, since
+   `UC.Machine.Setup`, the laws).
 2. **The observation runs the other way.** `UCSetup` takes a presheaf `ℰ` as
    *given* and defines `_≈ℰ_` as its kernel congruence; the core takes a
    comparison of CLOSED runs (`𝟙`, `Ω`, `_∼_`) and *derives* the relation on
@@ -845,11 +846,10 @@ pattern, no postulate and no hole anywhere:
 
 | statement | where | price |
 |---|---|---|
-| `GradingLawsᴹ`'s eight fields | `UC.Machine.Grading` | the assemblies `Gradingᴹ`/`Budgetᴹ` are PROVED (implicit-pinning), so the laws are all that stands between `𝒫ᴵ` and a full `UCBase`+`Budget`; four are trace-free (~40–60 LOC each), `T₁-∘`, `sub-∘`, `a-isoˡ`, `a-nat` are M2 task 3's trace-fusion gate |
 | `Counting` | `UC.QueryBound` | 250–350 LOC; the reference's 248 plus an effectful recursion |
 | `BudgetLawsᴹ` — `qb-∘` alone | `UC.QueryBound` | 250–400 (the reference's token walk over a ⊕-trace).  `qb-id`/`qb-T₁`/`qb-sub` are now THEOREMS (`qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` at the certificate level, `qb-idᴹ`/`qb-T₁ᴹ`/`qb-subᴹ` at the hom level); the record itself is not assembled, its fields taking their interfaces implicitly |
 | `ContextDominated` | `UC.Machine.Bridge` | ~250 LOC, instance-specific; the branchwise decomposition of a context against a budgeted strategy, reassembled by convexity of `Pr≤`.  Spike the two-machine skeleton first |
-| `EnvAsCtx` | `UC.Seam.Grounding` | ~80–120 LOC; the degenerate-ancilla collapse, trace-fusion gated.  It REPLACES `StratIsEnv` as the obligation: `UC.Environment.≈ℰ-at` proves the reduction generically, so what is owed is one ancilla, one test, one closure and one hom equation, with no quantitative content.  Closing `EnvAsCtx → StratIsEnv` at the instance is blocked by the eta cliff below, measured in four spellings |
+| `EnvAsCtx` | `UC.Seam.Grounding` | ~80–120 LOC; the degenerate-ancilla collapse, trace-fusion gated.  It REPLACES `StratIsEnv` as the obligation: `UC.Environment.≈ℰ-at` proves the reduction generically, so what is owed is one ancilla, one test, one closure and one hom equation, with no quantitative content.  Closing `EnvAsCtx → StratIsEnv` at the instance is blocked by the eta cliff below, measured in four spellings and re-measured at 2400 s with the object implicits passed — still nothing, so it is NOT the conversion class `UC.Machine.Cast.*` closes |
 | `SubBlind`, `IotaBlind` | `UC.Seam.Grounding` | ~60–90 LOC each, same gate: the trivial grade's summand cannot fire (`⊥-unique`), but the equation is between `𝒫ᴵ`-composites |
 | `UnitGrade` | `UC.Seam.Grounding` | the reduction is PROVED generically (`UC.Emulation.unit-grade`); what is owed is the two blindness facts, `EnvAsCtx`, and the closing application, which is the eta cliff below |
 | `AuditIsBounded` | `UC.Seam.Audit` | ~120–180 LOC on `Adequacy`: recognize `strategyEnv B (bad d)`, plugged through the wires that kill the trivial grade and the ancilla, as one of the contexts `AuditBound` quantifies over — `Counting` for its certificate (`ctxBudget q 1 = q`), `PrAgree` for its mass |
@@ -1174,25 +1174,70 @@ Hence the supersession map for `GradingLawsᴹ`'s eight fields:
 | `T₁-id` | corollary (`T₁-idᴹ`) | `𝔾.⊗.identity` |
 | `sub-resp-≈` | corollary (`sub-resp-≈ᴹ`) | `𝔾.⊗.F-resp-≈` |
 | `sub-id` | corollary (`sub-idᴹ`) | `𝔾.⊗.identity` |
-| `T₁-∘` | **priced** | `𝔾.⊗.homomorphism` |
-| `sub-∘` | **priced** | `𝔾.⊗.homomorphism` |
-| `a-isoˡ` | **priced** | `𝔾.associator.isoʳ` |
-| `a-nat` | **priced** | `𝔾.assoc-commute-to` |
+| `T₁-∘` | corollary (`Laws.Relay.T₁-∘ᴹ`) | `𝔾.⊗.homomorphism` |
+| `sub-∘` | corollary (`Laws.Simulator.sub-∘ᴹ`) | `𝔾.⊗.homomorphism` |
+| `a-isoˡ` | corollary (`Laws.Assoc.a-isoˡᴹ`) | `𝔾.associator.isoʳ` |
+| `a-nat` | corollary (`Laws.Nat.a-natᴹ`) | `𝔾.assoc-commute-to` |
 
 The split is exactly the one `UC.Machine.Grading`'s own note predicted: the four
-that land are the trace-free ones, and the four that do not each compare a
-`𝒫ᴵ`-COMPOSITE, hence the ⊕-trace. The obstruction is cost, not a missing
-lemma — every 𝒢-law that would discharge one spends a trace absorption
-(`GConstructionEmbedding.absorbˡ`/`absorbʳ`). Minimal reproducer: the projection
-`𝔾.associator.isoʳ` alone, at `⟦X⟧ᴵ,⟦Y⟧ᴵ,⟦A⟧ᴵ` with every implicit pinned, was
-still running after 900 s at 12.8 GiB resident, and dies at `-M8G`, `-M12G` and
-`-M16G` alike. `𝒫.∘-resp-≈` is not the culprit.
+that land free are the trace-free ones, and the other four each compare a
+`𝒫ᴵ`-COMPOSITE, hence the ⊕-trace. Those four are now proved too, and what
+closes them is not a lemma but a way of ARRANGING the conversion.
 
-So closing the *mathematical* gate (`⊗-trace-mid`, `trace-mid`, hence
-`Monoidal (𝒢ₚ ℓ)`) did not close the *elaboration* gate. The recommended next
-step is the same medicine as M4's: an `opaque`-sealed re-export of
-`absorbˡ`/`absorbʳ`/`isoʳ` at the machine layer, so a consumer of those laws
-never reduces through the `GConstruction` record.
+### The gate, diagnosed and closed
+
+M4 left a measured reproducer — `𝔾.associator.isoʳ` alone, at
+`⟦X⟧ᴵ,⟦Y⟧ᴵ,⟦A⟧ᴵ` with every implicit pinned, still running after 900 s at
+12.8 GiB — and named an `opaque`-sealed re-export as the cure. Re-measured, the
+diagnosis is different and the seal is NOT the cure.
+
+* The reproducer is not divergent, only slow: the same projection now checks in
+  **418 s** (`UC.Machine.Cast.Assoc`). M4's kill at 900 s was a kill, not a
+  verdict.
+* What costs is comparing two 𝒢-COMPOSITES that are not SYNTACTICALLY equal.
+  Both sides then reduce to the ⊕-trace, and leaves that differ — even by one
+  δ — are normalized inside it. 400–450 s per comparison, reproducibly, and it
+  is the LEAVES that decide, not the object spelling: with the two factors left
+  VARIABLE the trace has variable leaves and the comparison stays structural
+  (`UC.Machine.Cast.*`, one `Equiv.refl` per composite SHAPE).
+* Hence the recipe. A law is `Dictionary bridge ○ cast ○ 𝒢-law`, whose junctions
+  are all syntactic except the single one against the borrowed law — so ONE
+  𝒢-composite conversion per module, and one law per module.
+* An `opaque` seal does not help. Inside the block the seal is transparent, so
+  the crossing costs the same; outside it the crossing cannot be expressed at
+  all. M4's seal earns its keep for a setup built ON `𝔾ᵒ`, which never crosses
+  back down to `𝒫ᴵ`.
+
+`𝔾.assoc-commute-to` is the exception that fixes the budget: it has TWO
+composite ends and neither is writable in a spelling of ours (its `α⇐` and
+`_⊗₁_` are the `Monoidal` record's private abbreviations), so it takes a module
+of its own (`…Laws.Nat.Square`), the first module of the cone above 900 s.
+
+| module | LOC | warm | role |
+|---|---:|---:|---|
+| `…UC.Machine.Cast.Tensor` | 68 | 997 s | `∘ᴳ-T₁`, `∘ᴳ-sub` — the two `⊗.homomorphism` shapes |
+| `…UC.Machine.Cast.Assoc` | 31 | 418 s | `∘ᴳ-α` — the `associator.isoʳ` shape |
+| `…UC.Machine.Cast.Nat` | 41 | 822 s | `∘ᴳ-nat⇒`, `∘ᴳ-nat⇐` — the two sides of the naturality square |
+| `…UC.Machine.Laws.Relay` | 57 | 489 s | `T₁-∘ᴹ` |
+| `…UC.Machine.Laws.Simulator` | 56 | 495 s | `sub-∘ᴹ` |
+| `…UC.Machine.Laws.Assoc` | 49 | 423 s | `a-isoˡᴹ` |
+| `…UC.Machine.Laws.Nat.Square` | 51 | 984 s | `α-natᴳ` — `assoc-commute-to` re-spelled |
+| `…UC.Machine.Laws.Nat` | 86 | 1463 s | `a-natᴹ` |
+| `…UC.Machine.Setup` | 41 | 2881 s | `gradingLawsᴹ`, `gradingᴹ`, `ucBaseᴹ` |
+
+`…UC.Machine.Setup` pays the toll four more times: `GradingLawsᴹ`'s field
+types are written with `UC.Machine.Grading`'s own `private module 𝒫`, the law
+modules' with theirs, and for the four trace-touching fields the two spellings
+differ by exactly that alias over a `𝒫ᴵ`-COMPOSITE — four more conversions.
+Sharing one `𝒫` alias across `…Grading` and `…Laws.*` would make all four
+syntactic and is the obvious next cut; it is not taken here because it re-prices
+eight green modules.
+
+The cone is a measured ~1.9 h of elaboration, all of it in the conversions
+above; nothing in it is a proof step a reader would recognize as work. It is the
+price of the machine layer and the 𝒢-monoidal layer being two spellings of one
+category, and the only structural fix is to stop having two — to present `𝒫ᴵ`
+as the reindexing of `𝒢ₚᴹ`, so that no crossing exists to pay for.
 
 Two smaller findings worth carrying forward:
 
@@ -1208,7 +1253,6 @@ Two smaller findings worth carrying forward:
 
 | item | where | status |
 |---|---|---|
-| `GradingLawsᴹ`'s four trace-touching fields | `UC.Machine.Dictionary` header | priced, with a measured reproducer and a named cure |
 | `ifaceᵒ unitᴵ ≅ 𝔾ᵒ`'s monoidal unit | `UC.Model.Observation` header | not proved; a G-composite is a trace, so `isoˡ` is not the one-line argument the bijection of empty types suggests. Nothing depends on it — `ℰᵒ` is a presheaf for either family of closures |
 | whether the model satisfies `GradeStable` | — | not investigated. `UC.Model.Reading` deliberately does not need it, and the proposal asks that it not be assumed |
 | direct-run adequacy, the confidential-ledger refinement | proposal §§3–4 | out of M4's scope; `Protocol.Machine.PrAgree`/`Morphism-∘` are still statements |
