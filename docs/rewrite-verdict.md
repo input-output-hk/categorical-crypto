@@ -215,3 +215,54 @@ The degenerate-`Grading` defect of addendum 3 is likewise expected to dissolve
 (the ruled route's grading is the curried tensor by construction, not an
 abstract record); to be re-assessed after the `StdUC` instantiation. In flight:
 the `StdUC`-at-machines performance spike, whose verdict gates the build.
+
+## Addendum 5: the seam closed, the cone built and retired, the perf ruling (2026-09-06)
+
+Everything below is merged on `protocol-rewrite`; hatches 21 = baseline throughout.
+
+**Landed since addendum 4.**
+
+1. **The seam is closed**: `PrAgree` (`Protocol.Machine.Agree`, via the `Dp.Stable`
+   closure family — `Dp.Embed` off the path) and `Adequacy` (`UC.Seam.Adequacy`),
+   making `agreeToAdv`/`povCarry` closed terms and wiring `pov-carryᴸ` into the
+   ledger (`Examples.ChimericLedger.Carry`).
+2. **`Counting` and `qb-∘` are theorems** (`UC.QueryBound.{Counting,Compose}`);
+   `BudgetLawsᴹ` assembles (`Compose/Laws`).
+3. **`Morphism-∘` is a theorem** (`Protocol.Machine.Compose`). Neither simulation
+   direction is definable (fused continuations one way, an unreachable-but-total
+   configuration the other); the proof simulates out of a third machine of
+   reachable configurations. `Wiring`'s pointwise calculus generalized into
+   `Machines.Collapse`.
+4. **`GradingLawsᴹ`'s eight fields were proved** (the `Cast/*`+`Laws/*` cone),
+   **and then the cone was retired** — see the perf ruling. The grading now IS
+   `gradingᵗ (𝒢ₚᴹ 0ℓ)` (363 ms), with `gradingᴹ : Grading (𝒢ₚ 0ℓ)` and `ucBaseᴹ`
+   closed terms in `UC.Machine`; addendum 4's dissolution prediction was correct.
+
+**The perf ruling and its root cause.** The maintainer set a hard bar: ≤150 s
+warm per module. The measured root cause (8-line core, `docs/`): *receiving* an
+agda-categories `Monoidal` law at a hand-written type costs ~470 s — the record's
+law types use private tensor abbreviations no consumer can spell, and the
+mismatch normalizes through the ⊕-trace. Derived types are free. Consequences,
+all measured: opaque seals are a NEGATIVE for consumers of the unfolding (probe:
+bare crossing 421 s, partial seal 1.14× worse); the `Iface`-indexed grading is
+unaffordable in principle (re-indexing the free grading costs >1500 s); the cone
+(~3.0 h) was deleted, −658 LOC, and `UC.agda`'s closure fell from hours to
+**158 s**. Layout law: re-index objects at the use site (5.9 s), never in the
+statement (42 s).
+
+**Deleted theorems (sanctioned).** The relay-form laws `T₁-∘`/`sub-∘`/`a-isoˡ`/
+`a-nat` about `T₁ᴵ`/`subᴵ`/`a⇒ᴵ` are no longer proved anywhere; the action-form
+laws are free via `gradingᵗ` and `Dictionary`'s zigzags bridge the two readings.
+
+**Restated (never weakened).** `Observationᴹ : Observation (𝒢ₚ 0ℓ)`;
+`Seam.Audit`/`Seam.Grounding` drop their `Grading 𝒫ᴵ` parameter and read at
+`⟦_⟧ᴵ`-images. All QueryBound, seam, and example statements verbatim.
+
+**Owed / over the bar.**
+
+- `Budget` at the machine model: wants `QB`/`Certified` generalized to
+  𝒢-objects (statement generalization, not attempted).
+- A structural ceiling: any module reading a G-composite's step pays ~230–250 s
+  for one G-record `_∘_` projection (`Wiring` 230 s, `Protocol.Machine.Compose`
+  231 s, `Compose/Step` 721 s = same class + conversion). Opacity cannot bridge
+  it; under-150 s for this class needs a new mechanism or an explicit exemption.
