@@ -1,8 +1,12 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- The grading dictionary: `UC.Machine`'s direct relays read as the monoidal
--- spellings of the same processes, so that a stated field of
--- `UC.Machine.Grading.GradingLawsᴹ` becomes a corollary of a law of `𝒢ₚᴹ 0ℓ`.
+-- spellings of the same processes.  Those readings are the bridge between the
+-- pinned relays and the derived grading `UC.Machine.gradingᴹ` — a query-bound
+-- certificate is about a relay, the grading's action is `_⊗₁_` with an
+-- identity, and `UC.Machine.Grading` carries one to the other through these
+-- four zigzags.  Nothing here states a `Monoidal` law's type, which is what
+-- makes it affordable (`UC.Machine`'s header prices the alternative).
 --
 -- Every object implicit is passed explicitly, for the reason
 -- `UC.Machine.Grading`'s header gives — and so is every implicit of the

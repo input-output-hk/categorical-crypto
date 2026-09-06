@@ -28,15 +28,18 @@ open import CategoricalCrypto.Protocol.Machine using (morphism)
 open import CategoricalCrypto.Protocol.Observe using (Bounded)
 open import CategoricalCrypto.Strategy using (Strat)
 open import CategoricalCrypto.UC.Approximate using (Mass)
+open import CategoricalCrypto.Machines.Base using (𝒢ₚ)
+open import CategoricalCrypto.Protocol.Machine using (⟦_⟧ᴵ)
 open import CategoricalCrypto.UC.Budget using (Budget)
-open import CategoricalCrypto.UC.Core using (Grading)
-open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; Observationᴹ; UCBaseᴹ)
+open import CategoricalCrypto.UC.Machine using (Proc; Observationᴹ; gradingᴹ; ucBaseᴹ)
 
 import CategoricalCrypto.UC.Audit as Aud
 import CategoricalCrypto.UC.Emulation as Em
 
+-- The grading is no longer a parameter: `UC.Machine.gradingᴹ` is the only one
+-- there is (its header prices why an `Iface`-object grading is not affordable).
 module CategoricalCrypto.UC.Seam.Audit
-  {qs : Level} (G : Grading 𝒫ᴵ) (bud : Budget 𝒫ᴵ G qs) where
+  {qs : Level} (bud : Budget (𝒢ₚ 0ℓ) gradingᴹ qs) where
 
 -- The reading `Observation` deliberately lacks: a mass at a budget, and the
 -- ε-domination that `_≈ₚ[_]_`'s left half already is, read off the agreement at
@@ -46,16 +49,19 @@ massᴹ : Mass Observationᴹ
 massᴹ = record { at = Pr≤ ; dominate = λ h δ δ>0 → proj₁ (h δ δ>0) true }
 
 private
-  module A = Aud (UCBaseᴹ G) bud massᴹ
-  module E = Em (UCBaseᴹ G)
+  module A = Aud ucBaseᴹ bud massᴹ
+  module E = Em ucBaseᴹ
 
 open A public using (_≤UC[_]_; sim; sim-qb; emulate; simCost; AuditBound; audit-carry)
-open E using (_∘_; _⊛_)
+open E using (_∘_)
 
 ------------------------------------------------------------------------
 -- What layer 1 still needs
 
-module TrivialGrade (𝟘 : Iface) (ι : (B : Iface) → Proc B (𝟘 ⊛ B)) where
+-- `𝟘 ⊗ᴵ B` rather than `𝟘 ⊛ B`: the grading's action at `⟦_⟧ᴵ`-images IS the
+-- interface tensor, definitionally, so this is the same statement written in
+-- the vocabulary layer 0 already has.
+module TrivialGrade (𝟘 : Iface) (ι : (B : Iface) → Proc B (𝟘 ⊗ᴵ B)) where
 
   -- The consumer end of the graded bound: at the trivial grade an audit-watching
   -- strategy, embedded as an environment, IS one of the contexts `AuditBound`
@@ -68,4 +74,5 @@ module TrivialGrade (𝟘 : Iface) (ι : (B : Iface) → Proc B (𝟘 ⊛ B)) wh
   AuditIsBounded : Set (suc 0ℓ ⊔ qs)
   AuditIsBounded = {B : Iface} (P : Protocol unitᴵ B)
                    (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) (ε : ℕ → ℚ)
-                 → AuditBound {unitᴵ} {B} {𝟘} (ι B ∘ morphism P) ε → Bounded P bad ε
+                 → AuditBound {⟦ unitᴵ ⟧ᴵ} {⟦ B ⟧ᴵ} {⟦ 𝟘 ⟧ᴵ} (ι B ∘ morphism P) ε
+                 → Bounded P bad ε

@@ -1,8 +1,8 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- `BudgetLawsᴹ`, assembled.  The two hypotheses are the ones `qb-T₁ᴹ`/`qb-subᴹ`
--- already take: `T₁ᴵ`/`subᴵ` respect `_≈_`, which are `GradingLawsᴹ`'s own
--- fields.  Every implicit is PINNED, and the section is its own module, for the
+-- already take: `T₁ᴵ`/`subᴵ` respect `_≈_`, which `UC.Machine.Dictionary`
+-- proves.  Every implicit is PINNED, and the section is its own module, for the
 -- reason `UC.Machine.Grading`'s header records: each field pays the `Proc`
 -- inversion once.  Measured warm cost ~220 s for these 27 lines, which is what
 -- that per-field price looks like.

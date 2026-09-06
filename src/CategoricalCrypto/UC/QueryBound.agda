@@ -447,7 +447,7 @@ qb-idᴹ = certified⇒QB qbᵢ-id
 
 -- The hom-level forms need the action to respect `_≈_`, because `QB` is the
 -- `≈`-closure of `Certified` and the certificate lives on a representative;
--- those two are `GradingLawsᴹ`'s other trace-free fields.  Every interface is
+-- those two are `UC.Machine.Dictionary`'s trace-free readings.  Every interface is
 -- EXPLICIT here, and that is measured rather than tidy: left implicit, a `Proc`
 -- argument makes Agda invert `Machine (Pos A + Neg B) …` for the pair, and this
 -- module stops coming back inside 200 s (`UC.Machine`'s header records the same

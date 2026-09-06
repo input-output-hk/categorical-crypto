@@ -24,7 +24,7 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 | M2 wave 1: `Dₚ`, `Kl(Dₚ)`, `Mealy` + `Mealy-Category` + the ⊕-trace | **DONE** — all green, hatches 21 = baseline |
 | M2 wave 2: the four residual trace laws + `Elgot` at `Kl(Dₚ)` | **DONE** — the machine layer is hypothesis-free; hatches 21 = baseline |
 | M2 wave 3: the machine SMC bundle, `Traced`, GConstruction, `morphism`/`Pr-agree` | **the machine layer is DONE** — `ℳₚ` symmetric monoidal, `Tracedₚ`, `𝒢ₚ` all closed terms, and `𝒢ₚᴹ` monoidal (task 3, `Monoidal (GConstruction C)`, is closed); `morphism` landed, **`PrAgree` is a theorem** (`Protocol.Machine.Agree`), `Morphism-∘` stated and priced; hatches 21 = baseline |
-| M3: the UC layer | **the statement layer is DONE**, and both external theory reviews' findings are resolved (`docs/rewrite-verdict.md`'s two addenda) — `_≈ℰ_`/`grade-stable`/`absorb`/`_≤UC_` and its metatheorems are theorems, no K island, no `HomTransportTrivial`; the simulator carry is a theorem in both its degenerate (`unit-grade`) and graded (`audit-carry`) form; the intended instance's observation is a theorem and its grading action is data, with `Grading 𝒫ᴵ` and `UCBase` now CLOSED TERMS (`UC.Machine.Setup`).  **The layer is now split three ways** (abstraction notes §1/§3): a qualitative core that mentions no number, an optional quantitative enrichment over an abstract error algebra, and the `Dₚ` model, with the inherited `UCSetup` doctrine reconciled by `UC.Core.Standard.gradingᵗ`; hatches 21 = baseline |
+| M3: the UC layer | **the statement layer is DONE**, and both external theory reviews' findings are resolved (`docs/rewrite-verdict.md`'s two addenda) — `_≈ℰ_`/`grade-stable`/`absorb`/`_≤UC_` and its metatheorems are theorems, no K island, no `HomTransportTrivial`; the simulator carry is a theorem in both its degenerate (`unit-grade`) and graded (`audit-carry`) form; the intended instance's observation is a theorem and its grading action is data, with the grading and `UCBase` now CLOSED TERMS, taken on 𝒢's own objects where they are free (`UC.Machine.gradingᴹ`/`ucBaseᴹ`; perf finding 8 prices why an `Iface`-object grading is not affordable, and the nine-module `Cast`/`Laws` cone that tried is deleted).  **The layer is now split three ways** (abstraction notes §1/§3): a qualitative core that mentions no number, an optional quantitative enrichment over an abstract error algebra, and the `Dₚ` model, with the inherited `UCSetup` doctrine reconciled by `UC.Core.Standard.gradingᵗ`; hatches 21 = baseline |
 
 ## Modules (M1: 10 files, 874 LOC, all `--safe --without-K`)
 
@@ -555,7 +555,7 @@ this layer needed them.)
 | `…UC.Audit` | enrichment | 133 | `_≤UC[_]_` (a budgeted simulator), `simCost`, `AuditBound`, `audit-carry` — the graded carry, proved |
 | `…UC.Family` | enrichment | 252 | `𝒞^ω` at a parameterized index, `PolyQB`, `Fam`, `Grading^ω`, `Approximation^ω`, `Observation^ω`/`Approximate^ω`, `UCBase^ω`, `ctxQB`, `_≈ℰ[_]_`, `absorb`, and the negligible layer `CarriedNegligible`/`carried-negligible`/`absorb-negl` |
 | `…UC.Machine` | model | 206 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Approximationᴹ`/`Observationᴹ`/`ApproximateObservationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `UCBaseᴹ` |
-| `…UC.Machine.Grading` | model | 129 | `GradingLawsᴹ` (implicit-pinned), `Gradingᴹ` and `Budgetᴹ` — the ASSEMBLIES, proved; `qb-a⇒ᴹ`/`qb-a⇐ᴹ`.  The record is inhabited in `…UC.Machine.Setup` |
+| `…UC.Machine.Grading` | model | 74 | the four re-basings `qb-T₁ᴳ`/`qb-subᴳ`/`qb-a⇒ᴳ`/`qb-a⇐ᴳ`, carrying a query-bound certificate about a pinned relay to `gradingᴹ`'s action through a `…Dictionary` zigzag.  `GradingLawsᴹ`, `Gradingᴹ` and `Budgetᴹ` are GONE (perf finding 8); a `Budget (𝒢ₚ 0ℓ) gradingᴹ` assembly is owed |
 | `…UC.Machine.Run` | model | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
 | `…UC.QueryBound` | model | 480 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `#inj₁`/`#inj₂`, `CountBound`, `Counting`, `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `qbᵢ-resp-step`, `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` and their hom-level forms, `BudgetLawsᴹ` |
 | `…UC.QueryBound.Counting` | model | 237 | `CountedRun`, `countᵍ`/`countᵍ-erase`, `qbᵢ⇒count` — `Counting` inhabited |
@@ -713,8 +713,8 @@ places:
    graded Kleisli category.  `Grading` is the subset of that structure `grade-stable`
    and the emulation metatheory actually spend — no unitors, no `return`/`ext`,
    no monoidal structure on the grades — and that subset IS inhabitable at
-   `𝒫ᴵ` (`GradingLawsᴹ`'s eight laws; both the data and, since
-   `UC.Machine.Setup`, the laws).
+   `𝒫ᴵ` — superseded: the grading is now `UC.Machine.gradingᴹ`, derived on 𝒢's
+   own objects, and `Iface` is vocabulary (perf finding 8).
 2. **The observation runs the other way.** `UCSetup` takes a presheaf `ℰ` as
    *given* and defines `_≈ℰ_` as its kernel congruence; the core takes a
    comparison of CLOSED runs (`𝟙`, `Ω`, `_∼_`) and *derives* the relation on
@@ -976,7 +976,7 @@ with `mb = maybeℚ bool→ℚ`, so `Pr₁⊥ μ` IS `E⊥ μ bool→ℚ`.  In t
 `E μ` directly, so the proof never leaves `Dₚ` for a `Dist⊥` it has to embed.
 The embedding stands as the link between the two carriers, unspent.
 
-### Seven perf findings, all recorded in the source
+### Eight perf findings, all recorded in the source
 
 * **The reindexing record needs every object implicit passed explicitly.** Left
   to inference, each field of `𝒫ᴵ` asks Agda to invert
@@ -1049,6 +1049,31 @@ The embedding stands as the link between the two carriers, unspent.
   check.  Bisected: the STATEMENT (`Emulᴸ`, the `Agreeˢ` at the two machine
   images) is cheap and so is `advᴸ` — only the seam-as-a-subterm is not.  This
   is `UC.Seam`'s own discipline, and it does not stop at the seam's boundary.
+
+* **A `Monoidal` law costs ~470 s to RECEIVE and nothing to PLUG.**  This is
+  the finding that retired the `Cast`/`Laws` cone, and it is four measurements
+  in isolation, warm, `-M8G -H1G`.  `associator.isoʳ` at three interface
+  objects, checked against its own type written out verbatim in 𝒢's *public*
+  vocabulary, is **470 s**; the type on its own is free; the SAME law at
+  *variable* 𝒢-objects is **468 s**, so it is neither the objects nor their
+  concreteness; and `UC.Core.Standard.gradingᵗ (𝒢ₚᴹ 0ℓ)` — all eight grading
+  laws at the machine bundle — is **363 ms**.  The asymmetry is that a
+  `Monoidal` law is stated with the record's own `private` `_⊗₀_`/`_⊗₁_`
+  abbreviations, which no consumer can name; a written-out type therefore
+  mismatches on a subterm sitting under a G-tensor, and the mismatch is settled
+  by reducing both composites through the ⊕-trace.  `gradingᵗ` plugs each law
+  into a `Grading` field whose type is DERIVED from it and writes none out, so
+  nothing is ever compared.  Two corollaries.  (i) `Grading` is our own flat
+  record, so once a law has been laundered through it the statement is spelled
+  in public vocabulary and is cheap to handle — which is why the grading is
+  taken on 𝒢's objects and `Iface` is kept as vocabulary only; re-presenting
+  the same free record on `Iface` objects was measured at the same wall
+  (>1500 s).  (ii) The rule generalizes: state nothing that must receive such a
+  law.  Earlier readings of this cost as an object-SPELLING artifact were
+  partial — `𝒫._∘_ g f` against `𝔾._∘_ g f` at objects spelled alike is 11 s,
+  at objects spelled differently 525 s, and that object comparison alone, with
+  no composite around it, is 11 s — the spelling mismatch is one way to trip
+  the same reduction, not its cause.
 
 ### Compatibility with the inherited MD line
 
@@ -1266,9 +1291,16 @@ of its own (`…Laws.Nat.Square`), the first module of the cone above 900 s.
 types are written with `UC.Machine.Grading`'s own `private module 𝒫`, the law
 modules' with theirs, and for the four trace-touching fields the two spellings
 differ by exactly that alias over a `𝒫ᴵ`-COMPOSITE — four more conversions.
-Sharing one `𝒫` alias across `…Grading` and `…Laws.*` would make all four
-syntactic and is the obvious next cut; it is not taken here because it re-prices
-eight green modules.
+
+**All nine modules above are now DELETED**, and the diagnosis that retired them
+is perf finding 8 below: the price is not the objects, not the aliases and not
+the comparison, but the act of WRITING OUT a type that has to receive a
+`Monoidal` law.  Four of the nine were re-measured on the 2026-09-06 machine
+before deletion, ~1.24x the numbers above — `Cast.Assoc` 520 s, `Cast.Nat`
+1012 s, `Cast.Tensor` 1024 s, `Laws.Nat.Square` 1261 s — so the cone's real
+total was ~3.0 h.  What replaced it is `UC.Core.Standard.gradingᵗ (𝒢ₚᴹ 0ℓ)`,
+which never writes such a type out and costs 363 ms, plus four re-basings in
+`…UC.Machine.Grading` at 5.9 s each.
 
 The cone is a measured ~1.9 h of elaboration, all of it in the conversions
 above; nothing in it is a proof step a reader would recognize as work. It is the

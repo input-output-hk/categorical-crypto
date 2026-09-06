@@ -43,13 +43,10 @@
 --                                  consumer of this entry point should pay
 --                                  unless it is assembling a `Budget`
 --                `UC.Machine.Grading`
---                                  the grading laws, and the `Grading`/`Budget`
---                                  assemblies they buy
---                `UC.Machine.Setup`
---                                  those laws PROVED (via
---                                  `UC.Machine.Dictionary`, `…Cast.*` and
---                                  `…Laws.*`), hence `Grading 𝒫ᴵ` and a
---                                  `UCBase` as closed terms
+--                                  where a query-bound certificate about a
+--                                  pinned relay meets the derived grading's
+--                                  action, through `UC.Machine.Dictionary`'s
+--                                  zigzags
 --                `UC.Machine.Bridge`
 --                                  `ContextDominated`, the interface to layer
 --                                  1's concrete theorems
@@ -64,8 +61,8 @@
 --                                  equivalence
 --
 -- The parameterized modules take a `UCBase` and so are imported directly
--- rather than re-exported here; `UC.Machine.Setup.ucBaseᴹ` is the one to feed
--- them at the model.
+-- rather than re-exported here; `UC.Machine.ucBaseᴹ` is the one to feed them at
+-- the model.
 --
 -- Everything is `--safe --without-K`; the `Dₚ`-facing modules add
 -- `--guardedness` and nothing adds anything else.  In particular there is no K
@@ -80,7 +77,6 @@ open import CategoricalCrypto.UC.Core public
 open import CategoricalCrypto.UC.Machine public
 open import CategoricalCrypto.UC.Machine.Bridge public
 open import CategoricalCrypto.UC.Machine.Grading public
-open import CategoricalCrypto.UC.Machine.Setup public
 open import CategoricalCrypto.UC.QueryBound public
 open import CategoricalCrypto.UC.QueryBound.Counting public
 open import CategoricalCrypto.UC.Saturated public
