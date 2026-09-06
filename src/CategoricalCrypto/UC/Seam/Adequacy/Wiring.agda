@@ -9,7 +9,9 @@
 -- of `Pos unitᴵ = ⊥` are written as such.  What is left to dispatch is the
 -- environment's tick, the process's answer, and the environment's answer.
 --
--- Measured cost: dominated by `collapseᴳ`, priced in `Machines.Collapse`.
+-- Measured cost: 282 s warm, essentially all of it projecting `_∘_` out of
+-- `𝒢ₚ`'s G-construction record; 301 s before this module was cut down to the
+-- shape-specific part, so the relocation is cost-neutral.
 
 open import Categories.Category
 
@@ -30,7 +32,6 @@ open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Seam
 
 import CategoricalCrypto.Machines.Collapse as Col
-import CategoricalCrypto.Machines.Collapse.Absorb as Abs
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Trace as Trace
@@ -95,5 +96,5 @@ private
 compose-≈ᴹ : (B : Iface) (d : Strat (Neg B) (Pos B)) (u : Proc unitᴵ B)
            → (strategyEnv B d 𝒫.∘ u) S.≈ᴹ pairedᴹ B d u
 compose-≈ᴹ B d u =
-       Abs.collapseᴳ {⊥} {⊥} {Pos B} {Neg B} {Bool} {⊤} (strategyEnv B d) u
+       Col.collapseᵀ {⊥} {⊥} {Pos B} {Neg B} {Bool} {⊤} (strategyEnv B d) u
   S.○ᴹ S.≲⇒≈ᴹ (TC.trace-resp-≲ (S.mk-cong (kᴳ-kᵂ B d u)))

@@ -22,6 +22,11 @@
 -- of it, which is all an `EqClosure` needs.  The intermediate
 -- `(wait , idle)` — the outer factor suspended mid-loop — never surfaces:
 -- `traceᴹ` solves the loop inside one step.
+--
+-- Measured cost: 269 s warm, of which everything but `morphism-∘` is 11 s — the
+-- rest is projecting `_∘_` out of `𝒢ₚ`'s G-construction record, which is what
+-- stating anything about `𝒢ₚ`'s composition costs (`Machines.Collapse`'s header
+-- prices the two ways of paying it).
 
 open import Categories.Category.Monoidal.Bundle
 import Categories.Category.Kleisli.Discrete as KD
@@ -43,7 +48,6 @@ open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
 
 import CategoricalCrypto.Machines.Collapse as Col
-import CategoricalCrypto.Machines.Collapse.Absorb as Abs
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Trace as Trace
@@ -299,5 +303,5 @@ morphism-∘ : Morphism-∘
 morphism-∘ {A} {B} {C} P₂ P₁ =
        S.⟺ᴹ (S.≲⇒≈ᴹ (π-sim P₂ P₁))
   S.○ᴹ S.≲⇒≈ᴹ (ι-sim P₂ P₁)
-  S.○ᴹ S.⟺ᴹ (Abs.collapseᴳ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C}
+  S.○ᴹ S.⟺ᴹ (Col.collapseᵀ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C}
                            (morphism P₂) (morphism P₁))

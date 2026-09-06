@@ -10,9 +10,13 @@
 -- routing that factor's emission out or around the loop.  Any consumer that has
 -- to read a `𝒢ₚ`-composite's step off starts here.
 --
--- Everything below stays inside `ℳₚ`; identifying the result with `𝒢ₚ`'s own
--- `_∘_` needs the G-construction record and is a module of its own
--- (`Machines.Collapse.Absorb`), which is where the cost is priced.
+-- Everything here stays inside `ℳₚ` and measures 14 s warm.  `collapseᵀ` is
+-- stated as a trace rather than as `𝒢ₚ`'s `_∘_` on purpose: a consumer's goal
+-- names `_∘_` already, so leaving the projection out of the G-construction
+-- record to the consumer costs ONE such projection, while a lemma stated with
+-- `_∘_` costs the consumer a second one — measured at 269 s against 704 s
+-- (`Protocol.Machine.Compose`) and 282 s against 507 s (`UC.Seam.Adequacy.
+-- Wiring`).
 
 open import Categories.Category.Monoidal.Bundle
 import Categories.Category.Cocartesian.Ext as CE
@@ -36,12 +40,16 @@ import CategoricalCrypto.Machines.Category as MCat
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Tensor as Tensor
+import CategoricalCrypto.Machines.Trace as Trace
+import CategoricalCrypto.Machines.Trace.Congruence as TraceCong
 
 module CategoricalCrypto.Machines.Collapse where
 
 private
   module MC  = Core (𝒱ₚ 0ℓ)
+  module MT  = Trace (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
   module S   = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
+  module TC  = TraceCong (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
 
   module Cat = MCat (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
   module T   = Tensor (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ)
@@ -308,13 +316,19 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
     inner = Cat.∘ᴹ-resp-≈ᴹ S.reflᴹ (γ-pure A⁺ C⁻ B⁻ B⁺)
        S.○ᴹ S.≲⇒≈ᴹ (T.pure-∘ʳ (K.pureᵏ ĉ) (g T.⊗ᵉ f))
 
-  -- The traced machine `𝒢ₚ`'s composite is a trace OF, with both legs absorbed.
-  -- `Machines.Collapse.Absorb` reads it as the composite itself; that step
-  -- projects `_∘_` out of the G-construction record and is the whole cost of
-  -- this development, which is why it lives in its own module.
+  -- The machine `𝒢ₚ`'s composite is a trace OF, with both legs absorbed.
   outer : (W.α {A⁻} {B⁺} {B⁻} {C⁺} MC.∘ᴹ
             ((g T.⊗ᵉ f) MC.∘ᴹ W.γ {A⁺} {B⁺} {B⁻} {C⁻}))
           S.≈ᴹ MC.mk Sᴳ kᴳ
   outer = Cat.∘ᴹ-resp-≈ᴹ (α-pure B⁻ C⁺ A⁻ B⁺) inner
      S.○ᴹ S.≲⇒≈ᴹ (T.pure-∘ˡ (K.pureᵏ â) mid)
      S.○ᴹ S.≲⇒≈ᴹ (S.mk-cong stepEq)
+
+  -- The same, traced: this is `𝒢ₚ`'s composite, up to the projection out of the
+  -- G-construction record that the consumer's own goal already performs (see
+  -- the header).
+  collapseᵀ : MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺)
+                (W.α {A⁻} {B⁺} {B⁻} {C⁺} MC.∘ᴹ
+                  ((g T.⊗ᵉ f) MC.∘ᴹ W.γ {A⁺} {B⁺} {B⁻} {C⁻}))
+              S.≈ᴹ MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺) (MC.mk Sᴳ kᴳ)
+  collapseᵀ = TC.trace-resp-≈ᴹ {A⁺ ⊎ C⁻} {A⁻ ⊎ C⁺} {B⁻ ⊎ B⁺} outer
