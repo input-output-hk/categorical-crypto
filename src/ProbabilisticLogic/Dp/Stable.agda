@@ -49,13 +49,6 @@ Stable-return p P = 1 , λ where
 Stable-bot : (P : A → ℚ) → Stable P (botₚ {A = A}) 0ℚ
 Stable-bot P = 0 , λ m _ → botₚ-cum m P
 
--- A junction on a divergence diverges: `botₚ >>=ₚ f` is not a `dirac`, but its
--- weights are, so the same two-term arithmetic settles it.
-bot-bind-cum : (n : ℕ) (f : A → Dₚ B) (P : B → ℚ) → cum n (botₚ >>=ₚ f) P ≡ 0ℚ
-bot-bind-cum zero    f P = refl
-bot-bind-cum (suc n) f P =
-  trans (node-dirac (cum n (botₚ >>=ₚ f) P) (cum n (botₚ >>=ₚ f) P)) (bot-bind-cum n f P)
-
 Stable-bot-bind : (f : A → Dₚ B) (P : B → ℚ) → Stable P (botₚ >>=ₚ f) 0ℚ
 Stable-bot-bind f P = 0 , λ m _ → bot-bind-cum m f P
 

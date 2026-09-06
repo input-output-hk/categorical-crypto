@@ -46,6 +46,11 @@ import CategoricalCrypto.Machines.Core as Core
 
 module CategoricalCrypto.UC.Machine where
 
+-- Re-exported from the module body, which is where `public` is allowed:
+-- `UC.QueryBound`'s `qbᵢ-wire` certificates for `a⇒ᴵ`/`a⇐ᴵ` name the two
+-- reassociators, as does `UC.Machine.Grading`.
+open import Data.Sum.Ext using (⊎assocˡ; ⊎assocʳ) public
+
 private
   module MC = Core (𝒱ₚ 0ℓ)
   module 𝒢 = Category (𝒢ₚ 0ℓ)
@@ -137,17 +142,6 @@ ApproximateObservationᴹ = I.approximate
 
 ------------------------------------------------------------------------
 -- The grading action, as data
-
--- Public: `UC.QueryBound`'s `qbᵢ-wire` certificates for `a⇒ᴵ`/`a⇐ᴵ` name them.
-⊎assocˡ : {P Q R : Set} → P ⊎ (Q ⊎ R) → (P ⊎ Q) ⊎ R
-⊎assocˡ (inj₁ p)        = inj₁ (inj₁ p)
-⊎assocˡ (inj₂ (inj₁ q)) = inj₁ (inj₂ q)
-⊎assocˡ (inj₂ (inj₂ r)) = inj₂ r
-
-⊎assocʳ : {P Q R : Set} → (P ⊎ Q) ⊎ R → P ⊎ (Q ⊎ R)
-⊎assocʳ (inj₁ (inj₁ p)) = inj₁ p
-⊎assocʳ (inj₁ (inj₂ q)) = inj₂ (inj₁ q)
-⊎assocʳ (inj₂ r)        = inj₂ (inj₂ r)
 
 -- An ancilla interface bypassing a process: the process's own messages go
 -- through it, the ancilla's are forwarded, and the state is the process's.
