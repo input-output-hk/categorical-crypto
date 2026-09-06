@@ -1,13 +1,14 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- The intended model: the UC layer over the machine layer, with `Iface`
--- objects.
+-- The intended model: the UC layer over the machine layer.
 --
--- `⟦_⟧ᴵ` is a bijection between `Iface` and `𝒢ₚ`'s objects, so presenting the
--- G construction with interfaces as its objects costs one reindexing record and
--- makes `_⊗ᴵ_` — the interface tensor layer 0 already defines — the grading
--- action.  Every object of this layer is an interface; no raw pair of sets, and
--- no `Channel`, appears anywhere.
+-- `⟦_⟧ᴵ` is a bijection between `Iface` and `𝒢ₚ`'s objects, with a definitional
+-- retraction `retᴵ`, so a hom of `𝒢ₚ` at any objects IS a `Proc` and either
+-- vocabulary reads the other with no coercion.  `𝒫ᴵ` — the reindexing at
+-- `Iface` objects — is kept for the statements written in that vocabulary
+-- (`UC.QueryBound`, `UC.Seam`, `Protocol.Machine`), but the GRADING is taken on
+-- 𝒢's own objects, where it is free; `gradingᴹ` below prices the difference.
+-- No `Channel` appears anywhere.
 --
 -- The verdict interface is TICKED (`Neg Ωᴵ = ⊤`).  A machine is reactive, so a
 -- closed composite at a verdict interface with an empty negative side could
@@ -15,11 +16,12 @@
 -- single activation, and the observation is then layer 1's own closed run at
 -- the one-ask strategy.
 --
--- The grading's DATA is direct: `T₁ᴵ` and `subᴵ` keep the plugged process's
--- state and only relabel the interface sum, so no coherence morphism and no
--- trace appears in them, and the two ancilla reassociators are stateless wires.
--- The laws are collected in `UC.Machine.Grading.GradingLawsᴹ` and priced
--- there, next to the assemblies (`Gradingᴹ`, `Budgetᴹ`) they buy.
+-- The relays `T₁ᴵ`/`subᴵ` and the two ancilla reassociators are kept as
+-- VOCABULARY: they are direct — the plugged process's state, the interface sum
+-- relabelled, no coherence morphism and no trace — which is what makes a query
+-- bound about them readable (`UC.QueryBound`).  They are no longer the
+-- grading's data; the grading is `gradingᴹ` below, derived on 𝒢's own objects,
+-- and `UC.Machine.Dictionary`'s zigzags are the bridge between the two.
 
 open import Categories.Category using (Category; _[_,_]; _[_≈_])
 
