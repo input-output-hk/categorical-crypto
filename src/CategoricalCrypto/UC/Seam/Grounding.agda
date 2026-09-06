@@ -67,19 +67,23 @@ EnvAsCtx : Set₁
 EnvAsCtx = (B : Iface) (d : Strat (Neg B) (Pos B)) → EnvCtx B d
 
 -- `EnvAsCtx → StratIsEnv` is then the one-line application of `≈ℰ-at` to those
--- four fields, and it is the one thing here that is BLOCKED rather than owed: it
--- does not come back inside 300 s at an 8 GiB heap, against 13 s for every
--- statement in this file.  Four spellings were measured and all four behave the
--- same — `∼-cast` inline; `≈ℰ-at` with both object implicits passed (`_⊛_` is
--- abstract here, so inference would have to invert `Y ⊛ B′ =?= anc ⊛ B`);
+-- four fields, and it is the one thing here that is BLOCKED rather than owed.
+-- Measured twice.  At 300 s and an 8 GiB heap, in four spellings — `∼-cast`
+-- inline; `≈ℰ-at` with both object implicits passed (`_⊛_` is abstract here, so
+-- inference would have to invert `Y ⊛ B′ =?= anc ⊛ B`);
 -- `Dp.Advantage.≈ₚ[]-resp` against an observation-level `plugs`, which mentions
 -- no machine equality at all; and the same with the three components as module
 -- parameters rather than record fields, the medicine `UC.QueryBound.Certified`
 -- takes.  So it is neither the transport, nor the bundling, nor the implicits:
 -- the conversion `⟦ strategyEnv B d ∘ u ⟧ ∼ … ⇝ Agreeˢ B u v` is free on its own
 -- (measured at a variable of that type), and what is left is the instance's own
--- unfolding under the application.  The cure is the `opaque` boundary or the
--- implicit-pinning that assembled `UC.Machine.Grading.Gradingᴹ`.
+-- unfolding under the application.  Re-measured at 2400 s with the object
+-- implicits passed: still nothing.  So this is NOT the cost class
+-- `UC.Machine.Cast.Tensor` closes — those conversions return in 400–450 s and
+-- an `opaque` boundary is measured there to be no cure — and the working
+-- hypothesis is the `_⊛_`-abstract η-expansion of `Observationᴹ` this header
+-- opens with.  Instantiating `G := UC.Machine.Setup.gradingᴹ` first, so that
+-- `_⊛_` is `_⊗ᴵ_` and no object meta survives, is the next thing to try.
 
 ------------------------------------------------------------------------
 -- The trivial grade
