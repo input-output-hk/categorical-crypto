@@ -74,23 +74,24 @@ wireᵖ = record { St = ⊤ ; init = tt ; step = λ _ q → call q λ r → ret 
 -- Composition
 ------------------------------------------------------------------------
 
+-- `graft`/`serve` are public: `Protocol.Machine.Compose` needs to name the
+-- grafted continuation a suspended composite holds.
 module _ (P₂ : Protocol B C) (P₁ : Protocol A B) where
-  private
-    mutual
-      -- Walk P₂'s tree; each of its calls runs one activation of P₁.
-      graft : Calls B (St P₂ × Pos C) → St P₁ → Calls A ((St P₂ × St P₁) × Pos C)
-      graft (ret (s₂ , c⁺)) s₁ = ret ((s₂ , s₁) , c⁺)
-      graft (call b k)      s₁ = serve k (step P₁ s₁ b)
-      graft (coin μ k)      s₁ = coin μ λ x → graft (k x) s₁
-      graft dead            s₁ = dead
+  mutual
+    -- Walk P₂'s tree; each of its calls runs one activation of P₁.
+    graft : Calls B (St P₂ × Pos C) → St P₁ → Calls A ((St P₂ × St P₁) × Pos C)
+    graft (ret (s₂ , c⁺)) s₁ = ret ((s₂ , s₁) , c⁺)
+    graft (call b k)      s₁ = serve k (step P₁ s₁ b)
+    graft (coin μ k)      s₁ = coin μ λ x → graft (k x) s₁
+    graft dead            s₁ = dead
 
-      -- Walk P₁'s answer tree, forwarding its own calls upward.
-      serve : (Pos B → Calls B (St P₂ × Pos C))
-            → Calls A (St P₁ × Pos B) → Calls A ((St P₂ × St P₁) × Pos C)
-      serve k (ret (s₁ , b⁺)) = graft (k b⁺) s₁
-      serve k (call a k₁)     = call a λ r → serve k (k₁ r)
-      serve k (coin μ k₁)     = coin μ λ x → serve k (k₁ x)
-      serve k dead            = dead
+    -- Walk P₁'s answer tree, forwarding its own calls upward.
+    serve : (Pos B → Calls B (St P₂ × Pos C))
+          → Calls A (St P₁ × Pos B) → Calls A ((St P₂ × St P₁) × Pos C)
+    serve k (ret (s₁ , b⁺)) = graft (k b⁺) s₁
+    serve k (call a k₁)     = call a λ r → serve k (k₁ r)
+    serve k (coin μ k₁)     = coin μ λ x → serve k (k₁ x)
+    serve k dead            = dead
 
   infixl 9 _∘ᵖ_
   _∘ᵖ_ : Protocol A C
