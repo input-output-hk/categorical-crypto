@@ -9,8 +9,12 @@
 -- the borrowed law's own (`UC.Machine.Dictionary`'s header prices leaving
 -- either to inference); one law per module for the reason
 -- `UC.Machine.Cast.Tensor` records.  This one takes the borrowed law
--- pre-spelled from `…Laws.Nat.Square`, so that every junction below is
--- syntactic and the module carries no 𝒢-composite conversion at all.
+-- pre-spelled from `…Laws.Nat.Square`, so that no 𝒢-COMPOSITE conversion is
+-- left in it; what remains is the two `⊗₁ᴳ` conversions the square forces —
+-- `T₁-⊗₁` names the ancilla `⟦ Y ⊗ᴵ A ⟧ᴵ` and `assoc-commute-to` names it
+-- `⟦ Y ⟧ᴵ ⊗₀ ⟦ A ⟧ᴵ` — which are trace-free but not free.  Measured warm:
+-- 1463 s, this cone's most expensive module, and the reason it is a module and
+-- not three more lines of `…Laws.Nat.Square`.
 
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)

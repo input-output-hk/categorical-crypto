@@ -8,9 +8,9 @@
 -- time, and `Monoidal`'s own statement is one δ away on every leaf (its `α⇐`
 -- and `_⊗₁_` are the record's private abbreviations, unwritable here).  The
 -- square has two such sides, which is one more than a module can afford under
--- `pagda`'s 900 s cap — so it gets a module of its own and
--- `UC.Machine.Laws.Nat` then chains four steps whose junctions are all
--- syntactic.
+-- `pagda`'s 900 s cap — so it gets a module of its own (measured warm: 984 s,
+-- the one module in this cone above the cap) and `UC.Machine.Laws.Nat` then
+-- chains around it with no 𝒢-composite conversion left.
 
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)

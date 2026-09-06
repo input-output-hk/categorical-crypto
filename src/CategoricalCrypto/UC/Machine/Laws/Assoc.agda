@@ -8,7 +8,9 @@
 -- and the law applies.  Every implicit is pinned, both this layer's objects and
 -- the borrowed law's own (`UC.Machine.Dictionary`'s header prices leaving
 -- either to inference); one law per module for the reason
--- `UC.Machine.Cast.Tensor` records.
+-- `UC.Machine.Cast.Tensor` records — a module affords one 𝒢-composite
+-- conversion, which is the junction against the borrowed law.  Measured warm:
+-- 423 s.
 
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)

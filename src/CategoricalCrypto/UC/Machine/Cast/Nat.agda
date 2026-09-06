@@ -1,8 +1,8 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- The casts at the two sides of the naturality square `assoc-commute-to`; see
--- `UC.Machine.Cast.Tensor` for why the factors are variable and why one shape
--- gets one module.
+-- `UC.Machine.Cast.Tensor` for why the factors are variable, why one shape gets
+-- one module, and what the cost is.  Measured warm: 822 s.
 
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)

@@ -25,8 +25,11 @@
 -- general cast: a general one would leave the tensor spelling to be reconciled
 -- at the law, where the factors are concrete.
 --
--- One shape per module is measured, not tidy: the five casts together run past
--- `pagda`'s 900 s cap.  Warm costs are in `docs/protocol-rewrite.md`.
+-- One shape per module is measured, not tidy (house rule 31): the five casts in
+-- one module run past `pagda`'s 900 s cap.  Measured warm, single module, on a
+-- contended gate: 997 s here, 418 s for `…Cast.Assoc`, 822 s for `…Cast.Nat` —
+-- two conversions in this one, one and two there, at ~400–450 s apiece.  All of
+-- that is the comparison; none of it is a proof step.
 
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)

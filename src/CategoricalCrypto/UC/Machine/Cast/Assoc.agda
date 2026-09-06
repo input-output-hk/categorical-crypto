@@ -1,8 +1,8 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- The cast at the shape `associator.isoʳ` is stated at; see
--- `UC.Machine.Cast.Tensor` for why the factors are variable and why one shape
--- gets one module.
+-- `UC.Machine.Cast.Tensor` for why the factors are variable, why one shape gets
+-- one module, and what the cost is.  Measured warm: 418 s.
 
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
