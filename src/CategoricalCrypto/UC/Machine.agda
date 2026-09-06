@@ -34,7 +34,7 @@ open import ProbabilisticLogic.Dp using (Dₚ; mapₚ; returnₚ)
 open import ProbabilisticLogic.Dp.Advantage
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Machines.Base using (𝒱ₚ; 𝒢ₚ)
+open import CategoricalCrypto.Machines.Base using (𝒱ₚ; 𝒢ₚ; 𝒢ₚᴹ)
 open import CategoricalCrypto.Protocol.Machine using (⟦_⟧ᴵ; runᴹ)
 open import CategoricalCrypto.Strategy using (ask; out)
 open import CategoricalCrypto.UC.Approximate
@@ -43,6 +43,7 @@ open import CategoricalCrypto.UC.Core using (Grading; Observation; UCBase)
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
 
 import CategoricalCrypto.Machines.Core as Core
+import CategoricalCrypto.UC.Core.Standard as Std
 
 module CategoricalCrypto.UC.Machine where
 
@@ -128,13 +129,16 @@ Approximationᴹ = record
   ; ≈[]-mono  = ≈ₚ[]-mono
   }
 
+-- The observation is homed on `𝒢ₚ`, not on `𝒫ᴵ`, because that is where the
+-- grading is: `Proc unitᴵ Ωᴵ` IS `𝒢ₚ [ ⟦ unitᴵ ⟧ᴵ , ⟦ Ωᴵ ⟧ᴵ ]`, so `⟦_⟧ᴼ` and
+-- its congruence apply verbatim and only the index moves.
 private
-  module I = Induced 𝒫ᴵ Approximationᴹ unitᴵ Ωᴵ ⟦_⟧ᴼ
+  module I = Induced (𝒢ₚ 0ℓ) Approximationᴹ ⟦ unitᴵ ⟧ᴵ ⟦ Ωᴵ ⟧ᴵ ⟦_⟧ᴼ
                      (λ eq → ≈ₚ⇒≈ₚ[0] (runᴹ-resp-≈ᴹ {Ωᴵ} eq (ask tt out)))
 
 -- The qualitative observation, as the core wants it: two closed runs agree when
 -- no positive slack separates their verdict masses.
-Observationᴹ : Observation 𝒫ᴵ 0ℓ 0ℓ
+Observationᴹ : Observation (𝒢ₚ 0ℓ) 0ℓ 0ℓ
 Observationᴹ = I.observation
 
 ApproximateObservationᴹ : ApproximateObservation Observationᴹ ℚ-errors 0ℓ
@@ -196,5 +200,30 @@ a⇒ᴵ = wireᴹ ⊎assocˡ ⊎assocʳ
 a⇐ᴵ : {X Y A : Iface} → Proc ((X ⊗ᴵ Y) ⊗ᴵ A) (X ⊗ᴵ (Y ⊗ᴵ A))
 a⇐ᴵ = wireᴹ ⊎assocʳ ⊎assocˡ
 
-UCBaseᴹ : Grading 𝒫ᴵ → UCBase (suc 0ℓ) (suc 0ℓ) (suc 0ℓ) 0ℓ 0ℓ
-UCBaseᴹ G = record { 𝒞 = 𝒫ᴵ ; grading = G ; observation = Observationᴹ }
+------------------------------------------------------------------------
+-- The grading, and the UC base it buys
+
+-- The grading is the one a monoidal category carries for free
+-- (`UC.Core.Standard.gradingᵗ`), read at `𝒢ₚᴹ` — and it is read on 𝒢's OWN
+-- objects rather than on `Iface`.  That is measured, not chosen.  `gradingᵗ`
+-- PLUGS each `Monoidal` law into a `Grading` field whose type is derived from
+-- it, and never writes such a type out; the whole eight-law record costs
+-- 363 ms.  Writing any one of those types out instead costs ~470 s at this
+-- instance, because a `Monoidal` law is stated with the record's own private
+-- `_⊗₀_`/`_⊗₁_` abbreviations, which no consumer can name, so the mismatch is
+-- settled by reducing both sides through the ⊕-trace.  Re-presenting the same
+-- record on `Iface` objects is the same wall (measured >1500 s), which is why
+-- `Iface` stays VOCABULARY — `⟦_⟧ᴵ`, `retᴵ` and the relays below — and is not
+-- the grading's object type.  `docs/protocol-rewrite.md` carries the table.
+gradingᴹ : Grading (𝒢ₚ 0ℓ)
+gradingᴹ = Std.gradingᵗ (𝒢ₚᴹ 0ℓ)
+
+ucBaseᴹ : UCBase (suc 0ℓ) (suc 0ℓ) (suc 0ℓ) 0ℓ 0ℓ
+ucBaseᴹ = record { 𝒞 = 𝒢ₚ 0ℓ ; grading = gradingᴹ ; observation = Observationᴹ }
+
+-- `⟦_⟧ᴵ`'s retraction: `Iface` and `𝒢ₚ`'s objects are both eta records, so this
+-- is a definitional inverse and a hom of `𝒢ₚ` at any objects is a `Proc`.  It is
+-- what lets a statement written in the `Iface` vocabulary be read at the
+-- grading's objects without a coercion.
+retᴵ : Category.Obj (𝒢ₚ 0ℓ) → Iface
+retᴵ X = proj₁ X ⇿ proj₂ X

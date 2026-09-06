@@ -23,21 +23,27 @@
 -- only names what the instance still owes.
 
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Protocol.Machine using (⟦_⟧ᴵ)
 open import CategoricalCrypto.Strategy using (Strat)
-open import CategoricalCrypto.UC.Core using (Grading)
-open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; UCBaseᴹ)
+open import CategoricalCrypto.UC.Machine using (Proc; ucBaseᴹ)
 open import CategoricalCrypto.UC.Seam using (Agreeˢ; strategyEnv)
 
 import CategoricalCrypto.UC.Emulation as Em
 
-module CategoricalCrypto.UC.Seam.Grounding (G : Grading 𝒫ᴵ) where
+-- The grading is no longer a parameter: `UC.Machine.gradingᴹ` is the only one
+-- there is, so the metatheory is opened at `ucBaseᴹ` outright.  Its objects are
+-- 𝒢's, and every statement below is read at `⟦_⟧ᴵ`-images of the interfaces it
+-- quantifies over; `⟦ A ⊗ᴵ B ⟧ᴵ` IS the grading's action there, definitionally,
+-- so the readings are unchanged.
+module CategoricalCrypto.UC.Seam.Grounding where
 
-private module E = Em (UCBaseᴹ G)
+private module E = Em ucBaseᴹ
 
 open E using (_∘_; _≈_; _⊛_; sub; T₁; Test; Closure; _≈ℰ_; _≤UC_)
 
 StratIsEnv : Set₁
-StratIsEnv = (B : Iface) (u v : Proc unitᴵ B) → u ≈ℰ v → Agreeˢ B u v
+StratIsEnv = (B : Iface) (u v : Proc unitᴵ B)
+           → _≈ℰ_ {⟦ unitᴵ ⟧ᴵ} {⟦ B ⟧ᴵ} u v → Agreeˢ B u v
 
 -- What `StratIsEnv` reduces to: an embedded strategy PRESENTED as one of the
 -- ancilla contexts `_≈ℰ_` quantifies over.  Its four fields are exactly
@@ -48,9 +54,10 @@ StratIsEnv = (B : Iface) (u v : Proc unitᴵ B) → u ≈ℰ v → Agreeˢ B u v
 record EnvCtx (B : Iface) (d : Strat (Neg B) (Pos B)) : Set₁ where
   field
     anc   : Iface
-    test  : Test (anc ⊛ B)
-    close : Closure (anc ⊛ unitᴵ)
-    plugs : (w : Proc unitᴵ B) → ((test ∘ T₁ anc w) ∘ close) ≈ (strategyEnv B d ∘ w)
+    test  : Test ⟦ anc ⊗ᴵ B ⟧ᴵ
+    close : Closure ⟦ anc ⊗ᴵ unitᴵ ⟧ᴵ
+    plugs : (w : Proc unitᴵ B)
+          → ((test ∘ T₁ ⟦ anc ⟧ᴵ w) ∘ close) ≈ (strategyEnv B d ∘ w)
 
 -- Stated and priced at ~80–120 LOC, which is where `StratIsEnv` itself stood: the
 -- reduction moves the plumbing out of the obligation, not the content.  At the
@@ -78,12 +85,12 @@ EnvAsCtx = (B : Iface) (d : Strat (Neg B) (Pos B)) → EnvCtx B d
 -- the conversion `⟦ strategyEnv B d ∘ u ⟧ ∼ … ⇝ Agreeˢ B u v` is free on its own
 -- (measured at a variable of that type), and what is left is the instance's own
 -- unfolding under the application.  Re-measured at 2400 s with the object
--- implicits passed: still nothing.  So this is NOT the cost class
--- `UC.Machine.Cast.Tensor` closes — those conversions return in 400–450 s and
--- an `opaque` boundary is measured there to be no cure — and the working
--- hypothesis is the `_⊛_`-abstract η-expansion of `Observationᴹ` this header
--- opens with.  Instantiating `G := UC.Machine.Setup.gradingᴹ` first, so that
--- `_⊛_` is `_⊗ᴵ_` and no object meta survives, is the next thing to try.
+-- implicits passed: still nothing.  So this is NOT the conversion class the
+-- retired `Cast`/`Laws` cone paid — those returned in 400–500 s apiece — and
+-- the working hypothesis is the η-expansion of `Observationᴹ` this header opens
+-- with.  The grading is now concrete here (`ucBaseᴹ`, so `_⊛_` is 𝒢's own
+-- tensor and no object meta survives), which is the next thing to re-measure
+-- against.
 
 ------------------------------------------------------------------------
 -- The trivial grade
@@ -94,7 +101,7 @@ EnvAsCtx = (B : Iface) (d : Strat (Neg B) (Pos B)) → EnvCtx B d
 -- module PARAMETERS rather than fields of a record bundling them, which is the
 -- medicine `UC.QueryBound.Certified` takes for the same cliff: a use site
 -- supplies them where the conversion is a plain application.
-module TrivialGrade (𝟘 : Iface) (ι : (B : Iface) → Proc B (𝟘 ⊛ B)) where
+module TrivialGrade (𝟘 : Iface) (ι : (B : Iface) → Proc B (𝟘 ⊗ᴵ B)) where
 
   -- A simulator on the trivial grade is invisible: its interface never fires,
   -- so no environment reads it.  Priced at ~60–90 LOC (the dead summand by
@@ -102,14 +109,16 @@ module TrivialGrade (𝟘 : Iface) (ι : (B : Iface) → Proc B (𝟘 ⊛ B)) wh
   -- equation between `𝒫ᴵ`-composites.
   SubBlind : Set₁
   SubBlind = (B : Iface) (s : Proc 𝟘 𝟘) (v : Proc unitᴵ B)
-           → (sub {𝟘} {𝟘} {B} s ∘ (ι B ∘ v)) ≈ℰ (ι B ∘ v)
+           → _≈ℰ_ {⟦ unitᴵ ⟧ᴵ} {⟦ 𝟘 ⊗ᴵ B ⟧ᴵ}
+               (sub {⟦ 𝟘 ⟧ᴵ} {⟦ 𝟘 ⟧ᴵ} {⟦ B ⟧ᴵ} s ∘ (ι B ∘ v)) (ι B ∘ v)
 
   -- …and so is the wire itself, in the direction `grade-stable` does not give:
   -- the ancilla quantifier at `W ⊛ (𝟘 ⊛ B)` reaches every context at `W ⊛ B`,
   -- `𝟘` contributing nothing.  Same price and same gate.
   IotaBlind : Set₁
   IotaBlind = (B : Iface) (u v : Proc unitᴵ B)
-            → (ι B ∘ u) ≈ℰ (ι B ∘ v) → u ≈ℰ v
+            → _≈ℰ_ {⟦ unitᴵ ⟧ᴵ} {⟦ 𝟘 ⊗ᴵ B ⟧ᴵ} (ι B ∘ u) (ι B ∘ v)
+            → _≈ℰ_ {⟦ unitᴵ ⟧ᴵ} {⟦ B ⟧ᴵ} u v
 
   -- The unit-grade specialization: at the trivial grade an emulation IS the
   -- direct agreement `pov-carry` consumes.  The reduction is PROVED, generically
@@ -119,4 +128,5 @@ module TrivialGrade (𝟘 : Iface) (ι : (B : Iface) → Proc B (𝟘 ⊛ B)) wh
   -- of them is what the header measures at a 3 GiB heap.
   UnitGrade : Set₁
   UnitGrade = (B : Iface) (u v : Proc unitᴵ B)
-            → _≤UC_ {unitᴵ} {B} {𝟘} {𝟘} (ι B ∘ u) (ι B ∘ v) → Agreeˢ B u v
+            → _≤UC_ {⟦ unitᴵ ⟧ᴵ} {⟦ B ⟧ᴵ} {⟦ 𝟘 ⟧ᴵ} {⟦ 𝟘 ⟧ᴵ} (ι B ∘ u) (ι B ∘ v)
+            → Agreeˢ B u v
