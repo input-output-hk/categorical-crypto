@@ -15,6 +15,10 @@
 --   `Model.Setup`        `StdUC` at the two, hence the whole metatheory
 --   `Model.Pin`          the metatheory's application sites, priced
 --   `Model.Reading`      `_≈ᵁ_` is the ∀-ancilla/test/closure experiment
+--   `Model.Unit`         why the choice of empty object for the closures is
+--                        immaterial: the metatheory never sees it
+--   `Model.Bridge`       the hand-rolled qualitative core (`UC.Core` and below)
+--                        identified with this metatheory, both directions
 --
 -- The model obligations the proposal lists are then: the monoidal structure
 -- (`Machines.G`, a theorem on this branch), the presheaf (`Model.Environment`)
@@ -24,9 +28,11 @@
 
 module CategoricalCrypto.UC.Model where
 
+import CategoricalCrypto.UC.Model.Bridge
 import CategoricalCrypto.UC.Model.Environment
 import CategoricalCrypto.UC.Model.Observation
 import CategoricalCrypto.UC.Model.Pin
 import CategoricalCrypto.UC.Model.Reading
 import CategoricalCrypto.UC.Model.Seal
 import CategoricalCrypto.UC.Model.Setup
+import CategoricalCrypto.UC.Model.Unit
