@@ -57,6 +57,16 @@ id = TotalFunctionMachine' ⇒-solver ⇒-solver
 modifyStepRel : ∀ {A B C D} → (∀ {m} → C ⊗₀ D ᵀ [ m ]⇒[ m ] A ⊗₀ B ᵀ) → Machine A B → Machine C D
 modifyStepRel p (MkMachine stepRel) = MkMachine $ \s m m' s' → stepRel s (app {mᵢ = In} p m) (app {mₒ = Out} p <$> m') s'
 
+-- The channel reshuffles inside `_⊗₁_`, `_∘_`, `_∣ˡ`, `_∣^ˡ`, `_∘ᴷ_` and `_⊗ᴷ_`
+-- are NAMED (`⊗σ`, `∘σ`, …) and the builders below are defined in terms of the
+-- names.  Nothing changes definitionally, since each name is exactly the
+-- `⇒-solver` term that used to sit inline; what it buys is that proofs about
+-- the builders (`Machine.Reindex`, `Machine.Monoidal`) can refer to the
+-- reshuffles without re-running the solver and relying on its determinism.
+
+⊗σ : ∀ {A B C D m} → (A ⊗₀ C) ⊗₀ (B ⊗₀ D) ᵀ [ m ]⇒[ m ] (A ⊗₀ B ᵀ) ⊗₀ ((C ⊗₀ D ᵀ) ᵀ) ᵀ
+⊗σ = ⇒-solver
+
 module Tensor {A B C D} (M₁ : Machine A B) (M₂ : Machine C D) where
   open Machine M₁ renaming (State to State₁; stepRel to stepRel₁; machine-channel to machine-channel₁)
   open Machine M₂ renaming (State to State₂; stepRel to stepRel₂; machine-channel to machine-channel₂)
@@ -70,7 +80,7 @@ module Tensor {A B C D} (M₁ : Machine A B) (M₂ : Machine C D) where
 
   infixr 9 _⊗₁_
   _⊗₁_ : Machine (A ⊗₀ C) (B ⊗₀ D)
-  _⊗₁_ = modifyStepRel ⇒-solver machine-inter
+  _⊗₁_ = modifyStepRel ⊗σ machine-inter
     where
       machine-inter : Machine (A ⊗₀ B ᵀ) ((C ⊗₀ D ᵀ) ᵀ)
       machine-inter = MkMachine CompRel
@@ -83,14 +93,20 @@ C ⊗ˡ M = id ⊗₁ M
 _⊗ʳ_ : ∀ {A B} → Machine A B → (C : Channel) → Machine (A ⊗₀ C) (B ⊗₀ C)
 M ⊗ʳ C = M ⊗₁ id
 
+∣ˡσ : ∀ {A B C m} → A ⊗₀ C ᵀ [ m ]⇒[ m ] (A ⊗₀ B) ⊗₀ C ᵀ
+∣ˡσ = ⇒-solver
+
 _∣ˡ : ∀ {A B C} → Machine (A ⊗₀ B) C → Machine A C
-_∣ˡ = modifyStepRel ⇒-solver
+_∣ˡ {B = B} = modifyStepRel (∣ˡσ {B = B})
 
 _∣ʳ : ∀ {A B C} → Machine (A ⊗₀ B) C → Machine B C
 _∣ʳ = modifyStepRel ⇒-solver
 
+∣^ˡσ : ∀ {A B C m} → A ⊗₀ B ᵀ [ m ]⇒[ m ] A ⊗₀ (B ⊗₀ C) ᵀ
+∣^ˡσ = ⇒-solver
+
 _∣^ˡ : ∀ {A B C} → Machine A (B ⊗₀ C) → Machine A B
-_∣^ˡ = modifyStepRel ⇒-solver
+_∣^ˡ {C = C} = modifyStepRel (∣^ˡσ {C = C})
   
 _∣^ʳ : ∀ {A B C} → Machine A (B ⊗₀ C) → Machine A C
 _∣^ʳ = modifyStepRel ⇒-solver
@@ -120,10 +136,13 @@ module _ {A B C} (M : Machine (A ⊗₀ C) (B ⊗₀ C)) (let open Machine M) wh
   tr : Machine A B
   tr = MkMachine TraceRel ∣ˡ ∣^ˡ
 
+∘σ : ∀ {A B C m} → (A ⊗₀ B) ⊗₀ (C ⊗₀ B) ᵀ [ m ]⇒[ m ] (A ⊗₀ B) ⊗₀ (B ⊗₀ C) ᵀ
+∘σ = ⇒-solver
+
 infixr 9 _∘_
 
 _∘_ : ∀ {B C A} → Machine B C → Machine A B → Machine A C
-_∘_ {B} M₁ M₂ = tr {C = B} $ modifyStepRel ⇒-solver (M₂ ⊗₁ M₁)
+_∘_ {B} M₁ M₂ = tr {C = B} $ modifyStepRel ∘σ (M₂ ⊗₁ M₁)
 
 ⊗-assoc : ∀ {A B C} → Machine ((A ⊗₀ B) ⊗₀ C) (A ⊗₀ (B ⊗₀ C))
 ⊗-assoc = TotalFunctionMachine' ⇒-solver ⇒-solver
@@ -133,6 +152,37 @@ _∘_ {B} M₁ M₂ = tr {C = B} $ modifyStepRel ⇒-solver (M₂ ⊗₁ M₁)
 
 ⊗-symₘ : ∀ {A B} → Machine (A ⊗₀ B) (B ⊗₀ A)
 ⊗-symₘ = TotalFunctionMachine' ⇒-solver ⇒-solver
+
+-- The unitors.
+ρ⇒ : ∀ {A} → Machine (A ⊗₀ I) A
+ρ⇒ = TotalFunctionMachine' ⊗-right-neutral ⊗-right-intro
+
+ρ⇐ : ∀ {A} → Machine A (A ⊗₀ I)
+ρ⇐ = TotalFunctionMachine' ⊗-right-intro ⊗-right-neutral
+
+λ⇒ : ∀ {A} → Machine (I ⊗₀ A) A
+λ⇒ = TotalFunctionMachine' ⊗-left-neutral ⊗-left-intro
+
+-- The middle-four interchange on channels, and the reassociator of `_∘ᴷ_`
+-- (see `Machine.Monoidal`).  Both halves of each are named, for the reason
+-- given at `⊗σ`.
+mid4σᵢ : ∀ {P Q R S} → ((P ⊗₀ Q) ⊗₀ (R ⊗₀ S)) [ In ]⇒[ In ] ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S))
+mid4σᵢ = ⇒-solver
+
+mid4σₒ : ∀ {P Q R S} → ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S)) [ Out ]⇒[ Out ] ((P ⊗₀ Q) ⊗₀ (R ⊗₀ S))
+mid4σₒ = ⇒-solver
+
+mid4 : ∀ {P Q R S} → Machine ((P ⊗₀ Q) ⊗₀ (R ⊗₀ S)) ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S))
+mid4 = TotalFunctionMachine' mid4σᵢ mid4σₒ
+
+absorb-regroupσᵢ : ∀ {X Y Z W} → ((X ⊗₀ Y) ⊗₀ (W ⊗₀ Z)) [ In ]⇒[ In ] (X ⊗₀ (W ⊗₀ (Z ⊗₀ Y)))
+absorb-regroupσᵢ = ⇒-solver
+
+absorb-regroupσₒ : ∀ {X Y Z W} → (X ⊗₀ (W ⊗₀ (Z ⊗₀ Y))) [ Out ]⇒[ Out ] ((X ⊗₀ Y) ⊗₀ (W ⊗₀ Z))
+absorb-regroupσₒ = ⇒-solver
+
+absorb-regroup : ∀ {X Y Z W} → Machine ((X ⊗₀ Y) ⊗₀ (W ⊗₀ Z)) (X ⊗₀ (W ⊗₀ (Z ⊗₀ Y)))
+absorb-regroup = TotalFunctionMachine' absorb-regroupσᵢ absorb-regroupσₒ
 
 idᴷ : ∀ {A} → Machine A (A ⊗₀ I)
 idᴷ = liftᴷ id
@@ -151,12 +201,31 @@ transpose = modifyStepRel ⇒-solver
 ⨂₁ {suc n} M = M fzero ⊗₁ ⨂₁ (M P.∘ fsuc)
 
 
+-- The shuffles inside the Kleisli composition and tensor.
+∘ᴷ-fwdᵢ : ∀ {C E₁ E₂} → ((C ⊗₀ E₂) ⊗₀ E₁) [ In ]⇒[ In ] (C ⊗₀ (E₁ ⊗₀ E₂))
+∘ᴷ-fwdᵢ = ⇒-solver
+
+∘ᴷ-fwdₒ : ∀ {C E₁ E₂} → (C ⊗₀ (E₁ ⊗₀ E₂)) [ Out ]⇒[ Out ] ((C ⊗₀ E₂) ⊗₀ E₁)
+∘ᴷ-fwdₒ = ⇒-solver
+
+∘ᴷ-fwd : ∀ {C E₁ E₂} → Machine ((C ⊗₀ E₂) ⊗₀ E₁) (C ⊗₀ (E₁ ⊗₀ E₂))
+∘ᴷ-fwd = TotalFunctionMachine' ∘ᴷ-fwdᵢ ∘ᴷ-fwdₒ
+
+⊗ᴷ-fwdᵢ : ∀ {B₁ E₁ B₂ E₂} → ((B₁ ⊗₀ E₁) ⊗₀ (B₂ ⊗₀ E₂)) [ In ]⇒[ In ] ((B₁ ⊗₀ B₂) ⊗₀ (E₁ ⊗₀ E₂))
+⊗ᴷ-fwdᵢ = ⇒-solver
+
+⊗ᴷ-fwdₒ : ∀ {B₁ E₁ B₂ E₂} → ((B₁ ⊗₀ B₂) ⊗₀ (E₁ ⊗₀ E₂)) [ Out ]⇒[ Out ] ((B₁ ⊗₀ E₁) ⊗₀ (B₂ ⊗₀ E₂))
+⊗ᴷ-fwdₒ = ⇒-solver
+
+⊗ᴷ-fwd : ∀ {B₁ E₁ B₂ E₂} → Machine ((B₁ ⊗₀ E₁) ⊗₀ (B₂ ⊗₀ E₂)) ((B₁ ⊗₀ B₂) ⊗₀ (E₁ ⊗₀ E₂))
+⊗ᴷ-fwd = TotalFunctionMachine' ⊗ᴷ-fwdᵢ ⊗ᴷ-fwdₒ
+
 infixr 9 _∘ᴷ_
 _∘ᴷ_ : ∀ {A B C E₁ E₂} → Machine B (C ⊗₀ E₂) → Machine A (B ⊗₀ E₁) → Machine A (C ⊗₀ (E₁ ⊗₀ E₂))
-_∘ᴷ_ {E₁ = E₁} M₂ M₁ = TotalFunctionMachine' ⇒-solver ⇒-solver ∘ (M₂ ⊗ʳ E₁ ∘ M₁)
+_∘ᴷ_ {E₁ = E₁} M₂ M₁ = ∘ᴷ-fwd ∘ (M₂ ⊗ʳ E₁ ∘ M₁)
 
 _⊗ᴷ_ : ∀ {A₁ B₁ E₁ A₂ B₂ E₂} → Machine A₁ (B₁ ⊗₀ E₁) → Machine A₂ (B₂ ⊗₀ E₂) → Machine (A₁ ⊗₀ A₂) ((B₁ ⊗₀ B₂) ⊗₀ (E₁ ⊗₀ E₂))
-M₁ ⊗ᴷ M₂ = TotalFunctionMachine' ⇒-solver ⇒-solver ∘ M₁ ⊗₁ M₂
+M₁ ⊗ᴷ M₂ = ⊗ᴷ-fwd ∘ M₁ ⊗₁ M₂
 
 ⨂ᴷ : ∀ {n} → {A B E : Fin n → Channel} → ((k : Fin n) → Machine (A k) (B k ⊗₀ E k)) → Machine (⨂ A) (⨂ B ⊗₀ ⨂ E)
 ⨂ᴷ {zero} M = idᴷ
