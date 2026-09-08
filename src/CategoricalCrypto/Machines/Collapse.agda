@@ -10,13 +10,16 @@
 -- routing that factor's emission out or around the loop.  Any consumer that has
 -- to read a `𝒢ₚ`-composite's step off starts here.
 --
--- Everything here stays inside `ℳₚ` and measures 14 s warm.  `collapseᵀ` is
+-- Everything here stays inside `ℳₚ` and measures 16 s warm.  `collapseᵀ` is
 -- stated as a trace rather than as `𝒢ₚ`'s `_∘_` on purpose: a consumer's goal
 -- names `_∘_` already, so leaving the projection out of the G-construction
 -- record to the consumer costs ONE such projection, while a lemma stated with
 -- `_∘_` costs the consumer a second one — measured at 269 s against 704 s
 -- (`Protocol.Machine.Compose`) and 282 s against 507 s (`UC.Seam.Adequacy.
 -- Wiring`).
+-- Composition congruence sits against the same conversion boundary and is
+-- isolated in `Collapse.Congruence` (94 s), so it is paid only by clients that
+-- transport a composite equality.
 
 open import Categories.Category.Monoidal.Bundle
 import Categories.Category.Cocartesian.Ext as CE
@@ -45,20 +48,19 @@ import CategoricalCrypto.Machines.Trace.Congruence as TraceCong
 
 module CategoricalCrypto.Machines.Collapse where
 
-private
-  module MC  = Core (𝒱ₚ 0ℓ)
-  module MT  = Trace (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
-  module S   = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
-  module TC  = TraceCong (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
+module MC  = Core (𝒱ₚ 0ℓ)
+module MT  = Trace (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
+module S   = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
+module TC  = TraceCong (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
 
-  module Cat = MCat (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
-  module T   = Tensor (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ)
-  module V   = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
-  module ℳ   = SymmetricMonoidalCategory (ℳₚ 0ℓ)
-  module W   = GT ℳ.U ℳ.monoidal (Tracedₚ 0ℓ)
-  module D   = MD.MonoidalDistributive (distₚ 0ℓ)
-  module K   = KD (Dₚ-DiscreteMonad {0ℓ})
-  module CK  = CE V.U D.cocartesian
+module Cat = MCat (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
+module T   = Tensor (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ)
+module V   = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
+module ℳ   = SymmetricMonoidalCategory (ℳₚ 0ℓ)
+module W   = GT ℳ.U ℳ.monoidal (Tracedₚ 0ℓ)
+module D   = MD.MonoidalDistributive (distₚ 0ℓ)
+module K   = KD (Dₚ-DiscreteMonad {0ℓ})
+module CK  = CE V.U D.cocartesian
 
 private
   variable P Q X Y Z X′ Y′ : Set

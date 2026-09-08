@@ -45,16 +45,19 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import ProbabilisticLogic.Dp
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Machines.Base using (𝒱ₚ)
+open import CategoricalCrypto.Machines.Base using (𝒱ₚ; 𝒫ₚ)
 open import CategoricalCrypto.UC.Machine
   using (Proc; 𝒫ᴵ; T₁ᴵ; subᴵ; a⇒ᴵ; a⇐ᴵ; wireStep; ⊤ᵛ)
 
 import CategoricalCrypto.Machines.Core as Core
+import CategoricalCrypto.Machines.Collapse as Col
+import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.UC.QueryBound where
 
 private
   module MC = Core (𝒱ₚ 0ℓ)
+  module S = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
   module 𝒫 = Category 𝒫ᴵ
 
   variable A′ B′ C′ : Set
@@ -223,16 +226,18 @@ Certified c M = QBᵢ (MC.St M) (MC.point (MC.state M) tt) (MC.step M) c
 -- other's states outside its image, and none can be pulled back for want of a
 -- right inverse.  The hom-level predicate is therefore the `≈`-closure, which
 -- makes `qb-resp-≈` hold by construction and identifies nothing a test can tell
--- apart (`UC.Machine.Run.runᴹ-resp-≈ᴹ`).
+-- apart (`UC.Machine.Run.runᴹ-resp-≈ᴹ`).  Store that underlying machine
+-- equality directly: projecting the definitionally identical relation from
+-- `𝒫ᴵ` forces the whole G-construction record at composite witnesses.
 QB : {A B : Iface} → ℕ → Proc A B → Set₁
-QB {A} {B} c M = Σ[ N ∈ Proc A B ] Certified c N × 𝒫ᴵ [ N ≈ M ]
+QB {A} {B} c M = Σ[ N ∈ Proc A B ] Certified c N × (N S.≈ᴹ M)
 
 certified⇒QB : {A B : Iface} {c : ℕ} {M : Proc A B} → Certified c M → QB c M
-certified⇒QB {M = M} q = M , q , 𝒫.Equiv.refl
+certified⇒QB {M = M} q = M , q , S.reflᴹ
 
 qb-resp-≈ : {A B : Iface} {c : ℕ} {M N : Proc A B}
-          → 𝒫ᴵ [ M ≈ N ] → QB c M → QB c N
-qb-resp-≈ e (P , q , e′) = P , q , 𝒫.Equiv.trans e′ e
+          → M S.≈ᴹ N → QB c M → QB c N
+qb-resp-≈ e (P , q , e′) = P , q , e′ S.○ᴹ e
 
 qb-mono : {A B : Iface} {c c′ : ℕ} {M : Proc A B} → c ℕ.≤ c′ → QB c M → QB c′ M
 qb-mono le (N , q , e) = N , qbᵢ-mono _ _ _ le q , e
@@ -472,9 +477,11 @@ record BudgetLawsᴹ : Set₁ where
   field
     qb-id  : {A : Iface} → QB 1 (𝒫.id {A})
     qb-∘   : {A B C : Iface} {c c′ : ℕ} {g : Proc B C} {f : Proc A B}
-           → QB c g → QB c′ f → QB (c ℕ.* c′) (g 𝒫.∘ f)
+           → QB c g → QB c′ f
+           → QB (c ℕ.* c′)
+               (Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
+                 (Col.W.α Col.MC.∘ᴹ ((g Col.T.⊗ᵉ f) Col.MC.∘ᴹ Col.W.γ)))
     qb-T₁  : {Y A B : Iface} {c : ℕ} {f : Proc A B}
            → QB c f → QB (c ℕ.⊔ 1) (T₁ᴵ Y f)
     qb-sub : {X Y A : Iface} {c : ℕ} {s : Proc X Y}
            → QB c s → QB (c ℕ.⊔ 1) (subᴵ s {A})
-

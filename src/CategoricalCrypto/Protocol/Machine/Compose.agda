@@ -23,10 +23,10 @@
 -- `(wait , idle)` — the outer factor suspended mid-loop — never surfaces:
 -- `traceᴹ` solves the loop inside one step.
 --
--- Measured cost: 269 s warm, of which everything but `morphism-∘` is 11 s — the
--- rest is projecting `_∘_` out of `𝒢ₚ`'s G-construction record, which is what
--- stating anything about `𝒢ₚ`'s composition costs (`Machines.Collapse`'s header
--- prices the two ways of paying it).
+-- The theorem names the G-composition before it is packed into `𝒢ₚ`'s Category
+-- record.  This is definitionally the same operation but avoids projecting
+-- `_∘_` through the assembled G-construction.  Measured warm cost: 11 s, down
+-- from 269 s.
 
 open import Categories.Category.Monoidal.Bundle
 import Categories.Category.Kleisli.Discrete as KD
@@ -299,7 +299,12 @@ module _ {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B) where
 ------------------------------------------------------------------------
 -- Functoriality
 
-morphism-∘ : Morphism-∘
+morphism-∘ : {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B)
+           → morphism (P₂ ∘ᵖ P₁) S.≈ᴹ
+             Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
+               (Col.W.α {Neg A} {Pos B} {Neg B} {Pos C} Col.MC.∘ᴹ
+                 ((morphism P₂ Col.T.⊗ᵉ morphism P₁) Col.MC.∘ᴹ
+                   Col.W.γ {Pos A} {Pos B} {Neg B} {Neg C}))
 morphism-∘ {A} {B} {C} P₂ P₁ =
        S.⟺ᴹ (S.≲⇒≈ᴹ (π-sim P₂ P₁))
   S.○ᴹ S.≲⇒≈ᴹ (ι-sim P₂ P₁)

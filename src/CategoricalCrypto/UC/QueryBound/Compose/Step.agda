@@ -20,22 +20,11 @@
 -- and `g` the external `Neg C` and the loop's `Pos B`; `α` sends `f`'s `Neg A`
 -- and `g`'s `Pos C` out of the composite and the other two back onto the loop.
 --
--- MEASURED WARM COST 721 s, over this module's budget, and the profile says a
--- split cannot fix it: `qbᵢ-∘` is 483 s, `Bd≈` 164 s and its `inner` 90 s — 96%
--- of the total in three terms — while the whole `Pt` layer and both wire
--- collapses come to 3 s.  All three are conversion rather than elaboration:
--- each compares two spellings of one `Machine` at an interface sum, which is
--- the `Proc` inversion `UC.QueryBound`'s header measures at ~1 GiB apiece.
--- Splitting the cheap generic half out would leave 96% of the cost where it is.
---
--- `qbᵢ-∘`'s share is ONE conversion, priced on its own at 421 s by
--- `docs/querybound-composite-conversion-probe.agda`: `𝒫._∘_ g f` against the
--- traced composite below.  So it is not a sum to
--- be whittled down, and sealing the local composites does not reach it —
--- `α⁰`/`γ⁰` behind `opaque`, with `α-pt`/`γ-pt`/`α-pure`/`γ-pure` in an
--- `unfolding` block, measured 893 s against a 780 s same-session baseline, with
--- the three terms' proportions unchanged.  The eta descent is through the base
--- instance under `𝒢ₚ`, not through anything this module defines.
+-- The certificate now uses `Collapse.kᴳ` directly and reuses `collapseᵀ` rather
+-- than rebuilding the wire collapse as `Bd≈`.  The target names the same raw
+-- G-composition before it is packed into the Category record; congruence is
+-- isolated in `Collapse.Congruence`.  Measured cost: 12 s with dependencies
+-- cached, or 96 s including that congruence rebuild, down from 721 s.
 
 open import Categories.Category using (Category; _[_≈_])
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
@@ -49,7 +38,7 @@ open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂; swap; assocʳ′; assocˡ′)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂) renaming (map to ⊎map; swap to ⊎swap)
 open import Data.Unit.Polymorphic.Base using (tt)
-open import Function.Base using (_∘′_; id)
+open import Function.Base using (_∘′_; case_of_; id)
 open import Level using (0ℓ)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
@@ -65,6 +54,8 @@ open import CategoricalCrypto.UC.QueryBound.Compose using (module Compose)
 
 import CategoricalCrypto.Machines.Bundle as Bundle
 import CategoricalCrypto.Machines.Category as MCat
+import CategoricalCrypto.Machines.Collapse as Col
+import CategoricalCrypto.Machines.Collapse.Congruence as ColCong
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Tensor as Tensor
@@ -79,7 +70,6 @@ private
   module VS = BraidedProps.Shorthands V.braided
   module VW = MonoidalUtilities.Shorthands V.monoidal
   module EK = Elgotᵏ 0ℓ
-  module 𝒫  = Category 𝒫ᴵ
 
 module MB = Bundle (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ)
 module MK = MCat (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
@@ -271,111 +261,29 @@ private
 
 module _ (A B C : Iface) where
 
-  private
-    A⁺ = Pos A ; A⁻ = Neg A
-    B⁺ = Pos B ; B⁻ = Neg B
-    C⁺ = Pos C ; C⁻ = Neg C
-
-    -- `α` routes the two factors' outputs, `γ` feeds their inputs.  Every
-    -- implicit is passed: `_+_` is a projection, so the composites' objects are
-    -- not recoverable from the two ends.
-    α⁰ : ((B⁻ ⊎ C⁺) ⊎ (A⁻ ⊎ B⁺)) V.⇒ ((A⁻ ⊎ C⁺) ⊎ (B⁻ ⊎ B⁺))
-    α⁰ = VE.α+⇒ {A⁻ ⊎ C⁺} {B⁻} {B⁺}
-         V.∘ (VD.+-swap {A⁻ ⊎ C⁺} {B⁻} VD.+₁ V.id {B⁺})
-         V.∘ VE.α+⇐ {B⁻} {A⁻ ⊎ C⁺} {B⁺}
-         V.∘ (V.id {B⁻} VD.+₁ (VD.+-swap {A⁻} {C⁺} VD.+₁ V.id {B⁺}))
-         V.∘ (V.id {B⁻} VD.+₁ VE.α+⇐ {C⁺} {A⁻} {B⁺})
-         V.∘ VE.α+⇒ {B⁻} {C⁺} {A⁻ ⊎ B⁺}
-
-    γ⁰ : ((A⁺ ⊎ C⁻) ⊎ (B⁻ ⊎ B⁺)) V.⇒ ((B⁺ ⊎ C⁻) ⊎ (A⁺ ⊎ B⁻))
-    γ⁰ = VE.α+⇒ {B⁺ ⊎ C⁻} {A⁺} {B⁻}
-         V.∘ (VD.+-swap {B⁺ ⊎ C⁻} {A⁺} VD.+₁ V.id {B⁻})
-         V.∘ VE.α+⇐ {A⁺} {B⁺ ⊎ C⁻} {B⁻}
-         V.∘ (V.id {A⁺} VD.+₁ (VD.+-swap {B⁺} {C⁻} VD.+₁ V.id {B⁻}))
-         V.∘ (V.id {A⁺} VD.+₁ VE.α+⇐ {C⁻} {B⁺} {B⁻})
-         V.∘ VE.α+⇒ {A⁺} {C⁻} {B⁺ ⊎ B⁻}
-         V.∘ (V.id {A⁺ ⊎ C⁻} VD.+₁ VD.+-swap {B⁺} {B⁻})
-
-    outG : Neg B ⊎ Pos C → (Neg A ⊎ Pos C) ⊎ (Neg B ⊎ Pos B)
-    outG (inj₁ b) = inj₂ (inj₁ b)
-    outG (inj₂ p) = inj₁ (inj₂ p)
-
-    outF : Neg A ⊎ Pos B → (Neg A ⊎ Pos C) ⊎ (Neg B ⊎ Pos B)
-    outF (inj₁ n) = inj₁ (inj₁ n)
-    outF (inj₂ q) = inj₂ (inj₂ q)
-
-    Hα : (Neg B ⊎ Pos C) ⊎ (Neg A ⊎ Pos B) → (Neg A ⊎ Pos C) ⊎ (Neg B ⊎ Pos B)
-    Hα (inj₁ y) = outG y
-    Hα (inj₂ y) = outF y
-
-    Hγ : (Pos A ⊎ Neg C) ⊎ (Neg B ⊎ Pos B) → (Pos B ⊎ Neg C) ⊎ (Pos A ⊎ Neg B)
-    Hγ (inj₁ (inj₁ a)) = inj₂ (inj₁ a)
-    Hγ (inj₁ (inj₂ n)) = inj₁ (inj₂ n)
-    Hγ (inj₂ (inj₁ b)) = inj₂ (inj₂ b)
-    Hγ (inj₂ (inj₂ q)) = inj₁ (inj₁ q)
-
-    α-pt : Pt α⁰ Hα
-    α-pt = pt-≗ (λ where (inj₁ (inj₁ _)) → refl
-                         (inj₁ (inj₂ _)) → refl
-                         (inj₂ (inj₁ _)) → refl
-                         (inj₂ (inj₂ _)) → refl)
-                (pt-∘ pt-α+⇒ (pt-∘ (pt-+₁ pt-+-swap pt-id) (pt-∘ pt-α+⇐
-                  (pt-∘ (pt-+₁ pt-id (pt-+₁ pt-+-swap pt-id))
-                    (pt-∘ (pt-+₁ pt-id pt-α+⇐) pt-α+⇒)))))
-
-    γ-pt : Pt γ⁰ Hγ
-    γ-pt = pt-≗ (λ where (inj₁ (inj₁ _)) → refl
-                         (inj₁ (inj₂ _)) → refl
-                         (inj₂ (inj₁ _)) → refl
-                         (inj₂ (inj₂ _)) → refl)
-                (pt-∘ pt-α+⇒ (pt-∘ (pt-+₁ pt-+-swap pt-id) (pt-∘ pt-α+⇐
-                  (pt-∘ (pt-+₁ pt-id (pt-+₁ pt-+-swap pt-id))
-                    (pt-∘ (pt-+₁ pt-id pt-α+⇐)
-                      (pt-∘ pt-α+⇒ (pt-+₁ pt-id pt-+-swap)))))))
-
-    α-pure : W.α {A⁻} {B⁺} {B⁻} {C⁺} ≈ᴹ pureᴹ α⁰
-    α-pure = ∘ᴹ-pureᴹ reflᴹ (∘ᴹ-pureᴹ (⊗ᵉ-pureʳ reflᴹ) (∘ᴹ-pureᴹ reflᴹ
-               (∘ᴹ-pureᴹ (⊗ᵉ-pureˡ (⊗ᵉ-pureʳ reflᴹ))
-                 (∘ᴹ-pureᴹ (⊗ᵉ-pureˡ reflᴹ) reflᴹ))))
-
-    γ-pure : W.γ {A⁺} {B⁺} {B⁻} {C⁻} ≈ᴹ pureᴹ γ⁰
-    γ-pure = ∘ᴹ-pureᴹ reflᴹ (∘ᴹ-pureᴹ (⊗ᵉ-pureʳ reflᴹ) (∘ᴹ-pureᴹ reflᴹ
-               (∘ᴹ-pureᴹ (⊗ᵉ-pureˡ (⊗ᵉ-pureʳ reflᴹ))
-                 (∘ᴹ-pureᴹ (⊗ᵉ-pureˡ reflᴹ)
-                   (∘ᴹ-pureᴹ reflᴹ (⊗ᵉ-pureˡ reflᴹ))))))
-
-  --------------------------------------------------------------------
-  -- The composite, at a nice representative
-
   module _ (g : Proc B C) (f : Proc A B) where
 
     private
       Sg = St g
       Sf = St f
 
-      Sᶜ : State
-      Sᶜ = state g ⊛ state f
+      Sᶜ : Col.MC.State
+      Sᶜ = Col.Sᴳ g f
 
       stepg = step g
       stepf = step f
 
       bodyStep : (Sg × Sf) × ((Pos A ⊎ Neg C) ⊎ (Neg B ⊎ Pos B))
                → Dₚ ((Sg × Sf) × ((Neg A ⊎ Pos C) ⊎ (Neg B ⊎ Pos B)))
-      bodyStep = V.id V.⊗₁ α⁰ V.∘ (step (g ⊗ᵉ f) V.∘ V.id V.⊗₁ γ⁰)
+      bodyStep = Col.kᴳ g f
 
-      Bd : Machine ((Pos A ⊎ Neg C) ⊎ (Neg B ⊎ Pos B))
-                   ((Neg A ⊎ Pos C) ⊎ (Neg B ⊎ Pos B))
-      Bd = mk Sᶜ bodyStep
+      Bd : Col.MC.Machine ((Pos A ⊎ Neg C) ⊎ (Neg B ⊎ Pos B))
+                          ((Neg A ⊎ Pos C) ⊎ (Neg B ⊎ Pos B))
+      Bd = Col.MC.mk Sᶜ bodyStep
 
       Nᶜ : Proc A C
-      Nᶜ = traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B) Bd
-
-      -- The wire collapse turns the two `∘ᴹ` towers into `Bd`'s single step.
-      Bd≈ : Bd ≈ᴹ (W.α ∘ᴹ ((g ⊗ᵉ f) ∘ᴹ W.γ))
-      Bd≈ = ⟺ᴹ (∘ᴹ-resp-≈ᴹ α-pure inner ○ᴹ ≲⇒≈ᴹ (pure-∘ˡ α⁰ _))
-        where
-        inner : ((g ⊗ᵉ f) ∘ᴹ W.γ) ≈ᴹ mk (state (g ⊗ᵉ f)) (step (g ⊗ᵉ f) V.∘ V.id V.⊗₁ γ⁰)
-        inner = ∘ᴹ-resp-≈ᴹ reflᴹ γ-pure ○ᴹ ≲⇒≈ᴹ (pure-∘ʳ γ⁰ (g ⊗ᵉ f))
+      Nᶜ = Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
+             (Col.MC.mk (Col.Sᴳ g f) (Col.kᴳ g f))
 
       pointᶜ = point Sᶜ tt
       stepᶜ  = step Nᶜ
@@ -389,51 +297,26 @@ module _ (A B C : Iface) where
       -- The two factors' steps, inside the composite's
 
       padF : Sg → Sf × (Neg A ⊎ Pos B) → (Sg × Sf) × ((Neg A ⊎ Pos C) ⊎ (Neg B ⊎ Pos B))
-      padF sg r = (sg , proj₁ r) , outF (proj₂ r)
+      padF sg r = (sg , proj₁ r) , Col.outᶠ (proj₂ r)
 
       padG : Sf → Sg × (Neg B ⊎ Pos C) → (Sg × Sf) × ((Neg A ⊎ Pos C) ⊎ (Neg B ⊎ Pos B))
-      padG sf r = (proj₁ r , sf) , outG (proj₂ r)
+      padG sf r = (proj₁ r , sf) , Col.outᵍ (proj₂ r)
 
-      stepGᵉ : (sg : Sg) (sf : Sf) (u : Pos B ⊎ Neg C)
-             → step (g ⊗ᵉ f) ((sg , sf) , inj₁ u)
-             ≈ₚ mapₚ (λ r → (proj₁ r , sf) , inj₁ (proj₂ r)) (stepg (sg , u))
-      stepGᵉ sg sf u =
-            tstepₑ₁ (onL stepg) (onR stepf) (sg , sf) u
-        ⟨≈⟩ bindˣ (onLₑ stepg sf sg u)
-        ⟨≈⟩ map-map (stepg (sg , u)) (λ r → (proj₁ r , sf) , proj₂ r)
-                    (λ r → proj₁ r , inj₁ (proj₂ r))
-
-      stepFᵉ : (sg : Sg) (sf : Sf) (v : Pos A ⊎ Neg B)
-             → step (g ⊗ᵉ f) ((sg , sf) , inj₂ v)
-             ≈ₚ mapₚ (λ r → (sg , proj₁ r) , inj₂ (proj₂ r)) (stepf (sf , v))
-      stepFᵉ sg sf v =
-            tstepₑ₂ (onL stepg) (onR stepf) (sg , sf) v
-        ⟨≈⟩ bindˣ (EK.onR-padₛ stepf sg (sf , v))
-        ⟨≈⟩ map-map (stepf (sf , v)) (padₛ (sg ,_)) (λ r → proj₁ r , inj₂ (proj₂ r))
-
-      bodyₑ : (s : Sg × Sf) (z : (Pos A ⊎ Neg C) ⊎ (Neg B ⊎ Pos B))
-            → bodyStep (s , z)
-            ≈ₚ mapₚ (λ r → proj₁ r , Hα (proj₂ r)) (step (g ⊗ᵉ f) (s , Hγ z))
-      bodyₑ s z = bindˣ (pt-pre (pt-⊗ pt-id γ-pt) (step (g ⊗ᵉ f)) (s , z))
-              ⟨≈⟩ bindᶠ (pt-⊗ pt-id α-pt)
-
-      -- The `Hγ`-routed halves of `bodyₑ`; which one applies is read off `Hγ`
-      -- at the four points below.
       bodyF : (sg : Sg) (sf : Sf) (v : Pos A ⊎ Neg B)
-            → mapₚ (λ r → proj₁ r , Hα (proj₂ r)) (step (g ⊗ᵉ f) ((sg , sf) , inj₂ v))
+            → bodyStep ((sg , sf) , (case v of λ where
+                (inj₁ a) → inj₁ (inj₁ a)
+                (inj₂ b) → inj₂ (inj₁ b)))
             ≈ₚ mapₚ (padF sg) (stepf (sf , v))
-      bodyF sg sf v =
-            bindˣ (stepFᵉ sg sf v)
-        ⟨≈⟩ map-map (stepf (sf , v)) (λ r → (sg , proj₁ r) , inj₂ (proj₂ r))
-                    (λ r → proj₁ r , Hα (proj₂ r))
+      bodyF sg sf (inj₁ a) = ≈refl
+      bodyF sg sf (inj₂ b) = ≈refl
 
       bodyG : (sg : Sg) (sf : Sf) (u : Pos B ⊎ Neg C)
-            → mapₚ (λ r → proj₁ r , Hα (proj₂ r)) (step (g ⊗ᵉ f) ((sg , sf) , inj₁ u))
+            → bodyStep ((sg , sf) , (case u of λ where
+                (inj₁ b) → inj₂ (inj₂ b)
+                (inj₂ n) → inj₁ (inj₂ n)))
             ≈ₚ mapₚ (padG sf) (stepg (sg , u))
-      bodyG sg sf u =
-            bindˣ (stepGᵉ sg sf u)
-        ⟨≈⟩ map-map (stepg (sg , u)) (λ r → (proj₁ r , sf) , inj₁ (proj₂ r))
-                    (λ r → proj₁ r , Hα (proj₂ r))
+      bodyG sg sf (inj₁ b) = ≈refl
+      bodyG sg sf (inj₂ n) = ≈refl
 
       ----------------------------------------------------------------
       -- …and the solved loop the walk consumes
@@ -485,28 +368,41 @@ module _ (A B C : Iface) where
         { point-eq  = >>=ₚ-identityˡ (tt , tt) (point (state g) V.⊗₁ point (state f))
         ; step-L    = λ sg sf a →
               step-in (sg , sf) (inj₁ a)
-          ⟨≈⟩ bindˣ (bodyₑ (sg , sf) (inj₁ (inj₁ a)) ⟨≈⟩ bodyF sg sf (inj₁ a))
+          ⟨≈⟩ bindˣ (bodyF sg sf (inj₁ a))
           ⟨≈⟩ resumedF sg sf (inj₁ a)
         ; step-R    = λ sg sf n →
               step-in (sg , sf) (inj₂ n)
-          ⟨≈⟩ bindˣ (bodyₑ (sg , sf) (inj₁ (inj₂ n)) ⟨≈⟩ bodyG sg sf (inj₂ n))
+          ⟨≈⟩ bindˣ (bodyG sg sf (inj₂ n))
           ⟨≈⟩ resumedG sg sf (inj₂ n)
         ; solve-out = solve-outᶜ
         ; solve-B⁻  = λ sg sf b →
               solve-loopᶜ (sg , sf) (inj₁ b)
-          ⟨≈⟩ bindˣ (bodyₑ (sg , sf) (inj₂ (inj₁ b)) ⟨≈⟩ bodyF sg sf (inj₂ b))
+          ⟨≈⟩ bindˣ (bodyF sg sf (inj₂ b))
           ⟨≈⟩ resumedF sg sf (inj₂ b)
         ; solve-B⁺  = λ sg sf q →
               solve-loopᶜ (sg , sf) (inj₂ q)
-          ⟨≈⟩ bindˣ (bodyₑ (sg , sf) (inj₂ (inj₂ q)) ⟨≈⟩ bodyG sg sf (inj₁ q))
+          ⟨≈⟩ bindˣ (bodyG sg sf (inj₁ q))
           ⟨≈⟩ resumedG sg sf (inj₁ q)
         }
 
+      eqᶜ : Nᶜ Col.S.≈ᴹ
+              Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
+                (Col.W.α Col.MC.∘ᴹ ((g Col.T.⊗ᵉ f) Col.MC.∘ᴹ Col.W.γ))
+      eqᶜ = Col.S.⟺ᴹ
+        (Col.collapseᵀ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C} g f)
+
     qbᵢ-∘ : {c c′ : ℕ} → Certified {B} {C} c g → Certified {A} {B} c′ f
-          → QB {A} {C} (c ℕ.* c′) (𝒫._∘_ {A} {B} {C} g f)
-    qbᵢ-∘ qg qf = Nᶜ , CP.qbᵢ-∘ᵍ unfoldᶜ qg qf , trace-resp-≈ᴹ Bd≈
+          → QB {A} {C} (c ℕ.* c′)
+              (Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
+                (Col.W.α Col.MC.∘ᴹ ((g Col.T.⊗ᵉ f) Col.MC.∘ᴹ Col.W.γ)))
+    qbᵢ-∘ qg qf = Nᶜ , CP.qbᵢ-∘ᵍ unfoldᶜ qg qf , eqᶜ
 
 qb-∘ : (A B C : Iface) {c c′ : ℕ} (g : Proc B C) (f : Proc A B)
-     → QB {B} {C} c g → QB {A} {B} c′ f → QB {A} {C} (c ℕ.* c′) (𝒫._∘_ {A} {B} {C} g f)
+     → QB {B} {C} c g → QB {A} {B} c′ f
+     → QB {A} {C} (c ℕ.* c′)
+         (Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
+           (Col.W.α Col.MC.∘ᴹ ((g Col.T.⊗ᵉ f) Col.MC.∘ᴹ Col.W.γ)) )
 qb-∘ A B C g f (Ng , cg , eg) (Nf , cf , ef) =
-  qb-resp-≈ {A} {C} (𝒫.∘-resp-≈ {A} {B} {C} eg ef) (qbᵢ-∘ A B C Ng Nf cg cf)
+  qb-resp-≈ {A} {C}
+    (ColCong.compose-resp-≈ᴹ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C} eg ef)
+    (qbᵢ-∘ A B C Ng Nf cg cf)

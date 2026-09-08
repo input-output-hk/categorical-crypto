@@ -9,9 +9,9 @@
 -- of `Pos unitᴵ = ⊥` are written as such.  What is left to dispatch is the
 -- environment's tick, the process's answer, and the environment's answer.
 --
--- Measured cost: 282 s warm, essentially all of it projecting `_∘_` out of
--- `𝒢ₚ`'s G-construction record; 301 s before this module was cut down to the
--- shape-specific part, so the relocation is cost-neutral.
+-- `plugˢ` names the G-composition before it is packed into the Category record,
+-- avoiding the otherwise dominant `_∘_` projection.  Measured clean module
+-- cost: 87 s, down from 282 s.
 
 open import Categories.Category
 
@@ -44,7 +44,6 @@ private
   module MT = Trace (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
   module S  = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
   module TC = TraceCong (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
-  module 𝒫  = Category 𝒫ᴵ
 
 ------------------------------------------------------------------------
 -- The collapsed step
@@ -94,7 +93,7 @@ private
                    (_ , inj₂ _) → ≈refl)
 
 compose-≈ᴹ : (B : Iface) (d : Strat (Neg B) (Pos B)) (u : Proc unitᴵ B)
-           → (strategyEnv B d 𝒫.∘ u) S.≈ᴹ pairedᴹ B d u
+           → plugˢ B d u S.≈ᴹ pairedᴹ B d u
 compose-≈ᴹ B d u =
        Col.collapseᵀ {⊥} {⊥} {Pos B} {Neg B} {Bool} {⊤} (strategyEnv B d) u
   S.○ᴹ S.≲⇒≈ᴹ (TC.trace-resp-≲ (S.mk-cong (kᴳ-kᵂ B d u)))
