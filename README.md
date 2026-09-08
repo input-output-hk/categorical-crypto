@@ -1,4 +1,4 @@
-# Categorical Cryptogrpahy
+# Categorical Cryptography
 
 A process calculus for cryptographic protocols using category theory, implemented in Agda. This library provides a mathematical framework for specifying, composing, and reasoning about cryptographic protocols. It can be used for cryptographic work or to prove that properties of cryptographic primitives translate into security properties of large programs.
 
