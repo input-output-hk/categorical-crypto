@@ -147,8 +147,16 @@ _∘_ {B} M₁ M₂ = tr {C = B} $ modifyStepRel ∘σ (M₂ ⊗₁ M₁)
 ⊗-assoc : ∀ {A B C} → Machine ((A ⊗₀ B) ⊗₀ C) (A ⊗₀ (B ⊗₀ C))
 ⊗-assoc = TotalFunctionMachine' ⇒-solver ⇒-solver
   
+-- The two halves of the inverse associator are named, like `∘ᴷ-fwd`'s below,
+-- so that `Machine.Monoidal.Naturality` can read the forwarder off them.
+⊗-assoc⃖ᵢ : ∀ {A B C} → (A ⊗₀ (B ⊗₀ C)) [ In ]⇒[ In ] ((A ⊗₀ B) ⊗₀ C)
+⊗-assoc⃖ᵢ = ⇒-solver
+
+⊗-assoc⃖ₒ : ∀ {A B C} → ((A ⊗₀ B) ⊗₀ C) [ Out ]⇒[ Out ] (A ⊗₀ (B ⊗₀ C))
+⊗-assoc⃖ₒ = ⇒-solver
+
 ⊗-assoc⃖ : ∀ {A B C} → Machine (A ⊗₀ (B ⊗₀ C)) ((A ⊗₀ B) ⊗₀ C)
-⊗-assoc⃖ = TotalFunctionMachine' ⇒-solver ⇒-solver
+⊗-assoc⃖ = TotalFunctionMachine' ⊗-assoc⃖ᵢ ⊗-assoc⃖ₒ
 
 ⊗-symₘ : ∀ {A B} → Machine (A ⊗₀ B) (B ⊗₀ A)
 ⊗-symₘ = TotalFunctionMachine' ⇒-solver ⇒-solver

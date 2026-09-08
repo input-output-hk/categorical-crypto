@@ -1,20 +1,20 @@
 {-# OPTIONS --safe #-}
 
 -- ============================================================================
--- Naturality of the two structural forwarders of the Kleisli composition:
--- `∘ᴷ-fwd` and `⊗ᴷ-fwd`.
+-- Naturality of the structural forwarders: the two of the Kleisli composition,
+-- `∘ᴷ-fwd` and `⊗ᴷ-fwd`, and the inverse associator `⊗-assoc⃖`.
 --
--- Both laws have the shape `M ∘ Φ ≅ᴹ Φ' ∘ M'`, with `Φ`, `Φ'` forwarders and
--- `M`, `M'` differently-grouped tensors of the SAME machines.  A crossing
+-- All three laws have the shape `M ∘ Φ ≅ᴹ Φ' ∘ M'`, with `Φ`, `Φ'` forwarders
+-- and `M`, `M'` differently-grouped tensors of the SAME machines.  A crossing
 -- forwarder is a reindexed identity (`Xfwd-dom`/`Xfwd-cod`), so composing with
 -- one is a pure relabelling (`∘-collapse-dom`/`∘-collapse-cod`), and each side
 -- collapses to a `Reindex` of the tensor.  Normalising the two tensors to
 -- `Pair`-nests then leaves a single pointwise equation between two routings,
 -- which is a finite case split closed by `refl`.
 --
--- The two nests differ, and are bridged by the only two structural facts about
--- `Pair` that are needed: `Pair-rot3` for the three-fold law and `Pair-mid4`
--- for the four-fold one.
+-- The two nests differ, and are bridged by the only structural facts about
+-- `Pair` that are needed: `Pair-rot3` for `∘ᴷ-fwd`, `Pair-mid4` for `⊗ᴷ-fwd`
+-- and `Pair-asc3` for the associator.
 -- ============================================================================
 
 open import CategoricalCrypto.Machine.Iso using (∘-identityˡ-≅ᴹ; ∘-identityʳ-≅ᴹ)
@@ -40,7 +40,7 @@ module CategoricalCrypto.Machine.Monoidal.Naturality where
 opaque
   unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-assoc ⊗-left-assoc
             ⊗-right-intro ⊗-ᵀ-distrib ⊗-ᵀ-factor ⊗-right-neutral ⊗-fusion
-            ⊗-combine πᵢ ∘κᵢ cdᵢ Xφ rot3ᵢ
+            ⊗-combine πᵢ ∘κᵢ cdᵢ Xφ rot3ᵢ asc3ᵢ
 
   -- ========================================================================
   -- `Pair` absorbs a `Reindex` in either argument.  `Pair-Reindex` wants both
@@ -1025,3 +1025,256 @@ opaque
                    ≅ᴹ (⊗ᴷ-fwd CC.∘ ((b₁ ⊗₁ u₁) ⊗₁ (b₂ ⊗₁ u₂)))
   ⊗ᴷ-fwd-natural b₁ u₁ b₂ u₂ =
     ≅ᴹ-trans (⊗ᴷ-lhs-norm b₁ u₁ b₂ u₂) (≅ᴹ-sym (⊗ᴷ-rhs-norm b₁ u₁ b₂ u₂))
+
+  -- ========================================================================
+  -- The third law: the inverse associator `⊗-assoc⃖` is natural.  Same shape
+  -- as the first; the bridge between the nests is `Pair-asc3`.
+  -- ========================================================================
+
+  -- ---- `⊗-assoc⃖`'s message maps, and their inverses --------------------
+
+  αfᵢ : ∀ {A B D} → Channel.inType (A ⊗₀ (B ⊗₀ D))
+                  → Channel.inType ((A ⊗₀ B) ⊗₀ D)
+  αfᵢ {A} {B} {D} = app (⊗-assoc⃖ᵢ {A} {B} {D})
+
+  αfₒ : ∀ {A B D} → Channel.outType ((A ⊗₀ B) ⊗₀ D)
+                  → Channel.outType (A ⊗₀ (B ⊗₀ D))
+  αfₒ {A} {B} {D} = app (⊗-assoc⃖ₒ {A} {B} {D})
+
+  αfᵢ⁻ : ∀ {A B D} → Channel.inType ((A ⊗₀ B) ⊗₀ D)
+                   → Channel.inType (A ⊗₀ (B ⊗₀ D))
+  αfᵢ⁻ (inj₁ (inj₁ x)) = inj₁ x
+  αfᵢ⁻ (inj₁ (inj₂ y)) = inj₂ (inj₁ y)
+  αfᵢ⁻ (inj₂ z)        = inj₂ (inj₂ z)
+
+  αfₒ⁻ : ∀ {A B D} → Channel.outType (A ⊗₀ (B ⊗₀ D))
+                   → Channel.outType ((A ⊗₀ B) ⊗₀ D)
+  αfₒ⁻ (inj₁ x)        = inj₁ (inj₁ x)
+  αfₒ⁻ (inj₂ (inj₁ y)) = inj₁ (inj₂ y)
+  αfₒ⁻ (inj₂ (inj₂ z)) = inj₂ z
+
+  αfₒ-l : ∀ {A B D} β → αfₒ⁻ {A} {B} {D} (αfₒ {A} {B} {D} β) ≡ β
+  αfₒ-l (inj₁ (inj₁ _)) = refl
+  αfₒ-l (inj₁ (inj₂ _)) = refl
+  αfₒ-l (inj₂ _)        = refl
+
+  αfₒ-r : ∀ {A B D} α → αfₒ {A} {B} {D} (αfₒ⁻ {A} {B} {D} α) ≡ α
+  αfₒ-r (inj₁ _)        = refl
+  αfₒ-r (inj₂ (inj₁ _)) = refl
+  αfₒ-r (inj₂ (inj₂ _)) = refl
+
+  αfᵢ-l : ∀ {A B D} a → αfᵢ⁻ {A} {B} {D} (αfᵢ {A} {B} {D} a) ≡ a
+  αfᵢ-l (inj₁ _)        = refl
+  αfᵢ-l (inj₂ (inj₁ _)) = refl
+  αfᵢ-l (inj₂ (inj₂ _)) = refl
+
+  αfᵢ-r : ∀ {A B D} b → αfᵢ {A} {B} {D} (αfᵢ⁻ {A} {B} {D} b) ≡ b
+  αfᵢ-r (inj₁ (inj₁ _)) = refl
+  αfᵢ-r (inj₁ (inj₂ _)) = refl
+  αfᵢ-r (inj₂ _)        = refl
+
+  -- ---- the forwarder as a reindexed identity, both ways -----------------
+
+  α-Φdom : ∀ {A B D}
+         → ⊗-assoc⃖ {A} {B} {D}
+           ≅ᴹ Reindex (CC.id {(A ⊗₀ B) ⊗₀ D})
+                (dmᵢ {(A ⊗₀ B) ⊗₀ D} {A ⊗₀ (B ⊗₀ D)} {(A ⊗₀ B) ⊗₀ D} (αfᵢ {A} {B} {D}))
+                (dmₒ {(A ⊗₀ B) ⊗₀ D} {A ⊗₀ (B ⊗₀ D)} {(A ⊗₀ B) ⊗₀ D} (αfₒ⁻ {A} {B} {D}))
+  α-Φdom {A} {B} {D} =
+    ≅ᴹ-trans (tfm'-is-Xfwd (⊗-assoc⃖ᵢ {A} {B} {D}) (⊗-assoc⃖ₒ {A} {B} {D}))
+             (Xfwd-dom (αfᵢ {A} {B} {D}) (αfₒ {A} {B} {D}) (αfₒ⁻ {A} {B} {D}) αfₒ-l αfₒ-r)
+
+  α-Φcod : ∀ {A B D}
+         → ⊗-assoc⃖ {A} {B} {D}
+           ≅ᴹ Reindex (CC.id {A ⊗₀ (B ⊗₀ D)})
+                (cdᵢ {A ⊗₀ (B ⊗₀ D)} {A ⊗₀ (B ⊗₀ D)} {(A ⊗₀ B) ⊗₀ D} (αfₒ {A} {B} {D}))
+                (cdₒ {A ⊗₀ (B ⊗₀ D)} {A ⊗₀ (B ⊗₀ D)} {(A ⊗₀ B) ⊗₀ D} (αfᵢ⁻ {A} {B} {D}))
+  α-Φcod {A} {B} {D} =
+    ≅ᴹ-trans (tfm'-is-Xfwd (⊗-assoc⃖ᵢ {A} {B} {D}) (⊗-assoc⃖ₒ {A} {B} {D}))
+             (Xfwd-cod (αfᵢ {A} {B} {D}) (αfₒ {A} {B} {D}) (αfᵢ⁻ {A} {B} {D}) αfᵢ-l αfᵢ-r)
+
+  -- ---- the two collapses ------------------------------------------------
+
+  α-lhs : ∀ {A A' B B' D D'} (a : Machine A A') (b : Machine B B') (d : Machine D D')
+        → (((a ⊗₁ b) ⊗₁ d) CC.∘ ⊗-assoc⃖ {A} {B} {D})
+          ≅ᴹ Reindex ((a ⊗₁ b) ⊗₁ d)
+               (dmᵢ {(A ⊗₀ B) ⊗₀ D} {A ⊗₀ (B ⊗₀ D)} {(A' ⊗₀ B') ⊗₀ D'} (αfᵢ {A} {B} {D}))
+               (dmₒ {(A ⊗₀ B) ⊗₀ D} {A ⊗₀ (B ⊗₀ D)} {(A' ⊗₀ B') ⊗₀ D'} (αfₒ⁻ {A} {B} {D}))
+  α-lhs {A} {A'} {B} {B'} {D} {D'} a b d =
+    ≅ᴹ-trans (∘-resp-≅ᴹ ≅ᴹ-refl (α-Φdom {A} {B} {D}))
+    (≅ᴹ-trans (∘-collapse-dom (CC.id {(A ⊗₀ B) ⊗₀ D}) ((a ⊗₁ b) ⊗₁ d)
+                              (αfᵢ {A} {B} {D}) (αfₒ⁻ {A} {B} {D}))
+              (Reindex-resp-≅ᴹ
+                 (dmᵢ {(A ⊗₀ B) ⊗₀ D} {A ⊗₀ (B ⊗₀ D)} {(A' ⊗₀ B') ⊗₀ D'} (αfᵢ {A} {B} {D}))
+                 (dmₒ {(A ⊗₀ B) ⊗₀ D} {A ⊗₀ (B ⊗₀ D)} {(A' ⊗₀ B') ⊗₀ D'} (αfₒ⁻ {A} {B} {D}))
+                 ∘-identityʳ-≅ᴹ))
+
+  α-rhs : ∀ {A A' B B' D D'} (a : Machine A A') (b : Machine B B') (d : Machine D D')
+        → (⊗-assoc⃖ {A'} {B'} {D'} CC.∘ (a ⊗₁ (b ⊗₁ d)))
+          ≅ᴹ Reindex (a ⊗₁ (b ⊗₁ d))
+               (cdᵢ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'} (αfₒ {A'} {B'} {D'}))
+               (cdₒ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'} (αfᵢ⁻ {A'} {B'} {D'}))
+  α-rhs {A} {A'} {B} {B'} {D} {D'} a b d =
+    ≅ᴹ-trans (∘-resp-≅ᴹ (α-Φcod {A'} {B'} {D'}) ≅ᴹ-refl)
+    (≅ᴹ-trans (∘-collapse-cod (a ⊗₁ (b ⊗₁ d)) (CC.id {A' ⊗₀ (B' ⊗₀ D')})
+                              (αfₒ {A'} {B'} {D'}) (αfᵢ⁻ {A'} {B'} {D'}))
+              (Reindex-resp-≅ᴹ
+                 (cdᵢ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'} (αfₒ {A'} {B'} {D'}))
+                 (cdₒ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'} (αfᵢ⁻ {A'} {B'} {D'}))
+                 ∘-identityˡ-≅ᴹ))
+
+  -- ---- the one routing both sides produce, into the left-nested nest ----
+
+  αNᵢ : ∀ {A A' B B' D D'}
+      → Channel.inType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D'))
+      → Channel.inType (((A ⊗ᵀ A') ⊗₀ (B ⊗ᵀ B')) ⊗₀ (D ⊗ᵀ D'))
+  αNᵢ (inj₁ (inj₁ x))        = inj₁ (inj₁ (inj₁ x))
+  αNᵢ (inj₁ (inj₂ (inj₁ y))) = inj₁ (inj₂ (inj₁ y))
+  αNᵢ (inj₁ (inj₂ (inj₂ z))) = inj₂ (inj₁ z)
+  αNᵢ (inj₂ (inj₁ (inj₁ x))) = inj₁ (inj₁ (inj₂ x))
+  αNᵢ (inj₂ (inj₁ (inj₂ y))) = inj₁ (inj₂ (inj₂ y))
+  αNᵢ (inj₂ (inj₂ z))        = inj₂ (inj₂ z)
+
+  αNₒ : ∀ {A A' B B' D D'}
+      → Channel.outType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D'))
+      → Channel.outType (((A ⊗ᵀ A') ⊗₀ (B ⊗ᵀ B')) ⊗₀ (D ⊗ᵀ D'))
+  αNₒ (inj₁ (inj₁ x))        = inj₁ (inj₁ (inj₁ x))
+  αNₒ (inj₁ (inj₂ (inj₁ y))) = inj₁ (inj₂ (inj₁ y))
+  αNₒ (inj₁ (inj₂ (inj₂ z))) = inj₂ (inj₁ z)
+  αNₒ (inj₂ (inj₁ (inj₁ x))) = inj₁ (inj₁ (inj₂ x))
+  αNₒ (inj₂ (inj₁ (inj₂ y))) = inj₁ (inj₂ (inj₂ y))
+  αNₒ (inj₂ (inj₂ z))        = inj₂ (inj₂ z)
+
+  pt-αLᵢ : ∀ {A A' B B' D D'}
+           (i : Channel.inType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D')))
+         → nlᵢ {A} {A'} {B} {B'} {D} {D'}
+             (dmᵢ {(A ⊗₀ B) ⊗₀ D} {A ⊗₀ (B ⊗₀ D)} {(A' ⊗₀ B') ⊗₀ D'} (αfᵢ {A} {B} {D}) i)
+           ≡ αNᵢ {A} {A'} {B} {B'} {D} {D'} i
+  pt-αLᵢ (inj₁ (inj₁ _))        = refl
+  pt-αLᵢ (inj₁ (inj₂ (inj₁ _))) = refl
+  pt-αLᵢ (inj₁ (inj₂ (inj₂ _))) = refl
+  pt-αLᵢ (inj₂ (inj₁ (inj₁ _))) = refl
+  pt-αLᵢ (inj₂ (inj₁ (inj₂ _))) = refl
+  pt-αLᵢ (inj₂ (inj₂ _))        = refl
+
+  pt-αLₒ : ∀ {A A' B B' D D'}
+           (o : Channel.outType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D')))
+         → nlₒ {A} {A'} {B} {B'} {D} {D'}
+             (dmₒ {(A ⊗₀ B) ⊗₀ D} {A ⊗₀ (B ⊗₀ D)} {(A' ⊗₀ B') ⊗₀ D'} (αfₒ⁻ {A} {B} {D}) o)
+           ≡ αNₒ {A} {A'} {B} {B'} {D} {D'} o
+  pt-αLₒ (inj₁ (inj₁ _))        = refl
+  pt-αLₒ (inj₁ (inj₂ (inj₁ _))) = refl
+  pt-αLₒ (inj₁ (inj₂ (inj₂ _))) = refl
+  pt-αLₒ (inj₂ (inj₁ (inj₁ _))) = refl
+  pt-αLₒ (inj₂ (inj₁ (inj₂ _))) = refl
+  pt-αLₒ (inj₂ (inj₂ _))        = refl
+
+  pt-αRᵢ : ∀ {A A' B B' D D'}
+           (i : Channel.inType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D')))
+         → asc3ᵢ {A} {A'} {B} {B'} {D} {D'}
+             (nrᵢ {A} {A'} {B} {B'} {D} {D'}
+               (cdᵢ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'}
+                    (αfₒ {A'} {B'} {D'}) i))
+           ≡ αNᵢ {A} {A'} {B} {B'} {D} {D'} i
+  pt-αRᵢ (inj₁ (inj₁ _))        = refl
+  pt-αRᵢ (inj₁ (inj₂ (inj₁ _))) = refl
+  pt-αRᵢ (inj₁ (inj₂ (inj₂ _))) = refl
+  pt-αRᵢ (inj₂ (inj₁ (inj₁ _))) = refl
+  pt-αRᵢ (inj₂ (inj₁ (inj₂ _))) = refl
+  pt-αRᵢ (inj₂ (inj₂ _))        = refl
+
+  pt-αRₒ : ∀ {A A' B B' D D'}
+           (o : Channel.outType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D')))
+         → asc3ₒ {A} {A'} {B} {B'} {D} {D'}
+             (nrₒ {A} {A'} {B} {B'} {D} {D'}
+               (cdₒ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'}
+                    (αfᵢ⁻ {A'} {B'} {D'}) o))
+           ≡ αNₒ {A} {A'} {B} {B'} {D} {D'} o
+  pt-αRₒ (inj₁ (inj₁ _))        = refl
+  pt-αRₒ (inj₁ (inj₂ (inj₁ _))) = refl
+  pt-αRₒ (inj₁ (inj₂ (inj₂ _))) = refl
+  pt-αRₒ (inj₂ (inj₁ (inj₁ _))) = refl
+  pt-αRₒ (inj₂ (inj₁ (inj₂ _))) = refl
+  pt-αRₒ (inj₂ (inj₂ _))        = refl
+
+  -- ---- the two sides, normalised to the same `Reindex` -------------------
+
+  α-lhs-norm : ∀ {A A' B B' D D'} (a : Machine A A') (b : Machine B B') (d : Machine D D')
+             → (((a ⊗₁ b) ⊗₁ d) CC.∘ ⊗-assoc⃖ {A} {B} {D})
+               ≅ᴹ Reindex (Pair (Pair a b) d) (αNᵢ {A} {A'} {B} {B'} {D} {D'})
+                                              (αNₒ {A} {A'} {B} {B'} {D} {D'})
+  α-lhs-norm {A} {A'} {B} {B'} {D} {D'} a b d =
+    ≅ᴹ-trans (α-lhs a b d)
+    (≅ᴹ-trans (Reindex-resp-≅ᴹ
+                 (dmᵢ {(A ⊗₀ B) ⊗₀ D} {A ⊗₀ (B ⊗₀ D)} {(A' ⊗₀ B') ⊗₀ D'} (αfᵢ {A} {B} {D}))
+                 (dmₒ {(A ⊗₀ B) ⊗₀ D} {A ⊗₀ (B ⊗₀ D)} {(A' ⊗₀ B') ⊗₀ D'} (αfₒ⁻ {A} {B} {D}))
+                 (⊗₁-norm-l a b d))
+    (≅ᴹ-trans (Reindex-fuse (Pair (Pair a b) d)
+                 (nlᵢ {A} {A'} {B} {B'} {D} {D'})
+                 (nlₒ {A} {A'} {B} {B'} {D} {D'})
+                 (dmᵢ {(A ⊗₀ B) ⊗₀ D} {A ⊗₀ (B ⊗₀ D)} {(A' ⊗₀ B') ⊗₀ D'} (αfᵢ {A} {B} {D}))
+                 (dmₒ {(A ⊗₀ B) ⊗₀ D} {A ⊗₀ (B ⊗₀ D)} {(A' ⊗₀ B') ⊗₀ D'} (αfₒ⁻ {A} {B} {D})))
+              (Reindex-cong (Pair (Pair a b) d)
+                 (λ i → nlᵢ {A} {A'} {B} {B'} {D} {D'}
+                            (dmᵢ {(A ⊗₀ B) ⊗₀ D} {A ⊗₀ (B ⊗₀ D)} {(A' ⊗₀ B') ⊗₀ D'}
+                                 (αfᵢ {A} {B} {D}) i))
+                 (αNᵢ {A} {A'} {B} {B'} {D} {D'})
+                 (λ o → nlₒ {A} {A'} {B} {B'} {D} {D'}
+                            (dmₒ {(A ⊗₀ B) ⊗₀ D} {A ⊗₀ (B ⊗₀ D)} {(A' ⊗₀ B') ⊗₀ D'}
+                                 (αfₒ⁻ {A} {B} {D}) o))
+                 (αNₒ {A} {A'} {B} {B'} {D} {D'}) pt-αLᵢ pt-αLₒ)))
+
+  α-rhs-norm : ∀ {A A' B B' D D'} (a : Machine A A') (b : Machine B B') (d : Machine D D')
+             → (⊗-assoc⃖ {A'} {B'} {D'} CC.∘ (a ⊗₁ (b ⊗₁ d)))
+               ≅ᴹ Reindex (Pair (Pair a b) d) (αNᵢ {A} {A'} {B} {B'} {D} {D'})
+                                              (αNₒ {A} {A'} {B} {B'} {D} {D'})
+  α-rhs-norm {A} {A'} {B} {B'} {D} {D'} a b d =
+    ≅ᴹ-trans (α-rhs a b d)
+    (≅ᴹ-trans (Reindex-resp-≅ᴹ
+                 (cdᵢ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'} (αfₒ {A'} {B'} {D'}))
+                 (cdₒ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'} (αfᵢ⁻ {A'} {B'} {D'}))
+                 (⊗₁-norm-r a b d))
+    (≅ᴹ-trans (Reindex-fuse (Pair a (Pair b d))
+                 (nrᵢ {A} {A'} {B} {B'} {D} {D'})
+                 (nrₒ {A} {A'} {B} {B'} {D} {D'})
+                 (cdᵢ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'} (αfₒ {A'} {B'} {D'}))
+                 (cdₒ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'} (αfᵢ⁻ {A'} {B'} {D'})))
+    (≅ᴹ-trans (Reindex-resp-≅ᴹ
+                 (λ i → nrᵢ {A} {A'} {B} {B'} {D} {D'}
+                            (cdᵢ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'}
+                                 (αfₒ {A'} {B'} {D'}) i))
+                 (λ o → nrₒ {A} {A'} {B} {B'} {D} {D'}
+                            (cdₒ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'}
+                                 (αfᵢ⁻ {A'} {B'} {D'}) o))
+                 (Pair-asc3 a b d))
+    (≅ᴹ-trans (Reindex-fuse (Pair (Pair a b) d)
+                 (asc3ᵢ {A} {A'} {B} {B'} {D} {D'})
+                 (asc3ₒ {A} {A'} {B} {B'} {D} {D'})
+                 (λ i → nrᵢ {A} {A'} {B} {B'} {D} {D'}
+                            (cdᵢ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'}
+                                 (αfₒ {A'} {B'} {D'}) i))
+                 (λ o → nrₒ {A} {A'} {B} {B'} {D} {D'}
+                            (cdₒ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'}
+                                 (αfᵢ⁻ {A'} {B'} {D'}) o)))
+              (Reindex-cong (Pair (Pair a b) d)
+                 (λ i → asc3ᵢ {A} {A'} {B} {B'} {D} {D'}
+                          (nrᵢ {A} {A'} {B} {B'} {D} {D'}
+                            (cdᵢ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'}
+                                 (αfₒ {A'} {B'} {D'}) i)))
+                 (αNᵢ {A} {A'} {B} {B'} {D} {D'})
+                 (λ o → asc3ₒ {A} {A'} {B} {B'} {D} {D'}
+                          (nrₒ {A} {A'} {B} {B'} {D} {D'}
+                            (cdₒ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'}
+                                 (αfᵢ⁻ {A'} {B'} {D'}) o)))
+                 (αNₒ {A} {A'} {B} {B'} {D} {D'}) pt-αRᵢ pt-αRₒ)))))
+
+  -- ========================================================================
+  -- `⊗-assoc⃖` is natural.
+  -- ========================================================================
+
+  ⊗-assoc⃖-natural : ∀ {A A' B B' D D'}
+                     (a : Machine A A') (b : Machine B B') (d : Machine D D')
+                   → (((a ⊗₁ b) ⊗₁ d) CC.∘ ⊗-assoc⃖)
+                     ≅ᴹ (⊗-assoc⃖ CC.∘ (a ⊗₁ (b ⊗₁ d)))
+  ⊗-assoc⃖-natural a b d =
+    ≅ᴹ-trans (α-lhs-norm a b d) (≅ᴹ-sym (α-rhs-norm a b d))

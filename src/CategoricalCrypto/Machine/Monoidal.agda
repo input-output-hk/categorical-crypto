@@ -23,6 +23,6 @@ open import CategoricalCrypto.Machine.Forwarder public
 open import CategoricalCrypto.Machine.Monoidal.Interchange public
   using (⊗₁-interchange)
 open import CategoricalCrypto.Machine.Monoidal.Naturality public
-  using (∘ᴷ-fwd-natural; ⊗ᴷ-fwd-natural)
+  using (∘ᴷ-fwd-natural; ⊗ᴷ-fwd-natural; ⊗-assoc⃖-natural)
 open import CategoricalCrypto.Machine.Monoidal.Kleisli public
   using (∘ᴷ-assoc; ⊗ᴷ-∘ᴷ)
