@@ -2,6 +2,8 @@
 
 -- Congruence for the raw G-composition, split from `Collapse` so consumers
 -- that only need to expose a composite step do not pay for this conversion.
+-- `_∘ᴹ_` is opaque: these endpoints therefore remain nominal while the
+-- already-checked category congruence transports their equality.
 
 open import Data.Sum.Base using (_⊎_)
 

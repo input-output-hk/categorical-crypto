@@ -18,8 +18,9 @@
 -- (`Protocol.Machine.Compose`) and 282 s against 507 s (`UC.Seam.Adequacy.
 -- Wiring`).
 -- Composition congruence sits against the same conversion boundary and is
--- isolated in `Collapse.Congruence` (94 s), so it is paid only by clients that
--- transport a composite equality.
+-- isolated in `Collapse.Congruence` (about 10 s), so it is paid only by clients
+-- that transport a composite equality.  Opaque machine composition keeps
+-- that boundary nominal instead of eta-expanding both composite records.
 
 open import Categories.Category.Monoidal.Bundle
 import Categories.Category.Cocartesian.Ext as CE
