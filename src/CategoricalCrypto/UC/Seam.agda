@@ -120,9 +120,7 @@ module _ (B : Iface) where
 plugˢ : (B : Iface) → Strat (Neg B) (Pos B) → Proc unitᴵ B → Proc unitᴵ Ωᴵ
 plugˢ B d u =
   Col.MT.traceᴹ (⊥ ⊎ ⊤) (⊥ ⊎ Bool) (Neg B ⊎ Pos B)
-    (Col.W.α {⊥} {Pos B} {Neg B} {Bool} Col.MC.∘ᴹ
-      ((strategyEnv B d Col.T.⊗ᵉ u) Col.MC.∘ᴹ
-        Col.W.γ {⊥} {Pos B} {Neg B} {⊤}))
+    (Col.MC.mk (Col.Sᴳ (strategyEnv B d) u) (Col.kᴳ (strategyEnv B d) u))
 
 ctxRunˢ : (B : Iface) → Strat (Neg B) (Pos B) → Proc unitᴵ B → Dₚ Bool
 ctxRunˢ B d u = ⟦ plugˢ B d u ⟧ᴼ
