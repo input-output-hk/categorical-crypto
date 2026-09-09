@@ -152,8 +152,11 @@ private
   midfn (inj₂ (inj₁ r)) = inj₁ (inj₂ r)
   midfn (inj₂ (inj₂ s)) = inj₂ (inj₂ s)
 
-  midᴹ : Machine ((P + Q) + (R + S)) ((P + R) + (Q + S))
-  midᴹ = α⇐ᴹ ∘ᴹ ((idᴹ ⊗ᵉ (α⇒ᴹ ∘ᴹ ((σᴹ ⊗ᵉ idᴹ) ∘ᴹ α⇐ᴹ))) ∘ᴹ α⇒ᴹ)
+  -- Keep the nested structural composite nominal after proving its expansion
+  -- once.
+  opaque
+    midᴹ : Machine ((P + Q) + (R + S)) ((P + R) + (Q + S))
+    midᴹ = α⇐ᴹ ∘ᴹ ((idᴹ ⊗ᵉ (α⇒ᴹ ∘ᴹ ((σᴹ ⊗ᵉ idᴹ) ∘ᴹ α⇐ᴹ))) ∘ᴹ α⇒ᴹ)
 
   id-pureᴹ : idᴹ {V} ≈ᴹ pureᴹ (𝒱.id {V})
   id-pureᴹ = ≲⇒≈ᴹ˘ pureᴹ-id
@@ -168,21 +171,24 @@ private
 
   -- Every factor of `mid` is a structural machine, hence `pureᴹ`; what it
   -- collapses to is the interchange on sums.
-  midᴹ-pure : midᴹ {P} {Q} {R} {S} ≈ᴹ pureᴹ (pureᵏ midfn)
-  midᴹ-pure = ∘-pureᴹ reflᴹ (∘-pureᴹ (⊗-pureᴹ id-pureᴹ inner) reflᴹ)
-            ○ᴹ ≲⇒≈ᴹ (pureᴹ-cong base)
-    where
-    inner = ∘-pureᴹ reflᴹ (∘-pureᴹ (⊗-pureᴹ reflᴹ id-pureᴹ) reflᴹ)
-    base = ∘-pureᵏ assocˡᵏ
-             (∘-pureᵏ (+₁-pureᵏ pure-idᵏ
-                        (∘-pureᵏ assocʳᵏ
-                          (∘-pureᵏ (+₁-pureᵏ swapᵏ pure-idᵏ) assocˡᵏ)))
-                      assocʳᵏ)
-         ○ pureᵏ-cong λ where
-             (inj₁ (inj₁ _)) → refl
-             (inj₁ (inj₂ _)) → refl
-             (inj₂ (inj₁ _)) → refl
-             (inj₂ (inj₂ _)) → refl
+  opaque
+    unfolding midᴹ
+
+    midᴹ-pure : midᴹ {P} {Q} {R} {S} ≈ᴹ pureᴹ (pureᵏ midfn)
+    midᴹ-pure = ∘-pureᴹ reflᴹ (∘-pureᴹ (⊗-pureᴹ id-pureᴹ inner) reflᴹ)
+              ○ᴹ ≲⇒≈ᴹ (pureᴹ-cong base)
+      where
+      inner = ∘-pureᴹ reflᴹ (∘-pureᴹ (⊗-pureᴹ reflᴹ id-pureᴹ) reflᴹ)
+      base = ∘-pureᵏ assocˡᵏ
+               (∘-pureᵏ (+₁-pureᵏ pure-idᵏ
+                          (∘-pureᵏ assocʳᵏ
+                            (∘-pureᵏ (+₁-pureᵏ swapᵏ pure-idᵏ) assocˡᵏ)))
+                        assocʳᵏ)
+           ○ pureᵏ-cong λ where
+               (inj₁ (inj₁ _)) → refl
+               (inj₁ (inj₂ _)) → refl
+               (inj₂ (inj₁ _)) → refl
+               (inj₂ (inj₂ _)) → refl
 
   -- Tensoring with a pure machine keeps the other factor's state.
   ⊗ᵉ-pureˡ : (h : 𝒱._⇒_ V W) (M : Machine V′ W′)
