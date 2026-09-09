@@ -125,3 +125,19 @@ The executable model (predating the layers above; connecting it to
 - `SFunM` — the category of stateful, monadic functions.
 - `Examples/` — commitment, signature, and basic protocol examples.
 - `CategoricalCrypto` — the root module re-exporting this layer.
+
+# Contributing
+
+Contributions are welcome, however please make sure that the
+contribution is of reasonable quality. AI contributions are welcome,
+but they must clear a higher quality bar than human
+contributions. **If you have access to AI tools, you should use them
+to do better work, not just more work.**
+
+# AI disclaimer
+
+AI tools were used in the development of this project. All code and
+designs were extensively reviewed manually, but while the maintainer
+tries very hard to keep this codebase free from AI slop there is no
+guarantee that there doesn't sit some low quality bit somewhere that
+was missed.
