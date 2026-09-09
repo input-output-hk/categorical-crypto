@@ -6,8 +6,9 @@
 -- The certificate now uses `Collapse.kᴳ` directly and reuses `collapseᵀ` rather
 -- than rebuilding the wire collapse as `Bd≈`.  The target names the same raw
 -- G-composition before it is packed into the Category record; congruence is
--- isolated in `Collapse.Congruence`.  Measured cost: 11 s with dependencies
--- cached, or 96 s including that congruence rebuild, down from 721 s.
+-- paid by the hom-level closure in `Compose.Laws`, not by this concrete step.
+-- Measured warm cost: 10.1 s, down from 12.2 s; rebuilding this module no
+-- longer rebuilds the 94 s congruence module.
 
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
 import Categories.Category.Monoidal.Distributive as MD
@@ -25,11 +26,10 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
   using (𝒱ₚ; distₚ; 𝒫ₚ; Elgotₚ)
 open import CategoricalCrypto.UC.Machine using (Proc)
-open import CategoricalCrypto.UC.QueryBound using (Certified; QB; qb-resp-≈)
+open import CategoricalCrypto.UC.QueryBound using (Certified; QB)
 open import CategoricalCrypto.UC.QueryBound.Compose using (module Compose)
 
 import CategoricalCrypto.Machines.Collapse as Col
-import CategoricalCrypto.Machines.Collapse.Congruence as ColCong
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Trace as Trace
 
@@ -241,13 +241,3 @@ module _ (A B C : Iface) where
               (Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
                 (Col.W.α Col.MC.∘ᴹ ((g Col.T.⊗ᵉ f) Col.MC.∘ᴹ Col.W.γ)))
     qbᵢ-∘ qg qf = Nᶜ , CP.qbᵢ-∘ᵍ unfoldᶜ qg qf , eqᶜ
-
-qb-∘ : (A B C : Iface) {c c′ : ℕ} (g : Proc B C) (f : Proc A B)
-     → QB {B} {C} c g → QB {A} {B} c′ f
-     → QB {A} {C} (c ℕ.* c′)
-         (Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
-           (Col.W.α Col.MC.∘ᴹ ((g Col.T.⊗ᵉ f) Col.MC.∘ᴹ Col.W.γ)) )
-qb-∘ A B C g f (Ng , cg , eg) (Nf , cf , ef) =
-  qb-resp-≈ {A} {C}
-    (ColCong.compose-resp-≈ᴹ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C} eg ef)
-    (qbᵢ-∘ A B C Ng Nf cg cf)
