@@ -9,18 +9,9 @@
 -- makes it affordable (`UC.Machine`'s header prices the alternative).
 --
 -- Every object implicit is passed explicitly, for the reason
--- `UC.Machine.Grading`'s header gives — and so is every implicit of the
--- borrowed 𝒢-law, for the same one: inferring one asks Agda to invert
--- `_⊗₁ᴳ_`, measured at +83 s for a single law against +10 s pinned.
---
--- Four of the eight fields land, and they are exactly the trace-free four
--- `UC.Machine.Grading`'s own note predicts.  The other four each compare a
--- `𝒫ᴵ`-composite, hence the ⊕-trace, and every 𝒢-law that would discharge one
--- (`associator.isoʳ`, `⊗.homomorphism`, `assoc-commute-to`) spends a trace
--- absorption (`GConstructionEmbedding`'s `absorbˡ`/`absorbʳ`).  Instantiating
--- one of those at the machine layer does not finish: `associator.isoʳ` alone,
--- with every implicit pinned, was still running after 900 s under a 16 GiB
--- heap cap, 12.8 GiB resident.
+-- `UC.Machine.Grading`'s header gives: inferring one asks Agda to invert
+-- `_⊗₁ᴳ_`.  The unused congruence and identity corollaries are not materialized
+-- here; consumers use these four dictionary zigzags directly.
 
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal.Bundle
@@ -343,36 +334,3 @@ sub-⊗₁ {X} {Y} {A} s = ⟺ᴹ
   ○ᴹ ≲⇒≈ᴹ (∘ᴹ-resp-≲ ≲-refl (pure-∘ʳ (pureᵏ midfn) _))
   ○ᴹ ≲⇒≈ᴹ (pure-∘ˡ (pureᵏ midfn) _)
   ○ᴹ ≲⇒≈ᴹ (mk-cong (sub-step {X} {Y} {A} s)) )
-
-------------------------------------------------------------------------
--- The trace-free grading laws, as corollaries of the 𝒢-tensor
-
-T₁-resp-≈ᴹ : {Y A B : Iface} {f g : Proc A B}
-           → 𝒫._≈_ {A} {B} f g
-           → 𝒫._≈_ {Y ⊗ᴵ A} {Y ⊗ᴵ B} (T₁ᴵ Y {A} {B} f) (T₁ᴵ Y {A} {B} g)
-T₁-resp-≈ᴹ {Y} {A} {B} {f} {g} e =
-     T₁-⊗₁ {Y} {A} {B} f
-  ○ᴹ 𝔾.⊗.F-resp-≈ {⟦ Y ⟧ᴵ , ⟦ A ⟧ᴵ} {⟦ Y ⟧ᴵ , ⟦ B ⟧ᴵ}
-       {𝒫.id {Y} , f} {𝒫.id {Y} , g} (𝔾.Equiv.refl {x = 𝒫.id {Y}} , e)
-  ○ᴹ ⟺ᴹ (T₁-⊗₁ {Y} {A} {B} g)
-
-T₁-idᴹ : {Y A : Iface}
-       → 𝒫._≈_ {Y ⊗ᴵ A} {Y ⊗ᴵ A} (T₁ᴵ Y {A} {A} (𝒫.id {A})) (𝒫.id {Y ⊗ᴵ A})
-T₁-idᴹ {Y} {A} =
-     T₁-⊗₁ {Y} {A} {A} (𝒫.id {A})
-  ○ᴹ 𝔾.⊗.identity {⟦ Y ⟧ᴵ , ⟦ A ⟧ᴵ}
-
-sub-resp-≈ᴹ : {X Y A : Iface} {s t : Proc X Y}
-            → 𝒫._≈_ {X} {Y} s t
-            → 𝒫._≈_ {X ⊗ᴵ A} {Y ⊗ᴵ A} (subᴵ′ {X} {Y} {A} s) (subᴵ′ {X} {Y} {A} t)
-sub-resp-≈ᴹ {X} {Y} {A} {s} {t} e =
-     sub-⊗₁ {X} {Y} {A} s
-  ○ᴹ 𝔾.⊗.F-resp-≈ {⟦ X ⟧ᴵ , ⟦ A ⟧ᴵ} {⟦ Y ⟧ᴵ , ⟦ A ⟧ᴵ}
-       {s , 𝒫.id {A}} {t , 𝒫.id {A}} (e , 𝔾.Equiv.refl {x = 𝒫.id {A}})
-  ○ᴹ ⟺ᴹ (sub-⊗₁ {X} {Y} {A} t)
-
-sub-idᴹ : {X A : Iface}
-        → 𝒫._≈_ {X ⊗ᴵ A} {X ⊗ᴵ A} (subᴵ′ {X} {X} {A} (𝒫.id {X})) (𝒫.id {X ⊗ᴵ A})
-sub-idᴹ {X} {A} =
-     sub-⊗₁ {X} {X} {A} (𝒫.id {X})
-  ○ᴹ 𝔾.⊗.identity {⟦ X ⟧ᴵ , ⟦ A ⟧ᴵ}
