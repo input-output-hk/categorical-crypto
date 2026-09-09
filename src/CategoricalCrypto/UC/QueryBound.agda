@@ -83,6 +83,21 @@ private
            → ((a : A′) → h a ≡ k a) → mapₚ h d ≈ₚ mapₚ k d
   map-cong d eq = bindᶠ (λ a → return-≡ (eq a))
 
+  map-arg : {d e : Dₚ A′} (h : A′ → B′) → d ≈ₚ e → mapₚ h d ≈ₚ mapₚ h e
+  map-arg {d = d} {e} h de = >>=ₚ-cong d e (returnₚ ∘′ h) (returnₚ ∘′ h) de λ _ → ≈ₚ-refl _
+
+  -- Reuse this map-law chain without normalizing it into each certificate.
+  opaque
+    map-square : {A B C D : Set} (d : Dₚ A) (h : A → B) (f : A → C)
+                 (g : B → D) (k : C → D)
+               → ((a : A) → g (h a) ≡ k (f a))
+               → {e : Dₚ C} → mapₚ f d ≈ₚ e
+               → mapₚ g (mapₚ h d) ≈ₚ mapₚ k e
+    map-square d h f g k commute de = map-map d h g
+      ⟨≈⟩ map-cong d commute
+      ⟨≈⟩ ≈ₚ-sym _ _ (map-map d f k)
+      ⟨≈⟩ map-arg k de
+
 ------------------------------------------------------------------------
 -- The refined answers
 
@@ -254,9 +269,6 @@ qb-mono le (N , q , e) = N , qbᵢ-mono _ _ _ le q , e
 -- the bare wire.  Nothing here unrolls a machine or touches the ⊕-trace.
 
 private
-  map-arg : {d e : Dₚ A′} (h : A′ → B′) → d ≈ₚ e → mapₚ h d ≈ₚ mapₚ h e
-  map-arg {d = d} {e} h de = >>=ₚ-cong d e (returnₚ ∘′ h) (returnₚ ∘′ h) de λ _ → ≈ₚ-refl _
-
   -- The bypassed interface can always afford its one downward relay.
   0<⊔1 : (c : ℕ) → 0 ℕ.< c ℕ.⊔ 1
   0<⊔1 c = m≤n⊔m c 1
@@ -334,10 +346,8 @@ module _ (Y A B : Iface) {c : ℕ} (f : Proc A B) (q : Certified c f) where
     relayed : {r r′ : ℕ} (le : r ℕ.≤ r′) (X : Dₚ (Ans Φ (Neg A) (Pos B) r))
               (t : Dₚ (MC.St f × (Neg A ⊎ Pos B))) → mapₚ forget X ≈ₚ t
             → mapₚ forget (mapₚ (liftT le) X) ≈ₚ mapₚ relayT t
-    relayed le X t coh = map-map X (liftT le) forget
-                   ⟨≈⟩ map-cong X (liftT-forget le)
-                   ⟨≈⟩ ≈ₚ-sym _ _ (map-map X forget relayT)
-                   ⟨≈⟩ map-arg relayT coh
+    relayed le X t coh = map-square X (liftT le) forget forget relayT
+                                    (liftT-forget le) coh
 
     certT : QBᵢ (MC.St f) (MC.point (MC.state f) tt) stepT (c ℕ.⊔ 1)
     certT = record
@@ -411,10 +421,8 @@ module _ (X Y A : Iface) {c : ℕ} (s : Proc X Y) (q : Certified c s) where
     relayedS : {r r′ : ℕ} (le : r ℕ.≤ r′) (Z : Dₚ (Ans Φ (Neg X) (Pos Y) r))
                (t : Dₚ (MC.St s × (Neg X ⊎ Pos Y))) → mapₚ forget Z ≈ₚ t
              → mapₚ forget (mapₚ (liftS le) Z) ≈ₚ mapₚ relayS t
-    relayedS le Z t coh = map-map Z (liftS le) forget
-                    ⟨≈⟩ map-cong Z (liftS-forget le)
-                    ⟨≈⟩ ≈ₚ-sym _ _ (map-map Z forget relayS)
-                    ⟨≈⟩ map-arg relayS coh
+    relayedS le Z t coh = map-square Z (liftS le) forget forget relayS
+                                     (liftS-forget le) coh
 
     certS : QBᵢ (MC.St s) (MC.point (MC.state s) tt) stepS (c ℕ.⊔ 1)
     certS = record
