@@ -60,30 +60,47 @@ adv f g d = ∣ Pr₁⊥ (run⊥ f d) -ℚ Pr₁⊥ (run⊥ g d) ∣ℚ
 ------------------------------------------------------------------------
 -- The partial run of an embedded total system is the embedded total run
 
-run⊥-embed-gen : (resp : St → Q → Dist-ℚ (St × R)) (s : St) (d : Strat Q R)
-               → runWith⊥ (λ s q → Dmap just (resp s q)) s d ≈Mℚ Dmap just (runWith resp s d)
-run⊥-embed-gen resp s (out b) = begin
+-- Along a state embedding: a partial kernel that is, on the image of `emb`,
+-- the embedded image of a total one runs like that total one at EVERY
+-- distinguisher.  The embedding is what lets a system carry ancillary state
+-- the total kernel does not (a protocol composite's second component, say).
+runWith⊥-emb : {Q R S T : Type}
+               (resp : S → Q → Dist-ℚ (S × R)) (resp⊥ : T → Q → Dist⊥ (T × R))
+               (emb : S → T)
+             → (∀ s q → resp⊥ (emb s) q
+                        ≈Mℚ (resp s q >>=ᴹ λ sr → return⊥ (emb (proj₁ sr) , proj₂ sr)))
+             → ∀ s d → runWith⊥ resp⊥ (emb s) d ≈Mℚ Dmap just (runWith resp s d)
+runWith⊥-emb resp resp⊥ emb ker s (out b) = begin
   return⊥ b                                  ≈˘⟨ >>=ᴹ-identityˡ b (return-ℚ ∘ just) ⟩
   Dmap just (return-ℚ b)                      ∎
   where open RS (Mℚ-setoid _)
-run⊥-embed-gen resp s (ask q k) = begin
-  (Dmap just (resp s q) >>=⊥ K⊥)
-    ≈⟨ >>=⊥-embed (resp s q) K⊥ ⟩
-  (resp s q >>=ᴹ K⊥)
-    ≈⟨ >>=ᴹ-cong {μ = resp s q} {resp s q} {K⊥} {λ sr → Dmap just (G sr)}
-         (λ P → refl) (λ sr → run⊥-embed-gen resp (proj₁ sr) (k (proj₂ sr))) ⟩
-  (resp s q >>=ᴹ (λ sr → Dmap just (G sr)))
+runWith⊥-emb {R = R} resp resp⊥ emb ker s (ask q k) = begin
+  (resp⊥ (emb s) q >>=⊥ K⊥)
+    ≈⟨ >>=⊥-congʳ K⊥ (resp⊥ (emb s) q) (resp s q >>=ᴹ Eret) (ker s q) ⟩
+  ((resp s q >>=ᴹ Eret) >>=⊥ K⊥)
+    ≈⟨ >>=ᴹ-assoc (resp s q) Eret (kmaybe K⊥) ⟩
+  (resp s q >>=ᴹ λ sr → (Eret sr >>=⊥ K⊥))
+    ≈⟨ >>=ᴹ-cong {μ = resp s q} {resp s q} {λ sr → Eret sr >>=⊥ K⊥}
+         {λ sr → Dmap just (G sr)} (λ P → refl)
+         (λ sr → Mℚ.trans {i = Eret sr >>=⊥ K⊥}
+                          {j = runWith⊥ resp⊥ (emb (proj₁ sr)) (k (proj₂ sr))}
+                          {k = Dmap just (G sr)}
+                   (>>=⊥-identityˡ (emb (proj₁ sr) , proj₂ sr) K⊥)
+                   (runWith⊥-emb resp resp⊥ emb ker (proj₁ sr) (k (proj₂ sr)))) ⟩
+  (resp s q >>=ᴹ λ sr → Dmap just (G sr))
     ≈˘⟨ >>=ᴹ-assoc (resp s q) G (return-ℚ ∘ just) ⟩
   Dmap just (resp s q >>=ᴹ G)
     ∎
   where
-    G  = λ sr → runWith resp (proj₁ sr) (k (proj₂ sr))
-    K⊥ = λ sr → runWith⊥ (λ s q → Dmap just (resp s q)) (proj₁ sr) (k (proj₂ sr))
+    Eret = λ (sr : _ × R) → return⊥ (emb (proj₁ sr) , proj₂ sr)
+    G    = λ sr → runWith resp (proj₁ sr) (k (proj₂ sr))
+    K⊥   = λ sr → runWith⊥ resp⊥ (proj₁ sr) (k (proj₂ sr))
     open RS (Mℚ-setoid _)
-run⊥-embed-gen resp s (coin μ k) = begin
-  (μ >>=ᴹ λ b → runWith⊥ (λ s q → Dmap just (resp s q)) s (k b))
-    ≈⟨ >>=ᴹ-cong {μ = μ} {μ} {λ b → runWith⊥ (λ s q → Dmap just (resp s q)) s (k b)}
-         {λ b → Dmap just (G b)} (λ P → refl) (λ b → run⊥-embed-gen resp s (k b)) ⟩
+runWith⊥-emb resp resp⊥ emb ker s (coin μ k) = begin
+  (μ >>=ᴹ λ b → runWith⊥ resp⊥ (emb s) (k b))
+    ≈⟨ >>=ᴹ-cong {μ = μ} {μ} {λ b → runWith⊥ resp⊥ (emb s) (k b)}
+         {λ b → Dmap just (G b)} (λ P → refl)
+         (λ b → runWith⊥-emb resp resp⊥ emb ker s (k b)) ⟩
   (μ >>=ᴹ λ b → Dmap just (G b))
     ≈˘⟨ >>=ᴹ-assoc μ G (return-ℚ ∘ just) ⟩
   Dmap just (μ >>=ᴹ G)
@@ -91,6 +108,10 @@ run⊥-embed-gen resp s (coin μ k) = begin
   where
     G = λ b → runWith resp s (k b)
     open RS (Mℚ-setoid _)
+
+run⊥-embed-gen : (resp : St → Q → Dist-ℚ (St × R)) (s : St) (d : Strat Q R)
+               → runWith⊥ (λ s q → Dmap just (resp s q)) s d ≈Mℚ Dmap just (runWith resp s d)
+run⊥-embed-gen resp = runWith⊥-emb resp (λ s q → Dmap just (resp s q)) id (λ _ _ P → refl)
 
 run⊥-embed : (h : SFunᵉ {M = Dist-ℚ} Q R) (d : Strat Q R) → run⊥ (embed⊥ h) d ≈Mℚ Dmap just (run h d)
 run⊥-embed h d = run⊥-embed-gen (λ s q → SFunᵉ.fun h (s , q)) (SFunᵉ.init h) d
