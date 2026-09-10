@@ -266,3 +266,33 @@ laws are free via `gradingᵗ` and `Dictionary`'s zigzags bridge the two reading
   for one G-record `_∘_` projection (`Wiring` 230 s, `Protocol.Machine.Compose`
   231 s, `Compose/Step` 721 s = same class + conversion). Opacity cannot bridge
   it; under-150 s for this class needs a new mechanism or an explicit exemption.
+
+## Addendum 6: both remaining perf items closed (2026-09-10)
+
+Addendum 5's "Owed / over the bar" section is fully resolved (merge `4ed9e9da`):
+
+1. **`Budget` at the machine model is a closed term** — `UC.Machine.Budget.budgetᴹ
+   : Budget (𝒢ₚ 0ℓ) gradingᴹ (suc 0ℓ)`. The generalization went through
+   `UC.QueryBound.Object`: `QBᴳ A B = QB {retᴵ A} {retᴵ B}` sealed `opaque`
+   (with `p = p` image bridges inside the unfolding block), so the existing
+   `Iface`-spelled API is byte-identical and the 𝒢-object spelling never
+   re-indexes during field checking.
+2. **The G-projection ceiling is retired, by opacity done right.**
+   `GConstruction._∘_` is now the opaque `composeᴳ`, with its defining equation
+   (`composeᴳ-raw`, by `refl` inside the block) exported as the ONE unfolding a
+   consumer applies. Addendum 5's "opacity cannot bridge it" was true of the old
+   layout (consumers consumed the unfolding); the fix makes them consume the
+   equation instead, and the concrete certificates (`Compose/Step`) work on the
+   raw trace form directly. The congruence residue is paid once, in
+   `Machines.Collapse.Congruence`. Measured warm after: `Compose/Step` 721 → 9 s,
+   `Wiring` 230 → 8 s, `Protocol.Machine.Compose` 231 → 10 s, `Compose/Laws`
+   11 s, `Congruence` 9 s — every module in the repo is under the 150 s bar.
+
+Restatements in the merge (definitional, never weakened): `BudgetLawsᴹ.qb-∘`
+states its composite in the trace spelling (the `𝒢._∘_` reading is recovered as
+the theorem `qb-∘-category`, and `qb-∘ᴳ` feeds `budgetᴹ`); `QB` stores the
+underlying machine equality (`S.≈ᴹ`) rather than projecting the definitionally
+identical relation from `𝒫ᴵ`; `EnvCtx.plugs` sits behind the opaque `EnvPlugs`
+with definitional to/from bridges. Deleted as unused: `Dictionary`'s four
+resp/id corollaries (`T₁-resp-≈ᴹ`, `T₁-idᴹ`, `sub-resp-≈ᴹ`, `sub-idᴹ`).
+`𝒫ᴵ` itself is now literally `Reindex.category (𝒢ₚ 0ℓ) ⟦_⟧ᴵ`. Hatches 21.
