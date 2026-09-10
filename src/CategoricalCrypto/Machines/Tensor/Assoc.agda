@@ -61,26 +61,29 @@ private variable A B C D E F X : Obj
 -- The only place a *state* interchange is needed: both sides pair the same two
 -- states, up to the two unitors that the one-sided halves' trivial factors
 -- contribute.
-⊗-split : (f : Machine A B) (g : Machine C D)
-        → (f ⊗ᵉ g) ≈ᴹ ((f ⊗ᵉ idᴹ {D}) ∘ᴹ (idᴹ {A} ⊗ᵉ g))
-⊗-split {A} {B} {C} {D} f g =
-  ≲⇒≈ᴹ˘ (sim (ρ⇒ ⊗₁ λ⇒) (pure-⊗₁ pure-ρ⇒ pure-λ⇒) dsc-u pt-u step-u)
-  where
-    dsc-u : discard (state f ⊛ state g) ∘ (ρ⇒ ⊗₁ λ⇒)
-          ≈ discard ((state f ⊛ Iˢ) ⊛ (Iˢ ⊛ state g))
-    dsc-u = assoc ○ (refl⟩∘⟨ ⟺ ⊗.homomorphism)
-          ○ (refl⟩∘⟨ (ρ-discard (state f) ⟩⊗⟨ λ-discard (state g)))
+opaque
+  unfolding _∘ᴹ_
 
-    pt-u : (ρ⇒ ⊗₁ λ⇒) ∘ point ((state f ⊛ Iˢ) ⊛ (Iˢ ⊛ state g)) ≈ point (state f ⊛ state g)
-    pt-u = ⊛-point₂ (state f ⊛ Iˢ) (state f) (Iˢ ⊛ state g) (state g)
-                    (ρ-point (state f)) (λ-point (state g))
+  ⊗-split : (f : Machine A B) (g : Machine C D)
+          → (f ⊗ᵉ g) ≈ᴹ ((f ⊗ᵉ idᴹ {D}) ∘ᴹ (idᴹ {A} ⊗ᵉ g))
+  ⊗-split {A} {B} {C} {D} f g =
+    ≲⇒≈ᴹ˘ (sim (ρ⇒ ⊗₁ λ⇒) (pure-⊗₁ pure-ρ⇒ pure-λ⇒) dsc-u pt-u step-u)
+    where
+      dsc-u : discard (state f ⊛ state g) ∘ (ρ⇒ ⊗₁ λ⇒)
+            ≈ discard ((state f ⊛ Iˢ) ⊛ (Iˢ ⊛ state g))
+      dsc-u = assoc ○ (refl⟩∘⟨ ⟺ ⊗.homomorphism)
+            ○ (refl⟩∘⟨ (ρ-discard (state f) ⟩⊗⟨ λ-discard (state g)))
 
-    step-u : (ρ⇒ ⊗₁ λ⇒) ⊗₁ id ∘ (onL (step (f ⊗ᵉ idᴹ {D})) ∘ onR (step (idᴹ {A} ⊗ᵉ g)))
-           ≈ step (f ⊗ᵉ g) ∘ (ρ⇒ ⊗₁ λ⇒) ⊗₁ id
-    step-u = (refl⟩∘⟨ ((onL-tstep ⟩∘⟨ onR-tstep) ○ tstep-∘
-                       ○ tstep-cong (elimʳ (onR-cong onL-id ○ onR-id))
-                                    (elimˡ (onL-cong onR-id ○ onL-id))))
-           ○ tstep-sim (onL-sim onL-collapseʳ) (onR-sim onR-collapseˡ)
+      pt-u : (ρ⇒ ⊗₁ λ⇒) ∘ point ((state f ⊛ Iˢ) ⊛ (Iˢ ⊛ state g)) ≈ point (state f ⊛ state g)
+      pt-u = ⊛-point₂ (state f ⊛ Iˢ) (state f) (Iˢ ⊛ state g) (state g)
+                      (ρ-point (state f)) (λ-point (state g))
+
+      step-u : (ρ⇒ ⊗₁ λ⇒) ⊗₁ id ∘ (onL (step (f ⊗ᵉ idᴹ {D})) ∘ onR (step (idᴹ {A} ⊗ᵉ g)))
+             ≈ step (f ⊗ᵉ g) ∘ (ρ⇒ ⊗₁ λ⇒) ⊗₁ id
+      step-u = (refl⟩∘⟨ ((onL-tstep ⟩∘⟨ onR-tstep) ○ tstep-∘
+                         ○ tstep-cong (elimʳ (onR-cong onL-id ○ onR-id))
+                                      (elimˡ (onL-cong onR-id ○ onL-id))))
+             ○ tstep-sim (onL-sim onL-collapseʳ) (onR-sim onR-collapseˡ)
 
 private
   -- Tensoring on the left is tensoring on the right, conjugated by the braiding.
@@ -102,12 +105,15 @@ private
 
 -- A one-sided homomorphism never re-brackets a state tree: both sides pair the
 -- same two states, and `tstep-∘` does the rest.
-⊗idᵉ-hom : (g : Machine B C) (f : Machine A B)
-         → ((g ∘ᴹ f) ⊗ᵉ idᴹ {D}) ≈ᴹ ((g ⊗ᵉ idᴹ {D}) ∘ᴹ (f ⊗ᵉ idᴹ {D}))
-⊗idᵉ-hom g f = ≲⇒≈ᴹ (⊗idᵉ-collapse (g ∘ᴹ f))
-             ○ᴹ ≲⇒≈ᴹ (mk-cong (⟺ ((onL-tstep ⟩∘⟨ onR-tstep) ○ tstep-∘
-                                  ○ tstep-cong refl ((onL-id ⟩∘⟨ onR-id) ○ identity²))))
-             ○ᴹ ⟺ᴹ (∘ᴹ-resp-≈ᴹ (≲⇒≈ᴹ (⊗idᵉ-collapse g)) (≲⇒≈ᴹ (⊗idᵉ-collapse f)))
+opaque
+  unfolding _∘ᴹ_
+
+  ⊗idᵉ-hom : (g : Machine B C) (f : Machine A B)
+           → ((g ∘ᴹ f) ⊗ᵉ idᴹ {D}) ≈ᴹ ((g ⊗ᵉ idᴹ {D}) ∘ᴹ (f ⊗ᵉ idᴹ {D}))
+  ⊗idᵉ-hom g f = ≲⇒≈ᴹ (⊗idᵉ-collapse (g ∘ᴹ f))
+               ○ᴹ ≲⇒≈ᴹ (mk-cong (⟺ ((onL-tstep ⟩∘⟨ onR-tstep) ○ tstep-∘
+                                    ○ tstep-cong refl ((onL-id ⟩∘⟨ onR-id) ○ identity²))))
+               ○ᴹ ⟺ᴹ (∘ᴹ-resp-≈ᴹ (≲⇒≈ᴹ (⊗idᵉ-collapse g)) (≲⇒≈ᴹ (⊗idᵉ-collapse f)))
 
 id⊗ᵉ-hom : (g : Machine C D) (f : Machine B C)
          → (idᴹ {A} ⊗ᵉ (g ∘ᴹ f)) ≈ᴹ ((idᴹ {A} ⊗ᵉ g) ∘ᴹ (idᴹ {A} ⊗ᵉ f))

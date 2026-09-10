@@ -9,9 +9,10 @@
 -- of `Pos unitᴵ = ⊥` are written as such.  What is left to dispatch is the
 -- environment's tick, the process's answer, and the environment's answer.
 --
--- Measured cost: 282 s warm, essentially all of it projecting `_∘_` out of
--- `𝒢ₚ`'s G-construction record; 301 s before this module was cut down to the
--- shape-specific part, so the relocation is cost-neutral.
+-- `plugˢ` uses the composite's canonical collapsed representative, avoiding the
+-- otherwise dominant conversion back from the G-category's `_∘_` projection.
+-- Measured warm cost: 9.9 s, down from 87 s for the named raw composite and
+-- 282 s for the projected category composite.
 
 open import Categories.Category
 
@@ -44,7 +45,6 @@ private
   module MT = Trace (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
   module S  = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
   module TC = TraceCong (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
-  module 𝒫  = Category 𝒫ᴵ
 
 ------------------------------------------------------------------------
 -- The collapsed step
@@ -94,7 +94,6 @@ private
                    (_ , inj₂ _) → ≈refl)
 
 compose-≈ᴹ : (B : Iface) (d : Strat (Neg B) (Pos B)) (u : Proc unitᴵ B)
-           → (strategyEnv B d 𝒫.∘ u) S.≈ᴹ pairedᴹ B d u
+           → plugˢ B d u S.≈ᴹ pairedᴹ B d u
 compose-≈ᴹ B d u =
-       Col.collapseᵀ {⊥} {⊥} {Pos B} {Neg B} {Bool} {⊤} (strategyEnv B d) u
-  S.○ᴹ S.≲⇒≈ᴹ (TC.trace-resp-≲ (S.mk-cong (kᴳ-kᵂ B d u)))
+  S.≲⇒≈ᴹ (TC.trace-resp-≲ (S.mk-cong (kᴳ-kᵂ B d u)))

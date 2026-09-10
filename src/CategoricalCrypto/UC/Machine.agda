@@ -71,21 +71,29 @@ Proc A B = 𝒢ₚ 0ℓ [ ⟦ A ⟧ᴵ , ⟦ B ⟧ᴵ ]
 -- `(Pos A , Neg B)`, and `_+_` is not a constructor: the resulting
 -- normalization of `𝒢ₚ` — which carries the whole Elgot instance under it —
 -- exhausts a 10 GiB heap.
+private
+  module Reindex (𝒞 : Category (suc 0ℓ) (suc 0ℓ) (suc 0ℓ))
+                 (F : Iface → Category.Obj 𝒞) where
+    module 𝒞 = Category 𝒞
+
+    category : Category (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)
+    category = record
+      { Obj       = Iface
+      ; _⇒_       = λ A B → 𝒞 [ F A , F B ]
+      ; _≈_       = λ {A} {B} → 𝒞._≈_ {F A} {F B}
+      ; id        = λ {A} → 𝒞.id {F A}
+      ; _∘_       = λ {A} {B} {C} → 𝒞._∘_ {F A} {F B} {F C}
+      ; assoc     = λ {A} {B} {C} {D} → 𝒞.assoc {F A} {F B} {F C} {F D}
+      ; sym-assoc = λ {A} {B} {C} {D} → 𝒞.sym-assoc {F A} {F B} {F C} {F D}
+      ; identityˡ = λ {A} {B} → 𝒞.identityˡ {F A} {F B}
+      ; identityʳ = λ {A} {B} → 𝒞.identityʳ {F A} {F B}
+      ; identity² = λ {A} → 𝒞.identity² {F A}
+      ; equiv     = λ {A} {B} → 𝒞.equiv {F A} {F B}
+      ; ∘-resp-≈  = λ {A} {B} {C} → 𝒞.∘-resp-≈ {F A} {F B} {F C}
+      }
+
 𝒫ᴵ : Category (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)
-𝒫ᴵ = record
-  { Obj       = Iface
-  ; _⇒_       = Proc
-  ; _≈_       = λ {A} {B} → 𝒢._≈_ {⟦ A ⟧ᴵ} {⟦ B ⟧ᴵ}
-  ; id        = λ {A} → 𝒢.id {⟦ A ⟧ᴵ}
-  ; _∘_       = λ {A} {B} {C} → 𝒢._∘_ {⟦ A ⟧ᴵ} {⟦ B ⟧ᴵ} {⟦ C ⟧ᴵ}
-  ; assoc     = λ {A} {B} {C} {D} → 𝒢.assoc {⟦ A ⟧ᴵ} {⟦ B ⟧ᴵ} {⟦ C ⟧ᴵ} {⟦ D ⟧ᴵ}
-  ; sym-assoc = λ {A} {B} {C} {D} → 𝒢.sym-assoc {⟦ A ⟧ᴵ} {⟦ B ⟧ᴵ} {⟦ C ⟧ᴵ} {⟦ D ⟧ᴵ}
-  ; identityˡ = λ {A} {B} → 𝒢.identityˡ {⟦ A ⟧ᴵ} {⟦ B ⟧ᴵ}
-  ; identityʳ = λ {A} {B} → 𝒢.identityʳ {⟦ A ⟧ᴵ} {⟦ B ⟧ᴵ}
-  ; identity² = λ {A} → 𝒢.identity² {⟦ A ⟧ᴵ}
-  ; equiv     = λ {A} {B} → 𝒢.equiv {⟦ A ⟧ᴵ} {⟦ B ⟧ᴵ}
-  ; ∘-resp-≈  = λ {A} {B} {C} → 𝒢.∘-resp-≈ {⟦ A ⟧ᴵ} {⟦ B ⟧ᴵ} {⟦ C ⟧ᴵ}
-  }
+𝒫ᴵ = Reindex.category (𝒢ₚ 0ℓ) ⟦_⟧ᴵ
 
 private module 𝒫 = Category 𝒫ᴵ
 

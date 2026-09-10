@@ -37,40 +37,43 @@ open import Categories.Morphism.Reasoning U
 
 private variable A B C D : Obj
 
-assoc-∘ᴹ : {f : Machine A B} {g : Machine B C} {h : Machine C D}
-         → ((h ∘ᴹ g) ∘ᴹ f) ≲ (h ∘ᴹ (g ∘ᴹ f))
-assoc-∘ᴹ {f = f} {g} {h} = sim α⇒ pure-α⇒
-  (⊛-assoc-discard (state h) (state g) (state f))
-  (⊛-assoc-point (state h) (state g) (state f))
-  ( (refl⟩∘⟨ (onL-∘ ⟩∘⟨refl))
-  ○ (refl⟩∘⟨ assoc)
-  ○ pullˡ (onL-α (step h))
-  ○ assoc
-  ○ (refl⟩∘⟨ pullˡ (onLR-α (step g)))
-  ○ (refl⟩∘⟨ assoc)
-  ○ (refl⟩∘⟨ (refl⟩∘⟨ onR-α (step f)))
-  ○ (refl⟩∘⟨ sym-assoc)
-  ○ (refl⟩∘⟨ ((⟺ onRᵍ-∘) ⟩∘⟨refl))
-  ○ sym-assoc )
+opaque
+  unfolding _∘ᴹ_
 
-identityˡ-∘ᴹ : {f : Machine A B} → (idᴹ ∘ᴹ f) ≲ f
-identityˡ-∘ᴹ = collapseˡ ((refl⟩∘⟨ ((onL-id ⟩∘⟨refl) ○ identityˡ)) ○ onR-collapseˡ)
+  assoc-∘ᴹ : {f : Machine A B} {g : Machine B C} {h : Machine C D}
+           → ((h ∘ᴹ g) ∘ᴹ f) ≲ (h ∘ᴹ (g ∘ᴹ f))
+  assoc-∘ᴹ {f = f} {g} {h} = sim α⇒ pure-α⇒
+    (⊛-assoc-discard (state h) (state g) (state f))
+    (⊛-assoc-point (state h) (state g) (state f))
+    ( (refl⟩∘⟨ (onL-∘ ⟩∘⟨refl))
+    ○ (refl⟩∘⟨ assoc)
+    ○ pullˡ (onL-α (step h))
+    ○ assoc
+    ○ (refl⟩∘⟨ pullˡ (onLR-α (step g)))
+    ○ (refl⟩∘⟨ assoc)
+    ○ (refl⟩∘⟨ (refl⟩∘⟨ onR-α (step f)))
+    ○ (refl⟩∘⟨ sym-assoc)
+    ○ (refl⟩∘⟨ ((⟺ onRᵍ-∘) ⟩∘⟨refl))
+    ○ sym-assoc )
 
-identityʳ-∘ᴹ : {f : Machine A B} → (f ∘ᴹ idᴹ) ≲ f
-identityʳ-∘ᴹ = collapseʳ ((refl⟩∘⟨ ((refl⟩∘⟨ onR-id) ○ identityʳ)) ○ onL-collapseʳ)
+  identityˡ-∘ᴹ : {f : Machine A B} → (idᴹ ∘ᴹ f) ≲ f
+  identityˡ-∘ᴹ = collapseˡ ((refl⟩∘⟨ ((onL-id ⟩∘⟨refl) ○ identityˡ)) ○ onR-collapseˡ)
 
-∘ᴹ-resp-≲ : {f h : Machine B C} {g i : Machine A B}
-          → f ≲ h → g ≲ i → (f ∘ᴹ g) ≲ (h ∘ᴹ i)
-∘ᴹ-resp-≲ {f = f} {h} {g} {i} u v = record
-  { θ         = θ u ⊗₁ θ v
-  ; θ-pure    = pure-⊗₁ (θ-pure u) (θ-pure v)
-  ; θ-discard = ⊛-discard₂ (state f) (state h) (state g) (state i)
-                           (θ-discard u) (θ-discard v)
-  ; θ-point   = ⊛-point₂ (state f) (state h) (state g) (state i)
-                         (θ-point u) (θ-point v)
-  ; θ-step    = pullˡ (onL-sim (θ-step u)) ○ assoc
-              ○ (refl⟩∘⟨ onR-sim (θ-step v)) ○ sym-assoc
-  }
+  identityʳ-∘ᴹ : {f : Machine A B} → (f ∘ᴹ idᴹ) ≲ f
+  identityʳ-∘ᴹ = collapseʳ ((refl⟩∘⟨ ((refl⟩∘⟨ onR-id) ○ identityʳ)) ○ onL-collapseʳ)
+
+  ∘ᴹ-resp-≲ : {f h : Machine B C} {g i : Machine A B}
+            → f ≲ h → g ≲ i → (f ∘ᴹ g) ≲ (h ∘ᴹ i)
+  ∘ᴹ-resp-≲ {f = f} {h} {g} {i} u v = record
+    { θ         = θ u ⊗₁ θ v
+    ; θ-pure    = pure-⊗₁ (θ-pure u) (θ-pure v)
+    ; θ-discard = ⊛-discard₂ (state f) (state h) (state g) (state i)
+                             (θ-discard u) (θ-discard v)
+    ; θ-point   = ⊛-point₂ (state f) (state h) (state g) (state i)
+                           (θ-point u) (θ-point v)
+    ; θ-step    = pullˡ (onL-sim (θ-step u)) ○ assoc
+                ○ (refl⟩∘⟨ onR-sim (θ-step v)) ○ sym-assoc
+    }
 
 Mealy-Category : Category o (o ⊔ ℓ) (o ⊔ ℓ ⊔ e)
 Mealy-Category = categoryHelperᵉ record

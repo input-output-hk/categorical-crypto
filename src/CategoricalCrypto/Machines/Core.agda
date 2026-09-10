@@ -96,5 +96,8 @@ idᴹ = mk Iˢ id
 
 infixr 9 _∘ᴹ_
 
-_∘ᴹ_ : Machine B P → Machine A B → Machine A P
-g ∘ᴹ f = mk (state g ⊛ state f) (onL (step g) ∘ onR (step f))
+-- Keep composite endpoints nominal during conversion.  The few laws that read
+-- the paired state or step opt in with `unfolding _∘ᴹ_`.
+opaque
+  _∘ᴹ_ : Machine B P → Machine A B → Machine A P
+  g ∘ᴹ f = mk (state g ⊛ state f) (onL (step g) ∘ onR (step f))

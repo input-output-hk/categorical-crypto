@@ -25,6 +25,7 @@ open import Categories.Category.Monoidal
 open import Categories.Category.Monoidal.Bundle
 open import Categories.Category.Monoidal.Traced
 open import Categories.GConstruction
+import Categories.GConstruction as GC
 
 open import Data.Product
 
@@ -84,25 +85,28 @@ module Embed {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Trac
     ⌜⌝-id : ∀ {A⁺ A⁻ : C.Obj} → ⌜ C.id {A⁺} , C.id {A⁻} ⌝ C.≈ G.id {A⁺ , A⁻}
     ⌜⌝-id = C.elimʳ C.⊗.identity
 
-    absorbˡ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : C.Obj} {u : B⁺ C.⇒ D⁺} {v : D⁻ C.⇒ B⁻}
-                {g : A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺} →
-              G._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {D⁺ , D⁻} ⌜ u , v ⌝ g
-                C.≈ C.id C.⊗₁ u C.∘ g C.∘ C.id C.⊗₁ v
-    absorbˡ {A⁺} {A⁻} {B⁺} {B⁻} {D⁺} {D⁻} {u} {v} {g} =
-      trace-resp-≈ (ECoh.L.Transport.WithGens.AL Cˢ A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ g u v)
-      ○ ⟺ trace-∘ˡ
-      ○ (refl⟩∘⟨ ⟺ trace-∘ʳ)
-      ○ (refl⟩∘⟨ (G.identityˡ ⟩∘⟨refl))
+    opaque
+      unfolding GC.composeᴳ
 
-    absorbʳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : C.Obj} {p : A⁺ C.⇒ B⁺} {q : B⁻ C.⇒ A⁻}
-                {f : B⁺ C.⊗₀ D⁻ C.⇒ B⁻ C.⊗₀ D⁺} →
-              G._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {D⁺ , D⁻} f ⌜ p , q ⌝
-                C.≈ q C.⊗₁ C.id C.∘ f C.∘ p C.⊗₁ C.id
-    absorbʳ {A⁺} {A⁻} {B⁺} {B⁻} {D⁺} {D⁻} {p} {q} {f} =
-      trace-resp-≈ (ECoh.R.Transport.WithGens.AR Cˢ A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ f p q)
-      ○ ⟺ trace-∘ˡ
-      ○ (refl⟩∘⟨ ⟺ trace-∘ʳ)
-      ○ (refl⟩∘⟨ (G.identityʳ ⟩∘⟨refl))
+      absorbˡ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : C.Obj} {u : B⁺ C.⇒ D⁺} {v : D⁻ C.⇒ B⁻}
+                  {g : A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺} →
+                G._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {D⁺ , D⁻} ⌜ u , v ⌝ g
+                  C.≈ C.id C.⊗₁ u C.∘ g C.∘ C.id C.⊗₁ v
+      absorbˡ {A⁺} {A⁻} {B⁺} {B⁻} {D⁺} {D⁻} {u} {v} {g} =
+        trace-resp-≈ (ECoh.L.Transport.WithGens.AL Cˢ A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ g u v)
+        ○ ⟺ trace-∘ˡ
+        ○ (refl⟩∘⟨ ⟺ trace-∘ʳ)
+        ○ (refl⟩∘⟨ (G.identityˡ ⟩∘⟨refl))
+
+      absorbʳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : C.Obj} {p : A⁺ C.⇒ B⁺} {q : B⁻ C.⇒ A⁻}
+                  {f : B⁺ C.⊗₀ D⁻ C.⇒ B⁻ C.⊗₀ D⁺} →
+                G._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {D⁺ , D⁻} f ⌜ p , q ⌝
+                  C.≈ q C.⊗₁ C.id C.∘ f C.∘ p C.⊗₁ C.id
+      absorbʳ {A⁺} {A⁻} {B⁺} {B⁻} {D⁺} {D⁻} {p} {q} {f} =
+        trace-resp-≈ (ECoh.R.Transport.WithGens.AR Cˢ A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ f p q)
+        ○ ⟺ trace-∘ˡ
+        ○ (refl⟩∘⟨ ⟺ trace-∘ʳ)
+        ○ (refl⟩∘⟨ (G.identityʳ ⟩∘⟨refl))
 
     -- Embedding is functorial: contravariant on the negative polarity.
     ⌜⌝-∘ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : C.Obj} {u : B⁺ C.⇒ D⁺} {v : D⁻ C.⇒ B⁻}

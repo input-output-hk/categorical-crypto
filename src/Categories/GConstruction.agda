@@ -48,6 +48,20 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
 
   open W using (α; β; γ)
 
+  _⇒ᴳ_ : C.Obj × C.Obj → C.Obj × C.Obj → Set b
+  (A⁺ , A⁻) ⇒ᴳ (B⁺ , B⁻) = A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺
+
+  opaque
+    composeᴳ : ∀ {A B D} → B ⇒ᴳ D → A ⇒ᴳ B → A ⇒ᴳ D
+    composeᴳ f g = C.trace (α C.∘ f C.⊗₁ g C.∘ γ)
+
+  opaque
+    unfolding composeᴳ
+
+    composeᴳ-raw : ∀ {A B D} {f : B ⇒ᴳ D} {g : A ⇒ᴳ B} →
+                   composeᴳ f g C.≈ C.trace (α C.∘ f C.⊗₁ g C.∘ γ)
+    composeᴳ-raw = C.Equiv.refl
+
   -- Trace properties needed for the G-construction, taken as HYPOTHESES — the
   -- `module _` below makes all four parameters the caller discharges:
   --   trace-resp-≈ : congruence (trace is a setoid morphism)
@@ -70,15 +84,15 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
     GConstruction : Category a b c
     GConstruction = categoryHelper record
       { Obj = C.Obj × C.Obj
-      ; _⇒_ = λ where (A⁺ , A⁻) (B⁺ , B⁻) → A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺
+      ; _⇒_ = _⇒ᴳ_
       ; _≈_ = C._≈_
       ; id = C.σ⇒
-      ; _∘_ = λ f g → C.trace (α C.∘ f C.⊗₁ g C.∘ γ)
+      ; _∘_ = composeᴳ
       ; assoc = assoc'
       ; identityˡ = identityˡ'
       ; identityʳ = identityʳ'
       ; equiv = C.equiv
-      ; ∘-resp-≈ = λ p q → trace-resp-≈ (refl⟩∘⟨ ((p C.⟩⊗⟨ q) ⟩∘⟨refl))
+      ; ∘-resp-≈ = compose-resp-≈
       }
       where
         open C.HomReasoning
@@ -91,10 +105,10 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
         -- then collapse with trace-∘ˡ/∘ʳ + superposing + yanking.
 
         -- identityˡ: id ∘G f ≈ f, i.e. trace(α ∘ σ⇒ ⊗₁ f ∘ γ) ≈ f
-        identityˡ' : ∀ {A B : C.Obj × C.Obj}
-                       {f : proj₁ A C.⊗₀ proj₂ B C.⇒ proj₂ A C.⊗₀ proj₁ B} →
-                     C.trace (α C.∘ C.σ⇒ C.⊗₁ f C.∘ γ) C.≈ f
-        identityˡ' {A} {B} {f} =
+        identityˡ-raw : ∀ {A B : C.Obj × C.Obj}
+                          {f : proj₁ A C.⊗₀ proj₂ B C.⇒ proj₂ A C.⊗₀ proj₁ B} →
+                        C.trace (α C.∘ C.σ⇒ C.⊗₁ f C.∘ γ) C.≈ f
+        identityˡ-raw {A} {B} {f} =
           ⟺ (C.vanishing₂ {X = proj₂ B} {Y = proj₁ B})
           ○ trace-resp-≈ (trace-resp-≈ ICW.C1L ○ ⟺ trace-∘ʳ
                           ○ (trace-gyank ⟩∘⟨refl) ○ ICW.C3L)
@@ -104,10 +118,10 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
               (proj₁ A) (proj₂ A) (proj₁ B) (proj₂ B) (proj₁ A) f
 
         -- identityʳ: f ∘G id ≈ f, i.e. trace(α ∘ f ⊗₁ σ⇒ ∘ γ) ≈ f
-        identityʳ' : ∀ {A B : C.Obj × C.Obj}
-                       {f : proj₁ A C.⊗₀ proj₂ B C.⇒ proj₂ A C.⊗₀ proj₁ B} →
-                     C.trace (α C.∘ f C.⊗₁ C.σ⇒ C.∘ γ) C.≈ f
-        identityʳ' {A} {B} {f} =
+        identityʳ-raw : ∀ {A B : C.Obj × C.Obj}
+                          {f : proj₁ A C.⊗₀ proj₂ B C.⇒ proj₂ A C.⊗₀ proj₁ B} →
+                        C.trace (α C.∘ f C.⊗₁ C.σ⇒ C.∘ γ) C.≈ f
+        identityʳ-raw {A} {B} {f} =
           ⟺ (C.vanishing₂ {X = proj₂ A} {Y = proj₁ A})
           ○ trace-resp-≈ (trace-resp-≈ ICW.C1R ○ ⟺ trace-∘ˡ
                           ○ (refl⟩∘⟨ (⟺ trace-∘ʳ ○ C.elimˡ trace-βyank))
@@ -119,13 +133,13 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
               (proj₁ A) (proj₂ A) (proj₁ B) (proj₂ B) (proj₁ A) f
 
         -- Associativity
-        assoc' : ∀ {A B D E : C.Obj × C.Obj}
-                   {f : proj₁ A C.⊗₀ proj₂ B C.⇒ proj₂ A C.⊗₀ proj₁ B}
-                   {g : proj₁ B C.⊗₀ proj₂ D C.⇒ proj₂ B C.⊗₀ proj₁ D}
-                   {h : proj₁ D C.⊗₀ proj₂ E C.⇒ proj₂ D C.⊗₀ proj₁ E} →
-                   C.trace (α C.∘ C.trace (α C.∘ h C.⊗₁ g C.∘ γ) C.⊗₁ f C.∘ γ) C.≈
-                   C.trace (α C.∘ h C.⊗₁ C.trace (α C.∘ g C.⊗₁ f C.∘ γ) C.∘ γ)
-        assoc' {A⁺ , A⁻} {B⁺ , B⁻} {D⁺ , D⁻} {E⁺ , E⁻} {f} {g} {h} = begin
+        assoc-raw : ∀ {A B D E : C.Obj × C.Obj}
+                      {f : proj₁ A C.⊗₀ proj₂ B C.⇒ proj₂ A C.⊗₀ proj₁ B}
+                      {g : proj₁ B C.⊗₀ proj₂ D C.⇒ proj₂ B C.⊗₀ proj₁ D}
+                      {h : proj₁ D C.⊗₀ proj₂ E C.⇒ proj₂ D C.⊗₀ proj₁ E} →
+                      C.trace (α C.∘ C.trace (α C.∘ h C.⊗₁ g C.∘ γ) C.⊗₁ f C.∘ γ) C.≈
+                      C.trace (α C.∘ h C.⊗₁ C.trace (α C.∘ g C.⊗₁ f C.∘ γ) C.∘ γ)
+        assoc-raw {A⁺ , A⁻} {B⁺ , B⁻} {D⁺ , D⁻} {E⁺ , E⁻} {f} {g} {h} = begin
           -- LHS: trace_B(α ∘ trace_D(m) ⊗₁ f ∘ γ)
           C.trace (α C.∘ C.trace m C.⊗₁ f C.∘ γ)
             -- 1-2. serialize + reassociate: trace(m) ⊗₁ f ∘ γ
@@ -181,3 +195,19 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
             assoc'-coherence =
               GCoh.Transport.WithGens.coherence Cˢ A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ f g h
 
+        opaque
+          unfolding composeᴳ
+
+          compose-resp-≈ : ∀ {A B D} {f h : B ⇒ᴳ D} {g i : A ⇒ᴳ B}
+                         → f C.≈ h → g C.≈ i → composeᴳ f g C.≈ composeᴳ h i
+          compose-resp-≈ p q = trace-resp-≈ (refl⟩∘⟨ ((p C.⟩⊗⟨ q) ⟩∘⟨refl))
+
+          identityˡ' : ∀ {A B} {f : A ⇒ᴳ B} → composeᴳ C.σ⇒ f C.≈ f
+          identityˡ' = identityˡ-raw
+
+          identityʳ' : ∀ {A B} {f : A ⇒ᴳ B} → composeᴳ f C.σ⇒ C.≈ f
+          identityʳ' = identityʳ-raw
+
+          assoc' : ∀ {A B D E} {f : A ⇒ᴳ B} {g : B ⇒ᴳ D} {h : D ⇒ᴳ E}
+                 → composeᴳ (composeᴳ h g) f C.≈ composeᴳ h (composeᴳ g f)
+          assoc' = assoc-raw

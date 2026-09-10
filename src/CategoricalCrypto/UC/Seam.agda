@@ -52,6 +52,7 @@
 open import Categories.Category
 
 open import Data.Bool.Base
+open import Data.Empty using (⊥)
 open import Data.Nat.Base
 open import Data.Product.Base
 open import Data.Rational as ℚ
@@ -73,6 +74,7 @@ open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 
 import CategoricalCrypto.Machines.Core as Core
+import CategoricalCrypto.Machines.Collapse as Col
 
 module CategoricalCrypto.UC.Seam where
 
@@ -115,8 +117,13 @@ module _ (B : Iface) where
 
 -- The two observations of a closed process the seam compares — under an
 -- embedded strategy as an environment, and under layer 1's own run.
+plugˢ : (B : Iface) → Strat (Neg B) (Pos B) → Proc unitᴵ B → Proc unitᴵ Ωᴵ
+plugˢ B d u =
+  Col.MT.traceᴹ (⊥ ⊎ ⊤) (⊥ ⊎ Bool) (Neg B ⊎ Pos B)
+    (Col.MC.mk (Col.Sᴳ (strategyEnv B d) u) (Col.kᴳ (strategyEnv B d) u))
+
 ctxRunˢ : (B : Iface) → Strat (Neg B) (Pos B) → Proc unitᴵ B → Dₚ Bool
-ctxRunˢ B d u = ⟦ strategyEnv B d 𝒫.∘ u ⟧ᴼ
+ctxRunˢ B d u = ⟦ plugˢ B d u ⟧ᴼ
 
 runˢ : (B : Iface) → Proc unitᴵ B → Strat (Neg B) (Pos B) → Dₚ Bool
 runˢ B u d = runᴹ u d

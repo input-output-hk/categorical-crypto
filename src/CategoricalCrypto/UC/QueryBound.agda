@@ -45,16 +45,19 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import ProbabilisticLogic.Dp
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Machines.Base using (𝒱ₚ)
+open import CategoricalCrypto.Machines.Base using (𝒱ₚ; 𝒫ₚ)
 open import CategoricalCrypto.UC.Machine
   using (Proc; 𝒫ᴵ; T₁ᴵ; subᴵ; a⇒ᴵ; a⇐ᴵ; wireStep; ⊤ᵛ)
 
 import CategoricalCrypto.Machines.Core as Core
+import CategoricalCrypto.Machines.Collapse as Col
+import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.UC.QueryBound where
 
 private
   module MC = Core (𝒱ₚ 0ℓ)
+  module S = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
   module 𝒫 = Category 𝒫ᴵ
 
   variable A′ B′ C′ : Set
@@ -79,6 +82,21 @@ private
   map-cong : (d : Dₚ A′) {h k : A′ → B′}
            → ((a : A′) → h a ≡ k a) → mapₚ h d ≈ₚ mapₚ k d
   map-cong d eq = bindᶠ (λ a → return-≡ (eq a))
+
+  map-arg : {d e : Dₚ A′} (h : A′ → B′) → d ≈ₚ e → mapₚ h d ≈ₚ mapₚ h e
+  map-arg {d = d} {e} h de = >>=ₚ-cong d e (returnₚ ∘′ h) (returnₚ ∘′ h) de λ _ → ≈ₚ-refl _
+
+  -- Reuse this map-law chain without normalizing it into each certificate.
+  opaque
+    map-square : {A B C D : Set} (d : Dₚ A) (h : A → B) (f : A → C)
+                 (g : B → D) (k : C → D)
+               → ((a : A) → g (h a) ≡ k (f a))
+               → {e : Dₚ C} → mapₚ f d ≈ₚ e
+               → mapₚ g (mapₚ h d) ≈ₚ mapₚ k e
+    map-square d h f g k commute de = map-map d h g
+      ⟨≈⟩ map-cong d commute
+      ⟨≈⟩ ≈ₚ-sym _ _ (map-map d f k)
+      ⟨≈⟩ map-arg k de
 
 ------------------------------------------------------------------------
 -- The refined answers
@@ -223,16 +241,18 @@ Certified c M = QBᵢ (MC.St M) (MC.point (MC.state M) tt) (MC.step M) c
 -- other's states outside its image, and none can be pulled back for want of a
 -- right inverse.  The hom-level predicate is therefore the `≈`-closure, which
 -- makes `qb-resp-≈` hold by construction and identifies nothing a test can tell
--- apart (`UC.Machine.Run.runᴹ-resp-≈ᴹ`).
+-- apart (`UC.Machine.Run.runᴹ-resp-≈ᴹ`).  Store that underlying machine
+-- equality directly: projecting the definitionally identical relation from
+-- `𝒫ᴵ` forces the whole G-construction record at composite witnesses.
 QB : {A B : Iface} → ℕ → Proc A B → Set₁
-QB {A} {B} c M = Σ[ N ∈ Proc A B ] Certified c N × 𝒫ᴵ [ N ≈ M ]
+QB {A} {B} c M = Σ[ N ∈ Proc A B ] Certified c N × (N S.≈ᴹ M)
 
 certified⇒QB : {A B : Iface} {c : ℕ} {M : Proc A B} → Certified c M → QB c M
-certified⇒QB {M = M} q = M , q , 𝒫.Equiv.refl
+certified⇒QB {M = M} q = M , q , S.reflᴹ
 
 qb-resp-≈ : {A B : Iface} {c : ℕ} {M N : Proc A B}
-          → 𝒫ᴵ [ M ≈ N ] → QB c M → QB c N
-qb-resp-≈ e (P , q , e′) = P , q , 𝒫.Equiv.trans e′ e
+          → M S.≈ᴹ N → QB c M → QB c N
+qb-resp-≈ e (P , q , e′) = P , q , e′ S.○ᴹ e
 
 qb-mono : {A B : Iface} {c c′ : ℕ} {M : Proc A B} → c ℕ.≤ c′ → QB c M → QB c′ M
 qb-mono le (N , q , e) = N , qbᵢ-mono _ _ _ le q , e
@@ -249,9 +269,6 @@ qb-mono le (N , q , e) = N , qbᵢ-mono _ _ _ le q , e
 -- the bare wire.  Nothing here unrolls a machine or touches the ⊕-trace.
 
 private
-  map-arg : {d e : Dₚ A′} (h : A′ → B′) → d ≈ₚ e → mapₚ h d ≈ₚ mapₚ h e
-  map-arg {d = d} {e} h de = >>=ₚ-cong d e (returnₚ ∘′ h) (returnₚ ∘′ h) de λ _ → ≈ₚ-refl _
-
   -- The bypassed interface can always afford its one downward relay.
   0<⊔1 : (c : ℕ) → 0 ℕ.< c ℕ.⊔ 1
   0<⊔1 c = m≤n⊔m c 1
@@ -329,10 +346,8 @@ module _ (Y A B : Iface) {c : ℕ} (f : Proc A B) (q : Certified c f) where
     relayed : {r r′ : ℕ} (le : r ℕ.≤ r′) (X : Dₚ (Ans Φ (Neg A) (Pos B) r))
               (t : Dₚ (MC.St f × (Neg A ⊎ Pos B))) → mapₚ forget X ≈ₚ t
             → mapₚ forget (mapₚ (liftT le) X) ≈ₚ mapₚ relayT t
-    relayed le X t coh = map-map X (liftT le) forget
-                   ⟨≈⟩ map-cong X (liftT-forget le)
-                   ⟨≈⟩ ≈ₚ-sym _ _ (map-map X forget relayT)
-                   ⟨≈⟩ map-arg relayT coh
+    relayed le X t coh = map-square X (liftT le) forget forget relayT
+                                    (liftT-forget le) coh
 
     certT : QBᵢ (MC.St f) (MC.point (MC.state f) tt) stepT (c ℕ.⊔ 1)
     certT = record
@@ -406,10 +421,8 @@ module _ (X Y A : Iface) {c : ℕ} (s : Proc X Y) (q : Certified c s) where
     relayedS : {r r′ : ℕ} (le : r ℕ.≤ r′) (Z : Dₚ (Ans Φ (Neg X) (Pos Y) r))
                (t : Dₚ (MC.St s × (Neg X ⊎ Pos Y))) → mapₚ forget Z ≈ₚ t
              → mapₚ forget (mapₚ (liftS le) Z) ≈ₚ mapₚ relayS t
-    relayedS le Z t coh = map-map Z (liftS le) forget
-                    ⟨≈⟩ map-cong Z (liftS-forget le)
-                    ⟨≈⟩ ≈ₚ-sym _ _ (map-map Z forget relayS)
-                    ⟨≈⟩ map-arg relayS coh
+    relayedS le Z t coh = map-square Z (liftS le) forget forget relayS
+                                     (liftS-forget le) coh
 
     certS : QBᵢ (MC.St s) (MC.point (MC.state s) tt) stepS (c ℕ.⊔ 1)
     certS = record
@@ -458,7 +471,7 @@ qb-T₁ᴹ : ({Y A B : Iface} {f g : Proc A B} → 𝒫ᴵ [ f ≈ g ] → 𝒫�
 qb-T₁ᴹ resp Y A B f (N , cert , e) = T₁ᴵ Y N , qbᵢ-T₁ Y A B N cert , resp e
 
 qb-subᴹ : ({X Y A : Iface} {s t : Proc X Y} → 𝒫ᴵ [ s ≈ t ] → 𝒫ᴵ [ subᴵ s {A} ≈ subᴵ t ])
-        → (X Y A : Iface) {c : ℕ} (s : Proc X Y) → QB c s → QB (c ℕ.⊔ 1) (subᴵ s {A})
+         → (X Y A : Iface) {c : ℕ} (s : Proc X Y) → QB c s → QB (c ℕ.⊔ 1) (subᴵ s {A})
 qb-subᴹ resp X Y A s (N , cert , e) = subᴵ N , qbᵢ-sub X Y A N cert , resp e
 
 ------------------------------------------------------------------------
@@ -472,9 +485,11 @@ record BudgetLawsᴹ : Set₁ where
   field
     qb-id  : {A : Iface} → QB 1 (𝒫.id {A})
     qb-∘   : {A B C : Iface} {c c′ : ℕ} {g : Proc B C} {f : Proc A B}
-           → QB c g → QB c′ f → QB (c ℕ.* c′) (g 𝒫.∘ f)
+           → QB c g → QB c′ f
+           → QB (c ℕ.* c′)
+               (Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
+                 (Col.W.α Col.MC.∘ᴹ ((g Col.T.⊗ᵉ f) Col.MC.∘ᴹ Col.W.γ)))
     qb-T₁  : {Y A B : Iface} {c : ℕ} {f : Proc A B}
            → QB c f → QB (c ℕ.⊔ 1) (T₁ᴵ Y f)
     qb-sub : {X Y A : Iface} {c : ℕ} {s : Proc X Y}
            → QB c s → QB (c ℕ.⊔ 1) (subᴵ s {A})
-

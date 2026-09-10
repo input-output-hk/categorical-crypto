@@ -133,20 +133,23 @@ pureᴹ-cong eq = mk-cong (refl⟩⊗⟨ eq)
 pureᴹ-id : pureᴹ (id {A}) ≲ idᴹ
 pureᴹ-id = mk-cong ⊗.identity
 
-pureᴹ-∘ : (g : B ⇒ C) (f : A ⇒ B) → (pureᴹ g ∘ᴹ pureᴹ f) ≲ pureᴹ (g ∘ f)
-pureᴹ-∘ g f = collapseˡ ((refl⟩∘⟨ ((onL-str g ⟩∘⟨ onRᵍ-id⊗ f) ○ merge₂ˡ))
-                         ○ ⟺ (pad-transport λ⇒ (g ∘ f)))
+opaque
+  unfolding _∘ᴹ_
 
--- Composing with a pure machine only pre- or post-composes the step.
-pure-∘ˡ : (h : B ⇒ C) (M : Machine A B)
-        → (pureᴹ h ∘ᴹ M) ≲ mk (state M) (id ⊗₁ h ∘ step M)
-pure-∘ˡ h M = collapseˡ ((refl⟩∘⟨ onL-str h ⟩∘⟨refl) ○ pullˡ (⟺ (pad-transport λ⇒ h))
-                         ○ assoc ○ (refl⟩∘⟨ onR-collapseˡ) ○ sym-assoc)
+  pureᴹ-∘ : (g : B ⇒ C) (f : A ⇒ B) → (pureᴹ g ∘ᴹ pureᴹ f) ≲ pureᴹ (g ∘ f)
+  pureᴹ-∘ g f = collapseˡ ((refl⟩∘⟨ ((onL-str g ⟩∘⟨ onRᵍ-id⊗ f) ○ merge₂ˡ))
+                           ○ ⟺ (pad-transport λ⇒ (g ∘ f)))
 
-pure-∘ʳ : (h : A ⇒ B) (M : Machine B C)
-        → (M ∘ᴹ pureᴹ h) ≲ mk (state M) (step M ∘ id ⊗₁ h)
-pure-∘ʳ h M = collapseʳ ((refl⟩∘⟨ refl⟩∘⟨ onRᵍ-id⊗ h) ○ pullˡ onL-collapseʳ ○ assoc
-                         ○ (refl⟩∘⟨ ⟺ (pad-transport ρ⇒ h)) ○ sym-assoc)
+  -- Composing with a pure machine only pre- or post-composes the step.
+  pure-∘ˡ : (h : B ⇒ C) (M : Machine A B)
+          → (pureᴹ h ∘ᴹ M) ≲ mk (state M) (id ⊗₁ h ∘ step M)
+  pure-∘ˡ h M = collapseˡ ((refl⟩∘⟨ onL-str h ⟩∘⟨refl) ○ pullˡ (⟺ (pad-transport λ⇒ h))
+                           ○ assoc ○ (refl⟩∘⟨ onR-collapseˡ) ○ sym-assoc)
+
+  pure-∘ʳ : (h : A ⇒ B) (M : Machine B C)
+          → (M ∘ᴹ pureᴹ h) ≲ mk (state M) (step M ∘ id ⊗₁ h)
+  pure-∘ʳ h M = collapseʳ ((refl⟩∘⟨ refl⟩∘⟨ onRᵍ-id⊗ h) ○ pullˡ onL-collapseʳ ○ assoc
+                           ○ (refl⟩∘⟨ ⟺ (pad-transport ρ⇒ h)) ○ sym-assoc)
 
 -- `pureᴹ` is monoidal, which is what carries the interface tensor's coherence.
 ⊗ᵉ-pureᴹ : (h : A ⇒ B) (k : C ⇒ D) → (pureᴹ h ⊗ᵉ pureᴹ k) ≲ pureᴹ (h +₁ k)
