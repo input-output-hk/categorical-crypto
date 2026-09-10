@@ -1,32 +1,15 @@
 {-# OPTIONS --safe --no-require-unique-meta-solutions #-}
 
 --------------------------------------------------------------------------------
--- MERKLE–DAMGÅRD as a secure realization of a random oracle.
+-- MERKLE–DAMGÅRD: the cryptographic content, machine-free.
 --
--- Reusing `Examples.RandomOracle` (generalised to `RandomOracle p inN outN`),
--- we show that `MerkleDamgard` realises  `RandomOracle p (k * n) n`  from
--- `RandomOracle p (2 * n) n`  (the compression oracle: 2n-bit input, n-bit
--- output).  Both functionalities are `RandomOracle.Functionality` *lifted into*
--- `PMachine` by `liftFun`, which mirrors the G-construction `F : 𝒞 → 𝒢(𝒞)`
--- (`CategoricalCrypto.Machine.Core`'s `Machine I C`: a functionality is a machine
--- with empty subroutine domain).
---
--- MD is a `PMachine` that interacts with the compression machine **once per
--- block**, threading the chaining value (the machine-level `foldl`).
---
--- The security claim is the *output-only* statement "`MD ⊚ Comp.M` is a random
--- oracle", phrased the standard cryptographic way: against ANY adaptive
--- distinguisher `d` issuing `≤ n` queries, the distinguishing advantage is `≤ bound n`
--- (concrete security — the bound is a function of the query count, since more queries
--- genuinely help).  `_≈adv[_]_`, the advantage and the distinguisher are all *defined*
--- by the reactive interaction model (`Dgr`/`run`/`adv`); the bridge is the Fundamental
--- Lemma of Game-Playing (`FLGP`), adaptive-robust by construction.  Assembly:
---
---   adv ⟦General.M⟧ ⟦MD⊚Comp.M⟧ d
---     = ∣ Pr₁(runWith C.idealK s₀ d) − Pr₁(runWith C.realK s₀ d) ∣
---                                   (semantics laws + ideal-marginal + ghost-erase)
---     ≤ Pr[the coupling's bad flag fires]     (coupled FLGP, adaptive-robust)
---     ≤ bound n.                              (adaptive birthday)
+-- Everything the security proof rests on that never mentions a machine: the
+-- relay arrow `mdArrow`, the real and ideal reactive kernels (`respR`,
+-- `respG`), the coupling, the Fundamental Lemma of Game-Playing application,
+-- the birthday certificate `md-cert` and the adaptive bound `bad-bound`.  The
+-- protocols, the composite `md ∘ᵖ comp` and the theorem `indistinguishable`
+-- are `Examples.MerkleDamgard`; the split is what keeps a change to the
+-- protocol layer from re-elaborating the crypto.
 --
 -- The game-playing AND ideal-side layers are PROVEN here:
 --   • `Coupling.FLGP` — the Fundamental Lemma of Game-Playing in COUPLED form (one
@@ -71,27 +54,11 @@
 -- co-determinism from `collC ≡ 0` via a δ-sum counting lemma, `unique-run` on the shared
 -- prefix, `toBlocks`-injectivity ⇒ the message was already recorded, ⊥).  Together with
 -- `MDInv₀`, `flag⇒coll`, the collision-count-monotonicity backbone, `md-cert`,
--- `badProb-super`, FLGP, `ideal-marginal`, and `ghost-erase` — all proven — the theorem
--- `indistinguishable` rests solely on the two module parameters, each declared
--- at its own layer and neither of them cryptographic: the machine structure
--- (`Machine.Probabilistic.Machines` — the 𝒢-construction primitives, the trace
--- over the shared interface and its two laws) and `TraceDeterminesRun`
--- (`CategoricalCrypto.Interaction`).  `⟦General⟧-sem`, `⟦MD⟧-sem` and the
--- per-machine computation fact `∘ᵍ-MD` are all DERIVED from them — no
--- machine-specific assumption remains, and this module is `--safe`.
+-- `badProb-super`, FLGP, `ideal-marginal` and `ghost-erase` — all proven — this
+-- module carries no assumption at all and is `--safe`.
 --
--- The UC reading of `indistinguishable` — Merkle-Damgård ≤UC a random oracle —
--- is `Examples.MerkleDamgard.UC`, via the general ladder in
--- `CategoricalCrypto.OutputOnly`.
---
--- Warm single-module typecheck: ~520 s (measured 2026-08-12, `+RTS -M10G -H2G`).
+-- Warm single-module typecheck: ~34 s (measured 2026-09-10, `+RTS -M8G -H1G`).
 --------------------------------------------------------------------------------
-
-open import CategoricalCrypto.Interaction using (TraceDeterminesRun)
-open import CategoricalCrypto.Machine.Probabilistic using (Machines)
-
-module CategoricalCrypto.Examples.MerkleDamgard
-  (PM : Machines) (trace-run : TraceDeterminesRun) where
 
 open import categorical-crypto.Prelude hiding (_/_; _>>=_; _*_; Stable)
 open import Data.Nat using (_+_; _*_; _≤_; _<_; _∸_; NonZero; _≤′_; ≤′-refl; ≤′-step)
@@ -117,11 +84,9 @@ import Data.List.NonEmpty as NE
 import Data.List.Relation.Unary.All as ListAll
 open import Data.List.Run
 open import Data.Vec.Properties.Ext using (take-drop-inj)
-open import CategoricalCrypto.Channel.Core using (Channel; _⇿_; I)
 open import CategoricalCrypto.Examples.RandomOracle
 open import CategoricalCrypto.GamePlaying
 open import CategoricalCrypto.Interaction
-open import CategoricalCrypto.Machine.Probabilistic.Model PM
 open import CategoricalCrypto.SFunM
 open import CategoricalCrypto.SFunPartial
 open import ProbabilisticLogic.Distribution.RationalDist
@@ -129,7 +94,8 @@ open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
 open import ProbabilisticLogic.Distribution.RationalDist.Setoid
 open import ProbabilisticLogic.Distribution.Uniform using (inv-pow-2; bool→ℚ; fromℕ; δ; P-uniform-Vec)
-import Relation.Binary.Reasoning.Setoid as RS
+
+module CategoricalCrypto.Examples.MerkleDamgard.Core where
 
 --------------------------------------------------------------------------------
 -- 2. THE EXAMPLE
@@ -156,17 +122,9 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     -- length and block index — the prefix-free encoding — makes `f` an independent
     -- random oracle per (length, index):  (chaining , block , ⟨length⟩ , ⟨index⟩) ↦ n bits.
     open RandomOracle p (CV × Blk × ℕ × ℕ) n public
-    Interface = Output ⇿ Input
-
-    M : PMachine I Interface
-    M = liftFun (asResource Functionality)
 
   module General where
     open RandomOracle p (Vec Bool (k * n)) n public
-    Interface = Output ⇿ Input
-
-    M : PMachine I Interface
-    M = liftFun (asResource Functionality)
 
   -- A compression query packs the chaining value, the block, the message length
   -- (always `k` here) and the block index — the index-tagged prefix-free encoding.
@@ -182,32 +140,28 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
 
   -- Merkle-Damgard
   -- FIXME: we just want to fail on invalid input, not give garbage output
-  private
-    MDState : Type
-    MDState = Maybe (Fin p × ℕ × List Blk)   -- idle, or (party, next block index, remaining blocks)
+  MDState : Type
+  MDState = Maybe (Fin p × ℕ × List Blk)   -- idle, or (party, next block index, remaining blocks)
 
-    -- new query: fire the first compression query at index 1, i.e. (IV , b₁ , k , 1).
-    -- Split out so it pattern-matches the block list as an honest argument — that
-    -- keeps `mdStep (sr , inj₂ (i , M)) = mdStepᵇ i (toBlocks M)` DEFINITIONAL, so
-    -- proofs can case on `toBlocks M` via a supplied equation rather than fighting a
-    -- `with`-abstracted scrutinee inside `mdStep`.
-    mdStepᵇ : Fin p → List Blk → MDState × (Comp.Input ⊎ General.Output)
-    mdStepᵇ i []       = (nothing            , inj₂ (i , IV))
-    mdStepᵇ i (b ∷ bs) = (just (i , 2 , bs)  , inj₁ (i , pack IV b 1))
+  -- new query: fire the first compression query at index 1, i.e. (IV , b₁ , k , 1).
+  -- Split out so it pattern-matches the block list as an honest argument — that
+  -- keeps `mdStep (sr , inj₂ (i , M)) = mdStepᵇ i (toBlocks M)` DEFINITIONAL, so
+  -- proofs can case on `toBlocks M` via a supplied equation rather than fighting a
+  -- `with`-abstracted scrutinee inside `mdStep`.
+  mdStepᵇ : Fin p → List Blk → MDState × (Comp.Input ⊎ General.Output)
+  mdStepᵇ i []       = (nothing            , inj₂ (i , IV))
+  mdStepᵇ i (b ∷ bs) = (just (i , 2 , bs)  , inj₁ (i , pack IV b 1))
 
-    mdStep : MDState × (Comp.Output ⊎ General.Input)
-           → MDState × (Comp.Input  ⊎ General.Output)
-    mdStep (_ , inj₂ (i , M)) = mdStepᵇ i (toBlocks M)
-    -- callback with chaining value `h`: done, or fire the next block at its index
-    mdStep (just (i , idx , [])       , inj₁ (_ , h)) = (nothing                 , inj₂ (i , h))
-    mdStep (just (i , idx , (b ∷ bs)) , inj₁ (_ , h)) = (just (i , suc idx , bs) , inj₁ (i , pack h b idx))
-    mdStep (nothing                   , inj₁ (i , h)) = (nothing                 , inj₂ (i , h))
+  mdStep : MDState × (Comp.Output ⊎ General.Input)
+         → MDState × (Comp.Input  ⊎ General.Output)
+  mdStep (_ , inj₂ (i , M)) = mdStepᵇ i (toBlocks M)
+  -- callback with chaining value `h`: done, or fire the next block at its index
+  mdStep (just (i , idx , [])       , inj₁ (_ , h)) = (nothing                 , inj₂ (i , h))
+  mdStep (just (i , idx , (b ∷ bs)) , inj₁ (_ , h)) = (just (i , suc idx , bs) , inj₁ (i , pack h b idx))
+  mdStep (nothing                   , inj₁ (i , h)) = (nothing                 , inj₂ (i , h))
 
-    mdArrow : SFunᵉ {M = Dist-ℚ} (Comp.Output ⊎ General.Input) (Comp.Input ⊎ General.Output)
-    mdArrow = record { State = MDState ; init = nothing ; fun = return-ℚ ∘ mdStep }
-
-  MD : PMachine Comp.Interface General.Interface
-  MD = liftFun mdArrow
+  mdArrow : SFunᵉ {M = Dist-ℚ} (Comp.Output ⊎ General.Input) (Comp.Input ⊎ General.Output)
+  mdArrow = record { State = MDState ; init = nothing ; fun = return-ℚ ∘ mdStep }
 
   ------------------------------------------------------------------------
   -- Security via the reactive model + Fundamental Lemma of Game-Playing.
@@ -233,421 +187,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   -- `MD ⊚ Comp.M` should compute to (compression table = internal state).
   respRM : SFunᵉ {M = Dist-ℚ} General.Input General.Output
   respRM = record { State = Comp.Table ; init = [] ; fun = λ sq → respR (proj₁ sq) (proj₂ sq) }
-
-
-  ------------------------------------------------------------------------
-  -- Phase B-now: DERIVE `∘ᵍ-MD` from the generic trace-unfolding law
-  -- `∘ᵍ-unfold`.  Reading `embed⊥ mdArrow ∘ᵍ embed⊥ (asResource Comp.Functionality)`
-  -- as the ⊎-trace of the MD/compression wiring, `∘ᵍ-unfold` replaces it (once fuel
-  -- is saturated) by the `GComp` token machine `machineAt Nfuel`, and we then compute
-  -- that machine's observable behaviour to `respR` by a bounded loop-replay.
-
-  -- `Fin p` is a singleton here (`p = 1`), so the party a query carries is `i₀`.
-  fin1 : (i : Fin p) → i ≡ i₀
-  fin1 zero = refl
-
-  -- Number of body-steps the token loop takes over a block list: each block costs
-  -- one f-bounce (compression answer) + one g-bounce (relay advance/exit).
-  double : ℕ → ℕ
-  double zero    = zero
-  double (suc j) = suc (suc (double j))
-
-  stepsFor : List Blk → ℕ
-  stepsFor []       = 0
-  stepsFor (_ ∷ bs) = suc (suc (stepsFor bs))
-
-  stepsFor-len : ∀ (L : List Blk) → stepsFor L ≡ double (length L)
-  stepsFor-len []       = refl
-  stepsFor-len (_ ∷ bs) = cong (λ z → suc (suc z)) (stepsFor-len bs)
-
-  len-tlᴮ : ∀ {A : Type} {j} (v : Vec A j) → length (toList v) ≡ j
-  len-tlᴮ []      = refl
-  len-tlᴮ (_ ∷ v) = cong suc (len-tlᴮ v)
-
-  blk-len : ∀ (M : Vec Bool (k * n)) → length (toBlocks M) ≡ k
-  blk-len M = len-tlᴮ (chunk k M)
-
-  -- A single global fuel that saturates every activation (all messages are `k` blocks).
-  Nfuel : ℕ
-  Nfuel = double k
-
-  blkBound : ∀ (M : Vec Bool (k * n)) → stepsFor (toBlocks M) ≡ Nfuel
-  blkBound M = trans (stepsFor-len (toBlocks M)) (cong double (blk-len M))
-
-  -- MD chaining threading an ARBITRARY compression kernel `h`, carrying the party
-  -- `i` that the relay actually forwards (`mdRun` hardcodes `i₀`).
-  mdRunH : (h : SFunᵉ {M = Dist-ℚ} Comp.Input Comp.Output)
-         → SFunᵉ.State h → Fin p → CV → List Blk → ℕ → Dist-ℚ (SFunᵉ.State h × CV)
-  mdRunH h st i cv []       idx = return-ℚ (st , cv)
-  mdRunH h st i cv (b ∷ bs) idx =
-    SFunᵉ.fun h (st , (i , pack cv b idx)) >>=ᴹ λ o → mdRunH h (proj₁ o) i (proj₂ (proj₂ o)) bs (suc idx)
-
-  -- Party irrelevance: `mdRunH Comp.Functionality` (party from the query) agrees with
-  -- `mdRun` (party `i₀`), since `p = 1` forces `i ≡ i₀`.
-  mdRunH-mdRun : ∀ (s : Comp.Table) (i : Fin p) (cv : CV) (bs : List Blk) (idx : ℕ)
-               → mdRunH Comp.Functionality s i cv bs idx ≈Mℚ mdRun s cv bs idx
-  mdRunH-mdRun s i cv []       idx = λ P → refl
-  mdRunH-mdRun s i cv (b ∷ bs) idx = Mℚ.trans
-    {i = mdRunH Comp.Functionality s i cv (b ∷ bs) idx}
-    {j = mdRunH Comp.Functionality s i₀ cv (b ∷ bs) idx}
-    {k = mdRun s cv (b ∷ bs) idx}
-    (Mℚ.reflexive (cong (λ j → mdRunH Comp.Functionality s j cv (b ∷ bs) idx) (fin1 i)))
-    (>>=ᴹ-congˡ (Comp.step (s , i₀ , pack cv b idx))
-      (λ o → mdRunH Comp.Functionality (proj₁ o) i₀ (proj₂ (proj₂ o)) bs (suc idx))
-      (λ o → mdRun (proj₁ o) (proj₂ (proj₂ o)) bs (suc idx))
-      (λ o → mdRunH-mdRun (proj₁ o) i₀ (proj₂ (proj₂ o)) bs (suc idx)))
-
-  -- `respR` with an arbitrary compression kernel `h`.
-  respRHM : (h : SFunᵉ {M = Dist-ℚ} Comp.Input Comp.Output) → SFunᵉ {M = Dist-ℚ} General.Input General.Output
-  respRHM h = record
-    { State = SFunᵉ.State h
-    ; init  = SFunᵉ.init h
-    ; fun   = λ sq → mdRunH h (proj₁ sq) (proj₁ (proj₂ sq)) IV (toBlocks (proj₂ (proj₂ sq))) 1
-                       >>=ᴹ λ sh → return-ℚ (proj₁ sh , (proj₁ (proj₂ sq) , proj₂ sh)) }
-
-  respRHM-CF≈respRM : (_≈ᵉ_ {M = Dist⊥}) (embed⊥ (respRHM Comp.Functionality)) (embed⊥ respRM)
-  respRHM-CF≈respRM = trace-cong⊥ kern []
-    where
-      kern : ∀ sa → SFunᵉ.fun (embed⊥ (respRHM Comp.Functionality)) sa ≈Mℚ SFunᵉ.fun (embed⊥ respRM) sa
-      kern (s , (i , M)) = Dmapⱼ-cong
-        (mdRunH Comp.Functionality s i IV (toBlocks M) 1 >>=ᴹ (λ sh → return-ℚ (proj₁ sh , (i , proj₂ sh))))
-        (mdRun s IV (toBlocks M) 1 >>=ᴹ (λ sh → return-ℚ (proj₁ sh , (i , proj₂ sh))))
-        (>>=ᴹ-congʳ (λ sh → return-ℚ (proj₁ sh , (i , proj₂ sh)))
-          (mdRunH Comp.Functionality s i IV (toBlocks M) 1)
-          (mdRun s IV (toBlocks M) 1)
-          (mdRunH-mdRun s i IV (toBlocks M) 1))
-
-  -- The generic loop-replay, parameterised over the (opaque) compression resource.
-  module Replay (hraw : SFunᵉ {M = Dist-ℚ} (⊥ ⊎ Comp.Input) (⊥ ⊎ Comp.Output)) where
-
-    private module hr = SFunᵉ hraw
-
-    open GComp (embed⊥ mdArrow) (embed⊥ hraw)
-
-    H : SFunᵉ {M = Dist-ℚ} Comp.Input Comp.Output
-    H = stripᵉ hraw
-
-    -- `stepF` on an `SFunᵉ (⊥ ⊎ _) (⊥ ⊎ _)` output (always `inj₂`): continue into g.
-    stepF-lemma : ∀ (sg : MDState) (sf' : hr.State) (o : ⊥ ⊎ Comp.Output)
-                → stepF sg (sf' , o) ≡ inj₂ ((sg , sf') , inj₁ (unbot o))
-    stepF-lemma sg sf' (inj₂ co) = refl
-
-    -- One f-bounce: enter g's partner `f = embed⊥ hraw`, then continue with the answer.
-    f-bounce : ∀ (sg : MDState) (t : hr.State) (q : Comp.Input) {R : Type} (K : Res → Dist⊥ R)
-             → (body ((sg , t) , inj₂ q) >>=⊥ K)
-               ≈Mℚ (hr.fun (t , inj₂ q) >>=ᴹ λ sr → K (inj₂ ((sg , proj₁ sr) , inj₁ (unbot (proj₂ sr)))))
-    f-bounce sg t q K = begin
-      (body ((sg , t) , inj₂ q) >>=⊥ K)
-        ≈⟨ >>=⊥-assoc (Dmap just (hr.fun (t , inj₂ q))) (return⊥ ∘ stepF sg) K ⟩
-      (Dmap just (hr.fun (t , inj₂ q)) >>=⊥ λ x → return⊥ (stepF sg x) >>=⊥ K)
-        ≈⟨ >>=⊥-embed (hr.fun (t , inj₂ q)) (λ x → return⊥ (stepF sg x) >>=⊥ K) ⟩
-      (hr.fun (t , inj₂ q) >>=ᴹ λ x → return⊥ (stepF sg x) >>=⊥ K)
-        ≈⟨ >>=ᴹ-congˡ (hr.fun (t , inj₂ q))
-             (λ x → return⊥ (stepF sg x) >>=⊥ K)
-             (λ x → K (stepF sg x))
-             (λ x → >>=⊥-identityˡ (stepF sg x) K) ⟩
-      (hr.fun (t , inj₂ q) >>=ᴹ λ x → K (stepF sg x))
-        ≈⟨ >>=ᴹ-congˡ (hr.fun (t , inj₂ q))
-             (λ x → K (stepF sg x))
-             (λ sr → K (inj₂ ((sg , proj₁ sr) , inj₁ (unbot (proj₂ sr)))))
-             (λ x → Mℚ.reflexive (cong K (stepF-lemma sg (proj₁ x) (proj₂ x)))) ⟩
-      (hr.fun (t , inj₂ q) >>=ᴹ λ sr → K (inj₂ ((sg , proj₁ sr) , inj₁ (unbot (proj₂ sr)))))
-      ∎
-      where open RS (Mℚ-setoid _)
-
-    -- One g-bounce: `g = embed⊥ mdArrow` is deterministic, so it just applies `mdStep`.
-    g-bounce : ∀ (sr : MDState) (t : hr.State) (co : Comp.Output) {R : Type} (K : Res → Dist⊥ R)
-             → (body ((sr , t) , inj₁ co) >>=⊥ K) ≈Mℚ K (stepG t (mdStep (sr , inj₁ co)))
-    g-bounce sr t co K = begin
-      (body ((sr , t) , inj₁ co) >>=⊥ K)
-        ≈⟨ >>=⊥-assoc (Dmap just (return-ℚ (mdStep (sr , inj₁ co)))) (return⊥ ∘ stepG t) K ⟩
-      (Dmap just (return-ℚ (mdStep (sr , inj₁ co))) >>=⊥ λ x → return⊥ (stepG t x) >>=⊥ K)
-        ≈⟨ >>=⊥-congʳ (λ x → return⊥ (stepG t x) >>=⊥ K)
-             (Dmap just (return-ℚ (mdStep (sr , inj₁ co))))
-             (return⊥ (mdStep (sr , inj₁ co)))
-             (dmap-ret (mdStep (sr , inj₁ co))) ⟩
-      (return⊥ (mdStep (sr , inj₁ co)) >>=⊥ λ x → return⊥ (stepG t x) >>=⊥ K)
-        ≈⟨ >>=⊥-identityˡ (mdStep (sr , inj₁ co)) (λ x → return⊥ (stepG t x) >>=⊥ K) ⟩
-      (return⊥ (stepG t (mdStep (sr , inj₁ co))) >>=⊥ K)
-        ≈⟨ >>=⊥-identityˡ (stepG t (mdStep (sr , inj₁ co))) K ⟩
-      K (stepG t (mdStep (sr , inj₁ co)))
-      ∎
-      where open RS (Mℚ-setoid _)
-
-    -- The embedded MD-composite value.
-    mdEmbed : hr.State → Fin p → CV → List Blk → ℕ → Dist⊥ (S × (⊥ ⊎ General.Output))
-    mdEmbed t i cv bs idx =
-      Dmap just (mdRunH H t i cv bs idx >>=ᴹ λ sh → return-ℚ ((nothing , proj₁ sh) , inj₂ (i , proj₂ sh)))
-
-    mdRunH-cons : ∀ (t : hr.State) i cv b bs idx
-                → mdRunH H t i cv (b ∷ bs) idx
-                  ≈Mℚ (hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ
-                         λ sr → mdRunH H (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) bs (suc idx))
-    mdRunH-cons t i cv b bs idx = begin
-      mdRunH H t i cv (b ∷ bs) idx
-        ≈⟨ >>=ᴹ-assoc (hr.fun (t , inj₂ (i , pack cv b idx)))
-             (λ sr → return-ℚ (proj₁ sr , unbot (proj₂ sr)))
-             (λ o → mdRunH H (proj₁ o) i (proj₂ (proj₂ o)) bs (suc idx)) ⟩
-      (hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ λ sr →
-         (return-ℚ (proj₁ sr , unbot (proj₂ sr)) >>=ᴹ λ o → mdRunH H (proj₁ o) i (proj₂ (proj₂ o)) bs (suc idx)))
-        ≈⟨ >>=ᴹ-congˡ (hr.fun (t , inj₂ (i , pack cv b idx)))
-             (λ sr → return-ℚ (proj₁ sr , unbot (proj₂ sr)) >>=ᴹ λ o → mdRunH H (proj₁ o) i (proj₂ (proj₂ o)) bs (suc idx))
-             (λ sr → mdRunH H (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) bs (suc idx))
-             (λ sr → >>=ᴹ-identityˡ (proj₁ sr , unbot (proj₂ sr))
-                       (λ o → mdRunH H (proj₁ o) i (proj₂ (proj₂ o)) bs (suc idx))) ⟩
-      (hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ λ sr → mdRunH H (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) bs (suc idx))
-      ∎
-      where open RS (Mℚ-setoid _)
-
-    mdEmbed-nil : ∀ (t : hr.State) i cv idx → mdEmbed t i cv [] idx ≈Mℚ return⊥ ((nothing , t) , inj₂ (i , cv))
-    mdEmbed-nil t i cv idx = begin
-      Dmap just (return-ℚ (t , cv) >>=ᴹ λ sh → return-ℚ ((nothing , proj₁ sh) , inj₂ (i , proj₂ sh)))
-        ≈⟨ Dmapⱼ-cong
-             (return-ℚ (t , cv) >>=ᴹ (λ sh → return-ℚ ((nothing , proj₁ sh) , inj₂ (i , proj₂ sh))))
-             (return-ℚ ((nothing , t) , inj₂ (i , cv)))
-             (>>=ᴹ-identityˡ (t , cv) (λ sh → return-ℚ ((nothing , proj₁ sh) , inj₂ (i , proj₂ sh)))) ⟩
-      Dmap just (return-ℚ ((nothing , t) , inj₂ (i , cv)))
-        ≈⟨ dmap-ret ((nothing , t) , inj₂ (i , cv)) ⟩
-      return⊥ ((nothing , t) , inj₂ (i , cv))
-      ∎
-      where open RS (Mℚ-setoid _)
-
-    mdEmbed-cons : ∀ (t : hr.State) i cv b bs idx
-                 → mdEmbed t i cv (b ∷ bs) idx
-                   ≈Mℚ (hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ
-                          λ sr → mdEmbed (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) bs (suc idx))
-    mdEmbed-cons t i cv b bs idx = begin
-      Dmap just (mdRunH H t i cv (b ∷ bs) idx >>=ᴹ Kexit)
-        ≈⟨ Dmapⱼ-cong
-             (mdRunH H t i cv (b ∷ bs) idx >>=ᴹ Kexit)
-             ((hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ λ sr → mdRunH H (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) bs (suc idx)) >>=ᴹ Kexit)
-             (>>=ᴹ-congʳ Kexit
-               (mdRunH H t i cv (b ∷ bs) idx)
-               (hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ λ sr → mdRunH H (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) bs (suc idx))
-               (mdRunH-cons t i cv b bs idx)) ⟩
-      Dmap just ((hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ λ sr → mdRunH H (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) bs (suc idx)) >>=ᴹ Kexit)
-        ≈⟨ Dmapⱼ-cong
-             ((hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ λ sr → mdRunH H (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) bs (suc idx)) >>=ᴹ Kexit)
-             (hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ λ sr → (mdRunH H (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) bs (suc idx) >>=ᴹ Kexit))
-             (>>=ᴹ-assoc (hr.fun (t , inj₂ (i , pack cv b idx)))
-               (λ sr → mdRunH H (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) bs (suc idx))
-               Kexit) ⟩
-      Dmap just (hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ λ sr → (mdRunH H (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) bs (suc idx) >>=ᴹ Kexit))
-        ≈⟨ >>=ᴹ-assoc (hr.fun (t , inj₂ (i , pack cv b idx)))
-             (λ sr → mdRunH H (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) bs (suc idx) >>=ᴹ Kexit)
-             (return-ℚ ∘ just) ⟩
-      (hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ λ sr → mdEmbed (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) bs (suc idx))
-      ∎
-      where Kexit = λ sh → return-ℚ ((nothing , proj₁ sh) , inj₂ (i , proj₂ sh))
-            open RS (Mℚ-setoid _)
-
-    -- The core induction: from an f-token (answer for block `b`, remaining `bs`,
-    -- chaining `cv`, index `idx`, relay `just (i , suc idx , bs)`) with `≥ stepsFor`
-    -- fuel, the token loop replays `mdRunH H … (b ∷ bs) idx` and exits.
-    loop-replay : ∀ (b : Blk) (bs : List Blk) (t : hr.State) (i : Fin p) (cv : CV) (idx fuel : ℕ)
-                → stepsFor (b ∷ bs) ≤ fuel
-                → iterFuel fuel body ((just (i , suc idx , bs) , t) , inj₂ (i , pack cv b idx))
-                  ≈Mℚ mdEmbed t i cv (b ∷ bs) idx
-    loop-replay b [] t i cv idx (suc (suc m)) (s≤s (s≤s h')) = begin
-      iterFuel (suc (suc m)) body ((just (i , suc idx , []) , t) , inj₂ (i , pack cv b idx))
-        ≈⟨ f-bounce (just (i , suc idx , [])) t (i , pack cv b idx) (iterGo (suc m) body) ⟩
-      (hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ λ sr →
-         iterGo (suc m) body (inj₂ ((just (i , suc idx , []) , proj₁ sr) , inj₁ (unbot (proj₂ sr)))))
-        ≈⟨ >>=ᴹ-congˡ (hr.fun (t , inj₂ (i , pack cv b idx)))
-             (λ sr → iterGo (suc m) body (inj₂ ((just (i , suc idx , []) , proj₁ sr) , inj₁ (unbot (proj₂ sr)))))
-             (λ sr → return⊥ ((nothing , proj₁ sr) , inj₂ (i , proj₂ (unbot (proj₂ sr)))))
-             (λ sr → g-bounce (just (i , suc idx , [])) (proj₁ sr) (unbot (proj₂ sr)) (iterGo m body)) ⟩
-      (hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ λ sr →
-         return⊥ ((nothing , proj₁ sr) , inj₂ (i , proj₂ (unbot (proj₂ sr)))))
-        ≈˘⟨ Mℚ.trans {i = mdEmbed t i cv (b ∷ []) idx}
-              {j = hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ λ sr → mdEmbed (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) [] (suc idx)}
-              {k = hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ λ sr → return⊥ ((nothing , proj₁ sr) , inj₂ (i , proj₂ (unbot (proj₂ sr))))}
-              (mdEmbed-cons t i cv b [] idx)
-              (>>=ᴹ-congˡ (hr.fun (t , inj₂ (i , pack cv b idx)))
-                (λ sr → mdEmbed (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) [] (suc idx))
-                (λ sr → return⊥ ((nothing , proj₁ sr) , inj₂ (i , proj₂ (unbot (proj₂ sr)))))
-                (λ sr → mdEmbed-nil (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) (suc idx))) ⟩
-      mdEmbed t i cv (b ∷ []) idx
-      ∎
-      where open RS (Mℚ-setoid _)
-    loop-replay b (b' ∷ bs') t i cv idx (suc (suc m)) (s≤s (s≤s h')) = begin
-      iterFuel (suc (suc m)) body ((just (i , suc idx , b' ∷ bs') , t) , inj₂ (i , pack cv b idx))
-        ≈⟨ f-bounce (just (i , suc idx , b' ∷ bs')) t (i , pack cv b idx) (iterGo (suc m) body) ⟩
-      (hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ λ sr →
-         iterGo (suc m) body (inj₂ ((just (i , suc idx , b' ∷ bs') , proj₁ sr) , inj₁ (unbot (proj₂ sr)))))
-        ≈⟨ >>=ᴹ-congˡ (hr.fun (t , inj₂ (i , pack cv b idx)))
-             (λ sr → iterGo (suc m) body (inj₂ ((just (i , suc idx , b' ∷ bs') , proj₁ sr) , inj₁ (unbot (proj₂ sr)))))
-             (λ sr → iterFuel m body ((just (i , suc (suc idx) , bs') , proj₁ sr) , inj₂ (i , pack (proj₂ (unbot (proj₂ sr))) b' (suc idx))))
-             (λ sr → g-bounce (just (i , suc idx , b' ∷ bs')) (proj₁ sr) (unbot (proj₂ sr)) (iterGo m body)) ⟩
-      (hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ λ sr →
-         iterFuel m body ((just (i , suc (suc idx) , bs') , proj₁ sr) , inj₂ (i , pack (proj₂ (unbot (proj₂ sr))) b' (suc idx))))
-        ≈⟨ >>=ᴹ-congˡ (hr.fun (t , inj₂ (i , pack cv b idx)))
-             (λ sr → iterFuel m body ((just (i , suc (suc idx) , bs') , proj₁ sr) , inj₂ (i , pack (proj₂ (unbot (proj₂ sr))) b' (suc idx))))
-             (λ sr → mdEmbed (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) (b' ∷ bs') (suc idx))
-             (λ sr → loop-replay b' bs' (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) (suc idx) m h') ⟩
-      (hr.fun (t , inj₂ (i , pack cv b idx)) >>=ᴹ λ sr →
-         mdEmbed (proj₁ sr) i (proj₂ (unbot (proj₂ sr))) (b' ∷ bs') (suc idx))
-        ≈˘⟨ mdEmbed-cons t i cv b (b' ∷ bs') idx ⟩
-      mdEmbed t i cv (b ∷ b' ∷ bs') idx
-      ∎
-      where open RS (Mℚ-setoid _)
-
-    -- Entering on the general query: `mdStep` fires block 1, then the loop runs.
-    enter-red : ∀ (t : hr.State) (i : Fin p) (M : Vec Bool (k * n)) (sr : MDState) (fuel : ℕ)
-              → kernelAt fuel ((sr , t) , inj₂ (i , M)) ≈Mℚ goRes fuel (stepG t (mdStepᵇ i (toBlocks M)))
-    enter-red t i M sr fuel = begin
-      kernelAt fuel ((sr , t) , inj₂ (i , M))
-        ≈⟨ >>=⊥-congʳ (goRes fuel)
-             (Dmap just (return-ℚ (mdStepᵇ i (toBlocks M))) >>=⊥ (return⊥ ∘ stepG t))
-             (return⊥ (stepG t (mdStepᵇ i (toBlocks M))))
-             enterμ ⟩
-      (return⊥ (stepG t (mdStepᵇ i (toBlocks M))) >>=⊥ goRes fuel)
-        ≈⟨ >>=⊥-identityˡ (stepG t (mdStepᵇ i (toBlocks M))) (goRes fuel) ⟩
-      goRes fuel (stepG t (mdStepᵇ i (toBlocks M)))
-      ∎
-      where
-        open RS (Mℚ-setoid _)
-        -- explicit `Mℚ.trans` (over `Dist⊥ Res`) so it does not share the main
-        -- chain's reasoning metavariable (which is over `Dist⊥ (S × …)`).
-        enterμ : (Dmap just (return-ℚ (mdStepᵇ i (toBlocks M))) >>=⊥ (return⊥ ∘ stepG t))
-                 ≈Mℚ return⊥ (stepG t (mdStepᵇ i (toBlocks M)))
-        enterμ = Mℚ.trans
-          {i = Dmap just (return-ℚ (mdStepᵇ i (toBlocks M))) >>=⊥ (return⊥ ∘ stepG t)}
-          {j = return⊥ (mdStepᵇ i (toBlocks M)) >>=⊥ (return⊥ ∘ stepG t)}
-          {k = return⊥ (stepG t (mdStepᵇ i (toBlocks M)))}
-          (>>=⊥-congʳ (return⊥ ∘ stepG t)
-            (Dmap just (return-ℚ (mdStepᵇ i (toBlocks M))))
-            (return⊥ (mdStepᵇ i (toBlocks M)))
-            (dmap-ret (mdStepᵇ i (toBlocks M))))
-          (>>=⊥-identityˡ (mdStepᵇ i (toBlocks M)) (return⊥ ∘ stepG t))
-
-    -- Non-emptiness view of a message's block list (`k` is `NonZero`).  Isolated so
-    -- that the `with toBlocks M` abstraction never touches a goal mentioning
-    -- `kernelAt` (whose normal form contains `toBlocks M` — abstracting it there
-    -- would break convertibility with chain nodes still mentioning `M`).
-    blkView : ∀ (M : Vec Bool (k * n)) → Σ Blk λ b → Σ (List Blk) λ bs → toBlocks M ≡ b ∷ bs
-    blkView M with toBlocks M in eq
-    ... | []     = ⊥-elim (≢-nonZero⁻¹ k (trans (sym (blk-len M)) (cong length eq)))
-    ... | b ∷ bs = b , bs , refl
-
-    -- Per-query: the token machine computes `mdEmbed` (the embedded `respR`).
-    query-kernel : ∀ (t : hr.State) (i : Fin p) (M : Vec Bool (k * n)) (sr : MDState) (fuel : ℕ)
-                 → stepsFor (toBlocks M) ≤ fuel
-                 → kernelAt fuel ((sr , t) , inj₂ (i , M)) ≈Mℚ mdEmbed t i IV (toBlocks M) 1
-    query-kernel t i M sr fuel bd = main (blkView M)
-      where
-      main : (Σ Blk λ b → Σ (List Blk) λ bs → toBlocks M ≡ b ∷ bs)
-           → kernelAt fuel ((sr , t) , inj₂ (i , M)) ≈Mℚ mdEmbed t i IV (toBlocks M) 1
-      main (b , bs , eq) = begin
-        kernelAt fuel ((sr , t) , inj₂ (i , M))
-          ≈⟨ enter-red t i M sr fuel ⟩
-        goRes fuel (stepG t (mdStepᵇ i (toBlocks M)))
-          ≡⟨ cong (λ L → goRes fuel (stepG t (mdStepᵇ i L))) eq ⟩
-        iterFuel fuel body ((just (i , suc 1 , bs) , t) , inj₂ (i , pack IV b 1))
-          ≈⟨ loop-replay b bs t i IV 1 fuel (subst (λ L → stepsFor L ≤ fuel) eq bd) ⟩
-        mdEmbed t i IV (b ∷ bs) 1
-          ≡⟨ cong (λ L → mdEmbed t i IV L 1) (sym eq) ⟩
-        mdEmbed t i IV (toBlocks M) 1
-        ∎
-        where open RS (Mℚ-setoid _)
-
-    stableN : Stable Nfuel
-    stableN m (sr , t) (inj₁ ()) _
-    stableN m (sr , t) (inj₂ (i , M)) N≤m = Mℚ.trans
-      {i = kernelAt m ((sr , t) , inj₂ (i , M))}
-      {j = mdEmbed t i IV (toBlocks M) 1}
-      {k = kernelAt Nfuel ((sr , t) , inj₂ (i , M))}
-      (query-kernel t i M sr m (ℕP.≤-trans (ℕP.≤-reflexive (blkBound M)) N≤m))
-      (Mℚ.sym {x = kernelAt Nfuel ((sr , t) , inj₂ (i , M))} {y = mdEmbed t i IV (toBlocks M) 1}
-        (query-kernel t i M sr Nfuel (ℕP.≤-reflexive (blkBound M))))
-
-    Km' = SFunᵉ.fun (strip⊥ (machineAt Nfuel))
-    Kr' = SFunᵉ.fun (embed⊥ (respRHM H))
-
-    machine-trace : ∀ (t : hr.State) (xs : List General.Input)
-                  → trace {M = Dist⊥} Km' (nothing , t) xs ≈Mℚ trace {M = Dist⊥} Kr' t xs
-    machine-trace t []              = λ P → refl
-    machine-trace t ((i , M) ∷ qs) = begin
-      trace {M = Dist⊥} Km' (nothing , t) ((i , M) ∷ qs)
-        ≈⟨ >>=⊥-congʳ ContM (Km' ((nothing , t) , (i , M))) (μ >>=ᴹ Km-exit) Km'≈ ⟩
-      ((μ >>=ᴹ Km-exit) >>=⊥ ContM)
-        ≈⟨ >>=ᴹ-assoc μ Km-exit (kmaybe ContM) ⟩
-      (μ >>=ᴹ λ sh → Km-exit sh >>=ᴹ kmaybe ContM)
-        ≈⟨ >>=ᴹ-congˡ μ
-             (λ sh → Km-exit sh >>=ᴹ kmaybe ContM)
-             (λ sh → trace {M = Dist⊥} Km' (nothing , proj₁ sh) qs >>=⊥ (λ bs → return⊥ ((i , proj₂ sh) ∷ bs)))
-             (λ sh → >>=⊥-identityˡ ((nothing , proj₁ sh) , (i , proj₂ sh)) ContM) ⟩
-      (μ >>=ᴹ λ sh → trace {M = Dist⊥} Km' (nothing , proj₁ sh) qs >>=⊥ (λ bs → return⊥ ((i , proj₂ sh) ∷ bs)))
-        ≈⟨ >>=ᴹ-congˡ μ
-             (λ sh → trace {M = Dist⊥} Km' (nothing , proj₁ sh) qs >>=⊥ (λ bs → return⊥ ((i , proj₂ sh) ∷ bs)))
-             (λ sh → trace {M = Dist⊥} Kr' (proj₁ sh) qs >>=⊥ (λ bs → return⊥ ((i , proj₂ sh) ∷ bs)))
-             (λ sh → >>=⊥-congʳ (λ bs → return⊥ ((i , proj₂ sh) ∷ bs))
-                       (trace {M = Dist⊥} Km' (nothing , proj₁ sh) qs)
-                       (trace {M = Dist⊥} Kr' (proj₁ sh) qs)
-                       (machine-trace (proj₁ sh) qs)) ⟩
-      (μ >>=ᴹ λ sh → trace {M = Dist⊥} Kr' (proj₁ sh) qs >>=⊥ (λ bs → return⊥ ((i , proj₂ sh) ∷ bs)))
-        ≈˘⟨ >>=ᴹ-congˡ μ
-              (λ sh → Kwrapr sh >>=ᴹ ContR)
-              (λ sh → trace {M = Dist⊥} Kr' (proj₁ sh) qs >>=⊥ (λ bs → return⊥ ((i , proj₂ sh) ∷ bs)))
-              (λ sh → >>=ᴹ-identityˡ (proj₁ sh , (i , proj₂ sh)) ContR) ⟩
-      (μ >>=ᴹ λ sh → Kwrapr sh >>=ᴹ ContR)
-        ≈˘⟨ >>=ᴹ-assoc μ Kwrapr ContR ⟩
-      ((μ >>=ᴹ Kwrapr) >>=ᴹ ContR)
-        ≈˘⟨ >>=⊥-embed (μ >>=ᴹ Kwrapr) ContR ⟩
-      trace {M = Dist⊥} Kr' t ((i , M) ∷ qs)
-      ∎
-      where
-        open RS (Mℚ-setoid _)
-        μ      = mdRunH H t i IV (toBlocks M) 1
-        Kwrap  = λ sh → return-ℚ ((nothing , proj₁ sh) , inj₂ (i , proj₂ sh))
-        Kunbot = λ sr → return⊥ (proj₁ sr , unbot (proj₂ sr))
-        Km-exit = λ sh → return⊥ ((nothing , proj₁ sh) , (i , proj₂ sh))
-        Kwrapr = λ sh → return-ℚ (proj₁ sh , (i , proj₂ sh))
-        ContM  = λ sb → trace {M = Dist⊥} Km' (proj₁ sb) qs >>=⊥ (λ bs → return⊥ (proj₂ sb ∷ bs))
-        ContR  = λ sb → trace {M = Dist⊥} Kr' (proj₁ sb) qs >>=⊥ (λ bs → return⊥ (proj₂ sb ∷ bs))
-        -- explicit `Mℚ.trans` (over `Dist⊥ (S × General.Output)`) so it does not share
-        -- the main chain's reasoning metavariable (over `Dist⊥ (List General.Output)`).
-        Km'≈ : Km' ((nothing , t) , (i , M)) ≈Mℚ (μ >>=ᴹ Km-exit)
-        Km'≈ = Mℚ.trans
-          {i = kernelAt Nfuel ((nothing , t) , inj₂ (i , M)) >>=⊥ Kunbot}
-          {j = Dmap just (μ >>=ᴹ Kwrap) >>=⊥ Kunbot}
-          {k = μ >>=ᴹ Km-exit}
-          (>>=⊥-congʳ Kunbot
-            (kernelAt Nfuel ((nothing , t) , inj₂ (i , M)))
-            (Dmap just (μ >>=ᴹ Kwrap))
-            (query-kernel t i M nothing Nfuel (ℕP.≤-reflexive (blkBound M))))
-          (Mℚ.trans
-            {i = Dmap just (μ >>=ᴹ Kwrap) >>=⊥ Kunbot}
-            {j = (μ >>=ᴹ Kwrap) >>=ᴹ Kunbot}
-            {k = μ >>=ᴹ Km-exit}
-            (>>=⊥-embed (μ >>=ᴹ Kwrap) Kunbot)
-            (Mℚ.trans
-              {i = (μ >>=ᴹ Kwrap) >>=ᴹ Kunbot}
-              {j = μ >>=ᴹ (λ sh → Kwrap sh >>=ᴹ Kunbot)}
-              {k = μ >>=ᴹ Km-exit}
-              (>>=ᴹ-assoc μ Kwrap Kunbot)
-              (>>=ᴹ-congˡ μ
-                (λ sh → Kwrap sh >>=ᴹ Kunbot)
-                Km-exit
-                (λ sh → >>=ᴹ-identityˡ ((nothing , proj₁ sh) , inj₂ (i , proj₂ sh)) Kunbot))))
-
-    machine-eval : (_≈ᵉ_ {M = Dist⊥}) (strip⊥ (machineAt Nfuel)) (embed⊥ (respRHM H))
-    machine-eval xs = machine-trace hr.init xs
-
-  -- ∘ᵍ-MD: now a DERIVED THEOREM (was a per-machine assumption).  The composite's
-  -- underlying morphism is the trace `embed⊥ mdArrow ∘ᵍ embed⊥ (asResource Comp.Functionality)`;
-  -- `∘ᵍ-unfold` (fuel-saturated at `Nfuel`, `RC.stableN`) rewrites it to the token machine
-  -- `machineAt Nfuel`, `RC.machine-eval` computes that to the embedded `respRHM`, and the
-  -- `asResource-sem` retraction + party-irrelevance bridge land it on `respR`.
-  ∘ᵍ-MD : (_≈ᵉ_ {M = Dist⊥})
-            (strip⊥ (embed⊥ mdArrow ∘ᵍ embed⊥ (asResource Comp.Functionality)))
-            (embed⊥ respRM)
-  ∘ᵍ-MD =
-    ≈ᵉ-trans⊥ (strip⊥-cong (∘ᵍ-unfold (embed⊥ mdArrow) (embed⊥ (asResource Comp.Functionality)) Nfuel RC.stableN))
-    (≈ᵉ-trans⊥ RC.machine-eval
-    (≈ᵉ-trans⊥ (≡→≈ᵉ⊥ (cong (λ h → embed⊥ (respRHM h)) (asResource-sem Comp.Functionality)))
-               respRHM-CF≈respRM))
-    where module RC = Replay (asResource Comp.Functionality)
 
   -- The *structural* chaining collision: a coincidence among {IV} ∪ {interior
   -- chaining values} (interior = outputs of NON-final calls, idx < len).  A
@@ -1039,52 +578,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   ideal-marginal : ∀ d
     → Pr₁ (runWith respG [] d) ≡ Pr₁ (runWith C.idealK (false , [] , []) d)
   ideal-marginal d = ideal-marginal-gen d false [] []
-
-  -- ⟦General⟧-sem: DERIVED from `liftFun-sem` + `asResource-sem` + the embed/strip
-  -- commutation (`strip-embed-swap`), then bridged to the total `Dist-ℚ` run.
-  -- `run General.Functionality d` is definitionally `runWith respG [] d`.
-  ⟦General⟧-sem : ∀ d → Pr₁⊥ (run⊥ ⟦ General.M ⟧cl d) ≡ Pr₁ (runWith respG [] d)
-  ⟦General⟧-sem d =
-    trans (Pr₁⊥-cong (run⊥ ⟦ General.M ⟧cl d) (Dmap just (run General.Functionality d))
-            (Mℚ.trans {i = run⊥ ⟦ General.M ⟧cl d}
-                      {j = run⊥ (embed⊥ General.Functionality) d}
-                      {k = Dmap just (run General.Functionality d)}
-               (trace-run {f = ⟦ General.M ⟧cl} {embed⊥ General.Functionality} sem≈ d)
-               (run⊥-embed General.Functionality d)))
-          (Pr₁⊥-just (run General.Functionality d))
-    where
-      sem≈ : (_≈ᵉ_ {M = Dist⊥}) ⟦ General.M ⟧cl (embed⊥ General.Functionality)
-      sem≈ = subst₂ (_≈ᵉ_ {M = Dist⊥})
-               (sym (cong strip⊥ (liftFun-sem (asResource General.Functionality))))
-               (cong embed⊥ (asResource-sem General.Functionality))
-               (strip-embed-swap (asResource General.Functionality))
-
-  -- ⟦MD⟧-sem: now a DERIVED THEOREM — `MD ⊚ Comp.M` is a composition, handled by
-  -- functoriality `⟦⟧-∘`, the `liftFun-sem` retractions (transported under
-  -- `strip⊥`/`_∘ᵍ_`), and the per-machine computation fact `∘ᵍ-MD`.
-  -- `run respRM d` is definitionally `runWith respR [] d`.
-  ⟦MD⟧-sem : ∀ d → Pr₁⊥ (run⊥ ⟦ MD ⊚ Comp.M ⟧cl d) ≡ Pr₁ (runWith respR [] d)
-  ⟦MD⟧-sem d =
-    trans (Pr₁⊥-cong (run⊥ ⟦ MD ⊚ Comp.M ⟧cl d) (Dmap just (run respRM d))
-            (Mℚ.trans {i = run⊥ ⟦ MD ⊚ Comp.M ⟧cl d}
-                      {j = run⊥ (embed⊥ respRM) d}
-                      {k = Dmap just (run respRM d)}
-               (trace-run {f = ⟦ MD ⊚ Comp.M ⟧cl} {embed⊥ respRM} sem≈ d)
-               (run⊥-embed respRM d)))
-          (Pr₁⊥-just (run respRM d))
-    where
-      step≈ : (_≈ᵉ_ {M = Dist⊥})
-                (strip⊥ ⟦ MD ⊚ Comp.M ⟧)
-                (strip⊥ (embed⊥ mdArrow ∘ᵍ embed⊥ (asResource Comp.Functionality)))
-      step≈ = subst (λ z → (_≈ᵉ_ {M = Dist⊥}) (strip⊥ ⟦ MD ⊚ Comp.M ⟧) (strip⊥ z))
-                (cong₂ _∘ᵍ_ (liftFun-sem mdArrow) (liftFun-sem (asResource Comp.Functionality)))
-                (strip⊥-cong (⟦⟧-∘ MD Comp.M))
-      sem≈ : (_≈ᵉ_ {M = Dist⊥}) ⟦ MD ⊚ Comp.M ⟧cl (embed⊥ respRM)
-      sem≈ xs = Mℚ.trans
-                  {i = eval ⟦ MD ⊚ Comp.M ⟧cl xs}
-                  {j = eval (strip⊥ (embed⊥ mdArrow ∘ᵍ embed⊥ (asResource Comp.Functionality))) xs}
-                  {k = eval (embed⊥ respRM) xs}
-                  (step≈ xs) (∘ᵍ-MD xs)
 
   ------------------------------------------------------------------------
   -- THE BIRTHDAY POTENTIAL (design: docs/md-cert-design.md), PROVEN.
@@ -2352,15 +1845,3 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
             → badProb C.realK proj₁ (false , [] , []) d ≤ℚ bound n
   bad-bound n d le = badProb-bounded md-cert n d le
 
-  -- advantage of any adaptive n-query distinguisher ≤ bound n
-  indistinguishable : General.M ≈adv[ bound ] (MD ⊚ Comp.M)
-  indistinguishable n d le =
-    subst (_≤ℚ bound n) (sym (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ) xEq yEq))
-          (≤-trans (C.FLGP (false , [] , []) d) (bad-bound n d le))
-    where
-      -- (a single `subst` instead of a 4-fold `rewrite`: each `rewrite` step
-      -- re-normalizes the whole goal, which costs minutes here)
-      xEq : Pr₁⊥ (run⊥ ⟦ General.M ⟧cl d) ≡ Pr₁ (runWith C.idealK (false , [] , []) d)
-      xEq = trans (⟦General⟧-sem d) (ideal-marginal d)
-      yEq : Pr₁⊥ (run⊥ ⟦ MD ⊚ Comp.M ⟧cl d) ≡ Pr₁ (runWith C.realK (false , [] , []) d)
-      yEq = trans (⟦MD⟧-sem d) (sym (ghost-erase false [] [] d))
