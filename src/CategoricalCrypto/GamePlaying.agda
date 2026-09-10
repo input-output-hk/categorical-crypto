@@ -24,6 +24,7 @@ open import Data.Rational using (ℚ; 0ℚ; 1ℚ)
 open import Data.Rational.Properties using (≤-refl; ≤-reflexive; ≤-trans; +-inverseʳ; 0≤p⇒∣p∣≡p)
 
 open import CategoricalCrypto.Interaction
+open import CategoricalCrypto.Strategy
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 open import ProbabilisticLogic.Distribution.Uniform using (bool→ℚ)
@@ -47,17 +48,21 @@ cond-diag false x = refl
 -- The probability that `bad` fires at some visited state during the run of `d`
 -- against `resp` from `s` (1 immediately at a bad state — no monotonicity
 -- needed).
-badProb : (St → Q → Dist-ℚ (St × R)) → (St → Bool) → St → Dgr Q R → ℚ
-badProb resp bad s (out _)   = bool→ℚ (bad s)
-badProb resp bad s (ask q k) with bad s
+badProb : (St → Q → Dist-ℚ (St × R)) → (St → Bool) → St → Strat Q R → ℚ
+badProb resp bad s (out _)    = bool→ℚ (bad s)
+badProb resp bad s (ask q k)  with bad s
 ... | true  = 1ℚ
 ... | false = E (resp s q) (λ sr → badProb resp bad (proj₁ sr) (k (proj₂ sr)))
+badProb resp bad s (coin μ k) with bad s
+... | true  = 1ℚ
+... | false = E μ (λ b → badProb resp bad s (k b))
 
 -- At a state where `bad` already holds, the bad-probability is 1.
 badProb-bad : (resp : St → Q → Dist-ℚ (St × R)) (bad : St → Bool)
-            → ∀ s (d : Dgr Q R) → bad s ≡ true → badProb resp bad s d ≡ 1ℚ
-badProb-bad resp bad s (out _)   eq rewrite eq = refl
-badProb-bad resp bad s (ask q k) eq rewrite eq = refl
+            → ∀ s (d : Strat Q R) → bad s ≡ true → badProb resp bad s d ≡ 1ℚ
+badProb-bad resp bad s (out _)    eq rewrite eq = refl
+badProb-bad resp bad s (ask q k)  eq rewrite eq = refl
+badProb-bad resp bad s (coin μ k) eq rewrite eq = refl
 
 ------------------------------------------------------------------------
 -- What a concrete system owes: a non-adaptive per-step certificate
@@ -108,6 +113,12 @@ badProb-super resp bad Inv φ pres nn lb step (suc m) (ask q kd) s le inv
                         (le (proj₂ (proj₂ e))) inv')
         (pres s q inv)))
     (step m s q inv)
+badProb-super resp bad Inv φ pres nn lb step m (coin μ kd) s le inv with bad s in eqb
+... | true  = lb m s inv eqb
+... | false = ≤-trans
+    (E-mono μ (λ b → badProb resp bad s (kd b)) (λ _ → φ m s)
+      (λ b → badProb-super resp bad Inv φ pres nn lb step m (kd b) s (le b) inv))
+    (≤-reflexive (E-const μ (φ m s)))
 
 badProb-bounded :
   {resp : St → Q → Dist-ℚ (St × R)} {bad : St → Bool} {s₀ : St} {ε : ℕ → ℚ}
@@ -176,3 +187,18 @@ module Coupling (bad : St → Bool)
         subst (λ z → ∣ Pr₁ (KI (proj₁ t , proj₂ (proj₂ t))) -ℚ AR t ∣ℚ ≤ℚ z)
               (sym (badProb-bad realK bad (proj₁ t) (k (proj₁ (proj₂ t))) eqt))
               (∣Pr-Pr∣≤1 (KI (proj₁ t , proj₂ (proj₂ t))) (KR (fR t)))
+  -- A coin is a convex combination of the branches: neither world's state
+  -- moves, so the advantage averages and the bad-probability averages with it.
+  FLGP s (coin μ k) with bad s
+  ... | true  = ∣Pr-Pr∣≤1 (runWith idealK s (coin μ k)) (runWith realK s (coin μ k))
+  ... | false =
+      ≤-trans (≤-reflexive (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ)
+                             (Pr₁-bind μ (λ b → runWith idealK s (k b)))
+                             (Pr₁-bind μ (λ b → runWith realK s (k b)))))
+     (≤-trans (E-abs-diff μ AI AR)
+              (E-mono μ (λ b → ∣ AI b -ℚ AR b ∣ℚ) BB (λ b → FLGP s (k b))))
+    where
+      AI AR BB : Bool → ℚ
+      AI b = Pr₁ (runWith idealK s (k b))
+      AR b = Pr₁ (runWith realK  s (k b))
+      BB b = badProb realK bad s (k b)

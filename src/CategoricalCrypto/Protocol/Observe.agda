@@ -25,7 +25,9 @@ open import Data.Product.Base
 open import Data.Rational renaming (_+_ to _+ℚ_; _-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
 open import Data.Rational.Properties
 open import Data.Rational.Properties.Ext
+open import Data.Vec.Base using (Vec; []; _∷_)
 open import Relation.Binary.PropositionalEquality
+import Relation.Binary.Reasoning.Setoid as RS
 
 open import ProbabilisticLogic.Prelude
 
@@ -36,7 +38,7 @@ open import CategoricalCrypto.Strategy
 module CategoricalCrypto.Protocol.Observe where
 
 private variable X : Set
-                 B : Iface
+                 A B : Iface
 
 ------------------------------------------------------------------------
 -- Running a strategy
@@ -48,6 +50,43 @@ evalC (ret x)    = return⊥ x
 evalC (call q _) = ⊥-elim q
 evalC (coin μ k) = μ >>=ᴹ λ b → evalC (k b)
 evalC dead       = return-ℚ nothing
+
+-- Any reading of call trees that turns a coin node into a bind reads a
+-- `uniformVec` cascade as the uniform distribution on bit vectors.  Stated at
+-- the reading rather than at `evalC` because an example needs it twice: once
+-- for a closed oracle's own step, and once for that step seen through the
+-- `serve` of a caller grafted onto it (`Examples.MerkleDamgard`).
+uniformVec-bind : {Z : Set} (⟦_⟧ : Calls A X → Dist-ℚ Z)
+                → (∀ μ g → ⟦ coin μ g ⟧ ≈Mℚ (μ >>=ᴹ λ b → ⟦ g b ⟧))
+                → ∀ m (f : Vec Bool m → Calls A X)
+                → ⟦ uniformVec m f ⟧ ≈Mℚ (uniform-Vec m >>=ᴹ λ v → ⟦ f v ⟧)
+uniformVec-bind ⟦_⟧ hom zero    f =
+  Mℚ.sym {x = uniform-Vec zero >>=ᴹ (λ v → ⟦ f v ⟧)} {y = ⟦ f [] ⟧}
+    (>>=ᴹ-identityˡ [] (λ v → ⟦ f v ⟧))
+uniformVec-bind ⟦_⟧ hom (suc m) f = begin
+  ⟦ uniformVec (suc m) f ⟧
+    ≈⟨ hom uniform-Bool (λ b → uniformVec m λ v → f (b ∷ v)) ⟩
+  (uniform-Bool >>=ᴹ Fb)
+    ≈⟨ >>=ᴹ-congˡ uniform-Bool Fb Hb
+         (λ b → uniformVec-bind ⟦_⟧ hom m (λ v → f (b ∷ v))) ⟩
+  (uniform-Bool >>=ᴹ Hb)
+    ≈˘⟨ >>=ᴹ-congˡ uniform-Bool Db Hb (λ b → Mℚ.trans
+          {i = Db b}
+          {j = uniform-Vec m >>=ᴹ λ v → (return-ℚ (b ∷ v) >>=ᴹ G)}
+          {k = Hb b}
+          (>>=ᴹ-assoc (uniform-Vec m) (λ v → return-ℚ (b ∷ v)) G)
+          (>>=ᴹ-congˡ (uniform-Vec m) (λ v → return-ℚ (b ∷ v) >>=ᴹ G) (λ v → G (b ∷ v))
+            (λ v → >>=ᴹ-identityˡ (b ∷ v) G))) ⟩
+  (uniform-Bool >>=ᴹ Db)
+    ≈˘⟨ >>=ᴹ-assoc uniform-Bool (λ b → Dmap (b ∷_) (uniform-Vec m)) G ⟩
+  (uniform-Vec (suc m) >>=ᴹ G)
+    ∎
+  where
+    G  = λ v → ⟦ f v ⟧
+    Fb = λ b → ⟦ uniformVec m (λ v → f (b ∷ v)) ⟧
+    Hb = λ b → uniform-Vec m >>=ᴹ λ v → G (b ∷ v)
+    Db = λ b → Dmap (b ∷_) (uniform-Vec m) >>=ᴹ G
+    open RS (Mℚ-setoid _)
 
 module _ (P : Protocol unitᴵ B) where
 
