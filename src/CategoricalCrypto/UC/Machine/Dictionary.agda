@@ -72,9 +72,10 @@ private
 ------------------------------------------------------------------------
 -- The base is a Kleisli category: its structural maps are functions
 
-  pure-idᵏ : 𝒱._≈_ (𝒱.id {V}) (pureᵏ (λ v → v))
-  pure-idᵏ _ = ≈ᵈ.refl
+pure-idᵏ : 𝒱._≈_ (𝒱.id {V}) (pureᵏ (λ v → v))
+pure-idᵏ _ = ≈ᵈ.refl
 
+private
   swapᵏ : 𝒱._≈_ (+-swap {V} {W}) (pureᵏ Sum.swap)
   swapᵏ (inj₁ _) = ≈ᵈ.refl
   swapᵏ (inj₂ _) = ≈ᵈ.refl
@@ -94,20 +95,21 @@ private
           → 𝒱._≈_ (𝒱._∘_ u v) (pureᵏ (λ x → h (k x)))
   ∘-pureᵏ {h = h} {k} e₁ e₂ = (e₁ ⟩∘⟨ e₂) ○ pureᵏ-∘ h k
 
-  +₁-pureᵏ : {u : 𝒱._⇒_ V W} {v : 𝒱._⇒_ V′ W′} {h : V → W} {k : V′ → W′}
-           → 𝒱._≈_ u (pureᵏ h) → 𝒱._≈_ v (pureᵏ k)
-           → 𝒱._≈_ (u +₁ v) (pureᵏ (Sum.map h k))
-  +₁-pureᵏ {h = h} {k} e₁ e₂ = +₁-cong₂ e₁ e₂ ○ leaves
-    where
-    leaves : 𝒱._≈_ (pureᵏ h +₁ pureᵏ k) (pureᵏ (Sum.map h k))
-    leaves (inj₁ _) = >>=-identityˡ-≈
-    leaves (inj₂ _) = >>=-identityˡ-≈
++₁-pureᵏ : {u : 𝒱._⇒_ V W} {v : 𝒱._⇒_ V′ W′} {h : V → W} {k : V′ → W′}
+         → 𝒱._≈_ u (pureᵏ h) → 𝒱._≈_ v (pureᵏ k)
+         → 𝒱._≈_ (u +₁ v) (pureᵏ (Sum.map h k))
++₁-pureᵏ {h = h} {k} e₁ e₂ = +₁-cong₂ e₁ e₂ ○ leaves
+  where
+  leaves : 𝒱._≈_ (pureᵏ h +₁ pureᵏ k) (pureᵏ (Sum.map h k))
+  leaves (inj₁ _) = >>=-identityˡ-≈
+  leaves (inj₂ _) = >>=-identityˡ-≈
 
-  -- A pure interface relabelling spends two junctions and keeps the state.
-  pureᴵ : (h : V → W) (r : X × V)
-        → 𝒱._⊗₁_ (𝒱.id {X}) (pureᵏ h) r ≈ᵈ returnₚ (proj₁ r , h (proj₂ r))
-  pureᴵ h = pureᵏ-⊗ (λ x → x) h
+-- A pure interface relabelling spends two junctions and keeps the state.
+pureᴵ : (h : V → W) (r : X × V)
+      → 𝒱._⊗₁_ (𝒱.id {X}) (pureᵏ h) r ≈ᵈ returnₚ (proj₁ r , h (proj₂ r))
+pureᴵ h = pureᵏ-⊗ (λ x → x) h
 
+private
   swapᴵ : (r : X × (V ⊎ W))
         → 𝒱._⊗₁_ (𝒱.id {X}) +-swap r ≈ᵈ returnₚ (proj₁ r , Sum.swap (proj₂ r))
   swapᴵ {X = X} {V} {W} r = ≈ᵈ.trans (padded r) (pureᴵ Sum.swap r)
@@ -116,10 +118,11 @@ private
                    (𝒱._⊗₁_ 𝒱.id +-swap) (𝒱._⊗₁_ 𝒱.id (pureᵏ Sum.swap))
     padded = refl⟩⊗⟨ swapᵏ
 
-  enter-pure : {A : 𝒱.Obj} (h : V → W) (K : X × W → Dₚ A) (x : X) (v : V)
-             → (𝒱._⊗₁_ (𝒱.id {X}) (pureᵏ h) (x , v) >>= K) ≈ᵈ K (x , h v)
-  enter-pure h K x v = ≈ᵈ.trans (>>=-cong-x (pureᴵ h (x , v))) >>=-identityˡ-≈
+enter-pure : {A : 𝒱.Obj} (h : V → W) (K : X × W → Dₚ A) (x : X) (v : V)
+           → (𝒱._⊗₁_ (𝒱.id {X}) (pureᵏ h) (x , v) >>= K) ≈ᵈ K (x , h v)
+enter-pure h K x v = ≈ᵈ.trans (>>=-cong-x (pureᴵ h (x , v))) >>=-identityˡ-≈
 
+private
   exit-pure : (h : V → W) (x : X) (v : V)
             → (returnₚ (x , v) >>= 𝒱._⊗₁_ (𝒱.id {X}) (pureᵏ h)) ≈ᵈ returnₚ (x , h v)
   exit-pure h x v = ≈ᵈ.trans >>=-identityˡ-≈ (pureᴵ h (x , v))
@@ -232,6 +235,20 @@ private
   wireStep-copair _ _ (_ , inj₂ _) =
     ≈ᵈ.sym (≈ᵈ.trans >>=-identityˡ-≈
                      (≈ᵈ.trans (>>=-cong-x >>=-identityˡ-≈) >>=-identityˡ-≈))
+
+------------------------------------------------------------------------
+-- Every wire is an embedding
+
+-- The relays' common shape: a stateless relabelling IS `⌜_,_⌝` of the two
+-- directions, read as pure machines.  This is what makes
+-- `UC.Machine.Wire`'s absorption apply to them — and the two reassociator
+-- zigzags below are its two instances, spelled out at the 𝒢-associator.
+wire-⌜⌝ : {A B : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
+        → 𝒫._≈_ {A} {B} (wireᴹ up down)
+            (σᴹ ∘ᴹ (pureᴹ (pureᵏ up) ⊗ᵉ pureᴹ (pureᵏ down)))
+wire-⌜⌝ up down =
+    ≲⇒≈ᴹ (mk-cong (wireStep-copair up down ○ ⟺ (refl⟩⊗⟨ swap-copair _ _)))
+  ○ᴹ ≲⇒≈ᴹ˘ (⌜⌝-pureᴹ (pureᵏ up) (pureᵏ down))
 
 a⇒-α⇐ : {X Y A : Iface}
       → 𝒫._≈_ {X ⊗ᴵ (Y ⊗ᴵ A)} {(X ⊗ᴵ Y) ⊗ᴵ A}
