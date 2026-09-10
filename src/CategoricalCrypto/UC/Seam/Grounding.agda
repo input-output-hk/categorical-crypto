@@ -25,7 +25,7 @@
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol.Machine using (⟦_⟧ᴵ)
 open import CategoricalCrypto.Strategy using (Strat)
-open import CategoricalCrypto.UC.Machine using (Proc; ucBaseᴹ)
+open import CategoricalCrypto.UC.Machine using (Proc; Ωᴵ; ucBaseᴹ)
 open import CategoricalCrypto.UC.Seam using (Agreeˢ; strategyEnv)
 
 import CategoricalCrypto.UC.Emulation as Em
@@ -45,19 +45,54 @@ StratIsEnv : Set₁
 StratIsEnv = (B : Iface) (u v : Proc unitᴵ B)
            → _≈ℰ_ {⟦ unitᴵ ⟧ᴵ} {⟦ B ⟧ᴵ} u v → Agreeˢ B u v
 
+opaque
+  Proc≈ : (A B : Iface) → Proc A B → Proc A B → Set₁
+  Proc≈ A B u v = _≈_ {⟦ A ⟧ᴵ} {⟦ B ⟧ᴵ} u v
+
+opaque
+  unfolding Proc≈
+
+  toProc≈ : {A B : Iface} {u v : Proc A B} → u ≈ v → Proc≈ A B u v
+  toProc≈ p = p
+
+  fromProc≈ : {A B : Iface} {u v : Proc A B} → Proc≈ A B u v → u ≈ v
+  fromProc≈ p = p
+
 -- What `StratIsEnv` reduces to: an embedded strategy PRESENTED as one of the
 -- ancilla contexts `_≈ℰ_` quantifies over.  Its four fields are exactly
 -- `UC.Environment.≈ℰ-at`'s arguments at `k = strategyEnv B d ∘_`, which is where
 -- the reduction is proved and where the ε-arithmetic and the transport of both
 -- endpoints are spent — generically, so that nothing about the machines unfolds.
 -- The obligation left here is one equation and no quantitative content at all.
+opaque
+  EnvPlugs : (B : Iface) (d : Strat (Neg B) (Pos B)) (anc : Iface)
+           → Test ⟦ anc ⊗ᴵ B ⟧ᴵ → Closure ⟦ anc ⊗ᴵ unitᴵ ⟧ᴵ → Set₁
+  EnvPlugs B d anc test close = (w : Proc unitᴵ B)
+    → Proc≈ unitᴵ Ωᴵ ((test ∘ T₁ ⟦ anc ⟧ᴵ w) ∘ close) (strategyEnv B d ∘ w)
+
+opaque
+  unfolding EnvPlugs
+
+  toEnvPlugs : {B : Iface} {d : Strat (Neg B) (Pos B)} {anc : Iface}
+               {test : Test ⟦ anc ⊗ᴵ B ⟧ᴵ} {close : Closure ⟦ anc ⊗ᴵ unitᴵ ⟧ᴵ}
+             → ((w : Proc unitᴵ B) → Proc≈ unitᴵ Ωᴵ
+                 ((test ∘ T₁ ⟦ anc ⟧ᴵ w) ∘ close) (strategyEnv B d ∘ w))
+             → EnvPlugs B d anc test close
+  toEnvPlugs p = p
+
+  fromEnvPlugs : {B : Iface} {d : Strat (Neg B) (Pos B)} {anc : Iface}
+                 {test : Test ⟦ anc ⊗ᴵ B ⟧ᴵ} {close : Closure ⟦ anc ⊗ᴵ unitᴵ ⟧ᴵ}
+               → EnvPlugs B d anc test close
+               → (w : Proc unitᴵ B) → Proc≈ unitᴵ Ωᴵ
+                   ((test ∘ T₁ ⟦ anc ⟧ᴵ w) ∘ close) (strategyEnv B d ∘ w)
+  fromEnvPlugs p = p
+
 record EnvCtx (B : Iface) (d : Strat (Neg B) (Pos B)) : Set₁ where
   field
     anc   : Iface
     test  : Test ⟦ anc ⊗ᴵ B ⟧ᴵ
     close : Closure ⟦ anc ⊗ᴵ unitᴵ ⟧ᴵ
-    plugs : (w : Proc unitᴵ B)
-          → ((test ∘ T₁ ⟦ anc ⟧ᴵ w) ∘ close) ≈ (strategyEnv B d ∘ w)
+    plugs : EnvPlugs B d anc test close
 
 -- Stated and priced at ~80–120 LOC, which is where `StratIsEnv` itself stood: the
 -- reduction moves the plumbing out of the obligation, not the content.  At the

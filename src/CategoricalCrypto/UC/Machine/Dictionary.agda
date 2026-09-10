@@ -21,6 +21,7 @@ import Categories.Category.Cocartesian.Ext as CE
 import Categories.Category.Kleisli.Discrete as KD
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Utilities as MU
+import Categories.GConstructionMonoidal as GM
 
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Sum.Base as Sum using (_⊎_; inj₁; inj₂)
@@ -175,20 +176,23 @@ private
     unfolding midᴹ
 
     midᴹ-pure : midᴹ {P} {Q} {R} {S} ≈ᴹ pureᴹ (pureᵏ midfn)
-    midᴹ-pure = ∘-pureᴹ reflᴹ (∘-pureᴹ (⊗-pureᴹ id-pureᴹ inner) reflᴹ)
-              ○ᴹ ≲⇒≈ᴹ (pureᴹ-cong base)
-      where
-      inner = ∘-pureᴹ reflᴹ (∘-pureᴹ (⊗-pureᴹ reflᴹ id-pureᴹ) reflᴹ)
-      base = ∘-pureᵏ assocˡᵏ
-               (∘-pureᵏ (+₁-pureᵏ pure-idᵏ
-                          (∘-pureᵏ assocʳᵏ
-                            (∘-pureᵏ (+₁-pureᵏ swapᵏ pure-idᵏ) assocˡᵏ)))
-                        assocʳᵏ)
-           ○ pureᵏ-cong λ where
-               (inj₁ (inj₁ _)) → refl
-               (inj₁ (inj₂ _)) → refl
-               (inj₂ (inj₁ _)) → refl
-               (inj₂ (inj₂ _)) → refl
+    midᴹ-pure =
+        ∘-pureᴹ reflᴹ
+          (∘-pureᴹ
+            (⊗-pureᴹ id-pureᴹ
+              (∘-pureᴹ reflᴹ (∘-pureᴹ (⊗-pureᴹ reflᴹ id-pureᴹ) reflᴹ)))
+            reflᴹ)
+      ○ᴹ ≲⇒≈ᴹ (pureᴹ-cong
+        (∘-pureᵏ assocˡᵏ
+          (∘-pureᵏ (+₁-pureᵏ pure-idᵏ
+                     (∘-pureᵏ assocʳᵏ
+                       (∘-pureᵏ (+₁-pureᵏ swapᵏ pure-idᵏ) assocˡᵏ)))
+                   assocʳᵏ)
+         ○ pureᵏ-cong λ where
+             (inj₁ (inj₁ _)) → refl
+             (inj₁ (inj₂ _)) → refl
+             (inj₂ (inj₁ _)) → refl
+             (inj₂ (inj₂ _)) → refl))
 
   -- Tensoring with a pure machine keeps the other factor's state.
   ⊗ᵉ-pureˡ : (h : 𝒱._⇒_ V W) (M : Machine V′ W′)
@@ -321,22 +325,25 @@ private
                           (t′ , inj₁ x′) → exit-pure midfn t′ (inj₁ (inj₁ x′))
                           (t′ , inj₂ y′) → exit-pure midfn t′ (inj₁ (inj₂ y′))))
 
-T₁-⊗₁ : {Y A B : Iface} (f : Proc A B)
-      → 𝒫._≈_ {Y ⊗ᴵ A} {Y ⊗ᴵ B} (T₁ᴵ Y {A} {B} f)
-          (𝔾._⊗₁_ {⟦ Y ⟧ᴵ} {⟦ Y ⟧ᴵ} {⟦ A ⟧ᴵ} {⟦ B ⟧ᴵ} (𝒫.id {Y}) f)
-T₁-⊗₁ {Y} {A} {B} f = ⟺ᴹ
-  ( ∘ᴹ-resp-≈ᴹ midᴹ-pure (∘ᴹ-resp-≈ᴹ reflᴹ midᴹ-pure)
-  ○ᴹ ≲⇒≈ᴹ (∘ᴹ-resp-≲ ≲-refl (∘ᴹ-resp-≲ (⊗ᵉ-pureˡ +-swap f) ≲-refl))
-  ○ᴹ ≲⇒≈ᴹ (∘ᴹ-resp-≲ ≲-refl (pure-∘ʳ (pureᵏ midfn) _))
-  ○ᴹ ≲⇒≈ᴹ (pure-∘ˡ (pureᵏ midfn) _)
-  ○ᴹ ≲⇒≈ᴹ (mk-cong (T₁-step {Y} {A} {B} f)) )
+opaque
+  unfolding midᴹ GM._⊗₁ᴳ_
 
-sub-⊗₁ : {X Y A : Iface} (s : Proc X Y)
-       → 𝒫._≈_ {X ⊗ᴵ A} {Y ⊗ᴵ A} (subᴵ′ {X} {Y} {A} s)
-           (𝔾._⊗₁_ {⟦ X ⟧ᴵ} {⟦ Y ⟧ᴵ} {⟦ A ⟧ᴵ} {⟦ A ⟧ᴵ} s (𝒫.id {A}))
-sub-⊗₁ {X} {Y} {A} s = ⟺ᴹ
-  ( ∘ᴹ-resp-≈ᴹ midᴹ-pure (∘ᴹ-resp-≈ᴹ reflᴹ midᴹ-pure)
-  ○ᴹ ≲⇒≈ᴹ (∘ᴹ-resp-≲ ≲-refl (∘ᴹ-resp-≲ (⊗ᵉ-pureʳ s +-swap) ≲-refl))
-  ○ᴹ ≲⇒≈ᴹ (∘ᴹ-resp-≲ ≲-refl (pure-∘ʳ (pureᵏ midfn) _))
-  ○ᴹ ≲⇒≈ᴹ (pure-∘ˡ (pureᵏ midfn) _)
-  ○ᴹ ≲⇒≈ᴹ (mk-cong (sub-step {X} {Y} {A} s)) )
+  T₁-⊗₁ : {Y A B : Iface} (f : Proc A B)
+        → 𝒫._≈_ {Y ⊗ᴵ A} {Y ⊗ᴵ B} (T₁ᴵ Y {A} {B} f)
+            (𝔾._⊗₁_ {⟦ Y ⟧ᴵ} {⟦ Y ⟧ᴵ} {⟦ A ⟧ᴵ} {⟦ B ⟧ᴵ} (𝒫.id {Y}) f)
+  T₁-⊗₁ {Y} {A} {B} f = ⟺ᴹ
+    ( ∘ᴹ-resp-≈ᴹ midᴹ-pure (∘ᴹ-resp-≈ᴹ reflᴹ midᴹ-pure)
+    ○ᴹ ≲⇒≈ᴹ (∘ᴹ-resp-≲ ≲-refl (∘ᴹ-resp-≲ (⊗ᵉ-pureˡ +-swap f) ≲-refl))
+    ○ᴹ ≲⇒≈ᴹ (∘ᴹ-resp-≲ ≲-refl (pure-∘ʳ (pureᵏ midfn) _))
+    ○ᴹ ≲⇒≈ᴹ (pure-∘ˡ (pureᵏ midfn) _)
+    ○ᴹ ≲⇒≈ᴹ (mk-cong (T₁-step {Y} {A} {B} f)) )
+
+  sub-⊗₁ : {X Y A : Iface} (s : Proc X Y)
+         → 𝒫._≈_ {X ⊗ᴵ A} {Y ⊗ᴵ A} (subᴵ′ {X} {Y} {A} s)
+             (𝔾._⊗₁_ {⟦ X ⟧ᴵ} {⟦ Y ⟧ᴵ} {⟦ A ⟧ᴵ} {⟦ A ⟧ᴵ} s (𝒫.id {A}))
+  sub-⊗₁ {X} {Y} {A} s = ⟺ᴹ
+    ( ∘ᴹ-resp-≈ᴹ midᴹ-pure (∘ᴹ-resp-≈ᴹ reflᴹ midᴹ-pure)
+    ○ᴹ ≲⇒≈ᴹ (∘ᴹ-resp-≲ ≲-refl (∘ᴹ-resp-≲ (⊗ᵉ-pureʳ s +-swap) ≲-refl))
+    ○ᴹ ≲⇒≈ᴹ (∘ᴹ-resp-≲ ≲-refl (pure-∘ʳ (pureᵏ midfn) _))
+    ○ᴹ ≲⇒≈ᴹ (pure-∘ˡ (pureᵏ midfn) _)
+    ○ᴹ ≲⇒≈ᴹ (mk-cong (sub-step {X} {Y} {A} s)) )
