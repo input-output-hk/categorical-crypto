@@ -42,11 +42,19 @@
 --                                  headers carry the measured costs), which no
 --                                  consumer of this entry point should pay
 --                                  unless it is assembling a `Budget`
+--                `UC.QueryBound.Object`
+--                                  the same predicate at 𝒢's own objects — the
+--                                  spelling `gradingᴹ`'s action is stated in
 --                `UC.Machine.Grading`
 --                                  where a query-bound certificate about a
 --                                  pinned relay meets the derived grading's
 --                                  action, through `UC.Machine.Dictionary`'s
 --                                  zigzags
+--                `UC.Machine.Budget`
+--                                  `budgetᴹ`: the enrichment's `Budget`
+--                                  inhabited at `gradingᴹ`.  Not re-exported
+--                                  below either — it is the one consumer that
+--                                  pays for the composition line
 --                `UC.Machine.Bridge`
 --                                  `ContextDominated`, the interface to layer
 --                                  1's concrete theorems
