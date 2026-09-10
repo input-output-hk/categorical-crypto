@@ -11,7 +11,17 @@
 --
 -- Every object argument is EXPLICIT, for the reason `UC.QueryBound`'s header
 -- gives: left implicit, a hom of `𝒢ₚ` makes Agda invert
--- `Machine (A⁺ + B⁻) (A⁻ + B⁺)` for the pair at every use site.
+-- `Machine (A⁺ + B⁻) (A⁻ + B⁺)` for the pair at every use site.  With the
+-- objects implicit this module does not come back inside 4m47 CPU.
+--
+-- What it is FOR: `UC.Seam.Grounding`'s `SubBlind` and `UnitGrade` are false,
+-- and this is the mechanized half of why.  `_≤UC_` quantifies its simulator
+-- over all of `Y ⇒ X`, a divergent `s` included; `dead-sub` then makes
+-- `sub s ∘ (ι ∘ v)` dead, `dead-≈ℰ` makes it agree with every other dead
+-- process, and `dead-run` shows layer 1 still sees the difference.  The
+-- closing contradiction is arithmetic on top of `Adequacy` and is NOT landed:
+-- every spelling of it measured exhausts a 12–20 GiB heap in under 75 s, the
+-- `Observationᴹ` cliff `UC.Seam.Grounding`'s own header opens with.
 
 open import Categories.Category using (Category; _[_,_])
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
