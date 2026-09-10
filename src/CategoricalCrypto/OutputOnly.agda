@@ -14,7 +14,7 @@
 -- the theory prescribes:
 --
 --   1. INGESTION — read the concrete `≈adv[ bound ]` statement as ℰᵗᵛ's
---      `_≈ℰ[_]_`, whose distinguisher is an ancilla CONTEXT rather than a `Dgr`.
+--      `_≈ℰ[_]_`, whose distinguisher is an ancilla CONTEXT rather than a `Strat`.
 --      This is the one step with content, and it is exactly what `Reflects`
 --      buys: a budgeted context is realized by a single adaptive distinguisher.
 --   2. ABSORPTION — a vanishing bound collapses `≈ℰ[ bound ]` to the kernel
@@ -49,6 +49,7 @@ import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 open import CategoricalCrypto.Channel.Core using (Channel; I)
 import CategoricalCrypto.FamilyCategory
 open import CategoricalCrypto.Interaction
+open import CategoricalCrypto.Strategy
 import CategoricalCrypto.StandardTV
 import CategoricalCrypto.VanishingTV
 open import ProbabilisticLogic.Distribution.RationalDist using (_≈Mℚ_)
@@ -137,7 +138,7 @@ module Ingest (art : ℕ → Realization) where
   Reflects : Set (suc 0ℓ)
   Reflects = ∀ (Y : FC.Obj^ω) (E : FC.Test^ω (Y ⊗ω Bo)) (m : FC.Closure^ω (Y ⊗ω Ao))
            → Σ[ p ∈ (ℕ → ℕ) ] Poly p ×
-             (∀ j → Σ[ d ∈ Dgr (Channel.outType (IdealIf j)) (Channel.inType (IdealIf j)) ]
+             (∀ j → Σ[ d ∈ Strat (Channel.outType (IdealIf j)) (Channel.inType (IdealIf j)) ]
                       asks≤ (p j) d ×
                       (∀ (u : PMachine I (IdealIf j)) →
                          ctxRun Y E m j (conj u) ≈Mℚ run⊥ ⟦ u ⟧cl d))

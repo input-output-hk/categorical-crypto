@@ -21,10 +21,10 @@ open import ProbabilisticLogic.Distribution.RationalDist.Expectation public usin
   ( E; mb; Pr₁; Pr₁-bind; Prᵇ⊥; Pr₁⊥; Pr₁⊥-just; Pr₁⊥-cong )
 
 open import ProbabilisticLogic.Distribution.RationalDist.Setoid public using
-  ( Mℚ-setoid; module Mℚ )
+  ( Mℚ-setoid; module Mℚ; >>=ᴹ-congˡ; >>=ᴹ-congʳ )
 
 open import ProbabilisticLogic.Distribution.RationalDist.Advantage public using
-  ( advᵇ⊥; adv⊥; adv⊥-sym; adv⊥-triangle; adv⊥-≈⇒0 )
+  ( advᵇ⊥; advᵇ⊥-just; adv⊥; adv⊥-sym; adv⊥-triangle; adv⊥-≈⇒0 )
 
 open import ProbabilisticLogic.Distribution.Uniform public using
   ( bool→ℚ; indᵇ; δ; fromℕ; inv-pow-2; uniform-Bool; uniform-Vec )
