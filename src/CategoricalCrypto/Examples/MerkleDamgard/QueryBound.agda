@@ -28,7 +28,7 @@ import Categories.Category.Kleisli.Discrete.Pure as KDP
 open import Data.Bool.Base using (Bool)
 open import Data.Fin.Base using (Fin)
 open import Data.List.Base using (List; []; _∷_; length)
-open import Data.Maybe.Base using (Maybe; just; nothing)
+open import Data.Maybe.Base using (just; nothing)
 open import Data.Nat.Base using (ℕ; suc; _+_; _*_; z≤n; NonZero)
 open import Data.Nat.Properties using (≤-refl; ≤-reflexive)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)

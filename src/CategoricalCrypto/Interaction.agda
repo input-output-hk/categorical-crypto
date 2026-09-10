@@ -26,11 +26,10 @@ module CategoricalCrypto.Interaction where
 
 private variable Q R St : Type
 
--- The adaptive distinguisher is `Strategy.Strat`: at each node output a guess,
--- flip a rational coin, or query and branch on the response.  A deterministic
--- tree class is provably too weak here — an environment that samples which
--- question to ask beats every single tree (`docs/md-relocation-plan.md` §D.1,
--- the refutation of the applied `Reflects`) — so the coin is native.
+-- The adaptive distinguisher is `Strategy.Strat`, coin and all: a
+-- deterministic tree class is provably too weak (see that module's header),
+-- and a second copy of the same tree here would only have to be translated
+-- back at the protocol seam.
 
 ------------------------------------------------------------------------
 -- Running a distinguisher, totally and partially

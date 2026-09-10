@@ -2,8 +2,9 @@
 
 ------------------------------------------------------------------------
 -- Root of the channel/machine layer: channels, machines, and example
--- protocols.  The UC layer proper (`UCSetup`, `StandardTV`, `VanishingTV`,
--- `Examples.MerkleDamgard.UC`) has its own roots and is not re-exported here.
+-- protocols.  The UC layer proper (`UC`, `UCSetup`, `StandardTV`,
+-- `VanishingTV`) and the protocol-layer examples (`Examples.ChimericLedger`,
+-- `Examples.MerkleDamgard`) have their own roots and are not re-exported here.
 ------------------------------------------------------------------------
 
 module CategoricalCrypto where
