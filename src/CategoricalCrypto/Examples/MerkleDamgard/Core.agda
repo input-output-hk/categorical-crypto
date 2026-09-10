@@ -89,6 +89,7 @@ open import CategoricalCrypto.GamePlaying
 open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.SFunM
 open import CategoricalCrypto.SFunPartial
+open import CategoricalCrypto.Strategy
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
@@ -419,6 +420,11 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
         trans (lookupᴰℚ-return ((false , sc' , (M , hRv) ∷ sg) , ((i , hRv) , (i , hRv)))
                 (λ t → Pr₁ (KRc (C.fR t))))
               (ghost-erase false sc' ((M , hRv) ∷ sg) (k (i , hRv)))
+  -- a coin moves neither state, so both sides average the same branches
+  ghost-erase f sc sg (coin μ k) =
+    trans (Pr₁-bind μ (λ b → runWith C.realK (f , sc , sg) (k b)))
+   (trans (lookupᴰℚ-cong-P (entries μ) (λ b → ghost-erase f sc sg (k b)))
+          (sym (Pr₁-bind μ (λ b → runWith respR sc (k b)))))
 
   private
     -- ★ FRESHNESS DETACHMENT: walking the chain and testing `G` on the final
@@ -572,6 +578,10 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
               (λ t → Pr₁ (KIc (C.fI t)))
           ≡ cond (proj₂ (proj₂ w) ∨ f) (E Comp.uniform-Out G₀) (G₀ (proj₁ (proj₂ w)))
         pointNew w = newAnsVal (proj₂ (proj₂ w) ∨ f) (proj₁ w) (proj₁ (proj₂ w))
+    ideal-marginal-gen (coin μ k) f sc sgG =
+      trans (Pr₁-bind μ (λ b → runWith respG sgG (k b)))
+     (trans (lookupᴰℚ-cong-P (entries μ) (λ b → ideal-marginal-gen (k b) f sc sgG))
+            (sym (Pr₁-bind μ (λ b → runWith C.idealK (f , sc , sgG) (k b)))))
 
   -- ★ THE KEY LEMMA, PROVEN: the coupling's ideal view IS the variable-length
   -- random oracle — EXACTLY, not up to ε (the ε lives only in FLGP/bad-bound).

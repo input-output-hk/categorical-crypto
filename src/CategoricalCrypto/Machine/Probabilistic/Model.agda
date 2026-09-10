@@ -54,6 +54,7 @@ open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.MachineAxioms using (MachineAxioms)
 open import CategoricalCrypto.SFunM using (_≈ᵉ_; ≈ᵉ-isEquivalence)
 open import CategoricalCrypto.SFunPartial
+open import CategoricalCrypto.Strategy
 open import ProbabilisticLogic.Distribution.RationalDist using (_≈Mℚ_)
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation using (Pr₁⊥; mb)
 open import ProbabilisticLogic.Distribution.RationalDist.Partial using (Dist⊥)
@@ -98,7 +99,7 @@ f ≈adv[ ε ] g = ∀ n d → asks≤ n d → adv ⟦ f ⟧cl ⟦ g ⟧cl d ≤
 Ω : Channel
 Ω = Bool ⇿ ⊤
 
-askOnce : Dgr ⊤ Bool
+askOnce : Strat ⊤ Bool
 askOnce = ask tt out
 
 Obs : Setoid 0ℓ 0ℓ
