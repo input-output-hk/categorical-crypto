@@ -78,6 +78,10 @@
 --                                  at the vanishing grade and at the
 --                                  negligible one, with the invariance proved
 --                                  for each
+--                `UC.Asymptotic`   the consumer end: an emulation FAMILY, and
+--                                  the two ways a bound crosses it — graded
+--                                  (`simCost` charged) and probabilistic (the
+--                                  trivial-grade collapse into `UC.Saturated`)
 --
 -- The parameterized modules take a `UCBase` and so are imported directly
 -- rather than re-exported here; `UC.Machine.ucBaseᴹ` is the one to feed them at
@@ -90,6 +94,7 @@
 module CategoricalCrypto.UC where
 
 open import CategoricalCrypto.UC.Approximate public
+open import CategoricalCrypto.UC.Asymptotic public
 open import CategoricalCrypto.UC.Budget public
 open import CategoricalCrypto.UC.Core public
 open import CategoricalCrypto.UC.Machine public
