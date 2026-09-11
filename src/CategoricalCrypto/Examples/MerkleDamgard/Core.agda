@@ -348,13 +348,10 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
         μW = walk sc IV (toBlocks M) 1
         μM = mdRun sc IV (toBlocks M) 1
 
-        Pm : Comp.Table × CV → ℚ
-        Pm sh = F′ (proj₁ sh , (i , proj₂ sh))
-
         -- both branches end at the walk's (table , value) marginal
         walkE : E μW (λ (w : Comp.Table × (CV × Bool)) → F′ (proj₁ w , (i , proj₁ (proj₂ w))))
               ≡ E (respR sc (i , M)) F′
-        walkE = trans (walkR sc IV (toBlocks M) 1 Pm)
+        walkE = trans (walkR sc IV (toBlocks M) 1 (λ sh → F′ (proj₁ sh , (i , proj₂ sh))))
                       (sym (trans (E-bind μM (λ sh → return-ℚ (proj₁ sh , (i , proj₂ sh))) F′)
                                   (lookupᴰℚ-cong-P (entries μM)
                                     (λ sh → lookupᴰℚ-return (proj₁ sh , (i , proj₂ sh)) F′))))
