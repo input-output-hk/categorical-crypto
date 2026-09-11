@@ -386,3 +386,138 @@ cost of its own.  Not landed: the empty-object iso (§1.1), >150 s.
 
 Roots green: `UC/Model.agda` (whole cone), `UC/Model/Pin.agda` and `UC.agda`
 (unchanged — phase 1 edited no existing module, so no importer moved).
+
+## 6. Phase 2, executed
+
+P1–P5 and P7 landed; P6 is partly landed and specified below.  Everything is
+green under `pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS` with the
+warn gate empty, and the escape-hatch grep over `src/` is 21 throughout.
+
+### What moved
+
+**P1** — `UC/Model/Bridge.agda` gains `_≈ᴳ_`, the bare kernel read at every
+ancilla, with `≈ᴳ-refl/-sym/-trans/-congˡ/-congʳ`, `≈C⇒≈ᴳ`, `≈ᴳ⇔≈ᵁ` at graded
+homs and `≈ᴳ⇔≈ℰᶜ` everywhere; then the three **K** lemmas over it — `≈ᴳ-at`,
+`blind-gradeᵁ`, `unit-gradeᵁ`.  `_≈ᴳ_` is what F1 forces: `_≈ᵁ_` is stated only
+at `A ⇒ T₀ X B`, the core's relation at every codomain, and StdUC's own `_≈ℰ_`
+is strictly coarser, so a name was needed for the ungraded case and it is the
+grade-stable refinement `GradeStable` asks `_≈ℰ_` to be.
+
+**P2** — `UC/Seam/Grounding.agda` and `UC/Seam/Grounded.agda` are read at the
+seal: `UC.Model.Setup` + `UC.Model.Bridge` instead of `Em ucBaseᴹ`, `ifaceᵒ`
+instead of `⟦_⟧ᴵ`, `procᵒ` at the boundary.  `StratIsEnv` and `IotaBlind`'s
+conclusion are `_≈ᴳ_`; `SubBlind` and `IotaBlind`'s hypothesis are `_≈ᵁ_`;
+`UnitGrade` is the inherited `_≤UC_`.  `EnvCtx.anc` and `TrivialGrade`'s grade
+widen from `Iface` to `Channel`, which restores content rather than changing it:
+an agreement's ancilla quantifier ranges over every object, and transparently
+`retᴵ` inverts `⟦_⟧ᴵ` on the nose, so the `Iface` spelling was no restriction
+before and would have become one under the seal.  `UC.Model.Seal` gains
+`unprocᵒ-∘` (`procᵒ` is functorial on the nose) so that `plug-run` can observe a
+sealed composite.
+
+At the seal the trivial grade is the bundle's own unit, so `plug-λ` is the
+unitor's naturality and its own iso.  That is why `EnvAsCtx` and `StratIsEnv`
+— blocked at 300 s / 8 GiB and re-measured at 2400 s when the grade was
+`unitᴵ` and the equation fell through to the ⊕-trace — are now discharged in
+`UC.Seam.Grounded` at the startup floor.
+
+**P3 + P4** — `UC/Seam/Audit.agda` loses its `Budget` parameter and opens
+`UC.Audit ucBaseᵒ budgetᵒ massᵒ`.  New module `UC/Model/Enrichment.agda` holds
+the two: `massᵒ` needs no crossing (`Mass` mentions only `Obs` and `_∼_`, shared
+on the nose), `budgetᵒ` does.  The plan's "the seal makes the re-indexing
+disappear" is confirmed, but NOT by retyping — see the measurement below.
+
+**P5** — deleted, all consumer-free: `≈ℰ⇒tv`, `tv⇒≈ℰ` (`UC.Environment`);
+`≤UC⁺⇒≤UC`, `_⊙_`, `_⊛₁_`, `UC-compose` (`UC.Emulation`); and with the last two,
+`UC.Model.Bridge`'s `⊙-∙`, `≤UCᶜ-resp` and `UC-composeᶜ`, whose types mention
+them.  `_≤UC⁺_` is KEPT against P5's prose: it is category S and
+`dummy-complete`'s stated type mentions it.  `UC.Family`'s public re-export list
+drops the four dead names.
+
+Deleting `UC-composeᶜ` is the one place phase 2 removes a proved statement.
+Nothing is lost — the composition theorem is `Abstract2.UC-compose`, applied at
+the model in `UC.Model.Pin.compose-at`, and `≤UCᶜ⇔≤UC` carries it to any core
+`_≤UC_` statement — but it is a deletion and not a re-spelling.
+
+**P7** — `docs/protocol-rewrite.md`: the verdict paragraph and the M4 closing
+paragraph reversed, the `_≈ℰ_` dictionary row corrected in place with the F1
+warning, a pointer to this file at the head of the section, and the rows P2–P5
+made stale brought up to date.  `docs/rewrite-verdict.md` untouched.
+
+### The two measurements worth keeping
+
+**P2, the declared perf gate.**  Warm, one `Checking` line, `-M8G -H1G`:
+`UC.Seam.Grounding` 9.4 s → 9.1 s and `UC.Seam.Grounded` 12.0 s → 9.1 s, both
+at the Model cone's ~8.5 s interface-deserialization floor.  The eta cliff stays
+closed: under the seal the conversion has nothing to unfold.  Nothing outside
+`UC.Model.Seal`'s own `opaque` block unfolds the seal except
+`UC.Model.Enrichment`, which opens no `StdUC` (F5).
+
+**P4, and a new rule for crossing the seal.**  `budgetᵒ = budgetᴹ` inside
+`opaque unfolding 𝔾ᵒ` **exhausts 8 GiB in 39 s**.  Retyping makes the conversion
+checker meet `Grading ∣𝔾ᵒ∣` against `Grading (𝒢ₚ 0ℓ)`; `Grading` is a record, so
+it eta-expands both and forms the thirteen law types that `UC.Machine`'s header
+prices at ~470 s apiece at this instance.  The cure is to cross
+PROPOSITIONALLY: `UC.Model.Seal` exports `sealᵒ : 𝔾ᵒ ≡ 𝒢ₚᴹ 0ℓ` from inside the
+block, and `budgetᵒ` is a `subst` along it — 9.6 s.  Generally: **a datum
+derived from the whole bundle crosses by `subst` along `sealᵒ`; only data
+derived from a HOM cross by retyping** (`procᵒ`, `gradedᵒ`, `unprocᵒ-∘`).
+
+### P6 — what landed, and the spec for the rest
+
+`UCSetup` has four fields.  At `Fam`, two are now available and two are not.
+
+* `𝒞 = Fam` — `UC.Family.Fam`, unchanged.
+* `ℰ = UC.Family.ℰ^ω` — **landed.**  `UC.Environment.ℰᴼ` is the general
+  `Observation → Presheaf` construction (tests into `Ω` modulo closed
+  observation, no ancilla in the carrier), proved once over an arbitrary
+  `UCBase`; `UC.Family` re-exports it at `UCBase^ω`.  This is §2.3's one row
+  that runs from the core INTO the inherited layer, and
+  `UC.Model.Environment.ℰᵒ` is the same construction written out at the sealed
+  model (it cannot be re-based onto `ℰᴼ`: `ucBaseᵒ` is downstream of it).
+* `ℐ` — **missing, and this is the real work.**  `UCSetup` wants a monoidal
+  category of grades; at the standard shape that is `Fam` itself, and `Fam` is
+  not monoidal because `Grading` is strictly weaker than `Monoidal` — it has the
+  two one-sided actions `T₁`/`sub` and no bifunctor, no unitors.
+* `ℳ` — free once `ℐ` exists: `GradedMonad⇒GradedKleisliTriple (curriedTensor …)`,
+  the same one-liner `Standard2.StdUC` uses.
+
+So the whole of P6 reduces to making `Fam` monoidal, in four steps:
+
+1. **Re-parameterize.**  The family construction must take a monoidal base, not
+   a `Grading`: a module beside `UC.Family` (not a re-basing of it — see the
+   caveat below) parameterized by `(M : MonoidalCategory o ℓ e)`, a budget
+   doctrine over `M`, `(Ix , κ , κ-cofinal)` and an `ApproximateObservation`.
+2. **Four more budget fields.**  `Fam`'s unitors need `QB` certificates and
+   `UC.Budget.Budget` has none — its header records them as deliberately
+   dropped ("the four unitor laws are gone with the unitors", because
+   `grade-stable` never needs `unit ⊛ A ≅ A`).  So `Budget` grows
+   `qb-λ⇒`/`qb-λ⇐`/`qb-ρ⇒`/`qb-ρ⇐`.  `qb-⊗₁` is NOT needed:
+   `f ⊗₁ g ≈ (f ⊗₁ id) ∘ (id ⊗₁ g)` is `sub f ∘ T₁ _ g`, so `qb-∘`, `qb-sub`,
+   `qb-T₁` and `qb-resp-≈` give it, at `(c ⊔ 1) * (c′ ⊔ 1)`.
+   At the machine instance the four new fields are `QB 1` certificates for
+   `wireᴹ`-shaped relays — the exact shape `UC.QueryBound.Object.qb-a⇒ᴳ` and
+   `qb-a⇐ᴳ` already discharge — so the cost is that proof four more times, in
+   `UC.QueryBound.Object` and `UC.Machine.Grading`, and four more fields in
+   `UC.Machine.Budget.budgetᴹ` and hence in `UC.Model.Enrichment.budgetᵒ`.
+   This is the step that touches an existing record's statement and should be
+   confirmed with the maintainer first.
+3. **`Famᴹ : MonoidalCategory`.**  The `⊗` bifunctor (levelwise on the homs, the
+   budget by step 2), `unit = Δ M.unit`, the associator and both unitors as
+   levelwise natural isomorphisms, `triangle` and `pentagon`.  No content: the
+   hom equality `_≈^ω_` ignores the budget, so every law is `λ i → ⟨base law⟩`.
+   Estimate ~200 LOC, and it is the piece to spike first, because it is where a
+   levelwise `MonoidalCategory` record is either cheap or it is not.
+4. **Assemble** `UCSetup^ω = record { 𝒞 = Fam ; ℐ = Famᴹ ; ℳ = … ; ℰ = ℰ^ω }`
+   and open `Abstract2.AbstractUC` at it.  Only then can `UC.Core`'s `Grading`
+   and `UCBase` be deleted; `Observation` stays regardless (§2.2), and so does
+   `UC.Environment.ℰᴼ`, which is what feeds the `ℰ` field.
+
+Caveat, and the reason step 1 says *beside*: `UC.Family.absorb` lands in
+`Em UCBase^ω`'s `_≈ℰ_`, the ancilla-quantified relation.  At `UCSetup^ω` the
+same statement would land in `_≈ᵁ_`/`_≈ᴳ_`.  Those agree (that is what
+`UC.Model.Bridge` proves at the model, and the proof is generic in the base),
+but they are not definitionally equal — the kernel congruence is a
+`no-eta-equality` record — so re-basing `absorb` in place would change its
+stated type.  Build the `UCSetup` beside `UCBase^ω` and relate them by the same
+`≈ᴳ⇔≈ℰᶜ` argument, generalized off the model.

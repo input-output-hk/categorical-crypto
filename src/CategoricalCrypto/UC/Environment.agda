@@ -18,9 +18,9 @@
 -- For the same reason `_≈ℰ_` is the adaptive single-ancilla relation *by
 -- definition* rather than the kernel congruence of the environment presheaf:
 -- the reference had to prove the two equal (`≈ℰ⇒R`, the direction that needed
--- the hypothesis).  `ℰᵗᵛ` is still built, and `≈ℰ⇒tv`/`tv⇒≈ℰ` are the identity
--- pair witnessing that the definition is its kernel relation ancilla by
--- ancilla.  `grade-stable` is then a theorem with no hypothesis under it.
+-- the hypothesis).  `ℰᵗᵛ` is still built, and the definition IS its kernel
+-- relation ancilla by ancilla — `record { same = h Y E }` and `same` back.
+-- `grade-stable` is then a theorem with no hypothesis under it.
 --
 -- Everything here consumes the QUALITATIVE observation alone; the ε-indexed
 -- form of the relation and its collapse live in `UC.Environment.Approximate`.
@@ -55,6 +55,46 @@ Closure A = 𝟙 ⇒ A
 
 obs : Test A → Closure A → Obs
 obs E m = ⟦ E ∘ m ⟧
+
+------------------------------------------------------------------------
+-- The presheaf the inherited doctrine asks for
+
+-- `UCSetup` takes `ℰ` as GIVEN; an `Observation` is the datum one is built
+-- from, and this is that construction — tests into `Ω` modulo closed
+-- observation, no ancilla in the carrier.  It is the one row of the
+-- supersession inventory that runs from the core to the inherited layer
+-- (`docs/stduc-supersession-plan.md` §2.3), so it is proved once here rather
+-- than per instance: `UC.Model.Environment.ℰᵒ` is this at the machine model,
+-- and it is what an `ℰ` at the levelwise family category will be (P6).
+--
+-- Precomposition is well defined because a closure `m : 𝟙 ⇒ B` becomes the
+-- closure `f ∘ m : 𝟙 ⇒ A`; associativity then gives all three presheaf laws.
+
+infix 4 _≋_
+
+_≋_ : Test A → Test A → Set (ℓ ⊔ ℓs)
+_≋_ {A} E₁ E₂ = (m : Closure A) → obs E₁ m ∼ obs E₂ m
+
+≈⇒≋ : {E₁ E₂ : Test A} → E₁ ≈ E₂ → E₁ ≋ E₂
+≈⇒≋ eq _ = ⟦⟧-resp-≈ (∘-resp-≈ˡ eq)
+
+ℰᴼ : Presheaf 𝒞 (Setoids ℓ (ℓ ⊔ ℓs))
+ℰᴼ = record
+  { F₀ = λ A → record
+      { Carrier = Test A ; _≈_ = _≋_
+      ; isEquivalence = record
+        { refl = λ _ → ∼-refl ; sym = λ h m → ∼-sym (h m)
+        ; trans = λ h k m → ∼-trans (h m) (k m) }
+      }
+  ; F₁           = λ f → record
+      { to = _∘ f ; cong = λ h m → ∼-cast sym-assoc sym-assoc (h (f ∘ m)) }
+  ; identity     = ≈⇒≋ identityʳ
+  ; homomorphism = ≈⇒≋ sym-assoc
+  ; F-resp-≈     = λ eq → ≈⇒≋ (∘-resp-≈ʳ eq)
+  }
+
+------------------------------------------------------------------------
+-- Tests at a fixed ancilla
 
 -- Two tests at the same ancilla agree when no closure separates them.
 record SameTV (Y A : Obj) (E₁ E₂ : Test (Y ⊛ A)) : Set (ℓ ⊔ ℓs) where
@@ -101,14 +141,6 @@ infix 4 _≈ℰ_
 _≈ℰ_ : {A B′ : Obj} (f g : A ⇒ B′) → Set (o ⊔ ℓ ⊔ ℓs)
 _≈ℰ_ {A} {B′} f g = (Y : Obj) (E : Test (Y ⊛ B′)) (m : Closure (Y ⊛ A))
                   → obs (tv₁ Y f E) m ∼ obs (tv₁ Y g E) m
-
-≈ℰ⇒tv : {A B′ : Obj} {f g : A ⇒ B′} → f ≈ℰ g
-      → (Y : Obj) (E : Test (Y ⊛ B′)) → SameTV Y A (tv₁ Y f E) (tv₁ Y g E)
-≈ℰ⇒tv h Y E = record { same = h Y E }
-
-tv⇒≈ℰ : {A B′ : Obj} {f g : A ⇒ B′}
-      → ((Y : Obj) (E : Test (Y ⊛ B′)) → SameTV Y A (tv₁ Y f E) (tv₁ Y g E)) → f ≈ℰ g
-tv⇒≈ℰ h Y E = same (h Y E)
 
 ≈ℰ-refl : {f : A ⇒ B′} → f ≈ℰ f
 ≈ℰ-refl _ _ _ = ∼-refl

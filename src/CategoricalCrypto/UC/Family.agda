@@ -191,8 +191,18 @@ private module E = Em UCBase^ω
 open E public using
   ( Test; Closure; obs; SameTV; same; same-≈; Tests; tv₁; ℰᵗᵛ
   ; _≈ℰ_; ≈ℰ-refl; ≈ℰ-sym; ≈ℰ-trans; ≈ℰ-setoid; ≈⇒≈ℰ; ≈ℰ-congˡ; ≈ℰ-congʳ
-  ; grade-stable; _≤UC_; _≤UC⁺_; ≤UC-refl; ≤UC-trans; dummy-complete
-  ; ≤UC⁺⇒≤UC; _⊙_; _⊛₁_; UC-compose )
+  ; grade-stable; _≤UC_; _≤UC⁺_; ≤UC-refl; ≤UC-trans; dummy-complete )
+  renaming (ℰᴼ to ℰ^ω)
+
+-- One of `UCSetup`'s four fields at `Fam`, and the only one this module can
+-- supply today: the environment presheaf, from `Observation^ω` by
+-- `UC.Environment`'s generic construction.  `Fam` itself is a second.  The two
+-- missing ones are a MONOIDAL structure on `Fam` and the graded Kleisli triple
+-- over it, and `Grading` is strictly too weak to give them — it has the two
+-- one-sided actions but no bifunctor and no unitors, and the resource doctrine
+-- was weakened in lockstep (`UC.Budget`'s header: "the four unitor laws are
+-- gone with the unitors").  `docs/stduc-supersession-plan.md` §6 is the
+-- continuation spec.
 
 infix 4 _≈ℰ[_]_
 

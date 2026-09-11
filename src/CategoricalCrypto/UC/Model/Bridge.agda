@@ -11,18 +11,27 @@
 -- `UC.Model.Reading._≈ᴬ_`, which differs from it by one `assoc` and nothing
 -- else.  The core's `_≤UC_` then coincides with StdUC's, both ways: the core's
 -- `dummy-complete` supplies the universal quantification StdUC's order carries
--- in its statement, and the core's `≤UC⁺⇒≤UC` takes it back.
+-- in its statement, and instantiating that quantifier at `id` takes it back.
 --
--- The core's one OPEN metatheorem is discharged as a corollary: `UC-compose` is
--- a `Set` in `UC.Emulation` because the chain needs a `sub`/`T₁` interchange
--- and `a⇒`-naturality that `Grading` does not ask for.  At the model the graded
--- composite `_⊙_` IS the Kleisli one — `ext X h` is `α⇐ ∘ id ⊗₁ h` on the nose
--- (`CurriedTensor.Properties.ext-⊗`) — so `_⊙_` and `_∙_` differ by one
--- re-bracketing and the inherited theorem transports.
+-- Universal composition is what the identification RETIRES.  `UC.Emulation`
+-- could only state it, the chain needing a `sub`/`T₁` interchange and an
+-- `a⇒`-naturality that `Grading` does not ask for; here the graded composite IS
+-- the Kleisli one (`ext X h` is `α⇐ ∘ id ⊗₁ h` on the nose,
+-- `CurriedTensor.Properties.ext-⊗`), so `≤UCᶜ⇔≤UC` carries `UC-compose` —
+-- already a theorem — across, and there is nothing left for the core to owe.
+--
+-- At UNGRADED homs `_≈ᵁ_` says nothing — it is stated at `A ⇒ T₀ X B` — and the
+-- core's relation is stated at every codomain.  What it is there is `_≈ᴳ_`, the
+-- bare kernel stabilized under the action: exactly the property `GradeStable`
+-- asks of `_≈ℰ_` and this model does not supply.  `_≈ᴳ_` agrees with `_≈ᵁ_`
+-- wherever the latter is stated, so the seam can be read in one vocabulary.
 --
 -- Nothing here unfolds the seal: the core's `UCBase` is assembled from
 -- `UC.Core.Standard.gradingᵗ` at `𝔾ᵒ` and `UC.Model.Observation`, both of which
 -- name the sealed bundle without opening it.
+
+open import Categories.Functor.Monoidal.CurriedTensor.Properties using (T₁-⊗; μ-α⇐)
+import Categories.Morphism.Reasoning as MR
 
 open import Data.Bool.Base using (Bool)
 open import Data.Product.Base using (_,_)
@@ -43,8 +52,9 @@ import CategoricalCrypto.UC.Emulation as Em
 module CategoricalCrypto.UC.Model.Bridge where
 
 open HomReasoning
+open MR ∣machines∣ using (cancelˡ)
 
-private variable A B C X Y P : Channel
+private variable A B C X Y : Channel
 
 ------------------------------------------------------------------------
 -- The core's `UCBase` at the model
@@ -103,29 +113,109 @@ _≤UCᶜ_ = E._≤UC_
 ≈ℰᶜ⇒≈ℰ h = ≈ᵁ⇒≈ℰ (≈ℰᶜ⇒≈ᵁ h)
 
 ------------------------------------------------------------------------
+-- The same identification at ungraded homs
+
+infix 4 _≈ᴳ_
+
+-- The bare kernel read at every ancilla: the largest grade-stable relation
+-- under `_≈ℰ_`, and the inherited spelling of the core's relation where
+-- `_≈ᵁ_` is not stated.
+_≈ᴳ_ : (f g : A ⇒ B) → Set (suc 0ℓ)
+_≈ᴳ_ f g = (Y : Channel) → T₁ Y f ≈ℰ T₁ Y g
+
+≈ᴳ-refl : {f : A ⇒ B} → f ≈ᴳ f
+≈ᴳ-refl _ = ≈ℰ-refl
+
+≈ᴳ-sym : {f g : A ⇒ B} → f ≈ᴳ g → g ≈ᴳ f
+≈ᴳ-sym h Y = ≈ℰ-sym (h Y)
+
+≈ᴳ-trans : {f g h : A ⇒ B} → f ≈ᴳ g → g ≈ᴳ h → f ≈ᴳ h
+≈ᴳ-trans p q Y = ≈ℰ-trans (p Y) (q Y)
+
+≈C⇒≈ᴳ : {f g : A ⇒ B} → f ≈ g → f ≈ᴳ g
+≈C⇒≈ᴳ e _ = ≈C⇒≈ℰ (T-resp-≈ e)
+
+≈ᴳ-congˡ : (k : B ⇒ C) {f g : A ⇒ B} → f ≈ᴳ g → k ∘ f ≈ᴳ k ∘ g
+≈ᴳ-congˡ k h Y = ≈ℰ-trans (≈C⇒≈ℰ T-homomorphism)
+  (≈ℰ-trans (≈ℰ-cong-post (T₁ Y k) (h Y)) (≈C⇒≈ℰ (⟺ T-homomorphism)))
+
+≈ᴳ-congʳ : (l : C ⇒ A) {f g : A ⇒ B} → f ≈ᴳ g → f ∘ l ≈ᴳ g ∘ l
+≈ᴳ-congʳ l h Y = ≈ℰ-trans (≈C⇒≈ℰ T-homomorphism)
+  (≈ℰ-trans (≈ℰ-cong-pre (T₁ Y l) (h Y)) (≈C⇒≈ℰ (⟺ T-homomorphism)))
+
+-- Where `_≈ᵁ_` is stated the two coincide: the prefix `μ Y X` it carries is an
+-- iso (`μ-α⇐`, `associator.isoʳ`), so composing with it changes nothing.
+≈ᴳ⇒≈ᵁ : {f g : A ⇒ T₀ X B} → f ≈ᴳ g → f ≈ᵁ g
+≈ᴳ⇒≈ᵁ {X = X} h Y = ≈ℰ-cong-post (μ Y X) (h Y)
+
+≈ᵁ⇒≈ᴳ : {f g : A ⇒ T₀ X B} → f ≈ᵁ g → f ≈ᴳ g
+≈ᵁ⇒≈ᴳ {X = X} {f = f} {g} u Y =
+  ≈ℰ-trans (≈C⇒≈ℰ (⟺ (cancel f))) (≈ℰ-trans (≈ℰ-cong-post α⇒ (u Y)) (≈C⇒≈ℰ (cancel g)))
+  where
+  cancel : {A′ B′ : Channel} (x : A′ ⇒ T₀ X B′) → α⇒ ∘ μ Y X ∘ T₁ Y x ≈ T₁ Y x
+  cancel _ = cancelˡ (∘-resp-≈ʳ (μ-α⇐ 𝔾ᵒ Y X) ○ associator.isoʳ)
+
+-- …and everywhere it is the core's, which is what licenses reading a seam
+-- statement in the inherited vocabulary without weakening it.
+private
+  -- The core's action is the tensor's own `F₁`; the triple derives its `T₁` and
+  -- pays one triangle for the identification.
+  reT₁ : {Y : Channel} (f : A ⇒ B) (e : Test (Y ⊗₀ B)) (m : Closure (Y ⊗₀ A))
+       → (e ∘ T₁ Y f) ∘ m ≈ (e ∘ E.T₁ Y f) ∘ m
+  reT₁ {Y = Y} f _ _ = (refl⟩∘⟨ T₁-⊗ 𝔾ᵒ Y f) ⟩∘⟨refl
+
+≈ᴳ⇒≈ℰᶜ : {f g : A ⇒ B} → f ≈ᴳ g → f ≈ℰᶜ g
+≈ᴳ⇒≈ℰᶜ {f = f} {g} h Y e m =
+  ∼ᴼ-resp (obs-resp (reT₁ f e m)) (obs-resp (reT₁ g e m)) (KE.run∼ (h Y) {e} m)
+
+≈ℰᶜ⇒≈ᴳ : {f g : A ⇒ B} → f ≈ℰᶜ g → f ≈ᴳ g
+≈ℰᶜ⇒≈ᴳ {f = f} {g} h Y = KE.mk∼ λ {e} m →
+  ∼ᴼ-resp (obs-resp (⟺ (reT₁ f e m))) (obs-resp (⟺ (reT₁ g e m))) (h Y e m)
+
+≈ᴳ⇔≈ℰᶜ : {f g : A ⇒ B} → f ≈ᴳ g ⇔ f ≈ℰᶜ g
+≈ᴳ⇔≈ℰᶜ {f = f} {g} = mk⇔ {B = f ≈ℰᶜ g} ≈ᴳ⇒≈ℰᶜ ≈ℰᶜ⇒≈ᴳ
+
+------------------------------------------------------------------------
 -- …and the two emulation orders agree
 
 ≤UCᶜ⇒≤UC : {f : A ⇒ T₀ X B} {g : A ⇒ T₀ Y B} → f ≤UCᶜ g → f ≤UC g
 ≤UCᶜ⇒≤UC p a = let s , e = E.dummy-complete p a in s , ≈ℰᶜ⇒≈ᵁ e
 
 ≤UC⇒≤UCᶜ : {f : A ⇒ T₀ X B} {g : A ⇒ T₀ Y B} → f ≤UC g → f ≤UCᶜ g
-≤UC⇒≤UCᶜ p = E.≤UC⁺⇒≤UC λ a → let s , e = p a in s , ≈ᵁ⇒≈ℰᶜ e
+≤UC⇒≤UCᶜ {f = f} p =
+  let s , e = p id in s , ≈ᵁ⇒≈ℰᶜ (≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ f))) e)
 
 ≤UCᶜ⇔≤UC : {f : A ⇒ T₀ X B} {g : A ⇒ T₀ Y B} → f ≤UCᶜ g ⇔ f ≤UC g
 ≤UCᶜ⇔≤UC {f = f} {g} = mk⇔ {B = f ≤UC g} ≤UCᶜ⇒≤UC ≤UC⇒≤UCᶜ
 
 ------------------------------------------------------------------------
--- The core's open metatheorem, discharged
+-- The three instruments the seam consumes, over the inherited kernel
 
-⊙-∙ : (h : B ⇒ T₀ P C) (f : A ⇒ T₀ X B) → E._⊙_ h f ≈ h ∙ f
-⊙-∙ _ _ = sym-assoc
+-- `UC.Environment.≈ℰ-at`: an agreement read at ONE context, presented uniformly
+-- in the process.  Stated away from the machine layer for the reason
+-- `UC.Seam.Grounding`'s header gives — there a `∼ᴼ` between machine COMPOSITES
+-- η-expands the observation record — so the seam supplies the three components
+-- and the equation, and nothing else.
+≈ᴳ-at : (Y : Channel) (Et : Test (Y ⊗₀ B)) (m : Closure (Y ⊗₀ A))
+        (k : A ⇒ B → Closure Ωᵒ) → ((w : A ⇒ B) → (Et ∘ T₁ Y w) ∘ m ≈ k w)
+      → {f g : A ⇒ B} → f ≈ᴳ g → Obs (k f) ∼ᴼ Obs (k g)
+≈ᴳ-at Y Et m k eq {f} {g} r =
+  ∼ᴼ-resp (obs-resp (eq f)) (obs-resp (eq g)) (KE.run∼ (r Y) {Et} m)
 
-≤UCᶜ-resp : {f f′ : A ⇒ T₀ X B} {g g′ : A ⇒ T₀ Y B}
-          → f ≈ f′ → g ≈ g′ → f ≤UCᶜ g → f′ ≤UCᶜ g′
-≤UCᶜ-resp ef eg (s , e) =
-  s , E.≈ℰ-trans (E.≈⇒≈ℰ (⟺ ef)) (E.≈ℰ-trans e (E.≈⇒≈ℰ (refl⟩∘⟨ eg)))
+-- `UC.Emulation.blind-grade`: an emulation at a grade every simulator is blind
+-- to IS a plain agreement.  `_≤UC_` carries the dummy quantifier in its
+-- statement here, so the core's degrading step is its instantiation at `id`.
+blind-gradeᵁ : {f g : A ⇒ T₀ X B} → ((s : X ⇒ X) → sub s ∘ g ≈ᵁ g) → f ≤UC g → f ≈ᵁ g
+blind-gradeᵁ {f = f} blind p =
+  let s , e = p id
+  in ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ f))) (≈ᵁ-trans e (blind s))
 
-UC-composeᶜ : E.UC-compose
-UC-composeᶜ {f = f} {g} {h} {k} pf ph =
-  ≤UCᶜ-resp (⟺ (⊙-∙ h f)) (⟺ (⊙-∙ k g))
-            (≤UC⇒≤UCᶜ (UC-compose (≤UCᶜ⇒≤UC pf) (≤UCᶜ⇒≤UC ph)))
+-- `UC.Emulation.unit-grade`: …and if the wire inflating a closed process to
+-- that grade is absorbed by the ancilla quantifier too, the emulation is an
+-- agreement of the UNGRADED processes.  Both hypotheses are degeneracy facts
+-- about the chosen grade, not about the emulation.
+unit-gradeᵁ : {ι : B ⇒ T₀ X B} {u v : A ⇒ B}
+            → ((s : X ⇒ X) → sub s ∘ (ι ∘ v) ≈ᵁ ι ∘ v)
+            → (ι ∘ u ≈ᵁ ι ∘ v → u ≈ᴳ v)
+            → ι ∘ u ≤UC ι ∘ v → u ≈ᴳ v
+unit-gradeᵁ blind reflect e = reflect (blind-gradeᵁ blind e)

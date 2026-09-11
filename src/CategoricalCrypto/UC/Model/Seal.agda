@@ -43,10 +43,22 @@ opaque
 ∣𝔾ᵒ∣ : Category (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)
 ∣𝔾ᵒ∣ = MonoidalCategory.U 𝔾ᵒ
 
-private module G = MonoidalCategory 𝔾ᵒ
+private
+  module G = MonoidalCategory 𝔾ᵒ
+  module M = Category (𝒢ₚ 0ℓ)
 
 opaque
   unfolding 𝔾ᵒ
+
+  -- The seal itself, as a PROPOSITIONAL equation.  A datum derived from the
+  -- whole bundle rather than from a hom of it — a `Budget` for the grading
+  -- `gradingᵗ 𝔾ᵒ`, say (`UC.Model.Enrichment`) — cannot be coerced by
+  -- retyping, because the conversion checker meets two `Grading` records and
+  -- eta-expands both, forming the thirteen law types the transparent grading
+  -- is unaffordable at (`UC.Machine`'s header).  Transporting along this
+  -- equation never forms them.
+  sealᵒ : 𝔾ᵒ ≡ 𝒢ₚᴹ 0ℓ
+  sealᵒ = refl
 
   ifaceᵒ : Iface → G.Obj
   ifaceᵒ A = ⟦ A ⟧ᴵ
@@ -74,3 +86,10 @@ opaque
   -- the seal hides that tensor, so this is not derivable outside.
   gradedᵒ : {A X B : Iface} → Proc A (X ⊗ᴵ B) → ifaceᵒ A G.⇒ ifaceᵒ X G.⊗₀ ifaceᵒ B
   gradedᵒ f = f
+
+  -- `procᵒ` is functorial on the nose, and the seal hides that too.  This is
+  -- what lets the model's closed run read a COMPOSITE of the seal as the
+  -- machine composite it is (`UC.Seam.Grounded.plug-run`).
+  unprocᵒ-∘ : {A B C : Iface} (g : Proc B C) (f : Proc A B)
+            → 𝒢ₚ 0ℓ [ unprocᵒ (procᵒ g G.∘ procᵒ f) ≈ M._∘_ g f ]
+  unprocᵒ-∘ _ _ = M.Equiv.refl
