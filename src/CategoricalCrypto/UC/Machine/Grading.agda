@@ -5,10 +5,11 @@
 -- The grading itself is `UC.Machine.gradingᴹ` and comes for free; there is no
 -- `GradingLawsᴹ` any more and no `Cast`/`Laws` cone under it — `UC.Machine`'s
 -- header prices why.  What is left is the resource layer: a `UC.QueryBound`
--- certificate is about the pinned relay (`T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`), the
--- grading's action is `_⊗₁_` with an identity and the 𝒢-associator, and
--- `UC.Machine.Dictionary`'s zigzags carry one to the other through
--- `qb-resp-≈`.  Those four are the entire content the retired cone was buying.
+-- certificate is about the pinned relay (`T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`) or a bare
+-- wire, the grading's action is `_⊗₁_` with an identity and the 𝒢-associator
+-- and 𝒢-unitors, and `UC.Machine.Dictionary`'s zigzags carry one to the other
+-- through `qb-resp-≈`.  Those eight are the entire content the retired cone
+-- was buying.
 --
 -- The proofs stay in `Iface` vocabulary, where elaboration is cheap.  Their
 -- object-indexed wrappers cross through `QBᴳ` only at explicit `⟦_⟧ᴵ` images;
@@ -20,6 +21,7 @@ open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Product.Base using (_,_)
+open import Data.Sum.Base using (inj₁; inj₂)
 open import Level using (0ℓ)
 
 open import CategoricalCrypto.Iface
@@ -66,6 +68,26 @@ qb-a⇐ᴳ : (X Y A : Iface) → QB 1 (𝔾.associator.from {⟦ X ⟧ᴵ} {⟦ 
 qb-a⇐ᴳ X Y A =
   qb-resp-≈ (a⇐-α⇒ {X} {Y} {A})
     (certified⇒QB (qbᵢ-wire {(X ⊗ᴵ Y) ⊗ᴵ A} {X ⊗ᴵ (Y ⊗ᴵ A)} ⊎assocʳ ⊎assocˡ))
+
+qb-λ⇒ᴳ : (A : Iface) → QB 1 (𝔾.unitorˡ.from {⟦ A ⟧ᴵ})
+qb-λ⇒ᴳ A =
+  qb-resp-≈ (λ⇒-λᴳ {A})
+    (certified⇒QB (qbᵢ-wire {𝟭ᴵ ⊗ᴵ A} {A} drop⇒ˡ inj₂))
+
+qb-λ⇐ᴳ : (A : Iface) → QB 1 (𝔾.unitorˡ.to {⟦ A ⟧ᴵ})
+qb-λ⇐ᴳ A =
+  qb-resp-≈ (λ⇐-λᴳ {A})
+    (certified⇒QB (qbᵢ-wire {A} {𝟭ᴵ ⊗ᴵ A} inj₂ drop⇒ˡ))
+
+qb-ρ⇒ᴳ : (A : Iface) → QB 1 (𝔾.unitorʳ.from {⟦ A ⟧ᴵ})
+qb-ρ⇒ᴳ A =
+  qb-resp-≈ (ρ⇒-ρᴳ {A})
+    (certified⇒QB (qbᵢ-wire {A ⊗ᴵ 𝟭ᴵ} {A} drop⇒ʳ inj₁))
+
+qb-ρ⇐ᴳ : (A : Iface) → QB 1 (𝔾.unitorʳ.to {⟦ A ⟧ᴵ})
+qb-ρ⇐ᴳ A =
+  qb-resp-≈ (ρ⇐-ρᴳ {A})
+    (certified⇒QB (qbᵢ-wire {A} {A ⊗ᴵ 𝟭ᴵ} inj₁ drop⇒ʳ))
 
 opaque
   qb-T₁ᴳ-object : (Y A B : 𝒢.Obj) {c : ℕ} (f : 𝒢ₚ 0ℓ [ A , B ])
@@ -115,5 +137,29 @@ opaque
     X = retᴵ (X⁺ , X⁻)
     Y : Iface
     Y = retᴵ (Y⁺ , Y⁻)
+    A : Iface
+    A = retᴵ (A⁺ , A⁻)
+
+  qb-λ⇒ᴳ-object : (A : 𝒢.Obj) → QBᴳ (G.𝟭 G.⊛ A) A 1 (G.λ⇒ {A})
+  qb-λ⇒ᴳ-object (A⁺ , A⁻) = qb-to-image (𝟭ᴵ ⊗ᴵ A) A (qb-λ⇒ᴳ A)
+    where
+    A : Iface
+    A = retᴵ (A⁺ , A⁻)
+
+  qb-λ⇐ᴳ-object : (A : 𝒢.Obj) → QBᴳ A (G.𝟭 G.⊛ A) 1 (G.λ⇐ {A})
+  qb-λ⇐ᴳ-object (A⁺ , A⁻) = qb-to-image A (𝟭ᴵ ⊗ᴵ A) (qb-λ⇐ᴳ A)
+    where
+    A : Iface
+    A = retᴵ (A⁺ , A⁻)
+
+  qb-ρ⇒ᴳ-object : (A : 𝒢.Obj) → QBᴳ (A G.⊛ G.𝟭) A 1 (G.ρ⇒ {A})
+  qb-ρ⇒ᴳ-object (A⁺ , A⁻) = qb-to-image (A ⊗ᴵ 𝟭ᴵ) A (qb-ρ⇒ᴳ A)
+    where
+    A : Iface
+    A = retᴵ (A⁺ , A⁻)
+
+  qb-ρ⇐ᴳ-object : (A : 𝒢.Obj) → QBᴳ A (A G.⊛ G.𝟭) 1 (G.ρ⇐ {A})
+  qb-ρ⇐ᴳ-object (A⁺ , A⁻) = qb-to-image A (A ⊗ᴵ 𝟭ᴵ) (qb-ρ⇐ᴳ A)
+    where
     A : Iface
     A = retᴵ (A⁺ , A⁻)
