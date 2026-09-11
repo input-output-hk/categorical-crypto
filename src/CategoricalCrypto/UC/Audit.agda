@@ -34,7 +34,9 @@
 -- header measures it), so the arithmetic runs once here rather than never there.
 
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Nat.Properties using (*-assoc; *-comm; ⊔-assoc; ⊔-idem)
+open import Data.Nat.Properties
+  using (*-assoc; *-comm; *-identityʳ; *-monoʳ-≤; m≤n⊔m; ⊔-assoc; ⊔-idem
+        ; ≤-reflexive; ≤-trans)
 open import Data.Product.Base using (_,_)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Rational.Properties using (+-monoˡ-≤; module ≤-Reasoning)
@@ -81,6 +83,11 @@ open _≤UC[_]_ public
 -- rescaled by the simulator's, guarded exactly as `ctxBudget` guards its own.
 simCost : ℕ → ℕ → ℕ
 simCost q cs = q ℕ.* (cs ℕ.⊔ 1)
+
+-- The guard is what makes the rescaling an INCREASE, whatever the simulator
+-- costs: an adversary the original budget affords the adjusted one affords too.
+q≤simCost : (q cs : ℕ) → q ℕ.≤ simCost q cs
+q≤simCost q cs = ≤-trans (≤-reflexive (sym (*-identityʳ q))) (*-monoʳ-≤ q (m≤n⊔m cs 1))
 
 -- The designated audit event of a process with domain `A` and grade `X`: which
 -- contexts around it — ancilla, test and closure — are trusted to read the
