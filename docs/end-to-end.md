@@ -173,8 +173,10 @@ In priority order.
    review's §4 second and third bullets ask for.
 
 2. **The prefix-tolerant event class** (the obstruction above), after which
-   `uc-audit-carry` reaches a probability and the main theorem can charge
-   `simCost`. Work plan: `docs/prefix-tolerant-audit-plan.md`.
+   `uc-audit-carry` reaches a probability at the unit grade. Work plan:
+   `docs/prefix-tolerant-audit-plan.md` — scope-narrowed per the follow-up
+   review §3.1: accounting for an *interactive* simulator additionally needs
+   the review's §3 (the current budgeted simulator is a scalar).
 
 3. **A named hash construction.** The real family's shape is no longer generic:
    `ChimericLedger.Real` fixes it to `ledger vr s₀ ∘ᵖ hash` and discharges all
