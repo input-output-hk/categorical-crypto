@@ -21,17 +21,22 @@
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 
 open import Data.Bool.Base using (true)
+open import Data.Nat.Base using (ℕ)
 open import Data.Product.Base using (proj₁)
 open import Level using (0ℓ; suc)
 open import Relation.Binary.PropositionalEquality using (subst; sym)
 
 open import ProbabilisticLogic.Dp.Advantage using (Pr≤)
 
+open import CategoricalCrypto.Iface using (Iface)
 open import CategoricalCrypto.UC.Approximate using (Mass)
 open import CategoricalCrypto.UC.Budget using (Budget)
+open import CategoricalCrypto.UC.Machine using (Proc)
 open import CategoricalCrypto.UC.Machine.Budget using (budgetᴹ)
 open import CategoricalCrypto.UC.Model.Bridge using (observationᵒ)
-open import CategoricalCrypto.UC.Model.Seal using (∣𝔾ᵒ∣; 𝔾ᵒ; sealᵒ)
+open import CategoricalCrypto.UC.Model.Seal using (∣𝔾ᵒ∣; 𝔾ᵒ; procᵒ; sealᵒ)
+open import CategoricalCrypto.UC.QueryBound using (QB)
+open import CategoricalCrypto.UC.QueryBound.Object using (qb-to-image)
 
 import CategoricalCrypto.UC.Core.Standard as Std
 
@@ -41,6 +46,15 @@ budgetᵒ : Budget ∣𝔾ᵒ∣ (Std.gradingᵗ 𝔾ᵒ) (suc 0ℓ)
 budgetᵒ = subst (λ M → Budget (MonoidalCategory.U M) (Std.gradingᵗ M) (suc 0ℓ))
                 (sym sealᵒ) budgetᴹ
 
+opaque
+  unfolding sealᵒ
+
+  -- …and the certificates that budget accepts, at the machine-layer spelling a
+  -- consumer builds them in (`UC.Seam.Budget`).  Where the seal is transparent
+  -- the transport above is `refl`, so this is `UC.Model.Seal`'s third
+  -- discipline once more and nothing downstream needs an `unfolding`.
+  qbᵒ : {A B : Iface} {c : ℕ} {f : Proc A B} → QB c f → Budget.QB budgetᵒ c (procᵒ f)
+  qbᵒ {A} {B} = qb-to-image A B
 
 -- The reading `Observation` deliberately lacks: a mass at a budget, and the
 -- ε-domination that `_≈ₚ[_]_`'s left half already is, read off the agreement at
