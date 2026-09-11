@@ -33,7 +33,7 @@ open import Data.Nat.Base renaming (_≡ᵇ_ to _≡ᴺ_)
 open import Data.Nat.Properties using
   ( +-assoc; +-comm; +-identityʳ; +-monoˡ-≤; ≤-refl; ≤-reflexive; ≤-trans
   ; ≡ᵇ⇒≡; ≤ᵇ⇒≤; m+[n∸m]≡n; m≤m+n; n≤1+n; n≤0⇒n≡0; 1+n≰n; module ≤-Reasoning )
-open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
+open import Data.Product.Base using (_×_; _,_; proj₁; proj₂; Σ-syntax)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Base using (⊤; tt)
 open import Relation.Binary.PropositionalEquality
@@ -275,6 +275,12 @@ checkIns-uniq u (i ∷ is) v u′ uq eq with lookupU u i in eqL
 ...   | nothing = ⊥-just eq
 ...   | just (v₀ , u₁) = subst (λ p → Uniq (proj₂ p)) (just-injective eq)
           (checkIns-uniq (removeIn i u) is v₀ u₁ (uniq-removeIn u i uq) eqC)
+
+checkIns-head : ∀ u i is v u′ → checkIns u (i ∷ is) ≡ just (v , u′)
+              → Σ[ o ∈ TxOut ] lookupU u i ≡ just o
+checkIns-head u i is v u′ eq with lookupU u i
+... | nothing = ⊥-just eq
+... | just o  = o , refl
 
 -- The first input of an accepted transaction is gone from the surviving set.
 checkIns-consumed : ∀ u i is v u′ → Uniq u → checkIns u (i ∷ is) ≡ just (v , u′)
