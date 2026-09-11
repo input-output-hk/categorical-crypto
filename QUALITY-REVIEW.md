@@ -1867,3 +1867,143 @@ Open, for the maintainer:
   since `Real`'s emulation premise is stated as `_≤UC^ω_` and changing it to
   `_≤UC^ω[ cs ]_` would alter an existing statement. Your call whether `Real` should
   carry both.
+
+## Resolved (family-premise)
+
+`docs/protocol-implementation-review.md` §1 in full, on the maintainer's OPTION A: the
+public contract keeps allowance-uniform saturation (`SaturatedHitᴺ`), so the premise
+carries allowance-uniform quantitative evidence and never per-context negligible
+agreement. Base `ceec075e`, branch `family-premise`, four commits. Files: two new
+(`UC/Asymptotic/Family.agda`, `UC/Seam/Carry/Graded.agda`), three edited
+(`UC/Seam/Grounded.agda`, `UC/Asymptotic.agda` comments only,
+`Examples/ChimericLedger/EndToEnd.agda`), plus `docs/end-to-end.md`.
+
+**No existing statement changed.** Mechanically checked: every pre-existing
+declaration's type in the three edited modules is byte-identical, the only structural
+edit being the sanctioned `where`-lift below.
+
+- `UC/Asymptotic.agda :: _≤UC^ω_` — **step 1, the labelling.** The header and the
+  comment on `_≤UC^ω_` now say it is the pointwise/unit-grade SPECIALIZATION of
+  asymptotic-family emulation, that `_≤UC_` at one level quantifies ε over every
+  positive value so the collapse gives exact agreement at that level, and that a pair
+  differing by `2⁻ⁿ` per level therefore fails it while being negligibly different.
+  Both claims are theorems next door (`Family.pointwise-exact`,
+  `Family.pointwise-rejects`) rather than prose. The name is unchanged, per the
+  review's "the name may stay".
+- `UC/Asymptotic/Family.agda :: _≤UC^ωⁿ_` — **step 2, the premise.**
+  `Σ[ ε ] NegligibleBound ε × R ≈ᶠ[ ε ] I`, where `R ≈ᶠ[ ε ] I` is
+  `UC.Model.Family._≈ℰ[_]_` at the `ι`-inflated sealed images with the Σ-packaging of a
+  `Fam`-hom peeled off. Two things decided that shape and both are worth your eye.
+  *First*, that relation reads only the CONTEXT's carried budgets (`ctxQB (qbOf Et)
+  (qbOf m)`), never the compared homs' own, so peeling the packaging off costs nothing
+  and buys a premise that needs no query bound for the systems it compares — the
+  corollaries that actually enter `Fam` (`≤UC^ωⁿ⇒≈ℰⁿ`, `⇒≤UCᶠ`, `⇒≤UCᵁ`) take the two
+  `PolyQB` witnesses as arguments instead. *Second*, the levelwise form is the
+  *explicitly stronger uniform quantitative refinement* the review's acceptance criteria
+  permit, and it has to be: the family form quantifies context FAMILIES with one
+  polynomial, and reading it at a single level's strategy context would need a
+  strategy family that is `d` at `n` and something else elsewhere, i.e. a `_≟_` on the
+  level plus a transport of `d` across `B`. The levelwise form implies the family one on
+  the nose (`≈ᶠ⇒≈ℰ[]` is one application); the converse is not proved and is not needed.
+- `:: admits-inv-pow-2`, `:: rejects-inv-suc` — **the two acceptance criteria, as
+  theorems.** `2⁻ⁿ` is an admissible error schedule (`Decay.negligible-slack`), and it
+  is exactly the schedule the pointwise inclusion produces. `1/(n+1)` is not: against a
+  separation at one budgeted strategy family, the premise's ε dominates the gap and
+  `Decay.Negligible-≤` + `Separating.¬negligible-inv-suc` close it. The rejection is
+  stated against a separation HYPOTHESIS on purpose — `UC.Approximate.Separating`'s
+  header is the reason (no abstract approximation bounds a difference from below), and
+  `UC.Approximate.LocalTests` states the same two criteria the same way for `_∼ᴺ_`.
+  Note the asymmetry: `admits` is contextual and `rejects` is run-level, because the
+  model's bridge runs contextual→run at the `ι` grade (`Audit.Context`) and run→
+  contextual only at the `conjᴵ` grade (`Model.Dominated`); making them symmetric would
+  need the `unit`/`𝟘ᵒ` iso `UC.Model.Unit` prices over the perf bar.
+- `:: ≤UC^ωⁿ-trans` — **step 3, the composition law.** Two family emulations compose
+  and the εs ADD, the sum staying negligible by `Negligible-+`; this is
+  `UC.Family.≈ℰⁿ-trans`'s arithmetic one layer out. **This is where I stopped, and the
+  stop is precise:** composing a family emulation with a second protocol is
+  `UC-compose`, which exists only as the INHERITED metatheorem
+  (`Abstract2.UC-compose`, transported by `UC.Core.Bridge`, applied at the family by
+  `UC.Model.Family.Uniform.uc-compose-agree`) and only in the QUALITATIVE order. So
+  that route goes through `≤UC^ωⁿ⇒≤UCᵁ` and SPENDS the witness. Retaining it needs a
+  graded `_≤UC[ ε ]_` — graded `≈ℰ-congˡ`/`congʳ`/`grade-stable` plus a graded
+  `sub`/`T₁` interchange, i.e. `Abstract2.UC-compose` re-proved over an ε-indexed
+  relation. That is the observation-interface redesign `UC.Family`'s closing comment and
+  `docs/graded-observation-redesign.md` price; the ledger consumer does not need it
+  (the ideal bound is supplied AT the ledger, not composed from a hash-level one), so
+  it is recorded, not attempted. Your call whether it is worth the redesign.
+- `:: uc-≈ᶠ[_]`, `:: uc-≤UC^ωⁿ` — **the inclusion, so the old theorem is literally a
+  specialization.** `UC.Seam.Grounded.emulAgreeᵁ` is the whole content, and note what it
+  is NOT: not `uc-agree`. The collapse is stopped one step earlier, at the direct `≈ᵁ`
+  agreement, which is contextual closeness at every positive error — so any positive
+  schedule can be read off it, `2⁻ⁿ` being the one `uc-≈negl` already spends.
+- `Examples/ChimericLedger/EndToEnd.agda :: ledger-uc-to-pov-family` — **step 5, the
+  second ledger theorem.** Same conclusion as `ledger-uc-to-pov`,
+  `SaturatedHitᴺ R badR (λ n q → εᴸ n (q + q))`, with the premise replaced and
+  **`TotalRun` dropped** (the pointwise theorem spends it to collapse a per-level
+  emulation; the family premise is already quantitative). The bound does not grow: the
+  premise's ε lands in the SLACK, not in ε, because `≈negl-respects` folds it there and
+  the slack is quantified after the allowance. The layer crossing is
+  `Family.≈ᶠ-runs` — `Audit.Context.audit-qb` certifies the strategy context at the
+  strategy's own ask-depth, `ctxBudget q 1 = q · 1`, and `audit-run` identifies its
+  observation with layer 1's run — then `Carry.Graded.adv-from-runs`, then `_≈negl_`,
+  then `uc-preservesᴺ`. **`uc-agree` and `Agreeˢ` do not occur in this proof**, which is
+  the review's §1 acceptance condition; mechanically, `Agreeˢ` occurs in `EndToEnd` only
+  in `ledger-uc-to-pov`'s own `where`.
+- `UC/Seam/Grounded.agda :: emSimTotal`, `:: simAstotal` — **the factoring this file
+  asked for under `Resolved (ledger-simcost)`, done.** `emSimTotal` is the `simTotal`
+  `where`-block of `subBlind⇒unitGrade` verbatim, now named; `subBlind⇒emul` is the rest
+  of that proof minus its last step; `subBlind⇒unitGrade` routes through both and its
+  statement is unchanged. `simAstotal` sits after `simTotal⇒point`, and the private
+  copies are gone from `EndToEnd` (whose ledger-specific wrapper is now a four-line
+  `where` binding). `emulAgreeᵁ` is the new closed corollary the family premise consumes.
+- `UC/Seam/Carry/Graded.agda` — the only new arithmetic anywhere: `Seam.Carry`'s
+  `agree-to-adv` at a FIXED slack instead of at every positive one. Its three helpers
+  (`shift`, `Reads`, `one-sided`) are that module's `private` block copied, which is why
+  it is a separate module rather than an addition there. **Wish:** merge the two —
+  `Seam/Carry.agda` should export `adv-at`/`adv-from-runs` and `agree-to-adv` should be
+  `adv-from-runs` at `λ _ → ε`, deleting ~35 duplicated lines. `UC/Seam/Carry.agda` was
+  outside this branch's edit scope.
+
+- **`ledger-uc-to-pov` was deliberately NOT rewired through the family theorem.** It
+  could be — `ledger-uc-to-pov-family … (uc-≤UC^ωⁿ tR em) …` has exactly its type, which
+  is what "literally a specialization" would mean in code, and it would delete four
+  `where` bindings. I left the old proof alone because rewiring it would strip
+  `uc-agree` of its only importer and so strip `UC.Seam.Grounded.unitGrade` of one of
+  its two — regressing the "`unitGrade` was unreachable" sweep item this file records as
+  resolved. The specialization is a theorem (`uc-≤UC^ωⁿ`) either way. Your call.
+
+Verification (all forced warm, `+RTS -M8G -H1G`, one `Checking` line unless noted):
+
+| module | LOC | warm | rule-5 budget |
+|---|---|---|---|
+| `UC.Seam.Grounded` | 267 | 10 s | 127 s |
+| `UC.Seam.Carry.Graded` | 88 | 8 s | 82 s |
+| `UC.Asymptotic` | 145 | 9 s | 96 s |
+| `UC.Asymptotic.Family` | 276 | 15 s | 129 s |
+| `Examples.ChimericLedger.EndToEnd` | 284 | 11 s | 131 s |
+
+Closure, all rc=0 with the warning gate empty: the eleven `ChimericLedger` modules
+(5-16 s each), `CategoricalCrypto.UC` (10 s) and `CategoricalCrypto` (119 s, 58
+`Checking` lines). Hatch grep over `src/`: **16 lines before, 16 after**, every one the
+words "postulate-free"/"No postulates" in an inherited `Categories/APROP/**` comment;
+zero live hatches before and after.
+
+Open, for the maintainer:
+
+- **`UC.Asymptotic.Family` is not re-exported from `CategoricalCrypto.UC`.** `UC.agda`
+  re-exports `UC.Asymptotic` and `UC.Asymptotic.Audit` and should probably re-export
+  this too, but `UC/UC.agda` was outside this branch's edit scope. It is in the checked
+  closure regardless, via `ChimericLedger.EndToEnd`. One `open import … public` line.
+- **`Real.agda` has no family twin.** `ChimericLedger.Real.ledger-pov` states its
+  premise as `Real ≤UC^ω Ideal a V`; a `ledger-pov-family` off `_≤UC^ωⁿ_` would be a
+  four-line application (it needs neither `realTotal` nor anything else `Real` already
+  discharges), but `Real.agda` is a sibling agent's file this batch. Same open question
+  as the budgeted twin recorded under `Resolved (ledger-simcost)`: whether `Real` should
+  carry all three premises or just the weakest.
+- **The `admits` criterion is contextual, not run-level** (see above). If you want the
+  symmetric pair — "a pair of SYSTEMS whose runs differ by exactly `2⁻ⁿ` is admitted" —
+  the missing piece is `Model.Dominated.dominatedᵒ` at the `ι` grade rather than the
+  `conjᴵ` one, i.e. the `unit`/`𝟘ᵒ` identification. Worth saying that `Ingest` already
+  supplies the run→contextual direction at the `conjᴵ` grade, so a premise stated at
+  THAT grade would have the symmetric pair and no strategy-context reading; the two
+  grades cannot both be served without the iso.
