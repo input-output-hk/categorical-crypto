@@ -296,3 +296,51 @@ identical relation from `𝒫ᴵ`; `EnvCtx.plugs` sits behind the opaque `EnvPlu
 with definitional to/from bridges. Deleted as unused: `Dictionary`'s four
 resp/id corollaries (`T₁-resp-≈ᴹ`, `T₁-idᴹ`, `sub-resp-≈ᴹ`, `sub-idᴹ`).
 `𝒫ᴵ` itself is now literally `Reindex.category (𝒢ₚ 0ℓ) ⟦_⟧ᴵ`. Hatches 21.
+
+## Addendum 7: the audit chain assembled, the supersession executed (2026-09-11)
+
+Six merges since addendum 6, all green at hatches 21; every module under the
+150 s bar.
+
+1. **The seam residue** (`52d0f457`): `IotaBlind`, `EnvAsCtx`, and `StratIsEnv`
+   (the long-blocked one) PROVED (`UC.Seam.Grounded`) — the unlock was taking
+   the trivial grade at the bundle's own unit. `SubBlind`/`UnitGrade` were
+   REFUTED as stated (a divergent-initialization scalar is not the identity; a
+   never-observing process `≤UC`-emulates everything) and `AuditIsBounded`
+   found to omit `asks≤ q (bad d)`.
+2. **The MD example ported** (`e1cc100f`, ledger item 3): crypto core verbatim
+   (1857 LOC, 35 s); machine side as a `Protocol`; `indistinguishable`
+   reproved against the STRONGER `Strat` class; `qbᴹᴰ` a theorem (was a
+   hypothesis); the retired machine apparatus and the old `MerkleDamgard/UC`
+   ladder deleted.
+3. **`ContextDominated` PROVED** (`251fa20f` + `42a42215`): reduced to
+   `Skeleton` (budget `c·(c′⊔1)` falls out of `qb-∘`/`qb-sub` exactly), then
+   `Skeleton` proved — certificate-to-strategy extraction (truncation answers
+   `out (not b)`, invisible per-verdict), a budget-tied transfer at the
+   instance (a generic `Dp`-layer form is IMPOSSIBLE — written, proved,
+   deleted; depth-tied budgets have no generic `cum` statement), convexity
+   reassembly. δ confirmed unnecessary.
+4. **Supersession phases 2 + P6 executed** (`6e044949`, `6964f9cc`): the seam
+   re-spelled at the seal (at the Model cone's ~9 s floor); the B-names
+   deleted; `ucSetup^ω : UCSetup` at `Fam` a closed term. To state the Budget
+   unitor certificates (maintainer-approved), `Grading` gained unit/unitor
+   DATA fields and `Budget` the four certificates. End state, sharper than
+   planned: `Grading`/`UCBase` survive as infrastructure (`gradingᵗ`,
+   `UC.Environment`); the hand-rolled METAtheory is what retired. Seal-crossing
+   rule (measured): bundle-derived data cross by `subst` along `sealᵒ`;
+   retyping OOMs at 8 GiB.
+5. **The carry repaired per maintainer rulings** (`e22baf27`): `_≤UC_`
+   untouched; `UnitGrade` restated with `TotalRun` hypotheses on the machines
+   (consumers assume literally `Hash ≤UC RO`; totality is a THEOREM for
+   protocol images — `totalRun-morphism`) and its squeeze PROVED
+   (`unitGrade : SubBlind → UnitGrade`, via the new mass calculus `Dp.Mass`:
+   two-sided domination + exact totality force the scalar's mass to 1).
+   `SubBlind` restated true (SimTotal hypothesis) — its proof is the one open
+   piece: a lax-simulation congruence through `∘ᴹ`/`⊗ᵉ`/trace (machine-layer
+   sub-project). `AuditIsBounded` fixed, stated, not yet proved.
+
+**Open at this addendum**: the birthday bound (in flight — `TrajectoryFromAudit`
++ RO collision analysis), `AuditIsBounded`'s proof (~120–180 LOC, inputs all
+theorems), the `subBlind` lax-simulation sub-project, the MD `≤UC`-RO successor
+statement, quality re-sweep, and the OPTIONAL confidential ledger (maintainer:
+end of project).
