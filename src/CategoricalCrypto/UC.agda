@@ -44,8 +44,9 @@
 --                                  query bound with content; what it means on a
 --                                  run is `UC.QueryBound.Counting`, and
 --                                  `UC.QueryBound.Compose{,.Step,.Laws}` is
---                                  where it multiplies along composition, up to
---                                  `BudgetLawsᴹ`.  Only the counting theorem is
+--                                  where it multiplies along composition, which
+--                                  `UC.Machine.Budget` feeds to the resource
+--                                  doctrine.  Only the counting theorem is
 --                                  re-exported below: the composition line
 --                                  spends the `Proc` inversion per field (its
 --                                  headers carry the measured costs), which no
@@ -67,12 +68,19 @@
 --                `UC.Machine.Bridge`
 --                                  `ContextDominated`, the interface to layer
 --                                  1's concrete theorems
+--                `UC.Machine.Dominated`
+--                                  `dominated`: that interface DISCHARGED, via
+--                                  the two-machine skeleton
 --                `UC.Seam`         where layer 1's `transfer` meets an
 --                                  emulation: a strategy as an environment,
 --                                  `Adequacy`, the POV carry (`UC.Seam.Carry`
 --                                  proves its premise from `Adequacy` and
 --                                  `PrAgree`); `UC.Seam.Grounding` and
 --                                  `UC.Seam.Audit` name what the instance owes
+--                `UC.Seam.Grounded`
+--                                  and what discharges it at the trivial
+--                                  grade: `SubBlind`, `StratIsEnv` and with
+--                                  them `UnitGrade`
 --                `UC.Saturated`    the saturated form of a concrete safety
 --                                  bound — one slack per polynomial allowance,
 --                                  at the vanishing grade and at the
@@ -82,6 +90,14 @@
 -- The parameterized modules take a `UCBase` and so are imported directly
 -- rather than re-exported here; `UC.Machine.ucBaseᴹ` is the one to feed them at
 -- the model.
+--
+-- `UC.Model` is the layer's SECOND root, and it is deliberately not re-exported
+-- here: it instantiates the INHERITED abstract theory (`UCSetup`/`Abstract2`
+-- via `Standard2.StdUC`) at the same machine layer, behind an `opaque` seal —
+-- the measured recipe without which the setup does not typecheck at all — so
+-- its names only make sense inside that `open StdUC` discipline.
+-- `UC.Model.Bridge` identifies the two, and `UC.Seam.Grounded` above is where
+-- they meet.  `CategoricalCrypto` reaches both roots.
 --
 -- Everything is `--safe --without-K`; the `Dₚ`-facing modules add
 -- `--guardedness` and nothing adds anything else.  In particular there is no K
@@ -94,7 +110,9 @@ open import CategoricalCrypto.UC.Budget public
 open import CategoricalCrypto.UC.Core public
 open import CategoricalCrypto.UC.Machine public
 open import CategoricalCrypto.UC.Machine.Bridge public
+open import CategoricalCrypto.UC.Machine.Dominated public
 open import CategoricalCrypto.UC.Machine.Grading public
 open import CategoricalCrypto.UC.QueryBound public
 open import CategoricalCrypto.UC.QueryBound.Counting public
 open import CategoricalCrypto.UC.Saturated public
+open import CategoricalCrypto.UC.Seam.Grounded public

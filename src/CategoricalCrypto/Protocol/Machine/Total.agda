@@ -14,7 +14,9 @@
 -- condition, `Protocol.Observe.evalC` sending a `dead` call tree to `nothing`.
 -- `totalRun-resp-≈ᴹ` and `totalRun-∘` then carry it along the machine equality
 -- and through `Morphism-∘`, so a composite of protocol images discharges it by
--- name.
+-- name.  So `totalRun-morphism` is a READING of that liveness modulo the
+-- agreement theorem, not a proof of it: nothing in `src/` discharges its
+-- premise for a concrete protocol.
 
 open import Categories.Category using (Category)
 

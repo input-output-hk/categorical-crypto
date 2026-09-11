@@ -24,8 +24,12 @@
 -- would destroy value with probability 1.  The witness for a freshly hashed
 -- transaction is its FIRST INPUT, which exists only because `inputConsuming`
 -- demands one: this is where the slides' repair is actually spent, and with
--- `chimeric` in its place the invariant — and the bound — are false
--- (`ChimericLedger.Replay` computes the attack).
+-- `chimeric` in its place the invariant is false (`Stale` needs that first
+-- input, which `consumes chimeric` does not demand).  The BOUND fails only at
+-- a general, account-funded `s₀`, which is where `ChimericLedger.Replay`
+-- computes its attack; at `genesis` the account table is empty and nothing
+-- credits it, so every accepted withdrawal has `v ≡ 0`, a replayed no-input
+-- transaction destroys nothing, and `POV chimeric (genesis …)` may well hold.
 
 open import Class.DecEq
 

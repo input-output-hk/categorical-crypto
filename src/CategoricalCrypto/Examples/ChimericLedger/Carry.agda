@@ -1,10 +1,19 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- `pov-transfer`'s premise, supplied by the seam: `UC.Seam.Carry.agreeToAdv`
+-- A plumbing demo: `UC.Seam.Carry.agreeToAdv` at two concrete systems.  It
 -- turns an environment agreement between the two variants' machine images into
 -- the `_≈adv[_]_` the example's transfer lemma consumes.  Additions only — the
--- example is untouched, and this is the whole of what the machine layer buys
--- it.
+-- example is untouched.
+--
+-- What it does NOT show is that one variant emulates the other.  `Emulᴸ` is
+-- `Agreeˢ`, i.e. EXACT agreement at every positive slack, and at the pair this
+-- example exists to compare it is refutable: at `Replay.s₀`,
+-- `watch s₀ (audited Replay.replay)` returns `true` with probability 1 against
+-- `chimeric` and `false` with probability 1 against `inputConsuming`, which
+-- `Pin.chimeric-violates`/`consuming-safe` pin.  So the premise is available
+-- only at states where the two variants coincide.  The `δ` is likewise slack
+-- inherited from `Agreeˢ`'s formulation — exact agreement wants `ε`, not
+-- `ε + δ` — not something the ledger needs.
 --
 -- `advᴸ` names that advantage once rather than inlining it, and that is not
 -- taste: the two systems are concrete here, and the seam left as a SUBTERM of
@@ -31,8 +40,9 @@ module CategoricalCrypto.Examples.ChimericLedger.Carry
 open Ledger ℓ
 open POV ℓ ser
 
--- What an emulation of one variant by the other has to show at the machine
--- layer: the embedded strategies cannot separate the two images.
+-- Exact agreement of the two variants' machine images: no embedded strategy
+-- separates them.  Strictly stronger than an emulation, and refutable at the
+-- interesting pair — see the header.
 Emulᴸ : Variant → Variant → LState → Set
 Emulᴸ v₁ v₂ s₀ = Agreeˢ LedgerIf (morphism (Sys v₁ s₀)) (morphism (Sys v₂ s₀))
 
