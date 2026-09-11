@@ -49,8 +49,13 @@ exists to close the gap.
 
 1. Add the local `Observationᴺ`/UC instance on the family category, reusing the
    generic presheaf and inherited machinery.
+   **Done**: `UC.Approximate.Local` (`_∼ᴺ_`), `UC.Family.Negligible`
+   (`Observationᴺ`, `UCBaseᴺ`, `_≈ℰᴺ_`, `_≤UCᴺ_`), `UC.Model.Family.Negligible`
+   at the machine family; the §1 acceptance criteria are
+   `UC.Approximate.LocalTests`.
 2. Prove the one-way bridge `_≈ℰⁿ_ ⇒` contextual `∼ᴺ`-agreement. Do not
    identify the relations.
+   **Done**: `UC.Family.Negligible.≈ℰⁿ⇒≈ℰᴺ`/`≈ℰⁿ⇒≤UCᴺ`; no converse stated.
 3. The public security contract is then a CHOICE (review §4 step 3):
    * to retain allowance-uniform saturation (`SaturatedBoundedᴺ`-shaped
      conclusions), keep uniform evidence in a quantitative refinement of UC and

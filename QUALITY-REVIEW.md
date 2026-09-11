@@ -1636,3 +1636,56 @@ Judgment calls for you:
 - Rule 29 shadowing — re-checked over the 63 files this round adds: no file of the
   same relative path exists in `agda-categories-0.3.0/src` or
   `standard-library-2.3/src`. No violation.
+
+## Resolved (`local-negligible`)
+
+Branch `local-negligible` off `protocol-rewrite`'s tip (`f81e80c9`): the local
+negligible observation, its one-way bridge, and review §1's two acceptance
+criteria as theorems (`docs/graded-observation-redesign.md` work items 1-2).
+All five files are NEW — no existing statement was touched, weakened,
+generalized or deleted, and no existing module was edited, so no importer of
+anything on the branch changed.  Live escape hatches 0 before and after (the 16
+`postulate` grep hits are all the words "postulate-free" in comments).  Green
+with an empty warn-gate on each new module and on `UC/Family`,
+`UC/Model/Family`, `UC/Model/Family/{Ingest,Uniform}`.
+
+- `src/CategoricalCrypto/UC/Approximate/Local.agda :: _∼ᴺ_` — the local
+  relation, parameterized by an `Approximation` over `ℚ-errors` and an index
+  with its `κ`, rather than defined inside the family instance.  That is what
+  lets the acceptance criteria be stated against a *separating* approximation
+  without standing up a toy `UCBase`, `Grading` and `Budget`; the family
+  instance opens it at `ApproximateObservation.approx`.
+- `:: ∼ᴺ-gap` — the two families and the difference are EXPLICIT arguments,
+  because each sits under an application in the separation hypothesis (`μ i`),
+  which is no pattern; left implicit they strand as unsolved metas (observed).
+  Same reason `UC/Model/Family/Uniform.agda` passes its homs.
+- `src/CategoricalCrypto/UC/Approximate/Separating.agda :: ℚ-metric` — placed
+  in a general module rather than beside the tests: it is the separating model
+  the memory of this project records as missing, and any future negative
+  statement about `_≈[_]_` needs exactly it.  Its three ℚ helpers (`∣0∣`,
+  distance symmetry, the triangle inequality) are each used once and so are
+  inlined into the record instead of being named — `Data.Rational.Properties.Ext`
+  is their proper home by rule 27, but placing them there would have rebuilt
+  the whole `Dp` closure for three one-liners.  **Your call** whether to hoist
+  them later.
+- `:: nzᶠ` — `NonZero (fromℕ (suc n))` is passed explicitly rather than by
+  instance search: `NonZero` unfolds to a predicate on the numerator, so the
+  goal never determines `n` (observed as a blocked constraint).
+- `src/CategoricalCrypto/UC/Family/Negligible.agda` — `Test`, `Closure`, `obs`
+  and `tv₁` are deliberately NOT re-exported under `ᴺ` names: both tiers share
+  the category, the grading and the verdict object, so those four are
+  definitionally `UC.Family`'s own and a second copy would be noise.  Only the
+  relation, the order and the presheaf get the suffix.
+- Wiring — `src/CategoricalCrypto/UC.agda` and `src/CategoricalCrypto.agda`
+  were off-limits this round (a parallel agent owns them).  The wish:
+  `UC.agda` should list `UC.Family.Negligible` under the enrichment tier next
+  to `UC.Family`, and `UC.Model.Family.Negligible` beside `UC.Model.Family`;
+  neither can be `open … public`-ed from `UC.agda` (both are parameterized /
+  model-side), so a header line plus the `UC/Model` root is the right shape.
+- `src/CategoricalCrypto/UC/Family.agda`'s closing paragraph — still literally
+  true (no `Observation` whose `_∼_` is `_≈ℰⁿ_` exists), but its last clause
+  reads "redesigns of the core's observation interface", and the second
+  alternative it describes has now been built with the core untouched.  Not
+  edited here: the file is one of the eight this round's brief excluded, and a
+  comment change there costs a full model rebuild.  **Your call** — a one-line
+  pointer to `UC.Family.Negligible` would close it.
