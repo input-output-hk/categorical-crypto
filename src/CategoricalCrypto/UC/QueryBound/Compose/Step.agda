@@ -17,10 +17,11 @@ open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Polymorphic.Base using (tt)
-open import Function.Base using (_∘′_; case_of_; id)
+open import Function.Base using (case_of_; id)
 open import Level using (0ℓ)
 
 open import ProbabilisticLogic.Dp
+open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
@@ -41,36 +42,6 @@ private
 
 open Core (𝒱ₚ 0ℓ)
 open Trace (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
-
-------------------------------------------------------------------------
--- `Dₚ` shorthands: the library's lemmas take their subjects explicitly, and a
--- transparent chain would strand them as metas (as in `UC.Machine.Run`).
-
-private
-  variable A′ B′ C′ : Set
-
-  infixr 5 _⟨≈⟩_
-
-  _⟨≈⟩_ : {d e h : Dₚ A′} → d ≈ₚ e → e ≈ₚ h → d ≈ₚ h
-  _⟨≈⟩_ {d = d} {e} {h} = ≈ₚ-trans d e h
-
-  ≈refl : {d : Dₚ A′} → d ≈ₚ d
-  ≈refl {d = d} = ≈ₚ-refl d
-
-  ≈sym : {d e : Dₚ A′} → d ≈ₚ e → e ≈ₚ d
-  ≈sym {d = d} {e} = ≈ₚ-sym d e
-
-  bindᶠ : {d : Dₚ A′} {k l : A′ → Dₚ B′}
-        → ((a : A′) → k a ≈ₚ l a) → (d >>=ₚ k) ≈ₚ (d >>=ₚ l)
-  bindᶠ {d = d} {k} {l} h = >>=ₚ-cong d d k l ≈refl h
-
-  bindˣ : {d e : Dₚ A′} {k : A′ → Dₚ B′} → d ≈ₚ e → (d >>=ₚ k) ≈ₚ (e >>=ₚ k)
-  bindˣ {d = d} {e} {k} h = >>=ₚ-cong d e k k h λ _ → ≈refl
-
-  bind-map : (d : Dₚ A′) (h : A′ → B′) (k : B′ → Dₚ C′)
-           → (mapₚ h d >>=ₚ k) ≈ₚ (d >>=ₚ (k ∘′ h))
-  bind-map d h k = >>=ₚ-assoc d (returnₚ ∘′ h) k
-             ⟨≈⟩ bindᶠ (λ a → >>=ₚ-identityˡ (h a) k)
 
 ------------------------------------------------------------------------
 -- Pure base morphisms, at a point
