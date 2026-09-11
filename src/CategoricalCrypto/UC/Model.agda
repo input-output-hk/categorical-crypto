@@ -18,7 +18,11 @@
 --   `Model.Unit`         why the choice of empty object for the closures is
 --                        immaterial: the metatheory never sees it
 --   `Model.Bridge`       the hand-rolled qualitative core (`UC.Core` and below)
---                        identified with this metatheory, both directions
+--                        identified with this metatheory, both directions, and
+--                        `_≈ᴳ_` — the identification at ungraded homs, where
+--                        `_≈ᵁ_` is not stated
+--   `Model.Enrichment`   the budget and the mass `UC.Audit` asks of a base,
+--                        supplied here rather than assumed
 --
 -- The model obligations the proposal lists are then: the monoidal structure
 -- (`Machines.G`, a theorem on this branch), the presheaf (`Model.Environment`)
@@ -29,6 +33,7 @@
 module CategoricalCrypto.UC.Model where
 
 import CategoricalCrypto.UC.Model.Bridge
+import CategoricalCrypto.UC.Model.Enrichment
 import CategoricalCrypto.UC.Model.Environment
 import CategoricalCrypto.UC.Model.Observation
 import CategoricalCrypto.UC.Model.Pin
