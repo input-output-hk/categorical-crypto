@@ -1636,3 +1636,43 @@ Judgment calls for you:
 - Rule 29 shadowing — re-checked over the 63 files this round adds: no file of the
   same relative path exists in `agda-categories-0.3.0/src` or
   `standard-library-2.3/src`. No violation.
+
+## Resolved (`uc-preserves`)
+
+Branch `uc-preserves` off `protocol-rewrite`'s tip (`c30a5807`).  Adds the
+probability-free `SaturatedProperty` / `Robust` / `uc-preserves` API the
+follow-up review's §4 closing paragraph asks for.  No existing statement is
+touched: every declaration here is new, and the two edits to existing files are
+an inventory line in `UC.agda` and a build-closure import in
+`CategoricalCrypto.agda`.  Live escape hatches 0 before and after (all 16
+`postulate` grep hits are the words "postulate-free" in comments).
+
+- `src/CategoricalCrypto/UC/Robust.agda :: SaturatedProperty`, `:: Robust`,
+  `:: uc-preserves` — **the qualitative carry, generic in the base.**  A
+  `SaturatedProperty` is a predicate on `Obs` with `_∼_`-invariance as a field,
+  so it cannot separate observationally equal runs; `Robust 𝔓 f` is `holds 𝔓`
+  at every closing context `_≈ℰ_` itself quantifies over; `uc-preserves` slides
+  `sub s` off the process and onto the test (`UC.Audit.audit-carry`'s `slide`,
+  with no budget to charge it to) and reads the ideal robustness at the
+  extended context.  Parameterized exactly as `UC.Emulation` is — over a
+  `UCBase` — so it lands at every instance, and it consumes `_≤UC_`/`_≤UC⁺_`
+  verbatim rather than restating emulation.
+- `src/CategoricalCrypto/UC/Robust.agda :: Robust` takes its property
+  EXPLICITLY — `Robust 𝔓 f` reduces to a Π type whose body applies `holds 𝔓`,
+  which no use site can invert, so an implicit `𝔓` leaves unsolved metas in
+  every consumer.  Recorded in the definition's comment.
+- `src/CategoricalCrypto/UC/Robust/Model.agda :: uc-preservesᵒ` — **the
+  acceptance test, at the inherited emulation.**  The base is the sealed model
+  `UC.Model.Bridge.ucBaseᵒ` and the premise is `UC.Model.Setup`'s inherited
+  `_≤UC_`, read into the core's by `UC.Model.Bridge.≤UC⇒≤UCᶜ`: the same one
+  bridge step `UC.Seam.Audit` takes for the budgeted carry, and no second UC
+  metatheory.  `⊤-robust` is the degenerate end (inhabited with no premise) and
+  `verdict-preservedᵒ` the nontrivial one (`∼[ r ]`, carried across an
+  emulation).
+- Scope, stated in both headers: this is a generic metatheorem about invariant
+  properties.  It discharges neither the concrete monitor inclusion (§2) nor
+  any error-uniformity obligation (§§1, 4) — there is no error in it to be
+  uniform in.  Robustness quantifies over ALL closing contexts, which is what
+  makes the carry `Absorbs`-free; for a MASS-valued property that class is too
+  coarse for the same reason `UC.Audit`'s header records, and designating a
+  smaller one is what `AuditEvent` is for.
