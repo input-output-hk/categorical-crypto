@@ -35,7 +35,9 @@ open import ProbabilisticLogic.Dp.Advantage using (≈ₚ⇒≈ₚ[0]; ≈ₚ[]-
 
 open import CategoricalCrypto.Iface using (unitᴵ)
 open import CategoricalCrypto.Strategy using (ask; out)
-open import CategoricalCrypto.UC.Approximate using (Approximation)
+open import CategoricalCrypto.UC.Approximate
+  using (ApproximateObservation; Approximation; module Induced; ℚ-errors)
+open import CategoricalCrypto.UC.Core using (Observation)
 open import CategoricalCrypto.UC.Machine using (Approximationᴹ; Ωᴵ; ⟦_⟧ᴼ)
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
 open import CategoricalCrypto.UC.Model.Seal
@@ -75,3 +77,21 @@ _∼ᴼ_ = Ap._∼ᵃ_
 -- hom equality is observed EXACTLY, not merely up to every positive slack.
 obs-resp : {u v : Closure Ωᵒ} → u G.≈ v → Obs u ≈ₚ Obs v
 obs-resp e = runᴹ-resp-≈ᴹ (≈ᵒ⇒≈ᴹ e) (ask tt out)
+
+------------------------------------------------------------------------
+-- …as the records the layers above ask for
+
+-- `Induced` is the constructor: an approximation of what closed runs show plus
+-- the runs themselves IS a qualitative observation, and it hands back the
+-- quantitative enrichment as well, so `UC.Model.Family` gets its `qapx` from
+-- the very approximation `_∼ᴼ_` was induced from instead of a second,
+-- parallel record.  `UC.Machine.Observationᴹ` is this same route one layer
+-- down, at the transparent machines.
+private
+  module I = Induced ∣𝔾ᵒ∣ Approximationᴹ 𝟘ᵒ Ωᵒ Obs (λ e → ≈ₚ⇒≈ₚ[0] (obs-resp e))
+
+observationᵒ : Observation ∣𝔾ᵒ∣ 0ℓ 0ℓ
+observationᵒ = I.observation
+
+approximateᵒ : ApproximateObservation observationᵒ ℚ-errors 0ℓ
+approximateᵒ = I.approximate
