@@ -38,7 +38,7 @@
 --     whole adaptivity argument; `bad-bound` is PROVEN from `md-cert`,
 --     which is itself ASSEMBLED (not assumed) below.
 --
--- The certificate's PROBABILISTIC side is PROVEN (design: docs/md-cert-design.md):
+-- The certificate's PROBABILISTIC side is PROVEN:
 -- the potential φ = collision count + triangle budget is an EXACT martingale
 -- along the walk (`walk-φ`: an interior miss creates `pool` expected collision
 -- pairs — the PROVEN `E-collisions` — and spends exactly that from the budget;
@@ -592,7 +592,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   ideal-marginal d = ideal-marginal-gen d false [] []
 
   ------------------------------------------------------------------------
-  -- THE BIRTHDAY POTENTIAL (design: docs/md-cert-design.md), PROVEN.
+  -- THE BIRTHDAY POTENTIAL, PROVEN.
   -- φ = collision count + triangle budget for the remaining interior samples.
   -- φ is an EXACT martingale along the walk: an interior miss creates
   -- `pool` expected collision pairs (the PROVEN `E-collisions`) and spends
@@ -721,7 +721,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     suc∸1 zero    = ⊥-elim (≢-nonZero⁻¹ zero refl)
     suc∸1 (suc j) = refl
 
-    -- ★ THE WALK MARTINGALE (design §1) — forward-declared, detach-style
+    -- ★ THE WALK MARTINGALE — forward-declared, detach-style
     walk-φ : ∀ m sc h bs idx → idx + length bs ≡ suc k
            → E (walk sc h bs idx) (λ (w : Comp.Table × (CV × Bool)) → φsc m (proj₁ w))
            ≤ℚ collC sc +ℚ Γ (pool sc) ((length bs ∸ 1) + m * (k ∸ 1))
@@ -914,7 +914,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
                             (ℕP.*-monoʳ-≤ m (ℕP.m∸n≤m k 1))
 
   ------------------------------------------------------------------------
-  -- ★ THE CHAIN-FOREST INVARIANT, defined CONCRETELY (design §2).  The table is
+  -- ★ THE CHAIN-FOREST INVARIANT, defined CONCRETELY.  The table is
   -- a labelled transition system on chaining values (`stepT`); a recorded
   -- message denotes a run from IV (`Chain`) — the shape `unique-run` consumes.
 
