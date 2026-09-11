@@ -1,6 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Sliding a closed morphism out of a one-hole context.
+-- Sliding a closed morphism out of a one-hole context, and the centrality of
+-- scalars.
 --
 -- A closed diagram `(id ⊗₁ (ℓ⇐ ∘ x)) ∘ m` — an ancilla produced by the closure
 -- `m`, the hole filled by `x` — is the same as `x` followed by a context that no
@@ -22,12 +23,29 @@ open import Categories.Category.Monoidal.Core using (Monoidal)
 module Categories.Category.Monoidal.Utilities.Ext
   {o ℓ e} {C : Category o ℓ e} (M : Monoidal C) where
 
+open import Categories.Category.Monoidal.Properties M using (coherence-inv₃)
 open import Categories.Category.Monoidal.Reasoning M
 open import Categories.Category.Monoidal.Utilities M using (module Shorthands)
 
 open Category C
 open Monoidal M
 open Shorthands
+
+-- Kelly–Laplaza: scalars are central, so a pair of them merges into their
+-- composite across `λ⇐`.  The second factor slides through `λ⇐`'s own
+-- naturality and the first through `ρ⇐`'s, the two wires being the same at the
+-- unit (`coherence-inv₃`).
+scalar-λ⇐ : (σ τ : unit ⇒ unit) → σ ⊗₁ τ ∘ λ⇐ ≈ λ⇐ ∘ (σ ∘ τ)
+scalar-λ⇐ σ τ = begin
+  σ ⊗₁ τ ∘ λ⇐              ≈⟨ serialize₁₂ ⟩∘⟨refl ⟩
+  (σ ⊗₁ id ∘ id ⊗₁ τ) ∘ λ⇐ ≈⟨ assoc ⟩
+  σ ⊗₁ id ∘ (id ⊗₁ τ ∘ λ⇐) ≈˘⟨ refl⟩∘⟨ unitorˡ-commute-to ⟩
+  σ ⊗₁ id ∘ (λ⇐ ∘ τ)       ≈⟨ refl⟩∘⟨ (coherence-inv₃ ⟩∘⟨refl) ⟩
+  σ ⊗₁ id ∘ (ρ⇐ ∘ τ)       ≈⟨ sym-assoc ⟩
+  (σ ⊗₁ id ∘ ρ⇐) ∘ τ       ≈˘⟨ unitorʳ-commute-to ⟩∘⟨refl ⟩
+  (ρ⇐ ∘ σ) ∘ τ             ≈⟨ assoc ⟩
+  ρ⇐ ∘ (σ ∘ τ)             ≈˘⟨ coherence-inv₃ ⟩∘⟨refl ⟩
+  λ⇐ ∘ (σ ∘ τ)             ∎
 
 module Hole {J : Obj} (ℓ⇐ : {B : Obj} → B ⇒ J ⊗₀ B)
             (ℓ-nat : {A B : Obj} (f : A ⇒ B) → ℓ⇐ ∘ f ≈ (id ⊗₁ f) ∘ ℓ⇐)

@@ -29,6 +29,7 @@ open Equiv
 open MonoidalUtilities.Shorthands monoidal
 
 open import Categories.Category.Monoidal.Properties monoidal
+open import Categories.Category.Monoidal.Utilities.Ext monoidal
 
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Morphism.Reasoning U
@@ -320,6 +321,16 @@ onL-collapseʳ {P = P} =
          → u ∘ point S ≈ point T → v ∘ point S′ ≈ point T′
          → u ⊗₁ v ∘ point (S ⊛ S′) ≈ point (T ⊛ T′)
 ⊛-point₂ _ _ _ _ e₁ e₂ = pullˡ (⟺ ⊗.homomorphism ○ (e₁ ⟩⊗⟨ e₂))
+
+-- …and with a scalar prefix on each factor, which merge into one because
+-- scalars are central.
+⊛-point₂ˡ : (S T S′ T′ : State) {u : obj S ⇒ obj T} {v : obj S′ ⇒ obj T′}
+            {σ τ : unit ⇒ unit}
+          → u ∘ point S ≈ point T ∘ σ → v ∘ point S′ ≈ point T′ ∘ τ
+          → u ⊗₁ v ∘ point (S ⊛ S′) ≈ point (T ⊛ T′) ∘ (σ ∘ τ)
+⊛-point₂ˡ _ _ _ _ {σ = σ} {τ} e₁ e₂ =
+    pullˡ (⟺ ⊗.homomorphism ○ (e₁ ⟩⊗⟨ e₂) ○ ⊗.homomorphism)
+  ○ assoc ○ (refl⟩∘⟨ scalar-λ⇐ σ τ) ○ sym-assoc
 
 ⊛-discard : (S T R : State) {u : obj S ⇒ obj T} → discard T ∘ u ≈ discard S
           → discard (T ⊛ R) ∘ u ⊗₁ id ≈ discard (S ⊛ R)

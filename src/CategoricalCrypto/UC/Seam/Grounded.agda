@@ -1,8 +1,7 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- `UC.Seam.Grounding`'s statements at the trivial grade: `IotaBlind`,
--- `EnvAsCtx` and `StratIsEnv` discharged, `UnitGrade` reduced to `SubBlind`,
--- and `SubBlind`'s hypothesis shown to say what it is meant to say.
+-- `UC.Seam.Grounding`'s statements at the trivial grade, all discharged:
+-- `IotaBlind`, `EnvAsCtx`, `StratIsEnv`, `SubBlind`, and with them `UnitGrade`.
 --
 -- The grade is the sealed bundle's OWN monoidal unit, not `unitᴵ`.  The two are
 -- the empty interface spelled with two different empty types — `Data.Empty.⊥`
@@ -31,11 +30,12 @@ open import ProbabilisticLogic.Dp.Mass
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol.Machine.Total using (TotalRun)
 open import CategoricalCrypto.Strategy using (Strat; ask; out)
-open import CategoricalCrypto.UC.Machine using (Proc)
+open import CategoricalCrypto.UC.Machine using (Proc; ⊤ᵛ)
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
 open import CategoricalCrypto.UC.Model.Bridge
   using (≈ᴳ-at; ≈ᴳ-congˡ; ≈ᴳ-trans; ≈C⇒≈ᴳ; ≈ᵁ⇒≈ᴳ)
 open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ; obs-resp; ∼ᴼ-resp)
+open import CategoricalCrypto.UC.Model.Reading using (_≈ᴬ_; ≈ᴬ⇒≈ᵁ)
 open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ; ifaceᵒ; procᵒ; unprocᵒ-∘)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Seam using (ctxRunˢ; runˢ; strategyEnv)
@@ -43,6 +43,7 @@ open import CategoricalCrypto.UC.Seam.Adequacy using (adequacy)
 open import CategoricalCrypto.UC.Seam.Grounding
 open import CategoricalCrypto.UC.Seam.Grounding.Dead
   using (Massedᵒ; massedᵒ-∘ˡ; massedᵒ-∘ʳ; massedᵒ-obs; massedᵒ-point; massedᵒ-sub; pointᵒ)
+open import CategoricalCrypto.UC.Seam.Grounding.Prefix
 
 import CategoricalCrypto.Machines.Collapse as Col
 
@@ -131,8 +132,8 @@ stratIsEnv B u v h d ε ε>0 =
 -- `TotalRun v` is not consumed here.  It is part of the statement because the
 -- consumer's pair is symmetric and `Protocol.Machine.Total` discharges both by
 -- name; the asymmetry is real (only the REAL side anchors the scale).
-unitGrade : TG.SubBlind → TG.UnitGrade
-unitGrade blind B u v tu _ e =
+subBlind⇒unitGrade : TG.SubBlind → TG.UnitGrade
+subBlind⇒unitGrade blind B u v tu _ e =
   stratIsEnv B u v (iotaBlind B u v (≈ᵁ-trans em (blind B s v simTotal)))
   where
   s : 𝟘ᴳ ⇒ 𝟘ᴳ
@@ -158,22 +159,12 @@ unitGrade blind B u v tu _ e =
       (≈ᴳ-at 𝟘ᴳ (t ∘ unitorˡ.from) unitorˡ.to (t ∘_) (plug-λ t) (≈ᵁ⇒≈ᴳ em)) ε ε>0)
 
 ------------------------------------------------------------------------
--- The residue
+-- Blindness
 
--- `SubBlind` itself is not discharged.  What is landed is that its hypothesis
--- says what it is meant to say: `SimTotal` is exactly "the simulator's own
--- initialization terminates almost surely", because a trivial-grade scalar
--- reaches a closed observation only through that initialization
--- (`Grounding.Dead`'s propagation, read back from the observation's mass to
--- the point's).
---
--- What remains is the converse traffic, at the machine layer and not in the
--- ε-arithmetic: `Dp.Mass.astotal-bind` already says an almost surely
--- terminating PREFIX is invisible to an ε-closed comparison; what is missing
--- is that a scalar buried in a `𝒢`-trace nest IS such a prefix of the
--- composite's run.  A plain simulation cannot say it — `Machines.Sim`'s
--- generator equates the two points exactly — so the step wants a lax one,
--- with its own congruence through `∘ᴹ`, `⊗ᵉ` and the trace.
+-- `SimTotal` says what it is meant to say: "the simulator's own initialization
+-- terminates almost surely", because a trivial-grade scalar reaches a closed
+-- observation only through that initialization (`Grounding.Dead`'s
+-- propagation, read back from the observation's mass to the point's).
 simTotal⇒point : (B : Iface) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) (v : Proc unitᴵ B)
                → TG.SimTotal B s v → ASTotal (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
 simTotal⇒point B s v st =
@@ -190,3 +181,53 @@ simTotal⇒point B s v st =
   massed = massedᵒ-∘ʳ _ _ _ t _ _
              (massedᵒ-∘ˡ _ _ _ (sub s) (ιᴳ B ∘ procᵒ v) _
                (massedᵒ-sub 𝟘ᴳ 𝟘ᴳ (ifaceᵒ B) s _ (massedᵒ-point 𝟘ᴳ 𝟘ᴳ s)))
+
+-- …and an initialization that terminates almost surely is invisible.  A
+-- trivial-grade scalar carries no message, so it is the identity except for
+-- its own point (`Grounding.Prefix.scalar-blindᵒ`); `sub` and the ancilla keep
+-- it a prefix, and `Dp.Mass.astotal-bind` removes it from the observation.
+-- The experiment is read in the ∀-ancilla/test/closure form
+-- (`UC.Model.Reading`), where the two endpoints differ by the single factor
+-- `id ⊗₁ sub s`.
+subBlind : TG.SubBlind
+subBlind B s v st = ≈ᴬ⇒≈ᵁ agree
+  where
+  σ : Dₚ ⊤ᵛ
+  σ = pointᵒ 𝟘ᴳ 𝟘ᴳ s
+
+  Bᵍ : Channel
+  Bᵍ = T₀ 𝟘ᴳ (ifaceᵒ B)
+
+  wire : 𝟘ᵒ ⇒ Bᵍ
+  wire = ιᴳ B ∘ procᵒ v
+
+  -- The simulator acts on the grade alone, which is where it is blind.
+  blindˢ : Prefixedᵒ Bᵍ Bᵍ (sub s) id σ
+  blindˢ = prefixedᵒ-resp-≈ Bᵍ Bᵍ (sub s) (sub s) (sub id) id σ
+             Equiv.refl sub-identity
+             (prefixedᵒ-sub 𝟘ᴳ 𝟘ᴳ (ifaceᵒ B) s id σ (scalar-blindᵒ s))
+
+  agree : (sub s ∘ wire) ≈ᴬ wire
+  agree Y t m = prefixedᵒ-obs _ _ σ (simTotal⇒point B s v st) full
+    where
+    ancilla : Prefixedᵒ (Y ⊗₀ Bᵍ) (Y ⊗₀ Bᵍ) (id ⊗₁ sub s) id σ
+    ancilla = prefixedᵒ-resp-≈ (Y ⊗₀ Bᵍ) (Y ⊗₀ Bᵍ)
+                (id ⊗₁ sub s) (id ⊗₁ sub s) (id ⊗₁ id) id σ
+                Equiv.refl ⊗.identity
+                (prefixedᵒ-⊗ʳ Y Y Bᵍ Bᵍ id (sub s) id σ blindˢ)
+
+    split : id ⊗₁ (sub s ∘ wire) ≈ id ⊗₁ sub s ∘ id ⊗₁ wire
+    split = ⟺ (T₁-⊗ 𝔾ᵒ Y (sub s ∘ wire)) ○ T-homomorphism
+          ○ (T₁-⊗ 𝔾ᵒ Y (sub s) ⟩∘⟨ T₁-⊗ 𝔾ᵒ Y wire)
+
+    full : Prefixedᵒ 𝟘ᵒ Ωᵒ (t ∘ id ⊗₁ (sub s ∘ wire) ∘ m) (t ∘ id ⊗₁ wire ∘ m) σ
+    full = prefixedᵒ-resp-≈ 𝟘ᵒ Ωᵒ _ _ _ _ σ
+             (refl⟩∘⟨ (sym-assoc ○ (⟺ split ⟩∘⟨refl)))
+             (refl⟩∘⟨ identityˡ)
+             (prefixedᵒ-∘ˡ 𝟘ᵒ (Y ⊗₀ Bᵍ) Ωᵒ t _ _ σ
+               (prefixedᵒ-∘ʳ 𝟘ᵒ (Y ⊗₀ Bᵍ) (Y ⊗₀ Bᵍ) (id ⊗₁ wire ∘ m)
+                             (id ⊗₁ sub s) id σ ancilla))
+
+-- …so the unit-grade specialization is a closed theorem.
+unitGrade : TG.UnitGrade
+unitGrade = subBlind⇒unitGrade subBlind
