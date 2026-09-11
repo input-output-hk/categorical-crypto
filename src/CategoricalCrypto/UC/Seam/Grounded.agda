@@ -28,6 +28,7 @@ open import ProbabilisticLogic.Dp.Mass
   using (ASTotal; Total; astotal-≼ᵐ; total-dominated; total-resp-≼ₚ)
 
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Protocol.Machine.Total using (TotalRun)
 open import CategoricalCrypto.Strategy using (Strat; ask; out)
 open import CategoricalCrypto.UC.Machine using (Proc; ⊤ᵛ)
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
@@ -131,9 +132,31 @@ stratIsEnv B u v h d ε ε>0 =
 -- `TotalRun v` is not consumed here.  It is part of the statement because the
 -- consumer's pair is symmetric and `Protocol.Machine.Total` discharges both by
 -- name; the asymmetry is real (only the REAL side anchors the scale).
-subBlind⇒unitGrade : TG.SubBlind → TG.UnitGrade
-subBlind⇒unitGrade blind B u v tu _ e =
-  stratIsEnv B u v (iotaBlind B u v (≈ᵁ-trans em (blind B s v simTotal)))
+emSimTotal : (B : Iface) (u v : Proc unitᴵ B) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) → TotalRun B u
+           → ιᴳ B ∘ procᵒ u ≈ᵁ sub s ∘ (ιᴳ B ∘ procᵒ v) → TG.SimTotal B s v
+emSimTotal B u v s tu em d t factor = total-dominated (ctxRunˢ B d u) _ total near
+  where
+  -- `Adequacy` moves `u`'s totality onto the observation the strategy makes.
+  total : Total (ctxRunˢ B d u)
+  total = total-resp-≼ₚ (runˢ B u d) (ctxRunˢ B d u) (proj₂ (adequacy B u d)) (tu d)
+
+  read : ctxRunˢ B d u ≈ₚ Obs (t ∘ (ιᴳ B ∘ procᵒ u))
+  read = ≈ₚ-trans _ _ _ (plug-run B d u)
+                        (obs-resp (⟺ (sym-assoc ○ (fromProc≈ factor ⟩∘⟨refl))))
+
+  near : (ε : ℚ) → 0ℚ ℚ.< ε
+       → ctxRunˢ B d u ≼ₚ[ ε ] Obs (t ∘ (sub s ∘ (ιᴳ B ∘ procᵒ v)))
+  near ε ε>0 = proj₁ (∼ᴼ-resp (≈ₚ-sym _ _ read) (≈ₚ-refl _)
+    (≈ᴳ-at 𝟘ᴳ (t ∘ unitorˡ.from) unitorˡ.to (t ∘_) (plug-λ t) (≈ᵁ⇒≈ᴳ em)) ε ε>0)
+
+-- The collapse itself, stopping one step short of `Agreeˢ`: the simulator is
+-- removed and what is left is the direct `≈ᵁ` agreement, which is an
+-- ε-QUANTIFIED CONTEXTUAL statement.  `stratIsEnv ∘ iotaBlind` is the last
+-- step; the asymptotic family premise stops here instead and keeps the ε
+-- (`UC.Asymptotic.Family.uc-≈ᶠ[_]`).
+subBlind⇒emul : TG.SubBlind → (B : Iface) (u v : Proc unitᴵ B) → TotalRun B u
+              → ιᴳ B ∘ procᵒ u ≤UC ιᴳ B ∘ procᵒ v → ιᴳ B ∘ procᵒ u ≈ᵁ ιᴳ B ∘ procᵒ v
+subBlind⇒emul blind B u v tu e = ≈ᵁ-trans em (blind B s v (emSimTotal B u v s tu em))
   where
   s : 𝟘ᴳ ⇒ 𝟘ᴳ
   s = proj₁ (e id)
@@ -141,21 +164,9 @@ subBlind⇒unitGrade blind B u v tu _ e =
   em : ιᴳ B ∘ procᵒ u ≈ᵁ sub s ∘ (ιᴳ B ∘ procᵒ v)
   em = ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ (ιᴳ B ∘ procᵒ u)))) (proj₂ (e id))
 
-  simTotal : TG.SimTotal B s v
-  simTotal d t factor = total-dominated (ctxRunˢ B d u) _ total near
-    where
-    -- `Adequacy` moves `u`'s totality onto the observation the strategy makes.
-    total : Total (ctxRunˢ B d u)
-    total = total-resp-≼ₚ (runˢ B u d) (ctxRunˢ B d u) (proj₂ (adequacy B u d)) (tu d)
-
-    read : ctxRunˢ B d u ≈ₚ Obs (t ∘ (ιᴳ B ∘ procᵒ u))
-    read = ≈ₚ-trans _ _ _ (plug-run B d u)
-                          (obs-resp (⟺ (sym-assoc ○ (fromProc≈ factor ⟩∘⟨refl))))
-
-    near : (ε : ℚ) → 0ℚ ℚ.< ε
-         → ctxRunˢ B d u ≼ₚ[ ε ] Obs (t ∘ (sub s ∘ (ιᴳ B ∘ procᵒ v)))
-    near ε ε>0 = proj₁ (∼ᴼ-resp (≈ₚ-sym _ _ read) (≈ₚ-refl _)
-      (≈ᴳ-at 𝟘ᴳ (t ∘ unitorˡ.from) unitorˡ.to (t ∘_) (plug-λ t) (≈ᵁ⇒≈ᴳ em)) ε ε>0)
+subBlind⇒unitGrade : TG.SubBlind → TG.UnitGrade
+subBlind⇒unitGrade blind B u v tu _ e =
+  stratIsEnv B u v (iotaBlind B u v (subBlind⇒emul blind B u v tu e))
 
 ------------------------------------------------------------------------
 -- Blindness
@@ -180,6 +191,13 @@ simTotal⇒point B s v st =
   massed = massedᵒ-∘ʳ _ _ _ t _ _
              (massedᵒ-∘ˡ _ _ _ (sub s) (ιᴳ B ∘ procᵒ v) _
                (massedᵒ-sub 𝟘ᴳ 𝟘ᴳ (ifaceᵒ B) s _ (massedᵒ-point 𝟘ᴳ 𝟘ᴳ s)))
+
+-- …hence the simulator's initialization is almost surely total off the REAL
+-- side's totality alone, which is the hypothesis the budgeted route's
+-- prefix-tolerant extraction asks for (`UC.Asymptotic.Audit.uc-audit-boundedᵖ`).
+simAstotal : (B : Iface) (u v : Proc unitᴵ B) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) → TotalRun B u
+           → ιᴳ B ∘ procᵒ u ≈ᵁ sub s ∘ (ιᴳ B ∘ procᵒ v) → ASTotal (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
+simAstotal B u v s tu em = simTotal⇒point B s v (emSimTotal B u v s tu em)
 
 -- The whole of what a trivial-grade simulator contributes to a context: its
 -- own initialization, in front of whatever that context observes.  A
@@ -241,3 +259,9 @@ subBlind B s v st = ≈ᴬ⇒≈ᵁ λ Y t m →
 -- …so the unit-grade specialization is a closed theorem.
 unitGrade : TG.UnitGrade
 unitGrade = subBlind⇒unitGrade subBlind
+
+-- …and so is the step before it, which is the one the asymptotic family premise
+-- consumes: no `Agreeˢ`, and the ε still quantified rather than spent.
+emulAgreeᵁ : (B : Iface) (u v : Proc unitᴵ B) → TotalRun B u
+           → ιᴳ B ∘ procᵒ u ≤UC ιᴳ B ∘ procᵒ v → ιᴳ B ∘ procᵒ u ≈ᵁ ιᴳ B ∘ procᵒ v
+emulAgreeᵁ = subBlind⇒emul subBlind

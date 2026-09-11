@@ -1,11 +1,14 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- The asymptotic consumer end: a FAMILY of UC emulations between protocol
+-- The asymptotic consumer end: a family of UC emulations between protocol
 -- images, and what an ideal safety bound becomes on the real side.
 --
 -- The premise is a per-level emulation with its simulator visible — not a
 -- direct run agreement, which is what the ledger's carry used to take
--- (`docs/protocol-implementation-review.md` §4).  Two things are then carried,
+-- (`docs/protocol-implementation-review.md` §4).  It is the POINTWISE,
+-- unit-grade SPECIALIZATION of asymptotic-family emulation and not the family
+-- relation itself; `_≤UC^ω_` below says what that costs, and
+-- `UC.Asymptotic.Family` is the family premise.  Two things are then carried,
 -- and by different routes, because the two ends of the seam are:
 --
 --   * `UC.Asymptotic.Audit.uc-audit-carry` is the GRADED carry
@@ -66,8 +69,27 @@ infix 4 _≤UC^ω_
 
 -- The premise, at each level: the real image emulates the ideal one, in the
 -- INHERITED preorder — a simulator per dummy adversary, quantified at the
--- grade.  This is the standard notion and it is what the trivial-grade
--- collapse consumes; it is emphatically not a direct run agreement.
+-- grade.  This is the standard notion at a FIXED level and it is what the
+-- trivial-grade collapse consumes; it is emphatically not a direct run
+-- agreement.
+--
+-- It is also, just as emphatically, NOT asymptotic-family emulation but its
+-- pointwise/unit-grade specialization, and the difference is not bookkeeping.
+-- `_≤UC_` at one level compares two processes at an ε quantified over EVERY
+-- positive value, so with the real side total the collapse hands back agreement
+-- at every positive error at that level (`uc-agree`, and
+-- `UC.Asymptotic.Family.pointwise-exact` states exactly that).  A pair whose
+-- verdict probabilities differ by `2⁻ⁿ` at level `n` therefore FAILS this
+-- premise at every level (`Family.pointwise-rejects`) while being negligibly
+-- different — which is what an asymptotic premise has to admit.  So this
+-- relation is strictly stronger than the family one: it rejects families the
+-- family premise accepts (`Family.admits-inv-pow-2`).
+--
+-- `UC.Asymptotic.Family._≤UC^ωⁿ_` is that family premise, and `uc-≤UC^ωⁿ`
+-- proves this relation plus the totality below includes into it, so every
+-- theorem here is a specialization of one stated there
+-- (`ChimericLedger.EndToEnd.ledger-uc-to-pov-family` is the pair for the
+-- ledger).  The name stays because the statements do.
 _≤UC^ω_ : Systems B → Systems B → Set₁
 _≤UC^ω_ {B} R I = (n : ℕ)
   → (ιᴳ (B n) ∘ procᵒ (morphism (R n))) ≤UC (ιᴳ (B n) ∘ procᵒ (morphism (I n)))
