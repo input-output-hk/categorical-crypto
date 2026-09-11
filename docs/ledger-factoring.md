@@ -178,9 +178,11 @@ H ≤UC RO  ⟹  Ledger ∘ H ≤UC Ledger ∘ RO  ⟹  POV bound on Ledger ∘ 
    hash-lift                                   Real.ledger-pov
 ```
 
-and it closes `docs/end-to-end.md`'s continuation item 1's remaining clause
-("deriving that from a hash-level emulation via family composition is useful
-integration work").
+and it closes `docs/end-to-end.md`'s continuation item 1's remaining clause,
+which is `docs/protocol-implementation-review.md`'s closing paragraph:
+"The current real-ledger corollary assumes emulation at the ledger; deriving
+that from a hash-level emulation via family composition is useful integration
+work, not a requirement to prove a new cryptographic construction."
 
 ## What review §3 would add on top
 
@@ -226,9 +228,9 @@ reason why the unrestricted congruence is false).
 
 ## Modules
 
-| module | LOC | what |
-|---|---|---|
-| `CategoricalCrypto.Abstract2.Factor` | 82 | `∙-return`, `≤UC-resp-≈`, `≤UC-sub`, over an arbitrary `UCSetup` |
-| `CategoricalCrypto.UC.Factor` | 104 | `closedᵒ`, `stageᵒ`, `factorᵒ`, `factorᵖ`, `liftᵖ` at the machine model |
-| `CategoricalCrypto.Examples.ChimericLedger.Factor` | 116 | the ledger's port, `ledger-factor`, `hash-lift`, `ledger-pov-from-hash` |
-| `CategoricalCrypto.UC.Model.Seal` | +8 | `procᵒ-∘` |
+| module | LOC | warm | what |
+|---|---|---|---|
+| `CategoricalCrypto.Abstract2.Factor` | 82 | 3.9 s | `∙-return`, `≤UC-resp-≈`, `≤UC-sub`, over an arbitrary `UCSetup` |
+| `CategoricalCrypto.UC.Factor` | 96 | 9.5 s | `closedᵒ`, `stageᵒ`, `factorᵒ`, `factorᵖ`, `liftᵖ` at the machine model |
+| `CategoricalCrypto.Examples.ChimericLedger.Factor` | 116 | 10.6 s | the ledger's port, `ledger-factor`, `hash-lift`, `ledger-pov-from-hash` |
+| `CategoricalCrypto.UC.Model.Seal` | 135 (+8) | 9.2 s | `procᵒ-∘` |
