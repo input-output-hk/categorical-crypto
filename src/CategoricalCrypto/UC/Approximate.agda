@@ -100,10 +100,10 @@ infix 4 _→0
 _→0 : (ℕ → ℚ) → Set
 s →0 = (ε : ℚ) → 0ℚ ℚ.< ε → Σ[ N ∈ ℕ ] ((n : ℕ) → N ℕ.≤ n → s n ℚ.≤ ε)
 
--- The grade a slack or an error is held to.  The two bound disciplines below
--- are one shape at two grades, and a consumer that works for either states
--- itself over `Grade` and takes the closure it spends as an argument
--- (`UC.Saturated`).
+-- The grade a slack or an error is held to — a decay class, unrelated to
+-- `UC.Core.Grading`.  The two bound disciplines below are one shape at two
+-- grades, and a consumer that works for either states itself over `Grade` and
+-- takes the closure it spends as an argument (`UC.Saturated`).
 Grade : Set₁
 Grade = (ℕ → ℚ) → Set
 
