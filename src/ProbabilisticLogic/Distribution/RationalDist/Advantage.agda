@@ -31,14 +31,26 @@ advᵇ⊥ b μ ν = ∣ Prᵇ⊥ b μ -ℚ Prᵇ⊥ b ν ∣ℚ
 adv⊥ : Dist⊥ Bool → Dist⊥ Bool → ℚ
 adv⊥ = advᵇ⊥ true
 
+-- The pseudometric laws hold at each verdict separately, which is the form a
+-- statement reading BOTH verdicts needs (`CategoricalCrypto.Protocol.Observe`'s
+-- `_≈adv[_]_`, and the relation over it in `CategoricalCrypto.UC.Saturated`).
+advᵇ⊥-refl : ∀ b μ → advᵇ⊥ b μ μ ≡ 0ℚ
+advᵇ⊥-refl b μ = cong ∣_∣ℚ (+-inverseʳ (Prᵇ⊥ b μ))
+
+advᵇ⊥-sym : ∀ b μ ν → advᵇ⊥ b μ ν ≡ advᵇ⊥ b ν μ
+advᵇ⊥-sym b μ ν = trans (cong ∣_∣ℚ (neg-sub (Prᵇ⊥ b μ) (Prᵇ⊥ b ν))) (∣-p∣≡∣p∣ _)
+
+advᵇ⊥-triangle : ∀ b μ ν ρ → advᵇ⊥ b μ ρ ≤ℚ advᵇ⊥ b μ ν +ℚ advᵇ⊥ b ν ρ
+advᵇ⊥-triangle b μ ν ρ =
+  subst (λ z → ∣ z ∣ℚ ≤ℚ advᵇ⊥ b μ ν +ℚ advᵇ⊥ b ν ρ)
+        (telescope (Prᵇ⊥ b μ) (Prᵇ⊥ b ν) (Prᵇ⊥ b ρ))
+        (∣p+q∣≤∣p∣+∣q∣ (Prᵇ⊥ b μ -ℚ Prᵇ⊥ b ν) (Prᵇ⊥ b ν -ℚ Prᵇ⊥ b ρ))
+
 adv⊥-sym : ∀ μ ν → adv⊥ μ ν ≡ adv⊥ ν μ
-adv⊥-sym μ ν = trans (cong ∣_∣ℚ (neg-sub (Pr₁⊥ μ) (Pr₁⊥ ν))) (∣-p∣≡∣p∣ _)
+adv⊥-sym = advᵇ⊥-sym true
 
 adv⊥-triangle : ∀ μ ν ρ → adv⊥ μ ρ ≤ℚ adv⊥ μ ν +ℚ adv⊥ ν ρ
-adv⊥-triangle μ ν ρ =
-  subst (λ z → ∣ z ∣ℚ ≤ℚ adv⊥ μ ν +ℚ adv⊥ ν ρ)
-        (telescope (Pr₁⊥ μ) (Pr₁⊥ ν) (Pr₁⊥ ρ))
-        (∣p+q∣≤∣p∣+∣q∣ (Pr₁⊥ μ -ℚ Pr₁⊥ ν) (Pr₁⊥ ν -ℚ Pr₁⊥ ρ))
+adv⊥-triangle = advᵇ⊥-triangle true
 
 adv⊥-≈⇒0 : {μ ν : Dist⊥ Bool} → μ ≈Mℚ ν → adv⊥ μ ν ≡ 0ℚ
 adv⊥-≈⇒0 {μ} = λ e → trans (cong (λ z → ∣ Pr₁⊥ μ -ℚ z ∣ℚ) (sym (e mb)))

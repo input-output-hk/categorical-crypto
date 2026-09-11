@@ -220,12 +220,21 @@ private
     a +ℚ b            ∎
     where open ≤-Reasoning
 
+-- A bound on `P` at ONE strategy becomes a bound on an indistinguishable `P′`
+-- at that strategy, with its budget's advantage added.  A statement holding at
+-- a single budget — a polynomial allowance, say (`UC.Saturated`) — has no
+-- `Bounded` to spend, so `transfer` factors through this.
+transfer-at : {P P′ : Protocol unitᴵ B} {δ : ℕ → ℚ} {a : ℚ} (q : ℕ)
+              (d : Strat (Neg B) (Pos B)) → asks≤ q d → P ≈adv[ δ ] P′
+            → Pr P d ≤ℚ a → Pr P′ d ≤ℚ a +ℚ δ q
+transfer-at {P = P} {P′} {δ} {a} q d asks near bound =
+  ≤-shift (Pr P d) (Pr P′ d) a (δ q) bound
+    (subst (_≤ℚ δ q) (adv⊥-sym (run P d) (run P′ d)) (near true q d asks))
+
 -- A bound on `P` becomes a bound on an indistinguishable `P′`, at `ε + δ`.
 transfer : {P P′ : Protocol unitᴵ B}
            {bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)} {ε δ : ℕ → ℚ}
          → ((q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d → asks≤ q (bad d))
          → P ≈adv[ δ ] P′ → Bounded P bad ε → Bounded P′ bad (λ q → ε q +ℚ δ q)
-transfer {P = P} {P′} {bad} {ε} {δ} bad-asks near bound q d a =
-  ≤-shift (Pr P (bad d)) (Pr P′ (bad d)) (ε q) (δ q) (bound q d a)
-    (subst (_≤ℚ δ q) (adv⊥-sym (run P (bad d)) (run P′ (bad d)))
-           (near true q (bad d) (bad-asks q d a)))
+transfer {bad = bad} bad-asks near bound q d a =
+  transfer-at q (bad d) (bad-asks q d a) near (bound q d a)
