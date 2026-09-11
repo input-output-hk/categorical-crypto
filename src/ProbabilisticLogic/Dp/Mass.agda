@@ -7,8 +7,7 @@
 -- reaches a value within `n` steps.  A prefix contributes exactly that factor
 -- to whatever follows it — `d >>=ₚ λ _ → e` observes `e` scaled by `mass d` —
 -- and `const-bindA`/`const-bindB` are the two halves of that statement,
--- `cum`-wise and sup-free.  `Dp.Zero` is the `mass ≡ 0ℚ` end of the same
--- scale.
+-- `cum`-wise and sup-free.
 --
 -- `ASTotal` is almost-sure termination, and it is deliberately NOT
 -- `Σ[ n ] mass n d ≡ 1ℚ`: a geometric loop terminates with probability one and
@@ -214,9 +213,9 @@ bindʳ-≼ᵐ d k e le n = n , mass-bindʳ n d k (mass n e) (mass-nn n e) λ p �
 ------------------------------------------------------------------------
 -- The zero end of the scale
 
--- `Dp.Zero` says every budgeted mass is `0ℚ` against every non-negative test;
--- domination by `botₚ` says it against the constant one, which is all a
--- verdict reading needs and the form the propagation produces.
+-- Domination by `botₚ` says every budgeted mass is `0ℚ` against the constant
+-- test, which is all a verdict reading needs and the form the propagation
+-- produces.
 ≼ᵐbot⇒0 : (d : Dₚ A) → d ≼ᵐ (botₚ {A = B}) → (n : ℕ) → mass n d ℚ.≤ 0ℚ
 ≼ᵐbot⇒0 d le n = let m , b = le n in ≤-trans b (≤-reflexive (botₚ-cum m (λ _ → 1ℚ)))
 

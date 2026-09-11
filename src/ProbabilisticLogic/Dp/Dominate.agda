@@ -39,8 +39,8 @@ private variable
   a : Level
   A B : Set a
   P : A → ℚ
-  ε δ : ℚ
-  d e h : Dₚ A
+  ε : ℚ
+  d e : Dₚ A
 
 ------------------------------------------------------------------------
 -- Convexity: a slack survives an average
@@ -118,44 +118,12 @@ dom≤⇒dom₀ h n = h n n ℕP.≤-refl
 Dom : (A → ℚ) → ℚ → Dₚ A → Dₚ A → Set
 Dom P ε d e = (n : ℕ) → Σ[ m ∈ ℕ ] (cum n d P ℚ.≤ cum m e P ℚ.+ ε)
 
-dom₀-refl : (P : A → ℚ) (d : Dₚ A) → Dom₀ P d d
-dom₀-refl P d n = n , ≤-refl
-
-dom₀-trans : Dom₀ P d e → Dom₀ P e h → Dom₀ P d h
-dom₀-trans p q n = let m , bd = p n
-                       i , cd = q m
-                   in i , ≤-trans bd cd
-
 -- The two ways an ambient `_≈ₚ_` enters a domination chain.
 ≼⇒dom₀ : (P : A → ℚ) → NNF P → (d e : Dₚ A) → d ≼ₚ e → Dom₀ P d e
 ≼⇒dom₀ P nn d e le n = le P nn n
 
 ≈⇒dom₀ : (P : A → ℚ) → NNF P → (d e : Dₚ A) → d ≈ₚ e → Dom₀ P d e
 ≈⇒dom₀ P nn d e de = ≼⇒dom₀ P nn d e (proj₁ de)
-
-dom₀⇒dom : 0ℚ ℚ.≤ ε → Dom₀ P d e → Dom P ε d e
-dom₀⇒dom {ε = ε} {P = P} {e = e} 0≤ε dm n =
-  let m , bd = dm n
-  in m , ≤-trans bd (≤-trans (≤-reflexive (sym (+-identityʳ (cum m e P))))
-                             (+-monoʳ-≤ (cum m e P) 0≤ε))
-
-dom⇒dom₀ : Dom P 0ℚ d e → Dom₀ P d e
-dom⇒dom₀ {P = P} {e = e} dm n =
-  let m , bd = dm n in m , ≤-trans bd (≤-reflexive (+-identityʳ (cum m e P)))
-
-dom-mono : ε ℚ.≤ δ → Dom P ε d e → Dom P δ d e
-dom-mono {P = P} {e = e} le dm n =
-  let m , bd = dm n in m , ≤-trans bd (+-monoʳ-≤ (cum m e P) le)
-
-domˡ : Dom₀ P d e → Dom P ε e h → Dom P ε d h
-domˡ p q n = let m , bd = p n
-                 i , cd = q m
-             in i , ≤-trans bd cd
-
-domʳ : Dom P ε d e → Dom₀ P e h → Dom P ε d h
-domʳ {ε = ε} p q n = let m , bd = p n
-                         i , cd = q m
-                     in i , ≤-trans bd (+-monoˡ-≤ ε cd)
 
 ------------------------------------------------------------------------
 -- The bind congruence

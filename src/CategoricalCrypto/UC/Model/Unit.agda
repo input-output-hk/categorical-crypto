@@ -7,11 +7,13 @@
 -- two different empty types — and leaves them unidentified.  This module says
 -- what that costs, which is nothing, in two halves.
 --
---   `AnyEnvironment`  the metatheory is BLIND to the closure object.  `StdUC`
+--   `AnyEnvironment`  the five metatheorems are ℰ-GENERIC, so the choice of
+--                     closure object never enters their proofs.  `StdUC`
 --                     consumes `ℰ` abstractly, so its whole output is available
---                     at an arbitrary environment presheaf over `𝔾ᵒ`; the
---                     closures that `ℰᵒ` happens to quantify over never enter a
---                     statement.  `𝟘ᵘ` does enter, but only as a GRADE — it is
+--                     at an arbitrary environment presheaf over `𝔾ᵒ`.  (The
+--                     closures `ℰᵒ` quantifies over do of course enter `_≋_`,
+--                     hence `_≈ℰ_`; it is the metatheorems that do not see
+--                     them.)  `𝟘ᵘ` enters too, but only as a GRADE — it is
 --                     `ℐ.unit`, where `≈ᵁ⇒≈ℰ` spends `λ⇒`/`λ⇐`/`return` — and
 --                     the grade position never meets the closure position.
 --   `Interconvert`    what an iso `𝟘ᵒ ≅ 𝟘ᵘ` would buy, proved over an abstract

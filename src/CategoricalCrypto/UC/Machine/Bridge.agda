@@ -8,12 +8,18 @@
 -- doctrine.  Nothing in the qualitative core mentions a strategy.
 --
 -- An ℰ-statement quantifies over ancilla CONTEXTS; a hand-written security
--- theorem quantifies over adaptive STRATEGIES.  `ContextDominated` is the
--- obligation that lets the second be read as the first: once every strategy the
--- context's carried budget can afford leaves the two direct runs ε-close, the
--- context itself separates them by no more than ε + δ.  It is what makes an
--- abstract query bound contribute — with no such law, `QB` may as well be `⊤`
--- (the reference arc records exactly this gap).
+-- theorem quantifies over adaptive STRATEGIES.  `ContextDominated` reads the
+-- second as the first AT ONE INSTANCE, which is the instance layer 1 supplies:
+-- the compared processes are CLOSED (`u v : Proc unitᴵ B`, i.e. `A := unitᴵ`)
+-- and the hole is at the trivial grade (`conjᴵ` plugs them as
+-- `Proc unitᴵ (unitᴵ ⊗ᴵ B)`, where the empty summand can never fire), even
+-- though `ctxRun` itself is stated at a general `A`.  At that instance: once
+-- every strategy the context's carried budget can afford leaves the two direct
+-- runs ε-close, the context itself separates them by no more than ε + δ.  That
+-- is what makes an abstract query bound contribute — with no such law, `QB`
+-- may as well be `⊤` (the reference arc records exactly this gap).  Whether
+-- the closed, unit-hole case suffices for a general `f g : Proc A B` at a
+-- general hole is not settled here.
 --
 -- The statement is UNIVERSAL in the strategy, which is also the shape its
 -- consumers have: a layer-1 theorem (`_≈adv[_]_`, `Bounded`) is already

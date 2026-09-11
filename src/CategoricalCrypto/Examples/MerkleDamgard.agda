@@ -1,7 +1,12 @@
 {-# OPTIONS --safe #-}
 
 --------------------------------------------------------------------------------
--- MERKLE–DAMGÅRD as a protocol, and its concrete-security theorem.
+-- MERKLE–DAMGÅRD as a protocol, and its concrete-security theorem: SINGLE-
+-- ORACLE indistinguishability with the compression function HIDDEN.  The
+-- distinguisher is a `Strat (Neg Generalᴵ) (Pos Generalᴵ)` — `Sys = md ∘ᵖ comp`
+-- closes `comp` off, so there is no compression-oracle interface — and there is
+-- no simulator anywhere.  That is strictly weaker than indifferentiability,
+-- i.e. than "MD is a random oracle".
 --
 --     comp    : Protocol unitᴵ Compᴵ       -- the compression random oracle
 --     md      : Protocol Compᴵ Generalᴵ    -- one compression call per block
@@ -245,7 +250,9 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
 
   -- The advantage of ANY adaptive `q`-query strategy at EITHER verdict is at
   -- most `bound q`: neither run diverges, so the `false` reading is the
-  -- complement of the `true` one and `advᵇ⊥-just` collapses them.
+  -- complement of the `true` one and `advᵇ⊥-just` collapses them.  The
+  -- strategy queries `Generalᴵ` only — `f` is hidden — and no simulator
+  -- appears; see the header for what that does and does not say.
   indistinguishable : general ≈adv[ bound ] Sys
   indistinguishable b q d le =
     subst (_≤ℚ bound q) (sym advEq)

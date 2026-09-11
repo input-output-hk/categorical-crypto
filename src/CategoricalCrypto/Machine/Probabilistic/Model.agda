@@ -195,8 +195,12 @@ record MachineModel : Set (suc (suc (suc 0ℓ))) where
     -- an equality of adaptive runs.
     trace-run : TraceDeterminesRun
     -- `MachineAxioms.HomTransportTrivial` spelled at the machine level:
-    -- transport along an object LOOP is invisible to observation.  Plausible
-    -- precisely because `_≈ₚ_` is observational; the ℰᵗᵛ layer needs it.
+    -- transport along an object LOOP is invisible to observation.  The ℰᵗᵛ
+    -- layer needs it.  Note this file's options keep K, under which
+    -- `Axiom.UniquenessOfIdentityProofs.WithK.uip` gives `p ≡ refl` and the
+    -- field is provable outright — so an instance here pays for something
+    -- free.  `MachineAxioms` is `--without-K` and keeps it out of the record
+    -- for the same reason.
     hom-triv  : ∀ {X} (p : X ≡ X) (m : PMachine M.unit X) → subst (PMachine M.unit) p m ≈ₚ m
 
   -- The transport along `unit≡I` is what lets a `unit ⇒ Ω` machine be read as

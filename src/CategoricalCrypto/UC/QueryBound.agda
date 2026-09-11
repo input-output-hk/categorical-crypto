@@ -50,7 +50,6 @@ open import CategoricalCrypto.UC.Machine
   using (Proc; 𝒫ᴵ; T₁ᴵ; subᴵ; a⇒ᴵ; a⇐ᴵ; wireStep; ⊤ᵛ)
 
 import CategoricalCrypto.Machines.Core as Core
-import CategoricalCrypto.Machines.Collapse as Col
 import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.UC.QueryBound where
@@ -474,22 +473,6 @@ qb-subᴹ : ({X Y A : Iface} {s t : Proc X Y} → 𝒫ᴵ [ s ≈ t ] → 𝒫�
          → (X Y A : Iface) {c : ℕ} (s : Proc X Y) → QB c s → QB (c ℕ.⊔ 1) (subᴵ s {A})
 qb-subᴹ resp X Y A s (N , cert , e) = subᴵ N , qbᵢ-sub X Y A N cert , resp e
 
-------------------------------------------------------------------------
--- The closure property, bundled
-
--- `qb-∘` is the reference arc's 231-LOC two-position token walk, with a ⊕-trace
--- on top of it here; it is proved in `UC.QueryBound.Compose.Laws`, which also
--- assembles this record.  The other three fields are the theorems above, at
--- their explicit-interface spellings.
-record BudgetLawsᴹ : Set₁ where
-  field
-    qb-id  : {A : Iface} → QB 1 (𝒫.id {A})
-    qb-∘   : {A B C : Iface} {c c′ : ℕ} {g : Proc B C} {f : Proc A B}
-           → QB c g → QB c′ f
-           → QB (c ℕ.* c′)
-               (Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
-                 (Col.W.α Col.MC.∘ᴹ ((g Col.T.⊗ᵉ f) Col.MC.∘ᴹ Col.W.γ)))
-    qb-T₁  : {Y A B : Iface} {c : ℕ} {f : Proc A B}
-           → QB c f → QB (c ℕ.⊔ 1) (T₁ᴵ Y f)
-    qb-sub : {X Y A : Iface} {c : ℕ} {s : Proc X Y}
-           → QB c s → QB (c ℕ.⊔ 1) (subᴵ s {A})
+-- The bundled closure property that used to sit here is gone: the resource
+-- doctrine is inhabited directly, at 𝒢's own objects, by
+-- `UC.Machine.Budget.budgetᴹ`.
