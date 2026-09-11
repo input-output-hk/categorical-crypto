@@ -10,9 +10,6 @@
 -- `t/2ⁿ`, which is what `Uniform.Collision.E-countMatch` charges it — and
 -- `birthday` is the closed bound the headline ε is stated at: from a pool of
 -- one, `q` samples cost at most `(q² + q)·2⁻ⁿ`.
---
--- `Examples.MerkleDamgard.Core` carries its own copy of `sumR`/`Γ` and these
--- order facts, specialized to its own `n`; consolidating it here is owed.
 
 open import Data.Nat.Base as ℕ using (ℕ; zero; suc; z≤n)
 import Data.Nat.Properties as ℕₚ

@@ -16,12 +16,12 @@ open import Data.Empty
 open import Data.Product.Base
 open import Data.Sum.Base
 open import Data.Unit.Polymorphic.Base
-open import Function.Base
 open import Level
 open import Relation.Binary.Structures
 import Relation.Binary.Construct.Closure.Equivalence as EqC
 
 open import ProbabilisticLogic.Dp
+open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
@@ -43,36 +43,6 @@ private
 -- A closed machine at an interface: nothing can be asked of its domain side.
 Closed : Iface → Set₁
 Closed B = MC.Machine (⊥ ⊎ Neg B) (⊥ ⊎ Pos B)
-
-------------------------------------------------------------------------
--- `Dₚ` shorthands: the library's lemmas take their subjects explicitly, and a
--- transparent chain would strand them as metas.
-
-private
-  variable A′ B′ C′ : Set
-
-  infixr 5 _⟨≈⟩_
-
-  _⟨≈⟩_ : {d e h : Dₚ A′} → d ≈ₚ e → e ≈ₚ h → d ≈ₚ h
-  _⟨≈⟩_ {d = d} {e} {h} = ≈ₚ-trans d e h
-
-  ≈refl : {d : Dₚ A′} → d ≈ₚ d
-  ≈refl {d = d} = ≈ₚ-refl d
-
-  ≈sym : {d e : Dₚ A′} → d ≈ₚ e → e ≈ₚ d
-  ≈sym {d = d} {e} = ≈ₚ-sym d e
-
-  bindᶠ : {d : Dₚ A′} {k l : A′ → Dₚ B′}
-        → ((a : A′) → k a ≈ₚ l a) → (d >>=ₚ k) ≈ₚ (d >>=ₚ l)
-  bindᶠ {d = d} {k} {l} h = >>=ₚ-cong d d k l ≈refl h
-
-  bindˣ : {d e : Dₚ A′} {k : A′ → Dₚ B′} → d ≈ₚ e → (d >>=ₚ k) ≈ₚ (e >>=ₚ k)
-  bindˣ {d = d} {e} {k} h = >>=ₚ-cong d e k k h λ _ → ≈refl
-
-  bind-map : (d : Dₚ A′) (h : A′ → B′) (k : B′ → Dₚ C′)
-           → (mapₚ h d >>=ₚ k) ≈ₚ (d >>=ₚ (k ∘′ h))
-  bind-map d h k = >>=ₚ-assoc d (returnₚ ∘′ h) k
-             ⟨≈⟩ bindᶠ (λ a → >>=ₚ-identityˡ (h a) k)
 
 ------------------------------------------------------------------------
 -- What a simulation does to one step

@@ -38,7 +38,7 @@
 --     whole adaptivity argument; `bad-bound` is PROVEN from `md-cert`,
 --     which is itself ASSEMBLED (not assumed) below.
 --
--- The certificate's PROBABILISTIC side is PROVEN (design: docs/md-cert-design.md):
+-- The certificate's PROBABILISTIC side is PROVEN:
 -- the potential φ = collision count + triangle budget is an EXACT martingale
 -- along the walk (`walk-φ`: an interior miss creates `pool` expected collision
 -- pairs — the PROVEN `E-collisions` — and spends exactly that from the budget;
@@ -77,7 +77,7 @@ open import Data.Rational using (ℚ; 0ℚ; 1ℚ; nonNegative)
   renaming (_*_ to _*ℚ_; _+_ to _+ℚ_; _-_ to _-ℚ_; -_ to -ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_; _≟_ to _≟ℚ_)
 open import Data.Rational.Properties using
   ( ≤-trans; ≤-refl; ≤-reflexive; +-monoʳ-≤; +-monoˡ-≤; +-mono-≤
-  ; *-zeroˡ; *-distribʳ-+; *-monoʳ-≤-nonNeg
+  ; *-zeroˡ; *-monoʳ-≤-nonNeg
   ; +-assoc; +-comm; +-identityˡ; +-identityʳ; ≤-antisym; 1≢0 )
 open import Data.Rational.Properties.Ext
 import Data.List.NonEmpty as NE
@@ -94,7 +94,9 @@ open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
 open import ProbabilisticLogic.Distribution.RationalDist.Setoid
-open import ProbabilisticLogic.Distribution.Uniform using (inv-pow-2; bool→ℚ; fromℕ; δ; P-uniform-Vec)
+open import ProbabilisticLogic.Distribution.Uniform using
+  (0≤fromℕ; inv-pow-2; bool→ℚ; fromℕ; fromℕ-+; δ; P-uniform-Vec)
+import ProbabilisticLogic.Distribution.Uniform.Birthday as Birthday
 
 module CategoricalCrypto.Examples.MerkleDamgard.Core where
 
@@ -590,19 +592,17 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   ideal-marginal d = ideal-marginal-gen d false [] []
 
   ------------------------------------------------------------------------
-  -- THE BIRTHDAY POTENTIAL (design: docs/md-cert-design.md), PROVEN.
+  -- THE BIRTHDAY POTENTIAL, PROVEN.
   -- φ = collision count + triangle budget for the remaining interior samples.
   -- φ is an EXACT martingale along the walk: an interior miss creates
   -- `pool` expected collision pairs (the PROVEN `E-collisions`) and spends
   -- exactly `pool` from the budget; final calls and hits are free.
 
-  -- sum of `j` consecutive naturals starting at `t` (a triangle slice)
-  sumR : ℕ → ℕ → ℚ
-  sumR t zero    = 0ℚ
-  sumR t (suc j) = fromℕ t +ℚ sumR (suc t) j
+  open Birthday n
 
-  Γ : ℕ → ℕ → ℚ
-  Γ t j = sumR t j *ℚ inv-pow-2 n
+  -- the triangle slice `Γ` sums, as a rational
+  sumR : ℕ → ℕ → ℚ
+  sumR t j = fromℕ (sumN t j)
 
   φsc : ℕ → Comp.Table → ℚ
   φsc m sc = collC sc +ℚ Γ (pool sc) (m * (k ∸ 1))
@@ -611,12 +611,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   φMD m s = φsc m (proj₁ (proj₂ s))
 
   private
-    -- ℚ order basics
-    0≤fromℕ : ∀ j → 0ℚ ≤ℚ fromℕ j
-    0≤fromℕ zero    = ≤-refl
-    0≤fromℕ (suc j) = ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ)))
-                              (+-mono-≤ 0≤1ℚ (0≤fromℕ j))
-
     -- literal-free: `inv-pow-2 n` is the uniform point-mass (P-uniform-Vec),
     -- and expectations of non-negative indicators are non-negative.
     0≤ε : 0ℚ ≤ℚ inv-pow-2 n
@@ -632,32 +626,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     x≤c+x : ∀ x {c} → 0ℚ ≤ℚ c → x ≤ℚ c +ℚ x
     x≤c+x x 0≤c = ≤-trans (≤-reflexive (sym (+-identityˡ x))) (+-monoˡ-≤ x 0≤c)
 
-    0≤sumR : ∀ t j → 0ℚ ≤ℚ sumR t j
-    0≤sumR t zero    = ≤-refl
-    0≤sumR t (suc j) = ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ)))
-                               (+-mono-≤ (0≤fromℕ t) (0≤sumR (suc t) j))
-
-    0≤Γ : ∀ t j → 0ℚ ≤ℚ Γ t j
-    0≤Γ t j = ≤-trans (≤-reflexive (sym (*-zeroˡ (inv-pow-2 n))))
-                      (*-monoʳ-≤-nonNeg _ ⦃ nonNegative 0≤ε ⦄ (0≤sumR t j))
-
-    sumR-≤-suc : ∀ t j → sumR t j ≤ℚ sumR t (suc j)
-    sumR-≤-suc t zero    = ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ)))
-                                   (+-mono-≤ (0≤fromℕ t) ≤-refl)
-    sumR-≤-suc t (suc j) = +-monoʳ-≤ (fromℕ t) (sumR-≤-suc (suc t) j)
-
-    sumR-mono : ∀ t {j j'} → j ≤ j' → sumR t j ≤ℚ sumR t j'
-    sumR-mono t le = go t _ _ (ℕP.≤⇒≤′ le)
-      where go : ∀ t j j' → j ≤′ j' → sumR t j ≤ℚ sumR t j'
-            go t j .j ≤′-refl        = ≤-refl
-            go t j _ (≤′-step {j'} pf) = ≤-trans (go t j j' pf) (sumR-≤-suc t j')
-
-    Γ-≤-suc : ∀ t j → Γ t j ≤ℚ Γ t (suc j)
-    Γ-≤-suc t j = *-monoʳ-≤-nonNeg _ ⦃ nonNegative 0≤ε ⦄ (sumR-≤-suc t j)
-
-    Γ-step : ∀ t j → fromℕ t *ℚ inv-pow-2 n +ℚ Γ (suc t) j ≡ Γ t (suc j)
-    Γ-step t j = sym (*-distribʳ-+ (inv-pow-2 n) (fromℕ t) (sumR (suc t) j))
-
     -- triangle facts
     tri-mono : ∀ {a b} → a ≤ b → Comp.triangle a ≤ℚ Comp.triangle b
     tri-mono le = go _ _ (ℕP.≤⇒≤′ le)
@@ -668,9 +636,10 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     sumR-tri : ∀ t j → Comp.triangle t +ℚ sumR t j ≡ Comp.triangle (t + j)
     sumR-tri t zero    = trans (+-identityʳ _) (cong Comp.triangle (sym (ℕP.+-identityʳ t)))
     sumR-tri t (suc j) =
-      trans (sym (+-assoc (Comp.triangle t) (fromℕ t) (sumR (suc t) j)))
+      trans (cong (Comp.triangle t +ℚ_) (fromℕ-+ t (sumN (suc t) j)))
+     (trans (sym (+-assoc (Comp.triangle t) (fromℕ t) (sumR (suc t) j)))
      (trans (cong (_+ℚ sumR (suc t) j) (+-comm (Comp.triangle t) (fromℕ t)))
-     (trans (sumR-tri (suc t) j) (cong Comp.triangle (sym (ℕP.+-suc t j)))))
+     (trans (sumR-tri (suc t) j) (cong Comp.triangle (sym (ℕP.+-suc t j))))))
 
     -- counting facts
     cm-nn : ∀ s h → 0ℚ ≤ℚ Comp.count-matches s h
@@ -751,7 +720,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     suc∸1 zero    = ⊥-elim (≢-nonZero⁻¹ zero refl)
     suc∸1 (suc j) = refl
 
-    -- ★ THE WALK MARTINGALE (design §1) — forward-declared, detach-style
+    -- ★ THE WALK MARTINGALE — forward-declared, detach-style
     walk-φ : ∀ m sc h bs idx → idx + length bs ≡ suc k
            → E (walk sc h bs idx) (λ (w : Comp.Table × (CV × Bool)) → φsc m (proj₁ w))
            ≤ℚ collC sc +ℚ Γ (pool sc) ((length bs ∸ 1) + m * (k ∸ 1))
@@ -810,7 +779,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
                     E (walk (proj₁ w) (proj₁ (proj₂ w)) (b'' ∷ bs'') (suc idx))
                       (λ (w' : Comp.Table × (CV × Bool)) → φsc m (proj₁ w'))))))
       (≤-trans (walk-φ m sc hm (b'' ∷ bs'') (suc idx) pr)
-               (+-monoʳ-≤ (collC sc) (Γ-≤-suc (pool sc) (length bs'' + m * (k ∸ 1)))))
+               (+-monoʳ-≤ (collC sc) (Γ-mono (pool sc) (length bs'' + m * (k ∸ 1)))))
     walk-φC m sc h b (b'' ∷ bs'') idx nothing lt pr =
       ≤-trans (≤-reflexive
         (trans (E-bind (Comp.uniform-Out >>=ᴹ
@@ -944,7 +913,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
                             (ℕP.*-monoʳ-≤ m (ℕP.m∸n≤m k 1))
 
   ------------------------------------------------------------------------
-  -- ★ THE CHAIN-FOREST INVARIANT, defined CONCRETELY (design §2).  The table is
+  -- ★ THE CHAIN-FOREST INVARIANT, defined CONCRETELY.  The table is
   -- a labelled transition system on chaining values (`stepT`); a recorded
   -- message denotes a run from IV (`Chain`) — the shape `unique-run` consumes.
 
