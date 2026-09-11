@@ -35,10 +35,12 @@ open import Categories.Category using (Category; _[_,_]; _[_≈_])
 open import Data.Integer.Base using (+_)
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly using (Poly; poly-const)
+open import Data.Nat.Properties using (m≤m⊔n; m≤n⊔m; ≤-trans)
 open import Data.Product.Base using (Σ-syntax; _,_)
 open import Data.Rational as ℚ using (ℚ; 0ℚ; ½; _/_)
 open import Data.Rational.Properties
-  using (*-distribʳ-+; *-identityˡ; *-monoʳ-<-pos; *-zeroʳ; <⇒≤; ≤-reflexive)
+  using ( *-distribˡ-+; *-distribʳ-+; *-identityˡ; *-monoʳ-<-pos; *-zeroʳ; +-mono-≤
+        ; <⇒≤; ≤-reflexive )
 open import Level using (Level; 0ℓ; _⊔_; suc)
 open import Relation.Binary.PropositionalEquality using (_≡_; subst; sym; trans)
 open import Relation.Binary.Structures using (IsEquivalence)
@@ -98,8 +100,18 @@ infix 4 _→0
 _→0 : (ℕ → ℚ) → Set
 s →0 = (ε : ℚ) → 0ℚ ℚ.< ε → Σ[ N ∈ ℕ ] ((n : ℕ) → N ℕ.≤ n → s n ℚ.≤ ε)
 
+-- The grade a slack or an error is held to.  The two bound disciplines below
+-- are one shape at two grades, and a consumer that works for either states
+-- itself over `Grade` and takes the closure it spends as an argument
+-- (`UC.Saturated`).
+Grade : Set₁
+Grade = (ℕ → ℚ) → Set
+
+GradedBound : Grade → (ℕ → ℕ → ℚ) → Set
+GradedBound G ε = (p : ℕ → ℕ) → Poly p → G (λ n → ε n (p n))
+
 VanishingBound : (ℕ → ℕ → ℚ) → Set
-VanishingBound ε = (p : ℕ → ℕ) → Poly p → (λ n → ε n (p n)) →0
+VanishingBound = GradedBound _→0
 
 -- Negligible: eventually below every inverse polynomial, which is strictly more
 -- than `_→0` (`1/n` vanishes and is not negligible).  Stated by MAGNIFICATION —
@@ -120,10 +132,41 @@ Negligible⇒→0 {s} neg ε ε>0 =
 -- which is what the model's own allowance supplies (`UC.Family.PolyQB`).  It
 -- yields no single slack uniform over arbitrary, possibly exponential, `q`.
 NegligibleBound : (ℕ → ℕ → ℚ) → Set
-NegligibleBound ε = (p : ℕ → ℕ) → Poly p → Negligible (λ n → ε n (p n))
+NegligibleBound = GradedBound Negligible
 
 NegligibleBound⇒VanishingBound : {ε : ℕ → ℕ → ℚ} → NegligibleBound ε → VanishingBound ε
 NegligibleBound⇒VanishingBound neg p Pp = Negligible⇒→0 (neg p Pp)
+
+------------------------------------------------------------------------
+-- Closure
+
+-- What a transfer spends.  Moving a bound along a system that differs by `δ`
+-- adds `δ`, read at the allowance, to the slack, so the moved statement has
+-- the same grade exactly when the grade is closed under sums — and reading a
+-- `GradedBound` at the allowance is already that grade, by definition.  Both
+-- grades close, `Negligible`'s case being the vanishing one under the
+-- magnifying polynomial.
+
+→0-cong : {s t : ℕ → ℚ} → ((n : ℕ) → s n ≡ t n) → s →0 → t →0
+→0-cong eq s→0 ε ε>0 =
+  let N , bnd = s→0 ε ε>0 in N , λ n le → subst (ℚ._≤ ε) (eq n) (bnd n le)
+
+→0-0 : (λ (_ : ℕ) → 0ℚ) →0
+→0-0 _ ε>0 = 0 , λ _ _ → <⇒≤ ε>0
+
+→0-+ : {s t : ℕ → ℚ} → s →0 → t →0 → (λ n → s n ℚ.+ t n) →0
+→0-+ {s} {t} s→0 t→0 ε ε>0 =
+  let Ns , bs = s→0 (½ ℚ.* ε) (half-positive ε>0)
+      Nt , bt = t→0 (½ ℚ.* ε) (half-positive ε>0)
+  in Ns ℕ.⊔ Nt , λ n le → subst (s n ℚ.+ t n ℚ.≤_) (half+half ε)
+       (+-mono-≤ (bs n (≤-trans (m≤m⊔n Ns Nt) le)) (bt n (≤-trans (m≤n⊔m Ns Nt) le)))
+
+Negligible-0 : Negligible (λ _ → 0ℚ)
+Negligible-0 p _ = →0-cong (λ n → sym (*-zeroʳ (+ p n / 1))) →0-0
+
+Negligible-+ : {s t : ℕ → ℚ} → Negligible s → Negligible t → Negligible (λ n → s n ℚ.+ t n)
+Negligible-+ {s} {t} ns nt p Pp =
+  →0-cong (λ n → sym (*-distribˡ-+ (+ p n / 1) (s n) (t n))) (→0-+ (ns p Pp) (nt p Pp))
 
 ------------------------------------------------------------------------
 -- Approximate closeness
