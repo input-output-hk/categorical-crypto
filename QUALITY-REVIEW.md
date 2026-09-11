@@ -1449,6 +1449,121 @@ Left alone, deliberately:
   lemmas.  It is a spent work plan (this file already says so), so its
   description of a migration is history rather than drift.
 
+## Resolved (`model-dedup`)
+
+Branch `model-dedup` off `protocol-rewrite`'s tip (`18d2c177`), three commits —
+the `Induced` observation, the presheaf hoist, the `AnyEnvironment` instance.
+No statement weakened, generalized or deleted; the only definitions removed are
+the duplicate proofs the entries named, and every name either survives or is
+re-exported under the name it had.  Live escape hatches 0 before and after (all
+16 `postulate` grep hits are the words "postulate-free" in comments).  Closure
+green with an empty warn-gate on `CategoricalCrypto.agda`, `UC.agda`,
+`UC/Model.agda`, `UC/Model/{Family,Pin}`, `UC/Emulation`,
+`UC/Environment/{Presheaf,Approximate}`, `UC/Family{,/Monoidal}`,
+`UC/Seam/{Budget,Audit/Bounded}`, `Protocol/Machine/Pin`,
+`Examples/MerkleDamgard{,/Pin}`, `Examples/ChimericLedger{,/Pin,/Audit}`,
+`Standard{,2/Morphism}`, `UCSetup/Morphism`, `Abstract`,
+`Abstract2/Equivalence`, `RandomOracle{,2}`, `Examples/RelSetup`,
+`UC/Approximate/Decay`.
+
+- `UC/Model/Environment.agda` (the presheaf proved twice) — **deduplicated the
+  safe way the entry named.**  `Test`, `Closure`, `obs`, `_≋_`, `≈⇒≋` and `ℰᴼ`
+  now live in a new `UC/Environment/Presheaf.agda` parameterized by
+  `(𝒞 : Category o ℓ e) (O : Observation 𝒞 os ℓs)` and nothing else, so no
+  `Grading` enters the closure and the alternative's measured perf risk is not
+  taken.  `UC/Environment.agda` re-exports it at its base's observation (−42
+  LOC); `UC/Model/Environment.agda` is the instantiation at
+  `∣𝔾ᵒ∣`/`observationᵒ` (−37 LOC).  `UC/Environment.agda:67`'s claim that
+  `UC.Model.Environment.ℰᵒ` "is this at the machine model" is now literally
+  true and has moved into `Presheaf.agda`'s header, where it is the
+  construction's own statement.
+  Two names were *added* to the shared module so that no export moved:
+  `≋-isEquivalence` and `ℰ₀`, factored out of the presheaf literal under the
+  names `Model/Environment` already had for them.  `≈⇒≋` is re-exported there as
+  `≈ᵒ⇒≋`, so `docs/protocol-rewrite.md:1204`'s and
+  `docs/stduc-supersession-plan.md:219-220`'s inventories still hold.
+- `UC/Model/Unit.agda :: AnyEnvironment` vs `UC/Model/Pin.agda:54-71` — **`Pin`
+  now reads `open Unit.AnyEnvironment ℰᵒ public`.**  The five duplicated
+  metatheorem sites are gone from `Pin`, `AnyEnvironment` has the instance that
+  makes its claim load-bearing, and the statements are unchanged because they
+  are literally the same statements — instantiated rather than re-typed.  `Pin`
+  keeps the `*-app` identities, `relayᵒ` and the two relay pins, and keeps its
+  measured obstruction note (`Obs (procᵒ M) ≢ ⟦M⟧ᴼ` by `refl`, `relayᵒ` blocked
+  twice over) untouched: that concerns pinning BEHAVIOUR across the seal, which
+  this item never approaches.
+- `UC/Model/Bridge.agda :: observationᵒ` — **built by `Induced`, and
+  `approximateᵒ` comes out of the same instantiation.**
+  `Induced ∣𝔾ᵒ∣ Approximationᴹ 𝟘ᵒ Ωᵒ Obs (λ e → ≈ₚ⇒≈ₚ[0] (obs-resp e))` gives
+  both records; at `ℚ-errors`, where `ε₀-least = <⇒≤`, its `⟦⟧-resp-≈` is the
+  old hand-rolled `≈ₚ⇒∼ᴼ (obs-resp e)` term, and its `approximate` is
+  `UC/Model/Family.agda`'s hand-rolled `approximateᵒ` field for field.  Since
+  the entry was written `approximateᵒ` and `UC/Model/Family.agda` had landed,
+  so this is a reconciliation, not an addition: `Family` no longer builds its
+  own `ApproximateObservation` and the `qapx` `ucSetup^ω` is witnessed at is
+  now the enrichment of the very approximation `_∼ᴼ_` was induced from.
+  Both records moved to `UC/Model/Observation.agda`, beside the
+  `Obs`/`_∼ᴼ_`/`obs-resp` they are assembled from (rule 28) — and that
+  placement is what breaks the cycle the presheaf item would otherwise hit,
+  since `Model/Environment` needs the observation and `Model/Bridge` needs
+  `Model/Setup`.  `Bridge` keeps `ucBaseᵒ` (that one does need the `Grading`);
+  `Enrichment` and `Family` take `observationᵒ` from its new home.
+  The cone is eta-sensitive, so it was measured rather than assumed: paired
+  warm single-module runs, base versions restored into the same warm worktree
+  for the "before" column.
+
+Timings (warm, single module, `+RTS -M8G -H1G`, paired batches in the same
+order; the run-to-run spread inside one batch is ±4 s at this startup floor,
+so read these as "unchanged"):
+
+| module | LOC before → after | before | after |
+| --- | --- | --- | --- |
+| `UC/Environment` | 204 → 162 | 2.3 s | 2.8 s |
+| `UC/Environment/Presheaf` | — → 79 | — | 2.4 s |
+| `UC/Model/Observation` | 77 → 97 | 9.2 s | 11.7 s |
+| `UC/Model/Environment` | 64 → 27 | 9.4 s | 12.1 s |
+| `UC/Model/Setup` | 20 | 9.6 s | 13.4 s |
+| `UC/Model/Unit` | 131 | 9.4 s | 12.2 s |
+| `UC/Model/Pin` | 102 → 93 | 12.9 s | 13.8 s |
+| `UC/Model/Bridge` | 203 → 194 | 12.6 s | 13.6 s |
+| `UC/Model/Enrichment` | 64 | 13.6 s | 12.3 s |
+| `UC/Model/Family` | 45 → 31 | 14.5 s | 13.7 s |
+
+Every module is at the ~9–14 s startup floor and none is within 4× of its
+budget (65–111 s); the batch sums are 93.5 s before and 105.8 s after over the
+same eight modules, inside the ±4 s per-module spread that base itself showed
+(9.2 s first in batch, 14.5 s last).  Net −52 LOC across the ten files.
+
+Judgment calls for you:
+
+- `UC/Model/Environment.agda` is now 27 lines whose content is one
+  parameterized `open import … public`.  Rule 19 would say delete it and open
+  `UC.Environment.Presheaf` at the instantiation site; I kept it, because it is
+  the module `UC/Model.agda`'s inventory, `UC/Model/Seal.agda`'s fourth
+  discipline and three `docs/` passages name, and because its header carries a
+  design decision that is about the model and not about the construction (why no
+  ancilla is in the carrier, and the contrast with `VanishingTV.ℰᵗᵛ`).  It is
+  the same shape as `UC/Model/Setup.agda`, which the branch keeps for a
+  documented reason.  If you would rather it go, the instantiation belongs next
+  to `observationᵒ` in `UC/Model/Observation.agda` and the four importers are
+  `Model/{Setup,Unit,Pin}` and `UC/Model.agda`.
+- The re-export in `UC/Model/Environment.agda` carries a `using` list, against
+  rule 11's default, because `Test`/`Closure`/`obs` are `UC.Model.Observation`'s
+  own names at this instance: re-exporting them would make them ambiguous for a
+  consumer that opens both (`Model/Unit` does).  The excluded names are
+  definitionally the same ones, so nothing is lost.
+- `UC/Model/Family.agda` still has **zero importers and is in no aggregator** —
+  `UC/Model.agda`'s import list does not name it, so neither
+  `CategoricalCrypto.agda` nor `UC.agda` checks it and it can rot silently.  I
+  checked it directly (green) but did not add it to `UC/Model.agda`, because
+  that pulls `UC.Family.Monoidal` — an excluded file — into the root build.
+  One line in each of the inventory and the import list closes it if you want
+  the asymptotic cone guarded by the root check.
+- `docs/protocol-rewrite.md:1204-1205` gives per-module LOC and warm seconds for
+  `UC.Model.Environment` (64, 8.7 s) and `UC.Model.Setup`; those two rows and
+  the `UC.Environment` row at line 1440's discussion are now stale in the LOC
+  column.  The table is a whole-branch measurement pass, so I left it rather
+  than hand-editing two rows out of a coherent set.
+
 ## Tried, not worth it
 
 - `src/CategoricalCrypto/UC/Machine.agda :: GradingLawsᴹ` — **retired by the code.**

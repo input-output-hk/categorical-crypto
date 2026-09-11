@@ -33,14 +33,11 @@
 open import Categories.Functor.Monoidal.CurriedTensor.Properties using (T₁-⊗; μ-α⇐)
 import Categories.Morphism.Reasoning as MR
 
-open import Data.Bool.Base using (Bool)
 open import Data.Product.Base using (_,_)
 open import Function.Bundles using (_⇔_; mk⇔)
 open import Level using (0ℓ; suc)
 
-open import ProbabilisticLogic.Dp using (Dₚ)
-
-open import CategoricalCrypto.UC.Core using (Observation; UCBase)
+open import CategoricalCrypto.UC.Core using (UCBase)
 open import CategoricalCrypto.UC.Model.Observation
 open import CategoricalCrypto.UC.Model.Reading using (_≈ᴬ_; ≈ᵁ⇒≈ᴬ; ≈ᴬ⇒≈ᵁ)
 open import CategoricalCrypto.UC.Model.Seal using (∣𝔾ᵒ∣; 𝔾ᵒ)
@@ -61,14 +58,8 @@ private variable A B C X Y : Channel
 
 -- The core asks for strictly less than `UCSetup` does: an action of grades and
 -- a closed run.  Both are already here — the action is the one a monoidal
--- category carries for free, and the run is the model's own observation.
-observationᵒ : Observation ∣𝔾ᵒ∣ 0ℓ 0ℓ
-observationᵒ = record
-  { 𝟙 = 𝟘ᵒ ; Ω = Ωᵒ ; Obs = Dₚ Bool ; ⟦_⟧ = Obs
-  ; _∼_ = _∼ᴼ_ ; ∼-isEquivalence = ∼ᴼ-isEquivalence
-  ; ⟦⟧-resp-≈ = λ e → ≈ₚ⇒∼ᴼ (obs-resp e)
-  }
-
+-- category carries for free, and the run is the model's own observation
+-- (`UC.Model.Observation.observationᵒ`).
 ucBaseᵒ : UCBase (suc 0ℓ) (suc 0ℓ) (suc 0ℓ) 0ℓ 0ℓ
 ucBaseᵒ = record
   { 𝒞 = ∣𝔾ᵒ∣ ; grading = Std.gradingᵗ 𝔾ᵒ ; observation = observationᵒ }
