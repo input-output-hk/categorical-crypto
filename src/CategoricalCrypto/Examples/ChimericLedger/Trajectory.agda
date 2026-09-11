@@ -27,7 +27,7 @@ open import Data.Bool.Base using (Bool; true; false; not; _∨_; if_then_else_; 
   renaming (_≤_ to _≤ᵇ_)
 open import Data.Bool.Properties using (T-≡; ≤-minimum)
 open import Data.Bool.Properties.Ext using (∨-mono; ∨-monoʳ)
-open import Data.List.Base using (List; [])
+open import Data.List.Base using (List)
 open import Data.Maybe.Base using (just)
 open import Data.Nat.Base using (ℕ) renaming (_≡ᵇ_ to _≡ᴺ_)
 open import Data.Nat.Properties using (≡⇒≡ᵇ)
@@ -45,6 +45,7 @@ open import ProbabilisticLogic.Distribution.RationalDist.Expectation using
 open import ProbabilisticLogic.Distribution.Uniform using (bool→ℚ)
 
 open import CategoricalCrypto.Examples.ChimericLedger
+open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
@@ -56,10 +57,14 @@ open Ledger ℓ
 
 open import CategoricalCrypto.Examples.ChimericLedger.POV ℓ ser
 
-module _ (vr : Variant) (s₀ : LState) where
+-- Nothing below reads the hash implementation: an audit query is answered from
+-- the ledger's own state (`served`) and the trajectory event ignores the second
+-- component, so the argument is the same at the random oracle and at any real
+-- hash.  `ChimericLedger.Real` spends the general case on the real side.
+module _ (hash : Protocol unitᴵ HashIf) (vr : Variant) (s₀ : LState) where
 
   private
-    P = Sys vr s₀
+    P = Sysᴴ hash vr s₀
 
     Bad : St P → Bool
     Bad = badTotal s₀
@@ -133,14 +138,16 @@ module _ (vr : Variant) (s₀ : LState) where
 
   -- The genesis state is not itself a violation, so the run starts clear.
   private
-    init-good : Bad (s₀ , []) ≡ false
+    init-good : Bad (s₀ , init hash) ≡ false
     init-good = cong not (Equivalence.to T-≡ (≡⇒≡ᵇ (total s₀) (total s₀) refl))
 
-  trajectoryFromAudit : TrajectoryFromAudit vr s₀
+  -- `POV.TrajectoryFromAudit vr s₀`, at the hash implementation `hash`.
+  trajectoryFromAudit : (d : Strat Query Answer)
+                      → PrHit P Bad d ≤ℚ Pr P (watch s₀ (audited d))
   trajectoryFromAudit d =
-    subst (λ b → Pr₁⊥ (hitFrom P Bad b (s₀ , []) d)
-                 ≤ℚ Pr₁⊥ (runFrom P (s₀ , []) (watch s₀ (audited d))))
-          (sym init-good) (core (s₀ , []) d)
+    subst (λ b → Pr₁⊥ (hitFrom P Bad b (s₀ , init hash) d)
+                 ≤ℚ Pr₁⊥ (runFrom P (s₀ , init hash) (watch s₀ (audited d))))
+          (sym init-good) (core (s₀ , init hash) d)
 
   ------------------------------------------------------------------------
   -- The designated monitor
@@ -234,23 +241,29 @@ module _ (vr : Variant) (s₀ : LState) where
   monitor-sound : (d : Strat Query Answer)
                 → Pr P (monitor s₀ d) ≤ℚ PrHit P Bad d
   monitor-sound d =
-    subst (λ b → Pr₁⊥ (runFrom P (s₀ , []) (monitor s₀ d))
-                 ≤ℚ Pr₁⊥ (hitFrom P Bad b (s₀ , []) d))
-          (sym init-good) (sound b≤b (s₀ , []) d)
+    subst (λ b → Pr₁⊥ (runFrom P (s₀ , init hash) (monitor s₀ d))
+                 ≤ℚ Pr₁⊥ (hitFrom P Bad b (s₀ , init hash) d))
+          (sym init-good) (sound b≤b (s₀ , init hash) d)
 
   monitor-complete : (d : Strat Query Answer)
                    → PrHit P Bad d ≤ℚ Pr P (monitor s₀ (audited d))
   monitor-complete d =
-    subst (λ b → Pr₁⊥ (hitFrom P Bad b (s₀ , []) d)
-                 ≤ℚ Pr₁⊥ (runFrom P (s₀ , []) (monitor s₀ (audited d))))
-          (sym init-good) (complete b≤b (s₀ , []) d)
+    subst (λ b → Pr₁⊥ (hitFrom P Bad b (s₀ , init hash) d)
+                 ≤ℚ Pr₁⊥ (runFrom P (s₀ , init hash) (monitor s₀ (audited d))))
+          (sym init-good) (complete b≤b (s₀ , init hash) d)
+
+------------------------------------------------------------------------
+-- …at the random oracle, where the ideal bound lives
+
+module _ (vr : Variant) (s₀ : LState) where
 
   -- The trajectory bound BECOMES the designated monitor's bound, which is what
   -- `ChimericLedger.Audit` hands to the UC layer's audit event, and comes back
   -- through `pov-via-monitor` at the audit-interleaved strategy's budget.
   monitor-bounded : {ε : ℕ → ℚ} → POV vr s₀ ε → POVmonitor vr s₀ ε
-  monitor-bounded pov q d a = ≤-trans (monitor-sound d) (pov q d a)
+  monitor-bounded pov q d a = ≤-trans (monitor-sound oracle vr s₀ d) (pov q d a)
 
   pov-via-monitor : {ε : ℕ → ℚ} → POVmonitor vr s₀ ε → (qa : ℕ) (d : Strat Query Answer)
-                  → asks≤ qa (audited d) → PrHit P Bad d ≤ℚ ε qa
-  pov-via-monitor pm qa d aa = ≤-trans (monitor-complete d) (pm qa (audited d) aa)
+                  → asks≤ qa (audited d) → PrHit (Sys vr s₀) (badTotal s₀) d ≤ℚ ε qa
+  pov-via-monitor pm qa d aa =
+    ≤-trans (monitor-complete oracle vr s₀ d) (pm qa (audited d) aa)

@@ -107,7 +107,7 @@ module _ (a V : ℕ) where
   auditedᴸ-asks n q = L.asks≤-audited n q
 
   idealTotal : (n : ℕ) → TotalRun (LedgerIf^ω n) (morphism (Ideal n))
-  idealTotal n = Tt.totalRun-Sys n inputConsuming (gen n)
+  idealTotal n = Tt.totalRun-Sys n (L.oracle n) (Tt.nodead-oracle n) inputConsuming (gen n)
 
   -- The proved birthday theorem, read at the schedule and at the designated
   -- monitor: the ideal side of the end-to-end statement, with no UC in it.
@@ -124,4 +124,4 @@ module _ (a V : ℕ) where
                       → PrHit (R n) (bad n) d ℚ.≤ Pr (R n) (monitorᴸ n (auditedᴸ n d))
 
   ideal-truthful : TruthfulAudit Ideal badᴸ
-  ideal-truthful n = T.monitor-complete n inputConsuming (gen n)
+  ideal-truthful n = T.monitor-complete n (L.oracle n) inputConsuming (gen n)

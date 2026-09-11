@@ -88,15 +88,22 @@ ledger vr s₀ = record { St = LState ; init = s₀ ; step = go }
       (mapCall (λ sb → proj₁ sb , ok (proj₂ sb)) (applyTx vr s tx)))
     go s audit       = ret (s , totalIs (total s))
 
+-- The ledger over an ARBITRARY hash implementation: the shape of the real side
+-- of a UC statement whose ideal side is `Sys` — the same ledger code, with the
+-- random oracle in place of the implementation.
+Sysᴴ : Protocol unitᴵ HashIf → Variant → LState → Protocol unitᴵ LedgerIf
+Sysᴴ hash vr s₀ = ledger vr s₀ ∘ᵖ hash
+
 Sys : Variant → LState → Protocol unitᴵ LedgerIf
-Sys vr s₀ = ledger vr s₀ ∘ᵖ oracle
+Sys = Sysᴴ oracle
 
 ------------------------------------------------------------------------
 -- The statement
 ------------------------------------------------------------------------
 
--- The system's state is the two components'; the ledger's is the first.
-badTotal : LState → LState × RO.Table → Bool
+-- The system's state is the two components'; the ledger's is the first, and
+-- the hash implementation's — whatever it holds — is not read at all.
+badTotal : {S : Set} → LState → LState × S → Bool
 badTotal s₀ st = not (total (proj₁ st) ≡ᴺ total s₀)
 
 POV : Variant → LState → (ℕ → ℚ) → Set

@@ -43,7 +43,8 @@ module CategoricalCrypto.Examples.ChimericLedger.Carry
 open Ledger ℓ
 open POV ℓ ser
 
-open import CategoricalCrypto.Examples.ChimericLedger.Total ℓ ser using (totalRun-Sys)
+open import CategoricalCrypto.Examples.ChimericLedger.Total ℓ ser
+  using (nodead-oracle; totalRun-Sys)
 
 -- Exact agreement of the two variants' machine images: no embedded strategy
 -- separates them.  Strictly stronger than an emulation, and refutable at the
@@ -72,7 +73,8 @@ Emulᵁᶜ v₁ v₂ s₀ = ιᴳ LedgerIf ∘ procᵒ (morphism (Sys v₁ s₀)
                ≤UC ιᴳ LedgerIf ∘ procᵒ (morphism (Sys v₂ s₀))
 
 emulᵁᶜ : (v₁ v₂ : Variant) (s₀ : LState) → Emulᵁᶜ v₁ v₂ s₀ → Emulᴸ v₁ v₂ s₀
-emulᵁᶜ v₁ v₂ s₀ = unitGrade LedgerIf _ _ (totalRun-Sys v₁ s₀) (totalRun-Sys v₂ s₀)
+emulᵁᶜ v₁ v₂ s₀ = unitGrade LedgerIf _ _ (totalRun-Sys oracle nodead-oracle v₁ s₀)
+                                         (totalRun-Sys oracle nodead-oracle v₂ s₀)
 
 pov-carryᵁᶜ : (v₁ v₂ : Variant) (s₀ : LState) → Emulᵁᶜ v₁ v₂ s₀
             → {ε : ℕ → ℚ} (δ : ℚ) → 0ℚ ℚ.< δ

@@ -18,6 +18,8 @@ open import Data.Product.Base using (_,_)
 open import Data.Unit.Base using (tt)
 
 open import CategoricalCrypto.Examples.ChimericLedger
+open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Live
   using (NoDeadStep; live; nodead-fromCall; nodead-uniformVec; nodead-∘ᵖ)
 open import CategoricalCrypto.Protocol.Machine using (morphism)
@@ -39,9 +41,14 @@ nodead-ledger : (vr : Variant) (s₀ : LState) → NoDeadStep (ledger vr s₀)
 nodead-ledger _ _ _ (submit _) = nodead-fromCall _
 nodead-ledger _ _ _ audit      = tt
 
-nodead-Sys : (vr : Variant) (s₀ : LState) → NoDeadStep (Sys vr s₀)
-nodead-Sys vr s₀ = nodead-∘ᵖ (ledger vr s₀) oracle nodead-oracle (nodead-ledger vr s₀)
+-- The ledger writes no `dead` whatever it is hashing with, so its liveness is
+-- the hash implementation's: `Sys`'s own is the random-oracle instance, and a
+-- real hash's is the same statement about its own step trees.
+nodead-Sys : (hash : Protocol unitᴵ HashIf) → NoDeadStep hash → (vr : Variant) (s₀ : LState)
+           → NoDeadStep (Sysᴴ hash vr s₀)
+nodead-Sys hash nd vr s₀ = nodead-∘ᵖ (ledger vr s₀) hash nd (nodead-ledger vr s₀)
 
-totalRun-Sys : (vr : Variant) (s₀ : LState) → TotalRun LedgerIf (morphism (Sys vr s₀))
-totalRun-Sys vr s₀ =
-  totalRun-morphism LedgerIf (Sys vr s₀) (live (Sys vr s₀) (nodead-Sys vr s₀))
+totalRun-Sys : (hash : Protocol unitᴵ HashIf) → NoDeadStep hash → (vr : Variant) (s₀ : LState)
+             → TotalRun LedgerIf (morphism (Sysᴴ hash vr s₀))
+totalRun-Sys hash nd vr s₀ = totalRun-morphism LedgerIf (Sysᴴ hash vr s₀)
+                               (live (Sysᴴ hash vr s₀) (nodead-Sys hash nd vr s₀))
