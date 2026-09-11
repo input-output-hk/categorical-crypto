@@ -78,7 +78,10 @@ Watch B = (n : ℕ) → Strat (Neg (B n)) (Pos (B n))
         → Strat (Neg (B n)) (Pos (B n))
 
 -- A watch that buys no queries: it plays inside the budget it is handed.  The
--- invariance below needs this and nothing else about the watch.
+-- invariance below needs this and nothing else about the watch — that a watch
+-- reports a TRUTHFUL audit event rather than an arbitrary verdict is the audit
+-- side's obligation (review §1), and a corrected audit premise would arrive
+-- here as the `bad` a `SaturatedBounded` is stated at.
 QueryPreserving : Watch B → Set
 QueryPreserving {B} bad = (n q : ℕ) (d : Strat (Neg (B n)) (Pos (B n)))
                         → asks≤ q d → asks≤ q (bad n d)
