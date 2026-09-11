@@ -22,6 +22,16 @@
 -- objects IS a `UC.Machine.Proc` and its equality IS the machine layer's
 -- simulation closure; that is what `unprocᵒ`/`≈ᵒ⇒≈ᴹ` say, and it is what lets
 -- the observation reuse the existing closed run verbatim.
+--
+-- `ifaceᵒ` is also ONTO, and that is the second half of the same fact:
+-- `UC.Machine.retᴵ` inverts `⟦_⟧ᴵ` definitionally, so `objᵒ` below is a section
+-- and a hom at an ARBITRARY object of the seal is a `Proc` too.  An
+-- ℰ-agreement's ancilla quantifier ranges over every object, where the machine
+-- layer's statements are written at `Iface` — the asymmetry `UC.Seam.Grounding`'s
+-- header records — and `untestᵒ`/`unclosᵒ` are what removes it.  A coercion is
+-- exported per SHAPE rather than generically because the type of a definition
+-- in an `opaque` block is checked with the seal still closed (only its body
+-- sees through), so the interface side of each type has to be spelled out.
 
 open import Categories.Category using (Category; _[_≈_])
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
@@ -32,7 +42,7 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base using (𝒢ₚ; 𝒢ₚᴹ)
 open import CategoricalCrypto.Protocol.Machine using (⟦_⟧ᴵ)
-open import CategoricalCrypto.UC.Machine using (Proc)
+open import CategoricalCrypto.UC.Machine using (Proc; retᴵ)
 
 module CategoricalCrypto.UC.Model.Seal where
 
@@ -63,6 +73,14 @@ opaque
   ifaceᵒ : Iface → G.Obj
   ifaceᵒ A = ⟦ A ⟧ᴵ
 
+  -- …and its section: `Iface` and the bundle's objects are both eta records,
+  -- so `retᴵ` is a definitional inverse (`UC.Machine`'s header).
+  objᵒ : G.Obj → Iface
+  objᵒ X = retᴵ X
+
+  ifaceᵒ-onto : (X : G.Obj) → ifaceᵒ (objᵒ X) ≡ X
+  ifaceᵒ-onto _ = refl
+
   procᵒ : {A B : Iface} → Proc A B → ifaceᵒ A G.⇒ ifaceᵒ B
   procᵒ f = f
 
@@ -86,6 +104,20 @@ opaque
   -- the seal hides that tensor, so this is not derivable outside.
   gradedᵒ : {A X B : Iface} → Proc A (X ⊗ᴵ B) → ifaceᵒ A G.⇒ ifaceᵒ X G.⊗₀ ifaceᵒ B
   gradedᵒ f = f
+
+  -- The two halves of an ancilla context, at an ARBITRARY ancilla: a test on
+  -- the ancilla beside a graded interface, and a closure of the ancilla beside
+  -- the hole's domain.  The ancilla is the quantifier that has to be general;
+  -- the grade and the interfaces come from the statement being read, which is
+  -- written at `Iface`.
+  untestᵒ : {P A B : Iface} (X : G.Obj)
+          → X G.⊗₀ (ifaceᵒ P G.⊗₀ ifaceᵒ A) G.⇒ ifaceᵒ B
+          → Proc (objᵒ X ⊗ᴵ (P ⊗ᴵ A)) B
+  untestᵒ _ E = E
+
+  unclosᵒ : {A B : Iface} (X : G.Obj)
+          → ifaceᵒ A G.⇒ X G.⊗₀ ifaceᵒ B → Proc A (objᵒ X ⊗ᴵ B)
+  unclosᵒ _ m = m
 
   -- `procᵒ` is functorial on the nose, and the seal hides that too.  This is
   -- what lets the model's closed run read a COMPOSITE of the seal as the
