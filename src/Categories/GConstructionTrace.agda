@@ -24,6 +24,8 @@ module Categories.GConstructionTrace
 
 
 import Categories.Category.Monoidal.Braided.Properties as BProps
+import Categories.Category.Monoidal.Interchange.Braided as IB
+import Categories.Category.Monoidal.Interchange.Symmetric as IS
 import Categories.Category.Monoidal.Utilities as U
 import Categories.GConstructionIdentityCoherence as GCohId
 import Categories.GConstructionTraceCoherence as TCoh
@@ -59,11 +61,40 @@ open C.HomReasoning
 γ = C.α⇒ C.∘ C.σ⇒ C.⊗₁ C.id C.∘ C.α⇐ C.∘ C.id C.⊗₁ (C.σ⇒ C.⊗₁ C.id)
   C.∘ C.id C.⊗₁ C.α⇐ C.∘ C.α⇒ C.∘ C.id C.⊗₁ C.σ⇒
 
--- The middle-four interchange: an involution, and the only structural
--- morphism the G-construction's tensor of morphisms needs.
+-- The middle-four interchange, the only structural morphism the
+-- G-construction's tensor of morphisms needs.  It is upstream's
+-- `Interchange.Braided.swapInner.from`, spelled out so that the
+-- conversion checker meets the composite directly; the involution, the
+-- naturality and the braiding law below are upstream's, read at that
+-- spelling.
 mid : ∀ {P Q R S : C.Obj} →
       (P C.⊗₀ Q) C.⊗₀ (R C.⊗₀ S) C.⇒ (P C.⊗₀ R) C.⊗₀ (Q C.⊗₀ S)
 mid = C.α⇐ C.∘ C.id C.⊗₁ (C.α⇒ C.∘ C.σ⇒ C.⊗₁ C.id C.∘ C.α⇐) C.∘ C.α⇒
+
+mid-involutive : ∀ {P Q R S : C.Obj} → mid {P} {Q} {R} {S} C.∘ mid C.≈ C.id
+mid-involutive = IS.swapInner-commutative C.symmetric
+
+mid-natural : ∀ {P P′ Q Q′ R R′ S S′ : C.Obj}
+                {f : P C.⇒ P′} {g : Q C.⇒ Q′} {h : R C.⇒ R′} {k : S C.⇒ S′} →
+              mid C.∘ (f C.⊗₁ g) C.⊗₁ (h C.⊗₁ k)
+              C.≈ (f C.⊗₁ h) C.⊗₁ (g C.⊗₁ k) C.∘ mid
+mid-natural = IB.swapInner-natural C.braided
+
+mid-braiding : ∀ {P Q R S : C.Obj} →
+               mid C.∘ C.σ⇒ C.⊗₁ C.σ⇒ C.∘ mid {P} {Q} {R} {S} C.≈ C.σ⇒
+mid-braiding = IB.swapInner-braiding C.braided
+
+-- `mid-braiding` with one copy of `mid` cancelled: `mid` intertwines the
+-- braiding with its own tensor square.
+mid-σ : ∀ {P Q R S : C.Obj} →
+        mid C.∘ C.σ⇒ C.⊗₁ C.σ⇒ C.≈ C.σ⇒ C.∘ mid {P} {R} {Q} {S}
+mid-σ = begin
+  mid C.∘ C.σ⇒ C.⊗₁ C.σ⇒                       ≈˘⟨ C.identityʳ ⟩
+  (mid C.∘ C.σ⇒ C.⊗₁ C.σ⇒) C.∘ C.id            ≈˘⟨ refl⟩∘⟨ mid-involutive ⟩
+  (mid C.∘ C.σ⇒ C.⊗₁ C.σ⇒) C.∘ mid C.∘ mid     ≈⟨ C.sym-assoc ⟩
+  ((mid C.∘ C.σ⇒ C.⊗₁ C.σ⇒) C.∘ mid) C.∘ mid   ≈⟨ C.assoc ⟩∘⟨refl ⟩
+  (mid C.∘ C.σ⇒ C.⊗₁ C.σ⇒ C.∘ mid) C.∘ mid     ≈⟨ mid-braiding ⟩∘⟨refl ⟩
+  C.σ⇒ C.∘ mid                                 ∎
 
 module WithTrace
   (trace-resp-≈ : ∀ {X A B} {f g : A C.⊗₀ X C.⇒ B C.⊗₀ X} →
