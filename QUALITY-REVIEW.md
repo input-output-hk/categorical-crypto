@@ -196,33 +196,6 @@ own, all still standing and not re-litigated here.
   `length (Hs tbl)` on the nose, so `Γ` is charged at the true pool size; and
   `Good.hashed`/`Stale` are both load-bearing. Recorded so the next reviewer does not
   redo it.
-- `src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda :: (header, 24-28)` —
-  **the one overclaim found in that module**, and it is in the prose, not the theorem:
-  "with `chimeric` in its place the invariant — and the bound — are false
-  (`ChimericLedger.Replay` computes the attack)". The *invariant* half is right
-  (`Stale` needs a first input, which `consumes chimeric` does not demand). The *bound*
-  half is not supported at the state this module pins: `Replay`'s counterexample runs
-  at an account-funded `s₀`, whereas at `genesis h₀ a V` the account table is empty and
-  nothing ever credits it (`applyTx` only `subOne`s accounts and only creates UTxO
-  entries), so every accepted withdrawal has `v ≡ 0`, a replayed no-input transaction
-  destroys nothing, and the only remaining loss needs a genuine collision under either
-  variant. So `POV chimeric (genesis h₀ a V) εbirthday` is not refuted by `Replay` and
-  may well hold. This is an argument, not a machine-checked refutation, which is why it
-  is here and not in a commit. Suggested repair: "…the invariant is false, and at a
-  general `s₀` so is the bound".
-- `src/CategoricalCrypto/Examples/ChimericLedger/Carry.agda :: Emulᴸ` — **the premise is
-  refutable at the pair the module is named after.** `Emulᴸ v₁ v₂ s₀` unfolds to
-  `Agreeˢ`, i.e. *exact* agreement at every positive slack, not an emulation at some
-  advantage. For the two variants the example exists to compare it is false: at
-  `Replay.s₀`, `watch s₀ (audited Replay.replay)` returns `true` with probability 1
-  against `chimeric` and `false` with probability 1 against `inputConsuming`, and
-  `Pin.chimeric-violates`/`consuming-safe` pin the underlying trajectory event. So the
-  comment "What an emulation of one variant by the other has to show at the machine
-  layer" oversells: the conclusion is reachable only at states where the two variants
-  coincide. Note also that `δ` is wholly slack — from exact agreement one expects `ε`,
-  not `ε + δ` — inherited from `Agreeˢ`'s formulation rather than needed by the ledger.
-  Say what the module is (a plumbing demo: the seam's `agreeToAdv` at two concrete
-  systems) and that the premise is not available for the interesting pair.
 - `src/CategoricalCrypto/UC/Seam/Grounding.agda :: UnitGrade` — **the round's headline
   is proved but not reachable, and it carries a free hypothesis.** `subBlind⇒unitGrade`
   is sound and does prove what `UnitGrade` states; `SubBlind` is not assumed anywhere
@@ -238,8 +211,10 @@ own, all still standing and not re-litigated here.
   four discharges, and `UC.agda`'s inventory lists `UC.Seam`, `.Carry`, `.Grounding`
   and `.Audit` but not `.Grounded`. Nothing in `src/` composes `unitGrade` with
   `povCarry`, and `ChimericLedger/Carry.agda` takes `Agreeˢ` as a raw hypothesis rather
-  than getting it from a `_≤UC_`. One ~5-line corollary in `Carry` or `Grounded` plus a
-  `UC.agda` map row closes the seam.
+  than getting it from a `_≤UC_`. **Half done in the claims/deletions/wiring batch:**
+  `UC.agda` now carries the `.Grounded` map row and re-exports the module, so it has
+  an importer; the ~5-line corollary in `Carry` or `Grounded` is still owed, as is
+  point (i).
 - `src/CategoricalCrypto/Machines/Sim/Lax.agda :: _≲ˡ[_]_` and `_≈ˡ[_]_` — **audited
   and clean; the scalar index is genuinely constrained.** `_≲ˡ[_]_` is `_≲_` minus
   `θ-discard`, with `θˡ-point : θˡ ∘ point (state f) ≈ point (state g) ∘ σ`, which pins
@@ -262,31 +237,6 @@ own, all still standing and not re-litigated here.
   `opaque composeᴳ` boundary exists for — but the header never says so, and a reader
   meeting `compose≈∘ᴳ : … S.≈ᴹ …` will read it as content. One line settles it.
 
-- `src/CategoricalCrypto/Examples/MerkleDamgard.agda :: indistinguishable` — **what is
-  proved is single-oracle indistinguishability with the compression function hidden,
-  not indifferentiability.** The distinguisher's type is
-  `Strat (Neg Generalᴵ) (Pos Generalᴵ)`: it has no compression-oracle interface
-  (`Sys = md ∘ᵖ comp : Protocol unitᴵ Generalᴵ` closes `comp` off), and there is no
-  simulator anywhere in either module — which is exactly why `ideal-marginal` can be an
-  *exact* equality. That is a genuinely weaker claim than "MD is a random oracle". The
-  module headers are honest about it (`Core.agda:171-172` says "compression hidden … No
-  simulator"), but the title "MERKLE–DAMGÅRD as a protocol, and its concrete-security
-  theorem" plus the `(Theorem 3.1)` citation at `Core.agda:125` invite the stronger
-  reading. Nobody in this review read the cited paper, so this is "check the citation
-  against the formalized statement", not "the citation is wrong" — but the statement
-  should say "with `f` hidden" wherever the theorem is named. No trivializing hypothesis
-  was found otherwise: `asks≤` is a real per-branch ask-depth bound, `_≈adv[_]_`
-  quantifies over all `b`, `q`, `d`, and at `q = 0` it demands advantage `≤ 0`, which is
-  tight. Two structural facts worth recording: the potential is an *exact* martingale,
-  so `φ-init`'s slack to `bound q` is the only looseness; and `φ-step`/`φ-nn` are proved
-  **without** using `Inv` (`md-cert` discards the hypothesis), so the ~700-LOC invariant
-  development exists to discharge `φ-bad` alone.
-- `src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda :: bound` — `bound 2 ≡ 3/1` is
-  pinned, i.e. the bound exceeds 1 and `indistinguishable` is **vacuous** at
-  `n = 1, k = 2`, while the adjacent comment reads "The gap the chaining costs, and the
-  bound that pays for it". Say the bound is vacuous at these parameters and the pin
-  exercises the arithmetic only, or move `bound-2` beside `bound-1`, which is tight and
-  says so.
 - `src/CategoricalCrypto/UC/Emulation.agda :: blind-grade` (with `unit-grade`, and
   `src/CategoricalCrypto/UC/Model/Bridge.agda :: blind-gradeᵁ`, `unit-gradeᵁ`) —
   **four dead definitions, and the reason they are dead is a statement defect.**
@@ -302,42 +252,6 @@ own, all still standing and not re-litigated here.
   the second hypothesis is the implication whose conclusion is the theorem, so they
   carry no content past `blind-grade` — disclosed in both headers, so honest, but it
   means only one of the four is load-bearing.
-- `src/CategoricalCrypto/UC/Machine/Bridge.agda :: ContextDominated` — **narrower
-  than the name and the header claim.** The obligation is stated only at `A := unitᴵ`
-  and at the trivially graded hole (`E : Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ`), with the
-  plugged process `conjᴵ u = λᴵ⇐ 𝒫.∘ u` for a **closed** `u : Proc unitᴵ B` — never a
-  general `f g : Proc A B` at a general hole, although `ctxRun` itself is stated
-  generally. The header ("the obligation that lets the second be read as the first")
-  claims the general reading. With `dominated` unconsumed (next item) nothing pins
-  whether the closed, unit-hole case suffices. Either generalize, or say in the header
-  that this is the instance layer 1 needs and why.
-- `src/CategoricalCrypto/Protocol/Machine/Total.agda :: totalRun-morphism` — the
-  `TotalRun` node is uninstantiated. `totalRun-morphism` and `totalRun-∘` have no
-  consumer; `TotalRun` appears elsewhere only as a *transported* hypothesis
-  (`UC/Seam/Grounding.agda:172`, and `Grounded.agda:132` says outright that
-  `TotalRun v` "is not consumed here"). Nothing discharges
-  `(d : Strat …) → 1ℚ ≤ Prᵇ P true d + Prᵇ P false d` for any concrete protocol. The
-  content is genuine (the layer-1 → machine-image transfer through `prAgree`), but
-  the hypothesis is as strong as the conclusion modulo the agreement theorem, so this
-  is a *reading*, not a liveness proof, and the roadmap should price it as one owed
-  inhabitant.
-- `src/CategoricalCrypto/UC/QueryBound.agda :: BudgetLawsᴹ` — dead by supersession,
-  and its `qb-∘` field got **looser** in this delta. `budgetᴹ` (the real `Budget`
-  assembly) bypasses the record entirely; `budgetLawsᴹ` has zero consumers. Meanwhile
-  `BudgetLawsᴹ.qb-∘` changed from `QB (c * c′) (g 𝒫.∘ f)` to the raw
-  `Col.MT.traceᴹ … (Col.W.α ∘ᴹ ((g ⊗ᵉ f) ∘ᴹ Col.W.γ))` spelling, so the record no
-  longer states the `Budget.qb-∘` field it exists to feed — while `Laws.qb-∘-category`
-  next door *does* prove the packed form. Either restate at `g 𝒫.∘ f` (now provable)
-  or delete the pair; deleting also retires `qb-T₁ᴹ`/`qb-subᴹ` and the
-  `Machines.Collapse` import from the module whose header says it is at its
-  typechecking budget.
-- `src/CategoricalCrypto/UC/Model/Unit.agda :: AnyEnvironment` — the header claims the
-  metatheory is "BLIND to the closure object … the closures that `ℰᵒ` happens to
-  quantify over never enter a statement". What the five re-typings establish is that
-  the *metatheorems* are ℰ-generic; the closures plainly do enter a statement at
-  `ℰ = ℰᵒ` (`_≋_`, hence `_≈ℰ_`, quantifies over them). Narrow to "the five
-  metatheorems are ℰ-generic, so the choice of closure object never enters their
-  proofs".
 - `src/CategoricalCrypto/UC/Approximate.agda :: Approximation` — *(excluded file,
   reported only)* the same class as round 1's `Grading` entry, at a different record.
   No field forces `_≈[_]_` to separate anything: `_≈[_]_ = λ _ _ _ → ⊤` discharges all
@@ -345,15 +259,6 @@ own, all still standing and not re-litigated here.
   `_≈ℰ_`/`_≤UC_` over it holds. Relatedly `ApproximateObservation.induces` is trivial
   at every existing instance (`Induced.approximate` sets `induces = λ h → h`), so the
   field the header calls "the field connecting the two" has never carried content.
-- `src/CategoricalCrypto/Machine/Probabilistic/Model.agda :: MachineModel.hom-triv` —
-  *(inherited; flagged, not a branch regression)* this module is `--safe` with **K
-  enabled**, while `MachineAxioms` is `--safe --without-K` and deliberately keeps
-  `HomTransportTrivial` out of its record with the note "Implied by `UIP Obj`". Under
-  K, `Axiom.UniquenessOfIdentityProofs.WithK.uip` gives `p ≡ refl`, so `hom-triv` is
-  provable here — the record demands of every instance something that is free in this
-  file, and the header's justification ("Plausible precisely because `_≈ₚ_` is
-  observational") is the wrong reason. Also: this is the **second** in-scope module
-  without `--without-K`; round 1's ledger named only `Channel/Category.agda`.
 - `src/CategoricalCrypto/Protocol/Safety.agda :: hit-bounded` — audited in full and
   **clean** (the supermartingale reading is sharp; the cheap certificate `Inv = λ _ → ⊤`,
   `φ = λ _ _ → 1ℚ` discharges all eight fields but forces the vacuous `1ℚ ≤ ε m`).
@@ -376,21 +281,6 @@ own, all still standing and not re-litigated here.
 
 ### Public API / module layout
 
-- `src/CategoricalCrypto/UC/Machine/Dominated.agda :: dominated` — **the round's
-  headline theorem is unreachable from the layer's entry point.** `ContextDominated`
-  greps to seven hits, all inside `Bridge.agda`/`Dominated.agda` plus one header line
-  in `UC.agda:67`; `UC.Machine.Dominated` has no importer at all. `UC.agda` re-exports
-  `UC.Machine.Bridge` and `.Grading` `public` but not `.Dominated`, and its module map
-  never mentions it — so from the designed entry point the obligation still reads as
-  owed when it is discharged. One `open import … public` beside line 94 and one map
-  line.
-- `src/CategoricalCrypto/UC.agda` + `src/CategoricalCrypto/UC/Model.agda` — the layer
-  has **two roots and neither is imported**, and `UC.agda`'s three-tier inventory
-  (lines 12-77) never mentions the `UC.Model.*` cone — this round's main deliverable —
-  except one parenthetical. `UC.Model` re-exports nothing (nine bare imports: a
-  build-closure target, so rule 19 does not bite). Add a `model` row for `UC.Model`,
-  and either fold its import list into `UC.agda` or say there that `UC.Model` is the
-  second root and why (the `open StdUC` seal discipline).
 - `src/CategoricalCrypto/UC/Family/Monoidal.agda :: ucSetup^ω` — *(excluded file,
   reported only)* **the whole asymptotic cone is uninstantiated and is one lemma from
   not being.** `UC.Family.Monoidal` has zero importers; `UC.Family`'s only importer is
@@ -440,13 +330,9 @@ own, all still standing and not re-litigated here.
   itself on these records' conversion behaviour, and a nested record changes the
   eta-expansion shape. If you decline, `Sim/Lax`'s header already states the identity
   in prose and nothing further is owed.
-- `src/CategoricalCrypto/Machines/G.agda :: Mealy-G` (with `Mealy-G-Monoidal`) — a dead
-  pair: `Mealy-G-Monoidal` greps to 2 (signature + definition) and `Mealy-G` to 3, the
-  third being inside `Mealy-G-Monoidal`'s own type. Every consumer goes through
-  `Mealy-Gᴹ` (6 refs, live in `Machines/Base` and `Machines/G/Lax`). Deleting the pair
-  also strands `Categories.Category.Core` and
-  `Categories.Category.Monoidal.Core using (Monoidal)`. Same shape:
-  `Machines/Base.agda :: 𝒢ₚ-Monoidal` (2 refs, zero uses) where its sibling `𝒢ₚ` has
+- `src/CategoricalCrypto/Machines/Base.agda :: 𝒢ₚ-Monoidal` — the residue of the
+  `Mealy-G` entry, whose named pair the claims/deletions/wiring batch deleted.
+  `𝒢ₚ-Monoidal` has 2 refs and zero uses, where its sibling `𝒢ₚ` has
   89 — `Base.agda:279-282`'s comment justifies keeping the pair as two projections of
   one application, but only one projection was ever needed. And
   `Machines/Frame.agda :: αρ-λ` and `onRᵍ-⊗id` have zero consumers in the live tree
@@ -532,13 +418,6 @@ own, all still standing and not re-litigated here.
   `Slide`) could each `open import Data.Sum.Ext using (…)` in one line, as
   `Machines.Collapse.agda:35` already does. This is the shape round 1 asked for as "a
   scope fix"; whether it stays public API is yours.
-- `src/ProbabilisticLogic/Dp/Zero.agda` — the whole 69-LOC module has **zero
-  importers**, and every name is used only inside it. Its header's premise is not
-  exercised: the actual consumer of the zero-mass end, `UC/Seam/Grounding/Dead.agda`,
-  goes through `Dp.Mass`'s `≼ᵐbot⇒0`/`massless-≈ₚ[0]`, and `Dp/Mass.agda:217-219`
-  already prices the trade. Rule 32 leans keep-for-downstream; against that, it is a
-  build node whose header claims a role another module took. Delete, or add one header
-  line saying it is unwired groundwork.
 - `src/CategoricalCrypto/Protocol/Safety.agda :: kernel` — a spurious parameter and a
   three-way duplication. `kernel s q = evalC (step P s q)` sits inside
   `module _ {B} (P) (Bad : St P → Bool)` but does not depend on `Bad`, so the dead
@@ -547,19 +426,17 @@ own, all still standing and not re-litigated here.
   `Trajectory.agda:80` plus `Observe.runFrom`/`hitFrom` open-code it. One `kernel` in
   `Protocol.Observe`'s `module _ (P)` block next to `evalC`/`runFrom` retires all of
   them. The narrow version — just lift it out of the `Bad` binder — is nearly free.
-- `src/ProbabilisticLogic/Dp/Dominate.agda :: dom₀-refl` (with `dom₀-trans`,
-  `dom₀⇒dom`, `dom⇒dom₀`, `dom-mono`, `domˡ`, `domʳ`) — seven public names, ~30 LOC,
-  the whole relation algebra of `Dom`/`Dom₀`, with no consumer anywhere. The names
-  that *are* used downstream are `Dom₀`, `Dom`, `Dom≤`, `≈⇒dom₀`, `cum-shift`,
-  `bind-const-zero`, `dom-bind`, `dom≤-bind`, `dom₀-bind`. Same shape, smaller:
-  `Dp/Mass.agda :: mass-mono`, `total-mass`; `Interaction.agda :: run⊥-embed` and
-  `run⊥-embed-gen` (an orphan tail left by this round's generalization — the live root
-  is `runWith⊥-emb`); `Protocol/Observe.agda :: AllLeaves-uniformVec` (its `serve`-side
-  twin *is* consumed); `UC/Machine.agda :: ApproximateObservationᴹ`;
+- `src/ProbabilisticLogic/Dp/Mass.agda :: mass-mono` (with `total-mass`) — the
+  residue of the zero-consumer entry, after the claims/deletions/wiring batch removed
+  the seven `Dominate` relation-algebra names, `Interaction.agda :: run⊥-embed`/
+  `run⊥-embed-gen`, `Protocol/Observe.agda :: AllLeaves-uniformVec`,
+  `UC/Machine.agda :: ApproximateObservationᴹ` and `UC/Machine/Wire.agda :: map-eq`.
+  Still zero-consumer and still your call:
+  `Dp/Mass.agda :: mass-mono`, `total-mass`;
   `UC/Model/Seal.agda :: ≈ᴹ⇒≈ᵒ` and `⊗ᵒ` (and the header clause at line 17 that
   justifies exporting `⊗ᵒ` "because it is not derivable outside" — nothing consumes
   it); `UC/Model/Bridge.agda :: ≈ℰᶜ⇔≈ᵁ`, `≈ℰᶜ⇒≈ℰ`, `≈ᴳ-refl`, `≈ᴳ-sym`, `≈ᴳ-congʳ`,
-  `≈ᴳ⇒≈ᵁ`; `UC/Environment.agda :: ≈ℰ-at`; `UC/Machine/Wire.agda :: map-eq`;
+  `≈ᴳ⇒≈ᵁ`; `UC/Environment.agda :: ≈ℰ-at`;
   `UC/QueryBound/Object.agda :: Certifiedᴳ`, `certified⇒QBᴳ`;
   `ProbabilisticLogic/Prelude.agda :: >>=ᴹ-congʳ` (added to the re-export list this
   round with no consumer, where its sibling `>>=ᴹ-congˡ` is genuinely reached through
@@ -1251,6 +1128,110 @@ own, all still standing and not re-litigated here.
   `BudgetLawsᴹ` is the ceiling of the composition line, which `budgetᴹ` bypassed; and
   `docs/stduc-supersession-plan.md` describes a migration this round performed, so it
   is likely a spent work plan.
+
+## Resolved (this batch)
+
+Branch `claims-deletions-wiring` off `protocol-rewrite`'s tip (`5ccb9033`), three
+commits: comment/claim corrections, maintainer-approved deletions, index wiring.
+No statement was restated anywhere; the deletions remove statements wholesale,
+which is the approved exception.
+
+Claims and comments (comment text only):
+
+- `Examples/ChimericLedger/Birthday.agda :: (header, 24-28)` — the overclaim is
+  repaired as suggested: the invariant half stands, the bound half only at a
+  general account-funded `s₀`; at `genesis` the header now says why
+  `POV chimeric` may hold.
+- `Examples/ChimericLedger/Carry.agda :: Emulᴸ` — the module now says what it is
+  (a plumbing demo of `agreeToAdv` at two concrete systems), that `Emulᴸ` is
+  exact agreement and refutable at the chimeric/inputConsuming pair at
+  `Replay.s₀`, and that `δ` is inherited slack.
+- `Examples/MerkleDamgard.agda :: indistinguishable` (with `Core.agda`'s
+  Theorem 3.1 line and its "is a variable-length RO" banner) — the title and the
+  theorem's comment now say single-oracle indistinguishability with the
+  compression function hidden and no simulator, weaker than indifferentiability.
+  The citation stays, with the formalized statement's scope next to it.
+- `UC/Machine/Bridge.agda :: ContextDominated` — the header states the instance
+  (`A := unitᴵ`, trivially graded hole, closed `u`), why it is the one layer 1
+  supplies, and that the general reading is not settled.
+- `Protocol/Machine/Total.agda :: totalRun-morphism` — one sentence: a reading
+  modulo the agreement theorem, its liveness premise genuine input.
+- `UC/Model/Unit.agda :: AnyEnvironment` — narrowed to "the five metatheorems are
+  ℰ-generic, so the choice of closure object never enters their proofs", with the
+  `_≋_` caveat kept.
+- `Examples/MerkleDamgard/Pin.agda :: bound` — `bound-2` is marked vacuous
+  (`bound 2 ≡ 3 > 1`, arithmetic only) at the pin and in the header;
+  `bound-1` is named as the tight one.
+- `Machine/Probabilistic/Model.agda :: MachineModel.hom-triv` — one line: under
+  this file's K-enabled options `uip` gives `p ≡ refl`, so instances pay for
+  something free. Record left as is.
+- The two "factually wrong" comments the round-2 sweep was asked to re-check
+  (`UC/Machine.agda`'s `qbᵢ-wire`/reassociator clause, `QueryBound.agda`'s
+  `Budgetᴹ` pointer) were already fixed in `38495a94`; nothing survived.
+
+Deletions (each re-grepped against `src/ spikes/` immediately before removal —
+every one still had zero consumers):
+
+- `src/ProbabilisticLogic/Dp/Zero.agda` — whole module, plus the two `Dp.Mass`
+  header sentences that pointed at it.
+- `UC/QueryBound.agda :: BudgetLawsᴹ` and `UC/QueryBound/Compose/Laws.agda ::
+  budgetLawsᴹ` — a one-line pointer to `UC.Machine.Budget.budgetᴹ` stands where
+  the record was. `qb-∘`/`qb-∘-category`/`qb-∘ᴳ` stay (`budgetᴹ` consumes the
+  last). This also frees `QueryBound.agda`'s `Machines.Collapse` import, its last
+  use having been the record's `qb-∘` field. `qb-T₁ᴹ`/`qb-subᴹ` were NOT deleted:
+  they are general public theorems, and rule 32 leans keep now that only the
+  record made them look like plumbing.
+- `Machines/G.agda :: Mealy-G`, `Mealy-G-Monoidal` — with the stranded
+  `Categories.Category.Core` and `…Monoidal.Core using (Monoidal)` imports. The
+  file keeps `Mealy-Traced`/`Mealy-Gᴹ`; its "one application, then projections"
+  comment is corrected.
+- `Dp/Dominate.agda` — the seven zero-consumer relation-algebra names
+  (`dom₀-refl`, `dom₀-trans`, `dom₀⇒dom`, `dom⇒dom₀`, `dom-mono`, `domˡ`, `domʳ`)
+  and the then-unused `private variable h` (and `δ`, unused with them gone).
+- `UC/Machine.agda :: ApproximateObservationᴹ` (with the now-dead
+  `ApproximateObservation` in its `using` list); `UC/Machine/Wire.agda :: map-eq`
+  (`map-fuse` goes through `ret≡`, not through it, so the sweep did not make it
+  live); `Protocol/Observe.agda :: AllLeaves-uniformVec`;
+  `Interaction.agda :: run⊥-embed` and `run⊥-embed-gen` (`runWith⊥-emb` kept —
+  `Examples.MerkleDamgard` uses it).
+
+Index wiring:
+
+- `src/CategoricalCrypto.agda` — plain imports for `Strategy`, `OutputOnly`,
+  `Protocol` and its five children (`Machine`, `.Machine.Agree`,
+  `.Machine.Compose`, `.Machine.Total`, `Observe`, `Safety`), `UC` and
+  `UC.Model`. The header says what is API (the `public` block) and what is build
+  closure, and which roots stay outside (the two protocol-layer examples and the
+  inherited abstract theories).
+- `src/CategoricalCrypto/UC.agda` — inventory rows and `public` re-exports for
+  `UC.Machine.Dominated` (the discharge of `ContextDominated`) and
+  `UC.Seam.Grounded`, both previously unreachable, plus a paragraph on
+  `UC.Model` as the second root and why its names stay behind the `open StdUC`
+  seal discipline. The stale `BudgetLawsᴹ` sentence in the `UC.QueryBound` row is
+  repointed at `UC.Machine.Budget`.
+
+Costs measured on this branch, `+RTS -M8G -H1G`, `_build` wiped for each cold
+figure, gate otherwise idle. `CategoricalCrypto`: **107 s cold over 61 modules**
+before the wiring, **510 s (8m30s) cold over 293 modules** after; warm 12 s, 0
+modules. `UC.agda` warm, own `.agdai` deleted to force re-elaboration: **9.2 s**
+before the two re-exports, **9.7 s** after. The index's multi-module cold build
+is exempt from the 150 s per-module bar, and 510 s is well inside the 20-minute
+ceiling the brief set, so no compromise wiring was needed. The six affected
+roots outside the index were checked separately, all green with an empty gate:
+`MerkleDamgard.QueryBound` 47 s, `MerkleDamgard.Pin` 7 s,
+`ChimericLedger.Carry` 10 s, `ChimericLedger.Audit` 15 s, `ChimericLedger.Pin`
+6 s, `Protocol.Machine.Pin` 9 s.
+
+One option change the wiring forced: `CategoricalCrypto.agda` gains
+`--guardedness`. It is INFECTIVE, and the `Dₚ` cone it now reaches uses it;
+`--safe` is untouched and nothing in the index module is coinductive.
+
+Not addressed, and left in *Suggestions*: the rest of the zero-consumer list
+(`Dp/Mass`, `UC/Model/Seal`, `UC/Model/Bridge`, `UC/Environment`,
+`UC/QueryBound/Object`, `ProbabilisticLogic/Prelude`), `Machines/Base ::
+𝒢ₚ-Monoidal` and `Machines/Frame`'s two, the `UnitGrade` corollary, and the
+`docs/protocol-rewrite.md` drift the `BudgetLawsᴹ` deletion adds to (lines 564,
+573, 577, 1099 still name the record).
 
 ## Tried, not worth it
 

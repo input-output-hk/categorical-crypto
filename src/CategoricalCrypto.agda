@@ -1,10 +1,23 @@
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --guardedness #-}
 
 ------------------------------------------------------------------------
--- Root of the channel/machine layer: channels, machines, and example
--- protocols.  The UC layer proper (`UC`, `UCSetup`, `StandardTV`,
--- `VanishingTV`) and the protocol-layer examples (`Examples.ChimericLedger`,
--- `Examples.MerkleDamgard`) have their own roots and are not re-exported here.
+-- Root of the library: checking this module checks the channel/machine
+-- layer, the protocol layer and the UC cone.
+--
+-- The `public` re-exports are the channel/machine layer proper, which a
+-- consumer of this module gets by name.  The rest are plain imports — build
+-- closure, not API: their names belong to their own roots.  Those are
+-- `Strategy` and `OutputOnly`; `Protocol` and below (layer 1: protocols,
+-- their machine images, the agreement and totality readings, safety and the
+-- trajectory observable); and the UC layer's two roots, `UC` and `UC.Model`,
+-- whose split `UC.agda`'s inventory explains.
+--
+-- Outside still, each with its own root: the protocol-layer examples
+-- (`Examples.ChimericLedger`, `Examples.MerkleDamgard`) and the inherited
+-- abstract theories (`UCSetup`, `Standard`, `StandardTV`, `VanishingTV`).
+--
+-- `--guardedness` is here because it is INFECTIVE and the `Dₚ` cone below uses
+-- it; nothing in this module is coinductive.
 ------------------------------------------------------------------------
 
 module CategoricalCrypto where
@@ -30,6 +43,17 @@ open import CategoricalCrypto.SFunPartial public
 open import CategoricalCrypto.SFunPossibility
 open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.GamePlaying
+open import CategoricalCrypto.OutputOnly
+open import CategoricalCrypto.Strategy
+open import CategoricalCrypto.Protocol
+open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Machine.Agree
+open import CategoricalCrypto.Protocol.Machine.Compose
+open import CategoricalCrypto.Protocol.Machine.Total
+open import CategoricalCrypto.Protocol.Observe
+open import CategoricalCrypto.Protocol.Safety
+open import CategoricalCrypto.UC
+open import CategoricalCrypto.UC.Model
 open import CategoricalCrypto.Examples.Basic
 open import CategoricalCrypto.Examples.Commitment
 open import CategoricalCrypto.Examples.Possibilistic
