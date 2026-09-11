@@ -94,9 +94,13 @@ setup — continuation item 1 below.
    the identity). The emulation premise is CONSUMED, not assumed: `uc-agree`
    spends `UC.Seam.Grounded.unitGrade`, which in turn spends `adequacy`,
    `prAgree` and `stratIsEnv` — the proved lift, never an assumed one.
-   **Remaining:** the frontend-to-family ingestion,
-   `layer-1 bound ⇒ UC.Family._≈ℰ[ ε ]_`, which would consume
-   `UC.Machine.Dominated.dominated`. See the obstruction below.
+   **The ingestion is now delivered** (`UC.Model.Family.Ingest`): a per-level
+   advantage bound `_≈advᴹ[_]_` plus `QB` witnesses ingests to
+   `_≈ℰ[ ε + δ ]_`, then `_≈ℰ_`/`_≈ℰⁿ_`/`_≤UC_` (core and inherited), consuming
+   `UC.Model.Dominated.dominatedᵒ` — `ContextDominated` reproved at seal
+   objects, on the proved `ifaceᵒ-onto` (continuation item 1). What the
+   follow-up review's §1 still asks is the labeling/quantifier work and the
+   second ledger theorem consuming a genuine family premise.
 
 3. **Robustness of the designated event — DONE at the class level.**
    `UC.Asymptotic.Audit.uc-audit-carry` carries the ideal `AuditBound` (supplied by
