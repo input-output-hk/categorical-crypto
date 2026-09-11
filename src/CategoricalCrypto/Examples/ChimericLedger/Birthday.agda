@@ -56,7 +56,7 @@ open import ProbabilisticLogic.Prelude
 open import ProbabilisticLogic.Distribution.RationalDist using
   (lookupᴰℚ-return; lookupᴰℚ-cong-P)
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation using
-  (E; E⊥; E-add; E-bind; E-const; E-mono; maybeℚ; 0≤bool)
+  (E; E⊥; E-add; E-bind; E-const; E-mono; E⊥-return; maybeℚ; 0≤bool)
 
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Iface
@@ -306,15 +306,12 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
     ----------------------------------------------------------------------
 
     private
-      E⊥-point : ∀ {A : Set} (x : A) (F : A → ℚ) → E⊥ (return⊥ x) F ≡ F x
-      E⊥-point x F = lookupᴰℚ-return (just x) (maybeℚ F)
-
       -- Every activation that does not sample keeps the table, so it pays
       -- nothing and gains a unit of budget.
       point-step : (m : ℕ) (s : LState) (tbl : RO.Table) (s′ : LState) (ans : Answer)
                  → E⊥ (return⊥ ((s′ , tbl) , ans)) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) (s , tbl)
       point-step m s tbl s′ ans = ≤-trans
-        (≤-reflexive (E⊥-point ((s′ , tbl) , ans) (λ sr → φ m (proj₁ sr))))
+        (≤-reflexive (E⊥-return ((s′ , tbl) , ans) (λ sr → φ m (proj₁ sr))))
         (+-monoʳ-≤ (bool→ℚ (flag tbl)) (Γ-mono (suc (length tbl)) m))
 
       presTree : ∀ st q → Inv st → AllLeaves (λ sr → Inv (proj₁ sr)) (step Sys₀ st q)
