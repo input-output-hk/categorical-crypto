@@ -1,225 +1,244 @@
-# Protocol rewrite implementation review
+# Protocol rewrite: remaining review work
 
-Reviewed on 2026-09-11 at `6256a140`, against the `string-diagram-solver`
-merge `f71a2381`. Scope: the actual implementation added after that merge,
-compared with `protocol-rewrite.md`, `protocol-rewrite-theory-review.md`, and
-`protocol-rewrite-abstraction-notes.md`. This is a review output, not an
-implementation plan already executed.
+Follow-up review of source at `6f48aa5d`, the proposal documents at `3d7d9305`,
+and the real-ledger corollary added in `950ec080`. This document keeps only
+remaining work and the constraints needed to implement it. The original review
+is available in commit `97063c50`.
 
-## Verdict
+## Current scope and target
 
-The branch is a largely successful foundational rewrite, but not yet a complete
-implementation of the security-property preservation vision. The main remaining
-problems are theorem statements and their integration, not proof style. Two
-interfaces need correction before further proof work: `AuditBound` does not
-identify the intended audit event, and `SaturatedRespects` is false as stated.
-The distinction between vanishing and negligible error also needs to be enforced
-at the property-preservation boundary.
+The branch proves a **unit-grade, pointwise-UC-to-negligible-POV theorem**.
+The designated ideal audit supply, allowance-dependent saturation, and direct
+negligible transfer are implemented. `ChimericLedger.Real.ledger-pov` additionally
+supplies totality and truthful auditing for the ledger over a dead-free hash
+implementation, assuming ledger-level pointwise UC emulation.
 
-Source references below are relative to `src/CategoricalCrypto/` at the reviewed
-commit; line numbers refer to that snapshot.
+The remaining target is an **asymptotic-family, nontrivial-grade,
+simulator-costed UC-to-POV theorem**. It should consume the actual ideal birthday
+bound and a genuine family UC premise, retain the required negligible error
+evidence, and conclude a real trajectory bound at each polynomial allowance.
+The present special case is valid; it does not establish that more general result.
 
-## 1. High: the audit premise bounds arbitrary verdicts
+Source paths below are relative to `src/CategoricalCrypto/`. Line references
+are at `6f48aa5d`, except references to `Real.agda`, which are at `950ec080`.
+The proposed interfaces are schematic, not existing Agda declarations.
 
-`UC/Audit.agda:78-81` defines `AuditBound f ε` by bounding the true mass of
-**every** budgeted test. There is no designated audit monitor, bad-event predicate,
-or requirement that the test truthfully report a failure. A test can report
-`true` without querying the process.
+## 1. Replace pointwise agreement with the intended family premise
 
-The proved `UC/Seam/Audit/Bounded.agda:58-107` makes the consequence explicit.
-Specialize `auditIsBounded` to `bad = λ _ → out true`. This transformation
-preserves every query bound. Instantiate the resulting `Bounded` at any `q`
-and `d = out true`: its direct probability is one. Thus, at the implemented
-trivial-grade embedding of any protocol, `AuditBound` implies `1 ≤ ε q` for
-every `q`. Even a protocol with `dead` steps has this consequence: the experiment
-executes no step, and protocol initialization is a supplied state. This claim
-does not extend indiscriminately to arbitrary machines with lossy initialization.
+**High: remaining scope/integration gap.** `UC/Asymptotic.agda:71-73` defines
+`R ≤UC^ω I` as a separate single-level inherited emulation for every `n`, not
+as the relation of `UC.Model.Family`. With totality, `uc-agree` derives direct
+agreement at every level; `uc-≈negl` can then choose any positive negligible
+slack (`UC/Asymptotic.agda:79-92`).
 
-`audit-carry` (`UC/Audit.agda:104-133`) is a valid simulator-sliding proof about
-this overly strong premise. It cannot transport a small ledger birthday/audit
-bound through that interface. The existing bridge extracts a protocol bound
-**from** `AuditBound`; it does not construct `AuditBound` from `POVaudit`.
+This excludes systems whose verdict probabilities differ by `2⁻ⁿ`: they are
+negligibly different but not arbitrarily close at every fixed `n`. The current
+theorem obtains negligible security from a stronger pointwise premise rather
+than from asymptotic UC.
 
-**Required correction:** distinguish the trusted observable audit event from the
-adversarial context around it, and prove closure of the permitted contexts under
-simulator composition. An ordinary ideal `POVaudit` theorem must actually supply
-the corrected premise. The previous claim that the graded UC-to-POV path was
-closed is withdrawn; proving `AuditIsBounded` alone did not close it.
+### Concrete steps
 
-## 2. High: saturation has the wrong quantifier order
+1. Keep the existing theorem as a pointwise/unit-grade specialization. Name or
+   document its premise accordingly; do not silently reinterpret `_≤UC^ω_` as
+   the relation of the constructed family setup.
+2. Build a separately named negligible family observation and instantiate the
+   inherited UC machinery at it. Use the local-instance approach in section 4
+   before considering changes to the qualitative core.
+3. State the target error quantifiers explicitly. To retain the current
+   `SaturatedHitᴺ` conclusion, carry an allowance-uniform quantitative error
+   witness through emulation and simulator composition. Per-context negligible
+   agreement alone does not supply that witness; section 4 identifies the choice.
+4. Prove frontend quantitative ingestion into the family contextual relation
+   using bounded-context domination at the actual model objects. Supply the
+   family counterpart of the inherited-relation bridge, not just a citation to
+   the single-model theorem. For the seal-object mismatch, first investigate
+   exporting object/hom transport witnesses from the existing seal. If those
+   cannot express the needed transport, state domination at the underlying
+   machine objects and transport it once. Do not assume the missing lift.
+5. Assemble a second ledger theorem consuming the family premise and its
+   retained error evidence. Keep the existing pointwise theorem unchanged.
 
-`UC/Saturated.agda:62-65` asks for one slack uniform over all query counts:
+**Acceptance criteria:** the new negligible relation admits a one-shot `2⁻ⁿ`
+difference and rejects a one-shot `1/(n+1)` difference. The final theorem
+consumes that relation or an explicitly stronger uniform quantitative refinement;
+it must not obtain negligible error solely from agreement at every positive
+error at fixed `n`.
+
+## 2. Connect the carried event to the real monitor probability
+
+**High: the simulator-costed route stops short of probability extraction.**
+`UC/Audit.agda:107-123` defines `absorb s cs 𝔉` as the pullback of the ideal
+event class. Its closure proof returns the membership witness unchanged. That
+is valid, but does not prove that a predetermined real monitor lies in the class.
+
+`ChimericLedger.EndToEnd.ledger-audit-carry` concludes a bound for that
+simulator-dependent class (`Examples/ChimericLedger/EndToEnd.agda:139-147`).
+The extraction theorem's existing witness establishes membership in
+`watched R badR`, not in the pullback (`UC/Seam/Audit/Bounded.agda:109-115`).
+The missing membership is application work; `absorb-absorbs` is not its substitute.
+
+### Concrete steps
+
+1. State the missing inclusion/extraction lemma at the actual real monitor and
+   audit-instrumented strategy. Its conclusion should establish membership in
+   the carried event at the adjusted budget, or a one-sided comparison sufficient
+   to extract the probability bound.
+2. For the smaller unit-grade bridge, add a new event class tolerating an
+   almost-surely-total silent prefix, then prove ideal supply and real extraction
+   for it. Keep the exact `watched` interface and its proved consumers intact.
+3. Alternatively, make approximate membership retain an explicit error `η`:
+   witness a monitored ideal strategy, its budget certificate, and one-sided
+   observation domination up to `η`. Supply then yields `ε + η`. Prove how
+   these witnesses compose and include `η` in the final negligible slack. Do
+   not hide an arbitrary vanishing error in membership or assume uniform
+   negligibility over an allowance.
+4. Prove the concrete monitoring contexts satisfy the new inclusion/comparison,
+   including simulator composition. For interactive simulators, use section 3;
+   initialization-prefix tolerance alone is insufficient.
+5. Compose ideal `audit-target`, generic `audit-carry`, real probability
+   extraction, and the truthful audit-to-trajectory theorem in one consumer.
+
+**Acceptance criteria:** for an arbitrary permitted real monitoring strategy,
+derive its actual `Pr`/`PrHit` inequality. No membership or robustness premise
+may stand in for an unproved ledger-specific inclusion. The bound must account
+for instrumentation, simulator cost, and any membership approximation error.
+
+## 3. Exercise the graded carry at a nontrivial simulator interface
+
+**High scope issue.** Both current application relations inflate their endpoints
+using `ιᴳ`, including the budgeted relation (`UC/Asymptotic/Audit.agda:41-43`).
+The budgeted simulator is therefore `unit ⇒ unit`. A positive query-budget
+certificate is an upper bound, not evidence that a scalar has an oracle-facing
+interface or actually spends oracle queries.
+
+`scalar-blindᵒ` is expressly restricted to `unit ⇒ unit`
+(`UC/Seam/Grounding/Prefix.agda:113-122`). Prefix congruence propagates a supplied
+prefix witness; it cannot turn arbitrary answer-dependent interaction into
+silent initialization. The general `UC.Audit.audit-carry` retains the simulator
+and requires `Absorbs` evidence instead of declaring its interaction silent.
+
+### Concrete steps
+
+1. Narrow [the prefix proposal](prefix-tolerant-audit-plan.md) to the budgeted
+   unit-grade probability bridge. Its claim to handle a simulator that
+   "actually burns oracle queries" is not supported by the existing application
+   types. Almost-sure totality does not guarantee exact `≈ₚ` equality, but
+   exact equality is not impossible for every prefix either.
+2. State a separate application at explicit nontrivial grades: process families
+   of the generic `A ⇒ X ⊛ B` shape and simulator families `Y ⇒ X`. Identify
+   the simulator's ports and which public audit answers remain under ledger
+   control. If the relevant interface is hidden inside closed `Sys`, expose it
+   at the appropriate resource boundary instead of merely adding a unit grade.
+3. Supply a polynomial query allowance for the simulator family and prove the
+   composed monitored experiment's budget using `qb-∘`, the grading budget
+   laws, and `simCost`. Query bounds are not runtime bounds; no PPT claim
+   should be inferred without an additional computational-cost doctrine.
+4. Show operationally that a simulator-composed real monitoring context is an
+   admissible ideal monitored experiment at that budget. Use prefix tolerance
+   only for initialization; retain actual simulator interaction in the ideal
+   experiment.
+5. Apply the generic graded carry, section 2's probability extraction, and the
+   real truthful-audit connection. This is the nontrivial-grade extension,
+   rather than a larger numerical bound on the existing unit-grade theorem.
+
+**Acceptance criteria:** include a small example with an inhabited
+simulator-facing port whose simulator actually performs a query. Prove the
+query's occurrence/count, not just a positive upper bound. The probability
+theorem must apply without identifying the simulator with a silent scalar, and
+its accounting must include the interaction.
+
+## 4. Prefer a local negligible observation; resolve uniformity explicitly
+
+**Medium: design recommendation with a substantive quantifier choice.**
+[The graded-observation proposal](graded-observation-redesign.md) treats
+negligible observation as necessarily a core-interface redesign. But
+`UC.Core.Observation` already accepts an arbitrary equivalence
+(`UC/Core.agda:80-93`). A second local instance can use:
 
 ```text
-exists ν tending to zero,
-  for every n, q, and strategy d with asks≤ q d,
-    watched probability ≤ ε n q + ν n.
+μ ∼ᴺ ν = exists negligible δ,
+          for every index i, μ(i) is δ(κ(i))-close to ν(i).
 ```
 
-But `SaturatedRespects` (`UC/Saturated.agda:80-86`) assumes only
-`VanishingBound δ`: the difference vanishes along each polynomial allowance.
-This cannot yield a slack uniform over arbitrary, potentially exponential `q`.
+Zero error, symmetry, and `Negligible-+` give the equivalence laws; exact
+respect of hom equality gives observation congruence. `Induced` does not
+construct this witness-retaining relation, but that limits the helper, not
+`Observation` itself.
 
-A mathematical counterexample uses deterministic, terminating protocols on unit
-queries and Boolean answers. `P n` always answers false; `Q n` does so until
-query `2^n`, when it answers true. Let `δ n q` be zero below that threshold and
-one at or above it. Below the threshold all transcripts agree, including against
-randomized adaptive strategies; above it either verdict's advantage is at most
-one. Every polynomial allowance is eventually below the threshold, so
-`VanishingBound δ` holds.
-
-A query-preserving watch follows the supplied strategy's queries and coin nodes,
-replacing its terminal verdict with whether a true answer was seen. Its
-probability against `P` is always zero. A strategy making `2^n` queries to `Q`
-has watched probability one. With `ε = 0`, the proposed conclusion therefore
-requires `ν n ≥ 1` for every `n`, contradicting convergence to zero.
-
-**Required correction:** quantify over polynomial allowances before choosing a
-slack, allowing that slack to depend on the allowance, or strengthen the premise
-to uniform control over all query counts. `SaturatedRespects` has no inhabitant;
-it is not merely awaiting the arithmetic lemmas advertised in its comment.
-`UC/Approximate.agda:118-123` already records the correct allowance discipline.
-
-## 3. High: negligible security is lost at the qualitative boundary
-
-`SaturatedBounded` and `SaturatedHit` use `_→0`, not `Negligible`
-(`UC/Saturated.agda:63,70`), despite their description as
-"POV-modulo-negligible". They admit inverse-linear excess probability.
-
-Changing that predicate alone is insufficient. `UC/Family.agda:156-186`
-constructs qualitative observation as eventual closeness at every constant
-positive error: **vanishing advantage**, not negligible advantage.
-`absorb-negl` (`UC/Family.agda:260-263`) is a valid sufficient-condition theorem
-into that same weaker relation; it does not strengthen the relation itself.
-
-An equivalence that forgets inverse-linear differences cannot generally preserve
-a property allowing only negligible excess. For example, a one-shot observable
-bad bit with probability `1/(n+1)` differs vanishingly from an always-safe bit,
-but does not satisfy a zero baseline bound modulo negligible slack.
-
-**Required correction:** align the property and the relation transporting it.
-A vanishing model may remain useful alongside a negligible model. Preserving
-negligible security requires a suitable negligible observational relation or a
-stronger quantitative carry premise that retains the error witness. Merely
-passing a negligible bound through `absorb-negl` does not establish preservation
-of all negligible-slack properties by the resulting qualitative UC relation.
-
-## 4. Medium: property preservation is not integrated end to end
-
-The abstraction notes' probability-free `SaturatedProperty` / `Robust` /
-`uc-preserves` API and theorem are absent. The generic theorem should be a small
-generalization of the existing simulator-sliding argument; the substantial
-unresolved work is supplying useful concrete robust properties.
-
-The remaining integration gaps are:
-
-- `Examples/ChimericLedger/Carry.agda:36-46` names direct `Agreeˢ` as `Emulᴸ`.
-  Its public carry premise is not simulator-bearing UC emulation.
-- `UC.Family.Monoidal` supplies a genuine `UCSetup`, but its bridge from the
-  family bound-ingestion relation to inherited agreement is described rather
-  than proved there (`UC/Family/Monoidal.agda:14-19`). The single-model bridge
-  does not itself provide the family theorem.
-- `UC.Machine.Dominated.dominated` proves bounded-context domination, but the
-  frontend-to-family ingestion path is not assembled into a consumer theorem.
-- The ledger birthday theorem is proved at a fixed hash width. There is no
-  completed family application proving its `NegligibleBound` and transporting
-  the resulting property through UC.
-
-These are omissions, not refutations of the categorical constructions. They are
-also why a collection of closed component proofs is not yet a completed
-security-property pipeline.
-
-## Completion goal: an end-to-end theorem
-
-The acceptance goal is a public theorem for the ledger example that starts with
-the actual ideal birthday/audit result and a genuine UC-emulation premise, then
-concludes a real-system POV bound modulo negligible error at every polynomial
-allowance. Its statement must use the repaired notions from findings 1-3, not
-silently assume the desired direct-run agreement or an uninhabitable audit bound.
-
-The intended shape is schematic, not an existing Agda declaration:
+Keep the following contracts distinct:
 
 ```text
-proved ideal birthday/audit bound
-  + serialization and security-parameter hypotheses
-  + real ≤UC ideal in the intended asymptotic model
-  + admissibility / polynomial simulator-cost evidence
-  + the real system's truthful-audit-to-trajectory connection
-    implies
-for each polynomial allowance p,
-  there is negligible ν_p such that every strategy with at most p(n) queries
-  has real POV-failure probability bounded by the appropriately
-  simulator-adjusted birthday bound plus ν_p(n).
+local negligible observation:
+  for every context, there exists a negligible error for that context;
+
+current _≈ℰⁿ_:
+  one global budget-indexed error bounds every context;
+
+current SaturatedBoundedᴺ:
+  for every polynomial allowance, one negligible slack covers all its strategies.
 ```
 
-Acceptance requirements:
+The global relation (`UC/Family.agda:279-298`) should imply local contextual
+agreement by specialization to each context's carried allowance. Neither the
+converse nor the move from per-context error to allowance-uniform saturation
+follows automatically.
 
-1. Instantiate the ideal side with the proved ledger theorem, retaining its
-   injective-serialization assumption. Specify how hash width grows with the
-   security parameter and prove negligibility of the resulting birthday bound
-   at every polynomial allowance.
-2. Construct the intended machine-family UC setup and supply the relation
-   bridges needed to use inherited UC metatheorems. Where a protocol bound is
-   lifted to bounded machine contexts, consume the proved adequacy/domination
-   results rather than assume that lift.
-3. Preserve a property of the designated observable audit event under admissible
-   contexts, including the simulator-absorbed context. Prove robustness for the
-   concrete ideal property; do not require a bound on arbitrary true verdicts.
-4. Charge simulator and audit instrumentation costs explicitly. Establish the
-   negligible-slack closure at each polynomial allowance with the corrected
-   quantifier order and security relation.
-5. Recover the real trajectory statement through the real implementation's
-   truthful audit connection. UC alone does not identify internal state
-   trajectories of real and ideal machines.
-6. Expose and typecheck the assembled theorem at the public consumer surface,
-   with no remaining bridge hypotheses standing in for the work above.
+### Concrete steps
 
-The theorem may assume a genuine UC emulation between the chosen real and ideal
-families: proving a particular cryptographic construction realizes the ideal is
-a separate obligation unless explicitly included in scope. That assumption must
-remain visible and must not be replaced by direct `Agreeˢ`. Nor does this goal
-assert that the two ledger variants emulate each other; the chimeric attack
-precludes treating the insecure variant as a secure refinement without further
-changes. The optional confidential-ledger construction is not made a prerequisite
-by this review.
+1. Add a local `Observationᴺ`/UC instance on the existing family category, reusing
+   the generic environment presheaf and inherited UC machinery without changing
+   the qualitative core.
+2. Prove the one-way bridge from `_≈ℰⁿ_` into its contextual agreement. Do not
+   identify the relations without a separate uniformization theorem.
+3. Choose the public security contract. To retain allowance-uniform saturation,
+   keep uniform evidence in a quantitative refinement of UC and prove its
+   simulator/composition laws. A per-adversary negligible property can instead
+   match the local qualitative relation, but it is a different theorem and must
+   be stated separately, not substituted for `SaturatedBoundedᴺ`.
+4. Consider a grade-indexed core only if these local constructions demonstrate
+   a concrete need to retain and compose quantitative evidence generically.
+   Reusing `Induced` alone is not sufficient justification for a core rewrite.
 
-## Reconciled implementation status
+The probability-free `SaturatedProperty` / `Robust` / `uc-preserves` API also
+remains absent. Add it independently by defining an observation-invariant
+property, quantifying robustness over closing contexts, and sliding the
+simulator into the test. Reuse the inherited relation/bridge, not another UC
+metatheory. This generic theorem does not discharge the concrete monitor
+inclusion or error-uniformity obligations.
 
-The following are proof terms or constructions, not just stated types:
+## Suggested order and completion test
 
-| Component | Current status |
-|---|---|
-| Direct protocols, executable pins, live genesis | Implemented |
-| `Dₚ`, machine category, trace laws, G-construction, monoidal bundle | Implemented |
-| `morphism-∘`, `PrAgree`, strategy/environment adequacy | Proved |
-| Query counting and composition; guarded context budget | Proved; the zero-budget defect is repaired |
-| `ContextDominated` | Proved for `QB`-certified contexts |
-| Intended qualitative UC model and inherited relation bridge | Constructed/proved, using `≈ᵁ` rather than the weaker bare kernel |
-| `IotaBlind`, `EnvAsCtx`, `StratIsEnv` | Proved |
-| Repaired `SubBlind`, `UnitGrade` | Proved with `SimTotal` and `TotalRun` restrictions respectively |
-| `AuditIsBounded` | Proved, but does not repair finding 1 |
-| `TrajectoryFromAudit`, ledger birthday `target` | Proved; the birthday theorem retains injective serialization |
-| Family category, monoidal structure, `ucSetup^ω` | Constructed; integration in finding 4 remains |
-| `SaturatedRespects` | Uninhabited and false as stated |
-| End-to-end asymptotic UC-to-POV theorem above | Not implemented |
+1. Fix the scope labels in the two continuation proposals and state the target
+   quantifiers and nontrivial interfaces before proving more lemmas.
+2. Build the local negligible observation and its one-way bridge. In parallel,
+   prove the unit-grade prefix-tolerant extraction as a separately scoped result.
+3. Carry the chosen uniform quantitative evidence through family emulation and
+   composition, and finish frontend-to-model ingestion.
+4. Prove monitor admissibility for a genuinely interactive simulator and combine
+   that graded carry with real probability extraction.
+5. Instantiate the complete chain at the actual ideal birthday theorem and the
+   real-ledger shape, retaining serialization and liveness assumptions explicitly.
 
-Two limitations should remain explicit without being mistaken for new proof
-obligations. The protocol interpretation preserves composition, but not the
-unrestricted machine identity, so "semantics functor" is not literal. The
-unit-grade theorem has necessary totality restrictions; protocols permit `dead`,
-and totality of protocol images requires the corresponding protocol premise.
+The final public theorem should start from a genuine emulation in the intended
+family model, the actual ideal bound, and appropriate admissibility evidence.
+At each polynomial allowance it should bound the real monitored trajectory by
+the simulator/instrumentation-adjusted birthday term plus a negligible slack
+with the chosen uniformity. No direct `Agreeˢ`, unproved event-membership
+inclusion, or stronger pointwise-equality premise should stand in for those steps.
 
-Older status/pricing passages are historical evidence, not the current obligation
-list. In particular, both "composition is still only stated" and "the graded
-audit path is closed" are superseded, in opposite directions, by this review.
+A particular hash implementation's UC realization may remain a visible premise.
+The current real-ledger corollary assumes emulation at the ledger; deriving that
+from a hash-level emulation via family composition is useful integration work,
+not a requirement to prove a new cryptographic construction. Neither a named
+Merkle-Damgård realization nor the optional confidential ledger is a prerequisite
+of this review's completion goal.
 
-## Verification and limits
+## Verification boundary
 
-This review inspected source statements and proof terms. Targeted checks of
-`UC/Saturated.agda` and `UC/Audit.agda` with
-`pagda --useUntracked false check ... -- +RTS -M3G -H1G -RTS` passed without the
-flagged warning classes. The full branch closure was not checked. The
-counterexamples above were reasoned through against the source definitions,
-not mechanized in Agda during the review. A checked type alias is not evidence
-that it is inhabited, and a proved implication can still have an unsuitable
-premise for its advertised application.
+The follow-up typechecked `ChimericLedger.EndToEnd` and `UC.Model.Family` at
+`6f48aa5d`, without the flagged warning classes. The end-to-end dependency rebuild
+exhausted a 3 GiB heap and passed with `-M8G -H1G`; the full repository closure
+was not checked. The later `950ec080` real-ledger corollary was inspected, not
+re-typechecked in this review. Future completion claims should check the final
+consumer and its closure at the revised statements, not only their component
+types or the already-checked pointwise specialization.
