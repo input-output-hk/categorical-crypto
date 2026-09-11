@@ -1867,3 +1867,60 @@ Open, for the maintainer:
   since `Real`'s emulation premise is stated as `_≤UC^ω_` and changing it to
   `_≤UC^ω[ cs ]_` would alter an existing statement. Your call whether `Real` should
   carry both.
+
+## Resolved (game-hop)
+
+Branch `game-hop` off `protocol-rewrite` at `ceec075e`. Scope: hoist the random-oracle
+game-hopping toolkit out of its Merkle–Damgård instance. Full write-up:
+`docs/ro-game-hop.md`. Every module checked green (rc=0 **and** empty
+`ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|Heap exhausted`)
+under its own OPTIONS; escape-hatch grep unchanged (16 hits before and after, all of
+them the words "postulate-free" in comments).
+
+- `Examples/MerkleDamgard/Core.agda :: ghost-erase`, `:: ideal-marginal` — **applied.**
+  Both statements are byte-identical; their inductions over the distinguisher are now
+  one `GamePlaying.Hop.runWith-bisim` application each, over a per-query step lemma
+  (`stepR`, `stepI`). `ideal-marginal-gen` is gone (it was private and its content is
+  `stepI` + the generic induction). Side effect: Core's warm cost **35 s → 14 s**, the
+  E-rewriting chains now being elaborated once instead of once per distinguisher clause.
+  The header's cost line was updated to match.
+- `Examples/MerkleDamgard.agda :: indistinguishable` — **applied.** Statement
+  unchanged; the FLGP + `bad-bound` assembly is now `GamePlaying.Hop.hop-bound`, with
+  `ghost-erase`/`ideal-marginal` passed as the two marginal identifications. The
+  now-unused `≤-trans` import went with it. Warm 7 s → 8 s (+1 s, one extra interface
+  load; header updated).
+- New: `GamePlaying/Hop.agda`, `GamePlaying/Potential.agda`, `GamePlaying/Test.agda`,
+  `ProbabilisticLogic/Distribution/Uniform/Duplicate.agda`; `Uniform/Birthday.agda`
+  gained `Γ-monoˡ` beside `Γ-mono`.
+
+Open, for the maintainer:
+
+- **Root wiring.** The four new modules are not reachable from any root, because
+  `src/CategoricalCrypto.agda` and `src/CategoricalCrypto/UC.agda` are outside this
+  branch's edit scope. Please add to `src/CategoricalCrypto.agda`, beside the existing
+  `open import CategoricalCrypto.GamePlaying`:
+  `CategoricalCrypto.GamePlaying.Hop`, `CategoricalCrypto.GamePlaying.Potential`,
+  `CategoricalCrypto.GamePlaying.Test`. `Uniform.Duplicate` reaches the build through
+  `Potential`; if `ProbabilisticLogic.agda` is meant to enumerate the
+  `Distribution.Uniform.*` family it should get it too (it currently lists neither
+  `Uniform` nor `Uniform.Birthday`, so the consistent choice is to leave it alone).
+- **`Examples/ChimericLedger/Birthday.agda` should be re-derived from
+  `Uniform.Duplicate`** — its private `memb`/`dup`/`indicator-≤`/`length-Hs` and its
+  φ-arithmetic (`point-step`, both `bound` branches) are `Φ`, `Φ-keep`, `Φ-fresh` at the
+  log `Hs tbl`; the invariant (`Good`, `Stales`) and the `badTotal`-vs-flag implication
+  stay. Not done here: that file is owned by another agent in this arc. Note the name
+  clash to resolve when it is: a *public* `dup`/`memb` in scope at that module would
+  make its private copies ambiguous, so the rewire must delete them in the same commit.
+- **`OnSupport (λ _ → ⊤)` is defined privately in three places now** (`MerkleDamgard/
+  Core.agda :: os-⊤`, `GamePlaying/Potential.agda :: os-⊤`, and the ledger's
+  `evalC-support` path does the same by hand). It belongs beside `OnSupport-return` /
+  `OnSupport-bind` in `ProbabilisticLogic/Distribution/RationalDist.agda`; it was left
+  private because that module is imported by essentially the whole library and this
+  arc is perf-priced. One line, your call.
+- **A fixed secret cannot satisfy `RareRaise`** and no per-state supermartingale can
+  make it: `φ-step` quantifies over all queries at all invariant states, and a state
+  that determines the secret admits a query hitting it with probability 1. The guessing
+  potential therefore applies to the *lazily sampled* secret only — which is the form a
+  coupling produces anyway (MD's flag is raised the same way). Recorded in
+  `docs/ro-game-hop.md`; it is a modelling constraint on the future commitment proof,
+  not a gap in the toolkit.

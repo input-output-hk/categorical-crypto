@@ -18,13 +18,15 @@
 --   • `ideal-marginal` — ★ the coupling's ideal view IS the variable-length RO,
 --     EXACTLY (the ε lives only in FLGP/bad-bound).  The coupling raises an
 --     explicit flag whenever the MD answer fails to be a fresh uniform (final-call
---     lookup hit for a new message / inconsistent replay), which makes the proof a
---     direct bisimulation over the distinguisher with NO combinatorial invariants:
---     repeats are answered consistently by the flag's own check (`pointRep`), and
---     at an unflagged final call the fresh sample detaches as ONE uniform draw
---     (`detach`).  All chain-forest combinatorics moves into `bad-bound`.
+--     lookup hit for a new message / inconsistent replay), which leaves NO
+--     combinatorial invariant to carry: repeats are answered consistently by the
+--     flag's own check (`pointRep`), and at an unflagged final call the fresh
+--     sample detaches as ONE uniform draw (`detach`).  All chain-forest
+--     combinatorics moves into `bad-bound`.
 --   • `ghost-erase` — flag + ghost table are invisible to the real world, whose
 --     kernel marginalises back to plain MD chaining (`walkR`).
+-- Both are ONE query's statement (`stepI`, `stepR`) run over the distinguisher by
+-- `GamePlaying.Hop.runWith-bisim`, which is where the induction now lives.
 -- These use no probabilistic assumption: expectation monotonicity, linearity,
 -- boundedness of `Pr₁` and the expectation triangle inequality are all theorems
 -- of the `Dist-ℚ` layer.
@@ -56,7 +58,8 @@
 -- `badProb-super`, FLGP, `ideal-marginal` and `ghost-erase` — all proven — this
 -- module carries no assumption at all and is `--safe`.
 --
--- Warm single-module typecheck: ~34 s (measured 2026-09-10, `+RTS -M8G -H1G`).
+-- Warm single-module typecheck: ~14 s (measured 2026-09-11, `+RTS -M8G -H1G`);
+-- it was ~34 s while the E-chains were re-elaborated per distinguisher clause.
 --------------------------------------------------------------------------------
 
 open import categorical-crypto.Prelude hiding (_/_; _>>=_; _*_; Stable)

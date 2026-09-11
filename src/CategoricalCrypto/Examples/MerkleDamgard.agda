@@ -20,13 +20,14 @@
 -- `graft-chain` — one activation of the composite IS the crypto core's
 -- `mdRun` — and it is an induction on the block list.
 --
--- The cryptography is `Examples.MerkleDamgard.Core`, machine-free and
--- unchanged: the coupling, the Fundamental Lemma of Game-Playing,
+-- The cryptography is `Examples.MerkleDamgard.Core`, machine-free: the coupling,
 -- `ideal-marginal`, `ghost-erase`, the birthday certificate `md-cert` and the
--- adaptive bound `bad-bound`.  All this module adds is the seam between layer
--- 1's `Protocol.Observe.run` and the core's `Interaction.runWith`.
+-- adaptive bound `bad-bound`.  `indistinguishable` is those four handed to
+-- `GamePlaying.Hop.hop-bound` (FLGP + the supermartingale, assembled generically),
+-- so all this module adds is the seam between layer 1's `Protocol.Observe.run`
+-- and the core's `Interaction.runWith`.
 --
--- Warm single-module typecheck: ~7 s (measured 2026-09-10, `+RTS -M8G -H1G`).
+-- Warm single-module typecheck: ~8 s (measured 2026-09-11, `+RTS -M6G -H1G`).
 --------------------------------------------------------------------------------
 
 open import Data.Bool.Base using (Bool; false)
