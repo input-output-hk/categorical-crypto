@@ -8,14 +8,15 @@
 -- `gradingᵗ` is exactly that action read in the core's vocabulary: `_⊛_` is
 -- `⊗`, `T₁`/`sub` are the bifunctor's two one-sided actions, `a⇒` is the
 -- triple's `μ` and `a⇐` the retraction `θ` that
--- `UCSetup.GradeStableFromTests` asks for (`a-isoˡ` being its `θ-μ`), and
--- `a-nat` is `μ`'s naturality.  So `Grading` is a WEAKENING of the inherited
--- graded Kleisli triple, not a third parallel abstraction.
+-- `UCSetup.GradeStableFromTests` asks for (`a-isoˡ` being its `θ-μ`), the four
+-- unitor relays are the bundle's own, and `a-nat` is `μ`'s naturality.  So
+-- `Grading` is a WEAKENING of the inherited graded Kleisli triple, not a third
+-- parallel abstraction.
 --
--- What it drops is what the intended model cannot supply: the unitors and
--- `return`/`ext`.  So `UCSetup` is uninhabited at `𝒫ᴵ` while `Grading 𝒫ᴵ` is
--- not — see `docs/protocol-rewrite.md` for the supersession map for the rest
--- of the vocabulary.
+-- What it drops is the COHERENCE — no `triangle`, no `pentagon`, no
+-- naturality for the unitors — and `return`/`ext`.  See
+-- `docs/protocol-rewrite.md` for the supersession map for the rest of the
+-- vocabulary.
 
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 import Categories.Category.Monoidal.Reasoning as MonR
@@ -32,10 +33,15 @@ open MonR monoidal
 gradingᵗ : Grading U
 gradingᵗ = record
   { _⊛_ = _⊗₀_
+  ; 𝟭   = unit
   ; T₁  = λ _ f → id ⊗₁ f
   ; sub = λ s → s ⊗₁ id
   ; a⇒  = associator.to
   ; a⇐  = associator.from
+  ; λ⇒  = unitorˡ.from
+  ; λ⇐  = unitorˡ.to
+  ; ρ⇒  = unitorʳ.from
+  ; ρ⇐  = unitorʳ.to
 
   ; T₁-resp-≈  = refl⟩⊗⟨_
   ; T₁-id      = ⊗.identity

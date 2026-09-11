@@ -355,7 +355,7 @@ needs them (F3).
 monoidal category of grades and the graded Kleisli triple at `Fam`, so
 `UC.Family` produces a `UCSetup` rather than a `UCBase`.  Only then can
 `UC.Core`'s `Grading`/`UCBase` be deleted.  `Observation` stays regardless
-(§2.2).
+(§2.2).  (Executed; the deletion clause turned out to be wrong — §6.)
 
 **P7 — fold the correction into `docs/protocol-rewrite.md`.**  Reverse the
 verdict paragraph, fix the `_≈ℰ_` row (F1), and point the reader here.
@@ -389,9 +389,9 @@ Roots green: `UC/Model.agda` (whole cone), `UC/Model/Pin.agda` and `UC.agda`
 
 ## 6. Phase 2, executed
 
-P1–P5 and P7 landed; P6 is partly landed and specified below.  Everything is
-green under `pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS` with the
-warn gate empty, and the escape-hatch grep over `src/` is 21 throughout.
+P1–P7 landed.  Everything is green under
+`pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS` with the warn gate
+empty, and the escape-hatch grep over `src/` is 21 throughout.
 
 ### What moved
 
@@ -463,61 +463,120 @@ block, and `budgetᵒ` is a `subst` along it — 9.6 s.  Generally: **a datum
 derived from the whole bundle crosses by `subst` along `sealᵒ`; only data
 derived from a HOM cross by retyping** (`procᵒ`, `gradedᵒ`, `unprocᵒ-∘`).
 
-### P6 — what landed, and the spec for the rest
+### P6 — executed
 
-`UCSetup` has four fields.  At `Fam`, two are now available and two are not.
+All four of `UCSetup`'s fields are available at `Fam`, in the new
+`UC/Family/Monoidal.agda` (125 LOC), which takes a monoidal base `M`, an
+`Observation` over it, an `ApproximateObservation`, a `Budget` over
+`gradingᵗ M`, and `(Ix , κ , κ-cofinal)`:
 
-* `𝒞 = Fam` — `UC.Family.Fam`, unchanged.
-* `ℰ = UC.Family.ℰ^ω` — **landed.**  `UC.Environment.ℰᴼ` is the general
-  `Observation → Presheaf` construction (tests into `Ω` modulo closed
+```agda
+ucSetup^ω : UCSetup o (ℓ ⊔ qs) e o (ℓ ⊔ qs) e (ℓ ⊔ qs) (ℓ ⊔ qs ⊔ ℓa)
+ucSetup^ω = Std2.StdUC.StdSetup Famᴹ ℰ^ω
+```
+
+* `𝒞 = Fam` and `ℰ = ℰ^ω` — as recorded above.  `UC.Environment.ℰᴼ` is the
+  general `Observation → Presheaf` construction (tests into `Ω` modulo closed
   observation, no ancilla in the carrier), proved once over an arbitrary
   `UCBase`; `UC.Family` re-exports it at `UCBase^ω`.  This is §2.3's one row
   that runs from the core INTO the inherited layer, and
   `UC.Model.Environment.ℰᵒ` is the same construction written out at the sealed
   model (it cannot be re-based onto `ℰᴼ`: `ucBaseᵒ` is downstream of it).
-* `ℐ` — **missing, and this is the real work.**  `UCSetup` wants a monoidal
-  category of grades; at the standard shape that is `Fam` itself, and `Fam` is
-  not monoidal because `Grading` is strictly weaker than `Monoidal` — it has the
-  two one-sided actions `T₁`/`sub` and no bifunctor, no unitors.
-* `ℳ` — free once `ℐ` exists: `GradedMonad⇒GradedKleisliTriple (curriedTensor …)`,
-  the same one-liner `Standard2.StdUC` uses.
+* `ℐ = Famᴹ` — below.
+* `ℳ` — the plan's one-liner, taken through `Standard2.StdUC.StdSetup` by its
+  QUALIFIED name, so only that definition's own type is formed (§1.1's
+  module-application measurement).
 
-So the whole of P6 reduces to making `Fam` monoidal, in four steps:
+The module is built BESIDE `UC.Family`'s statements, for the reason the spec
+gave: `UC.Family.absorb` lands in `Em UCBase^ω`'s ancilla-quantified `_≈ℰ_`,
+and the same statement at `ucSetup^ω` would land in `_≈ᵁ_`/`_≈ᴳ_`.  Those agree
+— `UC.Model.Bridge` proves it at the model and the argument is generic in the
+base — but the kernel congruence is a `no-eta-equality` record, so re-basing
+`absorb` in place would change its stated type.  Nothing in `UC.Family` moved.
 
-1. **Re-parameterize.**  The family construction must take a monoidal base, not
-   a `Grading`: a module beside `UC.Family` (not a re-basing of it — see the
-   caveat below) parameterized by `(M : MonoidalCategory o ℓ e)`, a budget
-   doctrine over `M`, `(Ix , κ , κ-cofinal)` and an `ApproximateObservation`.
-2. **Four more budget fields.**  `Fam`'s unitors need `QB` certificates and
-   `UC.Budget.Budget` has none — its header records them as deliberately
-   dropped ("the four unitor laws are gone with the unitors", because
-   `grade-stable` never needs `unit ⊛ A ≅ A`).  So `Budget` grows
-   `qb-λ⇒`/`qb-λ⇐`/`qb-ρ⇒`/`qb-ρ⇐`.  `qb-⊗₁` is NOT needed:
-   `f ⊗₁ g ≈ (f ⊗₁ id) ∘ (id ⊗₁ g)` is `sub f ∘ T₁ _ g`, so `qb-∘`, `qb-sub`,
-   `qb-T₁` and `qb-resp-≈` give it, at `(c ⊔ 1) * (c′ ⊔ 1)`.
-   At the machine instance the four new fields are `QB 1` certificates for
-   `wireᴹ`-shaped relays — the exact shape `UC.QueryBound.Object.qb-a⇒ᴳ` and
-   `qb-a⇐ᴳ` already discharge — so the cost is that proof four more times, in
-   `UC.QueryBound.Object` and `UC.Machine.Grading`, and four more fields in
-   `UC.Machine.Budget.budgetᴹ` and hence in `UC.Model.Enrichment.budgetᵒ`.
-   This is the step that touches an existing record's statement and should be
-   confirmed with the maintainer first.
-3. **`Famᴹ : MonoidalCategory`.**  The `⊗` bifunctor (levelwise on the homs, the
-   budget by step 2), `unit = Δ M.unit`, the associator and both unitors as
-   levelwise natural isomorphisms, `triangle` and `pentagon`.  No content: the
-   hom equality `_≈^ω_` ignores the budget, so every law is `λ i → ⟨base law⟩`.
-   Estimate ~200 LOC, and it is the piece to spike first, because it is where a
-   levelwise `MonoidalCategory` record is either cheap or it is not.
-4. **Assemble** `UCSetup^ω = record { 𝒞 = Fam ; ℐ = Famᴹ ; ℳ = … ; ℰ = ℰ^ω }`
-   and open `Abstract2.AbstractUC` at it.  Only then can `UC.Core`'s `Grading`
-   and `UCBase` be deleted; `Observation` stays regardless (§2.2), and so does
-   `UC.Environment.ℰᴼ`, which is what feeds the `ℰ` field.
+**The four certificates, and the field the spec did not foresee.**  Step 2 is
+executed as authorized, with one correction.  `Budget`'s four new fields cannot
+be *stated* over a `Grading`: `qb-λ⇒ : QB 1 (λ⇒ {A})` needs `λ⇒` in scope, and
+`Grading` has neither a unit nor unitors.  So `UC.Core.Grading` grows the five
+DATA `𝟭`/`λ⇒`/`λ⇐`/`ρ⇒`/`ρ⇐` — with no laws, exactly as `a⇒`/`a⇐` carry only
+the two the core needs — and `UC.Budget.Budget` grows the four authorized
+certificates over them.  Putting the unit and unitors in `Budget` instead was
+rejected: `Famᴹ`'s unitor LAWS are `M`'s read levelwise, so the certificates
+have to be about `M`'s unitors, and only `gradingᵗ M`'s fields are
+definitionally that; a `Budget`-owned `λ⇒` would need an extra hypothesis
+identifying it with `M`'s, which is the same thing spelled worse.
 
-Caveat, and the reason step 1 says *beside*: `UC.Family.absorb` lands in
-`Em UCBase^ω`'s `_≈ℰ_`, the ancilla-quantified relation.  At `UCSetup^ω` the
-same statement would land in `_≈ᵁ_`/`_≈ᴳ_`.  Those agree (that is what
-`UC.Model.Bridge` proves at the model, and the proof is generic in the base),
-but they are not definitionally equal — the kernel congruence is a
-`no-eta-equality` record — so re-basing `absorb` in place would change its
-stated type.  Build the `UCSetup` beside `UCBase^ω` and relate them by the same
-`≈ᴳ⇔≈ℰᶜ` argument, generalized off the model.
+The inhabitants, and what each cost:
+
+| site | cost |
+|---|---|
+| `UC.Core.Standard.gradingᵗ` | five projections of the bundle — free |
+| `UC.Family.Grading^ω` | four `qb1` wrappers of the new `Budget` fields |
+| `UC.Machine.Dictionary` | `𝟭ᴵ`, `drop⇒ˡ`/`drop⇒ʳ`, four purity lemmas (one clause each), four zigzags |
+| `UC.Machine.Grading` | `qb-λ⇒ᴳ`…`qb-ρ⇐ᴳ` and four `-object` wrappers, `qb-a⇒ᴳ`'s shape verbatim |
+| `UC.Machine.Budget.budgetᴹ` | four field lines |
+| `UC.Model.Enrichment.budgetᵒ` | **nothing** — the `subst` along `sealᵒ` carries the wider record unchanged, as §6's P4 rule predicts |
+
+`UC.Machine.Dictionary` also gained the generalization its zigzags share:
+`wire-pure`, "a G-embedding of two PURE base maps is the wire they name".
+`wire-⌜⌝`, `a⇒-α⇐` and `a⇐-α⇒` are now one application of it each, and so are
+the four new ones.  No new machinery was needed, because
+`GConstructionMonoidal`'s `unitorˡᴳ`/`unitorʳᴳ` are `⌜⌝-≅` of the base unitors
+just as `associatorᴳ` is, and `𝒱ₚ`'s cocartesian unitors are pure: `to` is an
+injection on the nose, and `from` is the copairing whose empty leg has no
+clause.  Note `𝟭ᴵ` is NOT `unitᴵ` — §1.1's two empty types again — and nothing
+here needs the iso between them.
+
+**`Famᴹ`'s shape**, as the spec predicted, with no content:
+
+* `⊗` — objects levelwise `_⊛ω_`; on homs, the base's `_⊗₁_` levelwise at
+  budget `(c ⊔ 1) * (c′ ⊔ 1)`, certified by `qb-⊗₁`, which is the
+  `sub f ∘ T₁ _ g` factorization (`serialize₁₂`) and not a new `Budget` field.
+  `identity`/`homomorphism`/`F-resp-≈` are `λ _ → ⟨base law⟩`.
+* `unit` and the three isos — `Grading^ω`'s own
+  `𝟭`/`λ⇒`/`λ⇐`/`ρ⇒`/`ρ⇐`/`a⇒`/`a⇐`, which already carry their budgets; each
+  `iso` field is `λ _ → ⟨base iso⟩`.
+* the three naturality squares, `triangle`, `pentagon` — `λ _ → ⟨base law⟩`.
+
+**What could NOT be deleted.**  P6's last sentence — "only then can `UC.Core`'s
+`Grading` and `UCBase` be deleted" — does not survive contact with the rest of
+this file, and nothing was deleted.
+
+* `Grading` — `UC.Core.Standard.gradingᵗ`'s type is `Grading U`, and §4's
+  not-in-scope list keeps `gradingᵗ`.  Six further consumers:
+  `UC.Budget.Budget` (its second parameter), `UCBase.grading`,
+  `UC.Machine.gradingᴹ`, `UC.Machine.Grading`, `UC.Family.Grading^ω`,
+  `UC.Family.Monoidal`.
+* `UCBase` — `UC.Environment` is PARAMETERIZED by it, and `UC.Environment.ℰᴼ`
+  is what hands `ucSetup^ω` its own `ℰ` field.  Deleting `UCBase` would mean
+  re-parameterizing the construction that P6 exists to consume.  Seven further
+  consumers: `UC.Emulation`, `UC.Audit`, `UC.Environment.Approximate`,
+  `UC.Family`, `UC.Family.Monoidal`, `UC.Machine.ucBaseᴹ`,
+  `UC.Model.Bridge.ucBaseᵒ`.
+
+So the supersession is complete in the sense the ruling asked — every
+qualitative statement has an inherited counterpart, now at `Fam` as well as at
+the model — and not in the sense of a deletion: the core's two records are
+load-bearing for the enrichment stack (§2.6) and for the
+`Observation → Presheaf` construction that hands the inherited layer its `ℰ`.
+
+### Perf ledger (P6)
+
+Warm, one `Checking` line, `-M8G -H1G`; the bar is 150 s.
+
+| module | LOC | warm |
+|---|---|---|
+| `UC.Core` | 112 | 2.1 s |
+| `UC.Core.Standard` | 54 | 2.2 s |
+| `UC.Budget` | 73 | 2.0 s |
+| `UC.Family` | 267 | 4.6 s |
+| `UC.Family.Monoidal` | 125 | 7.1 s |
+| `UC.Machine.Dictionary` | 417 | 24.9 s |
+| `UC.Machine.Grading` | 164 | 14.8 s |
+| `UC.Machine.Budget` | 56 | 9.4 s |
+| `UC.Model.Enrichment` | 50 | 10.1 s |
+
+The last four sit on the machine cone's ~9 s interface-deserialization floor,
+and `budgetᵒ` is where P4 left it (9.6 s).  Roots green: `UC.agda` 9.6 s,
+`UC/Model.agda` 13.6 s, `UC/Model/Pin.agda` 9.3 s, `UC/Seam{,/Audit,/Grounded}`
+9.2/9.8/9.7 s, `UC/Audit.agda` 4.4 s, `UC/Environment/Approximate.agda` 4.5 s.

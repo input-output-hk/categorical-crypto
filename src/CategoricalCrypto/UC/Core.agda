@@ -36,8 +36,15 @@ module CategoricalCrypto.UC.Core where
 
 -- `T₁ Y f` runs `f` with an ancilla interface `Y` bypassing it; `sub s` acts on
 -- the ancilla alone.  `a⇒` reassociates two nested ancillas, which is all
--- `grade-stable` needs of the action's associativity — hence no unitors and no
--- second half of the iso.
+-- `grade-stable` needs of the action's associativity — hence no second half of
+-- the iso.
+--
+-- `𝟭` is the empty ancilla and `λ⇒`/`λ⇐`/`ρ⇒`/`ρ⇐` attach and drop it.  They
+-- carry NO laws, for the same reason `a⇒` carries only the two it does: nothing
+-- in the qualitative core needs them.  They are here because a `Budget` must be
+-- able to certify them — `Grading` is what a budget is stated over, and
+-- `UC.Family.Monoidal` needs a `QB` certificate for each of the four in order
+-- to assemble the levelwise grading into a `MonoidalCategory`.
 record Grading {o ℓ e} (𝒞 : Category o ℓ e) : Set (o ⊔ ℓ ⊔ e) where
   open Category 𝒞
 
@@ -45,10 +52,15 @@ record Grading {o ℓ e} (𝒞 : Category o ℓ e) : Set (o ⊔ ℓ ⊔ e) where
 
   field
     _⊛_ : Obj → Obj → Obj
+    𝟭   : Obj
     T₁  : (Y : Obj) {A B : Obj} → A ⇒ B → Y ⊛ A ⇒ Y ⊛ B
     sub : {X Y A : Obj} → X ⇒ Y → X ⊛ A ⇒ Y ⊛ A
     a⇒  : {X Y A : Obj} → X ⊛ (Y ⊛ A) ⇒ (X ⊛ Y) ⊛ A
     a⇐  : {X Y A : Obj} → (X ⊛ Y) ⊛ A ⇒ X ⊛ (Y ⊛ A)
+    λ⇒  : {A : Obj} → 𝟭 ⊛ A ⇒ A
+    λ⇐  : {A : Obj} → A ⇒ 𝟭 ⊛ A
+    ρ⇒  : {A : Obj} → A ⊛ 𝟭 ⇒ A
+    ρ⇐  : {A : Obj} → A ⇒ A ⊛ 𝟭
 
     T₁-resp-≈  : {Y A B : Obj} {f g : A ⇒ B} → f ≈ g → T₁ Y f ≈ T₁ Y g
     T₁-id      : {Y A : Obj} → T₁ Y (id {A}) ≈ id

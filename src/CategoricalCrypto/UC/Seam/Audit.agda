@@ -24,7 +24,7 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol using (Protocol)
 open import CategoricalCrypto.Protocol.Machine using (morphism)
 open import CategoricalCrypto.Protocol.Observe using (Bounded)
-open import CategoricalCrypto.Strategy using (Strat)
+open import CategoricalCrypto.Strategy using (Strat; asks≤)
 open import CategoricalCrypto.UC.Model.Bridge using (ucBaseᵒ)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ; massᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ; procᵒ)
@@ -51,8 +51,16 @@ module TrivialGrade (𝟘 : Channel) (ι : (B : Iface) → ifaceᵒ B ⇒ T₀ �
   -- the `unitᴵ` ancilla, its certificate is the strategy's own ask-depth
   -- (`Counting`, at `ctxBudget q 1 = q`), and reading its mass as `Pr` is
   -- `PrAgree` — the same two obligations `agree-to-adv` rests on, one grade up.
+  --
+  -- The `bad`-budget hypothesis is the one the route already needs and the
+  -- statement omitted: `Bounded P bad ε` charges `ε` at the budget of `d`,
+  -- while the context that observes the event is built from `bad d`, so
+  -- `AuditBound` can only be instantiated at a budget `bad d` is known to
+  -- afford.  It is the hypothesis `Protocol.Observe.transfer`,
+  -- `UC.Seam.pov-carry` and `Examples.ChimericLedger.pov-transfer` all carry.
   AuditIsBounded : Set₁
   AuditIsBounded = {B : Iface} (P : Protocol unitᴵ B)
                    (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) (ε : ℕ → ℚ)
+                 → ((q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d → asks≤ q (bad d))
                  → AuditBound (ι B ∘ procᵒ (morphism P)) ε
                  → Bounded P bad ε

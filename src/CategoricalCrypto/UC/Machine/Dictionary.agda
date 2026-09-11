@@ -5,13 +5,13 @@
 -- pinned relays and the derived grading `UC.Machine.gradingᴹ` — a query-bound
 -- certificate is about a relay, the grading's action is `_⊗₁_` with an
 -- identity, and `UC.Machine.Grading` carries one to the other through these
--- four zigzags.  Nothing here states a `Monoidal` law's type, which is what
+-- eight zigzags.  Nothing here states a `Monoidal` law's type, which is what
 -- makes it affordable (`UC.Machine`'s header prices the alternative).
 --
 -- Every object implicit is passed explicitly, for the reason
 -- `UC.Machine.Grading`'s header gives: inferring one asks Agda to invert
 -- `_⊗₁ᴳ_`.  The unused congruence and identity corollaries are not materialized
--- here; consumers use these four dictionary zigzags directly.
+-- here; consumers use the dictionary zigzags directly.
 
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal.Bundle
@@ -23,6 +23,7 @@ import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Utilities as MU
 import Categories.GConstructionMonoidal as GM
 
+open import Data.Empty.Polymorphic using (⊥-elim)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Sum.Base as Sum using (_⊎_; inj₁; inj₂)
 open import Level using (0ℓ)
@@ -240,35 +241,82 @@ private
 -- Every wire is an embedding
 
 -- The relays' common shape: a stateless relabelling IS `⌜_,_⌝` of the two
--- directions, read as pure machines.  This is what makes
--- `UC.Machine.Wire`'s absorption apply to them — and the two reassociator
--- zigzags below are its two instances, spelled out at the 𝒢-associator.
+-- directions, whenever the two base maps are pure.  This is what makes
+-- `UC.Machine.Wire`'s absorption apply to them — and the six structural
+-- zigzags below are its instances, spelled out at the 𝒢-associator and the two
+-- 𝒢-unitors.
+wire-pure : {A B : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
+            (u : 𝒱._⇒_ (Pos A) (Pos B)) (v : 𝒱._⇒_ (Neg B) (Neg A))
+          → 𝒱._≈_ u (pureᵏ up) → 𝒱._≈_ v (pureᵏ down)
+          → 𝒫._≈_ {A} {B} (wireᴹ up down) (σᴹ ∘ᴹ (pureᴹ u ⊗ᵉ pureᴹ v))
+wire-pure up down u v eu ev =
+    ≲⇒≈ᴹ (mk-cong (wireStep-copair up down ○ ⟺ (refl⟩⊗⟨ bridge)))
+  ○ᴹ ≲⇒≈ᴹ˘ (⌜⌝-pureᴹ u v)
+  where
+  bridge = swap-copair u v ○ []-cong₂ (refl⟩∘⟨ eu) (refl⟩∘⟨ ev)
+
 wire-⌜⌝ : {A B : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
         → 𝒫._≈_ {A} {B} (wireᴹ up down)
             (σᴹ ∘ᴹ (pureᴹ (pureᵏ up) ⊗ᵉ pureᴹ (pureᵏ down)))
 wire-⌜⌝ up down =
-    ≲⇒≈ᴹ (mk-cong (wireStep-copair up down ○ ⟺ (refl⟩⊗⟨ swap-copair _ _)))
-  ○ᴹ ≲⇒≈ᴹ˘ (⌜⌝-pureᴹ (pureᵏ up) (pureᵏ down))
+  wire-pure up down (pureᵏ up) (pureᵏ down) 𝒱.Equiv.refl 𝒱.Equiv.refl
 
 a⇒-α⇐ : {X Y A : Iface}
       → 𝒫._≈_ {X ⊗ᴵ (Y ⊗ᴵ A)} {(X ⊗ᴵ Y) ⊗ᴵ A}
           (a⇒ᴵ {X} {Y} {A}) (α⇐ᴳ {⟦ X ⟧ᴵ} {⟦ Y ⟧ᴵ} {⟦ A ⟧ᴵ})
-a⇒-α⇐ =
-    ≲⇒≈ᴹ (mk-cong (wireStep-copair ⊎assocˡ ⊎assocʳ ○ ⟺ (refl⟩⊗⟨ bridge)))
-  ○ᴹ ≲⇒≈ᴹ˘ (⌜⌝-pureᴹ α+⇐ α+⇒)
-  where
-  bridge = swap-copair α+⇐ α+⇒
-         ○ []-cong₂ (refl⟩∘⟨ assocˡᵏ) (refl⟩∘⟨ assocʳᵏ)
+a⇒-α⇐ = wire-pure ⊎assocˡ ⊎assocʳ α+⇐ α+⇒ assocˡᵏ assocʳᵏ
 
 a⇐-α⇒ : {X Y A : Iface}
       → 𝒫._≈_ {(X ⊗ᴵ Y) ⊗ᴵ A} {X ⊗ᴵ (Y ⊗ᴵ A)}
           (a⇐ᴵ {X} {Y} {A}) (α⇒ᴳ {⟦ X ⟧ᴵ} {⟦ Y ⟧ᴵ} {⟦ A ⟧ᴵ})
-a⇐-α⇒ =
-    ≲⇒≈ᴹ (mk-cong (wireStep-copair ⊎assocʳ ⊎assocˡ ○ ⟺ (refl⟩⊗⟨ bridge)))
-  ○ᴹ ≲⇒≈ᴹ˘ (⌜⌝-pureᴹ α+⇒ α+⇐)
-  where
-  bridge = swap-copair α+⇒ α+⇐
-         ○ []-cong₂ (refl⟩∘⟨ assocʳᵏ) (refl⟩∘⟨ assocˡᵏ)
+a⇐-α⇒ = wire-pure ⊎assocʳ ⊎assocˡ α+⇒ α+⇐ assocʳᵏ assocˡᵏ
+
+------------------------------------------------------------------------
+-- The trivial-ancilla relays are the 𝒢-unitors
+
+-- The bundle's own monoidal unit, read as an interface.  It is NOT `unitᴵ`:
+-- that one is empty at `Data.Empty.⊥` and this one at `𝒱ₚ`'s initial object,
+-- and `docs/stduc-supersession-plan.md` §1.1 prices the iso between them.
+𝟭ᴵ : Iface
+𝟭ᴵ = retᴵ 𝔾.unit
+
+-- The relabellings a unitor performs: the trivial ancilla contributes no case.
+drop⇒ˡ : {A : Set} → Pos 𝟭ᴵ ⊎ A → A
+drop⇒ˡ = Sum.[ ⊥-elim , (λ a → a) ]
+
+drop⇒ʳ : {A : Set} → A ⊎ Neg 𝟭ᴵ → A
+drop⇒ʳ = Sum.[ (λ a → a) , ⊥-elim ]
+
+private
+  -- The cocartesian unitors are pure: `to` is an injection on the nose, and
+  -- `from` is the copairing whose empty leg has no clause.
+  unitˡᵏ : 𝒱._≈_ (⊕.unitorˡ.from {V}) (pureᵏ drop⇒ˡ)
+  unitˡᵏ (inj₂ _) = ≈ᵈ.refl
+
+  unitʳᵏ : 𝒱._≈_ (⊕.unitorʳ.from {V}) (pureᵏ drop⇒ʳ)
+  unitʳᵏ (inj₁ _) = ≈ᵈ.refl
+
+  unitˡᵏ⁻ : 𝒱._≈_ (⊕.unitorˡ.to {V}) (pureᵏ inj₂)
+  unitˡᵏ⁻ _ = ≈ᵈ.refl
+
+  unitʳᵏ⁻ : 𝒱._≈_ (⊕.unitorʳ.to {V}) (pureᵏ inj₁)
+  unitʳᵏ⁻ _ = ≈ᵈ.refl
+
+λ⇒-λᴳ : {A : Iface}
+      → 𝒫._≈_ {𝟭ᴵ ⊗ᴵ A} {A} (wireᴹ drop⇒ˡ inj₂) (𝔾.unitorˡ.from {⟦ A ⟧ᴵ})
+λ⇒-λᴳ = wire-pure drop⇒ˡ inj₂ ⊕.unitorˡ.from ⊕.unitorˡ.to unitˡᵏ unitˡᵏ⁻
+
+λ⇐-λᴳ : {A : Iface}
+      → 𝒫._≈_ {A} {𝟭ᴵ ⊗ᴵ A} (wireᴹ inj₂ drop⇒ˡ) (𝔾.unitorˡ.to {⟦ A ⟧ᴵ})
+λ⇐-λᴳ = wire-pure inj₂ drop⇒ˡ ⊕.unitorˡ.to ⊕.unitorˡ.from unitˡᵏ⁻ unitˡᵏ
+
+ρ⇒-ρᴳ : {A : Iface}
+      → 𝒫._≈_ {A ⊗ᴵ 𝟭ᴵ} {A} (wireᴹ drop⇒ʳ inj₁) (𝔾.unitorʳ.from {⟦ A ⟧ᴵ})
+ρ⇒-ρᴳ = wire-pure drop⇒ʳ inj₁ ⊕.unitorʳ.from ⊕.unitorʳ.to unitʳᵏ unitʳᵏ⁻
+
+ρ⇐-ρᴳ : {A : Iface}
+      → 𝒫._≈_ {A} {A ⊗ᴵ 𝟭ᴵ} (wireᴹ inj₁ drop⇒ʳ) (𝔾.unitorʳ.to {⟦ A ⟧ᴵ})
+ρ⇐-ρᴳ = wire-pure inj₁ drop⇒ʳ ⊕.unitorʳ.to ⊕.unitorʳ.from unitʳᵏ⁻ unitʳᵏ
 
 ------------------------------------------------------------------------
 -- The two relays are the 𝒢-tensor with an identity

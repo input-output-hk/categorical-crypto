@@ -32,6 +32,11 @@
 --                `UC.Family`       the asymptotic constructor — `𝒞^ω` at a
 --                                  parameterized index, and `absorb`, where a
 --                                  vanishing bound BECOMES the core's `_≈ℰ_`
+--                `UC.Family.Monoidal`
+--                                  `Famᴹ`, the family's grades made monoidal
+--                                  by the budget's four unitor certificates,
+--                                  and `ucSetup^ω` — so the INHERITED
+--                                  metatheory runs at the asymptotic family
 --   model        `UC.Machine`      `𝒫ᴵ`, processes on `Iface`s, the ticked
 --                                  verdict interface, the observation at `Dₚ`
 --                `UC.QueryBound`   the amortised-potential certificate — a

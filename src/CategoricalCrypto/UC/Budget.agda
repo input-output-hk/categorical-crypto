@@ -24,10 +24,15 @@ module CategoricalCrypto.UC.Budget where
 -- degenerate `QB c f = ⊤`; here `QB` is a parameter, so the laws alone cannot
 -- forbid it.
 --
--- Where the reference arc asked eleven laws, eight suffice: the tensor law
--- splits into `qb-T₁`/`qb-sub` (the action's two one-sided halves), and the
--- four unitor laws are gone with the unitors — `grade-stable` never needs
--- `unit ⊛ A ≅ A`.
+-- Where the reference arc asked eleven laws, twelve stand, and the difference
+-- is bookkeeping: its tensor law splits into `qb-T₁`/`qb-sub` (the action's two
+-- one-sided halves).  A product law `qb-⊗₁` is not asked for because
+-- `f ⊗₁ g ≈ sub f ∘ T₁ _ g`, so `qb-∘`/`qb-sub`/`qb-T₁`/`qb-resp-≈` already
+-- certify it at `(c ⊔ 1) * (c′ ⊔ 1)`.
+--
+-- The four unitor certificates are what `UC.Family.Monoidal` spends to make the
+-- levelwise grading a `MonoidalCategory`: the unitors of `Fam` are the base's,
+-- levelwise, and a `Fam`-hom is a hom plus a polynomial bound.
 record Budget {o ℓ e} (𝒞 : Category o ℓ e) (G : Grading 𝒞) (qs : Level)
             : Set (o ⊔ ℓ ⊔ e ⊔ suc qs) where
   open Category 𝒞
@@ -48,6 +53,10 @@ record Budget {o ℓ e} (𝒞 : Category o ℓ e) (G : Grading 𝒞) (qs : Level
     qb-sub    : {X Y A : Obj} {c : ℕ} {s : X ⇒ Y} → QB c s → QB (c ℕ.⊔ 1) (sub {A = A} s)
     qb-a⇒     : {X Y A : Obj} → QB 1 (a⇒ {X} {Y} {A})
     qb-a⇐     : {X Y A : Obj} → QB 1 (a⇐ {X} {Y} {A})
+    qb-λ⇒     : {A : Obj} → QB 1 (λ⇒ {A})
+    qb-λ⇐     : {A : Obj} → QB 1 (λ⇐ {A})
+    qb-ρ⇒     : {A : Obj} → QB 1 (ρ⇒ {A})
+    qb-ρ⇐     : {A : Obj} → QB 1 (ρ⇐ {A})
 
 -- The budget a context's two legs afford a strategy playing in its place.  The
 -- test's own `c` is what bounds crossings into the plugged interface: the
