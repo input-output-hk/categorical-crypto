@@ -23,8 +23,10 @@
 open import Class.DecEq
 
 open import Data.Bool.Base using (Bool; true; false; if_then_else_; T)
-open import Data.Empty using (⊥-elim)
-open import Data.List.Base using (List; []; _∷_)
+open import Data.Empty using (⊥; ⊥-elim)
+open import Data.List.Base using (List; []; _∷_; map)
+open import Data.List.Membership.Propositional using (_∈_)
+open import Data.List.Relation.Unary.Any using (here; there)
 open import Data.Maybe.Base using (Maybe; just; nothing; is-just)
 open import Data.Maybe.Properties using (just-injective)
 open import Data.Nat.Base renaming (_≡ᵇ_ to _≡ᴺ_)
@@ -32,9 +34,11 @@ open import Data.Nat.Properties using
   ( +-assoc; +-comm; +-identityʳ; +-monoˡ-≤; ≤-refl; ≤-reflexive; ≤-trans
   ; ≡ᵇ⇒≡; ≤ᵇ⇒≤; m+[n∸m]≡n; m≤m+n; n≤1+n; n≤0⇒n≡0; 1+n≰n; module ≤-Reasoning )
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
-open import Data.Unit.Base using (tt)
+open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
+open import Data.Unit.Base using (⊤; tt)
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary.Decidable.Core using (yes; no)
+open import Relation.Nullary.Negation.Core using (¬_)
 
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.OracleCall
@@ -206,6 +210,146 @@ checkIns-lookupU u (i ∷ is) v u′ k eq hyp with lookupU u i in eqL
 ...   | just (v₀ , u₁) =
         subst (λ p → lookupU (proj₂ p) k ≡ nothing) (just-injective eq)
           (checkIns-lookupU (removeIn i u) is v₀ u₁ k eqC (lookupU-removeIn u i k hyp))
+
+------------------------------------------------------------------------
+-- Keys and uniqueness
+------------------------------------------------------------------------
+
+keysU : Utxo → List TxIn
+keysU = map proj₁
+
+-- Each key absent from the rest of the list.  This is what makes `removeIn`
+-- remove a KEY rather than one copy of it, and every step of the birthday
+-- argument that says "this input is gone now" rests on it.
+Uniq : Utxo → Set
+Uniq []            = ⊤
+Uniq ((k , _) ∷ m) = lookupU m k ≡ nothing × Uniq m
+
+lookupU-just-∈ : ∀ u k o → lookupU u k ≡ just o → k ∈ keysU u
+lookupU-just-∈ ((k₀ , v) ∷ m) k o eq with k ≟ k₀
+... | yes p = here p
+... | no  _ = there (lookupU-just-∈ m k o eq)
+
+∉-lookupU : ∀ u k → ¬ (k ∈ keysU u) → lookupU u k ≡ nothing
+∉-lookupU []             k h = refl
+∉-lookupU ((k₀ , v) ∷ m) k h with k ≟ k₀
+... | yes p = ⊥-elim (h (here p))
+... | no  _ = ∉-lookupU m k (λ mem → h (there mem))
+
+private
+  -- `removeIn` rebuilds the cons, so the decision has to be re-applied by
+  -- hand: a `with` on it abstracts the outer occurrence only.
+  lookupU-cons-≢ : ∀ k₀ v m k → k ≢ k₀ → lookupU m k ≡ nothing
+                 → lookupU ((k₀ , v) ∷ m) k ≡ nothing
+  lookupU-cons-≢ k₀ v m k ne hyp with k ≟ k₀
+  ... | yes p = ⊥-elim (ne p)
+  ... | no  _ = hyp
+
+uniq-removeIn-lookup : ∀ u k → Uniq u → lookupU (removeIn k u) k ≡ nothing
+uniq-removeIn-lookup []             k uq           = refl
+uniq-removeIn-lookup ((k₀ , v) ∷ m) k (fst , rest) with k ≟ k₀
+... | yes p  = subst (λ z → lookupU m z ≡ nothing) (sym p) fst
+... | no  ¬p = lookupU-cons-≢ k₀ v (removeIn k m) k ¬p (uniq-removeIn-lookup m k rest)
+
+uniq-removeIn : ∀ u i → Uniq u → Uniq (removeIn i u)
+uniq-removeIn []             i uq           = tt
+uniq-removeIn ((k₀ , v) ∷ m) i (fst , rest) with i ≟ k₀
+... | yes _ = rest
+... | no  _ = lookupU-removeIn m i k₀ fst , uniq-removeIn m i rest
+
+uniq-insertNew : ∀ u kv → Uniq u → Uniq (insertNew u kv)
+uniq-insertNew u (k , v) uq with lookupU u k in eq
+... | just _  = uq
+... | nothing = eq , uq
+
+uniq-unionNew : ∀ u w → Uniq u → Uniq (unionNew u w)
+uniq-unionNew u []        uq = uq
+uniq-unionNew u (kv ∷ w)  uq = uniq-unionNew (insertNew u kv) w (uniq-insertNew u kv uq)
+
+checkIns-uniq : ∀ u is v u′ → Uniq u → checkIns u is ≡ just (v , u′) → Uniq u′
+checkIns-uniq u []       v u′ uq eq =
+  subst (λ p → Uniq (proj₂ p)) (just-injective eq) uq
+checkIns-uniq u (i ∷ is) v u′ uq eq with lookupU u i in eqL
+... | nothing = ⊥-just eq
+... | just o with checkIns (removeIn i u) is in eqC
+...   | nothing = ⊥-just eq
+...   | just (v₀ , u₁) = subst (λ p → Uniq (proj₂ p)) (just-injective eq)
+          (checkIns-uniq (removeIn i u) is v₀ u₁ (uniq-removeIn u i uq) eqC)
+
+-- The first input of an accepted transaction is gone from the surviving set.
+checkIns-consumed : ∀ u i is v u′ → Uniq u → checkIns u (i ∷ is) ≡ just (v , u′)
+                  → lookupU u′ i ≡ nothing
+checkIns-consumed u i is v u′ uq eq with lookupU u i in eqL
+... | nothing = ⊥-just eq
+... | just o with checkIns (removeIn i u) is in eqC
+...   | nothing = ⊥-just eq
+...   | just (v₀ , u₁) = subst (λ p → lookupU (proj₂ p) i ≡ nothing) (just-injective eq)
+          (checkIns-lookupU (removeIn i u) is v₀ u₁ i eqC (uniq-removeIn-lookup u i uq))
+
+-- …and every input of an accepted transaction was live: a transaction one of
+-- whose inputs is already spent cannot be accepted again.
+checkIns-live : ∀ u is v u′ k → checkIns u is ≡ just (v , u′) → k ∈ is
+              → lookupU u k ≡ nothing → ⊥
+checkIns-live u (i ∷ is) v u′ k eq mem hyp with lookupU u i in eqL
+... | nothing = ⊥-just eq
+... | just o with checkIns (removeIn i u) is in eqC
+...   | nothing = ⊥-just eq
+...   | just (v₀ , u₁) with mem
+...     | here p = ⊥-nothing
+                     (trans (sym eqL) (subst (λ z → lookupU u z ≡ nothing) p hyp))
+...     | there mem′ = checkIns-live (removeIn i u) is v₀ u₁ k eqC mem′
+                         (lookupU-removeIn u i k hyp)
+
+keysU-removeIn : ∀ u i k → k ∈ keysU (removeIn i u) → k ∈ keysU u
+keysU-removeIn ((k₀ , v) ∷ m) i k mem with i ≟ k₀
+... | yes _ = there mem
+... | no  _ with mem
+...   | here p     = here p
+...   | there mem′ = there (keysU-removeIn m i k mem′)
+
+checkIns-keysU : ∀ u is v u′ k → checkIns u is ≡ just (v , u′)
+               → k ∈ keysU u′ → k ∈ keysU u
+checkIns-keysU u []       v u′ k eq mem =
+  subst (λ p → k ∈ keysU (proj₂ p)) (sym (just-injective eq)) mem
+checkIns-keysU u (i ∷ is) v u′ k eq mem with lookupU u i in eqL
+... | nothing = ⊥-just eq
+... | just o with checkIns (removeIn i u) is in eqC
+...   | nothing = ⊥-just eq
+...   | just (v₀ , u₁) = keysU-removeIn u i k
+          (checkIns-keysU (removeIn i u) is v₀ u₁ k eqC
+            (subst (λ p → k ∈ keysU (proj₂ p)) (sym (just-injective eq)) mem))
+
+keysU-insertNew : ∀ u kv k → k ∈ keysU (insertNew u kv) → k ∈ keysU u ⊎ k ≡ proj₁ kv
+keysU-insertNew u (k₀ , v) k mem with is-just (lookupU u k₀)
+... | true  = inj₁ mem
+... | false with mem
+...   | here p     = inj₂ p
+...   | there mem′ = inj₁ mem′
+
+keysU-unionNew-outsAt : ∀ u h i os k → k ∈ keysU (unionNew u (outsAt h i os))
+                      → k ∈ keysU u ⊎ proj₁ k ≡ h
+keysU-unionNew-outsAt u h i []       k mem = inj₁ mem
+keysU-unionNew-outsAt u h i (o ∷ os) k mem
+  with keysU-unionNew-outsAt (insertNew u ((h , i) , o)) h (suc i) os k mem
+... | inj₂ eq = inj₂ eq
+... | inj₁ m₁ with keysU-insertNew u ((h , i) , o) k m₁
+...   | inj₁ m₂ = inj₁ m₂
+...   | inj₂ p  = inj₂ (cong proj₁ p)
+
+lookupU-insertNew : ∀ u kv k → k ≢ proj₁ kv → lookupU u k ≡ nothing
+                  → lookupU (insertNew u kv) k ≡ nothing
+lookupU-insertNew u (k₀ , v) k ne hyp with is-just (lookupU u k₀)
+... | true  = hyp
+... | false with k ≟ k₀
+...   | yes p = ⊥-elim (ne p)
+...   | no  _ = hyp
+
+lookupU-unionNew-outsAt : ∀ u h i os k → proj₁ k ≢ h → lookupU u k ≡ nothing
+                        → lookupU (unionNew u (outsAt h i os)) k ≡ nothing
+lookupU-unionNew-outsAt u h i []       k ne hyp = hyp
+lookupU-unionNew-outsAt u h i (o ∷ os) k ne hyp =
+  lookupU-unionNew-outsAt (insertNew u ((h , i) , o)) h (suc i) os k ne
+    (lookupU-insertNew u ((h , i) , o) k (λ p → ne (cong proj₁ p)) hyp)
 
 ------------------------------------------------------------------------
 -- One step of the ledger
