@@ -36,7 +36,6 @@ open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Nat.Base using (ℕ; suc; NonZero)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Rational using () renaming (_-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
-open import Data.Rational.Properties using (≤-trans)
 open import Data.Unit.Base using (⊤; tt)
 open import Data.Vec.Base using (Vec)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong₂; subst)
@@ -46,6 +45,7 @@ open import ProbabilisticLogic.Distribution.RationalDist.Expectation using (mayb
 open import ProbabilisticLogic.Prelude
 
 open import CategoricalCrypto.GamePlaying
+open import CategoricalCrypto.GamePlaying.Hop
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Interaction hiding (run)   -- `run` is `Observe`'s
 open import CategoricalCrypto.Protocol
@@ -252,15 +252,16 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   indistinguishable : general ≈adv[ bound ] Sys
   indistinguishable b q d le =
     subst (_≤ℚ bound q) (sym advEq)
-          (≤-trans (C.FLGP (false , [] , []) d) (bad-bound q d le))
+          (hop-bound proj₁ respB respR respG (false , [] , []) [] []
+                     (ghost-erase false [] []) (λ d′ → sym (ideal-marginal d′))
+                     md-cert q d le)
     where
+      -- all that is left of the seam: layer 1's two runs, read at the core's
+      -- kernels and at the `false` verdict's complement
       advEq : advᵇ⊥ b (run general d) (run Sys d)
-            ≡ ∣ Pr₁ (runWith C.idealK (false , [] , []) d)
-                -ℚ Pr₁ (runWith C.realK (false , [] , []) d) ∣ℚ
+            ≡ ∣ Pr₁ (runWith respG [] d) -ℚ Pr₁ (runWith respR [] d) ∣ℚ
       advEq =
         trans (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ)
                 (run-general d (maybeℚ (indᵇ b))) (run-Sys d (maybeℚ (indᵇ b))))
-       (trans (advᵇ⊥-just b (runWith respG [] d) (runWith respR [] d))
-              (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ)
-                (ideal-marginal d) (sym (ghost-erase false [] [] d))))
+              (advᵇ⊥-just b (runWith respG [] d) (runWith respR [] d))
 
