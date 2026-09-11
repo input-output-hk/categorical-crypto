@@ -22,11 +22,11 @@
 -- parameter appears for the same reason at layer 1 (`UC.Asymptotic.uc-≈negl`).
 --
 -- With the agreement in hand the inherited metatheory applies to a concrete
--- family: `≈ℰ⇒≤UC` puts it in the order at the identity simulator, and
--- `≤UC-trans`/`dummy-complete` are `UC.Family`'s own.  `UC-compose` is not
--- reached here — it is a theorem of `ucSetup^ω`, stated in `_≈ᵁ_`, and the
--- identification of that relation with this one is proved at the model only
--- (`UC.Model.Bridge`); the argument is generic in the base but not factored.
+-- family: `≈ℰ⇒≤UC` puts it in the core's order at the identity simulator, where
+-- `≤UC-trans` and `dummy-complete` are `UC.Family`'s own, and `≈ℰ^ω⇒≤UC` puts
+-- it in the INHERITED one, where `UC-compose` is — that identification is
+-- `UC.Core.Bridge`, generic in the base, applied at the family by
+-- `UC.Model.Family.Uniform`.
 
 open import Data.Nat.Base using (ℕ)
 open import Data.Nat.Poly using (Poly)
@@ -47,6 +47,8 @@ open import CategoricalCrypto.UC.Model.Dominated using (dominatedᵒ; qb-graded�
 open import CategoricalCrypto.UC.Model.Family
   using ( Obj^ω; Δ; _⇒^ω_; _⊛ω_; _≈ℰ[_]_; _≈ℰ_; _≈ℰⁿ_; _≤UC_
         ; absorb-negl; carried-negligible; ≈ℰ⇒≤UC )
+open import CategoricalCrypto.UC.Model.Family.Uniform
+  using (≈ℰ^ω⇒≤UC) renaming (_≤UC_ to _≤UCᵁ_)
 open import CategoricalCrypto.UC.Model.Observation using (𝟘ᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; ifaceᵒ)
 open import CategoricalCrypto.UC.QueryBound using (QB)
@@ -117,3 +119,8 @@ module _ (B : ℕ → Iface) where
 
       ingest-≤UC : real ≤UC ideal
       ingest-≤UC = ≈ℰ⇒≤UC {f = real} {ideal} ingest-≈ℰ
+
+      -- …and in the INHERITED order, which is where `UC-compose` is
+      -- (`UC.Model.Family.Uniform`, over the generic `UC.Core.Bridge`).
+      ingest-≤UCᵁ : real ≤UCᵁ ideal
+      ingest-≤UCᵁ = ≈ℰ^ω⇒≤UC real ideal ingest-≈ℰ

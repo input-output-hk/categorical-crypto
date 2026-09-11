@@ -146,14 +146,16 @@ In priority order.
    `dummy-complete` apply. The `δ` is the domination's own arbitrary positive
    slack, absorbed by `UC.Approximate.GradedBound-+[_]`; any positive
    negligible `δ` will do (`Approximate.Decay.negligible-slack`).
-   What is *not* reached is `UC-compose` on these families: it is a theorem of
-   `ucSetup^ω`, stated in `_≈ᵁ_`, and the identification of that relation with
-   the core's `_≈ℰ_` is proved at the model only (`UC.Model.Bridge`, over
-   `UC.Model.Reading`). The argument is generic in the base — the one step with
-   content is `μ Y X ∘ T₁ Y f ≈ α⇐ ∘ id ⊗₁ f` — but it is written at `𝔾ᵒ`, and
-   factoring it out is a refactor of two perf-priced Model modules, plus a
-   transport between `Grading^ω` and `gradingᵗ Famᴹ` (same underlying homs,
-   different carried polynomial). That is the next piece of this item.
+   `UC-compose` is reached too, by a shorter route than `UC.Model.Bridge`'s.
+   `UC.Core.Bridge` proves `f ≈ℰᶜ g → f ≈ᵁ g` at ANY monoidal base: the core's
+   `grade-stable` is exactly what `Abstract2.bridge` asks for and cannot get
+   from a bare kernel, and the last step is the unit ancilla, where the two
+   unitor wires cancel. `UC.Model.Family.Uniform` applies it at `Famᴹ` —
+   `Grading^ω` and `gradingᵗ Famᴹ` differ only in the polynomial a relayed hom
+   carries, which an observation projects away, so the transport is the
+   identity — and `uc-compose-agree` composes two family agreements. The one
+   direction still proved only at the model is `≈ᵁ ⇒ ≈ℰᶜ`, which needs
+   `UC.Model.Reading`'s rebracketing; nothing above spends it.
 
 2. **The prefix-tolerant event class** (the obstruction above), after which
    `uc-audit-carry` reaches a probability and the main theorem can charge
