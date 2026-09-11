@@ -31,12 +31,12 @@
 -- witness answers that refutation but leaves the extraction, so the existential
 -- is gone rather than demoted (external theory review, findings 2 and 3).
 --
--- The slack δ is arbitrary and positive rather than zero, and that is what a
--- convexity proof delivers here: a `Dₚ` observation's mass is a supremum over
--- budgets that this layer never forms, so decomposing a context into the
--- finitely many branches a strategy plays leaves a residue that only a positive
--- δ absorbs.  Since `_∼_` — hence `_≈ℰ_` — quantifies over every positive
--- slack anyway, the δ costs a consumer nothing.
+-- The slack δ is arbitrary and positive rather than zero because `_∼_` —
+-- hence `_≈ℰ_` — quantifies over every positive slack anyway, so it costs a
+-- consumer nothing.  The decomposition does not need it: the extraction is
+-- chosen once the observation's budget is known, so no residue is left for a
+-- positive δ to absorb, and `skeleton⇒dominated` spends it on `≈ₚ[]-mono`
+-- alone.
 
 open import Categories.Category using (Category)
 
@@ -77,15 +77,14 @@ ctxRun : {A B : Iface} (Y : Iface)
        → Proc (Y ⊗ᴵ B) Ωᴵ → Proc unitᴵ (Y ⊗ᴵ A) → Proc A B → Dₚ Bool
 ctxRun Y E m f = ⟦ (E 𝒫.∘ T₁ᴵ Y f) 𝒫.∘ m ⟧ᴼ
 
--- Stated and priced.  The proof decomposes the context's activation sequence
--- against a strategy of that budget: a crossing to the plugged interface is an
--- `ask`, a coin is a `coin`, a verdict is an `out`, and the hypothesis is
--- applied branchwise and reassembled by convexity of `Pr≤` in the branch
--- distribution.  It is instance-specific — reading "given this answer, the next
--- query" needs an inspectable step — so it belongs beside `UC.Machine`, not in
--- the abstract layer.  The reference arc prices the two-machine skeleton at
--- ~250 LOC and recommends spiking it before committing.  The decomposition runs
--- once per verdict, `_≈ₚ[_]_` comparing both masses.
+-- Proved in `UC.Machine.Dominated`, by decomposing the context's activation
+-- sequence against a strategy of that budget: a crossing to the plugged
+-- interface is an `ask`, a coin is a `coin`, a verdict is an `out`, and the
+-- hypothesis is applied branchwise and reassembled by convexity of `Pr≤` in
+-- the branch distribution.  It is instance-specific — reading "given this
+-- answer, the next query" needs an inspectable step — so it belongs beside
+-- `UC.Machine`, not in the abstract layer.  The decomposition runs once per
+-- verdict, `_≈ₚ[_]_` comparing both masses.
 ContextDominated : Set₁
 ContextDominated = (B Y : Iface)
                    (E : Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))

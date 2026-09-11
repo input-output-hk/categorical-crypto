@@ -46,10 +46,8 @@ private module MC = Core (𝒱ₚ 0ℓ)
 module _ (B : Iface) (u : Proc unitᴵ B) (d : Strat (Neg B) (Pos B)) where
 
   -- The traced wire carries both polarities of the plugged interface, and the
-  -- paired state is the environment's tree beside the process's own.  Kept
-  -- private: a consumer of this module opens it bare and wants `adequacy`.
-  private
-    open Tick (Neg B ⊎ Pos B) (stateˢ B d MC.⊛ MC.state u) (kᵂ B u)
+  -- paired state is the environment's tree beside the process's own.
+  open Tick (Neg B ⊎ Pos B) (stateˢ B d MC.⊛ MC.state u) (kᵂ B u)
 
   point-red : (x : ⊤ᵛ) → MC.point (stateˢ B d MC.⊛ MC.state u) x
                         ≈ₚ (MC.point (MC.state u) x >>=ₚ λ su → returnₚ (play d , su))

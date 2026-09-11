@@ -21,10 +21,10 @@
 
 open import Data.Bool.Base using (true; false)
 open import Data.Nat.Base using (ℕ; zero; suc) renaming (_+_ to _+ℕ_; _≤_ to _≤ℕ_)
+open import Data.Nat.Properties as ℕP using ()
 open import Data.Product.Base using (Σ-syntax; _,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 0ℚ; 1ℚ)
 open import Data.Rational.Properties as ℚP
-open import Data.Nat.Properties as ℕP using ()
 open import Data.Rational.Solver using (module +-*-Solver)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Level using (Level)
