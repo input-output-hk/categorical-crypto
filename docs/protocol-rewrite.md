@@ -999,6 +999,7 @@ concrete security theorem is held to.
 | `Grade`, `GradedBound` | `UC.Approximate` | the common shape of the two disciplines; `VanishingBound = GradedBound _→0`, `NegligibleBound = GradedBound Negligible` |
 | `→0-+`, `Negligible-+` | `UC.Approximate` | proved: both grades close under sums, which is the whole arithmetic content of the saturation transfer |
 | `_≈negl_` | `UC.Saturated` | `≈adv` with its error witness retained and `NegligibleBound`-graded; an equivalence, and the premise `saturated-respectsᴺ` consumes |
+| `_≈ℰⁿ_` | `UC.Family` | the same move at the family layer: `absorb-negl`'s premise with its `ε` kept. An equivalence (`≈ℰⁿ-refl`/`-sym`/`-trans`) refining `_≈ℰ_` (`≈ℰⁿ⇒≈ℰ`), but NOT wired in as an `Observation`'s `_∼_` — that is a core-interface redesign, specified in the module |
 
 `Negligible` is stated multiplicatively (`p n · s n` still vanishing) rather
 than as `s n ≤ 1/p n`: it is the same condition, it reuses `Poly` and `_→0`

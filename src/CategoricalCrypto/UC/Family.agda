@@ -35,21 +35,22 @@
 -- grades the PREMISE and nothing else.  `_≈ℰ_` is vanishing agreement whichever
 -- grade goes in, so it does not transport a property whose slack must stay
 -- negligible: a bad bit of probability `1/(n+1)` is `≈ℰ`-equal to an
--- always-safe one.  A statement of that kind keeps its error witness instead
--- (`UC.Saturated`'s negligible tier).
+-- always-safe one.  A statement of that kind keeps its error witness instead —
+-- `_≈ℰⁿ_` here, `UC.Saturated._≈negl_` at layer 1.
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly using (Poly; poly-*; poly-const; poly-⊔)
 open import Data.Nat.Properties using (m≤m⊔n; m≤n⊔m; ≤-trans)
 open import Data.Product.Base using (Σ; Σ-syntax; _×_; _,_; proj₁; proj₂)
-open import Data.Rational as ℚ using (ℚ)
+open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Level using (Level; _⊔_)
 
 open import Categories.Category.Core using (Category)
 
 open import CategoricalCrypto.UC.Approximate
-  using ( Approximation; ApproximateObservation; Negligible; NegligibleBound
-        ; NegligibleBound⇒VanishingBound; VanishingBound; ℚ-errors; module Induced )
+  using ( Approximation; ApproximateObservation; Negligible; Negligible-+; Negligible-0
+        ; Negligible⇒→0; NegligibleBound; NegligibleBound⇒VanishingBound; VanishingBound
+        ; ℚ-errors; module Induced )
 open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget)
 open import CategoricalCrypto.UC.Core using (UCBase; Grading; Observation)
 import CategoricalCrypto.UC.Emulation as Em
@@ -269,15 +270,37 @@ absorb-negl : {A B : Obj^ω} {f g : A ⇒^ω B} {ε : ℕ → ℕ → ℚ}
 absorb-negl {A} {B} {f} {g} {ε} bnd neg =
   absorb {A} {B} {f} {g} {ε} bnd (NegligibleBound⇒VanishingBound {ε} neg)
 
--- What reading it back out would take.  The graded agreement is
--- `f ≈ℰ⟨Negligible⟩ g = Σ[ ε ] CarriedNegligible ε × f ≈ℰ[ ε ] g`, the witness
--- retained exactly as `UC.Saturated._≈negl_` retains it at layer 1, and an
--- equivalence for the same reasons (`Negligible-0`, `Negligible-+`, and
--- `≈[]-refl`/`≈[]-sym`/`≈[]-trans` levelwise).  What it is not is the `_∼_` of
--- an `Observation`: `Induced` builds `_∼_` by quantifying an ambient ε AWAY,
--- and a retained witness is the opposite move.  Adopting it therefore means
--- either a second `Observation` on `Fam` carrying that `_∼_`, with every
--- `UC.Emulation` notion re-derived over it (`≤UC` included), or an
--- `Observation` interface parameterized by its grade.  Both are redesigns of
--- the core's observation interface rather than of this module, which is why
--- the consumer-facing negligible tier currently lives at layer 1.
+infix 4 _≈ℰⁿ_
+
+-- Reading the grade back out means not throwing the witness away: `_≈ℰⁿ_` is
+-- `absorb-negl`'s premise with its `ε` KEPT, so a property whose slack must
+-- stay negligible survives it where `_≈ℰ_` loses it.  `UC.Saturated._≈negl_`
+-- is the same move at layer 1.
+_≈ℰⁿ_ : {A B : Obj^ω} → A ⇒^ω B → A ⇒^ω B → Set (o ⊔ ℓ ⊔ ℓa ⊔ qs)
+f ≈ℰⁿ g = Σ[ ε ∈ (ℕ → ℕ → ℚ) ] CarriedNegligible ε × f ≈ℰ[ ε ] g
+
+≈ℰⁿ-refl : {A B : Obj^ω} {f : A ⇒^ω B} → f ≈ℰⁿ f
+≈ℰⁿ-refl = (λ _ _ → 0ℚ) , (λ _ _ _ → Negligible-0) , λ _ _ _ _ → ≈[]-refl
+
+≈ℰⁿ-sym : {A B : Obj^ω} {f g : A ⇒^ω B} → f ≈ℰⁿ g → g ≈ℰⁿ f
+≈ℰⁿ-sym (ε , neg , bnd) = ε , neg , λ Y Et m i → ≈[]-sym (bnd Y Et m i)
+
+≈ℰⁿ-trans : {A B : Obj^ω} {f g h : A ⇒^ω B} → f ≈ℰⁿ g → g ≈ℰⁿ h → f ≈ℰⁿ h
+≈ℰⁿ-trans (ε₁ , neg₁ , bnd₁) (ε₂ , neg₂ , bnd₂) =
+  (λ n q → ε₁ n q ℚ.+ ε₂ n q) , (λ Y Et m → Negligible-+ (neg₁ Y Et m) (neg₂ Y Et m))
+  , λ Y Et m i → ≈[]-trans (bnd₁ Y Et m i) (bnd₂ Y Et m i)
+
+-- It refines the vanishing agreement — `absorb` read at the allowance the
+-- context carries, which is the only allowance either ever evaluates `ε` on.
+≈ℰⁿ⇒≈ℰ : {A B : Obj^ω} {f g : A ⇒^ω B} → f ≈ℰⁿ g → f ≈ℰ g
+≈ℰⁿ⇒≈ℰ (ε , neg , bnd) Y Et m δ δ>0 =
+  let N , hN = Negligible⇒→0 (neg Y Et m) δ δ>0
+  in N , λ i le → ≈[]-mono (hN (κ i) le) (bnd Y Et m i)
+
+-- What is NOT delivered here is an `Observation` whose `_∼_` is `_≈ℰⁿ_`:
+-- `Induced` builds `_∼_` by quantifying an ambient ε AWAY, and retaining the
+-- witness is the opposite move.  That would mean either a second `Observation`
+-- on `Fam` carrying this relation, with every `UC.Emulation` notion re-derived
+-- over it (`≤UC` included), or an `Observation` interface parameterized by its
+-- grade — redesigns of the core's observation interface rather than of this
+-- module, which is why the negligible tier consumers use lives at layer 1.
