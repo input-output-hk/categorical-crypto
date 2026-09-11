@@ -69,7 +69,10 @@ family:
 | `TruthfulAudit a V Real badReal` | `Trajectory.monitor-complete`, generic in the hash: an audit query is answered out of the LEDGER's state whatever it hashes with, so the ideal side's argument is the real side's verbatim |
 
 Nothing else about the hash enters, which is the point: the corollary is the
-slides' claim, with the emulation the only cryptographic premise left.
+slides' claim, with the emulation the only cryptographic premise left. It is
+assumed at the LEDGER (`Real ≤UC^ω Ideal a V`) and not at the hash, because
+getting it from a hash-level `hash n ≤UC oracle n` is `UC-compose` at the family
+setup — continuation item 1 below.
 
 ## Acceptance requirements
 
@@ -201,7 +204,7 @@ In priority order.
 | `Examples.ChimericLedger.Total` | 47 | 9 s |
 | `Examples.ChimericLedger.Schedule` | 127 | 10 s |
 | `Examples.ChimericLedger.EndToEnd` | 147 | 17 s |
-| `Examples.ChimericLedger.Real` | 88 | 11 s |
+| `Examples.ChimericLedger.Real` | 93 | 11 s |
 
 Additive edits to existing modules: `POV.asks≤-audited` (the instrumentation's
 allowance cost, beside `audited`); `Carry.Emulᵁᶜ`/`emulᵁᶜ`/`pov-carryᵁᶜ` (the

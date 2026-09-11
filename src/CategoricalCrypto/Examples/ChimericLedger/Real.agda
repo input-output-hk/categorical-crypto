@@ -25,12 +25,17 @@
 --                   (`ChimericLedger.Trajectory.monitor-complete`)
 --
 -- What is assumed about the hash is therefore only `NoDeadStep` and the
--- emulation; nothing here is specific to a construction.  A named instance
--- (Merkle–Damgård, say) does not fit yet: `Examples.MerkleDamgard`'s ideal
--- interface hashes FIXED-length messages (`RandomOracle 1 (Vec Bool (k * n)) n`)
--- where the ledger's hashes bitstrings, so plugging it in wants a padding
--- adapter and its own emulation proof — a cryptographic-construction
--- obligation, which `docs/end-to-end.md` places outside this scope.
+-- emulation; nothing here is specific to a construction.  The emulation is
+-- assumed at the LEDGER, not at the hash: deriving it from a hash-level
+-- `hash n ≤UC oracle n` is `UC-compose` at the family setup, which
+-- `docs/end-to-end.md`'s continuation item 1 still owes.
+--
+-- A named instance (Merkle–Damgård, say) does not fit yet either:
+-- `Examples.MerkleDamgard`'s ideal interface hashes FIXED-length messages
+-- (`RandomOracle 1 (Vec Bool (k * n)) n`) where the ledger's hashes
+-- bitstrings, so plugging it in wants a padding adapter and its own emulation
+-- proof — a cryptographic-construction obligation, which the same document
+-- places outside this scope.
 
 open import Data.Bool.Base using (Bool)
 open import Data.List.Base using (List)
