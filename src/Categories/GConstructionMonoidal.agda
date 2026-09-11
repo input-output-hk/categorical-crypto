@@ -43,6 +43,8 @@ module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
       open U.Shorthands M public
       open import Categories.Category.Monoidal.Reasoning M public
         using (⊗-distrib-over-∘; _⟩⊗⟨_)
+      open import Categories.Morphism.Reasoning C public
+        using (pullˡ; pullʳ; cancelʳ)
       open BProps.Shorthands braided public
 
     Cˢ : SymmetricMonoidalCategory a b c
@@ -53,7 +55,7 @@ module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
 
   open C.HomReasoning
   open E₀ using (⌜_,_⌝; ⌜⌝-resp-≈)
-  open W using (α; β; γ; mid)
+  open W using (α; β; γ; mid; mid-involutive; mid-natural; mid-σ)
 
   _⊗₀ᴳ_ : C.Obj × C.Obj → C.Obj × C.Obj → C.Obj × C.Obj
   (A⁺ , A⁻) ⊗₀ᴳ (B⁺ , B⁻) = A⁺ C.⊗₀ B⁺ , A⁻ C.⊗₀ B⁻
@@ -77,12 +79,17 @@ module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
                  f C.≈ f' → g C.≈ g' → f ⊗₁ᴳ g C.≈ f' ⊗₁ᴳ g'
     ⊗₁ᴳ-resp-≈ e₁ e₂ = refl⟩∘⟨ ((e₁ C.⟩⊗⟨ e₂) ⟩∘⟨refl)
 
-    -- Embedding is monoidal.
+    -- Embedding is monoidal: `mid-σ` absorbs the two embeddings' braidings
+    -- into the one the answer carries, `mid-natural` commutes the four boxes
+    -- past `mid`, and the two copies that leaves cancel.
     ⌜⌝-⊗ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ : C.Obj}
              {u : A⁺ C.⇒ B⁺} {v : B⁻ C.⇒ A⁻} {p : D⁺ C.⇒ E⁺} {q : E⁻ C.⇒ D⁻} →
            ⌜ u , v ⌝ ⊗₁ᴳ ⌜ p , q ⌝ C.≈ ⌜ u C.⊗₁ p , v C.⊗₁ q ⌝
-    ⌜⌝-⊗ {A⁺} {A⁻} {B⁺} {B⁻} {D⁺} {D⁻} {E⁺} {E⁻} {u} {v} {p} {q} =
-      TCoh.T.Transport.WithGens.TX Cˢ A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ u v p q
+    ⌜⌝-⊗ = refl⟩∘⟨ (C.⊗-distrib-over-∘ ⟩∘⟨refl)
+         ○ C.pullˡ (C.pullˡ mid-σ)
+         ○ (C.pullʳ mid-natural ⟩∘⟨refl)
+         ○ C.assoc
+         ○ refl⟩∘⟨ C.cancelʳ mid-involutive
 
   module _ (trace-resp-≈ : ∀ {X A B} {f g : A C.⊗₀ X C.⇒ B C.⊗₀ X} →
                            f C.≈ g → C.trace f C.≈ C.trace g)

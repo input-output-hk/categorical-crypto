@@ -17,24 +17,19 @@
 
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Monad.Discrete using (DiscreteMonad)
 import Categories.Category.Kleisli.Discrete as KD
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.GConstructionEmbedding as GE
 
-open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
+open import Data.Product.Base using (_,_)
 open import Data.Sum.Base as Sum using (_⊎_)
 open import Level using (0ℓ)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-
-open import ProbabilisticLogic.Dp
-open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Pure using (pure-idᵏ; +₁-pureᵏ)
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Dictionary
-  using (enter-pure; pureᴵ; pure-idᵏ; +₁-pureᵏ; wire-⌜⌝)
+open import CategoricalCrypto.UC.Machine.Dictionary using (wire-⌜⌝)
 
 import CategoricalCrypto.Machines.Category as MCat
 import CategoricalCrypto.Machines.Core as Core
@@ -46,6 +41,10 @@ import CategoricalCrypto.Machines.Trace.Naturality as Nat
 
 module CategoricalCrypto.UC.Machine.Wire where
 
+-- Re-exported: `UC.Machine.Slide` reaches `sandwichᴹ`/`sandwich-∘` through
+-- its bare `open import … Wire`.
+open import CategoricalCrypto.Machines.Sandwich public
+
 private
   module ℳ = SymmetricMonoidalCategory (ℳₚ 0ℓ)
   module 𝒱 = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
@@ -56,46 +55,12 @@ private
   module R = MT.Remaining (Remainingₚ 0ℓ)
 
 open Core (𝒱ₚ 0ℓ)
-open DiscreteMonad (Dₚ-DiscreteMonad {0ℓ})
-  using (>>=-cong-x; >>=-cong-f) renaming (module ≈ᴹ to ≈ᵈ)
 open KD (Dₚ-DiscreteMonad {0ℓ}) using (pureᵏ)
 open MD.MonoidalDistributive (distₚ 0ℓ) using (_+₁_)
 open MCat (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ) using (∘ᴹ-resp-≈ᴹ)
 open Sim (𝒱ₚ 0ℓ)  (𝒫ₚ 0ℓ)
 open Struct (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) using (⊗ᵉ-pureˡ; ⊗ᵉ-pureʳ)
 open Tensor (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ)
-
-open import Categories.Category.Monoidal.Reasoning 𝒱.monoidal using (refl⟩⊗⟨_)
-
-------------------------------------------------------------------------
--- The shape a wire's absorption leaves
-
--- The machine `f` with its interface renamed: `i` on the way in, `o` on the
--- way out, `f`'s own state kept.
-sandwichᴹ : {X Y X′ Y′ : Set} → Machine X Y → (X′ → X) → (Y → Y′) → Machine X′ Y′
-sandwichᴹ f i o = mk (state f)
-  λ p → mapₚ (λ q → proj₁ q , o (proj₂ q)) (step f (proj₁ p , i (proj₂ p)))
-
--- Relabelling under a `mapₚ`, and fusing two of them: the two shapes every
--- comparison of sandwiches bottoms out in.
-ret≡ : {X : Set} {x y : X} → x ≡ y → returnₚ x ≈ₚ returnₚ y
-ret≡ refl = ≈refl
-
-map-fuse : {X Y Z : Set} (d : Dₚ X) (h : X → Y) (k : Y → Z) (l : X → Z)
-         → ((x : X) → k (h x) ≡ l x) → mapₚ k (mapₚ h d) ≈ₚ mapₚ l d
-map-fuse d h k l eq =
-  >>=ₚ-assoc d _ _ ⟨≈⟩ bindᶠ λ x → >>=ₚ-identityˡ (h x) _ ⟨≈⟩ ret≡ (eq x)
-
--- Two renamings in a row are one.
-sandwich-∘ : {X Y X′ Y′ X″ Y″ : Set} (f : Machine X Y)
-             (i : X′ → X) (o : Y → Y′) (i′ : X″ → X′) (o′ : Y′ → Y″)
-           → sandwichᴹ (sandwichᴹ f i o) i′ o′
-             ≈ᴹ sandwichᴹ f (λ x → i (i′ x)) (λ y → o′ (o y))
-sandwich-∘ f i o i′ o′ = ≲⇒≈ᴹ (mk-cong pt)
-  where
-  pt : (p : _) → _
-  pt (s , x) = >>=ₚ-assoc (step f (s , i (i′ x))) _ _
-         ⟨≈⟩ bindᶠ λ q → >>=ₚ-identityˡ (proj₁ q , o (proj₂ q)) _
 
 ------------------------------------------------------------------------
 -- Absorption
@@ -123,29 +88,6 @@ private
 
   idʳ-pure : {V W V′ : Set} (h : V → W) → 𝒱._≈_ (pureᵏ h +₁ 𝒱.id {V′}) (pureᵏ (Sum.map h (λ v → v)))
   idʳ-pure h = +₁-pureᵏ (𝒱.Equiv.refl {x = pureᵏ h}) pure-idᵏ
-
-  -- The pointwise content of both absorptions: a machine between two pure
-  -- interface relabellings is that machine, renamed.
-  squeeze : {X Y X′ Y′ : Set} (f : Machine X Y) (h : X′ → X) (k : Y → Y′)
-            {H : 𝒱._⇒_ X′ X} {K : 𝒱._⇒_ Y Y′}
-          → 𝒱._≈_ H (pureᵏ h) → 𝒱._≈_ K (pureᵏ k)
-          → mk (state f) (𝒱._∘_ (𝒱._⊗₁_ 𝒱.id K) (𝒱._∘_ (step f) (𝒱._⊗₁_ 𝒱.id H)))
-            ≈ᴹ sandwichᴹ f h k
-  squeeze f h k {H} {K} eH eK = ≲⇒≈ᴹ (mk-cong pt)
-    where
-    -- Both paddings are ascribed: left to inference, the identity factor of
-    -- `refl⟩⊗⟨` is a meta the Kleisli `return` blocks.
-    padH : 𝒱._≈_ (𝒱._⊗₁_ (𝒱.id {St f}) H) (𝒱._⊗₁_ (𝒱.id {St f}) (pureᵏ h))
-    padH = refl⟩⊗⟨ eH
-
-    padK : 𝒱._≈_ (𝒱._⊗₁_ (𝒱.id {St f}) K) (𝒱._⊗₁_ (𝒱.id {St f}) (pureᵏ k))
-    padK = refl⟩⊗⟨ eK
-
-    pt : (p : _) → _
-    pt (s , x) =
-      ≈ᵈ.trans (>>=-cong-x (≈ᵈ.trans (>>=-cong-x (padH (s , x)))
-                                     (enter-pure h (step f) s x)))
-               (>>=-cong-f λ q → ≈ᵈ.trans (padK q) (pureᴵ k q))
 
 ------------------------------------------------------------------------
 -- Composing with a wire

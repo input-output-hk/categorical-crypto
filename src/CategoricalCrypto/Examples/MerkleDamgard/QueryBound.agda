@@ -51,7 +51,7 @@ open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.UC.Machine using (Proc)
 open import CategoricalCrypto.UC.QueryBound
 
-import CategoricalCrypto.Machines.Collapse as Col
+import CategoricalCrypto.Machines.Pointwise as Col
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 

@@ -11,12 +11,16 @@
 -- once `absorbˡ`/`absorbʳ` have collapsed the loop of a composite with a
 -- structural G-morphism, every obligation below is a base-level equation.
 --
---   T.TX : mid ∘ ⌜u,v⌝ ⊗ ⌜p,q⌝ ∘ mid ≈ ⌜ u ⊗ p , v ⊗ q ⌝   (⌜_,_⌝ is monoidal)
 --   U.UL / U.UR : the two unitor naturality squares
 --   A.AC        : the associator naturality square
 --
 -- One signature per residue: an interpretation is total on its generators, so
 -- a caller may only be asked for the morphisms its own law mentions.
+--
+-- The third residue, "`⌜_,_⌝` is monoidal", is NOT here: it is
+-- `GConstructionMonoidal.⌜⌝-⊗`, proved from `mid`'s upstream interchange
+-- lemmas (`GConstructionTrace.mid-σ`/`-natural`/`-involutive`) rather than
+-- by a solver call.
 --------------------------------------------------------------------------------
 
 module Categories.GConstructionTensorCoherence where
@@ -39,71 +43,6 @@ import Categories.APROP.Hypergraph.Solver.Frontend as Interp
 
 private instance S≤S : Symm ≤ Symm
                  S≤S = v≤v
-
---------------------------------------------------------------------------------
--- `⌜_,_⌝` is monoidal: four generators, one for each leg of the two embeddings.
-
-module T where
-
-  open FreeMonoidalHelper Symm (Fin 8) using (ObjTerm; Var; _⊗₀_)
-
-  a⁺ a⁻ b⁺ b⁻ d⁺ d⁻ e⁺ e⁻ : ObjTerm
-  a⁺ = Var 0F ; a⁻ = Var 1F ; b⁺ = Var 2F ; b⁻ = Var 3F
-  d⁺ = Var 4F ; d⁻ = Var 5F ; e⁺ = Var 6F ; e⁻ = Var 7F
-
-  data Mor : ObjTerm → ObjTerm → Set where
-    gu : Mor a⁺ b⁺
-    gv : Mor b⁻ a⁻
-    gp : Mor d⁺ e⁺
-    gq : Mor e⁻ d⁻
-
-  _≟-Mor_ : ∀ {A B} → DecidableEquality (Mor A B)
-  gu ≟-Mor gu = yes refl
-  gv ≟-Mor gv = yes refl
-  gp ≟-Mor gp = yes refl
-  gq ≟-Mor gq = yes refl
-
-  sig : APROPSignature
-  sig = record { X = Fin 8 ; mor = Mor ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-Mor_ }
-
-  open APROP sig using (HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_)
-
-  midᵗ : ∀ {P Q R S} → HomTerm ((P ⊗₀ Q) ⊗₀ (R ⊗₀ S)) ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S))
-  midᵗ = α⇐ ∘ id ⊗₁ (α⇒ ∘ σ ⊗₁ id ∘ α⇐) ∘ α⇒
-
-  lhs rhs : HomTerm ((a⁺ ⊗₀ d⁺) ⊗₀ (b⁻ ⊗₀ e⁻)) ((a⁻ ⊗₀ d⁻) ⊗₀ (b⁺ ⊗₀ e⁺))
-  lhs = midᵗ ∘ (σ ∘ Agen gu ⊗₁ Agen gv) ⊗₁ (σ ∘ Agen gp ⊗₁ Agen gq) ∘ midᵗ
-  rhs = σ ∘ (Agen gu ⊗₁ Agen gp) ⊗₁ (Agen gv ⊗₁ Agen gq)
-
-  open import Categories.APROP.Hypergraph.Solver.Split sig
-    using () renaming (solveTerm!ᵀ to solve!)
-
-  coh : lhs ≈Term rhs
-  coh = solve! lhs rhs refl
-
-  private module IM = Interp sig
-
-  module Transport {o ℓ e : Level} (C : SymmetricMonoidalCategory o ℓ e)
-    (let module C = SymmetricMonoidalCategory C)
-    (A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ : C.Obj)
-    where
-
-    ⟦_⟧ᵖ₀ : Fin 8 → C.Obj
-    ⟦ 0F ⟧ᵖ₀ = A⁺ ; ⟦ 1F ⟧ᵖ₀ = A⁻ ; ⟦ 2F ⟧ᵖ₀ = B⁺ ; ⟦ 3F ⟧ᵖ₀ = B⁻
-    ⟦ 4F ⟧ᵖ₀ = D⁺ ; ⟦ 5F ⟧ᵖ₀ = D⁻ ; ⟦ 6F ⟧ᵖ₀ = E⁺ ; ⟦ 7F ⟧ᵖ₀ = E⁻
-
-    module OI = IM.ObjInterp C ⟦_⟧ᵖ₀
-
-    module WithGens (u₀ : A⁺ C.⇒ B⁺) (v₀ : B⁻ C.⇒ A⁻)
-                    (p₀ : D⁺ C.⇒ E⁺) (q₀ : E⁻ C.⇒ D⁻) where
-
-      ⟦_⟧ᵖ₁ : ∀ {x y} → Mor x y → OI.⟦ x ⟧₀ C.⇒ OI.⟦ y ⟧₀
-      ⟦ gu ⟧ᵖ₁ = u₀ ; ⟦ gv ⟧ᵖ₁ = v₀ ; ⟦ gp ⟧ᵖ₁ = p₀ ; ⟦ gq ⟧ᵖ₁ = q₀
-
-      open IM.Solver C ⟦_⟧ᵖ₀ ⟦_⟧ᵖ₁
-
-      TX : ⟦ lhs ⟧₁ C.≈ ⟦ rhs ⟧₁
-      TX = Functor.F-resp-≈ freeFunctor coh
 
 --------------------------------------------------------------------------------
 -- The two unitor naturality squares, absorbed: one generator, and the unit

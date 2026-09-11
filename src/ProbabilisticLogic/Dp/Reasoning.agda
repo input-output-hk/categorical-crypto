@@ -9,6 +9,7 @@
 
 open import Function.Base using (_∘′_)
 open import Level using (Level)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 open import ProbabilisticLogic.Dp
 
@@ -47,6 +48,16 @@ map-map d h k = >>=ₚ-assoc d (returnₚ ∘′ h) (returnₚ ∘′ k)
 
 map-arg : {d e : Dₚ A} (h : A → B) → d ≈ₚ e → mapₚ h d ≈ₚ mapₚ h e
 map-arg h de = bindˣ de
+
+ret≡ : {x y : A} → x ≡ y → returnₚ x ≈ₚ returnₚ y
+ret≡ refl = ≈refl
+
+map-eq : (d : Dₚ A) (k l : A → B) → ((x : A) → k x ≡ l x) → mapₚ k d ≈ₚ mapₚ l d
+map-eq d k l eq = bindᶠ λ x → ret≡ (eq x)
+
+map-fuse : (d : Dₚ A) (h : A → B) (k : B → C) (l : A → C)
+         → ((x : A) → k (h x) ≡ l x) → mapₚ k (mapₚ h d) ≈ₚ mapₚ l d
+map-fuse d h k l eq = map-map d h k ⟨≈⟩ map-eq d (k ∘′ h) l eq
 
 bind-map : (d : Dₚ A) (h : A → B) (k : B → Dₚ C) → (mapₚ h d >>=ₚ k) ≈ₚ (d >>=ₚ (k ∘′ h))
 bind-map d h k = >>=ₚ-assoc d (returnₚ ∘′ h) k ⟨≈⟩ bindᶠ (λ x → >>=ₚ-identityˡ (h x) k)

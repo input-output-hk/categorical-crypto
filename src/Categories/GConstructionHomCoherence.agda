@@ -21,7 +21,10 @@
 --   ob-in  : Lⁱⁿ ≈ mid ∘ Rⁱⁿ            (no generators)
 --
 -- paste into `coh` by congruence, with the re-bracketings bridged by the
--- pure-assoc respelling `stepR!` (no solver leaf).
+-- pure-assoc respelling `stepR!` (no solver leaf).  `ob-nat`, the only one
+-- carrying generators, is not solved either: `midᵗ` is upstream's
+-- `swapInner.from`, so it is `swapInner-natural` followed by
+-- `swapInner-commutative`.
 --------------------------------------------------------------------------------
 
 module Categories.GConstructionHomCoherence where
@@ -30,6 +33,7 @@ open import Level
 
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Symmetric using (Symmetric)
 open import Categories.Functor using (Functor)
 open import Data.Fin using (Fin; suc)
 open import Data.Fin.Patterns
@@ -42,6 +46,8 @@ open import Categories.APROP
 open import Categories.FreeMonoidal
 
 import Categories.APROP.Hypergraph.Solver.Frontend as Interp
+import Categories.Category.Monoidal.Interchange.Braided as IB
+import Categories.Category.Monoidal.Interchange.Symmetric as IS
 
 private instance S≤S : Symm ≤ Symm
                  S≤S = v≤v
@@ -72,10 +78,12 @@ sig : APROPSignature
 sig = record { X = Fin 12 ; mor = Mor ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-Mor_ }
 
 open APROP sig
-  using (FreeMonoidal; HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_)
+  using (FreeMonoidal; Symmetric-Monoidal; HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐;
+         _≈Term_)
 
 open import Categories.APROP.Hypergraph.Solver.Split sig
   using () renaming (stepSplitR! to stepR!; solveTerm!ᵀ to solve!)
+open import Categories.Morphism.Reasoning FreeMonoidal using (pullˡ; cancelʳ)
 
 open Category.HomReasoning FreeMonoidal using (_○_; _⟩∘⟨_; _⟩∘⟨refl; refl⟩∘⟨_)
 
@@ -88,6 +96,8 @@ open Category.HomReasoning FreeMonoidal using (_○_; _⟩∘⟨_; _⟩∘⟨ref
      HomTerm ((A⁺ ⊗₀ C⁻) ⊗₀ (B⁻ ⊗₀ B⁺)) ((B⁺ ⊗₀ C⁻) ⊗₀ (A⁺ ⊗₀ B⁻))
 γᵗ = α⇒ ∘ σ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ (σ ⊗₁ id) ∘ id ⊗₁ α⇐ ∘ α⇒ ∘ id ⊗₁ σ
 
+-- Upstream's `swapInner.from` at the free SMC, so that its interchange lemmas
+-- read off `midᵗ` directly (see `GConstructionTrace.mid`).
 midᵗ : ∀ {P Q R S} → HomTerm ((P ⊗₀ Q) ⊗₀ (R ⊗₀ S)) ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S))
 midᵗ = α⇐ ∘ id ⊗₁ (α⇒ ∘ σ ⊗₁ id ∘ α⇐) ∘ α⇒
 
@@ -137,7 +147,8 @@ ob-in : Lin ≈Term (midᵗ ∘ Rin)
 ob-in = solve! Lin (midᵗ ∘ Rin) refl
 
 ob-nat : (midᵗ ∘ BoxL ∘ midᵗ) ≈Term BoxR
-ob-nat = solve! (midᵗ ∘ BoxL ∘ midᵗ) BoxR refl
+ob-nat = pullˡ (IB.swapInner-natural (Symmetric.braided Symmetric-Monoidal))
+       ○ cancelʳ (IS.swapInner-commutative Symmetric-Monoidal)
 
 coh : lhs ≈Term rhs
 coh = stepR! lhs (Lout ∘ BoxL ∘ Lin) refl
