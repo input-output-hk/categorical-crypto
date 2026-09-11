@@ -134,6 +134,23 @@ round-1 entries of its own, all still standing and not re-litigated here.
   `run⊥-embed-gen` was eta-reduced this round and it was not; rule 13: three `∎` on
   their own line, in two files that elsewhere use the on-line form.
 
+- `d3a9d33b` **Take the two Maybe absurdities and the length-of-toList from the
+  library** — rule 30, three swaps in `MerkleDamgard.Core`. `len-toList` and
+  `toList-len` were the *same lemma declared twice in one file*, 480 lines apart, and
+  both are `Data.Vec.Properties.length-toList`, which the sibling
+  `MerkleDamgard.QueryBound` already imports. `nothing≢just` and `just≢nothing` are
+  already in this repo, public, in `Data/Maybe/Ext` — Core spelled them `→ ⊥` where
+  `Ext` spells `_≢_`, the same type by definition, so the ten call sites are
+  unchanged. `MerkleDamgard.Core`'s warm cost is unchanged at 35 s.
+
+- `a237de1c` **Four one-liners: three from the library, one from the goal** — rule 30:
+  `Uniform.Birthday.square` is `Data.Nat.Properties.*-suc` then `+-comm` (since
+  `1 ℕ.+ q` IS `suc q`), and `UC.Machine.Slide`'s `where`-local `_⟨trans⟩_` is
+  `PropositionalEquality.trans`, `Set`-monomorphic, with no clash among that file's 30
+  opens. Rules 12/14/17/18: `Dp.Zero.≈bot⇒zero`'s single-branch `with` becomes a `let`
+  (the shape round 1 landed for `≤UC⁺⇒≤UC`), and `RationalDist.Advantage.adv⊥-≈⇒0`
+  binds its argument on the left instead of opening with `λ e →`.
+
 ## Suggestions (need your call)
 
 ### Statement audit
@@ -698,19 +715,14 @@ round-1 entries of its own, all still standing and not re-litigated here.
   blocks the brief named (`a2cdc2ca`); this second half touches a module whose header
   says it is at its measured typechecking budget, so it wants a before/after
   measurement, not a swap.
-- `src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda` — **eleven verified
-  rule-30 one-liners, with a recipe for each.** Each stdlib source below was located on
-  disk and read; each pair of statements was compared:
-  `len-toList` (684) **and** `toList-len` (1310) are the *same lemma declared twice in
-  one file*, and both are `Data.Vec.Properties.length-toList`
-  (stdlib-2.3, `Data/Vec/Properties.agda:1267`), which the sibling
-  `MerkleDamgard/QueryBound.agda:39` already imports; `∨-true` (948) is
+- `src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda` — **seven more verified
+  rule-30 one-liners** (four of the original eleven landed; see *Committed*). Each
+  stdlib source below was located on disk and read; each pair of statements was
+  compared: `∨-true` (948) is
   `Data.Bool.Properties.∨-zeroʳ` (`:267`); `∨-false` (1023) is `∨-identityʳ` (`:257`);
   `just-inj` (1032) is `Data.Maybe.Properties.just-injective` (`:39`), which
-  `ChimericLedger/Value.agda:31` already imports; `nothing≢just` (1035) and
-  `just≢nothing` (1105) are **already in this repo**, public, in
-  `src/Data/Maybe/Ext.agda:26,29`, with `_≢_` where Core spells `→ ⊥` (definitionally
-  the same); `suc∸1` (688) is `Data.Nat.Properties.suc-pred` (`:1754`, and
+  `ChimericLedger/Value.agda:31` already imports; `suc∸1` (688) is
+  `Data.Nat.Properties.suc-pred` (`:1754`, and
   `pred n = n ∸ 1` by definition); `0≤ε` (585-589) is
   `ProbabilisticLogic.Distribution.Uniform.0≤inv-pow-2 n` (`:132`), from a module Core
   already imports — replacing a six-line derivation through `P-uniform-Vec`/`E-const`/
@@ -719,9 +731,11 @@ round-1 entries of its own, all still standing and not re-litigated here.
   `Algebra.Properties.CommutativeSemigroup`'s `interchange` / `x∙yz≈y∙xz` at ℚ's `+`,
   the exact pair round 1 committed at `6a70b955` — copy the import verbatim from
   `Dp/Commutative.agda:28-30` (ℚ has `+-0-commutativeMonoid`, not a bare
-  `+-commutativeSemigroup`). I did not land these: they are eleven edits in a
-  1826-LOC module with three importers, and I ran out of gate time, not out of
-  confidence. One check settles the batch.
+  `+-commutativeSemigroup`). These seven are left because each needs an import the file
+  does not already have — `Data.Bool.Properties`, `Data.Maybe.Properties`, the
+  `Algebra.Properties.CommutativeSemigroup` instantiation at ℚ — and adding three
+  imports to a 1826-LOC module with three importers is one deliberate batch with one
+  check, not an end-of-session addendum.
 - `src/ProbabilisticLogic/Dp/Mass.agda :: cum-add` and
   `src/ProbabilisticLogic/Dp/Dominate.agda :: cum-zero` — exact re-derivations of
   `Dp/Commutative.agda`'s public `cum-test-+` and `cum-test-0` (and `Mass.leafₚ-add`
@@ -819,16 +833,13 @@ round-1 entries of its own, all still standing and not re-litigated here.
   `cert : HitCert Sys₀ Bad εbirthday`, so a downstream reader cannot name the system or
   the bad event the certificate is about — `cert` is effectively unusable outside the
   file while `target` is fine. Rule 32 leans public; they are three-line abbreviations.
-- **Seven more verified one-liners I ran out of gate time for**, each grep-checked
-  against the definition it replaces, each a single site:
+- **Three more verified one-liners, not landed** (the other four did — see
+  *Committed*), each grep-checked against the definition it replaces, each one site:
   `src/ProbabilisticLogic/Dp/Mass.agda :: mapₚ-≼ᵐ` (199-204) — the five-line
   `cum-cong-P`/`>>=ₚ-boundB` sandwich is `Dp.Iter.mapₚ-cum`'s *equality* directly:
   `mapₚ-≼ᵐ d h n = suc n , ≤-reflexive (sym (mapₚ-cum n h d (λ _ → 1ℚ)))`; no cycle
-  (`Dp.Iter` imports only `Dp` + stdlib).
-  `src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda :: square` (78-81) —
-  `trans (ℕₚ.*-suc q q) (ℕₚ.+-comm q (q ℕ.* q))`, since `1 ℕ.+ q` is `suc q`
-  (`Data/Nat/Properties.agda:762`).
-  `…/Uniform/Birthday.agda :: 0≤scaled` (31-33) — is
+  (`Dp.Iter` imports only `Dp` + stdlib), but it does add an import.
+  `src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda :: 0≤scaled` (31-33) — is
   `Data.Rational.Properties.Ext.0≤*` (`Ext.agda:50`) at
   `0≤fromℕ m` and `0≤inv-pow-2 n`; needs the `Ext` import, after which `*-zeroˡ` drops
   from the line-17 `using` list.
@@ -836,15 +847,6 @@ round-1 entries of its own, all still standing and not re-litigated here.
   lines above (`Prᵇ⊥ b μ = E⊥ μ (indᵇ b)`); it is the same term, and the comment at
   line 90 (`` `Pr₁⊥` is `E⊥` at the verdict indicator, on the nose. ``) then restates
   what the code shows and goes with it.
-  `…/RationalDist/Advantage.agda :: adv⊥-≈⇒0` (44) — `adv⊥-≈⇒0 {μ} = λ e → …` should
-  bind `e` on the left (rules 14/17).
-  `src/ProbabilisticLogic/Dp/Zero.agda :: ≈bot⇒zero` (41-42) — the single-branch
-  `with le P nn n` / `... | m , bd =` is a one-line `let`, the same shape round 1
-  committed at `faa2ffb9` for `≤UC⁺⇒≤UC`.
-  `src/CategoricalCrypto/UC/Machine/Slide.agda :: budget` (183-190) — the local
-  `_⟨trans⟩_ : x ≡ y → y ≡ z → x ≡ z` with `refl ⟨trans⟩ q = q` is
-  `Relation.Binary.PropositionalEquality.trans`, `Set`-monomorphic; the use site is at
-  ℕ, and `trans` clashes with nothing in that file's opens. −5 lines.
   Related, same class, needing one more grep than I could run:
   `src/CategoricalCrypto/UC/Machine/Dominated.agda :: ε≤ε+δ` (191-192) uses five `ℚP.`
   prefixes where `Data.Rational.Properties` is bare-opened on line 33 and the same
