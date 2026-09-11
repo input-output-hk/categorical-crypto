@@ -55,6 +55,12 @@ indᵇ-nn true  false = ≤-refl
 indᵇ-nn false true  = ≤-refl
 indᵇ-nn false false = 0≤1ℚ
 
+-- The other verdict weighs nothing, which is what lets a construction that
+-- answers it stand in for divergence (`UC.Seam.Extract`'s truncation).
+indᵇ-not : (b : Bool) → indᵇ b (not b) ≡ 0ℚ
+indᵇ-not true  = refl
+indᵇ-not false = refl
+
 Pr≤-mono : {n m : ℕ} (b : Bool) (d : Dₚ Bool) → n ≤ℕ m → Pr≤[ b ] n d ℚ.≤ Pr≤[ b ] m d
 Pr≤-mono b d le = cum-mono le d (indᵇ b) (indᵇ-nn b)
 

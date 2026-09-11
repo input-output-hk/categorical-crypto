@@ -7,6 +7,7 @@
 -- it is about; passed implicitly they get stranded as metas.  These wrappers pin
 -- the subjects from the goal instead, so a chain reads as a chain.
 
+open import Function.Base using (_∘′_)
 open import Level using (Level)
 
 open import ProbabilisticLogic.Dp
@@ -15,7 +16,7 @@ module ProbabilisticLogic.Dp.Reasoning where
 
 private variable
   a : Level
-  A B : Set a
+  A B C : Set a
 
 infixr 5 _⟨≈⟩_
 
@@ -39,3 +40,14 @@ bindˣ {d = d} {e} {k} h = >>=ₚ-cong d e k k h λ _ → ≈refl
 -- `>>=ₚ-identityˡ` read backwards: introduce a junction.
 push : (k : A → Dₚ B) (x : A) → k x ≈ₚ (returnₚ x >>=ₚ k)
 push k x = ≈sym (>>=ₚ-identityˡ x k)
+
+-- The three `mapₚ` laws in the same idiom.
+map-map : (d : Dₚ A) (h : A → B) (k : B → C) → mapₚ k (mapₚ h d) ≈ₚ mapₚ (k ∘′ h) d
+map-map d h k = >>=ₚ-assoc d (returnₚ ∘′ h) (returnₚ ∘′ k)
+          ⟨≈⟩ bindᶠ (λ x → >>=ₚ-identityˡ (h x) (returnₚ ∘′ k))
+
+map-arg : {d e : Dₚ A} (h : A → B) → d ≈ₚ e → mapₚ h d ≈ₚ mapₚ h e
+map-arg h de = bindˣ de
+
+bind-map : (d : Dₚ A) (h : A → B) (k : B → Dₚ C) → (mapₚ h d >>=ₚ k) ≈ₚ (d >>=ₚ (k ∘′ h))
+bind-map d h k = >>=ₚ-assoc d (returnₚ ∘′ h) k ⟨≈⟩ bindᶠ (λ x → >>=ₚ-identityˡ (h x) k)

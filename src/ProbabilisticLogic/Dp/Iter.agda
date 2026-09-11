@@ -119,10 +119,16 @@ mutual
   leafᵢ-unfold-≤ n u (inj₁ (s , inj₂ p)) P nn = ≤-refl
   leafᵢ-unfold-≤ n u (inj₂ x′)           P nn = unfold-≤-stepᵢ n u x′ P nn
 
+-- A pass of the loop taken from an arbitrary pending output, not only from a
+-- body application: a consumer that has already read the body off needs the
+-- unfolding there (`UC.Seam.Transfer`).
+stepᵢ-unfold : (u : Body S A B) (x : Dₚ (S × (B ⊎ A))) → stepᵢ u x ≈ₚ (x >>=ₚ contᵢ u)
+stepᵢ-unfold u x =
+    (λ P nn n → suc n , stepᵢ-≤-unfold n u x P nn)
+  , λ P nn n → n , unfold-≤-stepᵢ n u x P nn
+
 iterₚ-fix : (u : Body S A B) (sa : S × A) → iterₚ u sa ≈ₚ (u sa >>=ₚ contᵢ u)
-iterₚ-fix u sa =
-    (λ P nn n → suc n , stepᵢ-≤-unfold n u (u sa) P nn)
-  , λ P nn n → n , unfold-≤-stepᵢ n u (u sa) P nn
+iterₚ-fix u sa = stepᵢ-unfold u (u sa)
 
 ------------------------------------------------------------------------
 -- The loop sandwich
