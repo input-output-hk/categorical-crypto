@@ -14,15 +14,12 @@
 -- which the bridge's arbitrary positive slack "costs a consumer nothing" — no
 -- step of the reduction needs it.
 --
--- `skeleton` itself is the branchwise decomposition.  Its three moving parts
--- live next door: `UC.Seam.Plug` reduces the closed composite to one pass of
--- its step and a loop, `UC.Seam.Extract` reads the context's certificate as a
--- fuel-indexed strategy of the right ask bound, and `UC.Seam.Transfer` is the
--- one-sided budget-indexed transfer between the two.  What is assembled here
--- is the ε-arithmetic: the extraction is chosen ONCE the observation's budget
--- is known (so a truncation past it never shows), the hypothesis is spent at
--- that one strategy per initial state, and the branchwise ε's are averaged
--- back into one by convexity (`Dp.Dominate`'s `cum-shift`).
+-- `skeleton` is the branchwise decomposition, and its three moving parts live
+-- next door: `UC.Seam.Plug`, `UC.Seam.Extract`, `UC.Seam.Transfer`.  What is
+-- assembled here is the ε-arithmetic — the extraction is chosen ONCE the
+-- observation's budget is known, so a truncation past it never shows; the
+-- hypothesis is spent at that one strategy per initial state; and the
+-- branchwise ε's are averaged back into one by convexity (`cum-shift`).
 --
 -- The hypothesis forces `0 ℚ.≤ ε` on its own (`0≤hyp`), so the statement need
 -- not ask for it.

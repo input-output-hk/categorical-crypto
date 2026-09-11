@@ -10,7 +10,9 @@
 --
 --     Dom P ε d e   =   no budget of `d` beats every budget of `e` by more than ε
 --
--- and `d ≼ₚ[ ε ] e` is `∀ b → Dom (indᵇ b) ε d e`, definitionally.
+-- and `d ≼ₚ[ ε ] e` is `∀ b → Dom (indᵇ b) ε d e`, definitionally.  `Dom≤`
+-- bounds the budget as well, which is what a target faithful only to a depth
+-- admits (`UC.Seam.Extract`'s truncation).
 --
 -- `cum-shift` is the convexity that lets the slack cross a bind: a `Dₚ` node's
 -- two weights sum to one, so averaging `P + ε` over the branches is averaging

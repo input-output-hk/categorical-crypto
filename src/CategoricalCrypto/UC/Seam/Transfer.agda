@@ -22,6 +22,8 @@
 -- budget map inside the induction would break the tie above.  The refinement
 -- is undone once, at the top, where the fuel is still free to be chosen.
 
+open import Categories.Category using (Category)
+
 open import Data.Bool.Base using (Bool; true; false; not)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Nat.Base as ℕ using (ℕ; zero; suc; s≤s; _⊔_)
@@ -29,13 +31,11 @@ open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 0ℚ; 1ℚ)
 open import Data.Rational.Properties using (≤-refl; ≤-reflexive; ≤-trans)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Data.Unit.Base using (⊤; tt)
+open import Data.Unit.Base using (tt)
 open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)
 open import Function.Base using (_∘′_)
 open import Level using (0ℓ)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans)
-
-open import Categories.Category using (Category)
+open import Relation.Binary.PropositionalEquality using (_≡_; sym; trans)
 
 import Data.Nat.Properties as ℕP
 
