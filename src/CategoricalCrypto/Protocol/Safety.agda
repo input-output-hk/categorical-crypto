@@ -21,7 +21,6 @@ open import Data.Nat.Base using (ℕ; zero; suc)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Rational using (ℚ; 0ℚ; 1ℚ) renaming (_≤_ to _≤ℚ_)
 open import Data.Rational.Properties using (≤-refl; ≤-reflexive; ≤-trans)
-open import Data.Unit.Base using (⊤)
 open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Prelude
@@ -45,11 +44,6 @@ module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
   kernel s q = evalC (step P s q)
 
   private
-    -- What a step can reach; divergence is vacuously fine.
-    Reach : (St P → Set) → Maybe (St P × Pos B) → Set
-    Reach Inv (just sr) = Inv (proj₁ sr)
-    Reach Inv nothing   = ⊤
-
     verdict : (acc : Bool) (st : St P) (b : Bool)
             → Pr₁⊥ (hitFrom P Bad acc st (out b)) ≡ bool→ℚ acc
     verdict acc st b = lookupᴰℚ-return (just acc) mb
@@ -61,7 +55,7 @@ module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
       Inv    : St P → Set
       φ      : ℕ → St P → ℚ
       inv₀   : Inv (init P)
-      pres   : ∀ s q → Inv s → OnSupport (Reach Inv) (kernel s q)
+      pres   : ∀ s q → Inv s → OnSupport (Reached (λ sr → Inv (proj₁ sr))) (kernel s q)
       φ-nn   : ∀ m s → Inv s → 0ℚ ≤ℚ φ m s
       φ-bad  : ∀ m s → Inv s → Bad s ≡ true → 1ℚ ≤ℚ φ m s
       φ-step : ∀ m s q → Inv s → E⊥ (kernel s q) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) s
@@ -93,7 +87,8 @@ module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
       Ph sr = Pr₁⊥ (Hk sr)
       Pφ sr = φ m (proj₁ sr)
 
-      onReach : (x : Maybe (St P × Pos B)) → Reach Inv x → maybeℚ Ph x ≤ℚ maybeℚ Pφ x
+      onReach : (x : Maybe (St P × Pos B)) → Reached (λ sr → Inv (proj₁ sr)) x
+              → maybeℚ Ph x ≤ℚ maybeℚ Pφ x
       onReach (just (s′ , r)) inv′ = super m (k r) s′ (le r) inv′
       onReach nothing         _    = ≤-refl
 
