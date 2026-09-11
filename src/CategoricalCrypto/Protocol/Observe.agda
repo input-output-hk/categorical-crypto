@@ -83,8 +83,7 @@ uniformVec-bind ⟦_⟧ hom (suc m) f = begin
             (λ v → >>=ᴹ-identityˡ (b ∷ v) G))) ⟩
   (uniform-Bool >>=ᴹ Db)
     ≈˘⟨ >>=ᴹ-assoc uniform-Bool (λ b → Dmap (b ∷_) (uniform-Vec m)) G ⟩
-  (uniform-Vec (suc m) >>=ᴹ G)
-    ∎
+  (uniform-Vec (suc m) >>=ᴹ G) ∎
   where
     G  = λ v → ⟦ f v ⟧
     Fb = λ b → ⟦ uniformVec m (λ v → f (b ∷ v)) ⟧
