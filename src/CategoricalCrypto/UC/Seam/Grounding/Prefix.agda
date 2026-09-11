@@ -12,8 +12,8 @@
 -- `scalar-blindᵒ` is why the notion pays: a hom of the TRIVIAL grade has an
 -- empty interface, so it can never be activated, its step equation holds
 -- vacuously, and the only trace it leaves on any run it takes part in is its
--- own initialization.  Propagating that through `_∘_`, `sub` and `T₁` puts a
--- trivial-grade simulator in front of the process it acts on, and
+-- own initialization.  Propagating that through `_∘_`, `sub` and the ancilla
+-- tensor puts a trivial-grade simulator in front of the process it acts on, and
 -- `prefixedᵒ-obs` — `Dp.Mass.astotal-bind` — removes it again once the
 -- initialization is known to terminate almost surely.
 
@@ -32,7 +32,8 @@ open import ProbabilisticLogic.Dp.Advantage using (_≈ₚ[_]_; ≈ₚ[]-resp)
 open import ProbabilisticLogic.Dp.Mass using (ASTotal; astotal-bind)
 open import ProbabilisticLogic.Dp.Reasoning
 
-open import CategoricalCrypto.Machines.Base using (Dₚ-DiscreteMonad; 𝒱ₚ; distₚ; 𝒫ₚ; Elgotₚ)
+open import CategoricalCrypto.Machines.Base
+  using (Dₚ-DiscreteMonad; Elgotₚ; distₚ; 𝒫ₚ; 𝒱ₚ)
 open import CategoricalCrypto.Protocol.Machine using (runᴹ)
 open import CategoricalCrypto.Strategy using (ask; out)
 open import CategoricalCrypto.UC.Machine using (Ωᴵ; ⊤ᵛ)
@@ -87,18 +88,27 @@ opaque
   prefixedᵒ-∘ʳ A B C h f g p l = L.≈ˡ-resp-scalar (λ x → >>=ₚ-identityˡ x (λ _ → p))
     (GL.∘ᴳ-resp-≈ˡ l (L.≈ᴹ⇒≈ˡ S.reflᴹ))
 
+  prefixedᵒ-⊗ˡ : (X Y A B : Gᵒ.Obj) (f g : Gᵒ._⇒_ X Y) (h : Gᵒ._⇒_ A B) (p : Dₚ ⊤ᵛ)
+               → Prefixedᵒ X Y f g p
+               → Prefixedᵒ (X Gᵒ.⊗₀ A) (Y Gᵒ.⊗₀ B) (Gᵒ._⊗₁_ f h) (Gᵒ._⊗₁_ g h) p
+  prefixedᵒ-⊗ˡ X Y A B f g h p l = L.≈ˡ-resp-scalar (λ x → >>=ₚ-identityˡ x (λ _ → p))
+    (GL.⊗₁ᴳ-resp-≈ˡ l (L.≈ᴹ⇒≈ˡ S.reflᴹ))
+
+  prefixedᵒ-⊗ʳ : (A B X Y : Gᵒ.Obj) (h : Gᵒ._⇒_ A B) (f g : Gᵒ._⇒_ X Y) (p : Dₚ ⊤ᵛ)
+               → Prefixedᵒ X Y f g p
+               → Prefixedᵒ (A Gᵒ.⊗₀ X) (B Gᵒ.⊗₀ Y) (Gᵒ._⊗₁_ h f) (Gᵒ._⊗₁_ h g) p
+  prefixedᵒ-⊗ʳ A B X Y h f g p l = L.≈ˡ-resp-scalar (λ _ → >>=ₚ-identityʳ p)
+    (GL.⊗₁ᴳ-resp-≈ˡ (L.≈ᴹ⇒≈ˡ S.reflᴹ) l)
+
+  -- The grading's substitution is the tensor's left action, and at this
+  -- instance the two spellings convert; its `T₁` does not, so the ancilla
+  -- action is taken in the tensor's own vocabulary (`prefixedᵒ-⊗ʳ`, with
+  -- `CurriedTensor.Properties.T₁-⊗` at the use site).
   prefixedᵒ-sub : (X Y A : Gᵒ.Obj) (s s′ : Gᵒ._⇒_ X Y) (p : Dₚ ⊤ᵛ)
                 → Prefixedᵒ X Y s s′ p
                 → Prefixedᵒ (Gr._⊛_ X A) (Gr._⊛_ Y A)
                             (Gr.sub {X} {Y} {A} s) (Gr.sub {X} {Y} {A} s′) p
-  prefixedᵒ-sub X Y A s s′ p l = L.≈ˡ-resp-scalar (λ x → >>=ₚ-identityˡ x (λ _ → p))
-    (GL.⊗₁ᴳ-resp-≈ˡ l (L.≈ᴹ⇒≈ˡ S.reflᴹ))
-
-  prefixedᵒ-T₁ : (Y A B : Gᵒ.Obj) (f g : Gᵒ._⇒_ A B) (p : Dₚ ⊤ᵛ)
-               → Prefixedᵒ A B f g p
-               → Prefixedᵒ (Gr._⊛_ Y A) (Gr._⊛_ Y B) (Gr.T₁ Y f) (Gr.T₁ Y g) p
-  prefixedᵒ-T₁ Y A B f g p l = L.≈ˡ-resp-scalar (λ _ → >>=ₚ-identityʳ p)
-    (GL.⊗₁ᴳ-resp-≈ˡ (L.≈ᴹ⇒≈ˡ S.reflᴹ) l)
+  prefixedᵒ-sub X Y A s s′ p = prefixedᵒ-⊗ˡ X Y A A s s′ Gᵒ.id p
 
   -- The base case: the trivial grade carries no message, so a hom of it is
   -- never activated and its step equation is vacuous.

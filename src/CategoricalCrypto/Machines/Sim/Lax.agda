@@ -5,10 +5,10 @@
 -- `Machines.Sim`'s generator equates the two points on the nose, which is too
 -- strict for a machine that carries a dead-weight component: a scalar
 -- `σ : unit ⇒ unit` buried in a composite contributes its own initialization to
--- the run and nothing else, and no state map can make that disappear.  `_≲ˡ[_]_`
+-- the run and nothing else, and no state map makes that disappear.  `_≲ˡ[_]_`
 -- records exactly that gap — step and state map as strict as `_≲_`, the point
--- only up to a scalar prefix — and the run-level payoff is that an almost surely
--- terminating prefix is invisible to an ε-closed comparison
+-- only up to a scalar prefix — and the run-level payoff is that an almost
+-- surely terminating prefix is invisible to an ε-closed comparison
 -- (`Dp.Mass.astotal-bind`; the cash-out is `UC.Machine.Run.Lax`).
 --
 -- Two shapes are forced by that payoff.  There is no `θ-discard` field: the
@@ -132,7 +132,8 @@ trace-resp-≲ˡ {A = A} {X = X} {B = B} {f = f} {g = g} l = record
   { θˡ       = θˡ l
   ; θˡ-pure  = θˡ-pure l
   ; θˡ-point = θˡ-point l
-  ; θˡ-step  = traceStep-sim (state f) (state g) A B X (θˡ l) (θˡ-pure l) (θˡ-step l)
+  ; θˡ-step  = traceStep-sim (state f) (state g) A B X
+                             (θˡ l) (θˡ-pure l) (θˡ-step l)
   }
 
 ------------------------------------------------------------------------
