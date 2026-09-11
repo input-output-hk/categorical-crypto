@@ -16,6 +16,9 @@
 -- So a trajectory along which `total` moves has, at the step it moved, an
 -- oracle answer colliding with a hash already keying the state; that is the
 -- event the random oracle's counting bounds.
+--
+-- `Shape`/`shape` walk the validation cascade once and hand every later
+-- consumer the two-way case with an accepted transaction's data attached.
 
 open import Class.DecEq
 
@@ -215,6 +218,72 @@ module _ (ser : Tx → List Bool) where
   -- The state a step reaches when the oracle answers `h`.
   after : Variant → LState → Tx → Hash → LState
   after vr s tx h = proj₁ (runCall (λ _ → h) (applyTx vr s tx))
+
+  ------------------------------------------------------------------------
+  -- The two shapes an activation takes
+  --
+  -- A `with` on the validation cascade does not reach `applyTx` inside a
+  -- constructor argument (the abstraction only rewrites the goal), so the
+  -- cascade is walked ONCE here and the equations are `rewrite`n in.  Every
+  -- consumer then sees a two-way case with the data an accepted transaction
+  -- carries: which UTxO entries survived, which accounts were debited, and —
+  -- what makes `inputConsuming` the repair — that inputs were consumed.
+
+  private
+    reject-ins : ∀ vr s tx → checkIns (proj₁ s) (proj₁ tx) ≡ nothing
+               → applyTx vr s tx ≡ pureᶜ (s , false)
+    reject-ins vr (u , a) (ins , wds , outs) e rewrite e = refl
+
+    reject-wds : ∀ vr s tx {vIn u′} → checkIns (proj₁ s) (proj₁ tx) ≡ just (vIn , u′)
+               → checkWdrls (proj₂ s) (proj₁ (proj₂ tx)) ≡ nothing
+               → applyTx vr s tx ≡ pureᶜ (s , false)
+    reject-wds vr (u , a) (ins , wds , outs) e₁ e₂ rewrite e₁ | e₂ = refl
+
+    reject-bal : ∀ vr s tx {vIn u′ a′} → checkIns (proj₁ s) (proj₁ tx) ≡ just (vIn , u′)
+               → checkWdrls (proj₂ s) (proj₁ (proj₂ tx)) ≡ just a′
+               → ((vIn + wdrlΣ (proj₁ (proj₂ tx))) ≡ᴺ valΣ (proj₂ (proj₂ tx))) ≡ false
+               → applyTx vr s tx ≡ pureᶜ (s , false)
+    reject-bal vr (u , a) (ins , wds , outs) e₁ e₂ eb rewrite e₁ | e₂ | eb = refl
+
+    reject-con : ∀ vr s tx {vIn u′ a′} → checkIns (proj₁ s) (proj₁ tx) ≡ just (vIn , u′)
+               → checkWdrls (proj₂ s) (proj₁ (proj₂ tx)) ≡ just a′
+               → ((vIn + wdrlΣ (proj₁ (proj₂ tx))) ≡ᴺ valΣ (proj₂ (proj₂ tx))) ≡ true
+               → consumes vr (proj₁ tx) ≡ false
+               → applyTx vr s tx ≡ pureᶜ (s , false)
+    reject-con vr (u , a) (ins , wds , outs) e₁ e₂ eb ec
+      rewrite e₁ | e₂ | eb | ec = refl
+
+    accept-eq : ∀ vr s tx {vIn u′ a′} → checkIns (proj₁ s) (proj₁ tx) ≡ just (vIn , u′)
+              → checkWdrls (proj₂ s) (proj₁ (proj₂ tx)) ≡ just a′
+              → ((vIn + wdrlΣ (proj₁ (proj₂ tx))) ≡ᴺ valΣ (proj₂ (proj₂ tx))) ≡ true
+              → consumes vr (proj₁ tx) ≡ true
+              → applyTx vr s tx
+                ≡ callᶜ (ser tx)
+                    (λ h → (unionNew u′ (outsAt h 0 (proj₂ (proj₂ tx))) , a′) , true)
+    accept-eq vr (u , a) (ins , wds , outs) e₁ e₂ eb ec
+      rewrite e₁ | e₂ | eb | ec = refl
+
+  data Shape (vr : Variant) (s : LState) (tx : Tx) : Set where
+    rejected : applyTx vr s tx ≡ pureᶜ (s , false) → Shape vr s tx
+    accepted : (vIn : ℕ) (u′ : Utxo) (a′ : Accts)
+             → checkIns (proj₁ s) (proj₁ tx) ≡ just (vIn , u′)
+             → checkWdrls (proj₂ s) (proj₁ (proj₂ tx)) ≡ just a′
+             → consumes vr (proj₁ tx) ≡ true
+             → applyTx vr s tx
+               ≡ callᶜ (ser tx)
+                   (λ h → (unionNew u′ (outsAt h 0 (proj₂ (proj₂ tx))) , a′) , true)
+             → Shape vr s tx
+
+  shape : ∀ vr s tx → Shape vr s tx
+  shape vr s@(u , a) tx@(ins , wds , outs) with checkIns u ins in e₁
+  ... | nothing = rejected (reject-ins vr s tx e₁)
+  ... | just (vIn , u′) with checkWdrls a wds in e₂
+  ...   | nothing = rejected (reject-wds vr s tx e₁ e₂)
+  ...   | just a′ with (vIn + wdrlΣ wds) ≡ᴺ valΣ outs in eb
+  ...     | false = rejected (reject-bal vr s tx e₁ e₂ eb)
+  ...     | true with consumes vr ins in ec
+  ...       | false = rejected (reject-con vr s tx e₁ e₂ eb ec)
+  ...       | true  = accepted vIn u′ a′ e₁ e₂ ec (accept-eq vr s tx e₁ e₂ eb ec)
 
   applyTx-total-≤ : ∀ vr s tx h → total (after vr s tx h) ≤ total s
   applyTx-total-≤ vr (u , a) (ins , wds , outs) h

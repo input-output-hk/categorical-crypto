@@ -59,6 +59,16 @@ sumN t (suc j) = t ℕ.+ sumN (suc t) j
                 (≤-trans (+-mono-≤ (0≤scaled t) ≤-refl) (≤-reflexive (Γ-step t j))))
 
 private
+  sumN-mono : ∀ t j → sumN t j ℕ.≤ sumN (suc t) j
+  sumN-mono t zero    = z≤n
+  sumN-mono t (suc j) = ℕₚ.+-mono-≤ (ℕₚ.n≤1+n t) (sumN-mono (suc t) j)
+
+-- A step of budget left over is a step of budget gained.
+Γ-mono : ∀ t j → Γ t j ≤ Γ t (suc j)
+Γ-mono t j = *-monoʳ-≤-nonNeg ε ⦃ nonNegative (0≤inv-pow-2 n) ⦄
+               (fromℕ-mono-≤ (ℕₚ.≤-trans (sumN-mono t j) (ℕₚ.m≤n+m (sumN (suc t) j) t)))
+
+private
   -- Every one of the `j` summands is below `t + j`.
   sumN-≤ : ∀ t j → sumN t j ℕ.≤ j ℕ.* (t ℕ.+ j)
   sumN-≤ t zero    = z≤n

@@ -124,6 +124,34 @@ AllLeaves-uniformVec zero    f h = h []
 AllLeaves-uniformVec (suc m) f h b =
   AllLeaves-uniformVec m (λ v → f (b ∷ v)) (λ v → h (b ∷ v))
 
+-- The same two facts through the `serve` of a caller grafted onto the
+-- sampling protocol, which is the shape a COMPOSITE's step has (a sampling
+-- resource is reached through its client).  `serve` commutes with the coin
+-- structure, but the trees differ by an equality of continuations, so the
+-- commutation is available at the reading and at the leaves, never as a tree
+-- equation.
+module _ {B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol unitᴵ B) where
+
+  private
+    Cont : Set
+    Cont = Pos B → Calls B (St P₂ × Pos C)
+
+  AllLeaves-serve-uniformVec :
+      {P : (St P₂ × St P₁) × Pos C → Set} (k : Cont) (m : ℕ)
+      (f : Vec Bool m → Calls unitᴵ (St P₁ × Pos B))
+    → (∀ v → AllLeaves P (serve P₂ P₁ k (f v)))
+    → AllLeaves P (serve P₂ P₁ k (uniformVec m f))
+  AllLeaves-serve-uniformVec k zero    f h = h []
+  AllLeaves-serve-uniformVec k (suc m) f h b =
+    AllLeaves-serve-uniformVec k m (λ v → f (b ∷ v)) (λ v → h (b ∷ v))
+
+  evalC-serve-uniformVec :
+      (k : Cont) (m : ℕ) (f : Vec Bool m → Calls unitᴵ (St P₁ × Pos B))
+    → evalC (serve P₂ P₁ k (uniformVec m f))
+      ≈Mℚ (uniform-Vec m >>=ᴹ λ v → evalC (serve P₂ P₁ k (f v)))
+  evalC-serve-uniformVec k =
+    uniformVec-bind (λ t → evalC (serve P₂ P₁ k t)) (λ _ _ _ → refl)
+
 module _ (P : Protocol unitᴵ B) where
 
   runFrom : St P → Strat (Neg B) (Pos B) → Dist⊥ Bool
