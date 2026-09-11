@@ -25,7 +25,6 @@ module CategoricalCrypto.Machines.Frame {o ℓ e} (𝒱 : SymmetricMonoidalCateg
 open SymmetricMonoidalCategory 𝒱
 open BraidedProps.Shorthands braided
 open Core 𝒱
-open Equiv
 open MonoidalUtilities.Shorthands monoidal
 
 open import Categories.Category.Monoidal.Properties monoidal
