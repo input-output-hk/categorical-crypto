@@ -158,10 +158,16 @@ prefix, the syntactic prefix is stable under `Absorbs`
 on the nose), the extraction context's membership in the PULLBACK class is
 proved (`ctx-absorb` — the inclusion the follow-up review's §2 demanded), and
 `uc-audit-bounded` is the whole route: `Bounded I bad ε` crosses a budgeted
-emulation to `Bounded R bad (λ q → ε (simCost q cs) + ν)`. What remains here
-is only the ledger consumer (wiring `ledger-audit-carry`'s family through
-`uc-audit-boundedᵖ`; the per-level `ASTotal` comes from
-`Grounded.simTotal⇒point` as in `subBlind⇒unitGrade`) — and, per the review's
+emulation to `Bounded R bad (λ q → ε (simCost q cs) + ν)`. The ledger consumer
+is landed too: `EndToEnd.ledger-uc-to-pov-simCost` (and its negligible
+packaging for polynomial `cs`) is `ledger-uc-to-pov` with the premise
+`_≤UC^ω[ cs ]_` and the bound `εᴸ n (simCost (q + q) (cs n)) + ν n`; the
+per-level `ASTotal` is derived from `TotalRun`, not assumed. One honesty note
+(also in the module header): the two ledger theorems are NOT ordered — a
+budgeted emulation is an emulation, so the pointwise theorem applies wherever
+the budgeted one does and gives the sharper number (the trivial-grade
+simulator costs nothing); what the budgeted statement adds is the accounting,
+and the witness that the prefix extraction composes. And, per the review's
 §3, none of this accounts for an *interactive* simulator: the budgeted
 simulator at these types is a scalar.
 
@@ -195,10 +201,10 @@ In priority order.
    direction still proved only at the model is `≈ᵁ ⇒ ≈ℰᶜ`, which needs
    `UC.Model.Reading`'s rebracketing; nothing above spends it.
 
-2. **The prefix-tolerant event class** — DONE generically (see the closed
-   obstruction above and `docs/prefix-tolerant-audit-plan.md`'s Outcome).
-   Remaining: the one-module ledger consumer wiring `uc-audit-boundedᵖ` at the
-   family; the *interactive*-simulator accounting stays with the review's §3.
+2. **The prefix-tolerant event class** — DONE, including the ledger consumer
+   (`ledger-uc-to-pov-simCost`; see the closed obstruction above and
+   `docs/prefix-tolerant-audit-plan.md`'s Outcome). The
+   *interactive*-simulator accounting stays with the review's §3.
 
 3. **A named hash construction.** The real family's shape is no longer generic:
    `ChimericLedger.Real` fixes it to `ledger vr s₀ ∘ᵖ hash` and discharges all
@@ -228,7 +234,7 @@ In priority order.
 | `UC.Model.Family` | 45 | 10 s |
 | `Examples.ChimericLedger.Total` | 47 | 9 s |
 | `Examples.ChimericLedger.Schedule` | 127 | 10 s |
-| `Examples.ChimericLedger.EndToEnd` | 147 | 17 s |
+| `Examples.ChimericLedger.EndToEnd` | 263 | 10.5 s |
 | `Examples.ChimericLedger.Real` | 93 | 11 s |
 
 Additive edits to existing modules: `POV.asks≤-audited` (the instrumentation's
