@@ -126,12 +126,17 @@ _⊛ω_ : Obj^ω → Obj^ω → Obj^ω
 Grading^ω : Grading Fam
 Grading^ω = record
   { _⊛_ = _⊛ω_
+  ; 𝟭   = Δ 𝟭
   ; T₁  = λ Y (f , p , Pp , w) → (λ i → T₁ (Y i) (f i))
         , (λ n → p n ℕ.⊔ 1) , poly-⊔ Pp (poly-const 1) , λ i → qb-T₁ (w i)
   ; sub = λ (s , p , Pp , w) → (λ i → sub (s i))
         , (λ n → p n ℕ.⊔ 1) , poly-⊔ Pp (poly-const 1) , λ i → qb-sub (w i)
   ; a⇒  = (λ _ → a⇒) , qb1 (λ _ → qb-a⇒)
   ; a⇐  = (λ _ → a⇐) , qb1 (λ _ → qb-a⇐)
+  ; λ⇒  = (λ _ → λ⇒) , qb1 (λ _ → qb-λ⇒)
+  ; λ⇐  = (λ _ → λ⇐) , qb1 (λ _ → qb-λ⇐)
+  ; ρ⇒  = (λ _ → ρ⇒) , qb1 (λ _ → qb-ρ⇒)
+  ; ρ⇐  = (λ _ → ρ⇐) , qb1 (λ _ → qb-ρ⇐)
 
   ; T₁-resp-≈  = λ eq i → T₁-resp-≈ (eq i)
   ; T₁-id      = λ _ → T₁-id
@@ -194,15 +199,11 @@ open E public using
   ; grade-stable; _≤UC_; _≤UC⁺_; ≤UC-refl; ≤UC-trans; dummy-complete )
   renaming (ℰᴼ to ℰ^ω)
 
--- One of `UCSetup`'s four fields at `Fam`, and the only one this module can
--- supply today: the environment presheaf, from `Observation^ω` by
--- `UC.Environment`'s generic construction.  `Fam` itself is a second.  The two
--- missing ones are a MONOIDAL structure on `Fam` and the graded Kleisli triple
--- over it, and `Grading` is strictly too weak to give them — it has the two
--- one-sided actions but no bifunctor and no unitors, and the resource doctrine
--- was weakened in lockstep (`UC.Budget`'s header: "the four unitor laws are
--- gone with the unitors").  `docs/stduc-supersession-plan.md` §6 is the
--- continuation spec.
+-- `ℰ^ω` and `Fam` are two of `UCSetup`'s four fields; the other two are a
+-- MONOIDAL structure on `Fam` and the graded Kleisli triple over it, which
+-- `UC.Family.Monoidal` assembles at a monoidal base.  They do not belong here:
+-- a `Grading` has the two one-sided actions and no bifunctor, so the tensor of
+-- two `Fam`-homs would have no budget.
 
 infix 4 _≈ℰ[_]_
 

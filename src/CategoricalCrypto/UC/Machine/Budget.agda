@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- `UC.Budget.Budget` at the machine model: the resource doctrine's nine fields,
--- inhabited.
+-- `UC.Budget.Budget` at the machine model: the resource doctrine's thirteen
+-- fields, inhabited.
 --
 -- This is the assembly `UC.Machine.Grading`'s header used to declare owed.  It
 -- sits in its own module rather than beside `ucBaseᴹ` for two reasons: the
@@ -24,7 +24,8 @@ open import CategoricalCrypto.Machines.Base using (𝒢ₚ)
 open import CategoricalCrypto.UC.Budget using (Budget)
 open import CategoricalCrypto.UC.Machine using (gradingᴹ)
 open import CategoricalCrypto.UC.Machine.Grading
-  using (qb-T₁ᴳ-object; qb-subᴳ-object; qb-a⇒ᴳ-object; qb-a⇐ᴳ-object)
+  using ( qb-T₁ᴳ-object; qb-subᴳ-object; qb-a⇒ᴳ-object; qb-a⇐ᴳ-object
+        ; qb-λ⇒ᴳ-object; qb-λ⇐ᴳ-object; qb-ρ⇒ᴳ-object; qb-ρ⇐ᴳ-object )
 open import CategoricalCrypto.UC.QueryBound.Object
   using (QBᴳ; qb-idᴳ; qb-monoᴳ; qb-resp-≈ᴳ)
 open import CategoricalCrypto.UC.QueryBound.Compose.Laws using (qb-∘ᴳ)
@@ -48,4 +49,8 @@ budgetᴹ = record
   ; qb-sub    = λ {X} {Y} {A} {c} {s} → qb-subᴳ-object X Y A {c} s
   ; qb-a⇒     = λ {X} {Y} {A} → qb-a⇒ᴳ-object X Y A
   ; qb-a⇐     = λ {X} {Y} {A} → qb-a⇐ᴳ-object X Y A
+  ; qb-λ⇒     = λ {A} → qb-λ⇒ᴳ-object A
+  ; qb-λ⇐     = λ {A} → qb-λ⇐ᴳ-object A
+  ; qb-ρ⇒     = λ {A} → qb-ρ⇒ᴳ-object A
+  ; qb-ρ⇐     = λ {A} → qb-ρ⇐ᴳ-object A
   }
