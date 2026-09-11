@@ -16,21 +16,26 @@
 open import Categories.Functor.Monoidal.CurriedTensor.Properties using (T₁-⊗)
 import Categories.Morphism.Reasoning as MR
 
+open import Data.Product.Base using (proj₁; proj₂)
+open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Unit.Base using (tt)
 
 open import ProbabilisticLogic.Dp
-open import ProbabilisticLogic.Dp.Advantage using (≈ₚ[]-resp)
+open import ProbabilisticLogic.Dp.Advantage using (_≼ₚ[_]_; ≈ₚ[]-resp)
+open import ProbabilisticLogic.Dp.Mass using (Total; total-dominated; total-resp-≼ₚ)
 
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Protocol.Machine.Total using (TotalRun)
 open import CategoricalCrypto.Strategy using (Strat; ask; out)
 open import CategoricalCrypto.UC.Machine using (Proc)
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
 open import CategoricalCrypto.UC.Model.Bridge
-  using (≈ᴳ-at; ≈ᴳ-congˡ; ≈ᴳ-trans; ≈C⇒≈ᴳ; ≈ᵁ⇒≈ᴳ; unit-gradeᵁ)
-open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ)
+  using (≈ᴳ-at; ≈ᴳ-congˡ; ≈ᴳ-trans; ≈C⇒≈ᴳ; ≈ᵁ⇒≈ᴳ)
+open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ; obs-resp; ∼ᴼ-resp)
 open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ; ifaceᵒ; procᵒ; unprocᵒ-∘)
 open import CategoricalCrypto.UC.Model.Setup
-open import CategoricalCrypto.UC.Seam using (ctxRunˢ; strategyEnv)
+open import CategoricalCrypto.UC.Seam using (ctxRunˢ; runˢ; strategyEnv)
+open import CategoricalCrypto.UC.Seam.Adequacy using (adequacy)
 open import CategoricalCrypto.UC.Seam.Grounding
 
 import CategoricalCrypto.Machines.Collapse as Col
@@ -64,7 +69,7 @@ iotaBlind B u v h =
 
 -- The plugging law both `EnvAsCtx` and `StratIsEnv` are: at the unit ancilla
 -- the two wires cancel, by the unitor's naturality and its own iso.
-plug-λ : {B : Iface} (t : ifaceᵒ B ⇒ Ωᵒ) (w : 𝟘ᵒ ⇒ ifaceᵒ B)
+plug-λ : {X : Channel} (t : X ⇒ Ωᵒ) (w : 𝟘ᵒ ⇒ X)
        → ((t ∘ unitorˡ.from) ∘ T₁ 𝟘ᴳ w) ∘ unitorˡ.to ≈ t ∘ w
 plug-λ t w = ((refl⟩∘⟨ T₁-⊗ 𝔾ᵒ 𝟘ᴳ w) ⟩∘⟨refl)
            ○ (assoc ○ (refl⟩∘⟨ unitorˡ-commute-from) ○ sym-assoc) ⟩∘⟨refl
@@ -99,11 +104,49 @@ stratIsEnv B u v h d ε ε>0 =
                    (procᵒ (strategyEnv B d) ∘_) (plug-λ (procᵒ (strategyEnv B d)))
                    h ε ε>0)
 
--- …and with that the collapse at the trivial grade rests on `SubBlind` and on
--- nothing else.  Which is where it should rest: `SubBlind` is FALSE as stated
--- — `_≤UC_` quantifies its simulator over a divergent `s` too, and
--- `UC.Seam.Grounding.Dead` is the mechanized half of why — so this is what
--- localizes the defect, rather than a use of it.
+------------------------------------------------------------------------
+-- The collapse at the trivial grade
+
+-- `_≤UC_` quantifies its simulator over a DIVERGENT `s` as well, so blindness
+-- is not free: `UC.Seam.Grounding.Dead` shows a never-starting simulator makes
+-- the ideal invisible, and a process observing nothing emulates everything.
+-- What rules that out is not a restriction on the simulator but the real
+-- process's own totality, and the step that turns the one into the other is
+-- the squeeze below.
+--
+-- Read at one embedded strategy the emulation is a two-sided ε-domination
+-- between `u`'s run and the simulated ideal's observation.  `u`'s run carries
+-- verdict mass one EXACTLY (`TotalRun`, a finite budget), the observation
+-- carries at most one for free, and `Dp.Mass.total-dominated` squeezes: the
+-- observation's mass is within ε of one, at every ε.  That is `SimTotal` — the
+-- simulator's initialization terminates almost surely — which is all
+-- `SubBlind` asks.
+--
+-- `TotalRun v` is not consumed here.  It is part of the statement because the
+-- consumer's pair is symmetric and `Protocol.Machine.Total` discharges both by
+-- name; the asymmetry is real (only the REAL side anchors the scale).
 unitGrade : TG.SubBlind → TG.UnitGrade
-unitGrade blind B u v e =
-  stratIsEnv B u v (unit-gradeᵁ (λ s → blind B s v) (iotaBlind B u v) e)
+unitGrade blind B u v tu _ e =
+  stratIsEnv B u v (iotaBlind B u v (≈ᵁ-trans em (blind B s v simTotal)))
+  where
+  s : 𝟘ᴳ ⇒ 𝟘ᴳ
+  s = proj₁ (e id)
+
+  em : ιᴳ B ∘ procᵒ u ≈ᵁ sub s ∘ (ιᴳ B ∘ procᵒ v)
+  em = ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ (ιᴳ B ∘ procᵒ u)))) (proj₂ (e id))
+
+  simTotal : TG.SimTotal B s v
+  simTotal d t factor = total-dominated (ctxRunˢ B d u) _ total near
+    where
+    -- `Adequacy` moves `u`'s totality onto the observation the strategy makes.
+    total : Total (ctxRunˢ B d u)
+    total = total-resp-≼ₚ (runˢ B u d) (ctxRunˢ B d u) (proj₂ (adequacy B u d)) (tu d)
+
+    read : ctxRunˢ B d u ≈ₚ Obs (t ∘ (ιᴳ B ∘ procᵒ u))
+    read = ≈ₚ-trans _ _ _ (plug-run B d u)
+                          (obs-resp (⟺ (sym-assoc ○ (fromProc≈ factor ⟩∘⟨refl))))
+
+    near : (ε : ℚ) → 0ℚ ℚ.< ε
+         → ctxRunˢ B d u ≼ₚ[ ε ] Obs (t ∘ (sub s ∘ (ιᴳ B ∘ procᵒ v)))
+    near ε ε>0 = proj₁ (∼ᴼ-resp (≈ₚ-sym _ _ read) (≈ₚ-refl _)
+      (≈ᴳ-at 𝟘ᴳ (t ∘ unitorˡ.from) unitorˡ.to (t ∘_) (plug-λ t) (≈ᵁ⇒≈ᴳ em)) ε ε>0)

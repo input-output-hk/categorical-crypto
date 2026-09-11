@@ -31,11 +31,14 @@
 -- collapse, `UC.Audit.audit-carry` for the graded carry), and this module only
 -- names what the instance still owes.
 
+open import ProbabilisticLogic.Dp.Mass using (ASTotal)
+
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Protocol.Machine.Total using (TotalRun)
 open import CategoricalCrypto.Strategy using (Strat)
 open import CategoricalCrypto.UC.Machine using (Proc; Ωᴵ)
 open import CategoricalCrypto.UC.Model.Bridge using (_≈ᴳ_)
-open import CategoricalCrypto.UC.Model.Observation using (Closure; Test; 𝟘ᵒ)
+open import CategoricalCrypto.UC.Model.Observation using (Closure; Obs; Test; Ωᵒ; 𝟘ᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ; procᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Seam using (Agreeˢ; strategyEnv)
@@ -125,10 +128,27 @@ EnvAsCtx = (B : Iface) (d : Strat (Neg B) (Pos B)) → EnvCtx B d
 -- supplies them where the conversion is a plain application.
 module TrivialGrade (𝟘 : Channel) (ι : (B : Iface) → ifaceᵒ B ⇒ T₀ 𝟘 (ifaceᵒ B)) where
 
-  -- A simulator on the trivial grade is invisible: its interface never fires,
-  -- so no environment reads it.
+  -- A simulator on the trivial grade never fires: its interface is empty.  The
+  -- one thing it can still do to an observation is SCALE it, by the
+  -- termination mass of its own initialization — that is what
+  -- `UC.Seam.Grounding.Dead` propagates (at mass 0; the general statement is
+  -- the same argument) and it is why blindness needs a hypothesis at all: at
+  -- mass 0 a simulator makes every ideal invisible.
+  --
+  -- `SimTotal` is that hypothesis, read where the seal lets it be read.  The
+  -- scalar's point is not nameable here — under the seal a hom exposes no
+  -- machine — so the mass is read off the simulated ideal instead, at the
+  -- embedded strategies, through a test that deflates the grade to one (`𝟘` is
+  -- a parameter here; its unitor is next door, `UC.Seam.Grounded`).  Almost
+  -- sure rather than exact: a cofinal domination cannot say more, and an
+  -- ε-closed agreement needs no more.
+  SimTotal : (B : Iface) → 𝟘 ⇒ 𝟘 → Proc unitᴵ B → Set₁
+  SimTotal B s v = (d : Strat (Neg B) (Pos B)) (t : T₀ 𝟘 (ifaceᵒ B) ⇒ Ωᵒ)
+                 → Proc≈ B Ωᴵ (t ∘ ι B) (procᵒ (strategyEnv B d))
+                 → ASTotal (Obs (t ∘ (sub s ∘ (ι B ∘ procᵒ v))))
+
   SubBlind : Set₁
-  SubBlind = (B : Iface) (s : 𝟘 ⇒ 𝟘) (v : Proc unitᴵ B)
+  SubBlind = (B : Iface) (s : 𝟘 ⇒ 𝟘) (v : Proc unitᴵ B) → SimTotal B s v
            → sub s ∘ (ι B ∘ procᵒ v) ≈ᵁ ι B ∘ procᵒ v
 
   -- …and so is the wire itself, in the direction grade stability does not give:
@@ -139,10 +159,15 @@ module TrivialGrade (𝟘 : Channel) (ι : (B : Iface) → ifaceᵒ B ⇒ T₀ �
             → ι B ∘ procᵒ u ≈ᵁ ι B ∘ procᵒ v → procᵒ u ≈ᴳ procᵒ v
 
   -- The unit-grade specialization: at the trivial grade an emulation IS the
-  -- direct agreement `pov-carry` consumes.  The reduction is PROVED, generically
-  -- and once, as `UC.Model.Bridge.unit-gradeᵁ` — the simulator collapses by
-  -- `SubBlind`, the wire by `IotaBlind`, two lines — so what this instance owes
-  -- is those two degeneracy facts plus `EnvAsCtx`.
+  -- direct agreement `pov-carry` consumes.  The consumer assumes literally
+  -- `u ≤UC v`; what it assumes BESIDES is about the two machines and not about
+  -- the simulator, which is the point — `Protocol.Machine.Total` discharges
+  -- `TotalRun` by name for a protocol image and for a composite of two.
+  --
+  -- Totality is not decoration: with `u` divergent, EVERY `v` is emulated (the
+  -- simulator that never starts makes the ideal invisible) while `Agreeˢ` still
+  -- compares the runs.  It is also exactly what the collapse spends — the
+  -- squeeze reads the simulator's mass off `u`'s own (`UC.Seam.Grounded`).
   UnitGrade : Set₁
-  UnitGrade = (B : Iface) (u v : Proc unitᴵ B)
+  UnitGrade = (B : Iface) (u v : Proc unitᴵ B) → TotalRun B u → TotalRun B v
             → ι B ∘ procᵒ u ≤UC ι B ∘ procᵒ v → Agreeˢ B u v
