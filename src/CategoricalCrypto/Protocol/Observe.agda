@@ -19,17 +19,21 @@
 
 open import Data.Bool.Base
 open import Data.Empty
+import Data.List.Relation.Unary.All as All
 open import Data.Maybe.Base
 open import Data.Nat.Base
 open import Data.Product.Base
 open import Data.Rational renaming (_+_ to _+ℚ_; _-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
 open import Data.Rational.Properties
 open import Data.Rational.Properties.Ext
+open import Data.Unit.Base using (⊤; tt)
 open import Data.Vec.Base using (Vec; []; _∷_)
 open import Relation.Binary.PropositionalEquality
 import Relation.Binary.Reasoning.Setoid as RS
 
 open import ProbabilisticLogic.Prelude
+open import ProbabilisticLogic.Distribution.RationalDist using
+  (OnSupport; OnSupport-bind; OnSupport-return)
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol
@@ -87,6 +91,66 @@ uniformVec-bind ⟦_⟧ hom (suc m) f = begin
     Hb = λ b → uniform-Vec m >>=ᴹ λ v → G (b ∷ v)
     Db = λ b → Dmap (b ∷_) (uniform-Vec m) >>=ᴹ G
     open RS (Mℚ-setoid _)
+
+------------------------------------------------------------------------
+-- What a step can reach
+------------------------------------------------------------------------
+
+-- A predicate at every leaf of a call tree.  `dead` has no leaf, so
+-- divergence is vacuously fine, and `evalC-support` turns that into the
+-- `nothing` sink's `⊤`: a safety invariant is never owed at a deadlock.
+AllLeaves : (X → Set) → Calls A X → Set
+AllLeaves P (ret x)    = P x
+AllLeaves P (call _ k) = ∀ r → AllLeaves P (k r)
+AllLeaves P (coin _ k) = ∀ b → AllLeaves P (k b)
+AllLeaves P dead       = ⊤
+
+Reached : (X → Set) → Maybe X → Set
+Reached P (just x) = P x
+Reached P nothing  = ⊤
+
+evalC-support : {P : X → Set} (t : Calls unitᴵ X)
+              → AllLeaves P t → OnSupport (Reached P) (evalC t)
+evalC-support (ret x)    p = OnSupport-return p
+evalC-support (call q _) _ = ⊥-elim q
+evalC-support (coin μ k) p = OnSupport-bind μ (λ b → evalC (k b))
+                               (All.universal (λ _ → tt) _)
+                               (λ b _ → evalC-support (k b) (p b))
+evalC-support dead       _ = OnSupport-return tt
+
+AllLeaves-uniformVec : {P : X → Set} (m : ℕ) (f : Vec Bool m → Calls A X)
+                     → (∀ v → AllLeaves P (f v)) → AllLeaves P (uniformVec m f)
+AllLeaves-uniformVec zero    f h = h []
+AllLeaves-uniformVec (suc m) f h b =
+  AllLeaves-uniformVec m (λ v → f (b ∷ v)) (λ v → h (b ∷ v))
+
+-- The same two facts through the `serve` of a caller grafted onto the
+-- sampling protocol, which is the shape a COMPOSITE's step has (a sampling
+-- resource is reached through its client).  `serve` commutes with the coin
+-- structure, but the trees differ by an equality of continuations, so the
+-- commutation is available at the reading and at the leaves, never as a tree
+-- equation.
+module _ {B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol unitᴵ B) where
+
+  private
+    Cont : Set
+    Cont = Pos B → Calls B (St P₂ × Pos C)
+
+  AllLeaves-serve-uniformVec :
+      {P : (St P₂ × St P₁) × Pos C → Set} (k : Cont) (m : ℕ)
+      (f : Vec Bool m → Calls unitᴵ (St P₁ × Pos B))
+    → (∀ v → AllLeaves P (serve P₂ P₁ k (f v)))
+    → AllLeaves P (serve P₂ P₁ k (uniformVec m f))
+  AllLeaves-serve-uniformVec k zero    f h = h []
+  AllLeaves-serve-uniformVec k (suc m) f h b =
+    AllLeaves-serve-uniformVec k m (λ v → f (b ∷ v)) (λ v → h (b ∷ v))
+
+  evalC-serve-uniformVec :
+      (k : Cont) (m : ℕ) (f : Vec Bool m → Calls unitᴵ (St P₁ × Pos B))
+    → evalC (serve P₂ P₁ k (uniformVec m f))
+      ≈Mℚ (uniform-Vec m >>=ᴹ λ v → evalC (serve P₂ P₁ k (f v)))
+  evalC-serve-uniformVec k =
+    uniformVec-bind (λ t → evalC (serve P₂ P₁ k t)) (λ _ _ _ → refl)
 
 module _ (P : Protocol unitᴵ B) where
 

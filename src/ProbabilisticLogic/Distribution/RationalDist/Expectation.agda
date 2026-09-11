@@ -118,6 +118,19 @@ Pr₁≤1 μ = ≤-trans (E-mono μ bool→ℚ (λ _ → 1ℚ) b≤1) (≤-refle
 Pr₁≥0 : (μ : Dist-ℚ Bool) → 0ℚ ≤ℚ Pr₁ μ
 Pr₁≥0 μ = ≤-trans (≤-reflexive (sym (E-const μ 0ℚ))) (E-mono μ (λ _ → 0ℚ) bool→ℚ 0≤bool)
 
+-- The same through the Maybe layer: the divergence sink scores 0 either way.
+E⊥-mono : (μ : Dist⊥ A) (F G : A → ℚ) → (∀ a → F a ≤ℚ G a) → E⊥ μ F ≤ℚ E⊥ μ G
+E⊥-mono μ F G pt = E-mono μ (maybeℚ F) (maybeℚ G) λ where
+  (just a) → pt a
+  nothing  → ≤-refl
+
+Pr₁⊥≤1 : (μ : Dist⊥ Bool) → Pr₁⊥ μ ≤ℚ 1ℚ
+Pr₁⊥≤1 μ = ≤-trans (E-mono μ mb (λ _ → 1ℚ) bd) (≤-reflexive (E-const μ 1ℚ))
+  where bd : ∀ x → mb x ≤ℚ 1ℚ
+        bd (just true)  = ≤-refl
+        bd (just false) = 0≤1ℚ
+        bd nothing      = 0≤1ℚ
+
 -- expectation triangle inequality:  ∣E a − E b∣ ≤ E ∣a − b∣
 E-abs-diff : (μ : Dist-ℚ A) (a b : A → ℚ)
            → ∣ E μ a -ℚ E μ b ∣ℚ ≤ℚ E μ (λ x → ∣ a x -ℚ b x ∣ℚ)
