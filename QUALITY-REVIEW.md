@@ -1305,6 +1305,150 @@ touched files, before and after.
   the three new modules 9 s / 11 s / 9 s. Every documented header cost still holds
   (`Collapse`'s "16 s warm" is re-measured, not re-stated).
 
+## Resolved (batch `grade-pins-kernel`)
+
+Branch `grade-pins-kernel` off `protocol-rewrite`'s tip (`ccd15721`), three
+commits: the grade-lemma deletions, pin coverage, kernel consolidation plus the
+small-API items.  No statement was weakened; the deletions remove statements
+wholesale (the approved exception) and the pins add new ones.  Closure green
+(`CategoricalCrypto.agda`, `UC.agda`, the three Pin modules, `Protocol/Safety`
+and its importers, `Examples/MerkleDamgard{,/Pin,/QueryBound}`,
+`Examples/ChimericLedger/{Birthday,Trajectory,Carry}`, `UC/Machine/Run{,/Lax}`,
+`UC/Machine/Slide`, `UC/Seam/{Audit,Extract,Grounded}`); warn-gate empty on
+every run; live escape hatches 0 before and after (all 16 `postulate` grep hits
+are the words "postulate-free" in comments).
+
+Deletions:
+
+- `UC/Emulation.agda :: blind-grade`, `unit-grade` and `UC/Model/Bridge.agda ::
+  blind-gradeᵁ`, `unit-gradeᵁ` — all four, re-grepped consumer-free immediately
+  before removal, with the `Degenerate grades` banner that grouped only them.
+  The maintainer ruled deletion over the restatement: the hypothesis is
+  universally quantified over simulators and `UC.Seam.Grounded.subBlind⇒unitGrade`
+  can only produce blindness at `proj₁ (p id)` and under `SimTotal`, which is
+  why it open-coded the body.  `UC.Seam.Grounding.UnitGrade` /
+  `UC.Seam.Grounded.unitGrade` is the living replacement and is now what the
+  three comments naming the core lemma point at (`UC.agda`, `UC/Audit.agda`,
+  `UC/Seam.agda`).  `UC/Seam/Grounding.agda:161` needed NO change: "the
+  unit-grade specialization" there names the live local `UnitGrade` it sits
+  above, not the deleted lemma — so three comments, not four.
+  `UC/Model/Bridge`'s banner said "three instruments" and now names the one
+  that remains, `≈ᴳ-at`.
+- `Protocol/Safety.agda :: kernel` and `Examples/MerkleDamgard.agda :: protoK`
+  — the same definition, twice, one of them with a spurious `Bad` parameter.
+  Both gone; `Protocol/Observe.agda :: kernel` is the single home, in the
+  `module _ (P : Protocol unitᴵ B)` block, and `runFrom`/`hitFrom` now read the
+  protocol only through it.  Call sites updated: `Safety` ×5, `Birthday.agda`
+  ×1 (the `Bad` argument dropped), `MerkleDamgard.agda` ×10, `Trajectory.agda`
+  ×5 and `Protocol/Machine/Agree.agda` ×1 — the last two were spelled
+  `evalC (step P _ _)` rather than through a name, and were not in the brief's
+  list; converting them was the point of consolidating, so they went too.
+- `UC/Seam.agda :: module 𝒫` with its `Categories.Category` import (the only
+  use of `Category` and of `𝒫ᴵ` in the file; the two prose mentions of `𝒫.∘`
+  now say `𝒫ᴵ`'s composition); `UC/Seam/Extract.agda :: MC` with the
+  `Machines.Base using (𝒱ₚ)` and `Machines.Core as Core` imports that existed
+  only to build it; `UC/Seam/Grounded.agda`'s comment-only
+  `Protocol.Machine.Total using (TotalRun)` import.
+
+Pins (rule 33, all on public entry points):
+
+- `Protocol/Machine/Pin.agda :: agree-false` — `PrAgree`'s `b = false` instance
+  at the existing `flip`/`echo` pair, by `refl` at `cum 6`, with
+  `layer₁-false` beside `layer₁`.  `indᵇ true` IS `bool→ℚ`, so every pin in the
+  file was a `b = true` reading; this is the one that exercises the two-sided
+  observation upgrade.
+- `Examples/MerkleDamgard/Pin.agda :: hash-bounded`, `collide-bounded` —
+  `indistinguishable` APPLIED at both instances, consuming the previously
+  proved-and-unused `hash-asks`/`collide-asks`.  `hash-bounded` is tight
+  (`bound 1 ≡ 0ℚ`, so the theorem's conclusion is the module's own `tight` read
+  at the `false` verdict); `collide-bounded` is disclosed vacuous (`gap` 1/4
+  against `bound 2 ≡ 3`) and what it pins is that the two worlds and the bound
+  compose at all.  One import added (`ProbabilisticLogic.Prelude using (advᵇ⊥)`,
+  and `_≤_ to _≤ℚ_`).
+
+Obstruction recorded instead of forced:
+
+- `UC/Model/Pin.agda` — the behavioral `refl` pin is NOT reachable, and the
+  header now says so with the measurement rather than promising one.  Probed
+  directly: `(M : Proc unitᴵ Ωᴵ) → Obs (procᵒ M) ≡ ⟦ M ⟧ᴼ` is NOT `refl`, the
+  conversion failing at `Machines.Core.State.obj (Machine.state (unprocᵒ (procᵒ M)))
+  != … (Machine.state M)` — `procᵒ`/`unprocᵒ` are identity functions declared
+  INSIDE `Seal`'s `opaque unfolding 𝔾ᵒ` block, so no model-side observation
+  reduces outside it and no budget helps.  `relayᵒ` is blocked a second time
+  over: its codomain is `T₀ (ifaceᵒ A) (ifaceᵒ unitᴵ)`, which carries no
+  verdict, so `⟦_⟧ᴼ : Proc unitᴵ Ωᴵ → Dₚ Bool` does not even type-apply and
+  observing it needs a test composed on.  Behaviour is pinned by `refl` one
+  layer down at the transparent machines (`Protocol/Machine/Pin`); across the
+  seal the same reading is propositional (`UC.Seam.Grounded.plug-run`, over
+  `Seal.unprocᵒ-∘`).  The probe was reverted, not committed.
+
+Deduplication:
+
+- `UC/Machine/Run.agda` + `Run/Lax.agda` — the ~20-line induction on the
+  strategy tree existed twice, verbatim.  It is now ONE definition,
+  `Run.runFrom-ϕ`, parameterized by the state map and its step law (with
+  `padϕ` lifted to a top-level function of the map); `Run.runFrom-sim` is
+  `runFrom-ϕ (ϕ sim) (step-sim sim)` and `Lax.runFrom-lax` is
+  `runFrom-ϕ ϕ step-lax`.  `run-sim` and `run-lax` keep their statements
+  verbatim and differ only in the point law, which is the whole claim.  It
+  elaborated on the first attempt — no metas stranded — so the fallback
+  (correcting `Run/Lax`'s header to say sharing is possible but not done) was
+  not needed; that header now states what IS shared and why sharing over the
+  `_≲_` still would not work.  LOC is a wash (222 → 219 across the two files):
+  the win is that the inductive proof has one home and cannot drift, not size.
+
+Small API:
+
+- `UC/Seam/Audit.agda` — the eleven-name facade narrowed to three.
+  `AuditEvent`/`AuditBound` are what the file and both importers
+  (`UC/Seam/Audit/Bounded.agda`, `Examples/ChimericLedger/Audit.agda`) use;
+  `audit-carry` is kept with a one-line reason, because instantiating it at the
+  sealed model is what the module exists for (its own header and `UC.agda:78`
+  say so) and `module A` is `private`, so dropping it would make the
+  instantiated carry unreachable through this module.  The other eight
+  (`_≤UC[_]_`, `sim`, `sim-qb`, `emulate`, `simCost`, `absorb`, `Absorbs`,
+  `absorb-absorbs`) had zero consumers anywhere and are reachable from
+  `UC.Audit` at the same three arguments.  Flagged as a judgment call against
+  the "narrow to what importers use" instruction.
+  **Superseded at merge**: the end-to-end landing (merged after this branch's
+  base) added consumers of `sim`, `emulate`, `simCost`, `absorb`,
+  `absorb-absorbs` and `_≤UC[_]_` (`UC/Asymptotic{,/Audit}.agda`,
+  `Examples/ChimericLedger/EndToEnd.agda`), so the merge kept the full
+  eleven-name facade.
+- `UC/Machine.agda:54` — the `⊎assoc` re-export loses its `public` (the file
+  itself still uses both at `a⇒ᴵ`/`a⇐ᴵ`), and `Grading`, `Dictionary` and
+  `Slide` each gain a one-line `open import Data.Sum.Ext using (⊎assocˡ; ⊎assocʳ)`
+  as `Machines/Collapse.agda:35` already had.  Verified consumer-by-consumer:
+  those three are the complete set reaching the names through `UC.Machine`, and
+  the six other bare openers of `UC.Machine` plus `UC.agda:111`'s transitive
+  re-export use neither.
+- `UC/Machine/Dictionary.agda` — `exit-pure` lifted out of its `private` block,
+  matching the public `enter-pure` it is the other half of.  No call-site churn
+  (all twelve uses are in-file).
+- `UC/Seam/Grounded.agda :: stratIsEnv` — `procᵒ (strategyEnv B d)`, written
+  three times, is now a `where`-bound `envᵒ`.  `envAsCtx` writes it twice and
+  was left alone.
+- `docs/protocol-rewrite.md` — the drift this file's own previous batch
+  recorded: rows 573 and 577 and the perf bullet at ~1099 no longer name
+  `BudgetLawsᴹ`/`budgetLawsᴹ` as live; 577 now lists what
+  `UC/QueryBound/Compose/Laws.agda` actually exports (`qb-∘`,
+  `qb-∘-category`, `qb-∘ᴳ`) with its own header's measured 10.1 s in place of
+  the stale "~220 s", and 573 mirrors row 571's "is GONE" phrasing.  Four
+  references to the deleted grade lemmas repointed at the same time (rows 562
+  and 1204, the "proved as of the second review" bullet, and the perf bullet at
+  ~1082).  LOC columns were NOT touched: they are stale by 4-32 lines across
+  the whole table (`UC.Core` says 100 at 109, `UC.Environment` 172 at 204), so
+  they are a different, pre-existing measure and not this batch's business.
+
+Left alone, deliberately:
+
+- `docs/rewrite-verdict.md:236,297` still name `BudgetLawsᴹ` and
+  `BudgetLawsᴹ.qb-∘`, and `docs/rewrite-verdict.md:120` still names
+  `UC.Emulation.unit-grade`.  That file was out of scope for this batch.
+- `docs/stduc-supersession-plan.md:246,247,321,401` name all four deleted
+  lemmas.  It is a spent work plan (this file already says so), so its
+  description of a migration is history rather than drift.
+
 ## Tried, not worth it
 
 - `src/CategoricalCrypto/UC/Machine.agda :: GradingLawsᴹ` — **retired by the code.**

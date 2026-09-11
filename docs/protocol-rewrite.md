@@ -559,7 +559,7 @@ this layer needed them.)
 |---|---|---|---|
 | `CategoricalCrypto.UC.Core` | core | 100 | `Grading`, `Observation` (qualitative), `UCBase` |
 | `…UC.Environment` | core | 172 | `SameTV` (ancilla a parameter), `Tests`, `ℰᵗᵛ`, `_≈ℰ_`, its congruences, `≈ℰ-at`, `grade-stable` |
-| `…UC.Emulation` | core | 82 | `_≤UC_`, `_≤UC⁺_`, `≤UC-refl`/`≤UC-trans`/`dummy-complete`, `blind-grade`/`unit-grade`.  `≤UC⁺⇒≤UC`, `_⊙_`, `_⊛₁_` and the `UC-compose` obligation are RETIRED — the inherited layer has the composition theorem |
+| `…UC.Emulation` | core | 82 | `_≤UC_`, `_≤UC⁺_`, `≤UC-refl`/`≤UC-trans`/`dummy-complete`.  `≤UC⁺⇒≤UC`, `_⊙_`, `_⊛₁_` and the `UC-compose` obligation are RETIRED — the inherited layer has the composition theorem |
 | `…UC.Core.Standard` | core | 49 | `gradingᵗ` — a monoidal category grades itself; the inherited doctrine's action |
 | `ProbabilisticLogic.Dp.Advantage` | enrichment | 121 | `Pr≤[_]`/`Pr≤`, `_≼ₚ[_]_`/`_≈ₚ[_]_` — advantage as an ε-indexed relation on BOTH verdict masses, with the pseudometric laws |
 | `…UC.Approximate` | enrichment | 254 | `ErrorAlgebra`, `ℚ-errors`, `Grade`/`GradedBound` with `_→0`/`VanishingBound` and `Negligible`/`NegligibleBound` its two instances, the two collapses and the sum closures (`→0-+`, `Negligible-+`), `Approximation` + the ε/2 equivalence, `ApproximateObservation`, `Induced`, `Mass` |
@@ -570,11 +570,11 @@ this layer needed them.)
 | `…UC.Machine` | model | 206 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Approximationᴹ`/`Observationᴹ`/`ApproximateObservationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `UCBaseᴹ` |
 | `…UC.Machine.Grading` | model | 74 | the four re-basings `qb-T₁ᴳ`/`qb-subᴳ`/`qb-a⇒ᴳ`/`qb-a⇐ᴳ`, carrying a query-bound certificate about a pinned relay to `gradingᴹ`'s action through a `…Dictionary` zigzag.  `GradingLawsᴹ`, `Gradingᴹ` and `Budgetᴹ` are GONE (perf finding 8); the `Budget (𝒢ₚ 0ℓ) gradingᴹ` assembly this row used to call owed is `UC.Machine.Budget.budgetᴹ`, and `UC.Model.Enrichment.budgetᵒ` carries it across the seal |
 | `…UC.Machine.Run` | model | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
-| `…UC.QueryBound` | model | 480 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `#inj₁`/`#inj₂`, `CountBound`, `Counting`, `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `qbᵢ-resp-step`, `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` and their hom-level forms, `BudgetLawsᴹ` |
+| `…UC.QueryBound` | model | 480 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `#inj₁`/`#inj₂`, `CountBound`, `Counting`, `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `qbᵢ-resp-step`, `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` and their hom-level forms.  `BudgetLawsᴹ` is GONE with `GradingLawsᴹ` and the rest (row above); the resource doctrine is inhabited directly by `UC.Machine.Budget.budgetᴹ` |
 | `…UC.QueryBound.Counting` | model | 237 | `CountedRun`, `countᵍ`/`countᵍ-erase`, `qbᵢ⇒count` — `Counting` inhabited |
 | `…UC.QueryBound.Compose` | model | 330 | `resumeF`/`resumeG`, `Unfolding` (the composite step's six equations), `qbᵢ-∘ᵍ` — the two-position token walk at rate `c * c′` |
 | `…UC.QueryBound.Compose.Step` | model | 495 | `Pt` and the `pt-*` routings, `onLₑ`/`tstepₑ`, `α⁰`/`γ⁰`/`Hα`/`Hγ` with `α-pure`/`γ-pure`, `unfoldᶜ` — `Unfolding` discharged at the real composite — and `qbᵢ-∘`/`qb-∘` |
-| `…UC.QueryBound.Compose.Laws` | model | 27 | `budgetLawsᴹ` — `BudgetLawsᴹ` assembled, given the two respect-`≈` hypotheses `qb-T₁ᴹ`/`qb-subᴹ` already take |
+| `…UC.QueryBound.Compose.Laws` | model | 60 | `qb-∘`, `qb-∘-category` and `qb-∘ᴳ` — the composition closure of `QB` at the hom level and at 𝒢's own objects, which is what `UC.Machine.Budget.budgetᴹ` plugs into the resource doctrine.  Every implicit is pinned and it is its own module for the per-field inversion cost; measured warm with congruence cached, 10.1 s |
 | `…UC.Machine.Bridge` | model | 96 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `ContextDominated` (proved by `UC.Machine.Dominated.dominated`) |
 | `…UC.Seam` | model | 171 | `strategyEnv` (a strategy as an environment), `ctxRunˢ`/`runˢ`, `Agreeˢ`, `Adequacy`/`AgreeToAdv` (stated here, both inhabited below), `pov-carry` (proved) |
 | `…UC.Seam.Adequacy.Wiring` | model | 358 | the G-composite's structural wiring collapsed to pure machines (`α-pure`/`γ-pure`), `kᵂ` (the loop's one-pass dispatch), `pairedᴹ`, `compose-≈ᴹ` |
@@ -875,11 +875,14 @@ Proved as of the second review, and both about the SIMULATOR the emulation
 carries — `pov-carry`'s premise being direct agreement, which `_≤UC_` does not
 hand over:
 
-* `UC.Emulation.unit-grade` — at a grade both ends are blind to, an emulation
-  *is* the direct agreement: the simulator collapses by `sub s ∘ g ≈ℰ g` and the
-  inflating wire by the ancilla quantifier.  Two lines over `blind-grade`, with
-  the two blindness facts as hypotheses (named, and priced, at the instance in
-  `UC.Seam.Grounding`).
+* `UC.Seam.Grounded.unitGrade` — at a grade both ends are blind to, an emulation
+  *is* the direct agreement: the simulator collapses by `sub s ∘ g ≈ᵁ g` and the
+  inflating wire by the ancilla quantifier.  The two blindness facts are named at
+  the instance in `UC.Seam.Grounding` (`SubBlind`, `IotaBlind`), and
+  `subBlind⇒unitGrade` discharges the simulator half from the real process's own
+  totality rather than assuming it.  A core-level version was stated over an
+  arbitrary `UCBase` and deleted in round 3: its blindness hypothesis was
+  universally quantified over simulators, which no consumer can supply.
 * `UC.Audit.audit-carry` — the graded carry: from `f ≤UC[ cs ] g` (an emulation
   whose simulator carries a query budget) and an ideal-side `AuditBound g ε`,
   the real side inherits `AuditBound f (λ q → ε (simCost q cs) + δ)` for any
@@ -1079,8 +1082,9 @@ impossibility result or a new benchmark.
   codomain either: the same statement at a *variable* of that type is 9 s.  The
   cure is not local — it is the `opaque` boundary or one-spelling discipline
   `Gradingᴹ` also waits for — so the reasoning moves to where nothing unfolds:
-  `UC.Emulation.unit-grade` and `UC.Audit.audit-carry` are proved over an
-  arbitrary `UCBase` and the instance modules only name their obligations.  This
+  `UC.Audit.audit-carry` is proved over an arbitrary `UCBase`,
+  `UC.Model.Bridge.≈ᴳ-at` over the inherited kernel, and the instance modules
+  only name their obligations (`UC.Seam.Grounding`'s three `Set₁`s).  This
   is the same medicine `UC.Seam.Agreeˢ` already takes by being spelled in the
   `Dₚ` vocabulary.
 * **…and it is neither the transport nor the bundling.**  Measured again while
@@ -1096,10 +1100,11 @@ impossibility result or a new benchmark.
   three trace-free budget laws are 29 s with every interface explicit and do not
   come back inside 200 s with them implicit; the certificate-level halves
   (`qbᵢ-T₁`/`qbᵢ-sub`) are 5 s each either way, because their interfaces are
-  module parameters.  `BudgetLawsᴹ` IS now assembled, and the prediction held:
-  its four fields take their interfaces implicitly, so filling them pays the
-  inversion once per field — 27 lines that check in ~220 s, which is why
-  `UC.QueryBound.Compose.Laws` is a module of its own.
+  module parameters.  The resource doctrine IS now inhabited
+  (`UC.Machine.Budget.budgetᴹ`), and the prediction held: its fields take their
+  interfaces implicitly, so filling them pays the inversion once per field —
+  which is why `UC.QueryBound.Compose.Laws` is a module of its own, with every
+  implicit pinned.  Pinned and with the congruence cached it is 10.1 s warm.
 * **"Name the observation once" survives all the way down to the example.**
   `Examples.ChimericLedger.Carry` applies the seam's `agreeToAdv` at the two
   concrete ledger systems and hands the result to the example's `pov-transfer`.
@@ -1201,7 +1206,7 @@ proved**. Semantic target: `docs/kb/frontier/15-probabilistic-uc-model.typ`,
 | `…UC.Model.Pin` | 92 | 9.1 s | the six application-site shapes, `relayᵒ`, `relay-emulates`, `relay-compose` |
 | `…UC.Model.Reading` | 76 | 9.2 s | `_≈ᴬ_`, `≈ᵁ⇒≈ᴬ`, `≈ᴬ⇒≈ᵁ`, `≈ᵁ⇔≈ᴬ` — proposal §2's displayed form, proved |
 | `…UC.Model.Unit` | 129 | 8.8 s | `AnyEnvironment` (the metatheory is blind to the closure object), `Interconvert` (what an empty-object iso would buy) |
-| `…UC.Model.Bridge` | 218 | 9.6 s | `observationᵒ`/`ucBaseᵒ`, `≈ℰᶜ⇔≈ᵁ`, `≤UCᶜ⇔≤UC`, `_≈ᴳ_` and `≈ᴳ⇔≈ℰᶜ`, and the three instruments `≈ᴳ-at`/`blind-gradeᵁ`/`unit-gradeᵁ` |
+| `…UC.Model.Bridge` | 218 | 9.6 s | `observationᵒ`/`ucBaseᵒ`, `≈ℰᶜ⇔≈ᵁ`, `≤UCᶜ⇔≤UC`, `_≈ᴳ_` and `≈ᴳ⇔≈ℰᶜ`, and the instrument `≈ᴳ-at` |
 | `…UC.Model.Enrichment` | 53 | 9.6 s | `budgetᵒ` (transported along `sealᵒ`) and `massᵒ` — `UC.Audit`'s two enrichment parameters, supplied |
 | `…UC.Model` | 40 | 8.8 s | the cone root and its orientation |
 

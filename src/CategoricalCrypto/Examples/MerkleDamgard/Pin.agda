@@ -22,10 +22,12 @@ open import Data.Bool.Base using (Bool; true; false; not; _xor_)
 open import Data.Fin.Base using (zero)
 open import Data.Integer.Base using () renaming (+_ to +ℤ_)
 open import Data.Product.Base using (_,_; proj₂)
-open import Data.Rational using (0ℚ; 1ℚ; _/_) renaming (_-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ)
+open import Data.Rational using (0ℚ; 1ℚ; _/_) renaming (_-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
 open import Data.Unit.Base using (tt)
 open import Data.Vec.Base using (Vec; []; _∷_; head)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+
+open import ProbabilisticLogic.Prelude using (advᵇ⊥)
 
 open import CategoricalCrypto.Examples.MerkleDamgard
 open import CategoricalCrypto.Iface
@@ -75,6 +77,13 @@ module OneBlock where
   tight : ∣ Pr general (hash (false ∷ [])) -ℚ Pr Sys (hash (false ∷ [])) ∣ℚ ≡ 0ℚ
   tight = refl
 
+  -- The theorem itself at those parameters, which is what `hash-asks` is for.
+  -- With `bound 1 ≡ 0ℚ` this is `tight` read at the `false` verdict, so the
+  -- theorem is exactly as tight as the experiment.
+  hash-bounded : advᵇ⊥ false (run general (hash (false ∷ [])))
+                             (run Sys (hash (false ∷ []))) ≤ℚ bound 1
+  hash-bounded = indistinguishable false 1 (hash (false ∷ [])) (hash-asks (false ∷ []))
+
 ------------------------------------------------------------------------
 -- Two blocks: the chaining is observable
 
@@ -111,6 +120,12 @@ module TwoBlocks where
   -- one.
   bound-2 : bound 2 ≡ +ℤ 3 / 1
   bound-2 = refl
+
+  -- The theorem applied anyway, at the budget `collide-asks` certifies: it
+  -- typechecks and says nothing, `gap` being 1/4 against a bound of 3.  The
+  -- application is the pin — that the two worlds and the bound compose at all.
+  collide-bounded : advᵇ⊥ true (run general collide) (run Sys collide) ≤ℚ bound 2
+  collide-bounded = indistinguishable true 2 collide collide-asks
 
   -- Both queries repeated: every compression call is a table hit the second
   -- time round, so the two worlds agree with probability 1.

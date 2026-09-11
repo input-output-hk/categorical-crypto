@@ -28,6 +28,7 @@ import Categories.GConstructionMonoidal as GM
 open import Data.Empty.Polymorphic using (⊥-elim)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Sum.Base as Sum using (_⊎_; inj₁; inj₂)
+open import Data.Sum.Ext using (⊎assocˡ; ⊎assocʳ)
 open import Level using (0ℓ)
 open import Relation.Binary.PropositionalEquality using (refl)
 

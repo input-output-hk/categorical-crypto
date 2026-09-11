@@ -378,7 +378,7 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
           (≡⇒≡ᵇ (total (proj₁ st)) (total s₀) (Good.intact good)))))
 
       φ-step : ∀ m st q → Inv st
-             → E⊥ (kernel Sys₀ Bad st q) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) st
+             → E⊥ (kernel Sys₀ st q) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) st
       φ-step m (s , tbl) audit _ = point-step m s tbl s (totalIs (total s))
       φ-step m (s , tbl) (submit tx) inv with shape ser inputConsuming s tx
       ... | rejected eq = subst (λ t → E⊥ (evalC t) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) (s , tbl))

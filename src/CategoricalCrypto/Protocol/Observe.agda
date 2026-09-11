@@ -147,9 +147,16 @@ module _ {B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol unitᴵ B) where
 
 module _ (P : Protocol unitᴵ B) where
 
+  -- One activation of a closed protocol, read as a partial distribution on
+  -- (post-state, answer).  Everything below reads the protocol only through
+  -- this, and so does `Interaction.runWith⊥` when the two models are compared
+  -- (`Examples.MerkleDamgard.runFrom-as-runWith`).
+  kernel : St P → Neg B → Dist⊥ (St P × Pos B)
+  kernel s q = evalC (step P s q)
+
   runFrom : St P → Strat (Neg B) (Pos B) → Dist⊥ Bool
   runFrom s (out b)    = return⊥ b
-  runFrom s (ask q k)  = evalC (step P s q) >>=⊥ λ (s′ , r) → runFrom s′ (k r)
+  runFrom s (ask q k)  = kernel s q >>=⊥ λ (s′ , r) → runFrom s′ (k r)
   runFrom s (coin μ k) = μ >>=ᴹ λ b → runFrom s (k b)
 
   run : Strat (Neg B) (Pos B) → Dist⊥ Bool
@@ -171,7 +178,7 @@ module _ (P : Protocol unitᴵ B) where
     hitFrom : Bool → St P → Strat (Neg B) (Pos B) → Dist⊥ Bool
     hitFrom acc s (out _)    = return⊥ acc
     hitFrom acc s (ask q k)  =
-      evalC (step P s q) >>=⊥ λ (s′ , r) → hitFrom (acc ∨ Bad s′) s′ (k r)
+      kernel s q >>=⊥ λ (s′ , r) → hitFrom (acc ∨ Bad s′) s′ (k r)
     hitFrom acc s (coin μ k) = μ >>=ᴹ λ b → hitFrom acc s (k b)
 
     hitRun : Strat (Neg B) (Pos B) → Dist⊥ Bool

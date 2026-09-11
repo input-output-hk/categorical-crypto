@@ -38,11 +38,6 @@ module CategoricalCrypto.Protocol.Safety where
 
 module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
 
-  -- One activation of a closed protocol, read as a partial distribution on
-  -- (post-state, answer).
-  kernel : St P → Neg B → Dist⊥ (St P × Pos B)
-  kernel s q = evalC (step P s q)
-
   private
     verdict : (acc : Bool) (st : St P) (b : Bool)
             → Pr₁⊥ (hitFrom P Bad acc st (out b)) ≡ bool→ℚ acc
@@ -55,10 +50,10 @@ module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
       Inv    : St P → Set
       φ      : ℕ → St P → ℚ
       inv₀   : Inv (init P)
-      pres   : ∀ s q → Inv s → OnSupport (Reached (λ sr → Inv (proj₁ sr))) (kernel s q)
+      pres   : ∀ s q → Inv s → OnSupport (Reached (λ sr → Inv (proj₁ sr))) (kernel P s q)
       φ-nn   : ∀ m s → Inv s → 0ℚ ≤ℚ φ m s
       φ-bad  : ∀ m s → Inv s → Bad s ≡ true → 1ℚ ≤ℚ φ m s
-      φ-step : ∀ m s q → Inv s → E⊥ (kernel s q) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) s
+      φ-step : ∀ m s q → Inv s → E⊥ (kernel P s q) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) s
       φ-init : ∀ m → φ m (init P) ≤ℚ ε m
 
   module _ {ε : ℕ → ℚ} (cert : HitCert ε) where
@@ -76,8 +71,8 @@ module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
     super (suc m) (ask q k) s le inv with Bad s in eqb
     ... | true  = ≤-trans (Pr₁⊥≤1 (hitFrom P Bad true s (ask q k)))
                           (φ-bad (suc m) s inv eqb)
-    ... | false = ≤-trans (≤-reflexive (E⊥-bind (kernel s q) Hk bool→ℚ))
-                  (≤-trans (E-mono-on (kernel s q) (maybeℚ Ph) (maybeℚ Pφ) ptw)
+    ... | false = ≤-trans (≤-reflexive (E⊥-bind (kernel P s q) Hk bool→ℚ))
+                  (≤-trans (E-mono-on (kernel P s q) (maybeℚ Ph) (maybeℚ Pφ) ptw)
                            (φ-step m s q inv))
       where
       Hk : St P × Pos B → Dist⊥ Bool
@@ -92,7 +87,7 @@ module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
       onReach (just (s′ , r)) inv′ = super m (k r) s′ (le r) inv′
       onReach nothing         _    = ≤-refl
 
-      ptw : OnSupport (λ x → maybeℚ Ph x ≤ℚ maybeℚ Pφ x) (kernel s q)
+      ptw : OnSupport (λ x → maybeℚ Ph x ≤ℚ maybeℚ Pφ x) (kernel P s q)
       ptw = ListAll.map (λ {e} → onReach (proj₂ e)) (pres s q inv)
     super m (coin μ k) s le inv with Bad s in eqb
     ... | true  = ≤-trans (Pr₁⊥≤1 (hitFrom P Bad true s (coin μ k)))
