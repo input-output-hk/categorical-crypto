@@ -151,14 +151,19 @@ is the birthday bound at the audit-adjusted allowance, not a `simCost`-adjusted
 one. The `simCost`-adjusted statement is `ledger-audit-carry`'s, at the graded
 end.
 
-Closing the gap needs one of:
-
-* an event class permitting contexts whose observation is `≈ₚ` only up to a
-  prefix of almost-surely-total silent computation, with `boundedIsAudit` and
-  `auditIsBounded` reproved at it (the `Prefixedᵒ`/`Massedᵒ` machinery of
-  `UC.Seam.Grounding.Prefix` is the substrate); or
-* an exactly-total simulator hypothesis, which is close to assuming `s ≈ id`
-  and therefore not worth the statement.
+**Closed at the unit grade** by the first of the two remedies that stood here:
+`UC.Seam.Audit.TrivialGrade.watchedᵖ` permits an almost-surely-total silent
+prefix, the syntactic prefix is stable under `Absorbs`
+(`UC.Seam.Audit.Prefix.absorb-watchedᵖ`, two prefixes fusing by `>>=ₚ-assoc`
+on the nose), the extraction context's membership in the PULLBACK class is
+proved (`ctx-absorb` — the inclusion the follow-up review's §2 demanded), and
+`uc-audit-bounded` is the whole route: `Bounded I bad ε` crosses a budgeted
+emulation to `Bounded R bad (λ q → ε (simCost q cs) + ν)`. What remains here
+is only the ledger consumer (wiring `ledger-audit-carry`'s family through
+`uc-audit-boundedᵖ`; the per-level `ASTotal` comes from
+`Grounded.simTotal⇒point` as in `subBlind⇒unitGrade`) — and, per the review's
+§3, none of this accounts for an *interactive* simulator: the budgeted
+simulator at these types is a scalar.
 
 ## Continuation spec
 
@@ -190,11 +195,10 @@ In priority order.
    direction still proved only at the model is `≈ᵁ ⇒ ≈ℰᶜ`, which needs
    `UC.Model.Reading`'s rebracketing; nothing above spends it.
 
-2. **The prefix-tolerant event class** (the obstruction above), after which
-   `uc-audit-carry` reaches a probability at the unit grade. Work plan:
-   `docs/prefix-tolerant-audit-plan.md` — scope-narrowed per the follow-up
-   review §3.1: accounting for an *interactive* simulator additionally needs
-   the review's §3 (the current budgeted simulator is a scalar).
+2. **The prefix-tolerant event class** — DONE generically (see the closed
+   obstruction above and `docs/prefix-tolerant-audit-plan.md`'s Outcome).
+   Remaining: the one-module ledger consumer wiring `uc-audit-boundedᵖ` at the
+   family; the *interactive*-simulator accounting stays with the review's §3.
 
 3. **A named hash construction.** The real family's shape is no longer generic:
    `ChimericLedger.Real` fixes it to `ledger vr s₀ ∘ᵖ hash` and discharges all
