@@ -189,7 +189,7 @@ private
 ≤UCᶜ⇔≤UC {f = f} {g} = mk⇔ {B = f ≤UC g} ≤UCᶜ⇒≤UC ≤UC⇒≤UCᶜ
 
 ------------------------------------------------------------------------
--- The three instruments the seam consumes, over the inherited kernel
+-- The instrument the seam consumes, over the inherited kernel
 
 -- `UC.Environment.≈ℰ-at`: an agreement read at ONE context, presented uniformly
 -- in the process.  Stated away from the machine layer for the reason
@@ -201,21 +201,3 @@ private
       → {f g : A ⇒ B} → f ≈ᴳ g → Obs (k f) ∼ᴼ Obs (k g)
 ≈ᴳ-at Y Et m k eq {f} {g} r =
   ∼ᴼ-resp (obs-resp (eq f)) (obs-resp (eq g)) (KE.run∼ (r Y) {Et} m)
-
--- `UC.Emulation.blind-grade`: an emulation at a grade every simulator is blind
--- to IS a plain agreement.  `_≤UC_` carries the dummy quantifier in its
--- statement here, so the core's degrading step is its instantiation at `id`.
-blind-gradeᵁ : {f g : A ⇒ T₀ X B} → ((s : X ⇒ X) → sub s ∘ g ≈ᵁ g) → f ≤UC g → f ≈ᵁ g
-blind-gradeᵁ {f = f} blind p =
-  let s , e = p id
-  in ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ f))) (≈ᵁ-trans e (blind s))
-
--- `UC.Emulation.unit-grade`: …and if the wire inflating a closed process to
--- that grade is absorbed by the ancilla quantifier too, the emulation is an
--- agreement of the UNGRADED processes.  Both hypotheses are degeneracy facts
--- about the chosen grade, not about the emulation.
-unit-gradeᵁ : {ι : B ⇒ T₀ X B} {u v : A ⇒ B}
-            → ((s : X ⇒ X) → sub s ∘ (ι ∘ v) ≈ᵁ ι ∘ v)
-            → (ι ∘ u ≈ᵁ ι ∘ v → u ≈ᴳ v)
-            → ι ∘ u ≤UC ι ∘ v → u ≈ᴳ v
-unit-gradeᵁ blind reflect e = reflect (blind-gradeᵁ blind e)

@@ -63,29 +63,3 @@ private
 dummy-complete : {f : A ⇒ X ⊛ B′} {g : A ⇒ Y ⊛ B′} → f ≤UC g → f ≤UC⁺ g
 dummy-complete (s , e) a =
   a ∘ s , ≈ℰ-trans (≈ℰ-congˡ (sub a) e) (≈⇒≈ℰ merge)
-
-------------------------------------------------------------------------
--- Degenerate grades
-
--- An emulation at a grade every simulator is blind to IS a plain agreement:
--- `f ≤UC g` quantifies the simulator at the graded codomain, and at such a grade
--- it collapses.
-blind-grade : {A B′ Z : Obj} {f g : A ⇒ Z ⊛ B′}
-            → ((s : Z ⇒ Z) → (sub s ∘ g) ≈ℰ g) → f ≤UC g → f ≈ℰ g
-blind-grade blind (s , em) = ≈ℰ-trans em (blind s)
-
--- …and if the wire inflating a closed process to that grade is absorbed by the
--- ancilla quantifier as well, the emulation is an agreement of the UNGRADED
--- processes: the premise a concrete carry consumes, `UC.Seam.pov-carry` through
--- `UC.Seam.Grounding.StratIsEnv`.
---
--- The two hypotheses are where the content sits, and both are degeneracy facts
--- about the chosen grade rather than about the emulation.  Proved HERE, over an
--- arbitrary base, because at the intended instance a term whose type is an
--- `≈ℰ` between machine COMPOSITES η-expands the observation record and with it
--- the machine equality — measured at a 3 GiB heap, `UC.Seam.Grounding`'s header.
-unit-grade : {A B′ Z : Obj} {ι : B′ ⇒ Z ⊛ B′} {u v : A ⇒ B′}
-           → ((s : Z ⇒ Z) → (sub s ∘ (ι ∘ v)) ≈ℰ (ι ∘ v))
-           → ((ι ∘ u) ≈ℰ (ι ∘ v) → u ≈ℰ v)
-           → _≤UC_ {A} {B′} {Z} {Z} (ι ∘ u) (ι ∘ v) → u ≈ℰ v
-unit-grade blind reflect e = reflect (blind-grade blind e)

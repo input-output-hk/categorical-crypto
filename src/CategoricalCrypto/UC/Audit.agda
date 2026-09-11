@@ -4,13 +4,13 @@
 -- seam's carry.
 --
 -- `UC.Seam.pov-carry` consumes agreement between two CLOSED processes, which is
--- what `UC.Emulation.unit-grade` reads off an emulation at a degenerate grade.
--- An emulation in general is not that: `f ≤UC g` compares processes carrying
--- adversary interfaces and the simulator lives at that grade.  `audit-carry` is
--- the carry that keeps it — an ideal-side bound on the audit event becomes a
--- real-side bound at the emulation's slack, the simulator absorbed into the
--- environment leg, where `sub s` slides off the process and onto the test and
--- the test's own budget pays for the simulator's queries.
+-- what `UC.Seam.Grounded.unitGrade` reads off an emulation at a degenerate
+-- grade.  An emulation in general is not that: `f ≤UC g` compares processes
+-- carrying adversary interfaces and the simulator lives at that grade, so
+-- `audit-carry` is the carry that keeps it — an ideal-side bound on the audit
+-- event becomes a real-side bound at the emulation's slack, the simulator
+-- absorbed into the environment leg, where `sub s` slides off the process and
+-- onto the test and the test's own budget pays for the simulator's queries.
 --
 -- The event carried has to be INTERFACE-OBSERVABLE, and that is the content of
 -- the restriction rather than a convenience: what a test reads is what an

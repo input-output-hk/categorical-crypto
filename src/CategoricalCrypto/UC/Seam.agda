@@ -30,9 +30,9 @@
 -- `X ⊛ B`, so an embedded strategy playing against that agreement sees the
 -- adversary interface as well, and two theorems cover the two ends.  At the
 -- TRIVIAL grade the simulator collapses and the emulation *is* the premise
--- `pov-carry` takes (`UC.Emulation.unit-grade`, named at this instance in
--- `UC.Seam.Grounding`).  At a real grade it does not collapse, and what carries
--- is a bound on an INTERFACE-OBSERVABLE event — the audit form,
+-- `pov-carry` takes (`UC.Seam.Grounding.UnitGrade`, proved by
+-- `UC.Seam.Grounded.unitGrade`).  At a real grade it does not collapse, and
+-- what carries is a bound on an INTERFACE-OBSERVABLE event — the audit form,
 -- `POVaudit`/`watch` in `Examples.ChimericLedger.POV`, which is what that gadget
 -- is for — with the simulator absorbed into the environment leg
 -- (`UC.Audit.audit-carry`, at this instance `UC.Seam.Audit`); the state

@@ -12,10 +12,9 @@
 --   core         `UC.Core`         `Grading`, `Observation`, `UCBase`
 --                `UC.Environment`  the environment presheaf, `_≈ℰ_`,
 --                                  `grade-stable`
---                `UC.Emulation`    `_≤UC_`, its three metatheorems, the
---                                  collapse at a degenerate grade
---                                  (`unit-grade`).  Universal composition is
---                                  the inherited theorem, not one of these —
+--                `UC.Emulation`    `_≤UC_` and its three metatheorems.
+--                                  Universal composition is the inherited
+--                                  theorem, not one of these —
 --                                  `UC.Model.Bridge` carries it across
 --                `UC.Core.Standard`
 --                                  `gradingᵗ`: a monoidal category grades
