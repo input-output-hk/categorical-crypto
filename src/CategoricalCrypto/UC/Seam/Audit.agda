@@ -54,8 +54,8 @@ open import CategoricalCrypto.UC.Emulation ucBaseᵒ using (obs; tv₁)
 private module A = Aud ucBaseᵒ budgetᵒ massᵒ
 
 open A public
-  using (_≤UC[_]_; sim; sim-qb; emulate; simCost; AuditEvent; AuditBound; absorb;
-         Absorbs; absorb-absorbs; audit-carry)
+  using (_≤UC[_]_; ≤UC[]⇒≤UC; sim; sim-qb; emulate; simCost; AuditEvent; AuditBound;
+         absorb; Absorbs; absorb-absorbs; audit-carry)
 
 ------------------------------------------------------------------------
 -- The consumer end

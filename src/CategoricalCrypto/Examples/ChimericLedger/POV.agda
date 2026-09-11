@@ -23,6 +23,7 @@ open import Data.Fin.Base using () renaming (zero to fzero)
 open import Data.List.Base
 open import Data.Maybe.Base
 open import Data.Nat.Base renaming (_+_ to _+ᴺ_; _*_ to _*ᴺ_; _≡ᵇ_ to _≡ᴺ_)
+import Data.Nat.Properties as ℕP
 open import Data.Product.Base
 open import Data.Rational renaming (_+_ to _+ℚ_; _≤_ to _≤ℚ_)
 open import Data.Rational.Properties
@@ -169,6 +170,16 @@ audited : Strat Query Answer → Strat Query Answer
 audited (out b)    = out b
 audited (ask q k)  = ask q λ a → ask audit λ _ → audited (k a)
 audited (coin μ k) = coin μ λ b → audited (k b)
+
+-- …and what that instrumentation costs an allowance: one extra ask per answer,
+-- so the ask-depth doubles.  An asymptotic consumer charges it
+-- (`UC.Asymptotic.saturatedHitᴺ-from-monitor`).
+asks≤-audited : (n : ℕ) (d : Strat Query Answer) → asks≤ n d → asks≤ (n +ᴺ n) (audited d)
+asks≤-audited _       (out _)    _ = tt
+asks≤-audited (suc n) (ask _ k)  a = λ r →
+  subst (λ m → asks≤ m (ask audit λ _ → audited (k r))) (sym (ℕP.+-suc n n))
+        λ _ → asks≤-audited n (k r) (a r)
+asks≤-audited n       (coin _ k) a = λ b → asks≤-audited n (k b) (a b)
 
 module _ (vr : Variant) (s₀ : LState) where
 
