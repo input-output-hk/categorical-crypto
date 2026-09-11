@@ -181,15 +181,22 @@ simTotal⇒point B s v st =
              (massedᵒ-∘ˡ _ _ _ (sub s) (ιᴳ B ∘ procᵒ v) _
                (massedᵒ-sub 𝟘ᴳ 𝟘ᴳ (ifaceᵒ B) s _ (massedᵒ-point 𝟘ᴳ 𝟘ᴳ s)))
 
--- …and an initialization that terminates almost surely is invisible.  A
+-- The whole of what a trivial-grade simulator contributes to a context: its
+-- own initialization, in front of whatever that context observes.  A
 -- trivial-grade scalar carries no message, so it is the identity except for
--- its own point (`Grounding.Prefix.scalar-blindᵒ`); `sub` and the ancilla keep
--- it a prefix, and `Dp.Mass.astotal-bind` removes it from the observation.
--- The experiment is read in the ∀-ancilla/test/closure form
+-- that point (`Grounding.Prefix.scalar-blindᵒ`), and `sub` and the ancilla keep
+-- it a prefix.  The experiment is read in the ∀-ancilla/test/closure form
 -- (`UC.Model.Reading`), where the two endpoints differ by the single factor
 -- `id ⊗₁ sub s`.
-subBlind : TG.SubBlind
-subBlind B s v st = ≈ᴬ⇒≈ᵁ agree
+subPrefixed : (B : Iface) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) (v : Proc unitᴵ B) (Y : Channel)
+              (t : Y ⊗₀ T₀ 𝟘ᴳ (ifaceᵒ B) ⇒ Ωᵒ) (m : 𝟘ᵒ ⇒ Y ⊗₀ 𝟘ᵒ)
+            → Prefixedᵒ 𝟘ᵒ Ωᵒ (t ∘ id ⊗₁ (sub s ∘ (ιᴳ B ∘ procᵒ v)) ∘ m)
+                              (t ∘ id ⊗₁ (ιᴳ B ∘ procᵒ v) ∘ m) (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
+subPrefixed B s v Y t m = prefixedᵒ-resp-≈ 𝟘ᵒ Ωᵒ _ _ _ _ σ
+  (refl⟩∘⟨ (sym-assoc ○ (⟺ split ⟩∘⟨refl)))
+  (refl⟩∘⟨ identityˡ)
+  (prefixedᵒ-∘ˡ 𝟘ᵒ (Y ⊗₀ Bᵍ) Ωᵒ t _ _ σ
+    (prefixedᵒ-∘ʳ 𝟘ᵒ (Y ⊗₀ Bᵍ) (Y ⊗₀ Bᵍ) (id ⊗₁ wire ∘ m) (id ⊗₁ sub s) id σ ancilla))
   where
   σ : Dₚ ⊤ᵛ
   σ = pointᵒ 𝟘ᴳ 𝟘ᴳ s
@@ -206,26 +213,21 @@ subBlind B s v st = ≈ᴬ⇒≈ᵁ agree
              Equiv.refl sub-identity
              (prefixedᵒ-sub 𝟘ᴳ 𝟘ᴳ (ifaceᵒ B) s id σ (scalar-blindᵒ s))
 
-  agree : (sub s ∘ wire) ≈ᴬ wire
-  agree Y t m = prefixedᵒ-obs _ _ σ (simTotal⇒point B s v st) full
-    where
-    ancilla : Prefixedᵒ (Y ⊗₀ Bᵍ) (Y ⊗₀ Bᵍ) (id ⊗₁ sub s) id σ
-    ancilla = prefixedᵒ-resp-≈ (Y ⊗₀ Bᵍ) (Y ⊗₀ Bᵍ)
-                (id ⊗₁ sub s) (id ⊗₁ sub s) (id ⊗₁ id) id σ
-                Equiv.refl ⊗.identity
-                (prefixedᵒ-⊗ʳ Y Y Bᵍ Bᵍ id (sub s) id σ blindˢ)
+  ancilla : Prefixedᵒ (Y ⊗₀ Bᵍ) (Y ⊗₀ Bᵍ) (id ⊗₁ sub s) id σ
+  ancilla = prefixedᵒ-resp-≈ (Y ⊗₀ Bᵍ) (Y ⊗₀ Bᵍ)
+              (id ⊗₁ sub s) (id ⊗₁ sub s) (id ⊗₁ id) id σ
+              Equiv.refl ⊗.identity
+              (prefixedᵒ-⊗ʳ Y Y Bᵍ Bᵍ id (sub s) id σ blindˢ)
 
-    split : id ⊗₁ (sub s ∘ wire) ≈ id ⊗₁ sub s ∘ id ⊗₁ wire
-    split = ⟺ (T₁-⊗ 𝔾ᵒ Y (sub s ∘ wire)) ○ T-homomorphism
-          ○ (T₁-⊗ 𝔾ᵒ Y (sub s) ⟩∘⟨ T₁-⊗ 𝔾ᵒ Y wire)
+  split : id ⊗₁ (sub s ∘ wire) ≈ id ⊗₁ sub s ∘ id ⊗₁ wire
+  split = ⟺ (T₁-⊗ 𝔾ᵒ Y (sub s ∘ wire)) ○ T-homomorphism
+        ○ (T₁-⊗ 𝔾ᵒ Y (sub s) ⟩∘⟨ T₁-⊗ 𝔾ᵒ Y wire)
 
-    full : Prefixedᵒ 𝟘ᵒ Ωᵒ (t ∘ id ⊗₁ (sub s ∘ wire) ∘ m) (t ∘ id ⊗₁ wire ∘ m) σ
-    full = prefixedᵒ-resp-≈ 𝟘ᵒ Ωᵒ _ _ _ _ σ
-             (refl⟩∘⟨ (sym-assoc ○ (⟺ split ⟩∘⟨refl)))
-             (refl⟩∘⟨ identityˡ)
-             (prefixedᵒ-∘ˡ 𝟘ᵒ (Y ⊗₀ Bᵍ) Ωᵒ t _ _ σ
-               (prefixedᵒ-∘ʳ 𝟘ᵒ (Y ⊗₀ Bᵍ) (Y ⊗₀ Bᵍ) (id ⊗₁ wire ∘ m)
-                             (id ⊗₁ sub s) id σ ancilla))
+-- …and an initialization that terminates almost surely is invisible:
+-- `Dp.Mass.astotal-bind` removes it from the observation.
+subBlind : TG.SubBlind
+subBlind B s v st = ≈ᴬ⇒≈ᵁ λ Y t m →
+  prefixedᵒ-obs _ _ _ (simTotal⇒point B s v st) (subPrefixed B s v Y t m)
 
 -- …so the unit-grade specialization is a closed theorem.
 unitGrade : TG.UnitGrade

@@ -122,14 +122,17 @@ opaque
                          (_ , inj₂ y) → ⊥-elim y
     }
 
-  -- …and what the seam reads off a prefix: an almost surely terminating one is
-  -- invisible to an ε-closed observation.
+  -- …and what the seam reads off a prefix: the closed observation IS the prefix
+  -- followed by the observation of what it prefixes.
+  prefixedᵒ-bind : (u v : Gᵒ._⇒_ 𝟘ᵒ Ωᵒ) (p : Dₚ ⊤ᵛ) → Prefixedᵒ 𝟘ᵒ Ωᵒ u v p
+                 → Obs u ≈ₚ (p >>=ₚ λ _ → Obs v)
+  prefixedᵒ-bind u v p l = runᴹ-resp-≈ᴹ {Ωᴵ} (L.fromˡ l) (ask tt out)
+     ⟨≈⟩ run-lax (L.coreˡ l) (ask tt out)
+     ⟨≈⟩ bindᶠ (λ _ → runᴹ-resp-≈ᴹ {Ωᴵ} (L.toˡ l) (ask tt out))
+
+  -- …so an almost surely terminating prefix is invisible to an ε-closed
+  -- observation.
   prefixedᵒ-obs : (u v : Gᵒ._⇒_ 𝟘ᵒ Ωᵒ) (p : Dₚ ⊤ᵛ) → ASTotal p
                 → Prefixedᵒ 𝟘ᵒ Ωᵒ u v p → (ε : ℚ) → 0ℚ ℚ.< ε → Obs u ≈ₚ[ ε ] Obs v
   prefixedᵒ-obs u v p tot l ε ε>0 =
-    ≈ₚ[]-resp (≈sym prefix) ≈refl (astotal-bind p (Obs v) tot ε ε>0)
-    where
-    prefix : Obs u ≈ₚ (p >>=ₚ λ _ → Obs v)
-    prefix = runᴹ-resp-≈ᴹ {Ωᴵ} (L.fromˡ l) (ask tt out)
-       ⟨≈⟩ run-lax (L.coreˡ l) (ask tt out)
-       ⟨≈⟩ bindᶠ (λ _ → runᴹ-resp-≈ᴹ {Ωᴵ} (L.toˡ l) (ask tt out))
+    ≈ₚ[]-resp (≈sym (prefixedᵒ-bind u v p l)) ≈refl (astotal-bind p (Obs v) tot ε ε>0)

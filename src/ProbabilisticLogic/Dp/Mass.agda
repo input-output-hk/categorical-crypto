@@ -279,6 +279,38 @@ private
   1-≤ : (m ε : ℚ) → 1ℚ ℚ.- ε ℚ.≤ m → 1ℚ ℚ.- m ℚ.≤ ε
   1-≤ m ε le = ≤-trans (+-monoʳ-≤ 1ℚ (neg-antimono-≤ le)) (≤-reflexive (co ε))
 
+  back : (ε : ℚ) → (1ℚ ℚ.- ε) ℚ.+ ε ≡ 1ℚ
+  back = solve 1 (λ ε → (con 1ℚ :- ε) :+ ε := con 1ℚ) refl
+    where open +-*-Solver
+
+  1-≤1 : (ε : ℚ) → 0ℚ ℚ.≤ ε → 1ℚ ℚ.- ε ℚ.≤ 1ℚ
+  1-≤1 ε 0≤ε = ≤-trans (≤-reflexive (sym (+-identityʳ (1ℚ ℚ.- ε))))
+                       (≤-trans (+-monoʳ-≤ (1ℚ ℚ.- ε) 0≤ε) (≤-reflexive (back ε)))
+
+  expand : (ε : ℚ) → 1ℚ ℚ.- (ε ℚ.+ ε) ≡ ((1ℚ ℚ.- ε) ℚ.+ (1ℚ ℚ.- ε)) ℚ.- 1ℚ
+  expand = solve 1 (λ ε →
+    con 1ℚ :- (ε :+ ε) := ((con 1ℚ :- ε) :+ (con 1ℚ :- ε)) :- con 1ℚ) refl
+    where open +-*-Solver
+
+  collect : (a b : ℚ) → ((a ℚ.+ b) ℚ.- 1ℚ) ℚ.+ ((1ℚ ℚ.- a) ℚ.* (1ℚ ℚ.- b)) ≡ a ℚ.* b
+  collect = solve 2 (λ a b →
+    ((a :+ b) :- con 1ℚ) :+ ((con 1ℚ :- a) :* (con 1ℚ :- b)) := a :* b) refl
+    where open +-*-Solver
+
+  -- `a + b - 1 ≤ a * b` in the unit interval — the remainder `(1-a)*(1-b)` is
+  -- nonnegative — so each half of the slack pays for one factor.
+  product : (a b ε : ℚ) → a ℚ.≤ 1ℚ → b ℚ.≤ 1ℚ → 1ℚ ℚ.- ε ℚ.≤ a → 1ℚ ℚ.- ε ℚ.≤ b
+          → 1ℚ ℚ.- (ε ℚ.+ ε) ℚ.≤ a ℚ.* b
+  product a b ε a≤1 b≤1 ea eb =
+    ≤-trans (≤-reflexive (expand ε))
+    (≤-trans (+-monoˡ-≤ (ℚ.- 1ℚ) (+-mono-≤ ea eb))
+    (≤-trans (≤-reflexive (sym (+-identityʳ ((a ℚ.+ b) ℚ.- 1ℚ))))
+    (≤-trans (+-monoʳ-≤ ((a ℚ.+ b) ℚ.- 1ℚ) nn) (≤-reflexive (collect a b)))))
+    where
+    nn : 0ℚ ℚ.≤ (1ℚ ℚ.- a) ℚ.* (1ℚ ℚ.- b)
+    nn = ≤-trans (≤-reflexive (sym (*-zeroʳ (1ℚ ℚ.- a))))
+           (*-monoˡ-≤-nonNeg (1ℚ ℚ.- a) ⦃ ℚ.nonNegative (0≤1- a a≤1) ⦄ (0≤1- b b≤1))
+
   -- `x ≤ m * x + ε`, for a mass `m` within `ε` of one and an `x` in the unit
   -- interval: the remainder `(1 - m) * x` is at most `1 - m`, hence at most ε.
   scale : (m x ε : ℚ) → m ℚ.≤ 1ℚ → 1ℚ ℚ.- ε ℚ.≤ m → 0ℚ ℚ.≤ x → x ℚ.≤ 1ℚ
@@ -313,6 +345,25 @@ module _ (p : Dₚ A) (e : Dₚ Bool) where
 
   astotal-bind : ASTotal p → (ε : ℚ) → 0ℚ ℚ.< ε → (p >>=ₚ λ _ → e) ≈ₚ[ ε ] e
   astotal-bind tot ε ε>0 = const-bind-≼ ε (<⇒≤ ε>0) , const-bind-≽ tot ε ε>0
+
+-- A junction terminates at once, so the empty prefix is an almost surely
+-- terminating one.
+astotal-returnₚ : (x : A) → ASTotal (returnₚ x)
+astotal-returnₚ x ε ε>0 = 1 , ≤-trans (1-≤1 ε (<⇒≤ ε>0))
+  (≤-reflexive (sym (returnₚ-cum 0 x (λ _ → 1ℚ))))
+
+-- …and two almost surely terminating computations in sequence are one: the
+-- masses multiply, `product` turning the two halves of the slack into the whole.
+const-bind-astotal : (d : Dₚ A) (e : Dₚ B) → ASTotal d → ASTotal e
+                   → ASTotal (d >>=ₚ λ _ → e)
+const-bind-astotal d e td te ε ε>0 =
+  let k , bd  = td (½ ℚ.* ε) (0<½* ε>0)
+      n , bd′ = te (½ ℚ.* ε) (0<½* ε>0)
+  in k +ℕ n
+   , ≤-trans (subst (λ c → 1ℚ ℚ.- c ℚ.≤ mass k d ℚ.* mass n e) (½*+½* ε)
+                    (product (mass k d) (mass n e) (½ ℚ.* ε)
+                             (mass-≤1 k d) (mass-≤1 n e) bd bd′))
+             (const-bindB k n d e (λ _ → 1ℚ) λ _ → 0≤1ℚ)
 
 ------------------------------------------------------------------------
 -- The squeeze
