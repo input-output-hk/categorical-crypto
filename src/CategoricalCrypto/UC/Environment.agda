@@ -56,6 +56,46 @@ Closure A = 𝟙 ⇒ A
 obs : Test A → Closure A → Obs
 obs E m = ⟦ E ∘ m ⟧
 
+------------------------------------------------------------------------
+-- The presheaf the inherited doctrine asks for
+
+-- `UCSetup` takes `ℰ` as GIVEN; an `Observation` is the datum one is built
+-- from, and this is that construction — tests into `Ω` modulo closed
+-- observation, no ancilla in the carrier.  It is the one row of the
+-- supersession inventory that runs from the core to the inherited layer
+-- (`docs/stduc-supersession-plan.md` §2.3), so it is proved once here rather
+-- than per instance: `UC.Model.Environment.ℰᵒ` is this at the machine model,
+-- and it is what an `ℰ` at the levelwise family category will be (P6).
+--
+-- Precomposition is well defined because a closure `m : 𝟙 ⇒ B` becomes the
+-- closure `f ∘ m : 𝟙 ⇒ A`; associativity then gives all three presheaf laws.
+
+infix 4 _≋_
+
+_≋_ : Test A → Test A → Set (ℓ ⊔ ℓs)
+_≋_ {A} E₁ E₂ = (m : Closure A) → obs E₁ m ∼ obs E₂ m
+
+≈⇒≋ : {E₁ E₂ : Test A} → E₁ ≈ E₂ → E₁ ≋ E₂
+≈⇒≋ eq _ = ⟦⟧-resp-≈ (∘-resp-≈ˡ eq)
+
+ℰᴼ : Presheaf 𝒞 (Setoids ℓ (ℓ ⊔ ℓs))
+ℰᴼ = record
+  { F₀ = λ A → record
+      { Carrier = Test A ; _≈_ = _≋_
+      ; isEquivalence = record
+        { refl = λ _ → ∼-refl ; sym = λ h m → ∼-sym (h m)
+        ; trans = λ h k m → ∼-trans (h m) (k m) }
+      }
+  ; F₁           = λ f → record
+      { to = _∘ f ; cong = λ h m → ∼-cast sym-assoc sym-assoc (h (f ∘ m)) }
+  ; identity     = ≈⇒≋ identityʳ
+  ; homomorphism = ≈⇒≋ sym-assoc
+  ; F-resp-≈     = λ eq → ≈⇒≋ (∘-resp-≈ʳ eq)
+  }
+
+------------------------------------------------------------------------
+-- Tests at a fixed ancilla
+
 -- Two tests at the same ancilla agree when no closure separates them.
 record SameTV (Y A : Obj) (E₁ E₂ : Test (Y ⊛ A)) : Set (ℓ ⊔ ℓs) where
   field same : (m : Closure (Y ⊛ A)) → obs E₁ m ∼ obs E₂ m
