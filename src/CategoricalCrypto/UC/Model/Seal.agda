@@ -43,7 +43,9 @@ opaque
 ∣𝔾ᵒ∣ : Category (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)
 ∣𝔾ᵒ∣ = MonoidalCategory.U 𝔾ᵒ
 
-private module G = MonoidalCategory 𝔾ᵒ
+private
+  module G = MonoidalCategory 𝔾ᵒ
+  module M = Category (𝒢ₚ 0ℓ)
 
 opaque
   unfolding 𝔾ᵒ
@@ -74,3 +76,10 @@ opaque
   -- the seal hides that tensor, so this is not derivable outside.
   gradedᵒ : {A X B : Iface} → Proc A (X ⊗ᴵ B) → ifaceᵒ A G.⇒ ifaceᵒ X G.⊗₀ ifaceᵒ B
   gradedᵒ f = f
+
+  -- `procᵒ` is functorial on the nose, and the seal hides that too.  This is
+  -- what lets the model's closed run read a COMPOSITE of the seal as the
+  -- machine composite it is (`UC.Seam.Grounded.plug-run`).
+  unprocᵒ-∘ : {A B C : Iface} (g : Proc B C) (f : Proc A B)
+            → 𝒢ₚ 0ℓ [ unprocᵒ (procᵒ g G.∘ procᵒ f) ≈ M._∘_ g f ]
+  unprocᵒ-∘ _ _ = M.Equiv.refl
