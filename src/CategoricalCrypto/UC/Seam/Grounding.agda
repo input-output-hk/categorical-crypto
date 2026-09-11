@@ -101,9 +101,9 @@ record EnvCtx (B : Iface) (d : Strat (Neg B) (Pos B)) : Set₁ where
 -- At the unit ancilla the witnesses are `test = strategyEnv B d ∘ λ⇒`, the
 -- closure `λ⇐`, and `plugs` the cancellation of `T₁ unit` against the two
 -- wires: the unitor's naturality and its own iso, two fields of the monoidal
--- record (`UC.Seam.Grounded`).  What made this hard before the move to the
--- seal was the grade `unitᴵ`, which is NOT the bundle's unit — no `T₁ Y w ≈ w`
--- is derivable at it, and the equation fell through to the ⊕-trace.
+-- record (`UC.Seam.Grounded`).  The gotcha is the grade `unitᴵ`, which is NOT
+-- the bundle's unit — no `T₁ Y w ≈ w` is derivable at it, and the equation
+-- falls through to the ⊕-trace.
 EnvAsCtx : Set₁
 EnvAsCtx = (B : Iface) (d : Strat (Neg B) (Pos B)) → EnvCtx B d
 

@@ -213,10 +213,7 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
       ... | no  _ with lookup-bs-∈ xs q h eq
       ...   | e , mem , pe = e , there mem , pe
 
-    ----------------------------------------------------------------------
-    -- A hit at a good state is the replay, and it cannot happen
-    ----------------------------------------------------------------------
-
+    -- A hit at a good state is the replay, and it cannot happen.
     private
       no-replay : ∀ s tbl ins wds outs u′ vIn h
                 → checkIns (proj₁ s) ins ≡ just (vIn , u′)

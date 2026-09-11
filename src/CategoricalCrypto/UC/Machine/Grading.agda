@@ -2,14 +2,12 @@
 
 -- Where the pinned relays meet the derived grading.
 --
--- The grading itself is `UC.Machine.gradingᴹ` and comes for free; there is no
--- `GradingLawsᴹ` any more and no `Cast`/`Laws` cone under it — `UC.Machine`'s
--- header prices why.  What is left is the resource layer: a `UC.QueryBound`
--- certificate is about the pinned relay (`T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`) or a bare
--- wire, the grading's action is `_⊗₁_` with an identity and the 𝒢-associator
--- and 𝒢-unitors, and `UC.Machine.Dictionary`'s zigzags carry one to the other
--- through `qb-resp-≈`.  Those eight are the entire content the retired cone
--- was buying.
+-- The grading itself is `UC.Machine.gradingᴹ` and comes for free.  What is
+-- left is the resource layer: a `UC.QueryBound` certificate is about the pinned
+-- relay (`T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`) or a bare wire, the grading's action is
+-- `_⊗₁_` with an identity and the 𝒢-associator and 𝒢-unitors, and
+-- `UC.Machine.Dictionary`'s zigzags carry one to the other through
+-- `qb-resp-≈`.  Those eight are the whole content.
 --
 -- The proofs stay in `Iface` vocabulary, where elaboration is cheap.  Their
 -- object-indexed wrappers cross through `QBᴳ` only at explicit `⟦_⟧ᴵ` images;

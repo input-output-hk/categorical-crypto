@@ -8,11 +8,11 @@
 -- What an emulation at the machine layer buys is the *hypothesis* of that
 -- theorem, so the seam is the chain from a UC hypothesis down to it.
 --
--- The chain runs along an EMBEDDING, not along a reflection.  An earlier
--- version read the carry off `UC.Bridge.Reflects`, which turns closeness of
--- direct runs into closeness under a machine context — the wrong way round,
--- the carry needing a contextual hypothesis to imply closeness of the direct
--- runs (external theory review, finding 3).  Built the other way, the chain is
+-- The chain runs along an EMBEDDING, not along a reflection.  Reading the
+-- carry off a reflection — closeness of direct runs into closeness under a
+-- machine context — is the wrong way round: the carry needs a contextual
+-- hypothesis to imply closeness of the direct runs (external theory review,
+-- finding 3).  Built the other way, the chain is
 --
 --   `strategyEnv`  embeds a finite strategy as an environment: its state is the
 --                  remaining tree, an `ask` is a message on the plugged

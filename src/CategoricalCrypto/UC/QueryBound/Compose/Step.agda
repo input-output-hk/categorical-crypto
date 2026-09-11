@@ -3,12 +3,10 @@
 -- The composite's step, computed: `Unfolding` discharged for the real `𝒫ᴵ`
 -- composite, and `qb-∘` with it.
 --
--- The certificate now uses `Collapse.kᴳ` directly and reuses `collapseᵀ` rather
--- than rebuilding the wire collapse as `Bd≈`.  The target names the same raw
--- G-composition before it is packed into the Category record; congruence is
--- paid by the hom-level closure in `Compose.Laws`, not by this concrete step.
--- Measured warm cost: 10.1 s, down from 12.2 s; rebuilding this module no
--- longer rebuilds the 94 s congruence module.
+-- The target names the same raw G-composition before it is packed into the
+-- Category record; congruence is paid by the hom-level closure in
+-- `Compose.Laws`, not by this concrete step.  Measured warm cost: 10.1 s;
+-- rebuilding this module does not rebuild the 94 s congruence module.
 
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
 import Categories.Category.Monoidal.Distributive as MD

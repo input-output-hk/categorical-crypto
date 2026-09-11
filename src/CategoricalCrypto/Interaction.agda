@@ -26,11 +26,6 @@ module CategoricalCrypto.Interaction where
 
 private variable Q R St : Type
 
--- The adaptive distinguisher is `Strategy.Strat`, coin and all: a
--- deterministic tree class is provably too weak (see that module's header),
--- and a second copy of the same tree here would only have to be translated
--- back at the protocol seam.
-
 ------------------------------------------------------------------------
 -- Running a distinguisher, totally and partially
 

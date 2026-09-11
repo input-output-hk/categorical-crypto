@@ -97,7 +97,8 @@ morphism P = MC.mk (stateᴹ P) (stepᴹ P)
 -- What the agreement theorems say
 
 -- Functoriality: `_∘ᵖ_` grafts two call trees; `𝒢`'s composition traces the
--- tensor of the two machines.  Stated, not proved — see below for the price.
+-- tensor of the two machines.  Proved in `Protocol.Machine.Compose`;
+-- `Protocol.Machine.Pin`'s header prices the pin that is out of reach.
 Morphism-∘ : Set₁
 Morphism-∘ = {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B)
            → 𝒢ₚ 0ℓ [ morphism (P₂ ∘ᵖ P₁) ≈ morphism P₂ 𝒢.∘ morphism P₁ ]

@@ -82,8 +82,7 @@
 --
 -- Everything is `--safe --without-K`; the `Dₚ`-facing modules add
 -- `--guardedness` and nothing adds anything else.  In particular there is no K
--- island: the reference arc needed one because its environment relation
--- bundled the ancilla existentially, and `UC.Environment` does not.
+-- island; `UC.Environment`'s header says why the reference arc needed one.
 
 module CategoricalCrypto.UC where
 

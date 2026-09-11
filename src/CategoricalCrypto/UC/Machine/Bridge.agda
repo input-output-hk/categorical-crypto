@@ -19,8 +19,8 @@
 -- consumers have: a layer-1 theorem (`_≈adv[_]_`, `Bounded`) is already
 -- quantified over budgeted strategies, so it feeds this hypothesis by
 -- instantiating its own budget at `ctxBudget c c′`.  Asking instead for ONE
--- finite strategy that dominates the context — the form this module carried
--- before — is constructively overdemanding twice over: the witness is an
+-- finite strategy that dominates the context is constructively overdemanding
+-- twice over: the witness is an
 -- optimal deterministic policy of a `Dₚ` context, and it must ATTAIN the
 -- context's advantage rather than approximate it.  Its uniform variant (one
 -- strategy before the compared pair) is outright refuted: `Strat` is a finite

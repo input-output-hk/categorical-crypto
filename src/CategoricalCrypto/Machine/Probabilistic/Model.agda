@@ -8,9 +8,9 @@
 -- `Machines` structure.  Three things happen here.
 --
 -- 1. Machines form a monoidal category whose hom-equality is OBSERVATIONAL
---    (`f ≈ₚ g = ⟦ f ⟧ ≈ᵉ ⟦ g ⟧`).  `Machines` supplies `_⊚_` with no laws — they
---    hold of the trace, which lives on the `g-construction` branch — so the laws
---    and the tensor are the hypotheses `MachineCategory` / `MonoidalMachines`.
+--    (`f ≈ₚ g = ⟦ f ⟧ ≈ᵉ ⟦ g ⟧`).  `Machines` supplies `_⊚_` with no laws, so
+--    the laws and the tensor are the hypotheses `MachineCategory` /
+--    `MonoidalMachines`.
 -- 2. A closed experiment is a machine `unit ⇒ Ω` at the verdict channel
 --    `Ω = Bool ⇿ ⊤`: it receives one trigger and answers with a bit.  This is
 --    where the theory's BINARY advantage meets the concrete TERNARY one
@@ -21,8 +21,7 @@
 --    ℚ-absolute-value facts.
 -- 3. Counting: `QueryBudget` is the instrument `MachineAxioms.QB` asks for —
 --    "one codomain-side activation of `h` causes at most `c` completed
---    domain-side events" — again a hypothesis, being a property of the unbuilt
---    trace.
+--    domain-side events" — again a hypothesis, being a property of the trace.
 --
 -- `MachineModel` bundles the three hypotheses and derives `axioms`.
 --------------------------------------------------------------------------------
@@ -124,8 +123,8 @@ adv⊥-≈⇒0 {μ} = λ e → trans (cong (λ z → ∣ Pr₁⊥ μ -ℚ z ∣�
 ------------------------------------------------------------------------
 -- The machine layer's outstanding structure, as hypotheses
 
--- `Machines` gives `_⊚_` with no laws at all: the trace operator they hold of
--- lives on the g-construction branch.
+-- `Machines` gives `_⊚_` with no laws at all; the trace they hold of is
+-- `Machines.Base.Tracedₚ`.
 record MachineCategory : Set (suc (suc 0ℓ)) where
   field
     ⊚-assoc     : ∀ {A B C D} {f : PMachine A B} {g : PMachine B C} {h : PMachine C D}

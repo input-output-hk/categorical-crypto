@@ -465,7 +465,7 @@ qb-idᴹ = certified⇒QB qbᵢ-id
 -- argument makes Agda invert `Machine (Pos A + Neg B) …` for the pair, and this
 -- module stops coming back inside 200 s (`UC.Machine`'s header records the same
 -- inversion at ~1 GiB apiece).  The assembly into a `Budget` lives in
--- `UC.Machine.Grading` (`Budgetᴹ`), behind the same implicit-pinning.
+-- `UC.Machine.Budget` (`budgetᴹ`), behind the same implicit-pinning.
 qb-T₁ᴹ : ({Y A B : Iface} {f g : Proc A B} → 𝒫ᴵ [ f ≈ g ] → 𝒫ᴵ [ T₁ᴵ Y f ≈ T₁ᴵ Y g ])
        → (Y A B : Iface) {c : ℕ} (f : Proc A B) → QB c f → QB (c ℕ.⊔ 1) (T₁ᴵ Y f)
 qb-T₁ᴹ resp Y A B f (N , cert , e) = T₁ᴵ Y N , qbᵢ-T₁ Y A B N cert , resp e
@@ -475,12 +475,12 @@ qb-subᴹ : ({X Y A : Iface} {s t : Proc X Y} → 𝒫ᴵ [ s ≈ t ] → 𝒫�
 qb-subᴹ resp X Y A s (N , cert , e) = subᴵ N , qbᵢ-sub X Y A N cert , resp e
 
 ------------------------------------------------------------------------
--- The closure property still owed
+-- The closure property, bundled
 
 -- `qb-∘` is the reference arc's 231-LOC two-position token walk, with a ⊕-trace
--- on top of it here.  The other three fields are the theorems above, at their
--- explicit-interface spellings; they are what `UC.Budget` still wants at this
--- instance.
+-- on top of it here; it is proved in `UC.QueryBound.Compose.Laws`, which also
+-- assembles this record.  The other three fields are the theorems above, at
+-- their explicit-interface spellings.
 record BudgetLawsᴹ : Set₁ where
   field
     qb-id  : {A : Iface} → QB 1 (𝒫.id {A})

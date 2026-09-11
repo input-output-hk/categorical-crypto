@@ -19,9 +19,9 @@
 -- The relays `T₁ᴵ`/`subᴵ` and the two ancilla reassociators are kept as
 -- VOCABULARY: they are direct — the plugged process's state, the interface sum
 -- relabelled, no coherence morphism and no trace — which is what makes a query
--- bound about them readable (`UC.QueryBound`).  They are no longer the
--- grading's data; the grading is `gradingᴹ` below, derived on 𝒢's own objects,
--- and `UC.Machine.Dictionary`'s zigzags are the bridge between the two.
+-- bound about them readable (`UC.QueryBound`).  They are not the grading's
+-- data: the grading is `gradingᴹ` below, derived on 𝒢's own objects, and
+-- `UC.Machine.Dictionary`'s zigzags are the bridge between the two.
 
 open import Categories.Category using (Category; _[_,_]; _[_≈_])
 
@@ -49,9 +49,8 @@ import CategoricalCrypto.UC.Core.Standard as Std
 
 module CategoricalCrypto.UC.Machine where
 
--- Re-exported from the module body, which is where `public` is allowed:
--- `UC.QueryBound`'s `qbᵢ-wire` certificates for `a⇒ᴵ`/`a⇐ᴵ` name the two
--- reassociators, as does `UC.Machine.Grading`.
+-- Re-exported for `UC.Machine.Grading`, `.Dictionary` and `.Slide`, which all
+-- name the two reassociators.
 open import Data.Sum.Ext using (⊎assocˡ; ⊎assocʳ) public
 
 private
@@ -128,8 +127,8 @@ wireᴹ up down = MC.mk MC.Iˢ (wireStep up down)
 -- slack is what survives, and it carries exactly the four laws the abstract
 -- error layer asks for.  It compares BOTH verdict masses, since divergence
 -- weighs 0 under either indicator and the `true`-mass alone would identify a
--- process that answers `false` with one that diverges (proposal §1,
--- `docs/kb/frontier/15-probabilistic-uc-model.typ`).
+-- process that answers `false` with one that diverges
+-- (`ProbabilisticLogic.Dp.Advantage`'s header states the same choice).
 Approximationᴹ : Approximation (Dₚ Bool) ℚ-errors 0ℓ
 Approximationᴹ = record
   { _≈[_]_    = _≈ₚ[_]_
@@ -197,10 +196,8 @@ subᴵ {X} {Y} s {A} = MC.mk (MC.state s) stepS
   stepS (t , inj₂ (inj₁ y)) = relay (MC.step s (t , inj₂ y))
   stepS (t , inj₂ (inj₂ a)) = returnₚ (t , inj₁ (inj₂ a))
 
--- `Grading.sub` takes the bypassed interface implicit BEFORE the simulator, so
--- the field value is this reordering; definitionally `subᴵ′ s = subᴵ s`.
--- Giving the field a bare definition rather than a lambda keeps the later
--- fields' expected types free of a beta-redex.
+-- `subᴵ` with the bypassed interface moved ahead of the simulator;
+-- definitionally `subᴵ′ s = subᴵ s`.
 subᴵ′ : {X Y A : Iface} → Proc X Y → Proc (X ⊗ᴵ A) (Y ⊗ᴵ A)
 subᴵ′ {A = A} s = subᴵ s {A}
 

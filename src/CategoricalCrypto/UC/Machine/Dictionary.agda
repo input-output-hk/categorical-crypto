@@ -8,10 +8,8 @@
 -- eight zigzags.  Nothing here states a `Monoidal` law's type, which is what
 -- makes it affordable (`UC.Machine`'s header prices the alternative).
 --
--- Every object implicit is passed explicitly, for the reason
--- `UC.Machine.Grading`'s header gives: inferring one asks Agda to invert
--- `_⊗₁ᴳ_`.  The unused congruence and identity corollaries are not materialized
--- here; consumers use the dictionary zigzags directly.
+-- Every object implicit is passed explicitly, for the reason `UC.Machine`'s
+-- header gives: inferring one asks Agda to invert `_⊗₁ᴳ_`.
 
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal.Bundle
@@ -210,7 +208,7 @@ private
                             ○ tstep-sim onL-collapseʳ (⟺ (pad-transport ρ⇒ h)))
 
 ------------------------------------------------------------------------
--- The ancilla reassociators are the 𝒢-associator
+-- Every wire is an embedding
 
 private
   -- The base half of the embedding `⌜ u , v ⌝`: swapping after relabelling each
@@ -238,7 +236,7 @@ private
                      (≈ᵈ.trans (>>=-cong-x >>=-identityˡ-≈) >>=-identityˡ-≈))
 
 ------------------------------------------------------------------------
--- Every wire is an embedding
+-- The ancilla reassociators are the 𝒢-associator
 
 -- The relays' common shape: a stateless relabelling IS `⌜_,_⌝` of the two
 -- directions, whenever the two base maps are pure.  This is what makes

@@ -10,7 +10,7 @@
 -- The observation is an EQUIVALENCE and nothing more.  A general UC setup need
 -- not support quantitative observations: rational advantage, security
 -- parameters and negligible functions belong to a model, so the ε-indexed
--- relation and the ε/2 argument that used to sit here live in
+-- relation and the ε/2 argument live in
 -- `CategoricalCrypto.UC.Approximate`, which also constructs an `Observation`
 -- out of one (`Induced.observation`) — that construction is how the intended
 -- `Dₚ` model and the asymptotic family both arrive.  Query budgets are the
@@ -95,11 +95,8 @@ record Observation {o ℓ e} (𝒞 : Category o ℓ e) (os ℓs : Level)
   open IsEquivalence ∼-isEquivalence public
     using () renaming (refl to ∼-refl; sym to ∼-sym; trans to ∼-trans)
 
-  -- Transporting an agreement along the ambient hom equality at both ends.
   ∼-cast : {u u′ v v′ : 𝟙 ⇒ Ω} → u ≈ u′ → v ≈ v′ → ⟦ u ⟧ ∼ ⟦ v ⟧ → ⟦ u′ ⟧ ∼ ⟦ v′ ⟧
   ∼-cast eu ev h = ∼-trans (∼-sym (⟦⟧-resp-≈ eu)) (∼-trans h (⟦⟧-resp-≈ ev))
-
-------------------------------------------------------------------------
 
 record UCBase (o ℓ e os ℓs : Level) : Set (suc (o ⊔ ℓ ⊔ e ⊔ os ⊔ ℓs)) where
   field

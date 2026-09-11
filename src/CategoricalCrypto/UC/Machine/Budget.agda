@@ -3,8 +3,7 @@
 -- `UC.Budget.Budget` at the machine model: the resource doctrine's thirteen
 -- fields, inhabited.
 --
--- This is the assembly `UC.Machine.Grading`'s header used to declare owed.  It
--- sits in its own module rather than beside `ucBaseᴹ` for two reasons: the
+-- It sits in its own module rather than beside `ucBaseᴹ` for two reasons: the
 -- content it plugs comes from `UC.QueryBound` and below, which imports
 -- `UC.Machine`; and heavy assemblies get their own module
 -- (`docs/protocol-rewrite.md`, perf finding on `Gradingᴹ`).
