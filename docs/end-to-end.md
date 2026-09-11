@@ -41,9 +41,35 @@ says the whole thing is negligible.
 | `SerInj` | the birthday theorem's own injective-serialization assumption, per level (`Tx` depends on the hash width, so one `ser` cannot be typed) |
 | `R ≤UC^ω Ideal a V` | the UC-emulation premise: the INHERITED `_≤UC_` at each level, a simulator per dummy adversary. Never `Agreeˢ` |
 | `TotalRun … (morphism (R n))` | the real side's admissibility. Not decoration — with the real side divergent, a simulator that never starts emulates every ideal. Discharged for any dead-free protocol by `Protocol.Live` + `totalRun-morphism`; the IDEAL side's copy is proved (`ChimericLedger.Total`) |
-| `TruthfulAudit a V R badR` | the real implementation's audit-to-trajectory connection, which the review's schematic lists as a hypothesis. UC identifies no internal state trajectory. For a ledger image it is `Trajectory.monitor-complete` (`Schedule.ideal-truthful`) |
+| `TruthfulAudit a V R badR` | the real implementation's audit-to-trajectory connection, which the review's schematic lists as a hypothesis. UC identifies no internal state trajectory. For a ledger image it is `Trajectory.monitor-complete` (`Schedule.ideal-truthful`, `Real.real-truthful`) |
 
 No other hypothesis appears, and none of the four stands in for work items 1–5.
+
+### The corollary at a real ledger
+
+`CategoricalCrypto.Examples.ChimericLedger.Real`, same parameter, at the real
+family `Real n = ledger vr (genesis n) ∘ᵖ hash n` for a hash implementation
+`hash n : Protocol unitᴵ HashIf` with `NoDeadStep (hash n)`:
+
+```agda
+ledger-pov : SerInj → Real ≤UC^ω Ideal a V → (p : ℕ → ℕ) → Poly p
+           → Σ[ f ∈ (ℕ → ℚ) ] Negligible f
+             × ((n : ℕ) (d : Strats n) → asks≤ (p n) d → PrHit (Real n) (badReal n) d ≤ f n)
+```
+
+Two substantive premises — the injective serialization and the emulation — and
+one probability, which is `ledger-pov-negligible`'s. The three hypotheses the
+generic theorem carries about `R` are discharged once and for all at this
+family:
+
+| hypothesis | discharged by |
+|---|---|
+| `Bad Real` | `badReal n = badTotal (genesis n)`: the POV event itself, which reads the ledger's state and not the hash's |
+| `TotalRun … (morphism (Real n))` | `Total.totalRun-Sys`, generic in the hash: the ledger writes no `dead` and `_∘ᵖ_` creates none, so the real side owes only `NoDeadStep (hash n)` |
+| `TruthfulAudit a V Real badReal` | `Trajectory.monitor-complete`, generic in the hash: an audit query is answered out of the LEDGER's state whatever it hashes with, so the ideal side's argument is the real side's verbatim |
+
+Nothing else about the hash enters, which is the point: the corollary is the
+slides' claim, with the emulation the only cryptographic premise left.
 
 ## Acceptance requirements
 
@@ -147,11 +173,17 @@ In priority order.
    `uc-audit-carry` reaches a probability and the main theorem can charge
    `simCost`.
 
-3. **A concrete real system.** Everything here is generic in `R`; a worked
-   instance (a ledger over a Merkle–Damgård hash rather than a random oracle,
-   say — `Examples.MerkleDamgard` is ported) would exercise the premise instead
-   of assuming it. That is a cryptographic-construction obligation, which the
-   review explicitly places outside this scope.
+3. **A named hash construction.** The real family's shape is no longer generic:
+   `ChimericLedger.Real` fixes it to `ledger vr s₀ ∘ᵖ hash` and discharges all
+   three of the real-side hypotheses there for any dead-free `hash`, so what is
+   left assumed at a concrete ledger is the emulation alone. Supplying THAT for
+   a named construction is the remaining half, and it needs a construction whose
+   interface matches: `Examples.MerkleDamgard`'s ideal oracle hashes
+   FIXED-length messages (`RandomOracle 1 (Vec Bool (k * n)) n`) where the
+   ledger hashes bitstrings, so the instance wants a padding adapter and then a
+   `≤UC^ω` proof built off `MD.indistinguishable`. That is a
+   cryptographic-construction obligation, which the review explicitly places
+   outside this scope.
 
 4. **`≈ℰⁿ` as an `Observation`** — the redesign `UC.Family`'s closing comment
    prices. Not attempted; not needed by anything above, since the negligible
@@ -169,11 +201,16 @@ In priority order.
 | `Examples.ChimericLedger.Total` | 47 | 9 s |
 | `Examples.ChimericLedger.Schedule` | 127 | 10 s |
 | `Examples.ChimericLedger.EndToEnd` | 147 | 17 s |
+| `Examples.ChimericLedger.Real` | 88 | 11 s |
 
 Additive edits to existing modules: `POV.asks≤-audited` (the instrumentation's
 allowance cost, beside `audited`); `Carry.Emulᵁᶜ`/`emulᵁᶜ`/`pov-carryᵁᶜ` (the
 UC-vocabulary premise, the first importer of `unitGrade`); `UC.Seam.Audit`
 re-exports `≤UC[]⇒≤UC`; `UC` re-exports the two `UC.Asymptotic` modules.
+
+The hash-generalization `Real` rests on is likewise additive in content and free
+in cost: `POV.Sysᴴ` beside `Sys`, and the `hash` parameter threaded through
+`Trajectory` (8 s warm) and `Total` (9 s), whose proofs are unchanged.
 
 A perf note worth keeping: the two carries in ONE module cost 127 s warm and
 in two cost 10 + 10 s. Neither half is expensive; the collapse's seal-level
