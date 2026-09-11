@@ -598,12 +598,11 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   -- `pool` expected collision pairs (the PROVEN `E-collisions`) and spends
   -- exactly `pool` from the budget; final calls and hits are free.
 
-  private module B = Birthday n
-  open B using (Γ; 0≤Γ; Γ-step) renaming (Γ-mono to Γ-≤-suc)
+  open Birthday n
 
   -- the triangle slice `Γ` sums, as a rational
   sumR : ℕ → ℕ → ℚ
-  sumR t j = fromℕ (B.sumN t j)
+  sumR t j = fromℕ (sumN t j)
 
   φsc : ℕ → Comp.Table → ℚ
   φsc m sc = collC sc +ℚ Γ (pool sc) (m * (k ∸ 1))
@@ -637,7 +636,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     sumR-tri : ∀ t j → Comp.triangle t +ℚ sumR t j ≡ Comp.triangle (t + j)
     sumR-tri t zero    = trans (+-identityʳ _) (cong Comp.triangle (sym (ℕP.+-identityʳ t)))
     sumR-tri t (suc j) =
-      trans (cong (Comp.triangle t +ℚ_) (fromℕ-+ t (B.sumN (suc t) j)))
+      trans (cong (Comp.triangle t +ℚ_) (fromℕ-+ t (sumN (suc t) j)))
      (trans (sym (+-assoc (Comp.triangle t) (fromℕ t) (sumR (suc t) j)))
      (trans (cong (_+ℚ sumR (suc t) j) (+-comm (Comp.triangle t) (fromℕ t)))
      (trans (sumR-tri (suc t) j) (cong Comp.triangle (sym (ℕP.+-suc t j))))))
@@ -780,7 +779,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
                     E (walk (proj₁ w) (proj₁ (proj₂ w)) (b'' ∷ bs'') (suc idx))
                       (λ (w' : Comp.Table × (CV × Bool)) → φsc m (proj₁ w'))))))
       (≤-trans (walk-φ m sc hm (b'' ∷ bs'') (suc idx) pr)
-               (+-monoʳ-≤ (collC sc) (Γ-≤-suc (pool sc) (length bs'' + m * (k ∸ 1)))))
+               (+-monoʳ-≤ (collC sc) (Γ-mono (pool sc) (length bs'' + m * (k ∸ 1)))))
     walk-φC m sc h b (b'' ∷ bs'') idx nothing lt pr =
       ≤-trans (≤-reflexive
         (trans (E-bind (Comp.uniform-Out >>=ᴹ
