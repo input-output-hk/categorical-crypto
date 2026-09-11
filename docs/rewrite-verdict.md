@@ -369,5 +369,5 @@ is the transaction's first input — making the slides' repair load-bearing in a
 proof for the first time (with `chimeric` in its place the bound is FALSE, and
 `ChimericLedger.Replay` computes the attack).
 
-Owed consolidation: `MerkleDamgard.Core`'s private `sumR`/`Γ` copy onto
+Owed consolidation (DISCHARGED in the housekeeping merge): `MerkleDamgard.Core`'s private `sumR`/`Γ` copy onto
 `Uniform.Birthday` (noted in that header). Hatches 21; every module ≤50 s.
