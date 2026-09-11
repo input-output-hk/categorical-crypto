@@ -202,7 +202,7 @@ private module E = Em UCBase^ω
 open E public using
   ( Test; Closure; obs; SameTV; same; same-≈; Tests; tv₁; ℰᵗᵛ
   ; _≈ℰ_; ≈ℰ-refl; ≈ℰ-sym; ≈ℰ-trans; ≈ℰ-setoid; ≈⇒≈ℰ; ≈ℰ-congˡ; ≈ℰ-congʳ
-  ; grade-stable; _≤UC_; _≤UC⁺_; ≤UC-refl; ≤UC-trans; dummy-complete )
+  ; grade-stable; _≤UC_; _≤UC⁺_; ≈ℰ⇒≤UC; ≤UC-refl; ≤UC-trans; dummy-complete )
   renaming (ℰᴼ to ℰ^ω)
 
 -- `ℰ^ω` and `Fam` are two of `UCSetup`'s four fields; the other two are a

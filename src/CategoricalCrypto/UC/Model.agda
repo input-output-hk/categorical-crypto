@@ -26,6 +26,16 @@
 --                        `_≈ᵁ_` is not stated
 --   `Model.Enrichment`   the budget and the mass `UC.Audit` asks of a base,
 --                        supplied here rather than assumed
+--   `Model.Dominated`    `UC.Machine.Bridge.ContextDominated` at SEAL objects
+--                        — `ifaceᵒ` is onto — which is the ancilla quantifier
+--                        an ℰ-agreement has
+--   `Model.Family`       `UC.Family.Monoidal` at the seal: the setup, and the
+--                        inherited metatheory, asymptotically
+--   `Model.Family.Ingest`  a per-level advantage bound read as that family's
+--                        `_≈ℰ[_]_`, `_≈ℰ_`, `_≈ℰⁿ_` and `_≤UC_`
+--   `Model.Family.Uniform`  the same agreement in the INHERITED `_≈ᵁ_`, so
+--                        `UC-compose` applies to a concrete family
+--                        (`UC.Core.Bridge` at `Famᴹ`)
 --
 -- The model obligations the proposal lists are then: the monoidal structure
 -- (`Machines.G`, a theorem on this branch), the presheaf (`Model.Environment`)
@@ -36,8 +46,12 @@
 module CategoricalCrypto.UC.Model where
 
 import CategoricalCrypto.UC.Model.Bridge
+import CategoricalCrypto.UC.Model.Dominated
 import CategoricalCrypto.UC.Model.Enrichment
 import CategoricalCrypto.UC.Model.Environment
+import CategoricalCrypto.UC.Model.Family
+import CategoricalCrypto.UC.Model.Family.Ingest
+import CategoricalCrypto.UC.Model.Family.Uniform
 import CategoricalCrypto.UC.Model.Observation
 import CategoricalCrypto.UC.Model.Pin
 import CategoricalCrypto.UC.Model.Reading

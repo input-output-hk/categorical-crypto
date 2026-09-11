@@ -168,6 +168,18 @@ Negligible-+ : {s t : ℕ → ℚ} → Negligible s → Negligible t → Negligi
 Negligible-+ {s} {t} ns nt p Pp =
   →0-cong (λ n → sym (*-distribˡ-+ (+ p n / 1) (s n) (t n))) (→0-+ (ns p Pp) (nt p Pp))
 
+-- …and the two-argument discipline inherits it: reading a sum at the allowance
+-- is the sum of the two readings, so the grade's own closure is all it costs.
+-- Both grades qualify, `→0-+` and `Negligible-+` being the two arguments.
+-- The two bounds are EXPLICIT, as they are in `UC.Saturated`'s statements and
+-- for the same reason: a `GradedBound` reads its bound at an allowance, so no
+-- value of one determines it by unification.
+GradedBound-+[_] : (G : Grade)
+                 → ({s t : ℕ → ℚ} → G s → G t → G (λ n → s n ℚ.+ t n))
+                 → (ε δ : ℕ → ℕ → ℚ) → GradedBound G ε → GradedBound G δ
+                 → GradedBound G (λ n q → ε n q ℚ.+ δ n q)
+GradedBound-+[ G ] G-+ ε δ bε bδ p Pp = G-+ (bε p Pp) (bδ p Pp)
+
 ------------------------------------------------------------------------
 -- Approximate closeness
 

@@ -14,11 +14,14 @@
 -- ancilla in it (`docs/stduc-supersession-plan.md`, finding F1).  `_≈ᴳ_` is the
 -- core's relation exactly (`≈ᴳ⇔≈ℰᶜ`), so nothing below says less than it did.
 --
--- Grades and ancillas are objects of the SEAL rather than `Iface`s.  Under the
--- seal `ifaceᵒ` is not known to be onto, and the ancilla quantifier of an
--- agreement ranges over every object; restricting the witnesses to
--- `ifaceᵒ`-images would be a weakening that the transparent spelling — where
--- `retᴵ` inverts `⟦_⟧ᴵ` definitionally — did not have.
+-- Grades and ancillas are objects of the SEAL rather than `Iface`s, and the
+-- ancilla quantifier of an agreement ranges over every one of them:
+-- restricting the witnesses to `ifaceᵒ`-images would be a weakening that the
+-- transparent spelling — where `retᴵ` inverts `⟦_⟧ᴵ` definitionally — did not
+-- have.  That inverse is exported under the seal as well
+-- (`UC.Model.Seal.objᵒ`), so a statement written at `Iface` can be READ at
+-- every object instead of being restricted to the images
+-- (`UC.Model.Dominated`); nothing below needs that reading.
 --
 -- Everything below is a STATEMENT, and that is measured rather than chosen: at
 -- this instance a term whose type is an agreement between machine COMPOSITES

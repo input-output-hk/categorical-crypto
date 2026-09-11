@@ -160,17 +160,31 @@ Closing the gap needs one of:
 
 In priority order.
 
-1. **Family ingestion (requirement 2's remainder).** Build
-   `layer-1 ≈adv family ⇒ UC.Model.Family._≈ℰ[ ε ]_`, then `absorb-negl` /
-   `_≈ℰⁿ_`. The blocker is that `UC.Machine.Bridge.ContextDominated` quantifies
-   its ancilla and context over `Iface`-images while `UC.Family._≈ℰ[_]_`
-   quantifies over SEAL objects, and under the seal `ifaceᵒ` is not known to be
-   onto (`UC.Seam.Grounding`'s header records the same asymmetry). So the work
-   is `ContextDominated` restated and reproved at seal objects — a
-   machine-layer sub-project, not an application-layer one. With it,
-   `ucSetup^ω`'s inherited metatheory (`≤UC-trans`, `UC-compose`,
-   `dummy-complete`) becomes usable on concrete families, which is what the
-   review's §4 second and third bullets ask for.
+1. **Family ingestion (requirement 2's remainder).** DONE.
+   `UC.Model.Dominated.ContextDominatedᵒ` is `UC.Machine.Bridge`'s domination
+   with its ancilla quantified over SEAL objects — the quantifier
+   `UC.Family._≈ℰ[_]_` has — and `dominatedᵒ` proves it from `dominated` read
+   at `UC.Model.Seal.objᵒ X`. What looked like a blocker was not one:
+   `ifaceᵒ` IS onto, `retᴵ` inverting `⟦_⟧ᴵ` definitionally, and `objᵒ` now
+   exports that section from inside the seal (`ifaceᵒ-onto`), so nothing is
+   restricted to an image and nothing existing is weakened.
+   `UC.Model.Family.Ingest` then spends it: `ingest` takes a per-level
+   advantage bound at every budget (`_≈advᴹ[_]_`) to `_≈ℰ[ ε + δ ]_`, and
+   `ingest-≈ℰ` / `ingest-≈ℰⁿ` / `ingest-≤UC` collapse it through
+   `absorb-negl`, `_≈ℰⁿ_` and `UC.Emulation.≈ℰ⇒≤UC`, where `≤UC-trans` and
+   `dummy-complete` apply. The `δ` is the domination's own arbitrary positive
+   slack, absorbed by `UC.Approximate.GradedBound-+[_]`; any positive
+   negligible `δ` will do (`Approximate.Decay.negligible-slack`).
+   `UC-compose` is reached too, by a shorter route than `UC.Model.Bridge`'s.
+   `UC.Core.Bridge` proves `f ≈ℰᶜ g → f ≈ᵁ g` at ANY monoidal base: the core's
+   `grade-stable` is exactly what `Abstract2.bridge` asks for and cannot get
+   from a bare kernel, and the last step is the unit ancilla, where the two
+   unitor wires cancel. `UC.Model.Family.Uniform` applies it at `Famᴹ` —
+   `Grading^ω` and `gradingᵗ Famᴹ` differ only in the polynomial a relayed hom
+   carries, which an observation projects away, so the transport is the
+   identity — and `uc-compose-agree` composes two family agreements. The one
+   direction still proved only at the model is `≈ᵁ ⇒ ≈ℰᶜ`, which needs
+   `UC.Model.Reading`'s rebracketing; nothing above spends it.
 
 2. **The prefix-tolerant event class** (the obstruction above), after which
    `uc-audit-carry` reaches a probability at the unit grade. Work plan:

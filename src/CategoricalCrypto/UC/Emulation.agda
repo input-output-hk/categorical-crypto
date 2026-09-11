@@ -52,8 +52,14 @@ private
         → sub t ∘ (sub s ∘ g) ≈ sub (t ∘ s) ∘ g
   merge = sym-assoc ○ ∘-resp-≈ˡ (⟺ sub-∘)
 
+-- Agreement at the SAME grade is emulation, the simulator being the identity.
+-- This is how a concrete bound enters the order: the ingestion that turns one
+-- into an agreement leaves the grade where it was (`UC.Model.Family.Ingest`).
+≈ℰ⇒≤UC : {f g : A ⇒ X ⊛ B′} → f ≈ℰ g → f ≤UC g
+≈ℰ⇒≤UC e = id , ≈ℰ-trans e (≈ℰ-sym (≈⇒≈ℰ (elimˡ sub-id)))
+
 ≤UC-refl : {f : A ⇒ X ⊛ B′} → f ≤UC f
-≤UC-refl = id , ≈ℰ-sym (≈⇒≈ℰ (elimˡ sub-id))
+≤UC-refl = ≈ℰ⇒≤UC ≈ℰ-refl
 
 ≤UC-trans : {f : A ⇒ X ⊛ B′} {g : A ⇒ Y ⊛ B′} {h : A ⇒ Z ⊛ B′}
           → f ≤UC g → g ≤UC h → f ≤UC h
