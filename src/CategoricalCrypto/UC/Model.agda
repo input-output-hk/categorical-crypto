@@ -9,9 +9,12 @@
 --                        coercions across it — the measured recipe without
 --                        which the setup does not typecheck at all
 --   `Model.Observation`  the ticked verdict object `Ωᵒ`, `Obs` as the one-ask
---                        closed run, and the two-sided identification `_∼ᴼ_`
---   `Model.Environment`  `ℰᵒ`: tests into `Ωᵒ` modulo closed observation, a
---                        setoid quotient with its presheaf laws proved
+--                        closed run, the two-sided identification `_∼ᴼ_`, and
+--                        the `Observation`/`ApproximateObservation` pair they
+--                        induce (`observationᵒ`, `approximateᵒ`)
+--   `Model.Environment`  `ℰᵒ`: tests into `Ωᵒ` modulo closed observation, the
+--                        setoid quotient `UC.Environment.Presheaf` builds out
+--                        of `observationᵒ`
 --   `Model.Setup`        `StdUC` at the two, hence the whole metatheory
 --   `Model.Pin`          the metatheory's application sites, priced
 --   `Model.Reading`      `_≈ᵁ_` is the ∀-ancilla/test/closure experiment
