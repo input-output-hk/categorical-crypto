@@ -344,3 +344,30 @@ Six merges since addendum 6, all green at hatches 21; every module under the
 theorems), the `subBlind` lax-simulation sub-project, the MD `≤UC`-RO successor
 statement, quality re-sweep, and the OPTIONAL confidential ledger (maintainer:
 end of project).
+
+## Addendum 8: the birthday bound is a theorem (2026-09-11)
+
+`Examples.ChimericLedger.Birthday.target : Target a₀ V` (merge `dcdf0142`) —
+POV's `AtBirthday.Target` inhabited verbatim: no strategy of query budget `q`
+moves the repaired ledger's total value away from genesis except with
+probability `εbirthday q = (q²+q)·2⁻ˡ`. The port ledger's flagship quantitative
+item is closed, by the DIRECT route (no UC seam, hence tight — the `POVaudit`
+carry route stays available once `AuditIsBounded` is proved, at ε(2q)).
+
+Structure: `TrajectoryFromAudit` proved with NO persistence induction (the
+audit answer is definitionally the truth about the state — the old ~250–400
+LOC pricing was for the wrong proof); the adaptivity handled once and
+generically (`Protocol.Safety.hit-bounded`: invariant + supermartingale
+potential bounds every adaptive strategy, divergence not a violation); the
+birthday arithmetic general (`Uniform.Birthday.birthday : Γ 1 q ≤ (q²+q)·2⁻ⁿ`);
+the certificate's crux a `dup` flag reconstructed from state (a collision may
+only make a transaction REPLAYABLE, so the potential records the debt when the
+sample is charged — with `badTotal` as indicator the supermartingale is false)
+plus a `Stales` invariant making a table hit at an accepted transaction
+impossible. **`inputConsuming` is spent exactly there** — the staleness witness
+is the transaction's first input — making the slides' repair load-bearing in a
+proof for the first time (with `chimeric` in its place the bound is FALSE, and
+`ChimericLedger.Replay` computes the attack).
+
+Owed consolidation: `MerkleDamgard.Core`'s private `sumR`/`Γ` copy onto
+`Uniform.Birthday` (noted in that header). Hatches 21; every module ≤50 s.
