@@ -1867,3 +1867,96 @@ Open, for the maintainer:
   since `Real`'s emulation premise is stated as `_≤UC^ω_` and changing it to
   `_≤UC^ω[ cs ]_` would alter an existing statement. Your call whether `Real` should
   carry both.
+
+## Resolved (ledger-factoring)
+
+The UC-object-level factoring `Ledger ∘ RO`, the component lift, and the end-to-end
+corollary at a hash-level premise — `docs/end-to-end.md`'s continuation item 1's
+remaining clause. Base `ceec075e` (`protocol-rewrite`'s tip), four commits, three new
+modules plus eight lines in `UC/Model/Seal.agda`. Design, premise shapes and the
+review-§3 boundary: `docs/ledger-factoring.md`.
+
+**No existing statement was touched.** `Real.ledger-pov` is unchanged and
+`ledger-pov-from-hash` sits beside it in a new module; the only edit to an existing
+file is additive (`Seal.procᵒ-∘`, one `refl` inside the existing `opaque` block).
+
+Verification, all rc=0 with an empty
+`ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|Heap exhausted`
+gate, `pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS`:
+
+| module | LOC | warm | note |
+|---|---|---|---|
+| `Abstract2/Factor.agda` | 82 | 3.9 s | rule 5 budget 80 s |
+| `UC/Factor.agda` | 96 | 9.5 s | `.agdai` deleted to force one `Checking` line |
+| `Examples/ChimericLedger/Factor.agda` | 116 | 10.6 s | same |
+| `UC/Model/Seal.agda` | 135 (+8) | 9.2 s | same |
+
+Closure: `CategoricalCrypto.UC.Model` (21 `Checking` lines), `CategoricalCrypto.UC` (4),
+`CategoricalCrypto` (52, 116 s), and **all eleven** `Examples/ChimericLedger/` roots —
+`POV`, `Real`, `Total`, `Trajectory`, `Value`, `EndToEnd`, `Schedule`, `Audit`,
+`Birthday`, `Carry`, `Pin` (5-25 s each; the sibling-owned five are green unchanged
+against the `Seal` addition). The nine that report zero `Checking` lines were elaborated
+from this working tree during the new module's own cold run, which is the real green
+this file's methodological note describes. The oracle was validated negatively twice on
+`UC/Factor.agda`: swapping the two factoring witnesses in `liftᵖ` fails with
+`UnequalTerms: u != v of type Protocol unitᴵ B`, and using `unitorˡ.isoʳ` for the
+retraction fails with `MismatchedProjectionsError` — so both the factoring and the
+split-regrading side condition are load-bearing. Hatch grep over `src/`: **16 lines
+before, 16 after, byte-identical after sorting** — every one the word
+"postulate-free"/"No postulates" in an inherited `Categories/APROP/**` comment; zero live hatches
+before and after.
+
+- `Abstract2/Factor.agda :: ≤UC-sub` — the one piece of genuinely new metatheory, and
+  the reason it is not stated as an unrestricted congruence is recorded in the module
+  header: `sub c ∘ f ≤UC sub c ∘ g` does **not** follow from `f ≤UC g`, because the
+  dummy form's simulator `s₀` would have to satisfy `c ∘ s₀ ≈ s′ ∘ c`. A retraction of
+  `c` conjugates it (`s′ = c ∘ s₀ ∘ r`), which is all the unit regrading needs
+  (`unitorˡ.isoˡ`). Stated over an arbitrary `UCSetup`, so it is available at every
+  model (rule 27).
+- `Abstract2/Factor.agda :: ∙-return` — `sub λ⇒ ∘ (h ∙ (return ∘ w)) ≈ h ∘ w`, the
+  graded Kleisli triple's `ext-identityʳ` with one `assoc` pair. This is the whole
+  mathematical content of the factoring: `procᵒ` of `_∘ᵖ_` splits on the nose.
+- `UC/Model/Seal.agda :: procᵒ-∘` — the mirror of the existing `unprocᵒ-∘`. Needed
+  because outside the `opaque` block neither direction derives the other (that would
+  want `procᵒ ∘ unprocᵒ`), and a machine-layer functoriality theorem
+  (`Protocol.Machine.Total.morphismCompose`) has to cross *into* the seal to become a
+  factoring of a sealed hom. Same one-line `refl`, same block, seal intact.
+- `UC/Factor.agda :: factorᵖ` — the factoring in `𝒞._≈_` (machine simulation
+  equivalence), not in the weaker `_≈ᵁ_` the brief allowed.
+- `UC/Factor.agda :: liftᵖ` — `UC-compose` plus `≤UC-sub` plus `≤UC-resp-≈`. The upper
+  stage is assumed nothing; it enters only as `≤UC-refl`.
+- `Examples/ChimericLedger/Factor.agda :: hash-lift` — the hash premise is the **same
+  relation** the system-level premise is stated in, `UC.Asymptotic._≤UC^ω_`, read at
+  `HashIf^ω` with `oracle^ω = L.oracle` as the ideal side. No new relation anywhere.
+
+Open, for the maintainer:
+
+- `UC/Factor.agda :: closedᵒ` — **belongs in `UC.Seam.Grounded` beside `ιᴳ` (rule 27)**
+  and is here only because a sibling agent owns `UC/Seam/Grounded.agda` on this base.
+  The spelling `ιᴳ B ∘ procᵒ (morphism P)` is written out by hand in at least five
+  places — `UC/Asymptotic.agda` (`_≤UC^ω_`), `UC/Asymptotic/Audit.agda`,
+  `UC/Seam/Audit/Prefix.agda`, `UC/Seam/Audit/Context.agda`,
+  `Examples/ChimericLedger/Audit.agda` — and `closedᵒ` is exactly it. Please lift it
+  (with `stageᵒ`) into `Grounded`, then let those sites use it and delete the copy here.
+- `src/CategoricalCrypto/UC.agda` was **not** edited (outside this branch's scope), so
+  `UC.Factor` is not re-exported from the UC root the way its neighbour
+  `UC.Seam.Grounded` is. One line — `open import CategoricalCrypto.UC.Factor public`
+  after the `Budget` entry — plus an inventory paragraph in the header. It is still in
+  the build closure (`pagda check` with no file checks every module, and
+  `Examples.ChimericLedger.Factor` reaches it), so nothing is unverified; this is API
+  discoverability only.
+- `docs/end-to-end.md` is now stale in one more place and was not edited: the corollary
+  section's closing sentence ("getting it from a hash-level `hash n ≤UC oracle n` is
+  `UC-compose` at the family setup — continuation item 1 below") and continuation item 1
+  itself should point at `Examples.ChimericLedger.Factor.ledger-pov-from-hash`. Also
+  `Examples/ChimericLedger/Real.agda`'s header says the hash-level derivation "is
+  `UC-compose` at the family setup, which `docs/end-to-end.md`'s continuation item 1
+  still owes" — that clause is now discharged, but the file is a statements-verbatim
+  file on this branch so the header was left alone.
+- Review §3 (the interactive simulator) is **not** addressed and the port does not
+  address it by itself: `hashPortᵒ` is an *object* boundary — the domain of `ledgerᵒ`
+  and the codomain of `hashᵒ` — while both homs stay graded at `𝟘ᴳ`, so every simulator
+  in sight is still a `𝟘ᴳ ⇒ 𝟘ᴳ` scalar. `docs/ledger-factoring.md`'s last two sections
+  say exactly what a nontrivial-grade example would need and why the ledger cannot be
+  it (the ledger is pure w.r.t. the graded monad and `POV.oracle` exposes no adversary
+  interface).

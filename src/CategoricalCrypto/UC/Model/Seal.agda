@@ -125,3 +125,11 @@ opaque
   unprocᵒ-∘ : {A B C : Iface} (g : Proc B C) (f : Proc A B)
             → 𝒢ₚ 0ℓ [ unprocᵒ (procᵒ g G.∘ procᵒ f) ≈ M._∘_ g f ]
   unprocᵒ-∘ _ _ = M.Equiv.refl
+
+  -- …the same fact read the other way, which is what a machine-layer
+  -- functoriality theorem has to cross to become a factoring INSIDE the seal
+  -- (`Protocol.Machine.Total.morphismCompose`, `UC.Factor.factorᵖ`).  Not
+  -- derivable from `unprocᵒ-∘` outside: that would want `procᵒ ∘ unprocᵒ`.
+  procᵒ-∘ : {A B C : Iface} (g : Proc B C) (f : Proc A B)
+          → procᵒ (M._∘_ g f) G.≈ procᵒ g G.∘ procᵒ f
+  procᵒ-∘ _ _ = G.Equiv.refl
