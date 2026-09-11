@@ -19,8 +19,6 @@
 -- `Famᴹ` — `UC-compose`'s `ext`/`sub` chain over a hom that carries a
 -- polynomial — and not any statement written here.
 
-open import CategoricalCrypto.UC.Model.Observation using (observationᵒ)
-
 import CategoricalCrypto.UC.Model.Family as F
 
 module CategoricalCrypto.UC.Model.Family.Uniform where
@@ -33,12 +31,13 @@ open import CategoricalCrypto.UC.Core.Bridge F.Famᴹ F.Observation^ω public
 
 -- …so a family agreement enters the inherited order, and two of them compose.
 -- `UC-compose` is the metatheorem the core layer could only state
--- (`UC.Emulation`'s header); at the family it is inherited and this is where an
+-- (`UC.Emulation`'s header); at the family it is inherited, and this is where an
 -- ingested bound (`UC.Model.Family.Ingest`) meets it.
--- The homs are explicit throughout: an agreement reads them under an
--- application, so no value of one determines them by unification, and left to
--- inference the polynomial each carries is elaborated as a meta
--- (measured: 2m25 s of `Poly` arithmetic against 8 s).
+--
+-- The homs are EXPLICIT: an agreement reads them under an application, so no
+-- value of one determines them by unification, and left to inference the
+-- polynomial each carries is elaborated as a meta — measured, 2m25 s of `Poly`
+-- arithmetic against 8 s.
 ≈ℰ^ω⇒≤UC : {A B X : Channel} (f g : A ⇒ T₀ X B) → F._≈ℰ_ f g → f ≤UC g
 ≈ℰ^ω⇒≤UC f g h = ≈ℰᶜ⇒≤UC {f = f} {g} (≈ℰ^ω⇒≈ℰᶜ {f = f} {g} h)
 
