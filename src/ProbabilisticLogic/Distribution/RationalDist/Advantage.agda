@@ -41,8 +41,8 @@ adv⊥-triangle μ ν ρ =
         (∣p+q∣≤∣p∣+∣q∣ (Pr₁⊥ μ -ℚ Pr₁⊥ ν) (Pr₁⊥ ν -ℚ Pr₁⊥ ρ))
 
 adv⊥-≈⇒0 : {μ ν : Dist⊥ Bool} → μ ≈Mℚ ν → adv⊥ μ ν ≡ 0ℚ
-adv⊥-≈⇒0 {μ} = λ e → trans (cong (λ z → ∣ Pr₁⊥ μ -ℚ z ∣ℚ) (sym (e mb)))
-                           (cong ∣_∣ℚ (+-inverseʳ (Pr₁⊥ μ)))
+adv⊥-≈⇒0 {μ} e = trans (cong (λ z → ∣ Pr₁⊥ μ -ℚ z ∣ℚ) (sym (e mb)))
+                       (cong ∣_∣ℚ (+-inverseʳ (Pr₁⊥ μ)))
 
 ------------------------------------------------------------------------
 -- Where the two readings coincide

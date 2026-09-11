@@ -32,7 +32,7 @@ open import Data.Sum.Base as Sum using (_⊎_; inj₁; inj₂; [_,_])
 open import Data.Unit.Base using (tt)
 open import Function.Base using (id)
 open import Level using (0ℓ)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; sym)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; sym; trans)
 
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Reasoning
@@ -182,12 +182,8 @@ ctxRun-slide E m x = runᴹ-resp-≈ᴹ {Ωᴵ} (slideᴹ E m x) (ask tt out)
 
 private
   budget : (c c′ : ℕ) → c * (1 * ((c′ ⊔ 1) * 1)) ≡ ctxBudget c c′
-  budget c c′ = cong (c *_) (*-identityˡ ((c′ ⊔ 1) * 1)
-                    ⟨trans⟩ *-identityʳ (c′ ⊔ 1))
-    where
-    infixr 5 _⟨trans⟩_
-    _⟨trans⟩_ : {A : Set} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
-    refl ⟨trans⟩ q = q
+  budget c c′ = cong (c *_) (trans (*-identityˡ ((c′ ⊔ 1) * 1))
+                                   (*-identityʳ (c′ ⊔ 1)))
 
 qb-Kctx : {B Y : Iface} (E : Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
           {c c′ : ℕ} → QB c E → QB c′ m → QB (ctxBudget c c′) (Kctx E m)
