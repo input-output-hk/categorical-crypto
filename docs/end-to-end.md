@@ -145,7 +145,7 @@ In priority order.
 
 2. **The prefix-tolerant event class** (the obstruction above), after which
    `uc-audit-carry` reaches a probability and the main theorem can charge
-   `simCost`.
+   `simCost`. Work plan: `docs/prefix-tolerant-audit-plan.md`.
 
 3. **A concrete real system.** Everything here is generic in `R`; a worked
    instance (a ledger over a Merkle–Damgård hash rather than a random oracle,
@@ -155,7 +155,8 @@ In priority order.
 
 4. **`≈ℰⁿ` as an `Observation`** — the redesign `UC.Family`'s closing comment
    prices. Not attempted; not needed by anything above, since the negligible
-   tier consumers use lives at layer 1 (`UC.Saturated`).
+   tier consumers use lives at layer 1 (`UC.Saturated`). Expanded proposal:
+   `docs/graded-observation-redesign.md`.
 
 ## Modules added
 
