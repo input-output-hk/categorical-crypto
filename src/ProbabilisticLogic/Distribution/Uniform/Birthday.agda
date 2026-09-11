@@ -60,6 +60,11 @@ private
   sumN-mono t zero    = z≤n
   sumN-mono t (suc j) = ℕₚ.+-mono-≤ (ℕₚ.n≤1+n t) (sumN-mono (suc t) j)
 
+-- A pool that starts larger can accumulate more.
+Γ-monoˡ : ∀ t j → Γ t j ≤ Γ (suc t) j
+Γ-monoˡ t j = *-monoʳ-≤-nonNeg ε ⦃ nonNegative (0≤inv-pow-2 n) ⦄
+                (fromℕ-mono-≤ (sumN-mono t j))
+
 -- A step of budget left over is a step of budget gained.
 Γ-mono : ∀ t j → Γ t j ≤ Γ t (suc j)
 Γ-mono t j = *-monoʳ-≤-nonNeg ε ⦃ nonNegative (0≤inv-pow-2 n) ⦄
