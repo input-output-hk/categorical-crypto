@@ -11,7 +11,10 @@
 -- initial one, except with probability `ε q`.  It is deliberately not phrased
 -- over the ledger's own audit answers — that form would trust the ledger to
 -- report honestly.  The audit form survives below as the gadget the transfer
--- lemma applies to.
+-- lemma applies to, and as `monitor`, the observable the UC layer's audit
+-- event designates; that the audit answer may be trusted is
+-- `ChimericLedger.Trajectory`'s theorem rather than an assumption of the
+-- statement.
 
 open import Class.DecEq
 
@@ -128,6 +131,38 @@ module _ (s₀ : LState) where
     λ r → stop n (violates r) (watch (k r)) (asks≤-watch n (k r) (a r))
   asks≤-watch n       (coin _ k) a = λ b → asks≤-watch n (k b) (a b)
 
+  -- The TRUSTED reading of an answer: a `totalIs` answer is the audited state's
+  -- own total (`ChimericLedger.Trajectory`), so it may be believed; nothing
+  -- makes a `submit` acknowledgement a report about the state, so it is not
+  -- read at all.  Which query was asked is what distinguishes the two, and that
+  -- is why the monitor below reads the query alongside the answer.
+  violatesAt : Query → Answer → Bool
+  violatesAt (submit _) _ = false
+  violatesAt audit      a = violates a
+
+  -- The monitor whose verdict is the designated audit event: `d` played
+  -- unchanged, its audit answers accumulated, the verdict reported where `d`
+  -- reports its own.  `watch` above stops at the first violation instead, which
+  -- costs it soundness against the trajectory — an early `out true` weighs 1
+  -- where the continued run may deadlock and weigh nothing — so it is the
+  -- accumulating form that an ideal trajectory bound can supply
+  -- (`Trajectory.monitor-sound`, `docs/protocol-implementation-review.md` §1).
+  monitorFrom : Bool → Strat Query Answer → Strat Query Answer
+  monitorFrom acc (out _)    = out acc
+  monitorFrom acc (ask q k)  = ask q λ a → monitorFrom (acc ∨ violatesAt q a) (k a)
+  monitorFrom acc (coin μ k) = coin μ λ b → monitorFrom acc (k b)
+
+  monitor : Strat Query Answer → Strat Query Answer
+  monitor = monitorFrom false
+
+  -- The monitor asks exactly what `d` asks, so it costs the budget nothing.
+  asks≤-monitor : (n : ℕ) (acc : Bool) (d : Strat Query Answer)
+                → asks≤ n d → asks≤ n (monitorFrom acc d)
+  asks≤-monitor _       _   (out _)    _ = tt
+  asks≤-monitor zero    _   (ask _ _)  a = a
+  asks≤-monitor (suc n) acc (ask q k)  a = λ r → asks≤-monitor n _ (k r) (a r)
+  asks≤-monitor n       acc (coin _ k) a = λ b → asks≤-monitor n acc (k b) (a b)
+
 -- `d` with an audit after every answer: the invariant is queried at exactly
 -- the activation boundaries the trajectory observable inspects.
 audited : Strat Query Answer → Strat Query Answer
@@ -139,6 +174,14 @@ module _ (vr : Variant) (s₀ : LState) where
 
   POVaudit : (ℕ → ℚ) → Set
   POVaudit = Bounded (Sys vr s₀) (watch s₀)
+
+  -- The same statement at the DESIGNATED monitor, which is the one the UC
+  -- layer's audit event is about (`UC.Seam.Audit.watched`): no strategy of
+  -- budget `q` makes the monitor report a violation with probability above
+  -- `ε q`.  `Trajectory.monitor-bounded` proves it from `POV`, and
+  -- `ChimericLedger.Audit` hands it to the seam.
+  POVmonitor : (ℕ → ℚ) → Set
+  POVmonitor = Bounded (Sys vr s₀) (monitor s₀)
 
   -- The link to `POV`, STATED and not proved (`docs/protocol-rewrite.md` has
   -- the persistence argument and the price): a trajectory violation is seen by
