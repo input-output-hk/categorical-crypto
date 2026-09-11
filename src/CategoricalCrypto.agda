@@ -10,7 +10,9 @@
 -- `Strategy` and `OutputOnly`; `Protocol` and below (layer 1: protocols,
 -- their machine images, the agreement and totality readings, safety and the
 -- trajectory observable); and the UC layer's two roots, `UC` and `UC.Model`,
--- whose split `UC.agda`'s inventory explains.
+-- whose split `UC.agda`'s inventory explains.  `UC.Robust.Model` is reached
+-- here rather than from either: it runs a `UC`-side theorem at the `UC.Model`
+-- side's emulation, so neither root sees it.
 --
 -- Outside still, each with its own root: the protocol-layer examples
 -- (`Examples.ChimericLedger`, `Examples.MerkleDamgard`) and the inherited
@@ -54,6 +56,7 @@ open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Protocol.Safety
 open import CategoricalCrypto.UC
 open import CategoricalCrypto.UC.Model
+open import CategoricalCrypto.UC.Robust.Model
 open import CategoricalCrypto.Examples.Basic
 open import CategoricalCrypto.Examples.Commitment
 open import CategoricalCrypto.Examples.Possibilistic
