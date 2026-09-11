@@ -75,6 +75,9 @@ E⊥-bind μ h P = trans (E-bind μ (kmaybe h) (maybeℚ P)) (lookupᴰℚ-cong-
   (just a) → refl
   nothing  → lookupᴰℚ-return nothing (maybeℚ P))
 
+E⊥-return : (a : A) (P : A → ℚ) → E⊥ (return⊥ a) P ≡ P a
+E⊥-return a P = lookupᴰℚ-return (just a) (maybeℚ P)
+
 mb : Maybe Bool → ℚ
 mb = maybeℚ bool→ℚ
 
