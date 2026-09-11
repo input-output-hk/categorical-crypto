@@ -210,22 +210,6 @@ private
                             ○ tstep-sim onL-collapseʳ (⟺ (pad-transport ρ⇒ h)))
 
 ------------------------------------------------------------------------
--- The trivial ancilla
-
--- The bundle's own monoidal unit, read as an interface.  It is NOT `unitᴵ`:
--- that one is empty at `Data.Empty.⊥` and this one at `𝒱ₚ`'s initial object,
--- and `docs/stduc-supersession-plan.md` §1.1 prices the iso between them.
-𝟭ᴵ : Iface
-𝟭ᴵ = retᴵ 𝔾.unit
-
--- The relabellings a unitor performs: the trivial ancilla contributes no case.
-drop⇒ˡ : {A : Set} → Pos 𝟭ᴵ ⊎ A → A
-drop⇒ˡ = Sum.[ ⊥-elim , (λ a → a) ]
-
-drop⇒ʳ : {A : Set} → A ⊎ Neg 𝟭ᴵ → A
-drop⇒ʳ = Sum.[ (λ a → a) , ⊥-elim ]
-
-------------------------------------------------------------------------
 -- The ancilla reassociators are the 𝒢-associator
 
 private
@@ -289,6 +273,19 @@ a⇐-α⇒ = wire-pure ⊎assocʳ ⊎assocˡ α+⇒ α+⇐ assocʳᵏ assocˡᵏ
 
 ------------------------------------------------------------------------
 -- The trivial-ancilla relays are the 𝒢-unitors
+
+-- The bundle's own monoidal unit, read as an interface.  It is NOT `unitᴵ`:
+-- that one is empty at `Data.Empty.⊥` and this one at `𝒱ₚ`'s initial object,
+-- and `docs/stduc-supersession-plan.md` §1.1 prices the iso between them.
+𝟭ᴵ : Iface
+𝟭ᴵ = retᴵ 𝔾.unit
+
+-- The relabellings a unitor performs: the trivial ancilla contributes no case.
+drop⇒ˡ : {A : Set} → Pos 𝟭ᴵ ⊎ A → A
+drop⇒ˡ = Sum.[ ⊥-elim , (λ a → a) ]
+
+drop⇒ʳ : {A : Set} → A ⊎ Neg 𝟭ᴵ → A
+drop⇒ʳ = Sum.[ (λ a → a) , ⊥-elim ]
 
 private
   -- The cocartesian unitors are pure: `to` is an injection on the nose, and
