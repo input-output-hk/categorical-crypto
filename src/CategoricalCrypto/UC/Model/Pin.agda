@@ -11,6 +11,16 @@
 -- `𝒢` (`spike-stduc-perf`, `Spike.agda`'s table).  Sealed it is at the startup
 -- floor, so the applications need neither eta-expansion nor pinned implicits —
 -- the two cures that are all one gets without a seal.
+--
+-- What CANNOT be pinned here is behaviour, and the seal is why: `procᵒ` and
+-- `unprocᵒ` are `opaque`, so `Obs (procᵒ M) ≡ ⟦ M ⟧ᴼ` is not `refl` for any
+-- `M` — measured, the conversion is stuck at the first projection
+-- (`Machine.state`'s `obj`), so no budget reaches a value.  `relayᵒ` is out of
+-- reach twice over: its codomain carries no verdict either, so `⟦_⟧ᴼ` does not
+-- even type-apply and observing it needs a test composed on.  Behaviour is
+-- pinned by `refl` one layer down, at the transparent machines
+-- (`Protocol.Machine.Pin`); across the seal the same reading is a propositional
+-- lemma instead (`UC.Seam.Grounded.plug-run`, over `Seal.unprocᵒ-∘`).
 
 open import Data.Empty using (⊥-elim)
 open import Data.Product.Base using (Σ-syntax)

@@ -51,6 +51,9 @@ half = + 1 / 2
 layer₁ : Pr flip echo ≡ half
 layer₁ = refl
 
+layer₁-false : Prᵇ flip false echo ≡ half
+layer₁-false = refl
+
 -- Five steps: the coin's branch, and the `>>=ₚ` junctions the point, the
 -- machine's step and the strategy's resumption each spend.
 machine : cum 5 (runᴹ (morphism flip) echo) bool→ℚ ≡ half
@@ -66,6 +69,12 @@ agree₊₁ = refl
 
 agree₊₂ : cum 8 (runᴹ (morphism flip) echo) bool→ℚ ≡ Pr flip echo
 agree₊₂ = refl
+
+-- …and at the other verdict, which is the reading `PrAgree` is stated at:
+-- `indᵇ true` IS `bool→ℚ`, so `agree` above is its `b = true` instance and only
+-- this one exercises `indᵇ false`.
+agree-false : cum 6 (runᴹ (morphism flip) echo) (indᵇ false) ≡ Prᵇ flip false echo
+agree-false = refl
 
 -- Divergence: `drive dead` is `botₚ`, whose mass `cum` never counts, and layer
 -- 1's `evalC dead` parks the same mass on `nothing`.  Both branches of the
