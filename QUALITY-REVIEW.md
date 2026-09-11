@@ -1785,3 +1785,85 @@ an inventory line in `UC.agda` and a build-closure import in
   makes the carry `Absorbs`-free; for a MASS-valued property that class is too
   coarse for the same reason `UC.Audit`'s header records, and designating a
   smaller one is what `AuditEvent` is for.
+
+## Resolved (ledger-simcost)
+
+The `simCost`-adjusted ledger consumer — `docs/protocol-implementation-review.md` §2
+step 5, and the one item the `prefix-extraction` batch left open above. Base
+`1784f9dd`, one commit, `src/CategoricalCrypto/Examples/ChimericLedger/EndToEnd.agda`
+the only file touched.
+
+Verification: `EndToEnd` **rc=0, warning gate empty, one `Checking` line, 10.5 s warm**
+at 263 LOC (rule 5 budget 125 s) — forced by deleting its `.agdai`, per this file's own
+note on false greens. The oracle was validated negatively as well: weakening the
+conclusion's allowance from `simCost (q + q) (cs n)` to `simCost q (cs n)` fails with
+`UnequalTerms: p n ℕ.+ p n != p n`, so the audit instrumentation's doubling is
+load-bearing in the statement and the check really reads the working tree. Closure, all
+green with an empty gate: the ten sibling `ChimericLedger` modules (5-10 s each),
+`CategoricalCrypto.UC` (38 s) and `CategoricalCrypto` (143 s). Hatch grep over `src/`:
+**16 lines before, 16 after, identical up to ordering** — every one the words
+"postulate-free"/"No postulates" in an inherited `Categories/APROP/**` comment; zero
+live hatches, before and after.
+
+- `Examples/ChimericLedger/EndToEnd.agda :: ledger-uc-to-pov-simCost` — the pointwise
+  theorem's premise list with `_≤UC^ω_` replaced by `_≤UC^ω[ cs ]_` and **nothing
+  added**, concluding
+  `SaturatedHitᴺ R badR (λ n q → εᴸ n (simCost (q + q) (cs n)) + ν n)`. The route is
+  `UC.Asymptotic.Audit.uc-audit-boundedᵖ` (the ideal `Bounded` crossing the budgeted
+  emulation at the prefix-tolerant class) then `boundedᴺ` then
+  `saturatedHitᴺ-from-monitor`, i.e. the same second half as `ledger-uc-to-pov`. The
+  ideal supply is `Schedule.ideal-bounded`, the proved birthday bound read at the
+  monitor — `Audit.audit-target` is NOT used, because `uc-audit-boundedᵖ` builds the
+  `watchedᵖ` premise itself through `boundedIsAuditᵖ`; so there is no event-class
+  mismatch to report, `watched` never enters this route.
+- `:: ledger-pov-simCost-negligible` — the same as one number, mirroring
+  `ledger-pov-negligible`. Its one extra hypothesis is `Poly cs`: the numerator is
+  `εᴸ n (simCost (p n + p n) (cs n))` and `simCost q cs = q * (cs ⊔ 1)`, so
+  negligibility is `εᴸ-negligible` at `poly-* (poly-+ Pp Pp) (poly-⊔ Pcs (poly-const 1))`
+  — reused from `Data.Nat.Poly` and `Negligible-+`, no new analysis lemma anywhere.
+- **Home decided by measurement, not by preference.** The brief allowed `EndToEnd` only
+  if it stayed inside its perf budget, else a sibling `SimCost.agda`. Both were built
+  and measured, forced warm: `EndToEnd` alone 13.2 s; sibling `SimCost.agda` 13.2 s with
+  `EndToEnd` unchanged at 13.2 s; merged `EndToEnd` **10.5 s**. The merge is both inside
+  budget and cheaper than the split, so the sibling was deleted. Note for the record
+  that the 127 s split hazard `UC.Asymptotic`'s header prices is about *that* module
+  pair, not about `EndToEnd`, which already carried both routes.
+- **Every pre-existing statement is byte-identical**, checked mechanically (the old
+  file's text from `-- The slack the carries spend` to EOF is a verbatim substring of the
+  new one). Only the header, the import lists and the appended `-- The budgeted route`
+  section changed. The pointwise theorem is explicitly kept, per the follow-up review
+  §1 step 1.
+- `:: emSimTotal`, `:: simAstotal` — **both belong in `UC.Seam.Grounded` (rule 27) and
+  are here only because this branch's edit scope excludes `UC/`.** `emSimTotal`
+  (14 lines) is the `simTotal` `where`-block of `Grounded.subBlind⇒unitGrade`
+  *verbatim*: that proof needs exactly this implication
+  (`TotalRun u` + `ιᴳ B ∘ procᵒ u ≈ᵁ sub s ∘ (ιᴳ B ∘ procᵒ v)` ⟹ `TG.SimTotal B s v`)
+  and keeps it private to one clause, so a second consumer has no way to reach it.
+  Please lift it into `Grounded` beside `subBlind⇒unitGrade`, route that proof through
+  it, and then delete both copies from here — the `Examples` module should be left with
+  the two theorems and their two-line proofs. Related and already on this list:
+  the `UC/Seam/Grounding.agda :: UnitGrade` entry under *Suggestions* asks for the
+  ~5-line corollary in `Carry`/`Grounded`; this is the same factoring, one level down.
+
+Open, for the maintainer:
+
+- `docs/end-to-end.md` is now stale in three places and was not edited (outside this
+  branch's scope): the "Closed at the unit grade" paragraph says "what remains here is
+  only the ledger consumer" — that is this commit; continuation item 2's "Remaining: the
+  one-module ledger consumer wiring `uc-audit-boundedᵖ` at the family" is likewise done;
+  and the *Modules added* table's `Examples.ChimericLedger.EndToEnd` row should read
+  263 LOC / 10.5 s. The *interactive*-simulator accounting (review §3) is untouched and
+  still owed — the budgeted simulator at these types is a scalar.
+- The two statements are **not ordered**, and the module header now says so: a budgeted
+  emulation IS an emulation (`≤UC[]⇒≤UC` then `Bridge.≤UCᶜ⇒≤UC`), so `ledger-uc-to-pov`
+  applies wherever the budgeted theorem does and gives the *sharper* bound — at the
+  trivial grade the simulator costs the ideal side nothing. What the budgeted statement
+  adds is the accounting, not a better number. Worth a sentence in
+  `docs/end-to-end.md` too, since the doc presents the `simCost` form as what the
+  pointwise route "cannot" deliver.
+- `Examples/ChimericLedger/Real.agda` still exposes only `ledger-pov` (the pointwise
+  corollary at a real ledger). The budgeted twin — `ledger-pov-simCost-negligible` at
+  `Real`/`badReal`/`realTotal`/`real-truthful`, a four-line application — was not added,
+  since `Real`'s emulation premise is stated as `_≤UC^ω_` and changing it to
+  `_≤UC^ω[ cs ]_` would alter an existing statement. Your call whether `Real` should
+  carry both.
