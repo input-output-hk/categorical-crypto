@@ -146,6 +146,13 @@ module Plugged (B : Iface) (K : Proc B Ωᴵ) (u : Proc unitᴵ B) where
 
   open Tick (Neg B ⊎ Pos B) Sᴷ kᴷ public
 
+  -- The paired state's point is the two factors', in order; the junction is
+  -- the one `λ⇐` spends.
+  point-red : MC.point Sᴷ ttᵛ
+            ≈ₚ (MC.point (MC.state K) ttᵛ >>=ₚ λ sk →
+                MC.point (MC.state u) ttᵛ >>=ₚ λ su → returnₚ (sk , su))
+  point-red = >>=ₚ-identityˡ (ttᵛ , ttᵛ) _
+
   -- The composite `𝒫ᴵ` names and the collapsed trace this module is about are
   -- the same machine; the projection out of the G-construction record is paid
   -- once, here (`Machines.Collapse`'s header).
