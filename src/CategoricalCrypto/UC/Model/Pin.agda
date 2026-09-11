@@ -37,7 +37,7 @@ import CategoricalCrypto.UC.Model.Unit as Unit
 
 module CategoricalCrypto.UC.Model.Pin where
 
-private variable A B C X Y P Q : Channel
+private variable A B C X Y P : Channel
 
 ------------------------------------------------------------------------
 -- The bare kernel `≈ℰ`, including between machine COMPOSITES
