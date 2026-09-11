@@ -46,7 +46,6 @@ open import Data.Nat.Base using (ℕ)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Sum.Base using ([_,_]; inj₂)
 open import Function.Base using (id)
-open import Level using (0ℓ)
 
 open import ProbabilisticLogic.Dp using (Dₚ)
 open import ProbabilisticLogic.Dp.Advantage using (_≈ₚ[_]_)

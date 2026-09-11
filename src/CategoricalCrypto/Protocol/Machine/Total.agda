@@ -20,7 +20,7 @@ open import Categories.Category using (Category)
 
 open import Data.Bool.Base using (Bool; true; false)
 open import Data.Empty using (⊥)
-open import Data.Nat.Base using (ℕ; _+_)
+open import Data.Nat.Base using (_+_)
 open import Data.Nat.Properties using (+-comm)
 open import Data.Product.Base using (_,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 1ℚ)

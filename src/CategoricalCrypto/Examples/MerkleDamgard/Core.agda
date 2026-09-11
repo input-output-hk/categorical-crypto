@@ -4,8 +4,7 @@
 -- MERKLE–DAMGÅRD: the cryptographic content, machine-free.
 --
 -- Everything the security proof rests on that never mentions a machine: the
--- relay arrow `mdArrow`, the real and ideal reactive kernels (`respR`,
--- `respG`), the coupling, the Fundamental Lemma of Game-Playing application,
+-- real and ideal reactive kernels (`respR`, `respG`), the coupling, the Fundamental Lemma of Game-Playing application,
 -- the birthday certificate `md-cert` and the adaptive bound `bad-bound`.  The
 -- protocols, the composite `md ∘ᵖ comp` and the theorem `indistinguishable`
 -- are `Examples.MerkleDamgard`; the split is what keeps a change to the
@@ -65,7 +64,7 @@ open import Data.Nat using (_+_; _*_; _≤_; _<_; _∸_; NonZero; _≤′_; ≤�
 open import Data.Nat.Properties using (_<?_)
 import Data.Nat.Properties as ℕP
 open import Data.Fin using (Fin; zero)
-open import Data.Vec using (Vec; []; _∷_; toList) renaming (_++_ to _++ᵛ_; take to takeᵛ; drop to dropᵛ; replicate to replicateᵛ)
+open import Data.Vec using (Vec; []; _∷_; toList) renaming (take to takeᵛ; drop to dropᵛ; replicate to replicateᵛ)
 import Data.Vec as DV
 open import Data.List using (_++_; length)
 import Data.List as L
@@ -87,15 +86,13 @@ open import Data.Vec.Properties.Ext using (take-drop-inj)
 open import CategoricalCrypto.Examples.RandomOracle
 open import CategoricalCrypto.GamePlaying
 open import CategoricalCrypto.Interaction
-open import CategoricalCrypto.SFunM
-open import CategoricalCrypto.SFunPartial
 open import CategoricalCrypto.Strategy
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
 open import ProbabilisticLogic.Distribution.RationalDist.Setoid
 open import ProbabilisticLogic.Distribution.Uniform using
-  (0≤fromℕ; inv-pow-2; bool→ℚ; fromℕ; fromℕ-+; δ; P-uniform-Vec)
+  (0≤fromℕ; inv-pow-2; fromℕ; fromℕ-+; δ; P-uniform-Vec)
 import ProbabilisticLogic.Distribution.Uniform.Birthday as Birthday
 
 module CategoricalCrypto.Examples.MerkleDamgard.Core where
@@ -146,26 +143,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   MDState : Type
   MDState = Maybe (Fin p × ℕ × List Blk)   -- idle, or (party, next block index, remaining blocks)
 
-  -- new query: fire the first compression query at index 1, i.e. (IV , b₁ , k , 1).
-  -- Split out so it pattern-matches the block list as an honest argument — that
-  -- keeps `mdStep (sr , inj₂ (i , M)) = mdStepᵇ i (toBlocks M)` DEFINITIONAL, so
-  -- proofs can case on `toBlocks M` via a supplied equation rather than fighting a
-  -- `with`-abstracted scrutinee inside `mdStep`.
-  mdStepᵇ : Fin p → List Blk → MDState × (Comp.Input ⊎ General.Output)
-  mdStepᵇ i []       = (nothing            , inj₂ (i , IV))
-  mdStepᵇ i (b ∷ bs) = (just (i , 2 , bs)  , inj₁ (i , pack IV b 1))
-
-  mdStep : MDState × (Comp.Output ⊎ General.Input)
-         → MDState × (Comp.Input  ⊎ General.Output)
-  mdStep (_ , inj₂ (i , M)) = mdStepᵇ i (toBlocks M)
-  -- callback with chaining value `h`: done, or fire the next block at its index
-  mdStep (just (i , idx , [])       , inj₁ (_ , h)) = (nothing                 , inj₂ (i , h))
-  mdStep (just (i , idx , (b ∷ bs)) , inj₁ (_ , h)) = (just (i , suc idx , bs) , inj₁ (i , pack h b idx))
-  mdStep (nothing                   , inj₁ (i , h)) = (nothing                 , inj₂ (i , h))
-
-  mdArrow : SFunᵉ {M = Dist-ℚ} (Comp.Output ⊎ General.Input) (Comp.Input ⊎ General.Output)
-  mdArrow = record { State = MDState ; init = nothing ; fun = return-ℚ ∘ mdStep }
-
   ------------------------------------------------------------------------
   -- Security via the reactive model + Fundamental Lemma of Game-Playing.
   -- `MD ⊚ Comp.M` (compression hidden) is a variable-length random oracle:
@@ -185,11 +162,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   -- chaining over the message, echo the querying party with the resulting hash.
   respR : Comp.Table → General.Input → Dist-ℚ (Comp.Table × General.Output)
   respR s (i , M) = mdRun s IV (toBlocks M) 1 >>=ᴹ λ sh → return-ℚ (proj₁ sh , (i , proj₂ sh))
-
-  -- `respR` as a stateful functionality — the underlying morphism the composite
-  -- `MD ⊚ Comp.M` should compute to (compression table = internal state).
-  respRM : SFunᵉ {M = Dist-ℚ} General.Input General.Output
-  respRM = record { State = Comp.Table ; init = [] ; fun = λ sq → respR (proj₁ sq) (proj₂ sq) }
 
   -- The *structural* chaining collision: a coincidence among {IV} ∪ {interior
   -- chaining values} (interior = outputs of NON-final calls, idx < len).  A
@@ -216,9 +188,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   -- number of colliding pairs in the pool
   collC : Comp.Table → ℚ
   collC sc = Comp.state-collisions (poolL sc)
-
-  bad : Comp.Table → Bool
-  bad s = not ⌊ collC s ≟ℚ 0ℚ ⌋
 
   -- The birthday bound `triangle (q·k) · 2⁻ⁿ` for q queries of k blocks each — the
   -- value proven by `RandomOracle.RO-collision` (same `triangle`, same `inv-pow-2`).

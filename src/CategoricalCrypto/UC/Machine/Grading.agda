@@ -14,7 +14,7 @@
 -- opacity then keeps both the predicate and `_⊗₁ᴳ_` nominal while `Budget`
 -- checks its dependent fields.
 
-open import Categories.Category using (Category; _[_,_]; _[_≈_])
+open import Categories.Category using (Category; _[_,_])
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 
 open import Data.Nat.Base as ℕ using (ℕ)

@@ -23,7 +23,7 @@
 -- data: the grading is `gradingᴹ` below, derived on 𝒢's own objects, and
 -- `UC.Machine.Dictionary`'s zigzags are the bridge between the two.
 
-open import Categories.Category using (Category; _[_,_]; _[_≈_])
+open import Categories.Category using (Category; _[_,_])
 
 open import Data.Bool.Base using (Bool)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)

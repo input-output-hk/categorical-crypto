@@ -23,7 +23,7 @@ import Categories.Category.Monoidal.Distributive as MD
 import Categories.GConstructionEmbedding as GE
 
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
-open import Data.Sum.Base as Sum using (_⊎_; inj₁; inj₂)
+open import Data.Sum.Base as Sum using (_⊎_)
 open import Level using (0ℓ)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
@@ -32,7 +32,6 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
-open import CategoricalCrypto.Protocol.Machine using (⟦_⟧ᴵ)
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Dictionary
   using (enter-pure; pureᴵ; pure-idᵏ; +₁-pureᵏ; wire-⌜⌝)

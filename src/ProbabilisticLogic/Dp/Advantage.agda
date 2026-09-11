@@ -27,7 +27,7 @@ open import Data.Bool.Base
 open import Data.Nat.Base renaming (_≤_ to _≤ℕ_)
 open import Data.Product.Base
 open import Data.Rational as ℚ
-open import Data.Rational.Properties as ℚP
+open import Data.Rational.Properties
 
 open import Data.Rational.Properties.Ext
 open import Relation.Binary.PropositionalEquality
