@@ -53,9 +53,9 @@ open import CategoricalCrypto.UC.Emulation ucBaseᵒ using (obs; tv₁)
 
 private module A = Aud ucBaseᵒ budgetᵒ massᵒ
 
-open A public
-  using (_≤UC[_]_; sim; sim-qb; emulate; simCost; AuditEvent; AuditBound; absorb;
-         Absorbs; absorb-absorbs; audit-carry)
+-- `audit-carry` is what this instantiation is FOR, so it is re-exported even
+-- with no consumer yet; the rest of `UC.Audit`'s plumbing is reached from there.
+open A public using (AuditEvent; AuditBound; audit-carry)
 
 ------------------------------------------------------------------------
 -- The consumer end

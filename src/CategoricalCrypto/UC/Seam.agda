@@ -49,8 +49,6 @@
 -- environment layer at it costs a budget of the same order while only
 -- `StratIsEnv` needs it.
 
-open import Categories.Category
-
 open import Data.Bool.Base
 open import Data.Empty using (⊥)
 open import Data.Nat.Base
@@ -79,7 +77,6 @@ import CategoricalCrypto.Machines.Collapse as Col
 module CategoricalCrypto.UC.Seam where
 
 private
-  module 𝒫 = Category 𝒫ᴵ
   module MC = Core (𝒱ₚ 0ℓ)
 
 ------------------------------------------------------------------------
@@ -144,9 +141,9 @@ Agreeˢ-sym B u v h d ε ε>0 = ≈ₚ[]-sym (h d ε ε>0)
 -- The two obligations
 
 -- Stated and priced at ~250–350 LOC, one module: this is `PrAgree`'s unrolling
--- again, over `𝒫.∘` instead of `Dist⊥`'s bind.  The ⊕-trace's `iter` performs
--- one pass per message and `playˢ` against `runᴹFrom` is the induction on the
--- `Strat` tree that matches them, with the junction delays `𝒫.∘` inserts
+-- again, over `𝒫ᴵ`'s composition instead of `Dist⊥`'s bind.  The ⊕-trace's
+-- `iter` performs one pass per message and `playˢ` against `runᴹFrom` is the
+-- induction on the `Strat` tree that matches them, with the junction delays it
 -- absorbed by `iter-fix` (`absorbˡ`/`absorbʳ` of the embedding layer).  `_≈ₚ_`
 -- and not `≡`: a trace does not compute to a run.
 Adequacy : Set₁

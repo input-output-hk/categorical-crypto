@@ -49,9 +49,7 @@ import CategoricalCrypto.UC.Core.Standard as Std
 
 module CategoricalCrypto.UC.Machine where
 
--- Re-exported for `UC.Machine.Grading`, `.Dictionary` and `.Slide`, which all
--- name the two reassociators.
-open import Data.Sum.Ext using (⊎assocˡ; ⊎assocʳ) public
+open import Data.Sum.Ext using (⊎assocˡ; ⊎assocʳ)
 
 private
   module MC = Core (𝒱ₚ 0ℓ)

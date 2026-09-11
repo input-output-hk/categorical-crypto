@@ -72,9 +72,9 @@ module _ (vr : Variant) (s₀ : LState) where
     -- An audit query does not move the state and its answer is that state's
     -- own total, so a run through one is the run that follows it.
     served : (st : St P) (G : St P × Answer → Dist⊥ Bool)
-           → Pr₁⊥ (evalC (step P st audit) >>=⊥ G)
+           → Pr₁⊥ (kernel P st audit >>=⊥ G)
              ≡ Pr₁⊥ (G (st , totalIs (total (proj₁ st))))
-    served st G = Pr₁⊥-cong (evalC (step P st audit) >>=⊥ G)
+    served st G = Pr₁⊥-cong (kernel P st audit >>=⊥ G)
                             (G (st , totalIs (total (proj₁ st))))
                             (>>=⊥-identityˡ (st , totalIs (total (proj₁ st))) G)
 
@@ -100,7 +100,7 @@ module _ (vr : Variant) (s₀ : LState) where
       (≤-trans (E⊥-mono μq (λ x → Pr₁⊥ (H x)) (λ x → Pr₁⊥ (R x)) ptw)
                (≤-reflexive (sym (E⊥-bind μq R bool→ℚ))))
       where
-      μq = evalC (step P st q)
+      μq = kernel P st q
 
       H R : St P × Answer → Dist⊥ Bool
       H (st′ , r) = hitFrom P Bad (Bad st′) st′ (k r)
@@ -174,7 +174,7 @@ module _ (vr : Variant) (s₀ : LState) where
     (≤-trans (E⊥-mono μq (λ x → Pr₁⊥ (L x)) (λ x → Pr₁⊥ (R x)) ptw)
              (≤-reflexive (sym (E⊥-bind μq R bool→ℚ))))
     where
-    μq = evalC (step P st (submit tx))
+    μq = kernel P st (submit tx)
 
     L R : St P × Answer → Dist⊥ Bool
     L (st′ , r) = runFrom P st′ (monitorFrom s₀ (acc ∨ false) (k r))
@@ -214,7 +214,7 @@ module _ (vr : Variant) (s₀ : LState) where
     (≤-trans (E⊥-mono μq (λ x → Pr₁⊥ (H x)) (λ x → Pr₁⊥ (R x)) ptw)
              (≤-reflexive (sym (E⊥-bind μq R bool→ℚ))))
     where
-    μq = evalC (step P st q)
+    μq = kernel P st q
 
     H R : St P × Answer → Dist⊥ Bool
     H (st′ , r) = hitFrom P Bad (acc ∨ Bad st′) st′ (k r)

@@ -20,6 +20,7 @@ open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Product.Base using (_,_)
 open import Data.Sum.Base using (inj₁; inj₂)
+open import Data.Sum.Ext using (⊎assocˡ; ⊎assocʳ)
 open import Level using (0ℓ)
 
 open import CategoricalCrypto.Iface

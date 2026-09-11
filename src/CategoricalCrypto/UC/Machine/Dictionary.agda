@@ -24,6 +24,7 @@ import Categories.GConstructionMonoidal as GM
 open import Data.Empty.Polymorphic using (⊥-elim)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Sum.Base as Sum using (_⊎_; inj₁; inj₂)
+open import Data.Sum.Ext using (⊎assocˡ; ⊎assocʳ)
 open import Level using (0ℓ)
 open import Relation.Binary.PropositionalEquality using (refl)
 
@@ -121,11 +122,11 @@ enter-pure : {A : 𝒱.Obj} (h : V → W) (K : X × W → Dₚ A) (x : X) (v : V
            → (𝒱._⊗₁_ (𝒱.id {X}) (pureᵏ h) (x , v) >>= K) ≈ᵈ K (x , h v)
 enter-pure h K x v = ≈ᵈ.trans (>>=-cong-x (pureᴵ h (x , v))) >>=-identityˡ-≈
 
-private
-  exit-pure : (h : V → W) (x : X) (v : V)
-            → (returnₚ (x , v) >>= 𝒱._⊗₁_ (𝒱.id {X}) (pureᵏ h)) ≈ᵈ returnₚ (x , h v)
-  exit-pure h x v = ≈ᵈ.trans >>=-identityˡ-≈ (pureᴵ h (x , v))
+exit-pure : (h : V → W) (x : X) (v : V)
+          → (returnₚ (x , v) >>= 𝒱._⊗₁_ (𝒱.id {X}) (pureᵏ h)) ≈ᵈ returnₚ (x , h v)
+exit-pure h x v = ≈ᵈ.trans >>=-identityˡ-≈ (pureᴵ h (x , v))
 
+private
   -- Entering a `tstep` on one summand runs that arm and retags its answer.
   tstep-inj₁ : {A B C D : 𝒱.Obj} (k : X × A → Dₚ (W × B)) (l : X × C → Dₚ (W × D))
                (x : X) (a : A)

@@ -37,17 +37,12 @@ open import ProbabilisticLogic.Distribution.RationalDist.Expectation using (E)
 open import ProbabilisticLogic.Dp
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Machines.Base using (𝒱ₚ)
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine using (Proc; Ωᴵ)
 open import CategoricalCrypto.UC.QueryBound using (QBᵢ; Certified; Ans)
 
-import CategoricalCrypto.Machines.Core as Core
-
 module CategoricalCrypto.UC.Seam.Extract
   (B : Iface) (K : Proc B Ωᴵ) (q : ℕ) (cert : Certified q K) where
-
-private module MC = Core (𝒱ₚ 0ℓ)
 
 open QBᵢ cert public
 

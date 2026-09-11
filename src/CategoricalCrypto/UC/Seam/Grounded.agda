@@ -28,7 +28,6 @@ open import ProbabilisticLogic.Dp.Mass
   using (ASTotal; Total; astotal-≼ᵐ; total-dominated; total-resp-≼ₚ)
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Protocol.Machine.Total using (TotalRun)
 open import CategoricalCrypto.Strategy using (Strat; ask; out)
 open import CategoricalCrypto.UC.Machine using (Proc; ⊤ᵛ)
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
@@ -107,9 +106,9 @@ plug-run B d w =
 stratIsEnv : StratIsEnv
 stratIsEnv B u v h d ε ε>0 =
   ≈ₚ[]-resp (≈ₚ-sym _ _ (plug-run B d u)) (≈ₚ-sym _ _ (plug-run B d v))
-            (≈ᴳ-at 𝟘ᴳ (procᵒ (strategyEnv B d) ∘ unitorˡ.from) unitorˡ.to
-                   (procᵒ (strategyEnv B d) ∘_) (plug-λ (procᵒ (strategyEnv B d)))
+            (≈ᴳ-at 𝟘ᴳ (envᵒ ∘ unitorˡ.from) unitorˡ.to (envᵒ ∘_) (plug-λ envᵒ)
                    h ε ε>0)
+  where envᵒ = procᵒ (strategyEnv B d)
 
 ------------------------------------------------------------------------
 -- The collapse at the trivial grade

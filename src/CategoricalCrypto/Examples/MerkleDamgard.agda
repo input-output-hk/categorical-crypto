@@ -59,23 +59,19 @@ module CategoricalCrypto.Examples.MerkleDamgard where
 ------------------------------------------------------------------------
 -- The seam between the two layers
 
--- A closed protocol's per-activation distribution, as an interaction-model
--- kernel: `Protocol.Observe.runFrom` IS `Interaction.runWith⊥` at it.
-protoK : {B : Iface} (P : Protocol unitᴵ B) → St P → Neg B → Dist⊥ (St P × Pos B)
-protoK P s q = evalC (step P s q)
-
--- The two `run`s agree clause by clause; only `d` being a variable keeps them
--- from being the same term.
+-- Layer 1's `run` IS the interaction model's, read at layer 1's own
+-- per-activation kernel (`Protocol.Observe.kernel`): the two agree clause by
+-- clause, and only `d` being a variable keeps them from being the same term.
 runFrom-as-runWith : {B : Iface} (P : Protocol unitᴵ B) (s : St P) (d : Strat (Neg B) (Pos B))
-                   → runFrom P s d ≈Mℚ runWith⊥ (protoK P) s d
+                   → runFrom P s d ≈Mℚ runWith⊥ (kernel P) s d
 runFrom-as-runWith P s (out b)    = λ _ → refl
 runFrom-as-runWith P s (ask q c)  =
-  >>=⊥-congˡ (protoK P s q)
+  >>=⊥-congˡ (kernel P s q)
     (λ o → runFrom P (proj₁ o) (c (proj₂ o)))
-    (λ o → runWith⊥ (protoK P) (proj₁ o) (c (proj₂ o)))
+    (λ o → runWith⊥ (kernel P) (proj₁ o) (c (proj₂ o)))
     (λ o → runFrom-as-runWith P (proj₁ o) (c (proj₂ o)))
 runFrom-as-runWith P s (coin μ c) =
-  >>=ᴹ-congˡ μ (λ b → runFrom P s (c b)) (λ b → runWith⊥ (protoK P) s (c b))
+  >>=ᴹ-congˡ μ (λ b → runFrom P s (c b)) (λ b → runWith⊥ (kernel P) s (c b))
     (λ b → runFrom-as-runWith P s (c b))
 
 -- So a protocol whose activations are an embedded TOTAL kernel — no `dead`
@@ -84,13 +80,13 @@ runFrom-as-runWith P s (coin μ c) =
 -- `Dist-ℚ` reactive model be read off layer 1's `run`.
 runFrom-kernel : {B : Iface} {S : Set} (P : Protocol unitᴵ B)
                  (resp : S → Neg B → Dist-ℚ (S × Pos B)) (emb : S → St P)
-               → (∀ s q → protoK P (emb s) q
+               → (∀ s q → kernel P (emb s) q
                           ≈Mℚ (resp s q >>=ᴹ λ o → return⊥ (emb (proj₁ o) , proj₂ o)))
                → ∀ s d → runFrom P (emb s) d ≈Mℚ Dmap just (runWith resp s d)
 runFrom-kernel P resp emb ker s d = Mℚ.trans
-  {i = runFrom P (emb s) d} {j = runWith⊥ (protoK P) (emb s) d}
+  {i = runFrom P (emb s) d} {j = runWith⊥ (kernel P) (emb s) d}
   {k = Dmap just (runWith resp s d)}
-  (runFrom-as-runWith P (emb s) d) (runWith⊥-emb resp (protoK P) emb ker s d)
+  (runFrom-as-runWith P (emb s) d) (runWith⊥-emb resp (kernel P) emb ker s d)
 
 ------------------------------------------------------------------------
 -- The three protocols
@@ -199,10 +195,10 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
         MR = λ (o : Comp.Table × Comp.Output) → mdRun (proj₁ o) (proj₂ (proj₂ o)) bs (suc idx)
         open RS (Mℚ-setoid _)
 
-    sysStep : ∀ sc q → protoK Sys (tt , sc) q
+    sysStep : ∀ sc q → kernel Sys (tt , sc) q
                        ≈Mℚ (respR sc q >>=ᴹ λ o → return⊥ ((tt , proj₁ o) , proj₂ o))
     sysStep sc (i , M) = begin
-      protoK Sys (tt , sc) (i , M)
+      kernel Sys (tt , sc) (i , M)
         ≈⟨ graft-chain i sc IV (toBlocks M) 1 ⟩
       (mdRun sc IV (toBlocks M) 1 >>=ᴹ Kret i)
         ≈˘⟨ >>=ᴹ-congˡ (mdRun sc IV (toBlocks M) 1) (λ sh → Rw sh >>=ᴹ KE) (Kret i)
@@ -216,7 +212,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
         KE = λ (o : Comp.Table × General.Output) → return⊥ ((tt , proj₁ o) , proj₂ o)
         open RS (Mℚ-setoid _)
 
-    generalStep-eval : ∀ sg q → protoK general sg q
+    generalStep-eval : ∀ sg q → kernel general sg q
                                 ≈Mℚ (respG sg q >>=ᴹ λ o → return⊥ (proj₁ o , proj₂ o))
     generalStep-eval sg (i , M) with General.lookup-bs sg M
     ... | just h  = Mℚ.sym {x = return-ℚ (sg , i , h) >>=ᴹ KE} {y = return⊥ (sg , (i , h))}

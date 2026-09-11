@@ -62,7 +62,7 @@ module _ {B : Iface} (P : Protocol unitᴵ B) where
                        (λ c → E⊥ (runFrom P s (k c)) Q) Q λ c → runAgree Q s (k c))
   runAgree Q s (ask q k) =
     subst (Stable Q _)
-          (sym (E⊥-bind (evalC (step P s q)) (λ y → runFrom P (proj₁ y) (k (proj₂ y))) Q))
+          (sym (E⊥-bind (kernel P s q) (λ y → runFrom P (proj₁ y) (k (proj₂ y))) Q))
           (callAgree Q (step P s q) (resumeᴹ (morphism P) λ m r → runᴹFrom (morphism P) m (k r))
                      (λ y → E⊥ (runFrom P (proj₁ y) (k (proj₂ y))) Q)
                      λ s′ r → runAgree Q s′ (k r))

@@ -570,11 +570,11 @@ this layer needed them.)
 | `…UC.Machine` | model | 206 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Approximationᴹ`/`Observationᴹ`/`ApproximateObservationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `UCBaseᴹ` |
 | `…UC.Machine.Grading` | model | 74 | the four re-basings `qb-T₁ᴳ`/`qb-subᴳ`/`qb-a⇒ᴳ`/`qb-a⇐ᴳ`, carrying a query-bound certificate about a pinned relay to `gradingᴹ`'s action through a `…Dictionary` zigzag.  `GradingLawsᴹ`, `Gradingᴹ` and `Budgetᴹ` are GONE (perf finding 8); the `Budget (𝒢ₚ 0ℓ) gradingᴹ` assembly this row used to call owed is `UC.Machine.Budget.budgetᴹ`, and `UC.Model.Enrichment.budgetᵒ` carries it across the seal |
 | `…UC.Machine.Run` | model | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
-| `…UC.QueryBound` | model | 480 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `#inj₁`/`#inj₂`, `CountBound`, `Counting`, `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `qbᵢ-resp-step`, `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` and their hom-level forms, `BudgetLawsᴹ` |
+| `…UC.QueryBound` | model | 480 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `#inj₁`/`#inj₂`, `CountBound`, `Counting`, `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `qbᵢ-resp-step`, `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` and their hom-level forms.  `BudgetLawsᴹ` is GONE with `GradingLawsᴹ` and the rest (row above); the resource doctrine is inhabited directly by `UC.Machine.Budget.budgetᴹ` |
 | `…UC.QueryBound.Counting` | model | 237 | `CountedRun`, `countᵍ`/`countᵍ-erase`, `qbᵢ⇒count` — `Counting` inhabited |
 | `…UC.QueryBound.Compose` | model | 330 | `resumeF`/`resumeG`, `Unfolding` (the composite step's six equations), `qbᵢ-∘ᵍ` — the two-position token walk at rate `c * c′` |
 | `…UC.QueryBound.Compose.Step` | model | 495 | `Pt` and the `pt-*` routings, `onLₑ`/`tstepₑ`, `α⁰`/`γ⁰`/`Hα`/`Hγ` with `α-pure`/`γ-pure`, `unfoldᶜ` — `Unfolding` discharged at the real composite — and `qbᵢ-∘`/`qb-∘` |
-| `…UC.QueryBound.Compose.Laws` | model | 27 | `budgetLawsᴹ` — `BudgetLawsᴹ` assembled, given the two respect-`≈` hypotheses `qb-T₁ᴹ`/`qb-subᴹ` already take |
+| `…UC.QueryBound.Compose.Laws` | model | 60 | `qb-∘`, `qb-∘-category` and `qb-∘ᴳ` — the composition closure of `QB` at the hom level and at 𝒢's own objects, which is what `UC.Machine.Budget.budgetᴹ` plugs into the resource doctrine.  Every implicit is pinned and it is its own module for the per-field inversion cost; measured warm with congruence cached, 10.1 s |
 | `…UC.Machine.Bridge` | model | 96 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `ContextDominated` (proved by `UC.Machine.Dominated.dominated`) |
 | `…UC.Seam` | model | 171 | `strategyEnv` (a strategy as an environment), `ctxRunˢ`/`runˢ`, `Agreeˢ`, `Adequacy`/`AgreeToAdv` (stated here, both inhabited below), `pov-carry` (proved) |
 | `…UC.Seam.Adequacy.Wiring` | model | 358 | the G-composite's structural wiring collapsed to pure machines (`α-pure`/`γ-pure`), `kᵂ` (the loop's one-pass dispatch), `pairedᴹ`, `compose-≈ᴹ` |
@@ -1100,10 +1100,11 @@ impossibility result or a new benchmark.
   three trace-free budget laws are 29 s with every interface explicit and do not
   come back inside 200 s with them implicit; the certificate-level halves
   (`qbᵢ-T₁`/`qbᵢ-sub`) are 5 s each either way, because their interfaces are
-  module parameters.  `BudgetLawsᴹ` IS now assembled, and the prediction held:
-  its four fields take their interfaces implicitly, so filling them pays the
-  inversion once per field — 27 lines that check in ~220 s, which is why
-  `UC.QueryBound.Compose.Laws` is a module of its own.
+  module parameters.  The resource doctrine IS now inhabited
+  (`UC.Machine.Budget.budgetᴹ`), and the prediction held: its fields take their
+  interfaces implicitly, so filling them pays the inversion once per field —
+  which is why `UC.QueryBound.Compose.Laws` is a module of its own, with every
+  implicit pinned.  Pinned and with the congruence cached it is 10.1 s warm.
 * **"Name the observation once" survives all the way down to the example.**
   `Examples.ChimericLedger.Carry` applies the seam's `agreeToAdv` at the two
   concrete ledger systems and hands the result to the example's `pov-transfer`.
