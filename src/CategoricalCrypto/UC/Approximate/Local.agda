@@ -22,7 +22,7 @@
 -- alone, as in `UC.Family`.
 
 open import Data.Nat.Base using (ℕ)
-open import Data.Product.Base using (Σ; Σ-syntax; _×_; _,_)
+open import Data.Product.Base using (Σ-syntax; _×_; _,_)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Level using (Level)
 open import Relation.Binary.PropositionalEquality using (_≡_; subst)

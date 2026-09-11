@@ -14,24 +14,25 @@
 -- polynomial magnification of it does, since `n+1` cancels it outright.
 -- `Decay` is the positive counterpart, at the exponential schedule.
 
-open import Data.Integer.Base using (+_; +<+)
+open import Data.Integer.Base using (+<+)
 open import Data.Nat.Base as ℕ using (ℕ; suc; z≤n; s≤s)
 open import Data.Nat.Poly using (poly-+; poly-const; poly-id)
-open import Data.Nat.Properties as ℕₚ using ()
 open import Data.Product.Base using (_,_)
-open import Data.Rational as ℚ using (ℚ; 0ℚ; 1ℚ; ½; ∣_∣; 1/_; NonZero; positive; *<*)
+open import Data.Rational as ℚ using (ℚ; 0ℚ; ½; ∣_∣; 1/_; NonZero; positive; *<*)
 open import Data.Rational.Properties
   using ( *-inverseʳ; +-inverseʳ; +-identityʳ; +-mono-≤; <-irrefl; ≤-<-trans; ≤-refl
         ; ≤-reflexive; ≤-trans; 0≤p⇒∣p∣≡p; ∣-p∣≡∣p∣; ∣p+q∣≤∣p∣+∣q∣
         ; pos⇒nonZero; positive⁻¹ )
 open import Data.Rational.Properties.Ext using (neg-sub; p≤∣p∣; telescope)
 open import Level using (0ℓ)
-open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl; subst; sym; trans)
+open import Relation.Binary.PropositionalEquality using (cong; refl; subst; sym; trans)
 open import Relation.Nullary using (¬_)
 
 open import ProbabilisticLogic.Distribution.Uniform using (fromℕ; fromℕ-/; 0<fromℕ-suc)
 
 open import CategoricalCrypto.UC.Approximate using (Approximation; Negligible; ℚ-errors)
+
+import Data.Nat.Properties as ℕₚ
 
 module CategoricalCrypto.UC.Approximate.Separating where
 
