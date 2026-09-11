@@ -26,9 +26,10 @@ open import Data.Nat.Properties as ℕP using ()
 open import Data.Rational.Solver using (module +-*-Solver)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Level using (Level)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; cong₂)
 
 open import ProbabilisticLogic.Dp
+open import ProbabilisticLogic.Dp.Iter using (returnₚ-cum-≤)
 
 module ProbabilisticLogic.Dp.Dominate where
 
@@ -73,6 +74,28 @@ mutual
               → leafₚ n x (λ p → P p ℚ.+ ε) ℚ.≤ leafₚ n x P ℚ.+ ε
   leafₚ-shift n (inj₁ p)  P ε 0≤ε = ≤-refl
   leafₚ-shift n (inj₂ d′) P ε 0≤ε = cum-shift n d′ P ε 0≤ε
+
+-- A test that vanishes on every value a run can reach scores it at nothing —
+-- the `cum`-level reading of "this branch is not the verdict observed".
+mutual
+  cum-zero : (n : ℕ) (d : Dₚ A) → cum n d (λ _ → 0ℚ) ≡ 0ℚ
+  cum-zero zero    d = refl
+  cum-zero (suc n) d =
+    trans (cong₂ ℚ._+_ (cong (wt d true ℚ.*_) (leafₚ-zero n (br d true)))
+                       (cong (wt d false ℚ.*_) (leafₚ-zero n (br d false))))
+          (node-zero (wt d true) (wt d false))
+
+  leafₚ-zero : (n : ℕ) (x : A ⊎ Dₚ A) → leafₚ n x (λ _ → 0ℚ) ≡ 0ℚ
+  leafₚ-zero n (inj₁ p)  = refl
+  leafₚ-zero n (inj₂ d′) = cum-zero n d′
+
+bind-const-zero : {A B : Set a} (P : B → ℚ) → NNF P → (c : B) → P c ≡ 0ℚ
+                → (d : Dₚ A) (n : ℕ) → cum n (d >>=ₚ λ _ → returnₚ c) P ℚ.≤ 0ℚ
+bind-const-zero P nn c eq d n =
+  ≤-trans (>>=ₚ-boundA n d (λ _ → returnₚ c) P nn)
+  (≤-trans (cum-mono-P n d (λ _ → cum n (returnₚ c) P) (λ _ → 0ℚ)
+             (λ _ → ≤-trans (returnₚ-cum-≤ n c P nn) (≤-reflexive eq)))
+           (≤-reflexive (cum-zero n d)))
 
 ------------------------------------------------------------------------
 -- The relation
