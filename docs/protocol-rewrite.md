@@ -546,7 +546,7 @@ this layer needed them.)
 |---|---|---|---|
 | `CategoricalCrypto.UC.Core` | core | 100 | `Grading`, `Observation` (qualitative), `UCBase` |
 | `…UC.Environment` | core | 172 | `SameTV` (ancilla a parameter), `Tests`, `ℰᵗᵛ`, `_≈ℰ_`, its congruences, `≈ℰ-at`, `grade-stable` |
-| `…UC.Emulation` | core | 114 | `_≤UC_`, `_≤UC⁺_`, `≤UC-refl`/`≤UC-trans`/`dummy-complete`/`≤UC⁺⇒≤UC`, `blind-grade`/`unit-grade`, `_⊙_`, `_⊛₁_`, `UC-compose` (stated) |
+| `…UC.Emulation` | core | 82 | `_≤UC_`, `_≤UC⁺_`, `≤UC-refl`/`≤UC-trans`/`dummy-complete`, `blind-grade`/`unit-grade`.  `≤UC⁺⇒≤UC`, `_⊙_`, `_⊛₁_` and the `UC-compose` obligation are RETIRED — the inherited layer has the composition theorem |
 | `…UC.Core.Standard` | core | 49 | `gradingᵗ` — a monoidal category grades itself; the inherited doctrine's action |
 | `ProbabilisticLogic.Dp.Advantage` | enrichment | 121 | `Pr≤[_]`/`Pr≤`, `_≼ₚ[_]_`/`_≈ₚ[_]_` — advantage as an ε-indexed relation on BOTH verdict masses, with the pseudometric laws |
 | `…UC.Approximate` | enrichment | 212 | `ErrorAlgebra`, `ℚ-errors`, `_→0`/`VanishingBound`, `Negligible`/`NegligibleBound` and the two collapses, `Approximation` + the ε/2 equivalence, `ApproximateObservation`, `Induced`, `Mass` |
@@ -555,7 +555,7 @@ this layer needed them.)
 | `…UC.Audit` | enrichment | 133 | `_≤UC[_]_` (a budgeted simulator), `simCost`, `AuditBound`, `audit-carry` — the graded carry, proved |
 | `…UC.Family` | enrichment | 252 | `𝒞^ω` at a parameterized index, `PolyQB`, `Fam`, `Grading^ω`, `Approximation^ω`, `Observation^ω`/`Approximate^ω`, `UCBase^ω`, `ctxQB`, `_≈ℰ[_]_`, `absorb`, and the negligible layer `CarriedNegligible`/`carried-negligible`/`absorb-negl` |
 | `…UC.Machine` | model | 206 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Approximationᴹ`/`Observationᴹ`/`ApproximateObservationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `UCBaseᴹ` |
-| `…UC.Machine.Grading` | model | 74 | the four re-basings `qb-T₁ᴳ`/`qb-subᴳ`/`qb-a⇒ᴳ`/`qb-a⇐ᴳ`, carrying a query-bound certificate about a pinned relay to `gradingᴹ`'s action through a `…Dictionary` zigzag.  `GradingLawsᴹ`, `Gradingᴹ` and `Budgetᴹ` are GONE (perf finding 8); a `Budget (𝒢ₚ 0ℓ) gradingᴹ` assembly is owed |
+| `…UC.Machine.Grading` | model | 74 | the four re-basings `qb-T₁ᴳ`/`qb-subᴳ`/`qb-a⇒ᴳ`/`qb-a⇐ᴳ`, carrying a query-bound certificate about a pinned relay to `gradingᴹ`'s action through a `…Dictionary` zigzag.  `GradingLawsᴹ`, `Gradingᴹ` and `Budgetᴹ` are GONE (perf finding 8); the `Budget (𝒢ₚ 0ℓ) gradingᴹ` assembly this row used to call owed is `UC.Machine.Budget.budgetᴹ`, and `UC.Model.Enrichment.budgetᵒ` carries it across the seal |
 | `…UC.Machine.Run` | model | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
 | `…UC.QueryBound` | model | 480 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `#inj₁`/`#inj₂`, `CountBound`, `Counting`, `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `qbᵢ-resp-step`, `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` and their hom-level forms, `BudgetLawsᴹ` |
 | `…UC.QueryBound.Counting` | model | 237 | `CountedRun`, `countᵍ`/`countᵍ-erase`, `qbᵢ⇒count` — `Counting` inhabited |
@@ -567,8 +567,9 @@ this layer needed them.)
 | `…UC.Seam.Adequacy.Wiring` | model | 358 | the G-composite's structural wiring collapsed to pure machines (`α-pure`/`γ-pure`), `kᵂ` (the loop's one-pass dispatch), `pairedᴹ`, `compose-≈ᴹ` |
 | `…UC.Seam.Adequacy` | model | 188 | `bodyᵂ`/`verdictᵂ`/`contᵂ`, `play-run`/`step-run`, `adequacy` — `Adequacy`, proved |
 | `…UC.Seam.Carry` | model | 96 | `run-agree`, `agree-to-adv`, and the now-closed `agreeToAdv`/`povCarry` |
-| `…UC.Seam.Grounding` | model | 118 | `StratIsEnv`, its reduction `EnvCtx`/`EnvAsCtx`, and the trivial grade's `SubBlind`/`IotaBlind`/`UnitGrade` — the grading-dependent statements |
-| `…UC.Seam.Audit` | model | 71 | `massᴹ` (`Pr≤`, the `true` half, as a `Mass`), `UC.Audit` at the instance, `AuditIsBounded` (stated) |
+| `…UC.Seam.Grounding` | model | 152 | `StratIsEnv`, its reduction `EnvCtx`/`EnvAsCtx`, and the trivial grade's `SubBlind`/`IotaBlind`/`UnitGrade` — the grading-dependent statements, read in the INHERITED metatheory at the sealed bundle (`_≈ᵁ_` at graded codomains, `_≈ᴳ_` at ungraded ones) |
+| `…UC.Seam.Grounded` | model | 108 | those statements discharged at the trivial grade: `iotaBlind`, `plug-λ`, `envAsCtx`, `plug-run`, `stratIsEnv` |
+| `…UC.Seam.Audit` | model | 58 | `UC.Audit` at `ucBaseᵒ`/`budgetᵒ`/`massᵒ` — no parameters left — and `AuditIsBounded` (stated) |
 | `…UC.Saturated` | frontend | 86 | `SaturatedBounded`/`SaturatedHit`, `SaturatedRespects` (stated) |
 | `…UC` | — | 66 | the one entry point, with the layering as its orientation |
 
@@ -682,6 +683,15 @@ or the emulation metatheory mentions an index at all.
 
 ### Reconciliation with the inherited abstract layer
 
+> **Superseded verdict.**  This section concluded that the new core supersedes
+> the inherited layer.  The maintainer has ruled the other way: the inherited
+> metatheory — `UCSetup` + `Abstract2.AbstractUC`, reached at the machine model
+> through `Standard2.StdUC` — supersedes the hand-rolled core.  The dictionary
+> below is still correct except for the `_≈ℰ_` row, which was wrong and is
+> corrected in place.  `docs/stduc-supersession-plan.md` carries the phase-1
+> bridge, the 65-name inventory, the findings and the phase-2 execution; read
+> it for the current direction.
+
 The inherited `CategoricalCrypto.UCSetup` and the new core are the same
 intent, and the relation between them is now a **proved weakening in one
 direction and a documented obstruction in the other**, not a third parallel
@@ -699,9 +709,10 @@ monoidal category acting on itself.  That is exactly what
 | `a⇒` | `μ X Y` |
 | `a⇐`, `a-isoˡ` | the retraction `θ` and its `θ-μ`, which `UCSetup.GradeStableFromTests` already asks for as parameters |
 | `a-nat` | `μ-commute` |
-| `_≈ℰ_`, `≈ℰ-refl/sym/trans`, `≈⇒≈ℰ`, `≈ℰ-congˡ/congʳ` | the kernel congruence of `ℰ` and its congruences — same names, opposite construction (see below) |
+| `_≈ℰ_`, `≈ℰ-refl/sym/trans`, `≈⇒≈ℰ`, `≈ℰ-congˡ/congʳ` | **`_≈ᵁ_`, NOT `_≈ℰ_`** (corrected — this row said "the kernel congruence of `ℰ`", and that is a strictly coarser relation: the core's quantifies over an ancilla and the bare kernel does not).  At graded homs the two are the same relation, proved both ways as `UC.Model.Bridge.≈ℰᶜ⇔≈ᵁ`; at ungraded homs, where `_≈ᵁ_` is not stated, it is `UC.Model.Bridge._≈ᴳ_` (`≈ᴳ⇔≈ℰᶜ`).  `≈ℰᶜ⇒≈ℰ` into the bare kernel holds; the converse needs `GradeStable`.  Any rename mapping `≈ℰ ↦ ≈ℰ` silently WEAKENS every statement it touches |
 | `grade-stable` | `GradeStable`, there a *statement*, here a theorem |
-| `_≤UC_`, `≤UC-refl`, `≤UC-trans`, `dummy-complete`, `UC-compose` | `Abstract2.AbstractUC`'s five, over `≈ᵁ` instead of `≈ℰ` |
+| `_≤UC_`, `≤UC-refl`, `≤UC-trans`, `dummy-complete` | `Abstract2.AbstractUC`'s, over `≈ᵁ` instead of `≈ℰ`; the two orders agree both ways (`UC.Model.Bridge.≤UCᶜ⇔≤UC`), the inherited one carrying the dummy quantifier in its statement where the core derives it |
+| ~~`UC-compose`~~ | retired.  The core could only STATE it (the chain needs a `sub`/`T₁` interchange and an `a⇒`-naturality `Grading` does not ask for); `Abstract2.UC-compose` is a theorem, and `≤UCᶜ⇔≤UC` carries it to any core statement |
 | `UCBase` | `UCSetup` — deliberately NOT the same name, to avoid shadowing (rule 29) |
 
 What blocks the converse instantiation is not style but inhabitation, in two
@@ -722,17 +733,22 @@ places:
    is a special case of the other in general — an arbitrary presheaf has no
    `𝟙`/`Ω` to project — but the new layer does produce the inherited datum:
    `UC.Environment.ℰᵗᵛ Y : Presheaf 𝒞 (Setoids ℓ (ℓ ⊔ ℓs))` is an `ℰ` for each
-   ancilla, and `≈ℰ⇒tv`/`tv⇒≈ℰ` witness that the derived relation is its kernel
-   ancilla by ancilla.  So the core is the *test-generated* case of the
-   inherited interface, one presheaf per ancilla instead of one presheaf.
+   ancilla, and the derived relation is its kernel ancilla by ancilla
+   (`record { same = … }` and `same` back).  So the core is the
+   *test-generated* case of the inherited interface, one presheaf per ancilla
+   instead of one presheaf.  The intended instance does better than that and
+   supplies ONE presheaf: `UC.Model.Environment.ℰᵒ`, tests into `Ωᵒ` modulo
+   closed observation, which is what makes `StdUC` instantiable there and the
+   obstruction above moot.
 
-Supersession, then, is one-way: the inherited records stay for the MD line
-(which consumes them unchanged — see the compatibility section below), the new
-core supersedes them for anything built on this branch, and the mapping is the
-one above plus the module-level map already recorded (`MachineAxioms` →
-`UC.Core` + `UC.Budget` + `UC.Approximate`, `FamilyCategory` → `UC.Family`,
-`VanishingTV` → `UC.Environment` + `UC.Family`, `StandardTV` → `UC.Machine`,
-`OutputOnly` → `UC.Machine.Bridge` + `UC.Seam`).  Nothing inherited was edited.
+Supersession runs the other way — see the note at the head of this section.
+The inherited records stay for the MD line (which consumes them unchanged — see
+the compatibility section below) AND are now what the machine model is stated
+over; the mapping is the one above plus the module-level map already recorded
+(`MachineAxioms` → `UC.Core` + `UC.Budget` + `UC.Approximate`,
+`FamilyCategory` → `UC.Family`, `VanishingTV` → `UC.Environment` + `UC.Family`,
+`StandardTV` → `UC.Machine`, `OutputOnly` → `UC.Machine.Bridge` + `UC.Seam`).
+Nothing inherited was edited.
 
 ### The defects the redesign fixes at birth
 
@@ -751,8 +767,8 @@ one above plus the module-level map already recorded (`MachineAxioms` →
   kernel congruence of a presheaf.  The reference had to *prove* the two equal,
   and that proof (`≈ℰ⇒R`) is the direction that needed the hypothesis.  `ℰᵗᵛ`
   is still built — it is a genuine `Presheaf 𝒞 (Setoids _ _)` for each ancilla
-  — and `≈ℰ⇒tv`/`tv⇒≈ℰ` are the identity pair witnessing that the definition is
-  its kernel relation ancilla by ancilla.
+  — and the definition is its kernel relation ancilla by ancilla, the two
+  directions being `record { same = … }` and `same`.
 * **The advantage is a RELATION, not a function.**  `Dₚ`'s termination mass is
   a supremum the layer never forms, so `MachineAxioms.adv : Obs → Obs → ℚ` is
   uninhabited at the intended instance.  `_≈ₚ[ ε ]_` relaxes `_≼ₚ_`'s
@@ -877,11 +893,10 @@ pattern, no postulate and no hole anywhere:
 | statement | where | price |
 |---|---|---|
 | `ContextDominated` | `UC.Machine.Bridge` | ~250 LOC, instance-specific; the branchwise decomposition of a context against a budgeted strategy, reassembled by convexity of `Pr≤`.  Spike the two-machine skeleton first |
-| `EnvAsCtx` | `UC.Seam.Grounding` | ~80–120 LOC; the degenerate-ancilla collapse, trace-fusion gated.  It REPLACES `StratIsEnv` as the obligation: `UC.Environment.≈ℰ-at` proves the reduction generically, so what is owed is one ancilla, one test, one closure and one hom equation, with no quantitative content.  Closing `EnvAsCtx → StratIsEnv` at the instance is blocked by the eta cliff below, measured in four spellings and re-measured at 2400 s with the object implicits passed — still nothing, so it is NOT the conversion class `UC.Machine.Cast.*` closes |
-| `SubBlind`, `IotaBlind` | `UC.Seam.Grounding` | ~60–90 LOC each, same gate: the trivial grade's summand cannot fire (`⊥-unique`), but the equation is between `𝒫ᴵ`-composites |
-| `UnitGrade` | `UC.Seam.Grounding` | the reduction is PROVED generically (`UC.Emulation.unit-grade`); what is owed is the two blindness facts, `EnvAsCtx`, and the closing application, which is the eta cliff below |
+| ~~`EnvAsCtx`, `StratIsEnv`~~ | `UC.Seam.Grounding` | CLOSED (`UC.Seam.Grounded`).  Both were blocked at the transparent grading — the closing application measured in four spellings at 300 s / 8 GiB and re-measured at 2400 s — and both are free once the statements are read at the seal and the trivial grade is the bundle's own unit rather than `unitᴵ`: the equation is the unitor's naturality and its own iso |
+| `SubBlind`, `IotaBlind` | `UC.Seam.Grounding` | `IotaBlind` is CLOSED (`UC.Seam.Grounded.iotaBlind`, the unitor cancelled on both sides).  `SubBlind` is REFUTED as stated — `_≤UC_` quantifies its simulator over a divergent `s` too, and `UC.Seam.Grounding.Dead` is the mechanized half of why; the repair is the maintainer's call |
+| `UnitGrade` | `UC.Seam.Grounding` | the reduction is PROVED generically (`UC.Model.Bridge.unit-gradeᵁ`); what it is owed by is `SubBlind`, so it inherits that refutation |
 | `AuditIsBounded` | `UC.Seam.Audit` | ~120–180 LOC, and both of its inputs are now theorems: recognize `strategyEnv B (bad d)`, plugged through the wires that kill the trivial grade and the ancilla, as one of the contexts `AuditBound` quantifies over — `Counting` for its certificate (`ctxBudget q 1 = q`), `PrAgree` for its mass, `Adequacy` for the run |
-| `UC-compose` | `UC.Emulation` | two more `Grading` fields (`sub`/`T₁` interchange, `a⇒` naturality in its first two slots) |
 | `SaturatedRespects` | `UC.Saturated` | ~60–100 LOC; `transfer` at each index plus two negligibility-closure lemmas — `_→0` under `+`, and under precomposition with a polynomial — neither of which exists yet.  ℚ/ℕ arithmetic with no UC content |
 
 ### Budget accounting, as corrected
@@ -1123,13 +1138,16 @@ proved**. Semantic target: `docs/kb/frontier/15-probabilistic-uc-model.typ`,
 
 | module | LOC | warm | role |
 |---|---:|---:|---|
-| `…UC.Model.Seal` | 76 | 8.5 s | `opaque 𝔾ᵒ = 𝒢ₚᴹ 0ℓ`, `∣𝔾ᵒ∣`, and the coercions `ifaceᵒ`/`procᵒ`/`unprocᵒ`/`≈ᴹ⇒≈ᵒ`/`≈ᵒ⇒≈ᴹ`/`⊗ᵒ`/`gradedᵒ` |
+| `…UC.Model.Seal` | 95 | 8.7 s | `opaque 𝔾ᵒ = 𝒢ₚᴹ 0ℓ`, `∣𝔾ᵒ∣`, and the coercions `sealᵒ`/`ifaceᵒ`/`procᵒ`/`unprocᵒ`/`≈ᴹ⇒≈ᵒ`/`≈ᵒ⇒≈ᴹ`/`⊗ᵒ`/`gradedᵒ`/`unprocᵒ-∘` |
 | `…UC.Model.Observation` | 80 | 8.7 s | `Ωᵒ`/`𝟘ᵒ`, `Test`/`Closure`, `Obs` (the one-ask closed run), `_∼ᴼ_`, `≈ₚ⇒∼ᴼ`, `∼ᴼ-resp`, `obs-resp` |
 | `…UC.Model.Environment` | 64 | 8.7 s | `_≋_` and `≋-isEquivalence`, `≈ᵒ⇒≋`, `ℰ₀`, `ℰᵒ` — the presheaf, laws proved |
 | `…UC.Model.Setup` | 20 | 9.2 s | `open StdUC 𝔾ᵒ ℰᵒ public` — nothing else |
 | `…UC.Model.Pin` | 92 | 9.1 s | the six application-site shapes, `relayᵒ`, `relay-emulates`, `relay-compose` |
 | `…UC.Model.Reading` | 76 | 9.2 s | `_≈ᴬ_`, `≈ᵁ⇒≈ᴬ`, `≈ᴬ⇒≈ᵁ`, `≈ᵁ⇔≈ᴬ` — proposal §2's displayed form, proved |
-| `…UC.Model` | 32 | 8.8 s | the cone root and its orientation |
+| `…UC.Model.Unit` | 129 | 8.8 s | `AnyEnvironment` (the metatheory is blind to the closure object), `Interconvert` (what an empty-object iso would buy) |
+| `…UC.Model.Bridge` | 218 | 9.6 s | `observationᵒ`/`ucBaseᵒ`, `≈ℰᶜ⇔≈ᵁ`, `≤UCᶜ⇔≤UC`, `_≈ᴳ_` and `≈ᴳ⇔≈ℰᶜ`, and the three instruments `≈ᴳ-at`/`blind-gradeᵁ`/`unit-gradeᵁ` |
+| `…UC.Model.Enrichment` | 53 | 9.6 s | `budgetᵒ` (transported along `sealᵒ`) and `massᵒ` — `UC.Audit`'s two enrichment parameters, supplied |
+| `…UC.Model` | 40 | 8.8 s | the cone root and its orientation |
 
 Plus 21 lines in `Categories.Functor.Monoidal.CurriedTensor.Properties`
 (`sub-⊗`, `return-λ⇐`, `ext-⊗`, `μ-α⇐`, `μT₁-α⇐`, next to the existing
@@ -1323,11 +1341,14 @@ Two smaller findings worth carrying forward:
 | item | where | status |
 |---|---|---|
 | `ifaceᵒ unitᴵ ≅ 𝔾ᵒ`'s monoidal unit | `UC.Model.Observation` header | not proved; a G-composite is a trace, so `isoˡ` is not the one-line argument the bijection of empty types suggests. Nothing depends on it — `ℰᵒ` is a presheaf for either family of closures |
-| whether the model satisfies `GradeStable` | — | not investigated. `UC.Model.Reading` deliberately does not need it, and the proposal asks that it not be assumed |
+| whether the model satisfies `GradeStable` | — | still open, and now known to be the ONLY gap between the two theories' agreements: `UC.Model.Bridge._≈ᴳ_` is the grade-stable refinement the core's relation already is, `GradeStable` is what would collapse it onto the bare `_≈ℰ_`, and `Abstract2.bridge` is the one inherited result unavailable without it (plan finding F2) |
 | the confidential-ledger refinement | proposal §4 | out of M4's scope |
 | `Morphism-∘` | `Protocol.Machine` | still a statement.  Its siblings are not: `PrAgree` (`Protocol.Machine.Agree`) and `Adequacy` (`UC.Seam.Adequacy`) are theorems, so direct-run adequacy is closed |
 
-Whether the M4 cone should supersede the `UC.*` stack is the maintainer's
-call and is not acted on here: `UC.*` is untouched, `UC.Machine.Dictionary` only
-documents how its relays sit inside the monoidal structure, and nothing in M4
-imports `UC.Core`, `UC.Emulation` or `UC.Environment`.
+Whether the M4 cone should supersede the `UC.*` stack was left as the
+maintainer's call here.  It has been ruled: **it should**, and
+`docs/stduc-supersession-plan.md` is the plan and the execution record.  So the
+last sentence of the paragraph above no longer holds — `UC.Model.Bridge` names
+`UC.Core` and `UC.Emulation` deliberately, to identify the two theories, and
+`UC.Seam.Grounding`/`UC.Seam.Audit` have moved off the hand-rolled core onto
+this cone.
