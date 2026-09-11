@@ -44,7 +44,7 @@ open import Data.Nat.Properties using (≤-refl)
 open import Data.List.Base using (List)
 open import Data.Bool.Base using (Bool)
 open import Data.Product.Base using (Σ-syntax; _×_; _,_)
-open import Data.Rational as ℚ using (ℚ; 0ℚ)
+open import Data.Rational as ℚ using (ℚ)
 
 open import ProbabilisticLogic.Distribution.Uniform using (inv-pow-2)
 
@@ -133,9 +133,6 @@ ledger-pov-negligible a V si R badR tR em truthful p Pp =
   in (λ n → εᴸ n (p n ℕ.+ p n) ℚ.+ νₚ n)
    , Negligible-+ (εᴸ-negligible (λ n → p n ℕ.+ p n) (poly-+ Pp Pp)) neg
    , bnd
-
-------------------------------------------------------------------------
--- The graded route
 
 -- The same ideal bound crossing a BUDGETED emulation: the real side reads the
 -- absorbed event class and the simulator's own queries are charged there.

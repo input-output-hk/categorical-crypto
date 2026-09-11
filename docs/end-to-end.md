@@ -163,12 +163,12 @@ In priority order.
 |---|---|---|
 | `UC.Approximate.Decay` | 85 | 5 s |
 | `Protocol.Live` | 139 | 7 s |
-| `UC.Asymptotic` | 129 | 10 s |
-| `UC.Asymptotic.Audit` | 60 | 10 s |
+| `UC.Asymptotic` | 123 | 10 s |
+| `UC.Asymptotic.Audit` | 56 | 10 s |
 | `UC.Model.Family` | 45 | 10 s |
 | `Examples.ChimericLedger.Total` | 47 | 9 s |
-| `Examples.ChimericLedger.Schedule` | 126 | 10 s |
-| `Examples.ChimericLedger.EndToEnd` | 141 | 17 s |
+| `Examples.ChimericLedger.Schedule` | 127 | 10 s |
+| `Examples.ChimericLedger.EndToEnd` | 147 | 17 s |
 
 Additive edits to existing modules: `POV.asks≤-audited` (the instrumentation's
 allowance cost, beside `audited`); `Carry.Emulᵁᶜ`/`emulᵁᶜ`/`pov-carryᵁᶜ` (the
@@ -179,3 +179,16 @@ A perf note worth keeping: the two carries in ONE module cost 127 s warm and
 in two cost 10 + 10 s. Neither half is expensive; the collapse's seal-level
 terms and the audit event's `TrivialGrade` instantiation are expensive
 together.
+
+## Two review-sweep items, resolved here
+
+* **`unitGrade` was unreachable.** It now has two importers:
+  `UC.Asymptotic.uc-agree` (the family) and `ChimericLedger.Carry.emulᵁᶜ` (the
+  example), and `Carry` gained `Emulᵁᶜ` so its public premise is `≤UC` rather
+  than a raw `Agreeˢ`.
+* **`UC.QueryBound.QB` at open machines.** Not needed. The probability route
+  spends no `QB` at all — its budgets are strategy `asks≤` — and the graded
+  route spends only the already-proved `qb-∘`/`qb-T₁`/`qb-sub` inside
+  `UC.Audit.audit-carry`. No new `QB` reasoning is introduced anywhere here, so
+  the `behᵍ`-shaped `≈ᴹ`-transport lemma the sweep flagged stays owed by
+  whoever first needs it.

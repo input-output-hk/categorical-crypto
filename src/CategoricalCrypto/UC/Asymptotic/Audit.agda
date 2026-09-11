@@ -42,9 +42,6 @@ _≤UC^ω[_]_ : Systems B → (ℕ → ℕ) → Systems B → Set₁
 _≤UC^ω[_]_ {B} R cs I = (n : ℕ)
   → (ιᴳ (B n) ∘ procᵒ (morphism (R n))) ≤UC[ cs n ] (ιᴳ (B n) ∘ procᵒ (morphism (I n)))
 
-------------------------------------------------------------------------
--- The graded carry, at the family
-
 -- Each level's ideal audit bound crosses its emulation: the real side reads
 -- the absorbed event class and pays `simCost` for the simulator's queries.
 uc-audit-carry : (em : R ≤UC^ω[ cs ] I) (bad : Watch B)
@@ -57,4 +54,3 @@ uc-audit-carry : (em : R ≤UC^ω[ cs ] I) (bad : Watch B)
 uc-audit-carry {I = I} {ε = ε} {ν = ν} em bad bnd pos n =
   audit-carry _ _ (em n) {𝔉 = 𝔉ₙ} (absorb-absorbs {𝔉 = 𝔉ₙ}) (ε n) (ν n) (pos n) (bnd n)
   where 𝔉ₙ = watched (I n) (bad n)
-

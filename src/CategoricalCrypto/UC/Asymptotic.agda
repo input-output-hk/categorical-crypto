@@ -33,7 +33,6 @@
 -- probability route is the one that closes, and it charges no `simCost`
 -- because at the trivial grade the simulator costs the ideal side nothing.
 
-open import Data.Bool.Base using (Bool)
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly using (Poly)
 open import Data.Product.Base using (_,_)
@@ -42,13 +41,11 @@ open import Data.Rational.Properties using (+-identityʳ; ≤-trans)
 open import Relation.Binary.PropositionalEquality using (subst; sym)
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Protocol using (Protocol)
 open import CategoricalCrypto.Protocol.Machine using (morphism)
 open import CategoricalCrypto.Protocol.Machine.Total using (TotalRun)
 open import CategoricalCrypto.Protocol.Observe using (Bounded; Pr; PrHit)
 open import CategoricalCrypto.Strategy using (Strat; asks≤)
-open import CategoricalCrypto.UC.Approximate
-  using (Negligible; NegligibleBound; Negligible-0)
+open import CategoricalCrypto.UC.Approximate using (Negligible; Negligible-0)
 open import CategoricalCrypto.UC.Model.Seal using (procᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Saturated
@@ -91,7 +88,7 @@ uc-agree {B} tR tI em n = unitGrade (B n) _ _ (tR n) (tI n) (em n)
 -- negligible `ν` will do (`UC.Approximate.Decay.negligible-slack`).
 uc-≈negl : ((n : ℕ) → 0ℚ ℚ.< ν n) → Negligible ν
          → ((n : ℕ) → Agreeˢ (B n) (morphism (R n)) (morphism (I n))) → R ≈negl I
-uc-≈negl {ν = ν} {R = R} {I} pos neg ag =
+uc-≈negl {ν = ν} {R = R} {I = I} pos neg ag =
   (λ n _ → ν n) , (λ _ _ → neg) , λ n → agreeToAdv (R n) (I n) (ag n) (ν n) (pos n)
 
 -- An exact per-level bound IS its own saturated form, at zero slack.
@@ -105,9 +102,6 @@ boundedᴺ {I = I} {ε = ε} {bad} bnd p _ = (λ _ → 0ℚ) , Negligible-0 , λ
 uc-preservesᴺ : {bad : Watch B} → QueryPreserving bad → R ≈negl I
               → SaturatedBoundedᴺ I bad ε → SaturatedBoundedᴺ R bad ε
 uc-preservesᴺ {ε = ε} qp near = ≈negl-respects {ε = ε} (≈negl-sym near) qp
-
-------------------------------------------------------------------------
--- …and back to the trajectory
 
 -- What a monitor bound gives about the STATE: nothing, unless the system's own
 -- audit answers are truthful about it, which is a property of the

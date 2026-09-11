@@ -23,7 +23,7 @@ open import Data.Rational.Properties
   using (+-identityˡ; +-identityʳ; ≤-reflexive; ≤-trans)
 open import Data.Sum.Base using (inj₁; inj₂)
 open import Data.Unit.Base using (⊤; tt)
-open import Data.Vec.Base using ([]; _∷_)
+open import Data.Vec.Base using (Vec; []; _∷_)
 open import Relation.Binary.PropositionalEquality using (sym)
 
 open import ProbabilisticLogic.Distribution.RationalDist
@@ -63,8 +63,8 @@ nodead-fromCall : (c : Call (Neg A) (Pos A) X) → NoDead (fromCall c)
 nodead-fromCall (inj₁ _)       = tt
 nodead-fromCall (inj₂ (_ , _)) = λ _ → tt
 
-nodead-uniformVec : (n : ℕ) (k : _ → Calls A X) → ((v : _) → NoDead (k v))
-                  → NoDead (uniformVec n k)
+nodead-uniformVec : (n : ℕ) (k : Vec Bool n → Calls A X)
+                  → ((v : Vec Bool n) → NoDead (k v)) → NoDead (uniformVec n k)
 nodead-uniformVec zero    k h = h []
 nodead-uniformVec (suc n) k h b =
   nodead-uniformVec n (λ v → k (b ∷ v)) (λ v → h (b ∷ v))

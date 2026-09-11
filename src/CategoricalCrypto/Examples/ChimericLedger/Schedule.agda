@@ -21,7 +21,7 @@
 open import Data.Bool.Base using (Bool; false)
 open import Data.List.Base using (List)
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Nat.Poly using (Poly; poly-+; poly-*)
+open import Data.Nat.Poly using (poly-+; poly-*)
 open import Data.Nat.Properties using (≤-refl)
 open import Data.Product.Base using (_,_)
 open import Data.Rational as ℚ using (ℚ)
