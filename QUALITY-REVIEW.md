@@ -70,10 +70,13 @@ dry-validated but has never been run under its own oracle — see *Simplificatio
 alongside `sweep.py` and `where_inline.py`; only the tallies are committed.)
 
 Coverage, stated plainly. All 109 in-scope files were read in full and
-dimension-attested, by twelve parallel readers plus this one. The one gap is the three
+dimension-attested, by ten parallel readers plus this one. The one gap is the three
 automatic sweep classes, filed as a work item below with the measured cost that
-justifies stopping — not disclosed and dropped. `Machines/Frame.agda` carries six open
-round-1 entries of its own, all still standing and not re-litigated here.
+justifies stopping — not disclosed and dropped. A companion-docs reader was launched
+and died at a session limit; the maintainer's own review commit `97063c50` landed
+mid-review and covers most of what it would have said, and what remains owed is named
+under *Companion docs*. `Machines/Frame.agda` carries six open round-1 entries of its
+own, all still standing and not re-litigated here.
 
 ## Committed (you can skim these)
 
@@ -151,6 +154,16 @@ round-1 entries of its own, all still standing and not re-litigated here.
   (the shape round 1 landed for `≤UC⁺⇒≤UC`), and `RationalDist.Advantage.adv⊥-≈⇒0`
   binds its argument on the left instead of opening with `λ e →`.
 
+- `49a70ec5` **Six dead opens and imports in the machine layer** — none reachable by
+  the mechanized sweep (four are bare `open`s with no list, two are whole-module
+  imports). `open Equiv` in `Machines.{Category,Frame,Tensor,Sim.Lax}`, where the
+  `_○_`/`⟺`/`refl⟩∘⟨_` in use come from `HomReasoning` via `Monoidal.Reasoning`'s
+  `public` re-export and `Equiv` is not re-exported (`Category/Core.agda` has that line
+  commented out) — `Tensor/Assoc` and `Trace/Naturality` DO use a bare `refl`, so
+  theirs stay; `Monoidal.Properties monoidal` in `Tensor/Assoc`, none of whose twelve
+  exported names occurs in the file; and `Level` in `G/Lax`, which uses no `Level`,
+  `0ℓ`, `suc` or `⊔`.
+
 ## Suggestions (need your call)
 
 ### Statement audit
@@ -227,6 +240,28 @@ round-1 entries of its own, all still standing and not re-litigated here.
   `povCarry`, and `ChimericLedger/Carry.agda` takes `Agreeˢ` as a raw hypothesis rather
   than getting it from a `_≤UC_`. One ~5-line corollary in `Carry` or `Grounded` plus a
   `UC.agda` map row closes the seam.
+- `src/CategoricalCrypto/Machines/Sim/Lax.agda :: _≲ˡ[_]_` and `_≈ˡ[_]_` — **audited
+  and clean; the scalar index is genuinely constrained.** `_≲ˡ[_]_` is `_≲_` minus
+  `θ-discard`, with `θˡ-point : θˡ ∘ point (state f) ≈ point (state g) ∘ σ`, which pins
+  `σ` up to `≈` once `θˡ` is fixed — it cannot be chosen freely — and `θˡ-step` is
+  *identical* to `_≲_`'s, so nothing is related that a strict simulation would not
+  relate up to its point. Since the relation is strictly weaker than `_≲_`, its
+  downstream consumer (`UC/Seam/Grounding/Prefix.agda :: prefixedᵒ-obs`) is a stronger
+  theorem, not a free one. `_≈ˡ[_]_` is `f ≈ᴹ · ≲ˡ[ σ ] · ≈ᴹ g` — deliberately **not**
+  the equivalence closure (no `≈ˡ-trans`, no symmetry), so the σ measured is exactly
+  one core's; and the index carries observable content, because `∘ᴹ-resp-≈ˡ` produces
+  `σ ∘ τ` where `≲ˡ-trans` produces `τ ∘ σ`, and at the intended base
+  (`unit ⇒ unit` = `⊤ → Dₚ ⊤`, so `σ ∘ τ = τ >>=ₚ σ`) that order is observable.
+  Recorded so the next reviewer does not redo it. One loose end in the same module:
+  `≲ˡ-trans` has **zero uses** (2 greps, its own signature and definition), and it is
+  the only thing that exercises the header's second design rationale — delete it, or
+  say in the header that prefixes are only ever composed spatially.
+- `src/CategoricalCrypto/Machines/Collapse.agda :: compose≈∘ᴳ` — **this "theorem" is
+  `S.reflᴹ`**: it asserts that `composeᴳ g f` and `𝒢._∘_ g f` are *convertible*, not
+  that they are provably equal. That is deliberate — it is the elaboration pin the
+  `opaque composeᴳ` boundary exists for — but the header never says so, and a reader
+  meeting `compose≈∘ᴳ : … S.≈ᴹ …` will read it as content. One line settles it.
+
 - `src/CategoricalCrypto/Examples/MerkleDamgard.agda :: indistinguishable` — **what is
   proved is single-oracle indistinguishability with the compression function hidden,
   not indifferentiability.** The distinguisher's type is
@@ -367,7 +402,74 @@ round-1 entries of its own, all still standing and not re-litigated here.
   `qapx : ApproximateObservation observationᵒ ℚ-errors 0ℓ`, which the `Induced` route
   below produces for free. A four-line `Model` module instantiating it at the seal
   turns `Famᴹ`/`ucSetup^ω` from declared into witnessed.
-- `src/CategoricalCrypto/UC/Seam/Plug.agda` (with `UC/Seam/Extract.agda` and
+- `src/CategoricalCrypto/Machines/Collapse.agda` — **~150 LOC of general-purpose
+  `Kl(Dₚ)` point-level facts hosted in the module named for the G-composite collapse,
+  and it is costing a downstream module the whole `GConstruction` closure.** Nothing in
+  `⊗-pure`, `⊗-pureˡ`, `α+⇒-fn`, `α+⇐-fn`, `+-swap-fn`, `+₁-fn`, `pureᶠ`, `∘ᶠ`, `⊗ᶠ`,
+  `idᶠ`, `α⇒ᶠ`, `α⇐ᶠ`, `σᶠ`, `swp-pt`, `onL-pt`, `onR-pt`, `tstepL`, `tstepR` mentions
+  a G-composite. The proof it costs something: `Examples/MerkleDamgard/QueryBound.agda`
+  imports `Machines.Collapse` and its **only** use of it is `Col.⊗-pureˡ`, eight times
+  — so that file pays a 16 s module with `𝒢ₚ`/`Tracedₚ`/`GConstruction` in its closure
+  for one three-line lemma. A `Machines.Pointwise` holding those lines leaves
+  `Collapse.agda` as the ~140 lines its header describes. **Decide this together with
+  the `UC/Machine/Dictionary` + `Wire` relocation above** — Dictionary's
+  `midfn`/`midᴹ`/`pureᴵ` family wants the same home. Related, same file:
+  `Collapse :: ⊗-pure` collides by name with
+  `Categories/Category/Kleisli/Discrete/Pure.agda :: ⊗-pure`, a different statement in
+  a module the machine layer routinely has in scope (`Machines/Base` and
+  `UC/Seam/Grounding/Prefix` both open `KDP`); `⊗-pt`/`⊗-ptˡ` would match the
+  `swp-pt`/`onL-pt`/`onR-pt` naming right next door. And `Collapse`'s private `mid`
+  means "the intermediate machine" in the one file that also has upstream's
+  middle-four `W.mid` in scope — `bodyᴹ` or `innerᴹ`.
+- `src/CategoricalCrypto/Machines/Sim/Lax.agda :: _≲ˡ[_]_` — **the duplication the
+  brief asked about is NOT between `Sim/Lax` and `G/Lax`; it is between `Sim/Lax` and
+  the strict cone.** `G/Lax` (71 LOC) is a pure consumer: its two theorems are one-line
+  applications of `Sim/Lax`'s congruences and share no proof text (the single overlap
+  is one line, `∘ᴹ-resp-≈ˡ ≈ˡ-refl (∘ᴹ-resp-≈ˡ (⊗ᵉ-resp-≈ˡ u v) ≈ˡ-refl)`, verbatim in
+  both, which one `private legs u v` collapses). The real duplication is with
+  `Sim.agda` + `Category.agda` + `Tensor.agda` + `Trace/Congruence.agda`, and it is
+  exactly the `Run`/`Run.Lax` shape: four proof bodies are character-identical modulo
+  the `ˡ` suffix — `≲-trans.θ-step` ≡ `≲ˡ-trans.θˡ-step`, `∘ᴹ-resp-≲` ≡ `∘ᴹ-resp-≲ˡ`,
+  `⊗ᵉ-resp-≲` ≡ `⊗ᵉ-resp-≲ˡ`, `trace-resp-≲` ≡ `trace-resp-≲ˡ` — plus eight duplicated
+  `θ`/`θ-pure` lines. Sharing is available on exactly the brief's dependency set: a
+  `record StepSim` with `θ`, `θ-pure` and `θ-step`, with
+  `stepsim-∘`/`-⊗ᵉ`/`-trace`/`-trans` written once, after which `_≲_` is `StepSim` +
+  `θ-discard` + strict `θ-point` and `_≲ˡ[ σ ]_` is `StepSim` + lax `θ-point`; ~14
+  lines of proof and 8 of plumbing. **Caveat that makes it a measurement, not a swap:**
+  `_≲_` is `Mealy-Category`'s hom equality and `Machines/Collapse.agda`'s header prices
+  itself on these records' conversion behaviour, and a nested record changes the
+  eta-expansion shape. If you decline, `Sim/Lax`'s header already states the identity
+  in prose and nothing further is owed.
+- `src/CategoricalCrypto/Machines/G.agda :: Mealy-G` (with `Mealy-G-Monoidal`) — a dead
+  pair: `Mealy-G-Monoidal` greps to 2 (signature + definition) and `Mealy-G` to 3, the
+  third being inside `Mealy-G-Monoidal`'s own type. Every consumer goes through
+  `Mealy-Gᴹ` (6 refs, live in `Machines/Base` and `Machines/G/Lax`). Deleting the pair
+  also strands `Categories.Category.Core` and
+  `Categories.Category.Monoidal.Core using (Monoidal)`. Same shape:
+  `Machines/Base.agda :: 𝒢ₚ-Monoidal` (2 refs, zero uses) where its sibling `𝒢ₚ` has
+  89 — `Base.agda:279-282`'s comment justifies keeping the pair as two projections of
+  one application, but only one projection was ever needed. And
+  `Machines/Frame.agda :: αρ-λ` and `onRᵍ-⊗id` have zero consumers in the live tree
+  (every hit outside their own lines is inside `SFunM/Spike/SlotFrame.agda`, which
+  imports no `Machines.*` module, so those are its own copies).
+- `src/CategoricalCrypto/Machines/Collapse.agda :: γ-pure` — a verified on-paper
+  reduction: `γ` is **literally `α`'s six factors with `C.id C.⊗₁ C.σ⇒` appended**
+  (`Categories/GConstructionTrace.agda:53-60`), and the object instantiation lines up
+  exactly (`γ {A⁺}{B⁺}{B⁻}{C⁻} = α {B⁺}{B⁻}{A⁺}{C⁻} ∘ id ⊗₁ σ⇒`), so the seven-deep
+  `∘ᶠ` chain is `∘ᶠ (⊗ᶠ (idᶠ (P ⊎ Q)) (σᶠ R N)) (α-pure P Q N R)` — ~7 LOC, and the
+  proof becomes its mathematical content. The four-clause `λ where … refl` tail stays
+  (the statement keeps `γᶠ` in four-clause form, which `stepEq` pattern-matches). Needs
+  the green check: this is the 16 s module whose consumers price themselves on its
+  spelling.
+- `src/CategoricalCrypto/Machines/Frame.agda :: 𝕄` — a one-line projection
+  (`𝕄 = monoidalCategory`) whose only consumer is `Machines.Reassoc` (4 uses, all
+  feeding `solve-mor`/`MorAtoms`/`MorSolve`). Rules 18/27/28 put it there beside the
+  solver calls, together with the comment that explains it — which currently sits in
+  the file that does not use the frontend. `Reassoc` already opens `Frame`. Related,
+  smaller: `Machines/Trace/Naturality.agda :: id⊗id-comm` is written a second time
+  inline inside `Machines/Sim.agda :: mk-cong`; it is a padding fact with no trace
+  content, and a named `pad-id` in `Frame` beside `pad-transport` serves both.
+- - `src/CategoricalCrypto/UC/Seam/Plug.agda` (with `UC/Seam/Extract.agda` and
   `UC/Seam/Transfer.agda`) — **three of the five modules added under `UC/Seam/` this
   round are not about the seam**, and none of them imports `CategoricalCrypto.UC.Seam`.
   `Plug`'s `Tick` is a generic statement about a `Machines.Trace` loop at the
@@ -905,6 +1007,15 @@ round-1 entries of its own, all still standing and not re-litigated here.
   (`Dp/Mass.agda:126-130`, and the `where` blocks of `Expectation.Pr₁≤1` and
   `Expectation.Pr₁⊥≤1`) and belongs once beside `bool→ℚ`'s definition, where `0≤1ℚ`
   and `≤-refl` are already in scope.
+- `src/CategoricalCrypto/Machines/G/Lax.agda:55-71` — mechanical, not landed: the two
+  theorems spell `𝔾.U [ B , C ]` and `𝔾.U [ g ∘ f ]` where `MonoidalCategory` already
+  does `open Category U public`, so `B 𝔾.⇒ C` and `g 𝔾.∘ f` work and line 10's
+  `open import Categories.Category using (Category; _[_,_]; _[_∘_])` goes entirely
+  (`Category` is already unused there). It would also make the file self-consistent —
+  `⊗₁ᴳ-resp-≈ˡ` two lines below already writes `𝔾._⊗₁_ g f`. Left because this is a
+  conversion-sensitive layer (the other theorem sits in an
+  `opaque unfolding GM._⊗₁ᴳ_`) and it deserves its own check rather than riding along
+  with the import drops.
 - **Four more dead-scaffolding removals in `UC/Seam`, identified and not landed.**
   `UC/Seam.agda:82` — `module 𝒫 = Category 𝒫ᴵ` is dead (`𝒫` occurs elsewhere only in
   two comments), and with it line 52's `open import Categories.Category` (`Category`
