@@ -5,7 +5,7 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 `spike-pov-dp`/`spike-dp`/`spike-elgot` (the Dₚ/machine layer, M2), `sfunm-setoid`
 (proof techniques only). The five structural differences from the reference arc:
 
-1. **Protocols are the spine; machines are a semantics functor.** Everything
+1. **Protocols are the spine; machines are composition-preserving semantics.** Everything
    example-facing lives in plain Agda (`Protocol`, `_∘ᵖ_`, `Pr`/`PrHit`); the machine
    category appears once, behind `morphism`/`morphism-∘`/`Pr-agree` (M2).
 2. **The machine layer is built once, over Dₚ, G-construction verbatim** — no clocks,
@@ -18,13 +18,25 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
 
 ## Status
 
+**Reconciled 2026-09-11 at `6256a140`.** The
+[implementation review](protocol-implementation-review.md) reviews
+`f71a2381..6256a140` and supersedes earlier completion verdicts here. The
+implementation/pricing narrative, LOC counts, hatch counts and timings below
+are historical snapshots, not a fresh census or benchmark. In particular, the
+old projection-cost ceiling and deleted `Cast`/`Laws` route are retired findings,
+not current blockers. Current proof status and remaining semantic gaps follow.
+
 | milestone | status |
 |---|---|
 | M1: layers 0–1 + the ledger example | **DONE** — all green, pins by `refl`, hatches 21 = baseline |
 | M2 wave 1: `Dₚ`, `Kl(Dₚ)`, `Mealy` + `Mealy-Category` + the ⊕-trace | **DONE** — all green, hatches 21 = baseline |
 | M2 wave 2: the four residual trace laws + `Elgot` at `Kl(Dₚ)` | **DONE** — the machine layer is hypothesis-free; hatches 21 = baseline |
-| M2 wave 3: the machine SMC bundle, `Traced`, GConstruction, `morphism`/`Pr-agree` | **the machine layer is DONE** — `ℳₚ` symmetric monoidal, `Tracedₚ`, `𝒢ₚ` all closed terms, and `𝒢ₚᴹ` monoidal (task 3, `Monoidal (GConstruction C)`, is closed); `morphism` landed, **`PrAgree` is a theorem** (`Protocol.Machine.Agree`), `Morphism-∘` stated and priced; hatches 21 = baseline |
-| M3: the UC layer | **the statement layer is DONE**, and both external theory reviews' findings are resolved (`docs/rewrite-verdict.md`'s two addenda) — `_≈ℰ_`/`grade-stable`/`absorb`/`_≤UC_` and its metatheorems are theorems, no K island, no `HomTransportTrivial`; the simulator carry is a theorem in both its degenerate (`unit-grade`) and graded (`audit-carry`) form; the intended instance's observation is a theorem and its grading action is data, with the grading and `UCBase` now CLOSED TERMS, taken on 𝒢's own objects where they are free (`UC.Machine.gradingᴹ`/`ucBaseᴹ`; perf finding 8 prices why an `Iface`-object grading is not affordable, and the nine-module `Cast`/`Laws` cone that tried is deleted).  **The layer is now split three ways** (abstraction notes §1/§3): a qualitative core that mentions no number, an optional quantitative enrichment over an abstract error algebra, and the `Dₚ` model, with the inherited `UCSetup` doctrine reconciled by `UC.Core.Standard.gradingᵗ`; hatches 21 = baseline |
+| M2 wave 3: the machine SMC bundle, `Traced`, GConstruction, `morphism`/`Pr-agree` | **DONE** — closed machine bundles; `PrAgree` proved; `Protocol.Machine.Compose.morphism-∘` and `Protocol.Machine.Total.morphismCompose : Morphism-∘` proved. The wire image is not the machine identity, so this is not a literal functor. |
+| M3/M4: the UC layer and inherited model/family setup | **Constructions and major seams proved; end-to-end graded asymptotic UC→POV NOT complete.** Grading, Budget, UCBase and inherited model/family `UCSetup` are real closed constructions. `ContextDominated`, adequacy, grounding (with repaired totality premises), and `AuditIsBounded` are proved. The review finds a mismatched audit predicate, a false saturation statement, and missing robust/family integration; see below. |
+
+The ledger's `TrajectoryFromAudit` and `Birthday.target` are also proved; the
+birthday theorem is conditional on injective serialization. These results do
+not by themselves supply an inherited graded asymptotic UC→POV theorem.
 
 ## Modules (M1: 10 files, 874 LOC, all `--safe --without-K`)
 
@@ -70,12 +82,10 @@ statement-first. Reference material: `spike-pov-tower` (example, observables),
   transaction is accepted and the bad event has probability zero. `ChimericLedger.Pin`
   now pins the genesis live (accepted with probability 1, state changed) by `refl`.
 * `TrajectoryFromAudit` (trajectory probability ≤ audit-form probability of the
-  audit-interleaved strategy) is a stated `Set` with its consumer proved, as in the
-  reference; the persistence argument (audit answers are definitionally truthful;
-  `total` is non-increasing along valid steps) prices it at ~250–400 LOC — three
-  assoc-list inductions (`balance`∘`checkIns`, `balance`∘`unionNew`,
-  `acctΣ`∘`checkWdrls`, all lemma-friendly in the sequential form) plus one run
-  induction relating `d` to `audited d`.
+  audit-interleaved strategy) is now proved in `Examples.ChimericLedger.Trajectory`.
+  The historical price was ~250–400 LOC for persistence and run inductions;
+  it is no longer an uninhabited statement. `Examples.ChimericLedger.Birthday.target`
+  proves the birthday target under injective serialization.
 
 ## M2: the machine layer (30 files, 4567 LOC, all `--safe --without-K`)
 
@@ -271,7 +281,7 @@ distributivity they never needed.
 * **`Monoidal (GConstruction C)`** — done, including the `⊗`-homomorphism wall;
   see task 3 below for where its pricing was wrong.
 * **`morphism`/`morphism-∘`/`Pr-agree`** — `morphism` landed; the two agreement
-  theorems are stated as types (no postulate, no hole) and priced below.
+  theorems are now proved; the original pricing is retained below as history.
 
 ## M2 wave 3 (11 new/changed files, +1213 LOC)
 
@@ -419,7 +429,7 @@ use; `Monoidal <the category spelled a second time>` is the shape to avoid.
 | `…GConstructionHomCoherence` | 177 | 29 s | `HOM`, by the three-obligation split |
 | `…GConstructionMonoidal` | 250 | 10 s | the `Monoidal` record and its bundle |
 
-### Task 4: the semantics functor
+### Task 4: composition-preserving semantics (historically called the functor)
 
 An interface is a **pair** of objects and a protocol is a machine on the sum of
 the two polarities — which is exactly a `GConstruction` hom, since
@@ -464,10 +474,12 @@ no `Protocol` category), so nothing breaks; but a *functor* out of protocols
 would have to land in a subcategory of `𝒢`, or restrict to on-protocol
 environments.  Recording this is the point of the seam.
 
-#### The two agreement theorems, stated and priced
+#### The two agreement theorems: historical statement and pricing
 
-Both are types in `Protocol.Machine`, so their shapes are certified; neither is
-postulated.
+Both are now inhabited, not merely certified types. Composition is proved by
+`Protocol.Machine.Compose.morphism-∘` with the public G-composite wrapper
+`Protocol.Machine.Total.morphismCompose`; `PrAgree` by `Protocol.Machine.Agree`.
+The proposed route and estimates below record the earlier implementation plan.
 
     Morphism-∘ = (P₂ : Protocol B C) (P₁ : Protocol A B)
                → 𝒢ₚ 0ℓ [ morphism (P₂ ∘ᵖ P₁) ≈ morphism P₂ 𝒢.∘ morphism P₁ ]
@@ -518,10 +530,11 @@ module *parameters* of the generic layer — that is what keeps it generic — a
 both are discharged at the intended base in `Machines.Base`, where `ℳₚ`,
 `Tracedₚ` and `𝒢ₚ` are closed terms.
 
-`Morphism-∘` (`Protocol.Machine`) is a stated `Set` with nothing inhabiting it —
-the `TrajectoryFromAudit` pattern: the statement is certified to typecheck
-against the real definitions, and it is not assumed anywhere.  `PrAgree` was the
-other one and is now a theorem (`Protocol.Machine.Agree.prAgree`).
+`Morphism-∘` and `PrAgree` are theorems. `Total.totalRun-morphism` additionally
+requires a protocol totality premise (the two verdict masses sum to at least
+one for every strategy); it does not prove `TotalRun` for every `Protocol`,
+whose syntax permits `dead`. `Total.totalRun-∘` transports a supplied total-run
+certificate across composition agreement.
 
 One shape seam is open and it is not load-bearing today: `⟦ unitᴵ ⟧ᴵ` is
 `(Data.Empty.⊥ , Data.Empty.⊥)` while `Mealy-Monoidal`'s unit is
@@ -562,15 +575,15 @@ this layer needed them.)
 | `…UC.QueryBound.Compose` | model | 330 | `resumeF`/`resumeG`, `Unfolding` (the composite step's six equations), `qbᵢ-∘ᵍ` — the two-position token walk at rate `c * c′` |
 | `…UC.QueryBound.Compose.Step` | model | 495 | `Pt` and the `pt-*` routings, `onLₑ`/`tstepₑ`, `α⁰`/`γ⁰`/`Hα`/`Hγ` with `α-pure`/`γ-pure`, `unfoldᶜ` — `Unfolding` discharged at the real composite — and `qbᵢ-∘`/`qb-∘` |
 | `…UC.QueryBound.Compose.Laws` | model | 27 | `budgetLawsᴹ` — `BudgetLawsᴹ` assembled, given the two respect-`≈` hypotheses `qb-T₁ᴹ`/`qb-subᴹ` already take |
-| `…UC.Machine.Bridge` | model | 96 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `ContextDominated` (stated) |
+| `…UC.Machine.Bridge` | model | 96 | `λᴵ⇐`, `conjᴵ`, `ctxRun`, `ContextDominated` (proved by `UC.Machine.Dominated.dominated`) |
 | `…UC.Seam` | model | 171 | `strategyEnv` (a strategy as an environment), `ctxRunˢ`/`runˢ`, `Agreeˢ`, `Adequacy`/`AgreeToAdv` (stated here, both inhabited below), `pov-carry` (proved) |
 | `…UC.Seam.Adequacy.Wiring` | model | 358 | the G-composite's structural wiring collapsed to pure machines (`α-pure`/`γ-pure`), `kᵂ` (the loop's one-pass dispatch), `pairedᴹ`, `compose-≈ᴹ` |
 | `…UC.Seam.Adequacy` | model | 188 | `bodyᵂ`/`verdictᵂ`/`contᵂ`, `play-run`/`step-run`, `adequacy` — `Adequacy`, proved |
 | `…UC.Seam.Carry` | model | 96 | `run-agree`, `agree-to-adv`, and the now-closed `agreeToAdv`/`povCarry` |
 | `…UC.Seam.Grounding` | model | 152 | `StratIsEnv`, its reduction `EnvCtx`/`EnvAsCtx`, and the trivial grade's `SubBlind`/`IotaBlind`/`UnitGrade` — the grading-dependent statements, read in the INHERITED metatheory at the sealed bundle (`_≈ᵁ_` at graded codomains, `_≈ᴳ_` at ungraded ones) |
-| `…UC.Seam.Grounded` | model | 108 | those statements discharged at the trivial grade: `iotaBlind`, `plug-λ`, `envAsCtx`, `plug-run`, `stratIsEnv` |
-| `…UC.Seam.Audit` | model | 58 | `UC.Audit` at `ucBaseᵒ`/`budgetᵒ`/`massᵒ` — no parameters left — and `AuditIsBounded` (stated) |
-| `…UC.Saturated` | frontend | 86 | `SaturatedBounded`/`SaturatedHit`, `SaturatedRespects` (stated) |
+| `…UC.Seam.Grounded` | model | historical 108 | `iotaBlind`, `envAsCtx`, `stratIsEnv`, and repaired `subBlind`/`unitGrade` proved with `SimTotal`/`TotalRun` premises |
+| `…UC.Seam.Audit` | model | 58 | `UC.Audit` at closed model data; `AuditIsBounded` proved in `UC.Seam.Audit.Bounded`, but its premise is not a ledger audit-event bound |
+| `…UC.Saturated` | frontend | 86 | `SaturatedBounded`/`SaturatedHit` use vanishing slack; `SaturatedRespects` is uninhabited and false as stated (review) |
 | `…UC` | — | 66 | the one entry point, with the layering as its orientation |
 
 All `--safe --without-K`; the `Dₚ`-facing nine add `--guardedness` and nothing
@@ -742,13 +755,13 @@ places:
    obstruction above moot.
 
 Supersession runs the other way — see the note at the head of this section.
-The inherited records stay for the MD line (which consumes them unchanged — see
-the compatibility section below) AND are now what the machine model is stated
+The inherited records are now what the machine model is stated
 over; the mapping is the one above plus the module-level map already recorded
 (`MachineAxioms` → `UC.Core` + `UC.Budget` + `UC.Approximate`,
 `FamilyCategory` → `UC.Family`, `VanishingTV` → `UC.Environment` + `UC.Family`,
 `StandardTV` → `UC.Machine`, `OutputOnly` → `UC.Machine.Bridge` + `UC.Seam`).
-Nothing inherited was edited.
+The earlier claim that nothing inherited was edited is historical; the MD line
+has since been ported and superseded modules deleted (see compatibility below).
 
 ### The defects the redesign fixes at birth
 
@@ -789,10 +802,11 @@ Nothing inherited was edited.
   asymptotics' order, and the budget arithmetic, and all three read the index
   through `κ`.  `Ix = ℕ × ℕ`, `κ = proj₁` gives a second axis for free;
   `(ℕ , id)` recovers the reference.
-* **Objects are `Iface` everywhere.** `𝒫ᴵ` presents `𝒢ₚ` with interfaces as its
+* **Historically, objects were `Iface` everywhere.** The current grading uses
+  𝒢's own objects; `Iface` remains frontend vocabulary. `𝒫ᴵ` presents `𝒢ₚ` with interfaces as its
   objects (`⟦_⟧ᴵ` is a bijection on objects), so `_⊗ᴵ_` — layer 0's own
   interface tensor — is the grading action.  No `Channel`, and no raw pair of
-  sets, occurs in the layer.
+  sets, occurred in that earlier presentation of the layer.
 * **The verdict interface is ticked.** `Ωᴵ = Bool ⇿ ⊤`.  A machine is reactive,
   so the reference's `Pos = Bool , Neg = ⊥` verdict can never be activated by a
   closed composite; the tick is the environment's single activation and the
@@ -877,27 +891,42 @@ hand over:
   the intended instance that is `Pr≤` with `_≈ₚ[_]_`'s left half
   (`UC.Seam.Audit`'s `massᴹ`), so nothing new is assumed.
 
-  The carried event must be INTERFACE-OBSERVABLE, which is content and not
-  convenience: what a test reads is what an emulation preserves, and a state
-  trajectory is not that (the simulator's state is not the ideal process's).
-  That is exactly the division of labour the ledger example already has, and the
-  path is now closed both ways: `audit-carry` moves `POVaudit` from the ideal
-  system to the real one across an emulation, `TrajectoryFromAudit` turns an
-  audit bound back into the trajectory statement `POV`, and `pov-via-audit` is
-  the consumer that composes them.  `pov-carry` is the same route with the
-  simulator collapsed instead of kept.
+  **Review correction: this does not close the graded UC→POV path.** An event
+  must be interface-observable, but `AuditBound` quantifies over **all tests**
+  and has no audit monitor parameter. A constant-`true` test forces `ε q ≥ 1`
+  at the relevant certified budgets for trivial-grade protocol images. Thus a
+  small `POVaudit` bound does not supply the premise of `audit-carry`.
+  `AuditIsBounded` is now proved, but only extracts a watched-event bound from
+  that stronger all-tests premise; it does not provide the missing converse.
+  `TrajectoryFromAudit` and `pov-via-audit` connect concrete audit and trajectory
+  bounds, not an inherited graded emulation to those bounds. The previous claim
+  here that the path was “closed both ways” was false. `pov-carry` remains a
+  direct-agreement transfer; `ChimericLedger.Carry.Emulᴸ` is literally `Agreeˢ`,
+  not the inherited simulator-bearing UC relation.
 
-Stated as types with nothing inhabiting them — the `TrajectoryFromAudit`
-pattern, no postulate and no hole anywhere:
+Current status of formerly priced obligations (2026-09-11):
 
-| statement | where | price |
+| statement | where | status |
 |---|---|---|
-| `ContextDominated` | `UC.Machine.Bridge` | ~250 LOC, instance-specific; the branchwise decomposition of a context against a budgeted strategy, reassembled by convexity of `Pr≤`.  Spike the two-machine skeleton first |
-| ~~`EnvAsCtx`, `StratIsEnv`~~ | `UC.Seam.Grounding` | CLOSED (`UC.Seam.Grounded`).  Both were blocked at the transparent grading — the closing application measured in four spellings at 300 s / 8 GiB and re-measured at 2400 s — and both are free once the statements are read at the seal and the trivial grade is the bundle's own unit rather than `unitᴵ`: the equation is the unitor's naturality and its own iso |
-| `SubBlind`, `IotaBlind` | `UC.Seam.Grounding` | `IotaBlind` is CLOSED (`UC.Seam.Grounded.iotaBlind`, the unitor cancelled on both sides).  `SubBlind` is REFUTED as stated — `_≤UC_` quantifies its simulator over a divergent `s` too, and `UC.Seam.Grounding.Dead` is the mechanized half of why; the repair is the maintainer's call |
-| `UnitGrade` | `UC.Seam.Grounding` | the reduction is PROVED generically (`UC.Model.Bridge.unit-gradeᵁ`); what it is owed by is `SubBlind`, so it inherits that refutation |
-| `AuditIsBounded` | `UC.Seam.Audit` | ~120–180 LOC, and both of its inputs are now theorems: recognize `strategyEnv B (bad d)`, plugged through the wires that kill the trivial grade and the ancilla, as one of the contexts `AuditBound` quantifies over — `Counting` for its certificate (`ctxBudget q 1 = q`), `PrAgree` for its mass, `Adequacy` for the run |
-| `SaturatedRespects` | `UC.Saturated` | ~60–100 LOC; `transfer` at each index plus two negligibility-closure lemmas — `_→0` under `+`, and under precomposition with a polynomial — neither of which exists yet.  ℚ/ℕ arithmetic with no UC content |
+| `ContextDominated` | `UC.Machine.Bridge` | PROVED by `UC.Machine.Dominated.dominated` |
+| `EnvAsCtx`, `StratIsEnv`, `IotaBlind` | `UC.Seam.Grounding` | PROVED in `UC.Seam.Grounded` |
+| `SubBlind` | `UC.Seam.Grounding` | REPAIRED and PROVED by `Grounded.subBlind`, with `SimTotal`; the old unrestricted version remains refuted by divergent simulators |
+| `UnitGrade` | `UC.Seam.Grounding` | REPAIRED and PROVED by `Grounded.unitGrade`, with `TotalRun` premises on both processes; not an unconditional simulator collapse |
+| `AuditIsBounded` | `UC.Seam.Audit` | PROVED in `UC.Seam.Audit.Bounded`; the all-tests premise mismatch above remains |
+| `SaturatedRespects` | `UC.Saturated` | UNINHABITED and false as stated: one slack for all `q` cannot follow from `VanishingBound`, which controls only polynomial allowances. Requires statement repair, not merely arithmetic lemmas |
+
+The saturation counterexample is a delayed leak after `2^n` queries: it is
+invisible eventually at each polynomial allowance but has constant advantage
+at an exponential allowance, defeating a single vanishing slack uniform over
+all `q`. Independently, `SaturatedBounded` and `SaturatedHit` require `_→0`,
+not `Negligible`, despite their source commentary. Family qualitative equality
+also means vanishing advantage; `absorb-negl` weakens a negligible bound into
+that equality and cannot make it preserve negligible properties (`1/n` is
+vanishing but not negligible). A generic saturated robust-property API and
+integration of family bound ingestion into the inherited relation are still
+missing. See the [review's completion goal](protocol-implementation-review.md)
+for the monitor-aware, polynomial-budget, negligible-strength path to a genuine
+end-to-end graded asymptotic UC→POV theorem.
 
 ### Budget accounting, as corrected
 
@@ -991,7 +1020,12 @@ with `mb = maybeℚ bool→ℚ`, so `Pr₁⊥ μ` IS `E⊥ μ bool→ℚ`.  In t
 `E μ` directly, so the proof never leaves `Dₚ` for a `Dist⊥` it has to embed.
 The embedding stands as the link between the two carriers, unspent.
 
-### Eight perf findings, all recorded in the source
+### Eight perf findings (historical measurements, not current ceilings)
+
+These measurements preserve the implementation history. The projection ceiling
+and the abandoned `Cast`/`Laws` strategy are retired; absolute claims below such
+as “at any heap” or “no lever” describe the then-tested route, not a current
+impossibility result or a new benchmark.
 
 * **The reindexing record needs every object implicit passed explicitly.** Left
   to inference, each field of `𝒫ᴵ` asks Agda to invert
@@ -1090,7 +1124,11 @@ The embedding stands as the link between the two carriers, unspent.
   no composite around it, is 11 s — the spelling mismatch is one way to trip
   the same reduction, not its cause.
 
-### Compatibility with the inherited MD line
+### Compatibility with the inherited MD line (historical account)
+
+**Current correction:** the MD consumers have since been ported and superseded
+legacy modules deleted. The following alongside/unchanged account records the
+earlier M3 stage only; it is not the state at `6256a140`.
 
 The old UC modules are all still consumed by inherited code:
 `MachineAxioms`, `FamilyCategory`, `VanishingTV`, `StandardTV` and
@@ -1111,13 +1149,21 @@ still computes both verdicts by `refl`.
 
 ### Assumption ledger
 
-Still empty of escape hatches: whole-`src` hatch grep 21 before and after (the
-M1 baseline).  `Machines.Iteration.Elgot` and `Machines.Trace.Remaining` remain
-discharged at the intended base; every statement in the table above is a `Set`
-with nothing inhabiting it and is not assumed anywhere;
-`UC.Seam.Grounding`, `UC.Seam.Audit`, `UC.Audit` and `UC.Family` take their
-`Grading`/`Budget`/`Mass` as module parameters, which is what keeps them
-generic, and `UC.Family` additionally takes `κ`'s cofinality.
+The historical hatch census was 21 before and after (the M1 baseline), not a
+fresh verification here. `Machines.Iteration.Elgot` and
+`Machines.Trace.Remaining` are discharged at the intended base, as are the
+model's Grading/Budget/UCBase/Mass and inherited model/family setup constructions.
+Generic parameters (including family `κ` cofinality) remain explicit; they are
+not missing instance proofs. The table above now consists mostly of proved
+theorems, with `SaturatedRespects` the false, uninhabited exception.
+
+The remaining premises and gaps must not be hidden by an empty-hatch ledger:
+repaired `SubBlind` needs `SimTotal`, `UnitGrade` needs `TotalRun`, and
+`totalRun-morphism` needs protocol totality; `Birthday.target` needs injective
+serialization. `AuditBound` is an all-tests premise, not an audit-event bound.
+The saturation quantifiers and negligible-strength mismatch require redesign,
+and robust/family integration is missing. None of these gaps is discharged by
+the absence of postulates or holes.
 
 `UC.Approximate.Mass` is a new hypothesis in form only: it is one field with
 content (an agreement implies ε-domination of the budgeted masses at every
@@ -1158,7 +1204,7 @@ they are usable **through** the seal — a consumer that reasoned by unfolding
 
 All `--safe --without-K --guardedness`. Escape-hatch grep 21 before and after.
 
-### The recipe, normative
+### The recipe (historical measured guidance)
 
 Every line below is a measured fact from `spike-stduc-perf`
 (`src/CategoricalCrypto/Spike.agda` carries the table); deviate only with a new
@@ -1182,7 +1228,7 @@ measurement.
    lemma eta-expanded *and* pin the applied lemma's implicits: together
    158.8 s → 33.4 s. With the seal neither is needed.
 
-### Measured costs
+### Measured costs (historical)
 
 | experiment | transparent | sealed |
 |---|---:|---:|
@@ -1224,7 +1270,7 @@ cancellation is `associator.isoʳ`. Consequences worth naming:
   every presentation in `Abstract`. `≈ᵁ⇒≈ℰ` is inherited; its converse is not
   used anywhere in M4.
 
-### The dictionary, and what it supersedes
+### The dictionary, and what it supersedes (implementation history)
 
 `…UC.Machine.Dictionary` (374 LOC, warm 50.5 s) reads the direct relays of the
 parallel `UC.*` stack as the MONOIDAL spellings of the same processes, at the
@@ -1264,7 +1310,7 @@ that land free are the trace-free ones, and the other four each compare a
 `𝒫ᴵ`-COMPOSITE, hence the ⊕-trace. Those four are now proved too, and what
 closes them is not a lemma but a way of ARRANGING the conversion.
 
-### The gate, diagnosed and closed
+### The gate, diagnosed and closed (historical; projection ceiling retired)
 
 M4 left a measured reproducer — `𝔾.associator.isoʳ` alone, at
 `⟦X⟧ᴵ,⟦Y⟧ᴵ,⟦A⟧ᴵ` with every implicit pinned, still running after 900 s at
@@ -1336,14 +1382,19 @@ Two smaller findings worth carrying forward:
   proof that stays inside `⊗₁ᴳ` is 10–30 s; the moment a 𝒢-composition's
   *proof* appears the cost is unbounded.
 
-### What remains priced
+### What remains (2026-09-11 review)
 
 | item | where | status |
 |---|---|---|
 | `ifaceᵒ unitᴵ ≅ 𝔾ᵒ`'s monoidal unit | `UC.Model.Observation` header | not proved; a G-composite is a trace, so `isoˡ` is not the one-line argument the bijection of empty types suggests. Nothing depends on it — `ℰᵒ` is a presheaf for either family of closures |
 | whether the model satisfies `GradeStable` | — | still open, and now known to be the ONLY gap between the two theories' agreements: `UC.Model.Bridge._≈ᴳ_` is the grade-stable refinement the core's relation already is, `GradeStable` is what would collapse it onto the bare `_≈ℰ_`, and `Abstract2.bridge` is the one inherited result unavailable without it (plan finding F2) |
 | the confidential-ledger refinement | proposal §4 | out of M4's scope |
-| `Morphism-∘` | `Protocol.Machine` | still a statement.  Its siblings are not: `PrAgree` (`Protocol.Machine.Agree`) and `Adequacy` (`UC.Seam.Adequacy`) are theorems, so direct-run adequacy is closed |
+| `Morphism-∘`, `PrAgree`, `Adequacy`, `ContextDominated` | protocol/machine seam | PROVED, no longer remaining obligations; composition is not identity preservation |
+| grounding and `AuditIsBounded` | `UC.Seam.Grounded`, `UC.Seam.Audit.Bounded` | PROVED with repaired totality premises for grounding; audit extraction does not repair the all-tests premise |
+| `TrajectoryFromAudit`, `Birthday.target` | `Examples.ChimericLedger.Trajectory`, `…Birthday` | PROVED; birthday target conditional on injective serialization |
+| monitor-aware graded carry | `UC.Audit` / ledger seam | OPEN semantic repair: an all-tests `AuditBound` cannot be supplied by a small `POVaudit` bound |
+| saturation invariance | `UC.Saturated` | FALSE as stated: uniform slack over all `q` versus only polynomial control; `_→0` is also weaker than the advertised `Negligible` |
+| robust asymptotic integration and final UC→POV theorem | inherited family setup / ledger consumer | MISSING generic saturated robust API and bound-ingestion integration into the inherited relation; `Emulᴸ = Agreeˢ` is not a graded UC theorem. Completion goal: [implementation review](protocol-implementation-review.md) |
 
 Whether the M4 cone should supersede the `UC.*` stack was left as the
 maintainer's call here.  It has been ruled: **it should**, and

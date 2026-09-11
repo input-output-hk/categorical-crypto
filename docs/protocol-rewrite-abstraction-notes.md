@@ -2,6 +2,30 @@
 
 These notes refine the recommendations in `protocol-rewrite-theory-review.md`. The governing constraint is that a general UC setup need not support quantitative observations. Rational advantage, query counts, security parameters, and probability distributions must therefore belong to optional models or enrichments, not to the general UC abstraction.
 
+## Implementation reconciliation (`6256a140`, 2026-09-11)
+
+These are architectural recommendations, not a claim that every displayed
+interface has been implemented. The current source comparison and completion
+criterion are in [Protocol rewrite implementation review](protocol-implementation-review.md).
+
+The qualitative/quantitative split, machine model, adequacy, resource closure
+proofs, and bounded-context domination have landed. The inherited UC model and
+the generic family `UCSetup` are constructed. The repaired unit-grade carry
+and `AuditIsBounded` also have proofs.
+
+The preservation vision remains incomplete. The generic saturated/robust-property
+API below is absent; the concrete `AuditBound` does not distinguish the audit
+event from an arbitrary test verdict; and `UC.Saturated` uses vanishing rather
+than negligible slack. Its proposed preservation statement additionally asks for
+one slack uniform over all query counts from a premise controlling only
+polynomial allowances. The family observation itself is vanishing equivalence,
+so changing only the slack predicate would not repair negligible preservation.
+
+The sketches below should be read subject to these corrections. In particular,
+the target is an end-to-end theorem consuming the actual ideal ledger bound and
+a genuine simulator-bearing UC premise, with explicit resource accounting and
+a truthful audit-to-trajectory connection, not an assumed direct agreement.
+
 ## Diagnosis
 
 The recurring problems occur at boundaries:
@@ -90,12 +114,20 @@ A concrete POV property should be formulated in a saturated form, for example:
 
 ```text
 POV-modulo-negligible P =
-  ∃ negligible ν,
-  ∀ q d, asks≤ q d →
-    PrHit P Bad d ≤ birthdayBound q + ν
+  ∀ polynomial allowance p,
+  ∃ negligible ν_p,
+  ∀ n d, asks≤ p(n) d →
+    PrHit (P n) (Bad n) d ≤ birthdayBound n (p(n)) + ν_p(n)
 ```
 
-The probabilistic model proves this predicate invariant under its qualitative observation relation. Generic UC then transports it without mentioning probabilities.
+The slack is chosen after the polynomial allowance, not uniformly over arbitrary
+query counts. This is a target trajectory conclusion, not by itself an
+observationally invariant predicate: environments do not observe internal state.
+The probabilistic model must prove invariance of the corresponding observable
+audit property under a relation strong enough to preserve negligible slack.
+Generic UC can then transport that property without mentioning probabilities,
+and the real implementation's truthful audit connection recovers the trajectory
+conclusion. These preservation and integration results are not yet implemented.
 
 ## 4. Optional resource and adversary structure
 
@@ -201,4 +233,3 @@ Ideally, protocol execution is defined once against a small probabilistic interp
 - Rational ε-closeness should no longer be required by the general `UCBase`.
 
 The recommended refactor is targeted: preserve direct protocol semantics, the `Dₚ` machine category, simulation equality, grading action, and ledger work; separate qualitative UC from its probabilistic and resource-enriched realizations before proving the expensive bridge obligations.
-
