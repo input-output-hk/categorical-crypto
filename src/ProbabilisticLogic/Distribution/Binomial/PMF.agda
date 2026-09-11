@@ -1,15 +1,12 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --safe --without-K #-}
 
 -- The full binomial probability mass function (PMF):
 -- P(exactly i successes in k trials) = (k C i) · m^i · n^(k − i) / (m + n)^k.
 --
--- This module is intentionally *not* `--safe`: it postulates two
--- ℚ-arithmetic identities (Pascal's recursion lifted to rationals) which
--- would follow from `Data.Nat.Combinatorics.nCk+nC[k+1]≡[n+1]C[k+1]`.
---
--- The probabilistic decomposition (a Bernoulli step on the head bit splits
--- `exactly (suc j)` into a disjoint union of two rectangles) is fully
--- proved.
+-- A Bernoulli step on the head bit splits `exactly (suc j)` into a disjoint
+-- union of two rectangles; what makes the two rectangles' closed forms add
+-- back up is Pascal's recursion,
+-- `Data.Nat.Combinatorics.nCk+nC[k+1]≡[n+1]C[k+1]`.
 
 open import categorical-crypto.Prelude as P hiding (pure; _>>=_; _⊎_; _*_; _/_; _⊗_; isEquivalence; trans)
 
@@ -17,17 +14,24 @@ open import Relation.Binary using (Setoid)
 import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 open import Relation.Unary using (_⊆_; _≐_; _∪_; ∅; U)
 
+open import Data.Integer as ℤ using (+_)
+import Data.Integer.Properties as ℤₚ
 import Data.Nat as ℕ
 open import Data.Nat using (_∸_; _^_)
-open import Data.Nat.Combinatorics.Base using (_C_)
-open import Data.Nat.Properties using (m^n≢0; suc-injective)
+open import Data.Nat.Combinatorics using (_C_; k>n⇒nCk≡0; nCk+nC[k+1]≡[n+1]C[k+1])
+import Data.Nat.Properties as ℕₚ
+open import Data.Nat.Properties.Ext using (m∸n≡suc[m∸suc[n]])
+open import Data.Nat.Tactic.RingSolver using (solve-∀)
 open import Data.Rational as ℚ using (ℚ; _/_)
-open import Data.Integer using (+_)
+open import Data.Rational.Properties using (/-cong)
+open import Data.Rational.Properties.Ext using (/-*-/; /-+-/-same)
 
 open import ProbabilisticLogic.Abstract
 open import ProbabilisticLogic.Reasoning
 
 open import LibExt using (_⊠_)
+
+open ℕₚ using (_≤?_; m^n≢0; suc-injective; ≰⇒>)
 
 module ProbabilisticLogic.Distribution.Binomial.PMF c ℓ (a : Abstract c ℓ) where
 
@@ -44,15 +48,108 @@ pmf-ℚ : (k i m n : ℕ) ⦃ _ : NonZero (m +ℕ n) ⦄ → ℚ
 pmf-ℚ k i m n = + ((k C i) ℕ.* (m ^ i) ℕ.* (n ^ (k ∸ i))) / ((m +ℕ n) ^ k)
   where instance _ = m^n≢0 (m +ℕ n) k
 
-postulate
-  -- Pascal's recursion lifted to rationals.
-  pmf-ℚ-rec-zero : ∀ k m n ⦃ _ : NonZero (m +ℕ n) ⦄
-                 → (+ n / (m +ℕ n)) ℚ.* pmf-ℚ k 0 m n
-                 ≡ pmf-ℚ (suc k) 0 m n
-  pmf-ℚ-rec-suc  : ∀ k j m n ⦃ _ : NonZero (m +ℕ n) ⦄
-                 → ((+ m / (m +ℕ n)) ℚ.* pmf-ℚ k j m n)
-                 ℚ.+ ((+ n / (m +ℕ n)) ℚ.* pmf-ℚ k (suc j) m n)
-                 ≡ pmf-ℚ (suc k) (suc j) m n
+------------------------------------------------------------------------
+-- Pascal's recursion, first on numerators and then on the closed form.
+
+private
+  regroup : ∀ m n c₁ c₂ p q
+          → m ℕ.* (c₁ ℕ.* p ℕ.* (n ℕ.* q)) +ℕ n ℕ.* (c₂ ℕ.* (m ℕ.* p) ℕ.* q)
+          ≡ (c₁ +ℕ c₂) ℕ.* (m ℕ.* p) ℕ.* (n ℕ.* q)
+  regroup = solve-∀
+
+  regroup-∅ : ∀ m n c p r
+            → m ℕ.* (c ℕ.* p ℕ.* r) +ℕ n ℕ.* 0 ≡ (c +ℕ 0) ℕ.* (m ℕ.* p) ℕ.* r
+  regroup-∅ = solve-∀
+
+  num-zero : ∀ k m n → n ℕ.* ((k C 0) ℕ.* (m ^ 0) ℕ.* (n ^ (k ∸ 0)))
+                     ≡ (suc k C 0) ℕ.* (m ^ 0) ℕ.* (n ^ (suc k ∸ 0))
+  num-zero k m n = P.trans (P.cong (n ℕ.*_) (ℕₚ.*-identityˡ (n ^ k)))
+                           (P.sym (ℕₚ.*-identityˡ (n ℕ.* n ^ k)))
+
+  -- Below the diagonal (`suc j ≤ k`) the exponent `k ∸ j` splits off the head
+  -- factor `n` that the second rectangle contributes; above it that rectangle
+  -- is empty, `k C suc j ≡ 0`.
+  num-suc : ∀ k j m n
+          → m ℕ.* ((k C j) ℕ.* (m ^ j) ℕ.* (n ^ (k ∸ j)))
+          +ℕ n ℕ.* ((k C suc j) ℕ.* (m ^ suc j) ℕ.* (n ^ (k ∸ suc j)))
+          ≡ (suc k C suc j) ℕ.* (m ^ suc j) ℕ.* (n ^ (k ∸ j))
+  num-suc k j m n with suc j ≤? k
+  ... | yes j<k = begin
+    m ℕ.* (C₁ ℕ.* mᵖ ℕ.* (n ^ (k ∸ j))) +ℕ n ℕ.* (C₂ ℕ.* mᵖ⁺ ℕ.* nʳ)
+      ≡⟨ P.cong (λ z → m ℕ.* (C₁ ℕ.* mᵖ ℕ.* z) +ℕ n ℕ.* (C₂ ℕ.* mᵖ⁺ ℕ.* nʳ)) split ⟩
+    m ℕ.* (C₁ ℕ.* mᵖ ℕ.* (n ℕ.* nʳ)) +ℕ n ℕ.* (C₂ ℕ.* mᵖ⁺ ℕ.* nʳ)
+      ≡⟨ regroup m n C₁ C₂ mᵖ nʳ ⟩
+    (C₁ +ℕ C₂) ℕ.* mᵖ⁺ ℕ.* (n ℕ.* nʳ)
+      ≡⟨ P.cong₂ (λ x z → x ℕ.* mᵖ⁺ ℕ.* z) (nCk+nC[k+1]≡[n+1]C[k+1] k j) (P.sym split) ⟩
+    (suc k C suc j) ℕ.* mᵖ⁺ ℕ.* (n ^ (k ∸ j)) ∎
+    where
+    C₁ = k C j
+    C₂ = k C suc j
+    mᵖ = m ^ j
+    mᵖ⁺ = m ^ suc j
+    nʳ = n ^ (k ∸ suc j)
+    split : n ^ (k ∸ j) ≡ n ℕ.* nʳ
+    split = P.cong (n ^_) (m∸n≡suc[m∸suc[n]] j<k)
+    open P.≡-Reasoning
+  ... | no j≮k = begin
+    m ℕ.* (C₁ ℕ.* mᵖ ℕ.* nˢ) +ℕ n ℕ.* (C₂ ℕ.* mᵖ⁺ ℕ.* (n ^ (k ∸ suc j)))
+      ≡⟨ P.cong (λ z → m ℕ.* (C₁ ℕ.* mᵖ ℕ.* nˢ)
+                    +ℕ n ℕ.* (z ℕ.* mᵖ⁺ ℕ.* (n ^ (k ∸ suc j)))) empty ⟩
+    m ℕ.* (C₁ ℕ.* mᵖ ℕ.* nˢ) +ℕ n ℕ.* 0
+      ≡⟨ regroup-∅ m n C₁ mᵖ nˢ ⟩
+    (C₁ +ℕ 0) ℕ.* mᵖ⁺ ℕ.* nˢ
+      ≡⟨ P.cong (λ x → x ℕ.* mᵖ⁺ ℕ.* nˢ)
+                (P.trans (P.cong (C₁ +ℕ_) (P.sym empty))
+                         (nCk+nC[k+1]≡[n+1]C[k+1] k j)) ⟩
+    (suc k C suc j) ℕ.* mᵖ⁺ ℕ.* nˢ ∎
+    where
+    C₁ = k C j
+    C₂ = k C suc j
+    mᵖ = m ^ j
+    mᵖ⁺ = m ^ suc j
+    nˢ = n ^ (k ∸ j)
+    empty : C₂ ≡ 0
+    empty = k>n⇒nCk≡0 (≰⇒> j≮k)
+    open P.≡-Reasoning
+
+pmf-ℚ-rec-zero : ∀ k m n ⦃ _ : NonZero (m +ℕ n) ⦄
+               → (+ n / (m +ℕ n)) ℚ.* pmf-ℚ k 0 m n
+               ≡ pmf-ℚ (suc k) 0 m n
+pmf-ℚ-rec-zero k m n = begin
+  (+ n / S) ℚ.* pmf-ℚ k 0 m n      ≡⟨ /-*-/ (+ n) S (+ N) (S ^ k) ⟩
+  (+ n ℤ.* + N) / (S ^ suc k)      ≡⟨ /-cong (ℤₚ.pos-* n N) P.refl ⟨
+  + (n ℕ.* N) / (S ^ suc k)        ≡⟨ /-cong (P.cong +_ (num-zero k m n)) P.refl ⟩
+  pmf-ℚ (suc k) 0 m n              ∎
+  where
+  S = m +ℕ n
+  N = (k C 0) ℕ.* (m ^ 0) ℕ.* (n ^ (k ∸ 0))
+  instance _ = m^n≢0 S k
+  instance _ = m^n≢0 S (suc k)
+  open P.≡-Reasoning
+
+pmf-ℚ-rec-suc : ∀ k j m n ⦃ _ : NonZero (m +ℕ n) ⦄
+              → ((+ m / (m +ℕ n)) ℚ.* pmf-ℚ k j m n)
+              ℚ.+ ((+ n / (m +ℕ n)) ℚ.* pmf-ℚ k (suc j) m n)
+              ≡ pmf-ℚ (suc k) (suc j) m n
+pmf-ℚ-rec-suc k j m n = begin
+  ((+ m / S) ℚ.* pmf-ℚ k j m n) ℚ.+ ((+ n / S) ℚ.* pmf-ℚ k (suc j) m n)
+    ≡⟨ P.cong₂ ℚ._+_ (/-*-/ (+ m) S (+ A) (S ^ k)) (/-*-/ (+ n) S (+ B) (S ^ k)) ⟩
+  ((+ m ℤ.* + A) / (S ^ suc k)) ℚ.+ ((+ n ℤ.* + B) / (S ^ suc k))
+    ≡⟨ /-+-/-same (+ m ℤ.* + A) (+ n ℤ.* + B) (S ^ suc k) ⟩
+  ((+ m ℤ.* + A) +ℤ (+ n ℤ.* + B)) / (S ^ suc k)
+    ≡⟨ /-cong (P.cong₂ _+ℤ_ (ℤₚ.pos-* m A) (ℤₚ.pos-* n B)) P.refl ⟨
+  (+ (m ℕ.* A) +ℤ + (n ℕ.* B)) / (S ^ suc k)
+    ≡⟨ /-cong (ℤₚ.pos-+ (m ℕ.* A) (n ℕ.* B)) P.refl ⟨
+  + (m ℕ.* A +ℕ n ℕ.* B) / (S ^ suc k)
+    ≡⟨ /-cong (P.cong +_ (num-suc k j m n)) P.refl ⟩
+  pmf-ℚ (suc k) (suc j) m n ∎
+  where
+  S = m +ℕ n
+  A = (k C j) ℕ.* (m ^ j) ℕ.* (n ^ (k ∸ j))
+  B = (k C suc j) ℕ.* (m ^ suc j) ℕ.* (n ^ (k ∸ suc j))
+  instance _ = m^n≢0 S k
+  instance _ = m^n≢0 S (suc k)
+  open P.≡-Reasoning
 
 ------------------------------------------------------------------------
 -- Event decompositions.

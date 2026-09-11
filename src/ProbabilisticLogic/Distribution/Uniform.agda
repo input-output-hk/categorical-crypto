@@ -123,7 +123,7 @@ fromℕ-/ : ∀ n → fromℕ n ≡ + n / 1
 fromℕ-/ zero    = refl
 fromℕ-/ (suc m) = begin
   1ℚ + fromℕ m                                ≡⟨ cong (λ z → 1ℚ + z) (fromℕ-/ m) ⟩
-  (+ 1 / 1) + (+ m / 1)                       ≡⟨ /-+-/ (+ 1) 0 (+ m) 0 ⟩
+  (+ 1 / 1) + (+ m / 1)                       ≡⟨ /-+-/ (+ 1) 1 (+ m) 1 ⟩
   (+ 1 ℤ.* (+ 1) ℤ.+ + m ℤ.* (+ 1)) / (1 ℕ.* 1)
     ≡⟨ /-cong (cong (λ z → + 1 ℤ.* (+ 1) ℤ.+ z) (ℤₚ.*-identityʳ (+ m))) refl ⟩
   + suc m / 1                                 ∎
@@ -168,7 +168,7 @@ archimedean {ε@(mkℚ i d-1 _)} (*<* 0<i) = d-1 , bnd
   bnd : 1ℚ ≤ fromℕ D * ε
   bnd = begin
     1ℚ                       ≤⟨ /-mono-≤ (+ 1) 1 (+ D ℤ.* i) (1 ℕ.* D) ineq ⟩
-    (+ D ℤ.* i) / (1 ℕ.* D)  ≡⟨ sym (/-*-/ (+ D) 0 i d-1) ⟩
+    (+ D ℤ.* i) / (1 ℕ.* D)  ≡⟨ sym (/-*-/ (+ D) 1 i D) ⟩
     (+ D / 1) * (i / D)      ≡⟨ cong₂ _*_ (sym (fromℕ-/ D)) (↥p/↧p≡p ε) ⟩
     fromℕ D * ε              ∎
     where open ℚₚ.≤-Reasoning
