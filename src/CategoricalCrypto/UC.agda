@@ -16,6 +16,13 @@
 --                                  Universal composition is the inherited
 --                                  theorem, not one of these —
 --                                  `UC.Model.Bridge` carries it across
+--                `UC.Robust`       `SaturatedProperty`, `Robust` and
+--                                  `uc-preserves`: the carry with no
+--                                  probability under it, where the simulator
+--                                  slides into the test and an
+--                                  observation-invariant property needs no
+--                                  budget to pay for it.  `UC.Robust.Model`
+--                                  runs it at the inherited emulation
 --                `UC.Core.Standard`
 --                                  `gradingᵗ`: a monoidal category grades
 --                                  itself — the inherited `UCSetup` doctrine's
