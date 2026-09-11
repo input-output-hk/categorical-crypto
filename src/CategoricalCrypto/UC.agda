@@ -73,8 +73,10 @@
 --                                  `PrAgree`); `UC.Seam.Grounding` and
 --                                  `UC.Seam.Audit` name what the instance owes
 --                `UC.Saturated`    the saturated form of a concrete safety
---                                  bound, the shape invariant under the core's
---                                  equivalence
+--                                  bound — one slack per polynomial allowance,
+--                                  at the vanishing grade and at the
+--                                  negligible one, with the invariance proved
+--                                  for each
 --
 -- The parameterized modules take a `UCBase` and so are imported directly
 -- rather than re-exported here; `UC.Machine.ucBaseᴹ` is the one to feed them at

@@ -14,12 +14,13 @@ the generic family `UCSetup` are constructed. The repaired unit-grade carry
 and `AuditIsBounded` also have proofs.
 
 The preservation vision remains incomplete. The generic saturated/robust-property
-API below is absent; the concrete `AuditBound` does not distinguish the audit
-event from an arbitrary test verdict; and `UC.Saturated` uses vanishing rather
-than negligible slack. Its proposed preservation statement additionally asks for
-one slack uniform over all query counts from a premise controlling only
-polynomial allowances. The family observation itself is vanishing equivalence,
-so changing only the slack predicate would not repair negligible preservation.
+API below is absent, and the concrete `AuditBound` does not distinguish the audit
+event from an arbitrary test verdict. `UC.Saturated`'s own two defects are
+repaired: the slack is now chosen per polynomial allowance rather than uniformly
+over all query counts, and the grade is a parameter, so the negligible tier is
+stated and carried beside the vanishing one. The family observation is still
+vanishing equivalence, which is why the negligible tier carries its error
+witness (`_≈negl_`) instead of relying on that equivalence.
 
 The sketches below should be read subject to these corrections. In particular,
 the target is an end-to-end theorem consuming the actual ideal ledger bound and

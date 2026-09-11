@@ -31,7 +31,12 @@
 -- Vanishing is all `absorb` spends, but it is not what a cryptographic bound
 -- must satisfy: that is NEGLIGIBILITY, eventually below every inverse
 -- polynomial (proposal §3, `docs/kb/frontier/15-probabilistic-uc-model.typ`).
--- Hence the negligible layer below, over the same `PolyQB` allowance.
+-- Hence the negligible layer below, over the same `PolyQB` allowance — which
+-- grades the PREMISE and nothing else.  `_≈ℰ_` is vanishing agreement whichever
+-- grade goes in, so it does not transport a property whose slack must stay
+-- negligible: a bad bit of probability `1/(n+1)` is `≈ℰ`-equal to an
+-- always-safe one.  A statement of that kind keeps its error witness instead
+-- (`UC.Saturated`'s negligible tier).
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly using (Poly; poly-*; poly-const; poly-⊔)
@@ -257,7 +262,22 @@ carried-negligible : {ε : ℕ → ℕ → ℚ} → NegligibleBound ε → Carri
 carried-negligible neg Y Et m =
   neg (ctxQB (qbOf Et) (qbOf m)) (ctxQB-poly (qbOf-poly Et) (qbOf-poly m))
 
+-- A sufficient condition into the SAME `≈ℰ`: the grade is spent going in and
+-- cannot be read back out (header).
 absorb-negl : {A B : Obj^ω} {f g : A ⇒^ω B} {ε : ℕ → ℕ → ℚ}
             → f ≈ℰ[ ε ] g → NegligibleBound ε → f ≈ℰ g
 absorb-negl {A} {B} {f} {g} {ε} bnd neg =
   absorb {A} {B} {f} {g} {ε} bnd (NegligibleBound⇒VanishingBound {ε} neg)
+
+-- What reading it back out would take.  The graded agreement is
+-- `f ≈ℰ⟨Negligible⟩ g = Σ[ ε ] CarriedNegligible ε × f ≈ℰ[ ε ] g`, the witness
+-- retained exactly as `UC.Saturated._≈negl_` retains it at layer 1, and an
+-- equivalence for the same reasons (`Negligible-0`, `Negligible-+`, and
+-- `≈[]-refl`/`≈[]-sym`/`≈[]-trans` levelwise).  What it is not is the `_∼_` of
+-- an `Observation`: `Induced` builds `_∼_` by quantifying an ambient ε AWAY,
+-- and a retained witness is the opposite move.  Adopting it therefore means
+-- either a second `Observation` on `Fam` carrying that `_∼_`, with every
+-- `UC.Emulation` notion re-derived over it (`≤UC` included), or an
+-- `Observation` interface parameterized by its grade.  Both are redesigns of
+-- the core's observation interface rather than of this module, which is why
+-- the consumer-facing negligible tier currently lives at layer 1.

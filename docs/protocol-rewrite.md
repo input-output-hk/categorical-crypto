@@ -562,7 +562,7 @@ this layer needed them.)
 | `…UC.Emulation` | core | 82 | `_≤UC_`, `_≤UC⁺_`, `≤UC-refl`/`≤UC-trans`/`dummy-complete`, `blind-grade`/`unit-grade`.  `≤UC⁺⇒≤UC`, `_⊙_`, `_⊛₁_` and the `UC-compose` obligation are RETIRED — the inherited layer has the composition theorem |
 | `…UC.Core.Standard` | core | 49 | `gradingᵗ` — a monoidal category grades itself; the inherited doctrine's action |
 | `ProbabilisticLogic.Dp.Advantage` | enrichment | 121 | `Pr≤[_]`/`Pr≤`, `_≼ₚ[_]_`/`_≈ₚ[_]_` — advantage as an ε-indexed relation on BOTH verdict masses, with the pseudometric laws |
-| `…UC.Approximate` | enrichment | 212 | `ErrorAlgebra`, `ℚ-errors`, `_→0`/`VanishingBound`, `Negligible`/`NegligibleBound` and the two collapses, `Approximation` + the ε/2 equivalence, `ApproximateObservation`, `Induced`, `Mass` |
+| `…UC.Approximate` | enrichment | 254 | `ErrorAlgebra`, `ℚ-errors`, `Grade`/`GradedBound` with `_→0`/`VanishingBound` and `Negligible`/`NegligibleBound` its two instances, the two collapses and the sum closures (`→0-+`, `Negligible-+`), `Approximation` + the ε/2 equivalence, `ApproximateObservation`, `Induced`, `Mass` |
 | `…UC.Budget` | enrichment | 64 | `Budget`, `ctxBudget` — the resource doctrine |
 | `…UC.Environment.Approximate` | enrichment | 38 | `_≈ℰ[_]_`, `absorbᵘ` |
 | `…UC.Audit` | enrichment | 133 | `_≤UC[_]_` (a budgeted simulator), `simCost`, `AuditBound`, `audit-carry` — the graded carry, proved |
@@ -583,7 +583,7 @@ this layer needed them.)
 | `…UC.Seam.Grounding` | model | 152 | `StratIsEnv`, its reduction `EnvCtx`/`EnvAsCtx`, and the trivial grade's `SubBlind`/`IotaBlind`/`UnitGrade` — the grading-dependent statements, read in the INHERITED metatheory at the sealed bundle (`_≈ᵁ_` at graded codomains, `_≈ᴳ_` at ungraded ones) |
 | `…UC.Seam.Grounded` | model | historical 108 | `iotaBlind`, `envAsCtx`, `stratIsEnv`, and repaired `subBlind`/`unitGrade` proved with `SimTotal`/`TotalRun` premises |
 | `…UC.Seam.Audit` | model | 58 | `UC.Audit` at closed model data; `AuditIsBounded` proved in `UC.Seam.Audit.Bounded`, but its premise is not a ledger audit-event bound |
-| `…UC.Saturated` | frontend | 86 | `SaturatedBounded`/`SaturatedHit` use vanishing slack; `SaturatedRespects` is uninhabited and false as stated (review) |
+| `…UC.Saturated` | frontend | 206 | REPAIRED: `SaturatedBounded[_]`/`SaturatedHit[_]` fix the slack per polynomial allowance and are graded (`_→0` and `Negligible` instances); `SaturatedRespects` is now PROVED by `saturated-respects`, with `saturated-respectsᴺ` and `_≈negl_` the negligible tier |
 | `…UC` | — | 66 | the one entry point, with the layering as its orientation |
 
 All `--safe --without-K`; the `Dₚ`-facing nine add `--guardedness` and nothing
@@ -913,19 +913,25 @@ Current status of formerly priced obligations (2026-09-11):
 | `SubBlind` | `UC.Seam.Grounding` | REPAIRED and PROVED by `Grounded.subBlind`, with `SimTotal`; the old unrestricted version remains refuted by divergent simulators |
 | `UnitGrade` | `UC.Seam.Grounding` | REPAIRED and PROVED by `Grounded.unitGrade`, with `TotalRun` premises on both processes; not an unconditional simulator collapse |
 | `AuditIsBounded` | `UC.Seam.Audit` | PROVED in `UC.Seam.Audit.Bounded`; the all-tests premise mismatch above remains |
-| `SaturatedRespects` | `UC.Saturated` | UNINHABITED and false as stated: one slack for all `q` cannot follow from `VanishingBound`, which controls only polynomial allowances. Requires statement repair, not merely arithmetic lemmas |
+| `SaturatedRespects` | `UC.Saturated` | REPAIRED and PROVED by `saturated-respects`: the allowance is quantified before the slack, so `VanishingBound δ` genuinely carries it |
 
-The saturation counterexample is a delayed leak after `2^n` queries: it is
-invisible eventually at each polynomial allowance but has constant advantage
-at an exponential allowance, defeating a single vanishing slack uniform over
-all `q`. Independently, `SaturatedBounded` and `SaturatedHit` require `_→0`,
-not `Negligible`, despite their source commentary. Family qualitative equality
-also means vanishing advantage; `absorb-negl` weakens a negligible bound into
-that equality and cannot make it preserve negligible properties (`1/n` is
-vanishing but not negligible). A generic saturated robust-property API and
-integration of family bound ingestion into the inherited relation are still
-missing. See the [review's completion goal](protocol-implementation-review.md)
-for the monitor-aware, polynomial-budget, negligible-strength path to a genuine
+The saturation counterexample — a delayed leak after `2^n` queries, invisible
+eventually at each polynomial allowance but of constant advantage at an
+exponential one — refutes a single vanishing slack uniform over all `q`, and
+the repaired forms therefore choose the slack AFTER the allowance. The grade is
+now a parameter (`UC.Approximate.Grade`): `SaturatedBounded`/`SaturatedHit` are
+the `_→0` instances and `SaturatedBoundedᴺ`/`SaturatedHitᴺ` the `Negligible`
+ones, with `saturated-respects[_]` proving the invariance once, over the
+grade's closure under sums. Family qualitative equality is still vanishing
+advantage, and `absorb-negl` still concludes that same relation: a negligible
+premise is not a negligible conclusion (`1/n` is vanishing but not negligible).
+The negligible tier accordingly keeps its error witness — `UC.Saturated._≈negl_`
+and `saturated-respectsᴺ`, whose carry premise is `NegligibleBound` — and
+`UC.Family`'s negligible layer specifies what a graded `≈ℰ` would cost. A
+generic saturated robust-property API and integration of family bound ingestion
+into the inherited relation are still missing. See the
+[review's completion goal](protocol-implementation-review.md) for the
+monitor-aware, polynomial-budget, negligible-strength path to a genuine
 end-to-end graded asymptotic UC→POV theorem.
 
 ### Budget accounting, as corrected
@@ -989,7 +995,10 @@ concrete security theorem is held to.
 | `NegligibleBound⇒VanishingBound` | `UC.Approximate` | proved |
 | `CarriedNegligible ε` | `UC.Family` | the same, read at the allowance a context's two legs CARRY (`ctxQB` of two `PolyQB`s) |
 | `carried-negligible` | `UC.Family` | proved: `ctxQB-poly` is the polynomial witness, so this is no extra assumption |
-| `absorb-negl` | `UC.Family` | proved: `absorb` at the negligible hypothesis |
+| `absorb-negl` | `UC.Family` | proved: `absorb` at the negligible hypothesis — and concluding the same vanishing `≈ℰ`, so the grade is spent, not inherited |
+| `Grade`, `GradedBound` | `UC.Approximate` | the common shape of the two disciplines; `VanishingBound = GradedBound _→0`, `NegligibleBound = GradedBound Negligible` |
+| `→0-+`, `Negligible-+` | `UC.Approximate` | proved: both grades close under sums, which is the whole arithmetic content of the saturation transfer |
+| `_≈negl_` | `UC.Saturated` | `≈adv` with its error witness retained and `NegligibleBound`-graded; an equivalence, and the premise `saturated-respectsᴺ` consumes |
 
 `Negligible` is stated multiplicatively (`p n · s n` still vanishing) rather
 than as `s n ≤ 1/p n`: it is the same condition, it reuses `Poly` and `_→0`
@@ -1154,8 +1163,8 @@ fresh verification here. `Machines.Iteration.Elgot` and
 `Machines.Trace.Remaining` are discharged at the intended base, as are the
 model's Grading/Budget/UCBase/Mass and inherited model/family setup constructions.
 Generic parameters (including family `κ` cofinality) remain explicit; they are
-not missing instance proofs. The table above now consists mostly of proved
-theorems, with `SaturatedRespects` the false, uninhabited exception.
+not missing instance proofs. The table above now consists of proved theorems
+throughout, `SaturatedRespects` included since its quantifier repair.
 
 The remaining premises and gaps must not be hidden by an empty-hatch ledger:
 repaired `SubBlind` needs `SimTotal`, `UnitGrade` needs `TotalRun`, and
@@ -1393,7 +1402,7 @@ Two smaller findings worth carrying forward:
 | grounding and `AuditIsBounded` | `UC.Seam.Grounded`, `UC.Seam.Audit.Bounded` | PROVED with repaired totality premises for grounding; audit extraction does not repair the all-tests premise |
 | `TrajectoryFromAudit`, `Birthday.target` | `Examples.ChimericLedger.Trajectory`, `…Birthday` | PROVED; birthday target conditional on injective serialization |
 | monitor-aware graded carry | `UC.Audit` / ledger seam | OPEN semantic repair: an all-tests `AuditBound` cannot be supplied by a small `POVaudit` bound |
-| saturation invariance | `UC.Saturated` | FALSE as stated: uniform slack over all `q` versus only polynomial control; `_→0` is also weaker than the advertised `Negligible` |
+| saturation invariance | `UC.Saturated` | PROVED after repair: the slack is chosen per polynomial allowance, and the grade is a parameter, so the advertised `Negligible` tier is stated and carried alongside the `_→0` one |
 | robust asymptotic integration and final UC→POV theorem | inherited family setup / ledger consumer | MISSING generic saturated robust API and bound-ingestion integration into the inherited relation; `Emulᴸ = Agreeˢ` is not a graded UC theorem. Completion goal: [implementation review](protocol-implementation-review.md) |
 
 Whether the M4 cone should supersede the `UC.*` stack was left as the
