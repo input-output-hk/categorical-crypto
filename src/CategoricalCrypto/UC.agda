@@ -95,6 +95,7 @@ module CategoricalCrypto.UC where
 
 open import CategoricalCrypto.UC.Approximate public
 open import CategoricalCrypto.UC.Asymptotic public
+open import CategoricalCrypto.UC.Asymptotic.Audit public
 open import CategoricalCrypto.UC.Budget public
 open import CategoricalCrypto.UC.Core public
 open import CategoricalCrypto.UC.Machine public

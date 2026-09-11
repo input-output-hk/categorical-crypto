@@ -8,14 +8,15 @@
 -- (`docs/protocol-implementation-review.md` §4).  Two things are then carried,
 -- and by different routes, because the two ends of the seam are:
 --
---   * `uc-audit-carry` is the GRADED carry (`UC.Audit.audit-carry`) read at
---     the family: the ideal side's designated audit event crosses each
---     emulation, the simulator absorbed into the context and its queries
---     charged there (`simCost`).  Its real-side event class is
---     `absorb (sim em) cs`, the largest class closed into the ideal one
---     (`absorb-absorbs`), so nothing is assumed about the real side at all.
+--   * `UC.Asymptotic.Audit.uc-audit-carry` is the GRADED carry
+--     (`UC.Audit.audit-carry`) read at the family: the ideal side's designated
+--     audit event crosses each emulation, the simulator absorbed into the
+--     context and its queries charged there (`simCost`).  It lives next door
+--     because the two halves in one module cost 127 s warm and apart 10 + 10 s
+--     — the seal-level terms of the collapse and the audit event's
+--     instantiation are cheap alone and not together.
 --
---   * `uc-preservesᴺ` is the PROBABILITY carry: at the trivial grade the
+--   * `uc-preservesᴺ` here is the PROBABILITY carry: at the trivial grade the
 --     simulator is provably blind (`UC.Seam.Grounded.subBlind`), so an
 --     emulation collapses to the direct agreement `povCarry` consumes, and
 --     `UC.Saturated`'s negligible tier transports the bound.  Totality is what
@@ -52,24 +53,19 @@ open import CategoricalCrypto.UC.Model.Seal using (procᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Saturated
 open import CategoricalCrypto.UC.Seam using (Agreeˢ)
-open import CategoricalCrypto.UC.Seam.Audit
-  using ( _≤UC[_]_; sim; simCost; AuditBound; absorb; absorb-absorbs; audit-carry
-        ; module TrivialGrade )
 open import CategoricalCrypto.UC.Seam.Carry using (agreeToAdv)
 import CategoricalCrypto.UC.Seam.Grounded as Gr
 
 module CategoricalCrypto.UC.Asymptotic where
 
-open Gr using (𝟘ᴳ; ιᴳ; unitGrade)
-open TrivialGrade 𝟘ᴳ ιᴳ using (watched)
+open Gr using (ιᴳ; unitGrade)
 
 private variable B : ℕ → Iface
                  R I : Systems B
-                 cs : ℕ → ℕ
                  ε : ℕ → ℕ → ℚ
                  ν : ℕ → ℚ
 
-infix 4 _≤UC^ω_ _≤UC^ω[_]_
+infix 4 _≤UC^ω_
 
 -- The premise, at each level: the real image emulates the ideal one, in the
 -- INHERITED preorder — a simulator per dummy adversary, quantified at the
@@ -78,29 +74,6 @@ infix 4 _≤UC^ω_ _≤UC^ω[_]_
 _≤UC^ω_ : Systems B → Systems B → Set₁
 _≤UC^ω_ {B} R I = (n : ℕ)
   → (ιᴳ (B n) ∘ procᵒ (morphism (R n))) ≤UC (ιᴳ (B n) ∘ procᵒ (morphism (I n)))
-
--- …and the BUDGETED emulation of the emulation layer, whose simulator carries
--- a query bound.  A carry that charges the simulator needs it; the collapse
--- below does not, because at the trivial grade the simulator asks nothing.
-_≤UC^ω[_]_ : Systems B → (ℕ → ℕ) → Systems B → Set₁
-_≤UC^ω[_]_ {B} R cs I = (n : ℕ)
-  → (ιᴳ (B n) ∘ procᵒ (morphism (R n))) ≤UC[ cs n ] (ιᴳ (B n) ∘ procᵒ (morphism (I n)))
-
-------------------------------------------------------------------------
--- The graded carry, at the family
-
--- Each level's ideal audit bound crosses its emulation: the real side reads
--- the absorbed event class and pays `simCost` for the simulator's queries.
-uc-audit-carry : (em : R ≤UC^ω[ cs ] I) (bad : Watch B)
-               → ((n : ℕ) → AuditBound (ιᴳ (B n) ∘ procᵒ (morphism (I n)))
-                              (watched (I n) (bad n)) (ε n))
-               → ((n : ℕ) → 0ℚ ℚ.< ν n) → (n : ℕ)
-               → AuditBound (ιᴳ (B n) ∘ procᵒ (morphism (R n)))
-                   (absorb (sim (em n)) (cs n) (watched (I n) (bad n)))
-                   (λ q → ε n (simCost q (cs n)) ℚ.+ ν n)
-uc-audit-carry {I = I} {ε = ε} {ν = ν} em bad bnd pos n =
-  audit-carry _ _ (em n) {𝔉 = 𝔉ₙ} (absorb-absorbs {𝔉 = 𝔉ₙ}) (ε n) (ν n) (pos n) (bnd n)
-  where 𝔉ₙ = watched (I n) (bad n)
 
 ------------------------------------------------------------------------
 -- The probability carry

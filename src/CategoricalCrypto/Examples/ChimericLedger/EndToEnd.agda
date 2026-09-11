@@ -58,6 +58,7 @@ open import CategoricalCrypto.UC.Approximate using (Negligible; Negligible-+)
 open import CategoricalCrypto.UC.Approximate.Decay
   using (0<inv-pow-2; negligible-slack)
 open import CategoricalCrypto.UC.Asymptotic
+open import CategoricalCrypto.UC.Asymptotic.Audit
 open import CategoricalCrypto.UC.Model.Seal using (procᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Saturated
