@@ -26,9 +26,10 @@
 --                `UC.Budget`       `Budget`, `ctxBudget` — the resource doctrine
 --                `UC.Environment.Approximate`
 --                                  `_≈ℰ[ ε ]_` and its collapse
---                `UC.Audit`        `audit-carry`: an audit-form bound across an
---                                  emulation, the simulator absorbed into the
---                                  environment leg
+--                `UC.Audit`        `AuditEvent`, the audit event a premise is
+--                                  about, and `audit-carry`: a bound on it
+--                                  across an emulation, the simulator absorbed
+--                                  into the environment leg
 --                `UC.Family`       the asymptotic constructor — `𝒞^ω` at a
 --                                  parameterized index, and `absorb`, where a
 --                                  vanishing bound BECOMES the core's `_≈ℰ_`
