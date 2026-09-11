@@ -11,8 +11,9 @@
 -- visible — two messages sharing their second block collide whenever their
 -- first chaining values do, which at a 1-bit hash is half the time — so the
 -- real world's collision probability is 3/4 against the ideal's 1/2.  That
--- ¼ gap is the reason `bound` grows with the block count, and it is pinned
--- against the bound itself.
+-- ¼ gap is the reason `bound` grows with the block count.  The two-block
+-- bound itself is pinned too, but `bound 2 ≡ 3 > 1`, so the theorem is
+-- vacuous at those parameters and that pin exercises the arithmetic only.
 --
 -- Warm single-module typecheck: ~6 s (measured 2026-09-10, `+RTS -M3G -H1G`).
 --------------------------------------------------------------------------------
@@ -101,10 +102,13 @@ module TwoBlocks where
   ideal-collides : Pr general collide ≡ +ℤ 1 / 2
   ideal-collides = refl
 
-  -- The gap the chaining costs, and the bound that pays for it.
+  -- The gap the chaining costs.
   gap : ∣ Pr general collide -ℚ Pr Sys collide ∣ℚ ≡ +ℤ 1 / 4
   gap = refl
 
+  -- `bound 2` exceeds 1, so `indistinguishable` is VACUOUS at `n = 1, k = 2`:
+  -- this pin exercises the arithmetic only.  `OneBlock.bound-1` is the tight
+  -- one.
   bound-2 : bound 2 ≡ +ℤ 3 / 1
   bound-2 = refl
 

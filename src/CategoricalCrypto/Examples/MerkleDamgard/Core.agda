@@ -120,9 +120,12 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   Blk = Vec Bool n            -- one message block
 
   module Comp where
-    -- 4-input compression oracle (Theorem 3.1): tagging each call with the message
-    -- length and block index — the prefix-free encoding — makes `f` an independent
-    -- random oracle per (length, index):  (chaining , block , ⟨length⟩ , ⟨index⟩) ↦ n bits.
+    -- 4-input compression oracle (Theorem 3.1 — the citation is for the
+    -- construction; what is formalized here is the weaker single-oracle
+    -- statement, `f` hidden and no simulator, see `Examples.MerkleDamgard`):
+    -- tagging each call with the message length and block index — the
+    -- prefix-free encoding — makes `f` an independent random oracle per
+    -- (length, index):  (chaining , block , ⟨length⟩ , ⟨index⟩) ↦ n bits.
     open RandomOracle p (CV × Blk × ℕ × ℕ) n public
 
   module General where
@@ -147,8 +150,9 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
 
   ------------------------------------------------------------------------
   -- Security via the reactive model + Fundamental Lemma of Game-Playing.
-  -- `MD ⊚ Comp.M` (compression hidden) is a variable-length random oracle:
-  -- advantage `bound n` against any adaptive n-query distinguisher.  No simulator.
+  -- `MD ⊚ Comp.M` with the compression hidden is INDISTINGUISHABLE from a
+  -- variable-length random oracle: advantage `bound n` against any adaptive
+  -- n-query distinguisher.  No simulator, so this is not indifferentiability.
 
   i₀ : Fin p
   i₀ = zero
