@@ -88,11 +88,19 @@ module _ (B : Iface) (P : Protocol unitᴵ B) where
 ------------------------------------------------------------------------
 -- …and through a composite
 
+-- Every polarity is passed explicitly, for `UC.QueryBound`'s reason: left to
+-- inference, each asks Agda to invert `Machine (A⁺ ⊎ B⁻) (A⁻ ⊎ B⁺)` for the
+-- pair, and `_⊎_` is not a constructor.
 morphismCompose : Morphism-∘
-morphismCompose P₂ P₁ =
-  morphism-∘ P₂ P₁ S.○ᴹ Col.compose-raw≈∘ᴳ (morphism P₂) (morphism P₁)
+morphismCompose {A} {B} {C} P₂ P₁ =
+  morphism-∘ P₂ P₁ S.○ᴹ
+  Col.compose-raw≈∘ᴳ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C}
+                     (morphism P₂) (morphism P₁)
 
 totalRun-∘ : (B C : Iface) (P₂ : Protocol B C) (P₁ : Protocol unitᴵ B)
            → TotalRun C (morphism (P₂ ∘ᵖ P₁))
            → TotalRun C (morphism P₂ 𝒢.∘ morphism P₁)
-totalRun-∘ B C P₂ P₁ = totalRun-resp-≈ᴹ C _ _ (morphismCompose P₂ P₁)
+totalRun-∘ B C P₂ P₁ =
+  totalRun-resp-≈ᴹ C (morphism (P₂ ∘ᵖ P₁))
+    (𝒢._∘_ {⟦ unitᴵ ⟧ᴵ} {⟦ B ⟧ᴵ} {⟦ C ⟧ᴵ} (morphism P₂) (morphism P₁))
+    (morphismCompose P₂ P₁)
