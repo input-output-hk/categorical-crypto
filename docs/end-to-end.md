@@ -104,10 +104,14 @@ family:
 | `TruthfulAudit a V Real badReal` | `Trajectory.monitor-complete`, generic in the hash: an audit query is answered out of the LEDGER's state whatever it hashes with, so the ideal side's argument is the real side's verbatim |
 
 Nothing else about the hash enters, which is the point: the corollary is the
-slides' claim, with the emulation the only cryptographic premise left. It is
-assumed at the LEDGER (`Real ≤UC^ω Ideal a V`) and not at the hash, because
-getting it from a hash-level `hash n ≤UC oracle n` is `UC-compose` at the family
-setup — continuation item 1 below.
+slides' claim, with the emulation the only cryptographic premise left. And the
+hash-level premise is delivered too: `Examples.ChimericLedger.Factor` factors
+the closed system on the nose (`ledger-factor`, via the new `Seal.procᵒ-∘` and
+the retraction-conjugated `sub` congruence `Abstract2.Factor.≤UC-sub`), lifts
+`hash ≤UC^ω oracle^ω` to the system level (`hash-lift` — the ledger enters
+only as `≤UC-refl`), and `ledger-pov-from-hash` is this corollary at that
+premise: the slides' `H ≤UC RO ⟹ Ledger∘H ≤UC Ledger∘RO` step, literally.
+See `docs/ledger-factoring.md`.
 
 ## Acceptance requirements
 
