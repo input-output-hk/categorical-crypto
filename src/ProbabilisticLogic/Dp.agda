@@ -28,7 +28,7 @@ open import Data.Nat.Base renaming (_+_ to _+ℕ_; _≤_ to _≤ℕ_)
 open import Data.Nat.Properties using (m≤m⊔n; m≤n⊔m; m≤n+m; n≤1+n)
 open import Data.Product.Base
 open import Data.Rational as ℚ using (ℚ; 0ℚ; 1ℚ)
-open import Data.Rational.Properties as ℚP
+open import Data.Rational.Properties
 
 open import Data.Rational.Properties.Ext
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)

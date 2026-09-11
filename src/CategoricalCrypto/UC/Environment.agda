@@ -175,10 +175,10 @@ _≈ℰ_ {A} {B′} f g = (Y : Obj) (E : Test (Y ⊛ B′)) (m : Closure (Y ⊛ 
 
 -- An agreement read at ONE context, presented uniformly in the process: if a
 -- single ancilla, test and closure realize `k w` for every `w`, then closeness
--- of the two `k`-observations is the whole of it.  Proved here, over an
--- arbitrary base, because at the intended instance a `∼-cast` between machine
--- COMPOSITES is the eta cliff `UC.Seam.Grounding`'s header measures; that module
--- supplies the three components and nothing else.
+-- of the two `k`-observations is the whole of it.  Stated over an arbitrary
+-- base; the machine model uses `UC.Model.Bridge.≈ᴳ-at`, the same shape past the
+-- seal, because a `∼-cast` between machine COMPOSITES is the eta cliff
+-- `UC.Seam.Grounding`'s header measures.
 ≈ℰ-at : {A B′ : Obj} (Y : Obj) (Et : Test (Y ⊛ B′)) (m : Closure (Y ⊛ A))
         (k : A ⇒ B′ → 𝟙 ⇒ Ω) → ((w : A ⇒ B′) → (Et ∘ T₁ Y w) ∘ m ≈ k w)
       → {f g : A ⇒ B′} → f ≈ℰ g → ⟦ k f ⟧ ∼ ⟦ k g ⟧

@@ -15,7 +15,6 @@ import Categories.GConstruction as GC
 import Categories.GConstructionMonoidal as GM
 
 open import Data.Product.Base using (_×_)
-open import Level
 
 import CategoricalCrypto.Machines.Bundle as Bundle
 import CategoricalCrypto.Machines.Category as MCat

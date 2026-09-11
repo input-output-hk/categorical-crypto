@@ -48,7 +48,6 @@ module CategoricalCrypto.Machines.Sim.Lax
 
 open SymmetricMonoidalCategory 𝒱
 open Core 𝒱
-open Equiv
 open Frame 𝒱
 open MCat 𝒱 𝒫
 open MD.MonoidalDistributive dist

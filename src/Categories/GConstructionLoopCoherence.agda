@@ -36,10 +36,7 @@ import Categories.APROP.Hypergraph.Solver.Frontend as Interp
 private instance S≤S : Symm ≤ Symm
                  S≤S = v≤v
 
-X6 : Set
-X6 = Fin 6
-
-open FreeMonoidalHelper Symm X6 using (ObjTerm; Var; _⊗₀_)
+open FreeMonoidalHelper Symm (Fin 6) using (ObjTerm; Var; _⊗₀_)
 
 a b p q r s : ObjTerm
 a = Var 0F ; b = Var 1F ; p = Var 2F
@@ -56,7 +53,7 @@ _≟-Mor_ : ∀ {A B} → DecidableEquality (Mor A B)
 gf ≟-Mor gf = yes refl
 
 sig : APROPSignature
-sig = record { X = X6 ; mor = Mor ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-Mor_ }
+sig = record { X = Fin 6 ; mor = Mor ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-Mor_ }
 
 open APROP sig using (HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_)
 

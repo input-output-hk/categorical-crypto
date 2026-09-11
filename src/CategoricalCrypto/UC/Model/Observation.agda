@@ -19,11 +19,8 @@
 -- type spells each polarity — `Data.Empty.⊥` against the base's polymorphic
 -- one — and `𝟘ᵒ` is the spelling the machine layer's closed run is already
 -- typed at (`UC.Machine.Run.Closed`), which is what lets that run and its
--- simulation-invariance be reused unchanged.  That the two objects are
--- isomorphic in `𝔾ᵒ`, hence that the choice is immaterial, is NOT proved here:
--- a G-composite is a trace, so `isoˡ` is not the one-line argument the
--- underlying bijection of empty types suggests.  Nothing downstream depends on
--- it — `ℰ` is a presheaf for either family of closures.
+-- simulation-invariance be reused unchanged.  Whether that choice is
+-- immaterial is `UC.Model.Unit`'s subject.
 
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 

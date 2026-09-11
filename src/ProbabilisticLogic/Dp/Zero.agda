@@ -38,8 +38,9 @@ zero⇒≈bot {d = d} z =
   , λ P nn n → n , ≤-trans (≤-reflexive (botₚ-cum n P)) (cum-nn n d P nn)
 
 ≈bot⇒zero : {d : Dₚ A} → d ≈ₚ botₚ → Zero d
-≈bot⇒zero {d = d} (le , _) P nn n with le P nn n
-... | m , bd = ≤-antisym (≤-trans bd (≤-reflexive (botₚ-cum m P))) (cum-nn n d P nn)
+≈bot⇒zero {d = d} (le , _) P nn n =
+  let m , bd = le P nn n
+  in ≤-antisym (≤-trans bd (≤-reflexive (botₚ-cum m P))) (cum-nn n d P nn)
 
 zero-resp-≈ₚ : {d e : Dₚ A} → d ≈ₚ e → Zero d → Zero e
 zero-resp-≈ₚ {d = d} {e} de z =

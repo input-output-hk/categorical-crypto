@@ -15,7 +15,7 @@
 -- inherited `_≤UC_` — whose statement carries the quantifier — back into this
 -- one.
 --
--- Universal composition is NOT here.  Superseded: it needs a `sub`/`T₁`
+-- Universal composition is NOT here.  It needs a `sub`/`T₁`
 -- interchange and an `a⇒`-naturality that `Grading` does not ask for, so this
 -- layer could only STATE it, and at the intended instance it is the inherited
 -- `Abstract2.UC-compose`, a theorem, transported by `UC.Model.Bridge`'s

@@ -42,7 +42,6 @@ open Sim 𝒱 𝒫
 open Structural 𝒱 dist 𝒫
 open Tensor 𝒱 dist 𝒫
 
-open import Categories.Category.Monoidal.Properties monoidal
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Morphism.Reasoning U
 

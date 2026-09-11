@@ -41,7 +41,6 @@ bindˣ {d = d} {e} {k} h = >>=ₚ-cong d e k k h λ _ → ≈refl
 push : (k : A → Dₚ B) (x : A) → k x ≈ₚ (returnₚ x >>=ₚ k)
 push k x = ≈sym (>>=ₚ-identityˡ x k)
 
--- The three `mapₚ` laws in the same idiom.
 map-map : (d : Dₚ A) (h : A → B) (k : B → C) → mapₚ k (mapₚ h d) ≈ₚ mapₚ (k ∘′ h) d
 map-map d h k = >>=ₚ-assoc d (returnₚ ∘′ h) (returnₚ ∘′ k)
           ⟨≈⟩ bindᶠ (λ x → >>=ₚ-identityˡ (h x) (returnₚ ∘′ k))
@@ -51,3 +50,7 @@ map-arg h de = bindˣ de
 
 bind-map : (d : Dₚ A) (h : A → B) (k : B → Dₚ C) → (mapₚ h d >>=ₚ k) ≈ₚ (d >>=ₚ (k ∘′ h))
 bind-map d h k = >>=ₚ-assoc d (returnₚ ∘′ h) k ⟨≈⟩ bindᶠ (λ x → >>=ₚ-identityˡ (h x) k)
+
+map-bind : (d : Dₚ A) (h : A → Dₚ B) (k : B → C)
+         → mapₚ k (d >>=ₚ h) ≈ₚ (d >>=ₚ λ x → mapₚ k (h x))
+map-bind d h k = >>=ₚ-assoc d h (returnₚ ∘′ k)

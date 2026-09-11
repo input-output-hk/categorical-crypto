@@ -10,7 +10,7 @@
 --
 -- For a protocol image the budget half is free: `PrAgree` already says the
 -- machine run's verdict mass is layer 1's own `Prᵇ` past a budget, so what is
--- left is the layer-1 liveness `Pr true + Pr false ≡ 1ℚ` — genuinely a side
+-- left is the layer-1 liveness `1ℚ ≤ Pr true + Pr false` — genuinely a side
 -- condition, `Protocol.Observe.evalC` sending a `dead` call tree to `nothing`.
 -- `totalRun-resp-≈ᴹ` and `totalRun-∘` then carry it along the machine equality
 -- and through `Morphism-∘`, so a composite of protocol images discharges it by
@@ -20,7 +20,7 @@ open import Categories.Category using (Category)
 
 open import Data.Bool.Base using (Bool; true; false)
 open import Data.Empty using (⊥)
-open import Data.Nat.Base using (ℕ; _+_)
+open import Data.Nat.Base using (_+_)
 open import Data.Nat.Properties using (+-comm)
 open import Data.Product.Base using (_,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 1ℚ)

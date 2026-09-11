@@ -32,7 +32,6 @@ module CategoricalCrypto.Machines.Tensor
 
 open SymmetricMonoidalCategory 𝒱
 open Core 𝒱
-open Equiv
 open Frame 𝒱
 open MD.MonoidalDistributive dist
 open CE U cocartesian

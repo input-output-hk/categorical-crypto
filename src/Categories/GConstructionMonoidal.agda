@@ -42,7 +42,7 @@ module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
       open U M public using (triangle-inv; pentagon-inv)
       open U.Shorthands M public
       open import Categories.Category.Monoidal.Reasoning M public
-        using (⊗-distrib-over-∘; _⟩⊗⟨_; refl⟩⊗⟨_)
+        using (⊗-distrib-over-∘; _⟩⊗⟨_)
       open BProps.Shorthands braided public
 
     Cˢ : SymmetricMonoidalCategory a b c

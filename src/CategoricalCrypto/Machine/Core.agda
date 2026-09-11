@@ -140,14 +140,6 @@ idᴷ = liftᴷ id
 transpose : ∀ {A B} → Machine A B → Machine (B ᵀ) (A ᵀ)
 transpose = modifyStepRel ⇒-solver
  
--- NOT BUILT — a sketch of the compact-closed structure, re-spelled for the
--- current API (the channel tensor is `_⊗₀_`, and `A` needs binding):
--- cup : ∀ {A} → Machine I (A ⊗₀ A ᵀ)
--- cup = StatelessMachine λ x x₁ → {!!}
-
--- cap : ∀ {A} → Machine (A ᵀ ⊗₀ A) I
--- cap {A} = modifyStepRel ⇒-solver (transpose (cup {A})) {!!} {!!}
-
 ⨂₁ : ∀ {n} → {A B : Fin n → Channel} → ((k : Fin n) → Machine (A k) (B k)) → Machine (⨂ A) (⨂ B)
 ⨂₁ {zero} M = id
 ⨂₁ {suc n} M = M fzero ⊗₁ ⨂₁ (M P.∘ fsuc)

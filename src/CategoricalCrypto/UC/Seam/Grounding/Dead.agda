@@ -16,8 +16,8 @@
 -- `Machine (A⁺ + B⁻) (A⁻ + B⁺)` for the pair at every use site.  With the
 -- objects implicit this module does not come back inside 4m47 CPU.
 --
--- What it is FOR, at both ends of the scale.  At mass 0 it REFUTES `SubBlind`
--- as that statement used to read: `_≤UC_` quantifies its simulator over a
+-- What it is FOR, at both ends of the scale.  At mass 0 it REFUTES the
+-- unguarded form of `SubBlind`: `_≤UC_` quantifies its simulator over a
 -- divergent `s`, `massed-sub` makes `sub s ∘ (ι ∘ v)` observe nothing,
 -- `dead-≈ℰ` makes it agree with every other such process, and `massed-run`
 -- shows layer 1 still sees the difference.  At mass 1 it is the route to the

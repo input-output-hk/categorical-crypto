@@ -16,7 +16,6 @@ open import Categories.Category.Monoidal.Traced
 module Categories.GConstructionLoop
   {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced Monoidal) where
 
-open import Categories.Category.Monoidal.Bundle
 
 import Categories.Category.Monoidal.Utilities as U
 import Categories.GConstructionLoopCoherence as GLoopCoh

@@ -4,8 +4,7 @@
 -- MERKLE–DAMGÅRD: the cryptographic content, machine-free.
 --
 -- Everything the security proof rests on that never mentions a machine: the
--- relay arrow `mdArrow`, the real and ideal reactive kernels (`respR`,
--- `respG`), the coupling, the Fundamental Lemma of Game-Playing application,
+-- real and ideal reactive kernels (`respR`, `respG`), the coupling, the Fundamental Lemma of Game-Playing application,
 -- the birthday certificate `md-cert` and the adaptive bound `bad-bound`.  The
 -- protocols, the composite `md ∘ᵖ comp` and the theorem `indistinguishable`
 -- are `Examples.MerkleDamgard`; the split is what keeps a change to the
@@ -65,11 +64,12 @@ open import Data.Nat using (_+_; _*_; _≤_; _<_; _∸_; NonZero; _≤′_; ≤�
 open import Data.Nat.Properties using (_<?_)
 import Data.Nat.Properties as ℕP
 open import Data.Fin using (Fin; zero)
-open import Data.Vec using (Vec; []; _∷_; toList) renaming (_++_ to _++ᵛ_; take to takeᵛ; drop to dropᵛ; replicate to replicateᵛ)
+open import Data.Vec using (Vec; []; _∷_; toList) renaming (take to takeᵛ; drop to dropᵛ; replicate to replicateᵛ)
 import Data.Vec as DV
 open import Data.List using (_++_; length)
 import Data.List as L
 open import Data.List.Properties using (∷-injective; length-++)
+open import Data.Maybe.Ext using (just≢nothing; nothing≢just)
 import Data.List.Relation.Unary.Any as ListAny
 open import Data.List.Relation.Unary.AllPairs using (AllPairs; []; _∷_)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
@@ -83,19 +83,18 @@ open import Data.Rational.Properties.Ext
 import Data.List.NonEmpty as NE
 import Data.List.Relation.Unary.All as ListAll
 open import Data.List.Run
+open import Data.Vec.Properties using (length-toList)
 open import Data.Vec.Properties.Ext using (take-drop-inj)
 open import CategoricalCrypto.Examples.RandomOracle
 open import CategoricalCrypto.GamePlaying
 open import CategoricalCrypto.Interaction
-open import CategoricalCrypto.SFunM
-open import CategoricalCrypto.SFunPartial
 open import CategoricalCrypto.Strategy
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
 open import ProbabilisticLogic.Distribution.RationalDist.Setoid
 open import ProbabilisticLogic.Distribution.Uniform using
-  (0≤fromℕ; inv-pow-2; bool→ℚ; fromℕ; fromℕ-+; δ; P-uniform-Vec)
+  (0≤fromℕ; inv-pow-2; fromℕ; fromℕ-+; δ; P-uniform-Vec)
 import ProbabilisticLogic.Distribution.Uniform.Birthday as Birthday
 
 module CategoricalCrypto.Examples.MerkleDamgard.Core where
@@ -146,26 +145,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   MDState : Type
   MDState = Maybe (Fin p × ℕ × List Blk)   -- idle, or (party, next block index, remaining blocks)
 
-  -- new query: fire the first compression query at index 1, i.e. (IV , b₁ , k , 1).
-  -- Split out so it pattern-matches the block list as an honest argument — that
-  -- keeps `mdStep (sr , inj₂ (i , M)) = mdStepᵇ i (toBlocks M)` DEFINITIONAL, so
-  -- proofs can case on `toBlocks M` via a supplied equation rather than fighting a
-  -- `with`-abstracted scrutinee inside `mdStep`.
-  mdStepᵇ : Fin p → List Blk → MDState × (Comp.Input ⊎ General.Output)
-  mdStepᵇ i []       = (nothing            , inj₂ (i , IV))
-  mdStepᵇ i (b ∷ bs) = (just (i , 2 , bs)  , inj₁ (i , pack IV b 1))
-
-  mdStep : MDState × (Comp.Output ⊎ General.Input)
-         → MDState × (Comp.Input  ⊎ General.Output)
-  mdStep (_ , inj₂ (i , M)) = mdStepᵇ i (toBlocks M)
-  -- callback with chaining value `h`: done, or fire the next block at its index
-  mdStep (just (i , idx , [])       , inj₁ (_ , h)) = (nothing                 , inj₂ (i , h))
-  mdStep (just (i , idx , (b ∷ bs)) , inj₁ (_ , h)) = (just (i , suc idx , bs) , inj₁ (i , pack h b idx))
-  mdStep (nothing                   , inj₁ (i , h)) = (nothing                 , inj₂ (i , h))
-
-  mdArrow : SFunᵉ {M = Dist-ℚ} (Comp.Output ⊎ General.Input) (Comp.Input ⊎ General.Output)
-  mdArrow = record { State = MDState ; init = nothing ; fun = return-ℚ ∘ mdStep }
-
   ------------------------------------------------------------------------
   -- Security via the reactive model + Fundamental Lemma of Game-Playing.
   -- `MD ⊚ Comp.M` (compression hidden) is a variable-length random oracle:
@@ -185,11 +164,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   -- chaining over the message, echo the querying party with the resulting hash.
   respR : Comp.Table → General.Input → Dist-ℚ (Comp.Table × General.Output)
   respR s (i , M) = mdRun s IV (toBlocks M) 1 >>=ᴹ λ sh → return-ℚ (proj₁ sh , (i , proj₂ sh))
-
-  -- `respR` as a stateful functionality — the underlying morphism the composite
-  -- `MD ⊚ Comp.M` should compute to (compression table = internal state).
-  respRM : SFunᵉ {M = Dist-ℚ} General.Input General.Output
-  respRM = record { State = Comp.Table ; init = [] ; fun = λ sq → respR (proj₁ sq) (proj₂ sq) }
 
   -- The *structural* chaining collision: a coincidence among {IV} ∪ {interior
   -- chaining values} (interior = outputs of NON-final calls, idx < len).  A
@@ -216,9 +190,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   -- number of colliding pairs in the pool
   collC : Comp.Table → ℚ
   collC sc = Comp.state-collisions (poolL sc)
-
-  bad : Comp.Table → Bool
-  bad s = not ⌊ collC s ≟ℚ 0ℚ ⌋
 
   -- The birthday bound `triangle (q·k) · 2⁻ⁿ` for q queries of k blocks each — the
   -- value proven by `RandomOracle.RO-collision` (same `triangle`, same `inv-pow-2`).
@@ -712,10 +683,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     pool-consᶠ hh bb ii vv sc ¬lt =
       cong (λ z → length (ivEntry ∷ z)) (interior-consᶠ hh bb ii vv sc ¬lt)
 
-    len-toList : ∀ {A : Type} {j} (v : Vec A j) → length (toList v) ≡ j
-    len-toList []      = refl
-    len-toList (_ ∷ v) = cong suc (len-toList v)
-
     suc∸1 : ∀ j → .⦃ _ : NonZero j ⦄ → suc (j ∸ 1) ≡ j
     suc∸1 zero    = ⊥-elim (≢-nonZero⁻¹ zero refl)
     suc∸1 (suc j) = refl
@@ -845,9 +812,9 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     φ-step m s (i , M) = aux (General.lookup-bs (proj₂ (proj₂ s)) M)
       where
         pr : 1 + length (toBlocks M) ≡ suc k
-        pr = cong suc (len-toList (chunk k M))
+        pr = cong suc (length-toList (chunk k M))
         tail-eq : (length (toBlocks M) ∸ 1) + m * (k ∸ 1) ≡ suc m * (k ∸ 1)
-        tail-eq = cong (λ z → (z ∸ 1) + m * (k ∸ 1)) (len-toList (chunk k M))
+        tail-eq = cong (λ z → (z ∸ 1) + m * (k ∸ 1)) (length-toList (chunk k M))
         aux : (mv : Maybe CV)
             → E (Dmap C.fR (respB' i M s mv)) (λ sr → φMD m (proj₁ sr))
             ≤ℚ φMD (suc m) s
@@ -1063,9 +1030,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     just-inj : ∀ {x y : CV} → just x ≡ just y → x ≡ y
     just-inj refl = refl
 
-    nothing≢just : ∀ {A : Type} {x : A} → nothing ≡ just x → ⊥
-    nothing≢just ()
-
     -- Replaying an EMBEDDED chain: with every lookup a hit, the walk is a
     -- deterministic all-hits run — the table is unchanged and it reaches the
     -- recorded value (support level; `>>=` scales weights but not points).  The
@@ -1133,9 +1097,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
 
   -- ═══ new-message branch (group E): fresh-insert / lookup-extension machinery ═══
   private
-    just≢nothing : ∀ {A : Type} {x : A} → just x ≡ nothing → ⊥
-    just≢nothing ()
-
     -- "sc' extends sc": every present lookup is preserved (⟹ successful runs preserved)
     _⊒_ : Comp.Table → Comp.Table → Type
     sc' ⊒ sc = ∀ key x → Comp.lookup-bs sc key ≡ just x → Comp.lookup-bs sc' key ≡ just x
@@ -1338,10 +1299,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
 
   private
     -- length of a message in blocks is exactly k
-    toList-len : ∀ {A : Type} {m} (xs : Vec A m) → length (toList xs) ≡ m
-    toList-len []       = refl
-    toList-len (x ∷ xs) = cong suc (toList-len xs)
-
     -- extending a table by fresh inserts + recording (M , v') preserves RecChains
     rec-extend : ∀ sc sg sc' M v' → sc' ⊒ sc → Chain sc' M v'
                → RecChains sc sg → RecChains sc' ((M , v') ∷ sg)
@@ -1630,7 +1587,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     snoc-len M0 pre b dec =
       trans (sym (ℕP.+-comm (length pre) 1))
       (trans (sym (length-++ pre {b ∷ []}))
-      (trans (sym (cong length dec)) (toList-len (chunk k M0))))
+      (trans (sym (cong length dec)) (length-toList (chunk k M0))))
 
     -- inversion of the interior-restricted step
     stepT<k-inv : ∀ sc v b j w → stepT<k sc v (b , j) ≡ just w
@@ -1670,7 +1627,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
       go (inj₁ c0)  = ⊥-elim (nothing≢just (trans (sym eq) M-recorded))
         where
           0<len : 0 < length (toBlocks M)
-          0<len = subst (0 <_) (sym (toList-len (chunk k M))) (ℕP.n≢0⇒n>0 (≢-nonZero⁻¹ k))
+          0<len = subst (0 <_) (sym (length-toList (chunk k M))) (ℕP.n≢0⇒n>0 (≢-nonZero⁻¹ k))
           sv     = snoc-view (toBlocks M) 0<len
           preM   = proj₁ sv
           bk     = proj₁ (proj₂ sv)
@@ -1748,8 +1705,8 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     OnSupport-bind (walk sc IV (toBlocks M) 1)
       (λ w → newAns i M sg (proj₂ (proj₂ w) ∨ false) (proj₁ w) (proj₁ (proj₂ w)))
       (OnSupport-∧ (walk sc IV (toBlocks M) 1)
-        (walk-supp sc IV (toBlocks M) 1 uk rt (ListAny.here refl) (cong suc (toList-len (chunk k M))))
-        (walk-fk sc IV (toBlocks M) 1 (cong suc (toList-len (chunk k M)))))
+        (walk-supp sc IV (toBlocks M) 1 uk rt (ListAny.here refl) (cong suc (length-toList (chunk k M))))
+        (walk-fk sc IV (toBlocks M) 1 (cong suc (length-toList (chunk k M)))))
       cont
     where
       cont : ∀ w → Bnd sc IV (toBlocks M) 1 w × FKout sc IV (toBlocks M) 1 w

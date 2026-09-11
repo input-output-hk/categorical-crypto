@@ -76,9 +76,7 @@ private
                       (ℕₚ.≤-trans (ℕₚ.m≤m+n t j) (ℕₚ.n≤1+n (t ℕ.+ j)))))
 
   square : ∀ q → q ℕ.* (1 ℕ.+ q) ≡ q ℕ.* q ℕ.+ q
-  square q = trans (ℕₚ.*-distribˡ-+ q 1 q)
-                   (trans (cong (ℕ._+ q ℕ.* q) (ℕₚ.*-identityʳ q))
-                          (ℕₚ.+-comm q (q ℕ.* q)))
+  square q = trans (ℕₚ.*-suc q q) (ℕₚ.+-comm q (q ℕ.* q))
 
 -- The headline shape: from a pool of one, `q` samples cost at most
 -- `(q² + q)·2⁻ⁿ`.

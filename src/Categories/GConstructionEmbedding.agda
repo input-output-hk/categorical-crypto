@@ -22,7 +22,6 @@ module Categories.GConstructionEmbedding where
 
 open import Categories.Category
 open import Categories.Category.Monoidal
-open import Categories.Category.Monoidal.Bundle
 open import Categories.Category.Monoidal.Traced
 open import Categories.GConstruction
 import Categories.GConstruction as GC

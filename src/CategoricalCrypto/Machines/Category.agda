@@ -25,7 +25,6 @@ module CategoricalCrypto.Machines.Category
 
 open SymmetricMonoidalCategory 𝒱
 open Core 𝒱
-open Equiv
 open Frame 𝒱
 open MonoidalUtilities.Shorthands monoidal
 open PureSub 𝒫
