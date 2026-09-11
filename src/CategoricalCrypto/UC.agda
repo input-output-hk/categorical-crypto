@@ -94,6 +94,12 @@
 --                                  and what discharges it at the trivial
 --                                  grade: `SubBlind`, `StratIsEnv` and with
 --                                  them `UnitGrade`
+--                `UC.Factor`       `closedᵒ`/`stageᵒ` and `factorᵖ`/`liftᵖ`:
+--                                  the UC-object image of `_∘ᵖ_` factors on
+--                                  the nose, so a sub-protocol emulation
+--                                  lifts to the composed system by
+--                                  `UC-compose` (the retraction-conjugated
+--                                  `sub` congruence is `Abstract2.Factor`)
 --                `UC.Seam.Audit.Prefix`
 --                                  the BUDGETED route's consumer end:
 --                                  `uc-audit-bounded` turns an ideal monitor
@@ -142,6 +148,7 @@ open import CategoricalCrypto.UC.QueryBound public
 open import CategoricalCrypto.UC.QueryBound.Counting public
 open import CategoricalCrypto.UC.Saturated public
 open import CategoricalCrypto.UC.Seam.Audit.Prefix public
+open import CategoricalCrypto.UC.Factor public
 open import CategoricalCrypto.UC.Seam.Grounded public
 
 -- Closure-only: the negligible tier's acceptance tests (leaf, nothing to open).
