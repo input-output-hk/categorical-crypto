@@ -77,7 +77,7 @@ open import Data.Rational using (ℚ; 0ℚ; 1ℚ; nonNegative)
   renaming (_*_ to _*ℚ_; _+_ to _+ℚ_; _-_ to _-ℚ_; -_ to -ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_; _≟_ to _≟ℚ_)
 open import Data.Rational.Properties using
   ( ≤-trans; ≤-refl; ≤-reflexive; +-monoʳ-≤; +-monoˡ-≤; +-mono-≤
-  ; *-zeroˡ; *-distribʳ-+; *-monoʳ-≤-nonNeg
+  ; *-zeroˡ; *-monoʳ-≤-nonNeg
   ; +-assoc; +-comm; +-identityˡ; +-identityʳ; ≤-antisym; 1≢0 )
 open import Data.Rational.Properties.Ext
 import Data.List.NonEmpty as NE
@@ -94,7 +94,9 @@ open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
 open import ProbabilisticLogic.Distribution.RationalDist.Setoid
-open import ProbabilisticLogic.Distribution.Uniform using (inv-pow-2; bool→ℚ; fromℕ; δ; P-uniform-Vec)
+open import ProbabilisticLogic.Distribution.Uniform using
+  (0≤fromℕ; inv-pow-2; bool→ℚ; fromℕ; fromℕ-+; δ; P-uniform-Vec)
+import ProbabilisticLogic.Distribution.Uniform.Birthday as Birthday
 
 module CategoricalCrypto.Examples.MerkleDamgard.Core where
 
@@ -596,13 +598,12 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   -- `pool` expected collision pairs (the PROVEN `E-collisions`) and spends
   -- exactly `pool` from the budget; final calls and hits are free.
 
-  -- sum of `j` consecutive naturals starting at `t` (a triangle slice)
-  sumR : ℕ → ℕ → ℚ
-  sumR t zero    = 0ℚ
-  sumR t (suc j) = fromℕ t +ℚ sumR (suc t) j
+  private module B = Birthday n
+  open B using (Γ; 0≤Γ; Γ-step) renaming (Γ-mono to Γ-≤-suc)
 
-  Γ : ℕ → ℕ → ℚ
-  Γ t j = sumR t j *ℚ inv-pow-2 n
+  -- the triangle slice `Γ` sums, as a rational
+  sumR : ℕ → ℕ → ℚ
+  sumR t j = fromℕ (B.sumN t j)
 
   φsc : ℕ → Comp.Table → ℚ
   φsc m sc = collC sc +ℚ Γ (pool sc) (m * (k ∸ 1))
@@ -611,12 +612,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   φMD m s = φsc m (proj₁ (proj₂ s))
 
   private
-    -- ℚ order basics
-    0≤fromℕ : ∀ j → 0ℚ ≤ℚ fromℕ j
-    0≤fromℕ zero    = ≤-refl
-    0≤fromℕ (suc j) = ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ)))
-                              (+-mono-≤ 0≤1ℚ (0≤fromℕ j))
-
     -- literal-free: `inv-pow-2 n` is the uniform point-mass (P-uniform-Vec),
     -- and expectations of non-negative indicators are non-negative.
     0≤ε : 0ℚ ≤ℚ inv-pow-2 n
@@ -632,32 +627,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     x≤c+x : ∀ x {c} → 0ℚ ≤ℚ c → x ≤ℚ c +ℚ x
     x≤c+x x 0≤c = ≤-trans (≤-reflexive (sym (+-identityˡ x))) (+-monoˡ-≤ x 0≤c)
 
-    0≤sumR : ∀ t j → 0ℚ ≤ℚ sumR t j
-    0≤sumR t zero    = ≤-refl
-    0≤sumR t (suc j) = ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ)))
-                               (+-mono-≤ (0≤fromℕ t) (0≤sumR (suc t) j))
-
-    0≤Γ : ∀ t j → 0ℚ ≤ℚ Γ t j
-    0≤Γ t j = ≤-trans (≤-reflexive (sym (*-zeroˡ (inv-pow-2 n))))
-                      (*-monoʳ-≤-nonNeg _ ⦃ nonNegative 0≤ε ⦄ (0≤sumR t j))
-
-    sumR-≤-suc : ∀ t j → sumR t j ≤ℚ sumR t (suc j)
-    sumR-≤-suc t zero    = ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ)))
-                                   (+-mono-≤ (0≤fromℕ t) ≤-refl)
-    sumR-≤-suc t (suc j) = +-monoʳ-≤ (fromℕ t) (sumR-≤-suc (suc t) j)
-
-    sumR-mono : ∀ t {j j'} → j ≤ j' → sumR t j ≤ℚ sumR t j'
-    sumR-mono t le = go t _ _ (ℕP.≤⇒≤′ le)
-      where go : ∀ t j j' → j ≤′ j' → sumR t j ≤ℚ sumR t j'
-            go t j .j ≤′-refl        = ≤-refl
-            go t j _ (≤′-step {j'} pf) = ≤-trans (go t j j' pf) (sumR-≤-suc t j')
-
-    Γ-≤-suc : ∀ t j → Γ t j ≤ℚ Γ t (suc j)
-    Γ-≤-suc t j = *-monoʳ-≤-nonNeg _ ⦃ nonNegative 0≤ε ⦄ (sumR-≤-suc t j)
-
-    Γ-step : ∀ t j → fromℕ t *ℚ inv-pow-2 n +ℚ Γ (suc t) j ≡ Γ t (suc j)
-    Γ-step t j = sym (*-distribʳ-+ (inv-pow-2 n) (fromℕ t) (sumR (suc t) j))
-
     -- triangle facts
     tri-mono : ∀ {a b} → a ≤ b → Comp.triangle a ≤ℚ Comp.triangle b
     tri-mono le = go _ _ (ℕP.≤⇒≤′ le)
@@ -668,9 +637,10 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     sumR-tri : ∀ t j → Comp.triangle t +ℚ sumR t j ≡ Comp.triangle (t + j)
     sumR-tri t zero    = trans (+-identityʳ _) (cong Comp.triangle (sym (ℕP.+-identityʳ t)))
     sumR-tri t (suc j) =
-      trans (sym (+-assoc (Comp.triangle t) (fromℕ t) (sumR (suc t) j)))
+      trans (cong (Comp.triangle t +ℚ_) (fromℕ-+ t (B.sumN (suc t) j)))
+     (trans (sym (+-assoc (Comp.triangle t) (fromℕ t) (sumR (suc t) j)))
      (trans (cong (_+ℚ sumR (suc t) j) (+-comm (Comp.triangle t) (fromℕ t)))
-     (trans (sumR-tri (suc t) j) (cong Comp.triangle (sym (ℕP.+-suc t j)))))
+     (trans (sumR-tri (suc t) j) (cong Comp.triangle (sym (ℕP.+-suc t j))))))
 
     -- counting facts
     cm-nn : ∀ s h → 0ℚ ≤ℚ Comp.count-matches s h
