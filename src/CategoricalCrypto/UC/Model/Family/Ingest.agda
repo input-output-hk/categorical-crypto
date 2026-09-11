@@ -17,7 +17,7 @@
 -- domination is (its `δ` is arbitrary but positive, and `_≈ℰ[_]_` has no
 -- ambient quantifier to hide it in).  It costs the consumer nothing: the two
 -- collapses below ask for the SUM to be negligible, and negligibility is closed
--- under sums (`UC.Approximate.GradedBound-+`), so any positive negligible `δ`
+-- under sums (`UC.Approximate.GradedBound-+[_]`), so any positive negligible `δ`
 -- will do — `UC.Approximate.Decay.negligible-slack` is one, and the same
 -- parameter appears for the same reason at layer 1 (`UC.Asymptotic.uc-≈negl`).
 --
