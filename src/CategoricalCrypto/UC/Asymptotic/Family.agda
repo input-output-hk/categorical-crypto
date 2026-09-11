@@ -9,7 +9,9 @@
 -- exactly `2⁻ⁿ` are negligibly different and fail that, so the pointwise
 -- premise excludes them (`pointwise-rejects`); this one admits them
 -- (`admits-inv-pow-2`) and still rejects a `1/(n+1)` difference
--- (`rejects-inv-suc`).  Those are review §1's two acceptance criteria.
+-- (`rejects-inv-suc`).  Those are review §1's two acceptance criteria;
+-- `UC.Approximate.LocalTests` states the same pair for the LOCAL relation
+-- `_∼ᴺ_`, in the same shape and against the same instruments.
 --
 -- What replaces the per-level emulation is that same collapse stopped one step
 -- earlier — `UC.Seam.Grounded.emulAgreeᵁ`, the direct `≈ᵁ` agreement, which is
