@@ -1,6 +1,6 @@
 # Proposal: the prefix-tolerant audit event class (unit-grade bridge)
 
-Status: proposed, not started. Scope narrowed per
+Status: **implemented** (see "Outcome" below). Scope narrowed per
 [the follow-up review](protocol-implementation-review.md) §3.1: this plan
 covers the **budgeted unit-grade probability bridge only**. It does not handle
 an interactive simulator — that is the review's §3 (a separate application at
@@ -81,11 +81,39 @@ simulator-facing interface at nontrivial grades, retain the interaction inside
 the ideal monitored experiment, and use THIS plan's tolerance only for
 initialization.
 
-## Risk
+## Outcome
 
-Item 3's closure. If prefix tolerance is not stable under the specific
-compositions `Absorbs` performs, the class needs a more careful shape
-(prefix-up-to-≈ₚ rather than syntactic prefix), and the effort grows.
-Alternatively, review §2 step 3's explicit-η membership (retain the
-approximation error in the witness and pay `ε + η`) is the fallback that never
-hides a vanishing error.
+All four items are proved, `--safe --without-K`, postulate-free.
+
+* **Item 1.** `UC.Seam.Audit.TrivialGrade.watchedᵖ`, a new designation beside
+  `watched`, with `watched⇒watchedᵖ` exhibiting the widening. `watched` and
+  every proved consumer of it are byte-identical.
+* **Item 2.** `UC.Seam.Grounded.subPrefixedˢ` — the scalar simulator's whole
+  contribution to a context, hoisted out of `subBlind`'s own proof, with
+  `subBlind` re-derived from it. `UC.Seam.Grounding.Prefix.prefixedᵒ-bind`
+  (likewise hoisted, out of `prefixedᵒ-obs`) reads the prefix off the
+  observation as an EXACT `≈ₚ` rather than as ε-closeness, which is what lets
+  the class be stated syntactically.
+* **Item 3.** `UC.Seam.Audit.Bounded.auditIsBoundedᵖ`/`boundedIsAuditᵖ`, and
+  the closure `UC.Seam.Audit.Prefix.absorb-watchedᵖ`. The **syntactic** prefix
+  is stable under the `Absorbs` compositions: absorption prepends the
+  simulator's initialization (`subPrefixedˢ`) and two prefixes in sequence are
+  one by `>>=ₚ-assoc` plus `Dp.Mass.const-bind-astotal`. No prefix-up-to-`≈ₚ`
+  and no explicit-η fallback was needed.
+* **Item 4.** `UC.Seam.Audit.Prefix.ctx-absorb` proves the extraction context
+  lies in the pullback class `absorb s cs (watchedᵖ I bad)` at the adjusted
+  budget, and `auditIsBoundedᴬ` extracts a probability from a real-side bound
+  at that class. `uc-audit-bounded` is the whole unit-grade budgeted route:
+  `Bounded I bad ε` ⟹ `Bounded R bad (λ q → ε (simCost q cs) + ν)` across a
+  budgeted emulation, generic in the two protocols.
+
+Supporting general-purpose additions: `Dp.Mass.astotal-returnₚ` (the empty
+prefix) and `Dp.Mass.const-bind-astotal` (two almost surely total computations
+in sequence, by the `ε/2` product bound); `UC.Audit.q≤simCost`;
+`UC.Seam.Audit.Context`, which factors the extraction context and its three
+properties out of `Audit.Bounded` with the event class a parameter — the shape
+review §2 needs, since the carried class is a statement about the ideal process
+while the bound is about the real one.
+
+Not delivered, unchanged from the section above: any accounting for a simulator
+that actually interacts (review §3), and a ledger-level consumer.

@@ -80,6 +80,13 @@
 --                                  and what discharges it at the trivial
 --                                  grade: `SubBlind`, `StratIsEnv` and with
 --                                  them `UnitGrade`
+--                `UC.Seam.Audit.Prefix`
+--                                  the BUDGETED route's consumer end:
+--                                  `uc-audit-bounded` turns an ideal monitor
+--                                  bound into the real system's own
+--                                  probability across a budgeted emulation,
+--                                  the simulator's initialization tolerated as
+--                                  a prefix and its queries charged
 --                `UC.Saturated`    the saturated form of a concrete safety
 --                                  bound — one slack per polynomial allowance,
 --                                  at the vanishing grade and at the
@@ -120,4 +127,5 @@ open import CategoricalCrypto.UC.Machine.Grading public
 open import CategoricalCrypto.UC.QueryBound public
 open import CategoricalCrypto.UC.QueryBound.Counting public
 open import CategoricalCrypto.UC.Saturated public
+open import CategoricalCrypto.UC.Seam.Audit.Prefix public
 open import CategoricalCrypto.UC.Seam.Grounded public

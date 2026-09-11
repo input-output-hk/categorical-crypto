@@ -1636,3 +1636,59 @@ Judgment calls for you:
 - Rule 29 shadowing — re-checked over the 63 files this round adds: no file of the
   same relative path exists in `agda-categories-0.3.0/src` or
   `standard-library-2.3/src`. No violation.
+
+## Resolved (prefix-extraction)
+
+The unit-grade prefix-tolerant audit extraction (`docs/prefix-tolerant-audit-plan.md`,
+whose "Outcome" section is the per-item ledger). Only the resolutions that are
+judgement calls rather than plan items are listed here.
+
+- `src/CategoricalCrypto/UC/Seam/Audit/Bounded.agda :: auditIsBounded` — the extraction
+  context, its budget certificate and its run identification were inline in this one
+  proof, and the prefix route needs all three at a DIFFERENT event class. Rather than
+  duplicate them, they move to the new `UC.Seam.Audit.Context` with the class a
+  parameter and its membership a hypothesis (`extract`), and `auditIsBounded` becomes
+  one application of it. The statement `TG.AuditIsBounded` is unchanged; only the proof
+  moved. The parameterization is not generality for its own sake: review §2's carried
+  class is a statement about the IDEAL process while the bound is about the real one, so
+  a version tied to "the class of the process the bound is about" cannot express it.
+- `src/CategoricalCrypto/UC/Seam/Grounded.agda :: subBlind` — its `where` block held the
+  one fact the audit layer needs (a trivial-grade scalar in front of a context is a
+  prefix), stated only for the factorization `SubBlind` compares. Split into
+  `subPrefixedˢ` (the fact: the simulator as the single factor `id ⊗₁ sub s` between a
+  test and everything below it, nothing about the process it acts on) and `subPrefixed`
+  (that fact re-bracketed onto the process), with `subBlind` a one-liner over the
+  second. Statement unchanged.
+- `src/CategoricalCrypto/UC/Seam/Grounding/Prefix.agda :: prefixedᵒ-obs` — its `where`
+  block proved the EXACT `Obs u ≈ₚ (p >>=ₚ λ _ → Obs v)` and then immediately weakened
+  it to ε-closeness. Exported as `prefixedᵒ-bind`; `prefixedᵒ-obs` is the weakening of
+  it. This is what makes the widened class statable with a syntactic prefix and an exact
+  `≈ₚ` — the plan's risk item — rather than up to `≈ₚ`.
+- `src/ProbabilisticLogic/Dp/Mass.agda :: astotal-returnₚ`, `:: const-bind-astotal` —
+  placed in the general-purpose module beside `astotal-bind` (rule 27) rather than in
+  the audit cone: "an almost surely terminating computation followed by another is one"
+  mentions nothing of UC. `const-bind-astotal` is the `ε/2` argument at the PRODUCT of
+  two masses, via `a + b - 1 ≤ a*b` in the unit interval; the arithmetic helpers join
+  the file's existing private solver block.
+- `src/CategoricalCrypto/UC/Audit.agda :: q≤simCost` — `simCost`'s `⊔ 1` guard makes the
+  rescaling an increase whatever the simulator costs, so an adversary the original
+  budget affords the adjusted one affords too. Kept beside `simCost` (rule 28) rather
+  than inlined at its one use site, since it is a fact about `simCost` and not about
+  the prefix class.
+- `src/CategoricalCrypto/UC.agda` — `UC.Seam.Audit.Prefix` re-exported from the entry
+  point: `uc-audit-bounded` is the budgeted route's consumer end, which is what the
+  entry point is for. Nothing from the seal leaks through it (the module's
+  `UC.Model.Setup` import is not `public`).
+
+Open, for the maintainer:
+
+- `docs/end-to-end.md`'s "Obstruction" section and its continuation item 2 still say the
+  graded route stops short of a probability, and requirement 4 still says the
+  `simCost`-adjusted statement lives only at the graded end. Both are now stale at the
+  unit grade (`UC.Seam.Audit.Prefix.uc-audit-bounded`). Not edited — the file was
+  outside this branch's scope.
+- `Examples/ChimericLedger` is untouched, so `ledger-audit-carry` still ends at an
+  `AuditBound`. Wiring it through `uc-audit-bounded` needs `ASTotal (pointᵒ 𝟘ᴳ 𝟘ᴳ
+  (sim (em n)))` at each level, which `simTotal⇒point` supplies from the real family's
+  `TotalRun` exactly as `subBlind⇒unitGrade` already does — application work, one
+  `Examples` module, deliberately left to the owner of that cone.

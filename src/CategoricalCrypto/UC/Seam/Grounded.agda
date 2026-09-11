@@ -186,26 +186,22 @@ simTotal⇒point B s v st =
 -- trivial-grade scalar carries no message, so it is the identity except for
 -- that point (`Grounding.Prefix.scalar-blindᵒ`), and `sub` and the ancilla keep
 -- it a prefix.  The experiment is read in the ∀-ancilla/test/closure form
--- (`UC.Model.Reading`), where the two endpoints differ by the single factor
--- `id ⊗₁ sub s`.
-subPrefixed : (B : Iface) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) (v : Proc unitᴵ B) (Y : Channel)
-              (t : Y ⊗₀ T₀ 𝟘ᴳ (ifaceᵒ B) ⇒ Ωᵒ) (m : 𝟘ᵒ ⇒ Y ⊗₀ 𝟘ᵒ)
-            → Prefixedᵒ 𝟘ᵒ Ωᵒ (t ∘ id ⊗₁ (sub s ∘ (ιᴳ B ∘ procᵒ v)) ∘ m)
-                              (t ∘ id ⊗₁ (ιᴳ B ∘ procᵒ v) ∘ m) (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
-subPrefixed B s v Y t m = prefixedᵒ-resp-≈ 𝟘ᵒ Ωᵒ _ _ _ _ σ
-  (refl⟩∘⟨ (sym-assoc ○ (⟺ split ⟩∘⟨refl)))
-  (refl⟩∘⟨ identityˡ)
-  (prefixedᵒ-∘ˡ 𝟘ᵒ (Y ⊗₀ Bᵍ) Ωᵒ t _ _ σ
-    (prefixedᵒ-∘ʳ 𝟘ᵒ (Y ⊗₀ Bᵍ) (Y ⊗₀ Bᵍ) (id ⊗₁ wire ∘ m) (id ⊗₁ sub s) id σ ancilla))
+-- (`UC.Model.Reading`), where the simulator is the single factor `id ⊗₁ sub s`
+-- between the test and everything below it — `k` being that everything, which
+-- is why nothing about the process it acts on is asked for here.
+subPrefixedˢ : (B : Iface) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) (Y : Channel)
+               (t : Y ⊗₀ T₀ 𝟘ᴳ (ifaceᵒ B) ⇒ Ωᵒ) (k : 𝟘ᵒ ⇒ Y ⊗₀ T₀ 𝟘ᴳ (ifaceᵒ B))
+             → Prefixedᵒ 𝟘ᵒ Ωᵒ (t ∘ id ⊗₁ sub s ∘ k) (t ∘ k) (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
+subPrefixedˢ B s Y t k =
+  prefixedᵒ-resp-≈ 𝟘ᵒ Ωᵒ _ _ _ _ σ Equiv.refl (refl⟩∘⟨ identityˡ)
+    (prefixedᵒ-∘ˡ 𝟘ᵒ (Y ⊗₀ Bᵍ) Ωᵒ t _ _ σ
+      (prefixedᵒ-∘ʳ 𝟘ᵒ (Y ⊗₀ Bᵍ) (Y ⊗₀ Bᵍ) k (id ⊗₁ sub s) id σ ancilla))
   where
   σ : Dₚ ⊤ᵛ
   σ = pointᵒ 𝟘ᴳ 𝟘ᴳ s
 
   Bᵍ : Channel
   Bᵍ = T₀ 𝟘ᴳ (ifaceᵒ B)
-
-  wire : 𝟘ᵒ ⇒ Bᵍ
-  wire = ιᴳ B ∘ procᵒ v
 
   -- The simulator acts on the grade alone, which is where it is blind.
   blindˢ : Prefixedᵒ Bᵍ Bᵍ (sub s) id σ
@@ -218,6 +214,19 @@ subPrefixed B s v Y t m = prefixedᵒ-resp-≈ 𝟘ᵒ Ωᵒ _ _ _ _ σ
               (id ⊗₁ sub s) (id ⊗₁ sub s) (id ⊗₁ id) id σ
               Equiv.refl ⊗.identity
               (prefixedᵒ-⊗ʳ Y Y Bᵍ Bᵍ id (sub s) id σ blindˢ)
+
+-- …read where the simulator sits on the PROCESS rather than on the context,
+-- which is the factorization `SubBlind` compares.
+subPrefixed : (B : Iface) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) (v : Proc unitᴵ B) (Y : Channel)
+              (t : Y ⊗₀ T₀ 𝟘ᴳ (ifaceᵒ B) ⇒ Ωᵒ) (m : 𝟘ᵒ ⇒ Y ⊗₀ 𝟘ᵒ)
+            → Prefixedᵒ 𝟘ᵒ Ωᵒ (t ∘ id ⊗₁ (sub s ∘ (ιᴳ B ∘ procᵒ v)) ∘ m)
+                              (t ∘ id ⊗₁ (ιᴳ B ∘ procᵒ v) ∘ m) (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
+subPrefixed B s v Y t m = prefixedᵒ-resp-≈ 𝟘ᵒ Ωᵒ _ _ _ _ (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
+  (refl⟩∘⟨ (sym-assoc ○ (⟺ split ⟩∘⟨refl))) Equiv.refl
+  (subPrefixedˢ B s Y t (id ⊗₁ wire ∘ m))
+  where
+  wire : 𝟘ᵒ ⇒ T₀ 𝟘ᴳ (ifaceᵒ B)
+  wire = ιᴳ B ∘ procᵒ v
 
   split : id ⊗₁ (sub s ∘ wire) ≈ id ⊗₁ sub s ∘ id ⊗₁ wire
   split = ⟺ (T₁-⊗ 𝔾ᵒ Y (sub s ∘ wire)) ○ T-homomorphism

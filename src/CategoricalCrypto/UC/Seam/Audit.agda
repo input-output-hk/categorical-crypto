@@ -58,8 +58,8 @@ open import CategoricalCrypto.UC.Emulation ucBaseᵒ using (Closure; Test; obs; 
 private module A = Aud ucBaseᵒ budgetᵒ massᵒ
 
 open A public
-  using (_≤UC[_]_; ≤UC[]⇒≤UC; sim; sim-qb; emulate; simCost; AuditEvent; AuditBound;
-         absorb; Absorbs; absorb-absorbs; audit-carry)
+  using (_≤UC[_]_; ≤UC[]⇒≤UC; sim; sim-qb; emulate; simCost; q≤simCost; AuditEvent;
+         AuditBound; absorb; Absorbs; absorb-absorbs; audit-carry)
 
 ------------------------------------------------------------------------
 -- The consumer end
@@ -84,7 +84,7 @@ module TrivialGrade (𝟘 : Channel) (ι : (B : Iface) → ifaceᵒ B ⇒ T₀ �
   -- what it observes is the monitor's verdict preceded by a SILENT computation
   -- that terminates almost surely.  That is exactly what a trivial-grade
   -- simulator in front of the process contributes and all it contributes
-  -- (`UC.Seam.Grounded.subPrefixed`), and an almost-sure totality is the most
+  -- (`UC.Seam.Grounded.subPrefixedˢ`), and an almost-sure totality is the most
   -- `subBlind` can give — hence a designation of its own rather than a repair
   -- of `watched`, whose exact `≈ₚ` every proved consumer keeps.
   watchedᵖ : {B : Iface} (P : Protocol unitᴵ B)

@@ -99,6 +99,6 @@ boundedIsAudit P bad ε bnd Y Et m qEt qm (d , a , near) =
 -- bound covers the prefix-tolerant contexts, a prefix being unable to add mass.
 -- This is what a simulator-fronted extraction context needs supplied of it.
 boundedIsAuditᵖ : TG.BoundedIsAuditᵖ
-boundedIsAuditᵖ P bad ε bnd Y Et m qEt qm (d , p , a , tot , near) =
+boundedIsAuditᵖ P bad ε bnd Y Et m qEt qm (d , p , a , _ , near) =
   supply P bad ε _ d a bnd _
     (≼ₚ[]-resp (proj₁ near) (≼ₚ-refl _) (const-bind-≼ p _ 0ℚ ≤-refl))
