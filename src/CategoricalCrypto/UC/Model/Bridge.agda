@@ -204,7 +204,7 @@ private
 
 -- `UC.Emulation.blind-grade`: an emulation at a grade every simulator is blind
 -- to IS a plain agreement.  `_≤UC_` carries the dummy quantifier in its
--- statement here, so the core's `≤UC⁺⇒≤UC` step is the instantiation at `id`.
+-- statement here, so the core's degrading step is its instantiation at `id`.
 blind-gradeᵁ : {f g : A ⇒ T₀ X B} → ((s : X ⇒ X) → sub s ∘ g ≈ᵁ g) → f ≤UC g → f ≈ᵁ g
 blind-gradeᵁ {f = f} blind p =
   let s , e = p id

@@ -35,7 +35,7 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Strategy using (Strat)
 open import CategoricalCrypto.UC.Machine using (Proc; Ωᴵ)
 open import CategoricalCrypto.UC.Model.Bridge using (_≈ᴳ_)
-open import CategoricalCrypto.UC.Model.Observation using (Closure; Test; Ωᵒ; 𝟘ᵒ)
+open import CategoricalCrypto.UC.Model.Observation using (Closure; Test; 𝟘ᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ; procᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Seam using (Agreeˢ; strategyEnv)

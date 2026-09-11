@@ -26,7 +26,7 @@ open import CategoricalCrypto.Strategy using (Strat; ask; out)
 open import CategoricalCrypto.UC.Machine using (Proc)
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
 open import CategoricalCrypto.UC.Model.Bridge
-  using (≈ᴳ-at; ≈ᴳ-congˡ; ≈ᴳ-trans; ≈C⇒≈ᴳ; ≈ᵁ⇒≈ᴳ)
+  using (≈ᴳ-at; ≈ᴳ-congˡ; ≈ᴳ-trans; ≈C⇒≈ᴳ; ≈ᵁ⇒≈ᴳ; unit-gradeᵁ)
 open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ; ifaceᵒ; procᵒ; unprocᵒ-∘)
 open import CategoricalCrypto.UC.Model.Setup
@@ -98,3 +98,12 @@ stratIsEnv B u v h d ε ε>0 =
             (≈ᴳ-at 𝟘ᴳ (procᵒ (strategyEnv B d) ∘ unitorˡ.from) unitorˡ.to
                    (procᵒ (strategyEnv B d) ∘_) (plug-λ (procᵒ (strategyEnv B d)))
                    h ε ε>0)
+
+-- …and with that the collapse at the trivial grade rests on `SubBlind` and on
+-- nothing else.  Which is where it should rest: `SubBlind` is FALSE as stated
+-- — `_≤UC_` quantifies its simulator over a divergent `s` too, and
+-- `UC.Seam.Grounding.Dead` is the mechanized half of why — so this is what
+-- localizes the defect, rather than a use of it.
+unitGrade : TG.SubBlind → TG.UnitGrade
+unitGrade blind B u v e =
+  stratIsEnv B u v (unit-gradeᵁ (λ s → blind B s v) (iotaBlind B u v) e)
