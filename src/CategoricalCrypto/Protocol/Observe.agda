@@ -117,12 +117,6 @@ evalC-support (coin μ k) p = OnSupport-bind μ (λ b → evalC (k b))
                                (λ b _ → evalC-support (k b) (p b))
 evalC-support dead       _ = OnSupport-return tt
 
-AllLeaves-uniformVec : {P : X → Set} (m : ℕ) (f : Vec Bool m → Calls A X)
-                     → (∀ v → AllLeaves P (f v)) → AllLeaves P (uniformVec m f)
-AllLeaves-uniformVec zero    f h = h []
-AllLeaves-uniformVec (suc m) f h b =
-  AllLeaves-uniformVec m (λ v → f (b ∷ v)) (λ v → h (b ∷ v))
-
 -- The same two facts through the `serve` of a caller grafted onto the
 -- sampling protocol, which is the shape a COMPOSITE's step has (a sampling
 -- resource is reached through its client).  `serve` commutes with the coin

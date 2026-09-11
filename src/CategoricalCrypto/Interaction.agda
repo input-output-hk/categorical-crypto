@@ -101,13 +101,6 @@ runWith⊥-emb resp resp⊥ emb ker s (coin μ k) = begin
     G = λ b → runWith resp s (k b)
     open RS (Mℚ-setoid _)
 
-run⊥-embed-gen : (resp : St → Q → Dist-ℚ (St × R)) (s : St) (d : Strat Q R)
-               → runWith⊥ (λ s q → Dmap just (resp s q)) s d ≈Mℚ Dmap just (runWith resp s d)
-run⊥-embed-gen resp = runWith⊥-emb resp (λ s q → Dmap just (resp s q)) id (λ _ _ P → refl)
-
-run⊥-embed : (h : SFunᵉ {M = Dist-ℚ} Q R) (d : Strat Q R) → run⊥ (embed⊥ h) d ≈Mℚ Dmap just (run h d)
-run⊥-embed h = run⊥-embed-gen (λ s q → SFunᵉ.fun h (s , q)) (SFunᵉ.init h)
-
 ------------------------------------------------------------------------
 -- The one assumption of this layer
 --

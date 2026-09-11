@@ -81,10 +81,6 @@ sandwichᴹ f i o = mk (state f)
 ret≡ : {X : Set} {x y : X} → x ≡ y → returnₚ x ≈ₚ returnₚ y
 ret≡ refl = ≈refl
 
-map-eq : {X Y : Set} (d : Dₚ X) (k l : X → Y) → ((x : X) → k x ≡ l x)
-       → mapₚ k d ≈ₚ mapₚ l d
-map-eq d k l eq = bindᶠ λ x → ret≡ (eq x)
-
 map-fuse : {X Y Z : Set} (d : Dₚ X) (h : X → Y) (k : Y → Z) (l : X → Z)
          → ((x : X) → k (h x) ≡ l x) → mapₚ k (mapₚ h d) ≈ₚ mapₚ l d
 map-fuse d h k l eq =

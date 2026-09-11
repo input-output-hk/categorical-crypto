@@ -40,7 +40,7 @@ open import CategoricalCrypto.Machines.Base using (𝒱ₚ; 𝒢ₚ; 𝒢ₚᴹ)
 open import CategoricalCrypto.Protocol.Machine using (⟦_⟧ᴵ; runᴹ)
 open import CategoricalCrypto.Strategy using (ask; out)
 open import CategoricalCrypto.UC.Approximate
-  using (Approximation; ApproximateObservation; ℚ-errors; module Induced)
+  using (Approximation; ℚ-errors; module Induced)
 open import CategoricalCrypto.UC.Core using (Grading; Observation; UCBase)
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
 
@@ -149,9 +149,6 @@ private
 -- no positive slack separates their verdict masses.
 Observationᴹ : Observation (𝒢ₚ 0ℓ) 0ℓ 0ℓ
 Observationᴹ = I.observation
-
-ApproximateObservationᴹ : ApproximateObservation Observationᴹ ℚ-errors 0ℓ
-ApproximateObservationᴹ = I.approximate
 
 ------------------------------------------------------------------------
 -- The grading action, as data
