@@ -1,6 +1,32 @@
 # Theoretical review of `protocol-rewrite`
 
+> Historical review at `f096c5d5`. The current implementation review is
+> [Protocol rewrite implementation review](protocol-implementation-review.md)
+> (`f71a2381..6256a140`, 2026-09-11). The findings below retain their original
+> scope; they are not the current open-obligation list.
+
 Reviewed at `f096c5d5`, concentrating on the commits after the previous review (`ebb3f2a5..f096c5d5`). This review concerns the mathematical content rather than compilation, tests, or proof completion.
+
+## Reconciliation at `6256a140`
+
+- Finding 1's zero-budget defect is repaired by
+  `ctxBudget c c′ = c * (c′ ⊔ 1)`, with operational counting and composition
+  proofs supporting the resource interpretation.
+- Finding 2 is partially resolved: the generic graded `audit-carry`, the
+  repaired total-process `UnitGrade`, and `AuditIsBounded` are proved. However,
+  `AuditBound` bounds arbitrary tests rather than a designated audit event, so
+  this does not establish the intended graded UC-to-POV application. The
+  ledger's own carry still exposes direct `Agreeˢ` as its premise.
+- Finding 3's existential reflection requirement was replaced by universal
+  bounded-context domination. `UC.Machine.Dominated.dominated` proves that
+  result for `QB`-certified contexts; it is no longer an open proof obligation.
+- The live-genesis correction and cofinality requirement remain in place.
+  The birthday theorem and `TrajectoryFromAudit` are now proved as well.
+
+The current review records four remaining findings, including the false
+saturation quantifiers and the vanishing/negligible mismatch, and specifies
+the end-to-end theorem needed to demonstrate completion. Read it before using
+the historical priorities below as a work list.
 
 ## Summary
 
@@ -52,4 +78,3 @@ The next theoretical priorities should be:
 3. State and prove the graded, simulator-aware audit carry connecting `_≤UC_` to the protocol-level POV theorem.
 
 No compilation or test checks were run for this theory-focused review.
-

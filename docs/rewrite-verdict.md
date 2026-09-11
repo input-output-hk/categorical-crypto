@@ -1,5 +1,11 @@
 # Rewrite verdict: `protocol-rewrite` vs the old lineage
 
+> This document records successive historical verdicts. For current status at
+> `6256a140`, see addendum 9 and the
+> [implementation review](protocol-implementation-review.md). Adoption of the
+> rewrite as a foundation does not imply completion of its UC-to-POV application;
+> the old port lists and proof prices below are not the current work list.
+
 Comparison of `protocol-rewrite` (M1–M3, at the addendum-3 integration
 86 files / +11883/−295 over `f71a2381`) against the old lineage's tip
 (`sfunm-setoid` + `spike/pov-tower`, 59 files / +9592/−1888 over the same base).
@@ -347,12 +353,17 @@ end of project).
 
 ## Addendum 8: the birthday bound is a theorem (2026-09-11)
 
+The component status in this addendum is historical. The application-level
+qualification and current remaining work are recorded in addendum 9 below.
+
 `Examples.ChimericLedger.Birthday.target : Target a₀ V` (merge `dcdf0142`) —
 POV's `AtBirthday.Target` inhabited verbatim: no strategy of query budget `q`
 moves the repaired ledger's total value away from genesis except with
-probability `εbirthday q = (q²+q)·2⁻ˡ`. The port ledger's flagship quantitative
-item is closed, by the DIRECT route (no UC seam, hence tight — the `POVaudit`
-carry route stays available once `AuditIsBounded` is proved, at ε(2q)).
+probability `εbirthday q = (q²+q)·2⁻ˡ`, under the explicit injective-serialization
+assumption. The port ledger's flagship quantitative item is closed by the DIRECT
+route (no UC seam, hence tight). The earlier claim that proving `AuditIsBounded`
+would alone make the graded `POVaudit` carry route available is withdrawn:
+addendum 9 records the mismatch in the `AuditBound` premise.
 
 Structure: `TrajectoryFromAudit` proved with NO persistence induction (the
 audit answer is definitionally the truth about the state — the old ~250–400
@@ -371,3 +382,41 @@ proof for the first time (with `chimeric` in its place the bound is FALSE, and
 
 Owed consolidation (DISCHARGED in the housekeeping merge): `MerkleDamgard.Core`'s private `sumR`/`Γ` copy onto
 `Uniform.Birthday` (noted in that header). Hatches 21; every module ≤50 s.
+
+## Addendum 9: implementation review at `6256a140` (2026-09-11)
+
+The review against all three `protocol-rewrite*.md` documents is recorded in
+[Protocol rewrite implementation review](protocol-implementation-review.md),
+covering `f71a2381..6256a140`. It supersedes earlier completion claims where
+they concern the end-to-end security application, without retracting the
+component proofs.
+
+Since addendum 8, `AuditIsBounded` and the repaired `SubBlind`/`UnitGrade` are
+proved. `SubBlind` uses `SimTotal`; `UnitGrade` has `TotalRun` hypotheses.
+These restrictions matter: `Protocol` admits `dead`, so totality of an image
+requires the appropriate protocol-totality premise.
+
+Four findings remain:
+
+1. **High:** `AuditBound` bounds every test's true verdict, not a designated audit
+   event. A constant-true test forces `ε q ≥ 1` at trivial-grade protocol images.
+   Its carry theorem therefore does not consume an ordinary small `POVaudit`
+   bound, even though `AuditIsBounded` is now proved.
+2. **High:** `SaturatedRespects` is false as stated. A single slack uniform over
+   all query counts cannot follow from control only along polynomial allowances;
+   the delayed-leak-at-`2^n` counterexample exposes the quantifier mismatch.
+3. **High:** the advertised negligible property uses only vanishing slack, and
+   the family qualitative relation is itself vanishing equivalence. The property
+   and its preservation relation must be aligned; `absorb-negl` alone does not
+   do that.
+4. **Medium:** the generic robust-property API and the concrete frontend/family/
+   inherited-UC integration are incomplete. The ledger carry still takes direct
+   `Agreeˢ`; no end-to-end asymptotic UC-to-POV theorem is supplied.
+
+The completion goal is the public theorem specified in the review: consume the
+proved ideal ledger bound and a genuine UC-emulation premise, account for the
+simulator and audit costs, and recover the real trajectory bound modulo
+negligible slack at each polynomial allowance. The ideal robust-property premise
+must be proved from the actual example, not assumed under the current
+overly strong `AuditBound` interface. The optional confidential-ledger refinement
+remains a separate scope decision.
