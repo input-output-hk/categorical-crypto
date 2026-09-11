@@ -36,6 +36,8 @@
 --   `Model.Family.Uniform`  the same agreement in the INHERITED `_≈ᵁ_`, so
 --                        `UC-compose` applies to a concrete family
 --                        (`UC.Core.Bridge` at `Famᴹ`)
+--   `Model.Family.Negligible`  the local negligible tier (`UC.Family.Negligible`)
+--                        inhabited at the machine family
 --
 -- The model obligations the proposal lists are then: the monoidal structure
 -- (`Machines.G`, a theorem on this branch), the presheaf (`Model.Environment`)
@@ -51,6 +53,7 @@ import CategoricalCrypto.UC.Model.Enrichment
 import CategoricalCrypto.UC.Model.Environment
 import CategoricalCrypto.UC.Model.Family
 import CategoricalCrypto.UC.Model.Family.Ingest
+import CategoricalCrypto.UC.Model.Family.Negligible
 import CategoricalCrypto.UC.Model.Family.Uniform
 import CategoricalCrypto.UC.Model.Observation
 import CategoricalCrypto.UC.Model.Pin

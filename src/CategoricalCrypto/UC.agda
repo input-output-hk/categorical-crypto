@@ -37,6 +37,13 @@
 --                                  by the budget's four unitor certificates,
 --                                  and `ucSetup^ω` — so the INHERITED
 --                                  metatheory runs at the asymptotic family
+--                `UC.Family.Negligible`
+--                                  the same layer's negligible tier: a second
+--                                  `Observation` on `Fam` keeping the error
+--                                  witness (`_∼ᴺ_`, `_≤UCᴺ_`), and `≈ℰⁿ⇒≈ℰᴺ`;
+--                                  `UC.Model.Family.Negligible` inhabits it at
+--                                  the machine family, and its §1 acceptance
+--                                  tests are `UC.Approximate.LocalTests`
 --   model        `UC.Machine`      `𝒫ᴵ`, processes on `Iface`s, the ticked
 --                                  verdict interface, the observation at `Dₚ`
 --                `UC.QueryBound`   the amortised-potential certificate — a
@@ -121,3 +128,6 @@ open import CategoricalCrypto.UC.QueryBound public
 open import CategoricalCrypto.UC.QueryBound.Counting public
 open import CategoricalCrypto.UC.Saturated public
 open import CategoricalCrypto.UC.Seam.Grounded public
+
+-- Closure-only: the negligible tier's acceptance tests (leaf, nothing to open).
+import CategoricalCrypto.UC.Approximate.LocalTests
