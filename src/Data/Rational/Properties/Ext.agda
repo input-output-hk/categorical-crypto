@@ -17,11 +17,12 @@ open import Data.Rational.Properties using
   ; 0≤p⇒∣p∣≡p; 0≤∣p∣; ∣-p∣≡∣p∣; nonNegative⁻¹; nonNeg*nonNeg⇒nonNeg
   ; *-distribʳ-+; *-identityˡ; *-monoʳ-<-pos; *-zeroʳ
   ; toℚᵘ-cancel-≤; toℚᵘ-fromℚᵘ; toℚᵘ-homo-*; toℚᵘ-homo-+; toℚᵘ-injective )
-open import Data.Rational.Unnormalised.Base as ℚᵘ using (mkℚᵘ; *≤*)
+open import Data.Rational.Unnormalised.Base as ℚᵘ using (mkℚᵘ; *≡*; *≤*)
 open import Data.Sum.Base using (inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
 
 import Algebra.Properties.AbelianGroup as AbelianGroupProperties
+import Data.Integer.Properties as ℤₚ
 import Data.Rational.Unnormalised.Properties as ℚᵘₚ
 
 private module AG = AbelianGroupProperties +-0-abelianGroup
@@ -87,12 +88,22 @@ p≤∣p∣ p with ≤-total 0ℚ p
 -- Arithmetic and order for the `_/_` constructor
 ------------------------------------------------------------------------
 
--- All three go through ℚᵘ, where `_/_` IS the constructor and `_≤_`, `_+_`,
+-- All four go through ℚᵘ, where `_/_` IS the constructor and `_≤_`, `_+_`,
 -- `_*_` are the naive numerator/denominator formulas (no normalization).
 
 private
   toℚᵘ-/ : ∀ (i : ℤ) (n : ℕ) .{{_ : ℕ.NonZero n}} → toℚᵘ (i / n) ℚᵘ.≃ i ℚᵘ./ n
   toℚᵘ-/ i (suc n) = toℚᵘ-fromℚᵘ (mkℚᵘ i n)
+
+  -- ℚᵘ addition cross-multiplies even when the denominators already agree.
+  /ᵘ-+-same : ∀ (i j : ℤ) (n : ℕ) .{{_ : ℕ.NonZero n}}
+            → (i ℚᵘ./ n) ℚᵘ.+ (j ℚᵘ./ n) ℚᵘ.≃ (i ℤ.+ j) ℚᵘ./ n
+  /ᵘ-+-same i j (suc n-1) = *≡*
+    (trans (cong (ℤ._* d) (sym (ℤₚ.*-distribʳ-+ d i j)))
+      (trans (ℤₚ.*-assoc (i ℤ.+ j) d d)
+             (cong ((i ℤ.+ j) ℤ.*_) (sym (ℤₚ.pos-* D D)))))
+    where D = suc n-1
+          d = ℤ.+ D
 
 /-mono-≤ : ∀ (i : ℤ) (n : ℕ) (j : ℤ) (m : ℕ) .{{_ : ℕ.NonZero n}} .{{_ : ℕ.NonZero m}}
          → i ℤ.* (ℤ.+ m) ℤ.≤ j ℤ.* (ℤ.+ n) → i / n ≤ j / m
@@ -100,20 +111,27 @@ private
   (ℚᵘₚ.≤-respˡ-≃ (ℚᵘₚ.≃-sym (toℚᵘ-/ i n))
     (ℚᵘₚ.≤-respʳ-≃ (ℚᵘₚ.≃-sym (toℚᵘ-/ j m)) (*≤* le)))
 
--- The two-fraction laws quantify over `suc n` rather than a `NonZero n`, so
--- that the product denominator's own `NonZero` is found by reduction.
 /-*-/ : ∀ (i : ℤ) (n : ℕ) (j : ℤ) (m : ℕ)
-      → (i / suc n) * (j / suc m) ≡ (i ℤ.* j) / (suc n ℕ.* suc m)
-/-*-/ i n j m = toℚᵘ-injective
-  (ℚᵘₚ.≃-trans (toℚᵘ-homo-* (i / suc n) (j / suc m))
-    (ℚᵘₚ.≃-trans (ℚᵘₚ.*-cong (toℚᵘ-/ i (suc n)) (toℚᵘ-/ j (suc m)))
-                 (ℚᵘₚ.≃-sym (toℚᵘ-/ (i ℤ.* j) (suc n ℕ.* suc m)))))
+        .{{_ : ℕ.NonZero n}} .{{_ : ℕ.NonZero m}} .{{_ : ℕ.NonZero (n ℕ.* m)}}
+      → (i / n) * (j / m) ≡ (i ℤ.* j) / (n ℕ.* m)
+/-*-/ i n@(suc _) j m@(suc _) = toℚᵘ-injective
+  (ℚᵘₚ.≃-trans (toℚᵘ-homo-* (i / n) (j / m))
+    (ℚᵘₚ.≃-trans (ℚᵘₚ.*-cong (toℚᵘ-/ i n) (toℚᵘ-/ j m))
+                 (ℚᵘₚ.≃-sym (toℚᵘ-/ (i ℤ.* j) (n ℕ.* m)))))
 
 /-+-/ : ∀ (i : ℤ) (n : ℕ) (j : ℤ) (m : ℕ)
-      → (i / suc n) + (j / suc m)
-        ≡ (i ℤ.* (ℤ.+ suc m) ℤ.+ j ℤ.* (ℤ.+ suc n)) / (suc n ℕ.* suc m)
-/-+-/ i n j m = toℚᵘ-injective
-  (ℚᵘₚ.≃-trans (toℚᵘ-homo-+ (i / suc n) (j / suc m))
-    (ℚᵘₚ.≃-trans (ℚᵘₚ.+-cong (toℚᵘ-/ i (suc n)) (toℚᵘ-/ j (suc m)))
-                 (ℚᵘₚ.≃-sym (toℚᵘ-/ (i ℤ.* (ℤ.+ suc m) ℤ.+ j ℤ.* (ℤ.+ suc n))
-                                    (suc n ℕ.* suc m)))))
+        .{{_ : ℕ.NonZero n}} .{{_ : ℕ.NonZero m}} .{{_ : ℕ.NonZero (n ℕ.* m)}}
+      → (i / n) + (j / m)
+        ≡ (i ℤ.* (ℤ.+ m) ℤ.+ j ℤ.* (ℤ.+ n)) / (n ℕ.* m)
+/-+-/ i n@(suc _) j m@(suc _) = toℚᵘ-injective
+  (ℚᵘₚ.≃-trans (toℚᵘ-homo-+ (i / n) (j / m))
+    (ℚᵘₚ.≃-trans (ℚᵘₚ.+-cong (toℚᵘ-/ i n) (toℚᵘ-/ j m))
+                 (ℚᵘₚ.≃-sym (toℚᵘ-/ (i ℤ.* (ℤ.+ m) ℤ.+ j ℤ.* (ℤ.+ n)) (n ℕ.* m)))))
+
+-- The common-denominator case of `/-+-/`: cross-multiplying there would square
+-- the denominator.
+/-+-/-same : ∀ (i j : ℤ) (n : ℕ) .{{_ : ℕ.NonZero n}} → (i / n) + (j / n) ≡ (i ℤ.+ j) / n
+/-+-/-same i j n@(suc _) = toℚᵘ-injective
+  (ℚᵘₚ.≃-trans (toℚᵘ-homo-+ (i / n) (j / n))
+    (ℚᵘₚ.≃-trans (ℚᵘₚ.+-cong (toℚᵘ-/ i n) (toℚᵘ-/ j n))
+      (ℚᵘₚ.≃-trans (/ᵘ-+-same i j n) (ℚᵘₚ.≃-sym (toℚᵘ-/ (i ℤ.+ j) n)))))
