@@ -27,9 +27,9 @@
 -- η-expands `Observationᴹ`, whose `⟦⟧-resp-≈` drags the machine equality in with
 -- it — the same reason `UC.Seam.Agreeˢ` is spelled in the `Dₚ` vocabulary.  So
 -- the reasoning that composes these statements is proved once and generically
--- (`UC.Model.Bridge.≈ᴳ-at` for the grounding below, `unit-gradeᵁ` for the
--- collapse, `UC.Audit.audit-carry` for the graded carry), and this module only
--- names what the instance still owes.
+-- (`UC.Model.Bridge.≈ᴳ-at` for the grounding below, `ProbabilisticLogic.Dp.Mass`
+-- for the collapse's ε-arithmetic, `UC.Audit.audit-carry` for the graded
+-- carry), and this module only names what the instance still owes.
 
 open import ProbabilisticLogic.Dp.Mass using (ASTotal)
 

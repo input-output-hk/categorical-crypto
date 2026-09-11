@@ -1,27 +1,36 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- Processes that never start, and what they do to a context.
+-- What a process's initialization does to every observation it takes part in.
 --
 -- A machine's initial state is a Kleisli point (`Machines.Core`'s header: "a
--- possibly-effectful initial state"), so `botₚ` is one.  `Dead` is that fact up
--- to the machine equality, which is what makes it transportable along
--- `Machines.Collapse`'s two readings of a `𝒢`-composite; deadness then
--- propagates through composition and through the grading action, because both
--- keep the acted-on process's state.
+-- possibly-effectful initial state"), so its termination MASS is the one thing
+-- the machine contributes to a run no matter where it sits: a `𝒢`-composite's
+-- state is the pair of the factors' states and the grading action keeps the
+-- acted-on process's, so either factor's point bounds the whole
+-- (`massed-obs`).  `Massed` is that bound up to the machine equality, which is
+-- what makes it transportable along `Machines.Collapse`'s two readings of a
+-- `𝒢`-composite.  `Dead` is its mass-0 end.
 --
 -- Every object argument is EXPLICIT, for the reason `UC.QueryBound`'s header
 -- gives: left implicit, a hom of `𝒢ₚ` makes Agda invert
 -- `Machine (A⁺ + B⁻) (A⁻ + B⁺)` for the pair at every use site.  With the
 -- objects implicit this module does not come back inside 4m47 CPU.
 --
--- What it is FOR: `UC.Seam.Grounding`'s `SubBlind` and `UnitGrade` are false,
--- and this is the mechanized half of why.  `_≤UC_` quantifies its simulator
--- over all of `Y ⇒ X`, a divergent `s` included; `dead-sub` then makes
--- `sub s ∘ (ι ∘ v)` dead, `dead-≈ℰ` makes it agree with every other dead
--- process, and `dead-run` shows layer 1 still sees the difference.  The
--- closing contradiction is arithmetic on top of `Adequacy` and is NOT landed:
--- every spelling of it measured exhausts a 12–20 GiB heap in under 75 s, the
--- `Observationᴹ` cliff `UC.Seam.Grounding`'s own header opens with.
+-- What it is FOR, at both ends of the scale.  At mass 0 it REFUTES `SubBlind`
+-- as that statement used to read: `_≤UC_` quantifies its simulator over a
+-- divergent `s`, `massed-sub` makes `sub s ∘ (ι ∘ v)` observe nothing,
+-- `dead-≈ℰ` makes it agree with every other such process, and `massed-run`
+-- shows layer 1 still sees the difference.  At mass 1 it is the route to the
+-- REPAIRED statement (`UC.Seam.Grounding.SubBlind`, whose hypothesis is
+-- `SimTotal`): an observation of the simulated ideal is almost surely total
+-- only if the simulator's own point is, and a point that is almost surely
+-- total is invisible to an ε-closed comparison (`Dp.Mass.astotal-bind`).  The
+-- second half of that route is not landed; the propagation it rests on is.
+--
+-- The last section re-spells the propagation AT THE SEAL, where the seam's
+-- statements live.  Under the seal a hom exposes no machine, so the crossing
+-- is `UC.Model.Seal`'s third discipline — `p = p` from inside the unfolding
+-- block — and only the bound comes back out.
 
 open import Categories.Category using (Category; _[_,_])
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
@@ -34,20 +43,24 @@ open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)
 open import Level using (0ℓ)
 
 open import ProbabilisticLogic.Dp
-open import ProbabilisticLogic.Dp.Advantage using (≈ₚ⇒≈ₚ[0]; ≈ₚ[]-mono)
-open import ProbabilisticLogic.Dp.Zero
+open import ProbabilisticLogic.Dp.Advantage using (≈ₚ[]-mono)
+open import ProbabilisticLogic.Dp.Mass
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base using (𝒫ₚ; 𝒢ₚ; 𝒢ₚᴹ; 𝒱ₚ)
 open import CategoricalCrypto.Protocol.Machine using (⟦_⟧ᴵ; runᴹ)
 open import CategoricalCrypto.Strategy using (Strat; ask; out)
-open import CategoricalCrypto.UC.Machine using (Proc; T₁ᴵ; retᴵ; subᴵ′; ucBaseᴹ)
+open import CategoricalCrypto.UC.Machine using (Proc; T₁ᴵ; retᴵ; subᴵ′; ucBaseᴹ; Ωᴵ; ⊤ᵛ)
 open import CategoricalCrypto.UC.Machine.Dictionary using (T₁-⊗₁; sub-⊗₁)
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
+open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ)
+open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ; ifaceᵒ)
 
 import CategoricalCrypto.Machines.Collapse as Col
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
+import CategoricalCrypto.UC.Core as UCC
+import CategoricalCrypto.UC.Core.Standard as Std
 import CategoricalCrypto.UC.Emulation as Em
 
 module CategoricalCrypto.UC.Seam.Grounding.Dead where
@@ -61,7 +74,15 @@ private
 open E using (_⊛_; _≈ℰ_; T₁; Test; Closure; obs; tv₁)
 
 ------------------------------------------------------------------------
--- Divergent initialization
+-- Lossy initialization
+
+Massed : (A B : 𝔾.Obj) → 𝒢ₚ 0ℓ [ A , B ] → Dₚ ⊤ᵛ → Set₁
+Massed A B f p =
+  Σ[ g ∈ 𝒢ₚ 0ℓ [ A , B ] ] (g S.≈ᴹ f) × (MC.point (MC.state g) ttᵛ ≼ᵐ p)
+
+-- The degenerate end: a process that never starts.
+Dead : (A B : 𝔾.Obj) → 𝒢ₚ 0ℓ [ A , B ] → Set₁
+Dead A B f = Massed A B f (botₚ {A = ⊤ᵛ})
 
 private
   ⊥ˢ : MC.State
@@ -71,11 +92,8 @@ private
 deadᴹ : (A B : 𝔾.Obj) → 𝒢ₚ 0ℓ [ A , B ]
 deadᴹ A B = MC.mk ⊥ˢ λ _ → botₚ
 
-Dead : (A B : 𝔾.Obj) → 𝒢ₚ 0ℓ [ A , B ] → Set₁
-Dead A B f = Σ[ g ∈ 𝒢ₚ 0ℓ [ A , B ] ] (g S.≈ᴹ f) × Zero (MC.point (MC.state g) ttᵛ)
-
 dead-deadᴹ : (A B : 𝔾.Obj) → Dead A B (deadᴹ A B)
-dead-deadᴹ A B = deadᴹ A B , S.reflᴹ , zero-botₚ
+dead-deadᴹ A B = deadᴹ A B , S.reflᴹ , ≼ᵐ-refl botₚ
 
 ------------------------------------------------------------------------
 -- Propagation
@@ -85,68 +103,124 @@ private
           ≈ₚ (MC.point S ttᵛ >>=ₚ λ x → MC.point T ttᵛ >>=ₚ λ y → returnₚ (x , y))
   point-⊛ S T = >>=ₚ-identityˡ (ttᵛ , ttᵛ) _
 
-  zero-⊛ˡ : (S T : MC.State) → Zero (MC.point S ttᵛ) → Zero (MC.point (S MC.⊛ T) ttᵛ)
-  zero-⊛ˡ S T z = zero-resp-≈ₚ (≈ₚ-sym _ _ (point-⊛ S T)) (zero-bindˡ _ z)
+  ⊛-≼ᵐˡ : (S T : MC.State) → MC.point (S MC.⊛ T) ttᵛ ≼ᵐ MC.point S ttᵛ
+  ⊛-≼ᵐˡ S T = ≼ᵐ-trans _ _ _ (≼ₚ⇒≼ᵐ _ _ (proj₁ (point-⊛ S T)))
+                             (bind-≼ᵐ (MC.point S ttᵛ) _)
 
-  zero-⊛ʳ : (S T : MC.State) → Zero (MC.point T ttᵛ) → Zero (MC.point (S MC.⊛ T) ttᵛ)
-  zero-⊛ʳ S T z = zero-resp-≈ₚ (≈ₚ-sym _ _ (point-⊛ S T))
-                               (bind-zero (MC.point S ttᵛ) λ _ → zero-bindˡ _ z)
+  ⊛-≼ᵐʳ : (S T : MC.State) → MC.point (S MC.⊛ T) ttᵛ ≼ᵐ MC.point T ttᵛ
+  ⊛-≼ᵐʳ S T = ≼ᵐ-trans _ _ _ (≼ₚ⇒≼ᵐ _ _ (proj₁ (point-⊛ S T)))
+                             (bindʳ-≼ᵐ (MC.point S ttᵛ) _ (MC.point T ttᵛ)
+                                       λ x n → mass-bindˡ n (MC.point T ttᵛ) _)
 
--- A `𝒢`-composite's state is the pair of the factors' states, so a dead factor
--- kills it from either side.
-dead-∘ˡ : (A B C : 𝔾.Obj) (g : 𝒢ₚ 0ℓ [ B , C ]) (f : 𝒢ₚ 0ℓ [ A , B ])
-        → Dead B C g → Dead A C (𝔾._∘_ {A} {B} {C} g f)
-dead-∘ˡ A B C g f (g′ , e , z) =
+-- A `𝒢`-composite's state is the pair of the factors' states, so either
+-- factor's point bounds it.
+massed-∘ˡ : (A B C : 𝔾.Obj) (g : 𝒢ₚ 0ℓ [ B , C ]) (f : 𝒢ₚ 0ℓ [ A , B ]) (p : Dₚ ⊤ᵛ)
+          → Massed B C g p → Massed A C (𝔾._∘_ {A} {B} {C} g f) p
+massed-∘ˡ A B C g f p (g′ , e , le) =
     Col.MT.traceᴹ (proj₁ A ⊎ proj₂ C) (proj₂ A ⊎ proj₁ C) (proj₂ B ⊎ proj₁ B)
       (Col.MC.mk (Col.Sᴳ g′ f) (Col.kᴳ g′ f))
   , (S.⟺ᴹ (Col.collapseᵀ g′ f) S.○ᴹ Col.compose-raw≈∘ᴳ g′ f) S.○ᴹ 𝔾.∘-resp-≈ˡ e
-  , zero-⊛ˡ (MC.state g′) (MC.state f) z
+  , ≼ᵐ-trans _ _ _ (⊛-≼ᵐˡ (MC.state g′) (MC.state f)) le
 
-dead-∘ʳ : (A B C : 𝔾.Obj) (g : 𝒢ₚ 0ℓ [ B , C ]) (f : 𝒢ₚ 0ℓ [ A , B ])
-        → Dead A B f → Dead A C (𝔾._∘_ {A} {B} {C} g f)
-dead-∘ʳ A B C g f (f′ , e , z) =
+massed-∘ʳ : (A B C : 𝔾.Obj) (g : 𝒢ₚ 0ℓ [ B , C ]) (f : 𝒢ₚ 0ℓ [ A , B ]) (p : Dₚ ⊤ᵛ)
+          → Massed A B f p → Massed A C (𝔾._∘_ {A} {B} {C} g f) p
+massed-∘ʳ A B C g f p (f′ , e , le) =
     Col.MT.traceᴹ (proj₁ A ⊎ proj₂ C) (proj₂ A ⊎ proj₁ C) (proj₂ B ⊎ proj₁ B)
       (Col.MC.mk (Col.Sᴳ g f′) (Col.kᴳ g f′))
   , (S.⟺ᴹ (Col.collapseᵀ g f′) S.○ᴹ Col.compose-raw≈∘ᴳ g f′) S.○ᴹ 𝔾.∘-resp-≈ʳ e
-  , zero-⊛ʳ (MC.state g) (MC.state f′) z
+  , ≼ᵐ-trans _ _ _ (⊛-≼ᵐʳ (MC.state g) (MC.state f′)) le
 
 -- The grading action keeps the acted-on process's state (`T₁ᴵ`, `subᴵ`), and
 -- `UC.Machine.Dictionary` is the bridge to the monoidal spelling of it.
-dead-T₁ : (Y A B : 𝔾.Obj) (f : 𝒢ₚ 0ℓ [ A , B ]) → Dead A B f
-        → Dead (Y ⊛ A) (Y ⊛ B) (T₁ Y f)
-dead-T₁ Y A B f (g , e , z) =
+massed-T₁ : (Y A B : 𝔾.Obj) (f : 𝒢ₚ 0ℓ [ A , B ]) (p : Dₚ ⊤ᵛ) → Massed A B f p
+          → Massed (Y ⊛ A) (Y ⊛ B) (T₁ Y f) p
+massed-T₁ Y A B f p (g , e , le) =
     T₁ᴵ (retᴵ Y) g
   , (T₁-⊗₁ {retᴵ Y} {retᴵ A} {retᴵ B} g S.○ᴹ E.T₁-resp-≈ {Y} {A} {B} {g} {f} e)
-  , z
+  , le
 
-dead-sub : (X Y A : 𝔾.Obj) (s : 𝒢ₚ 0ℓ [ X , Y ]) → Dead X Y s
-         → Dead (X ⊛ A) (Y ⊛ A) (E.sub {X} {Y} {A} s)
-dead-sub X Y A s (g , e , z) =
+massed-sub : (X Y A : 𝔾.Obj) (s : 𝒢ₚ 0ℓ [ X , Y ]) (p : Dₚ ⊤ᵛ) → Massed X Y s p
+           → Massed (X ⊛ A) (Y ⊛ A) (E.sub {X} {Y} {A} s) p
+massed-sub X Y A s p (g , e , le) =
     subᴵ′ {retᴵ X} {retᴵ Y} {retᴵ A} g
   , (sub-⊗₁ {retᴵ X} {retᴵ Y} {retᴵ A} g S.○ᴹ E.sub-resp-≈ {X} {Y} {A} {g} {s} e)
-  , z
+  , le
 
-dead-run : (B : Iface) (f : Proc unitᴵ B) → Dead ⟦ unitᴵ ⟧ᴵ ⟦ B ⟧ᴵ f
-         → (d : Strat (Neg B) (Pos B)) → Zero (runᴹ f d)
-dead-run B f (g , e , z) d = zero-resp-≈ₚ (runᴹ-resp-≈ᴹ e d) (zero-bindˡ _ z)
+massed-run : (B : Iface) (f : Proc unitᴵ B) (p : Dₚ ⊤ᵛ) → Massed ⟦ unitᴵ ⟧ᴵ ⟦ B ⟧ᴵ f p
+           → (d : Strat (Neg B) (Pos B)) → runᴹ f d ≼ᵐ p
+massed-run B f p (g , e , le) d =
+  ≼ᵐ-trans _ _ _ (≼ₚ⇒≼ᵐ _ _ (proj₁ (runᴹ-resp-≈ᴹ (S.⟺ᴹ e) d)))
+                 (≼ᵐ-trans _ _ _ (bind-≼ᵐ (MC.point (MC.state g) ttᵛ) _) le)
 
 ------------------------------------------------------------------------
 -- What a context sees
 
--- Nothing: the divergence reaches the closed composite from wherever it sits.
-dead-obs : (A B : 𝔾.Obj) (f : 𝒢ₚ 0ℓ [ A , B ]) → Dead A B f
-         → (Y : 𝔾.Obj) (Et : Test (Y ⊛ B)) (m : Closure (Y ⊛ A))
-         → Zero (obs (tv₁ Y f Et) m)
-dead-obs A B f df Y Et m =
-  dead-run (retᴵ E.Ω) (𝔾._∘_ {E.𝟙} {Y ⊛ A} {E.Ω} (𝔾._∘_ {Y ⊛ A} {Y ⊛ B} {E.Ω} Et
-                        (T₁ Y f)) m)
-           (dead-∘ˡ E.𝟙 (Y ⊛ A) E.Ω (𝔾._∘_ {Y ⊛ A} {Y ⊛ B} {E.Ω} Et (T₁ Y f)) m
-             (dead-∘ʳ (Y ⊛ A) (Y ⊛ B) E.Ω Et (T₁ Y f)
-               (dead-T₁ Y A B f df)))
-           (ask tt out)
+-- At most the factor's own mass: the initialization reaches the closed
+-- composite from wherever it sits.
+massed-obs : (A B : 𝔾.Obj) (f : 𝒢ₚ 0ℓ [ A , B ]) (p : Dₚ ⊤ᵛ) → Massed A B f p
+           → (Y : 𝔾.Obj) (Et : Test (Y ⊛ B)) (m : Closure (Y ⊛ A))
+           → obs (tv₁ Y f Et) m ≼ᵐ p
+massed-obs A B f p mf Y Et m =
+  massed-run (retᴵ E.Ω) (𝔾._∘_ {E.𝟙} {Y ⊛ A} {E.Ω} (𝔾._∘_ {Y ⊛ A} {Y ⊛ B} {E.Ω} Et
+                           (T₁ Y f)) m) p
+             (massed-∘ˡ E.𝟙 (Y ⊛ A) E.Ω (𝔾._∘_ {Y ⊛ A} {Y ⊛ B} {E.Ω} Et (T₁ Y f)) m p
+               (massed-∘ʳ (Y ⊛ A) (Y ⊛ B) E.Ω Et (T₁ Y f) p
+                 (massed-T₁ Y A B f p mf)))
+             (ask tt out)
 
+-- Nothing at all, at the zero end — so two such processes are indistinguishable
+-- while `UC.Seam.Agreeˢ` still compares their runs.
 dead-≈ℰ : (A B : 𝔾.Obj) (f g : 𝒢ₚ 0ℓ [ A , B ])
-        → Dead A B f → Dead A B g → _≈ℰ_ {A} {B} f g
-dead-≈ℰ A B f g df dg Y Et m ε ε>0 = ≈ₚ[]-mono (<⇒≤ ε>0) (≈ₚ⇒≈ₚ[0]
-  (≈ₚ-trans _ _ _ (zero⇒≈bot (dead-obs A B f df Y Et m))
-                  (≈ₚ-sym _ _ (zero⇒≈bot (dead-obs A B g dg Y Et m)))))
+          → Dead A B f → Dead A B g → _≈ℰ_ {A} {B} f g
+dead-≈ℰ A B f g df dg Y Et m ε ε>0 = ≈ₚ[]-mono (<⇒≤ ε>0)
+  (massless-≈ₚ[0] _ _ (≼ᵐbot⇒0 _ (massed-obs A B f _ df Y Et m))
+                      (≼ᵐbot⇒0 _ (massed-obs A B g _ dg Y Et m)))
+
+------------------------------------------------------------------------
+-- The same, at the seal
+
+-- Under the seal a hom exposes no machine, so the bound has to be carried
+-- across from inside the unfolding block; `Dₚ ⊤ᵛ` and `_≼ᵐ_` mention nothing
+-- sealed, which is what lets it out.
+private
+  module Gᵒ = MonoidalCategory 𝔾ᵒ
+  module Gr = UCC.Grading (Std.gradingᵗ 𝔾ᵒ)
+
+opaque
+  unfolding 𝔾ᵒ ifaceᵒ
+
+  Massedᵒ : (A B : Gᵒ.Obj) → Gᵒ._⇒_ A B → Dₚ ⊤ᵛ → Set₁
+  Massedᵒ = Massed
+
+  massedᵒ-resp-≈ : (A B : Gᵒ.Obj) (f g : Gᵒ._⇒_ A B) (p : Dₚ ⊤ᵛ)
+                 → Gᵒ._≈_ f g → Massedᵒ A B f p → Massedᵒ A B g p
+  massedᵒ-resp-≈ A B f g p e (h , e′ , le) = h , e′ S.○ᴹ e , le
+
+  -- A hom's own initialization with its state forgotten: the one thing about a
+  -- machine the seal lets out, and the bound every hom carries.
+  pointᵒ : (A B : Gᵒ.Obj) → Gᵒ._⇒_ A B → Dₚ ⊤ᵛ
+  pointᵒ A B f = mapₚ (λ _ → ttᵛ) (MC.point (MC.state f) ttᵛ)
+
+  massedᵒ-point : (A B : Gᵒ.Obj) (f : Gᵒ._⇒_ A B) → Massedᵒ A B f (pointᵒ A B f)
+  massedᵒ-point A B f = f , S.reflᴹ , mapₚ-≼ᵐ (MC.point (MC.state f) ttᵛ) _
+
+  massedᵒ-∘ˡ : (A B C : Gᵒ.Obj) (g : Gᵒ._⇒_ B C) (f : Gᵒ._⇒_ A B) (p : Dₚ ⊤ᵛ)
+             → Massedᵒ B C g p → Massedᵒ A C (Gᵒ._∘_ g f) p
+  massedᵒ-∘ˡ = massed-∘ˡ
+
+  massedᵒ-∘ʳ : (A B C : Gᵒ.Obj) (g : Gᵒ._⇒_ B C) (f : Gᵒ._⇒_ A B) (p : Dₚ ⊤ᵛ)
+             → Massedᵒ A B f p → Massedᵒ A C (Gᵒ._∘_ g f) p
+  massedᵒ-∘ʳ = massed-∘ʳ
+
+  massedᵒ-T₁ : (Y A B : Gᵒ.Obj) (f : Gᵒ._⇒_ A B) (p : Dₚ ⊤ᵛ) → Massedᵒ A B f p
+             → Massedᵒ (Gr._⊛_ Y A) (Gr._⊛_ Y B) (Gr.T₁ Y f) p
+  massedᵒ-T₁ = massed-T₁
+
+  massedᵒ-sub : (X Y A : Gᵒ.Obj) (s : Gᵒ._⇒_ X Y) (p : Dₚ ⊤ᵛ) → Massedᵒ X Y s p
+              → Massedᵒ (Gr._⊛_ X A) (Gr._⊛_ Y A) (Gr.sub {X} {Y} {A} s) p
+  massedᵒ-sub = massed-sub
+
+  -- …and what the seam reads off it: a closed observation weighs no more than
+  -- the initialization of anything it is built from.
+  massedᵒ-obs : (u : Gᵒ._⇒_ 𝟘ᵒ Ωᵒ) (p : Dₚ ⊤ᵛ) → Massedᵒ 𝟘ᵒ Ωᵒ u p → Obs u ≼ᵐ p
+  massedᵒ-obs u p mu = massed-run Ωᴵ u p mu (ask tt out)

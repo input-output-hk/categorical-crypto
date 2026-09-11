@@ -1,6 +1,8 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- `UC.Seam.Grounding`'s statements, discharged at the trivial grade.
+-- `UC.Seam.Grounding`'s statements at the trivial grade: `IotaBlind`,
+-- `EnvAsCtx` and `StratIsEnv` discharged, `UnitGrade` reduced to `SubBlind`,
+-- and `SubBlind`'s hypothesis shown to say what it is meant to say.
 --
 -- The grade is the sealed bundle's OWN monoidal unit, not `unitᴵ`.  The two are
 -- the empty interface spelled with two different empty types — `Data.Empty.⊥`
@@ -16,13 +18,15 @@
 open import Categories.Functor.Monoidal.CurriedTensor.Properties using (T₁-⊗)
 import Categories.Morphism.Reasoning as MR
 
+open import Data.Bool.Base using (true)
 open import Data.Product.Base using (proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Unit.Base using (tt)
 
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Advantage using (_≼ₚ[_]_; ≈ₚ[]-resp)
-open import ProbabilisticLogic.Dp.Mass using (Total; total-dominated; total-resp-≼ₚ)
+open import ProbabilisticLogic.Dp.Mass
+  using (ASTotal; Total; astotal-≼ᵐ; total-dominated; total-resp-≼ₚ)
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol.Machine.Total using (TotalRun)
@@ -37,6 +41,8 @@ open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Seam using (ctxRunˢ; runˢ; strategyEnv)
 open import CategoricalCrypto.UC.Seam.Adequacy using (adequacy)
 open import CategoricalCrypto.UC.Seam.Grounding
+open import CategoricalCrypto.UC.Seam.Grounding.Dead
+  using (Massedᵒ; massedᵒ-∘ˡ; massedᵒ-∘ʳ; massedᵒ-obs; massedᵒ-point; massedᵒ-sub; pointᵒ)
 
 import CategoricalCrypto.Machines.Collapse as Col
 
@@ -150,3 +156,37 @@ unitGrade blind B u v tu _ e =
          → ctxRunˢ B d u ≼ₚ[ ε ] Obs (t ∘ (sub s ∘ (ιᴳ B ∘ procᵒ v)))
     near ε ε>0 = proj₁ (∼ᴼ-resp (≈ₚ-sym _ _ read) (≈ₚ-refl _)
       (≈ᴳ-at 𝟘ᴳ (t ∘ unitorˡ.from) unitorˡ.to (t ∘_) (plug-λ t) (≈ᵁ⇒≈ᴳ em)) ε ε>0)
+
+------------------------------------------------------------------------
+-- The residue
+
+-- `SubBlind` itself is not discharged.  What is landed is that its hypothesis
+-- says what it is meant to say: `SimTotal` is exactly "the simulator's own
+-- initialization terminates almost surely", because a trivial-grade scalar
+-- reaches a closed observation only through that initialization
+-- (`Grounding.Dead`'s propagation, read back from the observation's mass to
+-- the point's).
+--
+-- What remains is the converse traffic, at the machine layer and not in the
+-- ε-arithmetic: `Dp.Mass.astotal-bind` already says an almost surely
+-- terminating PREFIX is invisible to an ε-closed comparison; what is missing
+-- is that a scalar buried in a `𝒢`-trace nest IS such a prefix of the
+-- composite's run.  A plain simulation cannot say it — `Machines.Sim`'s
+-- generator equates the two points exactly — so the step wants a lax one,
+-- with its own congruence through `∘ᴹ`, `⊗ᵉ` and the trace.
+simTotal⇒point : (B : Iface) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) (v : Proc unitᴵ B)
+               → TG.SimTotal B s v → ASTotal (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
+simTotal⇒point B s v st =
+  astotal-≼ᵐ _ _ (massedᵒ-obs u _ massed)
+                 (st (out true) t (toProc≈ (cancelʳ unitorˡ.isoʳ)))
+  where
+  t : T₀ 𝟘ᴳ (ifaceᵒ B) ⇒ Ωᵒ
+  t = procᵒ (strategyEnv B (out true)) ∘ unitorˡ.from
+
+  u : 𝟘ᵒ ⇒ Ωᵒ
+  u = t ∘ (sub s ∘ (ιᴳ B ∘ procᵒ v))
+
+  massed : Massedᵒ 𝟘ᵒ Ωᵒ u (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
+  massed = massedᵒ-∘ʳ _ _ _ t _ _
+             (massedᵒ-∘ˡ _ _ _ (sub s) (ιᴳ B ∘ procᵒ v) _
+               (massedᵒ-sub 𝟘ᴳ 𝟘ᴳ (ifaceᵒ B) s _ (massedᵒ-point 𝟘ᴳ 𝟘ᴳ s)))

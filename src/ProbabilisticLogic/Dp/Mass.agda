@@ -195,6 +195,14 @@ d ≼ᵐ e = (n : ℕ) → Σ[ m ∈ ℕ ] (mass n d ℚ.≤ mass m e)
 bind-≼ᵐ : (d : Dₚ A) (k : A → Dₚ B) → (d >>=ₚ k) ≼ᵐ d
 bind-≼ᵐ d k n = n , mass-bindˡ n d k
 
+-- Relabelling loses nothing: the junction step costs one budget.
+mapₚ-≼ᵐ : (d : Dₚ A) (h : A → B) → d ≼ᵐ mapₚ h d
+mapₚ-≼ᵐ d h n =
+  n +ℕ 1
+  , ≤-trans (≤-reflexive (cum-cong-P n d _ (λ p → cum 1 (returnₚ (h p)) (λ _ → 1ℚ))
+                                     λ p → sym (returnₚ-cum 0 (h p) (λ _ → 1ℚ))))
+            (>>=ₚ-boundB n 1 d _ (λ _ → 1ℚ) λ _ → 0≤1ℚ)
+
 -- …and the same for the continuation.  The hypothesis is budget-UNIFORM: a
 -- per-branch cofinal bound cannot be maxed out over a support the budget does
 -- not bound, and the one use (a paired state, `UC.Seam.Grounding.Dead`) has
@@ -202,6 +210,25 @@ bind-≼ᵐ d k n = n , mass-bindˡ n d k
 bindʳ-≼ᵐ : (d : Dₚ A) (k : A → Dₚ B) (e : Dₚ C)
          → ((p : A) (n : ℕ) → mass n (k p) ℚ.≤ mass n e) → (d >>=ₚ k) ≼ᵐ e
 bindʳ-≼ᵐ d k e le n = n , mass-bindʳ n d k (mass n e) (mass-nn n e) λ p → le p n
+
+------------------------------------------------------------------------
+-- The zero end of the scale
+
+-- `Dp.Zero` says every budgeted mass is `0ℚ` against every non-negative test;
+-- domination by `botₚ` says it against the constant one, which is all a
+-- verdict reading needs and the form the propagation produces.
+≼ᵐbot⇒0 : (d : Dₚ A) → d ≼ᵐ (botₚ {A = B}) → (n : ℕ) → mass n d ℚ.≤ 0ℚ
+≼ᵐbot⇒0 d le n = let m , b = le n in ≤-trans b (≤-reflexive (botₚ-cum m (λ _ → 1ℚ)))
+
+-- Two runs that reach no verdict are indistinguishable, at no slack at all.
+massless-≈ₚ[0] : (d e : Dₚ Bool) → ((n : ℕ) → mass n d ℚ.≤ 0ℚ)
+               → ((n : ℕ) → mass n e ℚ.≤ 0ℚ) → d ≈ₚ[ 0ℚ ] e
+massless-≈ₚ[0] d e zd ze = half d e zd , half e d ze
+  where
+  half : (x y : Dₚ Bool) → ((n : ℕ) → mass n x ℚ.≤ 0ℚ) → x ≼ₚ[ 0ℚ ] y
+  half x y z b n =
+    0 , ≤-trans (cum-mono-P n x (indᵇ b) _ (indᵇ-≤1 b))
+                (≤-trans (z n) (≤-reflexive (sym (+-identityʳ 0ℚ))))
 
 ------------------------------------------------------------------------
 -- Termination, exact and almost sure
@@ -227,6 +254,14 @@ total-mass d (n , tot) = n , ≤-trans tot (≤-reflexive (verdict-mass n d))
 
 ASTotal : Dₚ A → Set
 ASTotal d = (ε : ℚ) → 0ℚ ℚ.< ε → Σ[ n ∈ ℕ ] (1ℚ ℚ.- ε ℚ.≤ mass n d)
+
+-- Totality travels UP a mass domination: whatever bounds an almost surely
+-- terminating run is itself almost surely terminating.
+astotal-≼ᵐ : (d : Dₚ A) (e : Dₚ B) → d ≼ᵐ e → ASTotal d → ASTotal e
+astotal-≼ᵐ d e le tot ε ε>0 =
+  let n , bd = tot ε ε>0
+      m , bd′ = le n
+  in m , ≤-trans bd bd′
 
 private
   -- `x` is `m`-weighted plus the remainder, and the remainder is what the
@@ -301,8 +336,7 @@ private
     (x₁ :+ ε) :+ (x₂ :+ ε) := (x₁ :+ x₂) :+ (ε :+ ε)) refl
     where open +-*-Solver
 
-squeeze : (x z : Dₚ Bool) (p : Dₚ A) (ε : ℚ) → Total x → z ≼ᵐ p
-        → x ≼ₚ[ ε ] z
+squeeze : (x z : Dₚ Bool) (p : Dₚ A) (ε : ℚ) → Total x → z ≼ᵐ p → x ≼ₚ[ ε ] z
         → Σ[ m ∈ ℕ ] (1ℚ ℚ.- (ε ℚ.+ ε) ℚ.≤ mass m p)
 squeeze x z p ε (n , tot) bnd dom = m′ , shift 1ℚ (mass m′ p) (ε ℚ.+ ε) bound
   where
