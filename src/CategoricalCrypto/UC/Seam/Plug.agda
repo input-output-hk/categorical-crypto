@@ -37,6 +37,7 @@ open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; Ωᴵ; ⟦_⟧ᴼ
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
 
 import CategoricalCrypto.Machines.Collapse as Col
+import CategoricalCrypto.Machines.Collapse.Congruence as ColCong
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Trace as Trace
@@ -153,3 +154,15 @@ module Plugged (B : Iface) (K : Proc B Ωᴵ) (u : Proc unitᴵ B) where
     (Sm.⟺ᴹ (Col.compose-raw≈∘ᴳ {⊥} {⊥} {Pos B} {Neg B} {Bool} {⊤} K u)
      Sm.○ᴹ Col.collapseᵀ {⊥} {⊥} {Pos B} {Neg B} {Bool} {⊤} K u)
     (ask tt out)
+
+-- A composite is observed through a representative of its context factor,
+-- which is what a `QB` certificate is carried on (`UC.QueryBound`'s `QB` is
+-- the `≈`-closure of `Certified`).  Going through the raw trace keeps the
+-- G-construction's congruence out of it.
+obs-resp : (B : Iface) (u : Proc unitᴵ B) (N K : Proc B Ωᴵ) → N Sm.≈ᴹ K
+         → ⟦ N 𝒫.∘ u ⟧ᴼ ≈ₚ ⟦ K 𝒫.∘ u ⟧ᴼ
+obs-resp B u N K e = runᴹ-resp-≈ᴹ {Ωᴵ}
+  (Sm.⟺ᴹ (Col.compose-raw≈∘ᴳ {⊥} {⊥} {Pos B} {Neg B} {Bool} {⊤} N u)
+   Sm.○ᴹ ColCong.compose-resp-≈ᴹ {⊥} {⊥} {Pos B} {Neg B} {Bool} {⊤} e Sm.reflᴹ
+   Sm.○ᴹ Col.compose-raw≈∘ᴳ {⊥} {⊥} {Pos B} {Neg B} {Bool} {⊤} K u)
+  (ask tt out)

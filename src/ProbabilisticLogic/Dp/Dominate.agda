@@ -22,6 +22,7 @@ open import Data.Nat.Base using (ℕ; zero; suc) renaming (_+_ to _+ℕ_; _≤_ 
 open import Data.Product.Base using (Σ-syntax; _,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 0ℚ; 1ℚ)
 open import Data.Rational.Properties as ℚP
+open import Data.Nat.Properties as ℕP using ()
 open import Data.Rational.Solver using (module +-*-Solver)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Level using (Level)
@@ -80,6 +81,14 @@ mutual
 -- slack-free one and picks the slack up at the single step that spends it.
 Dom₀ : (A → ℚ) → Dₚ A → Dₚ A → Set
 Dom₀ P d e = (n : ℕ) → Σ[ m ∈ ℕ ] (cum n d P ℚ.≤ cum m e P)
+
+-- The same, bounded: a target faithful only to a depth is dominated only up
+-- to that depth (`UC.Seam.Extract`'s truncation is the case in point).
+Dom≤ : (A → ℚ) → ℕ → Dₚ A → Dₚ A → Set
+Dom≤ P f d e = (n : ℕ) → n ≤ℕ f → Σ[ m ∈ ℕ ] (cum n d P ℚ.≤ cum m e P)
+
+dom≤⇒dom₀ : ((f : ℕ) → Dom≤ P f d e) → Dom₀ P d e
+dom≤⇒dom₀ h n = h n n ℕP.≤-refl
 
 Dom : (A → ℚ) → ℚ → Dₚ A → Dₚ A → Set
 Dom P ε d e = (n : ℕ) → Σ[ m ∈ ℕ ] (cum n d P ℚ.≤ cum m e P ℚ.+ ε)
@@ -153,7 +162,27 @@ module _ {A B : Set a} (P : B → ℚ) (nn : NNF P) {ε : ℚ} (0≤ε : 0ℚ �
     i′ = proj₁ unif
     sp = proj₂ unif
 
+module _ {A B : Set a} (P : B → ℚ) (nn : NNF P) (k : ℕ)
+         (d : Dₚ A) (f g : A → Dₚ B) (dm : (p : A) → Dom≤ P k (f p) (g p)) where
+
+  dom≤-bind : Dom≤ P k (d >>=ₚ f) (d >>=ₚ g)
+  dom≤-bind n le =
+    n +ℕ i′
+    , ≤-trans (>>=ₚ-boundA n d f P nn)
+      (≤-trans (cum-mono-Supp n d (λ p → cum n (f p) P) (λ p → cum i′ (g p) P) sp)
+               (>>=ₚ-boundB n i′ d g P nn))
+    where
+    Φ : A → ℕ → Set
+    Φ p i = cum n (f p) P ℚ.≤ cum i (g p) P
+
+    up : ∀ p {i i′} → i ≤ℕ i′ → Φ p i → Φ p i′
+    up p le′ q = ≤-trans q (cum-mono le′ (g p) P nn)
+
+    unif = uniformize Φ up (λ p → dm p n le) n d
+    i′ = proj₁ unif
+    sp = proj₂ unif
+
 dom₀-bind : {A B : Set a} (P : B → ℚ) → NNF P → (d : Dₚ A) (f g : A → Dₚ B)
           → ((p : A) → Dom₀ P (f p) (g p)) → Dom₀ P (d >>=ₚ f) (d >>=ₚ g)
 dom₀-bind P nn d f g dm =
-  dom⇒dom₀ (dom-bind P nn ≤-refl d f g (λ p → dom₀⇒dom ≤-refl (dm p)))
+  dom≤⇒dom₀ λ k → dom≤-bind P nn k d f g (λ p n _ → dm p n)
