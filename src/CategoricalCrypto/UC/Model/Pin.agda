@@ -3,7 +3,9 @@
 -- The inherited metatheory, exercised at the model.  Nothing is proved here —
 -- every right-hand side is a name from `Abstract2` — which is the point of the
 -- ruled direction: `_≈ᵁ_`, `_≤UC_`, `≤UC-refl`, `dummy-complete`, `≤UC-trans`,
--- `UC-compose` and `≈ᵁ⇒≈ℰ` come with the setup.
+-- `UC-compose` and `≈ᵁ⇒≈ℰ` come with the setup.  The five metatheorem sites
+-- arrive as `UC.Model.Unit.AnyEnvironment ℰᵒ`, since the statements are
+-- ℰ-generic and that module is where they are written.
 --
 -- The module exists to PRICE those application sites, because they are what the
 -- seal was measured against: this is the same six-statement text that costs
@@ -23,13 +25,15 @@
 -- lemma instead (`UC.Seam.Grounded.plug-run`, over `Seal.unprocᵒ-∘`).
 
 open import Data.Empty using (⊥-elim)
-open import Data.Product.Base using (Σ-syntax)
 open import Data.Sum.Base using (inj₁; inj₂)
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.UC.Machine using (wireᴹ)
+open import CategoricalCrypto.UC.Model.Environment using (ℰᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
+
+import CategoricalCrypto.UC.Model.Unit as Unit
 
 module CategoricalCrypto.UC.Model.Pin where
 
@@ -61,24 +65,11 @@ private variable A B C X Y P Q : Channel
 ------------------------------------------------------------------------
 -- The metatheorems, applied at homs of the seal
 
-refl-at : (f : A ⇒ T₀ X B) → f ≤UC f
-refl-at = ≤UC-refl
-
-dummy-at : {f : A ⇒ T₀ X B} {g : A ⇒ T₀ Y B}
-         → Σ[ s₀ ∈ Y ⇒ X ] f ≈ᵁ sub s₀ ∘ g → f ≤UC g
-dummy-at = dummy-complete
-
-trans-at : {f : A ⇒ T₀ X B} {g : A ⇒ T₀ Y B} {h : A ⇒ T₀ P B}
-         → f ≤UC g → g ≤UC h → f ≤UC h
-trans-at = ≤UC-trans
-
-compose-at : {f : A ⇒ T₀ X B} {g : A ⇒ T₀ Y B}
-             {h : B ⇒ T₀ P C} {k : B ⇒ T₀ Q C}
-           → f ≤UC g → h ≤UC k → h ∙ f ≤UC k ∙ g
-compose-at = UC-compose
-
-collapse-at : {f g : A ⇒ T₀ X B} → f ≈ᵁ g → f ≈ℰ g
-collapse-at = ≈ᵁ⇒≈ℰ
+-- `UC.Model.Unit.AnyEnvironment` states these five over an ARBITRARY
+-- environment presheaf, which is what makes the choice of closure object
+-- immaterial; instantiating it at `ℰᵒ` is what prices them here, and is the
+-- only instance the module has.
+open Unit.AnyEnvironment ℰᵒ public
 
 ------------------------------------------------------------------------
 -- …and at a CONCRETE machine process
