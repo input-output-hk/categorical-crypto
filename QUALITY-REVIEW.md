@@ -1233,6 +1233,78 @@ Not addressed, and left in *Suggestions*: the rest of the zero-consumer list
 `docs/protocol-rewrite.md` drift the `BudgetLawsᴹ` deletion adds to (lines 564,
 573, 577, 1099 still name the record).
 
+## Resolved (`swapinner-relocations`)
+
+Branch `swapinner-relocations` off `protocol-rewrite`'s tip (`5ccb9033`),
+`protocol-rewrite` merged forward to `ccd15721` before the relocations; two
+commits, one per item. No statement changed anywhere, and the only
+importer-visible rename is the collision pair named below. Hatch grep: 0 in the
+touched files, before and after.
+
+- `src/Categories/GConstructionTrace.agda :: mid` — **adopted, and both harvests
+  landed.** `mid`'s literal spelling STAYS (see the negative below) and the three
+  upstream lemmas are read off it by conversion, at no cost:
+  `mid-involutive = Interchange.Symmetric.swapInner-commutative`, which **proves the
+  involution `mid`'s own comment asserted unproven**; `mid-natural =
+  Interchange.Braided.swapInner-natural`; `mid-braiding = swapInner-braiding`; plus
+  one derived `mid-σ : mid ∘ σ⇒ ⊗₁ σ⇒ ≈ σ⇒ ∘ mid` (the last two with one copy of
+  `mid` cancelled). Two solver obligations retire on them:
+  `GConstructionTensorCoherence.T` is **gone** — `GConstructionMonoidal.⌜⌝-⊗` is now
+  `mid-σ`, `mid-natural` and `mid-involutive` around `⊗-distrib-over-∘`, five
+  combinators — and `GConstructionHomCoherence.ob-nat`, the only obligation of that
+  module carrying generators, is `swapInner-natural` at the FREE SMC (`APROP
+  sig`'s `Symmetric-Monoidal`) followed by `swapInner-commutative`. Measured warm,
+  single module, before → after: `GConstructionTrace` 8 → 8 s (+21 LOC),
+  `GConstructionMonoidal` 9 → 10 s, `GConstructionTensorCoherence` 61 → 60 s
+  (251 → 190 LOC), `GConstructionHomCoherence` 30 → 28 s.
+  **Negative recorded (rule 31):** writing `⌜⌝-⊗` as an explicit `begin … ∎` chain
+  that names its intermediate composites re-prices `GConstructionMonoidal` from
+  9 s to **>912 s** (killed there). The combinator spelling that names none of them
+  costs +1 s. That is the same conversion boundary the module headers price, and it
+  is why `mid` was not redefined as `swapInner.from` either.
+  The finder's open question stays open: `U.UL`/`U.UR`/`A.AC` versus
+  `swapInner-unitˡ`/`-unitʳ`/`-assoc` was **not attempted** — the repo states those
+  in absorbed form with a generator, so it is a spike, not a swap.
+  `SFunM/Spike/SlotFrame.agda:313-318` already cites `swapInner`; the two citations
+  now agree and nothing there was touched.
+- `src/CategoricalCrypto/Machines/Collapse.agda` (with the `UC/Machine/Dictionary`
+  + `Wire` entry) — **relocated.** Three new `Machines.*` modules, one per layer the
+  two findings named:
+  * `Machines/Pointwise.agda` (154 LOC) — the finder's list verbatim: `⊗-pure`,
+    `⊗-pureˡ`, `α+⇒-fn`, `α+⇐-fn`, `+-swap-fn`, `+₁-fn`, `pureᶠ`, `∘ᶠ`, `⊗ᶠ`,
+    `idᶠ`, `α⇒ᶠ`, `α⇐ᶠ`, `σᶠ`, `swp-pt`, `onL-pt`, `onR-pt`, `tstepL`, `tstepR`.
+    It has NO `GConstruction` in its closure, which is the point:
+    `Examples/MerkleDamgard/QueryBound` now imports it instead of `Collapse` for
+    its eight `⊗-pureˡ` uses, and measures 11 s warm. `αᶠ`/`γᶠ` stay in `Collapse` next to `α-pure`/
+    `γ-pure`, which do mention `GConstructionTrace`'s wiring (rule 28).
+  * `Machines/Pure.agda` (210 LOC) — Dictionary's Kleisli-pure layer:
+    `pure-idᵏ`, `swapᵏ`, `assocˡᵏ`, `assocʳᵏ`, `∘-pureᵏ`, `+₁-pureᵏ`, `pureᴵ`,
+    `swapᴵ`, `enter-pure`, `exit-pure`, `tstep-inj₁`, `tstep-inj₂`, `midfn`,
+    `midᴹ` (+ its `opaque`), `id-pureᴹ`, `∘-pureᴹ`, `⊗-pureᴹ`, `midᴹ-pure`,
+    `swap-copair`, `⌜⌝-pureᴹ`. `enter-pure`/`exit-pure` are now uniformly public,
+    which settles the rule-26 entry on that pair.
+  * `Machines/Sandwich.agda` (76 LOC) — `Wire`'s `Set`-level lemmas `sandwichᴹ`,
+    `sandwich-∘`, `squeeze`; `Wire` re-exports it so `UC/Machine/Slide`'s bare
+    `open import … Wire` still reaches `sandwichᴹ`/`sandwich-∘`.
+  `ret≡`, `map-eq` and `map-fuse` move to `ProbabilisticLogic/Dp/Reasoning.agda`
+  beside `map-map`, and `map-fuse` is now **derived** —
+  `map-map d h k ⟨≈⟩ map-eq d (k ∘′ h) l eq` — which makes `map-eq` live rather
+  than dead. That supersedes `claims-deletions-wiring`'s deletion of the dead
+  `Wire.map-eq` in the same lines and honours its intent; the merge conflict there
+  was resolved in favour of the relocation.
+  `Collapse` and `Dictionary` keep a `public` re-export of the module they lost
+  content to, because `Col.MC`/`Col.S`/`Col.T`/`Col.⊗-pure`/`Col.⊗-pureˡ` and
+  Dictionary's own consumers name those. Collision resolved: Dictionary's
+  `⊗ᵉ-pureˡ`/`⊗ᵉ-pureʳ` — opposite-handed to
+  `Machines.Tensor.Structural`'s — are renamed `pure⊗-stateˡ`/`pure⊗-stateʳ` in
+  `Machines.Pure`. They were `private`, so no importer sees the rename;
+  `Wire.agda`, which had both pairs in scope at once, now has one.
+  Measured warm, single module, before → after: `Collapse` 16 → 16 s
+  (363 → 244 LOC), `Dictionary` 25 → 23 s (412 → 265 LOC), `Wire` 26 → 27 s
+  (183 → 121 LOC), `Collapse/Congruence` 9 s, `Grading` 22 s, `Slide` 26 s;
+  the three new modules 9 s / 11 s / 9 s. Every documented header cost still holds
+  (`Collapse`'s "16 s warm" is re-measured, not re-stated).
+
 ## Tried, not worth it
 
 - `src/CategoricalCrypto/UC/Machine.agda :: GradingLawsᴹ` — **retired by the code.**

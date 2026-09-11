@@ -8,6 +8,10 @@
 -- eight zigzags.  Nothing here states a `Monoidal` law's type, which is what
 -- makes it affordable (`UC.Machine`'s header prices the alternative).
 --
+-- The Kleisli-pure layer the readings run on — `pureᵏ` of a relabelling, the
+-- junction calculus, `midᴹ` — is machine-layer, not UC, and lives in
+-- `Machines.Pure`.
+--
 -- Every object implicit is passed explicitly, for the reason `UC.Machine`'s
 -- header gives: inferring one asks Agda to invert `_⊗₁ᴳ_`.
 
@@ -32,6 +36,7 @@ open import ProbabilisticLogic.Dp using (Dₚ; returnₚ)
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
   using (Dₚ-DiscreteMonad; 𝒱ₚ; 𝒢ₚᴹ; distₚ; 𝒫ₚ)
+open import CategoricalCrypto.Machines.Pure
 open import CategoricalCrypto.Protocol.Machine using (⟦_⟧ᴵ)
 open import CategoricalCrypto.UC.Machine
 
@@ -66,164 +71,12 @@ open import Categories.Category.Monoidal.Reasoning 𝒱.monoidal
 open MU.Shorthands 𝔾.monoidal using () renaming (α⇒ to α⇒ᴳ; α⇐ to α⇐ᴳ)
 
 private
-  variable P Q R S V W V′ W′ X : 𝒱.Obj
-
-------------------------------------------------------------------------
--- The base is a Kleisli category: its structural maps are functions
-
-pure-idᵏ : 𝒱._≈_ (𝒱.id {V}) (pureᵏ (λ v → v))
-pure-idᵏ _ = ≈ᵈ.refl
-
-private
-  swapᵏ : 𝒱._≈_ (+-swap {V} {W}) (pureᵏ Sum.swap)
-  swapᵏ (inj₁ _) = ≈ᵈ.refl
-  swapᵏ (inj₂ _) = ≈ᵈ.refl
-
-  assocˡᵏ : 𝒱._≈_ (α+⇐ {P} {Q} {R}) (pureᵏ ⊎assocˡ)
-  assocˡᵏ (inj₁ _)        = >>=-identityˡ-≈
-  assocˡᵏ (inj₂ (inj₁ _)) = >>=-identityˡ-≈
-  assocˡᵏ (inj₂ (inj₂ _)) = ≈ᵈ.refl
-
-  assocʳᵏ : 𝒱._≈_ (α+⇒ {P} {Q} {R}) (pureᵏ ⊎assocʳ)
-  assocʳᵏ (inj₁ (inj₁ _)) = ≈ᵈ.refl
-  assocʳᵏ (inj₁ (inj₂ _)) = >>=-identityˡ-≈
-  assocʳᵏ (inj₂ _)        = >>=-identityˡ-≈
-
-  ∘-pureᵏ : {u : 𝒱._⇒_ V W} {v : 𝒱._⇒_ V′ V} {h : V → W} {k : V′ → V}
-          → 𝒱._≈_ u (pureᵏ h) → 𝒱._≈_ v (pureᵏ k)
-          → 𝒱._≈_ (𝒱._∘_ u v) (pureᵏ (λ x → h (k x)))
-  ∘-pureᵏ {h = h} {k} e₁ e₂ = (e₁ ⟩∘⟨ e₂) ○ pureᵏ-∘ h k
-
-+₁-pureᵏ : {u : 𝒱._⇒_ V W} {v : 𝒱._⇒_ V′ W′} {h : V → W} {k : V′ → W′}
-         → 𝒱._≈_ u (pureᵏ h) → 𝒱._≈_ v (pureᵏ k)
-         → 𝒱._≈_ (u +₁ v) (pureᵏ (Sum.map h k))
-+₁-pureᵏ {h = h} {k} e₁ e₂ = +₁-cong₂ e₁ e₂ ○ leaves
-  where
-  leaves : 𝒱._≈_ (pureᵏ h +₁ pureᵏ k) (pureᵏ (Sum.map h k))
-  leaves (inj₁ _) = >>=-identityˡ-≈
-  leaves (inj₂ _) = >>=-identityˡ-≈
-
--- A pure interface relabelling spends two junctions and keeps the state.
-pureᴵ : (h : V → W) (r : X × V)
-      → 𝒱._⊗₁_ (𝒱.id {X}) (pureᵏ h) r ≈ᵈ returnₚ (proj₁ r , h (proj₂ r))
-pureᴵ h = pureᵏ-⊗ (λ x → x) h
-
-private
-  swapᴵ : (r : X × (V ⊎ W))
-        → 𝒱._⊗₁_ (𝒱.id {X}) +-swap r ≈ᵈ returnₚ (proj₁ r , Sum.swap (proj₂ r))
-  swapᴵ {X = X} {V} {W} r = ≈ᵈ.trans (padded r) (pureᴵ Sum.swap r)
-    where
-    padded : 𝒱._≈_ {X × (V ⊎ W)} {X × (W ⊎ V)}
-                   (𝒱._⊗₁_ 𝒱.id +-swap) (𝒱._⊗₁_ 𝒱.id (pureᵏ Sum.swap))
-    padded = refl⟩⊗⟨ swapᵏ
-
-enter-pure : {A : 𝒱.Obj} (h : V → W) (K : X × W → Dₚ A) (x : X) (v : V)
-           → (𝒱._⊗₁_ (𝒱.id {X}) (pureᵏ h) (x , v) >>= K) ≈ᵈ K (x , h v)
-enter-pure h K x v = ≈ᵈ.trans (>>=-cong-x (pureᴵ h (x , v))) >>=-identityˡ-≈
-
-private
-  exit-pure : (h : V → W) (x : X) (v : V)
-            → (returnₚ (x , v) >>= 𝒱._⊗₁_ (𝒱.id {X}) (pureᵏ h)) ≈ᵈ returnₚ (x , h v)
-  exit-pure h x v = ≈ᵈ.trans >>=-identityˡ-≈ (pureᴵ h (x , v))
-
-  -- Entering a `tstep` on one summand runs that arm and retags its answer.
-  tstep-inj₁ : {A B C D : 𝒱.Obj} (k : X × A → Dₚ (W × B)) (l : X × C → Dₚ (W × D))
-               (x : X) (a : A)
-             → tstep k l (x , inj₁ a)
-               ≈ᵈ (k (x , a) >>= λ r → returnₚ (proj₁ r , inj₁ (proj₂ r)))
-  tstep-inj₁ k l x a =
-    ≈ᵈ.trans (>>=-cong-x >>=-identityˡ-≈)
-      (≈ᵈ.trans (>>=-assoc-≈ (k (x , a)))
-        (>>=-cong-f λ r → ≈ᵈ.trans >>=-identityˡ-≈ (pureᵏ-⊗ (λ y → y) inj₁ r)))
-
-  tstep-inj₂ : {A B C D : 𝒱.Obj} (k : X × A → Dₚ (W × B)) (l : X × C → Dₚ (W × D))
-               (x : X) (c : C)
-             → tstep k l (x , inj₂ c)
-               ≈ᵈ (l (x , c) >>= λ r → returnₚ (proj₁ r , inj₂ (proj₂ r)))
-  tstep-inj₂ k l x c =
-    ≈ᵈ.trans (>>=-cong-x >>=-identityˡ-≈)
-      (≈ᵈ.trans (>>=-assoc-≈ (l (x , c)))
-        (>>=-cong-f λ r → ≈ᵈ.trans >>=-identityˡ-≈ (pureᵏ-⊗ (λ y → y) inj₂ r)))
-
-------------------------------------------------------------------------
--- `mid` and the pure machines it is built from
-
-  -- The interchange the G-tensor conjugates by, as a function on sums.
-  midfn : (P ⊎ Q) ⊎ (R ⊎ S) → (P ⊎ R) ⊎ (Q ⊎ S)
-  midfn (inj₁ (inj₁ p)) = inj₁ (inj₁ p)
-  midfn (inj₁ (inj₂ q)) = inj₂ (inj₁ q)
-  midfn (inj₂ (inj₁ r)) = inj₁ (inj₂ r)
-  midfn (inj₂ (inj₂ s)) = inj₂ (inj₂ s)
-
-  -- Keep the nested structural composite nominal after proving its expansion
-  -- once.
-  opaque
-    midᴹ : Machine ((P + Q) + (R + S)) ((P + R) + (Q + S))
-    midᴹ = α⇐ᴹ ∘ᴹ ((idᴹ ⊗ᵉ (α⇒ᴹ ∘ᴹ ((σᴹ ⊗ᵉ idᴹ) ∘ᴹ α⇐ᴹ))) ∘ᴹ α⇒ᴹ)
-
-  id-pureᴹ : idᴹ {V} ≈ᴹ pureᴹ (𝒱.id {V})
-  id-pureᴹ = ≲⇒≈ᴹ˘ pureᴹ-id
-
-  ∘-pureᴹ : {M : Machine W V′} {N : Machine V W} {u : 𝒱._⇒_ W V′} {v : 𝒱._⇒_ V W}
-          → M ≈ᴹ pureᴹ u → N ≈ᴹ pureᴹ v → (M ∘ᴹ N) ≈ᴹ pureᴹ (𝒱._∘_ u v)
-  ∘-pureᴹ e₁ e₂ = ∘ᴹ-resp-≈ᴹ e₁ e₂ ○ᴹ ≲⇒≈ᴹ (pureᴹ-∘ _ _)
-
-  ⊗-pureᴹ : {M : Machine V W} {N : Machine V′ W′} {u : 𝒱._⇒_ V W} {v : 𝒱._⇒_ V′ W′}
-          → M ≈ᴹ pureᴹ u → N ≈ᴹ pureᴹ v → (M ⊗ᵉ N) ≈ᴹ pureᴹ (u +₁ v)
-  ⊗-pureᴹ e₁ e₂ = ⊗ᵉ-resp-≈ᴹ e₁ e₂ ○ᴹ ≲⇒≈ᴹ (⊗ᵉ-pureᴹ _ _)
-
-  -- Every factor of `mid` is a structural machine, hence `pureᴹ`; what it
-  -- collapses to is the interchange on sums.
-  opaque
-    unfolding midᴹ
-
-    midᴹ-pure : midᴹ {P} {Q} {R} {S} ≈ᴹ pureᴹ (pureᵏ midfn)
-    midᴹ-pure =
-        ∘-pureᴹ reflᴹ
-          (∘-pureᴹ
-            (⊗-pureᴹ id-pureᴹ
-              (∘-pureᴹ reflᴹ (∘-pureᴹ (⊗-pureᴹ reflᴹ id-pureᴹ) reflᴹ)))
-            reflᴹ)
-      ○ᴹ ≲⇒≈ᴹ (pureᴹ-cong
-        (∘-pureᵏ assocˡᵏ
-          (∘-pureᵏ (+₁-pureᵏ pure-idᵏ
-                     (∘-pureᵏ assocʳᵏ
-                       (∘-pureᵏ (+₁-pureᵏ swapᵏ pure-idᵏ) assocˡᵏ)))
-                   assocʳᵏ)
-         ○ pureᵏ-cong λ where
-             (inj₁ (inj₁ _)) → refl
-             (inj₁ (inj₂ _)) → refl
-             (inj₂ (inj₁ _)) → refl
-             (inj₂ (inj₂ _)) → refl))
-
-  -- Tensoring with a pure machine keeps the other factor's state.
-  ⊗ᵉ-pureˡ : (h : 𝒱._⇒_ V W) (M : Machine V′ W′)
-           → (pureᴹ h ⊗ᵉ M) ≲ mk (state M) (tstep (𝒱._⊗₁_ 𝒱.id h) (step M))
-  ⊗ᵉ-pureˡ h M = collapseˡ ((refl⟩∘⟨ tstep-cong (onL-str h) 𝒱.Equiv.refl)
-                            ○ tstep-sim (⟺ (pad-transport λ⇒ h)) onR-collapseˡ)
-
-  ⊗ᵉ-pureʳ : (M : Machine V W) (h : 𝒱._⇒_ V′ W′)
-           → (M ⊗ᵉ pureᴹ h) ≲ mk (state M) (tstep (step M) (𝒱._⊗₁_ 𝒱.id h))
-  ⊗ᵉ-pureʳ M h = collapseʳ ((refl⟩∘⟨ tstep-cong 𝒱.Equiv.refl (onRᵍ-id⊗ h))
-                            ○ tstep-sim onL-collapseʳ (⟺ (pad-transport ρ⇒ h)))
+  variable V X : 𝒱.Obj
 
 ------------------------------------------------------------------------
 -- Every wire is an embedding
 
 private
-  -- The base half of the embedding `⌜ u , v ⌝`: swapping after relabelling each
-  -- summand is the copairing that routes each summand to the other side.
-  swap-copair : (u : 𝒱._⇒_ V W) (v : 𝒱._⇒_ V′ W′)
-              → 𝒱._≈_ (𝒱._∘_ +-swap (u +₁ v)) [ 𝒱._∘_ i₂ u , 𝒱._∘_ i₁ v ]
-  swap-copair u v = +-unique₂
-    (𝒱.assoc ○ (refl⟩∘⟨ +₁∘i₁) ○ 𝒱.sym-assoc ○ (+-swap-i₁ ⟩∘⟨refl) ○ ⟺ inject₁)
-    (𝒱.assoc ○ (refl⟩∘⟨ +₁∘i₂) ○ 𝒱.sym-assoc ○ (+-swap-i₂ ⟩∘⟨refl) ○ ⟺ inject₂)
-
-  -- …and the machine half: an embedding of two pure machines is pure.
-  ⌜⌝-pureᴹ : (u : 𝒱._⇒_ V W) (v : 𝒱._⇒_ V′ W′)
-           → (σᴹ ∘ᴹ (pureᴹ u ⊗ᵉ pureᴹ v)) ≲ pureᴹ (𝒱._∘_ +-swap (u +₁ v))
-  ⌜⌝-pureᴹ u v = ≲-trans (∘ᴹ-resp-≲ ≲-refl (⊗ᵉ-pureᴹ u v)) (pureᴹ-∘ +-swap (u +₁ v))
-
   -- A wire's step is the copairing of its two relabellings, crossed.
   wireStep-copair : {A B : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
                   → 𝒱._≈_ (wireStep {A} {B} up down)
@@ -396,7 +249,7 @@ opaque
             (𝔾._⊗₁_ {⟦ Y ⟧ᴵ} {⟦ Y ⟧ᴵ} {⟦ A ⟧ᴵ} {⟦ B ⟧ᴵ} (𝒫.id {Y}) f)
   T₁-⊗₁ {Y} {A} {B} f = ⟺ᴹ
     ( ∘ᴹ-resp-≈ᴹ midᴹ-pure (∘ᴹ-resp-≈ᴹ reflᴹ midᴹ-pure)
-    ○ᴹ ≲⇒≈ᴹ (∘ᴹ-resp-≲ ≲-refl (∘ᴹ-resp-≲ (⊗ᵉ-pureˡ +-swap f) ≲-refl))
+    ○ᴹ ≲⇒≈ᴹ (∘ᴹ-resp-≲ ≲-refl (∘ᴹ-resp-≲ (pure⊗-stateˡ +-swap f) ≲-refl))
     ○ᴹ ≲⇒≈ᴹ (∘ᴹ-resp-≲ ≲-refl (pure-∘ʳ (pureᵏ midfn) _))
     ○ᴹ ≲⇒≈ᴹ (pure-∘ˡ (pureᵏ midfn) _)
     ○ᴹ ≲⇒≈ᴹ (mk-cong (T₁-step {Y} {A} {B} f)) )
@@ -406,7 +259,7 @@ opaque
              (𝔾._⊗₁_ {⟦ X ⟧ᴵ} {⟦ Y ⟧ᴵ} {⟦ A ⟧ᴵ} {⟦ A ⟧ᴵ} s (𝒫.id {A}))
   sub-⊗₁ {X} {Y} {A} s = ⟺ᴹ
     ( ∘ᴹ-resp-≈ᴹ midᴹ-pure (∘ᴹ-resp-≈ᴹ reflᴹ midᴹ-pure)
-    ○ᴹ ≲⇒≈ᴹ (∘ᴹ-resp-≲ ≲-refl (∘ᴹ-resp-≲ (⊗ᵉ-pureʳ s +-swap) ≲-refl))
+    ○ᴹ ≲⇒≈ᴹ (∘ᴹ-resp-≲ ≲-refl (∘ᴹ-resp-≲ (pure⊗-stateʳ s +-swap) ≲-refl))
     ○ᴹ ≲⇒≈ᴹ (∘ᴹ-resp-≲ ≲-refl (pure-∘ʳ (pureᵏ midfn) _))
     ○ᴹ ≲⇒≈ᴹ (pure-∘ˡ (pureᵏ midfn) _)
     ○ᴹ ≲⇒≈ᴹ (mk-cong (sub-step {X} {Y} {A} s)) )

@@ -10,30 +10,27 @@
 -- routing that factor's emission out or around the loop.  Any consumer that has
 -- to read a `𝒢ₚ`-composite's step off starts here.
 --
--- Everything here stays inside `ℳₚ` and measures 16 s warm.  `collapseᵀ` is
--- stated as a trace rather than as `𝒢ₚ`'s `_∘_` on purpose: a consumer's goal
--- names `_∘_` already, so leaving the projection out of the G-construction
--- record to the consumer costs ONE such projection, while a lemma stated with
--- `_∘_` costs the consumer a second one — measured at 269 s against 704 s
--- (`Protocol.Machine.Compose`) and 282 s against 507 s (`UC.Seam.Adequacy.
--- Wiring`).
--- Composition congruence sits against the same conversion boundary and is
--- isolated in `Collapse.Congruence` (about 10 s), so it is paid only by clients
--- that transport a composite equality.  Opaque machine composition keeps
--- that boundary nominal instead of eta-expanding both composite records.
+-- The `Kl(Dₚ)` point calculus the two legs are read with is `Machines.Pointwise`
+-- (re-exported below): a consumer that needs only that pays nothing for the
+-- trace.  Everything here stays inside `ℳₚ` and measures 16 s warm.
+-- `collapseᵀ` is stated as a trace rather than as `𝒢ₚ`'s `_∘_` on purpose: a
+-- consumer's goal names `_∘_` already, so leaving the projection out of the
+-- G-construction record to the consumer costs ONE such projection, while a
+-- lemma stated with `_∘_` costs the consumer a second one — measured at 269 s
+-- against 704 s (`Protocol.Machine.Compose`) and 282 s against 507 s
+-- (`UC.Seam.Adequacy.Wiring`).  Composition congruence sits against the same
+-- conversion boundary and is isolated in `Collapse.Congruence` (about 10 s),
+-- so it is paid only by clients that transport a composite equality.  Opaque
+-- machine composition keeps that boundary nominal instead of eta-expanding
+-- both composite records.
 
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal.Bundle
-import Categories.Category.Cocartesian.Ext as CE
-import Categories.Category.Kleisli.Discrete as KD
-import Categories.Category.Monoidal.Distributive as MD
 import Categories.GConstruction as GC
 import Categories.GConstructionTrace as GT
 
-open import Data.Product.Base using (_×_; _,_; proj₁; proj₂; swap)
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂; map) renaming (swap to ⊎swap)
-open import Data.Sum.Ext using (⊎assocˡ; ⊎assocʳ)
-open import Function.Base using (_∘′_)
+open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
+open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Level using (0ℓ)
 open import Relation.Binary.PropositionalEquality using (refl)
 
@@ -42,101 +39,24 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Machines.Base
 
-import CategoricalCrypto.Machines.Category as MCat
-import CategoricalCrypto.Machines.Core as Core
-import CategoricalCrypto.Machines.Sim as Sim
-import CategoricalCrypto.Machines.Tensor as Tensor
 import CategoricalCrypto.Machines.Trace as Trace
 import CategoricalCrypto.Machines.Trace.Congruence as TraceCong
 
 module CategoricalCrypto.Machines.Collapse where
 
-module MC  = Core (𝒱ₚ 0ℓ)
+-- Re-exported, because the names this file's importers reach for (`Col.MC`,
+-- `Col.S`, `Col.T`, `Col.⊗-pure`, `Col.⊗-pureˡ`) live there now.
+open import CategoricalCrypto.Machines.Pointwise public
+
 module MT  = Trace (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
-module S   = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 module TC  = TraceCong (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
 
-module Cat = MCat (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
-module T   = Tensor (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ)
-module V   = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
 module ℳ   = SymmetricMonoidalCategory (ℳₚ 0ℓ)
 module W   = GT ℳ.U ℳ.monoidal (Tracedₚ 0ℓ)
-module D   = MD.MonoidalDistributive (distₚ 0ℓ)
-module K   = KD (Dₚ-DiscreteMonad {0ℓ})
-module CK  = CE V.U D.cocartesian
 module 𝒢   = Category (𝒢ₚ 0ℓ)
 
 private
-  variable P Q X Y Z X′ Y′ : Set
-
-------------------------------------------------------------------------
--- The base's structural morphisms, as functions
-
-⊗-pure : (h : X → Y) (p : Z × X) → (V.id V.⊗₁ K.pureᵏ h) p ≈ₚ returnₚ (proj₁ p , h (proj₂ p))
-⊗-pure h p = >>=ₚ-identityˡ (proj₁ p) _ ⟨≈⟩ >>=ₚ-identityˡ (h (proj₂ p)) _
-
--- The state-side mirror: the shape every `_≲_`'s `θ ⊗₁ id` takes at a point.
-⊗-pureˡ : (h : X → Y) (p : X × Z) → (K.pureᵏ h V.⊗₁ V.id) p ≈ₚ returnₚ (h (proj₁ p) , proj₂ p)
-⊗-pureˡ h p = >>=ₚ-identityˡ (h (proj₁ p)) _ ⟨≈⟩ >>=ₚ-identityˡ (proj₂ p) _
-
-α+⇒-fn : (x : (X ⊎ Y) ⊎ Z) → CK.α+⇒ x ≈ₚ returnₚ (⊎assocʳ x)
-α+⇒-fn (inj₁ (inj₁ a)) = push CK.α+⇒ (inj₁ (inj₁ a))
-                       ⟨≈⟩ bindˣ (push (K.pureᵏ inj₁) (inj₁ a)) ⟨≈⟩ CK.α+⇒-i₁i₁ a
-α+⇒-fn (inj₁ (inj₂ b)) = push CK.α+⇒ (inj₁ (inj₂ b))
-                       ⟨≈⟩ bindˣ (push (K.pureᵏ inj₁) (inj₂ b)) ⟨≈⟩ CK.α+⇒-i₁i₂ b
-                       ⟨≈⟩ >>=ₚ-identityˡ (inj₁ b) (K.pureᵏ inj₂)
-α+⇒-fn (inj₂ c)        = push CK.α+⇒ (inj₂ c) ⟨≈⟩ CK.α+⇒-i₂ c
-                       ⟨≈⟩ >>=ₚ-identityˡ (inj₂ c) (K.pureᵏ inj₂)
-
-α+⇐-fn : (x : X ⊎ (Y ⊎ Z)) → CK.α+⇐ x ≈ₚ returnₚ (⊎assocˡ x)
-α+⇐-fn (inj₁ a)        = push CK.α+⇐ (inj₁ a) ⟨≈⟩ CK.α+⇐-i₁ a
-                       ⟨≈⟩ >>=ₚ-identityˡ (inj₁ a) (K.pureᵏ inj₁)
-α+⇐-fn (inj₂ (inj₁ b)) = push CK.α+⇐ (inj₂ (inj₁ b))
-                       ⟨≈⟩ bindˣ (push (K.pureᵏ inj₂) (inj₁ b)) ⟨≈⟩ CK.α+⇐-i₂i₁ b
-                       ⟨≈⟩ >>=ₚ-identityˡ (inj₂ b) (K.pureᵏ inj₁)
-α+⇐-fn (inj₂ (inj₂ c)) = push CK.α+⇐ (inj₂ (inj₂ c))
-                       ⟨≈⟩ bindˣ (push (K.pureᵏ inj₂) (inj₂ c)) ⟨≈⟩ CK.α+⇐-i₂i₂ c
-
-+-swap-fn : (x : X ⊎ Y) → D.+-swap x ≈ₚ returnₚ (⊎swap x)
-+-swap-fn (inj₁ a) = push D.+-swap (inj₁ a) ⟨≈⟩ CK.+-swap-i₁ a
-+-swap-fn (inj₂ b) = push D.+-swap (inj₂ b) ⟨≈⟩ CK.+-swap-i₂ b
-
-+₁-fn : (h : X → Y) (k : Z → X′) (x : X ⊎ Z)
-      → (K.pureᵏ h D.+₁ K.pureᵏ k) x ≈ₚ returnₚ (map h k x)
-+₁-fn h k (inj₁ a) = push (K.pureᵏ h D.+₁ K.pureᵏ k) (inj₁ a) ⟨≈⟩ D.+₁∘i₁ a
-                   ⟨≈⟩ >>=ₚ-identityˡ (h a) (K.pureᵏ inj₁)
-+₁-fn h k (inj₂ c) = push (K.pureᵏ h D.+₁ K.pureᵏ k) (inj₂ c) ⟨≈⟩ D.+₁∘i₂ c
-                   ⟨≈⟩ >>=ₚ-identityˡ (k c) (K.pureᵏ inj₂)
-
-------------------------------------------------------------------------
--- Machines that are functions
-
-pureᶠ : (X → Y) → MC.Machine X Y
-pureᶠ h = T.pureᴹ (K.pureᵏ h)
-
-∘ᶠ : {f : MC.Machine X Y} {g : MC.Machine Y Z} {h : X → Y} {k : Y → Z}
-   → f S.≈ᴹ pureᶠ h → g S.≈ᴹ pureᶠ k → (g MC.∘ᴹ f) S.≈ᴹ pureᶠ (k ∘′ h)
-∘ᶠ {h = h} {k} e₁ e₂ = Cat.∘ᴹ-resp-≈ᴹ e₂ e₁
-                S.○ᴹ S.≲⇒≈ᴹ (T.pureᴹ-∘ (K.pureᵏ k) (K.pureᵏ h))
-                S.○ᴹ S.≲⇒≈ᴹ (T.pureᴹ-cong (K.pureᵏ-∘ k h))
-
-⊗ᶠ : {f : MC.Machine X Y} {g : MC.Machine Z X′} {h : X → Y} {k : Z → X′}
-   → f S.≈ᴹ pureᶠ h → g S.≈ᴹ pureᶠ k → (f T.⊗ᵉ g) S.≈ᴹ pureᶠ (map h k)
-⊗ᶠ {h = h} {k} e₁ e₂ = T.⊗ᵉ-resp-≈ᴹ e₁ e₂
-                S.○ᴹ S.≲⇒≈ᴹ (T.⊗ᵉ-pureᴹ (K.pureᵏ h) (K.pureᵏ k))
-                S.○ᴹ S.≲⇒≈ᴹ (T.pureᴹ-cong (+₁-fn h k))
-
-idᶠ : (X : Set) → MC.idᴹ {X} S.≈ᴹ pureᶠ (λ x → x)
-idᶠ _ = S.≲⇒≈ᴹ˘ T.pureᴹ-id
-
-α⇒ᶠ : (X Y Z : Set) → T.α⇒ᴹ {X} {Y} {Z} S.≈ᴹ pureᶠ ⊎assocʳ
-α⇒ᶠ _ _ _ = S.≲⇒≈ᴹ (T.pureᴹ-cong α+⇒-fn)
-
-α⇐ᶠ : (X Y Z : Set) → T.α⇐ᴹ {X} {Y} {Z} S.≈ᴹ pureᶠ ⊎assocˡ
-α⇐ᶠ _ _ _ = S.≲⇒≈ᴹ (T.pureᴹ-cong α+⇐-fn)
-
-σᶠ : (X Y : Set) → T.σᴹ {X} {Y} S.≈ᴹ pureᶠ ⊎swap
-σᶠ _ _ = S.≲⇒≈ᴹ (T.pureᴹ-cong +-swap-fn)
+  variable P Q X Y : Set
 
 ------------------------------------------------------------------------
 -- The two structural legs of a G-composite
@@ -181,45 +101,6 @@ idᶠ _ = S.≲⇒≈ᴹ˘ T.pureᴹ-id
     (inj₁ (inj₂ _)) → refl
     (inj₂ (inj₁ _)) → refl
     (inj₂ (inj₂ _)) → refl)))
-
-------------------------------------------------------------------------
--- The state actions and the interface tensor, at a point
-
-swp-pt : (p : P) (q : Q) (x : X) → MC.swp ((p , q) , x) ≈ₚ returnₚ ((p , x) , q)
-swp-pt p q x =
-  bindˣ (>>=ₚ-identityˡ (p , q , x) _ ⟨≈⟩ ⊗-pure swap (p , q , x))
-  ⟨≈⟩ >>=ₚ-identityˡ (p , x , q) _
-
-onL-pt : (k : P × X → Dₚ (P × Y)) (p : P) (q : Q) (x : X)
-       → MC.onL {Q = Q} k ((p , q) , x)
-       ≈ₚ (k (p , x) >>=ₚ λ r → returnₚ ((proj₁ r , q) , proj₂ r))
-onL-pt k p q x =
-  bindˣ (bindˣ (swp-pt p q x) ⟨≈⟩ >>=ₚ-identityˡ ((p , x) , q) _
-         ⟨≈⟩ bindᶠ (λ _ → >>=ₚ-identityˡ q _))
-  ⟨≈⟩ >>=ₚ-assoc (k (p , x)) _ _
-  ⟨≈⟩ bindᶠ (λ where (p′ , y) → >>=ₚ-identityˡ ((p′ , y) , q) _ ⟨≈⟩ swp-pt p′ y q)
-
-onR-pt : (k : Q × X → Dₚ (Q × Y)) (p : P) (q : Q) (x : X)
-       → MC.onR {P = P} k ((p , q) , x)
-       ≈ₚ (k (q , x) >>=ₚ λ r → returnₚ ((p , proj₁ r) , proj₂ r))
-onR-pt k p q x =
-  bindˣ (>>=ₚ-identityˡ (p , q , x) _ ⟨≈⟩ >>=ₚ-identityˡ p _)
-  ⟨≈⟩ >>=ₚ-assoc (k (q , x)) _ _
-  ⟨≈⟩ bindᶠ (λ where (q′ , y) → >>=ₚ-identityˡ (p , q′ , y) _)
-
-tstepL : (k : P × X → Dₚ (P × Y)) (l : P × Z → Dₚ (P × X′)) (s : P) (x : X)
-       → T.tstep k l (s , inj₁ x)
-       ≈ₚ (k (s , x) >>=ₚ λ r → returnₚ (proj₁ r , inj₁ (proj₂ r)))
-tstepL k l s x =
-  ≈sym (bindˣ (⊗-pure inj₁ (s , x)) ⟨≈⟩ >>=ₚ-identityˡ (s , inj₁ x) (T.tstep k l))
-  ⟨≈⟩ T.tstep-i₁ {k = k} {l} (s , x) ⟨≈⟩ bindᶠ (⊗-pure inj₁)
-
-tstepR : (k : P × X → Dₚ (P × Y)) (l : P × Z → Dₚ (P × X′)) (s : P) (x : Z)
-       → T.tstep k l (s , inj₂ x)
-       ≈ₚ (l (s , x) >>=ₚ λ r → returnₚ (proj₁ r , inj₂ (proj₂ r)))
-tstepR k l s x =
-  ≈sym (bindˣ (⊗-pure inj₂ (s , x)) ⟨≈⟩ >>=ₚ-identityˡ (s , inj₂ x) (T.tstep k l))
-  ⟨≈⟩ T.tstep-i₂ {k = k} {l} (s , x) ⟨≈⟩ bindᶠ (⊗-pure inj₂)
 
 ------------------------------------------------------------------------
 -- The collapsed step
