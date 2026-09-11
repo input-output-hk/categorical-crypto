@@ -18,9 +18,9 @@
 -- For the same reason `_≈ℰ_` is the adaptive single-ancilla relation *by
 -- definition* rather than the kernel congruence of the environment presheaf:
 -- the reference had to prove the two equal (`≈ℰ⇒R`, the direction that needed
--- the hypothesis).  `ℰᵗᵛ` is still built, and `≈ℰ⇒tv`/`tv⇒≈ℰ` are the identity
--- pair witnessing that the definition is its kernel relation ancilla by
--- ancilla.  `grade-stable` is then a theorem with no hypothesis under it.
+-- the hypothesis).  `ℰᵗᵛ` is still built, and the definition IS its kernel
+-- relation ancilla by ancilla — `record { same = h Y E }` and `same` back.
+-- `grade-stable` is then a theorem with no hypothesis under it.
 --
 -- Everything here consumes the QUALITATIVE observation alone; the ε-indexed
 -- form of the relation and its collapse live in `UC.Environment.Approximate`.
@@ -101,14 +101,6 @@ infix 4 _≈ℰ_
 _≈ℰ_ : {A B′ : Obj} (f g : A ⇒ B′) → Set (o ⊔ ℓ ⊔ ℓs)
 _≈ℰ_ {A} {B′} f g = (Y : Obj) (E : Test (Y ⊛ B′)) (m : Closure (Y ⊛ A))
                   → obs (tv₁ Y f E) m ∼ obs (tv₁ Y g E) m
-
-≈ℰ⇒tv : {A B′ : Obj} {f g : A ⇒ B′} → f ≈ℰ g
-      → (Y : Obj) (E : Test (Y ⊛ B′)) → SameTV Y A (tv₁ Y f E) (tv₁ Y g E)
-≈ℰ⇒tv h Y E = record { same = h Y E }
-
-tv⇒≈ℰ : {A B′ : Obj} {f g : A ⇒ B′}
-      → ((Y : Obj) (E : Test (Y ⊛ B′)) → SameTV Y A (tv₁ Y f E) (tv₁ Y g E)) → f ≈ℰ g
-tv⇒≈ℰ h Y E = same (h Y E)
 
 ≈ℰ-refl : {f : A ⇒ B′} → f ≈ℰ f
 ≈ℰ-refl _ _ _ = ∼-refl

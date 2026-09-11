@@ -191,8 +191,7 @@ private module E = Em UCBase^ω
 open E public using
   ( Test; Closure; obs; SameTV; same; same-≈; Tests; tv₁; ℰᵗᵛ
   ; _≈ℰ_; ≈ℰ-refl; ≈ℰ-sym; ≈ℰ-trans; ≈ℰ-setoid; ≈⇒≈ℰ; ≈ℰ-congˡ; ≈ℰ-congʳ
-  ; grade-stable; _≤UC_; _≤UC⁺_; ≤UC-refl; ≤UC-trans; dummy-complete
-  ; ≤UC⁺⇒≤UC; _⊙_; _⊛₁_; UC-compose )
+  ; grade-stable; _≤UC_; _≤UC⁺_; ≤UC-refl; ≤UC-trans; dummy-complete )
 
 infix 4 _≈ℰ[_]_
 

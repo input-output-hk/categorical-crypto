@@ -7,11 +7,19 @@
 -- environment tells apart from the real `f`.  The reference arc reached the
 -- same statement through a graded Kleisli category and its coherence-iso
 -- regrading (`Abstract`/`Abstract2`, ~540 LOC); none of that tower is needed
--- for the four metatheorems, which are `sub`'s functoriality plus `_≈ℰ_`'s
+-- for the three metatheorems, which are `sub`'s functoriality plus `_≈ℰ_`'s
 -- congruence.
 --
 -- The dummy-adversary form is *equivalent* here, not merely implied: taking
--- `a := id` inverts `dummy-complete`.
+-- `a := id` inverts `dummy-complete`, which is how `UC.Model.Bridge` reads an
+-- inherited `_≤UC_` — whose statement carries the quantifier — back into this
+-- one.
+--
+-- Universal composition is NOT here.  Superseded: it needs a `sub`/`T₁`
+-- interchange and an `a⇒`-naturality that `Grading` does not ask for, so this
+-- layer could only STATE it, and at the intended instance it is the inherited
+-- `Abstract2.UC-compose`, a theorem, transported by `UC.Model.Bridge`'s
+-- identification of the two orders.
 
 open import Data.Product.Base using (Σ-syntax; _,_)
 import Categories.Morphism.Reasoning as MR
@@ -28,7 +36,7 @@ open import CategoricalCrypto.UC.Environment base public
 open HomReasoning
 open MR 𝒞 using (elimˡ)
 
-private variable A B′ C′ X X′ Y Y′ Z : Obj
+private variable A B′ X Y Z : Obj
 
 infix 4 _≤UC_ _≤UC⁺_
 
@@ -56,10 +64,6 @@ dummy-complete : {f : A ⇒ X ⊛ B′} {g : A ⇒ Y ⊛ B′} → f ≤UC g →
 dummy-complete (s , e) a =
   a ∘ s , ≈ℰ-trans (≈ℰ-congˡ (sub a) e) (≈⇒≈ℰ merge)
 
-≤UC⁺⇒≤UC : {f : A ⇒ X ⊛ B′} {g : A ⇒ Y ⊛ B′} → f ≤UC⁺ g → f ≤UC g
-≤UC⁺⇒≤UC h with h id
-... | s , e = s , ≈ℰ-trans (≈⇒≈ℰ (⟺ (elimˡ sub-id))) e
-
 ------------------------------------------------------------------------
 -- Degenerate grades
 
@@ -85,30 +89,3 @@ unit-grade : {A B′ Z : Obj} {ι : B′ ⇒ Z ⊛ B′} {u v : A ⇒ B′}
            → ((ι ∘ u) ≈ℰ (ι ∘ v) → u ≈ℰ v)
            → _≤UC_ {A} {B′} {Z} {Z} (ι ∘ u) (ι ∘ v) → u ≈ℰ v
 unit-grade blind reflect e = reflect (blind-grade blind e)
-
-------------------------------------------------------------------------
--- Universal composition
-
--- Plugging one graded process on top of another: the lower one's adversary
--- interface bypasses the upper one, and the two are then merged.
-infixr 9 _⊙_
-
-_⊙_ : {A B′ C′ X X′ : Obj} → B′ ⇒ X′ ⊛ C′ → A ⇒ X ⊛ B′ → A ⇒ (X ⊛ X′) ⊛ C′
-_⊙_ {X = X} h f = a⇒ ∘ T₁ X h ∘ f
-
--- Two simulators acting side by side: `sub` on the left factor, `T₁` on the
--- right.  This is the composite simulator `UC-compose` must produce.
-_⊛₁_ : {X X′ Y Y′ : Obj} → Y ⇒ X → Y′ ⇒ X′ → Y ⊛ Y′ ⇒ X ⊛ X′
-_⊛₁_ {X} s s′ = T₁ X s′ ∘ sub s
-
--- Monotonicity of `_⊙_` in both arguments.  Stated, not proved: the chain needs
--- two `Grading` laws this layer does not ask for — the `sub`/`T₁` interchange
--- (`sub s ∘ T₁ X f ≈ T₁ Y f ∘ sub s`, disjoint interfaces commute) and `a⇒`'s
--- naturality in its first two slots.  Both hold in any monoidal action; neither
--- is needed by anything above, so they are not fields until a consumer wants
--- this theorem.
-UC-compose : Set (o ⊔ ℓ ⊔ ℓs)
-UC-compose = {A B′ C′ X X′ Y Y′ : Obj}
-             {f : A ⇒ X ⊛ B′} {g : A ⇒ Y ⊛ B′}
-             {h : B′ ⇒ X′ ⊛ C′} {k : B′ ⇒ Y′ ⊛ C′}
-           → f ≤UC g → h ≤UC k → (h ⊙ f) ≤UC (k ⊙ g)

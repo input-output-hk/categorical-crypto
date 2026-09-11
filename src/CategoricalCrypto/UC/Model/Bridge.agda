@@ -11,14 +11,14 @@
 -- `UC.Model.Reading._≈ᴬ_`, which differs from it by one `assoc` and nothing
 -- else.  The core's `_≤UC_` then coincides with StdUC's, both ways: the core's
 -- `dummy-complete` supplies the universal quantification StdUC's order carries
--- in its statement, and the core's `≤UC⁺⇒≤UC` takes it back.
+-- in its statement, and instantiating that quantifier at `id` takes it back.
 --
--- The core's one OPEN metatheorem is discharged as a corollary: `UC-compose` is
--- a `Set` in `UC.Emulation` because the chain needs a `sub`/`T₁` interchange
--- and `a⇒`-naturality that `Grading` does not ask for.  At the model the graded
--- composite `_⊙_` IS the Kleisli one — `ext X h` is `α⇐ ∘ id ⊗₁ h` on the nose
--- (`CurriedTensor.Properties.ext-⊗`) — so `_⊙_` and `_∙_` differ by one
--- re-bracketing and the inherited theorem transports.
+-- Universal composition is what the identification RETIRES.  `UC.Emulation`
+-- could only state it, the chain needing a `sub`/`T₁` interchange and an
+-- `a⇒`-naturality that `Grading` does not ask for; here the graded composite IS
+-- the Kleisli one (`ext X h` is `α⇐ ∘ id ⊗₁ h` on the nose,
+-- `CurriedTensor.Properties.ext-⊗`), so `≤UCᶜ⇔≤UC` carries `UC-compose` —
+-- already a theorem — across, and there is nothing left for the core to owe.
 --
 -- At UNGRADED homs `_≈ᵁ_` says nothing — it is stated at `A ⇒ T₀ X B` — and the
 -- core's relation is stated at every codomain.  What it is there is `_≈ᴳ_`, the
@@ -54,7 +54,7 @@ module CategoricalCrypto.UC.Model.Bridge where
 open HomReasoning
 open MR ∣machines∣ using (cancelˡ)
 
-private variable A B C X Y P : Channel
+private variable A B C X Y : Channel
 
 ------------------------------------------------------------------------
 -- The core's `UCBase` at the model
@@ -182,26 +182,11 @@ private
 ≤UCᶜ⇒≤UC p a = let s , e = E.dummy-complete p a in s , ≈ℰᶜ⇒≈ᵁ e
 
 ≤UC⇒≤UCᶜ : {f : A ⇒ T₀ X B} {g : A ⇒ T₀ Y B} → f ≤UC g → f ≤UCᶜ g
-≤UC⇒≤UCᶜ p = E.≤UC⁺⇒≤UC λ a → let s , e = p a in s , ≈ᵁ⇒≈ℰᶜ e
+≤UC⇒≤UCᶜ {f = f} p =
+  let s , e = p id in s , ≈ᵁ⇒≈ℰᶜ (≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ f))) e)
 
 ≤UCᶜ⇔≤UC : {f : A ⇒ T₀ X B} {g : A ⇒ T₀ Y B} → f ≤UCᶜ g ⇔ f ≤UC g
 ≤UCᶜ⇔≤UC {f = f} {g} = mk⇔ {B = f ≤UC g} ≤UCᶜ⇒≤UC ≤UC⇒≤UCᶜ
-
-------------------------------------------------------------------------
--- The core's open metatheorem, discharged
-
-⊙-∙ : (h : B ⇒ T₀ P C) (f : A ⇒ T₀ X B) → E._⊙_ h f ≈ h ∙ f
-⊙-∙ _ _ = sym-assoc
-
-≤UCᶜ-resp : {f f′ : A ⇒ T₀ X B} {g g′ : A ⇒ T₀ Y B}
-          → f ≈ f′ → g ≈ g′ → f ≤UCᶜ g → f′ ≤UCᶜ g′
-≤UCᶜ-resp ef eg (s , e) =
-  s , E.≈ℰ-trans (E.≈⇒≈ℰ (⟺ ef)) (E.≈ℰ-trans e (E.≈⇒≈ℰ (refl⟩∘⟨ eg)))
-
-UC-composeᶜ : E.UC-compose
-UC-composeᶜ {f = f} {g} {h} {k} pf ph =
-  ≤UCᶜ-resp (⟺ (⊙-∙ h f)) (⟺ (⊙-∙ k g))
-            (≤UC⇒≤UCᶜ (UC-compose (≤UCᶜ⇒≤UC pf) (≤UCᶜ⇒≤UC ph)))
 
 ------------------------------------------------------------------------
 -- The three instruments the seam consumes, over the inherited kernel
