@@ -100,10 +100,9 @@ AuditBound {A = A} {B′ = B′} {X = X} f 𝔈 ε =
   → (n : ℕ) → at n (obs (tv₁ Y f Et) m) ℚ.≤ ε (ctxBudget c c′)
 
 -- An event class PINNED to a designated observation: a context reads it when
--- what it observes is the one the designation names for its budget.  This is
--- `UC.Seam.Audit.TrivialGrade.watched`'s shape with layer 1's monitor run
--- abstracted away, so it is available at ANY grade — `watched` is stated at a
--- closed protocol image and its extraction context is a trivial-grade one.
+-- what it observes is the one the designation names for its budget.  Layer 1's
+-- monitor run is abstracted away here, so this is available at ANY grade;
+-- `Examples.HashForward.Audit` is the application at one that is not trivial.
 pinned : {A B′ X : Obj} → A ⇒ X ⊛ B′ → (ℕ → Obs) → AuditEvent ℓs A X B′
 pinned f μ Y Et m q = obs (tv₁ Y f Et) m ∼ μ q
 

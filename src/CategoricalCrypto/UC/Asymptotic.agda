@@ -11,13 +11,13 @@
 -- `UC.Asymptotic.Family` is the family premise.  Two things are then carried,
 -- and by different routes, because the two ends of the seam are:
 --
---   * `UC.Asymptotic.Audit.uc-audit-carry` is the GRADED carry
---     (`UC.Audit.audit-carry`) read at the family: the ideal side's designated
---     audit event crosses each emulation, the simulator absorbed into the
---     context and its queries charged there (`simCost`).  It lives next door
---     because the two halves in one module cost 127 s warm and apart 10 + 10 s
---     — the seal-level terms of the collapse and the audit event's
---     instantiation are cheap alone and not together.
+--   * `UC.Asymptotic.Audit.uc-audit-carryᵈ` is the GRADED carry
+--     (`UC.Audit.carry-obs`) read at the family: the ideal side's monitor bound
+--     crosses each emulation, the simulator absorbed into the context and its
+--     queries charged there (`simCost`).  It lives next door because the two
+--     halves in one module cost 127 s warm and apart 10 + 10 s — the
+--     seal-level terms of the collapse and the carry's instantiation are cheap
+--     alone and not together.
 --
 --   * `uc-preservesᴺ` here is the PROBABILITY carry: at the trivial grade the
 --     simulator is provably blind (`UC.Seam.Grounded.subBlind`), so an
@@ -28,12 +28,10 @@
 --     system.
 --
 -- The two do not compose: turning the graded conclusion back into a
--- probability needs the absorbed context to be one of the contexts the IDEAL
--- event permits, and `UC.Seam.Audit.watched` permits a context only when its
--- observation is `≈ₚ`-EQUAL to an ideal monitored run.  The simulator's own
--- initialization makes it ε-close and no more (that is exactly what `subBlind`
--- proves and all it can prove), so the inclusion is not derivable here.  The
--- probability route is the one that closes, and it charges no `simCost`
+-- probability needs the absorbed context's observation to be `≈ₚ`-EQUAL to an
+-- ideal monitored run, and the simulator's own initialization makes it ε-close
+-- and no more (that is exactly what `subBlind` proves and all it can prove).
+-- The probability route is the one that closes, and it charges no `simCost`
 -- because at the trivial grade the simulator costs the ideal side nothing.
 
 open import Data.Nat.Base as ℕ using (ℕ)

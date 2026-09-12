@@ -258,7 +258,7 @@ module _ (hash : Protocol unitᴵ HashIf) (vr : Variant) (s₀ : LState) where
 module _ (vr : Variant) (s₀ : LState) where
 
   -- The trajectory bound BECOMES the designated monitor's bound, which is what
-  -- `ChimericLedger.Audit` hands to the UC layer's audit event, and comes back
+  -- `ChimericLedger.Audit` hands to the UC layer's carries, and comes back
   -- through `pov-via-monitor` at the audit-interleaved strategy's budget.
   monitor-bounded : {ε : ℕ → ℚ} → POV vr s₀ ε → POVmonitor vr s₀ ε
   monitor-bounded pov q d a = ≤-trans (monitor-sound oracle vr s₀ d) (pov q d a)

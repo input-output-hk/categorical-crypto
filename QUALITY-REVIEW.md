@@ -3290,3 +3290,101 @@ Closure green with the same gate: `src/CategoricalCrypto.agda`, `UC.agda`,
 `Examples/MerkleDamgard*`, and all thirteen `Examples/ROCommitment*` including
 `Hiding/*`. Escape-hatch baseline 16 before / 16 after (all sixteen the words
 "postulate-free" in inherited comments).
+
+## Resolved (retirement)
+
+Branch `retirement` off `protocol-rewrite` at `ff2e2435`:
+`docs/uc-presheaf-preservation-plan.md` §6 step 7. Full account, with the
+importer lists, the per-candidate gate verdicts and the module costs:
+[`docs/retirement.md`](docs/retirement.md).
+
+**Six candidates retired, each its own green commit, each against a §5 row whose
+gate is shown satisfied by a named replacement steps 5-6 actually built.**
+Nothing is deleted for being off the main path; no statement that stays is
+weakened. `src/` loses 426 lines net (167 insertions, 593 deletions, 14 files).
+
+| what went | §5 row | replacement |
+|---|---|---|
+| `absorb-watchedᵖ`, `ctx-absorb`, `auditIsBoundedᴬ`, `uc-audit-bounded`'s class-route body | `UC.Seam.Audit.Prefix` | `bounded-carry` = `dominate` + `sim-prefixed` + `supply` + `extract-bounded` |
+| `watchedᵖ`, `watched⇒watchedᵖ`, `AuditIsBoundedᵖ`, `BoundedIsAuditᵖ`, `auditIsBoundedᵖ`, `boundedIsAuditᵖ` | `UC.Seam.Audit` | same route |
+| `uc-audit-carry`, `uc-audit-carryᵈ-bound`, `EndToEnd.ledger-audit-carry` | `UC.Asymptotic.Audit` | `uc-audit-carryᵈ`, `ledger-audit-carryᵈ` |
+| `ChimericLedger.Audit.auditEvent`, `audit-bound`, `audit-bounded`, `audit-target` | `Examples/ChimericLedger/Audit` | `pov-target`, `Schedule.ideal-bounded` |
+| `module TrivialGrade` (`watched`, `AuditIsBounded`, `BoundedIsAudit`), `ctx-watched`, `auditIsBounded`, `boundedIsAudit`, `Context.extract` | `UC.Seam.Audit`, `Context`/`Bounded` | `extract-obs`/`extract-bounded` |
+| 14 of the 17 renamed `UC.Emulation` reexports at the ᴺ tier | `UC.Family.Negligible` | `CategoricalCrypto.UC.Emulation UCBaseᴺ` itself — no proof deleted |
+
+### Decided, and why
+
+- **`uc-audit-bounded′` becomes `uc-audit-bounded` :: `UC/Seam/Audit/Prefix.agda`**
+  — §5's `Prefix` row retires the ROUTE, and the two theorems have the same
+  Agda type argument for argument, so the direct proof takes the public name and
+  the prime disappears. The only importer's `using` list
+  (`UC/Asymptotic/Audit.agda:45`) names one theorem and that theorem still
+  exists under its pre-step-5 name. Keeping the prime instead would have left
+  the conceptual duplicate resolved in the worse direction.
+- **`ledger-audit-carry` deleted, and the check is mechanical rather than by
+  eye :: `Examples/ChimericLedger/EndToEnd.agda`** — it is an exported theorem,
+  so it goes only because `ledger-audit-carryᵈ` carries its whole conclusion.
+  Both are the SAME application of `uc-audit-carryᵈ{-bound}`
+  (`{ε = εᴸ} {ν = ν} em (monitorᴸ a V) (ideal-bounded a V si) 0<inv-pow-2`), and
+  the bridge's body is `uc-audit-carryᵈ` at one Σ-pattern's components, so
+  `ledger-audit-carry W Et m _ _ (d , a , near)` IS
+  `ledger-audit-carryᵈ … W Et m _ d a near`. `docs/end-to-end.md` updated.
+- **`UC.Seam.Audit` is kept :: `UC/Seam/Audit.agda`** — §5's row offers "remove
+  if it becomes forwarding-only". What is left is a parameterized module
+  APPLICATION (`Aud ucBaseᵒ budgetᵒ massᵒ`), not a re-export layer: rule 19's
+  remedy "open the source directly" is unavailable because the source takes
+  three arguments, and deleting the module means writing that application in six
+  consumers — duplicating an instantiation this repository has measured to be
+  expensive (`quantitative-family` item 3: +22 s for one `Abstract2.Action`
+  application). It is also the parent of three submodules. Kept at 26 LOC.
+- **`Examples/ChimericLedger/Audit` is NOT merged** — the row allows the merge
+  "only if no distinct proof content remains". `pov-target` is strictly more
+  general in `h₀` than `Schedule.ideal-bounded` (which fixes
+  `h₀ n = replicate n false`), so content remains. It now has no in-repo
+  importer and is a FOURTH per-file leaf beside `Carry`, `Pin` and `FactorEps`.
+- **`UC.Seam.Audit.Bounded` keeps only `supply`, in place** — it no longer
+  imports the seam at all, so rule 27 could argue for relocating it; plan §4.1
+  pins the rational-order arguments in `Bounded` and this step does not own that
+  question.
+
+### Left for you
+
+- **`UC.Asymptotic.Family` has no duplicate to retire, and here is the check.**
+  The row's retirement already happened in `quantitative-family`: `_≈ᶠ[_]_` is a
+  definitional alias, so the relation has no independent definition left.
+  `≤UC^ωⁿ-refl`/`-sym`/`-trans` are NOT duplicates of `Contextual`'s
+  `≈ctx-refl`/`-sym`/`-trans` — those are stated at `_≈ctx[_]_`, a different
+  relation from `_≈ctxᴬ[_]_` (the test's domain is bracketed the other way,
+  `Contextual:85-93`), and bridging costs `≈ctx⇒≈ctxᴬ`'s `subst` plus two
+  `shuffle⇒`s; nor is the statement the same (`_≤UC^ωⁿ_` is a Σ over the
+  schedule with a `NegligibleBound`). The shared text is three one-line bodies.
+  Kept, with the acceptance tests and `≈ᶠ-runs`.
+- **Zero-consumer wrappers whose §5 gate is vacuous rather than met.** These
+  have no in-repo consumer, but none of them BECAME consumerless through
+  anything steps 1-6 built, so no gate reading "after callers migrate" is
+  satisfied by this arc and §5's opening paragraph forbids deleting them anyway.
+  Listed with their named replacements in `docs/retirement.md` §7:
+  `Model.Family.Uniform :: uc-compose-agree`;
+  `Model.Family.Ingest :: ingest-≈ℰ`, `ingest-≈ℰⁿ`, `ingest-≤UC`,
+  `ingest-≤UCᵁ` (that module's sole importer is `UC/Model.agda:55`, a bare
+  build-closure `import` — it has never had a caller to migrate);
+  `Model.Bridge :: ≈ℰᶜ⇔≈ᵁ`, `≈ᴳ⇔≈ℰᶜ`, `≈ℰᶜ⇒≈ℰ`, `≈ᴳ-refl`, `≈ᴳ-sym`,
+  `≈ᴳ-congʳ`, `≈ᴳ⇒≈ᵁ`, `≤UCᶜ⇒≤UC`, `_≤UCᶜ_`; `Model.Reading :: ≈ᵁ⇔≈ᴬ`. Six of
+  them are already the standing entry at line 438 above.
+- **`ifaceᶠ` is defined twice with identical bodies** —
+  `UC/Asymptotic/Family.agda:85` and `UC/Model/Family/Ingest.agda:64`, both
+  `ifaceᶠ n = ifaceᵒ (B n)`; only the first has an external consumer. Merging
+  them makes a `Model`-layer module import an `Asymptotic`-layer one, and no §5
+  row covers it.
+- **The parked calls are untouched** (`docs/retirement.md` §8): rerouting
+  `ledger-uc-to-pov`, shedding `uc-audit-bounded`'s unused premises (now carried
+  by two exported statements rather than three), the fifth `_≤UC^ωᵉ_` component,
+  retiring `≤UC⇒≤UCᶜ` (still zero-consumer, still yours), and the Track-A stack.
+
+### Verification
+
+Forced warm (`.agdai` deleted where needed), `+RTS -M8G -H1G`, rc=0 and an empty
+`ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|Heap exhausted`
+gate on every run; the before/after table with a measured baseline is
+`docs/retirement.md` §9. Escape-hatch baseline 16 before / 16 after (all sixteen
+the words "postulate-free" in inherited comments).

@@ -194,10 +194,10 @@ module _ (vr : Variant) (s₀ : LState) where
   POVaudit = Bounded (Sys vr s₀) (watch s₀)
 
   -- The same statement at the DESIGNATED monitor, which is the one the UC
-  -- layer's audit event is about (`UC.Seam.Audit.watched`): no strategy of
-  -- budget `q` makes the monitor report a violation with probability above
-  -- `ε q`.  `Trajectory.monitor-bounded` proves it from `POV`, and
-  -- `ChimericLedger.Audit` hands it to the seam.
+  -- layer's carries consume: no strategy of budget `q` makes the monitor
+  -- report a violation with probability above `ε q`.
+  -- `Trajectory.monitor-bounded` proves it from `POV`, and
+  -- `ChimericLedger.Audit.pov-target` hands it to the seam.
   POVmonitor : (ℕ → ℚ) → Set
   POVmonitor = Bounded (Sys vr s₀) (monitor s₀)
 

@@ -144,41 +144,38 @@ See `docs/ledger-factoring.md`.
    pointwise premise, and `ledger-uc-to-pov-family` above. Review §1's
    labelling step is `UC.Asymptotic`'s header and the comment on `_≤UC^ω_`.
 
-3. **Robustness of the designated event — DONE at the class level.**
-   `UC.Asymptotic.Audit.uc-audit-carry` carries the ideal `AuditBound` (supplied by
-   `ChimericLedger.Audit.audit-target`, i.e. by the proved birthday theorem)
-   across a budgeted emulation at the real-side class
-   `absorb (sim em) cs (watched …)` — the largest class closed into the ideal
-   one, exhibited by the proved `absorb-absorbs`. Nothing is assumed about
-   the real side. At the ledger this is
-   `ChimericLedger.EndToEnd.ledger-audit-carry`.
+3. **Robustness of the designated event — DONE, with no event class on either
+   route.** `UC.Asymptotic.Audit.uc-audit-carryᵈ` carries the ideal monitor
+   bound (supplied by `Schedule.ideal-bounded`, i.e. by the proved birthday
+   theorem read through the monitor — the same bound
+   `ChimericLedger.Audit.pov-target` states pointwise, with no UC vocabulary in
+   it) across a budgeted emulation, stated directly at the existing test,
+   closure, monitor transformation and budget witness, with layer 1's `Bounded`
+   as its ideal supply. Nothing is assumed about the real side. Its generic half
+   is `UC.Audit.carry-obs`. At the ledger this is
+   `ChimericLedger.EndToEnd.ledger-audit-carryᵈ`.
 
-   **Both carries now run with no event class on their route**
-   (`docs/consumer-migration.md`, plan §6 step 6). The statements above and
-   below are all unchanged; what changed is which theorem proves them.
    `uc-audit-boundedᵖ` — and through it `ledger-uc-to-pov-simCost` and
    `ledger-pov-simCost-negligible` — goes through
-   `UC.Seam.Audit.Prefix.uc-audit-bounded′` rather than `uc-audit-bounded`, so
-   `watchedᵖ`, `absorb-watchedᵖ`, `ctx-absorb` and `auditIsBoundedᴬ` leave the
-   route entirely. Beside `uc-audit-carry` there is now `uc-audit-carryᵈ`,
-   plan §4.2's property-specific statement at the existing test, closure,
-   monitor transformation and budget witness, with no `AuditEvent`/`AuditBound`/
-   `watched`/`absorb` in it and layer 1's `Bounded` as its ideal supply; its
-   generic half is `UC.Audit.carry-obs`, `audit-carry`'s structural content
-   hoisted out of it. `ledger-audit-carry` is `uc-audit-carryᵈ-bound` past one
-   Σ-pattern, off `Schedule.ideal-bounded` — the same birthday bound
-   `ChimericLedger.Audit.pov-target` states with no UC vocabulary in it — so the
-   graded route's `AuditBound` object is recovered directly and not merely its
-   number. The one thing that does NOT become available is the extraction from
-   the exact `watched` to a probability; that is the obstruction recorded below,
-   and it is still why the probability endpoint goes through the prefix.
+   `UC.Seam.Audit.Prefix.uc-audit-bounded`, whose route is `sim-prefixed` and
+   `bounded-carry` off `UC.Seam.Audit.Context.extract-bounded`.
+
+   Plan §6 step 7 then retired the class layer these two replaced:
+   `uc-audit-carry` and its `AuditBound` bridge `uc-audit-carryᵈ-bound`,
+   `ledger-audit-carry`, `ChimericLedger.Audit.auditEvent` with its three
+   wrappers, `watched`/`watchedᵖ` and the whole `UC.Seam.Audit.TrivialGrade`
+   membership machinery (`docs/retirement.md`). The one thing that never became
+   available is the extraction from the exact `watched` to a probability; that
+   is the obstruction recorded below, and it is why the probability endpoint
+   goes through the prefix.
 
 4. **Costs explicit — DONE, split across the two routes.**
    The audit instrumentation's cost is charged in the main theorem: `audited d`
    asks twice what `d` asks (`POV.asks≤-audited`), so the allowance `p` is
    evaluated at `p + p` and that appears in the conclusion's bound. The
-   simulator's cost is charged in the graded route: `ledger-audit-carry`'s
-   bound is `εᴸ n (simCost q (cs n)) + ν n`. The negligible-slack closure runs
+   simulator's cost is charged in the graded route: `ledger-audit-carryᵈ`'s
+   bound is `εᴸ n q + ν n` at the allowance the strategy carries, and
+   `ledger-uc-to-pov-simCost`'s is `εᴸ n (simCost (q + q) (cs n)) + ν n`. The negligible-slack closure runs
    with the repaired quantifier order throughout —
    `saturated-respects[ Negligible ]` via `≈negl-respects`, allowance first,
    slack second.
@@ -277,32 +274,29 @@ substitutions, the residual, and the costs.
 
 ## The obstruction: why the graded route stops short of a probability
 
-`uc-audit-carry` ends at an `AuditBound` on the real side. Turning that back
-into a layer-1 `Bounded` needs `UC.Seam.Audit.Bounded.auditIsBounded`, whose
-extraction context must lie in the real-side event class. With the class taken
-to be `absorb s cs (watched I bad)`, that asks: the extraction context with the
-simulator in front of it, plugged into the IDEAL machine, observes exactly
-(`≈ₚ`) an ideal monitored run. It does not. The simulator's own initialization
-makes the observation ε-close and no more — that is precisely what
+The graded carry ends at a bound whose hypothesis is that the simulator-fronted
+context observes an ideal monitored run EXACTLY (`≈ₚ`). Turning that back into a
+layer-1 `Bounded` at the real side needs the extraction context — with the
+simulator in front of it, plugged into the IDEAL machine — to satisfy that
+hypothesis. It does not. The simulator's own initialization makes the
+observation ε-close and no more: that is precisely what
 `UC.Seam.Grounded.subBlind` proves, and all an almost-sure totality can prove.
-The same gap appears from the other side: `Absorbs s cs (watched R badR)
-(watched I badI)` relates a REAL monitored run to an IDEAL one, which an
-emulation gives only up to vanishing error while `watched` demands equality.
+The same gap appears from the other side: relating a REAL monitored run to an
+IDEAL one is something an emulation gives only up to vanishing error, while
+exactness is what the hypothesis demands. `docs/consumer-migration.md` §2 has
+the typed residual (`auditIsBoundedʷ`), which is false as stated.
 
 So the two routes do not compose, and the probability conclusion is obtained
 instead through the trivial-grade collapse, where the simulator is provably
 blind. One consequence is honest and should not be glossed: at the trivial
 grade the simulator costs the ideal side nothing, so the main theorem's bound
 is the birthday bound at the audit-adjusted allowance, not a `simCost`-adjusted
-one. The `simCost`-adjusted statement is `ledger-audit-carry`'s, at the graded
-end.
+one. The `simCost`-adjusted statement is `ledger-uc-to-pov-simCost`'s.
 
-**Closed at the unit grade** by the first of the two remedies that stood here:
-`UC.Seam.Audit.TrivialGrade.watchedᵖ` permits an almost-surely-total silent
-prefix, the syntactic prefix is stable under `Absorbs`
-(`UC.Seam.Audit.Prefix.absorb-watchedᵖ`, two prefixes fusing by `>>=ₚ-assoc`
-on the nose), the extraction context's membership in the PULLBACK class is
-proved (`ctx-absorb` — the inclusion the follow-up review's §2 demanded), and
+**Closed at the unit grade** by tolerating that initialization as a PREFIX: it
+is never seen to add mass (`UC.Seam.Audit.Prefix.sim-prefixed`, a one-sided
+`≼ₚ[ 0ℚ ]` off `prefix-absorbᵒ`), `bounded-carry` spends that against the
+emulation's own domination, and
 `uc-audit-bounded` is the whole route: `Bounded I bad ε` crosses a budgeted
 emulation to `Bounded R bad (λ q → ε (simCost q cs) + ν)`. The ledger consumer
 is landed too: `EndToEnd.ledger-uc-to-pov-simCost` (and its negligible
@@ -409,8 +403,7 @@ in cost: `POV.Sysᴴ` beside `Sys`, and the `hash` parameter threaded through
 
 A perf note worth keeping: the two carries in ONE module cost 127 s warm and
 in two cost 10 + 10 s. Neither half is expensive; the collapse's seal-level
-terms and the audit event's `TrivialGrade` instantiation are expensive
-together.
+terms and the carry's own instantiation are expensive together.
 
 ## Two review-sweep items, resolved here
 

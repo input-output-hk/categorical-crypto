@@ -68,16 +68,15 @@ _≤UC^ω[_]_ {B} R cs I = (n : ℕ)
 -- monitor transformation and budget witness: IF the simulator-fronted context
 -- observes the ideal monitor's verdict on a strategy the allowance `q` affords,
 -- THEN the real system's own observation in that context is under the ideal
--- bound at `q`, plus the carry's slack.  `AuditEvent`, `AuditBound`, `watched`
--- and `absorb` occur nowhere in it, and the ideal supply is layer 1's own
--- `Bounded` rather than a graded premise about a designated class.
+-- bound at `q`, plus the carry's slack.  No event class occurs in it, and the
+-- ideal supply is layer 1's own `Bounded`.
 --
 -- What is spent is `UC.Seam.Audit.carry-obs` — the emulation's domination, the
 -- simulator slid onto the test — and `UC.Seam.Audit.Bounded.supply`, the
 -- rational arithmetic §4.1 keeps in `Bounded`.  Neither the simulator's query
--- certificate nor `ctxBudget` is consumed: those are `AuditBound`'s way of
--- moving an allowance across a quantifier over budgeted TESTS, and the
--- allowance moves here in the strategy `d` instead.
+-- certificate nor `ctxBudget` is consumed: those move an allowance across a
+-- quantifier over budgeted TESTS, and the allowance moves here in the strategy
+-- `d` instead.
 uc-audit-carryᵈ : (em : R ≤UC^ω[ cs ] I) (bad : Watch B)
                 → ((n : ℕ) → Bounded (I n) (bad n) (ε n))
                 → ((n : ℕ) → 0ℚ ℚ.< ν n)

@@ -201,11 +201,10 @@ absorb-plugᵍ B e a s =
 ctxObs : {B : Iface} → Protocol unitᴵ B → Strat (Neg B) (Pos B) → Dₚ Bool
 ctxObs {B} P e = obs (tv₁ 𝟘ᴳ (closedᵒ (morphism P)) (auditTest B e)) auditClose
 
--- The numerical half of `extract`, with no event class in it (review §4.1): a
--- bound on what THIS context observes is a bound on layer 1's own probability.
+-- The numerical extraction, with no event class in it (review §4.1): a bound on
+-- what THIS context observes is a bound on layer 1's own probability.
 -- `audit-run` identifies the two runs and `prAgree` reads the probability off
--- the machine one past a budget, and neither step asks WHY the bound holds —
--- which is what lets a membership route and a direct one share it.
+-- the machine one past a budget, and neither step asks WHY the bound holds.
 extract-obs : {B : Iface} (P : Protocol unitᴵ B) (e : Strat (Neg B) (Pos B)) (c : ℚ)
             → ((n : ℕ) → Pr≤ n (ctxObs P e) ℚ.≤ c) → Pr P e ℚ.≤ c
 extract-obs {B} P e c bnd = subst (λ z → z ℚ.≤ c) (proj₂ pa 0) chain
@@ -217,7 +216,7 @@ extract-obs {B} P e c bnd = subst (λ z → z ℚ.≤ c) (proj₂ pa 0) chain
   chain : Pr≤ (proj₁ pa + 0) (runᴹ (morphism P) e) ℚ.≤ c
   chain = ≤-trans (proj₂ reach) (bnd (proj₁ reach))
 
--- …in the shape layer 1 states its bound, which is what both extractions want.
+-- …in the shape layer 1 states its bound, which is what the consumer wants.
 extract-bounded : {B : Iface} (P : Protocol unitᴵ B)
                   (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) (ε : ℕ → ℚ)
                 → ((q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d

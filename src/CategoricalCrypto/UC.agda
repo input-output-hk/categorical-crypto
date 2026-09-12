@@ -54,7 +54,10 @@
 --                `UC.Family.Negligible`
 --                                  the same layer's negligible tier: a second
 --                                  `Observation` on `Fam` keeping the error
---                                  witness (`_∼ᴺ_`, `_≤UCᴺ_`), and `≈ℰⁿ⇒≈ℰᴺ`;
+--                                  witness (`_∼ᴺ_`, `_≤UCᴺ_`), and the one-way
+--                                  bridges `≈ℰⁿ⇒≈ℰᴺ`/`≈ℰⁿ⇒≤UCᴺ` into it — the
+--                                  rest of the metatheory at that tier is
+--                                  `UC.Emulation UCBaseᴺ` and is not renamed.
 --                                  `UC.Model.Family.Negligible` inhabits it at
 --                                  the machine family, and its §1 acceptance
 --                                  tests are `UC.Approximate.LocalTests`
@@ -103,8 +106,9 @@
 --                                  emulation: a strategy as an environment,
 --                                  `Adequacy`, the POV carry (`UC.Seam.Carry`
 --                                  proves its premise from `Adequacy` and
---                                  `PrAgree`); `UC.Seam.Grounding` and
---                                  `UC.Seam.Audit` name what the instance owes
+--                                  `PrAgree`); `UC.Seam.Grounding` names what
+--                                  the instance owes, and `UC.Seam.Audit` is
+--                                  `UC.Audit` applied to the sealed model
 --                `UC.Seam.Grounded`
 --                                  and what discharges it at the trivial
 --                                  grade: `SubBlind`, `StratIsEnv` and with
@@ -134,19 +138,17 @@
 --                `UC.Seam.Audit.Prefix`
 --                                  the BUDGETED route's consumer end:
 --                                  `uc-audit-bounded` turns an ideal monitor
---                                  bound into the real system's own
---                                  probability across a budgeted emulation,
---                                  the simulator's initialization tolerated as
---                                  a prefix and its queries charged.
---                                  `uc-audit-bounded′` is the same statement by
---                                  the DIRECT route (`sim-prefixed`, the
---                                  one-sided mass consequence, and
---                                  `bounded-carry`, where the route's actual
---                                  premises show), with no event-class
---                                  membership in it; `UC.Seam.Audit.Context`'s
---                                  `extract-obs` is its numerical half and
---                                  `UC.Seam.Slide` the one place the simulator
---                                  slide is spelled (`docs/direct-extraction.md`)
+--                                  bound into the real system's own probability
+--                                  across a budgeted emulation, the simulator's
+--                                  initialization tolerated as a prefix and its
+--                                  queries charged.  No event class is on the
+--                                  route: `sim-prefixed` is the one-sided mass
+--                                  consequence, `bounded-carry` is where the
+--                                  route's actual premises show,
+--                                  `UC.Seam.Audit.Context`'s `extract-obs` is
+--                                  its numerical half and `UC.Seam.Slide` the
+--                                  one place the simulator slide is spelled
+--                                  (`docs/direct-extraction.md`)
 --                `UC.Saturated`    the saturated form of a concrete safety
 --                                  bound — one slack per polynomial allowance,
 --                                  at the vanishing grade and at the
@@ -157,9 +159,8 @@
 --                                  (`simCost` charged) and probabilistic (the
 --                                  trivial-grade collapse into `UC.Saturated`).
 --                                  `UC.Asymptotic.Audit` states the graded one
---                                  both ways: `uc-audit-carry` at the designated
---                                  class and `uc-audit-carryᵈ` at the test,
---                                  closure, monitor and budget witness directly
+--                                  as `uc-audit-carryᵈ`, at the test, closure,
+--                                  monitor and budget witness directly
 --                                  (`docs/consumer-migration.md`)
 --                `UC.Asymptotic.Contextual`
 --                                  the ONE quantitative relation, `_≈ctx[_]_`,
