@@ -174,11 +174,8 @@ audit-carry {B′ = B′} {Y = Y} f g {cs} em {𝔉 = 𝔉} cl ε δ δ>0
   ev′ = subst (𝔉 W Et′ m) (sym (ctxBudget-absorb c c′ cs)) (cl W Et m (ctxBudget c c′) ev)
 
   -- The simulator slides off the process and onto the test.
-  slide : (Et ∘ T₁ W (sub s ∘ g)) ∘ m ≈ (Et′ ∘ T₁ W g) ∘ m
-  slide = ∘-resp-≈ˡ (Equiv.trans (∘-resp-≈ʳ T₁-∘) sym-assoc)
-
   near : x ∼ z
-  near = ∼-trans (emulate em W Et m) (⟦⟧-resp-≈ slide)
+  near = ∼-trans (emulate em W Et m) (⟦⟧-resp-≈ (∘-resp-≈ˡ (tv₁-∘ W (sub s) g Et)))
 
   bound : at n x ℚ.≤ ε (ctxBudget (c ℕ.* ((cs ℕ.⊔ 1) ℕ.⊔ 1)) c′) ℚ.+ δ
   bound = let k , le = dominate near δ δ>0 n in begin

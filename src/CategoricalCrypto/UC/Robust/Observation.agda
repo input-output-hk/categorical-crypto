@@ -94,10 +94,8 @@ robust-resp-≈ℰ 𝔓 e rob W Et m = saturated 𝔓 (∼-sym (e W Et m)) (rob 
 robust-sub : (𝔓 : SaturatedProperty p) {g : A ⇒ Y ⊛ B′} (s : Y ⇒ X)
            → Robust 𝔓 g → Robust 𝔓 (sub s ∘ g)
 robust-sub 𝔓 {g} s rob W Et m =
-  saturated 𝔓 (⟦⟧-resp-≈ (Equiv.sym slide)) (rob W (Et ∘ T₁ W (sub s)) m)
-  where
-  slide : (Et ∘ T₁ W (sub s ∘ g)) ∘ m ≈ ((Et ∘ T₁ W (sub s)) ∘ T₁ W g) ∘ m
-  slide = ∘-resp-≈ˡ (Equiv.trans (∘-resp-≈ʳ T₁-∘) sym-assoc)
+  saturated 𝔓 (⟦⟧-resp-≈ (Equiv.sym (∘-resp-≈ˡ (tv₁-∘ W (sub s) g Et))))
+              (rob W (tv₁ W (sub s) Et) m)
 
 ------------------------------------------------------------------------
 -- Preservation

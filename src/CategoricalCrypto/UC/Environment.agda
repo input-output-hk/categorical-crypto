@@ -82,6 +82,13 @@ tv₁-cong : (Y : Obj) {A B′ : Obj} (f : A ⇒ B′) {E₁ E₂ : Test (Y ⊛ 
          → SameTV Y B′ E₁ E₂ → SameTV Y A (tv₁ Y f E₁) (tv₁ Y f E₂)
 tv₁-cong Y f h = record { same = λ m → ∼-cast sym-assoc sym-assoc (same h (T₁ Y f ∘ m)) }
 
+-- The slide every carry performs: a stage of the process becomes a stage of the
+-- test.  `UC.Audit.audit-carry` moves the simulator this way and
+-- `UC.Robust.Observation.robust-sub` the same one with no arithmetic under it.
+tv₁-∘ : (Y : Obj) {A B′ C′ : Obj} (k : B′ ⇒ C′) (g : A ⇒ B′) (E : Test (Y ⊛ C′))
+      → tv₁ Y (k ∘ g) E ≈ tv₁ Y g (tv₁ Y k E)
+tv₁-∘ Y k g E = ∘-resp-≈ʳ T₁-∘ ○ sym-assoc
+
 ℰᵗᵛ : Obj → Presheaf 𝒞 (Setoids ℓ (ℓ ⊔ ℓs))
 ℰᵗᵛ Y = record
   { F₀           = Tests Y
