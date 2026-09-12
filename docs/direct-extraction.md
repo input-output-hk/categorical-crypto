@@ -272,11 +272,11 @@ content, so `touch` does nothing).
 
 | module | LOC before → after | warm before | warm after | rule-5 budget |
 |---|---|---|---|---|
-| `UC.Seam.Slide` | — → 44 | — | 9 s | 71 s |
-| `UC.Seam.Audit.Context` | 229 → 249 | 10 s | 10 s | 121 s |
+| `UC.Seam.Slide` | — → 44 | — | 10 s | 71 s |
+| `UC.Seam.Audit.Context` | 229 → 249 | 10 s | 11 s | 122 s |
 | `UC.Seam.Audit.Bounded` | 104 → 104 | 10 s | 10 s | 86 s |
-| `UC.Seam.Audit.Prefix` | 143 → 237 | 11 s | 11 s | 118 s |
-| `UC.Seam.Grounded` | 281 → 280 | — | 10 s | 130 s |
+| `UC.Seam.Audit.Prefix` | 143 → 237 | 11 s | 10 s | 119 s |
+| `UC.Seam.Grounded` | 281 → 280 | 10 s | 10 s | 130 s |
 
 No module moved by more than a second; nothing is near the 20 % regression bar
 or its rule-5 budget. (A large part of each figure is interface
@@ -341,6 +341,9 @@ Reported, not edited — `src/CategoricalCrypto/UC.agda` and
   `bounded-carry`, which is where the route's real premises are visible.
 * `src/CategoricalCrypto/UC.agda`, the `UC.Seam.Audit.Context` row: add
   `extract-obs`/`extract-bounded` as the event-class-free half of `extract`.
-* `src/CategoricalCrypto/UC.agda` and `src/CategoricalCrypto.agda`: a new
-  inventory line for `UC.Seam.Slide` (the model's `regradeEnv` identification
-  and the ancilla composition slide).
+* `src/CategoricalCrypto/UC.agda`: a new inventory line for `UC.Seam.Slide`
+  (the model's `regradeEnv` identification and the ancilla composition slide).
+  It needs no `open import` there — `UC.Seam.Audit.Context` and
+  `UC.Seam.Grounded` already pull it into the closure.
+* `src/CategoricalCrypto.agda` needs no change: it lists the two UC roots and
+  delegates the cone's inventory to `UC.agda`.

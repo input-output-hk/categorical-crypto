@@ -3126,9 +3126,11 @@ here. No statement was weakened, no consumer was edited, nothing was retired.
 - **`UC.Seam.Audit.Bounded.supply` must not be retired** — it is now
   load-bearing for the direct route as well as both membership ones. §4.1's
   "keep the rational-order arguments in `Bounded`" is exactly what makes it so.
-- **Root inventory rows :: `src/CategoricalCrypto/UC.agda`,
-  `src/CategoricalCrypto.agda`** — outside this step's file scope, so reported
-  rather than edited: the `UC.Seam.Audit.Prefix` row now has two consumer ends
-  (`uc-audit-bounded` and `uc-audit-bounded′`, the same statement), the
-  `UC.Seam.Audit.Context` row wants `extract-obs`/`extract-bounded`, and
-  `UC.Seam.Slide` wants a line of its own.
+- **Root inventory rows :: `src/CategoricalCrypto/UC.agda`** — outside this
+  step's file scope, so reported rather than edited: the
+  `UC.Seam.Audit.Prefix` row (`:126`) says the budgeted route's consumer end is
+  `uc-audit-bounded`; it now has two, `uc-audit-bounded` and
+  `uc-audit-bounded′`, the same statement by two routes. `UC.Seam.Slide` wants
+  a line of its own (no `open import` needed — it is already in the closure).
+  `src/CategoricalCrypto.agda` needs nothing: it delegates the cone's inventory
+  to `UC.agda`.
