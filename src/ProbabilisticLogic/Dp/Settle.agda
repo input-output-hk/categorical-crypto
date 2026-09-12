@@ -108,24 +108,6 @@ Null-bind d f z Q nn i = ≤-antisym
 ------------------------------------------------------------------------
 -- What `E⊥` makes of the value-level rearrangements a run performs
 
-Eⱼ : (μ : Dist-ℚ A) (Q : A → ℚ) → E⊥ (Dmap just μ) Q ≡ E μ Q
-Eⱼ μ Q = lookupᴰℚ-Dmap just μ (maybeℚ Q)
-
-E⊥-map : (f : A → B) (ν : Dist⊥ A) (G : B → ℚ)
-       → E⊥ (Dmap⊥ f ν) G ≡ E⊥ ν (λ p → G (f p))
-E⊥-map f ν G =
-  trans (E⊥-bind ν (λ p → return⊥ (f p)) G)
-        (lookupᴰℚ-cong-P (entries ν) λ where
-          (just p) → E⊥-return (f p) G
-          nothing  → refl)
-
-E⊥-map-bind : (f : A → B) (ν : Dist⊥ A) (κ : B → Dist⊥ C) (G : C → ℚ)
-            → E⊥ (Dmap⊥ f ν >>=⊥ κ) G ≡ E⊥ (ν >>=⊥ λ p → κ (f p)) G
-E⊥-map-bind f ν κ G =
-  trans (E⊥-bind (Dmap⊥ f ν) κ G)
-        (trans (E⊥-map f ν (λ p → E⊥ (κ p) G))
-               (sym (E⊥-bind ν (λ p → κ (f p)) G)))
-
 E⊥-coin : (μ : Dist-ℚ Bool) (κ : Bool → Dist⊥ A) (G : A → ℚ)
         → E⊥ (Dmap just μ >>=⊥ κ) G ≡ E⊥ (μ >>=ᴹ κ) G
 E⊥-coin μ κ G =
@@ -246,6 +228,20 @@ Settles-bind⋆ : (n : ℕ) (d : Dₚ A) (f : A → Dₚ B) (ν : Dist⊥ A) (κ
 Settles-bind⋆ n d f ν κ s w =
   let j , sp = uniformize (λ p i → Settles i (f p) (κ p)) (λ p le → Settles-mono le) w n d
   in n + j , Settles-bind n j d f ν κ s sp
+
+-- The junction a pure Kleisli map spends: one step, and only the continuation
+-- AT that value is asked for.  A machine's structural wiring is a chain of
+-- these, and `Settles-bind⋆`'s all-values witness is not available there.
+Settles-ret⋆ : (p : A) (f : A → Dₚ B) (ν : Dist⊥ B)
+             → Σ[ i ∈ ℕ ] Settles i (f p) ν
+             → Σ[ i ∈ ℕ ] Settles i (returnₚ p >>=ₚ f) ν
+Settles-ret⋆ {A = A} {B = B} p f ν (j , s) =
+  1 + j , Settles-resp (return⊥ p >>=⊥ κ) ν
+            (λ Q → >>=⊥-identityˡ p κ (maybeℚ Q))
+            (Settles-bind 1 j (returnₚ p) f (return⊥ p) κ (Settles-return p) (s , s))
+  where
+  κ : A → Dist⊥ B
+  κ _ = ν
 
 ------------------------------------------------------------------------
 -- Settling on a TOTAL distribution
