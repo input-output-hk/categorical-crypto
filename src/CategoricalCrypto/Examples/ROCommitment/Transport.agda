@@ -46,7 +46,7 @@ module CategoricalCrypto.Examples.ROCommitment.Transport (k : ℕ) where
 
 open import CategoricalCrypto.Examples.ROCommitment k
 open import CategoricalCrypto.Examples.ROCommitment.Extraction k
-open import CategoricalCrypto.Examples.ROCommitment.Game k using (fetchT)
+open import CategoricalCrypto.Examples.ROCommitment.Oracle k using (fetchT)
 open import CategoricalCrypto.Examples.ROCommitment.Resource k
 
 open Core (𝒱ₚ 0ℓ)
@@ -75,9 +75,11 @@ private
   up : RState × Dig → Dist-ℚ (RState × ResA)
   up u = return-ℚ (proj₁ u , digᴿ (proj₂ u))
 
--- …and it IS the closed game's oracle, relabelled onto `Resᴵ`.
+-- …and it IS the closed game's oracle, relabelled onto `Resᴵ` (the cell rides
+-- along as `fetchT`'s post-table embedding).
 resKᵀ-fetchT : (s : RState) (x : Pt)
-             → resKᵀ s x ≈Mℚ (fetchT s x >>=ᴹ λ u → return-ℚ (proj₁ u , digᴿ (proj₂ u)))
+             → resKᵀ s x ≈Mℚ (fetchT (_, proj₂ s) (proj₁ s) x
+                              >>=ᴹ λ u → return-ℚ (proj₁ u , digᴿ (proj₂ u)))
 resKᵀ-fetchT (t , m) x with lookupPt t x
 ... | just d  = Mℚ.sym {x = return-ℚ ((t , m) , d) >>=ᴹ up} {y = return-ℚ ((t , m) , digᴿ d)}
                        (>>=ᴹ-identityˡ ((t , m) , d) up)
