@@ -1,27 +1,25 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- `UC.Seam.Audit.TrivialGrade`'s two statements discharged: at the trivial
--- grade the graded bound at the designated event and layer 1's own `Bounded`
--- imply each other.
+-- The probability arithmetic of the audit supply, at the trivial grade: a
+-- budget of a context's observation is reached by the monitor's run, `Pr≤-mono`
+-- paying the difference between that budget and the one past which `prAgree`
+-- reads layer 1's probability off the machine run.
 --
--- The extraction context and the three theorems that make it one of the
--- contexts an event can permit are `UC.Seam.Audit.Context`; what is left here
--- is the membership witness and the probability arithmetic of the supply.
---
--- The `bad`-budget hypothesis is owed in the extracting direction only — a
--- permitted context comes with the adversary its own budget affords, so the
--- supply spends no budget law.
+-- Only a ZERO-SLACK domination is asked of the identification, which is what
+-- lets a prefix-tolerant witness supply it (`Dp.Mass.const-bind-≼`: an
+-- initialization is never seen to add mass).  `UC.Seam.Audit.Prefix` is the
+-- consumer, and `UC.Seam.Audit.Context` builds the context the domination is
+-- read at.
 
 open import Data.Bool.Base using (Bool; true)
-open import Data.Nat.Base using (ℕ; _*_)
+open import Data.Nat.Base using (ℕ)
 import Data.Nat.Properties as ℕP
-open import Data.Product.Base using (_,_; proj₁; proj₂)
+open import Data.Product.Base using (proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Rational.Properties using (+-identityʳ; ≤-reflexive; ≤-trans)
-open import Relation.Binary.PropositionalEquality using (subst; sym)
 
 open import ProbabilisticLogic.Dp using (Dₚ)
-open import ProbabilisticLogic.Dp.Advantage using (_≼ₚ[_]_; Pr≤; Pr≤-mono; ≼ₚ⇒≼ₚ[0])
+open import ProbabilisticLogic.Dp.Advantage using (_≼ₚ[_]_; Pr≤; Pr≤-mono)
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol using (Protocol)
@@ -29,39 +27,9 @@ open import CategoricalCrypto.Protocol.Machine using (morphism; runᴹ)
 open import CategoricalCrypto.Protocol.Machine.Agree using (prAgree)
 open import CategoricalCrypto.Protocol.Observe using (Bounded)
 open import CategoricalCrypto.Strategy using (Strat; asks≤)
-open import CategoricalCrypto.UC.Seam.Audit using (module TrivialGrade)
-open import CategoricalCrypto.UC.Seam.Audit.Context
-  using (audit-run; auditClose; auditTest; extract)
-open import CategoricalCrypto.UC.Seam.Grounded using (𝟘ᴳ; ιᴳ)
 
 module CategoricalCrypto.UC.Seam.Audit.Bounded where
 
-private module TG = TrivialGrade 𝟘ᴳ ιᴳ
-
--- The extraction context reads the event `P` designates, at the adversary the
--- context's own budget affords: `UC.Seam.Audit.Context.audit-run` is that, and
--- the budget is `ctxBudget q 1 = q`.
-ctx-watched : {B : Iface} (P : Protocol unitᴵ B)
-              (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B))
-              (q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d
-            → TG.watched P bad 𝟘ᴳ (auditTest B (bad d)) auditClose (q * 1)
-ctx-watched P bad q d a = d
-  , subst (λ k → asks≤ k d) (sym (ℕP.*-identityʳ q)) a
-  , audit-run _ (bad d) (morphism P)
-
-auditIsBounded : TG.AuditIsBounded
-auditIsBounded P bad ε bad-asks =
-  extract P bad ε {𝔈 = TG.watched P bad} bad-asks (ctx-watched P bad)
-
-------------------------------------------------------------------------
--- …and the supply
-
--- The arithmetic both supply directions share: a budget of the context's
--- observation is reached by the monitor's run, `Pr≤-mono` paying the difference
--- between that budget and the one past which `prAgree` reads layer 1's
--- probability off the machine run.  Only a ZERO-SLACK domination is asked of
--- the identification, which is what lets a prefix-tolerant witness supply it
--- (`Dp.Mass.const-bind-≼`: a prefix is never seen to add mass).
 supply : {B : Iface} (P : Protocol unitᴵ B)
          (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) (ε : ℕ → ℚ)
          (q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d → Bounded P bad ε
@@ -79,9 +47,3 @@ supply P bad ε q d a bnd x dom n =
   reads = proj₂ pa
 
   reach = dom true n
-
--- An ideal bound on the monitor's verdict IS the graded premise at the
--- designated event: the same identification read the other way.
-boundedIsAudit : TG.BoundedIsAudit
-boundedIsAudit P bad ε bnd Y Et m qEt qm (d , a , near) =
-  supply P bad ε _ d a bnd _ (≼ₚ⇒≼ₚ[0] (proj₁ near))

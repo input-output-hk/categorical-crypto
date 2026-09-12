@@ -15,18 +15,13 @@
 --   mass    `Protocol.Machine.Agree.prAgree` reads `Pr` off that run at a budget
 --           the `_≼ₚ_` half of the identification reaches
 --
--- `extract` spends those once with the event class as a PARAMETER and the
--- membership as a hypothesis, which is what lets the same three ingredients
--- serve `watched` (`UC.Seam.Audit.Bounded`), its prefix-tolerant widening, and
--- the simulator-absorbed pullback (`UC.Seam.Audit.Prefix`) alike.  The class a
--- bound is stated at need not be a statement about the process the bound is
--- about — the absorbed class is a statement about the IDEAL process while the
--- bound is about the real one — so keeping it a parameter is not generality for
--- its own sake but the shape review §2's inclusion obligation has.
+-- `extract-obs` spends those three and nothing else — no event class in it
+-- (review §4.1) — and `extract-bounded` is it in the shape layer 1 states its
+-- bound, which is what `UC.Seam.Audit.Prefix`'s route consumes.
 --
--- `extract-obs` is the run and the mass alone, no class in it: `extract` is that
--- lemma past the membership, and so is the class-free route of
--- `UC.Seam.Audit.Prefix` (review §4.1).
+-- `extractᵍ` is the same extraction at a NONTRIVIAL grade, where the class does
+-- stay a parameter: there the bound is `Dₚ`-valued, because the process below
+-- an adversary is a raw machine rather than a protocol image.
 
 open import Categories.Functor.Monoidal.CurriedTensor.Properties using (T₁-⊗)
 import Categories.Morphism.Reasoning as MR
@@ -39,7 +34,7 @@ import Data.Nat.Properties as ℕP
 open import Data.Product.Base using (_,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ)
 open import Data.Rational.Properties using (≤-trans)
-open import Level using (Level; 0ℓ)
+open import Level using (Level)
 open import Relation.Binary.PropositionalEquality using (subst; trans)
 
 open import ProbabilisticLogic.Distribution.Uniform using (indᵇ)
@@ -170,10 +165,9 @@ module _ (B : Iface) (e : Strat (Neg B) (Pos B)) {X : Iface} (a : Proc X 𝟭ᴵ
     audit-runᵍ = ≈ₚ-trans _ _ _ plug-runᵍ (adequacy B closedᵍ e)
 
     -- A graded bound at any class this context inhabits is a `Pr` bound on that
-    -- run.  This is `extract` at a nontrivial grade, stopping in `Dₚ`: the
-    -- process is a RAW machine, so layer 1's `Bounded` — which is about a
-    -- protocol image — is not what the bound can be about
-    -- (`docs/hash-forward.md` item 5).
+    -- run, stopping in `Dₚ`: the process is a RAW machine, so layer 1's
+    -- `Bounded` — which is about a protocol image — is not what the bound can
+    -- be about (`docs/hash-forward.md` item 5).
     extractᵍ : {v : Level} {ε : ℕ → ℚ}
                {𝔈 : AuditEvent v (ifaceᵒ A) (ifaceᵒ X) (ifaceᵒ B)} {q c c′ : ℕ}
              → asks≤ q e → QBᴹ c a → QBᴹ c′ w
@@ -230,20 +224,3 @@ extract-bounded : {B : Iface} (P : Protocol unitᴵ B)
                    → (n : ℕ) → Pr≤ n (ctxObs P (bad d)) ℚ.≤ ε q)
                 → Bounded P bad ε
 extract-bounded P bad ε bnd q d a = extract-obs P (bad d) (ε q) (bnd q d a)
-
--- A graded bound at any class this context inhabits IS layer 1's `Bounded`:
--- `extract-obs` past the membership plumbing.  The `bad`-budget hypothesis is
--- what lets the two budgets meet — `Bounded` charges `ε` at the budget of `d`
--- while the context is built from `bad d`.
-extract : {B : Iface} (P : Protocol unitᴵ B)
-          (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) (ε : ℕ → ℚ)
-          {𝔈 : AuditEvent 0ℓ 𝟘ᵒ 𝟘ᴳ (ifaceᵒ B)}
-        → ((q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d → asks≤ q (bad d))
-        → ((q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d
-           → 𝔈 𝟘ᴳ (auditTest B (bad d)) auditClose (q * 1))
-        → AuditBound (closedᵒ (morphism P)) 𝔈 ε
-        → Bounded P bad ε
-extract {B} P bad ε bad-asks mem bnd = extract-bounded P bad ε λ q d a n →
-  subst (λ k → Pr≤ n (ctxObs P (bad d)) ℚ.≤ ε k) (ℕP.*-identityʳ q)
-        (bnd 𝟘ᴳ (auditTest B (bad d)) auditClose
-             (audit-qb B (bad d) q (bad-asks q d a)) qb-λ⇐ (mem q d a) n)
