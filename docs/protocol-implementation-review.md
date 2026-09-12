@@ -1,5 +1,11 @@
 # Protocol rewrite: remaining review work
 
+The consolidation plan in
+[UC preservation through the existing presheaf action](uc-presheaf-preservation-plan.md)
+accounts for the later implementations through `d461b1fa`. Use it for the
+generic/model proof split and retirement order; the review snapshot below
+predates that work.
+
 Follow-up review of source at `6f48aa5d`, the proposal documents at `3d7d9305`,
 and the real-ledger corollary added in `950ec080`. This document keeps only
 remaining work and the constraints needed to implement it. The original review
