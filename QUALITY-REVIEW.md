@@ -2392,24 +2392,24 @@ digest.
 
 ### What landed
 
-- **`Examples/ROCommitment/Extraction.agda`** (new, 115 LOC) — `extract` (the bit
+- **`Examples/ROCommitment/Extraction.agda`** (new, 120 LOC) — `extract` (the bit
   of the unique preimage of a digest in the oracle's table) and the invariant
   `Pins c b L` it is used through, with the three lemmas that make it move:
   `pins-extract` (a duplicate-free answer log pins the extraction), `pins-∷` (a
   sample that misses `c` adds no preimage), `pins-lookup` (a tabulated point
   whose answer is `c` opens to the extracted bit).
-- **`Examples/ROCommitment.agda`** (new, 210 LOC) — the interfaces and the three
+- **`Examples/ROCommitment.agda`** (new, 214 LOC) — the interfaces and the three
   machines. `ideal` is a `wireᴹ`; see the placement note below.
-- **`Examples/ROCommitment/Game.agda`** (new, 592 LOC) — the two closed reactive
+- **`Examples/ROCommitment/Game.agda`** (new, 595 LOC) — the two closed reactive
   games, the coupling, the two `StepBisim` instances, the two potentials, and
   `extraction-bound`: `|Pr[ideal] − Pr[real]| ≤ (m² + m)·2⁻ᵏ + m·2⁻ᵏ` for every
   adaptive `m`-activation adversary.
-- **`Examples/ROCommitment/UC.agda`** (new, 255 LOC) — `realᵒ`/`idealᵒ`/`simᵒ` at
+- **`Examples/ROCommitment/UC.agda`** (new, 266 LOC) — `realᵒ`/`idealᵒ`/`simᵒ` at
   the grade `ifaceᵒ Advᴵ`, `Certified 2 simulator`, and two
   `UC.QueryBound.Exact` ledgers over the same step.
-- **`Examples/ROCommitment/Asymptotic.agda`** (new, 53 LOC) — the merged
+- **`Examples/ROCommitment/Asymptotic.agda`** (new, 52 LOC) — the merged
   `εᶜ n q = (q² + 2q)·2⁻ⁿ` and `NegligibleBound εᶜ`.
-- **`Examples/ROCommitment/Test.agda`** (new, 47 LOC) — the acceptance instance at
+- **`Examples/ROCommitment/Test.agda`** (new, 45 LOC) — the acceptance instance at
   `k = 3` against a live adaptive three-query attack.
 - **`GamePlaying/Potential.agda`** (+38) — `∨-cert`, the union bound as a sum of
   potentials. The only edit to an existing module, and it is additive: generic,
@@ -2463,9 +2463,9 @@ emulation is approximate, so no machine equality holds, and that is the point.
 All runs `pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS` under plain
 `timeout`, rc=0 with an empty
 `ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|Heap exhausted`
-gate. Per-module warm figures are in `docs/fcom-extraction.md`'s table (6.0-12.7 s
-each, every one far inside its rule-5 budget; the 592-line `Game` runs at 10.8 s
-against a 208 s budget).
+gate. Per-module warm figures are in `docs/fcom-extraction.md`'s table (6-10 s
+each, every one far inside its rule-5 budget; the 595-line `Game` runs at 8 s
+against a 209 s budget).
 
 Hatch grep over `src/` (`postulate|TERMINATING|primTrustMe|\{!`): **16 lines
 before, 16 after**, every one the words "postulate-free" in an inherited

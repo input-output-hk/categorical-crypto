@@ -15,7 +15,7 @@
 -- and what it would cost.
 
 open import Data.Nat.Base using (ℕ; _*_; _+_)
-open import Data.Nat.Poly using (Poly; poly-*; poly-+)
+open import Data.Nat.Poly using (poly-*; poly-+)
 open import Data.Nat.Properties using (≤-refl)
 open import Data.Rational using (ℚ)
   renaming (_*_ to _*ℚ_; _-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)

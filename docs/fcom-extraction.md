@@ -198,13 +198,13 @@ gate; the warm column is a single-`Checking`-line run.
 
 | module | LOC | warm | rule-5 budget |
 |---|---|---|---|
-| `Examples.ROCommitment.Extraction` | 115 | 8.3 s | 89 s |
-| `Examples.ROCommitment` | 210 | 12.7 s | 113 s |
-| `Examples.ROCommitment.Game` | 592 | 10.8 s | 208 s |
-| `Examples.ROCommitment.UC` | 255 | 10.1 s | 124 s |
-| `Examples.ROCommitment.Asymptotic` | 53 | 6.0 s | 74 s |
-| `Examples.ROCommitment.Test` | 47 | 6.3 s | 72 s |
-| `GamePlaying.Potential` (+38) | 191 | 9.1 s | 108 s |
+| `Examples.ROCommitment.Extraction` | 120 | 8.3 s | 90 s |
+| `Examples.ROCommitment` | 214 | 9 s | 113 s |
+| `Examples.ROCommitment.Game` | 595 | 8 s | 209 s |
+| `Examples.ROCommitment.UC` | 266 | 10 s | 126 s |
+| `Examples.ROCommitment.Asymptotic` | 52 | 6 s | 73 s |
+| `Examples.ROCommitment.Test` | 45 | 6 s | 71 s |
+| `GamePlaying.Potential` (+38) | 199 | 9 s | 110 s |
 
 ## Not delivered, precisely
 

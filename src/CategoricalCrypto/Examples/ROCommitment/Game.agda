@@ -29,7 +29,7 @@ open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Rational using (ℚ)
   renaming (_+_ to _+ℚ_; _*_ to _*ℚ_; _-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
 open import Data.Rational.Properties using (+-identityʳ; +-monoʳ-≤; ≤-reflexive; ≤-trans)
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
+open import Data.Sum.Base using (_⊎_; inj₁; inj₂; map)
 open import Data.Unit.Base using (⊤; tt)
 open import Data.Vec.Base using (head) renaming (_∷_ to _∷ᵛ_)
 open import Function.Base using (case_of_)
@@ -167,8 +167,16 @@ respI s (askQ x)   = askX s x
 respI s (comQ c)   = comI s c
 respI s (opnQ b r) = opnI s b r
 
+-- The two coupled continuations, named so that the `E-bind` rewrites below
+-- can point at them.
+kAsk : St × Dig → Dist-ℚ (St × (R × R))
+kAsk u = return-ℚ (proj₁ u , (ansR (proj₂ u) , ansR (proj₂ u)))
+
+kOpn : Dig → Bool → Bool → St × Dig → Dist-ℚ (St × (R × R))
+kOpn c e b u = return-ℚ (proj₁ u , (realOpen c b (proj₂ u) , idealOpen c e b (proj₂ u)))
+
 askB : St → Pt → Dist-ℚ (St × (R × R))
-askB s x = fetch s x >>=ᴹ λ u → return-ℚ (proj₁ u , (ansR (proj₂ u) , ansR (proj₂ u)))
+askB s x = fetch s x >>=ᴹ kAsk
 
 comB : St → Dig → Dist-ℚ (St × (R × R))
 comB (t , nothing , f) c = return-ℚ ((t , just (c , extract c t) , f) , (rcptR , rcptR))
@@ -176,8 +184,7 @@ comB (t , just m , f)  _ = return-ℚ ((t , just m , f) , (idleR , idleR))
 
 opnB : St → Bool → Dig → Dist-ℚ (St × (R × R))
 opnB (t , nothing , f)      _ _ = return-ℚ ((t , nothing , f) , (idleR , idleR))
-opnB (t , just (c , e) , f) b r = fetch (t , just (c , e) , f) (b ∷ᵛ r) >>=ᴹ λ u →
-  return-ℚ (proj₁ u , (realOpen c b (proj₂ u) , idealOpen c e b (proj₂ u)))
+opnB (t , just (c , e) , f) b r = fetch (t , just (c , e) , f) (b ∷ᵛ r) >>=ᴹ kOpn c e b
 
 respB : St → Q → Dist-ℚ (St × (R × R))
 respB s (askQ x)   = askB s x
@@ -308,7 +315,7 @@ s ≋I sI = (eraseI s ≡ sI) × Inv s
 stepR : StepBisim C.realK respR _≋R_
 stepR s@(t , m , f) _ (refl , inv) (askQ x) F F′ pt =
   trans (lookupᴰℚ-Dmap C.fR (askB s x) F)
- (trans (E-bind (fetch s x) (λ u → return-ℚ (proj₁ u , (ansR (proj₂ u) , ansR (proj₂ u)))) (λ w → F (C.fR w)))
+ (trans (E-bind (fetch s x) kAsk (λ w → F (C.fR w)))
  (trans (fetch-bis digOf s x _ _ inv prem)
         (sym (E-bind (fetchT (eraseR s) x)
                (λ u → return-ℚ (proj₁ u , ansR (proj₂ u))) F′))))
@@ -340,7 +347,7 @@ stepR (t , nothing , f) _ (refl , inv) (opnQ b r) F F′ pt =
         (sym (lookupᴰℚ-return ((t , nothing) , idleR) F′))))
 stepR s@(t , just (c , e) , f) _ (refl , inv) (opnQ b r) F F′ pt =
   trans (lookupᴰℚ-Dmap C.fR (opnB s b r) F)
- (trans (E-bind (fetch s (b ∷ᵛ r)) (λ u → return-ℚ (proj₁ u , (realOpen c b (proj₂ u) , idealOpen c e b (proj₂ u)))) (λ w → F (C.fR w)))
+ (trans (E-bind (fetch s (b ∷ᵛ r)) (kOpn c e b) (λ w → F (C.fR w)))
  (trans (fetch-bis digOf s (b ∷ᵛ r) _ _ inv prem)
         (sym (E-bind (fetchT (t , just c) (b ∷ᵛ r))
                (λ u → return-ℚ (proj₁ u , realOpen c b (proj₂ u))) F′))))
@@ -362,7 +369,7 @@ stepR s@(t , just (c , e) , f) _ (refl , inv) (opnQ b r) F F′ pt =
 stepI : StepBisim C.idealK respI _≋I_
 stepI s@(t , m , f) _ (refl , inv) (askQ x) F F′ pt =
   trans (lookupᴰℚ-Dmap C.fI (askB s x) F)
- (trans (E-bind (fetch s x) (λ u → return-ℚ (proj₁ u , (ansR (proj₂ u) , ansR (proj₂ u)))) (λ w → F (C.fI w)))
+ (trans (E-bind (fetch s x) kAsk (λ w → F (C.fI w)))
  (trans (fetch-bis (λ z → z) s x _ _ inv prem)
         (sym (E-bind (fetchT (eraseI s) x)
                (λ u → return-ℚ (proj₁ u , ansR (proj₂ u))) F′))))
@@ -400,7 +407,7 @@ stepI (t , nothing , f) _ (refl , inv) (opnQ b r) F F′ pt =
         (sym (lookupᴰℚ-return ((t , nothing) , idleR) F′)))))
 stepI s@(t , just (c , e) , f) _ (refl , inv) (opnQ b r) F F′ pt =
   trans (lookupᴰℚ-Dmap C.fI (opnB s b r) F)
- (trans (E-bind (fetch s (b ∷ᵛ r)) (λ u → return-ℚ (proj₁ u , (realOpen c b (proj₂ u) , idealOpen c e b (proj₂ u)))) (λ w → F (C.fI w)))
+ (trans (E-bind (fetch s (b ∷ᵛ r)) (kOpn c e b) (λ w → F (C.fI w)))
  (trans (fetch-bis (λ z → z) s (b ∷ᵛ r) _ _ inv prem)
         (sym (E-bind (fetchT (t , just (c , e)) (b ∷ᵛ r))
                (λ u → return-ℚ (proj₁ u , idealOpen c e b (proj₂ u))) F′))))
@@ -452,7 +459,7 @@ private
            → E (respB s (askQ x)) (λ w → P (C.fR w))
              ≡ E (fetch s x) (λ u → P (proj₁ u , ansR (proj₂ u)))
   askQ-red s x P =
-    trans (E-bind (fetch s x) (λ u → return-ℚ (proj₁ u , (ansR (proj₂ u) , ansR (proj₂ u)))) (λ w → P (C.fR w)))
+    trans (E-bind (fetch s x) kAsk (λ w → P (C.fR w)))
           (lookupᴰℚ-cong-P (entries (fetch s x))
             (λ u → lookupᴰℚ-return (proj₁ u , (ansR (proj₂ u) , ansR (proj₂ u)))
                                    (λ w → P (C.fR w))))
@@ -462,7 +469,7 @@ private
              ≡ E (fetch (t , just (c , e) , f) (b ∷ᵛ r))
                  (λ u → P (proj₁ u , realOpen c b (proj₂ u)))
   opnQ-red t c e f b r P =
-    trans (E-bind (fetch (t , just (c , e) , f) (b ∷ᵛ r)) (λ u → return-ℚ (proj₁ u , (realOpen c b (proj₂ u) , idealOpen c e b (proj₂ u)))) (λ w → P (C.fR w)))
+    trans (E-bind (fetch (t , just (c , e) , f) (b ∷ᵛ r)) (kOpn c e b) (λ w → P (C.fR w)))
           (lookupᴰℚ-cong-P (entries (fetch (t , just (c , e) , f) (b ∷ᵛ r)))
             (λ u → lookupᴰℚ-return
                      (proj₁ u , (realOpen c b (proj₂ u) , idealOpen c e b (proj₂ u)))
@@ -477,8 +484,14 @@ private
     (trans (cong (λ μ → E μ (λ w → P (C.fR w))) eq)
            (lookupᴰℚ-return (s′ , a) (λ w → P (C.fR w))))
 
+  logP : (List Dig → ℚ) → St × R → ℚ
+  logP F sr = F (logOf (proj₁ sr))
+
   logU : (List Dig → ℚ) → St × Dig → ℚ
   logU F u = F (logOf (proj₁ u))
+
+  hitP : St × R → ℚ
+  hitP sr = bool→ℚ (hitOf (proj₁ sr))
 
   hitU : St × Dig → ℚ
   hitU u = bool→ℚ (hitOf (proj₁ u))
@@ -523,52 +536,41 @@ private
     (guess-drift k f c)
 
 keep-or-sample : KeepOrSample k C.realK logOf
-keep-or-sample s (askQ x) F = shift
-  (trans (viaR s (askQ x) (λ sr → F (logOf (proj₁ sr)))) (askQ-red s x _))
-  (fetch-log s x F)
+keep-or-sample s (askQ x) F = map (trans red) (trans red) (fetch-log s x F)
   where
-  shift : {a b : ℚ} → a ≡ b
-        → (b ≡ F (logOf s)) ⊎ (b ≡ E (uniform-Vec k) (λ h → F (h ∷ logOf s)))
-        → (a ≡ F (logOf s)) ⊎ (a ≡ E (uniform-Vec k) (λ h → F (h ∷ logOf s)))
-  shift e (inj₁ z) = inj₁ (trans e z)
-  shift e (inj₂ z) = inj₂ (trans e z)
+  red : E (C.realK s (askQ x)) (logP F) ≡ E (fetch s x) (logU F)
+  red = trans (viaR s (askQ x) (logP F)) (askQ-red s x (logP F))
 keep-or-sample (t , nothing , f) (comQ c) F = inj₁ (idle-red (t , nothing , f)
   (t , just (c , extract c t) , f) (rcptR , rcptR) (comQ c)
-  (λ sr → F (logOf (proj₁ sr))) refl)
+  (logP F) refl)
 keep-or-sample (t , just m , f) (comQ c) F = inj₁ (idle-red (t , just m , f)
-  (t , just m , f) (idleR , idleR) (comQ c) (λ sr → F (logOf (proj₁ sr))) refl)
+  (t , just m , f) (idleR , idleR) (comQ c) (logP F) refl)
 keep-or-sample (t , nothing , f) (opnQ b r) F = inj₁ (idle-red (t , nothing , f)
-  (t , nothing , f) (idleR , idleR) (opnQ b r) (λ sr → F (logOf (proj₁ sr))) refl)
-keep-or-sample s@(t , just (c , e) , f) (opnQ b r) F = shift
-  (trans (viaR s (opnQ b r) (λ sr → F (logOf (proj₁ sr)))) (opnQ-red t c e f b r _))
-  (fetch-log s (b ∷ᵛ r) F)
+  (t , nothing , f) (idleR , idleR) (opnQ b r) (logP F) refl)
+keep-or-sample s@(t , just (c , e) , f) (opnQ b r) F =
+  map (trans red) (trans red) (fetch-log s (b ∷ᵛ r) F)
   where
-  shift : {a b : ℚ} → a ≡ b
-        → (b ≡ F (logOf s)) ⊎ (b ≡ E (uniform-Vec k) (λ h → F (h ∷ logOf s)))
-        → (a ≡ F (logOf s)) ⊎ (a ≡ E (uniform-Vec k) (λ h → F (h ∷ logOf s)))
-  shift e (inj₁ z) = inj₁ (trans e z)
-  shift e (inj₂ z) = inj₂ (trans e z)
+  red : E (C.realK s (opnQ b r)) (logP F) ≡ E (fetch s (b ∷ᵛ r)) (logU F)
+  red = trans (viaR s (opnQ b r) (logP F)) (opnQ-red t c e f b r (logP F))
 
 rare-raise : RareRaise C.realK hitOf (inv-pow-2 k)
 rare-raise s (askQ x) = ≤-trans
-  (≤-reflexive (trans (viaR s (askQ x) (λ sr → bool→ℚ (hitOf (proj₁ sr))))
-                      (askQ-red s x _)))
+  (≤-reflexive (trans (viaR s (askQ x) hitP) (askQ-red s x hitP)))
   (fetch-hit s x)
 rare-raise (t , nothing , f) (comQ c) = ≤-trans
   (≤-reflexive (idle-red (t , nothing , f) (t , just (c , extract c t) , f)
-    (rcptR , rcptR) (comQ c) (λ sr → bool→ℚ (hitOf (proj₁ sr))) refl))
+    (rcptR , rcptR) (comQ c) hitP refl))
   (0≤drift f)
 rare-raise (t , just m , f) (comQ c) = ≤-trans
   (≤-reflexive (idle-red (t , just m , f) (t , just m , f) (idleR , idleR)
-    (comQ c) (λ sr → bool→ℚ (hitOf (proj₁ sr))) refl))
+    (comQ c) hitP refl))
   (0≤drift f)
 rare-raise (t , nothing , f) (opnQ b r) = ≤-trans
   (≤-reflexive (idle-red (t , nothing , f) (t , nothing , f) (idleR , idleR)
-    (opnQ b r) (λ sr → bool→ℚ (hitOf (proj₁ sr))) refl))
+    (opnQ b r) hitP refl))
   (0≤drift f)
 rare-raise s@(t , just (c , e) , f) (opnQ b r) = ≤-trans
-  (≤-reflexive (trans (viaR s (opnQ b r) (λ sr → bool→ℚ (hitOf (proj₁ sr))))
-                      (opnQ-red t c e f b r _)))
+  (≤-reflexive (trans (viaR s (opnQ b r) hitP) (opnQ-red t c e f b r hitP)))
   (fetch-hit s (b ∷ᵛ r))
 
 ------------------------------------------------------------------------
@@ -585,7 +587,8 @@ cert = ∨-cert (collision-cert k C.realK logOf s₀ refl keep-or-sample)
 -- commitment game and the ideal one with the extracting simulator differ by at
 -- most `(m² + m)·2⁻ᵏ + m·2⁻ᵏ`.
 extraction-bound : (m : ℕ) (d : Strat Q R) → asks≤ m d
-                 → ∣ Pr₁ (runWith respI sI₀ d) -ℚ Pr₁ (runWith respR sR₀ d) ∣ℚ ≤ℚ ε m
+                 → ∣ Pr₁ (runWith respI sI₀ d) -ℚ Pr₁ (runWith respR sR₀ d) ∣ℚ
+                   ≤ℚ ε m
 extraction-bound = hop-bound bad respB respR respI s₀ sR₀ sI₀
   (λ d → runWith-bisim C.realK respR _≋R_ stepR d s₀ sR₀ (refl , inv₀))
   (λ d → runWith-bisim C.idealK respI _≋I_ stepI d s₀ sI₀ (refl , inv₀))
