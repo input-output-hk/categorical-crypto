@@ -6,7 +6,8 @@
 -- The carry is the CANONICAL one: `UC.Robust` at `UC.Model.Setup`, whose
 -- premise is the inherited `_≤UC_` directly — `≤UC⇒dummy` supplies the
 -- simulator, so the detour through the core's order has left this proof
--- (`UC.Model.Bridge.≤UC⇒≤UCᶜ` stays for its other consumers).  What connects it
+-- (`UC.Model.Bridge.≤UC⇒≤UCᶜ` stays; it is the seam's own two-way identification of
+-- the orders, whose gate is importer migration, not this one call).  What connects it
 -- to the observation-scoped statements is `propᵒ`, the adapter turning an
 -- observation-invariant predicate into a saturated predicate on tests, and
 -- `UC.Model.Reading`'s bracketing shuffle.
