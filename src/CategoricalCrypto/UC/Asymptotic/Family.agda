@@ -59,9 +59,9 @@ open import CategoricalCrypto.UC.Approximate.Decay
 open import CategoricalCrypto.UC.Approximate.Separating
   using (inv-suc; ¬negligible-inv-suc)
 open import CategoricalCrypto.UC.Asymptotic using (_≤UC^ω_)
-open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget)
+open import CategoricalCrypto.UC.Asymptotic.Contextual
+open import CategoricalCrypto.UC.Budget using (Budget)
 open import CategoricalCrypto.UC.Model.Bridge using (≈ᵁ⇒≈ℰᶜ)
-open import CategoricalCrypto.UC.Model.Dominated using (T₁ᵒ)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ)
 open import CategoricalCrypto.UC.Model.Family
   using ( Obj^ω; Δ; _⇒^ω_; _⊛ω_; PolyQB; _≈ℰ[_]_; _≈ℰⁿ_; carried-negligible
@@ -69,7 +69,7 @@ open import CategoricalCrypto.UC.Model.Family
   renaming (_≈ℰ_ to _≈ℰᶠ_; _≤UC_ to _≤UCᶠ_; ≈ℰ⇒≤UC to ≈ℰᶠ⇒≤UCᶠ)
 open import CategoricalCrypto.UC.Model.Family.Uniform
   using (≈ℰ^ω⇒≤UC) renaming (_≤UC_ to _≤UCᵁ_)
-open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ)
+open import CategoricalCrypto.UC.Model.Observation using (𝟘ᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Saturated using (_≈negl_; Systems)
@@ -81,7 +81,7 @@ import CategoricalCrypto.UC.Seam.Grounded as Gr
 
 module CategoricalCrypto.UC.Asymptotic.Family where
 
-open Budget budgetᵒ using (QB; qb-λ⇐)
+open Budget budgetᵒ using (qb-λ⇐)
 
 private variable B : ℕ → Iface
                  R I J : Systems B
@@ -102,15 +102,12 @@ imgᶠ B R n = Gr.closedᵒ (morphism (R n))
 
 infix 4 _≈ᶠ[_]_
 
--- `UC.Model.Family._≈ℰ[_]_` at those images, unpackaged (header): at each
--- level, no budgeted ancilla context separates the two images by more than `ε`
--- read at the budget the context's two legs CARRY.
+-- `UC.Asymptotic.Contextual._≈ctxᴬ[_]_` at those images — the one contextual
+-- relation, read at a closed domain and the trivial grade.  Unfolded it is what
+-- it always was: at each level, no budgeted ancilla context separates the two
+-- images by more than `ε` read at the budget the context's two legs CARRY.
 _≈ᶠ[_]_ : Systems B → (ℕ → ℕ → ℚ) → Systems B → Set₁
-_≈ᶠ[_]_ {B} R ε I =
-    (n : ℕ) (Y : Channel) (Et : T₀ Y (gradedᶠ B n) ⇒ Ωᵒ) (m : 𝟘ᵒ ⇒ T₀ Y 𝟘ᵒ)
-    {c c′ : ℕ} → QB c Et → QB c′ m
-  → Obs ((Et ∘ T₁ᵒ Y (imgᶠ B R n)) ∘ m) ≈ₚ[ ε n (ctxBudget c c′) ]
-    Obs ((Et ∘ T₁ᵒ Y (imgᶠ B I n)) ∘ m)
+_≈ᶠ[_]_ {B} R ε I = imgᶠ B R ≈ctxᴬ[ ε ] imgᶠ B I
 
 infix 4 _≤UC^ωⁿ_
 
@@ -156,10 +153,19 @@ imageᶠ {B} R q = imgᶠ B R , q
 -- The bound is EXPLICIT here and in `≈ᶠ-runs` below, for
 -- `UC.Approximate.GradedBound-+[_]`'s reason: both relations read it under an
 -- application, so no value of one determines it by unification.
+-- The PACKAGED presentation, at the same contexts read levelwise.  It is a
+-- named implication and not an identification: `_≈ℰ[_]_` quantifies over
+-- levelwise FAMILIES of contexts carrying one polynomial, where the contextual
+-- relation quantifies each level's context separately.
+≈ctxᴬ⇒≈ℰ[] : {A X B : Obj^ω} (ε : ℕ → ℕ → ℚ) {f g : Homᶠ A X B}
+             (qf : PolyQB {A} {X ⊛ω B} f) (qg : PolyQB {A} {X ⊛ω B} g)
+           → f ≈ctxᴬ[ ε ] g → _≈ℰ[_]_ {A} {X ⊛ω B} (f , qf) ε (g , qg)
+≈ctxᴬ⇒≈ℰ[] _ _ _ h Y (Et , _ , _ , wE) (m , _ , _ , wm) n =
+  h n (Y n) (Et n) (m n) (wE n) (wm n)
+
 ≈ᶠ⇒≈ℰ[] : (ε : ℕ → ℕ → ℚ) (qR : Imageᶠ B R) (qI : Imageᶠ B I) → R ≈ᶠ[ ε ] I
         → _≈ℰ[_]_ {Δ 𝟘ᵒ} {gradedᶠ B} (imageᶠ R qR) ε (imageᶠ I qI)
-≈ᶠ⇒≈ℰ[] _ _ _ h Y (Et , _ , _ , wE) (m , _ , _ , wm) n =
-  h n (Y n) (Et n) (m n) (wE n) (wm n)
+≈ᶠ⇒≈ℰ[] {B} {R} {I} ε qR qI = ≈ctxᴬ⇒≈ℰ[] {Δ 𝟘ᵒ} {Δ Gr.𝟘ᴳ} {ifaceᶠ B} ε qR qI
 
 -- `carried-negligible` is the whole of the grade's translation: the allowance a
 -- context carries is polynomial, which is the witness `CarriedNegligible` wants.
@@ -184,6 +190,29 @@ imageᶠ {B} R q = imgᶠ B R , q
             → imageᶠ R qR ≤UCᵁ imageᶠ I qI
 ≤UC^ωⁿ⇒≤UCᵁ {R = R} {I = I} qR qI p =
   ≈ℰ^ω⇒≤UC (imageᶠ R qR) (imageᶠ I qI) (≤UC^ωⁿ⇒≈ℰᶠ qR qI p)
+
+------------------------------------------------------------------------
+-- …and the witness form it specializes
+
+-- `_≤UC^ωⁿ_` is `UC.Asymptotic.Contextual._≤UC^ωᵉ_` with no simulator to
+-- absorb: the identity one, whose `sub` in front of the ideal side normalizes
+-- away and whose cost substitutes nothing.
+≤UC^ωⁿ⇒≤UC^ωᵉ : R ≤UC^ωⁿ I → imgᶠ B R ≤UC^ωᵉ imgᶠ B I
+≤UC^ωⁿ⇒≤UC^ωᵉ {B = B} {I = I} (ε , neg , h) =
+    idᶜ , ε , neg
+  , ≈ctx-resp ε (λ _ → Equiv.refl) (λ n → Equiv.sym (sub-identityˡ (imgᶠ B I n)))
+              (≈ctxᴬ⇒≈ctx ε h)
+
+-- …and back only where the witness's simulator acts trivially on the ideal
+-- side.  Direct agreement has nowhere to put a simulator, so this premise is
+-- the whole difference between the two and not a defect of the implication.
+≤UC^ωᵉ⇒≤UC^ωⁿ : (s : Certified (Δ Gr.𝟘ᴳ) (Δ Gr.𝟘ᴳ)) (ε : ℕ → ℕ → ℚ)
+              → NegligibleBound ε
+              → ((n : ℕ) → subᶠ s (imgᶠ B I) n ≈ imgᶠ B I n)
+              → imgᶠ B R ≈ctx[ ε ] subᶠ s (imgᶠ B I)
+              → R ≤UC^ωⁿ I
+≤UC^ωᵉ⇒≤UC^ωⁿ s ε neg triv h =
+  ε , neg , ≈ctx⇒≈ctxᴬ ε (≈ctx-resp ε (λ _ → Equiv.refl) triv h)
 
 ------------------------------------------------------------------------
 -- Reading it at the embedded strategies
