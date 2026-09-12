@@ -12,8 +12,13 @@
 -- probability from it would need the extraction context, the simulator in front
 -- of it, to observe an ideal monitored run EXACTLY, which an almost-surely-total
 -- initialization never gives.  `uc-audit-boundedᵖ` is the route that does reach
--- a probability, and the price is the widened event class `watchedᵖ` —
--- `UC.Seam.Audit.Prefix` is where that is proved and priced.
+-- a probability, and it takes `UC.Seam.Audit.Prefix.uc-audit-bounded′`, which
+-- has no event class on it at all — the simulator's initialization is a prefix
+-- and a prefix never adds mass (`sim-prefixed`).
+--
+-- `uc-audit-carryᵈ` is `uc-audit-carry`'s own conclusion with the event class
+-- spelled out instead of designated: same hypotheses, same number, no
+-- `watched`/`absorb` in the statement.
 
 open import Data.Nat.Base using (ℕ)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
@@ -28,7 +33,7 @@ open import CategoricalCrypto.UC.Saturated using (QueryPreserving; Systems; Watc
 open import CategoricalCrypto.UC.Seam.Audit
   using ( _≤UC[_]_; sim; simCost; AuditBound; absorb; absorb-absorbs; audit-carry
         ; module TrivialGrade )
-open import CategoricalCrypto.UC.Seam.Audit.Prefix using (uc-audit-bounded)
+open import CategoricalCrypto.UC.Seam.Audit.Prefix using (uc-audit-bounded′)
 open import CategoricalCrypto.UC.Seam.Grounding.Dead using (pointᵒ)
 import CategoricalCrypto.UC.Seam.Grounded as Gr
 
@@ -65,12 +70,14 @@ uc-audit-carry {I = I} {ε = ε} {ν = ν} em bad bnd pos n =
   audit-carry _ _ (em n) {𝔉 = 𝔉ₙ} (absorb-absorbs {𝔉 = 𝔉ₙ}) (ε n) (ν n) (pos n) (bnd n)
   where 𝔉ₙ = watched (I n) (bad n)
 
--- …and the same crossing read back as layer 1's own probability, at the widened
--- class: the ideal bound is an ordinary `Bounded` on the monitor's verdict, and
--- what comes out is the real system's, with the simulator's queries charged and
--- its initialization tolerated.  The extra hypothesis is that initialization's
+-- …and the same crossing read back as layer 1's own probability: the ideal
+-- bound is an ordinary `Bounded` on the monitor's verdict, and what comes out is
+-- the real system's, with the simulator's queries charged and its
+-- initialization tolerated.  The extra hypotheses — that initialization's
 -- almost-sure totality, which `UC.Seam.Grounded.simTotal⇒point` reads off the
--- real family's own `TotalRun` exactly as `subBlind⇒unitGrade` does.
+-- real family's own `TotalRun`, and the monitor's budget law — are part of the
+-- statement and are not consumed by the direct route that now proves it
+-- (`docs/direct-extraction.md`).
 uc-audit-boundedᵖ : (em : R ≤UC^ω[ cs ] I) (bad : Watch B)
                   → ((n : ℕ) → ASTotal (pointᵒ 𝟘ᴳ 𝟘ᴳ (sim (em n))))
                   → QueryPreserving bad
@@ -78,4 +85,4 @@ uc-audit-boundedᵖ : (em : R ≤UC^ω[ cs ] I) (bad : Watch B)
                   → ((n : ℕ) → 0ℚ ℚ.< ν n) → (n : ℕ)
                   → Bounded (R n) (bad n) (λ q → ε n (simCost q (cs n)) ℚ.+ ν n)
 uc-audit-boundedᵖ {R = R} {cs = cs} {I = I} {ε = ε} {ν = ν} em bad tot qp bi pos n =
-  uc-audit-bounded _ (R n) (I n) (bad n) (em n) (ε n) (ν n) (pos n) (tot n) (qp n) (bi n)
+  uc-audit-bounded′ _ (R n) (I n) (bad n) (em n) (ε n) (ν n) (pos n) (tot n) (qp n) (bi n)
