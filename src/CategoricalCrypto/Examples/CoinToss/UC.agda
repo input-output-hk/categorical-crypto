@@ -13,7 +13,7 @@
 
 open import Class.DecEq
 
-open import Data.Bool.Base using (Bool; _xor_)
+open import Data.Bool.Base using (_xor_)
 open import Data.Maybe.Base using (just; nothing)
 open import Data.Nat.Base using (ℕ; s≤s; z≤n)
 open import Data.Product.Base using (_,_; proj₁)
@@ -95,8 +95,9 @@ tossQB = qb-gradedᵒ (certified⇒QB tossCert)
 -- The honest receiver relays at most one query per message
 
 -- An activation from above buys one downward oracle call and the answer to it
--- only returns, so the potential is constantly zero — `UC.QueryBound.qb-oneCall`
--- at a machine that is not a protocol image.
+-- only returns, so the potential is constantly zero.  This is
+-- `UC.QueryBound.qb-oneCall`'s content at a machine that is not a `morphism`
+-- image, and that lemma is stated only at one, so it is written out.
 recvCert : Certified 1 real
 recvCert = record
   { Φ      = λ _ → 0

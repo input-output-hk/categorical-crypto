@@ -37,7 +37,7 @@ import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.Examples.CoinToss (k : ℕ) where
 
-open import CategoricalCrypto.Examples.ROCommitment k using (Honᴵ; HonA; rcptᴴ; openedᴴ; refusedᴴ)
+open import CategoricalCrypto.Examples.ROCommitment k
 
 open Core (𝒱ₚ 0ℓ)
 open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)

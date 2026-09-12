@@ -3406,7 +3406,7 @@ maintainer's judgement.
   unrescaled).
 - **Four new query certificates**, two of them about modules that had none:
   `Examples.ROCommitment.real` and `…Hiding.realʰ` are each `Certified 1`
-  (`Examples/CoinToss/UC.agda:100`, `Examples/CoinToss/Hiding/UC.agda:113`).
+  (`Examples/CoinToss/UC.agda:101`, `Examples/CoinToss/Hiding/UC.agda:113`).
   They are *placed in the consumer* rather than beside the machines they are
   about, because `Examples/ROCommitment/**` is a sibling agent's scope on this
   branch. **Maintainer call:** they belong in `Examples/ROCommitment/UC.agda`
@@ -3430,8 +3430,8 @@ maintainer's judgement.
   affordable and what makes a two-level one unstateable at an open domain.
   Both repairs bottom out in the same missing machine-layer lemma — a readable
   ⊕-trace of two stateful machines where neither is a `morphism` image.
-- **`ext-gradedᵒ`/`graded₂ᵒ` (`UC/Model/Graded.agda:60`, `:69`) and
-  `UC.Graded.ext-graded` (`:71`) have NO consumer on this branch.** They are
+- **`graded₂ᵒ`/`ext-gradedᵒ` (`UC/Model/Graded.agda:68`, `:77`) and
+  `UC.Graded.ext-graded` (`:73`) have NO consumer on this branch.** They are
   `sub-gradedᵒ`'s counterpart for `_∙ᶠ_` — without them no statement about a
   composed system can be read back as a machine equality — and they were built
   because `docs/coin-toss.md` §5 claims that half of the second hop is cheap,
@@ -3439,12 +3439,14 @@ maintainer's judgement.
   `UC.Model.Graded` 10.1 s → 11.5 s and `UC.Graded` nothing. **Maintainer
   call:** keep them as the standing bridge for the next two-level example, or
   drop them until one exists.
-- **`qb-oneCall`'s relocation to `UC.QueryBound`** is still owed
-  (`docs/ledger-lift-eps.md` §9 item 3). It would not have helped here — it is
-  stated over `Protocol A B` and both `F_com` real protocols are raw machines —
-  but the fourth consumer of the amortised-certificate boilerplate is now on
-  the branch, and a `Proc`-level analogue of it would collapse all four.
-- **`Startᴵ` in `Examples/CoinToss/Test.agda:69`** is a one-letter wake-up
+- **A `Proc`-level `qb-oneCall` is now clearly worth having.**
+  `UC.QueryBound.qb-oneCall` is stated at `morphism P` for a `Protocol A B`, so
+  it applies to none of the four raw machines certified here, and all four spell
+  out the same constantly-zero-potential certificate. The statement that would
+  collapse them: a `Proc` whose every activation from above emits at most one
+  downward message, and whose activations from below emit none, is
+  `Certified 1`. Three of the four would become one line.
+- **`Startᴵ` in `Examples/CoinToss/Test.agda:68`** is a one-letter wake-up
   interface, introduced because a corrupted party has to be started by
   something and `unitᴵ` cannot start it. If the repository grows a standard
   "environment tick" port, that is the name to use instead.

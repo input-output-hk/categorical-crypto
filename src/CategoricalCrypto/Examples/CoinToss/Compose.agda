@@ -28,7 +28,7 @@ open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl; tran
 open import ProbabilisticLogic.Distribution.Uniform using (fromℕ; inv-pow-2)
 
 open import CategoricalCrypto.Examples.ROCommitment.Asymptotic using (εᶜ; εᶜ-negligible)
-open import CategoricalCrypto.UC.Approximate using (Negligible-0; NegligibleBound)
+open import CategoricalCrypto.UC.Approximate using (Negligible-0)
 open import CategoricalCrypto.UC.Asymptotic.Compose using (UC-composeᵉ; _∙ᶠ_)
 open import CategoricalCrypto.UC.Asymptotic.Contextual
 open import CategoricalCrypto.UC.Budget using (simCost)

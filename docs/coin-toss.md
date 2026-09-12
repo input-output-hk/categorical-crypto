@@ -80,7 +80,7 @@ half. The simulator `UC-composeᵉ` produces is its own
 s n = (ℐ.id ⊗₁ sim t n) ∘ (sim sf n ⊗₁ ℐ.id)  :  (Lkᴵ ⊗ Advᴵᶜ) ⇒ (Advᴵ ⊗ Advᴵᶜ)
 ```
 
-certified at `(cost t n ⊔ 1) * (cost sf n ⊔ 1) = 1 * 3 = 3` when `sf` is the
+certified at `(cost t n ⊔ 1) * (cost sf n ⊔ 1) = 1 * 2 = 2` when `sf` is the
 commitment's `Certified 2` simulator and `t` is `idᶜ`. Note its **tensor
 shape**: the two simulators do not communicate. §5 is about exactly that.
 
@@ -89,7 +89,7 @@ right that the halves are genuinely different ports, and the difference shows
 here: for a corrupted RECEIVER the honest party is the committer, whose port
 `Honᴵʰ` has an INHABITED `Neg` (`commitᴱ`, `openᴱ`), so the coin-toss stage
 drives `F_com` and is a different protocol at a different rate
-(`CoinToss/Hiding.agda:98`). There is no way to present one as an instance of
+(`CoinToss/Hiding.agda:97`). There is no way to present one as an instance of
 the other.
 
 ## 2. Machines and certificates
@@ -100,9 +100,9 @@ the other.
 | `tossᵒ` | `CoinToss/UC.agda:50` | its image, `gradedᵒ toss` |
 | `tossCert` | `:58` | **`Certified 0 toss`** |
 | `tossQB` | `:91` | `QB 0 tossᵒ`, by `UC.Model.Dominated.qb-gradedᵒ` |
-| `recvCert` | `:100` | **`Certified 1 real`** — `Examples.ROCommitment`'s honest receiver |
-| `recvQB` | `:156` | `QB 1 (gradedᵒ real)` |
-| `tossʰ` | `CoinToss/Hiding.agda:98` | the corrupt-receiver case's stage |
+| `recvCert` | `:101` | **`Certified 1 real`** — `Examples.ROCommitment`'s honest receiver |
+| `recvQB` | `:158` | `QB 1 (gradedᵒ real)` |
+| `tossʰ` | `CoinToss/Hiding.agda:97` | the corrupt-receiver case's stage |
 | `tossʰCert` | `CoinToss/Hiding/UC.agda:51` | **`Certified 1 tossʰ`** |
 | `comCert` | `:113` | **`Certified 1 realʰ`** — `Hiding`'s honest committer |
 
@@ -151,7 +151,7 @@ Everything `UC-composeᵉ` asks about the morphisms it MOVES is proved here:
 
 | obligation | discharge | where |
 |---|---|---|
-| `QB (cf n) (f n)`, `cf n = 1` | `recvQB` / `comQB` — the real `F_com` protocol's own bound | `CoinToss/UC.agda:156`, `Hiding/UC.agda:179` |
+| `QB (cf n) (f n)`, `cf n = 1` | `recvQB` / `comQB` — the real `F_com` protocol's own bound | `CoinToss/UC.agda:158`, `Hiding/UC.agda:179` |
 | `QB (cv n) (v n)`, `cv n = 0` resp. `1` | `tossQB` / `tossʰQB` | `CoinToss/UC.agda:91`, `Hiding/UC.agda:107` |
 | `Poly cf`, `Poly cv` | `poly-const 1`; `poly-const 0` resp. `poly-const 1` | `Compose.agda:88-89`, `:138-139` |
 | `NegligibleBound εu` | `λ _ _ → Negligible-0` | `:86` |
@@ -213,15 +213,15 @@ composition beyond the `q ↦ q * 1` the floor already charges.
 
 `CoinToss/Test.agda`, at `k = 3`:
 
-* `attack-bound : εᶜᵗ εᶜ 3 3 ≡ fromℕ 15 *ℚ inv-pow-2 3` (`:60`) — the ceiling,
+* `attack-bound : εᶜᵗ εᶜ 3 3 ≡ fromℕ 15 *ℚ inv-pow-2 3` (`:59`) — the ceiling,
   evaluated.
-* `bias` (`:87`), a corrupted committer that queries the oracle at `true ∷ r`,
+* `bias` (`:94`), a corrupted committer that queries the oracle at `true ∷ r`,
   commits to the answer, waits for the honest share `s`, and opens at `s` — a
   bit it did not commit to unless `s ≡ true`, which forces P2's output to
   `s xor s`, i.e. constantly `false`. Its whole advantage is the commitment's
   extraction bad event, and §3's closed form says the composition carries that
   bound unchanged.
-* `bias-round` (`:107`) computes one live run of it, so the words the trace
+* `bias-round` (`:103`) computes one live run of it, so the words the trace
   statement quantifies over are inhabited by an attack that reaches the
   opening — `Examples.HashForward.UC.sim-round`'s role, same chain.
 
@@ -295,7 +295,7 @@ ext-gradedᵒ : {A B C P X : Iface} (k : Proc B (P ⊗ᴵ C)) (f : Proc A (X ⊗
               G.≈ graded₂ᵒ (a⇒ᴵ M.∘ (T₁ᴵ X k M.∘ f))
 ```
 
-(`UC/Model/Graded.agda:60`, `:69`), and `UC.Graded.ext-graded` (`:71`) is the
+(`UC/Model/Graded.agda:68`, `:77`), and `UC.Graded.ext-graded` (`:73`) is the
 reading in the grading's own vocabulary, joined to `ext` outside the seal by
 `GradedKleisli.μT` (`ext u k ≈ μ u v ∘ T₁ u k`) and
 `CurriedTensor.Properties.μ-α⇐` / `T₁-⊗`, over the machine readings
@@ -405,8 +405,11 @@ Done on the branch, not left to the maintainer:
    activation by a function of the LETTER alone, and it does — one oracle call
    per `queryᴬ` and per `openᴬ`, none per `commitᴬ` — so the ledger exists and
    was simply not needed by anything: `UC-composeᵉ` reads a `QB`.
-5. **`qb-oneCall`'s relocation** to `UC.QueryBound` is still owed
-   (`docs/ledger-lift-eps.md` §9 item 3); had it been there and applicable,
-   neither `recvCert` nor `comCert` would have had to be written out — but it
-   is stated over `Protocol A B` and these are raw machines, so it would not
-   have applied anyway.
+5. **No `Proc`-level `qb-oneCall`.** `UC.QueryBound.qb-oneCall` is where
+   `docs/ledger-lift-eps.md` §9 item 3 asked for it, but it is stated at
+   `morphism P` for a `Protocol A B`, and all four machines certified here are
+   raw ones (`docs/hash-forward.md` item 5), so all four write the amortised
+   certificate out by hand. A `Proc`-level analogue — "every activation from
+   above emits at most one downward message and nothing is owed afterwards",
+   which is what a constantly-zero potential says — would collapse
+   `tossʰCert`, `recvCert` and `comCert` to one line each.

@@ -16,19 +16,18 @@
 -- here, and the same chain.
 
 open import Data.Bool.Base using (Bool; true)
+open import Data.Empty using (⊥)
 open import Data.List.Base using (List; []; _∷_)
-open import Data.Nat.Base using (ℕ)
 open import Data.Product.Base using (_×_; _,_)
+open import Data.Rational using () renaming (_*_ to _*ℚ_)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Base using (⊤; tt)
 open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)
-open import Data.Empty using (⊥)
 open import Data.Vec.Base using (Vec) renaming (_∷_ to _∷ᵛ_)
 open import Function.Base using (case_of_)
 open import Level using (0ℓ)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality using (_≡_)
 
-open import Data.Rational using (ℚ) renaming (_*_ to _*ℚ_)
 open import ProbabilisticLogic.Distribution.Uniform using (fromℕ; inv-pow-2)
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Reasoning

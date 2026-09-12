@@ -38,7 +38,6 @@ import CategoricalCrypto.Machines.Sim as Sim
 module CategoricalCrypto.Examples.CoinToss.Hiding (k : ℕ) where
 
 open import CategoricalCrypto.Examples.ROCommitment.Hiding k
-  using (Honᴵʰ; commitᴱ; openᴱ; nakᴱ)
 
 open Core (𝒱ₚ 0ℓ)
 open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
