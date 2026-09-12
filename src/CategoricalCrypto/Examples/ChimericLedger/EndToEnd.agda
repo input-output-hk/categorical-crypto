@@ -75,14 +75,13 @@ open import CategoricalCrypto.UC.Asymptotic
 open import CategoricalCrypto.UC.Asymptotic.Audit
 open import CategoricalCrypto.UC.Asymptotic.Family using (_≤UC^ωⁿ_; ≤UC^ωⁿ⇒≈negl)
 open import CategoricalCrypto.UC.Model.Bridge using (≈ℰᶜ⇒≈ᵁ)
-open import CategoricalCrypto.UC.Model.Seal using (procᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Saturated
   using (_≈negl_; Bad; SaturatedBoundedᴺ; SaturatedHitᴺ; Systems)
 open import CategoricalCrypto.UC.Seam using (Agreeˢ)
 open import CategoricalCrypto.UC.Seam.Audit
   using (AuditBound; absorb; emulate; sim; simCost)
-open import CategoricalCrypto.UC.Seam.Grounded using (simAstotal; 𝟘ᴳ; ιᴳ)
+open import CategoricalCrypto.UC.Seam.Grounded using (closedᵒ; simAstotal; 𝟘ᴳ)
 open import CategoricalCrypto.UC.Seam.Grounding.Dead using (pointᵒ)
 
 import CategoricalCrypto.Examples.ChimericLedger.Audit as Aud
@@ -216,7 +215,7 @@ ledger-pov-family-negligible a V si R badR em truthful p Pp =
 ledger-audit-carry :
     (a V : ℕ) → SerInj → (R : Systems LedgerIf^ω) (cs : ℕ → ℕ)
     (em : R ≤UC^ω[ cs ] Ideal a V) (n : ℕ)
-  → AuditBound (ιᴳ (LedgerIf^ω n) ∘ procᵒ (morphism (R n)))
+  → AuditBound (closedᵒ (morphism (R n)))
       (absorb (sim (em n)) (cs n) (Ad.auditEvent n inputConsuming (gen a V n)))
       (λ q → εᴸ n (simCost q (cs n)) ℚ.+ ν n)
 ledger-audit-carry a V si R cs em =

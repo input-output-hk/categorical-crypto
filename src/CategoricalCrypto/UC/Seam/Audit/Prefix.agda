@@ -47,14 +47,14 @@ open import CategoricalCrypto.Protocol.Observe using (Bounded)
 open import CategoricalCrypto.Strategy using (Strat; asks≤; asks≤-mono)
 open import CategoricalCrypto.UC.Machine using (⊤ᵛ)
 open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ)
-open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ; procᵒ)
+open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Seam.Audit
   using ( _≤UC[_]_; sim; simCost; q≤simCost; AuditBound; Absorbs; absorb
         ; absorb-absorbs; audit-carry; module TrivialGrade )
 open import CategoricalCrypto.UC.Seam.Audit.Bounded using (boundedIsAuditᵖ; ctx-watched)
 open import CategoricalCrypto.UC.Seam.Audit.Context using (auditClose; auditTest; extract)
-open import CategoricalCrypto.UC.Seam.Grounded using (𝟘ᴳ; ιᴳ; subPrefixedˢ)
+open import CategoricalCrypto.UC.Seam.Grounded using (closedᵒ; 𝟘ᴳ; ιᴳ; subPrefixedˢ)
 open import CategoricalCrypto.UC.Seam.Grounding.Dead using (pointᵒ)
 open import CategoricalCrypto.UC.Seam.Grounding.Prefix
   using (Prefixedᵒ; prefixedᵒ-bind; prefixedᵒ-resp-≈)
@@ -79,7 +79,7 @@ absorb-watchedᵖ B P bad s cs tot W Et m q (d , p , a , tp , near) =
   σ = pointᵒ 𝟘ᴳ 𝟘ᴳ s
 
   f₀ : 𝟘ᵒ ⇒ T₀ 𝟘ᴳ (ifaceᵒ B)
-  f₀ = ιᴳ B ∘ procᵒ (morphism P)
+  f₀ = closedᵒ (morphism P)
 
   run : Dₚ Bool
   run = runᴹ (morphism P) (bad d)
@@ -119,7 +119,7 @@ auditIsBoundedᴬ : (B : Iface) (R I : Protocol unitᴵ B)
                   (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B))
                   (s : 𝟘ᴳ ⇒ 𝟘ᴳ) (cs : ℕ) (ε : ℕ → ℚ) → ASTotal (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
                 → ((q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d → asks≤ q (bad d))
-                → AuditBound (ιᴳ B ∘ procᵒ (morphism R)) (absorb s cs (TG.watchedᵖ I bad)) ε
+                → AuditBound (closedᵒ (morphism R)) (absorb s cs (TG.watchedᵖ I bad)) ε
                 → Bounded R bad ε
 auditIsBoundedᴬ B R I bad s cs ε tot bad-asks =
   extract R bad ε {𝔈 = absorb s cs (TG.watchedᵖ I bad)} bad-asks
@@ -130,7 +130,7 @@ auditIsBoundedᴬ B R I bad s cs ε tot bad-asks =
 -- back to a probability.
 uc-audit-bounded : (B : Iface) (R I : Protocol unitᴵ B)
                    (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) {cs : ℕ}
-                   (em : (ιᴳ B ∘ procᵒ (morphism R)) ≤UC[ cs ] (ιᴳ B ∘ procᵒ (morphism I)))
+                   (em : closedᵒ (morphism R) ≤UC[ cs ] closedᵒ (morphism I))
                    (ε : ℕ → ℚ) (ν : ℚ) → 0ℚ ℚ.< ν
                  → ASTotal (pointᵒ 𝟘ᴳ 𝟘ᴳ (sim em))
                  → ((q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d → asks≤ q (bad d))

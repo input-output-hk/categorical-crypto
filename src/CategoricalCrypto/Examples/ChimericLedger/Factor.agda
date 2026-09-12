@@ -41,11 +41,11 @@ open import CategoricalCrypto.Protocol.Observe using (PrHit)
 open import CategoricalCrypto.Strategy using (Strat; asks≤)
 open import CategoricalCrypto.UC.Approximate using (Negligible)
 open import CategoricalCrypto.UC.Asymptotic using (_≤UC^ω_)
-open import CategoricalCrypto.UC.Factor using (closedᵒ; factorᵖ; liftᵖ; stageᵒ)
+open import CategoricalCrypto.UC.Factor using (factorᵖ; liftᵖ)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Saturated using (Systems)
-open import CategoricalCrypto.UC.Seam.Grounded using (𝟘ᴳ)
+open import CategoricalCrypto.UC.Seam.Grounded using (closedᵒ; stageᵒ; 𝟘ᴳ)
 
 module CategoricalCrypto.Examples.ChimericLedger.Factor
   (ser : (n : ℕ) → Ledger.Tx n → List Bool) where

@@ -23,7 +23,6 @@ open import ProbabilisticLogic.Dp.Mass using (ASTotal)
 open import CategoricalCrypto.Iface using (Iface)
 open import CategoricalCrypto.Protocol.Machine using (morphism)
 open import CategoricalCrypto.Protocol.Observe using (Bounded)
-open import CategoricalCrypto.UC.Model.Seal using (procᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Saturated using (QueryPreserving; Systems; Watch)
 open import CategoricalCrypto.UC.Seam.Audit
@@ -35,7 +34,7 @@ import CategoricalCrypto.UC.Seam.Grounded as Gr
 
 module CategoricalCrypto.UC.Asymptotic.Audit where
 
-open Gr using (𝟘ᴳ; ιᴳ)
+open Gr using (closedᵒ; 𝟘ᴳ; ιᴳ)
 open TrivialGrade 𝟘ᴳ ιᴳ using (watched)
 
 private variable B : ℕ → Iface
@@ -51,15 +50,15 @@ infix 4 _≤UC^ω[_]_
 -- collapse next door does not, the simulator asking nothing there.
 _≤UC^ω[_]_ : Systems B → (ℕ → ℕ) → Systems B → Set₁
 _≤UC^ω[_]_ {B} R cs I = (n : ℕ)
-  → (ιᴳ (B n) ∘ procᵒ (morphism (R n))) ≤UC[ cs n ] (ιᴳ (B n) ∘ procᵒ (morphism (I n)))
+  → closedᵒ (morphism (R n)) ≤UC[ cs n ] closedᵒ (morphism (I n))
 
 -- Each level's ideal audit bound crosses its emulation: the real side reads
 -- the absorbed event class and pays `simCost` for the simulator's queries.
 uc-audit-carry : (em : R ≤UC^ω[ cs ] I) (bad : Watch B)
-               → ((n : ℕ) → AuditBound (ιᴳ (B n) ∘ procᵒ (morphism (I n)))
+               → ((n : ℕ) → AuditBound (closedᵒ (morphism (I n)))
                               (watched (I n) (bad n)) (ε n))
                → ((n : ℕ) → 0ℚ ℚ.< ν n) → (n : ℕ)
-               → AuditBound (ιᴳ (B n) ∘ procᵒ (morphism (R n)))
+               → AuditBound (closedᵒ (morphism (R n)))
                    (absorb (sim (em n)) (cs n) (watched (I n) (bad n)))
                    (λ q → ε n (simCost q (cs n)) ℚ.+ ν n)
 uc-audit-carry {I = I} {ε = ε} {ν = ν} em bad bnd pos n =

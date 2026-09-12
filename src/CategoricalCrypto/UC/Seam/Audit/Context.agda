@@ -57,7 +57,7 @@ open import CategoricalCrypto.UC.Seam using (strategyEnv)
 open import CategoricalCrypto.UC.Seam.Adequacy using (adequacy)
 open import CategoricalCrypto.UC.Seam.Audit using (AuditBound; AuditEvent)
 open import CategoricalCrypto.UC.Seam.Budget using (qb-strategyEnv)
-open import CategoricalCrypto.UC.Seam.Grounded using (𝟘ᴳ; ιᴳ; plug-λ; plug-run)
+open import CategoricalCrypto.UC.Seam.Grounded using (closedᵒ; 𝟘ᴳ; plug-λ; plug-run)
 
 module CategoricalCrypto.UC.Seam.Audit.Context where
 
@@ -92,14 +92,14 @@ module _ (B : Iface) (e : Strat (Neg B) (Pos B)) where
   -- Both wires cancel, what is left is the plugged strategy, and its
   -- observation is layer 1's run of `e`.
   audit-run : (w : Proc unitᴵ B)
-            → obs (tv₁ 𝟘ᴳ (ιᴳ B ∘ procᵒ w) auditTest) auditClose ≈ₚ runᴹ w e
+            → obs (tv₁ 𝟘ᴳ (closedᵒ w) auditTest) auditClose ≈ₚ runᴹ w e
   audit-run w =
     ≈ₚ-trans _ _ _ (obs-resp reduce)
       (≈ₚ-trans _ _ _ (≈ₚ-sym _ _ (plug-run B e w)) (adequacy B w e))
     where
-    reduce : ((auditTest ∘ id ⊗₁ (ιᴳ B ∘ procᵒ w)) ∘ auditClose) ≈ procᵒ env ∘ procᵒ w
-    reduce = ((refl⟩∘⟨ ⟺ (T₁-⊗ 𝔾ᵒ 𝟘ᴳ (ιᴳ B ∘ procᵒ w))) ⟩∘⟨refl)
-           ○ plug-λ test (ιᴳ B ∘ procᵒ w) ○ cancelInner unitorˡ.isoʳ
+    reduce : ((auditTest ∘ id ⊗₁ closedᵒ w) ∘ auditClose) ≈ procᵒ env ∘ procᵒ w
+    reduce = ((refl⟩∘⟨ ⟺ (T₁-⊗ 𝔾ᵒ 𝟘ᴳ (closedᵒ w))) ⟩∘⟨refl)
+           ○ plug-λ test (closedᵒ w) ○ cancelInner unitorˡ.isoʳ
 
 -- A graded bound at any class this context inhabits IS layer 1's `Bounded`.
 -- The `bad`-budget hypothesis is what lets the run and the mass meet: `Bounded`
@@ -110,7 +110,7 @@ extract : {B : Iface} (P : Protocol unitᴵ B)
         → ((q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d → asks≤ q (bad d))
         → ((q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d
            → 𝔈 𝟘ᴳ (auditTest B (bad d)) auditClose (q * 1))
-        → AuditBound (ιᴳ B ∘ procᵒ (morphism P)) 𝔈 ε
+        → AuditBound (closedᵒ (morphism P)) 𝔈 ε
         → Bounded P bad ε
 extract {B} P bad ε bad-asks mem bnd q d a =
   subst (λ z → z ℚ.≤ ε q) (reads 0) chain
@@ -119,7 +119,7 @@ extract {B} P bad ε bad-asks mem bnd q d a =
   run = runᴹ (morphism P) (bad d)
 
   obsv : Dₚ Bool
-  obsv = obs (tv₁ 𝟘ᴳ (ιᴳ B ∘ procᵒ (morphism P)) (auditTest B (bad d))) auditClose
+  obsv = obs (tv₁ 𝟘ᴳ (closedᵒ (morphism P)) (auditTest B (bad d))) auditClose
 
   near : obsv ≈ₚ run
   near = audit-run B (bad d) (morphism P)
