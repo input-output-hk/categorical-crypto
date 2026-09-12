@@ -173,8 +173,7 @@ private
 ≤UCᶜ⇒≤UC p a = let s , e = E.dummy-complete p a in s , ≈ℰᶜ⇒≈ᵁ e
 
 ≤UC⇒≤UCᶜ : {f : A ⇒ T₀ X B} {g : A ⇒ T₀ Y B} → f ≤UC g → f ≤UCᶜ g
-≤UC⇒≤UCᶜ {f = f} p =
-  let s , e = p id in s , ≈ᵁ⇒≈ℰᶜ (≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ f))) e)
+≤UC⇒≤UCᶜ p = let s , e = ≤UC⇒dummy p in s , ≈ᵁ⇒≈ℰᶜ e
 
 ≤UCᶜ⇔≤UC : {f : A ⇒ T₀ X B} {g : A ⇒ T₀ Y B} → f ≤UCᶜ g ⇔ f ≤UC g
 ≤UCᶜ⇔≤UC {f = f} {g} = mk⇔ {B = f ≤UC g} ≤UCᶜ⇒≤UC ≤UC⇒≤UCᶜ
