@@ -34,7 +34,7 @@
 -- header measures it), so the arithmetic runs once here rather than never there.
 
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Product.Base using (_,_; proj₁; proj₂)
+open import Data.Product.Base using (Σ-syntax; _,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Rational.Properties using (+-monoˡ-≤; module ≤-Reasoning)
 open import Level using (Level; _⊔_; suc)
@@ -146,6 +146,21 @@ absorb-absorbs : {s : Y ⇒ X} {cs : ℕ} {𝔉 : AuditEvent w A Y B′}
                → Absorbs s cs (absorb s cs 𝔉) 𝔉
 absorb-absorbs _ _ _ _ ev = ev
 
+-- The carry's whole structural content, with no event class and no budget on
+-- it: what a context observes of the real process is dominated, at the
+-- emulation's own slack, by what the SAME context with the simulator in front
+-- of it observes of the ideal one.  Everything `AuditBound` adds to this is the
+-- designation and the allowance arithmetic, which is why the plan's §4.2 asks
+-- for the property-specific statement to be made here rather than through a
+-- second action.
+carry-obs : (f : A ⇒ X ⊛ B′) (g : A ⇒ Y ⊛ B′) (s : Y ⇒ X) → f ≈ℰ (sub s ∘ g)
+          → (W : Obj) (Et : Test (W ⊛ (X ⊛ B′))) (m : Closure (W ⊛ A))
+            (δ : ℚ) → 0ℚ ℚ.< δ → (n : ℕ)
+          → Σ[ k ∈ ℕ ] at n (obs (tv₁ W f Et) m)
+                       ℚ.≤ at k (obs (tv₁ W g (tv₁ W (sub s) Et)) m) ℚ.+ δ
+carry-obs f g s em W Et m δ δ>0 =
+  dominate (∼-trans (em W Et m) (⟦⟧-resp-≈ (∘-resp-≈ˡ (tv₁-∘ W (sub s) g Et)))) δ δ>0
+
 -- The graded carry.  The ideal side is tested through `Et ∘ T₁ W (sub s)` — the
 -- same context with the simulator in front of it — so the hypothesis applies at
 -- a budget the test pays for and at an event the absorption keeps permitted,
@@ -173,12 +188,8 @@ audit-carry {B′ = B′} {Y = Y} f g {cs} em {𝔉 = 𝔉} cl ε δ δ>0
   ev′ : 𝔉 W Et′ m (ctxBudget (c ℕ.* ((cs ℕ.⊔ 1) ℕ.⊔ 1)) c′)
   ev′ = subst (𝔉 W Et′ m) (sym (ctxBudget-absorb c c′ cs)) (cl W Et m (ctxBudget c c′) ev)
 
-  -- The simulator slides off the process and onto the test.
-  near : x ∼ z
-  near = ∼-trans (emulate em W Et m) (⟦⟧-resp-≈ (∘-resp-≈ˡ (tv₁-∘ W (sub s) g Et)))
-
   bound : at n x ℚ.≤ ε (ctxBudget (c ℕ.* ((cs ℕ.⊔ 1) ℕ.⊔ 1)) c′) ℚ.+ δ
-  bound = let k , le = dominate near δ δ>0 n in begin
+  bound = let k , le = carry-obs f g s (emulate em) W Et m δ δ>0 n in begin
     at n x        ≤⟨ le ⟩
     at k z ℚ.+ δ  ≤⟨ +-monoˡ-≤ δ (bnd W Et′ m qEt′ qm ev′ k) ⟩
     ε _ ℚ.+ δ     ∎

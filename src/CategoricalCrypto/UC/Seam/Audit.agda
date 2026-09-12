@@ -59,7 +59,8 @@ private module A = Aud ucBaseᵒ budgetᵒ massᵒ
 
 open A public
   using (_≤UC[_]_; ≤UC[]⇒≤UC; sim; sim-qb; emulate; simCost; q≤simCost; AuditEvent;
-         AuditBound; pinned; pinned-bound; absorb; Absorbs; absorb-absorbs; audit-carry)
+         AuditBound; pinned; pinned-bound; absorb; Absorbs; absorb-absorbs; carry-obs;
+         audit-carry)
 
 ------------------------------------------------------------------------
 -- The consumer end
