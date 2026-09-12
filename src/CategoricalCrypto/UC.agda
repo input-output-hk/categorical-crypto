@@ -129,7 +129,16 @@
 --                                  bound into the real system's own
 --                                  probability across a budgeted emulation,
 --                                  the simulator's initialization tolerated as
---                                  a prefix and its queries charged
+--                                  a prefix and its queries charged.
+--                                  `uc-audit-bounded′` is the same statement by
+--                                  the DIRECT route (`sim-prefixed`, the
+--                                  one-sided mass consequence, and
+--                                  `bounded-carry`, where the route's actual
+--                                  premises show), with no event-class
+--                                  membership in it; `UC.Seam.Audit.Context`'s
+--                                  `extract-obs` is its numerical half and
+--                                  `UC.Seam.Slide` the one place the simulator
+--                                  slide is spelled (`docs/direct-extraction.md`)
 --                `UC.Saturated`    the saturated form of a concrete safety
 --                                  bound — one slack per polynomial allowance,
 --                                  at the vanishing grade and at the
