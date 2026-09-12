@@ -1,13 +1,12 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- `UC.Seam.Audit.TrivialGrade`'s four statements discharged: at the trivial
--- grade the graded bound at the designated event — and the one at its
--- prefix-tolerant widening — and layer 1's own `Bounded` imply each other.
+-- `UC.Seam.Audit.TrivialGrade`'s two statements discharged: at the trivial
+-- grade the graded bound at the designated event and layer 1's own `Bounded`
+-- imply each other.
 --
 -- The extraction context and the three theorems that make it one of the
 -- contexts an event can permit are `UC.Seam.Audit.Context`; what is left here
--- is the membership witness at each class and the probability arithmetic of the
--- supply.
+-- is the membership witness and the probability arithmetic of the supply.
 --
 -- The `bad`-budget hypothesis is owed in the extracting direction only — a
 -- permitted context comes with the adversary its own budget affords, so the
@@ -18,13 +17,11 @@ open import Data.Nat.Base using (ℕ; _*_)
 import Data.Nat.Properties as ℕP
 open import Data.Product.Base using (_,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
-open import Data.Rational.Properties using (+-identityʳ; ≤-refl; ≤-reflexive; ≤-trans)
+open import Data.Rational.Properties using (+-identityʳ; ≤-reflexive; ≤-trans)
 open import Relation.Binary.PropositionalEquality using (subst; sym)
 
-open import ProbabilisticLogic.Dp using (Dₚ; ≼ₚ-refl)
-open import ProbabilisticLogic.Dp.Advantage
-  using (_≼ₚ[_]_; Pr≤; Pr≤-mono; ≼ₚ⇒≼ₚ[0]; ≼ₚ[]-resp)
-open import ProbabilisticLogic.Dp.Mass using (const-bind-≼)
+open import ProbabilisticLogic.Dp using (Dₚ)
+open import ProbabilisticLogic.Dp.Advantage using (_≼ₚ[_]_; Pr≤; Pr≤-mono; ≼ₚ⇒≼ₚ[0])
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol using (Protocol)
@@ -55,12 +52,6 @@ ctx-watched P bad q d a = d
 auditIsBounded : TG.AuditIsBounded
 auditIsBounded P bad ε bad-asks =
   extract P bad ε {𝔈 = TG.watched P bad} bad-asks (ctx-watched P bad)
-
--- …and at the widened class, which asks strictly less of the context: the
--- extraction witness is the same one past `watched⇒watchedᵖ`.
-auditIsBoundedᵖ : TG.AuditIsBoundedᵖ
-auditIsBoundedᵖ P bad ε bad-asks bnd = auditIsBounded P bad ε bad-asks
-  λ Y Et m qEt qm ev → bnd Y Et m qEt qm (TG.watched⇒watchedᵖ P bad Y Et m _ ev)
 
 ------------------------------------------------------------------------
 -- …and the supply
@@ -94,11 +85,3 @@ supply P bad ε q d a bnd x dom n =
 boundedIsAudit : TG.BoundedIsAudit
 boundedIsAudit P bad ε bnd Y Et m qEt qm (d , a , near) =
   supply P bad ε _ d a bnd _ (≼ₚ⇒≼ₚ[0] (proj₁ near))
-
--- …and at the widened class, which is the direction that GAINS: the same ideal
--- bound covers the prefix-tolerant contexts, a prefix being unable to add mass.
--- This is what a simulator-fronted extraction context needs supplied of it.
-boundedIsAuditᵖ : TG.BoundedIsAuditᵖ
-boundedIsAuditᵖ P bad ε bnd Y Et m qEt qm (d , p , a , _ , near) =
-  supply P bad ε _ d a bnd _
-    (≼ₚ[]-resp (proj₁ near) (≼ₚ-refl _) (const-bind-≼ p _ 0ℚ ≤-refl))

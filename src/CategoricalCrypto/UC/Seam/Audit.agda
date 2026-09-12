@@ -28,21 +28,17 @@
 -- statement `POV` at both ends.
 
 open import Data.Nat.Base using (ℕ)
-open import Data.Product.Base using (Σ-syntax; _×_; _,_)
+open import Data.Product.Base using (Σ-syntax; _×_)
 open import Data.Rational using (ℚ)
-open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)
 open import Level using (0ℓ)
 
-open import ProbabilisticLogic.Dp using (Dₚ; _>>=ₚ_; _≈ₚ_; returnₚ)
-open import ProbabilisticLogic.Dp.Mass using (ASTotal; astotal-returnₚ)
-open import ProbabilisticLogic.Dp.Reasoning using (_⟨≈⟩_; push)
+open import ProbabilisticLogic.Dp using (_≈ₚ_)
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol using (Protocol)
 open import CategoricalCrypto.Protocol.Machine using (morphism; runᴹ)
 open import CategoricalCrypto.Protocol.Observe using (Bounded)
 open import CategoricalCrypto.Strategy using (Strat; asks≤)
-open import CategoricalCrypto.UC.Machine using (⊤ᵛ)
 open import CategoricalCrypto.UC.Model.Bridge using (ucBaseᵒ)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ; massᵒ)
 open import CategoricalCrypto.UC.Model.Observation using (𝟘ᵒ)
@@ -53,7 +49,7 @@ import CategoricalCrypto.UC.Audit as Aud
 
 module CategoricalCrypto.UC.Seam.Audit where
 
-open import CategoricalCrypto.UC.Emulation ucBaseᵒ using (Closure; Test; obs; tv₁)
+open import CategoricalCrypto.UC.Emulation ucBaseᵒ using (obs; tv₁)
 
 private module A = Aud ucBaseᵒ budgetᵒ massᵒ
 
@@ -80,31 +76,6 @@ module TrivialGrade (𝟘 : Channel) (ι : (B : Iface) → ifaceᵒ B ⇒ T₀ �
   watched {B} P bad Y Et m q =
     Σ[ d ∈ Strat (Neg B) (Pos B) ] asks≤ q d
       × obs (tv₁ Y (ι B ∘ procᵒ (morphism P)) Et) m ≈ₚ runᴹ (morphism P) (bad d)
-
-  -- The prefix-tolerant widening of that class: a context reads the event when
-  -- what it observes is the monitor's verdict preceded by a SILENT computation
-  -- that terminates almost surely.  That is exactly what a trivial-grade
-  -- simulator in front of the process contributes and all it contributes
-  -- (`UC.Seam.Grounded.subPrefixedˢ`), and an almost-sure totality is the most
-  -- `subBlind` can give — hence a designation of its own rather than a repair
-  -- of `watched`, whose exact `≈ₚ` every proved consumer keeps.
-  watchedᵖ : {B : Iface} (P : Protocol unitᴵ B)
-             (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B))
-           → AuditEvent 0ℓ 𝟘ᵒ 𝟘 (ifaceᵒ B)
-  watchedᵖ {B} P bad Y Et m q =
-    Σ[ d ∈ Strat (Neg B) (Pos B) ] Σ[ p ∈ Dₚ ⊤ᵛ ] asks≤ q d × ASTotal p
-      × obs (tv₁ Y (ι B ∘ procᵒ (morphism P)) Et) m
-        ≈ₚ (p >>=ₚ λ _ → runᴹ (morphism P) (bad d))
-
-  -- The widening is one: the empty prefix is almost surely total.
-  watched⇒watchedᵖ : {B : Iface} (P : Protocol unitᴵ B)
-                     (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B))
-                     (Y : Channel) (Et : Test (Y ⊗₀ (𝟘 ⊗₀ ifaceᵒ B)))
-                     (m : Closure (Y ⊗₀ 𝟘ᵒ)) (q : ℕ)
-                   → watched P bad Y Et m q → watchedᵖ P bad Y Et m q
-  watched⇒watchedᵖ P bad Y Et m q (d , a , near) =
-    d , returnₚ ttᵛ , a , astotal-returnₚ ttᵛ
-      , near ⟨≈⟩ push (λ _ → runᴹ (morphism P) (bad d)) ttᵛ
 
   -- At the trivial grade an audit-watching strategy, embedded as an
   -- environment, IS one of the contexts the event permits, so the graded bound
@@ -134,21 +105,3 @@ module TrivialGrade (𝟘 : Channel) (ι : (B : Iface) → ifaceᵒ B ⇒ T₀ �
                    (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) (ε : ℕ → ℚ)
                  → Bounded P bad ε
                  → AuditBound (ι B ∘ procᵒ (morphism P)) (watched P bad) ε
-
-  -- The same two at the widened class.  The supply direction GAINS content —
-  -- the ideal bound now covers the prefix-tolerant contexts too, which is what
-  -- a simulator-fronted extraction context needs — and the extracting one loses
-  -- none: it is `AuditIsBounded` past `watched⇒watchedᵖ`.  Both in
-  -- `UC.Seam.Audit.Bounded`.
-  AuditIsBoundedᵖ : Set₁
-  AuditIsBoundedᵖ = {B : Iface} (P : Protocol unitᴵ B)
-                    (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) (ε : ℕ → ℚ)
-                  → ((q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d → asks≤ q (bad d))
-                  → AuditBound (ι B ∘ procᵒ (morphism P)) (watchedᵖ P bad) ε
-                  → Bounded P bad ε
-
-  BoundedIsAuditᵖ : Set₁
-  BoundedIsAuditᵖ = {B : Iface} (P : Protocol unitᴵ B)
-                    (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) (ε : ℕ → ℚ)
-                  → Bounded P bad ε
-                  → AuditBound (ι B ∘ procᵒ (morphism P)) (watchedᵖ P bad) ε
