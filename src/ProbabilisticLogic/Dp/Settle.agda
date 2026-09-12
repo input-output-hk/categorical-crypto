@@ -108,24 +108,6 @@ Null-bind d f z Q nn i = ≤-antisym
 ------------------------------------------------------------------------
 -- What `E⊥` makes of the value-level rearrangements a run performs
 
-Eⱼ : (μ : Dist-ℚ A) (Q : A → ℚ) → E⊥ (Dmap just μ) Q ≡ E μ Q
-Eⱼ μ Q = lookupᴰℚ-Dmap just μ (maybeℚ Q)
-
-E⊥-map : (f : A → B) (ν : Dist⊥ A) (G : B → ℚ)
-       → E⊥ (Dmap⊥ f ν) G ≡ E⊥ ν (λ p → G (f p))
-E⊥-map f ν G =
-  trans (E⊥-bind ν (λ p → return⊥ (f p)) G)
-        (lookupᴰℚ-cong-P (entries ν) λ where
-          (just p) → E⊥-return (f p) G
-          nothing  → refl)
-
-E⊥-map-bind : (f : A → B) (ν : Dist⊥ A) (κ : B → Dist⊥ C) (G : C → ℚ)
-            → E⊥ (Dmap⊥ f ν >>=⊥ κ) G ≡ E⊥ (ν >>=⊥ λ p → κ (f p)) G
-E⊥-map-bind f ν κ G =
-  trans (E⊥-bind (Dmap⊥ f ν) κ G)
-        (trans (E⊥-map f ν (λ p → E⊥ (κ p) G))
-               (sym (E⊥-bind ν (λ p → κ (f p)) G)))
-
 E⊥-coin : (μ : Dist-ℚ Bool) (κ : Bool → Dist⊥ A) (G : A → ℚ)
         → E⊥ (Dmap just μ >>=⊥ κ) G ≡ E⊥ (μ >>=ᴹ κ) G
 E⊥-coin μ κ G =

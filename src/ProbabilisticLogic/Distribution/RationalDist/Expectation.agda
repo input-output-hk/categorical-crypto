@@ -10,7 +10,7 @@ open import Data.List.Relation.Unary.All as ListAll using ()
 open import Data.Rational using (ℚ; 0ℚ; 1ℚ)
   renaming (_*_ to _*ℚ_; _+_ to _+ℚ_; _-_ to _-ℚ_; -_ to -ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
 open import Data.Rational.Properties using
-  (≤-refl; ≤-reflexive; ≤-trans; *-identityˡ; ∣-p∣≡∣p∣)
+  (≤-refl; ≤-reflexive; ≤-trans; *-identityˡ; +-inverseʳ; 0≤p⇒∣p∣≡p; ∣-p∣≡∣p∣)
 open import Data.Rational.Properties.Ext
 
 open import ProbabilisticLogic.Distribution.RationalDist
@@ -21,7 +21,7 @@ module ProbabilisticLogic.Distribution.RationalDist.Expectation where
 
 private variable
   ℓ : Level
-  A B : Type
+  A B C : Type
 
 -- Expectation (= `lookupᴰℚ` over the entries) and the probability of `true`.
 E : Dist-ℚ A → (A → ℚ) → ℚ
@@ -83,6 +83,24 @@ E⊥-bind μ h P = trans (E-bind μ (kmaybe h) (maybeℚ P)) (lookupᴰℚ-cong-
 
 E⊥-return : (a : A) (P : A → ℚ) → E⊥ (return⊥ a) P ≡ P a
 E⊥-return a P = lookupᴰℚ-return (just a) (maybeℚ P)
+
+Eⱼ : (μ : Dist-ℚ A) (Q : A → ℚ) → E⊥ (Dmap just μ) Q ≡ E μ Q
+Eⱼ μ Q = lookupᴰℚ-Dmap just μ (maybeℚ Q)
+
+E⊥-map : (f : A → B) (ν : Dist⊥ A) (G : B → ℚ)
+       → E⊥ (Dmap⊥ f ν) G ≡ E⊥ ν (λ p → G (f p))
+E⊥-map f ν G =
+  trans (E⊥-bind ν (λ p → return⊥ (f p)) G)
+        (lookupᴰℚ-cong-P (entries ν) λ where
+          (just p) → E⊥-return (f p) G
+          nothing  → refl)
+
+E⊥-map-bind : (f : A → B) (ν : Dist⊥ A) (κ : B → Dist⊥ C) (G : C → ℚ)
+            → E⊥ (Dmap⊥ f ν >>=⊥ κ) G ≡ E⊥ (ν >>=⊥ λ p → κ (f p)) G
+E⊥-map-bind f ν κ G =
+  trans (E⊥-bind (Dmap⊥ f ν) κ G)
+        (trans (E⊥-map f ν (λ p → E⊥ (κ p) G))
+               (sym (E⊥-bind ν (λ p → κ (f p)) G)))
 
 mb : Maybe Bool → ℚ
 mb = maybeℚ bool→ℚ
@@ -161,3 +179,44 @@ E-abs-diff μ a b = ∣∣≤ upper lower
 
 ∣Pr-Pr∣≤1 : (μ ν : Dist-ℚ Bool) → ∣ Pr₁ μ -ℚ Pr₁ ν ∣ℚ ≤ℚ 1ℚ
 ∣Pr-Pr∣≤1 μ ν = ∣diff∣≤1 (Pr₁≥0 μ) (Pr₁≤1 μ) (Pr₁≥0 ν) (Pr₁≤1 ν)
+
+------------------------------------------------------------------------
+-- …and the same four facts through the Maybe layer
+--
+-- Every one of them is its total counterpart at `maybeℚ`, the sink obligation
+-- being `0ℚ ≤ 0ℚ` or `∣ 0ℚ -ℚ 0ℚ ∣ℚ ≡ 0ℚ`.  `GamePlaying.Partial` is what
+-- spends them.
+
+-- A predicate on the values, read through the sink: divergence constrains
+-- nothing, which is what makes the partial invariant weaker than the total one.
+Mb : (A → Type) → Maybe A → Type
+Mb P (just a) = P a
+Mb P nothing  = ⊤
+
+OnSupport⊥ : (A → Type) → Dist⊥ A → Type
+OnSupport⊥ P = OnSupport (Mb P)
+
+E⊥-mono-on : (μ : Dist⊥ A) (F G : A → ℚ)
+           → OnSupport⊥ (λ a → F a ≤ℚ G a) μ → E⊥ μ F ≤ℚ E⊥ μ G
+E⊥-mono-on μ F G sp = E-mono-on μ (maybeℚ F) (maybeℚ G)
+  (ListAll.map (λ {e} → sink (proj₂ e)) sp)
+  where sink : (x : Maybe _) → Mb (λ a → F a ≤ℚ G a) x → maybeℚ F x ≤ℚ maybeℚ G x
+        sink (just a) le = le
+        sink nothing  _  = ≤-refl
+
+Pr₁⊥≥0 : (μ : Dist⊥ Bool) → 0ℚ ≤ℚ Pr₁⊥ μ
+Pr₁⊥≥0 μ = ≤-trans (≤-reflexive (sym (E-const μ 0ℚ))) (E-mono μ (λ _ → 0ℚ) mb bd)
+  where bd : ∀ x → 0ℚ ≤ℚ mb x
+        bd (just b) = 0≤bool b
+        bd nothing  = ≤-refl
+
+∣Pr⊥-Pr⊥∣≤1 : (μ ν : Dist⊥ Bool) → ∣ Pr₁⊥ μ -ℚ Pr₁⊥ ν ∣ℚ ≤ℚ 1ℚ
+∣Pr⊥-Pr⊥∣≤1 μ ν = ∣diff∣≤1 (Pr₁⊥≥0 μ) (Pr₁⊥≤1 μ) (Pr₁⊥≥0 ν) (Pr₁⊥≤1 ν)
+
+E⊥-abs-diff : (μ : Dist⊥ A) (a b : A → ℚ)
+            → ∣ E⊥ μ a -ℚ E⊥ μ b ∣ℚ ≤ℚ E⊥ μ (λ x → ∣ a x -ℚ b x ∣ℚ)
+E⊥-abs-diff μ a b =
+  ≤-trans (E-abs-diff μ (maybeℚ a) (maybeℚ b))
+          (≤-reflexive (lookupᴰℚ-cong-P (entries μ) λ where
+            (just p) → refl
+            nothing  → trans (cong ∣_∣ℚ (+-inverseʳ 0ℚ)) (0≤p⇒∣p∣≡p ≤-refl)))
