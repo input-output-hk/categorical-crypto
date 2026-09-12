@@ -30,14 +30,20 @@
 -- The `ASTotal` hypothesis is the one the trivial-grade collapse already
 -- spends: `UC.Seam.Grounded.simTotal⇒point` supplies it from `TG.SimTotal`,
 -- which `subBlind⇒unitGrade` in turn reads off the REAL side's totality.
+--
+-- The last section reaches the same endpoint with no class on the route at all
+-- (review §4.3): `uc-audit-bounded′` is `uc-audit-bounded`'s statement off
+-- `sim-prefixed` and `UC.Seam.Audit.Context.extract-obs`.
 
 open import Data.Bool.Base using (Bool)
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Product.Base using (_,_)
+open import Data.Product.Base using (_,_; proj₁)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
+open import Data.Rational.Properties using (+-monoˡ-≤; ≤-refl; ≤-trans)
 
-open import ProbabilisticLogic.Dp using (Dₚ; _>>=ₚ_; _≈ₚ_; >>=ₚ-assoc)
-open import ProbabilisticLogic.Dp.Mass using (ASTotal; const-bind-astotal)
+open import ProbabilisticLogic.Dp using (Dₚ; _>>=ₚ_; _≈ₚ_; >>=ₚ-assoc; ≼ₚ-refl)
+open import ProbabilisticLogic.Dp.Advantage using (_≼ₚ[_]_; ≼ₚ[]-resp)
+open import ProbabilisticLogic.Dp.Mass using (ASTotal; const-bind-astotal; const-bind-≼)
 open import ProbabilisticLogic.Dp.Reasoning using (_⟨≈⟩_; bindᶠ; ≈sym)
 
 open import CategoricalCrypto.Iface
@@ -45,25 +51,48 @@ open import CategoricalCrypto.Protocol using (Protocol)
 open import CategoricalCrypto.Protocol.Machine using (morphism; runᴹ)
 open import CategoricalCrypto.Protocol.Observe using (Bounded)
 open import CategoricalCrypto.Strategy using (Strat; asks≤; asks≤-mono)
+open import CategoricalCrypto.UC.Approximate using (Mass)
 open import CategoricalCrypto.UC.Machine using (⊤ᵛ)
-open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ)
+open import CategoricalCrypto.UC.Model.Bridge using (_≈ℰᶜ_; ucBaseᵒ)
+open import CategoricalCrypto.UC.Model.Enrichment using (massᵒ)
+open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ; obs-resp)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Seam.Audit
-  using ( _≤UC[_]_; sim; simCost; q≤simCost; AuditBound; Absorbs; absorb
+  using ( _≤UC[_]_; emulate; sim; simCost; q≤simCost; AuditBound; Absorbs; absorb
         ; absorb-absorbs; audit-carry; module TrivialGrade )
-open import CategoricalCrypto.UC.Seam.Audit.Bounded using (boundedIsAuditᵖ; ctx-watched)
-open import CategoricalCrypto.UC.Seam.Audit.Context using (auditClose; auditTest; extract)
+open import CategoricalCrypto.UC.Seam.Audit.Bounded
+  using (boundedIsAuditᵖ; ctx-watched; supply)
+open import CategoricalCrypto.UC.Seam.Audit.Context
+  using (audit-run; auditClose; auditTest; extract; extract-bounded)
 open import CategoricalCrypto.UC.Seam.Grounded using (closedᵒ; 𝟘ᴳ; ιᴳ; subPrefixedˢ)
 open import CategoricalCrypto.UC.Seam.Grounding.Dead using (pointᵒ)
 open import CategoricalCrypto.UC.Seam.Grounding.Prefix
   using (Prefixedᵒ; prefixedᵒ-bind; prefixedᵒ-resp-≈)
+open import CategoricalCrypto.UC.Seam.Slide using (slide⊗)
 
 module CategoricalCrypto.UC.Seam.Audit.Prefix where
 
+open import CategoricalCrypto.UC.Emulation ucBaseᵒ using (obs; tv₁)
+
 open HomReasoning
+open Mass massᵒ using (dominate)
 
 private module TG = TrivialGrade 𝟘ᴳ ιᴳ
+
+-- What a trivial-grade simulator absorbed into a context contributes to what
+-- that context observes: its own initialization, in front of it and nothing
+-- else.  `subPrefixedˢ` is the statement and `prefixedᵒ-bind` reads it off the
+-- observation, exactly — which is what lets both routes below start here.
+prefix-absorbᵒ : (B : Iface) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) (W : Channel)
+                 (Et : W ⊗₀ T₀ 𝟘ᴳ (ifaceᵒ B) ⇒ Ωᵒ) {D : Channel}
+                 (g : D ⇒ W ⊗₀ T₀ 𝟘ᴳ (ifaceᵒ B)) (m : 𝟘ᵒ ⇒ D)
+               → Obs (((Et ∘ id ⊗₁ sub s) ∘ g) ∘ m)
+                 ≈ₚ (pointᵒ 𝟘ᴳ 𝟘ᴳ s >>=ₚ λ _ → Obs ((Et ∘ g) ∘ m))
+prefix-absorbᵒ B s W Et g m = prefixedᵒ-bind _ _ _
+  (prefixedᵒ-resp-≈ 𝟘ᵒ Ωᵒ _ _ _ _ _
+     ((refl⟩∘⟨ sym-assoc) ○ sym-assoc ○ (sym-assoc ⟩∘⟨refl)) sym-assoc
+     (subPrefixedˢ B s W Et (g ∘ m)))
 
 -- Closure under the absorption: the simulator's initialization goes in front of
 -- the prefix the context already carried, and the two are one prefix.
@@ -84,15 +113,9 @@ absorb-watchedᵖ B P bad s cs tot W Et m q (d , p , a , tp , near) =
   run : Dₚ Bool
   run = runᴹ (morphism P) (bad d)
 
-  -- The absorbed simulator sits between the test and the process below it.
-  pre : Prefixedᵒ 𝟘ᵒ Ωᵒ (((Et ∘ id ⊗₁ sub s) ∘ id ⊗₁ f₀) ∘ m) ((Et ∘ id ⊗₁ f₀) ∘ m) σ
-  pre = prefixedᵒ-resp-≈ 𝟘ᵒ Ωᵒ _ _ _ _ σ
-          ((refl⟩∘⟨ sym-assoc) ○ sym-assoc ○ (sym-assoc ⟩∘⟨refl)) sym-assoc
-          (subPrefixedˢ B s W Et (id ⊗₁ f₀ ∘ m))
-
   step₁ : Obs (((Et ∘ id ⊗₁ sub s) ∘ id ⊗₁ f₀) ∘ m)
             ≈ₚ (σ >>=ₚ λ _ → Obs ((Et ∘ id ⊗₁ f₀) ∘ m))
-  step₁ = prefixedᵒ-bind _ _ σ pre
+  step₁ = prefix-absorbᵒ B s W Et (id ⊗₁ f₀) m
 
   step₂ : (σ >>=ₚ λ _ → Obs ((Et ∘ id ⊗₁ f₀) ∘ m))
             ≈ₚ (σ >>=ₚ λ _ → (p >>=ₚ λ _ → run))
@@ -141,3 +164,74 @@ uc-audit-bounded B R I bad {cs} em ε ν ν>0 tot bad-asks bi =
     (audit-carry _ _ em {𝔉 = TG.watchedᵖ I bad}
                  (absorb-absorbs {s = sim em} {cs} {TG.watchedᵖ I bad}) ε ν ν>0
                  (boundedIsAuditᵖ I bad ε bi))
+
+------------------------------------------------------------------------
+-- The same endpoint, with no event class on the route
+
+-- Review §4.3's application consequence, stated directly: a trivial-grade
+-- simulator standing in front of the extraction context contributes only its
+-- own initialization (`prefix-absorbᵒ`), and an initialization is never seen to
+-- ADD mass — so what the simulator-fronted context observes is dominated, with
+-- no slack, by the ideal monitored run itself.
+--
+-- The `ASTotal` the class route spends is not spent here.  It is what the
+-- two-sided `≈ₚ[ ε ]` of `prefixedᵒ-obs` needs, and this is the one-sided half;
+-- `uc-audit-bounded′` keeps the premise because the theorem it reproves has it.
+sim-prefixed : (B : Iface) (I : Protocol unitᴵ B) (e : Strat (Neg B) (Pos B))
+               (s : 𝟘ᴳ ⇒ 𝟘ᴳ)
+             → obs (tv₁ 𝟘ᴳ (sub s ∘ closedᵒ (morphism I)) (auditTest B e)) auditClose
+               ≼ₚ[ 0ℚ ] runᴹ (morphism I) e
+sim-prefixed B I e s =
+  ≼ₚ[]-resp (proj₁ chain) (≼ₚ-refl _) (const-bind-≼ (pointᵒ 𝟘ᴳ 𝟘ᴳ s) run 0ℚ ≤-refl)
+  where
+  f₀ : 𝟘ᵒ ⇒ T₀ 𝟘ᴳ (ifaceᵒ B)
+  f₀ = closedᵒ (morphism I)
+
+  run : Dₚ Bool
+  run = runᴹ (morphism I) e
+
+  -- The simulator leaves the process and becomes one wire in front of the test.
+  slide : (auditTest B e ∘ id ⊗₁ (sub s ∘ f₀)) ∘ auditClose
+        ≈ ((auditTest B e ∘ id ⊗₁ sub s) ∘ id ⊗₁ f₀) ∘ auditClose
+  slide = ((refl⟩∘⟨ slide⊗ 𝟘ᴳ (sub s) f₀) ○ sym-assoc) ⟩∘⟨refl
+
+  chain : obs (tv₁ 𝟘ᴳ (sub s ∘ f₀) (auditTest B e)) auditClose
+            ≈ₚ (pointᵒ 𝟘ᴳ 𝟘ᴳ s >>=ₚ λ _ → run)
+  chain = obs-resp slide
+      ⟨≈⟩ prefix-absorbᵒ B s 𝟘ᴳ (auditTest B e) (id ⊗₁ f₀) auditClose
+      ⟨≈⟩ bindᶠ (λ _ → audit-run B e (morphism I))
+
+-- What that route actually consumes: one emulation witness, one allowance
+-- inflation, and the ideal bound.  No query certificate and no budget law — an
+-- environment agreement holds at EVERY test, so nothing here pays for the
+-- simulator's queries; `Bounded`'s own quantifier is where the allowance moves.
+bounded-carry : (B : Iface) (R I : Protocol unitᴵ B)
+                (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B))
+                (s : 𝟘ᴳ ⇒ 𝟘ᴳ) → closedᵒ (morphism R) ≈ℰᶜ (sub s ∘ closedᵒ (morphism I))
+              → (p : ℕ → ℕ) → ((q : ℕ) → q ℕ.≤ p q)
+              → (ε : ℕ → ℚ) (ν : ℚ) → 0ℚ ℚ.< ν
+              → Bounded I bad ε → Bounded R bad (λ q → ε (p q) ℚ.+ ν)
+bounded-carry B R I bad s em p q≤p ε ν ν>0 bi =
+  extract-bounded R bad (λ q → ε (p q) ℚ.+ ν) λ q d a n →
+    let k , le = dominate (em 𝟘ᴳ (auditTest B (bad d)) auditClose) ν ν>0 n
+    in ≤-trans le (+-monoˡ-≤ ν
+         (supply I bad ε (p q) d (asks≤-mono (q≤p q) d a) bi _
+                 (sim-prefixed B I (bad d) s) k))
+
+-- `uc-audit-bounded` again, hypotheses and conclusion verbatim, by that route:
+-- the membership records, the absorption and the pullback class are gone, and
+-- what is left is the emulation's own domination, the mass bound above, and
+-- `UC.Seam.Audit.Context.extract-obs`.  `simCost` remains the allowance the
+-- bound is read at — the uncharged one is a DIFFERENT statement, an arbitrary
+-- `ε` being monotone in no direction.
+uc-audit-bounded′ : (B : Iface) (R I : Protocol unitᴵ B)
+                    (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) {cs : ℕ}
+                    (em : closedᵒ (morphism R) ≤UC[ cs ] closedᵒ (morphism I))
+                    (ε : ℕ → ℚ) (ν : ℚ) → 0ℚ ℚ.< ν
+                  → ASTotal (pointᵒ 𝟘ᴳ 𝟘ᴳ (sim em))
+                  → ((q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d → asks≤ q (bad d))
+                  → Bounded I bad ε
+                  → Bounded R bad (λ q → ε (simCost q cs) ℚ.+ ν)
+uc-audit-bounded′ B R I bad {cs} em ε ν ν>0 _ _ =
+  bounded-carry B R I bad (sim em) (emulate em)
+                (λ q → simCost q cs) (λ q → q≤simCost q cs) ε ν ν>0

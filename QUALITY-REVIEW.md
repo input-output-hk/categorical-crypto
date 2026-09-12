@@ -3040,3 +3040,97 @@ Hatch grep over `src/`
 (`postulate|TERMINATING|NON_TERMINATING|primTrustMe|trustMe|NO_POSITIVITY|NO_TERMINATION|--no-safe|TRUSTME|\{!|\?\?`):
 **16 lines before, 16 after**, every one the words "postulate-free" in an
 inherited `Categories/APROP/**` comment. Zero live hatches before and after.
+
+## Resolved (direct-extraction)
+
+Plan step 5: `docs/uc-presheaf-preservation-plan.md` §§4.1–4.3 — the numerical
+half of `extract` pulled out of the event-class machinery, the prefix route's
+probability endpoint reproved without membership, and the `regradeEnv` slide
+identified once. Full account in
+[`docs/direct-extraction.md`](docs/direct-extraction.md); the judgment calls are
+here. No statement was weakened, no consumer was edited, nothing was retired.
+
+### Decided, and why
+
+- **`extract` re-routed, not restated :: `UC/Seam/Audit/Context.agda`** — §4.1
+  offers "re-route or leave beside". Re-routing is right here because the
+  membership plumbing that remains (`audit-qb`, `qb-λ⇐`, the `q * 1` allowance)
+  is three lines, and leaving `extract`'s old body beside `extract-obs` would
+  have kept the only other copy of the `prAgree`/`audit-run` junction. The
+  signature is byte-identical to `protocol-rewrite`'s.
+- **The bound, not the domination, at `extract-obs`'s premise ::
+  `UC/Seam/Audit/Context.agda:215`** — §4.1 allows either. Both suppliers
+  already produce `∀ n. Pr≤ n _ ≤ c` (an `AuditBound`'s conclusion on one side,
+  `dominate` + `supply` on the other), so the domination belongs at the ideal
+  side, where `sim-prefixed` states it, not in the extraction's own premise.
+- **`ASTotal` and the `bad`-budget law are kept in `uc-audit-bounded′` and NOT
+  consumed :: `UC/Seam/Audit/Prefix.agda:227`** — the brief forbids erasing
+  either, and I agree for the migration test: the theorem must be a drop-in for
+  `uc-audit-bounded`. But it is worth your knowing that the direct route uses
+  neither. `ASTotal` is what the *two-sided* `≈ₚ[ ε ]` of `prefixedᵒ-obs` needs;
+  the one-sided mass bound needs only `const-bind-≼` ("a prefix never adds
+  mass"). And `Bounded I bad ε` charges at the budget of `d`, never of `bad d`,
+  so `bad-asks` has nothing to do. If you want the honest premise list, it is
+  `bounded-carry`'s.
+- **`bounded-carry` stated with the allowance inflation as a parameter ::
+  `UC/Seam/Audit/Prefix.agda:208`** — the direct route consumes no query
+  certificate at all (`_≈ℰᶜ_` holds at every test; only `AuditBound`'s
+  *budgeted-test* quantifier ever needed `simCost`). So the uncharged reading
+  is available. I did **not** state it as the theorem: it is a *different*
+  statement, neither implying nor implied by the charged one, because an
+  arbitrary `ε` is monotone in no direction. `bounded-carry` at any `p` with
+  `q ≤ p q` is the statement both are instances of, and `uc-audit-bounded′` is
+  it at `simCost`.
+- **`slide⊗` in the tensor's vocabulary, not at `T₁` :: `UC/Seam/Slide.agda:42`**
+  — forced, and the compiler found it: a statement mixing `UC.Model.Setup`'s
+  `T₁` with the `T₁` a test is built from (`gradingᵗ 𝔾ᵒ`'s) is rejected with
+  `MismatchedProjectionsError`, the obstacle `docs/graded-bridge.md` records.
+  The `⊗` spelling is also the one all three call sites wanted.
+- **`run-subᵒ` at representatives, beside `run-sub` rather than through it ::
+  `UC/Seam/Slide.agda:33`** — §4.2's own reason: `≈Env` at this model is `≋`,
+  closeness of closed observations at every positive error, which keeps no exact
+  mass, so nothing numerical transports along `run-sub`. `run-subᵒ` is the same
+  slide as a categorical `≈`, off `sub-decomp` — `run-sub`'s own ingredient.
+- **`prefix-absorbᵒ` hoisted out of `absorb-watchedᵖ` ::
+  `UC/Seam/Audit/Prefix.agda:87`** — `sim-prefixed` needs the same
+  `subPrefixedˢ`/`prefixedᵒ-bind` composite with the same bracketing argument.
+  Hoisting it keeps one copy and leaves `absorb-watchedᵖ`'s statement verbatim
+  (it is a retirement candidate; I did not otherwise touch it).
+
+### Left for you
+
+- **§4.2's optional item is declined :: `UC/Robust/Observation.agda:94`** — the
+  brief offers it "only if cheap and clean". It is neither: `robust-sub` is
+  stated at an arbitrary `UCBase`, where there is no graded Kleisli triple and
+  therefore no `μ`, no `run` and no `run-sub` (that lives at a `UCSetup`).
+  Rewriting it through `run-sub` means moving the module to a `UCSetup`, which
+  is the scope change plan §3.1 explicitly forbids. Statement left verbatim.
+- **One line is still duplicated, and its home is outside this step ::
+  `UC/Audit.agda:177` and `UC/Robust/Observation.agda:99`** — the `UCBase`-level
+  test-absorption slide
+  `(Et ∘ T₁ W (sub s ∘ g)) ∘ m ≈ ((Et ∘ T₁ W (sub s)) ∘ T₁ W g) ∘ m` occurs
+  verbatim in both. Its natural home is `UC.Environment`/`UC.Emulation`, where
+  `tv₁` is defined; `UC.Seam.Slide` cannot serve, since `UC.Robust.Observation`
+  must not import the seam. One line, no soundness content, your call.
+- **Retirement gates :: `docs/direct-extraction.md` §"Retirement readiness"** —
+  seven of the nine names listed in the brief now pass their §5 gate
+  (`absorb-watchedᵖ`, `ctx-absorb`, `auditIsBoundedᴬ`, `watchedᵖ`,
+  `AuditIsBoundedᵖ`/`auditIsBoundedᵖ`, `BoundedIsAuditᵖ`/`boundedIsAuditᵖ`) and
+  two do not (`watched`/`TrivialGrade`, and `uc-audit-carry`'s `AuditBound`-only
+  return). The two blockers are the same one: `Examples.ChimericLedger.Audit`'s
+  `auditEvent` and `EndToEnd`'s `ledger-audit-carry` are exported statements
+  *at* `watched`, and an `AuditBound` conclusion has no direct analogue (an
+  `AuditBound` quantifies over budgeted tests, a `Bounded` over budgeted
+  strategies, and `StratIsEnv` goes one way only). Nothing should be deleted
+  until step 6b migrates those two.
+- **`UC.Seam.Audit.Bounded.supply` must not be retired** — it is now
+  load-bearing for the direct route as well as both membership ones. §4.1's
+  "keep the rational-order arguments in `Bounded`" is exactly what makes it so.
+- **Root inventory rows :: `src/CategoricalCrypto/UC.agda`** — outside this
+  step's file scope, so reported rather than edited: the
+  `UC.Seam.Audit.Prefix` row (`:126`) says the budgeted route's consumer end is
+  `uc-audit-bounded`; it now has two, `uc-audit-bounded` and
+  `uc-audit-bounded′`, the same statement by two routes. `UC.Seam.Slide` wants
+  a line of its own (no `open import` needed — it is already in the closure).
+  `src/CategoricalCrypto.agda` needs nothing: it delegates the cone's inventory
+  to `UC.agda`.
