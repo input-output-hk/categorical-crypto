@@ -396,8 +396,8 @@ component alone.
 | `CategoricalCrypto.Protocol.Machine.Trace` | generic — at any traced machine |
 | `CategoricalCrypto.GamePlaying.Partial` | generic — at any partial kernel |
 
-Nothing here mentions an example, and no example was touched: `Examples/**` is
-untouched on this branch, as are `UC/**`, `Protocol/**` and `Machines/**`.
+Nothing here mentions an example. `Examples/**`, `UC/**` and `Machines/**` are
+untouched; `Protocol/**` gains one file and loses none.
 
 ## Modules
 
@@ -416,7 +416,20 @@ that module's own `.agdai` under `_build/2.8.0/agda/src/`.
 | `ProbabilisticLogic.Distribution.RationalDist.Expectation` (+54) | 222 | 6 s | 115 s |
 | `CategoricalCrypto.GamePlaying.Partial` | 293 | 60 s | 133 s |
 
-`GamePlaying.Partial` at 60 s against a 133 s budget is the only one worth a
+Every closure the brief names was run green with an empty gate grep:
+
+| closure | rc | secs | `Checking` lines |
+|---|---|---|---|
+| `src/CategoricalCrypto.agda` (the whole library) | 0 | 230 | 187 |
+| `Examples.MerkleDamgard` / `.Pin` / `.QueryBound` | 0 | 15 / 7 / 10 | 4 / 1 / 1 |
+| `Examples.ChimericLedger.Carry` / `.Pin` / `.FactorEps` | 0 | 11 / 7 / 16 | 5 / 1 / 10 |
+
+`CategoricalCrypto.UC`, `ProbabilisticLogic`, `GamePlaying.Test`,
+`Examples.HashForward.*`, `Examples.ROCommitment.*` and
+`Examples.ROCommitment.Hiding.*` are inside the root's cone and were checked
+with it.
+
+`GamePlaying.Partial` at 60 s against a 133 s budget is the only module worth a
 word: it is `badProb⊥-super`'s and `FLGP⊥`'s two recursions over `Strat`,
 each with a `with`-abstraction on `bad s`, and `GamePlaying.agda`'s own pair
 costs the same order. It is not a rule-31 defect; it is the same argument
