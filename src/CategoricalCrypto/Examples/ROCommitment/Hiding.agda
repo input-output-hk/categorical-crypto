@@ -22,18 +22,17 @@ open import Class.DecEq
 
 open import Data.Bool.Base using (Bool)
 open import Data.Maybe.Base using (Maybe; just; nothing)
-open import Data.Nat.Base using (ℕ; suc; zero)
+open import Data.Nat.Base using (ℕ)
 open import Data.Product.Base using (_×_; _,_)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Polymorphic.Base using (tt)
-open import Data.Vec.Base using (Vec; []) renaming (_∷_ to _∷ᵛ_)
+open import Data.Vec.Base using () renaming (_∷_ to _∷ᵛ_)
 open import Function.Base using (case_of_)
 open import Level using (0ℓ)
 open import Relation.Nullary.Decidable.Core using (yes; no)
 
-open import ProbabilisticLogic.Distribution.Uniform using (uniform-Bool)
 open import ProbabilisticLogic.Dp
-open import ProbabilisticLogic.Dp.Coin using (coinₚ)
+open import ProbabilisticLogic.Dp.Uniform
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base using (𝒱ₚ; 𝒫ₚ)
@@ -49,13 +48,6 @@ open import CategoricalCrypto.Examples.ROCommitment.Extraction k
 
 open Core (𝒱ₚ 0ℓ)
 open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
-
--- A uniform bit string in the delay monad: `Dₚ`'s step is one biased coin, so
--- a `k`-bit draw is `k` of them.  Belongs beside `coinₚ`; kept here because
--- `ProbabilisticLogic.Dp` is another branch's this arc (`QUALITY-REVIEW.md`).
-uniformᵖ : (n : ℕ) → Dₚ (Vec Bool n)
-uniformᵖ zero    = returnₚ []
-uniformᵖ (suc n) = coinₚ uniform-Bool >>=ₚ λ b → mapₚ (b ∷ᵛ_) (uniformᵖ n)
 
 ------------------------------------------------------------------------
 -- Interfaces
@@ -152,7 +144,7 @@ realStepʰ (s , inj₂ (inj₁ (askᴿᶜ x)))  = case s of λ where
   (readyʰ h) → returnₚ (relayʰ h , inj₁ (hashᴿ x))
   _          → botₚ
 realStepʰ (s , inj₂ (inj₂ (commitᴱ b))) = case s of λ where
-  (readyʰ freshᴴ) → uniformᵖ k >>=ₚ λ r → returnₚ (ownʰ b r , inj₁ (hashᴿ (b ∷ᵛ r)))
+  (readyʰ freshᴴ) → uniformₚ k >>=ₚ λ r → returnₚ (ownʰ b r , inj₁ (hashᴿ (b ∷ᵛ r)))
   (readyʰ h)      → returnₚ (readyʰ h , inj₂ (inj₂ nakᴱ))
   _               → botₚ
 realStepʰ (s , inj₂ (inj₂ openᴱ))       = case s of λ where
@@ -202,10 +194,10 @@ simStepʰ (s , inj₁ (digᶠ d)) = case s of λ where
   (relayᵖ p) → returnₚ (idleᵖ p , inj₂ (ansᴿᶜ d))
   (idleᵖ _)  → botₚ
 simStepʰ (s , inj₁ rcptᶠ)    = case s of λ where
-  (idleᵖ blankᵖ) → uniformᵖ k >>=ₚ λ c → returnₚ (idleᵖ (pubᵖ c) , inj₂ (comᴿᶜ c))
+  (idleᵖ blankᵖ) → uniformₚ k >>=ₚ λ c → returnₚ (idleᵖ (pubᵖ c) , inj₂ (comᴿᶜ c))
   _              → botₚ
 simStepʰ (s , inj₁ (bitᶠ b)) = case s of λ where
-  (idleᵖ (pubᵖ c)) → uniformᵖ k >>=ₚ λ r → returnₚ (idleᵖ (pinᵖ (b ∷ᵛ r) c) , inj₂ (opnᴿᶜ b r))
+  (idleᵖ (pubᵖ c)) → uniformₚ k >>=ₚ λ r → returnₚ (idleᵖ (pinᵖ (b ∷ᵛ r) c) , inj₂ (opnᴿᶜ b r))
   _                → botₚ
 simStepʰ (s , inj₂ (askᴿᶜ x)) = case s of λ where
   (idleᵖ p) → serveʰ p x

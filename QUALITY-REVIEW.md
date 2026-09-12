@@ -2786,3 +2786,27 @@ Hatch grep over `src/`
 (`postulate|TERMINATING|NON_TERMINATING|primTrustMe|trustMe|NO_POSITIVITY|NO_TERMINATION|--no-safe|TRUSTME|\{!|\?\?`):
 **16 lines before, 16 after**, every one the words "postulate-free" in an
 inherited `Categories/APROP/**` comment. Zero live hatches before and after.
+
+## Resolved (small-hoists)
+
+Branch `small-hoists`, off `protocol-rewrite` at `2fcac147`. The two rule-27
+hoists the `fcom-hiding` batch recorded as wishes, executed as pure
+relocations: no statement was added, weakened, or deleted.
+
+### `uniformᵖ` → `ProbabilisticLogic.Dp.Uniform.uniformₚ`
+
+`Dp/Uniform.agda` (added since that wish was written) already holds the exact
+definition, `_∷_`-vs-`_∷ᵛ_` apart, so `Examples/ROCommitment/Hiding.agda`'s
+copy is gone rather than moved and both users now import the general module.
+
+- `Hiding.agda` — `uniformᵖ` deleted; `open import ProbabilisticLogic.Dp.Uniform`
+  replaces the `Distribution.Uniform using (uniform-Bool)` and
+  `Dp.Coin using (coinₚ)` imports the definition was the only user of, and
+  `Data.Nat.Base`/`Data.Vec.Base` shed the `suc; zero`/`Vec; []` its clauses
+  were the only user of.
+- `Hiding/UC.agda` — the four `uniformᵖ k` occurrences (`onL`, `cohL`) now read
+  `uniformₚ k`, taken from the same import rather than re-exported through
+  `Hiding`.
+
+No forwarding re-export was left behind, and no file outside the brief's list
+needed an edit for this item.

@@ -26,6 +26,7 @@ open import Function.Base using (_∘′_; case_of_)
 
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Reasoning
+open import ProbabilisticLogic.Dp.Uniform
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; ifaceᵒ; procᵒ)
@@ -88,8 +89,8 @@ simCertʰ = record
 
   onL : (s : SStʰ) (a : Pos Lkᴵʰ) → Dₚ _
   onL (relayᵖ p)       (digᶠ d)  = returnₚ (inj₂ ((idleᵖ p , z≤n) , ansᴿᶜ d))
-  onL (idleᵖ blankᵖ)   rcptᶠ     = uniformᵖ k >>=ₚ λ c → returnₚ (pubᴬ c)
-  onL (idleᵖ (pubᵖ c)) (bitᶠ b)  = uniformᵖ k >>=ₚ λ r → returnₚ (pinᴬ c b r)
+  onL (idleᵖ blankᵖ)   rcptᶠ     = uniformₚ k >>=ₚ λ c → returnₚ (pubᴬ c)
+  onL (idleᵖ (pubᵖ c)) (bitᶠ b)  = uniformₚ k >>=ₚ λ r → returnₚ (pinᴬ c b r)
   onL (idleᵖ blankᵖ)     (digᶠ _) = botₚ
   onL (idleᵖ (pubᵖ _))   (digᶠ _) = botₚ
   onL (idleᵖ (pinᵖ _ _)) (digᶠ _) = botₚ
@@ -109,10 +110,10 @@ simCertʰ = record
   cohL : (s : SStʰ) (a : Pos Lkᴵʰ) → mapₚ forget (onL s a) ≈ₚ simStepʰ (s , inj₁ a)
   cohL (relayᵖ _)         (digᶠ _) = >>=ₚ-identityˡ _ (returnₚ ∘′ forget)
   cohL (idleᵖ blankᵖ)     rcptᶠ    =
-    map-bind (uniformᵖ k) (λ c → returnₚ (pubᴬ c)) forget
+    map-bind (uniformₚ k) (λ c → returnₚ (pubᴬ c)) forget
     ⟨≈⟩ bindᶠ (λ c → >>=ₚ-identityˡ (pubᴬ c) (returnₚ ∘′ forget))
   cohL (idleᵖ (pubᵖ c))   (bitᶠ b) =
-    map-bind (uniformᵖ k) (λ r → returnₚ (pinᴬ c b r)) forget
+    map-bind (uniformₚ k) (λ r → returnₚ (pinᴬ c b r)) forget
     ⟨≈⟩ bindᶠ (λ r → >>=ₚ-identityˡ (pinᴬ c b r) (returnₚ ∘′ forget))
   cohL (idleᵖ blankᵖ)     (digᶠ _)  = bot-bind-≈ₚ _
   cohL (idleᵖ (pubᵖ _))   (digᶠ _)  = bot-bind-≈ₚ _
