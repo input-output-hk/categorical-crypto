@@ -304,3 +304,13 @@ f ≈ℰⁿ g = Σ[ ε ∈ (ℕ → ℕ → ℚ) ] CarriedNegligible ε × f ≈
 -- over it (`≤UC` included), or an `Observation` interface parameterized by its
 -- grade — redesigns of the core's observation interface rather than of this
 -- module, which is why the negligible tier consumers use lives at layer 1.
+--
+-- Of the two, the first proved NOT to be a core redesign: `UC.Core.Observation`
+-- asks for an arbitrary equivalence, so `UC.Family.Negligible` builds that
+-- second `Observation` on `Fam` and inherits the emulation notions at it with
+-- nothing in the qualitative core moving.  The second is still owed, and what
+-- owes it is the ε-RETAINING composition law: `UC.Asymptotic.Family`'s
+-- `≤UC^ωⁿ-trans` composes two graded premises with the errors adding, but
+-- composing one with a second protocol is `UC-compose`, inherited in the
+-- qualitative order and hence spending the witness — the stop its comment there
+-- records.
