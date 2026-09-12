@@ -18,13 +18,15 @@
 --   • `ideal-marginal` — ★ the coupling's ideal view IS the variable-length RO,
 --     EXACTLY (the ε lives only in FLGP/bad-bound).  The coupling raises an
 --     explicit flag whenever the MD answer fails to be a fresh uniform (final-call
---     lookup hit for a new message / inconsistent replay), which makes the proof a
---     direct bisimulation over the distinguisher with NO combinatorial invariants:
---     repeats are answered consistently by the flag's own check (`pointRep`), and
---     at an unflagged final call the fresh sample detaches as ONE uniform draw
---     (`detach`).  All chain-forest combinatorics moves into `bad-bound`.
+--     lookup hit for a new message / inconsistent replay), which leaves NO
+--     combinatorial invariant to carry: repeats are answered consistently by the
+--     flag's own check (`pointRep`), and at an unflagged final call the fresh
+--     sample detaches as ONE uniform draw (`detach`).  All chain-forest
+--     combinatorics moves into `bad-bound`.
 --   • `ghost-erase` — flag + ghost table are invisible to the real world, whose
 --     kernel marginalises back to plain MD chaining (`walkR`).
+-- Both are ONE query's statement (`stepI`, `stepR`) run over the distinguisher by
+-- `GamePlaying.Hop.runWith-bisim`, which is where the induction now lives.
 -- These use no probabilistic assumption: expectation monotonicity, linearity,
 -- boundedness of `Pr₁` and the expectation triangle inequality are all theorems
 -- of the `Dist-ℚ` layer.
@@ -56,7 +58,8 @@
 -- `badProb-super`, FLGP, `ideal-marginal` and `ghost-erase` — all proven — this
 -- module carries no assumption at all and is `--safe`.
 --
--- Warm single-module typecheck: ~34 s (measured 2026-09-10, `+RTS -M8G -H1G`).
+-- Warm single-module typecheck: ~14 s (measured 2026-09-11, `+RTS -M8G -H1G`);
+-- it was ~34 s while the E-chains were re-elaborated per distinguisher clause.
 --------------------------------------------------------------------------------
 
 open import categorical-crypto.Prelude hiding (_/_; _>>=_; _*_; Stable)
@@ -87,6 +90,7 @@ open import Data.Vec.Properties using (length-toList)
 open import Data.Vec.Properties.Ext using (take-drop-inj)
 open import CategoricalCrypto.Examples.RandomOracle
 open import CategoricalCrypto.GamePlaying
+open import CategoricalCrypto.GamePlaying.Hop
 open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.Strategy
 open import ProbabilisticLogic.Distribution.RationalDist
@@ -327,81 +331,84 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
                    (λ (o : Comp.Table × Comp.Output) → mdRun (proj₁ o) (proj₂ (proj₂ o)) (b' ∷ bs) (suc idx)) P))))
 
   -- The flag and the ghost table are invisible to the real world: erasing them
-  -- gives back the plain MD kernel `respR`.  PROVEN — the flagged branch's extra
-  -- uniform sampling is marginalised away by `E-const` (mass 1).
+  -- gives back the plain MD kernel `respR`.  PROVEN — one query's real marginal
+  -- IS `mdRun` (`walkR`), the flagged branch's extra uniform sampling being
+  -- marginalised away by `E-const` (mass 1); the induction over the
+  -- distinguisher is `GamePlaying.Hop.runWith-bisim`.
+  private
+    -- the real world's reading of a coupled state: flag and ghost erased
+    ErasesTo : FState → Comp.Table → Type
+    ErasesTo s sc = proj₁ (proj₂ s) ≡ sc
+
+    stepR : ∀ s i M (F : FState × General.Output → ℚ) (F′ : Comp.Table × General.Output → ℚ)
+          → (∀ t t′ → ErasesTo (proj₁ t) (proj₁ t′) → proj₂ t ≡ proj₂ t′ → F t ≡ F′ t′)
+          → E (C.realK s (i , M)) F ≡ E (respR (proj₁ (proj₂ s)) (i , M)) F′
+    stepR (f , sc , sg) i M F F′ agree = aux (General.lookup-bs sg M) refl
+      where
+        μW = walk sc IV (toBlocks M) 1
+        μM = mdRun sc IV (toBlocks M) 1
+
+        -- both branches end at the walk's (table , value) marginal
+        walkE : E μW (λ (w : Comp.Table × (CV × Bool)) → F′ (proj₁ w , (i , proj₁ (proj₂ w))))
+              ≡ E (respR sc (i , M)) F′
+        walkE = trans (walkR sc IV (toBlocks M) 1 (λ sh → F′ (proj₁ sh , (i , proj₂ sh))))
+                      (sym (trans (E-bind μM (λ sh → return-ℚ (proj₁ sh , (i , proj₂ sh))) F′)
+                                  (lookupᴰℚ-cong-P (entries μM)
+                                    (λ sh → lookupᴰℚ-return (proj₁ sh , (i , proj₂ sh)) F′))))
+
+        -- a NEW message's answer ignores flag and ghost; the flagged branch's
+        -- independent sample averages out
+        newAnsE : ∀ bb sc′ hRv → E (newAns i M sg bb sc′ hRv) (λ t → F (C.fR t))
+                               ≡ F′ (sc′ , (i , hRv))
+        newAnsE true sc′ hRv =
+          trans (E-bind Comp.uniform-Out
+                  (λ u → return-ℚ ((true , sc′ , (M , u) ∷ sg) , ((i , hRv) , (i , u))))
+                  (λ t → F (C.fR t)))
+         (trans (lookupᴰℚ-cong-P (entries Comp.uniform-Out) (λ u →
+                   trans (lookupᴰℚ-return ((true , sc′ , (M , u) ∷ sg) , ((i , hRv) , (i , u)))
+                           (λ t → F (C.fR t)))
+                         (agree ((true , sc′ , (M , u) ∷ sg) , (i , hRv)) (sc′ , (i , hRv))
+                                refl refl)))
+                (E-const Comp.uniform-Out (F′ (sc′ , (i , hRv)))))
+        newAnsE false sc′ hRv =
+          trans (lookupᴰℚ-return ((false , sc′ , (M , hRv) ∷ sg) , ((i , hRv) , (i , hRv)))
+                  (λ t → F (C.fR t)))
+                (agree ((false , sc′ , (M , hRv) ∷ sg) , (i , hRv)) (sc′ , (i , hRv)) refl refl)
+
+        aux : ∀ mv → General.lookup-bs sg M ≡ mv
+            → E (C.realK (f , sc , sg) (i , M)) F ≡ E (respR sc (i , M)) F′
+        aux (just h) eq =
+          trans (cong (λ μ → E (Dmap C.fR μ) F) (cong (respB' i M (f , sc , sg)) eq))
+         (trans (lookupᴰℚ-Dmap C.fR (respB' i M (f , sc , sg) (just h)) F)
+         (trans (E-bind μW (λ w → return-ℚ (tupR w)) (λ t → F (C.fR t)))
+         (trans (lookupᴰℚ-cong-P (entries μW) (λ w →
+                   trans (lookupᴰℚ-return (tupR w) (λ t → F (C.fR t)))
+                         (agree (C.fR (tupR w)) (proj₁ w , (i , proj₁ (proj₂ w))) refl refl)))
+                walkE)))
+          where
+            tupR : Comp.Table × (CV × Bool) → FState × (General.Output × General.Output)
+            tupR w = (((not ⌊ proj₁ (proj₂ w) ≟ h ⌋) ∨ f , proj₁ w , sg)
+                     , ((i , proj₁ (proj₂ w)) , (i , h)))
+        aux nothing eq =
+          trans (cong (λ μ → E (Dmap C.fR μ) F) (cong (respB' i M (f , sc , sg)) eq))
+         (trans (lookupᴰℚ-Dmap C.fR (respB' i M (f , sc , sg) nothing) F)
+         (trans (E-bind μW
+                  (λ (w : Comp.Table × (CV × Bool)) →
+                     newAns i M sg (proj₂ (proj₂ w) ∨ f) (proj₁ w) (proj₁ (proj₂ w)))
+                  (λ t → F (C.fR t)))
+         (trans (lookupᴰℚ-cong-P (entries μW)
+                  (λ w → newAnsE (proj₂ (proj₂ w) ∨ f) (proj₁ w) (proj₁ (proj₂ w))))
+                walkE)))
+
+    stepR-bisim : StepBisim C.realK respR ErasesTo
+    stepR-bisim s sc rel (i , M) F F′ agree =
+      subst (λ z → E (C.realK s (i , M)) F ≡ E (respR z (i , M)) F′) rel
+            (stepR s i M F F′ agree)
+
   ghost-erase : ∀ f sc sg d
               → Pr₁ (runWith C.realK (f , sc , sg) d) ≡ Pr₁ (runWith respR sc d)
-  ghost-erase f sc sg (out b) = refl
-  ghost-erase f sc sg (ask (i , M) k) with General.lookup-bs sg M
-  ... | just h =
-      trans (Pr₁-bind (Dmap C.fR (respB' i M (f , sc , sg) (just h))) KRc)
-     (trans (lookupᴰℚ-Dmap C.fR (respB' i M (f , sc , sg) (just h)) (λ sr → Pr₁ (KRc sr)))
-     (trans (E-bind μW
-              (λ (w : Comp.Table × (CV × Bool)) → return-ℚ (((not ⌊ proj₁ (proj₂ w) ≟ h ⌋) ∨ f , proj₁ w , sg)
-                              , ((i , proj₁ (proj₂ w)) , (i , h))))
-              (λ t → Pr₁ (KRc (C.fR t))))
-     (trans (lookupᴰℚ-cong-P (entries μW)
-              (λ (w : Comp.Table × (CV × Bool)) → lookupᴰℚ-return
-                       (((not ⌊ proj₁ (proj₂ w) ≟ h ⌋) ∨ f , proj₁ w , sg)
-                       , ((i , proj₁ (proj₂ w)) , (i , h)))
-                       (λ t → Pr₁ (KRc (C.fR t)))))
-     (trans (lookupᴰℚ-cong-P (entries μW)
-              (λ (w : Comp.Table × (CV × Bool)) → ghost-erase ((not ⌊ proj₁ (proj₂ w) ≟ h ⌋) ∨ f) (proj₁ w) sg
-                       (k (i , proj₁ (proj₂ w)))))
-     (trans (walkR sc IV (toBlocks M) 1
-              (λ (sh : Comp.Table × CV) → Pr₁ (runWith respR (proj₁ sh) (k (i , proj₂ sh)))))
-     (trans (sym (lookupᴰℚ-cong-P (entries μM)
-              (λ (sh : Comp.Table × CV) → lookupᴰℚ-return (proj₁ sh , (i , proj₂ sh)) (λ sr → Pr₁ (KR' sr)))))
-            (sym (trans (Pr₁-bind (respR sc (i , M)) KR')
-                        (E-bind μM (λ (sh : Comp.Table × CV) → return-ℚ (proj₁ sh , (i , proj₂ sh)))
-                          (λ sr → Pr₁ (KR' sr)))))))))))
-    where
-      KRc = λ (sr : FState × General.Output) → runWith C.realK (proj₁ sr) (k (proj₂ sr))
-      KR' = λ (sr : Comp.Table × General.Output) → runWith respR (proj₁ sr) (k (proj₂ sr))
-      μW  = walk sc IV (toBlocks M) 1
-      μM  = mdRun sc IV (toBlocks M) 1
-  ... | nothing =
-      trans (Pr₁-bind (Dmap C.fR (respB' i M (f , sc , sg) nothing)) KRc)
-     (trans (lookupᴰℚ-Dmap C.fR (respB' i M (f , sc , sg) nothing) (λ sr → Pr₁ (KRc sr)))
-     (trans (E-bind μW
-              (λ (w : Comp.Table × (CV × Bool)) → newAns i M sg (proj₂ (proj₂ w) ∨ f) (proj₁ w) (proj₁ (proj₂ w)))
-              (λ t → Pr₁ (KRc (C.fR t))))
-     (trans (lookupᴰℚ-cong-P (entries μW)
-              (λ (w : Comp.Table × (CV × Bool)) → newAnsE (proj₂ (proj₂ w) ∨ f) (proj₁ w) (proj₁ (proj₂ w))))
-     (trans (walkR sc IV (toBlocks M) 1
-              (λ (sh : Comp.Table × CV) → Pr₁ (runWith respR (proj₁ sh) (k (i , proj₂ sh)))))
-     (trans (sym (lookupᴰℚ-cong-P (entries μM)
-              (λ (sh : Comp.Table × CV) → lookupᴰℚ-return (proj₁ sh , (i , proj₂ sh)) (λ sr → Pr₁ (KR' sr)))))
-            (sym (trans (Pr₁-bind (respR sc (i , M)) KR')
-                        (E-bind μM (λ (sh : Comp.Table × CV) → return-ℚ (proj₁ sh , (i , proj₂ sh)))
-                          (λ sr → Pr₁ (KR' sr))))))))))
-    where
-      KRc = λ (sr : FState × General.Output) → runWith C.realK (proj₁ sr) (k (proj₂ sr))
-      KR' = λ (sr : Comp.Table × General.Output) → runWith respR (proj₁ sr) (k (proj₂ sr))
-      μW  = walk sc IV (toBlocks M) 1
-      μM  = mdRun sc IV (toBlocks M) 1
-      -- the real marginal of `newAns` ignores flag and ghost
-      newAnsE : ∀ bb sc' hRv
-              → E (newAns i M sg bb sc' hRv) (λ t → Pr₁ (KRc (C.fR t)))
-              ≡ Pr₁ (runWith respR sc' (k (i , hRv)))
-      newAnsE true sc' hRv =
-        trans (E-bind Comp.uniform-Out
-                (λ u → return-ℚ ((true , sc' , (M , u) ∷ sg) , ((i , hRv) , (i , u))))
-                (λ t → Pr₁ (KRc (C.fR t))))
-       (trans (lookupᴰℚ-cong-P (entries Comp.uniform-Out) (λ u →
-                trans (lookupᴰℚ-return ((true , sc' , (M , u) ∷ sg) , ((i , hRv) , (i , u)))
-                        (λ t → Pr₁ (KRc (C.fR t))))
-                      (ghost-erase true sc' ((M , u) ∷ sg) (k (i , hRv)))))
-              (E-const Comp.uniform-Out (Pr₁ (runWith respR sc' (k (i , hRv))))))
-      newAnsE false sc' hRv =
-        trans (lookupᴰℚ-return ((false , sc' , (M , hRv) ∷ sg) , ((i , hRv) , (i , hRv)))
-                (λ t → Pr₁ (KRc (C.fR t))))
-              (ghost-erase false sc' ((M , hRv) ∷ sg) (k (i , hRv)))
-  -- a coin moves neither state, so both sides average the same branches
-  ghost-erase f sc sg (coin μ k) =
-    trans (Pr₁-bind μ (λ b → runWith C.realK (f , sc , sg) (k b)))
-   (trans (lookupᴰℚ-cong-P (entries μ) (λ b → ghost-erase f sc sg (k b)))
-          (sym (Pr₁-bind μ (λ b → runWith respR sc (k b)))))
+  ghost-erase f sc sg d =
+    runWith-bisim C.realK respR ErasesTo stepR-bisim d (f , sc , sg) sc refl
 
   private
     -- ★ FRESHNESS DETACHMENT: walking the chain and testing `G` on the final
@@ -475,96 +482,119 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
               (λ hm → detach G f ((pack h b idx , hm) ∷ sc) hm bs' (suc idx)))
             (E-const Comp.uniform-Out (E Comp.uniform-Out G)))))
 
+    -- the ideal world's reading of a coupled state: the ghost table IS the
+    -- random oracle's table
+    Ghosts : General.Table → FState → Type
+    Ghosts sgG s = proj₂ (proj₂ s) ≡ sgG
+
+    -- the two readings of the RO's own step, as equations rather than unfoldings
+    respG-hit : ∀ sg i M h → General.lookup-bs sg M ≡ just h
+              → respG sg (i , M) ≡ return-ℚ (sg , i , h)
+    respG-hit sg i M h eq rewrite eq = refl
+
+    respG-miss : ∀ sg i M → General.lookup-bs sg M ≡ nothing
+               → respG sg (i , M)
+               ≡ (General.uniform-Out >>=ᴹ λ u → return-ℚ ((M , u) ∷ sg , i , u))
+    respG-miss sg i M eq rewrite eq = refl
+
     -- ★ THE KEY LEMMA, generalized: from ANY flag/compression state whose ghost
-    -- table agrees with the RO's table, the ideal view IS the RO.  A bisimulation
-    -- over the distinguisher; the flag checks make every case pointwise.
-    ideal-marginal-gen : ∀ d f sc sgG
-      → Pr₁ (runWith respG sgG d) ≡ Pr₁ (runWith C.idealK (f , sc , sgG) d)
-    ideal-marginal-gen (out b) f sc sgG = refl
-    ideal-marginal-gen (ask (i , M) k) f sc sgG with General.lookup-bs sgG M
-    ... | just h =
-        trans (Pr₁-bind (return-ℚ (sgG , i , h)) KG)
-       (trans (lookupᴰℚ-return (sgG , i , h) (λ o → Pr₁ (KG o)))
-       (trans (sym (E-const μW (Pr₁ (runWith respG sgG (k (i , h))))))
-       (trans (sym (lookupᴰℚ-cong-P (entries μW) pointRep))
-       (trans (sym (lookupᴰℚ-cong-P (entries μW)
-                     (λ (w : Comp.Table × (CV × Bool)) → lookupᴰℚ-return (tupR w) (λ t → Pr₁ (KIc (C.fI t))))))
-       (trans (sym (E-bind μW (λ (w : Comp.Table × (CV × Bool)) → return-ℚ (tupR w)) (λ t → Pr₁ (KIc (C.fI t)))))
-       (trans (sym (lookupᴰℚ-Dmap C.fI (respB' i M (f , sc , sgG) (just h))
-                     (λ sr → Pr₁ (KIc sr))))
-              (sym (Pr₁-bind (Dmap C.fI (respB' i M (f , sc , sgG) (just h))) KIc))))))))
+    -- table agrees with the RO's table, one query's ideal view IS the RO's.
+    -- The flag checks make it pointwise: a repeat is answered by the recorded
+    -- value in every branch (`pointRep`), and at an unflagged final call the
+    -- fresh sample detaches as ONE uniform draw (`detach`).
+    stepI : ∀ f sc sg i M (F : General.Table × General.Output → ℚ)
+              (F′ : FState × General.Output → ℚ)
+          → (∀ t t′ → Ghosts (proj₁ t) (proj₁ t′) → proj₂ t ≡ proj₂ t′ → F t ≡ F′ t′)
+          → E (respG sg (i , M)) F ≡ E (C.idealK (f , sc , sg) (i , M)) F′
+    stepI f sc sg i M F F′ agree = aux (General.lookup-bs sg M) refl
       where
-        KG  = λ (o : General.Table × General.Output) → runWith respG (proj₁ o) (k (proj₂ o))
-        KIc = λ (sr : FState × General.Output) → runWith C.idealK (proj₁ sr) (k (proj₂ sr))
-        μW  = walk sc IV (toBlocks M) 1
-        tupR : Comp.Table × (CV × Bool) → FState × (General.Output × General.Output)
-        tupR w = (((not ⌊ proj₁ (proj₂ w) ≟ h ⌋) ∨ f , proj₁ w , sgG)
-                 , ((i , proj₁ (proj₂ w)) , (i , h)))
-        -- pointwise: the repeated answer is the recorded one in EVERY branch —
-        -- unflagged because the consistency check passed, flagged by fiat.
-        pointRep : ∀ w → Pr₁ (KIc (C.fI (tupR w))) ≡ Pr₁ (runWith respG sgG (k (i , h)))
-        pointRep w with proj₁ (proj₂ w) ≟ h
-        ... | yes q =
-          trans (cong (λ v → Pr₁ (runWith C.idealK (f , proj₁ w , sgG)
-                                    (k (cond f (i , h) (i , v))))) q)
-         (trans (cong (λ z → Pr₁ (runWith C.idealK (f , proj₁ w , sgG) (k z)))
-                  (cond-diag f (i , h)))
-                (sym (ideal-marginal-gen (k (i , h)) f (proj₁ w) sgG)))
-        ... | no ¬q = sym (ideal-marginal-gen (k (i , h)) true (proj₁ w) sgG)
-    ... | nothing =
-        trans (Pr₁-bind (General.uniform-Out >>=ᴹ retG) KG)
-       (trans (E-bind General.uniform-Out retG (λ o → Pr₁ (KG o)))
-       (trans (lookupᴰℚ-cong-P (entries General.uniform-Out)
-                (λ (u : CV) → lookupᴰℚ-return ((M , u) ∷ sgG , i , u) (λ o → Pr₁ (KG o))))
-       (trans (sym (detach G₀ f sc IV (toBlocks M) 1))
-       (trans (sym (lookupᴰℚ-cong-P (entries μW) pointNew))
-       (trans (sym (E-bind μW
-                     (λ (w : Comp.Table × (CV × Bool)) → newAns i M sgG (proj₂ (proj₂ w) ∨ f) (proj₁ w) (proj₁ (proj₂ w)))
-                     (λ t → Pr₁ (KIc (C.fI t)))))
-       (trans (sym (lookupᴰℚ-Dmap C.fI (respB' i M (f , sc , sgG) nothing)
-                     (λ sr → Pr₁ (KIc sr))))
-              (sym (Pr₁-bind (Dmap C.fI (respB' i M (f , sc , sgG) nothing)) KIc))))))))
-      where
-        KG   = λ (o : General.Table × General.Output) → runWith respG (proj₁ o) (k (proj₂ o))
-        KIc  = λ (sr : FState × General.Output) → runWith C.idealK (proj₁ sr) (k (proj₂ sr))
-        μW   = walk sc IV (toBlocks M) 1
-        retG = λ (u : CV) → return-ℚ ((M , u) ∷ sgG , i , u)
+        μW = walk sc IV (toBlocks M) 1
+
         G₀ : CV → ℚ
-        G₀ u = Pr₁ (runWith respG ((M , u) ∷ sgG) (k (i , u)))
-        -- pointwise value of a NEW answer: uniform average when flagged,
-        -- `G₀` of the (fresh) chaining value when not.
-        newAnsVal : ∀ bb sc' hRv
-          → E (newAns i M sgG bb sc' hRv) (λ t → Pr₁ (KIc (C.fI t)))
-          ≡ cond bb (E Comp.uniform-Out G₀) (G₀ hRv)
-        newAnsVal true sc' hRv =
-          trans (E-bind Comp.uniform-Out
-                  (λ u → return-ℚ ((true , sc' , (M , u) ∷ sgG) , ((i , hRv) , (i , u))))
-                  (λ t → Pr₁ (KIc (C.fI t))))
-                (lookupᴰℚ-cong-P (entries Comp.uniform-Out) (λ u →
-                   trans (lookupᴰℚ-return
-                           ((true , sc' , (M , u) ∷ sgG) , ((i , hRv) , (i , u)))
-                           (λ t → Pr₁ (KIc (C.fI t))))
-                         (sym (ideal-marginal-gen (k (i , u)) true sc' ((M , u) ∷ sgG)))))
-        newAnsVal false sc' hRv =
-          trans (lookupᴰℚ-return
-                  ((false , sc' , (M , hRv) ∷ sgG) , ((i , hRv) , (i , hRv)))
-                  (λ t → Pr₁ (KIc (C.fI t))))
-                (sym (ideal-marginal-gen (k (i , hRv)) false sc' ((M , hRv) ∷ sgG)))
-        pointNew : ∀ w
-          → E (newAns i M sgG (proj₂ (proj₂ w) ∨ f) (proj₁ w) (proj₁ (proj₂ w)))
-              (λ t → Pr₁ (KIc (C.fI t)))
-          ≡ cond (proj₂ (proj₂ w) ∨ f) (E Comp.uniform-Out G₀) (G₀ (proj₁ (proj₂ w)))
-        pointNew w = newAnsVal (proj₂ (proj₂ w) ∨ f) (proj₁ w) (proj₁ (proj₂ w))
-    ideal-marginal-gen (coin μ k) f sc sgG =
-      trans (Pr₁-bind μ (λ b → runWith respG sgG (k b)))
-     (trans (lookupᴰℚ-cong-P (entries μ) (λ b → ideal-marginal-gen (k b) f sc sgG))
-            (sym (Pr₁-bind μ (λ b → runWith C.idealK (f , sc , sgG) (k b)))))
+        G₀ u = F ((M , u) ∷ sg , (i , u))
+
+        aux : ∀ mv → General.lookup-bs sg M ≡ mv
+            → E (respG sg (i , M)) F ≡ E (C.idealK (f , sc , sg) (i , M)) F′
+        aux (just h) eq =
+          trans (cong (λ μ → E μ F) (respG-hit sg i M h eq))
+         (trans (lookupᴰℚ-return (sg , i , h) F) (sym idealE))
+          where
+            tupR : Comp.Table × (CV × Bool) → FState × (General.Output × General.Output)
+            tupR w = (((not ⌊ proj₁ (proj₂ w) ≟ h ⌋) ∨ f , proj₁ w , sg)
+                     , ((i , proj₁ (proj₂ w)) , (i , h)))
+
+            -- the repeated answer is the recorded one in EVERY branch: unflagged
+            -- because the consistency check passed, flagged by fiat
+            pointRep : ∀ w → F′ (C.fI (tupR w)) ≡ F (sg , (i , h))
+            pointRep w with proj₁ (proj₂ w) ≟ h
+            ... | yes q =
+              trans (cong (λ z → F′ ((f , proj₁ w , sg) , cond f (i , h) (i , z))) q)
+             (trans (cong (λ z → F′ ((f , proj₁ w , sg) , z)) (cond-diag f (i , h)))
+                    (sym (agree (sg , (i , h)) ((f , proj₁ w , sg) , (i , h)) refl refl)))
+            ... | no ¬q =
+              sym (agree (sg , (i , h)) ((true , proj₁ w , sg) , (i , h)) refl refl)
+
+            idealE : E (C.idealK (f , sc , sg) (i , M)) F′ ≡ F (sg , (i , h))
+            idealE =
+              trans (cong (λ μ → E (Dmap C.fI μ) F′) (cong (respB' i M (f , sc , sg)) eq))
+             (trans (lookupᴰℚ-Dmap C.fI (respB' i M (f , sc , sg) (just h)) F′)
+             (trans (E-bind μW (λ w → return-ℚ (tupR w)) (λ t → F′ (C.fI t)))
+             (trans (lookupᴰℚ-cong-P (entries μW) (λ w →
+                       trans (lookupᴰℚ-return (tupR w) (λ t → F′ (C.fI t))) (pointRep w)))
+                    (E-const μW (F (sg , (i , h)))))))
+        aux nothing eq =
+          trans (cong (λ μ → E μ F) (respG-miss sg i M eq))
+         (trans lhsE (sym (trans idealE (detach G₀ f sc IV (toBlocks M) 1))))
+          where
+            lhsE : E (General.uniform-Out >>=ᴹ λ u → return-ℚ ((M , u) ∷ sg , i , u)) F
+                 ≡ E Comp.uniform-Out G₀
+            lhsE = trans (E-bind General.uniform-Out (λ u → return-ℚ ((M , u) ∷ sg , i , u)) F)
+                         (lookupᴰℚ-cong-P (entries General.uniform-Out)
+                           (λ u → lookupᴰℚ-return ((M , u) ∷ sg , i , u) F))
+
+            -- a NEW answer is the uniform average when flagged, `G₀` of the
+            -- (necessarily fresh) chaining value when not
+            newAnsVal : ∀ bb sc′ hRv → E (newAns i M sg bb sc′ hRv) (λ t → F′ (C.fI t))
+                                     ≡ cond bb (E Comp.uniform-Out G₀) (G₀ hRv)
+            newAnsVal true sc′ hRv =
+              trans (E-bind Comp.uniform-Out
+                      (λ u → return-ℚ ((true , sc′ , (M , u) ∷ sg) , ((i , hRv) , (i , u))))
+                      (λ t → F′ (C.fI t)))
+                    (lookupᴰℚ-cong-P (entries Comp.uniform-Out) (λ u →
+                       trans (lookupᴰℚ-return
+                               ((true , sc′ , (M , u) ∷ sg) , ((i , hRv) , (i , u)))
+                               (λ t → F′ (C.fI t)))
+                             (sym (agree ((M , u) ∷ sg , (i , u))
+                                     ((true , sc′ , (M , u) ∷ sg) , (i , u)) refl refl))))
+            newAnsVal false sc′ hRv =
+              trans (lookupᴰℚ-return
+                      ((false , sc′ , (M , hRv) ∷ sg) , ((i , hRv) , (i , hRv)))
+                      (λ t → F′ (C.fI t)))
+                    (sym (agree ((M , hRv) ∷ sg , (i , hRv))
+                            ((false , sc′ , (M , hRv) ∷ sg) , (i , hRv)) refl refl))
+
+            idealE : E (C.idealK (f , sc , sg) (i , M)) F′ ≡ E μW (dInt G₀ f)
+            idealE =
+              trans (cong (λ μ → E (Dmap C.fI μ) F′) (cong (respB' i M (f , sc , sg)) eq))
+             (trans (lookupᴰℚ-Dmap C.fI (respB' i M (f , sc , sg) nothing) F′)
+             (trans (E-bind μW
+                      (λ (w : Comp.Table × (CV × Bool)) →
+                         newAns i M sg (proj₂ (proj₂ w) ∨ f) (proj₁ w) (proj₁ (proj₂ w)))
+                      (λ t → F′ (C.fI t)))
+                    (lookupᴰℚ-cong-P (entries μW)
+                      (λ w → newAnsVal (proj₂ (proj₂ w) ∨ f) (proj₁ w) (proj₁ (proj₂ w))))))
+
+    stepI-bisim : StepBisim respG C.idealK Ghosts
+    stepI-bisim sgG (f , sc , sg) rel (i , M) F F′ agree =
+      subst (λ z → E (respG z (i , M)) F ≡ E (C.idealK (f , sc , sg) (i , M)) F′) rel
+            (stepI f sc sg i M F F′ agree)
 
   -- ★ THE KEY LEMMA, PROVEN: the coupling's ideal view IS the variable-length
   -- random oracle — EXACTLY, not up to ε (the ε lives only in FLGP/bad-bound).
   ideal-marginal : ∀ d
     → Pr₁ (runWith respG [] d) ≡ Pr₁ (runWith C.idealK (false , [] , []) d)
-  ideal-marginal d = ideal-marginal-gen d false [] []
+  ideal-marginal d =
+    runWith-bisim respG C.idealK Ghosts stepI-bisim d [] (false , [] , []) refl
 
   ------------------------------------------------------------------------
   -- THE BIRTHDAY POTENTIAL, PROVEN.
