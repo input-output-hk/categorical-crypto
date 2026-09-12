@@ -14,10 +14,10 @@
 -- `docs/dp-transport.md` records what that costs.
 
 open import Data.Bool.Base using (Bool)
-open import Data.List.Base using (List; []; _∷_)
+open import Data.List.Base using ([]; _∷_)
 open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Nat.Base using (ℕ; _+_)
-open import Data.Product.Base using (Σ; Σ-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Rational using (ℚ)
 open import Data.Sum.Base using (_⊎_; inj₂)
 open import Level using (0ℓ)
@@ -138,42 +138,42 @@ private
        → Σ[ n ∈ ℕ ] Settles n (step resource ((t , m) , inj₂ (hashᴿ x)))
                               (Dmap⊥ ansᴹ (Dmap just (fetchᴰ t m x r)))
   hash t m x (just d) eq rewrite eq =
-    1 , Settlesᵀ-tag ansᴹ (return-ℚ ((t , m) , digᴿ d))
-          (respᵀ (return-ℚ (ansᴹ ((t , m) , digᴿ d)))
-                 (Dmap ansᴹ (return-ℚ ((t , m) , digᴿ d)))
-                 value (Settlesᵀ-return (ansᴹ ((t , m) , digᴿ d))))
+    1 , Settlesᵀ-tag ansᴹ (return-ℚ hit)
+          (respᵀ (return-ℚ (ansᴹ hit)) (Dmap ansᴹ (return-ℚ hit)) value
+                 (Settlesᵀ-return (ansᴹ hit)))
     where
-    value : (Q : Test) → E (return-ℚ (ansᴹ ((t , m) , digᴿ d))) Q
-                       ≡ E (Dmap ansᴹ (return-ℚ ((t , m) , digᴿ d))) Q
-    value Q = trans (lookupᴰℚ-return (ansᴹ ((t , m) , digᴿ d)) Q)
-                    (sym (trans (lookupᴰℚ-Dmap ansᴹ (return-ℚ ((t , m) , digᴿ d)) Q)
-                                (lookupᴰℚ-return ((t , m) , digᴿ d) λ p → Q (ansᴹ p))))
+    hit : RState × ResA
+    hit = (t , m) , digᴿ d
+
+    value : (Q : Test) → E (return-ℚ (ansᴹ hit)) Q ≡ E (Dmap ansᴹ (return-ℚ hit)) Q
+    value Q = trans (lookupᴰℚ-return (ansᴹ hit) Q)
+                    (sym (trans (lookupᴰℚ-Dmap ansᴹ (return-ℚ hit) Q)
+                                (lookupᴰℚ-return hit λ p → Q (ansᴹ p))))
   hash t m x nothing eq rewrite eq =
     draw .proj₁
-    , Settlesᵀ-tag ansᴹ (uniform-Vec k >>=ᴹ tag)
-        (respᵀ (uniform-Vec k >>=ᴹ λ h → return-ℚ (ansᴹ (((x , h) ∷ t , m) , digᴿ h)))
-               (Dmap ansᴹ (uniform-Vec k >>=ᴹ tag)) value (draw .proj₂))
+    , Settlesᵀ-tag ansᴹ (uniform-Vec k >>=ᴹ λ h → return-ℚ (ent h))
+        (respᵀ (uniform-Vec k >>=ᴹ λ h → return-ℚ (ansᴹ (ent h)))
+               (Dmap ansᴹ (uniform-Vec k >>=ᴹ λ h → return-ℚ (ent h))) value (draw .proj₂))
     where
-    tag : Dig → Dist-ℚ (RState × ResA)
-    tag h = return-ℚ (((x , h) ∷ t , m) , digᴿ h)
+    ent : Dig → RState × ResA
+    ent h = ((x , h) ∷ t , m) , digᴿ h
 
-    draw : Σ[ n ∈ ℕ ] Settlesᵀ n (uniformₚ k >>=ₚ λ h → returnₚ (ansᴹ (((x , h) ∷ t , m) , digᴿ h)))
-                                 (uniform-Vec k >>=ᴹ λ h → return-ℚ (ansᴹ (((x , h) ∷ t , m) , digᴿ h)))
+    draw : Σ[ n ∈ ℕ ] Settlesᵀ n (uniformₚ k >>=ₚ λ h → returnₚ (ansᴹ (ent h)))
+                                 (uniform-Vec k >>=ᴹ λ h → return-ℚ (ansᴹ (ent h)))
     draw = Settlesᵀ-bind⋆ (uniformₚ-settles k .proj₁) (uniformₚ k)
-             (λ h → returnₚ (ansᴹ (((x , h) ∷ t , m) , digᴿ h))) (uniform-Vec k)
-             (λ h → return-ℚ (ansᴹ (((x , h) ∷ t , m) , digᴿ h)))
-             (uniformₚ-settles k .proj₂) λ h → 1 , Settlesᵀ-return (ansᴹ (((x , h) ∷ t , m) , digᴿ h))
+             (λ h → returnₚ (ansᴹ (ent h))) (uniform-Vec k) (λ h → return-ℚ (ansᴹ (ent h)))
+             (uniformₚ-settles k .proj₂) λ h → 1 , Settlesᵀ-return (ansᴹ (ent h))
 
-    value : (Q : Test) → E (uniform-Vec k >>=ᴹ λ h → return-ℚ (ansᴹ (((x , h) ∷ t , m) , digᴿ h))) Q
-                       ≡ E (Dmap ansᴹ (uniform-Vec k >>=ᴹ tag)) Q
+    value : (Q : Test) → E (uniform-Vec k >>=ᴹ λ h → return-ℚ (ansᴹ (ent h))) Q
+                       ≡ E (Dmap ansᴹ (uniform-Vec k >>=ᴹ λ h → return-ℚ (ent h))) Q
     value Q =
-      trans (E-bind (uniform-Vec k) (λ h → return-ℚ (ansᴹ (((x , h) ∷ t , m) , digᴿ h))) Q)
+      trans (E-bind (uniform-Vec k) (λ h → return-ℚ (ansᴹ (ent h))) Q)
       (trans (lookupᴰℚ-cong-P (entries (uniform-Vec k))
-               λ h → lookupᴰℚ-return (ansᴹ (((x , h) ∷ t , m) , digᴿ h)) Q)
-      (sym (trans (lookupᴰℚ-Dmap ansᴹ (uniform-Vec k >>=ᴹ tag) Q)
-           (trans (E-bind (uniform-Vec k) tag λ p → Q (ansᴹ p))
+               λ h → lookupᴰℚ-return (ansᴹ (ent h)) Q)
+      (sym (trans (lookupᴰℚ-Dmap ansᴹ (uniform-Vec k >>=ᴹ λ h → return-ℚ (ent h)) Q)
+           (trans (E-bind (uniform-Vec k) (λ h → return-ℚ (ent h)) λ p → Q (ansᴹ p))
                   (lookupᴰℚ-cong-P (entries (uniform-Vec k))
-                    λ h → lookupᴰℚ-return (((x , h) ∷ t , m) , digᴿ h) λ p → Q (ansᴹ p))))))
+                    λ h → lookupᴰℚ-return (ent h) λ p → Q (ansᴹ p))))))
 
 -- `Protocol.Machine.Raw`'s hypothesis, inhabited at a machine that samples.
 resource-settles : StepSettles resource resK

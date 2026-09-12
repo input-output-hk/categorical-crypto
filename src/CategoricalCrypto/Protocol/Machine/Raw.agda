@@ -20,7 +20,7 @@ open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Maybe.Base using (just)
 open import Data.Nat.Base using (ℕ; _+_)
 open import Data.Nat.Properties using (m≤m+n)
-open import Data.Product.Base using (Σ; Σ-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Polymorphic.Base using (tt)
 open import Level using (0ℓ)
@@ -67,8 +67,9 @@ module _ {B : Iface} (M : MC.Machine (⊥ ⊎ Neg B) (⊥ ⊎ Pos B))
     rawAgree : (m : MC.St M) (d : Strat (Neg B) (Pos B))
              → Σ[ n ∈ ℕ ] Settles n (runᴹFrom M m d) (runWith⊥ K m d)
     rawAgree m (out b)    = 1 , Settles-return b
-    rawAgree m (coin μ k) = branch (Settles-bind⋆ 2 (coinₚ μ) (λ c → runᴹFrom M m (k c))
-                                     (Dmap just μ) κ (Settles-coin μ) λ c → rawAgree m (k c))
+    rawAgree m (coin μ k) =
+      branch (Settles-bind⋆ 2 (coinₚ μ) (λ c → runᴹFrom M m (k c)) (Dmap just μ) κ
+                            (Settles-coin μ) λ c → rawAgree m (k c))
       where
       κ : Bool → Dist⊥ Bool
       κ c = runWith⊥ K m (k c)
@@ -76,8 +77,9 @@ module _ {B : Iface} (M : MC.Machine (⊥ ⊎ Neg B) (⊥ ⊎ Pos B))
       branch : Σ[ n ∈ ℕ ] Settles n (runᴹFrom M m (coin μ k)) (Dmap just μ >>=⊥ κ)
              → Σ[ n ∈ ℕ ] Settles n (runᴹFrom M m (coin μ k)) (runWith⊥ K m (coin μ k))
       branch (n , s) = n , Settles-resp (Dmap just μ >>=⊥ κ) (μ >>=ᴹ κ) (E⊥-coin μ κ) s
-    rawAgree m (ask q k)  = junction (Settles-bind⋆ (proj₁ (ker m q)) (MC.step M (m , inj₂ q))
-                                       (resumeᴹ M cont) (Dmap⊥ ansᴹ (K m q)) κ (proj₂ (ker m q)) w)
+    rawAgree m (ask q k)  =
+      junction (Settles-bind⋆ (proj₁ (ker m q)) (MC.step M (m , inj₂ q)) (resumeᴹ M cont)
+                              (Dmap⊥ ansᴹ (K m q)) κ (proj₂ (ker m q)) w)
       where
       cont : MC.St M → Pos B → Dₚ Bool
       cont m′ r = runᴹFrom M m′ (k r)
@@ -92,8 +94,9 @@ module _ {B : Iface} (M : MC.Machine (⊥ ⊎ Neg B) (⊥ ⊎ Pos B))
 
       junction : Σ[ n ∈ ℕ ] Settles n (runᴹFrom M m (ask q k)) (Dmap⊥ ansᴹ (K m q) >>=⊥ κ)
                → Σ[ n ∈ ℕ ] Settles n (runᴹFrom M m (ask q k)) (runWith⊥ K m (ask q k))
-      junction (n , s) = n , Settles-resp (Dmap⊥ ansᴹ (K m q) >>=⊥ κ) (K m q >>=⊥ λ sr → κ (ansᴹ sr))
-                                       (E⊥-map-bind ansᴹ (K m q) κ) s
+      junction (n , s) =
+        n , Settles-resp (Dmap⊥ ansᴹ (K m q) >>=⊥ κ) (K m q >>=⊥ λ sr → κ (ansᴹ sr))
+                         (E⊥-map-bind ansᴹ (K m q) κ) s
 
     -- The initial state is itself effectful at a Kleisli base, so it settles
     -- like any other step and the closed run is one more junction.
@@ -116,8 +119,8 @@ module _ {B : Iface} (M : MC.Machine (⊥ ⊎ Neg B) (⊥ ⊎ Pos B))
   -- the form a closed game states its bound at.  The embedding is what lets the
   -- machine carry state the game does not (`Interaction.runWith⊥-emb`).
   module _ {S : Set} (resp : S → Neg B → Dist-ℚ (S × Pos B)) (emb : S → MC.St M)
-           (agree : (s : S) (q : Neg B)
-                  → K (emb s) q ≈Mℚ (resp s q >>=ᴹ λ sr → return⊥ (emb (proj₁ sr) , proj₂ sr)))
+           (agree : (s : S) (q : Neg B) → K (emb s) q
+                  ≈Mℚ (resp s q >>=ᴹ λ sr → return⊥ (emb (proj₁ sr) , proj₂ sr)))
     where
 
     rawKernel : StepSettles → (b : Bool) (s : S) (d : Strat (Neg B) (Pos B))
@@ -126,5 +129,5 @@ module _ {B : Iface} (M : MC.Machine (⊥ ⊎ Neg B) (⊥ ⊎ Pos B))
     rawKernel ker b s d =
       proj₁ (rawAgree ker (emb s) d)
       , λ i → trans (Settles-cum (proj₂ (rawAgree ker (emb s) d)) (indᵇ-nn b) _ (m≤m+n _ i))
-                    (trans (runWith⊥-emb resp K emb agree s d (maybeℚ (indᵇ b)))
-                           (lookupᴰℚ-Dmap just (runWith resp s d) (maybeℚ (indᵇ b))))
+              (trans (runWith⊥-emb resp K emb agree s d (maybeℚ (indᵇ b)))
+                     (lookupᴰℚ-Dmap just (runWith resp s d) (maybeℚ (indᵇ b))))

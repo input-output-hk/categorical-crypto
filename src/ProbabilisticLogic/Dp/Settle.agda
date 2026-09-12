@@ -19,7 +19,7 @@ open import Data.Bool.Base using (Bool; true; false)
 open import Data.Maybe.Base using (just; nothing)
 open import Data.Nat.Base using (ℕ; zero; suc; _+_; _∸_; _≤_)
 open import Data.Nat.Properties using (m+[n∸m]≡n; m∸n+n≡m; m≤n+m)
-open import Data.Product.Base using (Σ; Σ-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Product.Base using (Σ-syntax; _,_)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Rational.Properties using (≤-antisym; ≤-refl; ≤-reflexive; ≤-trans)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
@@ -106,7 +106,7 @@ Null-bind d f z Q nn i = ≤-antisym
   (cum-nn i (d >>=ₚ f) Q nn)
 
 ------------------------------------------------------------------------
--- What `E⊥` makes of the three value-level rearrangements a run performs
+-- What `E⊥` makes of the value-level rearrangements a run performs
 
 Eⱼ : (μ : Dist-ℚ A) (Q : A → ℚ) → E⊥ (Dmap just μ) Q ≡ E μ Q
 Eⱼ μ Q = lookupᴰℚ-Dmap just μ (maybeℚ Q)
@@ -161,12 +161,12 @@ Settles-cum {n = n} {d = d} {P = P} (settles h e) nn m le =
         (e P nn)
 
 Settles-mono : n ≤ m → Settles n d ν → Settles m d ν
-Settles-mono {d = d} le s = settles (Halts-mono le d (halts s)) λ Q nn → Settles-cum s nn _ le
+Settles-mono {d = d} le s =
+  settles (Halts-mono le d (halts s)) λ Q nn → Settles-cum s nn _ le
 
 -- Only what `E⊥` reads of the value is pinned, so a consumer holding an
--- `_≈Mℚ_` supplies `λ Q → eq (maybeℚ Q)`.  Both values are EXPLICIT: `Dist-ℚ`
--- is a record and `E⊥` projects it, so a value left implicit is a meta that
--- eta-expands into entries and weights, and unification blocks on the weight.
+-- `_≈Mℚ_` supplies `λ Q → eq (maybeℚ Q)`.  Both values are explicit for the
+-- reason `Settles` is a record (above).
 Settles-resp : (ν ν′ : Dist⊥ A) → ((Q : A → ℚ) → E⊥ ν Q ≡ E⊥ ν′ Q)
              → Settles n d ν → Settles n d ν′
 Settles-resp _ _ eq (settles h e) = settles h λ Q nn → trans (e Q nn) (eq Q)
@@ -274,7 +274,8 @@ Settlesᵀ-bind⋆ : (n : ℕ) (d : Dₚ A) (f : A → Dₚ B) (μ : Dist-ℚ A)
                → Σ[ i ∈ ℕ ] Settlesᵀ i (d >>=ₚ f) (μ >>=ᴹ κ)
 Settlesᵀ-bind⋆ n d f μ κ s w =
   let i , t = Settles-bind⋆ n d f (Dmap just μ) (λ p → Dmap just (κ p)) s w
-  in i , Settles-resp (Dmap just μ >>=⊥ λ p → Dmap just (κ p)) (Dmap just (μ >>=ᴹ κ)) value t
+  in i , Settles-resp (Dmap just μ >>=⊥ λ p → Dmap just (κ p))
+                      (Dmap just (μ >>=ᴹ κ)) value t
   where
   value : (Q : _ → ℚ) → E⊥ (Dmap just μ >>=⊥ λ p → Dmap just (κ p)) Q
                       ≡ E⊥ (Dmap just (μ >>=ᴹ κ)) Q
