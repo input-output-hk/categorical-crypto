@@ -176,6 +176,13 @@ module AbstractUC
     where strict : sub a 𝒞.∘ sub s₀ 𝒞.∘ g 𝒞.≈ sub (a ℐ.∘ s₀) 𝒞.∘ g
           strict = let open 𝒞 in sym-assoc ○ ⟺ sub-homomorphism ⟩∘⟨refl
 
+  -- …and back: the order's own quantifier at the identity adversary, with the
+  -- `sub ℐ.id` it leaves in front normalized away.
+  ≤UC⇒dummy : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
+            → f ≤UC g → Σ[ s ∈ Y ℐ.⇒ X ] f ≈ᵁ sub s 𝒞.∘ g
+  ≤UC⇒dummy {f = f} le =
+    let s , e = le ℐ.id in s , ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ f))) e
+
   ≤UC-trans : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B} {h : A 𝒞.⇒ T₀ Z B}
             → f ≤UC g → g ≤UC h → f ≤UC h
   ≤UC-trans f≤g g≤h a =
@@ -197,14 +204,14 @@ module AbstractUC
         sub s 𝒞.∘ k ∙ g  ∎)
     where
       t : Q ℐ.⇒ P
-      t = proj₁ (h≤k ℐ.id)
+      t = proj₁ (≤UC⇒dummy h≤k)
       eh : h ≈ᵁ sub t 𝒞.∘ k
-      eh = ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ h))) (proj₂ (h≤k ℐ.id))
+      eh = proj₂ (≤UC⇒dummy h≤k)
 
       sf : Y ℐ.⇒ X
-      sf = proj₁ (f≤g ℐ.id)
+      sf = proj₁ (≤UC⇒dummy f≤g)
       ef : f ≈ᵁ sub sf 𝒞.∘ g
-      ef = ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ f))) (proj₂ (f≤g ℐ.id))
+      ef = proj₂ (≤UC⇒dummy f≤g)
 
       s : Y ⊗₀ Q ℐ.⇒ Z
       s = a ℐ.∘ ℐ.id ⊗₁ t ℐ.∘ sf ⊗₁ ℐ.id

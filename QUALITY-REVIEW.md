@@ -2365,6 +2365,92 @@ Open, for the maintainer:
 - `UC.agda` now re-exports `UC.Graded`, `UC.Seam.Graded` and `UC.QueryBound.Exact`, with
   inventory entries. `UC.QueryBound.Exact`'s inner module is named `Ledger` rather than
   `Certificate` to avoid shadowing `UC.QueryBound.Certificate` where both are re-exported.
+## Resolved (presheaf-action)
+
+Steps 1 and 2 of `docs/uc-presheaf-preservation-plan.md`, branch `presheaf-action` off
+`protocol-rewrite` at `89e09091`. The full delivery note, with the plan's acceptance
+checks and their evidence, is `docs/presheaf-action.md`. What follows is only what needs
+your judgment.
+
+### 1. `UC.Model.Reading.shuffle⇒`/`shuffle⇐` stopped being `private`
+
+`UC/Model/Reading.agda:48`, `:57`. Recovering the model's `Robust` from the canonical one
+needs exactly the bracketing shuffle `UC.Model.Reading` already proves, in both
+orientations; it was `private` there and used only by `≈ᵁ⇒≈ᴬ`/`≈ᴬ⇒≈ᵁ`. The alternative
+was copying eight lines of `μT₁-α⇐` + `cancelInner associator.isoʳ` into
+`UC.Robust.Model`, which duplicates a proof that has one right home. Nothing about the
+statements changed. This is the only file I touched outside the brief's allowance.
+
+### 2. `UC.Model.Bridge.≤UC⇒≤UCᶜ` now has no in-repo consumer
+
+After `uc-preservesᵒ` stopped taking the detour,
+`grep -rn "≤UC⇒≤UCᶜ\|≤UCᶜ⇔≤UC" src/` finds nothing. I did NOT delete it: the plan's
+retirement gate (§5) is replacement plus importer migration, and it is one direction of
+the seam's own two-way identification of the two orders, whose other direction
+(`≤UCᶜ⇒≤UC`) is still used by `UC.Model.Family.Uniform` and the ledger `EndToEnd` note.
+Your call whether a one-directional lemma with no caller earns its place.
+
+### 3. `uc-preservesᵒ` keeps its statement; only its proof became the generic instance
+
+The plan says `uc-preservesᵒ` "becomes a direct instance of the generic theorem". Its
+statement is over the *observation-scoped* `Robust` and `SaturatedProperty`, and the
+generic `Robust` is over the presheaf fiber at the other bracketing — so restating it
+would have replaced an existing theorem statement, which the house standard forbids. I
+kept the statement byte-identical and re-based the PROOF: `robust⇒robustᵍ` →
+`Gen.uc-preserves` (whose simulator comes from `≤UC⇒dummy`) → `robustᵍ⇒robust`
+(`UC/Robust/Model.agda:87`). If you would rather have the generic statement under that
+name, the two conversions at `:74`/`:79` make it a two-line change, but it is a
+statement change and I did not make it unasked.
+
+### 4. `⊤-robust` kept as an observation-specific consequence, not migrated
+
+`UC/Robust/Model.agda:93`, signature unchanged: `(f : A ⇒ B) → Robust ⊤ᴾ f`. It quantifies
+over **ungraded** homs `A ⇒ B`, and the canonical `Robust` is only stated at
+`A 𝒞.⇒ T₀ X B`. Migrating it would have meant inventing a grade for `f` — a different
+statement, and a worse one (the degenerate test's whole job is to have no premise). The
+canonical side's degenerate case is `Gen.⊤ᴬ`, which is what `uc-preservesᵒ` runs at.
+
+### 5. The canonical API stays qualified in `UC.Robust.Model`
+
+`module Gen = Sel StdSetup` (`UC/Robust/Model.agda:46`) rather than `open … public`.
+Eight names collide with the observation-scoped ones the module must keep exporting
+(`SaturatedProperty`, `holds`, `saturated`, `Robust`, `robust-sub`, `uc-preserves`,
+`uc⁺-preserves`, `⊤ᴾ`/`⊤ᴬ`), and a `renaming` layer to dodge that is exactly the
+re-export layer house rule 19 rejects. A generic consumer opens
+`UC.Robust.Selected UC.Model.Setup.StdSetup` directly. If you prefer the model module to
+own both vocabularies, the decoration scheme is yours to pick.
+
+### 6. The selected-environment example is closed under every simulator, and that is forced
+
+`UC/Robust/Selected.agda`. The brief asked for a nontrivial `Adm`, a concrete simulator,
+a proved `ClosedUnder` and preservation at the explicit witness; `relay-selectedᵒ`
+(`UC/Robust/Model.agda:110`) delivers all four, with `s = relayᵒ 𝔄` — a real machine at a
+nontrivial grade, not an identity. What it cannot show is a class closed under one
+simulator but not all, and the obstruction is structural, not a failure of search:
+`ClosedUnder Adm s` **is** closure of the admitted attackers under precomposition by `s`,
+so every class cut out by a precomposition-closed qualitative condition is closed at every
+`s`. Separating the two needs a cost that the simulator's own queries can exhaust — the
+quantitative enrichment of plan §2.2/§4, i.e. steps 3-5. `uc-preserves-at` is exported
+now so that such a class will not have to claim all-simulator closure later.
+
+### 7. Two smaller calls
+
+- `⊤ᴬ : Admissible B 0ℓ` (`UC/Robust.agda:59`) is pinned at `0ℓ` rather than level
+  polymorphic: `Admissible B d` with a polymorphic `⊤` leaves `d` unsolved at every use
+  site (it is not determined by anything), which is an unsolved meta, not a convenience.
+- `propᵒ : SaturatedProperty p → (D : Channel) → Gen.SaturatedProperty (suc 0ℓ ⊔ p) D`
+  (`UC/Robust/Model.agda:67`): the adapter quantifies over closures, which live at the
+  model's hom level `suc 0ℓ`, so the fiber property cannot stay at `p`.
+
+### 8. Root files you need to touch (I did not)
+
+`src/CategoricalCrypto/UC.agda` lines 19-25 list `UC.Robust` under the **core** tier as
+the `UCBase` theorem. That row should split: the `UCBase` theorem is now
+`UC.Robust.Observation` (core tier), while `UC.Robust` is the `UCSetup` theorem and
+belongs with the inherited-layer rows, alongside `UC.Robust.Selected` and
+`Abstract2.Action`. No *import* wiring is missing — `CategoricalCrypto.agda:62` reaches
+all four new/moved modules transitively through `UC.Robust.Model`, and both root modules
+check green unchanged.
 
 ### Verification
 
@@ -2381,3 +2467,32 @@ Closure: `CategoricalCrypto` (12.7 s), `CategoricalCrypto.UC` (16.8 s),
 (`postulate|TERMINATING|primTrustMe|\{!`): **16 lines before, 16 after**, every one the
 words "postulate-free"/"No postulates" in an inherited `Categories/APROP/**` comment;
 zero live hatches before and after.
+gate. Per-module figures forced warm (probe comment appended, then removed and the
+closure re-settled; exactly one `Checking` line each):
+
+| Module | LOC | warm |
+|---|---|---|
+| `Abstract2` | 244 | 5.0 s before → 4.7 s after |
+| `Abstract2.Action` (new) | 105 | 3.5 s |
+| `UC.Robust` (new canonical) | 125 | 3.6 s |
+| `UC.Robust.Selected` (new) | 64 | 3.6 s |
+| `UC.Robust.Observation` (moved verbatim) | 120 | 2.7 s |
+| `UC.Robust.Model` | 116 | 13.9 s |
+| `UC.Model.Reading` | 77 | 12.6 s |
+| `UC.Model.Bridge` | 193 | 13.0 s |
+
+`Abstract2` is the only before/after pair on the same warm basis (it is the module the
+whole `UC.Model` cone pays for); −0.3 s, inside noise. The ≈13 s in the machine-model cone
+is the seal's interface deserialization, not new content — `UC.Model.Reading` at 77 LOC
+costs the same as `UC.Robust.Model` at 116.
+
+Closure: `CategoricalCrypto` 86 s, plus `CategoricalCrypto.UC`, `UC.Model`,
+`UC.Approximate.LocalTests` and the `Examples/ChimericLedger/` roots (`EndToEnd`, `Carry`)
+— all rc=0, gate empty. Hatch grep over `src/`
+(`postulate|TERMINATING|primTrustMe|\{!`): **16 lines before, 16 after**, every one the
+word "postulate-free"/"No postulates" in an inherited `Categories/APROP/**` comment; zero
+live hatches before and after. `--safe --without-K` on every new module.
+
+Two commits rather than the five the brief suggested: the canonical `UC.Robust`, the
+verbatim relocation and the model recovery are mutually dependent (splitting them leaves
+an intermediate commit that does not typecheck), so step 2 landed as one.
