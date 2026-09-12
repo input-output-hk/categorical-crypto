@@ -317,7 +317,7 @@ argument. Neither is in `src/`.
 ### 3. The machine-level bound itself
 
 With 1 and 2, the statement the brief asks for is, at one level `k`, with
-`sys = real 𝒫.∘ resource` and `sysᴵ = sub simulator 𝒫.∘ ideal 𝒫.∘ resource`:
+`sys = real 𝒫.∘ resource` and `sysᴵ = subᴵ simulator 𝒫.∘ ideal 𝒫.∘ resource`:
 
 ```agda
 binding-bound : (b : Bool) (m : ℕ) (d : Strat (Neg (Advᴵ ⊗ᴵ Honᴵ)) (Pos (Advᴵ ⊗ᴵ Honᴵ)))
@@ -366,7 +366,7 @@ started, and `Examples/ROCommitment/Hiding/*` is a sibling's this round.
 ### 5. The UC-level statement, and the quantifier gap
 
 What is reachable once 1–3 are in hand is a statement over the environments
-`UC.Seam.Grounded.StratIsEnv` embeds — the contexts built from a FINITE strategy:
+`UC.Seam.Grounding.StratIsEnv` embeds — the contexts built from a FINITE strategy:
 
 ```agda
 strat-emulation : (m : ℕ) (d : Strat (Neg (Advᴵ ⊗ᴵ Honᴵ)) (Pos (Advᴵ ⊗ᴵ Honᴵ)))
