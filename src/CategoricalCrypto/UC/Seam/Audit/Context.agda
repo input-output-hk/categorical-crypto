@@ -150,11 +150,16 @@ module _ (B : Iface) (e : Strat (Neg B) (Pos B)) {X : Iface} (a : Proc X 𝟭ᴵ
       where
       reduceᵍ : ((auditTestᵍ ∘ id ⊗₁ gradedᵒ f) ∘ closedᵒ w)
               ≈ procᵒ (strategyEnv B e) ∘ procᵒ closedᵍ
-      reduceᵍ = ((assoc ○ (refl⟩∘⟨ slide⊗ 𝟘ᴳ (subᵉ (procᵘ a)) (gradedᵒ f))) ⟩∘⟨refl)
+      reduceᵍ = ((assoc ○ (refl⟩∘⟨ merge)) ⟩∘⟨refl)
               ○ sym-assoc
               ○ (plug-λ (procᵒ (strategyEnv B e) ∘ unitorˡ.from) _ ⟩∘⟨refl)
               ○ ((assoc ○ (refl⟩∘⟨ plug-graded a f)) ⟩∘⟨refl)
               ○ assoc ○ (refl⟩∘⟨ ⟺ (procᵒ-∘ (plugᴹ a 𝒫.∘ f) w))
+        where
+        merge : (id ⊗₁ subᵉ (procᵘ a)) ∘ (id ⊗₁ gradedᵒ f)
+              ≈ T₁ 𝟘ᴳ (sub (procᵘ a) ∘ gradedᵒ f)
+        merge = ⟺ (slide⊗ 𝟘ᴳ (subᵉ (procᵘ a)) (gradedᵒ f))
+              ○ ⟺ (T₁-⊗ 𝔾ᵒ 𝟘ᴳ (sub (procᵘ a) ∘ gradedᵒ f))
 
     -- …and the observation IS layer 1's run of the strategy against it.
     audit-runᵍ : obs (tv₁ 𝟘ᴳ (gradedᵒ f) auditTestᵍ) (closedᵒ w) ≈ₚ runᴹ closedᵍ e
