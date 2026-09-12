@@ -29,6 +29,12 @@
 -- layers DO meet at the concrete resource, off `Protocol.Machine.Raw`
 -- (`docs/dp-transport.md`).
 --
+-- `Examples.CoinToss.*` is the first consumer of the composition theorem on a
+-- real protocol: Blum coin-tossing over `Examples.ROCommitment`, one composed
+-- statement per corruption case, with the commitment's own ε carried through
+-- (`.Compose`) and the biasing attack it bounds (`.Test`).  The second hop —
+-- emulating an ideal coin — is NOT here and `docs/coin-toss.md` says why.
+--
 -- Outside still, each with its own root: the protocol-layer examples
 -- (`Examples.ChimericLedger`, `Examples.MerkleDamgard`) and the inherited
 -- abstract theories (`UCSetup`, `Standard`, `StandardTV`, `VanishingTV`).
@@ -84,6 +90,8 @@ open import CategoricalCrypto.Examples.Signatures
 open import CategoricalCrypto.Examples.RandomOracle
 open import CategoricalCrypto.Examples.HashForward.Audit
 open import CategoricalCrypto.Examples.HashForward.Resource
+open import CategoricalCrypto.Examples.CoinToss.Compose
+open import CategoricalCrypto.Examples.CoinToss.Test
 open import CategoricalCrypto.Examples.ROCommitment.Asymptotic
 open import CategoricalCrypto.Examples.ROCommitment.Hiding.Asymptotic
 open import CategoricalCrypto.Examples.ROCommitment.Hiding.Test

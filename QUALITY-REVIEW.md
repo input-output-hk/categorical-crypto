@@ -3388,3 +3388,69 @@ Forced warm (`.agdai` deleted where needed), `+RTS -M8G -H1G`, rc=0 and an empty
 gate on every run; the before/after table with a measured baseline is
 `docs/retirement.md` §9. Escape-hatch baseline 16 before / 16 after (all sixteen
 the words "postulate-free" in inherited comments).
+
+## Resolved (coin-toss)
+
+Branch `coin-toss`, off `protocol-rewrite` at `587999b5`. The design note is
+[`docs/coin-toss.md`](docs/coin-toss.md); this section is only what needs a
+maintainer's judgement.
+
+### Landed
+
+- **The first consumer of `UC-composeᵉ` on a real protocol.** Blum coin-tossing
+  over `Examples.ROCommitment`, one composed theorem per corruption case
+  (`Examples/CoinToss/Compose.agda:82`, `:132`), with every certificate the
+  theorem demands proved, `Allowance-mono` discharged at the zero schedule, and
+  the composed schedule pinned mechanically (`schedule-pin`, `schedule-pinʰ`)
+  and read in closed form (`composed-ε`: the commitment's own `(q² + 2q)·2⁻ⁿ`,
+  unrescaled).
+- **Four new query certificates**, two of them about modules that had none:
+  `Examples.ROCommitment.real` and `…Hiding.realʰ` are each `Certified 1`
+  (`Examples/CoinToss/UC.agda:100`, `Examples/CoinToss/Hiding/UC.agda:113`).
+  They are *placed in the consumer* rather than beside the machines they are
+  about, because `Examples/ROCommitment/**` is a sibling agent's scope on this
+  branch. **Maintainer call:** they belong in `Examples/ROCommitment/UC.agda`
+  and `Examples/ROCommitment/Hiding/UC.agda`, beside `simCert`/`simCertʰ`, and
+  moving them is a pure relocation.
+- The commitment's premise narrowed to its single missing component
+  (`coin-toss-from-comᶜ`, `Compose.agda:156`): the simulator, its `QB 2` and
+  `εᶜ` with its negligibility are supplied from the repository, so only
+  `docs/fcom-extraction.md`'s `raw-emulation` is left as a hypothesis.
+
+### Open, needing a decision
+
+- **The second hop is not stated, and one of its two shapes is FALSE.**
+  `docs/coin-toss.md` §5 has the two-line refutation of the shape
+  `UC-composeᵉ` would consume (the outer simulator is blind to the
+  subroutine's adversary port; Blum's is not) and the counterexample to the
+  shape that is true (the ideal `F_com`'s one bit of memory is the CONTEXT's
+  cell, and `_≈ctx[_]_` quantifies over every context). **This is the finding
+  the branch exists to report**, and it is an architectural one: the wire
+  placement of an ideal functionality is what makes a one-level emulation
+  affordable and what makes a two-level one unstateable at an open domain.
+  Both repairs bottom out in the same missing machine-layer lemma — a readable
+  ⊕-trace of two stateful machines where neither is a `morphism` image.
+- **`ext-gradedᵒ` is owed by `UC/Model/Graded.agda`** and would be cheap:
+  `sub (procᵒ s) ∘ gradedᵒ g ≈ gradedᵒ (subᴵ′ s ∘ g)` has no counterpart for
+  `_∙ᶠ_`, so no statement about a COMPOSED system can currently be read back as
+  a machine equality. The signature is in `docs/coin-toss.md` §5 (B1). It was
+  not built because (B2) makes it useless at this example; it will be needed by
+  any two-level example.
+- **`qb-oneCall`'s relocation to `UC.QueryBound`** is still owed
+  (`docs/ledger-lift-eps.md` §9 item 3). It would not have helped here — it is
+  stated over `Protocol A B` and both `F_com` real protocols are raw machines —
+  but the fourth consumer of the amortised-certificate boilerplate is now on
+  the branch, and a `Proc`-level analogue of it would collapse all four.
+- **`Startᴵ` in `Examples/CoinToss/Test.agda:69`** is a one-letter wake-up
+  interface, introduced because a corrupted party has to be started by
+  something and `unitᴵ` cannot start it. If the repository grows a standard
+  "environment tick" port, that is the name to use instead.
+
+### Verification
+
+Every commit checked green before landing, `+RTS -M8G -H1G`, rc=0 and an empty
+`ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|Heap exhausted`
+gate. Closure `src/CategoricalCrypto.agda` rc=0 over 113 modules;
+`Examples/ChimericLedger/FactorEps.agda` and `UC/Approximate/LocalTests.agda`
+checked separately, both outside that closure. Escape-hatch baseline 16 before
+/ 16 after, all sixteen the words "postulate-free" in inherited comments.

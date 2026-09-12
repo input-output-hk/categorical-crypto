@@ -174,7 +174,11 @@
 --                                  its composition laws with the error
 --                                  retained: `≤UC^ωᵉ-trans` and `UC-composeᵉ`,
 --                                  each with its exact allowance substitution
---                                  (`docs/quantitative-family.md`)
+--                                  (`docs/quantitative-family.md`).  Its two
+--                                  consumers are `ChimericLedger.FactorEps`,
+--                                  which lifts a premise through a factoring,
+--                                  and `Examples.CoinToss.Compose`, which
+--                                  stacks a protocol on a realized one
 --
 -- The parameterized modules take a `UCBase` and so are imported directly
 -- rather than re-exported here; `UC.Machine.ucBaseᴹ` is the one to feed them at
