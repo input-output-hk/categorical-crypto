@@ -23,6 +23,10 @@
 -- about — the absorbed class is a statement about the IDEAL process while the
 -- bound is about the real one — so keeping it a parameter is not generality for
 -- its own sake but the shape review §2's inclusion obligation has.
+--
+-- `extract-obs` is the run and the mass alone, no class in it: `extract` is that
+-- lemma past the membership, and so is the class-free route of
+-- `UC.Seam.Audit.Prefix` (review §4.1).
 
 open import Categories.Functor.Monoidal.CurriedTensor.Properties using (T₁-⊗)
 import Categories.Morphism.Reasoning as MR

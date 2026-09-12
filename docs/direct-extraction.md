@@ -15,7 +15,7 @@ after**, all of them the words "postulate-free" in inherited comments.
 
 ## §4.1 — the direct observation lemma
 
-`src/CategoricalCrypto/UC/Seam/Audit/Context.agda:203,211,223`
+`src/CategoricalCrypto/UC/Seam/Audit/Context.agda:207,215,227`
 
 ```agda
 ctxObs : {B : Iface} → Protocol unitᴵ B → Strat (Neg B) (Pos B) → Dₚ Bool
@@ -61,7 +61,7 @@ extract-bounded : {B : Iface} (P : Protocol unitᴵ B)
 
 ### `extract` is re-routed, not restated
 
-`Context.agda:234` — the signature is byte-identical to the one on
+`Context.agda:238` — the signature is byte-identical to the one on
 `protocol-rewrite`. The proof is now
 
 ```agda
@@ -273,7 +273,7 @@ content, so `touch` does nothing).
 | module | LOC before → after | warm before | warm after | rule-5 budget |
 |---|---|---|---|---|
 | `UC.Seam.Slide` | — → 44 | — | 9 s | 71 s |
-| `UC.Seam.Audit.Context` | 229 → 245 | 10 s | 10 s | 121 s |
+| `UC.Seam.Audit.Context` | 229 → 249 | 10 s | 10 s | 121 s |
 | `UC.Seam.Audit.Bounded` | 104 → 104 | 10 s | 10 s | 86 s |
 | `UC.Seam.Audit.Prefix` | 143 → 237 | 11 s | 11 s | 118 s |
 | `UC.Seam.Grounded` | 281 → 280 | — | 10 s | 130 s |

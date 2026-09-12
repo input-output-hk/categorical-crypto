@@ -3059,7 +3059,7 @@ here. No statement was weakened, no consumer was edited, nothing was retired.
   have kept the only other copy of the `prAgree`/`audit-run` junction. The
   signature is byte-identical to `protocol-rewrite`'s.
 - **The bound, not the domination, at `extract-obs`'s premise ::
-  `UC/Seam/Audit/Context.agda:211`** — §4.1 allows either. Both suppliers
+  `UC/Seam/Audit/Context.agda:215`** — §4.1 allows either. Both suppliers
   already produce `∀ n. Pr≤ n _ ≤ c` (an `AuditBound`'s conclusion on one side,
   `dominate` + `supply` on the other), so the domination belongs at the ideal
   side, where `sim-prefixed` states it, not in the extraction's own premise.
