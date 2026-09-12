@@ -37,7 +37,7 @@ open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Properties
   using (*-assoc; *-comm; *-identityʳ; *-monoʳ-≤; m≤n⊔m; ⊔-assoc; ⊔-idem
         ; ≤-reflexive; ≤-trans)
-open import Data.Product.Base using (_,_)
+open import Data.Product.Base using (_,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Rational.Properties using (+-monoˡ-≤; module ≤-Reasoning)
 open import Level using (Level; _⊔_; suc)
@@ -107,6 +107,32 @@ AuditBound {A = A} {B′ = B′} {X = X} f 𝔈 ε =
   (Y : Obj) (Et : Test (Y ⊛ (X ⊛ B′))) (m : Closure (Y ⊛ A)) {c c′ : ℕ}
   → QB c Et → QB c′ m → 𝔈 Y Et m (ctxBudget c c′)
   → (n : ℕ) → at n (obs (tv₁ Y f Et) m) ℚ.≤ ε (ctxBudget c c′)
+
+-- An event class PINNED to a designated observation: a context reads it when
+-- what it observes is the one the designation names for its budget.  This is
+-- `UC.Seam.Audit.TrivialGrade.watched`'s shape with layer 1's monitor run
+-- abstracted away, so it is available at ANY grade — `watched` is stated at a
+-- closed protocol image and its extraction context is a trivial-grade one.
+pinned : {A B′ X : Obj} → A ⇒ X ⊛ B′ → (ℕ → Obs) → AuditEvent ℓs A X B′
+pinned f μ Y Et m q = obs (tv₁ Y f Et) m ∼ μ q
+
+-- …and its bound, off a bound on the designated observations alone.  The slack
+-- is the `Mass`-level price of reading an equivalence as a numeric comparison:
+-- `dominate` is what a general observation offers, and it is one-sided only up
+-- to a positive `δ`.  At the intended model the same step is exact
+-- (`UC.Seam.Audit.Bounded.supply`, off a zero-slack `≼ₚ[ 0ℚ ]`), so nothing
+-- here is a defect of the instance.
+pinned-bound : {A B′ X : Obj} (f : A ⇒ X ⊛ B′) (μ : ℕ → Obs) (ε : ℕ → ℚ)
+               (δ : ℚ) → 0ℚ ℚ.< δ → ((q n : ℕ) → at n (μ q) ℚ.≤ ε q)
+             → AuditBound f (pinned f μ) (λ q → ε q ℚ.+ δ)
+pinned-bound f μ ε δ δ>0 bnd Y Et m {c} {c′} qEt qm ev n = begin
+    at n (obs (tv₁ Y f Et) m)                 ≤⟨ proj₂ reach ⟩
+    at (proj₁ reach) (μ (ctxBudget c c′)) ℚ.+ δ
+      ≤⟨ +-monoˡ-≤ δ (bnd (ctxBudget c c′) (proj₁ reach)) ⟩
+    ε (ctxBudget c c′) ℚ.+ δ                  ∎
+  where
+  open ≤-Reasoning
+  reach = dominate ev δ δ>0 n
 
 -- Absorbing a simulator of cost `cs` into a context: the ancilla and the
 -- closure stay, the simulator goes in front of the test, the budget is rescaled
