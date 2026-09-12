@@ -11,7 +11,9 @@
 --
 --   core         `UC.Core`         `Grading`, `Observation`, `UCBase`
 --                `UC.Environment`  the environment presheaf, `_≈ℰ_`,
---                                  `grade-stable`
+--                                  `grade-stable`, and `tv₁-∘`, the slide by
+--                                  which a stage of the process becomes a stage
+--                                  of the test
 --                `UC.Emulation`    `_≤UC_` and its three metatheorems.
 --                                  Universal composition is the inherited
 --                                  theorem, not one of these —
@@ -37,7 +39,10 @@
 --                `UC.Audit`        `AuditEvent`, the audit event a premise is
 --                                  about, and `audit-carry`: a bound on it
 --                                  across an emulation, the simulator absorbed
---                                  into the environment leg
+--                                  into the environment leg.  `carry-obs` is
+--                                  that carry's structural content with neither
+--                                  class nor budget on it, which is what a
+--                                  direct consumer spends
 --                `UC.Family`       the asymptotic constructor — `𝒞^ω` at a
 --                                  parameterized index, and `absorb`, where a
 --                                  vanishing bound BECOMES the core's `_≈ℰ_`
@@ -56,8 +61,11 @@
 --   model        `UC.Machine`      `𝒫ᴵ`, processes on `Iface`s, the ticked
 --                                  verdict interface, the observation at `Dₚ`
 --                `UC.QueryBound`   the amortised-potential certificate — a
---                                  query bound with content; what it means on a
---                                  run is `UC.QueryBound.Counting`, and
+--                                  query bound with content, inhabited at a
+--                                  wire, at a closed process and, by
+--                                  `qb-oneCall`, at any protocol whose step
+--                                  factors through `OracleCall.fromCall`; what
+--                                  it means on a run is `UC.QueryBound.Counting`, and
 --                                  `UC.QueryBound.Compose{,.Step,.Laws}` is
 --                                  where it multiplies along composition, which
 --                                  `UC.Machine.Budget` feeds to the resource
@@ -147,7 +155,12 @@
 --                `UC.Asymptotic`   the consumer end: an emulation FAMILY, and
 --                                  the two ways a bound crosses it — graded
 --                                  (`simCost` charged) and probabilistic (the
---                                  trivial-grade collapse into `UC.Saturated`)
+--                                  trivial-grade collapse into `UC.Saturated`).
+--                                  `UC.Asymptotic.Audit` states the graded one
+--                                  both ways: `uc-audit-carry` at the designated
+--                                  class and `uc-audit-carryᵈ` at the test,
+--                                  closure, monitor and budget witness directly
+--                                  (`docs/consumer-migration.md`)
 --                `UC.Asymptotic.Contextual`
 --                                  the ONE quantitative relation, `_≈ctx[_]_`,
 --                                  on families of graded morphisms with the
