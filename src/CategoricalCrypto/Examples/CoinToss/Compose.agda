@@ -17,17 +17,22 @@
 -- second hop, and it is FALSE at this domain.  `docs/coin-toss.md` gives the
 -- two-query counterexample and what would remove it.
 
-open import Data.Nat.Base using (ℕ)
+open import Data.Nat.Base using (ℕ; _*_; _+_)
 open import Data.Nat.Poly using (poly-const)
+open import Data.Nat.Properties using (*-identityʳ)
 open import Data.Product.Base using (_,_; proj₁; proj₂)
-open import Data.Rational as ℚ using (ℚ; 0ℚ)
-open import Data.Rational.Properties using (≤-refl)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Data.Rational as ℚ using (ℚ; 0ℚ) renaming (_*_ to _*ℚ_)
+open import Data.Rational.Properties using (+-identityˡ; ≤-refl)
+open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl; trans)
 
+open import ProbabilisticLogic.Distribution.Uniform using (fromℕ; inv-pow-2)
+
+open import CategoricalCrypto.Examples.ROCommitment.Asymptotic using (εᶜ; εᶜ-negligible)
 open import CategoricalCrypto.UC.Approximate using (Negligible-0; NegligibleBound)
 open import CategoricalCrypto.UC.Asymptotic.Compose using (UC-composeᵉ; _∙ᶠ_)
 open import CategoricalCrypto.UC.Asymptotic.Contextual
 open import CategoricalCrypto.UC.Budget using (simCost)
+open import CategoricalCrypto.UC.Model.Enrichment using (qbᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 
@@ -136,3 +141,24 @@ coin-toss-from-comʰ (sf , εf , nf , ef) =
 schedule-pinʰ : (w : realʰᶠ ≤UC^ωᵉ idealʰᶠ)
               → proj₁ (proj₂ (coin-toss-from-comʰ w)) ≡ εᶜᵗ (proj₁ (proj₂ w))
 schedule-pinʰ _ = refl
+
+------------------------------------------------------------------------
+-- …at the commitment's own simulator and its own schedule
+
+-- Three of the four components of the premise ARE in the repository — the
+-- extracting simulator, its query certificate, and `εᶜ` with its negligibility
+-- — so the premise can be narrowed to the single relation that is not
+-- (`docs/fcom-extraction.md`'s `raw-emulation`).  Doing so pins the composed
+-- schedule to a closed formula.
+comSim : Certified Lkᶠ Advᶠ
+comSim = ROU.simᵒ , (λ _ → 2) , poly-const 2 , λ n → qbᵒ (ROU.simQB n)
+
+coin-toss-from-comᶜ : realᶠ ≈ctx[ εᶜ ] subᶠ comSim idealᶠ
+                    → (tossᶠ ∙ᶠ realᶠ) ≤UC^ωᵉ (tossᶠ ∙ᶠ idealᶠ)
+coin-toss-from-comᶜ e = coin-toss-from-com (comSim , εᶜ , εᶜ-negligible , e)
+
+-- …and the formula is the commitment's own, UNRESCALED.  The coin-toss stage
+-- makes no downward call (`Examples.CoinToss.UC.tossCert`), so `simCost` reads
+-- the allowance at the `_⊔ 1` floor and the substitution is the identity.
+composed-ε : (n q : ℕ) → εᶜᵗ εᶜ n q ≡ fromℕ (q * q + q + q) *ℚ inv-pow-2 n
+composed-ε n q = trans (+-identityˡ _) (cong (εᶜ n) (*-identityʳ q))
