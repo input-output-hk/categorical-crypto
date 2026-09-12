@@ -32,6 +32,7 @@
 
 open import Categories.Category using (Category; _[_≈_])
 
+open import Data.Empty using (⊥-elim)
 open import Data.List.Base using (List; []; _∷_)
 open import Data.Nat.Base as ℕ using (ℕ; suc; z≤n; s≤s)
 open import Data.Nat.Properties using (+-monoʳ-≤; m<m+n; m≤m⊔n; m≤n⊔m; ≤-refl; ≤-trans)
@@ -228,6 +229,33 @@ qbᵢ-wire up down = record
   ; cohR   = λ s b → >>=ₚ-identityˡ (inj₁ ((s , s≤s z≤n) , down b)) (returnₚ ∘′ forget)
   }
 
+-- A CLOSED process spends nothing: `Neg unitᴵ` is empty, so no output of its
+-- is downward, the potential stays at zero and the rate is zero too.  This is
+-- the certificate a resource plugged below a closed system carries without
+-- anything being known about it (`UC.Seam.Audit.Context.extractᵍ`).
+qbᵢ-closed : {B : Iface} (S : Set) (point : Dₚ S)
+             (step : S × (Pos unitᴵ ⊎ Neg B) → Dₚ (S × (Neg unitᴵ ⊎ Pos B)))
+           → QBᵢ S point step 0
+qbᵢ-closed {B} S point step = record
+  { Φ      = λ _ → 0
+  ; pointᵍ = mapₚ (_, z≤n) point
+  ; coh₀   = map-map point (_, z≤n) proj₁ ⟨≈⟩ >>=ₚ-identityʳ point
+  ; onLᵍ   = λ _ ()
+  ; onRᵍ   = λ s b → mapₚ up (step (s , inj₂ b))
+  ; cohL   = λ _ ()
+  ; cohR   = λ s b → map-map (step (s , inj₂ b)) up forget
+                   ⟨≈⟩ map-cong (step (s , inj₂ b)) forget-up
+                   ⟨≈⟩ >>=ₚ-identityʳ (step (s , inj₂ b))
+  }
+  where
+  up : S × (Neg unitᴵ ⊎ Pos B) → Ans {S} (λ _ → 0) (Neg unitᴵ) (Pos B) 0
+  up (_ , inj₁ e) = ⊥-elim e
+  up (s , inj₂ p) = inj₂ ((s , z≤n) , p)
+
+  forget-up : (y : S × (Neg unitᴵ ⊎ Pos B)) → forget (up y) ≡ y
+  forget-up (_ , inj₁ e) = ⊥-elim e
+  forget-up (_ , inj₂ _) = refl
+
 ------------------------------------------------------------------------
 -- The hom-level predicate
 
@@ -248,6 +276,9 @@ QB {A} {B} c M = Σ[ N ∈ Proc A B ] Certified c N × (N S.≈ᴹ M)
 
 certified⇒QB : {A B : Iface} {c : ℕ} {M : Proc A B} → Certified c M → QB c M
 certified⇒QB {M = M} q = M , q , S.reflᴹ
+
+qb-closed : {B : Iface} (M : Proc unitᴵ B) → QB 0 M
+qb-closed M = certified⇒QB (qbᵢ-closed (MC.St M) (MC.point (MC.state M) tt) (MC.step M))
 
 qb-resp-≈ : {A B : Iface} {c : ℕ} {M N : Proc A B}
           → M S.≈ᴹ N → QB c M → QB c N
