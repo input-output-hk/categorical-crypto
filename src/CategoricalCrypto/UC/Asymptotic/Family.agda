@@ -75,7 +75,7 @@ open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Saturated using (_≈negl_; Systems)
 open import CategoricalCrypto.UC.Seam.Audit.Context
   using (auditClose; auditTest; audit-qb; audit-run)
-open import CategoricalCrypto.UC.Seam.Carry.Graded using (adv-from-runs)
+open import CategoricalCrypto.UC.Seam.Carry using (adv-from-runs)
 
 import CategoricalCrypto.UC.Seam.Grounded as Gr
 

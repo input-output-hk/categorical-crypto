@@ -4,6 +4,12 @@
 -- are theorems (`UC.Seam.Adequacy`, `Protocol.Machine.Agree`), so `agreeToAdv`
 -- and the POV carry below are closed terms.
 --
+-- `adv-at`/`adv-from-runs` are the same arithmetic with the error KEPT rather
+-- than spent at one value, which is what a premise whose slack must stay
+-- negligible asks for (`UC.Family`'s header; `UC.Saturated._≈negl_` is the
+-- layer-1 relation it feeds).  `agree-to-adv` is `adv-from-runs` at a constant
+-- slack.
+--
 -- It is a module of its own because `UC.Seam` pays the machine-layer
 -- conversions once, in its interface, and the arithmetic here re-derives none
 -- of them: past `run-agree`, which is one `≈ₚ[]-resp`, everything is about `Dₚ`
@@ -18,6 +24,7 @@ open import Data.Rational.Properties
 open import Data.Rational.Properties.Ext
 open import Relation.Binary.PropositionalEquality
 
+open import ProbabilisticLogic.Distribution.RationalDist.Advantage using (advᵇ⊥)
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Advantage
 
@@ -70,16 +77,39 @@ private
     v ℚ.+ ε                      ∎
     where open ≤-Reasoning
 
+-- Closeness of the two machine runs at ONE slack is layer 1's advantage bound
+-- at that slack, at either verdict.  `prAgree` reads each verdict probability
+-- off a budget the domination reaches, and `∣∣≤` closes the bound.
+adv-at : {B : Iface} (P Q : Protocol unitᴵ B) (d : Strat (Neg B) (Pos B)) (ε : ℚ)
+       → runᴹ (morphism P) d ≈ₚ[ ε ] runᴹ (morphism Q) d
+       → (b : Bool) → advᵇ⊥ b (run P d) (run Q d) ℚ.≤ ε
+adv-at {B} P Q d ε (le , el) b =
+  ∣∣≤ (shift (Prᵇ P b d) (Prᵇ Q b d) ε
+             (one-sided b x y (Prᵇ P b d) (Prᵇ Q b d) ε (prAgree b P d) (prAgree b Q d) le))
+      (subst (ℚ._≤ ε) (neg-sub (Prᵇ Q b d) (Prᵇ P b d))
+             (shift (Prᵇ Q b d) (Prᵇ P b d) ε
+                    (one-sided b y x (Prᵇ Q b d) (Prᵇ P b d) ε
+                               (prAgree b Q d) (prAgree b P d) el)))
+  where
+  x = runᴹ (morphism P) d
+  y = runᴹ (morphism Q) d
+
+-- …and the packaged form, at a budget-indexed slack: this is `_≈adv[_]_`, whose
+-- negligibly graded family is `UC.Saturated._≈negl_`.
+adv-from-runs : {B : Iface} (P Q : Protocol unitᴵ B) (δ : ℕ → ℚ)
+              → ((q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d
+                 → runᴹ (morphism P) d ≈ₚ[ δ q ] runᴹ (morphism Q) d)
+              → P ≈adv[ δ ] Q
+adv-from-runs P Q δ h b q d a = adv-at P Q d (δ q) (h q d a) b
+
+-- …so the ε-quantified form is the constant-slack instance.  The `PrAgree`
+-- hypothesis goes unused — `adv-at` spends the closed `prAgree` instead — and
+-- is kept because `UC.Seam`'s two named obligations are the interface this
+-- module answers.
 agree-to-adv : Adequacy → PrAgree → AgreeToAdv
-agree-to-adv ad pa {B} P Q ag ε ε>0 b _ d _ =
-  let le , el = run-agree ad B (morphism P) (morphism Q) ag d ε ε>0
-      x = runˢ B (morphism P) d
-      y = runˢ B (morphism Q) d
-  in ∣∣≤ (shift (Prᵇ P b d) (Prᵇ Q b d) ε
-               (one-sided b x y (Prᵇ P b d) (Prᵇ Q b d) ε (pa b P d) (pa b Q d) le))
-         (subst (ℚ._≤ ε) (neg-sub (Prᵇ Q b d) (Prᵇ P b d))
-                (shift (Prᵇ Q b d) (Prᵇ P b d) ε
-                       (one-sided b y x (Prᵇ Q b d) (Prᵇ P b d) ε (pa b Q d) (pa b P d) el)))
+agree-to-adv ad _ {B} P Q ag ε ε>0 =
+  adv-from-runs P Q (λ _ → ε)
+    (λ _ d _ → run-agree ad B (morphism P) (morphism Q) ag d ε ε>0)
 
 ------------------------------------------------------------------------
 -- Both hypotheses discharged
