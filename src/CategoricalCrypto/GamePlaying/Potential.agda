@@ -20,6 +20,10 @@
 --     the state is one the next query can hit with probability 1, so a fixed
 --     secret must be sampled LAZILY for this potential to apply (see
 --     `docs/ro-game-hop.md`).
+--
+-- `∨-cert` is the union bound the two are combined by: a proof whose bad event
+-- is a disjunction — a binding argument's is — adds the potentials and adds the
+-- bounds.
 
 open import Class.DecEq
 
@@ -28,7 +32,7 @@ open import Data.List.Base using (List; []; _∷_)
 open import Data.List.NonEmpty as NE using ()
 open import Data.List.Relation.Unary.All as ListAll using ()
 open import Data.Nat.Base using (ℕ; suc; _*_; _+_)
-open import Data.Product.Base using (_×_; proj₁)
+open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Rational using (ℚ; 0ℚ; 1ℚ; nonNegative)
   renaming (_+_ to _+ℚ_; _*_ to _*ℚ_; _≤_ to _≤ℚ_)
 open import Data.Rational.Properties using
@@ -114,6 +118,49 @@ guess-drift k true  p = ≤-trans (≤-reflexive (E-const (uniform-Vec k) 1ℚ))
   (≤-trans (≤-reflexive (sym (+-identityʳ 1ℚ))) (+-monoʳ-≤ 1ℚ (0≤inv-pow-2 k)))
 guess-drift k false p = ≤-trans (≤-reflexive (P-uniform-Vec k p))
                                 (≤-reflexive (sym (+-identityˡ (inv-pow-2 k))))
+
+------------------------------------------------------------------------
+-- Two flags at once
+
+-- The union bound as a sum of potentials.  A state bad for `f ∨ g` is bad for
+-- one of them, where that one's potential already dominates 1 and the other's
+-- is non-negative; the per-step drift adds by linearity of `E`.
+∨-cert : {resp : St → Q → Dist-ℚ (St × R)} {f g : St → Bool} {s₀ : St}
+         {ε₁ ε₂ : ℕ → ℚ}
+       → SuperCert resp f s₀ ε₁ → SuperCert resp g s₀ ε₂
+       → SuperCert resp (λ s → f s ∨ g s) s₀ (λ m → ε₁ m +ℚ ε₂ m)
+∨-cert {resp = resp} {f} {g} c₁ c₂ = record
+  { Inv    = λ s → C₁.Inv s × C₂.Inv s
+  ; φ      = λ m s → C₁.φ m s +ℚ C₂.φ m s
+  ; inv₀   = C₁.inv₀ , C₂.inv₀
+  ; pres   = λ s q i → ListAll.zip (C₁.pres s q (proj₁ i) , C₂.pres s q (proj₂ i))
+  ; φ-nn   = λ m s i → ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ)))
+                               (+-mono-≤ (C₁.φ-nn m s (proj₁ i)) (C₂.φ-nn m s (proj₂ i)))
+  ; φ-bad  = bad
+  ; φ-step = step
+  ; φ-init = λ m → +-mono-≤ (C₁.φ-init m) (C₂.φ-init m)
+  }
+  where
+  module C₁ = SuperCert c₁
+  module C₂ = SuperCert c₂
+
+  bad : ∀ m s → C₁.Inv s × C₂.Inv s → (f s ∨ g s) ≡ true
+      → 1ℚ ≤ℚ C₁.φ m s +ℚ C₂.φ m s
+  bad m s i e = aux (f s) refl
+    where
+    aux : (b : Bool) → f s ≡ b → 1ℚ ≤ℚ C₁.φ m s +ℚ C₂.φ m s
+    aux true  ef = ≤-trans (≤-reflexive (sym (+-identityʳ 1ℚ)))
+      (+-mono-≤ (C₁.φ-bad m s (proj₁ i) ef) (C₂.φ-nn m s (proj₂ i)))
+    aux false ef = ≤-trans (≤-reflexive (sym (+-identityˡ 1ℚ)))
+      (+-mono-≤ (C₁.φ-nn m s (proj₁ i))
+                (C₂.φ-bad m s (proj₂ i) (trans (sym (cong (_∨ g s) ef)) e)))
+
+  step : ∀ m s q → C₁.Inv s × C₂.Inv s
+       → E (resp s q) (λ sr → C₁.φ m (proj₁ sr) +ℚ C₂.φ m (proj₁ sr))
+         ≤ℚ C₁.φ (suc m) s +ℚ C₂.φ (suc m) s
+  step m s q i = ≤-trans
+    (≤-reflexive (E-add (resp s q) (λ sr → C₁.φ m (proj₁ sr)) (λ sr → C₂.φ m (proj₁ sr))))
+    (+-mono-≤ (C₁.φ-step m s q (proj₁ i)) (C₂.φ-step m s q (proj₂ i)))
 
 ------------------------------------------------------------------------
 -- The birthday flag: a growing log of uniform samples
