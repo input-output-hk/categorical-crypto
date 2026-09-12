@@ -142,8 +142,8 @@ module _ {S A B : Set} where
 ------------------------------------------------------------------------
 -- The round-trip bound
 
-module _ {S A B : Set} (u : Body S A B) (Ku : S × A → Dist⊥ (S × (B ⊎ A)))
-         (bodyS : (w : S × A) → Σ[ i ∈ ℕ ] Settles i (u w) (Ku w)) where
+module Loop {S A B : Set} (u : Body S A B) (Ku : S × A → Dist⊥ (S × (B ⊎ A)))
+            (bodyS : (w : S × A) → Σ[ i ∈ ℕ ] Settles i (u w) (Ku w)) where
 
   -- The body's kernel unrolled `f` rounds.  A loop still running after `f` is
   -- read as divergence, which is what makes `loopK` total and what makes

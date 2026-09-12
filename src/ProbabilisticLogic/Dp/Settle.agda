@@ -229,6 +229,20 @@ Settles-bind⋆ n d f ν κ s w =
   let j , sp = uniformize (λ p i → Settles i (f p) (κ p)) (λ p le → Settles-mono le) w n d
   in n + j , Settles-bind n j d f ν κ s sp
 
+-- The junction a pure Kleisli map spends: one step, and only the continuation
+-- AT that value is asked for.  A machine's structural wiring is a chain of
+-- these, and `Settles-bind⋆`'s all-values witness is not available there.
+Settles-ret⋆ : (p : A) (f : A → Dₚ B) (ν : Dist⊥ B)
+             → Σ[ i ∈ ℕ ] Settles i (f p) ν
+             → Σ[ i ∈ ℕ ] Settles i (returnₚ p >>=ₚ f) ν
+Settles-ret⋆ {A = A} {B = B} p f ν (j , s) =
+  1 + j , Settles-resp (return⊥ p >>=⊥ κ) ν
+            (λ Q → >>=⊥-identityˡ p κ (maybeℚ Q))
+            (Settles-bind 1 j (returnₚ p) f (return⊥ p) κ (Settles-return p) (s , s))
+  where
+  κ : A → Dist⊥ B
+  κ _ = ν
+
 ------------------------------------------------------------------------
 -- Settling on a TOTAL distribution
 --
