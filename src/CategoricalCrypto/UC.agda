@@ -139,6 +139,19 @@
 --                                  the two ways a bound crosses it — graded
 --                                  (`simCost` charged) and probabilistic (the
 --                                  trivial-grade collapse into `UC.Saturated`)
+--                `UC.Asymptotic.Contextual`
+--                                  the ONE quantitative relation, `_≈ctx[_]_`,
+--                                  on families of graded morphisms with the
+--                                  context's certificates read into the
+--                                  allowance, and the simulator-bearing witness
+--                                  `_≤UC^ωᵉ_` (`UC.Asymptotic.Family`'s
+--                                  `_≈ᶠ[_]_`/`_≤UC^ωⁿ_` are its unit-grade
+--                                  aliases and specializations)
+--                `UC.Asymptotic.Compose`
+--                                  its composition laws with the error
+--                                  retained: `≤UC^ωᵉ-trans` and `UC-composeᵉ`,
+--                                  each with its exact allowance substitution
+--                                  (`docs/quantitative-family.md`)
 --
 -- The parameterized modules take a `UCBase` and so are imported directly
 -- rather than re-exported here; `UC.Machine.ucBaseᴹ` is the one to feed them at
@@ -169,6 +182,7 @@ module CategoricalCrypto.UC where
 open import CategoricalCrypto.UC.Approximate public
 open import CategoricalCrypto.UC.Asymptotic public
 open import CategoricalCrypto.UC.Asymptotic.Audit public
+open import CategoricalCrypto.UC.Asymptotic.Compose public
 open import CategoricalCrypto.UC.Asymptotic.Family public
 open import CategoricalCrypto.UC.Budget public
 open import CategoricalCrypto.UC.Core public
