@@ -46,7 +46,7 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol using (Protocol)
 open import CategoricalCrypto.Protocol.Machine using (morphism; runᴹ)
 open import CategoricalCrypto.Protocol.Machine.Agree using (prAgree)
-open import CategoricalCrypto.Protocol.Observe using (Bounded)
+open import CategoricalCrypto.Protocol.Observe using (Bounded; Pr)
 open import CategoricalCrypto.Strategy using (Strat; asks≤)
 open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget)
 open import CategoricalCrypto.UC.Graded using (plug-graded)
@@ -65,6 +65,7 @@ open import CategoricalCrypto.UC.Seam.Adequacy using (adequacy)
 open import CategoricalCrypto.UC.Seam.Audit using (AuditBound; AuditEvent)
 open import CategoricalCrypto.UC.Seam.Budget using (qb-strategyEnv)
 open import CategoricalCrypto.UC.Seam.Grounded using (closedᵒ; 𝟘ᴳ; plug-λ; plug-run)
+open import CategoricalCrypto.UC.Seam.Slide using (slide⊗)
 
 module CategoricalCrypto.UC.Seam.Audit.Context where
 
@@ -149,15 +150,11 @@ module _ (B : Iface) (e : Strat (Neg B) (Pos B)) {X : Iface} (a : Proc X 𝟭ᴵ
       where
       reduceᵍ : ((auditTestᵍ ∘ id ⊗₁ gradedᵒ f) ∘ closedᵒ w)
               ≈ procᵒ (strategyEnv B e) ∘ procᵒ closedᵍ
-      reduceᵍ = ((assoc ○ (refl⟩∘⟨ merge)) ⟩∘⟨refl)
+      reduceᵍ = ((assoc ○ (refl⟩∘⟨ slide⊗ 𝟘ᴳ (subᵉ (procᵘ a)) (gradedᵒ f))) ⟩∘⟨refl)
               ○ sym-assoc
               ○ (plug-λ (procᵒ (strategyEnv B e) ∘ unitorˡ.from) _ ⟩∘⟨refl)
               ○ ((assoc ○ (refl⟩∘⟨ plug-graded a f)) ⟩∘⟨refl)
               ○ assoc ○ (refl⟩∘⟨ ⟺ (procᵒ-∘ (plugᴹ a 𝒫.∘ f) w))
-        where
-        merge : (id ⊗₁ subᵉ (procᵘ a)) ∘ (id ⊗₁ gradedᵒ f)
-              ≈ T₁ 𝟘ᴳ (sub (procᵘ a) ∘ gradedᵒ f)
-        merge = (⟺ (T₁-⊗ 𝔾ᵒ 𝟘ᴳ _) ⟩∘⟨ ⟺ (T₁-⊗ 𝔾ᵒ 𝟘ᴳ _)) ○ ⟺ T-homomorphism
 
     -- …and the observation IS layer 1's run of the strategy against it.
     audit-runᵍ : obs (tv₁ 𝟘ᴳ (gradedᵒ f) auditTestᵍ) (closedᵒ w) ≈ₚ runᴹ closedᵍ e
@@ -193,9 +190,42 @@ absorb-plugᵍ B e a s =
   assoc ○ (refl⟩∘⟨ (⟺ T₁ᵉ-∘
                    ○ T₁ᵉ-resp-≈ (⟺ subᵉ-∘ ○ subᵉ-resp-≈ (⟺ (procᵘ-∘ a s)))))
 
--- A graded bound at any class this context inhabits IS layer 1's `Bounded`.
--- The `bad`-budget hypothesis is what lets the run and the mass meet: `Bounded`
--- charges `ε` at the budget of `d` while the context is built from `bad d`.
+------------------------------------------------------------------------
+-- Extraction
+
+-- What the extraction context observes: the embedded strategy behind the two
+-- deflating unitors, closed on `P`'s machine image.
+ctxObs : {B : Iface} → Protocol unitᴵ B → Strat (Neg B) (Pos B) → Dₚ Bool
+ctxObs {B} P e = obs (tv₁ 𝟘ᴳ (closedᵒ (morphism P)) (auditTest B e)) auditClose
+
+-- The numerical half of `extract`, with no event class in it (review §4.1): a
+-- bound on what THIS context observes is a bound on layer 1's own probability.
+-- `audit-run` identifies the two runs and `prAgree` reads the probability off
+-- the machine one past a budget, and neither step asks WHY the bound holds —
+-- which is what lets a membership route and a direct one share it.
+extract-obs : {B : Iface} (P : Protocol unitᴵ B) (e : Strat (Neg B) (Pos B)) (c : ℚ)
+            → ((n : ℕ) → Pr≤ n (ctxObs P e) ℚ.≤ c) → Pr P e ℚ.≤ c
+extract-obs {B} P e c bnd = subst (λ z → z ℚ.≤ c) (proj₂ pa 0) chain
+  where
+  pa = prAgree true P e
+
+  reach = proj₂ (audit-run B e (morphism P)) (indᵇ true) (indᵇ-nn true) (proj₁ pa + 0)
+
+  chain : Pr≤ (proj₁ pa + 0) (runᴹ (morphism P) e) ℚ.≤ c
+  chain = ≤-trans (proj₂ reach) (bnd (proj₁ reach))
+
+-- …in the shape layer 1 states its bound, which is what both extractions want.
+extract-bounded : {B : Iface} (P : Protocol unitᴵ B)
+                  (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) (ε : ℕ → ℚ)
+                → ((q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d
+                   → (n : ℕ) → Pr≤ n (ctxObs P (bad d)) ℚ.≤ ε q)
+                → Bounded P bad ε
+extract-bounded P bad ε bnd q d a = extract-obs P (bad d) (ε q) (bnd q d a)
+
+-- A graded bound at any class this context inhabits IS layer 1's `Bounded`:
+-- `extract-obs` past the membership plumbing.  The `bad`-budget hypothesis is
+-- what lets the two budgets meet — `Bounded` charges `ε` at the budget of `d`
+-- while the context is built from `bad d`.
 extract : {B : Iface} (P : Protocol unitᴵ B)
           (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) (ε : ℕ → ℚ)
           {𝔈 : AuditEvent 0ℓ 𝟘ᵒ 𝟘ᴳ (ifaceᵒ B)}
@@ -204,26 +234,7 @@ extract : {B : Iface} (P : Protocol unitᴵ B)
            → 𝔈 𝟘ᴳ (auditTest B (bad d)) auditClose (q * 1))
         → AuditBound (closedᵒ (morphism P)) 𝔈 ε
         → Bounded P bad ε
-extract {B} P bad ε bad-asks mem bnd q d a =
-  subst (λ z → z ℚ.≤ ε q) (reads 0) chain
-  where
-  run : Dₚ Bool
-  run = runᴹ (morphism P) (bad d)
-
-  obsv : Dₚ Bool
-  obsv = obs (tv₁ 𝟘ᴳ (closedᵒ (morphism P)) (auditTest B (bad d))) auditClose
-
-  near : obsv ≈ₚ run
-  near = audit-run B (bad d) (morphism P)
-
-  pa = prAgree true P (bad d)
-  reads = proj₂ pa
-
-  reach = proj₂ near (indᵇ true) (indᵇ-nn true) (proj₁ pa + 0)
-
-  chain : Pr≤ (proj₁ pa + 0) run ℚ.≤ ε q
-  chain = ≤-trans (proj₂ reach)
-            (subst (λ k → Pr≤ (proj₁ reach) obsv ℚ.≤ ε k) (ℕP.*-identityʳ q)
-                   (bnd 𝟘ᴳ (auditTest B (bad d)) auditClose
-                        (audit-qb B (bad d) q (bad-asks q d a)) qb-λ⇐
-                        (mem q d a) (proj₁ reach)))
+extract {B} P bad ε bad-asks mem bnd = extract-bounded P bad ε λ q d a n →
+  subst (λ k → Pr≤ n (ctxObs P (bad d)) ℚ.≤ ε k) (ℕP.*-identityʳ q)
+        (bnd 𝟘ᴳ (auditTest B (bad d)) auditClose
+             (audit-qb B (bad d) q (bad-asks q d a)) qb-λ⇐ (mem q d a) n)
