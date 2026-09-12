@@ -62,6 +62,7 @@ open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.GamePlaying
 open import CategoricalCrypto.GamePlaying.Defer
 open import CategoricalCrypto.GamePlaying.Hop
+open import CategoricalCrypto.GamePlaying.Partial
 open import CategoricalCrypto.GamePlaying.Potential
 open import CategoricalCrypto.GamePlaying.Test
 open import CategoricalCrypto.OutputOnly
@@ -71,6 +72,7 @@ open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Machine.Agree
 open import CategoricalCrypto.Protocol.Machine.Compose
 open import CategoricalCrypto.Protocol.Machine.Raw
+open import CategoricalCrypto.Protocol.Machine.Trace
 open import CategoricalCrypto.Protocol.Machine.Total
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Protocol.Safety
