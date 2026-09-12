@@ -3453,3 +3453,74 @@ open import CategoricalCrypto.Protocol.Machine.Trace     -- after line 74
 line of their own: `Protocol.Machine.Trace` imports them, as
 `Protocol.Machine.Raw` already carries `Dp.Settle`. `src/ProbabilisticLogic.agda`
 lists no `Dp.*` module and is untouched.
+## Resolved (coin-toss)
+
+Branch `coin-toss`, off `protocol-rewrite` at `587999b5`. The design note is
+[`docs/coin-toss.md`](docs/coin-toss.md); this section is only what needs a
+maintainer's judgement.
+
+### Landed
+
+- **The first consumer of `UC-composeᵉ` on a real protocol.** Blum coin-tossing
+  over `Examples.ROCommitment`, one composed theorem per corruption case
+  (`Examples/CoinToss/Compose.agda:82`, `:132`), with every certificate the
+  theorem demands proved, `Allowance-mono` discharged at the zero schedule, and
+  the composed schedule pinned mechanically (`schedule-pin`, `schedule-pinʰ`)
+  and read in closed form (`composed-ε`: the commitment's own `(q² + 2q)·2⁻ⁿ`,
+  unrescaled).
+- **Four new query certificates**, two of them about modules that had none:
+  `Examples.ROCommitment.real` and `…Hiding.realʰ` are each `Certified 1`
+  (`Examples/CoinToss/UC.agda:101`, `Examples/CoinToss/Hiding/UC.agda:113`).
+  They are *placed in the consumer* rather than beside the machines they are
+  about, because `Examples/ROCommitment/**` is a sibling agent's scope on this
+  branch. **Maintainer call:** they belong in `Examples/ROCommitment/UC.agda`
+  and `Examples/ROCommitment/Hiding/UC.agda`, beside `simCert`/`simCertʰ`, and
+  moving them is a pure relocation.
+- The commitment's premise narrowed to its single missing component
+  (`coin-toss-from-comᶜ`, `Compose.agda:156`): the simulator, its `QB 2` and
+  `εᶜ` with its negligibility are supplied from the repository, so only
+  `docs/fcom-extraction.md`'s `raw-emulation` is left as a hypothesis.
+
+### Open, needing a decision
+
+- **The second hop is not stated, and one of its two shapes is FALSE.**
+  `docs/coin-toss.md` §5 has the two-line refutation of the shape
+  `UC-composeᵉ` would consume (the outer simulator is blind to the
+  subroutine's adversary port; Blum's is not) and the counterexample to the
+  shape that is true (the ideal `F_com`'s one bit of memory is the CONTEXT's
+  cell, and `_≈ctx[_]_` quantifies over every context). **This is the finding
+  the branch exists to report**, and it is an architectural one: the wire
+  placement of an ideal functionality is what makes a one-level emulation
+  affordable and what makes a two-level one unstateable at an open domain.
+  Both repairs bottom out in the same missing machine-layer lemma — a readable
+  ⊕-trace of two stateful machines where neither is a `morphism` image.
+- **`graded₂ᵒ`/`ext-gradedᵒ` (`UC/Model/Graded.agda:68`, `:77`) and
+  `UC.Graded.ext-graded` (`:73`) have NO consumer on this branch.** They are
+  `sub-gradedᵒ`'s counterpart for `_∙ᶠ_` — without them no statement about a
+  composed system can be read back as a machine equality — and they were built
+  because `docs/coin-toss.md` §5 claims that half of the second hop is cheap,
+  and a claim like that is better proved than asserted. They cost
+  `UC.Model.Graded` 10.1 s → 11.5 s and `UC.Graded` nothing. **Maintainer
+  call:** keep them as the standing bridge for the next two-level example, or
+  drop them until one exists.
+- **A `Proc`-level `qb-oneCall` is now clearly worth having.**
+  `UC.QueryBound.qb-oneCall` is stated at `morphism P` for a `Protocol A B`, so
+  it applies to none of the four raw machines certified here, and all four spell
+  out the same constantly-zero-potential certificate. The statement that would
+  collapse them: a `Proc` whose every activation from above emits at most one
+  downward message, and whose activations from below emit none, is
+  `Certified 1`. Three of the four would become one line.
+- **`Startᴵ` in `Examples/CoinToss/Test.agda:68`** is a one-letter wake-up
+  interface, introduced because a corrupted party has to be started by
+  something and `unitᴵ` cannot start it. If the repository grows a standard
+  "environment tick" port, that is the name to use instead.
+
+### Verification
+
+Every commit checked green before landing, `+RTS -M8G -H1G`, rc=0 and an empty
+`ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|Heap exhausted`
+gate. Closure `src/CategoricalCrypto.agda` rc=0 over 113 modules, re-run after the
+`UC.Model.Graded` edit (which invalidates the whole cone);
+`Examples/ChimericLedger/FactorEps.agda` and `UC/Approximate/LocalTests.agda`
+checked separately, both outside that closure. Escape-hatch baseline 16 before
+/ 16 after, all sixteen the words "postulate-free" in inherited comments.

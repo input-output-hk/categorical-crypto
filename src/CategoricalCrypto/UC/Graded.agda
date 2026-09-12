@@ -13,24 +13,27 @@
 -- front of a graded image is the relay `subᴵ` composed with it, so a factoring
 -- of the real process through the simulator and the ideal one — one machine
 -- equality — is an emulation at that grade, with no error at all.
+-- `ext-graded` is the same bridge for a stage plugged on TOP of a graded
+-- image, which is what a composed system is.
 --
 -- The unit grade is the special case at `X = Y = 𝟭ᴵ`, in the sense that the
 -- statements here are the `ιᴳ`-free ones and specialize to it; nothing in
 -- `UC.Seam.Grounded` is weakened or re-proved.
 
 open import Categories.Category using (Category; _[_≈_])
+open import Categories.Functor.Monoidal.CurriedTensor.Properties using (T₁-⊗; μ-α⇐)
 
 open import Data.Product.Base using (_,_)
 open import Level using (0ℓ)
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base using (𝒢ₚ)
-open import CategoricalCrypto.UC.Machine using (Proc; subᴵ′)
+open import CategoricalCrypto.UC.Machine using (Proc; T₁ᴵ; a⇒ᴵ; subᴵ′)
 open import CategoricalCrypto.UC.Machine.Dictionary using (𝟭ᴵ)
 open import CategoricalCrypto.UC.Machine.Plug using (plugᴹ)
 open import CategoricalCrypto.UC.Model.Enrichment using (procᵘ)
-open import CategoricalCrypto.UC.Model.Graded using (plug-gradedᵒ; sub-gradedᵒ; ≈ᴹ⇒≈ᵍ)
-open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; procᵒ)
+open import CategoricalCrypto.UC.Model.Graded using (ext-gradedᵒ; graded₂ᵒ; plug-gradedᵒ; sub-gradedᵒ; ≈ᴹ⇒≈ᵍ)
+open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; ifaceᵒ; procᵒ; 𝔾ᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 
 module CategoricalCrypto.UC.Graded where
@@ -38,7 +41,7 @@ module CategoricalCrypto.UC.Graded where
 private
   module M = Category (𝒢ₚ 0ℓ)
 
-  variable A B X Y : Iface
+  variable A B C X Y : Iface
 
 -- The factoring the emulation consumes: the real process IS the simulator's
 -- relay in front of the ideal one, at the machine layer.  This is `𝒢ₚ`'s own
@@ -60,6 +63,21 @@ sub-graded = sub-gradedᵒ
 plug-graded : (a : Proc X 𝟭ᴵ) (f : Proc A (X ⊗ᴵ B))
             → unitorˡ.from ∘ (sub (procᵘ a) ∘ gradedᵒ f) ≈ procᵒ (M._∘_ (plugᴹ a) f)
 plug-graded = plug-gradedᵒ
+
+-- …and the reading a COMPOSED system needs: `UC.Asymptotic.Compose._∙ᶠ_` is
+-- `ext X k ∘ f`, and `ext` is `μ ∘ T₁` (`μT`) with `μ` the associator
+-- (`CurriedTensor.Properties.μ-α⇐`), so a stage plugged on top of a graded
+-- image is again one machine composite.  Nothing consumes this yet:
+-- `docs/coin-toss.md` §5 is why the two-level emulation it exists for stops
+-- elsewhere.
+ext-graded : {P : Iface} (k : Proc B (P ⊗ᴵ C)) (f : Proc A (X ⊗ᴵ B))
+           → ext (ifaceᵒ X) (gradedᵒ k) ∘ gradedᵒ f
+             ≈ graded₂ᵒ (M._∘_ (a⇒ᴵ {X} {P} {C}) (M._∘_ (T₁ᴵ X k) f))
+ext-graded {X = X} k f =
+  Equiv.trans (∘-resp-≈ˡ (Equiv.trans (Equiv.sym (μT (gradedᵒ k)))
+                                      (∘-resp-≈ (μ-α⇐ 𝔾ᵒ (ifaceᵒ X) _)
+                                                (T₁-⊗ 𝔾ᵒ (ifaceᵒ X) (gradedᵒ k)))))
+              (Equiv.trans assoc (ext-gradedᵒ k f))
 
 emulᵍ : {f : Proc A (X ⊗ᴵ B)} {s : Proc Y X} {g : Proc A (Y ⊗ᴵ B)}
       → Factors f s g → gradedᵒ f ≈ᵁ sub (procᵒ s) ∘ gradedᵒ g
