@@ -229,6 +229,32 @@ The ledger consumer does not need it — the ideal bound is supplied at the
 ledger, not composed from a hash-level one — so it is recorded rather than
 attempted.
 
+### The hash-level ε-premise
+
+The paragraph above is superseded on the composition side: the ε-retaining `UC-compose`
+it records as not delivered is `UC.Asymptotic.Compose.UC-composeᵉ`
+(`docs/quantitative-family.md`), and `Examples.ChimericLedger.FactorEps` is its first
+consumer. So the family premise can now be assumed AT THE HASH and carried to the ledger
+with its error intact, which is what plan §4.5 asks for:
+
+```agda
+hash-liftⁿ : (hash : Systems HashIf^ω) → hash ≤UC^ωⁿ oracle^ω
+           → Realᴴ hash vr s ≤UC^ωⁿ Realᴴ oracle^ω vr s
+
+ledger-pov-from-hashⁿ : SerInj → hash ≤UC^ωⁿ oracle^ω → (p : ℕ → ℕ) → Poly p → …
+```
+
+`ledger-pov-from-hashⁿ` is `ledger-pov-family-negligible` behind `hash-liftⁿ`: the same
+bound, the same `TruthfulAudit`, and neither `TotalRun` nor `NoDeadStep`. The lift's ε is
+the premise's own read at `(q * 1) * 1` — one activation for the ledger, one for the unit
+regrading the Kleisli composition introduces — with both substitutions EXACT and
+negligibility proved after them. `hash-liftᵉ` is the same lift at the canonical witness
+`_≤UC^ωᵉ_`; the certificates `UC-composeᵉ` demands are proved here rather than assumed
+(`UC.QueryBound.qb-closed` for the hash, `ChimericLedger.QueryBound.qb-ledger` for the
+ledger), and its `Allowance-mono` premise is discharged because the two sides share their
+upper stage and so are compared at the zero schedule. `docs/ledger-lift-eps.md` has the
+substitutions, the residual, and the costs.
+
 ## The obstruction: why the graded route stops short of a probability
 
 `uc-audit-carry` ends at an `AuditBound` on the real side. Turning that back

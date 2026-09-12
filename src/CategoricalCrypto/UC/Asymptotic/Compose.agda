@@ -69,6 +69,37 @@ private variable A B C X Y Z P Q : ℕ → Channel
                   ≈ sub (sim s₁ n ∘ sim s₂ n) {B n} ∘ h n
   merge _ = sym-assoc ○ ∘-resp-≈ˡ (⟺ sub-homomorphism)
 
+-- A SPLIT regrading acts on a witness, which `Abstract2.Factor.≤UC-sub` is for
+-- the qualitative order and for the same reason: post-composing `sub c` is no
+-- congruence unless the simulator commutes with `c`, and a retraction `r`
+-- conjugates it.  What the quantitative version adds is the allowance, and the
+-- substitution is `≈ctx-sub`'s — EXACT, `c` being absorbed into the test.
+≤UC^ωᵉ-sub : (c : Certified X Z) (r : Certified Z X)
+           → ((n : ℕ) → sim r n ℐ.∘ sim c n ℐ.≈ ℐ.id)
+           → {f g : Homᶠ A X B} → f ≤UC^ωᵉ g → subᶠ c f ≤UC^ωᵉ subᶠ c g
+≤UC^ωᵉ-sub {B = B} c r inv {g = g} (s , ε , neg , e) =
+    c ∘ᶜ s ∘ᶜ r
+  , (λ n q → ε n (simCost q (cost c n)))
+  , NegligibleBound-simCost (cost c) (cost-poly c) ε neg
+  , ≈ctx-resp (λ n q → ε n (simCost q (cost c n))) (λ _ → Equiv.refl) strict
+              (≈ctx-sub c ε e)
+  where
+  -- The conjugation, which is where the retraction is spent.
+  grade : (n : ℕ) → (sim c n ℐ.∘ sim s n ℐ.∘ sim r n) ℐ.∘ sim c n ℐ.≈ sim c n ℐ.∘ sim s n
+  grade n = ℐ.Equiv.trans ℐ.assoc
+              (ℐ.∘-resp-≈ʳ (ℐ.Equiv.trans ℐ.assoc
+                (ℐ.Equiv.trans (ℐ.∘-resp-≈ʳ (inv n)) ℐ.identityʳ)))
+
+  strict : (n : ℕ) → sub (sim c n) {B n} ∘ sub (sim s n) {B n} ∘ g n
+                   ≈ sub (sim (c ∘ᶜ s ∘ᶜ r) n) {B n} ∘ sub (sim c n) {B n} ∘ g n
+  strict n = begin
+      sub (sim c n) ∘ sub (sim s n) ∘ g n                        ≈⟨ sym-assoc ⟩
+      (sub (sim c n) ∘ sub (sim s n)) ∘ g n                      ≈⟨ (⟺ sub-homomorphism) ⟩∘⟨refl ⟩
+      sub (sim c n ℐ.∘ sim s n) ∘ g n                            ≈⟨ sub-resp-≈ (ℐ.Equiv.sym (grade n)) ⟩∘⟨refl ⟩
+      sub (sim (c ∘ᶜ s ∘ᶜ r) n ℐ.∘ sim c n) ∘ g n                ≈⟨ sub-homomorphism ⟩∘⟨refl ⟩
+      (sub (sim (c ∘ᶜ s ∘ᶜ r) n) ∘ sub (sim c n)) ∘ g n          ≈⟨ assoc ⟩
+      sub (sim (c ∘ᶜ s ∘ᶜ r) n) ∘ sub (sim c n) ∘ g n            ∎
+
 ------------------------------------------------------------------------
 -- Plugging processes around a relation
 

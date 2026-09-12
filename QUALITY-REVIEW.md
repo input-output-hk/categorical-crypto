@@ -3134,3 +3134,70 @@ here. No statement was weakened, no consumer was edited, nothing was retired.
   a line of its own (no `open import` needed — it is already in the closure).
   `src/CategoricalCrypto.agda` needs nothing: it delegates the cone's inventory
   to `UC.agda`.
+
+## Resolved (ledger-lift-eps)
+
+Plan step 6, the part independent of step 5: the hash-level premise lifted through the
+ledger with its error kept (`docs/ledger-lift-eps.md`). Everything below is green; each
+item is a place a maintainer may want to rule differently.
+
+1. **`Examples/ChimericLedger/QueryBound.agda :: qb-oneCall` is in the wrong module.** It
+   is stated over an arbitrary `Protocol A B` — "a protocol whose every step factors
+   through `OracleCall.fromCall` is 1-bounded" — and belongs in `UC.QueryBound` beside
+   `qbᵢ-wire`/`qbᵢ-closed`, which is where a second consumer would look for it. It sits in
+   the ledger example only because `UC/QueryBound/**` was outside this branch's edit
+   scope. Moving it is an import move: nothing in it mentions the ledger.
+
+2. **Two new theorems, no rewiring.** `Factor.ledger-pov-from-hash`, `hash-lift`,
+   `ledger-factor`, `Real.ledger-pov` and the five `EndToEnd` theorems are byte-identical;
+   `FactorEps` sits beside them. `ledger-pov-from-hash′` re-proves
+   `Factor.ledger-pov-from-hash` the ε-retaining way, so the maintainer may prefer to
+   RETIRE the `liftᵖ` route — but that would strip `UC.Factor.liftᵖ` and
+   `Abstract2.Factor.≤UC-sub` of their only in-repo importers, which is the same kind of
+   trade the parked `ledger-uc-to-pov` item below records. Left alone.
+
+3. **The parked "reroute `ledger-uc-to-pov` through the family theorem?" call is
+   unchanged by this branch.** `ledger-uc-to-pov` is untouched, so `UC.Asymptotic.uc-agree`
+   keeps the importer that note is about, and `ledger-pov-from-hash′` reaches the family
+   theorem without passing through `ledger-uc-to-pov` at all. No new evidence either way.
+
+4. **`hash-liftⁿ` does not go through `UC-composeᵉ`, and that is deliberate.** The two
+   sides share their upper stage, so `UC-composeᵉ`'s `≈ctx-pre` step compares `ledgerᶠ`
+   with itself and its simulator is the identity; `≈ctx-ext` + `≈ctx-sub` give the same
+   conclusion with no simulator introduced, which is what lets the POV corollary END (a
+   general witness cannot be forgotten back into `_≤UC^ωⁿ_` — §5 of the doc has the typed
+   residual). `hash-liftᵉ` IS through `UC-composeᵉ` and is the general statement.
+
+5. **`migration-pin` is a two-line private scaffold** (`FactorEps.agda:189`) whose only
+   job is to force `ledger-pov-from-hash′`'s hand-written signature to unify with
+   `Factor.ledger-pov-from-hash`'s own type. Rule 18 would cut a wrapper; this is a test,
+   not a wrapper, and a deliberate perturbation was checked to break it. Delete it if you
+   would rather trust the copied signature.
+
+6. **`λ⇒ᶜ`/`λ⇐ᶜ` live in `UC.Asymptotic.Contextual`**, beside `idᶜ`/`_∘ᶜ_`, although their
+   only consumers are `≤UC^ωᵉ-sub` and the ledger. They are the certified unit regradings
+   any consumer of a two-stage factoring needs, so they were grouped with the other
+   `Certified` constructors rather than with their caller.
+
+7. **Neither new module is in the root closure.** `Examples.ChimericLedger.QueryBound` and
+   `Examples.ChimericLedger.FactorEps` have no in-repo importer; both check green
+   standalone and `src/CategoricalCrypto.agda` checks green without them. The wiring is in
+   `docs/ledger-lift-eps.md` §8, and it is the same wiring
+   `docs/quantitative-family.md` §9 already owes for `UC.Asymptotic.Compose` (of which
+   `FactorEps` is now the first consumer).
+
+Verification (forced warm, `+RTS -M8G -H1G`, one `Checking` line):
+
+| module | LOC | warm | rule-5 budget |
+|---|---|---|---|
+| `UC.Asymptotic.Contextual` | 313 | 10.7 s | 138 s |
+| `UC.Asymptotic.Compose` | 277 | 11.5 s | 129 s |
+| `Examples.ChimericLedger.QueryBound` | 195 | 10.6 s | 108 s |
+| `Examples.ChimericLedger.FactorEps` | 195 | 12.2 s | 108 s |
+| `Examples.ChimericLedger.Factor` (untouched) | 116 | 12.7 s (12.1 s before) | 89 s |
+| `Examples.ChimericLedger.EndToEnd` (untouched) | 283 | 10.7 s (11.8 s before) | 130 s |
+
+Closure green with an empty warning gate: every `Examples/ChimericLedger/*` root,
+`UC/Approximate/LocalTests.agda`, `UC/Factor.agda`, `src/CategoricalCrypto/UC.agda`,
+`src/CategoricalCrypto.agda`. Escape-hatch baseline 16 before / 16 after (all sixteen the
+words "postulate-free" in inherited comments).
