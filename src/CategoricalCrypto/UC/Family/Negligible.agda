@@ -10,7 +10,7 @@
 -- (`UC/Core.agda:80-93`), and `UC.Approximate.Local`'s `_∼ᴺ_` is one.  So the
 -- whole negligible tier is this instance plus the emulation notions inherited
 -- at it, and nothing in the qualitative core moves: `Observation^ω` and
--- `_≤UC_` are exactly as they were, and the names below are the parallel tier.
+-- `_≤UC_` are exactly as they were.
 --
 -- `_≈ℰⁿ_` implies the new relation at every context by SPECIALIZING its global
 -- budget-indexed error to the allowance that context carries — the only
@@ -60,18 +60,15 @@ Observationᴺ = record
 UCBaseᴺ : UCBase o (ℓ ⊔ qs) e os ℓa
 UCBaseᴺ = record { 𝒞 = Fam ; grading = Grading^ω ; observation = Observationᴺ }
 
--- The inherited machinery, at the negligible tier.  `Test`, `Closure`, `obs`
--- and `tv₁` are NOT renamed alongside: the two tiers share the category, the
--- grading and the verdict object, so those four are `UC.Family`'s own.
+-- The two relations the tier is FOR, renamed apart from `UC.Family`'s.  The
+-- rest of the inherited metatheory is not renamed alongside: it is
+-- `CategoricalCrypto.UC.Emulation UCBaseᴺ`, reachable by applying that module,
+-- and a second copy of it under ᴺ names would be the parallel API this tier is
+-- meant not to be.
 private module N = Em UCBaseᴺ
 
-open N public using () renaming
-  ( ℰᴼ to ℰᴺ; _≈ℰ_ to _≈ℰᴺ_; ≈ℰ-refl to ≈ℰᴺ-refl; ≈ℰ-sym to ≈ℰᴺ-sym
-  ; ≈ℰ-trans to ≈ℰᴺ-trans; ≈ℰ-setoid to ≈ℰᴺ-setoid; ≈⇒≈ℰ to ≈⇒≈ℰᴺ
-  ; ≈ℰ-congˡ to ≈ℰᴺ-congˡ; ≈ℰ-congʳ to ≈ℰᴺ-congʳ; grade-stable to grade-stableᴺ
-  ; _≤UC_ to _≤UCᴺ_; _≤UC⁺_ to _≤UCᴺ⁺_; ≈ℰ⇒≤UC to ≈ℰᴺ⇒≤UCᴺ
-  ; ≤UC-refl to ≤UCᴺ-refl; ≤UC-trans to ≤UCᴺ-trans
-  ; dummy-complete to dummy-completeᴺ )
+open N public using ()
+  renaming (_≈ℰ_ to _≈ℰᴺ_; _≤UC_ to _≤UCᴺ_; ≈ℰ⇒≤UC to ≈ℰᴺ⇒≤UCᴺ)
 
 ------------------------------------------------------------------------
 -- The one-way bridge
