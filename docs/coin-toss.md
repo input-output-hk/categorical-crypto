@@ -282,24 +282,26 @@ The ASSEMBLY is already available — `≤UC^ωᵉ-trans` is one line and §3's 
 is the first hop — so nothing about the composition layer is missing. What is
 missing is `coin-hybrid`'s machine equality, and two separate things block it.
 
-**(B1) `_∙ᶠ_` has no machine reading.** `sub (procᵒ s) ∘ gradedᵒ g` is
-`gradedᵒ (subᴵ′ s ∘ g)` by `UC.Model.Graded.sub-gradedᵒ`; there is no
-counterpart for `ext X (gradedᵒ k) ∘ gradedᵒ f`, which is what `_∙ᶠ_` is. The
-missing seal export, priced exactly like `sub-gradedᵒ` (one export per shape,
-inside the `opaque` block):
+**(B1) `_∙ᶠ_` had no machine reading — DELIVERED.** `sub (procᵒ s) ∘ gradedᵒ g`
+is `gradedᵒ (subᴵ′ s ∘ g)` by `UC.Model.Graded.sub-gradedᵒ`; there was no
+counterpart for `ext X (gradedᵒ k) ∘ gradedᵒ f`, which is what `_∙ᶠ_` is. Two
+exports now supply it, in `sub-gradedᵒ`'s own shape and beside it:
 
 ```agda
 graded₂ᵒ    : {A X P C : Iface} → Proc A ((X ⊗ᴵ P) ⊗ᴵ C)
             → ifaceᵒ A G.⇒ (ifaceᵒ X G.⊗₀ ifaceᵒ P) G.⊗₀ ifaceᵒ C
-ext-gradedᵒ : {A B C X P : Iface} (k : Proc B (P ⊗ᴵ C)) (f : Proc A (X ⊗ᴵ B))
+ext-gradedᵒ : {A B C P X : Iface} (k : Proc B (P ⊗ᴵ C)) (f : Proc A (X ⊗ᴵ B))
             → (G.associator.to G.∘ ((G.id {ifaceᵒ X} G.⊗₁ gradedᵒ k) G.∘ gradedᵒ f))
               G.≈ graded₂ᵒ (a⇒ᴵ M.∘ (T₁ᴵ X k M.∘ f))
 ```
 
-joined to `ext` OUTSIDE the seal by `GradedKleisli.μT`
-(`ext u k ≈ μ u v ∘ T₁ u k`) and `CurriedTensor.Properties.μ-α⇐` / `T₁-⊗`,
-whose machine readings `UC.Machine.Dictionary.a⇒-α⇐` and `T₁-⊗₁` already exist.
-This is bookkeeping and was not attempted only because (B2) makes it useless.
+(`UC/Model/Graded.agda:60`, `:69`), and `UC.Graded.ext-graded` (`:71`) is the
+reading in the grading's own vocabulary, joined to `ext` outside the seal by
+`GradedKleisli.μT` (`ext u k ≈ μ u v ∘ T₁ u k`) and
+`CurriedTensor.Properties.μ-α⇐` / `T₁-⊗`, over the machine readings
+`UC.Machine.Dictionary.a⇒-α⇐` and `T₁-⊗₁`. So a statement about a COMPOSED
+system CAN now be read back as a machine equality; nothing consumes it yet,
+because (B2) is what actually stops this example.
 
 **(B2) `F_com`'s ideal functionality keeps its memory in the CONTEXT.** That is
 `docs/fcom-extraction.md`'s cell-in-the-resource decision, and it is what makes
@@ -361,9 +363,12 @@ floor is in every figure.
 | `Examples.CoinToss.Hiding.UC` | 180 | 11.2 s | 105 s |
 | `Examples.CoinToss.Compose` | 164 | 11.0 s | 101 s |
 | `Examples.CoinToss.Test` | 125 | 10.7 s | 91 s |
+| `UC.Model.Graded` | 73 → 92 | 10.1 s → 11.5 s | 83 s |
+| `UC.Graded` | 72 → 88 | 9.7 s → 9.8 s | 82 s |
 
-Nothing existing was edited except the two root index files, so no "before" is
-claimed anywhere.
+The two `Graded` rows are the only edits to existing modules, and both are
+additive; their before/after is measured on the same forced-warm basis
+(`.agdai` deleted, one `Checking` line each).
 
 Closure: `src/CategoricalCrypto.agda` rc=0 in 144 s over 113 modules with an
 empty gate, `Examples/ChimericLedger/FactorEps.agda` — the other `UC-composeᵉ`
@@ -377,12 +382,14 @@ Done on the branch, not left to the maintainer:
   `Examples.CoinToss.Test` (which between them reach the other four) and an
   inventory paragraph beside `Examples.ROCommitment.*`'s.
 * `src/CategoricalCrypto/UC.agda`'s `UC.Asymptotic.Compose` row now names its
-  two consumers. Nothing under `UC.*` is new.
+  two consumers. No `UC.*` module is new; `UC.Model.Graded` and `UC.Graded`
+  gain the §5 (B1) exports and are already re-exported by `UC.agda`.
 
 ## 8. Not delivered, precisely
 
-1. **The second hop**, §5 — Form A refuted, Form B blocked on `ext-gradedᵒ`
-   (cheap) and on a trustworthy `F_com` memory (not cheap).
+1. **The second hop**, §5 — Form A refuted; Form B's bookkeeping half
+   (`ext-gradedᵒ`/`ext-graded`) delivered, its substantive half — a
+   trustworthy `F_com` memory — not.
 2. **No `≤UC` / `≤UC[ c ]` form of the composed statement.**
    `UC.Graded.≤UCᵍ` and `UC.Seam.Graded.≤UC[]ᵍ` consume a `Factors` — an exact
    machine equality — and the composed statement is approximate, exactly as

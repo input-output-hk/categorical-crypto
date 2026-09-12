@@ -3430,12 +3430,15 @@ maintainer's judgement.
   affordable and what makes a two-level one unstateable at an open domain.
   Both repairs bottom out in the same missing machine-layer lemma — a readable
   ⊕-trace of two stateful machines where neither is a `morphism` image.
-- **`ext-gradedᵒ` is owed by `UC/Model/Graded.agda`** and would be cheap:
-  `sub (procᵒ s) ∘ gradedᵒ g ≈ gradedᵒ (subᴵ′ s ∘ g)` has no counterpart for
-  `_∙ᶠ_`, so no statement about a COMPOSED system can currently be read back as
-  a machine equality. The signature is in `docs/coin-toss.md` §5 (B1). It was
-  not built because (B2) makes it useless at this example; it will be needed by
-  any two-level example.
+- **`ext-gradedᵒ`/`graded₂ᵒ` (`UC/Model/Graded.agda:60`, `:69`) and
+  `UC.Graded.ext-graded` (`:71`) have NO consumer on this branch.** They are
+  `sub-gradedᵒ`'s counterpart for `_∙ᶠ_` — without them no statement about a
+  composed system can be read back as a machine equality — and they were built
+  because `docs/coin-toss.md` §5 claims that half of the second hop is cheap,
+  and a claim like that is better proved than asserted. They cost
+  `UC.Model.Graded` 10.1 s → 11.5 s and `UC.Graded` nothing. **Maintainer
+  call:** keep them as the standing bridge for the next two-level example, or
+  drop them until one exists.
 - **`qb-oneCall`'s relocation to `UC.QueryBound`** is still owed
   (`docs/ledger-lift-eps.md` §9 item 3). It would not have helped here — it is
   stated over `Protocol A B` and both `F_com` real protocols are raw machines —
@@ -3450,7 +3453,8 @@ maintainer's judgement.
 
 Every commit checked green before landing, `+RTS -M8G -H1G`, rc=0 and an empty
 `ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|Heap exhausted`
-gate. Closure `src/CategoricalCrypto.agda` rc=0 over 113 modules;
+gate. Closure `src/CategoricalCrypto.agda` rc=0 over 113 modules, re-run after the
+`UC.Model.Graded` edit (which invalidates the whole cone);
 `Examples/ChimericLedger/FactorEps.agda` and `UC/Approximate/LocalTests.agda`
 checked separately, both outside that closure. Escape-hatch baseline 16 before
 / 16 after, all sixteen the words "postulate-free" in inherited comments.
