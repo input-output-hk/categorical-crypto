@@ -34,18 +34,14 @@
 -- header measures it), so the arithmetic runs once here rather than never there.
 
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Nat.Properties
-  using (*-assoc; *-comm; *-identityʳ; *-monoʳ-≤; m≤n⊔m; ⊔-assoc; ⊔-idem
-        ; ≤-reflexive; ≤-trans)
 open import Data.Product.Base using (_,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Rational.Properties using (+-monoˡ-≤; module ≤-Reasoning)
 open import Level using (Level; _⊔_; suc)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; cong; subst; sym; trans; module ≡-Reasoning)
+open import Relation.Binary.PropositionalEquality using (subst; sym)
 
 open import CategoricalCrypto.UC.Approximate using (Mass)
-open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget)
+open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget; ctxBudget-absorb)
 open import CategoricalCrypto.UC.Core using (UCBase)
 
 module CategoricalCrypto.UC.Audit
@@ -57,6 +53,11 @@ open import CategoricalCrypto.UC.Emulation base
 
 open Budget bud
 open Mass mass
+
+-- What the simulator costs the context absorbing it, and the arithmetic of
+-- that rescaling: `UC.Budget`, where every absorption's allowance substitution
+-- is proved once.
+open import CategoricalCrypto.UC.Budget using (q≤simCost; simCost) public
 
 private variable A B′ X Y : Obj
                  w w′ : Level
@@ -78,16 +79,6 @@ open _≤UC[_]_ public
 
 ≤UC[]⇒≤UC : {f : A ⇒ X ⊛ B′} {g : A ⇒ Y ⊛ B′} {cs : ℕ} → f ≤UC[ cs ] g → f ≤UC g
 ≤UC[]⇒≤UC e = sim e , emulate e
-
--- What the simulator costs the context absorbing it: the context's budget
--- rescaled by the simulator's, guarded exactly as `ctxBudget` guards its own.
-simCost : ℕ → ℕ → ℕ
-simCost q cs = q ℕ.* (cs ℕ.⊔ 1)
-
--- The guard is what makes the rescaling an INCREASE, whatever the simulator
--- costs: an adversary the original budget affords the adjusted one affords too.
-q≤simCost : (q cs : ℕ) → q ℕ.≤ simCost q cs
-q≤simCost q cs = ≤-trans (≤-reflexive (sym (*-identityʳ q))) (*-monoʳ-≤ q (m≤n⊔m cs 1))
 
 -- The designated audit event of a process with domain `A` and grade `X`: which
 -- contexts around it — ancilla, test and closure — are trusted to read the
@@ -155,23 +146,6 @@ absorb-absorbs : {s : Y ⇒ X} {cs : ℕ} {𝔉 : AuditEvent w A Y B′}
                → Absorbs s cs (absorb s cs 𝔉) 𝔉
 absorb-absorbs _ _ _ _ ev = ev
 
-private
-  -- Absorbing the simulator into the test rescales the context's budget by the
-  -- simulator's own, and it does not matter which leg is charged.
-  shuffle : (c c′ cs : ℕ)
-          → ctxBudget (c ℕ.* ((cs ℕ.⊔ 1) ℕ.⊔ 1)) c′ ≡ simCost (ctxBudget c c′) cs
-  shuffle c c′ cs = begin
-    (c ℕ.* ((cs ℕ.⊔ 1) ℕ.⊔ 1)) ℕ.* (c′ ℕ.⊔ 1)  ≡⟨ cong (λ k → (c ℕ.* k) ℕ.* (c′ ℕ.⊔ 1)) (idem cs) ⟩
-    (c ℕ.* (cs ℕ.⊔ 1)) ℕ.* (c′ ℕ.⊔ 1)          ≡⟨ *-assoc c (cs ℕ.⊔ 1) (c′ ℕ.⊔ 1) ⟩
-    c ℕ.* ((cs ℕ.⊔ 1) ℕ.* (c′ ℕ.⊔ 1))          ≡⟨ cong (c ℕ.*_) (*-comm (cs ℕ.⊔ 1) (c′ ℕ.⊔ 1)) ⟩
-    c ℕ.* ((c′ ℕ.⊔ 1) ℕ.* (cs ℕ.⊔ 1))          ≡⟨ *-assoc c (c′ ℕ.⊔ 1) (cs ℕ.⊔ 1) ⟨
-    (c ℕ.* (c′ ℕ.⊔ 1)) ℕ.* (cs ℕ.⊔ 1)          ∎
-    where
-    open ≡-Reasoning
-
-    idem : (k : ℕ) → (k ℕ.⊔ 1) ℕ.⊔ 1 ≡ k ℕ.⊔ 1
-    idem k = trans (⊔-assoc k 1 1) (cong (k ℕ.⊔_) (⊔-idem 1))
-
 -- The graded carry.  The ideal side is tested through `Et ∘ T₁ W (sub s)` — the
 -- same context with the simulator in front of it — so the hypothesis applies at
 -- a budget the test pays for and at an event the absorption keeps permitted,
@@ -183,7 +157,7 @@ audit-carry : (f : A ⇒ X ⊛ B′) (g : A ⇒ Y ⊛ B′) {cs : ℕ} (em : f �
             → AuditBound g 𝔉 ε → AuditBound f 𝔈 (λ q → ε (simCost q cs) ℚ.+ δ)
 audit-carry {B′ = B′} {Y = Y} f g {cs} em {𝔉 = 𝔉} cl ε δ δ>0
             bnd W Et m {c} {c′} qEt qm ev n =
-  subst (λ k → at n x ℚ.≤ ε k ℚ.+ δ) (shuffle c c′ cs) bound
+  subst (λ k → at n x ℚ.≤ ε k ℚ.+ δ) (ctxBudget-absorb c c′ cs) bound
   where
   s = sim em
 
@@ -197,7 +171,7 @@ audit-carry {B′ = B′} {Y = Y} f g {cs} em {𝔉 = 𝔉} cl ε δ δ>0
   qEt′ = qb-∘ qEt (qb-T₁ (qb-sub (sim-qb em)))
 
   ev′ : 𝔉 W Et′ m (ctxBudget (c ℕ.* ((cs ℕ.⊔ 1) ℕ.⊔ 1)) c′)
-  ev′ = subst (𝔉 W Et′ m) (sym (shuffle c c′ cs)) (cl W Et m (ctxBudget c c′) ev)
+  ev′ = subst (𝔉 W Et′ m) (sym (ctxBudget-absorb c c′ cs)) (cl W Et m (ctxBudget c c′) ev)
 
   -- The simulator slides off the process and onto the test.
   slide : (Et ∘ T₁ W (sub s ∘ g)) ∘ m ≈ (Et′ ∘ T₁ W g) ∘ m

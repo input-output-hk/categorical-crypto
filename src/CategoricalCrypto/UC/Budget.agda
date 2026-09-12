@@ -11,7 +11,12 @@
 open import Categories.Category.Core using (Category)
 
 open import Data.Nat.Base as ℕ using (ℕ)
+open import Data.Nat.Properties
+  using ( *-assoc; *-comm; *-identityʳ; *-monoʳ-≤; m≤n⊔m; ⊔-assoc; ⊔-idem
+        ; ≤-reflexive; ≤-trans )
 open import Level using (Level; _⊔_; suc)
+open import Relation.Binary.PropositionalEquality
+  using (_≡_; cong; sym; trans; module ≡-Reasoning)
 
 open import CategoricalCrypto.UC.Core using (Grading)
 
@@ -71,3 +76,37 @@ record Budget {o ℓ e} (𝒞 : Category o ℓ e) (G : Grading 𝒞) (qs : Level
 -- budgets; `docs/protocol-rewrite.md` prices it, and it is not built.
 ctxBudget : ℕ → ℕ → ℕ
 ctxBudget c c′ = c ℕ.* (c′ ℕ.⊔ 1)
+
+-- What absorbing a morphism of cost `cs` into a context's test costs the
+-- strategy playing in that context's place: the allowance rescaled by the
+-- absorbed morphism's own budget, guarded exactly as `ctxBudget` guards its.
+simCost : ℕ → ℕ → ℕ
+simCost q cs = q ℕ.* (cs ℕ.⊔ 1)
+
+-- The guard is what makes the rescaling an INCREASE, whatever the absorbed
+-- morphism costs: an adversary the original budget affords the adjusted one
+-- affords too.
+q≤simCost : (q cs : ℕ) → q ℕ.≤ simCost q cs
+q≤simCost q cs = ≤-trans (≤-reflexive (sym (*-identityʳ q))) (*-monoʳ-≤ q (m≤n⊔m cs 1))
+
+-- …and it does not matter which of the context's two legs is charged, which is
+-- what lets an absorption be read as a substitution in the allowance alone.
+-- Absorptions reach the test through `qb-∘`, so this is the whole arithmetic
+-- of every allowance substitution below the quantitative composition theorems.
+ctxBudget-simCost : (c c′ cs : ℕ)
+                  → ctxBudget (c ℕ.* (cs ℕ.⊔ 1)) c′ ≡ simCost (ctxBudget c c′) cs
+ctxBudget-simCost c c′ cs = begin
+  (c ℕ.* (cs ℕ.⊔ 1)) ℕ.* (c′ ℕ.⊔ 1)  ≡⟨ *-assoc c (cs ℕ.⊔ 1) (c′ ℕ.⊔ 1) ⟩
+  c ℕ.* ((cs ℕ.⊔ 1) ℕ.* (c′ ℕ.⊔ 1))  ≡⟨ cong (c ℕ.*_) (*-comm (cs ℕ.⊔ 1) (c′ ℕ.⊔ 1)) ⟩
+  c ℕ.* ((c′ ℕ.⊔ 1) ℕ.* (cs ℕ.⊔ 1))  ≡⟨ *-assoc c (c′ ℕ.⊔ 1) (cs ℕ.⊔ 1) ⟨
+  (c ℕ.* (c′ ℕ.⊔ 1)) ℕ.* (cs ℕ.⊔ 1)  ∎
+  where open ≡-Reasoning
+
+-- The same, at the budget `qb-sub ∘ qb-T₁` actually hands back: the guard is
+-- idempotent, so absorbing through the action costs no more than absorbing.
+ctxBudget-absorb : (c c′ cs : ℕ)
+                 → ctxBudget (c ℕ.* ((cs ℕ.⊔ 1) ℕ.⊔ 1)) c′ ≡ simCost (ctxBudget c c′) cs
+ctxBudget-absorb c c′ cs =
+  trans (cong (λ k → ctxBudget (c ℕ.* k) c′)
+              (trans (⊔-assoc cs 1 1) (cong (cs ℕ.⊔_) (⊔-idem 1))))
+        (ctxBudget-simCost c c′ cs)
