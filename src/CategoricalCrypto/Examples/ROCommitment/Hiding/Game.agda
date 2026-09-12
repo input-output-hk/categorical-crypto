@@ -34,6 +34,7 @@ open import Data.Rational.Properties using
 open import Data.Rational.Properties.Ext using (telescope)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Vec.Base using (head; tail) renaming (_∷_ to _∷ᵛ_)
+open import Function.Base using (id)
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary.Decidable.Core using (⌊_⌋)
 
@@ -50,8 +51,8 @@ open import ProbabilisticLogic.Distribution.Uniform using
 
 module CategoricalCrypto.Examples.ROCommitment.Hiding.Game (k : ℕ) where
 
-open import CategoricalCrypto.Examples.ROCommitment.Extraction k
-  using (Dig; Pt; Tbl; lookupPt)
+open import CategoricalCrypto.Examples.ROCommitment.Extraction k using (Dig; Pt; Tbl)
+open import CategoricalCrypto.Examples.ROCommitment.Oracle k
 
 ------------------------------------------------------------------------
 -- The alphabet and the three state spaces
@@ -90,12 +91,7 @@ hitOf : St → Bool
 hitOf (_ , _ , f) = f
 
 ------------------------------------------------------------------------
--- The lazily sampled oracle, and the point the deferred game watches for
-
-fetchʰ : Tbl → Pt → Dist-ℚ (Tbl × Dig)
-fetchʰ t x with lookupPt t x
-... | just d  = return-ℚ (t , d)
-... | nothing = uniform-Vec k >>=ᴹ λ h → return-ℚ ((x , h) ∷ t , h)
+-- The point the deferred game watches for
 
 -- Does this query name the commitment's own point, for THIS draw of the
 -- opening randomness?  Only while a commitment is outstanding: before one
@@ -152,10 +148,10 @@ outComR r b u = (just r , proj₁ u , just (proj₂ u , b , r , false)) , comRʰ
 -- only step that looks at it, and it draws it when it is not there; that is
 -- what `defer-commit` below is about.
 askR : StRʰ → Pt → Dist-ℚ (StRʰ × Rʰ)
-askR (mr , t , z) x = fetchʰ t x >>=ᴹ λ u → return-ℚ (outAskR mr z u)
+askR (mr , t , z) x = fetchT id t x >>=ᴹ λ u → return-ℚ (outAskR mr z u)
 
 comAt : Dig → Tbl → Bool → Dist-ℚ (StRʰ × Rʰ)
-comAt r t b = fetchʰ t (b ∷ᵛ r) >>=ᴹ λ u → return-ℚ (outComR r b u)
+comAt r t b = fetchT id t (b ∷ᵛ r) >>=ᴹ λ u → return-ℚ (outComR r b u)
 
 comR : StRʰ → Bool → Dist-ℚ (StRʰ × Rʰ)
 comR (just r  , t , nothing) b = comAt r t b
@@ -196,10 +192,10 @@ opnL (t , nothing)              = return-ℚ ((t , nothing) , idleRʰ)
 -- randomness afresh at every query and answers the published digest on a hit.
 askL : StLʰ → Pt → Dist-ℚ (StLʰ × Rʰ)
 askL (t , m) x =
-  fetchʰ t x >>=ᴹ λ u → uniform-Vec k >>=ᴹ λ ρ → return-ℚ (outAskL m x u ρ)
+  fetchT id t x >>=ᴹ λ u → uniform-Vec k >>=ᴹ λ ρ → return-ℚ (outAskL m x u ρ)
 
 askI : StLʰ → Pt → Dist-ℚ (StLʰ × Rʰ)
-askI (t , m) x = fetchʰ t x >>=ᴹ λ u → return-ℚ (outAskI m u)
+askI (t , m) x = fetchT id t x >>=ᴹ λ u → return-ℚ (outAskI m u)
 
 respLʰ respIʰ : StLʰ → Qʰ → Dist-ℚ (StLʰ × Rʰ)
 respLʰ s (askQʰ x) = askL s x
@@ -214,7 +210,7 @@ respIʰ s opnQʰ     = opnL s
 
 askB : St → Pt → Dist-ℚ (St × (Rʰ × Rʰ))
 askB (t , m , f) x =
-  fetchʰ t x >>=ᴹ λ u → uniform-Vec k >>=ᴹ λ ρ → return-ℚ (outAskB m f x u ρ)
+  fetchT id t x >>=ᴹ λ u → uniform-Vec k >>=ᴹ λ ρ → return-ℚ (outAskB m f x u ρ)
 
 comB : St → Bool → Dist-ℚ (St × (Rʰ × Rʰ))
 comB (t , nothing , f) b = uniform-Vec k >>=ᴹ λ c → return-ℚ (outComB t b f c)
@@ -252,32 +248,33 @@ private
   -- own draw of the opening randomness.
   ask-redᴮ : (t : Tbl) (m : Comʰ) (f : Bool) (x : Pt) (G : St × (Rʰ × Rʰ) → ℚ)
            → E (askB (t , m , f) x) G
-             ≡ E (fetchʰ t x) (λ u → E (uniform-Vec k) (λ ρ → G (outAskB m f x u ρ)))
+             ≡ E (fetchT id t x)
+                 (λ u → E (uniform-Vec k) (λ ρ → G (outAskB m f x u ρ)))
   ask-redᴮ t m f x G = trans
-    (E-bind (fetchʰ t x)
+    (E-bind (fetchT id t x)
       (λ u → uniform-Vec k >>=ᴹ λ ρ → return-ℚ (outAskB m f x u ρ)) G)
-    (lookupᴰℚ-cong-P (entries (fetchʰ t x)) (λ u → trans
+    (lookupᴰℚ-cong-P (entries (fetchT id t x)) (λ u → trans
       (E-bind (uniform-Vec k) (λ ρ → return-ℚ (outAskB m f x u ρ)) G)
       (lookupᴰℚ-cong-P (entries (uniform-Vec k))
         (λ ρ → lookupᴰℚ-return (outAskB m f x u ρ) G))))
 
   ask-redᴸ : (t : Tbl) (m : Comʰ) (x : Pt) (G : StLʰ × Rʰ → ℚ)
            → E (askL (t , m) x) G
-             ≡ E (fetchʰ t x) (λ u → E (uniform-Vec k) (λ ρ → G (outAskL m x u ρ)))
+             ≡ E (fetchT id t x) (λ u → E (uniform-Vec k) (λ ρ → G (outAskL m x u ρ)))
   ask-redᴸ t m x G = trans
-    (E-bind (fetchʰ t x)
+    (E-bind (fetchT id t x)
       (λ u → uniform-Vec k >>=ᴹ λ ρ → return-ℚ (outAskL m x u ρ)) G)
-    (lookupᴰℚ-cong-P (entries (fetchʰ t x)) (λ u → trans
+    (lookupᴰℚ-cong-P (entries (fetchT id t x)) (λ u → trans
       (E-bind (uniform-Vec k) (λ ρ → return-ℚ (outAskL m x u ρ)) G)
       (lookupᴰℚ-cong-P (entries (uniform-Vec k))
         (λ ρ → lookupᴰℚ-return (outAskL m x u ρ) G))))
 
   ask-redᴵ : (t : Tbl) (m : Comʰ) (x : Pt) (G : StLʰ × Rʰ → ℚ)
            → E (askI (t , m) x) G
-             ≡ E (fetchʰ t x) (λ u → G (outAskI m u))
+             ≡ E (fetchT id t x) (λ u → G (outAskI m u))
   ask-redᴵ t m x G = trans
-    (E-bind (fetchʰ t x) (λ u → return-ℚ (outAskI m u)) G)
-    (lookupᴰℚ-cong-P (entries (fetchʰ t x))
+    (E-bind (fetchT id t x) (λ u → return-ℚ (outAskI m u)) G)
+    (lookupᴰℚ-cong-P (entries (fetchT id t x))
       (λ u → lookupᴰℚ-return (outAskI m u) G))
 
   -- Off the flag the deferred game's answer IS the ideal one, and on the flag
@@ -298,7 +295,7 @@ stepL : StepBisim C.realK respLʰ _≋L_
 stepL (t , m , f) _ refl (askQʰ x) F F′ pt =
   trans (lookupᴰℚ-Dmap C.fR (askB (t , m , f) x) F)
  (trans (ask-redᴮ t m f x (λ w → F (C.fR w)))
- (trans (lookupᴰℚ-cong-P (entries (fetchʰ t x)) (λ u →
+ (trans (lookupᴰℚ-cong-P (entries (fetchT id t x)) (λ u →
           lookupᴰℚ-cong-P (entries (uniform-Vec k)) (λ ρ → pt _ _ refl refl)))
         (sym (ask-redᴸ t m x F′))))
 stepL (t , nothing , f) _ refl (comQʰ b) F F′ pt =
@@ -339,7 +336,7 @@ stepI : StepBisim C.idealK respIʰ _≋I_
 stepI (t , m , f) _ refl (askQʰ x) F F′ pt =
   trans (lookupᴰℚ-Dmap C.fI (askB (t , m , f) x) F)
  (trans (ask-redᴮ t m f x (λ w → F (C.fI w)))
- (trans (lookupᴰℚ-cong-P (entries (fetchʰ t x)) (λ u → trans
+ (trans (lookupᴰℚ-cong-P (entries (fetchT id t x)) (λ u → trans
           (lookupᴰℚ-cong-P (entries (uniform-Vec k)) (λ ρ → trans
             (cong (λ z → F ((proj₁ u , m , f ∨ hitAt m x ρ) , z))
                   (collapseᴵ f (hitAt m x ρ) (pinAt m (proj₂ u)) (proj₂ u)))
@@ -444,10 +441,10 @@ rare-raise : RareRaise C.realK hitOf (inv-pow-2 k)
 rare-raise (t , m , f) (askQʰ x) = ≤-trans
   (≤-reflexive (trans (lookupᴰℚ-Dmap C.fR (askB (t , m , f) x) hitP)
                       (ask-redᴮ t m f x (λ w → hitP (C.fR w)))))
-  (≤-trans (E-mono (fetchʰ t x)
+  (≤-trans (E-mono (fetchT id t x)
              (λ u → E (uniform-Vec k) (λ ρ → hitP (C.fR (outAskB m f x u ρ))))
              (λ _ → bool→ℚ f +ℚ inv-pow-2 k) (λ u → hit-drift m f x))
-           (≤-reflexive (E-const (fetchʰ t x) (bool→ℚ f +ℚ inv-pow-2 k))))
+           (≤-reflexive (E-const (fetchT id t x) (bool→ℚ f +ℚ inv-pow-2 k))))
 rare-raise (t , nothing , f) (comQʰ b) = ≤-trans
   (≤-reflexive (draw-red (t , nothing , f) (comQʰ b)
     (λ c → (t , just (c , b , false) , f) , (comRʰ c , comRʰ c)) refl (λ _ → refl)))
@@ -486,10 +483,10 @@ f ≋P s = (Σ[ t ∈ Tbl ] ((∀ r → f r ≡ (just r , t , nothing))
 private
   ask-redᴿ : (mr : Maybe Dig) (t : Tbl) (z : ComRʰ) (x : Pt) (G : StRʰ × Rʰ → ℚ)
            → E (askR (mr , t , z) x) G
-             ≡ E (fetchʰ t x) (λ u → G (outAskR mr z u))
+             ≡ E (fetchT id t x) (λ u → G (outAskR mr z u))
   ask-redᴿ mr t z x G = trans
-    (E-bind (fetchʰ t x) (λ u → return-ℚ (outAskR mr z u)) G)
-    (lookupᴰℚ-cong-P (entries (fetchʰ t x))
+    (E-bind (fetchT id t x) (λ u → return-ℚ (outAskR mr z u)) G)
+    (lookupᴰℚ-cong-P (entries (fetchT id t x))
       (λ u → lookupᴰℚ-return (outAskR mr z u) G))
 
   module _ (F F′ : StRʰ × Rʰ → ℚ)
@@ -507,9 +504,9 @@ avg-commit f s (inj₁ (t , ff , refl)) (askQʰ x) F F′ pt = trans
   (trans (lookupᴰℚ-cong-P (entries (uniform-Vec k))
            (λ r → trans (cong (λ z → E (respRʰ z (askQʰ x)) F) (ff r))
                         (ask-redᴿ (just r) t nothing x F)))
-         (E-swap (uniform-Vec k) (fetchʰ t x)
+         (E-swap (uniform-Vec k) (fetchT id t x)
            (λ r u → F ((just r , proj₁ u , nothing) , ansRʰ (proj₂ u)))))
-  (trans (lookupᴰℚ-cong-P (entries (fetchʰ t x))
+  (trans (lookupᴰℚ-cong-P (entries (fetchT id t x))
            (λ u → pt (λ r → (just r , proj₁ u , nothing) , ansRʰ (proj₂ u))
                      ((nothing , proj₁ u , nothing) , ansRʰ (proj₂ u))
                      (inj₁ (proj₁ u , (λ _ → refl) , refl)) (λ _ → refl)))

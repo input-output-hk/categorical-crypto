@@ -2810,3 +2810,82 @@ copy is gone rather than moved and both users now import the general module.
 
 No forwarding re-export was left behind, and no file outside the brief's list
 needed an edit for this item.
+
+### One oracle for both `F_com` halves: `Examples/ROCommitment/Oracle.agda`
+
+`Game.agda`'s `fetchT` and `Hiding/Game.agda`'s `fetchʰ` were the same lazily
+sampled table under two names, and they are now one definition in a new
+`Examples/ROCommitment/Oracle.agda` (39 LOC, beside `Extraction.agda`, module
+parameter `k`). Both game modules import it; every statement in both is
+verbatim what it was (`extraction-bound`, `hiding-bound`,
+`hiding-bound-defer`, `stepR`/`stepI`/`stepL`, `keep-or-sample`, `rare-raise`,
+`cert`, `defer-commit`).
+
+**The two copies were not α-renamings**, and the difference is the state the
+table sits in: `fetchT` returned `(Tbl × M) × Dig` (table plus the extraction
+game's commitment ancilla), `fetchʰ` returned `Tbl × Dig`. Neither is an
+instance of the other — `fetchT` at `M = ⊤` still returns a pair-in-a-pair —
+so the hoisted kernel takes the embedding of the post-table into the caller's
+state instead:
+
+```agda
+fetchT : {A : Set} → (Tbl → A) → Tbl → Pt → Dist-ℚ (A × Dig)
+```
+
+Both old spellings are definitional instances of it: `fetchʰ t = fetchT id t`
+and `fetchT (t , m) = fetchT (_, m) t`, beta-equal in both branches, which is
+why no proof text changed beyond naming the kernel. The alternative — keeping
+the bare-table kernel and `Dmap`-ing the ancilla in — was rejected because
+`Game.agda`'s `fetch-bis` needs the kernel to REDUCE under
+`with lookupPt t x`, and a bind in front of it does not.
+
+`lookup-here` went with the kernel, as the wish asked. `Resource.agda`'s header
+now points at `Examples.ROCommitment.Oracle` for the `Dist-ℚ` kernel it mirrors
+in `Dₚ`.
+
+No root wiring is needed: `src/CategoricalCrypto.agda` already reaches
+`Oracle` transitively through the two `.Test`/`.Asymptotic` leaves it lists,
+and `Oracle` is not a leaf.
+
+### Left undone — needs a file outside this branch's list
+
+- **`0≤drift` is duplicated**, verbatim and `private`, at
+  `Examples/ROCommitment/Game.agda:503` and
+  `Examples/ROCommitment/Hiding/Game.agda:390`:
+  `(g : Bool) → bool→ℚ g ≤ℚ bool→ℚ g +ℚ inv-pow-2 k`. It is a fact about
+  `inv-pow-2`, not about the oracle, so hoisting it into `Oracle.agda` would
+  trade one rule-27 miss for another; its home is
+  `src/ProbabilisticLogic/Distribution/Uniform.agda`, beside `guess-drift` and
+  `0≤inv-pow-2` (the two lemmas it is stated between at both use sites). That
+  file is outside this branch's list, so both copies stand.
+- **`lookup-here`'s most general home is `Extraction.agda`**, beside
+  `lookupPt` itself (`Extraction.agda:46`), rather than `Oracle.agda`: it is a
+  fact about the table lookup, and `fetchT` is only its first consumer.
+  `Extraction.agda` is outside this branch's list, so it sits in `Oracle.agda`
+  with the kernel whose post-state it is about.
+
+### Verification
+
+Warm single-module `pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS`
+under plain `timeout`, rc=0 with an empty
+`ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error|Failed to solve|Heap exhausted`
+gate on: `Oracle`, `Game`, `Hiding/Game`, `Hiding`, `Hiding/UC`, `Resource`,
+`UC`, `Asymptotic`, `Test`, `Hiding/Asymptotic`, `Hiding/Test`, and the
+`src/CategoricalCrypto.agda` closure (rc=0, 133 modules re-elaborated).
+
+Warm single-module CPU, base `2fcac147` vs `small-hoists`, measured back to
+back on the same idle gate (wall clock is meaningless here — sibling branches
+were compiling, and pagda's memory gate queues):
+
+| module | base | after |
+| --- | --- | --- |
+| `Examples/ROCommitment/Game.agda` | 6.52 s | 6.46 s |
+| `Examples/ROCommitment/Hiding/Game.agda` | 5.74 s | 5.76 s |
+| `Examples/ROCommitment/Hiding.agda` | 7.81 s | 7.87 s |
+| `Examples/ROCommitment/Hiding/UC.agda` | 8.36 s | 8.39 s |
+| `Examples/ROCommitment/Resource.agda` | 8.00 s | 7.90 s |
+| `Examples/ROCommitment/Oracle.agda` | — | 4.96 s |
+
+Hatch grep over `src/`: **16 lines before, 16 after**, every one the words
+"postulate-free" in an inherited `Categories/APROP/**` comment; zero live
+hatches either side.

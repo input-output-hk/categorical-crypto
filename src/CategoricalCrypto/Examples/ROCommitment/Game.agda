@@ -49,6 +49,7 @@ open import ProbabilisticLogic.Distribution.Uniform using
 module CategoricalCrypto.Examples.ROCommitment.Game (k : ℕ) where
 
 open import CategoricalCrypto.Examples.ROCommitment.Extraction k
+open import CategoricalCrypto.Examples.ROCommitment.Oracle k
 open import ProbabilisticLogic.Distribution.Uniform.Duplicate k using (dup; memb)
 
 ------------------------------------------------------------------------
@@ -101,16 +102,11 @@ eraseI : St → StI
 eraseI (t , m , _) = t , m
 
 ------------------------------------------------------------------------
--- The lazily sampled oracle
+-- The coupling's oracle
 
--- The reference games carry no flag, so their oracle is the same function at
--- any ancilla; the coupling's additionally records a sample that lands on the
--- outstanding digest.
-fetchT : {M : Set} → Tbl × M → Pt → Dist-ℚ ((Tbl × M) × Dig)
-fetchT (t , m) x with lookupPt t x
-... | just d  = return-ℚ ((t , m) , d)
-... | nothing = uniform-Vec k >>=ᴹ λ h → return-ℚ (((x , h) ∷ t , m) , h)
-
+-- `Oracle.fetchT` with one more thing recorded: the reference games carry no
+-- flag, and the coupling raises its at a fresh sample that lands on the
+-- outstanding commitment digest.
 raise : Com → Dig → Bool
 raise nothing        _ = false
 raise (just (c , _)) h = ⌊ h ≟ c ⌋
@@ -119,11 +115,6 @@ fetch : St → Pt → Dist-ℚ (St × Dig)
 fetch (t , m , f) x with lookupPt t x
 ... | just d  = return-ℚ ((t , m , f) , d)
 ... | nothing = uniform-Vec k >>=ᴹ λ h → return-ℚ (((x , h) ∷ t , m , f ∨ raise m h) , h)
-
-lookup-here : (x : Pt) (d : Dig) (L : Tbl) → lookupPt ((x , d) ∷ L) x ≡ just d
-lookup-here x d L with x ≟ x
-... | yes _  = refl
-... | no  ne = ⊥-elim (ne refl)
 
 ------------------------------------------------------------------------
 -- The two games and the coupling
@@ -137,7 +128,7 @@ idealOpen : Dig → Bool → Bool → Dig → R
 idealOpen c e b h = cond ⌊ h ≟ c ⌋ (cond ⌊ b ≟ e ⌋ (outR e) failR) failR
 
 askX : {M : Set} → Tbl × M → Pt → Dist-ℚ ((Tbl × M) × R)
-askX s x = fetchT s x >>=ᴹ λ u → return-ℚ (proj₁ u , ansR (proj₂ u))
+askX (t , m) x = fetchT (_, m) t x >>=ᴹ λ u → return-ℚ (proj₁ u , ansR (proj₂ u))
 
 comR : StR → Dig → Dist-ℚ (StR × R)
 comR (t , nothing) c = return-ℚ ((t , just c) , rcptR)
@@ -145,7 +136,7 @@ comR (t , just c)  _ = return-ℚ ((t , just c) , idleR)
 
 opnR : StR → Bool → Dig → Dist-ℚ (StR × R)
 opnR (t , nothing) _ _ = return-ℚ ((t , nothing) , idleR)
-opnR (t , just c)  b r = fetchT (t , just c) (b ∷ᵛ r) >>=ᴹ λ u →
+opnR (t , just c)  b r = fetchT (_, just c) t (b ∷ᵛ r) >>=ᴹ λ u →
   return-ℚ (proj₁ u , realOpen c b (proj₂ u))
 
 respR : StR → Q → Dist-ℚ (StR × R)
@@ -159,7 +150,7 @@ comI (t , just m)  _ = return-ℚ ((t , just m) , idleR)
 
 opnI : StI → Bool → Dig → Dist-ℚ (StI × R)
 opnI (t , nothing)      _ _ = return-ℚ ((t , nothing) , idleR)
-opnI (t , just (c , e)) b r = fetchT (t , just (c , e)) (b ∷ᵛ r) >>=ᴹ λ u →
+opnI (t , just (c , e)) b r = fetchT (_, just (c , e)) t (b ∷ᵛ r) >>=ᴹ λ u →
   return-ℚ (proj₁ u , idealOpen c e b (proj₂ u))
 
 respI : StI → Q → Dist-ℚ (StI × R)
@@ -288,7 +279,7 @@ module _ {M : Set} (er : Com → M) where
                → ec (proj₁ u) ≡ proj₁ u′ → Inv (proj₁ u) → comOf (proj₁ u) ≡ comOf s
                → lookupPt (tblOf (proj₁ u)) x ≡ just (proj₂ u)
                → proj₂ u ≡ proj₂ u′ → G u ≡ G′ u′)
-            → E (fetch s x) G ≡ E (fetchT (ec s) x) G′
+            → E (fetch s x) G ≡ E (fetchT (_, er (comOf s)) (tblOf s) x) G′
   fetch-bis (t , m , f) x G G′ inv pt with lookupPt t x in eq
   ... | just d  = trans (lookupᴰℚ-return _ G)
                  (trans (pt _ _ refl inv refl eq refl) (sym (lookupᴰℚ-return _ G′)))
@@ -317,7 +308,7 @@ stepR s@(t , m , f) _ (refl , inv) (askQ x) F F′ pt =
   trans (lookupᴰℚ-Dmap C.fR (askB s x) F)
  (trans (E-bind (fetch s x) kAsk (λ w → F (C.fR w)))
  (trans (fetch-bis digOf s x _ _ inv prem)
-        (sym (E-bind (fetchT (eraseR s) x)
+        (sym (E-bind (fetchT (_, digOf m) t x)
                (λ u → return-ℚ (proj₁ u , ansR (proj₂ u))) F′))))
   where
   prem : (u : St × Dig) (u′ : StR × Dig) → eraseR (proj₁ u) ≡ proj₁ u′ → Inv (proj₁ u)
@@ -349,7 +340,7 @@ stepR s@(t , just (c , e) , f) _ (refl , inv) (opnQ b r) F F′ pt =
   trans (lookupᴰℚ-Dmap C.fR (opnB s b r) F)
  (trans (E-bind (fetch s (b ∷ᵛ r)) (kOpn c e b) (λ w → F (C.fR w)))
  (trans (fetch-bis digOf s (b ∷ᵛ r) _ _ inv prem)
-        (sym (E-bind (fetchT (t , just c) (b ∷ᵛ r))
+        (sym (E-bind (fetchT (_, just c) t (b ∷ᵛ r))
                (λ u → return-ℚ (proj₁ u , realOpen c b (proj₂ u))) F′))))
   where
   prem : (u : St × Dig) (u′ : StR × Dig) → eraseR (proj₁ u) ≡ proj₁ u′ → Inv (proj₁ u)
@@ -371,7 +362,7 @@ stepI s@(t , m , f) _ (refl , inv) (askQ x) F F′ pt =
   trans (lookupᴰℚ-Dmap C.fI (askB s x) F)
  (trans (E-bind (fetch s x) kAsk (λ w → F (C.fI w)))
  (trans (fetch-bis (λ z → z) s x _ _ inv prem)
-        (sym (E-bind (fetchT (eraseI s) x)
+        (sym (E-bind (fetchT (_, m) t x)
                (λ u → return-ℚ (proj₁ u , ansR (proj₂ u))) F′))))
   where
   prem : (u : St × Dig) (u′ : StI × Dig) → eraseI (proj₁ u) ≡ proj₁ u′ → Inv (proj₁ u)
@@ -409,7 +400,7 @@ stepI s@(t , just (c , e) , f) _ (refl , inv) (opnQ b r) F F′ pt =
   trans (lookupᴰℚ-Dmap C.fI (opnB s b r) F)
  (trans (E-bind (fetch s (b ∷ᵛ r)) (kOpn c e b) (λ w → F (C.fI w)))
  (trans (fetch-bis (λ z → z) s (b ∷ᵛ r) _ _ inv prem)
-        (sym (E-bind (fetchT (t , just (c , e)) (b ∷ᵛ r))
+        (sym (E-bind (fetchT (_, just (c , e)) t (b ∷ᵛ r))
                (λ u → return-ℚ (proj₁ u , idealOpen c e b (proj₂ u))) F′))))
   where
   -- Off the bad event the receiver's verdict is the functionality's, so the

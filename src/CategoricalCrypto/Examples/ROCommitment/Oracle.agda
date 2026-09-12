@@ -25,7 +25,7 @@ open import ProbabilisticLogic.Distribution.Uniform using (uniform-Vec)
 
 module CategoricalCrypto.Examples.ROCommitment.Oracle (k : ℕ) where
 
-open import CategoricalCrypto.Examples.ROCommitment.Extraction k using (Dig; Pt; Tbl; lookupPt)
+open import CategoricalCrypto.Examples.ROCommitment.Extraction k
 
 fetchT : {A : Set} → (Tbl → A) → Tbl → Pt → Dist-ℚ (A × Dig)
 fetchT g t x with lookupPt t x
