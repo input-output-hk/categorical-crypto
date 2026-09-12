@@ -2306,8 +2306,9 @@ list), and the two root index files (`open import` lines plus inventory paragrap
   input letters), so ONE certificate serves "one oracle query per activation" and "two
   queries of any kind per activation" at the toy. The residual `Λ (final state)` in the
   conclusion is deliberate and is what makes the statement true of an interrupted run;
-  `sim-hash-count-settled` is the reading without it. `qeᵢ-wire` is the generic
-  inhabitation.
+  `sim-hash-count-settled` is the reading without it, and `sim-round` computes one
+  concrete transaction so that the words it quantifies over are visibly inhabited by a
+  live run and not only by divergent ones. `qeᵢ-wire` is the generic inhabitation.
 - `UC/Audit.agda :: pinned`, `:: pinned-bound` — added here rather than in a new module
   because they are about `AuditEvent`/`AuditBound` and generic in the base (rules 27,
   28). `pinned` is `UC.Seam.Audit.TrivialGrade.watched`'s shape with layer 1's monitor

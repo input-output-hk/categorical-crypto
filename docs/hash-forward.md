@@ -113,6 +113,17 @@ analysis (13 clauses, each a `>>=ₚ-identityˡ` or a `bot-bind-≈ₚ`). Statel
 of the ideal functionality is honest, not a dodge: the channel's state is the
 resource's, which is where an ideal channel's state belongs.
 
+**Is the real protocol reverse-engineered from the composite?** Its step table
+is what a reader would write for "hash what is on the wire" — fetch the leak,
+hash it, report the digest, relay honest traffic — and the simulator's is the
+same program addressed to the ideal functionality's ports instead of the
+resource's. That they coincide after composition is the theorem; that they are
+the same program is why the emulation is exact rather than approximate, and it
+is the ordinary situation whenever a simulator reconstructs a view by rerunning
+the protocol's own computation. The two are separate definitions at separate
+interfaces (`Proc Resᴵ (Advᴵ ⊗ᴵ Honᴵ)` and `Proc Lkᴵ Advᴵ`), and neither is
+defined in terms of the other.
+
 One implementation note worth keeping. `realStep` splits the STATE inside each
 letter's clause rather than across them (`case s of λ where`), because a clause
 with a constructor in the state position makes the pure-relay cases stick at a
@@ -201,10 +212,15 @@ instantiations of the SAME ledger:
 
 `sim-hash-count-settled` reads the first without the residual: when the run ends
 at a settled state (`Λ ≡ 0`, i.e. between transactions) the count is
-`weight peeks w` on the nose.
+`weight peeks w` on the nose. `sim-round` is the same thing computed at one
+concrete transaction — a `peekᴬ` answered in order produces `leakˢ`, then
+`hashˢ` AT THE LEAKED MESSAGE, then the digest — which is the witness that the
+words the count quantifies over are inhabited by a live run and not only by
+divergent ones.
 
 **What "the simulator performs a query" means here, exactly.** It is a statement
-about the simulator machine's own trace, not about the emulation: for every
+about the trace of the very machine the emulation carries — `sim hf-emul` is
+`procᵒ simulator` on the nose — rather than about the emulation relation: for every
 activation word `w` and every branch of `behᵍ` (the machine's own behaviour
 function, the one `UC.QueryBound.CountBound` is also stated at), the multiset of
 outputs contains exactly `weight peeks w` outputs of the form `inj₁ (hashˢ m)`,
@@ -309,7 +325,7 @@ gate; the warm column is a single-`Checking`-line run.
 | `UC.QueryBound.Exact` | 168 | 9.3 s | 102 s |
 | `UC.Audit` (+27) | 214 | 4.8 s | 113 s |
 | `Examples.HashForward` | 220 | 10.0 s | 115 s |
-| `Examples.HashForward.UC` | 223 | 9.9 s | 115 s |
+| `Examples.HashForward.UC` | 250 | 15.5 s | 122 s |
 | `Examples.HashForward.Audit` | 101 | 10.0 s | 85 s |
 
 ## Not delivered, precisely

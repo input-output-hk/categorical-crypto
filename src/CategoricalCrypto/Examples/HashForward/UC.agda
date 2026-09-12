@@ -14,7 +14,7 @@
 -- `peekᴬ`" and "two queries per `peekᴬ`" are both equations, not ceilings.
 -- `simCert` is the matching upper bound, which is what `UC.Budget` asks for.
 
-open import Data.List.Base using (List)
+open import Data.List.Base using (List; []; _∷_)
 open import Data.Nat.Base using (ℕ; _+_; s≤s; z≤n)
 open import Data.Nat.Properties using (+-identityʳ)
 open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
@@ -29,7 +29,7 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.UC.Graded using (emulᵍ; ≤UCᵍ)
 open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; ifaceᵒ; procᵒ)
 open import CategoricalCrypto.UC.Model.Setup
-open import CategoricalCrypto.UC.QueryBound using (Certified; QB; certified⇒QB; forget)
+open import CategoricalCrypto.UC.QueryBound using (Certified; QB; behᵍ; certified⇒QB; forget; traceᵍ)
 open import CategoricalCrypto.UC.QueryBound.Exact
 
 module CategoricalCrypto.Examples.HashForward.UC (Msg Dig : Set) where
@@ -221,3 +221,30 @@ sim-hash-count-settled w = mapₚ settle (sim-hash-count w)
   settle z = proj₁ z , λ nil →
     trans (sym (+-identityʳ _))
           (trans (cong (weight hashes (proj₂ (proj₁ z)) +_) (sym nil)) (proj₂ z))
+
+-- …and the same at one concrete transaction, computed rather than counted: a
+-- `peekᴬ` answered in order produces `leakˢ`, then `hashˢ` AT THE LEAKED
+-- MESSAGE, then the digest.  This is the witness that the words
+-- `sim-hash-count` quantifies over are inhabited by a live run and not only by
+-- divergent ones.
+round : Msg → Dig → List (Pos Lkᴵ ⊎ Neg Advᴵ)
+round m d = inj₂ peekᴬ ∷ inj₁ (lkˢ m) ∷ inj₁ (digˢ d) ∷ []
+
+sim-round : (m : Msg) (d : Dig)
+          → behᵍ {Lkᴵ} {Advᴵ} SSt (returnₚ idleˢ) simStep (round m d)
+            ≈ₚ returnₚ (inj₁ leakˢ ∷ inj₁ (hashˢ m) ∷ inj₂ (wireᴬ d) ∷ [])
+sim-round m d =
+    >>=ₚ-identityˡ idleˢ _
+  ⟨≈⟩ >>=ₚ-identityˡ (awaitL , inj₁ leakˢ) _
+  ⟨≈⟩ map-arg _ afterLeak
+  ⟨≈⟩ >>=ₚ-identityˡ _ _
+  where
+  afterDigest : traceᵍ {Lkᴵ} {Advᴵ} SSt (returnₚ idleˢ) simStep awaitD (inj₁ (digˢ d) ∷ [])
+                ≈ₚ returnₚ (inj₂ (wireᴬ d) ∷ [])
+  afterDigest = >>=ₚ-identityˡ (idleˢ , inj₂ (wireᴬ d)) _ ⟨≈⟩ >>=ₚ-identityˡ [] _
+
+  afterLeak : traceᵍ {Lkᴵ} {Advᴵ} SSt (returnₚ idleˢ) simStep awaitL
+                (inj₁ (lkˢ m) ∷ inj₁ (digˢ d) ∷ [])
+              ≈ₚ returnₚ (inj₁ (hashˢ m) ∷ inj₂ (wireᴬ d) ∷ [])
+  afterLeak = >>=ₚ-identityˡ (awaitD , inj₁ (hashˢ m)) _
+            ⟨≈⟩ map-arg _ afterDigest ⟨≈⟩ >>=ₚ-identityˡ _ _
