@@ -86,8 +86,11 @@ iotaBlind B u v h =
 -- The degenerate ancilla
 
 -- The plugging law both `EnvAsCtx` and `StratIsEnv` are: at the unit ancilla
--- the two wires cancel, by the unitor's naturality and its own iso.
-plug-λ : {X : Channel} (t : X ⇒ Ωᵒ) (w : 𝟘ᵒ ⇒ X)
+-- the two wires cancel, by the unitor's naturality and its own iso.  Nothing
+-- in it looks at the plugged morphism's domain, so it is stated at any — which
+-- is what `UC.Seam.Audit.Context.plug-runᵍ` needs, where the process below the
+-- ancilla is OPEN and its resource is plugged after the fact.
+plug-λ : {D X : Channel} (t : X ⇒ Ωᵒ) (w : D ⇒ X)
        → ((t ∘ unitorˡ.from) ∘ T₁ 𝟘ᴳ w) ∘ unitorˡ.to ≈ t ∘ w
 plug-λ t w = ((refl⟩∘⟨ T₁-⊗ 𝔾ᵒ 𝟘ᴳ w) ⟩∘⟨refl)
            ○ (assoc ○ (refl⟩∘⟨ unitorˡ-commute-from) ○ sym-assoc) ⟩∘⟨refl

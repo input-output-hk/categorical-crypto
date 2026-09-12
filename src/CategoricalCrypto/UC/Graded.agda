@@ -26,7 +26,9 @@ open import Level using (0ℓ)
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base using (𝒢ₚ)
 open import CategoricalCrypto.UC.Machine using (Proc; subᴵ′)
-open import CategoricalCrypto.UC.Model.Graded using (sub-gradedᵒ; ≈ᴹ⇒≈ᵍ)
+open import CategoricalCrypto.UC.Machine.Dictionary using (𝟭ᴵ)
+open import CategoricalCrypto.UC.Machine.Plug using (plugᴹ)
+open import CategoricalCrypto.UC.Model.Graded using (plug-gradedᵒ; procᵘ; sub-gradedᵒ; ≈ᴹ⇒≈ᵍ)
 open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; procᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 
@@ -50,6 +52,13 @@ Factors f s g = 𝒢ₚ 0ℓ [ f ≈ M._∘_ (subᴵ′ s) g ]
 sub-graded : (s : Proc Y X) (g : Proc A (Y ⊗ᴵ B))
            → sub (procᵒ s) ∘ gradedᵒ g ≈ gradedᵒ (M._∘_ (subᴵ′ s) g)
 sub-graded = sub-gradedᵒ
+
+-- …and the same reading with the grade FILLED rather than relabelled: an
+-- adversary machine `X ⇒ 𝟭ᴵ` acts through `sub` too, at the unit grade, so the
+-- closed system is the machine composite `UC.Machine.Plug.plugᴹ a ∘ f`.
+plug-graded : (a : Proc X 𝟭ᴵ) (f : Proc A (X ⊗ᴵ B))
+            → unitorˡ.from ∘ (sub (procᵘ a) ∘ gradedᵒ f) ≈ procᵒ (M._∘_ (plugᴹ a) f)
+plug-graded = plug-gradedᵒ
 
 emulᵍ : {f : Proc A (X ⊗ᴵ B)} {s : Proc Y X} {g : Proc A (Y ⊗ᴵ B)}
       → Factors f s g → gradedᵒ f ≈ᵁ sub (procᵒ s) ∘ gradedᵒ g

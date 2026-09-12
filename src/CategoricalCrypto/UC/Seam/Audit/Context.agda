@@ -27,13 +27,15 @@
 open import Categories.Functor.Monoidal.CurriedTensor.Properties using (T₁-⊗)
 import Categories.Morphism.Reasoning as MR
 
+open import Categories.Category using (Category)
+
 open import Data.Bool.Base using (Bool; true)
-open import Data.Nat.Base using (ℕ; _*_; _+_)
+open import Data.Nat.Base using (ℕ; _*_; _+_; _⊔_)
 import Data.Nat.Properties as ℕP
 open import Data.Product.Base using (_,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ)
 open import Data.Rational.Properties using (≤-trans)
-open import Level using (0ℓ)
+open import Level using (Level; 0ℓ)
 open import Relation.Binary.PropositionalEquality using (subst; trans)
 
 open import ProbabilisticLogic.Distribution.Uniform using (indᵇ)
@@ -46,14 +48,19 @@ open import CategoricalCrypto.Protocol.Machine using (morphism; runᴹ)
 open import CategoricalCrypto.Protocol.Machine.Agree using (prAgree)
 open import CategoricalCrypto.Protocol.Observe using (Bounded)
 open import CategoricalCrypto.Strategy using (Strat; asks≤)
-open import CategoricalCrypto.UC.Budget using (Budget)
-open import CategoricalCrypto.UC.Machine using (Proc; Ωᴵ)
+open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget)
+open import CategoricalCrypto.UC.Graded using (plug-graded)
+open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; Ωᴵ)
+open import CategoricalCrypto.UC.Machine.Dictionary using (𝟭ᴵ)
+open import CategoricalCrypto.UC.Machine.Plug using (plugᴹ)
 open import CategoricalCrypto.UC.Model.Bridge using (ucBaseᵒ)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ; qbᵒ)
+open import CategoricalCrypto.UC.Model.Graded using (procᵘ; qbᵘ)
 open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ; obs-resp)
-open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ; ifaceᵒ; procᵒ)
+open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ; gradedᵒ; ifaceᵒ; procᵒ; procᵒ-∘)
 open import CategoricalCrypto.UC.Model.Setup
-open import CategoricalCrypto.UC.Seam using (strategyEnv)
+open import CategoricalCrypto.UC.QueryBound using () renaming (QB to QBᴹ)
+open import CategoricalCrypto.UC.Seam using (ctxRunˢ; strategyEnv)
 open import CategoricalCrypto.UC.Seam.Adequacy using (adequacy)
 open import CategoricalCrypto.UC.Seam.Audit using (AuditBound; AuditEvent)
 open import CategoricalCrypto.UC.Seam.Budget using (qb-strategyEnv)
@@ -61,11 +68,18 @@ open import CategoricalCrypto.UC.Seam.Grounded using (closedᵒ; 𝟘ᴳ; plug-�
 
 module CategoricalCrypto.UC.Seam.Audit.Context where
 
-open import CategoricalCrypto.UC.Emulation ucBaseᵒ using (obs; tv₁)
+-- The budget certificates are stated over `ucBaseᵒ`'s own grading, which is
+-- `gradingᵗ 𝔾ᵒ` where `UC.Model.Setup`'s is the curried tensor's: the two
+-- actions agree on the nose but their records do not, so a `qb-sub`/`qb-T₁`
+-- consumer has to spell the action with THIS one.
+open import CategoricalCrypto.UC.Emulation ucBaseᵒ
+  using (obs; tv₁) renaming (T₁ to T₁ᵉ; sub to subᵉ)
 
 open HomReasoning
-open Budget budgetᵒ using (QB; qb-∘; qb-mono; qb-λ⇒; qb-λ⇐)
+open Budget budgetᵒ using (QB; qb-∘; qb-mono; qb-sub; qb-T₁; qb-λ⇒; qb-λ⇐)
 open MR ∣machines∣ using (cancelInner)
+
+private module 𝒫 = Category 𝒫ᴵ
 
 -- The ancilla is deflated away, whatever the interface below it.
 auditClose : 𝟘ᵒ ⇒ T₀ 𝟘ᴳ 𝟘ᵒ
@@ -100,6 +114,72 @@ module _ (B : Iface) (e : Strat (Neg B) (Pos B)) where
     reduce : ((auditTest ∘ id ⊗₁ closedᵒ w) ∘ auditClose) ≈ procᵒ env ∘ procᵒ w
     reduce = ((refl⟩∘⟨ ⟺ (T₁-⊗ 𝔾ᵒ 𝟘ᴳ (closedᵒ w))) ⟩∘⟨refl)
            ○ plug-λ test (closedᵒ w) ○ cancelInner unitorˡ.isoʳ
+
+------------------------------------------------------------------------
+-- …and at a NONTRIVIAL grade
+
+-- The same context with the grade FILLED by an adversary machine.  Its shape
+-- is `UC.Audit.absorb`'s — a test precomposed with `T₁ W (sub _)` — at an
+-- adversary instead of at a simulator, so the closed system is three-party and
+-- the grade the strategy sees is again the trivial one.
+module _ (B : Iface) (e : Strat (Neg B) (Pos B)) {X : Iface} (a : Proc X 𝟭ᴵ) where
+
+  auditTestᵍ : T₀ 𝟘ᴳ (T₀ (ifaceᵒ X) (ifaceᵒ B)) ⇒ Ωᵒ
+  auditTestᵍ = auditTest B e ∘ T₁ᵉ 𝟘ᴳ (subᵉ (procᵘ a))
+
+  -- The adversary's own allowance, charged exactly as `absorbed-budget` charges
+  -- a simulator's: `qb-sub` and `qb-T₁` guard at `⊔ 1`, `qb-∘` multiplies.
+  audit-qbᵍ : (q c : ℕ) → asks≤ q e → QBᴹ c a → QB (q * ((c ⊔ 1) ⊔ 1)) auditTestᵍ
+  audit-qbᵍ q c h cert = qb-∘ (audit-qb B e q h) (qb-T₁ (qb-sub (qbᵘ cert)))
+
+  module _ {A : Iface} (f : Proc A (X ⊗ᴵ B)) (w : Proc unitᴵ A) where
+
+    -- The system with its adversary plugged and its resource below.
+    closedᵍ : Proc unitᴵ B
+    closedᵍ = (plugᴹ a 𝒫.∘ f) 𝒫.∘ w
+
+    -- `unprocᵒ-∘` twice — once for the adversary at the grade
+    -- (`UC.Graded.plug-graded`), once for the resource below — with the two
+    -- unitors cancelling exactly as at the trivial grade.
+    plug-runᵍ : obs (tv₁ 𝟘ᴳ (gradedᵒ f) auditTestᵍ) (closedᵒ w) ≈ₚ ctxRunˢ B e closedᵍ
+    plug-runᵍ =
+      ≈ₚ-trans _ _ _ (obs-resp reduceᵍ) (≈ₚ-sym _ _ (plug-run B e closedᵍ))
+      where
+      reduceᵍ : ((auditTestᵍ ∘ id ⊗₁ gradedᵒ f) ∘ closedᵒ w)
+              ≈ procᵒ (strategyEnv B e) ∘ procᵒ closedᵍ
+      reduceᵍ = ((assoc ○ (refl⟩∘⟨ merge)) ⟩∘⟨refl)
+              ○ sym-assoc
+              ○ (plug-λ (procᵒ (strategyEnv B e) ∘ unitorˡ.from) _ ⟩∘⟨refl)
+              ○ ((assoc ○ (refl⟩∘⟨ plug-graded a f)) ⟩∘⟨refl)
+              ○ assoc ○ (refl⟩∘⟨ ⟺ (procᵒ-∘ (plugᴹ a 𝒫.∘ f) w))
+        where
+        merge : (id ⊗₁ subᵉ (procᵘ a)) ∘ (id ⊗₁ gradedᵒ f)
+              ≈ T₁ 𝟘ᴳ (sub (procᵘ a) ∘ gradedᵒ f)
+        merge = (⟺ (T₁-⊗ 𝔾ᵒ 𝟘ᴳ _) ⟩∘⟨ ⟺ (T₁-⊗ 𝔾ᵒ 𝟘ᴳ _)) ○ ⟺ T-homomorphism
+
+    -- …and the observation IS layer 1's run of the strategy against it.
+    audit-runᵍ : obs (tv₁ 𝟘ᴳ (gradedᵒ f) auditTestᵍ) (closedᵒ w) ≈ₚ runᴹ closedᵍ e
+    audit-runᵍ = ≈ₚ-trans _ _ _ plug-runᵍ (adequacy B closedᵍ e)
+
+    -- A graded bound at any class this context inhabits is a `Pr` bound on that
+    -- run.  This is `extract` at a nontrivial grade, stopping in `Dₚ`: the
+    -- process is a RAW machine, so layer 1's `Bounded` — which is about a
+    -- protocol image — is not what the bound can be about
+    -- (`docs/hash-forward.md` item 5).
+    extractᵍ : {v : Level} {ε : ℕ → ℚ}
+               {𝔈 : AuditEvent v (ifaceᵒ A) (ifaceᵒ X) (ifaceᵒ B)} {q c c′ : ℕ}
+             → asks≤ q e → QBᴹ c a → QBᴹ c′ w
+             → 𝔈 𝟘ᴳ auditTestᵍ (closedᵒ w) (ctxBudget (q * ((c ⊔ 1) ⊔ 1)) c′)
+             → AuditBound (gradedᵒ f) 𝔈 ε
+             → (n : ℕ) → Pr≤ n (runᴹ closedᵍ e) ℚ.≤ ε (ctxBudget (q * ((c ⊔ 1) ⊔ 1)) c′)
+    extractᵍ {q = q} {c} {c′} ae ca cw mem bnd n =
+      ≤-trans (proj₂ reach)
+              (bnd 𝟘ᴳ auditTestᵍ (closedᵒ w) (audit-qbᵍ q c ae ca) qbʷ mem (proj₁ reach))
+      where
+      reach = proj₂ audit-runᵍ (indᵇ true) (indᵇ-nn true) n
+
+      qbʷ : QB c′ (closedᵒ w)
+      qbʷ = qb-mono (ℕP.≤-reflexive (ℕP.*-identityˡ c′)) (qb-∘ qb-λ⇐ (qbᵒ cw))
 
 -- A graded bound at any class this context inhabits IS layer 1's `Bounded`.
 -- The `bad`-budget hypothesis is what lets the run and the mass meet: `Bounded`
