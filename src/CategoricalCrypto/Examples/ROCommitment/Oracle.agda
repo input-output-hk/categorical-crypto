@@ -10,15 +10,10 @@
 -- afterwards is what keeps the kernel REDUCING under the games' `E-bind`
 -- rewrites — a `Dmap` in front of it would not.
 
-open import Class.DecEq
-
-open import Data.Empty using (⊥-elim)
 open import Data.List.Base using (_∷_)
 open import Data.Maybe.Base using (just; nothing)
 open import Data.Nat.Base using (ℕ)
 open import Data.Product.Base using (_×_; _,_)
-open import Relation.Binary.PropositionalEquality
-open import Relation.Nullary.Decidable.Core using (yes; no)
 
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.Uniform using (uniform-Vec)
@@ -31,10 +26,3 @@ fetchT : {A : Set} → (Tbl → A) → Tbl → Pt → Dist-ℚ (A × Dig)
 fetchT g t x with lookupPt t x
 ... | just d  = return-ℚ (g t , d)
 ... | nothing = uniform-Vec k >>=ᴹ λ h → return-ℚ (g ((x , h) ∷ t) , h)
-
--- The point just sampled is in the post-table, which is what a bisimulation
--- reading the answer back out of it needs and what the `with` alone discards.
-lookup-here : (x : Pt) (d : Dig) (L : Tbl) → lookupPt ((x , d) ∷ L) x ≡ just d
-lookup-here x d L with x ≟ x
-... | yes _  = refl
-... | no  ne = ⊥-elim (ne refl)

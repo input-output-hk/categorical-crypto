@@ -49,6 +49,13 @@ lookupPt ((y , d) ∷ L) x with x ≟ y
 ... | yes _ = just d
 ... | no  _ = lookupPt L x
 
+-- The point just sampled is in the post-table, which is what a bisimulation
+-- reading the answer back out of it needs and what the `with` alone discards.
+lookup-here : (x : Pt) (d : Dig) (L : Tbl) → lookupPt ((x , d) ∷ L) x ≡ just d
+lookup-here x d L with x ≟ x
+... | yes _  = refl
+... | no  ne = ⊥-elim (ne refl)
+
 preimages : Dig → Tbl → List Pt
 preimages c []            = []
 preimages c ((x , d) ∷ L) with d ≟ c
