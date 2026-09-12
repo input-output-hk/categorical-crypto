@@ -21,10 +21,10 @@
 -- `docs/hash-forward.md` records why the oracle sits below rather than inside
 -- either system, and what the alternatives cost.
 
-open import Categories.Category using (Category; _[_≈_])
+open import Categories.Category using (Category)
 
-open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
-open import Data.Sum.Base as Sum using (_⊎_; inj₁; inj₂)
+open import Data.Product.Base using (_×_; _,_)
+open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Polymorphic.Base using (tt)
 open import Function.Base using (case_of_)
 open import Level using (0ℓ)
@@ -33,9 +33,9 @@ open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Machines.Base using (𝒱ₚ; 𝒢ₚ; 𝒫ₚ)
+open import CategoricalCrypto.Machines.Base using (𝒱ₚ; 𝒫ₚ)
 open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; subᴵ′; wireᴹ)
-open import CategoricalCrypto.UC.Machine.Wire using (sandwichᴹ; ∘-wireᴹ)
+open import CategoricalCrypto.UC.Machine.Wire using (∘-wireᴹ)
 
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
@@ -155,6 +155,7 @@ simulator = mk stateˢ simStep
 -- honest traffic is relayed.  This is the step table a reader would write for
 -- "hash what is on the wire"; that it is also the simulated composite's is
 -- `real-factors`.
+--
 -- The state is split INSIDE each letter's clause, never across them: a clause
 -- with a constructor in the state position would make the relayed cases stick
 -- at a variable state, and `real-factors` compares them there.

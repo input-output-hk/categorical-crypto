@@ -2257,3 +2257,116 @@ sibling-owned `Examples.MerkleDamgard` (34 s), `MerkleDamgard.Pin` and
 (`postulate|TERMINATING|primTrustMe|\{!`): **16 lines before, 16 after**, every one the
 words "postulate-free"/"No postulates" in an inherited `Categories/APROP/**` comment;
 zero live hatches before and after.
+
+## Resolved (hash-forward)
+
+`docs/protocol-implementation-review.md` §3's application at an explicit nontrivial
+grade, and the small example it asks for. Base `d461b1fa` (`protocol-rewrite`'s tip),
+branch `hash-forward`. Five new modules, two additive edits to existing ones, two
+index-file entries. Design, the oracle-placement decision with its rejected
+alternatives, the five steps one by one, and the precise stop: `docs/hash-forward.md`.
+
+**No existing statement was touched.** Mechanically: the only edits to pre-existing
+files are `UC/Audit.agda` (+`pinned`/`pinned-bound`, and `proj₁; proj₂` added to one
+import), `UC/Seam/Audit.agda` (two names added to an existing `open … public using`
+list), and the two root index files (`open import` lines plus inventory paragraphs).
+`UC.Seam.Grounded`'s `closedᵒ`/`stageᵒ`/`subBlind` and `UC.Seam.Grounding.Prefix`'s
+`scalar-blindᵒ` are untouched and unweakened; the graded statements sit BESIDE them.
+
+- `UC/Model/Graded.agda :: sub-gradedᵒ` — the one genuinely load-bearing seal addition,
+  and the reason it has to be inside the block: `sub c` is `c ⊗₁ id` and `subᴵ` is that
+  tensor read at interface objects (`UC.Machine.Dictionary.sub-⊗₁`), but the seal hides
+  `_⊗₀_`, so outside it the two cannot be equated. Same discipline as `procᵒ-∘` and
+  `gradedᵒ`: one export per shape, from inside, no `unfolding` for consumers. The module
+  does NOT open `StdUC` — `UC.Model.Enrichment`'s header prices that configuration at
+  12 GiB — so the `sub`-vocabulary reading is a separate one-liner in `UC.Graded`.
+- `UC/Graded.agda :: ≤UCᵍ` — a machine-level factoring `f ≈ᴹ subᴵ s ∘ g` IS an emulation
+  at the grade `ifaceᵒ X`, with no error term. This is the whole of what §3's step 1 and
+  step 2 needed; `_≤UC_` itself was already stated at arbitrary grades and nothing about
+  it changed.
+- `Examples/HashForward.agda :: real-factors` — **the design decision I would most like
+  your eye on.** The ideal functionality is a stateless WIRE, and that is forced, not
+  stylistic: `subᴵ s ∘ g` is a ⊕-trace, and the only two readable routes to one are
+  `Protocol.Machine.Compose.morphism-∘` (both factors protocol images) and
+  `UC.Machine.Wire.∘-wireᴹ` (lower factor a wire). The first is unavailable because
+  `subᴵ (morphism S)` is NOT `≈ᴹ` a `morphism` image — a layer-1 relay parks a
+  continuation and `subᴵ` does not, which is `Protocol.Machine`'s own
+  `wireᵖ`-vs-`𝒢.id` note — and they agree only after composition, i.e. only by re-running
+  the 312-line trace argument. So the functionality is a wire onto a resource that holds
+  the channel's state, which I claim is where an ideal channel's state belongs anyway.
+  If you would rather have a stateful ideal functionality, the missing lemma is
+  `subᴵ (morphism S) ∘ morphism P ≈ᴹ morphism (S ⋉ P)` and it is `Compose.agda` again.
+- `Examples/HashForward.agda :: realStep` — `case s of λ where` inside each letter's
+  clause rather than a state split across clauses. Not taste: a constructor in the state
+  position makes the pure-relay cases stick at a variable state, and `real-factors`
+  compares them there. Flagged because it reads like an odd choice otherwise.
+- `UC/QueryBound/Exact.agda :: QEᵢ` — the occurrence/count the review asks for, as a
+  general module (rule 27). It is `UC.QueryBound.QBᵢ` with the potential's inequalities
+  replaced by an equation and two weightings made parameters (`δ` on outputs, `cost` on
+  input letters), so ONE certificate serves "one oracle query per activation" and "two
+  queries of any kind per activation" at the toy. The residual `Λ (final state)` in the
+  conclusion is deliberate and is what makes the statement true of an interrupted run;
+  `sim-hash-count-settled` is the reading without it. `qeᵢ-wire` is the generic
+  inhabitation.
+- `UC/Audit.agda :: pinned`, `:: pinned-bound` — added here rather than in a new module
+  because they are about `AuditEvent`/`AuditBound` and generic in the base (rules 27,
+  28). `pinned` is `UC.Seam.Audit.TrivialGrade.watched`'s shape with layer 1's monitor
+  run abstracted away, which is what makes it available at a nontrivial grade at all —
+  `watched` is stated at a closed `Protocol` image. `pinned-bound`'s `δ` is the
+  `Mass`-level price of `dominate`; at the model the same step is exact
+  (`Seam.Audit.Bounded.supply`), so a model-specific `pinned-boundᵒ` at zero slack is
+  available if you want it — I did not add one because nothing needed it.
+- `Examples/HashForward/Audit.agda :: hf-audit-carry` — `UC.Audit.audit-carry` run at
+  `X = ifaceᵒ Advᴵ`. **No prefix tolerance is spent**: `watchedᵖ` and `subPrefixedˢ`
+  exist because a trivial-grade simulator's whole contribution is an initialization one
+  hopes is silent, and this simulator's contribution is its actual interaction, run in
+  the ideal experiment and counted by `sim-hash-count`.
+
+Open, for the maintainer:
+
+- **The layer-1 probability is NOT extracted, and the obstruction is structural.**
+  `UC.Seam.Audit.Context.extract` deflates the grade with `unitorˡ.from`, which exists
+  only at `𝟘ᴳ`; at `X ≠ 𝟘ᴳ` the extraction context must plug an ADVERSARY machine into
+  the grade and the resulting observation has to be identified with a layer-1 run, which
+  `UC.Seam.Adequacy` states only for the one-sided closed case. The smallest change is a
+  `plug-runᵍ` beside `UC.Seam.Grounded.plug-run` plus a three-party `adequacy`;
+  `docs/hash-forward.md` §5 spells it out. Nothing is blocked by the seal and nothing
+  wants the core changed. This is the one place the toy falls short of review §3's
+  acceptance wording ("the probability theorem must apply").
+- **The toy's own audit designation is trivial** (`hf-audit-silent`: the ideal
+  experiment reports `false`, so `ε ≡ 0`). `hf-audit-carry` is quantified over the
+  designation and its bound, so a better one drops in; supplying one means computing the
+  observation of a closed composite, which is the same trace work as the item above.
+- **No asymptotic family twin.** `UC.Asymptotic.Audit._≤UC^ω[_]_` is stated at
+  `closedᵒ (morphism (R n))` — trivial grade AND protocol images — so `uc-audit-carry`
+  and `uc-audit-boundedᵖ` cannot be instantiated here; the toy applies the generic
+  `UC.Audit.audit-carry` that those two wrap. A graded family relation would be the
+  levelwise `_≤UC[ cs n ]_` at `gradedᵒ`. I did not add it because the toy has no
+  security parameter, so every level is the same statement and the polynomial allowance
+  has nothing to grow in — but it is a four-line definition if you want the shape on
+  record.
+- **`real` is a raw machine, not a `morphism` image**, so none of layer 1's vocabulary
+  (`Bounded`, `TotalRun`, `prAgree`) is in play at the toy. This follows from the wire
+  decision above and is not independently changeable.
+- **`Examples.HashForward.Audit` is wired into `CategoricalCrypto.agda`** rather than
+  given its own root the way `Examples.ChimericLedger` and `Examples.MerkleDamgard` are.
+  Three small modules seemed not to warrant a root; say the word and it moves.
+- `UC.agda` now re-exports `UC.Graded`, `UC.Seam.Graded` and `UC.QueryBound.Exact`, with
+  inventory entries. `UC.QueryBound.Exact`'s inner module is named `Ledger` rather than
+  `Certificate` to avoid shadowing `UC.QueryBound.Certificate` where both are re-exported.
+
+### Verification
+
+All runs `pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS` under plain
+`timeout`, rc=0 with an empty
+`ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|Heap exhausted`
+gate. Per-module warm figures are in `docs/hash-forward.md`'s table (8.8-10.0 s each,
+every one far inside its rule-5 budget).
+
+Closure: `CategoricalCrypto` (12.7 s), `CategoricalCrypto.UC` (16.8 s),
+`CategoricalCrypto.UC.Model`, the four `UC/Seam/Audit*` modules and
+`UC.Asymptotic.Audit` (the consumers of the two additive edits), and all eleven
+`Examples/ChimericLedger/` roots (5-15 s each). Hatch grep over `src/`
+(`postulate|TERMINATING|primTrustMe|\{!`): **16 lines before, 16 after**, every one the
+words "postulate-free"/"No postulates" in an inherited `Categories/APROP/**` comment;
+zero live hatches before and after.

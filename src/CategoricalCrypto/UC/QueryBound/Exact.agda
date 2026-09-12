@@ -51,10 +51,10 @@ module CategoricalCrypto.UC.QueryBound.Exact where
 weight : {X : Set} → (X → ℕ) → List X → ℕ
 weight w xs = sum (map w xs)
 
-module Certificate {A B : Iface} (S : Set) (point : Dₚ S)
-                   (step : S × (Pos A ⊎ Neg B) → Dₚ (S × (Neg A ⊎ Pos B)))
-                   (δ : Neg A ⊎ Pos B → ℕ) (cost : Pos A ⊎ Neg B → ℕ)
-                   where
+module Ledger {A B : Iface} (S : Set) (point : Dₚ S)
+              (step : S × (Pos A ⊎ Neg B) → Dₚ (S × (Neg A ⊎ Pos B)))
+              (δ : Neg A ⊎ Pos B → ℕ) (cost : Pos A ⊎ Neg B → ℕ)
+              where
 
   record QEᵢ : Set where
     field
@@ -134,15 +134,11 @@ module Certificate {A B : Iface} (S : Set) (point : Dₚ S)
                ⟨≈⟩ >>=ₚ-assoc pointᴱ _ _
                ⟨≈⟩ bindᶠ (λ r → >>=ₚ-identityˡ (proj₁ r) _))
 
-open Certificate public
+open Ledger public
 
 ------------------------------------------------------------------------
 -- Inhabitation
 
--- A stateless relay emits exactly one downward output per activation from
--- above and none per answer from below.  This is `UC.QueryBound.qbᵢ-wire`'s
--- bound read as an equation, and it is where the notion is seen not to be
--- vacuous.
 -- The two weightings a plain query count uses: one per output that travels
 -- DOWN, one per activation that arrives from ABOVE.
 downward : {Q R : Set} → Q ⊎ R → ℕ
@@ -153,6 +149,10 @@ fromAbove : {P Q : Set} → P ⊎ Q → ℕ
 fromAbove (inj₁ _) = 0
 fromAbove (inj₂ _) = 1
 
+-- A stateless relay emits exactly one downward output per activation from
+-- above and none per answer from below.  This is `UC.QueryBound.qbᵢ-wire`'s
+-- bound read as an equation, and it is where the notion is seen not to be
+-- vacuous.
 qeᵢ-wire : {A B : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
          → QEᵢ ⊤ᵛ (returnₚ tt) (wireStep up down) downward fromAbove
 qeᵢ-wire up down = record

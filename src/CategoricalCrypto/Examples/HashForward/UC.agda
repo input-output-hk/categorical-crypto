@@ -127,8 +127,8 @@ twoPerPeek : Pos Lkᴵ ⊎ Neg Advᴵ → ℕ
 twoPerPeek (inj₁ _)     = 0
 twoPerPeek (inj₂ peekᴬ) = 2
 
-module EH = Certificate {Lkᴵ} {Advᴵ} SSt (returnₚ idleˢ) simStep hashes peeks
-module EA = Certificate {Lkᴵ} {Advᴵ} SSt (returnₚ idleˢ) simStep downward twoPerPeek
+module EH = Ledger {Lkᴵ} {Advᴵ} SSt (returnₚ idleˢ) simStep hashes peeks
+module EA = Ledger {Lkᴵ} {Advᴵ} SSt (returnₚ idleˢ) simStep downward twoPerPeek
 
 private
   -- The three live transitions and the off-protocol rest, shared by the two

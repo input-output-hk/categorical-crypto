@@ -65,6 +65,11 @@
 --                                  headers carry the measured costs), which no
 --                                  consumer of this entry point should pay
 --                                  unless it is assembling a `Budget`
+--                `UC.QueryBound.Exact`
+--                                  the EXACT counterpart: a per-step ledger
+--                                  equation, so that "this process performs a
+--                                  query" is expressible and not just "at
+--                                  most `c` of them"
 --                `UC.QueryBound.Object`
 --                                  the same predicate at 𝒢's own objects — the
 --                                  spelling `gradingᴹ`'s action is stated in
@@ -96,6 +101,15 @@
 --                                  them `UnitGrade`; also `closedᵒ`/`stageᵒ`,
 --                                  the trivially graded images every consumer
 --                                  downstream of the collapse is stated at
+--                `UC.Graded`       the same images at a NONTRIVIAL grade: a
+--                                  `Proc A (X ⊗ᴵ B)` is a graded hom
+--                                  (`Seal.gradedᵒ`) and a machine-level
+--                                  factoring of it through a simulator is an
+--                                  emulation, with no error.
+--                                  `UC.Seam.Graded` attaches the simulator's
+--                                  query bound, which is what the graded carry
+--                                  consumes; `Examples.HashForward` is the
+--                                  application
 --                `UC.Factor`       `factorᵖ`/`liftᵖ`: the UC-object image of
 --                                  `_∘ᵖ_` factors on the nose, so a
 --                                  sub-protocol emulation lifts to the
@@ -149,9 +163,12 @@ open import CategoricalCrypto.UC.Machine.Dominated public
 open import CategoricalCrypto.UC.Machine.Grading public
 open import CategoricalCrypto.UC.QueryBound public
 open import CategoricalCrypto.UC.QueryBound.Counting public
+open import CategoricalCrypto.UC.QueryBound.Exact public
 open import CategoricalCrypto.UC.Saturated public
 open import CategoricalCrypto.UC.Seam.Audit.Prefix public
 open import CategoricalCrypto.UC.Factor public
+open import CategoricalCrypto.UC.Graded public
+open import CategoricalCrypto.UC.Seam.Graded public
 open import CategoricalCrypto.UC.Seam.Grounded public
 
 -- Closure-only: the negligible tier's acceptance tests (leaf, nothing to open).

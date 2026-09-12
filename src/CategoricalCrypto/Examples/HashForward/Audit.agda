@@ -30,7 +30,6 @@ open import ProbabilisticLogic.Distribution.Uniform using (indᵇ)
 open import ProbabilisticLogic.Dp using (Dₚ; returnₚ; returnₚ-cum)
 open import ProbabilisticLogic.Dp.Advantage using (Pr≤)
 
-open import CategoricalCrypto.Iface
 open import CategoricalCrypto.UC.Budget using (Budget)
 open import CategoricalCrypto.UC.Model.Bridge using (ucBaseᵒ)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ; qbᵒ)
@@ -41,7 +40,7 @@ open import CategoricalCrypto.UC.Seam.Graded using (≤UC[]ᵍ)
 module CategoricalCrypto.Examples.HashForward.Audit (Msg Dig : Set) where
 
 open import CategoricalCrypto.Examples.HashForward Msg Dig
-  using (Advᴵ; Honᴵ; Lkᴵ; Resᴵ; real-factors)
+  using (Advᴵ; Honᴵ; real-factors)
 open import CategoricalCrypto.Examples.HashForward.UC Msg Dig
   using (idealᵒ; realᵒ; simQB; simᵒ)
 open import CategoricalCrypto.UC.Emulation ucBaseᵒ

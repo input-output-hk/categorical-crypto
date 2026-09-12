@@ -27,7 +27,7 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base using (𝒢ₚ)
 open import CategoricalCrypto.UC.Machine using (Proc; subᴵ′)
 open import CategoricalCrypto.UC.Model.Graded using (sub-gradedᵒ; ≈ᴹ⇒≈ᵍ)
-open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; ifaceᵒ; procᵒ)
+open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; procᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 
 module CategoricalCrypto.UC.Graded where
