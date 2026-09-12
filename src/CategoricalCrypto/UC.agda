@@ -16,13 +16,15 @@
 --                                  Universal composition is the inherited
 --                                  theorem, not one of these —
 --                                  `UC.Model.Bridge` carries it across
---                `UC.Robust`       `SaturatedProperty`, `Robust` and
---                                  `uc-preserves`: the carry with no
---                                  probability under it, where the simulator
+--                `UC.Robust.Observation`
+--                                  `SaturatedProperty`, `Robust` and
+--                                  `uc-preserves` at a `UCBase`: the carry with
+--                                  no probability under it, where the simulator
 --                                  slides into the test and an
 --                                  observation-invariant property needs no
---                                  budget to pay for it.  `UC.Robust.Model`
---                                  runs it at the inherited emulation
+--                                  budget to pay for it.  Independently scoped:
+--                                  the canonical statement is the inherited
+--                                  layer's `UC.Robust` (below)
 --                `UC.Core.Standard`
 --                                  `gradingᵗ`: a monoidal category grades
 --                                  itself — the inherited `UCSetup` doctrine's
@@ -144,6 +146,14 @@
 -- its names only make sense inside that `open StdUC` discipline.
 -- `UC.Model.Bridge` identifies the two, and `UC.Seam.Grounded` above is where
 -- they meet.  `CategoricalCrypto` reaches both roots.
+--
+-- The inherited layer's own preservation theorem lives there too, not here:
+-- `Abstract2.Action` is the environment presheaf's action read as `run` and
+-- `regradeEnv` at any `UCSetup`, `UC.Robust` is `SaturatedProperty`/`Robust`/
+-- `uc-preserves` over that action with an admissibility class and its
+-- `ClosedUnder` obligation, `UC.Robust.Selected` a selected class with a real
+-- closure proof, and `UC.Robust.Model` runs them at the machine model
+-- (`docs/uc-presheaf-preservation-plan.md` §2, §3.1).
 --
 -- Everything is `--safe --without-K`; the `Dₚ`-facing modules add
 -- `--guardedness` and nothing adds anything else.  In particular there is no K
