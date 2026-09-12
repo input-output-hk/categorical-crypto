@@ -174,10 +174,12 @@ open import CategoricalCrypto.UC.Machine public
 open import CategoricalCrypto.UC.Machine.Bridge public
 open import CategoricalCrypto.UC.Machine.Dominated public
 open import CategoricalCrypto.UC.Machine.Grading public
+open import CategoricalCrypto.UC.Machine.Plug public
 open import CategoricalCrypto.UC.QueryBound public
 open import CategoricalCrypto.UC.QueryBound.Counting public
 open import CategoricalCrypto.UC.QueryBound.Exact public
 open import CategoricalCrypto.UC.Saturated public
+open import CategoricalCrypto.UC.Seam.Audit.Context public
 open import CategoricalCrypto.UC.Seam.Audit.Prefix public
 open import CategoricalCrypto.UC.Factor public
 open import CategoricalCrypto.UC.Graded public

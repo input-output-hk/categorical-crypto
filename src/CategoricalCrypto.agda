@@ -76,7 +76,9 @@ open import CategoricalCrypto.Examples.Possibilistic
 open import CategoricalCrypto.Examples.Signatures
 open import CategoricalCrypto.Examples.RandomOracle
 open import CategoricalCrypto.Examples.HashForward.Audit
+open import CategoricalCrypto.Examples.HashForward.Resource
 open import CategoricalCrypto.Examples.ROCommitment.Asymptotic
+open import CategoricalCrypto.Examples.ROCommitment.Resource
 open import CategoricalCrypto.Examples.ROCommitment.Test
 open import CategoricalCrypto.Examples.ROCommitment.UC
 

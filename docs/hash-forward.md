@@ -335,6 +335,8 @@ gate; the warm column is a single-`Checking`-line run.
    that touches review §3's acceptance criteria directly: the carry runs at
    `X ≠ unit` and its accounting includes the interaction, but the bound it
    produces is an `AuditBound`, not a `Pr`/`PrHit` inequality.
+   **Delivered since**, as `Examples.HashForward.Audit.hf-pr-bound` off the
+   generic `UC.Seam.Audit.Context.extractᵍ` — see `docs/graded-bridge.md` (e).
 2. **A non-trivial audit designation.** `hf-audit-silent` supplies `ε ≡ 0` at
    the designation "the ideal monitored experiment reports `false`". A
    designation with content would pin the observation to the run of a monitor
@@ -354,10 +356,14 @@ gate; the warm column is a single-`Checking`-line run.
    every closure, which is stronger than fixing a lazily sampled oracle, but it
    also means no `Dₚ`-level oracle is exercised. Plugging `POV.oracle`-style
    sampling in below would need the closed system, i.e. item 1's machinery.
+   **Delivered since**: `Examples.HashForward.Resource` (deterministic hash —
+   `Dig` is abstract here) and `Examples.ROCommitment.Resource` (lazily
+   sampled), `docs/graded-bridge.md` (c).
 5. **`real` is a raw machine, not a `morphism` image.** Deliberate — the
    parking mismatch above — and it is why `Protocol.Observe.Bounded`,
    `TotalRun`, `prAgree` and the rest of the layer-1 vocabulary are not in play
-   at the toy. A protocol-image version of `real` would not factor through
+   at the toy. Item 1's `Pr` bound is therefore `Pr≤` on the closed `Dₚ` run,
+   which is the probability statement a raw machine has. A protocol-image version of `real` would not factor through
    `subᴵ simulator`, so this is not a presentation choice that could be changed
    without redoing the trace argument.
 

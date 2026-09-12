@@ -2585,3 +2585,77 @@ against a 209 s budget).
 Hatch grep over `src/` (`postulate|TERMINATING|primTrustMe|\{!`): **16 lines
 before, 16 after**, every one the words "postulate-free" in an inherited
 `Categories/APROP/**` comment. Zero live hatches before and after.
+
+---
+
+## Resolved (graded-bridge)
+
+The graded extraction bridge — `docs/fcom-extraction.md` item 1's residuals
+(a)–(d) and `docs/hash-forward.md`'s step-5 stop. Full account in
+[`docs/graded-bridge.md`](docs/graded-bridge.md); the judgment calls are here.
+
+### Decided, and why
+
+- **`plug-λ` :: `UC/Seam/Grounded.agda`** — its closure argument was
+  `w : 𝟘ᵒ ⇒ X` and is now `w : D ⇒ X` at an arbitrary `D`. The domain was never
+  used by the proof, and `plug-runᵍ` plugs an OPEN process (the graded system,
+  whose resource is composed after the fact) into the same law. Strictly more
+  general, same proof, every existing use unchanged. This is the ONE
+  pre-existing signature the branch touches.
+- **The adversary's type :: `UC/Machine/Plug.agda`** — `docs/fcom-extraction.md`
+  writes the plugged adversary as `Proc unitᴵ X`; it has to be `Proc X 𝟭ᴵ`. It
+  CONSUMES the adversary port (`subᴵ′ a : Proc (X ⊗ᴵ B) (𝟭ᴵ ⊗ᴵ B)` is what
+  composes with `f : Proc A (X ⊗ᴵ B)`), and its codomain is the bundle's own
+  unit rather than `unitᴵ`, whose iso to it `UC.Model.Unit` prices over the perf
+  bar. `plugᴹ a = λᴵ ∘ subᴵ′ a` carries the deflating wire; it is not free of
+  it, and pretending otherwise would need that iso.
+- **`qbᵘ` :: `UC/Model/Graded.agda`** — the natural home is beside `qbᵒ` in
+  `UC.Model.Enrichment`, which another agent's brief covers this round; it is
+  here instead, beside the graded shapes it serves, and moving it later is a
+  cut-and-paste. Flagging rather than deciding for you.
+- **`T₁ᵉ`/`subᵉ` :: `UC/Seam/Audit/Context.agda`** — `UC.Model.Setup`'s grading
+  is the curried tensor's and `ucBaseᵒ`'s is `gradingᵗ 𝔾ᵒ`; the two agree on the
+  nose but their records do not, and a `qb-sub`/`qb-T₁` consumer that spells the
+  action with the former gets a `MismatchedProjectionsError`. The renaming
+  import is the smallest fix. A better one would identify the two gradings once,
+  which is a `UC.Model.Bridge` change and not mine this round.
+- **`extractᵍ` stops at `Pr≤` :: `UC/Seam/Audit/Context.agda`** — `extract`
+  lands in layer 1's `Bounded`, which is about a `Protocol`. At a nontrivial
+  grade the process is a raw machine (`docs/hash-forward.md` item 5), so the
+  probability statement it HAS is `Pr≤` on the closed `Dₚ` run, and that is what
+  is proved. `extract` keeps its statement verbatim and still spends `prAgree`.
+- **Resources are direct `Dₚ` machines :: `Examples/*/Resource.agda`** — not
+  `morphism` of a `Protocol`. Going through a protocol image would buy `prAgree`
+  and `drive`'s inductive tree, but the systems these sit under are not protocol
+  images either, so nothing downstream could use it; the direct machines make
+  the kernel facts `refl`-level. Say the word if you would rather have the
+  protocol presentation for the oracle.
+- **`UC.Seam.Audit.Context` added to `UC.agda`'s public opens** — it was reached
+  only through `UC.Seam.Audit.Prefix` before, and the graded block is now API.
+
+### Flagged for you — a statement in the docs that cannot be proved as written
+
+`docs/fcom-extraction.md` item 1(d)'s `closed-kernel` is mistyped at the
+example, and no amount of proof work reaches it. `Examples.ROCommitment.Honᴵ`
+is `HonA ⇿ ⊥` — the honest port is report-only — so `Neg Honᴵ` is empty, a
+`d : Strat (Neg Honᴵ) (Pos Honᴵ)` has no `ask`, and `runᴹ M d` is independent of
+`M` beyond its point. The right-hand side is a full adaptive interaction. The
+driver of this example is the corrupted committer, which sits at the GRADE, and
+`runᴹ` drives through the codomain.
+
+Separately, `compile : Proc Advᴵ 𝟭ᴵ → Strat _ _ → Strat Q R` is uninhabited for
+an arbitrary machine adversary: `Strat` is finite executable syntax (the
+consolidation plan's decision 4) and a `Proc`'s step is an arbitrary `Dₚ`
+computation. `docs/graded-bridge.md` §"Not delivered" gives both in full, with
+the repairs and the typed statements that survive them.
+
+### Verification
+
+All runs `pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS` under plain
+`timeout`, rc=0 with an empty
+`ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|Heap exhausted`
+gate. Per-module warm figures are in `docs/graded-bridge.md`'s table.
+
+Hatch grep over `src/` (`postulate|TERMINATING|primTrustMe|\{!`): **16 lines
+before, 16 after**, every one the words "postulate-free" in an inherited
+`Categories/APROP/**` comment. Zero live hatches before and after.

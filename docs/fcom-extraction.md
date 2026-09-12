@@ -284,6 +284,14 @@ with (a)–(c) in hand this is the substantive item: it is
 (a)–(d) together are larger than the rest of this branch, which is why steps 1,
 2 and 4 are delivered in full and step 3 stops at its two provable components.
 
+**Since: (a), (b) and (c) are theorems** — `UC.Seam.Audit.Context.plug-runᵍ`,
+`UC.Seam.Adequacy.adequacyᵍ` (which is `adequacy` at one composite, no second
+loop) and `Examples.ROCommitment.Resource`. **(d) is not provable as written**:
+`Honᴵ` is report-only, so the `d` of `closed-kernel` cannot ask and its
+left-hand side does not depend on the system, and `compile` cannot exist at an
+arbitrary machine adversary. `docs/graded-bridge.md` gives both in full, with
+the repairs. The adversary's type there is `Proc X 𝟭ᴵ`, not `Proc unitᴵ X`.
+
 ### 2. The log-only simulator
 
 Recorded above under the exact accounting. The residual is the deferred-sampling
