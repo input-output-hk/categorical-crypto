@@ -218,19 +218,60 @@ rc=0 and an empty
 `ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|Heap exhausted`
 gate; the warm column is a single-`Checking`-line run.
 
-| module | LOC | warm | rule-5 budget |
+| module | LOC | measured | rule-5 budget |
 |---|---|---|---|
-| `ProbabilisticLogic.Dp.Uniform` | 20 | TBD | 65 s |
-| `UC.Machine.Plug` | 32 | TBD | 68 s |
-| `UC.QueryBound` (+46) | 509 | TBD | 187 s |
-| `UC.Model.Graded` (+31) | 87 | TBD | 82 s |
-| `UC.Graded` (+9) | 71 | TBD | 78 s |
-| `UC.Seam.Grounded` (±3) | 281 | TBD | 130 s |
-| `UC.Seam.Adequacy` (+17) | 126 | TBD | 91 s |
-| `UC.Seam.Audit.Context` (+92) | 229 | TBD | 117 s |
-| `Examples.HashForward.Resource` | 78 | TBD | 80 s |
-| `Examples.HashForward.Audit` (+36) | 137 | TBD | 94 s |
-| `Examples.ROCommitment.Resource` | 103 | TBD | 86 s |
+| `ProbabilisticLogic.Dp.Uniform` | 20 | — | 65 s |
+| `UC.Machine.Plug` | 32 | — | 68 s |
+| `UC.QueryBound` (+46) | 509 | — | 187 s |
+| `UC.Model.Graded` (+31) | 87 | 57 s† | 82 s |
+| `UC.Graded` (+9) | 71 | 24 s† | 78 s |
+| `UC.Seam.Grounded` (±3) | 281 | — | 130 s |
+| `UC.Seam.Adequacy` (+17) | 126 | — | 91 s |
+| `UC.Seam.Audit.Context` (+92) | 229 | 32 s† | 117 s |
+| `Examples.HashForward.Resource` | 78 | 9.5 s | 80 s |
+| `Examples.HashForward.Audit` (+36) | 137 | 10.6 s | 94 s |
+| `Examples.ROCommitment.Resource` | 103 | 9.4 s | 86 s |
+
+† not a warm single-module run: the figure includes rebuilding dependencies
+this branch had just edited (`UC.Model.Graded`'s run rebuilt the whole
+`UC.Model.Enrichment` closure, `UC.Seam.Audit.Context`'s rebuilt
+`UC.QueryBound`). A dash is a module whose own warm figure could not be
+isolated. Two things got in the way and both are worth recording. Concurrent
+agents held the pagda memory gate's whole 24 GiB budget with `-M20G` checks for
+most of this branch's verification window, so every run below had to queue
+through it. And a re-check of an unchanged module does NOT re-elaborate it —
+agda 2.8 keys interface staleness on CONTENT, so `touch`ing a file to force a
+warm measurement does nothing (measured: `checking=0`, 9–16 s of interface
+loading). A warm figure has to be taken on the run that first checks the new
+text, which is what the three daggered rows are, or by a real edit.
+
+Every one of these is far inside its rule-5 budget on the run that did check
+it, and none of them is anywhere near a perf defect: the largest is
+`UC.Seam.Audit.Context` at 32 s against 117 s, and that run also rebuilt
+`UC.QueryBound`.
+
+Every module this branch touches, and every closure the brief names, was run
+green with an empty gate grep:
+
+| closure | rc | secs | `Checking` lines |
+|---|---|---|---|
+| `CategoricalCrypto.UC` (the whole UC cone) | 0 | 56 s of compute | many |
+| `Examples.MerkleDamgard.QueryBound` | 0 | 31 | 5 |
+| `Examples.ChimericLedger.EndToEnd` | 0 | 24 | 7 |
+| `Examples.ChimericLedger.Carry` | 0 | 18 | 6 |
+| `Examples.ChimericLedger.Factor` | 0 | 17 | 2 |
+| `Examples.MerkleDamgard.Pin` | 0 | 11 | 1 |
+| `Examples.ROCommitment.Test` | 0 | 12 | 2 |
+| each of the eleven modules above, re-checked | 0 | 13–16 | 0 (up to date) |
+
+`src/CategoricalCrypto.agda` — the whole-library root — is the one check that
+did not complete: it needs more than a 3 GiB heap (measured: `Heap exhausted`
+at `-M3G -H1G` after 120 s and 26 modules), and a retry at a larger heap could
+not be admitted through the memory gate inside this branch's window without
+crowding a concurrent agent's 20 GiB check off the box. Its exposure to this
+branch is the two inventory lines added to it; every module below it was
+checked, and `CategoricalCrypto.UC` — which carries every module this branch
+edited — is green.
 
 ## Not delivered, precisely
 
@@ -298,6 +339,17 @@ generic pieces belong in `ProbabilisticLogic/Dp/**` (the transport) and
 `Protocol/Machine/**` (the compile), not at the example.
 
 ### 2. (f) ROCommitment's `raw-emulation`
+
+```agda
+raw-emulation :
+    (W : Channel)
+    (Et : T₀ W (T₀ (ifaceᵒ Advᴵ) (ifaceᵒ Honᴵ)) ⇒ Ωᵒ)
+    (m  : 𝟘ᵒ ⇒ T₀ W (ifaceᵒ Resᴵ))
+    {c c′ : ℕ} → QB c Et → QB c′ m
+  → Obs ((Et ∘ T₁ᵒ W realᵒ) ∘ m)
+    ≈ₚ[ εᶜ k (ctxBudget c c′) ]
+    Obs ((Et ∘ T₁ᵒ W (sub simᵒ ∘ idealᵒ)) ∘ m)
+```
 
 Unreachable for a second reason on top of (d). `raw-emulation` quantifies over
 every ancilla `W`, every test `Et` and every closure `m` with a query bound —
