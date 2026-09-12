@@ -3388,3 +3388,68 @@ Forced warm (`.agdai` deleted where needed), `+RTS -M8G -H1G`, rc=0 and an empty
 gate on every run; the before/after table with a measured baseline is
 `docs/retirement.md` §9. Escape-hatch baseline 16 before / 16 after (all sixteen
 the words "postulate-free" in inherited comments).
+
+## Resolved (fcom-uc)
+
+Branch `fcom-uc`, off `protocol-rewrite` at `587999b5`. Report:
+[`docs/fcom-uc.md`](docs/fcom-uc.md). Escape-hatch baseline 16 before / 16
+after (all sixteen the words "postulate-free" in inherited comments). Every
+module forced warm with its `.agdai` deleted, `+RTS -M8G -H1G`, rc=0 and an
+empty gate grep.
+
+Four new modules, two edited, no example and no `UC/**` touched.
+
+- **`ProbabilisticLogic.Dp.Support`** (new, 65 LOC, 4 s) — `Supp-map`,
+  `Supp-all`, `uniformizeˢ`/`uniformizeLˢ`.
+- **`ProbabilisticLogic.Dp.Settle.Iter`** (new, 183 LOC, 6 s) —
+  `Settles-stepᵢ`/`ˢ`/`⋆`, `loopK`/`exitK`, `Drops`/`Ranked`/`Settles-iter`.
+  `docs/dp-transport.md` "Not delivered" item 1's round-trip bound, generically.
+- **`CategoricalCrypto.Protocol.Machine.Trace`** (new, 108 LOC, 10 s) —
+  `trace-settles`: `Raw.StepSettles` at a traced machine.
+- **`CategoricalCrypto.GamePlaying.Partial`** (new, 293 LOC, 60 s) — the two
+  game-playing bridges at a `Dist⊥`-valued kernel, plus `prune`/`prune-cert`.
+  Item 2's "(b) is the better buy", lifted once.
+- **`ProbabilisticLogic.Dp.Settle`** (290 LOC, 6 s) — `+Settles-ret⋆`;
+  `Eⱼ`, `E⊥-map`, `E⊥-map-bind` moved out, statements verbatim.
+- **`ProbabilisticLogic.Distribution.RationalDist.Expectation`** (222 LOC, 6 s)
+  — those three arrive, plus `Mb`/`OnSupport⊥`, `E⊥-mono-on`, `Pr₁⊥≥0`,
+  `∣Pr⊥-Pr⊥∣≤1`, `E⊥-abs-diff`.
+
+### Needs your judgement
+
+- **`Dp.Support`'s natural home is `ProbabilisticLogic/Dp.agda`**, beside
+  `Supp`, `SuppL`, `Supp-mono` and `uniformize` — `Supp-map`, `Supp-all` and
+  `uniformizeˢ` are facts about `Supp` with no `Settles` in them. It is one
+  directory down only because `Dp.agda` is outside this branch's file scope.
+  Folding it in is a pure move; `Dp.Settle` would then not gain an import.
+- **`GamePlaying.Partial` costs 60 s against a 133 s budget**, which is the
+  same order as `GamePlaying.agda`'s own pair of `Strat` recursions with a
+  `with`-abstraction on `bad s`. It is not a rule-31 defect — it is the same
+  argument twice, once per probability layer — but if the duplication is
+  judged too expensive, the alternative is to derive the total statements from
+  the partial ones at `embedᵏ` and delete the total proofs. That WOULD touch
+  `GamePlaying.agda`, `Hop.agda` and every existing consumer's proof term, so
+  it is not done here.
+- **`Settles-ret⋆` vs `Settles-bind⋆`.** They differ only in whether the
+  continuation's settling is asked at every value or at one. A single
+  support-indexed `Settles-bindˢ` subsumes both and would let
+  `Settles-stepᵢˢ`'s inline `uniformizeˢ` be shared; it is not written because
+  there would then be three entry points where two are used.
+- **`Protocol.Machine.Trace` is a new file rather than a section of
+  `Protocol/Machine/Raw.agda`.** Raw is 133 LOC and 9 s; merging costs Raw's
+  importers the `Machines.Trace`/`Dp.Iter` closure, which `Transport.agda` does
+  not need. Split unless you want Raw to be the single entry point.
+
+### Root-file wiring needed (I cannot edit the roots)
+
+Two inventory lines in `src/CategoricalCrypto.agda`, beside their neighbours:
+
+```agda
+open import CategoricalCrypto.GamePlaying.Partial        -- after line 65
+open import CategoricalCrypto.Protocol.Machine.Trace     -- after line 74
+```
+
+`ProbabilisticLogic.Dp.Support` and `ProbabilisticLogic.Dp.Settle.Iter` need no
+line of their own: `Protocol.Machine.Trace` imports them, as
+`Protocol.Machine.Raw` already carries `Dp.Settle`. `src/ProbabilisticLogic.agda`
+lists no `Dp.*` module and is untouched.

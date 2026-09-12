@@ -4,10 +4,10 @@ Branch `fcom-uc`, off `protocol-rewrite` at `587999b5`.
 
 [`docs/dp-transport.md`](dp-transport.md) §"Not delivered, precisely" lists five
 typed residuals between the RO commitment's `Dist-ℚ` game bound and a UC-level
-ε-emulation. This branch delivers the two generic layers those residuals rest
-on — the loop's settling with its round-trip bound (item 1's content), and the
-game-playing bridges at a partial kernel (item 2) — and replaces the account of
-item 5 with a different one: **the test quantifier is not the gap.**
+ε-emulation. This branch delivers the two generic layers those residuals rest on — item 1
+down to `StepSettles` at a traced machine, and the game-playing bridges at a
+partial kernel (item 2) — and replaces the account of item 5 with a different
+one: **the test quantifier is not the gap.**
 
 Everything below is a checked term unless it is in "Not delivered". Hatches in
 `src/` stay at their baseline of zero: the
@@ -203,43 +203,40 @@ shape and belongs where it is.
 Items 3, 4 and the machine half of item 1 stand on one another in that order
 and none of them is reached. Their statements, with the exact types:
 
-### 1b. `Settles-∘` at a two-factor composite
+### 1b. `Settles-∘` at a two-factor composite — the second leg
+
+The FIRST leg is delivered: `Protocol.Machine.Trace.trace-settles`
+(`Trace.agda:95`) is `StepSettles` at a traced machine, which is the shape
+every G-composite has. What is missing is the identification of `𝒢ₚ`'s `_∘_`
+with a trace of a machine whose step has a kernel:
 
 ```agda
--- generic, `Protocol/Machine/Trace.agda` (does not exist)
-module _ (S : MC.State) (A B X : Set)
-         (k  : MC.obj S × (A ⊎ X) → Dₚ (MC.obj S × (B ⊎ X)))
-         (Kk : MC.obj S × (A ⊎ X) → Dist⊥ (MC.obj S × (B ⊎ X)))
-         (kS : (z : _) → Σ[ i ∈ ℕ ] Settles i (k z) (Kk z))
-         (rank : MC.obj S × X → ℕ) where
-
-  trace-settles : Ranked (MT.loopBody S A B X k) … rank
-                → (f : ℕ) (z : MC.obj S × A) → …
-                → Σ[ i ∈ ℕ ] Settles i (MT.traceStep S A B X k z) (Ktrace f z)
+-- generic, `Protocol/Machine/Trace.agda` or beside it
+compose-settles : {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
+                  (g : MC.Machine (B⁺ ⊎ C⁻) (B⁻ ⊎ C⁺)) (f : MC.Machine (A⁺ ⊎ B⁻) (A⁻ ⊎ B⁺))
+                  (Kg : MC.St g → (B⁺ ⊎ C⁻) → Dist⊥ (MC.St g × (B⁻ ⊎ C⁺)))
+                  (Kf : MC.St f → (A⁺ ⊎ B⁻) → Dist⊥ (MC.St f × (A⁻ ⊎ B⁺)))
+                → ((m : MC.St g) (y : _) → Σ[ i ∈ ℕ ] Settles i (MC.step g (m , y)) (Kg m y))
+                → ((m : MC.St f) (z : _) → Σ[ i ∈ ℕ ] Settles i (MC.step f (m , z)) (Kf m z))
+                → (rank : _) (f′ : ℕ) → (Ranked …) → (∀ w → rank w < f′)
+                → Σ[ K ∈ _ ] Raw.StepSettles (g 𝒢.∘ f) K
 ```
 
-and then, at `g 𝒫.∘ f` read through `Machines.Collapse.collapseᵀ`'s `kᴳ`,
-`Raw.StepSettles (g 𝒫.∘ f) K` for the composite kernel `K` built from the two
-factors'. What is in hand for it and what is not:
+`trace-settles` reduces it to one obligation: a kernel and a `Settles` for the
+step of `W.α ∘ᴹ ((g ⊗ᵉ f) ∘ᴹ W.γ)`, which is what `𝒢ₚ`'s `_∘_` unfolds to
+(`Machines.Collapse.compose-raw≈ᴳ`, under `unfolding composeᴳ`). That step is
+`onL (step α) ∘ onR (onL (step (g ⊗ᵉ f)) ∘ onR (step γ))`, and
+`Machines.Pointwise`'s `swp-pt`/`onL-pt`/`onR-pt`/`tstepL`/`tstepR` give the
+shape of every junction in it — each a `returnₚ` chain around one factor's
+step, so each a `Settles-ret⋆` or a `Settles-bind⋆`. It is bulk, not
+difficulty; what it is NOT is a transport along `Machines.Collapse.outer`,
+which is an `S.≈ᴹ` and which by "Why `Settles` cannot be transported" a
+`Settles` witness cannot ride. That is the reason `collapseᵀ`'s readable `kᴳ`
+does not shorten this: `kᴳ` is a machine `𝒢ₚ`'s composite is EQUAL to, not one
+it reduces to.
 
-* `Machines.Trace.traceStep S A B X k z` is definitionally
-  `((V.id V.⊗₁ K.pureᵏ i₁) z >>=ₚ k) >>=ₚ MT.solve S A B X k`, and
-  `MT.solve S A B X k r` is definitionally
-  `returnₚ (undistribute r) >>=ₚ [ returnₚ , iterₚ (MT.loopBody S A B X k) ]`
-  — both readable off `Protocol.Machine.Compose`'s `trace-pt`/`solve-pt`, whose
-  `≈ₚ` chains start with `bindˣ`/`E.δ⇐-contᵢ` at exactly those terms. So every
-  junction on the way is a `Settles-bind`/`Settles-return`/`Settles-stepᵢ`, and
-  there is no `≈ₚ` step anywhere in the construction.
-* What is missing is the construction itself, plus the SECOND leg: `𝒢ₚ`'s
-  `_∘_` is `traceᴹ (α ∘ᴹ ((g ⊗ᵉ f) ∘ᴹ γ))`, not `traceᴹ (mk Sᴳ kᴳ)`, and
-  `Machines.Collapse.outer` identifies the two only up to `S.≈ᴹ` — which, by
-  "Why `Settles` cannot be transported" above, a `Settles` witness cannot ride.
-  So the composite's `Settles` has to be built at `α ∘ᴹ ((g ⊗ᵉ f) ∘ᴹ γ)`'s own
-  step: three more `onL`/`onR`/`tstep` junctions, each a `returnₚ` chain, which
-  `Machines.Pointwise`'s `onL-pt`/`onR-pt`/`tstepL`/`tstepR` give the shape of
-  and none of which is hard — it is bulk, not difficulty.
-* The ROCommitment instance then needs `Ranked` discharged at `real`, `ideal`
-  and `subᴵ simulator`, which is the by-inspection part (see the rank above).
+The ROCommitment instance then needs `Ranked` discharged at `real`, `ideal` and
+`subᴵ simulator`, which is the by-inspection part (the rank is above).
 
 ### 2b. `prune-adv` / `prune-bound` at ROCommitment
 
@@ -393,8 +390,10 @@ component alone.
 | module | generic? |
 |---|---|
 | `ProbabilisticLogic.Dp.Support` | generic — three `Supp` facts, no `Settles` in sight |
+| `ProbabilisticLogic.Dp.Settle` (+`Settles-ret⋆`) | generic — one more junction |
 | `ProbabilisticLogic.Dp.Settle.Iter` | generic — at any `Body`, any kernel, any rank |
 | `ProbabilisticLogic.Distribution.RationalDist.Expectation` (+) | generic — `E⊥`'s algebra |
+| `CategoricalCrypto.Protocol.Machine.Trace` | generic — at any traced machine |
 | `CategoricalCrypto.GamePlaying.Partial` | generic — at any partial kernel |
 
 Nothing here mentions an example, and no example was touched: `Examples/**` is
@@ -412,7 +411,8 @@ that module's own `.agdai` under `_build/2.8.0/agda/src/`.
 |---|---|---|---|
 | `ProbabilisticLogic.Dp.Support` | 65 | 4 s | 76 s |
 | `ProbabilisticLogic.Dp.Settle.Iter` | 183 | 7 s | 105 s |
-| `ProbabilisticLogic.Dp.Settle` (−20) | 276 | 7 s | 129 s |
+| `ProbabilisticLogic.Dp.Settle` (−20 +14) | 290 | 6 s | 132 s |
+| `CategoricalCrypto.Protocol.Machine.Trace` | 108 | 10 s | 87 s |
 | `ProbabilisticLogic.Distribution.RationalDist.Expectation` (+54) | 222 | 6 s | 115 s |
 | `CategoricalCrypto.GamePlaying.Partial` | 293 | 60 s | 133 s |
 
@@ -427,7 +427,8 @@ twice, once per layer, which is what item 2 asked for.
 No pre-existing statement was edited. `badProb`, `badProb-super`,
 `badProb-bounded`, `Coupling.FLGP`, `Hop.StepBisim`, `runWith-bisim`,
 `hop-bound`, `Potential`'s certificates, `Settles`, `Settles-bind`,
-`Settles-bind⋆`, `Settlesᵀ*`, `StepSettles`, `rawAgree`, `rawPr`, `rawKernel`
+`Settles-bind⋆`, `Settlesᵀ*`, `StepSettles`, `rawAgree`, `rawPr`, `rawKernel`,
+`traceStep`, `solve`, `loopBody`
 and `extraction-bound` keep their statements verbatim. Three lemmas moved
 module without a character changing — `Eⱼ`, `E⊥-map` and `E⊥-map-bind`, from
 `Dp.Settle` to `RationalDist.Expectation`, where `E⊥` is defined and where they

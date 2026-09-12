@@ -280,6 +280,13 @@ argument identifies a composite with a protocol image where this one only reads
 one step of it. This is the piece that is larger than the rest of the branch and
 it is where the branch stops.
 
+**Since**: the round-trip bound is `ProbabilisticLogic.Dp.Settle.Iter.Ranked`
+and `StepSettles` at a traced machine is
+`Protocol.Machine.Trace.trace-settles`; no unrolling of `solve-loop` is spent,
+because the trace's step IS the bind chain. What is left is the second leg
+(`𝒢ₚ`'s `_∘_` against `traceᴹ`) — see
+[`docs/fcom-uc.md`](fcom-uc.md) §1, §"1b".
+
 ### 2. The game answers `idleR` where the machine diverges
 
 Even with residual 1, `rawKernel` wants a TOTAL `Dist-ℚ` kernel. The RO
@@ -315,6 +322,12 @@ once rather than re-proved per example; `Dist⊥` is `Dist-ℚ ∘ Maybe`, so it
 `maybeℚ`-relativisation of `Coupling.FLGP` and `badProb-super`, not a new
 argument. Neither is in `src/`.
 
+**Since**: (b) is lifted, once and generically —
+`CategoricalCrypto.GamePlaying.Partial` (`FLGP⊥`, `badProb⊥-super`,
+`runWith⊥-bisim`, `hop-bound⊥`) with `prune`/`prune-cert` carrying a total
+`SuperCert` across the cut; see [`docs/fcom-uc.md`](fcom-uc.md) §2. The
+example's two `StepBisim⊥`s are what is left.
+
 ### 3. The machine-level bound itself
 
 With 1 and 2, the statement the brief asks for is, at one level `k`, with
@@ -344,6 +357,10 @@ addition". It is not one; it is `runᴹ` at the tensored interface, and the
 adversary is then the `Strat` the game already quantifies over. That is the one
 correction this branch makes to `graded-bridge`'s account of (d)(i).
 
+**Since**: the correction stands and the route to `binding-bound` is now
+step-by-step named — see [`docs/fcom-uc.md`](fcom-uc.md) §"3.
+`binding-bound`, non-vacuous". The statement itself is not in `src/`.
+
 ### 4. The hiding half — and where it is BETTER off
 
 `docs/fcom-hiding.md` §"Not delivered" 2 states `raw-emulationʰ` and says it
@@ -363,6 +380,10 @@ What Route A would still owe there is A2: an ε-carrying `≤UC[ ]`, or an
 `AuditBound` proved on the real side directly. Nothing on that side was touched
 this branch; `protocol-rewrite` had no new commits over `2fcac147` when it
 started, and `Examples/ROCommitment/Hiding/*` is a sibling's this round.
+
+**Since**: confirmed, with the additional reason that Route A on the hiding
+side does not need residual 1 at all — `extractᵍ` never reads that `closedᵍ` is
+a composite; see [`docs/fcom-uc.md`](fcom-uc.md) §3, last paragraph.
 
 ### 5. The UC-level statement, and the quantifier gap
 
@@ -395,6 +416,13 @@ So the game bound bounds the observations of the strategy-embedded contexts at
 the concrete resource, and `_≈ᵁ_`'s quantifier asks for all machine tests at all
 ancillas at all closures. That is the whole of the gap, and it is a quantifier
 gap rather than a proof gap.
+
+**Since**: two of the three are not a gap. `UC.Model.Dominated.dominatedᵒ` is
+already a theorem and it dominates every budgeted model test at every
+seal-object ancilla by the finite strategies, at a cost of an arbitrary
+`δ > 0` that a constant factor on the ε family absorbs. What remains is the
+CLOSURE quantifier, which is not a density question. See
+[`docs/fcom-uc.md`](fcom-uc.md) §5.
 
 ## Nothing was weakened
 
