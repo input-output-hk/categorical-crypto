@@ -44,7 +44,7 @@ open import CategoricalCrypto.Strategy
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 open import ProbabilisticLogic.Distribution.Uniform using
-  (0≤inv-pow-2; bool→ℚ; fromℕ; inv-pow-2; uniform-Vec)
+  (0≤drift; 0≤inv-pow-2; bool→ℚ; fromℕ; inv-pow-2; uniform-Vec)
 
 module CategoricalCrypto.Examples.ROCommitment.Game (k : ℕ) where
 
@@ -500,14 +500,10 @@ private
       (λ h → lookupᴰℚ-return (((x , h) ∷ t , m , f ∨ raise m h) , h) (logU F))))
 
   -- …and the hit flag rises by at most 2⁻ᵏ, by `guess-drift` at the sample.
-  0≤drift : (g : Bool) → bool→ℚ g ≤ℚ bool→ℚ g +ℚ inv-pow-2 k
-  0≤drift g = ≤-trans (≤-reflexive (sym (+-identityʳ (bool→ℚ g))))
-                      (+-monoʳ-≤ (bool→ℚ g) (0≤inv-pow-2 k))
-
   fetch-hit : (s : St) (x : Pt) → E (fetch s x) hitU ≤ℚ bool→ℚ (hitOf s) +ℚ inv-pow-2 k
   fetch-hit (t , nothing , f) x with lookupPt t x
   ... | just d  = ≤-trans (≤-reflexive (lookupᴰℚ-return ((t , nothing , f) , d) hitU))
-                          (0≤drift f)
+                          (0≤drift k f)
   ... | nothing = ≤-trans (≤-reflexive (trans
       (E-bind (uniform-Vec k) (λ h → return-ℚ (((x , h) ∷ t , nothing , f ∨ false) , h))
               hitU)
@@ -515,10 +511,10 @@ private
                (λ h → trans (lookupᴰℚ-return (((x , h) ∷ t , nothing , f ∨ false) , h) hitU)
                             (cong bool→ℚ (∨-identityʳ f))))
              (E-const (uniform-Vec k) (bool→ℚ f)))))
-    (0≤drift f)
+    (0≤drift k f)
   fetch-hit (t , just (c , e) , f) x with lookupPt t x
   ... | just d  = ≤-trans (≤-reflexive (lookupᴰℚ-return ((t , just (c , e) , f) , d) hitU))
-                          (0≤drift f)
+                          (0≤drift k f)
   ... | nothing = ≤-trans (≤-reflexive (trans
       (E-bind (uniform-Vec k)
               (λ h → return-ℚ (((x , h) ∷ t , just (c , e) , f ∨ ⌊ h ≟ c ⌋) , h)) hitU)
@@ -551,15 +547,15 @@ rare-raise s (askQ x) = ≤-trans
 rare-raise (t , nothing , f) (comQ c) = ≤-trans
   (≤-reflexive (idle-red (t , nothing , f) (t , just (c , extract c t) , f)
     (rcptR , rcptR) (comQ c) hitP refl))
-  (0≤drift f)
+  (0≤drift k f)
 rare-raise (t , just m , f) (comQ c) = ≤-trans
   (≤-reflexive (idle-red (t , just m , f) (t , just m , f) (idleR , idleR)
     (comQ c) hitP refl))
-  (0≤drift f)
+  (0≤drift k f)
 rare-raise (t , nothing , f) (opnQ b r) = ≤-trans
   (≤-reflexive (idle-red (t , nothing , f) (t , nothing , f) (idleR , idleR)
     (opnQ b r) hitP refl))
-  (0≤drift f)
+  (0≤drift k f)
 rare-raise s@(t , just (c , e) , f) (opnQ b r) = ≤-trans
   (≤-reflexive (trans (viaR s (opnQ b r) hitP) (opnQ-red t c e f b r hitP)))
   (fetch-hit s (b ∷ᵛ r))

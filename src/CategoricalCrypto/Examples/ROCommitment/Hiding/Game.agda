@@ -47,7 +47,7 @@ open import CategoricalCrypto.Strategy
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 open import ProbabilisticLogic.Distribution.Uniform using
-  (0≤inv-pow-2; bool→ℚ; fromℕ; inv-pow-2; uniform-Vec)
+  (0≤drift; 0≤inv-pow-2; bool→ℚ; fromℕ; inv-pow-2; uniform-Vec)
 
 module CategoricalCrypto.Examples.ROCommitment.Hiding.Game (k : ℕ) where
 
@@ -386,10 +386,6 @@ stepI (t , nothing , f) _ refl opnQʰ F F′ pt =
 -- The potential: the flag rises by 2⁻ᵏ per query
 
 private
-  0≤drift : (g : Bool) → bool→ℚ g ≤ℚ bool→ℚ g +ℚ inv-pow-2 k
-  0≤drift g = ≤-trans (≤-reflexive (sym (+-identityʳ (bool→ℚ g))))
-                      (+-monoʳ-≤ (bool→ℚ g) (0≤inv-pow-2 k))
-
   -- A flag the kernel raises by comparing a FRESH uniform draw against a point
   -- it names: `guess-drift` when the head matches, nothing at all when it does
   -- not.  The draw is what makes the drift provable — a `r` already in the
@@ -402,7 +398,7 @@ private
     (≤-reflexive (trans (lookupᴰℚ-cong-P (entries (uniform-Vec k))
                           (λ _ → cong bool→ℚ (∨-identityʳ g)))
                         (E-const (uniform-Vec k) (bool→ℚ g))))
-    (0≤drift g)
+    (0≤drift k g)
 
   hit-drift : (m : Comʰ) (g : Bool) (x : Pt)
             → E (uniform-Vec k) (λ ρ → bool→ℚ (g ∨ hitAt m x ρ))
@@ -448,24 +444,24 @@ rare-raise (t , m , f) (askQʰ x) = ≤-trans
 rare-raise (t , nothing , f) (comQʰ b) = ≤-trans
   (≤-reflexive (draw-red (t , nothing , f) (comQʰ b)
     (λ c → (t , just (c , b , false) , f) , (comRʰ c , comRʰ c)) refl (λ _ → refl)))
-  (0≤drift f)
+  (0≤drift k f)
 rare-raise (t , just m , f) (comQʰ b) = ≤-trans
   (≤-reflexive (idle-red (t , just m , f) (t , just m , f) (idleRʰ , idleRʰ)
     (comQʰ b) refl refl))
-  (0≤drift f)
+  (0≤drift k f)
 rare-raise (t , just (c , b , false) , f) opnQʰ = ≤-trans
   (≤-reflexive (draw-red (t , just (c , b , false) , f) opnQʰ
     (λ r → ((b ∷ᵛ r , c) ∷ t , just (c , b , true) , f) , (opnRʰ b r , opnRʰ b r))
     refl (λ _ → refl)))
-  (0≤drift f)
+  (0≤drift k f)
 rare-raise (t , just (c , b , true) , f) opnQʰ = ≤-trans
   (≤-reflexive (idle-red (t , just (c , b , true) , f) (t , just (c , b , true) , f)
     (idleRʰ , idleRʰ) opnQʰ refl refl))
-  (0≤drift f)
+  (0≤drift k f)
 rare-raise (t , nothing , f) opnQʰ = ≤-trans
   (≤-reflexive (idle-red (t , nothing , f) (t , nothing , f) (idleRʰ , idleRʰ)
     opnQʰ refl refl))
-  (0≤drift f)
+  (0≤drift k f)
 
 ------------------------------------------------------------------------
 -- Deferred sampling at the real game

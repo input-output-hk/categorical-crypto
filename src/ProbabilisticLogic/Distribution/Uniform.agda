@@ -133,6 +133,13 @@ fromℕ-/ (suc m) = begin
 0≤inv-pow-2 zero    = 0≤1ℚ
 0≤inv-pow-2 (suc k) = 0≤* 0≤½ (0≤inv-pow-2 k)
 
+-- A flag the kernel does not touch still fits the `2⁻ᵏ`-per-query budget: the
+-- degenerate case of `GamePlaying.Potential.guess-drift`, which the oracle
+-- games need at every query that draws nothing.
+0≤drift : ∀ k (g : Bool) → bool→ℚ g ≤ bool→ℚ g + inv-pow-2 k
+0≤drift k g = ≤-trans (≤-reflexive (sym (+-identityʳ (bool→ℚ g))))
+                      (+-monoʳ-≤ (bool→ℚ g) (0≤inv-pow-2 k))
+
 fromℕ-inv-pow-2 : ∀ k → fromℕ (2 ℕ.^ k) * inv-pow-2 k ≡ 1ℚ
 fromℕ-inv-pow-2 zero    = trans (*-identityʳ (fromℕ 1)) (+-identityʳ 1ℚ)
 fromℕ-inv-pow-2 (suc k) = begin
