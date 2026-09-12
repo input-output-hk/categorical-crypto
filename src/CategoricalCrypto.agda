@@ -18,6 +18,12 @@
 -- reaches the other two modules of it; it is here rather than at a root of its
 -- own because it is three small modules, not a development.
 --
+-- `Examples.ROCommitment.*` is the nontrivial-grade application that DOES
+-- carry an error: the UC images and the exact query accounting (`.UC`), the
+-- closed extraction game and its bound (`.Asymptotic`, reaching `.Game`) and
+-- the acceptance instance (`.Test`).  Three leaves because the game layer and
+-- the machine layer do not meet yet — `docs/fcom-extraction.md` says where.
+--
 -- Outside still, each with its own root: the protocol-layer examples
 -- (`Examples.ChimericLedger`, `Examples.MerkleDamgard`) and the inherited
 -- abstract theories (`UCSetup`, `Standard`, `StandardTV`, `VanishingTV`).
@@ -70,5 +76,8 @@ open import CategoricalCrypto.Examples.Possibilistic
 open import CategoricalCrypto.Examples.Signatures
 open import CategoricalCrypto.Examples.RandomOracle
 open import CategoricalCrypto.Examples.HashForward.Audit
+open import CategoricalCrypto.Examples.ROCommitment.Asymptotic
+open import CategoricalCrypto.Examples.ROCommitment.Test
+open import CategoricalCrypto.Examples.ROCommitment.UC
 
 open import ProbabilisticLogic
