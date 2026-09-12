@@ -159,7 +159,8 @@ what keeps `Raw.agda` free of `{-# TERMINATING #-}` and free of a global clock.
 resK  : RState → Neg Resᴵ → Dist⊥ (RState × Pos Resᴵ)        -- Transport.agda:66
 
 resKᵀ-fetchT : (s : RState) (x : Pt)                         -- :79
-             → resKᵀ s x ≈Mℚ (fetchT s x >>=ᴹ λ u → return-ℚ (proj₁ u , digᴿ (proj₂ u)))
+             → resKᵀ s x ≈Mℚ (fetchT (_, proj₂ s) (proj₁ s) x
+                              >>=ᴹ λ u → return-ℚ (proj₁ u , digᴿ (proj₂ u)))
 
 resource-settles : StepSettles resource resK                 -- :179
 
@@ -169,7 +170,7 @@ resource-run : (b : Bool) (d : Strat (Neg Resᴵ) (Pos Resᴵ))  -- :196
 ```
 
 The RO commitment's own lazily sampled resource. On the oracle half `resK` IS
-`Examples.ROCommitment.Game.fetchT` relabelled onto `Resᴵ` — `resKᵀ-fetchT` is
+`Examples.ROCommitment.Oracle.fetchT` (shared by both halves since `small-hoists`) relabelled onto `Resᴵ` — `resKᵀ-fetchT` is
 that identification, and it is the same kernel the closed game's bound is proved
 about — and the fresh branch draws `uniformₚ k`, so `uniformₚ-settles` is what
 makes the activation settle. So the
