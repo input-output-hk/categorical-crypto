@@ -14,6 +14,10 @@
 -- here rather than from either: it runs a `UC`-side theorem at the `UC.Model`
 -- side's emulation, so neither root sees it.
 --
+-- `Examples.HashForward.Audit` is the leaf of the nontrivial-grade toy and
+-- reaches the other two modules of it; it is here rather than at a root of its
+-- own because it is three small modules, not a development.
+--
 -- Outside still, each with its own root: the protocol-layer examples
 -- (`Examples.ChimericLedger`, `Examples.MerkleDamgard`) and the inherited
 -- abstract theories (`UCSetup`, `Standard`, `StandardTV`, `VanishingTV`).
@@ -65,5 +69,6 @@ open import CategoricalCrypto.Examples.Commitment
 open import CategoricalCrypto.Examples.Possibilistic
 open import CategoricalCrypto.Examples.Signatures
 open import CategoricalCrypto.Examples.RandomOracle
+open import CategoricalCrypto.Examples.HashForward.Audit
 
 open import ProbabilisticLogic
