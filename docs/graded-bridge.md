@@ -338,6 +338,11 @@ interface a query or by adding a grade-driven run, is (iii) alone, and its
 generic pieces belong in `ProbabilisticLogic/Dp/**` (the transport) and
 `Protocol/Machine/**` (the compile), not at the example.
 
+**Since**: (iii) is a theorem — `ProbabilisticLogic.Dp.Settle` and
+`Protocol.Machine.Raw`, inhabited at `Examples.ROCommitment.Transport` — and (i)
+needs no new vocabulary, `runᴳ` being `runᴹ` at `X ⊗ᴵ B`; see
+[`docs/dp-transport.md`](dp-transport.md).
+
 ### 2. (f) ROCommitment's `raw-emulation`
 
 ```agda
@@ -368,6 +373,10 @@ cannot use only because its bound is a `Dist-ℚ` game bound rather than an
 `AuditBound`. An `AuditBound` for the RO commitment — i.e. a designation of the
 ideal experiment's observation, as `pinned` takes — would make `extractᵍ` apply
 to it verbatim.
+
+**Since**: it would not, and `docs/dp-transport.md` "Route T, and why Route A is
+not available at this example" says why — `extractᵍ`'s conclusion is vacuous at a
+`Honᴵ` with no query.
 
 ### 3. The silent designation is still the trivial one
 

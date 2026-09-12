@@ -28,7 +28,8 @@ open import CategoricalCrypto.Machines.Base using (𝒢ₚ)
 open import CategoricalCrypto.UC.Machine using (Proc; subᴵ′)
 open import CategoricalCrypto.UC.Machine.Dictionary using (𝟭ᴵ)
 open import CategoricalCrypto.UC.Machine.Plug using (plugᴹ)
-open import CategoricalCrypto.UC.Model.Graded using (plug-gradedᵒ; procᵘ; sub-gradedᵒ; ≈ᴹ⇒≈ᵍ)
+open import CategoricalCrypto.UC.Model.Enrichment using (procᵘ)
+open import CategoricalCrypto.UC.Model.Graded using (plug-gradedᵒ; sub-gradedᵒ; ≈ᴹ⇒≈ᵍ)
 open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; procᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 

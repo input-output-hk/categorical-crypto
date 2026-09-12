@@ -25,7 +25,9 @@
 -- the machine layer do not meet yet — `docs/fcom-extraction.md` says where.
 -- `Examples.ROCommitment.Hiding.*` is the other half, the corrupted receiver,
 -- with the same three leaves (`docs/fcom-hiding.md`); its deferred-sampling
--- engine is `GamePlaying.Defer`.
+-- engine is `GamePlaying.Defer`.  `.Transport` is the fourth leaf: the two
+-- layers DO meet at the concrete resource, off `Protocol.Machine.Raw`
+-- (`docs/dp-transport.md`).
 --
 -- Outside still, each with its own root: the protocol-layer examples
 -- (`Examples.ChimericLedger`, `Examples.MerkleDamgard`) and the inherited
@@ -68,6 +70,7 @@ open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Machine.Agree
 open import CategoricalCrypto.Protocol.Machine.Compose
+open import CategoricalCrypto.Protocol.Machine.Raw
 open import CategoricalCrypto.Protocol.Machine.Total
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Protocol.Safety
@@ -87,6 +90,7 @@ open import CategoricalCrypto.Examples.ROCommitment.Hiding.Test
 open import CategoricalCrypto.Examples.ROCommitment.Hiding.UC
 open import CategoricalCrypto.Examples.ROCommitment.Resource
 open import CategoricalCrypto.Examples.ROCommitment.Test
+open import CategoricalCrypto.Examples.ROCommitment.Transport
 open import CategoricalCrypto.Examples.ROCommitment.UC
 
 open import ProbabilisticLogic

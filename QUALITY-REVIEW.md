@@ -2946,3 +2946,97 @@ maintainer may want to rule differently.
 8. **`UC.Asymptotic.Compose` has no in-repo importer yet.** It is new API; the root wiring
    is listed in `docs/quantitative-family.md` §9 and was deliberately left to the
    maintainer (the root index files are off-limits to this branch).
+## Resolved (dp-transport)
+
+The `Dₚ`/`Dist-ℚ` transport at RAW machines — `docs/graded-bridge.md` items (d)
+and (f). Full account in [`docs/dp-transport.md`](docs/dp-transport.md); the
+judgment calls are here.
+
+### Decided, and why
+
+- **Route T, not Route A :: the brief's two options** — Route A is not available
+  at the extraction half, and for a typing reason rather than a proof-work one:
+  `extractᵍ` bounds `Pr≤ n (runᴹ closedᵍ e)` at `e : Strat (Neg Honᴵ) (Pos Honᴵ)`,
+  and `Examples.ROCommitment.Honᴵ` is `HonA ⇿ ⊥`, so that `e` cannot ask and the
+  bound holds of every system. `audit-carry` would additionally need an
+  ε-carrying `≤UC[ ]`, which does not exist. Both are in the doc as A1/A2. On the
+  HIDING half A1 does not bite (`Neg Honᴵʰ` is inhabited), so Route A is live
+  there; that asymmetry is worth knowing before the hiding branch is briefed.
+- **`Settles`, beside `Stable` rather than replacing it ::
+  `ProbabilisticLogic/Dp/Settle.agda`** — `Dp.Stable` is settling at ONE test,
+  which is what `prAgree`'s `Calls`-tree induction needs and is not enough for a
+  bind junction on an arbitrary `Dₚ`. `Stable`'s statements are untouched and
+  `prAgree` still runs on them; `Settles` adds the uniform-in-the-test reading
+  and a `Dist⊥` value. Two notions, because they carry different weight — not a
+  duplication to erase.
+- **`Halts`'s `Null` disjunct :: `ProbabilisticLogic/Dp/Settle.agda`** — an inductive "terminates
+  within `n`" predicate would exclude `botₚ`, and `botₚ` is the machine layer's
+  image of every off-protocol activation, so the transport must settle at it.
+  `Null d ⊎ …` is also what makes `Halts` monotone in the budget, which the bind
+  lemma spends; without it `Halts 0` does not imply `Halts 1`.
+- **Everything at `Set` :: `ProbabilisticLogic/Dp/Settle.agda`** — `Dp` and `Dp.Stable` are
+  level-polymorphic, but `RationalDist.Expectation`'s algebra (`E`, `E⊥`,
+  `E⊥-bind`) is declared at `A B : Type`, i.e. level zero, and the machine layer
+  this serves is `𝒱ₚ 0ℓ`. Monomorphic is honest here; making it polymorphic means
+  generalizing `Expectation.agda`, which is not this branch's file.
+- **The adversary is the DRIVER, not a plugged machine ::
+  `docs/dp-transport.md`** — the brief asks for the bound at `plug-runᵍ`'s
+  typing. At this example that statement is the vacuous one; the non-vacuous one
+  drives through `Advᴵ ⊗ᴵ Honᴵ`. `docs/graded-bridge.md` prices a grade-driven
+  closed run `runᴳ` as "a core addition"; it is not one — `runᴹ` is already
+  stated at any closed `Proc unitᴵ B`, so `B := X ⊗ᴵ B` IS that run, and the
+  adversary is then the `Strat` the closed game already quantifies over. This is
+  the one correction the branch makes to that account.
+- **`resK` is `Dist⊥`-valued :: `Examples/ROCommitment/Transport.agda`** — not
+  slack: two cell activations are off-protocol and the machine's image of them is
+  `botₚ`, where `Game.respR` answers `idleR`. A total kernel there would be a
+  different machine.
+- **`procᵘ` moved with `qbᵘ` :: `UC/Model/Enrichment.agda`** — §Resolved
+  (graded-bridge) recorded the move as "a cut-and-paste". It is not: `qbᵘ`'s body
+  typechecks only where `procᵘ a` reduces to `a`, i.e. in the block declaring
+  `procᵘ`, and `procᵘ` was in `UC.Model.Graded`, which IMPORTS `UC.Model.Enrichment`.
+  Both are now beside `qbᵒ`, statements verbatim; `UC/Model/Graded.agda` reads
+  `unfolding gradedᵒ procᵘ` and `UC/Seam/Audit/Context.agda`'s import splits.
+  If you would rather `procᵘ` sat in `UC.Model.Seal` beside `procᵒ` — arguably the
+  better home, it is a hom coercion and not a budget one — that works too and costs
+  `Seal.agda` an import of `UC.Machine.Dictionary` for `𝟭ᴵ`; I kept it out of the
+  perf-critical module.
+
+### Left for you
+
+- **`Settles-∘` :: not in `src/`** — `Raw.StepSettles` at a two-factor composite
+  is "the loop between the factors terminates", which is FALSE at an arbitrary
+  adversary machine, so the composition lemma has to take a round-trip bound. The
+  typed signature is in `docs/dp-transport.md` residual 1. It unrolls
+  `Machines.Trace.solve-i₁`/`solve-loop` and needs nothing of
+  `Protocol.Machine.Compose`'s 312-line argument, which identifies a composite
+  with a protocol image where this one reads one step of it.
+- **The pruned coupling :: `GamePlaying/**`, not in `src/`** — the machine
+  diverges where the game answers `idleR`, so the transport gives an inequality
+  where a two-sided advantage bound wants an equality. The generic repair —
+  "pruning the same dead set on both legs of a coupling does not increase the
+  advantage" — is `docs/dp-transport.md` residual 2(b), and it is where
+  `GamePlaying.Hop`/`Potential` would be lifted to `Dist⊥` ONCE instead of
+  re-proved per example. `Dist⊥` is `Dist-ℚ ∘ Maybe`, so it is a `maybeℚ`
+  relativisation of `Coupling.FLGP` and `badProb-super`, not a new argument.
+- **`Examples/MerkleDamgard.agda`'s `runFrom-as-runWith`/`runFrom-kernel` are
+  general and buried** — layer-1 siblings of what `Raw.agda` does for raw
+  machines, living in an example. Nothing here needed them (`Raw` goes through
+  `Interaction.runWith⊥-emb` directly) so nothing was hoisted and MD is untouched;
+  flagging rather than moving a sibling's file.
+- **`raw-emulationʰ`** — the hiding half's counterpart was not started.
+  `protocol-rewrite` had no commits over `2fcac147` when this branch began, so
+  nothing had moved under it; it was left alone because `Hiding/*` is a sibling's
+  this round and because its residuals are 1 and 2 above, unchanged.
+
+### Verification
+
+All runs `pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS` under plain
+`timeout`, rc=0 with an empty
+`ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|Heap exhausted`
+gate. Per-module figures are in `docs/dp-transport.md`'s table.
+
+Hatch grep over `src/`
+(`postulate|TERMINATING|NON_TERMINATING|primTrustMe|trustMe|NO_POSITIVITY|NO_TERMINATION|--no-safe|TRUSTME|\{!|\?\?`):
+**16 lines before, 16 after**, every one the words "postulate-free" in an
+inherited `Categories/APROP/**` comment. Zero live hatches before and after.
