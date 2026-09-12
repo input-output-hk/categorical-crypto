@@ -2496,3 +2496,92 @@ live hatches before and after. `--safe --without-K` on every new module.
 Two commits rather than the five the brief suggested: the canonical `UC.Robust`, the
 verbatim relocation and the model recovery are mutually dependent (splitting them leaves
 an intermediate commit that does not typecheck), so step 2 landed as one.
+
+## Resolved (fcom-extract)
+
+Branch `fcom-extract`, off `protocol-rewrite` at `f3add698`. The RO-model
+commitment against a corrupted committer: the machines at a nontrivial grade, the
+closed extraction game and its ε, and the exact query accounting.
+`docs/fcom-extraction.md` is the full write-up; this is the reviewer-facing
+digest.
+
+### What landed
+
+- **`Examples/ROCommitment/Extraction.agda`** (new, 120 LOC) — `extract` (the bit
+  of the unique preimage of a digest in the oracle's table) and the invariant
+  `Pins c b L` it is used through, with the three lemmas that make it move:
+  `pins-extract` (a duplicate-free answer log pins the extraction), `pins-∷` (a
+  sample that misses `c` adds no preimage), `pins-lookup` (a tabulated point
+  whose answer is `c` opens to the extracted bit).
+- **`Examples/ROCommitment.agda`** (new, 214 LOC) — the interfaces and the three
+  machines. `ideal` is a `wireᴹ`; see the placement note below.
+- **`Examples/ROCommitment/Game.agda`** (new, 595 LOC) — the two closed reactive
+  games, the coupling, the two `StepBisim` instances, the two potentials, and
+  `extraction-bound`: `|Pr[ideal] − Pr[real]| ≤ (m² + m)·2⁻ᵏ + m·2⁻ᵏ` for every
+  adaptive `m`-activation adversary.
+- **`Examples/ROCommitment/UC.agda`** (new, 266 LOC) — `realᵒ`/`idealᵒ`/`simᵒ` at
+  the grade `ifaceᵒ Advᴵ`, `Certified 2 simulator`, and two
+  `UC.QueryBound.Exact` ledgers over the same step.
+- **`Examples/ROCommitment/Asymptotic.agda`** (new, 52 LOC) — the merged
+  `εᶜ n q = (q² + 2q)·2⁻ⁿ` and `NegligibleBound εᶜ`.
+- **`Examples/ROCommitment/Test.agda`** (new, 45 LOC) — the acceptance instance at
+  `k = 3` against a live adaptive three-query attack.
+- **`GamePlaying/Potential.agda`** (+38) — `∨-cert`, the union bound as a sum of
+  potentials. The only edit to an existing module, and it is additive: generic,
+  beside its two siblings, and it mentions nothing from the example.
+- `CategoricalCrypto.agda` and `UC.agda` gain inventory entries and three
+  `open import` lines.
+
+### The one decision that shapes everything
+
+`F_com`'s single bit of state is a **cell in the resource below**, beside the
+oracle, so the ideal functionality is again a stateless relabelling and
+`sub simᵒ ∘ idealᵒ` stays inside `UC.Machine.Wire.∘-wireᴹ` instead of needing
+`Protocol.Machine.Compose`'s trace argument re-run for a `subᴵ` that cannot be a
+`morphism` image. The price: the real protocol uses only the oracle half of
+`Resᴵ` and emits its own receipt. The alternatives (a stateful ideal with
+`traceᴹ` taken directly; an inlined `GConstructionEmbedding` argument; the cell
+used by both worlds) are priced in the doc.
+
+Unlike `Examples.HashForward`, there is deliberately **no** `real-factors`: the
+emulation is approximate, so no machine equality holds, and that is the point.
+
+### Needs your call
+
+- **The simulator queries the oracle at the opening**, where the brief asked for
+  "one relay per adversary oracle query and none otherwise". Log-only is not a
+  presentation choice: it makes the real and ideal oracle tables differ by one
+  unread lazily sampled entry, and identifying the two marginals then needs a
+  deferred-sampling (ghost-table) bisimulation of
+  `MerkleDamgard.Core.ideal-marginal`'s size. The accounting states the extra
+  relay exactly (`sim-hash-count`, ledger constantly zero) rather than bounding
+  it. Doc §"Exact query accounting" has the residual's signature.
+- **The UC-level ε-statement is not proved.** Its two provable components are —
+  `simQB : QB 2 simulator` and `εᶜ-negligible : NegligibleBound εᶜ` — and the
+  relation they would sit in front of is written out as a typed signature in the
+  doc, with the four things between it and the closed bound: `plug-runᵍ`, a
+  three-party `adequacy`, a concrete `Proc unitᴵ Resᴵ`, and — the substantive one
+  — the fact that the UC cone runs on `Dₚ` and the game cone on `Dist-ℚ`, with
+  the only bridge (`Protocol.Machine.Agree.prAgree`) stated at layer-1 protocol
+  images that `real` provably is not. Together they are larger than this branch.
+- **Three leaves in `CategoricalCrypto.agda`** (`.Asymptotic`, `.Test`, `.UC`)
+  rather than one, because the game layer and the machine layer do not meet yet.
+  When they do, one leaf reaches everything; say the word and it moves to a root
+  of its own meanwhile.
+- `∨-cert`'s invariant is the pair `Inv₁ × Inv₂` and its potential the sum. If
+  you would rather have a `badProb`-level union bound (`badProb (f ∨ g) ≤
+  badProb f + badProb g`, by induction on the distinguisher) it is a different
+  lemma with the same consumers; the potential-sum form needed no new induction.
+
+### Verification
+
+All runs `pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS` under plain
+`timeout`, rc=0 with an empty
+`ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|Heap exhausted`
+gate. Per-module warm figures are in `docs/fcom-extraction.md`'s table (6-10 s
+each, every one far inside its rule-5 budget; the 595-line `Game` runs at 8 s
+against a 209 s budget).
+
+Hatch grep over `src/` (`postulate|TERMINATING|primTrustMe|\{!`): **16 lines
+before, 16 after**, every one the words "postulate-free" in an inherited
+`Categories/APROP/**` comment. Zero live hatches before and after.
