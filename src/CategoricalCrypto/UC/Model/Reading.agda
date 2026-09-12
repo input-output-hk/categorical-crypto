@@ -42,25 +42,26 @@ _≈ᴬ_ {A} {X} {B} f g = (Y : Channel) (e : Test (Y ⊗₀ X ⊗₀ B))
                        (m : Closure (Y ⊗₀ A))
                      → Obs (e ∘ id ⊗₁ f ∘ m) ∼ᴼ Obs (e ∘ id ⊗₁ g ∘ m)
 
-private
-  -- The bracketing shuffle, in the two orientations the equivalence needs.
-  shuffle⇒ : {Y : Channel} (f : A ⇒ T₀ X B) (e : Test (Y ⊗₀ X ⊗₀ B))
-             (m : Closure (Y ⊗₀ A))
-           → ((e ∘ α⇒) ∘ μ Y X ∘ T₁ Y f) ∘ m ≈ e ∘ id ⊗₁ f ∘ m
-  shuffle⇒ {Y = Y} f e m = begin
-      ((e ∘ α⇒) ∘ μ Y _ ∘ T₁ Y f) ∘ m  ≈⟨ (refl⟩∘⟨ μT₁-α⇐ 𝔾ᵒ Y f) ⟩∘⟨refl ⟩
-      ((e ∘ α⇒) ∘ α⇐ ∘ id ⊗₁ f) ∘ m    ≈⟨ cancelInner associator.isoʳ ⟩∘⟨refl ⟩
-      (e ∘ id ⊗₁ f) ∘ m                ≈⟨ assoc ⟩
-      e ∘ id ⊗₁ f ∘ m                  ∎
+-- The bracketing shuffle, in the two orientations the equivalence needs.  Also
+-- what carries a robustness statement between the two bracketings
+-- (`UC.Robust.Model`), so it is not private.
+shuffle⇒ : {Y : Channel} (f : A ⇒ T₀ X B) (e : Test (Y ⊗₀ X ⊗₀ B))
+           (m : Closure (Y ⊗₀ A))
+         → ((e ∘ α⇒) ∘ μ Y X ∘ T₁ Y f) ∘ m ≈ e ∘ id ⊗₁ f ∘ m
+shuffle⇒ {Y = Y} f e m = begin
+    ((e ∘ α⇒) ∘ μ Y _ ∘ T₁ Y f) ∘ m  ≈⟨ (refl⟩∘⟨ μT₁-α⇐ 𝔾ᵒ Y f) ⟩∘⟨refl ⟩
+    ((e ∘ α⇒) ∘ α⇐ ∘ id ⊗₁ f) ∘ m    ≈⟨ cancelInner associator.isoʳ ⟩∘⟨refl ⟩
+    (e ∘ id ⊗₁ f) ∘ m                ≈⟨ assoc ⟩
+    e ∘ id ⊗₁ f ∘ m                  ∎
 
-  shuffle⇐ : {Y : Channel} (f : A ⇒ T₀ X B) (e : Test ((Y ⊗₀ X) ⊗₀ B))
-             (m : Closure (Y ⊗₀ A))
-           → (e ∘ μ Y X ∘ T₁ Y f) ∘ m ≈ (e ∘ α⇐) ∘ id ⊗₁ f ∘ m
-  shuffle⇐ {Y = Y} f e m = begin
-      (e ∘ μ Y _ ∘ T₁ Y f) ∘ m  ≈⟨ (refl⟩∘⟨ μT₁-α⇐ 𝔾ᵒ Y f) ⟩∘⟨refl ⟩
-      (e ∘ α⇐ ∘ id ⊗₁ f) ∘ m    ≈⟨ sym-assoc ⟩∘⟨refl ⟩
-      ((e ∘ α⇐) ∘ id ⊗₁ f) ∘ m  ≈⟨ assoc ⟩
-      (e ∘ α⇐) ∘ id ⊗₁ f ∘ m    ∎
+shuffle⇐ : {Y : Channel} (f : A ⇒ T₀ X B) (e : Test ((Y ⊗₀ X) ⊗₀ B))
+           (m : Closure (Y ⊗₀ A))
+         → (e ∘ μ Y X ∘ T₁ Y f) ∘ m ≈ (e ∘ α⇐) ∘ id ⊗₁ f ∘ m
+shuffle⇐ {Y = Y} f e m = begin
+    (e ∘ μ Y _ ∘ T₁ Y f) ∘ m  ≈⟨ (refl⟩∘⟨ μT₁-α⇐ 𝔾ᵒ Y f) ⟩∘⟨refl ⟩
+    (e ∘ α⇐ ∘ id ⊗₁ f) ∘ m    ≈⟨ sym-assoc ⟩∘⟨refl ⟩
+    ((e ∘ α⇐) ∘ id ⊗₁ f) ∘ m  ≈⟨ assoc ⟩
+    (e ∘ α⇐) ∘ id ⊗₁ f ∘ m    ∎
 
 ≈ᵁ⇒≈ᴬ : {f g : A ⇒ T₀ X B} → f ≈ᵁ g → f ≈ᴬ g
 ≈ᵁ⇒≈ᴬ {f = f} {g} u Y e m =
