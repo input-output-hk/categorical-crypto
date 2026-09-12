@@ -21,8 +21,8 @@ This branch exposes the hash as an interface and lifts the premise.
 
 ## The port
 
-`UC.Factor` names the two trivially graded homs a closed two-stage system is
-built from:
+`UC.Seam.Grounded` names the two trivially graded homs a closed two-stage
+system is built from (they lived in `UC.Factor` when this branch landed):
 
 ```agda
 closedᵒ : {B : Iface} → Proc unitᴵ B → ifaceᵒ unitᴵ ⇒ T₀ 𝟘ᴳ (ifaceᵒ B)
@@ -231,6 +231,6 @@ reason why the unrestricted congruence is false).
 | module | LOC | warm | what |
 |---|---|---|---|
 | `CategoricalCrypto.Abstract2.Factor` | 82 | 3.9 s | `∙-return`, `≤UC-resp-≈`, `≤UC-sub`, over an arbitrary `UCSetup` |
-| `CategoricalCrypto.UC.Factor` | 96 | 9.5 s | `closedᵒ`, `stageᵒ`, `factorᵒ`, `factorᵖ`, `liftᵖ` at the machine model |
+| `CategoricalCrypto.UC.Factor` | 96 | 9.5 s | `factorᵒ`, `factorᵖ`, `liftᵖ` at the machine model (`closedᵒ`/`stageᵒ` since moved to `UC.Seam.Grounded`) |
 | `CategoricalCrypto.Examples.ChimericLedger.Factor` | 116 | 10.6 s | the ledger's port, `ledger-factor`, `hash-lift`, `ledger-pov-from-hash` |
 | `CategoricalCrypto.UC.Model.Seal` | 135 (+8) | 9.2 s | `procᵒ-∘` |

@@ -210,8 +210,10 @@ ingests a per-level advantage bound INTO the family relation, and
 `UC.Seam.Audit.Context` reads one back OUT — the strategy context with its
 budget certificate (`audit-qb`) and the identification of its observation with
 layer 1's run (`audit-run`). The only new arithmetic is
-`UC.Seam.Carry.Graded`, which is `UC.Seam.Carry.agreeToAdv`'s proof at a FIXED
-slack instead of at every positive one.
+`UC.Seam.Carry.adv-at`/`adv-from-runs`, which is `UC.Seam.Carry.agreeToAdv`'s
+proof at a FIXED slack instead of at every positive one (they landed in a
+`UC.Seam.Carry.Graded` of their own and were since merged back in, `agree-to-adv`
+becoming `adv-from-runs` at a constant slack).
 
 **What is not delivered: an ε-retaining `UC-compose`.** `≤UC^ωⁿ-trans` composes
 two family emulations with the εs adding, but composing a family emulation with
@@ -342,7 +344,7 @@ In priority order.
 | `Examples.ChimericLedger.EndToEnd` | 284 | 11 s |
 | `Examples.ChimericLedger.Real` | 93 | 11 s |
 | `UC.Asymptotic.Family` | 276 | 15 s |
-| `UC.Seam.Carry.Graded` | 88 | 8 s |
+| `UC.Seam.Carry` (`adv-at`/`adv-from-runs`) | 126 | 9 s |
 
 Additive edits to existing modules: `POV.asks≤-audited` (the instrumentation's
 allowance cost, beside `audited`); `Carry.Emulᵁᶜ`/`emulᵁᶜ`/`pov-carryᵁᶜ` (the

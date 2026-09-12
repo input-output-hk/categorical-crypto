@@ -28,13 +28,13 @@ open import Relation.Binary.PropositionalEquality using (_≡_)
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Protocol.Machine using (morphism)
 open import CategoricalCrypto.UC.Model.Observation using (𝟘ᵒ)
-open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ; procᵒ)
+open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Seam.Audit
   using (AuditEvent; AuditBound; module TrivialGrade)
 open import CategoricalCrypto.UC.Seam.Audit.Bounded
   using (auditIsBounded; boundedIsAudit)
-open import CategoricalCrypto.UC.Seam.Grounded using (𝟘ᴳ; ιᴳ)
+open import CategoricalCrypto.UC.Seam.Grounded using (closedᵒ; 𝟘ᴳ; ιᴳ)
 
 module CategoricalCrypto.Examples.ChimericLedger.Audit
   (ℓ : ℕ) (ser : Ledger.Tx ℓ → List Bool) where
@@ -55,13 +55,13 @@ auditEvent vr s₀ = TG.watched (Sys vr s₀) (monitor s₀)
 
 -- …and the graded premise about it, from the monitor's own bound.
 audit-bound : (vr : Variant) (s₀ : LState) {ε : ℕ → ℚ} → POVmonitor vr s₀ ε
-            → AuditBound (ιᴳ LedgerIf ∘ procᵒ (morphism (Sys vr s₀))) (auditEvent vr s₀) ε
+            → AuditBound (closedᵒ (morphism (Sys vr s₀))) (auditEvent vr s₀) ε
 audit-bound vr s₀ {ε} = boundedIsAudit (Sys vr s₀) (monitor s₀) ε
 
 -- …and back, so the graded premise is no stronger than the ideal bound that
 -- supplies it: at the trivial grade the two are the same statement.
 audit-bounded : (vr : Variant) (s₀ : LState) {ε : ℕ → ℚ}
-              → AuditBound (ιᴳ LedgerIf ∘ procᵒ (morphism (Sys vr s₀))) (auditEvent vr s₀) ε
+              → AuditBound (closedᵒ (morphism (Sys vr s₀))) (auditEvent vr s₀) ε
               → POVmonitor vr s₀ ε
 audit-bounded vr s₀ {ε} =
   auditIsBounded (Sys vr s₀) (monitor s₀) ε (λ q d → asks≤-monitor s₀ q false d)
@@ -70,7 +70,7 @@ audit-bounded vr s₀ {ε} =
 audit-target : (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u)
                (a : Addr) (V : ℕ)
              → let s₀ = genesis h₀ a V in
-               AuditBound (ιᴳ LedgerIf ∘ procᵒ (morphism (Sys inputConsuming s₀)))
+               AuditBound (closedᵒ (morphism (Sys inputConsuming s₀)))
                           (auditEvent inputConsuming s₀) (AtBirthday.εbirthday h₀ ser-inj)
 audit-target h₀ ser-inj a V =
   audit-bound inputConsuming s₀ (monitor-bounded inputConsuming s₀ (target h₀ ser-inj a V))

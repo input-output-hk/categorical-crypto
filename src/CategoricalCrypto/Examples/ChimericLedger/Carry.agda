@@ -29,11 +29,10 @@ open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Observe
-open import CategoricalCrypto.UC.Model.Seal using (procᵒ)
 open import CategoricalCrypto.UC.Model.Setup using (_∘_; _≤UC_)
 open import CategoricalCrypto.UC.Seam
 open import CategoricalCrypto.UC.Seam.Carry
-open import CategoricalCrypto.UC.Seam.Grounded using (ιᴳ; unitGrade)
+open import CategoricalCrypto.UC.Seam.Grounded using (closedᵒ; unitGrade)
 
 import CategoricalCrypto.Examples.ChimericLedger.POV as POV
 
@@ -69,8 +68,7 @@ pov-carryᴸ v₁ v₂ s₀ ag δ δ>0 = pov-transfer v₁ v₂ s₀ (advᴸ v�
 -- answers it in the negative for the insecure one
 -- (`docs/protocol-implementation-review.md`, completion goal).
 Emulᵁᶜ : Variant → Variant → LState → Set₁
-Emulᵁᶜ v₁ v₂ s₀ = ιᴳ LedgerIf ∘ procᵒ (morphism (Sys v₁ s₀))
-               ≤UC ιᴳ LedgerIf ∘ procᵒ (morphism (Sys v₂ s₀))
+Emulᵁᶜ v₁ v₂ s₀ = closedᵒ (morphism (Sys v₁ s₀)) ≤UC closedᵒ (morphism (Sys v₂ s₀))
 
 emulᵁᶜ : (v₁ v₂ : Variant) (s₀ : LState) → Emulᵁᶜ v₁ v₂ s₀ → Emulᴸ v₁ v₂ s₀
 emulᵁᶜ v₁ v₂ s₀ = unitGrade LedgerIf _ _ (totalRun-Sys oracle nodead-oracle v₁ s₀)

@@ -70,12 +70,12 @@ open import CategoricalCrypto.UC.Model.Family
 open import CategoricalCrypto.UC.Model.Family.Uniform
   using (≈ℰ^ω⇒≤UC) renaming (_≤UC_ to _≤UCᵁ_)
 open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ)
-open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ; procᵒ)
+open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Saturated using (_≈negl_; Systems)
 open import CategoricalCrypto.UC.Seam.Audit.Context
   using (auditClose; auditTest; audit-qb; audit-run)
-open import CategoricalCrypto.UC.Seam.Carry.Graded using (adv-from-runs)
+open import CategoricalCrypto.UC.Seam.Carry using (adv-from-runs)
 
 import CategoricalCrypto.UC.Seam.Grounded as Gr
 
@@ -98,7 +98,7 @@ gradedᶠ : (B : ℕ → Iface) → Obj^ω
 gradedᶠ B = Δ Gr.𝟘ᴳ ⊛ω ifaceᶠ B
 
 imgᶠ : (B : ℕ → Iface) (R : Systems B) (n : ℕ) → 𝟘ᵒ ⇒ gradedᶠ B n
-imgᶠ B R n = Gr.ιᴳ (B n) ∘ procᵒ (morphism (R n))
+imgᶠ B R n = Gr.closedᵒ (morphism (R n))
 
 infix 4 _≈ᶠ[_]_
 

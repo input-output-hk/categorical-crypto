@@ -5,11 +5,9 @@
 -- component is an identifiable factor with an exposed interface, and an
 -- emulation assumed of that factor alone lifts to the whole system.
 --
--- The two homs are `closedᵒ` and `stageᵒ`, both trivially graded: a closed
--- protocol image `ifaceᵒ unitᴵ ⇒ T₀ 𝟘ᴳ (ifaceᵒ B)` and a stage
--- `ifaceᵒ B ⇒ T₀ 𝟘ᴳ (ifaceᵒ C)` whose DOMAIN is the interface the lower
--- component answers on — the port.  `𝟘ᴳ` is the trivial grade of
--- `UC.Seam.Grounded`, which is also the graded monad's `return`
+-- The two homs are `UC.Seam.Grounded`'s `closedᵒ` and `stageᵒ`, both trivially
+-- graded, the stage's DOMAIN being the interface the lower component answers on
+-- — the port.  The trivial grade is also the graded monad's `return`
 -- (`CurriedTensor.Properties.return-λ⇐`): a protocol image carries no adversary
 -- interface, so both homs are pure and the port is the only interface the
 -- factoring exposes.
@@ -35,10 +33,9 @@ open import CategoricalCrypto.Protocol using (Protocol; _∘ᵖ_)
 open import CategoricalCrypto.Protocol.Machine using (morphism)
 open import CategoricalCrypto.Protocol.Machine.Total using (morphismCompose)
 open import CategoricalCrypto.UC.Machine using (Proc)
-open import CategoricalCrypto.UC.Model.Seal
-  using (ifaceᵒ; procᵒ; procᵒ-∘; 𝔾ᵒ; ≈ᴹ⇒≈ᵒ)
+open import CategoricalCrypto.UC.Model.Seal using (procᵒ; procᵒ-∘; 𝔾ᵒ; ≈ᴹ⇒≈ᵒ)
 open import CategoricalCrypto.UC.Model.Setup
-open import CategoricalCrypto.UC.Seam.Grounded using (ιᴳ; 𝟘ᴳ)
+open import CategoricalCrypto.UC.Seam.Grounded using (closedᵒ; stageᵒ; ιᴳ)
 
 import CategoricalCrypto.Abstract2.Factor as F
 
@@ -49,24 +46,12 @@ open HomReasoning
 private module Fc = F StdSetup
 
 ------------------------------------------------------------------------
--- The two trivially graded homs
-
--- A closed protocol image, as the UC layer sees it: this is the shape
--- `UC.Asymptotic._≤UC^ω_` compares.
-closedᵒ : {B : Iface} → Proc unitᴵ B → ifaceᵒ unitᴵ ⇒ T₀ 𝟘ᴳ (ifaceᵒ B)
-closedᵒ {B} w = ιᴳ B ∘ procᵒ w
-
--- …and an OPEN one, whose domain is the port the component below it answers on.
-stageᵒ : {A B : Iface} → Proc A B → ifaceᵒ A ⇒ T₀ 𝟘ᴳ (ifaceᵒ B)
-stageᵒ {B = B} g = ιᴳ B ∘ procᵒ g
+-- The factoring
 
 -- The trivial grade is the graded monad's unit, which is what lets a pure
 -- composite be recognized as one.
 closedᵒ-return : {B : Iface} (w : Proc unitᴵ B) → closedᵒ w ≈ return ∘ procᵒ w
 closedᵒ-return _ = ⟺ (return-λ⇐ 𝔾ᵒ) ⟩∘⟨refl
-
-------------------------------------------------------------------------
--- The factoring
 
 factorᵒ : {B C : Iface} (g : Proc B C) (w : Proc unitᴵ B)
         → sub λ⇒ ∘ (stageᵒ g ∙ closedᵒ w) ≈ ιᴳ C ∘ (procᵒ g ∘ procᵒ w)

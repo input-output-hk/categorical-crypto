@@ -93,13 +93,15 @@
 --                `UC.Seam.Grounded`
 --                                  and what discharges it at the trivial
 --                                  grade: `SubBlind`, `StratIsEnv` and with
---                                  them `UnitGrade`
---                `UC.Factor`       `closedᵒ`/`stageᵒ` and `factorᵖ`/`liftᵖ`:
---                                  the UC-object image of `_∘ᵖ_` factors on
---                                  the nose, so a sub-protocol emulation
---                                  lifts to the composed system by
---                                  `UC-compose` (the retraction-conjugated
---                                  `sub` congruence is `Abstract2.Factor`)
+--                                  them `UnitGrade`; also `closedᵒ`/`stageᵒ`,
+--                                  the trivially graded images every consumer
+--                                  downstream of the collapse is stated at
+--                `UC.Factor`       `factorᵖ`/`liftᵖ`: the UC-object image of
+--                                  `_∘ᵖ_` factors on the nose, so a
+--                                  sub-protocol emulation lifts to the
+--                                  composed system by `UC-compose` (the
+--                                  retraction-conjugated `sub` congruence is
+--                                  `Abstract2.Factor`)
 --                `UC.Seam.Audit.Prefix`
 --                                  the BUDGETED route's consumer end:
 --                                  `uc-audit-bounded` turns an ideal monitor

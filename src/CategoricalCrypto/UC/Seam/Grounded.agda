@@ -61,6 +61,17 @@ open MR ∣machines∣ using (cancelˡ; cancelʳ)
 ιᴳ : (B : Iface) → ifaceᵒ B ⇒ T₀ 𝟘ᴳ (ifaceᵒ B)
 ιᴳ _ = unitorˡ.to
 
+-- A closed protocol image, as the UC layer sees it: this is the shape
+-- `UC.Asymptotic._≤UC^ω_` compares, and everything downstream of the collapse
+-- is stated at it.
+closedᵒ : {B : Iface} → Proc unitᴵ B → ifaceᵒ unitᴵ ⇒ T₀ 𝟘ᴳ (ifaceᵒ B)
+closedᵒ {B} w = ιᴳ B ∘ procᵒ w
+
+-- …and an OPEN one, whose domain is the port the component below it answers on
+-- (`UC.Factor`, where the two are the factors of a closed two-stage system).
+stageᵒ : {A B : Iface} → Proc A B → ifaceᵒ A ⇒ T₀ 𝟘ᴳ (ifaceᵒ B)
+stageᵒ {B = B} g = ιᴳ B ∘ procᵒ g
+
 module TG = TrivialGrade 𝟘ᴳ ιᴳ
 
 iotaBlind : TG.IotaBlind
@@ -133,19 +144,19 @@ stratIsEnv B u v h d ε ε>0 =
 -- consumer's pair is symmetric and `Protocol.Machine.Total` discharges both by
 -- name; the asymmetry is real (only the REAL side anchors the scale).
 emSimTotal : (B : Iface) (u v : Proc unitᴵ B) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) → TotalRun B u
-           → ιᴳ B ∘ procᵒ u ≈ᵁ sub s ∘ (ιᴳ B ∘ procᵒ v) → TG.SimTotal B s v
+           → closedᵒ u ≈ᵁ sub s ∘ closedᵒ v → TG.SimTotal B s v
 emSimTotal B u v s tu em d t factor = total-dominated (ctxRunˢ B d u) _ total near
   where
   -- `Adequacy` moves `u`'s totality onto the observation the strategy makes.
   total : Total (ctxRunˢ B d u)
   total = total-resp-≼ₚ (runˢ B u d) (ctxRunˢ B d u) (proj₂ (adequacy B u d)) (tu d)
 
-  read : ctxRunˢ B d u ≈ₚ Obs (t ∘ (ιᴳ B ∘ procᵒ u))
+  read : ctxRunˢ B d u ≈ₚ Obs (t ∘ closedᵒ u)
   read = ≈ₚ-trans _ _ _ (plug-run B d u)
                         (obs-resp (⟺ (sym-assoc ○ (fromProc≈ factor ⟩∘⟨refl))))
 
   near : (ε : ℚ) → 0ℚ ℚ.< ε
-       → ctxRunˢ B d u ≼ₚ[ ε ] Obs (t ∘ (sub s ∘ (ιᴳ B ∘ procᵒ v)))
+       → ctxRunˢ B d u ≼ₚ[ ε ] Obs (t ∘ (sub s ∘ closedᵒ v))
   near ε ε>0 = proj₁ (∼ᴼ-resp (≈ₚ-sym _ _ read) (≈ₚ-refl _)
     (≈ᴳ-at 𝟘ᴳ (t ∘ unitorˡ.from) unitorˡ.to (t ∘_) (plug-λ t) (≈ᵁ⇒≈ᴳ em)) ε ε>0)
 
@@ -155,14 +166,14 @@ emSimTotal B u v s tu em d t factor = total-dominated (ctxRunˢ B d u) _ total n
 -- step; the asymptotic family premise stops here instead and keeps the ε
 -- (`UC.Asymptotic.Family.uc-≈ᶠ[_]`).
 subBlind⇒emul : TG.SubBlind → (B : Iface) (u v : Proc unitᴵ B) → TotalRun B u
-              → ιᴳ B ∘ procᵒ u ≤UC ιᴳ B ∘ procᵒ v → ιᴳ B ∘ procᵒ u ≈ᵁ ιᴳ B ∘ procᵒ v
+              → closedᵒ u ≤UC closedᵒ v → closedᵒ u ≈ᵁ closedᵒ v
 subBlind⇒emul blind B u v tu e = ≈ᵁ-trans em (blind B s v (emSimTotal B u v s tu em))
   where
   s : 𝟘ᴳ ⇒ 𝟘ᴳ
   s = proj₁ (e id)
 
-  em : ιᴳ B ∘ procᵒ u ≈ᵁ sub s ∘ (ιᴳ B ∘ procᵒ v)
-  em = ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ (ιᴳ B ∘ procᵒ u)))) (proj₂ (e id))
+  em : closedᵒ u ≈ᵁ sub s ∘ closedᵒ v
+  em = ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ (closedᵒ u)))) (proj₂ (e id))
 
 subBlind⇒unitGrade : TG.SubBlind → TG.UnitGrade
 subBlind⇒unitGrade blind B u v tu _ e =
@@ -185,18 +196,18 @@ simTotal⇒point B s v st =
   t = procᵒ (strategyEnv B (out true)) ∘ unitorˡ.from
 
   u : 𝟘ᵒ ⇒ Ωᵒ
-  u = t ∘ (sub s ∘ (ιᴳ B ∘ procᵒ v))
+  u = t ∘ (sub s ∘ closedᵒ v)
 
   massed : Massedᵒ 𝟘ᵒ Ωᵒ u (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
   massed = massedᵒ-∘ʳ _ _ _ t _ _
-             (massedᵒ-∘ˡ _ _ _ (sub s) (ιᴳ B ∘ procᵒ v) _
+             (massedᵒ-∘ˡ _ _ _ (sub s) (closedᵒ v) _
                (massedᵒ-sub 𝟘ᴳ 𝟘ᴳ (ifaceᵒ B) s _ (massedᵒ-point 𝟘ᴳ 𝟘ᴳ s)))
 
 -- …hence the simulator's initialization is almost surely total off the REAL
 -- side's totality alone, which is the hypothesis the budgeted route's
 -- prefix-tolerant extraction asks for (`UC.Asymptotic.Audit.uc-audit-boundedᵖ`).
 simAstotal : (B : Iface) (u v : Proc unitᴵ B) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) → TotalRun B u
-           → ιᴳ B ∘ procᵒ u ≈ᵁ sub s ∘ (ιᴳ B ∘ procᵒ v) → ASTotal (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
+           → closedᵒ u ≈ᵁ sub s ∘ closedᵒ v → ASTotal (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
 simAstotal B u v s tu em = simTotal⇒point B s v (emSimTotal B u v s tu em)
 
 -- The whole of what a trivial-grade simulator contributes to a context: its
@@ -237,14 +248,14 @@ subPrefixedˢ B s Y t k =
 -- which is the factorization `SubBlind` compares.
 subPrefixed : (B : Iface) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) (v : Proc unitᴵ B) (Y : Channel)
               (t : Y ⊗₀ T₀ 𝟘ᴳ (ifaceᵒ B) ⇒ Ωᵒ) (m : 𝟘ᵒ ⇒ Y ⊗₀ 𝟘ᵒ)
-            → Prefixedᵒ 𝟘ᵒ Ωᵒ (t ∘ id ⊗₁ (sub s ∘ (ιᴳ B ∘ procᵒ v)) ∘ m)
-                              (t ∘ id ⊗₁ (ιᴳ B ∘ procᵒ v) ∘ m) (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
+            → Prefixedᵒ 𝟘ᵒ Ωᵒ (t ∘ id ⊗₁ (sub s ∘ closedᵒ v) ∘ m)
+                              (t ∘ id ⊗₁ closedᵒ v ∘ m) (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
 subPrefixed B s v Y t m = prefixedᵒ-resp-≈ 𝟘ᵒ Ωᵒ _ _ _ _ (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
   (refl⟩∘⟨ (sym-assoc ○ (⟺ split ⟩∘⟨refl))) Equiv.refl
   (subPrefixedˢ B s Y t (id ⊗₁ wire ∘ m))
   where
   wire : 𝟘ᵒ ⇒ T₀ 𝟘ᴳ (ifaceᵒ B)
-  wire = ιᴳ B ∘ procᵒ v
+  wire = closedᵒ v
 
   split : id ⊗₁ (sub s ∘ wire) ≈ id ⊗₁ sub s ∘ id ⊗₁ wire
   split = ⟺ (T₁-⊗ 𝔾ᵒ Y (sub s ∘ wire)) ○ T-homomorphism
@@ -263,5 +274,5 @@ unitGrade = subBlind⇒unitGrade subBlind
 -- …and so is the step before it, which is the one the asymptotic family premise
 -- consumes: no `Agreeˢ`, and the ε still quantified rather than spent.
 emulAgreeᵁ : (B : Iface) (u v : Proc unitᴵ B) → TotalRun B u
-           → ιᴳ B ∘ procᵒ u ≤UC ιᴳ B ∘ procᵒ v → ιᴳ B ∘ procᵒ u ≈ᵁ ιᴳ B ∘ procᵒ v
+           → closedᵒ u ≤UC closedᵒ v → closedᵒ u ≈ᵁ closedᵒ v
 emulAgreeᵁ = subBlind⇒emul subBlind

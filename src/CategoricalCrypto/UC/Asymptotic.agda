@@ -49,7 +49,6 @@ open import CategoricalCrypto.Protocol.Machine.Total using (TotalRun)
 open import CategoricalCrypto.Protocol.Observe using (Bounded; Pr; PrHit)
 open import CategoricalCrypto.Strategy using (Strat; asks≤)
 open import CategoricalCrypto.UC.Approximate using (Negligible; Negligible-0)
-open import CategoricalCrypto.UC.Model.Seal using (procᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Saturated
 open import CategoricalCrypto.UC.Seam using (Agreeˢ)
@@ -58,7 +57,7 @@ import CategoricalCrypto.UC.Seam.Grounded as Gr
 
 module CategoricalCrypto.UC.Asymptotic where
 
-open Gr using (ιᴳ; unitGrade)
+open Gr using (closedᵒ; unitGrade)
 
 private variable B : ℕ → Iface
                  R I : Systems B
@@ -92,7 +91,7 @@ infix 4 _≤UC^ω_
 -- ledger).  The name stays because the statements do.
 _≤UC^ω_ : Systems B → Systems B → Set₁
 _≤UC^ω_ {B} R I = (n : ℕ)
-  → (ιᴳ (B n) ∘ procᵒ (morphism (R n))) ≤UC (ιᴳ (B n) ∘ procᵒ (morphism (I n)))
+  → closedᵒ (morphism (R n)) ≤UC closedᵒ (morphism (I n))
 
 ------------------------------------------------------------------------
 -- The probability carry
