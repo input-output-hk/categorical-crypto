@@ -153,6 +153,26 @@ See `docs/ledger-factoring.md`.
    the real side. At the ledger this is
    `ChimericLedger.EndToEnd.ledger-audit-carry`.
 
+   **Both carries now run with no event class on their route**
+   (`docs/consumer-migration.md`, plan §6 step 6). The statements above and
+   below are all unchanged; what changed is which theorem proves them.
+   `uc-audit-boundedᵖ` — and through it `ledger-uc-to-pov-simCost` and
+   `ledger-pov-simCost-negligible` — goes through
+   `UC.Seam.Audit.Prefix.uc-audit-bounded′` rather than `uc-audit-bounded`, so
+   `watchedᵖ`, `absorb-watchedᵖ`, `ctx-absorb` and `auditIsBoundedᴬ` leave the
+   route entirely. Beside `uc-audit-carry` there is now `uc-audit-carryᵈ`,
+   plan §4.2's property-specific statement at the existing test, closure,
+   monitor transformation and budget witness, with no `AuditEvent`/`AuditBound`/
+   `watched`/`absorb` in it and layer 1's `Bounded` as its ideal supply; its
+   generic half is `UC.Audit.carry-obs`, `audit-carry`'s structural content
+   hoisted out of it. `ledger-audit-carry` is `uc-audit-carryᵈ-bound` past one
+   Σ-pattern, off `Schedule.ideal-bounded` — the same birthday bound
+   `ChimericLedger.Audit.pov-target` states with no UC vocabulary in it — so the
+   graded route's `AuditBound` object is recovered directly and not merely its
+   number. The one thing that does NOT become available is the extraction from
+   the exact `watched` to a probability; that is the obstruction recorded below,
+   and it is still why the probability endpoint goes through the prefix.
+
 4. **Costs explicit — DONE, split across the two routes.**
    The audit instrumentation's cost is charged in the main theorem: `audited d`
    asks twice what `d` asks (`POV.asks≤-audited`), so the allowance `p` is

@@ -3201,3 +3201,92 @@ Closure green with an empty warning gate: every `Examples/ChimericLedger/*` root
 `UC/Approximate/LocalTests.agda`, `UC/Factor.agda`, `src/CategoricalCrypto/UC.agda`,
 `src/CategoricalCrypto.agda`. Escape-hatch baseline 16 before / 16 after (all sixteen the
 words "postulate-free" in inherited comments).
+
+## Resolved (consumer-migration)
+
+Branch `consumer-migration` off `protocol-rewrite` at `82b967b1`:
+`docs/uc-presheaf-preservation-plan.md` §6 step 6 — the half
+`docs/ledger-lift-eps.md` left — plus the five rule-27 wishes recorded above.
+Full write-up, with the tests-vs-strategies analysis, the remaining-consumers
+list for step 7, the `Dp`-rebuild measurement and the module costs:
+`docs/consumer-migration.md`.
+
+**Nothing is retired and no statement changed.** Every exported statement on
+this branch is byte-identical to `82b967b1`'s except for the four names added
+beside existing ones (`carry-obs`, `uc-audit-carryᵈ`, `uc-audit-carryᵈ-bound`,
+`ledger-audit-carryᵈ`, `pov-target`) and the five relocated ones. Proofs
+re-route; consumers change which theorem they call.
+
+### The wishes, closed
+
+- **`Examples/ChimericLedger/QueryBound.agda :: qb-oneCall` is in the wrong
+  module** — moved to `UC/QueryBound.agda:423`, beside `qb-closed`, with
+  `qb-ledger` its instance in the example (195 → 42 LOC). No cycle:
+  `Protocol.Machine` imports no `UC.*`. Warm 15.5 s → 15.8 s against a 222 s
+  budget.
+- **`UC/Audit.agda:177` and `UC/Robust/Observation.agda:99` :: the `UCBase`-level
+  slide** — one `tv₁-∘` at `UC/Environment.agda:88`. **`UC.Environment` and not
+  `UC.Emulation`**, though both consumers import the latter (which re-exports
+  the former publicly, so either is visible): the statement mentions `tv₁`,
+  `Test` and `∘` and no emulation vocabulary at all, and `tv₁`/`tv₁-cong` are
+  defined there — rule 28. `UC.Robust.Observation`'s single-use `where` is
+  inlined with it.
+- **`0≤drift` is duplicated** — one copy at
+  `ProbabilisticLogic/Distribution/Uniform.agda:139`, beside `0≤inv-pow-2`, with
+  the level an argument. (`guess-drift` itself lives in
+  `CategoricalCrypto/GamePlaying/Potential.agda`, not in `Uniform.agda`; the two
+  ingredients `0≤drift` actually spends are both in `Uniform.agda`, so that is
+  where it went.)
+- **`lookup-here`'s most general home is `Extraction.agda`** — moved to
+  `Extraction.agda:54`, beside `lookupPt`. There was never a cycle risk to
+  weigh: `Oracle` *already* imported `Extraction`, so nothing enters its
+  closure and the move lets `Oracle` shed four imports (40 → 28 LOC).
+- **`UC/Approximate/Separating.agda :: ℚ-metric`'s three ℚ helpers** — hoisted
+  to `Data/Rational/Properties/Ext.agda:81,84,87` as `∣x-x∣≡0`, `∣-∣-comm`,
+  `∣-∣-triangle`. The recorded objection was the `Dp` closure rebuild; measured
+  once, it is **208 s and 141 modules** for the whole
+  `src/CategoricalCrypto.agda` closure, 12 % of the 1800 s ceiling, so the
+  hoist is done. `Separating.agda` loses five names from its
+  `Data.Rational.Properties` import list.
+
+### Left for you
+
+- **The `at`-style pin on `uc-audit-carryᵈ-bound` is a measured perf defect.**
+  The idiom `FactorEps.migration-pin` uses would make Agda unify two applied
+  `AuditBound`s at `absorb … (watched …)`; it does not come back — killed at
+  690 s wall and 8.75 GiB RSS under `+RTS -M8G -H1G`, against the module's own
+  9.3 s warm cost (the `UC.Seam.Grounding` record-eta cliff at a machine
+  composite under `watched`). Dropped per rule 31; the signature is spelled
+  again instead. The ledger's own re-route is the same check at the one
+  instance that matters and is free, so the drift guard is not actually lost.
+- **Root wiring: nothing is owed, and there is nothing to edit.** The fourteen
+  `Examples/ChimericLedger/*` modules are checked **per file** — no `*Tests`
+  module, and `Examples/ChimericLedger.agda` is the ledger's *definition*
+  module, imported by the other thirteen rather than importing them. They are
+  reachable through exactly three leaves (`Carry`, `Pin`, `FactorEps`) whose
+  closures cover all fourteen, and `QueryBound` is reached from `FactorEps`.
+  `src/CategoricalCrypto.agda` is left alone; its header already says the
+  protocol-layer examples sit outside. `UC.Asymptotic.Compose` was already
+  wired (`UC.agda:194`, inventory row `:159`).
+- **The parked calls** (`docs/consumer-migration.md` §8): rerouting
+  `ledger-uc-to-pov`, the fifth `_≤UC^ωᵉ_` component and retiring `≤UC⇒≤UCᶜ` are
+  unchanged in calculus. `uc-audit-bounded`'s unused `ASTotal`/`bad`-budget
+  premises now go unconsumed on the *whole* family route, not just inside
+  `uc-audit-bounded′` — but they are part of three exported statements
+  (`uc-audit-bounded`, `uc-audit-bounded′`, `uc-audit-boundedᵖ`) and
+  `ledger-uc-to-pov-simCost` derives the `ASTotal` from `TotalRun` to supply
+  it, so shedding them is still a statement change and still your call.
+
+### Verification
+
+Forced warm (`.agdai` deleted), `+RTS -M8G -H1G`, one `Checking` line, rc=0 and
+an empty `ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|Heap exhausted`
+gate on all seventeen touched modules; the full table with before/after is
+`docs/consumer-migration.md` §6. No module moves by more than 0.5 s.
+
+Closure green with the same gate: `src/CategoricalCrypto.agda`, `UC.agda`,
+`UC/Model.agda`, `UC/Approximate/LocalTests.agda`, all three
+`Examples/ChimericLedger/*` leaves, both `Examples/HashForward/*`, all four
+`Examples/MerkleDamgard*`, and all thirteen `Examples/ROCommitment*` including
+`Hiding/*`. Escape-hatch baseline 16 before / 16 after (all sixteen the words
+"postulate-free" in inherited comments).
