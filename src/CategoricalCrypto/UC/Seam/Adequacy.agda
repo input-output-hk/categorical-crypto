@@ -14,6 +14,8 @@
 -- the tick that enters the loop is `UC.Seam.Plug`'s, at an arbitrary such
 -- dispatch.  What is left here is `Dₚ` arithmetic and the strategy tree.
 
+open import Categories.Category using (Category)
+
 open import Data.Bool.Base
 open import Data.Empty
 open import Data.Product.Base
@@ -32,16 +34,22 @@ open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
+open import CategoricalCrypto.UC.Machine.Dictionary using (𝟭ᴵ)
+open import CategoricalCrypto.UC.Machine.Plug using (plugᴹ)
 open import CategoricalCrypto.UC.Machine.Run
 open import CategoricalCrypto.UC.Seam
 open import CategoricalCrypto.UC.Seam.Adequacy.Wiring
 open import CategoricalCrypto.UC.Seam.Plug
 
 import CategoricalCrypto.Machines.Core as Core
+import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.UC.Seam.Adequacy where
 
-private module MC = Core (𝒱ₚ 0ℓ)
+private
+  module MC = Core (𝒱ₚ 0ℓ)
+  module Sm = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
+  module 𝒫 = Category 𝒫ᴵ
 
 module _ (B : Iface) (u : Proc unitᴵ B) (d : Strat (Neg B) (Pos B)) where
 
@@ -102,3 +110,17 @@ adequacy B u d =
   ⟨≈⟩ >>=ₚ-assoc (MC.point (MC.state u) ttᵛ) _ _
   ⟨≈⟩ bindᶠ (λ su → >>=ₚ-identityˡ (play d , su) _)
   ⟨≈⟩ bindᶠ (step-run B u d)
+
+-- The three-party closed system — an environment above, an adversary machine
+-- at the grade, a resource below — needs no second loop: the ⊕-trace solves
+-- the adversary's inside the `Proc unitᴵ B` the other two are plugged into, and
+-- `play-run`'s induction is generic in that process.  So the doc's `adequacyᵍ`
+-- (`docs/fcom-extraction.md` item 1(b)) is `adequacy` at one composite.
+adequacyᵍ : (A B X : Iface) (f : Proc A (X ⊗ᴵ B)) (a : Proc X 𝟭ᴵ) (w : Proc unitᴵ A)
+            (d : Strat (Neg B) (Pos B))
+          → runᴹ (pairedᴹ B d ((plugᴹ a 𝒫.∘ f) 𝒫.∘ w)) (ask tt out)
+            ≈ₚ runᴹ ((plugᴹ a 𝒫.∘ f) 𝒫.∘ w) d
+adequacyᵍ A B X f a w d =
+    runᴹ-resp-≈ᴹ {Ωᴵ} (Sm.⟺ᴹ (compose-≈ᴹ B d u)) (ask tt out)
+  ⟨≈⟩ adequacy B u d
+  where u = (plugᴹ a 𝒫.∘ f) 𝒫.∘ w
