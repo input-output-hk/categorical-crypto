@@ -2,40 +2,32 @@
 
 -- The asymptotic-family UC premise, with its error KEPT: `_≤UC^ωⁿ_`.
 --
--- `UC.Asymptotic._≤UC^ω_` is the POINTWISE, unit-grade specialization — a
--- separate single-level emulation for every `n` — and with the real side total
--- it hands back agreement at every positive error at each FIXED level
+-- `_≈ᶠ[_]_` is now `UC.Asymptotic.Contextual._≈ctxᴬ[_]_` at the protocol
+-- images — the one quantitative relation on families of graded homs, here at a
+-- closed domain and the trivial grade — and `_≤UC^ωⁿ_` is that relation's
+-- DIRECT-agreement specialization of the emulation witness `_≤UC^ωᵉ_`
+-- (`≤UC^ωⁿ⇒≤UC^ωᵉ`, and back under an explicit triviality premise).  The
+-- witness-retaining composition laws live in `UC.Asymptotic.Compose`, so the
+-- ε-retaining `UC-compose` this module used to owe is a theorem there, not a
+-- redesign; `≤UC^ωⁿ-trans` stays its two-premise specialization.
+--
+-- `UC.Asymptotic._≤UC^ω_` is the POINTWISE specialization — a separate
+-- single-level emulation for every `n` — and with the real side total it hands
+-- back agreement at every positive error at each FIXED level
 -- (`pointwise-exact`).  Two systems whose verdict probabilities differ by
 -- exactly `2⁻ⁿ` are negligibly different and fail that, so the pointwise
 -- premise excludes them (`pointwise-rejects`); this one admits them
 -- (`admits-inv-pow-2`) and still rejects a `1/(n+1)` difference
--- (`rejects-inv-suc`).  Those are review §1's two acceptance criteria;
--- `UC.Approximate.LocalTests` states the same pair for the LOCAL relation
--- `_∼ᴺ_`, in the same shape and against the same instruments.
---
--- What replaces the per-level emulation is that same collapse stopped one step
--- earlier — `UC.Seam.Grounded.emulAgreeᵁ`, the direct `≈ᵁ` agreement, which is
--- CONTEXTUAL closeness at a chosen error rather than at every positive one —
--- with the error retained and held to the allowance-uniform negligible
--- discipline.  That is the `_≈ℰⁿ_` tier of `UC.Family`, and `≤UC^ωⁿ⇒≈ℰⁿ` is the
--- identification: `_≈ᶠ[_]_` is `UC.Model.Family._≈ℰ[_]_` at the `ι`-inflated
--- images with the Σ-packaging of a `Fam`-hom peeled off.  That relation reads
--- the CONTEXT's carried budgets and never the compared homs' own, so the
--- premise need not exhibit a query bound for the systems it compares; only the
--- corollaries that enter the family category ask for one.  Peeling it off also
--- makes the premise the explicitly stronger uniform refinement review §1
--- permits — a per-level context need not come from a polynomially budgeted
--- FAMILY of contexts — and that is the direction the ledger consumer needs.
+-- (`rejects-inv-suc`).  `UC.Approximate.LocalTests` states the same pair for
+-- the LOCAL relation `_∼ᴺ_`, against the same instruments.
 --
 -- Both halves of the seam are theorems elsewhere: `UC.Model.Family.Ingest`
 -- ingests a per-level advantage bound INTO the family relation, and
--- `UC.Seam.Audit.Context` reads one back OUT at the embedded-strategy contexts,
--- which is `≈ᶠ-runs` — how the premise becomes `UC.Saturated._≈negl_`, the
--- layer-1 relation a saturated conclusion consumes, with no exact agreement
--- anywhere in between.
+-- `UC.Seam.Audit.Context` reads one back OUT at the embedded-strategy contexts
+-- (`≈ᶠ-runs`), with no exact agreement anywhere in between.
 
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Nat.Poly using (Poly)
+open import Data.Nat.Poly using (Poly; poly-*; poly-const; poly-⊔)
 open import Data.Nat.Properties using (*-identityʳ; ≤-refl)
 open import Data.Product.Base using (Σ-syntax; _×_; _,_)
 open import Data.Rational as ℚ using (ℚ; 0ℚ; ½)
@@ -64,8 +56,8 @@ open import CategoricalCrypto.UC.Budget using (Budget)
 open import CategoricalCrypto.UC.Model.Bridge using (≈ᵁ⇒≈ℰᶜ)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ)
 open import CategoricalCrypto.UC.Model.Family
-  using ( Obj^ω; Δ; _⇒^ω_; _⊛ω_; PolyQB; _≈ℰ[_]_; _≈ℰⁿ_; carried-negligible
-        ; ≈ℰⁿ⇒≈ℰ )
+  using ( Obj^ω; Δ; _⇒^ω_; _⊛ω_; PolyQB; _≈ℰ[_]_; _≈ℰⁿ_; absorb-negl
+        ; carried-negligible; ≈ℰⁿ⇒≈ℰ )
   renaming (_≈ℰ_ to _≈ℰᶠ_; _≤UC_ to _≤UCᶠ_; ≈ℰ⇒≤UC to ≈ℰᶠ⇒≤UCᶠ)
 open import CategoricalCrypto.UC.Model.Family.Uniform
   using (≈ℰ^ω⇒≤UC) renaming (_≤UC_ to _≤UCᵁ_)
@@ -77,11 +69,12 @@ open import CategoricalCrypto.UC.Seam.Audit.Context
   using (auditClose; auditTest; audit-qb; audit-run)
 open import CategoricalCrypto.UC.Seam.Carry using (adv-from-runs)
 
+import CategoricalCrypto.UC.Model.Family.Uniform as Uni
 import CategoricalCrypto.UC.Seam.Grounded as Gr
 
 module CategoricalCrypto.UC.Asymptotic.Family where
 
-open Budget budgetᵒ using (qb-λ⇐)
+open Budget budgetᵒ using (qb-λ⇐; qb-∘; qb-sub)
 
 private variable B : ℕ → Iface
                  R I J : Systems B
@@ -123,15 +116,11 @@ R ≤UC^ωⁿ I = Σ[ ε ∈ (ℕ → ℕ → ℚ) ] NegligibleBound ε × R ≈
 ≤UC^ωⁿ-sym : R ≤UC^ωⁿ I → I ≤UC^ωⁿ R
 ≤UC^ωⁿ-sym (ε , neg , h) = ε , neg , λ n Y Et m qE qm → ≈ₚ[]-sym (h n Y Et m qE qm)
 
--- The composition law: two family emulations compose and the εs ADD, the sum
--- staying negligible because the grade is closed under sums.  This is
--- `UC.Family.≈ℰⁿ-trans`'s arithmetic read one layer out, and it is the only
--- composition that RETAINS the error — `UC-compose` is the inherited
--- metatheorem and is stated in the qualitative order, so composing the premise
--- with a second protocol goes through `≤UC^ωⁿ⇒≤UCᵁ` below and spends the
--- witness.  An ε-retaining `UC-compose` needs a graded `_≤UC[ ε ]_` with graded
--- `≈ℰ` congruences and a graded `sub`/`T₁` interchange, which is the
--- observation-interface redesign `UC.Family`'s closing comment prices.
+-- Two family emulations compose and the εs ADD, the sum staying negligible
+-- because the grade is closed under sums.  With no simulator to absorb there
+-- is no allowance substitution either — `UC.Asymptotic.Compose.≤UC^ωᵉ-trans`
+-- is the general law, where the second schedule is read at `simCost _` of the
+-- first simulator's cost.
 ≤UC^ωⁿ-trans : R ≤UC^ωⁿ I → I ≤UC^ωⁿ J → R ≤UC^ωⁿ J
 ≤UC^ωⁿ-trans (ε₁ , neg₁ , h₁) (ε₂ , neg₂ , h₂) =
     (λ n q → ε₁ n q ℚ.+ ε₂ n q)
@@ -213,6 +202,52 @@ imageᶠ {B} R q = imgᶠ B R , q
               → R ≤UC^ωⁿ I
 ≤UC^ωᵉ⇒≤UC^ωⁿ s ε neg triv h =
   ε , neg , ≈ctx⇒≈ctxᴬ ε (≈ctx-resp ε (λ _ → Equiv.refl) triv h)
+
+------------------------------------------------------------------------
+-- The allowance-uniform conclusion, and only then the forgetting
+
+-- A `Fam`-hom is a hom family plus a polynomial bound, so a certified
+-- simulator carries one side's packaging to the other: `qb-∘`/`qb-sub` are the
+-- grading budget laws and `poly-*`/`poly-⊔` their polynomial shadow.
+subQB : {A X Y B : Obj^ω} (s : Certified Y X) {g : Homᶠ A Y B}
+      → PolyQB {A} {Y ⊛ω B} g → PolyQB {A} {X ⊛ω B} (subᶠ s g)
+subQB s (p , Pp , w) =
+    (λ k → (cost s k ℕ.⊔ 1) ℕ.* p k)
+  , poly-* (poly-⊔ (cost-poly s) (poly-const 1)) Pp
+  , λ n → qb-∘ (qb-sub (sim-qb s n)) (w n)
+
+-- …and it is a `Fam`-hom in its own right, which is what the inherited order
+-- asks a simulator to be.
+certᶠ : {X Y : Obj^ω} → Certified Y X → Y ⇒^ω X
+certᶠ s = sim s , cost s , cost-poly s , sim-qb s
+
+-- The quantitative evidence a witness RETAINS, packaged: one schedule,
+-- negligible at every polynomial allowance, that every level's context reads.
+-- Nothing here quantifies an allowance before the schedule.
+module _ {A X Y B : Obj^ω} (s : Certified Y X) (ε : ℕ → ℕ → ℚ)
+         (neg : NegligibleBound ε) {f : Homᶠ A X B} {g : Homᶠ A Y B}
+         (qf : PolyQB {A} {X ⊛ω B} f) (qg : PolyQB {A} {Y ⊛ω B} g)
+         (e : f ≈ctx[ ε ] subᶠ s g) where
+
+  ≤UC^ωᵉ⇒≈ℰⁿ : _≈ℰⁿ_ {A} {X ⊛ω B} (f , qf) (subᶠ s g , subQB s qg)
+  ≤UC^ωᵉ⇒≈ℰⁿ = ε , carried-negligible {ε = ε} neg
+             , ≈ctxᴬ⇒≈ℰ[] ε qf (subQB s qg) (≈ctx⇒≈ctxᴬ ε e)
+
+  -- …and only NOW the qualitative forgetting.  `absorb-negl` spends the
+  -- schedule, `≈ℰᶜ⇒≈ᵁ` reads the result in the inherited kernel, and
+  -- `dummy-complete` puts the retained simulator — a `Fam`-hom by its own
+  -- polynomial certificate — in front of the ideal side.
+  ≤UC^ωᵉ⇒≈ℰᶠ : _≈ℰᶠ_ {A} {X ⊛ω B} (f , qf) (subᶠ s g , subQB s qg)
+  ≤UC^ωᵉ⇒≈ℰᶠ = absorb-negl {A} {X ⊛ω B} {f , qf} {subᶠ s g , subQB s qg} {ε}
+                           (≈ctxᴬ⇒≈ℰ[] ε qf (subQB s qg) (≈ctx⇒≈ctxᴬ ε e)) neg
+
+  ≤UC^ωᵉ⇒≤UCᵁ : _≤UCᵁ_ (f , qf) (g , qg)
+  ≤UC^ωᵉ⇒≤UCᵁ =
+    Uni.dummy-complete
+      (certᶠ s
+      , Uni.≈ℰᶜ⇒≈ᵁ {f = f , qf} {g = Uni.sub (certᶠ s) Uni.∘ (g , qg)}
+          (Uni.≈ℰ^ω⇒≈ℰᶜ {f = f , qf} {g = Uni.sub (certᶠ s) Uni.∘ (g , qg)}
+                        ≤UC^ωᵉ⇒≈ℰᶠ))
 
 ------------------------------------------------------------------------
 -- Reading it at the embedded strategies

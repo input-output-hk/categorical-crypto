@@ -12,8 +12,8 @@ open import Categories.Category.Core using (Category)
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Properties
-  using ( *-assoc; *-comm; *-identityʳ; *-monoʳ-≤; m≤n⊔m; ⊔-assoc; ⊔-idem
-        ; ≤-reflexive; ≤-trans )
+  using ( *-assoc; *-comm; *-identityʳ; *-mono-≤; *-monoˡ-≤; *-monoʳ-≤; m≤m⊔n; m≤n⊔m
+        ; ⊔-assoc; ⊔-idem; ⊔-lub; ≤-reflexive; ≤-trans; module ≤-Reasoning )
 open import Level using (Level; _⊔_; suc)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; cong; sym; trans; module ≡-Reasoning)
@@ -110,3 +110,22 @@ ctxBudget-absorb c c′ cs =
   trans (cong (λ k → ctxBudget (c ℕ.* k) c′)
               (trans (⊔-assoc cs 1 1) (cong (cs ℕ.⊔_) (⊔-idem 1))))
         (ctxBudget-simCost c c′ cs)
+
+-- Absorbing into the CLOSURE instead: `ctxBudget` guards its second leg rather
+-- than multiplying by it, so what comes out is a BOUND where the two identities
+-- above are exact.  This is why a composition that moves a process into a
+-- closure needs the schedule's monotonicity and one that moves a morphism into
+-- a test does not.
+ctxBudget-closure≤ : (c c′ cs : ℕ)
+                   → ctxBudget c ((cs ℕ.⊔ 1) ℕ.* c′) ℕ.≤ simCost (ctxBudget c c′) cs
+ctxBudget-closure≤ c c′ cs = begin
+  c ℕ.* (((cs ℕ.⊔ 1) ℕ.* c′) ℕ.⊔ 1)  ≤⟨ *-monoʳ-≤ c inner ⟩
+  c ℕ.* ((c′ ℕ.⊔ 1) ℕ.* (cs ℕ.⊔ 1))  ≡⟨ *-assoc c (c′ ℕ.⊔ 1) (cs ℕ.⊔ 1) ⟨
+  (c ℕ.* (c′ ℕ.⊔ 1)) ℕ.* (cs ℕ.⊔ 1)  ∎
+  where
+  open ≤-Reasoning
+
+  inner : ((cs ℕ.⊔ 1) ℕ.* c′) ℕ.⊔ 1 ℕ.≤ (c′ ℕ.⊔ 1) ℕ.* (cs ℕ.⊔ 1)
+  inner = ⊔-lub (≤-trans (≤-reflexive (*-comm (cs ℕ.⊔ 1) c′))
+                         (*-monoˡ-≤ (cs ℕ.⊔ 1) (m≤m⊔n c′ 1)))
+                (*-mono-≤ (m≤n⊔m c′ 1) (m≤n⊔m cs 1))
