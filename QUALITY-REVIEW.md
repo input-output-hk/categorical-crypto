@@ -2323,6 +2323,16 @@ list), and the two root index files (`open import` lines plus inventory paragrap
   hopes is silent, and this simulator's contribution is its actual interaction, run in
   the ideal experiment and counted by `sim-hash-count`.
 
+Checked against `docs/uc-presheaf-preservation-plan.md` (which postdates this branch's
+base) after the fact, with nothing to change: the whole branch adds exactly ONE record,
+`UC.QueryBound.Exact.QEᵢ`, and the only new `data` declarations are the toy's message
+types and its machine's state. No `Simulator`, `ClosingContext`, `MonitoredExperiment` or
+`Monitor` record, no new `Category`; the simulator is a plain `Proc` whose `procᵒ` is a
+grade morphism acting through the existing `sub`, absorption is the pre-existing
+`UC.Audit.absorb`, tests and closures are `UC.Emulation`'s, `Strat` is untouched, and
+`UCSetup`/`Budget` gain no fields. `docs/hash-forward.md` has the decision-by-decision
+check.
+
 Open, for the maintainer:
 
 - **The layer-1 probability is NOT extracted, and the obstruction is structural.**

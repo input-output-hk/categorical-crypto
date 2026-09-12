@@ -26,6 +26,14 @@
 --
 -- `qeᵢ-wire` is the inhabitation: a stateless relay emits exactly one downward
 -- output per activation from above and none otherwise.
+--
+-- This is enrichment, in `UC.Budget`'s sense and no more: `QEᵢ` is `QBᵢ`'s
+-- twin, over the same three parameters (a state, a point, a step — the
+-- measured spelling `UC.QueryBound`'s header explains) and concluding about
+-- the same `behᵍ`.  It is not a field of `UCSetup`, nothing is stated over it,
+-- and it introduces no notion of simulator, context or experiment: a simulator
+-- remains a grade morphism acting through `sub`
+-- (`docs/uc-presheaf-preservation-plan.md` §1, decisions 3 and 5).
 
 open import Data.List.Base using (List; []; _∷_; map)
 open import Data.Nat.Base using (ℕ; _+_)

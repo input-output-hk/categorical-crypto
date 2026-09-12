@@ -38,7 +38,9 @@ private
   variable A B X Y : Iface
 
 -- The factoring the emulation consumes: the real process IS the simulator's
--- relay in front of the ideal one, at the machine layer.
+-- relay in front of the ideal one, at the machine layer.  This is `𝒢ₚ`'s own
+-- hom equality under a name, not a relation of its own — the simulator stays a
+-- grade morphism `Y ⇒ X` acting through `sub`, and nothing here wraps it.
 Factors : Proc A (X ⊗ᴵ B) → Proc Y X → Proc A (Y ⊗ᴵ B) → Set₁
 Factors f s g = 𝒢ₚ 0ℓ [ f ≈ M._∘_ (subᴵ′ s) g ]
 

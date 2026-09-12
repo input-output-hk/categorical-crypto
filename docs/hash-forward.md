@@ -361,6 +361,44 @@ gate; the warm column is a single-`Checking`-line run.
    `subᴵ simulator`, so this is not a presentation choice that could be changed
    without redoing the trace argument.
 
+## Against the consolidation plan's architectural decisions
+
+`docs/uc-presheaf-preservation-plan.md` postdates this branch's base
+(`d461b1fa`); everything here was checked against it afterwards and nothing had
+to change.
+
+* **Decision 1** (use `UCSetup`/`Abstract2` and the existing graded Kleisli
+  action, preserve `_≈ᵁ_` and the inherited `_≤UC_` quantifiers) — `emulᵍ`
+  lands in `_≈ᵁ_` and `≤UCᵍ` in the inherited `_≤UC_`, through the existing
+  `dummy-complete`, so the quantifier is the one that was there.
+* **Decision 2** (absorbing a simulator is the presheaf's action on `sub`, not
+  an independent operation) — the only absorption used is the pre-existing
+  `UC.Audit.absorb`, i.e. `Et ∘ T₁ W (sub s)`; nothing new was defined for it.
+* **Decision 3** (no generic `Simulator`, `ClosingContext`,
+  `MonitoredExperiment` or `Monitor` records, no new experiment category) — the
+  whole branch adds exactly one record, `UC.QueryBound.Exact.QEᵢ`, and the only
+  new `data` declarations are the toy's own message types and its machine's
+  state. The simulator is a plain `Proc Lkᴵ Advᴵ`, `procᵒ` of it is a grade
+  morphism, tests and closures are `UC.Emulation`'s own, and no monitor appears
+  at all: `pinned` designates an observation, where `watched` designates a
+  concrete `Strat → Strat`. No `Category` is constructed anywhere.
+* **Decision 4** (`Strat` stays executable finite syntax) — untouched; the toy
+  uses no strategy.
+* **Decision 5** (query certificates are optional model enrichment, not fields
+  of `UCSetup`) — `QEᵢ` is a standalone module, `UCSetup` and `Budget` are
+  untouched, and the allowance the emulation carries still goes through the
+  ordinary `Certified`/`QB`/`qbᵒ` pipeline. Nothing forgets a witness: the
+  emulation is exact, so there is no error to forget.
+* **Decision 6** (several observation instances on one family category) — no
+  observation was added or changed.
+* **§4.4** asks precisely for this example, "reuse the ordinary grading action
+  and query certificates. Neither a new simulator datatype nor a new category is
+  needed" — neither was needed. The oracle-facing grade is exposed by changing
+  the application interface explicitly (`Advᴵ`/`Lkᴵ` are the grades), not by
+  assigning a positive budget to a `unit → unit` scalar, and `absorbed-budget`
+  is the "admits the simulator's actual interaction at the adjusted budget"
+  half.
+
 ## Nothing was weakened
 
 No pre-existing statement was edited. The two edits to existing files are
