@@ -209,6 +209,11 @@ retraction is what makes the unit grade invisible, and at a nontrivial `X` the
 grade `X ⊗₀ P` the composition produces is real data that the statement has to
 carry rather than discard.
 
+The ε-retaining half of that list is done: `Examples.ChimericLedger.FactorEps` lifts an
+`_≤UC^ωᵉ_`/`_≤UC^ωⁿ_` premise at this port through `ledger-factor` without forgetting its
+error, with every query certificate proved (`docs/ledger-lift-eps.md`). What remains
+below is the nontrivial GRADE, not the error.
+
 **The ledger cannot supply that example.** The maintainer's reason, recorded
 here so it is not re-attempted: the ledger is pure with respect to the graded
 monad (its `morphism` image carries no adversary interface) and `POV.oracle`
