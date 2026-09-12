@@ -276,7 +276,11 @@ content, so `touch` does nothing).
 | `UC.Seam.Audit.Context` | 229 → 249 | 10 s | 11 s | 122 s |
 | `UC.Seam.Audit.Bounded` | 104 → 104 | 10 s | 10 s | 86 s |
 | `UC.Seam.Audit.Prefix` | 143 → 237 | 11 s | 10 s | 119 s |
-| `UC.Seam.Grounded` | 281 → 280 | 10 s | 10 s | 130 s |
+| `UC.Seam.Grounded` | 281 → 280 | —† | 10 s | 130 s |
+
+† not measured before the edit, which replaces a three-line proof by a call and
+is not a perf change; the after figure is inside the budget by an order of
+magnitude, so no before/after claim is made for it.
 
 No module moved by more than a second; nothing is near the 20 % regression bar
 or its rule-5 budget. (A large part of each figure is interface
