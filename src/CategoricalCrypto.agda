@@ -45,6 +45,9 @@ open import CategoricalCrypto.SFunPartial public
 open import CategoricalCrypto.SFunPossibility
 open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.GamePlaying
+open import CategoricalCrypto.GamePlaying.Hop
+open import CategoricalCrypto.GamePlaying.Potential
+open import CategoricalCrypto.GamePlaying.Test
 open import CategoricalCrypto.OutputOnly
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.Protocol
