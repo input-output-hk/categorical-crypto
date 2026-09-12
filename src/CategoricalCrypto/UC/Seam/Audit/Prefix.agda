@@ -30,6 +30,10 @@
 -- The `ASTotal` hypothesis is the one the trivial-grade collapse already
 -- spends: `UC.Seam.Grounded.simTotal⇒point` supplies it from `TG.SimTotal`,
 -- which `subBlind⇒unitGrade` in turn reads off the REAL side's totality.
+--
+-- The last section reaches the same endpoint with no class on the route at all
+-- (review §4.3): `uc-audit-bounded′` is `uc-audit-bounded`'s statement off
+-- `sim-prefixed` and `UC.Seam.Audit.Context.extract-obs`.
 
 open import Data.Bool.Base using (Bool)
 open import Data.Nat.Base as ℕ using (ℕ)
@@ -173,11 +177,11 @@ uc-audit-bounded B R I bad {cs} em ε ν ν>0 tot bad-asks bi =
 -- The `ASTotal` the class route spends is not spent here.  It is what the
 -- two-sided `≈ₚ[ ε ]` of `prefixedᵒ-obs` needs, and this is the one-sided half;
 -- `uc-audit-bounded′` keeps the premise because the theorem it reproves has it.
-sim-prefixedᵖ : (B : Iface) (I : Protocol unitᴵ B) (e : Strat (Neg B) (Pos B))
-                (s : 𝟘ᴳ ⇒ 𝟘ᴳ)
-              → obs (tv₁ 𝟘ᴳ (sub s ∘ closedᵒ (morphism I)) (auditTest B e)) auditClose
-                ≼ₚ[ 0ℚ ] runᴹ (morphism I) e
-sim-prefixedᵖ B I e s =
+sim-prefixed : (B : Iface) (I : Protocol unitᴵ B) (e : Strat (Neg B) (Pos B))
+               (s : 𝟘ᴳ ⇒ 𝟘ᴳ)
+             → obs (tv₁ 𝟘ᴳ (sub s ∘ closedᵒ (morphism I)) (auditTest B e)) auditClose
+               ≼ₚ[ 0ℚ ] runᴹ (morphism I) e
+sim-prefixed B I e s =
   ≼ₚ[]-resp (proj₁ chain) (≼ₚ-refl _) (const-bind-≼ (pointᵒ 𝟘ᴳ 𝟘ᴳ s) run 0ℚ ≤-refl)
   where
   f₀ : 𝟘ᵒ ⇒ T₀ 𝟘ᴳ (ifaceᵒ B)
@@ -212,7 +216,7 @@ bounded-carry B R I bad s em p q≤p ε ν ν>0 bi =
     let k , le = dominate (em 𝟘ᴳ (auditTest B (bad d)) auditClose) ν ν>0 n
     in ≤-trans le (+-monoˡ-≤ ν
          (supply I bad ε (p q) d (asks≤-mono (q≤p q) d a) bi _
-                 (sim-prefixedᵖ B I (bad d) s) k))
+                 (sim-prefixed B I (bad d) s) k))
 
 -- `uc-audit-bounded` again, hypotheses and conclusion verbatim, by that route:
 -- the membership records, the absorption and the pullback class are gone, and

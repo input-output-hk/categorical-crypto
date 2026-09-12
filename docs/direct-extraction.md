@@ -41,7 +41,7 @@ extract-bounded : {B : Iface} (P : Protocol unitᴵ B)
   numeric-bound form is what both consumers need — the membership route reads
   `AuditBound`'s conclusion, which is already a bound, and the direct route
   reaches one through `dominate` — so the one-sided domination stays where it
-  belongs, at the ideal side (`sim-prefixedᵖ` below) rather than in the
+  belongs, at the ideal side (`sim-prefixed` below) rather than in the
   extraction lemma's own premise.
 * **Universally quantified `n`.** `extract`'s old proof used the bound at one
   index (`proj₁ reach`, produced by `≼ₚ`'s witness). Making it a `∀ n` premise
@@ -78,7 +78,7 @@ reusable by a route that has no membership to supply.
 
 ## §4.3 — the prefix route's direct consequence
 
-`src/CategoricalCrypto/UC/Seam/Audit/Prefix.agda:83,176`
+`src/CategoricalCrypto/UC/Seam/Audit/Prefix.agda:87,180`
 
 ```agda
 prefix-absorbᵒ : (B : Iface) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) (W : Channel)
@@ -87,15 +87,15 @@ prefix-absorbᵒ : (B : Iface) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) (W : Channel)
                → Obs (((Et ∘ id ⊗₁ sub s) ∘ g) ∘ m)
                  ≈ₚ (pointᵒ 𝟘ᴳ 𝟘ᴳ s >>=ₚ λ _ → Obs ((Et ∘ g) ∘ m))
 
-sim-prefixedᵖ : (B : Iface) (I : Protocol unitᴵ B) (e : Strat (Neg B) (Pos B))
-                (s : 𝟘ᴳ ⇒ 𝟘ᴳ)
-              → obs (tv₁ 𝟘ᴳ (sub s ∘ closedᵒ (morphism I)) (auditTest B e)) auditClose
-                ≼ₚ[ 0ℚ ] runᴹ (morphism I) e
+sim-prefixed : (B : Iface) (I : Protocol unitᴵ B) (e : Strat (Neg B) (Pos B))
+               (s : 𝟘ᴳ ⇒ 𝟘ᴳ)
+             → obs (tv₁ 𝟘ᴳ (sub s ∘ closedᵒ (morphism I)) (auditTest B e)) auditClose
+               ≼ₚ[ 0ℚ ] runᴹ (morphism I) e
 ```
 
 `prefix-absorbᵒ` is `subPrefixedˢ` read off the observation by
 `prefixedᵒ-bind`, hoisted out of `absorb-watchedᵖ`'s own proof (which now calls
-it, so the bracketing argument exists once). `sim-prefixedᵖ` is the mass
+it, so the bracketing argument exists once). `sim-prefixed` is the mass
 consequence: the simulator-fronted ideal monitored observation is dominated by
 the ideal monitored run **with zero slack**, by `Dp.Mass.const-bind-≼` — a
 prefix is never seen to add mass.
@@ -108,7 +108,7 @@ part of `uc-audit-bounded`'s interface and of `UC.Asymptotic.Audit`'s).
 
 ### The re-routed public theorem
 
-`Prefix.agda:223`, beside `uc-audit-bounded` (`:150`), which is untouched.
+`Prefix.agda:227`, beside `uc-audit-bounded` (`:154`), which is untouched.
 
 ```agda
 uc-audit-bounded′ : (B : Iface) (R I : Protocol unitᴵ B)
@@ -123,7 +123,7 @@ uc-audit-bounded′ : (B : Iface) (R I : Protocol unitᴵ B)
 
 #### Old versus new, side by side
 
-| | `uc-audit-bounded` (`:150`) | `uc-audit-bounded′` (`:223`) |
+| | `uc-audit-bounded` (`:154`) | `uc-audit-bounded′` (`:227`) |
 |---|---|---|
 | interfaces/protocols | `B`, `R I : Protocol unitᴵ B` | identical |
 | monitor | `bad : Strat … → Strat …` | identical |
@@ -134,7 +134,7 @@ uc-audit-bounded′ : (B : Iface) (R I : Protocol unitᴵ B)
 | monitor budget law | `(q)(d) → asks≤ q d → asks≤ q (bad d)` | identical (present, not consumed) |
 | ideal bound | `Bounded I bad ε` | identical |
 | **conclusion** | `Bounded R bad (λ q → ε (simCost q cs) ℚ.+ ν)` | **identical** |
-| route | `boundedIsAuditᵖ` → `audit-carry` + `absorb-absorbs` → `auditIsBoundedᴬ` (→ `ctx-absorb`, `absorb-watchedᵖ`, `extract`) | `bounded-carry` = `dominate` + `sim-prefixedᵖ` + `supply` + `extract-obs` |
+| route | `boundedIsAuditᵖ` → `audit-carry` + `absorb-absorbs` → `auditIsBoundedᴬ` (→ `ctx-absorb`, `absorb-watchedᵖ`, `extract`) | `bounded-carry` = `dominate` + `sim-prefixed` + `supply` + `extract-obs` |
 
 The two hypothesis lists and the two conclusions are the same Agda type,
 argument for argument; `uc-audit-bounded′` is a drop-in for
@@ -143,7 +143,7 @@ argument for argument; `uc-audit-bounded′` is a drop-in for
 
 #### The strictly more general statement
 
-`Prefix.agda:204` — what the route actually consumes, of which the theorem
+`Prefix.agda:208` — what the route actually consumes, of which the theorem
 above is an instance:
 
 ```agda
@@ -216,7 +216,7 @@ Three copies of that merge are now one call:
 |---|---|---|
 | `UC.Seam.Audit.Context.plug-runᵍ`'s `merge` | `(⟺ T₁-⊗ ⟩∘⟨ ⟺ T₁-⊗) ○ ⟺ T-homomorphism` | `⟺ (slide⊗ …) ○ ⟺ (T₁-⊗ …)` |
 | `UC.Seam.Grounded.subPrefixed`'s `split` | `⟺ T₁-⊗ ○ T-homomorphism ○ (T₁-⊗ ⟩∘⟨ T₁-⊗)` | `slide⊗ Y (sub s) wire` |
-| `UC.Seam.Audit.Prefix.sim-prefixedᵖ`'s `slide` | (would have been a fourth) | `slide⊗ 𝟘ᴳ (sub s) f₀` |
+| `UC.Seam.Audit.Prefix.sim-prefixed`'s `slide` | (would have been a fourth) | `slide⊗ 𝟘ᴳ (sub s) f₀` |
 
 ### The optional item is declined, with a reason
 
@@ -241,9 +241,9 @@ one and is NOT an importer of the audit one).
 
 | name | in-repo importers | §5 gate | satisfied given items 1–2? |
 |---|---|---|---|
-| `absorb-watchedᵖ` (`Prefix:95`) | `ctx-absorb` (same module) only | `UC.Seam.Audit.Prefix`: retire after the unchanged probability endpoint is recovered | **Yes.** `uc-audit-bounded′` recovers it verbatim. Retires together with `uc-audit-bounded`'s current proof. |
-| `ctx-absorb` (`Prefix:125`) | `auditIsBoundedᴬ` (same module) only | same row | **Yes**, same argument. |
-| `auditIsBoundedᴬ` (`Prefix:137`) | `uc-audit-bounded` (same module) only | same row | **Yes**, same argument. |
+| `absorb-watchedᵖ` (`Prefix:99`) | `ctx-absorb` (same module) only | `UC.Seam.Audit.Prefix`: retire after the unchanged probability endpoint is recovered | **Yes.** `uc-audit-bounded′` recovers it verbatim. Retires together with `uc-audit-bounded`'s current proof. |
+| `ctx-absorb` (`Prefix:129`) | `auditIsBoundedᴬ` (same module) only | same row | **Yes**, same argument. |
+| `auditIsBoundedᴬ` (`Prefix:141`) | `uc-audit-bounded` (same module) only | same row | **Yes**, same argument. |
 | `watchedᵖ` (`Audit:90`) | `Audit` (`AuditIsBoundedᵖ`/`BoundedIsAuditᵖ`), `Audit.Bounded` (`auditIsBoundedᵖ`, `boundedIsAuditᵖ`), `Audit.Prefix` (the three above) | `UC.Seam.Audit`: retire after exact and prefix consumers migrate | **Yes for the prefix side.** No module outside the `UC.Seam.Audit` cone mentions `watchedᵖ`; every conclusion stated at it is recovered by `uc-audit-bounded′`. |
 | `AuditIsBoundedᵖ` / `auditIsBoundedᵖ` | none (`auditIsBoundedᵖ` has no consumer at all today) | same row | **Yes** — already dead before this step; `uc-audit-bounded′` removes any future need. |
 | `BoundedIsAuditᵖ` / `boundedIsAuditᵖ` | `Prefix.uc-audit-bounded` only | same row | **Yes**, with `uc-audit-bounded`'s route. |
@@ -275,7 +275,7 @@ content, so `touch` does nothing).
 | `UC.Seam.Slide` | — → 44 | — | 9 s | 71 s |
 | `UC.Seam.Audit.Context` | 229 → 245 | 10 s | 10 s | 121 s |
 | `UC.Seam.Audit.Bounded` | 104 → 104 | 10 s | 10 s | 86 s |
-| `UC.Seam.Audit.Prefix` | 143 → 233 | 11 s | 11 s | 118 s |
+| `UC.Seam.Audit.Prefix` | 143 → 237 | 11 s | 11 s | 118 s |
 | `UC.Seam.Grounded` | 281 → 280 | — | 10 s | 130 s |
 
 No module moved by more than a second; nothing is near the 20 % regression bar
@@ -325,7 +325,7 @@ blocked on this, not on proof work in this step.
 
 ### 4. Nothing here touches the nontrivial grade
 
-§4.4 is untouched: `sim-prefixedᵖ` is a trivial-grade statement
+§4.4 is untouched: `sim-prefixed` is a trivial-grade statement
 (`s : 𝟘ᴳ ⇒ 𝟘ᴳ`), and `scalar-blindᵒ` is why it holds. The nontrivial-grade
 `Pr` bound is `UC.Seam.Audit.Context.extractᵍ`, which this step leaves alone.
 
@@ -337,7 +337,7 @@ Reported, not edited — `src/CategoricalCrypto/UC.agda` and
 * `src/CategoricalCrypto/UC.agda`, the `UC.Seam.Audit.Prefix` row: it currently
   describes the budgeted route's consumer end as the membership route. It now
   has two ends — `uc-audit-bounded` (membership) and `uc-audit-bounded′`
-  (direct), the same statement — and additionally carries `sim-prefixedᵖ` and
+  (direct), the same statement — and additionally carries `sim-prefixed` and
   `bounded-carry`, which is where the route's real premises are visible.
 * `src/CategoricalCrypto/UC.agda`, the `UC.Seam.Audit.Context` row: add
   `extract-obs`/`extract-bounded` as the event-class-free half of `extract`.

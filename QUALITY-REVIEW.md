@@ -3062,9 +3062,9 @@ here. No statement was weakened, no consumer was edited, nothing was retired.
   `UC/Seam/Audit/Context.agda:211`** — §4.1 allows either. Both suppliers
   already produce `∀ n. Pr≤ n _ ≤ c` (an `AuditBound`'s conclusion on one side,
   `dominate` + `supply` on the other), so the domination belongs at the ideal
-  side, where `sim-prefixedᵖ` states it, not in the extraction's own premise.
+  side, where `sim-prefixed` states it, not in the extraction's own premise.
 - **`ASTotal` and the `bad`-budget law are kept in `uc-audit-bounded′` and NOT
-  consumed :: `UC/Seam/Audit/Prefix.agda:223`** — the brief forbids erasing
+  consumed :: `UC/Seam/Audit/Prefix.agda:227`** — the brief forbids erasing
   either, and I agree for the migration test: the theorem must be a drop-in for
   `uc-audit-bounded`. But it is worth your knowing that the direct route uses
   neither. `ASTotal` is what the *two-sided* `≈ₚ[ ε ]` of `prefixedᵒ-obs` needs;
@@ -3073,7 +3073,7 @@ here. No statement was weakened, no consumer was edited, nothing was retired.
   so `bad-asks` has nothing to do. If you want the honest premise list, it is
   `bounded-carry`'s.
 - **`bounded-carry` stated with the allowance inflation as a parameter ::
-  `UC/Seam/Audit/Prefix.agda:204`** — the direct route consumes no query
+  `UC/Seam/Audit/Prefix.agda:208`** — the direct route consumes no query
   certificate at all (`_≈ℰᶜ_` holds at every test; only `AuditBound`'s
   *budgeted-test* quantifier ever needed `simCost`). So the uncharged reading
   is available. I did **not** state it as the theorem: it is a *different*
@@ -3092,7 +3092,7 @@ here. No statement was weakened, no consumer was edited, nothing was retired.
   mass, so nothing numerical transports along `run-sub`. `run-subᵒ` is the same
   slide as a categorical `≈`, off `sub-decomp` — `run-sub`'s own ingredient.
 - **`prefix-absorbᵒ` hoisted out of `absorb-watchedᵖ` ::
-  `UC/Seam/Audit/Prefix.agda:83`** — `sim-prefixedᵖ` needs the same
+  `UC/Seam/Audit/Prefix.agda:87`** — `sim-prefixed` needs the same
   `subPrefixedˢ`/`prefixedᵒ-bind` composite with the same bracketing argument.
   Hoisting it keeps one copy and leaves `absorb-watchedᵖ`'s statement verbatim
   (it is a retirement candidate; I did not otherwise touch it).
