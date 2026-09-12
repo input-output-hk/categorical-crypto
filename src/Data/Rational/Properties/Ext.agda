@@ -13,8 +13,8 @@ open import Data.Rational using
   (ℚ; 0ℚ; 1ℚ; ½; _+_; _-_; -_; _*_; _/_; ∣_∣; _≤_; _<_; nonNegative; toℚᵘ)
 open import Data.Rational.Properties using
   ( +-0-abelianGroup; +-assoc; +-identityˡ; +-identityʳ; +-inverseˡ; +-inverseʳ
-  ; +-monoʳ-≤; ≤-reflexive; ≤-total; ≤-trans; neg-antimono-≤
-  ; 0≤p⇒∣p∣≡p; 0≤∣p∣; ∣-p∣≡∣p∣; nonNegative⁻¹; nonNeg*nonNeg⇒nonNeg
+  ; +-monoʳ-≤; ≤-refl; ≤-reflexive; ≤-total; ≤-trans; neg-antimono-≤
+  ; 0≤p⇒∣p∣≡p; 0≤∣p∣; ∣-p∣≡∣p∣; ∣p+q∣≤∣p∣+∣q∣; nonNegative⁻¹; nonNeg*nonNeg⇒nonNeg
   ; *-distribʳ-+; *-identityˡ; *-monoʳ-<-pos; *-zeroʳ
   ; toℚᵘ-cancel-≤; toℚᵘ-fromℚᵘ; toℚᵘ-homo-*; toℚᵘ-homo-+; toℚᵘ-injective )
 open import Data.Rational.Unnormalised.Base as ℚᵘ using (mkℚᵘ; *≡*; *≤*)
@@ -74,6 +74,19 @@ p≤∣p∣ p with ≤-total 0ℚ p
 ∣diff∣≤1 {x} {y} 0≤x x≤1 0≤y y≤1 =
   ∣∣≤ (≤-trans (x-y≤x x 0≤y) x≤1)
       (subst (_≤ 1ℚ) (neg-sub y x) (≤-trans (x-y≤x y 0≤x) y≤1))
+
+------------------------------------------------------------------------
+-- ∣_-_∣ as a metric
+
+∣x-x∣≡0 : ∀ x → ∣ x - x ∣ ≡ 0ℚ
+∣x-x∣≡0 x = trans (cong ∣_∣ (+-inverseʳ x)) (0≤p⇒∣p∣≡p ≤-refl)
+
+∣-∣-comm : ∀ x y → ∣ x - y ∣ ≡ ∣ y - x ∣
+∣-∣-comm x y = sym (trans (cong ∣_∣ (neg-sub y x)) (∣-p∣≡∣p∣ (x - y)))
+
+∣-∣-triangle : ∀ x y z → ∣ x - z ∣ ≤ ∣ x - y ∣ + ∣ y - z ∣
+∣-∣-triangle x y z = ≤-trans (≤-reflexive (cong ∣_∣ (sym (telescope x y z))))
+                             (∣p+q∣≤∣p∣+∣q∣ (x - y) (y - z))
 
 ------------------------------------------------------------------------
 -- Halving, for ε/2 + ε/2 arguments

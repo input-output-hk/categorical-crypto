@@ -20,10 +20,10 @@ open import Data.Nat.Poly using (poly-+; poly-const; poly-id)
 open import Data.Product.Base using (_,_)
 open import Data.Rational as ℚ using (ℚ; 0ℚ; ½; ∣_∣; 1/_; NonZero; positive; *<*)
 open import Data.Rational.Properties
-  using ( *-inverseʳ; +-inverseʳ; +-identityʳ; +-mono-≤; <-irrefl; ≤-<-trans; ≤-refl
-        ; ≤-reflexive; ≤-trans; 0≤p⇒∣p∣≡p; ∣-p∣≡∣p∣; ∣p+q∣≤∣p∣+∣q∣
-        ; pos⇒nonZero; positive⁻¹ )
-open import Data.Rational.Properties.Ext using (neg-sub; p≤∣p∣; telescope)
+  using ( *-inverseʳ; +-identityʳ; +-mono-≤; <-irrefl; ≤-<-trans
+        ; ≤-reflexive; ≤-trans; 0≤p⇒∣p∣≡p; pos⇒nonZero; positive⁻¹ )
+open import Data.Rational.Properties.Ext
+  using (p≤∣p∣; ∣x-x∣≡0; ∣-∣-comm; ∣-∣-triangle)
 open import Level using (0ℓ)
 open import Relation.Binary.PropositionalEquality using (cong; refl; subst; sym; trans)
 open import Relation.Nullary using (¬_)
@@ -47,13 +47,9 @@ x ≈ᵐ[ ε ] y = ∣ x ℚ.- y ∣ ℚ.≤ ε
 ℚ-metric : Approximation ℚ ℚ-errors 0ℓ
 ℚ-metric = record
   { _≈[_]_    = _≈ᵐ[_]_
-  ; ≈[]-refl  = λ {x} → ≤-reflexive (trans (cong ∣_∣ (+-inverseʳ x)) (0≤p⇒∣p∣≡p ≤-refl))
-  ; ≈[]-sym   = λ {x} {y} →
-      subst (ℚ._≤ _) (sym (trans (cong ∣_∣ (neg-sub y x)) (∣-p∣≡∣p∣ (x ℚ.- y))))
-  ; ≈[]-trans = λ {x} {y} {z} h k → ≤-trans
-      (≤-trans (≤-reflexive (cong ∣_∣ (sym (telescope x y z))))
-               (∣p+q∣≤∣p∣+∣q∣ (x ℚ.- y) (y ℚ.- z)))
-      (+-mono-≤ h k)
+  ; ≈[]-refl  = λ {x} → ≤-reflexive (∣x-x∣≡0 x)
+  ; ≈[]-sym   = λ {x} {y} → subst (ℚ._≤ _) (∣-∣-comm x y)
+  ; ≈[]-trans = λ {x} {y} {z} h k → ≤-trans (∣-∣-triangle x y z) (+-mono-≤ h k)
   ; ≈[]-mono  = λ le h → ≤-trans h le
   }
 
