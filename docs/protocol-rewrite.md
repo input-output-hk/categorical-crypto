@@ -26,6 +26,13 @@ are historical snapshots, not a fresh census or benchmark. In particular, the
 old projection-cost ceiling and deleted `Cast`/`Laws` route are retired findings,
 not current blockers. Current proof status and remaining semantic gaps follow.
 
+**Figure convention (2026-09-12).** Every LOC, module count and timing in this
+file is a snapshot at `6256a140` or earlier unless the row itself cites a later
+branch's measurement. The figures the arc's own branches measured are collected
+in [*Where things stand at `587999b5`*](#where-things-stand-at-587999b5) at the
+foot of the file; where that table and one above it disagree, the later
+measurement is the one to quote.
+
 | milestone | status |
 |---|---|
 | M1: layers 0–1 + the ledger example | **DONE** — all green, pins by `refl`, hatches 21 = baseline |
@@ -38,7 +45,7 @@ The ledger's `TrajectoryFromAudit` and `Birthday.target` are also proved; the
 birthday theorem is conditional on injective serialization. These results do
 not by themselves supply an inherited graded asymptotic UC→POV theorem.
 
-## Modules (M1: 10 files, 874 LOC, all `--safe --without-K`)
+## Modules (M1: 10 files, 874 LOC at `6256a140`, all `--safe --without-K`)
 
 | module | LOC | role |
 |---|---|---|
@@ -87,7 +94,7 @@ not by themselves supply an inherited graded asymptotic UC→POV theorem.
   it is no longer an uninhabited statement. `Examples.ChimericLedger.Birthday.target`
   proves the birthday target under injective serialization.
 
-## M2: the machine layer (30 files, 4567 LOC, all `--safe --without-K`)
+## M2: the machine layer (30 files, 4567 LOC at `6256a140`, all `--safe --without-K`)
 
 | module | LOC | role |
 |---|---|---|
@@ -122,8 +129,8 @@ not by themselves supply an inherited graded asymptotic UC→POV theorem.
 | `…Machines.Trace.Laws` | 39 | `Remaining`, as a term |
 | `…Machines.Base` | 281 | `Dₚ-DiscreteMonad`, `𝒱ₚ`, `distₚ`, `𝒫ₚ`, `Elgotₚ`, `Remainingₚ`, `ℳₚ`, `Tracedₚ`, `𝒢ₚ` — the intended instance, hypothesis-free |
 
-Cost: the whole machine closure elaborates in ~40 s; no module is over 8 s warm
-and each `Dₚ` module is ~4 s.  `Trace.Naturality` is split off `Trace` on the
+Cost at `6256a140`: the whole machine closure elaborates in ~40 s; no module is
+over 8 s warm and each `Dₚ` module is ~4 s.  `Trace.Naturality` is split off `Trace` on the
 elgot spike's measurement that the two together cost 397 s against 7 s + 7 s
 apart, for the same proof term; the four law modules are split for the same
 reason and each came in at 7–8 s.
@@ -283,7 +290,7 @@ distributivity they never needed.
 * **`morphism`/`morphism-∘`/`Pr-agree`** — `morphism` landed; the two agreement
   theorems are now proved; the original pricing is retained below as history.
 
-## M2 wave 3 (11 new/changed files, +1213 LOC)
+## M2 wave 3 (11 new/changed files, +1213 LOC at `6256a140`)
 
 | module | LOC | role |
 |---|---|---|
@@ -302,8 +309,8 @@ distributivity they never needed.
 | `…Protocol.Machine.Agree` | 73 | `callAgree`/`runAgree`, `prAgree` — `PrAgree`, proved |
 | `…Protocol.Machine.Pin` | 114 | layer 1 and the machine image agree by `refl`; `nay`/`stuck` pin `false` apart from divergence |
 
-Cost: every module is a warm single-module check of 5–16 s; the whole
-`Machines.G` closure from cold (including `GConstruction*`) is 37 s.
+Cost at `6256a140`: every module is a warm single-module check of 5–16 s; the
+whole `Machines.G` closure from cold (including `GConstruction*`) is 37 s.
 
 ### The bundle, as landed
 
@@ -553,7 +560,20 @@ symmetric solver as unusable here because
 `b746517c` restored it, so `solveH!`/`rewriteH!` are available again — no law in
 this layer needed them.)
 
-## M3: the UC layer (20 files, 2735 LOC)
+## M3: the UC layer (20 files, 2735 LOC at `6256a140`)
+
+**Status 2026-09-12.** This section records a design in which `UC.Core`'s
+`UCBase` is the public metatheory. It is not the current one: the inherited
+`UCSetup` + `Abstract2` (reached at the machine model through `Standard2.StdUC`)
+is canonical, `UC.Model.Bridge` identifies the two orders both ways, and the
+core-scoped statements that remain — `UC.Emulation`'s metatheorems and
+`UC.Robust.Observation`'s preservation theorem — stand as INDEPENDENTLY SCOPED
+`UCBase` results, kept because an arbitrary `UCBase` supplies no graded Kleisli
+triple and so no `run`/`run-sub` (`docs/presheaf-action.md` §2,
+`docs/retirement.md` §7). The generic preservation theorem at a `UCSetup` is
+`UC.Robust` over `Abstract2.Action`. The supersession itself is
+`docs/stduc-supersession-plan.md`; what it was rebuilt on is
+`docs/uc-presheaf-preservation-plan.md` §§2–3.
 
 | module | layer | LOC | role |
 |---|---|---|---|
@@ -588,8 +608,9 @@ this layer needed them.)
 
 All `--safe --without-K`; the `Dₚ`-facing nine add `--guardedness` and nothing
 adds anything else — the whole core and the whole enrichment are `Dₚ`-free. **There is no K island**, which was the acceptance test.
-Every module is a warm single-module check of 8–10 s; `UC.Machine`'s closure
-from cold is 85 s.
+At `6256a140`, every module was a warm single-module check of 8–10 s and
+`UC.Machine`'s closure from cold 85 s; the figures the arc re-measured are at the
+foot of this file.
 
 ### The qualitative core, and its enrichment
 
@@ -834,6 +855,21 @@ has since been ported and superseded modules deleted (see compatibility below).
 
 ### What is proved, and what is priced
 
+**Status 2026-09-12.** The audit half of this section describes the MEMBERSHIP
+route — an `AuditEvent` class (`watched`), an `AuditBound` about it, and the
+pullback-membership detour from there to a probability. That route is gone:
+`carry-obs` is `audit-carry`'s structural content with neither class nor budget
+on it, `uc-audit-carryᵈ` is the property-specific statement at the existing
+test, closure, monitor transformation and budget witness, and the probability
+endpoint is `bounded-carry`/`uc-audit-bounded` off `sim-prefixed` and
+`extract-obs`. `watched`, `TrivialGrade`, `AuditIsBounded`/`BoundedIsAudit`,
+`Context.extract`, `uc-audit-carry` and `ChimericLedger.Audit.auditEvent` are
+retired, against those replacements and their §5 gates
+(`docs/consumer-migration.md`, `docs/direct-extraction.md`,
+`docs/retirement.md`). The review correction below still holds of the route it
+is about, and the reason the two carries do not compose is recorded, typed, in
+`docs/consumer-migration.md` §2 and `docs/end-to-end.md` §4.
+
 Proved, hypothesis-free: the whole `Dp.Advantage` layer; `UC.Approximate`'s
 `∼ᵃ-isEquivalence` and the `Induced` construction; `UC.Core.Standard.gradingᵗ`;
 `UC.Environment` in full (`ℰᵗᵛ` a presheaf, `_≈ℰ_` an equivalence and a
@@ -971,6 +1007,18 @@ is replaced by the test's hole-rate alone and the closure drops out of the
 statement.
 
 ### The vanishing layer, ported
+
+**Status 2026-09-12.** The table's last row prices an ε-retaining composition as
+a core-interface redesign — `_≈ℰⁿ_` wired in as an `Observation`'s `_∼_`. That
+pricing is wrong about what the composition needs. `UC.Asymptotic.Compose`
+proves it as ENRICHMENT lemmas over the existing action: `≈ctx-ext` moves a
+continuation into the test at its own certificate, `≈ctx-pre` a process into the
+closure (the asymmetric one, whose substitution is a bound and hence takes
+`Allowance-mono`), and `UC-composeᵉ` assembles them with their allowance
+substitutions and the errors added after them. Nothing in the core changed and
+`Abstract2.UC-compose` is untouched (`docs/quantitative-family.md` §6). The
+redesign itself remains unattempted and unneeded —
+`docs/graded-observation-redesign.md` still prices it.
 
 `Data.Nat.Properties.Ext` (153, new), `Data.Nat.Poly`'s `poly-≤2^`,
 `Data.Rational.Properties.Ext`'s `_/_` arithmetic and halving facts,
@@ -1188,7 +1236,7 @@ positive slack) and the intended instance discharges it by one `proj₁`
 what keeps it inhabited at `Dₚ`, while an audit-form statement bounds a single
 observation.
 
-## M4: the UC setup at the machine model (7 files, 440 LOC)
+## M4: the UC setup at the machine model (7 files, 440 LOC at `6256a140`)
 
 The maintainer's ruled direction, executed: **no parallel UC definition in this
 cone.** The abstract theory is `CategoricalCrypto.UCSetup` + `Abstract2`,
@@ -1252,8 +1300,9 @@ measurement.
 | the test presheaf, its laws, and `StdUC` on it | not attempted | 8.7 s + 9.2 s |
 | the operational reading `≈ᵁ⇔≈ᴬ` | not attempted | 9.2 s |
 
-The startup-plus-interface-loading floor is ~7 s here, so **every module of M4
-is at the floor**: nothing in the model costs measurable elaboration.
+The startup-plus-interface-loading floor was ~7 s at `6256a140`, so **every
+module of M4 was at the floor**: nothing in the model costs measurable
+elaboration.
 
 The spike flagged the setoid quotient as extrapolated rather than measured,
 since its own `ℰ` was the representable `Hom[-, Ω]`. Measured: it is free.
@@ -1399,6 +1448,13 @@ Two smaller findings worth carrying forward:
 
 ### What remains (2026-09-11 review)
 
+**Status 2026-09-12.** The verdicts below are that review's; the section at the
+foot of this file has the current ones. In particular the last three rows are
+closed — the graded carry is stated with no event class in it
+(`uc-audit-carryᵈ`), the family premise is `UC.Asymptotic.Family._≤UC^ωⁿ_` and
+is consumed by `ledger-uc-to-pov-family`, and the end-to-end theorem is
+`ChimericLedger.EndToEnd` (`docs/end-to-end.md`).
+
 | item | where | status |
 |---|---|---|
 | `ifaceᵒ unitᴵ ≅ 𝔾ᵒ`'s monoidal unit | `UC.Model.Observation` header | not proved; a G-composite is a trace, so `isoˡ` is not the one-line argument the bijection of empty types suggests. Nothing depends on it — `ℰᵒ` is a presheaf for either family of closures |
@@ -1418,3 +1474,170 @@ last sentence of the paragraph above no longer holds — `UC.Model.Bridge` names
 `UC.Core` and `UC.Emulation` deliberately, to identify the two theories, and
 `UC.Seam.Grounding`/`UC.Seam.Audit` have moved off the hand-rolled core onto
 this cone.
+
+## Where things stand at `587999b5`
+
+Written 2026-09-12. The consolidation plan
+[`docs/uc-presheaf-preservation-plan.md`](uc-presheaf-preservation-plan.md) ran
+to completion over the branches below; each one's record is the doc it cites and
+its judgment calls are a `## Resolved (…)` section of `QUALITY-REVIEW.md`.
+
+### The plan's seven steps, as landed
+
+| step | what carries it | record |
+|---|---|---|
+| 1 generic action | `Abstract2.Action` (`run`, `run-sub`, `regradeEnv`, the two run-agreement laws) and `Abstract2.≤UC⇒dummy` | [presheaf-action](presheaf-action.md) |
+| 2 generic preservation | `UC.Robust` at an arbitrary `UCSetup`, `UC.Robust.Selected`'s `Factors` class, `UC.Robust.Model`; the `UCBase` theorem kept independently scoped as `UC.Robust.Observation` | [presheaf-action](presheaf-action.md) |
+| 3 quantitative consolidation | `UC.Asymptotic.Contextual`: `_≈ctx[_]_` and `_≈ctxᴬ[_]_` on families of graded morphisms, with `UC.Asymptotic.Family._≈ᶠ[_]_` a definitional alias | [quantitative-family](quantitative-family.md) |
+| 4 quantitative action/composition | `UC.Asymptotic.Compose`: `≤UC^ωᵉ-trans`, `≈ctx-ext`, `≈ctx-pre`, `UC-composeᵉ`, each with its allowance substitution proved | [quantitative-family](quantitative-family.md) |
+| 5 direct model extraction | `extract-obs`/`extract-bounded`, `sim-prefixed`/`bounded-carry`, and `UC.Seam.Slide` | [direct-extraction](direct-extraction.md) |
+| 6 consumer migration | `carry-obs`, `uc-audit-carryᵈ`, `pov-target`, `ledger-audit-carryᵈ`; and the hash premise lifted with its error (`hash-liftᵉ`/`hash-liftⁿ`, `ledger-pov-from-hashⁿ`) | [consumer-migration](consumer-migration.md), [ledger-lift-eps](ledger-lift-eps.md) |
+| 7 retirement | six candidates against §5 gates, −426 lines in `src/` | [retirement](retirement.md) |
+
+The nontrivial-grade line ran beside it and is not part of the ledger chain:
+`Examples.HashForward` (exact, [hash-forward](hash-forward.md)), the graded
+extraction bridge ([graded-bridge](graded-bridge.md)), `Examples.ROCommitment`
+and `.Hiding` (approximate, [fcom-extraction](fcom-extraction.md),
+[fcom-hiding](fcom-hiding.md)), and the `Dₚ`/`Dist-ℚ` transport
+([dp-transport](dp-transport.md)).
+
+### Theorem
+
+The ledger's end-to-end chain and everything under it:
+[`docs/end-to-end.md`](end-to-end.md) is the account, and its §6 the ledger's
+own hypothesis/theorem split. Beyond it: the two closed RO-commitment game
+bounds with their negligibility (`extraction-bound`/`εᶜ-negligible`,
+`hiding-bound`/`εʰ-negligible`), the exact query accounting at both
+(`UC.QueryBound.Exact`, `Certified 2`/`Certified 1`), the graded `Pr` bound
+`hf-pr-bound`, and the transport `Protocol.Machine.Raw.rawKernel` with its
+hypothesis inhabited at a resource that really samples
+(`ROCommitment.Transport.resource-settles`).
+
+The escape-hatch baseline over `src/` is **16 hits** of
+`postulate|TERMINATING|primTrustMe|\{!`, every one the words "postulate-free" in
+an inherited comment (`docs/retirement.md` §10). The `21` of M1's and M2's
+assumption ledgers is the older grep at the older tree.
+
+### Hypothesis
+
+* **`F_com`'s UC-level statement.** `raw-emulation`/`raw-emulationʰ` — the game
+  bounds read as `_≈ᵁ_`-shaped closeness of the sealed model's observations —
+  are not proved, and what stands between is a QUANTIFIER gap rather than a
+  proof gap: `_≈ᵁ_` ranges over every ancilla, every query-bounded machine test
+  and every closure, the game bound over the strategy-embedded contexts at one
+  concrete resource, and `StratIsEnv` goes one way only
+  ([dp-transport](dp-transport.md) §5).
+* **The hiding half's `ε′`.** `defer-hiding`, the deferred-sampling step for
+  that game, is the one hypothesis of `hiding-bound-defer` — a proved theorem,
+  never a postulate. The averaging route's three pieces are `defer-commit`
+  (delivered, an instance of `GamePlaying.Defer.runWith-avg`), an averaged
+  supermartingale `badProb-avg`, and an averaged FLGP
+  ([fcom-hiding](fcom-hiding.md) §"Not delivered" 1).
+* The ledger's own four premises, and the typed residuals
+  (`auditIsBoundedʷ`, `≤UC^ωᵉ⇒≤UC^ωⁿ-blind`, `Settles-∘`, the pruned coupling):
+  [`docs/end-to-end.md`](end-to-end.md) §6, [dp-transport](dp-transport.md)
+  residuals 1–2.
+
+### The parked maintainer calls
+
+Collected from the `## Resolved (…)` sections; none of them is a soundness
+question and none is decided here.
+
+* **Reroute `ledger-uc-to-pov` through the family theorem?** It is
+  `ledger-uc-to-pov-family` at a stronger premise (`uc-≤UC^ωⁿ`), and rerouting
+  it would leave `UC.Asymptotic.uc-agree` — and through it
+  `UC.Seam.Grounded.unitGrade` — without an importer.
+* **Shed `uc-audit-bounded`'s unused premises** (`ASTotal`, the `bad`-budget
+  law). The direct route consumes neither; they are part of two exported
+  statements' interfaces and `ledger-uc-to-pov-simCost` derives the `ASTotal`
+  from `TotalRun` in order to supply one. `bounded-carry` is the honest premise
+  list.
+* **A fifth `Allowance-mono` component of `_≤UC^ωᵉ_`.** It buys the packaged
+  `f ≤UC^ωᵉ g → u ≤UC^ωᵉ v → (u ∙ᶠ f) ≤UC^ωᵉ (v ∙ᶠ g)` and costs
+  `≤UC^ωⁿ⇒≤UC^ωᵉ` a premise `_≤UC^ωⁿ_` does not carry. A proved monotone
+  envelope would remove the choice ([quantitative-family](quantitative-family.md)
+  §10).
+* **Retire `≤UC⇒≤UCᶜ`?** Zero in-repo consumers since `uc-preservesᵒ` stopped
+  taking the detour, and so has `≤UCᶜ⇔≤UC`; both are one direction of the seam's
+  own two-way identification of the two orders.
+* **`agree-to-adv`'s shape.** Once it is `adv-from-runs` at a constant slack its
+  `PrAgree` argument goes unused (bound as `_`). The alternative is a `private`
+  `PrAgree`-parameterized core with `adv-at = core prAgree`, three lines back,
+  after which `agree-to-adv` is no longer literally that instance.
+* **`ifaceᶠ` is defined twice** with identical bodies
+  (`UC/Asymptotic/Family.agda:85`, `UC/Model/Family/Ingest.agda:64`); only the
+  first has an external consumer, and merging them makes a `Model`-layer module
+  import an `Asymptotic`-layer one.
+* **The zero-consumer wrappers whose retirement gate is vacuous rather than
+  met** — `Model.Family.Uniform.uc-compose-agree`, `Model.Family.Ingest`'s four
+  projections, ten names in `Model.Bridge`, `Model.Reading.≈ᵁ⇔≈ᴬ`. None of them
+  BECAME consumerless through the arc, so no gate reading "after callers
+  migrate" is satisfied by it ([retirement](retirement.md) §7).
+* **The Track-A stack** — carried by name from [retirement](retirement.md) §8;
+  nothing in the arc reaches it and this file has no record of what it names.
+* **The `Collapse`/`Wire`/`Dictionary` relocation is EXECUTED**, not parked:
+  `Machines.Pointwise`, `Machines.Pure` and `Machines.Sandwich` are the three
+  modules it split out, with `ret≡`/`map-eq`/`map-fuse` moved to
+  `ProbabilisticLogic.Dp.Reasoning` (`QUALITY-REVIEW.md`,
+  `## Resolved (this batch)`).
+* Smaller ones recorded in the same sections and equally open: `Certified` as a
+  Σ rather than a record, `prefixᵒ`'s `μ ∘ T₁` spelling against the generic
+  `Abstract2.Action.prefix` (+22 s), `procᵘ`'s home (`UC.Model.Enrichment`
+  against `UC.Model.Seal`), `UC.Seam.Audit.Bounded.supply`'s home, and whether
+  `Examples.HashForward.*` deserves a root of its own.
+
+### Figures measured during the arc
+
+Warm single-`Checking`-line runs under
+`pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS` unless the row says
+otherwise, quoted with the LOC the same branch measured. Every other figure in
+this file is the snapshot its section names.
+
+| module | LOC | warm | measured in |
+|---|---|---|---|
+| `Abstract2` | 244 | 4.7 s | [presheaf-action](presheaf-action.md) §4 |
+| `Abstract2.Action` | 105 | 3.5 s | [presheaf-action](presheaf-action.md) §4 |
+| `UC.Environment` | 169 | 2.2 s | [consumer-migration](consumer-migration.md) §6 |
+| `UC.Approximate` | 280 | 4.4 s | [quantitative-family](quantitative-family.md) §8 (`-M20G -H2G`) |
+| `UC.Budget` | 127 | 2.6 s | [quantitative-family](quantitative-family.md) §8 (`-M20G -H2G`) |
+| `UC.Audit` | 195 | 5 s | [retirement](retirement.md) §9 |
+| `UC.Family` | 316 | 4.6 s | [quantitative-family](quantitative-family.md) §8 (`-M20G -H2G`) |
+| `UC.Family.Negligible` | 85 | 5 s | [retirement](retirement.md) §9 |
+| `UC.QueryBound` | 647 | 15.8 s | [consumer-migration](consumer-migration.md) §6 |
+| `UC.QueryBound.Exact` | 168 | 9.3 s | [hash-forward](hash-forward.md) |
+| `UC.Graded` | 72 | 9.4 s | [dp-transport](dp-transport.md) |
+| `UC.Seam.Graded` | 28 | 9.8 s | [hash-forward](hash-forward.md) |
+| `UC.Seam.Grounded` | 280 | 10 s | [direct-extraction](direct-extraction.md) |
+| `UC.Seam.Slide` | 44 | 10 s | [direct-extraction](direct-extraction.md) |
+| `UC.Seam.Audit` | 26 | 9 s | [retirement](retirement.md) §9 |
+| `UC.Seam.Audit.Bounded` | 49 | 9 s | [retirement](retirement.md) §9 |
+| `UC.Seam.Audit.Context` | 226 | 10 s | [retirement](retirement.md) §9 |
+| `UC.Seam.Audit.Prefix` | 136 | 10 s | [retirement](retirement.md) §9 |
+| `UC.Asymptotic` | 146 | 9 s | [retirement](retirement.md) §9 |
+| `UC.Asymptotic.Audit` | 111 | 9 s | [retirement](retirement.md) §9 |
+| `UC.Asymptotic.Family` | 342 | 23.7 s | [ledger-lift-eps](ledger-lift-eps.md) §7 |
+| `UC.Asymptotic.Contextual` | 313 | 10.7 s | [ledger-lift-eps](ledger-lift-eps.md) §7 |
+| `UC.Asymptotic.Compose` | 277 | 11.5 s | [ledger-lift-eps](ledger-lift-eps.md) §7 |
+| `UC.Robust` | 125 | 3.6 s | [presheaf-action](presheaf-action.md) §4 |
+| `UC.Robust.Selected` | 64 | 3.6 s | [presheaf-action](presheaf-action.md) §4 |
+| `UC.Robust.Observation` | 118 | 2.0 s | [consumer-migration](consumer-migration.md) §6 |
+| `UC.Robust.Model` | 116 | 13.9 s | [presheaf-action](presheaf-action.md) §4 |
+| `UC.Model.Family` | 31 | 8.7 s | [quantitative-family](quantitative-family.md) §8 (`-M20G -H2G`) |
+| `UC.Model.Reading` | 77 | 12.6 s | [presheaf-action](presheaf-action.md) §4 |
+| `UC.Model.Bridge` | 193 | 13.0 s | [presheaf-action](presheaf-action.md) §4 |
+| `UC.Model.Enrichment` | 79 | 9.4 s | [dp-transport](dp-transport.md) |
+| `UC.Model.Graded` | 73 | 9.5 s | [dp-transport](dp-transport.md) |
+| `CategoricalCrypto.UC` | 229 | 10 s | [retirement](retirement.md) §9 |
+| `ProbabilisticLogic.Dp.Settle` | 294 | 6.0 s | [dp-transport](dp-transport.md) |
+| `Protocol.Machine.Raw` | 133 | 8.8 s | [dp-transport](dp-transport.md) |
+
+`UC.Machine.Plug` (32 LOC) and `UC.Seam.Adequacy` (126) were not isolated warm
+on the branch that wrote them ([graded-bridge](graded-bridge.md) records why),
+and the M1/M2 machine layer has not been re-measured since `6256a140`.
+
+The whole-library root `src/CategoricalCrypto.agda` checks green at **71 s**
+([dp-transport](dp-transport.md)); a change under `Data/Rational/` re-elaborates
+141 modules in **208 s**, 12 % of the 1800 s rebuild ceiling
+([consumer-migration](consumer-migration.md) §4(e)). The per-module `Cast`/`Laws`
+figures in *The gate, diagnosed and closed* are the retired cone's and are not a
+current cost at all: those nine modules are deleted.
