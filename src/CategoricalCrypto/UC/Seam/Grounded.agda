@@ -44,6 +44,7 @@ open import CategoricalCrypto.UC.Seam.Grounding
 open import CategoricalCrypto.UC.Seam.Grounding.Dead
   using (Massedᵒ; massedᵒ-∘ˡ; massedᵒ-∘ʳ; massedᵒ-obs; massedᵒ-point; massedᵒ-sub; pointᵒ)
 open import CategoricalCrypto.UC.Seam.Grounding.Prefix
+open import CategoricalCrypto.UC.Seam.Slide using (slide⊗)
 
 import CategoricalCrypto.Machines.Collapse as Col
 
@@ -260,9 +261,7 @@ subPrefixed B s v Y t m = prefixedᵒ-resp-≈ 𝟘ᵒ Ωᵒ _ _ _ _ (pointᵒ �
   wire : 𝟘ᵒ ⇒ T₀ 𝟘ᴳ (ifaceᵒ B)
   wire = closedᵒ v
 
-  split : id ⊗₁ (sub s ∘ wire) ≈ id ⊗₁ sub s ∘ id ⊗₁ wire
-  split = ⟺ (T₁-⊗ 𝔾ᵒ Y (sub s ∘ wire)) ○ T-homomorphism
-        ○ (T₁-⊗ 𝔾ᵒ Y (sub s) ⟩∘⟨ T₁-⊗ 𝔾ᵒ Y wire)
+  split = slide⊗ Y (sub s) wire
 
 -- …and an initialization that terminates almost surely is invisible:
 -- `Dp.Mass.astotal-bind` removes it from the observation.
