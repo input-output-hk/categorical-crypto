@@ -30,17 +30,26 @@ open import ProbabilisticLogic.Distribution.Uniform using (indᵇ)
 open import ProbabilisticLogic.Dp using (Dₚ; returnₚ; returnₚ-cum)
 open import ProbabilisticLogic.Dp.Advantage using (Pr≤)
 
-open import CategoricalCrypto.UC.Budget using (Budget)
+open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Protocol.Machine using (runᴹ)
+open import CategoricalCrypto.Strategy using (Strat; asks≤)
+open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget)
+open import CategoricalCrypto.UC.Machine using (Proc)
+open import CategoricalCrypto.UC.Machine.Dictionary using (𝟭ᴵ)
 open import CategoricalCrypto.UC.Model.Bridge using (ucBaseᵒ)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ; qbᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
+open import CategoricalCrypto.UC.QueryBound using () renaming (QB to QBᴹ)
 open import CategoricalCrypto.UC.Seam.Audit
+open import CategoricalCrypto.UC.Seam.Audit.Context
+  using (auditTestᵍ; closedᵍ; extractᵍ)
 open import CategoricalCrypto.UC.Seam.Graded using (≤UC[]ᵍ)
+open import CategoricalCrypto.UC.Seam.Grounded using (closedᵒ; 𝟘ᴳ)
 
 module CategoricalCrypto.Examples.HashForward.Audit (Msg Dig : Set) where
 
 open import CategoricalCrypto.Examples.HashForward Msg Dig
-  using (Advᴵ; Honᴵ; real-factors)
+  using (Advᴵ; Honᴵ; Resᴵ; real; real-factors)
 open import CategoricalCrypto.Examples.HashForward.UC Msg Dig
   using (idealᵒ; realᵒ; simQB; simᵒ)
 open import CategoricalCrypto.UC.Emulation ucBaseᵒ
@@ -98,3 +107,31 @@ hf-audit-silent : (δ η : ℚ) → 0ℚ ℚ.< δ → 0ℚ ℚ.< η
                     (λ _ → (0ℚ ℚ.+ δ) ℚ.+ η)
 hf-audit-silent δ η δ>0 η>0 =
   hf-audit-carry silent (λ _ → 0ℚ) δ η δ>0 η>0 silent-bound
+
+------------------------------------------------------------------------
+-- The probability
+
+-- Review §3's last acceptance criterion, at this toy: a `Pr` bound on the REAL
+-- system's closed run, at a grade that is not `unit`, with the adversary `a` a
+-- machine at `Advᴵ` and a resource below.  Nothing identifies the simulator
+-- with a silent scalar — it is run in the ideal experiment, `absorb simᵒ 2` is
+-- what puts it there, and `simCost` is what its interaction costs the
+-- context's budget.  The `Pr` is `Dₚ`'s: `real` is a raw machine, so layer 1's
+-- `Bounded` is not available to it (`docs/hash-forward.md` item 5).
+--
+-- `Examples.HashForward.Resource` inhabits the resource quantifier, oracle and
+-- all; the event hypothesis is the one `AuditBound` itself carries, and a
+-- designation that discharges it is `docs/hash-forward.md` item 2.
+hf-pr-bound : (μ : ℕ → Dₚ Bool) (ε : ℕ → ℚ) (δ η : ℚ) → 0ℚ ℚ.< δ → 0ℚ ℚ.< η
+            → ((q n : ℕ) → Pr≤ n (μ q) ℚ.≤ ε q)
+            → (e : Strat (Neg Honᴵ) (Pos Honᴵ)) (a : Proc Advᴵ 𝟭ᴵ) (w : Proc unitᴵ Resᴵ)
+              {q c c′ : ℕ} → asks≤ q e → QBᴹ c a → QBᴹ c′ w
+            → absorb simᵒ 2 (pinned idealᵒ μ) 𝟘ᴳ (auditTestᵍ Honᴵ e a) (closedᵒ w)
+                (ctxBudget (q * ((c ⊔ 1) ⊔ 1)) c′)
+            → (n : ℕ)
+            → Pr≤ n (runᴹ (closedᵍ Honᴵ e a real w) e)
+              ℚ.≤ (ε (simCost (ctxBudget (q * ((c ⊔ 1) ⊔ 1)) c′) 2) ℚ.+ δ) ℚ.+ η
+hf-pr-bound μ ε δ η δ>0 η>0 bnd e a w ae ca cw mem =
+  extractᵍ Honᴵ e a real w
+    {ε = λ q → (ε (simCost q 2) ℚ.+ δ) ℚ.+ η} {𝔈 = absorb simᵒ 2 (pinned idealᵒ μ)}
+    ae ca cw mem (hf-audit-carry μ ε δ η δ>0 η>0 bnd)
