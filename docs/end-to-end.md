@@ -1,15 +1,100 @@
 # The end-to-end asymptotic UC-to-POV theorem
 
-Status of the completion goal of
-[the implementation review](protocol-implementation-review.md), started on branch
-`end-to-end` off `protocol-rewrite` and continued on `family-premise` (the
-follow-up review's §1). Everything below is a checked term unless marked
-otherwise; hatches stay at zero in `src/`.
+The completion goal of [the implementation review](protocol-implementation-review.md),
+as the tree stands at `587999b5`. Everything below is a checked term unless it
+is marked otherwise; the escape-hatch grep over `src/` stands at its baseline of
+16 hits, every one the words "postulate-free" in an inherited comment
+(`docs/retirement.md` §10).
 
-## The public theorem
+The chain:
 
-`CategoricalCrypto.Examples.ChimericLedger.EndToEnd`, parameterized by a
-per-level serialization `ser : (n : ℕ) → Ledger.Tx n → List Bool`:
+```
+hash ≤UC^ωⁿ oracle^ω  ──hash-liftⁿ, over ledger-factor──▶  Realᴴ hash ≤UC^ωⁿ Realᴴ oracle^ω
+                      ──ledger-uc-to-pov-family────────▶  SaturatedHitᴺ, i.e. a POV bound
+```
+
+and the composite is `ledger-pov-from-hashⁿ`. The bound being carried across is
+`Birthday.target`, the proved birthday theorem, read through the designated
+monitor by `Trajectory.monitor-bounded` and packaged per level as
+`Schedule.ideal-bounded`. Everything between is UC metatheory; the only
+cryptographic premise left at the end of the chain is the hash's own emulation.
+
+## 1. The premise shapes
+
+Four relations compare a real family with an ideal one. Which one a theorem
+takes decides what it may keep of the error and what it must spend.
+
+| relation | where | what it says |
+|---|---|---|
+| `_≤UC^ω_` | `UC.Asymptotic:90` | POINTWISE and qualitative: at each level, the inherited `_≤UC_` between the trivially graded closed images `closedᵒ (morphism (R n))` and `closedᵒ (morphism (I n))` — a simulator per dummy adversary, never an `Agreeˢ` |
+| `_≤UC^ω[_]_` | `UC.Asymptotic.Audit:63` | the same per level with the simulator carrying a query bound `cs n` (`UC.Seam.Audit._≤UC[_]_`), so a carry can charge for its queries |
+| `_≤UC^ωⁿ_` | `UC.Asymptotic.Family:110` | `Σ[ ε ] NegligibleBound ε × R ≈ᶠ[ ε ] I`: allowance-uniform QUANTITATIVE evidence at the protocol images |
+| `_≤UC^ωᵉ_` | `UC.Asymptotic.Contextual:271` | the witness form at arbitrary graded families: `Σ[ s ∈ Certified Y X ] Σ[ ε ] NegligibleBound ε × f ≈ctx[ ε ] subᶠ s g` |
+
+`_≈ᶠ[_]_` (`Family:102`) is a definitional alias — `R ≈ᶠ[ ε ] I` *is*
+`imgᶠ B R ≈ctxᴬ[ ε ] imgᶠ B I` — so the family premise has no relation of its
+own left. `_≈ctx[_]_` (`Contextual:79`) is the canonical one: at each level, no
+budgeted ancilla context separates the two graded homs by more than `ε` read at
+the allowance the context's two legs CARRY (`ctxBudget c c′`). `_≈ctxᴬ[_]_` is
+the same experiment at the operational bracket `W ⊗ (X ⊗ B)`; the two are
+bridged by `≈ctx⇒≈ctxᴬ`/`≈ctxᴬ⇒≈ctx`, which transport the query certificate as
+well as the observation, so the two carry the SAME `ε` rather than a rescaled
+one.
+
+What `_≈ctx[_]_` does not read is the compared homs' own query bounds — only the
+context's. So a premise stated with it needs no certificate for the systems it
+compares; only the corollaries that enter the family category
+(`≤UC^ωⁿ⇒≈ℰⁿ` and its siblings) ask for one, as `Imageᶠ`.
+
+### How they relate
+
+* `uc-≤UC^ωⁿ` (`Family:318`): `_≤UC^ω_` plus the real side's totality implies
+  `_≤UC^ωⁿ_`, at the schedule `2⁻ⁿ`. So the pointwise theorems below are
+  literally the family theorems at a stronger premise.
+* `≤UC^ωⁿ⇒≤UC^ωᵉ` (`:189`) is unconditional, at `idᶜ`;
+  `≤UC^ωᵉ⇒≤UC^ωⁿ` (`:198`) runs back only under the explicit premise that the
+  witness's simulator acts trivially on the ideal side
+  (`(n : ℕ) → subᶠ s (imgᶠ B I) n ≈ imgᶠ B I n`, in `𝒞`'s own equality). That is
+  available for a trivial simulator and only for it — see §5.
+* A budgeted emulation IS an emulation (`≤UC[]⇒≤UC` then
+  `UC.Model.Bridge.≤UCᶜ⇒≤UC`), so `_≤UC^ω_`'s theorems apply wherever
+  `_≤UC^ω[ cs ]_`'s do and give the SHARPER number: at the trivial grade the
+  simulator costs the ideal side nothing. What the budgeted statement adds is
+  the accounting, not a better bound.
+* The pointwise/family pair is therefore ORDERED and the pointwise/budgeted pair
+  is not.
+
+Two neighbours of these relations sit OFF the chain, and are named so that they
+are not mistaken for parts of it: `UC.Model.Family.Ingest.ingest` takes a
+per-level advantage bound into `UC.Model.Family._≈ℰ[_]_`, consuming
+`UC.Model.Dominated.dominatedᵒ` (`ContextDominated` reproved at seal objects, on
+the proved `ifaceᵒ-onto`), and `UC.Model.Family.Uniform.uc-compose-agree`
+composes two family agreements through `UC.Core.Bridge`. Neither has an in-repo
+caller; `docs/retirement.md` §7 records why they stand.
+
+Two acceptance criteria pin the family premise's strength, both in `Family`:
+`admits-inv-pow-2` (a one-shot `2⁻ⁿ` difference is admitted — exactly the
+schedule the pointwise inclusion produces) and `rejects-inv-suc` (a one-shot
+`1/(n+1)` difference is rejected, against `UC.Approximate.Separating`'s gap
+instrument). `pointwise-exact`/`pointwise-rejects` say what the pointwise
+premise asks instead: closeness at every positive error at a FIXED level.
+
+## 2. The theorems
+
+Seven in `Examples.ChimericLedger.EndToEnd`, parameterized by a per-level
+serialization `ser : (n : ℕ) → Ledger.Tx n → List Bool`:
+
+| theorem | premise | conclusion |
+|---|---|---|
+| `ledger-uc-to-pov` (`:118`) | `SerInj`, `TotalRun` on the real side, `R ≤UC^ω Ideal a V`, `TruthfulAudit` | `SaturatedHitᴺ R badR (λ n q → εᴸ n (q + q))` |
+| `ledger-pov-negligible` (`:144`) | the same, plus `Poly p` | the same bound as one negligible number |
+| `ledger-uc-to-pov-family` (`:182`) | `SerInj`, `R ≤UC^ωⁿ Ideal a V`, `TruthfulAudit` | the SAME bound, with no `TotalRun` |
+| `ledger-pov-family-negligible` (`:204`) | the same, plus `Poly p` | its one-number reading |
+| `ledger-audit-carryᵈ` (`:224`) | `SerInj`, `R ≤UC^ω[ cs ] Ideal a V` | at any test, closure, strategy and allowance: `Pr≤ k (obs …) ≤ εᴸ n q + ν n` |
+| `ledger-uc-to-pov-simCost` (`:244`) | `SerInj`, `TotalRun`, `R ≤UC^ω[ cs ] Ideal a V`, `TruthfulAudit` | `SaturatedHitᴺ R badR (λ n q → εᴸ n (simCost (q + q) (cs n)) + ν n)` |
+| `ledger-pov-simCost-negligible` (`:276`) | the same, plus `Poly cs` and `Poly p` | its one-number reading; the simulator's budget must be polynomial for the number to be negligible |
+
+The public statement reads:
 
 ```agda
 ledger-uc-to-pov :
@@ -20,400 +105,293 @@ ledger-uc-to-pov :
   → SaturatedHitᴺ R badR (λ n q → εᴸ n (q + q))
 ```
 
-and, the same conclusion read as one number,
+Unfolded: for every polynomial allowance `p` there is a negligible `νₚ` such
+that no strategy of query budget `p n` moves the real system's total value away
+from genesis with probability above `((2·p n)² + 2·p n)·2⁻ⁿ + νₚ n`. The
+audit instrumentation's cost is why `p` is evaluated at `p + p`
+(`POV.asks≤-audited`), and it is charged in the conclusion rather than assumed
+away.
 
-```agda
-ledger-pov-negligible :
-    … → (p : ℕ → ℕ) → Poly p
-  → Σ[ f ∈ (ℕ → ℚ) ] Negligible f
-    × ((n : ℕ) (d : Strats n) → asks≤ (p n) d → PrHit (R n) (badR n) d ≤ f n)
-```
+Four corollaries at concrete families:
 
-Unfolded, the first says: for every polynomial allowance `p` there is a
-negligible `νₚ` such that no strategy of query budget `p n` moves the real
-system's total value away from genesis with probability above
-`((2·p n)² + 2·p n)·2⁻ⁿ + νₚ n`. The second bundles the two summands and
-says the whole thing is negligible.
+| corollary | where | premise |
+|---|---|---|
+| `ledger-pov` | `ChimericLedger.Real:89` | `SerInj`, `Real ≤UC^ω Ideal a V` — the real side's three hypotheses discharged once (below) |
+| `ledger-pov-from-hash` | `ChimericLedger.Factor:108` | `SerInj`, `hash ≤UC^ω oracle^ω` — the premise at the HASH, through `hash-lift` |
+| `ledger-pov-from-hashⁿ` | `ChimericLedger.FactorEps:159` | `SerInj`, `hash ≤UC^ωⁿ oracle^ω` — the same, with the hash's error kept across the factoring |
+| `ledger-pov-from-hash′` | `FactorEps:177` | `ledger-pov-from-hash`'s own statement proved the ε-retaining way; `migration-pin` forces the two types to unify |
 
-### …and off the family premise
-
-`R ≤UC^ω Ideal a V` is the POINTWISE, unit-grade specialization of
-asymptotic-family emulation (review §1 step 1), which `UC.Asymptotic`'s own
-header and `UC.Asymptotic.Family` now say in as many words. The family premise
-is `UC.Asymptotic.Family._≤UC^ωⁿ_` and the second theorem consumes it:
-
-```agda
-ledger-uc-to-pov-family :
-    (a V : ℕ) → SerInj → (R : Systems LedgerIf^ω) (badR : Bad R)
-  → R ≤UC^ωⁿ Ideal a V
-  → TruthfulAudit a V R badR
-  → SaturatedHitᴺ R badR (λ n q → εᴸ n (q + q))
-```
-
-with `ledger-pov-family-negligible` its one-number reading. Three readings of
-the statement:
-
-* the **bound is unchanged** — `≈negl-respects` folds the premise's `ε` into the
-  saturated slack rather than into `ε`, and the slack is quantified after the
-  allowance, so the birthday term stays the audit-adjusted `εᴸ n (q + q)`;
-* **`TotalRun` is gone** — the pointwise theorem spends it to collapse a
-  per-level emulation into an agreement (a divergent real side is emulated by a
-  simulator that never starts), and the family premise is already quantitative;
-* **no exact agreement is passed through** — `uc-agree`/`Agreeˢ` appear nowhere
-  in the proof, which is review §1's acceptance condition. The `ε` travels
-  contextual → direct run (`Family.≈ᶠ-runs`, over `UC.Seam.Audit.Context`) →
-  `UC.Saturated._≈negl_` → `SaturatedBoundedᴺ`.
-
-The two are ORDERED, unlike the pointwise/budgeted pair below:
-`Family.uc-≤UC^ωⁿ` proves `_≤UC^ω_` plus the real side's totality implies
-`_≤UC^ωⁿ_` (at the schedule `2⁻ⁿ`), so `ledger-uc-to-pov` is literally
-`ledger-uc-to-pov-family` at a stronger premise.
-
-### Hypotheses, and why each is allowed
+## 3. Hypotheses, and why each is allowed
 
 | hypothesis | status |
 |---|---|
 | `SerInj` | the birthday theorem's own injective-serialization assumption, per level (`Tx` depends on the hash width, so one `ser` cannot be typed) |
-| `R ≤UC^ω Ideal a V` | the UC-emulation premise: the INHERITED `_≤UC_` at each level, a simulator per dummy adversary. Never `Agreeˢ`. Pointwise/unit-grade, hence STRONGER than asymptotic-family emulation — see the family theorem below |
-| `TotalRun … (morphism (R n))` | the real side's admissibility. Not decoration — with the real side divergent, a simulator that never starts emulates every ideal. Discharged for any dead-free protocol by `Protocol.Live` + `totalRun-morphism`; the IDEAL side's copy is proved (`ChimericLedger.Total`) |
-| `TruthfulAudit a V R badR` | the real implementation's audit-to-trajectory connection, which the review's schematic lists as a hypothesis. UC identifies no internal state trajectory. For a ledger image it is `Trajectory.monitor-complete` (`Schedule.ideal-truthful`, `Real.real-truthful`) |
+| the emulation | the cryptographic premise, in whichever of §1's shapes the theorem takes. Never `Agreeˢ` |
+| `TotalRun … (morphism (R n))` | the real side's admissibility. Not decoration — with the real side divergent, a simulator that never starts emulates every ideal. Discharged for any dead-free protocol by `Protocol.Live` + `totalRun-morphism`; the ideal side's copy is proved (`ChimericLedger.Total`). Absent from the family theorems, which have nothing to collapse |
+| `TruthfulAudit a V R badR` | the real implementation's audit-to-trajectory connection. UC identifies no internal state trajectory, so this is irreducibly about the implementation; for a ledger image it is `Trajectory.monitor-complete` (`Schedule.ideal-truthful`, `Real.real-truthful`) |
 
-No other hypothesis appears, and none of the four stands in for work items 1–5.
-
-### The corollary at a real ledger
-
-`CategoricalCrypto.Examples.ChimericLedger.Real`, same parameter, at the real
-family `Real n = ledger vr (genesis n) ∘ᵖ hash n` for a hash implementation
-`hash n : Protocol unitᴵ HashIf` with `NoDeadStep (hash n)`:
-
-```agda
-ledger-pov : SerInj → Real ≤UC^ω Ideal a V → (p : ℕ → ℕ) → Poly p
-           → Σ[ f ∈ (ℕ → ℚ) ] Negligible f
-             × ((n : ℕ) (d : Strats n) → asks≤ (p n) d → PrHit (Real n) (badReal n) d ≤ f n)
-```
-
-Two substantive premises — the injective serialization and the emulation — and
-one probability, which is `ledger-pov-negligible`'s. The three hypotheses the
-generic theorem carries about `R` are discharged once and for all at this
-family:
+At `ChimericLedger.Real` — `Real n = ledger vr (genesis n) ∘ᵖ hash n` for a hash
+implementation with `NoDeadStep (hash n)` — the three hypotheses about `R` are
+discharged once and for all, generically in the hash:
 
 | hypothesis | discharged by |
 |---|---|
 | `Bad Real` | `badReal n = badTotal (genesis n)`: the POV event itself, which reads the ledger's state and not the hash's |
-| `TotalRun … (morphism (Real n))` | `Total.totalRun-Sys`, generic in the hash: the ledger writes no `dead` and `_∘ᵖ_` creates none, so the real side owes only `NoDeadStep (hash n)` |
-| `TruthfulAudit a V Real badReal` | `Trajectory.monitor-complete`, generic in the hash: an audit query is answered out of the LEDGER's state whatever it hashes with, so the ideal side's argument is the real side's verbatim |
+| `TotalRun … (morphism (Real n))` | `Total.totalRun-Sys`: the ledger writes no `dead` and `_∘ᵖ_` creates none, so the real side owes only `NoDeadStep (hash n)` |
+| `TruthfulAudit a V Real badReal` | `Trajectory.monitor-complete`: an audit query is answered out of the LEDGER's state whatever it hashes with, so the ideal side's argument is the real side's verbatim |
 
-Nothing else about the hash enters, which is the point: the corollary is the
-slides' claim, with the emulation the only cryptographic premise left. And the
-hash-level premise is delivered too: `Examples.ChimericLedger.Factor` factors
-the closed system on the nose (`ledger-factor`, via the new `Seal.procᵒ-∘` and
-the retraction-conjugated `sub` congruence `Abstract2.Factor.≤UC-sub`), lifts
-`hash ≤UC^ω oracle^ω` to the system level (`hash-lift` — the ledger enters
-only as `≤UC-refl`), and `ledger-pov-from-hash` is this corollary at that
-premise: the slides' `H ≤UC RO ⟹ Ledger∘H ≤UC Ledger∘RO` step, literally.
-See `docs/ledger-factoring.md`.
+Nothing else about the hash enters, which is the point.
 
-## Acceptance requirements
+## 4. The two routes
 
-1. **Family instantiation + negligibility — DONE.**
-   `ChimericLedger.Schedule` takes hash width `ℓ n = n`, genesis hash
-   `replicate n false`, and per-level `ser n`. `εᴸ n q = (q²+q)·2⁻ⁿ` and
-   `εᴸ-negligible : NegligibleBound εᴸ` is proved from
-   `UC.Approximate.Decay.negligibleBound-inv-pow-2`, which is generic in the
-   numerator polynomial and in the schedule (`n ≤ sch n` is all it spends).
-   The ideal side is `Birthday.target` read through
-   `Trajectory.monitor-bounded`. **Design choice:** serialization is scheduled
-   (`ser : (n : ℕ) → Tx n → List Bool`, `SerInj` its levelwise injectivity)
-   rather than per-level-ad-hoc; it is forced, since `Tx` depends on `ℓ`.
+Both start from the ideal side's `Bounded (Ideal n) (monitorᴸ n) (εᴸ n)` —
+layer 1's own bound, `Schedule.ideal-bounded`, which is
+`ChimericLedger.Audit.pov-target` levelwise and has no UC vocabulary in it.
 
-2. **Family UC setup + consuming adequacy — DONE.**
-   `UC.Model.Family.ucSetup^ω` is a closed term: `UC.Family.Monoidal`
-   instantiated at the sealed bundle, with `approximateᵒ` supplied (the
-   approximation `observationᵒ`'s equivalence was induced from, so `induces` is
-   the identity). The emulation premise is CONSUMED, not assumed: `uc-agree`
-   spends `UC.Seam.Grounded.unitGrade`, which in turn spends `adequacy`,
-   `prAgree` and `stratIsEnv` — the proved lift, never an assumed one.
-   **The ingestion is now delivered** (`UC.Model.Family.Ingest`): a per-level
-   advantage bound `_≈advᴹ[_]_` plus `QB` witnesses ingests to
-   `_≈ℰ[ ε + δ ]_`, then `_≈ℰ_`/`_≈ℰⁿ_`/`_≤UC_` (core and inherited), consuming
-   `UC.Model.Dominated.dominatedᵒ` — `ContextDominated` reproved at seal
-   objects, on the proved `ifaceᵒ-onto` (continuation item 1). **And the family
-   premise is now named and consumed**: `UC.Asymptotic.Family._≤UC^ωⁿ_`, with
-   review §1's two acceptance criteria as theorems, the ε-adding composition
-   law, the identification with the `_≈ℰⁿ_` tier, the inclusion of the
-   pointwise premise, and `ledger-uc-to-pov-family` above. Review §1's
-   labelling step is `UC.Asymptotic`'s header and the comment on `_≤UC^ω_`.
+### The probability route
 
-3. **Robustness of the designated event — DONE, with no event class on either
-   route.** `UC.Asymptotic.Audit.uc-audit-carryᵈ` carries the ideal monitor
-   bound (supplied by `Schedule.ideal-bounded`, i.e. by the proved birthday
-   theorem read through the monitor — the same bound
-   `ChimericLedger.Audit.pov-target` states pointwise, with no UC vocabulary in
-   it) across a budgeted emulation, stated directly at the existing test,
-   closure, monitor transformation and budget witness, with layer 1's `Bounded`
-   as its ideal supply. Nothing is assumed about the real side. Its generic half
-   is `UC.Audit.carry-obs`. At the ledger this is
-   `ChimericLedger.EndToEnd.ledger-audit-carryᵈ`.
+It ends at `SaturatedHitᴺ`, i.e. at `PrHit` of the real system. Three entrances,
+one tail.
 
-   `uc-audit-boundedᵖ` — and through it `ledger-uc-to-pov-simCost` and
-   `ledger-pov-simCost-negligible` — goes through
-   `UC.Seam.Audit.Prefix.uc-audit-bounded`, whose route is `sim-prefixed` and
-   `bounded-carry` off `UC.Seam.Audit.Context.extract-bounded`.
+* **The trivial-grade collapse.** `uc-agree` spends
+  `UC.Seam.Grounded.unitGrade`: at a grade both ends are blind to, an emulation
+  IS the direct agreement — the simulator collapses by `sub s ∘ g ≈ᵁ g`
+  (`subBlind`, off the real process's own totality through `emSimTotal`) and the
+  inflating wire by the ancilla quantifier. `uc-≈negl` reads the agreement as
+  `UC.Saturated._≈negl_` at a positive negligible slack (`agreeToAdv`).
+* **The family premise.** `≤UC^ωⁿ⇒≈negl` reaches the same `_≈negl_` with no
+  exact agreement anywhere: `≈ᶠ-runs` evaluates the premise at
+  `UC.Seam.Audit.Context`'s strategy-embedded context — its budget certificate
+  `audit-qb`, its observation identified with layer 1's run by `audit-run` — and
+  `adv-from-runs` (`UC.Seam.Carry`) turns the per-run bound into the graded
+  relation at a FIXED slack.
+* **The budgeted premise.** `uc-audit-boundedᵖ` produces layer 1's `Bounded` on
+  the real side directly, through `UC.Seam.Audit.Prefix.uc-audit-bounded`. That
+  route is `bounded-carry` = `Mass.dominate` + `sim-prefixed` +
+  `UC.Seam.Audit.Bounded.supply` + `UC.Seam.Audit.Context.extract-obs`: the
+  simulator's initialization is tolerated as a PREFIX, never seen to add mass
+  (`sim-prefixed`, a one-sided `≼ₚ[ 0ℚ ]` off `prefix-absorbᵒ`), and its queries
+  are charged at `simCost`. `bounded-carry` is the statement of which
+  `uc-audit-bounded` is the `simCost` instance: the allowance inflation is a
+  parameter, any `p` with `q ≤ p q`.
 
-   Plan §6 step 7 then retired the class layer these two replaced:
-   `uc-audit-carry` and its `AuditBound` bridge `uc-audit-carryᵈ-bound`,
-   `ledger-audit-carry`, `ChimericLedger.Audit.auditEvent` with its three
-   wrappers, `watched`/`watchedᵖ` and the whole `UC.Seam.Audit.TrivialGrade`
-   membership machinery (`docs/retirement.md`). The one thing that never became
-   available is the extraction from the exact `watched` to a probability; that
-   is the obstruction recorded below, and it is why the probability endpoint
-   goes through the prefix.
+The tail is `saturatedHitᴺ-from-monitor` in all three: it turns a monitor bound
+into a trajectory bound through `TruthfulAudit`, with the instrumentation and
+its allowance cost as explicit parameters. What differs is how the real-side
+`SaturatedBoundedᴺ` it consumes is reached. The first two entrances read the
+IDEAL bound as its own saturated form at zero slack (`boundedᴺ`) and transport
+it across the graded relation (`uc-preservesᴺ`, i.e. `≈negl-respects` and so
+`saturated-respects[ Negligible ]` — allowance first, slack second, the repaired
+quantifier order); the third already holds a real-side `Bounded` and reads it
+with `boundedᴺ` directly.
 
-4. **Costs explicit — DONE, split across the two routes.**
-   The audit instrumentation's cost is charged in the main theorem: `audited d`
-   asks twice what `d` asks (`POV.asks≤-audited`), so the allowance `p` is
-   evaluated at `p + p` and that appears in the conclusion's bound. The
-   simulator's cost is charged in the graded route: `ledger-audit-carryᵈ`'s
-   bound is `εᴸ n q + ν n` at the allowance the strategy carries, and
-   `ledger-uc-to-pov-simCost`'s is `εᴸ n (simCost (q + q) (cs n)) + ν n`. The negligible-slack closure runs
-   with the repaired quantifier order throughout —
-   `saturated-respects[ Negligible ]` via `≈negl-respects`, allowance first,
-   slack second.
+No event class occurs on any of the three. On the budgeted entrance the
+numerical half is `extract-obs`/`extract-bounded` and the rational arithmetic is
+`UC.Seam.Audit.Bounded.supply`; [`docs/retirement.md`](retirement.md) records
+the membership layer the plan's §5 gates retired against them, name by name.
 
-5. **Real trajectory recovered — DONE.**
-   `UC.Asymptotic.saturatedHitᴺ-from-monitor` turns a monitor bound into a
-   trajectory bound through the implementation's truthful-audit connection,
-   with the instrumentation and its allowance cost as explicit parameters.
+### The graded route
 
-6. **One public theorem — DONE.** `ChimericLedger.EndToEnd`;
-   `UC.Asymptotic` and `UC.Asymptotic.Audit` are re-exported from `UC`.
+`uc-audit-carryᵈ` states the crossing at the existing test, closure, monitor
+transformation and budget witness, and stops at a `Pr≤` bound on the context's
+own observation. Its generic half is `UC.Audit.carry-obs` — the emulation
+evaluated at one context, the simulator slid onto the test by
+`UC.Environment.tv₁-∘`, the `Mass` domination at the slack — hoisted out of
+`audit-carry`, whose statement is unchanged. At the ledger this is
+`ledger-audit-carryᵈ`, off `Schedule.ideal-bounded`.
 
-## The family premise
+Neither the simulator's query certificate `sim-qb` nor `ctxBudget` is consumed:
+both exist to move an allowance across a quantifier over budgeted TESTS, and the
+allowance moves here in the strategy `d`, which is `Bounded`'s own quantifier.
 
-`UC.Asymptotic.Family`, on review §1's OPTION A: the public contract keeps
-allowance-uniform saturation (`SaturatedHitᴺ`), so the premise has to carry
-allowance-uniform quantitative evidence rather than per-context negligible
-agreement.
+### Why they do not compose
 
-```agda
-R ≤UC^ωⁿ I = Σ[ ε ∈ (ℕ → ℕ → ℚ) ] NegligibleBound ε × R ≈ᶠ[ ε ] I
-```
+The graded carry ends at a bound whose hypothesis is that the
+simulator-fronted context observes an ideal monitored run EXACTLY (`≈ₚ`).
+Turning that back into a real-side `Bounded` needs the extraction context — with
+the simulator in front of it, plugged into the IDEAL machine — to satisfy that
+hypothesis, and it does not: the simulator's own initialization makes the
+observation ε-close and no more, which is all `UC.Seam.Grounded.subBlind` and an
+almost-sure totality can give. The typed residual is
+`docs/consumer-migration.md` §2's `auditIsBoundedʷ`, and it is FALSE as stated,
+not merely unproved.
 
-where `R ≈ᶠ[ ε ] I` says: at each level, no budgeted ancilla context separates
-the two `ι`-inflated sealed images by more than `ε` read at the budget the
-context's two legs CARRY. That is `UC.Model.Family._≈ℰ[_]_` at those images
-with the Σ-packaging of a `Fam`-hom peeled off — the relation reads the
-CONTEXT's carried budgets and never the compared homs' own, so the premise
-needs no query bound for the systems it compares; only the corollaries that
-enter the family category ask for one. Peeling it off also makes the premise
-the *explicitly stronger uniform quantitative refinement* review §1 permits (a
-per-level context need not come from a polynomially budgeted FAMILY of
-contexts), and that is the direction the ledger consumer needs.
+So the probability endpoint goes through the prefix rather than through the
+graded carry's conclusion, and one consequence is worth not glossing: at the
+trivial grade the simulator costs the ideal side nothing, so
+`ledger-uc-to-pov`'s bound is the birthday bound at the audit-adjusted
+allowance, not a `simCost`-adjusted one. The `simCost`-adjusted statement is
+`ledger-uc-to-pov-simCost`'s. None of this accounts for an *interactive*
+simulator: the budgeted simulator at these types is a scalar (review §3).
 
-What is proved about it:
+## 5. The premise at the hash
 
-| statement | content |
-|---|---|
-| `admits-inv-pow-2` | §1 criterion 1: a one-shot `2⁻ⁿ` difference is admitted — and it is exactly the schedule the pointwise inclusion produces |
-| `rejects-inv-suc` | §1 criterion 2: a one-shot `1/(n+1)` difference is rejected, against `UC.Approximate.Separating`'s gap instrument (`¬negligible-inv-suc`) and `Decay.Negligible-≤` |
-| `≤UC^ωⁿ-trans` | the composition law: two family emulations compose and the εs ADD, the sum staying negligible by `Negligible-+` |
-| `≤UC^ωⁿ⇒≈ℰⁿ` / `⇒≈ℰᶠ` / `⇒≤UCᶠ` / `⇒≤UCᵁ` | the premise IS the `_≈ℰⁿ_` tier of the family model, and its qualitative shadows land in the core and the INHERITED order, which is where `UC-compose` is |
-| `uc-≈ᶠ[_]`, `uc-≤UC^ωⁿ` | pointwise ⇒ family, at any positive schedule and at `2⁻ⁿ` |
-| `pointwise-exact`, `pointwise-rejects` | what the pointwise premise says instead: closeness at every positive error at a FIXED level, hence rejection of a pair separated by `2⁻ⁿ` |
-| `≈ᶠ-runs`, `≤UC^ωⁿ⇒≈negl` | the premise read at the embedded-strategy contexts, then as layer 1's negligibly graded relation |
-
-Both halves of the seam are reused, not reinvented: `UC.Model.Family.Ingest`
-ingests a per-level advantage bound INTO the family relation, and
-`UC.Seam.Audit.Context` reads one back OUT — the strategy context with its
-budget certificate (`audit-qb`) and the identification of its observation with
-layer 1's run (`audit-run`). The only new arithmetic is
-`UC.Seam.Carry.adv-at`/`adv-from-runs`, which is `UC.Seam.Carry.agreeToAdv`'s
-proof at a FIXED slack instead of at every positive one (they landed in a
-`UC.Seam.Carry.Graded` of their own and were since merged back in, `agree-to-adv`
-becoming `adv-from-runs` at a constant slack).
-
-**What is not delivered: an ε-retaining `UC-compose`.** `≤UC^ωⁿ-trans` composes
-two family emulations with the εs adding, but composing a family emulation with
-a second protocol is `UC-compose`, the INHERITED metatheorem
-(`Abstract2.UC-compose`, transported by `UC.Core.Bridge` and applied at the
-family by `UC.Model.Family.Uniform.uc-compose-agree`), and it is stated in the
-QUALITATIVE order — so that route goes through `≤UC^ωⁿ⇒≤UCᵁ` and SPENDS the
-error witness. Retaining it needs a graded `_≤UC[ ε ]_` with graded `≈ℰ`
-congruences and a graded `sub`/`T₁` interchange, i.e. `Abstract2.UC-compose`
-re-proved over an ε-indexed relation: the observation-interface redesign
-`UC.Family`'s closing comment and `docs/graded-observation-redesign.md` price.
-The ledger consumer does not need it — the ideal bound is supplied at the
-ledger, not composed from a hash-level one — so it is recorded rather than
-attempted.
-
-### The hash-level ε-premise
-
-The paragraph above is superseded on the composition side: the ε-retaining `UC-compose`
-it records as not delivered is `UC.Asymptotic.Compose.UC-composeᵉ`
-(`docs/quantitative-family.md`), and `Examples.ChimericLedger.FactorEps` is its first
-consumer. So the family premise can now be assumed AT THE HASH and carried to the ledger
-with its error intact, which is what plan §4.5 asks for:
+`Examples.ChimericLedger.Factor` factors the closed system on the nose —
+`ledger-factor`, via `Seal.procᵒ-∘` and the retraction-conjugated `sub`
+congruence `Abstract2.Factor.≤UC-sub` — so a premise about the hash lifts to the
+system. Two lifts, both in `FactorEps`, inside
+`module _ (vr : Variant) (s : (n : ℕ) → Ledger.LState n)`:
 
 ```agda
 hash-liftⁿ : (hash : Systems HashIf^ω) → hash ≤UC^ωⁿ oracle^ω
            → Realᴴ hash vr s ≤UC^ωⁿ Realᴴ oracle^ω vr s
 
-ledger-pov-from-hashⁿ : SerInj → hash ≤UC^ωⁿ oracle^ω → (p : ℕ → ℕ) → Poly p → …
+hash-liftᵉ : (hash : Systems HashIf^ω)
+           → imgᶠ HashIf^ω hash ≤UC^ωᵉ imgᶠ HashIf^ω oracle^ω
+           → imgᶠ LedgerIf^ω (Realᴴ hash vr s) ≤UC^ωᵉ imgᶠ LedgerIf^ω (Realᴴ oracle^ω vr s)
 ```
 
-`ledger-pov-from-hashⁿ` is `ledger-pov-family-negligible` behind `hash-liftⁿ`: the same
-bound, the same `TruthfulAudit`, and neither `TotalRun` nor `NoDeadStep`. The lift's ε is
-the premise's own read at `(q * 1) * 1` — one activation for the ledger, one for the unit
-regrading the Kleisli composition introduces — with both substitutions EXACT and
-negligibility proved after them. `hash-liftᵉ` is the same lift at the canonical witness
-`_≤UC^ωᵉ_`; the certificates `UC-composeᵉ` demands are proved here rather than assumed
-(`UC.QueryBound.qb-closed` for the hash, `ChimericLedger.QueryBound.qb-ledger` for the
-ledger), and its `Allowance-mono` premise is discharged because the two sides share their
-upper stage and so are compared at the zero schedule. `docs/ledger-lift-eps.md` has the
-substitutions, the residual, and the costs.
+`hash-liftᵉ` runs through `UC.Asymptotic.Compose.UC-composeᵉ` at the shared
+upper stage; `hash-liftⁿ` needs no simulator at all — `≈ctx-ext` absorbs the
+ledger into the test at its own budget and `≈ctx-sub` the unit regrading the
+Kleisli composition introduces — and having none is what lets the chain END,
+since a general witness cannot be forgotten back into `_≤UC^ωⁿ_` (§1). The lift's
+ε is the premise's own schedule read at `(q * 1) * 1`, one activation for the
+ledger and one for the unit regrading, with both substitutions EXACT
+(`ctxBudget-simCost`, `ctxBudget-absorb`) and negligibility proved after them.
 
-## The obstruction: why the graded route stops short of a probability
+Every certificate `UC-composeᵉ` demands is proved rather than carried:
+`UC.QueryBound.qb-closed` for the hash (a closed process is 0-bounded),
+`ChimericLedger.QueryBound.qb-ledger` for the ledger (an instance of
+`UC.QueryBound.qb-oneCall`), and its `Allowance-mono` premise is discharged
+because the two sides share their upper stage and are compared at the zero
+schedule. `docs/ledger-lift-eps.md` has the substitutions and the residual.
 
-The graded carry ends at a bound whose hypothesis is that the simulator-fronted
-context observes an ideal monitored run EXACTLY (`≈ₚ`). Turning that back into a
-layer-1 `Bounded` at the real side needs the extraction context — with the
-simulator in front of it, plugged into the IDEAL machine — to satisfy that
-hypothesis. It does not. The simulator's own initialization makes the
-observation ε-close and no more: that is precisely what
-`UC.Seam.Grounded.subBlind` proves, and all an almost-sure totality can prove.
-The same gap appears from the other side: relating a REAL monitored run to an
-IDEAL one is something an emulation gives only up to vanishing error, while
-exactness is what the hypothesis demands. `docs/consumer-migration.md` §2 has
-the typed residual (`auditIsBoundedʷ`), which is false as stated.
+`ledger-pov-from-hashⁿ` is `ledger-pov-family-negligible` behind `hash-liftⁿ`:
+the same bound, the same `TruthfulAudit`, and neither `TotalRun` nor
+`NoDeadStep`. The forgetting happens at the END and nowhere earlier — the error
+crosses the factoring intact and only the family theorem's own carry folds it
+into the saturated slack.
 
-So the two routes do not compose, and the probability conclusion is obtained
-instead through the trivial-grade collapse, where the simulator is provably
-blind. One consequence is honest and should not be glossed: at the trivial
-grade the simulator costs the ideal side nothing, so the main theorem's bound
-is the birthday bound at the audit-adjusted allowance, not a `simCost`-adjusted
-one. The `simCost`-adjusted statement is `ledger-uc-to-pov-simCost`'s.
+## 6. Hypothesis and theorem
 
-**Closed at the unit grade** by tolerating that initialization as a PREFIX: it
-is never seen to add mass (`UC.Seam.Audit.Prefix.sim-prefixed`, a one-sided
-`≼ₚ[ 0ℚ ]` off `prefix-absorbᵒ`), `bounded-carry` spends that against the
-emulation's own domination, and
-`uc-audit-bounded` is the whole route: `Bounded I bad ε` crosses a budgeted
-emulation to `Bounded R bad (λ q → ε (simCost q cs) + ν)`. The ledger consumer
-is landed too: `EndToEnd.ledger-uc-to-pov-simCost` (and its negligible
-packaging for polynomial `cs`) is `ledger-uc-to-pov` with the premise
-`_≤UC^ω[ cs ]_` and the bound `εᴸ n (simCost (q + q) (cs n)) + ν n`; the
-per-level `ASTotal` is derived from `TotalRun`, not assumed. One honesty note
-(also in the module header): the pointwise and budgeted theorems are NOT
-ordered — a
-budgeted emulation is an emulation, so the pointwise theorem applies wherever
-the budgeted one does and gives the sharper number (the trivial-grade
-simulator costs nothing); what the budgeted statement adds is the accounting,
-and the witness that the prefix extraction composes. (The pointwise/FAMILY
-pair is ordered the other way and genuinely so — see *The family premise*.)
-And, per the review's §3, none of this accounts for an *interactive* simulator:
-the budgeted simulator at these types is a scalar.
+Theorem, at `587999b5`: every statement named above, the layer it runs on
+(`UC.Approximate`, `UC.Audit`, `UC.Saturated`, `UC.Asymptotic.*`, `UC.Seam.*`),
+the ideal birthday bound under its serialization hypothesis, and the query
+certificates the lifts consume.
 
-## Continuation spec
+Hypothesis, and nowhere hidden:
 
-In priority order.
+* the four premises of §3 — of which only the emulation is cryptographic;
+* the *nontrivial-grade* line's UC-level statement (§7): `raw-emulation` for the
+  RO commitment is not proved, and the gap is a quantifier gap rather than a
+  proof gap (`docs/dp-transport.md` §5);
+* the hiding half's `ε′`: `hiding-bound-defer` is a proved theorem whose missing
+  deferred-sampling identification is one typed hypothesis, never a postulate
+  (`docs/fcom-hiding.md` §"Not delivered" 1);
+* `≤UC^ωᵉ⇒≤UC^ωⁿ-blind` (`docs/ledger-lift-eps.md` §5): forgetting a NON-trivial
+  trivial-grade simulator after the composition, blocked on an `ASTotal` the
+  quantitative relation cannot produce. Nothing at the ledger needs it.
 
-1. **Family ingestion (requirement 2's remainder).** DONE.
-   `UC.Model.Dominated.ContextDominatedᵒ` is `UC.Machine.Bridge`'s domination
-   with its ancilla quantified over SEAL objects — the quantifier
-   `UC.Family._≈ℰ[_]_` has — and `dominatedᵒ` proves it from `dominated` read
-   at `UC.Model.Seal.objᵒ X`. What looked like a blocker was not one:
-   `ifaceᵒ` IS onto, `retᴵ` inverting `⟦_⟧ᴵ` definitionally, and `objᵒ` now
-   exports that section from inside the seal (`ifaceᵒ-onto`), so nothing is
-   restricted to an image and nothing existing is weakened.
-   `UC.Model.Family.Ingest` then spends it: `ingest` takes a per-level
-   advantage bound at every budget (`_≈advᴹ[_]_`) to `_≈ℰ[ ε + δ ]_`, and
-   `ingest-≈ℰ` / `ingest-≈ℰⁿ` / `ingest-≤UC` collapse it through
-   `absorb-negl`, `_≈ℰⁿ_` and `UC.Emulation.≈ℰ⇒≤UC`, where `≤UC-trans` and
-   `dummy-complete` apply. The `δ` is the domination's own arbitrary positive
-   slack, absorbed by `UC.Approximate.GradedBound-+[_]`; any positive
-   negligible `δ` will do (`Approximate.Decay.negligible-slack`).
-   `UC-compose` is reached too, by a shorter route than `UC.Model.Bridge`'s.
-   `UC.Core.Bridge` proves `f ≈ℰᶜ g → f ≈ᵁ g` at ANY monoidal base: the core's
-   `grade-stable` is exactly what `Abstract2.bridge` asks for and cannot get
-   from a bare kernel, and the last step is the unit ancilla, where the two
-   unitor wires cancel. `UC.Model.Family.Uniform` applies it at `Famᴹ` —
-   `Grading^ω` and `gradingᵗ Famᴹ` differ only in the polynomial a relayed hom
-   carries, which an observation projects away, so the transport is the
-   identity — and `uc-compose-agree` composes two family agreements. The one
-   direction still proved only at the model is `≈ᵁ ⇒ ≈ℰᶜ`, which needs
-   `UC.Model.Reading`'s rebracketing; nothing above spends it.
+## 7. Beyond the ledger
 
-2. **The prefix-tolerant event class** — DONE, including the ledger consumer
-   (`ledger-uc-to-pov-simCost`; see the closed obstruction above and
-   `docs/prefix-tolerant-audit-plan.md`'s Outcome). The
-   *interactive*-simulator accounting stays with the review's §3.
+The ledger runs entirely at the trivial grade. The nontrivial-grade line is a
+separate arc and this document only locates it.
 
-3. **A named hash construction.** The real family's shape is no longer generic:
-   `ChimericLedger.Real` fixes it to `ledger vr s₀ ∘ᵖ hash` and discharges all
-   three of the real-side hypotheses there for any dead-free `hash`, so what is
-   left assumed at a concrete ledger is the emulation alone. Supplying THAT for
-   a named construction is the remaining half, and it needs a construction whose
-   interface matches: `Examples.MerkleDamgard`'s ideal oracle hashes
-   FIXED-length messages (`RandomOracle 1 (Vec Bool (k * n)) n`) where the
-   ledger hashes bitstrings, so the instance wants a padding adapter and then a
-   `≤UC^ω` proof built off `MD.indistinguishable`. That is a
-   cryptographic-construction obligation, which the review explicitly places
-   outside this scope.
+* **`Examples.HashForward`** — the EXACT application at a nontrivial grade: an
+  ideal functionality that leaks a message, a real protocol that leaks its
+  digest, and a simulator whose oracle query is counted exactly
+  (`UC.QueryBound.Exact`, `sim-hash-count`, `sim-round`).
+  [`docs/hash-forward.md`](hash-forward.md).
+* **The graded extraction bridge** — `plug-runᵍ`, `adequacyᵍ`, `extractᵍ` and
+  with them `hf-pr-bound`, the `Pr` bound at a grade where the simulator is run
+  in the ideal experiment rather than assumed silent.
+  [`docs/graded-bridge.md`](graded-bridge.md).
+* **`Examples.ROCommitment`**, extraction half — the first emulation in the
+  repository carrying an ε that is not zero: `extraction-bound` at
+  `(m²+m)·2⁻ᵏ + m·2⁻ᵏ`, `Certified 2 simulator`, `εᶜ-negligible`.
+  [`docs/fcom-extraction.md`](fcom-extraction.md).
+* **`Examples.ROCommitment.Hiding`** — the same commitment against a corrupted
+  receiver, the simulator equivocating by programming one point:
+  `hiding-bound` at `m·2⁻ᵏ`, `Certified 1`, and the general deferred-sampling
+  engine `GamePlaying.Defer.runWith-avg`.
+  [`docs/fcom-hiding.md`](fcom-hiding.md).
+* **The `Dₚ`/`Dist-ℚ` transport** — `ProbabilisticLogic.Dp.Settle` and
+  `Protocol.Machine.Raw` turn a raw machine's closed `Dₚ` run into a `Dist-ℚ`
+  kernel run under one explicit settling hypothesis, inhabited at a resource
+  that really samples (`ROCommitment.Transport.resource-settles`).
+  [`docs/dp-transport.md`](dp-transport.md).
+* **The consolidation plan** — the seven steps this arc executed, their
+  acceptance checks and the retirement gates:
+  [`docs/uc-presheaf-preservation-plan.md`](uc-presheaf-preservation-plan.md)
+  §6, with the generic presheaf preservation in
+  [`docs/presheaf-action.md`](presheaf-action.md).
 
-4. **`≈ℰⁿ` as an `Observation`, and with it an ε-retaining `UC-compose`** — the
-   redesign `UC.Family`'s closing comment prices. Not attempted. Nothing above
-   needs it: the negligible tier consumers use lives at layer 1
-   (`UC.Saturated`), the family premise keeps its witness as a Σ rather than as
-   an observation, and its own composition law (`≤UC^ωⁿ-trans`) adds εs without
-   it. What it WOULD buy is the one thing *The family premise* records as
-   missing — composing a family emulation with a second protocol while keeping
-   the error, since `UC-compose` is inherited in the qualitative order only.
-   Expanded proposal: `docs/graded-observation-redesign.md`.
+## 8. Module costs
 
-## Modules added
+Warm single-`Checking`-line runs under
+`pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS`, quoted from the
+branch that measured them; LOC is that branch's too. Rows with no measurement
+since the arc began carry their LOC at `587999b5` and no warm figure.
 
-| module | LOC | warm |
-|---|---|---|
-| `UC.Approximate.Decay` | 85 | 5 s |
-| `Protocol.Live` | 139 | 7 s |
-| `UC.Asymptotic` | 145 | 9 s |
-| `UC.Asymptotic.Audit` | 56 | 10 s |
-| `UC.Model.Family` | 45 | 10 s |
-| `Examples.ChimericLedger.Total` | 47 | 9 s |
-| `Examples.ChimericLedger.Schedule` | 127 | 10 s |
-| `Examples.ChimericLedger.EndToEnd` | 284 | 11 s |
-| `Examples.ChimericLedger.Real` | 93 | 11 s |
-| `UC.Asymptotic.Family` | 276 | 15 s |
-| `UC.Seam.Carry` (`adv-at`/`adv-from-runs`) | 126 | 9 s |
+| module | LOC | warm | measured in |
+|---|---|---|---|
+| `UC.Asymptotic` | 146 | 9 s | `docs/retirement.md` §9 |
+| `UC.Asymptotic.Audit` | 111 | 9 s | `docs/retirement.md` §9 |
+| `UC.Asymptotic.Family` | 342 | 23.7 s | `docs/ledger-lift-eps.md` §7 |
+| `UC.Asymptotic.Contextual` | 313 | 10.7 s | `docs/ledger-lift-eps.md` §7 |
+| `UC.Asymptotic.Compose` | 277 | 11.5 s | `docs/ledger-lift-eps.md` §7 |
+| `UC.Audit` | 195 | 5 s | `docs/retirement.md` §9 |
+| `UC.Environment` | 169 | 2.2 s | `docs/consumer-migration.md` §6 |
+| `UC.Seam.Audit` | 26 | 9 s | `docs/retirement.md` §9 |
+| `UC.Seam.Audit.Context` | 226 | 10 s | `docs/retirement.md` §9 |
+| `UC.Seam.Audit.Bounded` | 49 | 9 s | `docs/retirement.md` §9 |
+| `UC.Seam.Audit.Prefix` | 136 | 10 s | `docs/retirement.md` §9 |
+| `UC.Seam.Slide` | 44 | 10 s | `docs/direct-extraction.md` §"Module costs" |
+| `UC.Seam.Grounded` | 280 | 10 s | `docs/direct-extraction.md` §"Module costs" |
+| `UC.QueryBound` | 647 | 15.8 s | `docs/consumer-migration.md` §6 |
+| `UC.Budget` | 127 | 2.6 s | `docs/quantitative-family.md` §8 (`-M20G -H2G`) |
+| `UC.Approximate` | 280 | 4.4 s | `docs/quantitative-family.md` §8 (`-M20G -H2G`) |
+| `UC.Family` | 316 | 4.6 s | `docs/quantitative-family.md` §8 (`-M20G -H2G`) |
+| `UC.Family.Negligible` | 85 | 5 s | `docs/retirement.md` §9 |
+| `UC.Model.Family` | 31 | 8.7 s | `docs/quantitative-family.md` §8 (`-M20G -H2G`) |
+| `UC.Saturated` | 211 | — | not re-measured |
+| `UC.Approximate.Decay` | 85 | — | not re-measured |
+| `UC.Seam.Carry` | 126 | — | not re-measured |
+| `Protocol.Live` | 139 | — | not re-measured |
+| `CategoricalCrypto.UC` | 229 | 10 s | `docs/retirement.md` §9 |
+| `Examples.ChimericLedger.Audit` | 39 | 6 s | `docs/retirement.md` §9 |
+| `Examples.ChimericLedger.EndToEnd` | 294 | 11 s | `docs/retirement.md` §9 |
+| `Examples.ChimericLedger.Factor` | 116 | 12.7 s | `docs/ledger-lift-eps.md` §7 |
+| `Examples.ChimericLedger.FactorEps` | 195 | 12.2 s | `docs/ledger-lift-eps.md` §7 |
+| `Examples.ChimericLedger.QueryBound` | 42 | 8.8 s | `docs/consumer-migration.md` §6 |
+| `Examples.ChimericLedger.Schedule` | 127 | — | not re-measured |
+| `Examples.ChimericLedger.Total` | 54 | — | not re-measured |
+| `Examples.ChimericLedger.Real` | 93 | — | not re-measured |
 
-Additive edits to existing modules: `POV.asks≤-audited` (the instrumentation's
-allowance cost, beside `audited`); `Carry.Emulᵁᶜ`/`emulᵁᶜ`/`pov-carryᵁᶜ` (the
-UC-vocabulary premise, the first importer of `unitGrade`); `UC.Seam.Audit`
-re-exports `≤UC[]⇒≤UC`; `UC` re-exports the two `UC.Asymptotic` modules — but
-NOT `UC.Asymptotic.Family`, which reaches the checked closure through
-`ChimericLedger.EndToEnd` instead. `UC.Seam.Grounded` gained four names
-(`emSimTotal`, `subBlind⇒emul`, `simAstotal`, `emulAgreeᵁ`) by lifting the
-`SimTotal` block out of `subBlind⇒unitGrade`'s `where`; that proof routes
-through them and its statement is unchanged, and `EndToEnd`'s private copies
-are gone (267 LOC, 10 s warm).
+Every measured row is an order of magnitude inside its `60 s + LOC/4` budget,
+and a large part of each figure is interface deserialization rather than
+elaboration — which is why deleting 128 lines from `UC.Seam.Audit` left its
+9 s untouched (`docs/retirement.md` §9).
 
-The hash-generalization `Real` rests on is likewise additive in content and free
-in cost: `POV.Sysᴴ` beside `Sys`, and the `hash` parameter threaded through
-`Trajectory` (8 s warm) and `Total` (9 s), whose proofs are unchanged.
-
-A perf note worth keeping: the two carries in ONE module cost 127 s warm and
-in two cost 10 + 10 s. Neither half is expensive; the collapse's seal-level
+One perf finding is worth keeping even though it was measured on the
+`end-to-end` branch and not since: the two carries in ONE module cost 127 s warm
+and in two cost 10 + 10 s. Neither half is expensive; the collapse's seal-level
 terms and the carry's own instantiation are expensive together.
 
-## Two review-sweep items, resolved here
+## 9. Not delivered
 
-* **`unitGrade` was unreachable.** It now has two importers:
-  `UC.Asymptotic.uc-agree` (the family) and `ChimericLedger.Carry.emulᵁᶜ` (the
-  example), and `Carry` gained `Emulᵁᶜ` so its public premise is `≤UC` rather
-  than a raw `Agreeˢ`.
-* **`UC.QueryBound.QB` at open machines.** Not needed. The probability route
-  spends no `QB` at all — its budgets are strategy `asks≤` — and the graded
-  route spends only the already-proved `qb-∘`/`qb-T₁`/`qb-sub` inside
-  `UC.Audit.audit-carry`. No new `QB` reasoning is introduced anywhere here, so
-  the `behᵍ`-shaped `≈ᴹ`-transport lemma the sweep flagged stays owed by
-  whoever first needs it.
+1. **A named hash construction.** The real family's shape is fixed to
+   `ledger vr s₀ ∘ᵖ hash` and all three real-side hypotheses are discharged
+   there, so what is left assumed at a concrete ledger is the emulation alone.
+   Supplying it needs a construction whose interface matches:
+   `Examples.MerkleDamgard`'s ideal oracle hashes FIXED-length messages where
+   the ledger hashes bitstrings, so the instance wants a padding adapter and
+   then a `≤UC^ω`/`≤UC^ωⁿ` proof off `MD.indistinguishable`. A
+   cryptographic-construction obligation, which the review places outside this
+   scope.
+2. **A nontrivially graded hash port.** `hashPortᵒ` is an OBJECT boundary and
+   both stages are pure, so every simulator there is a `𝟘ᴳ ⇒ 𝟘ᴳ` scalar and is
+   provably blind. `hash-liftᵉ` is stated at an arbitrary certified simulator
+   family and would carry a real one unchanged; the ledger cannot supply one
+   (`docs/ledger-factoring.md`, closing section).
+3. **`≈ℰⁿ` as an `Observation`.** Not attempted, and nothing above needs it: the
+   negligible tier consumers use lives at layer 1 (`UC.Saturated`), the family
+   premise keeps its witness as a Σ, and the ε-retaining composition law that
+   paragraph once priced as a core redesign is `UC.Asymptotic.Compose.UC-composeᵉ`
+   — enrichment lemmas over the existing action, not a redesign. Expanded
+   proposal: `docs/graded-observation-redesign.md`.
+4. **A monotone envelope for `ε`.** `≈ctx-pre` and hence `UC-composeᵉ` take
+   `Allowance-mono` as a premise; the constructed envelope wants a finite
+   `ℚ`-max over `0 … q` and its argmax and is not built
+   (`docs/quantitative-family.md` §10).
