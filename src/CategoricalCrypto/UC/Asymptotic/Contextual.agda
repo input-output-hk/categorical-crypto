@@ -46,7 +46,7 @@ open import CategoricalCrypto.UC.Model.Setup
 
 module CategoricalCrypto.UC.Asymptotic.Contextual where
 
-open Budget budgetᵒ using (QB; qb-id; qb-∘; qb-a⇒; qb-a⇐; qb-sub; qb-T₁)
+open Budget budgetᵒ using (QB; qb-id; qb-∘; qb-a⇒; qb-a⇐; qb-λ⇒; qb-λ⇐; qb-sub; qb-T₁)
 open HomReasoning
 
 private variable
@@ -200,6 +200,15 @@ _∘ᶜ_ : Certified Y Z → Certified X Y → Certified X Z
 (a , p , Pp , qa) ∘ᶜ (s , q , Pq , qs) =
   (λ n → a n ∘ s n) , (λ n → p n ℕ.* q n) , poly-* Pp Pq , λ n → qb-∘ (qa n) (qs n)
 
+-- The unit regrading, certified: a grade a Kleisli composition introduced and
+-- a retraction for it, the pair `≈ctx-sub`/`UC.Asymptotic.Compose.≤UC^ωᵉ-sub`
+-- need to make that grade invisible.  Structural, hence `QB 1`.
+λ⇒ᶜ : (X : ℕ → Channel) → Certified (λ n → unit ⊗₀ X n) X
+λ⇒ᶜ _ = (λ _ → λ⇒) , (λ _ → 1) , poly-const 1 , λ _ → qb-λ⇒
+
+λ⇐ᶜ : (X : ℕ → Channel) → Certified X (λ n → unit ⊗₀ X n)
+λ⇐ᶜ _ = (λ _ → λ⇐) , (λ _ → 1) , poly-const 1 , λ _ → qb-λ⇐
+
 -- The presheaf action on a certified family, levelwise.
 subᶠ : Certified Y X → Homᶠ A Y B → Homᶠ A X B
 subᶠ {B = B} s g n = sub (sim s n) {B n} ∘ g n
@@ -262,6 +271,12 @@ infix 4 _≤UC^ωᵉ_ _≤UC^ωᵉ⁺_
 _≤UC^ωᵉ_ : Homᶠ A X B → Homᶠ A Y B → Set₁
 _≤UC^ωᵉ_ {X = X} {Y = Y} f g =
   Σ[ s ∈ Certified Y X ] Σ[ ε ∈ (ℕ → ℕ → ℚ) ] NegligibleBound ε × f ≈ctx[ ε ] subᶠ s g
+
+≤UC^ωᵉ-resp : {f f′ : Homᶠ A X B} {g g′ : Homᶠ A Y B}
+            → ((n : ℕ) → f n ≈ f′ n) → ((n : ℕ) → g n ≈ g′ n)
+            → f ≤UC^ωᵉ g → f′ ≤UC^ωᵉ g′
+≤UC^ωᵉ-resp ef eg (s , ε , neg , e) =
+  s , ε , neg , ≈ctx-resp ε ef (λ n → ∘-resp-≈ʳ (eg n)) e
 
 -- …and the adversary-quantified form, at `Abstract2._≤UC_`'s quantifier order.
 -- The adversary carries a certificate because absorbing it is what the
