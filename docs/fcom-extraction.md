@@ -284,6 +284,10 @@ with (a)–(c) in hand this is the substantive item: it is
 (a)–(d) together are larger than the rest of this branch, which is why steps 1,
 2 and 4 are delivered in full and step 3 stops at its two provable components.
 
+**Since: the transport of (d) is a theorem too** — `ProbabilisticLogic.Dp.Settle`
+and `Protocol.Machine.Raw`, with the residual quantifiers in
+[`docs/dp-transport.md`](dp-transport.md).
+
 **Since: (a), (b) and (c) are theorems** — `UC.Seam.Audit.Context.plug-runᵍ`,
 `UC.Seam.Adequacy.adequacyᵍ` (which is `adequacy` at one composite, no second
 loop) and `Examples.ROCommitment.Resource`. **(d) is not provable as written**:
