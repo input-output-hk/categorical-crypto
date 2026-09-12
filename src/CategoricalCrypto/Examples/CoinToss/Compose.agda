@@ -32,8 +32,12 @@ open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 
 import CategoricalCrypto.Examples.CoinToss as CT
+import CategoricalCrypto.Examples.CoinToss.Hiding as CTH
+import CategoricalCrypto.Examples.CoinToss.Hiding.UC as CTHU
 import CategoricalCrypto.Examples.CoinToss.UC as CTU
 import CategoricalCrypto.Examples.ROCommitment as RO
+import CategoricalCrypto.Examples.ROCommitment.Hiding as ROH
+import CategoricalCrypto.Examples.ROCommitment.Hiding.UC as ROHU
 import CategoricalCrypto.Examples.ROCommitment.UC as ROU
 
 module CategoricalCrypto.Examples.CoinToss.Compose where
@@ -94,3 +98,41 @@ coin-toss-from-com (sf , εf , nf , ef) =
 schedule-pin : (w : realᶠ ≤UC^ωᵉ idealᶠ)
              → proj₁ (proj₂ (coin-toss-from-com w)) ≡ εᶜᵗ (proj₁ (proj₂ w))
 schedule-pin _ = refl
+
+------------------------------------------------------------------------
+-- The same, at the other corruption
+
+-- `F_com`'s two halves are two different ports (`docs/fcom-hiding.md`), so
+-- this is a second theorem and not an instance of the first.  What changes
+-- quantitatively is only the coin-toss stage's own rate — it drives `F_com`
+-- here, where the extraction half's stage only listened — and `simCost` reads
+-- `0` and `1` at the same allowance, so the composed schedule is the same
+-- expression.
+Advʰᶠ Lkʰᶠ Honʰᶠ Advᶜʰᶠ Honᶜʰᶠ : ℕ → Channel
+Advʰᶠ   n = ifaceᵒ (ROH.Advᴵʰ n)
+Lkʰᶠ    n = ifaceᵒ (ROH.Lkᴵʰ n)
+Honʰᶠ   n = ifaceᵒ (ROH.Honᴵʰ n)
+Advᶜʰᶠ  n = ifaceᵒ (CTH.Advᴵᶜʰ n)
+Honᶜʰᶠ  n = ifaceᵒ (CTH.Honᴵᶜʰ n)
+
+realʰᶠ : Homᶠ Resᶠ Advʰᶠ Honʰᶠ
+realʰᶠ = ROHU.realʰᵒ
+
+idealʰᶠ : Homᶠ Resᶠ Lkʰᶠ Honʰᶠ
+idealʰᶠ = ROHU.idealʰᵒ
+
+tossʰᶠ : Homᶠ Honʰᶠ Advᶜʰᶠ Honᶜʰᶠ
+tossʰᶠ = CTHU.tossʰᵒ
+
+coin-toss-from-comʰ : realʰᶠ ≤UC^ωᵉ idealʰᶠ
+                    → (tossʰᶠ ∙ᶠ realʰᶠ) ≤UC^ωᵉ (tossʰᶠ ∙ᶠ idealʰᶠ)
+coin-toss-from-comʰ (sf , εf , nf , ef) =
+  UC-composeᵉ sf εf nf ef
+              idᶜ (λ _ _ → 0ℚ) (λ _ _ → Negligible-0) (λ _ _ → ≤-refl)
+              (≈C⇒≈ctx λ n → Equiv.sym (sub-identityˡ (tossʰᶠ n)))
+              (λ _ → 1) (poly-const 1) CTHU.comQB
+              (λ _ → 1) (poly-const 1) CTHU.tossʰQB
+
+schedule-pinʰ : (w : realʰᶠ ≤UC^ωᵉ idealʰᶠ)
+              → proj₁ (proj₂ (coin-toss-from-comʰ w)) ≡ εᶜᵗ (proj₁ (proj₂ w))
+schedule-pinʰ _ = refl
