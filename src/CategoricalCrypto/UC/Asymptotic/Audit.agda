@@ -12,7 +12,7 @@
 -- probability from it would need the extraction context, the simulator in front
 -- of it, to observe an ideal monitored run EXACTLY, which an almost-surely-total
 -- initialization never gives.  `uc-audit-boundedᵖ` is the route that does reach
--- a probability, and it takes `UC.Seam.Audit.Prefix.uc-audit-bounded′`, which
+-- a probability, and it takes `UC.Seam.Audit.Prefix.uc-audit-bounded`, which
 -- has no event class on it at all — the simulator's initialization is a prefix
 -- and a prefix never adds mass (`sim-prefixed`).
 --
@@ -42,7 +42,7 @@ open import CategoricalCrypto.UC.Seam.Audit
   using ( _≤UC[_]_; emulate; sim; simCost; AuditBound; absorb; absorb-absorbs
         ; carry-obs; audit-carry; module TrivialGrade )
 open import CategoricalCrypto.UC.Seam.Audit.Bounded using (supply)
-open import CategoricalCrypto.UC.Seam.Audit.Prefix using (uc-audit-bounded′)
+open import CategoricalCrypto.UC.Seam.Audit.Prefix using (uc-audit-bounded)
 open import CategoricalCrypto.UC.Seam.Grounding.Dead using (pointᵒ)
 import CategoricalCrypto.UC.Seam.Grounded as Gr
 
@@ -152,4 +152,4 @@ uc-audit-boundedᵖ : (em : R ≤UC^ω[ cs ] I) (bad : Watch B)
                   → ((n : ℕ) → 0ℚ ℚ.< ν n) → (n : ℕ)
                   → Bounded (R n) (bad n) (λ q → ε n (simCost q (cs n)) ℚ.+ ν n)
 uc-audit-boundedᵖ {R = R} {cs = cs} {I = I} {ε = ε} {ν = ν} em bad tot qp bi pos n =
-  uc-audit-bounded′ _ (R n) (I n) (bad n) (em n) (ε n) (ν n) (pos n) (tot n) (qp n) (bi n)
+  uc-audit-bounded _ (R n) (I n) (bad n) (em n) (ε n) (ν n) (pos n) (tot n) (qp n) (bi n)
