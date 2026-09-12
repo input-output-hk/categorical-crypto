@@ -34,7 +34,9 @@
 -- zero instance to take).
 --
 -- `ledger-audit-carry` is the GRADED route beside it, where the simulator's
--- own query cost is charged (`simCost`), and it stops at an `AuditBound`.
+-- own query cost is charged (`simCost`), and it stops at an `AuditBound`.  It
+-- is now `ledger-audit-carryᵈ` — the same carry with no event class in its
+-- statement — past one Σ-pattern.
 -- `ledger-uc-to-pov-simCost` is that cost reaching a PROBABILITY: the premise
 -- is a BUDGETED emulation and the allowance the birthday bound is read at is
 -- `simCost (q + q) (cs n)`, the audit instrumentation's doubling composed with
@@ -60,11 +62,13 @@ open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ)
 
 open import ProbabilisticLogic.Distribution.Uniform using (inv-pow-2)
+open import ProbabilisticLogic.Dp using (_≈ₚ_)
+open import ProbabilisticLogic.Dp.Advantage using (Pr≤)
 open import ProbabilisticLogic.Dp.Mass using (ASTotal)
 
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Iface using (Neg; Pos)
-open import CategoricalCrypto.Protocol.Machine using (morphism)
+open import CategoricalCrypto.Protocol.Machine using (morphism; runᴹ)
 open import CategoricalCrypto.Protocol.Machine.Total using (TotalRun)
 open import CategoricalCrypto.Protocol.Observe using (PrHit)
 open import CategoricalCrypto.Strategy using (Strat; asks≤)
@@ -74,7 +78,9 @@ open import CategoricalCrypto.UC.Approximate.Decay
 open import CategoricalCrypto.UC.Asymptotic
 open import CategoricalCrypto.UC.Asymptotic.Audit
 open import CategoricalCrypto.UC.Asymptotic.Family using (_≤UC^ωⁿ_; ≤UC^ωⁿ⇒≈negl)
-open import CategoricalCrypto.UC.Model.Bridge using (≈ℰᶜ⇒≈ᵁ)
+open import CategoricalCrypto.UC.Model.Bridge using (≈ℰᶜ⇒≈ᵁ; ucBaseᵒ)
+open import CategoricalCrypto.UC.Model.Observation using (𝟘ᵒ)
+open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Saturated
   using (_≈negl_; Bad; SaturatedBoundedᴺ; SaturatedHitᴺ; Systems)
@@ -90,6 +96,11 @@ module CategoricalCrypto.Examples.ChimericLedger.EndToEnd
   (ser : (n : ℕ) → Ledger.Tx n → List Bool) where
 
 open import CategoricalCrypto.Examples.ChimericLedger.Schedule ser
+
+-- The direct carry's context is spelled in `ucBaseᵒ`'s own action, which the
+-- event class it replaces is stated over (`UC.Asymptotic.Audit`'s note).
+open import CategoricalCrypto.UC.Emulation ucBaseᵒ
+  using (Closure; Test; _⊛_; obs; tv₁) renaming (sub to subᵉ)
 
 module Ad (n : ℕ) = Aud n (ser n)
 
@@ -210,8 +221,28 @@ ledger-pov-family-negligible a V si R badR em truthful p Pp =
    , Negligible-+ (εᴸ-negligible (λ n → p n ℕ.+ p n) (poly-+ Pp Pp)) neg
    , bnd
 
--- The same ideal bound crossing a BUDGETED emulation: the real side reads the
--- absorbed event class and the simulator's own queries are charged there.
+-- The same ideal bound crossing a BUDGETED emulation, stated directly: at any
+-- context and any strategy the allowance affords, if the simulator-fronted
+-- context observes the ideal monitor's verdict then the real system's own
+-- observation is under the birthday bound at that allowance plus the slack.
+-- No event class in it, and the ideal supply is `Schedule.ideal-bounded` —
+-- `ChimericLedger.Audit.pov-target` levelwise, i.e. the proved birthday theorem
+-- read through the monitor and nothing else.
+ledger-audit-carryᵈ :
+    (a V : ℕ) → SerInj → (R : Systems LedgerIf^ω) (cs : ℕ → ℕ)
+    (em : R ≤UC^ω[ cs ] Ideal a V) (n : ℕ) (W : Channel)
+    (Et : Test (W ⊛ (𝟘ᴳ ⊛ ifaceᵒ (LedgerIf^ω n)))) (m : Closure (W ⊛ 𝟘ᵒ))
+    (q : ℕ) (d : Strats n) → asks≤ q d
+  → obs (tv₁ W (closedᵒ (morphism (Ideal a V n))) (tv₁ W (subᵉ (sim (em n))) Et)) m
+    ≈ₚ runᴹ (morphism (Ideal a V n)) (monitorᴸ a V n d)
+  → (k : ℕ) → Pr≤ k (obs (tv₁ W (closedᵒ (morphism (R n))) Et) m)
+              ℚ.≤ εᴸ n q ℚ.+ ν n
+ledger-audit-carryᵈ a V si R cs em =
+  uc-audit-carryᵈ {ε = εᴸ} {ν = ν} em (monitorᴸ a V) (ideal-bounded a V si) 0<inv-pow-2
+
+-- …and the same crossing at the designated event class, which is that theorem
+-- past one Σ-pattern: the real side reads the absorbed class and the
+-- simulator's own queries are charged there.
 ledger-audit-carry :
     (a V : ℕ) → SerInj → (R : Systems LedgerIf^ω) (cs : ℕ → ℕ)
     (em : R ≤UC^ω[ cs ] Ideal a V) (n : ℕ)
@@ -219,8 +250,8 @@ ledger-audit-carry :
       (absorb (sim (em n)) (cs n) (Ad.auditEvent n inputConsuming (gen a V n)))
       (λ q → εᴸ n (simCost q (cs n)) ℚ.+ ν n)
 ledger-audit-carry a V si R cs em =
-  uc-audit-carry {ε = εᴸ} {ν = ν} em (monitorᴸ a V)
-    (λ n → Ad.audit-target n (h₀ n) (si n) a V) 0<inv-pow-2
+  uc-audit-carryᵈ-bound {ε = εᴸ} {ν = ν} em (monitorᴸ a V) (ideal-bounded a V si)
+                        0<inv-pow-2
 
 ------------------------------------------------------------------------
 -- The budgeted route

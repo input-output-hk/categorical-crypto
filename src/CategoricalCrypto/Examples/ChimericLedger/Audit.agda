@@ -66,12 +66,23 @@ audit-bounded : (vr : Variant) (s₀ : LState) {ε : ℕ → ℚ}
 audit-bounded vr s₀ {ε} =
   auditIsBounded (Sys vr s₀) (monitor s₀) ε (λ q d → asks≤-monitor s₀ q false d)
 
--- The acceptance test: the proved birthday theorem, and nothing else.
+-- The acceptance test, with no UC vocabulary in it: the proved birthday
+-- theorem read through the designated monitor, and nothing else.  This is the
+-- form the direct carry consumes (`UC.Asymptotic.Audit.uc-audit-carryᵈ`, plan
+-- §4.5's "ideal supply … read directly through the model lemma"); the graded
+-- one below is it behind `audit-bound`.
+pov-target : (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u)
+             (a : Addr) (V : ℕ)
+           → let s₀ = genesis h₀ a V in
+             POVmonitor inputConsuming s₀ (AtBirthday.εbirthday h₀ ser-inj)
+pov-target h₀ ser-inj a V =
+  monitor-bounded inputConsuming s₀ (target h₀ ser-inj a V)
+  where s₀ = genesis h₀ a V
+
 audit-target : (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u)
                (a : Addr) (V : ℕ)
              → let s₀ = genesis h₀ a V in
                AuditBound (closedᵒ (morphism (Sys inputConsuming s₀)))
                           (auditEvent inputConsuming s₀) (AtBirthday.εbirthday h₀ ser-inj)
 audit-target h₀ ser-inj a V =
-  audit-bound inputConsuming s₀ (monitor-bounded inputConsuming s₀ (target h₀ ser-inj a V))
-  where s₀ = genesis h₀ a V
+  audit-bound inputConsuming (genesis h₀ a V) (pov-target h₀ ser-inj a V)
