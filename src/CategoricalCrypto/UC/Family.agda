@@ -308,9 +308,8 @@ f ≈ℰⁿ g = Σ[ ε ∈ (ℕ → ℕ → ℚ) ] CarriedNegligible ε × f ≈
 -- Of the two, the first proved NOT to be a core redesign: `UC.Core.Observation`
 -- asks for an arbitrary equivalence, so `UC.Family.Negligible` builds that
 -- second `Observation` on `Fam` and inherits the emulation notions at it with
--- nothing in the qualitative core moving.  The second is still owed, and what
--- owes it is the ε-RETAINING composition law: `UC.Asymptotic.Family`'s
--- `≤UC^ωⁿ-trans` composes two graded premises with the errors adding, but
--- composing one with a second protocol is `UC-compose`, inherited in the
--- qualitative order and hence spending the witness — the stop its comment there
--- records.
+-- nothing in the qualitative core moving.  Neither is owed by the ε-RETAINING
+-- composition law any more: `UC.Asymptotic.Compose` proves it directly over the
+-- contextual relation, carrying the simulator witness and charging each plugged
+-- morphism's allowance substitution, and only forgets into `_≈ℰⁿ_`/`_≈ℰ_` at
+-- the end.

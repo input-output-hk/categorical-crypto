@@ -180,6 +180,18 @@ GradedBound-+[_] : (G : Grade)
                  → GradedBound G (λ n q → ε n q ℚ.+ δ n q)
 GradedBound-+[ G ] G-+ ε δ bε bδ p Pp = G-+ (bε p Pp) (bδ p Pp)
 
+-- …and closure under REINDEXING the allowance.  A composition that moves a
+-- morphism into a context rescales the allowance the moved-into leg affords
+-- (`UC.Budget.simCost`), so the bound it concludes with is the old one read at
+-- `r n q` rather than at `q`.  That is a bound of the same grade exactly when
+-- `r` preserves polynomials, which is the only thing a `GradedBound` ever asks
+-- of its argument — nothing here assumes `ε` is monotone in the allowance.
+GradedBound-reindex : (G : Grade) (r : ℕ → ℕ → ℕ)
+                    → ((p : ℕ → ℕ) → Poly p → Poly (λ n → r n (p n)))
+                    → (ε : ℕ → ℕ → ℚ) → GradedBound G ε
+                    → GradedBound G (λ n q → ε n (r n q))
+GradedBound-reindex _ r pres _ b p Pp = b (λ n → r n (p n)) (pres p Pp)
+
 ------------------------------------------------------------------------
 -- Approximate closeness
 
