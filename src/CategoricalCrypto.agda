@@ -23,6 +23,9 @@
 -- closed extraction game and its bound (`.Asymptotic`, reaching `.Game`) and
 -- the acceptance instance (`.Test`).  Three leaves because the game layer and
 -- the machine layer do not meet yet — `docs/fcom-extraction.md` says where.
+-- `Examples.ROCommitment.Hiding.*` is the other half, the corrupted receiver,
+-- with the same three leaves (`docs/fcom-hiding.md`); its deferred-sampling
+-- engine is `GamePlaying.Defer`.
 --
 -- Outside still, each with its own root: the protocol-layer examples
 -- (`Examples.ChimericLedger`, `Examples.MerkleDamgard`) and the inherited
@@ -55,6 +58,7 @@ open import CategoricalCrypto.SFunPartial public
 open import CategoricalCrypto.SFunPossibility
 open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.GamePlaying
+open import CategoricalCrypto.GamePlaying.Defer
 open import CategoricalCrypto.GamePlaying.Hop
 open import CategoricalCrypto.GamePlaying.Potential
 open import CategoricalCrypto.GamePlaying.Test
@@ -78,6 +82,9 @@ open import CategoricalCrypto.Examples.RandomOracle
 open import CategoricalCrypto.Examples.HashForward.Audit
 open import CategoricalCrypto.Examples.HashForward.Resource
 open import CategoricalCrypto.Examples.ROCommitment.Asymptotic
+open import CategoricalCrypto.Examples.ROCommitment.Hiding.Asymptotic
+open import CategoricalCrypto.Examples.ROCommitment.Hiding.Test
+open import CategoricalCrypto.Examples.ROCommitment.Hiding.UC
 open import CategoricalCrypto.Examples.ROCommitment.Resource
 open import CategoricalCrypto.Examples.ROCommitment.Test
 open import CategoricalCrypto.Examples.ROCommitment.UC

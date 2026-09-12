@@ -113,8 +113,10 @@
 --                                  consumes; `Examples.HashForward` is the
 --                                  EXACT application and
 --                                  `Examples.ROCommitment` the approximate one
---                                  — same images and the same certificates,
---                                  with the error priced in `GamePlaying`
+--                                  (both corruption halves, `.Hiding` the
+--                                  receiver's) — same images and the same
+--                                  certificates, with the error priced in
+--                                  `GamePlaying`
 --                `UC.Factor`       `factorᵖ`/`liftᵖ`: the UC-object image of
 --                                  `_∘ᵖ_` factors on the nose, so a
 --                                  sub-protocol emulation lifts to the
