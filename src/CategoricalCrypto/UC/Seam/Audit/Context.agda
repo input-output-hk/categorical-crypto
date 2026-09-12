@@ -55,7 +55,7 @@ open import CategoricalCrypto.UC.Machine.Dictionary using (𝟭ᴵ)
 open import CategoricalCrypto.UC.Machine.Plug using (plugᴹ)
 open import CategoricalCrypto.UC.Model.Bridge using (ucBaseᵒ)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ; qbᵒ)
-open import CategoricalCrypto.UC.Model.Graded using (procᵘ; qbᵘ)
+open import CategoricalCrypto.UC.Model.Graded using (procᵘ; procᵘ-∘; qbᵘ)
 open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ; obs-resp)
 open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ; gradedᵒ; ifaceᵒ; procᵒ; procᵒ-∘)
 open import CategoricalCrypto.UC.Model.Setup
@@ -73,7 +73,9 @@ module CategoricalCrypto.UC.Seam.Audit.Context where
 -- actions agree on the nose but their records do not, so a `qb-sub`/`qb-T₁`
 -- consumer has to spell the action with THIS one.
 open import CategoricalCrypto.UC.Emulation ucBaseᵒ
-  using (obs; tv₁) renaming (T₁ to T₁ᵉ; sub to subᵉ)
+  using (obs; tv₁)
+  renaming (T₁ to T₁ᵉ; sub to subᵉ; T₁-∘ to T₁ᵉ-∘; T₁-resp-≈ to T₁ᵉ-resp-≈;
+            sub-∘ to subᵉ-∘; sub-resp-≈ to subᵉ-resp-≈)
 
 open HomReasoning
 open Budget budgetᵒ using (QB; qb-∘; qb-mono; qb-sub; qb-T₁; qb-λ⇒; qb-λ⇐)
@@ -180,6 +182,16 @@ module _ (B : Iface) (e : Strat (Neg B) (Pos B)) {X : Iface} (a : Proc X 𝟭ᴵ
 
       qbʷ : QB c′ (closedᵒ w)
       qbʷ = qb-mono (ℕP.≤-reflexive (ℕP.*-identityˡ c′)) (qb-∘ qb-λ⇐ (qbᵒ cw))
+
+-- Absorbing a simulator into this context is composing it with the adversary:
+-- `sub` is functorial, so the two merge.  This is what keeps the IDEAL side of
+-- an absorbed event class (`UC.Audit.absorb`) one of these contexts too.
+absorb-plugᵍ : (B : Iface) (e : Strat (Neg B) (Pos B)) {X Y : Iface}
+               (a : Proc X 𝟭ᴵ) (s : Proc Y X)
+             → auditTestᵍ B e a ∘ T₁ᵉ 𝟘ᴳ (subᵉ (procᵒ s)) ≈ auditTestᵍ B e (a 𝒫.∘ s)
+absorb-plugᵍ B e a s =
+  assoc ○ (refl⟩∘⟨ (⟺ T₁ᵉ-∘
+                   ○ T₁ᵉ-resp-≈ (⟺ subᵉ-∘ ○ subᵉ-resp-≈ (⟺ (procᵘ-∘ a s)))))
 
 -- A graded bound at any class this context inhabits IS layer 1's `Bounded`.
 -- The `bad`-budget hypothesis is what lets the run and the mass meet: `Bounded`

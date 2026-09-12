@@ -70,6 +70,11 @@ opaque
   qbᵘ : {X : Iface} {c : ℕ} {a : Proc X 𝟭ᴵ} → QB c a → Budget.QB budgetᵒ c (procᵘ a)
   qbᵘ {X} = qb-to-image X 𝟭ᴵ
 
+  -- A simulator in front of an adversary is again an adversary.
+  procᵘ-∘ : {X Y : Iface} (a : Proc X 𝟭ᴵ) (s : Proc Y X)
+          → procᵘ (M._∘_ a s) G.≈ procᵘ a G.∘ procᵒ s
+  procᵘ-∘ _ _ = G.Equiv.refl
+
   -- …and what is left once it has: the grade is the unit, the unitor deflates
   -- it (`λ⇒-λᴳ` is that unitor as a wire), and the whole is one machine
   -- composite.  This is the graded reading of `UC.Seam.Grounded.plug-run`'s

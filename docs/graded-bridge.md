@@ -24,14 +24,14 @@ obligation at all but a typing mistake, described in "Not delivered" below.
 
 ### (a) `plug-runᵍ` — delivered
 
-`src/CategoricalCrypto/UC/Seam/Audit/Context.agda:144`
+`src/CategoricalCrypto/UC/Seam/Audit/Context.agda:146`
 
 ```agda
 plug-runᵍ : obs (tv₁ 𝟘ᴳ (gradedᵒ f) auditTestᵍ) (closedᵒ w) ≈ₚ ctxRunˢ B e closedᵍ
 ```
 
-at `auditTestᵍ = auditTest B e ∘ T₁ 𝟘ᴳ (sub (procᵘ a))` (`Context.agda:127`) and
-`closedᵍ = (plugᴹ a ∘ f) ∘ w` (`Context.agda:138`), for `f : Proc A (X ⊗ᴵ B)`,
+at `auditTestᵍ = auditTest B e ∘ T₁ 𝟘ᴳ (sub (procᵘ a))` (`Context.agda:129`) and
+`closedᵍ = (plugᴹ a ∘ f) ∘ w` (`Context.agda:140`), for `f : Proc A (X ⊗ᴵ B)`,
 an adversary machine `a : Proc X 𝟭ᴵ`, a resource `w : Proc unitᴵ A` and an
 environment strategy `e`. The doc priced it at "`unprocᵒ-∘` twice and probably
 cheap", and that is what it is: the two `T₁`s merge, `plug-λ` cancels the two
@@ -56,9 +56,17 @@ With the grade filled at `𝟭ᴵ` the context is `UC.Audit.absorb`'s own shape 
 a test precomposed with `T₁ W (sub _)` — at an adversary instead of at a
 simulator. Nothing new was defined for it.
 
-`audit-qbᵍ` (`Context.agda:132`) is the matching budget, `qb-∘ (qb-T₁ (qb-sub _))`
+`audit-qbᵍ` (`Context.agda:134`) is the matching budget, `qb-∘ (qb-T₁ (qb-sub _))`
 at `q * ((c ⊔ 1) ⊔ 1)` — the same expression `Examples.HashForward.Audit`'s
-`absorbed-budget` charges a simulator.
+`absorbed-budget` charges a simulator. And `absorb-plugᵍ` (`Context.agda:189`)
+says the context is closed under absorbing one: `sub` is functorial, so
+
+```agda
+auditTestᵍ B e a ∘ T₁ 𝟘ᴳ (sub (procᵒ s)) ≈ auditTestᵍ B e (a ∘ s)
+```
+
+— a simulator in front of an adversary is again an adversary, which is what
+keeps the IDEAL side of an absorbed event class one of these contexts too.
 
 ### (b) `adequacyᵍ` — delivered, and the second loop is not needed
 
@@ -117,7 +125,7 @@ Inhabitation section and mentions no example.
 
 ### (e) HashForward's `Pr` inequality at the nontrivial grade — delivered
 
-The generic half is `extractᵍ` (`Context.agda:158`), `extract` at a nontrivial
+The generic half is `extractᵍ` (`Context.agda:171`), `extract` at a nontrivial
 grade:
 
 ```agda
@@ -214,15 +222,15 @@ gate; the warm column is a single-`Checking`-line run.
 |---|---|---|---|
 | `ProbabilisticLogic.Dp.Uniform` | 20 | TBD | 65 s |
 | `UC.Machine.Plug` | 32 | TBD | 68 s |
-| `UC.QueryBound` (+45) | 523 | TBD | 190 s |
-| `UC.Model.Graded` (+21) | 78 | TBD | 79 s |
-| `UC.Graded` (+7) | 70 | TBD | 77 s |
-| `UC.Seam.Grounded` (±2) | 281 | TBD | 130 s |
-| `UC.Seam.Adequacy` (+13) | 126 | TBD | 91 s |
-| `UC.Seam.Audit.Context` (+56) | 199 | TBD | 110 s |
-| `Examples.HashForward.Resource` | 79 | TBD | 80 s |
-| `Examples.HashForward.Audit` (+31) | 139 | TBD | 95 s |
-| `Examples.ROCommitment.Resource` | 101 | TBD | 85 s |
+| `UC.QueryBound` (+46) | 509 | TBD | 187 s |
+| `UC.Model.Graded` (+31) | 87 | TBD | 82 s |
+| `UC.Graded` (+9) | 71 | TBD | 78 s |
+| `UC.Seam.Grounded` (±3) | 281 | TBD | 130 s |
+| `UC.Seam.Adequacy` (+17) | 126 | TBD | 91 s |
+| `UC.Seam.Audit.Context` (+92) | 229 | TBD | 117 s |
+| `Examples.HashForward.Resource` | 78 | TBD | 80 s |
+| `Examples.HashForward.Audit` (+36) | 137 | TBD | 94 s |
+| `Examples.ROCommitment.Resource` | 103 | TBD | 86 s |
 
 ## Not delivered, precisely
 
