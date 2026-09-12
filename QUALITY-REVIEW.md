@@ -2100,3 +2100,103 @@ Open, for the maintainer:
   supplies the run→contextual direction at the `conjᴵ` grade, so a premise stated at
   THAT grade would have the symmetric pair and no strategy-context reading; the two
   grades cannot both be served without the iso.
+
+## Resolved (seam-cleanups)
+
+The three recorded wishes above — `closedᵒ`/`stageᵒ`'s home (`Resolved
+(ledger-factoring)`), the `Carry`/`Carry.Graded` merge and `UC.Family`'s closing
+paragraph (`Resolved (family-premise)`). Base `ad57b622` (`protocol-rewrite`'s tip),
+branch `seam-cleanups`, three commits. **No statement changed anywhere**: item 1 is a
+relocation behind a definitional alias, item 2 moves two declarations verbatim, item 3
+is a comment.
+
+### 1 — `closedᵒ`/`stageᵒ` re-homed in `UC.Seam.Grounded` (`dadbf211`)
+
+`Grounded` is the right home and acquires **no new import** for it: `Proc`, `procᵒ`,
+`ifaceᵒ` and the setup are all already there, and `Grounded` does not import `Factor`,
+so no cycle. Both definitions are byte-identical to the `UC.Factor` originals, sit
+directly after `ιᴳ`, and `UC.Factor` now imports them (plain import, not a re-export —
+rule 19; `UC.agda` already opens both modules `public`, so the UC root exposes the same
+names as before).
+
+`closedᵒ w` is definitionally `ιᴳ B ∘ procᵒ w`, and **every** hand-written occurrence
+converted — there is no site left spelled out and no site that re-priced:
+
+| module | sites | before | after |
+|---|---|---|---|
+| `UC.Seam.Grounded` | 11 (`emSimTotal`, `subBlind⇒emul`, `simAstotal`, `subPrefixed`, `emulAgreeᵁ` and their `where`s) | 9.9 s | 9.9 s |
+| `UC.Factor` | — (definitions removed) | 9.6 s | 9.3 s |
+| `UC.Asymptotic` | `_≤UC^ω_` | 10.0 s | 9.3 s |
+| `UC.Asymptotic.Audit` | `_≤UC^ω[_]_`, `uc-audit-carry` | 9.5 s | 9.5 s |
+| `UC.Asymptotic.Family` | `imgᶠ` | 15.1 s | 14.8 s |
+| `UC.Seam.Audit.Context` | `audit-run` (+ its `reduce`), `extract`, `obsv` | 9.5 s | 9.5 s |
+| `UC.Seam.Audit.Prefix` | `f₀`, `auditIsBoundedᴬ`, `uc-audit-bounded` | 9.7 s | 9.7 s |
+| `Examples.ChimericLedger.Audit` | `audit-bound`, `audit-bounded`, `audit-target` | 10.1 s | 10.0 s |
+| `Examples.ChimericLedger.Carry` | `Emulᵁᶜ` | 9.8 s | 9.6 s |
+| `Examples.ChimericLedger.EndToEnd` | `ledger-audit-carry` | 10.5 s | 10.4 s |
+| `Examples.ChimericLedger.Factor` | — (import repointed) | 10.3 s | 10.3 s |
+
+`Grounded`'s own statements were converted too, on rule 26: converting the consumers and
+leaving the defining module hand-spelled is exactly the half-applied scheme that rule
+rejects. `imgᶠ`'s declared type (`𝟘ᵒ ⇒ gradedᶠ B n`) is *not* `closedᵒ`'s (`ifaceᵒ unitᴵ
+⇒ T₀ 𝟘ᴳ (ifaceᵒ B)`) as written, and it typechecks because the two unfold to the same
+thing — the one place worth knowing the conversion is load-bearing. `procᵒ` fell out of
+seven import lists as a consequence and was removed from each; `ιᴳ` survives only where
+`TrivialGrade 𝟘ᴳ ιᴳ` is instantiated (and in `factorᵒ`, whose codomain is an OPEN image
+at `C`).
+
+- `docs/ledger-factoring.md` is updated in the two places that attributed the two homs to
+  `UC.Factor`, and `UC.agda`'s module inventory moves them to the `UC.Seam.Grounded`
+  entry.
+
+### 2 — `UC.Seam.Carry.Graded` merged into `UC.Seam.Carry` (`71f83eba`)
+
+`adv-at` and `adv-from-runs` moved verbatim next to the `private shift`/`Reads`/
+`one-sided` block they duplicated; `Carry/Graded.agda` is deleted (88 LOC), `Carry.agda`
+grows 96 → 126, net −58. `UC.Asymptotic.Family` is the only importer and now takes
+`adv-from-runs` from `Carry`. Warm: `Carry` 8.8 s → 8.7 s, `Asymptotic.Family` 15.1 s →
+14.9 s.
+
+- **`agree-to-adv`'s `PrAgree` argument is now unused**, and this is the one judgement
+  call in the item. The wish is explicit that `agree-to-adv` should be `adv-from-runs` at
+  `λ _ → ε`, and `adv-from-runs` bottoms out in `adv-at`, which spends the CLOSED
+  `prAgree` (`Protocol.Machine.Agree`) rather than a hypothesis. The statement
+  `Adequacy → PrAgree → AgreeToAdv` is unchanged and the argument is bound as `_` with a
+  comment saying why it stays: `UC.Seam` names the two obligations and this module
+  answers that interface. If you would rather the hypothesis stayed honest, the
+  alternative is a `private` `PrAgree`-parameterized core with `adv-at = core prAgree`
+  and `agree-to-adv ad pa = … core pa …` — three lines back, and `agree-to-adv` would no
+  longer literally be `adv-from-runs` at a constant slack. Say which you prefer.
+- `docs/end-to-end.md`'s two references to the module follow.
+
+### 3 — `UC.Family`'s closing paragraph (`c54a429a`)
+
+Ten lines appended, nothing existing touched. The paragraph offered two routes and
+called both core redesigns; the first is now a fact and the second is now attributable:
+`UC.Family.Negligible` builds the second `Observation` on `Fam` with the qualitative core
+untouched (`UC.Core.Observation` asks only for an arbitrary equivalence), and what is
+still owed is the ε-RETAINING composition law — `UC.Asymptotic.Family.≤UC^ωⁿ-trans`
+composes two graded premises but composing one with a second protocol is `UC-compose`,
+inherited in the qualitative order, which spends the witness. Warm `UC.Family` 4.6 s →
+4.7 s; the edit invalidates ten downstream modules, which is the 45 s `CategoricalCrypto`
+re-elaboration in the closure row below.
+
+### Verification
+
+All runs `pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS` under plain
+`timeout`, rc=0 with an empty
+`ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|Heap exhausted`
+gate; per-module figures are forced warm (target `.agdai` deleted, one `Checking` line).
+Every touched module is in the table above; no module regressed (largest move is +0.2 s
+on `UC.Family`, inside noise, and the rest are flat or faster).
+
+Closure after each commit: `CategoricalCrypto` (11.5 s / 45.1 s after item 3),
+`CategoricalCrypto.UC`, `CategoricalCrypto.UC.Model`, and all twelve
+`Examples/ChimericLedger/` roots — `Audit`, `Birthday`, `Carry`, `EndToEnd`, `Factor`,
+`POV`, `Pin`, `Real`, `Schedule`, `Total`, `Trajectory`, `Value` (5-11 s each). The
+sibling-owned `Examples.MerkleDamgard` (34 s), `MerkleDamgard.Pin` and
+`Examples.RandomOracle` are green unchanged; none of them imports `UC.Seam.Grounded` or
+`UC.Seam.Carry`. Hatch grep over `src/`
+(`postulate|TERMINATING|primTrustMe|\{!`): **16 lines before, 16 after**, every one the
+words "postulate-free"/"No postulates" in an inherited `Categories/APROP/**` comment;
+zero live hatches before and after.
