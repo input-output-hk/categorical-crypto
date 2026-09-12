@@ -2659,3 +2659,130 @@ gate. Per-module warm figures are in `docs/graded-bridge.md`'s table.
 Hatch grep over `src/` (`postulate|TERMINATING|primTrustMe|\{!`): **16 lines
 before, 16 after**, every one the words "postulate-free" in an inherited
 `Categories/APROP/**` comment. Zero live hatches before and after.
+## Resolved (fcom-hiding)
+
+Branch `fcom-hiding`, off `protocol-rewrite` at `96946499`. The RO-model
+commitment against a corrupted RECEIVER: the machines at a nontrivial grade,
+the programming simulator, the closed hiding game and its ε, and the general
+deferred-sampling lemma the missing half needs. `docs/fcom-hiding.md` is the
+full write-up; this is the reviewer-facing digest.
+
+### What landed
+
+- **`GamePlaying/Defer.agda`** (new, 67 LOC) — `runWith-avg`, the averaged-run
+  induction: `Hop.runWith-bisim` with an average over a secret in front of one
+  side. Generic, no shape assumed on the state; `runWith-bisim` is its `V ≡ ⊤`
+  case, so `MerkleDamgard.Core.ideal-marginal` is an instance. Nothing in
+  `Examples/MerkleDamgard` was edited.
+- **`ProbabilisticLogic/Distribution/RationalDist/Expectation.agda`** (+7) —
+  `E-swap`, Fubini at `Dist-ℚ`, one line over the `lookupᴰℚ-swap` that already
+  existed in `RationalDist`. Additive, beside `Pr₁-bind`, mentions nothing of
+  this example; it is the `coin` case of `runWith-avg` and nothing else.
+- **`GamePlaying/Test.agda`** (+75) — `DeferMachine`, the acceptance instance:
+  a secret point, queries that do not look at it, one designated query that
+  does; planting it and drawing it there give the same run distribution.
+- **`Examples/ROCommitment/Hiding.agda`** (new, 218 LOC) — the hiding-side
+  interfaces, the honest committer, the programming simulator, and the ideal
+  functionality as a `wireᴹ` over the SAME `Resᴵ` (imported, not redefined).
+- **`Examples/ROCommitment/Hiding/Game.agda`** (new, 581 LOC) — three kernels
+  (`respRʰ` fixed `r`, `respLʰ` deferred `r`, `respIʰ` simulated ideal), the
+  coupling, two `StepBisim` instances, `rare-cert` + `guess-drift`,
+  `defer-commit` (the `runWith-avg` instance at this game), and
+  `hiding-bound : |Pr[ideal] − Pr[deferred-real]| ≤ m·2⁻ᵏ`.
+- **`Examples/ROCommitment/Hiding/UC.agda`** (new, 130 LOC) —
+  `realʰᵒ`/`idealʰᵒ`/`simʰᵒ` at the grade `ifaceᵒ Advᴵʰ`, `Certified 1` and
+  `QB 1`.
+- **`Examples/ROCommitment/Hiding/Asymptotic.agda`** (new, 41 LOC) —
+  `εʰ n q = q·2⁻ⁿ` and `NegligibleBound εʰ`.
+- **`Examples/ROCommitment/Hiding/Test.agda`** (new, 48 LOC) — the acceptance
+  instance at `k = 3`, an attack that queries the oracle at a guessed opening
+  point BEFORE the opening.
+
+No pre-existing statement was edited or weakened. The only two edits to
+existing modules are additive (`E-swap`; a third machine in `GamePlaying/Test`).
+The root index files are NOT wired — see "Needs your call".
+
+### The correction the branch owes the brief
+
+The brief prices the hiding proof as two hops, the first of them an EXACT
+deferred-sampling bisimulation. **It is not exact and cannot be**, and the
+counterexample is two queries: commit to `b`, then query two distinct points
+`b ∷ ρ₁ ≠ b ∷ ρ₂`. With a single `r` drawn at the commitment, at most one can
+name the committed point, so "both answered with the published digest" has
+probability 0; with the fresh per-query draw that `Potential.RareRaise` requires
+(a secret already in the state is hit with probability 1 — `docs/ro-game-hop.md`)
+the two tests are independent and that event has probability `2⁻²ᵏ`. The
+adversary holds the digest, so it can test exactly this.
+
+The consequence is that `docs/ro-game-hop.md`'s second horn ("or hop first to
+the lazy game") does not apply to a secret that is *read by the flag itself*;
+only the first horn (averaging over `r` at the top) does. The branch therefore
+delivers the hop that IS in reach, the general engine the averaging route needs,
+and `hiding-bound-defer` — a proved theorem turning the missing identification
+into the full statement with the gap as one typed hypothesis, never a postulate.
+
+### Needs your call
+
+- **`hiding-bound` compares `respIʰ` with `respLʰ`, not with `respRʰ`.**
+  `respRʰ` (the protocol that draws `r` at the commitment) is defined beside
+  them so the residual is typed against real definitions, and
+  `hiding-bound-defer` composes the two. The missing `ε′` and the three pieces
+  that would produce it (`defer-commit`, an averaged supermartingale
+  `badProb-avg`, an averaged FLGP) are written out in `docs/fcom-hiding.md`
+  §"Not delivered" 1, with a cheaper spike suggested first: prove that
+  `badProb` of a MONOTONE flag is the probability the flag is up at the END of
+  the run, after which the averaged bound is an ordinary `E`-linear
+  supermartingale on a rational potential and needs no family at all.
+- **The exact query ledger does not fit this simulator**, and the reason is
+  structural rather than an omission: `UC.QueryBound.Exact` weighs an
+  activation by a function of the LETTER, and whether an adversary query costs
+  a downward relay depends on whether its point is the PROGRAMMED one — a fact
+  about the state. `Certified 1` is the sharpest statement of this shape. The
+  extraction half's `simExactHash`/`simExactAll` have no analogue here.
+- **The machines are split over `Hiding.agda` and `Hiding/UC.agda`** rather
+  than all in `Hiding.agda` as the brief asks, mirroring the extraction half's
+  `ROCommitment.agda` / `ROCommitment/UC.agda` split and keeping the Seal
+  imports off the machine module. Say the word and they merge.
+- **Root wiring is not done.** `src/CategoricalCrypto.agda` and
+  `src/CategoricalCrypto/UC.agda` belong to the `graded-bridge` sibling this
+  arc. Four `open import` lines close the branch, all in
+  `src/CategoricalCrypto.agda`: `CategoricalCrypto.GamePlaying.Defer` beside
+  its three `GamePlaying` siblings, and the three leaves
+  `Examples.ROCommitment.Hiding.{Asymptotic,Test,UC}` beside the extraction
+  half's three (`.Asymptotic` and `.Test` reach `.Game`, `.UC` reaches
+  `Hiding` itself, so the other two modules need no line of their own). The
+  inventory comment at its line 21 and `UC.agda`'s at its line 115 both name
+  `Examples.ROCommitment.*` and want one clause added for the hiding half.
+
+### Wishes recorded, not acted on
+
+- **`uniformᵖ` belongs beside `coinₚ`**, in `ProbabilisticLogic.Dp.Coin` (or a
+  `Dp.Uniform`), not in `Examples/ROCommitment/Hiding.agda` — it is
+  general-purpose (`(n : ℕ) → Dₚ (Vec Bool n)`, `n` biased coins) and rule 27
+  says so. `ProbabilisticLogic/Dp/**` is the `graded-bridge` sibling's this
+  arc, so it was left in place with a pointer.
+- **`Examples/ROCommitment/Game.agda:fetchT` should be hoisted.** The hiding
+  game needs the same lazily sampled oracle and defines its own `fetchʰ` (four
+  lines) rather than importing the whole extraction game for it. When the two
+  halves are next touched together, one `fetch` in a shared
+  `Examples/ROCommitment/Oracle.agda` beside `Extraction.agda` serves both, and
+  `lookup-here` goes with it.
+- **`Examples/ROCommitment.agda`'s `Honᴵ` has `Neg Honᴵ = ⊥`**, which forced
+  the hiding half to name its environment-facing port differently
+  (`Honᴵʰ = HonAʰ ⇿ HonQʰ`) rather than reuse it. That is correct as it stands
+  — the honest party is the receiver there and the committer here, and they
+  really are different ports — but the two names sit side by side in the same
+  example and a reader will ask. Nothing to change unless you want a
+  `docs/`-level pointer in `ROCommitment.agda`'s header.
+
+### Verification
+
+All runs `pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS` under
+plain `timeout`, rc=0 with an empty
+`ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|Heap exhausted`
+gate. Per-module warm figures are in `docs/fcom-hiding.md`'s table.
+
+Hatch grep over `src/`
+(`postulate|TERMINATING|NON_TERMINATING|primTrustMe|trustMe|NO_POSITIVITY|NO_TERMINATION|--no-safe|TRUSTME|\{!|\?\?`):
+**16 lines before, 16 after**, every one the words "postulate-free" in an
+inherited `Categories/APROP/**` comment. Zero live hatches before and after.

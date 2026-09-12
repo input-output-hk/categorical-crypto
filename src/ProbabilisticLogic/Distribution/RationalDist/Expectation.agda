@@ -54,6 +54,12 @@ E-bind μ h P = lookupᴰℚ-bind (entries μ) (λ a → entries (h a)) P
 Pr₁-bind : (μ : Dist-ℚ A) (k : A → Dist-ℚ Bool) → Pr₁ (μ >>=ᴹ k) ≡ E μ (λ a → Pr₁ (k a))
 Pr₁-bind μ k = lookupᴰℚ-bind (entries μ) (λ a → entries (k a)) bool→ℚ
 
+-- Fubini: independent expectations commute.  Two `Dist-ℚ`s never share a
+-- sample, so nesting them in either order weighs the same integrand.
+E-swap : (μ : Dist-ℚ A) (ν : Dist-ℚ B) (P : A → B → ℚ)
+       → E μ (λ a → E ν (P a)) ≡ E ν (λ b → E μ (λ a → P a b))
+E-swap μ ν = lookupᴰℚ-swap (entries μ) (entries ν)
+
 0≤bool : ∀ b → 0ℚ ≤ℚ bool→ℚ b
 0≤bool true  = 0≤1ℚ
 0≤bool false = ≤-refl
