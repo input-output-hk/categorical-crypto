@@ -32,7 +32,8 @@ open import CategoricalCrypto.UC.Machine using (Proc; T₁ᴵ; a⇒ᴵ; subᴵ�
 open import CategoricalCrypto.UC.Machine.Dictionary using (𝟭ᴵ)
 open import CategoricalCrypto.UC.Machine.Plug using (plugᴹ)
 open import CategoricalCrypto.UC.Model.Enrichment using (procᵘ)
-open import CategoricalCrypto.UC.Model.Graded using (ext-gradedᵒ; graded₂ᵒ; plug-gradedᵒ; sub-gradedᵒ; ≈ᴹ⇒≈ᵍ)
+open import CategoricalCrypto.UC.Model.Graded
+  using (ext-gradedᵒ; graded₂ᵒ; graded₂-∘ᵒ; plug-gradedᵒ; sub-gradedᵒ; sub-graded₂ᵒ; ≈ᴹ⇒≈ᵍ)
 open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; ifaceᵒ; procᵒ; 𝔾ᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 
@@ -67,9 +68,7 @@ plug-graded = plug-gradedᵒ
 -- …and the reading a COMPOSED system needs: `UC.Asymptotic.Compose._∙ᶠ_` is
 -- `ext X k ∘ f`, and `ext` is `μ ∘ T₁` (`μT`) with `μ` the associator
 -- (`CurriedTensor.Properties.μ-α⇐`), so a stage plugged on top of a graded
--- image is again one machine composite.  Nothing consumes this yet:
--- `docs/coin-toss.md` §5 is why the two-level emulation it exists for stops
--- elsewhere.
+-- image is again one machine composite.
 ext-graded : {P : Iface} (k : Proc B (P ⊗ᴵ C)) (f : Proc A (X ⊗ᴵ B))
            → ext (ifaceᵒ X) (gradedᵒ k) ∘ gradedᵒ f
              ≈ graded₂ᵒ (M._∘_ (a⇒ᴵ {X} {P} {C}) (M._∘_ (T₁ᴵ X k) f))
@@ -78,6 +77,18 @@ ext-graded {X = X} k f =
                                       (∘-resp-≈ (μ-α⇐ 𝔾ᵒ (ifaceᵒ X) _)
                                                 (T₁-⊗ 𝔾ᵒ (ifaceᵒ X) (gradedᵒ k)))))
               (Equiv.trans assoc (ext-gradedᵒ k f))
+
+-- …the domain of such a system closed off by a process plugged under it,
+-- which is what puts a comparison at a CLOSED domain (`docs/coin-toss.md` §5).
+graded₂-∘ : {A′ P : Iface} (f : Proc A′ ((X ⊗ᴵ P) ⊗ᴵ C)) (g : Proc A A′)
+          → graded₂ᵒ f ∘ procᵒ g ≈ graded₂ᵒ (M._∘_ f g)
+graded₂-∘ = graded₂-∘ᵒ
+
+-- …and a JOINT simulator in front of it: one machine facing both halves of
+-- the composed grade, where `sub-graded`'s simulator faces one interface.
+sub-graded₂ : {P : Iface} (s : Proc Y (X ⊗ᴵ P)) (g : Proc A (Y ⊗ᴵ C))
+            → sub (gradedᵒ s) ∘ gradedᵒ g ≈ graded₂ᵒ (M._∘_ (subᴵ′ s) g)
+sub-graded₂ = sub-graded₂ᵒ
 
 emulᵍ : {f : Proc A (X ⊗ᴵ B)} {s : Proc Y X} {g : Proc A (Y ⊗ᴵ B)}
       → Factors f s g → gradedᵒ f ≈ᵁ sub (procᵒ s) ∘ gradedᵒ g

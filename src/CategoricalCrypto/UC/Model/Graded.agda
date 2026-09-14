@@ -10,17 +10,18 @@
 -- respects the machine equality, and that the grading's `sub` acting on it is
 -- the machine-layer relay `subᴵ` composed with it.
 --
--- `graded₂ᵒ`/`ext-gradedᵒ` are the same pair for a stage plugged ON TOP of such
--- a hom, which is what `UC.Asymptotic.Compose._∙ᶠ_` builds: its grade is a
--- tensor, so it needs its own coercion, and its composite is again one machine
--- composite.
+-- `graded₂ᵒ` and the four exports around it are the same facts for a stage
+-- plugged ON TOP of such a hom, which is what `UC.Asymptotic.Compose._∙ᶠ_`
+-- builds: its grade is a tensor, so it needs its own coercion, and composing
+-- a closed process under it, a joint simulator in front of it, or a stage over
+-- it each leaves one machine composite.
 --
 -- The two below them are the same exports for an adversary machine FILLING
 -- that grade, whose own coercion `procᵘ` is `UC.Model.Enrichment`'s (it is
 -- inseparable from its certificate there): `plug-gradedᵒ` is what says the
 -- filled grade is a machine composite.
 --
--- All six are `UC.Model.Seal`'s third discipline (export from inside, one
+-- All nine are `UC.Model.Seal`'s third discipline (export from inside, one
 -- export per shape).  The statements are written in the bundle's own vocabulary
 -- rather than in `StdUC`'s, because `unfolding 𝔾ᵒ` in a module that opens
 -- `StdUC` is the 12 GiB configuration `UC.Model.Enrichment`'s header records;
@@ -68,6 +69,23 @@ opaque
   graded₂ᵒ : {A X P C : Iface} → Proc A ((X ⊗ᴵ P) ⊗ᴵ C)
            → ifaceᵒ A G.⇒ (ifaceᵒ X G.⊗₀ ifaceᵒ P) G.⊗₀ ifaceᵒ C
   graded₂ᵒ f = f
+
+  ≈ᴹ⇒≈ᵍ₂ : {A X P C : Iface} {f g : Proc A ((X ⊗ᴵ P) ⊗ᴵ C)}
+         → 𝒢ₚ 0ℓ [ f ≈ g ] → graded₂ᵒ f G.≈ graded₂ᵒ g
+  ≈ᴹ⇒≈ᵍ₂ e = e
+
+  -- A closed process plugged UNDER such a hom: the domain becomes the unit
+  -- interface and the whole is again one machine composite.
+  graded₂-∘ᵒ : {A A′ X P C : Iface} (f : Proc A′ ((X ⊗ᴵ P) ⊗ᴵ C)) (g : Proc A A′)
+             → (graded₂ᵒ f G.∘ procᵒ g) G.≈ graded₂ᵒ (M._∘_ f g)
+  graded₂-∘ᵒ _ _ = G.Equiv.refl
+
+  -- `sub-gradedᵒ` at a simulator whose own codomain is a tensor, which is what
+  -- a JOINT simulator for a composed system is (`docs/coin-toss.md` §5).
+  sub-graded₂ᵒ : {A X P Y C : Iface} (s : Proc Y (X ⊗ᴵ P)) (g : Proc A (Y ⊗ᴵ C))
+               → ((gradedᵒ s G.⊗₁ G.id {ifaceᵒ C}) G.∘ gradedᵒ g)
+                 G.≈ graded₂ᵒ (M._∘_ (subᴵ′ {Y} {X ⊗ᴵ P} {C} s) g)
+  sub-graded₂ᵒ s g = G.∘-resp-≈ˡ (G.Equiv.sym (sub-⊗₁ s))
 
   -- …and a stage plugged ON TOP of a graded image, which is what
   -- `UC.Asymptotic.Compose._∙ᶠ_` is: `ext X k ∘ f`, with `ext` read as
