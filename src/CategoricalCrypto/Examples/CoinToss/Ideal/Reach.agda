@@ -99,6 +99,8 @@ stateᶜ = record { obj = CSt ; point = λ _ → returnₚ (preᶜ []) ; discard
 coinᶜ′ : Proc unitᴵ Cⁱ
 coinᶜ′ = mk stateᶜ cStep
 
--- …and at the bracket `_∙ᶠ_`'s associator leaves the grade in.
+-- …and at the bracket `_∙ᶠ_`'s associator leaves the grade in.  `(λ a → a)`
+-- and not `id`: this has to be the SAME term `UC.Machine.Wire.wire-∘ᴹ`
+-- produces, and neither side reduces at a variable.
 coinᶜ : Proc unitᴵ Cᵗ
 coinᶜ = sandwichᴹ coinᶜ′ (Sum.map (λ a → a) ⊎assocʳ) (Sum.map (λ a → a) ⊎assocˡ)

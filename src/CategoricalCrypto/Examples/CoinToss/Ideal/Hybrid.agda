@@ -222,12 +222,6 @@ private
            ⟨≈⟩ honᴴ doneᵖ (t , just b₁) refusedᴴ
            ⟨≈⟩ bot-bind-≈ₚ _ )
 
-  reassoc : 𝒫._≈_ {unitᴵ} {Cᵗ} hybridᴹ
-              (𝒫._∘_ {unitᴵ} {Cⁱ} {Cᵗ} a⇒ᴵ
-                (𝒫._∘_ {unitᴵ} {Lkᴵ ⊗ᴵ Honᴵ} {Cⁱ} stageᴴ resᴵᵈ))
-  reassoc = 𝒫.assoc
-       S.○ᴹ 𝒫.∘-resp-≈ʳ (𝒫.assoc S.○ᴹ 𝒫.∘-resp-≈ʳ (wire-∘ᴹ upᶠ downᶠ resource))
-
 hyb-sim : coinᶜ′ S.≲ Hᴺ
 hyb-sim = S.sim (K.pureᵏ θᴴ) (KP.structural θᴴ)
                 (λ r → >>=ₚ-identityˡ (θᴴ r) _
@@ -240,6 +234,18 @@ hyb-sim = S.sim (K.pureᵏ θᴴ) (KP.structural θᴴ)
                 (λ z → bindᶠ (Pw.⊗-pureˡ θᴴ) ⟨≈⟩ hybStep (proj₁ z) (proj₂ z)
                    ⟨≈⟩ ≈sym ( bindˣ (Pw.⊗-pureˡ θᴴ z)
                           ⟨≈⟩ >>=ₚ-identityˡ (θᴴ (proj₁ z) , proj₂ z) _))
+
+------------------------------------------------------------------------
+-- …and the composite, read as `coinᶜ`
+
+private
+  -- The two wires the composite carries — `_∙ᶠ_`'s associator on top and the
+  -- ideal functionality itself — cost no trace.
+  reassoc : 𝒫._≈_ {unitᴵ} {Cᵗ} hybridᴹ
+              (𝒫._∘_ {unitᴵ} {Cⁱ} {Cᵗ} a⇒ᴵ
+                (𝒫._∘_ {unitᴵ} {Lkᴵ ⊗ᴵ Honᴵ} {Cⁱ} stageᴴ resᴵᵈ))
+  reassoc = 𝒫.assoc
+       S.○ᴹ 𝒫.∘-resp-≈ʳ (𝒫.assoc S.○ᴹ 𝒫.∘-resp-≈ʳ (wire-∘ᴹ upᶠ downᶠ resource))
 
 hybrid-eq : 𝒫._≈_ {unitᴵ} {Cᵗ} hybridᴹ coinᶜ
 hybrid-eq = reassoc
