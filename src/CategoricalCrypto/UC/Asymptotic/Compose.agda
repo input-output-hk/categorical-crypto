@@ -209,6 +209,51 @@ _∙ᶠ_ {X = X} k f n = ext (X n) (k n) ∘ f n
           Obs ((E′ ∘ prefixᵒ U (v n)) ∘ m′)
   inner = hy n U E′ m′ qE′ qm′
 
+-- Plugging a process under the DOMAIN, where `≈ctx-pre` plugs one under the
+-- SUBROUTINE.  The closure absorbs it and at rate `0` that is free: the
+-- closure's budget becomes `(0 ⊔ 1) * c′`, which `ctxBudget` reads as `c′`
+-- itself, so the schedule is unchanged and no `Allowance-mono` is spent.  This
+-- is what puts a comparison at a CLOSED domain, with the resource the two
+-- sides must agree about moved out of the context's control
+-- (`docs/coin-toss.md` §5).
+≈ctx-dom : {A′ : ℕ → Channel} (p : (n : ℕ) → A′ n ⇒ A n) → ((n : ℕ) → QB 0 (p n))
+         → (ε : ℕ → ℕ → ℚ) {u v : Homᶠ A X B} → u ≈ctx[ ε ] v
+         → (λ n → u n ∘ p n) ≈ctx[ ε ] (λ n → v n ∘ p n)
+≈ctx-dom {A = A} {X = X} {B = B} p qp ε {u} {v} hy n W E m {c} {c′} qE qm =
+  ≈ₚ[]-resp (obs-resp (⟺ (cut (u n)))) (obs-resp (⟺ (cut (v n)))) inner
+  where
+  m′ : 𝟘ᵒ ⇒ T₀ W (A n)
+  m′ = T₁ W (p n) ∘ m
+
+  cut : (x : A n ⇒ T₀ (X n) (B n))
+      → (E ∘ prefixᵒ W (x ∘ p n)) ∘ m ≈ (E ∘ prefixᵒ W x) ∘ m′
+  cut x = begin
+      (E ∘ prefixᵒ W (x ∘ p n)) ∘ m
+        ≈⟨ (refl⟩∘⟨ (refl⟩∘⟨ T-homomorphism)) ⟩∘⟨refl ⟩
+      (E ∘ (μ W (X n) ∘ (T₁ W x ∘ T₁ W (p n)))) ∘ m
+        ≈⟨ (refl⟩∘⟨ sym-assoc) ⟩∘⟨refl ⟩
+      (E ∘ ((μ W (X n) ∘ T₁ W x) ∘ T₁ W (p n))) ∘ m
+        ≈⟨ sym-assoc ⟩∘⟨refl ⟩
+      ((E ∘ prefixᵒ W x) ∘ T₁ W (p n)) ∘ m
+        ≈⟨ assoc ⟩
+      (E ∘ prefixᵒ W x) ∘ m′  ∎
+
+  qm′ : QB (1 ℕ.* c′) m′
+  qm′ = qb-∘ (qb-resp-≈ (Equiv.sym (T₁-⊗ 𝔾ᵒ W (p n))) (qb-T₁ {W} (qp n))) qm
+
+  inner : Obs ((E ∘ prefixᵒ W (u n)) ∘ m′) ≈ₚ[ ε n (ctxBudget c c′) ]
+          Obs ((E ∘ prefixᵒ W (v n)) ∘ m′)
+  inner = subst (λ j → Obs ((E ∘ prefixᵒ W (u n)) ∘ m′) ≈ₚ[ ε n (ctxBudget c j) ]
+                       Obs ((E ∘ prefixᵒ W (v n)) ∘ m′))
+                (*-identityˡ c′) (hy n W E m′ qE qm′)
+
+-- …hence on a whole witness, with the simulator and the schedule untouched.
+≤UC^ωᵉ-dom : {A′ : ℕ → Channel} (p : (n : ℕ) → A′ n ⇒ A n) → ((n : ℕ) → QB 0 (p n))
+           → {f : Homᶠ A X B} {g : Homᶠ A Y B} → f ≤UC^ωᵉ g
+           → (λ n → f n ∘ p n) ≤UC^ωᵉ (λ n → g n ∘ p n)
+≤UC^ωᵉ-dom p qp (s , ε , neg , e) =
+  s , ε , neg , ≈ctx-resp ε (λ _ → Equiv.refl) (λ _ → assoc) (≈ctx-dom p qp ε e)
+
 ------------------------------------------------------------------------
 -- Graded composition
 

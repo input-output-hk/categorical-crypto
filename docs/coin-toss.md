@@ -1,27 +1,35 @@
-# Blum coin-tossing over `F_com`: the `UC-composeᵉ` showcase, and where it stops
+# Blum coin-tossing over `F_com`, and the second hop to an ideal coin
 
-Branch `coin-toss`, off `protocol-rewrite` at `587999b5`. Paths are relative to
-`src/CategoricalCrypto/` unless prefixed.
+Branches `coin-toss` (first hop) and `coin-hybrid` (second), off
+`protocol-rewrite`. Paths are relative to `src/CategoricalCrypto/` unless
+prefixed.
 
-Nothing in the repository exercised `UC-compose` on a concrete protocol. This
-branch does: **Blum coin-tossing run over the hash-based commitment emulates
-Blum coin-tossing run over the ideal `F_com`, with the commitment's own ε
-carried through the composition and every certificate the composition theorem
-demands proved rather than assumed.** One theorem per corruption case.
+Nothing in the repository exercised `UC-compose` on a concrete protocol. §1–§4
+do: **Blum coin-tossing run over the hash-based commitment emulates Blum
+coin-tossing run over the ideal `F_com`, with the commitment's own ε carried
+through the composition and every certificate the composition theorem demands
+proved rather than assumed.** One theorem per corruption case.
 
-What it does **not** do is reach an ideal coin functionality. That is a second
-hop, it is the one a textbook writes, and §5 shows it is **false as
-`UC-composeᵉ` would have to consume it** and **unprovable at this domain in the
-shape that is true**. The reason is structural and is the most useful thing
-here: the wire placement of an ideal functionality — the decision that makes a
-ONE-level emulation affordable (`docs/hash-forward.md`,
-`docs/fcom-extraction.md`) — puts that functionality's memory in the CONTEXT,
-and a second protocol stacked on top has to trust it.
+§5 is the **second hop**, the one a textbook writes: **the same system emulates
+an IDEAL COIN, exactly**, for the corrupted committer. Two things had to be
+settled first, and they are the useful content. The shape `UC-composeᵉ` would
+consume is FALSE — its simulator is a tensor and cannot see the committed bit.
+The shape that is true needs a JOINT simulator, and a joint simulator can only
+be compared where the ideal functionality's memory is not the CONTEXT's to
+choose: the wire placement that makes a one-level emulation affordable
+(`docs/hash-forward.md`, `docs/fcom-extraction.md`) is exactly what forces the
+second level's comparison boundary to be CLOSED. Closing it turns out to be
+free.
 
-Everything outside §5 is a checked term. Hatches in `src/` stay at their
-baseline of zero (`grep -rnE 'postulate|TERMINATING|primTrustMe|\{!' src/`:
-**16 before, 16 after**, all 16 the words "postulate-free" in inherited
-comments).
+The corrupted-RECEIVER half of the second hop is **not** delivered, and §5's
+last subsection locates the obstruction exactly: there the coin is drawn in one
+activation and combined with the adversary's share in another, so the
+correspondence is a deferred sampling and no state map — hence no
+`Machines.Sim._≲_` — expresses it.
+
+Everything here is a checked term. Hatches in `src/` stay at their baseline of
+zero (`grep -rnE 'postulate|TERMINATING|primTrustMe|\{!' src/`: **16 before, 16
+after**, all 16 the words "postulate-free" in inherited comments).
 
 ## 1. The placement, and the interface algebra
 
@@ -105,6 +113,7 @@ the other.
 | `tossʰ` | `CoinToss/Hiding.agda:97` | the corrupt-receiver case's stage |
 | `tossʰCert` | `CoinToss/Hiding/UC.agda:51` | **`Certified 1 tossʰ`** |
 | `comCert` | `:113` | **`Certified 1 realʰ`** — `Hiding`'s honest committer |
+| `simJCert` | `CoinToss/Ideal/UC.agda:62` | **`Certified 1 simJ`** — §5's joint simulator |
 
 `tossCert` at rate **0** is the statement that the extraction half's stage makes
 no downward call whatever: `Neg Honᴵ` is empty, so no output of `toss` can be
@@ -224,6 +233,10 @@ composition beyond the `q ↦ q * 1` the floor already charges.
 * `bias-round` (`:103`) computes one live run of it, so the words the trace
   statement quantifies over are inhabited by an attack that reaches the
   opening — `Examples.HashForward.UC.sim-round`'s role, same chain.
+* `ideal-bound` (`:71`) is the same ceiling for the WHOLE statement, §5's hop
+  included, and `coin-round`/`sim-round` (`:80`, `:90`) are the two live runs
+  that hop rests on: the ideal coin leaking before it delivers, and the joint
+  simulator publishing the share that lands the toss on that bit.
 
 **The `F_com` premise at this instance is still the abstract one.** What the
 repository has at `k = 3` is the CLOSED-GAME bound
@@ -232,10 +245,11 @@ reactive kernels; the UC relation `coin-toss-from-comᶜ` takes is the one
 `docs/fcom-extraction.md` §1 calls `raw-emulation`, and it is not proved at any
 `k`.
 
-## 5. The second hop: not delivered, and why
+## 5. The second hop: to an ideal coin, at a CLOSED boundary
 
-The statement this branch does not make is "the coin toss over `F_com` emulates
-an ideal coin functionality". Two shapes are available for it and both stop.
+"The coin toss over `F_com` emulates an ideal coin functionality." Two shapes
+are available for it: one is false, the other is true and is delivered for the
+corrupted committer.
 
 ### Form A — as `UC-composeᵉ` would consume it — is FALSE
 
@@ -263,53 +277,23 @@ the `openedᴴ` argument — i.e. for every ideal coin functionality. An `F` tha
 does read the `openedᴴ` argument and outputs `b₁ xor share` is the protocol
 again, and the statement is vacuous.
 
-### Form B — the correct shape — is the true one, and is blocked twice
+### Form B — the correct shape — keeps the grade and makes the simulator JOINT
 
-The statement a textbook makes keeps the subroutine's adversary interface in the
-hybrid world's grade, so the simulator is JOINT:
+The statement a textbook makes keeps the subroutine's adversary interface in
+the hybrid world's grade, so the simulator faces BOTH halves of that grade at
+once. `UC-composeᵉ` is then not the vehicle at all: the hop is a plain
+`_≤UC^ωᵉ_` witness, and `≤UC^ωᵉ-trans` puts it after §3's.
 
-```agda
--- Typed residual, not built and not postulated.
-F_coinᶠ     : Homᶠ Resᶠ Lkᶜᶠ Honᶜᶠ                        -- gradedᵒ of a Proc Resᴵ (Lkᴵᶜ ⊗ᴵ Honᴵᶜ)
-coin-hybrid : Σ[ s ∈ Certified Lkᶜᶠ (λ n → Lkᶠ n ⊗₀ Advᶜᶠ n) ]
-                ((n : ℕ) → (tossᶠ ∙ᶠ idealᶠ) n ≈ sub (sim s n) ∘ F_coinᶠ n)
-            → (tossᶠ ∙ᶠ idealᶠ) ≤UC^ωᵉ F_coinᶠ
-coin-toss-ideal : realᶠ ≤UC^ωᵉ idealᶠ → (tossᶠ ∙ᶠ realᶠ) ≤UC^ωᵉ F_coinᶠ
-coin-toss-ideal w = ≤UC^ωᵉ-trans (coin-toss-from-com w) (coin-hybrid …)
-```
+#### Why the comparison boundary has to be CLOSED
 
-The ASSEMBLY is already available — `≤UC^ωᵉ-trans` is one line and §3's theorem
-is the first hop — so nothing about the composition layer is missing. What is
-missing is `coin-hybrid`'s machine equality, and two separate things block it.
-
-**(B1) `_∙ᶠ_` had no machine reading — DELIVERED.** `sub (procᵒ s) ∘ gradedᵒ g`
-is `gradedᵒ (subᴵ′ s ∘ g)` by `UC.Model.Graded.sub-gradedᵒ`; there was no
-counterpart for `ext X (gradedᵒ k) ∘ gradedᵒ f`, which is what `_∙ᶠ_` is. Two
-exports now supply it, in `sub-gradedᵒ`'s own shape and beside it:
-
-```agda
-graded₂ᵒ    : {A X P C : Iface} → Proc A ((X ⊗ᴵ P) ⊗ᴵ C)
-            → ifaceᵒ A G.⇒ (ifaceᵒ X G.⊗₀ ifaceᵒ P) G.⊗₀ ifaceᵒ C
-ext-gradedᵒ : {A B C P X : Iface} (k : Proc B (P ⊗ᴵ C)) (f : Proc A (X ⊗ᴵ B))
-            → (G.associator.to G.∘ ((G.id {ifaceᵒ X} G.⊗₁ gradedᵒ k) G.∘ gradedᵒ f))
-              G.≈ graded₂ᵒ (a⇒ᴵ M.∘ (T₁ᴵ X k M.∘ f))
-```
-
-(`UC/Model/Graded.agda:68`, `:77`), and `UC.Graded.ext-graded` (`:73`) is the
-reading in the grading's own vocabulary, joined to `ext` outside the seal by
-`GradedKleisli.μT` (`ext u k ≈ μ u v ∘ T₁ u k`) and
-`CurriedTensor.Properties.μ-α⇐` / `T₁-⊗`, over the machine readings
-`UC.Machine.Dictionary.a⇒-α⇐` and `T₁-⊗₁`. So a statement about a COMPOSED
-system CAN now be read back as a machine equality; nothing consumes it yet,
-because (B2) is what actually stops this example.
-
-**(B2) `F_com`'s ideal functionality keeps its memory in the CONTEXT.** That is
+`F_com`'s ideal functionality keeps its memory in the CONTEXT. That is
 `docs/fcom-extraction.md`'s cell-in-the-resource decision, and it is what makes
 `ideal` a `wireᴹ` and the extraction example affordable at all. But
 `_≈ctx[_]_`'s closure `m : 𝟘ᵒ ⇒ T₀ W (ifaceᵒ Resᴵ)` is universally quantified,
-so **nothing says the cell returns the bit it was given**. The coin toss's
-output reads that bit; an ideal coin's output must not. Counterexample: let `m`
-answer every `getᴿ` with `outᴿ true` whatever was stored.
+so at the open domain `Resᴵ` **nothing says the cell returns the bit it was
+given**. The coin toss's output reads that bit; an ideal coin's output must
+not. Counterexample: let `m` answer every `getᴿ` with `outᴿ true` whatever was
+stored.
 
 * Hybrid (`tossᶠ ∙ᶠ idealᶠ`): the adversary commits `b₁` through the grade,
   `putᴿ b₁` goes down and is ignored, the stage publishes `shareᴬ b₂`, the
@@ -320,33 +304,179 @@ answer every `getᴿ` with `outᴿ true` whatever was stored.
   determined by the share the simulator published — which is what "ideal coin"
   forbids.
 
-Restricting `m` to a faithful cell means plugging `Examples.ROCommitment.Resource`
-below, i.e. a CLOSED domain. Then the real side is
-`stage ∘ wire ∘ resource` and the ideal side `subᴵ sim ∘ F_coin ∘ resource`, and
-both are ⊕-traces of two STATEFUL machines after the wire is absorbed — exactly
-the obstruction `docs/hash-forward.md` §"The one structural fact that makes it
-affordable" prices: `UC.Machine.Wire.∘-wireᴹ` needs one factor to be a wire and
-a lazily sampled oracle is not, and `Protocol.Machine.Compose.morphism-∘` needs
-both to be `morphism` images and neither is.
+So the second level has to be handed the first level's memory rather than
+quantify over it: plug `Examples.ROCommitment.Resource.resource` under both
+sides and compare at the CLOSED domain.
 
-**The finding, in one sentence.** The wire placement of an ideal functionality,
-which is what makes a one-level emulation affordable, is exactly what makes a
-two-level one unstateable at an open domain: the second level has to trust the
-first level's memory, and at an open domain that memory belongs to the context.
-Both repairs — a stateful `F_com` ideal functionality, or a closed domain with
-the concrete resource — bottom out in the SAME missing machine-layer lemma, a
-readable form for the ⊕-trace of two stateful machines where neither is a
-`morphism` image.
+#### …and closing it is free
+
+```agda
+≈ctx-dom   : (p : (n : ℕ) → A′ n ⇒ A n) → ((n : ℕ) → QB 0 (p n))
+           → (ε) → u ≈ctx[ ε ] v → (λ n → u n ∘ p n) ≈ctx[ ε ] (λ n → v n ∘ p n)
+≤UC^ωᵉ-dom : (p) → ((n : ℕ) → QB 0 (p n)) → f ≤UC^ωᵉ g
+           → (λ n → f n ∘ p n) ≤UC^ωᵉ (λ n → g n ∘ p n)
+```
+
+(`UC/Asymptotic/Compose.agda:219`, `:251`.) The closure absorbs `p`, so its
+budget becomes `(0 ⊔ 1) * c′` — and `ctxBudget` GUARDS its closure leg at
+`_⊔ 1` rather than multiplying by it, so a factor the guard swallows costs the
+allowance nothing. The schedule is **unchanged** and no `Allowance-mono` is
+spent anywhere in the second hop.
+
+That is the route taken, in preference to instantiating `UC-composeᵉ` with the
+resource as its inner realization. Both work; the `UC-composeᵉ` one would put
+the resource's own trivial grade in front of the composed one
+(`𝟙 ⊗ (Lk ⊗ Advᶜ)` instead of `Lk ⊗ Advᶜ`), read the outer schedule at a
+`simCost` substitution, and need `Allowance-mono` on it. `≈ctx-dom` leaves the
+grade, the schedule and the premise alone, and its proof is six lines of
+`T-homomorphism` plus one `*-identityˡ`.
+
+#### The ideal coin, and what it leaks
+
+```agda
+data CoinQ : Set where sampleᵏ deliverᵏ abortᵏ : CoinQ
+data CoinR : Set where coinᵏ : Bool → CoinR
+Lkᴵᶜ  = CoinR ⇿ CoinQ                                      -- Ideal.agda:64
+Fcoin : Proc unitᴵ (Lkᴵᶜ ⊗ᴵ Honᴵᶜ)                          -- :93
+```
+
+`sampleᵏ` draws the bit ONCE and hands it to the simulator; only then does
+`deliverᵏ` release it to the honest party, or `abortᵏ` refuse. The leak is not
+a weakness of the statement but its content: Blum's corrupted committer sees
+the honest share before it decides whether to open, so the coin is unfair in
+Cleve's sense and a FAIR ideal coin has no simulator at all. Off-protocol
+activations — a second `sampleᵏ`, a `deliverᵏ` before one — are `botₚ`, as in
+`Examples.ROCommitment.Resource`.
+
+#### The joint simulator
+
+`simJ : Proc Lkᴵᶜ (Lkᴵ ⊗ᴵ Advᴵᶜ)` (`Ideal.agda:150`) is exactly what Form A
+cannot build: one machine on both halves of the hybrid's grade. It runs the
+random oracle ITSELF — the table is its state, nothing sits below it but the
+coin — answers `hashˢ`, buys the coin at `commitˢ b₁` and publishes
+`shareᴬ (b₁ xor c)`, which is what makes the hybrid's `b₁ xor share` land on
+`c`. Its certificate is `Certified 1` (`Ideal/UC.agda:62`): one downward
+`Lkᴵᶜ` message per activation from above, constantly-zero potential, exactly
+`recvCert`'s shape.
+
+#### The machine equality
+
+```agda
+coin-machine : ((a⇒ᴵ ∘ (T₁ᴵ Lkᴵ toss ∘ ideal)) ∘ resource) ≈ᴹ (subᴵ′ simJ ∘ Fcoin)
+```
+
+(`Ideal/Machine.agda:256`.) Both sides are ⊕-traces of two STATEFUL machines,
+so `UC.Machine.Wire.∘-wireᴹ` does not apply — the obstruction
+`docs/hash-forward.md` §"The one structural fact that makes it affordable"
+prices. What does apply is `UC.QueryBound.Compose.Step`'s reading of a
+`𝒢ₚ`-composite, which existed already for the query-bound walk and is now
+public: `Nᶜ` is the composite as ONE machine with the product state, `unfoldᶜ`
+the six equations for its solved loop, `eq-∘ᶜ` the equality to the category's
+composite (`:102`, `:189`, `:219`). Nothing here unrolls a trace.
+
+The two sides' loop objects differ — `Lkᴵ ⊗ᴵ Honᴵ` against `Lkᴵᶜ ⊗ᴵ Honᴵᶜ` —
+so no simulation runs between them. `Reach.coinᶜ` (`:103`) is a THIRD machine
+naming the reachable configurations, with a simulation into each; that is
+`Protocol.Machine.Compose`'s `machineᶜ` method at a loop that unrolls twice
+instead of recursively. A third machine is not a convenience:
+`(heldᵖ b₂ , (t , nothing))` — the stage holding a share over an empty cell —
+is unreachable, but a total state map has to place it, and it refuses `openˢ`
+while answering `failˢ` with `abortedᶜ`, which no state of the ideal side does.
+
+The two state maps are
+`θᴴ (midᶜ t b₁ b₂) = (heldᵖ b₂ , (t , just b₁))` (`Hybrid.agda:93`) and
+`θᴵ (midᶜ t b₁ b₂) = (midʲ t , heldᵏ (b₁ xor b₂))` (`Machine.agda:84`), and
+everything they have to match is a `returnₚ` except ONE activation. At
+`commitˢ b₁` the hybrid samples the SHARE `b₂` and the ideal side samples the
+COIN `c`, publishing `b₁ xor c`; the two step distributions agree only after
+reindexing along the flip. That is `ProbabilisticLogic.Dp.Coin.coin-flip`: a
+coin whose two branch masses agree is blind to precomposing its branch
+function with `not`, because `_≈ₚ_` compares cumulative masses and not
+branches. It is the one-time pad in the delay monad, and it is the one
+non-structural step in the whole hop.
+
+#### Crossing the seal
+
+`UC.Graded` gains three readings beside `ext-graded`, all
+`UC.Model.Seal`-discipline exports from inside the `opaque` block: `≈ᴹ⇒≈ᵍ₂`
+carries a machine equality at a TENSOR grade across, `graded₂-∘` plugs a
+closed process under such a hom, `sub-graded₂` puts a joint simulator in front
+of one (`UC/Model/Graded.agda:73`, `:79`, `:85`;
+`UC/Graded.agda:83`, `:89`). `Ideal/UC.agda:150`'s `coin-hop` is `coin-machine`
+through exactly those three and nothing else.
+
+#### The theorems, and the error
+
+```agda
+coin-hybridᵉ     : (λ n → (tossᶠ ∙ᶠ idealᶠ) n ∘ resᶠ n) ≤UC^ωᵉ Fcoinᶠ      -- :64
+coin-toss-ideal  : realᶠ ≤UC^ωᵉ idealᶠ
+                 → (λ n → (tossᶠ ∙ᶠ realᶠ) n ∘ resᶠ n) ≤UC^ωᵉ Fcoinᶠ      -- :67
+coin-toss-idealᶜ : realᶠ ≈ctx[ εᶜ ] subᶠ comSim idealᶠ
+                 → (λ n → (tossᶠ ∙ᶠ realᶠ) n ∘ resᶠ n) ≤UC^ωᵉ Fcoinᶠ      -- :88
+schedule-pinⁱ    : proj₁ (proj₂ (coin-toss-ideal w)) ≡ εᶜⁱ (proj₁ (proj₂ w))
+ideal-ε          : εᶜⁱ εᶜ n q ≡ fromℕ (q * q + q + q) *ℚ inv-pow-2 n       -- :92
+```
+
+(`Ideal/Compose.agda`.) The premise is the SAME one §3 takes — the
+commitment's UC-level ε-statement, an argument and not a postulate. The second
+hop is exact, so `≤UC^ωᵉ-trans`'s sum reads `εᶜᵗ ε n q + 0ℚ`: reindexing the
+second schedule at `simCost q (cost s₁ n)` changes nothing when that schedule
+is constantly `0ℚ`. The closed form is therefore §3's, unrescaled —
+**`(q² + 2q)·2⁻ⁿ`** — and `Test.agda:71` evaluates it at `k = q = 3`.
+
+### …and the corrupted RECEIVER does not follow
+
+`Examples.CoinToss.Hiding`'s half is NOT delivered, and the reason is not
+budget. Run its hybrid — `tossʰ` over `idealʰ` over `resource` — at the
+activation sequence
+
+1. `goᶜ`         (the environment starts the honest committer)
+2. `shareᴬʰ b₂`  (the corrupted receiver sends its share)
+3. `getᶜ`        (the environment collects)
+
+The outputs are `rcptᶠ`, `bitᶠ b₁`, `tossedᶜʰ (b₁ xor b₂)` with `b₁` drawn at
+step 1. An ideal coin's must be `rcptᶠ`, `bitᶠ (c xor b₂)`, `tossedᶜʰ c` with
+`c` the functionality's own bit. The two distributions ARE equal — substitute
+`c = b₁ xor b₂` — but that bijection depends on `b₂`, which the environment
+chooses at step 2, AFTER the draw.
+
+`Machines.Sim`'s equality cannot see it. A `_≲_`'s state map is a function of
+the state alone and its step equation is quantified over every input, so a
+direct map would need `γ (b₁) xor b₂ = b₁` for BOTH `b₂`. The invariant that
+kills every chain is finer: a hybrid state reached after `goᶜ` fixes the
+letter at `shareᴬʰ b₂` as `bitᶠ b₁`, CONSTANT in `b₂`, where an ideal state
+fixes it as `bitᶠ (c xor b₂)`, which is not; a `≲` preserves that letter
+function exactly, and the two post-`goᶜ` mixtures over states must match, so
+some hybrid state has to be identified with some ideal one. Neither a common
+machine below (its step at `shareᴬʰ b₂` would be one point mass matching two
+different letters) nor one above (the two mixtures force the identification,
+and both pairings fail — `¬v xor b₂ = v` holds at `b₂ = true` and fails at
+`b₂ = false`) escapes it. Deferring the draw to step 2 does not either: a
+point mass and a uniform mixture are not related by `≲` in either direction.
+
+So the corrupted-receiver hop is a DEFERRED SAMPLING, and `≈ᴹ` — the
+equivalence closure of state simulations — has no way to move a draw across an
+activation. `GamePlaying.Defer` is where the repo does have that argument, one
+layer up in `Dist-ℚ` over `Strategy`, and reaching it from here needs the
+game-layer bridge `docs/graded-bridge.md` builds, not a new machine lemma. The
+extraction half escapes because its draw and its use land in the SAME
+activation (`commitˢ b₁` both samples and publishes), which is exactly what
+`coin-flip` settles.
+
+Because that second instance does not exist, nothing was hoisted out of the
+first: the chain lemmas `hearᴴ`/`lkᴴ`/`honᴴ` and `upᴵ`/`downᴵ`/`backᴵ`/`honᴵ`
+stay in their own modules, where a reuse-free generalization would be
+speculative.
 
 ### What this does not touch
 
-`Abstract2.UC-compose`, `UC.Asymptotic.Compose` and the `_≈ctx[_]_` relation are
-untouched and unweakened; §5 is a statement about what can be PUT IN them at
-this example's placement, not about them. No `Simulator`, `Monitor` or
-`MonitoredExperiment` record and no new category appears anywhere on the branch
-(`docs/uc-presheaf-preservation-plan.md` §1 decisions 1-6); the only new `data`
-declarations are the two protocols' message types and their states, and the two
-new records inhabited are `UC.QueryBound`'s existing `QBᵢ`.
+`Abstract2.UC-compose` and the `_≈ctx[_]_` relation are untouched and
+unweakened; `UC.Asymptotic.Compose` gains `≈ctx-dom`/`≤UC^ωᵉ-dom` and nothing
+is changed in it. No `Simulator`, `Monitor` or `MonitoredExperiment` record and
+no new category appears anywhere (`docs/uc-presheaf-preservation-plan.md` §1
+decisions 1-6); the new `data` declarations are the protocols' message types
+and their states plus the ideal coin's port, and the only records inhabited are
+`UC.QueryBound`'s existing `QBᵢ` and `Machines.Sim`'s `_≲_`.
 
 ## 6. Module costs
 
@@ -362,34 +492,54 @@ floor is in every figure.
 | `Examples.CoinToss.Hiding` | 99 | 9.4 s | 85 s |
 | `Examples.CoinToss.Hiding.UC` | 180 | 11.2 s | 105 s |
 | `Examples.CoinToss.Compose` | 164 | 11.0 s | 101 s |
-| `Examples.CoinToss.Test` | 125 | 10.7 s | 91 s |
-| `UC.Model.Graded` | 73 → 92 | 10.1 s → 11.5 s | 83 s |
-| `UC.Graded` | 72 → 88 | 9.7 s → 9.8 s | 82 s |
+| `Examples.CoinToss.Test` | 125 → 175 | 10.7 s → 10.6 s | 103 s |
+| `Examples.CoinToss.Ideal` | 152 | 9.0 s | 98 s |
+| `Examples.CoinToss.Ideal.Reach` | 104 | 9.6 s | 86 s |
+| `Examples.CoinToss.Ideal.Hybrid` | 248 | 12.4 s | 122 s |
+| `Examples.CoinToss.Ideal.Machine` | 258 | 13.2 s | 124 s |
+| `Examples.CoinToss.Ideal.UC` | 156 | 10.4 s | 99 s |
+| `Examples.CoinToss.Ideal.Compose` | 93 | 10.9 s | 83 s |
+| `ProbabilisticLogic.Dp.Coin` | 75 → 122 | 5.9 s | 90 s |
+| `UC.Asymptotic.Compose` | 278 → 322 | 10.8 s | 140 s |
+| `UC.Model.Graded` | 92 → 115 | 11.0 s | 88 s |
+| `UC.Graded` | 88 → 101 | 9.7 s | 85 s |
+| `UC.QueryBound.Compose.Step` | 212 → 227 | 10.3 s | 116 s |
 
-The two `Graded` rows are the only edits to existing modules, and both are
-additive; their before/after is measured on the same forced-warm basis
-(`.agdai` deleted, one `Checking` line each).
+Every edit to an existing module is additive; every figure is a forced-warm
+run (`.agdai` deleted, one `Checking` line each).
 
-Closure: `src/CategoricalCrypto.agda` rc=0 in 144 s over 113 modules with an
-empty gate, `Examples/ChimericLedger/FactorEps.agda` — the other `UC-composeᵉ`
-consumer, outside that closure — and `UC/Approximate/LocalTests.agda` likewise.
+**One measured perf defect, and its fix.** `Ideal.Hybrid`'s `hashᴴ` first read
+its `lookupPt t x` with `with … in …`, and the module then took **3 m 22 s**
+against **10 s** without it. `with` normalises the goal to find the scrutinee,
+and this goal names the composite's step, which unfolds through the ⊕-trace;
+the scrutinee is an explicit argument instead and the branch equations come
+from `rewrite` inside the small `hashᶜ-hit`/`hashᶜ-miss` lemmas, whose goals do
+not mention the trace. Both `hashᴴ` and `hashᴵ` are written that way.
+
+Closure: `src/CategoricalCrypto.agda` and `src/CategoricalCrypto/UC.agda` rc=0
+with an empty gate, and `Examples/ChimericLedger/FactorEps.agda` — the other
+`UC-composeᵉ` consumer, outside that closure — and
+`UC/Approximate/LocalTests.agda` likewise.
 
 ## 7. Root-file wiring
 
 Done on the branch, not left to the maintainer:
 
-* `src/CategoricalCrypto.agda` gains `Examples.CoinToss.Compose` and
-  `Examples.CoinToss.Test` (which between them reach the other four) and an
-  inventory paragraph beside `Examples.ROCommitment.*`'s.
-* `src/CategoricalCrypto/UC.agda`'s `UC.Asymptotic.Compose` row now names its
-  two consumers. No `UC.*` module is new; `UC.Model.Graded` and `UC.Graded`
-  gain the §5 (B1) exports and are already re-exported by `UC.agda`.
+* `src/CategoricalCrypto.agda` gains `Examples.CoinToss.Compose`,
+  `Examples.CoinToss.Ideal.Compose` and `Examples.CoinToss.Test` (which between
+  them reach the other eight) and an inventory paragraph beside
+  `Examples.ROCommitment.*`'s.
+* `src/CategoricalCrypto/UC.agda`'s `UC.Asymptotic.Compose`, `UC.Graded` and
+  `UC.QueryBound` rows name the new exports and their consumers. No `UC.*`
+  module is new; `UC.Model.Graded`, `UC.Graded`, `UC.Asymptotic.Compose` and
+  `UC.QueryBound.Compose.Step` are already re-exported or reachable from
+  `UC.agda`.
 
 ## 8. Not delivered, precisely
 
-1. **The second hop**, §5 — Form A refuted; Form B's bookkeeping half
-   (`ext-gradedᵒ`/`ext-graded`) delivered, its substantive half — a
-   trustworthy `F_com` memory — not.
+1. **The corrupted-RECEIVER second hop**, §5's last subsection: a deferred
+   sampling, which `Machines.Sim`'s equality cannot express. The extraction
+   half is delivered in full.
 2. **No `≤UC` / `≤UC[ c ]` form of the composed statement.**
    `UC.Graded.≤UCᵍ` and `UC.Seam.Graded.≤UC[]ᵍ` consume a `Factors` — an exact
    machine equality — and the composed statement is approximate, exactly as
@@ -407,9 +557,12 @@ Done on the branch, not left to the maintainer:
    was simply not needed by anything: `UC-composeᵉ` reads a `QB`.
 5. **No `Proc`-level `qb-oneCall`.** `UC.QueryBound.qb-oneCall` is where
    `docs/ledger-lift-eps.md` §9 item 3 asked for it, but it is stated at
-   `morphism P` for a `Protocol A B`, and all four machines certified here are
-   raw ones (`docs/hash-forward.md` item 5), so all four write the amortised
+   `morphism P` for a `Protocol A B`, and all five machines certified here are
+   raw ones (`docs/hash-forward.md` item 5), so all five write the amortised
    certificate out by hand. A `Proc`-level analogue — "every activation from
    above emits at most one downward message and nothing is owed afterwards",
    which is what a constantly-zero potential says — would collapse
-   `tossʰCert`, `recvCert` and `comCert` to one line each.
+   `tossʰCert`, `recvCert`, `comCert` and `simJCert` to one line each.
+6. **No closed-game bound for the ideal coin either.** `Test`'s
+   `coin-round`/`sim-round` are live runs of the two new machines, not a
+   probability statement; item 3 covers both hops.
