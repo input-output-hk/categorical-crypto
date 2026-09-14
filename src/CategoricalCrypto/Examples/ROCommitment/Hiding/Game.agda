@@ -13,11 +13,12 @@
 -- flag is raised by a FRESH uniform draw at each query and `Potential.rare-cert`
 -- with `guess-drift` bounds it by `m·2⁻ᵏ`.
 --
--- `respRʰ` is defined beside them but NOT identified with `respLʰ`: that is the
--- residual `docs/fcom-hiding.md` states and prices.  `hiding-bound-defer` is
--- the theorem that turns it into the full statement, and `defer-commit` — an
--- instance of `GamePlaying.Defer.runWith-avg` — is the half of the residual
--- that IS exact, the real game's own draw moved to the start of the run.
+-- `respRʰ` is defined beside them but NOT identified with `respLʰ`: the two
+-- draw the opening randomness at different moments, which is an ε-hop of its
+-- own and is `Hiding.Defer`'s.  `hiding-bound-defer` is the assembly it feeds,
+-- and `defer-commit` — an instance of `GamePlaying.Defer.runWith-avg` — is the
+-- half of that hop which IS exact, the real game's own draw moved to the start
+-- of the run.
 
 open import Class.DecEq
 
