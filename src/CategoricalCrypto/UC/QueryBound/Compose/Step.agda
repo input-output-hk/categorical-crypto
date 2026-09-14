@@ -7,7 +7,13 @@
 -- Category record; congruence is paid by the hom-level closure in
 -- `Compose.Laws`, not by this concrete step.  Measured warm cost: 10.1 s;
 -- rebuilding this module does not rebuild the 94 s congruence module.
+--
+-- `Nᶜ`/`unfoldᶜ`/`eq-∘ᶜ` are the reusable half: any consumer that has to read a
+-- composite's behaviour off — not just one certifying it — gets the composite
+-- as one product-state machine plus the six equations, and unrolls no trace.
+-- `Examples.CoinToss.Ideal.Machine` is the second consumer.
 
+open import Categories.Category using (Category)
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
 import Categories.Category.Monoidal.Distributive as MD
 
@@ -24,7 +30,7 @@ open import ProbabilisticLogic.Dp.Reasoning
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
   using (𝒱ₚ; distₚ; 𝒫ₚ; Elgotₚ)
-open import CategoricalCrypto.UC.Machine using (Proc)
+open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ)
 open import CategoricalCrypto.UC.QueryBound using (Certified; QB)
 open import CategoricalCrypto.UC.QueryBound.Compose using (module Compose)
 
@@ -37,6 +43,7 @@ module CategoricalCrypto.UC.QueryBound.Compose.Step where
 private
   module V  = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
   module VD = MD.MonoidalDistributive (distₚ 0ℓ)
+  module 𝒫  = Category 𝒫ᴵ
 
 open Core (𝒱ₚ 0ℓ)
 open Trace (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
@@ -77,35 +84,37 @@ module _ (A B C : Iface) where
 
   module _ (g : Proc B C) (f : Proc A B) where
 
+    Sg = St g
+    Sf = St f
+
+    Sᶜ : Col.MC.State
+    Sᶜ = Col.Sᴳ g f
+
+    stepg = step g
+    stepf = step f
+
+    bodyStep : (Sg × Sf) × ((Pos A ⊎ Neg C) ⊎ (Neg B ⊎ Pos B))
+             → Dₚ ((Sg × Sf) × ((Neg A ⊎ Pos C) ⊎ (Neg B ⊎ Pos B)))
+    bodyStep = Col.kᴳ g f
+
+    -- The composite as ONE traced machine with product state: what a consumer
+    -- reading a `𝒢ₚ`-composite off gets, and what `unfoldᶜ` below describes.
+    Nᶜ : Proc A C
+    Nᶜ = Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
+           (Col.MC.mk (Col.Sᴳ g f) (Col.kᴳ g f))
+
+    pointᶜ = point Sᶜ tt
+    stepᶜ  = step Nᶜ
+
+    solveᶜ = solve Sᶜ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B) bodyStep
+
+    module CP = Compose {A} {B} {C} Sg Sf (point (state g) tt) (point (state f) tt)
+                        pointᶜ stepg stepf stepᶜ solveᶜ
+
     private
-      Sg = St g
-      Sf = St f
-
-      Sᶜ : Col.MC.State
-      Sᶜ = Col.Sᴳ g f
-
-      stepg = step g
-      stepf = step f
-
-      bodyStep : (Sg × Sf) × ((Pos A ⊎ Neg C) ⊎ (Neg B ⊎ Pos B))
-               → Dₚ ((Sg × Sf) × ((Neg A ⊎ Pos C) ⊎ (Neg B ⊎ Pos B)))
-      bodyStep = Col.kᴳ g f
-
       Bd : Col.MC.Machine ((Pos A ⊎ Neg C) ⊎ (Neg B ⊎ Pos B))
                           ((Neg A ⊎ Pos C) ⊎ (Neg B ⊎ Pos B))
       Bd = Col.MC.mk Sᶜ bodyStep
-
-      Nᶜ : Proc A C
-      Nᶜ = Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
-             (Col.MC.mk (Col.Sᴳ g f) (Col.kᴳ g f))
-
-      pointᶜ = point Sᶜ tt
-      stepᶜ  = step Nᶜ
-
-      solveᶜ = solve Sᶜ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B) bodyStep
-
-      module CP = Compose {A} {B} {C} Sg Sf (point (state g) tt) (point (state f) tt)
-                          pointᶜ stepg stepf stepᶜ solveᶜ
 
       ----------------------------------------------------------------
       -- The two factors' steps, inside the composite's
@@ -177,8 +186,8 @@ module _ (A B C : Iface) where
       resumedG sg sf u = bind-map (stepg (sg , u)) (padG sf) solveᶜ
                      ⟨≈⟩ bindᶠ (λ r → ≈sym (resumeG-pad sf r))
 
-      unfoldᶜ : CP.Unfolding
-      unfoldᶜ = record
+    unfoldᶜ : CP.Unfolding
+    unfoldᶜ = record
         { point-eq  = >>=ₚ-identityˡ (tt , tt) (point (state g) V.⊗₁ point (state f))
         ; step-L    = λ sg sf a →
               step-in (sg , sf) (inj₁ a)
@@ -199,11 +208,17 @@ module _ (A B C : Iface) where
           ⟨≈⟩ resumedG sg sf (inj₁ q)
         }
 
-      eqᶜ : Nᶜ Col.S.≈ᴹ
-              Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
-                (Col.W.α Col.MC.∘ᴹ ((g Col.T.⊗ᵉ f) Col.MC.∘ᴹ Col.W.γ))
-      eqᶜ = Col.S.⟺ᴹ
-        (Col.collapseᵀ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C} g f)
+    eqᶜ : Nᶜ Col.S.≈ᴹ
+            Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
+              (Col.W.α Col.MC.∘ᴹ ((g Col.T.⊗ᵉ f) Col.MC.∘ᴹ Col.W.γ))
+    eqᶜ = Col.S.⟺ᴹ
+      (Col.collapseᵀ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C} g f)
+
+    -- …and the composite in the category's own vocabulary, which is the form a
+    -- consumer's goal names.
+    eq-∘ᶜ : Nᶜ Col.S.≈ᴹ (𝒫._∘_ {A} {B} {C} g f)
+    eq-∘ᶜ = eqᶜ Col.S.○ᴹ
+            Col.compose-raw≈∘ᴳ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C} g f
 
     qbᵢ-∘ : {c c′ : ℕ} → Certified {B} {C} c g → Certified {A} {B} c′ f
           → QB {A} {C} (c ℕ.* c′)
