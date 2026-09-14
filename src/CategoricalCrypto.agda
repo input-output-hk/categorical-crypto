@@ -24,10 +24,11 @@
 -- the acceptance instance (`.Test`).  Three leaves because the game layer and
 -- the machine layer do not meet yet — `docs/fcom-extraction.md` says where.
 -- `Examples.ROCommitment.Hiding.*` is the other half, the corrupted receiver,
--- with the same three leaves (`docs/fcom-hiding.md`); its deferred-sampling
--- engine is `GamePlaying.Defer`.  `.Transport` is the fourth leaf: the two
--- layers DO meet at the concrete resource, off `Protocol.Machine.Raw`
--- (`docs/dp-transport.md`).
+-- with the same three leaves plus `.Defer`, the hop to the protocol itself
+-- (`docs/fcom-hiding.md`); its deferred-sampling engines are
+-- `GamePlaying.Defer` and `GamePlaying.Average`.  `.Transport` is the fourth
+-- leaf: the two layers DO meet at the concrete resource, off
+-- `Protocol.Machine.Raw` (`docs/dp-transport.md`).
 --
 -- `Examples.CoinToss.*` is the first consumer of the composition theorem on a
 -- real protocol: Blum coin-tossing over `Examples.ROCommitment`, one composed
@@ -66,6 +67,7 @@ open import CategoricalCrypto.SFunPartial public
 open import CategoricalCrypto.SFunPossibility
 open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.GamePlaying
+open import CategoricalCrypto.GamePlaying.Average
 open import CategoricalCrypto.GamePlaying.Defer
 open import CategoricalCrypto.GamePlaying.Hop
 open import CategoricalCrypto.GamePlaying.Partial
@@ -96,6 +98,7 @@ open import CategoricalCrypto.Examples.CoinToss.Compose
 open import CategoricalCrypto.Examples.CoinToss.Test
 open import CategoricalCrypto.Examples.ROCommitment.Asymptotic
 open import CategoricalCrypto.Examples.ROCommitment.Hiding.Asymptotic
+open import CategoricalCrypto.Examples.ROCommitment.Hiding.Defer
 open import CategoricalCrypto.Examples.ROCommitment.Hiding.Test
 open import CategoricalCrypto.Examples.ROCommitment.Hiding.UC
 open import CategoricalCrypto.Examples.ROCommitment.Resource
