@@ -32,8 +32,12 @@
 -- `Examples.CoinToss.*` is the first consumer of the composition theorem on a
 -- real protocol: Blum coin-tossing over `Examples.ROCommitment`, one composed
 -- statement per corruption case, with the commitment's own ε carried through
--- (`.Compose`) and the biasing attack it bounds (`.Test`).  The second hop —
--- emulating an ideal coin — is NOT here and `docs/coin-toss.md` says why.
+-- (`.Compose`) and the biasing attack it bounds (`.Test`).  `.Ideal.*` is the
+-- second hop, to an ideal coin: the functionality and the joint simulator
+-- (`.Ideal`), the machine equality between the two worlds
+-- (`.Ideal.Reach`/`.Hybrid`/`.Machine`), and the whole statement at a CLOSED
+-- comparison boundary (`.Ideal.Compose`) — `docs/coin-toss.md` says why that
+-- boundary has to be closed.
 --
 -- Outside still, each with its own root: the protocol-layer examples
 -- (`Examples.ChimericLedger`, `Examples.MerkleDamgard`) and the inherited
@@ -93,6 +97,7 @@ open import CategoricalCrypto.Examples.RandomOracle
 open import CategoricalCrypto.Examples.HashForward.Audit
 open import CategoricalCrypto.Examples.HashForward.Resource
 open import CategoricalCrypto.Examples.CoinToss.Compose
+open import CategoricalCrypto.Examples.CoinToss.Ideal.Compose
 open import CategoricalCrypto.Examples.CoinToss.Test
 open import CategoricalCrypto.Examples.ROCommitment.Asymptotic
 open import CategoricalCrypto.Examples.ROCommitment.Hiding.Asymptotic

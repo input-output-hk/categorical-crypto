@@ -72,7 +72,11 @@
 --                                  `UC.QueryBound.Compose{,.Step,.Laws}` is
 --                                  where it multiplies along composition, which
 --                                  `UC.Machine.Budget` feeds to the resource
---                                  doctrine.  Only the counting theorem is
+--                                  doctrine; `.Step`'s `Nᶜ`/`unfoldᶜ`/`eq-∘ᶜ`
+--                                  are also how a consumer reads a composite's
+--                                  BEHAVIOUR off without unrolling a trace
+--                                  (`Examples.CoinToss.Ideal.Hybrid`).  Only
+--                                  the counting theorem is
 --                                  re-exported below: the composition line
 --                                  spends the `Proc` inversion per field (its
 --                                  headers carry the measured costs), which no
@@ -128,7 +132,12 @@
 --                                  (both corruption halves, `.Hiding` the
 --                                  receiver's) — same images and the same
 --                                  certificates, with the error priced in
---                                  `GamePlaying`
+--                                  `GamePlaying`.  `ext-graded`, `graded₂-∘`
+--                                  and `sub-graded₂` are the same readings for
+--                                  a COMPOSED system — a stage on top, a
+--                                  closed process under, a joint simulator in
+--                                  front — which `Examples.CoinToss.Ideal.UC`
+--                                  consumes
 --                `UC.Factor`       `factorᵖ`/`liftᵖ`: the UC-object image of
 --                                  `_∘ᵖ_` factors on the nose, so a
 --                                  sub-protocol emulation lifts to the
@@ -174,11 +183,16 @@
 --                                  its composition laws with the error
 --                                  retained: `≤UC^ωᵉ-trans` and `UC-composeᵉ`,
 --                                  each with its exact allowance substitution
---                                  (`docs/quantitative-family.md`).  Its two
---                                  consumers are `ChimericLedger.FactorEps`,
---                                  which lifts a premise through a factoring,
---                                  and `Examples.CoinToss.Compose`, which
---                                  stacks a protocol on a realized one
+--                                  (`docs/quantitative-family.md`), and
+--                                  `≈ctx-dom`/`≤UC^ωᵉ-dom`, which plug a
+--                                  rate-zero process under the domain for
+--                                  free.  Its consumers are
+--                                  `ChimericLedger.FactorEps`, which lifts a
+--                                  premise through a factoring,
+--                                  `Examples.CoinToss.Compose`, which stacks a
+--                                  protocol on a realized one, and
+--                                  `Examples.CoinToss.Ideal.Compose`, which
+--                                  closes the comparison boundary
 --
 -- The parameterized modules take a `UCBase` and so are imported directly
 -- rather than re-exported here; `UC.Machine.ucBaseᴹ` is the one to feed them at

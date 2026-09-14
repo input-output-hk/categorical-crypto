@@ -14,8 +14,13 @@
 -- `bias-round` is the witness that the word the trace statement quantifies
 -- over is inhabited by a live run — `Examples.HashForward.UC.sim-round`'s role
 -- here, and the same chain.
+--
+-- The SECOND hop adds nothing to that ceiling (`ideal-bound`), and its two
+-- live rounds say what it rests on: the ideal coin leaks its bit before it
+-- delivers it, and the joint simulator publishes exactly the share that makes
+-- the hybrid's `b₁ xor share` land on that bit.
 
-open import Data.Bool.Base using (Bool; true)
+open import Data.Bool.Base using (Bool; true; _xor_)
 open import Data.Empty using (⊥)
 open import Data.List.Base using (List; []; _∷_)
 open import Data.Product.Base using (_×_; _,_)
@@ -44,6 +49,8 @@ module CategoricalCrypto.Examples.CoinToss.Test where
 
 open import CategoricalCrypto.Examples.CoinToss 3
 open import CategoricalCrypto.Examples.CoinToss.Compose using (composed-ε; εᶜᵗ)
+open import CategoricalCrypto.Examples.CoinToss.Ideal 3
+open import CategoricalCrypto.Examples.CoinToss.Ideal.Compose using (ideal-ε; εᶜⁱ)
 open import CategoricalCrypto.Examples.ROCommitment 3
 open import CategoricalCrypto.Examples.ROCommitment.Asymptotic using (εᶜ)
 open import CategoricalCrypto.Examples.ROCommitment.Extraction 3 using (Dig; Pt)
@@ -58,6 +65,50 @@ open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 -- the coin-toss stage costs the test one activation and no more.
 attack-bound : εᶜᵗ εᶜ 3 3 ≡ fromℕ 15 *ℚ inv-pow-2 3
 attack-bound = composed-ε 3 3
+
+-- …and the same ceiling for the whole statement: the hop to the ideal coin is
+-- exact, so it contributes `0ℚ`.
+ideal-bound : εᶜⁱ εᶜ 3 3 ≡ fromℕ 15 *ℚ inv-pow-2 3
+ideal-bound = ideal-ε 3 3
+
+------------------------------------------------------------------------
+-- The ideal coin, and the simulator that lands the toss on it
+
+-- `sampleᵏ` draws the bit and hands it over; only then does `deliverᵏ` release
+-- it to the honest party.  That order is what makes Blum's protocol
+-- simulatable at all (`Examples.CoinToss.Ideal`).
+coin-round : (c : Bool)
+           → traceᵍ {unitᴵ} {Lkᴵᶜ ⊗ᴵ Honᴵᶜ} FSt (returnₚ freshᵏ) coinStep (heldᵏ c)
+               (inj₂ (inj₁ deliverᵏ) ∷ [])
+             ≈ₚ returnₚ (inj₂ (inj₂ (tossedᶜ c)) ∷ [])
+coin-round c = >>=ₚ-identityˡ (doneᵏ , inj₂ (inj₂ (tossedᶜ c))) _
+           ⟨≈⟩ >>=ₚ-identityˡ [] _
+
+-- The joint simulator's round: told `commitˢ b₁` it buys the coin, told the
+-- coin `c` it publishes `shareᴬ (b₁ xor c)` — the share that forces the
+-- hybrid's output `b₁ xor share` to be `c` — and told `openˢ` it delivers.
+sim-round : (b₁ c : Bool)
+          → behᵍ {Lkᴵᶜ} {Lkᴵ ⊗ᴵ Advᴵᶜ} JSt (returnₚ (preʲ [])) jStep
+              (inj₂ (inj₁ (commitˢ b₁)) ∷ inj₁ (coinᵏ c) ∷ inj₂ (inj₁ openˢ) ∷ [])
+            ≈ₚ returnₚ ( inj₁ sampleᵏ
+                       ∷ inj₂ (inj₂ (shareᴬ (b₁ xor c)))
+                       ∷ inj₁ deliverᵏ ∷ [] )
+sim-round b₁ c =
+    >>=ₚ-identityˡ (preʲ []) _
+  ⟨≈⟩ >>=ₚ-identityˡ (askʲ [] b₁ , inj₁ sampleᵏ) _
+  ⟨≈⟩ map-arg _ afterCoin
+  ⟨≈⟩ >>=ₚ-identityˡ _ _
+  where
+  afterOpen : traceᵍ {Lkᴵᶜ} {Lkᴵ ⊗ᴵ Advᴵᶜ} JSt (returnₚ (preʲ [])) jStep (midʲ [])
+                (inj₂ (inj₁ openˢ) ∷ [])
+              ≈ₚ returnₚ (inj₁ deliverᵏ ∷ [])
+  afterOpen = >>=ₚ-identityˡ (endʲ [] , inj₁ deliverᵏ) _ ⟨≈⟩ >>=ₚ-identityˡ [] _
+
+  afterCoin : traceᵍ {Lkᴵᶜ} {Lkᴵ ⊗ᴵ Advᴵᶜ} JSt (returnₚ (preʲ [])) jStep (askʲ [] b₁)
+                (inj₁ (coinᵏ c) ∷ inj₂ (inj₁ openˢ) ∷ [])
+              ≈ₚ returnₚ (inj₂ (inj₂ (shareᴬ (b₁ xor c))) ∷ inj₁ deliverᵏ ∷ [])
+  afterCoin = >>=ₚ-identityˡ (midʲ [] , inj₂ (inj₂ (shareᴬ (b₁ xor c)))) _
+            ⟨≈⟩ map-arg _ afterOpen ⟨≈⟩ >>=ₚ-identityˡ _ _
 
 ------------------------------------------------------------------------
 -- The attack
