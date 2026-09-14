@@ -26,8 +26,8 @@ record _≅ᴹ_ (M M' : Machine A B) : Type where
     from      : S' → S
     from∘to   : ∀ s → from (to s) ≡ s
     to∘from   : ∀ s' → to (from s') ≡ s'
-    step-to   : ∀ {s i o s'} → R s i o s' → R' (to s) i o (to s')
-    step-from : ∀ {s' i o s} → R' s' i o s → R (from s') i o (from s)
+    step-to   : ∀ {s₁ i o s₂} → R s₁ i o s₂ → R' (to s₁) i o (to s₂)
+    step-from : ∀ {s₁' i o s₂'} → R' s₁' i o s₂' → R (from s₁') i o (from s₂')
 
 open _≅ᴹ_
 
