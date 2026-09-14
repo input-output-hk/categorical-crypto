@@ -10,7 +10,7 @@ open import Data.List.Relation.Unary.All as ListAll using ()
 open import Data.Rational using (ℚ; 0ℚ; 1ℚ)
   renaming (_*_ to _*ℚ_; _+_ to _+ℚ_; _-_ to _-ℚ_; -_ to -ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
 open import Data.Rational.Properties using
-  (≤-refl; ≤-reflexive; ≤-trans; *-identityˡ; +-inverseʳ; 0≤p⇒∣p∣≡p; ∣-p∣≡∣p∣)
+  (≤-antisym; ≤-refl; ≤-reflexive; ≤-trans; *-identityˡ; +-inverseʳ; 0≤p⇒∣p∣≡p; ∣-p∣≡∣p∣)
 open import Data.Rational.Properties.Ext
 
 open import ProbabilisticLogic.Distribution.RationalDist
@@ -53,6 +53,14 @@ E-bind μ h P = lookupᴰℚ-bind (entries μ) (λ a → entries (h a)) P
 
 Pr₁-bind : (μ : Dist-ℚ A) (k : A → Dist-ℚ Bool) → Pr₁ (μ >>=ᴹ k) ≡ E μ (λ a → Pr₁ (k a))
 Pr₁-bind μ k = lookupᴰℚ-bind (entries μ) (λ a → entries (k a)) bool→ℚ
+
+-- Two independent draws and a function of both — the shape a reactive
+-- kernel's step takes, read at an arbitrary observable.
+E-bind₂ : (μ : Dist-ℚ A) (ν : Dist-ℚ B) (κ : A → B → C) (G : C → ℚ)
+        → E (μ >>=ᴹ λ a → ν >>=ᴹ λ b → return-ℚ (κ a b)) G ≡ E μ (λ a → E ν (λ b → G (κ a b)))
+E-bind₂ μ ν κ G = trans (E-bind μ (λ a → ν >>=ᴹ λ b → return-ℚ (κ a b)) G)
+  (lookupᴰℚ-cong-P (entries μ) (λ a → trans (E-bind ν (λ b → return-ℚ (κ a b)) G)
+    (lookupᴰℚ-cong-P (entries ν) (λ b → lookupᴰℚ-return (κ a b) G))))
 
 -- Fubini: independent expectations commute.  Two `Dist-ℚ`s never share a
 -- sample, so nesting them in either order weighs the same integrand.
@@ -135,6 +143,12 @@ E-mono-on μ f g = lookupᴰℚ-mono (entries μ) (weights-nn μ)
 E-mono : (μ : Dist-ℚ A) (f g : A → ℚ) → (∀ a → f a ≤ℚ g a) → E μ f ≤ℚ E μ g
 E-mono μ f g pt = E-mono-on μ f g
   (ListAll.universal (λ e → pt (proj₂ e)) (NE.toList (entries μ)))
+
+-- Congruence off the support is free, so `lookupᴰℚ-cong-P`'s pointwise
+-- hypothesis is more than an expectation needs.
+E-cong-on : (μ : Dist-ℚ A) (f g : A → ℚ) → OnSupport (λ a → f a ≡ g a) μ → E μ f ≡ E μ g
+E-cong-on μ f g sp = ≤-antisym (E-mono-on μ f g (ListAll.map ≤-reflexive sp))
+                               (E-mono-on μ g f (ListAll.map (≤-reflexive ∘ sym) sp))
 
 Pr₁≤1 : (μ : Dist-ℚ Bool) → Pr₁ μ ≤ℚ 1ℚ
 Pr₁≤1 μ = ≤-trans (E-mono μ bool→ℚ (λ _ → 1ℚ) b≤1) (≤-reflexive (E-const μ 1ℚ))
