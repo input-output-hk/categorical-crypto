@@ -336,8 +336,8 @@ grade, the schedule and the premise alone, and its proof is six lines of
 ```agda
 data CoinQ : Set where sampleᵏ deliverᵏ abortᵏ : CoinQ
 data CoinR : Set where coinᵏ : Bool → CoinR
-Lkᴵᶜ  = CoinR ⇿ CoinQ                                      -- Ideal.agda:65
-Fcoin : Proc unitᴵ (Lkᴵᶜ ⊗ᴵ Honᴵᶜ)                          -- :94
+Lkᴵᶜ  = CoinR ⇿ CoinQ                                      -- Ideal.agda:64
+Fcoin : Proc unitᴵ (Lkᴵᶜ ⊗ᴵ Honᴵᶜ)                          -- :93
 ```
 
 `sampleᵏ` draws the bit ONCE and hands it to the simulator; only then does
@@ -350,7 +350,7 @@ activations — a second `sampleᵏ`, a `deliverᵏ` before one — are `botₚ`
 
 #### The joint simulator
 
-`simJ : Proc Lkᴵᶜ (Lkᴵ ⊗ᴵ Advᴵᶜ)` (`Ideal.agda:151`) is exactly what Form A
+`simJ : Proc Lkᴵᶜ (Lkᴵ ⊗ᴵ Advᴵᶜ)` (`Ideal.agda:150`) is exactly what Form A
 cannot build: one machine on both halves of the hybrid's grade. It runs the
 random oracle ITSELF — the table is its state, nothing sits below it but the
 coin — answers `hashˢ`, buys the coin at `commitˢ b₁` and publishes
