@@ -293,6 +293,9 @@ Fresh : Comʰ → Dig → Tbl → Set
 Fresh nothing  r t = ∀ b → lookupPt t (b ∷ᵛ r) ≡ nothing
 Fresh (just _) _ _ = ⊤
 
+-- The two planted games, in step at the same plant.  It holds only while the
+-- flag is down — past that the coupling drops it and neither game has to be
+-- tracked inside the other.
 _≋J_ : StPʰ → StRʰ → Set
 (r , t , m , f) ≋J (mr , t′ , z) =
   (f ≡ false) × (mr ≡ just r) × (z ≡ recOf m r)
