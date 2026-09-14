@@ -30,8 +30,8 @@ open import Class.DecEq
 
 open import Data.Bool.Base using (Bool; false; true; _∧_; _∨_)
 open import Data.Bool.Properties using (∨-identityʳ)
-open import Data.Empty using (⊥; ⊥-elim)
-open import Data.List.Base using (List; []; _∷_)
+open import Data.Empty using (⊥)
+open import Data.List.Base using ([]; _∷_)
 open import Data.List.NonEmpty as NE using ()
 open import Data.List.Relation.Unary.All as ListAll using ()
 open import Data.Maybe.Base using (Maybe; just; nothing)
@@ -40,9 +40,8 @@ open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Rational using (ℚ; 0ℚ)
   renaming (_+_ to _+ℚ_; _*_ to _*ℚ_; _-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
 open import Data.Rational.Properties using
-  ( +-identityˡ; +-identityʳ; +-mono-≤; +-monoʳ-≤; +-monoˡ-≤; *-distribʳ-+; *-distribˡ-+
-  ; ≤-refl; ≤-reflexive; ≤-trans )
-open import Data.Rational.Properties.Ext using (0≤*)
+  ( +-identityˡ; +-identityʳ; +-mono-≤; +-monoʳ-≤; +-monoˡ-≤; *-distribʳ-+
+  ; *-distribˡ-+; ≤-reflexive; ≤-trans )
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Base using (⊤; tt)
 open import Data.Vec.Base using (head; tail) renaming (_∷_ to _∷ᵛ_)
@@ -64,7 +63,7 @@ open import ProbabilisticLogic.Distribution.Uniform using
 module CategoricalCrypto.Examples.ROCommitment.Hiding.Defer (k : ℕ) where
 
 open import CategoricalCrypto.Examples.ROCommitment.Extraction k using
-  (Dig; Pt; Tbl; lookup-here; lookupPt)
+  (Dig; Pt; Tbl; lookup-here; lookup-there; lookupPt)
 open import CategoricalCrypto.Examples.ROCommitment.Hiding.Game k
 open import CategoricalCrypto.Examples.ROCommitment.Oracle k
 
@@ -75,9 +74,6 @@ private
   os-any : {A : Set} (μ : Dist-ℚ A) → OnSupport (λ _ → ⊤) μ
   os-any μ = ListAll.universal (λ _ → tt) (NE.toList (entries μ))
 
-  ∨-split : (a b : Bool) → a ∨ b ≡ false → (a ≡ false) × (b ≡ false)
-  ∨-split false false _ = refl , refl
-
   ∨-≤ : (a b : Bool) → bool→ℚ (a ∨ b) ≤ℚ bool→ℚ a +ℚ bool→ℚ b
   ∨-≤ true  b = ≤-trans (≤-reflexive (sym (+-identityʳ (bool→ℚ true))))
                         (+-monoʳ-≤ (bool→ℚ true) (0≤bool b))
@@ -86,31 +82,6 @@ private
   ⌊⌋-false : {A : Set} ⦃ _ : DecEq A ⦄ {x y : A} → ⌊ x ≟ y ⌋ ≡ false → x ≢ y
   ⌊⌋-false {x = x} {y} eq with x ≟ y
   ... | no ne = ne
-
-lookup-∷-≢ : (x y : Pt) (d : Dig) (t : Tbl) → x ≢ y → lookupPt ((y , d) ∷ t) x ≡ lookupPt t x
-lookup-∷-≢ x y d t ne with x ≟ y
-... | yes e = ⊥-elim (ne e)
-... | no  _ = refl
-
-fetch-hit : {A : Set} (g : Tbl → A) (t : Tbl) (x : Pt) (d : Dig)
-          → lookupPt t x ≡ just d → fetchT g t x ≡ return-ℚ (g t , d)
-fetch-hit g t x d eq rewrite eq = refl
-
-fetch-miss : {A : Set} (g : Tbl → A) (t : Tbl) (x : Pt) → lookupPt t x ≡ nothing
-           → fetchT g t x ≡ (uniform-Vec k >>=ᴹ λ h → return-ℚ (g ((x , h) ∷ t) , h))
-fetch-miss g t x eq rewrite eq = refl
-
--- What one query leaves behind: either the point was tabulated and nothing
--- moved, or it was fresh and the post-table is the old one plus it.
-fetch-sup : (t : Tbl) (x : Pt)
-          → OnSupport (λ u → (proj₁ u ≡ t × lookupPt t x ≡ just (proj₂ u))
-                           ⊎ (proj₁ u ≡ (x , proj₂ u) ∷ t × lookupPt t x ≡ nothing))
-                      (fetchT id t x)
-fetch-sup t x with lookupPt t x
-... | just d  = OnSupport-return (inj₁ (refl , refl))
-... | nothing = OnSupport-bind {P = λ _ → ⊤} (uniform-Vec k)
-                  (λ h → return-ℚ ((x , h) ∷ t , h)) (os-any (uniform-Vec k))
-                  (λ h _ → OnSupport-return (inj₂ (refl , refl)))
 
 ------------------------------------------------------------------------
 -- The deferred game with the opening randomness PLANTED
@@ -345,7 +316,7 @@ private
   same-at nothing               r t t′ x tbl g = tbl x
   same-at (just (_ , _ , true)) r t t′ x tbl g = tbl x
   same-at (just (c , b , false)) r t t′ x tbl g =
-    trans (tbl x) (lookup-∷-≢ x (b ∷ᵛ r) c t (tail-≢ r x b g))
+    trans (tbl x) (lookup-there x (b ∷ᵛ r) c t (tail-≢ r x b g))
 
   tbl-∷ : (m : Comʰ) (r : Dig) (t t′ : Tbl) (x : Pt) (h : Dig)
         → (∀ y → lookupPt t′ y ≡ TblAt m r t y) → guessAt m r x ≡ false
@@ -357,16 +328,16 @@ private
   ... | yes _ = refl
   ... | no  _ = tbl y
   tbl-∷ (just (c , b , false)) r t t′ x h tbl g y with y ≟ (b ∷ᵛ r)
-  ... | yes refl = trans (lookup-∷-≢ (b ∷ᵛ r) x h t′ (λ e → tail-≢ r x b g (sym e)))
+  ... | yes refl = trans (lookup-there (b ∷ᵛ r) x h t′ (λ e → tail-≢ r x b g (sym e)))
                          (trans (tbl (b ∷ᵛ r)) (lookup-here (b ∷ᵛ r) c t))
   ... | no ne with y ≟ x
   ... | yes _ = refl
-  ... | no  _ = trans (tbl y) (lookup-∷-≢ y (b ∷ᵛ r) c t ne)
+  ... | no  _ = trans (tbl y) (lookup-there y (b ∷ᵛ r) c t ne)
 
   fresh-∷ : (m : Comʰ) (r : Dig) (t : Tbl) (x : Pt) (h : Dig)
           → Fresh m r t → guessAt m r x ≡ false → Fresh m r ((x , h) ∷ t)
   fresh-∷ nothing  r t x h frs g b =
-    trans (lookup-∷-≢ (b ∷ᵛ r) x h t (λ e → tail-≢ r x b g (sym e))) (frs b)
+    trans (lookup-there (b ∷ᵛ r) x h t (λ e → tail-≢ r x b g (sym e))) (frs b)
   fresh-∷ (just _) _ _ _ _ _ _ = tt
 
 -- The real game's own fetch, driven by the deferred game's draw where the two
@@ -437,16 +408,16 @@ join-J (r , t , m , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) (askQʰ 
       trans (trans (lookupᴰℚ-cong-P (entries (fetchT id t x))
                      (λ u → cong Rout (fetchR-hit t′ x d (proj₂ u) eq′)))
                    (E-const (fetchT id t x) (Rout (t′ , d))))
-            (sym (trans (cong (λ ν → E ν Rout) (fetch-hit id t′ x d eq′))
+            (sym (trans (cong (λ ν → E ν Rout) (fetchT-hit id t′ x d eq′))
                         (lookupᴰℚ-return (t′ , d) Rout)))
     aux nothing eq′ =
       trans (trans (cong (λ ν → E ν (λ u → Rout (fetchR t′ x (proj₂ u))))
-                         (fetch-miss id t x (tblAt-miss m r t x (trans (sym (tbl x)) eq′))))
+                         (fetchT-miss id t x (tblAt-miss m r t x (trans (sym (tbl x)) eq′))))
             (trans (lookupᴰℚ-Dmap (λ h → (x , h) ∷ t , h) (uniform-Vec k)
                      (λ u → Rout (fetchR t′ x (proj₂ u))))
                    (lookupᴰℚ-cong-P (entries (uniform-Vec k))
                      (λ h → cong Rout (fetchR-miss t′ x h eq′)))))
-            (sym (trans (cong (λ ν → E ν Rout) (fetch-miss id t′ x eq′))
+            (sym (trans (cong (λ ν → E ν Rout) (fetchT-miss id t′ x eq′))
                         (lookupᴰℚ-Dmap (λ h → (x , h) ∷ t′ , h) (uniform-Vec k) Rout)))
 
   mgR : ∀ F → E νa (λ p → F (proj₂ p)) ≡ E (askR (just r , t′ , recOf m r) x) F
@@ -487,7 +458,7 @@ join-J (r , t , m , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) (askQʰ 
                        ⊎ ((proj₁ (proj₁ p) ≋J proj₁ (proj₂ p))
                           × (proj₂ (proj₁ p) ≡ proj₂ (proj₂ p)))) νa
   sup = OnSupport-bind (fetchT id t x)
-          (λ u → uniform-Vec k >>=ᴹ λ ρ → return-ℚ (κa u ρ)) (fetch-sup t x) λ u us →
+          (λ u → uniform-Vec k >>=ᴹ λ ρ → return-ℚ (κa u ρ)) (fetchT-sup t x) λ u us →
         OnSupport-bind {P = λ _ → ⊤} (uniform-Vec k) (λ ρ → return-ℚ (κa u ρ))
           (os-any (uniform-Vec k)) λ ρ _ → OnSupport-return (stp u ρ us)
 join-J (r , t , nothing , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) (comQʰ b) =
@@ -512,7 +483,7 @@ join-J (r , t , nothing , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) (c
   mgR F = trans (lookupᴰℚ-Dmap κc (uniform-Vec k) (λ p → F (proj₂ p)))
           (sym (trans (lookupᴰℚ-Dmap (outComR r b) (fetchT id t′ (b ∷ᵛ r)) F)
                (trans (cong (λ ν → E ν (λ u → F (outComR r b u)))
-                            (fetch-miss id t′ (b ∷ᵛ r) missR))
+                            (fetchT-miss id t′ (b ∷ᵛ r) missR))
                       (lookupᴰℚ-Dmap (λ h → (b ∷ᵛ r , h) ∷ t′ , h) (uniform-Vec k)
                         (λ u → F (outComR r b u))))))
 

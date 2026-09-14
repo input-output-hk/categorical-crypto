@@ -56,6 +56,13 @@ lookup-here x d L with x ≟ x
 ... | yes _  = refl
 ... | no  ne = ⊥-elim (ne refl)
 
+-- …and every other point reads past it.
+lookup-there : (x y : Pt) (d : Dig) (L : Tbl) → x ≢ y
+             → lookupPt ((y , d) ∷ L) x ≡ lookupPt L x
+lookup-there x y d L ne with x ≟ y
+... | yes e = ⊥-elim (ne e)
+... | no  _ = refl
+
 preimages : Dig → Tbl → List Pt
 preimages c []            = []
 preimages c ((x , d) ∷ L) with d ≟ c
