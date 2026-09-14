@@ -243,39 +243,24 @@ sR₀ = nothing , [] , nothing
 ------------------------------------------------------------------------
 -- Both marginals are the reference games
 
+-- The deferred game's query, expanded: the table's draw, then its own draw of
+-- the opening randomness to test against.
+ask-redᴸ : (t : Tbl) (m : Comʰ) (x : Pt) (G : StLʰ × Rʰ → ℚ)
+         → E (askL (t , m) x) G
+           ≡ E (fetchT id t x) (λ u → E (uniform-Vec k) (λ ρ → G (outAskL m x u ρ)))
+ask-redᴸ t m x = E-bind₂ (fetchT id t x) (uniform-Vec k) (outAskL m x)
+
 private
-  -- The coupled query, expanded: the table's draw, then the deferred game's
-  -- own draw of the opening randomness.
   ask-redᴮ : (t : Tbl) (m : Comʰ) (f : Bool) (x : Pt) (G : St × (Rʰ × Rʰ) → ℚ)
            → E (askB (t , m , f) x) G
              ≡ E (fetchT id t x)
                  (λ u → E (uniform-Vec k) (λ ρ → G (outAskB m f x u ρ)))
-  ask-redᴮ t m f x G = trans
-    (E-bind (fetchT id t x)
-      (λ u → uniform-Vec k >>=ᴹ λ ρ → return-ℚ (outAskB m f x u ρ)) G)
-    (lookupᴰℚ-cong-P (entries (fetchT id t x)) (λ u → trans
-      (E-bind (uniform-Vec k) (λ ρ → return-ℚ (outAskB m f x u ρ)) G)
-      (lookupᴰℚ-cong-P (entries (uniform-Vec k))
-        (λ ρ → lookupᴰℚ-return (outAskB m f x u ρ) G))))
-
-  ask-redᴸ : (t : Tbl) (m : Comʰ) (x : Pt) (G : StLʰ × Rʰ → ℚ)
-           → E (askL (t , m) x) G
-             ≡ E (fetchT id t x) (λ u → E (uniform-Vec k) (λ ρ → G (outAskL m x u ρ)))
-  ask-redᴸ t m x G = trans
-    (E-bind (fetchT id t x)
-      (λ u → uniform-Vec k >>=ᴹ λ ρ → return-ℚ (outAskL m x u ρ)) G)
-    (lookupᴰℚ-cong-P (entries (fetchT id t x)) (λ u → trans
-      (E-bind (uniform-Vec k) (λ ρ → return-ℚ (outAskL m x u ρ)) G)
-      (lookupᴰℚ-cong-P (entries (uniform-Vec k))
-        (λ ρ → lookupᴰℚ-return (outAskL m x u ρ) G))))
+  ask-redᴮ t m f x = E-bind₂ (fetchT id t x) (uniform-Vec k) (outAskB m f x)
 
   ask-redᴵ : (t : Tbl) (m : Comʰ) (x : Pt) (G : StLʰ × Rʰ → ℚ)
            → E (askI (t , m) x) G
              ≡ E (fetchT id t x) (λ u → G (outAskI m u))
-  ask-redᴵ t m x G = trans
-    (E-bind (fetchT id t x) (λ u → return-ℚ (outAskI m u)) G)
-    (lookupᴰℚ-cong-P (entries (fetchT id t x))
-      (λ u → lookupᴰℚ-return (outAskI m u) G))
+  ask-redᴵ t m x = lookupᴰℚ-Dmap (outAskI m) (fetchT id t x)
 
   -- Off the flag the deferred game's answer IS the ideal one, and on the flag
   -- the coupling hands the ideal one over; so the ideal marginal always reads
@@ -476,15 +461,12 @@ f ≋P s = (Σ[ t ∈ Tbl ] ((∀ r → f r ≡ (just r , t , nothing))
                         × (s ≡ (nothing , t , nothing))))
        ⊎ (∀ r → f r ≡ s)
 
-private
-  ask-redᴿ : (mr : Maybe Dig) (t : Tbl) (z : ComRʰ) (x : Pt) (G : StRʰ × Rʰ → ℚ)
-           → E (askR (mr , t , z) x) G
-             ≡ E (fetchT id t x) (λ u → G (outAskR mr z u))
-  ask-redᴿ mr t z x G = trans
-    (E-bind (fetchT id t x) (λ u → return-ℚ (outAskR mr z u)) G)
-    (lookupᴰℚ-cong-P (entries (fetchT id t x))
-      (λ u → lookupᴰℚ-return (outAskR mr z u) G))
+ask-redᴿ : (mr : Maybe Dig) (t : Tbl) (z : ComRʰ) (x : Pt) (G : StRʰ × Rʰ → ℚ)
+         → E (askR (mr , t , z) x) G
+           ≡ E (fetchT id t x) (λ u → G (outAskR mr z u))
+ask-redᴿ mr t z x = lookupᴰℚ-Dmap (outAskR mr z) (fetchT id t x)
 
+private
   module _ (F F′ : StRʰ × Rʰ → ℚ)
            (pt : (g : Dig → StRʰ × Rʰ) (w : StRʰ × Rʰ)
                → (λ r → proj₁ (g r)) ≋P proj₁ w → (∀ r → proj₂ (g r) ≡ proj₂ w)
