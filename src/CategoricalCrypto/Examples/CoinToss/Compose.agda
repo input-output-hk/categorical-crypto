@@ -13,9 +13,10 @@
 -- because the two sides share their upper stage — `hash-liftᵉ`'s discharge,
 -- verbatim.
 --
--- What this is NOT is an emulation of an ideal coin functionality: that is the
--- second hop, and it is FALSE at this domain.  `docs/coin-toss.md` gives the
--- two-query counterexample and what would remove it.
+-- The hop to an ideal coin is the SECOND one, and it needs a closed
+-- comparison boundary: `Examples.CoinToss.Ideal.Compose` makes it, and
+-- `docs/coin-toss.md` §5 says why the shape `UC-composeᵉ` would consume is
+-- false.
 
 open import Data.Nat.Base using (ℕ; _*_; _+_)
 open import Data.Nat.Poly using (poly-const)

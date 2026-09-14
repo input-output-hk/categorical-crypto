@@ -3524,3 +3524,93 @@ gate. Closure `src/CategoricalCrypto.agda` rc=0 over 113 modules, re-run after t
 `Examples/ChimericLedger/FactorEps.agda` and `UC/Approximate/LocalTests.agda`
 checked separately, both outside that closure. Escape-hatch baseline 16 before
 / 16 after, all sixteen the words "postulate-free" in inherited comments.
+
+## Resolved (coin-hybrid)
+
+The second hop, for the corrupted committer: Blum coin-tossing over the
+hash-based commitment, over the concrete resource, emulates an IDEAL COIN
+exactly. `docs/coin-toss.md` §5 is rewritten around it; what follows is what
+needs the maintainer's judgment.
+
+### Decisions taken that a maintainer may want to revisit
+
+- **Which route closes the comparison boundary.** The brief offered two:
+  instantiate `UC-composeᵉ` with the resource as its inner realization, or
+  write a direct "precompose a closed process into the closure" lemma. I wrote
+  the lemma — `UC.Asymptotic.Compose.≈ctx-dom` (`:219`) and `≤UC^ωᵉ-dom`
+  (`:251`) — because it is strictly cheaper on all three axes the statement is
+  read at: the grade stays `Lk ⊗ Advᶜ` where `UC-composeᵉ` would make it
+  `𝟙 ⊗ (Lk ⊗ Advᶜ)`; the schedule is UNCHANGED where `UC-composeᵉ` reads it at
+  a `simCost` substitution; and no `Allowance-mono` is needed where
+  `UC-composeᵉ` demands one. The arithmetic reason is that `ctxBudget` guards
+  its closure leg at `_⊔ 1`, so a `QB 0` factor is swallowed exactly
+  (`*-identityˡ`, no inequality). The proof is 20 lines. **Maintainer call:**
+  whether `≈ctx-dom` should be stated at a general rate with an
+  `Allowance-mono` premise as well — I did not, because the rate-0 case is the
+  one with the clean identity and the general one is `≈ctx-pre` conjugated.
+- **`Allowance-mono` is still not a component of `_≤UC^ωᵉ_`.** The brief asked
+  whether it should become one. This hop needed none, so the question is not
+  forced by it; but note that the FIRST hop's `coin-toss-from-com` discharges
+  it as `≤-refl` only because its outer comparison is the stage against
+  itself. Any hop whose outer comparison is nontrivial will need it as a
+  premise, and every schedule this repository actually builds (`εᶜ`,
+  `inv-pow-2`, `0ℚ`) is monotone. **Maintainer call:** adding it to the
+  witness would cost every producer one `≤-refl`-ish obligation and would let
+  `UC-composeᵉ` drop an argument.
+- **`Fcoin`'s leak is `sampleᵏ`-then-`deliverᵏ`, not delivery-with-leak.** The
+  coin is drawn and handed to the simulator on a separate activation from the
+  one that releases it. That is what Blum's protocol forces (the corrupted
+  committer sees the honest share before it decides whether to open — Cleve),
+  and a FAIR ideal coin has no simulator at all. Off-protocol activations are
+  `botₚ`, following `Examples.ROCommitment.Resource`. **Maintainer call:**
+  whether the intended `F_coin` for this repository should be exactly this, or
+  a delivery-fairness parameter over it.
+- **`UC.QueryBound.Compose.Step`'s scaffolding moved out of `private`.**
+  `Nᶜ`, `stepᶜ`, `solveᶜ`, `CP`, `unfoldᶜ` and the new `eq-∘ᶜ` are now public;
+  `padF`…`resumedG` stay private. The reading of a `𝒢ₚ`-composite as one
+  product-state machine plus six loop equations is not specific to certifying
+  it, and `Examples.CoinToss.Ideal.Hybrid`/`.Machine` are the second consumer.
+  Cost unchanged (10.3 s warm). **Maintainer call:** whether that reading
+  belongs in `UC.QueryBound.*` at all or should move to `Machines.*` beside
+  `Collapse`, which is where a behaviour-reading consumer would look first.
+
+### What the corrupted-RECEIVER half needs, precisely
+
+It is NOT a budget stop. `docs/coin-toss.md` §5's last subsection gives the
+activation sequence: the honest committer's share is drawn at `goᶜ` and
+combined with the adversary's `b₂` at `shareᴬʰ b₂`, two different activations,
+so the bijection carrying the hybrid's sample to the ideal coin depends on an
+input chosen after the draw. No `Machines.Sim._≲_` state map exists in either
+direction, and no third machine mediates, because its step at `shareᴬʰ b₂`
+would have to be one point mass matching two different letters. The hop is a
+DEFERRED SAMPLING; `GamePlaying.Defer` has that argument one layer up in
+`Dist-ℚ`, and reaching it needs `docs/graded-bridge.md`'s game/machine bridge
+re-run at a composite. **Maintainer call:** whether to build that bridge, or
+to weaken nothing and leave the hiding half at the first hop.
+
+Because that second instance does not exist, nothing was hoisted out of the
+first (rule 27 wants demonstrated reuse): the chain lemmas
+`hearᴴ`/`lkᴴ`/`honᴴ` (`Ideal/Hybrid.agda`) and `upᴵ`/`botᴵ`/`downᴵ`/`backᴵ`/
+`honᴵ` (`Ideal/Machine.agda`) stay private in their own modules.
+
+### One measured perf defect, fixed
+
+`Ideal.Hybrid`'s `hashᴴ` originally read `lookupPt t x` with `with … in …`.
+Warm cost **3 m 22 s**; with the scrutinee as an explicit argument instead,
+**10 s**. `with` normalises the goal to locate the scrutinee and this goal
+names the composite's step, which unfolds through the ⊕-trace. The branch
+equations come from `rewrite` inside the small `hashᶜ-hit`/`hashᶜ-miss`
+lemmas, whose goals do not mention it. Both `hashᴴ` and `hashᴵ` are written
+that way. This is worth knowing generally: a `with` in any module that names a
+`𝒢ₚ`-composite's step is a two-orders-of-magnitude trap.
+
+### Verification
+
+Every module checked green, `+RTS -M8G -H1G`, rc=0 and an empty
+`ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|Heap exhausted|No space left`
+gate; warm costs in `docs/coin-toss.md` §6, all far under their rule-5 budgets
+(worst 13.2 s against 124 s). Closure `src/CategoricalCrypto.agda` and
+`src/CategoricalCrypto/UC.agda` rc=0, plus
+`Examples/ChimericLedger/FactorEps.agda` and `UC/Approximate/LocalTests.agda`.
+Escape-hatch baseline 16 before / 16 after, all sixteen the words
+"postulate-free" in inherited comments.
