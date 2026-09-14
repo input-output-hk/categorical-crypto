@@ -233,23 +233,23 @@ private
   idlStep (postᶜ t b₁)   (inj₂ (inj₁ (inj₁ failˢ))) =
     bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (botᴵ (endʲ t) doneᵏ failˢ ≈refl)
 
-  idl-sim : coinᶜ S.≲ Iᴺ
-  idl-sim = S.sim (K.pureᵏ θᴵ) (KP.structural θᴵ)
-                  (λ r → >>=ₚ-identityˡ (θᴵ r) _
-                     ⟨≈⟩ bindˣ (>>=ₚ-identityˡ tt _ ⟨≈⟩ >>=ₚ-identityˡ tt _)
-                     ⟨≈⟩ >>=ₚ-identityˡ (tt , tt) _)
-                  (λ x → >>=ₚ-identityˡ (preᶜ []) _
-                     ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _
-                            ⟨≈⟩ >>=ₚ-identityˡ (preʲ []) _
-                            ⟨≈⟩ >>=ₚ-identityˡ freshᵏ _))
-                  (λ z → bindᶠ (Pw.⊗-pureˡ θᴵ)
-                     ⟨≈⟩ map-map (cStep (proj₁ z , Sum.map (λ a → a) ⊎assocʳ (proj₂ z))) _ _
-                     ⟨≈⟩ idlStep (proj₁ z) (proj₂ z)
-                     ⟨≈⟩ ≈sym ( bindˣ (Pw.⊗-pureˡ θᴵ z)
-                            ⟨≈⟩ >>=ₚ-identityˡ (θᴵ (proj₁ z) , proj₂ z) _))
-
 ------------------------------------------------------------------------
 -- The machine equality
+
+idl-sim : coinᶜ S.≲ Iᴺ
+idl-sim = S.sim (K.pureᵏ θᴵ) (KP.structural θᴵ)
+                (λ r → >>=ₚ-identityˡ (θᴵ r) _
+                   ⟨≈⟩ bindˣ (>>=ₚ-identityˡ tt _ ⟨≈⟩ >>=ₚ-identityˡ tt _)
+                   ⟨≈⟩ >>=ₚ-identityˡ (tt , tt) _)
+                (λ x → >>=ₚ-identityˡ (preᶜ []) _
+                   ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _
+                          ⟨≈⟩ >>=ₚ-identityˡ (preʲ []) _
+                          ⟨≈⟩ >>=ₚ-identityˡ freshᵏ _))
+                (λ z → bindᶠ (Pw.⊗-pureˡ θᴵ)
+                   ⟨≈⟩ map-map (cStep (proj₁ z , Sum.map (λ a → a) ⊎assocʳ (proj₂ z))) _ _
+                   ⟨≈⟩ idlStep (proj₁ z) (proj₂ z)
+                   ⟨≈⟩ ≈sym ( bindˣ (Pw.⊗-pureˡ θᴵ z)
+                          ⟨≈⟩ >>=ₚ-identityˡ (θᴵ (proj₁ z) , proj₂ z) _))
 
 -- The two sides agree EXACTLY, so the emulation the UC layer reads off this
 -- carries the zero schedule.

@@ -21,9 +21,8 @@
 -- `b₁ xor share` land on `Fcoin`'s bit `c`.
 
 open import Data.Bool.Base using (Bool; _xor_)
-open import Data.Empty using (⊥)
 open import Data.List.Base using ([]; _∷_)
-open import Data.Maybe.Base using (Maybe; just; nothing)
+open import Data.Maybe.Base using (just; nothing)
 open import Data.Nat.Base using (ℕ)
 open import Data.Product.Base using (_×_; _,_)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)

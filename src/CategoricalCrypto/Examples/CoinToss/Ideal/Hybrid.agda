@@ -222,24 +222,24 @@ private
            ⟨≈⟩ honᴴ doneᵖ (t , just b₁) refusedᴴ
            ⟨≈⟩ bot-bind-≈ₚ _ )
 
-  hyb-sim : coinᶜ′ S.≲ Hᴺ
-  hyb-sim = S.sim (K.pureᵏ θᴴ) (KP.structural θᴴ)
-                  (λ r → >>=ₚ-identityˡ (θᴴ r) _
-                     ⟨≈⟩ bindˣ (>>=ₚ-identityˡ tt _ ⟨≈⟩ >>=ₚ-identityˡ tt _)
-                     ⟨≈⟩ >>=ₚ-identityˡ (tt , tt) _)
-                  (λ x → >>=ₚ-identityˡ (preᶜ []) _
-                     ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _
-                            ⟨≈⟩ >>=ₚ-identityˡ freshᵖ _
-                            ⟨≈⟩ >>=ₚ-identityˡ ([] , nothing) _))
-                  (λ z → bindᶠ (Pw.⊗-pureˡ θᴴ) ⟨≈⟩ hybStep (proj₁ z) (proj₂ z)
-                     ⟨≈⟩ ≈sym ( bindˣ (Pw.⊗-pureˡ θᴴ z)
-                            ⟨≈⟩ >>=ₚ-identityˡ (θᴴ (proj₁ z) , proj₂ z) _))
-
   reassoc : 𝒫._≈_ {unitᴵ} {Cᵗ} hybridᴹ
               (𝒫._∘_ {unitᴵ} {Cⁱ} {Cᵗ} a⇒ᴵ
                 (𝒫._∘_ {unitᴵ} {Lkᴵ ⊗ᴵ Honᴵ} {Cⁱ} stageᴴ resᴵᵈ))
   reassoc = 𝒫.assoc
        S.○ᴹ 𝒫.∘-resp-≈ʳ (𝒫.assoc S.○ᴹ 𝒫.∘-resp-≈ʳ (wire-∘ᴹ upᶠ downᶠ resource))
+
+hyb-sim : coinᶜ′ S.≲ Hᴺ
+hyb-sim = S.sim (K.pureᵏ θᴴ) (KP.structural θᴴ)
+                (λ r → >>=ₚ-identityˡ (θᴴ r) _
+                   ⟨≈⟩ bindˣ (>>=ₚ-identityˡ tt _ ⟨≈⟩ >>=ₚ-identityˡ tt _)
+                   ⟨≈⟩ >>=ₚ-identityˡ (tt , tt) _)
+                (λ x → >>=ₚ-identityˡ (preᶜ []) _
+                   ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _
+                          ⟨≈⟩ >>=ₚ-identityˡ freshᵖ _
+                          ⟨≈⟩ >>=ₚ-identityˡ ([] , nothing) _))
+                (λ z → bindᶠ (Pw.⊗-pureˡ θᴴ) ⟨≈⟩ hybStep (proj₁ z) (proj₂ z)
+                   ⟨≈⟩ ≈sym ( bindˣ (Pw.⊗-pureˡ θᴴ z)
+                          ⟨≈⟩ >>=ₚ-identityˡ (θᴴ (proj₁ z) , proj₂ z) _))
 
 hybrid-eq : 𝒫._≈_ {unitᴵ} {Cᵗ} hybridᴹ coinᶜ
 hybrid-eq = reassoc
