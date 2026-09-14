@@ -1,6 +1,8 @@
 # RO-model commitment: the hiding / equivocation half
 
-Branch `fcom-hiding`, off `protocol-rewrite` at `96946499`.
+Branch `fcom-hiding`, off `protocol-rewrite` at `96946499`; continued on
+`hiding-defer`, off `protocol-rewrite` at `5aaf0a77`, which closes the
+deferred-sampling hop this document used to state as a residual.
 
 The same hash-based commitment — `c = H(b ∷ r)` to commit, `(b , r)` to open —
 against a **corrupted receiver**. The committer is honest and takes its bit
@@ -13,12 +15,13 @@ Everything below is a checked term unless it is in "Not delivered"; hatches in
 `src/` stay at their baseline of zero (16 grep hits, all of them the words
 "postulate-free" in inherited comments, before and after).
 
-## The correction this branch owes the brief
+## The correction this document owes the brief
 
 The brief asks for two hops — (i) real ≈ lazy-real by a deferred-sampling
 bisimulation, **exact**, then (ii) lazy-real ≈ simulated-ideal off a flag
 bounded by `rare-cert`. Hop (ii) is delivered in full. **Hop (i) is not exact,
-and cannot be.** The counterexample is two queries and three lines:
+and cannot be** — it is an ε-hop of its own, and that is what
+`Hiding/Defer.agda` proves. The counterexample is two queries and three lines:
 
 > Let the adversary commit to `b` and then query two DISTINCT points
 > `b ∷ ρ₁ ≠ b ∷ ρ₂`. In the real game a single `r` is drawn, so at most one of
@@ -32,17 +35,13 @@ and cannot be.** The counterexample is two queries and three lines:
 
 So the two games are *identical-until-bad*, not equal: deferring a secret is
 exact only while the secret is **unread**, and this one is read — by the very
-comparisons the flag is made of. `docs/ro-game-hop.md`'s own sentence is the
-accurate one: a fixed secret must "either re-derive the bound by averaging over
+comparisons the flag is made of. `docs/ro-game-hop.md`'s own sentence names the
+route taken: a fixed secret must "either re-derive the bound by averaging over
 `r` at the top (a different lemma, not a `SuperCert`) **or** hop first to the
-lazy game" — and the second horn is unavailable here, because the hop to the
-lazy game is itself an ε-hop with the same fixed-secret flag.
-
-What the branch therefore delivers is: the ε-hop that IS in reach
-(`hiding-bound`), the general deferred-sampling engine that the averaging route
-needs (`GamePlaying.Defer.runWith-avg`), and `hiding-bound-defer` — a proved
-theorem turning the missing identification into the full statement, with the
-gap stated as one typed hypothesis rather than as a postulate.
+lazy game", and the second horn is unavailable here, because the hop to the
+lazy game is itself an ε-hop with the same fixed-secret flag. So it is the
+FIRST horn that `Hiding/Defer.agda` walks, and the "different lemma" is
+`GamePlaying.Average.badProb-avg`.
 
 ## Where `F_com`'s memory lives — the same cell, the other side of it
 
@@ -95,7 +94,9 @@ were already accepted in the extraction half; this one is smaller.
 
 ## The two hops
 
-The three kernels are in `Examples/ROCommitment/Hiding/Game.agda`.
+The three kernels are in `Examples/ROCommitment/Hiding/Game.agda`; the fourth,
+`respPʰ` — the deferred game with the opening randomness PLANTED and a flag —
+is in `Examples/ROCommitment/Hiding/Defer.agda`.
 
 | kernel | state | the opening randomness |
 |---|---|---|
@@ -124,8 +125,10 @@ programming conflict, and the flag that pays for it is already up.
   invariant**, unlike the extraction half. `Potential.rare-cert` at
   `ε ≡ 2⁻ᵏ`, its hypothesis discharged by `Potential.guess-drift`, gives
   `m·2⁻ᵏ`; `Hop.hop-bound` assembles. One flag, so no `∨-cert`.
-* **Hop (i) — the residual.** `respLʰ` against `respRʰ`; see the correction
-  above.
+* **Hop (i) — `defer-hiding`.** `respLʰ` against `respRʰ`, at `2m·2⁻ᵏ`.
+  Neither a bisimulation (see the correction above) nor a `SuperCert` (the
+  flag reads the plant); the three moves it is made of are in
+  "The deferred-sampling hop" below.
 
 ## The bound proved
 
@@ -146,22 +149,38 @@ preimage out of a table, so a collision in the answer log costs it nothing.
 `εʰ n q = q·2⁻ⁿ` at the identity schedule, and `hiding-boundⁿ` quantifies the
 bound over `n`.
 
-`Examples/ROCommitment/Hiding/Game.agda:hiding-bound-defer` is the assembled
-statement:
+`Examples/ROCommitment/Hiding/Defer.agda:defer-hiding` is the other hop, and
+`Game.agda:hiding-bound-defer` — the assembled statement, which used to take
+its `ε′` as a hypothesis — is now applied to it:
 
 ```agda
-hiding-bound-defer : {ε′ : ℕ → ℚ}
-  → ((m : ℕ) (d : Strat Qʰ Rʰ) → asks≤ m d
-     → ∣ Pr₁ (runWith respLʰ sL₀ d) -ℚ Pr₁ (runWith respRʰ sR₀ d) ∣ℚ ≤ℚ ε′ m)
-  → (m : ℕ) (d : Strat Qʰ Rʰ) → asks≤ m d
-  → ∣ Pr₁ (runWith respIʰ sI₀ d) -ℚ Pr₁ (runWith respRʰ sR₀ d) ∣ℚ ≤ℚ εᴸ m +ℚ ε′ m
+defer-hiding : (m : ℕ) (d : Strat Qʰ Rʰ) → asks≤ m d
+             → ∣ Pr₁ (runWith respLʰ sL₀ d) -ℚ Pr₁ (runWith respRʰ sR₀ d) ∣ℚ
+               ≤ℚ fromℕ (m + m) *ℚ inv-pow-2 k
+
+hiding-bound-total : (m : ℕ) (d : Strat Qʰ Rʰ) → asks≤ m d
+                   → ∣ Pr₁ (runWith respIʰ sI₀ d) -ℚ Pr₁ (runWith respRʰ sR₀ d) ∣ℚ
+                     ≤ℚ εᴸ m +ℚ fromℕ (m + m) *ℚ inv-pow-2 k
+hiding-bound-total = hiding-bound-defer defer-hiding
 ```
 
-`Examples/ROCommitment/Hiding/Test.agda:bounded` instantiates `hiding-bound` at
-`k = 3` against a live adaptive three-activation attack — commit, query the
-oracle at a guessed opening point *before* the opening, report whether that
-query came back with the published digest — which is precisely the observation
-the two games disagree on.
+i.e. **`3m·2⁻ᵏ`** end to end, against the protocol that draws its opening
+randomness at the commitment: `m` guesses at the programming point, `m`
+guesses at the plant, `m` fresh tests. `hiding-bound-defer` itself is
+unchanged — it is still the general assembly, now with an argument.
+
+`Hiding/Asymptotic.agda:εᵗ-negligible` proves `NegligibleBound εᵗ` for
+`εᵗ n q = (q + (q + q))·2⁻ⁿ` (one `fromℕ-+`, one `poly-+`), and
+`hiding-boundᵗ` is `hiding-bound-total` at every `n`.
+
+`Examples/ROCommitment/Hiding/Test.agda` instantiates all three at `k = 3`
+against live attacks: `bounded`/`bounded-total` at the three-activation attack
+— commit, query the oracle at a guessed opening point *before* the opening,
+report whether that query came back with the published digest — and
+`bounded-preq` at a second, two-activation one that queries the point the
+committer is about to hash BEFORE it commits and compares the published digest
+with the answer it already holds. That is the commitment-time divergence, the
+one event of the two that the first attack does not reach.
 
 ## The deferred-sampling lemma: the exact generality reached
 
@@ -205,19 +224,75 @@ re-derived.
 `defer` — "an unread lazily sampled entry is invisible" — is the instance where
 `_≋_` says the family is `λ v → plant v s` before the designated step and
 constant after it; the designated step's case is discharged with a CONSTANT
-family, where `E-const` collapses the average the draw has just created. Two
+family, where `E-const` collapses the average the draw has just created. Three
 instances are delivered: `GamePlaying/Test.agda:DeferMachine.defer`, the
 smallest kernel the statement is about (a secret point, queries that do not
-look at it, one designated query that does), and
-`Hiding/Game.agda:defer-commit`, the real commitment game's own draw moved to
-the start of the run.
+look at it, one designated query that does), `Hiding/Game.agda:defer-commit`,
+the real commitment game's own draw moved to the start of the run, and
+`Hiding/Defer.agda:defer-hop`, the deferred game's opening draw moved the same
+way.
+
+## The deferred-sampling hop: how hop (i) closes
+
+Three moves, in `Examples/ROCommitment/Hiding/Defer.agda`.
+
+**(a) Plant on both sides.** `Game.defer-commit` and `Defer.defer-hop` are two
+`runWith-avg` instances saying that each game, averaged over a secret planted
+at the start, is that game drawing the secret where it does. The deferred
+game's relation has the extra freedom the real one's does not need: the flag
+the coupling hangs on the state is allowed to depend on the plant, so the
+family is "one deferring state with an arbitrary flag family on it", and only
+past the OPENING — the first answer that depends on the plant, and the point
+where the two averages merge — does it have to be constant.
+
+**(b) One coupling per plant, up to the flag.** `join-J` is a
+`GamePlaying.Hop.JoinStep`: at each related pair of states it exhibits a joint
+draw whose two marginals are the planted deferred kernel and the planted real
+kernel, and whose every outcome has either stayed related with the same answer
+or raised the flag. `Hop.runWith-join` — the new general lemma — turns that
+into `|Pr − Pr| ≤ badProb`. It is `Coupling.FLGP` **without the coupled
+state**: the two games' tables part company at the commitment (the real game
+files `H(b ∷ r)` there, the deferred game only at the opening), and after the
+flag is up they part arbitrarily, so a single coupled state would have to
+carry both. The relation carries the correspondence instead — `TblAt` says the
+real table is the deferred one patched at the commitment's own point, `recOf`
+says the records agree, `Fresh` says no tabulated point names the plant — and
+carries nothing at all once the flag is up.
+
+**(c) The flag bounded in its AVERAGE.** `GamePlaying.Average.badProb-avg`.
+At any single plant the next query hits it with probability 1, so
+`Potential.rare-cert` does not apply; over the plant it hits with probability
+`2⁻ᵏ`. Two things make that induction go through. `endProb` — the probability
+the flag is up at the END of the run, equal to `badProb` for a monotone flag
+(`badProb≡endProb`) — has no per-step case split on the flag, so the average
+never has to be split inside the integral, which is the obstruction this
+document used to record. And `Frozen`: after the opening the plant is public,
+the adversary's queries depend on it and the one strategy the induction chases
+at every plant at once no longer exists — but nothing can rise there either,
+so `endProb-frozen` reads off the flag whatever the adversary does. The
+consumer owes `AvgDrift`, one query's averaged drift in continuation-passing
+form — the same shape `Defer.AvgBisim` states an averaged bisimulation in.
+
+**The two divergences, as verified against the kernels.** (i) An oracle query
+naming the committed point while a commitment is outstanding: `respRʰ` answers
+it from its table with the published digest, `respLʰ` draws. (ii) The
+COMMITMENT step when the adversary pre-queried `H(b ∷ r)`: `respRʰ` publishes
+the tabulated digest, `respLʰ` a fresh one. The flag as built covers both with
+ONE `2⁻ᵏ`, not two: it rises at every pre-opening query whose tail is the
+plant, which is exactly what (ii) needs to have happened earlier — that is
+`Fresh`, and it is why the constant is 2 and not 3. The second `2⁻ᵏ` pays for
+the deferred game's own spurious hit (`hitAt` firing at a point that is not
+the committed one), which is a divergence in the other direction. There is no
+third: after the opening the two tables answer alike at every point and
+`hitAt` is dead, which is what `Opened` records.
 
 ## Reused verbatim, generalized, new
 
 | piece | status |
 |---|---|
 | `Examples.ROCommitment`'s `Resᴵ`, `ResQ`, `ResA` | **verbatim, not redefined** (imported) |
-| `Examples.ROCommitment.Extraction`'s `Pt`, `Dig`, `Tbl`, `lookupPt` | verbatim |
+| `Examples.ROCommitment.Extraction`'s `Pt`, `Dig`, `Tbl`, `lookupPt` | verbatim, `+ lookup-there` beside `lookup-here` |
+| `Examples.ROCommitment.Oracle`'s `fetchT` | verbatim, `+ fetchT-hit`/`fetchT-miss`/`fetchT-sup` |
 | `GamePlaying.Coupling.FLGP`, `badProb-bounded` | verbatim, through `hop-bound` |
 | `GamePlaying.Hop.runWith-bisim`, `hop-bound` | verbatim, two `StepBisim` instances |
 | `Potential.rare-cert`, `RareRaise`, `guess-drift` | verbatim |
@@ -226,18 +301,27 @@ the start of the run.
 | `UC.Model.Seal.gradedᵒ`/`procᵒ` | verbatim |
 | `ProbabilisticLogic.Dp.Coin.coinₚ` | verbatim (read-only) |
 | **`Expectation.E-swap`** | **new, generic, beside `E-bind`** — Fubini at `Dist-ℚ`, one line over the existing `lookupᴰℚ-swap` |
+| **`Expectation.E-cong-on`, `E-bind₂`** | **new, generic** — on-support congruence, and the two-draw step every kernel was expanding by hand |
 | **`GamePlaying.Defer`** | **new, generic** — the averaged-run induction |
-| **`GamePlaying.Test.DeferMachine`** | new: its acceptance instance |
+| **`GamePlaying.Hop.runWith-join`** | **new, generic** — a step-coupling up to the flag, on separate state spaces |
+| **`GamePlaying.Average`** | **new, generic** — `endProb`, `badProb≡endProb`, `endProb-frozen`, `badProb-avg` |
+| **`GamePlaying.Test.DeferMachine`** | new: `runWith-avg`'s acceptance instance |
 | `Examples.ROCommitment.Hiding` | new: the interfaces and the three machines |
 | `Examples.ROCommitment.Hiding.Game` | new: the three games, the coupling, the bound |
+| `Examples.ROCommitment.Hiding.Defer` | new: the planted deferred game, the per-plant coupling, `defer-hiding`, `hiding-bound-total` |
 | `Examples.ROCommitment.Hiding.UC` | new: the images, `Certified 1`, `QB 1` |
-| `Examples.ROCommitment.Hiding.Asymptotic` | new: `εʰ` and its negligibility |
-| `Examples.ROCommitment.Hiding.Test` | new: the acceptance instance |
+| `Examples.ROCommitment.Hiding.Asymptotic` | new: `εʰ`, `εᵗ` and their negligibility |
+| `Examples.ROCommitment.Hiding.Test` | new: the acceptance instances |
 
 No pre-existing statement was edited or weakened. `Expectation.agda` gains
-`E-swap` beside `Pr₁-bind`; `GamePlaying/Test.agda` gains a third machine
-beside its two; nothing else outside `Examples/ROCommitment/Hiding/**` and
-`GamePlaying/Defer.agda` was touched.
+three lemmas beside `Pr₁-bind`; `GamePlaying/Test.agda` gains a third machine
+beside its two; `Hop.agda` gains `runWith-join` beside `hop-bound`;
+`Hiding/Game.agda`'s `ask-redᴸ`/`ask-redᴿ` left its `private` blocks (the hop
+importing it reduces the same two kernels) and its four query expansions
+collapsed onto `E-bind₂`/`lookupᴰℚ-Dmap`; `Extraction.agda` and `Oracle.agda`
+gain the four table/oracle facts the hop needed, each beside the definition it
+is about rather than in the hop. Nothing else outside
+`Examples/ROCommitment/**` and `GamePlaying/**` was touched.
 
 ## Query accounting
 
@@ -269,79 +353,34 @@ gate.
 | module | LOC | warm | rule-5 budget |
 |---|---|---|---|
 | `GamePlaying.Defer` | 67 | 8 s | 76 s |
-| `…RationalDist.Expectation` (+7) | 163 | 7 s | 100 s |
+| `…RationalDist.Expectation` (222 → 236) | 236 | 6 s → 5 s | 119 s |
 | `GamePlaying.Test` (+75) | 175 | 8 s | 103 s |
+| `GamePlaying.Hop` (84 → 175) | 175 | 7 s → 8 s | 103 s |
+| **`GamePlaying.Average`** | 172 | 7 s | 103 s |
 | `Examples.ROCommitment.Hiding` | 218 | 9 s | 114 s |
-| `Examples.ROCommitment.Hiding.Game` | 581 | 9 s | 205 s |
+| `Examples.ROCommitment.Hiding.Game` (574 → 557) | 557 | 8 s → 6 s | 199 s |
+| **`Examples.ROCommitment.Hiding.Defer`** | 788 | 8 s | 257 s |
+| `Examples.ROCommitment.Extraction` (128 → 134) | 134 | 6 s | 94 s |
+| `Examples.ROCommitment.Oracle` (29 → 59) | 59 | 7 s | 75 s |
 | `Examples.ROCommitment.Hiding.UC` | 130 | 10 s | 93 s |
-| `Examples.ROCommitment.Hiding.Asymptotic` | 41 | 9 s | 70 s |
-| `Examples.ROCommitment.Hiding.Test` | 48 | 10 s | 72 s |
+| `Examples.ROCommitment.Hiding.Asymptotic` (41 → 68) | 68 | 7 s → 6 s | 77 s |
+| `Examples.ROCommitment.Hiding.Test` (48 → 76) | 76 | 6 s → 7 s | 79 s |
 
-The warm column is CPU, not wall: the box ran several 20 GiB checks from other
-branches throughout, so wall time here is dominated by the shared memory gate
-and says nothing about a module — one 9 s check waited 527 s for a slot. The
-five `Hiding*` figures are runs whose log carries the module's own `Checking`
-line; the three lower ones are the same modules read at their sharpest
-available measurement. Every figure is far inside its rule-5 budget, the
-largest being the 581-line `Game` at 9 s against 205 s, so nothing here is a
-rule-31 defect.
+Every `hiding-defer` figure — the last four rows' "after" columns and the two
+new modules — is a run whose own log carries exactly one `Checking` line,
+forced by deleting the module's `.agdai`; the before/after pairs are on that
+same basis, except that reverting `Expectation` for its "before" pulled one
+dependency along with `Hop`, `Game` and `Asymptotic` (two `Checking` lines
+each, so those three "before" figures are upper bounds). The older rows are
+the `fcom-hiding` measurements, whose warm column is CPU rather than wall
+because the box was running 20 GiB checks from other branches at the time.
+Every figure is far inside its rule-5 budget — the largest, the 788-line
+`Defer`, at 8 s against 257 s — so nothing here is a rule-31 defect and
+`Defer` does not want splitting.
 
 ## Not delivered, precisely
 
-### 1. The deferred-sampling step for THIS game — the ε′ of `hiding-bound-defer`
-
-```agda
-defer-hiding : (m : ℕ) (d : Strat Qʰ Rʰ) → asks≤ m d
-             → ∣ Pr₁ (runWith respLʰ sL₀ d) -ℚ Pr₁ (runWith respRʰ sR₀ d) ∣ℚ
-               ≤ℚ fromℕ (m + m) *ℚ inv-pow-2 k
-```
-
-`2m·2⁻ᵏ` because the two games part in two places, not one: a query that names
-the committed point (`m` of them, `2⁻ᵏ` each) and the COMMITMENT itself, where
-`respRʰ` reads `H(b ∷ r)` out of the table if the adversary pre-queried it while
-`respLʰ` always draws fresh (one event, mass `|t|·2⁻ᵏ ≤ m·2⁻ᵏ`). Feeding it to
-`hiding-bound-defer` gives `3m·2⁻ᵏ` for the whole statement — still `q·2⁻ᵏ` in
-shape, so `Hiding.Asymptotic.εʰ-negligible` covers it after one `fromℕ-+`.
-
-Not a bisimulation (see the correction at the top), so `runWith-avg` alone does
-not close it. What closes it is the averaging route, in three pieces, none of
-which exists yet:
-
-```agda
--- (a) DELIVERED — `Hiding/Game.agda:defer-commit`.  The real game with the
---     secret planted at the start, averaged over the plant, IS the real game
---     drawing at the commitment.  An instance of `runWith-avg` at the relation
---     "pre-commitment: the family is `λ r → (just r , t , nothing)` and the
---     state is `(nothing , t , nothing)`; post-commitment: the family is
---     constant".
-defer-commit : (d : Strat Qʰ Rʰ)
-             → E (uniform-Vec k) (λ r → Pr₁ (runWith respRʰ (just r , [] , nothing) d))
-               ≡ Pr₁ (runWith respRʰ sR₀ d)
-
--- (b) the AVERAGED supermartingale: a flag that reads a planted secret is not
---     a `SuperCert` at any single plant, but its μ-average is bounded.  This is
---     the "different lemma, not a `SuperCert`" of `docs/ro-game-hop.md`.
-badProb-avg : (μ : Dist-ℚ V) (resp : V → St → Q → Dist-ℚ (St × R)) (bad : V → St → Bool)
-              (φ : ℕ → St → ℚ) → …
-            → ∀ m d s → asks≤ m d → E μ (λ v → badProb (resp v) (bad v) s d) ≤ℚ φ m s
-
--- (c) the averaged FLGP: `E-abs-diff` over `μ` in front of `Coupling.FLGP`.
-```
-
-With (a) in hand the remaining work is (b) and (c) only. (b) is the
-substantive one and it is not a one-liner: `badProb-super`'s
-induction is stated at a single state, and averaging makes the post-state a
-FAMILY, so the potential has to be a functional of the family rather than of a
-state. The shape that works is the one `runWith-avg` already uses (`E μ` in
-front, a family on the planted side); the obstruction is that `badProb`'s own
-recursion branches on `bad v s`, which differs across `v`, so the split has to
-be done inside the integral. A cheaper route worth spiking first: show
-`badProb` of a MONOTONE flag equals the probability that the flag is up at the
-END of the run (a new `runSt` and one induction), after which (b) is an
-ordinary `E`-linear supermartingale on the rational potential `E μ (1[bad v ·])`
-and needs no family at all.
-
-### 2. The UC-level ε-statement
+### 1. The UC-level ε-statement
 
 The same four obstructions as the extraction half — `docs/fcom-extraction.md`
 §"Not delivered" 1(a)–(d) — verbatim, since they are about the layer and not
@@ -361,30 +400,31 @@ raw-emulationʰ :
     Obs ((Et ∘ T₁ᵒ W (sub simʰᵒ ∘ idealʰᵒ)) ∘ m)
 ```
 
-with `simQBʰ : QB 1 simulatorʰ` and `εʰ-negligible : NegligibleBound εʰ` as the
-other two components of the consolidation plan's §3.3 witness form. Both of
-those ARE delivered; the relation is not. Note the grade here is a ONE-query
+with `simQBʰ : QB 1 simulatorʰ` and `εᵗ-negligible : NegligibleBound εᵗ` as the
+other two components of the consolidation plan's §3.3 witness form — `εᵗ`
+rather than `εʰ` now that the closed statement reaches the protocol itself.
+Both of those ARE delivered; the relation is not. Note the grade here is a ONE-query
 interface (`AdvQʰ` has a single constructor), so `ctxBudget` enters at `c′ ⊔ 1`
 rather than the extraction half's `2`.
 
-### 3. No `≤UC[ c ]`, no `≤UC`
+### 2. No `≤UC[ c ]`, no `≤UC`
 
 Unchanged from the extraction half: `UC.Seam.Graded.≤UC[]ᵍ` and
 `UC.Graded.≤UCᵍ` consume a `Factors`, an exact machine equality, which an
 approximate emulation does not have. `simQBʰ` is produced and is the input
 `≤UC[]ᵍ` would take.
 
-### 4. No `realʰ ≈ᴹ subᴵ simulatorʰ ∘ idealʰ` — and there must not be
+### 3. No `realʰ ≈ᴹ subᴵ simulatorʰ ∘ idealʰ` — and there must not be
 
 Deliberately absent: the emulation is approximate. `∘-wireᴹ` is *available*
 (the ideal functionality is a wire), so the composite reduces to a concrete
 machine with a readable state, which is what the closed game models; but the
 two are not `≈ᴹ` and the branch claims no such thing.
 
-### 5. No family over `k`
+### 4. No family over `k`
 
-`Hiding.Asymptotic.hiding-boundⁿ` quantifies over the security parameter, so
-the levelwise statement is there. The FAMILY packaging (`UC.Asymptotic.Family`)
+`Hiding.Asymptotic.hiding-boundⁿ`/`hiding-boundᵗ` quantify over the security
+parameter, so the levelwise statement is there. The FAMILY packaging (`UC.Asymptotic.Family`)
 is the `quantitative-family` sibling's and is untouched.
 
 ## Against the consolidation plan's architectural decisions
@@ -395,8 +435,9 @@ is the `quantitative-family` sibling's and is untouched.
   own action.
 * **Decision 3** — no `Simulator`, `ClosingContext`, `MonitoredExperiment` or
   `Monitor` record and no new category. The simulator is a plain
-  `Proc Lkᴵʰ Advᴵʰ`; the only new record inhabited is `GamePlaying`'s existing
-  `SuperCert`, via `rare-cert`.
+  `Proc Lkᴵʰ Advᴵʰ`; the only record inhabited is `GamePlaying`'s existing
+  `SuperCert`, via `rare-cert`, and the hop's own obligations (`JoinStep`,
+  `AvgDrift`) are plain Σ- and Π-types in `GamePlaying`.
 * **Decision 4** — `Strat` untouched; `Test`'s attack is ordinary finite syntax.
 * **Decision 5** — the query certificate stays standalone and the quantitative
   witness (`εʰ-negligible`) is kept beside it rather than folded in.

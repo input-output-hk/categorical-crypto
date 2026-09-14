@@ -3524,3 +3524,81 @@ gate. Closure `src/CategoricalCrypto.agda` rc=0 over 113 modules, re-run after t
 `Examples/ChimericLedger/FactorEps.agda` and `UC/Approximate/LocalTests.agda`
 checked separately, both outside that closure. Escape-hatch baseline 16 before
 / 16 after, all sixteen the words "postulate-free" in inherited comments.
+
+## Resolved (hiding-defer)
+
+Branch `hiding-defer`, off `protocol-rewrite` at `5aaf0a77`. The one typed
+residual of the hiding half — `hiding-bound-defer`'s `ε′` hypothesis — is now
+a theorem: `Hiding/Defer.agda:defer-hiding` at `2m·2⁻ᵏ`, and
+`hiding-bound-total` is the assembled `3m·2⁻ᵏ` against the protocol itself.
+`docs/fcom-hiding.md` is the rewritten write-up; this is the digest of what
+needs the maintainer's judgment.
+
+### What landed
+
+- **`GamePlaying/Hop.agda`** (84 → 175) — `JoinStep`/`runWith-join`: a
+  step-coupling up to the flag for two kernels on SEPARATE state spaces.
+  `Coupling.FLGP` is the case where the joint draw is one coupled kernel's two
+  projections; here the two games' tables part at the commitment and, once the
+  flag is up, part arbitrarily, so a coupled state would have to carry both.
+- **`GamePlaying/Average.agda`** (new, 172 LOC) — `endProb`,
+  `badProb≡endProb` (monotone flag), `endProb-frozen`, `endProb-avg`,
+  `badProb-avg`: the supermartingale bound for a flag that reads a planted
+  secret, which no `SuperCert` can carry.
+- **`ProbabilisticLogic/…/Expectation.agda`** (222 → 236) — `E-cong-on`
+  (on-support congruence) and `E-bind₂` (the two-draw step), both generic.
+- **`Examples/ROCommitment/Hiding/Defer.agda`** (new, 817 LOC) — `respPʰ` (the
+  deferred game with the opening randomness planted and a flag), `defer-hop`,
+  the per-plant coupling `join-J`, the averaged drift `drift-P`,
+  `defer-hiding` and `hiding-bound-total`.
+- **`Examples/ROCommitment/{Extraction,Oracle}.agda`** (+6, +20) —
+  `lookup-there`, `fetchT-hit`, `fetchT-miss`, `fetchT-sup`, each beside the
+  definition it is about.
+- **`Hiding/{Game,Asymptotic,Test}.agda`** — `ask-redᴸ`/`ask-redᴿ` left the
+  `private` blocks and the four query expansions collapsed onto `E-bind₂`;
+  `εᵗ`/`εᵗ-negligible`/`hiding-boundᵗ`; `bounded-total` and `bounded-preq`,
+  the second attack being the one that reaches the commitment-time divergence.
+
+### For the maintainer
+
+- **The end-to-end constant is 3, and 2 looks reachable.** Both hops pay a
+  `2⁻ᵏ` for a guess at the same secret — hop (ii) at the programmed point, hop
+  (i) at the plant — and a single coupling straight from `respIʰ` to `respRʰ`
+  would plausibly pay for it once. It was not attempted: that coupling has to
+  do the programming relation and the plant average at the same time, and the
+  two-hop split is what keeps each `JoinStep` one case analysis wide. **Call:**
+  accept `3m·2⁻ᵏ`, or ask for the merged hop.
+- **`Average.AvgDrift` is stated in continuation-passing form**, matching
+  `Defer.AvgBisim`. The alternative is to assume a shared-randomness
+  presentation of the kernel (`resp v s q ≡ Dmap (κ v s q) ν`) and do the
+  `E-swap` inside the lemma once instead of in every consumer. CPS was chosen
+  because the presentation would have to be re-established for each kernel
+  anyway and `AvgBisim` already set the idiom.
+- **`Coupling.FLGP` is not re-derived from `runWith-join`.** It is the
+  special case (take the join to be `Dmap ⟨fR , fI⟩ (respB s q)`), but FLGP has
+  several consumers stated at `Coupling`'s `realK`/`idealK` and re-deriving it
+  would be churn in modules this branch has no other business in.
+- **`Hiding/Defer.agda` exports its whole vocabulary** (`TblAt`, `recOf`,
+  `Fresh`, `_≋J_`, `fetchR`, `Opened`, `RelP`, `join-J`, `drift-P`,
+  `per-plant`, `flag-bound`). Rule 32 says keep them public in doubt, and they
+  are the terms the write-up uses; a reviewer who wants a smaller surface
+  should say which of them is genuinely one-off.
+- **`badProb-avg` does not subsume `badProb-bounded`.** At `V ≡ ⊤` it is the
+  same statement, but its hypotheses (a relation on families, a frozen mode)
+  are not the `SuperCert` record, so the two live side by side. Whether
+  `SuperCert` should be re-expressed as the `V ≡ ⊤` case is a judgment call
+  about which shape consumers should see.
+- **The UC-level ε-statement is still not delivered** — unchanged, and for the
+  same four reasons as the extraction half. What this branch changes is the
+  quantitative component it would take: `εᵗ-negligible`, not `εʰ-negligible`.
+
+### Verification
+
+Every commit checked green, `+RTS -M8G -H1G`, rc=0 and an empty
+`ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error|Failed to solve|Heap exhausted|No space left`
+gate. Closure `src/CategoricalCrypto.agda` rc=0 over 342 modules (9m07s, whole
+library cold), re-run after the placement move; `GamePlaying/Test.agda`,
+`Examples/ROCommitment/{Test,Game}.agda` and
+`Examples/ROCommitment/Hiding/Test.agda` checked separately. Escape-hatch
+baseline 16 before / 16 after, all sixteen the words "postulate-free" in
+inherited comments.
