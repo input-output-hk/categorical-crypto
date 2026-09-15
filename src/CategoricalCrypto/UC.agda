@@ -61,6 +61,20 @@
 --                                  `UC.Model.Family.Negligible` inhabits it at
 --                                  the machine family, and its §1 acceptance
 --                                  tests are `UC.Approximate.LocalTests`
+--   quantitative `Approx.Space`    `Approx`: approximate spaces and
+--                                  nonexpansive maps, `Approximation` packaged
+--                                  as a category, `Approx.Forget` the two ways
+--                                  out of it (`F₀`, `F₊`) and
+--                                  `Approx.Separating` why they differ
+--                `UC.Quantitative` `QUCSetup`: the same computational data at
+--                                  an `Approx`-valued presheaf, its two
+--                                  ordinary setups, and `_≈ᵁ[ ε ]_`, the
+--                                  contextual comparison with the error kept.
+--                                  `.Witness` is `At`/`Witness` and their
+--                                  composition, `.Bridge` the exact links to
+--                                  the two inherited theories.  The resource
+--                                  extension is NOT here
+--                                  (`docs/quantitative-uc-setup-plan.typ` §7)
 --   model        `UC.Machine`      `𝒫ᴵ`, processes on `Iface`s, the ticked
 --                                  verdict interface, the observation at `Dₚ`
 --                `UC.QueryBound`   the amortised-potential certificate — a
@@ -245,3 +259,8 @@ open import CategoricalCrypto.UC.Seam.Grounded public
 
 -- Closure-only: the negligible tier's acceptance tests (leaf, nothing to open).
 import CategoricalCrypto.UC.Approximate.LocalTests
+
+-- …and the quantitative tier: parameterized by an error algebra and a
+-- `QUCSetup`, so imported rather than re-exported, `Bridge` reaching the rest.
+import CategoricalCrypto.Approx.Separating
+import CategoricalCrypto.UC.Quantitative.Bridge

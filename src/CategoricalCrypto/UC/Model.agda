@@ -38,6 +38,8 @@
 --                        (`UC.Core.Bridge` at `Famᴹ`)
 --   `Model.Family.Negligible`  the local negligible tier (`UC.Family.Negligible`)
 --                        inhabited at the machine family
+--   `Model.Quantitative` `ℰᵒ` with the slack still visible: the same tests
+--                        valued in `Approx`, whose `F₊` image is `ℰᵒ` again
 --
 -- The model obligations the proposal lists are then: the monoidal structure
 -- (`Machines.G`, a theorem on this branch), the presheaf (`Model.Environment`)
@@ -57,6 +59,7 @@ import CategoricalCrypto.UC.Model.Family.Negligible
 import CategoricalCrypto.UC.Model.Family.Uniform
 import CategoricalCrypto.UC.Model.Observation
 import CategoricalCrypto.UC.Model.Pin
+import CategoricalCrypto.UC.Model.Quantitative
 import CategoricalCrypto.UC.Model.Reading
 import CategoricalCrypto.UC.Model.Seal
 import CategoricalCrypto.UC.Model.Setup
