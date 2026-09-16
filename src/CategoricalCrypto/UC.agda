@@ -72,9 +72,18 @@
 --                                  contextual comparison with the error kept.
 --                                  `.Witness` is `At`/`Witness` and their
 --                                  composition, `.Bridge` the exact links to
---                                  the two inherited theories.  The resource
---                                  extension is NOT here
---                                  (`docs/quantitative-uc-setup-plan.typ` §7)
+--                                  the two inherited theories
+--                `Approx.Controlled`
+--                                  the resource-aware half: maps carrying an
+--                                  error control, `Approx.Filtered` the second
+--                                  index (which allowance admits which test),
+--                                  `Approx.Schedule` the schedule-valued errors
+--                                  and allowance reindexing as a control, and
+--                                  `Approx.Small` the existential collapse at a
+--                                  class of small errors — distinct from `F₊`.
+--                                  The query model and the migration are not
+--                                  built (`docs/quantitative-uc-setup-plan.typ`
+--                                  §§7–10)
 --   model        `UC.Machine`      `𝒫ᴵ`, processes on `Iface`s, the ticked
 --                                  verdict interface, the observation at `Dₚ`
 --                `UC.QueryBound`   the amortised-potential certificate — a
@@ -262,5 +271,8 @@ import CategoricalCrypto.UC.Approximate.LocalTests
 
 -- …and the quantitative tier: parameterized by an error algebra and a
 -- `QUCSetup`, so imported rather than re-exported, `Bridge` reaching the rest.
+import CategoricalCrypto.Approx.Filtered
+import CategoricalCrypto.Approx.Schedule
 import CategoricalCrypto.Approx.Separating
+import CategoricalCrypto.Approx.Small
 import CategoricalCrypto.UC.Quantitative.Bridge
