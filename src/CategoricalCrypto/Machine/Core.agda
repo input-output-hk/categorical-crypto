@@ -144,11 +144,17 @@ infixr 9 _∘_
 _∘_ : ∀ {B C A} → Machine B C → Machine A B → Machine A C
 _∘_ {B} M₁ M₂ = tr {C = B} $ modifyStepRel ∘σ (M₂ ⊗₁ M₁)
 
+-- The two halves of each structural forwarder are named, like `∘ᴷ-fwd`'s
+-- below, so that `Machine.Monoidal.*` can read the forwarder off them.
+⊗-assocᵢ : ∀ {A B C} → ((A ⊗₀ B) ⊗₀ C) [ In ]⇒[ In ] (A ⊗₀ (B ⊗₀ C))
+⊗-assocᵢ = ⇒-solver
+
+⊗-assocₒ : ∀ {A B C} → (A ⊗₀ (B ⊗₀ C)) [ Out ]⇒[ Out ] ((A ⊗₀ B) ⊗₀ C)
+⊗-assocₒ = ⇒-solver
+
 ⊗-assoc : ∀ {A B C} → Machine ((A ⊗₀ B) ⊗₀ C) (A ⊗₀ (B ⊗₀ C))
-⊗-assoc = TotalFunctionMachine' ⇒-solver ⇒-solver
-  
--- The two halves of the inverse associator are named, like `∘ᴷ-fwd`'s below,
--- so that `Machine.Monoidal.Naturality` can read the forwarder off them.
+⊗-assoc = TotalFunctionMachine' ⊗-assocᵢ ⊗-assocₒ
+
 ⊗-assoc⃖ᵢ : ∀ {A B C} → (A ⊗₀ (B ⊗₀ C)) [ In ]⇒[ In ] ((A ⊗₀ B) ⊗₀ C)
 ⊗-assoc⃖ᵢ = ⇒-solver
 
@@ -158,8 +164,14 @@ _∘_ {B} M₁ M₂ = tr {C = B} $ modifyStepRel ∘σ (M₂ ⊗₁ M₁)
 ⊗-assoc⃖ : ∀ {A B C} → Machine (A ⊗₀ (B ⊗₀ C)) ((A ⊗₀ B) ⊗₀ C)
 ⊗-assoc⃖ = TotalFunctionMachine' ⊗-assoc⃖ᵢ ⊗-assoc⃖ₒ
 
+⊗-symᵢ : ∀ {A B} → (A ⊗₀ B) [ In ]⇒[ In ] (B ⊗₀ A)
+⊗-symᵢ = ⇒-solver
+
+⊗-symₒ : ∀ {A B} → (B ⊗₀ A) [ Out ]⇒[ Out ] (A ⊗₀ B)
+⊗-symₒ = ⇒-solver
+
 ⊗-symₘ : ∀ {A B} → Machine (A ⊗₀ B) (B ⊗₀ A)
-⊗-symₘ = TotalFunctionMachine' ⇒-solver ⇒-solver
+⊗-symₘ = TotalFunctionMachine' ⊗-symᵢ ⊗-symₒ
 
 -- The unitors.
 ρ⇒ : ∀ {A} → Machine (A ⊗₀ I) A
@@ -170,6 +182,9 @@ _∘_ {B} M₁ M₂ = tr {C = B} $ modifyStepRel ∘σ (M₂ ⊗₁ M₁)
 
 λ⇒ : ∀ {A} → Machine (I ⊗₀ A) A
 λ⇒ = TotalFunctionMachine' ⊗-left-neutral ⊗-left-intro
+
+λ⇐ : ∀ {A} → Machine A (I ⊗₀ A)
+λ⇐ = TotalFunctionMachine' ⊗-left-intro ⊗-left-neutral
 
 -- The middle-four interchange on channels, and the reassociator of `_∘ᴷ_`
 -- (see `Machine.Monoidal`).  Both halves of each are named, for the reason
@@ -289,38 +304,19 @@ Invariant-trans : {A B C D : Channel} → {M₁ : Machine A B} → {M₂ : Machi
 Invariant-trans record { A≡C = refl ; B≡D = refl ; M₁≡M₂ = H.refl } P inv = inv
 
 --------------------------------------------------------------------------------
--- Open adversarial protocols
-
-record OAP (A E₁ B E₂ : Channel) : Type₁ where
-  field Adv        : Channel
-        Protocol   : Machine A (B ⊗₀ Adv)
-        Adversary  : Machine (Adv ⊗₀ E₁) E₂
-
---------------------------------------------------------------------------------
 -- Environment model
 
+-- The verdict channel: environments output a Boolean and receive nothing.
 ℰ-Out : Channel
 ℰ-Out = record {inType = Bool ; outType = ⊥}
 
--- Presheaf on the category of channels & machines
--- we just take machines that output a boolean
--- for now, not on the Kleisli construction
+-- The environments at `C` are the machines from `C` into the verdict channel;
+-- they act on machines by precomposition.  `Machine.Iso` compares machines
+-- under all environments up to bisimulation (`_≅ℰ_`), and `Machine.UC`
+-- instantiates the abstract UC layer at machines, so the UC relations
+-- themselves (`_≤UC_`, `_≈ᵁ_`, …) live there.
 ℰ : Channel → Type₁
 ℰ C = Machine C ℰ-Out
 
 map-ℰ : ∀ {A B} → Machine A B → ℰ B → ℰ A
 map-ℰ M E = E ∘ M
-
---------------------------------------------------------------------------------
--- UC relations
-
--- perfect equivalence
-_≈ℰ_ : ∀ {A B} → Machine A B → Machine A B → Type₁
-_≈ℰ_ {B = B} M M' = (E : ℰ B) → map-ℰ M E ≡ map-ℰ M' E
-
-_≤UC_ : ∀ {A B E E''} → Machine A (B ⊗₀ E) → Machine A (B ⊗₀ E'') → Type₁
-_≤UC_ {B = B} {E} R I = ∀ E' (A : Machine E E') → ∃[ S ] ((B ⊗ˡ A) ∘ R) ≈ℰ ((B ⊗ˡ S) ∘ I)
-
--- equivalent to _≤UC_ by "completeness of the dummy adversary"
-_≤'UC_ : ∀ {A B E} → Machine A (B ⊗₀ E) → Machine A (B ⊗₀ E) → Type₁
-_≤'UC_ {B = B} R I = ∃[ S ] R ≈ℰ (B ⊗ˡ S ∘ I)

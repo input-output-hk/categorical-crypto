@@ -2220,13 +2220,6 @@ module ∘-assoc-implementation
 -- The category of Machines, with hom equality the machine bisimulation
 -- `_≅ᴹ_`. The laws are the bisimulations above, used directly.
 
-≈ℰ-isEquivalence : IsEquivalence (_≈ℰ_ {A} {B})
-≈ℰ-isEquivalence = record
-  { refl  = λ E       → refl
-  ; sym   = λ p E     → sym (p E)
-  ; trans = λ p q E   → trans (p E) (q E)
-  }
-
 MachineCategory : Category _ _ _
 MachineCategory = record
   { Obj       = Channel

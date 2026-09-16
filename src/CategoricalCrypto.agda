@@ -17,10 +17,14 @@ open import CategoricalCrypto.Channel.Selection public
 open import CategoricalCrypto.Machine.Constraints public
 open import CategoricalCrypto.Machine.Core public
 open import CategoricalCrypto.Machine.Iso public
+open import CategoricalCrypto.Machine.Monoidal public
+open import CategoricalCrypto.Machine.MonoidalCategory public
+open import CategoricalCrypto.Machine.UC
+import CategoricalCrypto.Machine.UC.Kleisli
+open import CategoricalCrypto.Machine.NAry public
 open import CategoricalCrypto.SFunM public
-import CategoricalCrypto.Machine.Monoidal
-import CategoricalCrypto.Machine.NAry
 
 open import CategoricalCrypto.Examples.Basic
+import CategoricalCrypto.Examples.Channels
 open import CategoricalCrypto.Examples.Commitment
 open import CategoricalCrypto.Examples.Signatures

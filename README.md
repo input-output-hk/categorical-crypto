@@ -121,9 +121,20 @@ The executable model (predating the layers above; connecting it to
   wiring DSL (`Selection`).
 - `Machine/` — stateful machines communicating over channels, with UC
   security notions stated directly on them; `Constraints` adds extra
-  side conditions.
+  side conditions.  `Machine.Iso` is the state bisimulation `_≅ᴹ_` and the
+  category of machines under it; `Machine.MonoidalCategory` bundles it as a
+  symmetric monoidal category, with the coherence laws proved as forwarder
+  computations (`Machine.Monoidal.*`) and the naturality of the Kleisli
+  shuffles discharged by the coherence solver.  `Machine.UC` instantiates
+  `Standard2` at this category (grade on the right, environments as joint
+  ancilla tests), proves `GradeStable`, and so has `≈ᵁ ⇔ ≈ℰ` and the four
+  UC metatheorems for concrete machines; `Machine.UC.Kleisli` identifies the
+  hand-rolled `_∘ᴷ_` with the abstract Kleisli composition up to the grade
+  swap.
 - `SFunM` — the category of stateful, monadic functions.
-- `Examples/` — commitment, signature, and basic protocol examples.
+- `Examples/` — commitment, signature, and basic protocol examples;
+  `Examples.Channels` is the first worked UC statement on concrete machines
+  (the length-leaking secure channel realizes the message-leaking one).
 - `CategoricalCrypto` — the root module re-exporting this layer.
 
 # Contributing
