@@ -16,6 +16,7 @@
 open import Categories.Category using (Category)
 
 open import Level using (Level; suc; _⊔_)
+open import Relation.Binary.Bundles using (Setoid)
 open import Relation.Binary.Structures using (IsEquivalence)
 
 open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
@@ -49,6 +50,17 @@ module _ (X : ApproxSpace c ℓa) where
 
   zero⇒positive : {x y : Carrier} → x ≈[ ε₀ ] y → x ∼ᵃ y
   zero⇒positive h _ pos = ≈[]-mono (ε₀-least pos) h
+
+  -- The zero-error identification: `Approx`'s hom equality pointwise, and what
+  -- every forgetting of a space or of a controlled map starts from.
+  zeroSetoid : Setoid c ℓa
+  zeroSetoid = record
+    { Carrier = Carrier
+    ; _≈_ = λ x y → x ≈[ ε₀ ] y
+    ; isEquivalence = record
+        { refl = ≈[]-refl ; sym = ≈[]-sym
+        ; trans = λ h k → ≈[]-mono ⊕-identityˡ (≈[]-trans h k) }
+    }
 
 record Nonexpansive (X Y : ApproxSpace c ℓa) : Set (c ⊔ es ⊔ ℓa) where
   private

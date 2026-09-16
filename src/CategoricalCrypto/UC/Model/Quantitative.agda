@@ -32,8 +32,11 @@ open import ProbabilisticLogic.Dp.Advantage using (≈ₚ[]-resp; ≈ₚ⇒≈�
 open import CategoricalCrypto.Approx.Error using (ℚ-ordered)
 open import CategoricalCrypto.UC.Approximate using (Approximation; ℚ-errors)
 open import CategoricalCrypto.UC.Machine using (Approximationᴹ)
+open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ)
 open import CategoricalCrypto.UC.Model.Environment using (_≋_)
-open import CategoricalCrypto.UC.Model.Observation using (Closure; Obs; Test; obs-resp)
+open import CategoricalCrypto.UC.Model.Observation
+  using (Closure; Obs; Test; obs-resp; Ωᵒ; 𝟘ᵒ)
+open import CategoricalCrypto.UC.Quantitative.Query using (fromBudget; module Tests)
 open import CategoricalCrypto.UC.Model.Seal using (∣𝔾ᵒ∣; 𝔾ᵒ)
 open import CategoricalCrypto.UC.Model.Setup using (ℳ-standard)
 
@@ -105,3 +108,13 @@ module QUCᵒ = QBridge QSetupᵒ
 
 ≋⇔∼₊ : {A : G.Obj} {E F : Test A} → (E ≋ F) ⇔ Setoid._≈_ ⟦ spaceᵗ A ⟧₊ E F
 ≋⇔∼₊ = mk⇔ ≋⇒∼₊ ∼₊⇒≋
+
+------------------------------------------------------------------------
+-- …and the same observation, restricted by allowance
+
+-- The query-sensitive model of `UC.Quantitative.Query` at this branch's budget
+-- and observation: the same `Obs`, now comparing only certified closures and
+-- carrying the schedule the allowance is read at.  It is a DIFFERENT space
+-- from `spaceᵗ` above, which admits every closure at one scalar error.
+module Queryᵒ = Tests ∣𝔾ᵒ∣ (fromBudget budgetᵒ) Approximationᴹ 𝟘ᵒ Ωᵒ Obs
+                     (λ e → ≈ₚ⇒≈ₚ[0] (obs-resp e))

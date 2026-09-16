@@ -84,7 +84,7 @@ module _ {X Y : FilteredSpace c ℓa ℓd} where
 
   infix 4 _≈ᶠ_
 
-  _≈ᶠ_ : Filtered X Y → Filtered X Y → Set (c ⊔ es ⊔ ℓa)
+  _≈ᶠ_ : Filtered X Y → Filtered X Y → Set (c ⊔ es ⊔ ℓe ⊔ ℓa)
   f ≈ᶠ g = (underlying f ≈ᶜ underlying g)
          × ((q : ℕ) → Allowance.at (allowance f) q ≡ Allowance.at (allowance g) q)
 
@@ -92,11 +92,11 @@ module _ {X Y : FilteredSpace c ℓa ℓd} where
   -- spaces arrive as projections of `X`/`Y` and are not inferable here.
   ≈ᶠ-isEquivalence : IsEquivalence _≈ᶠ_
   ≈ᶠ-isEquivalence = record
-    { refl  = ((λ _ → refl) , λ _ → SY.≈[]-refl) , λ _ → refl
-    ; sym   = λ ((ce , me) , ae) →
-        ((λ ε → sym (ce ε)) , λ x → SY.≈[]-sym (me x)) , λ q → sym (ae q)
-    ; trans = λ ((ce₁ , me₁) , ae₁) ((ce₂ , me₂) , ae₂) →
-        ( (λ ε → trans (ce₁ ε) (ce₂ ε))
+    { refl  = (((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → SY.≈[]-refl) , λ _ → refl
+    ; sym   = λ (((l , r) , me) , ae) →
+        ((r , l) , λ x → SY.≈[]-sym (me x)) , λ q → sym (ae q)
+    ; trans = λ (((l₁ , r₁) , me₁) , ae₁) (((l₂ , r₂) , me₂) , ae₂) →
+        ( ( (λ ε → ⊑-trans (l₁ ε) (l₂ ε)) , λ ε → ⊑-trans (r₂ ε) (r₁ ε) )
         , λ x → SY.≈[]-mono ⊕-identityˡ (SY.≈[]-trans (me₁ x) (me₂ x)) )
         , λ q → trans (ae₁ q) (ae₂ q)
     }
@@ -126,7 +126,7 @@ composeᶠ-resp {X = X} {Y = Y} {Z = Z} {g = g} {g′ = g′} {f = f} {f′ = f�
                 (ae₁ (Allowance.at (Filtered.allowance f′) q))
 
 Filt : (c ℓa ℓd : Level)
-     → Category (suc (c ⊔ ℓa ⊔ ℓd) ⊔ es ⊔ ℓe) (c ⊔ es ⊔ ℓe ⊔ ℓa ⊔ ℓd) (c ⊔ es ⊔ ℓa)
+     → Category (suc (c ⊔ ℓa ⊔ ℓd) ⊔ es ⊔ ℓe) (c ⊔ es ⊔ ℓe ⊔ ℓa ⊔ ℓd) (c ⊔ es ⊔ ℓe ⊔ ℓa)
 Filt c ℓa ℓd = record
   { Obj       = FilteredSpace c ℓa ℓd
   ; _⇒_       = Filtered
@@ -137,15 +137,20 @@ Filt c ℓa ℓd = record
   -- function are compared, and those reduce; the records themselves do not
   -- (a composite control's own law fields are built with `⊑-trans`).
   ; assoc     = λ {_} {_} {_} {D} →
-      ((λ _ → refl) , λ _ → ApproxSpace.≈[]-refl (FilteredSpace.space D)) , λ _ → refl
+      (((λ _ → ⊑-refl) , λ _ → ⊑-refl)
+      , λ _ → ApproxSpace.≈[]-refl (FilteredSpace.space D)) , λ _ → refl
   ; sym-assoc = λ {_} {_} {_} {D} →
-      ((λ _ → refl) , λ _ → ApproxSpace.≈[]-refl (FilteredSpace.space D)) , λ _ → refl
+      (((λ _ → ⊑-refl) , λ _ → ⊑-refl)
+      , λ _ → ApproxSpace.≈[]-refl (FilteredSpace.space D)) , λ _ → refl
   ; identityˡ = λ {_} {B} →
-      ((λ _ → refl) , λ _ → ApproxSpace.≈[]-refl (FilteredSpace.space B)) , λ _ → refl
+      (((λ _ → ⊑-refl) , λ _ → ⊑-refl)
+      , λ _ → ApproxSpace.≈[]-refl (FilteredSpace.space B)) , λ _ → refl
   ; identityʳ = λ {_} {B} →
-      ((λ _ → refl) , λ _ → ApproxSpace.≈[]-refl (FilteredSpace.space B)) , λ _ → refl
+      (((λ _ → ⊑-refl) , λ _ → ⊑-refl)
+      , λ _ → ApproxSpace.≈[]-refl (FilteredSpace.space B)) , λ _ → refl
   ; identity² = λ {A} →
-      ((λ _ → refl) , λ _ → ApproxSpace.≈[]-refl (FilteredSpace.space A)) , λ _ → refl
+      (((λ _ → ⊑-refl) , λ _ → ⊑-refl)
+      , λ _ → ApproxSpace.≈[]-refl (FilteredSpace.space A)) , λ _ → refl
   ; equiv     = λ {A} {B} → ≈ᶠ-isEquivalence {X = A} {Y = B}
   ; ∘-resp-≈  = λ {A} {B} {C} {f} {h} {g} {i} →
       composeᶠ-resp {X = A} {Y = B} {Z = C} {g = f} {g′ = h} {f = g} {f′ = i}

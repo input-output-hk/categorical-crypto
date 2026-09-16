@@ -18,9 +18,11 @@ open import Data.Integer.Base using (+<+)
 open import Data.Nat.Base as ℕ using (ℕ; suc; z≤n; s≤s)
 open import Data.Nat.Poly using (poly-+; poly-const; poly-id)
 open import Data.Product.Base using (_,_)
-open import Data.Rational as ℚ using (ℚ; 0ℚ; ½; ∣_∣; 1/_; NonZero; positive; *<*)
+open import Data.Rational as ℚ
+  using (ℚ; 0ℚ; ½; ∣_∣; 1/_; NonZero; nonNegative; positive; *<*)
 open import Data.Rational.Properties
-  using ( *-inverseʳ; +-identityʳ; +-mono-≤; <-irrefl; ≤-<-trans
+  using ( *-cancelˡ-≤-pos; *-inverseʳ; *-monoʳ-≤-nonNeg; +-identityʳ; +-mono-≤
+        ; <-irrefl; <⇒≤; ≤-<-trans
         ; ≤-reflexive; ≤-trans; 0≤p⇒∣p∣≡p; pos⇒nonZero; positive⁻¹ )
 open import Data.Rational.Properties.Ext
   using (p≤∣p∣; ∣x-x∣≡0; ∣-∣-comm; ∣-∣-triangle)
@@ -28,9 +30,10 @@ open import Level using (0ℓ)
 open import Relation.Binary.PropositionalEquality using (cong; refl; subst; sym; trans)
 open import Relation.Nullary using (¬_)
 
-open import ProbabilisticLogic.Distribution.Uniform using (fromℕ; fromℕ-/; 0<fromℕ-suc)
+open import ProbabilisticLogic.Distribution.Uniform
+  using (archimedean; fromℕ; fromℕ-/; fromℕ-mono-≤; 0<fromℕ-suc)
 
-open import CategoricalCrypto.UC.Approximate using (Approximation; Negligible; ℚ-errors)
+open import CategoricalCrypto.UC.Approximate using (Approximation; Negligible; _→0; ℚ-errors)
 
 import Data.Nat.Properties as ℕₚ
 
@@ -84,3 +87,17 @@ inv-suc n = 1/_ (fromℕ (suc n)) {{nzᶠ n}}
                      (*-inverseʳ (fromℕ (suc N)) {{nzᶠ N}}))
               (bnd N ℕₚ.≤-refl)
   in <-irrefl refl (≤-<-trans 1≤½ (*<* (+<+ (s≤s (s≤s z≤n)))))
+
+-- …and the positive half the header claims: it DOES vanish.  With
+-- `¬negligible-inv-suc` above, this is the checked separation of the two
+-- grades — `_→0` is strictly weaker than `Negligible`.
+inv-suc-→0 : inv-suc →0
+inv-suc-→0 ε ε>0 =
+  let M , 1≤Mε = archimedean ε>0
+  in M , λ n M≤n →
+    *-cancelˡ-≤-pos (fromℕ (suc n)) {{positive (0<fromℕ-suc n)}}
+      (subst (ℚ._≤ fromℕ (suc n) ℚ.* ε)
+             (sym (*-inverseʳ (fromℕ (suc n)) {{nzᶠ n}}))
+             (≤-trans 1≤Mε
+               (*-monoʳ-≤-nonNeg ε {{nonNegative (<⇒≤ ε>0)}}
+                 (fromℕ-mono-≤ (s≤s M≤n)))))

@@ -16,17 +16,20 @@
 -- `ctxBudget-closure≤`), so demanding equations here would exclude the model
 -- this category exists to hold.
 --
--- Hom equality compares the controls pointwise and the functions at zero error.
--- Composition respects it because a control preserves zero — that is the one
--- place `preserves-ε₀` is spent, and it is also why `Ctrl` forgets to `Setoids`
--- at all.  Controls are never erased from the categorical data.
+-- Hom equality compares the controls and the functions at zero error.  Two
+-- controls are compared in the ERRORS' OWN ORDER (`_≐ᶜ_`), not by propositional
+-- equality: at a schedule-valued error `at φ ε` is itself a function, and
+-- agreement of two such is not an equation without funext — the query model
+-- needs `τ ∘ (1 *_)` to count as the identity control and cannot prove it
+-- otherwise.  Composition respects the equality because a control is monotone
+-- and preserves zero, which is where those two laws are spent; preserving zero
+-- is also why `Ctrl` forgets to `Setoids` at all.  Controls are never erased.
 
 open import Categories.Category using (Category)
 open import Categories.Functor using (Functor)
 
 open import Data.Product.Base using (_×_; _,_)
 open import Level using (Level; suc; _⊔_)
-open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl; sym; trans)
 open import Relation.Binary.Structures using (IsEquivalence)
 
 open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
@@ -81,6 +84,11 @@ record Controlled (X Y : ApproxSpace c ℓa) : Set (c ⊔ es ⊔ ℓe ⊔ ℓa) 
     preserves : {x y : X.Carrier} {ε : Error}
               → x X.≈[ ε ] y → map x Y.≈[ at control ε ] map y
 
+infix 4 _≐ᶜ_
+
+_≐ᶜ_ : Control → Control → Set (es ⊔ ℓe)
+φ ≐ᶜ ψ = ((ε : Error) → at φ ε ⊑ at ψ ε) × ((ε : Error) → at ψ ε ⊑ at φ ε)
+
 module _ {X Y : ApproxSpace c ℓa} where
   private module Y = ApproxSpace Y
 
@@ -88,16 +96,16 @@ module _ {X Y : ApproxSpace c ℓa} where
 
   infix 4 _≈ᶜ_
 
-  _≈ᶜ_ : Controlled X Y → Controlled X Y → Set (c ⊔ es ⊔ ℓa)
-  f ≈ᶜ g = ((ε : Error) → at (control f) ε ≡ at (control g) ε)
+  _≈ᶜ_ : Controlled X Y → Controlled X Y → Set (c ⊔ es ⊔ ℓe ⊔ ℓa)
+  f ≈ᶜ g = (control f ≐ᶜ control g)
          × ((x : ApproxSpace.Carrier X) → map f x Y.≈[ ε₀ ] map g x)
 
   ≈ᶜ-isEquivalence : IsEquivalence _≈ᶜ_
   ≈ᶜ-isEquivalence = record
-    { refl  = (λ _ → refl) , λ _ → Y.≈[]-refl
-    ; sym   = λ (ce , me) → (λ ε → sym (ce ε)) , λ x → Y.≈[]-sym (me x)
-    ; trans = λ (ce₁ , me₁) (ce₂ , me₂) →
-        (λ ε → trans (ce₁ ε) (ce₂ ε))
+    { refl  = ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → Y.≈[]-refl
+    ; sym   = λ ((l , r) , me) → (r , l) , λ x → Y.≈[]-sym (me x)
+    ; trans = λ ((l₁ , r₁) , me₁) ((l₂ , r₂) , me₂) →
+        ( (λ ε → ⊑-trans (l₁ ε) (l₂ ε)) , λ ε → ⊑-trans (r₂ ε) (r₁ ε) )
         , λ x → Y.≈[]-mono ⊕-identityˡ (Y.≈[]-trans (me₁ x) (me₂ x))
     }
 
@@ -117,26 +125,29 @@ composeᶜ g f = record
 composeᶜ-resp : {X Y Z : ApproxSpace c ℓa}
                 {g g′ : Controlled Y Z} {f f′ : Controlled X Y}
               → g ≈ᶜ g′ → f ≈ᶜ f′ → composeᶜ g f ≈ᶜ composeᶜ g′ f′
-composeᶜ-resp {Z = Z} {g = g} {f′ = f′} (ce₁ , me₁) (ce₂ , me₂) =
-  (λ ε → trans (cong (at (Controlled.control g)) (ce₂ ε)) (ce₁ (at (Controlled.control f′) ε)))
+composeᶜ-resp {Z = Z} {g = g} {f′ = f′} ((l₁ , r₁) , me₁) ((l₂ , r₂) , me₂) =
+  ( (λ ε → ⊑-trans (Control.monotone ψ (l₂ ε)) (l₁ (at φ′ ε)))
+  , (λ ε → ⊑-trans (r₁ (at φ′ ε)) (Control.monotone ψ (r₂ ε))) )
   , λ x → Z.≈[]-mono ⊕-identityˡ (Z.≈[]-trans
-      (Z.≈[]-mono (Control.preserves-ε₀ (Controlled.control g))
-                  (Controlled.preserves g (me₂ x)))
+      (Z.≈[]-mono (Control.preserves-ε₀ ψ) (Controlled.preserves g (me₂ x)))
       (me₁ (Controlled.map f′ x)))
   where module Z = ApproxSpace Z
+        ψ  = Controlled.control g
+        φ′ = Controlled.control f′
 
-Ctrl : (c ℓa : Level) → Category (suc (c ⊔ ℓa) ⊔ es ⊔ ℓe) (c ⊔ es ⊔ ℓe ⊔ ℓa) (c ⊔ es ⊔ ℓa)
+Ctrl : (c ℓa : Level)
+     → Category (suc (c ⊔ ℓa) ⊔ es ⊔ ℓe) (c ⊔ es ⊔ ℓe ⊔ ℓa) (c ⊔ es ⊔ ℓe ⊔ ℓa)
 Ctrl c ℓa = record
   { Obj       = ApproxSpace c ℓa
   ; _⇒_       = Controlled
   ; _≈_       = _≈ᶜ_
   ; id        = identityᶜ
   ; _∘_       = composeᶜ
-  ; assoc     = λ {_} {_} {_} {D} → (λ _ → refl) , λ _ → ApproxSpace.≈[]-refl D
-  ; sym-assoc = λ {_} {_} {_} {D} → (λ _ → refl) , λ _ → ApproxSpace.≈[]-refl D
-  ; identityˡ = λ {_} {B} → (λ _ → refl) , λ _ → ApproxSpace.≈[]-refl B
-  ; identityʳ = λ {_} {B} → (λ _ → refl) , λ _ → ApproxSpace.≈[]-refl B
-  ; identity² = λ {A} → (λ _ → refl) , λ _ → ApproxSpace.≈[]-refl A
+  ; assoc     = λ {_} {_} {_} {D} → ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → ApproxSpace.≈[]-refl D
+  ; sym-assoc = λ {_} {_} {_} {D} → ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → ApproxSpace.≈[]-refl D
+  ; identityˡ = λ {_} {B} → ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → ApproxSpace.≈[]-refl B
+  ; identityʳ = λ {_} {B} → ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → ApproxSpace.≈[]-refl B
+  ; identity² = λ {A} → ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → ApproxSpace.≈[]-refl A
   ; equiv     = λ {A} {B} → ≈ᶜ-isEquivalence {X = A} {Y = B}
   ; ∘-resp-≈  = λ {A} {B} {C} {f} {h} {g} {i} →
       composeᶜ-resp {X = A} {Y = B} {Z = C} {g = f} {g′ = h} {f = g} {f′ = i}
@@ -153,7 +164,7 @@ include : Functor (Approx c ℓa) (Ctrl c ℓa)
 include = record
   { F₀ = λ X → X
   ; F₁ = controlled
-  ; identity     = λ {A} → (λ _ → refl) , λ _ → ApproxSpace.≈[]-refl A
-  ; homomorphism = λ {_} {_} {Z} → (λ _ → refl) , λ _ → ApproxSpace.≈[]-refl Z
-  ; F-resp-≈     = λ {_} {B} e → (λ _ → refl) , e
+  ; identity     = λ {A} → ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → ApproxSpace.≈[]-refl A
+  ; homomorphism = λ {_} {_} {Z} → ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → ApproxSpace.≈[]-refl Z
+  ; F-resp-≈     = λ {_} {B} e → ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , e
   }

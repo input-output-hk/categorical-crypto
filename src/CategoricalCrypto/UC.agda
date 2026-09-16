@@ -80,10 +80,23 @@
 --                                  `Approx.Schedule` the schedule-valued errors
 --                                  and allowance reindexing as a control, and
 --                                  `Approx.Small` the existential collapse at a
---                                  class of small errors — distinct from `F₊`.
---                                  The query model and the migration are not
---                                  built (`docs/quantitative-uc-setup-plan.typ`
---                                  §§7–10)
+--                                  class of small errors — distinct from `F₊`,
+--                                  and `Approx.Controlled.Forget` the zero-error
+--                                  one, which needs no restriction on controls
+--                `UC.Quantitative.Query`
+--                                  the query-sensitive model those hold: tests
+--                                  compared through CERTIFIED closures at a
+--                                  schedule read off the closure's allowance,
+--                                  a filtered presheaf over the BUDGETED
+--                                  morphisms, with `UC.Budget`'s two
+--                                  absorptions separated into the exact one
+--                                  and the bound.  `UC.Model.Quantitative`
+--                                  instantiates it, and `.Contextual` is the
+--                                  comparison over it — `ctx-absorb`, the one
+--                                  principle behind both existing schedule
+--                                  substitutions.  The family models,
+--                                  collapses and the migration are NOT built
+--                                  (`docs/quantitative-uc-setup-plan.typ` §§8–10)
 --   model        `UC.Machine`      `𝒫ᴵ`, processes on `Iface`s, the ticked
 --                                  verdict interface, the observation at `Dₚ`
 --                `UC.QueryBound`   the amortised-potential certificate — a
@@ -271,8 +284,10 @@ import CategoricalCrypto.UC.Approximate.LocalTests
 
 -- …and the quantitative tier: parameterized by an error algebra and a
 -- `QUCSetup`, so imported rather than re-exported, `Bridge` reaching the rest.
+import CategoricalCrypto.Approx.Controlled.Forget
 import CategoricalCrypto.Approx.Filtered
 import CategoricalCrypto.Approx.Schedule
 import CategoricalCrypto.Approx.Separating
 import CategoricalCrypto.Approx.Small
 import CategoricalCrypto.UC.Quantitative.Bridge
+import CategoricalCrypto.UC.Quantitative.Contextual

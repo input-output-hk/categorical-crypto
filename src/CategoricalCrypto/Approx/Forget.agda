@@ -36,14 +36,7 @@ open OrderedErrorAlgebra E
 open import CategoricalCrypto.Approx.Space E
 
 ⟦_⟧₀ ⟦_⟧₊ : ApproxSpace c (es ⊔ ℓe ⊔ ℓb) → Setoid c (es ⊔ ℓe ⊔ ℓb)
-⟦ X ⟧₀ = record
-  { Carrier = X.Carrier
-  ; _≈_ = λ x y → x X.≈[ ε₀ ] y
-  ; isEquivalence = record
-      { refl = X.≈[]-refl ; sym = X.≈[]-sym
-      ; trans = λ h k → X.≈[]-mono ⊕-identityˡ (X.≈[]-trans h k) }
-  }
-  where module X = ApproxSpace X
+⟦ X ⟧₀ = zeroSetoid X
 ⟦ X ⟧₊ = record
   { Carrier = X.Carrier ; _≈_ = X._∼ᵃ_ ; isEquivalence = X.∼ᵃ-isEquivalence }
   where module X = ApproxSpace X
