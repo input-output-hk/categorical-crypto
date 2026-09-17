@@ -36,29 +36,28 @@ open import CategoricalCrypto.Machine.Core
 open import CategoricalCrypto.Machine.Message
 import CategoricalCrypto.Machine.Core as CC
 open import CategoricalCrypto.Machine.Iso
+open import CategoricalCrypto.Machine.Reindex using (Reindex-resp-≅ᴹ; Trc-resp-≅ᴹ)
 open import Tactic.Defaults
 
 module CategoricalCrypto.Machine.Forwarder where
 
 open _≅ᴹ_
 
--- Congruences for the two machine builders `_∘_` is made of.
+-- Congruences for the two machine builders `_∘_` is made of.  Both are
+-- `Machine.Reindex`'s congruences for its primitives, read off through the
+-- identities `modifyStepRel-Reindex` and `tr-named`, which hold by `refl`:
+-- `modifyStepRel p` IS `Reindex` with the same map at both modes, and `tr` IS
+-- `Trc` under the two named reshuffles `∣ˡσ` and `∣^ˡσ`.
 modifyStepRel-resp-≅ᴹ : ∀ {A B C D} {M N : Machine A B}
     (p : ∀ {m} → C ⊗₀ D ᵀ [ m ]⇒[ m ] A ⊗₀ B ᵀ)
   → M ≅ᴹ N → modifyStepRel p M ≅ᴹ modifyStepRel p N
-modifyStepRel-resp-≅ᴹ p φ =
-  MkIso (to φ) (from φ) (from∘to φ) (to∘from φ) (step-to φ) (step-from φ)
+modifyStepRel-resp-≅ᴹ p = Reindex-resp-≅ᴹ (app (p {In})) (app (p {Out}))
 
 tr-resp-≅ᴹ : ∀ {A B C} {M N : Machine (A ⊗₀ C) (B ⊗₀ C)}
            → M ≅ᴹ N → tr M ≅ᴹ tr N
-tr-resp-≅ᴹ {M = M} {N} φ = MkIso (to φ) (from φ) (from∘to φ) (to∘from φ)
-  (go φ) (go (≅ᴹ-sym φ))
-  where
-  go : ∀ {M N : Machine (_ ⊗₀ _) (_ ⊗₀ _)} (ρ : M ≅ᴹ N) {s i mo s'}
-     → TraceRel M s i mo s' → TraceRel N (to ρ s) i mo (to ρ s')
-  go ρ Trace[ p ]      = Trace[ step-to ρ p ]
-  go ρ (p Trace∷ₒ tr₀) = step-to ρ p Trace∷ₒ go ρ tr₀
-  go ρ (p Trace∷ᵢ tr₀) = step-to ρ p Trace∷ᵢ go ρ tr₀
+tr-resp-≅ᴹ {C = C} φ =
+  modifyStepRel-resp-≅ᴹ (∣^ˡσ {C = C})
+    (modifyStepRel-resp-≅ᴹ ∣ˡσ (Trc-resp-≅ᴹ φ))
 
 -- A stateless, total, deterministic machine.
 Fwd : ∀ {A B} → (Channel.inType (A ⊗ᵀ B) → Channel.outType (A ⊗ᵀ B)) → Machine A B
