@@ -24,6 +24,7 @@ open import CategoricalCrypto.Machine.Reindex.Collapse
 open import CategoricalCrypto.Machine.Reindex.Swap
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
+import Data.Sum.Base as ⊎
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
@@ -49,12 +50,10 @@ opaque
   σfₒ {A} {B} = app (⊗-symₒ {A} {B})
 
   σfᵢ⁻ : ∀ {A B} → inType (B ⊗₀ A) → inType (A ⊗₀ B)
-  σfᵢ⁻ (inj₁ b) = inj₂ b
-  σfᵢ⁻ (inj₂ a) = inj₁ a
+  σfᵢ⁻ = ⊎.swap
 
   σfₒ⁻ : ∀ {A B} → outType (A ⊗₀ B) → outType (B ⊗₀ A)
-  σfₒ⁻ (inj₁ a) = inj₂ a
-  σfₒ⁻ (inj₂ b) = inj₁ b
+  σfₒ⁻ = ⊎.swap
 
   σfₒ-l : ∀ {A B} β → σfₒ⁻ {A} {B} (σfₒ {A} {B} β) ≡ β
   σfₒ-l (inj₁ _) = refl

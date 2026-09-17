@@ -30,6 +30,7 @@
 
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
+import Data.Sum.Base as ⊎
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
@@ -113,12 +114,10 @@ opaque
 
   private
     tag₁ : ∀ {W X Y Z : Type} → W ⊎ X → (W ⊎ Y) ⊎ (X ⊎ Z)
-    tag₁ (inj₁ w) = inj₁ (inj₁ w)
-    tag₁ (inj₂ x) = inj₂ (inj₁ x)
+    tag₁ = ⊎.map inj₁ inj₁
 
     tag₂ : ∀ {W X Y Z : Type} → Y ⊎ Z → (W ⊎ Y) ⊎ (X ⊎ Z)
-    tag₂ (inj₁ y) = inj₁ (inj₂ y)
-    tag₂ (inj₂ z) = inj₂ (inj₂ z)
+    tag₂ = ⊎.map inj₂ inj₂
 
   -- The forwarder underlying a tensor of two forwarders.
   ⊗Fwd : ∀ {A B C D}
@@ -266,12 +265,10 @@ opaque
 
   -- The external ports of the traced machine, as seen from inside.
   ιₜ : ∀ {A B C} → inType (A ⊗ᵀ B) → inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
-  ιₜ (inj₁ a)  = inj₁ (inj₁ a)
-  ιₜ (inj₂ bo) = inj₂ (inj₁ bo)
+  ιₜ = ⊎.map inj₁ inj₁
 
   εₜ : ∀ {A B C} → outType (A ⊗ᵀ B) → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
-  εₜ (inj₁ ao) = inj₁ (inj₁ ao)
-  εₜ (inj₂ bi) = inj₂ (inj₁ bi)
+  εₜ = ⊎.map inj₁ inj₁
 
   private
     εₜ-inj : ∀ {A B C} {x y : outType (A ⊗ᵀ B)} → εₜ {A} {B} {C} x ≡ εₜ y → x ≡ y
@@ -325,8 +322,7 @@ opaque
   Xφ : ∀ {A B} → (inType A → inType B)
                 → (outType B → outType A)
      → inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B)
-  Xφ f g (inj₁ a)  = inj₂ (f a)
-  Xφ f g (inj₂ bo) = inj₁ (g bo)
+  Xφ f g m = ⊎.swap (⊎.map f g m)
 
   Xfwd : ∀ {A B} → (inType A → inType B)
                  → (outType B → outType A) → Machine A B
@@ -424,14 +420,12 @@ opaque
   ⊗mapᵢ : ∀ {A B C D} → (inType A → inType B)
                       → (inType C → inType D)
         → inType (A ⊗₀ C) → inType (B ⊗₀ D)
-  ⊗mapᵢ f g (inj₁ a) = inj₁ (f a)
-  ⊗mapᵢ f g (inj₂ c) = inj₂ (g c)
+  ⊗mapᵢ f g = ⊎.map f g
 
   ⊗mapₒ : ∀ {A B C D} → (outType B → outType A)
                       → (outType D → outType C)
         → outType (B ⊗₀ D) → outType (A ⊗₀ C)
-  ⊗mapₒ f g (inj₁ b) = inj₁ (f b)
-  ⊗mapₒ f g (inj₂ d) = inj₂ (g d)
+  ⊗mapₒ f g = ⊎.map f g
 
   ⊗₁-Xfwd : ∀ {A B C D}
             {f₁ : inType A → inType B} {g₁ : outType B → outType A}
@@ -510,8 +504,8 @@ opaque
   idᴷ-Xfwd {A} =
     ≅ᴹ-trans (modifyStepRel-resp-≅ᴹ ∣ˡσ (≅ᴹ-trans (⊗₁-resp-≅ᴹ id-is-Xfwd id-is-Xfwd) ⊗₁-Xfwd))
              (modifyStepRel-Fwd ∣ˡσ
-                (Xφ (⊗mapᵢ (λ (x : inType A) → x) (λ (x : inType I) → x))
-                    (⊗mapₒ (λ (x : outType A) → x) (λ (x : outType I) → x)))
+                (Xφ (⊗mapᵢ {A} {A} {I} {I} (λ x → x) (λ x → x))
+                    (⊗mapₒ {A} {A} {I} {I} (λ x → x) (λ x → x)))
                 (Xφ (idᴷ-f {A}) (idᴷ-g {A})) idᴷ-sq ∣ˡσ-inj)
 
   ρ-idᴷ : ∀ {C} → (ρ⇒ CC.∘ idᴷ {C}) ≅ᴹ CC.id {C}

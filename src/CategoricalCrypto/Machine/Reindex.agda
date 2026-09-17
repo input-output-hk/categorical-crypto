@@ -36,6 +36,7 @@
 
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
+import Data.Sum.Base as ⊎
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
@@ -154,16 +155,14 @@ opaque
      → (inType (C' ⊗ᵀ D') → inType (C ⊗ᵀ D))
      → inType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ))
      → inType ((A  ⊗₀ B  ᵀ) ⊗ᵀ ((C  ⊗₀ D  ᵀ) ᵀ))
-  ⊎ᵢ u₁ u₂ (inj₁ x) = inj₁ (u₁ x)
-  ⊎ᵢ u₁ u₂ (inj₂ y) = inj₂ (u₂ y)
+  ⊎ᵢ = ⊎.map
 
   ⊎ₒ : ∀ {A B C D A' B' C' D'}
      → (outType (A' ⊗ᵀ B') → outType (A ⊗ᵀ B))
      → (outType (C' ⊗ᵀ D') → outType (C ⊗ᵀ D))
      → outType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ))
      → outType ((A  ⊗₀ B  ᵀ) ⊗ᵀ ((C  ⊗₀ D  ᵀ) ᵀ))
-  ⊎ₒ v₁ v₂ (inj₁ x) = inj₁ (v₁ x)
-  ⊎ₒ v₁ v₂ (inj₂ y) = inj₂ (v₂ y)
+  ⊎ₒ = ⊎.map
 
   -- `Pair` commutes with `Reindex`: the two component relabellings become one
   -- sum map.

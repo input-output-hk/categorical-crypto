@@ -48,6 +48,8 @@ open import CategoricalCrypto.Machine.Reindex.Collapse using (cod-routeᵢ; cod-
 open import CategoricalCrypto.Machine.Forwarder
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
+import Data.Sum.Base as ⊎
+import Data.Sum.Properties as ⊎ₚ
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
@@ -304,21 +306,17 @@ opaque
   -- Relabel the codomain of `Machine B C` to `C'`, leaving the domain alone.
   cdₒ⁺ : ∀ {B C C'} → (inType C → inType C')
        → outType (B ⊗ᵀ C) → outType (B ⊗ᵀ C')
-  cdₒ⁺ vC (inj₁ β) = inj₁ β
-  cdₒ⁺ vC (inj₂ c) = inj₂ (vC c)
+  cdₒ⁺ = ⊎.map₂
 
   -- Relabel the domain of `Machine A B` to `A'`, leaving the codomain alone.
   dmₒ⁺ : ∀ {A A' B} → (outType A → outType A')
        → outType (A ⊗ᵀ B) → outType (A' ⊗ᵀ B)
-  dmₒ⁺ vA (inj₁ α) = inj₁ (vA α)
-  dmₒ⁺ vA (inj₂ b) = inj₂ b
+  dmₒ⁺ = ⊎.map₁
 
   -- `cdₒ⁺` at the traced machine's channel; fixes the traced ports.
   wcₒ⁺ : ∀ {A B C C'} → (inType C → inType C')
        → outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B)) → outType ((A ⊗₀ B) ⊗ᵀ (C' ⊗₀ B))
-  wcₒ⁺ vC (inj₁ x)        = inj₁ x
-  wcₒ⁺ vC (inj₂ (inj₁ c)) = inj₂ (inj₁ (vC c))
-  wcₒ⁺ vC (inj₂ (inj₂ β)) = inj₂ (inj₂ β)
+  wcₒ⁺ vC = ⊎.map₂ (⊎.map₁ vC)
 
   -- ------------------------------------------------------------------------
   -- The routing table of `∘κᵢ`/`∘κₒ`.  The traced core `Core M N` has the
@@ -1117,11 +1115,9 @@ opaque
               (Post-id M)))
     where
     cdᵢ-id : ∀ i → cdᵢ {A} {B} {B} (λ o → o) i ≡ i
-    cdᵢ-id (inj₁ _) = refl
-    cdᵢ-id (inj₂ _) = refl
+    cdᵢ-id = ⊎ₚ.map-id
     cdₒ⁺-id : ∀ o → cdₒ⁺ {A} {B} {B} (λ b → b) o ≡ o
-    cdₒ⁺-id (inj₁ _) = refl
-    cdₒ⁺-id (inj₂ _) = refl
+    cdₒ⁺-id = ⊎ₚ.map-id
 
   ∘-identityʳ-Post : ∀ {A B} (N : Machine A B) → (N CC.∘ CC.id) ≅ᴹ N
   ∘-identityʳ-Post {A} {B} N =
@@ -1132,8 +1128,6 @@ opaque
               (Post-id N)))
     where
     dmᵢ-id : ∀ i → dmᵢ {A} {A} {B} (λ a → a) i ≡ i
-    dmᵢ-id (inj₁ _) = refl
-    dmᵢ-id (inj₂ _) = refl
+    dmᵢ-id = ⊎ₚ.map-id
     dmₒ⁺-id : ∀ o → dmₒ⁺ {A} {A} {B} (λ o → o) o ≡ o
-    dmₒ⁺-id (inj₁ _) = refl
-    dmₒ⁺-id (inj₂ _) = refl
+    dmₒ⁺-id = ⊎ₚ.map-id

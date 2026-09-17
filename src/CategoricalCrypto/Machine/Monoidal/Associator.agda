@@ -27,6 +27,7 @@ open import CategoricalCrypto.Machine.Reindex.Collapse
 open import CategoricalCrypto.Machine.Reindex.PairAssoc
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
+import Data.Sum.Base as ⊎
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
@@ -245,9 +246,7 @@ opaque
 
   αfᵢ⁻ : ∀ {A B D} → inType ((A ⊗₀ B) ⊗₀ D)
                    → inType (A ⊗₀ (B ⊗₀ D))
-  αfᵢ⁻ (inj₁ (inj₁ x)) = inj₁ x
-  αfᵢ⁻ (inj₁ (inj₂ y)) = inj₂ (inj₁ y)
-  αfᵢ⁻ (inj₂ z)        = inj₂ (inj₂ z)
+  αfᵢ⁻ = ⊎.assocʳ
 
   αfₒ⁻ : ∀ {A B D} → outType (A ⊗₀ (B ⊗₀ D))
                    → outType ((A ⊗₀ B) ⊗₀ D)

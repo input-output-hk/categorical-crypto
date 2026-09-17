@@ -17,6 +17,7 @@ open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
 open import CategoricalCrypto.Machine.Message
+import Data.Product.Base as ×
 open import Tactic.Defaults
 
 open Channel
@@ -80,9 +81,6 @@ private
 -- untouched; only the states map.
 
 private
-  ×-map : ∀ {a b c d} {A : Type a} {B : Type b} {C : Type c} {D : Type d}
-        → (A → C) → (B → D) → A × B → C × D
-  ×-map f g (a , b) = f a , g b
 
   -- Lift a step correspondence through `TraceRel`.
   TraceRel-map :
@@ -102,8 +100,8 @@ private
       (φ₁ : M₁ ≅ᴹ M₁') (φ₂ : M₂ ≅ᴹ M₂')
     → ∀ {s i mo s'} → Tensor.CompRel M₁ M₂ s i mo s'
     → Tensor.CompRel M₁' M₂'
-        (×-map (to φ₁) (to φ₂) s) i mo
-        (×-map (to φ₁) (to φ₂) s')
+        (×.map (to φ₁) (to φ₂) s) i mo
+        (×.map (to φ₁) (to φ₂) s')
   CompRel-map φ₁ φ₂ (Tensor.Step₁ p) = Tensor.Step₁ (step-to φ₁ p)
   CompRel-map φ₁ φ₂ (Tensor.Step₂ p) = Tensor.Step₂ (step-to φ₂ p)
 
@@ -111,8 +109,8 @@ private
           → M₁ ≅ᴹ M₁' → M₂ ≅ᴹ M₂'
           → (M₁ ∘ M₂) ≅ᴹ (M₁' ∘ M₂')
 ∘-resp-≅ᴹ {M₁ = M₁} {M₁'} {M₂} {M₂'} φ₁ φ₂ = MkIso
-  (×-map (to φ₂) (to φ₁))
-  (×-map (from φ₂) (from φ₁))
+  (×.map (to φ₂) (to φ₁))
+  (×.map (from φ₂) (from φ₁))
   (λ (s₂ , s₁) → cong₂ _,_ (from∘to φ₂ s₂) (from∘to φ₁ s₁))
   (λ (s₂ , s₁) → cong₂ _,_ (to∘from φ₂ s₂) (to∘from φ₁ s₁))
   (TraceRel-map _ _ _ (CompRel-map φ₂ φ₁))
@@ -1591,8 +1589,8 @@ module ∘-assoc-implementation
 ⊗₁-resp-≅ᴹ : ∀ {A B C D} {M M' : Machine A B} {N N' : Machine C D}
            → M ≅ᴹ M' → N ≅ᴹ N' → (M ⊗₁ N) ≅ᴹ (M' ⊗₁ N')
 ⊗₁-resp-≅ᴹ φ ψ = MkIso
-  (×-map (to φ) (to ψ))
-  (×-map (from φ) (from ψ))
+  (×.map (to φ) (to ψ))
+  (×.map (from φ) (from ψ))
   (λ (s₁ , s₂) → cong₂ _,_ (from∘to φ s₁) (from∘to ψ s₂))
   (λ (s₁ , s₂) → cong₂ _,_ (to∘from φ s₁) (to∘from ψ s₂))
   (CompRel-map φ ψ)

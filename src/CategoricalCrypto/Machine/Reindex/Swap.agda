@@ -18,6 +18,9 @@
 open import CategoricalCrypto.Machine.Reindex
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
+import Data.Product.Base as ×
+import Data.Sum.Base as ⊎
+import Data.Sum.Properties as ⊎ₚ
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
@@ -44,28 +47,24 @@ opaque
   swᵢ : ∀ {A B C D}
       → inType ((A ⊗ᵀ B) ⊗₀ (C ⊗ᵀ D))
       → inType ((C ⊗ᵀ D) ⊗₀ (A ⊗ᵀ B))
-  swᵢ (inj₁ x) = inj₂ x
-  swᵢ (inj₂ y) = inj₁ y
+  swᵢ = ⊎.swap
 
   swₒ : ∀ {A B C D}
       → outType ((A ⊗ᵀ B) ⊗₀ (C ⊗ᵀ D))
       → outType ((C ⊗ᵀ D) ⊗₀ (A ⊗ᵀ B))
-  swₒ (inj₁ x) = inj₂ x
-  swₒ (inj₂ y) = inj₁ y
+  swₒ = ⊎.swap
 
   private
     swᵢ-invol : ∀ {A B C D} (i : inType ((A ⊗ᵀ B) ⊗₀ (C ⊗ᵀ D)))
               → swᵢ {C} {D} {A} {B} (swᵢ {A} {B} {C} {D} i) ≡ i
-    swᵢ-invol (inj₁ _) = refl
-    swᵢ-invol (inj₂ _) = refl
+    swᵢ-invol = ⊎ₚ.swap-involutive
 
     swₒ-invol : ∀ {A B C D} (o : outType ((A ⊗ᵀ B) ⊗₀ (C ⊗ᵀ D)))
               → swₒ {C} {D} {A} {B} (swₒ {A} {B} {C} {D} o) ≡ o
-    swₒ-invol (inj₁ _) = refl
-    swₒ-invol (inj₂ _) = refl
+    swₒ-invol = ⊎ₚ.swap-involutive
 
   swₛ : ∀ {S₁ S₂ : Type} → S₁ × S₂ → S₂ × S₁
-  swₛ (s₁ , s₂) = s₂ , s₁
+  swₛ = ×.swap
 
   -- Each leaf step is re-tagged; the split on `m'` is what lets `mapᴹ swₒ`
   -- compute on the output.
@@ -86,7 +85,7 @@ opaque
       (Pair-swap-to M₁ M₂)
       (λ {_} {i} {o} p →
         subst₂ (λ x y → Tensor.CompRel M₁ M₂ _ x y _)
-               (swᵢ-invol i)
+               (swᵢ-invol {A} {B} {C} {D} i)
                (trans (mapᴹ-∘ (swₒ {C} {D} {A} {B}) (swₒ {A} {B} {C} {D}) o)
-                      (trans (mapᴹ-cong swₒ-invol o) (mapᴹ-id o)))
+                      (trans (mapᴹ-cong (swₒ-invol {A} {B} {C} {D}) o) (mapᴹ-id o)))
                (Pair-swap-to M₂ M₁ p))

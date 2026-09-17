@@ -21,6 +21,7 @@
 open import CategoricalCrypto.Machine.Reindex
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
+import Data.Sum.Base as ⊎
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
@@ -99,50 +100,38 @@ opaque
   -- Relabel the codomain of `Machine B C`, leaving the domain alone.
   cdᵢ : ∀ {B C C'} → (outType C' → outType C)
       → inType (B ⊗ᵀ C') → inType (B ⊗ᵀ C)
-  cdᵢ uC (inj₁ b) = inj₁ b
-  cdᵢ uC (inj₂ γ) = inj₂ (uC γ)
+  cdᵢ = ⊎.map₂
 
   cdₒ : ∀ {B C C'} → (inType C' → inType C)
       → outType (B ⊗ᵀ C') → outType (B ⊗ᵀ C)
-  cdₒ vC (inj₁ β) = inj₁ β
-  cdₒ vC (inj₂ c) = inj₂ (vC c)
+  cdₒ = ⊎.map₂
 
   -- Relabel the domain of `Machine A B`, leaving the codomain alone.
   dmᵢ : ∀ {A A' B} → (inType A' → inType A)
       → inType (A' ⊗ᵀ B) → inType (A ⊗ᵀ B)
-  dmᵢ uA (inj₁ a) = inj₁ (uA a)
-  dmᵢ uA (inj₂ β) = inj₂ β
+  dmᵢ = ⊎.map₁
 
   dmₒ : ∀ {A A' B} → (outType A' → outType A)
       → outType (A' ⊗ᵀ B) → outType (A ⊗ᵀ B)
-  dmₒ vA (inj₁ α) = inj₁ (vA α)
-  dmₒ vA (inj₂ b) = inj₂ b
+  dmₒ = ⊎.map₁
 
   -- The same, at the traced machine's channel.  These fix the traced ports,
   -- which is what lets `Trc-slide` apply.
   wcᵢ : ∀ {A B C C'} → (outType C' → outType C)
       → inType ((A ⊗₀ B) ⊗ᵀ (C' ⊗₀ B)) → inType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
-  wcᵢ uC (inj₁ x)        = inj₁ x
-  wcᵢ uC (inj₂ (inj₁ γ)) = inj₂ (inj₁ (uC γ))
-  wcᵢ uC (inj₂ (inj₂ β)) = inj₂ (inj₂ β)
+  wcᵢ uC = ⊎.map₂ (⊎.map₁ uC)
 
   wcₒ : ∀ {A B C C'} → (inType C' → inType C)
       → outType ((A ⊗₀ B) ⊗ᵀ (C' ⊗₀ B)) → outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
-  wcₒ vC (inj₁ x)        = inj₁ x
-  wcₒ vC (inj₂ (inj₁ c)) = inj₂ (inj₁ (vC c))
-  wcₒ vC (inj₂ (inj₂ b)) = inj₂ (inj₂ b)
+  wcₒ vC = ⊎.map₂ (⊎.map₁ vC)
 
   wdᵢ : ∀ {A A' B C} → (inType A' → inType A)
       → inType ((A' ⊗₀ B) ⊗ᵀ (C ⊗₀ B)) → inType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
-  wdᵢ uA (inj₁ (inj₁ a)) = inj₁ (inj₁ (uA a))
-  wdᵢ uA (inj₁ (inj₂ b)) = inj₁ (inj₂ b)
-  wdᵢ uA (inj₂ y)        = inj₂ y
+  wdᵢ uA = ⊎.map₁ (⊎.map₁ uA)
 
   wdₒ : ∀ {A A' B C} → (outType A' → outType A)
       → outType ((A' ⊗₀ B) ⊗ᵀ (C ⊗₀ B)) → outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
-  wdₒ vA (inj₁ (inj₁ α)) = inj₁ (inj₁ (vA α))
-  wdₒ vA (inj₁ (inj₂ β)) = inj₁ (inj₂ β)
-  wdₒ vA (inj₂ y)        = inj₂ y
+  wdₒ vA = ⊎.map₁ (⊎.map₁ vA)
 
 Reindex-id : ∀ {A B} (M : Machine A B)
            → Reindex M (λ i → i) (λ o → o) ≅ᴹ M

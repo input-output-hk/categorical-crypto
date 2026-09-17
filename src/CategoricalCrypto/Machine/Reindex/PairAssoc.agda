@@ -16,6 +16,8 @@
 open import CategoricalCrypto.Machine.Reindex
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
+import Data.Product.Base as ×
+import Data.Sum.Base as ⊎
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
@@ -43,30 +45,22 @@ opaque
   asc3ᵢ : ∀ {A₁ B₁ A₂ B₂ A₃ B₃}
         → inType ((A₁ ⊗ᵀ B₁) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₃ ⊗ᵀ B₃)))
         → inType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₂ ⊗ᵀ B₂)) ⊗₀ (A₃ ⊗ᵀ B₃))
-  asc3ᵢ (inj₁ x)        = inj₁ (inj₁ x)
-  asc3ᵢ (inj₂ (inj₁ y)) = inj₁ (inj₂ y)
-  asc3ᵢ (inj₂ (inj₂ z)) = inj₂ z
+  asc3ᵢ = ⊎.assocˡ
 
   asc3ₒ : ∀ {A₁ B₁ A₂ B₂ A₃ B₃}
         → outType ((A₁ ⊗ᵀ B₁) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₃ ⊗ᵀ B₃)))
         → outType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₂ ⊗ᵀ B₂)) ⊗₀ (A₃ ⊗ᵀ B₃))
-  asc3ₒ (inj₁ x)        = inj₁ (inj₁ x)
-  asc3ₒ (inj₂ (inj₁ y)) = inj₁ (inj₂ y)
-  asc3ₒ (inj₂ (inj₂ z)) = inj₂ z
+  asc3ₒ = ⊎.assocˡ
 
   asc3ᵢ⁻ : ∀ {A₁ B₁ A₂ B₂ A₃ B₃}
          → inType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₂ ⊗ᵀ B₂)) ⊗₀ (A₃ ⊗ᵀ B₃))
          → inType ((A₁ ⊗ᵀ B₁) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₃ ⊗ᵀ B₃)))
-  asc3ᵢ⁻ (inj₁ (inj₁ x)) = inj₁ x
-  asc3ᵢ⁻ (inj₁ (inj₂ y)) = inj₂ (inj₁ y)
-  asc3ᵢ⁻ (inj₂ z)        = inj₂ (inj₂ z)
+  asc3ᵢ⁻ = ⊎.assocʳ
 
   asc3ₒ⁻ : ∀ {A₁ B₁ A₂ B₂ A₃ B₃}
          → outType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₂ ⊗ᵀ B₂)) ⊗₀ (A₃ ⊗ᵀ B₃))
          → outType ((A₁ ⊗ᵀ B₁) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₃ ⊗ᵀ B₃)))
-  asc3ₒ⁻ (inj₁ (inj₁ x)) = inj₁ x
-  asc3ₒ⁻ (inj₁ (inj₂ y)) = inj₂ (inj₁ y)
-  asc3ₒ⁻ (inj₂ z)        = inj₂ (inj₂ z)
+  asc3ₒ⁻ = ⊎.assocʳ
 
   private
     asc3ᵢ⁻-asc3ᵢ : ∀ {A₁ B₁ A₂ B₂ A₃ B₃}
@@ -86,10 +80,10 @@ opaque
     asc3ₒ⁻-asc3ₒ (inj₂ (inj₂ _)) = refl
 
   asc3s : ∀ {S₁ S₂ S₃ : Type} → S₁ × (S₂ × S₃) → (S₁ × S₂) × S₃
-  asc3s (s₁ , (s₂ , s₃)) = (s₁ , s₂) , s₃
+  asc3s = ×.assocˡ′
 
   asc3s⁻ : ∀ {S₁ S₂ S₃ : Type} → (S₁ × S₂) × S₃ → S₁ × (S₂ × S₃)
-  asc3s⁻ ((s₁ , s₂) , s₃) = s₁ , (s₂ , s₃)
+  asc3s⁻ = ×.assocʳ′
 
   Pair-asc3-to : ∀ {A₁ B₁ A₂ B₂ A₃ B₃}
                  (M₁ : Machine A₁ B₁) (M₂ : Machine A₂ B₂) (M₃ : Machine A₃ B₃)
@@ -127,7 +121,8 @@ opaque
       (Pair-asc3-to M₁ M₂ M₃)
       (λ {_} {i} {o} p →
         subst₂ (λ x y → Tensor.CompRel M₁ (Pair M₂ M₃) _ x y _)
-               (asc3ᵢ⁻-asc3ᵢ i)
-               (trans (mapᴹ-∘ asc3ₒ⁻ asc3ₒ o)
-                      (trans (mapᴹ-cong asc3ₒ⁻-asc3ₒ o) (mapᴹ-id o)))
+               (asc3ᵢ⁻-asc3ᵢ {A₁} {B₁} {A₂} {B₂} {A₃} {B₃} i)
+               (trans (mapᴹ-∘ (asc3ₒ⁻ {A₁} {B₁} {A₂} {B₂} {A₃} {B₃})
+                                (asc3ₒ {A₁} {B₁} {A₂} {B₂} {A₃} {B₃}) o)
+                      (trans (mapᴹ-cong (asc3ₒ⁻-asc3ₒ {A₁} {B₁} {A₂} {B₂} {A₃} {B₃}) o) (mapᴹ-id o)))
                (Pair-asc3-from M₁ M₂ M₃ p))
