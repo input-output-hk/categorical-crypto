@@ -22,15 +22,15 @@
 module CategoricalCrypto.Machine.UC where
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
-open import Function.Bundles using (_⇔_; mk⇔)
-open import Relation.Binary.Bundles using (Setoid)
+open import Function.Bundles
+open import Relation.Binary.Bundles
 import Level
 
-open import Categories.Category using (Category)
-open import Categories.Category.Monoidal.Construction.Reverse using (Reverse-MonoidalCategory)
-open import Categories.Category.Instance.Setoids using (Setoids)
-open import Categories.Category.Monoidal using (Monoidal; MonoidalCategory)
-open import Categories.Functor.Presheaf using (Presheaf)
+open import Categories.Category
+open import Categories.Category.Monoidal.Construction.Reverse
+open import Categories.Category.Instance.Setoids
+open import Categories.Category.Monoidal
+open import Categories.Functor.Presheaf
 import Categories.Functor.Monoidal.CurriedTensor.Properties as CurriedTensorProperties
 import Categories.Morphism.Reasoning as MR
 

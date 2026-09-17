@@ -3,7 +3,7 @@
 module CategoricalCrypto.Channel.Core where
 
 open import categorical-crypto.Prelude hiding ([_])
-open import Data.Sum.Base using (swap ; assocʳ ; assocˡ)
+open import Data.Sum.Base
 open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
 
 data Mode : Type where

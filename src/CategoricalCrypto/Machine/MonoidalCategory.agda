@@ -21,14 +21,14 @@ module CategoricalCrypto.Machine.MonoidalCategory where
 
 open import categorical-crypto.Prelude hiding (id; _∘_; Bifunctor)
 
-open import Categories.Category using (Category)
-open import Categories.Category.Product using (Product)
+open import Categories.Category
+open import Categories.Category.Product
 open import Categories.Category.Monoidal
   using (Monoidal; monoidalHelper; MonoidalCategory; SymmetricMonoidalCategory)
-open import Categories.Category.Monoidal.Symmetric using (Symmetric; symmetricHelper)
-open import Categories.Functor using (Functor)
-open import Categories.Functor.Bifunctor using (Bifunctor)
-open import Categories.NaturalTransformation.NaturalIsomorphism using (niHelper)
+open import Categories.Category.Monoidal.Symmetric
+open import Categories.Functor
+open import Categories.Functor.Bifunctor
+open import Categories.NaturalTransformation.NaturalIsomorphism
 import Categories.Morphism as Mor
 import Categories.Morphism.Reasoning as MR
 
@@ -36,12 +36,12 @@ open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Machine.Core
 open import CategoricalCrypto.Machine.Iso
 open import CategoricalCrypto.Machine.Category
-open import CategoricalCrypto.Machine.Forwarder using (⊗₁-id)
-open import CategoricalCrypto.Machine.Monoidal.Interchange using (⊗₁-interchange)
-open import CategoricalCrypto.Machine.Monoidal.Associator using (⊗-assoc⃖-natural)
+open import CategoricalCrypto.Machine.Forwarder
+open import CategoricalCrypto.Machine.Monoidal.Interchange
+open import CategoricalCrypto.Machine.Monoidal.Associator
 open import CategoricalCrypto.Machine.Monoidal.Coherence
-open import CategoricalCrypto.Machine.Monoidal.Unitors using (λ⇒-natural; ρ⇒-natural)
-open import CategoricalCrypto.Machine.Monoidal.Braiding using (σ-natural)
+open import CategoricalCrypto.Machine.Monoidal.Unitors
+open import CategoricalCrypto.Machine.Monoidal.Braiding
 
 open Mor MachineCategory using (_≅_)
 open MR MachineCategory using (conjugate-to)

@@ -18,10 +18,10 @@
 -- ============================================================================
 
 open import CategoricalCrypto.Machine.Reindex
-open import CategoricalCrypto.Machine.Reindex.Slide using (cdᵢ)
+open import CategoricalCrypto.Machine.Reindex.Slide
 open import CategoricalCrypto.Machine.Reindex.Post
 open import CategoricalCrypto.Machine.Forwarder
-open import CategoricalCrypto.Examples.Basic using (module LeakyChannel; module SecureChannel)
+open import CategoricalCrypto.Examples.Basic
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
 open import CategoricalCrypto.Channel.Core

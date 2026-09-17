@@ -23,8 +23,8 @@
 open import CategoricalCrypto.Machine.Forwarder
   using (⊗₁-id; ∘-Xfwd; ⊗₁-Xfwd; Xfwd-≅ᴹ; Xφ; Xfwd; ⊗mapᵢ; ⊗mapₒ;
          tfm'-is-Xfwd; id-is-Xfwd)
-open import CategoricalCrypto.Machine.Monoidal.Interchange using (⊗₁-interchange)
-open import CategoricalCrypto.Machine.Monoidal.Naturality using (∘ᴷ-fwd-natural; ⊗ᴷ-fwd-natural)
+open import CategoricalCrypto.Machine.Monoidal.Interchange
+open import CategoricalCrypto.Machine.Monoidal.Naturality
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
 open import CategoricalCrypto.Channel.Core

@@ -10,7 +10,7 @@ module CategoricalCrypto.Machine.Iso where
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
 open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
-open import Relation.Binary using (IsEquivalence)
+open import Relation.Binary
 
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection

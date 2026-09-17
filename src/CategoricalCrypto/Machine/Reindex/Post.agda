@@ -21,7 +21,7 @@
 
 open import CategoricalCrypto.Machine.Reindex
 open import CategoricalCrypto.Machine.Reindex.Slide
-open import CategoricalCrypto.Machine.Reindex.Collapse using (cod-routeᵢ; cod-outᵢ)
+open import CategoricalCrypto.Machine.Reindex.Collapse
 open import CategoricalCrypto.Machine.Forwarder
 
 open import categorical-crypto.Prelude hiding (id; _∘_)

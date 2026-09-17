@@ -25,31 +25,31 @@
 module CategoricalCrypto.Machine.UC.Kleisli where
 
 open import categorical-crypto.Prelude hiding (id; _∘_; return)
-open import Data.Fin using (#_)
-open import Data.Vec using (_∷_; [])
+open import Data.Fin
+open import Data.Vec
 
-open import Categories.Category using (Category)
-open import Categories.Category.Monoidal using (Monoidal; MonoidalCategory)
-open import Categories.Category.Monoidal.Construction.Reverse using (Reverse-MonoidalCategory)
-open import Categories.Category.Monoidal.Symmetric using (Symmetric)
+open import Categories.Category
+open import Categories.Category.Monoidal
+open import Categories.Category.Monoidal.Construction.Reverse
+open import Categories.Category.Monoidal.Symmetric
 import Categories.Category.Monoidal.Braided.Properties as BraidedProperties
-open import Categories.Functor.Monoidal.CurriedTensor using (curriedTensor)
+open import Categories.Functor.Monoidal.CurriedTensor
 import Categories.Functor.Monoidal.CurriedTensor.Properties as CurriedTensorProperties
-open import Categories.Monad.Graded using (GradedKleisliTriple; GradedMonad⇒GradedKleisliTriple)
+open import Categories.Monad.Graded
 import Categories.Morphism.Reasoning as MR
-open import Categories.Coherence.Monoidal using (module SymAtoms; module SymSolve)
-open import Categories.FreeMonoidal using (v≤v)   -- the instance that enables `S.σ`
+open import Categories.Coherence.Monoidal
+open import Categories.FreeMonoidal
 
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Machine.Core
 import CategoricalCrypto.Machine.Core as CC
 open import CategoricalCrypto.Machine.Iso
 open import CategoricalCrypto.Machine.Category
-open import CategoricalCrypto.Machine.Forwarder using (⊗₁-id; ρ-idᴷ)
-open import CategoricalCrypto.Machine.Monoidal.Interchange using (⊗₁-interchange)
+open import CategoricalCrypto.Machine.Forwarder
+open import CategoricalCrypto.Machine.Monoidal.Interchange
 open import CategoricalCrypto.Machine.Monoidal.Coherence
   using (ρ-isoˡ; α-isoʳ; hexagon; ∘ᴷ-fwd-decomp; ⊗ᴷ-fwd-decomp; mid4-decomp; absorb-regroup-decomp)
-open import CategoricalCrypto.Machine.Monoidal.Braiding using (σ-natural)
+open import CategoricalCrypto.Machine.Monoidal.Braiding
 open import CategoricalCrypto.Machine.MonoidalCategory
 
 open Category MachineCategory using (module HomReasoning; assoc; sym-assoc; identityˡ; identityʳ; identity²)

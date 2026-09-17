@@ -11,11 +11,11 @@
 -- right, so `Pair-swap` bridges the two nests.
 -- ============================================================================
 
-open import CategoricalCrypto.Machine.Category using (∘-identityˡ-≅ᴹ; ∘-identityʳ-≅ᴹ)
+open import CategoricalCrypto.Machine.Category
 open import CategoricalCrypto.Machine.Reindex
 open import CategoricalCrypto.Machine.Reindex.Slide
 open import CategoricalCrypto.Machine.Forwarder
-open import CategoricalCrypto.Machine.Reindex.Post using (Xfwd-dom; Xfwd-cod)
+open import CategoricalCrypto.Machine.Reindex.Post
 open import CategoricalCrypto.Machine.Reindex.Collapse
 open import CategoricalCrypto.Machine.Reindex.Swap
 

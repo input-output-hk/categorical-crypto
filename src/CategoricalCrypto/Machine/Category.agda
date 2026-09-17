@@ -12,12 +12,12 @@
 module CategoricalCrypto.Machine.Category where
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
-open import Categories.Category using (Category)
+open import Categories.Category
 
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Machine.Core
 open import CategoricalCrypto.Machine.Iso
-open import CategoricalCrypto.Machine.Reindex.Post using (∘-identityˡ-Post; ∘-identityʳ-Post)
+open import CategoricalCrypto.Machine.Reindex.Post
 
 ∘-identityˡ-≅ᴹ : ∀ {A B} {m : Machine A B} → (_∘_ {B = B} id m) ≅ᴹ m
 ∘-identityˡ-≅ᴹ {m = m} = ∘-identityˡ-Post m

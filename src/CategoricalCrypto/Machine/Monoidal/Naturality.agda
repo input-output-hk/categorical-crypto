@@ -20,12 +20,12 @@
 module CategoricalCrypto.Machine.Monoidal.Naturality where
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
-open import Data.Fin using (#_)
-open import Data.Vec using (_∷_; [])
+open import Data.Fin
+open import Data.Vec
 
-open import Categories.Category using (Category)
-open import Categories.Coherence.Monoidal using (module SymAtoms; module SymSolve)
-open import Categories.FreeMonoidal using (v≤v)   -- the instance that enables `S.σ`
+open import Categories.Category
+open import Categories.Coherence.Monoidal
+open import Categories.FreeMonoidal
 
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Machine.Core

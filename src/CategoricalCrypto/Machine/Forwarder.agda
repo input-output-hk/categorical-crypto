@@ -23,7 +23,7 @@ open import CategoricalCrypto.Machine.Core
 open import CategoricalCrypto.Machine.Message
 import CategoricalCrypto.Machine.Core as CC
 open import CategoricalCrypto.Machine.Iso
-open import CategoricalCrypto.Machine.Reindex using (Reindex-resp-≅ᴹ; Trc-resp-≅ᴹ)
+open import CategoricalCrypto.Machine.Reindex
 open import Tactic.Defaults
 
 module CategoricalCrypto.Machine.Forwarder where
