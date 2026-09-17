@@ -1,16 +1,15 @@
 {-# OPTIONS --safe #-}
 
 -- ============================================================================
--- Reassociating a three-fold `Pair`, as the monoidal associator needs:
+-- Reassociating a three-fold `Pair`, as `Machine.Monoidal.Associator` needs:
 --
 --     Pair M₁ (Pair M₂ M₃)  ≅ᴹ  Pair (Pair M₁ M₂) M₃   (up to relabelling)
 --
--- The proof is the same trick as `Pair-mid4`: `Pair` carries its step relation
--- at fully general indices, so `Tensor.CompRel` constructors can be matched
--- directly and every leaf step is simply re-tagged.  Unlike `mid4ᵢ`/`mid4ₒ`,
--- these maps are not involutions (source and target trees have different
--- shapes), so the backward direction gets its own matching helper, and the two
--- are tied together by the round-trip laws.
+-- `Tensor.CompRel` constructors are matched directly, for the reason given
+-- beside `Pair` in `Machine.Reindex`.  Unlike `mid4ᵢ`/`mid4ₒ`, the maps
+-- `asc3ᵢ`/`asc3ₒ` are not involutions (source and target trees have different
+-- shapes), so the backward direction gets its own helper, and the two are tied
+-- together by the round-trip laws.
 -- ============================================================================
 
 open import CategoricalCrypto.Machine.Reindex
@@ -36,11 +35,6 @@ opaque
   unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-assoc ⊗-left-assoc
             ⊗-right-intro ⊗-ᵀ-distrib ⊗-ᵀ-factor ⊗-right-neutral ⊗-fusion ⊗-combine
             πᵢ
-
-  -- ------------------------------------------------------------------------
-  -- The leaves are re-tagged, the middle one moving from the right subtree to
-  -- the left.
-  -- ------------------------------------------------------------------------
 
   asc3ᵢ : ∀ {A₁ B₁ A₂ B₂ A₃ B₃}
         → inType ((A₁ ⊗ᵀ B₁) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₃ ⊗ᵀ B₃)))

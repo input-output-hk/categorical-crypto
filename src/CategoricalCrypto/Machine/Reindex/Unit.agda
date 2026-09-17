@@ -1,21 +1,16 @@
 {-# OPTIONS --safe #-}
 
 -- ============================================================================
--- `Pair` with the identity on the unit channel.
---
--- `I = ⊥ ⇿ ⊥` carries no messages, so `CC.id {I}` never steps: every step of
--- `Pair (CC.id {I}) M` is a `Step₂`, and every step of `Pair M (CC.id {I})` a
--- `Step₁`.  Up to the relabelling that drops the empty summand, each is `M`
--- itself:
+-- `Pair` with the identity on the unit channel, as the naturality of the
+-- unitors (`Machine.Monoidal.Unitors`) needs:
 --
 --     Pair (CC.id {I}) M  ≅ᴹ  Reindex M unitˡᵢ unitˡₒ
 --     Pair M (CC.id {I})  ≅ᴹ  Reindex M unitʳᵢ unitʳₒ
 --
--- These are what the naturality of the unitors (`Machine.Monoidal.Unitors`)
--- needs from `Pair`, in the same way that the associator's needs `Pair-asc3`.
--- The proof is the usual one for `Pair`: its step relation sits at fully
--- general indices, so `Tensor.CompRel` constructors are matched directly; the
--- constructor for the identity's column is refuted on its message.
+-- `I = ⊥ ⇿ ⊥` carries no messages, so `CC.id {I}` never steps.
+-- `Tensor.CompRel` constructors are matched directly, for the reason given
+-- beside `Pair` in `Machine.Reindex`, and the identity's column of the
+-- relation is refuted on its message.
 -- ============================================================================
 
 open import CategoricalCrypto.Machine.Reindex
@@ -44,10 +39,6 @@ opaque
     noI : ∀ {ℓ} {W : Type ℓ} → inType (I ⊗ᵀ I) → W
     noI (inj₁ ())
     noI (inj₂ ())
-
-  -- ------------------------------------------------------------------------
-  -- The identity on the left.
-  -- ------------------------------------------------------------------------
 
   unitˡᵢ : ∀ {A B} → inType ((I ⊗₀ I ᵀ) ⊗ᵀ ((A ⊗₀ B ᵀ) ᵀ))
                    → inType (A ⊗ᵀ B)
@@ -87,10 +78,6 @@ opaque
     MkIso proj₂ (tt ,_) (λ _ → refl) (λ _ → refl)
       (Pair-unitˡ-to M)
       (λ {_} {i} {o} q → Pair-unitˡ-from M i o q)
-
-  -- ------------------------------------------------------------------------
-  -- The identity on the right.
-  -- ------------------------------------------------------------------------
 
   unitʳᵢ : ∀ {A B} → inType ((A ⊗₀ B ᵀ) ⊗ᵀ ((I ⊗₀ I ᵀ) ᵀ))
                    → inType (A ⊗ᵀ B)

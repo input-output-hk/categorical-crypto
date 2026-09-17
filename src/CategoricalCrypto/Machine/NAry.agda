@@ -3,14 +3,10 @@
 -- ============================================================================
 -- Rewiring a ⨂ of per-node Kleisli machines past a shared environment.
 --
--- `insert-id` and `⨂-absorb-env` are the two equations a UC-style transfer
+-- `insert-id`, `⨂-reshape-env` and `⨂-absorb-env` are what a UC-style transfer
 -- argument needs when the per-node protocol machines are tensored with `⨂ᴷ`
--- and composed with an environment: inserting a unit per node and stripping it
--- again is a no-op, and a `⨂ᴷ` of compositions is a composition of `⨂ᴷ`s once
--- the per-node environment channels are zipped together.  `⨂-reshape-env`
--- generalises the first to any per-node forwarder on the environment channel.
--- All are derived from the binary laws of `Machine.Monoidal`; nothing here is
--- assumed.
+-- and composed with an environment, and all three are derived from the binary
+-- laws of `Machine.Monoidal`.
 --
 -- Elaboration note.  Channel families must be PINNED wherever `⨂` appears in
 -- an inferred position (hence `strip`, and the explicit `{n} {E₁} {E₂}` on
@@ -61,7 +57,7 @@ insert-id-helper {n = n} _ = CC.id ⊗₁ CC.id ⊗₁ ⨂₁ {n = n} (λ _ → 
 
 -- Rewiring the per-node environment channels past the shared environment `E`:
 -- the `⨂ E₂` that composition strands on the left is carried across and zipped
--- onto the `⨂ E₁` on the right.  A four-atom permutation, then `⨂-zip`.
+-- onto the `⨂ E₁` on the right.
 ⨂-absorb-env-helper : ∀ {n} {E : Channel} (D : Fin n → Channel) {E₁ E₂ : Fin n → Channel}
   → Machine ((⨂ D ⊗₀ ⨂ E₂) ⊗₀ E ⊗₀ (⨂ E₁)) ((⨂ D) ⊗₀ E ⊗₀ (⨂ (λ k → E₁ k ⊗₀ E₂ k)))
 ⨂-absorb-env-helper {n} {E} D {E₁} {E₂} =
@@ -76,15 +72,9 @@ insert-id-helper {n = n} _ = CC.id ⊗₁ CC.id ⊗₁ ⨂₁ {n = n} (λ _ → 
 ⊗ᴷ-unfold _ _ = refl
 
 -- `insert-id-helper`'s inner `⨂₁ (λ _ → ρ⇒)`, with its channel families
--- PINNED.  Left implicit they generate `⨂ ?B ≟ ⨂ E` constraints that block on
--- the abstract `n` — `⨂` is a stuck recursion, not a constructor, so Agda
--- cannot invert it — and the elaborator then diverges (heap exhaustion).
+-- PINNED; see the elaboration note in the header.
 strip : ∀ {n} (E : Fin n → Channel) → Machine (⨂ (λ k → E k ⊗₀ I)) (⨂ E)
 strip {n} E = ⨂₁ {n = n} {A = λ k → E k ⊗₀ I} {B = E} (λ _ → ρ⇒)
-
--- ----------------------------------------------------------------------------
--- The derivation.
--- ----------------------------------------------------------------------------
 
 module Derived where
 
@@ -100,9 +90,11 @@ module Derived where
     (≅ᴹ-trans (∘-resp-≅ᴹ ⊗₁-id ≅ᴹ-refl)
               ∘-identityˡ-≅ᴹ)))))
 
-  -- The n-ary version.  If each `f' k` is `f k` up to a forwarder `u k` on its
-  -- environment channel, then `⨂₁ u` turns `⨂ᴷ f'` into `⨂ᴷ f`.  The
-  -- induction; the step is `⊗ᴷ-fwd`'s naturality and the interchange law.
+  -- If each `f' k` is `f k` up to a forwarder `u k` on its environment channel,
+  -- then `⨂₁ u` turns `⨂ᴷ f'` into `⨂ᴷ f`.  The proof is by induction on
+  -- `n`, the step being `⊗ᴷ-fwd`'s naturality together with the interchange
+  -- law.  The channel families are pinned, see the elaboration note in the
+  -- header.
   ⨂-post : ∀ {n} {B C E₂ E₂' : Fin n → Channel}
            (f  : (k : Fin n) → Machine (B k) (C k ⊗₀ E₂ k))
            (f' : (k : Fin n) → Machine (B k) (C k ⊗₀ E₂' k))
@@ -155,10 +147,6 @@ module Derived where
          → (H CC.∘ P) ≅ᴹ Q → (α CC.∘ Q) ≅ᴹ ((α CC.∘ H) CC.∘ P)
   post-α α H P Q eq = ≅ᴹ-trans (∘-resp-≅ᴹ ≅ᴹ-refl (≅ᴹ-sym eq)) (≅ᴹ-sym ∘-assoc-≅ᴹ)
 
-  -- --------------------------------------------------------------------------
-  -- Inserting a unit per node and stripping it again is a no-op.
-  -- --------------------------------------------------------------------------
-
   insert-id : ∀ {A D} {n} {E₁} {B C E₂ : Fin n → Channel}
     (f : (k : Fin n) → Machine (B k) (C k ⊗₀ E₂ k)) (g : Machine A (⨂ B ⊗₀ E₁))
     (α : Machine (⨂ C ⊗₀ E₁ ⊗₀ ⨂ E₂) D)
@@ -188,7 +176,6 @@ module Derived where
              (⨂ᴷ f ∘ᴷ g)
              (slide-∘ᴷ (⨂ᴷ f) (⨂ᴷ f') (⨂₁ {n} {E₂'} {E₂} u) g (⨂-post f f' u eq))
 
-  -- Sliding a post-composed `CC.id ⊗₁ u` into the right factor of a `_⊗ᴷ_`.
   slide-⊗ᴷ : ∀ {A₁ B₁ E₁ A₂ B₂ E₂ E₂'}
              (X : Machine A₁ (B₁ ⊗₀ E₁)) (Y : Machine A₂ (B₂ ⊗₀ E₂)) (u : Machine E₂ E₂')
            → ((CC.id ⊗₁ (CC.id ⊗₁ u)) CC.∘ (X ⊗ᴷ Y)) ≅ᴹ (X ⊗ᴷ ((CC.id ⊗₁ u) CC.∘ Y))
@@ -203,7 +190,8 @@ module Derived where
                                       ≅ᴹ-refl))))))
 
   -- `⨂ᴷ` is functorial for `_∘ᴷ_`, once the per-node environment channels are
-  -- zipped together.  The induction; the step is the binary `⊗ᴷ-∘ᴷ`.
+  -- zipped together.  The proof is by induction on `n`, the step being the
+  -- binary `⊗ᴷ-∘ᴷ`.
   ⨂-functorial : ∀ {n} {B C D E₁ E₂ : Fin n → Channel}
     (f : (k : Fin n) → Machine (C k) (D k ⊗₀ E₂ k))
     (g : (k : Fin n) → Machine (B k) (C k ⊗₀ E₁ k))
@@ -222,11 +210,6 @@ module Derived where
                         (⨂-zip {n} {λ k → E₁ (fsuc k)} {λ k → E₂ (fsuc k)}))
               (⊗ᴷ-resp-≅ᴹ ≅ᴹ-refl
                 (⨂-functorial (λ k → f (fsuc k)) (λ k → g (fsuc k)))))))
-
-  -- --------------------------------------------------------------------------
-  -- A `⨂ᴷ` of compositions is a composition of `⨂ᴷ`s once the per-node
-  -- environment channels are zipped together.
-  -- --------------------------------------------------------------------------
 
   ⨂-absorb-env : ∀ {A E F} {n} {B C D E₁ E₂ : Fin n → Channel}
     (f : (k : Fin n) → Machine (C k) (D k ⊗₀ E₂ k))
@@ -250,5 +233,6 @@ module Derived where
                   (slide-∘ᴷ (⨂ᴷ (λ k → f k ∘ᴷ g k)) (⨂ᴷ f ∘ᴷ ⨂ᴷ g)
                             (⨂-zip {n} {E₁} {E₂}) h (⨂-functorial f g))))
 
--- The laws the transfer theorems use.
+-- The module's intended public surface, for transfer arguments that this tree
+-- does not yet contain.
 open Derived public using (unit-∘ᴷ; insert-id; ⨂-reshape-env; ⨂-absorb-env)

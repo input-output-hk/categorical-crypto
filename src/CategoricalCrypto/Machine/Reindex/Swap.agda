@@ -1,18 +1,15 @@
 {-# OPTIONS --safe #-}
 
 -- ============================================================================
--- Swapping the two components of a `Pair`.
---
--- The braiding's naturality needs the two-leaf cousin of `Pair-mid4`:
+-- Swapping the two components of a `Pair`, as `Machine.Monoidal.Braiding`
+-- needs:
 --
 --     Pair M₁ M₂  ≅ᴹ  Pair M₂ M₁   (up to relabelling)
 --
--- The proof is the same trick as there: `Pair` carries its step relation at
--- fully general indices, so `Tensor.CompRel` constructors can be matched
--- directly, and each leaf step is simply re-tagged from `Step₁` to `Step₂` and
--- back.  The relabelling `swᵢ`/`swₒ` is an involution, so the backward
--- direction is the forward one at the swapped machines, followed by the
--- involution law.
+-- `Tensor.CompRel` constructors are matched directly, for the reason given
+-- beside `Pair` in `Machine.Reindex`.  `swᵢ`/`swₒ` are involutions, so the
+-- backward direction is the forward one at the swapped machines, followed by
+-- the involution law.
 -- ============================================================================
 
 open import CategoricalCrypto.Machine.Reindex
@@ -40,9 +37,8 @@ opaque
             ⊗-right-intro ⊗-ᵀ-distrib ⊗-ᵀ-factor ⊗-right-neutral ⊗-fusion ⊗-combine
             πᵢ
 
-  -- ------------------------------------------------------------------------
-  -- The message-level swap, at the exact channel shapes `Pair` produces.
-  -- ------------------------------------------------------------------------
+  -- The type is written at the exact channel shapes `Pair` produces, so that
+  -- it unfolds to a sum and `⊎.swap` applies directly.
 
   swᵢ : ∀ {A B C D}
       → inType ((A ⊗ᵀ B) ⊗₀ (C ⊗ᵀ D))

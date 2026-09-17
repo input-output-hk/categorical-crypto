@@ -5,14 +5,10 @@
 --
 --     ⊗-symₘ ∘ (f ⊗₁ g)  ≅ᴹ  (g ⊗₁ f) ∘ ⊗-symₘ
 --
--- The proof follows `CategoricalCrypto.Machine.Monoidal.Naturality` to the
--- letter.  `⊗-symₘ` is a crossing forwarder, hence a reindexed identity
--- (`Xfwd-dom`/`Xfwd-cod`), so composing with it is a pure relabelling
--- (`∘-collapse-dom`/`∘-collapse-cod`) and each side collapses to a `Reindex`
--- of a tensor.  A tensor IS a `Reindex` of a `Pair`, so fusing leaves one
+-- The proof follows the recipe of
+-- `CategoricalCrypto.Machine.Monoidal.Associator`.  Fusing leaves one
 -- `Reindex (Pair f g) …` on the left and one `Reindex (Pair g f) …` on the
--- right; `Pair-swap` bridges the two nests, and what remains is a pointwise
--- equation between two routings, a four-way case split closed by `refl`.
+-- right, so `Pair-swap` bridges the two nests.
 -- ============================================================================
 
 open import CategoricalCrypto.Machine.Category using (∘-identityˡ-≅ᴹ; ∘-identityʳ-≅ᴹ)
@@ -40,8 +36,6 @@ opaque
   unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-assoc ⊗-left-assoc
             ⊗-right-intro ⊗-ᵀ-distrib ⊗-ᵀ-factor ⊗-right-neutral ⊗-fusion
             ⊗-combine πᵢ ∘κᵢ cdᵢ Xφ swᵢ
-
-  -- ---- `⊗-symₘ`'s message maps, and their inverses ----------------------
 
   σfᵢ : ∀ {A B} → inType (A ⊗₀ B) → inType (B ⊗₀ A)
   σfᵢ {A} {B} = app (⊗-symᵢ {A} {B})
@@ -71,8 +65,6 @@ opaque
   σfᵢ-r (inj₁ _) = refl
   σfᵢ-r (inj₂ _) = refl
 
-  -- ---- the forwarder as a reindexed identity, both ways -----------------
-
   σ-Φdom : ∀ {A B}
          → ⊗-symₘ {A} {B}
            ≅ᴹ Reindex (CC.id {B ⊗₀ A})
@@ -90,8 +82,6 @@ opaque
   σ-Φcod {A} {B} =
     ≅ᴹ-trans (tfm'-is-Xfwd (⊗-symᵢ {A} {B}) (⊗-symₒ {A} {B}))
              (Xfwd-cod (σfᵢ {A} {B}) (σfₒ {A} {B}) (σfᵢ⁻ {A} {B}) σfᵢ-l σfᵢ-r)
-
-  -- ---- the two collapses ------------------------------------------------
 
   σ-lhs : ∀ {A A' B B'} (f : Machine A A') (g : Machine B B')
         → (⊗-symₘ {A'} {B'} CC.∘ (f ⊗₁ g))
@@ -120,8 +110,6 @@ opaque
                  (dmᵢ {B ⊗₀ A} {A ⊗₀ B} {B' ⊗₀ A'} (σfᵢ {A} {B}))
                  (dmₒ {B ⊗₀ A} {A ⊗₀ B} {B' ⊗₀ A'} (σfₒ⁻ {A} {B}))
                  ∘-identityʳ-≅ᴹ))
-
-  -- ---- the one routing both sides produce, into the `Pair f g` nest -----
 
   σNᵢ : ∀ {A A' B B'}
       → inType ((A ⊗₀ B) ⊗ᵀ (B' ⊗₀ A'))
@@ -177,10 +165,6 @@ opaque
   pt-σRₒ (inj₂ (inj₁ _)) = refl
   pt-σRₒ (inj₂ (inj₂ _)) = refl
 
-  -- ---- the two sides, normalised to the same `Reindex` -------------------
-
-  -- `f ⊗₁ g` IS `Reindex (Pair f g) (app ⊗σ) (app ⊗σ)`, so the outer
-  -- relabelling fuses straight in.
   σ-lhs-norm : ∀ {A A' B B'} (f : Machine A A') (g : Machine B B')
              → (⊗-symₘ {A'} {B'} CC.∘ (f ⊗₁ g))
                ≅ᴹ Reindex (Pair f g) (σNᵢ {A} {A'} {B} {B'}) (σNₒ {A} {A'} {B} {B'})
@@ -199,7 +183,8 @@ opaque
                             (cdₒ {A ⊗₀ B} {A' ⊗₀ B'} {B' ⊗₀ A'} (σfᵢ⁻ {A'} {B'}) o))
                  (σNₒ {A} {A'} {B} {B'}) pt-σLᵢ pt-σLₒ))
 
-  -- The right side lands in the `Pair g f` nest; `Pair-swap` turns it around.
+  -- The right side lands in the `Pair g f` nest, which is the only reason
+  -- `Pair-swap` appears on one side and not the other.
   σ-rhs-norm : ∀ {A A' B B'} (f : Machine A A') (g : Machine B B')
              → ((g ⊗₁ f) CC.∘ ⊗-symₘ {A} {B})
                ≅ᴹ Reindex (Pair f g) (σNᵢ {A} {A'} {B} {B'}) (σNₒ {A} {A'} {B} {B'})
@@ -232,10 +217,6 @@ opaque
                           (app (⊗σ {B} {B'} {A} {A'} {Out})
                             (dmₒ {B ⊗₀ A} {A ⊗₀ B} {B' ⊗₀ A'} (σfₒ⁻ {A} {B}) o)))
                  (σNₒ {A} {A'} {B} {B'}) pt-σRᵢ pt-σRₒ))))
-
-  -- ========================================================================
-  -- `⊗-symₘ` is natural.
-  -- ========================================================================
 
   σ-natural : ∀ {A A' B B'} (f : Machine A A') (g : Machine B B')
             → (⊗-symₘ {A'} {B'} CC.∘ (f ⊗₁ g)) ≅ᴹ ((g ⊗₁ f) CC.∘ ⊗-symₘ {A} {B})

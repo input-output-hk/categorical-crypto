@@ -8,13 +8,15 @@
 -- The forward square is derived from this one and the iso laws in
 -- `CategoricalCrypto.Machine.MonoidalCategory`.
 --
--- The proof follows the `Reindex` recipe.  A crossing forwarder is a
--- reindexed identity (`Xfwd-dom`/`Xfwd-cod`), so composing with one is a pure
--- relabelling (`∘-collapse-dom`/`∘-collapse-cod`), and each side collapses to
--- a `Reindex` of the tensor.  Normalising the two tensors to `Pair`-nests
--- (`⊗₁-norm-l`/`⊗₁-norm-r`, shared with `Machine.Monoidal.Unitors` and
--- `Machine.Monoidal.Braiding`) leaves a single pointwise equation between two
+-- A crossing forwarder is a reindexed identity (`Xfwd-dom`/`Xfwd-cod`, in
+-- `Machine.Reindex.Post`), so composing with one is a pure relabelling
+-- (`∘-collapse-dom`/`∘-collapse-cod`), and each side collapses to a `Reindex`
+-- of the tensor.  Normalising the two tensors to `Pair`-nests
+-- (`⊗₁-norm-l`/`⊗₁-norm-r`) leaves a single pointwise equation between two
 -- routings, which is a finite case split closed by `refl`.
+--
+-- `Machine.Monoidal.Unitors` and `Machine.Monoidal.Braiding` follow the same
+-- recipe with their own normalisers.
 -- ============================================================================
 
 
@@ -51,8 +53,6 @@ opaque
   -- are fused and the composite routing is replaced by the permutation it
   -- computes to.
   -- ========================================================================
-
-  -- ---- the right-nested three-fold case, `m ⊗₁ (n₁ ⊗₁ n₂)` ---------------
 
   nrᵢ : ∀ {A A' B B' D D'}
       → inType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ (A' ⊗₀ (B' ⊗₀ D')))
@@ -127,8 +127,6 @@ opaque
                            (app (⊗σ {A} {A'} {B ⊗₀ D} {B' ⊗₀ D'} {Out}) o))
                  (nrₒ {A} {A'} {B} {B'} {D} {D'}) pt-nrᵢ pt-nrₒ))
 
-  -- ---- the left-nested three-fold case, `(m ⊗₁ n₁) ⊗₁ n₂` ---------------
-
   nlᵢ : ∀ {A A' B B' D D'}
       → inType (((A ⊗₀ B) ⊗₀ D) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D'))
       → inType (((A ⊗ᵀ A') ⊗₀ (B ⊗ᵀ B')) ⊗₀ (D ⊗ᵀ D'))
@@ -202,12 +200,7 @@ opaque
                            (app (⊗σ {A ⊗₀ B} {A' ⊗₀ B'} {D} {D'} {Out}) o))
                  (nlₒ {A} {A'} {B} {B'} {D} {D'}) pt-nlᵢ pt-nlₒ))
 
-  -- ========================================================================
-  -- The inverse associator `⊗-assoc⃖` is natural.  The bridge between the
-  -- nests is `Pair-asc3`.
-  -- ========================================================================
-
-  -- ---- `⊗-assoc⃖`'s message maps, and their inverses --------------------
+  -- `Pair-asc3` is the bridge between the two `Pair`-nests.
 
   αfᵢ : ∀ {A B D} → inType (A ⊗₀ (B ⊗₀ D))
                   → inType ((A ⊗₀ B) ⊗₀ D)
@@ -247,8 +240,6 @@ opaque
   αfᵢ-r (inj₁ (inj₂ _)) = refl
   αfᵢ-r (inj₂ _)        = refl
 
-  -- ---- the forwarder as a reindexed identity, both ways -----------------
-
   α-Φdom : ∀ {A B D}
          → ⊗-assoc⃖ {A} {B} {D}
            ≅ᴹ Reindex (CC.id {(A ⊗₀ B) ⊗₀ D})
@@ -266,8 +257,6 @@ opaque
   α-Φcod {A} {B} {D} =
     ≅ᴹ-trans (tfm'-is-Xfwd (⊗-assoc⃖ᵢ {A} {B} {D}) (⊗-assoc⃖ₒ {A} {B} {D}))
              (Xfwd-cod (αfᵢ {A} {B} {D}) (αfₒ {A} {B} {D}) (αfᵢ⁻ {A} {B} {D}) αfᵢ-l αfᵢ-r)
-
-  -- ---- the two collapses ------------------------------------------------
 
   α-lhs : ∀ {A A' B B' D D'} (a : Machine A A') (b : Machine B B') (d : Machine D D')
         → (((a ⊗₁ b) ⊗₁ d) CC.∘ ⊗-assoc⃖ {A} {B} {D})
@@ -296,8 +285,6 @@ opaque
                  (cdᵢ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'} (αfₒ {A'} {B'} {D'}))
                  (cdₒ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'} (αfᵢ⁻ {A'} {B'} {D'}))
                  ∘-identityˡ-≅ᴹ))
-
-  -- ---- the one routing both sides produce, into the left-nested nest ----
 
   αNᵢ : ∀ {A A' B B' D D'}
       → inType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D'))
@@ -371,8 +358,6 @@ opaque
   pt-αRₒ (inj₂ (inj₁ (inj₂ _))) = refl
   pt-αRₒ (inj₂ (inj₂ _))        = refl
 
-  -- ---- the two sides, normalised to the same `Reindex` -------------------
-
   α-lhs-norm : ∀ {A A' B B' D D'} (a : Machine A A') (b : Machine B B') (d : Machine D D')
              → (((a ⊗₁ b) ⊗₁ d) CC.∘ ⊗-assoc⃖ {A} {B} {D})
                ≅ᴹ Reindex (Pair (Pair a b) d) (αNᵢ {A} {A'} {B} {B'} {D} {D'})
@@ -441,10 +426,6 @@ opaque
                             (cdₒ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'}
                                  (αfᵢ⁻ {A'} {B'} {D'}) o)))
                  (αNₒ {A} {A'} {B} {B'} {D} {D'}) pt-αRᵢ pt-αRₒ)))))
-
-  -- ========================================================================
-  -- `⊗-assoc⃖` is natural.
-  -- ========================================================================
 
   ⊗-assoc⃖-natural : ∀ {A A' B B' D D'}
                      (a : Machine A A') (b : Machine B B') (d : Machine D D')

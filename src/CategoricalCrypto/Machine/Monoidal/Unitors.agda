@@ -5,15 +5,11 @@
 --
 --     λ⇒ ∘ (id ⊗₁ f)  ≅ᴹ  f ∘ λ⇒            ρ⇒ ∘ (f ⊗₁ id)  ≅ᴹ  f ∘ ρ⇒
 --
--- The recipe is the one `Machine.Monoidal.Naturality` uses for the
--- associator.  A unitor is a total-function forwarder, hence a reindexed
--- identity (`Xfwd-dom`/`Xfwd-cod`), so composing with it is a pure relabelling
--- (`∘-collapse-dom`/`∘-collapse-cod`) and each side collapses to a `Reindex`
--- of a tensor once the identity is cancelled.  The one structural fact needed
--- here is that tensoring with `CC.id {I}` is itself a relabelling of `f`
--- (`Pair-unitˡ`/`Pair-unitʳ`): the unit channel has no messages, so the
--- identity on it never steps.  What remains is a pointwise equation between
--- two routings, closed by a finite case split and `refl`.
+-- The proof follows the recipe of
+-- `CategoricalCrypto.Machine.Monoidal.Associator`.  The one structural fact
+-- needed here is that tensoring with `CC.id {I}` is itself a relabelling of
+-- `f` (`Pair-unitˡ`/`Pair-unitʳ`): the unit channel has no messages, so the
+-- identity on it never steps.
 -- ============================================================================
 
 open import CategoricalCrypto.Machine.Category using (∘-identityˡ-≅ᴹ; ∘-identityʳ-≅ᴹ)
@@ -40,12 +36,6 @@ opaque
   unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-assoc ⊗-left-assoc
             ⊗-right-intro ⊗-ᵀ-distrib ⊗-ᵀ-factor ⊗-right-neutral ⊗-fusion
             ⊗-combine πᵢ ∘κᵢ cdᵢ Xφ unitˡᵢ
-
-  -- ========================================================================
-  -- The left unitor `λ⇒` is natural.
-  -- ========================================================================
-
-  -- ---- `λ⇒`'s message maps, and their inverses ---------------------------
 
   λfᵢ : ∀ {A} → inType (I ⊗₀ A) → inType A
   λfᵢ {A} = app (⊗-left-neutral {In} {A})
@@ -74,8 +64,6 @@ opaque
   λfᵢ-r : ∀ {A} (b : inType A) → λfᵢ {A} (λfᵢ⁻ {A} b) ≡ b
   λfᵢ-r _ = refl
 
-  -- ---- the forwarder as a reindexed identity, both ways -----------------
-
   λ-Φdom : ∀ {A}
          → λ⇒ {A}
            ≅ᴹ Reindex (CC.id {A}) (dmᵢ {A} {I ⊗₀ A} {A} (λfᵢ {A}))
@@ -91,8 +79,6 @@ opaque
   λ-Φcod {A} =
     ≅ᴹ-trans (tfm'-is-Xfwd (⊗-left-neutral {In} {A}) (⊗-left-intro {Out} {I} {A}))
              (Xfwd-cod (λfᵢ {A}) (λfₒ {A}) (λfᵢ⁻ {A}) (λfᵢ-l {A}) (λfᵢ-r {A}))
-
-  -- ---- the two collapses ------------------------------------------------
 
   λ-lhs : ∀ {A A'} (f : Machine A A')
         → (λ⇒ {A'} CC.∘ (CC.id {I} ⊗₁ f))
@@ -114,8 +100,6 @@ opaque
               (Reindex-resp-≅ᴹ (dmᵢ {A} {I ⊗₀ A} {A'} (λfᵢ {A}))
                                (dmₒ {A} {I ⊗₀ A} {A'} (λfₒ⁻ {A}))
                                ∘-identityʳ-≅ᴹ))
-
-  -- ---- `CC.id {I} ⊗₁ f` as a `Reindex` of `f` ----------------------------
 
   λTᵢ : ∀ {A A'} → inType ((I ⊗₀ A) ⊗ᵀ (I ⊗₀ A')) → inType (A ⊗ᵀ A')
   λTᵢ (inj₁ (inj₁ ()))
@@ -157,8 +141,6 @@ opaque
                  (λ o → unitˡₒ {A} {A'} (app (⊗σ {I} {I} {A} {A'} {Out}) o))
                  (λTₒ {A} {A'}) pt-λTᵢ pt-λTₒ))
 
-  -- ---- the one routing both sides produce -------------------------------
-
   λNᵢ : ∀ {A A'} → inType ((I ⊗₀ A) ⊗ᵀ A') → inType (A ⊗ᵀ A')
   λNᵢ (inj₁ (inj₁ ()))
   λNᵢ (inj₁ (inj₂ a)) = inj₁ a
@@ -193,8 +175,6 @@ opaque
   pt-λRₒ (inj₁ (inj₂ _)) = refl
   pt-λRₒ (inj₂ _)        = refl
 
-  -- ---- the two sides, normalised to the same `Reindex` -------------------
-
   λ-lhs-norm : ∀ {A A'} (f : Machine A A')
              → (λ⇒ {A'} CC.∘ (CC.id {I} ⊗₁ f))
                ≅ᴹ Reindex f (λNᵢ {A} {A'}) (λNₒ {A} {A'})
@@ -220,18 +200,12 @@ opaque
                 (dmᵢ {A} {I ⊗₀ A} {A'} (λfᵢ {A})) (λNᵢ {A} {A'})
                 (dmₒ {A} {I ⊗₀ A} {A'} (λfₒ⁻ {A})) (λNₒ {A} {A'}) pt-λRᵢ pt-λRₒ)
 
-  -- ---- `λ⇒` is natural ----------------------------------------------------
-
   λ⇒-natural : ∀ {A A'} (f : Machine A A')
              → (λ⇒ {A'} CC.∘ (CC.id {I} ⊗₁ f)) ≅ᴹ (f CC.∘ λ⇒ {A})
   λ⇒-natural f = ≅ᴹ-trans (λ-lhs-norm f) (≅ᴹ-sym (λ-rhs-norm f))
 
-  -- ========================================================================
-  -- The right unitor `ρ⇒` is natural.  Mirror image of the above, with the
-  -- unit on the other side of every sum.
-  -- ========================================================================
-
-  -- ---- `ρ⇒`'s message maps, and their inverses ---------------------------
+  -- The `ρ⇒` half mirrors the `λ⇒` half, with the unit on the other side of
+  -- every sum.
 
   ρfᵢ : ∀ {A} → inType (A ⊗₀ I) → inType A
   ρfᵢ {A} = app (⊗-right-neutral {In} {A})
@@ -260,8 +234,6 @@ opaque
   ρfᵢ-r : ∀ {A} (b : inType A) → ρfᵢ {A} (ρfᵢ⁻ {A} b) ≡ b
   ρfᵢ-r _ = refl
 
-  -- ---- the forwarder as a reindexed identity, both ways -----------------
-
   ρ-Φdom : ∀ {A}
          → ρ⇒ {A}
            ≅ᴹ Reindex (CC.id {A}) (dmᵢ {A} {A ⊗₀ I} {A} (ρfᵢ {A}))
@@ -277,8 +249,6 @@ opaque
   ρ-Φcod {A} =
     ≅ᴹ-trans (tfm'-is-Xfwd (⊗-right-neutral {In} {A}) (⊗-right-intro {Out} {A} {I}))
              (Xfwd-cod (ρfᵢ {A}) (ρfₒ {A}) (ρfᵢ⁻ {A}) (ρfᵢ-l {A}) (ρfᵢ-r {A}))
-
-  -- ---- the two collapses ------------------------------------------------
 
   ρ-lhs : ∀ {A A'} (f : Machine A A')
         → (ρ⇒ {A'} CC.∘ (f ⊗₁ CC.id {I}))
@@ -300,8 +270,6 @@ opaque
               (Reindex-resp-≅ᴹ (dmᵢ {A} {A ⊗₀ I} {A'} (ρfᵢ {A}))
                                (dmₒ {A} {A ⊗₀ I} {A'} (ρfₒ⁻ {A}))
                                ∘-identityʳ-≅ᴹ))
-
-  -- ---- `f ⊗₁ CC.id {I}` as a `Reindex` of `f` ----------------------------
 
   ρTᵢ : ∀ {A A'} → inType ((A ⊗₀ I) ⊗ᵀ (A' ⊗₀ I)) → inType (A ⊗ᵀ A')
   ρTᵢ (inj₁ (inj₁ a))  = inj₁ a
@@ -343,8 +311,6 @@ opaque
                  (λ o → unitʳₒ {A} {A'} (app (⊗σ {A} {A'} {I} {I} {Out}) o))
                  (ρTₒ {A} {A'}) pt-ρTᵢ pt-ρTₒ))
 
-  -- ---- the one routing both sides produce -------------------------------
-
   ρNᵢ : ∀ {A A'} → inType ((A ⊗₀ I) ⊗ᵀ A') → inType (A ⊗ᵀ A')
   ρNᵢ (inj₁ (inj₁ a)) = inj₁ a
   ρNᵢ (inj₁ (inj₂ ()))
@@ -379,8 +345,6 @@ opaque
   pt-ρRₒ (inj₁ (inj₂ ()))
   pt-ρRₒ (inj₂ _)        = refl
 
-  -- ---- the two sides, normalised to the same `Reindex` -------------------
-
   ρ-lhs-norm : ∀ {A A'} (f : Machine A A')
              → (ρ⇒ {A'} CC.∘ (f ⊗₁ CC.id {I}))
                ≅ᴹ Reindex f (ρNᵢ {A} {A'}) (ρNₒ {A} {A'})
@@ -405,8 +369,6 @@ opaque
              (Reindex-cong f
                 (dmᵢ {A} {A ⊗₀ I} {A'} (ρfᵢ {A})) (ρNᵢ {A} {A'})
                 (dmₒ {A} {A ⊗₀ I} {A'} (ρfₒ⁻ {A})) (ρNₒ {A} {A'}) pt-ρRᵢ pt-ρRₒ)
-
-  -- ---- `ρ⇒` is natural ----------------------------------------------------
 
   ρ⇒-natural : ∀ {A A'} (f : Machine A A')
              → (ρ⇒ {A'} CC.∘ (f ⊗₁ CC.id {I})) ≅ᴹ (f CC.∘ ρ⇒ {A})

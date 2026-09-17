@@ -3,9 +3,8 @@
 -- ============================================================================
 -- Sliding a channel relabelling past a trace, and what it buys.
 --
--- `CategoricalCrypto.Machine.Reindex` reduced everything to `Reindex`/`Pair`/`Trc`.
--- One fact about that algebra is missing there and is what the remaining laws
--- of `CategoricalCrypto.Machine.NAry` all want:
+-- `CategoricalCrypto.Machine.Reindex` reduced `_∘_` to `Reindex`/`Pair`/`Trc`,
+-- in `∘-Reindex`.  One fact about that algebra is missing there:
 --
 --   `Trc-slide` — a relabelling that FIXES THE TRACED CHANNEL commutes with
 --     `Trc`.  A trace chain only ever touches the traced ports, so relabelling
@@ -14,8 +13,9 @@
 -- From it: a forwarder is a reindexed identity (`Xfwd-dom`/`Xfwd-cod`, both
 -- in `Reindex.Post`), a relabelling slides out of either argument of `_∘_`
 -- (`∘-collapse-dom`/`∘-collapse-cod`), and hence composing with a forwarder
--- is just a relabelling.  That is what discharges the naturality laws and
--- the two Kleisli laws.
+-- is just a relabelling.  `Trc-slide`'s only users are `Reindex.Collapse` and
+-- `Reindex.Post`, and through them the three naturality proofs of
+-- `Machine.Monoidal`.
 -- ============================================================================
 
 open import CategoricalCrypto.Machine.Reindex
@@ -41,8 +41,10 @@ opaque
             ⊗-right-intro ⊗-ᵀ-distrib ⊗-ᵀ-factor ⊗-right-neutral ⊗-fusion ⊗-combine
             πᵢ
 
-  -- The four traced-channel ports of a machine `Machine (X ⊗₀ Z) (Y ⊗₀ Z)`,
-  -- at channel-shaped types.
+  -- The four traced-channel ports of a machine `Machine (X ⊗₀ Z) (Y ⊗₀ Z)`.
+  -- `X ⊗ᵀ Y` is `X ⊗₀ Y ᵀ`, so the codomain's out-messages are in-messages of
+  -- the pair and its in-messages are out-messages of the pair; that is why the
+  -- modes are crossed in `cZₒ` and `cZᵢ`.
   dZᵢ : ∀ {X Y Z} → inType Z → inType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z))
   dZᵢ z = inj₁ (inj₂ z)
 
@@ -55,7 +57,6 @@ opaque
   cZᵢ : ∀ {X Y Z} → inType Z → outType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z))
   cZᵢ z = inj₂ (inj₂ z)
 
-  -- A relabelling that fixes the traced channel's ports commutes with `Trc`.
   Trc-slide : ∀ {X Y Z X' Y' : Channel} (W : Machine (X ⊗₀ Z) (Y ⊗₀ Z))
               (p : inType ((X' ⊗₀ Z) ⊗ᵀ (Y' ⊗₀ Z))
                  → inType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z)))
@@ -93,11 +94,9 @@ opaque
       subst₂ (λ a b → Machine.stepRel W _ a (just b) _) ieq (sym (qi zc)) x
       Trace∷ᵢ f rest (dZᵢ {X'} {Y'} {Z} zc) MO (sym (pi zc)) oeq
 
-  -- ------------------------------------------------------------------------
-  -- Relabellings that touch only one side of a machine.
-  -- ------------------------------------------------------------------------
-
   -- Relabel the codomain of `Machine B C`, leaving the domain alone.
+  -- `B ⊗ᵀ C = B ⊗₀ C ᵀ`, so an in-map on the pair is built from an out-map on
+  -- `C`; that is why `cdᵢ` takes a map on out-messages.
   cdᵢ : ∀ {B C C'} → (outType C' → outType C)
       → inType (B ⊗ᵀ C') → inType (B ⊗ᵀ C)
   cdᵢ = ⊎.map₂
@@ -106,7 +105,6 @@ opaque
       → outType (B ⊗ᵀ C') → outType (B ⊗ᵀ C)
   cdₒ = ⊎.map₂
 
-  -- Relabel the domain of `Machine A B`, leaving the codomain alone.
   dmᵢ : ∀ {A A' B} → (inType A' → inType A)
       → inType (A' ⊗ᵀ B) → inType (A ⊗ᵀ B)
   dmᵢ = ⊎.map₁

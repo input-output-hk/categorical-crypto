@@ -1,17 +1,9 @@
 {-# OPTIONS --safe #-}
 
 -- ============================================================================
--- The machine category is a symmetric monoidal category, with hom equality
--- the bisimulation `_≅ᴹ_`.  This module only assembles the records; every law
--- is proved elsewhere:
---
---   bifunctoriality of `_⊗₁_`   `⊗₁-resp-≅ᴹ` (Iso), `⊗₁-id` (Forwarder),
---                               `⊗₁-interchange` (Monoidal.Interchange);
---   iso laws, triangle, pentagon, hexagon, σ∘σ
---                               `Monoidal.Coherence`;
---   naturality of `⊗-assoc⃖`    `Monoidal.Associator`;
---   naturality of the unitors   `Monoidal.Unitors`;
---   naturality of `⊗-symₘ`      `Monoidal.Braiding`.
+-- The machine category is a symmetric monoidal category, with hom equality the
+-- state isomorphism `_≅ᴹ_`.  This module only assembles the records; every law
+-- is proved elsewhere, and `CategoricalCrypto.Machine.Monoidal` says where.
 --
 -- Only the three forward naturality squares are supplied; `monoidalHelper`
 -- derives the `-to` halves as conjugates of them.  The forward associator
@@ -19,10 +11,10 @@
 -- associator's.
 --
 -- Everything downstream that only needs "a symmetric monoidal category of
--- machines" should go through the bundles at the bottom; in particular
--- `CategoricalCrypto.Standard2.StdUC machine-monoidal-category ℰ` instantiates
--- the abstract UC layer at concrete machines.  The names follow
--- `CategoricalCrypto.Channel.Category`.
+-- machines" should go through the bundles at the bottom.  `Machine.UC` sets
+-- `machines = Reverse-MonoidalCategory machine-monoidal-category` and opens
+-- `Standard2.StdUC machines ℰ-tests`, so the abstract UC layer sees the
+-- machine category reversed, with the grade on the right.
 -- ============================================================================
 
 module CategoricalCrypto.Machine.MonoidalCategory where
@@ -54,10 +46,6 @@ open import CategoricalCrypto.Machine.Monoidal.Braiding using (σ-natural)
 open Mor MachineCategory using (_≅_)
 open MR MachineCategory using (conjugate-to)
 
--- ----------------------------------------------------------------------------
--- The tensor, as a bifunctor.
--- ----------------------------------------------------------------------------
-
 machine-⊗-bifunctor : Bifunctor MachineCategory MachineCategory MachineCategory
 machine-⊗-bifunctor = record
   { F₀           = λ (A , B) → A ⊗₀ B
@@ -66,10 +54,6 @@ machine-⊗-bifunctor = record
   ; homomorphism = λ { {f = f , h} {g , k} → ⊗₁-interchange f g h k }
   ; F-resp-≈     = λ (φ , ψ) → ⊗₁-resp-≅ᴹ φ ψ
   }
-
--- ----------------------------------------------------------------------------
--- The structural isomorphisms.
--- ----------------------------------------------------------------------------
 
 unitorˡ-iso : ∀ {A} → (I ⊗₀ A) ≅ A
 unitorˡ-iso = record { from = λ⇒ ; to = λ⇐ ; iso = record { isoˡ = λ-isoˡ ; isoʳ = λ-isoʳ } }
@@ -80,10 +64,6 @@ unitorʳ-iso = record { from = ρ⇒ ; to = ρ⇐ ; iso = record { isoˡ = ρ-is
 associator-iso : ∀ {A B C} → ((A ⊗₀ B) ⊗₀ C) ≅ (A ⊗₀ (B ⊗₀ C))
 associator-iso = record
   { from = ⊗-assoc ; to = ⊗-assoc⃖ ; iso = record { isoˡ = α-isoˡ ; isoʳ = α-isoʳ } }
-
--- ----------------------------------------------------------------------------
--- The records.
--- ----------------------------------------------------------------------------
 
 machine-monoidal : Monoidal MachineCategory
 machine-monoidal = monoidalHelper MachineCategory record
@@ -112,10 +92,10 @@ machine-symmetric = symmetricHelper machine-monoidal record
   ; hexagon     = hexagon
   }
 
--- ----------------------------------------------------------------------------
--- The bundles.
--- ----------------------------------------------------------------------------
-
+-- Ascribing a type to `curriedTensor machines` at the concrete machine
+-- category costs 9 to 15 minutes of elaboration, so such triples are built
+-- over an abstract monoidal category and instantiated afterwards; see
+-- `Machine.UC.Kleisli`.
 machine-symmetric-monoidal-category : SymmetricMonoidalCategory _ _ _
 machine-symmetric-monoidal-category = record
   { U = MachineCategory ; monoidal = machine-monoidal ; symmetric = machine-symmetric }
