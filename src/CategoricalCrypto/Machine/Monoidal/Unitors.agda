@@ -20,7 +20,7 @@ open import CategoricalCrypto.Machine.Category using (∘-identityˡ-≅ᴹ; ∘
 open import CategoricalCrypto.Machine.Reindex
 open import CategoricalCrypto.Machine.Reindex.Slide
 open import CategoricalCrypto.Machine.Forwarder
-open import CategoricalCrypto.Machine.Reindex.FwdId
+open import CategoricalCrypto.Machine.Reindex.Post using (Xfwd-dom; Xfwd-cod)
 open import CategoricalCrypto.Machine.Reindex.Collapse
 open import CategoricalCrypto.Machine.Reindex.Unit
 

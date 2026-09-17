@@ -8,8 +8,8 @@
 -- `v` runs from the new machine's outputs to `M`'s.  That is the right
 -- direction for a channel permutation, but the wrong one for a forwarder
 -- whose forward map is not invertible — a simulator that turns a leaked
--- message into its length, say.  `Xfwd-cod` in `Reindex.FwdId` accordingly
--- needs the input map of the forwarder to be invertible.
+-- message into its length, say.  `Xfwd-cod` below accordingly needs the
+-- input map of the forwarder to be invertible.
 --
 -- `Post M u w` keeps `Reindex`'s contravariant input map `u` and makes the
 -- output map `w` covariant: a step of `Post M u w` is a step of `M` whose
@@ -22,7 +22,9 @@
 -- `Reindex-Post-slide` (it slides through a `Reindex` along a routing square),
 -- `Post-Fwd`/`Xfwd-Post` (a crossing forwarder is a `Post` of `CC.id`, with
 -- no invertibility asked of either map), and `∘-collapse-cod-post`: a `Post`
--- of the codomain slides out of a composite.
+-- of the codomain slides out of a composite.  `Post-is-Reindex` turns a
+-- `Post` back into a `Reindex` when the covariant output map is invertible,
+-- which is what `Xfwd-dom` and `Xfwd-cod` need.
 --
 -- The last section holds the two relay lemmas, proved directly on the trace
 -- normal form `Trc (Reindex (Pair M N) ∘κᵢ ∘κₒ)` of `N CC.∘ M`.  When one
@@ -122,8 +124,9 @@ Post-id M = MkIso _ _ (λ _ → refl) (λ _ → refl)
      subst (λ y → Machine.stepRel M s i y _) (trans (sym (mapᴹ-id o₀)) e) x)
   (λ {s} {i} {o} x → o , x , mapᴹ-id o)
 
--- A `Post` of a forwarder is a forwarder; unlike `Reindex-Fwd`, no side
--- condition is needed, since a `nothing` output stays `nothing` under `mapᴹ`.
+-- A `Post` of a forwarder is a forwarder; unlike the `Reindex` of one, no
+-- side condition is needed, since a `nothing` output stays `nothing` under
+-- `mapᴹ`.
 Post-Fwd : ∀ {A B C D} (χ : Channel.inType (A ⊗ᵀ B) → Channel.outType (A ⊗ᵀ B))
                        (κ : Channel.inType (C ⊗ᵀ D) → Channel.outType (C ⊗ᵀ D))
            (u : Channel.inType (C ⊗ᵀ D) → Channel.inType (A ⊗ᵀ B))
@@ -196,7 +199,7 @@ relay-core f g N = Core (Xfwd f g) N
 opaque
   unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-assoc ⊗-left-assoc
             ⊗-right-intro ⊗-ᵀ-distrib ⊗-ᵀ-factor ⊗-right-neutral ⊗-fusion ⊗-combine
-            πᵢ ∘κᵢ cdᵢ Xφ
+            πᵢ ∘κᵢ cdᵢ cdₒ dmᵢ dmₒ Xφ
 
   -- ------------------------------------------------------------------------
   -- `Post` commutes with `Pair`.  The covariant sum map is `⊎ₒ` read
@@ -677,6 +680,91 @@ opaque
     sq : ∀ i → cdₒ⁺ {A} {A} {B} f (relay {A} (cdᵢ {A} {A} {B} g i)) ≡ Xφ f g i
     sq (inj₁ _) = refl
     sq (inj₂ _) = refl
+
+  -- The mirror image: the domain of `CC.id {B}` is relabelled instead, so `g`
+  -- is the covariant map on the output side and `f` the contravariant one on
+  -- the input side.
+  Xfwd-Post-dom : ∀ {A B} (f : Channel.inType A → Channel.inType B)
+                          (g : Channel.outType B → Channel.outType A)
+                → Xfwd f g ≅ᴹ Post (CC.id {B}) (dmᵢ {B} {A} {B} f) (dmₒ⁺ {B} {A} {B} g)
+  Xfwd-Post-dom {A} {B} f g =
+    ≅ᴹ-trans (≅ᴹ-sym (Post-Fwd (relay {B}) (Xφ f g)
+                               (dmᵢ {B} {A} {B} f) (dmₒ⁺ {B} {A} {B} g) sq))
+             (Post-resp-≅ᴹ (dmᵢ {B} {A} {B} f) (dmₒ⁺ {B} {A} {B} g) (≅ᴹ-sym id-is-Xfwd))
+    where
+    sq : ∀ i → dmₒ⁺ {B} {A} {B} g (relay {B} (dmᵢ {B} {A} {B} f i)) ≡ Xφ f g i
+    sq (inj₁ _) = refl
+    sq (inj₂ _) = refl
+
+  -- ------------------------------------------------------------------------
+  -- A forwarder is a relabelled identity.
+  --
+  -- `Post` and `Reindex` differ only in the direction of the output map, so a
+  -- `Post` whose covariant map has a two-sided inverse is the `Reindex` along
+  -- that inverse.  Feeding the two readings of a crossing forwarder as a
+  -- `Post` of `CC.id` through this bridge gives the two ways to read it as a
+  -- reindexed identity: either fix the codomain and relabel the domain, or fix
+  -- the domain and relabel the codomain.  Each orientation keeps one of `f`,
+  -- `g` verbatim, and so needs the other to be invertible — a crossing
+  -- forwarder with a non-invertible backward map is genuinely not `CC.id` in
+  -- disguise.
+  -- ------------------------------------------------------------------------
+
+  Post-is-Reindex : ∀ {A B C D} (M : Machine A B)
+                    (u : Channel.inType (C ⊗ᵀ D) → Channel.inType (A ⊗ᵀ B))
+                    (w : Channel.outType (A ⊗ᵀ B) → Channel.outType (C ⊗ᵀ D))
+                    (v : Channel.outType (C ⊗ᵀ D) → Channel.outType (A ⊗ᵀ B))
+                  → (∀ o → v (w o) ≡ o) → (∀ o → w (v o) ≡ o)
+                  → Post M u w ≅ᴹ Reindex M u v
+  Post-is-Reindex M u w v vw wv = MkIso _ _ (λ _ → refl) (λ _ → refl)
+    (λ {s} {i} {o} (o₀ , x , e) →
+       subst (λ y → Machine.stepRel M s (u i) y _) (sym (pull o o₀ e)) x)
+    (λ {s} {i} {o} x → mapᴹ v o , x , push o)
+    where
+    pull : ∀ o o₀ → mapᴹ w o₀ ≡ o → mapᴹ v o ≡ o₀
+    pull o o₀ e = trans (cong (mapᴹ v) (sym e))
+                        (trans (mapᴹ-∘ v w o₀)
+                               (trans (mapᴹ-cong vw o₀) (mapᴹ-id o₀)))
+    push : ∀ o → mapᴹ w (mapᴹ v o) ≡ o
+    push o = trans (mapᴹ-∘ w v o) (trans (mapᴹ-cong wv o) (mapᴹ-id o))
+
+  -- Fixing the codomain `B` and relabelling the domain `A` keeps `f` verbatim,
+  -- so it is `g` that must be invertible.
+  Xfwd-dom : ∀ {A B} (f : Channel.inType A → Channel.inType B)
+                     (g : Channel.outType B → Channel.outType A)
+                     (g⁻ : Channel.outType A → Channel.outType B)
+           → (∀ β → g⁻ (g β) ≡ β) → (∀ α → g (g⁻ α) ≡ α)
+           → Xfwd f g ≅ᴹ Reindex (CC.id {B}) (dmᵢ f) (dmₒ g⁻)
+  Xfwd-dom {A} {B} f g g⁻ gl gr =
+    ≅ᴹ-trans (Xfwd-Post-dom f g)
+             (Post-is-Reindex (CC.id {B}) (dmᵢ {B} {A} {B} f)
+                              (dmₒ⁺ {B} {A} {B} g) (dmₒ {B} {A} {B} g⁻) vw wv)
+    where
+    vw : ∀ o → dmₒ {B} {A} {B} g⁻ (dmₒ⁺ {B} {A} {B} g o) ≡ o
+    vw (inj₁ β) = cong inj₁ (gl β)
+    vw (inj₂ _) = refl
+    wv : ∀ o → dmₒ⁺ {B} {A} {B} g (dmₒ {B} {A} {B} g⁻ o) ≡ o
+    wv (inj₁ α) = cong inj₁ (gr α)
+    wv (inj₂ _) = refl
+
+  -- The mirror image: fixing the domain `A` keeps `g` verbatim and asks `f` to
+  -- be invertible instead.
+  Xfwd-cod : ∀ {A B} (f : Channel.inType A → Channel.inType B)
+                     (g : Channel.outType B → Channel.outType A)
+                     (f⁻ : Channel.inType B → Channel.inType A)
+           → (∀ a → f⁻ (f a) ≡ a) → (∀ b → f (f⁻ b) ≡ b)
+           → Xfwd f g ≅ᴹ Reindex (CC.id {A}) (cdᵢ g) (cdₒ f⁻)
+  Xfwd-cod {A} {B} f g f⁻ fl fr =
+    ≅ᴹ-trans (Xfwd-Post f g)
+             (Post-is-Reindex (CC.id {A}) (cdᵢ {A} {A} {B} g)
+                              (cdₒ⁺ {A} {A} {B} f) (cdₒ {A} {A} {B} f⁻) vw wv)
+    where
+    vw : ∀ o → cdₒ {A} {A} {B} f⁻ (cdₒ⁺ {A} {A} {B} f o) ≡ o
+    vw (inj₁ _) = refl
+    vw (inj₂ a) = cong inj₂ (fl a)
+    wv : ∀ o → cdₒ⁺ {A} {A} {B} f (cdₒ {A} {A} {B} f⁻ o) ≡ o
+    wv (inj₁ _) = refl
+    wv (inj₂ b) = cong inj₂ (fr b)
 
 
   -- ------------------------------------------------------------------------

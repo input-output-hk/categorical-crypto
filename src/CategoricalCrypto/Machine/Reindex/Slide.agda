@@ -11,10 +11,11 @@
 --     `Trc`.  A trace chain only ever touches the traced ports, so relabelling
 --     the external ones cannot change which chains exist.
 --
--- From it: a forwarder is a reindexed identity (`Reindex-Fwd`), a relabelling
--- slides out of either argument of `_∘_` (`∘-collapse-dom`/`∘-collapse-cod`),
--- and hence composing with a forwarder is just a relabelling.  That is what
--- discharges the naturality laws and the two Kleisli laws.
+-- From it: a forwarder is a reindexed identity (`Xfwd-dom`/`Xfwd-cod`, both
+-- in `Reindex.Post`), a relabelling slides out of either argument of `_∘_`
+-- (`∘-collapse-dom`/`∘-collapse-cod`), and hence composing with a forwarder
+-- is just a relabelling.  That is what discharges the naturality laws and
+-- the two Kleisli laws.
 -- ============================================================================
 
 open import CategoricalCrypto.Machine.Reindex
