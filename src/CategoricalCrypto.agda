@@ -1,7 +1,7 @@
 {-# OPTIONS --safe #-}
--- The concrete machine layer: channels, machines and their (symmetric
--- monoidal) category under bisimulation, the abstract UC layer instantiated
--- at it, and the examples.  See the README for the overall structure.
+-- The concrete machine layer and the examples.  See the README for the
+-- overall structure.  `Machine.UC`, `Machine.UC.Kleisli` and
+-- `Examples.Channels` are typechecked here but deliberately not re-exported.
 
 module CategoricalCrypto where
 

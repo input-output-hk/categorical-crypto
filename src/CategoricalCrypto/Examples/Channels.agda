@@ -1,24 +1,20 @@
 {-# OPTIONS --safe #-}
 
 -- ============================================================================
--- The length-leaking secure channel realizes the message-leaking channel.
---
--- Both channels are instances of `TemplateChannel` from `Examples.Basic`:
--- Alice's message is queued and delivered to Bob unchanged, and on request
--- Eve learns `f m` for the next queued message `m`.  The leaky channel has
--- `f = id`; the secure channel has `f = msgLength`.  The simulator is the
--- forwarder `Sim` on Eve's port that passes requests through and turns a
--- leaked message into its length, and the claim is a bisimulation:
+-- The length-leaking secure channel realizes the message-leaking channel:
 --
 --     SecureChannel  ≅ᴹ  ((A ⊗₀ B) ⊗ˡ Sim) ∘ LeakyChannel
 --
--- The right-hand side traces out the shared channel, so its steps are
--- two-hop chains.  `Reindex.Post` turns post-composition with a forwarder
--- into a relabelling `Post` of the inner machine (`Xfwd-∘-Post`), after which
--- the two functionalities are compared constructor by constructor with the
--- identity on their common state `List M`.  `msgLength` is not injective, so
--- `Reindex`, which relabels contravariantly, would not do; that is what `Post`
--- is for.
+-- The ideal specification is the permissive one, so what this says is that
+-- leakage may always be added and the simulator discards what it is given.
+-- The converse non-realization is not proved.
+--
+-- The right-hand side traces out the shared channel, so its steps are two-hop
+-- chains.  `Reindex.Post` turns post-composition with a forwarder into a
+-- relabelling `Post` of the inner machine (`Xfwd-∘-Post`), after which the two
+-- functionalities are compared constructor by constructor with the identity on
+-- their common state `List M`.  `msgLength` is not injective, so `Reindex`,
+-- which relabels contravariantly, would not do; that is what `Post` is for.
 -- ============================================================================
 
 open import CategoricalCrypto.Machine.Reindex
@@ -49,9 +45,7 @@ Cᴸ Cˢ : Channel
 Cᴸ = AB ⊗₀ L.E
 Cˢ = AB ⊗₀ S.E
 
-------------------------------------------------------------------------
 -- The simulator: a forwarder on Eve's port.
-------------------------------------------------------------------------
 
 -- A leaked message becomes its length; a request passes through.
 Simᵢ : L.E [ In ]⇒[ In ] S.E
@@ -63,9 +57,7 @@ Simₒ = mk⇒ (λ x → x)
 Sim : Machine L.E S.E
 Sim = TotalFunctionMachine' Simᵢ Simₒ
 
-------------------------------------------------------------------------
 -- The right-hand side as a relabelling of the leaky functionality.
-------------------------------------------------------------------------
 
 opaque
   unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-assoc ⊗-left-assoc
@@ -92,9 +84,7 @@ opaque
   rhs-Post : ((AB ⊗ˡ Sim) CC.∘ L.Functionality) ≅ᴹ Post L.Functionality uˢ wˢ
   rhs-Post = ≅ᴹ-trans (∘-resp-≅ᴹ Sim-Xfwd ≅ᴹ-refl) (Xfwd-∘-Post L.Functionality simᶠ simᵍ)
 
-  ------------------------------------------------------------------------
-  -- The bisimulation proper: `Send` matches `Send`, `Req` matches `Req`.
-  ------------------------------------------------------------------------
+  -- The state isomorphism proper: `Send` matches `Send`, `Req` matches `Req`.
 
   -- Forward: a secure step is a leaky step with its leak relabelled.  The
   -- `Selection` indices reduce to `inj` nests here, so the leaky constructor
@@ -124,19 +114,13 @@ opaque
     secure→leaky
     (λ {_} {i} {o} (o₀ , x , e) → leaky→secure x i o refl e)
 
-  ------------------------------------------------------------------------
-  -- The theorem.
-  ------------------------------------------------------------------------
-
   secure≅sim∘leaky : S.Functionality ≅ᴹ ((AB ⊗ˡ Sim) CC.∘ L.Functionality)
   secure≅sim∘leaky = ≅ᴹ-trans secure≅Post (≅ᴹ-sym rhs-Post)
 
-------------------------------------------------------------------------
--- The UC statement.  With the abstract layer instantiated at machines
--- (`Machine.UC`), the bisimulation is a security artifact at the category's
--- own equality, and the dummy-adversary theorem turns it into `≤UC`: the
--- secure channel realizes the leaky one, with `Sim` as the simulator.
-------------------------------------------------------------------------
+-- The UC statement.  `Machine.UC` instantiates the abstract layer at
+-- machines, so a state isomorphism is an equality of the category; `≈C⇒≈ᵁ`
+-- feeds it to the dummy-adversary theorem, giving that the secure channel
+-- realizes the leaky one with `Sim` as the simulator.
 
 import CategoricalCrypto.Machine.UC as UC
 

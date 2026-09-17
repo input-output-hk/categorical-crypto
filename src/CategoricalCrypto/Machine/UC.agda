@@ -1,21 +1,22 @@
 {-# OPTIONS --safe #-}
 
 -- ============================================================================
--- The locally graded UC layer (`CategoricalCrypto.Abstract2`) run at the
--- concrete machines: 𝒞 = ℐ = the symmetric monoidal category of machines
--- under bisimulation, ℳ = the curried tensor, and ℰ = joint ancilla tests.
+-- `Standard2.StdUC` run at the concrete machines: 𝒞 = ℐ = the symmetric
+-- monoidal category of machines under `_≅ᴹ_`, ℳ = the curried tensor,
+-- ℰ = joint ancilla tests.
 --
--- A test on a channel `A` is a pair `(Y , E)` of an ancilla channel `Y` and an
--- environment `E : Machine (A ⊗₀ Y) ℰ-Out`; a morphism `f : Machine B A` acts
--- by `E ↦ E ∘ (f ⊗₁ id {Y})`, and two tests are equal when they share the
--- ancilla and their environments are bisimilar.  The representable presheaf
--- `Hom[-, ℰ-Out ]` (no ancilla) is too small for `GradeStable`: a test on
--- `B ⊗₀ Y` with `Y` dangling is not a test on `B`.  With the ancilla the
--- quantifier absorbs the bypass wire, so `grade-stable` below is
--- hypothesis-free and, through `bridge`, the bare kernel `_≈ℰ_` coincides with
--- the compositional `_≈ᵁ_` (`≈ᵁ⇔≈ℰ`).  Taking the trivial ancilla `I` shows
--- that `_≈ℰ_` refines the environment equivalence `_≅ℰ_` of `Machine.Iso`
--- (`≈ℰ⇒≅ℰ`); the converse is not claimed.
+-- `_≈ℰ_` identifies `f` and `g` when every ancilla test yields *isomorphic*
+-- composites.  That is strictly finer than indistinguishability, because
+-- `_≅ᴹ_` entails a bijection of state spaces; so `_≤UC_` here is a stronger
+-- claim than standard UC emulation, and a failure of it is not a
+-- distinguishing attack.
+--
+-- The representable presheaf `Hom[-, ℰ-Out ]`, with no ancilla, does not
+-- appear to support `GradeStable`: a test on `B ⊗₀ Y` with `Y` dangling is
+-- not a test on `B`.  With the ancilla the quantifier absorbs the bypass
+-- wire, `grade-stable` is hypothesis-free, and through `bridge` `_≈ℰ_`
+-- coincides with `_≈ᵁ_`.  Taking the trivial ancilla `I` shows `_≈ℰ_`
+-- refines `_≅ℰ_`; the converse is not claimed.
 -- ============================================================================
 
 module CategoricalCrypto.Machine.UC where
@@ -53,10 +54,8 @@ open MR MachineCategory
 private
   module M = Monoidal machine-monoidal
 
--- ----------------------------------------------------------------------------
 -- The environments: joint ancilla tests, compared up to `_≅ᴹ_`.  The ancilla
--- sits on the RIGHT, matching the reversed grade `T₁ Y h = h ⊗₁ id` below.
--- ----------------------------------------------------------------------------
+-- sits on the RIGHT, matching the reversed grade `T₁ Y h ≅ h ⊗₁ id` below.
 
 Test : Channel → Type₁
 Test A = Σ[ Y ∈ Channel ] Machine (A ⊗₀ Y) ℰ-Out
@@ -65,7 +64,9 @@ data SameTest {A : Channel} : Test A → Test A → Type₁ where
   same : ∀ {Y} {E₁ E₂ : Machine (A ⊗₀ Y) ℰ-Out}
        → E₁ ≅ᴹ E₂ → SameTest (Y , E₁) (Y , E₂)
 
--- The machine layer is `--safe` with K, so `same` inverts.
+-- The machine layer is `--safe` WITH K, so `same` inverts: matching it
+-- deletes the reflexive equation on the shared ancilla `Y`, which
+-- `--without-K` rejects.
 same⁻¹ : ∀ {A Y} {E₁ E₂ : Machine (A ⊗₀ Y) ℰ-Out}
        → SameTest (Y , E₁) (Y , E₂) → E₁ ≅ᴹ E₂
 same⁻¹ (same e) = e
@@ -105,7 +106,7 @@ test-map-cong f (same e) = same (e ⟩∘⟨refl)
   }
 
 -- The tensor is REVERSED so that the grade sits on the right, as in
--- `Machine.Core`: `T₀ X B = B ⊗₀ X`, `sub c = id ⊗₁ c`, `T₁ Y h = h ⊗₁ id`.
+-- `Machine.Core`: `T₀ X B = B ⊗₀ X`, `sub c = id ⊗₁ c`, `T₁ Y h ≅ h ⊗₁ id`.
 machines : MonoidalCategory _ _ _
 machines = Reverse-MonoidalCategory machine-monoidal-category
 
@@ -113,10 +114,8 @@ machines = Reverse-MonoidalCategory machine-monoidal-category
 -- is hidden so that `B ⊗₀ X` reads as it does in `Machine.Core`.
 open StdUC machines ℰ-tests public hiding (_⊗₀_; _⊗₁_)
 
--- ----------------------------------------------------------------------------
--- The kernel congruence, unfolded: `f ≈ℰ g` says exactly that every test
--- with every ancilla agrees on `f` and `g`.
--- ----------------------------------------------------------------------------
+-- The kernel congruence, unfolded: `f ≈ℰ g` says exactly that every test with
+-- every ancilla agrees on `f` and `g`.
 
 ≈ℰ⇒tests : ∀ {A B} {f g : Machine A B} → f ≈ℰ g
          → ∀ Y (E : Machine (B ⊗₀ Y) ℰ-Out)
@@ -141,12 +140,8 @@ tests⇒≈ℰ e = KE.mk∼ λ {t} → same (e (proj₁ t) (proj₂ t))
   slide : ∀ k → (E ∘ k) ∘ CC.ρ⇒ ≅ᴹ (E ∘ CC.ρ⇒) ∘ (k ⊗₁ id {I})
   slide k = pullʳ (⟺ (ρ⇒-natural k)) ○ sym-assoc
 
--- ----------------------------------------------------------------------------
--- Grade stability.  The functorial action `T₁ Z h` of the curried tensor is
--- `h ⊗₁ id` up to bisimulation (not definitionally: `T₁` is built from `ext`,
--- `sub` and `return`), and a test `(Y , E)` on `B ⊗₀ Z` regroups into the
--- test `(Z ⊗₀ Y , E ∘ α⇐)` on `B`.
--- ----------------------------------------------------------------------------
+-- Grade stability.  A test `(Y , E)` on `B ⊗₀ Z` regroups into the test
+-- `(Z ⊗₀ Y , E ∘ ⊗-assoc⃖)` on `B`.
 
 open CurriedTensorProperties machines using (T₁-⊗)
 
@@ -177,15 +172,12 @@ grade-stable Z {h} {h′} e = tests⇒≈ℰ λ Y E → begin
     E ∘ ((h′ ⊗₁ id) ⊗₁ id)                      ≈⟨ refl⟩∘⟨ ⊗₁-resp-≅ᴹ (≅ᴹ-sym (T₁-⊗ʳ Z h′)) ≅ᴹ-refl ⟩
     E ∘ (T₁ Z h′ ⊗₁ id)                         ∎
 
--- The bare kernel and the compositional U-kernel coincide.
 ≈ᵁ⇔≈ℰ : ∀ {A B X} {f g : Machine A (B ⊗₀ X)} → f ≈ᵁ g ⇔ f ≈ℰ g
 ≈ᵁ⇔≈ℰ {f = f} {g} = mk⇔ {B = f ≈ℰ g} ≈ᵁ⇒≈ℰ (bridge grade-stable)
 
--- ----------------------------------------------------------------------------
 -- Sanity checks: the abstract notions land on plain machine types.  A protocol
--- with adversary interface `X` is a `Machine A (B ⊗₀ X)`, an adversary is a
--- machine `X ⇒ X′`, and the four metatheorems apply verbatim.
--- ----------------------------------------------------------------------------
+-- with adversary interface `X` is a `Machine A (B ⊗₀ X)`, and an adversary is a
+-- machine `X ⇒ X′`.
 
 private
   _ : ∀ {A B X} (f : Machine A (B ⊗₀ X)) → f ≤UC f

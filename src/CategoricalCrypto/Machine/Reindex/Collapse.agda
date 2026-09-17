@@ -2,18 +2,10 @@
 
 -- ============================================================================
 -- A relabelling of the OUTER side of one argument of `_∘_` slides out of the
--- composition.
---
--- `CategoricalCrypto.Machine.Reindex.Slide` reduced `_∘_` to `Reindex`/`Pair`/`Trc` and showed
--- that a relabelling fixing the traced channel commutes with `Trc`.  Both
--- lemmas here are that fact applied twice over: `∘-Reindex` turns each side
--- into the same `Trc` of the same `Pair`, the relabelling is pushed through
--- `Pair` by `Pair-Reindex` and through `Trc` by `Trc-slide`, and what is left
--- is two pointwise equations between composites of channel permutations.
---
--- These are what let a forwarder be absorbed into its neighbour, which is how
--- the naturality and Kleisli laws of `CategoricalCrypto.Machine.NAry` are
--- discharged.
+-- composition.  `wcᵢ`/`wcₒ` and `wdᵢ`/`wdₒ` fix the traced channel `B`, so
+-- `Trc-slide` applies and the residue is pointwise equations on permutations.
+-- Used by the naturality proofs in `Machine.Monoidal.{Associator,Braiding,
+-- Unitors}`, where a forwarder is absorbed into its neighbour.
 -- ============================================================================
 
 open import CategoricalCrypto.Machine.Reindex
@@ -36,13 +28,8 @@ opaque
             ⊗-right-intro ⊗-ᵀ-distrib ⊗-ᵀ-factor ⊗-right-neutral ⊗-fusion ⊗-combine
             πᵢ ∘κᵢ cdᵢ
 
-  -- ------------------------------------------------------------------------
-  -- The codomain case.
-  -- ------------------------------------------------------------------------
-
-  -- Inside the `Pair`, relabelling `N`'s codomain is a sum map; at the traced
-  -- machine's channel it is `wcᵢ`/`wcₒ`.  These two lemmas say the routing is
-  -- the same either way, which is the only thing `∘κ` contributes.
+  -- The routing agrees whether the relabelling is applied inside the `Pair` or
+  -- at the traced machine's channel; that is all `∘κ` contributes.
   cod-routeᵢ : ∀ {A B C C'} (uC : Channel.outType C' → Channel.outType C)
                (i : Channel.inType ((A ⊗₀ B) ⊗ᵀ (C' ⊗₀ B)))
              → ⊎ᵢ {A} {B} {B} {C} {A} {B} {B} {C'} (λ x → x) (cdᵢ {B} {C} {C'} uC)
@@ -176,12 +163,9 @@ opaque
               (Reindex-resp-≅ᴹ (cdᵢ {A} {C} {C'} uC) (cdₒ {A} {C} {C'} vC)
                                (≅ᴹ-sym (∘-Reindex M N))))))
 
-  -- ------------------------------------------------------------------------
-  -- The domain case.  Mirror image of the above: the relabelling is on `M`'s
-  -- domain rather than `N`'s codomain, so `wdᵢ`/`wdₒ` and `dmᵢ`/`dmₒ` take
-  -- over from `wcᵢ`/`wcₒ` and `cdᵢ`/`cdₒ`.  The traced channel is `B` either
-  -- way, which is why the same `Trc-slide` closes both.
-  -- ------------------------------------------------------------------------
+  -- The domain case: `wdᵢ`/`wdₒ` and `dmᵢ`/`dmₒ` take over from `wcᵢ`/`wcₒ`
+  -- and `cdᵢ`/`cdₒ`.  The traced channel is `B` either way, which is why the
+  -- same `Trc-slide` closes both.
 
   dom-routeᵢ : ∀ {A A' B C} (uA : Channel.inType A' → Channel.inType A)
                (i : Channel.inType ((A' ⊗₀ B) ⊗ᵀ (C ⊗₀ B)))

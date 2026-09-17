@@ -1,9 +1,9 @@
 {-# OPTIONS --safe #-}
 
 -- ============================================================================
--- The category of machines, with hom equality the bisimulation `_≅ᴹ_`.
+-- The category of machines, with hom equality the state isomorphism `_≅ᴹ_`.
 --
--- Associativity is the `TriTrace` bisimulation of `Machine.Iso`.  The two
+-- Associativity is the `TriTrace` isomorphism of `Machine.Iso`.  The two
 -- identity laws are instances of the relay lemmas of `Reindex.Post`:
 -- composing with a crossing forwarder relabels the other machine's ports,
 -- and the identity relabels nothing.

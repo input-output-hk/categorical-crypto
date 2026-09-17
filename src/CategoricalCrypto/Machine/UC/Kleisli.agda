@@ -16,11 +16,7 @@
 -- first (`E₁ ⊗₀ E₂`), `∙` lists the outer one first (`E₂ ⊗₀ E₁`).  The bridge
 -- `∘ᴷ-∙` says exactly that `_∘ᴷ_` is `_∙_` followed by the grade swap, and
 -- `⊗ᴷ-∙` says that `_⊗ᴷ_` is a Kleisli composite of the two one-sided
--- liftings.  Everything proved about the abstract layer therefore transfers
--- to the concrete Kleisli builders; as a demonstration, the two laws
--- `∘ᴷ-assoc` and `unit-∘ᴷ` of `Machine.Monoidal.Kleisli` and `Machine.NAry`
--- are re-derived here from the graded-triple laws alone, with the residual
--- coherence discharged by the hexagons and the naturality of the symmetry.
+-- liftings.
 --
 -- Nothing here depends on `Machine.UC`; the triple is rebuilt verbatim so that
 -- the statements are definitionally about `StdUC`'s `ℳ-standard`.
@@ -62,9 +58,7 @@ open MR MachineCategory
 open Monoidal machine-monoidal using (assoc-commute-from)
 open Symmetric machine-symmetric using (hexagon₂)
 
--- ----------------------------------------------------------------------------
 -- The triple, exactly as `Standard2.StdUC` builds it.
--- ----------------------------------------------------------------------------
 
 machines : MonoidalCategory _ _ _
 machines = Reverse-MonoidalCategory machine-monoidal-category
@@ -93,10 +87,6 @@ infixr 9 _∙_
 _∙_ : ∀ {A B C X P} → Machine B (C ⊗₀ P) → Machine A (B ⊗₀ X) → Machine A (C ⊗₀ (P ⊗₀ X))
 _∙_ {X = X} h f = ext X h CC.∘ f
 
--- ----------------------------------------------------------------------------
--- 1.  The triple, unfolded.
--- ----------------------------------------------------------------------------
-
 T₀-⊗ : ∀ X B → T₀ X B ≡ (B ⊗₀ X)
 T₀-⊗ _ _ = refl
 
@@ -117,9 +107,7 @@ T₁-⊗ʳ = CurriedTensorProperties.T₁-⊗ machines
 μ-assoc : ∀ u v {A} → μ u v {A} ≅ᴹ ⊗-assoc {A} {v} {u}
 μ-assoc u v = elimʳ ⊗₁-id
 
--- ----------------------------------------------------------------------------
--- 2.  The bridge: `_∘ᴷ_` is `_∙_` followed by the grade swap.
--- ----------------------------------------------------------------------------
+-- The bridge: `_∘ᴷ_` is `_∙_` followed by the grade swap.
 
 ∘ᴷ-∙ : ∀ {A B C E₁ E₂} (h : Machine B (C ⊗₀ E₂)) (f : Machine A (B ⊗₀ E₁))
      → (h ∘ᴷ f) ≅ᴹ (sub (⊗-symₘ {E₂} {E₁}) CC.∘ (h ∙ f))
@@ -133,11 +121,8 @@ T₁-⊗ʳ = CurriedTensorProperties.T₁-⊗ machines
     (CC.id ⊗₁ ⊗-symₘ) CC.∘ ((⊗-assoc CC.∘ (h ⊗₁ CC.id)) CC.∘ f)
   ∎
 
--- ----------------------------------------------------------------------------
--- 4a.  `unit-∘ᴷ`, from the left unit law of the triple.
--- ----------------------------------------------------------------------------
+-- `unit-∘ᴷ′`, from the left unit law of the triple.
 
--- `idᴷ` is the unit of the triple.
 idᴷ-return : ∀ {A} → idᴷ {A} ≅ᴹ return {A}
 idᴷ-return = begin
     idᴷ                        ≈⟨ introˡ ρ-isoˡ ⟩
@@ -145,7 +130,6 @@ idᴷ-return = begin
     ρ⇐ CC.∘ CC.id              ≈⟨ identityʳ ⟩
     ρ⇐                         ∎
 
--- The braiding is compatible with the unitors (`Braided.Properties`).
 ρ⇒-σ : ∀ {X} → (ρ⇒ {X} CC.∘ ⊗-symₘ {I} {X}) ≅ᴹ λ⇒ {X}
 ρ⇒-σ = BraidedProperties.inv-braiding-coherence (Symmetric.braided machine-symmetric)
 
@@ -169,20 +153,11 @@ unit-∘ᴷ′ {A} {C} {E₁} h = begin
   merge-unitor : ((CC.id {C} ⊗₁ ρ⇒ {E₁}) CC.∘ (CC.id {C} ⊗₁ ⊗-symₘ {I} {E₁})) ≅ᴹ (CC.id {C} ⊗₁ λ⇒ {E₁})
   merge-unitor = ≅ᴹ-trans (≅ᴹ-sym (⊗₁-interchange CC.id CC.id ⊗-symₘ ρ⇒)) (⊗₁-resp-≅ᴹ identity² ρ⇒-σ)
 
--- ----------------------------------------------------------------------------
--- 4b.  `∘ᴷ-assoc`, from the associativity of the triple.
---
--- Both sides are brought to the form `sub c ∘ (F ⊙ (G ⊙ h))`: the right-hand
--- side by the bridge (twice), `sub-commute₂` and `⊙-assoc`; the left-hand side
--- by the bridge, the naturality of `sub` and one coherence law,
--- `regroup-coh`, which says what `absorb-regroup` does to the grades.  That
--- law is a three-atom symmetric coherence (`swap-coh`) surrounded by
--- bookkeeping; the coherence solver does not split crossing blocks, so
--- `swap-coh` is done by hand with the two hexagons and the naturality of the
--- symmetry.
--- ----------------------------------------------------------------------------
+-- `∘ᴷ-assoc′`, from the associativity of the triple.  The residual coherence
+-- is `regroup-coh`, which says what `absorb-regroup` does to the grades; its
+-- core `swap-coh` is done BY HAND with the two hexagons and the naturality of
+-- the symmetry, because the coherence solver does not split crossing blocks.
 
--- Tensoring with an identity on the left is functorial.
 ⊗ˡ-∘ : ∀ {D X Y Z} (p : Machine Y Z) (q : Machine X Y)
      → ((CC.id {D} ⊗₁ p) CC.∘ (CC.id {D} ⊗₁ q)) ≅ᴹ (CC.id {D} ⊗₁ (p CC.∘ q))
 ⊗ˡ-∘ p q = ≅ᴹ-trans (≅ᴹ-sym (⊗₁-interchange CC.id CC.id q p)) (⊗₁-resp-≅ᴹ identity² ≅ᴹ-refl)
@@ -276,7 +251,6 @@ regroup-coh {D} {E} {E₁} {E₂} = begin
   σ₃ = ⊗-symₘ
   σ₅ : Machine ((E₁ ⊗₀ E₂) ⊗₀ E) (E ⊗₀ (E₁ ⊗₀ E₂))
   σ₅ = ⊗-symₘ
-  -- The associator is natural in its last argument.
   α-nat : (⊗-assoc {D} {E₂} {E ⊗₀ E₁} CC.∘ (CC.id {D ⊗₀ E₂} ⊗₁ σ₂))
           ≅ᴹ ((CC.id {D} ⊗₁ (CC.id {E₂} ⊗₁ σ₂)) CC.∘ ⊗-assoc {D} {E₂} {E₁ ⊗₀ E})
   α-nat = ≅ᴹ-trans (refl⟩∘⟨ ⊗₁-resp-≅ᴹ (≅ᴹ-sym ⊗₁-id) ≅ᴹ-refl)
@@ -287,7 +261,6 @@ regroup-coh {D} {E} {E₁} {E₂} = begin
   → ((absorb-regroup CC.∘ (F ⊗₁ CC.id)) CC.∘ (G ∘ᴷ h)) ≅ᴹ ((F ∘ᴷ G) ∘ᴷ h)
 ∘ᴷ-assoc′ {A} {B} {C} {D} {E} {E₁} {E₂} F G h = ≅ᴹ-trans lhs (≅ᴹ-sym rhs)
   where
-  -- The grade morphisms involved.
   σ₁ : Machine ((E₁ ⊗₀ E₂) ⊗₀ E) (E ⊗₀ (E₁ ⊗₀ E₂))
   σ₁ = ⊗-symₘ
   σ₂ : Machine (E₂ ⊗₀ E₁) (E₁ ⊗₀ E₂)
@@ -321,7 +294,6 @@ regroup-coh {D} {E} {E₁} {E₂} = begin
       sub σ₁ CC.∘ (sub (σ₂ ⊗₁ CC.id) CC.∘ (sub α⃖ CC.∘ core))
     ∎
 
-  -- `F ⊗₁ id` is `T₁ _ F`, and `sub` is natural.
   slide : ((F ⊗₁ CC.id {E ⊗₀ E₁}) CC.∘ sub σ₃ {C}) ≅ᴹ (sub σ₃ {D ⊗₀ E₂} CC.∘ (F ⊗₁ CC.id {E₁ ⊗₀ E}))
   slide = begin
       (F ⊗₁ CC.id) CC.∘ sub σ₃          ≈⟨ ≅ᴹ-sym (T₁-⊗ʳ (E ⊗₀ E₁) F) ⟩∘⟨refl ⟩
@@ -360,17 +332,10 @@ regroup-coh {D} {E} {E₁} {E₂} = begin
       sub σ₁ CC.∘ (sub (σ₂ ⊗₁ CC.id) CC.∘ (sub α⃖ CC.∘ core))
     ∎
 
--- ----------------------------------------------------------------------------
--- 3.  `_⊗ᴷ_` is a Kleisli composite of the two one-sided liftings.
---
--- Run `M₂` on the right factor, with its grade pulled out by the associator
--- (a morphism into `T₀ E₂ (A₁ ⊗₀ B₂)`), then run `M₁` on the left factor and
--- pull its grade past `B₂` with the strength `st` (a morphism into
--- `T₀ E₁ (B₁ ⊗₀ B₂)`); the Kleisli composite lands in `T₀ (E₂ ⊗ᵐ E₁) _`, which
--- is `(B₁ ⊗₀ B₂) ⊗₀ (E₁ ⊗₀ E₂)`, so no grade swap is needed here.  After
--- `mid4-decomp` both sides share their single crossing, and the solver does
--- the rest.
--- ----------------------------------------------------------------------------
+-- `_⊗ᴷ_` is a Kleisli composite of the two one-sided liftings.  The composite
+-- lands in `T₀ (E₂ ⊗ᵐ E₁) _`, which IS `(B₁ ⊗₀ B₂) ⊗₀ (E₁ ⊗₀ E₂)`, so no grade
+-- swap is needed here.  After `mid4-decomp` both sides share their single
+-- crossing and the solver does the rest.
 
 -- The strength `T₀ E₁ B₁ ⊗₀ B₂ → T₀ E₁ (B₁ ⊗₀ B₂)`.
 st : ∀ {B₁ E₁ B₂} → Machine ((B₁ ⊗₀ E₁) ⊗₀ B₂) ((B₁ ⊗₀ B₂) ⊗₀ E₁)
