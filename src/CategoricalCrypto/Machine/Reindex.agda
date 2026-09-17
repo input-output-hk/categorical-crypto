@@ -115,6 +115,12 @@ Reindex-fuse M u v u' v' = MkIso _ _ (λ _ → refl) (λ _ → refl)
   (λ {s} {i} {o} p → subst (λ y → Machine.stepRel M s _ y _) (mapᴹ-∘ v v' o) p)
   (λ {s} {i} {o} p → subst (λ y → Machine.stepRel M s _ y _) (sym (mapᴹ-∘ v v' o)) p)
 
+Reindex-id : ∀ {A B} (M : Machine A B)
+           → Reindex M (λ i → i) (λ o → o) ≅ᴹ M
+Reindex-id M = MkIso (λ s → s) (λ s → s) (λ _ → refl) (λ _ → refl)
+  (λ {_} {_} {o} x → subst (λ y → Machine.stepRel M _ _ y _) (mapᴹ-id o) x)
+  (λ {_} {_} {o} x → subst (λ y → Machine.stepRel M _ _ y _) (sym (mapᴹ-id o)) x)
+
 Pair-resp-≅ᴹ : ∀ {A B C D} {M₁ N₁ : Machine A B} {M₂ N₂ : Machine C D}
              → M₁ ≅ᴹ N₁ → M₂ ≅ᴹ N₂ → Pair M₁ M₂ ≅ᴹ Pair N₁ N₂
 Pair-resp-≅ᴹ φ ψ = MkIso
@@ -227,6 +233,31 @@ opaque
     ... | inj₁ (_ , _ , xeq , _) = inj₁≢inj₂ (sym xeq)
     ... | inj₂ (_ , nothing , _ , yeq , _ , _) = just≢nothing yeq
     ... | inj₂ (_ , just _ , _ , yeq , _ , _) = inj₁≢inj₂ (just-inj yeq)
+
+  -- `Pair` absorbs a `Reindex` in either argument.  `Pair-Reindex` wants both
+  -- arguments reindexed, and a machine is its own identity reindexing.
+
+  Pair-Reindexʳ : ∀ {A B Cc Dd C₂ D₂} (M₁ : Machine A B) (M₂ : Machine Cc Dd)
+                  (u : inType (C₂ ⊗ᵀ D₂) → inType (Cc ⊗ᵀ Dd))
+                  (v : outType (C₂ ⊗ᵀ D₂) → outType (Cc ⊗ᵀ Dd))
+                → Pair M₁ (Reindex M₂ u v)
+                  ≅ᴹ Reindex (Pair M₁ M₂)
+                       (⊎ᵢ {A} {B} {Cc} {Dd} {A} {B} {C₂} {D₂} (λ x → x) u)
+                       (⊎ₒ {A} {B} {Cc} {Dd} {A} {B} {C₂} {D₂} (λ x → x) v)
+  Pair-Reindexʳ M₁ M₂ u v =
+    ≅ᴹ-trans (Pair-resp-≅ᴹ (≅ᴹ-sym (Reindex-id M₁)) ≅ᴹ-refl)
+             (Pair-Reindex M₁ M₂ (λ x → x) (λ x → x) u v)
+
+  Pair-Reindexˡ : ∀ {A B Cc Dd A₂ B₂} (M₁ : Machine A B) (M₂ : Machine Cc Dd)
+                  (u : inType (A₂ ⊗ᵀ B₂) → inType (A ⊗ᵀ B))
+                  (v : outType (A₂ ⊗ᵀ B₂) → outType (A ⊗ᵀ B))
+                → Pair (Reindex M₁ u v) M₂
+                  ≅ᴹ Reindex (Pair M₁ M₂)
+                       (⊎ᵢ {A} {B} {Cc} {Dd} {A₂} {B₂} {Cc} {Dd} u (λ x → x))
+                       (⊎ₒ {A} {B} {Cc} {Dd} {A₂} {B₂} {Cc} {Dd} v (λ x → x))
+  Pair-Reindexˡ M₁ M₂ u v =
+    ≅ᴹ-trans (Pair-resp-≅ᴹ ≅ᴹ-refl (≅ᴹ-sym (Reindex-id M₂)))
+             (Pair-Reindex M₁ M₂ u v (λ x → x) (λ x → x))
 
   -- ------------------------------------------------------------------------
   -- The middle-four interchange for `Pair`.  All four leaf steps are simply

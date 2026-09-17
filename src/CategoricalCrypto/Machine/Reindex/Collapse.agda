@@ -63,9 +63,7 @@ opaque
                    (⊎ᵢ {A} {B} {B} {C} {A} {B} {B} {C'} (λ x → x) (cdᵢ {B} {C} {C'} uC))
                    (⊎ₒ {A} {B} {B} {C} {A} {B} {B} {C'} (λ x → x) (cdₒ {B} {C} {C'} vC))
   cod-pairR {A} {B} {C} {C'} M N uC vC =
-    ≅ᴹ-trans (Pair-resp-≅ᴹ (≅ᴹ-sym (Reindex-id M)) ≅ᴹ-refl)
-             (Pair-Reindex M N (λ x → x) (λ x → x)
-                           (cdᵢ {B} {C} {C'} uC) (cdₒ {B} {C} {C'} vC))
+    Pair-Reindexʳ M N (cdᵢ {B} {C} {C'} uC) (cdₒ {B} {C} {C'} vC)
 
   -- The composite of the two relabellings on the inner machine, refactored so
   -- that the outer one is `wcᵢ`/`wcₒ` — the form `Trc-slide` accepts.
@@ -197,9 +195,7 @@ opaque
                    (⊎ᵢ {A} {B} {B} {C} {A'} {B} {B} {C} (dmᵢ {A} {A'} {B} uA) (λ x → x))
                    (⊎ₒ {A} {B} {B} {C} {A'} {B} {B} {C} (dmₒ {A} {A'} {B} vA) (λ x → x))
   dom-pairR {A} {A'} {B} {C} M N uA vA =
-    ≅ᴹ-trans (Pair-resp-≅ᴹ ≅ᴹ-refl (≅ᴹ-sym (Reindex-id N)))
-             (Pair-Reindex M N (dmᵢ {A} {A'} {B} uA) (dmₒ {A} {A'} {B} vA)
-                           (λ x → x) (λ x → x))
+    Pair-Reindexˡ M N (dmᵢ {A} {A'} {B} uA) (dmₒ {A} {A'} {B} vA)
 
   dom-inner : ∀ {A A' B C} (M : Machine A B) (N : Machine B C)
               (uA : inType A' → inType A)

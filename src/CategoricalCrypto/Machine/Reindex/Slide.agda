@@ -132,9 +132,3 @@ opaque
   wdₒ : ∀ {A A' B C} → (outType A' → outType A)
       → outType ((A' ⊗₀ B) ⊗ᵀ (C ⊗₀ B)) → outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
   wdₒ vA = ⊎.map₁ (⊎.map₁ vA)
-
-Reindex-id : ∀ {A B} (M : Machine A B)
-           → Reindex M (λ i → i) (λ o → o) ≅ᴹ M
-Reindex-id M = MkIso (λ s → s) (λ s → s) (λ _ → refl) (λ _ → refl)
-  (λ {_} {_} {o} x → subst (λ y → Machine.stepRel M _ _ y _) (mapᴹ-id o) x)
-  (λ {_} {_} {o} x → subst (λ y → Machine.stepRel M _ _ y _) (sym (mapᴹ-id o)) x)
