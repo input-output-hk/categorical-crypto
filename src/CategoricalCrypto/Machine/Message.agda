@@ -7,33 +7,46 @@
 -- bisimulation proof in `Machine.Iso`, `Machine.Forwarder` and
 -- `Machine.Reindex.*` ends in the same handful of facts about them:
 -- constructors are injective and pairwise distinct, and `mapᴹ` is a functor
--- with a few inversion properties.  They are stated over transparent types,
--- so that they can be applied to opaque-typed equations by conversion inside
--- the `unfolding` blocks that need them.
+-- with a few inversion properties.
+--
+-- Most of that is `Data.Sum.Properties` and `Data.Maybe.Properties`, which the
+-- project prelude does not re-export.  This module is the machine layer's
+-- façade over them, fixing the short project spellings that ten files share,
+-- and it adds the five facts the libraries do not have.  Everything is stated
+-- over transparent types, so that it applies to opaque-typed equations by
+-- conversion inside the `unfolding` blocks that need it.
 -- ============================================================================
 
 module CategoricalCrypto.Machine.Message where
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
 
--- ----------------------------------------------------------------------------
--- Injectivity and disjointness of the constructors of `_⊎_` and `Maybe`.
--- ----------------------------------------------------------------------------
+import Data.Maybe.Properties as Maybeₚ
 
-inj₁-inj : ∀ {a b} {X : Type a} {Y : Type b} {x y : X}
-         → _≡_ {A = X ⊎ Y} (inj₁ x) (inj₁ y) → x ≡ y
-inj₁-inj refl = refl
+-- `mapᴹ` is the prelude's `_<$>_` at `Maybe` under a name that needs no
+-- instance resolution, which is what the step-relation proofs reason about.
+open import Data.Maybe.Base public
+  using () renaming (map to mapᴹ)
 
-inj₂-inj : ∀ {a b} {X : Type a} {Y : Type b} {x y : Y}
-         → _≡_ {A = X ⊎ Y} (inj₂ x) (inj₂ y) → x ≡ y
-inj₂-inj refl = refl
+open import Data.Maybe.Properties public
+  using () renaming (just-injective to just-inj; map-id to mapᴹ-id;
+                     map-cong to mapᴹ-cong)
+
+open import Data.Sum.Properties public
+  using () renaming (inj₁-injective to inj₁-inj; inj₂-injective to inj₂-inj)
+
+-- The library states composition in the other direction.
+mapᴹ-∘ : ∀ {X Y Z : Type} (v : Y → Z) (w : X → Y) (o : Maybe X)
+       → mapᴹ v (mapᴹ w o) ≡ mapᴹ (λ x → v (w x)) o
+mapᴹ-∘ v w o = sym (Maybeₚ.map-∘ {g = v} {f = w} o)
+
+-- ----------------------------------------------------------------------------
+-- Disjointness of the constructors, which neither library provides.
+-- ----------------------------------------------------------------------------
 
 inj₁≢inj₂ : ∀ {a b} {X : Type a} {Y : Type b} {x : X} {y : Y} {ℓ} {W : Type ℓ}
           → _≡_ {A = X ⊎ Y} (inj₁ x) (inj₂ y) → W
 inj₁≢inj₂ ()
-
-just-inj : ∀ {a} {X : Type a} {x y : X} → just x ≡ just y → x ≡ y
-just-inj refl = refl
 
 just≢nothing : ∀ {a} {X : Type a} {x : X} {ℓ} {W : Type ℓ}
              → just x ≡ nothing → W
@@ -44,27 +57,8 @@ nothing≢just : ∀ {a} {X : Type a} {x : X} {ℓ} {W : Type ℓ}
 nothing≢just ()
 
 -- ----------------------------------------------------------------------------
--- `mapᴹ`: the prelude's `_<$>_` at `Maybe`, spelled out, so that it can be
--- reasoned about without instance resolution getting in the way.
--- Definitionally equal to `f <$> o`, which is what `modifyStepRel` uses.
+-- Two inversion principles for `mapᴹ`.
 -- ----------------------------------------------------------------------------
-
-mapᴹ : ∀ {X Y : Type} → (X → Y) → Maybe X → Maybe Y
-mapᴹ f = maybe (λ x → just (f x)) nothing
-
-mapᴹ-id : ∀ {X : Type} (o : Maybe X) → mapᴹ (λ x → x) o ≡ o
-mapᴹ-id (just _) = refl
-mapᴹ-id nothing  = refl
-
-mapᴹ-cong : ∀ {X Y : Type} {v v' : X → Y}
-          → (∀ x → v x ≡ v' x) → ∀ o → mapᴹ v o ≡ mapᴹ v' o
-mapᴹ-cong e (just x) = cong just (e x)
-mapᴹ-cong e nothing  = refl
-
-mapᴹ-∘ : ∀ {X Y Z : Type} (v : Y → Z) (w : X → Y) (o : Maybe X)
-       → mapᴹ v (mapᴹ w o) ≡ mapᴹ (λ x → v (w x)) o
-mapᴹ-∘ v w (just _) = refl
-mapᴹ-∘ v w nothing  = refl
 
 -- A `just` under `mapᴹ` comes from a `just`.
 mapᴹ-just : ∀ {X Y : Type} (v : X → Y) (O : Maybe X) (y : Y)
