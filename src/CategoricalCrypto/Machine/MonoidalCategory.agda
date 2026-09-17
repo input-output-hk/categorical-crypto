@@ -13,8 +13,10 @@
 --   naturality of the unitors   `Monoidal.Unitors`;
 --   naturality of `⊗-symₘ`      `Monoidal.Braiding`.
 --
--- The four remaining naturality squares (the forward associator and the
--- inverse unitors) are conjugates of the proved ones.
+-- Only the three forward naturality squares are supplied; `monoidalHelper`
+-- derives the `-to` halves as conjugates of them.  The forward associator
+-- square is itself a conjugate, because the proved square is the inverse
+-- associator's.
 --
 -- Everything downstream that only needs "a symmetric monoidal category of
 -- machines" should go through the bundles at the bottom; in particular
@@ -29,7 +31,8 @@ open import categorical-crypto.Prelude hiding (id; _∘_; Bifunctor)
 
 open import Categories.Category using (Category)
 open import Categories.Category.Product using (Product)
-open import Categories.Category.Monoidal using (Monoidal; MonoidalCategory; SymmetricMonoidalCategory)
+open import Categories.Category.Monoidal
+  using (Monoidal; monoidalHelper; MonoidalCategory; SymmetricMonoidalCategory)
 open import Categories.Category.Monoidal.Symmetric using (Symmetric; symmetricHelper)
 open import Categories.Functor using (Functor)
 open import Categories.Functor.Bifunctor using (Bifunctor)
@@ -49,7 +52,7 @@ open import CategoricalCrypto.Machine.Monoidal.Unitors using (λ⇒-natural; ρ�
 open import CategoricalCrypto.Machine.Monoidal.Braiding using (σ-natural)
 
 open Mor MachineCategory using (_≅_)
-open MR MachineCategory using (conjugate-from; conjugate-to)
+open MR MachineCategory using (conjugate-to)
 
 -- ----------------------------------------------------------------------------
 -- The tensor, as a bifunctor.
@@ -83,24 +86,18 @@ associator-iso = record
 -- ----------------------------------------------------------------------------
 
 machine-monoidal : Monoidal MachineCategory
-machine-monoidal = record
-  { ⊗                    = machine-⊗-bifunctor
-  ; unit                 = I
-  ; unitorˡ              = unitorˡ-iso
-  ; unitorʳ              = unitorʳ-iso
-  ; associator           = associator-iso
-  ; unitorˡ-commute-from = λ {_} {_} {f} → λ⇒-natural f
-  ; unitorˡ-commute-to   = λ {_} {_} {f} →
-      conjugate-from unitorˡ-iso unitorˡ-iso (≅ᴹ-sym (λ⇒-natural f))
-  ; unitorʳ-commute-from = λ {_} {_} {f} → ρ⇒-natural f
-  ; unitorʳ-commute-to   = λ {_} {_} {f} →
-      conjugate-from unitorʳ-iso unitorʳ-iso (≅ᴹ-sym (ρ⇒-natural f))
-  ; assoc-commute-from   = λ {_} {_} {f} {_} {_} {g} {_} {_} {h} →
+machine-monoidal = monoidalHelper MachineCategory record
+  { ⊗               = machine-⊗-bifunctor
+  ; unit            = I
+  ; unitorˡ         = unitorˡ-iso
+  ; unitorʳ         = unitorʳ-iso
+  ; associator      = associator-iso
+  ; unitorˡ-commute = λ {_} {_} {f} → λ⇒-natural f
+  ; unitorʳ-commute = λ {_} {_} {f} → ρ⇒-natural f
+  ; assoc-commute   = λ {_} {_} {f} {_} {_} {g} {_} {_} {h} →
       ≅ᴹ-sym (conjugate-to associator-iso associator-iso (≅ᴹ-sym (⊗-assoc⃖-natural f g h)))
-  ; assoc-commute-to     = λ {_} {_} {f} {_} {_} {g} {_} {_} {h} →
-      ≅ᴹ-sym (⊗-assoc⃖-natural f g h)
-  ; triangle             = triangle
-  ; pentagon             = pentagon
+  ; triangle        = triangle
+  ; pentagon        = pentagon
   }
 
 machine-symmetric : Symmetric machine-monoidal
