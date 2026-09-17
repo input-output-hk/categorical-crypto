@@ -18,10 +18,6 @@
 --     share a common suffix and `∘-resp-≅ᴹ` reduces the goal to the heads;
 --   * the two naturality laws of the shuffles move the abstract machines
 --     across them, leaving heads that are composites of forwarders only.
---
--- A head equation is then a finite message-level computation: `Fwd`'s algebra
--- collapses each side to a single `Xfwd` and `Xfwd-≅ᴹ` compares the two
--- routings pointwise.
 -- ============================================================================
 
 open import CategoricalCrypto.Machine.Forwarder
@@ -41,28 +37,13 @@ open import Tactic.Defaults
 
 module CategoricalCrypto.Machine.Monoidal.Kleisli where
 
--- ----------------------------------------------------------------------------
--- Tensoring with an identity distributes over composition.  This is the only
--- place `⊗₁-interchange` is needed in the shape `_⊗ʳ E`; the `CC.id` has to be
--- seen as `CC.id CC.∘ CC.id` first, which is what the unitor does.
--- ----------------------------------------------------------------------------
+-- `⊗₁-interchange` needs both factors composed, so the `CC.id {E}` has to be
+-- seen as `CC.id CC.∘ CC.id` first; `∘-identityˡ-≅ᴹ`, run backwards, does that.
 
 ⊗ʳ-∘ : ∀ {A B C E} (X : Machine B C) (Y : Machine A B)
      → ((X CC.∘ Y) ⊗₁ CC.id {E}) ≅ᴹ ((X ⊗₁ CC.id {E}) CC.∘ (Y ⊗₁ CC.id {E}))
 ⊗ʳ-∘ X Y = ≅ᴹ-trans (⊗₁-resp-≅ᴹ ≅ᴹ-refl (≅ᴹ-sym ∘-identityˡ-≅ᴹ))
                     (⊗₁-interchange Y X CC.id CC.id)
-
--- ----------------------------------------------------------------------------
--- The head equations.  Both sides are composites of forwarders, so `Fwd`'s
--- algebra collapses each to a single `Xfwd` and what remains is a pointwise
--- equation between two routings of the same channel atoms.  Each of those
--- routings is the atom-preserving bijection between the two channel
--- bracketings, and there is only one, which is why every case is `refl`.
--- These computations are what needs the `unfolding`: `app` of a `⇒-solver`
--- term does not reduce until `_⊗₀_` does, and `⊗mapᵢ`/`⊗mapₒ` sit inside
--- `CategoricalCrypto.Machine.Forwarder`'s own `opaque` block, which `Xφ` opens.
--- ----------------------------------------------------------------------------
-
 
 opaque
   unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-assoc ⊗-left-assoc
@@ -93,7 +74,6 @@ opaque
                             r₁)
                  ∘-Xfwd
 
-    -- The two routings agree pointwise.
     P : Xfwd (λ a → (app (absorb-regroupσᵢ {D} {E₂} {E₁} {E})) ((app (∘ᴷ-fwdᵢ {D ⊗₀ E₂} {E} {E₁})) a)) (λ o → (app (∘ᴷ-fwdₒ {D ⊗₀ E₂} {E} {E₁})) ((app (absorb-regroupσₒ {D} {E₂} {E₁} {E})) o)) ≅ᴹ Xfwd (λ a → (app (∘ᴷ-fwdᵢ {D} {E} {E₁ ⊗₀ E₂})) (⊗mapᵢ {(D ⊗₀ E₂) ⊗₀ E₁} {D ⊗₀ (E₁ ⊗₀ E₂)} {E} {E} (app (∘ᴷ-fwdᵢ {D} {E₁} {E₂})) (λ (x : Channel.inType E) → x) a)) (λ o → ⊗mapₒ {(D ⊗₀ E₂) ⊗₀ E₁} {D ⊗₀ (E₁ ⊗₀ E₂)} {E} {E} (app (∘ᴷ-fwdₒ {D} {E₁} {E₂})) (λ (x : Channel.outType E) → x) ((app (∘ᴷ-fwdₒ {D} {E} {E₁ ⊗₀ E₂})) o))
     P = Xfwd-≅ᴹ (λ { (inj₁ (inj₁ (inj₁ _))) → refl
                    ; (inj₁ (inj₁ (inj₂ _))) → refl
@@ -140,7 +120,6 @@ opaque
     R : (⊗ᴷ-fwd {C₁} {E₁ᵃ ⊗₀ E₁ᵇ} {C₂} {E₂ᵃ ⊗₀ E₂ᵇ} CC.∘ (∘ᴷ-fwd {C₁} {E₁ᵃ} {E₁ᵇ} ⊗₁ ∘ᴷ-fwd {C₂} {E₂ᵃ} {E₂ᵇ})) ≅ᴹ Xfwd (λ a → (app (⊗ᴷ-fwdᵢ {C₁} {E₁ᵃ ⊗₀ E₁ᵇ} {C₂} {E₂ᵃ ⊗₀ E₂ᵇ})) (⊗mapᵢ {(C₁ ⊗₀ E₁ᵇ) ⊗₀ E₁ᵃ} {C₁ ⊗₀ (E₁ᵃ ⊗₀ E₁ᵇ)} {(C₂ ⊗₀ E₂ᵇ) ⊗₀ E₂ᵃ} {C₂ ⊗₀ (E₂ᵃ ⊗₀ E₂ᵇ)} (app (∘ᴷ-fwdᵢ {C₁} {E₁ᵃ} {E₁ᵇ})) (app (∘ᴷ-fwdᵢ {C₂} {E₂ᵃ} {E₂ᵇ})) a)) (λ o → ⊗mapₒ {(C₁ ⊗₀ E₁ᵇ) ⊗₀ E₁ᵃ} {C₁ ⊗₀ (E₁ᵃ ⊗₀ E₁ᵇ)} {(C₂ ⊗₀ E₂ᵇ) ⊗₀ E₂ᵃ} {C₂ ⊗₀ (E₂ᵃ ⊗₀ E₂ᵇ)} (app (∘ᴷ-fwdₒ {C₁} {E₁ᵃ} {E₁ᵇ})) (app (∘ᴷ-fwdₒ {C₂} {E₂ᵃ} {E₂ᵇ})) ((app (⊗ᴷ-fwdₒ {C₁} {E₁ᵃ ⊗₀ E₁ᵇ} {C₂} {E₂ᵃ ⊗₀ E₂ᵇ})) o))
     R = ≅ᴹ-trans (∘-resp-≅ᴹ (tfm'-is-Xfwd (⊗ᴷ-fwdᵢ {C₁} {E₁ᵃ ⊗₀ E₁ᵇ} {C₂} {E₂ᵃ ⊗₀ E₂ᵇ}) (⊗ᴷ-fwdₒ {C₁} {E₁ᵃ ⊗₀ E₁ᵇ} {C₂} {E₂ᵃ ⊗₀ E₂ᵇ})) r₁) ∘-Xfwd
 
-    -- The two routings agree pointwise.
     P : Xfwd (λ a → ⊗mapᵢ {C₁ ⊗₀ C₂} {C₁ ⊗₀ C₂} {(E₁ᵃ ⊗₀ E₂ᵃ) ⊗₀ (E₁ᵇ ⊗₀ E₂ᵇ)} {(E₁ᵃ ⊗₀ E₁ᵇ) ⊗₀ (E₂ᵃ ⊗₀ E₂ᵇ)} (λ (x : Channel.inType (C₁ ⊗₀ C₂)) → x) (app (mid4σᵢ {E₁ᵃ} {E₂ᵃ} {E₁ᵇ} {E₂ᵇ})) ((app (∘ᴷ-fwdᵢ {C₁ ⊗₀ C₂} {E₁ᵃ ⊗₀ E₂ᵃ} {E₁ᵇ ⊗₀ E₂ᵇ})) (⊗mapᵢ {(C₁ ⊗₀ E₁ᵇ) ⊗₀ (C₂ ⊗₀ E₂ᵇ)} {(C₁ ⊗₀ C₂) ⊗₀ (E₁ᵇ ⊗₀ E₂ᵇ)} {E₁ᵃ ⊗₀ E₂ᵃ} {E₁ᵃ ⊗₀ E₂ᵃ} (app (⊗ᴷ-fwdᵢ {C₁} {E₁ᵇ} {C₂} {E₂ᵇ})) (λ (x : Channel.inType (E₁ᵃ ⊗₀ E₂ᵃ)) → x) ((app (⊗ᴷ-fwdᵢ {C₁ ⊗₀ E₁ᵇ} {E₁ᵃ} {C₂ ⊗₀ E₂ᵇ} {E₂ᵃ})) a)))) (λ o → (app (⊗ᴷ-fwdₒ {C₁ ⊗₀ E₁ᵇ} {E₁ᵃ} {C₂ ⊗₀ E₂ᵇ} {E₂ᵃ})) (⊗mapₒ {(C₁ ⊗₀ E₁ᵇ) ⊗₀ (C₂ ⊗₀ E₂ᵇ)} {(C₁ ⊗₀ C₂) ⊗₀ (E₁ᵇ ⊗₀ E₂ᵇ)} {E₁ᵃ ⊗₀ E₂ᵃ} {E₁ᵃ ⊗₀ E₂ᵃ} (app (⊗ᴷ-fwdₒ {C₁} {E₁ᵇ} {C₂} {E₂ᵇ})) (λ (x : Channel.outType (E₁ᵃ ⊗₀ E₂ᵃ)) → x) ((app (∘ᴷ-fwdₒ {C₁ ⊗₀ C₂} {E₁ᵃ ⊗₀ E₂ᵃ} {E₁ᵇ ⊗₀ E₂ᵇ})) (⊗mapₒ {C₁ ⊗₀ C₂} {C₁ ⊗₀ C₂} {(E₁ᵃ ⊗₀ E₂ᵃ) ⊗₀ (E₁ᵇ ⊗₀ E₂ᵇ)} {(E₁ᵃ ⊗₀ E₁ᵇ) ⊗₀ (E₂ᵃ ⊗₀ E₂ᵇ)} (λ (x : Channel.outType (C₁ ⊗₀ C₂)) → x) (app (mid4σₒ {E₁ᵃ} {E₂ᵃ} {E₁ᵇ} {E₂ᵇ})) o)))) ≅ᴹ Xfwd (λ a → (app (⊗ᴷ-fwdᵢ {C₁} {E₁ᵃ ⊗₀ E₁ᵇ} {C₂} {E₂ᵃ ⊗₀ E₂ᵇ})) (⊗mapᵢ {(C₁ ⊗₀ E₁ᵇ) ⊗₀ E₁ᵃ} {C₁ ⊗₀ (E₁ᵃ ⊗₀ E₁ᵇ)} {(C₂ ⊗₀ E₂ᵇ) ⊗₀ E₂ᵃ} {C₂ ⊗₀ (E₂ᵃ ⊗₀ E₂ᵇ)} (app (∘ᴷ-fwdᵢ {C₁} {E₁ᵃ} {E₁ᵇ})) (app (∘ᴷ-fwdᵢ {C₂} {E₂ᵃ} {E₂ᵇ})) a)) (λ o → ⊗mapₒ {(C₁ ⊗₀ E₁ᵇ) ⊗₀ E₁ᵃ} {C₁ ⊗₀ (E₁ᵃ ⊗₀ E₁ᵇ)} {(C₂ ⊗₀ E₂ᵇ) ⊗₀ E₂ᵃ} {C₂ ⊗₀ (E₂ᵃ ⊗₀ E₂ᵇ)} (app (∘ᴷ-fwdₒ {C₁} {E₁ᵃ} {E₁ᵇ})) (app (∘ᴷ-fwdₒ {C₂} {E₂ᵃ} {E₂ᵇ})) ((app (⊗ᴷ-fwdₒ {C₁} {E₁ᵃ ⊗₀ E₁ᵇ} {C₂} {E₂ᵃ ⊗₀ E₂ᵇ})) o))
     P = Xfwd-≅ᴹ (λ { (inj₁ (inj₁ (inj₁ _))) → refl
                    ; (inj₁ (inj₁ (inj₂ _))) → refl
@@ -155,12 +134,7 @@ opaque
                    ; (inj₂ (inj₂ (inj₁ _))) → refl
                    ; (inj₂ (inj₂ (inj₂ _))) → refl })
 
--- ----------------------------------------------------------------------------
--- `∘ᴷ-assoc`.
--- ----------------------------------------------------------------------------
-
--- The left-hand side, flattened: the `F` is carried across `∘ᴷ-fwd` by
--- naturality, which is what exposes the same suffix as the right-hand side.
+-- The `F` is carried across `∘ᴷ-fwd` by naturality.
 ∘ᴷ-assoc-L : ∀ {A B C D E E₁ E₂}
   (F : Machine C (D ⊗₀ E₂)) (G : Machine B (C ⊗₀ E₁)) (h : Machine A (B ⊗₀ E))
   → ((absorb-regroup CC.∘ (F ⊗₁ CC.id {E ⊗₀ E₁})) CC.∘ (G ∘ᴷ h))
@@ -178,8 +152,7 @@ opaque
   (≅ᴹ-trans (∘-resp-≅ᴹ ≅ᴹ-refl ∘-assoc-≅ᴹ)
             (≅ᴹ-sym ∘-assoc-≅ᴹ))))
 
--- The right-hand side, flattened: `_⊗ʳ E` is distributed over the inner
--- Kleisli composite.
+-- `_⊗ʳ E` distributed over the inner Kleisli composite.
 ∘ᴷ-assoc-R : ∀ {A B C D E E₁ E₂}
   (F : Machine C (D ⊗₀ E₂)) (G : Machine B (C ⊗₀ E₁)) (h : Machine A (B ⊗₀ E))
   → ((F ∘ᴷ G) ∘ᴷ h)
@@ -203,13 +176,7 @@ opaque
   (≅ᴹ-trans (∘-resp-≅ᴹ head₁ ≅ᴹ-refl)
             (≅ᴹ-sym (∘ᴷ-assoc-R F G h)))
 
--- ----------------------------------------------------------------------------
--- `⊗ᴷ-∘ᴷ`.
--- ----------------------------------------------------------------------------
-
--- The left-hand side, flattened.  The `_⊗ᴷ_` shuffle of the two second-stage
--- machines is carried across the one of the first stage by naturality, which
--- puts the four machines in the same order and bracketing as on the right.
+-- The second-stage `_⊗ᴷ_` shuffle carried across the first-stage one.
 ⊗ᴷ-∘ᴷ-L : ∀ {A₁ B₁ C₁ E₁ᵃ E₁ᵇ A₂ B₂ C₂ E₂ᵃ E₂ᵇ}
   (a : Machine B₁ (C₁ ⊗₀ E₁ᵇ)) (b : Machine A₁ (B₁ ⊗₀ E₁ᵃ))
   (c : Machine B₂ (C₂ ⊗₀ E₂ᵇ)) (d : Machine A₂ (B₂ ⊗₀ E₂ᵃ))
@@ -224,7 +191,6 @@ opaque
   (≅ᴹ-trans (∘-resp-≅ᴹ ≅ᴹ-refl (≅ᴹ-sym ∘-assoc-≅ᴹ))
             (≅ᴹ-sym ∘-assoc-≅ᴹ))
   where
-  -- `_⊗ʳ Eᵃ` distributed, then the shuffle carried across `a ⊗₁ c`.
   inner : ((((⊗ᴷ-fwd {E₁ = E₁ᵇ}) CC.∘ (a ⊗₁ c)) ⊗₁ CC.id {E₁ᵃ ⊗₀ E₂ᵃ})
            CC.∘ ((⊗ᴷ-fwd {E₁ = E₁ᵃ}) CC.∘ (b ⊗₁ d)))
         ≅ᴹ (((⊗ᴷ-fwd {E₁ = E₁ᵇ} ⊗₁ CC.id {E₁ᵃ ⊗₀ E₂ᵃ})
@@ -242,7 +208,7 @@ opaque
     (≅ᴹ-trans (∘-resp-≅ᴹ ≅ᴹ-refl ∘-assoc-≅ᴹ)
               (≅ᴹ-sym ∘-assoc-≅ᴹ)))))
 
--- The right-hand side, flattened: `_⊗₁_` distributed over both stages.
+-- `_⊗₁_` distributed over both stages.
 ⊗ᴷ-∘ᴷ-R : ∀ {A₁ B₁ C₁ E₁ᵃ E₁ᵇ A₂ B₂ C₂ E₂ᵃ E₂ᵇ}
   (a : Machine B₁ (C₁ ⊗₀ E₁ᵇ)) (b : Machine A₁ (B₁ ⊗₀ E₁ᵃ))
   (c : Machine B₂ (C₂ ⊗₀ E₂ᵇ)) (d : Machine A₂ (B₂ ⊗₀ E₂ᵃ))

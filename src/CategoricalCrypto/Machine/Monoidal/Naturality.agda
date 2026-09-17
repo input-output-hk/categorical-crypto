@@ -10,6 +10,11 @@
 -- symmetric coherence solver of `Categories.Coherence.Monoidal`: the abstract
 -- machines are opaque generators, and the solver slides them through the
 -- structural maps.
+--
+-- The solver decides coherence, generator slides and σσ-cancellation; it
+-- decides NO law relating two different crossing decompositions, so hexagon,
+-- Yang-Baxter, block naturality and `ρ⇒ ∘ σ ≈ λ⇒` all come back nothing.
+-- Those are proved by hand in `Machine.Monoidal.Coherence`.
 -- ============================================================================
 
 module CategoricalCrypto.Machine.Monoidal.Naturality where
@@ -33,10 +38,6 @@ open import CategoricalCrypto.Machine.MonoidalCategory
 
 open Category MachineCategory using (module HomReasoning)
 open HomReasoning
-
--- ----------------------------------------------------------------------------
--- `∘ᴷ-fwd` is natural.
--- ----------------------------------------------------------------------------
 
 ∘ᴷ-fwd-natural : ∀ {C C' E₁ E₁' E₂ E₂'}
                  (c : Machine C C') (u₁ : Machine E₁ E₁') (u₂ : Machine E₂ E₂')
@@ -63,10 +64,6 @@ open HomReasoning
   rhs = ((S.id {V (# 1)} S.⊗₁ S.σ {V (# 5)} {V (# 3)}) S.∘ S.α⇒ {V (# 1)} {V (# 5)} {V (# 3)})
         S.∘ ((gen (# 0) S.⊗₁ gen (# 2)) S.⊗₁ gen (# 1))
 
--- ----------------------------------------------------------------------------
--- `⊗ᴷ-fwd` is natural.
--- ----------------------------------------------------------------------------
-
 ⊗ᴷ-fwd-natural : ∀ {B₁ B₁' E₁ E₁' B₂ B₂' E₂ E₂'}
                  (b₁ : Machine B₁ B₁') (u₁ : Machine E₁ E₁')
                  (b₂ : Machine B₂ B₂') (u₂ : Machine E₂ E₂')
@@ -91,7 +88,7 @@ open HomReasoning
     ∷ ((V (# 2) , V (# 3)) , u₁)
     ∷ ((V (# 4) , V (# 5)) , b₂)
     ∷ ((V (# 6) , V (# 7)) , u₂) ∷ [] )
-  -- `mid4-core` in the term language, at atoms `p q r s`.
+  -- Must mirror the local `mid4-core` exactly; `solveMorσ!` compares the two.
   core : (p q r s : ObjTerm) → S.HomTerm ((p ⊗ᵒ q) ⊗ᵒ (r ⊗ᵒ s)) ((p ⊗ᵒ r) ⊗ᵒ (q ⊗ᵒ s))
   core p q r s =
     S.α⇐ {p} {r} {q ⊗ᵒ s}

@@ -6,21 +6,6 @@
 -- and `_⊗ᴷ_`, all at `_≅ᴹ_`.  Each is proved in its own module; this one
 -- collects them.  The `agda-categories` records themselves are assembled in
 -- `CategoricalCrypto.Machine.MonoidalCategory`.
---
---   `⊗₁-id`, `ρ-∘ᴷ-fwd`, `ρ-idᴷ`, `λ-zip-idᴷ` — forwarders are closed under
---     `_⊗₁_`, `modifyStepRel` and `_∘_` (`Machine.Forwarder`);
---   `⊗₁-interchange` — `_⊗₁_` is a functor for `_∘_`
---     (`Machine.Monoidal.Interchange`);
---   iso laws, `triangle`, `pentagon`, `hexagon`, `σ-σ`, and the decomposition
---     of the Kleisli shuffles into associators and symmetries
---     (`Machine.Monoidal.Coherence`);
---   `⊗-assoc⃖-natural`, `λ⇒-natural`, `ρ⇒-natural`, `σ-natural` — the
---     structural isomorphisms are natural (`Machine.Monoidal.Associator`,
---     `.Unitors`, `.Braiding`);
---   `∘ᴷ-fwd-natural`, `⊗ᴷ-fwd-natural` — the Kleisli shuffles are natural,
---     by the coherence solver (`Machine.Monoidal.Naturality`);
---   `∘ᴷ-assoc`, `⊗ᴷ-∘ᴷ` — `_∘ᴷ_` associates and interchanges with `_⊗ᴷ_`
---     (`Machine.Monoidal.Kleisli`).
 -- ============================================================================
 
 module CategoricalCrypto.Machine.Monoidal where

@@ -13,9 +13,9 @@
 -- routing is the atom-preserving bijection between two bracketings, and there
 -- is only one, so every case is `refl` (or absurd, for a port of `I`).
 --
--- The `unfolding` is what makes `app` of a `⇒-solver` term compute; the
--- named, typed intermediate steps keep the elaboration cost linear in the
--- length of the collapse chains (see `Machine.Monoidal.Kleisli`).
+-- Those computations are what needs the `unfolding`: `app` of a `⇒-solver`
+-- term does not reduce until `_⊗₀_` does, and `⊗mapᵢ`/`⊗mapₒ` sit inside
+-- `Machine.Forwarder`'s own `opaque` block, which `Xφ` opens.
 -- ============================================================================
 
 open import CategoricalCrypto.Machine.Forwarder
@@ -37,10 +37,6 @@ opaque
             ⊗-right-intro ⊗-ᵀ-distrib ⊗-ᵀ-factor ⊗-right-neutral ⊗-fusion
             ⊗-combine Xφ
 
-  -- --------------------------------------------------------------------------
-  -- The collapse steps, packaged.
-  -- --------------------------------------------------------------------------
-
   ∘-collapse : ∀ {A B C} {M : Machine B C} {N : Machine A B}
                {f₂ : Channel.inType B → Channel.inType C} {g₂ : Channel.outType C → Channel.outType B}
                {f₁ : Channel.inType A → Channel.inType B} {g₁ : Channel.outType B → Channel.outType A}
@@ -55,17 +51,12 @@ opaque
              → (M ⊗₁ N) ≅ᴹ Xfwd (⊗mapᵢ f₁ f₂) (⊗mapₒ g₁ g₂)
   ⊗-collapse φ ψ = ≅ᴹ-trans (⊗₁-resp-≅ᴹ φ ψ) ⊗₁-Xfwd
 
-  -- Two machines that collapse to pointwise-equal forwarders are isomorphic.
   Xfwd-bridge : ∀ {A B} {M N : Machine A B}
                 {f f' : Channel.inType A → Channel.inType B}
                 {g g' : Channel.outType B → Channel.outType A}
               → M ≅ᴹ Xfwd f g → N ≅ᴹ Xfwd f' g'
               → (∀ a → f a ≡ f' a) → (∀ o → g o ≡ g' o) → M ≅ᴹ N
   Xfwd-bridge φ ψ ef eg = ≅ᴹ-trans φ (≅ᴹ-trans (Xfwd-≅ᴹ ef eg) (≅ᴹ-sym ψ))
-
-  -- --------------------------------------------------------------------------
-  -- The associator, the unitors and the symmetry are isomorphisms.
-  -- --------------------------------------------------------------------------
 
   α-isoˡ : ∀ {A B C} → (⊗-assoc⃖ {A} {B} {C} CC.∘ ⊗-assoc {A} {B} {C}) ≅ᴹ CC.id
   α-isoˡ {A} {B} {C} =
@@ -144,10 +135,6 @@ opaque
                   (λ o → app (⊗-symₒ {A} {B}) (app (⊗-symₒ {B} {A}) o))
     lhs = ∘-collapse (tfm'-is-Xfwd (⊗-symᵢ {B} {A}) (⊗-symₒ {B} {A}))
                      (tfm'-is-Xfwd (⊗-symᵢ {A} {B}) (⊗-symₒ {A} {B}))
-
-  -- --------------------------------------------------------------------------
-  -- Triangle, pentagon and hexagon.
-  -- --------------------------------------------------------------------------
 
   triangle : ∀ {A B} → ((CC.id {A} ⊗₁ λ⇒ {B}) CC.∘ ⊗-assoc {A} {I} {B}) ≅ᴹ (ρ⇒ {A} ⊗₁ CC.id {B})
   triangle {A} {B} =
@@ -265,10 +252,6 @@ opaque
                              (app (⊗-symₒ {A} {B ⊗₀ C}) (app (⊗-assocₒ {B} {C} {A}) o)))
     rhs = ∘-collapse (tfm'-is-Xfwd (⊗-assocᵢ {B} {C} {A}) (⊗-assocₒ {B} {C} {A})) r₁
 
-  -- --------------------------------------------------------------------------
-  -- The Kleisli shuffles, decomposed into associators and symmetries.
-  -- --------------------------------------------------------------------------
-
   ∘ᴷ-fwd-decomp : ∀ {C E₁ E₂}
     → ∘ᴷ-fwd {C} {E₁} {E₂} ≅ᴹ ((CC.id {C} ⊗₁ ⊗-symₘ {E₂} {E₁}) CC.∘ ⊗-assoc {C} {E₂} {E₁})
   ∘ᴷ-fwd-decomp {C} {E₁} {E₂} =
@@ -300,7 +283,6 @@ opaque
       (λ { (inj₁ (inj₁ _)) → refl ; (inj₁ (inj₂ _)) → refl
          ; (inj₂ (inj₁ _)) → refl ; (inj₂ (inj₂ _)) → refl })
     where
-    -- The inner braid `Q ⊗₀ (R ⊗₀ S) → R ⊗₀ (Q ⊗₀ S)`.
     r₁ : (⊗-symₘ {Q} {R} ⊗₁ CC.id {S})
          ≅ᴹ Xfwd (⊗mapᵢ {Q ⊗₀ R} {R ⊗₀ Q} {S} {S} (app (⊗-symᵢ {Q} {R})) (λ x → x))
                  (⊗mapₒ {Q ⊗₀ R} {R ⊗₀ Q} {S} {S} (app (⊗-symₒ {Q} {R})) (λ x → x))

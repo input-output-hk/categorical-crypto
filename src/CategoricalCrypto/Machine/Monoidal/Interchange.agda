@@ -30,7 +30,6 @@ opaque
             ⊗-right-intro ⊗-ᵀ-distrib ⊗-ᵀ-factor ⊗-right-neutral ⊗-fusion ⊗-combine
             πᵢ ∘κᵢ
 
-  -- The routing the left-hand side produces.
   Aᴸ : ∀ {A₁ B₁ C₁ A₂ B₂ C₂}
      → Channel.inType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
      → Channel.inType (((A₁ ⊗₀ B₁ ᵀ) ⊗₀ (B₁ ⊗₀ C₁ ᵀ)) ⊗₀ ((A₂ ⊗₀ B₂ ᵀ) ⊗₀ (B₂ ⊗₀ C₂ ᵀ)))
@@ -49,7 +48,6 @@ opaque
        (∘κₒ {A₁} {B₁} {C₁}) (∘κₒ {A₂} {B₂} {C₂})
        (πₒ {A₁} {C₁} {B₁} {A₂} {C₂} {B₂} o)
 
-  -- The routing the right-hand side produces.
   Nᵢ : ∀ {A₁ B₁ C₁ A₂ B₂ C₂}
      → Channel.inType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
      → Channel.inType (((A₁ ⊗₀ B₁ ᵀ) ⊗₀ (A₂ ⊗₀ B₂ ᵀ)) ⊗₀ ((B₁ ⊗₀ C₁ ᵀ) ⊗₀ (B₂ ⊗₀ C₂ ᵀ)))
@@ -80,8 +78,7 @@ opaque
   Bᴿ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} o =
     mid4ₒ {A₁} {B₁} {A₂} {B₂} {B₁} {C₁} {B₂} {C₂} (Nₒ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} o)
 
-  -- The outer routing the left-hand side produces, in the two stages the
-  -- normalisation actually produces them.
+  -- Two stages, because that is the order the normalisation produces them in.
   Mᵢ : ∀ {A₁ B₁ C₁ A₂ B₂ C₂}
      → Channel.inType ((A₁ ⊗₀ A₂) ⊗ᵀ (C₁ ⊗₀ C₂))
      → Channel.inType (((A₁ ⊗₀ B₁) ⊗ᵀ (C₁ ⊗₀ B₁)) ⊗₀ ((A₂ ⊗₀ B₂) ⊗ᵀ (C₂ ⊗₀ B₂)))
@@ -110,8 +107,6 @@ opaque
   Lₒ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} o =
     πₒ⁻ {A₁} {C₁} {B₁} {A₂} {C₂} {B₂} (Mₒ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} o)
 
-  -- The two routings agree.  This is the whole message-level content of the
-  -- interchange law: the same permutation, reached two ways.
   pt-A : ∀ {A₁ B₁ C₁ A₂ B₂ C₂} i
        → Aᴸ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} i ≡ Aᴿ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} i
   pt-A (inj₁ (inj₁ (inj₁ _))) = refl
@@ -148,7 +143,6 @@ opaque
   pt-Lₒ (inj₂ (inj₁ _)) = refl
   pt-Lₒ (inj₂ (inj₂ _)) = refl
 
-  -- The left-hand side, normalised.
   norm-L : ∀ {A₁ B₁ C₁ A₂ B₂ C₂}
            (f : Machine A₁ B₁) (g : Machine B₁ C₁) (h : Machine A₂ B₂) (k : Machine B₂ C₂)
          → ((g CC.∘ f) ⊗₁ (k CC.∘ h))
@@ -183,7 +177,6 @@ opaque
             {A₁ ⊗₀ B₁} {C₁ ⊗₀ B₁} {A₂ ⊗₀ B₂} {C₂ ⊗₀ B₂}
             (∘κₒ {A₁} {B₁} {C₁}) (∘κₒ {A₂} {B₂} {C₂})) (πᵢ {A₁} {C₁} {B₁} {A₂} {C₂} {B₂}) (πₒ {A₁} {C₁} {B₁} {A₂} {C₂} {B₂}))
 
-  -- The right-hand side, normalised.
   norm-R : ∀ {A₁ B₁ C₁ A₂ B₂ C₂}
            (f : Machine A₁ B₁) (g : Machine B₁ C₁) (h : Machine A₂ B₂) (k : Machine B₂ C₂)
          → ((g ⊗₁ k) CC.∘ (f ⊗₁ h))
@@ -208,10 +201,6 @@ opaque
             (app (⊗σ {A₁} {B₁} {A₂} {B₂} {Out})) (app (⊗σ {B₁} {C₁} {B₂} {C₂} {Out}))) (∘κᵢ {A₁ ⊗₀ A₂} {B₁ ⊗₀ B₂} {C₁ ⊗₀ C₂}) (∘κₒ {A₁ ⊗₀ A₂} {B₁ ⊗₀ B₂} {C₁ ⊗₀ C₂}))
       (≅ᴹ-trans (Reindex-resp-≅ᴹ (Nᵢ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂}) (Nₒ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂}) (Pair-mid4 f h g k))
                 (Reindex-fuse (Pair (Pair f g) (Pair h k)) (mid4ᵢ {A₁} {B₁} {A₂} {B₂} {B₁} {C₁} {B₂} {C₂}) (mid4ₒ {A₁} {B₁} {A₂} {B₂} {B₁} {C₁} {B₂} {C₂}) (Nᵢ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂}) (Nₒ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂}))))
-
-  -- ══════════════════════════════════════════════════════════════════════
-  -- `_⊗₁_` is a functor for the trace composition `_∘_`.
-  -- ══════════════════════════════════════════════════════════════════════
 
   ⊗₁-interchange : ∀ {A₁ B₁ C₁ A₂ B₂ C₂}
                    (f : Machine A₁ B₁) (g : Machine B₁ C₁)
