@@ -37,6 +37,20 @@ record _≅ᴹ_ (M M' : Machine A B) : Type where
 
 open _≅ᴹ_
 
+-- `_≅ᴹ_` asks for a bijection of state spaces, so it is strictly finer than
+-- bisimilarity: `padded` is `id` carrying one redundant bit of state, its step
+-- relation is literally `id`'s, and yet the two are not `_≅ᴹ_`-related.  A
+-- bijection `Bool → ⊤` would identify `true` with `false`.
+private
+  padded : ∀ {A} → Machine A A
+  padded {A} = MkMachine {State = Bool} λ _ i o _ → Machine.stepRel (id {A}) tt i o tt
+
+  padded-not-iso : ∀ {A} → ¬ (padded {A} ≅ᴹ id {A})
+  padded-not-iso φ = boom (trans (sym (from∘to φ true)) (from∘to φ false))
+    where
+    boom : true ≡ false → ⊥
+    boom ()
+
 ≅ᴹ-refl : {M : Machine A B} → M ≅ᴹ M
 ≅ᴹ-refl = MkIso (λ s → s) (λ s → s) (λ _ → refl) (λ _ → refl) (λ p → p) (λ p → p)
 
