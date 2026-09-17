@@ -116,7 +116,5 @@ opaque
       (λ {_} {i} {o} p →
         subst₂ (λ x y → Tensor.CompRel M₁ (Pair M₂ M₃) _ x y _)
                (asc3ᵢ⁻-asc3ᵢ {A₁} {B₁} {A₂} {B₂} {A₃} {B₃} i)
-               (trans (mapᴹ-∘ (asc3ₒ⁻ {A₁} {B₁} {A₂} {B₂} {A₃} {B₃})
-                                (asc3ₒ {A₁} {B₁} {A₂} {B₂} {A₃} {B₃}) o)
-                      (trans (mapᴹ-cong (asc3ₒ⁻-asc3ₒ {A₁} {B₁} {A₂} {B₂} {A₃} {B₃}) o) (mapᴹ-id o)))
+               (mapᴹ-invol (asc3ₒ⁻-asc3ₒ {A₁} {B₁} {A₂} {B₂} {A₃} {B₃}) o)
                (Pair-asc3-from M₁ M₂ M₃ p))

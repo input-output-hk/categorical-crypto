@@ -297,8 +297,7 @@ opaque
     (Pair-mid4-to M₁ M₂ M₃ M₄)
     (λ {_} {i} {o} p → subst₂ (λ x y → Tensor.CompRel (Pair M₁ M₂) (Pair M₃ M₄) _ x y _)
                               (mid4ᵢ-invol i)
-                              (trans (mapᴹ-∘ mid4ₒ mid4ₒ o)
-                                     (trans (mapᴹ-cong mid4ₒ-invol o) (mapᴹ-id o)))
+                              (mapᴹ-invol mid4ₒ-invol o)
                               (Pair-mid4-to M₁ M₃ M₂ M₄ p))
 
   -- ------------------------------------------------------------------------
@@ -542,7 +541,7 @@ opaque
     MO-recover : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂} (MO : Maybe (outType
                    (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))))
                → mapᴹ πₒ⁻ (mapᴹ πₒ MO) ≡ MO
-    MO-recover MO = trans (mapᴹ-∘ πₒ⁻ πₒ MO) (trans (mapᴹ-cong πₒ⁻-πₒ MO) (mapᴹ-id MO))
+    MO-recover = mapᴹ-invol πₒ⁻-πₒ
 
     recover₁ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
                (MO : Maybe (outType
@@ -669,7 +668,7 @@ opaque
                 (o : Maybe (outType
                   (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))))
               → mapᴹ πₒ (mapᴹ πₒ⁻ o) ≡ o
-    o-recover o = trans (mapᴹ-∘ πₒ πₒ⁻ o) (trans (mapᴹ-cong πₒ-πₒ⁻ o) (mapᴹ-id o))
+    o-recover = mapᴹ-invol πₒ-πₒ⁻
 
     outrec₁ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
               (o : Maybe (outType

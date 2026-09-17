@@ -82,6 +82,5 @@ opaque
       (λ {_} {i} {o} p →
         subst₂ (λ x y → Tensor.CompRel M₁ M₂ _ x y _)
                (swᵢ-invol {A} {B} {C} {D} i)
-               (trans (mapᴹ-∘ (swₒ {C} {D} {A} {B}) (swₒ {A} {B} {C} {D}) o)
-                      (trans (mapᴹ-cong (swₒ-invol {A} {B} {C} {D}) o) (mapᴹ-id o)))
+               (mapᴹ-invol (swₒ-invol {A} {B} {C} {D}) o)
                (Pair-swap-to M₂ M₁ p))

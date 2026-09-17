@@ -40,6 +40,14 @@ mapᴹ-∘ : ∀ {X Y Z : Type} (v : Y → Z) (w : X → Y) (o : Maybe X)
        → mapᴹ v (mapᴹ w o) ≡ mapᴹ (λ x → v (w x)) o
 mapᴹ-∘ v w o = sym (Maybeₚ.map-∘ {g = v} {f = w} o)
 
+-- A pointwise inverse lifts through `mapᴹ`.  Five proofs in `Machine.Reindex*`
+-- reached this conclusion by chaining `mapᴹ-∘`, `mapᴹ-cong` and `mapᴹ-id` by
+-- hand.
+mapᴹ-invol : ∀ {X Y : Type} {v : Y → X} {w : X → Y}
+           → (∀ x → v (w x) ≡ x) → ∀ o → mapᴹ v (mapᴹ w o) ≡ o
+mapᴹ-invol {v = v} {w} h o =
+  trans (mapᴹ-∘ v w o) (trans (mapᴹ-cong h o) (mapᴹ-id o))
+
 -- ----------------------------------------------------------------------------
 -- Disjointness of the constructors, which neither library provides.
 -- ----------------------------------------------------------------------------
