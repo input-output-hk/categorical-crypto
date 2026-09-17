@@ -7,39 +7,16 @@
 -- `Reindex M u v` relabels new-side messages to old-side ones: its output map
 -- `v` runs from the new machine's outputs to `M`'s.  That is the right
 -- direction for a channel permutation, but the wrong one for a forwarder
--- whose forward map is not invertible — a simulator that turns a leaked
--- message into its length, say.  `Xfwd-cod` below accordingly needs the
--- input map of the forwarder to be invertible.
+-- whose forward map is not invertible, a simulator that turns a leaked
+-- message into its length being the example.  `Post M u w` keeps `Reindex`'s
+-- contravariant input map `u` and makes the output map `w` covariant: a step
+-- of `Post M u w` is a step of `M` whose output has been pushed through `w`.
+-- Since `w` need not be injective, the original output is existentially
+-- quantified.
 --
--- `Post M u w` keeps `Reindex`'s contravariant input map `u` and makes the
--- output map `w` covariant: a step of `Post M u w` is a step of `M` whose
--- output has been pushed through `w`.  Since `w` need not be injective, the
--- original output is existentially quantified.
---
--- The lemmas are the ones the collapse recipe of `Reindex.Collapse` uses,
--- redone for `Post`: `Pair-Post` (it commutes with `Pair`), `Trc-Post` (it
--- slides through `Trc` when it fixes the traced ports, up to their preimages),
--- `Reindex-Post-slide` (it slides through a `Reindex` along a routing square),
--- `Post-Fwd`/`Xfwd-Post` (a crossing forwarder is a `Post` of `CC.id`, with
--- no invertibility asked of either map), and `∘-collapse-cod-post`: a `Post`
--- of the codomain slides out of a composite.  `Post-is-Reindex` turns a
--- `Post` back into a `Reindex` when the covariant output map is invertible,
--- which is what `Xfwd-dom` and `Xfwd-cod` need.
---
--- The last section holds the two relay lemmas, proved directly on the trace
--- normal form `Trc (Reindex (Pair M N) ∘κᵢ ∘κₒ)` of `N CC.∘ M`.  When one
--- component is a crossing forwarder, every chain through the traced channel
--- `B` is one step of the other machine with at most one relay hop on either
--- side, so the composite is a `Post` of that machine.  `Trc-relay-cod` has
--- the forwarder in the second component and relabels `M`'s codomain;
--- `Trc-relay-dom` has it in the first and relabels `N`'s domain.  The two
--- proofs are mirror images: they share the step views, the step builders and
--- the routing table of `∘κᵢ`/`∘κₒ`, and differ only in which component the
--- forwarder is.  The corollaries are `Xfwd-∘-Post` and `∘-Xfwd-Post`
--- (composing with a crossing forwarder on either side is a `Post`) and, at
--- `f = g = id`, the identity laws `∘-identityˡ-Post` and `∘-identityʳ-Post`.
--- Nothing here uses the identity or associativity laws of `Machine.Iso`; the
--- identity laws are derived, not assumed.
+-- Nothing here uses `∘-assoc-≅ᴹ` of `Machine.Iso`, and nothing uses the
+-- identity laws; those are derived in `Machine.Category` from
+-- `∘-identityˡ-Post` and `∘-identityʳ-Post` below.
 -- ============================================================================
 
 open import CategoricalCrypto.Machine.Reindex
@@ -63,10 +40,6 @@ module CategoricalCrypto.Machine.Reindex.Post where
 open Channel
 
 open _≅ᴹ_
-
--- ----------------------------------------------------------------------------
--- The primitive.
--- ----------------------------------------------------------------------------
 
 -- `M` with its inputs relabelled by `u` (new to old, as in `Reindex`) and its
 -- outputs pushed forward through `w` (old to new).
@@ -118,13 +91,9 @@ Post-Fwd χ κ u w sq = MkIso _ _ (λ _ → refl) (λ _ → refl)
      trans (cong just (sym (sq i))) (trans (cong (mapᴹ w) e₁) e₂))
   (λ {_} {i} {o} e → just (χ (u i)) , refl , trans (cong just (sq i)) e)
 
--- `Reindex` slides through `Post` along a routing square.  The contravariant
--- pair `(u , v)` on the outside becomes `(u' , v')` on the inside, provided
--- the input maps commute and the output maps commute AND every preimage
--- under `q` of a `v`-relabelled output is itself `v'`-relabelled.  The last
--- hypothesis is what a non-injective `q` costs; it holds for the two
--- instances used below, since there `q` acts on the ports that `v` misses
--- only by permuting them.
+-- The third hypothesis is what a non-injective `q` costs; it holds for the
+-- two instances used below, since there `q` acts on the ports that `v`
+-- misses only by permuting them.
 Reindex-Post-slide :
   ∀ {A B C D E F G H} (T : Machine A B)
     (p  : inType (C ⊗ᵀ D) → inType (A ⊗ᵀ B))
@@ -182,8 +151,8 @@ opaque
             πᵢ ∘κᵢ cdᵢ cdₒ dmᵢ dmₒ Xφ
 
   -- ------------------------------------------------------------------------
-  -- `Post` commutes with `Pair`.  The covariant sum map is `⊎ₒ` read
-  -- backwards: `⊎ₒ` is only a sum map, its direction is in the implicits.
+  -- The covariant sum map is `⊎ₒ` read backwards: `⊎ₒ` is only a sum map,
+  -- its direction is in the implicits.
   -- ------------------------------------------------------------------------
 
   Pair-Post : ∀ {A B C D A' B' C' D'}
@@ -211,7 +180,6 @@ opaque
     t (Tensor.Step₁ {m = m} (nothing , x , e)) = nothing , Tensor.Step₁ {m = u₁ m} {m' = nothing} x , cong (mapᴹ inj₁) e
     t (Tensor.Step₂ {m = m} (just a  , x , e)) = just (inj₂ a) , Tensor.Step₂ {m = u₂ m} {m' = just a} x , cong (mapᴹ inj₂) e
     t (Tensor.Step₂ {m = m} (nothing , x , e)) = nothing , Tensor.Step₂ {m = u₂ m} {m' = nothing} x , cong (mapᴹ inj₂) e
-    -- the covariant sum map, past `mapᴹ inj₁`/`mapᴹ inj₂`
     W₁ : ∀ mo → mapᴹ W (mapᴹ inj₁ mo) ≡ mapᴹ inj₁ (mapᴹ w₁ mo)
     W₁ (just _) = refl
     W₁ nothing  = refl
@@ -242,9 +210,8 @@ opaque
     f s (inj₁ x) o o₀ {s'} p e = go₁ s x o o₀ s' e (comp-view p)
     f s (inj₂ y) o o₀ {s'} p e = go₂ s y o o₀ s' e (comp-view p)
   -- ------------------------------------------------------------------------
-  -- A covariant relabelling that fixes the traced channel's ports, together
-  -- with their preimages, commutes with `Trc`.  Same shape as `Trc-slide`;
-  -- the two extra hypotheses recover the traced port from its image.
+  -- Same shape as `Trc-slide`; the two extra hypotheses recover the traced
+  -- port from its image.
   -- ------------------------------------------------------------------------
 
   Trc-Post : ∀ {X Y Z X' Y' : Channel} (W : Machine (X ⊗₀ Z) (Y ⊗₀ Z))
@@ -299,16 +266,13 @@ opaque
       Trace∷ᵢ f rest (dZᵢ {X'} {Y'} {Z} zc) MO (sym (pi zc)) oeq
 
   -- ------------------------------------------------------------------------
-  -- Relabellings of one end only, covariant on the output side.  `cdᵢ` and
-  -- `dmᵢ` from `Reindex.Slide` serve for the input side unchanged.
+  -- `cdᵢ` and `dmᵢ` from `Reindex.Slide` serve for the input side unchanged.
   -- ------------------------------------------------------------------------
 
-  -- Relabel the codomain of `Machine B C` to `C'`, leaving the domain alone.
   cdₒ⁺ : ∀ {B C C'} → (inType C → inType C')
        → outType (B ⊗ᵀ C) → outType (B ⊗ᵀ C')
   cdₒ⁺ = ⊎.map₂
 
-  -- Relabel the domain of `Machine A B` to `A'`, leaving the codomain alone.
   dmₒ⁺ : ∀ {A A' B} → (outType A → outType A')
        → outType (A ⊗ᵀ B) → outType (A' ⊗ᵀ B)
   dmₒ⁺ = ⊎.map₁
@@ -352,7 +316,6 @@ opaque
     Rₒ (inj₁ bo) = inj₁ (inj₂ bo)
     Rₒ (inj₂ ci) = inj₂ (inj₁ ci)
 
-    -- The `Pair`'s channel: `M`'s ports in the first summand, `N`'s in the second.
     κLᵢ : ∀ {A B C} → inType (A ⊗ᵀ B) → inType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ))
     κLᵢ x = inj₁ x
 
@@ -365,7 +328,6 @@ opaque
     κRₒ : ∀ {A B C} → outType (B ⊗ᵀ C) → outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ))
     κRₒ y = inj₂ y
 
-    -- `∘κᵢ`/`∘κₒ` route each component's ports to its summand.
     ∘κᵢ-L : ∀ {A B C} (x : inType (A ⊗ᵀ B))
           → ∘κᵢ {A} {B} {C} (Lᵢ {A} {B} {C} x) ≡ κLᵢ {A} {B} {C} x
     ∘κᵢ-L (inj₁ _) = refl
@@ -407,8 +369,6 @@ opaque
     ∘κₒ-tr (inj₂ (inj₁ _)) = refl
     ∘κₒ-tr (inj₂ (inj₂ _)) = refl
 
-    -- Reading `∘κₒ` backwards: an output that lands in a summand came from
-    -- that component's port.
     ∘κₒ-L⁻ : ∀ {A B C} (o : outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))) (y : outType (A ⊗ᵀ B))
            → ∘κₒ {A} {B} {C} o ≡ κLₒ {A} {B} {C} y → o ≡ Lₒ {A} {B} {C} y
     ∘κₒ-L⁻ {A} {B} {C} o y e = trans (sym (∘κₒ-tr o)) (cong (∘κₒ⁻ {A} {B} {C}) e)
@@ -417,7 +377,6 @@ opaque
            → ∘κₒ {A} {B} {C} o ≡ κRₒ {A} {B} {C} y → o ≡ Rₒ {A} {B} {C} y
     ∘κₒ-R⁻ {A} {B} {C} o y e = trans (sym (∘κₒ-tr o)) (cong (∘κₒ⁻ {A} {B} {C}) e)
 
-    -- The two components' output ports are told apart by `∘κₒ`.
     Lₒ-inj : ∀ {A B C} (y y' : outType (A ⊗ᵀ B))
            → Lₒ {A} {B} {C} y ≡ Lₒ {A} {B} {C} y' → y ≡ y'
     Lₒ-inj {A} {B} {C} y y' e =
@@ -437,9 +396,7 @@ opaque
       inj₁≢inj₂ (trans (sym (∘κₒ-L {A} {B} {C} y))
                        (trans (cong (∘κₒ {A} {B} {C}) e) (∘κₒ-R {A} {B} {C} y')))
 
-    -- Where the external output map lands: on `M`'s domain port or on `N`'s
-    -- codomain port, never on a traced port, and relabelling the other end of
-    -- the composite does not touch it.
+    -- The external output ports are disjoint from the traced ones.
     tιₒ-inj : ∀ {A B C} (o o' : outType (A ⊗ᵀ C))
             → tιₒ {A} {C} {B} o ≡ tιₒ {A} {C} {B} o' → o ≡ o'
     tιₒ-inj (inj₁ _) (inj₁ _) e = cong inj₁ (inj₁-inj (inj₁-inj e))
@@ -474,9 +431,9 @@ opaque
     tιₒ-R h (inj₂ _) (inj₂ _) e = cong inj₂ (inj₁-inj (inj₂-inj e))
 
   -- ------------------------------------------------------------------------
-  -- The routing squares.  Inside the `Pair`, relabelling `N`'s codomain is a
-  -- sum map; at the traced machine's channel it is `wcₒ⁺`; past the trace it
-  -- is `cdₒ⁺`.  The input side is `cod-routeᵢ`/`cod-outᵢ` from `Collapse`.
+  -- Inside the `Pair`, relabelling `N`'s codomain is a sum map; at the traced
+  -- machine's channel it is `wcₒ⁺`; past the trace it is `cdₒ⁺`.  The input
+  -- side is `cod-routeᵢ`/`cod-outᵢ` from `Collapse`.
   -- ------------------------------------------------------------------------
 
   cod-route⁺ₒ : ∀ {A B C C'} (vC : inType C → inType C')
@@ -521,7 +478,6 @@ opaque
   cod-out⁺ₒ vC (inj₂ _) = refl
 
   private
-    -- Only external ports map to external ports under `wcₒ⁺`.
     cod-out-pre : ∀ {A B C C'} (vC : inType C → inType C')
                   (o₀ : outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B)))
                   (o : outType (A ⊗ᵀ C'))
@@ -536,7 +492,6 @@ opaque
     cod-out-pre vC (inj₂ (inj₂ _)) (inj₁ _) e = inj₁≢inj₂ (sym e)
     cod-out-pre vC (inj₂ (inj₂ _)) (inj₂ _) e = inj₁≢inj₂ (sym (inj₂-inj e))
 
-    -- `wcₒ⁺` fixes the traced ports, and nothing else lands on them.
     wc-dZₒ : ∀ {A B C C'} (vC : inType C → inType C')
              (o : outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))) z
            → wcₒ⁺ {A} {B} {C} {C'} vC o ≡ dZₒ {A} {C'} {B} z → o ≡ dZₒ {A} {C} {B} z
@@ -557,7 +512,6 @@ opaque
   -- The collapse, step by step, in the order of `∘-collapse-cod`.
   -- ------------------------------------------------------------------------
 
-  -- Sliding the relabelling out of the `Pair`.
   cod-pairP : ∀ {A B C C'} (M : Machine A B) (N : Machine B C)
               (uC : outType C' → outType C)
               (vC : inType C → inType C')
@@ -589,7 +543,6 @@ opaque
                 (cod-routeᵢ {A} {B} {C} {C'} uC) (cod-route⁺ₒ {A} {B} {C} {C'} vC)
                 (cod-pre {A} {B} {C} {C'} vC))
 
-  -- Through the trace.
   cod-trcP : ∀ {A B C C'} (M : Machine A B) (N : Machine B C)
              (uC : outType C' → outType C)
              (vC : inType C → inType C')
@@ -681,7 +634,7 @@ opaque
   -- `Post` of `CC.id` through this bridge gives the two ways to read it as a
   -- reindexed identity: either fix the codomain and relabel the domain, or fix
   -- the domain and relabel the codomain.  Each orientation keeps one of `f`,
-  -- `g` verbatim, and so needs the other to be invertible — a crossing
+  -- `g` verbatim, and so needs the other to be invertible; a crossing
   -- forwarder with a non-invertible backward map is genuinely not `CC.id` in
   -- disguise.
   -- ------------------------------------------------------------------------
@@ -753,8 +706,6 @@ opaque
   -- ------------------------------------------------------------------------
 
   private
-    -- Step views: a step on a first-component port is a step of `M` with
-    -- `N`'s state untouched, and symmetrically.
     step-L : ∀ {A B C} (M : Machine A B) (N : Machine B C) {S S' : Machine.State (Core M N)}
              (x : inType (A ⊗ᵀ B)) (O : Maybe (outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))))
            → Machine.stepRel (Core M N) S (Lᵢ {A} {B} {C} x) O S'
@@ -793,8 +744,6 @@ opaque
                     (∘κₒ-R⁻ {A} {B} {C}) O mo yeq
         , steq
 
-    -- Relay-hop views: a forwarder component moves no state and emits `φ`
-    -- of its input, on its own ports.
     hop-L : ∀ {A B C} (φ : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B)) (N : Machine B C)
             {S S' : Machine.State (Core (Fwd φ) N)}
             (x : inType (A ⊗ᵀ B)) (O : Maybe (outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))))
@@ -813,7 +762,6 @@ opaque
       let (mo , q , Oeq , st) = step-R M (Fwd φ) j O p
       in st , trans Oeq (cong (mapᴹ (Rₒ {A} {B} {C})) (sym q))
 
-    -- Step builders, the converses.
     mk-L : ∀ {A B C} (M : Machine A B) (N : Machine B C)
            {s s' : Machine.State M} (u : Machine.State N)
            (x : inType (A ⊗ᵀ B)) (mo : Maybe (outType (A ⊗ᵀ B)))
@@ -851,12 +799,10 @@ opaque
     mk-hop-R M φ s j = mk-R M (Fwd φ) s j (just (φ j)) refl
 
   -- ------------------------------------------------------------------------
-  -- Forwarder in the second component: the traced normal form of
-  -- `Xfwd f g CC.∘ M` is `M` with its codomain relabelled, contravariantly
-  -- by `g` on inputs and covariantly by `f` on outputs.  Every chain is one
-  -- `M`-step, preceded by a relay hop iff the input arrived on `C` (it
-  -- reaches `M` as `g co`) and followed by one iff `M` emitted on `B` (it
-  -- leaves as `f b`).  States are `State M × ⊤` against `State M`.
+  -- Forwarder in the second component.  Every chain is one `M`-step,
+  -- preceded by a relay hop iff the input arrived on `C` (it reaches `M` as
+  -- `g co`) and followed by one iff `M` emitted on `B` (it leaves as `f b`).
+  -- States are `State M × ⊤` against `State M`.
   -- ------------------------------------------------------------------------
 
   Trc-relay-cod : ∀ {A B C} (M : Machine A B)
@@ -888,8 +834,8 @@ opaque
     PostStep : Machine.State M → Iᴹ → Oᵗ → Machine.State M → Type
     PostStep s mᵢ o s' = ∃ λ o₀ → Machine.stepRel M s mᵢ o₀ s' × mapᴹ (cdₒ⁺ {A} {B} {C} f) o₀ ≡ o
 
-    -- ---- Relay hop out.  Once `M`'s output has reached the forwarder on
-    -- `B`, the chain ends with the hop that leaves on `C` as `f b`.
+    -- Once `M`'s output has reached the forwarder on `B`, the chain ends
+    -- with the hop that leaves on `C` as `f b`.
     hop-out : ∀ {sp sp' : S} (b : inType B) (o : Oᵗ)
             → TraceRel W sp (dZᵢ {A} {C} {B} b) (mapᴹ (tιₒ {A} {C} {B}) o) sp'
             → (proj₁ sp' ≡ proj₁ sp) × (o ≡ just (inj₂ (f b)))
@@ -904,8 +850,8 @@ opaque
       let (_ , Oeq) = hop-R M (Xφ f g) (inj₁ b) _ x
       in Lₒ≢Rₒ {A} {B} {C} (inj₂ zc) (inj₂ (f b)) (just-inj Oeq)
 
-    -- ---- Chain inversion, from the step at which `M` reads its input: `M`
-    -- ends the chain unless it emits on `B`, and then the relay hop does.
+    -- Chain inversion, from the step at which `M` reads its input: `M` ends
+    -- the chain unless it emits on `B`, and then the relay hop does.
     M-first : ∀ {sp sp' : S} (mᵢ : Iᴹ) (o : Oᵗ)
             → TraceRel W sp (Lᵢ {A} {B} {C} mᵢ) (mapᴹ (tιₒ {A} {C} {B}) o) sp'
             → PostStep (proj₁ sp) mᵢ o (proj₁ sp')
@@ -926,8 +872,8 @@ opaque
                 (trans moeq (cong just (Lₒ-inj {A} {B} {C} y (inj₂ zc) Ly))) (sym st) q
        , sym oeq
 
-    -- ---- Chain inversion, from the external input: on `A` it is `M`'s at
-    -- once; on `C` it is relayed onto the trace as `g co` first.
+    -- Chain inversion, from the external input: on `A` it is `M`'s at once;
+    -- on `C` it is relayed onto the trace as `g co` first.
     chain : ∀ {sp sp' : S} (i : Iᵗ) (o : Oᵗ)
           → TraceRel W sp (tιᵢ {A} {C} {B} i) (mapᴹ (tιₒ {A} {C} {B}) o) sp'
           → PostStep (proj₁ sp) (cdᵢ {A} {B} {C} g i) o (proj₁ sp')
@@ -947,7 +893,7 @@ opaque
       let (_ , Oeq) = hop-R M (Xφ f g) (inj₂ co) _ x
       in Lₒ≢Rₒ {A} {B} {C} (inj₂ zc) (inj₁ (g co)) (just-inj Oeq)
 
-    -- ---- Chain builder, from `M`'s step: nothing more unless `M` emitted on
+    -- Chain builder, from `M`'s step: nothing more unless `M` emitted on
     -- `B`, and then the relay hop out on `C`.
     M-chain : ∀ {s s' : Machine.State M} (mᵢ : Iᴹ) (o₀ : Oᴹ) → Machine.stepRel M s mᵢ o₀ s'
             → TraceRel W (s , tt) (Lᵢ {A} {B} {C} mᵢ)
@@ -958,8 +904,8 @@ opaque
       _Trace∷ᵢ_ {inC = b} (mk-L M N tt mᵢ (just (inj₂ b)) x)
                           Trace[ mk-hop-R M (Xφ f g) s' (inj₁ b) ]
 
-    -- ---- Chain builder, from the external input: on `C`, the relay hop onto
-    -- the trace comes first.
+    -- Chain builder, from the external input: on `C`, the relay hop onto the
+    -- trace comes first.
     build : ∀ {s s' : Machine.State M} (i : Iᵗ) (o₀ : Oᴹ)
           → Machine.stepRel M s (cdᵢ {A} {B} {C} g i) o₀ s'
           → TraceRel W (s , tt) (tιᵢ {A} {C} {B} i)
@@ -969,12 +915,10 @@ opaque
       _Trace∷ₒ_ {outC = g co} (mk-hop-R M (Xφ f g) s (inj₂ co)) (M-chain (inj₂ (g co)) o₀ x)
 
   -- ------------------------------------------------------------------------
-  -- Forwarder in the first component: the traced normal form of
-  -- `N CC.∘ Xfwd f g` is `N` with its domain relabelled, contravariantly by
-  -- `f` on inputs and covariantly by `g` on outputs.  Every chain is one
-  -- `N`-step, preceded by a relay hop iff the input arrived on `A` (it
-  -- reaches `N` as `f a`) and followed by one iff `N` emitted on `B` (it
-  -- leaves as `g bo`).  States are `⊤ × State N` against `State N`.
+  -- Forwarder in the first component.  Every chain is one `N`-step, preceded
+  -- by a relay hop iff the input arrived on `A` (it reaches `N` as `f a`) and
+  -- followed by one iff `N` emitted on `B` (it leaves as `g bo`).  States are
+  -- `⊤ × State N` against `State N`.
   -- ------------------------------------------------------------------------
 
   Trc-relay-dom : ∀ {A B C} (f : inType A → inType B)
@@ -1005,8 +949,8 @@ opaque
     PostStep : Machine.State N → Iᴺ → Oᵗ → Machine.State N → Type
     PostStep s j o s' = ∃ λ o₀ → Machine.stepRel N s j o₀ s' × mapᴹ (dmₒ⁺ {B} {A} {C} g) o₀ ≡ o
 
-    -- ---- Relay hop out.  Once `N`'s output has reached the forwarder on
-    -- `B`, the chain ends with the hop that leaves on `A` as `g bo`.
+    -- Once `N`'s output has reached the forwarder on `B`, the chain ends
+    -- with the hop that leaves on `A` as `g bo`.
     hop-out : ∀ {sp sp' : S} (bo : outType B) (o : Oᵗ)
             → TraceRel W sp (cZₒ {A} {C} {B} bo) (mapᴹ (tιₒ {A} {C} {B}) o) sp'
             → (proj₂ sp' ≡ proj₂ sp) × (o ≡ just (inj₁ (g bo)))
@@ -1021,8 +965,8 @@ opaque
       let (_ , Oeq) = hop-L (Xφ f g) N (inj₂ bo) _ x
       in inj₁≢inj₂ (sym (Lₒ-inj {A} {B} {C} (inj₂ zc) (inj₁ (g bo)) (just-inj Oeq)))
 
-    -- ---- Chain inversion, from the step at which `N` reads its input: `N`
-    -- ends the chain unless it emits on `B`, and then the relay hop does.
+    -- Chain inversion, from the step at which `N` reads its input: `N` ends
+    -- the chain unless it emits on `B`, and then the relay hop does.
     N-first : ∀ {sp sp' : S} (j : Iᴺ) (o : Oᵗ)
             → TraceRel W sp (Rᵢ {A} {B} {C} j) (mapᴹ (tιₒ {A} {C} {B}) o) sp'
             → PostStep (proj₂ sp) j o (proj₂ sp')
@@ -1043,8 +987,8 @@ opaque
           (y , _ , Ry)       = mapᴹ-just (Rₒ {A} {B} {C}) mo _ (sym Oeq)
       in Lₒ≢Rₒ {A} {B} {C} (inj₂ zc) y (sym Ry)
 
-    -- ---- Chain inversion, from the external input: on `C` it is `N`'s at
-    -- once; on `A` it is relayed onto the trace as `f a` first.
+    -- Chain inversion, from the external input: on `C` it is `N`'s at once;
+    -- on `A` it is relayed onto the trace as `f a` first.
     chain : ∀ {sp sp' : S} (i : Iᵗ) (o : Oᵗ)
           → TraceRel W sp (tιᵢ {A} {C} {B} i) (mapᴹ (tιₒ {A} {C} {B}) o) sp'
           → PostStep (proj₂ sp) (dmᵢ {B} {A} {C} f i) o (proj₂ sp')
@@ -1064,7 +1008,7 @@ opaque
                 (inj₂-inj (Lₒ-inj {A} {B} {C} (inj₂ zc) (inj₂ (f a)) (just-inj Oeq))) q
        , e
 
-    -- ---- Chain builder, from `N`'s step: nothing more unless `N` emitted on
+    -- Chain builder, from `N`'s step: nothing more unless `N` emitted on
     -- `B`, and then the relay hop out on `A`.
     N-chain : ∀ {s s' : Machine.State N} (j : Iᴺ) (o₀ : Oᴺ) → Machine.stepRel N s j o₀ s'
             → TraceRel W (tt , s) (Rᵢ {A} {B} {C} j)
@@ -1075,8 +1019,8 @@ opaque
       _Trace∷ₒ_ {outC = bo} (mk-R M N tt j (just (inj₁ bo)) x)
                             Trace[ mk-hop-L (Xφ f g) N s' (inj₂ bo) ]
 
-    -- ---- Chain builder, from the external input: on `A`, the relay hop onto
-    -- the trace comes first.
+    -- Chain builder, from the external input: on `A`, the relay hop onto the
+    -- trace comes first.
     build : ∀ {s s' : Machine.State N} (i : Iᵗ) (o₀ : Oᴺ)
           → Machine.stepRel N s (dmᵢ {B} {A} {C} f i) o₀ s'
           → TraceRel W (tt , s) (tιᵢ {A} {C} {B} i)
@@ -1084,10 +1028,6 @@ opaque
     build (inj₂ co) o₀ x = N-chain (inj₂ co) o₀ x
     build {s} (inj₁ a) o₀ x =
       _Trace∷ᵢ_ {inC = f a} (mk-hop-L (Xφ f g) N s (inj₁ a)) (N-chain (inj₁ (f a)) o₀ x)
-
-  -- ------------------------------------------------------------------------
-  -- Composing with a crossing forwarder, on either side, is a `Post`.
-  -- ------------------------------------------------------------------------
 
   Xfwd-∘-Post : ∀ {A B C} (M : Machine A B)
                 (f : inType B → inType C)

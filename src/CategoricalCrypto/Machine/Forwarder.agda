@@ -3,31 +3,17 @@
 -- ============================================================================
 -- Forwarders: the stateless, total, deterministic machines.
 --
--- `TotalFunctionMachine'` builds a machine whose state is `⊤` and whose step
--- relation is a function: on input `i` it emits `just (φ i)`, always.  Every
--- structural machine of `Machine.Core` — `ρ⇒`, `λ⇒`, `σ`, `α⇒`, `α⇐`,
--- `mid4`, `absorb-regroup`, `∘ᴷ-fwd`, `⊗ᴷ-fwd` — is one, and so are `CC.id`
--- and `idᴷ`.
+-- They are closed under the three machine builders, `_⊗₁_` (`⊗₁-Fwd`),
+-- `modifyStepRel` (`modifyStepRel-Fwd`) and `_∘_` (`∘-Xfwd`), with the
+-- composite forwarder computed explicitly in each case, so an equation
+-- between two composites of forwarders reduces to a pointwise equation
+-- between two message-level functions, a finite case split closed by `refl`.
 --
--- The point of this module is that forwarders are CLOSED under the three
--- machine builders: `_⊗₁_` (`⊗₁-Xfwd`), `modifyStepRel` (`modifyStepRel-Fwd`)
--- and `_∘_` (`∘-Xfwd`), with the composite forwarder computed explicitly in
--- each case.  An equation between two composites of forwarders therefore
--- reduces to a pointwise equation between two message-level functions, which
--- is a finite case split closed by `refl`.
---
--- That is what proves the forwarder laws `CategoricalCrypto.Machine.NAry` needs
--- (`ρ-∘ᴷ-fwd`, `ρ-idᴷ`, `λ-zip-idᴷ`) and the identity part `⊗₁-id` of the
--- tensor's functoriality.
---
--- The hard case is `_∘_`, because it traces: a message bounces between the two
--- copies of the shared channel until it lands on an external port.  `Run`
--- below is that bouncing, `tr-Fwd` turns a total and deterministic `Run` into
--- a forwarder, and `∘-Xfwd` instantiates it — a crossing forwarder always
--- converges in exactly two hops.
---
+-- `_∘_` is the hard case because it traces: a message bounces between the
+-- two copies of the shared channel until it lands on an external port.  `Run`
+-- below is that bouncing, `tr-Fwd` turns a total deterministic `Run` into a
+-- forwarder, and a crossing forwarder always converges in exactly two hops.
 -- ============================================================================
-
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
 import Data.Sum.Base as ⊎
@@ -46,7 +32,8 @@ open Channel
 
 open _≅ᴹ_
 
--- Congruences for the two machine builders `_∘_` is made of.  Both are
+-- `_∘_` is `tr` of a `modifyStepRel` of a `_⊗₁_`; these are the congruences
+-- for the first two, the third being `⊗₁-resp-≅ᴹ` in `Machine.Iso`.  Both are
 -- `Machine.Reindex`'s congruences for its primitives, read off through the
 -- identities `modifyStepRel-Reindex` and `tr-named`, which hold by `refl`:
 -- `modifyStepRel p` IS `Reindex` with the same map at both modes, and `tr` IS
@@ -66,12 +53,10 @@ tr-resp-≅ᴹ {C = C} φ =
 Fwd : ∀ {A B} → (inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B)) → Machine A B
 Fwd φ = MkMachine {State = ⊤} (λ _ i o _ → just (φ i) ≡ o)
 
--- Every `TotalFunctionMachine` is one, definitionally.
 tfm-is-Fwd : ∀ {A B} (p : (A ⊗ᵀ B) [ In ]⇒[ Out ] (A ⊗ᵀ B))
            → TotalFunctionMachine {A} {B} p ≡ Fwd (app p)
 tfm-is-Fwd _ = refl
 
--- Pointwise-equal forwarders are isomorphic.
 Fwd-≅ᴹ : ∀ {A B} {φ ψ : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B)}
        → (∀ x → φ x ≡ ψ x) → Fwd φ ≅ᴹ Fwd ψ
 Fwd-≅ᴹ {φ = φ} {ψ} eq = MkIso _ _ (λ _ → refl) (λ _ → refl)
@@ -99,8 +84,10 @@ modifyStepRel-Fwd {A} {B} {C} {D} p χ κ sq inj =
   f i _ refl = cong just (sym (sq i))
 
 -- The internal run of `tr`: a message bounces between the two copies of the
--- traced channel until it lands on an external port.  Stated over the raw
--- message sums, since a `data` declaration is not affected by `opaque`.
+-- traced channel until it lands on an external port.  It is stated over the
+-- raw message sums rather than the channel types because `_⊗₀_` does not
+-- unfold outside the `opaque` block below; `Runᶜ` instantiates it at the
+-- channels.
 data Run {aᵢ bₒ cᵢ cₒ aₒ bᵢ : Type}
          (κ : (aᵢ ⊎ cᵢ) ⊎ (bₒ ⊎ cₒ) → (aₒ ⊎ cₒ) ⊎ (bᵢ ⊎ cᵢ))
      : (aᵢ ⊎ cᵢ) ⊎ (bₒ ⊎ cₒ) → (aₒ ⊎ cₒ) ⊎ (bᵢ ⊎ cᵢ) → Type where
@@ -119,7 +106,6 @@ opaque
     tag₂ : ∀ {W X Y Z : Type} → Y ⊎ Z → (W ⊎ Y) ⊎ (X ⊎ Z)
     tag₂ = ⊎.map inj₂ inj₂
 
-  -- The forwarder underlying a tensor of two forwarders.
   ⊗Fwd : ∀ {A B C D}
        → (inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B))
        → (inType (C ⊗ᵀ D) → outType (C ⊗ᵀ D))
@@ -137,7 +123,7 @@ opaque
               {s s'} (i : inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D)))
               (o : Maybe (outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D))))
             → Machine.stepRel (Fwd φ ⊗₁ Fwd ψ) s i o s' → just (⊗Fwd φ ψ i) ≡ o
-    -- ── left column (A-in, B-out): only `Step₁` can fire ──
+    -- On the first component's ports, only `Step₁` can fire.
     ⊗Fwd-to φ ψ (inj₁ (inj₁ a)) o p with comp-view p
     ... | inj₂ (_ , _ , xeq , _) = inj₁≢inj₂ xeq
     ⊗Fwd-to φ ψ (inj₁ (inj₁ a)) (just (inj₁ (inj₁ ao))) p | inj₁ (_ , just w , xeq , yeq , _ , q)
@@ -168,7 +154,7 @@ opaque
     ⊗Fwd-to φ ψ (inj₂ (inj₁ b)) (just _) p | inj₁ (_ , nothing , xeq , () , _ , q)
     ⊗Fwd-to φ ψ (inj₂ (inj₁ b)) nothing  p | inj₁ (_ , just w , xeq , () , _ , q)
     ⊗Fwd-to φ ψ (inj₂ (inj₁ b)) nothing  p | inj₁ (_ , nothing , xeq , yeq , _ , ())
-    -- ── right column (C-in, D-out): only `Step₂` can fire ──
+    -- On the second component's ports, only `Step₂` can fire.
     ⊗Fwd-to φ ψ (inj₁ (inj₂ c)) o p with comp-view p
     ... | inj₁ (_ , _ , xeq , _) = inj₁≢inj₂ (sym xeq)
     ⊗Fwd-to φ ψ (inj₁ (inj₂ c)) (just (inj₁ (inj₂ co))) p | inj₂ (_ , just w , xeq , yeq , _ , q)
@@ -219,7 +205,6 @@ opaque
     ... | inj₁ co = Tensor.Step₂ (cong just eq)
     ... | inj₂ di = Tensor.Step₂ (cong just eq)
 
-  -- A tensor of forwarders is a forwarder.
   ⊗₁-Fwd : ∀ {A B C D} {φ : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B)}
                        {ψ : inType (C ⊗ᵀ D) → outType (C ⊗ᵀ D)}
          → (Fwd φ ⊗₁ Fwd ψ) ≅ᴹ Fwd (⊗Fwd φ ψ)
@@ -227,16 +212,11 @@ opaque
     (λ {_} {i} {o} p → ⊗Fwd-to φ ψ i o p)
     (λ {_} {i} {o} p → ⊗Fwd-from φ ψ i o p)
 
-  -- `_⊗₁_` preserves the identity.
   ⊗₁-id : ∀ {A B} → (CC.id {A} ⊗₁ CC.id {B}) ≅ᴹ CC.id {A ⊗₀ B}
   ⊗₁-id = ≅ᴹ-trans ⊗₁-Fwd (Fwd-≅ᴹ λ { (inj₁ (inj₁ a)) → refl
                                      ; (inj₁ (inj₂ c)) → refl
                                      ; (inj₂ (inj₁ b)) → refl
                                      ; (inj₂ (inj₂ d)) → refl })
-
-  -- ══════════════════════════════════════════════════════════════════════
-  -- Tracing a forwarder.
-  -- ══════════════════════════════════════════════════════════════════════
 
   -- `Run` at the channel-shaped indices (all six type arguments pinned, so that
   -- nothing has to be inverted through `_⊗₀_`).
@@ -291,7 +271,6 @@ opaque
     tr-unfold κ (inj₂ bo) (just (inj₂ bi)) = refl
     tr-unfold κ (inj₂ bo) nothing          = refl
 
-  -- Tracing a forwarder yields the forwarder that runs it to an external port.
   tr-Fwd : ∀ {A B C : Channel}
              {κ : inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
                 → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))}
@@ -312,10 +291,6 @@ opaque
     ... | v , () , r
     f : ∀ i o → just (κ° i) ≡ o → TraceRel (Fwd κ) tt (ιₜ {A} {B} {C} i) (mapᴹ (εₜ {A} {B} {C}) o) tt
     f i _ refl = Run→Trace (total i)
-
-  -- ══════════════════════════════════════════════════════════════════════
-  -- Crossing forwarders, and their composition.
-  -- ══════════════════════════════════════════════════════════════════════
 
   -- The forwarder that relays every domain input to the codomain and back.
   -- This is exactly what `TotalFunctionMachine'` builds.
@@ -403,9 +378,8 @@ opaque
     ∘uniq f₁ g₁ f₂ g₂ (inj₂ co) (inj₂ ci) (goₒ refl (goₒ () _))
     ∘uniq f₁ g₁ f₂ g₂ (inj₂ co) (inj₂ ci) (goₒ refl (goᵢ () _))
 
-  -- Crossing forwarders compose, and the composite is the obvious one: forward
-  -- maps compose in order, backward maps in the other.  Everything below is a
-  -- corollary of this together with `⊗₁-Xfwd`.
+  -- `ρ-∘ᴷ-fwd` and `ρ-idᴷ` below are corollaries of this together with
+  -- `⊗₁-Xfwd`.
   ∘-Xfwd : ∀ {A B C}
            {f₁ : inType A → inType B} {g₁ : outType B → outType A}
            {f₂ : inType B → inType C} {g₂ : outType C → outType B}
@@ -416,7 +390,6 @@ opaque
                                                       (∘sq f₁ g₁ f₂ g₂) ∘σ-inj)))
              (tr-Fwd (∘total f₁ g₁ f₂ g₂) (∘uniq f₁ g₁ f₂ g₂))
 
-  -- A tensor of crossing forwarders is a crossing forwarder.
   ⊗mapᵢ : ∀ {A B C D} → (inType A → inType B)
                       → (inType C → inType D)
         → inType (A ⊗₀ C) → inType (B ⊗₀ D)
@@ -441,11 +414,6 @@ opaque
           → (∀ a → f a ≡ f' a) → (∀ o → g o ≡ g' o) → Xfwd f g ≅ᴹ Xfwd f' g'
   Xfwd-≅ᴹ ef eg = Fwd-≅ᴹ λ { (inj₁ a) → cong inj₂ (ef a) ; (inj₂ bo) → cong inj₁ (eg bo) }
 
-  -- ══════════════════════════════════════════════════════════════════════
-  -- `ρ-∘ᴷ-fwd`, discharged.  Both sides are composites of forwarders, so both
-  -- reduce to a single `Xfwd` and the equation becomes two pointwise ones.
-  -- ══════════════════════════════════════════════════════════════════════
-
   ρ∘ᴷ-rhs : ∀ {C E₁} → (ρ⇒ {C} ⊗₁ CC.id {E₁})
            ≅ᴹ Xfwd (⊗mapᵢ (app (⊗-right-neutral {In} {C})) (λ (x : inType E₁) → x))
                    (⊗mapₒ (app (⊗-right-intro {Out} {C} {I})) (λ (x : outType E₁) → x))
@@ -469,10 +437,6 @@ opaque
       (≅ᴹ-trans (Xfwd-≅ᴹ (λ { (inj₁ (inj₁ _)) → refl ; (inj₁ (inj₂ ())) ; (inj₂ _) → refl })
                          (λ { (inj₁ _) → refl ; (inj₂ _) → refl }))
                 (≅ᴹ-sym ρ∘ᴷ-rhs))
-
-  -- ══════════════════════════════════════════════════════════════════════
-  -- `ρ-idᴷ`, discharged.
-  -- ══════════════════════════════════════════════════════════════════════
 
   idᴷ-f : ∀ {A} → inType A → inType (A ⊗₀ I)
   idᴷ-f a = inj₁ a
@@ -514,11 +478,6 @@ opaque
       (≅ᴹ-trans ∘-Xfwd
         (≅ᴹ-trans (Xfwd-≅ᴹ (λ _ → refl) (λ _ → refl)) (≅ᴹ-sym id-is-Xfwd)))
 
-  -- ══════════════════════════════════════════════════════════════════════
-  -- `λ-zip-idᴷ`, discharged.  Every port of the channels involved is `I`,
-  -- so the machines have no possible input and only the states must match.
-  -- ══════════════════════════════════════════════════════════════════════
-
   no-input-≅ᴹ : ∀ {A B} {M N : Machine A B}
     (t : Machine.State M → Machine.State N) (f : Machine.State N → Machine.State M)
     → (∀ s → f (t s) ≡ s) → (∀ s → t (f s) ≡ s)
@@ -527,6 +486,8 @@ opaque
   no-input-≅ᴹ t f p q ni =
     MkIso t f p q (λ {_} {i} _ → ⊥-elim (ni i)) (λ {_} {i} _ → ⊥-elim (ni i))
 
+  -- Every port of the channels involved is `I`, so the machines have no
+  -- possible input and only the states must match.
   λ-zip-idᴷ : ((CC.id {I} ⊗₁ λ⇒ {I}) CC.∘ (idᴷ {I} ∘ᴷ idᴷ {I})) ≅ᴹ idᴷ {I}
   λ-zip-idᴷ = no-input-≅ᴹ _ _ (λ _ → refl) (λ _ → refl)
     λ { (inj₁ ()) ; (inj₂ (inj₁ ())) ; (inj₂ (inj₂ ())) }

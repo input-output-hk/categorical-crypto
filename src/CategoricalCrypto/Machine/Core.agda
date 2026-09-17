@@ -10,9 +10,6 @@ open import CategoricalCrypto.Channel.Selection
 open import Relation.Binary.PropositionalEquality.Properties
 open import Tactic.Defaults
 
--- --------------------------------------------------------------------------------
--- -- Machines, which form the morphisms
-
 machine-type : Type → Channel → Type₁
 machine-type S A = let open Channel A in S → inType → Maybe outType → S → Type
 
@@ -31,8 +28,6 @@ record Machine (A B : Channel) : Type₁ where
     {State} : Type
     stepRel : machine-type State machine-channel
 
--- This module exposes various ways of building machines
--- TODO: all of these are functors from the appropriate categories
 module _ {A B : Channel} (let open Channel (A ⊗ᵀ B)) where
 
   StatelessMachine      : (inType → Maybe outType → Type)          → Machine A B
@@ -52,16 +47,16 @@ module _ {A B : Channel} (let open Channel (A ⊗ᵀ B)) where
 id : ∀ {A} → Machine A A
 id = TotalFunctionMachine' ⇒-solver ⇒-solver
 
--- given transformation on the channels, transform the machine
 modifyStepRel : ∀ {A B C D} → (∀ {m} → C ⊗₀ D ᵀ [ m ]⇒[ m ] A ⊗₀ B ᵀ) → Machine A B → Machine C D
 modifyStepRel p (MkMachine stepRel) = MkMachine $ \s m m' s' → stepRel s (app {mᵢ = In} p m) (app {mₒ = Out} p <$> m') s'
 
 -- The channel reshuffles inside `_⊗₁_`, `_∘_`, `_∣ˡ`, `_∣^ˡ`, `_∘ᴷ_` and `_⊗ᴷ_`
--- are NAMED (`⊗σ`, `∘σ`, …) and the builders below are defined in terms of the
--- names.  Nothing changes definitionally, since each name is exactly the
--- `⇒-solver` term that used to sit inline; what it buys is that proofs about
--- the builders (`Machine.Reindex`, `Machine.Monoidal`) can refer to the
--- reshuffles without re-running the solver and relying on its determinism.
+-- are NAMED (`⊗σ`, `∘σ`, …) rather than written inline, and so are the two
+-- halves of each structural forwarder (`⊗-assocᵢ`/`⊗-assocₒ`, `∘ᴷ-fwdᵢ`/
+-- `∘ᴷ-fwdₒ`, …).  Proofs about the builders (`Machine.Reindex`,
+-- `Machine.Monoidal`) can then refer to a reshuffle, or read a forwarder off
+-- its halves, without re-running `⇒-solver` and relying on it returning the
+-- same term twice.
 
 ⊗σ : ∀ {A B C D m} → (A ⊗₀ C) ⊗₀ (B ⊗₀ D) ᵀ [ m ]⇒[ m ] (A ⊗₀ B ᵀ) ⊗₀ ((C ⊗₀ D ᵀ) ᵀ) ᵀ
 ⊗σ = ⇒-solver
@@ -142,11 +137,6 @@ _∣^ʳ = modifyStepRel ⇒-solver
 liftᴷ : ∀ {A B E} → Machine A B → Machine A (B ⊗₀ E)
 liftᴷ {E = E} M = (M ⊗ʳ E) ∣ˡ
 
--- trace monoidal category?
--- What happens when you compose with a trace ?
--- Product of the traces ?
--- The regular composition "eats" messages
--- Trace: input-output behavior of the machines, list of messages
 module _ {A B C} (M : Machine (A ⊗₀ C) (B ⊗₀ C)) (let open Machine M) where
 
   data TraceRel : machine-type State ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C)) where
@@ -172,8 +162,6 @@ infixr 9 _∘_
 _∘_ : ∀ {B C A} → Machine B C → Machine A B → Machine A C
 _∘_ {B} M₁ M₂ = tr {C = B} $ modifyStepRel ∘σ (M₂ ⊗₁ M₁)
 
--- The two halves of each structural forwarder are named, like `∘ᴷ-fwd`'s
--- below, so that `Machine.Monoidal.*` can read the forwarder off them.
 ⊗-assocᵢ : ∀ {A B C} → ((A ⊗₀ B) ⊗₀ C) [ In ]⇒[ In ] (A ⊗₀ (B ⊗₀ C))
 ⊗-assocᵢ = ⇒-solver
 
@@ -201,7 +189,6 @@ _∘_ {B} M₁ M₂ = tr {C = B} $ modifyStepRel ∘σ (M₂ ⊗₁ M₁)
 ⊗-symₘ : ∀ {A B} → Machine (A ⊗₀ B) (B ⊗₀ A)
 ⊗-symₘ = TotalFunctionMachine' ⊗-symᵢ ⊗-symₒ
 
--- The unitors.
 ρ⇒ : ∀ {A} → Machine (A ⊗₀ I) A
 ρ⇒ = TotalFunctionMachine' ⊗-right-neutral ⊗-right-intro
 
@@ -214,9 +201,6 @@ _∘_ {B} M₁ M₂ = tr {C = B} $ modifyStepRel ∘σ (M₂ ⊗₁ M₁)
 λ⇐ : ∀ {A} → Machine A (I ⊗₀ A)
 λ⇐ = TotalFunctionMachine' ⊗-left-intro ⊗-left-neutral
 
--- The middle-four interchange on channels, and the reassociator of `_∘ᴷ_`
--- (see `Machine.Monoidal`).  Both halves of each are named, for the reason
--- given at `⊗σ`.
 mid4σᵢ : ∀ {P Q R S} → ((P ⊗₀ Q) ⊗₀ (R ⊗₀ S)) [ In ]⇒[ In ] ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S))
 mid4σᵢ = ⇒-solver
 
@@ -241,18 +225,10 @@ idᴷ = liftᴷ id
 transpose : ∀ {A B} → Machine A B → Machine (B ᵀ) (A ᵀ)
 transpose = modifyStepRel ⇒-solver
  
--- cup : Machine I (A ⊗ A ᵀ)
--- cup = StatelessMachine λ x x₁ → {!!}
-
--- cap : Machine (A ᵀ ⊗ A) I
--- cap {A} = modifyStepRel ⇒-solver (transpose (cup {A})) {!!} {!!}
-
 ⨂₁ : ∀ {n} → {A B : Fin n → Channel} → ((k : Fin n) → Machine (A k) (B k)) → Machine (⨂ A) (⨂ B)
 ⨂₁ {zero} M = id
 ⨂₁ {suc n} M = M fzero ⊗₁ ⨂₁ (M P.∘ fsuc)
 
-
--- The shuffles inside the Kleisli composition and tensor.
 ∘ᴷ-fwdᵢ : ∀ {C E₁ E₂} → ((C ⊗₀ E₂) ⊗₀ E₁) [ In ]⇒[ In ] (C ⊗₀ (E₁ ⊗₀ E₂))
 ∘ᴷ-fwdᵢ = ⇒-solver
 
@@ -331,18 +307,16 @@ Invariant-trans : {A B C D : Channel} → {M₁ : Machine A B} → {M₂ : Machi
   → (P : Machine.State M₁ → Type) → Invariant M₁ P → Invariant M₂ (P P.∘ state-subst (≡ᴹ-sym eq))
 Invariant-trans record { A≡C = refl ; B≡D = refl ; M₁≡M₂ = H.refl } P inv = inv
 
---------------------------------------------------------------------------------
 -- Environment model
 
 -- The verdict channel: environments output a Boolean and receive nothing.
 ℰ-Out : Channel
 ℰ-Out = record {inType = Bool ; outType = ⊥}
 
--- The environments at `C` are the machines from `C` into the verdict channel;
--- they act on machines by precomposition.  `Machine.Iso` compares machines
--- under all environments up to bisimulation (`_≅ℰ_`), and `Machine.UC`
--- instantiates the abstract UC layer at machines, so the UC relations
--- themselves (`_≤UC_`, `_≈ᵁ_`, …) live there.
+-- Environments act on machines by precomposition.  `Machine.Iso` compares
+-- machines under all environments (`_≅ℰ_`), each comparison a state
+-- isomorphism; `Machine.UC` instantiates the abstract UC layer at machines,
+-- and `_≤UC_` and `_≈ᵁ_` themselves are defined in that abstract layer.
 ℰ : Channel → Type₁
 ℰ C = Machine C ℰ-Out
 
