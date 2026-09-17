@@ -1,37 +1,19 @@
 {-# OPTIONS --safe #-}
 
 -- ============================================================================
--- `_⊗₁_` is a functor for the trace composition `_∘_`:
+-- The three primitives every machine builder here decomposes into, and the
+-- structural lemmas relating them:
 --
---     (g ∘ f) ⊗₁ (k ∘ h)  ≅ᴹ  (g ⊗₁ k) ∘ (f ⊗₁ h)
---
--- This was the last piece of genuinely categorical content assumed by
--- `CategoricalCrypto.Machine.NAry`, and the hard one: `_∘_` traces out the shared
--- channel, so the two sides are not obviously the same bisimulation.
---
--- The proof rests on an observation about where the difficulty actually is.
--- Every machine builder in sight is one of three things:
---
---   `Pair M₁ M₂`   — `Tensor.CompRel` as a machine, at its own raw indices;
---   `Trc M`        — `TraceRel M` as a machine, likewise;
+--   `Pair M₁ M₂`    — `Tensor.CompRel` as a machine, at its own raw indices;
+--   `Trc M`         — `TraceRel M` as a machine, likewise;
 --   `Reindex M u v` — `M` with its messages relabelled by `u` and `v`.
 --
--- `_⊗₁_`, `_∘_` and `modifyStepRel` are all composites of these, and
--- `Pair`/`Trc` carry FULLY GENERAL indices, so `CompRel`/`TraceRel`
--- constructors can be matched directly — none of the `SplitError.Unification
--- Stuck` grief that comes from matching them under a channel reshuffle.  All
--- the reshuffling is pushed into `Reindex`, where it is an ordinary function on
--- messages, and where it composes by `Reindex-fuse` and is compared by
--- `Reindex-cong`.
---
--- The structural lemmas here are the following:
---
---   `Pair-Reindex` — `Pair` commutes with `Reindex`;
---   `Pair-mid4`    — the middle-four interchange for `Pair` (pure re-tagging);
---   `Trc-Pair`     — tracing distributes over `Pair`.  The content: a trace
---                    chain cannot change column, because the port it continues
---                    at is a function of the port it emitted on.
---
+-- `_⊗₁_`, `_∘_`, `tr` and `modifyStepRel` are composites of the three, as
+-- `⊗₁-Reindex-Pair`, `∘-core`, `∘-Reindex`, `tr-Reindex` and
+-- `modifyStepRel-Reindex` state.  On top of the congruences and fusion for
+-- the primitives, the structural lemmas are `Pair-Reindex` (`Pair` commutes
+-- with `Reindex`), `Pair-mid4` (the middle-four interchange, pure re-tagging)
+-- and `Trc-Pair` (tracing distributes over `Pair`).
 -- ============================================================================
 
 
@@ -46,8 +28,8 @@ open import Tactic.Defaults
 
 module CategoricalCrypto.Machine.Reindex where
 
--- Re-exported: every module of this layer reaches `mapᴹ` and the constructor
--- lemmas through `Reindex`.
+-- Re-exported: `Reindex` is stated in terms of `mapᴹ`, so its clients get the
+-- message maps and their lemmas along with the API.
 open import CategoricalCrypto.Machine.Message public
 
 open Channel
@@ -75,20 +57,14 @@ Pair M₁ M₂ = MkMachine (Tensor.CompRel M₁ M₂)
 Trc : ∀ {A B C} (M : Machine (A ⊗₀ C) (B ⊗₀ C)) → Machine (A ⊗₀ C) (B ⊗₀ C)
 Trc M = MkMachine (TraceRel M)
 
--- `modifyStepRel` IS `Reindex` with the same map twice.
 modifyStepRel-Reindex : ∀ {A B C D} (p : ∀ {m} → C ⊗₀ D ᵀ [ m ]⇒[ m ] A ⊗₀ B ᵀ)
                         (M : Machine A B)
                       → modifyStepRel p M ≡ Reindex M (app (p {In})) (app (p {Out}))
 modifyStepRel-Reindex _ _ = refl
 
--- `_⊗₁_` is `Reindex` of `Pair`.
 ⊗₁-Reindex-Pair : ∀ {A B C D} (M₁ : Machine A B) (M₂ : Machine C D)
                 → (M₁ ⊗₁ M₂) ≡ Reindex (Pair M₁ M₂) (app (⊗σ {m = In})) (app (⊗σ {m = Out}))
 ⊗₁-Reindex-Pair _ _ = refl
-
--- ----------------------------------------------------------------------------
--- Congruences and fusion for the three primitives.
--- ----------------------------------------------------------------------------
 
 Reindex-resp-≅ᴹ : ∀ {A B C D} {M N : Machine A B}
                   (u : inType (C ⊗ᵀ D) → inType (A ⊗ᵀ B))
@@ -170,8 +146,6 @@ opaque
      → outType ((A  ⊗₀ B  ᵀ) ⊗ᵀ ((C  ⊗₀ D  ᵀ) ᵀ))
   ⊎ₒ = ⊎.map
 
-  -- `Pair` commutes with `Reindex`: the two component relabellings become one
-  -- sum map.
   Pair-Reindex : ∀ {A B C D A' B' C' D'}
                  (M₁ : Machine A B) (M₂ : Machine C D)
                  (u₁ : inType (A' ⊗ᵀ B') → inType (A ⊗ᵀ B))
@@ -197,7 +171,6 @@ opaque
       → Tensor.CompRel M₁ M₂ s (⊎ᵢ {A} {B} {C} {D} {A'} {B'} {C'} {D'} u₁ u₂ i)
                                (mapᴹ (⊎ₒ {A} {B} {C} {D} {A'} {B'} {C'} {D'} v₁ v₂) o) s'
       → Tensor.CompRel (Reindex M₁ u₁ v₁) (Reindex M₂ u₂ v₂) s i o s'
-    -- left component
     f (inj₁ x) (just (inj₁ w)) p with comp-view p
     ... | inj₂ (_ , _ , xeq , _) = inj₁≢inj₂ xeq
     ... | inj₁ (_ , nothing , _ , yeq , _ , _) = just≢nothing yeq
@@ -215,7 +188,6 @@ opaque
     ... | inj₂ (_ , _ , xeq , _) = inj₁≢inj₂ xeq
     ... | inj₁ (_ , nothing , _ , yeq , _ , _) = just≢nothing yeq
     ... | inj₁ (_ , just _ , _ , yeq , _ , _) = inj₁≢inj₂ (sym (just-inj yeq))
-    -- right component
     f (inj₂ y) (just (inj₂ z)) p with comp-view p
     ... | inj₁ (_ , _ , xeq , _) = inj₁≢inj₂ (sym xeq)
     ... | inj₂ (_ , nothing , _ , yeq , _ , _) = just≢nothing yeq
@@ -529,10 +501,9 @@ opaque
              (sym (trans (mapᴹ-∘ πₒ πₒ⁻₂ mo) (mapᴹ-cong πₒ-πₒ⁻₂ mo)))
              (Tensor.Step₂ {m = m} {m' = mo} p)
 
-  -- Every column-1 trace of `M₁` is a trace of the combined machine, and
-  -- likewise for column 2.  The ports line up by construction: `πₒ⁻₁` sends
-  -- `M₁`'s Z-output port to the combined Z-output port on the left, and `πᵢ⁻₁`
-  -- sends the port the chain continues at to the matching combined one.
+  -- The ports line up by construction: `πₒ⁻₁` sends `M₁`'s Z-output port to
+  -- the combined Z-output port on the left, and `πᵢ⁻₁` sends the port the
+  -- chain continues at to the matching combined one.
   trace₁ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : Channel}
            (M₁ : Machine (X₁ ⊗₀ Z₁) (Y₁ ⊗₀ Z₁)) (M₂ : Machine (X₂ ⊗₀ Z₂) (Y₂ ⊗₀ Z₂))
            {s₁ s₁' : Machine.State M₁} {s₂ : Machine.State M₂} {m mo}
@@ -595,11 +566,6 @@ opaque
                    (trans (mapᴹ-∘ (πₒ⁻ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂}) (ι₂ₒ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂}) mo)
                           (mapᴹ-cong (πₒ⁻-ι₂ₒ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂}) mo)))
 
-  -- The inversion: a trace of the combined machine that starts on a column-1
-  -- port is a trace of `M₁`, with `M₂`'s state untouched.  A `Trace∷ₒ`/`Trace∷ᵢ`
-  -- step continues at a port determined by the one it emitted on, and `πₒ`
-  -- sends the column-1 Z-ports to `M₁`'s — that is why the chain cannot leave
-  -- the column.
   trace₁⁻ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : Channel}
             (M₁ : Machine (X₁ ⊗₀ Z₁) (Y₁ ⊗₀ Z₁)) (M₂ : Machine (X₂ ⊗₀ Z₂) (Y₂ ⊗₀ Z₂))
             {S S' : Machine.State M₁ × Machine.State M₂} {I MO}
@@ -729,7 +695,6 @@ opaque
                                   (πₒ⁻₂ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂}) mo)
                           (mapᴹ-cong (πₒ-πₒ⁻₂ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂}) mo)))
 
-  -- Tracing distributes over `Pair`.
   Trc-Pair : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : Channel}
              (M₁ : Machine (X₁ ⊗₀ Z₁) (Y₁ ⊗₀ Z₁)) (M₂ : Machine (X₂ ⊗₀ Z₂) (Y₂ ⊗₀ Z₂))
            → Pair (Trc M₁) (Trc M₂)
@@ -767,10 +732,6 @@ opaque
       subst₂ (λ b S₀ → Tensor.CompRel (Trc M₁) (Trc M₂) S (inj₂ m) b S₀)
              (sym (outrec₂ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂} o mo oeq)) (cong (_, proj₂ S') (sym steq))
              (Tensor.Step₂ {m = m} {m' = mo} tr)
-
-  -- ------------------------------------------------------------------------
-  -- `tr` as a `Reindex` of `Trc`.
-  -- ------------------------------------------------------------------------
 
   tιᵢ : ∀ {A B C} → inType (A ⊗ᵀ B) → inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
   tιᵢ (inj₁ a)  = inj₁ (inj₁ a)
@@ -813,10 +774,6 @@ opaque
     step₂ = Reindex-cong (Trc M) uᵗ (tιᵢ {A} {B} {C}) vᵗ (tιₒ {A} {B} {C})
                          (λ { (inj₁ _) → refl ; (inj₂ _) → refl })
                          (λ { (inj₁ _) → refl ; (inj₂ _) → refl })
-
-  -- ------------------------------------------------------------------------
-  -- `_∘_` as a `Reindex` of a `Trc` of a `Reindex` of a `Pair`.
-  -- ------------------------------------------------------------------------
 
   ∘κᵢ : ∀ {A B C} → inType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
       → inType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ))

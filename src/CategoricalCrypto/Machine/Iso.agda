@@ -2,9 +2,8 @@
 
 -- ============================================================================
 -- Machine isomorphism: equality of machines up to a stepRel-preserving
--- bijection of states.  This module proves that it is an equivalence and a
--- congruence for the machine builders, and the associativity bisimulation;
--- the identity laws and the `Category` record are in `Machine.Category`.
+-- bijection of states.  The identity laws and the `Category` record are
+-- in `Machine.Category`.
 -- ============================================================================
 
 module CategoricalCrypto.Machine.Iso where
@@ -74,15 +73,9 @@ private
 
 ------------------------------------------------------------------------
 -- Congruence: machine composition respects isomorphism.
---
--- An iso of components lifts through the tensor (`CompRel`), the
--- channel reshapes (`modifyStepRel` — definitionally transparent), and
--- the trace (`TraceRel`, by structural recursion). The messages are
--- untouched; only the states map.
 
 private
 
-  -- Lift a step correspondence through `TraceRel`.
   TraceRel-map :
     ∀ {A B C} (M N : Machine (A ⊗₀ C) (B ⊗₀ C))
       (φ : Machine.State M → Machine.State N)
@@ -94,7 +87,6 @@ private
   TraceRel-map M N φ h (p Trace∷ₒ tr₀) = h p Trace∷ₒ TraceRel-map M N φ h tr₀
   TraceRel-map M N φ h (p Trace∷ᵢ tr₀) = h p Trace∷ᵢ TraceRel-map M N φ h tr₀
 
-  -- Lift component isos through the tensor's `CompRel`.
   CompRel-map :
     ∀ {A B C D} {M₁ M₁' : Machine A B} {M₂ M₂' : Machine C D}
       (φ₁ : M₁ ≅ᴹ M₁') (φ₂ : M₂ ≅ᴹ M₂')
@@ -139,11 +131,8 @@ private
   trace-view (p Trace∷ᵢ tr₀) = inj₂ (inj₂ (_ , _ , p , tr₀))
 
 ------------------------------------------------------------------------
--- Environment equivalence: two machines are `_≅ℰ_`-related when they
--- are bisimilar (`_≅ᴹ_`) under every environment. This is the
--- semantic equality of the machine category, coarser than propositional
--- equality of `map-ℰ`, which distinguishes state representations, but
--- still sound for all UC notions defined by quantifying over environments.
+-- Environment equivalence: two machines are `_≅ℰ_`-related when they are
+-- isomorphic (`_≅ᴹ_`) under every environment.
 
 _≅ℰ_ : ∀ {A B} → Machine A B → Machine A B → Type₁
 _≅ℰ_ {B = B} M M' = (E : ℰ B) → map-ℰ M E ≅ᴹ map-ℰ M' E
@@ -160,7 +149,6 @@ _≅ℰ_ {B = B} M M' = (E : ℰ B) → map-ℰ M E ≅ᴹ map-ℰ M' E
 ≅ℰ-isEquivalence : IsEquivalence (_≅ℰ_ {A} {B})
 ≅ℰ-isEquivalence = record { refl = ≅ℰ-refl ; sym = ≅ℰ-sym ; trans = ≅ℰ-trans }
 
--- Machine isomorphism is finer than environment equivalence.
 ≅ᴹ⇒≅ℰ : {M M' : Machine A B} → M ≅ᴹ M' → M ≅ℰ M'
 ≅ᴹ⇒≅ℰ φ E = ∘-resp-≅ᴹ ≅ᴹ-refl φ
 
@@ -170,8 +158,6 @@ _≅ℰ_ {B = B} M M' = (E : ℰ B) → map-ℰ M E ≅ᴹ map-ℰ M' E
 -- below, which interleaves the three component machines explicitly
 -- (B-messages bounce between f and g, C-messages between g and h).
 
--- Generic three-machine interleaving ("TriTrace"): the common
--- flattened normal form of both bracketings.
 module TriStep
   {Sf Sg Sh : Type}
   {IA OA IB OB IC OC ID OD : Type}
@@ -218,7 +204,8 @@ module TriStep
             → TriG (sf , sg , sh') (inj₂ oc) mo st'
             → TriH (sf , sg , sh) i mo st'
 
-  -- dispatchers: external channel, and the two inner-machine entries
+  -- dispatchers: TriExt at the external A/D interface, TriBD and TriAC at
+  -- the two inner composites' interfaces
   TriExt : TriState → IA ⊎ OD → ExtOut → TriState → Type
   TriExt st (inj₁ a)  mo st' = TriF st (inj₁ a)  mo st'
   TriExt st (inj₂ od) mo st' = TriH st (inj₂ od) mo st'
@@ -290,8 +277,9 @@ module ∘-assoc-implementation
     cmpR : Machine A D
     cmpR = _∘_ {B = C} h (_∘_ {B = B} g f)
 
-    -- the two inner composites' tensor cores (fresh ⇒-solver: probe
-    -- fact 4 says these are definitionally the baked-in ones)
+    -- the two inner composites' tensor cores: a fresh ⇒-solver call
+    -- elaborates definitionally to the very reshape _∘_ bakes in, so these
+    -- stand in for the composites' own cores
     itensL : Machine (B ⊗₀ C) (D ⊗₀ C)
     itensL = modifyStepRel ⇒-solver (g ⊗₁ h)
 
@@ -320,17 +308,17 @@ module ∘-assoc-implementation
   opaque
     unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-intro ⊗-fusion ⊗-combine
 
-    -- the flattened machine's step relation
     TriRel : MachineType A D T.TriState
     TriRel st i mo st' = T.TriExt st i mo st'
 
-  -- the flattened machine itself (transparent: TriRel's stated type
-  -- is exact)
+  -- TriRel's signature is exact, so MkMachine applies outside the opaque
+  -- block
   TriM : Machine A D
   TriM = MkMachine TriRel
 
-  -- statements of the six work-package lemmas, elaborated as types
-  -- (validates that all signatures are statable at top level)
+  -- the six cores are named once at top level: each proof needs its own
+  -- opaque unfolding block, and a signature there is checked without the
+  -- unfolding
   InvInnerL-Stmt : Type
   InvInnerL-Stmt = ∀ {sf sg sh sg' sh' mo st'}
       (i₂ : inType B ⊎ outType D)
@@ -378,12 +366,7 @@ module ∘-assoc-implementation
 
   ------------------------------------------------------------------
   -- L-bwd: every TriTrace chain embeds into the LEFT bracketing
-  -- (h ∘ g) ∘ f. The mutual embeddings embF/embG/embH follow the
-  -- structure of the TriF/TriG/TriH chain; the parts of a chain that
-  -- live inside the inner (h ∘ g) composite are collected in `GResL`
-  -- (terminal without output, terminal with external D output, or an
-  -- exit towards f on the middle B together with an outer
-  -- continuation).
+  -- (h ∘ g) ∘ f.
 
   opaque
     unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-intro ⊗-fusion ⊗-combine TriRel
@@ -391,11 +374,10 @@ module ∘-assoc-implementation
     L-bwd : L-bwd-Stmt
     L-bwd {sp} {sp'} {i} {mo} t = go i mo t
       where
-      -- the outer tensor core of cmpL (definitionally the baked-in one)
+      -- the outer tensor core of cmpL
       tens : Machine (A ⊗₀ B) (D ⊗₀ B)
       tens = modifyStepRel ⇒-solver (f ⊗₁ (_∘_ {B = C} h g))
 
-      -- external output map at the outer trace level
       extO : Maybe (outType A ⊎ inType D)
            → Maybe ((outType A ⊎ outType B)
                     ⊎ (inType D ⊎ inType B))
@@ -403,7 +385,6 @@ module ∘-assoc-implementation
       extO (just (inj₁ oa)) = just (inj₁ (inj₁ oa))
       extO (just (inj₂ d))  = just (inj₂ (inj₁ d))
 
-      -- entry maps: component-level inputs to trace-level indices
       entF : inType A ⊎ outType B
            → (inType A ⊎ inType B)
              ⊎ (outType D ⊎ outType B)
@@ -530,10 +511,6 @@ module ∘-assoc-implementation
         | inj₂ (inj₂ (s₂' , ob , itr , cont)) =
         inj₂ (inj₂ (s₂' , ob , (Tensor.Step₂ q Trace∷ₒ itr) , cont))
 
-      -- top-level dispatcher over the external (input, output) shapes:
-      -- the A-side entry is a TriF chain embedded directly; the D-side
-      -- entry is a TriH chain, whose inner part becomes the single
-      -- leading Step₂ node of the outer trace.
       go : (i₀ : inType A ⊎ outType D)
            (mo₀ : Maybe (outType A ⊎ inType D))
          → T.TriExt sp i₀ mo₀ sp'
@@ -575,8 +552,7 @@ module ∘-assoc-implementation
   -- inner ones.
 
   private
-    -- the right bracketing's outer tensor core (fresh ⇒-solver:
-    -- definitionally the one baked into cmpR)
+    -- the right bracketing's outer tensor core
     tensR : Machine (A ⊗₀ C) (D ⊗₀ C)
     tensR = modifyStepRel ⇒-solver ((_∘_ {B = B} g f) ⊗₁ h)
 
@@ -645,8 +621,6 @@ module ∘-assoc-implementation
            → T.TriH (sf , sg , sh₀) i₀ mo₀ st'
            → TraceRel tensR ((sf , sg) , sh₀) ⟪ i₀ ⟫H ⟪ mo₀ ⟫E (reasc⁻ st')
 
-      -- f-steps: bare inner Step₁ nodes; an emitted middle-B message
-      -- heads an inner ∷ᵢ link towards g
       embF (inj₁ a)  (T.F-out q)  =
         inj₂ (inj₁ (_ , _ , refl , refl , Trace[ Tensor.Step₁ q ]))
       embF (inj₂ ob) (T.F-out q)  =
@@ -670,8 +644,6 @@ module ∘-assoc-implementation
       ... | inj₂ (inj₂ (s₁' , ic , itr , cont)) =
             inj₂ (inj₂ (s₁' , ic , (Tensor.Step₁ q Trace∷ᵢ itr) , cont))
 
-      -- g-steps: bare inner Step₂ nodes; towards f heads an inner ∷ₒ
-      -- link, towards h exits the inner chain on the middle C channel
       embG (inj₁ ib) (T.G-stop q) =
         inj₁ (_ , refl , refl , Trace[ Tensor.Step₂ q ])
       embG (inj₂ oc) (T.G-stop q) =
@@ -695,9 +667,6 @@ module ∘-assoc-implementation
       embG (inj₂ oc) (T.G-passH {ic = ic} q k) =
         inj₂ (inj₂ (_ , ic , Trace[ Tensor.Step₂ q ] , embH (inj₁ ic) k))
 
-      -- h-steps: bare outer Step₂ nodes; an emitted middle-C message
-      -- heads an outer ∷ₒ link whose tail is the (g ∘ f)-chain from
-      -- embG, hung on an outer Step₁ node
       embH (inj₁ ic) (T.H-out q)  = Trace[ Tensor.Step₂ q ]
       embH (inj₂ od) (T.H-out q)  = Trace[ Tensor.Step₂ q ]
       embH (inj₁ ic) (T.H-stop q) = Trace[ Tensor.Step₂ q ]
@@ -723,7 +692,6 @@ module ∘-assoc-implementation
             Tensor.Step₂ q Trace∷ₒ
             (Tensor.Step₁ {m = inj₂ oc} {m' = just (inj₂ ic')} itr Trace∷ᵢ cont)
 
-      -- top dispatcher over the external input/output shapes
       go : ∀ {sf₀ sg₀ sh₀ st'}
            (i₀ : inType A ⊎ outType D)
            (mo₀ : Maybe (outType A ⊎ inType D))
@@ -757,7 +725,6 @@ module ∘-assoc-implementation
     inv-innerL : InvInnerL-Stmt
     inv-innerL {sf} {sg} {sh} {sg'} {sh'} {mo} {st'} i₂ m₂ d κ = go i₂ m₂ d κ
       where
-      -- entry maps: component-level inputs to itensL trace-level indices
       entG : inType B ⊎ outType C
            → (inType B ⊎ inType C)
              ⊎ (outType D ⊎ outType C)
@@ -770,7 +737,6 @@ module ∘-assoc-implementation
       entH (inj₁ ic) = inj₁ (inj₂ ic)
       entH (inj₂ od) = inj₂ (inj₁ od)
 
-      -- external output map of the inner composite at its trace level
       extO₂ : Maybe (outType B ⊎ inType D)
             → Maybe ((outType B ⊎ outType C)
                      ⊎ (inType D ⊎ inType C))
@@ -793,9 +759,6 @@ module ∘-assoc-implementation
           → T.ContL sf₀ s₂' m₀ mo₀ st₀
           → T.TriH (sf₀ , proj₁ s₂ , proj₂ s₂) ih mo₀ st₀
 
-      -- goG, terminal node: the head step must be g's (h-steps are
-      -- refuted by the entry index); the output shape decides between
-      -- G-passF (middle-B exit towards f) and G-stop.
       goG {s₂ = sg₀ , sh₀} {s₂' = sg₁ , sh₁} Trace[ p ] (inj₁ ib) (just (inj₁ ob)) refl refl κ₀
         with comp-view p
       ... | inj₂ (_ , _ , xeq , _) = inj₁≢inj₂ xeq
@@ -835,8 +798,6 @@ module ∘-assoc-implementation
         with inj₁-inj xeq | steq
       ... | refl | refl = T.G-stop q
 
-      -- goG, ∷ₒ-headed chain: impossible after a g-entry (the bounced
-      -- middle-C output belongs to h, the entry pins the step to g).
       goG (p Trace∷ₒ tr₀) (inj₁ ib) m₀ refl refl κ₀
         with comp-view p
       ... | inj₂ (_ , _ , xeq , _) = inj₁≢inj₂ xeq
@@ -848,7 +809,6 @@ module ∘-assoc-implementation
       ... | inj₁ (_ , just w , _ , yeq , _ , _) = inj₁≢inj₂ (sym (just-inj yeq))
       ... | inj₁ (_ , nothing , _ , yeq , _ , _) = just≢nothing yeq
 
-      -- goG, ∷ᵢ-headed chain: g emits middle-C ic towards h; recurse.
       goG {s₂ = sg₀ , sh₀} (_Trace∷ᵢ_ {s' = sgm , shm} {inC = ic} p tr₀) (inj₁ ib) m₀ refl refl κ₀
         with comp-view p
       ... | inj₂ (_ , _ , xeq , _) = inj₁≢inj₂ xeq
@@ -864,9 +824,6 @@ module ∘-assoc-implementation
         with inj₁-inj xeq | inj₁-inj (just-inj yeq) | steq
       ... | refl | refl | refl = T.G-passH q (goH tr₀ (inj₁ ic) m₀ refl refl κ₀)
 
-      -- goH, terminal node: the head step must be h's; the output
-      -- shape decides between H-out and H-stop (a middle exit towards
-      -- g heads a ∷ₒ link instead).
       goH {s₂ = sg₀ , sh₀} {s₂' = sg₁ , sh₁} Trace[ p ] (inj₁ ic) (just (inj₂ dd)) refl refl (refl , refl)
         with comp-view p
       ... | inj₁ (_ , _ , xeq , _) = inj₁≢inj₂ (sym xeq)
@@ -906,8 +863,6 @@ module ∘-assoc-implementation
         with inj₂-inj xeq | steq
       ... | refl | refl = T.H-stop q
 
-      -- goH, ∷ₒ-headed chain: h emits middle-C oc back towards g;
-      -- recurse.
       goH {s₂ = sg₀ , sh₀} (_Trace∷ₒ_ {s' = sgm , shm} {outC = oc} p tr₀) (inj₁ ic) m₀ refl refl κ₀
         with comp-view p
       ... | inj₁ (_ , just w , _ , yeq , _ , _) = inj₁≢inj₂ (sym (just-inj yeq))
@@ -925,7 +880,6 @@ module ∘-assoc-implementation
         with inj₂-inj xeq | inj₂-inj (just-inj yeq) | steq
       ... | refl | refl | refl = T.H-passG q (goG tr₀ (inj₂ oc) m₀ refl refl κ₀)
 
-      -- goH, ∷ᵢ-headed chain: impossible after an h-entry.
       goH (p Trace∷ᵢ tr₀) (inj₁ ic) m₀ refl refl κ₀
         with comp-view p
       ... | inj₁ (_ , _ , xeq , _) = inj₁≢inj₂ (sym xeq)
@@ -937,8 +891,6 @@ module ∘-assoc-implementation
       ... | inj₂ (_ , just w , _ , yeq , _ , _) = inj₁≢inj₂ (just-inj yeq)
       ... | inj₂ (_ , nothing , _ , yeq , _ , _) = just≢nothing yeq
 
-      -- top dispatcher: case the external shapes so the bridged step
-      -- converts to a TraceRel itensL value at concrete indices
       go : (i₀ : inType B ⊎ outType D)
            (m₀ : Maybe (outType B ⊎ inType D))
          → Machine.stepRel (_∘_ {B = C} h g) (sg , sh)
@@ -967,11 +919,10 @@ module ∘-assoc-implementation
     L-fwd : L-fwd-Stmt
     L-fwd {sp} {sp'} {i} {mo} d = go i mo d
       where
-      -- the outer tensor core of cmpL (definitionally the baked-in one)
+      -- the outer tensor core of cmpL
       tens : Machine (A ⊗₀ B) (D ⊗₀ B)
       tens = modifyStepRel ⇒-solver (f ⊗₁ (_∘_ {B = C} h g))
 
-      -- external output map at the outer trace level
       extO : Maybe (outType A ⊎ inType D)
            → Maybe ((outType A ⊎ outType B)
                     ⊎ (inType D ⊎ inType B))
@@ -979,7 +930,6 @@ module ∘-assoc-implementation
       extO (just (inj₁ oa)) = just (inj₁ (inj₁ oa))
       extO (just (inj₂ dd)) = just (inj₂ (inj₁ dd))
 
-      -- entry maps: component-level inputs to outer trace-level indices
       entF : inType A ⊎ outType B
            → (inType A ⊎ inType B)
              ⊎ (outType D ⊎ outType B)
@@ -1003,8 +953,6 @@ module ∘-assoc-implementation
           → x ≡ entI iB → y ≡ extO mo₀
           → T.TriBD sp₀ iB mo₀ sp₀'
 
-      -- goF, terminal node: the head step must be f's; the output
-      -- shape decides between F-out and F-stop.
       goF {sp₀ = sf₀ , s₂₀} {sp₀' = sf₁ , s₂₁} Trace[ p ] (inj₁ a) (just (inj₁ oa)) refl refl
         with comp-view p
       ... | inj₂ (_ , _ , xeq , _) = inj₁≢inj₂ xeq
@@ -1044,8 +992,6 @@ module ∘-assoc-implementation
         with inj₁-inj xeq | steq
       ... | refl | refl = T.F-stop q
 
-      -- goF, ∷ₒ-headed chain: impossible after an f-entry (the bounced
-      -- middle-B output belongs to the inner composite).
       goF (p Trace∷ₒ tr₀) (inj₁ a) mo₀ refl refl
         with comp-view p
       ... | inj₂ (_ , _ , xeq , _) = inj₁≢inj₂ xeq
@@ -1057,8 +1003,6 @@ module ∘-assoc-implementation
       ... | inj₁ (_ , just w , _ , yeq , _ , _) = inj₁≢inj₂ (sym (just-inj yeq))
       ... | inj₁ (_ , nothing , _ , yeq , _ , _) = just≢nothing yeq
 
-      -- goF, ∷ᵢ-headed chain: f emits middle-B ib towards the inner
-      -- composite; recurse.
       goF {sp₀ = sf₀ , s₂₀} (_Trace∷ᵢ_ {s' = sfm , s₂m} {inC = ib} p tr₀) (inj₁ a) mo₀ refl refl
         with comp-view p
       ... | inj₂ (_ , _ , xeq , _) = inj₁≢inj₂ xeq
@@ -1074,9 +1018,6 @@ module ∘-assoc-implementation
         with inj₁-inj xeq | inj₁-inj (just-inj yeq) | steq
       ... | refl | refl | refl = T.F-pass q (goI tr₀ (inj₁ ib) mo₀ refl refl)
 
-      -- goI, terminal node: the head step must be the inner
-      -- composite's; invert it with inv-innerL, closing with the
-      -- terminal continuation (an equation pair).
       goI {sp₀ = sf₀ , s₂₀} {sp₀' = sf₁ , s₂₁} Trace[ p ] (inj₁ ib) nothing refl refl
         with comp-view p
       ... | inj₁ (_ , _ , xeq , _) = inj₁≢inj₂ (sym xeq)
@@ -1116,9 +1057,6 @@ module ∘-assoc-implementation
       ... | inj₂ (_ , just w , _ , yeq , _ , _) = inj₁≢inj₂ (just-inj yeq)
       ... | inj₂ (_ , nothing , _ , yeq , _ , _) = just≢nothing yeq
 
-      -- goI, ∷ₒ-headed chain: the inner composite emits middle-B ob
-      -- towards f; the outer tail (an f-entry chain) becomes the
-      -- T.ContL continuation of inv-innerL.
       goI {sp₀ = sf₀ , s₂₀} (_Trace∷ₒ_ {s' = sfm , s₂m} {outC = ob} p tr₀) (inj₁ ib) mo₀ refl refl
         with comp-view p
       ... | inj₁ (_ , _ , xeq , _) = inj₁≢inj₂ (sym xeq)
@@ -1136,8 +1074,6 @@ module ∘-assoc-implementation
       ... | refl | refl | refl =
             inv-innerL (inj₂ od) (just (inj₁ ob)) q₂ (goF tr₀ (inj₂ ob) mo₀ refl refl)
 
-      -- goI, ∷ᵢ-headed chain: impossible after an inner-composite
-      -- entry (the bounced middle-B input belongs to f's output side).
       goI (p Trace∷ᵢ tr₀) (inj₁ ib) mo₀ refl refl
         with comp-view p
       ... | inj₁ (_ , _ , xeq , _) = inj₁≢inj₂ (sym xeq)
@@ -1149,7 +1085,6 @@ module ∘-assoc-implementation
       ... | inj₂ (_ , just w , _ , yeq , _ , _) = inj₁≢inj₂ (just-inj yeq)
       ... | inj₂ (_ , nothing , _ , yeq , _ , _) = just≢nothing yeq
 
-      -- top dispatcher over the external (input, output) shapes
       go : (i₀ : inType A ⊎ outType D)
            (mo₀ : Maybe (outType A ⊎ inType D))
          → Machine.stepRel cmpL sp i₀ mo₀ sp'
@@ -1166,10 +1101,8 @@ module ∘-assoc-implementation
   -- bracketing. A bridged composite step at the A/C interface is a
   -- TraceRel itensR chain of f-steps (Step₁) and g-steps (Step₂)
   -- bouncing on the middle B. The mutual workers goF'/goG' walk the
-  -- chain at fully general trace indices (with separate propositional
-  -- index equations, dissolved by conversion inside the unfolding) and
-  -- rebuild the TriF/TriG spine, finishing in the supplied ContR
-  -- continuation.
+  -- chain at fully general trace indices, with separate propositional
+  -- index equations dissolved by conversion inside the unfolding.
 
   opaque
     unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-intro ⊗-fusion ⊗-combine TriRel
@@ -1178,7 +1111,6 @@ module ∘-assoc-implementation
     inv-innerR {sf} {sg} {sf'} {sg'} {sh} {mo} {st'} i₁ m₁ d κ =
       dispatch i₁ m₁ d κ
       where
-      -- entry maps: component-level inputs to inner-trace indices
       entF : inType A ⊎ outType B
            → (inType A ⊎ inType B)
              ⊎ (outType C ⊎ outType B)
@@ -1191,7 +1123,6 @@ module ∘-assoc-implementation
       entG (inj₁ ib) = inj₁ (inj₂ ib)
       entG (inj₂ oc) = inj₂ (inj₁ oc)
 
-      -- external output map, one level down
       extO₁ : Maybe (outType A ⊎ inType C)
             → Maybe ((outType A ⊎ outType B)
                    ⊎ (inType C ⊎ inType B))
@@ -1214,8 +1145,6 @@ module ∘-assoc-implementation
            → T.ContR s₁' sh₀ m₂ mo₀ st₀
            → T.TriG (proj₁ s₁ , proj₂ s₁ , sh₀) iG mo₀ st₀
 
-      -- f stepped last: terminal external A-output, silence, or a
-      -- C-side output (impossible for f, refuted via the y-equation)
       goF' Trace[ p ] (inj₁ a) (just (inj₁ oa)) refl refl (refl , refl)
         with comp-view p
       ... | inj₂ (_ , _ , xeq , _) = inj₁≢inj₂ xeq
@@ -1257,7 +1186,6 @@ module ∘-assoc-implementation
       ... | inj₁ (_ , just w , _ , yeq , _ , _) =
         inj₁≢inj₂ (sym (just-inj yeq))
 
-      -- f emitted the middle B: recurse into the g-side of the chain
       goF' (_Trace∷ᵢ_ {inC = ib} p tr₀) (inj₁ a) m₂ refl yeq κ
         with comp-view p
       ... | inj₂ (_ , _ , xeq , _) = inj₁≢inj₂ xeq
@@ -1275,7 +1203,6 @@ module ∘-assoc-implementation
       ... | refl | refl | refl =
         T.F-pass q (goG' tr₀ (inj₁ ib) m₂ refl yeq κ)
 
-      -- a ∷ₒ-headed chain cannot start at an f-entry
       goF' (p Trace∷ₒ tr₀) (inj₁ a) m₂ refl yeq κ with comp-view p
       ... | inj₂ (_ , _ , xeq , _) = inj₁≢inj₂ xeq
       ... | inj₁ (_ , nothing , _ , yeq₁ , _ , _) = just≢nothing yeq₁
@@ -1287,9 +1214,6 @@ module ∘-assoc-implementation
       ... | inj₁ (_ , just w , _ , yeq₁ , _ , _) =
         inj₁≢inj₂ (sym (just-inj yeq₁))
 
-      -- g stepped last: the C-side exit hands over to the supplied
-      -- TriH continuation; silence terminates; an A-output is
-      -- impossible for g
       goG' Trace[ p ] (inj₁ ib) (just (inj₂ ic)) refl refl κ
         with comp-view p
       ... | inj₁ (_ , _ , xeq , _) = inj₁≢inj₂ (sym xeq)
@@ -1329,7 +1253,6 @@ module ∘-assoc-implementation
       ... | inj₂ (_ , nothing , _ , yeq , _ , _) = just≢nothing yeq
       ... | inj₂ (_ , just w , _ , yeq , _ , _) = inj₁≢inj₂ (just-inj yeq)
 
-      -- g bounced the middle B back towards f: recurse
       goG' (_Trace∷ₒ_ {outC = ob} p tr₀) (inj₁ ib) m₂ refl yeq κ
         with comp-view p
       ... | inj₁ (_ , _ , xeq , _) = inj₁≢inj₂ (sym xeq)
@@ -1347,7 +1270,6 @@ module ∘-assoc-implementation
       ... | refl | refl | refl =
         T.G-passF q (goF' tr₀ (inj₂ ob) m₂ refl yeq κ)
 
-      -- a ∷ᵢ-headed chain cannot start at a g-entry
       goG' (p Trace∷ᵢ tr₀) (inj₁ ib) m₂ refl yeq κ with comp-view p
       ... | inj₁ (_ , _ , xeq , _) = inj₁≢inj₂ (sym xeq)
       ... | inj₂ (_ , nothing , _ , yeq₁ , _ , _) = just≢nothing yeq₁
@@ -1357,7 +1279,6 @@ module ∘-assoc-implementation
       ... | inj₂ (_ , nothing , _ , yeq₁ , _ , _) = just≢nothing yeq₁
       ... | inj₂ (_ , just w , _ , yeq₁ , _ , _) = inj₁≢inj₂ (just-inj yeq₁)
 
-      -- top dispatcher over the explicit composite input/output shapes
       dispatch : (i₁' : inType A ⊎ outType C)
                  (m₁' : Maybe (outType A ⊎ inType C))
                → Machine.stepRel (_∘_ {B = B} g f) (sf , sg)
@@ -1381,16 +1302,15 @@ module ∘-assoc-implementation
 
     ------------------------------------------------------------------
     -- R-fwd: every step of the RIGHT bracketing h ∘ (g ∘ f) flattens
-    -- into a TriTrace chain. h-steps are outer Step₂ nodes (walked by
-    -- goH); (g ∘ f)-steps are outer Step₁ nodes whose payload is
-    -- inverted by inv-innerR, with goH supplying the middle-C
-    -- continuation (goI).
+    -- into a TriTrace chain.  h-steps are outer Step₂ nodes (walked by
+    -- goH); (g ∘ f)-steps are outer Step₁ nodes (walked by goI), each
+    -- inverted by inv-innerR with the middle-C continuation that goH
+    -- builds from the outer tail; goH's ∷ₒ clause calls back into goI.
 
     R-fwd : R-fwd-Stmt
     R-fwd {sp = (sf , sg) , sh} {sp' = (sf' , sg') , sh'} {i} {mo} d =
       go i mo d
       where
-      -- index maps at the outer (middle C) trace level
       extO : Maybe (outType A ⊎ inType D)
            → Maybe ((outType A ⊎ outType C)
                   ⊎ (inType D ⊎ inType C))
@@ -1423,8 +1343,6 @@ module ∘-assoc-implementation
           → T.TriAC (proj₁ (proj₁ sq) , proj₂ (proj₁ sq) , proj₂ sq) i₂ mo₀
                     (proj₁ (proj₁ sq') , proj₂ (proj₁ sq') , proj₂ sq')
 
-      -- h stepped last: external D-output or silence; an A-side output
-      -- is impossible for h, and a Step₁ head is refuted via x
       goH Trace[ p ] (inj₁ ic) (just (inj₂ d₀)) refl refl with comp-view p
       ... | inj₁ (_ , _ , xeq , _) = inj₁≢inj₂ (sym xeq)
       ... | inj₂ (_ , nothing , _ , yeq , _ , _) = just≢nothing yeq
@@ -1458,8 +1376,6 @@ module ∘-assoc-implementation
       ... | inj₂ (_ , nothing , _ , yeq , _ , _) = just≢nothing yeq
       ... | inj₂ (_ , just w , _ , yeq , _ , _) = inj₁≢inj₂ (just-inj yeq)
 
-      -- h emitted the middle C towards (g ∘ f): outer ∷ₒ link, the
-      -- tail enters at the inner composite's C-entry
       goH (_Trace∷ₒ_ {outC = oc} p tr₀) (inj₁ ic) mo₀ refl yeq
         with comp-view p
       ... | inj₁ (_ , _ , xeq , _) = inj₁≢inj₂ (sym xeq)
@@ -1477,7 +1393,6 @@ module ∘-assoc-implementation
       ... | refl | refl | refl =
         T.H-passG q (goI tr₀ (inj₂ oc) mo₀ refl yeq)
 
-      -- a ∷ᵢ-headed chain cannot start at an h-entry
       goH (p Trace∷ᵢ tr₀) (inj₁ ic) mo₀ refl yeq with comp-view p
       ... | inj₁ (_ , _ , xeq , _) = inj₁≢inj₂ (sym xeq)
       ... | inj₂ (_ , nothing , _ , yeq₁ , _ , _) = just≢nothing yeq₁
@@ -1487,9 +1402,6 @@ module ∘-assoc-implementation
       ... | inj₂ (_ , nothing , _ , yeq₁ , _ , _) = just≢nothing yeq₁
       ... | inj₂ (_ , just w , _ , yeq₁ , _ , _) = inj₁≢inj₂ (just-inj yeq₁)
 
-      -- (g ∘ f) stepped last: terminal external A-output or silence,
-      -- inverted by inv-innerR with the terminal ContR pair; a D-side
-      -- output is impossible for the inner composite
       goI Trace[ p ] (inj₁ a) (just (inj₁ oa)) refl refl with comp-view p
       ... | inj₂ (_ , _ , xeq , _) = inj₁≢inj₂ xeq
       ... | inj₁ (_ , nothing , _ , yeq , _ , _) = just≢nothing yeq
@@ -1527,8 +1439,6 @@ module ∘-assoc-implementation
       ... | inj₁ (_ , just w , _ , yeq , _ , _) =
         inj₁≢inj₂ (sym (just-inj yeq))
 
-      -- (g ∘ f) emitted the middle C towards h: invert the inner step
-      -- with the TriH continuation built from the tail
       goI (_Trace∷ᵢ_ {inC = ic} p tr₀) (inj₁ a) mo₀ refl yeq
         with comp-view p
       ... | inj₂ (_ , _ , xeq , _) = inj₁≢inj₂ xeq
@@ -1546,7 +1456,6 @@ module ∘-assoc-implementation
       ... | refl | refl | refl =
         inv-innerR (inj₂ oc) (just (inj₂ ic)) q (goH tr₀ (inj₁ ic) mo₀ refl yeq)
 
-      -- a ∷ₒ-headed chain cannot start at a (g ∘ f)-entry
       goI (p Trace∷ₒ tr₀) (inj₁ a) mo₀ refl yeq with comp-view p
       ... | inj₂ (_ , _ , xeq , _) = inj₁≢inj₂ xeq
       ... | inj₁ (_ , nothing , _ , yeq₁ , _ , _) = just≢nothing yeq₁
@@ -1558,7 +1467,6 @@ module ∘-assoc-implementation
       ... | inj₁ (_ , just w , _ , yeq₁ , _ , _) =
         inj₁≢inj₂ (sym (just-inj yeq₁))
 
-      -- top dispatcher over the external input/output shapes
       go : (i₀ : inType A ⊎ outType D)
            (mo₀ : Maybe (outType A ⊎ inType D))
          → Machine.stepRel cmpR ((sf , sg) , sh) i₀ mo₀ ((sf' , sg') , sh')
@@ -1570,22 +1478,17 @@ module ∘-assoc-implementation
       go (inj₂ od) (just (inj₂ d₀)) t = goH t (inj₂ od) (just (inj₂ d₀)) refl refl
       go (inj₂ od) nothing          t = goH t (inj₂ od) nothing refl refl
 
-  -- The four cores assembled: both bracketings are isomorphic to the
-  -- flattened TriTrace machine.
   ∘-assoc : cmpL ≅ᴹ cmpR
   ∘-assoc = assemble L-fwd L-bwd R-fwd R-bwd
 
--- The third bisimulation: ((h ∘ g) ∘ f) ≅ᴹ (h ∘ (g ∘ f)).
+-- Associativity, exported from the implementation module.
 ∘-assoc-≅ᴹ : ∀ {A B C D} {f : Machine A B} {g : Machine B C} {h : Machine C D}
            → (_∘_ {B = B} (_∘_ {B = C} h g) f) ≅ᴹ (_∘_ {B = C} h (_∘_ {B = B} g f))
 ∘-assoc-≅ᴹ {f = f} {g = g} {h = h} = ∘-assoc-implementation.∘-assoc f g h
 
 ------------------------------------------------------------------------
--- Congruences for the remaining machine builders.  `_⊗ʳ_`/`_⊗ˡ_`,
--- `_∘ᴷ_`, `_⊗ᴷ_` and `⨂ᴷ` are all built from `_⊗₁_`, `_∘_` and `id`,
--- so each is a corollary of the tensor congruence.
+-- Congruences for the remaining machine builders.
 
--- The tensor congruence.
 ⊗₁-resp-≅ᴹ : ∀ {A B C D} {M M' : Machine A B} {N N' : Machine C D}
            → M ≅ᴹ M' → N ≅ᴹ N' → (M ⊗₁ N) ≅ᴹ (M' ⊗₁ N')
 ⊗₁-resp-≅ᴹ φ ψ = MkIso
@@ -1596,8 +1499,8 @@ module ∘-assoc-implementation
   (CompRel-map φ ψ)
   (CompRel-map (≅ᴹ-sym φ) (≅ᴹ-sym ψ))
 
--- The derived congruences.  `_⊗ʳ_`/`_⊗ˡ_`, `_∘ᴷ_`, `_⊗ᴷ_` and `⨂ᴷ` are all
--- built from `_⊗₁_`, `_∘_` and `id`, so each is a direct corollary.
+-- The derived congruences.  `_⊗ʳ_`, `_∘ᴷ_`, `_⊗ᴷ_` and `⨂ᴷ` are built from
+-- `_⊗₁_`, `_∘_` and `id`, so each is a corollary of `⊗₁-resp-≅ᴹ`.
 
 ⊗ʳ-resp-≅ᴹ : ∀ {A B} {M M' : Machine A B} (C : Channel)
            → M ≅ᴹ M' → (M ⊗ʳ C) ≅ᴹ (M' ⊗ʳ C)
@@ -1619,7 +1522,6 @@ module ∘-assoc-implementation
 ⨂ᴷ-resp-≅ᴹ {zero}  φ = ≅ᴹ-refl
 ⨂ᴷ-resp-≅ᴹ {suc n} φ = ⊗ᴷ-resp-≅ᴹ (φ fzero) (⨂ᴷ-resp-≅ᴹ (λ k → φ (fsuc k)))
 
--- Two associativities at once.
 module _ where
   assoc²γδ-≅ᴹ : ∀ {A B C D E} {f : Machine A B} {g : Machine B C}
                   {h : Machine C D} {i : Machine D E}
@@ -1631,7 +1533,6 @@ module _ where
 -- ----------------------------------------------------------------------------
 -- `_≡ᴹ_` (heterogeneous machine equality, `Machine.Core`) carries the
 -- channel-level bookkeeping that `_≅ᴹ_`, being homogeneous, cannot express.
--- Two facts relating it to `_≅ᴹ_`, plus the `∘ᴷ` congruence for it.
 -- ----------------------------------------------------------------------------
 
 module _ where
@@ -1640,11 +1541,9 @@ module _ where
   ≡ᴹ→≅ᴹ : ∀ {A B} {M N : Machine A B} → M ≡ᴹ N → M ≅ᴹ N
   ≡ᴹ→≅ᴹ record { A≡C = refl ; B≡D = refl ; M₁≡M₂ = H-refl } = ≅ᴹ-refl
 
-  -- NB: the channel equalities are explicit arguments.  Matching them off the
-  -- `_≡ᴹ_` fields instead would require inverting `_⊗₀_` — that is exactly the
-  -- `⊗-injectiveˡ/ʳ` the old record postulated, and it is unprovable (the
-  -- inconsistency lived in asserting it alongside the unit laws).  Every call
-  -- site has the component equalities to hand anyway.
+  -- NB: the channel equalities are explicit arguments, because matching them
+  -- off the `_≡ᴹ_` fields would require inverting `_⊗₀_`, which is
+  -- unprovable; every call site has the component equalities to hand anyway.
   ∘ᴷ-cong-≡ᴹ : ∀ {A₁ A₂ B₁ B₂ C₁ C₂ E₁₁ E₁₂ E₂₁ E₂₂}
               → B₁ ≡ B₂ → C₁ ≡ C₂ → E₂₁ ≡ E₂₂ → E₁₁ ≡ E₁₂
               → {M : Machine B₁ (C₁ ⊗₀ E₂₁)} {M' : Machine B₂ (C₂ ⊗₀ E₂₂)}
@@ -1653,11 +1552,6 @@ module _ where
   ∘ᴷ-cong-≡ᴹ refl refl refl refl
              record { A≡C = refl ; B≡D = refl ; M₁≡M₂ = H-refl }
              record { A≡C = refl ; B≡D = refl ; M₁≡M₂ = H-refl } = ≡ᴹ-refl
-
--- ----------------------------------------------------------------------------
--- Transport of a run along an isomorphism: only the states move (`to φ`),
--- every input/output is kept.
--- ----------------------------------------------------------------------------
 
 Trace-map : ∀ {A B} {P Q : Machine A B} (φ : P ≅ᴹ Q) {s s'}
           → Trace P s s' → Trace Q (to φ s) (to φ s')
