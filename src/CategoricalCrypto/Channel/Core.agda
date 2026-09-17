@@ -69,13 +69,9 @@ A ᵀ = A .outType ⇿ A .inType
 infix 4 _[_]⇒[_]_
 
 -- The combinators below are written with the constructor `mk⇒` rather than
--- a `record { app = … }` expression on purpose.  Agda turns a record
--- expression on a right-hand side into copattern clauses, so a term such as
--- `⇒-trans p q` never reduces unless it is projected.  A `⇒-solver` term is a
--- tree of these combinators, and every normalisation (with-abstraction in
--- particular) then kept the whole tree, together with its implicit channel
--- arguments, in every type it appeared in; `Machine.Iso` needed 34 GB to
--- typecheck.  With the constructor the tree collapses to a small lambda.
+-- a `record { app = … }` expression on purpose. Agda turns a record
+-- expression on a right-hand side into copattern clauses, so a term
+-- never reduces unless it is projected.
 record _[_]⇒[_]_ (A : Channel) (mᵢ : Mode) (mₒ : Mode) (B : Channel) : Type where
   constructor mk⇒
   field
