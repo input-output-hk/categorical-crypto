@@ -42,23 +42,6 @@ module CategoricalCrypto.Machine.Forwarder where
 
 open _≅ᴹ_
 
-private
-  -- Inversion view for `CompRel` at fully general indices.
-  comp-view :
-    ∀ {A B C D} {M₁ : Machine A B} {M₂ : Machine C D}
-      {sp : Machine.State M₁ × Machine.State M₂} {x y sp'}
-    → Tensor.CompRel M₁ M₂ sp x y sp'
-    → (∃ λ mᵢ → ∃ λ mo →
-         (x ≡ (ϵ ⊗R) ↑ᵢ mᵢ) × (y ≡ ((ϵ ⊗R) ↑ₒ_ <$> mo))
-         × (proj₂ sp' ≡ proj₂ sp)
-         × Machine.stepRel M₁ (proj₁ sp) mᵢ mo (proj₁ sp'))
-    ⊎ (∃ λ mᵢ → ∃ λ mo →
-         (x ≡ (L⊗ ϵ) ↑ᵢ mᵢ) × (y ≡ ((L⊗ ϵ) ↑ₒ_ <$> mo))
-         × (proj₁ sp' ≡ proj₁ sp)
-         × Machine.stepRel M₂ (proj₂ sp) mᵢ mo (proj₂ sp'))
-  comp-view (Tensor.Step₁ q) = inj₁ (_ , _ , refl , refl , refl , q)
-  comp-view (Tensor.Step₂ q) = inj₂ (_ , _ , refl , refl , refl , q)
-
 -- Congruences for the two machine builders `_∘_` is made of.
 modifyStepRel-resp-≅ᴹ : ∀ {A B C D} {M N : Machine A B}
     (p : ∀ {m} → C ⊗₀ D ᵀ [ m ]⇒[ m ] A ⊗₀ B ᵀ)

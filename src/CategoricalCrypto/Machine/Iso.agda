@@ -119,7 +119,7 @@ private
 
 
 private
-  -- General-index inversion views: splitting on `TraceRel`/`CompRel`
+  -- General-index inversion view: splitting on `TraceRel`
   -- with fully general indices always succeeds; the resulting
   -- propositional equations are then discharged by conversion inside
   -- `opaque unfolding` blocks (the case-split unifier itself does not
@@ -137,21 +137,6 @@ private
   trace-view Trace[ p ]      = inj₁ p
   trace-view (p Trace∷ₒ tr₀) = inj₂ (inj₁ (_ , _ , p , tr₀))
   trace-view (p Trace∷ᵢ tr₀) = inj₂ (inj₂ (_ , _ , p , tr₀))
-
-  comp-view :
-    ∀ {A B C D} {M₁ : Machine A B} {M₂ : Machine C D}
-      {sp : Machine.State M₁ × Machine.State M₂} {x y sp'}
-    → Tensor.CompRel M₁ M₂ sp x y sp'
-    → (∃ λ mᵢ → ∃ λ mo →
-         (x ≡ (ϵ ⊗R) ↑ᵢ mᵢ) × (y ≡ ((ϵ ⊗R) ↑ₒ_ <$> mo))
-         × (proj₂ sp' ≡ proj₂ sp)
-         × Machine.stepRel M₁ (proj₁ sp) mᵢ mo (proj₁ sp'))
-    ⊎ (∃ λ mᵢ → ∃ λ mo →
-         (x ≡ (L⊗ ϵ) ↑ᵢ mᵢ) × (y ≡ ((L⊗ ϵ) ↑ₒ_ <$> mo))
-         × (proj₁ sp' ≡ proj₁ sp)
-         × Machine.stepRel M₂ (proj₂ sp) mᵢ mo (proj₂ sp'))
-  comp-view (Tensor.Step₁ q) = inj₁ (_ , _ , refl , refl , refl , q)
-  comp-view (Tensor.Step₂ q) = inj₂ (_ , _ , refl , refl , refl , q)
 
 ------------------------------------------------------------------------
 -- Environment equivalence: two machines are `_≅ℰ_`-related when they

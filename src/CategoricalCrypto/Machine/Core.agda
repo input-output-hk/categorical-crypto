@@ -86,6 +86,35 @@ module Tensor {A B C D} (M₁ : Machine A B) (M₂ : Machine C D) where
    
 open Tensor using (_⊗₁_) public
 
+-- Inversion view for `CompRel`.  A case split on `Tensor.CompRel` succeeds
+-- only when its message and state indices are variables; at the concrete
+-- ports the machine builders produce, the unifier gets stuck.  Going through
+-- the view turns the stuck split into a split on `_⊎_`, whose propositional
+-- index equations are then discharged by conversion at the use site, inside
+-- whatever `opaque unfolding` block needs them.  The motive is named because
+-- proofs state their `where`-helpers over it.
+
+CompView : ∀ {A B C D} (M₁ : Machine A B) (M₂ : Machine C D)
+           (sp : Machine.State M₁ × Machine.State M₂)
+           (x : Channel.inType (Tensor.AllCs M₁ M₂))
+           (y : Maybe (Channel.outType (Tensor.AllCs M₁ M₂)))
+           (sp' : Machine.State M₁ × Machine.State M₂) → Type
+CompView M₁ M₂ sp x y sp' =
+    (∃ λ mᵢ → ∃ λ mo →
+         (x ≡ (ϵ ⊗R) ↑ᵢ mᵢ) × (y ≡ ((ϵ ⊗R) ↑ₒ_ <$> mo))
+         × (proj₂ sp' ≡ proj₂ sp)
+         × Machine.stepRel M₁ (proj₁ sp) mᵢ mo (proj₁ sp'))
+    ⊎ (∃ λ mᵢ → ∃ λ mo →
+         (x ≡ (L⊗ ϵ) ↑ᵢ mᵢ) × (y ≡ ((L⊗ ϵ) ↑ₒ_ <$> mo))
+         × (proj₁ sp' ≡ proj₁ sp)
+         × Machine.stepRel M₂ (proj₂ sp) mᵢ mo (proj₂ sp'))
+
+comp-view : ∀ {A B C D} {M₁ : Machine A B} {M₂ : Machine C D}
+            {sp : Machine.State M₁ × Machine.State M₂} {x y sp'}
+          → Tensor.CompRel M₁ M₂ sp x y sp' → CompView M₁ M₂ sp x y sp'
+comp-view (Tensor.Step₁ q) = inj₁ (_ , _ , refl , refl , refl , q)
+comp-view (Tensor.Step₂ q) = inj₂ (_ , _ , refl , refl , refl , q)
+
 _⊗ˡ_ : ∀ {A B} (C : Channel) → Machine A B → Machine (C ⊗₀ A) (C ⊗₀ B)
 C ⊗ˡ M = id ⊗₁ M
 
