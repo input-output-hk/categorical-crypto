@@ -23,6 +23,7 @@ open import categorical-crypto.Prelude hiding (id; _∘_)
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
+open import CategoricalCrypto.Machine.Message
 import CategoricalCrypto.Machine.Core as CC
 open import CategoricalCrypto.Machine.Iso
 open import Tactic.Defaults
@@ -140,13 +141,8 @@ opaque
   wdₒ vA (inj₁ (inj₂ β)) = inj₁ (inj₂ β)
   wdₒ vA (inj₂ y)        = inj₂ y
 
-private
-  mapᴹ-idᵖ : ∀ {X : Type} (o : Maybe X) → mapᴹ (λ x → x) o ≡ o
-  mapᴹ-idᵖ (just _) = refl
-  mapᴹ-idᵖ nothing  = refl
-
 Reindex-id : ∀ {A B} (M : Machine A B)
            → Reindex M (λ i → i) (λ o → o) ≅ᴹ M
 Reindex-id M = MkIso (λ s → s) (λ s → s) (λ _ → refl) (λ _ → refl)
-  (λ {_} {_} {o} x → subst (λ y → Machine.stepRel M _ _ y _) (mapᴹ-idᵖ o) x)
-  (λ {_} {_} {o} x → subst (λ y → Machine.stepRel M _ _ y _) (sym (mapᴹ-idᵖ o)) x)
+  (λ {_} {_} {o} x → subst (λ y → Machine.stepRel M _ _ y _) (mapᴹ-id o) x)
+  (λ {_} {_} {o} x → subst (λ y → Machine.stepRel M _ _ y _) (sym (mapᴹ-id o)) x)

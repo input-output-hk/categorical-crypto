@@ -31,6 +31,7 @@ open import categorical-crypto.Prelude hiding (id; _∘_)
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
+open import CategoricalCrypto.Machine.Message
 import CategoricalCrypto.Machine.Core as CC
 open import CategoricalCrypto.Machine.Iso
 open import Tactic.Defaults
@@ -94,19 +95,6 @@ opaque
   ------------------------------------------------------------------------
   -- The bisimulation proper: `Send` matches `Send`, `Req` matches `Req`.
   ------------------------------------------------------------------------
-
-  private
-    inj₁-inj : ∀ {a b} {X : Type a} {Y : Type b} {x y : X}
-             → _≡_ {A = X ⊎ Y} (inj₁ x) (inj₁ y) → x ≡ y
-    inj₁-inj refl = refl
-
-    inj₂-inj : ∀ {a b} {X : Type a} {Y : Type b} {x y : Y}
-             → _≡_ {A = X ⊎ Y} (inj₂ x) (inj₂ y) → x ≡ y
-    inj₂-inj refl = refl
-
-    inj₁≢inj₂ : ∀ {a b} {X : Type a} {Y : Type b} {x : X} {y : Y} {ℓ} {W : Type ℓ}
-              → _≡_ {A = X ⊎ Y} (inj₁ x) (inj₂ y) → W
-    inj₁≢inj₂ ()
 
   -- Forward: a secure step is a leaky step with its leak relabelled.  The
   -- `Selection` indices reduce to `inj` nests here, so the leaky constructor

@@ -30,6 +30,7 @@ open import categorical-crypto.Prelude hiding (id; _∘_)
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
+open import CategoricalCrypto.Machine.Message
 import CategoricalCrypto.Machine.Core as CC
 open import CategoricalCrypto.Machine.Iso
 open import Tactic.Defaults
@@ -37,22 +38,6 @@ open import Tactic.Defaults
 module CategoricalCrypto.Machine.Reindex.FwdId where
 
 open _≅ᴹ_
-
-private
-  just-injᴵ : ∀ {a} {X : Type a} {x y : X} → just x ≡ just y → x ≡ y
-  just-injᴵ refl = refl
-
-  inj₁-injᴵ : ∀ {a b} {X : Type a} {Y : Type b} {x y : X}
-            → _≡_ {A = X ⊎ Y} (inj₁ x) (inj₁ y) → x ≡ y
-  inj₁-injᴵ refl = refl
-
-  inj₂-injᴵ : ∀ {a b} {X : Type a} {Y : Type b} {x y : Y}
-            → _≡_ {A = X ⊎ Y} (inj₂ x) (inj₂ y) → x ≡ y
-  inj₂-injᴵ refl = refl
-
-  inj₁≢inj₂ᴵ : ∀ {a b} {X : Type a} {Y : Type b} {x : X} {y : Y} {ℓ} {W : Type ℓ}
-             → _≡_ {A = X ⊎ Y} (inj₁ x) (inj₂ y) → W
-  inj₁≢inj₂ᴵ ()
 
 -- Reindexing a forwarder is a forwarder.  Stated with `χ`, `κ`, `u` and `v`
 -- all explicit: `Reindex` is a function, so nothing here can be recovered by
@@ -70,7 +55,7 @@ Reindex-Fwd {A} {B} {C} {D} χ κ u v sq inj =
   where
   t : (i : Channel.inType (C ⊗ᵀ D)) (o : Maybe (Channel.outType (C ⊗ᵀ D)))
     → just (χ (u i)) ≡ mapᴹ v o → just (κ i) ≡ o
-  t i (just y)  e = cong just (inj (trans (sq i) (just-injᴵ e)))
+  t i (just y)  e = cong just (inj (trans (sq i) (just-inj e)))
   t i nothing  ()
   f : (i : Channel.inType (C ⊗ᵀ D)) (o : Maybe (Channel.outType (C ⊗ᵀ D)))
     → just (κ i) ≡ o → just (χ (u i)) ≡ mapᴹ v o
@@ -112,10 +97,10 @@ opaque
     sq (inj₂ β) = cong inj₁ (gl β)
     inj : ∀ {x y} → dmₒ {B} {A} {B} g⁻ x ≡ dmₒ {B} {A} {B} g⁻ y → x ≡ y
     inj {inj₁ _} {inj₁ _} e =
-      cong inj₁ (right-inv-inj g⁻ g gr (inj₁-injᴵ e))
-    inj {inj₂ _} {inj₂ _} e = cong inj₂ (inj₂-injᴵ e)
-    inj {inj₁ _} {inj₂ _} e = inj₁≢inj₂ᴵ e
-    inj {inj₂ _} {inj₁ _} e = inj₁≢inj₂ᴵ (sym e)
+      cong inj₁ (right-inv-inj g⁻ g gr (inj₁-inj e))
+    inj {inj₂ _} {inj₂ _} e = cong inj₂ (inj₂-inj e)
+    inj {inj₁ _} {inj₂ _} e = inj₁≢inj₂ e
+    inj {inj₂ _} {inj₁ _} e = inj₁≢inj₂ (sym e)
 
   -- The mirror image: fixing the domain `A` keeps `g` verbatim and asks `f` to
   -- be invertible instead.
@@ -134,8 +119,8 @@ opaque
     sq (inj₁ a) = cong inj₂ (fl a)
     sq (inj₂ β) = refl
     inj : ∀ {x y} → cdₒ {A} {A} {B} f⁻ x ≡ cdₒ {A} {A} {B} f⁻ y → x ≡ y
-    inj {inj₁ _} {inj₁ _} e = cong inj₁ (inj₁-injᴵ e)
+    inj {inj₁ _} {inj₁ _} e = cong inj₁ (inj₁-inj e)
     inj {inj₂ _} {inj₂ _} e =
-      cong inj₂ (right-inv-inj f⁻ f fr (inj₂-injᴵ e))
-    inj {inj₁ _} {inj₂ _} e = inj₁≢inj₂ᴵ e
-    inj {inj₂ _} {inj₁ _} e = inj₁≢inj₂ᴵ (sym e)
+      cong inj₂ (right-inv-inj f⁻ f fr (inj₂-inj e))
+    inj {inj₁ _} {inj₂ _} e = inj₁≢inj₂ e
+    inj {inj₂ _} {inj₁ _} e = inj₁≢inj₂ (sym e)

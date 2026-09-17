@@ -49,6 +49,7 @@ open import categorical-crypto.Prelude hiding (id; _∘_)
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
+open import CategoricalCrypto.Machine.Message
 import CategoricalCrypto.Machine.Core as CC
 open import CategoricalCrypto.Machine.Iso
 open import Tactic.Defaults
@@ -58,27 +59,6 @@ module CategoricalCrypto.Machine.Reindex.Post where
 open _≅ᴹ_
 
 private
-  just-inj : ∀ {a} {X : Type a} {x y : X} → just x ≡ just y → x ≡ y
-  just-inj refl = refl
-
-  inj₁-inj : ∀ {a b} {X : Type a} {Y : Type b} {x y : X}
-           → _≡_ {A = X ⊎ Y} (inj₁ x) (inj₁ y) → x ≡ y
-  inj₁-inj refl = refl
-
-  inj₂-inj : ∀ {a b} {X : Type a} {Y : Type b} {x y : Y}
-           → _≡_ {A = X ⊎ Y} (inj₂ x) (inj₂ y) → x ≡ y
-  inj₂-inj refl = refl
-
-  inj₁≢inj₂ : ∀ {a b} {X : Type a} {Y : Type b} {x : X} {y : Y} {ℓ} {W : Type ℓ}
-            → _≡_ {A = X ⊎ Y} (inj₁ x) (inj₂ y) → W
-  inj₁≢inj₂ ()
-
-  just≢nothing : ∀ {a} {X : Type a} {x : X} {ℓ} {W : Type ℓ} → just x ≡ nothing → W
-  just≢nothing ()
-
-  nothing≢just : ∀ {a} {X : Type a} {x : X} {ℓ} {W : Type ℓ} → nothing ≡ just x → W
-  nothing≢just ()
-
   -- Inversion view for `CompRel` at fully general indices.
   CompView : ∀ {A B C D} (M₁ : Machine A B) (M₂ : Machine C D)
              (sp : Machine.State M₁ × Machine.State M₂)
@@ -101,34 +81,6 @@ private
     → Tensor.CompRel M₁ M₂ sp x y sp' → CompView M₁ M₂ sp x y sp'
   comp-view (Tensor.Step₁ q) = inj₁ (_ , _ , refl , refl , refl , q)
   comp-view (Tensor.Step₂ q) = inj₂ (_ , _ , refl , refl , refl , q)
-
-  mapᴹ-id : ∀ {X : Type} (o : Maybe X) → mapᴹ (λ x → x) o ≡ o
-  mapᴹ-id (just _) = refl
-  mapᴹ-id nothing  = refl
-
-  mapᴹ-cong : ∀ {X Y : Type} {v v' : X → Y} → (∀ x → v x ≡ v' x) → ∀ o → mapᴹ v o ≡ mapᴹ v' o
-  mapᴹ-cong e (just x) = cong just (e x)
-  mapᴹ-cong e nothing  = refl
-
-  mapᴹ-∘ : ∀ {X Y Z : Type} (v : Y → Z) (w : X → Y) (o : Maybe X)
-         → mapᴹ v (mapᴹ w o) ≡ mapᴹ (λ x → v (w x)) o
-  mapᴹ-∘ v w (just _) = refl
-  mapᴹ-∘ v w nothing  = refl
-
-  -- A `just` under `mapᴹ` comes from a `just`.
-  mapᴹ-just : ∀ {X Y : Type} (v : X → Y) (O : Maybe X) (y : Y)
-            → mapᴹ v O ≡ just y → ∃ λ x → (O ≡ just x) × (v x ≡ y)
-  mapᴹ-just v nothing  y e = nothing≢just e
-  mapᴹ-just v (just x) y e = x , refl , just-inj e
-
-  -- Two `mapᴹ`s that agree are pulled back along a pointwise inverse.
-  mapᴹ-pull : ∀ {X Y Z : Type} (v : X → Z) (w : Y → Z) (k : Y → X)
-            → (∀ x y → v x ≡ w y → x ≡ k y)
-            → ∀ O mo → mapᴹ v O ≡ mapᴹ w mo → O ≡ mapᴹ k mo
-  mapᴹ-pull v w k pt nothing  nothing  e = refl
-  mapᴹ-pull v w k pt nothing  (just _) e = nothing≢just e
-  mapᴹ-pull v w k pt (just _) nothing  e = just≢nothing e
-  mapᴹ-pull v w k pt (just x) (just y) e = cong just (pt x y (just-inj e))
 
 -- ----------------------------------------------------------------------------
 -- The primitive.

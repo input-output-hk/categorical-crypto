@@ -16,6 +16,7 @@ open import Relation.Binary using (IsEquivalence)
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
+open import CategoricalCrypto.Machine.Message
 open import Tactic.Defaults
 
 private variable A B C D E : Channel
@@ -102,33 +103,6 @@ private
   (TraceRel-map _ _ _ (CompRel-map (≅ᴹ-sym φ₂) (≅ᴹ-sym φ₁)))
 
 
-
-private
-  -- Tiny injectivity / conflict helpers (stated over transparent types;
-  -- applied to opaque-typed equations via conversion inside the
-  -- unfolding blocks).
-  inj₁-inj : ∀ {a b} {X : Type a} {Y : Type b} {x y : X}
-           → _≡_ {A = X ⊎ Y} (inj₁ x) (inj₁ y) → x ≡ y
-  inj₁-inj refl = refl
-
-  inj₂-inj : ∀ {a b} {X : Type a} {Y : Type b} {x y : Y}
-           → _≡_ {A = X ⊎ Y} (inj₂ x) (inj₂ y) → x ≡ y
-  inj₂-inj refl = refl
-
-  inj₁≢inj₂ : ∀ {a b} {X : Type a} {Y : Type b} {x : X} {y : Y} {ℓ} {W : Type ℓ}
-            → _≡_ {A = X ⊎ Y} (inj₁ x) (inj₂ y) → W
-  inj₁≢inj₂ ()
-
-  just-inj : ∀ {a} {X : Type a} {x y : X} → just x ≡ just y → x ≡ y
-  just-inj refl = refl
-
-  just≢nothing : ∀ {a} {X : Type a} {x : X} {ℓ} {W : Type ℓ}
-               → just x ≡ nothing → W
-  just≢nothing ()
-
-  nothing≢just : ∀ {a} {X : Type a} {x : X} {ℓ} {W : Type ℓ}
-               → nothing ≡ just x → W
-  nothing≢just ()
 
 private
   -- General-index inversion views: splitting on `TraceRel`/`CompRel`

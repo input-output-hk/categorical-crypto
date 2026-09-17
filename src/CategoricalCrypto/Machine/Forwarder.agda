@@ -33,6 +33,7 @@ open import categorical-crypto.Prelude hiding (id; _∘_)
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
+open import CategoricalCrypto.Machine.Message
 import CategoricalCrypto.Machine.Core as CC
 open import CategoricalCrypto.Machine.Iso
 open import Tactic.Defaults
@@ -42,25 +43,6 @@ module CategoricalCrypto.Machine.Forwarder where
 open _≅ᴹ_
 
 private
-  just-inj : ∀ {a} {X : Type a} {x y : X} → just x ≡ just y → x ≡ y
-  just-inj refl = refl
-
-  mapₘ : ∀ {X Y : Type} → (X → Y) → Maybe X → Maybe Y
-  mapₘ f (just x) = just (f x)
-  mapₘ f nothing  = nothing
-
-  inj₁-inj : ∀ {a b} {X : Type a} {Y : Type b} {x y : X}
-           → _≡_ {A = X ⊎ Y} (inj₁ x) (inj₁ y) → x ≡ y
-  inj₁-inj refl = refl
-
-  inj₂-inj : ∀ {a b} {X : Type a} {Y : Type b} {x y : Y}
-           → _≡_ {A = X ⊎ Y} (inj₂ x) (inj₂ y) → x ≡ y
-  inj₂-inj refl = refl
-
-  inj₁≢inj₂ : ∀ {a b} {X : Type a} {Y : Type b} {x : X} {y : Y} {ℓ} {W : Type ℓ}
-            → _≡_ {A = X ⊎ Y} (inj₁ x) (inj₂ y) → W
-  inj₁≢inj₂ ()
-
   -- Inversion view for `CompRel` at fully general indices.
   comp-view :
     ∀ {A B C D} {M₁ : Machine A B} {M₂ : Machine C D}
@@ -320,7 +302,7 @@ opaque
                 (i : Channel.inType (A ⊗ᵀ B))
                 (o : Maybe (Channel.outType (A ⊗ᵀ B)))
               → Machine.stepRel (tr {A} {B} {C} (Fwd κ)) tt i o tt
-              ≡ TraceRel (Fwd κ) tt (ιₜ i) (mapₘ εₜ o) tt
+              ≡ TraceRel (Fwd κ) tt (ιₜ i) (mapᴹ εₜ o) tt
     tr-unfold κ (inj₁ a)  (just (inj₁ ao)) = refl
     tr-unfold κ (inj₁ a)  (just (inj₂ bi)) = refl
     tr-unfold κ (inj₁ a)  nothing          = refl
@@ -341,13 +323,13 @@ opaque
       (λ {_} {i} {o} p → t i o (subst (λ X → X) (tr-unfold κ i o) p))
       (λ {_} {i} {o} p → subst (λ X → X) (sym (tr-unfold κ i o)) (f i o p))
     where
-    t : ∀ i o → TraceRel (Fwd κ) tt (ιₜ {A} {B} {C} i) (mapₘ (εₜ {A} {B} {C}) o) tt → just (κ° i) ≡ o
+    t : ∀ i o → TraceRel (Fwd κ) tt (ιₜ {A} {B} {C} i) (mapᴹ (εₜ {A} {B} {C}) o) tt → just (κ° i) ≡ o
     t i (just y) tr₀ with Trace→Run tr₀
     ... | v , e , r =
       cong just (sym (uniq i y (subst (Runᶜ κ (ιₜ {A} {B} {C} i)) (sym (just-inj e)) r)))
     t i nothing tr₀ with Trace→Run tr₀
     ... | v , () , r
-    f : ∀ i o → just (κ° i) ≡ o → TraceRel (Fwd κ) tt (ιₜ {A} {B} {C} i) (mapₘ (εₜ {A} {B} {C}) o) tt
+    f : ∀ i o → just (κ° i) ≡ o → TraceRel (Fwd κ) tt (ιₜ {A} {B} {C} i) (mapᴹ (εₜ {A} {B} {C}) o) tt
     f i _ refl = Run→Trace (total i)
 
   -- ══════════════════════════════════════════════════════════════════════

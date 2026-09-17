@@ -19,6 +19,7 @@ open import categorical-crypto.Prelude hiding (id; _∘_)
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
+open import CategoricalCrypto.Machine.Message
 import CategoricalCrypto.Machine.Core as CC
 open import CategoricalCrypto.Machine.Iso
 open import Tactic.Defaults
@@ -31,21 +32,6 @@ opaque
   unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-assoc ⊗-left-assoc
             ⊗-right-intro ⊗-ᵀ-distrib ⊗-ᵀ-factor ⊗-right-neutral ⊗-fusion ⊗-combine
             πᵢ
-
-  private
-    mapᴹ-∘' : ∀ {X Y Z : Type} (v : Y → Z) (v' : X → Y) (o : Maybe X)
-            → mapᴹ v (mapᴹ v' o) ≡ mapᴹ (λ x → v (v' x)) o
-    mapᴹ-∘' v v' (just x) = refl
-    mapᴹ-∘' v v' nothing  = refl
-
-    mapᴹ-cong' : ∀ {X Y : Type} {v v' : X → Y}
-               → (∀ x → v x ≡ v' x) → ∀ o → mapᴹ v o ≡ mapᴹ v' o
-    mapᴹ-cong' e (just x) = cong just (e x)
-    mapᴹ-cong' e nothing  = refl
-
-    mapᴹ-id' : ∀ {X : Type} (o : Maybe X) → mapᴹ (λ x → x) o ≡ o
-    mapᴹ-id' (just _) = refl
-    mapᴹ-id' nothing  = refl
 
   -- ------------------------------------------------------------------------
   -- The leaves are re-tagged, the middle one moving from the right subtree to
@@ -140,6 +126,6 @@ opaque
       (λ {_} {i} {o} p →
         subst₂ (λ x y → Tensor.CompRel M₁ (Pair M₂ M₃) _ x y _)
                (asc3ᵢ⁻-asc3ᵢ i)
-               (trans (mapᴹ-∘' asc3ₒ⁻ asc3ₒ o)
-                      (trans (mapᴹ-cong' asc3ₒ⁻-asc3ₒ o) (mapᴹ-id' o)))
+               (trans (mapᴹ-∘ asc3ₒ⁻ asc3ₒ o)
+                      (trans (mapᴹ-cong asc3ₒ⁻-asc3ₒ o) (mapᴹ-id o)))
                (Pair-asc3-from M₁ M₂ M₃ p))

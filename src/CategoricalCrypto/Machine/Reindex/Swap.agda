@@ -21,6 +21,7 @@ open import categorical-crypto.Prelude hiding (id; _∘_)
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
+open import CategoricalCrypto.Machine.Message
 import CategoricalCrypto.Machine.Core as CC
 open import CategoricalCrypto.Machine.Iso
 open import Tactic.Defaults
@@ -28,21 +29,6 @@ open import Tactic.Defaults
 module CategoricalCrypto.Machine.Reindex.Swap where
 
 open _≅ᴹ_
-
-private
-  mapᴹ-∘ˢ : ∀ {X Y Z : Type} (v : Y → Z) (v' : X → Y) (o : Maybe X)
-          → mapᴹ v (mapᴹ v' o) ≡ mapᴹ (λ x → v (v' x)) o
-  mapᴹ-∘ˢ v v' (just x) = refl
-  mapᴹ-∘ˢ v v' nothing  = refl
-
-  mapᴹ-congˢ : ∀ {X Y : Type} {v v' : X → Y}
-             → (∀ x → v x ≡ v' x) → ∀ o → mapᴹ v o ≡ mapᴹ v' o
-  mapᴹ-congˢ e (just x) = cong just (e x)
-  mapᴹ-congˢ e nothing  = refl
-
-  mapᴹ-idˢ : ∀ {X : Type} (o : Maybe X) → mapᴹ (λ x → x) o ≡ o
-  mapᴹ-idˢ (just _) = refl
-  mapᴹ-idˢ nothing  = refl
 
 opaque
   unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-assoc ⊗-left-assoc
@@ -99,6 +85,6 @@ opaque
       (λ {_} {i} {o} p →
         subst₂ (λ x y → Tensor.CompRel M₁ M₂ _ x y _)
                (swᵢ-invol i)
-               (trans (mapᴹ-∘ˢ (swₒ {C} {D} {A} {B}) (swₒ {A} {B} {C} {D}) o)
-                      (trans (mapᴹ-congˢ swₒ-invol o) (mapᴹ-idˢ o)))
+               (trans (mapᴹ-∘ (swₒ {C} {D} {A} {B}) (swₒ {A} {B} {C} {D}) o)
+                      (trans (mapᴹ-cong swₒ-invol o) (mapᴹ-id o)))
                (Pair-swap-to M₂ M₁ p))

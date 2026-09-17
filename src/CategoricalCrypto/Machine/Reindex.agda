@@ -45,30 +45,13 @@ open import Tactic.Defaults
 
 module CategoricalCrypto.Machine.Reindex where
 
+-- Re-exported: every module of this layer reaches `mapᴹ` and the constructor
+-- lemmas through `Reindex`.
+open import CategoricalCrypto.Machine.Message public
+
 open _≅ᴹ_
 
 private
-  just-inj : ∀ {a} {X : Type a} {x y : X} → just x ≡ just y → x ≡ y
-  just-inj refl = refl
-
-  inj₁-inj : ∀ {a b} {X : Type a} {Y : Type b} {x y : X}
-           → _≡_ {A = X ⊎ Y} (inj₁ x) (inj₁ y) → x ≡ y
-  inj₁-inj refl = refl
-
-  inj₂-inj : ∀ {a b} {X : Type a} {Y : Type b} {x y : Y}
-           → _≡_ {A = X ⊎ Y} (inj₂ x) (inj₂ y) → x ≡ y
-  inj₂-inj refl = refl
-
-  inj₁≢inj₂ : ∀ {a b} {X : Type a} {Y : Type b} {x : X} {y : Y} {ℓ} {W : Type ℓ}
-            → _≡_ {A = X ⊎ Y} (inj₁ x) (inj₂ y) → W
-  inj₁≢inj₂ ()
-
-  just≢nothing : ∀ {a} {X : Type a} {x : X} {ℓ} {W : Type ℓ} → just x ≡ nothing → W
-  just≢nothing ()
-
-  nothing≢just : ∀ {a} {X : Type a} {x : X} {ℓ} {W : Type ℓ} → nothing ≡ just x → W
-  nothing≢just ()
-
   -- Inversion view for `CompRel` at fully general indices.
   comp-view :
     ∀ {A B C D} {M₁ : Machine A B} {M₂ : Machine C D}
@@ -84,12 +67,6 @@ private
          × Machine.stepRel M₂ (proj₂ sp) mᵢ mo (proj₂ sp'))
   comp-view (Tensor.Step₁ q) = inj₁ (_ , _ , refl , refl , refl , q)
   comp-view (Tensor.Step₂ q) = inj₂ (_ , _ , refl , refl , refl , q)
-
--- The prelude's `_<$>_` at `Maybe`, spelled out, so that it can be reasoned
--- about without instance resolution getting in the way.  Definitionally equal
--- to `f <$> o`, which is what `modifyStepRel` uses.
-mapᴹ : ∀ {X Y : Type} → (X → Y) → Maybe X → Maybe Y
-mapᴹ f = maybe (λ x → just (f x)) nothing
 
 -- ----------------------------------------------------------------------------
 -- Three primitives.  `_⊗₁_`, `_∘_` and `modifyStepRel` are all built from
@@ -126,16 +103,6 @@ modifyStepRel-Reindex _ _ = refl
 -- ----------------------------------------------------------------------------
 -- Congruences and fusion for the three primitives.
 -- ----------------------------------------------------------------------------
-
-private
-  mapᴹ-∘ : ∀ {X Y Z : Type} (v : Y → Z) (v' : X → Y) (o : Maybe X)
-         → mapᴹ v (mapᴹ v' o) ≡ mapᴹ (λ x → v (v' x)) o
-  mapᴹ-∘ v v' (just x) = refl
-  mapᴹ-∘ v v' nothing  = refl
-
-  mapᴹ-cong : ∀ {X Y : Type} {v v' : X → Y} → (∀ x → v x ≡ v' x) → ∀ o → mapᴹ v o ≡ mapᴹ v' o
-  mapᴹ-cong e (just x) = cong just (e x)
-  mapᴹ-cong e nothing  = refl
 
 Reindex-resp-≅ᴹ : ∀ {A B C D} {M N : Machine A B}
                   (u : Channel.inType (C ⊗ᵀ D) → Channel.inType (A ⊗ᵀ B))
@@ -333,10 +300,6 @@ opaque
     mid4ₒ-invol (inj₁ (inj₂ _)) = refl
     mid4ₒ-invol (inj₂ (inj₁ _)) = refl
     mid4ₒ-invol (inj₂ (inj₂ _)) = refl
-
-    mapᴹ-id : ∀ {X : Type} (o : Maybe X) → mapᴹ (λ x → x) o ≡ o
-    mapᴹ-id (just _) = refl
-    mapᴹ-id nothing  = refl
 
   Pair-mid4 : ∀ {A₁ B₁ A₂ B₂ A₃ B₃ A₄ B₄}
               (M₁ : Machine A₁ B₁) (M₂ : Machine A₂ B₂)
