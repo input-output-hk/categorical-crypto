@@ -156,7 +156,7 @@ module Derived where
   post-α α H P Q eq = ≅ᴹ-trans (∘-resp-≅ᴹ ≅ᴹ-refl (≅ᴹ-sym eq)) (≅ᴹ-sym ∘-assoc-≅ᴹ)
 
   -- --------------------------------------------------------------------------
-  -- `ChannelCat.insert-id`, discharged.  The type below is that field verbatim.
+  -- Inserting a unit per node and stripping it again is a no-op.
   -- --------------------------------------------------------------------------
 
   insert-id : ∀ {A D} {n} {E₁} {B C E₂ : Fin n → Channel}
@@ -224,8 +224,8 @@ module Derived where
                 (⨂-functorial (λ k → f (fsuc k)) (λ k → g (fsuc k)))))))
 
   -- --------------------------------------------------------------------------
-  -- `ChannelCat.⨂-absorb-env`, discharged.  The type below is that field
-  -- verbatim.
+  -- A `⨂ᴷ` of compositions is a composition of `⨂ᴷ`s once the per-node
+  -- environment channels are zipped together.
   -- --------------------------------------------------------------------------
 
   ⨂-absorb-env : ∀ {A E F} {n} {B C D E₁ E₂ : Fin n → Channel}

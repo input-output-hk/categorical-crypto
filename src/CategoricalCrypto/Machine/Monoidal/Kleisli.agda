@@ -1,8 +1,9 @@
 {-# OPTIONS --safe #-}
 
 -- ============================================================================
--- The two Kleisli laws of `CategoricalCrypto.Machine.NAry`, derived: `_∘ᴷ_`
--- associates, and `_⊗ᴷ_` and `_∘ᴷ_` interchange.
+-- The two Kleisli laws `CategoricalCrypto.Machine.NAry` builds on: `_∘ᴷ_`
+-- associates, and `_⊗ᴷ_` and `_∘ᴷ_` interchange.  (`Machine.UC.Kleisli`
+-- re-derives the first from the graded-triple laws of the abstract layer.)
 --
 -- Both laws say the same thing twice: `_∘ᴷ_` and `_⊗ᴷ_` are `_∘_` and `_⊗₁_`
 -- followed by a fixed stateless shuffle, so an equation between two Kleisli
@@ -265,9 +266,3 @@ opaque
   ≅ᴹ-trans (⊗ᴷ-∘ᴷ-L a b c d)
   (≅ᴹ-trans (∘-resp-≅ᴹ head₂ ≅ᴹ-refl)
             (≅ᴹ-sym (⊗ᴷ-∘ᴷ-R a b c d)))
-
--- ----------------------------------------------------------------------------
--- Both laws together.  Nothing downstream uses this definition; it is here so
--- that the two statements above are checked against the fields they discharge,
--- rather than against a hand-copied version of them.
--- ----------------------------------------------------------------------------

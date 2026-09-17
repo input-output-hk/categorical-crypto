@@ -16,8 +16,9 @@
 -- reduces to a pointwise equation between two message-level functions, which
 -- is a finite case split closed by `refl`.
 --
--- That is what discharges the `Forwarders` tier of `CategoricalCrypto.Machine.NAry`
--- (`ρ-∘ᴷ-fwd`, `ρ-idᴷ`, `λ-zip-idᴷ`) and the `MonoidalLaws` field `⊗₁-id`.
+-- That is what proves the forwarder laws `CategoricalCrypto.Machine.NAry` needs
+-- (`ρ-∘ᴷ-fwd`, `ρ-idᴷ`, `λ-zip-idᴷ`) and the identity part `⊗₁-id` of the
+-- tensor's functoriality.
 --
 -- The hard case is `_∘_`, because it traces: a message bounces between the two
 -- copies of the shared channel until it lands on an external port.  `Run`
