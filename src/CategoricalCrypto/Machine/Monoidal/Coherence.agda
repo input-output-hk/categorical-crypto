@@ -32,28 +32,30 @@ open import Tactic.Defaults
 
 module CategoricalCrypto.Machine.Monoidal.Coherence where
 
+open Channel
+
 opaque
   unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-assoc ⊗-left-assoc
             ⊗-right-intro ⊗-ᵀ-distrib ⊗-ᵀ-factor ⊗-right-neutral ⊗-fusion
             ⊗-combine Xφ
 
   ∘-collapse : ∀ {A B C} {M : Machine B C} {N : Machine A B}
-               {f₂ : Channel.inType B → Channel.inType C} {g₂ : Channel.outType C → Channel.outType B}
-               {f₁ : Channel.inType A → Channel.inType B} {g₁ : Channel.outType B → Channel.outType A}
+               {f₂ : inType B → inType C} {g₂ : outType C → outType B}
+               {f₁ : inType A → inType B} {g₁ : outType B → outType A}
              → M ≅ᴹ Xfwd f₂ g₂ → N ≅ᴹ Xfwd f₁ g₁
              → (M CC.∘ N) ≅ᴹ Xfwd (λ a → f₂ (f₁ a)) (λ o → g₁ (g₂ o))
   ∘-collapse φ ψ = ≅ᴹ-trans (∘-resp-≅ᴹ φ ψ) ∘-Xfwd
 
   ⊗-collapse : ∀ {A B C D} {M : Machine A B} {N : Machine C D}
-               {f₁ : Channel.inType A → Channel.inType B} {g₁ : Channel.outType B → Channel.outType A}
-               {f₂ : Channel.inType C → Channel.inType D} {g₂ : Channel.outType D → Channel.outType C}
+               {f₁ : inType A → inType B} {g₁ : outType B → outType A}
+               {f₂ : inType C → inType D} {g₂ : outType D → outType C}
              → M ≅ᴹ Xfwd f₁ g₁ → N ≅ᴹ Xfwd f₂ g₂
              → (M ⊗₁ N) ≅ᴹ Xfwd (⊗mapᵢ f₁ f₂) (⊗mapₒ g₁ g₂)
   ⊗-collapse φ ψ = ≅ᴹ-trans (⊗₁-resp-≅ᴹ φ ψ) ⊗₁-Xfwd
 
   Xfwd-bridge : ∀ {A B} {M N : Machine A B}
-                {f f' : Channel.inType A → Channel.inType B}
-                {g g' : Channel.outType B → Channel.outType A}
+                {f f' : inType A → inType B}
+                {g g' : outType B → outType A}
               → M ≅ᴹ Xfwd f g → N ≅ᴹ Xfwd f' g'
               → (∀ a → f a ≡ f' a) → (∀ o → g o ≡ g' o) → M ≅ᴹ N
   Xfwd-bridge φ ψ ef eg = ≅ᴹ-trans φ (≅ᴹ-trans (Xfwd-≅ᴹ ef eg) (≅ᴹ-sym ψ))

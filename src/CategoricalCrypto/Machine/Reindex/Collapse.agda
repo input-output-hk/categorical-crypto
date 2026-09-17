@@ -21,6 +21,8 @@ open import Tactic.Defaults
 
 module CategoricalCrypto.Machine.Reindex.Collapse where
 
+open Channel
+
 open _≅ᴹ_
 
 opaque
@@ -30,8 +32,8 @@ opaque
 
   -- The routing agrees whether the relabelling is applied inside the `Pair` or
   -- at the traced machine's channel; that is all `∘κ` contributes.
-  cod-routeᵢ : ∀ {A B C C'} (uC : Channel.outType C' → Channel.outType C)
-               (i : Channel.inType ((A ⊗₀ B) ⊗ᵀ (C' ⊗₀ B)))
+  cod-routeᵢ : ∀ {A B C C'} (uC : outType C' → outType C)
+               (i : inType ((A ⊗₀ B) ⊗ᵀ (C' ⊗₀ B)))
              → ⊎ᵢ {A} {B} {B} {C} {A} {B} {B} {C'} (λ x → x) (cdᵢ {B} {C} {C'} uC)
                  (∘κᵢ {A} {B} {C'} i)
                ≡ ∘κᵢ {A} {B} {C} (wcᵢ {A} {B} {C} {C'} uC i)
@@ -40,8 +42,8 @@ opaque
   cod-routeᵢ uC (inj₂ (inj₁ _)) = refl
   cod-routeᵢ uC (inj₂ (inj₂ _)) = refl
 
-  cod-routeₒ : ∀ {A B C C'} (vC : Channel.inType C' → Channel.inType C)
-               (o : Channel.outType ((A ⊗₀ B) ⊗ᵀ (C' ⊗₀ B)))
+  cod-routeₒ : ∀ {A B C C'} (vC : inType C' → inType C)
+               (o : outType ((A ⊗₀ B) ⊗ᵀ (C' ⊗₀ B)))
              → ⊎ₒ {A} {B} {B} {C} {A} {B} {B} {C'} (λ x → x) (cdₒ {B} {C} {C'} vC)
                  (∘κₒ {A} {B} {C'} o)
                ≡ ∘κₒ {A} {B} {C} (wcₒ {A} {B} {C} {C'} vC o)
@@ -54,8 +56,8 @@ opaque
   -- to be introduced explicitly, because `Pair-Reindex` only speaks about a
   -- `Pair` of two `Reindex`es.
   cod-pairR : ∀ {A B C C'} (M : Machine A B) (N : Machine B C)
-              (uC : Channel.outType C' → Channel.outType C)
-              (vC : Channel.inType C' → Channel.inType C)
+              (uC : outType C' → outType C)
+              (vC : inType C' → inType C)
             → Pair M (Reindex N (cdᵢ {B} {C} {C'} uC) (cdₒ {B} {C} {C'} vC))
               ≅ᴹ Reindex (Pair M N)
                    (⊎ᵢ {A} {B} {B} {C} {A} {B} {B} {C'} (λ x → x) (cdᵢ {B} {C} {C'} uC))
@@ -68,8 +70,8 @@ opaque
   -- The composite of the two relabellings on the inner machine, refactored so
   -- that the outer one is `wcᵢ`/`wcₒ` — the form `Trc-slide` accepts.
   cod-inner : ∀ {A B C C'} (M : Machine A B) (N : Machine B C)
-              (uC : Channel.outType C' → Channel.outType C)
-              (vC : Channel.inType C' → Channel.inType C)
+              (uC : outType C' → outType C)
+              (vC : inType C' → inType C)
             → Reindex (Pair M (Reindex N (cdᵢ {B} {C} {C'} uC) (cdₒ {B} {C} {C'} vC)))
                       (∘κᵢ {A} {B} {C'}) (∘κₒ {A} {B} {C'})
               ≅ᴹ Reindex (Reindex (Pair M N) (∘κᵢ {A} {B} {C}) (∘κₒ {A} {B} {C}))
@@ -95,8 +97,8 @@ opaque
   -- `wcᵢ`/`wcₒ` fix the traced channel `B` — that is the whole point of their
   -- definition — so the four hypotheses of `Trc-slide` are all `refl`.
   cod-trc : ∀ {A B C C'} (M : Machine A B) (N : Machine B C)
-            (uC : Channel.outType C' → Channel.outType C)
-            (vC : Channel.inType C' → Channel.inType C)
+            (uC : outType C' → outType C)
+            (vC : inType C' → inType C)
           → Trc (Reindex (Pair M (Reindex N (cdᵢ {B} {C} {C'} uC) (cdₒ {B} {C} {C'} vC)))
                          (∘κᵢ {A} {B} {C'}) (∘κₒ {A} {B} {C'}))
             ≅ᴹ Reindex (Trc (Reindex (Pair M N) (∘κᵢ {A} {B} {C}) (∘κₒ {A} {B} {C})))
@@ -109,15 +111,15 @@ opaque
 
   -- Past the trace, `wcᵢ ∘ tιᵢ` is `tιᵢ ∘ cdᵢ`: the relabelling only ever sees
   -- the external ports, which is where `cdᵢ` acts.
-  cod-outᵢ : ∀ {A B C C'} (uC : Channel.outType C' → Channel.outType C)
-             (i : Channel.inType (A ⊗ᵀ C'))
+  cod-outᵢ : ∀ {A B C C'} (uC : outType C' → outType C)
+             (i : inType (A ⊗ᵀ C'))
            → wcᵢ {A} {B} {C} {C'} uC (tιᵢ {A} {C'} {B} i)
              ≡ tιᵢ {A} {C} {B} (cdᵢ {A} {C} {C'} uC i)
   cod-outᵢ uC (inj₁ _) = refl
   cod-outᵢ uC (inj₂ _) = refl
 
-  cod-outₒ : ∀ {A B C C'} (vC : Channel.inType C' → Channel.inType C)
-             (o : Channel.outType (A ⊗ᵀ C'))
+  cod-outₒ : ∀ {A B C C'} (vC : inType C' → inType C)
+             (o : outType (A ⊗ᵀ C'))
            → wcₒ {A} {B} {C} {C'} vC (tιₒ {A} {C'} {B} o)
              ≡ tιₒ {A} {C} {B} (cdₒ {A} {C} {C'} vC o)
   cod-outₒ vC (inj₁ _) = refl
@@ -126,8 +128,8 @@ opaque
   -- Refactor the outer relabelling so that `cdᵢ`/`cdₒ` sit outermost, ready to
   -- be split off by `Reindex-fuse`.
   cod-outer : ∀ {A B C C'} (M : Machine A B) (N : Machine B C)
-              (uC : Channel.outType C' → Channel.outType C)
-              (vC : Channel.inType C' → Channel.inType C)
+              (uC : outType C' → outType C)
+              (vC : inType C' → inType C)
             → Reindex (Trc (Reindex (Pair M N) (∘κᵢ {A} {B} {C}) (∘κₒ {A} {B} {C})))
                       (λ i → wcᵢ {A} {B} {C} {C'} uC (tιᵢ {A} {C'} {B} i))
                       (λ o → wcₒ {A} {B} {C} {C'} vC (tιₒ {A} {C'} {B} o))
@@ -147,8 +149,8 @@ opaque
                         (cdᵢ {A} {C} {C'} uC) (cdₒ {A} {C} {C'} vC)))
 
   ∘-collapse-cod : ∀ {A B C C'} (M : Machine A B) (N : Machine B C)
-                   (uC : Channel.outType C' → Channel.outType C)
-                   (vC : Channel.inType C' → Channel.inType C)
+                   (uC : outType C' → outType C)
+                   (vC : inType C' → inType C)
                  → ((Reindex N (cdᵢ {B} {C} {C'} uC) (cdₒ {B} {C} {C'} vC)) CC.∘ M)
                    ≅ᴹ Reindex (N CC.∘ M) (cdᵢ {A} {C} {C'} uC) (cdₒ {A} {C} {C'} vC)
   ∘-collapse-cod {A} {B} {C} {C'} M N uC vC =
@@ -167,8 +169,8 @@ opaque
   -- and `cdᵢ`/`cdₒ`.  The traced channel is `B` either way, which is why the
   -- same `Trc-slide` closes both.
 
-  dom-routeᵢ : ∀ {A A' B C} (uA : Channel.inType A' → Channel.inType A)
-               (i : Channel.inType ((A' ⊗₀ B) ⊗ᵀ (C ⊗₀ B)))
+  dom-routeᵢ : ∀ {A A' B C} (uA : inType A' → inType A)
+               (i : inType ((A' ⊗₀ B) ⊗ᵀ (C ⊗₀ B)))
              → ⊎ᵢ {A} {B} {B} {C} {A'} {B} {B} {C} (dmᵢ {A} {A'} {B} uA) (λ x → x)
                  (∘κᵢ {A'} {B} {C} i)
                ≡ ∘κᵢ {A} {B} {C} (wdᵢ {A} {A'} {B} {C} uA i)
@@ -177,8 +179,8 @@ opaque
   dom-routeᵢ uA (inj₂ (inj₁ _)) = refl
   dom-routeᵢ uA (inj₂ (inj₂ _)) = refl
 
-  dom-routeₒ : ∀ {A A' B C} (vA : Channel.outType A' → Channel.outType A)
-               (o : Channel.outType ((A' ⊗₀ B) ⊗ᵀ (C ⊗₀ B)))
+  dom-routeₒ : ∀ {A A' B C} (vA : outType A' → outType A)
+               (o : outType ((A' ⊗₀ B) ⊗ᵀ (C ⊗₀ B)))
              → ⊎ₒ {A} {B} {B} {C} {A'} {B} {B} {C} (dmₒ {A} {A'} {B} vA) (λ x → x)
                  (∘κₒ {A'} {B} {C} o)
                ≡ ∘κₒ {A} {B} {C} (wdₒ {A} {A'} {B} {C} vA o)
@@ -188,8 +190,8 @@ opaque
   dom-routeₒ vA (inj₂ (inj₂ _)) = refl
 
   dom-pairR : ∀ {A A' B C} (M : Machine A B) (N : Machine B C)
-              (uA : Channel.inType A' → Channel.inType A)
-              (vA : Channel.outType A' → Channel.outType A)
+              (uA : inType A' → inType A)
+              (vA : outType A' → outType A)
             → Pair (Reindex M (dmᵢ {A} {A'} {B} uA) (dmₒ {A} {A'} {B} vA)) N
               ≅ᴹ Reindex (Pair M N)
                    (⊎ᵢ {A} {B} {B} {C} {A'} {B} {B} {C} (dmᵢ {A} {A'} {B} uA) (λ x → x))
@@ -200,8 +202,8 @@ opaque
                            (λ x → x) (λ x → x))
 
   dom-inner : ∀ {A A' B C} (M : Machine A B) (N : Machine B C)
-              (uA : Channel.inType A' → Channel.inType A)
-              (vA : Channel.outType A' → Channel.outType A)
+              (uA : inType A' → inType A)
+              (vA : outType A' → outType A)
             → Reindex (Pair (Reindex M (dmᵢ {A} {A'} {B} uA) (dmₒ {A} {A'} {B} vA)) N)
                       (∘κᵢ {A'} {B} {C}) (∘κₒ {A'} {B} {C})
               ≅ᴹ Reindex (Reindex (Pair M N) (∘κᵢ {A} {B} {C}) (∘κₒ {A} {B} {C}))
@@ -225,8 +227,8 @@ opaque
                          (wdᵢ {A} {A'} {B} {C} uA) (wdₒ {A} {A'} {B} {C} vA)))))
 
   dom-trc : ∀ {A A' B C} (M : Machine A B) (N : Machine B C)
-            (uA : Channel.inType A' → Channel.inType A)
-            (vA : Channel.outType A' → Channel.outType A)
+            (uA : inType A' → inType A)
+            (vA : outType A' → outType A)
           → Trc (Reindex (Pair (Reindex M (dmᵢ {A} {A'} {B} uA) (dmₒ {A} {A'} {B} vA)) N)
                          (∘κᵢ {A'} {B} {C}) (∘κₒ {A'} {B} {C}))
             ≅ᴹ Reindex (Trc (Reindex (Pair M N) (∘κᵢ {A} {B} {C}) (∘κₒ {A} {B} {C})))
@@ -237,23 +239,23 @@ opaque
                         (wdᵢ {A} {A'} {B} {C} uA) (wdₒ {A} {A'} {B} {C} vA)
                         (λ _ → refl) (λ _ → refl) (λ _ → refl) (λ _ → refl))
 
-  dom-outᵢ : ∀ {A A' B C} (uA : Channel.inType A' → Channel.inType A)
-             (i : Channel.inType (A' ⊗ᵀ C))
+  dom-outᵢ : ∀ {A A' B C} (uA : inType A' → inType A)
+             (i : inType (A' ⊗ᵀ C))
            → wdᵢ {A} {A'} {B} {C} uA (tιᵢ {A'} {C} {B} i)
              ≡ tιᵢ {A} {C} {B} (dmᵢ {A} {A'} {C} uA i)
   dom-outᵢ uA (inj₁ _) = refl
   dom-outᵢ uA (inj₂ _) = refl
 
-  dom-outₒ : ∀ {A A' B C} (vA : Channel.outType A' → Channel.outType A)
-             (o : Channel.outType (A' ⊗ᵀ C))
+  dom-outₒ : ∀ {A A' B C} (vA : outType A' → outType A)
+             (o : outType (A' ⊗ᵀ C))
            → wdₒ {A} {A'} {B} {C} vA (tιₒ {A'} {C} {B} o)
              ≡ tιₒ {A} {C} {B} (dmₒ {A} {A'} {C} vA o)
   dom-outₒ vA (inj₁ _) = refl
   dom-outₒ vA (inj₂ _) = refl
 
   dom-outer : ∀ {A A' B C} (M : Machine A B) (N : Machine B C)
-              (uA : Channel.inType A' → Channel.inType A)
-              (vA : Channel.outType A' → Channel.outType A)
+              (uA : inType A' → inType A)
+              (vA : outType A' → outType A)
             → Reindex (Trc (Reindex (Pair M N) (∘κᵢ {A} {B} {C}) (∘κₒ {A} {B} {C})))
                       (λ i → wdᵢ {A} {A'} {B} {C} uA (tιᵢ {A'} {C} {B} i))
                       (λ o → wdₒ {A} {A'} {B} {C} vA (tιₒ {A'} {C} {B} o))
@@ -273,8 +275,8 @@ opaque
                         (dmᵢ {A} {A'} {C} uA) (dmₒ {A} {A'} {C} vA)))
 
   ∘-collapse-dom : ∀ {A A' B C} (M : Machine A B) (N : Machine B C)
-                   (uA : Channel.inType A' → Channel.inType A)
-                   (vA : Channel.outType A' → Channel.outType A)
+                   (uA : inType A' → inType A)
+                   (vA : outType A' → outType A)
                  → (N CC.∘ (Reindex M (dmᵢ {A} {A'} {B} uA) (dmₒ {A} {A'} {B} vA)))
                    ≅ᴹ Reindex (N CC.∘ M) (dmᵢ {A} {A'} {C} uA) (dmₒ {A} {A'} {C} vA)
   ∘-collapse-dom {A} {A'} {B} {C} M N uA vA =

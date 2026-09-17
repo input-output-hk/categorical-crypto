@@ -31,6 +31,8 @@ open import Tactic.Defaults
 
 module CategoricalCrypto.Machine.Reindex.Slide where
 
+open Channel
+
 open _≅ᴹ_
 
 opaque
@@ -40,24 +42,24 @@ opaque
 
   -- The four traced-channel ports of a machine `Machine (X ⊗₀ Z) (Y ⊗₀ Z)`,
   -- at channel-shaped types.
-  dZᵢ : ∀ {X Y Z} → Channel.inType Z → Channel.inType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z))
+  dZᵢ : ∀ {X Y Z} → inType Z → inType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z))
   dZᵢ z = inj₁ (inj₂ z)
 
-  cZₒ : ∀ {X Y Z} → Channel.outType Z → Channel.inType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z))
+  cZₒ : ∀ {X Y Z} → outType Z → inType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z))
   cZₒ z = inj₂ (inj₂ z)
 
-  dZₒ : ∀ {X Y Z} → Channel.outType Z → Channel.outType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z))
+  dZₒ : ∀ {X Y Z} → outType Z → outType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z))
   dZₒ z = inj₁ (inj₂ z)
 
-  cZᵢ : ∀ {X Y Z} → Channel.inType Z → Channel.outType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z))
+  cZᵢ : ∀ {X Y Z} → inType Z → outType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z))
   cZᵢ z = inj₂ (inj₂ z)
 
   -- A relabelling that fixes the traced channel's ports commutes with `Trc`.
   Trc-slide : ∀ {X Y Z X' Y' : Channel} (W : Machine (X ⊗₀ Z) (Y ⊗₀ Z))
-              (p : Channel.inType ((X' ⊗₀ Z) ⊗ᵀ (Y' ⊗₀ Z))
-                 → Channel.inType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z)))
-              (q : Channel.outType ((X' ⊗₀ Z) ⊗ᵀ (Y' ⊗₀ Z))
-                 → Channel.outType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z)))
+              (p : inType ((X' ⊗₀ Z) ⊗ᵀ (Y' ⊗₀ Z))
+                 → inType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z)))
+              (q : outType ((X' ⊗₀ Z) ⊗ᵀ (Y' ⊗₀ Z))
+                 → outType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z)))
             → (∀ z → p (dZᵢ {X'} {Y'} {Z} z) ≡ dZᵢ {X} {Y} {Z} z)
             → (∀ z → p (cZₒ {X'} {Y'} {Z} z) ≡ cZₒ {X} {Y} {Z} z)
             → (∀ z → q (dZₒ {X'} {Y'} {Z} z) ≡ dZₒ {X} {Y} {Z} z)
@@ -95,49 +97,49 @@ opaque
   -- ------------------------------------------------------------------------
 
   -- Relabel the codomain of `Machine B C`, leaving the domain alone.
-  cdᵢ : ∀ {B C C'} → (Channel.outType C' → Channel.outType C)
-      → Channel.inType (B ⊗ᵀ C') → Channel.inType (B ⊗ᵀ C)
+  cdᵢ : ∀ {B C C'} → (outType C' → outType C)
+      → inType (B ⊗ᵀ C') → inType (B ⊗ᵀ C)
   cdᵢ uC (inj₁ b) = inj₁ b
   cdᵢ uC (inj₂ γ) = inj₂ (uC γ)
 
-  cdₒ : ∀ {B C C'} → (Channel.inType C' → Channel.inType C)
-      → Channel.outType (B ⊗ᵀ C') → Channel.outType (B ⊗ᵀ C)
+  cdₒ : ∀ {B C C'} → (inType C' → inType C)
+      → outType (B ⊗ᵀ C') → outType (B ⊗ᵀ C)
   cdₒ vC (inj₁ β) = inj₁ β
   cdₒ vC (inj₂ c) = inj₂ (vC c)
 
   -- Relabel the domain of `Machine A B`, leaving the codomain alone.
-  dmᵢ : ∀ {A A' B} → (Channel.inType A' → Channel.inType A)
-      → Channel.inType (A' ⊗ᵀ B) → Channel.inType (A ⊗ᵀ B)
+  dmᵢ : ∀ {A A' B} → (inType A' → inType A)
+      → inType (A' ⊗ᵀ B) → inType (A ⊗ᵀ B)
   dmᵢ uA (inj₁ a) = inj₁ (uA a)
   dmᵢ uA (inj₂ β) = inj₂ β
 
-  dmₒ : ∀ {A A' B} → (Channel.outType A' → Channel.outType A)
-      → Channel.outType (A' ⊗ᵀ B) → Channel.outType (A ⊗ᵀ B)
+  dmₒ : ∀ {A A' B} → (outType A' → outType A)
+      → outType (A' ⊗ᵀ B) → outType (A ⊗ᵀ B)
   dmₒ vA (inj₁ α) = inj₁ (vA α)
   dmₒ vA (inj₂ b) = inj₂ b
 
   -- The same, at the traced machine's channel.  These fix the traced ports,
   -- which is what lets `Trc-slide` apply.
-  wcᵢ : ∀ {A B C C'} → (Channel.outType C' → Channel.outType C)
-      → Channel.inType ((A ⊗₀ B) ⊗ᵀ (C' ⊗₀ B)) → Channel.inType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
+  wcᵢ : ∀ {A B C C'} → (outType C' → outType C)
+      → inType ((A ⊗₀ B) ⊗ᵀ (C' ⊗₀ B)) → inType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
   wcᵢ uC (inj₁ x)        = inj₁ x
   wcᵢ uC (inj₂ (inj₁ γ)) = inj₂ (inj₁ (uC γ))
   wcᵢ uC (inj₂ (inj₂ β)) = inj₂ (inj₂ β)
 
-  wcₒ : ∀ {A B C C'} → (Channel.inType C' → Channel.inType C)
-      → Channel.outType ((A ⊗₀ B) ⊗ᵀ (C' ⊗₀ B)) → Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
+  wcₒ : ∀ {A B C C'} → (inType C' → inType C)
+      → outType ((A ⊗₀ B) ⊗ᵀ (C' ⊗₀ B)) → outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
   wcₒ vC (inj₁ x)        = inj₁ x
   wcₒ vC (inj₂ (inj₁ c)) = inj₂ (inj₁ (vC c))
   wcₒ vC (inj₂ (inj₂ b)) = inj₂ (inj₂ b)
 
-  wdᵢ : ∀ {A A' B C} → (Channel.inType A' → Channel.inType A)
-      → Channel.inType ((A' ⊗₀ B) ⊗ᵀ (C ⊗₀ B)) → Channel.inType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
+  wdᵢ : ∀ {A A' B C} → (inType A' → inType A)
+      → inType ((A' ⊗₀ B) ⊗ᵀ (C ⊗₀ B)) → inType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
   wdᵢ uA (inj₁ (inj₁ a)) = inj₁ (inj₁ (uA a))
   wdᵢ uA (inj₁ (inj₂ b)) = inj₁ (inj₂ b)
   wdᵢ uA (inj₂ y)        = inj₂ y
 
-  wdₒ : ∀ {A A' B C} → (Channel.outType A' → Channel.outType A)
-      → Channel.outType ((A' ⊗₀ B) ⊗ᵀ (C ⊗₀ B)) → Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
+  wdₒ : ∀ {A A' B C} → (outType A' → outType A)
+      → outType ((A' ⊗₀ B) ⊗ᵀ (C ⊗₀ B)) → outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
   wdₒ vA (inj₁ (inj₁ α)) = inj₁ (inj₁ (vA α))
   wdₒ vA (inj₁ (inj₂ β)) = inj₁ (inj₂ β)
   wdₒ vA (inj₂ y)        = inj₂ y

@@ -30,6 +30,8 @@ open import Tactic.Defaults
 
 module CategoricalCrypto.Machine.Reindex.Unit where
 
+open Channel
+
 open _≅ᴹ_
 
 opaque
@@ -39,7 +41,7 @@ opaque
 
   private
     -- There is no message on the identity's channel pair.
-    noI : ∀ {ℓ} {W : Type ℓ} → Channel.inType (I ⊗ᵀ I) → W
+    noI : ∀ {ℓ} {W : Type ℓ} → inType (I ⊗ᵀ I) → W
     noI (inj₁ ())
     noI (inj₂ ())
 
@@ -47,14 +49,14 @@ opaque
   -- The identity on the left.
   -- ------------------------------------------------------------------------
 
-  unitˡᵢ : ∀ {A B} → Channel.inType ((I ⊗₀ I ᵀ) ⊗ᵀ ((A ⊗₀ B ᵀ) ᵀ))
-                   → Channel.inType (A ⊗ᵀ B)
+  unitˡᵢ : ∀ {A B} → inType ((I ⊗₀ I ᵀ) ⊗ᵀ ((A ⊗₀ B ᵀ) ᵀ))
+                   → inType (A ⊗ᵀ B)
   unitˡᵢ (inj₁ (inj₁ ()))
   unitˡᵢ (inj₁ (inj₂ ()))
   unitˡᵢ (inj₂ x) = x
 
-  unitˡₒ : ∀ {A B} → Channel.outType ((I ⊗₀ I ᵀ) ⊗ᵀ ((A ⊗₀ B ᵀ) ᵀ))
-                   → Channel.outType (A ⊗ᵀ B)
+  unitˡₒ : ∀ {A B} → outType ((I ⊗₀ I ᵀ) ⊗ᵀ ((A ⊗₀ B ᵀ) ᵀ))
+                   → outType (A ⊗ᵀ B)
   unitˡₒ (inj₁ (inj₁ ()))
   unitˡₒ (inj₁ (inj₂ ()))
   unitˡₒ (inj₂ x) = x
@@ -68,8 +70,8 @@ opaque
   Pair-unitˡ-to _ (Tensor.Step₂ {m' = nothing} q) = q
 
   Pair-unitˡ-from : ∀ {A B} (M : Machine A B) {s s'}
-                    (i : Channel.inType ((I ⊗₀ I ᵀ) ⊗ᵀ ((A ⊗₀ B ᵀ) ᵀ)))
-                    (o : Maybe (Channel.outType ((I ⊗₀ I ᵀ) ⊗ᵀ ((A ⊗₀ B ᵀ) ᵀ))))
+                    (i : inType ((I ⊗₀ I ᵀ) ⊗ᵀ ((A ⊗₀ B ᵀ) ᵀ)))
+                    (o : Maybe (outType ((I ⊗₀ I ᵀ) ⊗ᵀ ((A ⊗₀ B ᵀ) ᵀ))))
                   → Machine.stepRel M s (unitˡᵢ {A} {B} i) (mapᴹ (unitˡₒ {A} {B}) o) s'
                   → Tensor.CompRel (CC.id {I}) M (tt , s) i o (tt , s')
   Pair-unitˡ-from _ (inj₁ (inj₁ ())) _ _
@@ -90,14 +92,14 @@ opaque
   -- The identity on the right.
   -- ------------------------------------------------------------------------
 
-  unitʳᵢ : ∀ {A B} → Channel.inType ((A ⊗₀ B ᵀ) ⊗ᵀ ((I ⊗₀ I ᵀ) ᵀ))
-                   → Channel.inType (A ⊗ᵀ B)
+  unitʳᵢ : ∀ {A B} → inType ((A ⊗₀ B ᵀ) ⊗ᵀ ((I ⊗₀ I ᵀ) ᵀ))
+                   → inType (A ⊗ᵀ B)
   unitʳᵢ (inj₁ x) = x
   unitʳᵢ (inj₂ (inj₁ ()))
   unitʳᵢ (inj₂ (inj₂ ()))
 
-  unitʳₒ : ∀ {A B} → Channel.outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((I ⊗₀ I ᵀ) ᵀ))
-                   → Channel.outType (A ⊗ᵀ B)
+  unitʳₒ : ∀ {A B} → outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((I ⊗₀ I ᵀ) ᵀ))
+                   → outType (A ⊗ᵀ B)
   unitʳₒ (inj₁ x) = x
   unitʳₒ (inj₂ (inj₁ ()))
   unitʳₒ (inj₂ (inj₂ ()))
@@ -111,8 +113,8 @@ opaque
   Pair-unitʳ-to _ (Tensor.Step₂ {m = m} _)        = noI m
 
   Pair-unitʳ-from : ∀ {A B} (M : Machine A B) {s s'}
-                    (i : Channel.inType ((A ⊗₀ B ᵀ) ⊗ᵀ ((I ⊗₀ I ᵀ) ᵀ)))
-                    (o : Maybe (Channel.outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((I ⊗₀ I ᵀ) ᵀ))))
+                    (i : inType ((A ⊗₀ B ᵀ) ⊗ᵀ ((I ⊗₀ I ᵀ) ᵀ)))
+                    (o : Maybe (outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((I ⊗₀ I ᵀ) ᵀ))))
                   → Machine.stepRel M s (unitʳᵢ {A} {B} i) (mapᴹ (unitʳₒ {A} {B}) o) s'
                   → Tensor.CompRel M (CC.id {I}) (s , tt) i o (s' , tt)
   Pair-unitʳ-from _ (inj₁ x) nothing                 q = Tensor.Step₁ {m = x} {m' = nothing} q

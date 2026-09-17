@@ -23,6 +23,8 @@ open import CategoricalCrypto.Machine.Reindex
 
 module CategoricalCrypto.Machine.Monoidal.Interchange where
 
+open Channel
+
 open _≅ᴹ_
 
 opaque
@@ -31,8 +33,8 @@ opaque
             πᵢ ∘κᵢ
 
   Aᴸ : ∀ {A₁ B₁ C₁ A₂ B₂ C₂}
-     → Channel.inType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
-     → Channel.inType (((A₁ ⊗₀ B₁ ᵀ) ⊗₀ (B₁ ⊗₀ C₁ ᵀ)) ⊗₀ ((A₂ ⊗₀ B₂ ᵀ) ⊗₀ (B₂ ⊗₀ C₂ ᵀ)))
+     → inType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
+     → inType (((A₁ ⊗₀ B₁ ᵀ) ⊗₀ (B₁ ⊗₀ C₁ ᵀ)) ⊗₀ ((A₂ ⊗₀ B₂ ᵀ) ⊗₀ (B₂ ⊗₀ C₂ ᵀ)))
   Aᴸ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} i =
     ⊎ᵢ {A₁ ⊗₀ B₁ ᵀ} {(B₁ ⊗₀ C₁ ᵀ) ᵀ} {A₂ ⊗₀ B₂ ᵀ} {(B₂ ⊗₀ C₂ ᵀ) ᵀ}
        {A₁ ⊗₀ B₁} {C₁ ⊗₀ B₁} {A₂ ⊗₀ B₂} {C₂ ⊗₀ B₂}
@@ -40,8 +42,8 @@ opaque
        (πᵢ {A₁} {C₁} {B₁} {A₂} {C₂} {B₂} i)
 
   Bᴸ : ∀ {A₁ B₁ C₁ A₂ B₂ C₂}
-     → Channel.outType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
-     → Channel.outType (((A₁ ⊗₀ B₁ ᵀ) ⊗₀ (B₁ ⊗₀ C₁ ᵀ)) ⊗₀ ((A₂ ⊗₀ B₂ ᵀ) ⊗₀ (B₂ ⊗₀ C₂ ᵀ)))
+     → outType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
+     → outType (((A₁ ⊗₀ B₁ ᵀ) ⊗₀ (B₁ ⊗₀ C₁ ᵀ)) ⊗₀ ((A₂ ⊗₀ B₂ ᵀ) ⊗₀ (B₂ ⊗₀ C₂ ᵀ)))
   Bᴸ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} o =
     ⊎ₒ {A₁ ⊗₀ B₁ ᵀ} {(B₁ ⊗₀ C₁ ᵀ) ᵀ} {A₂ ⊗₀ B₂ ᵀ} {(B₂ ⊗₀ C₂ ᵀ) ᵀ}
        {A₁ ⊗₀ B₁} {C₁ ⊗₀ B₁} {A₂ ⊗₀ B₂} {C₂ ⊗₀ B₂}
@@ -49,8 +51,8 @@ opaque
        (πₒ {A₁} {C₁} {B₁} {A₂} {C₂} {B₂} o)
 
   Nᵢ : ∀ {A₁ B₁ C₁ A₂ B₂ C₂}
-     → Channel.inType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
-     → Channel.inType (((A₁ ⊗₀ B₁ ᵀ) ⊗₀ (A₂ ⊗₀ B₂ ᵀ)) ⊗₀ ((B₁ ⊗₀ C₁ ᵀ) ⊗₀ (B₂ ⊗₀ C₂ ᵀ)))
+     → inType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
+     → inType (((A₁ ⊗₀ B₁ ᵀ) ⊗₀ (A₂ ⊗₀ B₂ ᵀ)) ⊗₀ ((B₁ ⊗₀ C₁ ᵀ) ⊗₀ (B₂ ⊗₀ C₂ ᵀ)))
   Nᵢ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} i =
     ⊎ᵢ {A₁ ⊗₀ B₁ ᵀ} {(A₂ ⊗₀ B₂ ᵀ) ᵀ} {B₁ ⊗₀ C₁ ᵀ} {(B₂ ⊗₀ C₂ ᵀ) ᵀ}
        {A₁ ⊗₀ A₂} {B₁ ⊗₀ B₂} {B₁ ⊗₀ B₂} {C₁ ⊗₀ C₂}
@@ -58,8 +60,8 @@ opaque
        (∘κᵢ {A₁ ⊗₀ A₂} {B₁ ⊗₀ B₂} {C₁ ⊗₀ C₂} i)
 
   Nₒ : ∀ {A₁ B₁ C₁ A₂ B₂ C₂}
-     → Channel.outType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
-     → Channel.outType (((A₁ ⊗₀ B₁ ᵀ) ⊗₀ (A₂ ⊗₀ B₂ ᵀ)) ⊗₀ ((B₁ ⊗₀ C₁ ᵀ) ⊗₀ (B₂ ⊗₀ C₂ ᵀ)))
+     → outType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
+     → outType (((A₁ ⊗₀ B₁ ᵀ) ⊗₀ (A₂ ⊗₀ B₂ ᵀ)) ⊗₀ ((B₁ ⊗₀ C₁ ᵀ) ⊗₀ (B₂ ⊗₀ C₂ ᵀ)))
   Nₒ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} o =
     ⊎ₒ {A₁ ⊗₀ B₁ ᵀ} {(A₂ ⊗₀ B₂ ᵀ) ᵀ} {B₁ ⊗₀ C₁ ᵀ} {(B₂ ⊗₀ C₂ ᵀ) ᵀ}
        {A₁ ⊗₀ A₂} {B₁ ⊗₀ B₂} {B₁ ⊗₀ B₂} {C₁ ⊗₀ C₂}
@@ -67,43 +69,43 @@ opaque
        (∘κₒ {A₁ ⊗₀ A₂} {B₁ ⊗₀ B₂} {C₁ ⊗₀ C₂} o)
 
   Aᴿ : ∀ {A₁ B₁ C₁ A₂ B₂ C₂}
-     → Channel.inType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
-     → Channel.inType (((A₁ ⊗₀ B₁ ᵀ) ⊗₀ (B₁ ⊗₀ C₁ ᵀ)) ⊗₀ ((A₂ ⊗₀ B₂ ᵀ) ⊗₀ (B₂ ⊗₀ C₂ ᵀ)))
+     → inType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
+     → inType (((A₁ ⊗₀ B₁ ᵀ) ⊗₀ (B₁ ⊗₀ C₁ ᵀ)) ⊗₀ ((A₂ ⊗₀ B₂ ᵀ) ⊗₀ (B₂ ⊗₀ C₂ ᵀ)))
   Aᴿ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} i =
     mid4ᵢ {A₁} {B₁} {A₂} {B₂} {B₁} {C₁} {B₂} {C₂} (Nᵢ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} i)
 
   Bᴿ : ∀ {A₁ B₁ C₁ A₂ B₂ C₂}
-     → Channel.outType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
-     → Channel.outType (((A₁ ⊗₀ B₁ ᵀ) ⊗₀ (B₁ ⊗₀ C₁ ᵀ)) ⊗₀ ((A₂ ⊗₀ B₂ ᵀ) ⊗₀ (B₂ ⊗₀ C₂ ᵀ)))
+     → outType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
+     → outType (((A₁ ⊗₀ B₁ ᵀ) ⊗₀ (B₁ ⊗₀ C₁ ᵀ)) ⊗₀ ((A₂ ⊗₀ B₂ ᵀ) ⊗₀ (B₂ ⊗₀ C₂ ᵀ)))
   Bᴿ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} o =
     mid4ₒ {A₁} {B₁} {A₂} {B₂} {B₁} {C₁} {B₂} {C₂} (Nₒ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} o)
 
   -- Two stages, because that is the order the normalisation produces them in.
   Mᵢ : ∀ {A₁ B₁ C₁ A₂ B₂ C₂}
-     → Channel.inType ((A₁ ⊗₀ A₂) ⊗ᵀ (C₁ ⊗₀ C₂))
-     → Channel.inType (((A₁ ⊗₀ B₁) ⊗ᵀ (C₁ ⊗₀ B₁)) ⊗₀ ((A₂ ⊗₀ B₂) ⊗ᵀ (C₂ ⊗₀ B₂)))
+     → inType ((A₁ ⊗₀ A₂) ⊗ᵀ (C₁ ⊗₀ C₂))
+     → inType (((A₁ ⊗₀ B₁) ⊗ᵀ (C₁ ⊗₀ B₁)) ⊗₀ ((A₂ ⊗₀ B₂) ⊗ᵀ (C₂ ⊗₀ B₂)))
   Mᵢ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} i =
     ⊎ᵢ {A₁ ⊗₀ B₁} {C₁ ⊗₀ B₁} {A₂ ⊗₀ B₂} {C₂ ⊗₀ B₂} {A₁} {C₁} {A₂} {C₂}
        (tιᵢ {A₁} {C₁} {B₁}) (tιᵢ {A₂} {C₂} {B₂})
        (app (⊗σ {A₁} {C₁} {A₂} {C₂} {In}) i)
 
   Mₒ : ∀ {A₁ B₁ C₁ A₂ B₂ C₂}
-     → Channel.outType ((A₁ ⊗₀ A₂) ⊗ᵀ (C₁ ⊗₀ C₂))
-     → Channel.outType (((A₁ ⊗₀ B₁) ⊗ᵀ (C₁ ⊗₀ B₁)) ⊗₀ ((A₂ ⊗₀ B₂) ⊗ᵀ (C₂ ⊗₀ B₂)))
+     → outType ((A₁ ⊗₀ A₂) ⊗ᵀ (C₁ ⊗₀ C₂))
+     → outType (((A₁ ⊗₀ B₁) ⊗ᵀ (C₁ ⊗₀ B₁)) ⊗₀ ((A₂ ⊗₀ B₂) ⊗ᵀ (C₂ ⊗₀ B₂)))
   Mₒ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} o =
     ⊎ₒ {A₁ ⊗₀ B₁} {C₁ ⊗₀ B₁} {A₂ ⊗₀ B₂} {C₂ ⊗₀ B₂} {A₁} {C₁} {A₂} {C₂}
        (tιₒ {A₁} {C₁} {B₁}) (tιₒ {A₂} {C₂} {B₂})
        (app (⊗σ {A₁} {C₁} {A₂} {C₂} {Out}) o)
 
   Lᵢ : ∀ {A₁ B₁ C₁ A₂ B₂ C₂}
-     → Channel.inType ((A₁ ⊗₀ A₂) ⊗ᵀ (C₁ ⊗₀ C₂))
-     → Channel.inType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
+     → inType ((A₁ ⊗₀ A₂) ⊗ᵀ (C₁ ⊗₀ C₂))
+     → inType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
   Lᵢ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} i =
     πᵢ⁻ {A₁} {C₁} {B₁} {A₂} {C₂} {B₂} (Mᵢ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} i)
 
   Lₒ : ∀ {A₁ B₁ C₁ A₂ B₂ C₂}
-     → Channel.outType ((A₁ ⊗₀ A₂) ⊗ᵀ (C₁ ⊗₀ C₂))
-     → Channel.outType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
+     → outType ((A₁ ⊗₀ A₂) ⊗ᵀ (C₁ ⊗₀ C₂))
+     → outType (((A₁ ⊗₀ A₂) ⊗₀ (B₁ ⊗₀ B₂)) ⊗ᵀ ((C₁ ⊗₀ C₂) ⊗₀ (B₁ ⊗₀ B₂)))
   Lₒ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} o =
     πₒ⁻ {A₁} {C₁} {B₁} {A₂} {C₂} {B₂} (Mₒ {A₁} {B₁} {C₁} {A₂} {B₂} {C₂} o)
 

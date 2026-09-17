@@ -37,6 +37,8 @@ module CategoricalCrypto.Examples.Channels (M : Type) (msgLength : M → ℕ) wh
 module L = LeakyChannel M
 module S = SecureChannel M msgLength
 
+open Channel
+
 -- The two functionalities share `A` and `B`; only Eve's port differs.
 AB : Channel
 AB = L.A ⊗₀ L.B
@@ -65,20 +67,20 @@ opaque
             πᵢ ∘κᵢ cdᵢ Xφ cdₒ⁺
 
   -- The message maps of `AB ⊗ˡ Sim`, as a single crossing forwarder.
-  simᶠ : Channel.inType Cᴸ → Channel.inType Cˢ
+  simᶠ : inType Cᴸ → inType Cˢ
   simᶠ = ⊗mapᵢ {AB} {AB} {L.E} {S.E} (λ x → x) msgLength
 
-  simᵍ : Channel.outType Cˢ → Channel.outType Cᴸ
+  simᵍ : outType Cˢ → outType Cᴸ
   simᵍ = ⊗mapₒ {AB} {AB} {L.E} {S.E} (λ x → x) (λ x → x)
 
   Sim-Xfwd : (AB ⊗ˡ Sim) ≅ᴹ Xfwd simᶠ simᵍ
   Sim-Xfwd = ≅ᴹ-trans (⊗₁-resp-≅ᴹ id-is-Xfwd (tfm'-is-Xfwd Simᵢ Simₒ)) ⊗₁-Xfwd
 
   -- The relabelling the simulator induces on the functionality's ports.
-  uˢ : Channel.inType (I ⊗ᵀ Cˢ) → Channel.inType (I ⊗ᵀ Cᴸ)
+  uˢ : inType (I ⊗ᵀ Cˢ) → inType (I ⊗ᵀ Cᴸ)
   uˢ = cdᵢ {I} {Cᴸ} {Cˢ} simᵍ
 
-  wˢ : Channel.outType (I ⊗ᵀ Cᴸ) → Channel.outType (I ⊗ᵀ Cˢ)
+  wˢ : outType (I ⊗ᵀ Cᴸ) → outType (I ⊗ᵀ Cˢ)
   wˢ = cdₒ⁺ {I} {Cᴸ} {Cˢ} simᶠ
 
   rhs-Post : ((AB ⊗ˡ Sim) CC.∘ L.Functionality) ≅ᴹ Post L.Functionality uˢ wˢ
@@ -97,7 +99,7 @@ opaque
   -- Backward, at general indices tied by equations: matching the leaky
   -- constructor under `uˢ` directly leaves the unifier stuck.
   leaky→secure : ∀ {s s' i₀ o₀} → L.WithState s receive i₀ return o₀ newState s'
-               → (i : Channel.inType (I ⊗ᵀ Cˢ)) (o : Maybe (Channel.outType (I ⊗ᵀ Cˢ)))
+               → (i : inType (I ⊗ᵀ Cˢ)) (o : Maybe (outType (I ⊗ᵀ Cˢ)))
                → i₀ ≡ uˢ i → mapᴹ wˢ o₀ ≡ o
                → S.WithState s receive i return o newState s'
   leaky→secure (L.Send {m} {s}) (inj₂ (inj₁ (inj₁ m'))) o ieq oeq =

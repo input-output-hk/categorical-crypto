@@ -28,6 +28,8 @@ open import Tactic.Defaults
 
 module CategoricalCrypto.Machine.Reindex.Swap where
 
+open Channel
+
 open _≅ᴹ_
 
 opaque
@@ -40,24 +42,24 @@ opaque
   -- ------------------------------------------------------------------------
 
   swᵢ : ∀ {A B C D}
-      → Channel.inType ((A ⊗ᵀ B) ⊗₀ (C ⊗ᵀ D))
-      → Channel.inType ((C ⊗ᵀ D) ⊗₀ (A ⊗ᵀ B))
+      → inType ((A ⊗ᵀ B) ⊗₀ (C ⊗ᵀ D))
+      → inType ((C ⊗ᵀ D) ⊗₀ (A ⊗ᵀ B))
   swᵢ (inj₁ x) = inj₂ x
   swᵢ (inj₂ y) = inj₁ y
 
   swₒ : ∀ {A B C D}
-      → Channel.outType ((A ⊗ᵀ B) ⊗₀ (C ⊗ᵀ D))
-      → Channel.outType ((C ⊗ᵀ D) ⊗₀ (A ⊗ᵀ B))
+      → outType ((A ⊗ᵀ B) ⊗₀ (C ⊗ᵀ D))
+      → outType ((C ⊗ᵀ D) ⊗₀ (A ⊗ᵀ B))
   swₒ (inj₁ x) = inj₂ x
   swₒ (inj₂ y) = inj₁ y
 
   private
-    swᵢ-invol : ∀ {A B C D} (i : Channel.inType ((A ⊗ᵀ B) ⊗₀ (C ⊗ᵀ D)))
+    swᵢ-invol : ∀ {A B C D} (i : inType ((A ⊗ᵀ B) ⊗₀ (C ⊗ᵀ D)))
               → swᵢ {C} {D} {A} {B} (swᵢ {A} {B} {C} {D} i) ≡ i
     swᵢ-invol (inj₁ _) = refl
     swᵢ-invol (inj₂ _) = refl
 
-    swₒ-invol : ∀ {A B C D} (o : Channel.outType ((A ⊗ᵀ B) ⊗₀ (C ⊗ᵀ D)))
+    swₒ-invol : ∀ {A B C D} (o : outType ((A ⊗ᵀ B) ⊗₀ (C ⊗ᵀ D)))
               → swₒ {C} {D} {A} {B} (swₒ {A} {B} {C} {D} o) ≡ o
     swₒ-invol (inj₁ _) = refl
     swₒ-invol (inj₂ _) = refl

@@ -37,6 +37,8 @@ open import Tactic.Defaults
 
 module CategoricalCrypto.Machine.Monoidal.Associator where
 
+open Channel
+
 opaque
   unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-assoc ⊗-left-assoc
             ⊗-right-intro ⊗-ᵀ-distrib ⊗-ᵀ-factor ⊗-right-neutral ⊗-fusion
@@ -48,8 +50,8 @@ opaque
   -- ========================================================================
 
   Pair-Reindexʳ : ∀ {A B Cc Dd C₂ D₂} (M₁ : Machine A B) (M₂ : Machine Cc Dd)
-                  (u : Channel.inType (C₂ ⊗ᵀ D₂) → Channel.inType (Cc ⊗ᵀ Dd))
-                  (v : Channel.outType (C₂ ⊗ᵀ D₂) → Channel.outType (Cc ⊗ᵀ Dd))
+                  (u : inType (C₂ ⊗ᵀ D₂) → inType (Cc ⊗ᵀ Dd))
+                  (v : outType (C₂ ⊗ᵀ D₂) → outType (Cc ⊗ᵀ Dd))
                 → Pair M₁ (Reindex M₂ u v)
                   ≅ᴹ Reindex (Pair M₁ M₂)
                        (⊎ᵢ {A} {B} {Cc} {Dd} {A} {B} {C₂} {D₂} (λ x → x) u)
@@ -59,8 +61,8 @@ opaque
              (Pair-Reindex M₁ M₂ (λ x → x) (λ x → x) u v)
 
   Pair-Reindexˡ : ∀ {A B Cc Dd A₂ B₂} (M₁ : Machine A B) (M₂ : Machine Cc Dd)
-                  (u : Channel.inType (A₂ ⊗ᵀ B₂) → Channel.inType (A ⊗ᵀ B))
-                  (v : Channel.outType (A₂ ⊗ᵀ B₂) → Channel.outType (A ⊗ᵀ B))
+                  (u : inType (A₂ ⊗ᵀ B₂) → inType (A ⊗ᵀ B))
+                  (v : outType (A₂ ⊗ᵀ B₂) → outType (A ⊗ᵀ B))
                 → Pair (Reindex M₁ u v) M₂
                   ≅ᴹ Reindex (Pair M₁ M₂)
                        (⊎ᵢ {A} {B} {Cc} {Dd} {A₂} {B₂} {Cc} {Dd} u (λ x → x))
@@ -79,8 +81,8 @@ opaque
   -- ---- the right-nested three-fold case, `m ⊗₁ (n₁ ⊗₁ n₂)` ---------------
 
   nrᵢ : ∀ {A A' B B' D D'}
-      → Channel.inType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ (A' ⊗₀ (B' ⊗₀ D')))
-      → Channel.inType ((A ⊗ᵀ A') ⊗₀ ((B ⊗ᵀ B') ⊗₀ (D ⊗ᵀ D')))
+      → inType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ (A' ⊗₀ (B' ⊗₀ D')))
+      → inType ((A ⊗ᵀ A') ⊗₀ ((B ⊗ᵀ B') ⊗₀ (D ⊗ᵀ D')))
   nrᵢ (inj₁ (inj₁ x))        = inj₁ (inj₁ x)
   nrᵢ (inj₁ (inj₂ (inj₁ x))) = inj₂ (inj₁ (inj₁ x))
   nrᵢ (inj₁ (inj₂ (inj₂ x))) = inj₂ (inj₂ (inj₁ x))
@@ -89,8 +91,8 @@ opaque
   nrᵢ (inj₂ (inj₂ (inj₂ x))) = inj₂ (inj₂ (inj₂ x))
 
   nrₒ : ∀ {A A' B B' D D'}
-      → Channel.outType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ (A' ⊗₀ (B' ⊗₀ D')))
-      → Channel.outType ((A ⊗ᵀ A') ⊗₀ ((B ⊗ᵀ B') ⊗₀ (D ⊗ᵀ D')))
+      → outType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ (A' ⊗₀ (B' ⊗₀ D')))
+      → outType ((A ⊗ᵀ A') ⊗₀ ((B ⊗ᵀ B') ⊗₀ (D ⊗ᵀ D')))
   nrₒ (inj₁ (inj₁ x))        = inj₁ (inj₁ x)
   nrₒ (inj₁ (inj₂ (inj₁ x))) = inj₂ (inj₁ (inj₁ x))
   nrₒ (inj₁ (inj₂ (inj₂ x))) = inj₂ (inj₂ (inj₁ x))
@@ -99,7 +101,7 @@ opaque
   nrₒ (inj₂ (inj₂ (inj₂ x))) = inj₂ (inj₂ (inj₂ x))
 
   pt-nrᵢ : ∀ {A A' B B' D D'}
-           (i : Channel.inType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ (A' ⊗₀ (B' ⊗₀ D'))))
+           (i : inType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ (A' ⊗₀ (B' ⊗₀ D'))))
          → ⊎ᵢ {A} {A'} {B ⊗₀ B' ᵀ} {(D ⊗₀ D' ᵀ) ᵀ} {A} {A'} {B ⊗₀ D} {B' ⊗₀ D'}
               (λ x → x) (app (⊗σ {B} {B'} {D} {D'} {In}))
               (app (⊗σ {A} {A'} {B ⊗₀ D} {B' ⊗₀ D'} {In}) i)
@@ -112,7 +114,7 @@ opaque
   pt-nrᵢ (inj₂ (inj₂ (inj₂ _))) = refl
 
   pt-nrₒ : ∀ {A A' B B' D D'}
-           (o : Channel.outType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ (A' ⊗₀ (B' ⊗₀ D'))))
+           (o : outType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ (A' ⊗₀ (B' ⊗₀ D'))))
          → ⊎ₒ {A} {A'} {B ⊗₀ B' ᵀ} {(D ⊗₀ D' ᵀ) ᵀ} {A} {A'} {B ⊗₀ D} {B' ⊗₀ D'}
               (λ x → x) (app (⊗σ {B} {B'} {D} {D'} {Out}))
               (app (⊗σ {A} {A'} {B ⊗₀ D} {B' ⊗₀ D'} {Out}) o)
@@ -154,8 +156,8 @@ opaque
   -- ---- the left-nested three-fold case, `(m ⊗₁ n₁) ⊗₁ n₂` ---------------
 
   nlᵢ : ∀ {A A' B B' D D'}
-      → Channel.inType (((A ⊗₀ B) ⊗₀ D) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D'))
-      → Channel.inType (((A ⊗ᵀ A') ⊗₀ (B ⊗ᵀ B')) ⊗₀ (D ⊗ᵀ D'))
+      → inType (((A ⊗₀ B) ⊗₀ D) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D'))
+      → inType (((A ⊗ᵀ A') ⊗₀ (B ⊗ᵀ B')) ⊗₀ (D ⊗ᵀ D'))
   nlᵢ (inj₁ (inj₁ (inj₁ x))) = inj₁ (inj₁ (inj₁ x))
   nlᵢ (inj₁ (inj₁ (inj₂ x))) = inj₁ (inj₂ (inj₁ x))
   nlᵢ (inj₁ (inj₂ x))        = inj₂ (inj₁ x)
@@ -164,8 +166,8 @@ opaque
   nlᵢ (inj₂ (inj₂ x))        = inj₂ (inj₂ x)
 
   nlₒ : ∀ {A A' B B' D D'}
-      → Channel.outType (((A ⊗₀ B) ⊗₀ D) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D'))
-      → Channel.outType (((A ⊗ᵀ A') ⊗₀ (B ⊗ᵀ B')) ⊗₀ (D ⊗ᵀ D'))
+      → outType (((A ⊗₀ B) ⊗₀ D) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D'))
+      → outType (((A ⊗ᵀ A') ⊗₀ (B ⊗ᵀ B')) ⊗₀ (D ⊗ᵀ D'))
   nlₒ (inj₁ (inj₁ (inj₁ x))) = inj₁ (inj₁ (inj₁ x))
   nlₒ (inj₁ (inj₁ (inj₂ x))) = inj₁ (inj₂ (inj₁ x))
   nlₒ (inj₁ (inj₂ x))        = inj₂ (inj₁ x)
@@ -174,7 +176,7 @@ opaque
   nlₒ (inj₂ (inj₂ x))        = inj₂ (inj₂ x)
 
   pt-nlᵢ : ∀ {A A' B B' D D'}
-           (i : Channel.inType (((A ⊗₀ B) ⊗₀ D) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D')))
+           (i : inType (((A ⊗₀ B) ⊗₀ D) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D')))
          → ⊎ᵢ {A ⊗₀ A' ᵀ} {(B ⊗₀ B' ᵀ) ᵀ} {D} {D'} {A ⊗₀ B} {A' ⊗₀ B'} {D} {D'}
               (app (⊗σ {A} {A'} {B} {B'} {In})) (λ x → x)
               (app (⊗σ {A ⊗₀ B} {A' ⊗₀ B'} {D} {D'} {In}) i)
@@ -187,7 +189,7 @@ opaque
   pt-nlᵢ (inj₂ (inj₂ _))        = refl
 
   pt-nlₒ : ∀ {A A' B B' D D'}
-           (o : Channel.outType (((A ⊗₀ B) ⊗₀ D) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D')))
+           (o : outType (((A ⊗₀ B) ⊗₀ D) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D')))
          → ⊎ₒ {A ⊗₀ A' ᵀ} {(B ⊗₀ B' ᵀ) ᵀ} {D} {D'} {A ⊗₀ B} {A' ⊗₀ B'} {D} {D'}
               (app (⊗σ {A} {A'} {B} {B'} {Out})) (λ x → x)
               (app (⊗σ {A ⊗₀ B} {A' ⊗₀ B'} {D} {D'} {Out}) o)
@@ -233,22 +235,22 @@ opaque
 
   -- ---- `⊗-assoc⃖`'s message maps, and their inverses --------------------
 
-  αfᵢ : ∀ {A B D} → Channel.inType (A ⊗₀ (B ⊗₀ D))
-                  → Channel.inType ((A ⊗₀ B) ⊗₀ D)
+  αfᵢ : ∀ {A B D} → inType (A ⊗₀ (B ⊗₀ D))
+                  → inType ((A ⊗₀ B) ⊗₀ D)
   αfᵢ {A} {B} {D} = app (⊗-assoc⃖ᵢ {A} {B} {D})
 
-  αfₒ : ∀ {A B D} → Channel.outType ((A ⊗₀ B) ⊗₀ D)
-                  → Channel.outType (A ⊗₀ (B ⊗₀ D))
+  αfₒ : ∀ {A B D} → outType ((A ⊗₀ B) ⊗₀ D)
+                  → outType (A ⊗₀ (B ⊗₀ D))
   αfₒ {A} {B} {D} = app (⊗-assoc⃖ₒ {A} {B} {D})
 
-  αfᵢ⁻ : ∀ {A B D} → Channel.inType ((A ⊗₀ B) ⊗₀ D)
-                   → Channel.inType (A ⊗₀ (B ⊗₀ D))
+  αfᵢ⁻ : ∀ {A B D} → inType ((A ⊗₀ B) ⊗₀ D)
+                   → inType (A ⊗₀ (B ⊗₀ D))
   αfᵢ⁻ (inj₁ (inj₁ x)) = inj₁ x
   αfᵢ⁻ (inj₁ (inj₂ y)) = inj₂ (inj₁ y)
   αfᵢ⁻ (inj₂ z)        = inj₂ (inj₂ z)
 
-  αfₒ⁻ : ∀ {A B D} → Channel.outType (A ⊗₀ (B ⊗₀ D))
-                   → Channel.outType ((A ⊗₀ B) ⊗₀ D)
+  αfₒ⁻ : ∀ {A B D} → outType (A ⊗₀ (B ⊗₀ D))
+                   → outType ((A ⊗₀ B) ⊗₀ D)
   αfₒ⁻ (inj₁ x)        = inj₁ (inj₁ x)
   αfₒ⁻ (inj₂ (inj₁ y)) = inj₁ (inj₂ y)
   αfₒ⁻ (inj₂ (inj₂ z)) = inj₂ z
@@ -326,8 +328,8 @@ opaque
   -- ---- the one routing both sides produce, into the left-nested nest ----
 
   αNᵢ : ∀ {A A' B B' D D'}
-      → Channel.inType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D'))
-      → Channel.inType (((A ⊗ᵀ A') ⊗₀ (B ⊗ᵀ B')) ⊗₀ (D ⊗ᵀ D'))
+      → inType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D'))
+      → inType (((A ⊗ᵀ A') ⊗₀ (B ⊗ᵀ B')) ⊗₀ (D ⊗ᵀ D'))
   αNᵢ (inj₁ (inj₁ x))        = inj₁ (inj₁ (inj₁ x))
   αNᵢ (inj₁ (inj₂ (inj₁ y))) = inj₁ (inj₂ (inj₁ y))
   αNᵢ (inj₁ (inj₂ (inj₂ z))) = inj₂ (inj₁ z)
@@ -336,8 +338,8 @@ opaque
   αNᵢ (inj₂ (inj₂ z))        = inj₂ (inj₂ z)
 
   αNₒ : ∀ {A A' B B' D D'}
-      → Channel.outType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D'))
-      → Channel.outType (((A ⊗ᵀ A') ⊗₀ (B ⊗ᵀ B')) ⊗₀ (D ⊗ᵀ D'))
+      → outType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D'))
+      → outType (((A ⊗ᵀ A') ⊗₀ (B ⊗ᵀ B')) ⊗₀ (D ⊗ᵀ D'))
   αNₒ (inj₁ (inj₁ x))        = inj₁ (inj₁ (inj₁ x))
   αNₒ (inj₁ (inj₂ (inj₁ y))) = inj₁ (inj₂ (inj₁ y))
   αNₒ (inj₁ (inj₂ (inj₂ z))) = inj₂ (inj₁ z)
@@ -346,7 +348,7 @@ opaque
   αNₒ (inj₂ (inj₂ z))        = inj₂ (inj₂ z)
 
   pt-αLᵢ : ∀ {A A' B B' D D'}
-           (i : Channel.inType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D')))
+           (i : inType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D')))
          → nlᵢ {A} {A'} {B} {B'} {D} {D'}
              (dmᵢ {(A ⊗₀ B) ⊗₀ D} {A ⊗₀ (B ⊗₀ D)} {(A' ⊗₀ B') ⊗₀ D'} (αfᵢ {A} {B} {D}) i)
            ≡ αNᵢ {A} {A'} {B} {B'} {D} {D'} i
@@ -358,7 +360,7 @@ opaque
   pt-αLᵢ (inj₂ (inj₂ _))        = refl
 
   pt-αLₒ : ∀ {A A' B B' D D'}
-           (o : Channel.outType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D')))
+           (o : outType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D')))
          → nlₒ {A} {A'} {B} {B'} {D} {D'}
              (dmₒ {(A ⊗₀ B) ⊗₀ D} {A ⊗₀ (B ⊗₀ D)} {(A' ⊗₀ B') ⊗₀ D'} (αfₒ⁻ {A} {B} {D}) o)
            ≡ αNₒ {A} {A'} {B} {B'} {D} {D'} o
@@ -370,7 +372,7 @@ opaque
   pt-αLₒ (inj₂ (inj₂ _))        = refl
 
   pt-αRᵢ : ∀ {A A' B B' D D'}
-           (i : Channel.inType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D')))
+           (i : inType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D')))
          → asc3ᵢ {A} {A'} {B} {B'} {D} {D'}
              (nrᵢ {A} {A'} {B} {B'} {D} {D'}
                (cdᵢ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'}
@@ -384,7 +386,7 @@ opaque
   pt-αRᵢ (inj₂ (inj₂ _))        = refl
 
   pt-αRₒ : ∀ {A A' B B' D D'}
-           (o : Channel.outType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D')))
+           (o : outType ((A ⊗₀ (B ⊗₀ D)) ⊗ᵀ ((A' ⊗₀ B') ⊗₀ D')))
          → asc3ₒ {A} {A'} {B} {B'} {D} {D'}
              (nrₒ {A} {A'} {B} {B'} {D} {D'}
                (cdₒ {A ⊗₀ (B ⊗₀ D)} {A' ⊗₀ (B' ⊗₀ D')} {(A' ⊗₀ B') ⊗₀ D'}

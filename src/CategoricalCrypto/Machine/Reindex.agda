@@ -49,6 +49,8 @@ module CategoricalCrypto.Machine.Reindex where
 -- lemmas through `Reindex`.
 open import CategoricalCrypto.Machine.Message public
 
+open Channel
+
 open _≅ᴹ_
 
 -- ----------------------------------------------------------------------------
@@ -60,8 +62,8 @@ open _≅ᴹ_
 -- ----------------------------------------------------------------------------
 
 Reindex : ∀ {A B C D} (M : Machine A B)
-        → (Channel.inType (C ⊗ᵀ D) → Channel.inType (A ⊗ᵀ B))
-        → (Channel.outType (C ⊗ᵀ D) → Channel.outType (A ⊗ᵀ B))
+        → (inType (C ⊗ᵀ D) → inType (A ⊗ᵀ B))
+        → (outType (C ⊗ᵀ D) → outType (A ⊗ᵀ B))
         → Machine C D
 Reindex M u v = MkMachine λ s i o s' → Machine.stepRel M s (u i) (mapᴹ v o) s'
 
@@ -88,15 +90,15 @@ modifyStepRel-Reindex _ _ = refl
 -- ----------------------------------------------------------------------------
 
 Reindex-resp-≅ᴹ : ∀ {A B C D} {M N : Machine A B}
-                  (u : Channel.inType (C ⊗ᵀ D) → Channel.inType (A ⊗ᵀ B))
-                  (v : Channel.outType (C ⊗ᵀ D) → Channel.outType (A ⊗ᵀ B))
+                  (u : inType (C ⊗ᵀ D) → inType (A ⊗ᵀ B))
+                  (v : outType (C ⊗ᵀ D) → outType (A ⊗ᵀ B))
                 → M ≅ᴹ N → Reindex M u v ≅ᴹ Reindex N u v
 Reindex-resp-≅ᴹ u v φ =
   MkIso (to φ) (from φ) (from∘to φ) (to∘from φ) (step-to φ) (step-from φ)
 
 Reindex-cong : ∀ {A B C D} (M : Machine A B)
-               (u u' : Channel.inType (C ⊗ᵀ D) → Channel.inType (A ⊗ᵀ B))
-               (v v' : Channel.outType (C ⊗ᵀ D) → Channel.outType (A ⊗ᵀ B))
+               (u u' : inType (C ⊗ᵀ D) → inType (A ⊗ᵀ B))
+               (v v' : outType (C ⊗ᵀ D) → outType (A ⊗ᵀ B))
              → (∀ i → u i ≡ u' i) → (∀ o → v o ≡ v' o)
              → Reindex M u v ≅ᴹ Reindex M u' v'
 Reindex-cong M u u' v v' eu ev = MkIso _ _ (λ _ → refl) (λ _ → refl)
@@ -148,18 +150,18 @@ opaque
   -- ------------------------------------------------------------------------
 
   ⊎ᵢ : ∀ {A B C D A' B' C' D'}
-     → (Channel.inType (A' ⊗ᵀ B') → Channel.inType (A ⊗ᵀ B))
-     → (Channel.inType (C' ⊗ᵀ D') → Channel.inType (C ⊗ᵀ D))
-     → Channel.inType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ))
-     → Channel.inType ((A  ⊗₀ B  ᵀ) ⊗ᵀ ((C  ⊗₀ D  ᵀ) ᵀ))
+     → (inType (A' ⊗ᵀ B') → inType (A ⊗ᵀ B))
+     → (inType (C' ⊗ᵀ D') → inType (C ⊗ᵀ D))
+     → inType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ))
+     → inType ((A  ⊗₀ B  ᵀ) ⊗ᵀ ((C  ⊗₀ D  ᵀ) ᵀ))
   ⊎ᵢ u₁ u₂ (inj₁ x) = inj₁ (u₁ x)
   ⊎ᵢ u₁ u₂ (inj₂ y) = inj₂ (u₂ y)
 
   ⊎ₒ : ∀ {A B C D A' B' C' D'}
-     → (Channel.outType (A' ⊗ᵀ B') → Channel.outType (A ⊗ᵀ B))
-     → (Channel.outType (C' ⊗ᵀ D') → Channel.outType (C ⊗ᵀ D))
-     → Channel.outType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ))
-     → Channel.outType ((A  ⊗₀ B  ᵀ) ⊗ᵀ ((C  ⊗₀ D  ᵀ) ᵀ))
+     → (outType (A' ⊗ᵀ B') → outType (A ⊗ᵀ B))
+     → (outType (C' ⊗ᵀ D') → outType (C ⊗ᵀ D))
+     → outType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ))
+     → outType ((A  ⊗₀ B  ᵀ) ⊗ᵀ ((C  ⊗₀ D  ᵀ) ᵀ))
   ⊎ₒ v₁ v₂ (inj₁ x) = inj₁ (v₁ x)
   ⊎ₒ v₁ v₂ (inj₂ y) = inj₂ (v₂ y)
 
@@ -167,10 +169,10 @@ opaque
   -- sum map.
   Pair-Reindex : ∀ {A B C D A' B' C' D'}
                  (M₁ : Machine A B) (M₂ : Machine C D)
-                 (u₁ : Channel.inType (A' ⊗ᵀ B') → Channel.inType (A ⊗ᵀ B))
-                 (v₁ : Channel.outType (A' ⊗ᵀ B') → Channel.outType (A ⊗ᵀ B))
-                 (u₂ : Channel.inType (C' ⊗ᵀ D') → Channel.inType (C ⊗ᵀ D))
-                 (v₂ : Channel.outType (C' ⊗ᵀ D') → Channel.outType (C ⊗ᵀ D))
+                 (u₁ : inType (A' ⊗ᵀ B') → inType (A ⊗ᵀ B))
+                 (v₁ : outType (A' ⊗ᵀ B') → outType (A ⊗ᵀ B))
+                 (u₂ : inType (C' ⊗ᵀ D') → inType (C ⊗ᵀ D))
+                 (v₂ : outType (C' ⊗ᵀ D') → outType (C ⊗ᵀ D))
                → Pair (Reindex M₁ u₁ v₁) (Reindex M₂ u₂ v₂)
                  ≅ᴹ Reindex (Pair M₁ M₂) (⊎ᵢ {A} {B} {C} {D} {A'} {B'} {C'} {D'} u₁ u₂)
                                        (⊎ₒ {A} {B} {C} {D} {A'} {B'} {C'} {D'} v₁ v₂)
@@ -185,8 +187,8 @@ opaque
     t (Tensor.Step₁ {m' = nothing} p) = Tensor.Step₁ p
     t (Tensor.Step₂ {m' = just _}  p) = Tensor.Step₂ p
     t (Tensor.Step₂ {m' = nothing} p) = Tensor.Step₂ p
-    f : ∀ {s s'} (i : Channel.inType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ)))
-                 (o : Maybe (Channel.outType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ))))
+    f : ∀ {s s'} (i : inType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ)))
+                 (o : Maybe (outType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ))))
       → Tensor.CompRel M₁ M₂ s (⊎ᵢ {A} {B} {C} {D} {A'} {B'} {C'} {D'} u₁ u₂ i)
                                (mapᴹ (⊎ₒ {A} {B} {C} {D} {A'} {B'} {C'} {D'} v₁ v₂) o) s'
       → Tensor.CompRel (Reindex M₁ u₁ v₁) (Reindex M₂ u₂ v₂) s i o s'
@@ -234,16 +236,16 @@ opaque
   -- ------------------------------------------------------------------------
 
   mid4ᵢ : ∀ {A₁ B₁ A₂ B₂ A₃ B₃ A₄ B₄}
-        → Channel.inType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₂ ⊗ᵀ B₂)) ⊗₀ ((A₃ ⊗ᵀ B₃) ⊗₀ (A₄ ⊗ᵀ B₄)))
-        → Channel.inType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₃ ⊗ᵀ B₃)) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₄ ⊗ᵀ B₄)))
+        → inType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₂ ⊗ᵀ B₂)) ⊗₀ ((A₃ ⊗ᵀ B₃) ⊗₀ (A₄ ⊗ᵀ B₄)))
+        → inType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₃ ⊗ᵀ B₃)) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₄ ⊗ᵀ B₄)))
   mid4ᵢ (inj₁ (inj₁ w)) = inj₁ (inj₁ w)
   mid4ᵢ (inj₁ (inj₂ x)) = inj₂ (inj₁ x)
   mid4ᵢ (inj₂ (inj₁ y)) = inj₁ (inj₂ y)
   mid4ᵢ (inj₂ (inj₂ z)) = inj₂ (inj₂ z)
 
   mid4ₒ : ∀ {A₁ B₁ A₂ B₂ A₃ B₃ A₄ B₄}
-        → Channel.outType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₂ ⊗ᵀ B₂)) ⊗₀ ((A₃ ⊗ᵀ B₃) ⊗₀ (A₄ ⊗ᵀ B₄)))
-        → Channel.outType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₃ ⊗ᵀ B₃)) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₄ ⊗ᵀ B₄)))
+        → outType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₂ ⊗ᵀ B₂)) ⊗₀ ((A₃ ⊗ᵀ B₃) ⊗₀ (A₄ ⊗ᵀ B₄)))
+        → outType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₃ ⊗ᵀ B₃)) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₄ ⊗ᵀ B₄)))
   mid4ₒ (inj₁ (inj₁ w)) = inj₁ (inj₁ w)
   mid4ₒ (inj₁ (inj₂ x)) = inj₂ (inj₁ x)
   mid4ₒ (inj₂ (inj₁ y)) = inj₁ (inj₂ y)
@@ -307,8 +309,8 @@ opaque
   -- ------------------------------------------------------------------------
 
   πᵢ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-     → Channel.inType (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))
-     → Channel.inType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
+     → inType (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))
+     → inType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
   πᵢ (inj₁ (inj₁ (inj₁ x))) = inj₁ (inj₁ (inj₁ x))
   πᵢ (inj₁ (inj₁ (inj₂ x))) = inj₂ (inj₁ (inj₁ x))
   πᵢ (inj₁ (inj₂ (inj₁ z))) = inj₁ (inj₁ (inj₂ z))
@@ -319,8 +321,8 @@ opaque
   πᵢ (inj₂ (inj₂ (inj₂ z))) = inj₂ (inj₂ (inj₂ z))
 
   πₒ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-     → Channel.outType (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))
-     → Channel.outType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
+     → outType (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))
+     → outType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
   πₒ (inj₁ (inj₁ (inj₁ x))) = inj₁ (inj₁ (inj₁ x))
   πₒ (inj₁ (inj₁ (inj₂ x))) = inj₂ (inj₁ (inj₁ x))
   πₒ (inj₁ (inj₂ (inj₁ z))) = inj₁ (inj₁ (inj₂ z))
@@ -331,8 +333,8 @@ opaque
   πₒ (inj₂ (inj₂ (inj₂ z))) = inj₂ (inj₂ (inj₂ z))
 
   πᵢ⁻ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-      → Channel.inType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
-      → Channel.inType (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))
+      → inType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
+      → inType (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))
   πᵢ⁻ (inj₁ (inj₁ (inj₁ x))) = inj₁ (inj₁ (inj₁ x))
   πᵢ⁻ (inj₁ (inj₁ (inj₂ z))) = inj₁ (inj₂ (inj₁ z))
   πᵢ⁻ (inj₁ (inj₂ (inj₁ y))) = inj₂ (inj₁ (inj₁ y))
@@ -343,8 +345,8 @@ opaque
   πᵢ⁻ (inj₂ (inj₂ (inj₂ z))) = inj₂ (inj₂ (inj₂ z))
 
   πₒ⁻ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-      → Channel.outType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
-      → Channel.outType (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))
+      → outType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
+      → outType (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))
   πₒ⁻ (inj₁ (inj₁ (inj₁ x))) = inj₁ (inj₁ (inj₁ x))
   πₒ⁻ (inj₁ (inj₁ (inj₂ z))) = inj₁ (inj₂ (inj₁ z))
   πₒ⁻ (inj₁ (inj₂ (inj₁ y))) = inj₂ (inj₁ (inj₁ y))
@@ -356,7 +358,7 @@ opaque
 
   private
     πᵢ-πᵢ⁻ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-               (x : Channel.inType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂))))
+               (x : inType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂))))
            → πᵢ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂} (πᵢ⁻ x) ≡ x
     πᵢ-πᵢ⁻ (inj₁ (inj₁ (inj₁ _))) = refl
     πᵢ-πᵢ⁻ (inj₁ (inj₁ (inj₂ _))) = refl
@@ -392,52 +394,52 @@ opaque
   -- The column injections and the column halves of `π⁻`, at channel-shaped
   -- types (so that nothing has to be inferred through `_⊗₀_`).
   ι₁ᵢ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-      → Channel.inType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁))
-      → Channel.inType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
+      → inType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁))
+      → inType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
   ι₁ᵢ x = inj₁ x
 
   ι₂ᵢ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-      → Channel.inType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂))
-      → Channel.inType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
+      → inType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂))
+      → inType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
   ι₂ᵢ x = inj₂ x
 
   ι₁ₒ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-      → Channel.outType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁))
-      → Channel.outType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
+      → outType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁))
+      → outType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
   ι₁ₒ x = inj₁ x
 
   ι₂ₒ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-      → Channel.outType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂))
-      → Channel.outType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
+      → outType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂))
+      → outType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
   ι₂ₒ x = inj₂ x
 
   πᵢ⁻₁ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-       → Channel.inType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁))
-       → Channel.inType (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))
+       → inType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁))
+       → inType (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))
   πᵢ⁻₁ (inj₁ (inj₁ x)) = inj₁ (inj₁ (inj₁ x))
   πᵢ⁻₁ (inj₁ (inj₂ z)) = inj₁ (inj₂ (inj₁ z))
   πᵢ⁻₁ (inj₂ (inj₁ y)) = inj₂ (inj₁ (inj₁ y))
   πᵢ⁻₁ (inj₂ (inj₂ z)) = inj₂ (inj₂ (inj₁ z))
 
   πᵢ⁻₂ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-       → Channel.inType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂))
-       → Channel.inType (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))
+       → inType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂))
+       → inType (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))
   πᵢ⁻₂ (inj₁ (inj₁ x)) = inj₁ (inj₁ (inj₂ x))
   πᵢ⁻₂ (inj₁ (inj₂ z)) = inj₁ (inj₂ (inj₂ z))
   πᵢ⁻₂ (inj₂ (inj₁ y)) = inj₂ (inj₁ (inj₂ y))
   πᵢ⁻₂ (inj₂ (inj₂ z)) = inj₂ (inj₂ (inj₂ z))
 
   πₒ⁻₁ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-       → Channel.outType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁))
-       → Channel.outType (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))
+       → outType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁))
+       → outType (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))
   πₒ⁻₁ (inj₁ (inj₁ x)) = inj₁ (inj₁ (inj₁ x))
   πₒ⁻₁ (inj₁ (inj₂ z)) = inj₁ (inj₂ (inj₁ z))
   πₒ⁻₁ (inj₂ (inj₁ y)) = inj₂ (inj₁ (inj₁ y))
   πₒ⁻₁ (inj₂ (inj₂ z)) = inj₂ (inj₂ (inj₁ z))
 
   πₒ⁻₂ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-       → Channel.outType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂))
-       → Channel.outType (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))
+       → outType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂))
+       → outType (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))
   πₒ⁻₂ (inj₁ (inj₁ x)) = inj₁ (inj₁ (inj₂ x))
   πₒ⁻₂ (inj₁ (inj₂ z)) = inj₁ (inj₂ (inj₂ z))
   πₒ⁻₂ (inj₂ (inj₁ y)) = inj₂ (inj₁ (inj₂ y))
@@ -522,29 +524,29 @@ opaque
   trace₂ M₁ M₂ (p Trace∷ᵢ rest) = stepN₂ M₁ M₂ p Trace∷ᵢ trace₂ M₁ M₂ rest
 
   private
-    πₒ⁻-ι₁ₒ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂} (x : Channel.outType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)))
+    πₒ⁻-ι₁ₒ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂} (x : outType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)))
             → πₒ⁻ (ι₁ₒ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂} x) ≡ πₒ⁻₁ x
     πₒ⁻-ι₁ₒ (inj₁ (inj₁ _)) = refl
     πₒ⁻-ι₁ₒ (inj₁ (inj₂ _)) = refl
     πₒ⁻-ι₁ₒ (inj₂ (inj₁ _)) = refl
     πₒ⁻-ι₁ₒ (inj₂ (inj₂ _)) = refl
 
-    πₒ⁻-ι₂ₒ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂} (x : Channel.outType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
+    πₒ⁻-ι₂ₒ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂} (x : outType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
             → πₒ⁻ (ι₂ₒ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂} x) ≡ πₒ⁻₂ x
     πₒ⁻-ι₂ₒ (inj₁ (inj₁ _)) = refl
     πₒ⁻-ι₂ₒ (inj₁ (inj₂ _)) = refl
     πₒ⁻-ι₂ₒ (inj₂ (inj₁ _)) = refl
     πₒ⁻-ι₂ₒ (inj₂ (inj₂ _)) = refl
 
-    MO-recover : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂} (MO : Maybe (Channel.outType
+    MO-recover : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂} (MO : Maybe (outType
                    (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))))
                → mapᴹ πₒ⁻ (mapᴹ πₒ MO) ≡ MO
     MO-recover MO = trans (mapᴹ-∘ πₒ⁻ πₒ MO) (trans (mapᴹ-cong πₒ⁻-πₒ MO) (mapᴹ-id MO))
 
     recover₁ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-               (MO : Maybe (Channel.outType
+               (MO : Maybe (outType
                  (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))))
-               (mo : Maybe (Channel.outType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁))))
+               (mo : Maybe (outType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁))))
              → mapᴹ πₒ MO ≡ mapᴹ ι₁ₒ mo → MO ≡ mapᴹ πₒ⁻₁ mo
     recover₁ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂} MO mo e =
       trans (sym (MO-recover MO))
@@ -553,9 +555,9 @@ opaque
                           (mapᴹ-cong (πₒ⁻-ι₁ₒ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂}) mo)))
 
     recover₂ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-               (MO : Maybe (Channel.outType
+               (MO : Maybe (outType
                  (((X₁ ⊗₀ X₂) ⊗₀ (Z₁ ⊗₀ Z₂)) ⊗ᵀ ((Y₁ ⊗₀ Y₂) ⊗₀ (Z₁ ⊗₀ Z₂)))))
-               (mo : Maybe (Channel.outType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂))))
+               (mo : Maybe (outType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂))))
              → mapᴹ πₒ MO ≡ mapᴹ ι₂ₒ mo → MO ≡ mapᴹ πₒ⁻₂ mo
     recover₂ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂} MO mo e =
       trans (sym (MO-recover MO))
@@ -571,7 +573,7 @@ opaque
   trace₁⁻ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : Channel}
             (M₁ : Machine (X₁ ⊗₀ Z₁) (Y₁ ⊗₀ Z₁)) (M₂ : Machine (X₂ ⊗₀ Z₂) (Y₂ ⊗₀ Z₂))
             {S S' : Machine.State M₁ × Machine.State M₂} {I MO}
-            (m : Channel.inType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)))
+            (m : inType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)))
           → πᵢ I ≡ ι₁ᵢ m
           → TraceRel (Reindex (Pair M₁ M₂) πᵢ πₒ) S I MO S'
           → ∃ λ mo → (MO ≡ mapᴹ πₒ⁻₁ mo) × (proj₂ S' ≡ proj₂ S)
@@ -614,7 +616,7 @@ opaque
   trace₂⁻ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : Channel}
             (M₁ : Machine (X₁ ⊗₀ Z₁) (Y₁ ⊗₀ Z₁)) (M₂ : Machine (X₂ ⊗₀ Z₂) (Y₂ ⊗₀ Z₂))
             {S S' : Machine.State M₁ × Machine.State M₂} {I MO}
-            (m : Channel.inType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
+            (m : inType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
           → πᵢ I ≡ ι₂ᵢ m
           → TraceRel (Reindex (Pair M₁ M₂) πᵢ πₒ) S I MO S'
           → ∃ λ mo → (MO ≡ mapᴹ πₒ⁻₂ mo) × (proj₁ S' ≡ proj₁ S)
@@ -653,14 +655,14 @@ opaque
   ... | inj₂ (_ , just _ , _ , yeq , _ , _) = inj₁≢inj₂ (just-inj yeq)
 
   private
-    πᵢ⁻-ι₁ᵢ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂} (m : Channel.inType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)))
+    πᵢ⁻-ι₁ᵢ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂} (m : inType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)))
             → πᵢ⁻ (ι₁ᵢ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂} m) ≡ πᵢ⁻₁ m
     πᵢ⁻-ι₁ᵢ (inj₁ (inj₁ _)) = refl
     πᵢ⁻-ι₁ᵢ (inj₁ (inj₂ _)) = refl
     πᵢ⁻-ι₁ᵢ (inj₂ (inj₁ _)) = refl
     πᵢ⁻-ι₁ᵢ (inj₂ (inj₂ _)) = refl
 
-    πᵢ⁻-ι₂ᵢ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂} (m : Channel.inType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
+    πᵢ⁻-ι₂ᵢ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂} (m : inType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))
             → πᵢ⁻ (ι₂ᵢ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂} m) ≡ πᵢ⁻₂ m
     πᵢ⁻-ι₂ᵢ (inj₁ (inj₁ _)) = refl
     πᵢ⁻-ι₂ᵢ (inj₁ (inj₂ _)) = refl
@@ -668,15 +670,15 @@ opaque
     πᵢ⁻-ι₂ᵢ (inj₂ (inj₂ _)) = refl
 
     o-recover : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-                (o : Maybe (Channel.outType
+                (o : Maybe (outType
                   (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))))
               → mapᴹ πₒ (mapᴹ πₒ⁻ o) ≡ o
     o-recover o = trans (mapᴹ-∘ πₒ πₒ⁻ o) (trans (mapᴹ-cong πₒ-πₒ⁻ o) (mapᴹ-id o))
 
     outrec₁ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-              (o : Maybe (Channel.outType
+              (o : Maybe (outType
                 (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))))
-              (mo : Maybe (Channel.outType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁))))
+              (mo : Maybe (outType ((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁))))
             → mapᴹ πₒ⁻ o ≡ mapᴹ πₒ⁻₁ mo → o ≡ mapᴹ ι₁ₒ mo
     outrec₁ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂} o mo e =
       trans (sym (o-recover o))
@@ -686,9 +688,9 @@ opaque
                           (mapᴹ-cong (πₒ-πₒ⁻₁ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂}) mo)))
 
     outrec₂ : ∀ {X₁ Y₁ Z₁ X₂ Y₂ Z₂}
-              (o : Maybe (Channel.outType
+              (o : Maybe (outType
                 (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))))
-              (mo : Maybe (Channel.outType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂))))
+              (mo : Maybe (outType ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂))))
             → mapᴹ πₒ⁻ o ≡ mapᴹ πₒ⁻₂ mo → o ≡ mapᴹ ι₂ₒ mo
     outrec₂ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂} o mo e =
       trans (sym (o-recover o))
@@ -721,8 +723,8 @@ opaque
                                  (ι₂ₒ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂}) mo)
                          (mapᴹ-cong (πₒ⁻-ι₂ₒ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂}) mo)))
              (trace₂ M₁ M₂ p)
-    f : ∀ {S S'} (i : Channel.inType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂))))
-          (o : Maybe (Channel.outType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))))
+    f : ∀ {S S'} (i : inType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂))))
+          (o : Maybe (outType (((X₁ ⊗₀ Z₁) ⊗ᵀ (Y₁ ⊗₀ Z₁)) ⊗₀ ((X₂ ⊗₀ Z₂) ⊗ᵀ (Y₂ ⊗₀ Z₂)))))
       → TraceRel (Reindex (Pair M₁ M₂) (πᵢ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂}) (πₒ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂})) S (πᵢ⁻ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂} i) (mapᴹ (πₒ⁻ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂}) o) S'
       → Tensor.CompRel (Trc M₁) (Trc M₂) S i o S'
     f {S} {S'} (inj₁ m) o p with trace₁⁻ M₁ M₂ m (πᵢ-πᵢ⁻ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂} (ι₁ᵢ {X₁} {Y₁} {Z₁} {X₂} {Y₂} {Z₂} m)) p
@@ -740,11 +742,11 @@ opaque
   -- `tr` as a `Reindex` of `Trc`.
   -- ------------------------------------------------------------------------
 
-  tιᵢ : ∀ {A B C} → Channel.inType (A ⊗ᵀ B) → Channel.inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+  tιᵢ : ∀ {A B C} → inType (A ⊗ᵀ B) → inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
   tιᵢ (inj₁ a)  = inj₁ (inj₁ a)
   tιᵢ (inj₂ bo) = inj₂ (inj₁ bo)
 
-  tιₒ : ∀ {A B C} → Channel.outType (A ⊗ᵀ B) → Channel.outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+  tιₒ : ∀ {A B C} → outType (A ⊗ᵀ B) → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
   tιₒ (inj₁ ao) = inj₁ (inj₁ ao)
   tιₒ (inj₂ bi) = inj₂ (inj₁ bi)
 
@@ -765,10 +767,10 @@ opaque
              → tr M ≅ᴹ Reindex (Trc M) (tιᵢ {A} {B} {C}) (tιₒ {A} {B} {C})
   tr-Reindex {A} {B} {C} M = ≅ᴹ-trans step₁ step₂
     where
-    uᵗ : Channel.inType (A ⊗ᵀ B) → Channel.inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+    uᵗ : inType (A ⊗ᵀ B) → inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
     uᵗ i = app (∣ˡσ {A} {C} {B ⊗₀ C} {In}) (app (∣^ˡσ {A} {B} {C} {In}) i)
 
-    vᵗ : Channel.outType (A ⊗ᵀ B) → Channel.outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+    vᵗ : outType (A ⊗ᵀ B) → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
     vᵗ o = app (∣ˡσ {A} {C} {B ⊗₀ C} {Out}) (app (∣^ˡσ {A} {B} {C} {Out}) o)
 
     step₁ : tr M ≅ᴹ Reindex (Trc M) uᵗ vᵗ
@@ -786,12 +788,12 @@ opaque
   -- `_∘_` as a `Reindex` of a `Trc` of a `Reindex` of a `Pair`.
   -- ------------------------------------------------------------------------
 
-  ∘κᵢ : ∀ {A B C} → Channel.inType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
-      → Channel.inType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ))
+  ∘κᵢ : ∀ {A B C} → inType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
+      → inType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ))
   ∘κᵢ {A} {B} {C} i = app (⊗σ {A} {B} {B} {C} {In}) (app (∘σ {A} {B} {C} {In}) i)
 
-  ∘κₒ : ∀ {A B C} → Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
-      → Channel.outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ))
+  ∘κₒ : ∀ {A B C} → outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
+      → outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ))
   ∘κₒ {A} {B} {C} o = app (⊗σ {A} {B} {B} {C} {Out}) (app (∘σ {A} {B} {C} {Out}) o)
 
   ∘-core : ∀ {A B C} (M : Machine A B) (N : Machine B C)

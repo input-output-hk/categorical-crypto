@@ -19,6 +19,8 @@ open import CategoricalCrypto.Machine.Core
 open import CategoricalCrypto.Machine.Message
 open import Tactic.Defaults
 
+open Channel
+
 private variable A B C D E : Channel
 
 infix 4 _≅ᴹ_
@@ -267,18 +269,18 @@ module ∘-assoc-implementation
 
     -- bridged step relations: transparent statements of the components'
     -- step relations over the *unfolded* message sums
-    Rf♭ : Sf → Channel.inType A ⊎ Channel.outType B
-        → Maybe (Channel.outType A ⊎ Channel.inType B) → Sf → Type
+    Rf♭ : Sf → inType A ⊎ outType B
+        → Maybe (outType A ⊎ inType B) → Sf → Type
     Rf♭ s i mo s' = Machine.stepRel f s (construct-⊗ {m = In} i)
                       ((λ o → construct-⊗ {m = Out} o) <$> mo) s'
 
-    Rg♭ : Sg → Channel.inType B ⊎ Channel.outType C
-        → Maybe (Channel.outType B ⊎ Channel.inType C) → Sg → Type
+    Rg♭ : Sg → inType B ⊎ outType C
+        → Maybe (outType B ⊎ inType C) → Sg → Type
     Rg♭ s i mo s' = Machine.stepRel g s (construct-⊗ {m = In} i)
                       ((λ o → construct-⊗ {m = Out} o) <$> mo) s'
 
-    Rh♭ : Sh → Channel.inType C ⊎ Channel.outType D
-        → Maybe (Channel.outType C ⊎ Channel.inType D) → Sh → Type
+    Rh♭ : Sh → inType C ⊎ outType D
+        → Maybe (outType C ⊎ inType D) → Sh → Type
     Rh♭ s i mo s' = Machine.stepRel h s (construct-⊗ {m = In} i)
                       ((λ o → construct-⊗ {m = Out} o) <$> mo) s'
 
@@ -333,8 +335,8 @@ module ∘-assoc-implementation
   -- (validates that all signatures are statable at top level)
   InvInnerL-Stmt : Type
   InvInnerL-Stmt = ∀ {sf sg sh sg' sh' mo st'}
-      (i₂ : Channel.inType B ⊎ Channel.outType D)
-      (m₂ : Maybe (Channel.outType B ⊎ Channel.inType D))
+      (i₂ : inType B ⊎ outType D)
+      (m₂ : Maybe (outType B ⊎ inType D))
     → Machine.stepRel (_∘_ {B = C} h g) (sg , sh)
         (construct-⊗ {m = In} i₂) ((λ o → construct-⊗ {m = Out} o) <$> m₂) (sg' , sh')
     → T.ContL sf (sg' , sh') m₂ mo st'
@@ -342,8 +344,8 @@ module ∘-assoc-implementation
 
   InvInnerR-Stmt : Type
   InvInnerR-Stmt = ∀ {sf sg sf' sg' sh mo st'}
-      (i₁ : Channel.inType A ⊎ Channel.outType C)
-      (m₁ : Maybe (Channel.outType A ⊎ Channel.inType C))
+      (i₁ : inType A ⊎ outType C)
+      (m₁ : Maybe (outType A ⊎ inType C))
     → Machine.stepRel (_∘_ {B = B} g f) (sf , sg)
         (construct-⊗ {m = In} i₁) ((λ o → construct-⊗ {m = Out} o) <$> m₁) (sf' , sg')
     → T.ContR (sf' , sg') sh m₁ mo st'
@@ -396,38 +398,38 @@ module ∘-assoc-implementation
       tens = modifyStepRel ⇒-solver (f ⊗₁ (_∘_ {B = C} h g))
 
       -- external output map at the outer trace level
-      extO : Maybe (Channel.outType A ⊎ Channel.inType D)
-           → Maybe ((Channel.outType A ⊎ Channel.outType B)
-                    ⊎ (Channel.inType D ⊎ Channel.inType B))
+      extO : Maybe (outType A ⊎ inType D)
+           → Maybe ((outType A ⊎ outType B)
+                    ⊎ (inType D ⊎ inType B))
       extO nothing          = nothing
       extO (just (inj₁ oa)) = just (inj₁ (inj₁ oa))
       extO (just (inj₂ d))  = just (inj₂ (inj₁ d))
 
       -- entry maps: component-level inputs to trace-level indices
-      entF : Channel.inType A ⊎ Channel.outType B
-           → (Channel.inType A ⊎ Channel.inType B)
-             ⊎ (Channel.outType D ⊎ Channel.outType B)
+      entF : inType A ⊎ outType B
+           → (inType A ⊎ inType B)
+             ⊎ (outType D ⊎ outType B)
       entF (inj₁ a)  = inj₁ (inj₁ a)
       entF (inj₂ ob) = inj₂ (inj₂ ob)
 
-      entG : Channel.inType B ⊎ Channel.outType C
-           → (Channel.inType B ⊎ Channel.inType C)
-             ⊎ (Channel.outType D ⊎ Channel.outType C)
+      entG : inType B ⊎ outType C
+           → (inType B ⊎ inType C)
+             ⊎ (outType D ⊎ outType C)
       entG (inj₁ ib) = inj₁ (inj₁ ib)
       entG (inj₂ oc) = inj₂ (inj₂ oc)
 
-      entH : Channel.inType C ⊎ Channel.outType D
-           → (Channel.inType B ⊎ Channel.inType C)
-             ⊎ (Channel.outType D ⊎ Channel.outType C)
+      entH : inType C ⊎ outType D
+           → (inType B ⊎ inType C)
+             ⊎ (outType D ⊎ outType C)
       entH (inj₁ ic) = inj₁ (inj₂ ic)
       entH (inj₂ od) = inj₂ (inj₁ od)
 
       -- result package for the sides that live inside the inner (h ∘ g)
       -- chain
       GResL : Sf → (s₂ : Sg × Sh)
-            → ((Channel.inType B ⊎ Channel.inType C)
-               ⊎ (Channel.outType D ⊎ Channel.outType C))
-            → Maybe (Channel.outType A ⊎ Channel.inType D)
+            → ((inType B ⊎ inType C)
+               ⊎ (outType D ⊎ outType C))
+            → Maybe (outType A ⊎ inType D)
             → T.TriState → Type
       GResL sf s₂ x mo₀ st' =
           (∃ λ s₂' → (mo₀ ≡ nothing) × (st' ≡ (sf , s₂'))
@@ -437,13 +439,13 @@ module ∘-assoc-implementation
         ⊎ (∃ λ s₂' → ∃ λ ob → TraceRel itensL s₂ x (just (inj₁ (inj₁ ob))) s₂'
                    × TraceRel tens (sf , s₂') (inj₂ (inj₂ ob)) (extO mo₀) st')
 
-      embF : ∀ {sf s₂ st' mo₀} (iF : Channel.inType A ⊎ Channel.outType B)
+      embF : ∀ {sf s₂ st' mo₀} (iF : inType A ⊎ outType B)
            → T.TriF (sf , s₂) iF mo₀ st'
            → TraceRel tens (sf , s₂) (entF iF) (extO mo₀) st'
-      embG : ∀ {sf sg sh st' mo₀} (iG : Channel.inType B ⊎ Channel.outType C)
+      embG : ∀ {sf sg sh st' mo₀} (iG : inType B ⊎ outType C)
            → T.TriG (sf , sg , sh) iG mo₀ st'
            → GResL sf (sg , sh) (entG iG) mo₀ st'
-      embH : ∀ {sf sg sh st' mo₀} (iH : Channel.inType C ⊎ Channel.outType D)
+      embH : ∀ {sf sg sh st' mo₀} (iH : inType C ⊎ outType D)
            → T.TriH (sf , sg , sh) iH mo₀ st'
            → GResL sf (sg , sh) (entH iH) mo₀ st'
 
@@ -534,8 +536,8 @@ module ∘-assoc-implementation
       -- the A-side entry is a TriF chain embedded directly; the D-side
       -- entry is a TriH chain, whose inner part becomes the single
       -- leading Step₂ node of the outer trace.
-      go : (i₀ : Channel.inType A ⊎ Channel.outType D)
-           (mo₀ : Maybe (Channel.outType A ⊎ Channel.inType D))
+      go : (i₀ : inType A ⊎ outType D)
+           (mo₀ : Maybe (outType A ⊎ inType D))
          → T.TriExt sp i₀ mo₀ sp'
          → Machine.stepRel cmpL sp i₀ mo₀ sp'
       go (inj₁ a) (just (inj₁ oa)) t₀ = embF (inj₁ a) t₀
@@ -589,28 +591,28 @@ module ∘-assoc-implementation
       where
       -- index maps: external outputs and h-steps into the outer trace,
       -- f- and g-steps into the inner (g ∘ f) trace
-      ⟪_⟫E : Maybe (Channel.outType A ⊎ Channel.inType D)
-           → Maybe ((Channel.outType A ⊎ Channel.outType C)
-                  ⊎ (Channel.inType D ⊎ Channel.inType C))
+      ⟪_⟫E : Maybe (outType A ⊎ inType D)
+           → Maybe ((outType A ⊎ outType C)
+                  ⊎ (inType D ⊎ inType C))
       ⟪ nothing ⟫E        = nothing
       ⟪ just (inj₁ oa) ⟫E = just (inj₁ (inj₁ oa))
       ⟪ just (inj₂ d)  ⟫E = just (inj₂ (inj₁ d))
 
-      ⟪_⟫H : Channel.inType C ⊎ Channel.outType D
-           → (Channel.inType A ⊎ Channel.inType C)
-           ⊎ (Channel.outType D ⊎ Channel.outType C)
+      ⟪_⟫H : inType C ⊎ outType D
+           → (inType A ⊎ inType C)
+           ⊎ (outType D ⊎ outType C)
       ⟪ inj₁ ic ⟫H = inj₁ (inj₂ ic)
       ⟪ inj₂ od ⟫H = inj₂ (inj₁ od)
 
-      ⟪_⟫F : Channel.inType A ⊎ Channel.outType B
-           → (Channel.inType A ⊎ Channel.inType B)
-           ⊎ (Channel.outType C ⊎ Channel.outType B)
+      ⟪_⟫F : inType A ⊎ outType B
+           → (inType A ⊎ inType B)
+           ⊎ (outType C ⊎ outType B)
       ⟪ inj₁ a  ⟫F = inj₁ (inj₁ a)
       ⟪ inj₂ ob ⟫F = inj₂ (inj₂ ob)
 
-      ⟪_⟫G : Channel.inType B ⊎ Channel.outType C
-           → (Channel.inType A ⊎ Channel.inType B)
-           ⊎ (Channel.outType C ⊎ Channel.outType B)
+      ⟪_⟫G : inType B ⊎ outType C
+           → (inType A ⊎ inType B)
+           ⊎ (outType C ⊎ outType B)
       ⟪ inj₁ ib ⟫G = inj₁ (inj₂ ib)
       ⟪ inj₂ oc ⟫G = inj₂ (inj₁ oc)
 
@@ -619,9 +621,9 @@ module ∘-assoc-implementation
       -- leaving the h-state untouched, or exits towards h with a
       -- middle-C message plus the corresponding outer continuation
       GResR : Sh → Sf × Sg
-            → (Channel.inType A ⊎ Channel.inType B)
-            ⊎ (Channel.outType C ⊎ Channel.outType B)
-            → Maybe (Channel.outType A ⊎ Channel.inType D)
+            → (inType A ⊎ inType B)
+            ⊎ (outType C ⊎ outType B)
+            → Maybe (outType A ⊎ inType D)
             → T.TriState → Type
       GResR sh₀ s₁ x mo₀ st' =
           (∃ λ s₁' → (mo₀ ≡ nothing)
@@ -635,13 +637,13 @@ module ∘-assoc-implementation
                    → TraceRel itensR s₁ x (just (inj₂ (inj₁ ic))) s₁'
                    × TraceRel tensR (s₁' , sh₀) (inj₁ (inj₂ ic)) ⟪ mo₀ ⟫E (reasc⁻ st'))
 
-      embF : ∀ {sf sg sh₀ mo₀ st'} (i₀ : Channel.inType A ⊎ Channel.outType B)
+      embF : ∀ {sf sg sh₀ mo₀ st'} (i₀ : inType A ⊎ outType B)
            → T.TriF (sf , sg , sh₀) i₀ mo₀ st'
            → GResR sh₀ (sf , sg) ⟪ i₀ ⟫F mo₀ st'
-      embG : ∀ {sf sg sh₀ mo₀ st'} (i₀ : Channel.inType B ⊎ Channel.outType C)
+      embG : ∀ {sf sg sh₀ mo₀ st'} (i₀ : inType B ⊎ outType C)
            → T.TriG (sf , sg , sh₀) i₀ mo₀ st'
            → GResR sh₀ (sf , sg) ⟪ i₀ ⟫G mo₀ st'
-      embH : ∀ {sf sg sh₀ mo₀ st'} (i₀ : Channel.inType C ⊎ Channel.outType D)
+      embH : ∀ {sf sg sh₀ mo₀ st'} (i₀ : inType C ⊎ outType D)
            → T.TriH (sf , sg , sh₀) i₀ mo₀ st'
            → TraceRel tensR ((sf , sg) , sh₀) ⟪ i₀ ⟫H ⟪ mo₀ ⟫E (reasc⁻ st')
 
@@ -725,8 +727,8 @@ module ∘-assoc-implementation
 
       -- top dispatcher over the external input/output shapes
       go : ∀ {sf₀ sg₀ sh₀ st'}
-           (i₀ : Channel.inType A ⊎ Channel.outType D)
-           (mo₀ : Maybe (Channel.outType A ⊎ Channel.inType D))
+           (i₀ : inType A ⊎ outType D)
+           (mo₀ : Maybe (outType A ⊎ inType D))
          → T.TriExt (sf₀ , sg₀ , sh₀) i₀ mo₀ st'
          → Machine.stepRel cmpR ((sf₀ , sg₀) , sh₀) i₀ mo₀ (reasc⁻ st')
       go (inj₁ a) mo₀ t₀ with embF (inj₁ a) t₀
@@ -758,37 +760,37 @@ module ∘-assoc-implementation
     inv-innerL {sf} {sg} {sh} {sg'} {sh'} {mo} {st'} i₂ m₂ d κ = go i₂ m₂ d κ
       where
       -- entry maps: component-level inputs to itensL trace-level indices
-      entG : Channel.inType B ⊎ Channel.outType C
-           → (Channel.inType B ⊎ Channel.inType C)
-             ⊎ (Channel.outType D ⊎ Channel.outType C)
+      entG : inType B ⊎ outType C
+           → (inType B ⊎ inType C)
+             ⊎ (outType D ⊎ outType C)
       entG (inj₁ ib) = inj₁ (inj₁ ib)
       entG (inj₂ oc) = inj₂ (inj₂ oc)
 
-      entH : Channel.inType C ⊎ Channel.outType D
-           → (Channel.inType B ⊎ Channel.inType C)
-             ⊎ (Channel.outType D ⊎ Channel.outType C)
+      entH : inType C ⊎ outType D
+           → (inType B ⊎ inType C)
+             ⊎ (outType D ⊎ outType C)
       entH (inj₁ ic) = inj₁ (inj₂ ic)
       entH (inj₂ od) = inj₂ (inj₁ od)
 
       -- external output map of the inner composite at its trace level
-      extO₂ : Maybe (Channel.outType B ⊎ Channel.inType D)
-            → Maybe ((Channel.outType B ⊎ Channel.outType C)
-                     ⊎ (Channel.inType D ⊎ Channel.inType C))
+      extO₂ : Maybe (outType B ⊎ inType D)
+            → Maybe ((outType B ⊎ outType C)
+                     ⊎ (inType D ⊎ inType C))
       extO₂ nothing          = nothing
       extO₂ (just (inj₁ ob)) = just (inj₁ (inj₁ ob))
       extO₂ (just (inj₂ dd)) = just (inj₂ (inj₁ dd))
 
       goG : ∀ {s₂ s₂' x y} {sf₀ : Sf} {mo₀ : T.ExtOut} {st₀ : T.TriState}
           → TraceRel itensL s₂ x y s₂'
-          → (ig : Channel.inType B ⊎ Channel.outType C)
-            (m₀ : Maybe (Channel.outType B ⊎ Channel.inType D))
+          → (ig : inType B ⊎ outType C)
+            (m₀ : Maybe (outType B ⊎ inType D))
           → x ≡ entG ig → y ≡ extO₂ m₀
           → T.ContL sf₀ s₂' m₀ mo₀ st₀
           → T.TriG (sf₀ , proj₁ s₂ , proj₂ s₂) ig mo₀ st₀
       goH : ∀ {s₂ s₂' x y} {sf₀ : Sf} {mo₀ : T.ExtOut} {st₀ : T.TriState}
           → TraceRel itensL s₂ x y s₂'
-          → (ih : Channel.inType C ⊎ Channel.outType D)
-            (m₀ : Maybe (Channel.outType B ⊎ Channel.inType D))
+          → (ih : inType C ⊎ outType D)
+            (m₀ : Maybe (outType B ⊎ inType D))
           → x ≡ entH ih → y ≡ extO₂ m₀
           → T.ContL sf₀ s₂' m₀ mo₀ st₀
           → T.TriH (sf₀ , proj₁ s₂ , proj₂ s₂) ih mo₀ st₀
@@ -939,8 +941,8 @@ module ∘-assoc-implementation
 
       -- top dispatcher: case the external shapes so the bridged step
       -- converts to a TraceRel itensL value at concrete indices
-      go : (i₀ : Channel.inType B ⊎ Channel.outType D)
-           (m₀ : Maybe (Channel.outType B ⊎ Channel.inType D))
+      go : (i₀ : inType B ⊎ outType D)
+           (m₀ : Maybe (outType B ⊎ inType D))
          → Machine.stepRel (_∘_ {B = C} h g) (sg , sh)
              (construct-⊗ {A = B} {B = D ᵀ} {m = In} i₀)
              ((λ o → construct-⊗ {A = B} {B = D ᵀ} {m = Out} o) <$> m₀) (sg' , sh')
@@ -972,34 +974,34 @@ module ∘-assoc-implementation
       tens = modifyStepRel ⇒-solver (f ⊗₁ (_∘_ {B = C} h g))
 
       -- external output map at the outer trace level
-      extO : Maybe (Channel.outType A ⊎ Channel.inType D)
-           → Maybe ((Channel.outType A ⊎ Channel.outType B)
-                    ⊎ (Channel.inType D ⊎ Channel.inType B))
+      extO : Maybe (outType A ⊎ inType D)
+           → Maybe ((outType A ⊎ outType B)
+                    ⊎ (inType D ⊎ inType B))
       extO nothing          = nothing
       extO (just (inj₁ oa)) = just (inj₁ (inj₁ oa))
       extO (just (inj₂ dd)) = just (inj₂ (inj₁ dd))
 
       -- entry maps: component-level inputs to outer trace-level indices
-      entF : Channel.inType A ⊎ Channel.outType B
-           → (Channel.inType A ⊎ Channel.inType B)
-             ⊎ (Channel.outType D ⊎ Channel.outType B)
+      entF : inType A ⊎ outType B
+           → (inType A ⊎ inType B)
+             ⊎ (outType D ⊎ outType B)
       entF (inj₁ a)  = inj₁ (inj₁ a)
       entF (inj₂ ob) = inj₂ (inj₂ ob)
 
-      entI : Channel.inType B ⊎ Channel.outType D
-           → (Channel.inType A ⊎ Channel.inType B)
-             ⊎ (Channel.outType D ⊎ Channel.outType B)
+      entI : inType B ⊎ outType D
+           → (inType A ⊎ inType B)
+             ⊎ (outType D ⊎ outType B)
       entI (inj₁ ib) = inj₁ (inj₂ ib)
       entI (inj₂ od) = inj₂ (inj₁ od)
 
       goF : ∀ {sp₀ sp₀' x y} → TraceRel tens sp₀ x y sp₀'
-          → (iF : Channel.inType A ⊎ Channel.outType B)
-            (mo₀ : Maybe (Channel.outType A ⊎ Channel.inType D))
+          → (iF : inType A ⊎ outType B)
+            (mo₀ : Maybe (outType A ⊎ inType D))
           → x ≡ entF iF → y ≡ extO mo₀
           → T.TriF sp₀ iF mo₀ sp₀'
       goI : ∀ {sp₀ sp₀' x y} → TraceRel tens sp₀ x y sp₀'
-          → (iB : Channel.inType B ⊎ Channel.outType D)
-            (mo₀ : Maybe (Channel.outType A ⊎ Channel.inType D))
+          → (iB : inType B ⊎ outType D)
+            (mo₀ : Maybe (outType A ⊎ inType D))
           → x ≡ entI iB → y ≡ extO mo₀
           → T.TriBD sp₀ iB mo₀ sp₀'
 
@@ -1150,8 +1152,8 @@ module ∘-assoc-implementation
       ... | inj₂ (_ , nothing , _ , yeq , _ , _) = just≢nothing yeq
 
       -- top dispatcher over the external (input, output) shapes
-      go : (i₀ : Channel.inType A ⊎ Channel.outType D)
-           (mo₀ : Maybe (Channel.outType A ⊎ Channel.inType D))
+      go : (i₀ : inType A ⊎ outType D)
+           (mo₀ : Maybe (outType A ⊎ inType D))
          → Machine.stepRel cmpL sp i₀ mo₀ sp'
          → T.TriExt sp i₀ mo₀ sp'
       go (inj₁ a)  nothing          d₀ = goF d₀ (inj₁ a) nothing refl refl
@@ -1179,36 +1181,36 @@ module ∘-assoc-implementation
       dispatch i₁ m₁ d κ
       where
       -- entry maps: component-level inputs to inner-trace indices
-      entF : Channel.inType A ⊎ Channel.outType B
-           → (Channel.inType A ⊎ Channel.inType B)
-             ⊎ (Channel.outType C ⊎ Channel.outType B)
+      entF : inType A ⊎ outType B
+           → (inType A ⊎ inType B)
+             ⊎ (outType C ⊎ outType B)
       entF (inj₁ a)  = inj₁ (inj₁ a)
       entF (inj₂ ob) = inj₂ (inj₂ ob)
 
-      entG : Channel.inType B ⊎ Channel.outType C
-           → (Channel.inType A ⊎ Channel.inType B)
-             ⊎ (Channel.outType C ⊎ Channel.outType B)
+      entG : inType B ⊎ outType C
+           → (inType A ⊎ inType B)
+             ⊎ (outType C ⊎ outType B)
       entG (inj₁ ib) = inj₁ (inj₂ ib)
       entG (inj₂ oc) = inj₂ (inj₁ oc)
 
       -- external output map, one level down
-      extO₁ : Maybe (Channel.outType A ⊎ Channel.inType C)
-            → Maybe ((Channel.outType A ⊎ Channel.outType B)
-                   ⊎ (Channel.inType C ⊎ Channel.inType B))
+      extO₁ : Maybe (outType A ⊎ inType C)
+            → Maybe ((outType A ⊎ outType B)
+                   ⊎ (inType C ⊎ inType B))
       extO₁ nothing          = nothing
       extO₁ (just (inj₁ oa)) = just (inj₁ (inj₁ oa))
       extO₁ (just (inj₂ ic)) = just (inj₂ (inj₁ ic))
 
       goF' : ∀ {s₁ s₁' x y} → TraceRel itensR s₁ x y s₁'
-           → (iF : Channel.inType A ⊎ Channel.outType B)
-             (m₂ : Maybe (Channel.outType A ⊎ Channel.inType C))
+           → (iF : inType A ⊎ outType B)
+             (m₂ : Maybe (outType A ⊎ inType C))
              {sh₀ : Sh} {mo₀ : T.ExtOut} {st₀ : T.TriState}
            → x ≡ entF iF → y ≡ extO₁ m₂
            → T.ContR s₁' sh₀ m₂ mo₀ st₀
            → T.TriF (proj₁ s₁ , proj₂ s₁ , sh₀) iF mo₀ st₀
       goG' : ∀ {s₁ s₁' x y} → TraceRel itensR s₁ x y s₁'
-           → (iG : Channel.inType B ⊎ Channel.outType C)
-             (m₂ : Maybe (Channel.outType A ⊎ Channel.inType C))
+           → (iG : inType B ⊎ outType C)
+             (m₂ : Maybe (outType A ⊎ inType C))
              {sh₀ : Sh} {mo₀ : T.ExtOut} {st₀ : T.TriState}
            → x ≡ entG iG → y ≡ extO₁ m₂
            → T.ContR s₁' sh₀ m₂ mo₀ st₀
@@ -1358,8 +1360,8 @@ module ∘-assoc-implementation
       ... | inj₂ (_ , just w , _ , yeq₁ , _ , _) = inj₁≢inj₂ (just-inj yeq₁)
 
       -- top dispatcher over the explicit composite input/output shapes
-      dispatch : (i₁' : Channel.inType A ⊎ Channel.outType C)
-                 (m₁' : Maybe (Channel.outType A ⊎ Channel.inType C))
+      dispatch : (i₁' : inType A ⊎ outType C)
+                 (m₁' : Maybe (outType A ⊎ inType C))
                → Machine.stepRel (_∘_ {B = B} g f) (sf , sg)
                    (construct-⊗ {A = A} {B = C ᵀ} {m = In} i₁')
                    ((λ o → construct-⊗ {A = A} {B = C ᵀ} {m = Out} o) <$> m₁')
@@ -1391,34 +1393,34 @@ module ∘-assoc-implementation
       go i mo d
       where
       -- index maps at the outer (middle C) trace level
-      extO : Maybe (Channel.outType A ⊎ Channel.inType D)
-           → Maybe ((Channel.outType A ⊎ Channel.outType C)
-                  ⊎ (Channel.inType D ⊎ Channel.inType C))
+      extO : Maybe (outType A ⊎ inType D)
+           → Maybe ((outType A ⊎ outType C)
+                  ⊎ (inType D ⊎ inType C))
       extO nothing          = nothing
       extO (just (inj₁ oa)) = just (inj₁ (inj₁ oa))
       extO (just (inj₂ d₀)) = just (inj₂ (inj₁ d₀))
 
-      entH : Channel.inType C ⊎ Channel.outType D
-           → (Channel.inType A ⊎ Channel.inType C)
-           ⊎ (Channel.outType D ⊎ Channel.outType C)
+      entH : inType C ⊎ outType D
+           → (inType A ⊎ inType C)
+           ⊎ (outType D ⊎ outType C)
       entH (inj₁ ic) = inj₁ (inj₂ ic)
       entH (inj₂ od) = inj₂ (inj₁ od)
 
-      entI : Channel.inType A ⊎ Channel.outType C
-           → (Channel.inType A ⊎ Channel.inType C)
-           ⊎ (Channel.outType D ⊎ Channel.outType C)
+      entI : inType A ⊎ outType C
+           → (inType A ⊎ inType C)
+           ⊎ (outType D ⊎ outType C)
       entI (inj₁ a)  = inj₁ (inj₁ a)
       entI (inj₂ oc) = inj₂ (inj₂ oc)
 
       goH : ∀ {sq sq' x y} → TraceRel tensR sq x y sq'
-          → (iH : Channel.inType C ⊎ Channel.outType D)
-            (mo₀ : Maybe (Channel.outType A ⊎ Channel.inType D))
+          → (iH : inType C ⊎ outType D)
+            (mo₀ : Maybe (outType A ⊎ inType D))
           → x ≡ entH iH → y ≡ extO mo₀
           → T.TriH (proj₁ (proj₁ sq) , proj₂ (proj₁ sq) , proj₂ sq) iH mo₀
                    (proj₁ (proj₁ sq') , proj₂ (proj₁ sq') , proj₂ sq')
       goI : ∀ {sq sq' x y} → TraceRel tensR sq x y sq'
-          → (i₂ : Channel.inType A ⊎ Channel.outType C)
-            (mo₀ : Maybe (Channel.outType A ⊎ Channel.inType D))
+          → (i₂ : inType A ⊎ outType C)
+            (mo₀ : Maybe (outType A ⊎ inType D))
           → x ≡ entI i₂ → y ≡ extO mo₀
           → T.TriAC (proj₁ (proj₁ sq) , proj₂ (proj₁ sq) , proj₂ sq) i₂ mo₀
                     (proj₁ (proj₁ sq') , proj₂ (proj₁ sq') , proj₂ sq')
@@ -1559,8 +1561,8 @@ module ∘-assoc-implementation
         inj₁≢inj₂ (sym (just-inj yeq₁))
 
       -- top dispatcher over the external input/output shapes
-      go : (i₀ : Channel.inType A ⊎ Channel.outType D)
-           (mo₀ : Maybe (Channel.outType A ⊎ Channel.inType D))
+      go : (i₀ : inType A ⊎ outType D)
+           (mo₀ : Maybe (outType A ⊎ inType D))
          → Machine.stepRel cmpR ((sf , sg) , sh) i₀ mo₀ ((sf' , sg') , sh')
          → TriRel (sf , sg , sh) i₀ mo₀ (sf' , sg' , sh')
       go (inj₁ a)  (just (inj₁ oa)) t = goI t (inj₁ a) (just (inj₁ oa)) refl refl

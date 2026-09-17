@@ -26,6 +26,8 @@ open import Tactic.Defaults
 
 module CategoricalCrypto.Machine.Reindex.PairAssoc where
 
+open Channel
+
 open _≅ᴹ_
 
 opaque
@@ -39,36 +41,36 @@ opaque
   -- ------------------------------------------------------------------------
 
   asc3ᵢ : ∀ {A₁ B₁ A₂ B₂ A₃ B₃}
-        → Channel.inType ((A₁ ⊗ᵀ B₁) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₃ ⊗ᵀ B₃)))
-        → Channel.inType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₂ ⊗ᵀ B₂)) ⊗₀ (A₃ ⊗ᵀ B₃))
+        → inType ((A₁ ⊗ᵀ B₁) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₃ ⊗ᵀ B₃)))
+        → inType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₂ ⊗ᵀ B₂)) ⊗₀ (A₃ ⊗ᵀ B₃))
   asc3ᵢ (inj₁ x)        = inj₁ (inj₁ x)
   asc3ᵢ (inj₂ (inj₁ y)) = inj₁ (inj₂ y)
   asc3ᵢ (inj₂ (inj₂ z)) = inj₂ z
 
   asc3ₒ : ∀ {A₁ B₁ A₂ B₂ A₃ B₃}
-        → Channel.outType ((A₁ ⊗ᵀ B₁) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₃ ⊗ᵀ B₃)))
-        → Channel.outType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₂ ⊗ᵀ B₂)) ⊗₀ (A₃ ⊗ᵀ B₃))
+        → outType ((A₁ ⊗ᵀ B₁) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₃ ⊗ᵀ B₃)))
+        → outType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₂ ⊗ᵀ B₂)) ⊗₀ (A₃ ⊗ᵀ B₃))
   asc3ₒ (inj₁ x)        = inj₁ (inj₁ x)
   asc3ₒ (inj₂ (inj₁ y)) = inj₁ (inj₂ y)
   asc3ₒ (inj₂ (inj₂ z)) = inj₂ z
 
   asc3ᵢ⁻ : ∀ {A₁ B₁ A₂ B₂ A₃ B₃}
-         → Channel.inType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₂ ⊗ᵀ B₂)) ⊗₀ (A₃ ⊗ᵀ B₃))
-         → Channel.inType ((A₁ ⊗ᵀ B₁) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₃ ⊗ᵀ B₃)))
+         → inType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₂ ⊗ᵀ B₂)) ⊗₀ (A₃ ⊗ᵀ B₃))
+         → inType ((A₁ ⊗ᵀ B₁) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₃ ⊗ᵀ B₃)))
   asc3ᵢ⁻ (inj₁ (inj₁ x)) = inj₁ x
   asc3ᵢ⁻ (inj₁ (inj₂ y)) = inj₂ (inj₁ y)
   asc3ᵢ⁻ (inj₂ z)        = inj₂ (inj₂ z)
 
   asc3ₒ⁻ : ∀ {A₁ B₁ A₂ B₂ A₃ B₃}
-         → Channel.outType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₂ ⊗ᵀ B₂)) ⊗₀ (A₃ ⊗ᵀ B₃))
-         → Channel.outType ((A₁ ⊗ᵀ B₁) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₃ ⊗ᵀ B₃)))
+         → outType (((A₁ ⊗ᵀ B₁) ⊗₀ (A₂ ⊗ᵀ B₂)) ⊗₀ (A₃ ⊗ᵀ B₃))
+         → outType ((A₁ ⊗ᵀ B₁) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₃ ⊗ᵀ B₃)))
   asc3ₒ⁻ (inj₁ (inj₁ x)) = inj₁ x
   asc3ₒ⁻ (inj₁ (inj₂ y)) = inj₂ (inj₁ y)
   asc3ₒ⁻ (inj₂ z)        = inj₂ (inj₂ z)
 
   private
     asc3ᵢ⁻-asc3ᵢ : ∀ {A₁ B₁ A₂ B₂ A₃ B₃}
-                   (i : Channel.inType ((A₁ ⊗ᵀ B₁) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₃ ⊗ᵀ B₃))))
+                   (i : inType ((A₁ ⊗ᵀ B₁) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₃ ⊗ᵀ B₃))))
                  → asc3ᵢ⁻ {A₁} {B₁} {A₂} {B₂} {A₃} {B₃}
                      (asc3ᵢ {A₁} {B₁} {A₂} {B₂} {A₃} {B₃} i) ≡ i
     asc3ᵢ⁻-asc3ᵢ (inj₁ _)        = refl
@@ -76,7 +78,7 @@ opaque
     asc3ᵢ⁻-asc3ᵢ (inj₂ (inj₂ _)) = refl
 
     asc3ₒ⁻-asc3ₒ : ∀ {A₁ B₁ A₂ B₂ A₃ B₃}
-                   (o : Channel.outType ((A₁ ⊗ᵀ B₁) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₃ ⊗ᵀ B₃))))
+                   (o : outType ((A₁ ⊗ᵀ B₁) ⊗₀ ((A₂ ⊗ᵀ B₂) ⊗₀ (A₃ ⊗ᵀ B₃))))
                  → asc3ₒ⁻ {A₁} {B₁} {A₂} {B₂} {A₃} {B₃}
                      (asc3ₒ {A₁} {B₁} {A₂} {B₂} {A₃} {B₃} o) ≡ o
     asc3ₒ⁻-asc3ₒ (inj₁ _)        = refl

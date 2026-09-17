@@ -41,6 +41,8 @@ open import Tactic.Defaults
 
 module CategoricalCrypto.Machine.Forwarder where
 
+open Channel
+
 open _≅ᴹ_
 
 -- Congruences for the two machine builders `_∘_` is made of.  Both are
@@ -60,7 +62,7 @@ tr-resp-≅ᴹ {C = C} φ =
     (modifyStepRel-resp-≅ᴹ ∣ˡσ (Trc-resp-≅ᴹ φ))
 
 -- A stateless, total, deterministic machine.
-Fwd : ∀ {A B} → (Channel.inType (A ⊗ᵀ B) → Channel.outType (A ⊗ᵀ B)) → Machine A B
+Fwd : ∀ {A B} → (inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B)) → Machine A B
 Fwd φ = MkMachine {State = ⊤} (λ _ i o _ → just (φ i) ≡ o)
 
 -- Every `TotalFunctionMachine` is one, definitionally.
@@ -69,7 +71,7 @@ tfm-is-Fwd : ∀ {A B} (p : (A ⊗ᵀ B) [ In ]⇒[ Out ] (A ⊗ᵀ B))
 tfm-is-Fwd _ = refl
 
 -- Pointwise-equal forwarders are isomorphic.
-Fwd-≅ᴹ : ∀ {A B} {φ ψ : Channel.inType (A ⊗ᵀ B) → Channel.outType (A ⊗ᵀ B)}
+Fwd-≅ᴹ : ∀ {A B} {φ ψ : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B)}
        → (∀ x → φ x ≡ ψ x) → Fwd φ ≅ᴹ Fwd ψ
 Fwd-≅ᴹ {φ = φ} {ψ} eq = MkIso _ _ (λ _ → refl) (λ _ → refl)
   (λ {_} {i} p → trans (cong just (sym (eq i))) p)
@@ -78,8 +80,8 @@ Fwd-≅ᴹ {φ = φ} {ψ} eq = MkIso _ _ (λ _ → refl) (λ _ → refl)
 -- Relabelling a forwarder is a forwarder, whenever the output relabelling is
 -- injective (it need not be surjective — `_∣ˡ` and `_∣^ˡ` are not).
 modifyStepRel-Fwd : ∀ {A B C D} (p : ∀ {m} → C ⊗₀ D ᵀ [ m ]⇒[ m ] A ⊗₀ B ᵀ)
-    (χ : Channel.inType (A ⊗ᵀ B) → Channel.outType (A ⊗ᵀ B))
-    (κ : Channel.inType (C ⊗ᵀ D) → Channel.outType (C ⊗ᵀ D))
+    (χ : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B))
+    (κ : inType (C ⊗ᵀ D) → outType (C ⊗ᵀ D))
   → (∀ i → app (p {Out}) (κ i) ≡ χ (app (p {In}) i))
   → (∀ {x y} → app (p {Out}) x ≡ app (p {Out}) y → x ≡ y)
   → modifyStepRel p (Fwd χ) ≅ᴹ Fwd κ
@@ -87,11 +89,11 @@ modifyStepRel-Fwd {A} {B} {C} {D} p χ κ sq inj =
   MkIso _ _ (λ _ → refl) (λ _ → refl)
     (λ {_} {i} {o} e → t i o e) (λ {_} {i} {o} e → f i o e)
   where
-  t : (i : Channel.inType (C ⊗ᵀ D)) (o : Maybe (Channel.outType (C ⊗ᵀ D)))
+  t : (i : inType (C ⊗ᵀ D)) (o : Maybe (outType (C ⊗ᵀ D)))
     → just (χ (app (p {In}) i)) ≡ (app (p {Out}) <$> o) → just (κ i) ≡ o
   t i (just y)  e = cong just (inj (trans (sq i) (just-inj e)))
   t i nothing  ()
-  f : (i : Channel.inType (C ⊗ᵀ D)) (o : Maybe (Channel.outType (C ⊗ᵀ D)))
+  f : (i : inType (C ⊗ᵀ D)) (o : Maybe (outType (C ⊗ᵀ D)))
     → just (κ i) ≡ o → just (χ (app (p {In}) i)) ≡ (app (p {Out}) <$> o)
   f i _ refl = cong just (sym (sq i))
 
@@ -120,10 +122,10 @@ opaque
 
   -- The forwarder underlying a tensor of two forwarders.
   ⊗Fwd : ∀ {A B C D}
-       → (Channel.inType (A ⊗ᵀ B) → Channel.outType (A ⊗ᵀ B))
-       → (Channel.inType (C ⊗ᵀ D) → Channel.outType (C ⊗ᵀ D))
-       → Channel.inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D))
-       → Channel.outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D))
+       → (inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B))
+       → (inType (C ⊗ᵀ D) → outType (C ⊗ᵀ D))
+       → inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D))
+       → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D))
   ⊗Fwd φ ψ (inj₁ (inj₁ a)) = tag₁ (φ (inj₁ a))
   ⊗Fwd φ ψ (inj₁ (inj₂ c)) = tag₂ (ψ (inj₁ c))
   ⊗Fwd φ ψ (inj₂ (inj₁ b)) = tag₁ (φ (inj₂ b))
@@ -131,10 +133,10 @@ opaque
 
   private
     ⊗Fwd-to : ∀ {A B C D}
-              (φ : Channel.inType (A ⊗ᵀ B) → Channel.outType (A ⊗ᵀ B))
-              (ψ : Channel.inType (C ⊗ᵀ D) → Channel.outType (C ⊗ᵀ D))
-              {s s'} (i : Channel.inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D)))
-              (o : Maybe (Channel.outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D))))
+              (φ : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B))
+              (ψ : inType (C ⊗ᵀ D) → outType (C ⊗ᵀ D))
+              {s s'} (i : inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D)))
+              (o : Maybe (outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D))))
             → Machine.stepRel (Fwd φ ⊗₁ Fwd ψ) s i o s' → just (⊗Fwd φ ψ i) ≡ o
     -- ── left column (A-in, B-out): only `Step₁` can fire ──
     ⊗Fwd-to φ ψ (inj₁ (inj₁ a)) o p with comp-view p
@@ -200,10 +202,10 @@ opaque
     ⊗Fwd-to φ ψ (inj₂ (inj₂ d)) nothing  p | inj₂ (_ , nothing , xeq , yeq , _ , ())
 
     ⊗Fwd-from : ∀ {A B C D}
-                (φ : Channel.inType (A ⊗ᵀ B) → Channel.outType (A ⊗ᵀ B))
-                (ψ : Channel.inType (C ⊗ᵀ D) → Channel.outType (C ⊗ᵀ D))
-                {s s'} (i : Channel.inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D)))
-                (o : Maybe (Channel.outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D))))
+                (φ : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B))
+                (ψ : inType (C ⊗ᵀ D) → outType (C ⊗ᵀ D))
+                {s s'} (i : inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D)))
+                (o : Maybe (outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ D))))
               → just (⊗Fwd φ ψ i) ≡ o → Machine.stepRel (Fwd φ ⊗₁ Fwd ψ) s i o s'
     ⊗Fwd-from φ ψ (inj₁ (inj₁ a)) _ refl with φ (inj₁ a) in eq
     ... | inj₁ ao = Tensor.Step₁ (cong just eq)
@@ -219,8 +221,8 @@ opaque
     ... | inj₂ di = Tensor.Step₂ (cong just eq)
 
   -- A tensor of forwarders is a forwarder.
-  ⊗₁-Fwd : ∀ {A B C D} {φ : Channel.inType (A ⊗ᵀ B) → Channel.outType (A ⊗ᵀ B)}
-                       {ψ : Channel.inType (C ⊗ᵀ D) → Channel.outType (C ⊗ᵀ D)}
+  ⊗₁-Fwd : ∀ {A B C D} {φ : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B)}
+                       {ψ : inType (C ⊗ᵀ D) → outType (C ⊗ᵀ D)}
          → (Fwd φ ⊗₁ Fwd ψ) ≅ᴹ Fwd (⊗Fwd φ ψ)
   ⊗₁-Fwd {φ = φ} {ψ} = MkIso (λ _ → tt) (λ _ → tt , tt) (λ _ → refl) (λ _ → refl)
     (λ {_} {i} {o} p → ⊗Fwd-to φ ψ i o p)
@@ -239,23 +241,23 @@ opaque
 
   -- `Run` at the channel-shaped indices (all six type arguments pinned, so that
   -- nothing has to be inverted through `_⊗₀_`).
-  Runᶜ : ∀ {A B C} (κ : Channel.inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
-                     → Channel.outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C)))
-       → Channel.inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
-       → Channel.outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C)) → Type
-  Runᶜ {A} {B} {C} = Run {Channel.inType A} {Channel.outType B} {Channel.inType C}
-                         {Channel.outType C} {Channel.outType A} {Channel.inType B}
+  Runᶜ : ∀ {A B C} (κ : inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+                     → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C)))
+       → inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+       → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C)) → Type
+  Runᶜ {A} {B} {C} = Run {inType A} {outType B} {inType C}
+                         {outType C} {outType A} {inType B}
 
   private
-    Run→Trace : ∀ {A B C} {κ : Channel.inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
-                             → Channel.outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))} {m v}
+    Run→Trace : ∀ {A B C} {κ : inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+                             → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))} {m v}
               → Runᶜ κ m v → TraceRel (Fwd κ) tt m (just v) tt
     Run→Trace stop        = Trace[ refl ]
     Run→Trace (goₒ eq r)  = cong just eq Trace∷ₒ Run→Trace r
     Run→Trace (goᵢ eq r)  = cong just eq Trace∷ᵢ Run→Trace r
 
-    Trace→Run : ∀ {A B C} {κ : Channel.inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
-                             → Channel.outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))} {m mo}
+    Trace→Run : ∀ {A B C} {κ : inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+                             → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))} {m mo}
               → TraceRel (Fwd κ) tt m mo tt
               → ∃ λ v → (mo ≡ just v) × Runᶜ κ m v
     Trace→Run Trace[ p ]     = _ , sym p , stop
@@ -263,26 +265,26 @@ opaque
     Trace→Run (p Trace∷ᵢ r)  = let (v , e , r') = Trace→Run r in v , e , goᵢ (just-inj p) r'
 
   -- The external ports of the traced machine, as seen from inside.
-  ιₜ : ∀ {A B C} → Channel.inType (A ⊗ᵀ B) → Channel.inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+  ιₜ : ∀ {A B C} → inType (A ⊗ᵀ B) → inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
   ιₜ (inj₁ a)  = inj₁ (inj₁ a)
   ιₜ (inj₂ bo) = inj₂ (inj₁ bo)
 
-  εₜ : ∀ {A B C} → Channel.outType (A ⊗ᵀ B) → Channel.outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+  εₜ : ∀ {A B C} → outType (A ⊗ᵀ B) → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
   εₜ (inj₁ ao) = inj₁ (inj₁ ao)
   εₜ (inj₂ bi) = inj₂ (inj₁ bi)
 
   private
-    εₜ-inj : ∀ {A B C} {x y : Channel.outType (A ⊗ᵀ B)} → εₜ {A} {B} {C} x ≡ εₜ y → x ≡ y
+    εₜ-inj : ∀ {A B C} {x y : outType (A ⊗ᵀ B)} → εₜ {A} {B} {C} x ≡ εₜ y → x ≡ y
     εₜ-inj {x = inj₁ _} {inj₁ _} e = cong inj₁ (inj₁-inj (inj₁-inj e))
     εₜ-inj {x = inj₂ _} {inj₂ _} e = cong inj₂ (inj₁-inj (inj₂-inj e))
     εₜ-inj {x = inj₁ _} {inj₂ _} e = inj₁≢inj₂ e
     εₜ-inj {x = inj₂ _} {inj₁ _} e = inj₁≢inj₂ (sym e)
 
     -- `tr`'s two `modifyStepRel` layers, computed away.
-    tr-unfold : ∀ {A B C} (κ : Channel.inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
-                             → Channel.outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C)))
-                (i : Channel.inType (A ⊗ᵀ B))
-                (o : Maybe (Channel.outType (A ⊗ᵀ B)))
+    tr-unfold : ∀ {A B C} (κ : inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+                             → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C)))
+                (i : inType (A ⊗ᵀ B))
+                (o : Maybe (outType (A ⊗ᵀ B)))
               → Machine.stepRel (tr {A} {B} {C} (Fwd κ)) tt i o tt
               ≡ TraceRel (Fwd κ) tt (ιₜ i) (mapᴹ εₜ o) tt
     tr-unfold κ (inj₁ a)  (just (inj₁ ao)) = refl
@@ -294,9 +296,9 @@ opaque
 
   -- Tracing a forwarder yields the forwarder that runs it to an external port.
   tr-Fwd : ∀ {A B C : Channel}
-             {κ : Channel.inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
-                → Channel.outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))}
-             {κ° : Channel.inType (A ⊗ᵀ B) → Channel.outType (A ⊗ᵀ B)}
+             {κ : inType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))
+                → outType ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C))}
+             {κ° : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B)}
          → (∀ i → Runᶜ κ (ιₜ {A} {B} {C} i) (εₜ {A} {B} {C} (κ° i)))
          → (∀ i v → Runᶜ κ (ιₜ {A} {B} {C} i) (εₜ {A} {B} {C} v) → v ≡ κ° i)
          → tr {A} {B} {C} (Fwd κ) ≅ᴹ Fwd κ°
@@ -320,28 +322,28 @@ opaque
 
   -- The forwarder that relays every domain input to the codomain and back.
   -- This is exactly what `TotalFunctionMachine'` builds.
-  Xφ : ∀ {A B} → (Channel.inType A → Channel.inType B)
-                → (Channel.outType B → Channel.outType A)
-     → Channel.inType (A ⊗ᵀ B) → Channel.outType (A ⊗ᵀ B)
+  Xφ : ∀ {A B} → (inType A → inType B)
+                → (outType B → outType A)
+     → inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B)
   Xφ f g (inj₁ a)  = inj₂ (f a)
   Xφ f g (inj₂ bo) = inj₁ (g bo)
 
-  Xfwd : ∀ {A B} → (Channel.inType A → Channel.inType B)
-                 → (Channel.outType B → Channel.outType A) → Machine A B
+  Xfwd : ∀ {A B} → (inType A → inType B)
+                 → (outType B → outType A) → Machine A B
   Xfwd f g = Fwd (Xφ f g)
 
   tfm'-is-Xfwd : ∀ {A B} (p : A [ In ]⇒[ In ] B) (q : B [ Out ]⇒[ Out ] A)
                → TotalFunctionMachine' p q ≅ᴹ Xfwd (app p) (app q)
   tfm'-is-Xfwd p q = Fwd-≅ᴹ λ { (inj₁ a) → refl ; (inj₂ bo) → refl }
 
-  id-is-Xfwd : ∀ {A} → CC.id {A} ≅ᴹ Xfwd (λ (a : Channel.inType A) → a) (λ o → o)
+  id-is-Xfwd : ∀ {A} → CC.id {A} ≅ᴹ Xfwd (λ (a : inType A) → a) (λ o → o)
   id-is-Xfwd = tfm'-is-Xfwd _ _
 
   -- The traced core of `Xfwd f₂ g₂ ∘ Xfwd f₁ g₁`, as a forwarder.
   ∘κ : ∀ {A B C}
-       (f₁ : Channel.inType A → Channel.inType B) (g₁ : Channel.outType B → Channel.outType A)
-       (f₂ : Channel.inType B → Channel.inType C) (g₂ : Channel.outType C → Channel.outType B)
-     → Channel.inType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B)) → Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
+       (f₁ : inType A → inType B) (g₁ : outType B → outType A)
+       (f₂ : inType B → inType C) (g₂ : outType C → outType B)
+     → inType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B)) → outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
   ∘κ f₁ g₁ f₂ g₂ (inj₁ (inj₁ a))  = inj₂ (inj₂ (f₁ a))
   ∘κ f₁ g₁ f₂ g₂ (inj₁ (inj₂ b))  = inj₂ (inj₁ (f₂ b))
   ∘κ f₁ g₁ f₂ g₂ (inj₂ (inj₁ co)) = inj₁ (inj₂ (g₂ co))
@@ -349,8 +351,8 @@ opaque
 
   private
     ∘sq : ∀ {A B C}
-          (f₁ : Channel.inType A → Channel.inType B) (g₁ : Channel.outType B → Channel.outType A)
-          (f₂ : Channel.inType B → Channel.inType C) (g₂ : Channel.outType C → Channel.outType B)
+          (f₁ : inType A → inType B) (g₁ : outType B → outType A)
+          (f₂ : inType B → inType C) (g₂ : outType C → outType B)
         → ∀ i → app (∘σ {A} {B} {C} {Out}) (∘κ f₁ g₁ f₂ g₂ i)
               ≡ ⊗Fwd (Xφ f₁ g₁) (Xφ f₂ g₂) (app (∘σ {A} {B} {C} {In}) i)
     ∘sq f₁ g₁ f₂ g₂ (inj₁ (inj₁ a))  = refl
@@ -358,7 +360,7 @@ opaque
     ∘sq f₁ g₁ f₂ g₂ (inj₂ (inj₁ co)) = refl
     ∘sq f₁ g₁ f₂ g₂ (inj₂ (inj₂ bo)) = refl
 
-    ∘σ-inj : ∀ {A B C} {x y : Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))}
+    ∘σ-inj : ∀ {A B C} {x y : outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))}
            → app (∘σ {A} {B} {C} {Out}) x ≡ app (∘σ {A} {B} {C} {Out}) y → x ≡ y
     ∘σ-inj {x = inj₁ (inj₁ _)} {inj₁ (inj₁ _)} e = cong (λ z → inj₁ (inj₁ z)) (inj₁-inj (inj₁-inj e))
     ∘σ-inj {x = inj₁ (inj₁ _)} {inj₁ (inj₂ _)} e = inj₁≢inj₂ (inj₁-inj e)
@@ -378,16 +380,16 @@ opaque
     ∘σ-inj {x = inj₂ (inj₂ _)} {inj₂ (inj₂ _)} e = cong (λ z → inj₂ (inj₂ z)) (inj₁-inj (inj₂-inj e))
 
     ∘total : ∀ {A B C}
-             (f₁ : Channel.inType A → Channel.inType B) (g₁ : Channel.outType B → Channel.outType A)
-             (f₂ : Channel.inType B → Channel.inType C) (g₂ : Channel.outType C → Channel.outType B)
+             (f₁ : inType A → inType B) (g₁ : outType B → outType A)
+             (f₂ : inType B → inType C) (g₂ : outType C → outType B)
            → ∀ i → Runᶜ {A} {C} {B} (∘κ f₁ g₁ f₂ g₂) (ιₜ {A} {C} {B} i)
                         (εₜ {A} {C} {B} (Xφ (λ a → f₂ (f₁ a)) (λ co → g₁ (g₂ co)) i))
     ∘total f₁ g₁ f₂ g₂ (inj₁ a)  = goᵢ refl stop
     ∘total f₁ g₁ f₂ g₂ (inj₂ co) = goₒ refl stop
 
     ∘uniq : ∀ {A B C}
-            (f₁ : Channel.inType A → Channel.inType B) (g₁ : Channel.outType B → Channel.outType A)
-            (f₂ : Channel.inType B → Channel.inType C) (g₂ : Channel.outType C → Channel.outType B)
+            (f₁ : inType A → inType B) (g₁ : outType B → outType A)
+            (f₂ : inType B → inType C) (g₂ : outType C → outType B)
           → ∀ i v → Runᶜ {A} {C} {B} (∘κ f₁ g₁ f₂ g₂) (ιₜ {A} {C} {B} i) (εₜ {A} {C} {B} v)
           → v ≡ Xφ (λ a → f₂ (f₁ a)) (λ co → g₁ (g₂ co)) i
     ∘uniq f₁ g₁ f₂ g₂ (inj₁ a)  (inj₁ ao) (goₒ () _)
@@ -409,8 +411,8 @@ opaque
   -- maps compose in order, backward maps in the other.  Everything below is a
   -- corollary of this together with `⊗₁-Xfwd`.
   ∘-Xfwd : ∀ {A B C}
-           {f₁ : Channel.inType A → Channel.inType B} {g₁ : Channel.outType B → Channel.outType A}
-           {f₂ : Channel.inType B → Channel.inType C} {g₂ : Channel.outType C → Channel.outType B}
+           {f₁ : inType A → inType B} {g₁ : outType B → outType A}
+           {f₂ : inType B → inType C} {g₂ : outType C → outType B}
          → (Xfwd f₂ g₂ CC.∘ Xfwd f₁ g₁) ≅ᴹ Xfwd (λ a → f₂ (f₁ a)) (λ co → g₁ (g₂ co))
   ∘-Xfwd {A} {B} {C} {f₁} {g₁} {f₂} {g₂} =
     ≅ᴹ-trans (tr-resp-≅ᴹ (≅ᴹ-trans (modifyStepRel-resp-≅ᴹ ∘σ ⊗₁-Fwd)
@@ -419,29 +421,29 @@ opaque
              (tr-Fwd (∘total f₁ g₁ f₂ g₂) (∘uniq f₁ g₁ f₂ g₂))
 
   -- A tensor of crossing forwarders is a crossing forwarder.
-  ⊗mapᵢ : ∀ {A B C D} → (Channel.inType A → Channel.inType B)
-                      → (Channel.inType C → Channel.inType D)
-        → Channel.inType (A ⊗₀ C) → Channel.inType (B ⊗₀ D)
+  ⊗mapᵢ : ∀ {A B C D} → (inType A → inType B)
+                      → (inType C → inType D)
+        → inType (A ⊗₀ C) → inType (B ⊗₀ D)
   ⊗mapᵢ f g (inj₁ a) = inj₁ (f a)
   ⊗mapᵢ f g (inj₂ c) = inj₂ (g c)
 
-  ⊗mapₒ : ∀ {A B C D} → (Channel.outType B → Channel.outType A)
-                      → (Channel.outType D → Channel.outType C)
-        → Channel.outType (B ⊗₀ D) → Channel.outType (A ⊗₀ C)
+  ⊗mapₒ : ∀ {A B C D} → (outType B → outType A)
+                      → (outType D → outType C)
+        → outType (B ⊗₀ D) → outType (A ⊗₀ C)
   ⊗mapₒ f g (inj₁ b) = inj₁ (f b)
   ⊗mapₒ f g (inj₂ d) = inj₂ (g d)
 
   ⊗₁-Xfwd : ∀ {A B C D}
-            {f₁ : Channel.inType A → Channel.inType B} {g₁ : Channel.outType B → Channel.outType A}
-            {f₂ : Channel.inType C → Channel.inType D} {g₂ : Channel.outType D → Channel.outType C}
+            {f₁ : inType A → inType B} {g₁ : outType B → outType A}
+            {f₂ : inType C → inType D} {g₂ : outType D → outType C}
           → (Xfwd f₁ g₁ ⊗₁ Xfwd f₂ g₂) ≅ᴹ Xfwd (⊗mapᵢ f₁ f₂) (⊗mapₒ g₁ g₂)
   ⊗₁-Xfwd = ≅ᴹ-trans ⊗₁-Fwd (Fwd-≅ᴹ λ { (inj₁ (inj₁ _)) → refl
                                        ; (inj₁ (inj₂ _)) → refl
                                        ; (inj₂ (inj₁ _)) → refl
                                        ; (inj₂ (inj₂ _)) → refl })
 
-  Xfwd-≅ᴹ : ∀ {A B} {f f' : Channel.inType A → Channel.inType B}
-                    {g g' : Channel.outType B → Channel.outType A}
+  Xfwd-≅ᴹ : ∀ {A B} {f f' : inType A → inType B}
+                    {g g' : outType B → outType A}
           → (∀ a → f a ≡ f' a) → (∀ o → g o ≡ g' o) → Xfwd f g ≅ᴹ Xfwd f' g'
   Xfwd-≅ᴹ ef eg = Fwd-≅ᴹ λ { (inj₁ a) → cong inj₂ (ef a) ; (inj₂ bo) → cong inj₁ (eg bo) }
 
@@ -451,16 +453,16 @@ opaque
   -- ══════════════════════════════════════════════════════════════════════
 
   ρ∘ᴷ-rhs : ∀ {C E₁} → (ρ⇒ {C} ⊗₁ CC.id {E₁})
-           ≅ᴹ Xfwd (⊗mapᵢ (app (⊗-right-neutral {In} {C})) (λ (x : Channel.inType E₁) → x))
-                   (⊗mapₒ (app (⊗-right-intro {Out} {C} {I})) (λ (x : Channel.outType E₁) → x))
+           ≅ᴹ Xfwd (⊗mapᵢ (app (⊗-right-neutral {In} {C})) (λ (x : inType E₁) → x))
+                   (⊗mapₒ (app (⊗-right-intro {Out} {C} {I})) (λ (x : outType E₁) → x))
   ρ∘ᴷ-rhs = ≅ᴹ-trans (⊗₁-resp-≅ᴹ (tfm'-is-Xfwd _ _) id-is-Xfwd) ⊗₁-Xfwd
 
   ρ∘ᴷ-lhs : ∀ {C E₁} → ((CC.id {C} ⊗₁ ρ⇒ {E₁}) CC.∘ ∘ᴷ-fwd {C} {E₁} {I})
-           ≅ᴹ Xfwd (λ a → ⊗mapᵢ (λ (x : Channel.inType C) → x)
+           ≅ᴹ Xfwd (λ a → ⊗mapᵢ (λ (x : inType C) → x)
                                  (app (⊗-right-neutral {In} {E₁}))
                                  (app (∘ᴷ-fwdᵢ {C} {E₁} {I}) a))
                    (λ o → app (∘ᴷ-fwdₒ {C} {E₁} {I})
-                              (⊗mapₒ (λ (x : Channel.outType C) → x)
+                              (⊗mapₒ (λ (x : outType C) → x)
                                      (app (⊗-right-intro {Out} {E₁} {I})) o))
   ρ∘ᴷ-lhs = ≅ᴹ-trans (∘-resp-≅ᴹ (≅ᴹ-trans (⊗₁-resp-≅ᴹ id-is-Xfwd (tfm'-is-Xfwd _ _)) ⊗₁-Xfwd)
                                   (tfm'-is-Xfwd _ _))
@@ -478,23 +480,23 @@ opaque
   -- `ρ-idᴷ`, discharged.
   -- ══════════════════════════════════════════════════════════════════════
 
-  idᴷ-f : ∀ {A} → Channel.inType A → Channel.inType (A ⊗₀ I)
+  idᴷ-f : ∀ {A} → inType A → inType (A ⊗₀ I)
   idᴷ-f a = inj₁ a
 
-  idᴷ-g : ∀ {A} → Channel.outType (A ⊗₀ I) → Channel.outType A
+  idᴷ-g : ∀ {A} → outType (A ⊗₀ I) → outType A
   idᴷ-g (inj₁ ao) = ao
   idᴷ-g (inj₂ ())
 
   private
     idᴷ-sq : ∀ {A} i → app (∣ˡσ {A} {I} {A ⊗₀ I} {Out}) (Xφ idᴷ-f idᴷ-g i)
-                     ≡ Xφ (⊗mapᵢ (λ (x : Channel.inType A) → x) (λ (x : Channel.inType I) → x))
-                          (⊗mapₒ (λ (x : Channel.outType A) → x) (λ (x : Channel.outType I) → x))
+                     ≡ Xφ (⊗mapᵢ (λ (x : inType A) → x) (λ (x : inType I) → x))
+                          (⊗mapₒ (λ (x : outType A) → x) (λ (x : outType I) → x))
                           (app (∣ˡσ {A} {I} {A ⊗₀ I} {In}) i)
     idᴷ-sq (inj₁ a)        = refl
     idᴷ-sq (inj₂ (inj₁ _)) = refl
     idᴷ-sq (inj₂ (inj₂ ()))
 
-    ∣ˡσ-inj : ∀ {A} {x y : Channel.outType (A ⊗ᵀ (A ⊗₀ I))}
+    ∣ˡσ-inj : ∀ {A} {x y : outType (A ⊗ᵀ (A ⊗₀ I))}
             → app (∣ˡσ {A} {I} {A ⊗₀ I} {Out}) x ≡ app (∣ˡσ {A} {I} {A ⊗₀ I} {Out}) y → x ≡ y
     ∣ˡσ-inj {x = inj₁ _}        {inj₁ _}        e = cong inj₁ (inj₁-inj (inj₁-inj e))
     ∣ˡσ-inj {x = inj₁ _}        {inj₂ (inj₁ _)} e = inj₁≢inj₂ e
@@ -508,8 +510,8 @@ opaque
   idᴷ-Xfwd {A} =
     ≅ᴹ-trans (modifyStepRel-resp-≅ᴹ ∣ˡσ (≅ᴹ-trans (⊗₁-resp-≅ᴹ id-is-Xfwd id-is-Xfwd) ⊗₁-Xfwd))
              (modifyStepRel-Fwd ∣ˡσ
-                (Xφ (⊗mapᵢ (λ (x : Channel.inType A) → x) (λ (x : Channel.inType I) → x))
-                    (⊗mapₒ (λ (x : Channel.outType A) → x) (λ (x : Channel.outType I) → x)))
+                (Xφ (⊗mapᵢ (λ (x : inType A) → x) (λ (x : inType I) → x))
+                    (⊗mapₒ (λ (x : outType A) → x) (λ (x : outType I) → x)))
                 (Xφ (idᴷ-f {A}) (idᴷ-g {A})) idᴷ-sq ∣ˡσ-inj)
 
   ρ-idᴷ : ∀ {C} → (ρ⇒ CC.∘ idᴷ {C}) ≅ᴹ CC.id {C}
@@ -526,7 +528,7 @@ opaque
   no-input-≅ᴹ : ∀ {A B} {M N : Machine A B}
     (t : Machine.State M → Machine.State N) (f : Machine.State N → Machine.State M)
     → (∀ s → f (t s) ≡ s) → (∀ s → t (f s) ≡ s)
-    → ((i : Channel.inType (A ⊗ᵀ B)) → ⊥)
+    → ((i : inType (A ⊗ᵀ B)) → ⊥)
     → M ≅ᴹ N
   no-input-≅ᴹ t f p q ni =
     MkIso t f p q (λ {_} {i} _ → ⊥-elim (ni i)) (λ {_} {i} _ → ⊥-elim (ni i))

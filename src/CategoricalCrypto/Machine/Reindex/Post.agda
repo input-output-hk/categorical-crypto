@@ -58,6 +58,8 @@ open import Tactic.Defaults
 
 module CategoricalCrypto.Machine.Reindex.Post where
 
+open Channel
+
 open _≅ᴹ_
 
 -- ----------------------------------------------------------------------------
@@ -67,23 +69,23 @@ open _≅ᴹ_
 -- `M` with its inputs relabelled by `u` (new to old, as in `Reindex`) and its
 -- outputs pushed forward through `w` (old to new).
 Post : ∀ {A B C D} (M : Machine A B)
-     → (Channel.inType (C ⊗ᵀ D) → Channel.inType (A ⊗ᵀ B))
-     → (Channel.outType (A ⊗ᵀ B) → Channel.outType (C ⊗ᵀ D))
+     → (inType (C ⊗ᵀ D) → inType (A ⊗ᵀ B))
+     → (outType (A ⊗ᵀ B) → outType (C ⊗ᵀ D))
      → Machine C D
 Post M u w = MkMachine {State = Machine.State M}
   λ s i o s' → ∃ λ o₀ → Machine.stepRel M s (u i) o₀ s' × mapᴹ w o₀ ≡ o
 
 Post-resp-≅ᴹ : ∀ {A B C D} {M N : Machine A B}
-               (u : Channel.inType (C ⊗ᵀ D) → Channel.inType (A ⊗ᵀ B))
-               (w : Channel.outType (A ⊗ᵀ B) → Channel.outType (C ⊗ᵀ D))
+               (u : inType (C ⊗ᵀ D) → inType (A ⊗ᵀ B))
+               (w : outType (A ⊗ᵀ B) → outType (C ⊗ᵀ D))
              → M ≅ᴹ N → Post M u w ≅ᴹ Post N u w
 Post-resp-≅ᴹ u w φ = MkIso (to φ) (from φ) (from∘to φ) (to∘from φ)
   (λ (o₀ , x , e) → o₀ , step-to φ x , e)
   (λ (o₀ , x , e) → o₀ , step-from φ x , e)
 
 Post-cong : ∀ {A B C D} (M : Machine A B)
-            (u u' : Channel.inType (C ⊗ᵀ D) → Channel.inType (A ⊗ᵀ B))
-            (w w' : Channel.outType (A ⊗ᵀ B) → Channel.outType (C ⊗ᵀ D))
+            (u u' : inType (C ⊗ᵀ D) → inType (A ⊗ᵀ B))
+            (w w' : outType (A ⊗ᵀ B) → outType (C ⊗ᵀ D))
           → (∀ i → u i ≡ u' i) → (∀ o → w o ≡ w' o)
           → Post M u w ≅ᴹ Post M u' w'
 Post-cong M u u' w w' eu ew = MkIso _ _ (λ _ → refl) (λ _ → refl)
@@ -103,10 +105,10 @@ Post-id M = MkIso _ _ (λ _ → refl) (λ _ → refl)
 -- A `Post` of a forwarder is a forwarder; unlike the `Reindex` of one, no
 -- side condition is needed, since a `nothing` output stays `nothing` under
 -- `mapᴹ`.
-Post-Fwd : ∀ {A B C D} (χ : Channel.inType (A ⊗ᵀ B) → Channel.outType (A ⊗ᵀ B))
-                       (κ : Channel.inType (C ⊗ᵀ D) → Channel.outType (C ⊗ᵀ D))
-           (u : Channel.inType (C ⊗ᵀ D) → Channel.inType (A ⊗ᵀ B))
-           (w : Channel.outType (A ⊗ᵀ B) → Channel.outType (C ⊗ᵀ D))
+Post-Fwd : ∀ {A B C D} (χ : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B))
+                       (κ : inType (C ⊗ᵀ D) → outType (C ⊗ᵀ D))
+           (u : inType (C ⊗ᵀ D) → inType (A ⊗ᵀ B))
+           (w : outType (A ⊗ᵀ B) → outType (C ⊗ᵀ D))
          → (∀ i → w (χ (u i)) ≡ κ i)
          → Post (Fwd χ) u w ≅ᴹ Fwd κ
 Post-Fwd χ κ u w sq = MkIso _ _ (λ _ → refl) (λ _ → refl)
@@ -123,14 +125,14 @@ Post-Fwd χ κ u w sq = MkIso _ _ (λ _ → refl) (λ _ → refl)
 -- only by permuting them.
 Reindex-Post-slide :
   ∀ {A B C D E F G H} (T : Machine A B)
-    (p  : Channel.inType (C ⊗ᵀ D) → Channel.inType (A ⊗ᵀ B))
-    (q  : Channel.outType (A ⊗ᵀ B) → Channel.outType (C ⊗ᵀ D))
-    (u  : Channel.inType (E ⊗ᵀ F) → Channel.inType (C ⊗ᵀ D))
-    (v  : Channel.outType (E ⊗ᵀ F) → Channel.outType (C ⊗ᵀ D))
-    (u' : Channel.inType (G ⊗ᵀ H) → Channel.inType (A ⊗ᵀ B))
-    (v' : Channel.outType (G ⊗ᵀ H) → Channel.outType (A ⊗ᵀ B))
-    (p' : Channel.inType (E ⊗ᵀ F) → Channel.inType (G ⊗ᵀ H))
-    (q' : Channel.outType (G ⊗ᵀ H) → Channel.outType (E ⊗ᵀ F))
+    (p  : inType (C ⊗ᵀ D) → inType (A ⊗ᵀ B))
+    (q  : outType (A ⊗ᵀ B) → outType (C ⊗ᵀ D))
+    (u  : inType (E ⊗ᵀ F) → inType (C ⊗ᵀ D))
+    (v  : outType (E ⊗ᵀ F) → outType (C ⊗ᵀ D))
+    (u' : inType (G ⊗ᵀ H) → inType (A ⊗ᵀ B))
+    (v' : outType (G ⊗ᵀ H) → outType (A ⊗ᵀ B))
+    (p' : inType (E ⊗ᵀ F) → inType (G ⊗ᵀ H))
+    (q' : outType (G ⊗ᵀ H) → outType (E ⊗ᵀ F))
   → (∀ i → p (u i) ≡ u' (p' i))
   → (∀ o → q (v' o) ≡ v (q' o))
   → (∀ o₀ o → q o₀ ≡ v o → ∃ λ o₁ → (o₀ ≡ v' o₁) × (q' o₁ ≡ o))
@@ -167,8 +169,8 @@ private
   Core : ∀ {A B C} (M : Machine A B) (N : Machine B C) → Machine (A ⊗₀ B) (C ⊗₀ B)
   Core {A} {B} {C} M N = Reindex (Pair M N) (∘κᵢ {A} {B} {C}) (∘κₒ {A} {B} {C})
 
-relay-core : ∀ {A B C} (f : Channel.inType A → Channel.inType B)
-                       (g : Channel.outType B → Channel.outType A)
+relay-core : ∀ {A B C} (f : inType A → inType B)
+                       (g : outType B → outType A)
              (N : Machine B C) → Machine (A ⊗₀ B) (C ⊗₀ B)
 relay-core f g N = Core (Xfwd f g) N
 
@@ -184,21 +186,21 @@ opaque
 
   Pair-Post : ∀ {A B C D A' B' C' D'}
               (M₁ : Machine A B) (M₂ : Machine C D)
-              (u₁ : Channel.inType (A' ⊗ᵀ B') → Channel.inType (A ⊗ᵀ B))
-              (w₁ : Channel.outType (A ⊗ᵀ B) → Channel.outType (A' ⊗ᵀ B'))
-              (u₂ : Channel.inType (C' ⊗ᵀ D') → Channel.inType (C ⊗ᵀ D))
-              (w₂ : Channel.outType (C ⊗ᵀ D) → Channel.outType (C' ⊗ᵀ D'))
+              (u₁ : inType (A' ⊗ᵀ B') → inType (A ⊗ᵀ B))
+              (w₁ : outType (A ⊗ᵀ B) → outType (A' ⊗ᵀ B'))
+              (u₂ : inType (C' ⊗ᵀ D') → inType (C ⊗ᵀ D))
+              (w₂ : outType (C ⊗ᵀ D) → outType (C' ⊗ᵀ D'))
             → Pair (Post M₁ u₁ w₁) (Post M₂ u₂ w₂)
               ≅ᴹ Post (Pair M₁ M₂) (⊎ᵢ {A} {B} {C} {D} {A'} {B'} {C'} {D'} u₁ u₂)
                                   (⊎ₒ {A'} {B'} {C'} {D'} {A} {B} {C} {D} w₁ w₂)
   Pair-Post {A} {B} {C} {D} {A'} {B'} {C'} {D'} M₁ M₂ u₁ w₁ u₂ w₂ =
     MkIso _ _ (λ _ → refl) (λ _ → refl) t (λ {s} {i} {o} (o₀ , p , e) → f s i o o₀ p e)
     where
-    W : Channel.outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((C ⊗₀ D ᵀ) ᵀ))
-      → Channel.outType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ))
+    W : outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((C ⊗₀ D ᵀ) ᵀ))
+      → outType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ))
     W = ⊎ₒ {A'} {B'} {C'} {D'} {A} {B} {C} {D} w₁ w₂
-    U : Channel.inType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ))
-      → Channel.inType ((A ⊗₀ B ᵀ) ⊗ᵀ ((C ⊗₀ D ᵀ) ᵀ))
+    U : inType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ))
+      → inType ((A ⊗₀ B ᵀ) ⊗ᵀ ((C ⊗₀ D ᵀ) ᵀ))
     U = ⊎ᵢ {A} {B} {C} {D} {A'} {B'} {C'} {D'} u₁ u₂
     t : ∀ {s i o s'}
       → Tensor.CompRel (Post M₁ u₁ w₁) (Post M₂ u₂ w₂) s i o s'
@@ -231,8 +233,8 @@ opaque
              (Tensor.Step₂ {m = y} {m' = mapᴹ w₂ mo}
                 (mo , subst (λ z → Machine.stepRel M₂ (proj₂ s) z mo (proj₂ s')) (sym (inj₂-inj xeq)) q , refl))
 
-    f : ∀ s (i : Channel.inType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ)))
-          (o : Maybe (Channel.outType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ)))) o₀ {s'}
+    f : ∀ s (i : inType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ)))
+          (o : Maybe (outType ((A' ⊗₀ B' ᵀ) ⊗ᵀ ((C' ⊗₀ D' ᵀ) ᵀ)))) o₀ {s'}
       → Tensor.CompRel M₁ M₂ s (U i) o₀ s' → mapᴹ W o₀ ≡ o
       → Tensor.CompRel (Post M₁ u₁ w₁) (Post M₂ u₂ w₂) s i o s'
     f s (inj₁ x) o o₀ {s'} p e = go₁ s x o o₀ s' e (comp-view p)
@@ -244,10 +246,10 @@ opaque
   -- ------------------------------------------------------------------------
 
   Trc-Post : ∀ {X Y Z X' Y' : Channel} (W : Machine (X ⊗₀ Z) (Y ⊗₀ Z))
-             (p : Channel.inType ((X' ⊗₀ Z) ⊗ᵀ (Y' ⊗₀ Z))
-                → Channel.inType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z)))
-             (q : Channel.outType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z))
-                → Channel.outType ((X' ⊗₀ Z) ⊗ᵀ (Y' ⊗₀ Z)))
+             (p : inType ((X' ⊗₀ Z) ⊗ᵀ (Y' ⊗₀ Z))
+                → inType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z)))
+             (q : outType ((X ⊗₀ Z) ⊗ᵀ (Y ⊗₀ Z))
+                → outType ((X' ⊗₀ Z) ⊗ᵀ (Y' ⊗₀ Z)))
            → (∀ z → p (dZᵢ {X'} {Y'} {Z} z) ≡ dZᵢ {X} {Y} {Z} z)
            → (∀ z → p (cZₒ {X'} {Y'} {Z} z) ≡ cZₒ {X} {Y} {Z} z)
            → (∀ z → q (dZₒ {X} {Y} {Z} z) ≡ dZₒ {X'} {Y'} {Z} z)
@@ -300,20 +302,20 @@ opaque
   -- ------------------------------------------------------------------------
 
   -- Relabel the codomain of `Machine B C` to `C'`, leaving the domain alone.
-  cdₒ⁺ : ∀ {B C C'} → (Channel.inType C → Channel.inType C')
-       → Channel.outType (B ⊗ᵀ C) → Channel.outType (B ⊗ᵀ C')
+  cdₒ⁺ : ∀ {B C C'} → (inType C → inType C')
+       → outType (B ⊗ᵀ C) → outType (B ⊗ᵀ C')
   cdₒ⁺ vC (inj₁ β) = inj₁ β
   cdₒ⁺ vC (inj₂ c) = inj₂ (vC c)
 
   -- Relabel the domain of `Machine A B` to `A'`, leaving the codomain alone.
-  dmₒ⁺ : ∀ {A A' B} → (Channel.outType A → Channel.outType A')
-       → Channel.outType (A ⊗ᵀ B) → Channel.outType (A' ⊗ᵀ B)
+  dmₒ⁺ : ∀ {A A' B} → (outType A → outType A')
+       → outType (A ⊗ᵀ B) → outType (A' ⊗ᵀ B)
   dmₒ⁺ vA (inj₁ α) = inj₁ (vA α)
   dmₒ⁺ vA (inj₂ b) = inj₂ b
 
   -- `cdₒ⁺` at the traced machine's channel; fixes the traced ports.
-  wcₒ⁺ : ∀ {A B C C'} → (Channel.inType C → Channel.inType C')
-       → Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B)) → Channel.outType ((A ⊗₀ B) ⊗ᵀ (C' ⊗₀ B))
+  wcₒ⁺ : ∀ {A B C C'} → (inType C → inType C')
+       → outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B)) → outType ((A ⊗₀ B) ⊗ᵀ (C' ⊗₀ B))
   wcₒ⁺ vC (inj₁ x)        = inj₁ x
   wcₒ⁺ vC (inj₂ (inj₁ c)) = inj₂ (inj₁ (vC c))
   wcₒ⁺ vC (inj₂ (inj₂ β)) = inj₂ (inj₂ β)
@@ -336,71 +338,71 @@ opaque
   -- ------------------------------------------------------------------------
 
   private
-    Lᵢ : ∀ {A B C} → Channel.inType (A ⊗ᵀ B) → Channel.inType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
+    Lᵢ : ∀ {A B C} → inType (A ⊗ᵀ B) → inType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
     Lᵢ (inj₁ a)  = inj₁ (inj₁ a)
     Lᵢ (inj₂ bo) = inj₂ (inj₂ bo)
 
-    Lₒ : ∀ {A B C} → Channel.outType (A ⊗ᵀ B) → Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
+    Lₒ : ∀ {A B C} → outType (A ⊗ᵀ B) → outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
     Lₒ (inj₁ ao) = inj₁ (inj₁ ao)
     Lₒ (inj₂ b)  = inj₂ (inj₂ b)
 
-    Rᵢ : ∀ {A B C} → Channel.inType (B ⊗ᵀ C) → Channel.inType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
+    Rᵢ : ∀ {A B C} → inType (B ⊗ᵀ C) → inType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
     Rᵢ (inj₁ b)  = inj₁ (inj₂ b)
     Rᵢ (inj₂ co) = inj₂ (inj₁ co)
 
-    Rₒ : ∀ {A B C} → Channel.outType (B ⊗ᵀ C) → Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
+    Rₒ : ∀ {A B C} → outType (B ⊗ᵀ C) → outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
     Rₒ (inj₁ bo) = inj₁ (inj₂ bo)
     Rₒ (inj₂ ci) = inj₂ (inj₁ ci)
 
     -- The `Pair`'s channel: `M`'s ports in the first summand, `N`'s in the second.
-    κLᵢ : ∀ {A B C} → Channel.inType (A ⊗ᵀ B) → Channel.inType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ))
+    κLᵢ : ∀ {A B C} → inType (A ⊗ᵀ B) → inType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ))
     κLᵢ x = inj₁ x
 
-    κRᵢ : ∀ {A B C} → Channel.inType (B ⊗ᵀ C) → Channel.inType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ))
+    κRᵢ : ∀ {A B C} → inType (B ⊗ᵀ C) → inType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ))
     κRᵢ j = inj₂ j
 
-    κLₒ : ∀ {A B C} → Channel.outType (A ⊗ᵀ B) → Channel.outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ))
+    κLₒ : ∀ {A B C} → outType (A ⊗ᵀ B) → outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ))
     κLₒ y = inj₁ y
 
-    κRₒ : ∀ {A B C} → Channel.outType (B ⊗ᵀ C) → Channel.outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ))
+    κRₒ : ∀ {A B C} → outType (B ⊗ᵀ C) → outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ))
     κRₒ y = inj₂ y
 
     -- `∘κᵢ`/`∘κₒ` route each component's ports to its summand.
-    ∘κᵢ-L : ∀ {A B C} (x : Channel.inType (A ⊗ᵀ B))
+    ∘κᵢ-L : ∀ {A B C} (x : inType (A ⊗ᵀ B))
           → ∘κᵢ {A} {B} {C} (Lᵢ {A} {B} {C} x) ≡ κLᵢ {A} {B} {C} x
     ∘κᵢ-L (inj₁ _) = refl
     ∘κᵢ-L (inj₂ _) = refl
 
-    ∘κᵢ-R : ∀ {A B C} (j : Channel.inType (B ⊗ᵀ C))
+    ∘κᵢ-R : ∀ {A B C} (j : inType (B ⊗ᵀ C))
           → ∘κᵢ {A} {B} {C} (Rᵢ {A} {B} {C} j) ≡ κRᵢ {A} {B} {C} j
     ∘κᵢ-R (inj₁ _) = refl
     ∘κᵢ-R (inj₂ _) = refl
 
-    ∘κₒ-L : ∀ {A B C} (y : Channel.outType (A ⊗ᵀ B))
+    ∘κₒ-L : ∀ {A B C} (y : outType (A ⊗ᵀ B))
           → ∘κₒ {A} {B} {C} (Lₒ {A} {B} {C} y) ≡ κLₒ {A} {B} {C} y
     ∘κₒ-L (inj₁ _) = refl
     ∘κₒ-L (inj₂ _) = refl
 
-    ∘κₒ-R : ∀ {A B C} (y : Channel.outType (B ⊗ᵀ C))
+    ∘κₒ-R : ∀ {A B C} (y : outType (B ⊗ᵀ C))
           → ∘κₒ {A} {B} {C} (Rₒ {A} {B} {C} y) ≡ κRₒ {A} {B} {C} y
     ∘κₒ-R (inj₁ _) = refl
     ∘κₒ-R (inj₂ _) = refl
 
   -- `∘κₒ` is a permutation of four ports; this is its inverse.
-  ∘κₒ⁻ : ∀ {A B C} → Channel.outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ))
-       → Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
+  ∘κₒ⁻ : ∀ {A B C} → outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ))
+       → outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
   ∘κₒ⁻ {A} {B} {C} (inj₁ y) = Lₒ {A} {B} {C} y
   ∘κₒ⁻ {A} {B} {C} (inj₂ y) = Rₒ {A} {B} {C} y
 
   private
-    ∘κₒ-rt : ∀ {A B C} (o : Channel.outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ)))
+    ∘κₒ-rt : ∀ {A B C} (o : outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ)))
            → ∘κₒ {A} {B} {C} (∘κₒ⁻ {A} {B} {C} o) ≡ o
     ∘κₒ-rt (inj₁ (inj₁ _)) = refl
     ∘κₒ-rt (inj₁ (inj₂ _)) = refl
     ∘κₒ-rt (inj₂ (inj₁ _)) = refl
     ∘κₒ-rt (inj₂ (inj₂ _)) = refl
 
-    ∘κₒ-tr : ∀ {A B C} (o : Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B)))
+    ∘κₒ-tr : ∀ {A B C} (o : outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B)))
            → ∘κₒ⁻ {A} {B} {C} (∘κₒ {A} {B} {C} o) ≡ o
     ∘κₒ-tr (inj₁ (inj₁ _)) = refl
     ∘κₒ-tr (inj₁ (inj₂ _)) = refl
@@ -409,28 +411,28 @@ opaque
 
     -- Reading `∘κₒ` backwards: an output that lands in a summand came from
     -- that component's port.
-    ∘κₒ-L⁻ : ∀ {A B C} (o : Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))) (y : Channel.outType (A ⊗ᵀ B))
+    ∘κₒ-L⁻ : ∀ {A B C} (o : outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))) (y : outType (A ⊗ᵀ B))
            → ∘κₒ {A} {B} {C} o ≡ κLₒ {A} {B} {C} y → o ≡ Lₒ {A} {B} {C} y
     ∘κₒ-L⁻ {A} {B} {C} o y e = trans (sym (∘κₒ-tr o)) (cong (∘κₒ⁻ {A} {B} {C}) e)
 
-    ∘κₒ-R⁻ : ∀ {A B C} (o : Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))) (y : Channel.outType (B ⊗ᵀ C))
+    ∘κₒ-R⁻ : ∀ {A B C} (o : outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))) (y : outType (B ⊗ᵀ C))
            → ∘κₒ {A} {B} {C} o ≡ κRₒ {A} {B} {C} y → o ≡ Rₒ {A} {B} {C} y
     ∘κₒ-R⁻ {A} {B} {C} o y e = trans (sym (∘κₒ-tr o)) (cong (∘κₒ⁻ {A} {B} {C}) e)
 
     -- The two components' output ports are told apart by `∘κₒ`.
-    Lₒ-inj : ∀ {A B C} (y y' : Channel.outType (A ⊗ᵀ B))
+    Lₒ-inj : ∀ {A B C} (y y' : outType (A ⊗ᵀ B))
            → Lₒ {A} {B} {C} y ≡ Lₒ {A} {B} {C} y' → y ≡ y'
     Lₒ-inj {A} {B} {C} y y' e =
       inj₁-inj (trans (sym (∘κₒ-L {A} {B} {C} y))
                       (trans (cong (∘κₒ {A} {B} {C}) e) (∘κₒ-L {A} {B} {C} y')))
 
-    Rₒ-inj : ∀ {A B C} (y y' : Channel.outType (B ⊗ᵀ C))
+    Rₒ-inj : ∀ {A B C} (y y' : outType (B ⊗ᵀ C))
            → Rₒ {A} {B} {C} y ≡ Rₒ {A} {B} {C} y' → y ≡ y'
     Rₒ-inj {A} {B} {C} y y' e =
       inj₂-inj (trans (sym (∘κₒ-R {A} {B} {C} y))
                       (trans (cong (∘κₒ {A} {B} {C}) e) (∘κₒ-R {A} {B} {C} y')))
 
-    Lₒ≢Rₒ : ∀ {A B C} (y : Channel.outType (A ⊗ᵀ B)) (y' : Channel.outType (B ⊗ᵀ C))
+    Lₒ≢Rₒ : ∀ {A B C} (y : outType (A ⊗ᵀ B)) (y' : outType (B ⊗ᵀ C))
             {ℓ} {W : Type ℓ}
           → Lₒ {A} {B} {C} y ≡ Rₒ {A} {B} {C} y' → W
     Lₒ≢Rₒ {A} {B} {C} y y' e =
@@ -440,33 +442,33 @@ opaque
     -- Where the external output map lands: on `M`'s domain port or on `N`'s
     -- codomain port, never on a traced port, and relabelling the other end of
     -- the composite does not touch it.
-    tιₒ-inj : ∀ {A B C} (o o' : Channel.outType (A ⊗ᵀ C))
+    tιₒ-inj : ∀ {A B C} (o o' : outType (A ⊗ᵀ C))
             → tιₒ {A} {C} {B} o ≡ tιₒ {A} {C} {B} o' → o ≡ o'
     tιₒ-inj (inj₁ _) (inj₁ _) e = cong inj₁ (inj₁-inj (inj₁-inj e))
     tιₒ-inj (inj₁ _) (inj₂ _) e = inj₁≢inj₂ e
     tιₒ-inj (inj₂ _) (inj₁ _) e = inj₁≢inj₂ (sym e)
     tιₒ-inj (inj₂ _) (inj₂ _) e = cong inj₂ (inj₁-inj (inj₂-inj e))
 
-    tιₒ≢dZₒ : ∀ {A B C} (o : Channel.outType (A ⊗ᵀ C)) (bo : Channel.outType B) {ℓ} {W : Type ℓ}
+    tιₒ≢dZₒ : ∀ {A B C} (o : outType (A ⊗ᵀ C)) (bo : outType B) {ℓ} {W : Type ℓ}
             → tιₒ {A} {C} {B} o ≡ dZₒ {A} {C} {B} bo → W
     tιₒ≢dZₒ (inj₁ _) bo e = inj₁≢inj₂ (inj₁-inj e)
     tιₒ≢dZₒ (inj₂ _) bo e = inj₁≢inj₂ (sym e)
 
-    tιₒ≢cZᵢ : ∀ {A B C} (o : Channel.outType (A ⊗ᵀ C)) (b : Channel.inType B) {ℓ} {W : Type ℓ}
+    tιₒ≢cZᵢ : ∀ {A B C} (o : outType (A ⊗ᵀ C)) (b : inType B) {ℓ} {W : Type ℓ}
             → tιₒ {A} {C} {B} o ≡ cZᵢ {A} {C} {B} b → W
     tιₒ≢cZᵢ (inj₁ _) b e = inj₁≢inj₂ e
     tιₒ≢cZᵢ (inj₂ _) b e = inj₁≢inj₂ (inj₂-inj e)
 
-    tιₒ-L : ∀ {A B C} (h : Channel.inType B → Channel.inType C)
-            (o : Channel.outType (A ⊗ᵀ C)) (y : Channel.outType (A ⊗ᵀ B))
+    tιₒ-L : ∀ {A B C} (h : inType B → inType C)
+            (o : outType (A ⊗ᵀ C)) (y : outType (A ⊗ᵀ B))
           → tιₒ {A} {C} {B} o ≡ Lₒ {A} {B} {C} y → o ≡ cdₒ⁺ {A} {B} {C} h y
     tιₒ-L h (inj₁ _) (inj₁ _) e = cong inj₁ (inj₁-inj (inj₁-inj e))
     tιₒ-L h (inj₁ _) (inj₂ _) e = inj₁≢inj₂ e
     tιₒ-L h (inj₂ _) (inj₁ _) e = inj₁≢inj₂ (sym e)
     tιₒ-L h (inj₂ _) (inj₂ _) e = inj₁≢inj₂ (inj₂-inj e)
 
-    tιₒ-R : ∀ {A B C} (h : Channel.outType B → Channel.outType A)
-            (o : Channel.outType (A ⊗ᵀ C)) (y : Channel.outType (B ⊗ᵀ C))
+    tιₒ-R : ∀ {A B C} (h : outType B → outType A)
+            (o : outType (A ⊗ᵀ C)) (y : outType (B ⊗ᵀ C))
           → tιₒ {A} {C} {B} o ≡ Rₒ {A} {B} {C} y → o ≡ dmₒ⁺ {B} {A} {C} h y
     tιₒ-R h (inj₁ _) (inj₁ _) e = inj₁≢inj₂ (inj₁-inj e)
     tιₒ-R h (inj₁ _) (inj₂ _) e = inj₁≢inj₂ e
@@ -479,8 +481,8 @@ opaque
   -- is `cdₒ⁺`.  The input side is `cod-routeᵢ`/`cod-outᵢ` from `Collapse`.
   -- ------------------------------------------------------------------------
 
-  cod-route⁺ₒ : ∀ {A B C C'} (vC : Channel.inType C → Channel.inType C')
-                (o : Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B)))
+  cod-route⁺ₒ : ∀ {A B C C'} (vC : inType C → inType C')
+                (o : outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B)))
               → ⊎ₒ {A} {B} {B} {C'} {A} {B} {B} {C} (λ x → x) (cdₒ⁺ {B} {C} {C'} vC)
                   (∘κₒ {A} {B} {C} o)
                 ≡ ∘κₒ {A} {B} {C'} (wcₒ⁺ {A} {B} {C} {C'} vC o)
@@ -492,8 +494,8 @@ opaque
   private
     -- The same square read from the other corner, which is what the preimage
     -- hypothesis of `Reindex-Post-slide` asks for.
-    cod-route⁺ₒ' : ∀ {A B C C'} (vC : Channel.inType C → Channel.inType C')
-                   (o₀ : Channel.outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ)))
+    cod-route⁺ₒ' : ∀ {A B C C'} (vC : inType C → inType C')
+                   (o₀ : outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ)))
                  → wcₒ⁺ {A} {B} {C} {C'} vC (∘κₒ⁻ {A} {B} {C} o₀)
                    ≡ ∘κₒ⁻ {A} {B} {C'}
                        (⊎ₒ {A} {B} {B} {C'} {A} {B} {B} {C} (λ x → x) (cdₒ⁺ {B} {C} {C'} vC) o₀)
@@ -502,9 +504,9 @@ opaque
     cod-route⁺ₒ' vC (inj₂ (inj₁ _)) = refl
     cod-route⁺ₒ' vC (inj₂ (inj₂ _)) = refl
 
-    cod-pre : ∀ {A B C C'} (vC : Channel.inType C → Channel.inType C')
-              (o₀ : Channel.outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ)))
-              (o : Channel.outType ((A ⊗₀ B) ⊗ᵀ (C' ⊗₀ B)))
+    cod-pre : ∀ {A B C C'} (vC : inType C → inType C')
+              (o₀ : outType ((A ⊗₀ B ᵀ) ⊗ᵀ ((B ⊗₀ C ᵀ) ᵀ)))
+              (o : outType ((A ⊗₀ B) ⊗ᵀ (C' ⊗₀ B)))
             → ⊎ₒ {A} {B} {B} {C'} {A} {B} {B} {C} (λ x → x) (cdₒ⁺ {B} {C} {C'} vC) o₀
               ≡ ∘κₒ {A} {B} {C'} o
             → ∃ λ o₁ → (o₀ ≡ ∘κₒ {A} {B} {C} o₁) × (wcₒ⁺ {A} {B} {C} {C'} vC o₁ ≡ o)
@@ -513,8 +515,8 @@ opaque
       , sym (∘κₒ-rt o₀)
       , trans (cod-route⁺ₒ' vC o₀) (trans (cong (∘κₒ⁻ {A} {B} {C'}) e) (∘κₒ-tr o))
 
-  cod-out⁺ₒ : ∀ {A B C C'} (vC : Channel.inType C → Channel.inType C')
-              (o : Channel.outType (A ⊗ᵀ C))
+  cod-out⁺ₒ : ∀ {A B C C'} (vC : inType C → inType C')
+              (o : outType (A ⊗ᵀ C))
             → wcₒ⁺ {A} {B} {C} {C'} vC (tιₒ {A} {C} {B} o)
               ≡ tιₒ {A} {C'} {B} (cdₒ⁺ {A} {C} {C'} vC o)
   cod-out⁺ₒ vC (inj₁ _) = refl
@@ -522,9 +524,9 @@ opaque
 
   private
     -- Only external ports map to external ports under `wcₒ⁺`.
-    cod-out-pre : ∀ {A B C C'} (vC : Channel.inType C → Channel.inType C')
-                  (o₀ : Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B)))
-                  (o : Channel.outType (A ⊗ᵀ C'))
+    cod-out-pre : ∀ {A B C C'} (vC : inType C → inType C')
+                  (o₀ : outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B)))
+                  (o : outType (A ⊗ᵀ C'))
                 → wcₒ⁺ {A} {B} {C} {C'} vC o₀ ≡ tιₒ {A} {C'} {B} o
                 → ∃ λ o₁ → (o₀ ≡ tιₒ {A} {C} {B} o₁) × (cdₒ⁺ {A} {C} {C'} vC o₁ ≡ o)
     cod-out-pre vC (inj₁ (inj₁ a)) (inj₁ _) e = inj₁ a , refl , cong inj₁ (inj₁-inj (inj₁-inj e))
@@ -537,16 +539,16 @@ opaque
     cod-out-pre vC (inj₂ (inj₂ _)) (inj₂ _) e = inj₁≢inj₂ (sym (inj₂-inj e))
 
     -- `wcₒ⁺` fixes the traced ports, and nothing else lands on them.
-    wc-dZₒ : ∀ {A B C C'} (vC : Channel.inType C → Channel.inType C')
-             (o : Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))) z
+    wc-dZₒ : ∀ {A B C C'} (vC : inType C → inType C')
+             (o : outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))) z
            → wcₒ⁺ {A} {B} {C} {C'} vC o ≡ dZₒ {A} {C'} {B} z → o ≡ dZₒ {A} {C} {B} z
     wc-dZₒ vC (inj₁ (inj₁ _)) z e = inj₁≢inj₂ (inj₁-inj e)
     wc-dZₒ vC (inj₁ (inj₂ _)) z e = cong (λ x → inj₁ (inj₂ x)) (inj₂-inj (inj₁-inj e))
     wc-dZₒ vC (inj₂ (inj₁ _)) z e = inj₁≢inj₂ (sym e)
     wc-dZₒ vC (inj₂ (inj₂ _)) z e = inj₁≢inj₂ (sym e)
 
-    wc-cZᵢ : ∀ {A B C C'} (vC : Channel.inType C → Channel.inType C')
-             (o : Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))) z
+    wc-cZᵢ : ∀ {A B C C'} (vC : inType C → inType C')
+             (o : outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))) z
            → wcₒ⁺ {A} {B} {C} {C'} vC o ≡ cZᵢ {A} {C'} {B} z → o ≡ cZᵢ {A} {C} {B} z
     wc-cZᵢ vC (inj₁ (inj₁ _)) z e = inj₁≢inj₂ e
     wc-cZᵢ vC (inj₁ (inj₂ _)) z e = inj₁≢inj₂ e
@@ -559,8 +561,8 @@ opaque
 
   -- Sliding the relabelling out of the `Pair`.
   cod-pairP : ∀ {A B C C'} (M : Machine A B) (N : Machine B C)
-              (uC : Channel.outType C' → Channel.outType C)
-              (vC : Channel.inType C → Channel.inType C')
+              (uC : outType C' → outType C)
+              (vC : inType C → inType C')
             → Pair M (Post N (cdᵢ {B} {C} {C'} uC) (cdₒ⁺ {B} {C} {C'} vC))
               ≅ᴹ Post (Pair M N)
                    (⊎ᵢ {A} {B} {B} {C} {A} {B} {B} {C'} (λ x → x) (cdᵢ {B} {C} {C'} uC))
@@ -572,8 +574,8 @@ opaque
   -- Through the inner `Reindex`, so that the outer relabelling is
   -- `wcᵢ`/`wcₒ⁺`, the form `Trc-Post` accepts.
   cod-innerP : ∀ {A B C C'} (M : Machine A B) (N : Machine B C)
-               (uC : Channel.outType C' → Channel.outType C)
-               (vC : Channel.inType C → Channel.inType C')
+               (uC : outType C' → outType C)
+               (vC : inType C → inType C')
              → Reindex (Pair M (Post N (cdᵢ {B} {C} {C'} uC) (cdₒ⁺ {B} {C} {C'} vC)))
                        (∘κᵢ {A} {B} {C'}) (∘κₒ {A} {B} {C'})
                ≅ᴹ Post (Reindex (Pair M N) (∘κᵢ {A} {B} {C}) (∘κₒ {A} {B} {C}))
@@ -591,8 +593,8 @@ opaque
 
   -- Through the trace.
   cod-trcP : ∀ {A B C C'} (M : Machine A B) (N : Machine B C)
-             (uC : Channel.outType C' → Channel.outType C)
-             (vC : Channel.inType C → Channel.inType C')
+             (uC : outType C' → outType C)
+             (vC : inType C → inType C')
            → Trc (Reindex (Pair M (Post N (cdᵢ {B} {C} {C'} uC) (cdₒ⁺ {B} {C} {C'} vC)))
                           (∘κᵢ {A} {B} {C'}) (∘κₒ {A} {B} {C'}))
              ≅ᴹ Post (Trc (Reindex (Pair M N) (∘κᵢ {A} {B} {C}) (∘κₒ {A} {B} {C})))
@@ -606,8 +608,8 @@ opaque
 
   -- Past the outer `Reindex` onto the external ports.
   cod-outerP : ∀ {A B C C'} (M : Machine A B) (N : Machine B C)
-               (uC : Channel.outType C' → Channel.outType C)
-               (vC : Channel.inType C → Channel.inType C')
+               (uC : outType C' → outType C)
+               (vC : inType C → inType C')
              → Reindex (Post (Trc (Reindex (Pair M N) (∘κᵢ {A} {B} {C}) (∘κₒ {A} {B} {C})))
                              (wcᵢ {A} {B} {C} {C'} uC) (wcₒ⁺ {A} {B} {C} {C'} vC))
                        (tιᵢ {A} {C'} {B}) (tιₒ {A} {C'} {B})
@@ -624,8 +626,8 @@ opaque
       (cod-out-pre {A} {B} {C} {C'} vC)
 
   ∘-collapse-cod-post : ∀ {A B C C'} (M : Machine A B) (N : Machine B C)
-                        (uC : Channel.outType C' → Channel.outType C)
-                        (vC : Channel.inType C → Channel.inType C')
+                        (uC : outType C' → outType C)
+                        (vC : inType C → inType C')
                       → ((Post N (cdᵢ {B} {C} {C'} uC) (cdₒ⁺ {B} {C} {C'} vC)) CC.∘ M)
                         ≅ᴹ Post (N CC.∘ M) (cdᵢ {A} {C} {C'} uC) (cdₒ⁺ {A} {C} {C'} vC)
   ∘-collapse-cod-post {A} {B} {C} {C'} M N uC vC =
@@ -642,11 +644,11 @@ opaque
   -- ------------------------------------------------------------------------
 
   private
-    relay : ∀ {X} → Channel.inType (X ⊗ᵀ X) → Channel.outType (X ⊗ᵀ X)
-    relay {X} = Xφ (λ (x : Channel.inType X) → x) (λ (x : Channel.outType X) → x)
+    relay : ∀ {X} → inType (X ⊗ᵀ X) → outType (X ⊗ᵀ X)
+    relay {X} = Xφ (λ (x : inType X) → x) (λ (x : outType X) → x)
 
-  Xfwd-Post : ∀ {A B} (f : Channel.inType A → Channel.inType B)
-                      (g : Channel.outType B → Channel.outType A)
+  Xfwd-Post : ∀ {A B} (f : inType A → inType B)
+                      (g : outType B → outType A)
             → Xfwd f g ≅ᴹ Post (CC.id {A}) (cdᵢ {A} {A} {B} g) (cdₒ⁺ {A} {A} {B} f)
   Xfwd-Post {A} {B} f g =
     ≅ᴹ-trans (≅ᴹ-sym (Post-Fwd (relay {A}) (Xφ f g)
@@ -660,8 +662,8 @@ opaque
   -- The mirror image: the domain of `CC.id {B}` is relabelled instead, so `g`
   -- is the covariant map on the output side and `f` the contravariant one on
   -- the input side.
-  Xfwd-Post-dom : ∀ {A B} (f : Channel.inType A → Channel.inType B)
-                          (g : Channel.outType B → Channel.outType A)
+  Xfwd-Post-dom : ∀ {A B} (f : inType A → inType B)
+                          (g : outType B → outType A)
                 → Xfwd f g ≅ᴹ Post (CC.id {B}) (dmᵢ {B} {A} {B} f) (dmₒ⁺ {B} {A} {B} g)
   Xfwd-Post-dom {A} {B} f g =
     ≅ᴹ-trans (≅ᴹ-sym (Post-Fwd (relay {B}) (Xφ f g)
@@ -687,9 +689,9 @@ opaque
   -- ------------------------------------------------------------------------
 
   Post-is-Reindex : ∀ {A B C D} (M : Machine A B)
-                    (u : Channel.inType (C ⊗ᵀ D) → Channel.inType (A ⊗ᵀ B))
-                    (w : Channel.outType (A ⊗ᵀ B) → Channel.outType (C ⊗ᵀ D))
-                    (v : Channel.outType (C ⊗ᵀ D) → Channel.outType (A ⊗ᵀ B))
+                    (u : inType (C ⊗ᵀ D) → inType (A ⊗ᵀ B))
+                    (w : outType (A ⊗ᵀ B) → outType (C ⊗ᵀ D))
+                    (v : outType (C ⊗ᵀ D) → outType (A ⊗ᵀ B))
                   → (∀ o → v (w o) ≡ o) → (∀ o → w (v o) ≡ o)
                   → Post M u w ≅ᴹ Reindex M u v
   Post-is-Reindex M u w v vw wv = MkIso _ _ (λ _ → refl) (λ _ → refl)
@@ -706,9 +708,9 @@ opaque
 
   -- Fixing the codomain `B` and relabelling the domain `A` keeps `f` verbatim,
   -- so it is `g` that must be invertible.
-  Xfwd-dom : ∀ {A B} (f : Channel.inType A → Channel.inType B)
-                     (g : Channel.outType B → Channel.outType A)
-                     (g⁻ : Channel.outType A → Channel.outType B)
+  Xfwd-dom : ∀ {A B} (f : inType A → inType B)
+                     (g : outType B → outType A)
+                     (g⁻ : outType A → outType B)
            → (∀ β → g⁻ (g β) ≡ β) → (∀ α → g (g⁻ α) ≡ α)
            → Xfwd f g ≅ᴹ Reindex (CC.id {B}) (dmᵢ f) (dmₒ g⁻)
   Xfwd-dom {A} {B} f g g⁻ gl gr =
@@ -725,9 +727,9 @@ opaque
 
   -- The mirror image: fixing the domain `A` keeps `g` verbatim and asks `f` to
   -- be invertible instead.
-  Xfwd-cod : ∀ {A B} (f : Channel.inType A → Channel.inType B)
-                     (g : Channel.outType B → Channel.outType A)
-                     (f⁻ : Channel.inType B → Channel.inType A)
+  Xfwd-cod : ∀ {A B} (f : inType A → inType B)
+                     (g : outType B → outType A)
+                     (f⁻ : inType B → inType A)
            → (∀ a → f⁻ (f a) ≡ a) → (∀ b → f (f⁻ b) ≡ b)
            → Xfwd f g ≅ᴹ Reindex (CC.id {A}) (cdᵢ g) (cdₒ f⁻)
   Xfwd-cod {A} {B} f g f⁻ fl fr =
@@ -756,7 +758,7 @@ opaque
     -- Step views: a step on a first-component port is a step of `M` with
     -- `N`'s state untouched, and symmetrically.
     step-L : ∀ {A B C} (M : Machine A B) (N : Machine B C) {S S' : Machine.State (Core M N)}
-             (x : Channel.inType (A ⊗ᵀ B)) (O : Maybe (Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))))
+             (x : inType (A ⊗ᵀ B)) (O : Maybe (outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))))
            → Machine.stepRel (Core M N) S (Lᵢ {A} {B} {C} x) O S'
            → ∃ λ mo → Machine.stepRel M (proj₁ S) x mo (proj₁ S')
                     × (O ≡ mapᴹ (Lₒ {A} {B} {C}) mo) × (proj₂ S' ≡ proj₂ S)
@@ -775,7 +777,7 @@ opaque
         , steq
 
     step-R : ∀ {A B C} (M : Machine A B) (N : Machine B C) {S S' : Machine.State (Core M N)}
-             (j : Channel.inType (B ⊗ᵀ C)) (O : Maybe (Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))))
+             (j : inType (B ⊗ᵀ C)) (O : Maybe (outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))))
            → Machine.stepRel (Core M N) S (Rᵢ {A} {B} {C} j) O S'
            → ∃ λ mo → Machine.stepRel N (proj₂ S) j mo (proj₂ S')
                     × (O ≡ mapᴹ (Rₒ {A} {B} {C}) mo) × (proj₁ S' ≡ proj₁ S)
@@ -795,18 +797,18 @@ opaque
 
     -- Relay-hop views: a forwarder component moves no state and emits `φ`
     -- of its input, on its own ports.
-    hop-L : ∀ {A B C} (φ : Channel.inType (A ⊗ᵀ B) → Channel.outType (A ⊗ᵀ B)) (N : Machine B C)
+    hop-L : ∀ {A B C} (φ : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B)) (N : Machine B C)
             {S S' : Machine.State (Core (Fwd φ) N)}
-            (x : Channel.inType (A ⊗ᵀ B)) (O : Maybe (Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))))
+            (x : inType (A ⊗ᵀ B)) (O : Maybe (outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))))
           → Machine.stepRel (Core (Fwd φ) N) S (Lᵢ {A} {B} {C} x) O S'
           → (proj₂ S' ≡ proj₂ S) × (O ≡ just (Lₒ {A} {B} {C} (φ x)))
     hop-L {A} {B} {C} φ N x O p =
       let (mo , q , Oeq , st) = step-L (Fwd φ) N x O p
       in st , trans Oeq (cong (mapᴹ (Lₒ {A} {B} {C})) (sym q))
 
-    hop-R : ∀ {A B C} (M : Machine A B) (φ : Channel.inType (B ⊗ᵀ C) → Channel.outType (B ⊗ᵀ C))
+    hop-R : ∀ {A B C} (M : Machine A B) (φ : inType (B ⊗ᵀ C) → outType (B ⊗ᵀ C))
             {S S' : Machine.State (Core M (Fwd φ))}
-            (j : Channel.inType (B ⊗ᵀ C)) (O : Maybe (Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))))
+            (j : inType (B ⊗ᵀ C)) (O : Maybe (outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))))
           → Machine.stepRel (Core M (Fwd φ)) S (Rᵢ {A} {B} {C} j) O S'
           → (proj₁ S' ≡ proj₁ S) × (O ≡ just (Rₒ {A} {B} {C} (φ j)))
     hop-R {A} {B} {C} M φ j O p =
@@ -816,7 +818,7 @@ opaque
     -- Step builders, the converses.
     mk-L : ∀ {A B C} (M : Machine A B) (N : Machine B C)
            {s s' : Machine.State M} (u : Machine.State N)
-           (x : Channel.inType (A ⊗ᵀ B)) (mo : Maybe (Channel.outType (A ⊗ᵀ B)))
+           (x : inType (A ⊗ᵀ B)) (mo : Maybe (outType (A ⊗ᵀ B)))
          → Machine.stepRel M s x mo s'
          → Machine.stepRel (Core M N) (s , u) (Lᵢ {A} {B} {C} x) (mapᴹ (Lₒ {A} {B} {C}) mo) (s' , u)
     mk-L {A} {B} {C} M N {s} {s'} u x mo q =
@@ -828,7 +830,7 @@ opaque
 
     mk-R : ∀ {A B C} (M : Machine A B) (N : Machine B C)
            (u : Machine.State M) {s s' : Machine.State N}
-           (j : Channel.inType (B ⊗ᵀ C)) (mo : Maybe (Channel.outType (B ⊗ᵀ C)))
+           (j : inType (B ⊗ᵀ C)) (mo : Maybe (outType (B ⊗ᵀ C)))
          → Machine.stepRel N s j mo s'
          → Machine.stepRel (Core M N) (u , s) (Rᵢ {A} {B} {C} j) (mapᴹ (Rₒ {A} {B} {C}) mo) (u , s')
     mk-R {A} {B} {C} M N u {s} {s'} j mo q =
@@ -838,14 +840,14 @@ opaque
                          (mapᴹ-cong (∘κₒ-R {A} {B} {C}) mo)))
              (Tensor.Step₂ {m = j} {m' = mo} q)
 
-    mk-hop-L : ∀ {A B C} (φ : Channel.inType (A ⊗ᵀ B) → Channel.outType (A ⊗ᵀ B)) (N : Machine B C)
-               {u : Machine.State (Fwd φ)} (s : Machine.State N) (x : Channel.inType (A ⊗ᵀ B))
+    mk-hop-L : ∀ {A B C} (φ : inType (A ⊗ᵀ B) → outType (A ⊗ᵀ B)) (N : Machine B C)
+               {u : Machine.State (Fwd φ)} (s : Machine.State N) (x : inType (A ⊗ᵀ B))
              → Machine.stepRel (Core (Fwd φ) N) (u , s) (Lᵢ {A} {B} {C} x)
                                (just (Lₒ {A} {B} {C} (φ x))) (u , s)
     mk-hop-L φ N s x = mk-L (Fwd φ) N s x (just (φ x)) refl
 
-    mk-hop-R : ∀ {A B C} (M : Machine A B) (φ : Channel.inType (B ⊗ᵀ C) → Channel.outType (B ⊗ᵀ C))
-               (s : Machine.State M) {u : Machine.State (Fwd φ)} (j : Channel.inType (B ⊗ᵀ C))
+    mk-hop-R : ∀ {A B C} (M : Machine A B) (φ : inType (B ⊗ᵀ C) → outType (B ⊗ᵀ C))
+               (s : Machine.State M) {u : Machine.State (Fwd φ)} (j : inType (B ⊗ᵀ C))
              → Machine.stepRel (Core M (Fwd φ)) (s , u) (Rᵢ {A} {B} {C} j)
                                (just (Rₒ {A} {B} {C} (φ j))) (s , u)
     mk-hop-R M φ s j = mk-R M (Fwd φ) s j (just (φ j)) refl
@@ -860,8 +862,8 @@ opaque
   -- ------------------------------------------------------------------------
 
   Trc-relay-cod : ∀ {A B C} (M : Machine A B)
-                  (f : Channel.inType B → Channel.inType C)
-                  (g : Channel.outType C → Channel.outType B)
+                  (f : inType B → inType C)
+                  (g : outType C → outType B)
                 → Reindex (Trc (Reindex (Pair M (Xfwd f g)) (∘κᵢ {A} {B} {C}) (∘κₒ {A} {B} {C})))
                           (tιᵢ {A} {C} {B}) (tιₒ {A} {C} {B})
                   ≅ᴹ Post M (cdᵢ {A} {B} {C} g) (cdₒ⁺ {A} {B} {C} f)
@@ -879,10 +881,10 @@ opaque
     W = Core M N
     S Iᵗ Oᵗ Iᴹ Oᴹ : Type
     S  = Machine.State M × ⊤
-    Iᵗ = Channel.inType (A ⊗ᵀ C)
-    Oᵗ = Maybe (Channel.outType (A ⊗ᵀ C))
-    Iᴹ = Channel.inType (A ⊗ᵀ B)
-    Oᴹ = Maybe (Channel.outType (A ⊗ᵀ B))
+    Iᵗ = inType (A ⊗ᵀ C)
+    Oᵗ = Maybe (outType (A ⊗ᵀ C))
+    Iᴹ = inType (A ⊗ᵀ B)
+    Oᴹ = Maybe (outType (A ⊗ᵀ B))
 
     -- What a step of `Post M (cdᵢ g) (cdₒ⁺ f)` is, with `M`'s input spelled out.
     PostStep : Machine.State M → Iᴹ → Oᵗ → Machine.State M → Type
@@ -890,7 +892,7 @@ opaque
 
     -- ---- Relay hop out.  Once `M`'s output has reached the forwarder on
     -- `B`, the chain ends with the hop that leaves on `C` as `f b`.
-    hop-out : ∀ {sp sp' : S} (b : Channel.inType B) (o : Oᵗ)
+    hop-out : ∀ {sp sp' : S} (b : inType B) (o : Oᵗ)
             → TraceRel W sp (dZᵢ {A} {C} {B} b) (mapᴹ (tιₒ {A} {C} {B}) o) sp'
             → (proj₁ sp' ≡ proj₁ sp) × (o ≡ just (inj₂ (f b)))
     hop-out b o Trace[ x ] =
@@ -977,8 +979,8 @@ opaque
   -- leaves as `g bo`).  States are `⊤ × State N` against `State N`.
   -- ------------------------------------------------------------------------
 
-  Trc-relay-dom : ∀ {A B C} (f : Channel.inType A → Channel.inType B)
-                            (g : Channel.outType B → Channel.outType A) (N : Machine B C)
+  Trc-relay-dom : ∀ {A B C} (f : inType A → inType B)
+                            (g : outType B → outType A) (N : Machine B C)
                 → Reindex (Trc (Reindex (Pair (Xfwd f g) N) (∘κᵢ {A} {B} {C}) (∘κₒ {A} {B} {C})))
                           (tιᵢ {A} {C} {B}) (tιₒ {A} {C} {B})
                   ≅ᴹ Post N (dmᵢ {B} {A} {C} f) (dmₒ⁺ {B} {A} {C} g)
@@ -996,10 +998,10 @@ opaque
     W = Core M N
     S Iᵗ Oᵗ Iᴺ Oᴺ : Type
     S  = ⊤ × Machine.State N
-    Iᵗ = Channel.inType (A ⊗ᵀ C)
-    Oᵗ = Maybe (Channel.outType (A ⊗ᵀ C))
-    Iᴺ = Channel.inType (B ⊗ᵀ C)
-    Oᴺ = Maybe (Channel.outType (B ⊗ᵀ C))
+    Iᵗ = inType (A ⊗ᵀ C)
+    Oᵗ = Maybe (outType (A ⊗ᵀ C))
+    Iᴺ = inType (B ⊗ᵀ C)
+    Oᴺ = Maybe (outType (B ⊗ᵀ C))
 
     -- What a step of `Post N (dmᵢ f) (dmₒ⁺ g)` is, with `N`'s input spelled out.
     PostStep : Machine.State N → Iᴺ → Oᵗ → Machine.State N → Type
@@ -1007,7 +1009,7 @@ opaque
 
     -- ---- Relay hop out.  Once `N`'s output has reached the forwarder on
     -- `B`, the chain ends with the hop that leaves on `A` as `g bo`.
-    hop-out : ∀ {sp sp' : S} (bo : Channel.outType B) (o : Oᵗ)
+    hop-out : ∀ {sp sp' : S} (bo : outType B) (o : Oᵗ)
             → TraceRel W sp (cZₒ {A} {C} {B} bo) (mapᴹ (tιₒ {A} {C} {B}) o) sp'
             → (proj₂ sp' ≡ proj₂ sp) × (o ≡ just (inj₁ (g bo)))
     hop-out bo o Trace[ x ] =
@@ -1090,14 +1092,14 @@ opaque
   -- ------------------------------------------------------------------------
 
   Xfwd-∘-Post : ∀ {A B C} (M : Machine A B)
-                (f : Channel.inType B → Channel.inType C)
-                (g : Channel.outType C → Channel.outType B)
+                (f : inType B → inType C)
+                (g : outType C → outType B)
               → (Xfwd f g CC.∘ M) ≅ᴹ Post M (cdᵢ {A} {B} {C} g) (cdₒ⁺ {A} {B} {C} f)
   Xfwd-∘-Post {A} {B} {C} M f g = ≅ᴹ-trans (∘-Reindex M (Xfwd f g)) (Trc-relay-cod M f g)
 
   ∘-Xfwd-Post : ∀ {A B C} (N : Machine B C)
-                (f : Channel.inType A → Channel.inType B)
-                (g : Channel.outType B → Channel.outType A)
+                (f : inType A → inType B)
+                (g : outType B → outType A)
               → (N CC.∘ Xfwd f g) ≅ᴹ Post N (dmᵢ {B} {A} {C} f) (dmₒ⁺ {B} {A} {C} g)
   ∘-Xfwd-Post {A} {B} {C} N f g = ≅ᴹ-trans (∘-Reindex (Xfwd f g) N) (Trc-relay-dom f g N)
 
