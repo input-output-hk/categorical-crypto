@@ -1,18 +1,22 @@
 {-# OPTIONS --safe #-}
 
+-- ============================================================================
 -- Machine isomorphism: equality of machines up to a stepRel-preserving
 -- bijection of states.  This module proves that it is an equivalence and a
 -- congruence for the machine builders, and the associativity bisimulation;
 -- the identity laws and the `Category` record are in `Machine.Category`.
+-- ============================================================================
 
 module CategoricalCrypto.Machine.Iso where
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
+open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
 open import Relation.Binary using (IsEquivalence)
 
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
+open import Tactic.Defaults
 
 private variable A B C D E : Channel
 
@@ -192,8 +196,6 @@ _≅ℰ_ {B = B} M M' = (E : ℰ B) → map-ℰ M E ≅ᴹ map-ℰ M' E
 -- normal form. Both bracketings are isomorphic to the TriTrace machine
 -- below, which interleaves the three component machines explicitly
 -- (B-messages bounce between f and g, C-messages between g and h).
-
-open import Tactic.Defaults
 
 -- Generic three-machine interleaving ("TriTrace"): the common
 -- flattened normal form of both bracketings.
@@ -1609,8 +1611,6 @@ module ∘-assoc-implementation
 -- Congruences for the remaining machine builders.  `_⊗ʳ_`/`_⊗ˡ_`,
 -- `_∘ᴷ_`, `_⊗ᴷ_` and `⨂ᴷ` are all built from `_⊗₁_`, `_∘_` and `id`,
 -- so each is a corollary of the tensor congruence.
-
-open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
 
 -- The tensor congruence.
 ⊗₁-resp-≅ᴹ : ∀ {A B C D} {M M' : Machine A B} {N N' : Machine C D}
