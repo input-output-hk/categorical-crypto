@@ -20,12 +20,19 @@
 -- slides through `Trc` when it fixes the traced ports, up to their preimages),
 -- `Reindex-Post-slide` (it slides through a `Reindex` along a routing square),
 -- `Post-Fwd`/`Xfwd-Post` (a crossing forwarder is a `Post` of `CC.id`, with
--- no invertibility asked of either map), and finally `∘-collapse-cod-post`
--- and its corollary `Xfwd-∘-Post`: post-composing any machine with a crossing
--- forwarder is a `Post`.
+-- no invertibility asked of either map), and `∘-collapse-cod-post`: a `Post`
+-- of the codomain slides out of a composite.
+--
+-- The last section is the relay lemma `Trc-relay-cod`, proved directly on
+-- the trace normal form of `Reindex`: tracing `M` against a crossing
+-- forwarder is `Post M`, because every chain through the traced channel is
+-- one `M`-step with at most one relay hop on either side.  It gives
+-- `Xfwd-∘-Post` (post-composing any machine with a crossing forwarder is a
+-- `Post`) and, at `f = g = id`, the left identity law `∘-identityˡ-Post`.
+-- Nothing here uses the identity or associativity laws of `Machine.Iso`;
+-- the identity law is derived, not assumed.
 -- ============================================================================
 
-open import CategoricalCrypto.Machine.Iso using (∘-identityˡ-≅ᴹ)
 open import CategoricalCrypto.Machine.Reindex
 open import CategoricalCrypto.Machine.Reindex.Slide
 open import CategoricalCrypto.Machine.Reindex.Collapse using (cod-routeᵢ; cod-outᵢ)
@@ -540,12 +547,261 @@ opaque
     sq (inj₁ _) = refl
     sq (inj₂ _) = refl
 
+  -- ------------------------------------------------------------------------
+  -- The relay lemma, in the trace normal form of `Reindex`.  In
+  -- `Trc (Reindex (Pair M (Xfwd f g)) ∘κᵢ ∘κₒ)` the traced channel `B` sits
+  -- between `M`'s codomain and the forwarder's domain, and the forwarder is
+  -- stateless, total and deterministic.  Every chain therefore contains
+  -- exactly one `M`-step: it is preceded by a relay hop iff the input arrived
+  -- on `C` (it reaches `M` as `g c`), and followed by one iff `M` emitted on
+  -- `B` (it leaves as `f b`).  Forwards, the chain is inverted with
+  -- `comp-view` at each step; backwards, the one-, two- or three-step chain
+  -- is built by cases on the input port and on `M`'s output.
+  -- ------------------------------------------------------------------------
+
+  private
+    -- `mapᴹ inj₁`/`mapᴹ inj₂` against a `just` on the same or the other side.
+    mapᴹ-inj₁-just : ∀ {X Y : Type} {x : X} (mo : Maybe X)
+                   → _≡_ {A = Maybe (X ⊎ Y)} (just (inj₁ x)) (mapᴹ inj₁ mo) → mo ≡ just x
+    mapᴹ-inj₁-just (just _) e = cong just (sym (inj₁-inj (just-inj e)))
+    mapᴹ-inj₁-just nothing  e = just≢nothing e
+
+    mapᴹ-inj₂-just : ∀ {X Y : Type} {y : Y} (mo : Maybe Y)
+                   → _≡_ {A = Maybe (X ⊎ Y)} (just (inj₂ y)) (mapᴹ inj₂ mo) → mo ≡ just y
+    mapᴹ-inj₂-just (just _) e = cong just (sym (inj₂-inj (just-inj e)))
+    mapᴹ-inj₂-just nothing  e = just≢nothing e
+
+    mapᴹ-inj₁≢inj₂ : ∀ {X Y : Type} {y : Y} (mo : Maybe X) {ℓ} {Z : Type ℓ}
+                   → _≡_ {A = Maybe (X ⊎ Y)} (just (inj₂ y)) (mapᴹ inj₁ mo) → Z
+    mapᴹ-inj₁≢inj₂ (just _) e = inj₁≢inj₂ (sym (just-inj e))
+    mapᴹ-inj₁≢inj₂ nothing  e = just≢nothing e
+
+    mapᴹ-inj₂≢inj₁ : ∀ {X Y : Type} {x : X} (mo : Maybe Y) {ℓ} {Z : Type ℓ}
+                   → _≡_ {A = Maybe (X ⊎ Y)} (just (inj₁ x)) (mapᴹ inj₂ mo) → Z
+    mapᴹ-inj₂≢inj₁ (just _) e = inj₁≢inj₂ (just-inj e)
+    mapᴹ-inj₂≢inj₁ nothing  e = just≢nothing e
+
+  Trc-relay-cod : ∀ {A B C} (M : Machine A B)
+                  (f : Channel.inType B → Channel.inType C)
+                  (g : Channel.outType C → Channel.outType B)
+                → Reindex (Trc (Reindex (Pair M (Xfwd f g)) (∘κᵢ {A} {B} {C}) (∘κₒ {A} {B} {C})))
+                          (tιᵢ {A} {C} {B}) (tιₒ {A} {C} {B})
+                  ≅ᴹ Post M (cdᵢ {A} {B} {C} g) (cdₒ⁺ {A} {B} {C} f)
+  Trc-relay-cod {A} {B} {C} M f g =
+    MkIso proj₁ (λ s → s , tt) (λ _ → refl) (λ _ → refl)
+          (λ {_} {i} {o} c → fwd i o c) (λ {_} {i} {o} p → bwd i o p)
+    where
+    N : Machine B C
+    N = Xfwd f g
+    W : Machine (A ⊗₀ B) (C ⊗₀ B)
+    W = Reindex (Pair M N) (∘κᵢ {A} {B} {C}) (∘κₒ {A} {B} {C})
+    S : Type
+    S = Machine.State M × ⊤
+    Iᵗ Oᵗ Iᵂ Oᵂ Iᴹ Oᴹ : Type
+    Iᵗ = Channel.inType (A ⊗ᵀ C)
+    Oᵗ = Maybe (Channel.outType (A ⊗ᵀ C))
+    Iᵂ = Channel.inType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B))
+    Oᵂ = Maybe (Channel.outType ((A ⊗₀ B) ⊗ᵀ (C ⊗₀ B)))
+    Iᴹ = Channel.inType (A ⊗ᵀ B)
+    Oᴹ = Maybe (Channel.outType (A ⊗ᵀ B))
+
+    -- What a step of `Post M (cdᵢ g) (cdₒ⁺ f)` is, with `M`'s input spelled out.
+    PostStep : Machine.State M → Iᴹ → Oᵗ → Machine.State M → Type
+    PostStep s mᵢ o s' = ∃ λ o₀ → Machine.stepRel M s mᵢ o₀ s' × mapᴹ (cdₒ⁺ {A} {B} {C} f) o₀ ≡ o
+
+    -- The external output of an `M`-step, read back through `∘κₒ` and `tιₒ`.
+    ext-out : ∀ (o : Oᵗ) (mo : Oᴹ)
+            → mapᴹ (∘κₒ {A} {B} {C}) (mapᴹ (tιₒ {A} {C} {B}) o) ≡ mapᴹ inj₁ mo
+            → mapᴹ (cdₒ⁺ {A} {B} {C} f) mo ≡ o
+    ext-out nothing         nothing          e = refl
+    ext-out nothing         (just _)         e = nothing≢just e
+    ext-out (just _)        nothing          e = just≢nothing e
+    ext-out (just (inj₁ _)) (just (inj₁ _))  e = cong (λ z → just (inj₁ z)) (sym (inj₁-inj (inj₁-inj (just-inj e))))
+    ext-out (just (inj₁ _)) (just (inj₂ _))  e = inj₁≢inj₂ (inj₁-inj (just-inj e))
+    ext-out (just (inj₂ _)) (just _)         e = inj₁≢inj₂ (sym (just-inj e))
+
+    -- The external output of a relay hop `B → C` is on `C`.
+    relay-out : ∀ (o : Oᵗ) (c : Channel.inType C)
+              → mapᴹ (∘κₒ {A} {B} {C}) (mapᴹ (tιₒ {A} {C} {B}) o) ≡ just (inj₂ (inj₂ c))
+              → o ≡ just (inj₂ c)
+    relay-out nothing         c e = nothing≢just e
+    relay-out (just (inj₁ _)) c e = inj₁≢inj₂ (just-inj e)
+    relay-out (just (inj₂ _)) c e = cong (λ z → just (inj₂ z)) (inj₂-inj (inj₂-inj (just-inj e)))
+
+    -- No external output is a relay hop `C → B`.
+    no-relay-out : ∀ (o : Oᵗ) (bo : Channel.outType B) {ℓ} {Z : Type ℓ}
+                 → mapᴹ (∘κₒ {A} {B} {C}) (mapᴹ (tιₒ {A} {C} {B}) o) ≡ just (inj₂ (inj₁ bo)) → Z
+    no-relay-out nothing         bo e = nothing≢just e
+    no-relay-out (just (inj₁ _)) bo e = inj₁≢inj₂ (just-inj e)
+    no-relay-out (just (inj₂ _)) bo e = inj₁≢inj₂ (sym (inj₂-inj (just-inj e)))
+
+    -- ---- Forwards: the chain after the input has reached the forwarder on `B`.
+    -- A relay hop `B → C` ends the chain, leaves `M`'s state alone, and
+    -- exits on `C`.
+    HopOut : S → Oᵗ → S → Channel.inType B → Type
+    HopOut sp o sp' b = (proj₁ sp' ≡ proj₁ sp) × (o ≡ just (inj₂ (f b)))
+
+    hop-stop : ∀ {sp sp' : S} (b : Channel.inType B) (o : Oᵗ) {O : Oᵂ} → mapᴹ (tιₒ {A} {C} {B}) o ≡ O
+             → CompView M N sp (∘κᵢ {A} {B} {C} (dZᵢ {A} {C} {B} b)) (mapᴹ (∘κₒ {A} {B} {C}) O) sp'
+             → HopOut sp o sp' b
+    hop-stop b o oe (inj₁ (_ , _ , xeq , _)) = inj₁≢inj₂ (sym xeq)
+    hop-stop b o oe (inj₂ (mᵢ , mo , xeq , yeq , steq , q)) =
+      steq , relay-out o (f b) (trans (cong (mapᴹ (∘κₒ {A} {B} {C})) oe) (trans yeq (cong (mapᴹ inj₂) (sym q'))))
+      where
+      q' : just (inj₂ (f b)) ≡ mo
+      q' = subst (λ m → just (Xφ f g m) ≡ mo) (sym (inj₂-inj xeq)) q
+
+    hop-noₒ : ∀ {sp sp₁ : S} (b : Channel.inType B) (zc : Channel.outType B) {ℓ} {Z : Type ℓ}
+            → CompView M N sp (∘κᵢ {A} {B} {C} (dZᵢ {A} {C} {B} b))
+                              (mapᴹ (∘κₒ {A} {B} {C}) (just (dZₒ {A} {C} {B} zc))) sp₁
+            → Z
+    hop-noₒ b zc (inj₁ (_ , _ , xeq , _)) = inj₁≢inj₂ (sym xeq)
+    hop-noₒ b zc (inj₂ (mᵢ , mo , xeq , yeq , steq , q)) =
+      inj₁≢inj₂ (sym (just-inj (trans q' (mapᴹ-inj₂-just mo yeq))))
+      where
+      q' : just (inj₂ (f b)) ≡ mo
+      q' = subst (λ m → just (Xφ f g m) ≡ mo) (sym (inj₂-inj xeq)) q
+
+    hop-noᵢ : ∀ {sp sp₁ : S} (b : Channel.inType B) (zc : Channel.inType B) {ℓ} {Z : Type ℓ}
+            → CompView M N sp (∘κᵢ {A} {B} {C} (dZᵢ {A} {C} {B} b))
+                              (mapᴹ (∘κₒ {A} {B} {C}) (just (cZᵢ {A} {C} {B} zc))) sp₁
+            → Z
+    hop-noᵢ b zc (inj₁ (_ , _ , xeq , _))       = inj₁≢inj₂ (sym xeq)
+    hop-noᵢ b zc (inj₂ (_ , mo , _ , yeq , _)) = mapᴹ-inj₂≢inj₁ mo yeq
+
+    hopᵢ : ∀ {sp : S} {O : Oᵂ} {sp' : S} (b : Channel.inType B) → TraceRel W sp (dZᵢ {A} {C} {B} b) O sp'
+         → ∀ (o : Oᵗ) → mapᴹ (tιₒ {A} {C} {B}) o ≡ O → HopOut sp o sp' b
+    hopᵢ b Trace[ x ]                        o oe = hop-stop b o oe (comp-view x)
+    hopᵢ b (_Trace∷ₒ_ {outC = zc} x rest) o oe = hop-noₒ b zc (comp-view x)
+    hopᵢ b (_Trace∷ᵢ_ {inC = zc} x rest)  o oe = hop-noᵢ b zc (comp-view x)
+
+    -- ---- Forwards: the chain from the step at which `M` reads its input.
+    M-stop : ∀ {sp sp' : S} (I : Iᵂ) (mᵢ : Iᴹ) (o : Oᵗ) {O : Oᵂ}
+           → ∘κᵢ {A} {B} {C} I ≡ inj₁ mᵢ → mapᴹ (tιₒ {A} {C} {B}) o ≡ O
+           → CompView M N sp (∘κᵢ {A} {B} {C} I) (mapᴹ (∘κₒ {A} {B} {C}) O) sp'
+           → PostStep (proj₁ sp) mᵢ o (proj₁ sp')
+    M-stop I mᵢ o e oe (inj₂ (_ , _ , xeq , _)) = inj₁≢inj₂ (trans (sym e) xeq)
+    M-stop {sp} {sp'} I mᵢ o e oe (inj₁ (mᵢ' , mo , xeq , yeq , steq , q)) =
+      mo , subst (λ z → Machine.stepRel M (proj₁ sp) z mo (proj₁ sp')) (inj₁-inj (trans (sym xeq) e)) q
+         , ext-out o mo (trans (cong (mapᴹ (∘κₒ {A} {B} {C})) oe) yeq)
+
+    M-noₒ : ∀ {sp sp₁ : S} (I : Iᵂ) (mᵢ : Iᴹ) (zc : Channel.outType B) {ℓ} {Z : Type ℓ}
+          → ∘κᵢ {A} {B} {C} I ≡ inj₁ mᵢ
+          → CompView M N sp (∘κᵢ {A} {B} {C} I) (mapᴹ (∘κₒ {A} {B} {C}) (just (dZₒ {A} {C} {B} zc))) sp₁
+          → Z
+    M-noₒ I mᵢ zc e (inj₂ (_ , _ , xeq , _))       = inj₁≢inj₂ (trans (sym e) xeq)
+    M-noₒ I mᵢ zc e (inj₁ (_ , mo , _ , yeq , _)) = mapᴹ-inj₁≢inj₂ mo yeq
+
+    M-relay : ∀ {sp sp₁ sp' : S} (I : Iᵂ) (mᵢ : Iᴹ) (zc : Channel.inType B) (o : Oᵗ)
+            → ∘κᵢ {A} {B} {C} I ≡ inj₁ mᵢ
+            → CompView M N sp (∘κᵢ {A} {B} {C} I) (mapᴹ (∘κₒ {A} {B} {C}) (just (cZᵢ {A} {C} {B} zc))) sp₁
+            → HopOut sp₁ o sp' zc
+            → PostStep (proj₁ sp) mᵢ o (proj₁ sp')
+    M-relay I mᵢ zc o e (inj₂ (_ , _ , xeq , _)) _ = inj₁≢inj₂ (trans (sym e) xeq)
+    M-relay {sp} {sp₁} {sp'} I mᵢ zc o e (inj₁ (mᵢ' , mo , xeq , yeq , steq , q)) (seq , oeq) =
+      just (inj₂ zc)
+      , subst (λ z → Machine.stepRel M (proj₁ sp) mᵢ (just (inj₂ zc)) z) (sym seq)
+          (subst (λ z → Machine.stepRel M (proj₁ sp) mᵢ z (proj₁ sp₁)) (mapᴹ-inj₁-just mo yeq)
+            (subst (λ z → Machine.stepRel M (proj₁ sp) z mo (proj₁ sp₁)) (inj₁-inj (trans (sym xeq) e)) q))
+      , sym oeq
+
+    M-first : ∀ {sp : S} {I : Iᵂ} {O : Oᵂ} {sp' : S} → TraceRel W sp I O sp'
+            → ∀ (mᵢ : Iᴹ) (o : Oᵗ) → ∘κᵢ {A} {B} {C} I ≡ inj₁ mᵢ → mapᴹ (tιₒ {A} {C} {B}) o ≡ O
+            → PostStep (proj₁ sp) mᵢ o (proj₁ sp')
+    M-first {I = I} Trace[ x ]                        mᵢ o e oe = M-stop I mᵢ o e oe (comp-view x)
+    M-first {I = I} (_Trace∷ₒ_ {outC = zc} x rest) mᵢ o e oe = M-noₒ I mᵢ zc e (comp-view x)
+    M-first {I = I} (_Trace∷ᵢ_ {inC = zc} x rest)  mᵢ o e oe = M-relay I mᵢ zc o e (comp-view x) (hopᵢ zc rest o oe)
+
+    -- ---- Forwards: the chain from an input on `C`, which must relay first.
+    C-stop : ∀ {sp sp' : S} (co : Channel.outType C) (o : Oᵗ) {ℓ} {Z : Type ℓ}
+           → CompView M N sp (∘κᵢ {A} {B} {C} (tιᵢ {A} {C} {B} (inj₂ co)))
+                             (mapᴹ (∘κₒ {A} {B} {C}) (mapᴹ (tιₒ {A} {C} {B}) o)) sp'
+           → Z
+    C-stop co o (inj₁ (_ , _ , xeq , _)) = inj₁≢inj₂ (sym xeq)
+    C-stop co o (inj₂ (mᵢ , mo , xeq , yeq , steq , q)) =
+      no-relay-out o (g co) (trans yeq (cong (mapᴹ inj₂) (sym q')))
+      where
+      q' : just (inj₁ (g co)) ≡ mo
+      q' = subst (λ m → just (Xφ f g m) ≡ mo) (sym (inj₂-inj xeq)) q
+
+    C-hop : ∀ {sp sp₁ sp' : S} (co : Channel.outType C) (zc : Channel.outType B) (o : Oᵗ)
+          → CompView M N sp (∘κᵢ {A} {B} {C} (tιᵢ {A} {C} {B} (inj₂ co)))
+                            (mapᴹ (∘κₒ {A} {B} {C}) (just (dZₒ {A} {C} {B} zc))) sp₁
+          → PostStep (proj₁ sp₁) (inj₂ zc) o (proj₁ sp')
+          → PostStep (proj₁ sp) (inj₂ (g co)) o (proj₁ sp')
+    C-hop co zc o (inj₁ (_ , _ , xeq , _)) _ = inj₁≢inj₂ (sym xeq)
+    C-hop co zc o (inj₂ (mᵢ , mo , xeq , yeq , steq , q)) (o₀ , x , e) =
+      o₀ , subst₂ (λ s z → Machine.stepRel M s (inj₂ z) o₀ _) steq (sym zc≡) x , e
+      where
+      q' : just (inj₁ (g co)) ≡ mo
+      q' = subst (λ m → just (Xφ f g m) ≡ mo) (sym (inj₂-inj xeq)) q
+      zc≡ : g co ≡ zc
+      zc≡ = inj₁-inj (just-inj (trans q' (mapᴹ-inj₂-just mo yeq)))
+
+    C-noᵢ : ∀ {sp sp₁ : S} (co : Channel.outType C) (zc : Channel.inType B) {ℓ} {Z : Type ℓ}
+          → CompView M N sp (∘κᵢ {A} {B} {C} (tιᵢ {A} {C} {B} (inj₂ co)))
+                            (mapᴹ (∘κₒ {A} {B} {C}) (just (cZᵢ {A} {C} {B} zc))) sp₁
+          → Z
+    C-noᵢ co zc (inj₁ (_ , _ , xeq , _))       = inj₁≢inj₂ (sym xeq)
+    C-noᵢ co zc (inj₂ (_ , mo , _ , yeq , _)) = mapᴹ-inj₂≢inj₁ mo yeq
+
+    fwd : ∀ {sp sp' : S} (i : Iᵗ) (o : Oᵗ)
+        → TraceRel W sp (tιᵢ {A} {C} {B} i) (mapᴹ (tιₒ {A} {C} {B}) o) sp'
+        → PostStep (proj₁ sp) (cdᵢ {A} {B} {C} g i) o (proj₁ sp')
+    fwd (inj₁ a)  o c                                 = M-first c (inj₁ a) o refl refl
+    fwd (inj₂ co) o Trace[ x ]                        = C-stop co o (comp-view x)
+    fwd (inj₂ co) o (_Trace∷ₒ_ {outC = zc} x rest) = C-hop co zc o (comp-view x) (M-first rest (inj₂ zc) o refl refl)
+    fwd (inj₂ co) o (_Trace∷ᵢ_ {inC = zc} x rest)  = C-noᵢ co zc (comp-view x)
+
+    -- ---- Backwards: the chain from the step at which `M` reads its input.
+    M-chain : ∀ {s s' : Machine.State M} (I : Iᵂ) (mᵢ : Iᴹ) → ∘κᵢ {A} {B} {C} I ≡ inj₁ mᵢ
+            → ∀ (o₀ : Oᴹ) → Machine.stepRel M s mᵢ o₀ s'
+            → TraceRel W (s , tt) I (mapᴹ (tιₒ {A} {C} {B}) (mapᴹ (cdₒ⁺ {A} {B} {C} f) o₀)) (s' , tt)
+    M-chain {s} {s'} I mᵢ e nothing x =
+      Trace[ subst (λ z → Tensor.CompRel M N (s , tt) z nothing (s' , tt)) (sym e)
+                   (Tensor.Step₁ {m = mᵢ} {m' = nothing} x) ]
+    M-chain {s} {s'} I mᵢ e (just (inj₁ ao)) x =
+      Trace[ subst (λ z → Tensor.CompRel M N (s , tt) z (just (inj₁ (inj₁ ao))) (s' , tt)) (sym e)
+                   (Tensor.Step₁ {m = mᵢ} {m' = just (inj₁ ao)} x) ]
+    M-chain {s} {s'} I mᵢ e (just (inj₂ b)) x =
+      _Trace∷ᵢ_ {inC = b}
+        (subst (λ z → Tensor.CompRel M N (s , tt) z (just (inj₁ (inj₂ b))) (s' , tt)) (sym e)
+               (Tensor.Step₁ {m = mᵢ} {m' = just (inj₂ b)} x))
+        Trace[ Tensor.Step₂ {m = inj₁ b} {m' = just (inj₂ (f b))} refl ]
+
+    bwd : ∀ {s s' : Machine.State M} (i : Iᵗ) (o : Oᵗ) → PostStep s (cdᵢ {A} {B} {C} g i) o s'
+        → TraceRel W (s , tt) (tιᵢ {A} {C} {B} i) (mapᴹ (tιₒ {A} {C} {B}) o) (s' , tt)
+    bwd {s} {s'} (inj₁ a) o (o₀ , x , e) =
+      subst (λ z → TraceRel W (s , tt) (tιᵢ {A} {C} {B} (inj₁ a)) (mapᴹ (tιₒ {A} {C} {B}) z) (s' , tt)) e
+            (M-chain (tιᵢ {A} {C} {B} (inj₁ a)) (inj₁ a) refl o₀ x)
+    bwd {s} {s'} (inj₂ co) o (o₀ , x , e) =
+      subst (λ z → TraceRel W (s , tt) (tιᵢ {A} {C} {B} (inj₂ co)) (mapᴹ (tιₒ {A} {C} {B}) z) (s' , tt)) e
+            (_Trace∷ₒ_ {outC = g co}
+               (Tensor.Step₂ {m = inj₂ co} {m' = just (inj₁ (g co))} refl)
+               (M-chain (cZₒ {A} {C} {B} (g co)) (inj₂ (g co)) refl o₀ x))
+
   -- Post-composing with a crossing forwarder is a `Post`.
   Xfwd-∘-Post : ∀ {A B C} (M : Machine A B)
                 (f : Channel.inType B → Channel.inType C)
                 (g : Channel.outType C → Channel.outType B)
               → (Xfwd f g CC.∘ M) ≅ᴹ Post M (cdᵢ {A} {B} {C} g) (cdₒ⁺ {A} {B} {C} f)
-  Xfwd-∘-Post {A} {B} {C} M f g =
-    ≅ᴹ-trans (∘-resp-≅ᴹ (Xfwd-Post f g) ≅ᴹ-refl)
-    (≅ᴹ-trans (∘-collapse-cod-post M (CC.id {B}) g f)
-              (Post-resp-≅ᴹ (cdᵢ {A} {B} {C} g) (cdₒ⁺ {A} {B} {C} f) ∘-identityˡ-≅ᴹ))
+  Xfwd-∘-Post {A} {B} {C} M f g = ≅ᴹ-trans (∘-Reindex M (Xfwd f g)) (Trc-relay-cod M f g)
+
+  -- ------------------------------------------------------------------------
+  -- The left identity law is the relay lemma at `f = g = id`.
+  -- ------------------------------------------------------------------------
+
+  ∘-identityˡ-Post : ∀ {A B} (M : Machine A B) → (CC.id CC.∘ M) ≅ᴹ M
+  ∘-identityˡ-Post {A} {B} M =
+    ≅ᴹ-trans (∘-resp-≅ᴹ (id-is-Xfwd {B}) ≅ᴹ-refl)
+    (≅ᴹ-trans (Xfwd-∘-Post M (λ b → b) (λ o → o))
+    (≅ᴹ-trans (Post-cong M (cdᵢ {A} {B} {B} (λ o → o)) (λ i → i)
+                           (cdₒ⁺ {A} {B} {B} (λ b → b)) (λ o → o) cdᵢ-id cdₒ⁺-id)
+              (Post-id M)))
+    where
+    cdᵢ-id : ∀ i → cdᵢ {A} {B} {B} (λ o → o) i ≡ i
+    cdᵢ-id (inj₁ _) = refl
+    cdᵢ-id (inj₂ _) = refl
+    cdₒ⁺-id : ∀ o → cdₒ⁺ {A} {B} {B} (λ b → b) o ≡ o
+    cdₒ⁺-id (inj₁ _) = refl
+    cdₒ⁺-id (inj₂ _) = refl

@@ -121,8 +121,11 @@ The executable model (predating the layers above; connecting it to
   wiring DSL (`Selection`).
 - `Machine/` — stateful machines communicating over channels, with UC
   security notions stated directly on them; `Constraints` adds extra
-  side conditions.  `Machine.Iso` is the state bisimulation `_≅ᴹ_` and the
-  category of machines under it; `Machine.MonoidalCategory` bundles it as a
+  side conditions.  `Machine.Iso` is the state bisimulation `_≅ᴹ_` with its
+  congruences and the associativity of trace composition; `Machine.Category`
+  assembles the category of machines, the identity laws being instances of
+  the relay lemmas of `Machine.Reindex.Post`/`.PostDom` (composing with a
+  forwarder relabels the other machine); `Machine.MonoidalCategory` bundles it as a
   symmetric monoidal category, with the coherence laws proved as forwarder
   computations (`Machine.Monoidal.*`) and the naturality of the Kleisli
   shuffles discharged by the coherence solver.  `Machine.UC` instantiates

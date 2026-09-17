@@ -48,6 +48,7 @@ open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Machine.Core
 import CategoricalCrypto.Machine.Core as CC
 open import CategoricalCrypto.Machine.Iso
+open import CategoricalCrypto.Machine.Category
 open import CategoricalCrypto.Machine.Forwarder using (⊗₁-id; ρ-idᴷ)
 open import CategoricalCrypto.Machine.Monoidal.Interchange using (⊗₁-interchange)
 open import CategoricalCrypto.Machine.Monoidal.Coherence

@@ -29,6 +29,7 @@ open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
 import CategoricalCrypto.Machine.Core as CC
 open import CategoricalCrypto.Machine.Iso
+open import CategoricalCrypto.Machine.Category
 open import CategoricalCrypto.Machine.Monoidal
 open import Tactic.Defaults
 

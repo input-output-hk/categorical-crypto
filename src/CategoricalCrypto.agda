@@ -17,6 +17,7 @@ open import CategoricalCrypto.Channel.Selection public
 open import CategoricalCrypto.Machine.Constraints public
 open import CategoricalCrypto.Machine.Core public
 open import CategoricalCrypto.Machine.Iso public
+open import CategoricalCrypto.Machine.Category public
 open import CategoricalCrypto.Machine.Monoidal public
 open import CategoricalCrypto.Machine.MonoidalCategory public
 open import CategoricalCrypto.Machine.UC

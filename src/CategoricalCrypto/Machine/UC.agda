@@ -41,6 +41,7 @@ open import CategoricalCrypto.Machine.Core
   hiding (id; _∘_; ℰ; map-ℰ)
 import CategoricalCrypto.Machine.Core as CC
 open import CategoricalCrypto.Machine.Iso
+open import CategoricalCrypto.Machine.Category
 open import CategoricalCrypto.Machine.Monoidal
   using (⊗₁-id; ⊗₁-interchange; ρ⇒-natural; ρ-isoʳ; α-isoˡ)
 open import CategoricalCrypto.Machine.MonoidalCategory

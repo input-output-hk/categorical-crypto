@@ -26,6 +26,7 @@ open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Machine.Core
 import CategoricalCrypto.Machine.Core as CC
 open import CategoricalCrypto.Machine.Iso
+open import CategoricalCrypto.Machine.Category
 open import CategoricalCrypto.Machine.Monoidal.Coherence
   using (∘ᴷ-fwd-decomp; ⊗ᴷ-fwd-decomp; mid4-decomp)
 open import CategoricalCrypto.Machine.MonoidalCategory

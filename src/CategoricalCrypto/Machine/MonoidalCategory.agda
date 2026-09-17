@@ -40,6 +40,7 @@ import Categories.Morphism.Reasoning as MR
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Machine.Core
 open import CategoricalCrypto.Machine.Iso
+open import CategoricalCrypto.Machine.Category
 open import CategoricalCrypto.Machine.Forwarder using (⊗₁-id)
 open import CategoricalCrypto.Machine.Monoidal.Interchange using (⊗₁-interchange)
 open import CategoricalCrypto.Machine.Monoidal.Associator using (⊗-assoc⃖-natural)

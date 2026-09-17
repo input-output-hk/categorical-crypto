@@ -15,7 +15,7 @@
 -- equation between two routings, a four-way case split closed by `refl`.
 -- ============================================================================
 
-open import CategoricalCrypto.Machine.Iso using (∘-identityˡ-≅ᴹ; ∘-identityʳ-≅ᴹ)
+open import CategoricalCrypto.Machine.Category using (∘-identityˡ-≅ᴹ; ∘-identityʳ-≅ᴹ)
 open import CategoricalCrypto.Machine.Reindex
 open import CategoricalCrypto.Machine.Reindex.Slide
 open import CategoricalCrypto.Machine.Forwarder
