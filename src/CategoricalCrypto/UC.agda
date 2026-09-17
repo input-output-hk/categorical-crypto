@@ -61,6 +61,11 @@
 --                                  `UC.Model.Family.Negligible` inhabits it at
 --                                  the machine family, and its §1 acceptance
 --                                  tests are `UC.Approximate.LocalTests`
+--                `UC.Family.Negligible.Setup`
+--                                  `ucSetupᴺ`: the same four fields at
+--                                  `Observationᴺ`, so the negligible tier
+--                                  INHERITS `Abstract2` too, and `≈ℰᴺ⇒≤UC`
+--                                  carries its agreement into that order
 --   quantitative `Approx.Space`    `Approx`: approximate spaces and
 --                                  nonexpansive maps, `Approximation` packaged
 --                                  as a category, `Approx.Forget` the two ways
@@ -80,7 +85,9 @@
 --                                  `Approx.Schedule` the schedule-valued errors
 --                                  and allowance reindexing as a control, and
 --                                  `Approx.Small` the existential collapse at a
---                                  class of small errors — distinct from `F₊`,
+--                                  class of small errors — distinct from `F₊`
+--                                  and the source of `UC.Approximate.Local`'s
+--                                  `_∼ᴺ_`, whose equivalence is now that one —,
 --                                  and `Approx.Controlled.Forget` the zero-error
 --                                  one, which needs no restriction on controls
 --                `UC.Quantitative.Query`
@@ -289,5 +296,7 @@ import CategoricalCrypto.Approx.Filtered
 import CategoricalCrypto.Approx.Schedule
 import CategoricalCrypto.Approx.Separating
 import CategoricalCrypto.Approx.Small
+import CategoricalCrypto.Approx.Small.Controlled
 import CategoricalCrypto.UC.Quantitative.Bridge
+import CategoricalCrypto.UC.Family.Negligible.Setup
 import CategoricalCrypto.UC.Quantitative.Contextual

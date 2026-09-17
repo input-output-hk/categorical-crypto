@@ -11,11 +11,12 @@
 -- no uniform one.  Keeping the witness is the whole difference from
 -- `UC.Approximate.Induced`, which quantifies its ambient error away.
 --
--- The laws are the error algebra's read at `Negligible`: zero error is
--- reflexivity, symmetry is symmetry, and `Negligible-+` is transitivity.  So
--- this is an `IsEquivalence` and hence a `UC.Core.Observation`'s comparison at
--- no further cost — `Observation` asks for an arbitrary equivalence and this is
--- one (`UC/Core.agda:80-93`).
+-- It is an instance, not a construction of its own: `familySpace` is the
+-- approximate space of observation families over rational-sequence errors, and
+-- `_∼ᴺ_` is `Approx.Small`'s existential collapse of it at the negligible
+-- class — `∼ᴺ≡∼Small` pins that, and the equivalence comes from there rather
+-- than being proved again.  What a collapse class must be is exactly what
+-- `Negligible` is: it contains zero and is closed under sums.
 --
 -- Stated over `ℚ-errors` rather than an arbitrary `ErrorAlgebra`, because
 -- `Negligible` is a decay class of `ℕ → ℚ`; the index is read through `κ`
@@ -23,13 +24,18 @@
 
 open import Data.Nat.Base using (ℕ)
 open import Data.Product.Base using (Σ-syntax; _×_; _,_)
-open import Data.Rational as ℚ using (ℚ; 0ℚ)
-open import Level using (Level)
-open import Relation.Binary.PropositionalEquality using (_≡_; subst)
+open import Data.Rational as ℚ using (ℚ)
+open import Level using (Level; 0ℓ)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; subst)
 open import Relation.Binary.Structures using (IsEquivalence)
 
+open import CategoricalCrypto.Approx.Error using (ℚ-ordered)
+open import CategoricalCrypto.Approx.Schedule using (pointwise)
 open import CategoricalCrypto.UC.Approximate
   using (Approximation; Negligible; Negligible-+; Negligible-0; ℚ-errors)
+
+import CategoricalCrypto.Approx.Small as Smallᴹ
+import CategoricalCrypto.Approx.Space as Spaceᴹ
 
 module CategoricalCrypto.UC.Approximate.Local
   {os ℓa : Level} {Obs : Set os} (apx : Approximation Obs ℚ-errors ℓa)
@@ -37,18 +43,39 @@ module CategoricalCrypto.UC.Approximate.Local
 
 open Approximation apx
 
+private
+  Sched = pointwise ℕ ℚ-ordered
+  module Sp = Spaceᴹ Sched
+  module Sm = Smallᴹ Sched
+
 infix 4 _∼ᴺ_
 
 _∼ᴺ_ : (Ix → Obs) → (Ix → Obs) → Set ℓa
 μ ∼ᴺ ν = Σ[ δ ∈ (ℕ → ℚ) ] Negligible δ × ((i : Ix) → μ i ≈[ δ (κ i) ] ν i)
 
-∼ᴺ-isEquivalence : IsEquivalence _∼ᴺ_
-∼ᴺ-isEquivalence = record
-  { refl  = (λ _ → 0ℚ) , Negligible-0 , λ _ → ≈[]-refl
-  ; sym   = λ (δ , neg , h) → δ , neg , λ i → ≈[]-sym (h i)
-  ; trans = λ (δ , nδ , h) (γ , nγ , k) →
-      (λ n → δ n ℚ.+ γ n) , Negligible-+ nδ nγ , λ i → ≈[]-trans (h i) (k i)
+familySpace : Sp.ApproxSpace os ℓa
+familySpace = record
+  { Carrier = Ix → Obs
+  ; approx = record
+      { _≈[_]_    = λ μ δ ν → (i : Ix) → μ i ≈[ δ (κ i) ] ν i
+      ; ≈[]-refl  = λ _ → ≈[]-refl
+      ; ≈[]-sym   = λ h i → ≈[]-sym (h i)
+      ; ≈[]-trans = λ h k i → ≈[]-trans (h i) (k i)
+      ; ≈[]-mono  = λ le h i → ≈[]-mono (le (κ i)) (h i)
+      }
   }
+
+negligible : Sm.SmallClass 0ℓ
+negligible = record
+  { Small = Negligible ; small-ε₀ = Negligible-0 ; small-⊕ = Negligible-+ }
+
+open Sm.Collapse negligible os ℓa using (_∼Small_; ∼Small-isEquivalence)
+
+∼ᴺ≡∼Small : {μ ν : Ix → Obs} → (μ ∼ᴺ ν) ≡ _∼Small_ familySpace μ ν
+∼ᴺ≡∼Small = refl
+
+∼ᴺ-isEquivalence : IsEquivalence _∼ᴺ_
+∼ᴺ-isEquivalence = ∼Small-isEquivalence familySpace
 
 -- What the relation gives BACK, at an approximation that hides no gap
 -- (`UC.Approximate.Separating`): the witness dominates the actual difference,

@@ -14,14 +14,13 @@
 -- does not generally recover the intended qualitative observation.  The two
 -- collapses are kept apart deliberately.
 --
--- Nonexpansive maps preserve `∼Small` outright.  A CONTROLLED map need not: it
--- preserves the class only when its control does, which is why the controlled
--- collapse is taken on the wide subcategory cut out by `SmallPreserving` rather
--- than on `Ctrl`.  For the negligible class the qualifying reindexings are the
--- polynomial-preserving ones (`UC.Approximate.GradedBound-reindex`), not
--- arbitrary controls.
+-- `UC.Approximate.Local._∼ᴺ_` IS this relation at the negligible class over
+-- rational sequences, and takes its equivalence from here.
+--
+-- The controlled half — which controls preserve the class, and the collapse on
+-- the wide subcategory they cut out — is `Approx.Small.Controlled`, kept apart
+-- so that a consumer of the RELATION does not pay for `SubCategory`.
 
-open import Categories.Category using (Category)
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Functor using (Functor)
 
@@ -36,7 +35,6 @@ module CategoricalCrypto.Approx.Small
   {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe) where
 
 open OrderedErrorAlgebra E
-open import CategoricalCrypto.Approx.Controlled E
 open import CategoricalCrypto.Approx.Space E
 
 record SmallClass (ℓs : Level) : Set (es ⊔ suc ℓs) where
@@ -47,8 +45,7 @@ record SmallClass (ℓs : Level) : Set (es ⊔ suc ℓs) where
 
 module Collapse {ℓs : Level} (S : SmallClass ℓs) (c ℓa : Level) where
 
-  open import Categories.Category.SubCategory (Ctrl c ℓa)
-  open SmallClass S
+  open SmallClass S public
 
   module _ (X : ApproxSpace c ℓa) where
     open ApproxSpace X
@@ -72,11 +69,10 @@ module Collapse {ℓs : Level} (S : SmallClass ℓs) (c ℓa : Level) where
     ; isEquivalence = ∼Small-isEquivalence X
     }
 
-  private
-    -- Reflexivity of the collapsed equality, with the space named: `Carrier` is
-    -- a projection, so a functor law cannot recover it by unification.
-    small-refl : (X : ApproxSpace c ℓa) {x : ApproxSpace.Carrier X} → _∼Small_ X x x
-    small-refl X = ε₀ , small-ε₀ , ApproxSpace.≈[]-refl X
+  -- Reflexivity with the space named: `Carrier` is a projection, so a functor
+  -- law cannot recover it by unification.
+  ∼Small-refl : (X : ApproxSpace c ℓa) {x : ApproxSpace.Carrier X} → _∼Small_ X x x
+  ∼Small-refl X = ε₀ , small-ε₀ , ApproxSpace.≈[]-refl X
 
   FSmall : Functor (Approx c ℓa) (Setoids c (es ⊔ ℓs ⊔ ℓa))
   FSmall = record
@@ -84,36 +80,7 @@ module Collapse {ℓs : Level} (S : SmallClass ℓs) (c ℓa : Level) where
     ; F₁ = λ f → record
         { to = Nonexpansive.map f
         ; cong = λ (ε , sε , h) → ε , sε , Nonexpansive.preserves f h }
-    ; identity     = λ {A} → small-refl A
-    ; homomorphism = λ {_} {_} {Z} → small-refl Z
+    ; identity     = λ {A} → ∼Small-refl A
+    ; homomorphism = λ {_} {_} {Z} → ∼Small-refl Z
     ; F-resp-≈     = λ {_} {B} e {x} → ε₀ , small-ε₀ , e x
-    }
-
-  ------------------------------------------------------------------------
-  -- …and the controlled collapse, on the controls that qualify
-
-  SmallPreserving : Control → Set (es ⊔ ℓs)
-  SmallPreserving φ = {ε : Error} → Small ε → Small (Control.at φ ε)
-
-  smallSub : SubCat (ApproxSpace c ℓa)
-  smallSub = record
-    { U    = λ X → X
-    ; R    = λ f → SmallPreserving (Controlled.control f)
-    ; Rid  = λ s → s
-    ; _∘R_ = λ pf pg s → pf (pg s)
-    }
-
-  CtrlSmall : Category _ _ _
-  CtrlSmall = SubCategory smallSub
-
-  FSmallᶜ : Functor CtrlSmall (Setoids c (es ⊔ ℓs ⊔ ℓa))
-  FSmallᶜ = record
-    { F₀ = smallSetoid
-    ; F₁ = λ (f , pres) → record
-        { to = Controlled.map f
-        ; cong = λ (ε , sε , h) →
-            Control.at (Controlled.control f) ε , pres sε , Controlled.preserves f h }
-    ; identity     = λ {A} → small-refl A
-    ; homomorphism = λ {_} {_} {Z} → small-refl Z
-    ; F-resp-≈     = λ {_} {B} (_ , me) {x} → ε₀ , small-ε₀ , me x
     }
