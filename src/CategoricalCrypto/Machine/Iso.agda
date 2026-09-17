@@ -229,21 +229,6 @@ module TriStep
   ContR s₁ sh (just (inj₁ oa)) mo st' = (mo ≡ just (inj₁ oa)) × (st' ≡ (proj₁ s₁ , proj₂ s₁ , sh))
   ContR s₁ sh (just (inj₂ ic)) mo st' = TriH (proj₁ s₁ , proj₂ s₁ , sh) (inj₁ ic) mo st'
 
-  -- termination-shape validation: same mutual call graph as the
-  -- embedding directions (emb*) of the assoc proof
-  sizeF : ∀ {st i mo st'} → TriF st i mo st' → ℕ
-  sizeG : ∀ {st i mo st'} → TriG st i mo st' → ℕ
-  sizeH : ∀ {st i mo st'} → TriH st i mo st' → ℕ
-  sizeF (F-out _)      = 0
-  sizeF (F-stop _)     = 0
-  sizeF (F-pass _ k)   = suc (sizeG k)
-  sizeG (G-stop _)     = 0
-  sizeG (G-passF _ k)  = suc (sizeF k)
-  sizeG (G-passH _ k)  = suc (sizeH k)
-  sizeH (H-out _)      = 0
-  sizeH (H-stop _)     = 0
-  sizeH (H-passG _ k)  = suc (sizeG k)
-
 module ∘-assoc-implementation
   {A B C D : Channel} (f : Machine A B) (g : Machine B C) (h : Machine C D) where
 

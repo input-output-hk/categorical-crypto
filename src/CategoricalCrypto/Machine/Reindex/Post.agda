@@ -132,18 +132,12 @@ Reindex-Post-slide T p q u v u' v' p' q' sqᵢ sqₒ pre =
     nothing , subst (λ z → Machine.stepRel T s z _ _) (sym (sqᵢ i)) x , cong (mapᴹ v) e
 
 -- ----------------------------------------------------------------------------
--- The traced core of `N CC.∘ M`, as `∘-Reindex` presents it.  `relay-core`
--- is the instance whose first component is a crossing forwarder.
+-- The traced core of `N CC.∘ M`, as `∘-Reindex` presents it.
 -- ----------------------------------------------------------------------------
 
 private
   Core : ∀ {A B C} (M : Machine A B) (N : Machine B C) → Machine (A ⊗₀ B) (C ⊗₀ B)
   Core {A} {B} {C} M N = Reindex (Pair M N) (∘κᵢ {A} {B} {C}) (∘κₒ {A} {B} {C})
-
-relay-core : ∀ {A B C} (f : inType A → inType B)
-                       (g : outType B → outType A)
-             (N : Machine B C) → Machine (A ⊗₀ B) (C ⊗₀ B)
-relay-core f g N = Core (Xfwd f g) N
 
 opaque
   unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-assoc ⊗-left-assoc
