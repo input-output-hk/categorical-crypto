@@ -3,10 +3,11 @@
 -- ============================================================================
 -- Rewiring a ⨂ of per-node Kleisli machines past a shared environment.
 --
--- `insert-id`, `⨂-reshape-env` and `⨂-absorb-env` are what a UC-style transfer
--- argument needs when the per-node protocol machines are tensored with `⨂ᴷ`
--- and composed with an environment, and all three are derived from the binary
--- laws of `Machine.Monoidal`.
+-- `insert-id`, `⨂-reshape-env` and `⨂-absorb-env` are the rewirings a
+-- UC-style transfer argument would need when the per-node protocol machines
+-- are tensored with `⨂ᴷ` and composed with an environment, and all three are
+-- derived from the binary laws of `Machine.Monoidal`.  No such argument exists
+-- in this tree yet, so all three are currently unused outside this module.
 --
 -- Elaboration note.  Channel families must be PINNED wherever `⨂` appears in
 -- an inferred position (hence `strip`, and the explicit `{n} {E₁} {E₂}` on

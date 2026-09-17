@@ -4,7 +4,7 @@
 -- Message-level helpers shared by the machine layer.
 --
 -- Messages on a channel pair are sums, outputs are `Maybe`s, and every
--- bisimulation proof in `Machine.Iso`, `Machine.Forwarder` and
+-- `_≅ᴹ_` proof in `Machine.Iso`, `Machine.Forwarder` and
 -- `Machine.Reindex.*` ends in the same handful of facts about them:
 -- constructors are injective and pairwise distinct, and `mapᴹ` is a functor
 -- with a few inversion properties.
