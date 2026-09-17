@@ -10,6 +10,9 @@ open import CategoricalCrypto.Channel.Selection
 open import Relation.Binary.PropositionalEquality.Properties
 open import Tactic.Defaults
 
+--------------------------------------------------------------------------------
+-- Machines, which form the morphisms
+
 machine-type : Type → Channel → Type₁
 machine-type S A = let open Channel A in S → inType → Maybe outType → S → Type
 
@@ -307,6 +310,7 @@ Invariant-trans : {A B C D : Channel} → {M₁ : Machine A B} → {M₂ : Machi
   → (P : Machine.State M₁ → Type) → Invariant M₁ P → Invariant M₂ (P P.∘ state-subst (≡ᴹ-sym eq))
 Invariant-trans record { A≡C = refl ; B≡D = refl ; M₁≡M₂ = H.refl } P inv = inv
 
+--------------------------------------------------------------------------------
 -- Environment model
 
 -- The verdict channel: environments output a Boolean and receive nothing.

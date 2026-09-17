@@ -6,6 +6,10 @@ open import categorical-crypto.Prelude hiding ([_])
 open import Data.Sum.Base
 open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
 
+------------------------------------
+-- Modes for messages (In or Out) --
+------------------------------------
+
 data Mode : Type where
   Out : Mode
   In : Mode
@@ -19,6 +23,10 @@ infixr 10 ¬ₘ_
 ¬ₘ-idempotent : ∀ {m} → ¬ₘ ¬ₘ m ≡ m
 ¬ₘ-idempotent {Out} = refl
 ¬ₘ-idempotent {In} = refl
+
+-------------------------------
+-- Channels of communication --
+-------------------------------
 
 infix 10 _⇿_
 
@@ -38,6 +46,10 @@ modeType In = inType
 simpleChannel : (Mode → Type) → Channel
 simpleChannel T = T In ⇿ T Out
 
+----------------------------------------
+-- Channel identity and transposition --
+----------------------------------------
+
 I : Channel
 I = ⊥ ⇿ ⊥
 
@@ -49,6 +61,10 @@ A ᵀ = A .outType ⇿ A .inType
 
 ᵀ-idempotent : ∀ {A} → A ᵀ ᵀ ≡ A
 ᵀ-idempotent = refl
+
+--------------------------------------------------------
+-- Forwarding a message from a given Channel and Mode --
+--------------------------------------------------------
 
 infix 4 _[_]⇒[_]_
 
@@ -81,6 +97,10 @@ infixr 10 _⇒ₜ_
 ⇒-refl : ∀ {m A} → A [ m ]⇒[ m ] A
 ⇒-refl = ⇒-refl' refl
 
+----------------------------------
+-- Forwarding and transposition --
+----------------------------------
+
 ⇒-double-transpose-left : ∀ {m A} → A ᵀ ᵀ [ m ]⇒[ m ] A
 ⇒-double-transpose-left {A = A} rewrite ᵀ-idempotent {A} = ⇒-refl
 
@@ -111,6 +131,10 @@ infixr 10 _⇒ₜ_
 -- machine-layer goal a nest of `inj`s.  That is why every downstream proof in
 -- the machine layer carries a long `unfolding` list.
 
+-----------------------------------
+-- Tensorial product on Channels --
+-----------------------------------
+
 infixr 9 _⊗₀_
 
 opaque
@@ -124,6 +148,10 @@ opaque
   construct-⊗ : ∀ {A B m} → modeType m A ⊎ modeType m B → modeType m (A ⊗₀ B)
   construct-⊗ {m = Out} = id
   construct-⊗ {m = In}  = id
+
+-----------------------------------
+-- Forwarding tensorial products --
+-----------------------------------
 
   ⊗-sym : ∀ {m A B} → A ⊗₀ B [ m ]⇒[ m ] B ⊗₀ A
   ⊗-sym {Out} = mk⇒ swap
@@ -177,6 +205,10 @@ opaque
 
 ⊗-merge : ∀ {m m₁ A B C} → A [ m ]⇒[ m₁ ] C → B [ m ]⇒[ m₁ ] C → A ⊗₀ B [ m ]⇒[ m₁ ] C
 ⊗-merge p q = ⊗-combine p q ⇒ₜ ⊗-fusion
+
+--------------------------------
+-- Additional Channel builder --
+--------------------------------
 
 ⨂_ : ∀ {n} → (Fin n → Channel) → Channel
 ⨂_ {zero} _ = I
