@@ -46,16 +46,18 @@ Sweep tally, per class, over the in-scope files (candidates / kept / skipped):
 | `enum-comments` | 275 blocks | 275 dispositioned | 0 |
 | `qual-noise` (`Channel.inType`/`outType`) | 620 | 615 | 5, all in `Machine/Core.agda`, on a real clash |
 | `using-drop` | 52 | 52 | 0 |
-| `pat-implicit` | 157 | 29 | 128, each rejected by the oracle site by site |
+| `pat-implicit` | 157 | 0 | 128 rejected by the oracle, 29 reverted by me |
 | `enum-where` | 2 | 0 | 2, both dispositioned below |
 | `join-lines` | 374 | 0 | not run, a Suggestions work item below |
 | `implicit-app` | 440 | 0 | not run, a Suggestions work item below |
 | `enum-with` | 196 | 0 | not run, a Suggestions work item below |
 
-`pat-implicit`'s 18% keep rate is the interesting number, and it is per-site
-oracle output rather than an opinion: `.claude/sweeps/drive.sh` applied each
-file's candidates as a batch, and on red added them back one at a time,
-keeping the running green set.  Per file, kept of candidates:
+`pat-implicit` was run to completion over all 16 affected files and then
+**reverted in full**; the *Tried* entry below says why the 29 green survivors
+were still not improvements.  The per-site figures are the oracle's rather
+than an opinion: `.claude/sweeps/drive.sh` applied each file's candidates as a
+batch, and on red added them back one at a time, keeping the running green
+set.  Per file, green of candidates:
 `Examples/Channels` 4/4, `Machine/Reindex` 8/12, `Reindex/Post` 8/27,
 `UC/Kleisli` 3/5, `Channel/Core` 2/34, `Forwarder` 2/7, `NAry` 1/4,
 `Reindex/Collapse` 1/12, and 0 for each of `Monoidal/Associator` (0/18),
@@ -513,6 +515,28 @@ That module is therefore untouched here by agreement.
   test failing: each `eq` is used in the body of its parent `⨂-absorb-env`
   clause, above the `where`.  Neither is single-use, so neither is an inlining
   candidate.  These are the only two sites in the class.
+- `.claude/sweeps/sweep.py` :: the class `pat-implicit` — run to a green
+  fixpoint over all 16 affected files, 29 of 157 sites surviving the oracle,
+  and then **reverted in full**.  That green did not mean "improvement" is the
+  finding.  The script cannot tell a constructor pattern in a multi-clause
+  case split from an unused binder, so at `Channel/Core.agda`'s
+  `⊗-ᵀ-distrib` it rewrote
+
+      ⊗-ᵀ-distrib {Out} = mk⇒ id
+      ⊗-ᵀ-distrib {In}  = mk⇒ id
+
+  into a first clause plus a catch-all.  Extensionally the same function,
+  because the two bodies coincide, and warning-free; but it hides the mode
+  split and is then correct only by accident of the bodies agreeing, so a
+  later edit to the `Out` case would be silently swallowed.  Strictly worse to
+  read, so it fails the "no reasonable reviewer would object" test and does
+  not belong in the commit channel.  The substitution also left stray
+  whitespace at sites like `leaky→secure (L.Send {m} )`.  A usable version of
+  this class needs a parse that distinguishes patterns from binders; until
+  then it is not mechanical, whatever the oracle says.  The genuine wins
+  inside it — dropping a truly unused binder, `ρ-∘ᴷ-fwd {C} {E₁}` becoming
+  `ρ-∘ᴷ-fwd {E₁}` — are real, but the script cannot separate them from the
+  rest.  The same caution applies to `implicit-app`, which is the same shape.
 - `Machine/UC/Kleisli.agda` :: the `using`-versus-bare-open allocation A/B —
   a measurement of mine that **did not reproduce and was wrong**, recorded so
   nobody chases it.  The first reading said 18.4 GB allocated with bare opens
