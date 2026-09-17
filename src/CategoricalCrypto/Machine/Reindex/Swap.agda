@@ -1,0 +1,86 @@
+{-# OPTIONS --safe #-}
+
+-- ============================================================================
+-- Swapping the two components of a `Pair`, as `Machine.Monoidal.Braiding`
+-- needs:
+--
+--     Pair M₁ M₂  ≅ᴹ  Pair M₂ M₁   (up to relabelling)
+--
+-- `Tensor.CompRel` constructors are matched directly, for the reason given
+-- beside `Pair` in `Machine.Reindex`.  `swᵢ`/`swₒ` are involutions, so the
+-- backward direction is the forward one at the swapped machines, followed by
+-- the involution law.
+-- ============================================================================
+
+open import CategoricalCrypto.Machine.Reindex
+
+open import categorical-crypto.Prelude hiding (id; _∘_)
+import Data.Product.Base as ×
+import Data.Sum.Base as ⊎
+import Data.Sum.Properties as ⊎ₚ
+open import CategoricalCrypto.Channel.Core
+open import CategoricalCrypto.Channel.Selection
+open import CategoricalCrypto.Machine.Core
+open import CategoricalCrypto.Machine.Message
+import CategoricalCrypto.Machine.Core as CC
+open import CategoricalCrypto.Machine.Iso
+open import Tactic.Defaults
+
+module CategoricalCrypto.Machine.Reindex.Swap where
+
+open Channel
+
+open _≅ᴹ_
+
+opaque
+  unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-assoc ⊗-left-assoc
+            ⊗-right-intro ⊗-ᵀ-distrib ⊗-ᵀ-factor ⊗-right-neutral ⊗-fusion ⊗-combine
+            πᵢ
+
+  -- The type is written at the exact channel shapes `Pair` produces, so that
+  -- it unfolds to a sum and `⊎.swap` applies directly.
+
+  swᵢ : ∀ {A B C D}
+      → inType ((A ⊗ᵀ B) ⊗₀ (C ⊗ᵀ D))
+      → inType ((C ⊗ᵀ D) ⊗₀ (A ⊗ᵀ B))
+  swᵢ = ⊎.swap
+
+  swₒ : ∀ {A B C D}
+      → outType ((A ⊗ᵀ B) ⊗₀ (C ⊗ᵀ D))
+      → outType ((C ⊗ᵀ D) ⊗₀ (A ⊗ᵀ B))
+  swₒ = ⊎.swap
+
+  private
+    swᵢ-invol : ∀ {A B C D} (i : inType ((A ⊗ᵀ B) ⊗₀ (C ⊗ᵀ D)))
+              → swᵢ {C} {D} {A} {B} (swᵢ {A} {B} {C} {D} i) ≡ i
+    swᵢ-invol = ⊎ₚ.swap-involutive
+
+    swₒ-invol : ∀ {A B C D} (o : outType ((A ⊗ᵀ B) ⊗₀ (C ⊗ᵀ D)))
+              → swₒ {C} {D} {A} {B} (swₒ {A} {B} {C} {D} o) ≡ o
+    swₒ-invol = ⊎ₚ.swap-involutive
+
+  swₛ : ∀ {S₁ S₂ : Type} → S₁ × S₂ → S₂ × S₁
+  swₛ = ×.swap
+
+  -- Each leaf step is re-tagged; the split on `m'` is what lets `mapᴹ swₒ`
+  -- compute on the output.
+  Pair-swap-to : ∀ {A B C D} (M₁ : Machine A B) (M₂ : Machine C D) {s i o s'}
+               → Tensor.CompRel M₁ M₂ s i o s'
+               → Tensor.CompRel M₂ M₁
+                   (swₛ s) (swᵢ {A} {B} {C} {D} i)
+                   (mapᴹ (swₒ {A} {B} {C} {D}) o) (swₛ s')
+  Pair-swap-to _ _ (Tensor.Step₁ {m' = just _}  q) = Tensor.Step₂ q
+  Pair-swap-to _ _ (Tensor.Step₁ {m' = nothing} q) = Tensor.Step₂ q
+  Pair-swap-to _ _ (Tensor.Step₂ {m' = just _}  q) = Tensor.Step₁ q
+  Pair-swap-to _ _ (Tensor.Step₂ {m' = nothing} q) = Tensor.Step₁ q
+
+  Pair-swap : ∀ {A B C D} (M₁ : Machine A B) (M₂ : Machine C D)
+            → Pair M₁ M₂ ≅ᴹ Reindex (Pair M₂ M₁) (swᵢ {A} {B} {C} {D}) (swₒ {A} {B} {C} {D})
+  Pair-swap {A} {B} {C} {D} M₁ M₂ =
+    MkIso swₛ swₛ (λ _ → refl) (λ _ → refl)
+      (Pair-swap-to M₁ M₂)
+      (λ {_} {i} {o} p →
+        subst₂ (λ x y → Tensor.CompRel M₁ M₂ _ x y _)
+               (swᵢ-invol {A} {B} {C} {D} i)
+               (mapᴹ-invol (swₒ-invol {A} {B} {C} {D}) o)
+               (Pair-swap-to M₂ M₁ p))
