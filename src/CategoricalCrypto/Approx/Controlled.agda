@@ -5,9 +5,7 @@
 --
 -- A nonexpansive map keeps its bound; a resource-sensitive pullback TRANSFORMS
 -- it, and the transformation is part of the morphism rather than a side
--- condition on it.  `Control` is what such a transformation must be — a lax
--- ordered additive endomorphism of the errors — and `Controlled` is a function
--- carrying one.
+-- condition on it.
 --
 -- Everything is stated with `⊑`, in the direction that makes a BOUND
 -- admissible: the intended model's own allowance arithmetic is exact when a
@@ -16,14 +14,12 @@
 -- `ctxBudget-closure≤`), so demanding equations here would exclude the model
 -- this category exists to hold.
 --
--- Hom equality compares the controls and the functions at zero error.  Two
--- controls are compared in the ERRORS' OWN ORDER (`_≐ᶜ_`), not by propositional
--- equality: at a schedule-valued error `at φ ε` is itself a function, and
--- agreement of two such is not an equation without funext — the query model
--- needs `τ ∘ (1 *_)` to count as the identity control and cannot prove it
--- otherwise.  Composition respects the equality because a control is monotone
--- and preserves zero, which is where those two laws are spent; preserving zero
--- is also why `Ctrl` forgets to `Setoids` at all.  Controls are never erased.
+-- Two controls are compared in the ERRORS' OWN ORDER (`_≐ᶜ_`), not by
+-- propositional equality: at a schedule-valued error `at φ ε` is itself a
+-- function, and agreement of two such is not an equation without funext — the
+-- query model needs `τ ∘ (1 *_)` to count as the identity control and cannot
+-- prove it otherwise.  Composition respects that equality because a control is
+-- monotone and preserves zero, which is where those two laws are spent.
 
 open import Categories.Category using (Category)
 open import Categories.Functor using (Functor)
