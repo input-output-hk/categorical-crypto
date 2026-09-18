@@ -5,15 +5,9 @@
 --
 -- A distance between tests says nothing about what running them costs, so an
 -- allowance-restricted model needs one more datum than `Approx.Controlled`
--- carries: which elements a given allowance admits.  A filtered space adds that
--- increasing family, and a filtered map adds the monotone allowance map its
--- admitted elements move along, composed alongside the error control.
---
--- The two indices are independent on purpose — an allowance transformation is
--- not determined by an error control, and the plan's alternative of encoding
--- allowances in the presheaf's base category is the same data placed
--- differently.  Which presentation the query model wants is settled by
--- building that model, not here.
+-- carries: which elements a given allowance admits.  The two indices are
+-- independent — an allowance transformation is not determined by an error
+-- control — so a filtered map carries its own monotone allowance map.
 --
 -- Allowances are `ℕ`, the domain the existing resource doctrine already counts
 -- in (`UC.Budget.QB`, `ctxBudget`, `simCost`).
