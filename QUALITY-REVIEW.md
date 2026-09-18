@@ -3755,6 +3755,25 @@ verification discipline) closed three of the items that were open below.
   reindexed set, so it lives with `reindex` as `Approx.Schedule.reindex-cong`; it
   covers `absorb-test` too, and the file drops `Data.Rational.Properties`.
 
+Follow-up branch `approx-leftovers` off `38c954d3` (3 commits, `25 +/50 -`, same
+verification discipline) closed the `Approx/**` interface-changing leftovers.
+Closure checks `UC.agda` and `CategoricalCrypto.agda` green, warn-gate empty;
+escape-hatch grep 16 tree-wide, unchanged.
+
+- `Approx/Controlled/Forget.agda :: F₀ᶜ` (`5cec64cc`) — the one-definition module
+  is gone; `F₀ᶜ` keeps its name and type in `Approx.Controlled`, which needed
+  only `Setoids` added. Its section now holds both links to the exact theories
+  (`include` in, `F₀ᶜ` out) and says so. `UC.agda` imports `Approx.Controlled`
+  in its place; the §quantitative inventory names `F₀ᶜ` where it named the module.
+- `Approx/Space.agda :: ≈map-refl` (`a6b1bafa`) — deleted; zero references in
+  `src/`, and `≈map-isEquivalence`'s `refl` field is the name to use instead.
+- `Approx/Controlled.agda :: controlled` (`0db25399`) — inlined into `include`'s
+  `F₁`, its only consumer; the literal now matches `F₀ᶜ`'s `F₁` right below it,
+  and `Functor.F₁ include` is the coercion's name.
+- `Approx/Forget.agda :: ⟦_⟧₀` — KEPT, deliberately. It is declared in one
+  signature with `⟦_⟧₊`, and `Approx.Separating`'s `⟦ Sequences ⟧₀` reads against
+  that pair; `zeroSetoid Sequences` there would break it (rule 16, paired family).
+
 ## Open (quant-quality)
 
 ### Cross-module inlining blocked by an off-limits file
@@ -3767,30 +3786,13 @@ verification discipline) closed three of the items that were open below.
   passes to `Tests`. Four copies of one telescope. Taking `Induced`'s
   `ApproximateObservation` (or a small shared record) as the parameter collapses them.
   Blocked: needs `UC/Approximate.agda`.
-- `src/CategoricalCrypto/Approx/Controlled/Forget.agda :: F₀ᶜ` — the module's only
-  definition, and nothing in `src/` uses it except `UC.agda`'s closure-root `import`.
-  Folding it into `Approx.Controlled` (which already has everything but `Setoids`)
-  removes a node from the graph. Blocked: `UC.agda` owns the `import` line and the
-  §quantitative header inventory entry.
 
 ### Cross-module inlining possible but interface-changing
 
-- `src/CategoricalCrypto/Approx/Forget.agda :: ⟦_⟧₀` — now visibly `= zeroSetoid`.
-  Both users (`F₀` here, `⟦ Sequences ⟧₀` in `Approx.Separating`) already see
-  `Approx.Space`, so the alias could be inlined away; kept because it pairs
-  notationally with `⟦_⟧₊` and removing it changes the exported surface.
-- `src/CategoricalCrypto/Approx/Controlled.agda :: controlled` — one-liner used once,
-  by `include` two lines below. Inlining is a public-name removal, so not done.
 - `src/CategoricalCrypto/UC/Quantitative/Query.agda :: fromBudget` — one-liner with
   exactly one user (`UC.Model.Quantitative.Queryᵒ`). NOT worth inlining: the use site
   would have to spell the four-field record and import `QueryBounds`, which is bigger
-  than the definition it removes.
-
-### Dead code
-
-- `src/CategoricalCrypto/Approx/Space.agda :: ≈map-refl` — zero references anywhere in
-  `src/`; it is `≈map-isEquivalence`'s `refl` written a second time. Delete?
-  (Left alone: removing a non-`private` name is an interface change.)
+  than the definition it removes. Out of `approx-leftovers`' scope (`UC/Quantitative`).
 
 ### Checked and left alone (spiked, not viable)
 
