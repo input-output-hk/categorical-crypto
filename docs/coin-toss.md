@@ -536,6 +536,29 @@ floor is in every figure.
 Every edit to an existing module is additive; every figure is a forced-warm
 run (`.agdai` deleted, one `Checking` line each).
 
+The corrupted-receiver hop's own, measured the same way on a machine with
+three other agents compiling — the ~30 s floor below is that contention, not
+the modules (the extraction half's twins above measured 9–13 s on a free box).
+
+| module | LOC | warm | rule-5 budget |
+|---|---|---|---|
+| `ProbabilisticLogic.Dp.Coin` | 122 → 152 | 22.9 s | 98 s |
+| `GamePlaying.Defer.Run` | 109 | 30.1 s | 87 s |
+| `Examples.CoinToss.Ideal.Receiver` | 155 | 31.4 s | 98 s |
+| `Examples.CoinToss.Ideal.Receiver.Reach` | 161 | 32.6 s | 100 s |
+| `Examples.CoinToss.Ideal.Receiver.Hybrid` | 270 | 46.5 s | 127 s |
+| `Examples.CoinToss.Ideal.Receiver.Machine` | 441 | 50.1 s | 170 s |
+| `Examples.CoinToss.Ideal.Receiver.Dominated` | 166 | 34.6 s | 101 s |
+| `Examples.CoinToss.Ideal.Receiver.UC` | 179 | 35.4 s | 104 s |
+| `Examples.CoinToss.Ideal.Receiver.Compose` | 139 | 38.2 s | 95 s |
+| `Examples.CoinToss.Test` | 175 → 224 | 34.8 s | 116 s |
+
+`ProbabilisticLogic.Dp.Commutative` (+16, `>>=ₚ-swap`) and
+`.Dp.Reasoning` (+5, `≡⇒≈ₚ`) have no isolated warm figure — both are checked
+as dependencies of `GamePlaying.Defer.Run`, whose own run is warm.
+`src/CategoricalCrypto.agda`, the whole-library root, is green: 78 modules,
+10 m 40 s, empty gate.
+
 **One measured perf defect, and its fix.** `Ideal.Hybrid`'s `hashᴴ` first read
 its `lookupPt t x` with `with … in …`, and the module then took **3 m 22 s**
 against **10 s** without it. `with` normalises the goal to find the scrutinee,

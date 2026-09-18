@@ -44,7 +44,7 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base using (𝒱ₚ; 𝒢ₚᴹ; 𝒫ₚ)
-open import CategoricalCrypto.Protocol.Machine using (runᴹ)
+open import CategoricalCrypto.Protocol.Machine using (runᴹ; ⟦_⟧ᴵ)
 open import CategoricalCrypto.Strategy using (Strat; ask; out)
 open import CategoricalCrypto.UC.Budget using (Budget)
 open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; T₁ᴵ; wireᴹ; Ωᴵ)
@@ -70,7 +70,6 @@ private
   module G  = MonoidalCategory 𝔾ᵒ
   module 𝔾  = MonoidalCategory (𝒢ₚᴹ 0ℓ)
   module 𝒫  = Category 𝒫ᴵ
-  module MC = Core (𝒱ₚ 0ℓ)
 
 open Core (𝒱ₚ 0ℓ)
 open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
@@ -83,7 +82,7 @@ open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 λᴵ⇒ = wireᴹ [ ⊥-elim , id ] inj₂
 
 -- A renaming by two identities is no renaming.
-sandwich-id : {X Y : Set} (f : MC.Machine X Y) (i : X → X) (o : Y → Y)
+sandwich-id : {X Y : Set} (f : Machine X Y) (i : X → X) (o : Y → Y)
             → ((z : X) → i z ≡ z) → ((w : Y) → o w ≡ w)
             → sandwichᴹ f i o ≈ᴹ f
 sandwich-id f i o ei eo = ≲⇒≈ᴹ (mk-cong pt)
@@ -123,14 +122,11 @@ T₁-conj : {Y B : Iface} (x : Proc unitᴵ B)
         → 𝒫._≈_ {Y ⊗ᴵ unitᴵ} {Y ⊗ᴵ B} (T₁ᴵ Y x) (T₁ᴵ Y (λᴵ⇒ {B}) 𝒫.∘ T₁ᴵ Y (conjᴵ x))
 T₁-conj {Y} {B} x =
      T₁-⊗₁ {Y} {unitᴵ} {B} x
-  ○ᴹ 𝔾.⊗.F-resp-≈ {(⟦ Y ⟧ᴵ′ , ⟦ unitᴵ ⟧ᴵ′)} {(⟦ Y ⟧ᴵ′ , ⟦ B ⟧ᴵ′)}
+  ○ᴹ 𝔾.⊗.F-resp-≈ {(⟦ Y ⟧ᴵ , ⟦ unitᴵ ⟧ᴵ)} {(⟦ Y ⟧ᴵ , ⟦ B ⟧ᴵ)}
        {(𝒫.id {Y} , x)} {(𝒫.id {Y} 𝒫.∘ 𝒫.id {Y} , λᴵ⇒ 𝒫.∘ conjᴵ x)}
        (𝒫.Equiv.sym 𝒫.identity² , 𝒫.Equiv.sym (unit-cancel x))
   ○ᴹ 𝔾.⊗.homomorphism
   ○ᴹ 𝒫.Equiv.sym (𝒫.∘-resp-≈ (T₁-⊗₁ {Y} (λᴵ⇒ {B})) (T₁-⊗₁ {Y} (conjᴵ x)))
-  where
-  ⟦_⟧ᴵ′ : Iface → 𝔾.Obj
-  ⟦ A ⟧ᴵ′ = Pos A , Neg A
 
 -- …hence the bridge's observation is unchanged by opening the hole.
 ctxRun-conj : {B Y : Iface} (E : Proc (Y ⊗ᴵ B) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
