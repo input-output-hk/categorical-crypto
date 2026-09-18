@@ -163,14 +163,12 @@ Ctrl c ℓa = record
 ------------------------------------------------------------------------
 -- Links to the exact theories
 
-controlled : {X Y : ApproxSpace c ℓa} → Nonexpansive X Y → Controlled X Y
-controlled f = record
-  { map = Nonexpansive.map f ; control = idᶜ ; preserves = Nonexpansive.preserves f }
-
 include : Functor (Approx c ℓa) (Ctrl c ℓa)
 include = record
   { F₀ = λ X → X
-  ; F₁ = controlled
+  ; F₁ = λ f → record
+      { map = Nonexpansive.map f ; control = idᶜ
+      ; preserves = Nonexpansive.preserves f }
   ; identity     = λ {A} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl A
   ; homomorphism = λ {_} {_} {Z} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl Z
   ; F-resp-≈     = λ {_} {B} e → ≐-reflexive refl , e
