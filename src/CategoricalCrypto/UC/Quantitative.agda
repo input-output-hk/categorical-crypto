@@ -31,6 +31,7 @@ import CategoricalCrypto.Abstract2.Action as Action
 module CategoricalCrypto.UC.Quantitative {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe) where
 
 open OrderedErrorAlgebra E
+open import CategoricalCrypto.Approx.Small E
 open import CategoricalCrypto.Approx.Space E
 
 record QUCSetup (o ℓ e o′ ℓ′ e′ c ℓb : Level)
@@ -51,6 +52,16 @@ module QuantitativeUC {o ℓ e o′ ℓ′ e′ c ℓb : Level}
   underlying₀ underlying₊ : UCSetup o ℓ e o′ ℓ′ e′ c (es ⊔ ℓe ⊔ ℓb)
   underlying₀ = record { 𝒞 = S.𝒞 ; ℐ = S.ℐ ; ℳ = S.ℳ ; ℰ = F₀ ∘F S.Q }
   underlying₊ = record { 𝒞 = S.𝒞 ; ℐ = S.ℐ ; ℳ = S.ℳ ; ℰ = F₊ ∘F S.Q }
+
+  -- The third way to forget (`Approx.Small`), which the all-positive one is
+  -- NOT an instance of: here the error is merely EXISTENTIAL, so what the
+  -- environment equality of this setup says depends on where the quantifier
+  -- sits relative to the contexts (`UC.Quantitative.Bridge.Small`).
+  underlyingSmall : {ℓs : Level} → SmallClass ℓs
+                  → UCSetup o ℓ e o′ ℓ′ e′ c (es ⊔ ℓe ⊔ ℓs ⊔ ℓb)
+  underlyingSmall Sm = record
+    { 𝒞 = S.𝒞 ; ℐ = S.ℐ ; ℳ = S.ℳ
+    ; ℰ = Collapse.FSmall Sm c (es ⊔ ℓe ⊔ ℓb) ∘F S.Q }
 
   open Action underlying₀ public
   module A₊ = Action underlying₊

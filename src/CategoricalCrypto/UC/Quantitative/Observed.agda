@@ -13,10 +13,15 @@
 -- ALL closures are admitted, and no claim is made that these errors agree with
 -- the allowance-restricted ones of `UC.Quantitative.Query`.
 --
--- `reflects` is the converse of `induces`, and holds by definition at the
--- observation `UC.Approximate.Induced` constructs — the route both models take
--- — where `_∼_` IS closeness at every positive error.
+-- The measured relations ask an `Approximation` of what closed runs show and
+-- nothing about `_∼_`, so they are available at an observation that keeps an
+-- error witness of its own (`UC.Family.Negligible.Observationᴺ`).  What the
+-- comparison with `_∼_` costs is `induces` and its converse `reflects`, each
+-- gating one block below; both hold by definition at the observation
+-- `UC.Approximate.Induced` constructs — the route both models take — where
+-- `_∼_` IS closeness at every positive error.
 
+open import Categories.Category using (_[_,_]; _[_≈_])
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 open import Categories.Functor.Presheaf using (Presheaf)
 
@@ -25,16 +30,18 @@ open import Level using (Level; _⊔_)
 open import Relation.Binary.Bundles using (Setoid)
 
 open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra; ≈[]-resp₀)
-open import CategoricalCrypto.UC.Approximate
-  using (ApproximateObservation; Approximation)
+open import CategoricalCrypto.UC.Approximate using (Approximation)
 open import CategoricalCrypto.UC.Core using (Observation)
 
 module CategoricalCrypto.UC.Quantitative.Observed
   {o ℓ e os ℓs es ℓe ℓa : Level} (M : MonoidalCategory o ℓ e)
   (E : OrderedErrorAlgebra es ℓe) (O : Observation (MonoidalCategory.U M) os ℓs)
-  (apx : ApproximateObservation O (OrderedErrorAlgebra.errors E) (es ⊔ ℓe ⊔ ℓa))
-  (reflects : {x y : Observation.Obs O}
-            → Observation._∼_ O x y → ApproximateObservation._∼ᵃ_ apx x y)
+  (approx : Approximation (Observation.Obs O) (OrderedErrorAlgebra.errors E)
+                          (es ⊔ ℓe ⊔ ℓa))
+  (⟦⟧-resp-≈₀ : {u v : MonoidalCategory.U M [ Observation.𝟙 O , Observation.Ω O ]}
+              → MonoidalCategory.U M [ u ≈ v ]
+              → Approximation._≈[_]_ approx (Observation.⟦_⟧ O u)
+                  (Approximation.ε₀ approx) (Observation.⟦_⟧ O v))
   where
 
 open import CategoricalCrypto.Approx.Forget E ℓ (ℓ ⊔ ℓa)
@@ -43,7 +50,7 @@ open import CategoricalCrypto.UC.Core.Bridge M O
 open import CategoricalCrypto.UC.Quantitative E
 open import CategoricalCrypto.UC.Quantitative.Bridge E
 
-open ApproximateObservation apx
+open Approximation approx
 open Observation O
 open OrderedErrorAlgebra E using (errors)
 open C using (Test; Closure; obs; tv₁; _≋_)
@@ -103,18 +110,6 @@ QSetup = record { 𝒞 = ∣machines∣ ; ℐ = M ; ℳ = ℳ-standard ; Q = Q }
 module Quant = QBridge QSetup
 
 ------------------------------------------------------------------------
--- …and the `F₊` image is the qualitative test presheaf
-
-≋⇒∼₊ : {E₁ E₂ : Test A} → E₁ ≋ E₂ → Setoid._≈_ ⟦ spaceᵗ A ⟧₊ E₁ E₂
-≋⇒∼₊ h ε pos m = reflects (h m) ε pos
-
-∼₊⇒≋ : {E₁ E₂ : Test A} → Setoid._≈_ ⟦ spaceᵗ A ⟧₊ E₁ E₂ → E₁ ≋ E₂
-∼₊⇒≋ h m = induces λ ε pos → h ε pos m
-
-≋⇔∼₊ : {E₁ E₂ : Test A} → (E₁ ≋ E₂) ⇔ Setoid._≈_ ⟦ spaceᵗ A ⟧₊ E₁ E₂
-≋⇔∼₊ = mk⇔ ≋⇒∼₊ ∼₊⇒≋
-
-------------------------------------------------------------------------
 -- …and the core's ancilla-quantified agreement, with the error kept
 
 infix 4 _≈ℰ[_]_
@@ -138,8 +133,25 @@ _≈ℰ[_]_ {A} {B} f ε g = (Y : Channel) (Et : Test (Y ⊗₀ B)) (m : Closure
 ≈ℰ[]⇔≈ᵁ[] : {f g : A ⇒ T₀ X B} → (f ≈ℰ[ ε ] g) ⇔ (f Quant.≈ᵁ[ ε ] g)
 ≈ℰ[]⇔≈ᵁ[] = mk⇔ ≈ℰ[]⇒≈ᵁ[] ≈ᵁ[]⇒≈ℰ[]
 
--- `_≈ℰ[ ε ]_` is where a security statement is PROVED, `_≈ℰᶜ_` where one lands,
--- and `absorbᵘ` is `induces` read at the environment level.  The slack may not
--- depend on a budget here; that is one layer up, at `UC.Family.absorb`.
-absorbᵘ : {f g : A ⇒ B} → ((ε : Error) → Positive ε → f ≈ℰ[ ε ] g) → f ≈ℰᶜ g
-absorbᵘ h Y Et m = induces λ ε pos → h ε pos Y Et m
+------------------------------------------------------------------------
+-- …and what the comparison with `_∼_` costs
+
+module Absorbing (induces : {x y : Obs} → x ∼ᵃ y → x ∼ y) where
+
+  ∼₊⇒≋ : {E₁ E₂ : Test A} → Setoid._≈_ ⟦ spaceᵗ A ⟧₊ E₁ E₂ → E₁ ≋ E₂
+  ∼₊⇒≋ h m = induces λ ε pos → h ε pos m
+
+  -- `_≈ℰ[ ε ]_` is where a security statement is PROVED, `_≈ℰᶜ_` where one
+  -- lands, and this is `induces` read at the environment level.  The slack may
+  -- not depend on a budget here; that is one layer up, at `UC.Family.absorb`.
+  absorbᵘ : {f g : A ⇒ B} → ((ε : Error) → Positive ε → f ≈ℰ[ ε ] g) → f ≈ℰᶜ g
+  absorbᵘ h Y Et m = induces λ ε pos → h ε pos Y Et m
+
+  -- …and with the converse the qualitative test presheaf is the `F₊` image.
+  module Reflecting (reflects : {x y : Obs} → x ∼ y → x ∼ᵃ y) where
+
+    ≋⇒∼₊ : {E₁ E₂ : Test A} → E₁ ≋ E₂ → Setoid._≈_ ⟦ spaceᵗ A ⟧₊ E₁ E₂
+    ≋⇒∼₊ h ε pos m = reflects (h m) ε pos
+
+    ≋⇔∼₊ : {E₁ E₂ : Test A} → (E₁ ≋ E₂) ⇔ Setoid._≈_ ⟦ spaceᵗ A ⟧₊ E₁ E₂
+    ≋⇔∼₊ = mk⇔ ≋⇒∼₊ ∼₊⇒≋

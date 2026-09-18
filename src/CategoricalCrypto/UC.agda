@@ -110,9 +110,18 @@
 --                                  instantiates it, and `.Contextual` is the
 --                                  comparison over it — `ctx-absorb`, the one
 --                                  principle behind both existing schedule
---                                  substitutions.  The family models,
---                                  collapses and the migration are NOT built
---                                  (`docs/quantitative-uc-setup-plan.typ` §§8–10)
+--                                  substitutions
+--                `UC.Family.Quantitative`
+--                                  the family tier's own instance: `Observed`
+--                                  at `Famᴹ` over scalar errors, whose `F₊`
+--                                  image is `ucSetup^ω` — so the two orders
+--                                  coincide — while
+--                                  `.Negligible.Quantitative` is the same
+--                                  instance over SCHEDULE errors, collapsed at
+--                                  `Negligible`, which reaches `ucSetupᴺ`'s
+--                                  order ONE WAY only: the uniformization is
+--                                  open (`docs/quantitative-uc-setup-plan.typ`
+--                                  §8), as is the migration (§10)
 --   model        `UC.Machine`      `𝒫ᴵ`, processes on `Iface`s, the ticked
 --                                  verdict interface, the observation at `Dₚ`
 --                `UC.QueryBound`   the amortised-potential certificate — a
@@ -311,6 +320,8 @@ import CategoricalCrypto.Approx.Small.Controlled
 import CategoricalCrypto.UC.Quantitative.Bridge
 import CategoricalCrypto.UC.Quantitative.Observed
 import CategoricalCrypto.UC.Audit.Canonical
+import CategoricalCrypto.UC.Family.Negligible.Quantitative
 import CategoricalCrypto.UC.Family.Negligible.Setup
+import CategoricalCrypto.UC.Family.Quantitative
 import CategoricalCrypto.UC.Family.Vanishing
 import CategoricalCrypto.UC.Quantitative.Contextual
