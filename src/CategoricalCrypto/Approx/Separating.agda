@@ -6,14 +6,10 @@
 -- The two forgetful functors differ exactly where a space's error balls are not
 -- closed, and one space is enough to show that they do: rational sequences
 -- compared by EVENTUAL closeness.  `2⁻ⁿ` is eventually within every positive ε
--- of the zero sequence and is never eventually equal to it, so `F₊` identifies
--- the pair and `F₀` separates it.  Hence an exact bound must be stated in
--- `Approx`, never asked to respect `F₊`'s equality.
+-- of the zero sequence and is never eventually equal to it.
 --
--- The plan's own witness is the model-level one — a finite-stage observation
--- telling an immediate return from an almost-sure geometric one.  This is the
--- same phenomenon on the smallest carrier that exhibits it, and it reuses the
--- decay facts (`UC.Approximate.Decay`) that witness already spends.
+-- The plan's own witness is the model-level one; this is the same phenomenon on
+-- the smallest carrier that exhibits it.
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Product.Base using (Σ-syntax; _,_)
