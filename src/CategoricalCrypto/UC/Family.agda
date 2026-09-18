@@ -19,6 +19,15 @@
 -- a requirement of general UC: nothing in the core, the environment layer or
 -- the emulation metatheory mentions an index at all.
 --
+-- The base is a MONOIDAL category at its standard grading, and `Fam` carries a
+-- monoidal structure too, which `UCSetup` wants where a `Grading` has the two
+-- one-sided actions and no bifunctor.  The whole gap is the budget: a
+-- `Fam`-hom is a base hom plus a polynomial bound and `_≈^ω_` ignores the
+-- bound, so every monoidal LAW is the base's read levelwise and the only
+-- content is a `QB` certificate per structural morphism.
+-- `UC.Budget.Budget`'s four unitor fields are what that costs; the bifunctor
+-- costs nothing extra, because `f ⊗₁ g` factors as `sub f ∘ T₁ _ g`.
+--
 -- This layer is where the notes' quantitative-to-qualitative arrow runs.
 -- Everything categorical is levelwise, so the whole `UCBase` transports; the
 -- observation, however, is CONSTRUCTED rather than transported — the base's
@@ -38,6 +47,12 @@
 -- always-safe one.  A statement of that kind keeps its error witness instead —
 -- `_≈ℰⁿ_` here, `UC.Saturated._≈negl_` at layer 1.
 
+open import Categories.Category.Core using (Category)
+open import Categories.Category.Monoidal using (monoidalHelper)
+open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
+import Categories.Category.Monoidal.Reasoning as MonR
+open import Categories.Functor.Bifunctor using (Bifunctor)
+
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly using (Poly; poly-*; poly-const; poly-⊔)
 open import Data.Nat.Properties using (m≤m⊔n; m≤n⊔m; ≤-trans)
@@ -45,25 +60,37 @@ open import Data.Product.Base using (Σ; Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Level using (Level; _⊔_)
 
-open import Categories.Category.Core using (Category)
-
 open import CategoricalCrypto.UC.Approximate
   using ( Approximation; ApproximateObservation; Negligible; Negligible-+; Negligible-0
         ; Negligible⇒→0; NegligibleBound; NegligibleBound⇒VanishingBound; VanishingBound
         ; ℚ-errors; module Induced )
 open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget)
-open import CategoricalCrypto.UC.Core using (UCBase; Grading; Observation)
+open import CategoricalCrypto.UC.Core using (Grading; Observation; UCBase)
+open import CategoricalCrypto.UCSetup using (UCSetup)
+
+import CategoricalCrypto.Standard2 as Std2
+import CategoricalCrypto.UC.Core.Standard as Std
 import CategoricalCrypto.UC.Environment as Env
 
 module CategoricalCrypto.UC.Family
-  {o ℓ e os ℓs ℓa qs : Level} (base : UCBase o ℓ e os ℓs)
-  (qapx : ApproximateObservation (UCBase.observation base) ℚ-errors ℓa)
-  (bud : Budget (UCBase.𝒞 base) (UCBase.grading base) qs)
+  {o ℓ e os ℓs ℓa qs : Level}
+  (M : MonoidalCategory o ℓ e)
+  (obsᴹ : Observation (MonoidalCategory.U M) os ℓs)
+  (qapx : ApproximateObservation obsᴹ ℚ-errors ℓa)
+  (bud : Budget (MonoidalCategory.U M) (Std.gradingᵗ M) qs)
   (Ix : Set) (κ : Ix → ℕ) (κ-cofinal : (N : ℕ) → Σ[ i ∈ Ix ] N ℕ.≤ κ i) where
 
-open UCBase base
+private module 𝕄 = MonoidalCategory M
+
+-- The base the family layer is taken over: the standard grading of `M`, which
+-- is where the four unitor certificates land.
+baseᴹ : UCBase o ℓ e os ℓs
+baseᴹ = record { 𝒞 = 𝕄.U ; grading = Std.gradingᵗ M ; observation = obsᴹ }
+
+open UCBase baseᴹ
 open ApproximateObservation qapx
 open Budget bud
+open MonR 𝕄.monoidal using (serialize₁₂)
 
 ------------------------------------------------------------------------
 -- Objects, homs and their budgets
@@ -74,7 +101,7 @@ Obj^ω = Ix → Obj
 Δ : Obj → Obj^ω
 Δ X _ = X
 
-private variable A B : Obj^ω
+private variable A B C D : Obj^ω
 
 -- Polynomial in the SECURITY PARAMETER, which is what `κ` reads off the index.
 PolyQB : ((i : Ix) → A i ⇒ B i) → Set qs
@@ -125,6 +152,7 @@ Fam = record
 -- The grading, levelwise
 
 infixr 8 _⊛ω_
+infixr 10 _⊗^ω_
 
 _⊛ω_ : Obj^ω → Obj^ω → Obj^ω
 (A ⊛ω B) i = A i ⊛ B i
@@ -152,6 +180,59 @@ Grading^ω = record
   ; sub-∘      = λ _ → sub-∘
   ; a-isoˡ     = λ _ → a-isoˡ
   ; a-nat      = λ _ → a-nat
+  }
+
+private module G = Grading Grading^ω
+
+------------------------------------------------------------------------
+-- …and the monoidal structure it carries
+
+-- The product certificate the reference arc asked as a field: `f ⊗₁ g` is
+-- `(f ⊗₁ id) ∘ (id ⊗₁ g)`, which the action's two one-sided halves certify.
+qb-⊗₁ : {X Y Z W : Obj} {c c′ : ℕ} {f : X ⇒ Y} {g : Z ⇒ W}
+      → QB c f → QB c′ g → QB ((c ℕ.⊔ 1) ℕ.* (c′ ℕ.⊔ 1)) (𝕄._⊗₁_ f g)
+qb-⊗₁ qf qg = qb-resp-≈ (Equiv.sym serialize₁₂) (qb-∘ (qb-sub qf) (qb-T₁ qg))
+
+_⊗^ω_ : A ⇒^ω B → C ⇒^ω D → (A ⊛ω C) ⇒^ω (B ⊛ω D)
+(f , p , Pp , wf) ⊗^ω (g , q , Pq , wg) =
+    (λ i → 𝕄._⊗₁_ (f i) (g i))
+  , (λ n → (p n ℕ.⊔ 1) ℕ.* (q n ℕ.⊔ 1))
+  , poly-* (poly-⊔ Pp (poly-const 1)) (poly-⊔ Pq (poly-const 1))
+  , λ i → qb-⊗₁ (wf i) (wg i)
+
+⊗^ω-bifunctor : Bifunctor Fam Fam Fam
+⊗^ω-bifunctor = record
+  { F₀           = λ (A , B) → A ⊛ω B
+  ; F₁           = λ (f , g) → f ⊗^ω g
+  ; identity     = λ _ → 𝕄.⊗.identity
+  ; homomorphism = λ _ → 𝕄.⊗.homomorphism
+  ; F-resp-≈     = λ (ef , eg) i → 𝕄.⊗.F-resp-≈ (ef i , eg i)
+  }
+
+Famᴹ : MonoidalCategory o (ℓ ⊔ qs) e
+Famᴹ = record
+  { U        = Fam
+  ; monoidal = monoidalHelper Fam record
+    { ⊗          = ⊗^ω-bifunctor
+    ; unit       = G.𝟭
+    ; unitorˡ    = record
+      { from = G.λ⇒ ; to = G.λ⇐
+      ; iso  = record { isoˡ = λ _ → 𝕄.unitorˡ.isoˡ ; isoʳ = λ _ → 𝕄.unitorˡ.isoʳ }
+      }
+    ; unitorʳ    = record
+      { from = G.ρ⇒ ; to = G.ρ⇐
+      ; iso  = record { isoˡ = λ _ → 𝕄.unitorʳ.isoˡ ; isoʳ = λ _ → 𝕄.unitorʳ.isoʳ }
+      }
+    ; associator = record
+      { from = G.a⇐ ; to = G.a⇒
+      ; iso  = record { isoˡ = λ _ → 𝕄.associator.isoˡ ; isoʳ = λ _ → 𝕄.associator.isoʳ }
+      }
+    ; unitorˡ-commute = λ _ → 𝕄.unitorˡ-commute-from
+    ; unitorʳ-commute = λ _ → 𝕄.unitorʳ-commute-from
+    ; assoc-commute   = λ _ → 𝕄.assoc-commute-from
+    ; triangle        = λ _ → 𝕄.triangle
+    ; pentagon        = λ _ → 𝕄.pentagon
+    }
   }
 
 ------------------------------------------------------------------------
@@ -204,11 +285,13 @@ open E public using
   ; _≈ℰ_; ≈ℰ-refl; ≈ℰ-sym; ≈ℰ-trans; ≈ℰ-setoid; ≈⇒≈ℰ; ≈ℰ-congˡ; ≈ℰ-congʳ )
   renaming (ℰᴼ to ℰ^ω)
 
--- `ℰ^ω` and `Fam` are two of `UCSetup`'s four fields; the other two are a
--- MONOIDAL structure on `Fam` and the graded Kleisli triple over it, which
--- `UC.Family.Monoidal` assembles at a monoidal base.  They do not belong here:
--- a `Grading` has the two one-sided actions and no bifunctor, so the tensor of
--- two `Fam`-homs would have no budget.
+-- P6 of `docs/stduc-supersession-plan.md`: the four fields of `UCSetup` at
+-- `Fam`.  `ℳ` is the curried tensor of `Famᴹ` and `ℰ` is `UC.Environment`'s
+-- `Observation → Presheaf` construction at `Observation^ω`, so the whole of
+-- `Abstract2.AbstractUC` — `≤UC-refl`, `dummy-complete`, `≤UC-trans`,
+-- `UC-compose`, `≈ᵁ⇒≈ℰ` — is available at the asymptotic family.
+ucSetup^ω : UCSetup o (ℓ ⊔ qs) e o (ℓ ⊔ qs) e (ℓ ⊔ qs) (ℓ ⊔ qs ⊔ ℓa)
+ucSetup^ω = Std2.StdUC.StdSetup Famᴹ ℰ^ω
 
 infix 4 _≈ℰ[_]_
 

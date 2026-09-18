@@ -44,8 +44,8 @@ module CategoricalCrypto.UC.Core where
 -- carry NO laws, for the same reason `a⇒` carries only the two it does: nothing
 -- in the qualitative core needs them.  They are here because a `Budget` must be
 -- able to certify them — `Grading` is what a budget is stated over, and
--- `UC.Family.Monoidal` needs a `QB` certificate for each of the four in order
--- to assemble the levelwise grading into a `MonoidalCategory`.
+-- `UC.Family` needs a `QB` certificate for each of the four in order to make
+-- the levelwise category a `MonoidalCategory`.
 record Grading {o ℓ e} (𝒞 : Category o ℓ e) : Set (o ⊔ ℓ ⊔ e) where
   open Category 𝒞
 

@@ -3,7 +3,7 @@
 -- The canonical LOCAL-NEGLIGIBLE `UCSetup`, and the bridge into it
 -- (`docs/quantitative-uc-setup-plan.typ` §9's `local-negligible⇔canonical`).
 --
--- `UC.Family.Monoidal.ucSetup^ω` is `Famᴹ` at `Observation^ω`, whose
+-- `UC.Family.ucSetup^ω` is `Famᴹ` at `Observation^ω`, whose
 -- comparison has quantified its error away.  This is the same four fields at
 -- `UC.Family.Negligible.Observationᴺ`, whose comparison KEEPS a negligible
 -- witness, so the whole of `Abstract2` — `≤UC-refl`, `dummy-complete`,
@@ -45,11 +45,11 @@ module CategoricalCrypto.UC.Family.Negligible.Setup
   (bud : Budget (MonoidalCategory.U M) (Std.gradingᵗ M) qs)
   (Ix : Set) (κ : Ix → ℕ) (κ-cofinal : (N : ℕ) → Σ[ i ∈ Ix ] N ℕ.≤ κ i) where
 
-open import CategoricalCrypto.UC.Family.Monoidal M obsᴹ qapx bud Ix κ κ-cofinal
-  using (Famᴹ; baseᴹ; ucSetup^ω; _≈ℰⁿ_; Grading^ω)
+open import CategoricalCrypto.UC.Family M obsᴹ qapx bud Ix κ κ-cofinal
+  using (Famᴹ; ucSetup^ω; _≈ℰⁿ_; Grading^ω)
 
 private
-  module N    = Negᴹ baseᴹ qapx bud Ix κ κ-cofinal
+  module N    = Negᴹ M obsᴹ qapx bud Ix κ κ-cofinal
   module Envᴺ = Env N.UCBaseᴺ
   module GrT  = Grading Grading^ω
   module 𝕄    = MonoidalCategory M

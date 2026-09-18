@@ -35,9 +35,9 @@ module CategoricalCrypto.UC.Budget where
 -- `f ⊗₁ g ≈ sub f ∘ T₁ _ g`, so `qb-∘`/`qb-sub`/`qb-T₁`/`qb-resp-≈` already
 -- certify it at `(c ⊔ 1) * (c′ ⊔ 1)`.
 --
--- The four unitor certificates are what `UC.Family.Monoidal` spends to make the
--- levelwise grading a `MonoidalCategory`: the unitors of `Fam` are the base's,
--- levelwise, and a `Fam`-hom is a hom plus a polynomial bound.
+-- The four unitor certificates are what `UC.Family` spends to make the
+-- levelwise category monoidal: the unitors of `Fam` are the base's, levelwise,
+-- and a `Fam`-hom is a hom plus a polynomial bound.
 record Budget {o ℓ e} (𝒞 : Category o ℓ e) (G : Grading 𝒞) (qs : Level)
             : Set (o ⊔ ℓ ⊔ e ⊔ suc qs) where
   open Category 𝒞
