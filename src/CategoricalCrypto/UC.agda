@@ -14,10 +14,6 @@
 --                                  `grade-stable`, and `tv₁-∘`, the slide by
 --                                  which a stage of the process becomes a stage
 --                                  of the test
---                `UC.Emulation`    `_≤UC_` and its three metatheorems, retired
---                                  in favour of the inherited order — its last
---                                  consumer is `UC.Model.Bridge`, which
---                                  identifies the two
 --                `UC.Robust.Observation`
 --                                  `SaturatedProperty`, `Robust` and
 --                                  `robust-sub` at a `UCBase`: the ingredients
@@ -58,8 +54,8 @@
 --                                  `Observation` on `Fam` keeping the error
 --                                  witness (`_∼ᴺ_`, `_≈ℰᴺ_`) and the one-way
 --                                  bridge `≈ℰⁿ⇒≈ℰᴺ` into it.  It has no order
---                                  of its own: that was `UC.Emulation`'s
---                                  renamed and is retired
+--                                  of its own: that was a renaming of the
+--                                  core's, and is retired
 --                                  (`docs/retirement-negligible-order.md`).
 --                                  `UC.Model.Family.Negligible` inhabits it at
 --                                  the machine family, and its §1 acceptance
