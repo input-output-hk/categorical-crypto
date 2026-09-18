@@ -17,8 +17,9 @@
 -- (`UC.Asymptotic.Compose`'s `λ n q → ε n (simCost q (cost c n))`) are
 -- instances of composing controlled maps, not a UC-specific axiom.
 
+open import Data.Product.Base using (_,_)
 open import Level using (Level; _⊔_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl; subst)
 
 open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
 
@@ -59,6 +60,14 @@ module Reindexing {i es ℓe : Level} {I : Set i} (V : OrderedErrorAlgebra es �
     ; preserves-⊕  = λ _ → V.⊑-refl
     ; monotone     = λ le j → le (ρ j)
     }
+
+  -- Substitutions agreeing at every allowance reindex the same way.  This is
+  -- how a model's own allowance identity becomes a control equality — the
+  -- query model's three presheaf laws are each one instance
+  -- (`UC.Quantitative.Query.Qᵠ`).
+  reindex-cong : {ρ₁ ρ₂ : I → I} → ((j : I) → ρ₁ j ≡ ρ₂ j) → reindex ρ₁ ≐ᶜ reindex ρ₂
+  reindex-cong {ρ₁} eq = (λ ε j → subst (ε (ρ₁ j) V.⊑_) (cong ε (eq j)) V.⊑-refl)
+                       , λ ε j → subst (V._⊑ ε (ρ₁ j)) (cong ε (eq j)) V.⊑-refl
 
   -- …and reindexing composes by composing the substitutions, the outer one
   -- applied first (plan §7.2's `φρ₂(φρ₁(ε)) = ε ∘ ρ₁ ∘ ρ₂`).

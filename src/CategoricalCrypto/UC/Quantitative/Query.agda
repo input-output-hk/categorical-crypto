@@ -39,7 +39,6 @@ import CategoricalCrypto.Approx.Controlled as Controlledᴹ
 import CategoricalCrypto.Approx.Filtered as Filteredᴹ
 import CategoricalCrypto.Approx.Space as Spaceᴹ
 import Data.Nat.Properties as ℕₚ
-import Data.Rational.Properties as ℚₚ
 
 module CategoricalCrypto.UC.Quantitative.Query where
 
@@ -49,7 +48,7 @@ Sched = pointwise ℕ ℚ-ordered
 private
   module S = Controlledᴹ Sched
 
-open Reindexing {I = ℕ} ℚ-ordered using (reindex)
+open Reindexing {I = ℕ} ℚ-ordered using (reindex; reindex-cong)
 
 ------------------------------------------------------------------------
 -- The two absorptions of `UC.Budget`, as controls
@@ -59,9 +58,7 @@ open Reindexing {I = ℕ} ℚ-ordered using (reindex)
 absorb-test : (c cs : ℕ)
             → reindex (λ c′ → ctxBudget (c ℕ.* (cs ℕ.⊔ 1)) c′)
               S.≐ᶜ reindex (λ c′ → simCost (ctxBudget c c′) cs)
-absorb-test c cs =
-  (λ ε c′ → ℚₚ.≤-reflexive (cong ε (ctxBudget-simCost c c′ cs)))
-  , λ ε c′ → ℚₚ.≤-reflexive (cong ε (sym (ctxBudget-simCost c c′ cs)))
+absorb-test c cs = reindex-cong (λ c′ → ctxBudget-simCost c c′ cs)
 
 -- …while absorbing into the CLOSURE hits the leg `ctxBudget` guards, so it is
 -- a BOUND, and reading a schedule at it additionally needs that schedule's own
@@ -211,20 +208,14 @@ module Tests
     { F₀ = filteredᵠ
     ; F₁ = pullᵠ
     ; identity =
-        ( ( (λ τ c′ → ℚₚ.≤-reflexive (cong τ (ℕₚ.*-identityˡ c′)))
-          , λ τ c′ → ℚₚ.≤-reflexive (cong τ (sym (ℕₚ.*-identityˡ c′))) )
-        , λ _ _ _ _ → obs-resp (∘-resp-≈ˡ identityʳ) )
-        , ℕₚ.*-identityʳ
+        ( reindex-cong ℕₚ.*-identityˡ
+        , λ _ _ _ _ → obs-resp (∘-resp-≈ˡ identityʳ) ) , ℕₚ.*-identityʳ
     ; homomorphism = λ {_} {_} {_} {f} {g} →
-        ( ( (λ τ c′ → ℚₚ.≤-reflexive
-              (cong τ (ℕₚ.*-assoc (budget f) (budget g) c′)))
-          , λ τ c′ → ℚₚ.≤-reflexive
-              (cong τ (sym (ℕₚ.*-assoc (budget f) (budget g) c′))) )
+        ( reindex-cong (ℕₚ.*-assoc (budget f) (budget g))
         , λ _ _ _ _ → obs-resp (∘-resp-≈ˡ sym-assoc) )
         , λ q → sym (ℕₚ.*-assoc q (budget f) (budget g))
     ; F-resp-≈ = λ (he , be) →
-        ( ( (λ τ c′ → ℚₚ.≤-reflexive (cong (λ b → τ (b ℕ.* c′)) be))
-          , λ τ c′ → ℚₚ.≤-reflexive (cong (λ b → τ (b ℕ.* c′)) (sym be)) )
+        ( reindex-cong (λ c′ → cong (ℕ._* c′) be)
         , λ _ _ _ _ → obs-resp (∘-resp-≈ˡ (∘-resp-≈ʳ he)) )
         , λ q → cong (q ℕ.*_) be
     }
