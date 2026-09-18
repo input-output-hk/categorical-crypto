@@ -23,6 +23,8 @@
 -- a one-shot `1/(n+1)` difference rejected — are theorems about `_∼ᴺ_` at a
 -- separating approximation, proved in `UC.Approximate.LocalTests`.
 
+open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
+
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Product.Base using (Σ-syntax; _,_; proj₁)
 open import Data.Rational using (0ℚ)
@@ -32,18 +34,23 @@ open import CategoricalCrypto.UC.Approximate
   using (ApproximateObservation; Negligible-0; ℚ-errors)
 open import CategoricalCrypto.UC.Budget using (Budget)
 open import CategoricalCrypto.UC.Core using (Observation; UCBase)
+
+import CategoricalCrypto.UC.Core.Standard as Std
 import CategoricalCrypto.UC.Environment as Env
 
 module CategoricalCrypto.UC.Family.Negligible
-  {o ℓ e os ℓs ℓa qs : Level} (base : UCBase o ℓ e os ℓs)
-  (qapx : ApproximateObservation (UCBase.observation base) ℚ-errors ℓa)
-  (bud : Budget (UCBase.𝒞 base) (UCBase.grading base) qs)
+  {o ℓ e os ℓs ℓa qs : Level}
+  (M : MonoidalCategory o ℓ e)
+  (obsᴹ : Observation (MonoidalCategory.U M) os ℓs)
+  (qapx : ApproximateObservation obsᴹ ℚ-errors ℓa)
+  (bud : Budget (MonoidalCategory.U M) (Std.gradingᵗ M) qs)
   (Ix : Set) (κ : Ix → ℕ) (κ-cofinal : (N : ℕ) → Σ[ i ∈ Ix ] N ℕ.≤ κ i) where
 
-open UCBase base
+open import CategoricalCrypto.UC.Family M obsᴹ qapx bud Ix κ κ-cofinal
+
+open UCBase baseᴹ
 open ApproximateObservation qapx
 
-open import CategoricalCrypto.UC.Family base qapx bud Ix κ κ-cofinal
 open import CategoricalCrypto.UC.Approximate.Local approx Ix κ public
 
 ------------------------------------------------------------------------
@@ -58,7 +65,8 @@ Observationᴺ = record
   }
 
 UCBaseᴺ : UCBase o (ℓ ⊔ qs) e os ℓa
-UCBaseᴺ = record { 𝒞 = Fam ; grading = Grading^ω ; observation = Observationᴺ }
+UCBaseᴺ = record
+  { 𝒞 = Fam ; grading = Std.gradingᵗ Famᴹ ; observation = Observationᴺ }
 
 -- The relation the tier is FOR, renamed apart from `UC.Family`'s.  The
 -- environment metatheory is not renamed alongside: it is

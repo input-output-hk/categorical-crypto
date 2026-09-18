@@ -27,7 +27,7 @@
 --   `Model.Dominated`    `UC.Machine.Bridge.ContextDominated` at SEAL objects
 --                        — `ifaceᵒ` is onto — which is the ancilla quantifier
 --                        an ℰ-agreement has
---   `Model.Family`       `UC.Family.Monoidal` at the seal: the setup, and the
+--   `Model.Family`       `UC.Family` at the seal: the setup, and the
 --                        inherited metatheory, asymptotically — and
 --                        `UC.Family.Vanishing` on the same ingredients, which
 --                        reads the agreement in the INHERITED `_≈ᵁ_`, so

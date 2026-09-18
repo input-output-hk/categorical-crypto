@@ -43,9 +43,8 @@
 --                                  direct consumer spends
 --                `UC.Family`       the asymptotic constructor — `𝒞^ω` at a
 --                                  parameterized index, and `absorb`, where a
---                                  vanishing bound BECOMES the core's `_≈ℰ_`
---                `UC.Family.Monoidal`
---                                  `Famᴹ`, the family's grades made monoidal
+--                                  vanishing bound BECOMES the core's `_≈ℰ_`.
+--                                  `Famᴹ` makes the family's grades monoidal
 --                                  by the budget's four unitor certificates,
 --                                  and `ucSetup^ω` — so the INHERITED
 --                                  metatheory runs at the asymptotic family

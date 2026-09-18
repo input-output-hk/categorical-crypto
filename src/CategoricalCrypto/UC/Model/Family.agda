@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- `UCSetup` at the machine FAMILY: `UC.Family.Monoidal` instantiated at the
+-- `UCSetup` at the machine FAMILY: `UC.Family` instantiated at the
 -- sealed bundle, so the inherited metatheory is available asymptotically, with
 -- `UC.Family.Vanishing` on the same ingredients supplying `Canonical^ω` and
 -- `≈ℰ^ω⇒≤UC` — the step into the INHERITED order, where `UC-compose` is.
@@ -29,7 +29,7 @@ open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ)
 
 module CategoricalCrypto.UC.Model.Family where
 
-open import CategoricalCrypto.UC.Family.Monoidal
+open import CategoricalCrypto.UC.Family
   𝔾ᵒ observationᵒ approximateᵒ budgetᵒ ℕ (λ n → n) (λ N → N , ≤-refl) public
 
 open import CategoricalCrypto.UC.Family.Vanishing

@@ -14,11 +14,10 @@ open import Data.Nat.Properties using (≤-refl)
 open import Data.Product.Base using (_,_)
 
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ)
-open import CategoricalCrypto.UC.Model.Observation using (approximateᵒ)
-
-import CategoricalCrypto.UC.Model.Family as F
+open import CategoricalCrypto.UC.Model.Observation using (approximateᵒ; observationᵒ)
+open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ)
 
 module CategoricalCrypto.UC.Model.Family.Negligible where
 
 open import CategoricalCrypto.UC.Family.Negligible
-  F.baseᴹ approximateᵒ budgetᵒ ℕ (λ n → n) (λ N → N , ≤-refl) public
+  𝔾ᵒ observationᵒ approximateᵒ budgetᵒ ℕ (λ n → n) (λ N → N , ≤-refl) public
