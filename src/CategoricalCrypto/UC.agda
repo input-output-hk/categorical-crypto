@@ -14,19 +14,18 @@
 --                                  `grade-stable`, and `tv₁-∘`, the slide by
 --                                  which a stage of the process becomes a stage
 --                                  of the test
---                `UC.Emulation`    `_≤UC_` and its three metatheorems.
---                                  Universal composition is the inherited
---                                  theorem, not one of these —
---                                  `UC.Model.Bridge` carries it across
+--                `UC.Emulation`    `_≤UC_` and its three metatheorems, retired
+--                                  in favour of the inherited order — its last
+--                                  consumer is `UC.Model.Bridge`, which
+--                                  identifies the two
 --                `UC.Robust.Observation`
 --                                  `SaturatedProperty`, `Robust` and
---                                  `uc-preserves` at a `UCBase`: the carry with
---                                  no probability under it, where the simulator
---                                  slides into the test and an
---                                  observation-invariant property needs no
---                                  budget to pay for it.  Independently scoped:
---                                  the canonical statement is the inherited
---                                  layer's `UC.Robust` (below)
+--                                  `robust-sub` at a `UCBase`: the ingredients
+--                                  of the carry with no probability under it,
+--                                  where the simulator slides into the test and
+--                                  an observation-invariant property needs no
+--                                  budget to pay for it.  The carry itself is
+--                                  the inherited layer's `UC.Robust` (below)
 --                `UC.Core.Standard`
 --                                  `gradingᵗ`: a monoidal category grades
 --                                  itself — the inherited `UCSetup` doctrine's

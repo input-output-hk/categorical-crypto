@@ -53,7 +53,7 @@ open import CategoricalCrypto.UC.Approximate
         ; ℚ-errors; module Induced )
 open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget)
 open import CategoricalCrypto.UC.Core using (UCBase; Grading; Observation)
-import CategoricalCrypto.UC.Emulation as Em
+import CategoricalCrypto.UC.Environment as Env
 
 module CategoricalCrypto.UC.Family
   {o ℓ e os ℓs ℓa qs : Level} (base : UCBase o ℓ e os ℓs)
@@ -197,12 +197,11 @@ UCBase^ω = record { 𝒞 = Fam ; grading = Grading^ω ; observation = Observati
 ------------------------------------------------------------------------
 -- Ingestion: a concrete bound, and its collapse
 
-private module E = Em UCBase^ω
+private module E = Env UCBase^ω
 
 open E public using
-  ( Test; Closure; obs; SameTV; same; same-≈; Tests; tv₁; ℰᵗᵛ
-  ; _≈ℰ_; ≈ℰ-refl; ≈ℰ-sym; ≈ℰ-trans; ≈ℰ-setoid; ≈⇒≈ℰ; ≈ℰ-congˡ; ≈ℰ-congʳ
-  ; grade-stable; _≤UC_; _≤UC⁺_; ≈ℰ⇒≤UC; ≤UC-refl; ≤UC-trans; dummy-complete )
+  ( Test; Closure; obs; SameTV; same; same-≈; Tests; tv₁; ℰᵗᵛ; grade-stable
+  ; _≈ℰ_; ≈ℰ-refl; ≈ℰ-sym; ≈ℰ-trans; ≈ℰ-setoid; ≈⇒≈ℰ; ≈ℰ-congˡ; ≈ℰ-congʳ )
   renaming (ℰᴼ to ℰ^ω)
 
 -- `ℰ^ω` and `Fam` are two of `UCSetup`'s four fields; the other two are a
@@ -300,7 +299,7 @@ f ≈ℰⁿ g = Σ[ ε ∈ (ℕ → ℕ → ℚ) ] CarriedNegligible ε × f ≈
 -- What is NOT delivered here is an `Observation` whose `_∼_` is `_≈ℰⁿ_`:
 -- `Induced` builds `_∼_` by quantifying an ambient ε AWAY, and retaining the
 -- witness is the opposite move.  That would mean either a second `Observation`
--- on `Fam` carrying this relation, with every `UC.Emulation` notion re-derived
+-- on `Fam` carrying this relation, with every emulation notion re-derived
 -- over it (`≤UC` included), or an `Observation` interface parameterized by its
 -- grade — redesigns of the core's observation interface rather than of this
 -- module, which is why the negligible tier consumers use lives at layer 1.

@@ -49,7 +49,7 @@ module CategoricalCrypto.UC.Audit
   (bud : Budget (UCBase.𝒞 base) (UCBase.grading base) qs)
   (mass : Mass (UCBase.observation base)) where
 
-open import CategoricalCrypto.UC.Emulation base
+open import CategoricalCrypto.UC.Environment base
 
 open Budget bud
 open Mass mass
@@ -76,9 +76,6 @@ record _≤UC[_]_ {A B′ X Y : Obj} (f : A ⇒ X ⊛ B′) (cs : ℕ) (g : A �
     emulate : f ≈ℰ (sub sim ∘ g)
 
 open _≤UC[_]_ public
-
-≤UC[]⇒≤UC : {f : A ⇒ X ⊛ B′} {g : A ⇒ Y ⊛ B′} {cs : ℕ} → f ≤UC[ cs ] g → f ≤UC g
-≤UC[]⇒≤UC e = sim e , emulate e
 
 -- The designated audit event of a process with domain `A` and grade `X`: which
 -- contexts around it — ancilla, test and closure — are trusted to read the

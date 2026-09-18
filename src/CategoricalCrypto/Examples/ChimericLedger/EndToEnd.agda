@@ -43,7 +43,7 @@
 -- is what `docs/end-to-end.md`'s closed obstruction owed.
 --
 -- The two are not ordered, and which way is worth saying: a budgeted emulation
--- IS an emulation (`UC.Audit.≤UC[]⇒≤UC` then `UC.Model.Bridge.≤UCᶜ⇒≤UC`), so
+-- IS an emulation (`UC.Audit.Canonical.audit-forget` after `audit⇒witness`), so
 -- `ledger-uc-to-pov` applies wherever the budgeted theorem does and gives the
 -- SHARPER bound — at the trivial grade the simulator costs the ideal side
 -- nothing.  What the budgeted statement adds is not a better number but the

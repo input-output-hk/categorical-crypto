@@ -10,7 +10,7 @@
 -- (`UC/Core.agda:80-93`), and `UC.Approximate.Local`'s `_∼ᴺ_` is one.  So the
 -- whole negligible tier is this instance plus the emulation notions inherited
 -- at it, and nothing in the qualitative core moves: `Observation^ω` and
--- `_≤UC_` are exactly as they were.
+-- `_≈ℰ_` are exactly as they were.
 --
 -- `_≈ℰⁿ_` implies the new relation at every context by SPECIALIZING its global
 -- budget-indexed error to the allowance that context carries — the only
@@ -32,7 +32,7 @@ open import CategoricalCrypto.UC.Approximate
   using (ApproximateObservation; Negligible-0; ℚ-errors)
 open import CategoricalCrypto.UC.Budget using (Budget)
 open import CategoricalCrypto.UC.Core using (Observation; UCBase)
-import CategoricalCrypto.UC.Emulation as Em
+import CategoricalCrypto.UC.Environment as Env
 
 module CategoricalCrypto.UC.Family.Negligible
   {o ℓ e os ℓs ℓa qs : Level} (base : UCBase o ℓ e os ℓs)
@@ -61,16 +61,13 @@ UCBaseᴺ : UCBase o (ℓ ⊔ qs) e os ℓa
 UCBaseᴺ = record { 𝒞 = Fam ; grading = Grading^ω ; observation = Observationᴺ }
 
 -- The relation the tier is FOR, renamed apart from `UC.Family`'s.  The
--- inherited metatheory is not renamed alongside: it is
--- `CategoricalCrypto.UC.Emulation UCBaseᴺ`, reachable by applying that module,
--- and a second copy of it under ᴺ names would be the parallel API this tier is
--- meant not to be.
---
--- The tier's EMULATION ORDER is no longer among these.  It was `Em UCBaseᴺ`'s
--- `_≤UC_` renamed, and since `UC.Family.Negligible.Setup` builds `ucSetupᴺ`
--- the tier inherits `Abstract2`'s order instead — see
--- `docs/retirement-negligible-order.md` for the gate.
-private module N = Em UCBaseᴺ
+-- environment metatheory is not renamed alongside: it is
+-- `CategoricalCrypto.UC.Environment UCBaseᴺ`, reachable by applying that
+-- module, and a second copy of it under ᴺ names would be the parallel API this
+-- tier is meant not to be.  The tier's EMULATION ORDER is `Abstract2`'s at
+-- `ucSetupᴺ` (`UC.Family.Negligible.Setup`, and the gate in
+-- `docs/retirement-negligible-order.md`).
+private module N = Env UCBaseᴺ
 
 open N public using () renaming (_≈ℰ_ to _≈ℰᴺ_)
 
