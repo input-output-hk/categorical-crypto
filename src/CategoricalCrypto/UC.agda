@@ -32,8 +32,6 @@
 --   enrichment   `UC.Approximate`  `ErrorAlgebra`, `Approximation`,
 --                                  `ApproximateObservation`, `Induced`, `Mass`
 --                `UC.Budget`       `Budget`, `ctxBudget` — the resource doctrine
---                `UC.Environment.Approximate`
---                                  `_≈ℰ[ ε ]_` and its collapse
 --                `UC.Audit`        `AuditEvent`, the audit event a premise is
 --                                  about, and `audit-carry`: a bound on it
 --                                  across an emulation, the simulator absorbed
@@ -84,7 +82,11 @@
 --                                  contextual comparison with the error kept.
 --                                  `.Witness` is `At`/`Witness` and their
 --                                  composition, `.Bridge` the exact links to
---                                  the two inherited theories
+--                                  the two inherited theories, and
+--                                  `.Observed` the setup an approximate
+--                                  observation carries: the test presheaf,
+--                                  `_≈ℰ[ ε ]_`, its collapse, and the two
+--                                  recoveries of the qualitative theory
 --                `Approx.Controlled`
 --                                  the resource-aware half: maps carrying an
 --                                  error control, `Approx.Filtered` the second
@@ -308,6 +310,7 @@ import CategoricalCrypto.Approx.Separating
 import CategoricalCrypto.Approx.Small
 import CategoricalCrypto.Approx.Small.Controlled
 import CategoricalCrypto.UC.Quantitative.Bridge
+import CategoricalCrypto.UC.Quantitative.Observed
 import CategoricalCrypto.UC.Audit.Canonical
 import CategoricalCrypto.UC.Family.Negligible.Setup
 import CategoricalCrypto.UC.Family.Vanishing
