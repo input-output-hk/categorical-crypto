@@ -48,7 +48,6 @@ here. What is checked, in `UC/Family/Negligible/Setup.agda`:
 |---|---|
 | `ucSetupᴺ` | the tier's canonical setup, hence `Canonicalᴺ._≤UC_` as its order and the whole of `Abstract2` with it |
 | `rel-agree` | the bridge's kernel IS this tier's own `_≈ℰᴺ_`, by `refl` — so the order is stated about this relation and not a parallel one, with no transport |
-| `sub-agree^ω` | the two spellings of a simulator's action are one morphism under `_≈^ω_` |
 | `≈ℰᴺ⇒≤UC` | the tier's agreement reaches the canonical order: `≈ℰᴺ⇒≤UCᴺ`'s premise, inherited conclusion |
 | `≈ℰⁿ⇒≤UC` | a budget-indexed bound reaches it: `≈ℰⁿ⇒≤UCᴺ`'s premise, inherited conclusion |
 
@@ -65,10 +64,12 @@ left retired:
 `≈ℰᴺ⇒≈ᵁ-sub`/`≈ᵁ⇒≈ℰᴺ-sub` at a fixed simulator, and `≤UCᵉ⇒≤UC`, `≤UC⇒≤UCᵉ`,
 `≤UCᵉ⇔≤UC` for the orders — plus `≤UC⇒≤UCᵉ⁺` for the adversary-quantified
 presentation of the old one. It is derived from the generic reverse contextual
-bridge `UC.Core.Bridge.≈ᵁ⇒≈ℰᶜ` with `rel-agree` (the contextual kernels),
-`sub-agree^ω` (the simulator action, post-composed as `sub-agree^ω-∘`) and
+bridge `UC.Core.Bridge.≈ᵁ⇒≈ℰᶜ` with `rel-agree` (the contextual kernels) and
 `dummy-complete`/`≤UC⇒dummy` (dummy versus quantified presentation); the
-simulator is carried across unchanged in both directions. The retirement does
+simulator is carried across unchanged in both directions, and a simulator's
+action has one spelling because the tier's grading is the canonical setup's
+own — the family tier carries the standard grading of `Famᴹ` and no second one.
+The retirement does
 not rest on that equivalence — it rests on the adoption above and on the
 replacements named in the table.
 
@@ -130,7 +131,7 @@ from the renaming at `:70-71`, and delete `≈ℰⁿ⇒≤UCᴺ` at `:84-85`.
 order ⇒ canonical) and its two private helpers `bridged`/`transported` — with
 the tier's own order gone there is no second order to translate from, so that
 direction goes with it and is left to the derivation above; keep `≈ℰᴺ⇒≤UC`,
-`≈ℰⁿ⇒≤UC`, `sub-agree^ω` and `rel-agree`.
+`≈ℰⁿ⇒≤UC` and `rel-agree`.
 
 Net ≈ −30 lines. `UC/Model/Family/Negligible.agda:7-8`'s comment needs its
 names updated.

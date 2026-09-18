@@ -586,7 +586,7 @@ triple and so no `run`/`run-sub` (`docs/presheaf-action.md` §2,
 | `…UC.Budget` | enrichment | 64 | `Budget`, `ctxBudget` — the resource doctrine |
 | `…UC.Environment.Approximate` | enrichment | 38 | `_≈ℰ[_]_`, `absorbᵘ` |
 | `…UC.Audit` | enrichment | 133 | `_≤UC[_]_` (a budgeted simulator), `simCost`, `AuditBound`, `audit-carry` — the graded carry, proved |
-| `…UC.Family` | enrichment | 252 | `𝒞^ω` at a parameterized index, `PolyQB`, `Fam`, `Grading^ω`, `Approximation^ω`, `Observation^ω`/`Approximate^ω`, `UCBase^ω`, `ctxQB`, `_≈ℰ[_]_`, `absorb`, and the negligible layer `CarriedNegligible`/`carried-negligible`/`absorb-negl` |
+| `…UC.Family` | enrichment | 370 | `𝒞^ω` at a parameterized index, `PolyQB`, `Fam`, `Famᴹ` (whose standard grading is the family's only one), `Approximation^ω`, `Observation^ω`/`Approximate^ω`, `UCBase^ω`, `ucSetup^ω`, `ctxQB`, `_≈ℰ[_]_`, `absorb`, and the negligible layer `CarriedNegligible`/`carried-negligible`/`absorb-negl` |
 | `…UC.Machine` | model | 206 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Approximationᴹ`/`Observationᴹ`/`ApproximateObservationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `UCBaseᴹ` |
 | `…UC.Machine.Grading` | model | 74 | the four re-basings `qb-T₁ᴳ`/`qb-subᴳ`/`qb-a⇒ᴳ`/`qb-a⇐ᴳ`, carrying a query-bound certificate about a pinned relay to `gradingᴹ`'s action through a `…Dictionary` zigzag.  `GradingLawsᴹ`, `Gradingᴹ` and `Budgetᴹ` are GONE (perf finding 8); the `Budget (𝒢ₚ 0ℓ) gradingᴹ` assembly this row used to call owed is `UC.Machine.Budget.budgetᴹ`, and `UC.Model.Enrichment.budgetᵒ` carries it across the seal |
 | `…UC.Machine.Run` | model | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
