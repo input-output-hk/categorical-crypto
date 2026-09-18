@@ -19,6 +19,8 @@
 -- `Bounded I bad ε` charges `ε` at the budget of `d`, never of `bad d`.  The
 -- honest premise list is `bounded-carry`'s.
 
+import Categories.Category.Monoidal.Reasoning as MonR
+
 open import Data.Bool.Base using (Bool)
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Product.Base using (_,_; proj₁)
@@ -49,13 +51,12 @@ open import CategoricalCrypto.UC.Seam.Grounded using (closedᵒ; 𝟘ᴳ; subPre
 open import CategoricalCrypto.UC.Seam.Grounding.Dead using (pointᵒ)
 open import CategoricalCrypto.UC.Seam.Grounding.Prefix
   using (prefixedᵒ-bind; prefixedᵒ-resp-≈)
-open import CategoricalCrypto.UC.Seam.Slide using (slide⊗)
 
 module CategoricalCrypto.UC.Seam.Audit.Prefix where
 
 open C using (obs; tv₁)
 
-open HomReasoning
+open MonR monoidal
 open Mass massᵒ using (dominate)
 
 -- What a trivial-grade simulator absorbed into a context contributes to what
@@ -93,7 +94,7 @@ sim-prefixed B I e s =
   -- The simulator leaves the process and becomes one wire in front of the test.
   slide : (auditTest B e ∘ id ⊗₁ (sub s ∘ f₀)) ∘ auditClose
         ≈ ((auditTest B e ∘ id ⊗₁ sub s) ∘ id ⊗₁ f₀) ∘ auditClose
-  slide = ((refl⟩∘⟨ slide⊗ 𝟘ᴳ (sub s) f₀) ○ sym-assoc) ⟩∘⟨refl
+  slide = ((refl⟩∘⟨ split₂ʳ) ○ sym-assoc) ⟩∘⟨refl
 
   chain : obs (tv₁ 𝟘ᴳ (sub s ∘ f₀) (auditTest B e)) auditClose
             ≈ₚ (pointᵒ 𝟘ᴳ 𝟘ᴳ s >>=ₚ λ _ → run)

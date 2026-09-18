@@ -14,6 +14,7 @@
 -- `plug-run` is the one place a sealed composite has to be read back as the
 -- machine composite it is, and `UC.Model.Seal.unprocᵒ-∘` is what reads it.
 
+import Categories.Category.Monoidal.Reasoning as MonR
 open import Categories.Functor.Monoidal.CurriedTensor.Properties using (T₁-⊗)
 import Categories.Morphism.Reasoning as MR
 
@@ -41,13 +42,12 @@ open import CategoricalCrypto.UC.Seam.Grounding
 open import CategoricalCrypto.UC.Seam.Grounding.Dead
   using (Massedᵒ; massedᵒ-∘ˡ; massedᵒ-∘ʳ; massedᵒ-obs; massedᵒ-point; massedᵒ-sub; pointᵒ)
 open import CategoricalCrypto.UC.Seam.Grounding.Prefix
-open import CategoricalCrypto.UC.Seam.Slide using (slide⊗)
 
 import CategoricalCrypto.Machines.Collapse as Col
 
 module CategoricalCrypto.UC.Seam.Grounded where
 
-open HomReasoning
+open MonR monoidal
 open MR ∣machines∣ using (cancelˡ; cancelʳ)
 
 ------------------------------------------------------------------------
@@ -252,13 +252,11 @@ subPrefixed : (B : Iface) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) (v : Proc unitᴵ B) (Y : Ch
             → Prefixedᵒ 𝟘ᵒ Ωᵒ (t ∘ id ⊗₁ (sub s ∘ closedᵒ v) ∘ m)
                               (t ∘ id ⊗₁ closedᵒ v ∘ m) (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
 subPrefixed B s v Y t m = prefixedᵒ-resp-≈ 𝟘ᵒ Ωᵒ _ _ _ _ (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
-  (refl⟩∘⟨ (sym-assoc ○ (⟺ split ⟩∘⟨refl))) Equiv.refl
+  (refl⟩∘⟨ (sym-assoc ○ (merge₂ʳ ⟩∘⟨refl))) Equiv.refl
   (subPrefixedˢ B s Y t (id ⊗₁ wire ∘ m))
   where
   wire : 𝟘ᵒ ⇒ T₀ 𝟘ᴳ (ifaceᵒ B)
   wire = closedᵒ v
-
-  split = slide⊗ Y (sub s) wire
 
 -- …and an initialization that terminates almost surely is invisible:
 -- `Dp.Mass.astotal-bind` removes it from the observation.

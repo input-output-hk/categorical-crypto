@@ -213,10 +213,9 @@
 --                                  queries charged.  No event class is on the
 --                                  route: `sim-prefixed` is the one-sided mass
 --                                  consequence, `bounded-carry` is where the
---                                  route's actual premises show,
+--                                  route's actual premises show, and
 --                                  `UC.Seam.Audit.Context`'s `extract-obs` is
---                                  its numerical half and `UC.Seam.Slide` the
---                                  one place the simulator slide is spelled
+--                                  its numerical half
 --                                  (`docs/direct-extraction.md`)
 --                `UC.Saturated`    the saturated form of a concrete safety
 --                                  bound — one slack per polynomial allowance,

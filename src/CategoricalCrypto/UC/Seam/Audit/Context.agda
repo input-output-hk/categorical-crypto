@@ -64,7 +64,6 @@ open import CategoricalCrypto.UC.Seam.Adequacy using (adequacy)
 open import CategoricalCrypto.UC.Seam.Audit using (AuditBound; AuditEvent)
 open import CategoricalCrypto.UC.Seam.Budget using (qb-strategyEnv)
 open import CategoricalCrypto.UC.Seam.Grounded using (closedᵒ; 𝟘ᴳ; plug-λ; plug-run)
-open import CategoricalCrypto.UC.Seam.Slide using (slide⊗)
 
 module CategoricalCrypto.UC.Seam.Audit.Context where
 
@@ -150,8 +149,7 @@ module _ (B : Iface) (e : Strat (Neg B) (Pos B)) {X : Iface} (a : Proc X 𝟭ᴵ
         where
         merge : (id ⊗₁ (procᵘ a ⊗₁ id)) ∘ (id ⊗₁ gradedᵒ f)
               ≈ T₁ 𝟘ᴳ (sub (procᵘ a) ∘ gradedᵒ f)
-        merge = ⟺ (slide⊗ 𝟘ᴳ (procᵘ a ⊗₁ id) (gradedᵒ f))
-              ○ ⟺ (T₁-⊗ 𝔾ᵒ 𝟘ᴳ (sub (procᵘ a) ∘ gradedᵒ f))
+        merge = merge₂ʳ ○ ⟺ (T₁-⊗ 𝔾ᵒ 𝟘ᴳ (sub (procᵘ a) ∘ gradedᵒ f))
 
     -- …and the observation IS layer 1's run of the strategy against it.
     audit-runᵍ : obs (tv₁ 𝟘ᴳ (gradedᵒ f) auditTestᵍ) (closedᵒ w) ≈ₚ runᴹ closedᵍ e
