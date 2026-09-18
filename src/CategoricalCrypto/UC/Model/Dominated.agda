@@ -28,26 +28,33 @@
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 
+open import Data.Empty using (⊥-elim)
 open import Data.Nat.Base using (ℕ)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
+open import Data.Sum.Base using ([_,_]; inj₂)
 open import Data.Unit.Base using (tt)
+open import Function.Base using (id)
 
 open import ProbabilisticLogic.Dp using (_≈ₚ_; ≈ₚ-sym)
 open import ProbabilisticLogic.Dp.Advantage using (_≈ₚ[_]_; ≈ₚ[]-resp)
+open import ProbabilisticLogic.Dp.Reasoning using (_⟨≈⟩_)
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol.Machine using (runᴹ)
 open import CategoricalCrypto.Strategy using (Strat; asks≤; ask; out)
 open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget)
-open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ)
-open import CategoricalCrypto.UC.Machine.Bridge using (conjᴵ; ctxRun)
+open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; Ωᴵ; T₁ᴵ)
+open import CategoricalCrypto.UC.Machine.Bridge using (conjᴵ; ctxRun; λᴵ⇒)
 open import CategoricalCrypto.UC.Machine.Dictionary using (T₁-⊗₁)
 open import CategoricalCrypto.UC.Machine.Dominated using (dominated)
+open import CategoricalCrypto.UC.Machine.Grading using (qb-T₁ᴳ)
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
+open import CategoricalCrypto.UC.Machine.Slide using (ctxRun-conj)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ)
 open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ)
 open import CategoricalCrypto.UC.Model.Seal
-open import CategoricalCrypto.UC.QueryBound using (QB)
+open import CategoricalCrypto.UC.QueryBound using (QB; certified⇒QB; qb-resp-≈; qbᵢ-wire)
+open import CategoricalCrypto.UC.QueryBound.Compose.Laws using (qb-∘-category)
 open import CategoricalCrypto.UC.QueryBound.Object using (qb-to-image; qb-from-image)
 
 module CategoricalCrypto.UC.Model.Dominated where
@@ -121,3 +128,49 @@ dominatedᵒ B X E m qE qm u v ε δ 0<δ h =
             (≈ₚ-sym _ _ (ctxRunᵒ X E m (conjᴵ v)))
             (dominated B (objᵒ X) (untestᵒ X E) (unclosᵒ X m)
                        (unqb-testᵒ X qE) (unqb-closᵒ X qm) u v ε δ 0<δ h)
+
+------------------------------------------------------------------------
+-- …and at a nontrivial grade
+
+-- `dominatedᵒ` at a hole that is a real grade rather than `𝟘ᵒ`.  Every
+-- quantitative statement above the model that carries a grade is EXACT and
+-- reads `UC.Asymptotic.Contextual.≈C⇒≈ctx`; a hop that is approximate AND
+-- graded has nothing to read.
+--
+-- The grade is not the obstacle: `dominated`'s honest interface is arbitrary,
+-- so a grade beside it is already inside the statement, and `ctxRunᵒ` crosses
+-- the seal at an arbitrary grade.  What is in the way is the unitor `conjᴵ`
+-- leaves in front of the process, and `UC.Machine.Slide.ctxRun-conj` cancels
+-- it.
+--
+-- It does not subsume `dominatedᵒ`: the run hypothesis here is at EVERY
+-- strategy, not at every strategy of the context's budget.  That is the shape
+-- an exact run agreement has, and it makes the conclusion's error independent
+-- of the budget, so no allowance arithmetic is spent crossing.
+dominatedᵍ : {P B : Iface} (W : G.Obj)
+             (E : W G.⊗₀ (ifaceᵒ P G.⊗₀ ifaceᵒ B) G.⇒ Ωᵒ) (m : 𝟘ᵒ G.⇒ W G.⊗₀ 𝟘ᵒ)
+             {c c′ : ℕ} → Budget.QB budgetᵒ c E → Budget.QB budgetᵒ c′ m
+           → (u v : Proc unitᴵ (P ⊗ᴵ B)) (ε δ : ℚ) → 0ℚ ℚ.< δ
+           → ((d : Strat (Neg (P ⊗ᴵ B)) (Pos (P ⊗ᴵ B))) → runᴹ u d ≈ₚ[ ε ] runᴹ v d)
+           → Obs ((E G.∘ T₁ᵒ W (gradedᵒ u)) G.∘ m)
+             ≈ₚ[ ε ℚ.+ δ ] Obs ((E G.∘ T₁ᵒ W (gradedᵒ v)) G.∘ m)
+dominatedᵍ {P} {B} W E m qE qm u v ε δ 0<δ h =
+  ≈ₚ[]-resp (≈ₚ-sym _ _ (open-hole u)) (≈ₚ-sym _ _ (open-hole v))
+    (dominated (P ⊗ᴵ B) (objᵒ W) Eᶜ (unclosᵒ W m) qEᶜ (unqb-closᵒ W qm)
+               u v ε δ 0<δ (λ d _ → h d))
+  where
+  Eᶜ : Proc (objᵒ W ⊗ᴵ (unitᴵ ⊗ᴵ (P ⊗ᴵ B))) Ωᴵ
+  Eᶜ = untestᵒ W E 𝒫.∘ T₁ᴵ (objᵒ W) (λᴵ⇒ {P ⊗ᴵ B})
+
+  qEᶜ : QB _ Eᶜ
+  qEᶜ = qb-∘-category (objᵒ W ⊗ᴵ (unitᴵ ⊗ᴵ (P ⊗ᴵ B))) (objᵒ W ⊗ᴵ (P ⊗ᴵ B)) Ωᴵ
+          (untestᵒ W E) (T₁ᴵ (objᵒ W) λᴵ⇒) (unqb-testᵒ W qE)
+          (qb-resp-≈ (𝒫.Equiv.sym (T₁-⊗₁ {objᵒ W} (λᴵ⇒ {P ⊗ᴵ B})))
+            (qb-T₁ᴳ (objᵒ W) (unitᴵ ⊗ᴵ (P ⊗ᴵ B)) (P ⊗ᴵ B) λᴵ⇒
+              (certified⇒QB (qbᵢ-wire [ ⊥-elim , id ] inj₂))))
+
+  open-hole : (x : Proc unitᴵ (P ⊗ᴵ B))
+            → Obs ((E G.∘ T₁ᵒ W (gradedᵒ x)) G.∘ m)
+              ≈ₚ ctxRun (objᵒ W) Eᶜ (unclosᵒ W m) (conjᴵ x)
+  open-hole x = ctxRunᵒ W E m x
+            ⟨≈⟩ ctxRun-conj (untestᵒ W E) (unclosᵒ W m) x

@@ -13,7 +13,7 @@
 -- (`UC.Model.Seal`'s third discipline), so the two spellings are two
 -- coercions and not one, and `sub-graded₂` at the IDENTITY process is the
 -- morphism between them.  That is what lets the domination, which is stated
--- at a grade of the first shape (`Receiver.Dominated.dominatedᵍ`), be read at
+-- at a grade of the first shape (`UC.Model.Dominated.dominatedᵍ`), be read at
 -- the second, which is the shape `UC.Asymptotic.Compose._∙ᶠ_` produces.
 
 open import Data.Bool.Base using (_xor_)

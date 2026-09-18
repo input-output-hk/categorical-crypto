@@ -20,6 +20,10 @@
 -- the two facts about the hole wire, `λ-nat` and `λ-slide`, and those are
 -- case analyses on a sum rather than trace arguments because
 -- `UC.Machine.Wire` has already absorbed the wires.
+--
+-- The last section runs the hole the other way: a GRADED statement arrives
+-- with the hole already open, and `UC.Model.Dominated.dominatedᵍ` has to close
+-- it before `dominated` will accept the context.
 
 open import Categories.Category using (Category)
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
@@ -27,7 +31,7 @@ open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 open import Data.Empty using (⊥-elim)
 open import Data.Nat.Base as ℕ using (ℕ; _*_; _⊔_)
 open import Data.Nat.Properties using (*-identityˡ; *-identityʳ; ≤-reflexive)
-open import Data.Product.Base using (_,_)
+open import Data.Product.Base using (_,_; proj₁; proj₂)
 open import Data.Sum.Base as Sum using (_⊎_; inj₁; inj₂; [_,_])
 open import Data.Sum.Ext using (⊎assocˡ; ⊎assocʳ)
 open import Data.Unit.Base using (tt)
@@ -44,7 +48,7 @@ open import CategoricalCrypto.Protocol.Machine using (⟦_⟧ᴵ)
 open import CategoricalCrypto.Strategy using (ask; out)
 open import CategoricalCrypto.UC.Budget using (ctxBudget)
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Bridge using (λᴵ⇐; conjᴵ; ctxRun)
+open import CategoricalCrypto.UC.Machine.Bridge using (λᴵ⇐; λᴵ⇒; conjᴵ; ctxRun)
 open import CategoricalCrypto.UC.Machine.Dictionary using (T₁-⊗₁; sub-⊗₁; a⇐-α⇒)
 open import CategoricalCrypto.UC.Machine.Grading using (qb-subᴳ; qb-a⇐ᴳ)
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
@@ -177,6 +181,65 @@ ctxRun-slide : {B Y : Iface} (E : Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ)
                (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ)) (x : Proc unitᴵ B)
              → ctxRun Y E m (conjᴵ x) ≈ₚ ⟦ Kctx E m 𝒫.∘ x ⟧ᴼ
 ctxRun-slide E m x = runᴹ-resp-≈ᴹ {Ωᴵ} (slideᴹ E m x) (ask tt out)
+
+------------------------------------------------------------------------
+-- Closing the hole again
+
+-- A renaming by two identities is no renaming.
+sandwich-id : {X Y : Set} (f : Machine X Y) (i : X → X) (o : Y → Y)
+            → ((z : X) → i z ≡ z) → ((w : Y) → o w ≡ w)
+            → sandwichᴹ f i o ≈ᴹ f
+sandwich-id f i o ei eo = ≲⇒≈ᴹ (mk-cong pt)
+  where
+  pt : (p : _) → _
+  pt (s , z) = ≡⇒≈ₚ (cong (λ w → mapₚ (λ q → proj₁ q , o (proj₂ q)) (step f (s , w))) (ei z))
+           ⟨≈⟩ map-eq (step f (s , z)) _ (λ q → q)
+                      (λ q → cong (proj₁ q ,_) (eo (proj₂ q)))
+           ⟨≈⟩ >>=ₚ-identityʳ (step f (s , z))
+
+-- The two hole wires absorb into one renaming, and that renaming is the
+-- identity.
+unit-cancel : {B : Iface} (x : Proc unitᴵ B) → 𝒫._≈_ {unitᴵ} {B} (λᴵ⇒ 𝒫.∘ conjᴵ x) x
+unit-cancel {B} x =
+     𝒫.∘-resp-≈ʳ (wire-∘ᴹ inj₂ [ ⊥-elim , id ] x)
+  ○ᴹ wire-∘ᴹ [ ⊥-elim , id ] inj₂ (sandwichᴹ x i₁ o₁)
+  ○ᴹ sandwich-∘ x i₁ o₁ i₂ o₂
+  ○ᴹ sandwich-id x (λ z → i₁ (i₂ z)) (λ y → o₂ (o₁ y))
+       (λ where (inj₁ ())
+                (inj₂ _) → refl)
+       (λ where (inj₁ ())
+                (inj₂ _) → refl)
+  where
+  i₁ : Pos unitᴵ ⊎ Neg (unitᴵ ⊗ᴵ B) → Pos unitᴵ ⊎ Neg B
+  i₁ = Sum.map (λ a → a) [ ⊥-elim , id ]
+
+  o₁ : Neg unitᴵ ⊎ Pos B → Neg unitᴵ ⊎ Pos (unitᴵ ⊗ᴵ B)
+  o₁ = Sum.map (λ a → a) inj₂
+
+  i₂ : Pos unitᴵ ⊎ Neg B → Pos unitᴵ ⊎ Neg (unitᴵ ⊗ᴵ B)
+  i₂ = Sum.map (λ a → a) inj₂
+
+  o₂ : Neg unitᴵ ⊎ Pos (unitᴵ ⊗ᴵ B) → Neg unitᴵ ⊎ Pos B
+  o₂ = Sum.map (λ a → a) [ ⊥-elim , id ]
+
+-- …so relaying it past an ancilla is no relay either.
+T₁-conj : {Y B : Iface} (x : Proc unitᴵ B)
+        → 𝒫._≈_ {Y ⊗ᴵ unitᴵ} {Y ⊗ᴵ B} (T₁ᴵ Y x) (T₁ᴵ Y (λᴵ⇒ {B}) 𝒫.∘ T₁ᴵ Y (conjᴵ x))
+T₁-conj {Y} {B} x =
+     T₁-⊗₁ {Y} {unitᴵ} {B} x
+  ○ᴹ 𝔾.⊗.F-resp-≈ {(⟦ Y ⟧ᴵ , ⟦ unitᴵ ⟧ᴵ)} {(⟦ Y ⟧ᴵ , ⟦ B ⟧ᴵ)}
+       {(𝒫.id {Y} , x)} {(𝒫.id {Y} 𝒫.∘ 𝒫.id {Y} , λᴵ⇒ 𝒫.∘ conjᴵ x)}
+       (𝒫.Equiv.sym 𝒫.identity² , 𝒫.Equiv.sym (unit-cancel x))
+  ○ᴹ 𝔾.⊗.homomorphism
+  ○ᴹ 𝒫.Equiv.sym (𝒫.∘-resp-≈ (T₁-⊗₁ {Y} (λᴵ⇒ {B})) (T₁-⊗₁ {Y} (conjᴵ x)))
+
+-- …hence the bridge's observation is unchanged by opening the hole.
+ctxRun-conj : {B Y : Iface} (E : Proc (Y ⊗ᴵ B) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
+              (x : Proc unitᴵ B)
+            → ctxRun Y E m x ≈ₚ ctxRun Y (E 𝒫.∘ T₁ᴵ Y (λᴵ⇒ {B})) m (conjᴵ x)
+ctxRun-conj {B} {Y} E m x =
+  runᴹ-resp-≈ᴹ {Ωᴵ}
+    (𝒫.∘-resp-≈ˡ (𝒫.∘-resp-≈ʳ (T₁-conj x) ○ᴹ 𝒫.sym-assoc)) (ask tt out)
 
 ------------------------------------------------------------------------
 -- …and the budget it carries

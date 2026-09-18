@@ -73,6 +73,11 @@ private module 𝒫 = Category 𝒫ᴵ
 λᴵ⇐ : {B : Iface} → Proc B (unitᴵ ⊗ᴵ B)
 λᴵ⇐ = wireᴹ inj₂ [ ⊥-elim , id ]
 
+-- …and its retraction, which closes a hole a graded statement has already
+-- opened (`UC.Machine.Slide.unit-cancel`).
+λᴵ⇒ : {B : Iface} → Proc (unitᴵ ⊗ᴵ B) B
+λᴵ⇒ = wireᴹ [ ⊥-elim , id ] inj₂
+
 conjᴵ : {B : Iface} → Proc unitᴵ B → Proc unitᴵ (unitᴵ ⊗ᴵ B)
 conjᴵ u = λᴵ⇐ 𝒫.∘ u
 

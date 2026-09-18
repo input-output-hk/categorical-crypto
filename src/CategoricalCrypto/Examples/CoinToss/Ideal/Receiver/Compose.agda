@@ -35,7 +35,6 @@ open import CategoricalCrypto.Iface using (_⊗ᴵ_)
 
 open import CategoricalCrypto.Examples.CoinToss.Compose
 open import CategoricalCrypto.Examples.CoinToss.Ideal.Compose using (resᶠ)
-open import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Dominated using (dominatedᵍ)
 open import CategoricalCrypto.Examples.ROCommitment.Hiding.Asymptotic using (εᵗ; εᵗ-negligible)
 open import CategoricalCrypto.UC.Approximate
   using (GradedBound-+[_]; Negligible; Negligible-+; Negligible-0; NegligibleBound)
@@ -43,6 +42,7 @@ open import CategoricalCrypto.UC.Approximate.Decay using (negligible-slack; 0<in
 open import CategoricalCrypto.UC.Asymptotic.Compose
   using (_∙ᶠ_; _⊗ᶠ_; ≤UC^ωᵉ-dom; ≤UC^ωᵉ-trans)
 open import CategoricalCrypto.UC.Asymptotic.Contextual
+open import CategoricalCrypto.UC.Model.Dominated using (dominatedᵍ)
 open import CategoricalCrypto.UC.Model.Observation using (𝟘ᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup

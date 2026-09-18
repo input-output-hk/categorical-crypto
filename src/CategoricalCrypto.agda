@@ -42,7 +42,8 @@
 -- corruption, where the two worlds are NOT equal as machines — they sample at
 -- different activations — so the agreement is a run equality
 -- (`.Receiver.Machine`) carried into a context by a graded domination
--- (`.Receiver.Dominated`), and the hop lands at `2⁻ⁿ` rather than at `0`.
+-- (`UC.Model.Dominated.dominatedᵍ`), and the hop lands at `2⁻ⁿ` rather than
+-- at `0`.
 --
 -- Outside still, each with its own root: the protocol-layer examples
 -- (`Examples.ChimericLedger`, `Examples.MerkleDamgard`) and the inherited

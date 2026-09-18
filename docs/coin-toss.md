@@ -484,8 +484,8 @@ domination charges a positive slack, paid here at `2⁻ⁿ`, so the second hop's
 schedule is `0ℚ + 2⁻ⁿ` and the composed one is the hiding bound plus it. That
 is the whole difference from the committer's exact hop.
 
-Two pieces of plumbing are the price, both general and both flagged in
-`QUALITY-REVIEW.md` as belonging further up: `Receiver.Dominated.dominatedᵍ`
+Two pieces of plumbing are the price, both general and both since hoisted:
+`UC.Model.Dominated.dominatedᵍ`
 is `dominatedᵒ` at a NONTRIVIAL grade (the model had domination only at the
 trivial one, every graded statement above it being exact), and
 `Receiver.UC.regrade` identifies the two spellings of a tensor grade the seal
@@ -596,9 +596,9 @@ Done on the branch, not left to the maintainer:
    would need the domination to be sharp at `δ = 0`, which the machine layer
    does not claim, or a machine equality, which §5's last subsection rules
    out.
-   The two general pieces it spends, `Receiver.Dominated.dominatedᵍ` and
-   `Receiver.UC.regrade`, sit at the example rather than beside `dominatedᵒ`
-   and `sub-graded₂` in `UC.Model.*`, this branch not having `UC/` to edit.
+   The two general pieces it spends, `dominatedᵍ` and `regrade`, were written
+   at the example (this branch not having `UC/` to edit) and have since been
+   hoisted beside `dominatedᵒ` and `sub-graded₂`.
 2. **No `≤UC` / `≤UC[ c ]` form of the composed statement.**
    `UC.Graded.≤UCᵍ` and `UC.Seam.Graded.≤UC[]ᵍ` consume a `Factors` — an exact
    machine equality — and the composed statement is approximate, exactly as
