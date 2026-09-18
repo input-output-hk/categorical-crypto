@@ -30,15 +30,25 @@ open import CategoricalCrypto.UC.Approximate using (Negligible-0)
 open import CategoricalCrypto.UC.Asymptotic.Compose
   using (_∙ᶠ_; _⊗ᶠ_; ≤UC^ωᵉ-dom; ≤UC^ωᵉ-trans)
 open import CategoricalCrypto.UC.Asymptotic.Contextual
+open import CategoricalCrypto.UC.Asymptotic.Family using (≤UC^ωᵉ⇒≤UCᴺ)
+open import CategoricalCrypto.UC.Budget using (Budget)
+open import CategoricalCrypto.UC.Model.Dominated using (qb-gradedᵒ)
+open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ)
+open import CategoricalCrypto.UC.Model.Family using (PolyQB)
+open import CategoricalCrypto.UC.Model.Family.Negligible using (module Canonicalᴺ)
 open import CategoricalCrypto.UC.Model.Observation using (𝟘ᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; ifaceᵒ; procᵒ)
 open import CategoricalCrypto.UC.Model.Setup
+open import CategoricalCrypto.UC.QueryBound using (qb-closed)
 
 import CategoricalCrypto.Examples.CoinToss.Ideal as CTI
 import CategoricalCrypto.Examples.CoinToss.Ideal.UC as CTIU
+import CategoricalCrypto.Examples.CoinToss.UC as CTU
 import CategoricalCrypto.Examples.ROCommitment.Resource as RR
 
 module CategoricalCrypto.Examples.CoinToss.Ideal.Compose where
+
+open Budget budgetᵒ using (qb-∘; qb-T₁; qb-a⇒)
 
 ------------------------------------------------------------------------
 -- The closed boundary, and the ideal coin over it
@@ -91,3 +101,29 @@ coin-toss-idealᶜ e = coin-toss-ideal (comSim , εᶜ , εᶜ-negligible , e)
 
 ideal-ε : (n q : ℕ) → εᶜⁱ εᶜ n q ≡ fromℕ (q * q + q + q) *ℚ inv-pow-2 n
 ideal-ε n q = trans (+-identityʳ _) (composed-ε n q)
+
+------------------------------------------------------------------------
+-- …and its consequence in the canonical negligible `UCSetup`
+
+-- Both compared families are CLOSED, so a `Fam`-hom's carried polynomial is
+-- the factors' own: `qb-closed` for the ideal coin, and for the real composite
+-- the toss stage's `QB 0`, the receiver's `QB 1` and the resource's `QB 0`,
+-- whose product the resource takes back to `0`.
+FcoinQB : PolyQB Fcoinᶠ
+FcoinQB = (λ _ → 0) , poly-const 0 , λ n → qb-gradedᵒ (qb-closed (CTI.Fcoin n))
+
+coinRealQB : PolyQB (λ n → (tossᶠ ∙ᶠ realᶠ) n ∘ resᶠ n)
+coinRealQB =
+    (λ _ → 0) , poly-const 0
+  , λ n → qb-∘ (qb-∘ (qb-∘ qb-a⇒ (qb-T₁ (CTU.tossQB n))) (CTU.recvQB n))
+               (CTIU.resourceQBᵒ n)
+
+-- `≤UC^ωᵉ⇒≤UCᴺ` does NOT spend the schedule, so the statement lands in the
+-- LOCAL-NEGLIGIBLE `ucSetupᴺ` and not only in the vanishing `Canonical^ω`.
+coin-toss-idealᴺ :
+    realᶠ ≤UC^ωᵉ idealᶠ
+  → Canonicalᴺ._≤UC_ ((λ n → (tossᶠ ∙ᶠ realᶠ) n ∘ resᶠ n) , coinRealQB)
+                     (Fcoinᶠ , FcoinQB)
+coin-toss-idealᴺ w =
+  let s , ε , neg , e = coin-toss-ideal w
+  in ≤UC^ωᵉ⇒≤UCᴺ s ε neg coinRealQB FcoinQB e

@@ -4,8 +4,8 @@
 -- observation and emulation order inhabited at the intended model, on the same
 -- ingredients `UC.Model.Family` feeds the qualitative tier.
 --
--- So the tier is not a construction awaiting a model — `_≈ℰᴺ_` exists HERE,
--- and `UC.Family.Negligible.Setup.≈ℰⁿ⇒≤UC` puts an ingested bound
+-- So the tier is not a construction awaiting a model — `_≈ℰᴺ_` and `Canonicalᴺ`
+-- exist HERE, and `≈ℰⁿ⇒≤UC` puts an ingested bound
 -- (`UC.Model.Family.Ingest.ingest-≈ℰⁿ`) into the INHERITED order with its
 -- error witness kept, which is where `ingest-≤UCᵁ` lands it too.
 
@@ -20,4 +20,7 @@ open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ)
 module CategoricalCrypto.UC.Model.Family.Negligible where
 
 open import CategoricalCrypto.UC.Family.Negligible
+  𝔾ᵒ observationᵒ approximateᵒ budgetᵒ ℕ (λ n → n) (λ N → N , ≤-refl) public
+
+open import CategoricalCrypto.UC.Family.Negligible.Setup
   𝔾ᵒ observationᵒ approximateᵒ budgetᵒ ℕ (λ n → n) (λ N → N , ≤-refl) public

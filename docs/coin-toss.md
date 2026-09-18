@@ -417,6 +417,8 @@ coin-toss-idealᶜ : realᶠ ≈ctx[ εᶜ ] subᶠ comSim idealᶠ
                  → (λ n → (tossᶠ ∙ᶠ realᶠ) n ∘ resᶠ n) ≤UC^ωᵉ Fcoinᶠ      -- :88
 schedule-pinⁱ    : proj₁ (proj₂ (coin-toss-ideal w)) ≡ εᶜⁱ (proj₁ (proj₂ w))
 ideal-ε          : εᶜⁱ εᶜ n q ≡ fromℕ (q * q + q + q) *ℚ inv-pow-2 n       -- :92
+coin-toss-idealᴺ : realᶠ ≤UC^ωᵉ idealᶠ
+                 → Canonicalᴺ._≤UC_ (… , coinRealQB) (Fcoinᶠ , FcoinQB)   -- :118
 ```
 
 (`Ideal/Compose.agda`.) The premise is the SAME one §3 takes — the
@@ -425,6 +427,16 @@ hop is exact, so `≤UC^ωᵉ-trans`'s sum reads `εᶜᵗ ε n q + 0ℚ`: reind
 second schedule at `simCost q (cost s₁ n)` changes nothing when that schedule
 is constantly `0ℚ`. The closed form is therefore §3's, unrescaled —
 **`(q² + 2q)·2⁻ⁿ`** — and `Test.agda:71` evaluates it at `k = q = 3`.
+
+`coin-toss-idealᴺ` is the same statement in the canonical LOCAL-NEGLIGIBLE
+`UCSetup` (`UC.Family.Negligible.Setup.ucSetupᴺ`), through
+`UC.Asymptotic.Family.≤UC^ωᵉ⇒≤UCᴺ`: that forgetting stops at `_≈ℰⁿ_` and reads
+it in `ucSetupᴺ`'s own kernel instead of spending `absorb-negl`, so the
+negligible witness survives where `≤UC^ωᵉ⇒≤UCᵁ` loses it. Both compared
+processes are closed, so the `Fam`-homs it wants carry `QB 0` — `qb-closed`
+for the coin, and the product of `tossQB`, `recvQB` and `resourceQBᵒ` for the
+real side. The order is qualitative, so `Test.agda`'s numerical pins say
+everything there is to say about the schedule and gain nothing from a twin.
 
 ### …and the corrupted RECEIVER, one layer up
 
@@ -477,6 +489,8 @@ coin-hybridʳ      : (λ n → (tossʰᶠ ∙ᶠ idealʰᶠ) n ∘ resᶠ n) ≤
 coin-toss-idealʳ  : realʰᶠ ≤UC^ωᵉ idealʰᶠ
                   → (λ n → (tossʰᶠ ∙ᶠ realʰᶠ) n ∘ resᶠ n) ≤UC^ωᵉ Fcoinʰᶠ
 ideal-εʳ          : εᶜʳ εᵗ n q ≡ fromℕ (q + (q + q)) *ℚ inv-pow-2 n ℚ.+ inv-pow-2 n
+coin-toss-idealʳᴺ : realʰᶠ ≤UC^ωᵉ idealʰᶠ
+                  → Canonicalᴺ._≤UC_ (… , coinRealʰQB) (Fcoinʰᶠ , FcoinʰQB)
 ```
 
 Carrying a run agreement into a CONTEXT is what costs: `UC.Model.Dominated`'s
@@ -599,11 +613,13 @@ Done on the branch, not left to the maintainer:
    The two general pieces it spends, `dominatedᵍ` and `regrade`, were written
    at the example (this branch not having `UC/` to edit) and have since been
    hoisted beside `dominatedᵒ` and `sub-graded₂`.
-2. **No `≤UC` / `≤UC[ c ]` form of the composed statement.**
+2. **No `≤UC[ c ]` form of the composed statement, and no COST-certified one.**
    `UC.Graded.≤UCᵍ` and `UC.Seam.Graded.≤UC[]ᵍ` consume a `Factors` — an exact
    machine equality — and the composed statement is approximate, exactly as
    `docs/fcom-extraction.md` §"Not delivered" 3 records for the commitment
-   itself. Nothing here weakens them; they do not apply.
+   itself. Nothing here weakens them; they do not apply. What IS delivered is
+   the qualitative `Canonicalᴺ._≤UC_` form (§5's `coin-toss-idealᴺ` /
+   `coin-toss-idealʳᴺ`), which keeps the simulator but forgets its cost.
 3. **No closed-game bound for the composed system.** The acceptance instance's
    attack is a machine, and the probability it is bounded by is the
    commitment's; a `Dist-ℚ` statement about the coin-toss experiment would need

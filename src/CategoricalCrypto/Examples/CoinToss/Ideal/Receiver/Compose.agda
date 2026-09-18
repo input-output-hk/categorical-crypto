@@ -42,12 +42,19 @@ open import CategoricalCrypto.UC.Approximate.Decay using (negligible-slack; 0<in
 open import CategoricalCrypto.UC.Asymptotic.Compose
   using (_∙ᶠ_; _⊗ᶠ_; ≤UC^ωᵉ-dom; ≤UC^ωᵉ-trans)
 open import CategoricalCrypto.UC.Asymptotic.Contextual
-open import CategoricalCrypto.UC.Model.Dominated using (dominatedᵍ)
+open import CategoricalCrypto.UC.Asymptotic.Family using (≤UC^ωᵉ⇒≤UCᴺ)
+open import CategoricalCrypto.UC.Budget using (Budget)
+open import CategoricalCrypto.UC.Model.Dominated using (dominatedᵍ; qb-gradedᵒ)
+open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ)
+open import CategoricalCrypto.UC.Model.Family using (PolyQB)
+open import CategoricalCrypto.UC.Model.Family.Negligible using (module Canonicalᴺ)
 open import CategoricalCrypto.UC.Model.Observation using (𝟘ᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
+open import CategoricalCrypto.UC.QueryBound using (qb-closed)
 
 import CategoricalCrypto.Examples.CoinToss.Hiding as CTH
+import CategoricalCrypto.Examples.CoinToss.Hiding.UC as CTHU
 import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver as CTR
 import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Hybrid as CTRH
 import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Machine as CTRM
@@ -56,6 +63,8 @@ import CategoricalCrypto.Examples.CoinToss.Ideal.UC as CTIU
 import CategoricalCrypto.Examples.ROCommitment.Hiding as ROH
 
 module CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Compose where
+
+open Budget budgetᵒ using (qb-∘; qb-T₁; qb-a⇒)
 
 ------------------------------------------------------------------------
 -- The ideal coin over the closed boundary
@@ -137,3 +146,26 @@ schedule-pinʳ _ = refl
 ideal-εʳ : (n q : ℕ) → εᶜʳ εᵗ n q ≡ fromℕ (q + (q + q)) *ℚ inv-pow-2 n ℚ.+ inv-pow-2 n
 ideal-εʳ n q = cong₂ ℚ._+_ (trans (+-identityˡ _) (cong (εᵗ n) (*-identityʳ q)))
                            (+-identityˡ (inv-pow-2 n))
+
+------------------------------------------------------------------------
+-- …and its consequence in the canonical negligible `UCSetup`
+
+-- The committer twin's certificates at this corruption
+-- (`Examples.CoinToss.Ideal.Compose`): both families are CLOSED, so the
+-- resource's `QB 0` takes the product back to `0`.
+FcoinʰQB : PolyQB Fcoinʰᶠ
+FcoinʰQB = (λ _ → 0) , poly-const 0 , λ n → qb-gradedᵒ (qb-closed (CTR.Fcoinʰ n))
+
+coinRealʰQB : PolyQB (λ n → (tossʰᶠ ∙ᶠ realʰᶠ) n ∘ resᶠ n)
+coinRealʰQB =
+    (λ _ → 0) , poly-const 0
+  , λ n → qb-∘ (qb-∘ (qb-∘ qb-a⇒ (qb-T₁ (CTHU.tossʰQB n))) (CTHU.comQB n))
+               (CTIU.resourceQBᵒ n)
+
+coin-toss-idealʳᴺ :
+    realʰᶠ ≤UC^ωᵉ idealʰᶠ
+  → Canonicalᴺ._≤UC_ ((λ n → (tossʰᶠ ∙ᶠ realʰᶠ) n ∘ resᶠ n) , coinRealʰQB)
+                     (Fcoinʰᶠ , FcoinʰQB)
+coin-toss-idealʳᴺ w =
+  let s , ε , neg , e = coin-toss-idealʳ w
+  in ≤UC^ωᵉ⇒≤UCᴺ s ε neg coinRealʰQB FcoinʰQB e
