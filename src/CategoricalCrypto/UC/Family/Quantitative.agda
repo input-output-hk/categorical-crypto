@@ -14,14 +14,14 @@
 -- `UC.Family.Vanishing.Canonical^ω` already is, so the order below is the
 -- tier's own and not a parallel spelling; `rel-agree^ω` pins the kernel there.
 --
--- The local-negligible counterpart is `UC.Family.Negligible.Quantitative`, kept
--- apart because instantiating `Observed` at `Fam` costs ~40 s on its own: this
--- module checks warm in ~150 s, and the merged pair measured 455 s.
+-- The local-negligible counterpart is `UC.Family.Negligible.Quantitative`,
+-- split off as `UC.Family.Vanishing` and `UC.Family.Negligible.Setup` are.
 
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Product.Base using (Σ-syntax; _,_)
+open import Function.Bundles using (_⇔_; mk⇔)
 open import Level using (Level; _⊔_)
 
 open import CategoricalCrypto.Approx.Error using (ℚ-ordered)
@@ -81,6 +81,12 @@ private
   ∼₊⇒≋ {A = C^ω.T₀ W A} {E₁ = A^ω.run W f t} {E₂ = A^ω.run W g t}
        (A₊.run-resp-≈ᵁ {f = f} {g = g} h W t)
 
+≈ᵁ^ω⇔≈ᵁ₊ : {A B X : C^ω.Channel} (f g : C^ω._⇒_ A (C^ω.T₀ X B))
+         → (C^ω._≈ᵁ_ f g) ⇔ (A₊._≈ᵁ_ f g)
+≈ᵁ^ω⇔≈ᵁ₊ f g = mk⇔ (≈ᵁ^ω⇒≈ᵁ₊ f g) (≈ᵁ₊⇒≈ᵁ^ω f g)
+
+-- Bundling the two below as one `⇔` costs 22 s to elaborate their type a third
+-- time, against 8 s for the agreement bundle above, so they stand alone.
 ≤UC^ω⇒≤UC₊ : {A B X Y : C^ω.Channel}
              (f : C^ω._⇒_ A (C^ω.T₀ X B)) (g : C^ω._⇒_ A (C^ω.T₀ Y B))
            → C^ω._≤UC_ f g → A₊._≤UC_ f g

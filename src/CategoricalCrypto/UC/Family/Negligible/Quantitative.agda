@@ -18,9 +18,7 @@
 -- `UC.Family.Negligible.Setup.Canonicalᴺ` already is, so the order landed in is
 -- the canonical tier's own; `rel-agree` pins the kernel there.
 --
--- The vanishing counterpart is `UC.Family.Quantitative`, kept apart because
--- instantiating `Observed` at `Fam` costs ~40 s on its own: this module checks
--- warm in ~160 s, and the merged pair measured 455 s.
+-- The vanishing counterpart is `UC.Family.Quantitative`.
 
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 
