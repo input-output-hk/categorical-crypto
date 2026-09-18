@@ -1,34 +1,36 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- Where the hand-rolled qualitative core meets the inherited metatheory: the
--- machine model carries BOTH, and this module identifies them.
+-- Where the hand-rolled qualitative core meets the inherited metatheory at the
+-- machine model.  The identification is generic — `UC.Core.Bridge` at any
+-- monoidal base and observation — and is applied here at the seal; what stays
+-- is what only the model has.
 --
--- The identification is exact in both directions, and its shape is a warning
--- about the vocabulary.  The core's `_≈ℰ_` (`UC.Environment`) quantifies over an
--- ancilla; StdUC's `_≈ℰ_` is the bare presheaf kernel and does not.  So the two
--- relations that share the name are NOT the same one — what the core's `_≈ℰ_`
--- coincides with is StdUC's `_≈ᵁ_`, through the operational reading
--- `UC.Model.Reading._≈ᴬ_`, which differs from it by one `assoc` and nothing
--- else.  The core's `_≤UC_` then coincides with StdUC's, both ways: the core's
--- `dummy-complete` supplies the universal quantification StdUC's order carries
--- in its statement, and instantiating that quantifier at `id` takes it back.
+-- The two packagings are ONE setup definitionally, but not cheaply: their
+-- environment presheaves are separate module-application copies, so nothing
+-- matches by head and the comparison eta-expands the functor, ~25 s a
+-- crossing.  So the two directions are re-typed here at the model's spelling,
+-- once each; everything downstream of them stays inside it and pays nothing.
 --
--- Universal composition is what the identification RETIRES.  `UC.Emulation`
--- could only state it, the chain needing a `sub`/`T₁` interchange and an
--- `a⇒`-naturality that `Grading` does not ask for; here the graded composite IS
--- the Kleisli one (`ext X h` is `α⇐ ∘ id ⊗₁ h` on the nose,
--- `CurriedTensor.Properties.ext-⊗`), so `≤UCᶜ⇔≤UC` carries `UC-compose` —
--- already a theorem — across, and there is nothing left for the core to owe.
+-- The vocabulary is the trap, and this is the one place it is spelled out.  The
+-- core's `_≈ℰ_` (`UC.Environment`) quantifies over an ancilla; StdUC's `_≈ℰ_`
+-- is the bare presheaf kernel and does not.  So the two relations sharing that
+-- name are NOT the same one: what the core's coincides with is StdUC's `_≈ᵁ_`.
+-- Coming back from the BARE kernel would be `Abstract2.bridge`, which wants
+-- `GradeStable` for `ℰᴼ`; this model does not supply it — the core buys grade
+-- stability by putting the ancilla into the relation instead
+-- (`UC.Environment.grade-stable`).
 --
--- At UNGRADED homs `_≈ᵁ_` says nothing — it is stated at `A ⇒ T₀ X B` — and the
--- core's relation is stated at every codomain.  What it is there is `_≈ᴳ_`, the
--- bare kernel stabilized under the action: exactly the property `GradeStable`
--- asks of `_≈ℰ_` and this model does not supply.  `_≈ᴳ_` agrees with `_≈ᵁ_`
--- wherever the latter is stated, so the seam can be read in one vocabulary.
+-- At UNGRADED homs `_≈ᵁ_` says nothing — it is stated at `A ⇒ T₀ X B` — while
+-- the core's relation is stated at every codomain.  `_≈ᴳ_` below is what it is
+-- there, and agrees with `_≈ᵁ_` wherever the latter is stated, so the seam can
+-- be read in one vocabulary.
 --
--- Nothing here unfolds the seal: the core's `UCBase` is assembled from
--- `UC.Core.Standard.gradingᵗ` at `𝔾ᵒ` and `UC.Model.Observation`, both of which
--- name the sealed bundle without opening it.
+-- Universal composition is what the two orders agreeing RETIRES: `UC.Emulation`
+-- could only state it, and `≤UCᶜ⇔≤UC` carries `Abstract2.UC-compose` — already
+-- a theorem — across, leaving the core nothing to owe.
+--
+-- Nothing here unfolds the seal: `ucBaseᵒ` reaches the sealed bundle only
+-- through `UC.Core.Standard.gradingᵗ` and `UC.Model.Observation`.
 
 open import Categories.Functor.Monoidal.CurriedTensor.Properties using (T₁-⊗; μ-α⇐)
 import Categories.Morphism.Reasoning as MR
@@ -39,11 +41,10 @@ open import Level using (0ℓ; suc)
 
 open import CategoricalCrypto.UC.Core using (UCBase)
 open import CategoricalCrypto.UC.Model.Observation
-open import CategoricalCrypto.UC.Model.Reading using (_≈ᴬ_; ≈ᵁ⇒≈ᴬ; ≈ᴬ⇒≈ᵁ)
-open import CategoricalCrypto.UC.Model.Seal using (∣𝔾ᵒ∣; 𝔾ᵒ)
+open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 
-import CategoricalCrypto.UC.Core.Standard as Std
+import CategoricalCrypto.UC.Core.Bridge as Bridgeᴹ
 import CategoricalCrypto.UC.Emulation as Em
 
 module CategoricalCrypto.UC.Model.Bridge where
@@ -54,52 +55,42 @@ open MR ∣machines∣ using (cancelˡ)
 private variable A B C X Y : Channel
 
 ------------------------------------------------------------------------
--- The core's `UCBase` at the model
+-- The core's `UCBase` at the model, and the generic bridge over it
 
 -- The core asks for strictly less than `UCSetup` does: an action of grades and
 -- a closed run.  Both are already here — the action is the one a monoidal
 -- category carries for free, and the run is the model's own observation
--- (`UC.Model.Observation.observationᵒ`).
+-- (`UC.Model.Observation.observationᵒ`) — so the generic bridge applies, and
+-- the base it assembles from the two is the core's base at the model.
+module Canonicalᵒ = Bridgeᴹ 𝔾ᵒ observationᵒ
+
 ucBaseᵒ : UCBase (suc 0ℓ) (suc 0ℓ) (suc 0ℓ) 0ℓ 0ℓ
-ucBaseᵒ = record
-  { 𝒞 = ∣𝔾ᵒ∣ ; grading = Std.gradingᵗ 𝔾ᵒ ; observation = observationᵒ }
+ucBaseᵒ = Canonicalᵒ.baseᵗ
 
 module E = Em ucBaseᵒ
 
 infix 4 _≈ℰᶜ_ _≤UCᶜ_
 
--- The core's two relations, at the model.  Named apart from the inherited
--- `_≈ℰ_`/`_≤UC_` because the first pair genuinely differs from the second.
+-- Named apart from the inherited `_≈ℰ_`, which is the BARE presheaf kernel and
+-- has no ancilla in it.
 _≈ℰᶜ_ : (f g : A ⇒ B) → Set (suc 0ℓ)
 _≈ℰᶜ_ = E._≈ℰ_
-
-_≤UCᶜ_ : A ⇒ T₀ X B → A ⇒ T₀ Y B → Set (suc 0ℓ)
-_≤UCᶜ_ = E._≤UC_
 
 ------------------------------------------------------------------------
 -- The core's `_≈ℰ_` is the inherited `_≈ᵁ_`
 
--- One `assoc`: the core reads a context as `(E ∘ T₁ Y f) ∘ m`, the operational
--- reading as `E ∘ id ⊗₁ f ∘ m`.
-≈ℰᶜ⇒≈ᴬ : {f g : A ⇒ T₀ X B} → f ≈ℰᶜ g → f ≈ᴬ g
-≈ℰᶜ⇒≈ᴬ h Y e m = ∼ᴼ-resp (obs-resp assoc) (obs-resp assoc) (h Y e m)
-
-≈ᴬ⇒≈ℰᶜ : {f g : A ⇒ T₀ X B} → f ≈ᴬ g → f ≈ℰᶜ g
-≈ᴬ⇒≈ℰᶜ h Y e m = ∼ᴼ-resp (obs-resp sym-assoc) (obs-resp sym-assoc) (h Y e m)
-
 ≈ℰᶜ⇒≈ᵁ : {f g : A ⇒ T₀ X B} → f ≈ℰᶜ g → f ≈ᵁ g
-≈ℰᶜ⇒≈ᵁ h = ≈ᴬ⇒≈ᵁ (≈ℰᶜ⇒≈ᴬ h)
+≈ℰᶜ⇒≈ᵁ = Canonicalᵒ.≈ℰᶜ⇒≈ᵁ
 
 ≈ᵁ⇒≈ℰᶜ : {f g : A ⇒ T₀ X B} → f ≈ᵁ g → f ≈ℰᶜ g
-≈ᵁ⇒≈ℰᶜ u = ≈ᴬ⇒≈ℰᶜ (≈ᵁ⇒≈ᴬ u)
+≈ᵁ⇒≈ℰᶜ = Canonicalᵒ.≈ᵁ⇒≈ℰᶜ
 
 ≈ℰᶜ⇔≈ᵁ : {f g : A ⇒ T₀ X B} → f ≈ℰᶜ g ⇔ f ≈ᵁ g
 ≈ℰᶜ⇔≈ᵁ {f = f} {g} = mk⇔ {B = f ≈ᵁ g} ≈ℰᶜ⇒≈ᵁ ≈ᵁ⇒≈ℰᶜ
 
 -- …hence strictly finer than the inherited bare kernel, which has no ancilla in
--- it.  The converse is `Abstract2.bridge` and wants `GradeStable`, which this
--- model does not supply: the core buys grade stability by putting the ancilla
--- into the relation instead (`UC.Environment.grade-stable`).
+-- it.  `Canonicalᵒ.≈ℰᶜ⇒≈ℰ` says the same at every codomain; taken at this one
+-- it is a projection of the crossing already paid for.
 ≈ℰᶜ⇒≈ℰ : {f g : A ⇒ T₀ X B} → f ≈ℰᶜ g → f ≈ℰ g
 ≈ℰᶜ⇒≈ℰ h = ≈ᵁ⇒≈ℰ (≈ℰᶜ⇒≈ᵁ h)
 
@@ -168,6 +159,11 @@ private
 
 ------------------------------------------------------------------------
 -- …and the two emulation orders agree
+
+-- Named apart from the inherited `_≤UC_`, whose statement carries the
+-- adversary quantifier this one does not.
+_≤UCᶜ_ : A ⇒ T₀ X B → A ⇒ T₀ Y B → Set (suc 0ℓ)
+_≤UCᶜ_ = E._≤UC_
 
 ≤UCᶜ⇒≤UC : {f : A ⇒ T₀ X B} {g : A ⇒ T₀ Y B} → f ≤UCᶜ g → f ≤UC g
 ≤UCᶜ⇒≤UC p a = let s , e = E.dummy-complete p a in s , ≈ℰᶜ⇒≈ᵁ e

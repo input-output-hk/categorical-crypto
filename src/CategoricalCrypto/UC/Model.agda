@@ -21,7 +21,8 @@
 --   `Model.Unit`         why the choice of empty object for the closures is
 --                        immaterial: the metatheory never sees it
 --   `Model.Bridge`       the hand-rolled qualitative core (`UC.Core` and below)
---                        identified with this metatheory, both directions, and
+--                        identified with this metatheory, both directions
+--                        (`UC.Core.Bridge` at the seal), the two orders, and
 --                        `_≈ᴳ_` — the identification at ungraded homs, where
 --                        `_≈ᵁ_` is not stated
 --   `Model.Enrichment`   the budget and the mass `UC.Audit` asks of a base,
