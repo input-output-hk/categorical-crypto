@@ -56,17 +56,18 @@ here. What is checked, in `UC/Family/Negligible/Setup.agda`:
 "The candidate", re-confirmed). **No proof is deleted**: the three bodies are
 `UC.Emulation UCBaseᴺ`'s, still reachable by applying that module.
 
-**The equivalence of the old and the canonical order is NOT a checked theorem
-in this repository.** `rel-agree` and `sub-agree^ω` do not give one: they
-identify the contextual kernels and the simulator action, not the two emulation
-orders. The retirement does not rest on such an equivalence — it rests on the
-adoption above and on the recoverability of the three bodies. The equivalence
-is to be DERIVED from the generic reverse contextual bridge
-`UC.Core.Bridge.≈ᵁ⇒≈ℰᶜ`, which is being added separately for the audit work:
-with it, `rel-agree`, `sub-agree^ω`, `dummy-complete` and `≤UC⇒dummy`, the
-correspondence follows at a fixed simulator, stated directly against
-`UC.Emulation UCBaseᴺ` and `Canonicalᴺ._≤UC_` without restoring the retired
-aliases. **This document is to cite that theorem once it lands.**
+**The equivalence of the old and the canonical order is a checked theorem**, in
+`UC/Family/Negligible/Setup.agda`, stated directly against `UC.Emulation
+UCBaseᴺ` and `Canonicalᴺ._≤UC_` with the three aliases left retired:
+`≈ℰᴺ⇒≈ᵁ-sub`/`≈ᵁ⇒≈ℰᴺ-sub` at a fixed simulator, and `≤UCᵉ⇒≤UC`, `≤UC⇒≤UCᵉ`,
+`≤UCᵉ⇔≤UC` for the orders — plus `≤UC⇒≤UCᵉ⁺` for the adversary-quantified
+presentation of the old one. It is derived from the generic reverse contextual
+bridge `UC.Core.Bridge.≈ᵁ⇒≈ℰᶜ` with `rel-agree` (the contextual kernels),
+`sub-agree^ω` (the simulator action, post-composed as `sub-agree^ω-∘`) and
+`dummy-complete`/`≤UC⇒dummy` (dummy versus quantified presentation); the
+simulator is carried across unchanged in both directions. The retirement does
+not rest on that equivalence — it rests on the adoption above and on the
+recoverability of the three bodies.
 
 ## What it does not do, and what the surrounding audit found
 
