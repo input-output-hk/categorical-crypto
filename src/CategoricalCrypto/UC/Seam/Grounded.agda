@@ -35,7 +35,6 @@ open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
 open import CategoricalCrypto.UC.Model.Bridge
   using (≈ᴳ-at; ≈ᴳ-congˡ; ≈ᴳ-trans; ≈C⇒≈ᴳ; ≈ᵁ⇒≈ᴳ)
 open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ; obs-resp; ∼ᴼ-resp)
-open import CategoricalCrypto.UC.Model.Reading using (_≈ᴬ_; ≈ᴬ⇒≈ᵁ)
 open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ; ifaceᵒ; procᵒ; unprocᵒ-∘)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Seam using (ctxRunˢ; runˢ; strategyEnv)
@@ -219,9 +218,9 @@ simAstotal B u v s tu em = simTotal⇒point B s v (emSimTotal B u v s tu em)
 -- trivial-grade scalar carries no message, so it is the identity except for
 -- that point (`Grounding.Prefix.scalar-blindᵒ`), and `sub` and the ancilla keep
 -- it a prefix.  The experiment is read in the ∀-ancilla/test/closure form
--- (`UC.Model.Reading`), where the simulator is the single factor `id ⊗₁ sub s`
--- between the test and everything below it — `k` being that everything, which
--- is why nothing about the process it acts on is asked for here.
+-- `_≈ℰᶜ_`, where the simulator is the single factor `id ⊗₁ sub s` between the
+-- test and everything below it — `k` being that everything, which is why
+-- nothing about the process it acts on is asked for here.
 subPrefixedˢ : (B : Iface) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) (Y : Channel)
                (t : Y ⊗₀ T₀ 𝟘ᴳ (ifaceᵒ B) ⇒ Ωᵒ) (k : 𝟘ᵒ ⇒ Y ⊗₀ T₀ 𝟘ᴳ (ifaceᵒ B))
              → Prefixedᵒ 𝟘ᵒ Ωᵒ (t ∘ id ⊗₁ sub s ∘ k) (t ∘ k) (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
@@ -266,8 +265,9 @@ subPrefixed B s v Y t m = prefixedᵒ-resp-≈ 𝟘ᵒ Ωᵒ _ _ _ _ (pointᵒ �
 -- …and an initialization that terminates almost surely is invisible:
 -- `Dp.Mass.astotal-bind` removes it from the observation.
 subBlind : TG.SubBlind
-subBlind B s v st = ≈ᴬ⇒≈ᵁ λ Y t m →
-  prefixedᵒ-obs _ _ _ (simTotal⇒point B s v st) (subPrefixed B s v Y t m)
+subBlind B s v st = ≈ℰᶜ⇒≈ᵁ λ Y t m →
+  ∼ᴼ-resp (obs-resp sym-assoc) (obs-resp sym-assoc)
+          (prefixedᵒ-obs _ _ _ (simTotal⇒point B s v st) (subPrefixed B s v Y t m))
 
 -- …so the unit-grade specialization is a closed theorem.
 unitGrade : TG.UnitGrade

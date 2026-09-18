@@ -17,7 +17,6 @@
 --                        `_≈ᵁ_`, and `ℰᵒ` — tests into `Ωᵒ` modulo closed
 --                        observation — as the setup's own presheaf
 --   `Model.Pin`          the metatheory's application sites, priced
---   `Model.Reading`      `_≈ᵁ_` is the ∀-ancilla/test/closure experiment
 --   `Model.Unit`         why the choice of empty object for the closures is
 --                        immaterial: the metatheory never sees it
 --   `Model.Bridge`       what the model adds to that identification: the two
@@ -41,8 +40,8 @@
 --                        valued in `Approx`, whose `F₊` image is `ℰᵒ` again
 --
 -- The model obligations the proposal lists are then: the monoidal structure
--- (`Machines.G`, a theorem on this branch), the presheaf (`Model.Setup`)
--- and the observational identification (`Model.Reading`) — not another proof of
+-- (`Machines.G`, a theorem on this branch), and the presheaf together with the
+-- observational identification (`Model.Setup`) — not another proof of
 -- the UC metatheory.  `UC.Machine.Dictionary` records how the direct relays of
 -- the parallel `UC.*` stack sit inside this one.
 
@@ -57,7 +56,6 @@ import CategoricalCrypto.UC.Model.Family.Negligible
 import CategoricalCrypto.UC.Model.Observation
 import CategoricalCrypto.UC.Model.Pin
 import CategoricalCrypto.UC.Model.Quantitative
-import CategoricalCrypto.UC.Model.Reading
 import CategoricalCrypto.UC.Model.Seal
 import CategoricalCrypto.UC.Model.Setup
 import CategoricalCrypto.UC.Model.Unit
