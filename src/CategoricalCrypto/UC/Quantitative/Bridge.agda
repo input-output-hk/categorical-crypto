@@ -15,16 +15,19 @@
 -- closeness is not transitive at the same error, so it is not itself the
 -- equality of any `UCSetup` — only its all-positive closure is.
 
-open import Data.Product.Base using (Σ-syntax; _,_)
+open import Data.Product.Base using (Σ-syntax; _×_; _,_)
 open import Function.Bundles using (_⇔_; mk⇔)
 open import Level using (Level; _⊔_)
 
 open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
 
+import CategoricalCrypto.Abstract2.Action as Action
+
 module CategoricalCrypto.UC.Quantitative.Bridge
   {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe) where
 
 open OrderedErrorAlgebra E
+open import CategoricalCrypto.Approx.Small E
 open import CategoricalCrypto.UC.Quantitative E
 open import CategoricalCrypto.UC.Quantitative.Witness E
 
@@ -103,3 +106,35 @@ module QBridge {o ℓ e o′ ℓ′ e′ c ℓb : Level}
   Witness₊⇒Witness : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
                    → Witness₊ f g → (ε : Error) → Positive ε → Witness ε f g
   Witness₊⇒Witness (s , h) ε pos = s , h ε pos
+
+  ------------------------------------------------------------------------
+  -- Small-error agreement
+
+  -- `underlyingSmall`'s environment equality has its error quantifier INSIDE
+  -- the contexts and the hypothesis below has it outside, so only one
+  -- direction is a theorem here: the converse is the uniformization
+  -- `docs/quantitative-uc-setup-plan.typ` §8 leaves open.  Where the two orders
+  -- meet a concrete family, that same asymmetry is
+  -- `UC.Approximate.Local.∼ᴺ⇒pointwise`.
+  module Small {ℓs : Level} (Sm : SmallClass ℓs) where
+
+    open Collapse Sm c (es ⊔ ℓe ⊔ ℓb) using (Small)
+
+    module Aˢ = Action (underlyingSmall Sm)
+
+    small-agreement⇐ : {f g : A 𝒞.⇒ T₀ X B}
+                     → Σ[ ε ∈ Error ] Small ε × f ≈ᵁ[ ε ] g → f Aˢ.≈ᵁ g
+    small-agreement⇐ (ε , sε , h) = Aˢ.runs⇒≈ᵁ λ W e → ε , sε , h W e
+
+    small-agreement⇒ : {f g : A 𝒞.⇒ T₀ X B} → f Aˢ.≈ᵁ g
+                     → (W : ℐ.Obj) (e : Env (T₀ (W ⊗₀ X) B))
+                     → Σ[ ε ∈ Error ] Small ε × run W f e ≈[ ε ] run W g e
+    small-agreement⇒ = Aˢ.run-resp-≈ᵁ
+
+    -- …and the simulator crosses unchanged, `dummy-complete` being the only
+    -- thing spent.
+    small-emulation⇐ : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
+                     → Σ[ s ∈ Y ℐ.⇒ X ] Σ[ ε ∈ Error ] Small ε × At s ε f g
+                     → f Aˢ.≤UC g
+    small-emulation⇐ (s , ε , sε , h) =
+      Aˢ.dummy-complete (s , small-agreement⇐ (ε , sε , h))
