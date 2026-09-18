@@ -10,7 +10,7 @@
 -- (`UC.Model.Setup`).  Which of its relations each statement is read in is
 -- forced, and getting it wrong silently weakens: the seam's agreements carry an
 -- ancilla quantifier, so at a GRADED codomain they are `_≈ᵁ_` and at an
--- ungraded one `UC.Model.Bridge._≈ᴳ_` — never StdUC's bare `_≈ℰ_`, which has no
+-- ungraded one `UC.Core.Bridge._≈ᴳ_` — never StdUC's bare `_≈ℰ_`, which has no
 -- ancilla in it (`docs/stduc-supersession-plan.md`, finding F1).  `_≈ᴳ_` is the
 -- core's relation exactly (`≈ᴳ⇔≈ℰᶜ`), so nothing below says less than it did.
 --
@@ -30,7 +30,7 @@
 -- η-expands `Observationᴹ`, whose `⟦⟧-resp-≈` drags the machine equality in with
 -- it — the same reason `UC.Seam.Agreeˢ` is spelled in the `Dₚ` vocabulary.  So
 -- the reasoning that composes these statements is proved once and generically
--- (`UC.Model.Bridge.≈ᴳ-at` for the grounding below, `ProbabilisticLogic.Dp.Mass`
+-- (`UC.Core.Bridge.≈ᴳ-at` for the grounding below, `ProbabilisticLogic.Dp.Mass`
 -- for the collapse's ε-arithmetic, `UC.Audit.audit-carry` for the graded
 -- carry), and this module only names what the instance still owes.
 
@@ -40,7 +40,6 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol.Machine.Total using (TotalRun)
 open import CategoricalCrypto.Strategy using (Strat)
 open import CategoricalCrypto.UC.Machine using (Proc; Ωᴵ)
-open import CategoricalCrypto.UC.Model.Bridge using (_≈ᴳ_)
 open import CategoricalCrypto.UC.Model.Observation using (Closure; Obs; Test; Ωᵒ; 𝟘ᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ; procᵒ)
 open import CategoricalCrypto.UC.Model.Setup
@@ -66,7 +65,7 @@ opaque
 
 -- What `StratIsEnv` reduces to: an embedded strategy PRESENTED as one of the
 -- ancilla contexts an agreement quantifies over.  Its four fields are exactly
--- `UC.Model.Bridge.≈ᴳ-at`'s arguments at `k = strategyEnv B d ∘_`, which is
+-- `UC.Core.Bridge.≈ᴳ-at`'s arguments at `k = strategyEnv B d ∘_`, which is
 -- where the reduction is proved and where the ε-arithmetic and the transport of
 -- both endpoints are spent — generically, so that nothing about the machines
 -- unfolds.  The obligation left here is one equation and no quantitative

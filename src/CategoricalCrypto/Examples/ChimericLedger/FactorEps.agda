@@ -52,10 +52,11 @@ open import CategoricalCrypto.UC.Asymptotic using (_≤UC^ω_)
 open import CategoricalCrypto.UC.Asymptotic.Compose
 open import CategoricalCrypto.UC.Asymptotic.Contextual
 open import CategoricalCrypto.UC.Asymptotic.Family
-  using (_≤UC^ωⁿ_; ifaceᶠ; imgᶠ; uc-≤UC^ωⁿ)
+  using (_≤UC^ωⁿ_; imgᶠ; uc-≤UC^ωⁿ)
 open import CategoricalCrypto.UC.Budget using (Budget; simCost)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ; qbᵒ)
 open import CategoricalCrypto.UC.Model.Family using (Δ)
+open import CategoricalCrypto.UC.Model.Family.Ingest using (ifaceᶠ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.QueryBound using (qb-closed)
 open import CategoricalCrypto.UC.Saturated using (Bad; Systems)
