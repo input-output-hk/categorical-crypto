@@ -34,7 +34,7 @@ open import CategoricalCrypto.UCSetup using (UCSetup)
 
 import CategoricalCrypto.UC.Core.Bridge as Bridgeᴹ
 import CategoricalCrypto.UC.Core.Standard as Std
-import CategoricalCrypto.UC.Emulation as Em
+import CategoricalCrypto.UC.Environment as Env
 import CategoricalCrypto.UC.Family.Negligible as Negᴹ
 
 module CategoricalCrypto.UC.Family.Negligible.Setup
@@ -49,10 +49,10 @@ open import CategoricalCrypto.UC.Family.Monoidal M obsᴹ qapx bud Ix κ κ-cofi
   using (Famᴹ; baseᴹ; ucSetup^ω; _≈ℰⁿ_; Grading^ω)
 
 private
-  module N   = Negᴹ baseᴹ qapx bud Ix κ κ-cofinal
-  module Emᴺ = Em N.UCBaseᴺ
-  module GrT = Grading Grading^ω
-  module 𝕄   = MonoidalCategory M
+  module N    = Negᴹ baseᴹ qapx bud Ix κ κ-cofinal
+  module Envᴺ = Env N.UCBaseᴺ
+  module GrT  = Grading Grading^ω
+  module 𝕄    = MonoidalCategory M
 
 -- The canonical setup, its whole inherited metatheory, and the bridge.
 module Canonicalᴺ = Bridgeᴹ Famᴹ N.Observationᴺ
@@ -82,8 +82,8 @@ rel-agree : {A B : Canonicalᴺ.Channel} {f g : Canonicalᴺ._⇒_ A B}
 rel-agree = refl
 
 -- …so the tier's agreement is a witness for the INHERITED order directly:
--- `UC.Emulation`'s dummy witness is `Abstract2.dummy-complete` applied to the
--- bridged kernel, which is why the tier needs no order of its own.
+-- the dummy witness is `Abstract2.dummy-complete` applied to the bridged
+-- kernel, which is why the tier needs no order of its own.
 -- The homs are EXPLICIT, for `UC.Family.Negligible.≈ℰⁿ⇒≈ℰᴺ`'s measured
 -- reason: both orders read them under an application, so inference would
 -- elaborate each carried polynomial as a meta.
@@ -98,7 +98,7 @@ rel-agree = refl
 
 -- …and a concrete budget-indexed bound reaches that order directly: the tier's
 -- own ingestion composed with the bridge.  This is what replaced the tier's
--- retired `≈ℰⁿ⇒≤UCᴺ`: that landed in `Em UCBaseᴺ`'s order, this lands in the
+-- retired `≈ℰⁿ⇒≤UCᴺ`: that landed in the former `_≤UCᵉ_`, this lands in the
 -- inherited one, with `UC-compose` behind it.
 ≈ℰⁿ⇒≤UC : {A B X : Canonicalᴺ.Channel}
           (f g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
@@ -125,9 +125,23 @@ sub-agree^ω-∘ : {A B X Y : Canonicalᴺ.Channel}
 sub-agree^ω-∘ g s = Canonicalᴺ.∘-resp-≈ˡ
   {f = GrT.sub s} {h = Canonicalᴺ.sub s} {g = g} (sub-agree^ω s)
 
--- `ᵉ` marks `UC.Emulation`'s order at `N.UCBaseᴺ`, which the canonical setup
--- replaced (`docs/retirement-negligible-order.md`): the two are the same
--- order, `rel-agree` identifying the kernels and `sub-agree^ω` the actions.
+infix 4 _≤UCᵉ_ _≤UCᵉ⁺_
+
+-- `ᵉ` is the tier's former dummy-form order and its adversary-quantified
+-- presentation, recorded here only as the subject of the equivalence below:
+-- the two are the same order, `rel-agree` identifying the kernels and
+-- `sub-agree^ω` the actions (`docs/retirement-negligible-order.md`).
+_≤UCᵉ_ _≤UCᵉ⁺_ : {A B X Y : Canonicalᴺ.Channel}
+                 (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
+                 (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
+               → Set (o ⊔ ℓ ⊔ qs ⊔ ℓa)
+_≤UCᵉ_ {X = X} {Y} f g =
+  Σ[ s ∈ Canonicalᴺ._⇒_ Y X ] f N.≈ℰᴺ (GrT.sub s Canonicalᴺ.∘ g)
+_≤UCᵉ⁺_ {X = X} {Y} f g =
+  {Z : Canonicalᴺ.Channel} (a : Canonicalᴺ._⇒_ X Z)
+  → Σ[ s ∈ Canonicalᴺ._⇒_ Y Z ]
+      (GrT.sub a Canonicalᴺ.∘ f) N.≈ℰᴺ (GrT.sub s Canonicalᴺ.∘ g)
+
 ≈ℰᴺ⇒≈ᵁ-sub : {A B X Y : Canonicalᴺ.Channel}
              (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
              (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
@@ -135,8 +149,8 @@ sub-agree^ω-∘ g s = Canonicalᴺ.∘-resp-≈ˡ
            → f N.≈ℰᴺ (GrT.sub s Canonicalᴺ.∘ g)
            → f Canonicalᴺ.≈ᵁ (Canonicalᴺ.sub s Canonicalᴺ.∘ g)
 ≈ℰᴺ⇒≈ᵁ-sub f g s h = Canonicalᴺ.≈ℰᶜ⇒≈ᵁ {f = f} {g = gᵁ}
-  (Emᴺ.≈ℰ-trans {f = f} {g = gᵉ} {h = gᵁ} h
-    (Emᴺ.≈⇒≈ℰ {f = gᵉ} {g = gᵁ} (sub-agree^ω-∘ g s)))
+  (Envᴺ.≈ℰ-trans {f = f} {g = gᵉ} {h = gᵁ} h
+    (Envᴺ.≈⇒≈ℰ {f = gᵉ} {g = gᵁ} (sub-agree^ω-∘ g s)))
   where gᵉ = GrT.sub s Canonicalᴺ.∘ g
         gᵁ = Canonicalᴺ.sub s Canonicalᴺ.∘ g
 
@@ -146,34 +160,41 @@ sub-agree^ω-∘ g s = Canonicalᴺ.∘-resp-≈ˡ
              (s : Canonicalᴺ._⇒_ Y X)
            → f Canonicalᴺ.≈ᵁ (Canonicalᴺ.sub s Canonicalᴺ.∘ g)
            → f N.≈ℰᴺ (GrT.sub s Canonicalᴺ.∘ g)
-≈ᵁ⇒≈ℰᴺ-sub f g s h = Emᴺ.≈ℰ-trans {f = f} {g = gᵁ} {h = gᵉ}
+≈ᵁ⇒≈ℰᴺ-sub f g s h = Envᴺ.≈ℰ-trans {f = f} {g = gᵁ} {h = gᵉ}
   (Canonicalᴺ.≈ᵁ⇒≈ℰᶜ {f = f} {g = gᵁ} h)
-  (Emᴺ.≈⇒≈ℰ {f = gᵁ} {g = gᵉ} λ i → 𝕄.Equiv.sym (sub-agree^ω-∘ g s i))
+  (Envᴺ.≈⇒≈ℰ {f = gᵁ} {g = gᵉ} λ i → 𝕄.Equiv.sym (sub-agree^ω-∘ g s i))
   where gᵉ = GrT.sub s Canonicalᴺ.∘ g
         gᵁ = Canonicalᴺ.sub s Canonicalᴺ.∘ g
 
 ≤UCᵉ⇒≤UC : {A B X Y : Canonicalᴺ.Channel}
            (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
            (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
-         → Emᴺ._≤UC_ f g → Canonicalᴺ._≤UC_ f g
+         → f ≤UCᵉ g → Canonicalᴺ._≤UC_ f g
 ≤UCᵉ⇒≤UC f g (s , e) = Canonicalᴺ.dummy-complete (s , ≈ℰᴺ⇒≈ᵁ-sub f g s e)
 
 ≤UC⇒≤UCᵉ : {A B X Y : Canonicalᴺ.Channel}
            (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
            (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
-         → Canonicalᴺ._≤UC_ f g → Emᴺ._≤UC_ f g
+         → Canonicalᴺ._≤UC_ f g → f ≤UCᵉ g
 ≤UC⇒≤UCᵉ f g p = let s , e = Canonicalᴺ.≤UC⇒dummy p in s , ≈ᵁ⇒≈ℰᴺ-sub f g s e
 
 ≤UCᵉ⇔≤UC : {A B X Y : Canonicalᴺ.Channel}
            (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
            (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
-         → Emᴺ._≤UC_ f g ⇔ Canonicalᴺ._≤UC_ f g
+         → f ≤UCᵉ g ⇔ Canonicalᴺ._≤UC_ f g
 ≤UCᵉ⇔≤UC f g = mk⇔ (≤UCᵉ⇒≤UC f g) (≤UC⇒≤UCᵉ f g)
 
 -- The quantified presentation of `ᵉ` needs no separate argument: the canonical
--- order carries the quantifier in its statement.
+-- order carries the quantifier in its statement, so the adversary's own
+-- component is read off it and the two actions reconciled as above.
 ≤UC⇒≤UCᵉ⁺ : {A B X Y : Canonicalᴺ.Channel}
             (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
             (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
-          → Canonicalᴺ._≤UC_ f g → Emᴺ._≤UC⁺_ f g
-≤UC⇒≤UCᵉ⁺ f g p = Emᴺ.dummy-complete {f = f} {g = g} (≤UC⇒≤UCᵉ f g p)
+          → Canonicalᴺ._≤UC_ f g → f ≤UCᵉ⁺ g
+≤UC⇒≤UCᵉ⁺ f g p a =
+  let s , h = p a
+      fᵉ = GrT.sub a Canonicalᴺ.∘ f
+      fᵁ = Canonicalᴺ.sub a Canonicalᴺ.∘ f
+  in s , Envᴺ.≈ℰ-trans {f = fᵉ} {g = fᵁ} {h = GrT.sub s Canonicalᴺ.∘ g}
+           (Envᴺ.≈⇒≈ℰ {f = fᵉ} {g = fᵁ} (sub-agree^ω-∘ f a))
+           (≈ᵁ⇒≈ℰᴺ-sub fᵁ g s h)

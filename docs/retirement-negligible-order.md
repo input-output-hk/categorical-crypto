@@ -53,12 +53,15 @@ here. What is checked, in `UC/Family/Negligible/Setup.agda`:
 | `≈ℰⁿ⇒≤UC` | a budget-indexed bound reaches it: `≈ℰⁿ⇒≤UCᴺ`'s premise, inherited conclusion |
 
 `_≤UCᴺ_`, `≈ℰᴺ⇒≤UCᴺ` and `≈ℰⁿ⇒≤UCᴺ` have no in-repo consumer (the table in
-"The candidate", re-confirmed). **No proof is deleted**: the three bodies are
-`UC.Emulation UCBaseᴺ`'s, still reachable by applying that module.
+"The candidate", re-confirmed). Their bodies were `UC.Emulation UCBaseᴺ`'s;
+since the order's own retirement they are reachable nowhere. The former order
+survives only as `_≤UCᵉ_` in `UC/Family/Negligible/Setup.agda` — recorded there
+as the subject of the equivalence below, and for nothing else.
 
 **The equivalence of the old and the canonical order is a checked theorem**, in
-`UC/Family/Negligible/Setup.agda`, stated directly against `UC.Emulation
-UCBaseᴺ` and `Canonicalᴺ._≤UC_` with the three aliases left retired:
+`UC/Family/Negligible/Setup.agda`, stated against that `_≤UCᵉ_` (and its
+adversary-quantified form `_≤UCᵉ⁺_`) and `Canonicalᴺ._≤UC_`, the three aliases
+left retired:
 `≈ℰᴺ⇒≈ᵁ-sub`/`≈ᵁ⇒≈ℰᴺ-sub` at a fixed simulator, and `≤UCᵉ⇒≤UC`, `≤UC⇒≤UCᵉ`,
 `≤UCᵉ⇔≤UC` for the orders — plus `≤UC⇒≤UCᵉ⁺` for the adversary-quantified
 presentation of the old one. It is derived from the generic reverse contextual
@@ -67,12 +70,12 @@ bridge `UC.Core.Bridge.≈ᵁ⇒≈ℰᶜ` with `rel-agree` (the contextual kern
 `dummy-complete`/`≤UC⇒dummy` (dummy versus quantified presentation); the
 simulator is carried across unchanged in both directions. The retirement does
 not rest on that equivalence — it rests on the adoption above and on the
-recoverability of the three bodies.
+replacements named in the table.
 
-## What it does not do, and what the surrounding audit found
+## What it did not do, and what the surrounding audit found
 
-It does not retire `UC.Emulation`; `_≈ℰᴺ_` still comes from it. But the audit
-that question needed has been done, and it shrinks the problem a long way.
+It did not retire `UC.Emulation` — `_≈ℰᴺ_` still came from it. A follow-up did;
+this is the audit that made the follow-up possible.
 
 `UC/Emulation.agda:34` is `open import CategoricalCrypto.UC.Environment base
 public`, so the module is that re-export plus six order names
@@ -87,15 +90,16 @@ beneath, nothing deleted): `UC.Seam.Audit.Context`, `UC.Seam.Audit.Prefix`,
 `UC.Asymptotic.Audit`, `Examples.HashForward.Audit`,
 `Examples.ChimericLedger.EndToEnd`.
 
-**Five genuinely use the order**, and they are the whole remaining surface:
+**Five genuinely used the order**, and they were the whole remaining surface;
+the follow-up settled four of the five:
 
-| module | what it uses |
-|---|---|
-| `UC.Audit` | `_≤UC_`, in `≤UC[]⇒≤UC` |
-| `UC.Robust.Observation` | `dummy-complete`, `_≤UC⁺_` |
-| `UC.Model.Bridge` | the identification of the two orders |
-| `UC.Family` | re-exports the six at `UCBase^ω` |
-| `UC.Family.Negligible` | re-exports two at `UCBaseᴺ` — this candidate |
+| module | what it used | what became of it |
+|---|---|---|
+| `UC.Audit` | `_≤UC_`, in `≤UC[]⇒≤UC` | `≤UC[]⇒≤UC` retired — zero consumers, and `UC.Audit.Canonical.audit-forget` after `audit⇒witness` is its conclusion wherever the base is monoidal |
+| `UC.Robust.Observation` | `dummy-complete`, `_≤UC⁺_` | `uc-preserves`/`uc⁺-preserves` retired — zero consumers, and `UC.Robust`'s are the canonical statements, reached by `UC.Core.Bridge.≈ℰᶜ⇒≈ᵁ`/`≈ᵁ⇒≈ℰᶜ` |
+| `UC.Model.Bridge` | the identification of the two orders | stays: the last importer, and a further step's business |
+| `UC.Family` | re-exports the six at `UCBase^ω` | dropped, with `Ingest.ingest-≤UC` and `Asymptotic.Family.≤UC^ωⁿ⇒≤UCᶠ`, whose inherited-order twins `ingest-≤UCᵁ`/`≤UC^ωⁿ⇒≤UCᵁ` carry their conclusions |
+| `UC.Family.Negligible` | re-exports two at `UCBaseᴺ` — this candidate | now `UC.Environment UCBaseᴺ` |
 
 Both remaining questions were then chased to an answer.
 
@@ -105,23 +109,24 @@ one site, `UC/Model/Family/Ingest.agda:48` (`_≤UC_`, `≈ℰ⇒≤UC`). `retir
 §7 already lists `Ingest`'s `ingest-≤UC`/`ingest-≤UCᵁ` as zero-consumer with a
 replacement named, and declines them: their gate reads "after callers migrate"
 and the module has never had a caller, so the gate is vacuous rather than met.
-That is unchanged by this arc — re-confirmed, still zero consumers — so the
-`UC.Family` re-export waits on that maintainer call and on nothing else.
+The maintainer has since ruled: `ingest-≤UCᵁ` is `ingest-≤UC`'s conclusion at
+the inherited order on the same premises, so the gate is met by a replacement
+rather than by absence, and both went.
 
-**`UC.Emulation` itself cannot be retired, and this is not a missing gate.**
+**`UC.Emulation` could not be an INSTANCE, and this is not a missing gate.**
 The issue's premise is that it "can be an instance of `Abstract2._≤UC_`". That
 holds only where a monoidal base exists. Its two remaining non-re-export
 users, `UC.Audit` and `UC.Robust.Observation`, are parameterized by an
 arbitrary `UCBase`, which carries a `Grading` and no monoidal category of
 grades and no graded Kleisli triple — so `Abstract2` is not available there at
 all, and `_≤UC_`/`_≤UC⁺_`/`dummy-complete` have nothing to be an instance of.
-This is the reason `retirement.md` §7 already records for keeping
-`UC.Robust.Observation`, and it applies to the module itself.
+What the follow-up did instead was retire the statements: at an arbitrary
+`UCBase` neither had a consumer, and each has a named canonical replacement.
 
 So the accurate statement is narrower than the issue's: the emulation order is
 inherited wherever the base is monoidal — which is what this candidate did at
-the negligible tier and what `UC.Family`'s re-export would do at the vanishing
-one — and `UC.Emulation` stays for the arbitrary-`UCBase` case.
+the negligible tier and the follow-up did at the vanishing one — and what is
+left of `UC.Emulation` is `UC.Model.Bridge`'s `_≤UCᶜ_`.
 
 ## Proposed change
 
