@@ -38,7 +38,11 @@
 -- (`.Ideal`), the machine equality between the two worlds
 -- (`.Ideal.Reach`/`.Hybrid`/`.Machine`), and the whole statement at a CLOSED
 -- comparison boundary (`.Ideal.Compose`) — `docs/coin-toss.md` says why that
--- boundary has to be closed.
+-- boundary has to be closed.  `.Ideal.Receiver.*` is that hop at the other
+-- corruption, where the two worlds are NOT equal as machines — they sample at
+-- different activations — so the agreement is a run equality
+-- (`.Receiver.Machine`) carried into a context by a graded domination
+-- (`.Receiver.Dominated`), and the hop lands at `2⁻ⁿ` rather than at `0`.
 --
 -- Outside still, each with its own root: the protocol-layer examples
 -- (`Examples.ChimericLedger`, `Examples.MerkleDamgard`) and the inherited
@@ -100,6 +104,7 @@ open import CategoricalCrypto.Examples.HashForward.Audit
 open import CategoricalCrypto.Examples.HashForward.Resource
 open import CategoricalCrypto.Examples.CoinToss.Compose
 open import CategoricalCrypto.Examples.CoinToss.Ideal.Compose
+open import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Compose
 open import CategoricalCrypto.Examples.CoinToss.Test
 open import CategoricalCrypto.Examples.ROCommitment.Asymptotic
 open import CategoricalCrypto.Examples.ROCommitment.Hiding.Asymptotic
