@@ -20,7 +20,7 @@
 -- SCOPE.  No numerical bound, no query count, and nothing about a simulator
 -- being silent or total (`docs/uc-presheaf-preservation-plan.md` §2.3): those
 -- are enrichment obligations this statement makes visible.  The independently
--- scoped `UCBase` theorem is `UC.Robust.Observation`.
+-- scoped theorem is `UC.Robust.Observation`.
 
 open import Data.Product.Base using (_,_)
 open import Data.Unit.Base using (⊤)

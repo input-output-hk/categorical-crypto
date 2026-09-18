@@ -37,7 +37,6 @@ open import CategoricalCrypto.UCSetup using (UCSetup)
 
 import CategoricalCrypto.Abstract2.Action as Action
 import CategoricalCrypto.Approx.Space as Spaceᴹ
-import CategoricalCrypto.UC.Core.Standard as Std
 import CategoricalCrypto.UC.Family.Negligible as Negᴹ
 import CategoricalCrypto.UC.Family.Negligible.Setup as Setupᴹ
 import CategoricalCrypto.UC.Quantitative.Observed as Observedᴹ
@@ -47,7 +46,7 @@ module CategoricalCrypto.UC.Family.Negligible.Quantitative
   (M : MonoidalCategory o ℓ e)
   (obsᴹ : Observation (MonoidalCategory.U M) os ℓs)
   (qapx : ApproximateObservation obsᴹ ℚ-errors ℓa)
-  (bud : Budget (MonoidalCategory.U M) (Std.gradingᵗ M) qs)
+  (bud : Budget M qs)
   (Ix : Set) (κ : Ix → ℕ) (κ-cofinal : (N : ℕ) → Σ[ i ∈ Ix ] N ℕ.≤ κ i) where
 
 open import CategoricalCrypto.UC.Family M obsᴹ qapx bud Ix κ κ-cofinal using (Famᴹ)

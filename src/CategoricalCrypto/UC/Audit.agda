@@ -9,8 +9,8 @@
 -- carrying adversary interfaces and the simulator lives at that grade, so
 -- `audit-carry` is the carry that keeps it — an ideal-side bound on the audit
 -- event becomes a real-side bound at the emulation's slack, the simulator
--- absorbed into the environment leg, where `sub s` slides off the process and
--- onto the test and the test's own budget pays for the simulator's queries.
+-- absorbed into the environment leg, where the simulator slides off the
+-- process and onto the test and the test's own budget pays for its queries.
 --
 -- The event carried has to be INTERFACE-OBSERVABLE, and that is the content of
 -- the restriction rather than a convenience: what a test reads is what an
@@ -33,6 +33,8 @@
 -- observation record and with it the machine equality (`UC.Seam.Grounding`'s
 -- header measures it), so the arithmetic runs once here rather than never there.
 
+open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
+
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Product.Base using (Σ-syntax; _,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
@@ -42,14 +44,14 @@ open import Relation.Binary.PropositionalEquality using (subst; sym)
 
 open import CategoricalCrypto.UC.Approximate using (Mass)
 open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget; ctxBudget-absorb)
-open import CategoricalCrypto.UC.Core using (UCBase)
+open import CategoricalCrypto.UC.Core using (Observation)
 
 module CategoricalCrypto.UC.Audit
-  {o ℓ e os ℓs qs : Level} (base : UCBase o ℓ e os ℓs)
-  (bud : Budget (UCBase.𝒞 base) (UCBase.grading base) qs)
-  (mass : Mass (UCBase.observation base)) where
+  {o ℓ e os ℓs qs : Level} (M : MonoidalCategory o ℓ e)
+  (O : Observation (MonoidalCategory.U M) os ℓs)
+  (bud : Budget M qs) (mass : Mass O) where
 
-open import CategoricalCrypto.UC.Environment base
+open import CategoricalCrypto.UC.Environment M O
 
 open Budget bud
 open Mass mass
@@ -68,12 +70,12 @@ infix 4 _≤UC[_]_
 -- simulator ends up inside the environment leg, and a budget-indexed bound
 -- charges its queries there.  Dropping it is dropping the standard notion's
 -- polynomially bounded simulator, after which no budget-indexed bound survives.
-record _≤UC[_]_ {A B′ X Y : Obj} (f : A ⇒ X ⊛ B′) (cs : ℕ) (g : A ⇒ Y ⊛ B′)
+record _≤UC[_]_ {A B′ X Y : Obj} (f : A ⇒ X ⊗₀ B′) (cs : ℕ) (g : A ⇒ Y ⊗₀ B′)
               : Set (o ⊔ ℓ ⊔ ℓs ⊔ qs) where
   field
     sim     : Y ⇒ X
     sim-qb  : QB cs sim
-    emulate : f ≈ℰ (sub sim ∘ g)
+    emulate : f ≈ℰ (sim ⊗₁ id ∘ g)
 
 open _≤UC[_]_ public
 
@@ -83,16 +85,16 @@ open _≤UC[_]_ public
 -- at, so both are indexed here; absorbing a simulator moves only the test.
 AuditEvent : (w : Level) (A X B′ : Obj) → Set (o ⊔ ℓ ⊔ suc w)
 AuditEvent w A X B′ =
-  (Y : Obj) → Test (Y ⊛ (X ⊛ B′)) → Closure (Y ⊛ A) → ℕ → Set w
+  (Y : Obj) → Test (Y ⊗₀ (X ⊗₀ B′)) → Closure (Y ⊗₀ A) → ℕ → Set w
 
 -- The audit-form bound: no PERMITTED context of budget `q` makes the watched
 -- event's mass exceed `ε q`.  This is layer 1's `Bounded` shape — one
 -- budget-indexed `ε`, quantified over the contexts of that budget the event
 -- designates.
-AuditBound : {A B′ X : Obj} → A ⇒ X ⊛ B′ → AuditEvent w A X B′ → (ℕ → ℚ)
+AuditBound : {A B′ X : Obj} → A ⇒ X ⊗₀ B′ → AuditEvent w A X B′ → (ℕ → ℚ)
            → Set (o ⊔ ℓ ⊔ qs ⊔ w)
 AuditBound {A = A} {B′ = B′} {X = X} f 𝔈 ε =
-  (Y : Obj) (Et : Test (Y ⊛ (X ⊛ B′))) (m : Closure (Y ⊛ A)) {c c′ : ℕ}
+  (Y : Obj) (Et : Test (Y ⊗₀ (X ⊗₀ B′))) (m : Closure (Y ⊗₀ A)) {c c′ : ℕ}
   → QB c Et → QB c′ m → 𝔈 Y Et m (ctxBudget c c′)
   → (n : ℕ) → at n (obs (tv₁ Y f Et) m) ℚ.≤ ε (ctxBudget c c′)
 
@@ -100,7 +102,7 @@ AuditBound {A = A} {B′ = B′} {X = X} f 𝔈 ε =
 -- what it observes is the one the designation names for its budget.  Layer 1's
 -- monitor run is abstracted away here, so this is available at ANY grade;
 -- `Examples.HashForward.Audit` is the application at one that is not trivial.
-pinned : {A B′ X : Obj} → A ⇒ X ⊛ B′ → (ℕ → Obs) → AuditEvent ℓs A X B′
+pinned : {A B′ X : Obj} → A ⇒ X ⊗₀ B′ → (ℕ → Obs) → AuditEvent ℓs A X B′
 pinned f μ Y Et m q = obs (tv₁ Y f Et) m ∼ μ q
 
 -- …and its bound, off a bound on the designated observations alone.  The slack
@@ -109,7 +111,7 @@ pinned f μ Y Et m q = obs (tv₁ Y f Et) m ∼ μ q
 -- to a positive `δ`.  At the intended model the same step is exact
 -- (`UC.Seam.Audit.Bounded.supply`, off a zero-slack `≼ₚ[ 0ℚ ]`), so nothing
 -- here is a defect of the instance.
-pinned-bound : {A B′ X : Obj} (f : A ⇒ X ⊛ B′) (μ : ℕ → Obs) (ε : ℕ → ℚ)
+pinned-bound : {A B′ X : Obj} (f : A ⇒ X ⊗₀ B′) (μ : ℕ → Obs) (ε : ℕ → ℚ)
                (δ : ℚ) → 0ℚ ℚ.< δ → ((q n : ℕ) → at n (μ q) ℚ.≤ ε q)
              → AuditBound f (pinned f μ) (λ q → ε q ℚ.+ δ)
 pinned-bound f μ ε δ δ>0 bnd Y Et m {c} {c′} qEt qm ev n = begin
@@ -125,7 +127,7 @@ pinned-bound f μ ε δ δ>0 bnd Y Et m {c} {c′} qEt qm ev n = begin
 -- closure stay, the simulator goes in front of the test, the budget is rescaled
 -- by what the simulator costs the context that now runs it.
 absorb : (s : Y ⇒ X) (cs : ℕ) → AuditEvent w A Y B′ → AuditEvent w A X B′
-absorb s cs 𝔈 W Et m q = 𝔈 W (Et ∘ T₁ W (sub s)) m (simCost q cs)
+absorb s cs 𝔈 W Et m q = 𝔈 W (Et ∘ id ⊗₁ (s ⊗₁ id)) m (simCost q cs)
 
 -- Closure of the permitted contexts under that absorption: every context the
 -- real side permits the ideal side permits with the simulator in front of it.
@@ -133,7 +135,7 @@ absorb s cs 𝔈 W Et m q = 𝔈 W (Et ∘ T₁ W (sub s)) m (simCost q cs)
 Absorbs : {A B′ X Y : Obj} (s : Y ⇒ X) (cs : ℕ)
         → AuditEvent w A X B′ → AuditEvent w′ A Y B′ → Set (o ⊔ ℓ ⊔ w ⊔ w′)
 Absorbs {A = A} {B′ = B′} {X = X} s cs 𝔈 𝔉 =
-  (W : Obj) (Et : Test (W ⊛ (X ⊛ B′))) (m : Closure (W ⊛ A)) (q : ℕ)
+  (W : Obj) (Et : Test (W ⊗₀ (X ⊗₀ B′))) (m : Closure (W ⊗₀ A)) (q : ℕ)
   → 𝔈 W Et m q → absorb s cs 𝔉 W Et m q
 
 -- `absorb s cs 𝔉` is the largest class closed into `𝔉`, so an emulation always
@@ -149,19 +151,19 @@ absorb-absorbs _ _ _ _ ev = ev
 -- designation and the allowance arithmetic, which is why the plan's §4.2 asks
 -- for the property-specific statement to be made here rather than through a
 -- second action.
-carry-obs : (f : A ⇒ X ⊛ B′) (g : A ⇒ Y ⊛ B′) (s : Y ⇒ X) → f ≈ℰ (sub s ∘ g)
-          → (W : Obj) (Et : Test (W ⊛ (X ⊛ B′))) (m : Closure (W ⊛ A))
+carry-obs : (f : A ⇒ X ⊗₀ B′) (g : A ⇒ Y ⊗₀ B′) (s : Y ⇒ X) → f ≈ℰ (s ⊗₁ id ∘ g)
+          → (W : Obj) (Et : Test (W ⊗₀ (X ⊗₀ B′))) (m : Closure (W ⊗₀ A))
             (δ : ℚ) → 0ℚ ℚ.< δ → (n : ℕ)
           → Σ[ k ∈ ℕ ] at n (obs (tv₁ W f Et) m)
-                       ℚ.≤ at k (obs (tv₁ W g (tv₁ W (sub s) Et)) m) ℚ.+ δ
+                       ℚ.≤ at k (obs (tv₁ W g (tv₁ W (s ⊗₁ id) Et)) m) ℚ.+ δ
 carry-obs f g s em W Et m δ δ>0 =
-  dominate (∼-trans (em W Et m) (⟦⟧-resp-≈ (∘-resp-≈ˡ (tv₁-∘ W (sub s) g Et)))) δ δ>0
+  dominate (∼-trans (em W Et m) (⟦⟧-resp-≈ (∘-resp-≈ˡ (tv₁-∘ W (s ⊗₁ id) g Et)))) δ δ>0
 
--- The graded carry.  The ideal side is tested through `Et ∘ T₁ W (sub s)` — the
--- same context with the simulator in front of it — so the hypothesis applies at
--- a budget the test pays for and at an event the absorption keeps permitted,
--- and the emulation's slack `δ` is what separates the two masses.
-audit-carry : (f : A ⇒ X ⊛ B′) (g : A ⇒ Y ⊛ B′) {cs : ℕ} (em : f ≤UC[ cs ] g)
+-- The graded carry.  The ideal side is tested through `Et ∘ id ⊗₁ (s ⊗₁ id)` —
+-- the same context with the simulator in front of it — so the hypothesis
+-- applies at a budget the test pays for and at an event the absorption keeps
+-- permitted, and the emulation's slack `δ` is what separates the two masses.
+audit-carry : (f : A ⇒ X ⊗₀ B′) (g : A ⇒ Y ⊗₀ B′) {cs : ℕ} (em : f ≤UC[ cs ] g)
               {𝔈 : AuditEvent w A X B′} {𝔉 : AuditEvent w′ A Y B′}
             → Absorbs (sim em) cs 𝔈 𝔉
             → (ε : ℕ → ℚ) (δ : ℚ) → 0ℚ ℚ.< δ
@@ -172,8 +174,8 @@ audit-carry {B′ = B′} {Y = Y} f g {cs} em {𝔉 = 𝔉} cl ε δ δ>0
   where
   s = sim em
 
-  Et′ : Test (W ⊛ (Y ⊛ B′))
-  Et′ = Et ∘ T₁ W (sub s)
+  Et′ : Test (W ⊗₀ (Y ⊗₀ B′))
+  Et′ = Et ∘ id ⊗₁ (s ⊗₁ id)
 
   x = obs (tv₁ W f Et) m
   z = obs (tv₁ W g Et′) m

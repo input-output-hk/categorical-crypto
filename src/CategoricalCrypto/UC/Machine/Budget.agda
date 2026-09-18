@@ -3,25 +3,22 @@
 -- `UC.Budget.Budget` at the machine model: the resource doctrine's thirteen
 -- fields, inhabited.
 --
--- It sits in its own module rather than beside `ucBaseᴹ` for two reasons: the
--- content it plugs comes from `UC.QueryBound` and below, which imports
+-- It sits in its own module rather than beside `Observationᴹ` for two reasons:
+-- the content it plugs comes from `UC.QueryBound` and below, which imports
 -- `UC.Machine`; and heavy assemblies get their own module
 -- (`docs/protocol-rewrite.md`, perf finding on `Gradingᴹ`).
 --
--- The field types remain derived from `gradingᴹ`; spelling a monoidal-level
--- action type here forces conversion through the machine tensor.  `QBᴳ` and
--- the object-indexed laws are opaque nominal boundaries, so this assembly does
--- not re-index an implicit `Iface` pair or unfold the tensor's middle-four
--- composite while checking dependent fields.
+-- `QBᴳ` and the object-indexed laws are opaque nominal boundaries, so this
+-- assembly does not re-index an implicit `Iface` pair or unfold the tensor's
+-- middle-four composite while checking dependent fields.
 
 open import Categories.Category using (Category; _[_,_])
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Level using (0ℓ; suc)
 
-open import CategoricalCrypto.Machines.Base using (𝒢ₚ)
+open import CategoricalCrypto.Machines.Base using (𝒢ₚ; 𝒢ₚᴹ)
 open import CategoricalCrypto.UC.Budget using (Budget)
-open import CategoricalCrypto.UC.Machine using (gradingᴹ)
 open import CategoricalCrypto.UC.Machine.Grading
   using ( qb-T₁ᴳ-object; qb-subᴳ-object; qb-a⇒ᴳ-object; qb-a⇐ᴳ-object
         ; qb-λ⇒ᴳ-object; qb-λ⇐ᴳ-object; qb-ρ⇒ᴳ-object; qb-ρ⇐ᴳ-object )
@@ -37,7 +34,7 @@ qb-∘ᴹ : {A B C : 𝒢.Obj} {c c′ : ℕ} {g : 𝒢ₚ 0ℓ [ B , C ]} {f : 
        → QBᴳ B C c g → QBᴳ A B c′ f → QBᴳ A C (c ℕ.* c′) (g 𝒢.∘ f)
 qb-∘ᴹ {A} {B} {C} {c} {c′} {g} {f} = qb-∘ᴳ A B C {c} {c′} g f
 
-budgetᴹ : Budget (𝒢ₚ 0ℓ) gradingᴹ (suc 0ℓ)
+budgetᴹ : Budget (𝒢ₚᴹ 0ℓ) (suc 0ℓ)
 budgetᴹ = record
   { QB    = λ c {A} {B} → QBᴳ A B c
   ; qb-id = λ {A} → qb-idᴳ A

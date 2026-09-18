@@ -5,8 +5,8 @@
 -- `⟦_⟧ᴵ` and `retᴵ` are definitional inverses (`UC.Machine`'s header), so a
 -- query bound stated over `Iface`s and one stated over 𝒢-objects are the same
 -- predicate; what differs is which spelling a consumer's statement must carry.
--- The grading `UC.Machine.gradingᴹ` lives on 𝒢's objects, so a `UC.Budget`
--- assembly needs THIS spelling in its nine field types: with the `Iface` form
+-- The ancilla action lives on 𝒢's objects, so a `UC.Budget` assembly needs
+-- THIS spelling in its nine field types: with the `Iface` form
 -- there, each field re-indexes its objects and pays one `Proc` inversion
 -- (`UC.Machine.Grading`'s header measured the nine together at >250 s).
 --

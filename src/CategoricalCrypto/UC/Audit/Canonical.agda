@@ -12,7 +12,7 @@
 -- `audit-forget` discards the budget and stays a separate step.
 --
 -- Unlike the family tier, nothing here has to reconcile two spellings of
--- `sub`: at a plain monoidal base the grading's action and the Kleisli
+-- `sub`: at a plain monoidal base the tensor's left action and the Kleisli
 -- triple's are the same morphism, which `sub-agree` records.  At `Fam` they
 -- are not, because a `Fam`-hom carries a polynomial bound and the two
 -- constructions compute different ones.
@@ -27,33 +27,27 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 open import CategoricalCrypto.UC.Approximate using (Mass)
 open import CategoricalCrypto.UC.Budget using (Budget)
-open import CategoricalCrypto.UC.Core using (Grading; Observation)
-
-import CategoricalCrypto.UC.Core.Standard as Std
+open import CategoricalCrypto.UC.Core using (Observation)
 
 module CategoricalCrypto.UC.Audit.Canonical
   {o ℓ e os ℓs qs : Level}
   (M : MonoidalCategory o ℓ e)
   (O : Observation (MonoidalCategory.U M) os ℓs)
-  (bud : Budget (MonoidalCategory.U M) (Std.gradingᵗ M) qs)
+  (bud : Budget M qs)
   (mass : Mass O)
   where
 
 open import CategoricalCrypto.UC.Core.Bridge M O
-open import CategoricalCrypto.UC.Audit baseᵗ bud mass
+open import CategoricalCrypto.UC.Audit M O bud mass
 open Budget bud using (QB)
 
-private
-  module G = Grading (Std.gradingᵗ M)
+private variable A B X Y : Channel
+                 cs : ℕ
+                 f : A ⇒ T₀ X B
+                 g : A ⇒ T₀ Y B
 
-  variable
-    A B X Y : Channel
-    cs : ℕ
-    f : A ⇒ T₀ X B
-    g : A ⇒ T₀ Y B
-
--- The grading's action and the Kleisli triple's are one morphism here.
-sub-agree : {X Y A : Channel} {s : X ⇒ Y} → G.sub {A = A} s ≡ sub s
+-- The tensor's left action and the Kleisli triple's are one morphism here.
+sub-agree : {X Y A : Channel} {s : X ⇒ Y} → s ⊗₁ id {A} ≡ sub s
 sub-agree = refl
 
 ------------------------------------------------------------------------

@@ -8,9 +8,10 @@
 -- with no arithmetic under it at all, provided the property carried cannot see
 -- the difference between observationally equal runs: `SaturatedProperty` is
 -- such a property (`saturated` is exactly `_∼_`-invariance), `Robust` says it
--- survives every closing context, and `robust-sub` is the slide — `sub s` comes
--- off the process and onto the test, so a closing context of the real system is
--- a closing context of the ideal one with the simulator in front.
+-- survives every closing context, and `robust-sub` is the slide — the
+-- simulator comes off the process and onto the test, so a closing context of
+-- the real system is a closing context of the ideal one with the simulator in
+-- front.
 --
 -- Robustness quantifies over ALL closing contexts, and that is what makes the
 -- carry premise-free: an invariant property is closed under the absorption
@@ -25,24 +26,28 @@
 -- obligation (`docs/protocol-implementation-review.md` §§1-2, 4) — there is no
 -- error here to be uniform in.
 --
--- It is stated at a `UCBase`, so it is INDEPENDENTLY scoped from the canonical
--- `UC.Robust`, not an instance of it: an arbitrary `UCBase` supplies no graded
--- Kleisli triple, and an arbitrary `UCSetup` no closed observation.  The CARRY
--- itself is only stated there — `UC.Robust.uc-preserves`/`uc⁺-preserves` over
--- the inherited order, which `UC.Core.Bridge.≈ℰᶜ⇒≈ᵁ`/`≈ᵁ⇒≈ℰᶜ` reads this
--- layer's agreement into.  Both are available at the machine model, where
--- `UC.Robust.Model` identifies them.
+-- It is stated at a monoidal base and an observation, so it is INDEPENDENTLY
+-- scoped from the canonical `UC.Robust`, not an instance of it: such a base
+-- supplies no graded Kleisli triple, and an arbitrary `UCSetup` no closed
+-- observation.  The CARRY itself is only stated there —
+-- `UC.Robust.uc-preserves`/`uc⁺-preserves` over the inherited order, which
+-- `UC.Core.Bridge.≈ℰᶜ⇒≈ᵁ`/`≈ᵁ⇒≈ℰᶜ` reads this layer's agreement into.  Both
+-- are available at the machine model, where `UC.Robust.Model` identifies
+-- them.
+
+open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 
 open import Data.Unit.Base using (⊤; tt)
 
 open import Level using (Level; 0ℓ; _⊔_; suc)
 
-open import CategoricalCrypto.UC.Core using (UCBase)
+open import CategoricalCrypto.UC.Core using (Observation)
 
 module CategoricalCrypto.UC.Robust.Observation
-  {o ℓ e os ℓs} (base : UCBase o ℓ e os ℓs) where
+  {o ℓ e os ℓs} (M : MonoidalCategory o ℓ e)
+  (O : Observation (MonoidalCategory.U M) os ℓs) where
 
-open import CategoricalCrypto.UC.Environment base
+open import CategoricalCrypto.UC.Environment M O
 
 private variable A B′ X Y : Obj
                  p : Level
@@ -80,7 +85,7 @@ open SaturatedProperty public
 -- The property stays EXPLICIT throughout this section: `Robust 𝔓 f` reduces to
 -- a Π type whose body applies `holds 𝔓`, which no use site can invert.
 Robust : {A B′ : Obj} (𝔓 : SaturatedProperty p) → A ⇒ B′ → Set (o ⊔ ℓ ⊔ p)
-Robust {A = A} {B′} 𝔓 f = (Y : Obj) (Et : Test (Y ⊛ B′)) (m : Closure (Y ⊛ A))
+Robust {A = A} {B′} 𝔓 f = (Y : Obj) (Et : Test (Y ⊗₀ B′)) (m : Closure (Y ⊗₀ A))
                         → holds 𝔓 (obs (tv₁ Y f Et) m)
 
 -- Invariance read at the contexts rather than at the observations: an
@@ -90,11 +95,11 @@ robust-resp-≈ℰ : (𝔓 : SaturatedProperty p) {f g : A ⇒ B′}
                → f ≈ℰ g → Robust 𝔓 g → Robust 𝔓 f
 robust-resp-≈ℰ 𝔓 e rob W Et m = saturated 𝔓 (∼-sym (e W Et m)) (rob W Et m)
 
--- The simulator slide, with no budget to charge it to: testing `sub s ∘ g`
+-- The simulator slide, with no budget to charge it to: testing `s ⊗₁ id ∘ g`
 -- through `Et` is testing `g` through `Et` with the simulator in front of it,
 -- which is again a closing context of `g`.
-robust-sub : (𝔓 : SaturatedProperty p) {g : A ⇒ Y ⊛ B′} (s : Y ⇒ X)
-           → Robust 𝔓 g → Robust 𝔓 (sub s ∘ g)
+robust-sub : (𝔓 : SaturatedProperty p) {g : A ⇒ Y ⊗₀ B′} (s : Y ⇒ X)
+           → Robust 𝔓 g → Robust 𝔓 (s ⊗₁ id ∘ g)
 robust-sub 𝔓 {g} s rob W Et m =
-  saturated 𝔓 (⟦⟧-resp-≈ (Equiv.sym (∘-resp-≈ˡ (tv₁-∘ W (sub s) g Et))))
-              (rob W (tv₁ W (sub s) Et) m)
+  saturated 𝔓 (⟦⟧-resp-≈ (Equiv.sym (∘-resp-≈ˡ (tv₁-∘ W (s ⊗₁ id) g Et))))
+              (rob W (tv₁ W (s ⊗₁ id) Et) m)

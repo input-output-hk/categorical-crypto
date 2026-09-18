@@ -13,8 +13,8 @@
 -- The two directions spend different things.  Forward needs no rebracketing
 -- and is what an ingested bound spends:
 --
---     f ≈ℰᶜ g  ─grade-stable→  T₁ Y f ≈ℰᶜ T₁ Y g  ─congˡ→
---     μ Y X ∘ T₁ Y f ≈ℰᶜ μ Y X ∘ T₁ Y g  ─at the unit ancilla→  …≈ℰ…
+--     f ≈ℰᶜ g  ─grade-stable→  id ⊗₁ f ≈ℰᶜ id ⊗₁ g  ─congˡ→
+--     μ Y X ∘ id ⊗₁ f ≈ℰᶜ μ Y X ∘ id ⊗₁ g  ─at the unit ancilla→  …≈ℰ…
 --
 -- `grade-stable` is `UC.Environment`'s theorem — the ancilla quantifier
 -- absorbing a bypass wire, with no hypothesis under it — which is exactly what
@@ -22,9 +22,8 @@
 -- from that one wants `GradeStable` for `ℰᴼ`, which no instance here supplies,
 -- the core buying grade stability by putting the ancilla into the relation
 -- instead.  The last step is the unit ancilla, where the two wires cancel by
--- the unitor's naturality and its own iso, and the trivial-grade relay is the
--- tensor with an identity on the nose (`gradingᵗ`), so nothing needs `T₁-⊗`
--- there.
+-- the unitor's naturality and its own iso, and the core's relay is the tensor
+-- with an identity on the nose, so nothing needs `T₁-⊗` there.
 --
 -- Back, the prefix `μ Y X ∘ T₁ Y f` that `_≈ᵁ_` carries is `α⇐ ∘ id ⊗₁ f`
 -- (`μT₁-α⇐`), so cancelling it against `α⇒` in the test reads the hypothesis
@@ -53,22 +52,16 @@ open import Data.Product.Base using (Σ-syntax; _,_)
 open import Function.Bundles using (_⇔_; mk⇔)
 open import Level using (Level; _⊔_)
 
-open import CategoricalCrypto.UC.Core using (Observation; UCBase)
+open import CategoricalCrypto.UC.Core using (Observation)
 
 import CategoricalCrypto.Standard2 as Std2
-import CategoricalCrypto.UC.Core.Standard as Std
 import CategoricalCrypto.UC.Environment as Env
 
 module CategoricalCrypto.UC.Core.Bridge
   {o ℓ e os ℓs : Level} (M : MonoidalCategory o ℓ e)
   (O : Observation (MonoidalCategory.U M) os ℓs) where
 
--- The core's base at the standard grading: what `UC.Family` is built over, one
--- instantiation up.
-baseᵗ : UCBase o ℓ e os ℓs
-baseᵗ = record { 𝒞 = MonoidalCategory.U M ; grading = Std.gradingᵗ M ; observation = O }
-
-module C = Env baseᵗ
+module C = Env M O
 
 open Std2.StdUC M C.ℰᴼ public
 
@@ -83,10 +76,9 @@ _≈ℰᶜ_ : (f g : A ⇒ B) → Set (o ⊔ ℓ ⊔ ℓs)
 _≈ℰᶜ_ = C._≈ℰ_
 
 private
-  -- The unit ancilla, plugged: `T₁ unit u` is `id ⊗₁ u` at this grading, and
-  -- the two unitor wires cancel around it.
+  -- The unit ancilla, plugged: the two unitor wires cancel around `id ⊗₁ u`.
   plug : (t : B ⇒ C.Ω) (u : A ⇒ B) (m : C.𝟙 ⇒ A)
-       → ((t ∘ unitorˡ.from) ∘ C.T₁ unit u) ∘ (unitorˡ.to ∘ m) ≈ (t ∘ u) ∘ m
+       → ((t ∘ unitorˡ.from) ∘ id ⊗₁ u) ∘ (unitorˡ.to ∘ m) ≈ (t ∘ u) ∘ m
   plug t u m = ((assoc ○ (refl⟩∘⟨ unitorˡ-commute-from) ○ sym-assoc) ⟩∘⟨refl)
              ○ cancelInner unitorˡ.isoʳ
 
@@ -173,7 +165,7 @@ private
   -- The core's action is the tensor's own `F₁`; the triple derives its `T₁` and
   -- pays one triangle for the identification.
   reT₁ : (f : A ⇒ B) (e : C.Test (Y ⊗₀ B)) (m : C.Closure (Y ⊗₀ A))
-       → (e ∘ T₁ Y f) ∘ m ≈ (e ∘ C.T₁ Y f) ∘ m
+       → (e ∘ T₁ Y f) ∘ m ≈ (e ∘ id ⊗₁ f) ∘ m
   reT₁ {Y = Y} f _ _ = (refl⟩∘⟨ T₁-⊗ M Y f) ⟩∘⟨refl
 
 ≈ᴳ⇒≈ℰᶜ : {f g : A ⇒ B} → f ≈ᴳ g → f ≈ℰᶜ g

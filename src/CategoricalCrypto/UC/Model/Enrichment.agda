@@ -5,13 +5,12 @@
 --
 -- `massᵒ` needs no coercion — `Mass` mentions only `Obs` and `_∼_`, both of
 -- which `observationᵒ` shares with `Observationᴹ` on the nose.  `budgetᵒ` does:
--- `Budget` is stated over the grading, whose action is the sealed bundle's
--- tensor, so `Budget ∣𝔾ᵒ∣ (gradingᵗ 𝔾ᵒ)` is not `Budget (𝒢ₚ 0ℓ) gradingᴹ`
--- outside the block where `𝔾ᵒ` reduces.  It is the same record, so the
--- coercion is `p = p` exported from inside — `UC.Model.Seal`'s third
--- discipline, and the reason `UC.Machine.Grading`'s owed assembly is CHEAPER
--- here than at the transparent grading: under the seal there is nothing to
--- re-index.
+-- `Budget` is stated over a monoidal bundle, so `Budget 𝔾ᵒ` is not
+-- `Budget (𝒢ₚᴹ 0ℓ)` outside the block where `𝔾ᵒ` reduces.  It is the same
+-- record, so the coercion is `p = p` exported from inside — `UC.Model.Seal`'s
+-- third discipline, and the reason `UC.Machine.Grading`'s owed assembly is
+-- CHEAPER here than at the transparent bundle: under the seal there is nothing
+-- to re-index.
 --
 -- Its own module because it is the one place in the Model cone that unfolds
 -- the seal, and nothing here opens `StdUC`: `unfolding 𝔾ᵒ` in a module that
@@ -35,19 +34,16 @@ open import CategoricalCrypto.UC.Machine using (Proc)
 open import CategoricalCrypto.UC.Machine.Budget using (budgetᴹ)
 open import CategoricalCrypto.UC.Machine.Dictionary using (𝟭ᴵ)
 open import CategoricalCrypto.UC.Model.Observation using (observationᵒ)
-open import CategoricalCrypto.UC.Model.Seal using (∣𝔾ᵒ∣; 𝔾ᵒ; ifaceᵒ; procᵒ; sealᵒ)
+open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ; ifaceᵒ; procᵒ; sealᵒ)
 open import CategoricalCrypto.UC.QueryBound using (QB)
 open import CategoricalCrypto.UC.QueryBound.Object using (qb-to-image)
-
-import CategoricalCrypto.UC.Core.Standard as Std
 
 module CategoricalCrypto.UC.Model.Enrichment where
 
 private module G = MonoidalCategory 𝔾ᵒ
 
-budgetᵒ : Budget ∣𝔾ᵒ∣ (Std.gradingᵗ 𝔾ᵒ) (suc 0ℓ)
-budgetᵒ = subst (λ M → Budget (MonoidalCategory.U M) (Std.gradingᵗ M) (suc 0ℓ))
-                (sym sealᵒ) budgetᴹ
+budgetᵒ : Budget 𝔾ᵒ (suc 0ℓ)
+budgetᵒ = subst (λ M → Budget M (suc 0ℓ)) (sym sealᵒ) budgetᴹ
 
 opaque
   unfolding sealᵒ

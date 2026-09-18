@@ -61,12 +61,12 @@ opaque
   unfolding 𝔾ᵒ
 
   -- The seal itself, as a PROPOSITIONAL equation.  A datum derived from the
-  -- whole bundle rather than from a hom of it — a `Budget` for the grading
-  -- `gradingᵗ 𝔾ᵒ`, say (`UC.Model.Enrichment`) — cannot be coerced by
-  -- retyping, because the conversion checker meets two `Grading` records and
-  -- eta-expands both, forming the thirteen law types the transparent grading
-  -- is unaffordable at (`UC.Machine`'s header).  Transporting along this
-  -- equation never forms them.
+  -- whole bundle rather than from a hom of it — a `Budget 𝔾ᵒ`, say
+  -- (`UC.Model.Enrichment`) — cannot be coerced by retyping, because the
+  -- conversion checker meets two `MonoidalCategory` records and eta-expands
+  -- both, forming the thirteen law types the transparent bundle is
+  -- unaffordable at (`UC.Machine`'s header).  Transporting along this equation
+  -- never forms them.
   sealᵒ : 𝔾ᵒ ≡ 𝒢ₚᴹ 0ℓ
   sealᵒ = refl
 

@@ -33,9 +33,8 @@ open import Level using (Level; _⊔_)
 open import CategoricalCrypto.UC.Approximate
   using (ApproximateObservation; Negligible-0; ℚ-errors)
 open import CategoricalCrypto.UC.Budget using (Budget)
-open import CategoricalCrypto.UC.Core using (Observation; UCBase)
+open import CategoricalCrypto.UC.Core using (Observation)
 
-import CategoricalCrypto.UC.Core.Standard as Std
 import CategoricalCrypto.UC.Environment as Env
 
 module CategoricalCrypto.UC.Family.Negligible
@@ -43,12 +42,12 @@ module CategoricalCrypto.UC.Family.Negligible
   (M : MonoidalCategory o ℓ e)
   (obsᴹ : Observation (MonoidalCategory.U M) os ℓs)
   (qapx : ApproximateObservation obsᴹ ℚ-errors ℓa)
-  (bud : Budget (MonoidalCategory.U M) (Std.gradingᵗ M) qs)
+  (bud : Budget M qs)
   (Ix : Set) (κ : Ix → ℕ) (κ-cofinal : (N : ℕ) → Σ[ i ∈ Ix ] N ℕ.≤ κ i) where
 
 open import CategoricalCrypto.UC.Family M obsᴹ qapx bud Ix κ κ-cofinal
 
-open UCBase baseᴹ
+open Observation obsᴹ
 open ApproximateObservation qapx
 
 open import CategoricalCrypto.UC.Approximate.Local approx Ix κ public
@@ -64,18 +63,14 @@ Observationᴺ = record
   ; ⟦⟧-resp-≈ = λ eq → (λ _ → 0ℚ) , Negligible-0 , λ i → ⟦⟧-resp-≈₀ (eq i)
   }
 
-UCBaseᴺ : UCBase o (ℓ ⊔ qs) e os ℓa
-UCBaseᴺ = record
-  { 𝒞 = Fam ; grading = Std.gradingᵗ Famᴹ ; observation = Observationᴺ }
-
 -- The relation the tier is FOR, renamed apart from `UC.Family`'s.  The
 -- environment metatheory is not renamed alongside: it is
--- `CategoricalCrypto.UC.Environment UCBaseᴺ`, reachable by applying that
--- module, and a second copy of it under ᴺ names would be the parallel API this
--- tier is meant not to be.  The tier's EMULATION ORDER is `Abstract2`'s at
+-- `CategoricalCrypto.UC.Environment Famᴹ Observationᴺ`, reachable by applying
+-- that module, and a second copy of it under ᴺ names would be the parallel API
+-- this tier is meant not to be.  The tier's EMULATION ORDER is `Abstract2`'s at
 -- `ucSetupᴺ` (`UC.Family.Negligible.Setup`, and the gate in
 -- `docs/retirement-negligible-order.md`).
-private module N = Env UCBaseᴺ
+private module N = Env Famᴹ Observationᴺ
 
 open N public using () renaming (_≈ℰ_ to _≈ℰᴺ_)
 

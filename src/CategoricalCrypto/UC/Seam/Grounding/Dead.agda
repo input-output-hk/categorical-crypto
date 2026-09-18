@@ -50,7 +50,8 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base using (𝒫ₚ; 𝒢ₚ; 𝒢ₚᴹ; 𝒱ₚ)
 open import CategoricalCrypto.Protocol.Machine using (⟦_⟧ᴵ; runᴹ)
 open import CategoricalCrypto.Strategy using (Strat; ask; out)
-open import CategoricalCrypto.UC.Machine using (Proc; T₁ᴵ; retᴵ; subᴵ′; ucBaseᴹ; Ωᴵ; ⊤ᵛ)
+open import CategoricalCrypto.UC.Machine
+  using (Observationᴹ; Proc; T₁ᴵ; retᴵ; subᴵ′; Ωᴵ; ⊤ᵛ)
 open import CategoricalCrypto.UC.Machine.Dictionary using (T₁-⊗₁; sub-⊗₁)
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
 open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ)
@@ -59,8 +60,6 @@ open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ; ifaceᵒ)
 import CategoricalCrypto.Machines.Collapse as Col
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
-import CategoricalCrypto.UC.Core as UCC
-import CategoricalCrypto.UC.Core.Standard as Std
 import CategoricalCrypto.UC.Environment as Env
 
 module CategoricalCrypto.UC.Seam.Grounding.Dead where
@@ -69,9 +68,9 @@ private
   module MC = Core (𝒱ₚ 0ℓ)
   module S  = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
   module 𝔾  = MonoidalCategory (𝒢ₚᴹ 0ℓ)
-  module E  = Env ucBaseᴹ
+  module E  = Env (𝒢ₚᴹ 0ℓ) Observationᴹ
 
-open E using (_⊛_; _≈ℰ_; T₁; Test; Closure; obs; tv₁)
+open E using (_⊗₀_; _⊗₁_; id; _≈ℰ_; Test; Closure; obs; tv₁)
 
 ------------------------------------------------------------------------
 -- Lossy initialization
@@ -130,20 +129,20 @@ massed-∘ʳ A B C g f p (f′ , e , le) =
   , (S.⟺ᴹ (Col.collapseᵀ g f′) S.○ᴹ Col.compose-raw≈∘ᴳ g f′) S.○ᴹ 𝔾.∘-resp-≈ʳ e
   , ≼ᵐ-trans _ _ _ (⊛-≼ᵐʳ (MC.state g) (MC.state f′)) le
 
--- The grading action keeps the acted-on process's state (`T₁ᴵ`, `subᴵ`), and
--- `UC.Machine.Dictionary` is the bridge to the monoidal spelling of it.
+-- The pinned relays keep the acted-on process's state (`T₁ᴵ`, `subᴵ`), and
+-- `UC.Machine.Dictionary` is the bridge to the monoidal spelling of them.
 massed-T₁ : (Y A B : 𝔾.Obj) (f : 𝒢ₚ 0ℓ [ A , B ]) (p : Dₚ ⊤ᵛ) → Massed A B f p
-          → Massed (Y ⊛ A) (Y ⊛ B) (T₁ Y f) p
+          → Massed (Y ⊗₀ A) (Y ⊗₀ B) (id {Y} ⊗₁ f) p
 massed-T₁ Y A B f p (g , e , le) =
     T₁ᴵ (retᴵ Y) g
-  , (T₁-⊗₁ {retᴵ Y} {retᴵ A} {retᴵ B} g S.○ᴹ E.T₁-resp-≈ {Y} {A} {B} {g} {f} e)
+  , (T₁-⊗₁ {retᴵ Y} {retᴵ A} {retᴵ B} g S.○ᴹ 𝔾.⊗.F-resp-≈ (𝔾.Equiv.refl , e))
   , le
 
 massed-sub : (X Y A : 𝔾.Obj) (s : 𝒢ₚ 0ℓ [ X , Y ]) (p : Dₚ ⊤ᵛ) → Massed X Y s p
-           → Massed (X ⊛ A) (Y ⊛ A) (E.sub {X} {Y} {A} s) p
+           → Massed (X ⊗₀ A) (Y ⊗₀ A) (s ⊗₁ id {A}) p
 massed-sub X Y A s p (g , e , le) =
     subᴵ′ {retᴵ X} {retᴵ Y} {retᴵ A} g
-  , (sub-⊗₁ {retᴵ X} {retᴵ Y} {retᴵ A} g S.○ᴹ E.sub-resp-≈ {X} {Y} {A} {g} {s} e)
+  , (sub-⊗₁ {retᴵ X} {retᴵ Y} {retᴵ A} g S.○ᴹ 𝔾.⊗.F-resp-≈ (e , 𝔾.Equiv.refl))
   , le
 
 massed-run : (B : Iface) (f : Proc unitᴵ B) (p : Dₚ ⊤ᵛ) → Massed ⟦ unitᴵ ⟧ᴵ ⟦ B ⟧ᴵ f p
@@ -158,13 +157,13 @@ massed-run B f p (g , e , le) d =
 -- At most the factor's own mass: the initialization reaches the closed
 -- composite from wherever it sits.
 massed-obs : (A B : 𝔾.Obj) (f : 𝒢ₚ 0ℓ [ A , B ]) (p : Dₚ ⊤ᵛ) → Massed A B f p
-           → (Y : 𝔾.Obj) (Et : Test (Y ⊛ B)) (m : Closure (Y ⊛ A))
+           → (Y : 𝔾.Obj) (Et : Test (Y ⊗₀ B)) (m : Closure (Y ⊗₀ A))
            → obs (tv₁ Y f Et) m ≼ᵐ p
 massed-obs A B f p mf Y Et m =
-  massed-run (retᴵ E.Ω) (𝔾._∘_ {E.𝟙} {Y ⊛ A} {E.Ω} (𝔾._∘_ {Y ⊛ A} {Y ⊛ B} {E.Ω} Et
-                           (T₁ Y f)) m) p
-             (massed-∘ˡ E.𝟙 (Y ⊛ A) E.Ω (𝔾._∘_ {Y ⊛ A} {Y ⊛ B} {E.Ω} Et (T₁ Y f)) m p
-               (massed-∘ʳ (Y ⊛ A) (Y ⊛ B) E.Ω Et (T₁ Y f) p
+  massed-run (retᴵ E.Ω) (𝔾._∘_ {E.𝟙} {Y ⊗₀ A} {E.Ω} (𝔾._∘_ {Y ⊗₀ A} {Y ⊗₀ B} {E.Ω} Et
+                           (id ⊗₁ f)) m) p
+             (massed-∘ˡ E.𝟙 (Y ⊗₀ A) E.Ω (𝔾._∘_ {Y ⊗₀ A} {Y ⊗₀ B} {E.Ω} Et (id ⊗₁ f)) m p
+               (massed-∘ʳ (Y ⊗₀ A) (Y ⊗₀ B) E.Ω Et (id ⊗₁ f) p
                  (massed-T₁ Y A B f p mf)))
              (ask tt out)
 
@@ -182,9 +181,7 @@ dead-≈ℰ A B f g df dg Y Et m ε ε>0 = ≈ₚ[]-mono (<⇒≤ ε>0)
 -- Under the seal a hom exposes no machine, so the bound has to be carried
 -- across from inside the unfolding block; `Dₚ ⊤ᵛ` and `_≼ᵐ_` mention nothing
 -- sealed, which is what lets it out.
-private
-  module Gᵒ = MonoidalCategory 𝔾ᵒ
-  module Gr = UCC.Grading (Std.gradingᵗ 𝔾ᵒ)
+private module Gᵒ = MonoidalCategory 𝔾ᵒ
 
 opaque
   unfolding 𝔾ᵒ ifaceᵒ
@@ -213,11 +210,11 @@ opaque
   massedᵒ-∘ʳ = massed-∘ʳ
 
   massedᵒ-T₁ : (Y A B : Gᵒ.Obj) (f : Gᵒ._⇒_ A B) (p : Dₚ ⊤ᵛ) → Massedᵒ A B f p
-             → Massedᵒ (Gr._⊛_ Y A) (Gr._⊛_ Y B) (Gr.T₁ Y f) p
+             → Massedᵒ (Gᵒ._⊗₀_ Y A) (Gᵒ._⊗₀_ Y B) (Gᵒ._⊗₁_ (Gᵒ.id {Y}) f) p
   massedᵒ-T₁ = massed-T₁
 
   massedᵒ-sub : (X Y A : Gᵒ.Obj) (s : Gᵒ._⇒_ X Y) (p : Dₚ ⊤ᵛ) → Massedᵒ X Y s p
-              → Massedᵒ (Gr._⊛_ X A) (Gr._⊛_ Y A) (Gr.sub {X} {Y} {A} s) p
+              → Massedᵒ (Gᵒ._⊗₀_ X A) (Gᵒ._⊗₀_ Y A) (Gᵒ._⊗₁_ s (Gᵒ.id {A})) p
   massedᵒ-sub = massed-sub
 
   -- …and what the seam reads off it: a closed observation weighs no more than

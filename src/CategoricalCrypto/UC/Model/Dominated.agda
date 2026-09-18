@@ -39,7 +39,6 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol.Machine using (runᴹ)
 open import CategoricalCrypto.Strategy using (Strat; asks≤; ask; out)
 open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget)
-open import CategoricalCrypto.UC.Core using (Grading)
 open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ)
 open import CategoricalCrypto.UC.Machine.Bridge using (conjᴵ; ctxRun)
 open import CategoricalCrypto.UC.Machine.Dictionary using (T₁-⊗₁)
@@ -51,18 +50,16 @@ open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.QueryBound using (QB)
 open import CategoricalCrypto.UC.QueryBound.Object using (qb-to-image; qb-from-image)
 
-import CategoricalCrypto.UC.Core.Standard as Std
-
 module CategoricalCrypto.UC.Model.Dominated where
 
 private
   module G = MonoidalCategory 𝔾ᵒ
   module 𝒫 = Category 𝒫ᴵ
 
--- The seal's grading action, which is what the family layer's `T₁` is,
--- levelwise (`UC.Family.Famᴹ` over `UC.Core.Standard.gradingᵗ`).
+-- The seal's ancilla action, which is what the family layer's is, levelwise
+-- (`UC.Family.Famᴹ`).
 T₁ᵒ : (X : G.Obj) {A B : G.Obj} → A G.⇒ B → X G.⊗₀ A G.⇒ X G.⊗₀ B
-T₁ᵒ = Grading.T₁ (Std.gradingᵗ 𝔾ᵒ)
+T₁ᵒ X f = G._⊗₁_ (G.id {X}) f
 
 ------------------------------------------------------------------------
 -- Crossing the seal

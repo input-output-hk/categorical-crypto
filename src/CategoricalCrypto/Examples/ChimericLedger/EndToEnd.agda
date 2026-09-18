@@ -91,10 +91,7 @@ module CategoricalCrypto.Examples.ChimericLedger.EndToEnd
 
 open import CategoricalCrypto.Examples.ChimericLedger.Schedule ser
 
--- The carry's context is spelled in `baseᵗ`'s own action, not the setup's
--- (`UC.Asymptotic.Audit`'s note).
-open import CategoricalCrypto.UC.Environment baseᵗ
-  using (Closure; Test; _⊛_; obs; tv₁) renaming (sub to subᵉ)
+open C using (Closure; Test; obs; tv₁)
 
 private
   Strats : (n : ℕ) → Set
@@ -223,9 +220,9 @@ ledger-pov-family-negligible a V si R badR em truthful p Pp =
 ledger-audit-carryᵈ :
     (a V : ℕ) → SerInj → (R : Systems LedgerIf^ω) (cs : ℕ → ℕ)
     (em : R ≤UC^ω[ cs ] Ideal a V) (n : ℕ) (W : Channel)
-    (Et : Test (W ⊛ (𝟘ᴳ ⊛ ifaceᵒ (LedgerIf^ω n)))) (m : Closure (W ⊛ 𝟘ᵒ))
+    (Et : Test (W ⊗₀ (𝟘ᴳ ⊗₀ ifaceᵒ (LedgerIf^ω n)))) (m : Closure (W ⊗₀ 𝟘ᵒ))
     (q : ℕ) (d : Strats n) → asks≤ q d
-  → obs (tv₁ W (closedᵒ (morphism (Ideal a V n))) (tv₁ W (subᵉ (sim (em n))) Et)) m
+  → obs (tv₁ W (closedᵒ (morphism (Ideal a V n))) (tv₁ W (sim (em n) ⊗₁ id) Et)) m
     ≈ₚ runᴹ (morphism (Ideal a V n)) (monitorᴸ a V n d)
   → (k : ℕ) → Pr≤ k (obs (tv₁ W (closedᵒ (morphism (R n))) Et) m)
               ℚ.≤ εᴸ n q ℚ.+ ν n

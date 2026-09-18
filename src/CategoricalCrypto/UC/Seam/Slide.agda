@@ -34,11 +34,10 @@ run-subᵒ : (W : Channel) (s : Y ⇒ X) (g : A ⇒ T₀ Y B) (e : Env (T₀ (W 
          → run W (sub s ∘ g) e ≈ run W g (regradeEnv W s e)
 run-subᵒ W s g e = (refl⟩∘⟨ sub-decomp s g W) ○ sym-assoc
 
--- …and the ancilla's own action, in the tensor's vocabulary: the wire in front
--- of a composite is two wires in sequence.  Stated there and not at `T₁`
--- because the graded action a test is built with is `gradingᵗ 𝔾ᵒ`'s, whose
--- record is not the curried tensor's even though the two agree on the nose
--- (`docs/graded-bridge.md` §"One measured obstacle worth recording").
+-- …and the ancilla's own action, in the tensor's vocabulary rather than the
+-- triple's `T₁`: the wire in front of a composite is two wires in sequence.
+-- This is `Monoidal.Reasoning.split₂ʳ` at `f = id`, named because its three
+-- consumers spell the ancilla explicitly.
 slide⊗ : (W : Channel) (h : B ⇒ C) (k : A ⇒ B) → id {W} ⊗₁ (h ∘ k) ≈ id ⊗₁ h ∘ id ⊗₁ k
 slide⊗ W h k = ⟺ (T₁-⊗ 𝔾ᵒ W (h ∘ k)) ○ T-homomorphism
              ○ (T₁-⊗ 𝔾ᵒ W h ⟩∘⟨ T₁-⊗ 𝔾ᵒ W k)

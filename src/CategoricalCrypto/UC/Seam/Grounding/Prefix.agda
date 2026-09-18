@@ -48,15 +48,12 @@ import Categories.Category.Kleisli.Discrete.Pure as KDP
 import CategoricalCrypto.Machines.G.Lax as GLax
 import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Sim.Lax as Lax
-import CategoricalCrypto.UC.Core as UCC
-import CategoricalCrypto.UC.Core.Standard as Std
 
 module CategoricalCrypto.UC.Seam.Grounding.Prefix where
 
 private
   module Gᵒ = MonoidalCategory 𝔾ᵒ
   module GL = GLax (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
-  module Gr = UCC.Grading (Std.gradingᵗ 𝔾ᵒ)
   module K  = KD (Dₚ-DiscreteMonad {0ℓ})
   module KP = KDP (Dₚ-DiscreteMonad {0ℓ})
   module L  = Lax (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
@@ -100,14 +97,13 @@ opaque
   prefixedᵒ-⊗ʳ A B X Y h f g p l = L.≈ˡ-resp-scalar (λ _ → >>=ₚ-identityʳ p)
     (GL.⊗₁ᴳ-resp-≈ˡ (L.≈ᴹ⇒≈ˡ S.reflᴹ) l)
 
-  -- The grading's substitution is the tensor's left action, and at this
-  -- instance the two spellings convert; its `T₁` does not, so the ancilla
-  -- action is taken in the tensor's own vocabulary (`prefixedᵒ-⊗ʳ`, with
+  -- The triple's `T₁` does not convert with the tensor's own action, so the
+  -- ancilla action is taken in the tensor's vocabulary (`prefixedᵒ-⊗ʳ`, with
   -- `CurriedTensor.Properties.T₁-⊗` at the use site).
   prefixedᵒ-sub : (X Y A : Gᵒ.Obj) (s s′ : Gᵒ._⇒_ X Y) (p : Dₚ ⊤ᵛ)
                 → Prefixedᵒ X Y s s′ p
-                → Prefixedᵒ (Gr._⊛_ X A) (Gr._⊛_ Y A)
-                            (Gr.sub {X} {Y} {A} s) (Gr.sub {X} {Y} {A} s′) p
+                → Prefixedᵒ (Gᵒ._⊗₀_ X A) (Gᵒ._⊗₀_ Y A)
+                            (Gᵒ._⊗₁_ s (Gᵒ.id {A})) (Gᵒ._⊗₁_ s′ (Gᵒ.id {A})) p
   prefixedᵒ-sub X Y A s s′ p = prefixedᵒ-⊗ˡ X Y A A s s′ Gᵒ.id p
 
   -- The base case: the trivial grade carries no message, so a hom of it is

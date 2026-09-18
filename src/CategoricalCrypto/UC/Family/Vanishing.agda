@@ -3,7 +3,8 @@
 -- The vanishing tier's agreement, in the INHERITED order.
 --
 -- The gap this closes: `UC.Family.absorb` lands in the ancilla-quantified
--- `_≈ℰ_` of `UC.Environment UCBase^ω`, while the same statement at `ucSetup^ω`
+-- `_≈ℰ_` of `UC.Environment Famᴹ Observation^ω`, while the same statement at
+-- `ucSetup^ω`
 -- would land in `Abstract2._≈ᵁ_`, and the kernel congruence is a
 -- `no-eta-equality` record, so re-basing `absorb` in place would change its
 -- stated type.  So it is not re-based — the bridge is applied to its result
@@ -26,14 +27,13 @@ open import CategoricalCrypto.UC.Budget using (Budget)
 open import CategoricalCrypto.UC.Core using (Observation)
 
 import CategoricalCrypto.UC.Core.Bridge as Bridgeᴹ
-import CategoricalCrypto.UC.Core.Standard as Std
 
 module CategoricalCrypto.UC.Family.Vanishing
   {o ℓ e os ℓs ℓa qs : Level}
   (M : MonoidalCategory o ℓ e)
   (obsᴹ : Observation (MonoidalCategory.U M) os ℓs)
   (qapx : ApproximateObservation obsᴹ ℚ-errors ℓa)
-  (bud : Budget (MonoidalCategory.U M) (Std.gradingᵗ M) qs)
+  (bud : Budget M qs)
   (Ix : Set) (κ : Ix → ℕ) (κ-cofinal : (N : ℕ) → Σ[ i ∈ Ix ] N ℕ.≤ κ i) where
 
 open import CategoricalCrypto.UC.Family M obsᴹ qapx bud Ix κ κ-cofinal
@@ -41,8 +41,8 @@ open import CategoricalCrypto.UC.Family M obsᴹ qapx bud Ix κ κ-cofinal
 
 module Canonical^ω = Bridgeᴹ Famᴹ Observation^ω
 
--- The tier's own kernel is the bridge's source, on the nose: the base the
--- bridge builds out of `Famᴹ` and `Observation^ω` is `UCBase^ω` itself.
+-- The tier's own kernel is the bridge's source, on the nose: the environment
+-- layer the bridge applies at `Famᴹ` and `Observation^ω` is the tier's own.
 rel-agree^ω : {A B : Canonical^ω.Channel} {f g : Canonical^ω._⇒_ A B}
             → (Canonical^ω._≈ℰᶜ_ f g) ≡ (f ≈ℰ g)
 rel-agree^ω = refl

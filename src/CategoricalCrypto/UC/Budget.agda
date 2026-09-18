@@ -4,11 +4,11 @@
 -- core.
 --
 -- Natural-number rates are a model datum, not part of general UC — a setup with
--- no cost algebra still has grading, environments, simulators and `_≤UC_`.  So
--- `Budget` is a separate record parameterized by a `Grading`, and the layers
--- that want it (`UC.Audit`, `UC.Family`) take it as a module parameter.
+-- no cost algebra still has environments, simulators and `_≤UC_`.  So `Budget`
+-- is a separate record, and the layers that want it (`UC.Audit`, `UC.Family`)
+-- take it as a module parameter.
 
-open import Categories.Category.Core using (Category)
+open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Properties
@@ -17,8 +17,6 @@ open import Data.Nat.Properties
 open import Level using (Level; _⊔_; suc)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; cong; sym; trans; module ≡-Reasoning)
-
-open import CategoricalCrypto.UC.Core using (Grading)
 
 module CategoricalCrypto.UC.Budget where
 
@@ -30,18 +28,17 @@ module CategoricalCrypto.UC.Budget where
 -- forbid it.
 --
 -- Where the reference arc asked eleven laws, twelve stand, and the difference
--- is bookkeeping: its tensor law splits into `qb-T₁`/`qb-sub` (the action's two
--- one-sided halves).  A product law `qb-⊗₁` is not asked for because
--- `f ⊗₁ g ≈ sub f ∘ T₁ _ g`, so `qb-∘`/`qb-sub`/`qb-T₁`/`qb-resp-≈` already
+-- is bookkeeping: its tensor law splits into `qb-T₁`/`qb-sub` (the two
+-- one-sided actions).  A product law `qb-⊗₁` is not asked for because
+-- `f ⊗₁ g ≈ f ⊗₁ id ∘ id ⊗₁ g`, so `qb-∘`/`qb-sub`/`qb-T₁`/`qb-resp-≈` already
 -- certify it at `(c ⊔ 1) * (c′ ⊔ 1)`.
 --
 -- The four unitor certificates are what `UC.Family` spends to make the
 -- levelwise category monoidal: the unitors of `Fam` are the base's, levelwise,
 -- and a `Fam`-hom is a hom plus a polynomial bound.
-record Budget {o ℓ e} (𝒞 : Category o ℓ e) (G : Grading 𝒞) (qs : Level)
+record Budget {o ℓ e} (M : MonoidalCategory o ℓ e) (qs : Level)
             : Set (o ⊔ ℓ ⊔ e ⊔ suc qs) where
-  open Category 𝒞
-  open Grading G
+  open MonoidalCategory M
 
   field
     QB        : ℕ → {A B : Obj} → A ⇒ B → Set qs
@@ -54,14 +51,14 @@ record Budget {o ℓ e} (𝒞 : Category o ℓ e) (G : Grading 𝒞) (qs : Level
     -- completed event that an activation from above must have deposited for,
     -- so a rate of zero cannot survive the action.  This is the reference
     -- arc's `qb-⊗` at `c ⊔ 1`, the identity leg's budget being 1.
-    qb-T₁     : {Y A B : Obj} {c : ℕ} {f : A ⇒ B} → QB c f → QB (c ℕ.⊔ 1) (T₁ Y f)
-    qb-sub    : {X Y A : Obj} {c : ℕ} {s : X ⇒ Y} → QB c s → QB (c ℕ.⊔ 1) (sub {A = A} s)
-    qb-a⇒     : {X Y A : Obj} → QB 1 (a⇒ {X} {Y} {A})
-    qb-a⇐     : {X Y A : Obj} → QB 1 (a⇐ {X} {Y} {A})
-    qb-λ⇒     : {A : Obj} → QB 1 (λ⇒ {A})
-    qb-λ⇐     : {A : Obj} → QB 1 (λ⇐ {A})
-    qb-ρ⇒     : {A : Obj} → QB 1 (ρ⇒ {A})
-    qb-ρ⇐     : {A : Obj} → QB 1 (ρ⇐ {A})
+    qb-T₁     : {Y A B : Obj} {c : ℕ} {f : A ⇒ B} → QB c f → QB (c ℕ.⊔ 1) (id {Y} ⊗₁ f)
+    qb-sub    : {X Y A : Obj} {c : ℕ} {s : X ⇒ Y} → QB c s → QB (c ℕ.⊔ 1) (s ⊗₁ id {A})
+    qb-a⇒     : {X Y A : Obj} → QB 1 (associator.to {X} {Y} {A})
+    qb-a⇐     : {X Y A : Obj} → QB 1 (associator.from {X} {Y} {A})
+    qb-λ⇒     : {A : Obj} → QB 1 (unitorˡ.from {A})
+    qb-λ⇐     : {A : Obj} → QB 1 (unitorˡ.to {A})
+    qb-ρ⇒     : {A : Obj} → QB 1 (unitorʳ.from {A})
+    qb-ρ⇐     : {A : Obj} → QB 1 (unitorʳ.to {A})
 
 -- The budget a context's two legs afford a strategy playing in its place.  The
 -- test's own `c` is what bounds crossings into the plugged interface: the

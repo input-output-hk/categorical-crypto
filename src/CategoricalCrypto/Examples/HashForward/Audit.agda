@@ -38,7 +38,7 @@ open import CategoricalCrypto.UC.Machine using (Proc)
 open import CategoricalCrypto.UC.Machine.Dictionary using (𝟭ᴵ)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ; qbᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
-open import CategoricalCrypto.UC.Model.Setup using (baseᵗ)
+open import CategoricalCrypto.UC.Model.Setup using (module C)
 open import CategoricalCrypto.UC.QueryBound using () renaming (QB to QBᴹ)
 open import CategoricalCrypto.UC.Seam.Audit
 open import CategoricalCrypto.UC.Seam.Audit.Context
@@ -52,8 +52,7 @@ open import CategoricalCrypto.Examples.HashForward Msg Dig
   using (Advᴵ; Honᴵ; Resᴵ; real; real-factors)
 open import CategoricalCrypto.Examples.HashForward.UC Msg Dig
   using (idealᵒ; realᵒ; simQB; simᵒ)
-open import CategoricalCrypto.UC.Environment baseᵗ
-  using (Obj; Test; T₁; sub; _⊛_; _∘_)
+open C using (Obj; Test; _⊗₀_; _⊗₁_; id; _∘_)
 
 private module Bud = Budget budgetᵒ
 
@@ -71,12 +70,12 @@ hf-emul = ≤UC[]ᵍ simQB real-factors
 ------------------------------------------------------------------------
 -- The monitoring context with the simulator absorbed
 
--- `audit-carry` tests the ideal side through `Et ∘ T₁ W (sub simᵒ)` — the real
--- side's context with the simulator in front of it — and this is the budget
--- that context carries: `qb-sub` and `qb-T₁` each guard at `⊔ 1`, and `qb-∘`
--- multiplies.  Read through `ctxBudget` it is `simCost` of the original.
-absorbed-budget : (W : Obj) {c : ℕ} (Et : Test (W ⊛ (ifaceᵒ Advᴵ ⊛ ifaceᵒ Honᴵ)))
-                → Bud.QB c Et → Bud.QB (c * ((2 ⊔ 1) ⊔ 1)) (Et ∘ T₁ W (sub simᵒ))
+-- `audit-carry` tests the ideal side through `Et ∘ id ⊗₁ (simᵒ ⊗₁ id)` — the
+-- real side's context with the simulator in front of it — and this is the
+-- budget that context carries: `qb-sub` and `qb-T₁` each guard at `⊔ 1`, and
+-- `qb-∘` multiplies.  Read through `ctxBudget` it is `simCost` of the original.
+absorbed-budget : (W : Obj) {c : ℕ} (Et : Test (W ⊗₀ (ifaceᵒ Advᴵ ⊗₀ ifaceᵒ Honᴵ)))
+                → Bud.QB c Et → Bud.QB (c * ((2 ⊔ 1) ⊔ 1)) (Et ∘ id ⊗₁ (simᵒ ⊗₁ id))
 absorbed-budget W Et q = Bud.qb-∘ q (Bud.qb-T₁ (Bud.qb-sub (qbᵒ simQB)))
 
 ------------------------------------------------------------------------

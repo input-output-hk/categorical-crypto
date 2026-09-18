@@ -29,7 +29,6 @@ open import CategoricalCrypto.UC.Core using (Observation)
 open import CategoricalCrypto.UCSetup using (UCSetup)
 
 import CategoricalCrypto.UC.Core.Bridge as Bridgeᴹ
-import CategoricalCrypto.UC.Core.Standard as Std
 import CategoricalCrypto.UC.Family.Negligible as Negᴹ
 
 module CategoricalCrypto.UC.Family.Negligible.Setup
@@ -37,7 +36,7 @@ module CategoricalCrypto.UC.Family.Negligible.Setup
   (M : MonoidalCategory o ℓ e)
   (obsᴹ : Observation (MonoidalCategory.U M) os ℓs)
   (qapx : ApproximateObservation obsᴹ ℚ-errors ℓa)
-  (bud : Budget (MonoidalCategory.U M) (Std.gradingᵗ M) qs)
+  (bud : Budget M qs)
   (Ix : Set) (κ : Ix → ℕ) (κ-cofinal : (N : ℕ) → Σ[ i ∈ Ix ] N ℕ.≤ κ i) where
 
 open import CategoricalCrypto.UC.Family M obsᴹ qapx bud Ix κ κ-cofinal
@@ -104,9 +103,9 @@ infix 4 _≤UCᵉ_ _≤UCᵉ⁺_
 -- `ᵉ` is the tier's former dummy-form order and its adversary-quantified
 -- presentation, recorded here only as the subject of the equivalence below:
 -- the two are the same order, `rel-agree` identifying the kernels and the
--- tier's grading being the canonical setup's own, so a simulator's action has
--- one spelling (`docs/retirement-negligible-order.md`).  Here and below the
--- implicit homs are supplied for the reason recorded above.
+-- tier's simulator action being the canonical setup's own, so a simulator's
+-- action has one spelling (`docs/retirement-negligible-order.md`).  Here and
+-- below the implicit homs are supplied for the reason recorded above.
 _≤UCᵉ_ _≤UCᵉ⁺_ : {A B X Y : Canonicalᴺ.Channel}
                  (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
                  (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))

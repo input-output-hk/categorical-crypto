@@ -53,7 +53,7 @@ open import CategoricalCrypto.UC.Seam.Slide using (slide⊗)
 
 module CategoricalCrypto.UC.Seam.Audit.Prefix where
 
-open import CategoricalCrypto.UC.Environment baseᵗ using (obs; tv₁)
+open C using (obs; tv₁)
 
 open HomReasoning
 open Mass massᵒ using (dominate)

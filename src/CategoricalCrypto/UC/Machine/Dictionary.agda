@@ -1,11 +1,11 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- The grading dictionary: `UC.Machine`'s direct relays read as the monoidal
+-- The ancilla dictionary: `UC.Machine`'s direct relays read as the monoidal
 -- spellings of the same processes.  Those readings are the bridge between the
--- pinned relays and the derived grading `UC.Machine.gradingᴹ` — a query-bound
--- certificate is about a relay, the grading's action is `_⊗₁_` with an
--- identity, and `UC.Machine.Grading` carries one to the other through these
--- eight zigzags.  Nothing here states a `Monoidal` law's type, which is what
+-- pinned relays and the 𝒢-tensor's own action — a query-bound certificate is
+-- about a relay, a `UC.Budget` field is about `_⊗₁_` with an identity, and
+-- `UC.Machine.Grading` carries one to the other through these eight
+-- zigzags.  Nothing here states a `Monoidal` law's type, which is what
 -- makes it affordable (`UC.Machine`'s header prices the alternative).
 --
 -- The Kleisli-pure layer the readings run on — `pureᵏ` of a relabelling, the

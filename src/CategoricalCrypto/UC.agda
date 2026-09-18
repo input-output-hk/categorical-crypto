@@ -3,32 +3,31 @@
 -- The UC layer's entry point: one import for a consumer.
 --
 -- The layer is three tiers, and the split is the point.  The CORE is
--- qualitative: a category, the grading action of adversary interfaces, and an
--- equivalence on what closed runs show.  The ENRICHMENT adds what a model may
+-- qualitative: a monoidal category, whose tensor is the action of adversary
+-- interfaces, and an equivalence on what closed runs show.  The ENRICHMENT
+-- adds what a model may
 -- know and general UC must not assume — a measurable error, a query budget, a
 -- mass.  The MODEL is the `Dₚ` machine instance, where the enrichment is
 -- discharged and the core's equivalence is CONSTRUCTED from rational advantage.
 --
---   core         `UC.Core`         `Grading`, `Observation`, `UCBase`
+--   core         `UC.Core`         `Observation`
 --                `UC.Environment`  the environment presheaf, `_≈ℰ_`,
 --                                  `grade-stable`, and `tv₁-∘`, the slide by
 --                                  which a stage of the process becomes a stage
 --                                  of the test
 --                `UC.Robust.Observation`
 --                                  `SaturatedProperty`, `Robust` and
---                                  `robust-sub` at a `UCBase`: the ingredients
---                                  of the carry with no probability under it,
---                                  where the simulator slides into the test and
---                                  an observation-invariant property needs no
---                                  budget to pay for it.  The carry itself is
---                                  the inherited layer's `UC.Robust` (below)
---                `UC.Core.Standard`
---                                  `gradingᵗ`: a monoidal category grades
---                                  itself — the inherited `UCSetup` doctrine's
---                                  action, weakened to what the core asks
---                `UC.Core.Bridge`  `StdUC` over that grading's own presheaf,
---                                  so the core's `_≈ℰᶜ_` IS the inherited
---                                  `_≈ᵁ_` and the inherited order follows
+--                                  `robust-sub` at a monoidal base: the
+--                                  ingredients of the carry with no probability
+--                                  under it, where the simulator slides into
+--                                  the test and an observation-invariant
+--                                  property needs no budget to pay for it.  The
+--                                  carry itself is the inherited layer's
+--                                  `UC.Robust` (below)
+--                `UC.Core.Bridge`  `StdUC` over the environment layer's own
+--                                  presheaf, so the core's `_≈ℰᶜ_` IS the
+--                                  inherited `_≈ᵁ_` and the inherited order
+--                                  follows
 --   enrichment   `UC.Approximate`  `ErrorAlgebra`, `Approximation`,
 --                                  `ApproximateObservation`, `Induced`, `Mass`
 --                `UC.Budget`       `Budget`, `ctxBudget` — the resource doctrine
@@ -150,17 +149,17 @@
 --                                  most `c` of them"
 --                `UC.QueryBound.Object`
 --                                  the same predicate at 𝒢's own objects — the
---                                  spelling `gradingᴹ`'s action is stated in
+--                                  spelling the 𝒢-tensor's action is stated in
 --                `UC.Machine.Grading`
 --                                  where a query-bound certificate about a
---                                  pinned relay meets the derived grading's
+--                                  pinned relay meets the 𝒢-tensor's own
 --                                  action, through `UC.Machine.Dictionary`'s
 --                                  zigzags
 --                `UC.Machine.Budget`
 --                                  `budgetᴹ`: the enrichment's `Budget`
---                                  inhabited at `gradingᴹ`.  Not re-exported
---                                  below either — it is the one consumer that
---                                  pays for the composition line
+--                                  inhabited at `𝒢ₚᴹ`.  Not re-exported below
+--                                  either — it is the one consumer that pays
+--                                  for the composition line
 --                `UC.Machine.Bridge`
 --                                  `ContextDominated`, the interface to layer
 --                                  1's concrete theorems
@@ -255,9 +254,9 @@
 --                                  `Examples.CoinToss.Ideal.Compose`, which
 --                                  closes the comparison boundary
 --
--- The parameterized modules take a `UCBase` and so are imported directly
--- rather than re-exported here; `UC.Machine.ucBaseᴹ` is the one to feed them at
--- the model.
+-- The parameterized modules take a monoidal base and an observation and so are
+-- imported directly rather than re-exported here; `𝒢ₚᴹ 0ℓ` and
+-- `UC.Machine.Observationᴹ` are what to feed them at the model.
 --
 -- `UC.Model` is the layer's SECOND root, and it is deliberately not re-exported
 -- here: it instantiates the INHERITED abstract theory (`UCSetup`/`Abstract2`

@@ -10,14 +10,14 @@
 -- from, and this is that construction — no ancilla in the carrier.  It is the
 -- one row of the supersession inventory that runs from the core to the
 -- inherited layer (`docs/stduc-supersession-plan.md` §2.3), so it is proved
--- once here rather than per instance: `UC.Environment` re-exports it at a
--- `UCBase`, `UC.Core.Bridge` is what feeds it to `StdUC`, and it is what an
--- `ℰ` at the levelwise family category will be (P6).
+-- once here rather than per instance: `UC.Environment` re-exports it,
+-- `UC.Core.Bridge` is what feeds it to `StdUC`, and it is what an `ℰ` at the
+-- levelwise family category will be (P6).
 --
--- The parameter is the OBSERVATION alone, not a `UCBase`: no grading is spent,
--- and at the machine model none may be — a conversion that meets two `Grading`
--- records is the configuration the seal exists to avoid (`UC.Model.Seal`'s
--- header, `UC.Model.Enrichment`).
+-- The parameter is the OBSERVATION alone: no tensor is spent, and at the
+-- machine model none may be — a conversion that meets two monoidal bundles is
+-- the configuration the seal exists to avoid (`UC.Model.Seal`'s header,
+-- `UC.Model.Enrichment`).
 --
 -- Precomposition is well defined because a closure `m : 𝟙 ⇒ B` becomes the
 -- closure `f ∘ m : 𝟙 ⇒ A`; associativity then gives all three presheaf laws,

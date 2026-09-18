@@ -6,15 +6,16 @@
 -- The carry is the CANONICAL one: `UC.Robust` at `UC.Model.Setup`, whose
 -- premise is the inherited `_≤UC_` directly — `≤UC⇒dummy` supplies the
 -- simulator, so the detour through the core's order has left this proof
--- (`UC.Model.Bridge.≤UC⇒≤UCᶜ` stays; it is the seam's own two-way
+-- (`UC.Core.Bridge.≤UC⇒≤UCᶜ` stays; it is the seam's own two-way
 -- identification of the orders, whose gate is importer migration, not this one
 -- call).  What connects it to the observation-scoped statements is `propᵒ`,
 -- the adapter turning an observation-invariant predicate into a saturated
 -- predicate on tests, and `UC.Core.Bridge`'s bracketing shuffle.
 --
 -- `UC.Robust.Observation` keeps its own scope and is not derived: it is stated
--- at an arbitrary `UCBase`, where there is no graded Kleisli triple.  Its names
--- are re-exported here unchanged; the canonical API is reached through `Gen`.
+-- at an arbitrary monoidal base, where there is no graded Kleisli triple.  Its
+-- names are re-exported here unchanged; the canonical API is reached through
+-- `Gen`.
 --
 -- SCOPE: see `UC.Robust`'s header.  Nothing here bounds a probability, so
 -- nothing here discharges the monitor-inclusion or error-uniformity obligations
@@ -25,17 +26,17 @@ open import Data.Unit.Base using (tt)
 open import Level using (Level; 0ℓ; _⊔_; suc)
 
 open import CategoricalCrypto.Iface using (Iface)
+open import CategoricalCrypto.UC.Model.Observation using (observationᵒ)
 open import CategoricalCrypto.UC.Model.Pin using (relayᵒ)
-open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
+open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ; 𝔾ᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 
-import CategoricalCrypto.UC.Environment as Env
 import CategoricalCrypto.UC.Robust.Observation as RobO
 import CategoricalCrypto.UC.Robust.Selected as Sel
 
 module CategoricalCrypto.UC.Robust.Model where
 
-open import CategoricalCrypto.UC.Environment baseᵗ using (Obs)
+open C using (Obs)
 
 open HomReasoning
 
@@ -44,9 +45,7 @@ open HomReasoning
 -- and they are different statements.
 module Gen = Sel StdSetup
 
-private
-  module Core = Env baseᵗ
-  module R = RobO baseᵗ
+private module R = RobO 𝔾ᵒ observationᵒ
 
 open R public
   using ( SaturatedProperty; holds; saturated; ⊤ᴾ; ∼[_]; Robust; robust-resp-≈ℰ
@@ -65,7 +64,7 @@ private variable A B X Y : Channel
 -- the theorem for all UC setups: a setup need not have a closed run at all.
 propᵒ : SaturatedProperty p → (D : Channel) → Gen.SaturatedProperty (suc 0ℓ ⊔ p) D
 propᵒ 𝔓 D = record
-  { holds     = λ t → (m : Core.Closure D) → holds 𝔓 Core.⟦ t ∘ m ⟧
+  { holds     = λ t → (m : C.Closure D) → holds 𝔓 C.⟦ t ∘ m ⟧
   ; saturated = λ eq h m → saturated 𝔓 (eq m) (h m) }
 
 -- …and the two bracketings of a closing context, which is all that separates
@@ -73,12 +72,12 @@ propᵒ 𝔓 D = record
 robust⇒robustᵍ : (𝔓 : SaturatedProperty p) {f : A ⇒ T₀ X B}
                → Robust 𝔓 f → Gen.Robust (λ W → propᵒ 𝔓 (T₀ W A)) Gen.⊤ᴬ f
 robust⇒robustᵍ 𝔓 {f = f} rob W e _ m =
-  saturated 𝔓 (Core.⟦⟧-resp-≈ (assoc ○ ⟺ (shuffle⇐ f e m))) (rob W (e ∘ α⇐) m)
+  saturated 𝔓 (C.⟦⟧-resp-≈ (assoc ○ ⟺ (shuffle⇐ f e m))) (rob W (e ∘ α⇐) m)
 
 robustᵍ⇒robust : (𝔓 : SaturatedProperty p) {f : A ⇒ T₀ X B}
                → Gen.Robust (λ W → propᵒ 𝔓 (T₀ W A)) Gen.⊤ᴬ f → Robust 𝔓 f
 robustᵍ⇒robust 𝔓 {f = f} rob W Et m =
-  saturated 𝔓 (Core.⟦⟧-resp-≈ (shuffle⇒ f Et m ○ sym-assoc)) (rob W (Et ∘ α⇒) tt m)
+  saturated 𝔓 (C.⟦⟧-resp-≈ (shuffle⇒ f Et m ○ sym-assoc)) (rob W (Et ∘ α⇒) tt m)
 
 ------------------------------------------------------------------------
 -- Preservation at the model

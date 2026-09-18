@@ -19,15 +19,15 @@
 --                  interface, a `coin` is a `Dₚ` coin step.  Constructive.
 --   `StratIsEnv`   an ℰ-agreement is visible to those environments — the
 --                  ancilla quantifier at a degenerate ancilla.  Stated, in
---                  `UC.Seam.Grounding`, the one part of the seam that needs a
---                  `Grading`.
+--                  `UC.Seam.Grounding`, the one part of the seam that needs
+--                  the environment layer.
 --   `Adequacy`     the closed run of an embedded strategy is layer 1's own
 --                  `runᴹ` at that strategy.  Stated.
 --   `AgreeToAdv`   the corollary: those two and `PrAgree` give `_≈adv[_]_`,
 --                  hence `pov-carry`, which is proved from it.
 --
 -- Simulator accounting: `f ≤UC g` is `f ≈ℰ sub s ∘ g` at a GRADED codomain
--- `X ⊛ B`, so an embedded strategy playing against that agreement sees the
+-- `X ⊗₀ B`, so an embedded strategy playing against that agreement sees the
 -- adversary interface as well, and two theorems cover the two ends.  At the
 -- TRIVIAL grade the simulator collapses and the emulation *is* the premise
 -- `pov-carry` takes (`UC.Seam.Grounding.UnitGrade`, proved by
@@ -45,9 +45,8 @@
 -- observation of a process goes through `ctxRunˢ`/`runˢ` and is then used by
 -- name: an interface left implicit in a `Proc` argument makes Agda solve a meta
 -- *under* the machine tensor, the ~1 GiB inversion `UC.Machine`'s header
--- records.  And the `Grading` lives next door, because instantiating the
--- environment layer at it costs a budget of the same order while only
--- `StratIsEnv` needs it.
+-- records.  And the environment layer lives next door, because instantiating
+-- it here costs a budget of the same order while only `StratIsEnv` needs it.
 
 open import Data.Bool.Base
 open import Data.Empty using (⊥)

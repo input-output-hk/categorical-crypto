@@ -40,10 +40,7 @@ import CategoricalCrypto.UC.Seam.Grounded as Gr
 
 module CategoricalCrypto.UC.Asymptotic.Audit where
 
--- The context is spelled in `baseᵗ`'s own action; the setup's agrees with it on
--- the nose but is a different record (`UC.Seam.Audit.Context`'s header).
-open import CategoricalCrypto.UC.Environment baseᵗ
-  using (Closure; Test; _⊛_; obs; tv₁) renaming (sub to subᵉ)
+open C using (Closure; Test; obs; tv₁)
 
 open Gr using (closedᵒ; 𝟘ᴳ)
 
@@ -79,10 +76,10 @@ uc-audit-carryᵈ : (em : R ≤UC^ω[ cs ] I) (bad : Watch B)
                 → ((n : ℕ) → Bounded (I n) (bad n) (ε n))
                 → ((n : ℕ) → 0ℚ ℚ.< ν n)
                 → (n : ℕ) (W : Channel)
-                  (Et : Test (W ⊛ (𝟘ᴳ ⊛ ifaceᵒ (B n)))) (m : Closure (W ⊛ 𝟘ᵒ))
+                  (Et : Test (W ⊗₀ (𝟘ᴳ ⊗₀ ifaceᵒ (B n)))) (m : Closure (W ⊗₀ 𝟘ᵒ))
                   (q : ℕ) (d : Strat (Neg (B n)) (Pos (B n))) → asks≤ q d
                 → obs (tv₁ W (closedᵒ (morphism (I n)))
-                           (tv₁ W (subᵉ (sim (em n))) Et)) m
+                           (tv₁ W (sim (em n) ⊗₁ id) Et)) m
                   ≈ₚ runᴹ (morphism (I n)) (bad n d)
                 → (k : ℕ) → Pr≤ k (obs (tv₁ W (closedᵒ (morphism (R n))) Et) m)
                             ℚ.≤ ε n q ℚ.+ ν n

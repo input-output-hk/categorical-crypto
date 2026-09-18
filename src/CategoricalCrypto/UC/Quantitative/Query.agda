@@ -15,9 +15,10 @@
 -- induces no controlled map on bounded tests, and a control has to be
 -- determined by the morphism, so the budget is part of the hom and of its
 -- equality.  `QueryBounds` is the fragment of `UC.Budget.Budget` this spends —
--- no grading, in `UC.Environment.Presheaf`'s discipline.
+-- no tensor, in `UC.Environment.Presheaf`'s discipline.
 
 open import Categories.Category using (Category)
+open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 open import Categories.Functor.Presheaf using (Presheaf)
 
 open import Data.Nat.Base as ℕ using (ℕ)
@@ -33,7 +34,6 @@ open import CategoricalCrypto.Approx.Schedule using (pointwise; module Reindexin
 open import CategoricalCrypto.UC.Approximate using (Approximation; ℚ-errors)
 open import CategoricalCrypto.UC.Budget
   using (Budget; ctxBudget; ctxBudget-closure≤; ctxBudget-simCost; simCost)
-open import CategoricalCrypto.UC.Core using (Grading)
 
 import CategoricalCrypto.Approx.Controlled as Controlledᴹ
 import CategoricalCrypto.Approx.Filtered as Filteredᴹ
@@ -81,8 +81,8 @@ record QueryBounds {o ℓ e : Level} (𝒞 : Category o ℓ e) (qs : Level)
             → QB c g → QB c′ f → QB (c ℕ.* c′) (g ∘ f)
     qb-mono : {A B : Obj} {c c′ : ℕ} {f : A ⇒ B} → c ℕ.≤ c′ → QB c f → QB c′ f
 
-fromBudget : {o ℓ e qs : Level} {𝒞 : Category o ℓ e} {G : Grading 𝒞}
-           → Budget 𝒞 G qs → QueryBounds 𝒞 qs
+fromBudget : {o ℓ e qs : Level} {M : MonoidalCategory o ℓ e}
+           → Budget M qs → QueryBounds (MonoidalCategory.U M) qs
 fromBudget B = record { QB = QB ; qb-id = qb-id ; qb-∘ = qb-∘ ; qb-mono = qb-mono }
   where open Budget B
 

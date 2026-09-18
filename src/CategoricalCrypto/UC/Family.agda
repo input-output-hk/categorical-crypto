@@ -19,17 +19,18 @@
 -- a requirement of general UC: nothing in the core, the environment layer or
 -- the emulation metatheory mentions an index at all.
 --
--- The base is a MONOIDAL category at its standard grading, so `Fam` carries a
--- monoidal structure too and the family's grading is again the standard one.
+-- The base is a MONOIDAL category, so `Fam` carries a monoidal structure too.
 -- The whole gap is the budget: a `Fam`-hom is a base hom plus a polynomial
 -- bound and `_≈^ω_` ignores the bound, so every monoidal LAW is the base's read
 -- levelwise and the only content is a `QB` certificate per structural
 -- morphism.  `UC.Budget.Budget`'s four unitor fields are what that costs; the
--- bifunctor costs nothing extra, because `f ⊗₁ g` factors as `sub f ∘ T₁ _ g`.
+-- bifunctor costs nothing extra, because `f ⊗₁ g` factors as
+-- `f ⊗₁ id ∘ id ⊗₁ g`.
 --
 -- This layer is where the notes' quantitative-to-qualitative arrow runs.
--- Everything categorical is levelwise, so the whole `UCBase` transports; the
--- observation, however, is CONSTRUCTED rather than transported — the base's
+-- Everything categorical is levelwise, so the whole monoidal structure
+-- transports; the observation, however, is CONSTRUCTED rather than
+-- transported — the base's
 -- ε-closeness becomes *eventual* ε-closeness in `κ`, and
 -- `UC.Approximate.Induced` turns that into the qualitative agreement the core
 -- consumes, which is then literally the vanishing-advantage relation (its ε/2
@@ -64,11 +65,10 @@ open import CategoricalCrypto.UC.Approximate
         ; Negligible⇒→0; NegligibleBound; NegligibleBound⇒VanishingBound; VanishingBound
         ; ℚ-errors; module Induced )
 open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget)
-open import CategoricalCrypto.UC.Core using (Observation; UCBase)
+open import CategoricalCrypto.UC.Core using (Observation)
 open import CategoricalCrypto.UCSetup using (UCSetup)
 
 import CategoricalCrypto.Standard2 as Std2
-import CategoricalCrypto.UC.Core.Standard as Std
 import CategoricalCrypto.UC.Environment as Env
 
 module CategoricalCrypto.UC.Family
@@ -76,20 +76,14 @@ module CategoricalCrypto.UC.Family
   (M : MonoidalCategory o ℓ e)
   (obsᴹ : Observation (MonoidalCategory.U M) os ℓs)
   (qapx : ApproximateObservation obsᴹ ℚ-errors ℓa)
-  (bud : Budget (MonoidalCategory.U M) (Std.gradingᵗ M) qs)
+  (bud : Budget M qs)
   (Ix : Set) (κ : Ix → ℕ) (κ-cofinal : (N : ℕ) → Σ[ i ∈ Ix ] N ℕ.≤ κ i) where
 
-private module 𝕄 = MonoidalCategory M
-
--- The base the family layer is taken over: the standard grading of `M`, which
--- is where the four unitor certificates land.
-baseᴹ : UCBase o ℓ e os ℓs
-baseᴹ = record { 𝒞 = 𝕄.U ; grading = Std.gradingᵗ M ; observation = obsᴹ }
-
-open UCBase baseᴹ
+open MonoidalCategory M
+open Observation obsᴹ
 open ApproximateObservation qapx
 open Budget bud
-open MonR 𝕄.monoidal using (serialize₁₂)
+open MonR monoidal using (serialize₁₂)
 
 ------------------------------------------------------------------------
 -- Objects, homs and their budgets
@@ -154,17 +148,17 @@ infixr 8 _⊛ω_
 infixr 10 _⊗^ω_
 
 _⊛ω_ : Obj^ω → Obj^ω → Obj^ω
-(A ⊛ω B) i = A i ⊛ B i
+(A ⊛ω B) i = A i ⊗₀ B i
 
 -- The product certificate the reference arc asked as a field: `f ⊗₁ g` is
--- `(f ⊗₁ id) ∘ (id ⊗₁ g)`, which the action's two one-sided halves certify.
+-- `(f ⊗₁ id) ∘ (id ⊗₁ g)`, which the two one-sided actions certify.
 qb-⊗₁ : {X Y Z W : Obj} {c c′ : ℕ} {f : X ⇒ Y} {g : Z ⇒ W}
-      → QB c f → QB c′ g → QB ((c ℕ.⊔ 1) ℕ.* (c′ ℕ.⊔ 1)) (𝕄._⊗₁_ f g)
+      → QB c f → QB c′ g → QB ((c ℕ.⊔ 1) ℕ.* (c′ ℕ.⊔ 1)) (f ⊗₁ g)
 qb-⊗₁ qf qg = qb-resp-≈ (Equiv.sym serialize₁₂) (qb-∘ (qb-sub qf) (qb-T₁ qg))
 
 _⊗^ω_ : A ⇒^ω B → C ⇒^ω D → (A ⊛ω C) ⇒^ω (B ⊛ω D)
 (f , p , Pp , wf) ⊗^ω (g , q , Pq , wg) =
-    (λ i → 𝕄._⊗₁_ (f i) (g i))
+    (λ i → f i ⊗₁ g i)
   , (λ n → (p n ℕ.⊔ 1) ℕ.* (q n ℕ.⊔ 1))
   , poly-* (poly-⊔ Pp (poly-const 1)) (poly-⊔ Pq (poly-const 1))
   , λ i → qb-⊗₁ (wf i) (wg i)
@@ -173,9 +167,9 @@ _⊗^ω_ : A ⇒^ω B → C ⇒^ω D → (A ⊛ω C) ⇒^ω (B ⊛ω D)
 ⊗^ω-bifunctor = record
   { F₀           = λ (A , B) → A ⊛ω B
   ; F₁           = λ (f , g) → f ⊗^ω g
-  ; identity     = λ _ → 𝕄.⊗.identity
-  ; homomorphism = λ _ → 𝕄.⊗.homomorphism
-  ; F-resp-≈     = λ (ef , eg) i → 𝕄.⊗.F-resp-≈ (ef i , eg i)
+  ; identity     = λ _ → ⊗.identity
+  ; homomorphism = λ _ → ⊗.homomorphism
+  ; F-resp-≈     = λ (ef , eg) i → ⊗.F-resp-≈ (ef i , eg i)
   }
 
 Famᴹ : MonoidalCategory o (ℓ ⊔ qs) e
@@ -183,27 +177,27 @@ Famᴹ = record
   { U        = Fam
   ; monoidal = monoidalHelper Fam record
     { ⊗          = ⊗^ω-bifunctor
-    ; unit       = Δ 𝟭
+    ; unit       = Δ unit
     ; unitorˡ    = record
-      { from = (λ _ → λ⇒) , qb1 (λ _ → qb-λ⇒)
-      ; to   = (λ _ → λ⇐) , qb1 (λ _ → qb-λ⇐)
-      ; iso  = record { isoˡ = λ _ → 𝕄.unitorˡ.isoˡ ; isoʳ = λ _ → 𝕄.unitorˡ.isoʳ }
+      { from = (λ _ → unitorˡ.from) , qb1 (λ _ → qb-λ⇒)
+      ; to   = (λ _ → unitorˡ.to) , qb1 (λ _ → qb-λ⇐)
+      ; iso  = record { isoˡ = λ _ → unitorˡ.isoˡ ; isoʳ = λ _ → unitorˡ.isoʳ }
       }
     ; unitorʳ    = record
-      { from = (λ _ → ρ⇒) , qb1 (λ _ → qb-ρ⇒)
-      ; to   = (λ _ → ρ⇐) , qb1 (λ _ → qb-ρ⇐)
-      ; iso  = record { isoˡ = λ _ → 𝕄.unitorʳ.isoˡ ; isoʳ = λ _ → 𝕄.unitorʳ.isoʳ }
+      { from = (λ _ → unitorʳ.from) , qb1 (λ _ → qb-ρ⇒)
+      ; to   = (λ _ → unitorʳ.to) , qb1 (λ _ → qb-ρ⇐)
+      ; iso  = record { isoˡ = λ _ → unitorʳ.isoˡ ; isoʳ = λ _ → unitorʳ.isoʳ }
       }
     ; associator = record
-      { from = (λ _ → a⇐) , qb1 (λ _ → qb-a⇐)
-      ; to   = (λ _ → a⇒) , qb1 (λ _ → qb-a⇒)
-      ; iso  = record { isoˡ = λ _ → 𝕄.associator.isoˡ ; isoʳ = λ _ → 𝕄.associator.isoʳ }
+      { from = (λ _ → associator.from) , qb1 (λ _ → qb-a⇐)
+      ; to   = (λ _ → associator.to) , qb1 (λ _ → qb-a⇒)
+      ; iso  = record { isoˡ = λ _ → associator.isoˡ ; isoʳ = λ _ → associator.isoʳ }
       }
-    ; unitorˡ-commute = λ _ → 𝕄.unitorˡ-commute-from
-    ; unitorʳ-commute = λ _ → 𝕄.unitorʳ-commute-from
-    ; assoc-commute   = λ _ → 𝕄.assoc-commute-from
-    ; triangle        = λ _ → 𝕄.triangle
-    ; pentagon        = λ _ → 𝕄.pentagon
+    ; unitorˡ-commute = λ _ → unitorˡ-commute-from
+    ; unitorʳ-commute = λ _ → unitorʳ-commute-from
+    ; assoc-commute   = λ _ → assoc-commute-from
+    ; triangle        = λ _ → triangle
+    ; pentagon        = λ _ → pentagon
     }
   }
 
@@ -244,14 +238,10 @@ Observation^ω = I.observation
 Approximate^ω : ApproximateObservation Observation^ω ℚ-errors ℓa
 Approximate^ω = I.approximate
 
-UCBase^ω : UCBase o (ℓ ⊔ qs) e os ℓa
-UCBase^ω = record
-  { 𝒞 = Fam ; grading = Std.gradingᵗ Famᴹ ; observation = Observation^ω }
-
 ------------------------------------------------------------------------
 -- Ingestion: a concrete bound, and its collapse
 
-private module E = Env UCBase^ω
+private module E = Env Famᴹ Observation^ω
 
 open E public using
   ( Test; Closure; obs; SameTV; same; same-≈; Tests; tv₁; ℰᵗᵛ; grade-stable

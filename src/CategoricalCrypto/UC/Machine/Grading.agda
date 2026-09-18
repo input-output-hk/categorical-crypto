@@ -1,11 +1,10 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- Where the pinned relays meet the derived grading.
+-- Where the pinned relays meet the 𝒢-tensor.
 --
--- The grading itself is `UC.Machine.gradingᴹ` and comes for free.  What is
--- left is the resource layer: a `UC.QueryBound` certificate is about the pinned
--- relay (`T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`) or a bare wire, the grading's action is
--- `_⊗₁_` with an identity and the 𝒢-associator and 𝒢-unitors, and
+-- A `UC.QueryBound` certificate is about the pinned relay
+-- (`T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`) or a bare wire; `UC.Budget.Budget` asks for one
+-- about `_⊗₁_` with an identity and about the 𝒢-associator and 𝒢-unitors, and
 -- `UC.Machine.Dictionary`'s zigzags carry one to the other through
 -- `qb-resp-≈`.  Those eight are the whole content.
 --
@@ -26,7 +25,6 @@ open import Level using (0ℓ)
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base using (𝒢ₚ; 𝒢ₚᴹ)
 open import CategoricalCrypto.Protocol.Machine using (⟦_⟧ᴵ)
-open import CategoricalCrypto.UC.Core using (Grading)
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Dictionary
 open import CategoricalCrypto.UC.QueryBound
@@ -37,7 +35,6 @@ module CategoricalCrypto.UC.Machine.Grading where
 private
   module 𝔾 = MonoidalCategory (𝒢ₚᴹ 0ℓ)
   module 𝒢 = Category (𝒢ₚ 0ℓ)
-  module G = Grading gradingᴹ
   module 𝒫 = Category 𝒫ᴵ
 
 qb-T₁ᴳ : (Y A B : Iface) {c : ℕ} (f : Proc A B)
@@ -90,7 +87,8 @@ qb-ρ⇐ᴳ A =
 
 opaque
   qb-T₁ᴳ-object : (Y A B : 𝒢.Obj) {c : ℕ} (f : 𝒢ₚ 0ℓ [ A , B ])
-                → QBᴳ A B c f → QBᴳ (Y G.⊛ A) (Y G.⊛ B) (c ℕ.⊔ 1) (G.T₁ Y f)
+                → QBᴳ A B c f
+                → QBᴳ (Y 𝔾.⊗₀ A) (Y 𝔾.⊗₀ B) (c ℕ.⊔ 1) (𝔾._⊗₁_ (𝒢.id {Y}) f)
   qb-T₁ᴳ-object (Y⁺ , Y⁻) (A⁺ , A⁻) (B⁺ , B⁻) {c} f q =
     qb-to-image (Y ⊗ᴵ A) (Y ⊗ᴵ B)
       (qb-T₁ᴳ Y A B {c} f (qb-from-image A B q))
@@ -103,7 +101,8 @@ opaque
     B = retᴵ (B⁺ , B⁻)
 
   qb-subᴳ-object : (X Y A : 𝒢.Obj) {c : ℕ} (s : 𝒢ₚ 0ℓ [ X , Y ])
-                 → QBᴳ X Y c s → QBᴳ (X G.⊛ A) (Y G.⊛ A) (c ℕ.⊔ 1) (G.sub {A = A} s)
+                 → QBᴳ X Y c s
+                 → QBᴳ (X 𝔾.⊗₀ A) (Y 𝔾.⊗₀ A) (c ℕ.⊔ 1) (𝔾._⊗₁_ s (𝒢.id {A}))
   qb-subᴳ-object (X⁺ , X⁻) (Y⁺ , Y⁻) (A⁺ , A⁻) {c} s q =
     qb-to-image (X ⊗ᴵ A) (Y ⊗ᴵ A)
       (qb-subᴳ X Y A {c} s (qb-from-image X Y q))
@@ -116,7 +115,8 @@ opaque
     A = retᴵ (A⁺ , A⁻)
 
   qb-a⇒ᴳ-object : (X Y A : 𝒢.Obj)
-                → QBᴳ (X G.⊛ (Y G.⊛ A)) ((X G.⊛ Y) G.⊛ A) 1 (G.a⇒ {X} {Y} {A})
+                → QBᴳ (X 𝔾.⊗₀ (Y 𝔾.⊗₀ A)) ((X 𝔾.⊗₀ Y) 𝔾.⊗₀ A) 1
+                      (𝔾.associator.to {X} {Y} {A})
   qb-a⇒ᴳ-object (X⁺ , X⁻) (Y⁺ , Y⁻) (A⁺ , A⁻) =
     qb-to-image (X ⊗ᴵ (Y ⊗ᴵ A)) ((X ⊗ᴵ Y) ⊗ᴵ A) (qb-a⇒ᴳ X Y A)
     where
@@ -128,7 +128,8 @@ opaque
     A = retᴵ (A⁺ , A⁻)
 
   qb-a⇐ᴳ-object : (X Y A : 𝒢.Obj)
-                → QBᴳ ((X G.⊛ Y) G.⊛ A) (X G.⊛ (Y G.⊛ A)) 1 (G.a⇐ {X} {Y} {A})
+                → QBᴳ ((X 𝔾.⊗₀ Y) 𝔾.⊗₀ A) (X 𝔾.⊗₀ (Y 𝔾.⊗₀ A)) 1
+                      (𝔾.associator.from {X} {Y} {A})
   qb-a⇐ᴳ-object (X⁺ , X⁻) (Y⁺ , Y⁻) (A⁺ , A⁻) =
     qb-to-image ((X ⊗ᴵ Y) ⊗ᴵ A) (X ⊗ᴵ (Y ⊗ᴵ A)) (qb-a⇐ᴳ X Y A)
     where
@@ -139,25 +140,25 @@ opaque
     A : Iface
     A = retᴵ (A⁺ , A⁻)
 
-  qb-λ⇒ᴳ-object : (A : 𝒢.Obj) → QBᴳ (G.𝟭 G.⊛ A) A 1 (G.λ⇒ {A})
+  qb-λ⇒ᴳ-object : (A : 𝒢.Obj) → QBᴳ (𝔾.unit 𝔾.⊗₀ A) A 1 (𝔾.unitorˡ.from {A})
   qb-λ⇒ᴳ-object (A⁺ , A⁻) = qb-to-image (𝟭ᴵ ⊗ᴵ A) A (qb-λ⇒ᴳ A)
     where
     A : Iface
     A = retᴵ (A⁺ , A⁻)
 
-  qb-λ⇐ᴳ-object : (A : 𝒢.Obj) → QBᴳ A (G.𝟭 G.⊛ A) 1 (G.λ⇐ {A})
+  qb-λ⇐ᴳ-object : (A : 𝒢.Obj) → QBᴳ A (𝔾.unit 𝔾.⊗₀ A) 1 (𝔾.unitorˡ.to {A})
   qb-λ⇐ᴳ-object (A⁺ , A⁻) = qb-to-image A (𝟭ᴵ ⊗ᴵ A) (qb-λ⇐ᴳ A)
     where
     A : Iface
     A = retᴵ (A⁺ , A⁻)
 
-  qb-ρ⇒ᴳ-object : (A : 𝒢.Obj) → QBᴳ (A G.⊛ G.𝟭) A 1 (G.ρ⇒ {A})
+  qb-ρ⇒ᴳ-object : (A : 𝒢.Obj) → QBᴳ (A 𝔾.⊗₀ 𝔾.unit) A 1 (𝔾.unitorʳ.from {A})
   qb-ρ⇒ᴳ-object (A⁺ , A⁻) = qb-to-image (A ⊗ᴵ 𝟭ᴵ) A (qb-ρ⇒ᴳ A)
     where
     A : Iface
     A = retᴵ (A⁺ , A⁻)
 
-  qb-ρ⇐ᴳ-object : (A : 𝒢.Obj) → QBᴳ A (A G.⊛ G.𝟭) 1 (G.ρ⇐ {A})
+  qb-ρ⇐ᴳ-object : (A : 𝒢.Obj) → QBᴳ A (A 𝔾.⊗₀ 𝔾.unit) 1 (𝔾.unitorʳ.to {A})
   qb-ρ⇐ᴳ-object (A⁺ , A⁻) = qb-to-image A (A ⊗ᴵ 𝟭ᴵ) (qb-ρ⇐ᴳ A)
     where
     A : Iface

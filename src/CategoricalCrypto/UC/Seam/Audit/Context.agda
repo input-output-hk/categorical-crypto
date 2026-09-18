@@ -23,6 +23,7 @@
 -- stay a parameter: there the bound is `Dₚ`-valued, because the process below
 -- an adversary is a raw machine rather than a protocol image.
 
+import Categories.Category.Monoidal.Reasoning as MonR
 open import Categories.Functor.Monoidal.CurriedTensor.Properties using (T₁-⊗)
 import Categories.Morphism.Reasoning as MR
 
@@ -67,16 +68,9 @@ open import CategoricalCrypto.UC.Seam.Slide using (slide⊗)
 
 module CategoricalCrypto.UC.Seam.Audit.Context where
 
--- The budget certificates are stated over `baseᵗ`'s own grading, which is
--- `gradingᵗ 𝔾ᵒ` where the setup's is the curried tensor's: the two actions
--- agree on the nose but their records do not, so a `qb-sub`/`qb-T₁` consumer
--- has to spell the action with THIS one.
-open import CategoricalCrypto.UC.Environment baseᵗ
-  using (obs; tv₁)
-  renaming (T₁ to T₁ᵉ; sub to subᵉ; T₁-∘ to T₁ᵉ-∘; T₁-resp-≈ to T₁ᵉ-resp-≈;
-            sub-∘ to subᵉ-∘; sub-resp-≈ to subᵉ-resp-≈)
+open C using (obs; tv₁)
 
-open HomReasoning
+open MonR monoidal
 open Budget budgetᵒ using (QB; qb-∘; qb-mono; qb-sub; qb-T₁; qb-λ⇒; qb-λ⇐)
 open MR ∣machines∣ using (cancelInner)
 
@@ -120,13 +114,13 @@ module _ (B : Iface) (e : Strat (Neg B) (Pos B)) where
 -- …and at a NONTRIVIAL grade
 
 -- The same context with the grade FILLED by an adversary machine.  Its shape
--- is `UC.Audit.absorb`'s — a test precomposed with `T₁ W (sub _)` — at an
+-- is `UC.Audit.absorb`'s — a test precomposed with `id ⊗₁ (_ ⊗₁ id)` — at an
 -- adversary instead of at a simulator, so the closed system is three-party and
 -- the grade the strategy sees is again the trivial one.
 module _ (B : Iface) (e : Strat (Neg B) (Pos B)) {X : Iface} (a : Proc X 𝟭ᴵ) where
 
   auditTestᵍ : T₀ 𝟘ᴳ (T₀ (ifaceᵒ X) (ifaceᵒ B)) ⇒ Ωᵒ
-  auditTestᵍ = auditTest B e ∘ T₁ᵉ 𝟘ᴳ (subᵉ (procᵘ a))
+  auditTestᵍ = auditTest B e ∘ id ⊗₁ (procᵘ a ⊗₁ id)
 
   -- The adversary's own allowance, charged exactly as `absorbed-budget` charges
   -- a simulator's: `qb-sub` and `qb-T₁` guard at `⊔ 1`, `qb-∘` multiplies.
@@ -154,9 +148,9 @@ module _ (B : Iface) (e : Strat (Neg B) (Pos B)) {X : Iface} (a : Proc X 𝟭ᴵ
               ○ ((assoc ○ (refl⟩∘⟨ plug-graded a f)) ⟩∘⟨refl)
               ○ assoc ○ (refl⟩∘⟨ ⟺ (procᵒ-∘ (plugᴹ a 𝒫.∘ f) w))
         where
-        merge : (id ⊗₁ subᵉ (procᵘ a)) ∘ (id ⊗₁ gradedᵒ f)
+        merge : (id ⊗₁ (procᵘ a ⊗₁ id)) ∘ (id ⊗₁ gradedᵒ f)
               ≈ T₁ 𝟘ᴳ (sub (procᵘ a) ∘ gradedᵒ f)
-        merge = ⟺ (slide⊗ 𝟘ᴳ (subᵉ (procᵘ a)) (gradedᵒ f))
+        merge = ⟺ (slide⊗ 𝟘ᴳ (procᵘ a ⊗₁ id) (gradedᵒ f))
               ○ ⟺ (T₁-⊗ 𝔾ᵒ 𝟘ᴳ (sub (procᵘ a) ∘ gradedᵒ f))
 
     -- …and the observation IS layer 1's run of the strategy against it.
@@ -183,14 +177,15 @@ module _ (B : Iface) (e : Strat (Neg B) (Pos B)) {X : Iface} (a : Proc X 𝟭ᴵ
       qbʷ = qb-mono (ℕP.≤-reflexive (ℕP.*-identityˡ c′)) (qb-∘ qb-λ⇐ (qbᵒ cw))
 
 -- Absorbing a simulator into this context is composing it with the adversary:
--- `sub` is functorial, so the two merge.  This is what keeps the IDEAL side of
--- an absorbed event class (`UC.Audit.absorb`) one of these contexts too.
+-- the tensor's left action is functorial, so the two merge.  This is what
+-- keeps the IDEAL side of an absorbed event class (`UC.Audit.absorb`) one of
+-- these contexts too.
 absorb-plugᵍ : (B : Iface) (e : Strat (Neg B) (Pos B)) {X Y : Iface}
                (a : Proc X 𝟭ᴵ) (s : Proc Y X)
-             → auditTestᵍ B e a ∘ T₁ᵉ 𝟘ᴳ (subᵉ (procᵒ s)) ≈ auditTestᵍ B e (a 𝒫.∘ s)
+             → auditTestᵍ B e a ∘ id ⊗₁ (procᵒ s ⊗₁ id) ≈ auditTestᵍ B e (a 𝒫.∘ s)
 absorb-plugᵍ B e a s =
-  assoc ○ (refl⟩∘⟨ (⟺ T₁ᵉ-∘
-                   ○ T₁ᵉ-resp-≈ (⟺ subᵉ-∘ ○ subᵉ-resp-≈ (⟺ (procᵘ-∘ a s)))))
+  assoc ○ (refl⟩∘⟨ (⟺ split₂ʳ
+                   ○ refl⟩⊗⟨ (⟺ split₁ʳ ○ (⟺ (procᵘ-∘ a s) ⟩⊗⟨refl))))
 
 ------------------------------------------------------------------------
 -- Extraction
