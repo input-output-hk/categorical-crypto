@@ -3,19 +3,15 @@
 -- Quantitative emulation witnesses and their composition
 -- (`docs/quantitative-uc-setup-plan.typ` §5.2).
 --
--- A witness is a simulator TOGETHER WITH an error: `At s ε f g` says `s` brings
--- `g` within ε of `f` in every prefix context.  `Witness` is the dummy form and
--- `Witness⁺` the universal one, and the two are interderivable at a FIXED
--- error — the simulator is one morphism, never a function of the accuracy.
+-- `Witness` is the dummy form and `Witness⁺` the universal one, interderivable
+-- at a FIXED error — the simulator is one morphism of `ℐ`, never a function of
+-- the accuracy.
 --
 -- Both composition theorems are derived, not assumed: `at-trans` and
 -- `at-compose` are the graded decomposition identities of `Abstract2` with the
 -- error carried along, and the arithmetic they spend is only that `ε₀` is a
 -- unit up to `⊑`.  `at-compose`'s error is `εu ⊕ εf` in that order because the
 -- chain absorbs the second leg first (`ctx-pre`, then `ctx-ext`).
---
--- Simulators stay proof-relevant morphisms of `ℐ`: whatever feasibility or cost
--- evidence that category carries is inherited here and is never erased.
 
 open import Data.Product.Base using (Σ-syntax; _,_)
 open import Level using (Level; _⊔_)
@@ -38,6 +34,10 @@ module QWitness {o ℓ e o′ ℓ′ e′ c ℓb : Level}
     X Y Z P R : ℐ.Obj
     ε δ εf εu : Error
 
+  sub-merge : {s : Y ℐ.⇒ X} {t : Z ℐ.⇒ Y} {g : A 𝒞.⇒ T₀ Z B}
+            → sub s 𝒞.∘ sub t 𝒞.∘ g 𝒞.≈ sub (s ℐ.∘ t) 𝒞.∘ g
+  sub-merge = let open 𝒞 in sym-assoc ○ ⟺ sub-homomorphism ⟩∘⟨refl
+
   At : (s : Y ℐ.⇒ X) → Error → (f : A 𝒞.⇒ T₀ X B) (g : A 𝒞.⇒ T₀ Y B)
      → Set (o ⊔ c ⊔ es ⊔ ℓe ⊔ ℓb)
   At s ε f g = f ≈ᵁ[ ε ] (sub s 𝒞.∘ g)
@@ -52,10 +52,8 @@ module QWitness {o ℓ e o′ ℓ′ e′ c ℓb : Level}
 
   dummy⇒universal : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
                   → Witness ε f g → Witness⁺ ε f g
-  dummy⇒universal {g = g} (s₀ , h) a =
-    a ℐ.∘ s₀ , ctx-mono ⊕-identityʳ (ctx-trans (ctx-sub a h) (≈C⇒ctx strict))
-    where strict : sub a 𝒞.∘ sub s₀ 𝒞.∘ g 𝒞.≈ sub (a ℐ.∘ s₀) 𝒞.∘ g
-          strict = let open 𝒞 in sym-assoc ○ ⟺ sub-homomorphism ⟩∘⟨refl
+  dummy⇒universal (s₀ , h) a =
+    a ℐ.∘ s₀ , ctx-mono ⊕-identityʳ (ctx-trans (ctx-sub a h) (≈C⇒ctx sub-merge))
 
   universal⇒dummy : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
                   → Witness⁺ ε f g → Witness ε f g
@@ -68,11 +66,9 @@ module QWitness {o ℓ e o′ ℓ′ e′ c ℓb : Level}
   at-trans : {s : Y ℐ.⇒ X} {t : Z ℐ.⇒ Y} {f : A 𝒞.⇒ T₀ X B}
              {g : A 𝒞.⇒ T₀ Y B} {h : A 𝒞.⇒ T₀ Z B}
            → At s ε f g → At t δ g h → At (s ℐ.∘ t) (ε ⊕ δ) f h
-  at-trans {s = s} {t = t} {h = h} e₁ e₂ =
+  at-trans {s = s} e₁ e₂ =
     ctx-mono (⊕-mono ⊑-refl ⊕-identityʳ)
-      (ctx-trans e₁ (ctx-trans (ctx-sub s e₂) (≈C⇒ctx strict)))
-    where strict : sub s 𝒞.∘ sub t 𝒞.∘ h 𝒞.≈ sub (s ℐ.∘ t) 𝒞.∘ h
-          strict = let open 𝒞 in sym-assoc ○ ⟺ sub-homomorphism ⟩∘⟨refl
+      (ctx-trans e₁ (ctx-trans (ctx-sub s e₂) (≈C⇒ctx sub-merge)))
 
   at-compose : {s : Y ℐ.⇒ X} {t : R ℐ.⇒ P}
                {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
@@ -97,7 +93,5 @@ module QWitness {o ℓ e o′ ℓ′ e′ c ℓb : Level}
         sub (ℐ.id ⊗₁ t) ∘ (sub (s ⊗₁ ℐ.id) ∘ ext Y v) ∘ g
           ≈⟨ refl⟩∘⟨ assoc ⟩
         sub (ℐ.id ⊗₁ t) ∘ sub (s ⊗₁ ℐ.id) ∘ ext Y v ∘ g
-          ≈⟨ sym-assoc ⟩
-        (sub (ℐ.id ⊗₁ t) ∘ sub (s ⊗₁ ℐ.id)) ∘ ext Y v ∘ g
-          ≈⟨ (⟺ sub-homomorphism) ⟩∘⟨refl ⟩
+          ≈⟨ sub-merge ⟩
         sub ((ℐ.id ⊗₁ t) ℐ.∘ (s ⊗₁ ℐ.id)) ∘ ext Y v ∘ g  ∎

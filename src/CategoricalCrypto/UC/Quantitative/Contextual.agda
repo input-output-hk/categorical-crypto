@@ -3,9 +3,6 @@
 -- The query-sensitive contextual comparison, and the one principle behind its
 -- schedule substitutions (`docs/quantitative-uc-setup-plan.typ` §7.3).
 --
---     f ≈ᵁᵠ[ ε ] g  =  ∀ W E m. QB c E → QB c′ m
---                    → ⟦ (E ∘ T₁ W f) ∘ m ⟧ ≈[ ε (ctxBudget c c′) ] ⟦ … g … ⟧
---
 -- The compared morphisms are NOT certified — only the test and the closure
 -- are, which is what `UC.Asymptotic.Contextual._≈ctxᴬ[_]_` also does and what
 -- keeps certified simulators from forcing every compared process to be
@@ -25,7 +22,7 @@ open import Categories.Category using (Category)
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Level using (Level; _⊔_)
-open import Relation.Binary.PropositionalEquality using (_≡_; cong; subst; sym; trans)
+open import Relation.Binary.PropositionalEquality using (cong; subst; trans)
 
 open import CategoricalCrypto.Approx.Error using (ℚ-ordered)
 open import CategoricalCrypto.UC.Approximate using (Approximation; ℚ-errors)
@@ -99,9 +96,8 @@ ctx-resp _ ef eg h W E m qE qm = Oq.resp₀ obsSpace
 ------------------------------------------------------------------------
 -- Absorbing a certified morphism into the test
 
--- `κ` is what moves in front of the test; `stepf`/`stepg` say the two
--- experiments agree in `𝒞`, and everything quantitative is the allowance
--- identity.
+-- `κ` is what moves in front of the test; everything quantitative about the
+-- move is the allowance identity `ctxBudget-simCost`.
 ctx-absorb : (ε : ℕ → ℚ) (cs : ℕ) {A B X B′ X′ : Obj}
              {f g : A ⇒ X ⊛ B} {f′ g′ : A ⇒ X′ ⊛ B′}
              (κ : (W : Obj) → W ⊛ (X ⊛ B) ⇒ W ⊛ (X′ ⊛ B′))
@@ -125,12 +121,11 @@ ctx-sub : (ε : ℕ → ℚ) {s : X ⇒ Z} (cs : ℕ) → QB cs s
         → {f g : A ⇒ X ⊛ B} → f ≈ᵁᵠ[ ε ] g
         → (sub s ∘ f) ≈ᵁᵠ[ (λ q → ε (simCost q cs)) ] (sub s ∘ g)
 ctx-sub ε {s = s} cs qs h =
-  ctx-absorb ε cs (λ W → T₁ W (sub s)) certify (λ _ → T₁-∘) (λ _ → T₁-∘) h
-  where
-  certify : (W : Obj) → QB (cs ℕ.⊔ 1) (T₁ W (sub s))
-  certify W = subst (λ k → QB k (T₁ W (sub s)))
-    (trans (ℕₚ.⊔-assoc cs 1 1) (cong (cs ℕ.⊔_) (ℕₚ.⊔-idem 1)))
-    (qb-T₁ (qb-sub qs))
+  ctx-absorb ε cs (λ W → T₁ W (sub s))
+    (λ W → subst (λ k → QB k (T₁ W (sub s)))
+             (trans (ℕₚ.⊔-assoc cs 1 1) (cong (cs ℕ.⊔_) (ℕₚ.⊔-idem 1)))
+             (qb-T₁ (qb-sub qs)))
+    (λ _ → T₁-∘) (λ _ → T₁-∘) h
 
 -- Sequential composition of two witnesses, with the schedule and the composed
 -- simulator of `UC.Asymptotic.Compose.≤UC^ωᵉ-trans`: the second comparison is
@@ -140,11 +135,10 @@ at-trans : (ε₁ ε₂ : ℕ → ℚ) {s : Y ⇒ X} {t : Z ⇒ Y} (cs : ℕ) �
          → {f : A ⇒ X ⊛ B} {g : A ⇒ Y ⊛ B} {h : A ⇒ Z ⊛ B}
          → f ≈ᵁᵠ[ ε₁ ] (sub s ∘ g) → g ≈ᵁᵠ[ ε₂ ] (sub t ∘ h)
          → f ≈ᵁᵠ[ (λ q → ε₁ q ℚ.+ ε₂ (simCost q cs)) ] (sub (s ∘ t) ∘ h)
-at-trans ε₁ ε₂ {s = s} {t = t} cs qs {h = h} e₁ e₂ =
-  ctx-trans ε₁ ε₂′ e₁ (ctx-resp ε₂′ Equiv.refl merge (ctx-sub ε₂ cs qs e₂))
+at-trans ε₁ ε₂ cs qs e₁ e₂ =
+  ctx-trans ε₁ ε₂′ e₁
+    (ctx-resp ε₂′ Equiv.refl (Equiv.trans sym-assoc (∘-resp-≈ˡ (Equiv.sym sub-∘)))
+              (ctx-sub ε₂ cs qs e₂))
   where
   ε₂′ : ℕ → ℚ
   ε₂′ q = ε₂ (simCost q cs)
-
-  merge : sub s ∘ (sub t ∘ h) ≈ sub (s ∘ t) ∘ h
-  merge = Equiv.trans sym-assoc (∘-resp-≈ˡ (Equiv.sym sub-∘))

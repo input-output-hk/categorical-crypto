@@ -1,23 +1,16 @@
 {-# OPTIONS --safe --without-K #-}
 
--- What a CATEGORY of approximate spaces costs, on top of the ε/2 argument.
+-- What a CATEGORY of approximate spaces costs, on top of the ε/2 argument
+-- `UC.Approximate.ErrorAlgebra` already pays for.
 --
--- `UC.Approximate.ErrorAlgebra` is deliberately minimal — a zero, an addition,
--- an order, positivity and a halving, which is exactly what `∼ᵃ`'s transitivity
--- spends and no more.  Composition needs the errors to be an ordered monoid as
--- well: two zero-error identifications must compose back to zero error, a fixed
--- bound must survive a zero-error change of either endpoint, and a bound built
--- from two others must be weakenable in both arguments.  Those three are
--- `⊕-identityˡ`, `⊕-identityʳ` and `⊕-mono`, and they are what `Approx`'s hom
--- equality and every quantitative UC theorem downstream spend.
+-- Composition needs the errors to be an ordered monoid as well: two zero-error
+-- identifications must compose back to zero error, a fixed bound must survive a
+-- zero-error change of either endpoint, and a bound built from two others must
+-- be weakenable in both arguments.
 --
--- None of them is needed as an EQUATION: `⊑` in the one direction suffices
+-- None of that is needed as an EQUATION: `⊑` in the one direction suffices
 -- throughout, which is what keeps a lax or upper-bound model admissible (the
 -- resource extension of `docs/quantitative-uc-setup-plan.typ` §7 needs that).
---
--- This is a separate record rather than four more `ErrorAlgebra` fields because
--- the ε/2 consumers (`UC.Environment.Approximate`, `UC.Family`) ask for the
--- smaller interface and are entitled to keep it.
 
 open import Data.Rational.Properties
   using (+-identityʳ; +-identityˡ; +-mono-≤; ≤-refl; ≤-reflexive; ≤-trans)

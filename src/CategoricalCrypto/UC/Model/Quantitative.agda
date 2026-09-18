@@ -4,11 +4,9 @@
 -- (`docs/quantitative-uc-setup-plan.typ` §6).
 --
 -- `UC.Model.Setup.ℰᵒ` compares two tests by closing the observation of
--- every closure under every positive slack.  This is the same construction with
--- the slack still VISIBLE — the carrier is unchanged, only the equality is
--- refined into an error-indexed family — so `ℰᵒ` is recovered as the `F₊`
--- image, which `≋⇔∼₊` is: the two differ by the order of two quantifiers and
--- nothing else.
+-- every closure under every positive slack.  This is the same construction
+-- with the slack still VISIBLE, so `ℰᵒ` is recovered as the `F₊` image
+-- (`≋⇔∼₊`): the two differ by the order of two quantifiers and nothing else.
 --
 -- ALL closures are admitted.  This is deliberately not the budget-restricted
 -- comparison of `UC.Budget`/`UC.Family`: nothing here restricts the test or the
@@ -35,9 +33,9 @@ open import CategoricalCrypto.UC.Machine using (Approximationᴹ)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ)
 open import CategoricalCrypto.UC.Model.Observation
   using (Closure; Obs; Test; obs-resp; Ωᵒ; 𝟘ᵒ)
-open import CategoricalCrypto.UC.Quantitative.Query using (fromBudget; module Tests)
 open import CategoricalCrypto.UC.Model.Seal using (∣𝔾ᵒ∣; 𝔾ᵒ)
 open import CategoricalCrypto.UC.Model.Setup using (_≋_; ℳ-standard)
+open import CategoricalCrypto.UC.Quantitative.Query using (fromBudget; module Tests)
 
 module CategoricalCrypto.UC.Model.Quantitative where
 
@@ -108,12 +106,8 @@ module QUCᵒ = QBridge QSetupᵒ
 ≋⇔∼₊ : {A : G.Obj} {E F : Test A} → (E ≋ F) ⇔ Setoid._≈_ ⟦ spaceᵗ A ⟧₊ E F
 ≋⇔∼₊ = mk⇔ ≋⇒∼₊ ∼₊⇒≋
 
-------------------------------------------------------------------------
--- …and the same observation, restricted by allowance
-
--- The query-sensitive model of `UC.Quantitative.Query` at this branch's budget
--- and observation: the same `Obs`, now comparing only certified closures and
--- carrying the schedule the allowance is read at.  It is a DIFFERENT space
--- from `spaceᵗ` above, which admits every closure at one scalar error.
+-- The same observation restricted by allowance: `UC.Quantitative.Query` at
+-- this branch's budget.  It is a DIFFERENT space from `spaceᵗ` above, which
+-- admits every closure at one scalar error.
 module Queryᵒ = Tests ∣𝔾ᵒ∣ (fromBudget budgetᵒ) Approximationᴹ 𝟘ᵒ Ωᵒ Obs
                      (λ e → ≈ₚ⇒≈ₚ[0] (obs-resp e))

@@ -3,16 +3,11 @@
 -- The small-error collapse on controlled maps
 -- (`docs/quantitative-uc-setup-plan.typ` §8).
 --
--- A nonexpansive map preserves `∼Small` outright, which is `Approx.Small`'s
--- `FSmall`.  A CONTROLLED map need not: it preserves the class only when its
--- control does, so the collapse is taken on the wide subcategory cut out by
--- `SmallPreserving` rather than on `Ctrl`.  For the negligible class the
--- qualifying reindexings are the polynomial-preserving ones
--- (`UC.Approximate.GradedBound-reindex`), not arbitrary controls.
---
--- Separate from `Approx.Small` so that a consumer of the collapsed RELATION
--- — `UC.Approximate.Local`, and the negligible tier above it — does not pay
--- for `SubCategory`.
+-- A nonexpansive map preserves `∼Small` outright (`Approx.Small.FSmall`); a
+-- CONTROLLED map does so only when its control preserves the class, so the
+-- collapse is taken on the wide subcategory `SmallPreserving` cuts out rather
+-- than on `Ctrl`.  For the negligible class the qualifying reindexings are the
+-- polynomial-preserving ones (`UC.Approximate.GradedBound-reindex`).
 
 open import Categories.Category using (Category)
 open import Categories.Category.Instance.Setoids using (Setoids)

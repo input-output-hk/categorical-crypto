@@ -3691,3 +3691,118 @@ gate; warm costs in `docs/coin-toss.md` §6, all far under their rule-5 budgets
 `Examples/ChimericLedger/FactorEps.agda` and `UC/Approximate/LocalTests.agda`.
 Escape-hatch baseline 16 before / 16 after, all sixteen the words
 "postulate-free" in inherited comments.
+
+## Resolved (quant-quality)
+
+Scope: `Approx/{Space,Error,Forget,Separating,Small,Small/Controlled,Controlled,
+Controlled/Forget,Filtered,Schedule}`, `UC/Quantitative{,/Witness,/Bridge,/Contextual,
+/Query}`, `UC/Model/Quantitative`. Branch `quant-quality` off `0526d36c`; 16 commits,
+one per file, `112 +/197 -`. Verification: every commit checked green before landing
+(`pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS`, rc=0 **and** empty
+`ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|
+Heap exhausted|No space left`), warm times 4.2–6.0 s per module; closure check
+`UC.agda` (52 s) and `CategoricalCrypto.agda` (13 s) green, so
+`UC.Approximate.Local(Tests)`, `UC.Family.Negligible{,.Setup}`,
+`UC.Model{,.Family.Negligible}` all re-elaborated clean. Escape-hatch grep 16
+tree-wide, unchanged; 0 in scope.
+
+Comment work (rules 21–26) on all 16 files: headers cut to orientation, the
+design-alternative paragraphs dropped (`Approx.Error` on not folding into
+`ErrorAlgebra`; `Approx.Filtered` on encoding allowances in the base category;
+`Approx.Separating` on the plan's own witness), the type displays in
+`UC.Quantitative.Contextual` / `UC.Quantitative.Query` headers dropped (they restate
+a definition ten lines below), and the duplicated explanations collapsed to one site
+(rule 24: the `SubCategory` split reason in `Approx.Small` only; the
+"`Carrier` is a projection" gotcha in `Approx.Space` only; the `Witness₊` asymmetry in
+`UC.Quantitative.Bridge`'s header only; `Approx.Forget`'s "an exact bound must stay in
+`Approx`" not repeated in `Approx.Separating`).
+
+- `src/CategoricalCrypto/Approx/Small.agda :: ∼Small` — header said "`x ∼Small y`
+  asserts that SOME error of the class *separates* the two". It bounds them. Fixed.
+- `src/CategoricalCrypto/UC/Quantitative/Witness.agda :: sub-merge` — the proof
+  `sym-assoc ○ ⟺ sub-homomorphism ⟩∘⟨refl` of `sub s ∘ sub t ∘ g ≈ sub (s ∘ t) ∘ g`
+  was written three times (two single-use `where strict`, plus the last two steps of
+  `at-compose`'s reasoning chain). Named once; `-6` lines.
+- `src/CategoricalCrypto/UC/Quantitative/Contextual.agda :: at-trans`, `:: ctx-sub` —
+  single-use `where merge` / `where certify` inlined (rule 18); that also frees
+  `at-trans`'s three named implicits (rule 15) and leaves `_≡_` and the propositional
+  `sym` unused in the import list (rule 11).
+- `src/CategoricalCrypto/Approx/Schedule.agda :: reindex-∘` — dropped
+  `module P = OrderedErrorAlgebra (pointwise I V)`, which existed only to spell one
+  argument type; `I → V.Error` says it directly.
+- `src/CategoricalCrypto/Approx/Space.agda :: Approx` — `equiv` eta-reduces to
+  `≈map-isEquivalence`.  `src/CategoricalCrypto/UC/Quantitative/Query.agda :: Qᵠ` —
+  `F-resp-≈` needs none of its four named implicits; `identity`'s allowance half
+  eta-reduces to `ℕₚ.*-identityʳ`.
+- `src/CategoricalCrypto/UC/Model/Quantitative.agda` — one import out of sort order
+  (rule 10); single-definition banner over `Queryᵒ` removed (rule 25).
+
+## Open (quant-quality)
+
+### Cross-module inlining blocked by an off-limits file
+
+- `src/CategoricalCrypto/Approx/Space.agda :: resp₀` — **the one that buys real graph
+  simplification.** `UC.Quantitative.Contextual` and `UC.Quantitative.Query.Tests` each
+  build a throwaway one-use record
+  `obsSpace = record { Carrier = Obs ; approx = Ap }` for the sole purpose of calling
+  `Oq.resp₀ obsSpace`, whose proof spends only `≈[]-mono`/`≈[]-trans` of the underlying
+  `Approximation` plus the ordered-monoid laws — nothing about `ApproxSpace`. State
+  `resp₀` on `Approximation` instead (natural home: inside `UC.Approximate.Induced`,
+  which already carries the identical parameter telescope and opens `Approximation A`),
+  and both scaffolds go. `UC.Quantitative.Contextual` then imports neither
+  `Approx.Space` nor `Approx.Error`: `module Oq = Spaceᴹ ℚ-ordered` + `obsSpace` are its
+  only uses of either. Blocked: needs `UC/Approximate.agda`.
+- `src/CategoricalCrypto/UC/Quantitative/Contextual.agda :: module
+  CategoricalCrypto.UC.Quantitative.Contextual` — its parameter block
+  (`𝒞 … Ap 𝟙 Ω ⟦_⟧ obs-resp`) is `UC.Approximate.Induced`'s telescope re-declared,
+  as is `UC.Quantitative.Query :: module Tests`'s; and `UC.Model.Observation` /
+  `UC.Machine` instantiate `Induced` at exactly the arguments `UC.Model.Quantitative`
+  passes to `Tests`. Four copies of one telescope. Taking `Induced`'s
+  `ApproximateObservation` (or a small shared record) as the parameter collapses them.
+  Blocked: needs `UC/Approximate.agda`.
+- `src/CategoricalCrypto/Approx/Controlled/Forget.agda :: F₀ᶜ` — the module's only
+  definition, and nothing in `src/` uses it except `UC.agda`'s closure-root `import`.
+  Folding it into `Approx.Controlled` (which already has everything but `Setoids`)
+  removes a node from the graph. Blocked: `UC.agda` owns the `import` line and the
+  §quantitative header inventory entry.
+
+### Cross-module inlining possible but interface-changing
+
+- `src/CategoricalCrypto/Approx/Forget.agda :: ⟦_⟧₀` — now visibly `= zeroSetoid`.
+  Both users (`F₀` here, `⟦ Sequences ⟧₀` in `Approx.Separating`) already see
+  `Approx.Space`, so the alias could be inlined away; kept because it pairs
+  notationally with `⟦_⟧₊` and removing it changes the exported surface.
+- `src/CategoricalCrypto/Approx/Controlled.agda :: controlled` — one-liner used once,
+  by `include` two lines below. Inlining is a public-name removal, so not done.
+- `src/CategoricalCrypto/UC/Quantitative/Query.agda :: fromBudget` — one-liner with
+  exactly one user (`UC.Model.Quantitative.Queryᵒ`). NOT worth inlining: the use site
+  would have to spell the four-field record and import `QueryBounds`, which is bigger
+  than the definition it removes.
+
+### Dead code
+
+- `src/CategoricalCrypto/Approx/Space.agda :: ≈map-refl` — zero references anywhere in
+  `src/`; it is `≈map-isEquivalence`'s `refl` written a second time. Delete?
+  (Left alone: removing a non-`private` name is an interface change.)
+
+### Repetition worth one helper each
+
+- `src/CategoricalCrypto/Approx/Controlled.agda :: Ctrl` —
+  `((λ _ → ⊑-refl) , λ _ → ⊑-refl)` occurs 9× in the file (`≈ᶜ-isEquivalence`, the five
+  `Ctrl` laws, `include`'s three). One `≐ᶜ-refl : {φ : Control} → φ ≐ᶜ φ` absorbs all
+  of them. `Approx.Filtered` has the same shape nested one deeper, 6× — a
+  `≈ᶠ`-level `refl` helper collapses ~20 lines of `Filt`.
+- `src/CategoricalCrypto/UC/Quantitative/Query.agda :: Qᵠ` — all three laws have the
+  same three-part shape: a two-direction `ℚₚ.≤-reflexive (cong τ …)` pair (8
+  `≤-reflexive`s in the file), an `obs-resp`, and a `ℕ` identity. A local
+  `exactControl : ((c′ : ℕ) → ρ₁ c′ ≡ ρ₂ c′) → reindex ρ₁ S.≐ᶜ reindex ρ₂` turns each
+  pair into one call, and `absorb-test` above is already exactly that lemma at one
+  instance.
+
+### Checked and left alone (spiked, not viable)
+
+- `Approx/Space.agda :: Approx.∘-resp-≈` and `Approx/Filtered.agda :: composeᶠ-resp` —
+  dropping the named morphism implicits leaves `UnsolvedMetaVariables` in both. The
+  existing comments are right.
+- `UC/Quantitative/Query.agda :: filteredᵠ` — `Admit = λ q E → QB q E` does not
+  eta-reduce to `Admit = QB` (`UnequalHiding`; `QB`'s object arguments are implicit).

@@ -3,15 +3,11 @@
 -- The category `Approx` of approximate spaces and nonexpansive maps
 -- (`docs/quantitative-uc-setup-plan.typ` §2).
 --
--- An object is a carrier together with a `UC.Approximate.Approximation` of it:
--- the error-indexed relation and its four laws are reused, not recoded.  A
--- morphism preserves every bound, and two morphisms are equal when they agree
--- pointwise AT ZERO ERROR.
---
--- That single hom equality is the whole point of the packaging.  `resp₀` says a
--- fixed bound survives a zero-error change of either endpoint, so no separate
--- fine equality has to be carried alongside the coarse one, and a functor into
--- `Approx` transports every quantitative bound exactly (plan §2.2).
+-- Hom equality is pointwise agreement AT ZERO ERROR, and that is the whole
+-- point of the packaging: `resp₀` says a fixed bound survives a zero-error
+-- change of either endpoint, so no separate fine equality has to be carried
+-- alongside the coarse one, and a functor into `Approx` transports every
+-- quantitative bound exactly (plan §2.2).
 
 open import Categories.Category using (Category)
 
@@ -51,8 +47,6 @@ module _ (X : ApproxSpace c ℓa) where
   zero⇒positive : {x y : Carrier} → x ≈[ ε₀ ] y → x ∼ᵃ y
   zero⇒positive h _ pos = ≈[]-mono (ε₀-least pos) h
 
-  -- The zero-error identification: `Approx`'s hom equality pointwise, and what
-  -- every forgetting of a space or of a controlled map starts from.
   zeroSetoid : Setoid c ℓa
   zeroSetoid = record
     { Carrier = Carrier
@@ -98,8 +92,8 @@ compose g f = record
   { map = λ x → map g (map f x) ; preserves = λ h → preserves g (preserves f h) }
   where open Nonexpansive
 
--- The three spaces are bound here rather than generalized: a caller has to
--- name them (see `Approx`), which fixes their order in the telescope.
+-- `Carrier` is a projection, so a space is not recoverable from a hom type by
+-- unification: here and in every law of `Approx` below it has to be named.
 compose-resp : {X Y Z : ApproxSpace c ℓa} {g g′ : Nonexpansive Y Z} {f f′ : Nonexpansive X Y}
              → g ≈map g′ → f ≈map f′ → compose g f ≈map compose g′ f′
 compose-resp {Z = Z} {g = g} {f′ = f′} eg ef x = Z.≈[]-mono ⊕-identityˡ
@@ -113,14 +107,12 @@ Approx c ℓa = record
   ; _≈_       = _≈map_
   ; id        = identity
   ; _∘_       = compose
-  -- Every law names its codomain: `Carrier` is a projection, so a space is not
-  -- recoverable from a hom type by unification and has to be supplied.
   ; assoc     = λ {_} {_} {_} {D} _ → ApproxSpace.≈[]-refl D
   ; sym-assoc = λ {_} {_} {_} {D} _ → ApproxSpace.≈[]-refl D
   ; identityˡ = λ {_} {B} _ → ApproxSpace.≈[]-refl B
   ; identityʳ = λ {_} {B} _ → ApproxSpace.≈[]-refl B
   ; identity² = λ {A} _ → ApproxSpace.≈[]-refl A
-  ; equiv     = λ {A} {B} → ≈map-isEquivalence {X = A} {Y = B}
+  ; equiv     = ≈map-isEquivalence
   -- `compose` reduces to a record of lambdas, so its arguments are not
   -- recoverable either; the outer pair is `f h`, the inner pair `g i`.
   ; ∘-resp-≈  = λ {A} {B} {C} {f} {h} {g} {i} →

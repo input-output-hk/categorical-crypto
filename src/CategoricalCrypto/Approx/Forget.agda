@@ -3,22 +3,17 @@
 -- The two ways to forget an approximate space to a setoid
 -- (`docs/quantitative-uc-setup-plan.typ` §3), and the comparison between them.
 --
--- Both keep the carrier and the functions and change only the equality: `F₀`
--- identifies at ZERO error, `F₊` at EVERY POSITIVE error.  `F₊`'s equivalence
--- is `Approximation.∼ᵃ-isEquivalence` — the ε/2 argument, proved once upstream.
---
 -- The comparison `forget` is the identity on carriers and is deliberately NOT
 -- an isomorphism: a space whose error balls are not closed has points that no
 -- positive error separates and zero error does (`Approx.Separating`).  That is
 -- why an exact bound must stay in `Approx` rather than be asked to respect
 -- `F₊`'s coarser equality.
 --
--- The levels are module PARAMETERS, and the relation level is spelled
--- `es ⊔ ℓe ⊔ ℓb`: `∼ᵃ` quantifies over an error and a positivity proof, so only
--- at that shape do the two functors share a target category, which a natural
--- transformation between them requires.  Parameters rather than generalized
--- variables because `⊔` is not invertible — `ℓb` is not recoverable from
--- `es ⊔ ℓe ⊔ ℓb` by unification.  At `ℚ-ordered` both error levels are `0ℓ`.
+-- The relation level is spelled `es ⊔ ℓe ⊔ ℓb` because `∼ᵃ` quantifies over an
+-- error and a positivity proof, and only at that shape do the two functors
+-- share a target category — which a natural transformation between them needs.
+-- The levels are module PARAMETERS because `⊔` is not invertible: `ℓb` is not
+-- recoverable from `es ⊔ ℓe ⊔ ℓb` by unification.
 
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Functor using (Functor)
@@ -36,7 +31,7 @@ open OrderedErrorAlgebra E
 open import CategoricalCrypto.Approx.Space E
 
 ⟦_⟧₀ ⟦_⟧₊ : ApproxSpace c (es ⊔ ℓe ⊔ ℓb) → Setoid c (es ⊔ ℓe ⊔ ℓb)
-⟦ X ⟧₀ = zeroSetoid X
+⟦_⟧₀ = zeroSetoid
 ⟦ X ⟧₊ = record
   { Carrier = X.Carrier ; _≈_ = X._∼ᵃ_ ; isEquivalence = X.∼ᵃ-isEquivalence }
   where module X = ApproxSpace X

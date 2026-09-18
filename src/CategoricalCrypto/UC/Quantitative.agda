@@ -3,11 +3,9 @@
 -- The quantitative UC setup and its contextual comparison
 -- (`docs/quantitative-uc-setup-plan.typ` §§1, 4, 5.1).
 --
--- The computational data are unchanged — a category, a monoidal category of
--- grades, a graded Kleisli triple — and only the environment presheaf moves,
--- from `Setoids` to `Approx`.  Forgetting it along `F₀` or `F₊` gives an
--- ordinary `UCSetup`, so the whole qualitative metatheory is INHERITED rather
--- than restated.
+-- Only the environment presheaf moves, from `Setoids` to `Approx`; forgetting
+-- it along `F₀` or `F₊` gives an ordinary `UCSetup`, so the whole qualitative
+-- metatheory is INHERITED rather than restated.
 --
 -- `underlying₀` is also the working tool, not just an instance: its
 -- environment equality IS closeness at zero error, so every presheaf law
@@ -86,8 +84,6 @@ module QuantitativeUC {o ℓ e o′ ℓ′ e′ c ℓb : Level}
   ≈-mono : {x y : Env D} → ε ⊑ δ → x ≈[ ε ] y → x ≈[ δ ] y
   ≈-mono {D} = QS.≈[]-mono D
 
-  -- The splice: `Abstract2.Action`'s laws all land at `ε₀`, and this is how one
-  -- of them is composed into a bound without inflating it.
   ≈-resp₀ : {x x′ y y′ : Env D}
           → x′ ≈[ ε₀ ] x → y ≈[ ε₀ ] y′ → x ≈[ ε ] y → x′ ≈[ ε ] y′
   ≈-resp₀ {D} = resp₀ (Q.F₀ D)
@@ -131,7 +127,6 @@ module QuantitativeUC {o ℓ e o′ ℓ′ e′ c ℓb : Level}
   ------------------------------------------------------------------------
   -- Absorption and the two congruences of graded composition
 
-  -- Pullback is a morphism of `Approx`, which is exactly nonexpansiveness.
   pull-mono : (u : D 𝒞.⇒ D′) {x y : Env D′} → x ≈[ ε ] y → pull u x ≈[ ε ] pull u y
   pull-mono u = Nonexpansive.preserves (Q.F₁ u)
 
