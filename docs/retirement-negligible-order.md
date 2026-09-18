@@ -1,14 +1,16 @@
 # Retirement: the negligible tier's emulation order — RETIRED
 
-A single candidate, in the form of [`docs/retirement.md`](retirement.md), for a
-gate that document could not satisfy when it was written and that can be
-satisfied now.
+`Abstract2._≤UC_` at `ucSetupᴺ` is ADOPTED as the negligible tier's canonical
+emulation order, and the tier's three own order names are retired in its
+favour. A single candidate in the form of
+[`docs/retirement.md`](retirement.md), whose §6 kept those names when the tier
+still had no inherited order to adopt.
 
 Paths are relative to `src/CategoricalCrypto/` unless prefixed.
 
 ## The candidate
 
-`UC/Family/Negligible.agda` exports three names for the tier's emulation order,
+`UC/Family/Negligible.agda` exported three names for the tier's emulation order,
 all re-exported or derived from `Em UCBaseᴺ`:
 
 | name | site | in-repo consumers |
@@ -20,7 +22,7 @@ all re-exported or derived from `Em UCBaseᴺ`:
 `_≈ℰᴺ_` and `≈ℰⁿ⇒≈ℰᴺ` are **not** candidates: both are consumed, by each other
 and by `UC.Family.Negligible.Setup`.
 
-## Why the gate is satisfied now and was not before
+## The decision, and what is checked
 
 `retirement.md` §6 retired fourteen metatheorem reexports from this same block
 and explicitly kept these three, listing them under "the negligible semantics
@@ -28,31 +30,43 @@ are untouched". That was right at the time: the tier had no inherited order of
 its own, so `_≤UCᴺ_` was the only emulation order it had, and deleting it would
 have deleted a notion rather than a duplicate.
 
-`retirement.md` §7 also states the standard this has to meet, and it is not
-mere absence of consumers:
+`retirement.md` §7 also states the standard a zero-consumer name has to meet,
+and it is not mere absence of consumers:
 
 > none of them **became** consumerless through anything steps 1–6 built — they
 > were already unreached before the plan started, so no gate reading "after
 > callers migrate" is satisfied by this arc.
 
-This candidate does meet it. `UC/Family/Negligible/Setup.agda` builds
-`ucSetupᴺ` — `Famᴹ` at `Observationᴺ` — so the tier now inherits `Abstract2`,
-and the three names became duplicates of inherited structure:
+`UC/Family/Negligible/Setup.agda` builds `ucSetupᴺ` — `Famᴹ` at `Observationᴺ`
+— so the tier now inherits `Abstract2`, and the order it lacked exists there.
+That inherited order is adopted as the tier's canonical one, and the three
+names are dropped in its favour; adopting a canonical definition and proving it
+equivalent to a retired one are different claims, and only the first is made
+here. What is checked, in `UC/Family/Negligible/Setup.agda`:
 
-| retired name | replacement | evidence |
-|---|---|---|
-| `_≤UCᴺ_` | `Canonicalᴺ._≤UC_` (`Abstract2`'s, at `ucSetupᴺ`) | `≤UCᴺ⇒≤UC`: every old value maps across, simulator kept |
-| `≈ℰᴺ⇒≤UCᴺ` | `≈ℰᴺ⇒≤UC` | same premise, inherited conclusion |
-| `≈ℰⁿ⇒≤UCᴺ` | `≈ℰⁿ⇒≤UC` | same premise, inherited conclusion |
+| name | what it gives |
+|---|---|
+| `ucSetupᴺ` | the tier's canonical setup, hence `Canonicalᴺ._≤UC_` as its order and the whole of `Abstract2` with it |
+| `rel-agree` | the bridge's kernel IS this tier's own `_≈ℰᴺ_`, by `refl` — so the order is stated about this relation and not a parallel one, with no transport |
+| `sub-agree^ω` | the two spellings of a simulator's action are one morphism under `_≈^ω_` |
+| `≈ℰᴺ⇒≤UC` | the tier's agreement reaches the canonical order: `≈ℰᴺ⇒≤UCᴺ`'s premise, inherited conclusion |
+| `≈ℰⁿ⇒≤UC` | a budget-indexed bound reaches it: `≈ℰⁿ⇒≤UCᴺ`'s premise, inherited conclusion |
 
-`rel-agree` records that the bridge's kernel is this tier's own `_≈ℰᴺ_` on the
-nose, so the replacements are stated about the same relation and not a parallel
-one. **No proof is deleted**: the three bodies are `UC.Emulation UCBaseᴺ`'s,
-still reachable by applying that module.
+`_≤UCᴺ_`, `≈ℰᴺ⇒≤UCᴺ` and `≈ℰⁿ⇒≤UCᴺ` have no in-repo consumer (the table in
+"The candidate", re-confirmed). **No proof is deleted**: the three bodies are
+`UC.Emulation UCBaseᴺ`'s, still reachable by applying that module.
 
-**Gate verdict: satisfied.** The conclusion of each retired name is recoverable
-through a direct statement, and the replacements were built by this arc rather
-than pre-existing it.
+**The equivalence of the old and the canonical order is NOT a checked theorem
+in this repository.** `rel-agree` and `sub-agree^ω` do not give one: they
+identify the contextual kernels and the simulator action, not the two emulation
+orders. The retirement does not rest on such an equivalence — it rests on the
+adoption above and on the recoverability of the three bodies. The equivalence
+is to be DERIVED from the generic reverse contextual bridge
+`UC.Core.Bridge.≈ᵁ⇒≈ℰᶜ`, which is being added separately for the audit work:
+with it, `rel-agree`, `sub-agree^ω`, `dummy-complete` and `≤UC⇒dummy`, the
+correspondence follows at a fixed simulator, stated directly against
+`UC.Emulation UCBaseᴺ` and `Canonicalᴺ._≤UC_` without restoring the retired
+aliases. **This document is to cite that theorem once it lands.**
 
 ## What it does not do, and what the surrounding audit found
 
@@ -113,9 +127,11 @@ one — and `UC.Emulation` stays for the arbitrary-`UCBase` case.
 `UC/Family/Negligible.agda`: drop `_≤UC_ to _≤UCᴺ_` and `≈ℰ⇒≤UC to ≈ℰᴺ⇒≤UCᴺ`
 from the renaming at `:70-71`, and delete `≈ℰⁿ⇒≤UCᴺ` at `:84-85`.
 
-`UC/Family/Negligible/Setup.agda`: drop `≤UCᴺ⇒≤UC` and the two private helpers
-`bridged`/`transported`, whose only purpose is the evidence row above; keep
-`≈ℰᴺ⇒≤UC`, `≈ℰⁿ⇒≤UC`, `sub-agree^ω` and `rel-agree`.
+`UC/Family/Negligible/Setup.agda`: drop the translation lemma `≤UCᴺ⇒≤UC` (old
+order ⇒ canonical) and its two private helpers `bridged`/`transported` — with
+the tier's own order gone there is no second order to translate from, so that
+direction goes with it and is left to the derivation above; keep `≈ℰᴺ⇒≤UC`,
+`≈ℰⁿ⇒≤UC`, `sub-agree^ω` and `rel-agree`.
 
 Net ≈ −30 lines. `UC/Model/Family/Negligible.agda:7-8`'s comment needs its
 names updated.
