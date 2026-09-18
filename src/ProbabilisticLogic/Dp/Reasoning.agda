@@ -52,6 +52,11 @@ map-arg h de = bindˣ de
 ret≡ : {x y : A} → x ≡ y → returnₚ x ≈ₚ returnₚ y
 ret≡ refl = ≈refl
 
+-- …and a rewrite of the whole subject, where the two sides are the same
+-- computation named differently.
+≡⇒≈ₚ : {d e : Dₚ A} → d ≡ e → d ≈ₚ e
+≡⇒≈ₚ refl = ≈refl
+
 map-eq : (d : Dₚ A) (k l : A → B) → ((x : A) → k x ≡ l x) → mapₚ k d ≈ₚ mapₚ l d
 map-eq d k l eq = bindᶠ λ x → ret≡ (eq x)
 
