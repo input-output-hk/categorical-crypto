@@ -32,8 +32,6 @@ open import CategoricalCrypto.Protocol.Machine.Total using (TotalRun)
 open import CategoricalCrypto.Strategy using (Strat; ask; out)
 open import CategoricalCrypto.UC.Machine using (Proc; ⊤ᵛ)
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
-open import CategoricalCrypto.UC.Model.Bridge
-  using (≈ᴳ-at; ≈ᴳ-congˡ; ≈ᴳ-trans; ≈C⇒≈ᴳ; ≈ᵁ⇒≈ᴳ)
 open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ; obs-resp; ∼ᴼ-resp)
 open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ; ifaceᵒ; procᵒ; unprocᵒ-∘)
 open import CategoricalCrypto.UC.Model.Setup

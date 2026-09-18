@@ -14,14 +14,12 @@
 --                        induce (`observationᵒ`, `approximateᵒ`)
 --   `Model.Setup`        `UC.Core.Bridge` at the two, hence the whole
 --                        metatheory, the core's `_≈ℰᶜ_` and its agreement with
---                        `_≈ᵁ_`, and `ℰᵒ` — tests into `Ωᵒ` modulo closed
---                        observation — as the setup's own presheaf
+--                        `_≈ᵁ_` — at ungraded homs `_≈ᴳ_`, at the orders
+--                        `≤UCᶜ⇔≤UC` — and `ℰᵒ`, tests into `Ωᵒ` modulo closed
+--                        observation, as the setup's own presheaf
 --   `Model.Pin`          the metatheory's application sites, priced
 --   `Model.Unit`         why the choice of empty object for the closures is
 --                        immaterial: the metatheory never sees it
---   `Model.Bridge`       what the model adds to that identification: the two
---                        orders, and `_≈ᴳ_` — the identification at ungraded
---                        homs, where `_≈ᵁ_` is not stated
 --   `Model.Enrichment`   the budget and the mass `UC.Audit` asks of a base,
 --                        supplied here rather than assumed
 --   `Model.Dominated`    `UC.Machine.Bridge.ContextDominated` at SEAL objects
@@ -47,7 +45,6 @@
 
 module CategoricalCrypto.UC.Model where
 
-import CategoricalCrypto.UC.Model.Bridge
 import CategoricalCrypto.UC.Model.Dominated
 import CategoricalCrypto.UC.Model.Enrichment
 import CategoricalCrypto.UC.Model.Family
