@@ -106,10 +106,13 @@
 --                                  morphisms, with `UC.Budget`'s two
 --                                  absorptions separated into the exact one
 --                                  and the bound.  `UC.Model.Quantitative`
---                                  instantiates it, and `.Contextual` is the
+--                                  instantiates it, `.Contextual` is the
 --                                  comparison over it — `ctx-absorb`, the one
 --                                  principle behind both existing schedule
---                                  substitutions
+--                                  substitutions — and `.Family` the FAMILY
+--                                  tier over that comparison, `_≈ctx[_]_`,
+--                                  `_≤UC^ωᵉ_` and their composition laws
+--                                  (`docs/quantitative-family.md`)
 --                `UC.Family.Quantitative`
 --                                  the family tier's own instance: `Observed`
 --                                  at `Famᴹ` over scalar errors, whose `F₊`
@@ -232,23 +235,17 @@
 --                                  monitor and budget witness directly
 --                                  (`docs/consumer-migration.md`)
 --                `UC.Asymptotic.Contextual`
---                                  the ONE quantitative relation, `_≈ctx[_]_`,
---                                  on families of graded morphisms with the
---                                  context's certificates read into the
---                                  allowance, and the simulator-bearing witness
---                                  `_≤UC^ωᵉ_` (`UC.Asymptotic.Family`'s
+--                                  `UC.Quantitative.Family` at the sealed
+--                                  bundle: the ONE quantitative relation,
+--                                  `_≈ctx[_]_`, and the simulator-bearing
+--                                  witness `_≤UC^ωᵉ_` (`UC.Asymptotic.Family`'s
 --                                  `_≈ᶠ[_]_`/`_≤UC^ωⁿ_` are its unit-grade
 --                                  aliases and specializations)
 --                `UC.Asymptotic.Compose`
---                                  its composition laws with the error
---                                  retained: `≤UC^ωᵉ-trans` and `UC-composeᵉ`,
---                                  each with its exact allowance substitution
---                                  (`docs/quantitative-family.md`), and
---                                  `≈ctx-dom`/`≤UC^ωᵉ-dom`, which plug a
---                                  rate-zero process under the domain for
---                                  free.  Its consumers are
---                                  `ChimericLedger.FactorEps`, which lifts a
---                                  premise through a factoring,
+--                                  that module's `Compose`: the composition
+--                                  laws with the error retained, whose
+--                                  consumers are `ChimericLedger.FactorEps`,
+--                                  which lifts a premise through a factoring,
 --                                  `Examples.CoinToss.Compose`, which stacks a
 --                                  protocol on a realized one, and
 --                                  `Examples.CoinToss.Ideal.Compose`, which
