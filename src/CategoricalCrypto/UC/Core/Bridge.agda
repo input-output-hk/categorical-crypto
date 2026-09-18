@@ -1,14 +1,11 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The core's environment agreement implies the INHERITED `_≈ᵁ_`, at any
--- monoidal base and observation — hence the inherited order, hence
+-- The core's environment agreement IS the inherited `_≈ᵁ_`, at any monoidal
+-- base and observation — hence the inherited order, hence
 -- `Abstract2.UC-compose` on anything the core proves.
 --
--- `UC.Model.Bridge` does this at the sealed machine bundle, and by the other
--- route: `_≈ᵁ_` rebracketed into the ∀-ancilla/test/closure experiment
--- (`UC.Model.Reading`), which identifies the two relations in BOTH directions.
--- One direction is cheaper and needs no rebracketing at all, and it is the one
--- an ingested bound spends:
+-- The two directions spend different things.  Forward needs no rebracketing
+-- and is what an ingested bound spends:
 --
 --     f ≈ℰᶜ g  ─grade-stable→  T₁ Y f ≈ℰᶜ T₁ Y g  ─congˡ→
 --     μ Y X ∘ T₁ Y f ≈ℰᶜ μ Y X ∘ T₁ Y g  ─at the unit ancilla→  …≈ℰ…
@@ -21,14 +18,19 @@
 -- naturality and its own iso, and the trivial-grade relay is the tensor with an
 -- identity on the nose (`gradingᵗ`), so nothing needs `T₁-⊗` there.
 --
+-- Back, the prefix `μ Y X` that `_≈ᵁ_` carries is an iso (`μ-α⇐`), so
+-- cancelling it against `α⇒` in the test reads the hypothesis at `Y` as the
+-- core's experiment at that ancilla; here `T₁-⊗` does identify the relay.
+--
 -- Everything is generic: the whole argument is monoidal laws plus the core's
 -- own congruences, so no instance unfolds while it is checked.
 
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
-open import Categories.Functor.Monoidal.CurriedTensor.Properties using (T₁-⊗)
+open import Categories.Functor.Monoidal.CurriedTensor.Properties using (T₁-⊗; μ-α⇐)
 import Categories.Morphism.Reasoning as MR
 
 open import Data.Product.Base using (_,_)
+open import Function.Bundles using (_⇔_; mk⇔)
 open import Level using (Level; _⊔_)
 
 open import CategoricalCrypto.UC.Core using (Observation; UCBase)
@@ -51,7 +53,7 @@ module C = Env baseᵗ
 open Std2.StdUC M C.ℰᴼ public
 
 open HomReasoning
-open MR ∣machines∣ using (cancelInner)
+open MR ∣machines∣ using (cancelInner; cancelˡ)
 
 infix 4 _≈ℰᶜ_
 
@@ -82,6 +84,16 @@ private
   where
   step : {A B X : Channel} (u : A ⇒ T₀ X B) → μ Y X ∘ T₁ Y u ≈ μ Y X ∘ id ⊗₁ u
   step u = refl⟩∘⟨ T₁-⊗ M Y u
+
+≈ᵁ⇒≈ℰᶜ : {A B X : Channel} {f g : A ⇒ T₀ X B} → f ≈ᵁ g → f ≈ℰᶜ g
+≈ᵁ⇒≈ℰᶜ {A} {B} {X} {f} {g} u Y E m = C.∼-cast (step f) (step g) (KE.run∼ (u Y) {E ∘ α⇒} m)
+  where
+  step : (x : A ⇒ T₀ X B) → ((E ∘ α⇒) ∘ (μ Y X ∘ T₁ Y x)) ∘ m ≈ (E ∘ C.T₁ Y x) ∘ m
+  step x = (assoc ○ refl⟩∘⟨ (cancelˡ (∘-resp-≈ʳ (μ-α⇐ M Y X) ○ associator.isoʳ)
+                              ○ T₁-⊗ M Y x)) ⟩∘⟨refl
+
+≈ℰᶜ⇔≈ᵁ : {A B X : Channel} {f g : A ⇒ T₀ X B} → f ≈ℰᶜ g ⇔ f ≈ᵁ g
+≈ℰᶜ⇔≈ᵁ = mk⇔ ≈ℰᶜ⇒≈ᵁ ≈ᵁ⇒≈ℰᶜ
 
 -- …and the inherited order, at the identity dummy.  This is what
 -- `UC-compose`, `≤UC-trans` and `dummy-complete` are stated over, so a bound
