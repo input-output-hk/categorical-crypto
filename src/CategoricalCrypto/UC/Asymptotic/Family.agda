@@ -58,8 +58,8 @@ open import CategoricalCrypto.UC.Model.Family
   using ( Obj^ω; Δ; _⇒^ω_; _⊛ω_; PolyQB; _≈ℰ[_]_; _≈ℰⁿ_; absorb-negl
         ; carried-negligible; ≈ℰⁿ⇒≈ℰ; ≈ℰ^ω⇒≤UC; module Canonical^ω )
   renaming (_≈ℰ_ to _≈ℰᶠ_)
+open import CategoricalCrypto.UC.Model.Family.Ingest using (ifaceᶠ)
 open import CategoricalCrypto.UC.Model.Observation using (𝟘ᵒ)
-open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Saturated using (_≈negl_; Systems)
 open import CategoricalCrypto.UC.Seam.Audit.Context
@@ -80,9 +80,6 @@ private variable B : ℕ → Iface
 
 ------------------------------------------------------------------------
 -- The images and the ε-approximate family agreement
-
-ifaceᶠ : (B : ℕ → Iface) → Obj^ω
-ifaceᶠ B n = ifaceᵒ (B n)
 
 -- The codomain the compared homs live at: the trivial grade over the
 -- interfaces, which is the codomain `_≤UC^ω_`'s premise is stated at too.
