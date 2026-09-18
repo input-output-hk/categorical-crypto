@@ -18,15 +18,17 @@
 -- naturality and its own iso, and the trivial-grade relay is the tensor with an
 -- identity on the nose (`gradingᵗ`), so nothing needs `T₁-⊗` there.
 --
--- Back, the prefix `μ Y X` that `_≈ᵁ_` carries is an iso (`μ-α⇐`), so
--- cancelling it against `α⇒` in the test reads the hypothesis at `Y` as the
--- core's experiment at that ancilla; here `T₁-⊗` does identify the relay.
+-- Back, the prefix `μ Y X ∘ T₁ Y f` that `_≈ᵁ_` carries is `α⇐ ∘ id ⊗₁ f`
+-- (`μT₁-α⇐`), so cancelling it against `α⇒` in the test reads the hypothesis
+-- at `Y` as the core's experiment at that ancilla.  That cancellation is
+-- `shuffle⇒`/`shuffle⇐`, which the model's robustness and quantitative layers
+-- consume directly.
 --
 -- Everything is generic: the whole argument is monoidal laws plus the core's
 -- own congruences, so no instance unfolds while it is checked.
 
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
-open import Categories.Functor.Monoidal.CurriedTensor.Properties using (T₁-⊗; μ-α⇐)
+open import Categories.Functor.Monoidal.CurriedTensor.Properties using (T₁-⊗; μT₁-α⇐)
 import Categories.Morphism.Reasoning as MR
 
 open import Data.Product.Base using (_,_)
@@ -53,7 +55,7 @@ module C = Env baseᵗ
 open Std2.StdUC M C.ℰᴼ public
 
 open HomReasoning
-open MR ∣machines∣ using (cancelInner; cancelˡ)
+open MR ∣machines∣ using (cancelInner)
 
 infix 4 _≈ℰᶜ_
 
@@ -85,12 +87,25 @@ private
   step : {A B X : Channel} (u : A ⇒ T₀ X B) → μ Y X ∘ T₁ Y u ≈ μ Y X ∘ id ⊗₁ u
   step u = refl⟩∘⟨ T₁-⊗ M Y u
 
+-- The cancellation the backward direction is, in the two orientations its
+-- consumers state their own bracketing at.
+shuffle⇒ : {A B X Y : Channel} (f : A ⇒ T₀ X B) (e : C.Test (Y ⊗₀ X ⊗₀ B))
+           (m : C.Closure (Y ⊗₀ A))
+         → ((e ∘ α⇒) ∘ μ Y X ∘ T₁ Y f) ∘ m ≈ e ∘ id ⊗₁ f ∘ m
+shuffle⇒ {Y = Y} f e m =
+  ((refl⟩∘⟨ μT₁-α⇐ M Y f) ⟩∘⟨refl) ○ (cancelInner associator.isoʳ ⟩∘⟨refl) ○ assoc
+
+shuffle⇐ : {A B X Y : Channel} (f : A ⇒ T₀ X B) (e : C.Test ((Y ⊗₀ X) ⊗₀ B))
+           (m : C.Closure (Y ⊗₀ A))
+         → (e ∘ μ Y X ∘ T₁ Y f) ∘ m ≈ (e ∘ α⇐) ∘ id ⊗₁ f ∘ m
+shuffle⇐ {Y = Y} f e m =
+  ((refl⟩∘⟨ μT₁-α⇐ M Y f) ⟩∘⟨refl) ○ (sym-assoc ⟩∘⟨refl) ○ assoc
+
 ≈ᵁ⇒≈ℰᶜ : {A B X : Channel} {f g : A ⇒ T₀ X B} → f ≈ᵁ g → f ≈ℰᶜ g
 ≈ᵁ⇒≈ℰᶜ {A} {B} {X} {f} {g} u Y E m = C.∼-cast (step f) (step g) (KE.run∼ (u Y) {E ∘ α⇒} m)
   where
   step : (x : A ⇒ T₀ X B) → ((E ∘ α⇒) ∘ (μ Y X ∘ T₁ Y x)) ∘ m ≈ (E ∘ C.T₁ Y x) ∘ m
-  step x = (assoc ○ refl⟩∘⟨ (cancelˡ (∘-resp-≈ʳ (μ-α⇐ M Y X) ○ associator.isoʳ)
-                              ○ T₁-⊗ M Y x)) ⟩∘⟨refl
+  step x = shuffle⇒ x E m ○ sym-assoc
 
 ≈ℰᶜ⇔≈ᵁ : {A B X : Channel} {f g : A ⇒ T₀ X B} → f ≈ℰᶜ g ⇔ f ≈ᵁ g
 ≈ℰᶜ⇔≈ᵁ = mk⇔ ≈ℰᶜ⇒≈ᵁ ≈ᵁ⇒≈ℰᶜ

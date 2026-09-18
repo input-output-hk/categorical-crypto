@@ -48,6 +48,6 @@ T₁-⊗ u h = begin
 
 -- The prefix `_≈ᵁ_` compares (`Abstract2`): it is a BRACKETING of the test's
 -- domain and nothing else, which is what gives the U-kernel its operational
--- reading (`CategoricalCrypto.UC.Model.Reading`).
+-- reading (`CategoricalCrypto.UC.Core.Bridge`).
 μT₁-α⇐ : ∀ u {v A B} (f : A ⇒ T₀ v B) → μ u v ∘ T₁ u f ≈ α⇐ ∘ id ⊗₁ f
 μT₁-α⇐ u f = ∘-resp-≈ (μ-α⇐ u _) (T₁-⊗ u f)

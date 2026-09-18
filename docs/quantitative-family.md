@@ -22,7 +22,7 @@ Two spelling decisions, both measured.
 having `Abstract2.Action StdSetup` in the import graph, which is a module application of
 the whole action at the standard setup. Measured on this module: **+22 s** (38.1 s against
 15.6 s for the identical file with the application removed). Every lemma the proofs
-consume — `Abstract2.sub-decomp`, `Abstract2.∙-decomp`, `UC.Model.Reading.shuffle⇒/⇐` —
+consume — `Abstract2.sub-decomp`, `Abstract2.∙-decomp`, `UC.Core.Bridge.shuffle⇒/⇐` —
 is already stated at the `μ ∘ T₁` spelling, so naming the generic action would have bought
 nothing but the name. `prefixᵒ`'s header comment records this.
 
@@ -53,7 +53,7 @@ adapters and nowhere else.
 | `≈ctx⇒≈ctxᴬ` | `UC/Asymptotic/Contextual.agda:105` |
 | `≈ctxᴬ⇒≈ctx` | `:112` |
 
-The adapter is `UC.Model.Reading`'s associator shuffle, used once. It transports the query
+The adapter is `UC.Core.Bridge`'s associator shuffle, used once. It transports the query
 certificate as well as the observation: the test becomes `E ∘ α⇒` (resp. `E ∘ α⇐`), whose
 certificate is `qb-∘ qE qb-a⇐` (resp. `qb-a⇒`) — the structural morphism certifies at
 `QB 1`, so the test's budget `c` becomes `c * 1`. The resulting allowance is

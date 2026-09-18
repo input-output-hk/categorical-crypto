@@ -10,7 +10,7 @@
 -- identification of the orders, whose gate is importer migration, not this one
 -- call).  What connects it to the observation-scoped statements is `propᵒ`,
 -- the adapter turning an observation-invariant predicate into a saturated
--- predicate on tests, and `UC.Model.Reading`'s bracketing shuffle.
+-- predicate on tests, and `UC.Core.Bridge`'s bracketing shuffle.
 --
 -- `UC.Robust.Observation` keeps its own scope and is not derived: it is stated
 -- at an arbitrary `UCBase`, where there is no graded Kleisli triple.  Its names
@@ -26,7 +26,6 @@ open import Level using (Level; 0ℓ; _⊔_; suc)
 
 open import CategoricalCrypto.Iface using (Iface)
 open import CategoricalCrypto.UC.Model.Pin using (relayᵒ)
-open import CategoricalCrypto.UC.Model.Reading using (shuffle⇒; shuffle⇐)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 

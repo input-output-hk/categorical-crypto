@@ -9,8 +9,8 @@
 -- quantifies over.  `_≈ctxᴬ[ ε ]_` is the same experiment at the operational
 -- bracket `W ⊗ (X ⊗ B)`, where the model's ingestion and extraction lemmas
 -- live; `≈ctx⇒≈ctxᴬ`/`≈ctxᴬ⇒≈ctx` rebracket between them through
--- `UC.Model.Reading`, at a PROVED cost of `QB 1` on the test — the allowance
--- moves by `c * 1`, which is why the two carry the same `ε`.
+-- `UC.Core.Bridge`'s shuffles, at a PROVED cost of `QB 1` on the test — the
+-- allowance moves by `c * 1`, which is why the two carry the same `ε`.
 --
 -- Every other move a quantitative proof makes plugs a morphism into the
 -- context, and each costs the same substitution: the allowance rescaled by that
@@ -41,7 +41,6 @@ open import CategoricalCrypto.UC.Budget
 open import CategoricalCrypto.UC.Model.Dominated using (T₁ᵒ)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ)
 open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; obs-resp; 𝟘ᵒ)
-open import CategoricalCrypto.UC.Model.Reading using (shuffle⇐; shuffle⇒)
 open import CategoricalCrypto.UC.Model.Setup
 
 module CategoricalCrypto.UC.Asymptotic.Contextual where
@@ -65,7 +64,7 @@ Homᶠ A X B = (n : ℕ) → A n ⇒ T₀ (X n) (B n)
 -- `Abstract2.Action.prefix` at this setup, spelled out.  Naming the generic
 -- action instead costs a module application of `Abstract2.Action` at
 -- `StdSetup` — measured, +22 s on this module — and the lemmas that consume it
--- (`sub-decomp`, `∙-decomp`, `UC.Model.Reading`'s shuffles) are stated at this
+-- (`sub-decomp`, `∙-decomp`, `UC.Core.Bridge`'s shuffles) are stated at this
 -- spelling anyway.
 prefixᵒ : (W : Channel) {A′ B′ X′ : Channel} → A′ ⇒ T₀ X′ B′ → T₀ W A′ ⇒ T₀ (W ⊗₀ X′) B′
 prefixᵒ W {X′ = X′} f = μ W X′ ∘ T₁ W f
@@ -96,7 +95,7 @@ _≈ctxᴬ[_]_ {A} {X} {B} f ε g =
 ------------------------------------------------------------------------
 -- Rebracketing, with its cost
 
--- The adapter is `UC.Model.Reading`'s associator shuffle, and what it costs the
+-- The adapter is `UC.Core.Bridge`'s associator shuffle, and what it costs the
 -- context is one structural morphism in front of the test — `QB 1`, so the
 -- test's own budget `c` becomes `c * 1` and the allowance `ctxBudget c c′` is
 -- unchanged (`*-identityʳ`).  The query certificates are transported with the
