@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Sliding a closed morphism out of a one-hole context, and the centrality of
--- scalars.
+-- Sliding a closed morphism out of a one-hole context, the centrality of
+-- scalars, and the associator at a bypassed ancilla.
 --
 -- A closed diagram `(id ⊗₁ (ℓ⇐ ∘ x)) ∘ m` — an ancilla produced by the closure
 -- `m`, the hole filled by `x` — is the same as `x` followed by a context that no
@@ -30,6 +30,12 @@ open import Categories.Category.Monoidal.Utilities M using (module Shorthands)
 open Category C
 open Monoidal M
 open Shorthands
+
+-- Two nested bypassing ancillas become one: `assoc-commute-to` where both
+-- outer legs are identities.  This is all `CategoricalCrypto.UC.Environment`'s
+-- `grade-stable` spends of the associator.
+α⇐-bypass : {X Y A B : Obj} {f : A ⇒ B} → α⇐ ∘ id {X} ⊗₁ (id {Y} ⊗₁ f) ≈ id ⊗₁ f ∘ α⇐
+α⇐-bypass = assoc-commute-to ○ (⊗.identity ⟩⊗⟨refl ⟩∘⟨refl)
 
 -- Kelly–Laplaza: scalars are central, so a pair of them merges into their
 -- composite across `λ⇐`.  The second factor slides through `λ⇐`'s own
