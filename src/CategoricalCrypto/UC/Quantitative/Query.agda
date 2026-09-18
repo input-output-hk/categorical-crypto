@@ -4,22 +4,18 @@
 -- (`docs/quantitative-uc-setup-plan.typ` §7.3).
 --
 -- Tests are compared through CERTIFIED closures, at a schedule read off the
--- closure's own allowance:
---
---     E ≈ᵠ[ τ ] F  =  ∀ m c′. QB c′ m → ⟦ E ∘ m ⟧ ≈[ τ c′ ] ⟦ F ∘ m ⟧
---
--- Pulling a test back along a morphism of budget `ch` moves BOTH indices, and
--- both moves are one `qb-∘`: the closure `h ∘ m` costs `ch * c′`, so the
--- schedule is reindexed by `ch *_`, and the test `E ∘ h` costs `q * ch`, so the
--- admitted allowance is reindexed by `_* ch`.  That is exactly a
--- `Approx.Filtered` map, error control and allowance map together.
+-- closure's own allowance.  Pulling a test back along a morphism of budget
+-- `ch` moves BOTH indices, and both moves are one `qb-∘`: the closure `h ∘ m`
+-- costs `ch * c′`, so the schedule is reindexed by `ch *_`, and the test
+-- `E ∘ h` costs `q * ch`, so the admitted allowance is reindexed by `_* ch`.
+-- That is exactly a `Approx.Filtered` map, error control and allowance map
+-- together.
 --
 -- The base is therefore the BUDGETED morphisms, not `𝒞`: an arbitrary morphism
 -- induces no controlled map on bounded tests, and a control has to be
 -- determined by the morphism, so the budget is part of the hom and of its
 -- equality.  `QueryBounds` is the fragment of `UC.Budget.Budget` this spends —
--- no grading, in `UC.Environment.Presheaf`'s discipline — and `fromBudget`
--- connects the two.
+-- no grading, in `UC.Environment.Presheaf`'s discipline.
 
 open import Categories.Category using (Category)
 open import Categories.Functor.Presheaf using (Presheaf)
@@ -68,7 +64,7 @@ absorb-test c cs =
 
 -- …while absorbing into the CLOSURE hits the leg `ctxBudget` guards, so it is
 -- a BOUND, and reading a schedule at it additionally needs that schedule's own
--- monotonicity.  The two are not the same law and are not stated as one.
+-- monotonicity.
 absorb-closure : (c cs : ℕ) (ε : ℕ → ℚ)
                → ((q q′ : ℕ) → q ℕ.≤ q′ → ε q ℚ.≤ ε q′)
                → (c′ : ℕ)
@@ -161,8 +157,7 @@ module Tests
   _≈ᵇ_ : {C D : Obj} → Budgeted C D → Budgeted C D → Set e
   f ≈ᵇ g = (hom f ≈ hom g) × (budget f ≡ budget g)
 
-  -- The budget is part of the hom AND of its equality: a control has to be
-  -- determined by the morphism it comes from, and two morphisms certified at
+  -- The budget is in the hom EQUALITY too: two morphisms certified at
   -- different allowances reindex a schedule differently.
   𝒞ᵇ : Category o (ℓ ⊔ qs) e
   𝒞ᵇ = record
@@ -223,7 +218,7 @@ module Tests
         ( ( (λ τ c′ → ℚₚ.≤-reflexive (cong τ (ℕₚ.*-identityˡ c′)))
           , λ τ c′ → ℚₚ.≤-reflexive (cong τ (sym (ℕₚ.*-identityˡ c′))) )
         , λ _ _ _ _ → obs-resp (∘-resp-≈ˡ identityʳ) )
-        , λ q → ℕₚ.*-identityʳ q
+        , ℕₚ.*-identityʳ
     ; homomorphism = λ {_} {_} {_} {f} {g} →
         ( ( (λ τ c′ → ℚₚ.≤-reflexive
               (cong τ (ℕₚ.*-assoc (budget f) (budget g) c′)))
@@ -231,7 +226,7 @@ module Tests
               (cong τ (sym (ℕₚ.*-assoc (budget f) (budget g) c′))) )
         , λ _ _ _ _ → obs-resp (∘-resp-≈ˡ sym-assoc) )
         , λ q → sym (ℕₚ.*-assoc q (budget f) (budget g))
-    ; F-resp-≈ = λ {_} {_} {_} {_} (he , be) →
+    ; F-resp-≈ = λ (he , be) →
         ( ( (λ τ c′ → ℚₚ.≤-reflexive (cong (λ b → τ (b ℕ.* c′)) be))
           , λ τ c′ → ℚₚ.≤-reflexive (cong (λ b → τ (b ℕ.* c′)) (sym be)) )
         , λ _ _ _ _ → obs-resp (∘-resp-≈ˡ (∘-resp-≈ʳ he)) )
