@@ -23,7 +23,7 @@
 -- `grade-stable` is then a theorem with no hypothesis under it.
 --
 -- Everything here consumes the QUALITATIVE observation alone; the ε-indexed
--- form of the relation and its collapse live in `UC.Environment.Approximate`.
+-- form of the relation and its collapse live in `UC.Quantitative.Observed`.
 
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Functor.Presheaf using (Presheaf)
