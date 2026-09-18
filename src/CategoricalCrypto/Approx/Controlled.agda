@@ -89,10 +89,9 @@ f ≐ g = ((ε : Error) → f ε ⊑ g ε) × ((ε : Error) → g ε ⊑ f ε)
 _≐ᶜ_ : Control → Control → Set (es ⊔ ℓe)
 φ ≐ᶜ ψ = at φ ≐ at ψ
 
--- Every law below is this at `refl`.  It is stated on the transformations
--- because the controls themselves are NOT equal there (a composite's own law
--- fields are built with `⊑-trans`), which leaves a `{φ : Control} → φ ≐ᶜ φ`
--- with no solvable `φ`.
+-- Every law below is this at `refl`, stated on the transformations because
+-- the controls it compares agree only under `at` (a composite's own law fields
+-- are built with `⊑-trans`), which leaves `{φ : Control} → φ ≐ᶜ φ` unusable.
 ≐-reflexive : {f g : Error → Error} → f ≡ g → f ≐ g
 ≐-reflexive refl = (λ _ → ⊑-refl) , λ _ → ⊑-refl
 

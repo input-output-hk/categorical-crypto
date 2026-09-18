@@ -43,8 +43,8 @@ record OrderedErrorAlgebra (es ℓe : Level) : Set (suc (es ⊔ ℓe)) where
   ; ⊕-mono      = +-mono-≤
   }
 
--- The second law of the header, as the splice its users spend it as: a bound
--- survives a zero-error change of either endpoint.
+-- The second law of the header, as its users spend it: a bound survives a
+-- zero-error change of either endpoint.
 module _ {es ℓe os ℓa : Level} (E : OrderedErrorAlgebra es ℓe) {Obs : Set os}
          (A : Approximation Obs (OrderedErrorAlgebra.errors E) ℓa) where
   open OrderedErrorAlgebra E using (⊑-refl; ⊑-trans; ⊕-identityˡ; ⊕-identityʳ; ⊕-mono)

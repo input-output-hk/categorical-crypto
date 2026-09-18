@@ -35,8 +35,7 @@ record FilteredSpace (c ℓa ℓd : Level) : Set (suc (c ⊔ ℓa ⊔ ℓd) ⊔ 
   field
     space : ApproxSpace c ℓa
 
-  open ApproxSpace space public
-    using (Carrier; _≈[_]_; ≈[]-refl; ≈[]-sym; ≈[]-trans; ≈[]-mono)
+  open ApproxSpace space public using (Carrier; ≈[]-refl; ≈[]-sym; ≈[]-trans; ≈[]-mono)
 
   field
     Admit      : ℕ → Carrier → Set ℓd
@@ -83,8 +82,8 @@ module _ {X Y : FilteredSpace c ℓa ℓd} where
   f ≈ᶠ g = (underlying f ≈ᶜ underlying g)
          × ((q : ℕ) → Allowance.at (allowance f) q ≡ Allowance.at (allowance g) q)
 
-  -- Spelled out rather than lifted through `≈ᶜ-isEquivalence`: that lemma's
-  -- spaces arrive as projections of `X`/`Y` and are not inferable here.
+  -- Spelled out rather than lifted through `≈ᶜ-isEquivalence`: even with that
+  -- lemma's spaces named, its `Controlled` implicits are not inferable here.
   ≈ᶠ-isEquivalence : IsEquivalence _≈ᶠ_
   ≈ᶠ-isEquivalence = record
     { refl  = (≐-reflexive refl , λ _ → SY.≈[]-refl) , λ _ → refl

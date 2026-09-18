@@ -207,15 +207,13 @@ module Tests
   Qᵠ = record
     { F₀ = filteredᵠ
     ; F₁ = pullᵠ
-    ; identity =
-        ( reindex-cong ℕₚ.*-identityˡ
-        , λ _ _ _ _ → obs-resp (∘-resp-≈ˡ identityʳ) ) , ℕₚ.*-identityʳ
+    ; identity = ( reindex-cong ℕₚ.*-identityˡ
+                 , λ _ _ _ _ → obs-resp (∘-resp-≈ˡ identityʳ) ) , ℕₚ.*-identityʳ
     ; homomorphism = λ {_} {_} {_} {f} {g} →
         ( reindex-cong (ℕₚ.*-assoc (budget f) (budget g))
         , λ _ _ _ _ → obs-resp (∘-resp-≈ˡ sym-assoc) )
         , λ q → sym (ℕₚ.*-assoc q (budget f) (budget g))
-    ; F-resp-≈ = λ (he , be) →
-        ( reindex-cong (λ c′ → cong (ℕ._* c′) be)
-        , λ _ _ _ _ → obs-resp (∘-resp-≈ˡ (∘-resp-≈ʳ he)) )
-        , λ q → cong (q ℕ.*_) be
+    ; F-resp-≈ = λ (he , be) → ( reindex-cong (λ c′ → cong (ℕ._* c′) be)
+                               , λ _ _ _ _ → obs-resp (∘-resp-≈ˡ (∘-resp-≈ʳ he)) )
+                               , λ q → cong (q ℕ.*_) be
     }
