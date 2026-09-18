@@ -284,8 +284,8 @@ does not.
 
 | module | zero-consumer name | what would replace it |
 |---|---|---|
-| `UC.Model.Family.Uniform` | `uc-compose-agree` (`:44`) | inherited `UC-compose` (via `UC.Core.Bridge:51`) at two `≈ℰ^ω⇒≤UC` calls — which is its body |
-| `UC.Model.Family.Ingest` | `ingest-≈ℰ`, `ingest-≈ℰⁿ`, `ingest-≤UC`, `ingest-≤UCᵁ` (`:114-126`) | `Model.Family.absorb-negl` / `carried-negligible` / `≈ℰ⇒≤UC` / `Uniform.≈ℰ^ω⇒≤UC`. The row's clause is "Redundant qualitative projections may retire **after callers migrate**", and the module has never had a caller: its sole importer is `UC/Model.agda:55`, a bare `import` for the build closure. `ingest` and `dominatedᵒ` are the row's "not the domination proof" |
+| `UC.Model.Family.Uniform` | `uc-compose-agree` — RULED since, and deleted with the whole module, whose surviving content is `UC.Family.Vanishing` instantiated at the machine ingredients in `UC.Model.Family` | inherited `UC-compose` (via `UC.Core.Bridge:51`) at two `≈ℰ^ω⇒≤UC` calls — which was its body |
+| `UC.Model.Family.Ingest` | `ingest-≈ℰ`, `ingest-≈ℰⁿ`, `ingest-≤UC`, `ingest-≤UCᵁ` (`:114-126`) | `Model.Family.absorb-negl` / `carried-negligible` / `≈ℰ⇒≤UC` / `≈ℰ^ω⇒≤UC`. The row's clause is "Redundant qualitative projections may retire **after callers migrate**", and the module has never had a caller: its sole importer is `UC/Model.agda:55`, a bare `import` for the build closure. `ingest` and `dominatedᵒ` are the row's "not the domination proof" |
 | `UC.Model.Bridge` | `≈ℰᶜ⇔≈ᵁ`, `≈ᴳ⇔≈ℰᶜ`, `≈ᵁ⇔≈ᴬ` (`Reading:76`), `≈ℰᶜ⇒≈ℰ`, `≈ᴳ-refl`, `≈ᴳ-sym`, `≈ᴳ-congʳ`, `≈ᴳ⇒≈ᵁ`, `≤UCᶜ⇒≤UC`, `_≤UCᶜ_` | six of these are already one standing entry in `QUALITY-REVIEW.md:438` ("Rule 32 makes every one of these your call"). §5's row for these modules says they "still have independent work" |
 
 `UC.Model.Dominated` and `UC.Core.Bridge` have **no** zero-consumer export:

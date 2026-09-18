@@ -30,12 +30,12 @@
 --                        — `ifaceᵒ` is onto — which is the ancilla quantifier
 --                        an ℰ-agreement has
 --   `Model.Family`       `UC.Family.Monoidal` at the seal: the setup, and the
---                        inherited metatheory, asymptotically
+--                        inherited metatheory, asymptotically — and
+--                        `UC.Family.Vanishing` on the same ingredients, which
+--                        reads the agreement in the INHERITED `_≈ᵁ_`, so
+--                        `UC-compose` applies to a concrete family
 --   `Model.Family.Ingest`  a per-level advantage bound read as that family's
 --                        `_≈ℰ[_]_`, `_≈ℰ_`, `_≈ℰⁿ_` and `_≤UC_`
---   `Model.Family.Uniform`  the same agreement in the INHERITED `_≈ᵁ_`, so
---                        `UC-compose` applies to a concrete family
---                        (`UC.Core.Bridge` at `Famᴹ`)
 --   `Model.Family.Negligible`  the local negligible tier (`UC.Family.Negligible`)
 --                        inhabited at the machine family
 --   `Model.Quantitative` `ℰᵒ` with the slack still visible: the same tests
@@ -56,7 +56,6 @@ import CategoricalCrypto.UC.Model.Environment
 import CategoricalCrypto.UC.Model.Family
 import CategoricalCrypto.UC.Model.Family.Ingest
 import CategoricalCrypto.UC.Model.Family.Negligible
-import CategoricalCrypto.UC.Model.Family.Uniform
 import CategoricalCrypto.UC.Model.Observation
 import CategoricalCrypto.UC.Model.Pin
 import CategoricalCrypto.UC.Model.Quantitative
