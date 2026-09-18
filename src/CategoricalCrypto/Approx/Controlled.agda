@@ -22,6 +22,7 @@
 -- monotone and preserves zero, which is where those two laws are spent.
 
 open import Categories.Category using (Category)
+open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Functor using (Functor)
 
 open import Data.Product.Base using (_×_; _,_)
@@ -160,17 +161,32 @@ Ctrl c ℓa = record
   }
 
 ------------------------------------------------------------------------
--- The nonexpansive theory sits inside
-
-controlled : {X Y : ApproxSpace c ℓa} → Nonexpansive X Y → Controlled X Y
-controlled f = record
-  { map = Nonexpansive.map f ; control = idᶜ ; preserves = Nonexpansive.preserves f }
+-- Links to the exact theories
 
 include : Functor (Approx c ℓa) (Ctrl c ℓa)
 include = record
   { F₀ = λ X → X
-  ; F₁ = controlled
+  ; F₁ = λ f → record
+      { map = Nonexpansive.map f ; control = idᶜ
+      ; preserves = Nonexpansive.preserves f }
   ; identity     = λ {A} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl A
   ; homomorphism = λ {_} {_} {Z} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl Z
   ; F-resp-≈     = λ {_} {B} e → ≐-reflexive refl , e
+  }
+
+-- `Control.preserves-ε₀` is the whole content of the other direction: an
+-- ε₀-comparison is carried to an `at φ ε₀`-comparison, which is one again, so
+-- the resource-aware theory spends presheaf laws as exact zero-error steps
+-- just as the nonexpansive one does through `Approx.Forget.F₀`.
+F₀ᶜ : (c ℓa : Level) → Functor (Ctrl c ℓa) (Setoids c ℓa)
+F₀ᶜ c ℓa = record
+  { F₀ = zeroSetoid
+  ; F₁ = λ {_} {B} f → record
+      { to   = Controlled.map f
+      ; cong = λ h → ApproxSpace.≈[]-mono B
+          (Control.preserves-ε₀ (Controlled.control f)) (Controlled.preserves f h)
+      }
+  ; identity     = λ {A} → ApproxSpace.≈[]-refl A
+  ; homomorphism = λ {_} {_} {Z} → ApproxSpace.≈[]-refl Z
+  ; F-resp-≈     = λ (_ , me) {x} → me x
   }

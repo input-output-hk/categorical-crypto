@@ -97,8 +97,8 @@
 --                                  class of small errors — distinct from `F₊`
 --                                  and the source of `UC.Approximate.Local`'s
 --                                  `_∼ᴺ_`, whose equivalence is now that one —,
---                                  and `Approx.Controlled.Forget` the zero-error
---                                  one, which needs no restriction on controls
+--                                  and the zero-error one is `F₀ᶜ` here, which
+--                                  needs no restriction on controls
 --                `UC.Quantitative.Query`
 --                                  the query-sensitive model those hold: tests
 --                                  compared through CERTIFIED closures at a
@@ -303,7 +303,7 @@ import CategoricalCrypto.UC.Approximate.LocalTests
 
 -- …and the quantitative tier: parameterized by an error algebra and a
 -- `QUCSetup`, so imported rather than re-exported, `Bridge` reaching the rest.
-import CategoricalCrypto.Approx.Controlled.Forget
+import CategoricalCrypto.Approx.Controlled
 import CategoricalCrypto.Approx.Filtered
 import CategoricalCrypto.Approx.Schedule
 import CategoricalCrypto.Approx.Separating

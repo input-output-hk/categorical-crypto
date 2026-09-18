@@ -80,9 +80,6 @@ module _ {X Y : ApproxSpace c ℓa} where
     ; trans = λ h k x → Y.≈[]-mono ⊕-identityˡ (Y.≈[]-trans (h x) (k x))
     }
 
-  ≈map-refl : {f : Nonexpansive X Y} → f ≈map f
-  ≈map-refl _ = Y.≈[]-refl
-
 identity : Nonexpansive X X
 identity = record { map = λ x → x ; preserves = λ h → h }
 
