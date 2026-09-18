@@ -3776,17 +3776,6 @@ escape-hatch grep 16 tree-wide, unchanged.
 
 ## Open (quant-quality)
 
-### Cross-module inlining blocked by an off-limits file
-
-- `src/CategoricalCrypto/UC/Quantitative/Contextual.agda :: module
-  CategoricalCrypto.UC.Quantitative.Contextual` — its parameter block
-  (`𝒞 … Ap 𝟙 Ω ⟦_⟧ obs-resp`) is `UC.Approximate.Induced`'s telescope re-declared,
-  as is `UC.Quantitative.Query :: module Tests`'s; and `UC.Model.Observation` /
-  `UC.Machine` instantiate `Induced` at exactly the arguments `UC.Model.Quantitative`
-  passes to `Tests`. Four copies of one telescope. Taking `Induced`'s
-  `ApproximateObservation` (or a small shared record) as the parameter collapses them.
-  Blocked: needs `UC/Approximate.agda`.
-
 ### Cross-module inlining possible but interface-changing
 
 - `src/CategoricalCrypto/UC/Quantitative/Query.agda :: fromBudget` — one-liner with
@@ -3813,30 +3802,12 @@ corrupted RECEIVER — at `+2⁻ⁿ`, not exactly. `docs/coin-toss.md` §5's las
 subsection and §8 item 1 are rewritten around it; what follows is what needs
 the maintainer's judgment.
 
-### Two general pieces sit at the example and belong upstream
+### Two general pieces sat at the example and belonged upstream
 
-- `Examples/CoinToss/Ideal/Receiver/Dominated.agda :: dominatedᵍ` — this IS
-  `UC.Model.Dominated.dominatedᵒ` with the grade nontrivial, and nothing in
-  the module mentions the coin toss. It belongs beside `dominatedᵒ`; it is at
-  the example only because this branch's brief reserved `UC/` for two other
-  agents. Moving it is a file move plus one import. Its helpers want two
-  different homes: `λᴵ⇒` is `UC.Machine.Bridge.λᴵ⇐`'s retraction and belongs
-  there, and `sandwich-id`/`unit-cancel`/`T₁-conj`/`ctxRun-conj` belong in
-  `UC.Machine.Slide`, whose `slideᴹ` is the lemma they feed.
-  **Maintainer call:** whether `dominatedᵍ` should REPLACE `dominatedᵒ` — the
-  latter is its `P := unitᴵ` case composed with the unitor, so one statement
-  could serve both — or sit beside it. I did not merge them because
-  `dominatedᵒ` has consumers (`UC.Model.Family.Ingest`) and rule 1 forbids
-  restating a theorem to make a new one fit.
-- `Examples/CoinToss/Ideal/Receiver/UC.agda :: regrade` — the seal keeps
-  `ifaceᵒ (X ⊗ᴵ P)` (what one `gradedᵒ` hands out) and `ifaceᵒ X ⊗₀ ifaceᵒ P`
-  (what `UC.Asymptotic.Compose._∙ᶠ_` produces) apart, and `sub-graded₂` at the
-  IDENTITY process is the morphism between them. The instance here is at the
-  receiver's ports, but the fact is generic and belongs in `UC.Graded` next to
-  `sub-graded₂`. **Maintainer call:** whether the cleaner fix is a fifth seal
-  coercion — `graded♯ᵒ : gradedᵒ f ≈ …` relating the two readings on the nose
-  from inside the `opaque` block — which would make `regrade` and the
-  `Certified` wrapper `flatᶜʰ` both disappear.
+Both hoisted, and both maintainer calls taken, under *Resolved (cleanup-4)*:
+`dominatedᵍ` now sits beside `dominatedᵒ` in `UC.Model.Dominated` (it does not
+replace it), and `regrade` beside `sub-graded₂` in `UC.Graded` (the fifth seal
+coercion turns out not to be statable).
 
 ### Decisions taken that a maintainer may want to revisit
 
@@ -3894,3 +3865,69 @@ the maintainer's judgment.
   consumers (`Defer.Run.align`, `Receiver.Machine.deferStepʰ`), both rewriting
   a machine's step along an equation about an argument's projection, where
   `rewrite` does not fire.
+
+## Resolved (cleanup-4)
+
+Four maintainer-approved cleanups, one commit each, on `cleanup-4` off
+`protocol-rewrite@0afb3ca7`.
+
+- **`UC.Seam.Slide` deleted :: `e17ef553`** — `run-subᵒ` was its only
+  definition, with no consumer and no importer: the module sat outside every
+  root closure. `docs/direct-extraction.md` records why it could not serve
+  `UC.Robust.Observation`, which is why nothing ever imported it; that record
+  and the entry under *Resolved (direct-extraction)* stay as history.
+
+- **`dominatedᵍ` hoisted to `UC.Model.Dominated` :: `ef74ed70`** — the
+  *Resolved (receiver-hop)* maintainer call, taken as "sit beside", not
+  "replace". Its wire lemmas went to the layer that owns them: `λᴵ⇒` beside
+  `UC.Machine.Bridge.λᴵ⇐`, whose retraction it is, and
+  `sandwich-id`/`unit-cancel`/`T₁-conj`/`ctxRun-conj` into
+  `UC.Machine.Slide`'s new closing section.
+  `Examples/CoinToss/Ideal/Receiver/Dominated.agda` is gone;
+  `Receiver.Compose` was its only consumer.
+  **`dominatedᵒ` is NOT `dominatedᵍ` at the trivial grade.** Beyond the
+  interface mismatch (`dominatedᵒ` compares `Proc unitᴵ B` through `conjᴵ`,
+  `dominatedᵍ` a `Proc unitᴵ (P ⊗ᴵ B)`), the run hypotheses point opposite
+  ways: `dominatedᵒ` asks for the bound only at strategies of
+  `ctxBudget c c′`, `dominatedᵍ` at EVERY strategy. `dominatedᵍ`'s premise is
+  the stronger one, so it cannot discharge `dominatedᵒ`'s, and neither can be
+  an alias of the other without restating a theorem (rule 1).
+
+- **`regrade` and its wire hoisted to `UC.Graded` :: `eeba234a`** — the other
+  *Resolved (receiver-hop)* maintainer call. `flatᵍ` (the identity process at
+  the split grade) and `regrade` (`sub-graded₂` at that identity) now sit
+  beside `sub-graded₂`; the example keeps `flatʰ`, the instance, and
+  `flatʰQB`.
+  **The fifth seal coercion is not available.** Spiked as
+  `graded♯ᵒ : gradedᵒ f G.≈ graded₂ᵒ f` inside `UC.Model.Graded`'s
+  `opaque unfolding gradedᵒ procᵘ` block, it is rejected with `UnequalTerms`,
+  `G.⊗.F₀ (ifaceᵒ X , ifaceᵒ P) != ifaceᵒ (X ⊗ᴵ P)` — an export's TYPE is
+  checked with the seal still CLOSED (`UC.Model.Seal`'s third discipline), so
+  the two readings cannot be related on the nose even from inside. `regrade`
+  is therefore irreducible, and `flatᶜʰ` — a family-layer `Certified`, not a
+  seal coercion — stays.
+
+- **The four-copy `Induced` telescope: DECLINED, not a net win.** (Moved here
+  from *Open (quant-quality)*; no code change.) The four sites are not four
+  copies of one telescope but two shapes:
+  - the RAW shape `{Obs} (Ap) (𝟙 Ω) (⟦_⟧) (obs-resp)` —
+    `UC.Approximate.Induced`, `UC.Quantitative.Contextual`,
+    `UC.Quantitative.Query.Tests` — which further disagree on the base
+    (`Category` for `Induced`/`Tests`, `MonoidalCategory` for `Contextual`),
+    on the error algebra (an arbitrary `ErrorAlgebra` for `Induced`,
+    `ℚ-errors` for the other two) and on the extra parameter (`Budget`,
+    `QueryBounds`, none). One bundle serves all three only by specializing
+    `Induced` to `ℚ-errors` or generalizing the others — either way an
+    exported statement changes, which the brief and rule 1 forbid;
+  - the OBSERVATION shape `(O : Observation …)` — `UC.Quantitative.Observed`,
+    `UC.Quantitative.Family` — which is already bundled, and whose `O` must
+    stay literally an `Observation` so that `Core.Bridge M O` is head-identical
+    to `UC.Model.Setup`'s (the 80 s crossing).
+
+  Even inside the raw shape the arithmetic is against it. The three telescopes
+  cost 16 declaration lines; a bundling record costs ~11 to declare, ~3 to
+  re-open, and turns five positional applications that are one or two lines
+  today (`UC/Machine.agda:143`, `UC/Model/Observation.agda:91`,
+  `UC/Family.agda:230`, `UC/Quantitative/Family.agda:61`,
+  `UC/Model/Quantitative.agda:39`) into record literals. The swap is net
+  ADDING, so the eta-cliff question (a) never had to be answered.
