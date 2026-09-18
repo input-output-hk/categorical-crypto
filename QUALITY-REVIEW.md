@@ -3737,21 +3737,28 @@ a definition ten lines below), and the duplicated explanations collapsed to one 
 - `src/CategoricalCrypto/UC/Model/Quantitative.agda` — one import out of sort order
   (rule 10); single-definition banner over `Queryᵒ` removed (rule 25).
 
+Follow-up branch `quant-inline` off `d4aa4b1b` (4 commits, `72 +/73 -`, same
+verification discipline) closed three of the items that were open below.
+
+- `Approx/Space.agda :: resp₀` (`1591f003`) — restated on the `Approximation` as
+  `Approx.Error.≈[]-resp₀`; NOT in `UC.Approximate.Induced`, which cannot see the
+  ordered laws the proof spends (`Approx.Error` imports it, not the reverse).
+  `resp₀` keeps its name and type as an instance, both `obsSpace` scaffolds are gone
+  and `UC.Quantitative.Contextual` drops `Approx.Space` (it keeps `Approx.Error`).
+- `Approx/Controlled.agda :: Ctrl` (`374d2d09`) — `_≐ᶜ_` now reads `at φ ≐ at ψ`
+  through a transformation-level `_≐_`, and one `≐-reflexive` replaces all 15 copies
+  (9 here, 6 in `Approx.Filtered`, whose `Filt` laws then fit). The suggested
+  `{φ : Control} → φ ≐ᶜ φ` does NOT typecheck at those sites, nor does a version
+  taking `at φ ≡ at ψ`: the controls a law compares are equal only under `at`, so `φ`
+  eta-expands into unsolved proof-field metas at all 9.
+- `UC/Quantitative/Query.agda :: Qᵠ` (`9b6ac8a0`) — the helper is general in the
+  reindexed set, so it lives with `reindex` as `Approx.Schedule.reindex-cong`; it
+  covers `absorb-test` too, and the file drops `Data.Rational.Properties`.
+
 ## Open (quant-quality)
 
 ### Cross-module inlining blocked by an off-limits file
 
-- `src/CategoricalCrypto/Approx/Space.agda :: resp₀` — **the one that buys real graph
-  simplification.** `UC.Quantitative.Contextual` and `UC.Quantitative.Query.Tests` each
-  build a throwaway one-use record
-  `obsSpace = record { Carrier = Obs ; approx = Ap }` for the sole purpose of calling
-  `Oq.resp₀ obsSpace`, whose proof spends only `≈[]-mono`/`≈[]-trans` of the underlying
-  `Approximation` plus the ordered-monoid laws — nothing about `ApproxSpace`. State
-  `resp₀` on `Approximation` instead (natural home: inside `UC.Approximate.Induced`,
-  which already carries the identical parameter telescope and opens `Approximation A`),
-  and both scaffolds go. `UC.Quantitative.Contextual` then imports neither
-  `Approx.Space` nor `Approx.Error`: `module Oq = Spaceᴹ ℚ-ordered` + `obsSpace` are its
-  only uses of either. Blocked: needs `UC/Approximate.agda`.
 - `src/CategoricalCrypto/UC/Quantitative/Contextual.agda :: module
   CategoricalCrypto.UC.Quantitative.Contextual` — its parameter block
   (`𝒞 … Ap 𝟙 Ω ⟦_⟧ obs-resp`) is `UC.Approximate.Induced`'s telescope re-declared,
@@ -3785,24 +3792,13 @@ a definition ten lines below), and the duplicated explanations collapsed to one 
   `src/`; it is `≈map-isEquivalence`'s `refl` written a second time. Delete?
   (Left alone: removing a non-`private` name is an interface change.)
 
-### Repetition worth one helper each
-
-- `src/CategoricalCrypto/Approx/Controlled.agda :: Ctrl` —
-  `((λ _ → ⊑-refl) , λ _ → ⊑-refl)` occurs 9× in the file (`≈ᶜ-isEquivalence`, the five
-  `Ctrl` laws, `include`'s three). One `≐ᶜ-refl : {φ : Control} → φ ≐ᶜ φ` absorbs all
-  of them. `Approx.Filtered` has the same shape nested one deeper, 6× — a
-  `≈ᶠ`-level `refl` helper collapses ~20 lines of `Filt`.
-- `src/CategoricalCrypto/UC/Quantitative/Query.agda :: Qᵠ` — all three laws have the
-  same three-part shape: a two-direction `ℚₚ.≤-reflexive (cong τ …)` pair (8
-  `≤-reflexive`s in the file), an `obs-resp`, and a `ℕ` identity. A local
-  `exactControl : ((c′ : ℕ) → ρ₁ c′ ≡ ρ₂ c′) → reindex ρ₁ S.≐ᶜ reindex ρ₂` turns each
-  pair into one call, and `absorb-test` above is already exactly that lemma at one
-  instance.
-
 ### Checked and left alone (spiked, not viable)
 
 - `Approx/Space.agda :: Approx.∘-resp-≈` and `Approx/Filtered.agda :: composeᶠ-resp` —
   dropping the named morphism implicits leaves `UnsolvedMetaVariables` in both. The
   existing comments are right.
+- `Approx/Filtered.agda :: ≈ᶠ-isEquivalence` — lifting `sym`/`trans` through
+  `≈ᶜ-isEquivalence` with its spaces named still leaves its `Controlled` implicits
+  unsolved (they occur only under projections, as for `≐ᶜ-refl` above).
 - `UC/Quantitative/Query.agda :: filteredᵠ` — `Admit = λ q E → QB q E` does not
   eta-reduce to `Admit = QB` (`UnequalHiding`; `QB`'s object arguments are implicit).
