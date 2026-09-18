@@ -69,7 +69,10 @@
 --                                  `UC.Family.Vanishing` is the counterpart at
 --                                  `Observation^ω`, so `absorb`'s result
 --                                  reaches the inherited order without
---                                  re-basing `absorb` itself
+--                                  re-basing `absorb` itself.  A quantitative
+--                                  witness reaches it with its schedule KEPT
+--                                  by `UC.Asymptotic.Family.≤UC^ωᵉ⇒≤UCᴺ`,
+--                                  where `≤UC^ωᵉ⇒≤UCᵁ` spends it
 --   quantitative `Approx.Space`    `Approx`: approximate spaces and
 --                                  nonexpansive maps, `Approximation` packaged
 --                                  as a category, `Approx.Forget` the two ways

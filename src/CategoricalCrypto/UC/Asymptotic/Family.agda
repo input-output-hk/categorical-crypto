@@ -59,6 +59,8 @@ open import CategoricalCrypto.UC.Model.Family
         ; carried-negligible; ≈ℰⁿ⇒≈ℰ; ≈ℰ^ω⇒≤UC; module Canonical^ω )
   renaming (_≈ℰ_ to _≈ℰᶠ_)
 open import CategoricalCrypto.UC.Model.Family.Ingest using (ifaceᶠ)
+open import CategoricalCrypto.UC.Model.Family.Negligible
+  using (module Canonicalᴺ; ≈ℰⁿ⇒≈ℰᴺ; ≈ℰⁿ⇒≤UC)
 open import CategoricalCrypto.UC.Model.Observation using (𝟘ᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Saturated using (_≈negl_; Systems)
@@ -71,6 +73,7 @@ import CategoricalCrypto.UC.Seam.Grounded as Gr
 module CategoricalCrypto.UC.Asymptotic.Family where
 
 module Uni = Canonical^ω
+module Cᴺ = Canonicalᴺ
 open Uni using () renaming (_≤UC_ to _≤UCᵁ_)
 
 open Budget budgetᵒ using (qb-λ⇐; qb-∘; qb-sub)
@@ -171,6 +174,14 @@ imageᶠ {B} R q = imgᶠ B R , q
 ≤UC^ωⁿ⇒≤UCᵁ {R = R} {I = I} qR qI p =
   ≈ℰ^ω⇒≤UC (imageᶠ R qR) (imageᶠ I qI) (≤UC^ωⁿ⇒≈ℰᶠ qR qI p)
 
+-- …and in the CANONICAL NEGLIGIBLE order, whose comparison KEEPS the schedule:
+-- the route stops at `_≈ℰⁿ_` and reads it in `ucSetupᴺ`'s own kernel
+-- (`UC.Family.Negligible.Setup.rel-agree`), spending no `absorb-negl`.
+≤UC^ωⁿ⇒≤UCᴺ : (qR : Imageᶠ B R) (qI : Imageᶠ B I) → R ≤UC^ωⁿ I
+            → Cᴺ._≤UC_ (imageᶠ R qR) (imageᶠ I qI)
+≤UC^ωⁿ⇒≤UCᴺ {R = R} {I = I} qR qI p =
+  ≈ℰⁿ⇒≤UC (imageᶠ R qR) (imageᶠ I qI) (≤UC^ωⁿ⇒≈ℰⁿ qR qI p)
+
 ------------------------------------------------------------------------
 -- …and the witness form it specializes
 
@@ -238,6 +249,13 @@ module _ {A X Y B : Obj^ω} (s : Certified Y X) (ε : ℕ → ℕ → ℚ)
       (certᶠ s
       , Uni.≈ℰᶜ⇒≈ᵁ {f = f , qf} {g = Uni.sub (certᶠ s) Uni.∘ (g , qg)}
           ≤UC^ωᵉ⇒≈ℰᶠ)
+
+  -- …and the same witness in the CANONICAL NEGLIGIBLE order, where the
+  -- schedule survives the crossing (`≤UC^ωⁿ⇒≤UCᴺ`'s comment): the retained
+  -- `_≈ℰⁿ_` IS a `ucSetupᴺ` kernel agreement, so only the simulator moves.
+  ≤UC^ωᵉ⇒≤UCᴺ : Cᴺ._≤UC_ (f , qf) (g , qg)
+  ≤UC^ωᵉ⇒≤UCᴺ = Cᴺ.≤UCᶜ⇒≤UC {f = f , qf} {g = g , qg}
+    (certᶠ s , ≈ℰⁿ⇒≈ℰᴺ (f , qf) (subᶠ s g , subQB s qg) ≤UC^ωᵉ⇒≈ℰⁿ)
 
 ------------------------------------------------------------------------
 -- Reading it at the embedded strategies
