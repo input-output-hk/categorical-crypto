@@ -3,23 +3,18 @@
 -- Existential collapse at a class of small errors
 -- (`docs/quantitative-uc-setup-plan.typ` §8).
 --
--- `x ∼Small y` asserts that SOME error of the class separates the two.  A class
--- containing zero and closed under addition is all this needs: those two are
--- exactly reflexivity and transitivity, so nothing about approaching zero is
--- assumed and no halving is spent.
+-- A class containing zero and closed under addition is all `∼Small` needs:
+-- those two are exactly its reflexivity and its transitivity, so nothing about
+-- approaching zero is assumed and no halving is spent.
 --
--- This is NOT the all-positive collapse of `Approx.Forget`.  Taking `Small` to
+-- This is NOT the all-positive collapse of `Approx.Forget`: taking `Small` to
 -- be everything gives mere existence of a bound, which is indiscrete wherever
--- every pair admits one — as it is for a bounded observation distance — so it
--- does not generally recover the intended qualitative observation.  The two
--- collapses are kept apart deliberately.
+-- every pair admits one — as it is for a bounded observation distance.
 --
 -- `UC.Approximate.Local._∼ᴺ_` IS this relation at the negligible class over
--- rational sequences, and takes its equivalence from here.
---
--- The controlled half — which controls preserve the class, and the collapse on
--- the wide subcategory they cut out — is `Approx.Small.Controlled`, kept apart
--- so that a consumer of the RELATION does not pay for `SubCategory`.
+-- rational sequences, and takes its equivalence from here.  The controlled
+-- half is `Approx.Small.Controlled`, kept apart so that a consumer of the
+-- RELATION does not pay for `SubCategory`.
 
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Functor using (Functor)
@@ -69,8 +64,7 @@ module Collapse {ℓs : Level} (S : SmallClass ℓs) (c ℓa : Level) where
     ; isEquivalence = ∼Small-isEquivalence X
     }
 
-  -- Reflexivity with the space named: `Carrier` is a projection, so a functor
-  -- law cannot recover it by unification.
+  -- Reflexivity with the space named, for the reason `Approx.Space` names it.
   ∼Small-refl : (X : ApproxSpace c ℓa) {x : ApproxSpace.Carrier X} → _∼Small_ X x x
   ∼Small-refl X = ε₀ , small-ε₀ , ApproxSpace.≈[]-refl X
 
