@@ -23,6 +23,7 @@ open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Product.Base using (Σ-syntax; _×_; _,_)
+open import Function.Bundles using (_⇔_; mk⇔)
 open import Level using (Level; _⊔_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
@@ -33,6 +34,7 @@ open import CategoricalCrypto.UCSetup using (UCSetup)
 
 import CategoricalCrypto.UC.Core.Bridge as Bridgeᴹ
 import CategoricalCrypto.UC.Core.Standard as Std
+import CategoricalCrypto.UC.Emulation as Em
 import CategoricalCrypto.UC.Family.Negligible as Negᴹ
 
 module CategoricalCrypto.UC.Family.Negligible.Setup
@@ -48,6 +50,7 @@ open import CategoricalCrypto.UC.Family.Monoidal M obsᴹ qapx bud Ix κ κ-cofi
 
 private
   module N   = Negᴹ baseᴹ qapx bud Ix κ κ-cofinal
+  module Emᴺ = Em N.UCBaseᴺ
   module GrT = Grading Grading^ω
   module 𝕄   = MonoidalCategory M
 
@@ -112,7 +115,65 @@ sub-agree^ω : {X Y A : Canonicalᴺ.Channel} (s : Canonicalᴺ._⇒_ X Y)
             → Canonicalᴺ._≈_ (GrT.sub {A = A} s) (Canonicalᴺ.sub s)
 sub-agree^ω s i = 𝕄.Equiv.refl
 
--- With the tier's own order retired (`docs/retirement-negligible-order.md`),
--- the translation lemma that was its gate evidence is retired with it: there
--- is no longer a second order to translate from.  What replaced it is
--- `≈ℰᴺ⇒≤UC` and `≈ℰⁿ⇒≤UC` above, which land in the inherited order directly.
+-- …hence one ideal process, whichever action is put in front of it.  Here and
+-- below the implicit homs are supplied for the reason recorded above.
+sub-agree^ω-∘ : {A B X Y : Canonicalᴺ.Channel}
+                (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
+                (s : Canonicalᴺ._⇒_ Y X)
+              → Canonicalᴺ._≈_ (GrT.sub s Canonicalᴺ.∘ g)
+                               (Canonicalᴺ.sub s Canonicalᴺ.∘ g)
+sub-agree^ω-∘ g s = Canonicalᴺ.∘-resp-≈ˡ
+  {f = GrT.sub s} {h = Canonicalᴺ.sub s} {g = g} (sub-agree^ω s)
+
+-- `ᵉ` marks `UC.Emulation`'s order at `N.UCBaseᴺ`, which the canonical setup
+-- replaced (`docs/retirement-negligible-order.md`): the two are the same
+-- order, `rel-agree` identifying the kernels and `sub-agree^ω` the actions.
+≈ℰᴺ⇒≈ᵁ-sub : {A B X Y : Canonicalᴺ.Channel}
+             (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
+             (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
+             (s : Canonicalᴺ._⇒_ Y X)
+           → f N.≈ℰᴺ (GrT.sub s Canonicalᴺ.∘ g)
+           → f Canonicalᴺ.≈ᵁ (Canonicalᴺ.sub s Canonicalᴺ.∘ g)
+≈ℰᴺ⇒≈ᵁ-sub f g s h = Canonicalᴺ.≈ℰᶜ⇒≈ᵁ {f = f} {g = gᵁ}
+  (Emᴺ.≈ℰ-trans {f = f} {g = gᵉ} {h = gᵁ} h
+    (Emᴺ.≈⇒≈ℰ {f = gᵉ} {g = gᵁ} (sub-agree^ω-∘ g s)))
+  where gᵉ = GrT.sub s Canonicalᴺ.∘ g
+        gᵁ = Canonicalᴺ.sub s Canonicalᴺ.∘ g
+
+≈ᵁ⇒≈ℰᴺ-sub : {A B X Y : Canonicalᴺ.Channel}
+             (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
+             (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
+             (s : Canonicalᴺ._⇒_ Y X)
+           → f Canonicalᴺ.≈ᵁ (Canonicalᴺ.sub s Canonicalᴺ.∘ g)
+           → f N.≈ℰᴺ (GrT.sub s Canonicalᴺ.∘ g)
+≈ᵁ⇒≈ℰᴺ-sub f g s h = Emᴺ.≈ℰ-trans {f = f} {g = gᵁ} {h = gᵉ}
+  (Canonicalᴺ.≈ᵁ⇒≈ℰᶜ {f = f} {g = gᵁ} h)
+  (Emᴺ.≈⇒≈ℰ {f = gᵁ} {g = gᵉ} λ i → 𝕄.Equiv.sym (sub-agree^ω-∘ g s i))
+  where gᵉ = GrT.sub s Canonicalᴺ.∘ g
+        gᵁ = Canonicalᴺ.sub s Canonicalᴺ.∘ g
+
+≤UCᵉ⇒≤UC : {A B X Y : Canonicalᴺ.Channel}
+           (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
+           (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
+         → Emᴺ._≤UC_ f g → Canonicalᴺ._≤UC_ f g
+≤UCᵉ⇒≤UC f g (s , e) = Canonicalᴺ.dummy-complete (s , ≈ℰᴺ⇒≈ᵁ-sub f g s e)
+
+≤UC⇒≤UCᵉ : {A B X Y : Canonicalᴺ.Channel}
+           (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
+           (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
+         → Canonicalᴺ._≤UC_ f g → Emᴺ._≤UC_ f g
+≤UC⇒≤UCᵉ f g p = let s , e = Canonicalᴺ.≤UC⇒dummy p in s , ≈ᵁ⇒≈ℰᴺ-sub f g s e
+
+≤UCᵉ⇔≤UC : {A B X Y : Canonicalᴺ.Channel}
+           (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
+           (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
+         → Emᴺ._≤UC_ f g ⇔ Canonicalᴺ._≤UC_ f g
+≤UCᵉ⇔≤UC f g = mk⇔ (≤UCᵉ⇒≤UC f g) (≤UC⇒≤UCᵉ f g)
+
+-- The quantified presentation of `ᵉ` needs no separate argument: the canonical
+-- order carries the quantifier in its statement.
+≤UC⇒≤UCᵉ⁺ : {A B X Y : Canonicalᴺ.Channel}
+            (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
+            (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
+          → Canonicalᴺ._≤UC_ f g → Emᴺ._≤UC⁺_ f g
+≤UC⇒≤UCᵉ⁺ f g p = Emᴺ.dummy-complete {f = f} {g = g} (≤UC⇒≤UCᵉ f g p)
