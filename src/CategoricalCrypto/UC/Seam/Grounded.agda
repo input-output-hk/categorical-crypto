@@ -237,7 +237,7 @@ subPrefixedˢ B s Y t k =
   blindˢ : Prefixedᵒ Bᵍ Bᵍ (sub s) id σ
   blindˢ = prefixedᵒ-resp-≈ Bᵍ Bᵍ (sub s) (sub s) (sub id) id σ
              Equiv.refl sub-identity
-             (prefixedᵒ-sub 𝟘ᴳ 𝟘ᴳ (ifaceᵒ B) s id σ (scalar-blindᵒ s))
+             (prefixedᵒ-⊗ˡ 𝟘ᴳ 𝟘ᴳ (ifaceᵒ B) (ifaceᵒ B) s id id σ (scalar-blindᵒ s))
 
   ancilla : Prefixedᵒ (Y ⊗₀ Bᵍ) (Y ⊗₀ Bᵍ) (id ⊗₁ sub s) id σ
   ancilla = prefixedᵒ-resp-≈ (Y ⊗₀ Bᵍ) (Y ⊗₀ Bᵍ)

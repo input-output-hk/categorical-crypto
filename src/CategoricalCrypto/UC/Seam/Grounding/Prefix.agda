@@ -91,20 +91,14 @@ opaque
   prefixedᵒ-⊗ˡ X Y A B f g h p l = L.≈ˡ-resp-scalar (λ x → >>=ₚ-identityˡ x (λ _ → p))
     (GL.⊗₁ᴳ-resp-≈ˡ l (L.≈ᴹ⇒≈ˡ S.reflᴹ))
 
+  -- The triple's `T₁` does not convert with the tensor's own action, so the
+  -- ancilla action is taken in the tensor's vocabulary, with
+  -- `CurriedTensor.Properties.T₁-⊗` at the use site.
   prefixedᵒ-⊗ʳ : (A B X Y : Gᵒ.Obj) (h : Gᵒ._⇒_ A B) (f g : Gᵒ._⇒_ X Y) (p : Dₚ ⊤ᵛ)
                → Prefixedᵒ X Y f g p
                → Prefixedᵒ (A Gᵒ.⊗₀ X) (B Gᵒ.⊗₀ Y) (Gᵒ._⊗₁_ h f) (Gᵒ._⊗₁_ h g) p
   prefixedᵒ-⊗ʳ A B X Y h f g p l = L.≈ˡ-resp-scalar (λ _ → >>=ₚ-identityʳ p)
     (GL.⊗₁ᴳ-resp-≈ˡ (L.≈ᴹ⇒≈ˡ S.reflᴹ) l)
-
-  -- The triple's `T₁` does not convert with the tensor's own action, so the
-  -- ancilla action is taken in the tensor's vocabulary (`prefixedᵒ-⊗ʳ`, with
-  -- `CurriedTensor.Properties.T₁-⊗` at the use site).
-  prefixedᵒ-sub : (X Y A : Gᵒ.Obj) (s s′ : Gᵒ._⇒_ X Y) (p : Dₚ ⊤ᵛ)
-                → Prefixedᵒ X Y s s′ p
-                → Prefixedᵒ (Gᵒ._⊗₀_ X A) (Gᵒ._⊗₀_ Y A)
-                            (Gᵒ._⊗₁_ s (Gᵒ.id {A})) (Gᵒ._⊗₁_ s′ (Gᵒ.id {A})) p
-  prefixedᵒ-sub X Y A s s′ p = prefixedᵒ-⊗ˡ X Y A A s s′ Gᵒ.id p
 
   -- The base case: the trivial grade carries no message, so a hom of it is
   -- never activated and its step equation is vacuous.
