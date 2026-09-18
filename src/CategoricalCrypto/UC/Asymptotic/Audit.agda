@@ -27,7 +27,6 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol.Machine using (morphism; runᴹ)
 open import CategoricalCrypto.Protocol.Observe using (Bounded)
 open import CategoricalCrypto.Strategy using (Strat; asks≤)
-open import CategoricalCrypto.UC.Model.Bridge using (ucBaseᵒ)
 open import CategoricalCrypto.UC.Model.Observation using (𝟘ᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
@@ -41,10 +40,9 @@ import CategoricalCrypto.UC.Seam.Grounded as Gr
 
 module CategoricalCrypto.UC.Asymptotic.Audit where
 
--- The context is spelled in `ucBaseᵒ`'s own action; `UC.Model.Setup`'s agrees
--- with it on the nose but is a different record (`UC.Seam.Audit.Context`'s
--- header).
-open import CategoricalCrypto.UC.Environment ucBaseᵒ
+-- The context is spelled in `baseᵗ`'s own action; the setup's agrees with it on
+-- the nose but is a different record (`UC.Seam.Audit.Context`'s header).
+open import CategoricalCrypto.UC.Environment baseᵗ
   using (Closure; Test; _⊛_; obs; tv₁) renaming (sub to subᵉ)
 
 open Gr using (closedᵒ; 𝟘ᴳ)

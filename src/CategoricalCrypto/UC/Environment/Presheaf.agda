@@ -11,8 +11,8 @@
 -- one row of the supersession inventory that runs from the core to the
 -- inherited layer (`docs/stduc-supersession-plan.md` §2.3), so it is proved
 -- once here rather than per instance: `UC.Environment` re-exports it at a
--- `UCBase`, `UC.Model.Environment` instantiates it at the machine model, and
--- it is what an `ℰ` at the levelwise family category will be (P6).
+-- `UCBase`, `UC.Core.Bridge` is what feeds it to `StdUC`, and it is what an
+-- `ℰ` at the levelwise family category will be (P6).
 --
 -- The parameter is the OBSERVATION alone, not a `UCBase`: no grading is spent,
 -- and at the machine model none may be — a conversion that meets two `Grading`

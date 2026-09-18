@@ -3,7 +3,7 @@
 -- The model's quantitative UC setup: the test presheaf valued in `Approx`
 -- (`docs/quantitative-uc-setup-plan.typ` §6).
 --
--- `UC.Model.Environment.ℰᵒ` compares two tests by closing the observation of
+-- `UC.Model.Setup.ℰᵒ` compares two tests by closing the observation of
 -- every closure under every positive slack.  This is the same construction with
 -- the slack still VISIBLE — the carrier is unchanged, only the equality is
 -- refined into an error-indexed family — so `ℰᵒ` is recovered as the `F₊`
@@ -33,12 +33,11 @@ open import CategoricalCrypto.Approx.Error using (ℚ-ordered)
 open import CategoricalCrypto.UC.Approximate using (Approximation; ℚ-errors)
 open import CategoricalCrypto.UC.Machine using (Approximationᴹ)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ)
-open import CategoricalCrypto.UC.Model.Environment using (_≋_)
 open import CategoricalCrypto.UC.Model.Observation
   using (Closure; Obs; Test; obs-resp; Ωᵒ; 𝟘ᵒ)
 open import CategoricalCrypto.UC.Quantitative.Query using (fromBudget; module Tests)
 open import CategoricalCrypto.UC.Model.Seal using (∣𝔾ᵒ∣; 𝔾ᵒ)
-open import CategoricalCrypto.UC.Model.Setup using (ℳ-standard)
+open import CategoricalCrypto.UC.Model.Setup using (_≋_; ℳ-standard)
 
 module CategoricalCrypto.UC.Model.Quantitative where
 
@@ -92,9 +91,9 @@ Qᵒ = record
 QSetupᵒ : QUCSetup (suc 0ℓ) (suc 0ℓ) (suc 0ℓ) (suc 0ℓ) (suc 0ℓ) (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)
 QSetupᵒ = record { 𝒞 = ∣𝔾ᵒ∣ ; ℐ = 𝔾ᵒ ; ℳ = ℳ-standard ; Q = Qᵒ }
 
--- The quantitative metatheory at this instance.  Named rather than opened, for
--- `Model.Environment`'s reason: a consumer that also opens `Model.Setup` would
--- otherwise see each of the two theories' names twice.
+-- The quantitative metatheory at this instance.  Named rather than opened: a
+-- consumer that also opens `Model.Setup` would otherwise see each of the two
+-- theories' names twice.
 module QUCᵒ = QBridge QSetupᵒ
 
 ------------------------------------------------------------------------

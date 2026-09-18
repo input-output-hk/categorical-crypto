@@ -36,9 +36,9 @@ open import CategoricalCrypto.Strategy using (Strat; asks≤)
 open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget)
 open import CategoricalCrypto.UC.Machine using (Proc)
 open import CategoricalCrypto.UC.Machine.Dictionary using (𝟭ᴵ)
-open import CategoricalCrypto.UC.Model.Bridge using (ucBaseᵒ)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ; qbᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
+open import CategoricalCrypto.UC.Model.Setup using (baseᵗ)
 open import CategoricalCrypto.UC.QueryBound using () renaming (QB to QBᴹ)
 open import CategoricalCrypto.UC.Seam.Audit
 open import CategoricalCrypto.UC.Seam.Audit.Context
@@ -52,7 +52,7 @@ open import CategoricalCrypto.Examples.HashForward Msg Dig
   using (Advᴵ; Honᴵ; Resᴵ; real; real-factors)
 open import CategoricalCrypto.Examples.HashForward.UC Msg Dig
   using (idealᵒ; realᵒ; simQB; simᵒ)
-open import CategoricalCrypto.UC.Environment ucBaseᵒ
+open import CategoricalCrypto.UC.Environment baseᵗ
   using (Obj; Test; T₁; sub; _⊛_; _∘_)
 
 private module Bud = Budget budgetᵒ

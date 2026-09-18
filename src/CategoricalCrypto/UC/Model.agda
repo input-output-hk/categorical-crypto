@@ -12,19 +12,17 @@
 --                        closed run, the two-sided identification `_∼ᴼ_`, and
 --                        the `Observation`/`ApproximateObservation` pair they
 --                        induce (`observationᵒ`, `approximateᵒ`)
---   `Model.Environment`  `ℰᵒ`: tests into `Ωᵒ` modulo closed observation, the
---                        setoid quotient `UC.Environment.Presheaf` builds out
---                        of `observationᵒ`
---   `Model.Setup`        `StdUC` at the two, hence the whole metatheory
+--   `Model.Setup`        `UC.Core.Bridge` at the two, hence the whole
+--                        metatheory, the core's `_≈ℰᶜ_` and its agreement with
+--                        `_≈ᵁ_`, and `ℰᵒ` — tests into `Ωᵒ` modulo closed
+--                        observation — as the setup's own presheaf
 --   `Model.Pin`          the metatheory's application sites, priced
 --   `Model.Reading`      `_≈ᵁ_` is the ∀-ancilla/test/closure experiment
 --   `Model.Unit`         why the choice of empty object for the closures is
 --                        immaterial: the metatheory never sees it
---   `Model.Bridge`       the hand-rolled qualitative core (`UC.Core` and below)
---                        identified with this metatheory, both directions
---                        (`UC.Core.Bridge` at the seal), the two orders, and
---                        `_≈ᴳ_` — the identification at ungraded homs, where
---                        `_≈ᵁ_` is not stated
+--   `Model.Bridge`       what the model adds to that identification: the two
+--                        orders, and `_≈ᴳ_` — the identification at ungraded
+--                        homs, where `_≈ᵁ_` is not stated
 --   `Model.Enrichment`   the budget and the mass `UC.Audit` asks of a base,
 --                        supplied here rather than assumed
 --   `Model.Dominated`    `UC.Machine.Bridge.ContextDominated` at SEAL objects
@@ -43,7 +41,7 @@
 --                        valued in `Approx`, whose `F₊` image is `ℰᵒ` again
 --
 -- The model obligations the proposal lists are then: the monoidal structure
--- (`Machines.G`, a theorem on this branch), the presheaf (`Model.Environment`)
+-- (`Machines.G`, a theorem on this branch), the presheaf (`Model.Setup`)
 -- and the observational identification (`Model.Reading`) — not another proof of
 -- the UC metatheory.  `UC.Machine.Dictionary` records how the direct relays of
 -- the parallel `UC.*` stack sit inside this one.
@@ -53,7 +51,6 @@ module CategoricalCrypto.UC.Model where
 import CategoricalCrypto.UC.Model.Bridge
 import CategoricalCrypto.UC.Model.Dominated
 import CategoricalCrypto.UC.Model.Enrichment
-import CategoricalCrypto.UC.Model.Environment
 import CategoricalCrypto.UC.Model.Family
 import CategoricalCrypto.UC.Model.Family.Ingest
 import CategoricalCrypto.UC.Model.Family.Negligible
