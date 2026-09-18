@@ -41,9 +41,9 @@ open import CategoricalCrypto.UC.Environment ucBaseᵒ using (Obs)
 
 open HomReasoning
 
--- The canonical preservation, at this setup.  Its `SaturatedProperty`,
--- `Robust`, `uc-preserves` and `uc⁺-preserves` stay qualified: the names below
--- are the observation-scoped ones, and they are different statements.
+-- The canonical preservation, at this setup.  Its `SaturatedProperty` and
+-- `Robust` stay qualified: the names below are the observation-scoped ones,
+-- and they are different statements.
 module Gen = Sel StdSetup
 
 private
@@ -52,7 +52,7 @@ private
 
 open R public
   using ( SaturatedProperty; holds; saturated; ⊤ᴾ; ∼[_]; Robust; robust-resp-≈ℰ
-        ; robust-sub; uc-preserves; uc⁺-preserves )
+        ; robust-sub )
 
 private variable A B X Y : Channel
                  p : Level

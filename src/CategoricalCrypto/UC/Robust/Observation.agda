@@ -1,16 +1,16 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Qualitative UC preservation: what an emulation carries when nothing
--- numerical is in play.
+-- The ingredients of a qualitative UC carry: what an emulation carries when
+-- nothing numerical is in play.
 --
 -- `UC.Audit.audit-carry` moves a MASS bound across an emulation and pays for
 -- the simulator's queries out of the context's budget.  The same slide works
 -- with no arithmetic under it at all, provided the property carried cannot see
 -- the difference between observationally equal runs: `SaturatedProperty` is
 -- such a property (`saturated` is exactly `_∼_`-invariance), `Robust` says it
--- survives every closing context, and `uc-preserves` is the carry — `sub s`
--- slides off the process and onto the test, so a closing context of the real
--- system is a closing context of the ideal one with the simulator in front.
+-- survives every closing context, and `robust-sub` is the slide — `sub s` comes
+-- off the process and onto the test, so a closing context of the real system is
+-- a closing context of the ideal one with the simulator in front.
 --
 -- Robustness quantifies over ALL closing contexts, and that is what makes the
 -- carry premise-free: an invariant property is closed under the absorption
@@ -27,10 +27,12 @@
 --
 -- It is stated at a `UCBase`, so it is INDEPENDENTLY scoped from the canonical
 -- `UC.Robust`, not an instance of it: an arbitrary `UCBase` supplies no graded
--- Kleisli triple, and an arbitrary `UCSetup` no closed observation.  Both are
--- available at the machine model, where `UC.Robust.Model` identifies them.
+-- Kleisli triple, and an arbitrary `UCSetup` no closed observation.  The CARRY
+-- itself is only stated there — `UC.Robust.uc-preserves`/`uc⁺-preserves` over
+-- the inherited order, which `UC.Core.Bridge.≈ℰᶜ⇒≈ᵁ`/`≈ᵁ⇒≈ℰᶜ` reads this
+-- layer's agreement into.  Both are available at the machine model, where
+-- `UC.Robust.Model` identifies them.
 
-open import Data.Product.Base using (_,_)
 open import Data.Unit.Base using (⊤; tt)
 
 open import Level using (Level; 0ℓ; _⊔_; suc)
@@ -40,9 +42,9 @@ open import CategoricalCrypto.UC.Core using (UCBase)
 module CategoricalCrypto.UC.Robust.Observation
   {o ℓ e os ℓs} (base : UCBase o ℓ e os ℓs) where
 
-open import CategoricalCrypto.UC.Emulation base
+open import CategoricalCrypto.UC.Environment base
 
-private variable A B′ X Y Z : Obj
+private variable A B′ X Y : Obj
                  p : Level
 
 ------------------------------------------------------------------------
@@ -96,23 +98,3 @@ robust-sub : (𝔓 : SaturatedProperty p) {g : A ⇒ Y ⊛ B′} (s : Y ⇒ X)
 robust-sub 𝔓 {g} s rob W Et m =
   saturated 𝔓 (⟦⟧-resp-≈ (Equiv.sym (∘-resp-≈ˡ (tv₁-∘ W (sub s) g Et))))
               (rob W (tv₁ W (sub s) Et) m)
-
-------------------------------------------------------------------------
--- Preservation
-
--- The carry: a robust invariant property of the ideal system is one of the
--- real system.  The emulation's simulator goes into the test, the ideal
--- robustness is invoked at the extended context, and the emulation's own
--- agreement brings the property back.
-uc-preserves : (𝔓 : SaturatedProperty p) {f : A ⇒ X ⊛ B′} {g : A ⇒ Y ⊛ B′}
-             → f ≤UC g → Robust 𝔓 g → Robust 𝔓 f
-uc-preserves 𝔓 (s , e) rob = robust-resp-≈ℰ 𝔓 e (robust-sub 𝔓 s rob)
-
--- The dummy-adversary form, at the same cost: the emulation supplies a
--- simulator per adversary, so the conclusion is about the real system with that
--- adversary attached.  `dummy-complete` makes this the weaker statement of the
--- two, not a second theorem.
-uc⁺-preserves : (𝔓 : SaturatedProperty p) {f : A ⇒ X ⊛ B′} {g : A ⇒ Y ⊛ B′}
-              → f ≤UC⁺ g → Robust 𝔓 g → (a : X ⇒ Z) → Robust 𝔓 (sub a ∘ f)
-uc⁺-preserves 𝔓 le rob a =
-  let s , e = le a in robust-resp-≈ℰ 𝔓 e (robust-sub 𝔓 s rob)
