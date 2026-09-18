@@ -16,7 +16,8 @@ open import Data.Rational.Properties
   using (+-identityʳ; +-identityˡ; +-mono-≤; ≤-refl; ≤-reflexive; ≤-trans)
 open import Level using (Level; 0ℓ; suc; _⊔_)
 
-open import CategoricalCrypto.UC.Approximate using (ErrorAlgebra; ℚ-errors)
+open import CategoricalCrypto.UC.Approximate
+  using (Approximation; ErrorAlgebra; ℚ-errors)
 
 module CategoricalCrypto.Approx.Error where
 
@@ -41,3 +42,15 @@ record OrderedErrorAlgebra (es ℓe : Level) : Set (suc (es ⊔ ℓe)) where
   ; ⊕-identityʳ = λ {ε} → ≤-reflexive (+-identityʳ ε)
   ; ⊕-mono      = +-mono-≤
   }
+
+-- The second law of the header, as the splice its users spend it as: a bound
+-- survives a zero-error change of either endpoint.
+module _ {es ℓe os ℓa : Level} (E : OrderedErrorAlgebra es ℓe) {Obs : Set os}
+         (A : Approximation Obs (OrderedErrorAlgebra.errors E) ℓa) where
+  open OrderedErrorAlgebra E using (⊑-refl; ⊑-trans; ⊕-identityˡ; ⊕-identityʳ; ⊕-mono)
+  open Approximation A using (Error; ε₀; _≈[_]_; ≈[]-mono; ≈[]-trans)
+
+  ≈[]-resp₀ : {x x′ y y′ : Obs} {ε : Error}
+            → x′ ≈[ ε₀ ] x → y ≈[ ε₀ ] y′ → x ≈[ ε ] y → x′ ≈[ ε ] y′
+  ≈[]-resp₀ l r h = ≈[]-mono (⊑-trans (⊕-mono ⊕-identityˡ ⊑-refl) ⊕-identityʳ)
+                             (≈[]-trans (≈[]-trans l h) r)

@@ -24,13 +24,12 @@ open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Level using (Level; _⊔_)
 open import Relation.Binary.PropositionalEquality using (cong; subst; trans)
 
-open import CategoricalCrypto.Approx.Error using (ℚ-ordered)
+open import CategoricalCrypto.Approx.Error using (ℚ-ordered; ≈[]-resp₀)
 open import CategoricalCrypto.UC.Approximate using (Approximation; ℚ-errors)
 open import CategoricalCrypto.UC.Budget
   using (Budget; ctxBudget; ctxBudget-simCost; simCost)
 open import CategoricalCrypto.UC.Core using (Grading)
 
-import CategoricalCrypto.Approx.Space as Spaceᴹ
 import Data.Nat.Properties as ℕₚ
 
 module CategoricalCrypto.UC.Quantitative.Contextual
@@ -47,12 +46,7 @@ open Category 𝒞
 open Grading G
 open Budget Bg
 
-private
-  module Oq = Spaceᴹ ℚ-ordered
-  module A  = Approximation Ap
-
-  obsSpace : Oq.ApproxSpace os ℓa
-  obsSpace = record { Carrier = Obs ; approx = Ap }
+private module A = Approximation Ap
 
 private variable A B X Y Z : Obj
 
@@ -88,7 +82,7 @@ ctx-mono _ _ le h W E m qE qm = A.≈[]-mono (le _) (h W E m qE qm)
 -- The ambient hom equality is observed exactly, `T₁` and the context included.
 ctx-resp : (ε : ℕ → ℚ) {f f′ g g′ : A ⇒ X ⊛ B}
          → f ≈ f′ → g ≈ g′ → f ≈ᵁᵠ[ ε ] g → f′ ≈ᵁᵠ[ ε ] g′
-ctx-resp _ ef eg h W E m qE qm = Oq.resp₀ obsSpace
+ctx-resp _ ef eg h W E m qE qm = ≈[]-resp₀ ℚ-ordered Ap
   (obs-resp (∘-resp-≈ˡ (∘-resp-≈ʳ (T₁-resp-≈ (Equiv.sym ef)))))
   (obs-resp (∘-resp-≈ˡ (∘-resp-≈ʳ (T₁-resp-≈ eg))))
   (h W E m qE qm)
@@ -106,7 +100,7 @@ ctx-absorb : (ε : ℕ → ℚ) (cs : ℕ) {A B X B′ X′ : Obj}
            → ((W : Obj) → T₁ W g′ ≈ κ W ∘ T₁ W g)
            → f ≈ᵁᵠ[ ε ] g → f′ ≈ᵁᵠ[ (λ q → ε (simCost q cs)) ] g′
 ctx-absorb ε cs {f = f} {g = g} κ qκ stepf stepg h W E m {c} {c′} qE qm =
-  Oq.resp₀ obsSpace
+  ≈[]-resp₀ ℚ-ordered Ap
     (obs-resp (∘-resp-≈ˡ (Equiv.trans (∘-resp-≈ʳ (stepf W)) sym-assoc)))
     (obs-resp (Equiv.sym (∘-resp-≈ˡ (Equiv.trans (∘-resp-≈ʳ (stepg W)) sym-assoc))))
     (subst (λ k → ⟦ ((E ∘ κ W) ∘ T₁ W f) ∘ m ⟧ A.≈[ ε k ]

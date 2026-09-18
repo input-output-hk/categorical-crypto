@@ -27,7 +27,8 @@ open import Level using (Level; suc; _⊔_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; cong; cong₂; refl; sym; trans)
 
-open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra; ℚ-ordered)
+open import CategoricalCrypto.Approx.Error
+  using (OrderedErrorAlgebra; ℚ-ordered; ≈[]-resp₀)
 open import CategoricalCrypto.Approx.Schedule using (pointwise; module Reindexing)
 open import CategoricalCrypto.UC.Approximate using (Approximation; ℚ-errors)
 open import CategoricalCrypto.UC.Budget
@@ -103,16 +104,11 @@ module Tests
   private
     module Sp = Spaceᴹ Sched
     module Fl = Filteredᴹ Sched
-    module Oq = Spaceᴹ ℚ-ordered
     module A  = Approximation Ap
 
   Test Closure : Obj → Set ℓ
   Test C    = C ⇒ Ω
   Closure C = 𝟙 ⇒ C
-
-  -- The observation's own space, for the zero-error splice `resp₀`.
-  obsSpace : Oq.ApproxSpace os ℓa
-  obsSpace = record { Carrier = Obs ; approx = Ap }
 
   ------------------------------------------------------------------------
   -- Tests at a schedule
@@ -193,7 +189,7 @@ module Tests
         { map     = λ E → E ∘ hom h
         ; control = reindex (λ c′ → budget h ℕ.* c′)
         ; preserves = λ hyp n c″ qbn →
-            Oq.resp₀ obsSpace (obs-resp assoc) (obs-resp sym-assoc)
+            ≈[]-resp₀ ℚ-ordered Ap (obs-resp assoc) (obs-resp sym-assoc)
               (hyp (hom h ∘ n) (budget h ℕ.* c″) (qb-∘ (certified h) qbn))
         }
     ; allowance = record

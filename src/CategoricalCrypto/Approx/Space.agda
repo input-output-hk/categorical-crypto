@@ -15,7 +15,7 @@ open import Level using (Level; suc; _⊔_)
 open import Relation.Binary.Bundles using (Setoid)
 open import Relation.Binary.Structures using (IsEquivalence)
 
-open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
+open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra; ≈[]-resp₀)
 open import CategoricalCrypto.UC.Approximate using (Approximation)
 
 module CategoricalCrypto.Approx.Space {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe) where
@@ -41,8 +41,7 @@ module _ (X : ApproxSpace c ℓa) where
 
   resp₀ : {x x′ y y′ : Carrier} {ε : Error}
         → x′ ≈[ ε₀ ] x → y ≈[ ε₀ ] y′ → x ≈[ ε ] y → x′ ≈[ ε ] y′
-  resp₀ l r h = ≈[]-mono (⊑-trans (⊕-mono ⊕-identityˡ ⊑-refl) ⊕-identityʳ)
-                         (≈[]-trans (≈[]-trans l h) r)
+  resp₀ = ≈[]-resp₀ E approx
 
   zero⇒positive : {x y : Carrier} → x ≈[ ε₀ ] y → x ∼ᵃ y
   zero⇒positive h _ pos = ≈[]-mono (ε₀-least pos) h
