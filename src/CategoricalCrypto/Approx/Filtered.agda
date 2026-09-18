@@ -35,7 +35,8 @@ record FilteredSpace (c ℓa ℓd : Level) : Set (suc (c ⊔ ℓa ⊔ ℓd) ⊔ 
   field
     space : ApproxSpace c ℓa
 
-  open ApproxSpace space public using (Carrier)
+  open ApproxSpace space public
+    using (Carrier; _≈[_]_; ≈[]-refl; ≈[]-sym; ≈[]-trans; ≈[]-mono)
 
   field
     Admit      : ℕ → Carrier → Set ℓd
@@ -86,7 +87,7 @@ module _ {X Y : FilteredSpace c ℓa ℓd} where
   -- spaces arrive as projections of `X`/`Y` and are not inferable here.
   ≈ᶠ-isEquivalence : IsEquivalence _≈ᶠ_
   ≈ᶠ-isEquivalence = record
-    { refl  = (((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → SY.≈[]-refl) , λ _ → refl
+    { refl  = (≐-reflexive refl , λ _ → SY.≈[]-refl) , λ _ → refl
     ; sym   = λ (((l , r) , me) , ae) →
         ((r , l) , λ x → SY.≈[]-sym (me x)) , λ q → sym (ae q)
     ; trans = λ (((l₁ , r₁) , me₁) , ae₁) (((l₂ , r₂) , me₂) , ae₂) →
@@ -94,7 +95,7 @@ module _ {X Y : FilteredSpace c ℓa ℓd} where
         , λ x → SY.≈[]-mono ⊕-identityˡ (SY.≈[]-trans (me₁ x) (me₂ x)) )
         , λ q → trans (ae₁ q) (ae₂ q)
     }
-    where module SY = ApproxSpace (FilteredSpace.space Y)
+    where module SY = FilteredSpace Y
 
 identityᶠ : {X : FilteredSpace c ℓa ℓd} → Filtered X X
 identityᶠ = record { underlying = identityᶜ ; allowance = idᵃ ; admits = λ a → a }
@@ -127,24 +128,13 @@ Filt c ℓa ℓd = record
   ; _≈_       = _≈ᶠ_
   ; id        = identityᶠ
   ; _∘_       = composeᶠ
-  -- Each law holds because only the two `at` projections and the underlying
-  -- function are compared, and those reduce; the records themselves do not
-  -- (a composite control's own law fields are built with `⊑-trans`).
   ; assoc     = λ {_} {_} {_} {D} →
-      (((λ _ → ⊑-refl) , λ _ → ⊑-refl)
-      , λ _ → ApproxSpace.≈[]-refl (FilteredSpace.space D)) , λ _ → refl
+      (≐-reflexive refl , λ _ → FilteredSpace.≈[]-refl D) , λ _ → refl
   ; sym-assoc = λ {_} {_} {_} {D} →
-      (((λ _ → ⊑-refl) , λ _ → ⊑-refl)
-      , λ _ → ApproxSpace.≈[]-refl (FilteredSpace.space D)) , λ _ → refl
-  ; identityˡ = λ {_} {B} →
-      (((λ _ → ⊑-refl) , λ _ → ⊑-refl)
-      , λ _ → ApproxSpace.≈[]-refl (FilteredSpace.space B)) , λ _ → refl
-  ; identityʳ = λ {_} {B} →
-      (((λ _ → ⊑-refl) , λ _ → ⊑-refl)
-      , λ _ → ApproxSpace.≈[]-refl (FilteredSpace.space B)) , λ _ → refl
-  ; identity² = λ {A} →
-      (((λ _ → ⊑-refl) , λ _ → ⊑-refl)
-      , λ _ → ApproxSpace.≈[]-refl (FilteredSpace.space A)) , λ _ → refl
+      (≐-reflexive refl , λ _ → FilteredSpace.≈[]-refl D) , λ _ → refl
+  ; identityˡ = λ {_} {B} → (≐-reflexive refl , λ _ → FilteredSpace.≈[]-refl B) , λ _ → refl
+  ; identityʳ = λ {_} {B} → (≐-reflexive refl , λ _ → FilteredSpace.≈[]-refl B) , λ _ → refl
+  ; identity² = λ {A} → (≐-reflexive refl , λ _ → FilteredSpace.≈[]-refl A) , λ _ → refl
   ; equiv     = λ {A} {B} → ≈ᶠ-isEquivalence {X = A} {Y = B}
   ; ∘-resp-≈  = λ {A} {B} {C} {f} {h} {g} {i} →
       composeᶠ-resp {X = A} {Y = B} {Z = C} {g = f} {g′ = h} {f = g} {f′ = i}

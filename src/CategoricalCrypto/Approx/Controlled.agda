@@ -26,6 +26,7 @@ open import Categories.Functor using (Functor)
 
 open import Data.Product.Base using (_×_; _,_)
 open import Level using (Level; suc; _⊔_)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Relation.Binary.Structures using (IsEquivalence)
 
 open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
@@ -80,10 +81,20 @@ record Controlled (X Y : ApproxSpace c ℓa) : Set (c ⊔ es ⊔ ℓe ⊔ ℓa) 
     preserves : {x y : X.Carrier} {ε : Error}
               → x X.≈[ ε ] y → map x Y.≈[ at control ε ] map y
 
-infix 4 _≐ᶜ_
+infix 4 _≐_ _≐ᶜ_
+
+_≐_ : (Error → Error) → (Error → Error) → Set (es ⊔ ℓe)
+f ≐ g = ((ε : Error) → f ε ⊑ g ε) × ((ε : Error) → g ε ⊑ f ε)
 
 _≐ᶜ_ : Control → Control → Set (es ⊔ ℓe)
-φ ≐ᶜ ψ = ((ε : Error) → at φ ε ⊑ at ψ ε) × ((ε : Error) → at ψ ε ⊑ at φ ε)
+φ ≐ᶜ ψ = at φ ≐ at ψ
+
+-- Every law below is this at `refl`.  It is stated on the transformations
+-- because the controls themselves are NOT equal there (a composite's own law
+-- fields are built with `⊑-trans`), which leaves a `{φ : Control} → φ ≐ᶜ φ`
+-- with no solvable `φ`.
+≐-reflexive : {f g : Error → Error} → f ≡ g → f ≐ g
+≐-reflexive refl = (λ _ → ⊑-refl) , λ _ → ⊑-refl
 
 module _ {X Y : ApproxSpace c ℓa} where
   private module Y = ApproxSpace Y
@@ -98,7 +109,7 @@ module _ {X Y : ApproxSpace c ℓa} where
 
   ≈ᶜ-isEquivalence : IsEquivalence _≈ᶜ_
   ≈ᶜ-isEquivalence = record
-    { refl  = ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → Y.≈[]-refl
+    { refl  = ≐-reflexive refl , λ _ → Y.≈[]-refl
     ; sym   = λ ((l , r) , me) → (r , l) , λ x → Y.≈[]-sym (me x)
     ; trans = λ ((l₁ , r₁) , me₁) ((l₂ , r₂) , me₂) →
         ( (λ ε → ⊑-trans (l₁ ε) (l₂ ε)) , λ ε → ⊑-trans (r₂ ε) (r₁ ε) )
@@ -139,11 +150,11 @@ Ctrl c ℓa = record
   ; _≈_       = _≈ᶜ_
   ; id        = identityᶜ
   ; _∘_       = composeᶜ
-  ; assoc     = λ {_} {_} {_} {D} → ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → ApproxSpace.≈[]-refl D
-  ; sym-assoc = λ {_} {_} {_} {D} → ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → ApproxSpace.≈[]-refl D
-  ; identityˡ = λ {_} {B} → ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → ApproxSpace.≈[]-refl B
-  ; identityʳ = λ {_} {B} → ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → ApproxSpace.≈[]-refl B
-  ; identity² = λ {A} → ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → ApproxSpace.≈[]-refl A
+  ; assoc     = λ {_} {_} {_} {D} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl D
+  ; sym-assoc = λ {_} {_} {_} {D} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl D
+  ; identityˡ = λ {_} {B} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl B
+  ; identityʳ = λ {_} {B} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl B
+  ; identity² = λ {A} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl A
   ; equiv     = λ {A} {B} → ≈ᶜ-isEquivalence {X = A} {Y = B}
   ; ∘-resp-≈  = λ {A} {B} {C} {f} {h} {g} {i} →
       composeᶜ-resp {X = A} {Y = B} {Z = C} {g = f} {g′ = h} {f = g} {f′ = i}
@@ -160,7 +171,7 @@ include : Functor (Approx c ℓa) (Ctrl c ℓa)
 include = record
   { F₀ = λ X → X
   ; F₁ = controlled
-  ; identity     = λ {A} → ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → ApproxSpace.≈[]-refl A
-  ; homomorphism = λ {_} {_} {Z} → ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , λ _ → ApproxSpace.≈[]-refl Z
-  ; F-resp-≈     = λ {_} {B} e → ((λ _ → ⊑-refl) , λ _ → ⊑-refl) , e
+  ; identity     = λ {A} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl A
+  ; homomorphism = λ {_} {_} {Z} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl Z
+  ; F-resp-≈     = λ {_} {B} e → ≐-reflexive refl , e
   }
