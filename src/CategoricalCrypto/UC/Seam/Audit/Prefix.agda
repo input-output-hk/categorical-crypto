@@ -36,7 +36,6 @@ open import CategoricalCrypto.Protocol.Machine using (morphism; runᴹ)
 open import CategoricalCrypto.Protocol.Observe using (Bounded)
 open import CategoricalCrypto.Strategy using (Strat; asks≤; asks≤-mono)
 open import CategoricalCrypto.UC.Approximate using (Mass)
-open import CategoricalCrypto.UC.Model.Bridge using (_≈ℰᶜ_; ucBaseᵒ)
 open import CategoricalCrypto.UC.Model.Enrichment using (massᵒ)
 open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ; obs-resp)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
@@ -54,7 +53,7 @@ open import CategoricalCrypto.UC.Seam.Slide using (slide⊗)
 
 module CategoricalCrypto.UC.Seam.Audit.Prefix where
 
-open import CategoricalCrypto.UC.Environment ucBaseᵒ using (obs; tv₁)
+open import CategoricalCrypto.UC.Environment baseᵗ using (obs; tv₁)
 
 open HomReasoning
 open Mass massᵒ using (dominate)

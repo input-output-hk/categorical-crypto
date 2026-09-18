@@ -29,7 +29,6 @@ open import Data.Sum.Base using (inj₁; inj₂)
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.UC.Machine using (wireᴹ)
-open import CategoricalCrypto.UC.Model.Environment using (ℰᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 

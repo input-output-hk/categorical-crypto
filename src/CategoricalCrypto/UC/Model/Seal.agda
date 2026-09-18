@@ -16,7 +16,7 @@
 --      `unfolding`.  The seal hides `_⊗₀_` as well, so the tensor equation
 --      below has to be exported too — it is not derivable outside.
 --   4. The presheaf may be CONCRETE, because `ifaceᵒ` names objects of the seal
---      without breaking it (`UC.Model.Environment`).
+--      without breaking it (`UC.Model.Setup`).
 --
 -- `ifaceᵒ` is `Protocol.Machine.⟦_⟧ᴵ`, so a hom of the seal at interface
 -- objects IS a `UC.Machine.Proc` and its equality IS the machine layer's

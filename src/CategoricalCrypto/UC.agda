@@ -31,6 +31,9 @@
 --                                  `gradingᵗ`: a monoidal category grades
 --                                  itself — the inherited `UCSetup` doctrine's
 --                                  action, weakened to what the core asks
+--                `UC.Core.Bridge`  `StdUC` over that grading's own presheaf,
+--                                  so the core's `_≈ℰᶜ_` IS the inherited
+--                                  `_≈ᵁ_` and the inherited order follows
 --   enrichment   `UC.Approximate`  `ErrorAlgebra`, `Approximation`,
 --                                  `ApproximateObservation`, `Induced`, `Mass`
 --                `UC.Budget`       `Budget`, `ctxBudget` — the resource doctrine
@@ -257,8 +260,9 @@
 -- the measured recipe without which the setup does not typecheck at all — so
 -- its names only make sense inside that `open StdUC` discipline.
 -- `UC.Core.Bridge` identifies the two — generic in the base and the
--- observation, applied at the seal by `UC.Model.Bridge`, which keeps what only
--- the model has — and `UC.Seam.Grounded` above is where they meet.
+-- observation, and `UC.Model.Setup` IS that application at the seal, with
+-- `UC.Model.Bridge` keeping what only the model has — and `UC.Seam.Grounded`
+-- above is where they meet.
 -- `CategoricalCrypto` reaches both roots.
 --
 -- The inherited layer's own preservation theorem lives there too, not here:

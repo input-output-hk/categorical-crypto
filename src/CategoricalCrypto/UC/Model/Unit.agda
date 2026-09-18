@@ -42,9 +42,9 @@ open import Level using (0ℓ; suc)
 open import ProbabilisticLogic.Dp using (Dₚ)
 
 open import CategoricalCrypto.Standard2 using (module StdUC)
-open import CategoricalCrypto.UC.Model.Environment using (_≋_)
 open import CategoricalCrypto.UC.Model.Observation
 open import CategoricalCrypto.UC.Model.Seal using (∣𝔾ᵒ∣; 𝔾ᵒ)
+open import CategoricalCrypto.UC.Model.Setup using (_≋_)
 
 module CategoricalCrypto.UC.Model.Unit where
 

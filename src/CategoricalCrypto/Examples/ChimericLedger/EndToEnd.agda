@@ -76,7 +76,6 @@ open import CategoricalCrypto.UC.Approximate.Decay
 open import CategoricalCrypto.UC.Asymptotic
 open import CategoricalCrypto.UC.Asymptotic.Audit
 open import CategoricalCrypto.UC.Asymptotic.Family using (_≤UC^ωⁿ_; ≤UC^ωⁿ⇒≈negl)
-open import CategoricalCrypto.UC.Model.Bridge using (≈ℰᶜ⇒≈ᵁ; ucBaseᵒ)
 open import CategoricalCrypto.UC.Model.Observation using (𝟘ᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
@@ -92,9 +91,9 @@ module CategoricalCrypto.Examples.ChimericLedger.EndToEnd
 
 open import CategoricalCrypto.Examples.ChimericLedger.Schedule ser
 
--- The carry's context is spelled in `ucBaseᵒ`'s own action, not
--- `UC.Model.Setup`'s (`UC.Asymptotic.Audit`'s note).
-open import CategoricalCrypto.UC.Environment ucBaseᵒ
+-- The carry's context is spelled in `baseᵗ`'s own action, not the setup's
+-- (`UC.Asymptotic.Audit`'s note).
+open import CategoricalCrypto.UC.Environment baseᵗ
   using (Closure; Test; _⊛_; obs; tv₁) renaming (sub to subᵉ)
 
 private

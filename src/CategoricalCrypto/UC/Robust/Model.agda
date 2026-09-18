@@ -6,11 +6,11 @@
 -- The carry is the CANONICAL one: `UC.Robust` at `UC.Model.Setup`, whose
 -- premise is the inherited `_≤UC_` directly — `≤UC⇒dummy` supplies the
 -- simulator, so the detour through the core's order has left this proof
--- (`UC.Model.Bridge.≤UC⇒≤UCᶜ` stays; it is the seam's own two-way identification of
--- the orders, whose gate is importer migration, not this one call).  What connects it
--- to the observation-scoped statements is `propᵒ`, the adapter turning an
--- observation-invariant predicate into a saturated predicate on tests, and
--- `UC.Model.Reading`'s bracketing shuffle.
+-- (`UC.Model.Bridge.≤UC⇒≤UCᶜ` stays; it is the seam's own two-way
+-- identification of the orders, whose gate is importer migration, not this one
+-- call).  What connects it to the observation-scoped statements is `propᵒ`,
+-- the adapter turning an observation-invariant predicate into a saturated
+-- predicate on tests, and `UC.Model.Reading`'s bracketing shuffle.
 --
 -- `UC.Robust.Observation` keeps its own scope and is not derived: it is stated
 -- at an arbitrary `UCBase`, where there is no graded Kleisli triple.  Its names
@@ -25,7 +25,6 @@ open import Data.Unit.Base using (tt)
 open import Level using (Level; 0ℓ; _⊔_; suc)
 
 open import CategoricalCrypto.Iface using (Iface)
-open import CategoricalCrypto.UC.Model.Bridge using (ucBaseᵒ)
 open import CategoricalCrypto.UC.Model.Pin using (relayᵒ)
 open import CategoricalCrypto.UC.Model.Reading using (shuffle⇒; shuffle⇐)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
@@ -37,7 +36,7 @@ import CategoricalCrypto.UC.Robust.Selected as Sel
 
 module CategoricalCrypto.UC.Robust.Model where
 
-open import CategoricalCrypto.UC.Environment ucBaseᵒ using (Obs)
+open import CategoricalCrypto.UC.Environment baseᵗ using (Obs)
 
 open HomReasoning
 
@@ -47,8 +46,8 @@ open HomReasoning
 module Gen = Sel StdSetup
 
 private
-  module Core = Env ucBaseᵒ
-  module R = RobO ucBaseᵒ
+  module Core = Env baseᵗ
+  module R = RobO baseᵗ
 
 open R public
   using ( SaturatedProperty; holds; saturated; ⊤ᴾ; ∼[_]; Robust; robust-resp-≈ℰ

@@ -53,7 +53,6 @@ open import CategoricalCrypto.UC.Approximate.Separating
 open import CategoricalCrypto.UC.Asymptotic using (_≤UC^ω_)
 open import CategoricalCrypto.UC.Asymptotic.Contextual
 open import CategoricalCrypto.UC.Budget using (Budget)
-open import CategoricalCrypto.UC.Model.Bridge using (≈ᵁ⇒≈ℰᶜ)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ)
 open import CategoricalCrypto.UC.Model.Family
   using ( Obj^ω; Δ; _⇒^ω_; _⊛ω_; PolyQB; _≈ℰ[_]_; _≈ℰⁿ_; absorb-negl

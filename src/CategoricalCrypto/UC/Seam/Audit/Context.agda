@@ -52,7 +52,6 @@ open import CategoricalCrypto.UC.Graded using (plug-graded)
 open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; Ωᴵ)
 open import CategoricalCrypto.UC.Machine.Dictionary using (𝟭ᴵ)
 open import CategoricalCrypto.UC.Machine.Plug using (plugᴹ)
-open import CategoricalCrypto.UC.Model.Bridge using (ucBaseᵒ)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ; procᵘ; qbᵒ; qbᵘ)
 open import CategoricalCrypto.UC.Model.Graded using (procᵘ-∘)
 open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ; obs-resp)
@@ -68,11 +67,11 @@ open import CategoricalCrypto.UC.Seam.Slide using (slide⊗)
 
 module CategoricalCrypto.UC.Seam.Audit.Context where
 
--- The budget certificates are stated over `ucBaseᵒ`'s own grading, which is
--- `gradingᵗ 𝔾ᵒ` where `UC.Model.Setup`'s is the curried tensor's: the two
--- actions agree on the nose but their records do not, so a `qb-sub`/`qb-T₁`
--- consumer has to spell the action with THIS one.
-open import CategoricalCrypto.UC.Environment ucBaseᵒ
+-- The budget certificates are stated over `baseᵗ`'s own grading, which is
+-- `gradingᵗ 𝔾ᵒ` where the setup's is the curried tensor's: the two actions
+-- agree on the nose but their records do not, so a `qb-sub`/`qb-T₁` consumer
+-- has to spell the action with THIS one.
+open import CategoricalCrypto.UC.Environment baseᵗ
   using (obs; tv₁)
   renaming (T₁ to T₁ᵉ; sub to subᵉ; T₁-∘ to T₁ᵉ-∘; T₁-resp-≈ to T₁ᵉ-resp-≈;
             sub-∘ to subᵉ-∘; sub-resp-≈ to subᵉ-resp-≈)

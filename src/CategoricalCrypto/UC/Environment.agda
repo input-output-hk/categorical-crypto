@@ -48,7 +48,7 @@ private variable A B′ C′ X Y : Obj
 -- Tests, closures, and the presheaf the inherited doctrine asks for
 
 -- Spending only the observation, so it is proved there — once for this layer,
--- the machine model (`UC.Model.Environment`) and the levelwise family (P6).
+-- the machine model (`UC.Model.Setup`) and the levelwise family (P6).
 open import CategoricalCrypto.UC.Environment.Presheaf 𝒞 observation public
 
 ------------------------------------------------------------------------
