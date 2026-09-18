@@ -138,7 +138,8 @@ _≈ℰ[_]_ {A} {B} f ε g = (Y : Channel) (Et : Test (Y ⊗₀ B)) (m : Closure
 ≈ℰ[]⇔≈ᵁ[] : {f g : A ⇒ T₀ X B} → (f ≈ℰ[ ε ] g) ⇔ (f Quant.≈ᵁ[ ε ] g)
 ≈ℰ[]⇔≈ᵁ[] = mk⇔ ≈ℰ[]⇒≈ᵁ[] ≈ᵁ[]⇒≈ℰ[]
 
--- `induces` read at the environment level: closeness at every positive error
--- IS the core's agreement — `positive-agreement⇐` across the equivalence above.
+-- `_≈ℰ[ ε ]_` is where a security statement is PROVED, `_≈ℰᶜ_` where one lands,
+-- and `absorbᵘ` is `induces` read at the environment level.  The slack may not
+-- depend on a budget here; that is one layer up, at `UC.Family.absorb`.
 absorbᵘ : {f g : A ⇒ B} → ((ε : Error) → Positive ε → f ≈ℰ[ ε ] g) → f ≈ℰᶜ g
 absorbᵘ h Y Et m = induces λ ε pos → h ε pos Y Et m
