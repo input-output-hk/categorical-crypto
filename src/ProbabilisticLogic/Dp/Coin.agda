@@ -9,6 +9,7 @@
 
 open import Data.Bool.Base
 open import Data.Nat.Base
+open import Data.Product.Base using (_,_)
 open import Data.Rational as ℚ
 open import Data.Rational.Properties as ℚP
 open import Data.Rational.Properties.Ext
@@ -120,3 +121,32 @@ coin-flip μ eq {f} {g} h =
 
 uniform-balanced : E uniform-Bool bool→ℚ ≡ E uniform-Bool ind˘
 uniform-balanced = refl
+
+------------------------------------------------------------------------
+-- A coin is affine
+
+private
+  -- The two branch masses sum to one, so a continuation that ignores the draw
+  -- is scored by the coin exactly as it is on its own — two steps later.
+  const-cum : (μ : Dist-ℚ Bool) (e : Dₚ A) (Q : A → ℚ) (n : ℕ)
+            → cum (suc (suc n)) (coinₚ μ >>=ₚ (λ _ → e)) Q ≡ cum n e Q
+  const-cum μ e Q n =
+    trans (branch μ (λ _ → e) Q n)
+          (trans (sym (ℚP.*-distribʳ-+ (cum n e Q) (E μ bool→ℚ) (E μ ind˘)))
+                 (trans (cong (ℚ._* cum n e Q) (masses-1 μ))
+                        (ℚP.*-identityˡ (cum n e Q))))
+
+-- `Dₚ` has divergence, so binding away a draw is not free in general — `botₚ`
+-- annihilates every continuation.  A coin terminates with total mass one, and
+-- for it the equation holds: this is what lets a deferred draw be introduced
+-- where nothing reads it (`CategoricalCrypto.GamePlaying.Defer.Run`).
+coinₚ-const : (μ : Dist-ℚ Bool) (e : Dₚ A) → (coinₚ μ >>=ₚ (λ _ → e)) ≈ₚ e
+coinₚ-const μ e = below , above
+  where
+  below : (coinₚ μ >>=ₚ (λ _ → e)) ≼ₚ e
+  below Q nn zero          = 0 , ℚP.≤-refl
+  below Q nn (suc zero)    = 0 , ℚP.≤-reflexive (cum-1-bind (coinₚ μ) (λ _ → e) Q)
+  below Q nn (suc (suc n)) = n , ℚP.≤-reflexive (const-cum μ e Q n)
+
+  above : e ≼ₚ (coinₚ μ >>=ₚ (λ _ → e))
+  above Q nn n = suc (suc n) , ℚP.≤-reflexive (sym (const-cum μ e Q n))

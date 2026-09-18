@@ -3804,3 +3804,93 @@ escape-hatch grep 16 tree-wide, unchanged.
   unsolved (they occur only under projections, as for `≐ᶜ-refl` above).
 - `UC/Quantitative/Query.agda :: filteredᵠ` — `Admit = λ q E → QB q E` does not
   eta-reduce to `Admit = QB` (`UnequalHiding`; `QB`'s object arguments are implicit).
+
+## Resolved (receiver-hop)
+
+The second hop at the other corruption: Blum coin-tossing over the hash-based
+commitment, over the concrete resource, emulates an IDEAL COIN against a
+corrupted RECEIVER — at `+2⁻ⁿ`, not exactly. `docs/coin-toss.md` §5's last
+subsection and §8 item 1 are rewritten around it; what follows is what needs
+the maintainer's judgment.
+
+### Two general pieces sit at the example and belong upstream
+
+- `Examples/CoinToss/Ideal/Receiver/Dominated.agda :: dominatedᵍ` — this IS
+  `UC.Model.Dominated.dominatedᵒ` with the grade nontrivial, and nothing in
+  the module mentions the coin toss. It belongs beside `dominatedᵒ`; it is at
+  the example only because this branch's brief reserved `UC/` for two other
+  agents. Moving it is a file move plus one import. Its helpers want two
+  different homes: `λᴵ⇒` is `UC.Machine.Bridge.λᴵ⇐`'s retraction and belongs
+  there, and `sandwich-id`/`unit-cancel`/`T₁-conj`/`ctxRun-conj` belong in
+  `UC.Machine.Slide`, whose `slideᴹ` is the lemma they feed.
+  **Maintainer call:** whether `dominatedᵍ` should REPLACE `dominatedᵒ` — the
+  latter is its `P := unitᴵ` case composed with the unitor, so one statement
+  could serve both — or sit beside it. I did not merge them because
+  `dominatedᵒ` has consumers (`UC.Model.Family.Ingest`) and rule 1 forbids
+  restating a theorem to make a new one fit.
+- `Examples/CoinToss/Ideal/Receiver/UC.agda :: regrade` — the seal keeps
+  `ifaceᵒ (X ⊗ᴵ P)` (what one `gradedᵒ` hands out) and `ifaceᵒ X ⊗₀ ifaceᵒ P`
+  (what `UC.Asymptotic.Compose._∙ᶠ_` produces) apart, and `sub-graded₂` at the
+  IDENTITY process is the morphism between them. The instance here is at the
+  receiver's ports, but the fact is generic and belongs in `UC.Graded` next to
+  `sub-graded₂`. **Maintainer call:** whether the cleaner fix is a fifth seal
+  coercion — `graded♯ᵒ : gradedᵒ f ≈ …` relating the two readings on the nose
+  from inside the `opaque` block — which would make `regrade` and the
+  `Certified` wrapper `flatᶜʰ` both disappear.
+
+### Decisions taken that a maintainer may want to revisit
+
+- **The hop is approximate and the slack is `2⁻ⁿ`.** `docs/coin-toss.md` §5
+  shows there is no machine equality here, so the agreement is a RUN equality
+  (`Receiver.Machine.coin-runʰ`, exact and at every strategy), and
+  `UC.Machine.Dominated.dominated` charges a POSITIVE `δ` to carry one into a
+  context. `2⁻ⁿ` is the repository's standing choice for such a slack
+  (`UC.Approximate.Decay.negligible-slack`, `UC.Model.Family.Ingest`).
+  **Maintainer call:** the schedule is written `ηʰ n _ = 0ℚ + 2⁻ⁿ` with the
+  `0ℚ` kept, because it is what `dominatedᵍ`'s `ε + δ` literally produces at
+  the exact `ε` and `schedule-pinʳ` is a `refl`; a reader may prefer `2⁻ⁿ` and
+  one `+-identityˡ` at the pin.
+- **`dominatedᵍ` asks for the run bound at EVERY strategy**, where
+  `ContextDominatedᵒ` asks for it at every strategy of the context's budget.
+  That is what an exact run agreement gives, and it makes the conclusion's
+  error independent of the budget, so no allowance arithmetic is spent
+  crossing and `ηʰ` can ignore its second argument. **Maintainer call:** the
+  budgeted form is strictly more general and would cost the consumer one
+  `λ d _ →`; I took the weaker premise because the only producer this
+  repository has is exact.
+- **`Fcoinʰ` leaks in two steps and has no abort.** `startᵏʰ` tells the
+  simulator the honest committer has started; `sampleᵏʰ` draws the bit and
+  hands it over; `getᶜ` releases it. There is no `abortᵏʰ`, because the
+  composite has no abort: `F_com`'s `nakᴱ` reaches the stage only through the
+  resource's `rejᴿ`, which `Hiding.downᶠʰ` never asks for, so `tossʰ`'s
+  `abortedᶜʰ` branch is unreachable and a functionality offering an abort
+  would be the weaker statement. **Maintainer call:** whether the ideal coin
+  should nevertheless carry one for uniformity with `Fcoin`.
+- **Two reachable machines rather than one.** `Receiver.Reach` names the
+  reachable configurations twice, `eagerᶜʰ` (share drawn at `goᶜ`) and
+  `deferᶜʰ` (at `shareᴬʰ`), because no single machine simulates into both
+  sides. The one-time-pad flip stays exactly where the committer half puts it
+  — in the state map `θᴵʰ`, discharged by `Dp.Coin.coin-flip` — and the
+  deferral is the only new argument. **Maintainer call:** `deferᶜʰ`'s `endᴰ`
+  keeps the drawn bit although `θᴵʰ` discards it; it is there so the relation
+  to `eagerᶜʰ` is a pointwise equality rather than an existential.
+
+### General lemmas added, and who consumes them
+
+- `CategoricalCrypto.GamePlaying.Defer.Run` — `GamePlaying.Defer.runWith-avg`
+  at the machine-run layer. Placed under `GamePlaying/` beside the `Dist-ℚ`
+  statement it mirrors; the argument against is that it is a `Dₚ`/`runᴹ` fact
+  and `UC.Machine.Run` is where `runFrom-ϕ`, the induction it copies, lives.
+  **Maintainer call:** `UC/Machine/Run/Defer.agda` would be the other home.
+- `ProbabilisticLogic.Dp.Commutative.>>=ₚ-swap` — `>>=ₚ-comm` at an arbitrary
+  continuation. Consumed by `Defer.Run`'s `coin` case and by
+  `Receiver.Machine.hashCᶜ`; it is the form any consumer of commutativity
+  wants, `>>=ₚ-comm`'s pair being an artefact of how it is proved.
+- `ProbabilisticLogic.Dp.Coin.coinₚ-const` — a coin is affine. Not true of a
+  general `Dₚ` (`botₚ` annihilates), which is why `Defer.Run` takes affineness
+  as a hypothesis rather than proving it; `Receiver.Machine` is the second
+  consumer, at the refusal and constant-family cases.
+- `ProbabilisticLogic.Dp.Reasoning.≡⇒≈ₚ` — `ret≡` for a whole subject. Two
+  consumers (`Defer.Run.align`, `Receiver.Machine.deferStepʰ`), both rewriting
+  a machine's step along an equation about an argument's projection, where
+  `rewrite` does not fire.

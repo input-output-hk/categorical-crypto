@@ -34,12 +34,13 @@ open import Algebra.Properties.CommutativeSemigroup
 
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Iter
+open import ProbabilisticLogic.Dp.Reasoning
 
 module ProbabilisticLogic.Dp.Commutative where
 
 private variable
   a : Level
-  A B : Set a
+  A B C : Set a
 
 ------------------------------------------------------------------------
 -- The `ℚ` rearrangements the two-branch node needs
@@ -165,3 +166,16 @@ pairₚ′-≼ d e P nn n = n +ℕ suc n ,
           → (d >>=ₚ λ p → e >>=ₚ λ q → returnₚ (p , q))
           ≈ₚ (e >>=ₚ λ q → d >>=ₚ λ p → returnₚ (p , q))
 >>=ₚ-comm d e = pairₚ-≼ d e , pairₚ′-≼ d e
+
+-- …at an arbitrary continuation, which is the form a consumer uses: route both
+-- draws through the pair and back.
+>>=ₚ-swap : (d : Dₚ A) (e : Dₚ B) (h : A → B → Dₚ C)
+          → (d >>=ₚ λ p → e >>=ₚ λ q → h p q) ≈ₚ (e >>=ₚ λ q → d >>=ₚ λ p → h p q)
+>>=ₚ-swap d e h =
+      bindᶠ (λ p → bindᶠ (λ q → push (uncurry h) (p , q))
+               ⟨≈⟩ ≈sym (>>=ₚ-assoc e (λ q → returnₚ (p , q)) (uncurry h)))
+  ⟨≈⟩ ≈sym (>>=ₚ-assoc d (λ p → e >>=ₚ λ q → returnₚ (p , q)) (uncurry h))
+  ⟨≈⟩ bindˣ (>>=ₚ-comm d e)
+  ⟨≈⟩ >>=ₚ-assoc e (λ q → d >>=ₚ λ p → returnₚ (p , q)) (uncurry h)
+  ⟨≈⟩ bindᶠ (λ q → >>=ₚ-assoc d (λ p → returnₚ (p , q)) (uncurry h)
+               ⟨≈⟩ bindᶠ (λ p → >>=ₚ-identityˡ (p , q) (uncurry h)))

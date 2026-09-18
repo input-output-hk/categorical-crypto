@@ -21,11 +21,13 @@ choose: the wire placement that makes a one-level emulation affordable
 second level's comparison boundary to be CLOSED. Closing it turns out to be
 free.
 
-The corrupted-RECEIVER half of the second hop is **not** delivered, and §5's
-last subsection locates the obstruction exactly: there the coin is drawn in one
-activation and combined with the adversary's share in another, so the
-correspondence is a deferred sampling and no state map — hence no
-`Machines.Sim._≲_` — expresses it.
+The corrupted-RECEIVER half of the second hop is delivered too, and §5's last
+subsection is what it cost: there the coin is drawn in one activation and
+combined with the adversary's share in another, so no state map — hence no
+`Machines.Sim._≲_` — relates the two worlds, and the hop is a RUN equality
+carried into a context. That is exact at the run layer and costs one positive
+slack at the context layer, so it lands at `2⁻ⁿ` where the committer's lands
+at `0`.
 
 Everything here is a checked term. Hatches in `src/` stay at their baseline of
 zero (`grep -rnE 'postulate|TERMINATING|primTrustMe|\{!' src/`: **16 before, 16
@@ -424,11 +426,11 @@ second schedule at `simCost q (cost s₁ n)` changes nothing when that schedule
 is constantly `0ℚ`. The closed form is therefore §3's, unrescaled —
 **`(q² + 2q)·2⁻ⁿ`** — and `Test.agda:71` evaluates it at `k = q = 3`.
 
-### …and the corrupted RECEIVER does not follow
+### …and the corrupted RECEIVER, one layer up
 
-`Examples.CoinToss.Hiding`'s half is NOT delivered, and the reason is not
-budget. Run its hybrid — `tossʰ` over `idealʰ` over `resource` — at the
-activation sequence
+`Examples.CoinToss.Hiding`'s half does not follow as a machine equality, and
+the reason is not budget. Run its hybrid — `tossʰ` over `idealʰ` over
+`resource` — at the activation sequence
 
 1. `goᶜ`         (the environment starts the honest committer)
 2. `shareᴬʰ b₂`  (the corrupted receiver sends its share)
@@ -456,17 +458,43 @@ point mass and a uniform mixture are not related by `≲` in either direction.
 
 So the corrupted-receiver hop is a DEFERRED SAMPLING, and `≈ᴹ` — the
 equivalence closure of state simulations — has no way to move a draw across an
-activation. `GamePlaying.Defer` is where the repo does have that argument, one
-layer up in `Dist-ℚ` over `Strategy`, and reaching it from here needs the
-game-layer bridge `docs/graded-bridge.md` builds, not a new machine lemma. The
-extraction half escapes because its draw and its use land in the SAME
-activation (`commitˢ b₁` both samples and publishes), which is exactly what
-`coin-flip` settles.
+activation. The extraction half escapes because its draw and its use land in
+the SAME activation (`commitˢ b₁` both samples and publishes), which is
+exactly what `coin-flip` settles.
 
-Because that second instance does not exist, nothing was hoisted out of the
-first: the chain lemmas `hearᴴ`/`lkᴴ`/`honᴴ` and `upᴵ`/`downᴵ`/`backᴵ`/`honᴵ`
-stay in their own modules, where a reuse-free generalization would be
-speculative.
+**What is delivered instead.** `GamePlaying.Defer.Run` is `GamePlaying.Defer`'s
+induction against `Protocol.Machine.runᴹ`: at the RUN layer a point mass and a
+mixture may agree, and the draw moves. Two reachable machines are named rather
+than one — `Receiver.Reach.eagerᶜʰ` draws at `goᶜ`, `deferᶜʰ` at `shareᴬʰ` —
+and each simulates into one side (`Receiver.Hybrid`, `Receiver.Machine`, the
+second with `coin-flip` at exactly the step the extraction half spends it at).
+`Receiver.Machine.coin-runʰ` is the agreement: exact, at every strategy, no
+budget condition.
+
+```agda
+coin-runʰ         : (d : Strat (Neg Cᵗʰ) (Pos Cᵗʰ)) → runᴹ hybridᴹʰ d ≈ₚ runᴹ idealᴹʰ d
+coin-hybridʳ      : (λ n → (tossʰᶠ ∙ᶠ idealʰᶠ) n ∘ resᶠ n) ≤UC^ωᵉ Fcoinʰᶠ
+coin-toss-idealʳ  : realʰᶠ ≤UC^ωᵉ idealʰᶠ
+                  → (λ n → (tossʰᶠ ∙ᶠ realʰᶠ) n ∘ resᶠ n) ≤UC^ωᵉ Fcoinʰᶠ
+ideal-εʳ          : εᶜʳ εᵗ n q ≡ fromℕ (q + (q + q)) *ℚ inv-pow-2 n ℚ.+ inv-pow-2 n
+```
+
+Carrying a run agreement into a CONTEXT is what costs: `UC.Model.Dominated`'s
+domination charges a positive slack, paid here at `2⁻ⁿ`, so the second hop's
+schedule is `0ℚ + 2⁻ⁿ` and the composed one is the hiding bound plus it. That
+is the whole difference from the committer's exact hop.
+
+Two pieces of plumbing are the price, both general and both flagged in
+`QUALITY-REVIEW.md` as belonging further up: `Receiver.Dominated.dominatedᵍ`
+is `dominatedᵒ` at a NONTRIVIAL grade (the model had domination only at the
+trivial one, every graded statement above it being exact), and
+`Receiver.UC.regrade` identifies the two spellings of a tensor grade the seal
+keeps apart — `sub-graded₂` at the IDENTITY process.
+
+The chain lemmas were still not hoisted: `hearᴴʰ`/`askᴴʰ`/`cellᴴʰ`/`lkᴴʰ` and
+`upᴵʰ`/`downᴵʰ`/`bypᴵʰ`/`backᴵʰ`/`honᴵʰ` are at the receiver's own ports and
+have two more legs than the extraction half's, the stage driving `F_com` here
+where there it only listened.
 
 ### What this does not touch
 
@@ -508,6 +536,29 @@ floor is in every figure.
 Every edit to an existing module is additive; every figure is a forced-warm
 run (`.agdai` deleted, one `Checking` line each).
 
+The corrupted-receiver hop's own, measured the same way on a machine with
+three other agents compiling — the ~30 s floor below is that contention, not
+the modules (the extraction half's twins above measured 9–13 s on a free box).
+
+| module | LOC | warm | rule-5 budget |
+|---|---|---|---|
+| `ProbabilisticLogic.Dp.Coin` | 122 → 152 | 22.9 s | 98 s |
+| `GamePlaying.Defer.Run` | 109 | 30.1 s | 87 s |
+| `Examples.CoinToss.Ideal.Receiver` | 155 | 31.4 s | 98 s |
+| `Examples.CoinToss.Ideal.Receiver.Reach` | 161 | 32.6 s | 100 s |
+| `Examples.CoinToss.Ideal.Receiver.Hybrid` | 270 | 46.5 s | 127 s |
+| `Examples.CoinToss.Ideal.Receiver.Machine` | 441 | 50.1 s | 170 s |
+| `Examples.CoinToss.Ideal.Receiver.Dominated` | 166 | 34.6 s | 101 s |
+| `Examples.CoinToss.Ideal.Receiver.UC` | 179 | 35.4 s | 104 s |
+| `Examples.CoinToss.Ideal.Receiver.Compose` | 139 | 38.2 s | 95 s |
+| `Examples.CoinToss.Test` | 175 → 224 | 34.8 s | 116 s |
+
+`ProbabilisticLogic.Dp.Commutative` (+16, `>>=ₚ-swap`) and
+`.Dp.Reasoning` (+5, `≡⇒≈ₚ`) have no isolated warm figure — both are checked
+as dependencies of `GamePlaying.Defer.Run`, whose own run is warm.
+`src/CategoricalCrypto.agda`, the whole-library root, is green: 78 modules,
+10 m 40 s, empty gate.
+
 **One measured perf defect, and its fix.** `Ideal.Hybrid`'s `hashᴴ` first read
 its `lookupPt t x` with `with … in …`, and the module then took **3 m 22 s**
 against **10 s** without it. `with` normalises the goal to find the scrutinee,
@@ -537,9 +588,17 @@ Done on the branch, not left to the maintainer:
 
 ## 8. Not delivered, precisely
 
-1. **The corrupted-RECEIVER second hop**, §5's last subsection: a deferred
-   sampling, which `Machines.Sim`'s equality cannot express. The extraction
-   half is delivered in full.
+1. **No EXACT corrupted-receiver hop.** `coin-toss-idealʳ` is delivered, but
+   at `+2⁻ⁿ` where the committer's is at `0`, and that slack is not an
+   artefact of the proof: `UC.Machine.Dominated`'s conclusion is at `ε + δ`
+   with `δ` positive, so a run agreement — which is all a deferred sampling
+   gives — has no zero instance to hand a context. An exact graded statement
+   would need the domination to be sharp at `δ = 0`, which the machine layer
+   does not claim, or a machine equality, which §5's last subsection rules
+   out.
+   The two general pieces it spends, `Receiver.Dominated.dominatedᵍ` and
+   `Receiver.UC.regrade`, sit at the example rather than beside `dominatedᵒ`
+   and `sub-graded₂` in `UC.Model.*`, this branch not having `UC/` to edit.
 2. **No `≤UC` / `≤UC[ c ]` form of the composed statement.**
    `UC.Graded.≤UCᵍ` and `UC.Seam.Graded.≤UC[]ᵍ` consume a `Factors` — an exact
    machine equality — and the composed statement is approximate, exactly as
@@ -564,5 +623,12 @@ Done on the branch, not left to the maintainer:
    which is what a constantly-zero potential says — would collapse
    `tossʰCert`, `recvCert`, `comCert` and `simJCert` to one line each.
 6. **No closed-game bound for the ideal coin either.** `Test`'s
-   `coin-round`/`sim-round` are live runs of the two new machines, not a
-   probability statement; item 3 covers both hops.
+   `coin-round`/`sim-round` and `coin-roundʰ`/`sim-roundʰ` are live runs of
+   the four new machines, not a probability statement; item 3 covers both
+   hops and both corruptions.
+7. **`Fcoinʰ` has no abort query.** The corrupted receiver's only way to stop
+   the toss is to withhold its share, and in both worlds the honest party then
+   produces nothing; `F_com`'s refusal `nakᴱ` reaches the stage only through
+   the resource's `rejᴿ`, which `Hiding.downᶠʰ` never asks for, so the
+   `abortedᶜʰ` branch of `tossʰ` is unreachable in this composite and the
+   functionality is the stronger for not offering one.
