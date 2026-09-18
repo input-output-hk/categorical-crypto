@@ -66,7 +66,6 @@ module QBridge {o ℓ e o′ ℓ′ e′ c ℓb : Level}
   ------------------------------------------------------------------------
   -- Emulation
 
-  -- One simulator for every positive error — see this module's header.
   Witness₊ : (f : A 𝒞.⇒ T₀ X B) (g : A 𝒞.⇒ T₀ Y B)
            → Set (o ⊔ ℓ ⊔ c ⊔ es ⊔ ℓe ⊔ ℓb)
   Witness₊ {X = X} {Y = Y} f g =
@@ -99,11 +98,8 @@ module QBridge {o ℓ e o′ ℓ′ e′ c ℓb : Level}
                      → (f A₊.≤UC g) ⇔ Witness₊ f g
   positive-emulation = mk⇔ positive-emulation⇒ positive-emulation⇐
 
-  -- One simulator good at every positive error gives a simulator at each, and
-  -- NOT conversely: the converse would let the simulator depend on the
-  -- accuracy, which is precisely what `≤UC₊` must not mean.  The direction
-  -- that holds is recorded so the asymmetry is a checked statement and not
-  -- only a remark.
+  -- The direction that holds, recorded so the asymmetry this module's header
+  -- describes is a checked statement and not only a remark.
   Witness₊⇒Witness : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
                    → Witness₊ f g → (ε : Error) → Positive ε → Witness ε f g
   Witness₊⇒Witness (s , h) ε pos = s , h ε pos
