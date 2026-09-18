@@ -72,7 +72,7 @@ module CategoricalCrypto.UC.Seam.Audit.Context where
 -- `gradingᵗ 𝔾ᵒ` where `UC.Model.Setup`'s is the curried tensor's: the two
 -- actions agree on the nose but their records do not, so a `qb-sub`/`qb-T₁`
 -- consumer has to spell the action with THIS one.
-open import CategoricalCrypto.UC.Emulation ucBaseᵒ
+open import CategoricalCrypto.UC.Environment ucBaseᵒ
   using (obs; tv₁)
   renaming (T₁ to T₁ᵉ; sub to subᵉ; T₁-∘ to T₁ᵉ-∘; T₁-resp-≈ to T₁ᵉ-resp-≈;
             sub-∘ to subᵉ-∘; sub-resp-≈ to subᵉ-resp-≈)

@@ -94,7 +94,7 @@ open import CategoricalCrypto.Examples.ChimericLedger.Schedule ser
 
 -- The carry's context is spelled in `ucBaseᵒ`'s own action, not
 -- `UC.Model.Setup`'s (`UC.Asymptotic.Audit`'s note).
-open import CategoricalCrypto.UC.Emulation ucBaseᵒ
+open import CategoricalCrypto.UC.Environment ucBaseᵒ
   using (Closure; Test; _⊛_; obs; tv₁) renaming (sub to subᵉ)
 
 private

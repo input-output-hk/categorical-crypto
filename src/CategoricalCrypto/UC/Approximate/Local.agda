@@ -77,6 +77,15 @@ open Sm.Collapse negligible os ℓa using (_∼Small_; ∼Small-isEquivalence)
 ∼ᴺ-isEquivalence : IsEquivalence _∼ᴺ_
 ∼ᴺ-isEquivalence = ∼Small-isEquivalence familySpace
 
+-- One negligible δ serving EVERY index is strictly more than a negligible δ
+-- per index.  The implication that holds is recorded so the two orders cannot
+-- be exchanged silently; the converse is a uniformization and no theorem here
+-- supplies it (plan §8, and `UC.Family.Negligible`'s header for the same
+-- asymmetry one quantifier out, at the contexts).
+∼ᴺ⇒pointwise : {μ ν : Ix → Obs} → μ ∼ᴺ ν
+             → (i : Ix) → Σ[ δ ∈ (ℕ → ℚ) ] Negligible δ × μ i ≈[ δ (κ i) ] ν i
+∼ᴺ⇒pointwise (δ , neg , h) i = δ , neg , h i
+
 -- What the relation gives BACK, at an approximation that hides no gap
 -- (`UC.Approximate.Separating`): the witness dominates the actual difference,
 -- so a difference `Negligible` excludes is not admitted.  `κ` must be onto —

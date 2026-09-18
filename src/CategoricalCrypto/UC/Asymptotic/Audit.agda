@@ -44,7 +44,7 @@ module CategoricalCrypto.UC.Asymptotic.Audit where
 -- The context is spelled in `ucBaseᵒ`'s own action; `UC.Model.Setup`'s agrees
 -- with it on the nose but is a different record (`UC.Seam.Audit.Context`'s
 -- header).
-open import CategoricalCrypto.UC.Emulation ucBaseᵒ
+open import CategoricalCrypto.UC.Environment ucBaseᵒ
   using (Closure; Test; _⊛_; obs; tv₁) renaming (sub to subᵉ)
 
 open Gr using (closedᵒ; 𝟘ᴳ)

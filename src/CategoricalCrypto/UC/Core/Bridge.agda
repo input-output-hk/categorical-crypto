@@ -35,7 +35,7 @@ open import CategoricalCrypto.UC.Core using (Observation; UCBase)
 
 import CategoricalCrypto.Standard2 as Std2
 import CategoricalCrypto.UC.Core.Standard as Std
-import CategoricalCrypto.UC.Emulation as Em
+import CategoricalCrypto.UC.Environment as Env
 
 module CategoricalCrypto.UC.Core.Bridge
   {o ℓ e os ℓs : Level} (M : MonoidalCategory o ℓ e)
@@ -46,7 +46,7 @@ module CategoricalCrypto.UC.Core.Bridge
 baseᵗ : UCBase o ℓ e os ℓs
 baseᵗ = record { 𝒞 = MonoidalCategory.U M ; grading = Std.gradingᵗ M ; observation = O }
 
-module C = Em baseᵗ
+module C = Env baseᵗ
 
 open Std2.StdUC M C.ℰᴼ public
 

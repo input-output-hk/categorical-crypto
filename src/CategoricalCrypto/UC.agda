@@ -54,10 +54,16 @@
 --                `UC.Family.Negligible`
 --                                  the same layer's negligible tier: a second
 --                                  `Observation` on `Fam` keeping the error
---                                  witness (`_∼ᴺ_`, `_≤UCᴺ_`), and the one-way
---                                  bridges `≈ℰⁿ⇒≈ℰᴺ`/`≈ℰⁿ⇒≤UCᴺ` into it — the
---                                  rest of the metatheory at that tier is
---                                  `UC.Emulation UCBaseᴺ` and is not renamed.
+--                                  witness (`_∼ᴺ_`, `_≈ℰᴺ_`) and the one-way
+--                                  bridge `≈ℰⁿ⇒≈ℰᴺ` into it.  It has no order
+--                                  of its own: that was `UC.Emulation`'s
+--                                  renamed and is retired
+--                                  (`docs/retirement-negligible-order.md`).
+--                `UC.Audit.Canonical`
+--                                  an audit emulation read as a cost-certified
+--                                  witness for the INHERITED order: the
+--                                  simulator and its budget cross untouched,
+--                                  and forgetting the cost is a separate step
 --                                  `UC.Model.Family.Negligible` inhabits it at
 --                                  the machine family, and its §1 acceptance
 --                                  tests are `UC.Approximate.LocalTests`
@@ -65,7 +71,11 @@
 --                                  `ucSetupᴺ`: the same four fields at
 --                                  `Observationᴺ`, so the negligible tier
 --                                  INHERITS `Abstract2` too, and `≈ℰᴺ⇒≤UC`
---                                  carries its agreement into that order
+--                                  carries its agreement into that order —
+--                                  `UC.Family.Vanishing` is the counterpart at
+--                                  `Observation^ω`, so `absorb`'s result
+--                                  reaches the inherited order without
+--                                  re-basing `absorb` itself
 --   quantitative `Approx.Space`    `Approx`: approximate spaces and
 --                                  nonexpansive maps, `Approximation` packaged
 --                                  as a category, `Approx.Forget` the two ways
@@ -298,5 +308,7 @@ import CategoricalCrypto.Approx.Separating
 import CategoricalCrypto.Approx.Small
 import CategoricalCrypto.Approx.Small.Controlled
 import CategoricalCrypto.UC.Quantitative.Bridge
+import CategoricalCrypto.UC.Audit.Canonical
 import CategoricalCrypto.UC.Family.Negligible.Setup
+import CategoricalCrypto.UC.Family.Vanishing
 import CategoricalCrypto.UC.Quantitative.Contextual

@@ -4,10 +4,10 @@
 -- observation and emulation order inhabited at the intended model, on the same
 -- ingredients `UC.Model.Family` feeds the qualitative tier.
 --
--- So the tier is not a construction awaiting a model — `_≈ℰᴺ_` and `_≤UCᴺ_`
--- exist HERE, and `≈ℰⁿ⇒≤UCᴺ` puts an ingested bound
--- (`UC.Model.Family.Ingest.ingest-≈ℰⁿ`) into that order with its error witness
--- kept, where `ingest-≤UC` spends it.
+-- So the tier is not a construction awaiting a model — `_≈ℰᴺ_` exists HERE,
+-- and `UC.Family.Negligible.Setup.≈ℰⁿ⇒≤UC` puts an ingested bound
+-- (`UC.Model.Family.Ingest.ingest-≈ℰⁿ`) into the INHERITED order with its
+-- error witness kept, where `ingest-≤UC` spends it.
 
 open import Data.Nat.Base using (ℕ)
 open import Data.Nat.Properties using (≤-refl)

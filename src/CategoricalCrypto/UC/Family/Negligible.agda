@@ -60,15 +60,19 @@ Observationᴺ = record
 UCBaseᴺ : UCBase o (ℓ ⊔ qs) e os ℓa
 UCBaseᴺ = record { 𝒞 = Fam ; grading = Grading^ω ; observation = Observationᴺ }
 
--- The two relations the tier is FOR, renamed apart from `UC.Family`'s.  The
--- rest of the inherited metatheory is not renamed alongside: it is
+-- The relation the tier is FOR, renamed apart from `UC.Family`'s.  The
+-- inherited metatheory is not renamed alongside: it is
 -- `CategoricalCrypto.UC.Emulation UCBaseᴺ`, reachable by applying that module,
 -- and a second copy of it under ᴺ names would be the parallel API this tier is
 -- meant not to be.
+--
+-- The tier's EMULATION ORDER is no longer among these.  It was `Em UCBaseᴺ`'s
+-- `_≤UC_` renamed, and since `UC.Family.Negligible.Setup` builds `ucSetupᴺ`
+-- the tier inherits `Abstract2`'s order instead — see
+-- `docs/retirement-negligible-order.md` for the gate.
 private module N = Em UCBaseᴺ
 
-open N public using ()
-  renaming (_≈ℰ_ to _≈ℰᴺ_; _≤UC_ to _≤UCᴺ_; ≈ℰ⇒≤UC to ≈ℰᴺ⇒≤UCᴺ)
+open N public using () renaming (_≈ℰ_ to _≈ℰᴺ_)
 
 ------------------------------------------------------------------------
 -- The one-way bridge
@@ -80,6 +84,3 @@ open N public using ()
 ≈ℰⁿ⇒≈ℰᴺ : {A B : Obj^ω} (f g : A ⇒^ω B) → f ≈ℰⁿ g → f ≈ℰᴺ g
 ≈ℰⁿ⇒≈ℰᴺ f g (ε , neg , bnd) Y Et m =
   (λ n → ε n (ctxQB (qbOf Et) (qbOf m) n)) , neg Y Et m , bnd Y Et m
-
-≈ℰⁿ⇒≤UCᴺ : {A B X : Obj^ω} (f g : A ⇒^ω (X ⊛ω B)) → f ≈ℰⁿ g → f ≤UCᴺ g
-≈ℰⁿ⇒≤UCᴺ f g h = ≈ℰᴺ⇒≤UCᴺ {f = f} {g} (≈ℰⁿ⇒≈ℰᴺ f g h)

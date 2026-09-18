@@ -31,13 +31,13 @@ open import CategoricalCrypto.UC.Model.Reading using (shuffle⇒; shuffle⇐)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 
-import CategoricalCrypto.UC.Emulation as Em
+import CategoricalCrypto.UC.Environment as Env
 import CategoricalCrypto.UC.Robust.Observation as RobO
 import CategoricalCrypto.UC.Robust.Selected as Sel
 
 module CategoricalCrypto.UC.Robust.Model where
 
-open import CategoricalCrypto.UC.Emulation ucBaseᵒ using (Obs)
+open import CategoricalCrypto.UC.Environment ucBaseᵒ using (Obs)
 
 open HomReasoning
 
@@ -47,7 +47,7 @@ open HomReasoning
 module Gen = Sel StdSetup
 
 private
-  module Core = Em ucBaseᵒ
+  module Core = Env ucBaseᵒ
   module R = RobO ucBaseᵒ
 
 open R public

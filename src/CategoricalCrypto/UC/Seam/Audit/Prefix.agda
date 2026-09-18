@@ -54,7 +54,7 @@ open import CategoricalCrypto.UC.Seam.Slide using (slide⊗)
 
 module CategoricalCrypto.UC.Seam.Audit.Prefix where
 
-open import CategoricalCrypto.UC.Emulation ucBaseᵒ using (obs; tv₁)
+open import CategoricalCrypto.UC.Environment ucBaseᵒ using (obs; tv₁)
 
 open HomReasoning
 open Mass massᵒ using (dominate)

@@ -52,7 +52,7 @@ open import CategoricalCrypto.Examples.HashForward Msg Dig
   using (Advᴵ; Honᴵ; Resᴵ; real; real-factors)
 open import CategoricalCrypto.Examples.HashForward.UC Msg Dig
   using (idealᵒ; realᵒ; simQB; simᵒ)
-open import CategoricalCrypto.UC.Emulation ucBaseᵒ
+open import CategoricalCrypto.UC.Environment ucBaseᵒ
   using (Obj; Test; T₁; sub; _⊛_; _∘_)
 
 private module Bud = Budget budgetᵒ

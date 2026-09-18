@@ -61,7 +61,7 @@ import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.UC.Core as UCC
 import CategoricalCrypto.UC.Core.Standard as Std
-import CategoricalCrypto.UC.Emulation as Em
+import CategoricalCrypto.UC.Environment as Env
 
 module CategoricalCrypto.UC.Seam.Grounding.Dead where
 
@@ -69,7 +69,7 @@ private
   module MC = Core (𝒱ₚ 0ℓ)
   module S  = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
   module 𝔾  = MonoidalCategory (𝒢ₚᴹ 0ℓ)
-  module E  = Em ucBaseᴹ
+  module E  = Env ucBaseᴹ
 
 open E using (_⊛_; _≈ℰ_; T₁; Test; Closure; obs; tv₁)
 
