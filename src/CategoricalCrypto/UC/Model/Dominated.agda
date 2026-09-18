@@ -60,7 +60,7 @@ private
   module 𝒫 = Category 𝒫ᴵ
 
 -- The seal's grading action, which is what the family layer's `T₁` is,
--- levelwise (`UC.Family.Grading^ω` over `UC.Core.Standard.gradingᵗ`).
+-- levelwise (`UC.Family.Famᴹ` over `UC.Core.Standard.gradingᵗ`).
 T₁ᵒ : (X : G.Obj) {A B : G.Obj} → A G.⇒ B → X G.⊗₀ A G.⇒ X G.⊗₀ B
 T₁ᵒ = Grading.T₁ (Std.gradingᵗ 𝔾ᵒ)
 

@@ -19,14 +19,13 @@
 -- a requirement of general UC: nothing in the core, the environment layer or
 -- the emulation metatheory mentions an index at all.
 --
--- The base is a MONOIDAL category at its standard grading, and `Fam` carries a
--- monoidal structure too, which `UCSetup` wants where a `Grading` has the two
--- one-sided actions and no bifunctor.  The whole gap is the budget: a
--- `Fam`-hom is a base hom plus a polynomial bound and `_≈^ω_` ignores the
--- bound, so every monoidal LAW is the base's read levelwise and the only
--- content is a `QB` certificate per structural morphism.
--- `UC.Budget.Budget`'s four unitor fields are what that costs; the bifunctor
--- costs nothing extra, because `f ⊗₁ g` factors as `sub f ∘ T₁ _ g`.
+-- The base is a MONOIDAL category at its standard grading, so `Fam` carries a
+-- monoidal structure too and the family's grading is again the standard one.
+-- The whole gap is the budget: a `Fam`-hom is a base hom plus a polynomial
+-- bound and `_≈^ω_` ignores the bound, so every monoidal LAW is the base's read
+-- levelwise and the only content is a `QB` certificate per structural
+-- morphism.  `UC.Budget.Budget`'s four unitor fields are what that costs; the
+-- bifunctor costs nothing extra, because `f ⊗₁ g` factors as `sub f ∘ T₁ _ g`.
 --
 -- This layer is where the notes' quantitative-to-qualitative arrow runs.
 -- Everything categorical is levelwise, so the whole `UCBase` transports; the
@@ -65,7 +64,7 @@ open import CategoricalCrypto.UC.Approximate
         ; Negligible⇒→0; NegligibleBound; NegligibleBound⇒VanishingBound; VanishingBound
         ; ℚ-errors; module Induced )
 open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget)
-open import CategoricalCrypto.UC.Core using (Grading; Observation; UCBase)
+open import CategoricalCrypto.UC.Core using (Observation; UCBase)
 open import CategoricalCrypto.UCSetup using (UCSetup)
 
 import CategoricalCrypto.Standard2 as Std2
@@ -149,43 +148,13 @@ Fam = record
   }
 
 ------------------------------------------------------------------------
--- The grading, levelwise
+-- The monoidal structure, levelwise
 
 infixr 8 _⊛ω_
 infixr 10 _⊗^ω_
 
 _⊛ω_ : Obj^ω → Obj^ω → Obj^ω
 (A ⊛ω B) i = A i ⊛ B i
-
-Grading^ω : Grading Fam
-Grading^ω = record
-  { _⊛_ = _⊛ω_
-  ; 𝟭   = Δ 𝟭
-  ; T₁  = λ Y (f , p , Pp , w) → (λ i → T₁ (Y i) (f i))
-        , (λ n → p n ℕ.⊔ 1) , poly-⊔ Pp (poly-const 1) , λ i → qb-T₁ (w i)
-  ; sub = λ (s , p , Pp , w) → (λ i → sub (s i))
-        , (λ n → p n ℕ.⊔ 1) , poly-⊔ Pp (poly-const 1) , λ i → qb-sub (w i)
-  ; a⇒  = (λ _ → a⇒) , qb1 (λ _ → qb-a⇒)
-  ; a⇐  = (λ _ → a⇐) , qb1 (λ _ → qb-a⇐)
-  ; λ⇒  = (λ _ → λ⇒) , qb1 (λ _ → qb-λ⇒)
-  ; λ⇐  = (λ _ → λ⇐) , qb1 (λ _ → qb-λ⇐)
-  ; ρ⇒  = (λ _ → ρ⇒) , qb1 (λ _ → qb-ρ⇒)
-  ; ρ⇐  = (λ _ → ρ⇐) , qb1 (λ _ → qb-ρ⇐)
-
-  ; T₁-resp-≈  = λ eq i → T₁-resp-≈ (eq i)
-  ; T₁-id      = λ _ → T₁-id
-  ; T₁-∘       = λ _ → T₁-∘
-  ; sub-resp-≈ = λ eq i → sub-resp-≈ (eq i)
-  ; sub-id     = λ _ → sub-id
-  ; sub-∘      = λ _ → sub-∘
-  ; a-isoˡ     = λ _ → a-isoˡ
-  ; a-nat      = λ _ → a-nat
-  }
-
-private module G = Grading Grading^ω
-
-------------------------------------------------------------------------
--- …and the monoidal structure it carries
 
 -- The product certificate the reference arc asked as a field: `f ⊗₁ g` is
 -- `(f ⊗₁ id) ∘ (id ⊗₁ g)`, which the action's two one-sided halves certify.
@@ -214,17 +183,20 @@ Famᴹ = record
   { U        = Fam
   ; monoidal = monoidalHelper Fam record
     { ⊗          = ⊗^ω-bifunctor
-    ; unit       = G.𝟭
+    ; unit       = Δ 𝟭
     ; unitorˡ    = record
-      { from = G.λ⇒ ; to = G.λ⇐
+      { from = (λ _ → λ⇒) , qb1 (λ _ → qb-λ⇒)
+      ; to   = (λ _ → λ⇐) , qb1 (λ _ → qb-λ⇐)
       ; iso  = record { isoˡ = λ _ → 𝕄.unitorˡ.isoˡ ; isoʳ = λ _ → 𝕄.unitorˡ.isoʳ }
       }
     ; unitorʳ    = record
-      { from = G.ρ⇒ ; to = G.ρ⇐
+      { from = (λ _ → ρ⇒) , qb1 (λ _ → qb-ρ⇒)
+      ; to   = (λ _ → ρ⇐) , qb1 (λ _ → qb-ρ⇐)
       ; iso  = record { isoˡ = λ _ → 𝕄.unitorʳ.isoˡ ; isoʳ = λ _ → 𝕄.unitorʳ.isoʳ }
       }
     ; associator = record
-      { from = G.a⇐ ; to = G.a⇒
+      { from = (λ _ → a⇐) , qb1 (λ _ → qb-a⇐)
+      ; to   = (λ _ → a⇒) , qb1 (λ _ → qb-a⇒)
       ; iso  = record { isoˡ = λ _ → 𝕄.associator.isoˡ ; isoʳ = λ _ → 𝕄.associator.isoʳ }
       }
     ; unitorˡ-commute = λ _ → 𝕄.unitorˡ-commute-from
@@ -273,7 +245,8 @@ Approximate^ω : ApproximateObservation Observation^ω ℚ-errors ℓa
 Approximate^ω = I.approximate
 
 UCBase^ω : UCBase o (ℓ ⊔ qs) e os ℓa
-UCBase^ω = record { 𝒞 = Fam ; grading = Grading^ω ; observation = Observation^ω }
+UCBase^ω = record
+  { 𝒞 = Fam ; grading = Std.gradingᵗ Famᴹ ; observation = Observation^ω }
 
 ------------------------------------------------------------------------
 -- Ingestion: a concrete bound, and its collapse

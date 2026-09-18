@@ -65,7 +65,8 @@ Observationᴺ = record
   }
 
 UCBaseᴺ : UCBase o (ℓ ⊔ qs) e os ℓa
-UCBaseᴺ = record { 𝒞 = Fam ; grading = Grading^ω ; observation = Observationᴺ }
+UCBaseᴺ = record
+  { 𝒞 = Fam ; grading = Std.gradingᵗ Famᴹ ; observation = Observationᴺ }
 
 -- The relation the tier is FOR, renamed apart from `UC.Family`'s.  The
 -- environment metatheory is not renamed alongside: it is
