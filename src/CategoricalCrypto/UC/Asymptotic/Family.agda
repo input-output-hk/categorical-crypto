@@ -57,10 +57,8 @@ open import CategoricalCrypto.UC.Model.Bridge using (≈ᵁ⇒≈ℰᶜ)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ)
 open import CategoricalCrypto.UC.Model.Family
   using ( Obj^ω; Δ; _⇒^ω_; _⊛ω_; PolyQB; _≈ℰ[_]_; _≈ℰⁿ_; absorb-negl
-        ; carried-negligible; ≈ℰⁿ⇒≈ℰ )
+        ; carried-negligible; ≈ℰⁿ⇒≈ℰ; ≈ℰ^ω⇒≤UC; module Canonical^ω )
   renaming (_≈ℰ_ to _≈ℰᶠ_; _≤UC_ to _≤UCᶠ_; ≈ℰ⇒≤UC to ≈ℰᶠ⇒≤UCᶠ)
-open import CategoricalCrypto.UC.Model.Family.Uniform
-  using (≈ℰ^ω⇒≤UC) renaming (_≤UC_ to _≤UCᵁ_)
 open import CategoricalCrypto.UC.Model.Observation using (𝟘ᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
@@ -69,10 +67,12 @@ open import CategoricalCrypto.UC.Seam.Audit.Context
   using (auditClose; auditTest; audit-qb; audit-run)
 open import CategoricalCrypto.UC.Seam.Carry using (adv-from-runs)
 
-import CategoricalCrypto.UC.Model.Family.Uniform as Uni
 import CategoricalCrypto.UC.Seam.Grounded as Gr
 
 module CategoricalCrypto.UC.Asymptotic.Family where
+
+module Uni = Canonical^ω
+open Uni using () renaming (_≤UC_ to _≤UCᵁ_)
 
 open Budget budgetᵒ using (qb-λ⇐; qb-∘; qb-sub)
 
@@ -174,7 +174,7 @@ imageᶠ {B} R q = imgᶠ B R , q
   ≈ℰᶠ⇒≤UCᶠ {f = imageᶠ R qR} {imageᶠ I qI} (≤UC^ωⁿ⇒≈ℰᶠ qR qI p)
 
 -- …and in the INHERITED order, which is where `UC-compose` is
--- (`UC.Model.Family.Uniform`, over the generic `UC.Core.Bridge`).
+-- (`UC.Family.Vanishing`, over the generic `UC.Core.Bridge`).
 ≤UC^ωⁿ⇒≤UCᵁ : (qR : Imageᶠ B R) (qI : Imageᶠ B I) → R ≤UC^ωⁿ I
             → imageᶠ R qR ≤UCᵁ imageᶠ I qI
 ≤UC^ωⁿ⇒≤UCᵁ {R = R} {I = I} qR qI p =
@@ -246,8 +246,7 @@ module _ {A X Y B : Obj^ω} (s : Certified Y X) (ε : ℕ → ℕ → ℚ)
     Uni.dummy-complete
       (certᶠ s
       , Uni.≈ℰᶜ⇒≈ᵁ {f = f , qf} {g = Uni.sub (certᶠ s) Uni.∘ (g , qg)}
-          (Uni.≈ℰ^ω⇒≈ℰᶜ {f = f , qf} {g = Uni.sub (certᶠ s) Uni.∘ (g , qg)}
-                        ≤UC^ωᵉ⇒≈ℰᶠ))
+          ≤UC^ωᵉ⇒≈ℰᶠ)
 
 ------------------------------------------------------------------------
 -- Reading it at the embedded strategies

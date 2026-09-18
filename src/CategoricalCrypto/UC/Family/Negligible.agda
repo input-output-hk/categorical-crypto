@@ -77,10 +77,10 @@ open N public using () renaming (_≈ℰ_ to _≈ℰᴺ_)
 ------------------------------------------------------------------------
 -- The one-way bridge
 
--- The homs are EXPLICIT for `UC.Model.Family.Uniform`'s measured reason: both
--- relations read them under an application, so no value of one determines them
--- by unification and inference would elaborate each carried polynomial as a
--- meta.
+-- The homs are EXPLICIT for a measured reason: both relations read them under
+-- an application, so no value of one determines them by unification, and left
+-- to inference the polynomial each carries is elaborated as a meta — 2m25 s of
+-- `Poly` arithmetic against 8 s.
 ≈ℰⁿ⇒≈ℰᴺ : {A B : Obj^ω} (f g : A ⇒^ω B) → f ≈ℰⁿ g → f ≈ℰᴺ g
 ≈ℰⁿ⇒≈ℰᴺ f g (ε , neg , bnd) Y Et m =
   (λ n → ε n (ctxQB (qbOf Et) (qbOf m) n)) , neg Y Et m , bnd Y Et m

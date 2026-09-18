@@ -64,13 +64,12 @@ compares; only the corollaries that enter the family category
 * The pointwise/family pair is therefore ORDERED and the pointwise/budgeted pair
   is not.
 
-Two neighbours of these relations sit OFF the chain, and are named so that they
-are not mistaken for parts of it: `UC.Model.Family.Ingest.ingest` takes a
-per-level advantage bound into `UC.Model.Family._≈ℰ[_]_`, consuming
+One neighbour of these relations sits OFF the chain, and is named so that it is
+not mistaken for part of it: `UC.Model.Family.Ingest.ingest` takes a per-level
+advantage bound into `UC.Model.Family._≈ℰ[_]_`, consuming
 `UC.Model.Dominated.dominatedᵒ` (`ContextDominated` reproved at seal objects, on
-the proved `ifaceᵒ-onto`), and `UC.Model.Family.Uniform.uc-compose-agree`
-composes two family agreements through `UC.Core.Bridge`. Neither has an in-repo
-caller; `docs/retirement.md` §7 records why they stand.
+the proved `ifaceᵒ-onto`). It has no in-repo caller; `docs/retirement.md` §7
+records why it stands.
 
 Two acceptance criteria pin the family premise's strength, both in `Family`:
 `admits-inv-pow-2` (a one-shot `2⁻ⁿ` difference is admitted — exactly the
