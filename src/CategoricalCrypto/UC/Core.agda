@@ -17,7 +17,8 @@
 -- same kind of model datum and live in `CategoricalCrypto.UC.Budget`.
 --
 -- The grading action does NOT leave: adversary interfaces and simulators are
--- intrinsic to UC, and `_≤UC_` is stated over them (`UC.Emulation`).
+-- intrinsic to UC, and `_≤UC_` is stated over them (`UC.Core.Bridge`, into the
+-- inherited `Abstract2`).
 --
 -- Named `UCBase` rather than `UCSetup` because `CategoricalCrypto.UCSetup` is
 -- the inherited record of the same intent and a strictly stronger one — it asks

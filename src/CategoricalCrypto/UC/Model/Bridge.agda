@@ -18,14 +18,14 @@
 -- there, and agrees with `_≈ᵁ_` wherever the latter is stated, so the seam can
 -- be read in one vocabulary.
 --
--- Universal composition is what the two orders agreeing RETIRES: `UC.Emulation`
--- could only state it, and `≤UCᶜ⇔≤UC` carries `Abstract2.UC-compose` — already
--- a theorem — across, leaving the core nothing to owe.
+-- Universal composition is what the two orders agreeing RETIRES: the core's own
+-- order could only state it, and `≤UCᶜ⇔≤UC` carries `Abstract2.UC-compose` —
+-- already a theorem — across, leaving the core nothing to owe.
 
 open import Categories.Functor.Monoidal.CurriedTensor.Properties using (T₁-⊗; μ-α⇐)
 import Categories.Morphism.Reasoning as MR
 
-open import Data.Product.Base using (_,_)
+open import Data.Product.Base using (Σ-syntax; _,_)
 open import Function.Bundles using (_⇔_; mk⇔)
 open import Level using (0ℓ; suc)
 
@@ -33,16 +33,12 @@ open import CategoricalCrypto.UC.Model.Observation
 open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 
-import CategoricalCrypto.UC.Emulation as Em
-
 module CategoricalCrypto.UC.Model.Bridge where
 
 open HomReasoning
 open MR ∣machines∣ using (cancelˡ)
 
 private variable A B C X Y : Channel
-
-module E = Em baseᵗ
 
 ------------------------------------------------------------------------
 -- The same identification at ungraded homs
@@ -93,7 +89,7 @@ private
   -- The core's action is the tensor's own `F₁`; the triple derives its `T₁` and
   -- pays one triangle for the identification.
   reT₁ : {Y : Channel} (f : A ⇒ B) (e : Test (Y ⊗₀ B)) (m : Closure (Y ⊗₀ A))
-       → (e ∘ T₁ Y f) ∘ m ≈ (e ∘ E.T₁ Y f) ∘ m
+       → (e ∘ T₁ Y f) ∘ m ≈ (e ∘ C.T₁ Y f) ∘ m
   reT₁ {Y = Y} f _ _ = (refl⟩∘⟨ T₁-⊗ 𝔾ᵒ Y f) ⟩∘⟨refl
 
 ≈ᴳ⇒≈ℰᶜ : {f g : A ⇒ B} → f ≈ᴳ g → f ≈ℰᶜ g
@@ -112,13 +108,15 @@ private
 
 infix 4 _≤UCᶜ_
 
--- Named apart from the inherited `_≤UC_`, whose statement carries the
--- adversary quantifier this one does not.
+-- The model's former dummy-form order, recorded here as the subject of the
+-- equivalence below: the inherited `_≤UC_` carries an adversary quantifier in
+-- its statement, and `dummy-complete`/`≤UC⇒dummy` are what read one as the
+-- other.
 _≤UCᶜ_ : A ⇒ T₀ X B → A ⇒ T₀ Y B → Set (suc 0ℓ)
-_≤UCᶜ_ = E._≤UC_
+_≤UCᶜ_ {X = X} {Y = Y} f g = Σ[ s ∈ Y ⇒ X ] f ≈ℰᶜ (sub s ∘ g)
 
 ≤UCᶜ⇒≤UC : {f : A ⇒ T₀ X B} {g : A ⇒ T₀ Y B} → f ≤UCᶜ g → f ≤UC g
-≤UCᶜ⇒≤UC p a = let s , e = E.dummy-complete p a in s , ≈ℰᶜ⇒≈ᵁ e
+≤UCᶜ⇒≤UC (s , e) = dummy-complete (s , ≈ℰᶜ⇒≈ᵁ e)
 
 ≤UC⇒≤UCᶜ : {f : A ⇒ T₀ X B} {g : A ⇒ T₀ Y B} → f ≤UC g → f ≤UCᶜ g
 ≤UC⇒≤UCᶜ p = let s , e = ≤UC⇒dummy p in s , ≈ᵁ⇒≈ℰᶜ e

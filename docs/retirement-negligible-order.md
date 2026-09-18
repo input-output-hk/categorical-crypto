@@ -77,8 +77,8 @@ replacements named in the table.
 It did not retire `UC.Emulation` — `_≈ℰᴺ_` still came from it. A follow-up did;
 this is the audit that made the follow-up possible.
 
-`UC/Emulation.agda:34` is `open import CategoricalCrypto.UC.Environment base
-public`, so the module is that re-export plus six order names
+`UC/Emulation.agda:34` was `open import CategoricalCrypto.UC.Environment base
+public`, so the module was that re-export plus six order names
 (`_≤UC_`, `_≤UC⁺_`, `≈ℰ⇒≤UC`, `≤UC-refl`, `≤UC-trans`, `dummy-complete`).
 An importer wanting only `obs`/`tv₁`/`_≈ℰ_`/`grade-stable` can therefore name
 `UC.Environment` directly, which is also what rule 19 asks of a re-export
@@ -97,7 +97,7 @@ the follow-up settled four of the five:
 |---|---|---|
 | `UC.Audit` | `_≤UC_`, in `≤UC[]⇒≤UC` | `≤UC[]⇒≤UC` retired — zero consumers, and `UC.Audit.Canonical.audit-forget` after `audit⇒witness` is its conclusion wherever the base is monoidal |
 | `UC.Robust.Observation` | `dummy-complete`, `_≤UC⁺_` | `uc-preserves`/`uc⁺-preserves` retired — zero consumers, and `UC.Robust`'s are the canonical statements, reached by `UC.Core.Bridge.≈ℰᶜ⇒≈ᵁ`/`≈ᵁ⇒≈ℰᶜ` |
-| `UC.Model.Bridge` | the identification of the two orders | stays: the last importer, and a further step's business |
+| `UC.Model.Bridge` | the identification of the two orders | the identification stays; a further step unfolded `_≤UCᶜ_` in place, which took the last importer with it |
 | `UC.Family` | re-exports the six at `UCBase^ω` | dropped, with `Ingest.ingest-≤UC` and `Asymptotic.Family.≤UC^ωⁿ⇒≤UCᶠ`, whose inherited-order twins `ingest-≤UCᵁ`/`≤UC^ωⁿ⇒≤UCᵁ` carry their conclusions |
 | `UC.Family.Negligible` | re-exports two at `UCBaseᴺ` — this candidate | now `UC.Environment UCBaseᴺ` |
 
@@ -113,20 +113,13 @@ The maintainer has since ruled: `ingest-≤UCᵁ` is `ingest-≤UC`'s conclusion
 the inherited order on the same premises, so the gate is met by a replacement
 rather than by absence, and both went.
 
-**`UC.Emulation` could not be an INSTANCE, and this is not a missing gate.**
-The issue's premise is that it "can be an instance of `Abstract2._≤UC_`". That
-holds only where a monoidal base exists. Its two remaining non-re-export
-users, `UC.Audit` and `UC.Robust.Observation`, are parameterized by an
-arbitrary `UCBase`, which carries a `Grading` and no monoidal category of
-grades and no graded Kleisli triple — so `Abstract2` is not available there at
-all, and `_≤UC_`/`_≤UC⁺_`/`dummy-complete` have nothing to be an instance of.
-What the follow-up did instead was retire the statements: at an arbitrary
-`UCBase` neither had a consumer, and each has a named canonical replacement.
-
-So the accurate statement is narrower than the issue's: the emulation order is
-inherited wherever the base is monoidal — which is what this candidate did at
-the negligible tier and the follow-up did at the vanishing one — and what is
-left of `UC.Emulation` is `UC.Model.Bridge`'s `_≤UCᶜ_`.
+**`UC.Emulation` could not be an INSTANCE, and the module went anyway.**
+The issue's premise is that it "can be an instance of `Abstract2._≤UC_`", which
+holds only where a monoidal base exists; its two remaining non-re-export users,
+`UC.Audit` and `UC.Robust.Observation`, are parameterized by an arbitrary
+`UCBase` and so had nothing to instantiate. Retiring the statements at those
+two left them needing only `UC.Environment`, and unfolding `UC.Model.Bridge`'s
+`_≤UCᶜ_` took the last importer, so `UC/Emulation.agda` is deleted.
 
 ## Proposed change
 
