@@ -52,26 +52,25 @@ here. What is checked, in `UC/Family/Negligible/Setup.agda`:
 | `≈ℰⁿ⇒≤UC` | a budget-indexed bound reaches it: `≈ℰⁿ⇒≤UCᴺ`'s premise, inherited conclusion |
 
 `_≤UCᴺ_`, `≈ℰᴺ⇒≤UCᴺ` and `≈ℰⁿ⇒≤UCᴺ` have no in-repo consumer (the table in
-"The candidate", re-confirmed). Their bodies were `UC.Emulation UCBaseᴺ`'s;
-since the order's own retirement they are reachable nowhere. The former order
-survives only as `_≤UCᵉ_` in `UC/Family/Negligible/Setup.agda` — recorded there
-as the subject of the equivalence below, and for nothing else.
+"The candidate", re-confirmed). Their bodies were `UC.Emulation`'s at the
+tier's base; since the order's own retirement they are reachable nowhere.
 
-**The equivalence of the old and the canonical order is a checked theorem**, in
-`UC/Family/Negligible/Setup.agda`, stated against that `_≤UCᵉ_` (and its
-adversary-quantified form `_≤UCᵉ⁺_`) and `Canonicalᴺ._≤UC_`, the three aliases
-left retired:
-`≈ℰᴺ⇒≈ᵁ-sub`/`≈ᵁ⇒≈ℰᴺ-sub` at a fixed simulator, and `≤UCᵉ⇒≤UC`, `≤UC⇒≤UCᵉ`,
-`≤UCᵉ⇔≤UC` for the orders — plus `≤UC⇒≤UCᵉ⁺` for the adversary-quantified
-presentation of the old one. It is derived from the generic reverse contextual
-bridge `UC.Core.Bridge.≈ᵁ⇒≈ℰᶜ` with `rel-agree` (the contextual kernels) and
-`dummy-complete`/`≤UC⇒dummy` (dummy versus quantified presentation); the
-simulator is carried across unchanged in both directions, and a simulator's
-action has one spelling because the tier's grading is the canonical setup's
-own — the family tier carries the standard grading of `Famᴹ` and no second one.
-The retirement does
-not rest on that equivalence — it rests on the adoption above and on the
-replacements named in the table.
+**The equivalence of the old and the canonical order is a checked theorem.**
+Once the `Grading`/`UCBase` records were retired the tier's former dummy-form
+order became `UC.Core.Bridge._≤UCᶜ_` at `Canonicalᴺ` on the nose — `rel-agree`
+identifies the contextual kernels and a simulator's action has one spelling,
+the family tier carrying the tensor of `Famᴹ` and no second action — so the
+equivalence is the GENERIC `Canonicalᴺ.≤UCᶜ⇒≤UC`, `≤UC⇒≤UCᶜ`, `≤UCᶜ⇔≤UC` with
+`Canonicalᴺ._≤UC_`, and the per-tier aliases it used to be stated through
+(`_≤UCᵉ_`, `≈ℰᴺ⇒≈ᵁ-sub`, `≈ᵁ⇒≈ℰᴺ-sub`, `≤UCᵉ⇒≤UC`, `≤UC⇒≤UCᵉ`, `≤UCᵉ⇔≤UC`)
+are gone with them. What has no generic twin, and stays in
+`UC/Family/Negligible/Setup.agda`, is the adversary-quantified presentation
+`_≤UCᵉ⁺_` and `≤UC⇒≤UCᵉ⁺`. All of it is derived from the generic reverse
+contextual bridge `UC.Core.Bridge.≈ᵁ⇒≈ℰᶜ` with `rel-agree` (the contextual
+kernels) and `dummy-complete`/`≤UC⇒dummy` (dummy versus quantified
+presentation); the simulator is carried across unchanged in both directions.
+The retirement does not rest on that equivalence — it rests on the adoption
+above and on the replacements named in the table.
 
 ## What it did not do, and what the surrounding audit found
 

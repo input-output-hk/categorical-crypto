@@ -19,7 +19,6 @@ open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Product.Base using (Σ-syntax; _×_; _,_)
-open import Function.Bundles using (_⇔_; mk⇔)
 open import Level using (Level; _⊔_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
@@ -98,65 +97,31 @@ rel-agree = refl
 ------------------------------------------------------------------------
 -- …and so does the tier's ORDER
 
-infix 4 _≤UCᵉ_ _≤UCᵉ⁺_
+infix 4 _≤UCᵉ⁺_
 
--- `ᵉ` is the tier's former dummy-form order and its adversary-quantified
--- presentation, recorded here only as the subject of the equivalence below:
--- the two are the same order, `rel-agree` identifying the kernels and the
--- tier's simulator action being the canonical setup's own, so a simulator's
--- action has one spelling (`docs/retirement-negligible-order.md`).  Here and
--- below the implicit homs are supplied for the reason recorded above.
-_≤UCᵉ_ _≤UCᵉ⁺_ : {A B X Y : Canonicalᴺ.Channel}
-                 (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
-                 (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
-               → Set (o ⊔ ℓ ⊔ qs ⊔ ℓa)
-_≤UCᵉ_ {X = X} {Y} f g =
-  Σ[ s ∈ Canonicalᴺ._⇒_ Y X ] f N.≈ℰᴺ (Canonicalᴺ.sub s Canonicalᴺ.∘ g)
+-- The tier's former dummy-form order IS `Canonicalᴺ._≤UCᶜ_` — `rel-agree`
+-- identifies the kernels and the tier's simulator action is the canonical
+-- setup's own — so `Canonicalᴺ.≤UCᶜ⇒≤UC`, `≤UC⇒≤UCᶜ` and `≤UCᶜ⇔≤UC` are its
+-- equivalence with `Canonicalᴺ._≤UC_`, generically
+-- (`docs/retirement-negligible-order.md`).  What has no generic twin is its
+-- adversary-quantified presentation, below; there the implicit homs are
+-- supplied for the reason recorded above.
+_≤UCᵉ⁺_ : {A B X Y : Canonicalᴺ.Channel}
+          (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
+          (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
+        → Set (o ⊔ ℓ ⊔ qs ⊔ ℓa)
 _≤UCᵉ⁺_ {X = X} {Y} f g =
   {Z : Canonicalᴺ.Channel} (a : Canonicalᴺ._⇒_ X Z)
   → Σ[ s ∈ Canonicalᴺ._⇒_ Y Z ]
       (Canonicalᴺ.sub a Canonicalᴺ.∘ f) N.≈ℰᴺ (Canonicalᴺ.sub s Canonicalᴺ.∘ g)
 
-≈ℰᴺ⇒≈ᵁ-sub : {A B X Y : Canonicalᴺ.Channel}
-             (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
-             (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
-             (s : Canonicalᴺ._⇒_ Y X)
-           → f N.≈ℰᴺ (Canonicalᴺ.sub s Canonicalᴺ.∘ g)
-           → f Canonicalᴺ.≈ᵁ (Canonicalᴺ.sub s Canonicalᴺ.∘ g)
-≈ℰᴺ⇒≈ᵁ-sub f g s = Canonicalᴺ.≈ℰᶜ⇒≈ᵁ {f = f} {g = Canonicalᴺ.sub s Canonicalᴺ.∘ g}
-
-≈ᵁ⇒≈ℰᴺ-sub : {A B X Y : Canonicalᴺ.Channel}
-             (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
-             (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
-             (s : Canonicalᴺ._⇒_ Y X)
-           → f Canonicalᴺ.≈ᵁ (Canonicalᴺ.sub s Canonicalᴺ.∘ g)
-           → f N.≈ℰᴺ (Canonicalᴺ.sub s Canonicalᴺ.∘ g)
-≈ᵁ⇒≈ℰᴺ-sub f g s = Canonicalᴺ.≈ᵁ⇒≈ℰᶜ {f = f} {g = Canonicalᴺ.sub s Canonicalᴺ.∘ g}
-
-≤UCᵉ⇒≤UC : {A B X Y : Canonicalᴺ.Channel}
-           (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
-           (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
-         → f ≤UCᵉ g → Canonicalᴺ._≤UC_ f g
-≤UCᵉ⇒≤UC f g (s , e) = Canonicalᴺ.dummy-complete (s , ≈ℰᴺ⇒≈ᵁ-sub f g s e)
-
-≤UC⇒≤UCᵉ : {A B X Y : Canonicalᴺ.Channel}
-           (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
-           (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
-         → Canonicalᴺ._≤UC_ f g → f ≤UCᵉ g
-≤UC⇒≤UCᵉ f g p = let s , e = Canonicalᴺ.≤UC⇒dummy p in s , ≈ᵁ⇒≈ℰᴺ-sub f g s e
-
-≤UCᵉ⇔≤UC : {A B X Y : Canonicalᴺ.Channel}
-           (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
-           (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
-         → f ≤UCᵉ g ⇔ Canonicalᴺ._≤UC_ f g
-≤UCᵉ⇔≤UC f g = mk⇔ (≤UCᵉ⇒≤UC f g) (≤UC⇒≤UCᵉ f g)
-
--- The quantified presentation of `ᵉ` needs no separate argument: the canonical
--- order carries the quantifier in its statement, so the adversary's own
--- component is read off it.
+-- It needs no separate argument: the canonical order carries the quantifier in
+-- its statement, so the adversary's own component is read off it.
 ≤UC⇒≤UCᵉ⁺ : {A B X Y : Canonicalᴺ.Channel}
             (f : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
             (g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ Y B))
           → Canonicalᴺ._≤UC_ f g → f ≤UCᵉ⁺ g
 ≤UC⇒≤UCᵉ⁺ f g p a =
-  let s , h = p a in s , ≈ᵁ⇒≈ℰᴺ-sub (Canonicalᴺ.sub a Canonicalᴺ.∘ f) g s h
+  let s , h = p a
+  in s , Canonicalᴺ.≈ᵁ⇒≈ℰᶜ {f = Canonicalᴺ.sub a Canonicalᴺ.∘ f}
+                          {g = Canonicalᴺ.sub s Canonicalᴺ.∘ g} h
