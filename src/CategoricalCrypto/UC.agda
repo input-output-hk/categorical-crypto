@@ -59,14 +59,14 @@
 --                                  of its own: that was `UC.Emulation`'s
 --                                  renamed and is retired
 --                                  (`docs/retirement-negligible-order.md`).
+--                                  `UC.Model.Family.Negligible` inhabits it at
+--                                  the machine family, and its §1 acceptance
+--                                  tests are `UC.Approximate.LocalTests`
 --                `UC.Audit.Canonical`
 --                                  an audit emulation read as a cost-certified
 --                                  witness for the INHERITED order: the
 --                                  simulator and its budget cross untouched,
 --                                  and forgetting the cost is a separate step
---                                  `UC.Model.Family.Negligible` inhabits it at
---                                  the machine family, and its §1 acceptance
---                                  tests are `UC.Approximate.LocalTests`
 --                `UC.Family.Negligible.Setup`
 --                                  `ucSetupᴺ`: the same four fields at
 --                                  `Observationᴺ`, so the negligible tier
@@ -256,8 +256,10 @@
 -- via `Standard2.StdUC`) at the same machine layer, behind an `opaque` seal —
 -- the measured recipe without which the setup does not typecheck at all — so
 -- its names only make sense inside that `open StdUC` discipline.
--- `UC.Model.Bridge` identifies the two, and `UC.Seam.Grounded` above is where
--- they meet.  `CategoricalCrypto` reaches both roots.
+-- `UC.Core.Bridge` identifies the two — generic in the base and the
+-- observation, applied at the seal by `UC.Model.Bridge`, which keeps what only
+-- the model has — and `UC.Seam.Grounded` above is where they meet.
+-- `CategoricalCrypto` reaches both roots.
 --
 -- The inherited layer's own preservation theorem lives there too, not here:
 -- `Abstract2.Action` is the environment presheaf's action read as `run` and
