@@ -22,11 +22,10 @@
 -- parameter appears for the same reason at layer 1 (`UC.Asymptotic.uc-≈negl`).
 --
 -- With the agreement in hand the inherited metatheory applies to a concrete
--- family: `≈ℰ⇒≤UC` puts it in the core's order at the identity simulator, where
--- `≤UC-trans` and `dummy-complete` are `UC.Family`'s own, and `≈ℰ^ω⇒≤UC` puts
--- it in the INHERITED one, where `UC-compose` is — that identification is
--- `UC.Core.Bridge`, generic in the base, applied at the family by
--- `UC.Family.Vanishing`.
+-- family: `≈ℰ^ω⇒≤UC` puts it in the INHERITED order at the identity simulator,
+-- where `≤UC-trans`, `dummy-complete` and `UC-compose` are — that
+-- identification is `UC.Core.Bridge`, generic in the base, applied at the
+-- family by `UC.Family.Vanishing`.
 
 open import Data.Nat.Base using (ℕ)
 open import Data.Nat.Poly using (Poly)
@@ -45,8 +44,8 @@ open import CategoricalCrypto.UC.Machine using (Proc)
 open import CategoricalCrypto.UC.Machine.Bridge using (conjᴵ)
 open import CategoricalCrypto.UC.Model.Dominated using (dominatedᵒ; qb-gradedᵒ)
 open import CategoricalCrypto.UC.Model.Family
-  using ( Obj^ω; Δ; _⇒^ω_; _⊛ω_; _≈ℰ[_]_; _≈ℰ_; _≈ℰⁿ_; _≤UC_; module Canonical^ω
-        ; absorb-negl; carried-negligible; ≈ℰ⇒≤UC; ≈ℰ^ω⇒≤UC )
+  using ( Obj^ω; Δ; _⇒^ω_; _⊛ω_; _≈ℰ[_]_; _≈ℰ_; _≈ℰⁿ_; module Canonical^ω
+        ; absorb-negl; carried-negligible; ≈ℰ^ω⇒≤UC )
 open import CategoricalCrypto.UC.Model.Observation using (𝟘ᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; ifaceᵒ)
 open import CategoricalCrypto.UC.QueryBound using (QB)
@@ -114,9 +113,6 @@ module _ (B : ℕ → Iface) where
 
       ingest-≈ℰⁿ : real ≈ℰⁿ ideal
       ingest-≈ℰⁿ = εδ , carried-negligible {ε = εδ} ingest-negligible , ingest
-
-      ingest-≤UC : real ≤UC ideal
-      ingest-≤UC = ≈ℰ⇒≤UC {f = real} {ideal} ingest-≈ℰ
 
       -- …and in the INHERITED order, which is where `UC-compose` is
       -- (`UC.Family.Vanishing`, over the generic `UC.Core.Bridge`).

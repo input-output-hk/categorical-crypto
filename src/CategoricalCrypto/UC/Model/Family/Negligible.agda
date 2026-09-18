@@ -7,7 +7,7 @@
 -- So the tier is not a construction awaiting a model — `_≈ℰᴺ_` exists HERE,
 -- and `UC.Family.Negligible.Setup.≈ℰⁿ⇒≤UC` puts an ingested bound
 -- (`UC.Model.Family.Ingest.ingest-≈ℰⁿ`) into the INHERITED order with its
--- error witness kept, where `ingest-≤UC` spends it.
+-- error witness kept, which is where `ingest-≤UCᵁ` lands it too.
 
 open import Data.Nat.Base using (ℕ)
 open import Data.Nat.Properties using (≤-refl)

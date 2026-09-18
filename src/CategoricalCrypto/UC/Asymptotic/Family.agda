@@ -58,7 +58,7 @@ open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ)
 open import CategoricalCrypto.UC.Model.Family
   using ( Obj^ω; Δ; _⇒^ω_; _⊛ω_; PolyQB; _≈ℰ[_]_; _≈ℰⁿ_; absorb-negl
         ; carried-negligible; ≈ℰⁿ⇒≈ℰ; ≈ℰ^ω⇒≤UC; module Canonical^ω )
-  renaming (_≈ℰ_ to _≈ℰᶠ_; _≤UC_ to _≤UCᶠ_; ≈ℰ⇒≤UC to ≈ℰᶠ⇒≤UCᶠ)
+  renaming (_≈ℰ_ to _≈ℰᶠ_)
 open import CategoricalCrypto.UC.Model.Observation using (𝟘ᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
@@ -167,11 +167,6 @@ imageᶠ {B} R q = imgᶠ B R , q
            → imageᶠ R qR ≈ℰᶠ imageᶠ I qI
 ≤UC^ωⁿ⇒≈ℰᶠ {R = R} {I = I} qR qI p =
   ≈ℰⁿ⇒≈ℰ {f = imageᶠ R qR} {imageᶠ I qI} (≤UC^ωⁿ⇒≈ℰⁿ qR qI p)
-
-≤UC^ωⁿ⇒≤UCᶠ : (qR : Imageᶠ B R) (qI : Imageᶠ B I) → R ≤UC^ωⁿ I
-            → imageᶠ R qR ≤UCᶠ imageᶠ I qI
-≤UC^ωⁿ⇒≤UCᶠ {R = R} {I = I} qR qI p =
-  ≈ℰᶠ⇒≤UCᶠ {f = imageᶠ R qR} {imageᶠ I qI} (≤UC^ωⁿ⇒≈ℰᶠ qR qI p)
 
 -- …and in the INHERITED order, which is where `UC-compose` is
 -- (`UC.Family.Vanishing`, over the generic `UC.Core.Bridge`).
