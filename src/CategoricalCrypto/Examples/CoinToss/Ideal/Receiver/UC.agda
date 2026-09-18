@@ -8,13 +8,10 @@
 -- coercions are its: `ext-graded` for the stage on top, `graded₂-∘` for the
 -- resource plugged under, `sub-graded₂` for the joint simulator in front.
 -- What is new is a FOURTH reading of the same two machines — at the grade
--- `ifaceᵒ (Lkᴵʰ ⊗ᴵ Advᴵᶜʰ)` rather than `ifaceᵒ Lkᴵʰ ⊗₀ ifaceᵒ Advᴵᶜʰ` — and
--- the identity that regrades one to the other.  The seal hides the tensor
--- (`UC.Model.Seal`'s third discipline), so the two spellings are two
--- coercions and not one, and `sub-graded₂` at the IDENTITY process is the
--- morphism between them.  That is what lets the domination, which is stated
--- at a grade of the first shape (`UC.Model.Dominated.dominatedᵍ`), be read at
--- the second, which is the shape `UC.Asymptotic.Compose._∙ᶠ_` produces.
+-- `ifaceᵒ (Lkᴵʰ ⊗ᴵ Advᴵᶜʰ)` rather than `ifaceᵒ Lkᴵʰ ⊗₀ ifaceᵒ Advᴵᶜʰ`, which
+-- `UC.Graded.regrade` crosses.  That is what lets the domination, stated at a
+-- grade of the first shape (`UC.Model.Dominated.dominatedᵍ`), be read at the
+-- second, which is the shape `UC.Asymptotic.Compose._∙ᶠ_` produces.
 
 open import Data.Bool.Base using (_xor_)
 open import Data.List.Base using ([]; _∷_)
@@ -27,21 +24,19 @@ open import Level using (0ℓ)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 open import Categories.Category using (Category)
-open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Reasoning
 open import ProbabilisticLogic.Dp.Uniform using (uniformₚ)
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Machines.Base using (𝒢ₚ; 𝒢ₚᴹ)
+open import CategoricalCrypto.Machines.Base using (𝒢ₚ)
 open import CategoricalCrypto.UC.Budget using (Budget)
-open import CategoricalCrypto.UC.Graded using (ext-graded; graded₂-∘; sub-graded₂)
-open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; T₁ᴵ; a⇒ᴵ)
-open import CategoricalCrypto.UC.Machine.Dictionary using (sub-⊗₁)
+open import CategoricalCrypto.UC.Graded
+  using (ext-graded; flatᵍ; graded₂-∘; regrade; sub-graded₂)
+open import CategoricalCrypto.UC.Machine using (Proc; T₁ᴵ; a⇒ᴵ)
 open import CategoricalCrypto.UC.Model.Dominated using (qb-gradedᵒ)
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ)
-open import CategoricalCrypto.UC.Model.Graded using (graded₂ᵒ; ≈ᴹ⇒≈ᵍ₂)
 open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; ifaceᵒ; procᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.QueryBound
@@ -61,10 +56,7 @@ open import CategoricalCrypto.Examples.ROCommitment.Resource k
 open Budget budgetᵒ using (QB)
 open HomReasoning
 
-private
-  module M = Category (𝒢ₚ 0ℓ)
-  module 𝔾 = MonoidalCategory (𝒢ₚᴹ 0ℓ)
-  module 𝒫 = Category 𝒫ᴵ
+private module M = Category (𝒢ₚ 0ℓ)
 
 ------------------------------------------------------------------------
 -- The joint simulator spends one call per activation
@@ -145,9 +137,8 @@ simJʰCert = record
 simJʰQB : QB 1 (gradedᵒ simJʰ)
 simJʰQB = qb-gradedᵒ (certified⇒QB simJʰCert)
 
--- The regrading wire is the identity process, read at the split grade.
 flatʰ : ifaceᵒ (Lkᴵʰ ⊗ᴵ Advᴵᶜʰ) ⇒ ifaceᵒ Lkᴵʰ ⊗₀ ifaceᵒ Advᴵᶜʰ
-flatʰ = gradedᵒ (𝒫.id {Lkᴵʰ ⊗ᴵ Advᴵᶜʰ})
+flatʰ = flatᵍ
 
 flatʰQB : QB 1 flatʰ
 flatʰQB = qb-gradedᵒ qb-idᴹ
@@ -155,19 +146,9 @@ flatʰQB = qb-gradedᵒ qb-idᴹ
 ------------------------------------------------------------------------
 -- The two sides, regraded
 
--- `sub-graded₂` at the IDENTITY simulator: the grade `ifaceᵒ (X ⊗ᴵ P)` the
--- seal hands a `gradedᵒ` and the grade `ifaceᵒ X ⊗₀ ifaceᵒ P` a composed
--- system carries are the same object, and this is the morphism that says so.
-regrade : {C : Iface} (g : Proc unitᴵ ((Lkᴵʰ ⊗ᴵ Advᴵᶜʰ) ⊗ᴵ C))
-        → sub flatʰ ∘ gradedᵒ g ≈ graded₂ᵒ g
-regrade g =
-       sub-graded₂ (𝒫.id {Lkᴵʰ ⊗ᴵ Advᴵᶜʰ}) g
-  ○ ≈ᴹ⇒≈ᵍ₂ (𝒫.Equiv.trans
-              (𝒫.∘-resp-≈ˡ (𝒫.Equiv.trans (sub-⊗₁ (𝒫.id {Lkᴵʰ ⊗ᴵ Advᴵᶜʰ})) 𝔾.⊗.identity))
-              𝒫.identityˡ)
-
--- …and the hybrid's own reading, which is `Examples.CoinToss.Ideal.UC`'s
--- `coin-hop` split at the machine both sides are compared through.
+-- `UC.Graded.regrade` at the receiver's ports, against the hybrid's own
+-- reading — `Examples.CoinToss.Ideal.UC`'s `coin-hop` split at the machine
+-- both sides are compared through.
 hyb-flatʰ : sub flatʰ ∘ gradedᵒ hybridᴹʰ
             ≈ (ext (ifaceᵒ Lkᴵʰ) (gradedᵒ tossʰ) ∘ gradedᵒ idealʰ) ∘ procᵒ resource
 hyb-flatʰ =

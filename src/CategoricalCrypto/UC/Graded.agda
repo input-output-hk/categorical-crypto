@@ -21,19 +21,21 @@
 -- `UC.Seam.Grounded` is weakened or re-proved.
 
 open import Categories.Category using (Category; _[_≈_])
+open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 open import Categories.Functor.Monoidal.CurriedTensor.Properties using (T₁-⊗; μ-α⇐)
 
 open import Data.Product.Base using (_,_)
 open import Level using (0ℓ)
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Machines.Base using (𝒢ₚ)
-open import CategoricalCrypto.UC.Machine using (Proc; T₁ᴵ; a⇒ᴵ; subᴵ′)
-open import CategoricalCrypto.UC.Machine.Dictionary using (𝟭ᴵ)
+open import CategoricalCrypto.Machines.Base using (𝒢ₚ; 𝒢ₚᴹ)
+open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; T₁ᴵ; a⇒ᴵ; subᴵ′)
+open import CategoricalCrypto.UC.Machine.Dictionary using (𝟭ᴵ; sub-⊗₁)
 open import CategoricalCrypto.UC.Machine.Plug using (plugᴹ)
 open import CategoricalCrypto.UC.Model.Enrichment using (procᵘ)
 open import CategoricalCrypto.UC.Model.Graded
-  using (ext-gradedᵒ; graded₂ᵒ; graded₂-∘ᵒ; plug-gradedᵒ; sub-gradedᵒ; sub-graded₂ᵒ; ≈ᴹ⇒≈ᵍ)
+  using (ext-gradedᵒ; graded₂ᵒ; graded₂-∘ᵒ; plug-gradedᵒ; sub-gradedᵒ; sub-graded₂ᵒ;
+         ≈ᴹ⇒≈ᵍ; ≈ᴹ⇒≈ᵍ₂)
 open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; ifaceᵒ; procᵒ; 𝔾ᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 
@@ -41,6 +43,8 @@ module CategoricalCrypto.UC.Graded where
 
 private
   module M = Category (𝒢ₚ 0ℓ)
+  module 𝒫 = Category 𝒫ᴵ
+  module 𝔾 = MonoidalCategory (𝒢ₚᴹ 0ℓ)
 
   variable A B C X Y : Iface
 
@@ -89,6 +93,24 @@ graded₂-∘ = graded₂-∘ᵒ
 sub-graded₂ : {P : Iface} (s : Proc Y (X ⊗ᴵ P)) (g : Proc A (Y ⊗ᴵ C))
             → sub (gradedᵒ s) ∘ gradedᵒ g ≈ graded₂ᵒ (M._∘_ (subᴵ′ s) g)
 sub-graded₂ = sub-graded₂ᵒ
+
+-- The grade `ifaceᵒ (X ⊗ᴵ P)` one `gradedᵒ` hands out and the grade
+-- `ifaceᵒ X ⊗₀ ifaceᵒ P` that `UC.Asymptotic.Compose._∙ᶠ_` produces are the
+-- same object, and the seal keeps them apart.  No coercion can identify them
+-- on the nose: an export's TYPE is checked with the seal CLOSED, so
+-- `gradedᵒ f ≈ graded₂ᵒ f` does not typecheck even inside the block.  This
+-- wire, the identity process read at the split grade, is the morphism instead.
+flatᵍ : {P : Iface} → ifaceᵒ (X ⊗ᴵ P) ⇒ ifaceᵒ X ⊗₀ ifaceᵒ P
+flatᵍ {X} {P} = gradedᵒ (𝒫.id {X ⊗ᴵ P})
+
+-- …and `sub-graded₂` at the IDENTITY simulator is that it regrades.
+regrade : {P : Iface} (g : Proc A ((X ⊗ᴵ P) ⊗ᴵ C))
+        → sub (flatᵍ {X} {P}) ∘ gradedᵒ g ≈ graded₂ᵒ g
+regrade {X = X} {P = P} g =
+  Equiv.trans (sub-graded₂ (𝒫.id {X ⊗ᴵ P}) g)
+    (≈ᴹ⇒≈ᵍ₂ (𝒫.Equiv.trans
+               (𝒫.∘-resp-≈ˡ (𝒫.Equiv.trans (sub-⊗₁ (𝒫.id {X ⊗ᴵ P})) 𝔾.⊗.identity))
+               𝒫.identityˡ))
 
 emulᵍ : {f : Proc A (X ⊗ᴵ B)} {s : Proc Y X} {g : Proc A (Y ⊗ᴵ B)}
       → Factors f s g → gradedᵒ f ≈ᵁ sub (procᵒ s) ∘ gradedᵒ g

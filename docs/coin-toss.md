@@ -488,7 +488,7 @@ Two pieces of plumbing are the price, both general and both since hoisted:
 `UC.Model.Dominated.dominatedᵍ`
 is `dominatedᵒ` at a NONTRIVIAL grade (the model had domination only at the
 trivial one, every graded statement above it being exact), and
-`Receiver.UC.regrade` identifies the two spellings of a tensor grade the seal
+`UC.Graded.regrade` identifies the two spellings of a tensor grade the seal
 keeps apart — `sub-graded₂` at the IDENTITY process.
 
 The chain lemmas were still not hoisted: `hearᴴʰ`/`askᴴʰ`/`cellᴴʰ`/`lkᴴʰ` and
