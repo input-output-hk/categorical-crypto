@@ -8,10 +8,7 @@
 -- The commitment's UC-level ε-statement is not a theorem yet
 -- (`docs/dp-transport.md`), so it is the HYPOTHESIS, in the canonical witness
 -- form `_≤UC^ωᵉ_`; everything `UC.Asymptotic.Compose.UC-composeᵉ` asks of the
--- morphisms it moves is discharged here (`Examples.CoinToss.UC`), and
--- `Allowance-mono` lands on the OUTER comparison, which is the zero schedule
--- because the two sides share their upper stage — `hash-liftᵉ`'s discharge,
--- verbatim.
+-- morphisms it moves is discharged here (`Examples.CoinToss.UC`).
 --
 -- The hop to an ideal coin is the SECOND one, and it needs a closed
 -- comparison boundary: `Examples.CoinToss.Ideal.Compose` makes it, and
@@ -23,7 +20,7 @@ open import Data.Nat.Poly using (poly-const)
 open import Data.Nat.Properties using (*-identityʳ)
 open import Data.Product.Base using (_,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 0ℚ) renaming (_*_ to _*ℚ_)
-open import Data.Rational.Properties using (+-identityˡ; ≤-refl)
+open import Data.Rational.Properties using (+-identityˡ)
 open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl; trans)
 
 open import ProbabilisticLogic.Distribution.Uniform using (fromℕ; inv-pow-2)
@@ -77,14 +74,13 @@ tossᶠ = CTU.tossᵒ
 
 -- The commitment stays below the coin toss and only its world changes, so the
 -- upper stage is compared with ITSELF: the outer witness is `idᶜ` at the zero
--- schedule, which is both `NegligibleBound` and `Allowance-mono` for free.
--- The whole error is the commitment's, read at the allowance the composition
--- rescales it by.
+-- schedule, which is `NegligibleBound` for free.  The whole error is the
+-- commitment's, read at the allowance the composition rescales it by.
 coin-toss-from-com : realᶠ ≤UC^ωᵉ idealᶠ
                    → (tossᶠ ∙ᶠ realᶠ) ≤UC^ωᵉ (tossᶠ ∙ᶠ idealᶠ)
 coin-toss-from-com (sf , εf , nf , ef) =
   UC-composeᵉ sf εf nf ef
-              idᶜ (λ _ _ → 0ℚ) (λ _ _ → Negligible-0) (λ _ _ → ≤-refl)
+              idᶜ (λ _ _ → 0ℚ) (λ _ _ → Negligible-0)
               (≈C⇒≈ctx λ n → Equiv.sym (sub-identityˡ (tossᶠ n)))
               (λ _ → 1) (poly-const 1) CTU.recvQB
               (λ _ → 0) (poly-const 0) CTU.tossQB
@@ -134,7 +130,7 @@ coin-toss-from-comʰ : realʰᶠ ≤UC^ωᵉ idealʰᶠ
                     → (tossʰᶠ ∙ᶠ realʰᶠ) ≤UC^ωᵉ (tossʰᶠ ∙ᶠ idealʰᶠ)
 coin-toss-from-comʰ (sf , εf , nf , ef) =
   UC-composeᵉ sf εf nf ef
-              idᶜ (λ _ _ → 0ℚ) (λ _ _ → Negligible-0) (λ _ _ → ≤-refl)
+              idᶜ (λ _ _ → 0ℚ) (λ _ _ → Negligible-0)
               (≈C⇒≈ctx λ n → Equiv.sym (sub-identityˡ (tossʰᶠ n)))
               (λ _ → 1) (poly-const 1) CTHU.comQB
               (λ _ → 1) (poly-const 1) CTHU.tossʰQB

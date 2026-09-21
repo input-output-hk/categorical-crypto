@@ -119,8 +119,7 @@ moves are theorems here, and so is the monotonicity premise.
 | `QB (cf n) (f n)` for the real hash, `cf n = 0` | `UC.QueryBound.qb-closed` — a CLOSED process has `Neg unitᴵ` empty, so no output of its is downward and the rate is zero, whatever the hash is. Composed with `qb-λ⇐` for the `ιᴳ` in `closedᵒ` | `FactorEps.agda:81` |
 | `QB (cv n) (v n)` for the ledger, `cv n = 1` | **proved**, `qb-ledger` | `Examples/ChimericLedger/QueryBound.agda:190` |
 | `Poly cf`, `Poly cv` | `poly-const 0`, `poly-const 1` | `FactorEps.agda:116-117` |
-| `Allowance-mono εu` | `λ _ _ → ℚ.≤-refl`: `εu` is the ZERO schedule, because the upper stage is shared and `≈C⇒≈ctx` compares it with itself at zero error | `FactorEps.agda:114` |
-| `NegligibleBound εu` | `λ _ _ → Negligible-0` | `:114` |
+| `NegligibleBound εu` | `λ _ _ → Negligible-0`: `εu` is the ZERO schedule, because the upper stage is shared and `≈C⇒≈ctx` compares it with itself at zero error | `FactorEps.agda:114` |
 
 So the plan's "polynomial-cost premises explicitly" is met by *proving* them rather than
 by carrying them: the only premise the two lifts carry is the emulation itself.

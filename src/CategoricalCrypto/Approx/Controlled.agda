@@ -8,11 +8,11 @@
 -- condition on it.
 --
 -- Everything is stated with `⊑`, in the direction that makes a BOUND
--- admissible: the intended model's own allowance arithmetic is exact when a
--- morphism is absorbed into a test and only an inequality when it is absorbed
--- into a closure (`UC.Budget.ctxBudget-simCost` against
--- `ctxBudget-closure≤`), so demanding equations here would exclude the model
--- this category exists to hold.
+-- admissible: the intended model's allowance arithmetic is exact
+-- (`UC.Budget.ctxBudget-simCost`, `ctxBudget-closure`) only after a query
+-- certificate has been bumped with `qb-mono`, which is an inequality, so
+-- demanding equations here would exclude the model this category exists to
+-- hold.
 --
 -- Two controls are compared in the ERRORS' OWN ORDER (`_≐ᶜ_`), not by
 -- propositional equality: at a schedule-valued error `at φ ε` is itself a

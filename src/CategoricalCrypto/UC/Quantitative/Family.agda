@@ -12,12 +12,11 @@
 -- model's ingestion and extraction lemmas live.
 --
 -- Every other move plugs a morphism into the context and costs the allowance
--- rescaled by that morphism's own budget, `UC.Budget.simCost`.  Which leg it is
--- plugged into decides whether that is exact: absorbing into the TEST is
--- `ctx-absorb`, an identity in the allowance; absorbing into the CLOSURE hits
--- the leg `ctxBudget` guards, so it is only a bound (`ctxBudget-closure≤`) and
--- reading `ε` at it needs `Allowance-mono` as a premise — which is why
--- `≈ctx-pre` and `UC-composeᵉ` take one.
+-- rescaled by that morphism's own budget, `UC.Budget.simCost`, and every such
+-- substitution here is EXACT, so no theorem below reads `ε` at an inequality
+-- of allowances.  Absorbing into the TEST is `ctx-absorb`; absorbing into the
+-- CLOSURE is exact only once the closure's certificate is bumped past the leg
+-- `ctxBudget` guards, which `qb-mono` affords (`ctxBudget-closure`).
 --
 -- Neither relation reads the compared homs' own query bounds, only the
 -- context's.  `Certified` is where a bound on a hom appears, and only on
@@ -31,7 +30,7 @@ import Categories.Category.Monoidal.Reasoning as MonR
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly using (Poly; poly-*; poly-const; poly-⊔)
 open import Data.Nat.Properties
-  using (*-identityʳ; *-identityˡ; ⊔-assoc; ⊔-idem)
+  using (*-identityʳ; *-identityˡ; *-monoʳ-≤; m≤m⊔n; ⊔-assoc; ⊔-idem)
 open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Level using (Level; _⊔_)
@@ -42,7 +41,7 @@ open import CategoricalCrypto.UC.Approximate
   using ( Approximation; GradedBound-+[_]; GradedBound-reindex; Negligible
         ; Negligible-+; NegligibleBound; ℚ-errors )
 open import CategoricalCrypto.UC.Budget
-  using (Budget; ctxBudget; ctxBudget-closure≤; ctxBudget-simCost; simCost)
+  using (Budget; ctxBudget; ctxBudget-closure; ctxBudget-simCost; simCost)
 open import CategoricalCrypto.UC.Core using (Observation)
 
 module CategoricalCrypto.UC.Quantitative.Family
@@ -161,7 +160,6 @@ private
 ≈ctx-trans _ _ p q n W E m qE qm = ≈[]-trans (p n W E m qE qm) (q n W E m qE qm)
 
 -- Reading the same agreement at a larger SCHEDULE, which needs nothing of `ε`.
--- Reading it at a larger ALLOWANCE is the move that needs `Allowance-mono`.
 ≈ctx-≤ : (ε δ : ℕ → ℕ → ℚ) {f g : Homᶠ A X B} → ((n q : ℕ) → ε n q ℚ.≤ δ n q)
        → f ≈ctx[ ε ] g → f ≈ctx[ δ ] g
 ≈ctx-≤ _ _ le h n W E m qE qm = ≈[]-mono (le n _) (h n W E m qE qm)
@@ -239,14 +237,6 @@ NegligibleBound-simCost : (cs : ℕ → ℕ) → Poly cs → (ε : ℕ → ℕ �
 NegligibleBound-simCost cs Pcs =
   GradedBound-reindex Negligible (λ _ q → simCost q (cs _))
                       (λ p Pp → poly-* Pp (poly-⊔ Pcs (poly-const 1)))
-
--- What reindexing along an INEQUALITY of allowances spends.  It is a premise
--- and not a fact: `NegligibleBound` constrains `ε` at each allowance separately
--- and says nothing about their order, so an arbitrary schedule is not monotone
--- by fiat.  Only the horizontal composition needs it — the absorptions above
--- substitute exactly.
-Allowance-mono : (ℕ → ℕ → ℚ) → Set
-Allowance-mono ε = (n : ℕ) {q q′ : ℕ} → q ℕ.≤ q′ → ε n q ℚ.≤ ε n q′
 
 ------------------------------------------------------------------------
 -- The emulation witness
@@ -390,16 +380,16 @@ module Compose where
   -- way: the context of `u ∙ᶠ f` at ancilla `W` IS `u`'s context at ancilla
   -- `W ⊗ X`, with `f`'s own prefix pushed into the closure.  So `f`'s
   -- certificate pays, and it pays on the leg `ctxBudget` GUARDS rather than
-  -- multiplies: the substitution is a bound, and reading `ε` at it is the
-  -- explicit `Allowance-mono` premise.
+  -- multiplies — which is why `qm′` certifies the new closure one step above
+  -- what `qb-∘` hands back, at `(cf n ⊔ 1) * (c′ ⊔ 1)`: there the guard is
+  -- inside and the substitution is exact (`ctxBudget-closure`), where at the
+  -- unbumped budget it would only be a bound.
   ≈ctx-pre : (f : Homᶠ A X B) (cf : ℕ → ℕ) → ((n : ℕ) → QB (cf n) (f n))
-           → (ε : ℕ → ℕ → ℚ) → Allowance-mono ε
-           → {u v : Homᶠ B P C} → u ≈ctx[ ε ] v
+           → (ε : ℕ → ℕ → ℚ) {u v : Homᶠ B P C} → u ≈ctx[ ε ] v
            → (u ∙ᶠ f) ≈ctx[ (λ n q → ε n (simCost q (cf n))) ] (v ∙ᶠ f)
   ≈ctx-pre {A = A} {X = X} {B = B} {P = P} {C = C}
-           f cf qf ε mono {u} {v} hy n W E m {c} {c′} qE qm =
-    splice (⟺ (cut (u n))) (⟺ (cut (v n)))
-           (≈[]-mono (mono n (ctxBudget-closure≤ c c′ (cf n))) inner)
+           f cf qf ε {u} {v} hy n W E m {c} {c′} qE qm =
+    splice (⟺ (cut (u n))) (⟺ (cut (v n))) inner
     where
     U : Channel
     U = W ⊗₀ X n
@@ -420,9 +410,10 @@ module Compose where
     qE′ = subst (λ j → QB j E′) (*-identityʳ c)
                 (qb-∘ qE (qb-sub {A = C n} (qb-a⇐ {W} {X n} {P n})))
 
-    qm′ : QB ((cf n ℕ.⊔ 1) ℕ.* c′) m′
-    qm′ = subst (λ j → QB (j ℕ.* c′) m′) (*-identityˡ (cf n ℕ.⊔ 1))
-                (qb-∘ (qb-∘ qμ qT) qm)
+    qm′ : QB ((cf n ℕ.⊔ 1) ℕ.* (c′ ℕ.⊔ 1)) m′
+    qm′ = qb-mono (*-monoʳ-≤ (cf n ℕ.⊔ 1) (m≤m⊔n c′ 1))
+            (subst (λ j → QB (j ℕ.* c′) m′) (*-identityˡ (cf n ℕ.⊔ 1))
+                   (qb-∘ (qb-∘ qμ qT) qm))
       where
       qμ : QB 1 (μ W (X n) {B n})
       qμ = qb-resp-≈ (Equiv.sym (μ-α⇐ M W (X n))) (qb-a⇒ {W} {X n} {B n})
@@ -431,14 +422,16 @@ module Compose where
       qT = qb-resp-≈ (Equiv.sym (T₁-⊗ M W (f n))) (qb-T₁ {W} (qf n))
 
     inner : ⟦ (E′ ∘ prefixᵒ U (u n)) ∘ m′ ⟧
-              ≈[ ε n (ctxBudget c ((cf n ℕ.⊔ 1) ℕ.* c′)) ]
+              ≈[ ε n (simCost (ctxBudget c c′) (cf n)) ]
             ⟦ (E′ ∘ prefixᵒ U (v n)) ∘ m′ ⟧
-    inner = hy n U E′ m′ qE′ qm′
+    inner = subst (λ k → ⟦ (E′ ∘ prefixᵒ U (u n)) ∘ m′ ⟧ ≈[ ε n k ]
+                         ⟦ (E′ ∘ prefixᵒ U (v n)) ∘ m′ ⟧)
+                  (ctxBudget-closure c c′ (cf n)) (hy n U E′ m′ qE′ qm′)
 
   -- Plugging a process under the DOMAIN, where `≈ctx-pre` plugs one under the
   -- SUBROUTINE.  The closure absorbs it and at rate `0` that is free: the
   -- closure's budget becomes `(0 ⊔ 1) * c′`, which `ctxBudget` reads as `c′`
-  -- itself, so the schedule is unchanged and no `Allowance-mono` is spent.
+  -- itself, so the schedule is unchanged rather than reindexed.
   -- This is what puts a comparison at a CLOSED domain, with the resource the
   -- two sides must agree about moved out of the context's control
   -- (`docs/coin-toss.md` §5).
@@ -477,24 +470,24 @@ module Compose where
 
   -- The ε-analogue of `Abstract2.UC-compose`, step by step.  Its two extra
   -- hypotheses are the certificates for the morphisms it moves: `f`, into the
-  -- closure (hence `Allowance-mono εu`), and `v`, which with the simulator `t`
-  -- in front of it goes into the test.
+  -- closure, and `v`, which with the simulator `t` in front of it goes into
+  -- the test.
   UC-composeᵉ :
       {f : Homᶠ A X B} {g : Homᶠ A Y B} {u : Homᶠ B P C} {v : Homᶠ B Q C}
       (sf : Certified Y X) (εf : ℕ → ℕ → ℚ) → NegligibleBound εf
     → f ≈ctx[ εf ] subᶠ sf g
-    → (t : Certified Q P) (εu : ℕ → ℕ → ℚ) → NegligibleBound εu → Allowance-mono εu
+    → (t : Certified Q P) (εu : ℕ → ℕ → ℚ) → NegligibleBound εu
     → u ≈ctx[ εu ] subᶠ t v
     → (cf : ℕ → ℕ) → Poly cf → ((n : ℕ) → QB (cf n) (f n))
     → (cv : ℕ → ℕ) → Poly cv → ((n : ℕ) → QB (cv n) (v n))
     → (u ∙ᶠ f) ≤UC^ωᵉ (v ∙ᶠ g)
   UC-composeᵉ {X = X} {B = B} {Y = Y} {P = P} {C = C} {Q = Q} {f = f} {g} {u} {v}
-              sf εf nf ef t εu nu mono eu cf Pcf qf cv Pcv qv =
+              sf εf nf ef t εu nu eu cf Pcf qf cv Pcv qv =
       s , (λ n q → εu′ n q ℚ.+ εf′ n q)
     , GradedBound-+[ Negligible ] Negligible-+ εu′ εf′
         (NegligibleBound-simCost cf Pcf εu nu)
         (NegligibleBound-simCost ctv Pctv εf nf)
-    , ≈ctx-trans εu′ εf′ (≈ctx-pre f cf qf εu mono eu)
+    , ≈ctx-trans εu′ εf′ (≈ctx-pre f cf qf εu eu)
         (≈ctx-resp εf′ (λ _ → Equiv.refl) strict-final
                    (≈ctx-ext (subᶠ t v) ctv qtv εf ef))
     where
@@ -536,3 +529,13 @@ module Compose where
         (sub (id ⊗₁ sim t n) ∘ sub (sim sf n ⊗₁ id)) ∘ ext (Y n) (v n) ∘ g n
           ≈⟨ (⟺ sub-homomorphism) ⟩∘⟨refl ⟩
         sub (sim s n) ∘ ext (Y n) (v n) ∘ g n  ∎
+
+  -- …and packaged at the witnesses, which nothing but the schedules' order
+  -- stood in the way of.  What stays explicit is the certificates for the two
+  -- moved morphisms: `_≤UC^ωᵉ_` bounds the SIMULATOR, not the homs compared.
+  ≤UC^ωᵉ-∙ : {f : Homᶠ A X B} {g : Homᶠ A Y B} {u : Homᶠ B P C} {v : Homᶠ B Q C}
+             (cf : ℕ → ℕ) → Poly cf → ((n : ℕ) → QB (cf n) (f n))
+           → (cv : ℕ → ℕ) → Poly cv → ((n : ℕ) → QB (cv n) (v n))
+           → f ≤UC^ωᵉ g → u ≤UC^ωᵉ v → (u ∙ᶠ f) ≤UC^ωᵉ (v ∙ᶠ g)
+  ≤UC^ωᵉ-∙ cf Pcf qf cv Pcv qv (sf , εf , nf , ef) (t , εu , nu , eu) =
+    UC-composeᵉ sf εf nf ef t εu nu eu cf Pcf qf cv Pcv qv
