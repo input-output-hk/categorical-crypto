@@ -13,17 +13,13 @@
 -- argument is needed — `hitFrom`'s accumulator and the monitor's fire at
 -- exactly the same boundaries.
 --
--- `trajectoryFromAudit` is the `watch` form, which STOPS at the first
--- violation; the extra chances it takes on the strategy's own audit queries
--- only help that inequality.  It has no converse: an early `out true` weighs 1
--- where the continued trajectory run may deadlock and weigh nothing.  So the
--- observable the UC layer designates is `monitor`, which accumulates instead
--- and therefore has BOTH directions — `monitor-sound` is what lets an ideal
+-- The observable the UC layer designates is `monitor`, which ACCUMULATES and
+-- therefore has BOTH directions — `monitor-sound` is what lets an ideal
 -- trajectory bound supply the graded premise
 -- (`docs/protocol-implementation-review.md` §1), `monitor-complete` is what
 -- keeps the premise from being a statement about a blind monitor.
 
-open import Data.Bool.Base using (Bool; true; false; not; _∨_; if_then_else_; f≤t; b≤b)
+open import Data.Bool.Base using (Bool; true; false; not; _∨_; f≤t; b≤b)
   renaming (_≤_ to _≤ᵇ_)
 open import Data.Bool.Properties using (T-≡; ≤-minimum)
 open import Data.Bool.Properties.Ext using (∨-mono; ∨-monoʳ)
@@ -32,7 +28,7 @@ open import Data.Maybe.Base using (just)
 open import Data.Nat.Base using (ℕ) renaming (_≡ᵇ_ to _≡ᴺ_)
 open import Data.Nat.Properties using (≡⇒≡ᵇ)
 open import Data.Product.Base using (_×_; _,_; proj₁)
-open import Data.Rational using (ℚ; 1ℚ) renaming (_≤_ to _≤ℚ_)
+open import Data.Rational using (ℚ) renaming (_≤_ to _≤ℚ_)
 open import Data.Rational.Properties using (≤-refl; ≤-reflexive; ≤-trans)
 open import Data.Rational.Properties.Ext using (0≤1ℚ)
 open import Function.Bundles using (Equivalence)
@@ -41,7 +37,7 @@ open import Relation.Binary.PropositionalEquality
 open import ProbabilisticLogic.Prelude
 open import ProbabilisticLogic.Distribution.RationalDist using (lookupᴰℚ-return)
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation using
-  (E-bind; E-mono; E⊥-bind; E⊥-mono; Pr₁⊥≤1)
+  (E-bind; E-mono; E⊥-bind; E⊥-mono)
 open import ProbabilisticLogic.Distribution.Uniform using (bool→ℚ)
 
 open import CategoricalCrypto.Examples.ChimericLedger
@@ -83,71 +79,9 @@ module _ (hash : Protocol unitᴵ HashIf) (vr : Variant) (s₀ : LState) where
                             (G (st , totalIs (total (proj₁ st))))
                             (>>=⊥-identityˡ (st , totalIs (total (proj₁ st))) G)
 
-  mutual
-
-    -- The comparison at an arbitrary reachable state, the accumulator still
-    -- clear.  `≤` and not `≡` only because of the strategy's own audit
-    -- queries: `watch` may stop on one of those before the trajectory does.
-    core : (st : St P) (d : Strat Query Answer)
-         → Pr₁⊥ (hitFrom P Bad false st d)
-           ≤ℚ Pr₁⊥ (runFrom P st (watch s₀ (audited d)))
-    core st (out b)    = ≤-refl
-    core st (coin μ k) =
-      ≤-trans (≤-reflexive (E-bind μ Hb mb))
-      (≤-trans (E-mono μ (λ b → Pr₁⊥ (Hb b)) (λ b → Pr₁⊥ (Rb b)) (λ b → core st (k b)))
-               (≤-reflexive (sym (E-bind μ Rb mb))))
-      where
-      Hb Rb : Bool → Dist⊥ Bool
-      Hb b = hitFrom P Bad false st (k b)
-      Rb b = runFrom P st (watch s₀ (audited (k b)))
-    core st (ask q k) =
-      ≤-trans (≤-reflexive (E⊥-bind μq H bool→ℚ))
-      (≤-trans (E⊥-mono μq (λ x → Pr₁⊥ (H x)) (λ x → Pr₁⊥ (R x)) ptw)
-               (≤-reflexive (sym (E⊥-bind μq R bool→ℚ))))
-      where
-      μq = kernel P st q
-
-      H R : St P × Answer → Dist⊥ Bool
-      H (st′ , r) = hitFrom P Bad (Bad st′) st′ (k r)
-      R (st′ , r) = runFrom P st′
-        (if violates s₀ r then out true else watch s₀ (ask audit λ _ → audited (k r)))
-
-      ptw : (x : St P × Answer) → Pr₁⊥ (H x) ≤ℚ Pr₁⊥ (R x)
-      ptw (st′ , r) with violates s₀ r
-      ... | true  = ≤-trans (Pr₁⊥≤1 (hitFrom P Bad (Bad st′) st′ (k r)))
-                            (≤-reflexive (sym (verdict true)))
-      ... | false = auditStep st′ (k r)
-
-    -- The audit query itself: it does not move the state, and its answer is
-    -- the state's own `total`, so `watch`'s test on it IS `Bad`.
-    auditStep : (st : St P) (c : Strat Query Answer)
-              → Pr₁⊥ (hitFrom P Bad (Bad st) st c)
-                ≤ℚ Pr₁⊥ (runFrom P st (watch s₀ (ask audit λ _ → audited c)))
-    auditStep (s , tbl) c = ≤-trans body (≤-reflexive (sym (served (s , tbl) G)))
-      where
-      G : St P × Answer → Dist⊥ Bool
-      G (st′ , r) = runFrom P st′
-        (if violates s₀ r then out true else watch s₀ (audited c))
-
-      body : Pr₁⊥ (hitFrom P Bad (Bad (s , tbl)) (s , tbl) c)
-           ≤ℚ Pr₁⊥ (G ((s , tbl) , totalIs (total s)))
-      body with total s ≡ᴺ total s₀
-      ... | true  = core (s , tbl) c
-      ... | false = ≤-trans (Pr₁⊥≤1 (hitFrom P Bad true (s , tbl) c))
-                            (≤-reflexive (sym (verdict true)))
-
-  -- The genesis state is not itself a violation, so the run starts clear.
-  private
+    -- The genesis state is not itself a violation, so the run starts clear.
     init-good : Bad (s₀ , init hash) ≡ false
     init-good = cong not (Equivalence.to T-≡ (≡⇒≡ᵇ (total s₀) (total s₀) refl))
-
-  -- `POV.TrajectoryFromAudit vr s₀`, at the hash implementation `hash`.
-  trajectoryFromAudit : (d : Strat Query Answer)
-                      → PrHit P Bad d ≤ℚ Pr P (watch s₀ (audited d))
-  trajectoryFromAudit d =
-    subst (λ b → Pr₁⊥ (hitFrom P Bad b (s₀ , init hash) d)
-                 ≤ℚ Pr₁⊥ (runFrom P (s₀ , init hash) (watch s₀ (audited d))))
-          (sym init-good) (core (s₀ , init hash) d)
 
   ------------------------------------------------------------------------
   -- The designated monitor
@@ -160,8 +94,9 @@ module _ (hash : Protocol unitᴵ HashIf) (vr : Variant) (s₀ : LState) where
   -- SOUND: the monitor reports nothing the trajectory did not have.  A
   -- `submit` acknowledgement it does not read at all, and an audit answer is
   -- the audited state's own total, so its accumulator is `hitFrom`'s at that
-  -- boundary.  This is the direction `watch` does not have — its early
-  -- `out true` weighs 1 where the continued trajectory run may deadlock.
+  -- boundary.  This is the direction a monitor stopping at the first violation
+  -- would not have — its early `out true` weighs 1 where the continued
+  -- trajectory run may deadlock.
   sound : {acc acc′ : Bool} → acc ≤ᵇ acc′ → (st : St P) (d : Strat Query Answer)
         → Pr₁⊥ (runFrom P st (monitorFrom s₀ acc d))
           ≤ℚ Pr₁⊥ (hitFrom P Bad acc′ st d)
@@ -258,12 +193,6 @@ module _ (hash : Protocol unitᴵ HashIf) (vr : Variant) (s₀ : LState) where
 module _ (vr : Variant) (s₀ : LState) where
 
   -- The trajectory bound BECOMES the designated monitor's bound, which is what
-  -- `ChimericLedger.Audit` hands to the UC layer's carries, and comes back
-  -- through `pov-via-monitor` at the audit-interleaved strategy's budget.
+  -- `ChimericLedger.Audit` hands to the UC layer's carries.
   monitor-bounded : {ε : ℕ → ℚ} → POV vr s₀ ε → POVmonitor vr s₀ ε
   monitor-bounded pov q d a = ≤-trans (monitor-sound oracle vr s₀ d) (pov q d a)
-
-  pov-via-monitor : {ε : ℕ → ℚ} → POVmonitor vr s₀ ε → (qa : ℕ) (d : Strat Query Answer)
-                  → asks≤ qa (audited d) → PrHit (Sys vr s₀) (badTotal s₀) d ≤ℚ ε qa
-  pov-via-monitor pm qa d aa =
-    ≤-trans (monitor-complete oracle vr s₀ d) (pm qa (audited d) aa)
