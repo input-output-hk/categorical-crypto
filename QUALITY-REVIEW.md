@@ -3938,3 +3938,63 @@ Four maintainer-approved cleanups, one commit each, on `cleanup-4` off
   `UC/Family.agda:230`, `UC/Quantitative/Family.agda:61`,
   `UC/Model/Quantitative.agda:39`) into record literals. The swap is net
   ADDING, so the eta-cliff question (a) never had to be answered.
+
+## Resolved (filtered-qsetup)
+
+Branch `filtered-qsetup` off `protocol-rewrite@478d87f3`. What the quantitative
+contextual layer asserted about `Approx.Filtered` is now checked rather than
+recorded: the relation IS the filtered presheaf's admitted agreement, and each
+allowance substitution IS one datum of a filtered map.
+
+- **`Approx.Filtered._≈ᵃ[_]_`, new.** Two maps into a filtered space agreeing on
+  the ADMITTED elements, at an error indexed by the allowance. A record, not a
+  definition: the two spaces are projections of the unfolded quantifier, so a use
+  site recovers neither (the first cut of it as a definition left every `X`/`Y`
+  meta blocked). `≈ᵃ-refl`/`-sym`/`-trans`/`-mono`/`-resp₀` come with it, and the
+  two clauses that carry the content are one field each — `≈ᵃ-pre` is
+  `Filtered.admits`, `≈ᵃ-post` is `Controlled.preserves`.
+
+- **`UC.Quantitative.Contextual` is the instance.** `_≈ᵁᵠ[_]_` keeps its type and
+  `ctx⇒agree`/`agree⇒ctx` identify it with `Agreeᵠ` for `Query.Qᵠ`. Not
+  definitional, and provably cannot be: `_≈ᵁᵠ[_]_` takes the closure `m` BEFORE
+  the test's certificate, while the generic relation must take the admittance
+  first and leaves `m` inside the schedule-valued `_≈ᵠ[_]_`. Reordering would
+  change `_≈ctxᴬ[_]_` and hence `UC.Asymptotic.Family._≈ᶠ[_]_`, which rule 1 and
+  the brief forbid. The bridge is one line each way.
+
+- **The two absorptions, `absorb-testᵠ` / `absorb-closureᵠ`.** Stated on
+  test-pullback maps, so they are bracket-agnostic and serve both `_≈ᵁᵠ[_]_` and
+  `UC.Quantitative.Family._≈ctx[_]_`. `Query.guardᵠ` is new — the identity on
+  tests, `_⊔ 1` on the schedule — and `pullᵠ⁺` is `pullᵠ` taken behind it, whose
+  control is `reindex (ctxBudget b)`. `Query.absorb-test`/`absorb-closure` had no
+  consumer before; they are exactly what the two `≈ᵃ-mono` steps spend.
+
+- **What became an instance.** `ctx-refl`/`-sym`/`-trans`/`-mono`/`-resp` and
+  `ctx-absorb` (hence `ctx-sub`, hence `Family.≈ctx-sub`/`≈ctx-ext`, hence
+  `≤UC^ωᵉ-sub` and `UC-composeᵉ`'s ext leg); `Family.≈ctx-pre` is
+  `absorb-closureᵠ` and `Family.≈ctx-dom` is `≈ᵃ-post` at a rate-zero plug. Both
+  lost the `qb-mono` bump past `ctxBudget`'s guard (it is `guardᵠ`'s now) and
+  their allowance `subst`s. `at-trans` and `≤UC^ωᵉ-trans` were already instances
+  and are untouched.
+
+- **Still bespoke, deliberately.** `Family`'s own congruence kit
+  (`≈ctx-refl`/`-sym`/`-trans`/`-≤`/`-resp`, `≈C⇒≈ctx`, `≈ᵁ⇒≈ctx`) is one line
+  each at the `prefixᵒ` bracket; routing it through `≈ctx⇒agreeᵠ` is the same
+  length and one indirection worse, so it stays direct. `UC-composeᵉ`,
+  `≤UC^ωᵉ-∙`, `≤UC^ωᵉ-sub` are assemblies of the above plus `Poly`/`Negligible`
+  bookkeeping, which is not filtered content.
+
+- **Not attempted: one `QUCSetup` over a family base.** The presheaf would have
+  to act on every morphism of the base, so the base must be budgeted, and then
+  `run` for the UNcertified compared homs has no filtered structure. The shape
+  that works is the one landed: the presheaf is `Filt`-valued over `𝒞ᵇ`, and the
+  relation quantifies a plain carrier map over admitted tests, with filtered
+  structure only on the certified morphisms a theorem actually moves.
+
+- **Cost.** Warm single-module, `+RTS -M6G -H2G`, two runs each after deleting the
+  target's `.agdai`: `UC.Quantitative.Family` 8.6/8.7 s → 8.9/8.6 s,
+  `UC.Quantitative.Contextual` 4.7/4.7 s → 4.9/5.1 s, `Approx.Filtered`
+  4.4/4.4 s → 4.7/4.6 s, `UC.Quantitative.Query` 4.9/4.7 s after (no before taken).
+  Closure
+  `CategoricalCrypto` 46 s, and the seven example/test roots 6–11 s each, all rc=0
+  with an empty warning gate. Hatch grep 16 before and after.

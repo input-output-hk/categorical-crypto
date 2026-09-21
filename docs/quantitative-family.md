@@ -295,6 +295,101 @@ Checked green, unedited: `src/CategoricalCrypto.agda`, `UC.agda`, `UC/Model.agda
    SIMULATOR, not the homs it compares — and `_≤UC^ωᵉ_` gained no fifth component, so
    `≤UC^ωⁿ⇒≤UC^ωᵉ` is unchanged.
 
-3. **Consumer migration (plan step 6).** `ledger-uc-to-pov-family`,
+3. ~~**The filtered layer as the relation's actual home.**~~ RESOLVED 2026-09-21 on
+   branch `filtered-qsetup`; see §11.
+
+4. **Consumer migration (plan step 6).** `ledger-uc-to-pov-family`,
    `ledger-pov-family-negligible`, `ledger-uc-to-pov-simCost`, `ledger-pov-simCost-negligible`
    and `ledger-pov` are unchanged and green; nothing was migrated onto the new witness form.
+
+## 11. The relation as a filtered instance (2026-09-21, `filtered-qsetup`)
+
+`Approx/Filtered.agda` and `UC/Quantitative/Query.agda` built a `Filt`-valued test
+presheaf that nothing consumed. It is now what the contextual relation *is*.
+
+### 11.1 The generic notion
+
+`Approx.Filtered._≈ᵃ[_]_` — two maps into a filtered space agreeing on the **admitted**
+elements, at an error indexed by the allowance:
+
+```agda
+record _≈ᵃ[_]_ (u : X.Carrier → Y.Carrier) (Ε : ℕ → Error) (v : X.Carrier → Y.Carrier) where
+  field admitted : {q : ℕ} {x : X.Carrier} → X.Admit q x → u x Y.≈[ Ε q ] v x
+```
+
+A **record**, not a definition: the two spaces are projections of the unfolded
+quantifier, so a use site recovers neither, and the first cut of this as a definition
+left every `X`/`Y` meta blocked (`_Y.space.approx._≈[_]__1065`).
+
+The two clauses with content are one field of a filtered map each, and this is the whole
+point of the file's "two independent indices":
+
+| | statement | spends |
+|---|---|---|
+| `≈ᵃ-pre κ` | precomposing reindexes the **allowance** the bound is read at | `Filtered.admits` |
+| `≈ᵃ-post k` | postcomposing transforms the **error** by the control | `Controlled.preserves` |
+
+### 11.2 The identification
+
+`UC.Quantitative.Contextual.Agreeᵠ ε r r′` is `_≈ᵃ[_]_` for `filteredᵠ`, at
+`λ q c′ → ε (ctxBudget q c′)` — the test's admitted allowance in `ctxBudget`'s first
+leg, the closure's own budget in its second, inside `_≈ᵠ[_]_`. It is stated on
+test-**pullback maps**, not on one bracket's relation, so both brackets use it:
+
+| relation | its pullback | bridge |
+|---|---|---|
+| `Contextual._≈ᵁᵠ[ ε ]_` | `runᵠ W f = _∘ id ⊗₁ f` | `ctx⇒agree` / `agree⇒ctx` |
+| `Family._≈ctx[ ε ]_` | `_∘ prefixᵒ W (f n)`, levelwise | `≈ctx⇒agreeᵠ` / `agreeᵠ⇒≈ctx` |
+
+**The identification is not definitional, and cannot be made so.** `_≈ᵁᵠ[_]_` takes the
+closure `m` *before* the test's certificate (`W E m {c c′} → QB c E → QB c′ m → …`),
+where the generic relation must take the admittance first and leaves `m` inside the
+schedule-valued `_≈ᵠ[_]_` (`W {q} {E} → QB q E → ∀ m c′ → QB c′ m → …`). Reordering
+`_≈ᵁᵠ[_]_` changes `_≈ctxᴬ[_]_` and hence `UC.Asymptotic.Family._≈ᶠ[_]_`, which every
+`Examples/ChimericLedger` consumer applies positionally — rule 1 forbids it. Each bridge
+is a one-line curry shuffle.
+
+### 11.3 The two absorptions
+
+```agda
+absorb-testᵠ    : QB (cs ⊔ 1) k → (∀ E → s E ≈ r (E ∘ k))     → Agreeᵠ ε r r′
+                → Agreeᵠ (λ q → ε (simCost q cs)) s s′
+absorb-closureᵠ : QB 1 k → QB (cs ⊔ 1) t → (∀ E → s E ≈ r (E ∘ k) ∘ t) → Agreeᵠ ε r r′
+                → Agreeᵠ (λ q → ε (simCost q cs)) s s′
+```
+
+- `absorb-testᵠ` = `≈ᵃ-pre (pullᵠ …)`; the allowance map is `_* (cs ⊔ 1)` and
+  `Query.absorb-test` (i.e. `ctxBudget-simCost`) is the exact substitution.
+- `absorb-closureᵠ` = `≈ᵃ-post (pullᵠ⁺ …)` after `≈ᵃ-pre (pullᵠ …)`. `Query.guardᵠ` is
+  new: the identity on tests, `_⊔ 1` on the schedule, legitimate because a budget is an
+  upper bound. `pullᵠ⁺ h = composeᶠ (guardᵠ _) (pullᵠ h)`, whose control is therefore
+  `reindex (ctxBudget (budget h))` — and *that* is what puts `ctxBudget`'s own guard
+  inside the product, so `Query.absorb-closure` applies and the substitution is exact.
+  The only inexact step in either is `q * 1 ≡ q` for the structural test leg.
+
+Both `absorb-test` and `absorb-closure` had no consumer before; they are exactly what
+the two `≈ᵃ-mono` steps spend.
+
+### 11.4 What became an instance
+
+| name | now |
+|---|---|
+| `ctx-refl`, `ctx-sym`, `ctx-trans`, `ctx-mono`, `ctx-resp` | `≈ᵃ-refl`/`-sym`/`-trans`/`-mono`/`-resp₀` through the bridge |
+| `ctx-absorb` | `absorb-testᵠ` |
+| `ctx-sub`, `Family.≈ctx-sub`, `Family.≈ctx-ext` | `ctx-absorb`, unchanged above it |
+| `Family.≈ctx-pre` | `absorb-closureᵠ` — lost `qE′`, the `qb-mono` bump in `qm′` and `inner`'s `subst` |
+| `Family.≈ctx-dom` | `≈ᵃ-post (pullᵠ …)` at a rate-zero plug — lost `qm′`'s and `inner`'s `subst` |
+| `at-trans`, `≤UC^ωᵉ-trans`, `UC-composeᵉ`, `≤UC^ωᵉ-∙`, `≤UC^ωᵉ-sub` | unchanged; they were already assemblies of the above |
+
+Still bespoke on purpose: `Family`'s own congruence kit (`≈ctx-refl`/`-sym`/`-trans`/
+`-≤`/`-resp`, `≈C⇒≈ctx`, `≈ᵁ⇒≈ctx`) is one line each at the `prefixᵒ` bracket and
+routing it through the bridge is the same length with one more indirection.
+
+### 11.5 The shape that was rejected
+
+One `QUCSetup` over a family base does not close. The presheaf would have to act on
+*every* morphism of the base, so the base must be budgeted (`𝒞ᵇ`), and then `run` for
+the deliberately UNcertified compared homs has no filtered structure to be the action
+of. What works — and is what landed — is: presheaf `Filt`-valued over `𝒞ᵇ`, relation a
+plain carrier map quantified over **admitted** tests, filtered structure only on the
+certified morphisms a theorem actually moves into a context.
