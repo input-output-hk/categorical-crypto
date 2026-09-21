@@ -206,7 +206,7 @@
 --                `UC.Factor`       `factorᵖ`: the UC-object image of `_∘ᵖ_`
 --                                  factors on the nose, exposing the
 --                                  sub-protocol's interface as a port
---                                  (`Examples.ChimericLedger.Factor`)
+--                                  (`Examples.ChimericLedger.Transfer`)
 --                `UC.Saturated`    the saturated form of a concrete safety
 --                                  bound — one slack per polynomial allowance,
 --                                  at the vanishing grade and at the
@@ -225,7 +225,7 @@
 --                `UC.Asymptotic.Compose`
 --                                  that module's `Compose`: the composition
 --                                  laws with the error retained, whose
---                                  consumers are `ChimericLedger.FactorEps`,
+--                                  consumers are `ChimericLedger.Transfer`,
 --                                  which lifts a premise through a factoring,
 --                                  `Examples.CoinToss.Compose`, which stacks a
 --                                  protocol on a realized one, and

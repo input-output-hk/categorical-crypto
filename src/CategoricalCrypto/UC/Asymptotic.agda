@@ -61,8 +61,7 @@ infix 4 _≤UC^ω_
 --
 -- `UC.Asymptotic.Family._≤UC^ωⁿ_` is that family premise, and `uc-≤UC^ωⁿ`
 -- proves this relation plus the real side's totality includes into it, so every
--- theorem off it is a specialization of one stated there
--- (`ChimericLedger.EndToEnd.ledger-uc-to-pov` is the pair for the ledger).
+-- theorem off it is a specialization of one stated there.
 _≤UC^ω_ : Systems B → Systems B → Set₁
 _≤UC^ω_ {B} R I = (n : ℕ)
   → closedᵒ (morphism (R n)) ≤UC closedᵒ (morphism (I n))

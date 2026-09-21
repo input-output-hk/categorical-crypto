@@ -15,9 +15,9 @@
 -- The event carried has to be INTERFACE-OBSERVABLE, and that is the content of
 -- the restriction rather than a convenience: what a test reads is what an
 -- emulation preserves.  A state trajectory is not such an event — the
--- simulator's state is not the ideal process's — which is why layer 1 states the
--- trajectory bound (`POV`) but carries a MONITOR's bound, the two tied by
--- `Examples.ChimericLedger.Trajectory`.
+-- simulator's state is not the ideal process's — which is why the ledger
+-- example carries a WATCH's bound, and recovers the trajectory only under an
+-- extra truthfulness hypothesis (`Examples.ChimericLedger.Observable`).
 --
 -- WHICH event is carried is DATA (`AuditEvent`): the contexts permitted to read
 -- it.  Quantifying over every budgeted test instead — which is what this module

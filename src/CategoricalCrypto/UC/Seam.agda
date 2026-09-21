@@ -16,11 +16,11 @@
 -- adversary interface as well.  At the TRIVIAL grade the simulator collapses
 -- and the emulation is the direct agreement (`UC.Seam.Grounded.emulAgreeᵁ`).
 -- At a real grade it does not collapse, and what carries is a bound on an
--- INTERFACE-OBSERVABLE event — the audit form, `POVaudit`/`watch` in
--- `Examples.ChimericLedger.POV` — with the simulator absorbed into the
+-- INTERFACE-OBSERVABLE event — the audit form, `auditWatch` in
+-- `Examples.ChimericLedger.Observable` — with the simulator absorbed into the
 -- environment leg (`UC.Audit.audit-carry`, at this instance `UC.Seam.Audit`);
--- the state trajectory comes back from it through the same example's
--- `TrajectoryFromAudit`.
+-- the state trajectory comes back from it only under the extra truthfulness
+-- hypothesis that example's appendix makes explicit.
 --
 -- Everything here keeps the machine layer at arm's length, and both reasons are
 -- measured.  Interfaces are EXPLICIT in every definition below, and each

@@ -35,9 +35,10 @@
 --
 --   `SaturatedHit` reads the STATE TRAJECTORY (`PrHit`), which no environment
 --   sees, so it is saturated in the slack but NOT invariant: a simulator's
---   state is not the ideal system's.  That asymmetry is why the ledger example
---   states the trajectory bound and carries the audit bound, the two tied by
---   its own `TrajectoryFromAudit` — the concrete face of
+--   state is not the ideal system's.  That asymmetry is why the audit form is
+--   the headline of the ledger example and the trajectory form only its
+--   appendix, reached from the audit form at the cost of assuming the
+--   implementation audits truthfully — the concrete face of
 --   `UC.Audit.audit-carry`'s interface-observability restriction.
 
 open import Data.Bool.Base using (Bool)

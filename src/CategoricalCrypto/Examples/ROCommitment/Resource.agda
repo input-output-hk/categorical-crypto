@@ -7,8 +7,8 @@
 -- games' `Examples.ROCommitment.Oracle` fixes the kernel `fetchT` in `Dist-ℚ`.
 -- This is the same kernel in `Dₚ`, where the UC cone's closed runs live: the
 -- table is the state, a point already answered is answered again from it, a
--- fresh one draws `uniformₚ k` and is kept.  `Examples.ChimericLedger.POV.oracle` is the
--- same lazy table one layer up, as a `Calls` tree; nothing here is a protocol
+-- fresh one draws `uniformₚ k` and is kept.  `ChimericLedger.System.oracle` is
+-- the same lazy table one layer up, as a `Calls` tree; nothing here is a protocol
 -- image, because the system it is plugged under is not one either
 -- (`docs/hash-forward.md` item 5).
 --
