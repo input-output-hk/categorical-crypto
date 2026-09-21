@@ -11,9 +11,6 @@
 -- So a trajectory along which `total` moves has, at the step it moved, an
 -- oracle answer colliding with a hash already keying the state; that is the
 -- event the random oracle's counting bounds.
---
--- `Shape`/`shape` walk the validation cascade once and hand every later
--- consumer the two-way case with an accepted transaction's data attached.
 
 open import Class.DecEq
 

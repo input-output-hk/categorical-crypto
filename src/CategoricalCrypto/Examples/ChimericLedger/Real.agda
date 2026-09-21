@@ -6,36 +6,10 @@
 --     Real n = ledger inputConsuming (genesis n) ∘ᵖ hash n
 --     Ideal  = the same, with `ChimericLedger.POV.oracle` in place of `hash n`
 --
--- `ledger-uc-to-pov` is generic in the real family and therefore carries three
--- hypotheses about it (`Bad`, `TotalRun`, `TruthfulAudit`); at a family of this
--- shape all three are discharged here, once and for all, leaving the emulation
--- premise and the birthday theorem's `SerInj` as the only substantive ones.
---
--- The two that are not bookkeeping:
---
---   `realTotal`     liveness, which is structural and hence the hash
---                   implementation's own: the ledger writes no `dead` and
---                   `_∘ᵖ_` creates none (`ChimericLedger.Total`), so all the
---                   real side owes is `NoDeadStep (hash n)`
---   `real-truthful` the audit answers report the real system's own state.  UC
---                   identifies no internal trajectory, so this has to come from
---                   the implementation — and it does, unchanged from the ideal
---                   side, because an audit query is answered out of the
---                   LEDGER's state whatever it hashes with
---                   (`ChimericLedger.Trajectory.monitor-complete`)
---
--- What is assumed about the hash is therefore only `NoDeadStep` and the
--- emulation; nothing here is specific to a construction.  The emulation is
--- assumed at the LEDGER, not at the hash: deriving it from a hash-level
--- `hash n ≤UC oracle n` is `UC-compose` at the family setup, which
--- `docs/end-to-end.md`'s continuation item 1 still owes.
---
--- A named instance (Merkle–Damgård, say) does not fit yet either:
--- `Examples.MerkleDamgard`'s ideal interface hashes FIXED-length messages
--- (`RandomOracle 1 (Vec Bool (k * n)) n`) where the ledger's hashes
--- bitstrings, so plugging it in wants a padding adapter and its own emulation
--- proof — a cryptographic-construction obligation, which the same document
--- places outside this scope.
+-- `ledger-uc-to-pov`'s three hypotheses about the real family (`Bad`,
+-- `TotalRun`, `TruthfulAudit`) are discharged here once and generically in the
+-- hash, of which only `NoDeadStep` is then assumed; the emulation and the
+-- birthday theorem's `SerInj` are what is left (`docs/end-to-end.md` §3).
 
 open import Data.Bool.Base using (Bool)
 open import Data.List.Base using (List)

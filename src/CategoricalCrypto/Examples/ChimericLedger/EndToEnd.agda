@@ -77,23 +77,12 @@ private
 -- genesis with probability above `εbirthday` at the audit-adjusted allowance
 -- plus `νₚ n`.  The premise is the asymptotic-family one
 -- (`UC.Asymptotic.Family._≤UC^ωⁿ_`): an ε-approximate family emulation whose ε
--- is retained and negligible at every polynomial allowance.  Three things are
--- worth reading off the statement.
+-- is retained and negligible at every polynomial allowance.
 --
---   The BOUND keeps no ε of the premise.  `≈negl-respects` folds it into the
---   saturated slack rather than into `ε`, and the slack is quantified after the
---   allowance, so the birthday term is `εᴸ n (q + q)` — the audit
---   instrumentation's doubling and nothing else.
---
---   There is no `TotalRun`.  The pointwise specialization below spends one to
---   collapse a per-level emulation into this premise (a divergent real side is
---   emulated by a simulator that never starts); the family premise is already
---   quantitative, so there is nothing to collapse.
---
---   No EXACT agreement is passed through.  `Agreeˢ` appears nowhere in this
---   proof: the ε travels contextual → direct-run
---   (`UC.Asymptotic.Family.≈ᶠ-runs`, over `UC.Seam.Audit.Context`) → `_≈negl_`
---   → `SaturatedBoundedᴺ`, which is review §1's acceptance condition.
+-- The bound keeps no ε of the premise: `≈negl-respects` folds it into the
+-- saturated slack, which is quantified AFTER the allowance, so the birthday
+-- term is `εᴸ n (q + q)` — the audit instrumentation's doubling and nothing
+-- else.
 ledger-uc-to-pov-family :
     (a V : ℕ) → SerInj → (R : Systems LedgerIf^ω) (badR : Bad R)
   → R ≤UC^ωⁿ Ideal a V

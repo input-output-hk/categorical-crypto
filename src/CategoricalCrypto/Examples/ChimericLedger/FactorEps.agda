@@ -17,15 +17,10 @@
 --                 is no simulator to compose, hence none to forget afterwards,
 --                 which is what lets the POV corollary go through.
 --
--- The honest premise shape at this port is the `ωⁿ` one, and not by fiat:
--- `POV.oracle` exposes no adversary interface, so the hash boundary is graded
--- at `𝟘ᴳ` on both sides and every simulator there is a scalar
--- (`docs/ledger-factoring.md`).  `≤UC^ωⁿ⇒≤UC^ωᵉ` is the inclusion, so
--- `hash-liftᵉ` covers it and more; what the `ᵉ` route cannot do at this
--- application is END — forgetting a witness back into direct agreement needs
--- its simulator to act trivially, which at a general simulator is
--- `UC.Seam.Grounded.subBlind` and costs the real side's totality
--- (`docs/ledger-lift-eps.md`).
+-- The honest premise shape at this port is the `ωⁿ` one — the hash boundary is
+-- graded at `𝟘ᴳ` on both sides, so every simulator there is a scalar — and
+-- `hash-liftᵉ` covers it and more; what the `ᵉ` route cannot do here is END
+-- (`docs/ledger-lift-eps.md` §§1, 5).
 
 open import Data.Bool.Base using (Bool)
 open import Data.List.Base using (List)

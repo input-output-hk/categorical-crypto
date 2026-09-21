@@ -182,15 +182,10 @@ module _ (vr : Variant) (s₀ : LState) where
 -- The birthday target
 ------------------------------------------------------------------------
 
--- The headline statement is pinned at a GENESIS state: all the value in ONE
--- UTxO output, keyed by a genesis hash `h₀`.  An account-only genesis (empty
--- UTxO set, all value in one account) is what the branch first stated, and it
--- is VACUOUS — `consumes inputConsuming` demands an input while `checkIns`
--- rejects every input against an empty UTxO set, so no transaction is ever
--- accepted, the oracle is never queried, the state never moves and the bad
--- event has probability zero (external theory review, finding 1).
--- `ChimericLedger.Pin` pins the liveness of the state below by `refl`, so the
--- vacuity cannot come back unnoticed.
+-- All the value in ONE UTxO output, keyed by a genesis hash `h₀`: at an
+-- account-only genesis the statement is VACUOUS, since `checkIns` rejects
+-- every input against an empty UTxO set while `consumes inputConsuming`
+-- demands one.  `ChimericLedger.Pin` pins this state's liveness by `refl`.
 genesis : Hash → Addr → ℕ → LState
 genesis h₀ a V = ((h₀ , 0) , (a , V)) ∷ [] , []
 
