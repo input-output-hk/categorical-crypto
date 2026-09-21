@@ -4,23 +4,17 @@
 -- class permitting it gives back.
 --
 -- The context is the one `UC.Seam.Grounded` already builds — an embedded
--- strategy behind the two unitors that kill the grade and the ancilla.  Three
--- things make it one of the contexts an audit event can permit, and all three
--- are theorems elsewhere:
+-- strategy behind the two unitors that kill the grade and the ancilla.  Two
+-- things make it one of the contexts an audit event can permit, and both are
+-- theorems elsewhere:
 --
 --   budget  `UC.Seam.Budget.qb-strategyEnv` at the strategy's own ask-depth, the
 --           two unitors at `Budget`'s own certificates, hence `ctxBudget q 1 = q`
 --   run     `UC.Seam.Grounded.plug-run` and `UC.Seam.Adequacy.adequacy` identify
 --           the context's observation with layer 1's run
---   mass    `Protocol.Machine.Agree.prAgree` reads `Pr` off that run at a budget
---           the `_≼ₚ_` half of the identification reaches
 --
--- `extract-obs` spends those three and nothing else — no event class in it
--- (review §4.1) — and `extract-bounded` is it in the shape layer 1 states its
--- bound, which is what `UC.Seam.Audit.Prefix`'s route consumes.
---
--- `extractᵍ` is the same extraction at a NONTRIVIAL grade, where the class does
--- stay a parameter: there the bound is `Dₚ`-valued, because the process below
+-- `extractᵍ` is the extraction at a NONTRIVIAL grade, where the event class
+-- stays a parameter: there the bound is `Dₚ`-valued, because the process below
 -- an adversary is a raw machine rather than a protocol image.
 
 import Categories.Category.Monoidal.Reasoning as MonR
@@ -29,24 +23,21 @@ import Categories.Morphism.Reasoning as MR
 
 open import Categories.Category using (Category)
 
-open import Data.Bool.Base using (Bool; true)
-open import Data.Nat.Base using (ℕ; _*_; _+_; _⊔_)
+open import Data.Bool.Base using (true)
+open import Data.Nat.Base using (ℕ; _*_; _⊔_)
 import Data.Nat.Properties as ℕP
-open import Data.Product.Base using (_,_; proj₁; proj₂)
+open import Data.Product.Base using (proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ)
 open import Data.Rational.Properties using (≤-trans)
 open import Level using (Level)
-open import Relation.Binary.PropositionalEquality using (subst; trans)
+open import Relation.Binary.PropositionalEquality using (trans)
 
 open import ProbabilisticLogic.Distribution.Uniform using (indᵇ)
-open import ProbabilisticLogic.Dp using (Dₚ; _≈ₚ_; ≈ₚ-sym; ≈ₚ-trans)
+open import ProbabilisticLogic.Dp using (_≈ₚ_; ≈ₚ-sym; ≈ₚ-trans)
 open import ProbabilisticLogic.Dp.Advantage using (Pr≤; indᵇ-nn)
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Protocol using (Protocol)
-open import CategoricalCrypto.Protocol.Machine using (morphism; runᴹ)
-open import CategoricalCrypto.Protocol.Machine.Agree using (prAgree)
-open import CategoricalCrypto.Protocol.Observe using (Bounded; Pr)
+open import CategoricalCrypto.Protocol.Machine using (runᴹ)
 open import CategoricalCrypto.Strategy using (Strat; asks≤)
 open import CategoricalCrypto.UC.Budget using (Budget; ctxBudget)
 open import CategoricalCrypto.UC.Graded using (plug-graded)
@@ -184,34 +175,3 @@ absorb-plugᵍ : (B : Iface) (e : Strat (Neg B) (Pos B)) {X Y : Iface}
 absorb-plugᵍ B e a s =
   assoc ○ (refl⟩∘⟨ (⟺ split₂ʳ
                    ○ refl⟩⊗⟨ (⟺ split₁ʳ ○ (⟺ (procᵘ-∘ a s) ⟩⊗⟨refl))))
-
-------------------------------------------------------------------------
--- Extraction
-
--- What the extraction context observes: the embedded strategy behind the two
--- deflating unitors, closed on `P`'s machine image.
-ctxObs : {B : Iface} → Protocol unitᴵ B → Strat (Neg B) (Pos B) → Dₚ Bool
-ctxObs {B} P e = obs (tv₁ 𝟘ᴳ (closedᵒ (morphism P)) (auditTest B e)) auditClose
-
--- The numerical extraction, with no event class in it (review §4.1): a bound on
--- what THIS context observes is a bound on layer 1's own probability.
--- `audit-run` identifies the two runs and `prAgree` reads the probability off
--- the machine one past a budget, and neither step asks WHY the bound holds.
-extract-obs : {B : Iface} (P : Protocol unitᴵ B) (e : Strat (Neg B) (Pos B)) (c : ℚ)
-            → ((n : ℕ) → Pr≤ n (ctxObs P e) ℚ.≤ c) → Pr P e ℚ.≤ c
-extract-obs {B} P e c bnd = subst (λ z → z ℚ.≤ c) (proj₂ pa 0) chain
-  where
-  pa = prAgree true P e
-
-  reach = proj₂ (audit-run B e (morphism P)) (indᵇ true) (indᵇ-nn true) (proj₁ pa + 0)
-
-  chain : Pr≤ (proj₁ pa + 0) (runᴹ (morphism P) e) ℚ.≤ c
-  chain = ≤-trans (proj₂ reach) (bnd (proj₁ reach))
-
--- …in the shape layer 1 states its bound, which is what the consumer wants.
-extract-bounded : {B : Iface} (P : Protocol unitᴵ B)
-                  (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) (ε : ℕ → ℚ)
-                → ((q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d
-                   → (n : ℕ) → Pr≤ n (ctxObs P (bad d)) ℚ.≤ ε q)
-                → Bounded P bad ε
-extract-bounded P bad ε bnd q d a = extract-obs P (bad d) (ε q) (bnd q d a)

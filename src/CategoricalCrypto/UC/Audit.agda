@@ -3,9 +3,9 @@
 -- Carrying an audit-form bound across an emulation: the graded half of the
 -- seam's carry.
 --
--- `UC.Seam.pov-carry` consumes agreement between two CLOSED processes, which
--- an emulation at a degenerate grade collapses to
--- (`UC.Seam.Grounded.subBlind`).  An emulation in general is not that: `f ≤UC g` compares processes
+-- At a degenerate grade an emulation collapses to agreement between two CLOSED
+-- processes (`UC.Seam.Grounded.subBlind`).  An emulation in general is not
+-- that: `f ≤UC g` compares processes
 -- carrying adversary interfaces and the simulator lives at that grade, so
 -- `audit-carry` is the carry that keeps it — an ideal-side bound on the audit
 -- event becomes a real-side bound at the emulation's slack, the simulator
@@ -108,9 +108,7 @@ pinned f μ Y Et m q = obs (tv₁ Y f Et) m ∼ μ q
 -- …and its bound, off a bound on the designated observations alone.  The slack
 -- is the `Mass`-level price of reading an equivalence as a numeric comparison:
 -- `dominate` is what a general observation offers, and it is one-sided only up
--- to a positive `δ`.  At the intended model the same step is exact
--- (`UC.Seam.Audit.Bounded.supply`, off a zero-slack `≼ₚ[ 0ℚ ]`), so nothing
--- here is a defect of the instance.
+-- to a positive `δ`.
 pinned-bound : {A B′ X : Obj} (f : A ⇒ X ⊗₀ B′) (μ : ℕ → Obs) (ε : ℕ → ℚ)
                (δ : ℚ) → 0ℚ ℚ.< δ → ((q n : ℕ) → at n (μ q) ℚ.≤ ε q)
              → AuditBound f (pinned f μ) (λ q → ε q ℚ.+ δ)

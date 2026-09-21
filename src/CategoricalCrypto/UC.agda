@@ -210,16 +210,6 @@
 --                                  composed system by `UC-compose` (the
 --                                  retraction-conjugated `sub` congruence is
 --                                  `Abstract2.Factor`)
---                `UC.Seam.Audit.Prefix`
---                                  `bounded-carry` turns an ideal monitor bound
---                                  into the real system's own probability
---                                  across an emulation, the simulator's
---                                  initialization tolerated as a prefix.  No
---                                  event class is on the route:
---                                  `sim-prefixed` is the one-sided mass
---                                  consequence and `UC.Seam.Audit.Context`'s
---                                  `extract-obs` is its numerical half
---                                  (`docs/direct-extraction.md`)
 --                `UC.Saturated`    the saturated form of a concrete safety
 --                                  bound — one slack per polynomial allowance,
 --                                  at the vanishing grade and at the
@@ -289,7 +279,6 @@ open import CategoricalCrypto.UC.QueryBound.Counting public
 open import CategoricalCrypto.UC.QueryBound.Exact public
 open import CategoricalCrypto.UC.Saturated public
 open import CategoricalCrypto.UC.Seam.Audit.Context public
-open import CategoricalCrypto.UC.Seam.Audit.Prefix public
 open import CategoricalCrypto.UC.Factor public
 open import CategoricalCrypto.UC.Graded public
 open import CategoricalCrypto.UC.Seam.Graded public

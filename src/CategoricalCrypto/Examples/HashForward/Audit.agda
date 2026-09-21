@@ -9,12 +9,9 @@
 -- `absorbed-budget` charges — the same certificate `audit-carry` builds
 -- internally, stated so that the accounting is visible.
 --
--- NO prefix tolerance is spent anywhere here.  The trivial-grade route
--- (`UC.Seam.Audit.Prefix`) tolerates a prefix because a trivial-grade
--- simulator's contribution to a context is an initialization one hopes is
--- silent; this simulator's contribution is its actual interaction, it is
--- retained in the ideal experiment, and `Examples.HashForward.UC.sim-hash-count`
--- says exactly how much of it there is.
+-- NO prefix tolerance is spent anywhere here: this simulator's contribution is
+-- its actual interaction, it is retained in the ideal experiment, and
+-- `Examples.HashForward.UC.sim-hash-count` says exactly how much of it there is.
 --
 -- The designated event is `UC.Audit.pinned`, at a designation the toy can
 -- supply: the ideal monitored experiment reports `false`, so its bound is `0`.
