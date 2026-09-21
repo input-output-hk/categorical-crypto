@@ -182,6 +182,11 @@ recording rather than hiding:
 
 ## §4.2 — structural sliding
 
+Retired since 2026-09-21: `slide⊗` is `Monoidal.Reasoning.split₂ʳ` at `f = id`
+once the `Grading` record is gone, `prefixedᵒ-sub` is a bare `prefixedᵒ-⊗ˡ` at
+`Gᵒ.id`, and `UC.Seam.Slide` is deleted — `run-subᵒ`, its last definition, never
+had an importer (residual 1 below says why).
+
 `src/CategoricalCrypto/UC/Seam/Slide.agda` (new, 44 LOC).
 
 ```agda
