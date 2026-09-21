@@ -30,10 +30,12 @@ open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 
 open import Data.Empty using (⊥-elim)
 open import Data.Nat.Base using (ℕ)
+open import Data.Nat.Properties using (*-identityʳ)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Sum.Base using ([_,_]; inj₂)
 open import Data.Unit.Base using (tt)
 open import Function.Base using (id)
+open import Relation.Binary.PropositionalEquality using (subst)
 
 open import ProbabilisticLogic.Dp using (_≈ₚ_; ≈ₚ-sym)
 open import ProbabilisticLogic.Dp.Advantage using (_≈ₚ[_]_; ≈ₚ[]-resp)
@@ -141,12 +143,43 @@ dominatedᵒ B X E m qE qm u v ε δ 0<δ h =
 -- so a grade beside it is already inside the statement, and `ctxRunᵒ` crosses
 -- the seal at an arbitrary grade.  What is in the way is the unitor `conjᴵ`
 -- leaves in front of the process, and `UC.Machine.Slide.ctxRun-conj` cancels
--- it.
---
--- It does not subsume `dominatedᵒ`: the run hypothesis here is at EVERY
--- strategy, not at every strategy of the context's budget.  That is the shape
--- an exact run agreement has, and it makes the conclusion's error independent
--- of the budget, so no allowance arithmetic is spent crossing.
+-- it.  That unitor costs the test one activation, and `*-identityʳ` takes the
+-- product back to the test's own budget, so the hypothesis is read at
+-- `ctxBudget c c′` exactly as `dominatedᵒ`'s is.
+dominatedᵍᵠ : {P B : Iface} (W : G.Obj)
+              (E : W G.⊗₀ (ifaceᵒ P G.⊗₀ ifaceᵒ B) G.⇒ Ωᵒ) (m : 𝟘ᵒ G.⇒ W G.⊗₀ 𝟘ᵒ)
+              {c c′ : ℕ} → Budget.QB budgetᵒ c E → Budget.QB budgetᵒ c′ m
+            → (u v : Proc unitᴵ (P ⊗ᴵ B)) (ε δ : ℚ) → 0ℚ ℚ.< δ
+            → ((d : Strat (Neg (P ⊗ᴵ B)) (Pos (P ⊗ᴵ B))) → asks≤ (ctxBudget c c′) d
+               → runᴹ u d ≈ₚ[ ε ] runᴹ v d)
+            → Obs ((E G.∘ T₁ᵒ W (gradedᵒ u)) G.∘ m)
+              ≈ₚ[ ε ℚ.+ δ ] Obs ((E G.∘ T₁ᵒ W (gradedᵒ v)) G.∘ m)
+dominatedᵍᵠ {P} {B} W E m {c} qE qm u v ε δ 0<δ h =
+  ≈ₚ[]-resp (≈ₚ-sym _ _ (open-hole u)) (≈ₚ-sym _ _ (open-hole v))
+    (dominated (P ⊗ᴵ B) (objᵒ W) Eᶜ (unclosᵒ W m) qEᶜ (unqb-closᵒ W qm)
+               u v ε δ 0<δ h)
+  where
+  Eᶜ : Proc (objᵒ W ⊗ᴵ (unitᴵ ⊗ᴵ (P ⊗ᴵ B))) Ωᴵ
+  Eᶜ = untestᵒ W E 𝒫.∘ T₁ᴵ (objᵒ W) (λᴵ⇒ {P ⊗ᴵ B})
+
+  qEᶜ : QB c Eᶜ
+  qEᶜ = subst (λ k → QB k Eᶜ) (*-identityʳ c)
+          (qb-∘-category (objᵒ W ⊗ᴵ (unitᴵ ⊗ᴵ (P ⊗ᴵ B))) (objᵒ W ⊗ᴵ (P ⊗ᴵ B)) Ωᴵ
+            (untestᵒ W E) (T₁ᴵ (objᵒ W) λᴵ⇒) (unqb-testᵒ W qE)
+            (qb-resp-≈ (𝒫.Equiv.sym (T₁-⊗₁ {objᵒ W} (λᴵ⇒ {P ⊗ᴵ B})))
+              (qb-T₁ᴳ (objᵒ W) (unitᴵ ⊗ᴵ (P ⊗ᴵ B)) (P ⊗ᴵ B) λᴵ⇒
+                (certified⇒QB (qbᵢ-wire [ ⊥-elim , id ] inj₂)))))
+
+  open-hole : (x : Proc unitᴵ (P ⊗ᴵ B))
+            → Obs ((E G.∘ T₁ᵒ W (gradedᵒ x)) G.∘ m)
+              ≈ₚ ctxRun (objᵒ W) Eᶜ (unclosᵒ W m) (conjᴵ x)
+  open-hole x = ctxRunᵒ W E m x
+            ⟨≈⟩ ctxRun-conj (untestᵒ W E) (unclosᵒ W m) x
+
+-- …at EVERY strategy instead of at every strategy of the context's budget,
+-- which is the shape an exact run agreement has: the conclusion's error is
+-- then independent of the budget, so no allowance arithmetic is spent
+-- crossing.
 dominatedᵍ : {P B : Iface} (W : G.Obj)
              (E : W G.⊗₀ (ifaceᵒ P G.⊗₀ ifaceᵒ B) G.⇒ Ωᵒ) (m : 𝟘ᵒ G.⇒ W G.⊗₀ 𝟘ᵒ)
              {c c′ : ℕ} → Budget.QB budgetᵒ c E → Budget.QB budgetᵒ c′ m
@@ -154,23 +187,5 @@ dominatedᵍ : {P B : Iface} (W : G.Obj)
            → ((d : Strat (Neg (P ⊗ᴵ B)) (Pos (P ⊗ᴵ B))) → runᴹ u d ≈ₚ[ ε ] runᴹ v d)
            → Obs ((E G.∘ T₁ᵒ W (gradedᵒ u)) G.∘ m)
              ≈ₚ[ ε ℚ.+ δ ] Obs ((E G.∘ T₁ᵒ W (gradedᵒ v)) G.∘ m)
-dominatedᵍ {P} {B} W E m qE qm u v ε δ 0<δ h =
-  ≈ₚ[]-resp (≈ₚ-sym _ _ (open-hole u)) (≈ₚ-sym _ _ (open-hole v))
-    (dominated (P ⊗ᴵ B) (objᵒ W) Eᶜ (unclosᵒ W m) qEᶜ (unqb-closᵒ W qm)
-               u v ε δ 0<δ (λ d _ → h d))
-  where
-  Eᶜ : Proc (objᵒ W ⊗ᴵ (unitᴵ ⊗ᴵ (P ⊗ᴵ B))) Ωᴵ
-  Eᶜ = untestᵒ W E 𝒫.∘ T₁ᴵ (objᵒ W) (λᴵ⇒ {P ⊗ᴵ B})
-
-  qEᶜ : QB _ Eᶜ
-  qEᶜ = qb-∘-category (objᵒ W ⊗ᴵ (unitᴵ ⊗ᴵ (P ⊗ᴵ B))) (objᵒ W ⊗ᴵ (P ⊗ᴵ B)) Ωᴵ
-          (untestᵒ W E) (T₁ᴵ (objᵒ W) λᴵ⇒) (unqb-testᵒ W qE)
-          (qb-resp-≈ (𝒫.Equiv.sym (T₁-⊗₁ {objᵒ W} (λᴵ⇒ {P ⊗ᴵ B})))
-            (qb-T₁ᴳ (objᵒ W) (unitᴵ ⊗ᴵ (P ⊗ᴵ B)) (P ⊗ᴵ B) λᴵ⇒
-              (certified⇒QB (qbᵢ-wire [ ⊥-elim , id ] inj₂))))
-
-  open-hole : (x : Proc unitᴵ (P ⊗ᴵ B))
-            → Obs ((E G.∘ T₁ᵒ W (gradedᵒ x)) G.∘ m)
-              ≈ₚ ctxRun (objᵒ W) Eᶜ (unclosᵒ W m) (conjᴵ x)
-  open-hole x = ctxRunᵒ W E m x
-            ⟨≈⟩ ctxRun-conj (untestᵒ W E) (unclosᵒ W m) x
+dominatedᵍ W E m qE qm u v ε δ 0<δ h =
+  dominatedᵍᵠ W E m qE qm u v ε δ 0<δ (λ d _ → h d)
