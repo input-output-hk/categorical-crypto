@@ -1,5 +1,13 @@
 # Superseding the qualitative UC core by StdUC
 
+> **Historical as of 2026-09-21.** The supersession finished: `UC.Emulation`,
+> `UC.Core.Standard`, the `Grading`/`UCBase` records, `UC.Model.Bridge`,
+> `UC.Model.Environment`, `UC.Model.Reading` and `UC.Family.Monoidal` are all
+> deleted. `UC.Core.Bridge` holds the generic qualitative machinery this file
+> built at the model, and `UC.Model.Setup` is it at the seal; see
+> [retirement](retirement.md) and
+> [retirement-negligible-order](retirement-negligible-order.md).
+
 Maintainer's ruling: the hand-rolled qualitative core (`UC.Core`, `UC.Environment`,
 `UC.Emulation`) is to be **superseded** by the inherited metatheory — `UCSetup` +
 `Abstract2.AbstractUC`, reached at the machine model through `Standard2.StdUC`.

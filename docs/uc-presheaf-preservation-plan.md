@@ -1,5 +1,13 @@
 # UC preservation through the existing presheaf action
 
+> **Executed; §5's dispositions are historical as of 2026-09-21.** Steps 1–7
+> landed ([presheaf-action](presheaf-action.md),
+> [direct-extraction](direct-extraction.md),
+> [consumer-migration](consumer-migration.md), [retirement](retirement.md)),
+> and the retirement arc since deleted several modules §5 asked to keep —
+> `UC.Model.Bridge`, `UC.Model.Reading`, `UC.Model.Family.Uniform`,
+> `UC.Emulation` — against replacements in `UC.Core.Bridge`.
+
 Implementation plan against `protocol-rewrite` at `d461b1fa`. This covers the
 family-premise and property-preservation work discussed in the review, with the
 associated simulator-cost and uniformity obligations. It is not a request to
