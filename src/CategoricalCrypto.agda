@@ -28,9 +28,11 @@
 -- (`docs/fcom-hiding.md`); its deferred-sampling engines are
 -- `GamePlaying.Defer` and `GamePlaying.Average`.  `.Transport` is the fourth
 -- leaf: the two layers DO meet at the concrete resource, off
--- `Protocol.Machine.Raw` (`docs/dp-transport.md`).  `.Realization.Statement`
--- is the fifth: the resource-installed commitment boundary the coin-toss
--- theorems still assume, pinned as types (`docs/rcom-icom-b1.md`).
+-- `Protocol.Machine.Raw` (`docs/dp-transport.md`).  `.Realization.*` is the
+-- fifth: the resource-installed commitment boundary the coin-toss theorems
+-- still assume, pinned as types (`.Statement`), and the two assembly
+-- obligations over it, discharged at those theorems' own schedules
+-- (`.Assembly`) — `docs/rcom-icom-b1.md`.
 --
 -- `Examples.CoinToss.*` is the first consumer of the composition theorem on a
 -- real protocol: Blum coin-tossing over `Examples.ROCommitment`, one composed
@@ -113,6 +115,7 @@ open import CategoricalCrypto.Examples.ROCommitment.Hiding.Asymptotic
 open import CategoricalCrypto.Examples.ROCommitment.Hiding.Defer
 open import CategoricalCrypto.Examples.ROCommitment.Hiding.Test
 open import CategoricalCrypto.Examples.ROCommitment.Hiding.UC
+open import CategoricalCrypto.Examples.ROCommitment.Realization.Assembly
 open import CategoricalCrypto.Examples.ROCommitment.Realization.Statement
 open import CategoricalCrypto.Examples.ROCommitment.Resource
 open import CategoricalCrypto.Examples.ROCommitment.Test
