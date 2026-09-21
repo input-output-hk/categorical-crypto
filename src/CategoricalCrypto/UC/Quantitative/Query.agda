@@ -45,6 +45,10 @@ module CategoricalCrypto.UC.Quantitative.Query where
 -- Schedules in the closure allowance.
 Sched = pointwise ℕ ℚ-ordered
 
+-- One application, shared with the consumers (`UC.Quantitative.Contextual`):
+-- a second one would make every crossing pay for re-elaborating it.
+module Fl = Filteredᴹ Sched
+
 private
   module S = Controlledᴹ Sched
 
@@ -97,7 +101,6 @@ module Tests
 
   private
     module Sp = Spaceᴹ Sched
-    module Fl = Filteredᴹ Sched
     module A  = Approximation Ap
 
   Test Closure : Obj → Set ℓ
@@ -190,6 +193,25 @@ module Tests
         { at = λ q → q ℕ.* budget h ; monotone = ℕₚ.*-monoˡ-≤ (budget h) }
     ; admits = λ qbE → qb-∘ qbE (certified h)
     }
+
+  -- A budget is an UPPER bound, so a closure certified at `c′` is certified at
+  -- `c′ ⊔ 1` too.  On tests this is the identity; on the schedule it is the
+  -- guard that `ctxBudget` puts in front of its closure leg.
+  guardᵠ : (C : Obj) → Fl.Filtered (filteredᵠ C) (filteredᵠ C)
+  guardᵠ C = record
+    { underlying = record
+        { map     = λ E → E
+        ; control = reindex (ℕ._⊔ 1)
+        ; preserves = λ hyp m c′ qm → hyp m (c′ ℕ.⊔ 1) (qb-mono (ℕₚ.m≤m⊔n c′ 1) qm)
+        }
+    ; allowance = Fl.idᵃ ; admits = λ a → a
+    }
+
+  -- …so the pullback taken THERE reindexes the schedule by `ctxBudget` rather
+  -- than by a bare product, which is what makes absorbing a morphism into the
+  -- closure exact (`absorb-closure`) instead of a bound.
+  pullᵠ⁺ : {C D : Obj} → Budgeted C D → Fl.Filtered (filteredᵠ D) (filteredᵠ C)
+  pullᵠ⁺ h = Fl.composeᶠ (guardᵠ _) (pullᵠ h)
 
   -- …and at a simulator's action, whose budget `Budget.qb-sub` certifies at
   -- `cs ⊔ 1`, that allowance map IS `simCost _ cs` — the substitution the
