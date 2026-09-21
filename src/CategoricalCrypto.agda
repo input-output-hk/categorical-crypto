@@ -91,6 +91,7 @@ open import CategoricalCrypto.Protocol.Machine.Agree
 open import CategoricalCrypto.Protocol.Machine.Compose
 open import CategoricalCrypto.Protocol.Machine.Raw
 open import CategoricalCrypto.Protocol.Machine.Trace
+open import CategoricalCrypto.Protocol.Machine.Trace.Compose
 open import CategoricalCrypto.Protocol.Machine.Total
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Protocol.Safety
