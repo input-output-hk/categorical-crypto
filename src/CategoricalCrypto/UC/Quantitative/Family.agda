@@ -11,12 +11,12 @@
 -- level, the same experiment at the operational bracket `W ⊗ (X ⊗ B)` where a
 -- model's ingestion and extraction lemmas live.
 --
--- Every other move plugs a morphism into the context and costs the allowance
--- rescaled by that morphism's own budget, `UC.Budget.simCost`, and every such
--- substitution here is EXACT, so no theorem below reads `ε` at an inequality
--- of allowances.  Absorbing into the TEST is `ctx-absorb`; absorbing into the
--- CLOSURE is exact only once the closure's certificate is bumped past the leg
--- `ctxBudget` guards, which `qb-mono` affords (`ctxBudget-closure`).
+-- Both relations are `UC.Quantitative.Contextual.Agreeᵠ` — the admitted
+-- agreement of two test-pullbacks — at their two brackets, so every move that
+-- plugs a morphism into a context is one of that module's two absorptions and
+-- costs the allowance rescaled by the plugged morphism's own budget,
+-- `UC.Budget.simCost`.  Every such substitution is EXACT, so no theorem below
+-- reads `ε` at an inequality of allowances.
 --
 -- Neither relation reads the compared homs' own query bounds, only the
 -- context's.  `Certified` is where a bound on a hom appears, and only on
@@ -30,7 +30,7 @@ import Categories.Category.Monoidal.Reasoning as MonR
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly using (Poly; poly-*; poly-const; poly-⊔)
 open import Data.Nat.Properties
-  using (*-identityʳ; *-identityˡ; *-monoʳ-≤; m≤m⊔n; ⊔-assoc; ⊔-idem)
+  using (*-identityʳ; *-identityˡ; ⊔-assoc; ⊔-idem)
 open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Level using (Level; _⊔_)
@@ -41,8 +41,10 @@ open import CategoricalCrypto.UC.Approximate
   using ( Approximation; GradedBound-+[_]; GradedBound-reindex; Negligible
         ; Negligible-+; NegligibleBound; ℚ-errors )
 open import CategoricalCrypto.UC.Budget
-  using (Budget; ctxBudget; ctxBudget-closure; ctxBudget-simCost; simCost)
+  using (Budget; ctxBudget; simCost)
 open import CategoricalCrypto.UC.Core using (Observation)
+
+import Data.Rational.Properties as ℚₚ
 
 module CategoricalCrypto.UC.Quantitative.Family
   {o ℓ e os ℓs ℓa qs : Level}
@@ -59,9 +61,11 @@ module CategoricalCrypto.UC.Quantitative.Family
 open import CategoricalCrypto.UC.Core.Bridge M O
 open import CategoricalCrypto.UC.Quantitative.Contextual M Bg Ap
   (Observation.𝟙 O) (Observation.Ω O) (Observation.⟦_⟧ O) obs-resp
+open import CategoricalCrypto.UC.Quantitative.Query using (module Fl)
 
 open Approximation Ap
 open Budget Bg
+open Fl
 open HomReasoning
 open MonR monoidal using (split₂ʳ)
 open Observation O using (𝟙; Ω; ⟦_⟧)
@@ -98,6 +102,20 @@ _≈ctx[_]_ {A} {X} {B} f ε g =
 -- which is the single-level relation at each `n`.
 _≈ctxᴬ[_]_ : Homᶠ A X B → (ℕ → ℕ → ℚ) → Homᶠ A X B → Set (o ⊔ ℓ ⊔ ℓa ⊔ qs)
 f ≈ctxᴬ[ ε ] g = (n : ℕ) → f n ≈ᵁᵠ[ ε n ] g n
+
+-- `UC.Quantitative.Contextual.Agreeᵠ` at the `prefixᵒ` bracket: the same
+-- identification `ctx⇒agree`/`agree⇒ctx` make at the operational one, which is
+-- what lets that module's two absorptions serve this relation too.
+≈ctx⇒agreeᵠ : (ε : ℕ → ℕ → ℚ) {f g : Homᶠ A X B} → f ≈ctx[ ε ] g
+            → (n : ℕ) (W : Channel)
+            → Agreeᵠ (ε n) (_∘ prefixᵒ W (f n)) (_∘ prefixᵒ W (g n))
+≈ctx⇒agreeᵠ _ h n W = agree λ qE m _ qm → h n W _ m qE qm
+
+agreeᵠ⇒≈ctx : (ε : ℕ → ℕ → ℚ) {f g : Homᶠ A X B}
+            → ((n : ℕ) (W : Channel)
+               → Agreeᵠ (ε n) (_∘ prefixᵒ W (f n)) (_∘ prefixᵒ W (g n)))
+            → f ≈ctx[ ε ] g
+agreeᵠ⇒≈ctx _ h n W E m qE qm = admitted (h n W) qE m _ qm
 
 private
   -- A bound survives a zero-error change of either endpoint (`obs-resp`).
@@ -376,57 +394,39 @@ module Compose where
     qκ n {W} = subst (λ j → QB j (id {W} ⊗₁ ext (X n) (k n))) (norm n)
                  (qb-T₁ (qb-∘ (qb-a⇒ {X n} {P n} {C n}) (qb-T₁ (qk n))))
 
-  -- Moving the earlier PROCESS into the closure.  `∙-decomp` read the other
-  -- way: the context of `u ∙ᶠ f` at ancilla `W` IS `u`'s context at ancilla
-  -- `W ⊗ X`, with `f`'s own prefix pushed into the closure.  So `f`'s
-  -- certificate pays, and it pays on the leg `ctxBudget` GUARDS rather than
-  -- multiplies — which is why `qm′` certifies the new closure one step above
-  -- what `qb-∘` hands back, at `(cf n ⊔ 1) * (c′ ⊔ 1)`: there the guard is
-  -- inside and the substitution is exact (`ctxBudget-closure`), where at the
-  -- unbumped budget it would only be a bound.
+  -- Moving the earlier PROCESS into the closure, `absorb-closureᵠ` at
+  -- `∙-decomp` read the other way: the context of `u ∙ᶠ f` at ancilla `W` IS
+  -- `u`'s context at ancilla `W ⊗ X`, with `f`'s own prefix pushed into the
+  -- closure and the test rebracketed by `sub α⇒`.
   ≈ctx-pre : (f : Homᶠ A X B) (cf : ℕ → ℕ) → ((n : ℕ) → QB (cf n) (f n))
            → (ε : ℕ → ℕ → ℚ) {u v : Homᶠ B P C} → u ≈ctx[ ε ] v
            → (u ∙ᶠ f) ≈ctx[ (λ n q → ε n (simCost q (cf n))) ] (v ∙ᶠ f)
-  ≈ctx-pre {A = A} {X = X} {B = B} {P = P} {C = C}
-           f cf qf ε {u} {v} hy n W E m {c} {c′} qE qm =
-    splice (⟺ (cut (u n))) (⟺ (cut (v n))) inner
+  ≈ctx-pre {A = A} {X = X} {B = B} {P = P} {C = C} f cf qf ε {u} {v} hy =
+    agreeᵠ⇒≈ctx (λ n q → ε n (simCost q (cf n))) λ n W →
+      absorb-closureᵠ (ε n) (cf n) (qb-sub {A = C n} (qb-a⇐ {W} {X n} {P n}))
+        (qθ n W) (λ _ → cut n W (u n)) (λ _ → cut n W (v n))
+        (≈ctx⇒agreeᵠ ε hy n (W ⊗₀ X n))
     where
-    U : Channel
-    U = W ⊗₀ X n
+    cut : (n : ℕ) (W : Channel) {E : T₀ (W ⊗₀ (X n ⊗₀ P n)) (C n) ⇒ Ω}
+          (x : B n ⇒ T₀ (P n) (C n))
+        → E ∘ prefixᵒ W (ext (X n) x ∘ f n)
+        ≈ ((E ∘ sub (α⇒ {W} {X n} {P n}) {C n}) ∘ prefixᵒ (W ⊗₀ X n) x)
+          ∘ prefixᵒ W (f n)
+    cut n W x = (refl⟩∘⟨ ∙-decomp x (f n) W)
+              ○ (refl⟩∘⟨ ((refl⟩∘⟨ ⟺ (μT x)) ⟩∘⟨refl)) ○ (refl⟩∘⟨ assoc)
+              ○ sym-assoc ○ sym-assoc
 
-    E′ : T₀ (U ⊗₀ P n) (C n) ⇒ Ω
-    E′ = E ∘ sub (α⇒ {W} {X n} {P n}) {C n}
-
-    m′ : 𝟙 ⇒ T₀ U (B n)
-    m′ = prefixᵒ W (f n) ∘ m
-
-    cut : (x : B n ⇒ T₀ (P n) (C n))
-        → (E ∘ prefixᵒ W (ext (X n) x ∘ f n)) ∘ m ≈ (E′ ∘ prefixᵒ U x) ∘ m′
-    cut x = (((refl⟩∘⟨ ∙-decomp x (f n) W)
-               ○ (refl⟩∘⟨ ((refl⟩∘⟨ ⟺ (μT x)) ⟩∘⟨refl)) ○ (refl⟩∘⟨ assoc)
-               ○ sym-assoc ○ sym-assoc) ⟩∘⟨refl) ○ assoc
-
-    qE′ : QB c E′
-    qE′ = subst (λ j → QB j E′) (*-identityʳ c)
-                (qb-∘ qE (qb-sub {A = C n} (qb-a⇐ {W} {X n} {P n})))
-
-    qm′ : QB ((cf n ℕ.⊔ 1) ℕ.* (c′ ℕ.⊔ 1)) m′
-    qm′ = qb-mono (*-monoʳ-≤ (cf n ℕ.⊔ 1) (m≤m⊔n c′ 1))
-            (subst (λ j → QB (j ℕ.* c′) m′) (*-identityˡ (cf n ℕ.⊔ 1))
-                   (qb-∘ (qb-∘ qμ qT) qm))
+    -- The bump past `ctxBudget`'s guard is `Query.guardᵠ`'s, so all that is
+    -- left here is the prefix's own certificate.
+    qθ : (n : ℕ) (W : Channel) → QB (cf n ℕ.⊔ 1) (prefixᵒ W (f n))
+    qθ n W = subst (λ j → QB j (prefixᵒ W (f n))) (*-identityˡ (cf n ℕ.⊔ 1))
+               (qb-∘ qμ qT)
       where
       qμ : QB 1 (μ W (X n) {B n})
       qμ = qb-resp-≈ (Equiv.sym (μ-α⇐ M W (X n))) (qb-a⇒ {W} {X n} {B n})
 
       qT : QB (cf n ℕ.⊔ 1) (T₁ W (f n))
       qT = qb-resp-≈ (Equiv.sym (T₁-⊗ M W (f n))) (qb-T₁ {W} (qf n))
-
-    inner : ⟦ (E′ ∘ prefixᵒ U (u n)) ∘ m′ ⟧
-              ≈[ ε n (simCost (ctxBudget c c′) (cf n)) ]
-            ⟦ (E′ ∘ prefixᵒ U (v n)) ∘ m′ ⟧
-    inner = subst (λ k → ⟦ (E′ ∘ prefixᵒ U (u n)) ∘ m′ ⟧ ≈[ ε n k ]
-                         ⟦ (E′ ∘ prefixᵒ U (v n)) ∘ m′ ⟧)
-                  (ctxBudget-closure c c′ (cf n)) (hy n U E′ m′ qE′ qm′)
 
   -- Plugging a process under the DOMAIN, where `≈ctx-pre` plugs one under the
   -- SUBROUTINE.  The closure absorbs it and at rate `0` that is free: the
@@ -438,25 +438,19 @@ module Compose where
   ≈ctx-dom : {A′ : ℕ → Channel} (p : (n : ℕ) → A′ n ⇒ A n) → ((n : ℕ) → QB 0 (p n))
            → (ε : ℕ → ℕ → ℚ) {u v : Homᶠ A X B} → u ≈ctx[ ε ] v
            → (λ n → u n ∘ p n) ≈ctx[ ε ] (λ n → v n ∘ p n)
-  ≈ctx-dom {A = A} {X = X} {B = B} p qp ε {u} {v} hy n W E m {c} {c′} qE qm =
-    splice (⟺ (cut (u n))) (⟺ (cut (v n))) inner
+  ≈ctx-dom {A = A} {X = X} {B = B} p qp ε {u} {v} hy = agreeᵠ⇒≈ctx ε λ n W →
+    ≈ᵃ-resp₀ (λ _ → cast₀ (cut n W)) (λ _ → cast₀ (⟺ (cut n W)))
+      (≈ᵃ-mono (λ q c′ → ℚₚ.≤-reflexive (cong (λ j → ε n (ctxBudget q j))
+                                              (*-identityˡ c′)))
+        (≈ᵃ-post (Tᵠ.pullᵠ (bud 1 (qθ n W))) (≈ctx⇒agreeᵠ ε hy n W)))
     where
-    m′ : 𝟙 ⇒ T₀ W (A n)
-    m′ = T₁ W (p n) ∘ m
+    cut : (n : ℕ) (W : Channel) {x : A n ⇒ T₀ (X n) (B n)}
+          {E : T₀ (W ⊗₀ X n) (B n) ⇒ Ω}
+        → E ∘ prefixᵒ W (x ∘ p n) ≈ (E ∘ prefixᵒ W x) ∘ T₁ W (p n)
+    cut _ _ = (refl⟩∘⟨ ((refl⟩∘⟨ T-homomorphism) ○ sym-assoc)) ○ sym-assoc
 
-    cut : (x : A n ⇒ T₀ (X n) (B n))
-        → (E ∘ prefixᵒ W (x ∘ p n)) ∘ m ≈ (E ∘ prefixᵒ W x) ∘ m′
-    cut _ =
-      (((refl⟩∘⟨ ((refl⟩∘⟨ T-homomorphism) ○ sym-assoc)) ○ sym-assoc) ⟩∘⟨refl) ○ assoc
-
-    qm′ : QB (1 ℕ.* c′) m′
-    qm′ = qb-∘ (qb-resp-≈ (Equiv.sym (T₁-⊗ M W (p n))) (qb-T₁ {W} (qp n))) qm
-
-    inner : ⟦ (E ∘ prefixᵒ W (u n)) ∘ m′ ⟧ ≈[ ε n (ctxBudget c c′) ]
-            ⟦ (E ∘ prefixᵒ W (v n)) ∘ m′ ⟧
-    inner = subst (λ j → ⟦ (E ∘ prefixᵒ W (u n)) ∘ m′ ⟧ ≈[ ε n (ctxBudget c j) ]
-                         ⟦ (E ∘ prefixᵒ W (v n)) ∘ m′ ⟧)
-                  (*-identityˡ c′) (hy n W E m′ qE qm′)
+    qθ : (n : ℕ) (W : Channel) → QB 1 (T₁ W (p n))
+    qθ n W = qb-resp-≈ (Equiv.sym (T₁-⊗ M W (p n))) (qb-T₁ {W} (qp n))
 
   -- …hence on a whole witness, with the simulator and the schedule untouched.
   ≤UC^ωᵉ-dom : {A′ : ℕ → Channel} (p : (n : ℕ) → A′ n ⇒ A n) → ((n : ℕ) → QB 0 (p n))

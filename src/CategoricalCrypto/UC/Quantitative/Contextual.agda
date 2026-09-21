@@ -13,12 +13,12 @@
 -- schedule `λ q c′ → ε (ctxBudget q c′)`: `ctx⇒agree`/`agree⇒ctx` differ by
 -- the order in which the closure and the test's certificate are taken and by
 -- nothing else.  Both substitution principles are then one datum of a filtered
--- map — `ctx-absorb` moves a certified morphism in front of the TEST, which is
--- `pullᵠ`'s allowance map, and `ctx-closure` moves one behind the CLOSURE,
--- which is `pullᵠ⁺`'s control — and `UC.Budget`'s two allowance identities are
--- what makes each of them exact.  `ctx-sub` is the instance at a simulator's
--- action; `UC.Quantitative.Family.≈ctx-ext`/`-pre`/`-dom` are the instances at
--- a continuation, an earlier process and a domain plug.
+-- map — `absorb-testᵠ` moves a certified morphism in front of the TEST, which
+-- is `pullᵠ`'s allowance map, and `absorb-closureᵠ` moves one behind the
+-- CLOSURE, which is `pullᵠ⁺`'s control — and `UC.Budget`'s two allowance
+-- identities are what makes each of them exact.  `ctx-sub` is the instance at
+-- a simulator's action; `UC.Quantitative.Family.≈ctx-ext`/`-pre`/`-dom` are
+-- the instances at a continuation, an earlier process and a domain plug.
 
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 import Categories.Category.Monoidal.Reasoning as MonR
@@ -52,9 +52,9 @@ open Fl
 open MonR monoidal
 open Budget Bg
 
-private
-  module A = Approximation Ap
-  module T = Tests U (fromBudget Bg) Ap 𝟙 Ω ⟦_⟧ obs-resp
+module Tᵠ = Tests U (fromBudget Bg) Ap 𝟙 Ω ⟦_⟧ obs-resp
+
+private module A = Approximation Ap
 
 private variable A B X Y Z : Obj
 
@@ -69,31 +69,33 @@ _≈ᵁᵠ[_]_ {A} {X} {B} f ε g =
   → QB c E → QB c′ m
   → ⟦ (E ∘ id ⊗₁ f) ∘ m ⟧ A.≈[ ε (ctxBudget c c′) ] ⟦ (E ∘ id ⊗₁ g) ∘ m ⟧
 
+-- Two pullbacks of tests agreeing on the ADMITTED ones, at the schedule this
+-- layer reads: the test's own allowance in `ctxBudget`'s first leg, the
+-- closure's budget in its second.  The bracket a context is written in is not
+-- fixed here — `UC.Quantitative.Family._≈ctx[_]_` is the same agreement at
+-- `prefixᵒ`, so the two absorptions below serve both.
+Agreeᵠ : (ε : ℕ → ℚ) {C D : Obj} (r r′ : Tᵠ.Test D → Tᵠ.Test C) → Set (ℓ ⊔ ℓa ⊔ qs)
+Agreeᵠ ε {C} {D} r r′ =
+  _≈ᵃ[_]_ {X = Tᵠ.filteredᵠ D} {Y = Tᵠ.filteredᵠ C} r (λ q c′ → ε (ctxBudget q c′)) r′
+
 runᵠ : (W : Obj) {A X B : Obj} → A ⇒ X ⊗₀ B
-     → T.Test (W ⊗₀ (X ⊗₀ B)) → T.Test (W ⊗₀ A)
+     → Tᵠ.Test (W ⊗₀ (X ⊗₀ B)) → Tᵠ.Test (W ⊗₀ A)
 runᵠ W f E = E ∘ id ⊗₁ f
 
-Agreeᵠ : (W : Obj) {A X B : Obj} → A ⇒ X ⊗₀ B → (ℕ → ℚ) → A ⇒ X ⊗₀ B
-       → Set (ℓ ⊔ ℓa ⊔ qs)
-Agreeᵠ W {A} {X} {B} f ε g =
-  _≈ᵃ[_]_ {X = T.filteredᵠ (W ⊗₀ (X ⊗₀ B))} {Y = T.filteredᵠ (W ⊗₀ A)}
-          (runᵠ W f) (λ q c′ → ε (ctxBudget q c′)) (runᵠ W g)
-
-ctx⇒agree : (ε : ℕ → ℚ) {f g : A ⇒ X ⊗₀ B}
-          → f ≈ᵁᵠ[ ε ] g → (W : Obj) → Agreeᵠ W f ε g
+ctx⇒agree : (ε : ℕ → ℚ) {f g : A ⇒ X ⊗₀ B} → f ≈ᵁᵠ[ ε ] g
+          → (W : Obj) → Agreeᵠ ε (runᵠ W f) (runᵠ W g)
 ctx⇒agree _ h W = agree λ qE m _ qm → h W _ m qE qm
 
 agree⇒ctx : (ε : ℕ → ℚ) {f g : A ⇒ X ⊗₀ B}
-          → ((W : Obj) → Agreeᵠ W f ε g) → f ≈ᵁᵠ[ ε ] g
+          → ((W : Obj) → Agreeᵠ ε (runᵠ W f) (runᵠ W g)) → f ≈ᵁᵠ[ ε ] g
 agree⇒ctx _ h W E m qE qm = admitted (h W) qE m _ qm
 
-private
-  -- Zero error in a test space is the ambient hom equality, observed exactly.
-  cast₀ : {C : Obj} {E F : C ⇒ Ω} → E ≈ F → E T.≈ᵠ[ (λ _ → 0ℚ) ] F
-  cast₀ eq m _ _ = obs-resp (∘-resp-≈ˡ eq)
+-- Zero error in a test space is the ambient hom equality, observed exactly.
+cast₀ : {C : Obj} {E F : C ⇒ Ω} → E ≈ F → E Tᵠ.≈ᵠ[ (λ _ → 0ℚ) ] F
+cast₀ eq m _ _ = obs-resp (∘-resp-≈ˡ eq)
 
-  bud : {C D : Obj} (c : ℕ) {h : C ⇒ D} → QB c h → T.Budgeted C D
-  bud c {h} q = record { hom = h ; budget = c ; certified = q }
+bud : {C D : Obj} (c : ℕ) {h : C ⇒ D} → QB c h → Tᵠ.Budgeted C D
+bud c {h} q = record { hom = h ; budget = c ; certified = q }
 
 ------------------------------------------------------------------------
 -- The enrichment kit, levelwise from `Approx.Filtered`
@@ -126,11 +128,46 @@ ctx-resp ε ef eg h = agree⇒ctx ε λ W →
            (λ _ → cast₀ (∘-resp-≈ʳ (refl⟩⊗⟨ eg))) (ctx⇒agree ε h W)
 
 ------------------------------------------------------------------------
--- The two absorptions
+-- The two absorptions, each one datum of a filtered map
 
--- Moving a certified morphism in front of the TEST: `κ` is what moves, and
--- everything quantitative about the move is `pullᵠ`'s allowance map together
--- with the identity `ctxBudget-simCost`.
+-- Moving a certified morphism in front of the TEST is `pullᵠ`'s ALLOWANCE
+-- map, and `ctxBudget-simCost` (as `absorb-test`) is what makes the resulting
+-- substitution `simCost _ cs` exact rather than a bound.
+absorb-testᵠ : (ε : ℕ → ℚ) (cs : ℕ) {C D D′ : Obj}
+               {r r′ : Tᵠ.Test D → Tᵠ.Test C} {s s′ : Tᵠ.Test D′ → Tᵠ.Test C}
+               {k : D ⇒ D′} → QB (cs ℕ.⊔ 1) k
+             → ((E : Tᵠ.Test D′) → s E ≈ r (E ∘ k))
+             → ((E : Tᵠ.Test D′) → s′ E ≈ r′ (E ∘ k))
+             → Agreeᵠ ε r r′ → Agreeᵠ (λ q → ε (simCost q cs)) s s′
+absorb-testᵠ ε cs qk stepr stepr′ h =
+  ≈ᵃ-resp₀ (λ E → cast₀ (stepr E)) (λ E → cast₀ (Equiv.sym (stepr′ E)))
+    (≈ᵃ-mono (λ q → proj₁ (absorb-test q cs) ε)
+             (≈ᵃ-pre (Tᵠ.pullᵠ (bud (cs ℕ.⊔ 1) qk)) h))
+
+-- …and moving one behind the CLOSURE is `pullᵠ⁺`'s CONTROL.  `ctxBudget`
+-- GUARDS its closure leg rather than multiplying by it, so only reading the
+-- new closure's budget past that guard — which `pullᵠ⁺` does and a budget
+-- being an upper bound affords — makes the same substitution exact
+-- (`absorb-closure`).  The test may move along a structural `k` at the same
+-- time, which is what an absorption that changes the ancilla needs.
+absorb-closureᵠ : (ε : ℕ → ℚ) (cs : ℕ) {C C′ D D′ : Obj}
+                  {r r′ : Tᵠ.Test D → Tᵠ.Test C} {s s′ : Tᵠ.Test D′ → Tᵠ.Test C′}
+                  {k : D ⇒ D′} {t : C′ ⇒ C} → QB 1 k → QB (cs ℕ.⊔ 1) t
+                → ((E : Tᵠ.Test D′) → s E ≈ r (E ∘ k) ∘ t)
+                → ((E : Tᵠ.Test D′) → s′ E ≈ r′ (E ∘ k) ∘ t)
+                → Agreeᵠ ε r r′ → Agreeᵠ (λ q → ε (simCost q cs)) s s′
+absorb-closureᵠ ε cs qk qt stepr stepr′ h =
+  ≈ᵃ-resp₀ (λ E → cast₀ (stepr E)) (λ E → cast₀ (Equiv.sym (stepr′ E)))
+    (≈ᵃ-mono le (≈ᵃ-post (Tᵠ.pullᵠ⁺ (bud (cs ℕ.⊔ 1) qt))
+                         (≈ᵃ-pre (Tᵠ.pullᵠ (bud 1 qk)) h)))
+  where
+  le : (q c′ : ℕ) → ε (ctxBudget (q ℕ.* 1) ((cs ℕ.⊔ 1) ℕ.* (c′ ℕ.⊔ 1)))
+                    ℚ.≤ ε (simCost (ctxBudget q c′) cs)
+  le q c′ = ℚₚ.≤-trans
+    (ℚₚ.≤-reflexive (cong (λ j → ε (ctxBudget j ((cs ℕ.⊔ 1) ℕ.* (c′ ℕ.⊔ 1))))
+                          (ℕₚ.*-identityʳ q)))
+    (proj₁ (absorb-closure q cs) ε c′)
+
 ctx-absorb : (ε : ℕ → ℚ) (cs : ℕ) {A B X B′ X′ : Obj}
              {f g : A ⇒ X ⊗₀ B} {f′ g′ : A ⇒ X′ ⊗₀ B′}
              (κ : (W : Obj) → W ⊗₀ (X ⊗₀ B) ⇒ W ⊗₀ (X′ ⊗₀ B′))
@@ -139,9 +176,8 @@ ctx-absorb : (ε : ℕ → ℚ) (cs : ℕ) {A B X B′ X′ : Obj}
            → ((W : Obj) → id ⊗₁ g′ ≈ κ W ∘ id ⊗₁ g)
            → f ≈ᵁᵠ[ ε ] g → f′ ≈ᵁᵠ[ (λ q → ε (simCost q cs)) ] g′
 ctx-absorb ε cs κ qκ stepf stepg h = agree⇒ctx (λ q → ε (simCost q cs)) λ W →
-  ≈ᵃ-resp₀ (λ _ → cast₀ (cut (stepf W))) (λ _ → cast₀ (Equiv.sym (cut (stepg W))))
-    (≈ᵃ-mono (λ q → proj₁ (absorb-test q cs) ε)
-             (≈ᵃ-pre (T.pullᵠ (bud (cs ℕ.⊔ 1) (qκ W))) (ctx⇒agree ε h W)))
+  absorb-testᵠ ε cs (qκ W) (λ _ → cut (stepf W)) (λ _ → cut (stepg W))
+               (ctx⇒agree ε h W)
   where
   cut : {C D : Obj} {E : D ⇒ Ω} {a : C ⇒ D} {k : Obj} {b : k ⇒ D} {c : C ⇒ k}
       → a ≈ b ∘ c → E ∘ a ≈ (E ∘ b) ∘ c
@@ -159,42 +195,6 @@ ctx-sub ε {s = s} cs qs h =
              (trans (ℕₚ.⊔-assoc cs 1 1) (cong (cs ℕ.⊔_) (ℕₚ.⊔-idem 1)))
              (qb-T₁ (qb-sub qs)))
     (λ _ → split₂ʳ) (λ _ → split₂ʳ) h
-
--- Moving a certified morphism behind the CLOSURE: that is `pullᵠ⁺`'s CONTROL,
--- and the guard it reads the closure's budget at is what puts `ctxBudget`'s
--- own guard inside the product and makes the substitution exact
--- (`absorb-closure`).  The ancilla may change with the move, so the test is
--- carried along a structural `κ`.
-ctx-closure : (ε : ℕ → ℚ) (cs : ℕ) {A A′ B B′ X X′ : Obj}
-              {f g : A ⇒ X ⊗₀ B} {f′ g′ : A′ ⇒ X′ ⊗₀ B′} (V : Obj → Obj)
-              (κ : (W : Obj) → V W ⊗₀ (X ⊗₀ B) ⇒ W ⊗₀ (X′ ⊗₀ B′))
-              (θ : (W : Obj) → W ⊗₀ A′ ⇒ V W ⊗₀ A)
-            → ((W : Obj) → QB 1 (κ W))
-            → ((W : Obj) → QB (cs ℕ.⊔ 1) (θ W))
-            → ((W : Obj) → id ⊗₁ f′ ≈ (κ W ∘ id ⊗₁ f) ∘ θ W)
-            → ((W : Obj) → id ⊗₁ g′ ≈ (κ W ∘ id ⊗₁ g) ∘ θ W)
-            → f ≈ᵁᵠ[ ε ] g → f′ ≈ᵁᵠ[ (λ q → ε (simCost q cs)) ] g′
-ctx-closure ε cs V κ θ qκ qθ stepf stepg h = agree⇒ctx (λ q → ε (simCost q cs)) λ W →
-  ≈ᵃ-resp₀ (λ _ → cast₀ (cut (stepf W))) (λ _ → cast₀ (Equiv.sym (cut (stepg W))))
-    (≈ᵃ-mono le
-      (≈ᵃ-post (T.pullᵠ⁺ (bud (cs ℕ.⊔ 1) (qθ W)))
-        (≈ᵃ-pre (T.pullᵠ (bud 1 (qκ W))) (ctx⇒agree ε h (V W)))))
-  where
-  cut : {C D P : Obj} {E : P ⇒ Ω} {a : C ⇒ P} {k : Obj}
-        {b : k ⇒ P} {c : D ⇒ k} {d : C ⇒ D}
-      → a ≈ (b ∘ c) ∘ d → E ∘ a ≈ ((E ∘ b) ∘ c) ∘ d
-  cut eq = Equiv.trans (∘-resp-≈ʳ eq)
-                       (Equiv.trans sym-assoc (∘-resp-≈ˡ sym-assoc))
-
-  -- The test's own structural leg costs `q * 1`, and `absorb-closure` is the
-  -- rest: at the guarded budget the closure absorption is an identity.
-  le : (q c′ : ℕ)
-     → ε (ctxBudget (q ℕ.* 1) ((cs ℕ.⊔ 1) ℕ.* (c′ ℕ.⊔ 1)))
-       ℚ.≤ ε (simCost (ctxBudget q c′) cs)
-  le q c′ = ℚₚ.≤-trans
-    (ℚₚ.≤-reflexive (cong (λ k → ε (ctxBudget k ((cs ℕ.⊔ 1) ℕ.* (c′ ℕ.⊔ 1))))
-                          (ℕₚ.*-identityʳ q)))
-    (proj₁ (absorb-closure q cs) ε c′)
 
 -- Sequential composition of two witnesses, with the schedule and the composed
 -- simulator of `UC.Quantitative.Family.≤UC^ωᵉ-trans`: the second comparison is
