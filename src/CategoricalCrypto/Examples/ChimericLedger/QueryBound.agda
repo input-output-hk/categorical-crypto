@@ -2,7 +2,7 @@
 
 -- What the ledger costs its hash: one call per activation, hence `QB 1`.
 --
--- `submit` hashes once and `audit` answers purely, so `POV.ledger`'s step is
+-- `submit` hashes once and `audit` answers purely, so `System.ledger`'s step is
 -- `fromCall` of the `Call` below on the nose — which is exactly the hypothesis
 -- of `UC.QueryBound.qb-oneCall`, where the certificate is built and where the
 -- reason it cannot be read off `Protocol.Machine.MSt` is recorded.
@@ -27,7 +27,7 @@ module _ (ℓ : ℕ) (ser : Ledger.Tx ℓ → List Bool) where
 
   open Ledger ℓ
   open Step ser
-  open import CategoricalCrypto.Examples.ChimericLedger.POV ℓ ser
+  open import CategoricalCrypto.Examples.ChimericLedger.System ℓ ser
 
   ledgerCall : (vr : Variant) → LState → Query → Call (Neg HashIf) (Pos HashIf) (LState × Answer)
   ledgerCall vr s (submit tx) =

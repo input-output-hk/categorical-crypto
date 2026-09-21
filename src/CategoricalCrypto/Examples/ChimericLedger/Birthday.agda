@@ -37,10 +37,10 @@ open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Relation.Unary.All as All using (All)
 open import Data.List.Relation.Unary.Any using (here; there)
 open import Data.Maybe.Base using (Maybe; just; nothing)
-open import Data.Nat.Base using (ℕ; suc)
+open import Data.Nat.Base using (ℕ; suc) renaming (_+_ to _+ᴺ_; _*_ to _*ᴺ_)
 open import Data.Nat.Properties using (≡⇒≡ᵇ)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂; Σ-syntax)
-open import Data.Rational using (ℚ; 1ℚ) renaming (_≤_ to _≤ℚ_)
+open import Data.Rational using (ℚ; 1ℚ; _*_) renaming (_≤_ to _≤ℚ_)
 open import Data.Rational.Properties using (+-identityˡ; ≤-reflexive; ≤-trans)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Base using (tt)
@@ -67,7 +67,8 @@ module CategoricalCrypto.Examples.ChimericLedger.Birthday
 open Ledger ℓ
 open Step ser
 
-open import CategoricalCrypto.Examples.ChimericLedger.POV ℓ ser
+open import CategoricalCrypto.Examples.ChimericLedger.Observable ℓ ser
+open import CategoricalCrypto.Examples.ChimericLedger.System ℓ ser
 open import CategoricalCrypto.Examples.ChimericLedger.Value ℓ
 open import ProbabilisticLogic.Distribution.Uniform.Birthday ℓ
 -- `Hash` would clash with `Ledger.Hash`.
@@ -76,7 +77,11 @@ open import ProbabilisticLogic.Distribution.Uniform.Duplicate ℓ using
 
 module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) where
 
-  open AtBirthday h₀ ser-inj
+  -- `q²` fresh-hash pairs, plus `q` chances for a fresh hash to hit `h₀`
+  -- itself: the genesis key is in the namespace the oracle samples from, and
+  -- an output keyed by an already-present key is swallowed by `unionNew`.
+  εbirthday : ℕ → ℚ
+  εbirthday q = fromℕ (q *ᴺ q +ᴺ q) * inv-pow-2 ℓ
 
   ----------------------------------------------------------------------
   -- The hashes in play, and the flag that says two of them coincide
@@ -379,5 +384,5 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
         served : StepGoal
         served = go (RO.lookup-bs tbl qs) refl
 
-    target : Target a₀ V
+    target : TrajectoryLossBounded inputConsuming (genesis h₀ a₀ V) εbirthday
     target = hit-bounded Sys₀ Bad cert

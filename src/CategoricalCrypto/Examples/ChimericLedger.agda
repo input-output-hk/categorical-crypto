@@ -3,23 +3,14 @@
 -- The chimeric UTxO ledger kernel of `talk/slides.typ`, machine-free.
 --
 -- State is two finite maps — a UTxO set keyed by `(txid , index)` and an
--- account table — and `total` is the invariant preservation-of-value talks
--- about.  A transaction consumes UTxO entries and account balances and creates
--- UTxO entries keyed by `(hash tx , i)`; the hash is the ledger's ONE oracle
--- call per transaction, explicit in `applyTx`'s `Call` result.
---
--- Validation is SEQUENTIAL: inputs are consumed against a shrinking UTxO set
--- and withdrawals debit as they are checked, so a duplicated input or
--- withdrawal cannot create or overdraw value — with per-entry checks against
--- the original state, `POV inputConsuming` would be deterministically false.
+-- account table — and `total` is the invariant preservation of value talks
+-- about.  A transaction consumes UTxO entries and account balances and
+-- creates UTxO entries keyed by `(hash tx , i)`; the hash is the ledger's ONE
+-- oracle call per transaction, explicit in `applyTx`'s `Call` result.
 --
 -- The two variants of the slides are one flag apart: `chimeric` accepts a
--- transaction with no inputs, `inputConsuming` does not.  `Replay` computes why
--- that matters — a no-input transaction can be resubmitted verbatim, its output
--- key collides with the one it created the first time, and since a map union
--- keeps the entry already present the withdrawal is charged twice while only
--- one output exists.  Value is destroyed with probability 1, no hash collision
--- needed.
+-- transaction with no inputs, `inputConsuming` does not.  Why that matters is
+-- computed in `ChimericLedger.Replay`.
 
 open import Class.DecEq
 
@@ -29,7 +20,7 @@ open import Data.Maybe.Base renaming (map to mapᵐ)
 open import Data.Nat.Base renaming (_≡ᵇ_ to _≡ᴺ_)
 open import Data.Nat.ListAction
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
-open import Data.Vec.Base using (Vec; replicate)
+open import Data.Vec.Base using (Vec)
 open import Function.Base
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary.Decidable.Core
@@ -149,40 +140,3 @@ module Ledger (ℓ : ℕ) where
             then callᶜ (ser tx) (λ h → (unionNew u′ (outsAt h 0 outs) , a′) , true)
             else pureᶜ (s , false)
         _ → pureᶜ (s , false)
-
-------------------------------------------------------------------------
--- The replay attack, computed
-------------------------------------------------------------------------
-
--- One bit of hash is enough: the attack does not need a collision, only the
--- determinism of `hash tx`.
-module Replay where
-
-  open Ledger 1
-  open Step (λ _ → [])   -- the attack discards the query, so any `ser` will do
-
-  s₀ : LState
-  s₀ = [] , (0 , 2) ∷ []
-
-  txᵃ : Tx                                        -- no inputs; move 1 from account 0
-  txᵃ = [] , ((0 , 1) ∷ []) , ((1 , 1) ∷ [])
-
-  h : Hash
-  h = replicate 1 false
-
-  once twice : LState
-  once  = proj₁ (runCall (λ _ → h) (applyTx chimeric s₀ txᵃ))
-  twice = proj₁ (runCall (λ _ → h) (applyTx chimeric once txᵃ))
-
-  initial-total : total s₀ ≡ 2
-  initial-total = refl
-
-  preserved : total once ≡ 2
-  preserved = refl
-
-  destroyed : total twice ≡ 1                     -- a unit of value is gone
-  destroyed = refl
-
-  -- The repair rejects the transaction outright, so there is nothing to replay.
-  rejected : proj₂ (runCall (λ _ → h) (applyTx inputConsuming s₀ txᵃ)) ≡ false
-  rejected = refl
