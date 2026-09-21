@@ -1,6 +1,7 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- The unit-grade budgeted route to a probability, with no event class on it.
+-- The unit-grade route from an emulation to a probability, with no event class
+-- on it.
 --
 -- `docs/end-to-end.md`'s "Obstruction" section records the gap this closes, and
 -- only the unit grade closes it: the simulator is a trivial-grade scalar, so
@@ -10,14 +11,13 @@
 -- `prefix-absorbᵒ` is what an absorbed trivial-grade simulator contributes to
 -- what a context observes — its own initialization, in front of it and nothing
 -- else.  `sim-prefixed` reads that one-sidedly (an initialization is never seen
--- to ADD mass), `bounded-carry` spends it against the emulation's own
--- domination, and `uc-audit-bounded` is the endpoint at the allowance `simCost`.
+-- to ADD mass) and `bounded-carry` spends it against the emulation's own
+-- domination.
 --
--- `uc-audit-bounded`'s `ASTotal` hypothesis and the monitor's budget law are
--- part of its interface and are NOT consumed: the former is what the two-sided
--- `≈ₚ[ ε ]` of `prefixedᵒ-obs` needs and this is the one-sided half, and
--- `Bounded I bad ε` charges `ε` at the budget of `d`, never of `bad d`.  The
--- honest premise list is `bounded-carry`'s.
+-- There is deliberately no endpoint reading `bounded-carry` at `simCost` off a
+-- BUDGETED emulation: a budgeted emulation is an emulation, so the unbudgeted
+-- consumers apply to it already and at a sharper allowance
+-- (`docs/end-to-end.md` §4).
 
 import Categories.Category.Monoidal.Reasoning as MonR
 
@@ -29,7 +29,7 @@ open import Data.Rational.Properties using (+-monoˡ-≤; ≤-refl; ≤-trans)
 
 open import ProbabilisticLogic.Dp using (Dₚ; _>>=ₚ_; _≈ₚ_; ≼ₚ-refl)
 open import ProbabilisticLogic.Dp.Advantage using (_≼ₚ[_]_; ≼ₚ[]-resp)
-open import ProbabilisticLogic.Dp.Mass using (ASTotal; const-bind-≼)
+open import ProbabilisticLogic.Dp.Mass using (const-bind-≼)
 open import ProbabilisticLogic.Dp.Reasoning using (_⟨≈⟩_; bindᶠ)
 
 open import CategoricalCrypto.Iface
@@ -42,8 +42,6 @@ open import CategoricalCrypto.UC.Model.Enrichment using (massᵒ)
 open import CategoricalCrypto.UC.Model.Observation using (Obs; Ωᵒ; 𝟘ᵒ; obs-resp)
 open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
-open import CategoricalCrypto.UC.Seam.Audit
-  using (_≤UC[_]_; emulate; sim; simCost; q≤simCost)
 open import CategoricalCrypto.UC.Seam.Audit.Bounded using (supply)
 open import CategoricalCrypto.UC.Seam.Audit.Context
   using (audit-run; auditClose; auditTest; extract-bounded)
@@ -118,19 +116,3 @@ bounded-carry B R I bad s em p q≤p ε ν ν>0 bi =
     in ≤-trans le (+-monoˡ-≤ ν
          (supply I bad ε (p q) d (asks≤-mono (q≤p q) d a) bi _
                  (sim-prefixed B I (bad d) s) k))
-
--- The unit-grade budgeted route, end to end: the ideal bound carried across a
--- budgeted emulation and read back as layer 1's own probability.  `simCost` is
--- the allowance the bound is read at — the uncharged reading is a DIFFERENT
--- statement, an arbitrary `ε` being monotone in no direction.
-uc-audit-bounded : (B : Iface) (R I : Protocol unitᴵ B)
-                   (bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) {cs : ℕ}
-                   (em : closedᵒ (morphism R) ≤UC[ cs ] closedᵒ (morphism I))
-                   (ε : ℕ → ℚ) (ν : ℚ) → 0ℚ ℚ.< ν
-                 → ASTotal (pointᵒ 𝟘ᴳ 𝟘ᴳ (sim em))
-                 → ((q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d → asks≤ q (bad d))
-                 → Bounded I bad ε
-                 → Bounded R bad (λ q → ε (simCost q cs) ℚ.+ ν)
-uc-audit-bounded B R I bad {cs} em ε ν ν>0 _ _ =
-  bounded-carry B R I bad (sim em) (emulate em)
-                (λ q → simCost q cs) (λ q → q≤simCost q cs) ε ν ν>0

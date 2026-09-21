@@ -312,8 +312,8 @@ rejects-inv-suc p Pp d ad sep (ε , neg , h) =
 -- `UC.Seam.Grounded.emulAgreeᵁ` is the whole content: at the trivial grade a
 -- total real side turns an emulation into the direct `≈ᵁ` agreement, which is
 -- contextual closeness at EVERY positive error — hence at any positive schedule
--- one cares to name.  `UC.Asymptotic.uc-agree` is the same collapse read one
--- step further along, into `Agreeˢ`; stopping here is what keeps the error.
+-- one cares to name.  Reading the collapse one step further along, into
+-- `Agreeˢ`, is what would spend that error; stopping here keeps it.
 uc-≈ᶠ[_] : (ν : ℕ → ℚ) → ((n : ℕ) → 0ℚ ℚ.< ν n)
          → ((n : ℕ) → TotalRun (B n) (morphism (R n))) → R ≤UC^ω I
          → R ≈ᶠ[ (λ n _ → ν n) ] I
@@ -321,8 +321,8 @@ uc-≈ᶠ[ ν ] pos tR em n Y Et m _ _ =
   ≈ᵁ⇒≈ℰᶜ (Gr.emulAgreeᵁ _ _ _ (tR n) (em n)) Y Et m (ν n) (pos n)
 
 -- …so the pointwise theorems are specializations of the family ones, the
--- schedule being `2⁻ⁿ` — the same slack `uc-≈negl` spends, and for the same
--- reason (an ε-quantified agreement has no zero instance to give).
+-- schedule being `2⁻ⁿ`: an ε-quantified agreement has no zero instance to
+-- give, so some positive negligible slack has to be named.
 uc-≤UC^ωⁿ : ((n : ℕ) → TotalRun (B n) (morphism (R n))) → R ≤UC^ω I → R ≤UC^ωⁿ I
 uc-≤UC^ωⁿ tR em = admits-inv-pow-2 (uc-≈ᶠ[ inv-pow-2 ] 0<inv-pow-2 tR em)
 

@@ -219,8 +219,9 @@ The identity of the two statements is MECHANICAL, not a copied signature:
 the two types to unify. A deliberate perturbation of the copied signature was checked to
 break it.
 
-`Factor.ledger-pov-from-hash` itself, the five ledger theorems in `EndToEnd`, and
-`Real.ledger-pov` are byte-identical; the new theorems sit beside them in a new module.
+`Factor.ledger-pov-from-hash` itself, the ledger theorems in `EndToEnd` (five then,
+four since the 2026-09-21 retirement of the budgeted route), and `Real.ledger-pov` are
+byte-identical; the new theorems sit beside them in a new module.
 
 ## 7. Module costs (warm, one `Checking` line, `+RTS -M8G -H1G`)
 

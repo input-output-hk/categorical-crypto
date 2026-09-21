@@ -19,7 +19,8 @@
 -- collapses below ask for the SUM to be negligible, and negligibility is closed
 -- under sums (`UC.Approximate.GradedBound-+[_]`), so any positive negligible `δ`
 -- will do — `UC.Approximate.Decay.negligible-slack` is one, and the same
--- parameter appears for the same reason at layer 1 (`UC.Asymptotic.uc-≈negl`).
+-- parameter appears for the same reason at layer 1
+-- (`UC.Asymptotic.Family.uc-≈ᶠ[_]`).
 --
 -- With the agreement in hand the inherited metatheory applies to a concrete
 -- family: `≈ℰ^ω⇒≤UC` puts it in the INHERITED order at the identity simulator,

@@ -10,9 +10,9 @@
 -- query budget `q` reaches a ledger state whose total value differs from the
 -- initial one, except with probability `ε q`.  It is deliberately not phrased
 -- over the ledger's own audit answers — that form would trust the ledger to
--- report honestly.  The audit form survives below as the gadget the transfer
--- lemma applies to, and as `monitor`, the observable the UC layer's audit
--- event designates; that the audit answer may be trusted is
+-- report honestly.  The audit form survives below as `watch` and as `monitor`,
+-- the observable the UC layer's audit event designates; that the audit answer
+-- may be trusted is
 -- `ChimericLedger.Trajectory`'s theorem rather than an assumption of the
 -- statement.
 
@@ -213,14 +213,6 @@ module _ (vr : Variant) (s₀ : LState) where
                 → (q qa : ℕ) (d : Strat Query Answer) → asks≤ q d → asks≤ qa (audited d)
                 → PrHit (Sys vr s₀) (badTotal s₀) d ≤ℚ ε qa
   pov-via-audit tfa pa q qa d _ aa = ≤-trans (tfa d) (pa qa (audited d) aa)
-
--- An emulation at advantage `δ` carries an audit-form bound across:
--- `POVaudit` is `Bounded` on the nose, so this is `transfer`.
-pov-transfer : (v₁ v₂ : Variant) (s₀ : LState) {ε δ : ℕ → ℚ}
-             → Sys v₁ s₀ ≈adv[ δ ] Sys v₂ s₀
-             → POVaudit v₁ s₀ ε → POVaudit v₂ s₀ (λ q → ε q +ℚ δ q)
-pov-transfer v₁ v₂ s₀ {ε} {δ} =
-  transfer {P = Sys v₁ s₀} {Sys v₂ s₀} {watch s₀} {ε} {δ} (asks≤-watch s₀)
 
 ------------------------------------------------------------------------
 -- The birthday target

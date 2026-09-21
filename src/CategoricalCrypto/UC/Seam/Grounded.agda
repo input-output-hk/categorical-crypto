@@ -1,7 +1,10 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- `UC.Seam.Grounding`'s statements at the trivial grade, all discharged:
--- `IotaBlind`, `EnvAsCtx`, `StratIsEnv`, `SubBlind`, and with them `UnitGrade`.
+-- `IotaBlind`, `EnvAsCtx`, `StratIsEnv`, `SubBlind`.  `UnitGrade` is the one
+-- statement there with no discharge here: it is the further step into `Agreeˢ`,
+-- and nothing consumes it — the family premise stops at `emulAgreeᵁ` and keeps
+-- the ε (`docs/end-to-end.md` §4).
 --
 -- The grade is the sealed bundle's OWN monoidal unit, not `unitᴵ`.  The two are
 -- the empty interface spelled with two different empty types — `Data.Empty.⊥`
@@ -163,9 +166,9 @@ emSimTotal B u v s tu em d t factor = total-dominated (ctxRunˢ B d u) _ total n
 
 -- The collapse itself, stopping one step short of `Agreeˢ`: the simulator is
 -- removed and what is left is the direct `≈ᵁ` agreement, which is an
--- ε-QUANTIFIED CONTEXTUAL statement.  `stratIsEnv ∘ iotaBlind` is the last
--- step; the asymptotic family premise stops here instead and keeps the ε
--- (`UC.Asymptotic.Family.uc-≈ᶠ[_]`).
+-- ε-QUANTIFIED CONTEXTUAL statement.  `stratIsEnv ∘ iotaBlind` is the step on
+-- to `Agreeˢ`, which nothing now takes: the asymptotic family premise stops
+-- here and keeps the ε (`UC.Asymptotic.Family.uc-≈ᶠ[_]`).
 subBlind⇒emul : TG.SubBlind → (B : Iface) (u v : Proc unitᴵ B) → TotalRun B u
               → closedᵒ u ≤UC closedᵒ v → closedᵒ u ≈ᵁ closedᵒ v
 subBlind⇒emul blind B u v tu e = ≈ᵁ-trans em (blind B s v (emSimTotal B u v s tu em))
@@ -175,10 +178,6 @@ subBlind⇒emul blind B u v tu e = ≈ᵁ-trans em (blind B s v (emSimTotal B u 
 
   em : closedᵒ u ≈ᵁ sub s ∘ closedᵒ v
   em = ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ (closedᵒ u)))) (proj₂ (e id))
-
-subBlind⇒unitGrade : TG.SubBlind → TG.UnitGrade
-subBlind⇒unitGrade blind B u v tu _ e =
-  stratIsEnv B u v (iotaBlind B u v (subBlind⇒emul blind B u v tu e))
 
 ------------------------------------------------------------------------
 -- Blindness
@@ -203,13 +202,6 @@ simTotal⇒point B s v st =
   massed = massedᵒ-∘ʳ _ _ _ t _ _
              (massedᵒ-∘ˡ _ _ _ (sub s) (closedᵒ v) _
                (massedᵒ-sub 𝟘ᴳ 𝟘ᴳ (ifaceᵒ B) s _ (massedᵒ-point 𝟘ᴳ 𝟘ᴳ s)))
-
--- …hence the simulator's initialization is almost surely total off the REAL
--- side's totality alone, which is the hypothesis the budgeted route's
--- prefix-tolerant extraction asks for (`UC.Asymptotic.Audit.uc-audit-boundedᵖ`).
-simAstotal : (B : Iface) (u v : Proc unitᴵ B) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) → TotalRun B u
-           → closedᵒ u ≈ᵁ sub s ∘ closedᵒ v → ASTotal (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
-simAstotal B u v s tu em = simTotal⇒point B s v (emSimTotal B u v s tu em)
 
 -- The whole of what a trivial-grade simulator contributes to a context: its
 -- own initialization, in front of whatever that context observes.  A
@@ -265,11 +257,7 @@ subBlind B s v st = ≈ℰᶜ⇒≈ᵁ λ Y t m →
   ∼ᴼ-resp (obs-resp sym-assoc) (obs-resp sym-assoc)
           (prefixedᵒ-obs _ _ _ (simTotal⇒point B s v st) (subPrefixed B s v Y t m))
 
--- …so the unit-grade specialization is a closed theorem.
-unitGrade : TG.UnitGrade
-unitGrade = subBlind⇒unitGrade subBlind
-
--- …and so is the step before it, which is the one the asymptotic family premise
+-- …so the collapse is a closed theorem — the one the asymptotic family premise
 -- consumes: no `Agreeˢ`, and the ε still quantified rather than spent.
 emulAgreeᵁ : (B : Iface) (u v : Proc unitᴵ B) → TotalRun B u
            → closedᵒ u ≤UC closedᵒ v → closedᵒ u ≈ᵁ closedᵒ v

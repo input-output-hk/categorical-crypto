@@ -110,6 +110,13 @@ one Σ-pattern. So `ledger-audit-carry W Et m _ _ (d , a , near)` is
 The probability endpoint `uc-audit-boundedᵖ` is untouched, as the row's second
 clause requires.
 
+> **Superseded 2026-09-21.** The whole budgeted route — `ledger-audit-carryᵈ`,
+> `ledger-uc-to-pov-simCost`, `ledger-pov-simCost-negligible`,
+> `UC.Asymptotic.Audit` (`uc-audit-carryᵈ`, `uc-audit-boundedᵖ`) and
+> `UC.Seam.Audit.Prefix.uc-audit-bounded` — is deleted; a budgeted emulation
+> forgets to a pointwise one, so it was a weaker bound at a stronger premise
+> with no consumer (`docs/end-to-end.md` §4).
+
 **Net −63 LOC** (84 deleted, 21 added), across `UC.Asymptotic.Audit` and
 `EndToEnd`.
 
@@ -308,8 +315,8 @@ and kept for the same reason.
 
 One line each, per the brief.
 
-* **Reroute `ledger-uc-to-pov` through the family theorem?** — unchanged.
-  Nothing here touches `ledger-uc-to-pov` or `UC.Asymptotic.uc-agree`.
+* **Reroute `ledger-uc-to-pov` through the family theorem?** — unchanged *here*;
+  RULED and done 2026-09-21 (rerouted; `uc-agree`/`uc-≈negl`/`unitGrade` deleted).
 * **Shed `uc-audit-bounded`'s unused premises (`ASTotal`, the `bad`-budget
   law)?** — unchanged in kind; after §1 there is one exported statement carrying
   them rather than two (`uc-audit-bounded`, `uc-audit-boundedᵖ`), and

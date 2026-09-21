@@ -56,13 +56,17 @@ compares; only the corollaries that enter the family category
   witness's simulator acts trivially on the ideal side
   (`(n : ℕ) → subᶠ s (imgᶠ B I) n ≈ imgᶠ B I n`, in `𝒞`'s own equality). That is
   available for a trivial simulator and only for it — see §5.
-* A budgeted emulation IS an emulation (`≤UC[]⇒≤UC` then
-  `UC.Core.Bridge.≤UCᶜ⇒≤UC`), so `_≤UC^ω_`'s theorems apply wherever
+* A budgeted emulation IS an emulation: `≤UCᶜ⇒≤UC (sim e , emulate e)` sends
+  `R ≤UC^ω[ cs ] I` to `R ≤UC^ω I` levelwise (equivalently
+  `UC.Audit.Canonical.audit-forget` after `audit⇒witness`), verified to
+  typecheck at this setup 2026-09-21. So `_≤UC^ω_`'s theorems apply wherever
   `_≤UC^ω[ cs ]_`'s do and give the SHARPER number: at the trivial grade the
   simulator costs the ideal side nothing. What the budgeted statement adds is
   the accounting, not a better bound.
-* The pointwise/family pair is therefore ORDERED and the pointwise/budgeted pair
-  is not.
+* Both pairs are therefore ORDERED: a budgeted premise implies a pointwise one,
+  which with the real side's totality implies the family one. The budgeted
+  route was retired on that finding (2026-09-21): a strictly weaker bound at a
+  strictly stronger premise, with no consumer.
 
 One neighbour of these relations sits OFF the chain, and is named so that it is
 not mistaken for part of it: `UC.Model.Family.Ingest.ingest` takes a per-level
@@ -80,26 +84,27 @@ premise asks instead: closeness at every positive error at a FIXED level.
 
 ## 2. The theorems
 
-Seven in `Examples.ChimericLedger.EndToEnd`, parameterized by a per-level
+Four in `Examples.ChimericLedger.EndToEnd`, parameterized by a per-level
 serialization `ser : (n : ℕ) → Ledger.Tx n → List Bool`:
 
 | theorem | premise | conclusion |
 |---|---|---|
-| `ledger-uc-to-pov` (`:118`) | `SerInj`, `TotalRun` on the real side, `R ≤UC^ω Ideal a V`, `TruthfulAudit` | `SaturatedHitᴺ R badR (λ n q → εᴸ n (q + q))` |
-| `ledger-pov-negligible` (`:144`) | the same, plus `Poly p` | the same bound as one negligible number |
-| `ledger-uc-to-pov-family` (`:182`) | `SerInj`, `R ≤UC^ωⁿ Ideal a V`, `TruthfulAudit` | the SAME bound, with no `TotalRun` |
-| `ledger-pov-family-negligible` (`:204`) | the same, plus `Poly p` | its one-number reading |
-| `ledger-audit-carryᵈ` (`:224`) | `SerInj`, `R ≤UC^ω[ cs ] Ideal a V` | at any test, closure, strategy and allowance: `Pr≤ k (obs …) ≤ εᴸ n q + ν n` |
-| `ledger-uc-to-pov-simCost` (`:244`) | `SerInj`, `TotalRun`, `R ≤UC^ω[ cs ] Ideal a V`, `TruthfulAudit` | `SaturatedHitᴺ R badR (λ n q → εᴸ n (simCost (q + q) (cs n)) + ν n)` |
-| `ledger-pov-simCost-negligible` (`:276`) | the same, plus `Poly cs` and `Poly p` | its one-number reading; the simulator's budget must be polynomial for the number to be negligible |
+| `ledger-uc-to-pov-family` | `SerInj`, `R ≤UC^ωⁿ Ideal a V`, `TruthfulAudit` | `SaturatedHitᴺ R badR (λ n q → εᴸ n (q + q))` |
+| `ledger-pov-family-negligible` | the same, plus `Poly p` | that bound as one negligible number |
+| `ledger-uc-to-pov` | `SerInj`, `TotalRun` on the real side, `R ≤UC^ω Ideal a V`, `TruthfulAudit` | the SAME bound; the proof is the family theorem after `uc-≤UC^ωⁿ` |
+| `ledger-pov-negligible` | the same, plus `Poly p` | its one-number reading, likewise |
+
+Three more stood here until 2026-09-21: `ledger-audit-carryᵈ`,
+`ledger-uc-to-pov-simCost` and `ledger-pov-simCost-negligible`, off the
+BUDGETED premise `_≤UC^ω[ cs ]_`. They were retired with that whole route — see
+§1's last bullet and §4.
 
 The public statement reads:
 
 ```agda
-ledger-uc-to-pov :
+ledger-uc-to-pov-family :
     (a V : ℕ) → SerInj → (R : Systems LedgerIf^ω) (badR : Bad R)
-  → ((n : ℕ) → TotalRun (LedgerIf^ω n) (morphism (R n)))
-  → R ≤UC^ω Ideal a V
+  → R ≤UC^ωⁿ Ideal a V
   → TruthfulAudit a V R badR
   → SaturatedHitᴺ R badR (λ n q → εᴸ n (q + q))
 ```
@@ -141,71 +146,60 @@ discharged once and for all, generically in the hash:
 
 Nothing else about the hash enters, which is the point.
 
-## 4. The two routes
+## 4. The route
 
-Both start from the ideal side's `Bounded (Ideal n) (monitorᴸ n) (εᴸ n)` —
+It starts from the ideal side's `Bounded (Ideal n) (monitorᴸ n) (εᴸ n)` —
 layer 1's own bound, `Schedule.ideal-bounded`, which is
-`ChimericLedger.Audit.pov-target` levelwise and has no UC vocabulary in it.
+`ChimericLedger.Audit.pov-target` levelwise and has no UC vocabulary in it —
+and ends at `SaturatedHitᴺ`, i.e. at `PrHit` of the real system.
 
-### The probability route
+`≤UC^ωⁿ⇒≈negl` reaches `UC.Saturated._≈negl_` with no exact agreement
+anywhere: `≈ᶠ-runs` evaluates the premise at `UC.Seam.Audit.Context`'s
+strategy-embedded context — its budget certificate `audit-qb`, its observation
+identified with layer 1's run by `audit-run` — and `adv-from-runs`
+(`UC.Seam.Carry`) turns the per-run bound into the graded relation at a FIXED
+slack.
 
-It ends at `SaturatedHitᴺ`, i.e. at `PrHit` of the real system. Three entrances,
-one tail.
+The tail is `saturatedHitᴺ-from-monitor`: it turns a monitor bound into a
+trajectory bound through `TruthfulAudit`, with the instrumentation and its
+allowance cost as explicit parameters. The IDEAL bound is read as its own
+saturated form at zero slack (`boundedᴺ`) and transported across the graded
+relation (`uc-preservesᴺ`, i.e. `≈negl-respects` and so
+`saturated-respects[ Negligible ]` — allowance first, slack second, the
+repaired quantifier order). No event class occurs anywhere on it.
 
-* **The trivial-grade collapse.** `uc-agree` spends
-  `UC.Seam.Grounded.unitGrade`: at a grade both ends are blind to, an emulation
-  IS the direct agreement — the simulator collapses by `sub s ∘ g ≈ᵁ g`
-  (`subBlind`, off the real process's own totality through `emSimTotal`) and the
-  inflating wire by the ancilla quantifier. `uc-≈negl` reads the agreement as
-  `UC.Saturated._≈negl_` at a positive negligible slack (`agreeToAdv`).
-* **The family premise.** `≤UC^ωⁿ⇒≈negl` reaches the same `_≈negl_` with no
-  exact agreement anywhere: `≈ᶠ-runs` evaluates the premise at
-  `UC.Seam.Audit.Context`'s strategy-embedded context — its budget certificate
-  `audit-qb`, its observation identified with layer 1's run by `audit-run` — and
-  `adv-from-runs` (`UC.Seam.Carry`) turns the per-run bound into the graded
-  relation at a FIXED slack.
-* **The budgeted premise.** `uc-audit-boundedᵖ` produces layer 1's `Bounded` on
-  the real side directly, through `UC.Seam.Audit.Prefix.uc-audit-bounded`. That
-  route is `bounded-carry` = `Mass.dominate` + `sim-prefixed` +
-  `UC.Seam.Audit.Bounded.supply` + `UC.Seam.Audit.Context.extract-obs`: the
-  simulator's initialization is tolerated as a PREFIX, never seen to add mass
-  (`sim-prefixed`, a one-sided `≼ₚ[ 0ℚ ]` off `prefix-absorbᵒ`), and its queries
-  are charged at `simCost`. `bounded-carry` is the statement of which
-  `uc-audit-bounded` is the `simCost` instance: the allowance inflation is a
-  parameter, any `p` with `q ≤ p q`.
+### What was retired here (2026-09-21)
 
-The tail is `saturatedHitᴺ-from-monitor` in all three: it turns a monitor bound
-into a trajectory bound through `TruthfulAudit`, with the instrumentation and
-its allowance cost as explicit parameters. What differs is how the real-side
-`SaturatedBoundedᴺ` it consumes is reached. The first two entrances read the
-IDEAL bound as its own saturated form at zero slack (`boundedᴺ`) and transport
-it across the graded relation (`uc-preservesᴺ`, i.e. `≈negl-respects` and so
-`saturated-respects[ Negligible ]` — allowance first, slack second, the repaired
-quantifier order); the third already holds a real-side `Bounded` and reads it
-with `boundedᴺ` directly.
+Two further entrances stood beside it.
 
-No event class occurs on any of the three. On the budgeted entrance the
-numerical half is `extract-obs`/`extract-bounded` and the rational arithmetic is
-`UC.Seam.Audit.Bounded.supply`; [`docs/retirement.md`](retirement.md) records
-the membership layer the plan's §5 gates retired against them, name by name.
+* **The trivial-grade collapse.** `uc-agree` spent
+  `UC.Seam.Grounded.unitGrade` to turn a pointwise emulation into the direct
+  agreement, and `uc-≈negl` read that agreement as `_≈negl_` at a positive
+  negligible slack. `ledger-uc-to-pov` is now the family theorem after
+  `uc-≤UC^ωⁿ`, which stops one step earlier (at `≈ᵁ`, the ε still quantified),
+  so `uc-agree`, `uc-≈negl`, `unitGrade` and `subBlind⇒unitGrade` went with it.
+  `UC.Seam.Grounding.UnitGrade` — the statement they discharged — was kept; it
+  now has no prover in the tree.
+* **The budgeted premise.** `uc-audit-boundedᵖ` produced layer 1's `Bounded` on
+  the real side directly, through `UC.Seam.Audit.Prefix.uc-audit-bounded`, the
+  simulator's queries charged at `simCost`. Its bound is strictly worse than
+  the one above at a strictly stronger premise (§1's last bullet), and it had
+  no consumer, so `UC.Asymptotic.Audit` (with `_≤UC^ω[_]_` and
+  `uc-audit-carryᵈ`), `uc-audit-bounded` and `UC.Seam.Grounded.simAstotal` were
+  deleted.
 
-### The graded route
+What that route rested on is KEPT and still exported, because it is general and
+unbudgeted: `UC.Seam.Audit.Prefix.bounded-carry` = `Mass.dominate` +
+`sim-prefixed` + `UC.Seam.Audit.Bounded.supply` +
+`UC.Seam.Audit.Context.extract-obs`, the simulator's initialization tolerated
+as a PREFIX and never seen to add mass (`sim-prefixed`, a one-sided
+`≼ₚ[ 0ℚ ]` off `prefix-absorbᵒ`), with the allowance inflation a parameter —
+any `p` with `q ≤ p q`. [`docs/retirement.md`](retirement.md) records the
+membership layer the plan's §5 gates retired against these, name by name.
 
-`uc-audit-carryᵈ` states the crossing at the existing test, closure, monitor
-transformation and budget witness, and stops at a `Pr≤` bound on the context's
-own observation. Its generic half is `UC.Audit.carry-obs` — the emulation
-evaluated at one context, the simulator slid onto the test by
-`UC.Environment.tv₁-∘`, the `Mass` domination at the slack — hoisted out of
-`audit-carry`, whose statement is unchanged. At the ledger this is
-`ledger-audit-carryᵈ`, off `Schedule.ideal-bounded`.
+### Why the graded carry never composed
 
-Neither the simulator's query certificate `sim-qb` nor `ctxBudget` is consumed:
-both exist to move an allowance across a quantifier over budgeted TESTS, and the
-allowance moves here in the strategy `d`, which is `Bounded`'s own quantifier.
-
-### Why they do not compose
-
-The graded carry ends at a bound whose hypothesis is that the
+`uc-audit-carryᵈ` ended at a bound whose hypothesis is that the
 simulator-fronted context observes an ideal monitored run EXACTLY (`≈ₚ`).
 Turning that back into a real-side `Bounded` needs the extraction context — with
 the simulator in front of it, plugged into the IDEAL machine — to satisfy that
@@ -213,15 +207,12 @@ hypothesis, and it does not: the simulator's own initialization makes the
 observation ε-close and no more, which is all `UC.Seam.Grounded.subBlind` and an
 almost-sure totality can give. The typed residual is
 `docs/consumer-migration.md` §2's `auditIsBoundedʷ`, and it is FALSE as stated,
-not merely unproved.
-
-So the probability endpoint goes through the prefix rather than through the
-graded carry's conclusion, and one consequence is worth not glossing: at the
-trivial grade the simulator costs the ideal side nothing, so
-`ledger-uc-to-pov`'s bound is the birthday bound at the audit-adjusted
-allowance, not a `simCost`-adjusted one. The `simCost`-adjusted statement is
-`ledger-uc-to-pov-simCost`'s. None of this accounts for an *interactive*
-simulator: the budgeted simulator at these types is a scalar (review §3).
+not merely unproved. That is why the probability endpoint went through the
+prefix rather than through the graded carry's conclusion, and why at the
+trivial grade the surviving bound is the birthday bound at the audit-adjusted
+allowance and not a `simCost`-adjusted one. None of this accounts for an
+*interactive* simulator: the budgeted simulator at these types is a scalar
+(review §3).
 
 ## 5. The premise at the hash
 
@@ -320,12 +311,15 @@ separate arc and this document only locates it.
 Warm single-`Checking`-line runs under
 `pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS`, quoted from the
 branch that measured them; LOC is that branch's too. Rows with no measurement
-since the arc began carry their LOC at `587999b5` and no warm figure.
+since the arc began carry their LOC at `587999b5` and no warm figure. The
+2026-09-21 retirement shrank four of these rows without re-measuring them
+(`UC.Asymptotic` 102, `UC.Seam.Audit.Prefix` 118, `UC.Seam.Grounded` 264,
+`Examples.ChimericLedger.EndToEnd` 156) and deleted `UC.Asymptotic.Audit`; the
+figures below are unchanged from their measurement.
 
 | module | LOC | warm | measured in |
 |---|---|---|---|
 | `UC.Asymptotic` | 146 | 9 s | `docs/retirement.md` §9 |
-| `UC.Asymptotic.Audit` | 111 | 9 s | `docs/retirement.md` §9 |
 | `UC.Asymptotic.Family` | 342 | 23.7 s | `docs/ledger-lift-eps.md` §7 |
 | `UC.Asymptotic.Contextual` | 313 | 10.7 s | `docs/ledger-lift-eps.md` §7 |
 | `UC.Asymptotic.Compose` | 277 | 11.5 s | `docs/ledger-lift-eps.md` §7 |
