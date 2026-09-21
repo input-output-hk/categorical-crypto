@@ -34,6 +34,7 @@ open import ProbabilisticLogic.Distribution.Uniform using (indᵇ)
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Advantage using (indᵇ-nn)
 open import ProbabilisticLogic.Dp.Settle
+open import ProbabilisticLogic.Dp.Support
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Interaction using (runWith⊥)
@@ -116,6 +117,20 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
 
   -- The round-trip bound, at the composite's loop.
   module Lp = I (Col.Sᴳ g f) (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺) (Col.kᴳ g f) Kᴳ kᴳ-settles
+
+  -- …read at the dispatch itself: `loopBody` is `kᴳ` behind the two `returnₚ`
+  -- junctions `id ⊗₁ i₂` spends, and those reach the one point.
+  ranked-from-kᴳ : (rank : (Col.MC.St g × Col.MC.St f) × (B⁻ ⊎ B⁺) → ℕ)
+                 → ((w : (Col.MC.St g × Col.MC.St f) × (B⁻ ⊎ B⁺)) (i : ℕ)
+                    → Supp i (Col.kᴳ g f (proj₁ w , inj₂ (proj₂ w))) (Lp.Drops rank (rank w)))
+                 → Lp.Ranked rank
+  ranked-from-kᴳ rank h (m , x) i =
+    Supp-bind _ i _ (Col.kᴳ g f)
+      (Supp-bind _ i (returnₚ m) _
+        (Supp-return _ m
+          (λ j → Supp-bind _ j (returnₚ (inj₂ x)) _
+                   (Supp-return _ (inj₂ x) (Supp-return _ (m , inj₂ x) (h (m , x))) j))
+          i))
 
   module _ (rank : (Col.MC.St g × Col.MC.St f) × (B⁻ ⊎ B⁺) → ℕ) (rk : Lp.Ranked rank)
            (fuel : ℕ) (rb : (w : (Col.MC.St g × Col.MC.St f) × (B⁻ ⊎ B⁺)) → rank w < fuel)

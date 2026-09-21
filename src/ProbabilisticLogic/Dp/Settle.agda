@@ -186,6 +186,12 @@ Settles-bot : Settles 0 (botₚ {A = A}) (return-ℚ nothing)
 Settles-bot = settles (λ Q nn i → botₚ-cum i Q)
                       λ Q nn → sym (lookupᴰℚ-return nothing (maybeℚ Q))
 
+-- A junction on the sink is the sink; `Settles-bot` itself does not apply,
+-- `botₚ >>=ₚ f` being no `dirac`.
+Settles-bot⋆ : (f : A → Dₚ B) → Settles 0 (botₚ >>=ₚ f) (return-ℚ nothing)
+Settles-bot⋆ f = settles (Null-bind botₚ f λ Q nn i → botₚ-cum i Q)
+                         λ Q nn → sym (lookupᴰℚ-return nothing (maybeℚ Q))
+
 Settles-coin : (μ : Dist-ℚ Bool) → Settles 2 (coinₚ μ) (Dmap just μ)
 Settles-coin μ = settles hlt λ Q nn → trans (coinₚ-cum μ 0 Q) (sym (Eⱼ μ Q))
   where
