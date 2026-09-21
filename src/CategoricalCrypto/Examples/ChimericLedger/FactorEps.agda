@@ -25,28 +25,29 @@
 open import Data.Bool.Base using (Bool)
 open import Data.List.Base using (List)
 open import Data.Nat.Base using (ℕ)
-open import Data.Nat.Poly using (Poly; poly-const)
+open import Data.Nat.Poly
 open import Data.Product.Base using (Σ-syntax; _×_; _,_)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 
 open import CategoricalCrypto.Examples.ChimericLedger
-open import CategoricalCrypto.Examples.ChimericLedger.QueryBound using (qb-ledger)
-open import CategoricalCrypto.Iface using (Neg; Pos)
-open import CategoricalCrypto.Protocol.Machine using (morphism)
-open import CategoricalCrypto.Protocol.Observe using (PrHit)
-open import CategoricalCrypto.Strategy using (Strat; asks≤)
-open import CategoricalCrypto.UC.Approximate using (Negligible; Negligible-0)
+open import CategoricalCrypto.Examples.ChimericLedger.QueryBound
+open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Observe
+open import CategoricalCrypto.Strategy
+open import CategoricalCrypto.UC.Approximate
 open import CategoricalCrypto.UC.Asymptotic.Compose
 open import CategoricalCrypto.UC.Asymptotic.Contextual
-open import CategoricalCrypto.UC.Asymptotic.Family using (_≤UC^ωⁿ_; imgᶠ)
-open import CategoricalCrypto.UC.Budget using (Budget; simCost)
-open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ; qbᵒ)
-open import CategoricalCrypto.UC.Model.Family using (Δ)
-open import CategoricalCrypto.UC.Model.Family.Ingest using (ifaceᶠ)
+open import CategoricalCrypto.UC.Asymptotic.Family
+open import CategoricalCrypto.UC.Budget
+open import CategoricalCrypto.UC.Model.Enrichment
+open import CategoricalCrypto.UC.Model.Family
+open import CategoricalCrypto.UC.Model.Family.Ingest
 open import CategoricalCrypto.UC.Model.Setup
+-- `QB` would clash with the `Budget` record field opened below.
 open import CategoricalCrypto.UC.QueryBound using (qb-closed)
-open import CategoricalCrypto.UC.Saturated using (Systems)
-open import CategoricalCrypto.UC.Seam.Grounded using (𝟘ᴳ)
+open import CategoricalCrypto.UC.Saturated
+open import CategoricalCrypto.UC.Seam.Grounded
 
 module CategoricalCrypto.Examples.ChimericLedger.FactorEps
   (ser : (n : ℕ) → Ledger.Tx n → List Bool) where

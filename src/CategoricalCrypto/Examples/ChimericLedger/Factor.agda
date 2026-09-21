@@ -19,13 +19,13 @@ open import Data.List.Base using (List)
 open import Data.Nat.Base using (ℕ)
 
 open import CategoricalCrypto.Examples.ChimericLedger
-open import CategoricalCrypto.Iface using (Iface; unitᴵ)
-open import CategoricalCrypto.Protocol.Machine using (morphism)
-open import CategoricalCrypto.UC.Factor using (factorᵖ)
-open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
+open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.UC.Factor
+open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.Model.Setup
-open import CategoricalCrypto.UC.Saturated using (Systems)
-open import CategoricalCrypto.UC.Seam.Grounded using (closedᵒ; stageᵒ; 𝟘ᴳ)
+open import CategoricalCrypto.UC.Saturated
+open import CategoricalCrypto.UC.Seam.Grounded
 
 module CategoricalCrypto.Examples.ChimericLedger.Factor
   (ser : (n : ℕ) → Ledger.Tx n → List Bool) where

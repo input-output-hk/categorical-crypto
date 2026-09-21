@@ -51,10 +51,8 @@ open import Relation.Nullary.Decidable.Core using (yes; no)
 open import Relation.Nullary.Negation.Core using (¬_)
 
 open import ProbabilisticLogic.Prelude
-open import ProbabilisticLogic.Distribution.RationalDist using
-  (lookupᴰℚ-return; lookupᴰℚ-cong-P)
-open import ProbabilisticLogic.Distribution.RationalDist.Expectation using
-  (E⊥; E-bind; E⊥-return; maybeℚ)
+open import ProbabilisticLogic.Distribution.RationalDist
+open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Iface

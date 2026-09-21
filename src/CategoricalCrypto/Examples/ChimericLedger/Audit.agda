@@ -25,10 +25,9 @@ module CategoricalCrypto.Examples.ChimericLedger.Audit
 
 open Ledger ℓ
 
-open import CategoricalCrypto.Examples.ChimericLedger.Birthday ℓ ser using (target)
+open import CategoricalCrypto.Examples.ChimericLedger.Birthday ℓ ser
 open import CategoricalCrypto.Examples.ChimericLedger.POV ℓ ser
 open import CategoricalCrypto.Examples.ChimericLedger.Trajectory ℓ ser
-  using (monitor-bounded)
 
 pov-target : (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u)
              (a : Addr) (V : ℕ)

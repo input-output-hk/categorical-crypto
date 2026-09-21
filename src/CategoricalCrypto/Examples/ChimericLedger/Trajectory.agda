@@ -22,7 +22,7 @@
 open import Data.Bool.Base using (Bool; true; false; not; _∨_; f≤t; b≤b)
   renaming (_≤_ to _≤ᵇ_)
 open import Data.Bool.Properties using (T-≡; ≤-minimum)
-open import Data.Bool.Properties.Ext using (∨-mono; ∨-monoʳ)
+open import Data.Bool.Properties.Ext
 open import Data.List.Base using (List)
 open import Data.Maybe.Base using (just)
 open import Data.Nat.Base using (ℕ) renaming (_≡ᵇ_ to _≡ᴺ_)
@@ -30,15 +30,14 @@ open import Data.Nat.Properties using (≡⇒≡ᵇ)
 open import Data.Product.Base using (_×_; _,_; proj₁)
 open import Data.Rational using (ℚ) renaming (_≤_ to _≤ℚ_)
 open import Data.Rational.Properties using (≤-refl; ≤-reflexive; ≤-trans)
-open import Data.Rational.Properties.Ext using (0≤1ℚ)
+open import Data.Rational.Properties.Ext
 open import Function.Bundles using (Equivalence)
 open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Prelude
-open import ProbabilisticLogic.Distribution.RationalDist using (lookupᴰℚ-return)
-open import ProbabilisticLogic.Distribution.RationalDist.Expectation using
-  (E-bind; E-mono; E⊥-bind; E⊥-mono)
-open import ProbabilisticLogic.Distribution.Uniform using (bool→ℚ)
+open import ProbabilisticLogic.Distribution.RationalDist
+open import ProbabilisticLogic.Distribution.RationalDist.Expectation
+open import ProbabilisticLogic.Distribution.Uniform
 
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Iface

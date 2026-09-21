@@ -14,21 +14,21 @@
 open import Data.Bool.Base using (Bool)
 open import Data.List.Base using (List)
 open import Data.Nat.Base using (ℕ)
-open import Data.Nat.Poly using (Poly)
+open import Data.Nat.Poly
 open import Data.Product.Base using (Σ-syntax; _×_)
 open import Data.Rational as ℚ using (ℚ)
 
 open import CategoricalCrypto.Examples.ChimericLedger
-open import CategoricalCrypto.Iface using (Neg; Pos; unitᴵ)
-open import CategoricalCrypto.Protocol using (Protocol)
-open import CategoricalCrypto.Protocol.Live using (NoDeadStep)
-open import CategoricalCrypto.Protocol.Machine using (morphism)
-open import CategoricalCrypto.Protocol.Machine.Total using (TotalRun)
-open import CategoricalCrypto.Protocol.Observe using (PrHit)
-open import CategoricalCrypto.Strategy using (Strat; asks≤)
-open import CategoricalCrypto.UC.Approximate using (Negligible)
-open import CategoricalCrypto.UC.Asymptotic using (_≤UC^ω_)
-open import CategoricalCrypto.UC.Saturated using (Bad; Systems)
+open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Protocol
+open import CategoricalCrypto.Protocol.Live
+open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Machine.Total
+open import CategoricalCrypto.Protocol.Observe
+open import CategoricalCrypto.Strategy
+open import CategoricalCrypto.UC.Approximate
+open import CategoricalCrypto.UC.Asymptotic
+open import CategoricalCrypto.UC.Saturated
 
 module CategoricalCrypto.Examples.ChimericLedger.Real
   (ser : (n : ℕ) → Ledger.Tx n → List Bool) where
