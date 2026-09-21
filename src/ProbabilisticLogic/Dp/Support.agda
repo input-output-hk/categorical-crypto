@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- Two facts about `Dp.Supp` that `Dp`'s own `uniformize` does not give.
+-- Facts about `Dp.Supp` that `Dp`'s own `uniformize` does not give.
 --
 -- `Supp-map` weakens a depth-`n` support pointwise and `Supp-all` puts a fact
 -- that holds everywhere on one.  `uniformizeˢ` is
@@ -8,6 +8,11 @@
 -- everywhere, which is what a consumer whose per-value budget exists only at
 -- reachable values needs — `Dp.Settle.Iter`'s loop, where an unreachable loop
 -- re-entry has no bound at all.
+--
+-- `Supp-bot`/`Supp-return`/`Supp-bind` are the three clauses a support is
+-- COMPUTED by, at the literal terms a machine step is built from: a rank's
+-- round-trip bound (`Dp.Settle.Iter.Ranked`) is a support fact about a step
+-- table, and `Supp` is no more `_≈ₚ_`-stable than `Settles` is.
 
 open import Data.Bool.Base using (Bool; true; false)
 open import Data.Nat.Base using (ℕ; zero; suc; _⊔_; _≤_)
@@ -23,7 +28,31 @@ module ProbabilisticLogic.Dp.Support where
 
 private variable
   a b : Level
-  A : Set a
+  A B : Set a
+
+-- Mass that never lands reaches no value, so it supports anything.
+Supp-bot : (Φ : A → Set b) (n : ℕ) → Supp n (botₚ {A = A}) Φ
+Supp-bot Φ zero    = tt
+Supp-bot Φ (suc n) = Supp-bot Φ n , Supp-bot Φ n
+
+Supp-return : (Φ : A → Set b) (p : A) → Φ p → (n : ℕ) → Supp n (returnₚ p) Φ
+Supp-return Φ p h zero    = tt
+Supp-return Φ p h (suc n) = h , h
+
+-- A junction reaches what its continuations reach.  The continuation's budget
+-- is quantified rather than inherited: `_>>=ₚ_` spends a step at the junction,
+-- so the depth left to a continuation is not the caller's.
+mutual
+  Supp-bind : (Φ : B → Set b) (n : ℕ) (d : Dₚ A) (f : A → Dₚ B)
+            → Supp n d (λ p → (i : ℕ) → Supp i (f p) Φ) → Supp n (d >>=ₚ f) Φ
+  Supp-bind Φ zero    d f sp        = tt
+  Supp-bind Φ (suc n) d f (s₁ , s₂) =
+    SuppL-bind Φ n (br d true) f s₁ , SuppL-bind Φ n (br d false) f s₂
+
+  SuppL-bind : (Φ : B → Set b) (n : ℕ) (x : A ⊎ Dₚ A) (f : A → Dₚ B)
+             → SuppL n x (λ p → (i : ℕ) → Supp i (f p) Φ) → SuppL n (tagₚ x f) Φ
+  SuppL-bind Φ n (inj₁ p)  f sp = sp n
+  SuppL-bind Φ n (inj₂ d′) f sp = Supp-bind Φ n d′ f sp
 
 mutual
   Supp-map : (Φ Ψ : A → Set b) → (∀ p → Φ p → Ψ p)

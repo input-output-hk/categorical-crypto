@@ -95,6 +95,11 @@ E⊥-return a P = lookupᴰℚ-return (just a) (maybeℚ P)
 Eⱼ : (μ : Dist-ℚ A) (Q : A → ℚ) → E⊥ (Dmap just μ) Q ≡ E μ Q
 Eⱼ μ Q = lookupᴰℚ-Dmap just μ (maybeℚ Q)
 
+E⊥-cong-P : (ν : Dist⊥ A) (F G : A → ℚ) → (∀ a → F a ≡ G a) → E⊥ ν F ≡ E⊥ ν G
+E⊥-cong-P ν F G eq = lookupᴰℚ-cong-P (entries ν) λ where
+  (just a) → eq a
+  nothing  → refl
+
 E⊥-map : (f : A → B) (ν : Dist⊥ A) (G : B → ℚ)
        → E⊥ (Dmap⊥ f ν) G ≡ E⊥ ν (λ p → G (f p))
 E⊥-map f ν G =

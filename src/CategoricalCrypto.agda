@@ -93,6 +93,7 @@ open import CategoricalCrypto.Protocol.Machine.Agree
 open import CategoricalCrypto.Protocol.Machine.Compose
 open import CategoricalCrypto.Protocol.Machine.Raw
 open import CategoricalCrypto.Protocol.Machine.Trace
+open import CategoricalCrypto.Protocol.Machine.Trace.Compose
 open import CategoricalCrypto.Protocol.Machine.Total
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Protocol.Safety
@@ -116,6 +117,9 @@ open import CategoricalCrypto.Examples.ROCommitment.Hiding.Defer
 open import CategoricalCrypto.Examples.ROCommitment.Hiding.Test
 open import CategoricalCrypto.Examples.ROCommitment.Hiding.UC
 open import CategoricalCrypto.Examples.ROCommitment.Realization.Assembly
+open import CategoricalCrypto.Examples.ROCommitment.Realization.Bisim
+open import CategoricalCrypto.Examples.ROCommitment.Realization.Bound
+open import CategoricalCrypto.Examples.ROCommitment.Realization.Machine
 open import CategoricalCrypto.Examples.ROCommitment.Realization.Statement
 open import CategoricalCrypto.Examples.ROCommitment.Resource
 open import CategoricalCrypto.Examples.ROCommitment.Test

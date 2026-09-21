@@ -18,7 +18,7 @@
 open import Data.Bool.Base using (Bool; true; false)
 open import Data.Maybe.Base using (just; nothing)
 open import Data.Nat.Base using (ℕ; zero; suc; _+_; _∸_; _≤_)
-open import Data.Nat.Properties using (m+[n∸m]≡n; m∸n+n≡m; m≤n+m)
+open import Data.Nat.Properties using (m+[n∸m]≡n; m∸n+n≡m; m≤m+n; m≤n+m; +-identityʳ)
 open import Data.Product.Base using (Σ-syntax; _,_)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Rational.Properties using (≤-antisym; ≤-refl; ≤-reflexive; ≤-trans)
@@ -142,6 +142,28 @@ Settles-cum {n = n} {d = d} {P = P} (settles h e) nn m le =
                (Halts-cum n (m ∸ n) d P nn h))
         (e P nn)
 
+-- …and that reading — unlike the `Settles` witness carrying it, whose `Halts`
+-- is a fact about the tree — DOES transport along `_≈ₚ_`: the `cum` family is
+-- monotone, `d`'s has reached its supremum, and cofinal domination both ways
+-- pins `e`'s at the same value.  This is the one `Dp.Reasoning` rearrangement
+-- a settled composite can ride (`docs/fcom-uc.md` §1).
+cum-settled-≈ₚ : (d e : Dₚ A) (Q : A → ℚ) → NNF Q → (v : ℚ) (n : ℕ)
+               → ((i : ℕ) → cum (n + i) d Q ≡ v) → d ≈ₚ e
+               → Σ[ m ∈ ℕ ] ((i : ℕ) → cum (m + i) e Q ≡ v)
+cum-settled-≈ₚ d e Q nn v n rd (de , ed) =
+  let m , le = de Q nn n in
+  m , λ i → ≤-antisym (capₑ (m + i))
+              (≤-trans (≤-trans (≤-reflexive (sym rd₀)) le) (cum-mono (m≤m+n m i) e Q nn))
+  where
+  rd₀ : cum n d Q ≡ v
+  rd₀ = trans (cong (λ j → cum j d Q) (sym (+-identityʳ n))) (rd 0)
+
+  cap : (j : ℕ) → cum j d Q ℚ.≤ v
+  cap j = ≤-trans (cum-mono (m≤n+m j n) d Q nn) (≤-reflexive (rd j))
+
+  capₑ : (j : ℕ) → cum j e Q ℚ.≤ v
+  capₑ j = let i , le = ed Q nn j in ≤-trans le (cap i)
+
 Settles-mono : n ≤ m → Settles n d ν → Settles m d ν
 Settles-mono {d = d} le s =
   settles (Halts-mono le d (halts s)) λ Q nn → Settles-cum s nn _ le
@@ -163,6 +185,12 @@ Settles-return p = settles (inj₂ λ _ → tt)
 Settles-bot : Settles 0 (botₚ {A = A}) (return-ℚ nothing)
 Settles-bot = settles (λ Q nn i → botₚ-cum i Q)
                       λ Q nn → sym (lookupᴰℚ-return nothing (maybeℚ Q))
+
+-- A junction on the sink is the sink; `Settles-bot` itself does not apply,
+-- `botₚ >>=ₚ f` being no `dirac`.
+Settles-bot⋆ : (f : A → Dₚ B) → Settles 0 (botₚ >>=ₚ f) (return-ℚ nothing)
+Settles-bot⋆ f = settles (Null-bind botₚ f λ Q nn i → botₚ-cum i Q)
+                         λ Q nn → sym (lookupᴰℚ-return nothing (maybeℚ Q))
 
 Settles-coin : (μ : Dist-ℚ Bool) → Settles 2 (coinₚ μ) (Dmap just μ)
 Settles-coin μ = settles hlt λ Q nn → trans (coinₚ-cum μ 0 Q) (sym (Eⱼ μ Q))
