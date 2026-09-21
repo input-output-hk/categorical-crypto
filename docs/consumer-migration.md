@@ -400,7 +400,8 @@ One line each on whether this step changes their calculus.
   supply it; dropping them would change three exported statements, which this
   step may not do. Nothing here forces the call either way.
 * **A fifth `Allowance-mono` component of `_≤UC^ωᵉ_`?** — unchanged. No
-  statement here mentions `_≤UC^ωᵉ_`.
+  statement here mentions `_≤UC^ωᵉ_`. (Resolved 2026-09-21 by deleting
+  `Allowance-mono`; see `docs/quantitative-family.md` §10.)
 * **Retire `≤UC⇒≤UCᶜ`?** — unchanged in kind, but one consumer fewer is now in
   sight: `UC.Robust.Model.uc-preservesᵒ`'s detour is what the plan §5 row is
   about, and `robust-sub` — the proof that detour ends in — is now a call to

@@ -57,7 +57,7 @@ compares; only the corollaries that enter the family category
   (`(n : ℕ) → subᶠ s (imgᶠ B I) n ≈ imgᶠ B I n`, in `𝒞`'s own equality). That is
   available for a trivial simulator and only for it — see §5.
 * A budgeted emulation IS an emulation (`≤UC[]⇒≤UC` then
-  `UC.Model.Bridge.≤UCᶜ⇒≤UC`), so `_≤UC^ω_`'s theorems apply wherever
+  `UC.Core.Bridge.≤UCᶜ⇒≤UC`), so `_≤UC^ω_`'s theorems apply wherever
   `_≤UC^ω[ cs ]_`'s do and give the SHARPER number: at the trivial grade the
   simulator costs the ideal side nothing. What the budgeted statement adds is
   the accounting, not a better bound.

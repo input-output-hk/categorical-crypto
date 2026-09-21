@@ -555,7 +555,7 @@ the modules (the extraction half's twins above measured 9–13 s on a free box).
 | `Examples.CoinToss.Ideal.Receiver.Reach` | 161 | 32.6 s | 100 s |
 | `Examples.CoinToss.Ideal.Receiver.Hybrid` | 270 | 46.5 s | 127 s |
 | `Examples.CoinToss.Ideal.Receiver.Machine` | 441 | 50.1 s | 170 s |
-| `Examples.CoinToss.Ideal.Receiver.Dominated` | 166 | 34.6 s | 101 s |
+| `Examples.CoinToss.Ideal.Receiver.Dominated` (since hoisted into `UC.Model.Dominated`) | 166 | 34.6 s | 101 s |
 | `Examples.CoinToss.Ideal.Receiver.UC` | 179 | 35.4 s | 104 s |
 | `Examples.CoinToss.Ideal.Receiver.Compose` | 139 | 38.2 s | 95 s |
 | `Examples.CoinToss.Test` | 175 → 224 | 34.8 s | 116 s |

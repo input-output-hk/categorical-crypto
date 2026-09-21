@@ -97,7 +97,7 @@ the follow-up settled four of the five:
 |---|---|---|
 | `UC.Audit` | `_≤UC_`, in `≤UC[]⇒≤UC` | `≤UC[]⇒≤UC` retired — zero consumers, and `UC.Audit.Canonical.audit-forget` after `audit⇒witness` is its conclusion wherever the base is monoidal |
 | `UC.Robust.Observation` | `dummy-complete`, `_≤UC⁺_` | `uc-preserves`/`uc⁺-preserves` retired — zero consumers, and `UC.Robust`'s are the canonical statements, reached by `UC.Core.Bridge.≈ℰᶜ⇒≈ᵁ`/`≈ᵁ⇒≈ℰᶜ` |
-| `UC.Model.Bridge` | the identification of the two orders | the identification stays; a further step unfolded `_≤UCᶜ_` in place, which took the last importer with it |
+| `UC.Model.Bridge` | the identification of the two orders | the identification stays (in `UC.Core.Bridge`, onto which this module was since consolidated and then deleted); a further step unfolded `_≤UCᶜ_` in place, which took the last importer with it |
 | `UC.Family` | re-exports the six at `UCBase^ω` | dropped, with `Ingest.ingest-≤UC` and `Asymptotic.Family.≤UC^ωⁿ⇒≤UCᶠ`, whose inherited-order twins `ingest-≤UCᵁ`/`≤UC^ωⁿ⇒≤UCᵁ` carry their conclusions |
 | `UC.Family.Negligible` | re-exports two at `UCBaseᴺ` — this candidate | now `UC.Environment UCBaseᴺ` |
 

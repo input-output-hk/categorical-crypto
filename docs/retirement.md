@@ -316,10 +316,13 @@ One line each, per the brief.
   `ledger-uc-to-pov-simCost` still derives the `ASTotal` from `TotalRun` to
   supply it, so shedding them is still a statement change and still your call.
 * **A fifth `Allowance-mono` component of `_≤UC^ωᵉ_`?** — unchanged; no
-  statement here mentions `_≤UC^ωᵉ_`.
+  statement here mentions `_≤UC^ωᵉ_`. (Resolved 2026-09-21 by deleting
+  `Allowance-mono`; see `docs/quantitative-family.md` §10.)
 * **Retire `≤UC⇒≤UCᶜ`?** — left standing, as instructed. It still has no in-repo
   consumer (`docs/presheaf-action.md`), and neither does `≤UCᶜ⇔≤UC`.
 * **The Track-A stack** — untouched; nothing in this step reaches it.
+  (Retired 2026-09-21: `FamilyCategory`, `VanishingTV`, `StandardTV` and
+  `OutputOnly` are deleted.)
 
 ## 9. LOC and cost
 

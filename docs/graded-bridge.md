@@ -203,6 +203,9 @@ does (the consolidation plan's decision 2).
 
 ## One measured obstacle worth recording
 
+Gone since 2026-09-21: the `Grading`/`UCBase` records are retired, so there is
+one grading and one spelling. What it was:
+
 `UC.Model.Setup`'s grading is the curried tensor's, `ucBaseᵒ`'s is
 `gradingᵗ 𝔾ᵒ`, and the two agree on the nose but their RECORDS do not. A
 `Budget` certificate is stated over `ucBaseᵒ`'s, so a `qb-sub`/`qb-T₁` consumer
