@@ -6,8 +6,7 @@
 -- here is a NON-adaptive per-step certificate, and the design of its two data
 -- is the whole content:
 --
---   φ m (s , tbl) = [ the hashes h₀∷tbl are not all distinct ]
---                 + Γ (suc |tbl|) m
+--   φ m (s , tbl) = Duplicate.Φ m (h₀ ∷ the hashes of tbl)
 --
 -- The indicator is a `dup` FLAG reconstructed from the state, not `badTotal`:
 -- a collision need not destroy value on the spot (it can merely make an
@@ -34,10 +33,10 @@
 open import Class.DecEq
 
 open import Data.Bool.Base using (Bool; true; false; not; _∨_)
-open import Data.Bool.Properties using (T-≡)
+open import Data.Bool.Properties using (T-≡; ∨-zeroʳ)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Fin.Base using () renaming (zero to fzero)
-open import Data.List.Base using (List; []; _∷_; length)
+open import Data.List.Base using (List; []; _∷_)
 open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Relation.Unary.All as All using (All)
 open import Data.List.Relation.Unary.Any using (here; there)
@@ -45,22 +44,21 @@ open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Nat.Base using (ℕ; suc)
 open import Data.Nat.Properties using (≡⇒≡ᵇ)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂; Σ-syntax)
-open import Data.Rational using (ℚ; 0ℚ; 1ℚ)
-  renaming (_+_ to _+ℚ_; _*_ to _*ℚ_; _≤_ to _≤ℚ_)
-open import Data.Rational.Properties using
-  ( +-identityˡ; +-identityʳ; +-mono-≤; +-monoˡ-≤; +-monoʳ-≤; ≤-reflexive; ≤-trans )
+open import Data.Rational using (ℚ; 1ℚ) renaming (_≤_ to _≤ℚ_)
+open import Data.Rational.Properties using (+-identityˡ; ≤-reflexive; ≤-trans)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Base using (tt)
+open import Function.Base using (case_of_)
 open import Function.Bundles using (Equivalence)
 open import Relation.Binary.PropositionalEquality
-open import Relation.Nullary.Decidable.Core using (yes; no; ⌊_⌋)
+open import Relation.Nullary.Decidable.Core using (yes; no)
 open import Relation.Nullary.Negation.Core using (¬_)
 
 open import ProbabilisticLogic.Prelude
 open import ProbabilisticLogic.Distribution.RationalDist using
   (lookupᴰℚ-return; lookupᴰℚ-cong-P)
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation using
-  (E; E⊥; E-add; E-bind; E-const; E-mono; E⊥-return; maybeℚ; 0≤bool)
+  (E⊥; E-bind; E⊥-return; maybeℚ)
 
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Iface
@@ -78,15 +76,9 @@ open Step ser
 open import CategoricalCrypto.Examples.ChimericLedger.POV ℓ ser
 open import CategoricalCrypto.Examples.ChimericLedger.Value ℓ
 open import ProbabilisticLogic.Distribution.Uniform.Birthday ℓ
-open import ProbabilisticLogic.Distribution.Uniform.Collision ℓ
-
-private
-  ⊥-true : {B : Set} → true ≡ false → B
-  ⊥-true ()
-
-  ∨-trueʳ : ∀ a b → b ≡ true → (a ∨ b) ≡ true
-  ∨-trueʳ false b e = e
-  ∨-trueʳ true  b e = refl
+-- `Hash` would clash with `Ledger.Hash`.
+open import ProbabilisticLogic.Distribution.Uniform.Duplicate ℓ using
+  (dup; memb; memb-∉; Φ; 0≤Φ; dup⇒1≤Φ; Φ-keep; Φ-fresh)
 
 module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) where
 
@@ -100,42 +92,8 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
   Hs []             = h₀ ∷ []
   Hs ((_ , h) ∷ tb) = h ∷ Hs tb
 
-  private
-    memb : Hash → List Hash → Bool
-    memb h []       = false
-    memb h (g ∷ gs) = ⌊ h ≟ g ⌋ ∨ memb h gs
-
-    dup : List Hash → Bool
-    dup []       = false
-    dup (h ∷ hs) = memb h hs ∨ dup hs
-
   flag : RO.Table → Bool
   flag tbl = dup (Hs tbl)
-
-  private
-    length-Hs : ∀ tbl → length (Hs tbl) ≡ suc (length tbl)
-    length-Hs []            = refl
-    length-Hs ((_ , _) ∷ t) = cong suc (length-Hs t)
-
-    memb-∈ : ∀ hs h → memb h hs ≡ true → h ∈ hs
-    memb-∈ (g ∷ gs) h e with h ≟ g
-    ... | yes p = here p
-    ... | no  _ = there (memb-∈ gs h e)
-
-    memb-∉ : ∀ hs h → memb h hs ≡ false → ¬ (h ∈ hs)
-    memb-∉ (g ∷ gs) h e (here p)    with h ≟ g
-    ...   | yes _ = ⊥-true e
-    ...   | no ¬p = ⊥-elim (¬p p)
-    memb-∉ (g ∷ gs) h e (there mem) with h ≟ g
-    ...   | yes _ = ⊥-true e
-    ...   | no  _ = memb-∉ gs h e mem
-
-    -- The indicator of "the sample is one of them" is dominated by the count
-    -- of them it equals, which is what `E-countMatch` averages.
-    indicator-≤ : ∀ hs h → bool→ℚ (memb h hs) ≤ℚ countMatch hs h
-    indicator-≤ hs h with memb h hs in e
-    ... | true  = 1≤countMatch hs (memb-∈ hs h e)
-    ... | false = 0≤countMatch hs h
 
   ----------------------------------------------------------------------
   -- The invariant
@@ -177,7 +135,7 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
     Inv st = flag (proj₂ st) ≡ true ⊎ Good st
 
     φ : ℕ → St Sys₀ → ℚ
-    φ m st = bool→ℚ (flag (proj₂ st)) +ℚ Γ (suc (length (proj₂ st))) m
+    φ m st = Φ m (Hs (proj₂ st))
 
     ----------------------------------------------------------------------
     -- Reading one activation
@@ -243,7 +201,7 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
                → Inv (s , tbl) → (h : Hash)
                → Inv ((newU u′ outs h , a′) , (ser (ins , wds , outs) , h) ∷ tbl)
       freshInv s tbl ins wds outs u′ a′ vIn e₁ ec eq (inj₁ fl) h =
-        inj₁ (∨-trueʳ (memb h (Hs tbl)) (flag tbl) fl)
+        inj₁ (trans (cong (memb h (Hs tbl) ∨_) fl) (∨-zeroʳ (memb h (Hs tbl))))
       freshInv s tbl (i₀ ∷ is) wds outs u′ a′ vIn e₁ ec eq (inj₂ good) h
         with memb h (Hs tbl) in em
       ... | true  = inj₁ refl
@@ -313,7 +271,7 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
                  → E⊥ (return⊥ ((s′ , tbl) , ans)) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) (s , tbl)
       point-step m s tbl s′ ans = ≤-trans
         (≤-reflexive (E⊥-return ((s′ , tbl) , ans) (λ sr → φ m (proj₁ sr))))
-        (+-monoʳ-≤ (bool→ℚ (flag tbl)) (Γ-mono (suc (length tbl)) m))
+        (Φ-keep m (Hs tbl))
 
       presTree : ∀ st q → Inv st → AllLeaves (λ sr → Inv (proj₁ sr)) (step Sys₀ st q)
       presTree (s , tbl) audit       inv = inv
@@ -361,21 +319,17 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
           ; intact = refl
           }
       ; pres   = λ st q inv → evalC-support (step Sys₀ st q) (presTree st q inv)
-      ; φ-nn   = λ m st _ → ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ)))
-                   (+-mono-≤ (0≤bool (flag (proj₂ st))) (0≤Γ (suc (length (proj₂ st))) m))
+      ; φ-nn   = λ m st _ → 0≤Φ m (Hs (proj₂ st))
       ; φ-bad  = φ-bad
       ; φ-step = φ-step
       ; φ-init = λ m → ≤-trans (≤-reflexive (+-identityˡ (Γ 1 m))) (birthday m)
       }
       where
       φ-bad : ∀ m st → Inv st → Bad st ≡ true → 1ℚ ≤ℚ φ m st
-      φ-bad m st (inj₁ fl) _  =
-        subst (λ b → 1ℚ ≤ℚ bool→ℚ b +ℚ Γ (suc (length (proj₂ st))) m) (sym fl)
-          (≤-trans (≤-reflexive (sym (+-identityʳ 1ℚ)))
-                   (+-monoʳ-≤ 1ℚ (0≤Γ (suc (length (proj₂ st))) m)))
-      φ-bad m st (inj₂ good) bd = ⊥-true (trans (sym bd)
+      φ-bad m st (inj₁ fl)   _  = dup⇒1≤Φ m (Hs (proj₂ st)) fl
+      φ-bad m st (inj₂ good) bd = case trans (sym bd)
         (cong not (Equivalence.to T-≡
-          (≡⇒≡ᵇ (total (proj₁ st)) (total s₀) (Good.intact good)))))
+          (≡⇒≡ᵇ (total (proj₁ st)) (total s₀) (Good.intact good)))) of λ ()
 
       φ-step : ∀ m st q → Inv st
              → E⊥ (kernel Sys₀ st q) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) st
@@ -397,73 +351,26 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
         F : St Sys₀ × Answer → ℚ
         F sr = φ m (proj₁ sr)
 
-        n₀ = length tbl
-
-        -- The mass of the sampled branch, as an expectation over the hash.
-        sampled : ℚ
-        sampled = E (uniform-Vec ℓ) (λ v → bool→ℚ (dup (v ∷ Hs tbl)))
-
-        collapse : E (uniform-Vec ℓ) (λ _ → Γ (suc (suc n₀)) m) ≡ Γ (suc (suc n₀)) m
-        collapse = E-const (uniform-Vec ℓ) (Γ (suc (suc n₀)) m)
-
-        -- The fresh sample detaches as ONE uniform draw, and the potential
-        -- splits into the collision indicator and a constant.
+        -- The fresh sample detaches as ONE uniform draw over `Hs`'s head.
         expand : E⊥ (evalC (serve (ledger inputConsuming s₀) oracle K
                               (uniformVec ℓ (λ h → ret ((qs , h) ∷ tbl , (fzero , h))))))
                     F
-               ≡ sampled +ℚ Γ (suc (suc n₀)) m
+               ≡ E (uniform-Vec ℓ) (λ v → Φ m (v ∷ Hs tbl))
         expand = trans
           (evalC-serve-uniformVec (ledger inputConsuming s₀) oracle K ℓ
             (λ h → ret ((qs , h) ∷ tbl , (fzero , h))) (maybeℚ F))
           (trans (E-bind (uniform-Vec ℓ)
                    (λ v → evalC (serve (ledger inputConsuming s₀) oracle K
                             (ret ((qs , v) ∷ tbl , (fzero , v))))) (maybeℚ F))
-          (trans (lookupᴰℚ-cong-P (entries (uniform-Vec ℓ))
+                 (lookupᴰℚ-cong-P (entries (uniform-Vec ℓ))
                    (λ v → lookupᴰℚ-return
                             (just (((newU u′ outs v , a′) , (qs , v) ∷ tbl) , ok true))
-                            (maybeℚ F)))
-          (trans (E-add (uniform-Vec ℓ) (λ v → bool→ℚ (dup (v ∷ Hs tbl)))
-                                        (λ _ → Γ (suc (suc n₀)) m))
-                 (cong (sampled +ℚ_) collapse))))
+                            (maybeℚ F))))
 
         fresh-bound : E⊥ (evalC (serve (ledger inputConsuming s₀) oracle K
                             (uniformVec ℓ (λ h → ret ((qs , h) ∷ tbl , (fzero , h)))))) F
                     ≤ℚ φ (suc m) (s , tbl)
-        fresh-bound = ≤-trans (≤-reflexive expand) (bound inv)
-            where
-            bound : Inv (s , tbl) → sampled +ℚ Γ (suc (suc n₀)) m ≤ℚ φ (suc m) (s , tbl)
-            bound (inj₁ fl) = ≤-trans
-              (+-monoˡ-≤ (Γ (suc (suc n₀)) m)
-                (≤-trans (E-mono (uniform-Vec ℓ) (λ v → bool→ℚ (dup (v ∷ Hs tbl)))
-                           (λ _ → 1ℚ)
-                           (λ v → ≤-reflexive (cong bool→ℚ
-                             (∨-trueʳ (memb v (Hs tbl)) (flag tbl) fl))))
-                         (≤-reflexive (E-const (uniform-Vec ℓ) 1ℚ))))
-              (≤-trans (+-monoʳ-≤ 1ℚ (Γ-suc (suc n₀) m))
-                       (≤-reflexive (cong (_+ℚ Γ (suc n₀) (suc m))
-                                          (cong bool→ℚ (sym fl)))))
-            bound (inj₂ good) = ≤-trans
-              (+-monoˡ-≤ (Γ (suc (suc n₀)) m)
-                (≤-trans (E-mono (uniform-Vec ℓ) (λ v → bool→ℚ (dup (v ∷ Hs tbl)))
-                           (countMatch (Hs tbl)) pointwise)
-                         (≤-reflexive (trans (E-countMatch (Hs tbl))
-                                             (cong (λ z → fromℕ z *ℚ inv-pow-2 ℓ)
-                                                   (length-Hs tbl))))))
-              (≤-reflexive (trans (Γ-step (suc n₀) m)
-                                  (sym (trans (cong (λ b → bool→ℚ b +ℚ Γ (suc n₀) (suc m))
-                                                    (Good.nodup good))
-                                              (+-identityˡ (Γ (suc n₀) (suc m)))))))
-              where
-              pointwise : ∀ v → bool→ℚ (dup (v ∷ Hs tbl)) ≤ℚ countMatch (Hs tbl) v
-              pointwise v = ≤-trans
-                (≤-reflexive (cong bool→ℚ
-                  (cong (memb v (Hs tbl) ∨_) (Good.nodup good))))
-                (≤-trans (≤-reflexive (cong bool→ℚ (∨-identity (memb v (Hs tbl)))))
-                         (indicator-≤ (Hs tbl) v))
-                where
-                ∨-identity : ∀ a → (a ∨ false) ≡ a
-                ∨-identity false = refl
-                ∨-identity true  = refl
+        fresh-bound = ≤-trans (≤-reflexive expand) (Φ-fresh m (Hs tbl))
 
         StepGoal : Set
         StepGoal = E⊥ (evalC (serve (ledger inputConsuming s₀) oracle K
