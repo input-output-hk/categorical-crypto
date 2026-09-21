@@ -8,6 +8,11 @@ Round 1's ledger (the previous contents of this file) is carried forward below:
 every entry reappears with its *latest* verdict, and the ones this round closed have
 moved to *Tried*.
 
+2026-09-21: the maintainer ruled on this file's rule-32 keep-and-flag entries over
+`UC.Seam.*` — `bounded-carry`/`sim-prefixed`/`prefix-absorbᵒ`, `UnitGrade`,
+`iotaBlind`/`envAsCtx`/`stratIsEnv` and `agreeToAdv` are retired, with what they
+stranded (`docs/end-to-end.md` §4, "The rule-32 flags, ruled on").
+
 Eight files were excluded from editing mid-review because two statement-redesign
 agents took them: `UC/Audit`, `UC/Seam/Audit`, `UC/Seam/Audit/Bounded`,
 `UC/Seam/Budget`, `UC/Saturated`, `UC/Family`, `UC/Family/Monoidal`,

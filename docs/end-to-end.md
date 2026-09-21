@@ -26,7 +26,7 @@ takes decides what it may keep of the error and what it must spend.
 
 | relation | where | what it says |
 |---|---|---|
-| `_≤UC^ω_` | `UC.Asymptotic:90` | POINTWISE and qualitative: at each level, the inherited `_≤UC_` between the trivially graded closed images `closedᵒ (morphism (R n))` and `closedᵒ (morphism (I n))` — a simulator per dummy adversary, never an `Agreeˢ` |
+| `_≤UC^ω_` | `UC.Asymptotic:90` | POINTWISE and qualitative: at each level, the inherited `_≤UC_` between the trivially graded closed images `closedᵒ (morphism (R n))` and `closedᵒ (morphism (I n))` — a simulator per dummy adversary, never an exact agreement |
 | `_≤UC^ω[_]_` | `UC.Asymptotic.Audit:63` | the same per level with the simulator carrying a query bound `cs n` (`UC.Seam.Audit._≤UC[_]_`), so a carry can charge for its queries |
 | `_≤UC^ωⁿ_` | `UC.Asymptotic.Family:110` | `Σ[ ε ] NegligibleBound ε × R ≈ᶠ[ ε ] I`: allowance-uniform QUANTITATIVE evidence at the protocol images |
 | `_≤UC^ωᵉ_` | `UC.Asymptotic.Contextual:271` | the witness form at arbitrary graded families: `Σ[ s ∈ Certified Y X ] Σ[ ε ] NegligibleBound ε × f ≈ctx[ ε ] subᶠ s g` |
@@ -130,7 +130,7 @@ Four corollaries at concrete families:
 | hypothesis | status |
 |---|---|
 | `SerInj` | the birthday theorem's own injective-serialization assumption, per level (`Tx` depends on the hash width, so one `ser` cannot be typed) |
-| the emulation | the cryptographic premise, in whichever of §1's shapes the theorem takes. Never `Agreeˢ` |
+| the emulation | the cryptographic premise, in whichever of §1's shapes the theorem takes. Never an exact agreement |
 | `TotalRun … (morphism (R n))` | the real side's admissibility. Not decoration — with the real side divergent, a simulator that never starts emulates every ideal. Discharged for any dead-free protocol by `Protocol.Live` + `totalRun-morphism`; the ideal side's copy is proved (`ChimericLedger.Total`). Absent from the family theorems, which have nothing to collapse |
 | `TruthfulAudit a V R badR` | the real implementation's audit-to-trajectory connection. UC identifies no internal state trajectory, so this is irreducibly about the implementation; for a ledger image it is `Trajectory.monitor-complete` (`Schedule.ideal-truthful`, `Real.real-truthful`) |
 
@@ -178,8 +178,8 @@ Two further entrances stood beside it.
   negligible slack. `ledger-uc-to-pov` is now the family theorem after
   `uc-≤UC^ωⁿ`, which stops one step earlier (at `≈ᵁ`, the ε still quantified),
   so `uc-agree`, `uc-≈negl`, `unitGrade` and `subBlind⇒unitGrade` went with it.
-  `UC.Seam.Grounding.UnitGrade` — the statement they discharged — was kept; it
-  now has no prover in the tree.
+  `UC.Seam.Grounding.UnitGrade` — the statement they discharged — was kept at
+  first and retired on the follow-up ruling below.
 * **The budgeted premise.** `uc-audit-boundedᵖ` produced layer 1's `Bounded` on
   the real side directly, through `UC.Seam.Audit.Prefix.uc-audit-bounded`, the
   simulator's queries charged at `simCost`. Its bound is strictly worse than
@@ -188,14 +188,37 @@ Two further entrances stood beside it.
   `uc-audit-carryᵈ`), `uc-audit-bounded` and `UC.Seam.Grounded.simAstotal` were
   deleted.
 
-What that route rested on is KEPT and still exported, because it is general and
+What that route rested on was kept at first because it is general and
 unbudgeted: `UC.Seam.Audit.Prefix.bounded-carry` = `Mass.dominate` +
 `sim-prefixed` + `UC.Seam.Audit.Bounded.supply` +
 `UC.Seam.Audit.Context.extract-obs`, the simulator's initialization tolerated
-as a PREFIX and never seen to add mass (`sim-prefixed`, a one-sided
-`≼ₚ[ 0ℚ ]` off `prefix-absorbᵒ`), with the allowance inflation a parameter —
-any `p` with `q ≤ p q`. [`docs/retirement.md`](retirement.md) records the
-membership layer the plan's §5 gates retired against these, name by name.
+as a PREFIX and never seen to add mass. [`docs/retirement.md`](retirement.md)
+records the membership layer the plan's §5 gates retired against these, name by
+name.
+
+### The rule-32 flags, ruled on (2026-09-21)
+
+Everything kept-and-flagged above was then ruled retired, and the deletion was
+taken outward to what it stranded. Gone from `UC.Seam.*`:
+
+* the unbudgeted prefix route — `UC.Seam.Audit.Prefix` whole
+  (`bounded-carry`, `sim-prefixed`, `prefix-absorbᵒ`), `UC.Seam.Audit.Bounded`
+  whole (`supply`), and `UC.Seam.Audit.Context`'s `extract-bounded`,
+  `extract-obs`, `ctxObs`;
+* the grounding obligations with no live consumer — `UC.Seam.Grounding`'s
+  `UnitGrade`, `IotaBlind`, `StratIsEnv`, `EnvPlugs`/`toEnvPlugs`/
+  `fromEnvPlugs`/`EnvCtx`/`EnvAsCtx`, and their discharges
+  `UC.Seam.Grounded.iotaBlind`/`envAsCtx`/`stratIsEnv`;
+* the POV carry — `UC.Seam.Carry`'s `agreeToAdv`, `povCarry`, `agree-to-adv`,
+  `run-agree`, and with them `UC.Seam`'s `pov-carry`, `AgreeToAdv`, `Agreeˢ`
+  and `Agreeˢ-sym`.
+
+`UC.Seam.Carry` keeps `adv-at`/`adv-from-runs` (the family route's consumer),
+`UC.Seam` keeps `strategyEnv`/`ctxRunˢ`/`runˢ`/`Adequacy`, `UC.Seam.Grounding`
+keeps `SimTotal`/`SubBlind`, and `UC.Seam.Grounded` keeps the collapse
+`emulAgreeᵁ`. `Protocol.Observe.transfer` is left in place: it is a
+general-purpose layer-1 theorem, not seam plumbing, although `pov-carry` was
+its last in-repo consumer.
 
 ### Why the graded carry never composed
 
@@ -312,10 +335,12 @@ Warm single-`Checking`-line runs under
 `pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS`, quoted from the
 branch that measured them; LOC is that branch's too. Rows with no measurement
 since the arc began carry their LOC at `587999b5` and no warm figure. The
-2026-09-21 retirement shrank four of these rows without re-measuring them
-(`UC.Asymptotic` 102, `UC.Seam.Audit.Prefix` 118, `UC.Seam.Grounded` 264,
-`Examples.ChimericLedger.EndToEnd` 156) and deleted `UC.Asymptotic.Audit`; the
-figures below are unchanged from their measurement.
+2026-09-21 retirements shrank several of these rows without re-measuring them
+(`UC.Asymptotic` 102, `UC.Seam` 106, `UC.Seam.Carry` 76,
+`UC.Seam.Audit.Context` 183, `UC.Seam.Grounding` 88, `UC.Seam.Grounded` 231,
+`Examples.ChimericLedger.EndToEnd` 156) and deleted `UC.Asymptotic.Audit`,
+`UC.Seam.Audit.Prefix` and `UC.Seam.Audit.Bounded`; the figures below are
+unchanged from their measurement.
 
 | module | LOC | warm | measured in |
 |---|---|---|---|
@@ -327,8 +352,6 @@ figures below are unchanged from their measurement.
 | `UC.Environment` | 169 | 2.2 s | `docs/consumer-migration.md` §6 |
 | `UC.Seam.Audit` | 26 | 9 s | `docs/retirement.md` §9 |
 | `UC.Seam.Audit.Context` | 226 | 10 s | `docs/retirement.md` §9 |
-| `UC.Seam.Audit.Bounded` | 49 | 9 s | `docs/retirement.md` §9 |
-| `UC.Seam.Audit.Prefix` | 136 | 10 s | `docs/retirement.md` §9 |
 | `UC.Seam.Slide` | 44 | 10 s | `docs/direct-extraction.md` §"Module costs" |
 | `UC.Seam.Grounded` | 280 | 10 s | `docs/direct-extraction.md` §"Module costs" |
 | `UC.QueryBound` | 647 | 15.8 s | `docs/consumer-migration.md` §6 |
