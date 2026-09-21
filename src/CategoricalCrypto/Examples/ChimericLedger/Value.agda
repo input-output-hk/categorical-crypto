@@ -3,15 +3,10 @@
 -- Preservation of value as arithmetic: what ONE accepted transaction does to
 -- `total`, with the hash answered by an arbitrary oracle.
 --
--- Two facts, and together they are the whole combinatorial content of the
--- birthday bound at the ledger side:
---
---   `applyTx-total-≤`      value is never created — the sequential validation
---                          pays every output out of a consumed input or a
---                          debited account;
---   `applyTx-total-fresh`  and none is destroyed either, UNLESS the hash keying
---                          the new outputs already keys a live UTxO entry, in
---                          which case `unionNew` swallows the output.
+-- `applyTx-total-fresh` is the combinatorial content of the birthday bound at
+-- the ledger side: no value is destroyed, UNLESS the hash keying the new
+-- outputs already keys a live UTxO entry, in which case `unionNew` swallows
+-- the output.
 --
 -- So a trajectory along which `total` moves has, at the step it moved, an
 -- oracle answer colliding with a hash already keying the state; that is the
@@ -31,8 +26,8 @@ open import Data.Maybe.Base using (Maybe; just; nothing; is-just)
 open import Data.Maybe.Properties using (just-injective)
 open import Data.Nat.Base renaming (_≡ᵇ_ to _≡ᴺ_)
 open import Data.Nat.Properties using
-  ( +-assoc; +-comm; +-identityʳ; +-monoˡ-≤; ≤-refl; ≤-reflexive; ≤-trans
-  ; ≡ᵇ⇒≡; ≤ᵇ⇒≤; m+[n∸m]≡n; m≤m+n; n≤1+n; n≤0⇒n≡0; 1+n≰n; module ≤-Reasoning )
+  ( +-assoc; +-comm; +-identityʳ; ≤-refl; ≤-trans
+  ; ≡ᵇ⇒≡; ≤ᵇ⇒≤; m+[n∸m]≡n; n≤1+n; n≤0⇒n≡0; 1+n≰n )
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂; Σ-syntax)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Base using (⊤; tt)
@@ -121,36 +116,10 @@ checkWdrls-acctΣ a ((x , v) ∷ ws) a′ eq with v ≤ᵇ acctOf a x in eqb
                 (trans (cong (v +_) (checkWdrls-acctΣ (subOne x v a) ws a′ eq))
                        (sym (+-assoc v (wdrlΣ ws) (acctΣ a′))))
 
-------------------------------------------------------------------------
--- Creating: the outputs a transaction keys by its hash
-------------------------------------------------------------------------
-
-balance-outsAt : ∀ h i os → balance (outsAt h i os) ≡ valΣ os
-balance-outsAt h i []       = refl
-balance-outsAt h i (o ∷ os) = cong (proj₂ o +_) (balance-outsAt h (suc i) os)
-
-balance-insertNew-≤ : ∀ u kv → balance (insertNew u kv) ≤ balance u + proj₂ (proj₂ kv)
-balance-insertNew-≤ u (k , v) with is-just (lookupU u k)
-... | true  = m≤m+n (balance u) (proj₂ v)
-... | false = ≤-reflexive (+-comm (proj₂ v) (balance u))
-
--- `unionNew` keeps the entry already present, so a union can only lose value.
-balance-unionNew-≤ : ∀ u w → balance (unionNew u w) ≤ balance u + balance w
-balance-unionNew-≤ u []              = ≤-reflexive (sym (+-identityʳ (balance u)))
-balance-unionNew-≤ u (kv@(k , v) ∷ w) = begin
-  balance (unionNew (insertNew u kv) w)
-    ≤⟨ balance-unionNew-≤ (insertNew u kv) w ⟩
-  balance (insertNew u kv) + balance w
-    ≤⟨ +-monoˡ-≤ (balance w) (balance-insertNew-≤ u kv) ⟩
-  (balance u + proj₂ v) + balance w
-    ≡⟨ +-assoc (balance u) (proj₂ v) (balance w) ⟩
-  balance u + (proj₂ v + balance w)
-    ∎
-  where open ≤-Reasoning
-
--- …and it loses none when the hash keying the new entries is unused.  The
--- index bound is what keeps the induction honest: the entries `outsAt` creates
--- are pairwise distinct, so only the indices not yet inserted must be free.
+-- The outputs a transaction keys by its hash lose no value when that hash is
+-- unused.  The index bound is what keeps the induction honest: the entries
+-- `outsAt` creates are pairwise distinct, so only the indices not yet inserted
+-- must be free.
 balance-unionNew-outsAt : ∀ u h i os → (∀ j → i ≤ j → lookupU u (h , j) ≡ nothing)
                         → balance (unionNew u (outsAt h i os)) ≡ balance u + valΣ os
 balance-unionNew-outsAt u h i []       fresh = sym (+-identityʳ (balance u))
@@ -434,30 +403,6 @@ module _ (ser : Tx → List Bool) where
   ...     | true with consumes vr ins in ec
   ...       | false = rejected (reject-con vr s tx e₁ e₂ eb ec)
   ...       | true  = accepted vIn u′ a′ e₁ e₂ ec (accept-eq vr s tx e₁ e₂ eb ec)
-
-  applyTx-total-≤ : ∀ vr s tx h → total (after vr s tx h) ≤ total s
-  applyTx-total-≤ vr (u , a) (ins , wds , outs) h
-    with checkIns u ins in e₁ | checkWdrls a wds in e₂
-  ... | nothing         | _       = ≤-refl
-  ... | just (vIn , u′) | nothing = ≤-refl
-  ... | just (vIn , u′) | just a′ with (vIn + wdrlΣ wds) ≡ᴺ valΣ outs in eb
-  ...   | false = ≤-refl
-  ...   | true with consumes vr ins
-  ...     | false = ≤-refl
-  ...     | true  = begin
-              balance (unionNew u′ (outsAt h 0 outs)) + acctΣ a′
-                ≤⟨ +-monoˡ-≤ (acctΣ a′) (balance-unionNew-≤ u′ (outsAt h 0 outs)) ⟩
-              (balance u′ + balance (outsAt h 0 outs)) + acctΣ a′
-                ≡⟨ cong (λ z → (balance u′ + z) + acctΣ a′) (balance-outsAt h 0 outs) ⟩
-              (balance u′ + valΣ outs) + acctΣ a′
-                ≡⟨ shuffle vIn (balance u′) (wdrlΣ wds) (acctΣ a′) (valΣ outs)
-                     (≡ᵇ⇒≡ (vIn + wdrlΣ wds) (valΣ outs) (subst T (sym eb) tt)) ⟩
-              (vIn + balance u′) + (wdrlΣ wds + acctΣ a′)
-                ≡⟨ cong₂ _+_ (sym (checkIns-balance u ins vIn u′ e₁))
-                             (sym (checkWdrls-acctΣ a wds a′ e₂)) ⟩
-              balance u + acctΣ a
-                ∎
-              where open ≤-Reasoning
 
   applyTx-total-fresh : ∀ vr s tx h → (∀ j → lookupU (proj₁ s) (h , j) ≡ nothing)
                       → total (after vr s tx h) ≡ total s
