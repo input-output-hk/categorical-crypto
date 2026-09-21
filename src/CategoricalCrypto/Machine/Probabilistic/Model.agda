@@ -3,9 +3,9 @@
 --------------------------------------------------------------------------------
 -- The probabilistic machine layer as a model of the UC metatheory.
 --
--- Track A develops the UC theory over an axiomatized machine layer
--- (`CategoricalCrypto.MachineAxioms`); this module builds that model out of a
--- `Machines` structure.  Three things happen here.
+-- `CategoricalCrypto.MachineAxioms` axiomatizes one security level of a
+-- machine layer; this module builds that model out of a `Machines` structure.
+-- Three things happen here.
 --
 -- 1. Machines form a monoidal category whose hom-equality is OBSERVATIONAL
 --    (`f ≈ₚ g = ⟦ f ⟧ ≈ᵉ ⟦ g ⟧`).  `Machines` supplies `_⊚_` with no laws, so
@@ -16,14 +16,14 @@
 --    where the theory's BINARY advantage meets the concrete TERNARY one
 --    (`adv f g d`, carrying an adaptive distinguisher): the distinguisher is
 --    absorbed into the morphism, and reappears as the CONTEXT a machine is
---    plugged into (`CategoricalCrypto.OutputOnly`).  Everything on this side is
+--    plugged into (`UC.Machine.Bridge`, `UC.Seam`).  Everything on this side is
 --    proven — `Obs`, `adv⊥` and its three laws come from `Pr₁⊥` and
 --    ℚ-absolute-value facts.
 -- 3. Counting: `QueryBudget` is the instrument `MachineAxioms.QB` asks for —
 --    "one codomain-side activation of `h` causes at most `c` completed
 --    domain-side events" — again a hypothesis, being a property of the trace.
 --
--- `MachineModel` bundles the three hypotheses and derives `axioms`.
+-- `MachineModel` bundles the hypotheses and derives `axioms`.
 --------------------------------------------------------------------------------
 
 open import CategoricalCrypto.Machine.Probabilistic using (Machines)
@@ -190,18 +190,9 @@ record MachineModel : Set (suc (suc (suc 0ℓ))) where
   open MonoidalMachines structure public
   open QueryBudget budget public
 
-  field
-    -- The interaction layer's assumption: needed to read a machine equality as
-    -- an equality of adaptive runs.
-    trace-run : TraceDeterminesRun
-    -- `MachineAxioms.HomTransportTrivial` spelled at the machine level:
-    -- transport along an object LOOP is invisible to observation.  The ℰᵗᵛ
-    -- layer needs it.  Note this file's options keep K, under which
-    -- `Axiom.UniquenessOfIdentityProofs.WithK.uip` gives `p ≡ refl` and the
-    -- field is provable outright — so an instance here pays for something
-    -- free.  `MachineAxioms` is `--without-K` and keeps it out of the record
-    -- for the same reason.
-    hom-triv  : ∀ {X} (p : X ≡ X) (m : PMachine M.unit X) → subst (PMachine M.unit) p m ≈ₚ m
+  -- The interaction layer's assumption: needed to read a machine equality as
+  -- an equality of adaptive runs.
+  field trace-run : TraceDeterminesRun
 
   -- The transport along `unit≡I` is what lets a `unit ⇒ Ω` machine be read as
   -- the subroutine-free `PMachine I Ω` whose closed semantics `⟦_⟧cl` computes,
