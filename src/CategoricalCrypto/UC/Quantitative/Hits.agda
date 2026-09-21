@@ -1,7 +1,14 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- SPIKE (`docs/event-bounds-in-setup.md` steps 1-3).  Not a landing site: see
--- the spike report for where each block belongs.
+-- SPIKE for `docs/event-bounds-in-setup.md` steps 1-3.  Not a landing site:
+-- the spike report says where each block belongs.
+--
+-- Steps 1 and 2 are discharged here — the finite-depth bound `Upper` with its
+-- one-sided transport, the watch as a PROCESS (`monitorᴹ`, `flagReadᴹ`,
+-- `compileᴹ`) with the rate `κμ` its certificate actually proves, and the
+-- capped-allowance `HitsAt`.  Step 3 is NOT: `EventDominated` is the one-sided
+-- event-sensitive lift, stated and consumed but nowhere inhabited, and
+-- `ledger-hits` is the ledger's single-level bound modulo exactly it.
 
 open import Categories.Category using (Category)
 
@@ -21,14 +28,15 @@ open import Data.Unit.Base using (⊤; tt)
 open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)
 open import Function.Base using (_∘′_)
 open import Level using (0ℓ)
-open import Relation.Binary.PropositionalEquality using (cong)
+open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl; subst; sym)
 
+open import ProbabilisticLogic.Distribution.RationalDist using (Dist-ℚ)
 open import ProbabilisticLogic.Dp
   using (Dₚ; _≼ₚ_; _≈ₚ_; botₚ; bot-bind-≈ₚ; mapₚ; returnₚ; >>=ₚ-identityˡ)
 open import ProbabilisticLogic.Dp.Advantage
   using (Pr≤; Pr≤-mono; _≼ₚ[_]_; _≈ₚ[_]_; indᵇ-nn)
 
-open import CategoricalCrypto.Examples.ChimericLedger using (module Ledger)
+open import CategoricalCrypto.Examples.ChimericLedger using (Variant; module Ledger)
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base using (𝒱ₚ)
 open import CategoricalCrypto.Protocol using (Protocol)
@@ -39,12 +47,11 @@ open import CategoricalCrypto.Strategy using (Strat; asks≤; asks≤-mono; ask;
 open import CategoricalCrypto.UC.Approximate using (Negligible)
 open import CategoricalCrypto.UC.Budget using (ctxBudget)
 open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; Ωᴵ; T₁ᴵ; a⇒ᴵ; subᴵ)
-open import CategoricalCrypto.UC.QueryBound
-  using ( Ans; Certified; QB; certified⇒QB; forget; qb-mono; qbᵢ-T₁; qbᵢ-sub
-        ; qb-resp-≈; qbᵢ-wire )
 open import CategoricalCrypto.UC.Machine.Bridge using (ctxRun)
 open import CategoricalCrypto.UC.Machine.Dictionary using (sub-⊗₁)
 open import CategoricalCrypto.UC.Machine.Grading using (qb-subᴳ)
+open import CategoricalCrypto.UC.QueryBound
+  using (Ans; Certified; QB; certified⇒QB; forget; qb-mono; qb-resp-≈; qbᵢ-T₁; qbᵢ-wire)
 open import CategoricalCrypto.UC.QueryBound.Compose.Laws using (qb-∘-category)
 
 import CategoricalCrypto.Examples.ChimericLedger.Observable as Observable
@@ -271,13 +278,35 @@ watchOf : {B : Iface} → (Neg B → Pos B → Bool)
         → Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)
 watchOf report = watchFrom report false
 
-asks≤-watchFrom : {B : Iface} {n : ℕ} (report : Neg B → Pos B → Bool) (acc : Bool)
-                  (d : Strat (Neg B) (Pos B)) → asks≤ n d → asks≤ n (watchFrom report acc d)
-asks≤-watchFrom             _      _   (out _)    _ = tt
-asks≤-watchFrom {n = ℕ.suc _} report acc (ask _ k)  a =
-  λ r → asks≤-watchFrom report _ (k r) (a r)
-asks≤-watchFrom             report acc (coin _ k) a =
-  λ b → asks≤-watchFrom report acc (k b) (a b)
+-- What ties a strategy transformer to a monitor's report.  Stated as three
+-- equations rather than as `watchFrom` itself: a transformer defined
+-- elsewhere — `Examples.ChimericLedger.Observable.auditWatchFrom` — satisfies
+-- them by `refl`, where identifying the two definitions would want funext.
+IsWatch : {B : Iface} → (Neg B → Pos B → Bool)
+        → (Bool → Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) → Set
+IsWatch {B} report w =
+    ((acc b : Bool) → w acc (out b) ≡ out acc)
+  × ( ((acc : Bool) (q : Neg B) (k : Pos B → Strat (Neg B) (Pos B))
+       → w acc (ask q k) ≡ ask q λ a → w (acc ∨ report q a) (k a))
+    × ((acc : Bool) (ν : Dist-ℚ Bool) (k : Bool → Strat (Neg B) (Pos B))
+       → w acc (coin ν k) ≡ coin ν λ b → w acc (k b)))
+
+watchFrom-IsWatch : {B : Iface} (report : Neg B → Pos B → Bool)
+                  → IsWatch report (watchFrom report)
+watchFrom-IsWatch _ = (λ _ _ → refl) , (λ _ _ _ → refl) , (λ _ _ _ → refl)
+
+-- A watch buys no queries: it plays inside the allowance it is handed.
+asks≤-watch : {B : Iface} (report : Neg B → Pos B → Bool)
+              (w : Bool → Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B))
+            → IsWatch report w → {n : ℕ} (acc : Bool) (d : Strat (Neg B) (Pos B))
+            → asks≤ n d → asks≤ n (w acc d)
+asks≤-watch report w iw@(eo , _ , _) {n} acc (out b) _ =
+  subst (asks≤ n) (sym (eo acc b)) tt
+asks≤-watch report w iw@(_ , ea , _) {ℕ.suc n} acc (ask q k) a =
+  subst (asks≤ (ℕ.suc n)) (sym (ea acc q k))
+        λ r → asks≤-watch report w iw _ (k r) (a r)
+asks≤-watch report w iw@(_ , _ , ec) {n} acc (coin ν k) a =
+  subst (asks≤ n) (sym (ec acc ν k)) λ b → asks≤-watch report w iw acc (k b) (a b)
 
 -- Layer 1's verdict probability bounds EVERY finite approximant of the machine
 -- image's run: `prAgree` reads it off past one budget and `Pr≤` is monotone.
@@ -339,3 +368,89 @@ hits-transport-ctx :
   → Upper (eventRun Y f (monitorᴹ report) E m) (r ℚ.+ ε (ctxBudget (κμ c) c′))
 hits-transport-ctx Y B report f g near E m qE qm =
   upper-≈[] (near (compileᴹ Y B (monitorᴹ report) E) m (qb-compileᴹ Y B report E qE) qm)
+
+------------------------------------------------------------------------
+-- The event-sensitive one-sided lift, and what it would buy
+
+-- NOT PROVED HERE, and NOT an axiom: nothing below inhabits it, and the only
+-- consumer takes it as a hypothesis.  `docs/event-bounds-in-setup.md` §5 is
+-- the statement; the spike report says exactly where the existing domination
+-- machinery stops short of it.
+EventDominated : Set₁
+EventDominated =
+    {B : Iface} (report : Neg B → Pos B → Bool)
+    (w : Bool → Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) → IsWatch report w
+  → (u : Proc unitᴵ B) (Y : Iface) (E : Proc (Y ⊗ᴵ B) Ωᴵ)
+    (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ)) {c c′ : ℕ} → QB c E → QB c′ m
+  → (r η : ℚ) → 0ℚ ℚ.< η
+  → ((d : Strat (Neg B) (Pos B)) → asks≤ (ctxBudget c c′) d
+     → Upper (runᴹ u (w false d)) r)
+  → Upper (eventRun Y u (monitorᴹ report) E m) (r ℚ.+ η)
+
+------------------------------------------------------------------------
+-- The ledger, at one level
+
+module _ (ℓ : ℕ) (ser : Ledger.Tx ℓ → List Bool) (s₀ : Ledger.LState ℓ) where
+
+  private
+    module Sy = System ℓ ser
+    module Ob = Observable ℓ ser
+
+  auditMonitor : Proc Sy.LedgerIf (Sy.LedgerIf ⊗ᴵ Flagᴵ)
+  auditMonitor = monitorᴹ (Ob.reportsLoss s₀)
+
+  -- The compiler's strategy-level target IS the ledger's own watch.
+  auditWatch-IsWatch : IsWatch (Ob.reportsLoss s₀) (Ob.auditWatchFrom s₀)
+  auditWatch-IsWatch = (λ _ _ → refl) , (λ _ _ _ → refl) , (λ _ _ _ → refl)
+
+  -- `Observable.auditWatch-bounded`'s conclusion, crossed to the machine
+  -- observation and read at every admitted context: the single-level content
+  -- of `Property.ideal-preserves-value`, modulo the one unproved lift.
+  ledger-hits : EventDominated → (vr : Variant) {ε : ℕ → ℚ}
+              → Bounded (Sy.Sys vr s₀) (Ob.auditWatch s₀) ε
+              → (q : ℕ) (η : ℚ) → 0ℚ ℚ.< η
+              → HitsAt q (ε q ℚ.+ η) (morphism (Sy.Sys vr s₀)) auditMonitor
+  ledger-hits ev vr {ε} bnd q η 0<η Y E m qE qm le =
+    ev (Ob.reportsLoss s₀) (Ob.auditWatchFrom s₀) auditWatch-IsWatch
+       (morphism (Sy.Sys vr s₀)) Y E m qE qm (ε q) η 0<η
+       λ d a → upper-run (Sy.Sys vr s₀) (Ob.auditWatch s₀ d)
+                         (bnd q d (asks≤-mono le d a))
+
+------------------------------------------------------------------------
+-- The three behaviours the compiler is accepted on, at the steps deciding them
+
+module _ {B : Iface} (report : Neg B → Pos B → Bool) (acc : Bool) where
+
+  -- Traffic agreement: the query goes down unchanged and is remembered, the
+  -- answer comes up unchanged, and the report is read off the PAIR.
+  monitor-query : (p : Maybe (Neg B)) (q : Neg B)
+                → monitorStep report ((acc , p) , inj₂ (inj₁ q))
+                  ≡ returnₚ ((acc , just q) , inj₁ q)
+  monitor-query _ _ = refl
+
+  monitor-answer : (q : Neg B) (a : Pos B)
+                 → monitorStep report ((acc , just q) , inj₁ a)
+                   ≡ returnₚ ((acc ∨ report q a , nothing) , inj₂ (inj₁ a))
+  monitor-answer _ _ = refl
+
+  monitor-flag : (p : Maybe (Neg B))
+               → monitorStep report ((acc , p) , inj₂ (inj₂ tt))
+                 ≡ returnₚ ((acc , p) , inj₂ (inj₂ acc))
+  monitor-flag _ = refl
+
+-- Completion is the test's own verdict emission, seen from above; the verdict
+-- is DISCARDED and the flag asked in its place.
+flagRead-start : flagReadStep (idle , inj₂ tt) ≡ returnₚ (waitE , inj₁ (inj₁ tt))
+flagRead-start = refl
+
+flagRead-complete : (v : Bool)
+                  → flagReadStep (waitE , inj₁ (inj₁ v)) ≡ returnₚ (waitF , inj₁ (inj₂ tt))
+flagRead-complete _ = refl
+
+flagRead-report : (b : Bool) → flagReadStep (waitF , inj₁ (inj₂ b)) ≡ returnₚ (idle , inj₂ b)
+flagRead-report _ = refl
+
+-- …and the only way out of `waitE` is that verdict, so a test that diverges
+-- leaves the experiment with no verdict rather than with the raised flag.
+flagRead-diverges : flagReadStep (waitE , inj₂ tt) ≡ botₚ
+flagRead-diverges = refl
