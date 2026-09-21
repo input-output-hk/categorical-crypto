@@ -1,9 +1,10 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- `UC.Seam.Grounding`'s statements at the trivial grade, all discharged:
--- `IotaBlind`, `EnvAsCtx`, `StratIsEnv`, `SubBlind`.  `UnitGrade`'s discharge
--- was retired 2026-09-21 with the last consumer of the step into `Agreeˢ`
--- (`docs/end-to-end.md` §4); the statement itself stands.
+-- `IotaBlind`, `EnvAsCtx`, `StratIsEnv`, `SubBlind`.  `UnitGrade` is the one
+-- statement there with no discharge here: it is the further step into `Agreeˢ`,
+-- and nothing consumes it — the family premise stops at `emulAgreeᵁ` and keeps
+-- the ε (`docs/end-to-end.md` §4).
 --
 -- The grade is the sealed bundle's OWN monoidal unit, not `unitᴵ`.  The two are
 -- the empty interface spelled with two different empty types — `Data.Empty.⊥`

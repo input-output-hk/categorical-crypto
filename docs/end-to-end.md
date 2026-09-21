@@ -63,9 +63,10 @@ compares; only the corollaries that enter the family category
   `_≤UC^ω[ cs ]_`'s do and give the SHARPER number: at the trivial grade the
   simulator costs the ideal side nothing. What the budgeted statement adds is
   the accounting, not a better bound.
-* Both pairs are therefore ORDERED, budgeted below pointwise below family. The
-  budgeted route was retired on that finding (2026-09-21): a strictly weaker
-  bound at a strictly stronger premise, with no consumer.
+* Both pairs are therefore ORDERED: a budgeted premise implies a pointwise one,
+  which with the real side's totality implies the family one. The budgeted
+  route was retired on that finding (2026-09-21): a strictly weaker bound at a
+  strictly stronger premise, with no consumer.
 
 One neighbour of these relations sits OFF the chain, and is named so that it is
 not mistaken for part of it: `UC.Model.Family.Ingest.ingest` takes a per-level
@@ -101,10 +102,9 @@ BUDGETED premise `_≤UC^ω[ cs ]_`. They were retired with that whole route —
 The public statement reads:
 
 ```agda
-ledger-uc-to-pov :
+ledger-uc-to-pov-family :
     (a V : ℕ) → SerInj → (R : Systems LedgerIf^ω) (badR : Bad R)
-  → ((n : ℕ) → TotalRun (LedgerIf^ω n) (morphism (R n)))
-  → R ≤UC^ω Ideal a V
+  → R ≤UC^ωⁿ Ideal a V
   → TruthfulAudit a V R badR
   → SaturatedHitᴺ R badR (λ n q → εᴸ n (q + q))
 ```
@@ -311,12 +311,15 @@ separate arc and this document only locates it.
 Warm single-`Checking`-line runs under
 `pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS`, quoted from the
 branch that measured them; LOC is that branch's too. Rows with no measurement
-since the arc began carry their LOC at `587999b5` and no warm figure.
+since the arc began carry their LOC at `587999b5` and no warm figure. The
+2026-09-21 retirement shrank four of these rows without re-measuring them
+(`UC.Asymptotic` 102, `UC.Seam.Audit.Prefix` 118, `UC.Seam.Grounded` 264,
+`Examples.ChimericLedger.EndToEnd` 156) and deleted `UC.Asymptotic.Audit`; the
+figures below are unchanged from their measurement.
 
 | module | LOC | warm | measured in |
 |---|---|---|---|
 | `UC.Asymptotic` | 146 | 9 s | `docs/retirement.md` §9 |
-| `UC.Asymptotic.Audit` | 111 | 9 s | `docs/retirement.md` §9 |
 | `UC.Asymptotic.Family` | 342 | 23.7 s | `docs/ledger-lift-eps.md` §7 |
 | `UC.Asymptotic.Contextual` | 313 | 10.7 s | `docs/ledger-lift-eps.md` §7 |
 | `UC.Asymptotic.Compose` | 277 | 11.5 s | `docs/ledger-lift-eps.md` §7 |

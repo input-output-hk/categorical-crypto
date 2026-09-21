@@ -33,17 +33,17 @@
 -- The cost is explicit and appears in the conclusion: the audit
 -- instrumentation doubles the allowance (`asks≤-audited`).
 --
--- A BUDGETED premise `_≤UC^ω[ cs ]_` reaches the same conclusion through
--- `UC.Seam.Audit.Prefix`, at the worse allowance `simCost (q + q) (cs n)`.
--- That route was retired 2026-09-21: a budgeted emulation IS an emulation
--- (`UC.Audit.Canonical.audit-forget` after `audit⇒witness`), so these theorems
--- already apply wherever it did and give the sharper bound — at the trivial
--- grade the simulator costs the ideal side nothing.
+-- There is no variant taking a BUDGETED emulation
+-- (`UC.Seam.Audit._≤UC[ cs ]_` per level), and that is not an omission: a
+-- budgeted emulation IS an emulation (`UC.Audit.Canonical.audit-forget` after
+-- `audit⇒witness`), so these theorems apply to one and give the SHARPER
+-- bound — at the trivial grade the simulator costs the ideal side nothing,
+-- where a budgeted carry would charge `simCost`.
 
+open import Data.Bool.Base using (Bool)
+open import Data.List.Base using (List)
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly using (Poly; poly-+)
-open import Data.List.Base using (List)
-open import Data.Bool.Base using (Bool)
 open import Data.Product.Base using (Σ-syntax; _×_; _,_)
 open import Data.Rational as ℚ using (ℚ)
 
@@ -86,7 +86,7 @@ private
 --   instrumentation's doubling and nothing else.
 --
 --   There is no `TotalRun`.  The pointwise specialization below spends one to
---   collapse a per-level emulation into an agreement (a divergent real side is
+--   collapse a per-level emulation into this premise (a divergent real side is
 --   emulated by a simulator that never starts); the family premise is already
 --   quantitative, so there is nothing to collapse.
 --

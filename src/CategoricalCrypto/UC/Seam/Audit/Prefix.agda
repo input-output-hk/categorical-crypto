@@ -14,10 +14,10 @@
 -- to ADD mass) and `bounded-carry` spends it against the emulation's own
 -- domination.
 --
--- `uc-audit-bounded`, the endpoint that read `bounded-carry` at the allowance
--- `simCost` off a BUDGETED emulation, was retired 2026-09-21 with the rest of
--- the budgeted route (`docs/end-to-end.md`): a budgeted emulation is an
--- emulation, so the unbudgeted theorems apply wherever it did and are sharper.
+-- There is deliberately no endpoint reading `bounded-carry` at `simCost` off a
+-- BUDGETED emulation: a budgeted emulation is an emulation, so the unbudgeted
+-- consumers apply to it already and at a sharper allowance
+-- (`docs/end-to-end.md` §4).
 
 import Categories.Category.Monoidal.Reasoning as MonR
 
