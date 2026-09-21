@@ -346,9 +346,9 @@ not deletion of quantitative composition altogether.
   `UC.Budget`: `ctxBudget`, `simCost`, and absorption laws.
   `UC.Approximate`: `GradedBound-reindex` and negligible closure lemmas.
   `UC.Asymptotic.Compose`: `≤UC^ωᵉ-trans` and `UC-composeᵉ` currently retain the
-  actual substitutions. The latter still has an explicit `Allowance-mono`
-  premise at this snapshot; it is not supplied by negligibility. Whether a
-  certificate-enlargement proof removes that premise is a separate proof task.
+  actual substitutions. The explicit `Allowance-mono` premise the latter carried
+  at this snapshot is gone since 2026-09-21 — the certificate-enlargement proof
+  was done, and `≈ctx-pre` now substitutes exactly.
 ]
 
 = What forgetting quantitative evidence can prove
