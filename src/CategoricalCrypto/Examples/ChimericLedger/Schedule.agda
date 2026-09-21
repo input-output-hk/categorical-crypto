@@ -31,6 +31,7 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Approximate
+open import CategoricalCrypto.UC.Asymptotic
 open import CategoricalCrypto.UC.Approximate.Decay
 open import CategoricalCrypto.UC.Saturated
 
@@ -103,6 +104,15 @@ module _ (a V : ℕ) where
   ideal-bounded : SerInj → (n : ℕ) → Bounded (Ideal n) (monitorᴸ n) (εᴸ n)
   ideal-bounded si n = T.monitor-bounded n inputConsuming (gen n)
                          (Bd.target n (h₀ n) (si n) a V)
+
+  -- Preservation of value: no polynomially query-bounded environment ever
+  -- gets the ledger to answer an audit with a total different from the one it
+  -- started with, except with negligible probability.
+  PreservesValue : Systems LedgerIf^ω → Set
+  PreservesValue R = SaturatedBoundedᴺ R monitorᴸ εᴸ
+
+  ideal-preserves-value : SerInj → PreservesValue Ideal
+  ideal-preserves-value si = boundedᴺ {I = Ideal} {ε = εᴸ} {bad = monitorᴸ} (ideal-bounded si)
 
   -- …and the real side's obligation, named: UC identifies no internal state
   -- trajectory, so recovering one needs the implementation's own audit

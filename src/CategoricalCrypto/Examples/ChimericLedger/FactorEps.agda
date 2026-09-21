@@ -12,15 +12,13 @@ open import Data.Bool.Base using (Bool)
 open import Data.List.Base using (List)
 open import Data.Nat.Base using (ℕ)
 open import Data.Nat.Poly
-open import Data.Product.Base using (Σ-syntax; _×_; _,_)
+open import Data.Product.Base using (_,_)
 open import Data.Rational as ℚ using (ℚ)
 
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Examples.ChimericLedger.QueryBound
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Observe
-open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Approximate
 open import CategoricalCrypto.UC.Asymptotic.Compose
 open import CategoricalCrypto.UC.Asymptotic.Contextual
@@ -82,27 +80,13 @@ module _ (vr : Variant) (s : (n : ℕ) → Ledger.LState n) where
     εᴴ n q = ε₁ n (simCost q 1)
 
 ------------------------------------------------------------------------
--- The POV corollary, at a hash-level premise that keeps its error
+-- The corollary, at a hash-level premise
 
-module _ (a V : ℕ) (hash : Systems HashIf^ω) where
-
-  private
-    realᴴ : Systems LedgerIf^ω
-    realᴴ = Realᴴ hash inputConsuming (gen a V)
-
-    badᴴ : Bad realᴴ
-    badᴴ n = L.badTotal n (gen a V n)
-
-    truthfulᴴ : TruthfulAudit a V realᴴ badᴴ
-    truthfulᴴ n = T.monitor-complete n (hash n) inputConsuming (gen a V n)
-
-  -- Neither `TotalRun` nor `NoDeadStep` appears: a pointwise theorem would
-  -- spend totality to collapse an emulation into an agreement, and there is
-  -- nothing here to collapse.
-  ledger-pov-from-hashⁿ : SerInj → hash ≤UC^ωⁿ oracle^ω → (p : ℕ → ℕ) → Poly p
-                        → Σ[ f ∈ (ℕ → ℚ) ] Negligible f
-                          × ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
-                             → asks≤ (p n) d → PrHit (realᴴ n) (badᴴ n) d ℚ.≤ f n)
-  ledger-pov-from-hashⁿ si hp =
-    ledger-pov-family-negligible a V si realᴴ badᴴ
-      (hash-liftⁿ inputConsuming (gen a V) hash hp) truthfulᴴ
+-- The talk's last slide: assume only that the hash function emulates the
+-- random oracle, and the ledger built on it preserves value.
+ledger-preserves-value-from-hash :
+    (a V : ℕ) (hash : Systems HashIf^ω) → SerInj → hash ≤UC^ωⁿ oracle^ω
+  → PreservesValue a V (Realᴴ hash inputConsuming (gen a V))
+ledger-preserves-value-from-hash a V hash si hp =
+  preserves-value-transfer a V (Realᴴ hash inputConsuming (gen a V)) si
+    (hash-liftⁿ inputConsuming (gen a V) hash hp)

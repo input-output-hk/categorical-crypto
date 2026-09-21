@@ -1,38 +1,16 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- The end-to-end asymptotic UC-to-POV theorem for the chimeric ledger.
+-- Preservation of value transported across a UC emulation.
 --
--- `ledger-uc-to-pov-family` starts at the PROVED ideal birthday bound
--- (`ChimericLedger.Birthday.target`, read through the designated monitor by
--- `ChimericLedger.Trajectory`) and a genuine UC-emulation premise between the
--- real and ideal machine FAMILIES, and concludes a real-side bound on the
--- state trajectory — preservation of value — modulo negligible slack at every
--- polynomial allowance.  `ledger-pov-family-negligible` reads the same
--- conclusion as one number: at every polynomial allowance the real failure
--- probability is negligible, the birthday bound and the slack together.
+-- `preserves-value-transfer` is the whole point of the example: the ideal
+-- birthday bound plus an emulation premise give the SAME property about the
+-- real system, with no further hypothesis.
 --
--- What the theorem assumes, and nothing else:
+-- `R ≤UC^ωⁿ I` is an allowance-uniform emulation with negligible error.
 --
---   `SerInj`        the birthday theorem's own injective-serialization
---                   hypothesis, per level (`Tx` depends on the hash width, so
---                   a single `ser` cannot be typed)
---   `R ≤UC^ωⁿ …`    the emulation, allowance-uniform and quantitative, never a
---                   direct `Agreeˢ`
---   `TruthfulAudit` the real implementation's audit answers report its own
---                   state.  UC identifies no internal trajectory, so this is
---                   irreducibly about the implementation; for a ledger image
---                   it is `Trajectory.monitor-complete` and `ideal-truthful`
---                   supplies it
---
--- The cost is explicit and appears in the conclusion: the audit
--- instrumentation doubles the allowance (`asks≤-audited`).
---
--- There is no variant taking a BUDGETED emulation
--- (`UC.Seam.Audit._≤UC[ cs ]_` per level), and that is not an omission: a
--- budgeted emulation IS an emulation (`UC.Audit.Canonical.audit-forget` after
--- `audit⇒witness`), so these theorems apply to one and give the SHARPER
--- bound — at the trivial grade the simulator costs the ideal side nothing,
--- where a budgeted carry would charge `simCost`.
+-- The appendix restates the conclusion over R's own STATE TRAJECTORY, which
+-- needs one extra hypothesis (`TruthfulAudit`) because UC identifies no
+-- internal state.
 
 open import Data.Bool.Base using (Bool)
 open import Data.List.Base using (List)
@@ -61,49 +39,47 @@ private
 
 ------------------------------------------------------------------------
 -- The theorem
+------------------------------------------------------------------------
 
--- For every polynomial allowance `p` there is a negligible `νₚ` such that no
--- strategy of budget `p n` moves the real system's total value away from
--- genesis with probability above `εbirthday` at the audit-adjusted allowance
--- plus `νₚ n`.  The premise is the asymptotic-family one
--- (`UC.Asymptotic.Family._≤UC^ωⁿ_`): an ε-approximate family emulation whose ε
--- is retained and negligible at every polynomial allowance.
---
--- The bound keeps no ε of the premise: `≈negl-respects` folds it into the
--- saturated slack, which is quantified AFTER the allowance, so the birthday
--- term is `εᴸ n (q + q)` — the audit instrumentation's doubling and nothing
--- else.
-ledger-uc-to-pov-family :
-    (a V : ℕ) → SerInj → (R : Systems LedgerIf^ω) (badR : Bad R)
-  → R ≤UC^ωⁿ Ideal a V
-  → TruthfulAudit a V R badR
-  → SaturatedHitᴺ R badR (λ n q → εᴸ n (q ℕ.+ q))
-ledger-uc-to-pov-family a V si R badR em truthful =
-  saturatedHitᴺ-from-monitor {ε = εᴸ} {P = R} {Bad = badR} {bad = monitorᴸ a V}
-    (λ _ q → q ℕ.+ q) (auditedᴸ a V) (λ _ Pp → poly-+ Pp Pp) (auditedᴸ-asks a V)
-    truthful real
-  where
-  near : R ≈negl Ideal a V
-  near = ≤UC^ωⁿ⇒≈negl {R = R} {I = Ideal a V} em
+module _ (a V : ℕ) where
 
-  ideal : SaturatedBoundedᴺ (Ideal a V) (monitorᴸ a V) εᴸ
-  ideal = boundedᴺ {I = Ideal a V} {ε = εᴸ} {bad = monitorᴸ a V} (ideal-bounded a V si)
+  preserves-value-transfer : (R : Systems LedgerIf^ω) → SerInj
+                           → R ≤UC^ωⁿ Ideal a V → PreservesValue a V R
+  preserves-value-transfer R si em =
+    uc-preservesᴺ {R = R} {I = Ideal a V} {ε = εᴸ} {bad = monitorᴸ a V}
+      (monitorᴸ-preserving a V) (≤UC^ωⁿ⇒≈negl {R = R} {I = Ideal a V} em)
+      (ideal-preserves-value a V si)
 
-  real : SaturatedBoundedᴺ R (monitorᴸ a V) εᴸ
-  real = uc-preservesᴺ {R = R} {I = Ideal a V} {ε = εᴸ} {bad = monitorᴸ a V}
-           (monitorᴸ-preserving a V) near ideal
+------------------------------------------------------------------------
+-- APPENDIX: the same conclusion about the real system's own states
+------------------------------------------------------------------------
 
--- …read as one number: the real system's preservation-of-value failure is
--- negligible in the security parameter at every polynomial allowance.
-ledger-pov-family-negligible :
-    (a V : ℕ) → SerInj → (R : Systems LedgerIf^ω) (badR : Bad R)
-  → R ≤UC^ωⁿ Ideal a V
-  → TruthfulAudit a V R badR
-  → (p : ℕ → ℕ) → Poly p
-  → Σ[ f ∈ (ℕ → ℚ) ] Negligible f
-    × ((n : ℕ) (d : Strats n) → asks≤ (p n) d → PrHit (R n) (badR n) d ℚ.≤ f n)
-ledger-pov-family-negligible a V si R badR em truthful p Pp =
-  let νₚ , neg , bnd = ledger-uc-to-pov-family a V si R badR em truthful p Pp
-  in (λ n → εᴸ n (p n ℕ.+ p n) ℚ.+ νₚ n)
-   , Negligible-+ (εᴸ-negligible (λ n → p n ℕ.+ p n) (poly-+ Pp Pp)) neg
-   , bnd
+-- Not the headline property, and not free: UC identifies no internal state
+-- trajectory, so a bound on one is recovered only from the implementation's
+-- own audit truthfulness, and the audit instrumentation that makes the watch
+-- see every boundary doubles the allowance (`asks≤-audited`).
+
+  ledger-uc-to-pov-family :
+      SerInj → (R : Systems LedgerIf^ω) (badR : Bad R)
+    → R ≤UC^ωⁿ Ideal a V
+    → TruthfulAudit a V R badR
+    → SaturatedHitᴺ R badR (λ n q → εᴸ n (q ℕ.+ q))
+  ledger-uc-to-pov-family si R badR em truthful =
+    saturatedHitᴺ-from-monitor {ε = εᴸ} {P = R} {Bad = badR} {bad = monitorᴸ a V}
+      (λ _ q → q ℕ.+ q) (auditedᴸ a V) (λ _ Pp → poly-+ Pp Pp) (auditedᴸ-asks a V)
+      truthful (preserves-value-transfer R si em)
+
+  -- …read as one number: the real system's preservation-of-value failure is
+  -- negligible in the security parameter at every polynomial allowance.
+  ledger-pov-family-negligible :
+      SerInj → (R : Systems LedgerIf^ω) (badR : Bad R)
+    → R ≤UC^ωⁿ Ideal a V
+    → TruthfulAudit a V R badR
+    → (p : ℕ → ℕ) → Poly p
+    → Σ[ f ∈ (ℕ → ℚ) ] Negligible f
+      × ((n : ℕ) (d : Strats n) → asks≤ (p n) d → PrHit (R n) (badR n) d ℚ.≤ f n)
+  ledger-pov-family-negligible si R badR em truthful p Pp =
+    let νₚ , neg , bnd = ledger-uc-to-pov-family si R badR em truthful p Pp
+    in (λ n → εᴸ n (p n ℕ.+ p n) ℚ.+ νₚ n)
+     , Negligible-+ (εᴸ-negligible (λ n → p n ℕ.+ p n) (poly-+ Pp Pp)) neg
+     , bnd
