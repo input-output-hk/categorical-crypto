@@ -153,6 +153,13 @@ machine one.
 
 ## The corollary at the hash premise
 
+RETIRED 2026-09-21: `hash-lift`, `ledger-pov-from-hash` and `UC.Factor.liftᵖ`
+were deleted in favour of the ε-retaining route
+(`FactorEps.hash-liftⁿ`/`ledger-pov-from-hashⁿ`, `docs/ledger-lift-eps.md`),
+which proves the same statement without forgetting the hash's error first.
+`factorᵖ`/`ledger-factor` and the `≤UC-sub` metatheory above are untouched.
+What follows is the record of the qualitative route as it stood.
+
 `Examples.ChimericLedger.Factor`, beside `Real.ledger-pov` and not touching it:
 
 ```agda
@@ -208,6 +215,11 @@ of what remains is:
 retraction is what makes the unit grade invisible, and at a nontrivial `X` the
 grade `X ⊗₀ P` the composition produces is real data that the statement has to
 carry rather than discard.
+
+(`liftᵖ` itself was retired from `UC/Factor.agda` on 2026-09-21 — the ledger
+migrated to the ε-route below, leaving it without a consumer. The `≤UC-sub`
+metatheory it used, `Abstract2.Factor.≤UC-sub`, is untouched and is what this
+section is about.)
 
 The ε-retaining half of that list is done: `Examples.ChimericLedger.FactorEps` lifts an
 `_≤UC^ωᵉ_`/`_≤UC^ωⁿ_` premise at this port through `ledger-factor` without forgetting its
