@@ -783,9 +783,9 @@ over; the mapping is the one above plus the module-level map already recorded
 `StandardTV` → `UC.Machine`, `OutputOnly` → `UC.Machine.Bridge` + `UC.Seam`).
 The earlier claim that nothing inherited was edited is historical; the MD line
 has since been ported and superseded modules deleted (see compatibility below).
-`FamilyCategory`, `VanishingTV`, `StandardTV` and `OutputOnly` were retired on
-2026-09-21; only `MachineAxioms` and its model survive from the inherited
-Track-A stack.
+`FamilyCategory`, `VanishingTV`, `StandardTV`, `OutputOnly`, `MachineAxioms`
+and its probabilistic model were all retired on 2026-09-21; nothing of the
+inherited Track-A stack survives.
 
 ### The defects the redesign fixes at birth
 

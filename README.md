@@ -90,12 +90,9 @@ artifacts (`ROData`) and derive `MD≤UC-RO` from it.
 
 The concrete environment model — machines indexed by a security parameter,
 distinguished up to vanishing total-variation distance under polynomial query
-budgets — is built parametrically over an *axiomatized* machine layer, so it
+budgets — is built parametrically over an *abstract* machine layer, so it
 is independent of any particular machine implementation:
 
-- `MachineAxioms` — one security level as a record: a monoidal category 𝕄, a
-  verdict channel, observation semantics (`⟦_⟧`, a pseudometric `adv` on
-  observations), and a query-budget instrument `QB` with its composition laws.
 - `Data.Nat.Poly` — polynomial bounds on ℕ-functions and their closure
   properties.
 - `UC.Family` / `UC.Family.Vanishing` — the security-parameter family category
@@ -108,8 +105,8 @@ is independent of any particular machine implementation:
 
 ## 4. Concrete machine layer
 
-The executable model (predating the layers above; connecting it to
-`MachineAxioms` is planned work):
+The executable model (predating the layers above; connecting it to them is
+planned work):
 
 - `Channel/` — channels (typed communication ports), their category, and a
   wiring DSL (`Selection`).

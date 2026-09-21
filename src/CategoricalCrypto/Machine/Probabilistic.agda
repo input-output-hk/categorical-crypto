@@ -13,14 +13,8 @@
 -- The construction itself lives on the `g-construction` branch (it depends on
 -- the SMC solver and is not merge-ready), so this module states it rather than
 -- builds it: `Machines` is the structure a model must provide, and every theorem
--- above it — the machine category, its `MachineAxioms` model, the UC payoff — is
--- parametric in one.  Nothing here is cryptographic, and nothing here is about
--- Merkle–Damgård.
---
--- Laws come one level up (`Machine.Probabilistic.Model`), because they are
--- stated against the OBSERVATIONAL hom-equality `⟦ f ⟧ ≈ᵉ ⟦ g ⟧`, which these
--- fields define; a concrete-security theorem such as `Examples.MerkleDamgard`
--- needs the structure but none of the laws.
+-- above it — the machine category, the UC payoff — is parametric in one.
+-- Nothing here is cryptographic, and nothing here is about Merkle–Damgård.
 --------------------------------------------------------------------------------
 
 open import categorical-crypto.Prelude hiding (_/_; _>>=_; _*_)
