@@ -7,7 +7,7 @@
 -- The `public` re-exports are the channel/machine layer proper, which a
 -- consumer of this module gets by name.  The rest are plain imports — build
 -- closure, not API: their names belong to their own roots.  Those are
--- `Strategy` and `OutputOnly`; `Protocol` and below (layer 1: protocols,
+-- `Strategy`; `Protocol` and below (layer 1: protocols,
 -- their machine images, the agreement and totality readings, safety and the
 -- trajectory observable); and the UC layer's two roots, `UC` and `UC.Model`,
 -- whose split `UC.agda`'s inventory explains.  `UC.Robust.Model` is reached
@@ -47,7 +47,7 @@
 --
 -- Outside still, each with its own root: the protocol-layer examples
 -- (`Examples.ChimericLedger`, `Examples.MerkleDamgard`) and the inherited
--- abstract theories (`UCSetup`, `Standard`, `StandardTV`, `VanishingTV`).
+-- abstract theories (`UCSetup`, `Standard`).
 --
 -- `--guardedness` is here because it is INFECTIVE and the `Dₚ` cone below uses
 -- it; nothing in this module is coinductive.
@@ -82,7 +82,6 @@ open import CategoricalCrypto.GamePlaying.Hop
 open import CategoricalCrypto.GamePlaying.Partial
 open import CategoricalCrypto.GamePlaying.Potential
 open import CategoricalCrypto.GamePlaying.Test
-open import CategoricalCrypto.OutputOnly
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
