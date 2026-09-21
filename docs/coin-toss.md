@@ -313,7 +313,8 @@ sides and compare at the CLOSED domain.
            → (λ n → f n ∘ p n) ≤UC^ωᵉ (λ n → g n ∘ p n)
 ```
 
-(`UC/Asymptotic/Compose.agda:219`, `:251`.) The closure absorbs `p`, so its
+(`UC/Quantitative/Family.agda`, `≈ctx-dom` and `≤UC^ωᵉ-dom`, re-exported by
+`UC/Asymptotic/Compose.agda`.) The closure absorbs `p`, so its
 budget becomes `(0 ⊔ 1) * c′` — and `ctxBudget` GUARDS its closure leg at
 `_⊔ 1` rather than multiplying by it, so a factor the guard swallows costs the
 allowance nothing. The schedule is **unchanged** in the second hop.

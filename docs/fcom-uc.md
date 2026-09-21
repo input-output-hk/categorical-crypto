@@ -337,13 +337,19 @@ hypothesis. So, quantifier by quantifier:
 `dominatedᵒ` pays an arbitrary `δ > 0`, and `_≈ctx[_]_` demands a FIXED ε, so
 the slack cannot be taken to zero: `(∀ δ > 0. d ≈ₚ[ ε + δ ] e) → d ≈ₚ[ ε ] e`
 needs the cofinal supremum to be attained, which it is not constructively. It
-does not have to be taken to zero. `εᶜ n q = fromℕ (q*q + q + q) *ℚ inv-pow-2 n`
-is strictly positive, so taking `δ = εᶜ n q` gives `≈ctx[ 2 ·ᶠ εᶜ ]`, and
-`2 ·ᶠ εᶜ` is `λ n q → fromℕ (2*(q*q+q+q)) *ℚ inv-pow-2 n`, which
-`Asymptotic.εᶜ-negligible`'s own witness form
-(`negligibleBound-inv-pow-2` at `t = λ _ q → 2*(q*q+q+q)`, the polynomial
-closure lemmas unchanged) certifies as a `NegligibleBound`. **A constant factor
-on the ε family is the whole price of the test and ancilla quantifiers.**
+does not have to be taken to zero. `εᶜ` itself will not serve as the `δ`:
+`εᶜ n 0 = 0ℚ`, and `ctxBudget c c′ = 0` whenever `c = 0`, a case
+`_≈ctx[_]_`'s `{c c′ : ℕ}` does not exclude. But `δ` is chosen per instance,
+so it may depend on `n` alone: take `δ = inv-pow-2 n`, strictly positive at
+every `n` (`UC.Approximate.Decay.0<inv-pow-2`), which is the slack the
+corrupted-receiver second hop already spends
+(`Examples.CoinToss.Ideal.Receiver.Compose.ηʰ`, `ηʰ-negligible`). That gives
+`≈ctx[ εᴿ ]` with `εᴿ n q = εᶜ n q ℚ.+ inv-pow-2 n`, i.e. `(q+1)²·2⁻ⁿ`,
+negligible by `GradedBound-+[ Negligible ] Negligible-+` at
+`Asymptotic.εᶜ-negligible` and `UC.Approximate.Decay.negligible-slack`.
+**One additive `2⁻ⁿ` on the ε family is the whole price of the test and
+ancilla quantifiers.** `εᴿ` is the candidate schedule of
+`docs/rcom-icom-b1.md` §5.
 
 ### What item 4 becomes, and what it is an instance of
 
@@ -356,7 +362,7 @@ With 1b/2b/3 in hand and `dominatedᵒ` on top, the statement to aim at is not
 fcom-emulation : (X : G.Obj) (E : X G.⊗₀ (𝟘ᵒ G.⊗₀ ifaceᵒ (Advᴵ ⊗ᴵ Honᴵ)) G.⇒ Ωᵒ)
                  (m : 𝟘ᵒ G.⇒ X G.⊗₀ 𝟘ᵒ) {c c′ : ℕ} → QB c E → QB c′ m
                → Obs ((E G.∘ T₁ᵒ X (gradedᵒ (conjᴵ u))) G.∘ m)
-                 ≈ₚ[ 2 ·ᶠ εᶜ k (ctxBudget c c′) ]
+                 ≈ₚ[ εᴿ k (ctxBudget c c′) ]
                  Obs ((E G.∘ T₁ᵒ X (gradedᵒ (conjᴵ v))) G.∘ m)
 ```
 
@@ -371,11 +377,13 @@ quantifier:
 1. **re-opening the grade and the resource.** `_≈ctx[_]_` compares
    `f n : A n ⇒ T₀ (X n) (B n)` with the adversary port and the resource port
    both OPEN; `dominatedᵒ` delivers the closed, trivially-graded form.
-   `UC.Seam.Audit.Context.plug-runᵍ` and `absorb-plugᵍ` are the two coercions
-   that cross that boundary for a PLUGGED adversary machine and an absorbed
-   simulator; what is missing is the same for an arbitrary graded test, which
-   is the `≈ctxᴬ⇒≈ctx`/`prefixᵒ` direction (`Contextual.agda:105`, `:112`) at a
-   closed process — not proved, and not obviously cheap.
+   Re-opening the grade is `UC.Model.Dominated.dominatedᵍ`, a theorem, with a
+   live consumer at
+   `Examples.CoinToss.Ideal.Receiver.Compose.coin-ctxᴬʰ`; its budgeted variant
+   `dominatedᵍᵠ`, whose run hypothesis is restricted to
+   `asks≤ (ctxBudget c c′)`, is what the game bound can actually be fed to.
+   The resource is re-opened not at all: `docs/rcom-icom-b1.md` moves the
+   boundary to the resource-INSTALLED one instead.
 2. **the closure quantifier**, as above.
 
 The `Certified` component of `_≤UC^ωᵉ_` is already inhabited:
