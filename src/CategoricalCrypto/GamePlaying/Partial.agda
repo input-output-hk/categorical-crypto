@@ -58,6 +58,24 @@ badProb⊥-bad resp bad s (out _)    eq rewrite eq = refl
 badProb⊥-bad resp bad s (ask q k)  eq rewrite eq = refl
 badProb⊥-bad resp bad s (coin μ k) eq rewrite eq = refl
 
+-- …and it reads only `E⊥` of the kernel, so it does not tell apart two
+-- kernels that agree there.  A `SuperCert⊥` does — its `pres` reads the
+-- support — which is why a consumer holding one for a pointwise-equal kernel
+-- goes through `hop-boundᵇ⊥` below rather than through `hop-bound⊥`.
+badProb⊥-cong : (resp resp′ : St → Q → Dist⊥ (St × R)) (bad : St → Bool)
+              → (∀ s q (G : St × R → ℚ) → E⊥ (resp s q) G ≡ E⊥ (resp′ s q) G)
+              → ∀ s (d : Strat Q R) → badProb⊥ resp bad s d ≡ badProb⊥ resp′ bad s d
+badProb⊥-cong resp resp′ bad eq s (out _)   = refl
+badProb⊥-cong resp resp′ bad eq s (ask q k) with bad s
+... | true  = refl
+... | false =
+  trans (eq s q λ sr → badProb⊥ resp bad (proj₁ sr) (k (proj₂ sr)))
+        (E⊥-cong-P (resp′ s q) _ _ λ sr →
+          badProb⊥-cong resp resp′ bad eq (proj₁ sr) (k (proj₂ sr)))
+badProb⊥-cong resp resp′ bad eq s (coin μ k) with bad s
+... | true  = refl
+... | false = lookupᴰℚ-cong-P (entries μ) λ b → badProb⊥-cong resp resp′ bad eq s (k b)
+
 ------------------------------------------------------------------------
 -- What a concrete system owes
 
@@ -318,6 +336,19 @@ module _ {Q R St StR StI : Type} (bad : St → Bool)
 
   open Coupling⊥ bad respB
 
+  -- The hop with the supermartingale already spent, for a consumer whose
+  -- certificate is about a kernel only `E⊥`-equal to `realK`.
+  hop-boundᵇ⊥ : {ε : ℕ → ℚ} (respR : StR → Q → Dist⊥ (StR × R))
+                (respI : StI → Q → Dist⊥ (StI × R)) (s₀ : St) (sR : StR) (sI : StI)
+              → (∀ d → Pr₁⊥ (runWith⊥ realK s₀ d) ≡ Pr₁⊥ (runWith⊥ respR sR d))
+              → (∀ d → Pr₁⊥ (runWith⊥ idealK s₀ d) ≡ Pr₁⊥ (runWith⊥ respI sI d))
+              → (∀ m d → asks≤ m d → badProb⊥ realK bad s₀ d ≤ℚ ε m)
+              → ∀ m d → asks≤ m d
+              → ∣ Pr₁⊥ (runWith⊥ respI sI d) -ℚ Pr₁⊥ (runWith⊥ respR sR d) ∣ℚ ≤ℚ ε m
+  hop-boundᵇ⊥ {ε} respR respI s₀ sR sI eR eI bnd m d le =
+    subst (_≤ℚ ε m) (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ) (eI d) (eR d))
+      (≤-trans (FLGP⊥ s₀ d) (bnd m d le))
+
   hop-bound⊥ : {ε : ℕ → ℚ} (respR : StR → Q → Dist⊥ (StR × R))
                (respI : StI → Q → Dist⊥ (StI × R)) (s₀ : St) (sR : StR) (sI : StI)
              → (∀ d → Pr₁⊥ (runWith⊥ realK s₀ d) ≡ Pr₁⊥ (runWith⊥ respR sR d))
@@ -325,6 +356,5 @@ module _ {Q R St StR StI : Type} (bad : St → Bool)
              → SuperCert⊥ realK bad s₀ ε
              → ∀ m d → asks≤ m d
              → ∣ Pr₁⊥ (runWith⊥ respI sI d) -ℚ Pr₁⊥ (runWith⊥ respR sR d) ∣ℚ ≤ℚ ε m
-  hop-bound⊥ {ε} respR respI s₀ sR sI eR eI cert m d le =
-    subst (_≤ℚ ε m) (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ) (eI d) (eR d))
-      (≤-trans (FLGP⊥ s₀ d) (badProb⊥-bounded cert m d le))
+  hop-bound⊥ respR respI s₀ sR sI eR eI cert =
+    hop-boundᵇ⊥ respR respI s₀ sR sI eR eI λ m d le → badProb⊥-bounded cert m d le
