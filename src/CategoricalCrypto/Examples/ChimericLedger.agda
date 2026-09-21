@@ -4,9 +4,9 @@
 --
 -- State is two finite maps — a UTxO set keyed by `(txid , index)` and an
 -- account table — and `total` is the invariant preservation of value talks
--- about.  A transaction consumes UTxO entries and account balances and
--- creates UTxO entries keyed by `(hash tx , i)`; the hash is the ledger's ONE
--- oracle call per transaction, explicit in `applyTx`'s `Call` result.
+-- about.  A transaction consumes UTxO entries and account balances and creates
+-- UTxO entries keyed by `(hash tx , i)`; that hash is the ledger's ONE oracle
+-- call per transaction, explicit in `applyTx`'s `Call` result.
 --
 -- The two variants of the slides are one flag apart: `chimeric` accepts a
 -- transaction with no inputs, `inputConsuming` does not.  Why that matters is
@@ -128,8 +128,8 @@ module Ledger (ℓ : ℕ) where
   outsAt _ _ []       = []
   outsAt h i (o ∷ os) = ((h , i) , o) ∷ outsAt h (suc i) os
 
-  -- `ser` serializes a transaction for hashing; its injectivity lives at the
-  -- module stating the birthday bound (`ChimericLedger.POV.AtBirthday`).
+  -- `ser` serializes a transaction for hashing; its injectivity is assumed
+  -- where the birthday bound is proved (`ChimericLedger.Birthday`).
   module Step (ser : Tx → List Bool) where
 
     applyTx : Variant → LState → Tx → Call (List Bool) Hash (LState × Bool)

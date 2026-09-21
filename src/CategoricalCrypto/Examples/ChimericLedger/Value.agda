@@ -3,14 +3,9 @@
 -- Preservation of value as arithmetic: what ONE accepted transaction does to
 -- `total`, with the hash answered by an arbitrary oracle.
 --
--- `applyTx-total-fresh` is the combinatorial content of the birthday bound at
--- the ledger side: no value is destroyed, UNLESS the hash keying the new
--- outputs already keys a live UTxO entry, in which case `unionNew` swallows
--- the output.
---
--- So a trajectory along which `total` moves has, at the step it moved, an
--- oracle answer colliding with a hash already keying the state; that is the
--- event the random oracle's counting bounds.
+-- `applyTx-total-fresh` is the ledger side of the birthday bound: no value is
+-- destroyed UNLESS the hash keying the new outputs already keys a live UTxO
+-- entry, in which case `unionNew` swallows the output.
 
 open import Class.DecEq
 

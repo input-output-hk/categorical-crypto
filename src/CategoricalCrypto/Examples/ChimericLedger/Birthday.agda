@@ -1,30 +1,17 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The birthday bound, proved: `target` inhabits `AtBirthday.Target`.
+-- The birthday bound, proved: at the input-consuming variant, no strategy of
+-- query budget `q` moves `total` away from genesis except with probability
+-- `εbirthday q`.  `Protocol.Safety.hit-bounded` carries the adaptivity, so
+-- what is owed here is a non-adaptive per-step certificate.
 --
--- `Protocol.Safety.hit-bounded` carries the adaptivity, so all that is owed
--- here is a NON-adaptive per-step certificate, and the design of its two data
--- is the whole content:
---
---   φ m (s , tbl) = Duplicate.Φ m (h₀ ∷ the hashes of tbl)
---
--- The indicator is a `dup` FLAG reconstructed from the state, not `badTotal`:
--- a collision need not destroy value on the spot (it can merely make an
--- already-hashed transaction replayable), so the potential has to record the
--- debt when the collision happens, which is when the sample is charged.
---
---   Inv (s , tbl) = flag tbl ≡ true  ⊎  Good (s , tbl)
---
--- and `Good` carries: the flag is clear, the UTxO keys are unique, every live
--- key's hash is one of `h₀∷tbl`, the value is intact, and — the crux —
--- `Stales`: every hash already in the table belongs to a transaction one of
--- whose inputs is already spent.  With `ser-inj` that says a table HIT at an
--- accepted transaction is impossible, which is what rules out the replay that
--- would destroy value with probability 1.  The witness for a freshly hashed
--- transaction is its FIRST INPUT, which exists only because `inputConsuming`
--- demands one: this is where the slides' repair is actually spent, and with
--- `chimeric` in its place the invariant is false (`Stale` needs that first
--- input, which `consumes chimeric` does not demand).
+-- Its crux is the `Stale` field of the invariant: every hash already in the
+-- oracle table belongs to a transaction one of whose inputs is already spent,
+-- so with `ser-inj` a table HIT at an accepted transaction is impossible —
+-- which is what rules out the replay that destroys value with probability 1.
+-- The witness for a freshly hashed transaction is its FIRST INPUT, which
+-- exists only because `inputConsuming` demands one: this is where the slides'
+-- repair is actually spent, and with `chimeric` in its place `Stale` is false.
 
 open import Class.DecEq
 
@@ -84,31 +71,29 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
   εbirthday q = fromℕ (q *ᴺ q +ᴺ q) * inv-pow-2 ℓ
 
   ----------------------------------------------------------------------
-  -- The hashes in play, and the flag that says two of them coincide
-  ----------------------------------------------------------------------
-
-  Hs : RO.Table → List Hash
-  Hs []             = h₀ ∷ []
-  Hs ((_ , h) ∷ tb) = h ∷ Hs tb
-
-  flag : RO.Table → Bool
-  flag tbl = dup (Hs tbl)
-
-  ----------------------------------------------------------------------
   -- The invariant
   ----------------------------------------------------------------------
 
-  -- A hash already in the table belongs to a transaction one of whose inputs
-  -- is already spent — so that transaction cannot be accepted again.
-  record Stale (u : Utxo) (hs : List Hash) (qs : List Bool) : Set where
-    constructor stale
-    field
-      tx    : Tx
-      serEq : ser tx ≡ qs
-      key   : TxIn
-      key∈  : key ∈ proj₁ tx
-      spent : lookupU u key ≡ nothing
-      hash∈ : proj₁ key ∈ hs
+  private
+    -- The hashes in play, and the flag that says two of them coincide.
+    Hs : RO.Table → List Hash
+    Hs []             = h₀ ∷ []
+    Hs ((_ , h) ∷ tb) = h ∷ Hs tb
+
+    flag : RO.Table → Bool
+    flag tbl = dup (Hs tbl)
+
+    -- A hash already in the table belongs to a transaction one of whose
+    -- inputs is already spent — so it cannot be accepted again.
+    record Stale (u : Utxo) (hs : List Hash) (qs : List Bool) : Set where
+      constructor stale
+      field
+        tx    : Tx
+        serEq : ser tx ≡ qs
+        key   : TxIn
+        key∈  : key ∈ proj₁ tx
+        spent : lookupU u key ≡ nothing
+        hash∈ : proj₁ key ∈ hs
 
   module _ (a₀ : Addr) (V : ℕ) where
 
@@ -122,19 +107,19 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
       Bad : St Sys₀ → Bool
       Bad = badTotal s₀
 
-    record Good (st : St Sys₀) : Set where
-      field
-        nodup  : flag (proj₂ st) ≡ false
-        uniq   : Uniq (proj₁ (proj₁ st))
-        hashed : ∀ k → k ∈ keysU (proj₁ (proj₁ st)) → proj₁ k ∈ Hs (proj₂ st)
-        stales : All (λ e → Stale (proj₁ (proj₁ st)) (Hs (proj₂ st)) (proj₁ e)) (proj₂ st)
-        intact : total (proj₁ st) ≡ total s₀
+      record Good (st : St Sys₀) : Set where
+        field
+          nodup  : flag (proj₂ st) ≡ false
+          uniq   : Uniq (proj₁ (proj₁ st))
+          hashed : ∀ k → k ∈ keysU (proj₁ (proj₁ st)) → proj₁ k ∈ Hs (proj₂ st)
+          stales : All (λ e → Stale (proj₁ (proj₁ st)) (Hs (proj₂ st)) (proj₁ e)) (proj₂ st)
+          intact : total (proj₁ st) ≡ total s₀
 
-    Inv : St Sys₀ → Set
-    Inv st = flag (proj₂ st) ≡ true ⊎ Good st
+      Inv : St Sys₀ → Set
+      Inv st = flag (proj₂ st) ≡ true ⊎ Good st
 
-    φ : ℕ → St Sys₀ → ℚ
-    φ m st = Φ m (Hs (proj₂ st))
+      φ : ℕ → St Sys₀ → ℚ
+      φ m st = Φ m (Hs (proj₂ st))
 
     ----------------------------------------------------------------------
     -- Reading one activation
@@ -306,83 +291,84 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
         served : Goal
         served = go (RO.lookup-bs tbl qs) refl
 
-    cert : HitCert Sys₀ Bad εbirthday
-    cert = record
-      { Inv    = Inv
-      ; φ      = φ
-      ; inv₀   = inj₂ record
-          { nodup  = refl
-          ; uniq   = refl , tt
-          ; hashed = λ where k (here p) → here (cong proj₁ p)
-          ; stales = All.[]
-          ; intact = refl
-          }
-      ; pres   = λ st q inv → evalC-support (step Sys₀ st q) (presTree st q inv)
-      ; φ-nn   = λ m st _ → 0≤Φ m (Hs (proj₂ st))
-      ; φ-bad  = φ-bad
-      ; φ-step = φ-step
-      ; φ-init = λ m → ≤-trans (≤-reflexive (+-identityˡ (Γ 1 m))) (birthday m)
-      }
-      where
-      φ-bad : ∀ m st → Inv st → Bad st ≡ true → 1ℚ ≤ℚ φ m st
-      φ-bad m st (inj₁ fl)   _  = dup⇒1≤Φ m (Hs (proj₂ st)) fl
-      φ-bad m st (inj₂ good) bd = case trans (sym bd)
-        (cong not (Equivalence.to T-≡
-          (≡⇒≡ᵇ (total (proj₁ st)) (total s₀) (Good.intact good)))) of λ ()
-
-      φ-step : ∀ m st q → Inv st
-             → E⊥ (kernel Sys₀ st q) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) st
-      φ-step m (s , tbl) audit _ = point-step m s tbl s (totalIs (total s))
-      φ-step m (s , tbl) (submit tx) inv with shape ser inputConsuming s tx
-      ... | rejected eq = subst (λ t → E⊥ (evalC t) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) (s , tbl))
-                                (sym (step-rejected s tbl tx eq))
-                                (point-step m s tbl s (ok false))
-      φ-step m (s , tbl) (submit (ins , wds , outs)) inv
-          | accepted vIn u′ a′ e₁ e₂ ec eq =
-            subst (λ t → E⊥ (evalC t) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) (s , tbl))
-                  (sym (step-accepted s tbl ins wds outs eq)) served
+    private
+      cert : HitCert Sys₀ Bad εbirthday
+      cert = record
+        { Inv    = Inv
+        ; φ      = φ
+        ; inv₀   = inj₂ record
+            { nodup  = refl
+            ; uniq   = refl , tt
+            ; hashed = λ where k (here p) → here (cong proj₁ p)
+            ; stales = All.[]
+            ; intact = refl
+            }
+        ; pres   = λ st q inv → evalC-support (step Sys₀ st q) (presTree st q inv)
+        ; φ-nn   = λ m st _ → 0≤Φ m (Hs (proj₂ st))
+        ; φ-bad  = φ-bad
+        ; φ-step = φ-step
+        ; φ-init = λ m → ≤-trans (≤-reflexive (+-identityˡ (Γ 1 m))) (birthday m)
+        }
         where
-        qs = ser (ins , wds , outs)
+        φ-bad : ∀ m st → Inv st → Bad st ≡ true → 1ℚ ≤ℚ φ m st
+        φ-bad m st (inj₁ fl)   _  = dup⇒1≤Φ m (Hs (proj₂ st)) fl
+        φ-bad m st (inj₂ good) bd = case trans (sym bd)
+          (cong not (Equivalence.to T-≡
+            (≡⇒≡ᵇ (total (proj₁ st)) (total s₀) (Good.intact good)))) of λ ()
 
-        K : RO.Output → Calls HashIf (LState × Answer)
-        K r = ret ((newU u′ outs (proj₂ r) , a′) , ok true)
+        φ-step : ∀ m st q → Inv st
+               → E⊥ (kernel Sys₀ st q) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) st
+        φ-step m (s , tbl) audit _ = point-step m s tbl s (totalIs (total s))
+        φ-step m (s , tbl) (submit tx) inv with shape ser inputConsuming s tx
+        ... | rejected eq = subst (λ t → E⊥ (evalC t) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) (s , tbl))
+                                  (sym (step-rejected s tbl tx eq))
+                                  (point-step m s tbl s (ok false))
+        φ-step m (s , tbl) (submit (ins , wds , outs)) inv
+            | accepted vIn u′ a′ e₁ e₂ ec eq =
+              subst (λ t → E⊥ (evalC t) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) (s , tbl))
+                    (sym (step-accepted s tbl ins wds outs eq)) served
+          where
+          qs = ser (ins , wds , outs)
 
-        F : St Sys₀ × Answer → ℚ
-        F sr = φ m (proj₁ sr)
+          K : RO.Output → Calls HashIf (LState × Answer)
+          K r = ret ((newU u′ outs (proj₂ r) , a′) , ok true)
 
-        -- The fresh sample detaches as ONE uniform draw over `Hs`'s head.
-        expand : E⊥ (evalC (serve (ledger inputConsuming s₀) oracle K
-                              (uniformVec ℓ (λ h → ret ((qs , h) ∷ tbl , (fzero , h))))))
-                    F
-               ≡ E (uniform-Vec ℓ) (λ v → Φ m (v ∷ Hs tbl))
-        expand = trans
-          (evalC-serve-uniformVec (ledger inputConsuming s₀) oracle K ℓ
-            (λ h → ret ((qs , h) ∷ tbl , (fzero , h))) (maybeℚ F))
-          (trans (E-bind (uniform-Vec ℓ)
-                   (λ v → evalC (serve (ledger inputConsuming s₀) oracle K
-                            (ret ((qs , v) ∷ tbl , (fzero , v))))) (maybeℚ F))
-                 (lookupᴰℚ-cong-P (entries (uniform-Vec ℓ))
-                   (λ v → lookupᴰℚ-return
-                            (just (((newU u′ outs v , a′) , (qs , v) ∷ tbl) , ok true))
-                            (maybeℚ F))))
+          F : St Sys₀ × Answer → ℚ
+          F sr = φ m (proj₁ sr)
 
-        fresh-bound : E⊥ (evalC (serve (ledger inputConsuming s₀) oracle K
-                            (uniformVec ℓ (λ h → ret ((qs , h) ∷ tbl , (fzero , h)))))) F
-                    ≤ℚ φ (suc m) (s , tbl)
-        fresh-bound = ≤-trans (≤-reflexive expand) (Φ-fresh m (Hs tbl))
+          -- The fresh sample detaches as ONE uniform draw over `Hs`'s head.
+          expand : E⊥ (evalC (serve (ledger inputConsuming s₀) oracle K
+                                (uniformVec ℓ (λ h → ret ((qs , h) ∷ tbl , (fzero , h))))))
+                      F
+                 ≡ E (uniform-Vec ℓ) (λ v → Φ m (v ∷ Hs tbl))
+          expand = trans
+            (evalC-serve-uniformVec (ledger inputConsuming s₀) oracle K ℓ
+              (λ h → ret ((qs , h) ∷ tbl , (fzero , h))) (maybeℚ F))
+            (trans (E-bind (uniform-Vec ℓ)
+                     (λ v → evalC (serve (ledger inputConsuming s₀) oracle K
+                              (ret ((qs , v) ∷ tbl , (fzero , v))))) (maybeℚ F))
+                   (lookupᴰℚ-cong-P (entries (uniform-Vec ℓ))
+                     (λ v → lookupᴰℚ-return
+                              (just (((newU u′ outs v , a′) , (qs , v) ∷ tbl) , ok true))
+                              (maybeℚ F))))
 
-        StepGoal : Set
-        StepGoal = E⊥ (evalC (serve (ledger inputConsuming s₀) oracle K
-                                (step oracle tbl (fzero , qs)))) F
-                 ≤ℚ φ (suc m) (s , tbl)
+          fresh-bound : E⊥ (evalC (serve (ledger inputConsuming s₀) oracle K
+                              (uniformVec ℓ (λ h → ret ((qs , h) ∷ tbl , (fzero , h)))))) F
+                      ≤ℚ φ (suc m) (s , tbl)
+          fresh-bound = ≤-trans (≤-reflexive expand) (Φ-fresh m (Hs tbl))
 
-        go : (r : Maybe Hash) → RO.lookup-bs tbl qs ≡ r → StepGoal
-        go (just h) eo rewrite oracle-hit tbl qs h eo =
-          point-step m s tbl (newU u′ outs h , a′) (ok true)
-        go nothing  eo rewrite oracle-miss tbl qs eo = fresh-bound
+          StepGoal : Set
+          StepGoal = E⊥ (evalC (serve (ledger inputConsuming s₀) oracle K
+                                  (step oracle tbl (fzero , qs)))) F
+                   ≤ℚ φ (suc m) (s , tbl)
 
-        served : StepGoal
-        served = go (RO.lookup-bs tbl qs) refl
+          go : (r : Maybe Hash) → RO.lookup-bs tbl qs ≡ r → StepGoal
+          go (just h) eo rewrite oracle-hit tbl qs h eo =
+            point-step m s tbl (newU u′ outs h , a′) (ok true)
+          go nothing  eo rewrite oracle-miss tbl qs eo = fresh-bound
+
+          served : StepGoal
+          served = go (RO.lookup-bs tbl qs) refl
 
     target : TrajectoryLossBounded inputConsuming (genesis h₀ a₀ V) εbirthday
     target = hit-bounded Sys₀ Bad cert
