@@ -429,12 +429,11 @@ module Compose where
       qT = qb-resp-≈ (Equiv.sym (T₁-⊗ M W (f n))) (qb-T₁ {W} (qf n))
 
   -- Plugging a process under the DOMAIN, where `≈ctx-pre` plugs one under the
-  -- SUBROUTINE.  The closure absorbs it and at rate `0` that is free: the
-  -- closure's budget becomes `(0 ⊔ 1) * c′`, which `ctxBudget` reads as `c′`
-  -- itself, so the schedule is unchanged rather than reindexed.
-  -- This is what puts a comparison at a CLOSED domain, with the resource the
-  -- two sides must agree about moved out of the context's control
-  -- (`docs/coin-toss.md` §5).
+  -- SUBROUTINE.  The closure absorbs it, and at rate `0` that is free: the
+  -- pullback's control is `reindex (1 *_)`, so the schedule is unchanged
+  -- rather than reindexed and no guard is needed.  This is what puts a
+  -- comparison at a CLOSED domain, with the resource the two sides must agree
+  -- about moved out of the context's control (`docs/coin-toss.md` §5).
   ≈ctx-dom : {A′ : ℕ → Channel} (p : (n : ℕ) → A′ n ⇒ A n) → ((n : ℕ) → QB 0 (p n))
            → (ε : ℕ → ℕ → ℚ) {u v : Homᶠ A X B} → u ≈ctx[ ε ] v
            → (λ n → u n ∘ p n) ≈ctx[ ε ] (λ n → v n ∘ p n)
