@@ -56,7 +56,7 @@ open import CategoricalCrypto.UC.Model.Family using (Δ)
 open import CategoricalCrypto.UC.Model.Family.Ingest using (ifaceᶠ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.QueryBound using (qb-closed)
-open import CategoricalCrypto.UC.Saturated using (Bad; Systems)
+open import CategoricalCrypto.UC.Saturated using (Systems)
 open import CategoricalCrypto.UC.Seam.Grounded using (𝟘ᴳ)
 
 module CategoricalCrypto.Examples.ChimericLedger.FactorEps
@@ -139,17 +139,6 @@ module _ (vr : Variant) (s : (n : ℕ) → Ledger.LState n) where
 
 module _ (a V : ℕ) (hash : Systems HashIf^ω) where
 
-  Realᵉ : Systems LedgerIf^ω
-  Realᵉ = Realᴴ hash inputConsuming (gen a V)
-
-  badᵉ : Bad Realᵉ
-  badᵉ n = L.badTotal n (gen a V n)
-
-  -- `Real.real-truthful` at this naming of the same family: an audit answer
-  -- reports the LEDGER's state whatever it hashes with.
-  truthfulᵉ : TruthfulAudit a V Realᵉ badᵉ
-  truthfulᵉ n = T.monitor-complete n (hash n) inputConsuming (gen a V n)
-
   -- `Real.ledger-pov`'s conclusion from an ε-RETAINING premise about the hash
   -- alone.  Neither `TotalRun` nor `NoDeadStep` appears: the pointwise theorem
   -- spends totality to collapse an emulation into an agreement, and there is
@@ -157,10 +146,14 @@ module _ (a V : ℕ) (hash : Systems HashIf^ω) where
   ledger-pov-from-hashⁿ : SerInj → hash ≤UC^ωⁿ oracle^ω → (p : ℕ → ℕ) → Poly p
                         → Σ[ f ∈ (ℕ → ℚ) ] Negligible f
                           × ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
-                             → asks≤ (p n) d → PrHit (Realᵉ n) (badᵉ n) d ℚ.≤ f n)
+                             → asks≤ (p n) d
+                             → PrHit (Real a V inputConsuming hash n)
+                                     (badReal a V inputConsuming hash n) d ℚ.≤ f n)
   ledger-pov-from-hashⁿ si hp =
-    ledger-pov-family-negligible a V si Realᵉ badᵉ
-      (hash-liftⁿ inputConsuming (gen a V) hash hp) truthfulᵉ
+    ledger-pov-family-negligible a V si (Real a V inputConsuming hash)
+      (badReal a V inputConsuming hash)
+      (hash-liftⁿ inputConsuming (gen a V) hash hp)
+      (real-truthful a V inputConsuming hash)
 
 ------------------------------------------------------------------------
 -- …and the qualitative corollary derived from it
@@ -176,8 +169,8 @@ module _ (a V : ℕ) (hash : Systems HashIf^ω) (nd : (n : ℕ) → NoDeadStep (
                         → Σ[ f ∈ (ℕ → ℚ) ] Negligible f
                           × ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
                              → asks≤ (p n) d
-                             → PrHit (Real a V inputConsuming hash nd n)
-                                     (badReal a V inputConsuming hash nd n) d ℚ.≤ f n)
+                             → PrHit (Real a V inputConsuming hash n)
+                                     (badReal a V inputConsuming hash n) d ℚ.≤ f n)
   ledger-pov-from-hash′ si hp = ledger-pov-from-hashⁿ a V hash si (uc-≤UC^ωⁿ tHash hp)
     where
     tHash : (n : ℕ) → TotalRun (HashIf^ω n) (morphism (hash n))

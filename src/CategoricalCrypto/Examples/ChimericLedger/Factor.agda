@@ -109,8 +109,8 @@ module _ (a V : ℕ) (hash : Systems HashIf^ω) (nd : (n : ℕ) → NoDeadStep (
                        → Σ[ f ∈ (ℕ → ℚ) ] Negligible f
                          × ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
                             → asks≤ (p n) d
-                            → PrHit (Real a V inputConsuming hash nd n)
-                                    (badReal a V inputConsuming hash nd n) d ℚ.≤ f n)
+                            → PrHit (Real a V inputConsuming hash n)
+                                    (badReal a V inputConsuming hash n) d ℚ.≤ f n)
   ledger-pov-from-hash si hp =
     ledger-pov a V inputConsuming hash nd si
                (hash-lift hash inputConsuming (gen a V) hp)

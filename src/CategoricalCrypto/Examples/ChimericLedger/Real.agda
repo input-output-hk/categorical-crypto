@@ -66,8 +66,7 @@ open import CategoricalCrypto.Examples.ChimericLedger.Schedule ser
 -- interface; `vr` is the ledger's variant, `inputConsuming` being the one the
 -- ideal side's bound is proved at (`ChimericLedger.Birthday`).
 module _ (a V : ℕ) (vr : Variant)
-         (hash : (n : ℕ) → Protocol unitᴵ (L.HashIf n))
-         (nd : (n : ℕ) → NoDeadStep (hash n)) where
+         (hash : (n : ℕ) → Protocol unitᴵ (L.HashIf n)) where
 
   Real : Systems LedgerIf^ω
   Real n = L.Sysᴴ n (hash n) vr (gen a V n)
@@ -76,18 +75,21 @@ module _ (a V : ℕ) (vr : Variant)
   badReal : Bad Real
   badReal n = L.badTotal n (gen a V n)
 
-  realTotal : (n : ℕ) → TotalRun (LedgerIf^ω n) (morphism (Real n))
-  realTotal n = Tt.totalRun-Sys n (hash n) (nd n) vr (gen a V n)
-
   real-truthful : TruthfulAudit a V Real badReal
   real-truthful n = T.monitor-complete n (hash n) vr (gen a V n)
 
-  -- The slides' claim: the emulation and the injective serialization, in; a
-  -- negligible bound on the real ledger's loss of value, out.  The number is
-  -- `ledger-pov-negligible`'s, the birthday bound at the audit-adjusted
-  -- allowance plus the carry's slack: `((2·p n)² + 2·p n)·2⁻ⁿ + νₚ n`.
-  ledger-pov : SerInj → Real ≤UC^ω Ideal a V → (p : ℕ → ℕ) → Poly p
-             → Σ[ f ∈ (ℕ → ℚ) ] Negligible f
-               × ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
-                  → asks≤ (p n) d → PrHit (Real n) (badReal n) d ℚ.≤ f n)
-  ledger-pov si em = ledger-pov-negligible a V si Real badReal realTotal em real-truthful
+  module _ (nd : (n : ℕ) → NoDeadStep (hash n)) where
+
+    realTotal : (n : ℕ) → TotalRun (LedgerIf^ω n) (morphism (Real n))
+    realTotal n = Tt.totalRun-Sys n (hash n) (nd n) vr (gen a V n)
+
+    -- The slides' claim: the emulation and the injective serialization, in; a
+    -- negligible bound on the real ledger's loss of value, out.  The number is
+    -- `ledger-pov-negligible`'s, the birthday bound at the audit-adjusted
+    -- allowance plus the carry's slack: `((2·p n)² + 2·p n)·2⁻ⁿ + νₚ n`.
+    ledger-pov : SerInj → Real ≤UC^ω Ideal a V → (p : ℕ → ℕ) → Poly p
+               → Σ[ f ∈ (ℕ → ℚ) ] Negligible f
+                 × ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
+                    → asks≤ (p n) d → PrHit (Real n) (badReal n) d ℚ.≤ f n)
+    ledger-pov si em =
+      ledger-pov-negligible a V si Real badReal realTotal em real-truthful
