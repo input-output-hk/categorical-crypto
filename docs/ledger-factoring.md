@@ -100,7 +100,7 @@ liftᵖ : {B C : Iface} (P₂ : Protocol B C) (u v : Protocol unitᴵ B)
 ```
 
 The route is `UC-compose`, in the INHERITED order — `Abstract2.UC-compose`,
-which `UC.Model.Setup` inherits through `StdUC` and `UC.Model.Bridge`
+which `UC.Model.Setup` inherits through `StdUC` and `UC.Core.Bridge`
 identifies with the core's. Three moves:
 
 1. `UC-compose p (≤UC-refl (stageᵒ (morphism P₂)))` gives
