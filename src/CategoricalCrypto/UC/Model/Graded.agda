@@ -5,10 +5,11 @@
 -- `UC.Model.Seal.gradedᵒ` already crosses the seal for the object part: a
 -- `Proc A (X ⊗ᴵ B)` — a process with an adversary interface `X` beside its
 -- honest one — is a hom `ifaceᵒ A ⇒ ifaceᵒ X ⊗₀ ifaceᵒ B`, i.e. a graded hom at
--- the grade `ifaceᵒ X`.  What was missing is the two facts a UC statement about
--- such a hom needs, and neither is derivable outside the block: that `gradedᵒ`
--- respects the machine equality, and that the grading's `sub` acting on it is
--- the machine-layer relay `subᴵ` composed with it.
+-- the grade `ifaceᵒ X`.  What was missing is the three facts a UC statement
+-- about such a hom needs, none of them derivable outside the block: that
+-- `gradedᵒ` respects the machine equality, that the grading's `sub` acting on
+-- it is the machine-layer relay `subᴵ` composed with it, and that a process
+-- plugged under it leaves one machine composite.
 --
 -- `graded₂ᵒ` and the four exports around it are the same facts for a stage
 -- plugged ON TOP of such a hom, which is what `UC.Asymptotic.Compose._∙ᶠ_`
@@ -21,7 +22,7 @@
 -- inseparable from its certificate there): `plug-gradedᵒ` is what says the
 -- filled grade is a machine composite.
 --
--- All nine are `UC.Model.Seal`'s third discipline (export from inside, one
+-- All ten are `UC.Model.Seal`'s third discipline (export from inside, one
 -- export per shape).  The statements are written in the bundle's own vocabulary
 -- rather than in `StdUC`'s, because `unfolding 𝔾ᵒ` in a module that opens
 -- `StdUC` is the 12 GiB configuration `UC.Model.Enrichment`'s header records;
@@ -62,6 +63,13 @@ opaque
                 G.≈ gradedᵒ (M._∘_ (subᴵ′ {X} {Y} {B} s) g)
   sub-gradedᵒ s g = G.∘-resp-≈ˡ (G.Equiv.sym (sub-⊗₁ s))
 
+  -- A process plugged UNDER such a hom — a resource installed below a graded
+  -- system — leaves one machine composite, which is the `Proc` form
+  -- `UC.Model.Dominated.dominatedᵍᵠ` consumes.
+  graded-∘ᵒ : {A A′ X B : Iface} (f : Proc A′ (X ⊗ᴵ B)) (g : Proc A A′)
+            → (gradedᵒ f G.∘ procᵒ g) G.≈ gradedᵒ (M._∘_ f g)
+  graded-∘ᵒ _ _ = G.Equiv.refl
+
   -- The graded image of a process whose grade is already a tensor, which is the
   -- shape a COMPOSED system has.  A separate export because the seal hides the
   -- tensor and the bracketing is what distinguishes it (`UC.Model.Seal`'s third
@@ -74,8 +82,7 @@ opaque
          → 𝒢ₚ 0ℓ [ f ≈ g ] → graded₂ᵒ f G.≈ graded₂ᵒ g
   ≈ᴹ⇒≈ᵍ₂ e = e
 
-  -- A closed process plugged UNDER such a hom: the domain becomes the unit
-  -- interface and the whole is again one machine composite.
+  -- `graded-∘ᵒ` at a tensor grade.
   graded₂-∘ᵒ : {A A′ X P C : Iface} (f : Proc A′ ((X ⊗ᴵ P) ⊗ᴵ C)) (g : Proc A A′)
              → (graded₂ᵒ f G.∘ procᵒ g) G.≈ graded₂ᵒ (M._∘_ f g)
   graded₂-∘ᵒ _ _ = G.Equiv.refl
