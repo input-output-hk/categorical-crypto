@@ -3,9 +3,9 @@
 -- Carrying an audit-form bound across an emulation: the graded half of the
 -- seam's carry.
 --
--- `UC.Seam.pov-carry` consumes agreement between two CLOSED processes, which is
--- what `UC.Seam.Grounded.unitGrade` reads off an emulation at a degenerate
--- grade.  An emulation in general is not that: `f ≤UC g` compares processes
+-- `UC.Seam.pov-carry` consumes agreement between two CLOSED processes, which
+-- an emulation at a degenerate grade collapses to
+-- (`UC.Seam.Grounded.subBlind`).  An emulation in general is not that: `f ≤UC g` compares processes
 -- carrying adversary interfaces and the simulator lives at that grade, so
 -- `audit-carry` is the carry that keeps it — an ideal-side bound on the audit
 -- event becomes a real-side bound at the emulation's slack, the simulator
