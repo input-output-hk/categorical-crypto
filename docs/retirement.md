@@ -144,7 +144,8 @@ strictly more general in `h₀` than `Schedule.ideal-bounded`, which fixes
 `h₀ n = replicate n false`. It now has no in-repo importer and is checked as its
 own leaf, joining `Carry` and `Pin` (so four `Examples/ChimericLedger/*` leaves
 cover the fourteen modules, where `docs/consumer-migration.md` §5 recorded
-three).
+three).  Superseded 2026-09-21: the redesign leaves nine modules under two
+leaves, `Transfer` and `Replay` ([`end-to-end.md`](end-to-end.md)).
 
 **Net −49 LOC** (60 deleted, 11 added), and the module sheds every `UC.*`
 import it had.
@@ -355,6 +356,11 @@ branch's table; that worktree is removed again.
 | `UC.Family.Negligible` | 88 → 85 | 4 s | 5 s | 81 s |
 | `Examples.ChimericLedger.Audit` | 88 → 39 | 10 s | 6 s | 69 s |
 | `Examples.ChimericLedger.EndToEnd` | 314 → 294 | 10 s | 11 s | 133 s |
+
+Both ledger rows are historical from 2026-09-21: `ChimericLedger.Audit` and
+`ChimericLedger.EndToEnd` were deleted by the ledger redesign, whose nine
+modules and two covering leaves (`Transfer`, `Replay`) are in
+[`end-to-end.md`](end-to-end.md).
 | `Examples.HashForward.Audit` (comment only) | 137 → 137 | 10 s | 9 s | 94 s |
 | `CategoricalCrypto.UC` | 228 → 229 | 9 s | 10 s | 117 s |
 

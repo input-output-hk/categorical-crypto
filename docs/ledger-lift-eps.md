@@ -1,5 +1,11 @@
 # Lifting the hash premise through the ledger without forgetting its error
 
+> **Route history (2026-09-21).** The ledger example was redesigned on
+> `ledger-redesign`: the headline property is now the interface-observable
+> `Property.PreservesValue` and the single route is `_≤UC^ωⁿ_`. Module and
+> theorem names below predate that and are not a map of the current tree —
+> [`end-to-end.md`](end-to-end.md) is. Kept for the reasoning, not the paths.
+
 Plan step 6, the part independent of step 5 (`docs/uc-presheaf-preservation-plan.md`
 §4.5, §6.6), on branch `ledger-lift-eps` off `protocol-rewrite` at `f4b1e007`. Paths
 are relative to `src/CategoricalCrypto/` unless prefixed.

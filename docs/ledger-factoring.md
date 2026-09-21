@@ -1,5 +1,11 @@
 # Factoring the ledger as `Ledger ∘ RO` at the UC level
 
+> **Route history (2026-09-21).** The ledger example was redesigned on
+> `ledger-redesign`: the headline property is now the interface-observable
+> `Property.PreservesValue` and the single route is `_≤UC^ωⁿ_`. Module and
+> theorem names below predate that and are not a map of the current tree —
+> [`end-to-end.md`](end-to-end.md) is. Kept for the reasoning, not the paths.
+
 The chimeric ledger is built from two protocols already:
 
 ```agda

@@ -1,5 +1,11 @@
 # Consumer migration
 
+> **Route history (2026-09-21).** The ledger example was redesigned on
+> `ledger-redesign`: the headline property is now the interface-observable
+> `Property.PreservesValue` and the single route is `_≤UC^ωⁿ_`. Module and
+> theorem names below predate that and are not a map of the current tree —
+> [`end-to-end.md`](end-to-end.md) is. Kept for the reasoning, not the paths.
+
 Branch `consumer-migration`, off `protocol-rewrite` at `82b967b1`. This is
 [`docs/uc-presheaf-preservation-plan.md`](uc-presheaf-preservation-plan.md) §6
 step 6, the half that `docs/ledger-lift-eps.md` left (it did §4.5, the

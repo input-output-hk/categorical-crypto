@@ -1,5 +1,9 @@
 # Quality review — protocol-rewrite (2026-09-11)
 
+> **2026-09-21.** The `Examples/ChimericLedger/*` findings below name modules the
+> ledger redesign has since split, merged or deleted; the current nine-module
+> layout and its theorem names are in [`docs/end-to-end.md`](docs/end-to-end.md).
+
 Scope: round 2 — the 109 live `.agda` files changed in `140a5fef..6256a140` under
 `src/`, excluding `ProbabilisticLogic/Distribution/Binomial/` (a parallel agent owns
 it), plus `Machine/Core.agda` and `Examples/Basic.agda`, named in the brief. Base
