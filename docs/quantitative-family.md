@@ -158,28 +158,26 @@ lemma whose premise is that morphism's own certificate.
 | Name | file:line | moved | allowance substitution | extra premise |
 |---|---|---|---|---|
 | `≈ctx-ext` | `:89` | continuation `k` into the TEST | `q ↦ simCost q (ck n)`, **exact** (`ctxBudget-simCost`) | `QB (ck n) (k n)` |
-| `≈ctx-pre` | `:126` | process `f` into the CLOSURE | `q ↦ simCost q (cf n)`, **a bound** (`ctxBudget-closure≤`) | `QB (cf n) (f n)` **and** `Allowance-mono ε` |
+| `≈ctx-pre` | `:126` | process `f` into the CLOSURE | `q ↦ simCost q (cf n)`, **exact** (`ctxBudget-closure`) | `QB (cf n) (f n)` |
 
-The asymmetry is real and is the whole of item 8's discipline. Absorbing into the test
-multiplies the test's own budget, and `ctxBudget c c′ = c * (c′ ⊔ 1)` is linear in `c`, so
-the substitution is an identity. Absorbing into the closure hits the leg `ctxBudget`
-*guards*: what comes out is `ctxBudget c ((cf ⊔ 1) * c′)`, and only
+Absorbing into the test multiplies the test's own budget, and
+`ctxBudget c c′ = c * (c′ ⊔ 1)` is linear in `c`, so the substitution is an identity.
+Absorbing into the closure hits the leg `ctxBudget` *guards*: at the closure's own
+`(cf ⊔ 1) * c′` only `≤` holds. `≈ctx-pre` therefore certifies the new closure one step
+higher — `qb-mono` always affords it, budgets being upper bounds — and there the guard is
+inside and the substitution is exact:
 
 ```text
-ctxBudget c ((cs ⊔ 1) * c′) ≤ simCost (ctxBudget c c′) cs      (UC.Budget.ctxBudget-closure≤)
+ctxBudget c ((cs ⊔ 1) * (c′ ⊔ 1)) ≡ simCost (ctxBudget c c′) cs   (UC.Budget.ctxBudget-closure)
 ```
 
-holds. Reading `ε` at the larger allowance is `≈ₚ[]-mono` applied to `mono n (that bound)`,
-and `Allowance-mono` is an explicit premise — `NegligibleBound` constrains `ε` at each
-allowance separately and says nothing about their order, so an arbitrary schedule is not
-monotone by fiat.
+so no theorem here reads `ε` at an inequality of allowances.
 
 ### Graded — `UC-composeᵉ` (`:190`)
 
 ```text
   (sf : Certified Y X) (εf) → NegligibleBound εf → f ≈ctx[ εf ] subᶠ sf g
-→ (t : Certified Q P) (εu) → NegligibleBound εu → Allowance-mono εu
-                           → u ≈ctx[ εu ] subᶠ t v
+→ (t : Certified Q P) (εu) → NegligibleBound εu → u ≈ctx[ εu ] subᶠ t v
 → (cf) → Poly cf → ((n : ℕ) → QB (cf n) (f n))
 → (cv) → Poly cv → ((n : ℕ) → QB (cv n) (v n))
 → (u ∙ᶠ f) ≤UC^ωᵉ (v ∙ᶠ g)
@@ -187,7 +185,7 @@ monotone by fiat.
 
 Construction, step for step against `Abstract2.UC-compose` at the identity adversary:
 
-1. `≈ctx-pre f cf qf εu mono eu` — `∙-cong-arg`'s step, moving `f` into the closure:
+1. `≈ctx-pre f cf qf εu eu` — `∙-cong-arg`'s step, moving `f` into the closure:
    `(u ∙ᶠ f) ≈ctx[ λ n q → εu n (simCost q (cf n)) ] ((subᶠ t v) ∙ᶠ f)`.
 2. `≈ctx-ext (subᶠ t v) ctv qtv εf ef` — `ext-cong`'s step, moving the *simulated*
    continuation into the test, at `ctv n = (cost t n ⊔ 1) * cv n` (its certificate is
@@ -202,7 +200,7 @@ Construction, step for step against `Abstract2.UC-compose` at the identity adver
 **The two exact allowance substitutions are therefore**
 
 ```text
-εu  ↦  λ n q → εu n (simCost q (cf n))          -- f into the closure   (a BOUND, needs Allowance-mono εu)
+εu  ↦  λ n q → εu n (simCost q (cf n))          -- f into the closure     (exact)
 εf  ↦  λ n q → εf n (simCost q ((cost t n ⊔ 1) * cv n))   -- sub t ∘ v into the test (exact)
 ```
 
@@ -221,7 +219,7 @@ Three reindexing facts are used and all three are proved:
 |---|---|---|
 | `ctxBudget (c * 1) c′ ≡ ctxBudget c c′` | `*-identityʳ`, inline in the rebracketings | identity |
 | `ctxBudget (c * ((cs ⊔ 1) ⊔ 1)) c′ ≡ simCost (ctxBudget c c′) cs` | `UC/Budget.agda:107` (`ctxBudget-absorb`) | identity |
-| `ctxBudget c ((cs ⊔ 1) * c′) ≤ simCost (ctxBudget c c′) cs` | `UC/Budget.agda:119` (`ctxBudget-closure≤`) | **bound** ⇒ `Allowance-mono` |
+| `ctxBudget c ((cs ⊔ 1) * (c′ ⊔ 1)) ≡ simCost (ctxBudget c c′) cs` | `UC/Budget.agda:116` (`ctxBudget-closure`) | identity, after a `qb-mono` bump |
 
 `UC.Approximate.GradedBound-reindex` (`:189`) is the grade-level closure: a bound read at
 `r n q` in place of `q` keeps its grade exactly when `r` preserves polynomials. It assumes
@@ -282,24 +280,20 @@ Checked green, unedited: `src/CategoricalCrypto.agda`, `UC.agda`, `UC/Model.agda
 
 ## 10. Not delivered
 
-1. **A monotone envelope for `ε`.** `≈ctx-pre` and hence `UC-composeᵉ` take
-   `Allowance-mono` as a premise, which is the plan's first option. The second —
-   `ε↑ n q = max over q″ ≤ q` — is constructible here (`Data.Nat.Poly.poly-≤` makes `Poly`
-   downward closed, which is what `NegligibleBound ε↑` would need) but wants a finite
-   `ℚ`-max over `0 … q` and its argmax; it is not built. The signature it would have:
+1. ~~**A monotone envelope for `ε`.**~~ RESOLVED 2026-09-21, and no envelope was needed:
+   the monotonicity premise itself is gone. A query bound is an UPPER bound, so `qb-mono`
+   lets `≈ctx-pre` certify its new closure at `(cf n ⊔ 1) * (c′ ⊔ 1)` instead of
+   `(cf n ⊔ 1) * c′`, which puts `ctxBudget`'s guard inside the product and makes the
+   allowance substitution an identity (`UC.Budget.ctxBudget-closure`). `Allowance-mono`
+   is deleted; `≈ctx-pre` and `UC-composeᵉ` no longer take it.
 
-   ```agda
-   envelope : (ε : ℕ → ℕ → ℚ) → Σ[ ε↑ ∈ (ℕ → ℕ → ℚ) ]
-                Allowance-mono ε↑ × ((n q : ℕ) → ε n q ℚ.≤ ε↑ n q)
-                × (NegligibleBound ε → NegligibleBound ε↑)
-   ```
-
-2. **A packaged `f ≤UC^ωᵉ g → u ≤UC^ωᵉ v → (u ∙ᶠ f) ≤UC^ωᵉ (v ∙ᶠ g)`.** `UC-composeᵉ` takes
-   its components explicitly instead, because `Allowance-mono εu` cannot be stated about a
-   schedule that is existentially bound inside `u ≤UC^ωᵉ v`. Adding `Allowance-mono` as a
-   fifth component of `_≤UC^ωᵉ_` would give the packaged form and would cost
-   `≤UC^ωⁿ⇒≤UC^ωᵉ` a premise `_≤UC^ωⁿ_` does not carry; that is a maintainer's call, and it
-   is in `QUALITY-REVIEW.md`.
+2. ~~**A packaged `f ≤UC^ωᵉ g → u ≤UC^ωᵉ v → (u ∙ᶠ f) ≤UC^ωᵉ (v ∙ᶠ g)`.**~~ RESOLVED
+   2026-09-21 by item 1: the obstacle was stating `Allowance-mono εu` about a schedule
+   existentially bound inside `u ≤UC^ωᵉ v`, and there is no such premise any more.
+   `≤UC^ωᵉ-∙` is the packaged form, a three-line wrapper over `UC-composeᵉ`. It still
+   takes the two moved morphisms' query certificates explicitly — `_≤UC^ωᵉ_` bounds the
+   SIMULATOR, not the homs it compares — and `_≤UC^ωᵉ_` gained no fifth component, so
+   `≤UC^ωⁿ⇒≤UC^ωᵉ` is unchanged.
 
 3. **Consumer migration (plan step 6).** `ledger-uc-to-pov-family`,
    `ledger-pov-family-negligible`, `ledger-uc-to-pov-simCost`, `ledger-pov-simCost-negligible`

@@ -2923,7 +2923,11 @@ maintainer may want to rule differently.
    quantify uncertified adversaries and conclude at a schedule that is a *bound* (with an
    `Allowance-mono` premise) — strictly weaker, and not built.
 
-5. **`Allowance-mono` is a premise of `≈ctx-pre`/`UC-composeᵉ`, not a field of the
+5. **RESOLVED 2026-09-21 — `Allowance-mono` is gone**, premise and definition alike:
+   `≈ctx-pre` bumps its closure certificate with `qb-mono` to
+   `(cf n ⊔ 1) * (c′ ⊔ 1)`, where `UC.Budget.ctxBudget-closure` makes the allowance
+   substitution an identity, and `≤UC^ωᵉ-∙` is the packaged composition form. Original
+   entry: **`Allowance-mono` is a premise of `≈ctx-pre`/`UC-composeᵉ`, not a field of the
    witness.** Consequence: `UC-composeᵉ` takes its arguments as components rather than as
    two `_≤UC^ωᵉ_` values, because the schedule it needs monotone is existentially bound
    inside one of them. Making `Allowance-mono` a fifth component of `_≤UC^ωᵉ_` buys the
@@ -3625,7 +3629,9 @@ needs the maintainer's judgment.
   whether `≈ctx-dom` should be stated at a general rate with an
   `Allowance-mono` premise as well — I did not, because the rate-0 case is the
   one with the clean identity and the general one is `≈ctx-pre` conjugated.
-- **`Allowance-mono` is still not a component of `_≤UC^ωᵉ_`.** The brief asked
+- **RESOLVED 2026-09-21 — `Allowance-mono` is deleted, so it is a component of nothing;
+  see item 5 of the `quantitative-family` review above.** Original entry:
+  **`Allowance-mono` is still not a component of `_≤UC^ωᵉ_`.** The brief asked
   whether it should become one. This hop needed none, so the question is not
   forced by it; but note that the FIRST hop's `coin-toss-from-com` discharges
   it as `≤-refl` only because its outer comparison is the stage against

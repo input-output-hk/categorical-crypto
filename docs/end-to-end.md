@@ -252,9 +252,8 @@ ledger and one for the unit regrading, with both substitutions EXACT
 Every certificate `UC-composeᵉ` demands is proved rather than carried:
 `UC.QueryBound.qb-closed` for the hash (a closed process is 0-bounded),
 `ChimericLedger.QueryBound.qb-ledger` for the ledger (an instance of
-`UC.QueryBound.qb-oneCall`), and its `Allowance-mono` premise is discharged
-because the two sides share their upper stage and are compared at the zero
-schedule. `docs/ledger-lift-eps.md` has the substitutions and the residual.
+`UC.QueryBound.qb-oneCall`), and it asks nothing of the schedules' order.
+`docs/ledger-lift-eps.md` has the substitutions and the residual.
 
 `ledger-pov-from-hashⁿ` is `ledger-pov-family-negligible` behind `hash-liftⁿ`:
 the same bound, the same `TruthfulAudit`, and neither `TotalRun` nor
@@ -390,7 +389,6 @@ terms and the carry's own instantiation are expensive together.
    paragraph once priced as a core redesign is `UC.Asymptotic.Compose.UC-composeᵉ`
    — enrichment lemmas over the existing action, not a redesign. Expanded
    proposal: `docs/graded-observation-redesign.md`.
-4. **A monotone envelope for `ε`.** `≈ctx-pre` and hence `UC-composeᵉ` take
-   `Allowance-mono` as a premise; the constructed envelope wants a finite
-   `ℚ`-max over `0 … q` and its argmax and is not built
-   (`docs/quantitative-family.md` §10).
+4. ~~**A monotone envelope for `ε`.**~~ RESOLVED 2026-09-21: `≈ctx-pre` bumps its
+   closure certificate with `qb-mono` and substitutes exactly, so no monotonicity
+   premise and no envelope is needed (`docs/quantitative-family.md` §10).

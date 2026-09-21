@@ -39,8 +39,7 @@ after**, all 16 the words "postulate-free" in inherited comments).
 
 ```text
   (sf : Certified Y X) (εf) → NegligibleBound εf → f ≈ctx[ εf ] subᶠ sf g
-→ (t : Certified Q P) (εu) → NegligibleBound εu → Allowance-mono εu
-                           → u ≈ctx[ εu ] subᶠ t v
+→ (t : Certified Q P) (εu) → NegligibleBound εu → u ≈ctx[ εu ] subᶠ t v
 → (cf) → Poly cf → QB (cf n) (f n)
 → (cv) → Poly cv → QB (cv n) (v n)
 → (u ∙ᶠ f) ≤UC^ωᵉ (v ∙ᶠ g)
@@ -165,17 +164,12 @@ Everything `UC-composeᵉ` asks about the morphisms it MOVES is proved here:
 | `QB (cf n) (f n)`, `cf n = 1` | `recvQB` / `comQB` — the real `F_com` protocol's own bound | `CoinToss/UC.agda:158`, `Hiding/UC.agda:179` |
 | `QB (cv n) (v n)`, `cv n = 0` resp. `1` | `tossQB` / `tossʰQB` | `CoinToss/UC.agda:91`, `Hiding/UC.agda:107` |
 | `Poly cf`, `Poly cv` | `poly-const 1`; `poly-const 0` resp. `poly-const 1` | `Compose.agda:88-89`, `:138-139` |
-| `NegligibleBound εu` | `λ _ _ → Negligible-0` | `:86` |
-| **`Allowance-mono εu`** | `λ _ _ → ℚ.≤-refl` | `:86` |
-| `u ≈ctx[ εu ] subᶠ t v` at `t = idᶜ` | `≈C⇒≈ctx` off `sub-identityˡ` | `:87` |
+| `NegligibleBound εu` | `λ _ _ → Negligible-0` | `:85` |
+| `u ≈ctx[ εu ] subᶠ t v` at `t = idᶜ` | `≈C⇒≈ctx` off `sub-identityˡ` | `:86` |
 
-**Which side `Allowance-mono` lands on.** On `εu`, the OUTER comparison — the
-one `≈ctx-pre` moves the inner process into the closure for, where
-`ctxBudget-closure≤` is a bound and not an identity. Here the outer comparison
-is the coin-toss stage against ITSELF (only the subroutine's world changes), so
-`εu` is the zero schedule and monotonicity is `≤-refl`. That is
-`Examples.ChimericLedger.FactorEps.hash-liftᵉ`'s discharge verbatim, for the
-same reason: a shared upper stage.
+Nothing is asked of the schedules' order: `≈ctx-pre` bumps its closure
+certificate with `qb-mono` and substitutes exactly
+(`UC.Budget.ctxBudget-closure`).
 
 ### The composed ε, exactly
 
@@ -322,15 +316,14 @@ sides and compare at the CLOSED domain.
 (`UC/Asymptotic/Compose.agda:219`, `:251`.) The closure absorbs `p`, so its
 budget becomes `(0 ⊔ 1) * c′` — and `ctxBudget` GUARDS its closure leg at
 `_⊔ 1` rather than multiplying by it, so a factor the guard swallows costs the
-allowance nothing. The schedule is **unchanged** and no `Allowance-mono` is
-spent anywhere in the second hop.
+allowance nothing. The schedule is **unchanged** in the second hop.
 
 That is the route taken, in preference to instantiating `UC-composeᵉ` with the
 resource as its inner realization. Both work; the `UC-composeᵉ` one would put
 the resource's own trivial grade in front of the composed one
-(`𝟙 ⊗ (Lk ⊗ Advᶜ)` instead of `Lk ⊗ Advᶜ`), read the outer schedule at a
-`simCost` substitution, and need `Allowance-mono` on it. `≈ctx-dom` leaves the
-grade, the schedule and the premise alone, and its proof is six lines of
+(`𝟙 ⊗ (Lk ⊗ Advᶜ)` instead of `Lk ⊗ Advᶜ`) and read the outer schedule at a
+`simCost` substitution. `≈ctx-dom` leaves the grade and the schedule alone, and
+its proof is six lines of
 `T-homomorphism` plus one `*-identityˡ`.
 
 #### The ideal coin, and what it leaks
