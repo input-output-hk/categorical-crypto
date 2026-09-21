@@ -32,16 +32,16 @@ open import CategoricalCrypto.UC.Approximate.Decay
 open import CategoricalCrypto.UC.Asymptotic
 open import CategoricalCrypto.UC.Saturated
 
-import CategoricalCrypto.Examples.ChimericLedger.Birthday   as Bday
-import CategoricalCrypto.Examples.ChimericLedger.Observable as Obs
-import CategoricalCrypto.Examples.ChimericLedger.System     as Sys
+import CategoricalCrypto.Examples.ChimericLedger.Birthday   as Birthday
+import CategoricalCrypto.Examples.ChimericLedger.Observable as Observable
+import CategoricalCrypto.Examples.ChimericLedger.System     as System
 
 module CategoricalCrypto.Examples.ChimericLedger.Property
   (ser : (n : ℕ) → Ledger.Tx n → List Bool) where
 
 -- The two per-level modules, read at the schedule; `Transfer` reuses both.
-module AtLevel (n : ℕ) = Sys n (ser n)
-module Watched (n : ℕ) = Obs n (ser n)
+module AtLevel (n : ℕ) = System     n (ser n)
+module Watched (n : ℕ) = Observable n (ser n)
 
 -- Injectivity of the whole `ser` family: what the birthday theorem asks at
 -- each level, and all this example assumes about serialization.  It is per
@@ -96,4 +96,4 @@ module _ (a V : ℕ) where
   ideal-preserves-value : SerInj → PreservesValue Ideal
   ideal-preserves-value si = boundedᴺ {I = Ideal} {ε = εᴸ} {bad = auditWatch} λ n →
     Watched.auditWatch-bounded n inputConsuming (genesisAt n)
-      (Bday.target n (ser n) (h₀ n) (si n) a V)
+      (Birthday.target n (ser n) (h₀ n) (si n) a V)
