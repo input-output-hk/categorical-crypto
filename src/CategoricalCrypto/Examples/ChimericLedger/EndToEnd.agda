@@ -35,14 +35,13 @@
 -- `2⁻ⁿ`, negligible and positive (a carry off an ε-quantified agreement has no
 -- zero instance to take).
 --
--- `ledger-audit-carryᵈ` is the GRADED route beside it, where the simulator's
--- own query cost is charged (`simCost`), stated directly at the context.
--- `ledger-uc-to-pov-simCost` is that cost reaching a PROBABILITY: the premise
--- is a BUDGETED emulation and the allowance the birthday bound is read at is
--- `simCost (q + q) (cs n)`, the audit instrumentation's doubling composed with
--- the simulator's own rescaling.  It goes through `UC.Seam.Audit.Prefix`'s
--- prefix-tolerant class rather than through the trivial-grade collapse, which
--- is what `docs/end-to-end.md`'s closed obstruction owed.
+-- `ledger-uc-to-pov-simCost` is the BUDGETED route beside them, where the
+-- simulator's own query cost is charged (`simCost`): the allowance the
+-- birthday bound is read at is `simCost (q + q) (cs n)`, the audit
+-- instrumentation's doubling composed with the simulator's own rescaling.  It
+-- goes through `UC.Seam.Audit.Prefix`'s prefix-tolerant class rather than
+-- through the trivial-grade collapse, which is what `docs/end-to-end.md`'s
+-- closed obstruction owed.
 --
 -- The two are not ordered, and which way is worth saying: a budgeted emulation
 -- IS an emulation (`UC.Audit.Canonical.audit-forget` after `audit⇒witness`), so
@@ -62,13 +61,11 @@ open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ)
 
 open import ProbabilisticLogic.Distribution.Uniform using (inv-pow-2)
-open import ProbabilisticLogic.Dp using (_≈ₚ_)
-open import ProbabilisticLogic.Dp.Advantage using (Pr≤)
 open import ProbabilisticLogic.Dp.Mass using (ASTotal)
 
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Iface using (Neg; Pos)
-open import CategoricalCrypto.Protocol.Machine using (morphism; runᴹ)
+open import CategoricalCrypto.Protocol.Machine using (morphism)
 open import CategoricalCrypto.Protocol.Machine.Total using (TotalRun)
 open import CategoricalCrypto.Protocol.Observe using (PrHit)
 open import CategoricalCrypto.Strategy using (Strat; asks≤)
@@ -79,21 +76,17 @@ open import CategoricalCrypto.UC.Asymptotic
 open import CategoricalCrypto.UC.Asymptotic.Audit
 open import CategoricalCrypto.UC.Asymptotic.Family
   using (_≤UC^ωⁿ_; uc-≤UC^ωⁿ; ≤UC^ωⁿ⇒≈negl)
-open import CategoricalCrypto.UC.Model.Observation using (𝟘ᵒ)
-open import CategoricalCrypto.UC.Model.Seal using (ifaceᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Saturated
   using (_≈negl_; Bad; SaturatedBoundedᴺ; SaturatedHitᴺ; Systems)
 open import CategoricalCrypto.UC.Seam.Audit using (emulate; sim; simCost)
-open import CategoricalCrypto.UC.Seam.Grounded using (closedᵒ; simAstotal; 𝟘ᴳ)
+open import CategoricalCrypto.UC.Seam.Grounded using (simAstotal; 𝟘ᴳ)
 open import CategoricalCrypto.UC.Seam.Grounding.Dead using (pointᵒ)
 
 module CategoricalCrypto.Examples.ChimericLedger.EndToEnd
   (ser : (n : ℕ) → Ledger.Tx n → List Bool) where
 
 open import CategoricalCrypto.Examples.ChimericLedger.Schedule ser
-
-open C using (Closure; Test; obs; tv₁)
 
 private
   Strats : (n : ℕ) → Set
@@ -192,25 +185,6 @@ ledger-pov-negligible :
     × ((n : ℕ) (d : Strats n) → asks≤ (p n) d → PrHit (R n) (badR n) d ℚ.≤ f n)
 ledger-pov-negligible a V si R badR tR em =
   ledger-pov-family-negligible a V si R badR (uc-≤UC^ωⁿ tR em)
-
--- The same ideal bound crossing a BUDGETED emulation, stated directly: at any
--- context and any strategy the allowance affords, if the simulator-fronted
--- context observes the ideal monitor's verdict then the real system's own
--- observation is under the birthday bound at that allowance plus the slack.
--- No event class in it, and the ideal supply is `Schedule.ideal-bounded` —
--- `ChimericLedger.Audit.pov-target` levelwise, i.e. the proved birthday theorem
--- read through the monitor and nothing else.
-ledger-audit-carryᵈ :
-    (a V : ℕ) → SerInj → (R : Systems LedgerIf^ω) (cs : ℕ → ℕ)
-    (em : R ≤UC^ω[ cs ] Ideal a V) (n : ℕ) (W : Channel)
-    (Et : Test (W ⊗₀ (𝟘ᴳ ⊗₀ ifaceᵒ (LedgerIf^ω n)))) (m : Closure (W ⊗₀ 𝟘ᵒ))
-    (q : ℕ) (d : Strats n) → asks≤ q d
-  → obs (tv₁ W (closedᵒ (morphism (Ideal a V n))) (tv₁ W (sim (em n) ⊗₁ id) Et)) m
-    ≈ₚ runᴹ (morphism (Ideal a V n)) (monitorᴸ a V n d)
-  → (k : ℕ) → Pr≤ k (obs (tv₁ W (closedᵒ (morphism (R n))) Et) m)
-              ℚ.≤ εᴸ n q ℚ.+ ν n
-ledger-audit-carryᵈ a V si R cs em =
-  uc-audit-carryᵈ {ε = εᴸ} {ν = ν} em (monitorᴸ a V) (ideal-bounded a V si) 0<inv-pow-2
 
 ------------------------------------------------------------------------
 -- The budgeted route
