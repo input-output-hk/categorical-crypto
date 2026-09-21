@@ -56,13 +56,16 @@ compares; only the corollaries that enter the family category
   witness's simulator acts trivially on the ideal side
   (`(n : ℕ) → subᶠ s (imgᶠ B I) n ≈ imgᶠ B I n`, in `𝒞`'s own equality). That is
   available for a trivial simulator and only for it — see §5.
-* A budgeted emulation IS an emulation (`≤UC[]⇒≤UC` then
-  `UC.Core.Bridge.≤UCᶜ⇒≤UC`), so `_≤UC^ω_`'s theorems apply wherever
+* A budgeted emulation IS an emulation: `≤UCᶜ⇒≤UC (sim e , emulate e)` sends
+  `R ≤UC^ω[ cs ] I` to `R ≤UC^ω I` levelwise (equivalently
+  `UC.Audit.Canonical.audit-forget` after `audit⇒witness`), verified to
+  typecheck at this setup 2026-09-21. So `_≤UC^ω_`'s theorems apply wherever
   `_≤UC^ω[ cs ]_`'s do and give the SHARPER number: at the trivial grade the
   simulator costs the ideal side nothing. What the budgeted statement adds is
   the accounting, not a better bound.
-* The pointwise/family pair is therefore ORDERED and the pointwise/budgeted pair
-  is not.
+* Both pairs are therefore ORDERED, budgeted below pointwise below family. The
+  budgeted route was retired on that finding (2026-09-21): a strictly weaker
+  bound at a strictly stronger premise, with no consumer.
 
 One neighbour of these relations sits OFF the chain, and is named so that it is
 not mistaken for part of it: `UC.Model.Family.Ingest.ingest` takes a per-level
