@@ -15,14 +15,12 @@
 
 open import Data.Bool.Base using (Bool; false; true)
 open import Data.List.Base using ([]; _∷_)
-open import Data.Maybe.Base using (Maybe; just; nothing)
+open import Data.Maybe.Base using (just; nothing)
 open import Data.Nat.Base using (ℕ; _+_)
 open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Rational using (ℚ) renaming (_-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
 open import Data.Rational.Properties using (≤-reflexive; ≤-trans)
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Polymorphic.Base using (tt)
-open import Level using (0ℓ)
 open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl; sym; trans)
 
 open import Categories.Category using (Category)
@@ -34,24 +32,21 @@ open import ProbabilisticLogic.Distribution.Uniform using (indᵇ)
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Settle
 
-open import CategoricalCrypto.GamePlaying.Hop using (StepBisim)
 open import CategoricalCrypto.GamePlaying.Partial
   using (StepBisim⊥; badProb⊥-bounded; badProb⊥-cong; hop-boundᵇ⊥; prune; prune-cert;
          runWith⊥-bisim; runWith⊥-bisimʳ; module Coupling⊥)
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Interaction using (runWith⊥)
-open import CategoricalCrypto.Machines.Base using (𝒱ₚ)
 open import CategoricalCrypto.Protocol.Machine using (runᴹ)
 open import CategoricalCrypto.Protocol.Machine.Trace.Compose
 open import CategoricalCrypto.Strategy using (Strat; asks≤; asks≤-mapStrat; mapStrat)
-open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ)
+open import CategoricalCrypto.UC.Machine using (𝒫ᴵ)
 
 import CategoricalCrypto.Machines.Collapse as Col
 
 module CategoricalCrypto.Examples.ROCommitment.Realization.Bound (k : ℕ) where
 
 open import CategoricalCrypto.Examples.ROCommitment k
-open import CategoricalCrypto.Examples.ROCommitment.Extraction k
 open import CategoricalCrypto.Examples.ROCommitment.Game k
 open import CategoricalCrypto.Examples.ROCommitment.Realization.Bisim k
 open import CategoricalCrypto.Examples.ROCommitment.Realization.Machine k

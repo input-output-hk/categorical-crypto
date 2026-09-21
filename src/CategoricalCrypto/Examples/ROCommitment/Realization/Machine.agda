@@ -12,15 +12,15 @@
 
 open import Class.DecEq
 
-open import Data.Bool.Base using (Bool; not; _xor_)
+open import Data.Bool.Base using (not; _xor_)
 open import Data.Empty using (⊥)
-open import Data.List.Base using ([]; _∷_)
+open import Data.List.Base using (_∷_)
 open import Data.Maybe.Base using (just; nothing)
 open import Data.Nat.Base using (ℕ; suc; s≤s; z≤n; _+_; _≤_; _<_)
 open import Data.Nat.Properties using (+-mono-≤; +-suc; ≤-refl)
 open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Data.Unit.Base using (⊤; tt)
+open import Data.Unit.Base using (tt)
 open import Data.Vec.Base using () renaming (_∷_ to _∷ᵛ_)
 open import Function.Base using (case_of_)
 open import Level using (0ℓ)

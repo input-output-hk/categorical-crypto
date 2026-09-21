@@ -27,7 +27,6 @@ open import Data.Unit.Polymorphic.Base using (tt)
 open import Level using (0ℓ)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans)
 
-open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
 open import ProbabilisticLogic.Distribution.Uniform using (indᵇ)

@@ -15,10 +15,10 @@ open import Class.DecEq
 
 open import Data.Bool.Base using (Bool; false; true)
 open import Data.Empty using (⊥; ⊥-elim)
-open import Data.List.Base using (List; []; _∷_)
+open import Data.List.Base using ([]; _∷_)
 open import Data.Maybe.Base using (Maybe; just; nothing)
-open import Data.Nat.Base using (ℕ; _+_)
-open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Nat.Base using (ℕ)
+open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Rational using (ℚ)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Vec.Base using (head) renaming (_∷_ to _∷ᵛ_)
@@ -29,18 +29,13 @@ open import Relation.Nullary.Decidable.Core using (yes; no; ⌊_⌋)
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
-open import ProbabilisticLogic.Distribution.Uniform using (indᵇ)
 open import ProbabilisticLogic.Dp
 
-open import CategoricalCrypto.GamePlaying using (cond)
-open import CategoricalCrypto.GamePlaying.Partial using (StepBisim⊥ʳ; prune; runWith⊥-bisimʳ)
+open import CategoricalCrypto.GamePlaying.Partial using (StepBisim⊥ʳ; prune)
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Interaction using (runWith⊥)
 open import CategoricalCrypto.Machines.Base using (𝒱ₚ)
-open import CategoricalCrypto.Protocol.Machine using (runᴹ)
 open import CategoricalCrypto.Protocol.Machine.Raw using (ansᴹ)
 open import CategoricalCrypto.Protocol.Machine.Trace.Compose
-open import CategoricalCrypto.Strategy using (Strat; asks≤; asks≤-mapStrat; mapStrat)
 
 import CategoricalCrypto.Machines.Core as Core
 
