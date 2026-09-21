@@ -1,33 +1,19 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- The hash-level premise lifted to the ledger WITH ITS ERROR, and the POV
--- corollary off it.
+-- The hash-level premise lifted to the ledger WITH ITS ERROR.
 --
 -- `ChimericLedger.Factor` exposes the hash port; here the ε crosses that
--- factoring.  Two lifts, because the two premise shapes want different laws:
---
---   `hash-liftᵉ`  the canonical witness `_≤UC^ωᵉ_` at the hash port, carried by
---                 `UC.Asymptotic.Compose.UC-composeᵉ` and regraded by
---                 `≤UC^ωᵉ-sub`.  Everything it demands is DISCHARGED here: the
---                 ledger's own query bound (`ChimericLedger.QueryBound`) and
---                 the hash's (`UC.QueryBound.qb-closed` — a closed process has
---                 no downward output at all).
---   `hash-liftⁿ`  the direct-agreement specialization `_≤UC^ωⁿ_`, carried by
---                 `≈ctx-ext` and `≈ctx-sub` alone.  With one upper stage there
---                 is no simulator to compose, hence none to forget afterwards,
---                 which is what lets the POV corollary go through.
---
--- The honest premise shape at this port is the `ωⁿ` one — the hash boundary is
--- graded at `𝟘ᴳ` on both sides, so every simulator there is a scalar — and
--- `hash-liftᵉ` covers it and more; what the `ᵉ` route cannot do here is END
--- (`docs/ledger-lift-eps.md` §§1, 5).
+-- factoring.  `hash-liftⁿ` is the direct-agreement specialization `_≤UC^ωⁿ_`,
+-- carried by `≈ctx-ext` and `≈ctx-sub` alone: with one upper stage there is no
+-- simulator to compose, hence none to forget afterwards, which is what lets the
+-- POV corollary go through (`docs/ledger-lift-eps.md` §§1, 5).
 
 open import Data.Bool.Base using (Bool)
 open import Data.List.Base using (List)
 open import Data.Nat.Base using (ℕ)
 open import Data.Nat.Poly
 open import Data.Product.Base using (Σ-syntax; _×_; _,_)
-open import Data.Rational as ℚ using (ℚ; 0ℚ)
+open import Data.Rational as ℚ using (ℚ)
 
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Examples.ChimericLedger.QueryBound
@@ -44,8 +30,6 @@ open import CategoricalCrypto.UC.Model.Enrichment
 open import CategoricalCrypto.UC.Model.Family
 open import CategoricalCrypto.UC.Model.Family.Ingest
 open import CategoricalCrypto.UC.Model.Setup
--- `QB` would clash with the `Budget` record field opened below.
-open import CategoricalCrypto.UC.QueryBound using (qb-closed)
 open import CategoricalCrypto.UC.Saturated
 open import CategoricalCrypto.UC.Seam.Grounded
 
@@ -54,20 +38,10 @@ module CategoricalCrypto.Examples.ChimericLedger.FactorEps
 
 open import CategoricalCrypto.Examples.ChimericLedger.EndToEnd ser
 open import CategoricalCrypto.Examples.ChimericLedger.Factor ser
-open import CategoricalCrypto.Examples.ChimericLedger.Real ser
 open import CategoricalCrypto.Examples.ChimericLedger.Schedule ser
 
 open Budget budgetᵒ using (QB; qb-∘; qb-λ⇐)
 open HomReasoning
-
-------------------------------------------------------------------------
--- The two stages' query bounds
-
--- A closed process makes no downward output at all, so the hash costs the
--- context nothing whatever it is: this is `qb-closed`, and it is why the lift
--- carries no polynomial-cost premise about the hash.
-hash-qb : (hash : Systems HashIf^ω) (n : ℕ) → QB 0 (imgᶠ HashIf^ω hash n)
-hash-qb hash n = qb-∘ qb-λ⇐ (qbᵒ (qb-closed (morphism (hash n))))
 
 ------------------------------------------------------------------------
 -- The lifts
@@ -89,24 +63,7 @@ module _ (vr : Variant) (s : (n : ℕ) → Ledger.LState n) where
               ≈ imgᶠ LedgerIf^ω (Realᴴ hash vr s) n
     factorᴿ hash n = ⟺ (ledger-factor hash vr n (s n))
 
-  -- The ε-retaining lift, at the canonical witness: the hash's simulator is
-  -- composed with the ledger's — which is the identity, the upper stage being
-  -- shared — and regraded by the unit `_∙ᶠ_` introduced.
-  hash-liftᵉ : (hash : Systems HashIf^ω)
-             → imgᶠ HashIf^ω hash ≤UC^ωᵉ imgᶠ HashIf^ω oracle^ω
-             → imgᶠ LedgerIf^ω (Realᴴ hash vr s)
-               ≤UC^ωᵉ imgᶠ LedgerIf^ω (Realᴴ oracle^ω vr s)
-  hash-liftᵉ hash (sf , εf , nf , ef) =
-    ≤UC^ωᵉ-resp (factorᴿ hash) (factorᴿ oracle^ω)
-      (≤UC^ωᵉ-sub (λ⇒ᶜ (Δ 𝟘ᴳ)) (λ⇐ᶜ (Δ 𝟘ᴳ)) (λ _ → unitorˡ.isoˡ)
-        (UC-composeᵉ sf εf nf ef
-                     idᶜ (λ _ _ → 0ℚ) (λ _ _ → Negligible-0)
-                     (≈C⇒≈ctx λ n → Equiv.sym (sub-identityˡ (ledgerᶠ n)))
-                     (λ _ → 0) (poly-const 0) (hash-qb hash)
-                     (λ _ → 1) (poly-const 1) ledgerᶠ-qb))
-
-  -- …and at the direct-agreement premise, where there is no simulator at all:
-  -- `≈ctx-ext` absorbs the ledger into the test at its own budget, `≈ctx-sub`
+  -- The lift: `≈ctx-ext` absorbs the ledger into the test at its own budget, `≈ctx-sub`
   -- the unit regrading, and `ledger-factor` reads both sides back as the closed
   -- systems `_≤UC^ωⁿ_` compares.
   hash-liftⁿ : (hash : Systems HashIf^ω) → hash ≤UC^ωⁿ oracle^ω
@@ -129,18 +86,23 @@ module _ (vr : Variant) (s : (n : ℕ) → Ledger.LState n) where
 
 module _ (a V : ℕ) (hash : Systems HashIf^ω) where
 
-  -- `Real.ledger-pov`'s conclusion from an ε-RETAINING premise about the hash
-  -- alone.  Neither `TotalRun` nor `NoDeadStep` appears: the pointwise theorem
-  -- spends totality to collapse an emulation into an agreement, and there is
+  private
+    realᴴ : Systems LedgerIf^ω
+    realᴴ = Realᴴ hash inputConsuming (gen a V)
+
+    badᴴ : Bad realᴴ
+    badᴴ n = L.badTotal n (gen a V n)
+
+    truthfulᴴ : TruthfulAudit a V realᴴ badᴴ
+    truthfulᴴ n = T.monitor-complete n (hash n) inputConsuming (gen a V n)
+
+  -- Neither `TotalRun` nor `NoDeadStep` appears: a pointwise theorem would
+  -- spend totality to collapse an emulation into an agreement, and there is
   -- nothing here to collapse.
   ledger-pov-from-hashⁿ : SerInj → hash ≤UC^ωⁿ oracle^ω → (p : ℕ → ℕ) → Poly p
                         → Σ[ f ∈ (ℕ → ℚ) ] Negligible f
                           × ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
-                             → asks≤ (p n) d
-                             → PrHit (Real a V inputConsuming hash n)
-                                     (badReal a V inputConsuming hash n) d ℚ.≤ f n)
+                             → asks≤ (p n) d → PrHit (realᴴ n) (badᴴ n) d ℚ.≤ f n)
   ledger-pov-from-hashⁿ si hp =
-    ledger-pov-family-negligible a V si (Real a V inputConsuming hash)
-      (badReal a V inputConsuming hash)
-      (hash-liftⁿ inputConsuming (gen a V) hash hp)
-      (real-truthful a V inputConsuming hash)
+    ledger-pov-family-negligible a V si realᴴ badᴴ
+      (hash-liftⁿ inputConsuming (gen a V) hash hp) truthfulᴴ

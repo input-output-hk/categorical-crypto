@@ -24,12 +24,6 @@
 --                   it is `Trajectory.monitor-complete` and `ideal-truthful`
 --                   supplies it
 --
--- `ledger-uc-to-pov`/`ledger-pov-negligible` are the same two statements at
--- the pointwise premise `_≤UC^ω_` plus the real side's `TotalRun`, which
--- `uc-≤UC^ωⁿ` includes into the family one.  That totality is not decoration:
--- with the real side divergent every ideal is emulated, by a simulator that
--- never starts.
---
 -- The cost is explicit and appears in the conclusion: the audit
 -- instrumentation doubles the allowance (`asks≤-audited`).
 --
@@ -49,8 +43,6 @@ open import Data.Rational as ℚ using (ℚ)
 
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Machine.Total
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Approximate
@@ -115,30 +107,3 @@ ledger-pov-family-negligible a V si R badR em truthful p Pp =
   in (λ n → εᴸ n (p n ℕ.+ p n) ℚ.+ νₚ n)
    , Negligible-+ (εᴸ-negligible (λ n → p n ℕ.+ p n) (poly-+ Pp Pp)) neg
    , bnd
-
-------------------------------------------------------------------------
--- …off the POINTWISE premise
-
--- The same two statements at `UC.Asymptotic._≤UC^ω_` plus the real side's
--- totality.  `uc-≤UC^ωⁿ` is the whole of the difference: it puts that pair into
--- the family premise, at the schedule `2⁻ⁿ`, so these are the family theorems
--- at a strictly stronger hypothesis and not a second route.
-ledger-uc-to-pov :
-    (a V : ℕ) → SerInj → (R : Systems LedgerIf^ω) (badR : Bad R)
-  → ((n : ℕ) → TotalRun (LedgerIf^ω n) (morphism (R n)))
-  → R ≤UC^ω Ideal a V
-  → TruthfulAudit a V R badR
-  → SaturatedHitᴺ R badR (λ n q → εᴸ n (q ℕ.+ q))
-ledger-uc-to-pov a V si R badR tR em =
-  ledger-uc-to-pov-family a V si R badR (uc-≤UC^ωⁿ tR em)
-
-ledger-pov-negligible :
-    (a V : ℕ) → SerInj → (R : Systems LedgerIf^ω) (badR : Bad R)
-  → ((n : ℕ) → TotalRun (LedgerIf^ω n) (morphism (R n)))
-  → R ≤UC^ω Ideal a V
-  → TruthfulAudit a V R badR
-  → (p : ℕ → ℕ) → Poly p
-  → Σ[ f ∈ (ℕ → ℚ) ] Negligible f
-    × ((n : ℕ) (d : Strats n) → asks≤ (p n) d → PrHit (R n) (badR n) d ℚ.≤ f n)
-ledger-pov-negligible a V si R badR tR em =
-  ledger-pov-family-negligible a V si R badR (uc-≤UC^ωⁿ tR em)

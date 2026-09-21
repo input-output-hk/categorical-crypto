@@ -36,7 +36,6 @@ open import CategoricalCrypto.UC.Saturated
 
 import CategoricalCrypto.Examples.ChimericLedger.Birthday as Bday
 import CategoricalCrypto.Examples.ChimericLedger.POV as POV
-import CategoricalCrypto.Examples.ChimericLedger.Total as Tot
 import CategoricalCrypto.Examples.ChimericLedger.Trajectory as Traj
 
 module CategoricalCrypto.Examples.ChimericLedger.Schedule
@@ -45,7 +44,6 @@ module CategoricalCrypto.Examples.ChimericLedger.Schedule
 module L  (n : ℕ) = POV  n (ser n)
 module T  (n : ℕ) = Traj n (ser n)
 module Bd (n : ℕ) = Bday n (ser n)
-module Tt (n : ℕ) = Tot  n (ser n)
 
 -- Injectivity of the whole family, which is what the birthday theorem asks at
 -- each level and all this module assumes about `ser`.
