@@ -10,7 +10,6 @@
 -- out of the context's hands, and it is free — the resource is closed, so
 -- `UC.Asymptotic.Compose.≈ctx-dom` moves it into the closure at rate `0`,
 -- where `ctxBudget`'s guard swallows the factor and the schedule is unchanged.
--- No `Allowance-mono` is spent anywhere.
 --
 -- The premise is still the commitment's own UC-level ε-statement, exactly as
 -- in `Examples.CoinToss.Compose`; the second hop adds `0ℚ` to its schedule.

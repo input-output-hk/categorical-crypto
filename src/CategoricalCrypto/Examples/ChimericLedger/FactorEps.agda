@@ -10,11 +10,9 @@
 --   `hash-liftᵉ`  the canonical witness `_≤UC^ωᵉ_` at the hash port, carried by
 --                 `UC.Asymptotic.Compose.UC-composeᵉ` and regraded by
 --                 `≤UC^ωᵉ-sub`.  Everything it demands is DISCHARGED here: the
---                 ledger's own query bound (`ChimericLedger.QueryBound`), the
---                 hash's (`UC.QueryBound.qb-closed` — a closed process has no
---                 downward output at all), and `Allowance-mono` at the ledger's
---                 schedule, which is zero because the two sides share their
---                 upper stage.
+--                 ledger's own query bound (`ChimericLedger.QueryBound`) and
+--                 the hash's (`UC.QueryBound.qb-closed` — a closed process has
+--                 no downward output at all).
 --   `hash-liftⁿ`  the direct-agreement specialization `_≤UC^ωⁿ_`, carried by
 --                 `≈ctx-ext` and `≈ctx-sub` alone.  With one upper stage there
 --                 is no simulator to compose, hence none to forget afterwards,
@@ -36,7 +34,6 @@ open import Data.Nat.Base using (ℕ)
 open import Data.Nat.Poly using (Poly; poly-const)
 open import Data.Product.Base using (Σ-syntax; _×_; _,_)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
-open import Data.Rational.Properties using (≤-refl)
 open import Level using (Level)
 
 open import CategoricalCrypto.Examples.ChimericLedger
@@ -113,7 +110,7 @@ module _ (vr : Variant) (s : (n : ℕ) → Ledger.LState n) where
     ≤UC^ωᵉ-resp (factorᴿ hash) (factorᴿ oracle^ω)
       (≤UC^ωᵉ-sub (λ⇒ᶜ (Δ 𝟘ᴳ)) (λ⇐ᶜ (Δ 𝟘ᴳ)) (λ _ → unitorˡ.isoˡ)
         (UC-composeᵉ sf εf nf ef
-                     idᶜ (λ _ _ → 0ℚ) (λ _ _ → Negligible-0) (λ _ _ → ≤-refl)
+                     idᶜ (λ _ _ → 0ℚ) (λ _ _ → Negligible-0)
                      (≈C⇒≈ctx λ n → Equiv.sym (sub-identityˡ (ledgerᶠ n)))
                      (λ _ → 0) (poly-const 0) (hash-qb hash)
                      (λ _ → 1) (poly-const 1) ledgerᶠ-qb))

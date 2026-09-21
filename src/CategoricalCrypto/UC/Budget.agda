@@ -12,8 +12,8 @@ open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Properties
-  using ( *-assoc; *-comm; *-identityʳ; *-mono-≤; *-monoˡ-≤; *-monoʳ-≤; m≤m⊔n; m≤n⊔m
-        ; ⊔-assoc; ⊔-idem; ⊔-lub; ≤-reflexive; ≤-trans; module ≤-Reasoning )
+  using ( *-assoc; *-comm; *-identityʳ; *-mono-≤; *-monoʳ-≤; m≤n⊔m; m≥n⇒m⊔n≡m
+        ; ⊔-assoc; ⊔-idem; ≤-reflexive; ≤-trans )
 open import Level using (Level; _⊔_; suc)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; cong; sym; trans; module ≡-Reasoning)
@@ -109,20 +109,21 @@ ctxBudget-absorb c c′ cs =
         (ctxBudget-simCost c c′ cs)
 
 -- Absorbing into the CLOSURE instead: `ctxBudget` guards its second leg rather
--- than multiplying by it, so what comes out is a BOUND where the two identities
--- above are exact.  This is why a composition that moves a process into a
--- closure needs the schedule's monotonicity and one that moves a morphism into
--- a test does not.
-ctxBudget-closure≤ : (c c′ cs : ℕ)
-                   → ctxBudget c ((cs ℕ.⊔ 1) ℕ.* c′) ℕ.≤ simCost (ctxBudget c c′) cs
-ctxBudget-closure≤ c c′ cs = begin
-  c ℕ.* (((cs ℕ.⊔ 1) ℕ.* c′) ℕ.⊔ 1)  ≤⟨ *-monoʳ-≤ c inner ⟩
-  c ℕ.* ((c′ ℕ.⊔ 1) ℕ.* (cs ℕ.⊔ 1))  ≡⟨ *-assoc c (c′ ℕ.⊔ 1) (cs ℕ.⊔ 1) ⟨
-  (c ℕ.* (c′ ℕ.⊔ 1)) ℕ.* (cs ℕ.⊔ 1)  ∎
+-- than multiplying by it, so at the closure's own `(cs ⊔ 1) * c′` the guard is
+-- still ahead of the rescaling and only a bound comes out.  Certifying the new
+-- closure one step higher, at `(cs ⊔ 1) * (c′ ⊔ 1)` — which `qb-mono` always
+-- affords — puts the guard INSIDE, makes the product positive and hence the
+-- outer guard vacuous, and the substitution exact.  So no absorption below the
+-- quantitative composition theorems spends the schedule's monotonicity.
+ctxBudget-closure : (c c′ cs : ℕ)
+                  → ctxBudget c ((cs ℕ.⊔ 1) ℕ.* (c′ ℕ.⊔ 1)) ≡ simCost (ctxBudget c c′) cs
+ctxBudget-closure c c′ cs = begin
+  c ℕ.* (((cs ℕ.⊔ 1) ℕ.* (c′ ℕ.⊔ 1)) ℕ.⊔ 1)  ≡⟨ cong (c ℕ.*_) (m≥n⇒m⊔n≡m 1≤cs*c′) ⟩
+  c ℕ.* ((cs ℕ.⊔ 1) ℕ.* (c′ ℕ.⊔ 1))          ≡⟨ cong (c ℕ.*_) (*-comm (cs ℕ.⊔ 1) (c′ ℕ.⊔ 1)) ⟩
+  c ℕ.* ((c′ ℕ.⊔ 1) ℕ.* (cs ℕ.⊔ 1))          ≡⟨ *-assoc c (c′ ℕ.⊔ 1) (cs ℕ.⊔ 1) ⟨
+  (c ℕ.* (c′ ℕ.⊔ 1)) ℕ.* (cs ℕ.⊔ 1)          ∎
   where
-  open ≤-Reasoning
+  open ≡-Reasoning
 
-  inner : ((cs ℕ.⊔ 1) ℕ.* c′) ℕ.⊔ 1 ℕ.≤ (c′ ℕ.⊔ 1) ℕ.* (cs ℕ.⊔ 1)
-  inner = ⊔-lub (≤-trans (≤-reflexive (*-comm (cs ℕ.⊔ 1) c′))
-                         (*-monoˡ-≤ (cs ℕ.⊔ 1) (m≤m⊔n c′ 1)))
-                (*-mono-≤ (m≤n⊔m c′ 1) (m≤n⊔m cs 1))
+  1≤cs*c′ : 1 ℕ.≤ (cs ℕ.⊔ 1) ℕ.* (c′ ℕ.⊔ 1)
+  1≤cs*c′ = *-mono-≤ (m≤n⊔m cs 1) (m≤n⊔m c′ 1)

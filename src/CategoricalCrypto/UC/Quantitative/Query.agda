@@ -33,7 +33,7 @@ open import CategoricalCrypto.Approx.Error
 open import CategoricalCrypto.Approx.Schedule using (pointwise; module Reindexing)
 open import CategoricalCrypto.UC.Approximate using (Approximation; ℚ-errors)
 open import CategoricalCrypto.UC.Budget
-  using (Budget; ctxBudget; ctxBudget-closure≤; ctxBudget-simCost; simCost)
+  using (Budget; ctxBudget; ctxBudget-closure; ctxBudget-simCost; simCost)
 
 import CategoricalCrypto.Approx.Controlled as Controlledᴹ
 import CategoricalCrypto.Approx.Filtered as Filteredᴹ
@@ -60,15 +60,12 @@ absorb-test : (c cs : ℕ)
               S.≐ᶜ reindex (λ c′ → simCost (ctxBudget c c′) cs)
 absorb-test c cs = reindex-cong (λ c′ → ctxBudget-simCost c c′ cs)
 
--- …while absorbing into the CLOSURE hits the leg `ctxBudget` guards, so it is
--- a BOUND, and reading a schedule at it additionally needs that schedule's own
--- monotonicity.
-absorb-closure : (c cs : ℕ) (ε : ℕ → ℚ)
-               → ((q q′ : ℕ) → q ℕ.≤ q′ → ε q ℚ.≤ ε q′)
-               → (c′ : ℕ)
-               → ε (ctxBudget c ((cs ℕ.⊔ 1) ℕ.* c′))
-                 ℚ.≤ ε (simCost (ctxBudget c c′) cs)
-absorb-closure c cs ε mono c′ = mono _ _ (ctxBudget-closure≤ c c′ cs)
+-- …and so is absorbing into the CLOSURE, once the closure's certificate is
+-- bumped past the leg `ctxBudget` guards (`UC.Budget.ctxBudget-closure`).
+absorb-closure : (c cs : ℕ)
+               → reindex (λ c′ → ctxBudget c ((cs ℕ.⊔ 1) ℕ.* (c′ ℕ.⊔ 1)))
+                 S.≐ᶜ reindex (λ c′ → simCost (ctxBudget c c′) cs)
+absorb-closure c cs = reindex-cong (λ c′ → ctxBudget-closure c c′ cs)
 
 record QueryBounds {o ℓ e : Level} (𝒞 : Category o ℓ e) (qs : Level)
                  : Set (o ⊔ ℓ ⊔ e ⊔ suc qs) where
