@@ -1,14 +1,18 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- The real commitment system over the concrete resource, as a kernel: the
--- closed composite `real 𝒫.∘ resource` settles, so its `Dₚ` run is the run of
--- a `Dist⊥` kernel (`Protocol.Machine.Trace.Compose`).
+-- The two closed commitment systems over the concrete resource, as kernels:
+-- `real 𝒫.∘ resource` and the simulator over `ideal 𝒫.∘ resource` settle, so
+-- their `Dₚ` runs are runs of `Dist⊥` kernels
+-- (`Protocol.Machine.Trace.Compose`).
 --
--- The rank the loop needs is two-valued here and reads off `realStep`: a
--- resource query still owes its answer (1), an answer owes nothing (0),
--- because every clause of `realStep` on a `Pos Resᴵ` letter either emits
--- upward or diverges (`real-up`).  The resource's own activations are all
--- exits or loop points of smaller rank, so its side needs no inspection.
+-- Each composite's loop needs a rank, and each rank reads off a step table.
+-- The real one is two-valued: a resource query still owes its answer (1), an
+-- answer owes nothing (0), because every clause of `realStep` on a `Pos Resᴵ`
+-- letter emits upward or diverges (`real-up`).  The simulator may answer a
+-- digest with a further query, so its rank is twice its own allowance ledger
+-- `Examples.ROCommitment.UC.Φˢ`, plus one while a query is in flight, and
+-- `sub-up` is the fact behind it.  The resource's own activations never need
+-- inspecting: whatever it answers is an exit or a loop point of rank 0.
 
 open import Class.DecEq
 
