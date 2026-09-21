@@ -19,7 +19,7 @@ open import Categories.Category using (Category)
 
 open import Data.Bool.Base using (Bool)
 open import Data.Empty using (⊥)
-open import Data.Nat.Base using (ℕ; _+_; _<_)
+open import Data.Nat.Base using (ℕ; suc; _+_; _<_)
 open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Rational using (ℚ)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
@@ -73,12 +73,11 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
 
   -- `Machines.Collapse`'s routings with their object implicits pinned; left
   -- open they are four metas per clause and none of them solves.
-  private
-    outF : A⁻ ⊎ B⁺ → (A⁻ ⊎ C⁺) ⊎ (B⁻ ⊎ B⁺)
-    outF = Col.outᶠ
+  outF : A⁻ ⊎ B⁺ → (A⁻ ⊎ C⁺) ⊎ (B⁻ ⊎ B⁺)
+  outF = Col.outᶠ
 
-    outG : B⁻ ⊎ C⁺ → (A⁻ ⊎ C⁺) ⊎ (B⁻ ⊎ B⁺)
-    outG = Col.outᵍ
+  outG : B⁻ ⊎ C⁺ → (A⁻ ⊎ C⁺) ⊎ (B⁻ ⊎ B⁺)
+  outG = Col.outᵍ
 
   Kᴳ : (Col.MC.St g × Col.MC.St f) × ((A⁺ ⊎ C⁻) ⊎ (B⁻ ⊎ B⁺))
      → Dist⊥ ((Col.MC.St g × Col.MC.St f) × ((A⁻ ⊎ C⁺) ⊎ (B⁻ ⊎ B⁺)))
@@ -90,6 +89,23 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
     Kf sf (inj₂ b) >>=⊥ λ r → return⊥ ((sg , proj₁ r) , outF (proj₂ r))
   Kᴳ ((sg , sf) , inj₂ (inj₂ b)) =
     Kg sg (inj₁ b) >>=⊥ λ r → return⊥ ((proj₁ r , sf) , outG (proj₂ r))
+
+  -- Reading one dispatch: the factor that owns the letter acts and its answer
+  -- is routed.  Stated at the literal bind `Kᴳ`'s clauses are, so it applies
+  -- at each of the four positions.
+  dispatch-f : (sg : Col.MC.St g) (sf : Col.MC.St f) (z : A⁺ ⊎ B⁻)
+               (Q : (Col.MC.St g × Col.MC.St f) × ((A⁻ ⊎ C⁺) ⊎ (B⁻ ⊎ B⁺)) → ℚ)
+             → E⊥ (Kf sf z >>=⊥ λ r → return⊥ ((sg , proj₁ r) , outF (proj₂ r))) Q
+               ≡ E⊥ (Kf sf z) (λ r → Q ((sg , proj₁ r) , outF (proj₂ r)))
+  dispatch-f sg sf z Q =
+    trans (E⊥-bind (Kf sf z) _ Q) (E⊥-cong-P (Kf sf z) _ _ λ r → E⊥-return _ Q)
+
+  dispatch-g : (sg : Col.MC.St g) (sf : Col.MC.St f) (y : B⁺ ⊎ C⁻)
+               (Q : (Col.MC.St g × Col.MC.St f) × ((A⁻ ⊎ C⁺) ⊎ (B⁻ ⊎ B⁺)) → ℚ)
+             → E⊥ (Kg sg y >>=⊥ λ r → return⊥ ((proj₁ r , sf) , outG (proj₂ r))) Q
+               ≡ E⊥ (Kg sg y) (λ r → Q ((proj₁ r , sf) , outG (proj₂ r)))
+  dispatch-g sg sf y Q =
+    trans (E⊥-bind (Kg sg y) _ Q) (E⊥-cong-P (Kg sg y) _ _ λ r → E⊥-return _ Q)
 
   private
     dispF : (sg : Col.MC.St g) (sf : Col.MC.St f) (z : A⁺ ⊎ B⁻)
@@ -146,6 +162,29 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
     compose-settles = trace-settles (Col.Sᴳ g f) (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺)
                                     (Col.kᴳ g f) Kᴳ kᴳ-settles rank rk fuel rb
 
+    -- The three steps an activation is read by: it enters the dispatch, and
+    -- each answer either leaves the loop or re-enters it a round shorter.
+    exit∘ : ℕ → (Col.MC.St g × Col.MC.St f) × ((A⁻ ⊎ C⁺) ⊎ (B⁻ ⊎ B⁺))
+          → Dist⊥ ((Col.MC.St g × Col.MC.St f) × (A⁻ ⊎ C⁺))
+    exit∘ = Lp.exitK
+
+    K∘-enter : (z : (Col.MC.St g × Col.MC.St f) × (A⁺ ⊎ C⁻))
+               (Q : (Col.MC.St g × Col.MC.St f) × (A⁻ ⊎ C⁺) → ℚ)
+             → E⊥ (K∘ z) Q
+               ≡ E⊥ (Kᴳ (proj₁ z , inj₁ (proj₂ z))) (λ w → E⊥ (exit∘ fuel w) Q)
+    K∘-enter z Q = E⊥-bind (Kᴳ (proj₁ z , inj₁ (proj₂ z))) (exit∘ fuel) Q
+
+    exit-out : (j : ℕ) (s : Col.MC.St g × Col.MC.St f) (o : A⁻ ⊎ C⁺)
+               (Q : (Col.MC.St g × Col.MC.St f) × (A⁻ ⊎ C⁺) → ℚ)
+             → E⊥ (exit∘ j (s , inj₁ o)) Q ≡ Q (s , o)
+    exit-out j s o Q = E⊥-return (s , o) Q
+
+    exit-loop : (j : ℕ) (s : Col.MC.St g × Col.MC.St f) (x : B⁻ ⊎ B⁺)
+                (Q : (Col.MC.St g × Col.MC.St f) × (A⁻ ⊎ C⁺) → ℚ)
+              → E⊥ (exit∘ (suc j) (s , inj₂ x)) Q
+                ≡ E⊥ (Kᴳ (s , inj₂ x)) (λ w → E⊥ (exit∘ j w) Q)
+    exit-loop j s x Q = E⊥-bind (Kᴳ (s , inj₂ x)) (exit∘ j) Q
+
 ------------------------------------------------------------------------
 -- …and at a CLOSED composite, where the run lives
 
@@ -178,6 +217,16 @@ module _ {B⁺ B⁻ : Set} {C : Iface}
 
   Kᶜˡ : Stᴳ → Neg C → Dist⊥ (Stᴳ × Pos C)
   Kᶜˡ m q = Dmap⊥ shed (trᴳ (m , inj₂ q))
+
+  -- …and read at the trace, where the domain summand is still in the way.
+  Kᶜˡ-read : (m : Stᴳ) (q : Neg C) (Q : Stᴳ × Pos C → ℚ) (Q′ : Stᴳ × (⊥ ⊎ Pos C) → ℚ)
+           → ((s : Stᴳ) (p : Pos C) → Q (s , p) ≡ Q′ (s , inj₂ p))
+           → E⊥ (Kᶜˡ m q) Q ≡ E⊥ (trᴳ (m , inj₂ q)) Q′
+  Kᶜˡ-read m q Q Q′ pt =
+    trans (E⊥-map shed (trᴳ (m , inj₂ q)) Q) (E⊥-cong-P (trᴳ (m , inj₂ q)) _ Q′ point)
+    where
+    point : (w : Stᴳ × (⊥ ⊎ Pos C)) → Q (shed w) ≡ Q′ w
+    point (s , inj₂ p) = pt s p
 
   compose-StepSettles : StepSettles (traceᴳ g f Kg Kf gS fS) Kᶜˡ
   compose-StepSettles m q =

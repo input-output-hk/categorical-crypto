@@ -20,12 +20,14 @@ open import Data.List.Relation.Unary.All as ListAll using ()
 open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Nat.Base using (ℕ)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
+open import Data.Rational using (ℚ)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Base using (⊤; tt)
 open import Function.Base using (id)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans)
 
 open import ProbabilisticLogic.Distribution.RationalDist
+open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 open import ProbabilisticLogic.Distribution.Uniform using (uniform-Vec)
 
 module CategoricalCrypto.Examples.ROCommitment.Oracle (k : ℕ) where
@@ -44,6 +46,25 @@ fetchT-hit g t x d eq rewrite eq = refl
 fetchT-miss : {A : Set} (g : Tbl → A) (t : Tbl) (x : Pt) → lookupPt t x ≡ nothing
             → fetchT g t x ≡ (uniform-Vec k >>=ᴹ λ h → return-ℚ (g ((x , h) ∷ t) , h))
 fetchT-miss g t x eq rewrite eq = refl
+
+-- One query read through two different post-table embeddings: the table moves
+-- the same way under both, so an integrand that does not tell them apart sees
+-- the same expectation.  This is what relates a game's state to a machine's,
+-- where the ancilla riding along is a commitment digest on one side and the
+-- functionality's cell on the other.
+fetchT-cong : {A A′ : Set} (g : Tbl → A) (g′ : Tbl → A′) (t : Tbl) (x : Pt)
+              (H : A × Dig → ℚ) (H′ : A′ × Dig → ℚ)
+            → ((u : Tbl) (d : Dig) → H (g u , d) ≡ H′ (g′ u , d))
+            → E (fetchT g t x) H ≡ E (fetchT g′ t x) H′
+fetchT-cong g g′ t x H H′ pt with lookupPt t x
+... | just d  = trans (lookupᴰℚ-return (g t , d) H)
+                      (trans (pt t d) (sym (lookupᴰℚ-return (g′ t , d) H′)))
+... | nothing = trans (E-bind (uniform-Vec k) (λ h → return-ℚ (g ((x , h) ∷ t) , h)) H)
+                (trans (lookupᴰℚ-cong-P (entries (uniform-Vec k)) λ h →
+                          trans (lookupᴰℚ-return (g ((x , h) ∷ t) , h) H)
+                                (trans (pt ((x , h) ∷ t) h)
+                                       (sym (lookupᴰℚ-return (g′ ((x , h) ∷ t) , h) H′))))
+                       (sym (E-bind (uniform-Vec k) (λ h → return-ℚ (g′ ((x , h) ∷ t) , h)) H′)))
 
 -- Either the point was tabulated and nothing moved, or it was fresh and the
 -- post-table is the old one plus it.

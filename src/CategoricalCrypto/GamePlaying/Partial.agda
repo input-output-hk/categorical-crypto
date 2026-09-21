@@ -227,6 +227,43 @@ module _ {Q R St St′ : Type} (resp : St → Q → Dist⊥ (St × R))
    (trans (lookupᴰℚ-cong-P (entries μ) (λ b → runWith⊥-bisim bis (k b) s s′ rel))
           (sym (Pr₁⊥-coin μ (λ b → runWith⊥ resp′ s′ (k b)))))
 
+-- The same induction with the ALPHABET moved: the two kernels answer the same
+-- questions under a relabelling `u` of the asks, and their answers correspond
+-- under a section `v` of the answers — which is what a machine's ports and a
+-- game's letters are related by when the game has letters (`idleR`) no machine
+-- activation produces.  `runWith⊥-bisim` is not an instance: `mapStrat` at the
+-- identities rebuilds the tree, and only function extensionality identifies it
+-- with the original.
+module _ {Q Q′ R R′ St St′ : Type} (u : Q → Q′) (v : R′ → R)
+         (resp : St → Q → Dist⊥ (St × R)) (resp′ : St′ → Q′ → Dist⊥ (St′ × R′))
+         (_≋_ : St → St′ → Type) where
+
+  StepBisim⊥ʳ : Type
+  StepBisim⊥ʳ = ∀ s s′ → s ≋ s′ → ∀ q (F : St × R → ℚ) (F′ : St′ × R′ → ℚ)
+              → (∀ t t′ → proj₁ t ≋ proj₁ t′ → proj₂ t ≡ v (proj₂ t′) → F t ≡ F′ t′)
+              → E⊥ (resp s q) F ≡ E⊥ (resp′ s′ (u q)) F′
+
+  runWith⊥-bisimʳ : StepBisim⊥ʳ → ∀ d s s′ → s ≋ s′
+                  → Pr₁⊥ (runWith⊥ resp s d) ≡ Pr₁⊥ (runWith⊥ resp′ s′ (mapStrat u v d))
+  runWith⊥-bisimʳ bis (out b) s s′ rel = refl
+  runWith⊥-bisimʳ bis (ask q k) s s′ rel =
+    trans (E⊥-bind (resp s q) K (λ b → bool→ℚ b))
+   (trans (bis s s′ rel q (λ t → Pr₁⊥ (K t)) (λ t′ → Pr₁⊥ (K′ t′)) point)
+          (sym (E⊥-bind (resp′ s′ (u q)) K′ (λ b → bool→ℚ b))))
+    where
+      K  = λ (t : St × R) → runWith⊥ resp (proj₁ t) (k (proj₂ t))
+      K′ = λ (t′ : St′ × R′) → runWith⊥ resp′ (proj₁ t′) (mapStrat u v (k (v (proj₂ t′))))
+      point : ∀ t t′ → proj₁ t ≋ proj₁ t′ → proj₂ t ≡ v (proj₂ t′)
+            → Pr₁⊥ (K t) ≡ Pr₁⊥ (K′ t′)
+      point t t′ r eq =
+        subst (λ z → Pr₁⊥ (K t)
+                   ≡ Pr₁⊥ (runWith⊥ resp′ (proj₁ t′) (mapStrat u v (k z)))) eq
+          (runWith⊥-bisimʳ bis (k (proj₂ t)) (proj₁ t) (proj₁ t′) r)
+  runWith⊥-bisimʳ bis (coin μ k) s s′ rel =
+    trans (Pr₁⊥-coin μ (λ b → runWith⊥ resp s (k b)))
+   (trans (lookupᴰℚ-cong-P (entries μ) (λ b → runWith⊥-bisimʳ bis (k b) s s′ rel))
+          (sym (Pr₁⊥-coin μ (λ b → runWith⊥ resp′ s′ (mapStrat u v (k b))))))
+
 ------------------------------------------------------------------------
 -- Where the two layers meet: pruning a total kernel
 --
