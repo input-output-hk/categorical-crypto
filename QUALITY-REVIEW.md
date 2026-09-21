@@ -1164,7 +1164,8 @@ Claims and comments (comment text only):
   `bound-1` is named as the tight one.
 - `Machine/Probabilistic/Model.agda :: MachineModel.hom-triv` — one line: under
   this file's K-enabled options `uip` gives `p ≡ refl`, so instances pay for
-  something free. Record left as is.
+  something free. Record left as is. (Superseded 2026-09-21: the field was
+  removed with the Track-A island, its only consumer.)
 - The two "factually wrong" comments the round-2 sweep was asked to re-check
   (`UC/Machine.agda`'s `qbᵢ-wire`/reassociator clause, `QueryBound.agda`'s
   `Budgetᴹ` pointer) were already fixed in `38495a94`; nothing survived.
@@ -1197,7 +1198,7 @@ every one still had zero consumers):
 
 Index wiring:
 
-- `src/CategoricalCrypto.agda` — plain imports for `Strategy`, `OutputOnly`,
+- `src/CategoricalCrypto.agda` — plain imports for `Strategy`,
   `Protocol` and its five children (`Machine`, `.Machine.Agree`,
   `.Machine.Compose`, `.Machine.Total`, `Observe`, `Safety`), `UC` and
   `UC.Model`. The header says what is API (the `public` block) and what is build

@@ -783,6 +783,9 @@ over; the mapping is the one above plus the module-level map already recorded
 `StandardTV` → `UC.Machine`, `OutputOnly` → `UC.Machine.Bridge` + `UC.Seam`).
 The earlier claim that nothing inherited was edited is historical; the MD line
 has since been ported and superseded modules deleted (see compatibility below).
+`FamilyCategory`, `VanishingTV`, `StandardTV` and `OutputOnly` were retired on
+2026-09-21; only `MachineAxioms` and its model survive from the inherited
+Track-A stack.
 
 ### The defects the redesign fixes at birth
 
@@ -1326,10 +1329,10 @@ cancellation is `associator.isoʳ`. Consequences worth naming:
 
 * The ancillas of the graded context closure **are** the ancillas of the
   displayed experiment. No second environment construction, and in particular
-  no ancilla inside the presheaf's carrier — which is the one structural
-  difference from `VanishingTV.ℰᵗᵛ`, whose carrier is a dependent pair
-  `(Y , test on Y ⊗ A)` and which is why that layer needed a `SameTV` datatype
-  and a `substCl` transport.
+  no ancilla inside the presheaf's carrier — which was the one structural
+  difference from the retired `VanishingTV.ℰᵗᵛ`, whose carrier was a dependent
+  pair `(Y , test on Y ⊗ A)` and which is why that layer needed a `SameTV`
+  datatype and a `substCl` transport.
 * `GradeStable` is **not** assumed, and no claim is made that `_≈ᵁ_` agrees with
   every presentation in `Abstract`. `≈ᵁ⇒≈ℰ` is inherited; its converse is not
   used anywhere in M4.

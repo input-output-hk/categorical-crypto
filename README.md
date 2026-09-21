@@ -98,19 +98,13 @@ is independent of any particular machine implementation:
   observations), and a query-budget instrument `QB` with its composition laws.
 - `Data.Nat.Poly` — polynomial bounds on ℕ-functions and their closure
   properties.
-- `FamilyCategory` — the security-parameter family category `𝒞^ω`: objects
-  are ℕ-indexed families of 𝕄-objects, morphisms carry a (proof-irrelevant)
-  polynomial query-budget witness `PolyQB`.
-- `VanishingTV` — the vanishing-TV setoid `⇝` on observation sequences; the
-  environment presheaf `ℰᵗᵛ` on `𝒞^ω` whose tests are budgeted *joint
-  ancilla tests*; the proof that this ℰ is grade-stable, given uniqueness of
-  identity proofs for 𝕄's objects (so `≈ᵁ = ≈ℰ` here and the `Abstract2`
-  bridge is free); and the ε-bounded relation `_≈ℰ[_]_`
-  with `absorb`, the ingestion gate turning concrete vanishing bounds into
-  kernel equalities.
-- `StandardTV` — everything plugged together: the `Standard2` setup at
-  𝒞 = ℐ = `𝒞^ω`, with `GradeStable` discharged and `≈ᵁ ⇔ ≈ℰ` as the
-  headline corollary.
+- `UC.Family` / `UC.Family.Vanishing` — the security-parameter family category
+  and the vanishing-bound layer over it.
+- `UC.Environment` — the environment presheaf and the adaptive single-ancilla
+  indistinguishability `_≈ℰ_`, with `grade-stable` a theorem rather than a
+  hypothesis.
+- `UC.Quantitative.Observed` — the ε-indexed form of that relation and its
+  collapse; `UC.Machine` plugs the whole stack into the machine model.
 
 ## 4. Concrete machine layer
 
