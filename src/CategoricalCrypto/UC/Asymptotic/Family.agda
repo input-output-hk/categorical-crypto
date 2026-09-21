@@ -275,7 +275,7 @@ module _ {A X Y B : Obj^ω} (s : Certified Y X) (ε : ℕ → ℕ → ℚ)
 
 -- …and that is layer 1's negligibly graded relation, which is what the
 -- saturated conclusion transports (`UC.Saturated.≈negl-respects`).  No exact
--- agreement is passed through: `Agreeˢ` appears nowhere above.
+-- agreement is passed through.
 ≤UC^ωⁿ⇒≈negl : R ≤UC^ωⁿ I → R ≈negl I
 ≤UC^ωⁿ⇒≈negl {R = R} {I = I} (ε , neg , h) =
   ε , neg , λ n → adv-from-runs (R n) (I n) (ε n) λ q d a → ≈ᶠ-runs ε h n q d a
@@ -311,9 +311,9 @@ rejects-inv-suc p Pp d ad sep (ε , neg , h) =
 
 -- `UC.Seam.Grounded.emulAgreeᵁ` is the whole content: at the trivial grade a
 -- total real side turns an emulation into the direct `≈ᵁ` agreement, which is
--- contextual closeness at EVERY positive error — hence at any positive schedule
--- one cares to name.  Reading the collapse one step further along, into
--- `Agreeˢ`, is what would spend that error; stopping here keeps it.
+-- contextual closeness at EVERY positive error — hence at any positive
+-- schedule one cares to name.  Reading the collapse one step further along,
+-- into agreement at one error, is what would spend it; stopping here keeps it.
 uc-≈ᶠ[_] : (ν : ℕ → ℚ) → ((n : ℕ) → 0ℚ ℚ.< ν n)
          → ((n : ℕ) → TotalRun (B n) (morphism (R n))) → R ≤UC^ω I
          → R ≈ᶠ[ (λ n _ → ν n) ] I

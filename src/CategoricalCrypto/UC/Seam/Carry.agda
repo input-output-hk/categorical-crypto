@@ -1,19 +1,13 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- The seam's corollary: `Adequacy` and `PrAgree` inhabit `AgreeToAdv`, and both
--- are theorems (`UC.Seam.Adequacy`, `Protocol.Machine.Agree`), so `agreeToAdv`
--- and the POV carry below are closed terms.
---
--- `adv-at`/`adv-from-runs` are the same arithmetic with the error KEPT rather
+-- Closeness of two machine runs read as layer 1's advantage bound: `adv-at` at
+-- one slack, `adv-from-runs` at a budget-indexed one.  The error is KEPT rather
 -- than spent at one value, which is what a premise whose slack must stay
 -- negligible asks for (`UC.Family`'s header; `UC.Saturated._≈negl_` is the
--- layer-1 relation it feeds).  `agree-to-adv` is `adv-from-runs` at a constant
--- slack.
+-- layer-1 relation it feeds).
 --
--- It is a module of its own because `UC.Seam` pays the machine-layer
--- conversions once, in its interface, and the arithmetic here re-derives none
--- of them: past `run-agree`, which is one `≈ₚ[]-resp`, everything is about `Dₚ`
--- masses and ℚ, and the two processes are opaque carriers.
+-- Nothing here reduces a machine: past the two `PrAgree` witnesses everything
+-- is about `Dₚ` masses and ℚ, and the two processes are opaque carriers.
 
 open import Data.Bool.Base
 open import Data.Nat.Base as ℕ
@@ -28,25 +22,14 @@ open import ProbabilisticLogic.Distribution.RationalDist.Advantage using (advᵇ
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Advantage
 
-
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Machine.Agree
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
-open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Seam
-open import CategoricalCrypto.UC.Seam.Adequacy
 
 module CategoricalCrypto.UC.Seam.Carry where
-
--- Adequacy transports environment agreement onto the direct runs: the step the
--- refuted reflection direction was meant to supply.
-run-agree : Adequacy → (B : Iface) (u v : Proc unitᴵ B) → Agreeˢ B u v
-          → (d : Strat (Neg B) (Pos B)) (ε : ℚ) → 0ℚ ℚ.< ε
-          → runˢ B u d ≈ₚ[ ε ] runˢ B v d
-run-agree ad B u v ag d ε ε>0 = ≈ₚ[]-resp (ad B u d) (ad B v d) (ag d ε ε>0)
 
 private
   -- `x ≤ y + ε`, as a bound on the difference.
@@ -101,26 +84,3 @@ adv-from-runs : {B : Iface} (P Q : Protocol unitᴵ B) (δ : ℕ → ℚ)
                  → runᴹ (morphism P) d ≈ₚ[ δ q ] runᴹ (morphism Q) d)
               → P ≈adv[ δ ] Q
 adv-from-runs P Q δ h b q d a = adv-at P Q d (δ q) (h q d a) b
-
--- …so the ε-quantified form is the constant-slack instance.  The `PrAgree`
--- hypothesis goes unused — `adv-at` spends the closed `prAgree` instead — and
--- is kept because `UC.Seam`'s two named obligations are the interface this
--- module answers.
-agree-to-adv : Adequacy → PrAgree → AgreeToAdv
-agree-to-adv ad _ {B} P Q ag ε ε>0 =
-  adv-from-runs P Q (λ _ → ε)
-    (λ _ d _ → run-agree ad B (morphism P) (morphism Q) ag d ε ε>0)
-
-------------------------------------------------------------------------
--- Both hypotheses discharged
-
-agreeToAdv : AgreeToAdv
-agreeToAdv = agree-to-adv adequacy prAgree
-
-povCarry : {B : Iface} (P Q : Protocol unitᴵ B)
-         → Agreeˢ B (morphism P) (morphism Q)
-         → {bad : Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)} {ε : ℕ → ℚ}
-         → ((q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d → asks≤ q (bad d))
-         → (δ : ℚ) → 0ℚ ℚ.< δ
-         → Bounded Q bad ε → Bounded P bad (λ q → ε q ℚ.+ δ)
-povCarry = pov-carry agreeToAdv

@@ -167,8 +167,8 @@ massed-obs A B f p mf Y Et m =
                  (massed-T₁ Y A B f p mf)))
              (ask tt out)
 
--- Nothing at all, at the zero end — so two such processes are indistinguishable
--- while `UC.Seam.Agreeˢ` still compares their runs.
+-- Nothing at all, at the zero end — so two such processes are
+-- indistinguishable while their runs still differ.
 dead-≈ℰ : (A B : 𝔾.Obj) (f g : 𝒢ₚ 0ℓ [ A , B ])
           → Dead A B f → Dead A B g → _≈ℰ_ {A} {B} f g
 dead-≈ℰ A B f g df dg Y Et m ε ε>0 = ≈ₚ[]-mono (<⇒≤ ε>0)

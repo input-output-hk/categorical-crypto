@@ -1,10 +1,9 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- `UC.Seam.Grounding`'s statements at the trivial grade, all discharged:
--- `IotaBlind`, `EnvAsCtx`, `StratIsEnv`, `SubBlind`.  `UnitGrade` is the one
--- statement there with no discharge here: it is the further step into `Agreeˢ`,
--- and nothing consumes it — the family premise stops at `emulAgreeᵁ` and keeps
--- the ε (`docs/end-to-end.md` §4).
+-- `UC.Seam.Grounding.SubBlind` at the trivial grade, discharged, and the
+-- collapse it closes: `emulAgreeᵁ`, an emulation between closed processes read
+-- as the direct `≈ᵁ` agreement with the ε still quantified rather than spent —
+-- which is where the asymptotic family premise stops (`docs/end-to-end.md` §4).
 --
 -- The grade is the sealed bundle's OWN monoidal unit, not `unitᴵ`.  The two are
 -- the empty interface spelled with two different empty types — `Data.Empty.⊥`
@@ -27,7 +26,7 @@ open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Unit.Base using (tt)
 
 open import ProbabilisticLogic.Dp
-open import ProbabilisticLogic.Dp.Advantage using (_≼ₚ[_]_; ≈ₚ[]-resp)
+open import ProbabilisticLogic.Dp.Advantage using (_≼ₚ[_]_)
 open import ProbabilisticLogic.Dp.Mass
   using (ASTotal; Total; astotal-≼ᵐ; total-dominated; total-resp-≼ₚ)
 
@@ -51,7 +50,7 @@ import CategoricalCrypto.Machines.Collapse as Col
 module CategoricalCrypto.UC.Seam.Grounded where
 
 open MonR monoidal
-open MR ∣machines∣ using (cancelˡ; cancelʳ)
+open MR ∣machines∣ using (cancelʳ)
 
 ------------------------------------------------------------------------
 -- The trivial grade
@@ -75,38 +74,19 @@ stageᵒ {B = B} g = ιᴳ B ∘ procᵒ g
 
 module TG = TrivialGrade 𝟘ᴳ ιᴳ
 
-iotaBlind : TG.IotaBlind
-iotaBlind B u v h =
-  ≈ᴳ-trans (≈C⇒≈ᴳ (⟺ (cancel (procᵒ u))))
-           (≈ᴳ-trans (≈ᴳ-congˡ unitorˡ.from (≈ᵁ⇒≈ᴳ h)) (≈C⇒≈ᴳ (cancel (procᵒ v))))
-  where
-  cancel : (w : 𝟘ᵒ ⇒ ifaceᵒ B) → unitorˡ.from ∘ (ιᴳ B ∘ w) ≈ w
-  cancel _ = cancelˡ unitorˡ.isoʳ
-
 ------------------------------------------------------------------------
 -- The degenerate ancilla
 
--- The plugging law both `EnvAsCtx` and `StratIsEnv` are: at the unit ancilla
--- the two wires cancel, by the unitor's naturality and its own iso.  Nothing
--- in it looks at the plugged morphism's domain, so it is stated at any — which
--- is what `UC.Seam.Audit.Context.plug-runᵍ` needs, where the process below the
--- ancilla is OPEN and its resource is plugged after the fact.
+-- The plugging law: at the unit ancilla the two wires cancel, by the unitor's
+-- naturality and its own iso.  Nothing in it looks at the plugged morphism's
+-- domain, so it is stated at any — which is what
+-- `UC.Seam.Audit.Context.plug-runᵍ` needs, where the process below the ancilla
+-- is OPEN and its resource is plugged after the fact.
 plug-λ : {D X : Channel} (t : X ⇒ Ωᵒ) (w : D ⇒ X)
        → ((t ∘ unitorˡ.from) ∘ T₁ 𝟘ᴳ w) ∘ unitorˡ.to ≈ t ∘ w
 plug-λ t w = ((refl⟩∘⟨ T₁-⊗ 𝔾ᵒ 𝟘ᴳ w) ⟩∘⟨refl)
            ○ (assoc ○ (refl⟩∘⟨ unitorˡ-commute-from) ○ sym-assoc) ⟩∘⟨refl
            ○ cancelʳ unitorˡ.isoʳ
-
-envAsCtx : EnvAsCtx
-envAsCtx B d = record
-  { anc   = 𝟘ᴳ
-  ; test  = procᵒ (strategyEnv B d) ∘ unitorˡ.from
-  ; close = unitorˡ.to
-  ; plugs = toEnvPlugs λ w → toProc≈ (plug-λ (procᵒ (strategyEnv B d)) w)
-  }
-
-------------------------------------------------------------------------
--- The grounding
 
 -- `plugˢ` is `𝒢`'s composite with the G-record's projection already performed;
 -- `Machines.Collapse` supplies both halves of that reading, and `unprocᵒ-∘`
@@ -118,13 +98,6 @@ plug-run B d w =
                 Col.S.○ᴹ Col.S.⟺ᴹ (unprocᵒ-∘ e w))
                (ask tt out)
   where e = strategyEnv B d
-
-stratIsEnv : StratIsEnv
-stratIsEnv B u v h d ε ε>0 =
-  ≈ₚ[]-resp (≈ₚ-sym _ _ (plug-run B d u)) (≈ₚ-sym _ _ (plug-run B d v))
-            (≈ᴳ-at 𝟘ᴳ (envᵒ ∘ unitorˡ.from) unitorˡ.to (envᵒ ∘_) (plug-λ envᵒ)
-                   h ε ε>0)
-  where envᵒ = procᵒ (strategyEnv B d)
 
 ------------------------------------------------------------------------
 -- The collapse at the trivial grade
@@ -142,11 +115,8 @@ stratIsEnv B u v h d ε ε>0 =
 -- carries at most one for free, and `Dp.Mass.total-dominated` squeezes: the
 -- observation's mass is within ε of one, at every ε.  That is `SimTotal` — the
 -- simulator's initialization terminates almost surely — which is all
--- `SubBlind` asks.
---
--- `TotalRun v` is not consumed here.  It is part of the statement because the
--- consumer's pair is symmetric and `Protocol.Machine.Total` discharges both by
--- name; the asymmetry is real (only the REAL side anchors the scale).
+-- `SubBlind` asks.  The asymmetry is real: only the REAL side anchors the
+-- scale.
 emSimTotal : (B : Iface) (u v : Proc unitᴵ B) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) → TotalRun B u
            → closedᵒ u ≈ᵁ sub s ∘ closedᵒ v → TG.SimTotal B s v
 emSimTotal B u v s tu em d t factor = total-dominated (ctxRunˢ B d u) _ total near
@@ -164,11 +134,9 @@ emSimTotal B u v s tu em d t factor = total-dominated (ctxRunˢ B d u) _ total n
   near ε ε>0 = proj₁ (∼ᴼ-resp (≈ₚ-sym _ _ read) (≈ₚ-refl _)
     (≈ᴳ-at 𝟘ᴳ (t ∘ unitorˡ.from) unitorˡ.to (t ∘_) (plug-λ t) (≈ᵁ⇒≈ᴳ em)) ε ε>0)
 
--- The collapse itself, stopping one step short of `Agreeˢ`: the simulator is
--- removed and what is left is the direct `≈ᵁ` agreement, which is an
--- ε-QUANTIFIED CONTEXTUAL statement.  `stratIsEnv ∘ iotaBlind` is the step on
--- to `Agreeˢ`, which nothing now takes: the asymptotic family premise stops
--- here and keeps the ε (`UC.Asymptotic.Family.uc-≈ᶠ[_]`).
+-- The collapse itself: the simulator is removed and what is left is the direct
+-- `≈ᵁ` agreement, an ε-QUANTIFIED CONTEXTUAL statement — the asymptotic family
+-- premise stops here and keeps the ε (`UC.Asymptotic.Family.uc-≈ᶠ[_]`).
 subBlind⇒emul : TG.SubBlind → (B : Iface) (u v : Proc unitᴵ B) → TotalRun B u
               → closedᵒ u ≤UC closedᵒ v → closedᵒ u ≈ᵁ closedᵒ v
 subBlind⇒emul blind B u v tu e = ≈ᵁ-trans em (blind B s v (emSimTotal B u v s tu em))
@@ -258,7 +226,7 @@ subBlind B s v st = ≈ℰᶜ⇒≈ᵁ λ Y t m →
           (prefixedᵒ-obs _ _ _ (simTotal⇒point B s v st) (subPrefixed B s v Y t m))
 
 -- …so the collapse is a closed theorem — the one the asymptotic family premise
--- consumes: no `Agreeˢ`, and the ε still quantified rather than spent.
+-- consumes.
 emulAgreeᵁ : (B : Iface) (u v : Proc unitᴵ B) → TotalRun B u
            → closedᵒ u ≤UC closedᵒ v → closedᵒ u ≈ᵁ closedᵒ v
 emulAgreeᵁ = subBlind⇒emul subBlind

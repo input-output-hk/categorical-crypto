@@ -172,18 +172,17 @@
 --                `UC.Machine.Dominated`
 --                                  `dominated`: that interface DISCHARGED, via
 --                                  the two-machine skeleton
---                `UC.Seam`         where layer 1's `transfer` meets an
---                                  emulation: a strategy as an environment,
---                                  `Adequacy`, the POV carry (`UC.Seam.Carry`
---                                  proves its premise from `Adequacy` and
---                                  `PrAgree`); `UC.Seam.Grounding` names what
---                                  the instance owes, and `UC.Seam.Audit` is
---                                  `UC.Audit` applied to the sealed model
+--                `UC.Seam`         where layer 1's runs meet an emulation: a
+--                                  strategy as an environment and `Adequacy`
+--                                  (`UC.Seam.Carry` turns run closeness into
+--                                  `_≈adv[_]_`); `UC.Seam.Grounding` names
+--                                  what the instance owes, and `UC.Seam.Audit`
+--                                  is `UC.Audit` applied to the sealed model
 --                `UC.Seam.Grounded`
 --                                  and what discharges it at the trivial
---                                  grade: `SubBlind`, `StratIsEnv` and with
---                                  them `UnitGrade`; also `closedᵒ`/`stageᵒ`,
---                                  the trivially graded images every consumer
+--                                  grade: `SubBlind`, hence the collapse
+--                                  `emulAgreeᵁ`; also `closedᵒ`/`stageᵒ`, the
+--                                  trivially graded images every consumer
 --                                  downstream of the collapse is stated at
 --                `UC.Graded`       the same images at a NONTRIVIAL grade: a
 --                                  `Proc A (X ⊗ᴵ B)` is a graded hom
