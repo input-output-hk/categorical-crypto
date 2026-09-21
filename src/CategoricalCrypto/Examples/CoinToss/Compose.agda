@@ -150,6 +150,11 @@ schedule-pinʰ _ = refl
 comSim : Certified Lkᶠ Advᶠ
 comSim = ROU.simᵒ , (λ _ → 2) , poly-const 2 , λ n → qbᵒ (ROU.simQB n)
 
+-- …and the corrupted receiver's, which programs rather than extracts and so
+-- costs one downward message per activation instead of two.
+comSimʰ : Certified Lkʰᶠ Advʰᶠ
+comSimʰ = ROHU.simʰᵒ , (λ _ → 1) , poly-const 1 , λ n → qbᵒ (ROHU.simQBʰ n)
+
 coin-toss-from-comᶜ : realᶠ ≈ctx[ εᶜ ] subᶠ comSim idealᶠ
                     → (tossᶠ ∙ᶠ realᶠ) ≤UC^ωᵉ (tossᶠ ∙ᶠ idealᶠ)
 coin-toss-from-comᶜ e = coin-toss-from-com (comSim , εᶜ , εᶜ-negligible , e)

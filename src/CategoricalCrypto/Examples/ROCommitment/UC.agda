@@ -33,7 +33,8 @@ open import ProbabilisticLogic.Dp.Reasoning
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; ifaceᵒ; procᵒ)
 open import CategoricalCrypto.UC.Model.Setup
-open import CategoricalCrypto.UC.QueryBound using (Certified; QB; certified⇒QB; forget)
+open import CategoricalCrypto.UC.QueryBound
+  using (Certified; QB; certified⇒QB; forget; qbᵢ-wire)
 open import CategoricalCrypto.UC.QueryBound.Exact
 
 module CategoricalCrypto.Examples.ROCommitment.UC (k : ℕ) where
@@ -118,6 +119,11 @@ simCert = record
 
 simQB : QB 2 simulator
 simQB = certified⇒QB simCert
+
+-- The functionality is a relabelling wire, so it relays exactly one message
+-- per activation and keeps nothing owed.
+idealQB : QB 1 ideal
+idealQB = certified⇒QB (qbᵢ-wire upᶠ downᶠ)
 
 ------------------------------------------------------------------------
 -- …exactly

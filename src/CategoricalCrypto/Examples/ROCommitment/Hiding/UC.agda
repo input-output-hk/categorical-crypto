@@ -32,7 +32,7 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; ifaceᵒ; procᵒ)
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.QueryBound using
-  (Ans; Certified; QB; certified⇒QB; forget)
+  (Ans; Certified; QB; certified⇒QB; forget; qbᵢ-wire)
 
 module CategoricalCrypto.Examples.ROCommitment.Hiding.UC (k : ℕ) where
 
@@ -133,3 +133,7 @@ simCertʰ = record
 
 simQBʰ : QB 1 simulatorʰ
 simQBʰ = certified⇒QB simCertʰ
+
+-- See `Examples.ROCommitment.UC.idealQB`.
+idealʰQB : QB 1 idealʰ
+idealʰQB = certified⇒QB (qbᵢ-wire upᶠʰ downᶠʰ)
