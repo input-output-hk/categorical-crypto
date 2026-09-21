@@ -21,24 +21,24 @@
 open import Data.Bool.Base using (Bool; false)
 open import Data.List.Base using (List)
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Nat.Poly using (poly-+; poly-*)
+open import Data.Nat.Poly
 open import Data.Nat.Properties using (≤-refl)
 open import Data.Product.Base using (_,_)
 open import Data.Rational as ℚ using (ℚ)
 open import Data.Vec.Base using (replicate)
 open import Relation.Binary.PropositionalEquality using (_≡_)
 
-open import ProbabilisticLogic.Distribution.Uniform using (fromℕ; inv-pow-2)
+open import ProbabilisticLogic.Distribution.Uniform
 
 open import CategoricalCrypto.Examples.ChimericLedger
-open import CategoricalCrypto.Iface using (Iface; Neg; Pos)
-open import CategoricalCrypto.Protocol.Machine using (morphism)
-open import CategoricalCrypto.Protocol.Machine.Total using (TotalRun)
-open import CategoricalCrypto.Protocol.Observe using (Bounded; Pr; PrHit)
-open import CategoricalCrypto.Strategy using (Strat; asks≤)
-open import CategoricalCrypto.UC.Approximate using (NegligibleBound)
-open import CategoricalCrypto.UC.Approximate.Decay using (negligibleBound-inv-pow-2)
-open import CategoricalCrypto.UC.Saturated using (Bad; Systems; QueryPreserving; Watch)
+open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Machine.Total
+open import CategoricalCrypto.Protocol.Observe
+open import CategoricalCrypto.Strategy
+open import CategoricalCrypto.UC.Approximate
+open import CategoricalCrypto.UC.Approximate.Decay
+open import CategoricalCrypto.UC.Saturated
 
 import CategoricalCrypto.Examples.ChimericLedger.Birthday as Bday
 import CategoricalCrypto.Examples.ChimericLedger.POV as POV
@@ -104,7 +104,7 @@ module _ (a V : ℕ) where
 
   auditedᴸ-asks : (n q : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
                 → asks≤ q d → asks≤ (q ℕ.+ q) (auditedᴸ n d)
-  auditedᴸ-asks n q = L.asks≤-audited n q
+  auditedᴸ-asks = L.asks≤-audited
 
   idealTotal : (n : ℕ) → TotalRun (LedgerIf^ω n) (morphism (Ideal n))
   idealTotal n = Tt.totalRun-Sys n (L.oracle n) (Tt.nodead-oracle n) inputConsuming (gen n)

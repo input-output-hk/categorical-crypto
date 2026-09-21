@@ -200,7 +200,15 @@ costs a positive slack, exactly as `uc-≤UC^ωⁿ` does; what is missing is the
 the ledger's simulators ARE trivial, nothing at this application needs it, and it is
 recorded rather than attempted.
 
-## 6. The migration test
+## 6. The migration test — RETIRED 2026-09-21
+
+Recorded as history: the qualitative route this section tested against
+(`Factor.hash-lift`, `Factor.ledger-pov-from-hash`, `UC.Factor.liftᵖ`) has
+since been deleted in favour of the ε-route, and with it
+`ledger-pov-from-hash′`, `at` and `migration-pin`. What the test established —
+that the two routes prove the same statement — is why the deletion costs
+nothing.
+
 
 ```agda
 ledger-pov-from-hash′ : SerInj → hash ≤UC^ω oracle^ω → (p : ℕ → ℕ) → Poly p → …
@@ -219,9 +227,8 @@ The identity of the two statements is MECHANICAL, not a copied signature:
 the two types to unify. A deliberate perturbation of the copied signature was checked to
 break it.
 
-`Factor.ledger-pov-from-hash` itself, the ledger theorems in `EndToEnd` (five then,
-four since the 2026-09-21 retirement of the budgeted route), and `Real.ledger-pov` are
-byte-identical; the new theorems sit beside them in a new module.
+`Factor.ledger-pov-from-hash` itself, the four ledger theorems in `EndToEnd`, and
+`Real.ledger-pov` were byte-identical; the new theorems sat beside them in a new module.
 
 ## 7. Module costs (warm, one `Checking` line, `+RTS -M8G -H1G`)
 
@@ -250,17 +257,14 @@ Escape-hatch baseline
 (`grep -rnE 'postulate|TERMINATING|primTrustMe|\{!' src/`): **16 before, 16 after**, all
 16 being the words "postulate-free" in inherited comments.
 
-## 8. Root-file wiring the maintainer still needs to do
+## 8. Root-file wiring — none owed
 
-`Examples.ChimericLedger.QueryBound` and `Examples.ChimericLedger.FactorEps` have no
-in-repo importer, so neither is in `src/CategoricalCrypto.agda`'s closure. Both check
-green standalone. To add:
-
-- `src/CategoricalCrypto.agda`: imports of both (and of `UC.Asymptotic.Compose`, which
-  `docs/quantitative-family.md` §9 already owes and which `FactorEps` is the first
-  consumer of).
-- `src/CategoricalCrypto/UC.agda`'s inventory: nothing new is needed under `UC.*` beyond
-  the `UC.Asymptotic.Compose` row that document already asks for.
+This section once asked for `Examples.ChimericLedger.QueryBound` and
+`.FactorEps` to be wired into `src/CategoricalCrypto.agda`. Superseded by
+[`docs/consumer-migration.md`](consumer-migration.md) §5: the ledger cone has no
+root by design and is checked per file through its covering leaves, of which
+`FactorEps` is one (and it is what imports `QueryBound`). `UC.Asymptotic.Compose`
+is already imported by `src/CategoricalCrypto/UC.agda` with an inventory row.
 
 ## 9. Not delivered
 

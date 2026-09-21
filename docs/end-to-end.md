@@ -116,14 +116,12 @@ audit instrumentation's cost is why `p` is evaluated at `p + p`
 (`POV.asks≤-audited`), and it is charged in the conclusion rather than assumed
 away.
 
-Four corollaries at concrete families:
+Two corollaries at concrete families:
 
 | corollary | where | premise |
 |---|---|---|
-| `ledger-pov` | `ChimericLedger.Real:89` | `SerInj`, `Real ≤UC^ω Ideal a V` — the real side's three hypotheses discharged once (below) |
-| `ledger-pov-from-hash` | `ChimericLedger.Factor:108` | `SerInj`, `hash ≤UC^ω oracle^ω` — the premise at the HASH, through `hash-lift` |
-| `ledger-pov-from-hashⁿ` | `ChimericLedger.FactorEps:159` | `SerInj`, `hash ≤UC^ωⁿ oracle^ω` — the same, with the hash's error kept across the factoring |
-| `ledger-pov-from-hash′` | `FactorEps:177` | `ledger-pov-from-hash`'s own statement proved the ε-retaining way; `migration-pin` forces the two types to unify |
+| `ledger-pov` | `ChimericLedger.Real` | `SerInj`, `Real ≤UC^ω Ideal a V` — the real side's three hypotheses discharged once (below) |
+| `ledger-pov-from-hashⁿ` | `ChimericLedger.FactorEps` | `SerInj`, `hash ≤UC^ωⁿ oracle^ω` — the premise at the HASH, with its error kept across the factoring |
 
 ## 3. Hypotheses, and why each is allowed
 
@@ -187,6 +185,13 @@ Two further entrances stood beside it.
   no consumer, so `UC.Asymptotic.Audit` (with `_≤UC^ω[_]_` and
   `uc-audit-carryᵈ`), `uc-audit-bounded` and `UC.Seam.Grounded.simAstotal` were
   deleted.
+* **The qualitative lift route.** `Factor.hash-lift`/`ledger-pov-from-hash`
+  lifted `hash ≤UC^ω oracle^ω` with `UC.Factor.liftᵖ` and only then met the
+  quantitative layer; `FactorEps.ledger-pov-from-hash′` proved the same
+  statement the ε-retaining way, with `migration-pin` forcing the two types to
+  unify. The ε-route is canonical, so the qualitative one, its pin and
+  `liftᵖ` itself were deleted. `factorᵖ` stays — it is what `ledger-factor`
+  runs on.
 
 What that route rested on was kept at first because it is general and
 unbudgeted: `UC.Seam.Audit.Prefix.bounded-carry` = `Mass.dominate` +

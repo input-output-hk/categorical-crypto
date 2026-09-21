@@ -3,9 +3,8 @@
 -- The hash-level premise lifted to the ledger WITH ITS ERROR, and the POV
 -- corollary off it.
 --
--- `ChimericLedger.Factor` lifts the QUALITATIVE premise `hash ≤UC^ω oracle^ω`
--- and only then meets the quantitative layer; here the ε crosses the factoring.
--- Two lifts, because the two premise shapes want different laws:
+-- `ChimericLedger.Factor` exposes the hash port; here the ε crosses that
+-- factoring.  Two lifts, because the two premise shapes want different laws:
 --
 --   `hash-liftᵉ`  the canonical witness `_≤UC^ωᵉ_` at the hash port, carried by
 --                 `UC.Asymptotic.Compose.UC-composeᵉ` and regraded by
@@ -18,46 +17,37 @@
 --                 is no simulator to compose, hence none to forget afterwards,
 --                 which is what lets the POV corollary go through.
 --
--- The honest premise shape at this port is the `ωⁿ` one, and not by fiat:
--- `POV.oracle` exposes no adversary interface, so the hash boundary is graded
--- at `𝟘ᴳ` on both sides and every simulator there is a scalar
--- (`docs/ledger-factoring.md`).  `≤UC^ωⁿ⇒≤UC^ωᵉ` is the inclusion, so
--- `hash-liftᵉ` covers it and more; what the `ᵉ` route cannot do at this
--- application is END — forgetting a witness back into direct agreement needs
--- its simulator to act trivially, which at a general simulator is
--- `UC.Seam.Grounded.subBlind` and costs the real side's totality
--- (`docs/ledger-lift-eps.md`).
+-- The honest premise shape at this port is the `ωⁿ` one — the hash boundary is
+-- graded at `𝟘ᴳ` on both sides, so every simulator there is a scalar — and
+-- `hash-liftᵉ` covers it and more; what the `ᵉ` route cannot do here is END
+-- (`docs/ledger-lift-eps.md` §§1, 5).
 
 open import Data.Bool.Base using (Bool)
 open import Data.List.Base using (List)
 open import Data.Nat.Base using (ℕ)
-open import Data.Nat.Poly using (Poly; poly-const)
+open import Data.Nat.Poly
 open import Data.Product.Base using (Σ-syntax; _×_; _,_)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
-open import Level using (Level)
 
 open import CategoricalCrypto.Examples.ChimericLedger
-open import CategoricalCrypto.Examples.ChimericLedger.QueryBound using (qb-ledger)
-open import CategoricalCrypto.Iface using (Neg; Pos)
-open import CategoricalCrypto.Protocol.Live using (NoDeadStep; live)
-open import CategoricalCrypto.Protocol.Machine using (morphism)
-open import CategoricalCrypto.Protocol.Machine.Total using (TotalRun; totalRun-morphism)
-open import CategoricalCrypto.Protocol.Observe using (PrHit)
-open import CategoricalCrypto.Strategy using (Strat; asks≤)
-open import CategoricalCrypto.UC.Approximate using (Negligible; Negligible-0)
-open import CategoricalCrypto.UC.Asymptotic using (_≤UC^ω_)
+open import CategoricalCrypto.Examples.ChimericLedger.QueryBound
+open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Observe
+open import CategoricalCrypto.Strategy
+open import CategoricalCrypto.UC.Approximate
 open import CategoricalCrypto.UC.Asymptotic.Compose
 open import CategoricalCrypto.UC.Asymptotic.Contextual
 open import CategoricalCrypto.UC.Asymptotic.Family
-  using (_≤UC^ωⁿ_; imgᶠ; uc-≤UC^ωⁿ)
-open import CategoricalCrypto.UC.Budget using (Budget; simCost)
-open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ; qbᵒ)
-open import CategoricalCrypto.UC.Model.Family using (Δ)
-open import CategoricalCrypto.UC.Model.Family.Ingest using (ifaceᶠ)
+open import CategoricalCrypto.UC.Budget
+open import CategoricalCrypto.UC.Model.Enrichment
+open import CategoricalCrypto.UC.Model.Family
+open import CategoricalCrypto.UC.Model.Family.Ingest
 open import CategoricalCrypto.UC.Model.Setup
+-- `QB` would clash with the `Budget` record field opened below.
 open import CategoricalCrypto.UC.QueryBound using (qb-closed)
-open import CategoricalCrypto.UC.Saturated using (Bad; Systems)
-open import CategoricalCrypto.UC.Seam.Grounded using (𝟘ᴳ)
+open import CategoricalCrypto.UC.Saturated
+open import CategoricalCrypto.UC.Seam.Grounded
 
 module CategoricalCrypto.Examples.ChimericLedger.FactorEps
   (ser : (n : ℕ) → Ledger.Tx n → List Bool) where
@@ -139,17 +129,6 @@ module _ (vr : Variant) (s : (n : ℕ) → Ledger.LState n) where
 
 module _ (a V : ℕ) (hash : Systems HashIf^ω) where
 
-  Realᵉ : Systems LedgerIf^ω
-  Realᵉ = Realᴴ hash inputConsuming (gen a V)
-
-  badᵉ : Bad Realᵉ
-  badᵉ n = L.badTotal n (gen a V n)
-
-  -- `Real.real-truthful` at this naming of the same family: an audit answer
-  -- reports the LEDGER's state whatever it hashes with.
-  truthfulᵉ : TruthfulAudit a V Realᵉ badᵉ
-  truthfulᵉ n = T.monitor-complete n (hash n) inputConsuming (gen a V n)
-
   -- `Real.ledger-pov`'s conclusion from an ε-RETAINING premise about the hash
   -- alone.  Neither `TotalRun` nor `NoDeadStep` appears: the pointwise theorem
   -- spends totality to collapse an emulation into an agreement, and there is
@@ -157,37 +136,11 @@ module _ (a V : ℕ) (hash : Systems HashIf^ω) where
   ledger-pov-from-hashⁿ : SerInj → hash ≤UC^ωⁿ oracle^ω → (p : ℕ → ℕ) → Poly p
                         → Σ[ f ∈ (ℕ → ℚ) ] Negligible f
                           × ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
-                             → asks≤ (p n) d → PrHit (Realᵉ n) (badᵉ n) d ℚ.≤ f n)
-  ledger-pov-from-hashⁿ si hp =
-    ledger-pov-family-negligible a V si Realᵉ badᵉ
-      (hash-liftⁿ inputConsuming (gen a V) hash hp) truthfulᵉ
-
-------------------------------------------------------------------------
--- …and the qualitative corollary derived from it
-
--- `Factor.ledger-pov-from-hash` verbatim, off the ε-retaining route instead of
--- off `UC.Factor.liftᵖ`: the pointwise premise includes into the family one
--- (`uc-≤UC^ωⁿ`, at the hash's own liveness), the error is carried through the
--- factoring, and only the family theorem's own carry forgets it.  So the two
--- routes prove the same statement and the migration costs nothing.
-module _ (a V : ℕ) (hash : Systems HashIf^ω) (nd : (n : ℕ) → NoDeadStep (hash n)) where
-
-  ledger-pov-from-hash′ : SerInj → hash ≤UC^ω oracle^ω → (p : ℕ → ℕ) → Poly p
-                        → Σ[ f ∈ (ℕ → ℚ) ] Negligible f
-                          × ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
                              → asks≤ (p n) d
-                             → PrHit (Real a V inputConsuming hash nd n)
-                                     (badReal a V inputConsuming hash nd n) d ℚ.≤ f n)
-  ledger-pov-from-hash′ si hp = ledger-pov-from-hashⁿ a V hash si (uc-≤UC^ωⁿ tHash hp)
-    where
-    tHash : (n : ℕ) → TotalRun (HashIf^ω n) (morphism (hash n))
-    tHash n = totalRun-morphism (HashIf^ω n) (hash n) (live (hash n) (nd n))
-
-  private
-    at : {ℓ : Level} {A : Set ℓ} → A → A → A
-    at _ x = x
-
-    -- The statement above is `Factor.ledger-pov-from-hash`'s OWN and not a copy
-    -- of it: this stops checking the moment the two drift apart.
-    migration-pin : _
-    migration-pin = at (ledger-pov-from-hash a V hash nd) ledger-pov-from-hash′
+                             → PrHit (Real a V inputConsuming hash n)
+                                     (badReal a V inputConsuming hash n) d ℚ.≤ f n)
+  ledger-pov-from-hashⁿ si hp =
+    ledger-pov-family-negligible a V si (Real a V inputConsuming hash)
+      (badReal a V inputConsuming hash)
+      (hash-liftⁿ inputConsuming (gen a V) hash hp)
+      (real-truthful a V inputConsuming hash)

@@ -21,9 +21,8 @@ open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Live
-  using (NoDeadStep; live; nodead-fromCall; nodead-uniformVec; nodead-∘ᵖ)
-open import CategoricalCrypto.Protocol.Machine using (morphism)
-open import CategoricalCrypto.Protocol.Machine.Total using (TotalRun; totalRun-morphism)
+open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Machine.Total
 
 module CategoricalCrypto.Examples.ChimericLedger.Total
   (ℓ : ℕ) (ser : Ledger.Tx ℓ → List Bool) where

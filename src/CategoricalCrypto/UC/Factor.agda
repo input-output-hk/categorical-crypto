@@ -18,13 +18,6 @@
 -- `morphism` maps `_∘ᵖ_` to the machine composite
 -- (`Protocol.Machine.Total.morphismCompose`), so the only content is the unit
 -- grade the Kleisli composition introduces, removed by `sub λ⇒`.
---
--- `liftᵖ` is what that buys: `UC-compose` between the graded composites, read
--- back through the factoring.  The grade it introduces is a unit, hence split,
--- hence invisible to the order (`Abstract2.Factor.≤UC-sub`).  The simulator is
--- the composed one `UC-compose` builds; at the trivial grade it is also blind
--- (`UC.Seam.Grounded.subBlind`), which is what makes the lifted emulation
--- consumable by the probability carry.
 
 open import Categories.Functor.Monoidal.CurriedTensor.Properties using (return-λ⇐)
 
@@ -66,16 +59,3 @@ factorᵖ : {B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol unitᴵ B)
 factorᵖ P₂ P₁ =
   (refl⟩∘⟨ (≈ᴹ⇒≈ᵒ (morphismCompose P₂ P₁) ○ procᵒ-∘ (morphism P₂) (morphism P₁)))
   ○ ⟺ (factorᵒ (morphism P₂) (morphism P₁))
-
-------------------------------------------------------------------------
--- …and the lift
-
--- An emulation between the lower components alone, lifted to the systems they
--- sit in.  The upper component is fixed and is assumed nothing: it enters only
--- as `≤UC-refl`, and `UC-compose` does the rest.
-liftᵖ : {B C : Iface} (P₂ : Protocol B C) (u v : Protocol unitᴵ B)
-      → closedᵒ (morphism u) ≤UC closedᵒ (morphism v)
-      → closedᵒ (morphism (P₂ ∘ᵖ u)) ≤UC closedᵒ (morphism (P₂ ∘ᵖ v))
-liftᵖ P₂ u v p =
-  Fc.≤UC-resp-≈ (⟺ (factorᵖ P₂ u)) (⟺ (factorᵖ P₂ v))
-    (Fc.≤UC-sub λ⇒ λ⇐ unitorˡ.isoˡ (UC-compose p (≤UC-refl (stageᵒ (morphism P₂)))))

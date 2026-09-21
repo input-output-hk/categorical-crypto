@@ -10,11 +10,9 @@
 -- query budget `q` reaches a ledger state whose total value differs from the
 -- initial one, except with probability `ε q`.  It is deliberately not phrased
 -- over the ledger's own audit answers — that form would trust the ledger to
--- report honestly.  The audit form survives below as `watch` and as `monitor`,
--- the observable the UC layer's audit event designates; that the audit answer
--- may be trusted is
--- `ChimericLedger.Trajectory`'s theorem rather than an assumption of the
--- statement.
+-- report honestly.  The audit form survives as `monitor`, the observable the
+-- UC layer's audit event designates, and that its answers may be trusted is
+-- `ChimericLedger.Trajectory`'s theorem rather than an assumption.
 
 open import Class.DecEq
 
@@ -113,31 +111,13 @@ POV vr s₀ = BoundedHit (Sys vr s₀) (badTotal s₀)
 -- The audit-form gadget
 ------------------------------------------------------------------------
 
--- `watch` depends only on the audited invariant, so both variants are watched
--- by the same transformation.
+-- The monitor depends only on the audited invariant, so both variants are
+-- watched by the same transformation.
 module _ (s₀ : LState) where
 
   violates : Answer → Bool
   violates (ok _)      = false
   violates (totalIs t) = not (t ≡ᴺ total s₀)
-
-  watch : Strat Query Answer → Strat Query Answer
-  watch (out _)    = out false
-  watch (ask q k)  = ask q λ a → if violates a then out true else watch (k a)
-  watch (coin μ k) = coin μ λ b → watch (k b)
-
-  private
-    stop : (n : ℕ) (b : Bool) (d : Strat Query Answer)
-         → asks≤ n d → asks≤ n (if b then out true else d)
-    stop _ true  _ _ = tt
-    stop _ false _ a = a
-
-  asks≤-watch : (n : ℕ) (d : Strat Query Answer) → asks≤ n d → asks≤ n (watch d)
-  asks≤-watch _       (out _)    _ = tt
-  asks≤-watch zero    (ask _ _)  a = a
-  asks≤-watch (suc n) (ask _ k)  a =
-    λ r → stop n (violates r) (watch (k r)) (asks≤-watch n (k r) (a r))
-  asks≤-watch n       (coin _ k) a = λ b → asks≤-watch n (k b) (a b)
 
   -- The TRUSTED reading of an answer: a `totalIs` answer is the audited state's
   -- own total (`ChimericLedger.Trajectory`), so it may be believed; nothing
@@ -149,12 +129,12 @@ module _ (s₀ : LState) where
   violatesAt audit      a = violates a
 
   -- The monitor whose verdict is the designated audit event: `d` played
-  -- unchanged, its audit answers accumulated, the verdict reported where `d`
-  -- reports its own.  `watch` above stops at the first violation instead, which
-  -- costs it soundness against the trajectory — an early `out true` weighs 1
-  -- where the continued run may deadlock and weigh nothing — so it is the
-  -- accumulating form that an ideal trajectory bound can supply
-  -- (`Trajectory.monitor-sound`, `docs/protocol-implementation-review.md` §1).
+  -- unchanged, its audit answers ACCUMULATED, the verdict reported where `d`
+  -- reports its own.  Stopping at the first violation instead would cost
+  -- soundness against the trajectory — an early `out true` weighs 1 where the
+  -- continued run may deadlock and weigh nothing — so it is the accumulating
+  -- form that an ideal trajectory bound can supply (`Trajectory.monitor-sound`,
+  -- `docs/protocol-implementation-review.md` §1).
   monitorFrom : Bool → Strat Query Answer → Strat Query Answer
   monitorFrom acc (out _)    = out acc
   monitorFrom acc (ask q k)  = ask q λ a → monitorFrom (acc ∨ violatesAt q a) (k a)
@@ -190,9 +170,6 @@ asks≤-audited n       (coin _ k) a = λ b → asks≤-audited n (k b) (a b)
 
 module _ (vr : Variant) (s₀ : LState) where
 
-  POVaudit : (ℕ → ℚ) → Set
-  POVaudit = Bounded (Sys vr s₀) (watch s₀)
-
   -- The same statement at the DESIGNATED monitor, which is the one the UC
   -- layer's carries consume: no strategy of budget `q` makes the monitor
   -- report a violation with probability above `ε q`.
@@ -201,32 +178,14 @@ module _ (vr : Variant) (s₀ : LState) where
   POVmonitor : (ℕ → ℚ) → Set
   POVmonitor = Bounded (Sys vr s₀) (monitor s₀)
 
-  -- The link to `POV`, STATED and not proved (`docs/protocol-rewrite.md` has
-  -- the persistence argument and the price): a trajectory violation is seen by
-  -- the audit form of the audit-interleaved strategy.
-  TrajectoryFromAudit : Set
-  TrajectoryFromAudit = (d : Strat Query Answer)
-                      → PrHit (Sys vr s₀) (badTotal s₀) d ≤ℚ Pr (Sys vr s₀) (watch s₀ (audited d))
-
-  -- …and how it is consumed, which IS proved.
-  pov-via-audit : TrajectoryFromAudit → {ε : ℕ → ℚ} → POVaudit ε
-                → (q qa : ℕ) (d : Strat Query Answer) → asks≤ q d → asks≤ qa (audited d)
-                → PrHit (Sys vr s₀) (badTotal s₀) d ≤ℚ ε qa
-  pov-via-audit tfa pa q qa d _ aa = ≤-trans (tfa d) (pa qa (audited d) aa)
-
 ------------------------------------------------------------------------
 -- The birthday target
 ------------------------------------------------------------------------
 
--- The headline statement is pinned at a GENESIS state: all the value in ONE
--- UTxO output, keyed by a genesis hash `h₀`.  An account-only genesis (empty
--- UTxO set, all value in one account) is what the branch first stated, and it
--- is VACUOUS — `consumes inputConsuming` demands an input while `checkIns`
--- rejects every input against an empty UTxO set, so no transaction is ever
--- accepted, the oracle is never queried, the state never moves and the bad
--- event has probability zero (external theory review, finding 1).
--- `ChimericLedger.Pin` pins the liveness of the state below by `refl`, so the
--- vacuity cannot come back unnoticed.
+-- All the value in ONE UTxO output, keyed by a genesis hash `h₀`: at an
+-- account-only genesis the statement is VACUOUS, since `checkIns` rejects
+-- every input against an empty UTxO set while `consumes inputConsuming`
+-- demands one.  `ChimericLedger.Pin` pins this state's liveness by `refl`.
 genesis : Hash → Addr → ℕ → LState
 genesis h₀ a V = ((h₀ , 0) , (a , V)) ∷ [] , []
 

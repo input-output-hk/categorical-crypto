@@ -203,12 +203,10 @@
 --                                  closed process under, a joint simulator in
 --                                  front — which `Examples.CoinToss.Ideal.UC`
 --                                  consumes
---                `UC.Factor`       `factorᵖ`/`liftᵖ`: the UC-object image of
---                                  `_∘ᵖ_` factors on the nose, so a
---                                  sub-protocol emulation lifts to the
---                                  composed system by `UC-compose` (the
---                                  retraction-conjugated `sub` congruence is
---                                  `Abstract2.Factor`)
+--                `UC.Factor`       `factorᵖ`: the UC-object image of `_∘ᵖ_`
+--                                  factors on the nose, exposing the
+--                                  sub-protocol's interface as a port
+--                                  (`Examples.ChimericLedger.Factor`)
 --                `UC.Saturated`    the saturated form of a concrete safety
 --                                  bound — one slack per polynomial allowance,
 --                                  at the vanishing grade and at the
