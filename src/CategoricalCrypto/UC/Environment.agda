@@ -8,8 +8,8 @@
 -- agreement constructor forced an ancilla equation; a consumer whose scrutinee
 -- had a defined function in that index could not match it, and routing through
 -- a Σ-projection instead handed back a loop `Y ≡ Y` that only axiom K can
--- consume.  That is the whole reason the reference needed
--- `HomTransportTrivial` — a hypothesis refuted under univalence at its own
+-- consume.  That is the whole reason the reference needed a
+-- hom-transport-triviality hypothesis — refuted under univalence at its own
 -- instance, discharged in a two-module K island.  Here `SameTV Y A` is a
 -- one-field record at a fixed ancilla: no equation is ever generated, `same` is
 -- a projection that reduces by eta, and nothing in this file or below it leaves
@@ -156,8 +156,8 @@ _≈ℰ_ {A} {B′} f g = (Y : Obj) (E : Test (Y ⊗₀ B′)) (m : Closure (Y �
 ≈ℰ-at Y Et m k eq {f} {g} r = ∼-cast (eq f) (eq g) (r Y Et m)
 
 -- Grade stability: the ancilla quantifier absorbs a bypass wire.  Where the
--- reference needed `HomTransportTrivial` for this, here it is the associativity
--- of the action and nothing else.
+-- reference needed a hom-transport-triviality hypothesis for this, here it is
+-- the associativity of the action and nothing else.
 grade-stable : {A B′ : Obj} (Y : Obj) {h h′ : A ⇒ B′} → h ≈ℰ h′ → id ⊗₁ h ≈ℰ id ⊗₁ h′
 grade-stable {A} {B′} Y {h} {h′} r W E m =
   ∼-cast (step h) (step h′) (r (W ⊗₀ Y) (E ∘ associator.from) (associator.to ∘ m))
