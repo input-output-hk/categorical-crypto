@@ -8,8 +8,8 @@
 -- and its observation, and the budget and the mass are
 -- `UC.Model.Enrichment`.  Nothing it exports is a parameter, and this is the
 -- only place that application is written — `UC.Seam.Audit.Context`, `.Bounded`,
--- `.Prefix`, `UC.Asymptotic.Audit` and `Examples.HashForward.Audit` all read
--- the model's audit theory from here.
+-- `.Prefix` and `Examples.HashForward.Audit` all read the model's audit theory
+-- from here.
 
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ; massᵒ)
 open import CategoricalCrypto.UC.Model.Observation using (observationᵒ)

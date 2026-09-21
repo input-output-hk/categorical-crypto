@@ -8,31 +8,14 @@
 -- (`docs/protocol-implementation-review.md` §4).  It is the POINTWISE,
 -- unit-grade SPECIALIZATION of asymptotic-family emulation and not the family
 -- relation itself; `_≤UC^ω_` below says what that costs, and
--- `UC.Asymptotic.Family` is the family premise.  Two things are then carried,
--- and by different routes, because the two ends of the seam are:
+-- `UC.Asymptotic.Family` is the family premise.
 --
---   * `UC.Asymptotic.Audit.uc-audit-carryᵈ` is the GRADED carry
---     (`UC.Audit.carry-obs`) read at the family: the ideal side's monitor bound
---     crosses each emulation, the simulator absorbed into the context and its
---     queries charged there (`simCost`).  It lives next door because the two
---     halves in one module cost 127 s warm and apart 10 + 10 s — the
---     seal-level terms of the collapse and the carry's instantiation are cheap
---     alone and not together.
---
---   * `uc-preservesᴺ` here is the PROBABILITY carry: at the trivial grade the
---     simulator is provably blind (`UC.Seam.Grounded.subBlind`), so an
---     emulation collapses to the direct agreement `povCarry` consumes, and
---     `UC.Saturated`'s negligible tier transports the bound.  Totality is what
---     rules out the degenerate simulator — a never-starting one makes every
---     ideal invisible — and `Protocol.Live` discharges it for a dead-free
---     system.
---
--- The two do not compose: turning the graded conclusion back into a
--- probability needs the absorbed context's observation to be `≈ₚ`-EQUAL to an
--- ideal monitored run, and the simulator's own initialization makes it ε-close
--- and no more (that is exactly what `subBlind` proves and all it can prove).
--- The probability route is the one that closes, and it charges no `simCost`
--- because at the trivial grade the simulator costs the ideal side nothing.
+-- `uc-preservesᴺ` is the PROBABILITY carry: at the trivial grade the simulator
+-- is provably blind (`UC.Seam.Grounded.subBlind`), so an emulation collapses to
+-- the direct agreement `povCarry` consumes, and `UC.Saturated`'s negligible
+-- tier transports the bound.  Totality is what rules out the degenerate
+-- simulator — a never-starting one makes every ideal invisible — and
+-- `Protocol.Live` discharges it for a dead-free system.
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly using (Poly)

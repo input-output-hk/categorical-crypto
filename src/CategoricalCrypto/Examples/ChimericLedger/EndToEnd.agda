@@ -30,38 +30,22 @@
 -- with the real side divergent every ideal is emulated, by a simulator that
 -- never starts.
 --
--- The costs are explicit and both appear in the conclusion: the audit
--- instrumentation doubles the allowance (`asks≤-audited`), and the slack is
--- `2⁻ⁿ`, negligible and positive (a carry off an ε-quantified agreement has no
--- zero instance to take).
+-- The cost is explicit and appears in the conclusion: the audit
+-- instrumentation doubles the allowance (`asks≤-audited`).
 --
--- `ledger-uc-to-pov-simCost` is the BUDGETED route beside them, where the
--- simulator's own query cost is charged (`simCost`): the allowance the
--- birthday bound is read at is `simCost (q + q) (cs n)`, the audit
--- instrumentation's doubling composed with the simulator's own rescaling.  It
--- goes through `UC.Seam.Audit.Prefix`'s prefix-tolerant class rather than
--- through the trivial-grade collapse, which is what `docs/end-to-end.md`'s
--- closed obstruction owed.
---
--- The two are not ordered, and which way is worth saying: a budgeted emulation
--- IS an emulation (`UC.Audit.Canonical.audit-forget` after `audit⇒witness`), so
--- `ledger-uc-to-pov` applies wherever the budgeted theorem does and gives the
--- SHARPER bound — at the trivial grade the simulator costs the ideal side
--- nothing.  What the budgeted statement adds is not a better number but the
--- accounting: it is the route that survives a simulator whose queries have to
--- be paid for, and it is the example's witness that the prefix extraction
--- composes end to end.
+-- A BUDGETED premise `_≤UC^ω[ cs ]_` reaches the same conclusion through
+-- `UC.Seam.Audit.Prefix`, at the worse allowance `simCost (q + q) (cs n)`.
+-- That route was retired 2026-09-21: a budgeted emulation IS an emulation
+-- (`UC.Audit.Canonical.audit-forget` after `audit⇒witness`), so these theorems
+-- already apply wherever it did and give the sharper bound — at the trivial
+-- grade the simulator costs the ideal side nothing.
 
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Nat.Poly using (Poly; poly-*; poly-+; poly-const; poly-⊔)
-open import Data.Nat.Properties using (≤-refl)
+open import Data.Nat.Poly using (Poly; poly-+)
 open import Data.List.Base using (List)
 open import Data.Bool.Base using (Bool)
-open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Product.Base using (Σ-syntax; _×_; _,_)
 open import Data.Rational as ℚ using (ℚ)
-
-open import ProbabilisticLogic.Distribution.Uniform using (inv-pow-2)
-open import ProbabilisticLogic.Dp.Mass using (ASTotal)
 
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Iface using (Neg; Pos)
@@ -70,18 +54,11 @@ open import CategoricalCrypto.Protocol.Machine.Total using (TotalRun)
 open import CategoricalCrypto.Protocol.Observe using (PrHit)
 open import CategoricalCrypto.Strategy using (Strat; asks≤)
 open import CategoricalCrypto.UC.Approximate using (Negligible; Negligible-+)
-open import CategoricalCrypto.UC.Approximate.Decay
-  using (0<inv-pow-2; negligible-slack)
 open import CategoricalCrypto.UC.Asymptotic
-open import CategoricalCrypto.UC.Asymptotic.Audit
 open import CategoricalCrypto.UC.Asymptotic.Family
   using (_≤UC^ωⁿ_; uc-≤UC^ωⁿ; ≤UC^ωⁿ⇒≈negl)
-open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Saturated
   using (_≈negl_; Bad; SaturatedBoundedᴺ; SaturatedHitᴺ; Systems)
-open import CategoricalCrypto.UC.Seam.Audit using (emulate; sim; simCost)
-open import CategoricalCrypto.UC.Seam.Grounded using (simAstotal; 𝟘ᴳ)
-open import CategoricalCrypto.UC.Seam.Grounding.Dead using (pointᵒ)
 
 module CategoricalCrypto.Examples.ChimericLedger.EndToEnd
   (ser : (n : ℕ) → Ledger.Tx n → List Bool) where
@@ -91,13 +68,6 @@ open import CategoricalCrypto.Examples.ChimericLedger.Schedule ser
 private
   Strats : (n : ℕ) → Set
   Strats n = Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n))
-
--- The slack the carries spend: `2⁻ⁿ`, positive at every level and negligible.
-ν : ℕ → ℚ
-ν = inv-pow-2
-
-νNegligible : Negligible ν
-νNegligible = negligible-slack λ _ → ≤-refl
 
 ------------------------------------------------------------------------
 -- The theorem
@@ -185,63 +155,3 @@ ledger-pov-negligible :
     × ((n : ℕ) (d : Strats n) → asks≤ (p n) d → PrHit (R n) (badR n) d ℚ.≤ f n)
 ledger-pov-negligible a V si R badR tR em =
   ledger-pov-family-negligible a V si R badR (uc-≤UC^ωⁿ tR em)
-
-------------------------------------------------------------------------
--- The budgeted route
-
--- `ledger-uc-to-pov` off a BUDGETED emulation: the same trajectory
--- conclusion, the birthday bound read at the allowance the audit
--- instrumentation and the simulator together cost, plus the carry's slack.
--- The premise list is the pointwise theorem's with `_≤UC^ω_` replaced by
--- `_≤UC^ω[ cs ]_`; nothing is added.
-ledger-uc-to-pov-simCost :
-    (a V : ℕ) → SerInj → (R : Systems LedgerIf^ω) (badR : Bad R) (cs : ℕ → ℕ)
-  → ((n : ℕ) → TotalRun (LedgerIf^ω n) (morphism (R n)))
-  → R ≤UC^ω[ cs ] Ideal a V
-  → TruthfulAudit a V R badR
-  → SaturatedHitᴺ R badR (λ n q → εᴸ n (simCost (q ℕ.+ q) (cs n)) ℚ.+ ν n)
-ledger-uc-to-pov-simCost a V si R badR cs tR em truthful =
-  saturatedHitᴺ-from-monitor {ε = εᶜ} {P = R} {Bad = badR} {bad = monitorᴸ a V}
-    (λ _ q → q ℕ.+ q) (auditedᴸ a V) (λ _ Pp → poly-+ Pp Pp) (auditedᴸ-asks a V)
-    truthful real
-  where
-  εᶜ : ℕ → ℕ → ℚ
-  εᶜ n q = εᴸ n (simCost q (cs n)) ℚ.+ ν n
-
-  -- The simulator's initialization, almost surely total off the real family's
-  -- own `TotalRun`; the budgeted emulation's own relation is the core's
-  -- `_≈ℰᶜ_`, which at a graded codomain IS `_≈ᵁ_`.
-  astotal : (n : ℕ) → ASTotal (pointᵒ 𝟘ᴳ 𝟘ᴳ (sim (em n)))
-  astotal n = simAstotal (LedgerIf^ω n) (morphism (R n)) (morphism (Ideal a V n))
-                (sim (em n)) (tR n) (≈ℰᶜ⇒≈ᵁ (emulate (em n)))
-
-  real : SaturatedBoundedᴺ R (monitorᴸ a V) εᶜ
-  real = boundedᴺ {I = R} {ε = εᶜ} {bad = monitorᴸ a V}
-           (uc-audit-boundedᵖ {ε = εᴸ} {ν = ν} em (monitorᴸ a V) astotal
-                              (monitorᴸ-preserving a V) (ideal-bounded a V si)
-                              0<inv-pow-2)
-
--- …read as one number, as `ledger-pov-negligible` reads the pointwise theorem.
--- The simulator's budget has to be polynomial for that number to be
--- negligible, and that is the only hypothesis this corollary adds: a
--- superpolynomial simulator magnifies the allowance out of the birthday
--- bound's negligible range.
-ledger-pov-simCost-negligible :
-    (a V : ℕ) → SerInj → (R : Systems LedgerIf^ω) (badR : Bad R)
-    (cs : ℕ → ℕ) → Poly cs
-  → ((n : ℕ) → TotalRun (LedgerIf^ω n) (morphism (R n)))
-  → R ≤UC^ω[ cs ] Ideal a V
-  → TruthfulAudit a V R badR
-  → (p : ℕ → ℕ) → Poly p
-  → Σ[ f ∈ (ℕ → ℚ) ] Negligible f
-    × ((n : ℕ) (d : Strats n) → asks≤ (p n) d → PrHit (R n) (badR n) d ℚ.≤ f n)
-ledger-pov-simCost-negligible a V si R badR cs Pcs tR em truthful p Pp =
-  let νₚ , neg , bnd = ledger-uc-to-pov-simCost a V si R badR cs tR em truthful p Pp
-  in (λ n → (εᴸ n (simCost (p n ℕ.+ p n) (cs n)) ℚ.+ ν n) ℚ.+ νₚ n)
-   , Negligible-+
-       (Negligible-+
-         (εᴸ-negligible (λ n → simCost (p n ℕ.+ p n) (cs n))
-                        (poly-* (poly-+ Pp Pp) (poly-⊔ Pcs (poly-const 1))))
-         νNegligible)
-       neg
-   , bnd

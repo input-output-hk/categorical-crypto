@@ -204,13 +204,6 @@ simTotal⇒point B s v st =
              (massedᵒ-∘ˡ _ _ _ (sub s) (closedᵒ v) _
                (massedᵒ-sub 𝟘ᴳ 𝟘ᴳ (ifaceᵒ B) s _ (massedᵒ-point 𝟘ᴳ 𝟘ᴳ s)))
 
--- …hence the simulator's initialization is almost surely total off the REAL
--- side's totality alone, which is the hypothesis the budgeted route's
--- prefix-tolerant extraction asks for (`UC.Asymptotic.Audit.uc-audit-boundedᵖ`).
-simAstotal : (B : Iface) (u v : Proc unitᴵ B) (s : 𝟘ᴳ ⇒ 𝟘ᴳ) → TotalRun B u
-           → closedᵒ u ≈ᵁ sub s ∘ closedᵒ v → ASTotal (pointᵒ 𝟘ᴳ 𝟘ᴳ s)
-simAstotal B u v s tu em = simTotal⇒point B s v (emSimTotal B u v s tu em)
-
 -- The whole of what a trivial-grade simulator contributes to a context: its
 -- own initialization, in front of whatever that context observes.  A
 -- trivial-grade scalar carries no message, so it is the identity except for

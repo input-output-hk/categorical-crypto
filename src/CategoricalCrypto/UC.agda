@@ -211,17 +211,14 @@
 --                                  retraction-conjugated `sub` congruence is
 --                                  `Abstract2.Factor`)
 --                `UC.Seam.Audit.Prefix`
---                                  the BUDGETED route's consumer end:
---                                  `uc-audit-bounded` turns an ideal monitor
---                                  bound into the real system's own probability
---                                  across a budgeted emulation, the simulator's
---                                  initialization tolerated as a prefix and its
---                                  queries charged.  No event class is on the
---                                  route: `sim-prefixed` is the one-sided mass
---                                  consequence, `bounded-carry` is where the
---                                  route's actual premises show, and
---                                  `UC.Seam.Audit.Context`'s `extract-obs` is
---                                  its numerical half
+--                                  `bounded-carry` turns an ideal monitor bound
+--                                  into the real system's own probability
+--                                  across an emulation, the simulator's
+--                                  initialization tolerated as a prefix.  No
+--                                  event class is on the route:
+--                                  `sim-prefixed` is the one-sided mass
+--                                  consequence and `UC.Seam.Audit.Context`'s
+--                                  `extract-obs` is its numerical half
 --                                  (`docs/direct-extraction.md`)
 --                `UC.Saturated`    the saturated form of a concrete safety
 --                                  bound — one slack per polynomial allowance,
@@ -229,13 +226,8 @@
 --                                  negligible one, with the invariance proved
 --                                  for each
 --                `UC.Asymptotic`   the consumer end: an emulation FAMILY, and
---                                  the two ways a bound crosses it — graded
---                                  (`simCost` charged) and probabilistic (the
---                                  trivial-grade collapse into `UC.Saturated`).
---                                  `UC.Asymptotic.Audit` states the graded one
---                                  as `uc-audit-carryᵈ`, at the test, closure,
---                                  monitor and budget witness directly
---                                  (`docs/consumer-migration.md`)
+--                                  how a bound crosses it — the trivial-grade
+--                                  collapse into `UC.Saturated`
 --                `UC.Asymptotic.Contextual`
 --                                  `UC.Quantitative.Family` at the sealed
 --                                  bundle: the ONE quantitative relation,
@@ -283,7 +275,6 @@ module CategoricalCrypto.UC where
 
 open import CategoricalCrypto.UC.Approximate public
 open import CategoricalCrypto.UC.Asymptotic public
-open import CategoricalCrypto.UC.Asymptotic.Audit public
 open import CategoricalCrypto.UC.Asymptotic.Compose public
 open import CategoricalCrypto.UC.Asymptotic.Family public
 open import CategoricalCrypto.UC.Budget public

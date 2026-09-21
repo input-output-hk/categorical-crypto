@@ -9,9 +9,9 @@
 -- by `monitor-sound`, complete on audited strategies by `monitor-complete`).
 -- No hypothesis is added along the way.
 --
--- This is the form the carries consume (`UC.Asymptotic.Audit.uc-audit-carryᵈ`,
--- `uc-audit-boundedᵖ`), levelwise.  `ChimericLedger.Schedule.ideal-bounded` is
--- the family-level counterpart, at the schedule's own `h₀`.
+-- This is the form the carries consume, levelwise.
+-- `ChimericLedger.Schedule.ideal-bounded` is the family-level counterpart, at
+-- the schedule's own `h₀`.
 
 open import Data.Bool.Base using (Bool)
 open import Data.List.Base using (List)
