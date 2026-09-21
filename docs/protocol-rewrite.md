@@ -565,13 +565,13 @@ this layer needed them.)
 **Status 2026-09-12.** This section records a design in which `UC.Core`'s
 `UCBase` is the public metatheory. It is not the current one: the inherited
 `UCSetup` + `Abstract2` (reached at the machine model through `Standard2.StdUC`)
-is canonical, `UC.Model.Bridge` identifies the two orders both ways, and the
-core-scoped statements that remain — `UC.Emulation`'s metatheorems and
-`UC.Robust.Observation`'s preservation theorem — stand as INDEPENDENTLY SCOPED
-`UCBase` results, kept because an arbitrary `UCBase` supplies no graded Kleisli
-triple and so no `run`/`run-sub` (`docs/presheaf-action.md` §2,
-`docs/retirement.md` §7). The generic preservation theorem at a `UCSetup` is
-`UC.Robust` over `Abstract2.Action`. The supersession itself is
+is canonical, `UC.Core.Bridge` identifies the two orders both ways, and the
+core-scoped statements that remained — `UC.Emulation`'s metatheorems and
+`UC.Robust.Observation`'s preservation theorem — stood as INDEPENDENTLY SCOPED
+`UCBase` results (`docs/presheaf-action.md` §2, `docs/retirement.md` §7). Both
+were retired, and `UC.Emulation`, the `Grading`/`UCBase` records and
+`UC.Core.Standard` deleted, on 2026-09-21. The generic preservation theorem at
+a `UCSetup` is `UC.Robust` over `Abstract2.Action`. The supersession itself is
 `docs/stduc-supersession-plan.md`; what it was rebuilt on is
 `docs/uc-presheaf-preservation-plan.md` §§2–3.
 
@@ -743,9 +743,9 @@ monoidal category acting on itself.  That is exactly what
 | `a⇒` | `μ X Y` |
 | `a⇐`, `a-isoˡ` | the retraction `θ` and its `θ-μ`, which `UCSetup.GradeStableFromTests` already asks for as parameters |
 | `a-nat` | `μ-commute` |
-| `_≈ℰ_`, `≈ℰ-refl/sym/trans`, `≈⇒≈ℰ`, `≈ℰ-congˡ/congʳ` | **`_≈ᵁ_`, NOT `_≈ℰ_`** (corrected — this row said "the kernel congruence of `ℰ`", and that is a strictly coarser relation: the core's quantifies over an ancilla and the bare kernel does not).  At graded homs the two are the same relation, proved both ways as `UC.Model.Bridge.≈ℰᶜ⇔≈ᵁ`; at ungraded homs, where `_≈ᵁ_` is not stated, it is `UC.Model.Bridge._≈ᴳ_` (`≈ᴳ⇔≈ℰᶜ`).  `≈ℰᶜ⇒≈ℰ` into the bare kernel holds; the converse needs `GradeStable`.  Any rename mapping `≈ℰ ↦ ≈ℰ` silently WEAKENS every statement it touches |
+| `_≈ℰ_`, `≈ℰ-refl/sym/trans`, `≈⇒≈ℰ`, `≈ℰ-congˡ/congʳ` | **`_≈ᵁ_`, NOT `_≈ℰ_`** (corrected — this row said "the kernel congruence of `ℰ`", and that is a strictly coarser relation: the core's quantifies over an ancilla and the bare kernel does not).  At graded homs the two are the same relation, proved both ways as `UC.Core.Bridge.≈ℰᶜ⇔≈ᵁ`; at ungraded homs, where `_≈ᵁ_` is not stated, it is `UC.Core.Bridge._≈ᴳ_` (`≈ᴳ⇔≈ℰᶜ`).  `≈ℰᶜ⇒≈ℰ` into the bare kernel holds; the converse needs `GradeStable`.  Any rename mapping `≈ℰ ↦ ≈ℰ` silently WEAKENS every statement it touches |
 | `grade-stable` | `GradeStable`, there a *statement*, here a theorem |
-| `_≤UC_`, `≤UC-refl`, `≤UC-trans`, `dummy-complete` | `Abstract2.AbstractUC`'s, over `≈ᵁ` instead of `≈ℰ`; the two orders agree both ways (`UC.Model.Bridge.≤UCᶜ⇔≤UC`), the inherited one carrying the dummy quantifier in its statement where the core derives it |
+| `_≤UC_`, `≤UC-refl`, `≤UC-trans`, `dummy-complete` | `Abstract2.AbstractUC`'s, over `≈ᵁ` instead of `≈ℰ`; the two orders agree both ways (`UC.Core.Bridge.≤UCᶜ⇔≤UC`), the inherited one carrying the dummy quantifier in its statement where the core derives it |
 | ~~`UC-compose`~~ | retired.  The core could only STATE it (the chain needs a `sub`/`T₁` interchange and an `a⇒`-naturality `Grading` does not ask for); `Abstract2.UC-compose` is a theorem, and `≤UCᶜ⇔≤UC` carries it to any core statement |
 | `UCBase` | `UCSetup` — deliberately NOT the same name, to avoid shadowing (rule 29) |
 
@@ -771,7 +771,7 @@ places:
    (`record { same = … }` and `same` back).  So the core is the
    *test-generated* case of the inherited interface, one presheaf per ancilla
    instead of one presheaf.  The intended instance does better than that and
-   supplies ONE presheaf: `UC.Model.Environment.ℰᵒ`, tests into `Ωᵒ` modulo
+   supplies ONE presheaf: `UC.Model.Setup.ℰᵒ`, tests into `Ωᵒ` modulo
    closed observation, which is what makes `StdUC` instantiable there and the
    obstruction above moot.
 
@@ -1016,12 +1016,12 @@ a core-interface redesign — `_≈ℰⁿ_` wired in as an `Observation`'s `_∼
 pricing is wrong about what the composition needs. `UC.Asymptotic.Compose`
 proves it as ENRICHMENT lemmas over the existing action: `≈ctx-ext` moves a
 continuation into the test at its own certificate, `≈ctx-pre` a process into the
-closure (the asymmetric one, whose substitution is a bound and hence takes
-`Allowance-mono`), and `UC-composeᵉ` assembles them with their allowance
-substitutions and the errors added after them. Nothing in the core changed and
-`Abstract2.UC-compose` is untouched (`docs/quantitative-family.md` §6). The
-redesign itself remains unattempted and unneeded —
-`docs/graded-observation-redesign.md` still prices it.
+closure (the asymmetric one, whose substitution is exact once its closure
+certificate is bumped with `qb-mono`), and `UC-composeᵉ` assembles them with
+their allowance substitutions and the errors added after them. Nothing in the
+core changed and `Abstract2.UC-compose` is untouched
+(`docs/quantitative-family.md` §6). The redesign itself remains unattempted and
+unneeded — `docs/graded-observation-redesign.md` still prices it.
 
 `Data.Nat.Properties.Ext` (153, new), `Data.Nat.Poly`'s `poly-≤2^`,
 `Data.Rational.Properties.Ext`'s `_/_` arithmetic and halving facts,
@@ -1555,11 +1555,12 @@ question and none is decided here.
   statements' interfaces and `ledger-uc-to-pov-simCost` derives the `ASTotal`
   from `TotalRun` in order to supply one. `bounded-carry` is the honest premise
   list.
-* **A fifth `Allowance-mono` component of `_≤UC^ωᵉ_`.** It buys the packaged
-  `f ≤UC^ωᵉ g → u ≤UC^ωᵉ v → (u ∙ᶠ f) ≤UC^ωᵉ (v ∙ᶠ g)` and costs
-  `≤UC^ωⁿ⇒≤UC^ωᵉ` a premise `_≤UC^ωⁿ_` does not carry. A proved monotone
-  envelope would remove the choice ([quantitative-family](quantitative-family.md)
-  §10).
+* ~~**A fifth `Allowance-mono` component of `_≤UC^ωᵉ_`.**~~ RESOLVED
+  2026-09-21: `Allowance-mono` is deleted, so it is a component of nothing.
+  `≈ctx-pre` bumps its closure certificate with `qb-mono` and substitutes
+  exactly (`UC.Budget.ctxBudget-closure`), `≤UC^ωᵉ-∙` is the packaged form, and
+  `≤UC^ωⁿ⇒≤UC^ωᵉ` is unchanged
+  ([quantitative-family](quantitative-family.md) §10).
 * **Retire `≤UC⇒≤UCᶜ`?** Zero in-repo consumers since `uc-preservesᵒ` stopped
   taking the detour, and so has `≤UCᶜ⇔≤UC`; both are one direction of the seam's
   own two-way identification of the two orders.
@@ -1575,9 +1576,12 @@ question and none is decided here.
   met** — `Model.Family.Uniform.uc-compose-agree`, `Model.Family.Ingest`'s four
   projections, ten names in `Model.Bridge`, `Model.Reading.≈ᵁ⇔≈ᴬ`. None of them
   BECAME consumerless through the arc, so no gate reading "after callers
-  migrate" is satisfied by it ([retirement](retirement.md) §7).
-* **The Track-A stack** — carried by name from [retirement](retirement.md) §8;
-  nothing in the arc reaches it and this file has no record of what it names.
+  migrate" is satisfied by it ([retirement](retirement.md) §7). Moot for all
+  but the `Ingest` projections since 2026-09-21: `Model.Family.Uniform`,
+  `Model.Bridge` and `Model.Reading` are deleted.
+* ~~**The Track-A stack**~~ — carried by name from
+  [retirement](retirement.md) §8. Retired 2026-09-21: `FamilyCategory`,
+  `VanishingTV`, `StandardTV` and `OutputOnly` are deleted.
 * **The `Collapse`/`Wire`/`Dictionary` relocation is EXECUTED**, not parked:
   `Machines.Pointwise`, `Machines.Pure` and `Machines.Sandwich` are the three
   modules it split out, with `ret≡`/`map-eq`/`map-fuse` moved to
