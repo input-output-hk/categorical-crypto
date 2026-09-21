@@ -477,8 +477,10 @@ assembly, not their semantics.
    already-landed seal transports and domination; do not reprove them as new
    architecture.
 6. **Consumer migration.** Preserve `ledger-uc-to-pov-family`,
-   `ledger-pov-family-negligible`, `ledger-uc-to-pov-simCost`, and
-   `ledger-pov-simCost-negligible`, then migrate the real/hash-level corollaries.
+   `ledger-pov-family-negligible` and `ledger-pov` (the list named
+   `ledger-uc-to-pov-simCost` and `ledger-pov-simCost-negligible` until the
+   budgeted route was retired 2026-09-21, `docs/end-to-end.md` §4), then
+   migrate the real/hash-level corollaries.
    Add the nontrivial interactive-grade application separately from the scalar
    specialization.
 7. **Retirement.** Search importers of every retired name, remove only the

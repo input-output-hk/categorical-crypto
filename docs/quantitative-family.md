@@ -299,8 +299,10 @@ Checked green, unedited: `src/CategoricalCrypto.agda`, `UC.agda`, `UC/Model.agda
    branch `filtered-qsetup`; see §11.
 
 4. **Consumer migration (plan step 6).** `ledger-uc-to-pov-family`,
-   `ledger-pov-family-negligible`, `ledger-uc-to-pov-simCost`, `ledger-pov-simCost-negligible`
-   and `ledger-pov` are unchanged and green; nothing was migrated onto the new witness form.
+   `ledger-pov-family-negligible` and `ledger-pov` are unchanged and green; nothing was
+   migrated onto the new witness form. (`ledger-uc-to-pov-simCost` and
+   `ledger-pov-simCost-negligible` stood here too until the budgeted route was retired
+   2026-09-21, `docs/end-to-end.md` §4.)
 
 ## 11. The relation as a filtered instance (2026-09-21, `filtered-qsetup`)
 

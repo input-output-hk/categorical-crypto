@@ -2065,6 +2065,9 @@ edit being the sanctioned `where`-lift below.
   `uc-agree` of its only importer and so strip `UC.Seam.Grounded.unitGrade` of one of
   its two — regressing the "`unitGrade` was unreachable" sweep item this file records as
   resolved. The specialization is a theorem (`uc-≤UC^ωⁿ`) either way. Your call.
+  **RESOLVED 2026-09-21 (maintainer ruling, branch `ledger-cleanup`):** rewired, and
+  `uc-agree`, `uc-≈negl`, `unitGrade` and `subBlind⇒unitGrade` were deleted rather than
+  kept alive by their last consumer.
 
 Verification (all forced warm, `+RTS -M8G -H1G`, one `Checking` line unless noted):
 

@@ -181,6 +181,12 @@ this shape and is what the migrated proofs consume.
 
 ### The real side
 
+> **Superseded 2026-09-21:** `ledger-audit-carryᵈ` and the two `simCost`
+> theorems below are deleted with the rest of the budgeted route
+> (`docs/end-to-end.md` §4); the four surviving `EndToEnd` theorems are
+> `ledger-uc-to-pov-family`, `ledger-pov-family-negligible`,
+> `ledger-uc-to-pov` and `ledger-pov-negligible`.
+
 `Examples/ChimericLedger/EndToEnd.agda:231`
 
 ```agda

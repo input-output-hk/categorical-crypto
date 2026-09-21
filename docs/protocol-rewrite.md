@@ -1546,10 +1546,9 @@ assumption ledgers is the older grep at the older tree.
 Collected from the `## Resolved (…)` sections; none of them is a soundness
 question and none is decided here.
 
-* **Reroute `ledger-uc-to-pov` through the family theorem?** It is
-  `ledger-uc-to-pov-family` at a stronger premise (`uc-≤UC^ωⁿ`), and rerouting
-  it would leave `UC.Asymptotic.uc-agree` — and through it
-  `UC.Seam.Grounded.unitGrade` — without an importer.
+* ~~**Reroute `ledger-uc-to-pov` through the family theorem?**~~ RULED and DONE
+  2026-09-21: rerouted, and `UC.Asymptotic.uc-agree`/`uc-≈negl` and
+  `UC.Seam.Grounded.unitGrade`/`subBlind⇒unitGrade` were deleted with it.
 * **Shed `uc-audit-bounded`'s unused premises** (`ASTotal`, the `bad`-budget
   law). The direct route consumes neither; they are part of two exported
   statements' interfaces and `ledger-uc-to-pov-simCost` derives the `ASTotal`

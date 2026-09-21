@@ -1,5 +1,12 @@
 # Proposal: the prefix-tolerant audit event class (unit-grade bridge)
 
+> **Deliverable retired 2026-09-21.** The budgeted endpoint this plan aimed at
+> (`UC.Seam.Audit.Prefix.uc-audit-bounded`, `UC.Asymptotic.Audit.uc-audit-boundedᵖ`
+> and the ledger's `ledger-uc-to-pov-simCost`) is deleted: a budgeted emulation
+> forgets to a pointwise one, so the route gave a weaker bound at a stronger
+> premise and had no consumer (`docs/end-to-end.md` §4). The plan's general
+> content — `prefix-absorbᵒ`, `sim-prefixed`, `bounded-carry` — is kept.
+
 Status: **implemented** (see "Outcome" below). Scope narrowed per
 [the follow-up review](protocol-implementation-review.md) §3.1: this plan
 covers the **budgeted unit-grade probability bridge only**. It does not handle
