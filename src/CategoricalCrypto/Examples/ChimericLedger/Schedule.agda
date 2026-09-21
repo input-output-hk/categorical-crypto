@@ -13,10 +13,6 @@
 -- itself depends on the width and a single `ser` cannot be typed.  The
 -- injectivity hypothesis is passed on, never discharged: it is the birthday
 -- theorem's own assumption.
---
--- Besides the bound the schedule owes the ideal side's TOTALITY, which the
--- trivial-grade collapse of an emulation spends; `ChimericLedger.Total`
--- discharges it structurally at each level.
 
 open import Data.Bool.Base using (Bool; false)
 open import Data.List.Base using (List)
@@ -32,8 +28,6 @@ open import ProbabilisticLogic.Distribution.Uniform
 
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Machine.Total
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Approximate
@@ -105,9 +99,6 @@ module _ (a V : ℕ) where
   auditedᴸ-asks : (n q : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
                 → asks≤ q d → asks≤ (q ℕ.+ q) (auditedᴸ n d)
   auditedᴸ-asks = L.asks≤-audited
-
-  idealTotal : (n : ℕ) → TotalRun (LedgerIf^ω n) (morphism (Ideal n))
-  idealTotal n = Tt.totalRun-Sys n (L.oracle n) (Tt.nodead-oracle n) inputConsuming (gen n)
 
   -- The proved birthday theorem, read at the schedule and at the designated
   -- monitor: the ideal side of the end-to-end statement, with no UC in it.

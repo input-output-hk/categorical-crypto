@@ -173,8 +173,7 @@ module _ (vr : Variant) (s₀ : LState) where
   -- The same statement at the DESIGNATED monitor, which is the one the UC
   -- layer's carries consume: no strategy of budget `q` makes the monitor
   -- report a violation with probability above `ε q`.
-  -- `Trajectory.monitor-bounded` proves it from `POV`, and
-  -- `ChimericLedger.Audit.pov-target` hands it to the seam.
+  -- `Trajectory.monitor-bounded` proves it from `POV`.
   POVmonitor : (ℕ → ℚ) → Set
   POVmonitor = Bounded (Sys vr s₀) (monitor s₀)
 
