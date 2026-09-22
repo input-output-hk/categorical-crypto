@@ -28,6 +28,106 @@ This proposal complements `docs/explicit-error-certificates-plan.md`: event
 bounds consume explicit-error certificates. They need not pass through a
 qualitative UC corollary or make `_≤UC^ωᵉ_` into a setup's order.
 
+## Architectural clarification after the spike
+
+The governing goal is:
+
+> Give event bounds one quantitative transport theory. Preserve the useful
+> strategy-level presentation, add a faithful context-level presentation, and
+> prove the bridge before choosing what to retire.
+
+This supersedes any reading of the plan as requiring every event to be an
+ordinary monitor morphism or requiring deletion of the strategy-level layer
+as evidence of success. Two projects were initially coupled too tightly:
+consolidating event-bound transport and compiling a watch into an arbitrary
+machine context. The latter requires substantive adequacy proofs; it is not
+a routine prerequisite for using the former.
+
+### Separate transport from the monitor compiler
+
+The reusable transport argument needs an observed experiment, a lawful event
+readout, an explicit-error comparison, and resource accounting. It does not
+require that every event originate from a process `μ : B → B ⊗ Flag`.
+
+The intended organization is:
+
+```text
+             Quantitative event-bound transport
+                            ↑
+                  Observed experiments
+                   ↗                 ↖
+       Strategy/watch reading   Monitored-context reading
+                   ↖                 ↗
+                     Adequacy bridge
+```
+
+The monitor compiler is one construction of event-observing contexts, not the
+definition of an event bound. Keep the pure observation transports independent
+of that compiler. Start with the concrete observation terms and small required
+lemmas rather than introducing a large experiment/setup record.
+
+### Preserve useful strategy structure
+
+`auditWatch` has explicit event semantics, exact query preservation, and an
+induction principle suited to the existing birthday proof. `Systems` and
+`Watch` are not inherently architectural defects. The target is duplicated
+security definitions and transport arguments lacking a proved connection, not
+the existence of a strategy-level vocabulary.
+
+Retain strategy definitions and lemmas when they serve probability proofs,
+compiler adequacy, or the trajectory appendix. Retirement remains conditional
+on genuine redundancy after migration; the retirement table is not a deletion
+quota.
+
+### Keep three resource quantities distinct
+
+Name separately the original environment's ledger queries, internal queries
+used to retrieve the flag, and the coarse compiled-context certificate used by
+quantitative comparison. The spike's `2 · (c ⊔ 1)` certificate does not by
+itself establish that monitoring intrinsically doubles the ledger-query cost.
+
+Prefer a local accounting proof for this consumer. A port-sensitive or
+distinguished-hole resource theory becomes a justified follow-up if multiple
+consumers need it; it is not a prerequisite imposed by this plan.
+
+### Acceptance is semantic agreement, not a representation change
+
+The diagram to establish is:
+
+```text
+original interaction  →  watched event
+         │                     │
+         │ interpretation      │ probability bound
+         ▼                     ▼
+compiled context run  →  the corresponding event bound
+```
+
+Use equality or the precise one-sided inequality required by the theorem.
+Neither a well-typed compiler nor a new property with a similar-looking type
+establishes this diagram. Ordinary domination loses the connection between a
+verdict and the event that produced it; the event-sensitive proof must retain
+that connection.
+
+### Two-stage delivery
+
+**Stage A — consolidate the available mathematics.** Land `Upper` and its
+explicit-error transport, factor the reusable event absorption/accounting from
+`UC.Audit`, and keep the existing strategy-level ledger theorem operational.
+State the intended contextual theorem and its bridge obligation precisely.
+This stage is useful progress, but does not complete the contextual headline.
+
+**Stage B — prove contextual adequacy for the audit event.** Establish monitor
+agreement at embedded strategies, prove event-sensitive finite-strategy
+decomposition, discharge the ideal contextual bound, and migrate the contextual
+ledger transfer. Retire redundant infrastructure afterward.
+
+The post-spike work package below specifies Stage B's obligations. A substantial
+proof is justified if it establishes this concrete semantic connection and
+reuses the existing machinery. The success measure is the checked connection
+and its exercised consumer, not a short proof or disappearance of the old
+presentation. A headline over all admitted machine contexts still requires
+Stage B; the strategy theorem alone is not that result.
+
 ## 1. Placement and required observation structure
 
 A bare `QUCSetup` supplies approximate comparisons, not a Boolean event or a
