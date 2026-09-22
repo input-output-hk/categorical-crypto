@@ -20,7 +20,11 @@
 -- environment's own query count nor the queries spent retrieving the flag,
 -- and `κμ 0 = 2` is not a claim that monitoring doubles honest queries:
 -- `ctxBudget` cannot tell a flag-port query from one on the honest interface
--- (`UC.Budget`'s header prices the port-specific bound that could).
+-- (`UC.Budget`'s header prices the port-specific bound that could).  The
+-- compiled test does in fact spend the test's OWN rate, which
+-- `UC.Machine.Monitor.Tight.qb-compileᵀ` certifies by accounting for the
+-- composite directly; `κμ` stays because `qb-∘` is the cheaper route to a
+-- bound and several consumers only need one.
 
 open import Categories.Category using (Category)
 
