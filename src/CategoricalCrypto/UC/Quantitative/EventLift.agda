@@ -52,6 +52,7 @@ open import CategoricalCrypto.UC.Machine.Bridge using (λᴵ⇒)
 open import CategoricalCrypto.UC.Machine.Dominated using (CovCtx; eventSkeleton)
 open import CategoricalCrypto.UC.Machine.Slide using (Kctx; ctxRun-conj; ctxRun-slide)
 open import CategoricalCrypto.UC.QueryBound using (QB)
+open import CategoricalCrypto.UC.Quantitative.EventLift.Cov using (covCtx)
 open import CategoricalCrypto.UC.Quantitative.Hits
 
 import CategoricalCrypto.Examples.ChimericLedger.Observable as Observable
@@ -184,3 +185,17 @@ module _ (ℓ : ℕ) (ser : Ledger.Tx ℓ → List Bool) (s₀ : Ledger.LState �
 
     κμ-le : κμ c ℕ.≤ κμ q
     κμ-le = ℕP.*-monoʳ-≤ 2 (ℕP.⊔-mono-≤ c≤q ℕP.≤-refl)
+
+  -- …and the same with the invariant discharged: unconditional, with the
+  -- schedule read one query past the environment's own cap.
+  ledger-hitsᵘ : (vr : Variant) {ε : ℕ → ℚ}
+               → Bounded (Sy.Sys vr s₀) (Ob.auditWatch s₀) ε → (q : ℕ)
+               → HitsAt q (ε (q ℕ.+ 1)) (morphism (Sy.Sys vr s₀))
+                          (auditMonitor ℓ ser s₀)
+  ledger-hitsᵘ vr {ε} bnd q Y E m {c} {c′} qE qm le =
+    eventDominatedᵘ (Ob.reportsLoss s₀) (Ob.auditWatchFrom s₀)
+      (auditWatch-IsWatch ℓ ser s₀) (morphism (Sy.Sys vr s₀)) Y E m qE (ε (q ℕ.+ 1))
+      λ d a → upper-run (Sy.Sys vr s₀) (Ob.auditWatch s₀ d)
+                        (bnd (q ℕ.+ 1) d
+                             (asks≤-mono (ℕP.+-monoˡ-≤ 1
+                                           (ℕP.≤-trans (c≤ctxBudget c c′) le)) d a))
