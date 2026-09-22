@@ -9,19 +9,26 @@
 -- `UC.Model.Enrichment`.  Nothing it exports is a parameter, and this is the
 -- only place that application is written — `UC.Seam.Audit.Context`, `.Bounded`,
 -- `.Prefix` and `Examples.HashForward.Audit` all read the model's audit theory
--- from here.
+-- from here.  `UC.Audit.Canonical`, whose adapters relate that carry's premise
+-- to the inherited order's cost-certified witness, is applied at the same data.
 
 open import CategoricalCrypto.UC.Model.Enrichment using (budgetᵒ; massᵒ)
 open import CategoricalCrypto.UC.Model.Observation using (observationᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ)
 
 import CategoricalCrypto.UC.Audit as Aud
+import CategoricalCrypto.UC.Audit.Canonical as AudC
 
 module CategoricalCrypto.UC.Seam.Audit where
 
-private module A = Aud 𝔾ᵒ observationᵒ budgetᵒ massᵒ
+private
+  module A  = Aud  𝔾ᵒ observationᵒ budgetᵒ massᵒ
+  module AC = AudC 𝔾ᵒ observationᵒ budgetᵒ massᵒ
 
 open A public
   using (_≤UC[_]_; sim; sim-qb; emulate; simCost; q≤simCost; AuditEvent; AuditBound;
          pinned; pinned-bound; absorb; Absorbs; absorb-absorbs; carry-obs; audit-carry;
          audit-carryᵉ)
+
+open AC public
+  using (AuditWitness; audit⇒witness; witness⇒audit; audit⇔witness; audit-forget)

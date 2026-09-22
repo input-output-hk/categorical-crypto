@@ -61,8 +61,14 @@ private module Bud = Budget budgetᵒ
 -- merely a ceiling.  A polynomial allowance for a FAMILY is this constant
 -- read at every level; the toy has no security parameter, so there is nothing
 -- for the polynomial to grow in.
+--
+-- Routed through `UC.Audit.Canonical`'s two adapters, which is where they are
+-- checked: the same simulator and the same certificate cross either way.
+hf-witness : AuditWitness 2 realᵒ idealᵒ
+hf-witness = audit⇒witness (≤UC[]ᵍ simQB real-factors)
+
 hf-emul : realᵒ ≤UC[ 2 ] idealᵒ
-hf-emul = ≤UC[]ᵍ simQB real-factors
+hf-emul = witness⇒audit hf-witness
 
 ------------------------------------------------------------------------
 -- The monitoring context with the simulator absorbed
