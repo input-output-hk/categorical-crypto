@@ -296,14 +296,18 @@ open import CategoricalCrypto.UC.Graded public
 open import CategoricalCrypto.UC.Seam.Graded public
 open import CategoricalCrypto.UC.Seam.Grounded public
 
--- Closure-only: the negligible tier's acceptance tests, and the monitor
--- agreement (leaves, nothing to open).  The event-bound layer's compiled
--- instances — `UC.Quantitative.Hits`, `UC.Seam.EventTransfer`,
--- `UC.Quantitative.EventLift` — stay OUT of the closure because they carry
--- the ledger at one level in their own text; the ledger example's leaves are
--- what checks them (`docs/event-bounds-in-setup.md`).
+-- Closure-only: the negligible tier's acceptance tests, and the event-bound
+-- layer's leaves (nothing to open).  `UC.Quantitative.Hits`,
+-- `UC.Quantitative.EventLift` and `UC.Seam.EventTransfer` are reached through
+-- these and through `UC.Machine.{Monitor.Agree,Dominated}` above
+-- (`docs/event-bounds-in-setup.md`).
 import CategoricalCrypto.UC.Approximate.LocalTests
 import CategoricalCrypto.UC.Machine.Monitor.Agree
+import CategoricalCrypto.UC.Machine.Monitor.Slide
+import CategoricalCrypto.UC.Machine.Monitor.Tight
+import CategoricalCrypto.UC.Quantitative.EventLift.Budget
+import CategoricalCrypto.UC.Quantitative.EventLift.Cov
+import CategoricalCrypto.UC.Seam.EventTransfer
 
 -- …and the quantitative tier: parameterized by an error algebra and a
 -- `QUCSetup`, so imported rather than re-exported, `Bridge` reaching the rest.

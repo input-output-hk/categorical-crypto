@@ -12,11 +12,13 @@
 open import Categories.Category.Monoidal.Bundle
 import Categories.Category.Cocartesian.Ext as CE
 import Categories.Category.Kleisli.Discrete as KD
+import Categories.Category.Kleisli.Discrete.Pure as KDP
 import Categories.Category.Monoidal.Distributive as MD
 
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂; swap)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂; map) renaming (swap to ⊎swap)
 open import Data.Sum.Ext using (⊎assocˡ; ⊎assocʳ)
+open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)
 open import Function.Base using (_∘′_)
 open import Level using (0ℓ)
 
@@ -40,6 +42,7 @@ module T   = Tensor (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ)
 module V   = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
 module D   = MD.MonoidalDistributive (distₚ 0ℓ)
 module K   = KD (Dₚ-DiscreteMonad {0ℓ})
+module KP  = KDP (Dₚ-DiscreteMonad {0ℓ})
 module CK  = CE V.U D.cocartesian
 
 private
@@ -114,8 +117,40 @@ idᶠ _ = S.≲⇒≈ᴹ˘ T.pureᴹ-id
 σᶠ : (X Y : Set) → T.σᴹ {X} {Y} S.≈ᴹ pureᶠ ⊎swap
 σᶠ _ _ = S.≲⇒≈ᴹ (T.pureᴹ-cong +-swap-fn)
 
+-- …and a simulation out of one: `⊗-pureˡ` above names the shape every `_≲_`'s
+-- `θ ⊗₁ id` takes at a point, so a consumer supplies only the three pointwise
+-- laws.
+simFn : {S T : MC.State} {k : MC.obj S × X → Dₚ (MC.obj S × Y)}
+        {k′ : MC.obj T × X → Dₚ (MC.obj T × Y)} (h : MC.obj S → MC.obj T)
+      → ((s : MC.obj S) → (returnₚ (h s) >>=ₚ MC.discard T) ≈ₚ MC.discard S s)
+      → ((x : V.unit) → (MC.point S x >>=ₚ λ s → returnₚ (h s)) ≈ₚ MC.point T x)
+      → ((p : MC.obj S × X) → (k p >>=ₚ λ r → returnₚ (h (proj₁ r) , proj₂ r))
+                              ≈ₚ k′ (h (proj₁ p) , proj₂ p))
+      → MC.mk S k S.≲ MC.mk T k′
+simFn {k′ = k′} h hd hp hs = S.sim (K.pureᵏ h) (KP.structural h) hd hp law
+  where
+  law : (p : _) → _
+  law p = bindᶠ (⊗-pureˡ h) ⟨≈⟩ hs p
+    ⟨≈⟩ ≈sym (bindˣ (⊗-pureˡ h p) ⟨≈⟩ >>=ₚ-identityˡ (h (proj₁ p) , proj₂ p) k′)
+
 ------------------------------------------------------------------------
 -- The state actions and the interface tensor, at a point
+
+-- The state tensor's own point and discard, which is what `UC.Seam.Plug`'s
+-- `point-red` reduces at an arbitrary pair of states.
+point-⊛ : (S T : MC.State) (x : V.unit)
+        → MC.point (S MC.⊛ T) x
+        ≈ₚ (MC.point S ttᵛ >>=ₚ λ a → MC.point T x >>=ₚ λ b → returnₚ (a , b))
+point-⊛ S T x = >>=ₚ-identityˡ (ttᵛ , x) _
+
+discard-⊛ : (S T : MC.State)
+          → ((s : MC.obj S) → MC.discard S s ≈ₚ returnₚ ttᵛ)
+          → ((t : MC.obj T) → MC.discard T t ≈ₚ returnₚ ttᵛ)
+          → (z : MC.obj (S MC.⊛ T)) → MC.discard (S MC.⊛ T) z ≈ₚ returnₚ ttᵛ
+discard-⊛ S T hs ht (a , b) =
+  bindˣ ( bindˣ (hs a) ⟨≈⟩ >>=ₚ-identityˡ ttᵛ _
+     ⟨≈⟩ bindˣ (ht b) ⟨≈⟩ >>=ₚ-identityˡ ttᵛ _)
+  ⟨≈⟩ >>=ₚ-identityˡ (ttᵛ , ttᵛ) _
 
 swp-pt : (p : P) (q : Q) (x : X) → MC.swp ((p , q) , x) ≈ₚ returnₚ ((p , x) , q)
 swp-pt p q x =

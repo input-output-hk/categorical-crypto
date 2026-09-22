@@ -19,7 +19,10 @@
 -- proved once in an arbitrary monoidal category; what this module owes it is
 -- the two facts about the hole wire, `λ-nat` and `λ-slide`, and those are
 -- case analyses on a sum rather than trace arguments because
--- `UC.Machine.Wire` has already absorbed the wires.
+-- `UC.Machine.Wire` has already absorbed the wires.  The interchange those
+-- facts buy is `UC.Machine.Slide.Relay`, kept apart because its monoidal
+-- reasoning is 17 s that every importer of this module would otherwise
+-- deserialize.
 --
 -- The last section runs the hole the other way: a GRADED statement arrives
 -- with the hole already open, and `UC.Model.Dominated.dominatedᵍ` has to close
@@ -107,6 +110,53 @@ T₁-wire Y up down = ≲⇒≈ᴹ (mk-cong pt)
     pt (s , inj₂ (inj₂ b)) = map-fuse (step f (s , inj₂ b)) _ _ _
       λ where (_ , inj₁ _) → refl
               (_ , inj₂ _) → refl
+
+-- …and the bypassed relay relabels a wire the same way.
+sub-wire : {A B C : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
+         → 𝒫._≈_ {A ⊗ᴵ C} {B ⊗ᴵ C} (subᴵ (wireᴹ up down))
+             (wireᴹ (Sum.map up (λ c → c)) (Sum.map down (λ c → c)))
+sub-wire up down = ≲⇒≈ᴹ (mk-cong pt)
+  where
+  pt : (p : _) → _
+  pt (s , inj₁ (inj₁ a)) = >>=ₚ-identityˡ _ _
+  pt (s , inj₁ (inj₂ c)) = ≈refl
+  pt (s , inj₂ (inj₁ b)) = >>=ₚ-identityˡ _ _
+  pt (s , inj₂ (inj₂ c)) = ≈refl
+
+-- Opening a hole beside a pair is opening it beside the first component.
+λ-tri : {B F : Iface}
+      → 𝒫._≈_ {B ⊗ᴵ F} {(unitᴵ ⊗ᴵ B) ⊗ᴵ F} (a⇒ᴵ 𝒫.∘ λᴵ⇐) (subᴵ λᴵ⇐)
+λ-tri {B} {F} =
+     ∘-wireᴹ inj₂ [ ⊥-elim , id ] (a⇒ᴵ {unitᴵ} {B} {F})
+  ○ᴹ ≲⇒≈ᴹ (mk-cong pt)
+  ○ᴹ ⟺ᴹ (sub-wire inj₂ [ ⊥-elim , id ])
+  where
+  pt : (p : _) → _
+  pt (s , inj₁ (inj₁ _))        = >>=ₚ-identityˡ _ _
+  pt (s , inj₁ (inj₂ _))        = >>=ₚ-identityˡ _ _
+  pt (s , inj₂ (inj₁ (inj₁ ())))
+  pt (s , inj₂ (inj₁ (inj₂ _))) = >>=ₚ-identityˡ _ _
+  pt (s , inj₂ (inj₂ _))        = >>=ₚ-identityˡ _ _
+
+-- Closing the trivial ancilla at the hole is closing it beside the process.
+ρᴵ⇒ : {Y : Iface} → Proc (Y ⊗ᴵ unitᴵ) Y
+ρᴵ⇒ = wireᴹ [ id , ⊥-elim ] inj₁
+
+ρ-tri : {Y B : Iface}
+      → 𝒫._≈_ {(Y ⊗ᴵ unitᴵ) ⊗ᴵ B} {Y ⊗ᴵ B} (T₁ᴵ Y λᴵ⇒ 𝒫.∘ a⇐ᴵ) (subᴵ ρᴵ⇒)
+ρ-tri {Y} {B} =
+     𝒫.∘-resp-≈ˡ (T₁-wire Y [ ⊥-elim , id ] inj₂)
+  ○ᴹ wire-∘ᴹ (Sum.map (λ y → y) [ ⊥-elim , id ]) (Sum.map (λ y → y) inj₂)
+             (a⇐ᴵ {Y} {unitᴵ} {B})
+  ○ᴹ ≲⇒≈ᴹ (mk-cong pt)
+  ○ᴹ ⟺ᴹ (sub-wire [ id , ⊥-elim ] inj₁)
+  where
+  pt : (p : _) → _
+  pt (s , inj₁ (inj₁ (inj₁ _)))  = >>=ₚ-identityˡ _ _
+  pt (s , inj₁ (inj₁ (inj₂ ())))
+  pt (s , inj₁ (inj₂ _))         = >>=ₚ-identityˡ _ _
+  pt (s , inj₂ (inj₁ _))         = >>=ₚ-identityˡ _ _
+  pt (s , inj₂ (inj₂ _))         = >>=ₚ-identityˡ _ _
 
 -- …and the slide at the hole itself, which is where the ancilla and the
 -- closure change places.  The only live activation is a query on `Y`: every
