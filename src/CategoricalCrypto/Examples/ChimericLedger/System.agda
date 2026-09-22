@@ -13,12 +13,13 @@
 open import Class.DecEq
 
 open import Data.Bool.Base
-open import Data.Fin.Base using () renaming (zero to fzero)
+open import Data.Fin.Base using (Fin) renaming (zero to fzero)
 open import Data.List.Base
 open import Data.Maybe.Base
-open import Data.Nat.Base
+open import Data.Nat.Base renaming (_≡ᵇ_ to _≡ᴺ_)
 open import Data.Product.Base
 open import Function.Base
+open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Prelude
 
@@ -27,6 +28,7 @@ open import CategoricalCrypto.Examples.RandomOracle
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.OracleCall
 open import CategoricalCrypto.Protocol
+open import CategoricalCrypto.Protocol.Observe
 
 module CategoricalCrypto.Examples.ChimericLedger.System
   (ℓ : ℕ) (ser : Ledger.Tx ℓ → List Bool) where
@@ -81,6 +83,14 @@ Sysᴴ hash vr s₀ = ledger vr s₀ ∘ᵖ hash
 Sys : Variant → LState → Protocol unitᴵ LedgerIf
 Sys = Sysᴴ oracle
 
+-- A point already in the table is answered from it, with no sampling: the
+-- second query of the same bitstring returns the first answer on the nose.
+-- This determinism — not any collision — is what
+-- `ChimericLedger.Replay.Attack` runs on.
+oracle-repeat : (tbl : RO.Table) (i : Fin 1) (q : List Bool) (h : RO.Out)
+              → step oracle ((q , h) ∷ tbl) (i , q) ≡ ret ((q , h) ∷ tbl , (i , h))
+oracle-repeat tbl i q h rewrite RO.lookup-bs-here tbl q h = refl
+
 ------------------------------------------------------------------------
 -- Where the experiment starts
 ------------------------------------------------------------------------
@@ -100,3 +110,26 @@ spendGenesis h₀ a V = ((h₀ , 0) ∷ []) , [] , ((a , V) ∷ [])
 accepted : Answer → Bool
 accepted (ok b)      = b
 accepted (totalIs _) = false
+
+-- Nothing credits an account.  `applyTx`'s ONLY effect on the account table is
+-- `checkWdrls a wds`, and every clause of that either fails or recurses under
+-- `subOne`, which adds no key and raises no balance — so an empty table stays
+-- empty and every accepted withdrawal at one is zero.
+checkWdrls-[] : (ws : List (Addr × ℕ)) {a′ : Accts} → checkWdrls [] ws ≡ just a′ → a′ ≡ []
+checkWdrls-[] []                refl = refl
+checkWdrls-[] ((_ , zero) ∷ ws) eq   = checkWdrls-[] ws eq
+
+-- …read at the ledger's own activation, at either variant.  `genesis` has an
+-- empty account table, so no run from it reaches a funded account: that is the
+-- reachability gap `ChimericLedger.ReplayFamily` reports.
+ledger-keeps-accts-[] : (vr : Variant) (s : LState) (u : Utxo) (q : Query)
+  → AllLeaves (λ sa → proj₂ (proj₁ sa) ≡ []) (step (ledger vr s) (u , []) q)
+ledger-keeps-accts-[] _  _ _ audit = refl
+ledger-keeps-accts-[] vr _ u (submit (ins , wds , outs))
+  with checkIns u ins | checkWdrls [] wds in eq
+... | nothing        | _       = refl
+... | just _         | nothing = refl
+... | just (vIn , _) | just _
+      with (vIn + wdrlΣ wds ≡ᴺ valΣ outs) ∧ consumes vr ins
+...     | false = refl
+...     | true  = λ _ → checkWdrls-[] wds eq

@@ -2,15 +2,16 @@
 
 -- The ℚ rearrangements `Data.Rational.Properties` does not export: the additive
 -- group facts (via `Algebra.Properties.AbelianGroup` at `+-0-abelianGroup`), the
--- absolute-value bounds the distinguishing-advantage arithmetic runs on, and the
--- arithmetic of the `_/_` constructor.
+-- absolute-value bounds the distinguishing-advantage arithmetic runs on, the two
+-- order refutations at literals that a vanishing bound needs against probability
+-- one, and the arithmetic of the `_/_` constructor.
 
 module Data.Rational.Properties.Ext where
 
 open import Data.Integer as ℤ using (ℤ)
 open import Data.Nat as ℕ using (ℕ; suc)
 open import Data.Rational using
-  (ℚ; 0ℚ; 1ℚ; ½; _+_; _-_; -_; _*_; _/_; ∣_∣; _≤_; _<_; nonNegative; toℚᵘ)
+  (ℚ; 0ℚ; 1ℚ; ½; _+_; _-_; -_; _*_; _/_; ∣_∣; _≤_; _≤?_; _<_; nonNegative; toℚᵘ)
 open import Data.Rational.Properties using
   ( +-0-abelianGroup; +-assoc; +-identityˡ; +-identityʳ; +-inverseˡ; +-inverseʳ
   ; +-monoʳ-≤; ≤-refl; ≤-reflexive; ≤-total; ≤-trans; neg-antimono-≤
@@ -20,6 +21,8 @@ open import Data.Rational.Properties using
 open import Data.Rational.Unnormalised.Base as ℚᵘ using (mkℚᵘ; *≡*; *≤*)
 open import Data.Sum.Base using (inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
+open import Relation.Nullary.Decidable.Core using (toWitnessFalse)
+open import Relation.Nullary.Negation.Core using (¬_)
 
 import Algebra.Properties.AbelianGroup as AbelianGroupProperties
 import Data.Integer.Properties as ℤₚ
@@ -45,6 +48,15 @@ telescope a b c = trans (+-assoc a (- b) (b - c))
 
 0≤1ℚ : 0ℚ ≤ 1ℚ
 0≤1ℚ = 0≤∣p∣ 1ℚ
+
+-- The two refutations an "eventually below ε" bound needs to contradict
+-- probability one.  `Data.Rational.Properties` has no `<⇒≱`, so they come off
+-- the decision procedure rather than off an order lemma.
+1≰0 : ¬ (1ℚ ≤ 0ℚ)
+1≰0 = toWitnessFalse {a? = 1ℚ ≤? 0ℚ} _
+
+1≰½ : ¬ (1ℚ ≤ ½)
+1≰½ = toWitnessFalse {a? = 1ℚ ≤? ½} _
 
 -- The `_≤_` spelling of `nonNeg*nonNeg⇒nonNeg`, which is stated in the
 -- instance-argument `NonNegative` idiom.
