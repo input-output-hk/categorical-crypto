@@ -222,7 +222,10 @@
 --                                  bound — one slack per polynomial allowance,
 --                                  at the vanishing grade and at the
 --                                  negligible one, with the invariance proved
---                                  for each
+--                                  for each.  Its remaining consumer is the
+--                                  ledger's trajectory appendix; the headline
+--                                  there is stated on the compiled monitor
+--                                  instead (`UC.Quantitative.Hits.Hitsᴺ`)
 --                `UC.Asymptotic`   the consumer end: an emulation FAMILY, and
 --                                  how a bound crosses it — the trivial-grade
 --                                  collapse into `UC.Saturated`
@@ -294,10 +297,11 @@ open import CategoricalCrypto.UC.Seam.Graded public
 open import CategoricalCrypto.UC.Seam.Grounded public
 
 -- Closure-only: the negligible tier's acceptance tests, and the monitor
--- agreement (leaves, nothing to open).  The event-bound layer's remaining
--- three modules — `UC.Quantitative.Hits`, `UC.Seam.EventTransfer`,
--- `UC.Quantitative.EventLift` — are deliberately OUT of the closure while
--- Stage B is in flight (`docs/event-bounds-in-setup.md`).
+-- agreement (leaves, nothing to open).  The event-bound layer's compiled
+-- instances — `UC.Quantitative.Hits`, `UC.Seam.EventTransfer`,
+-- `UC.Quantitative.EventLift` — stay OUT of the closure because they carry
+-- the ledger at one level in their own text; the ledger example's leaves are
+-- what checks them (`docs/event-bounds-in-setup.md`).
 import CategoricalCrypto.UC.Approximate.LocalTests
 import CategoricalCrypto.UC.Machine.Monitor.Agree
 

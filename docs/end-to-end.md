@@ -19,7 +19,7 @@ open (`Value`, `Observable`, `QueryBound`):
 | 1 | `Examples.ChimericLedger` | the ledger itself: `LState`, `total`, `applyTx`, `Variant` |
 | 2 | `…ChimericLedger.Replay` | the broken variant loses value, at every hash width |
 | 3 | `…ChimericLedger.System` | the ledger plugged onto a random oracle |
-| 4 | `…ChimericLedger.Property` | `PreservesValue`, the one statement |
+| 4 | `…ChimericLedger.Property` | `PreservesValue`, the one statement, on the compiled monitor |
 | 5 | `…ChimericLedger.Birthday` | the ideal side, proved |
 | 6 | `…ChimericLedger.Transfer` | the three public claims, and the corollary at a real hash |
 | 7 | `…ChimericLedger.ReplayFamily` | §2's attack against §4's property |
@@ -97,10 +97,12 @@ chimeric-not-preserving : ¬ PreservesValue a (2 + V) (Chimericᶠ V)
 ```
 
 hold for every genesis address `a` and every funded value `2 + V`. The negation
-is asymptotic, not a single numerical instance: the allowance is quantified
-first (at the constant `3`, the attack's certificate), the slack second, and
-then negligibility of the birthday term and of the slack puts `εᴸ n 3 + ν n`
-eventually below `½` — which cannot dominate probability one.
+is asymptotic, not a single numerical instance: `preservesValue⇒saturated`
+hands the attack's own strategy back a bound out of the contextual property,
+the allowance is quantified first (at the constant `3`, the attack's
+certificate), the slack second, and then negligibility of the birthday term
+and of the slack puts `εᴹ n 3 + ν n` eventually below `½` — which cannot
+dominate probability one.
 
 **The initialization gap, stated.** The attack needs a funded *account*, and
 nothing credits one. `System.checkWdrls-[]` and `System.ledger-keeps-accts-[]`
@@ -140,30 +142,53 @@ where the experiment starts.
 parameter:
 
 ```agda
-PreservesValue : Systems LedgerIf^ω → Set
-PreservesValue R = SaturatedBoundedᴺ R auditWatch εᴸ
+auditMonitorᶠ : (n : ℕ) → Proc (LedgerIf^ω n) (LedgerIf^ω n ⊗ᴵ Flagᴵ)
+
+PreservesValue : Systems LedgerIf^ω → Set₁
+PreservesValue R = Hitsᴺ (λ n → morphism (R n)) auditMonitorᶠ εᴹ
 ```
 
-Unfolded: *no polynomially query-bounded environment ever gets the ledger to
-answer an audit with a total different from the one it started with, except
-with negligible probability.* Precisely — for every polynomial allowance `p`
-there is a negligible `ν` such that every strategy asking at most `p n`
-queries makes the watch report a violation with probability at most
-`εᴸ n (p n) + ν n`, where `εᴸ n q = (q² + q)·2⁻ⁿ` (`εᴸ-negligible`).
+Unfolded: *no admitted query-bounded environment, however it interacts with the
+closed system, ever sees an audit answer whose total differs from the one the
+ledger started with, except with negligible probability.* Precisely — for every
+polynomial allowance `p` there is a negligible `ν` such that **every certified
+machine context** of allowance at most `p n` observes the flag with probability
+at most `εᴹ n (p n) + ν n`, where `εᴹ n q = εᴸ n (q + 1)` and
+`εᴸ n q = (q² + q)·2⁻ⁿ` (`εᴹ-negligible`).
 
-Two design points are worth the reader's attention.
+Three design points are worth the reader's attention.
 
-* **The event is interface-observable.** `auditWatch s₀` plays a strategy
-  unchanged and accumulates `true` the first time an *audit answer* reports a
-  total other than `total s₀`. That is something an environment can see, which
-  is exactly the class a UC emulation preserves (`UC.Audit`). A bound on the
-  system's internal state trajectory is not, and is demoted to the appendix of
-  §6.
-* **The slack comes after the allowance.** `SaturatedBoundedᴺ` quantifies the
-  allowance first and the negligible slack second. The other order does not
-  follow from control at polynomial allowances: a system that answers
-  truthfully until query `2^n` is negligibly far from one that never does
-  (`UC.Saturated`'s header).
+* **The event is interface-observable, and it is read off the run.**
+  `auditMonitorᶠ n` is a process on the ledger interface that relays every
+  query and answer and raises a private flag the first time an *audit answer*
+  reports a total other than the genesis one — nothing about the system's
+  internal state is read, which is why a UC emulation can carry it (a
+  trajectory bound cannot, and is demoted to the appendix of §6).
+  `UC.Machine.Monitor.compileᴹ` wraps the environment's own test in it, so the
+  compiled experiment's **verdict is the flag**: the bound is a probability of
+  that event, not of an arbitrary Boolean the test might return. And the
+  environment is an arbitrary certified context of the machine model
+  (`UC.Model.EventBounds.BoundedAt`), not a strategy.
+* **The slack comes after the allowance.** `Hitsᴺ` quantifies the allowance
+  first and the negligible slack second, and the slack is uniform over every
+  context that allowance admits. The other order does not follow from control
+  at polynomial allowances: a system that answers truthfully until query `2^n`
+  is negligibly far from one that never does.
+* **`+ 1` is the whole price of monitoring.** The compiled context leaves an
+  extracted strategy one query less than it has, because the monitor's
+  accumulator needs potential of its own
+  (`UC.Quantitative.EventLift.Cov.covCtx`); that is the `q + 1` in `εᴹ`, and
+  nothing else about the compilation reaches the number. In particular the
+  coarse certificate `κμ c = 2·(c ⊔ 1)` of the compiled *test* is not charged
+  here: the flag channel is internal to the compiled context, so what a
+  strategy extracted from it can spend on the **ledger** is the honest
+  allowance alone.
+
+`preservesValue⇒saturated` reads the same bound back at the contexts an
+ordinary strategy embeds to, on `UC.Machine.Monitor.Agree.agree` — the compiled
+experiment there *is* layer 1's run of that strategy under `auditWatch`. That
+is what lets §7's counterexamples and §6's appendix keep speaking about
+strategies with no change of meaning, and nothing is spent coming back.
 
 The schedule is the canonical one — hash width `n` at security parameter `n` —
 and `SerInj` is the one thing assumed about serialization, per level, because
@@ -197,7 +222,10 @@ ideal-preserves-value : SerInj → PreservesValue Ideal
 
 The step from `target` to the watch is `Observable.auditWatch-bounded`, on
 `auditWatch-sound`: the watch reports nothing the trajectory did not have.
-No hypothesis is added.
+The step from the watch to every certified context is
+`UC.Quantitative.EventLift.ledger-hitsᵘ`, which is `eventSkeleton`'s
+event-sensitive decomposition at the compiled monitor. No hypothesis is added
+by either.
 
 ### …and what in it is not probabilistic
 
@@ -250,11 +278,19 @@ preserves-value-transfer : (a V : ℕ) (R : Systems LedgerIf^ω) → SerInj
 ```
 
 This is the point of the example. `R ≤UC^ωⁿ I` is an allowance-uniform
-emulation with negligible error (`UC.Asymptotic.Family`); the proof is
-`uc-preservesᴺ` on `≤UC^ωⁿ⇒≈negl`, and nothing else is assumed. In particular
-there is no exact agreement anywhere, no totality hypothesis and no allowance
-doubling: the premise's ε is folded into the saturated slack, which is
-quantified after the allowance, so the conclusion's number is the ideal one.
+emulation with negligible error (`UC.Asymptotic.Family`), and nothing else is
+assumed. In particular there is no exact agreement anywhere, no totality
+hypothesis and no allowance doubling: the premise's ε is folded into the
+saturated slack, which is quantified after the allowance, so the conclusion's
+number is the ideal one.
+
+Both allowances are **exact**, and they are the same one. The comparison is
+read at `p n + 1` — the context's cap plus the monitor's accumulator — through
+`Asymptotic.Family.≈ᶠ-runs`, which lands the premise's schedule on the direct
+runs at a strategy's own ask-depth; the ideal bound `ideal-bounded` is read
+there too; and `Property.hitsᴸ` lifts the sum back to every certified context.
+No schedule monotonicity is spent anywhere, which matters because an arbitrary
+`NegligibleBound` has none.
 
 ### …off a premise about the hash alone
 
@@ -296,10 +332,13 @@ ledger-uc-to-pov-family :
 
 That doubling is the price of the **honest interface** — of asking the
 implementation at every boundary the trajectory inspects. It is a different
-cost from the flag-reading a monitor compiler pays
+cost from the monitor's extra query
 ([`event-bounds-in-setup.md`](event-bounds-in-setup.md)), and the two are never
-netted against each other. `ledger-pov-family-negligible` reads the same
-conclusion as one number.
+netted against each other: the appendix reads the transfer at the embedded
+strategies (`watched-transfer`, the same emulation premise carried by
+`uc-preservesᴺ` on `≤UC^ωⁿ⇒≈negl`), where the watch costs the allowance
+nothing, so no flag query is charged to it on top.
+`ledger-pov-family-negligible` reads the same conclusion as one number.
 
 ### Claim 3: positive behaviour
 
