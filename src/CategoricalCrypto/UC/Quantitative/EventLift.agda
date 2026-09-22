@@ -30,11 +30,12 @@ open import Categories.Category using (Category)
 open import Data.Bool.Base using (Bool; false)
 open import Data.List.Base using (List)
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Nat.Properties
-  using (*-identityʳ; *-monoʳ-≤; m≤n⊔m; ⊔-mono-≤; ≤-refl; ≤-reflexive; ≤-trans)
 open import Data.Product.Base using (Σ-syntax; _,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ)
+open import Data.Rational.Properties
 open import Relation.Binary.PropositionalEquality using (sym)
+
+import Data.Nat.Properties as ℕP
 
 open import ProbabilisticLogic.Dp using (_≈ₚ_)
 open import ProbabilisticLogic.Dp.Reasoning using (_⟨≈⟩_)
@@ -44,6 +45,7 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol.Machine using (morphism; runᴹ)
 open import CategoricalCrypto.Protocol.Observe using (Bounded)
 open import CategoricalCrypto.Strategy using (Strat; asks≤; asks≤-mono)
+open import CategoricalCrypto.UC.Budget using (ctxBudget)
 open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; Ωᴵ; T₁ᴵ; ⟦_⟧ᴼ)
 open import CategoricalCrypto.UC.Machine.Bridge using (λᴵ⇒)
 open import CategoricalCrypto.UC.Machine.Dominated using (CovCtx; eventSkeleton)
@@ -101,6 +103,28 @@ eventDominatedᶜ {B} report w (wo , wa , wc) u Y E m k kb cov r h =
   upper-≈ (eventRun-closed Y B report E m u)
           (eventSkeleton B (Kctx (openedᴹ Y B report E) m) report w wo wa wc kb cov u r h)
 
+-- …and what separates that from `EventDominated` itself: ONE premise, a
+-- certificate of the compiled closed context at the ORIGINAL allowance `c`
+-- satisfying the accumulator invariant.  The rate is not absurd — at `c = 0`
+-- the flag query is answered by the monitor and never reaches `B` — but
+-- `qb-∘` charges the flag read as a second downward activation and cannot see
+-- that, so `UC.Quantitative.EventLift.Budget` only reaches `κμ c`.
+eventDominated :
+    ((Y B : Iface) (report : Neg B → Pos B → Bool) {c : ℕ}
+     (E : Proc (Y ⊗ᴵ B) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ)) → QB c E
+     → Σ[ kb ∈ QB c (Kctx (openedᴹ Y B report E) m) ] CovCtx B c report kb)
+  → EventDominated
+eventDominated prem {B} report w iw u Y E m {c} {c′} qE qm r η 0<η h k =
+  ≤-trans (eventDominatedᶜ report w iw u Y E m c (proj₁ pm) (proj₂ pm) r
+             (λ d a → h d (asks≤-mono c≤ctx d a)) k)
+          (≤-trans (≤-reflexive (sym (+-identityʳ r))) (+-monoʳ-≤ r (<⇒≤ 0<η)))
+  where
+  pm = prem Y B report E m qE
+
+  c≤ctx : c ℕ.≤ ctxBudget c c′
+  c≤ctx = ℕP.≤-trans (ℕP.≤-reflexive (sym (ℕP.*-identityʳ c)))
+                     (ℕP.*-monoʳ-≤ c (ℕP.m≤n⊔m c′ 1))
+
 ------------------------------------------------------------------------
 -- The ledger, at one level
 
@@ -132,9 +156,9 @@ module _ (ℓ : ℕ) (ser : Ledger.Tx ℓ → List Bool) (s₀ : Ledger.LState �
                         (bnd (κμ q) d (asks≤-mono κμ-le d a))
     where
     c≤q : c ℕ.≤ q
-    c≤q = ≤-trans (≤-trans (≤-reflexive (sym (*-identityʳ c)))
-                           (*-monoʳ-≤ c (m≤n⊔m c′ 1)))
-                  le
+    c≤q = ℕP.≤-trans (ℕP.≤-trans (ℕP.≤-reflexive (sym (ℕP.*-identityʳ c)))
+                                 (ℕP.*-monoʳ-≤ c (ℕP.m≤n⊔m c′ 1)))
+                     le
 
     κμ-le : κμ c ℕ.≤ κμ q
-    κμ-le = *-monoʳ-≤ 2 (⊔-mono-≤ c≤q ≤-refl)
+    κμ-le = ℕP.*-monoʳ-≤ 2 (ℕP.⊔-mono-≤ c≤q ℕP.≤-refl)
