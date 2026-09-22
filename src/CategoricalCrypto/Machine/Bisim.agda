@@ -168,6 +168,34 @@ module _ {A B C} {M M' : Machine (A ⊗₀ C) (B ⊗₀ C)} (e : M ≈ᴮ M') wh
   tr-cong : tr M ≈ᴮ tr M'
   tr-cong = modifyStepRel-cong (∣^ˡσ {C = C}) (modifyStepRel-cong (∣ˡσ {B = C}) raw)
 
+module _ {A B C D} {M₁ M₁' : Machine A B} (M₂ : Machine C D) (e : M₁ ≈ᴮ M₁') where
+
+  private
+    innerˡ : Machine (A ⊗₀ B ᵀ) ((C ⊗₀ D ᵀ) ᵀ)
+    innerˡ = MkMachine (Tensor.CompRel M₁ M₂)
+
+    innerˡ' : Machine (A ⊗₀ B ᵀ) ((C ⊗₀ D ᵀ) ᵀ)
+    innerˡ' = MkMachine (Tensor.CompRel M₁' M₂)
+
+    ℜ⊗ˡ : Machine.State innerˡ → Machine.State innerˡ' → Type
+    ℜ⊗ˡ (a , b) (a' , b') = ℜ e a a' × (b ≡ b')
+
+    innerˡ-bisim : innerˡ ≈ᴮ innerˡ'
+    innerˡ-bisim = record
+      { ℜ         = ℜ⊗ˡ
+      ; totalˡ    = λ { (a , b) → let (a' , r) = totalˡ e a in (a' , b) , r , refl }
+      ; totalʳ    = λ { (a' , b') → let (a , r) = totalʳ e a' in (a , b') , r , refl }
+      ; step-to   = λ { (ra , refl) (Tensor.Step₁ r) →
+                          let (t' , r' , q) = step-to e ra r in _ , Tensor.Step₁ r' , q , refl
+                      ; (ra , refl) (Tensor.Step₂ r) → _ , Tensor.Step₂ r , ra , refl }
+      ; step-from = λ { (ra , refl) (Tensor.Step₁ r) →
+                          let (t , r' , q) = step-from e ra r in _ , Tensor.Step₁ r' , q , refl
+                      ; (ra , refl) (Tensor.Step₂ r) → _ , Tensor.Step₂ r , ra , refl }
+      }
+
+  ⊗₁-congˡ : (M₁ ⊗₁ M₂) ≈ᴮ (M₁' ⊗₁ M₂)
+  ⊗₁-congˡ = modifyStepRel-cong ⊗σ innerˡ-bisim
+
 -- Left-congruence of composition, which is what `test-map-cong` needs.
 ∘-congˡ : ∀ {A B C} {M₁ M₁' : Machine B C} (M₂ : Machine A B)
         → M₁ ≈ᴮ M₁' → (M₁ ∘ M₂) ≈ᴮ (M₁' ∘ M₂)
@@ -176,3 +204,10 @@ module _ {A B C} {M M' : Machine (A ⊗₀ C) (B ⊗₀ C)} (e : M ≈ᴮ M') wh
 -- Environment equivalence at the weaker relation, mirroring `Iso`'s `_≅ℰ_`.
 _≈ℰᴮ_ : ∀ {A B} → Machine A B → Machine A B → Type₁
 _≈ℰᴮ_ {B = B} M M' = (E : ℰ B) → map-ℰ M E ≈ᴮ map-ℰ M' E
+
+-- Right-congruence of composition.  Together with `∘-congˡ` this is what
+-- collapses a test obligation `E ∘ (f ⊗₁ id) ≈ᴮ E ∘ (g ⊗₁ id)`, quantified
+-- over every ancilla and environment, to a single `f ≈ᴮ g`.
+∘-congʳ : ∀ {A B C} (M₁ : Machine B C) {M₂ M₂' : Machine A B}
+        → M₂ ≈ᴮ M₂' → (M₁ ∘ M₂) ≈ᴮ (M₁ ∘ M₂')
+∘-congʳ M₁ e = tr-cong (modifyStepRel-cong ∘σ (⊗₁-congˡ M₁ e))
