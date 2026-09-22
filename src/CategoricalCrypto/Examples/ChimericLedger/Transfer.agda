@@ -1,27 +1,51 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- Preservation of value, carried across a UC emulation.
+-- Preservation of value, carried across a UC emulation — and the three public
+-- claims of the example, kept apart.
 --
--- `preserves-value-transfer` is the point of the example: the proved ideal
--- bound plus an emulation premise give the SAME property about the real
--- system, with nothing else assumed.  `R ≤UC^ωⁿ I` is an allowance-uniform
--- emulation with negligible error.
+--   `preserves-value-transfer`  OBSERVABLE AUDIT SAFETY.  Assumes `SerInj` and
+--     an emulation; bounds the probability that a discrepant audit ANSWER is
+--     accumulated during an interaction and reported when it terminates.  It
+--     is not a statement about the implementation's internal state, and not a
+--     statement that the implementation answers at all.
 --
--- `ledger-preserves-value-from-hash` is the slides' last step: the premise
--- may be about the HASH alone, because the closed system factors through a
--- hash port.  The appendix restates the conclusion over the real system's own
--- state trajectory, which costs one extra hypothesis.
+--   `ledger-uc-to-pov-family`  AUDIT TO TRAJECTORY.  The appendix.  Assumes
+--     the above plus `TruthfulAudit`, and pays `withAudits`' doubled
+--     allowance; it concludes about the real system's own state trajectory.
+--
+--   `ideal-spends-genesis`  POSITIVE BEHAVIOUR.  Assumes nothing.  At every
+--     level the genesis output is spent with probability one and the state
+--     moves.  One accepted transaction is not global liveness, and no safety
+--     theorem above takes it as a premise.
+--
+-- `ledger-preserves-value-from-hash` is the slides' last step: the emulation
+-- premise may be about the HASH alone, because the closed system factors
+-- through a hash port.  `Mute` and `Liar` at the bottom pin what the first two
+-- claims do NOT say.
 
-open import Data.Bool.Base using (Bool)
-open import Data.List.Base using (List)
+open import Data.Bool.Base using (Bool; true; false; _∨_)
+open import Data.Bool.Properties using (∨-identityʳ)
+open import Data.List.Base using (List; []; _∷_)
+open import Data.Maybe.Base using (just; nothing)
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly
-open import Data.Product.Base using (Σ-syntax; _×_; _,_)
-open import Data.Rational as ℚ using (ℚ)
+open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Rational as ℚ using (ℚ; 0ℚ; 1ℚ)
+open import Data.Rational.Properties using (+-identityʳ)
+open import Data.Rational.Properties.Ext using (0≤*; 1≰0)
+open import Data.Unit.Base using (⊤; tt)
+open import Relation.Binary.PropositionalEquality using (_≡_; cong; subst; subst₂; sym; trans)
+open import Relation.Nullary.Negation.Core using (¬_)
+
+open import ProbabilisticLogic.Prelude
+open import ProbabilisticLogic.Distribution.RationalDist
+open import ProbabilisticLogic.Distribution.RationalDist.Expectation using (E-bind; E-const)
+open import ProbabilisticLogic.Distribution.Uniform using (0≤fromℕ; 0≤inv-pow-2)
 
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Examples.ChimericLedger.QueryBound
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
@@ -40,15 +64,20 @@ open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Saturated
 open import CategoricalCrypto.UC.Seam.Grounded
 
+import CategoricalCrypto.Examples.ChimericLedger.Replay as Replay
+
 module CategoricalCrypto.Examples.ChimericLedger.Transfer
   (ser : (n : ℕ) → Ledger.Tx n → List Bool) where
 
 open import CategoricalCrypto.Examples.ChimericLedger.Property ser
 
 ------------------------------------------------------------------------
--- The theorem
+-- Claim 1: observable audit safety
 ------------------------------------------------------------------------
 
+-- The point of the example: the proved ideal bound plus an emulation premise
+-- give the SAME property about the real system, with nothing else assumed.
+-- `R ≤UC^ωⁿ I` is an allowance-uniform emulation with negligible error.
 preserves-value-transfer : (a V : ℕ) (R : Systems LedgerIf^ω) → SerInj
                          → R ≤UC^ωⁿ Ideal a V → PreservesValue a V R
 preserves-value-transfer a V R si em =
@@ -144,15 +173,19 @@ ledger-preserves-value-from-hash a V hash si hp =
     (hash-liftⁿ inputConsuming (genesisAt a V) hash hp)
 
 ------------------------------------------------------------------------
--- APPENDIX: the same conclusion about the real system's own states
+-- Claim 2: from the audit to the state trajectory
 ------------------------------------------------------------------------
 
 -- Not the headline property, and not free.  UC identifies no internal state
 -- trajectory, so a bound on one comes back only from the implementation's own
--- audit truthfulness — for a ledger image that is `Observable`'s theorem, for
--- anything else it is part of the statement — and the instrumentation that
--- makes the watch see every boundary the trajectory inspects doubles the
--- allowance.
+-- audit truthfulness — for a ledger image that is `Observable`'s theorem
+-- (`ideal-truthful`), for anything else it is part of the statement — and the
+-- instrumentation `withAudits`, which makes the watch see every boundary the
+-- trajectory inspects, doubles the allowance.  That doubling is the cost of
+-- the HONEST INTERFACE, charged in the conclusion's `λ n q → εᴸ n (q + q)`;
+-- it is a different cost from the flag-reading a monitor compiler pays
+-- (`docs/event-bounds-in-setup.md`), and the two are never netted against
+-- each other.
 
 module _ (a V : ℕ) where
 
@@ -191,3 +224,120 @@ module _ (a V : ℕ) where
     in (λ n → εᴸ n (p n ℕ.+ p n) ℚ.+ νₚ n)
      , Negligible-+ (εᴸ-negligible (λ n → p n ℕ.+ p n) (poly-+ Pp Pp)) neg
      , bnd
+
+------------------------------------------------------------------------
+-- Claim 3: the genesis is live
+------------------------------------------------------------------------
+
+module Live (a V n : ℕ) = Replay.Genesis n (ser n) (h₀ n) a V
+
+-- Assumes nothing.  The pair is the acceptance and its state effect: the
+-- genesis output IS spent, with probability one and through the oracle, and
+-- its value reappears under the transaction's own hash.  A probability of 0
+-- means nothing at a dead-locked ledger, which is what this rules out — but
+-- one accepted transaction is not global liveness, and claims 1 and 2 do not
+-- take it as a premise.
+ideal-spends-genesis : (a V n : ℕ)
+  → Pr (Ideal a V n) (Live.spend a V n) ≡ 1ℚ
+  × ((h : Ledger.Hash n) → Live.moved a V n h ≡ (((h , 0) , (a , V)) ∷ [] , []))
+ideal-spends-genesis a V n = Live.genesis-live a V n , Live.genesis-moves a V n
+
+------------------------------------------------------------------------
+-- What claims 1 and 2 do not say
+------------------------------------------------------------------------
+
+-- A ledger that diverges at every query satisfies claim 1 with ZERO slack and
+-- never accepts anything: the observable bound does not imply responsiveness,
+-- which is why that is claim 3's separate job and not a premise here.
+Mute : Systems LedgerIf^ω
+Mute n = record { St = ⊤ ; init = tt ; step = λ _ _ → dead }
+
+-- …and one whose state is always bad while its answers never say so satisfies
+-- claim 1 too, with its trajectory event at probability one.  The gap is
+-- exactly `TruthfulAudit`, which claim 2 assumes and claim 1 does not.
+Liar : Systems LedgerIf^ω
+Liar n = record { St = ⊤ ; init = tt ; step = λ _ _ → ret (tt , AtLevel.ok false) }
+
+always-bad : Bad Liar
+always-bad _ _ = true
+
+module _ (a V : ℕ) where
+
+  private
+    0≤εᴸ : (n q : ℕ) → 0ℚ ℚ.≤ εᴸ n q
+    0≤εᴸ n q = 0≤* (0≤fromℕ (q ℕ.* q ℕ.+ q)) (0≤inv-pow-2 n)
+
+    -- A watch that never reports is below every allowance, at slack 0.
+    never-reports : (P : Systems LedgerIf^ω)
+                  → ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
+                     → Pr (P n) (auditWatch a V n d) ≡ 0ℚ)
+                  → PreservesValue a V P
+    never-reports P zero-pr p Pp = (λ _ → 0ℚ) , Negligible-0 , λ n d _ →
+      subst (ℚ._≤ εᴸ n (p n) ℚ.+ 0ℚ) (sym (zero-pr n d))
+            (subst (0ℚ ℚ.≤_) (sym (+-identityʳ (εᴸ n (p n)))) (0≤εᴸ n (p n)))
+
+  mute-silent : (n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
+              → Pr (Mute n) (auditWatch a V n d) ≡ 0ℚ
+  mute-silent _ (out _)   = lookupᴰℚ-return (just false) mb
+  mute-silent n (ask q k) =
+    trans (>>=ᴹ-identityˡ nothing (kmaybe G) mb) (lookupᴰℚ-return nothing mb)
+    where
+    G : St (Mute n) × Pos (LedgerIf^ω n) → Dist⊥ Bool
+    G st = runFrom (Mute n) (proj₁ st)
+             (Watched.auditWatchFrom n (genesisAt a V n)
+               (Watched.reportsLoss n (genesisAt a V n) q (proj₂ st)) (k (proj₂ st)))
+  mute-silent n (coin μ k) =
+    trans (E-bind μ (λ b → run (Mute n) (auditWatch a V n (k b))) mb)
+          (trans (lookupᴰℚ-cong-P (entries μ) (λ b → mute-silent n (k b))) (E-const μ 0ℚ))
+
+  mute-preserves-value : PreservesValue a V Mute
+  mute-preserves-value = never-reports Mute mute-silent
+
+  mute-never-accepts : (n : ℕ) → Pr (Mute n) (Live.spend a V n) ≡ 0ℚ
+  mute-never-accepts n =
+    trans (>>=ᴹ-identityˡ nothing (kmaybe G) mb) (lookupᴰℚ-return nothing mb)
+    where
+    G : St (Mute n) × Pos (LedgerIf^ω n) → Dist⊥ Bool
+    G st = runFrom (Mute n) (proj₁ st) (out (AtLevel.accepted n (proj₂ st)))
+
+  liar-quiet : (n : ℕ) (acc : Bool) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
+             → Pr₁⊥ (runFrom (Liar n) tt (Watched.auditWatchFrom n (genesisAt a V n) acc d))
+               ≡ bool→ℚ acc
+  liar-quiet _ acc (out _)   = lookupᴰℚ-return (just acc) mb
+  liar-quiet n acc (ask q k) =
+    trans (>>=⊥-identityˡ (tt , ok false) G mb)
+          (trans (cong atAcc (quiet q)) (liar-quiet n acc (k (ok false))))
+    where
+    open AtLevel n using (Query; submit; audit; ok)
+
+    G : St (Liar n) × Pos (LedgerIf^ω n) → Dist⊥ Bool
+    G st = runFrom (Liar n) (proj₁ st)
+             (Watched.auditWatchFrom n (genesisAt a V n)
+               (acc ∨ Watched.reportsLoss n (genesisAt a V n) q (proj₂ st)) (k (proj₂ st)))
+
+    atAcc : Bool → ℚ
+    atAcc b = Pr₁⊥ (runFrom (Liar n) tt
+                (Watched.auditWatchFrom n (genesisAt a V n) b (k (ok false))))
+
+    quiet : (q′ : Query) → acc ∨ Watched.reportsLoss n (genesisAt a V n) q′ (ok false) ≡ acc
+    quiet (submit _) = ∨-identityʳ acc
+    quiet audit      = ∨-identityʳ acc
+  liar-quiet n acc (coin μ k) =
+    trans (E-bind μ (λ b → runFrom (Liar n) tt
+                             (Watched.auditWatchFrom n (genesisAt a V n) acc (k b))) mb)
+          (trans (lookupᴰℚ-cong-P (entries μ) (λ b → liar-quiet n acc (k b)))
+                 (E-const μ (bool→ℚ acc)))
+
+  liar-preserves-value : PreservesValue a V Liar
+  liar-preserves-value = never-reports Liar λ n → liar-quiet n false
+
+  -- The same strategy at the same system: the trajectory event weighs one and
+  -- the reported event zero, so no `TruthfulAudit` can hold of it.
+  liar-not-truthful : ¬ TruthfulAudit a V Liar always-bad
+  liar-not-truthful tr = 1≰0 (subst₂ ℚ._≤_ hits reports (tr 0 (out false)))
+    where
+    hits : PrHit (Liar 0) (always-bad 0) (out false) ≡ 1ℚ
+    hits = lookupᴰℚ-return (just true) mb
+
+    reports : Pr (Liar 0) (auditWatch a V 0 (Watched.withAudits 0 (out false))) ≡ 0ℚ
+    reports = lookupᴰℚ-return (just false) mb
