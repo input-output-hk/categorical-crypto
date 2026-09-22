@@ -31,7 +31,7 @@ open import Data.Nat.Base as ℕ using (ℕ; zero; suc; s≤s; z≤n)
 open import Data.Nat.Properties
   using (*-identityʳ; +-assoc; +-comm; +-identityʳ; +-monoʳ-≤; +-monoˡ-≤; m≤m+n;
          n≮0; ≤-refl; ≤-reflexive; ≤-trans)
-open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Product.Base using (Σ-syntax; _,_; proj₁; proj₂)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂; [_,_])
 open import Data.Unit.Base using (⊤; tt)
 open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)
@@ -254,11 +254,11 @@ module Cert (B : Iface) (report : Neg B → Pos B → Bool)
              → (f : ℕ) → Cov accᶜ f r (wAns fs m lt le y)
       covVal accᶜ fs _         lt le (inj₁ (_ , inj₁ ())) h f
       covVal accᶜ fs (acc , _) lt le (inj₁ (_ , inj₂ q))  h zero    = tt
-      covVal accᶜ fs (acc , _) lt le (inj₁ ((se , lo) , inj₂ q)) h (suc f) =
-        (λ p → covTree (accᶜ ∨ report q p) fs (acc ∨ report q p , nothing) _ _
-                       (qE.onLᵍ se (inj₂ p)) (∨-cover h) f)
-        , (λ p → covTree (accᶜ ∨ report q p) fs (acc ∨ report q p , nothing) _ _
-                         (qE.onLᵍ se (inj₂ p)) (∨-cover h) f)
+      covVal accᶜ fs (acc , _) lt le (inj₁ ((se , lo) , inj₂ q)) h (suc f) = answer , answer
+        where
+        answer : (p : Pos B) → _
+        answer p = covTree (accᶜ ∨ report q p) fs (acc ∨ report q p , nothing) _ _
+                           (qE.onLᵍ se (inj₂ p)) (∨-cover h) f
       covVal accᶜ waitE m lt le (inj₂ _) h zero    = tt
       covVal accᶜ waitE m lt le (inj₂ _) h (suc f) = h , h
       covVal accᶜ idle  _ lt le (inj₂ _) h f       = cov-bot accᶜ f _

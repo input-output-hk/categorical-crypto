@@ -38,7 +38,6 @@ open import CategoricalCrypto.UC.Machine.Wire
 
 import Categories.Category.Monoidal.Reasoning as MR
 import Categories.Category.Monoidal.Utilities as MU
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.UC.Machine.Monitor.Slide where
@@ -47,7 +46,6 @@ private
   module 𝒫 = Category 𝒫ᴵ
   module 𝔾 = MonoidalCategory (𝒢ₚᴹ 0ℓ)
 
-open Core (𝒱ₚ 0ℓ)
 open MR 𝔾.monoidal
 open MU.Shorthands 𝔾.monoidal using () renaming (α⇐ to α⇐ᴳ)
 open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
