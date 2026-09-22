@@ -1,143 +1,419 @@
 # Event bounds in the setup's own vocabulary
 
-Baseline: `protocol-rewrite` at `9d33f783`. Paths relative to `src/CategoricalCrypto/`.
+Original baseline: `protocol-rewrite` at `9d33f783`. Paths below are relative to
+`src/CategoricalCrypto/` unless prefixed with `docs/`. Recheck current signatures
+before implementation. Definitions and theorem shapes marked as proposed are
+specifications, not checked Agda declarations.
 
 ## Goal
 
-The ledger demo's headline stays a probability bound, not an emulation statement:
-"against every polynomially query-bounded environment, the probability that the total
-value reported at the end differs from the initial one is at most the birthday bound,
-up to negligible slack". What changes is the vocabulary it is stated in. Today it
-needs a private closed-system layer (`UC/Saturated.agda`, `UC/Asymptotic.agda`); it
-should need nothing but the machine `QUCSetup` and its quantitative theory.
+State and transport the ledger's observable event bound using the same processes,
+certified contexts, and explicit-error comparisons as quantitative UC. The
+headline remains a probability bound against polynomially query-bounded
+environments, not merely an emulation statement.
 
-## Vocabulary map
+The event to preserve is the one implemented by
+`Examples.ChimericLedger.Observable.auditWatch`: when the interaction terminates,
+report whether **any audit answer encountered during that interaction** reported
+a total different from the initial total. This is an accumulated event, not
+automatically a final-state check or a single final audit.
 
-| homegrown (`UC/Saturated.agda`, `UC/Asymptotic.agda`) | setup-native counterpart |
+The construction must agree with the existing strategy-level watch before its
+consumers are restated. If a single final audit is desired instead, make that a
+separate semantic decision and account for its queries; do not introduce it as a
+notation change. The state-trajectory property remains separate, with its existing
+truthfulness and instrumentation obligations.
+
+This proposal complements `docs/explicit-error-certificates-plan.md`: event
+bounds consume explicit-error certificates. They need not pass through a
+qualitative UC corollary or make `_≤UC^ωᵉ_` into a setup's order.
+
+## 1. Placement and required observation structure
+
+A bare `QUCSetup` supplies approximate comparisons, not a Boolean event or a
+probability readout. Start at the machine observation and reuse its existing
+`Pr≤` operation. Put event-bound definitions in a focused module, tentatively
+`UC.Model.EventBounds`, rather than adding machine-specific probability notions
+to `UC.Quantitative.Contextual`.
+
+Generalize an event transport lemma only when its actual readout and
+comparison-compatibility assumptions are clear. No new one-sided
+`Approximation` is needed merely to express an upper bound: an upper-bound
+predicate is not a symmetric approximate equality.
+
+### Finite-depth upper bounds
+
+For an arbitrary `d : Dₚ Bool`, the library does not generally form its limiting
+probability as a rational number. Use the existing finite approximants:
+
+```agda
+Upper d r = (k : ℕ) → Pr≤ k d ≤ r
+```
+
+Here `k` is observation depth, distinct from the security parameter and query
+allowance. Spell out the types and qualified arithmetic in the implementation.
+
+The elementary transport target is:
+
+```text
+d ≈ₚ[ε] e → Upper e δ → Upper d (δ + ε).
+```
+
+At each depth of `d`, the comparison supplies a depth of `e`; apply `Upper e δ`
+there. This step does not itself need an extra positive slack. Any slack paid by
+the separate strategy-to-context lift must remain visible.
+
+**Do not replace an event bound by two-sided closeness to `returnₚ false`.**
+`Upper botₚ 0` holds, while `botₚ ≈ₚ[0] returnₚ false` does not: approximate
+equality compares both verdict masses. A one-sided comparison may be useful,
+but the existing two-sided domination theorem cannot simply be specialized to a
+false-answering process to prove the desired lift.
+
+## 2. Compile the watch, including completion and query accounting
+
+The candidate monitor is a stateful relay on the honest interface:
+
+```text
+μ : B → B ⊗ Flag.
+```
+
+This type is a starting point, not a completed implementation of `auditWatch`.
+The watch can replace a strategy's `out` node directly; an ordinary relay does
+not automatically know when an arbitrary test finishes.
+
+Construct a monitored-test transformation, written schematically as
+`compile μ E`, with explicit wiring for the ancilla and adversarial grade. It
+must yield a test on the original process interface, so contextual comparison
+can be applied to it. Define `eventRun f μ C` as the observation of this compiled
+experiment, where `C` contains the original test, closure, ancilla, and budget
+certificates. Do not leave a primitive `flag E` with unspecified semantics.
+
+Prove the following before accepting the construction:
+
+1. **Traffic agreement.** Honest-interface queries and answers are relayed as
+   in the original experiment. Track the query associated with an answer so
+   `reportsLoss` is evaluated exactly as in the watch.
+2. **Completion behavior.** Specify how completion of the original test is
+   detected and how its verdict is replaced by the accumulated flag. The test
+   cannot forge or access the private flag port.
+3. **Divergence behavior.** The construction does not turn a diverging watched
+   interaction into a terminating verdict. A flag set before divergence is not
+   automatically a reported `true` result.
+4. **Strategy agreement.** At embedded finite strategies, the compiled
+   experiment agrees with running the original process under `auditWatch d`.
+   Reuse the existing protocol/machine transport to state this in the supported
+   observation relation; do not assume structural machine equality.
+5. **Budget accounting.** Certify the complete compiled test and its closure,
+   including completion detection and flag reading. Establish the relationship
+   with `asks≤-auditWatch`, not merely a certificate for the relay itself.
+
+`QB 1 μ` is not by itself `QueryPreserving`: it is a rate certificate for a
+process, not a proof that the compiled experiment spends the original allowance.
+State and prove the actual allowance transformation. If it can be expressed as
+`κμ(n,q)`, record its exactness or upper-bound status and polynomial closure.
+If it depends separately on the test and closure budgets, retain those
+arguments; do not assume it factors through `ctxBudget c c′`. In particular,
+check zero allowance explicitly.
+
+**Acceptance:** the monitor compiler has both semantic agreement and a proved
+budget transformation. Typechecking a flag projection alone is insufficient.
+
+## 3. Fixed-allowance and saturated event bounds
+
+Let a base context `C` consist of:
+
+```text
+W, E : W ⊗ (X ⊗ B) → Ω, m : 𝟙 → W ⊗ 𝟙,
+QB c E, QB c′ m.
+
+allow(C) = ctxBudget c c′.
+```
+
+For a closed process `f : 𝟙 → X ⊗ B`, define the proposed fixed-allowance bound:
+
+```text
+HitsAt q r f μ =
+  ∀ certified base contexts C.
+    allow(C) ≤ q → Upper (eventRun f μ C) r.
+```
+
+The allowance here is explicitly that of the original environment. The monitor's
+instrumentation cost is recorded by its compiler and charged wherever a
+comparison or lifting theorem needs it. If another allowance convention is
+chosen, state it and prove its relationship to this one and to `asks≤ q`.
+
+Families then have the proposed definitions:
+
+```text
+Hitsᶠ[ε] f μ = ∀ n q. HitsAt q (ε n q) (f n) (μ n).
+
+Hitsᴺ f μ ε =
+  ∀ p. Poly p →
+    ∃ ν. Negligible ν ∧
+      ∀ n. HitsAt (p n) (ε n (p n) + ν n) (f n) (μ n).
+```
+
+The slack is chosen after the polynomial allowance but before the level and
+context. It is uniform over all admitted contexts within that allowance.
+
+The restriction `allow(C) ≤ p n` is essential. Quantifying over every context
+while replacing its error schedule by the constant `ε n (p n) + ν n` would
+bound arbitrarily large contexts even when `p = 0` and is not the intended
+statement.
+
+Do not silently identify this capped-allowance presentation with a comparison
+evaluated at the budget a context carries. Prove any required certificate
+enlargement or supply an explicit error majorant. Monotonicity of an arbitrary
+error schedule is not available by default; `NegligibleBound` alone is not a
+license to move its argument along an inequality.
+
+**Acceptance:** the fixed-allowance restriction and the slack quantifiers match
+the claimed property. The relation to the old strategy-level property is proved
+through the monitor agreement and the lifting results below, not a vocabulary
+table alone.
+
+## 4. Transport a bound through an explicit-error simulation
+
+Start from the fixed-data comparison:
+
+```text
+f ≈ctx[ε] subᶠ s g,
+```
+
+with the existing certified simulator `s`. Prove transport for one monitored
+context first:
+
+1. Compile the real-side context, with its actual budget certificate, and apply
+   the quantitative comparison at that budget.
+2. Move the simulator into the ideal-side context using the existing absorption
+   lemmas. Prove the equation between the two monitored experiments: the
+   monitor is on the honest interface and the simulator on the grade, but the
+   required rebracketing and compatibility still need proof.
+3. Apply the ideal event bound to the resulting admitted context.
+4. Use the one-sided observation transport from §1.
+
+Name the two actual allowances: the comparison is read at the compiled
+real-side allowance `rμ`, while the ideal event bound is read at the allowance
+`rI` certified for the absorbed ideal context. The pointwise estimate is:
+
+```text
+real monitored upper bound ≤ ε(n,rμ) + ideal event bound at rI.
+```
+
+Only if the compilation and absorption proofs establish the relevant identities
+may this simplify to the originally intended formula:
+
+```text
+ε(n,q) + δ(n,simCost(q,cost(s,n))).
+```
+
+In particular, do not leave the first summand at `ε(n,q)` when applying the
+comparison actually costs a monitored test at a larger allowance.
+
+Lift the pointwise theorem to `HitsAt`, `Hitsᶠ`, and then `Hitsᴺ`. For contexts
+with allowance at most `p(n)`, provide the uniform error majorants or exact
+certificate reindexings needed to produce one negligible slack for that `p`.
+Prove polynomial closure of the allowance transformations and negligibility of
+the resulting error. Keep any larger base event bound explicit: simulator
+absorption can change its allowance, not just add negligible slack.
+
+The ledger's direct-agreement case uses the identity simulator and should be
+the first family instance. Do not claim the same unchanged ledger bound for an
+arbitrary simulator without the corresponding accounting proof.
+
+**Acceptance:** transport is a consumer of explicit-error comparison and the
+monitor compiler, with no new UC order. Its numerical statement follows the
+proved costs and retains the required quantifier order.
+
+## 5. Lift the strategy-level event bound to contexts
+
+`Birthday.target` bounds the trajectory event under strategies. The observable
+audit bound first uses the existing watch/trajectory soundness result. Keep
+this step explicit: the compiler implements `auditWatch`, not a private-state
+trajectory observer.
+
+Prove a one-sided contextual lift by reusing the finite-strategy domination
+machinery and `ctxRunᵒ` where applicable. A sufficient intermediate statement
+has the following shape:
+
+```text
+for each certified context C, observation depth k, and positive slack η,
+there is an admitted finite strategy d such that
+
+  Pr≤ k (eventRun u μ C)
+    ≤ watched strategy-run upper bound for d + η.
+```
+
+The strategy's allowance must be the one proved by the instrumentation and
+domination accounting. Its observation must retain the watched event. An
+arbitrary extracted strategy on a monitor-extended interface is not sufficient:
+prove it factors through the watch, or prove the corresponding event-sensitive
+inequality. Truncation and divergence must not create spurious reported hits.
+
+Use the strategy-level bound for that strategy to obtain the contextual bound.
+Do not assume the two-sided `dominatedᵒ` theorem already proves this statement,
+and do not introduce a false-answering comparator without proving all of its
+required comparison premises.
+
+For the asymptotic result, choose a positive negligible slack independently of
+the context at the required quantifier position. Account for every additional
+slack and allowance change. Reuse existing protocol/machine transport for the
+`Dist⊥` and `Dₚ` readings; do not equate their probability expressions by fiat.
+
+**Acceptance:** a checked bound against all admitted contexts is obtained from
+the existing strategy-level event theorem. It does not assume the desired
+contextual event bound or read a hidden machine state.
+
+## 6. Migrate one ledger consumer, then consider retirement
+
+First restate the observable property using `Hitsᴺ` on the existing `imgᶠ`
+images. Prove the comparison with the previous property needed by the public
+results. Preserve `SerInj`, initialization, honesty/truthfulness assumptions,
+the event, and the exact allowance/slack accounting.
+
+Then migrate the ideal bound and the hash-to-ledger transfer body. Keep the
+public counterexample `chimeric-loses-value` about the same event and experiment.
+Preserve the trajectory appendix through its explicit watch soundness,
+completeness, and query-instrumentation results; a generic raw morphism does not
+have a protocol state on which `Bad` can automatically be defined.
+
+Recheck consumers before changing `Systems` telescopes. Replacing protocol
+families by arbitrary raw hom families expands the domain; use the existing
+embedding and prove the required bridge instead of calling that change a
+definitional alias.
+
+Retirement candidates, conditional on successful migration:
+
+| Candidate | Gate |
 |---|---|
-| `Systems B = (n : ℕ) → Protocol unitᴵ (B n)` (`Saturated:71`) | a closed `Homᶠ` at trivial grade; `imgᶠ B R n = closedᵒ (morphism (R n))` already embeds it (`UC/Asymptotic/Family.agda:92`) |
-| `Watch B`, a `Strat → Strat` transformer (`:77`) | a monitor PROCESS on the honest interface, `μ : ifaceᵒ B ⇒ ifaceᵒ B ⊗ Flag`, relaying traffic and raising one bit — a morphism of the setup, so the absorption lemmas apply to it |
-| `QueryPreserving` (`:86`) | `QB 1 μ`: the monitor asks nothing of its own (`UC/Budget.agda`, `qb-T₁`) |
-| `Pr (P n) (bad n d)` (`Protocol/Observe.agda:171`) | `Obs ((E ∘ T₁ᵒ W f) ∘ m)` read at `true` (`UC/Model/Observation.agda:59`) |
-| `asks≤ (p n) d` | `QB c E`, `QB c′ m`, allowance `ctxBudget c c′` (`UC/Budget.agda:74`) |
-| `SaturatedBounded[ G ]` (`:96`): `∀ p Poly → ∃ ν, G ν × ∀ n d …` | the same quantifier order `GradedBound` fixes (`UC/Approximate.agda:110`); PROPOSED `Hitsᴺ` below |
-| `_≈negl_` (`:188`), `≈negl-respects` (`:208`) | `_≈ctx[_]_` at a negligible schedule (`UC/Quantitative/Family.agda`); transport is `≈ctx-ext`/`≈ctx-sub` |
-| `boundedᴺ`, `uc-preservesᴺ` (`UC/Asymptotic.agda:73,80`) | PROPOSED `hits-lift`, `hits-transfer` below |
-| `≤UC^ωⁿ⇒≈negl` (`UC/Asymptotic/Family.agda:279`) | unnecessary once the transport is stated on `_≈ctx[_]_` |
+| `UC.Saturated` observable-bound machinery | Public consumers use the new property with the required semantic comparison proved; independently used trajectory machinery is retained or relocated |
+| `UC.Asymptotic` | Its remaining consumers and public results have replacements with justified premises and conclusions |
+| `≤UC^ωⁿ⇒≈negl` | No active consumer needs the strategy-level bridge after event transport is migrated |
+| `Observable` watch implementation and lemmas | Retain what proves monitor agreement or supports the trajectory appendix; remove only genuine duplicates |
+| `Protocol.Observe` probability and transfer lemmas | Preserve uses by protocol safety and game-playing developments |
 
-`_≤UC^ωⁿ_` itself (`Asymptotic/Family.agda:109`) is already `_≈ctxᴬ[_]_` on `imgᶠ` images
-plus `NegligibleBound`; it survives, restated on the image type so `Systems` can go.
+No module deletion or line-count reduction is an acceptance criterion before
+these gates are met. Retire adapters after their final callers migrate rather
+than retaining parallel proof implementations.
 
-## The definitions (PROPOSED, schematic)
+## Implementation sequence and stop conditions
 
-Single level, in `UC/Quantitative/Contextual.agda` beside `_≈ᵁᵠ[_]_` (`:58`), for a closed
-`f : 𝟙 ⇒ X ⊗₀ B` and a monitor `μ : B ⇒ B ⊗₀ Flag`:
+1. Pin the accumulated audit event, finite-depth upper-bound predicate, and
+   fixed-allowance convention. Prove elementary observation transport.
+2. Spike the monitor compiler: type it, prove agreement with `auditWatch`, and
+   establish the full budget transformation, including completion and zero
+   allowance. Test returning, querying, and diverging experiments.
+3. Prove the event-sensitive one-sided domination result and instantiate it with
+   the ledger's existing observable bound.
+4. Implement fixed-context transport and its correctly quantified family and
+   saturated forms. Reuse the existing filtered/contextual API where useful;
+   no new categorical construction is a prerequisite.
+5. Migrate one existing ledger transfer and its public counterexample; compare
+   statements and accounting before retiring any infrastructure.
+6. Retire only the demonstrated redundancies and update `docs/end-to-end.md`,
+   the UC inventory, and affected cross-references.
 
-```agda
-Hits[ ε ] f μ =
-    (W : Obj) (E : W ⊗₀ (X ⊗₀ B) ⇒ Ω) (m : 𝟙 ⇒ W ⊗₀ 𝟙) {c c′ : ℕ}
-  → QB c E → QB c′ m
-  → Pr ⟦ (flag E ∘ id ⊗₁ (id ⊗₁ μ) ∘ id ⊗₁ f) ∘ m ⟧ ≤ ε (ctxBudget c c′)
-```
+Stop and report the exact obstruction if completion cannot be monitored without
+changing the experiment, flag reading needs private state, the event-sensitive
+finite-strategy lift fails, or no claimed allowance bound can be proved. Do not
+resolve such an obstruction by admitting fewer contexts, assuming termination,
+moving the slack inside the context quantifier, or changing the event silently.
 
-where `flag E` is the environment `E` with its output bit replaced by the monitor's flag
-(the spike fixes this spelling: the flag port is threaded past `E` and projected, so `E`
-stays an arbitrary test on the honest traffic). `Pr` is the acceptance probability of the
-observation, `Obs … ≈ₚ …` at `true`.
+Verification follows the shared Agda instructions: record the current
+escape-hatch baseline, check changed modules and importers, the root closure,
+`Examples/ChimericLedger/{Transfer,Replay}.agda`, and relevant event, protocol,
+and ledger test suites. Reject flagged warnings. Measure significant
+elaboration regressions under the prescribed timeout discipline. Historical
+counts and proof-length estimates are not substitutes for these checks.
 
-Family level, in `UC/Quantitative/Family.agda` beside `_≈ctx[_]_` (`:91`), at a schedule
-`ε : ℕ → ℕ → ℚ`, allowance before slack exactly as `GradedBound`:
+## Spike findings (2026-09-21, branch `hits-spike`, not merged)
 
-```agda
-Hitsᶠ[ ε ] f μ    = (n : ℕ) → Hits[ ε n ] (f n) (μ n)
-Hitsᴺ    f μ ε    = (p : ℕ → ℕ) → Poly p → Σ[ ν ] Negligible ν ×
-                    ((n : ℕ) → Hits[ (λ q → ε n (p n) + ν n) ] (f n) (μ n))   -- or via GradedBound
-```
+Steps 1–3 were attempted in one scratch module, `UC/Quantitative/Hits.agda` (456 lines,
+green, no existing module edited, hatch count unchanged). Outcome: the design passes its
+load-bearing check and stops at §5's lift. Half of §3–§4 already exists in `UC.Audit`.
 
-## Transport along emulation (PROPOSED)
+### Delivered and checked
 
-```agda
-hits-transfer : f ≈ctx[ ε ] subᶠ s g → Hitsᶠ[ δ ] g μ
-              → Hitsᶠ[ λ n q → ε n q + δ n (simCost q (cost s n)) ] f μ
-```
+- **Monitor.** `μ : Proc B (B ⊗ᴵ Flagᴵ)` is buildable and certifiable, but a relay alone
+  cannot detect completion. The working shape pairs it with a completion reader ABOVE the
+  test: `compileᴹ Y B μ E = flagReadᴹ ∘ subᴵ E ∘ a⇒ᴵ ∘ T₁ᴵ Y μ`, where `flagReadᴹ` waits
+  for the test's verdict, discards it, and outputs the flag. The pending query is monitor
+  state (`Bool × Maybe (Neg B)`) because `reportsLoss` reads the (query, answer) pair.
+  Divergence stays divergence (`flagRead-diverges ≡ botₚ`); a flag raised before it is not
+  reported. The ledger instance is `auditMonitor = monitorᴹ (reportsLoss s₀)`.
+- **The flag survives the context run.** It is a port, not a state: the compiled
+  experiment's verdict IS the flag, read off the run's output, and `ctxRunᵒ`
+  (`UC/Model/Dominated.agda`) carries it unchanged. The design is not wrong here.
+- **`Upper d r = (k : ℕ) → Pr≤ k d ≤ r`** with transports `upper-≼[]`/`upper-≈[]`
+  (`d ≼ₚ[ε] e → Upper e r → Upper d (r + ε)`, no extra slack) and `upper-≼`/`upper-≈`.
+- **`HitsAt q r f μ`** with the capped allowance `ctxBudget c c′ ≤ q`, `Hitsᶠ`, `Hitsᴺ`
+  (slack after `Poly p`, before the level), and the compiled-experiment transports.
+- **Budget transformation, proved:** `κμ c = 2·(c ⊔ 1)`, from `Certified 1 monitorᴹ` and
+  `Certified 2 flagReadᴹ` (at `waitE` one downward unit is already owed, so no potential
+  makes it 1). `κμ 0 = 2`: the process spelling of the watch is NOT allowance-preserving
+  at the certificate level, where `asks≤-auditWatch` is exact. The over-charge is
+  irreducible under `ctxBudget`, which cannot tell a flag-port query from an honest one
+  (the port-specific bound `UC/Budget.agda`'s header prices and does not build).
+- **Ledger chain composes end to end modulo the lift:**
+  `Birthday.target → auditWatch-bounded → upper-run → EventDominated → HitsAt`, with the
+  `Dist⊥`/`Dₚ` seam crossed one-sidedly by `prAgree` and the cap absorbed by `asks≤-mono`.
+  `IsWatch report w` (three equations, all `refl` for `auditWatchFrom`) replaces an
+  identification of the two strategy transformers, which would need funext.
 
-The monitor lives on `B`, the simulator on the grade `X`; both are certified processes
-plugged into the test, so the step is `≈ctx-ext`/`≈ctx-sub` (`Family.agda:243`) followed by
-one triangle inequality in the observation space. It is the whole of `uc-preservesᴺ`
-(`UC/Asymptotic.agda:80`) and the reason `≤UC^ωⁿ⇒≈negl` exists. Estimated proof: under
-20 lines. Its `Canonicalᴺ` packaging is not needed for the ledger; `≤UC^ωᵉ⇒≤UCᴺ`
-(`Asymptotic/Family.agda:256`) stays for consumers that want the qualitative corollary.
+### Where it stops: the strategy-to-contexts lift (§5)
 
-## Lift from the strategy level (the only step with proof risk)
+`EventDominated` is stated and consumed; nothing inhabits it.
 
-`Birthday.target` is a strategy-level bound: `asks≤ q d → PrHit … ≤ εbirthday q`. The
-setup-level bound needs it against every budgeted CONTEXT. `dominatedᵒ`
-(`UC/Model/Dominated.agda:127`, type `ContextDominatedᵒ:115`) is exactly that lift for a
-two-sided `≈ₚ[ ε ]` between two closed processes at any positive slack `δ`, reading the
-strategy budget as `ctxBudget c c′`. What `Hits` needs is the one-sided variant:
+- The false-comparator route is dead for a stronger reason than §1 gives: `dominated`'s
+  hypothesis ranges over ALL budgeted strategies and `runᴹ u d`'s verdict is `d`'s own, so
+  at `d = out true` every process has mass 1 and no one-sided `Upper (runᴹ u d) r` with
+  `r < 1` holds for any `u`, any comparator.
+- `skeleton` (`UC/Machine/Dominated.agda`, `Decompose.half`) is one-sided-ready — it uses
+  only the forward half — but applies its hypothesis at `dstrat b n₁ z`, a strategy read
+  off the context's certificate by `UC.Seam.Extract.extract`, which carries no syntactic
+  invariant. Nothing says it factors through `w false (·)`. Closing this needs either
+  (i) a theorem that extraction from `compileᴹ Y μ E` lands in the watch's image, not
+  currently expressible about `Extract`'s output, or (ii) a new event-sensitive
+  decomposition redoing `UC.Seam.Transfer` (355 lines) with the accumulator threaded.
+  Either is a new module, not a 40-line restatement.
+- §2 obligation 4 (agreement of the compiled experiment with `runᴹ u (auditWatch d)` at
+  embedded strategies) is blocked the same way: an adequacy statement for a five-machine
+  trace tower, where `UC.Seam.Adequacy`+`Plug` are the ~250 lines for the two-machine case.
+- The reverse direction (context bound → strategy `Pr≤` bound) exists:
+  `UC.Seam.Audit.Context.extractᵍ`. The forward direction exists nowhere in the repo.
 
-```agda
-dominated-hitsᵒ : (X E m qE qm) (u : Proc unitᴵ B) (μ) (ε δ) → 0 < δ
-                → ((d) → asks≤ (ctxBudget c c′) d → Pr (runᴹ u (μ-watch d)) ≤ ε)
-                → Pr (Obs ((flag E ∘ T₁ᵒ X (gradedᵒ (id ⊗ μ ∘ conjᴵ u))) ∘ m)) ≤ ε + δ
-```
+### What already exists: `UC.Audit`
 
-`dominatedᵒ`'s proof is `dominated` (finite-strategy domination) plus `ctxRunᵒ`
-(`Dominated.agda:104`), which rewrites the context run as a strategy run. Both are
-one-sided-agnostic: `dominated` bounds the distance to a fixed distribution, and a bound
-`Pr ≤ ε` is `≈ₚ[ ε ]` to the point mass at `false` with one direction unused. Expected: a
-restatement of `dominatedᵒ` with `v := ⊥-answering` or a direct one-sided proof of the
-same size, ~40 lines. The spike must confirm that `μ`'s flag survives `ctxRunᵒ`'s
-rewriting; if the flag has to be read off a state instead, the design is wrong and stops.
-`Observable.auditWatch-bounded`/`-sound`/`-complete` (`Examples/ChimericLedger/Observable.agda`)
-become the ledger's instance of the monitor's soundness and completeness.
+`Mass.at` is `Pr≤` (`UC/Model/Enrichment.agda`); `AuditBound f 𝔈 ε` (`UC/Audit.agda`) is
+`(n : ℕ) → at n (obs (tv₁ Y f Et) m) ≤ ε (ctxBudget c c′)` at every permitted context —
+`Upper` at every context, unnamed; `audit-carry` is §4's transport (simulator absorbed
+into the test, `simCost` rescaling via `ctxBudget-absorb`, one positive slack), generic
+in base and grade, proved, with `Examples.HashForward.Audit` as a worked instance at a
+nontrivial grade. `UC/Audit.agda`'s header names the very gap `Hits` closes ("quantifying
+over every budgeted test … bounds the mass of a constant-`true` verdict too"); making the
+verdict be the flag is the repair. §3–§4 should be written as consumers of `audit-carry`.
 
-## The event, and the ledger restated
+**Convention clash.** `AuditBound` reads the schedule at the CARRIED budget
+`ctxBudget c c′`; §3 forbids that in favour of the cap `ctxBudget c c′ ≤ q` read at the
+constant. For the ledger's `εᴸ` the two coincide (monotone in `q`); in general one must
+give. Needs a ruling before step 4.
 
-The event is "the total reported by an audit at the end differs from the initial total".
-An environment observes only answers, so "value at the end of the trace" is read through
-the audit query: this is the interface-observable form ruled on 2026-09-21
-(`docs/end-to-end.md`). The state-trajectory form stays the flagged appendix. Concretely
-`μ` is today's `auditWatch` (`Observable.agda:81`) as a relay process with a flag port.
+### Rulings needed
 
-```agda
-PreservesValue R = Hitsᴺ (imgᶠ R) auditMonitor εᴸ                     -- Property.agda
-ideal-preserves-value : SerInj → PreservesValue Ideal                  -- via dominated-hitsᵒ + target
-preserves-value-transfer : R ≤UC^ωⁿ Ideal → PreservesValue R           -- hits-transfer
-ledger-preserves-value-from-hash : hash ≤UC^ωⁿ oracle^ω → PreservesValue (Realᴴ hash …)
-chimeric-loses-value : Pr … ≡ 1ℚ                                       -- unchanged event, new spelling
-```
+1. Convention: adopt `AuditBound`'s carried-budget reading and derive the capped form per
+   schedule where monotonicity holds (recommended: it reuses `audit-carry`), or keep the
+   cap and reprice `audit-carry`.
+2. The lift: commission the event-sensitive decomposition (route (ii), Transfer-scale), or
+   accept the ideal-side theorem at the strategy level with `EventDominated` as the one
+   explicitly named bridge.
 
-## Retirement
+### Landing sites, if continued
 
-| module / block | LOC | fate |
-|---|---|---|
-| `UC/Saturated.agda` | 212 | delete |
-| `UC/Asymptotic.agda` | 101 | delete (`_≤UC^ω_` has no consumer since 2026-09-21) |
-| `UC/Asymptotic/Family.agda`: `Systems` import, `≤UC^ωⁿ⇒≈negl`, `imgᶠ`'s `Systems` telescope | ~40 | restate `_≤UC^ωⁿ_` on images; delete the `≈negl` bridge |
-| `Examples/ChimericLedger/Observable.agda` | 242 | shrink to the monitor process and its soundness/completeness, ~120 |
-| `Examples/ChimericLedger/Property.agda`, `Transfer.agda` | 99 + 193 | restate; the appendix theorem keeps its type via the new vocabulary |
-| `Protocol/Observe.agda`: `Pr`, `PrHit`, `_≈adv[_]_`, `transfer-at` | check | keep what `Protocol/Safety` and the game layer use; delete what only `Saturated` used |
-
-Expected net: about −350 in the library, roughly neutral in the example.
-
-## Plan
-
-1. Spike, one agent, read-and-typecheck: fix the spelling of `flag E` and of the monitor
-   `μ`; state `Hits[_]` at the single level; prove `dominated-hitsᵒ` (or show that
-   `dominatedᵒ` at a `false`-answering `v` gives it). Stop and report if the flag cannot be
-   read off the context run.
-2. `Hitsᶠ`/`Hitsᴺ` and `hits-transfer` in `UC.Quantitative.Family`; a `Filt`-side reading
-   via `Agreeᵠ` only if it falls out for free.
-3. Restate `Property`/`Transfer`/`Observable`; statements of the appendix theorem and of
-   `chimeric-loses-value` keep their meaning, spelled in the new vocabulary; `docs/end-to-end.md`
-   follows.
-4. Delete `UC.Saturated`, `UC.Asymptotic`, the `≈negl` bridge; restate `_≤UC^ωⁿ_` on images;
-   fix the cross-references (`UC.agda` inventory, `UC/Audit.agda`, `UC/Seam.agda`).
-5. Closure: root, `Examples/ChimericLedger/{Transfer,Replay}.agda`, the three test suites;
-   hatch grep stays 16; warm times of the touched modules within budget.
-
-Risks: the flag-threading spelling (step 1) is the design's load-bearing detail; `Pr` on
-`Dₚ Bool` may need a small `Approximation` instance for one-sided bounds if `≈ₚ[_]` is the
-only distance available; `_≤UC^ωⁿ_`'s consumers (`Transfer.agda`, `Ingest`) must not change
-type when its telescope moves from `Systems` to images.
+`Upper` and its transports → `ProbabilisticLogic.Dp.Advantage` (or `.Upper`); `Flagᴵ`,
+`monitorᴹ`, `flagReadᴹ`, `compileᴹ`, `κμ`, `qb-compileᴹ`, behaviour pins →
+`UC.Machine.Monitor`; `watchFrom`/`IsWatch`/`asks≤-watch` → `Strategy` beside `mapStrat`,
+with `Observable.auditWatchFrom = watchFrom (reportsLoss s₀)` so the pin is `refl`;
+`upper-run` → `UC.Seam.Carry` beside `adv-at`; `eventRun`/`HitsAt`/`Hitsᶠ`/`Hitsᴺ`/
+transports/`EventDominated` → `UC.Model.EventBounds`, after reconciling with `UC.Audit`;
+`auditMonitor`, `auditWatch-IsWatch` → `Examples.ChimericLedger.Observable`, `ledger-hits`
+→ `Property`.
