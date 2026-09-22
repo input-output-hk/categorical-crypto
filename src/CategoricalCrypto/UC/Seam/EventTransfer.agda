@@ -70,8 +70,6 @@ open Ext B K q cert
 ------------------------------------------------------------------------
 -- The accumulator invariant
 
--- The `Loop` case split of `Cov`, at the two positions the transfer enters it:
--- a pending query still to be answered, and an answer already accumulated.
 mutual
   Cov : Bool → ℕ → (r : ℕ) → Dₚ (Ansᶜ r) → Set
   Cov acc zero    r X = ⊤
