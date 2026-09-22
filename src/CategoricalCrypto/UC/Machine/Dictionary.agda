@@ -299,3 +299,13 @@ T₁-∘ {Y} {A} {B} {C} g f =
        (𝒫.Equiv.sym 𝒫.identity² , 𝔾.Equiv.refl {x = g 𝒫.∘ f})
   ○ᴹ 𝔾.⊗.homomorphism
   ○ᴹ ⟺ᴹ (𝒫.∘-resp-≈ (T₁-⊗₁ {Y} {B} {C} g) (T₁-⊗₁ {Y} {A} {B} f))
+
+sub-∘ : {X Y Z A : Iface} (g : Proc Y Z) (f : Proc X Y)
+      → 𝒫._≈_ {X ⊗ᴵ A} {Z ⊗ᴵ A} (subᴵ (g 𝒫.∘ f)) (subᴵ g 𝒫.∘ subᴵ f)
+sub-∘ {X} {Y} {Z} {A} g f =
+     sub-⊗₁ {X} {Z} {A} (g 𝒫.∘ f)
+  ○ᴹ 𝔾.⊗.F-resp-≈ {(⟦ X ⟧ᴵ , ⟦ A ⟧ᴵ)} {(⟦ Z ⟧ᴵ , ⟦ A ⟧ᴵ)}
+       {(g 𝒫.∘ f , 𝒫.id {A})} {(g 𝒫.∘ f , 𝒫.id {A} 𝒫.∘ 𝒫.id {A})}
+       (𝔾.Equiv.refl {x = g 𝒫.∘ f} , 𝒫.Equiv.sym 𝒫.identity²)
+  ○ᴹ 𝔾.⊗.homomorphism
+  ○ᴹ ⟺ᴹ (𝒫.∘-resp-≈ (sub-⊗₁ {Y} {Z} {A} g) (sub-⊗₁ {X} {Y} {A} f))

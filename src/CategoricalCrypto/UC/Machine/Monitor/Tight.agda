@@ -34,6 +34,7 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base using (𝒱ₚ; 𝒫ₚ)
+open import CategoricalCrypto.Machines.Pointwise
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Dictionary
 open import CategoricalCrypto.UC.Machine.Monitor

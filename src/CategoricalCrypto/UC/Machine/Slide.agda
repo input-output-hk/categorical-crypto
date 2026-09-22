@@ -50,7 +50,7 @@ open import CategoricalCrypto.UC.Budget using (ctxBudget)
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Bridge using (λᴵ⇐; λᴵ⇒; conjᴵ; ctxRun)
 open import CategoricalCrypto.UC.Machine.Dictionary
-  using (T₁-⊗₁; T₁-∘; T₁-resp-≈; sub-⊗₁; a⇐-α⇒)
+  using (T₁-⊗₁; T₁-∘; T₁-resp-≈; sub-⊗₁; sub-∘; a⇐-α⇒; a⇒-α⇐)
 open import CategoricalCrypto.UC.Machine.Grading using (qb-subᴳ; qb-a⇐ᴳ)
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
 open import CategoricalCrypto.UC.Machine.Wire
@@ -58,6 +58,8 @@ open import CategoricalCrypto.UC.QueryBound
   using (QB; certified⇒QB; qbᵢ-wire; qb-mono; qb-resp-≈)
 open import CategoricalCrypto.UC.QueryBound.Compose.Laws using (qb-∘-category)
 
+import Categories.Category.Monoidal.Reasoning as MR
+import Categories.Category.Monoidal.Utilities as MU
 import Categories.Category.Monoidal.Utilities.Ext as MUExt
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
@@ -69,6 +71,8 @@ private
   module 𝔾 = MonoidalCategory (𝒢ₚᴹ 0ℓ)
 
 open Core (𝒱ₚ 0ℓ)
+open MR 𝔾.monoidal
+open MU.Shorthands 𝔾.monoidal using () renaming (α⇐ to α⇐ᴳ)
 open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 
 ------------------------------------------------------------------------
@@ -108,6 +112,53 @@ T₁-wire Y up down = ≲⇒≈ᴹ (mk-cong pt)
       λ where (_ , inj₁ _) → refl
               (_ , inj₂ _) → refl
 
+-- …and the bypassed relay relabels a wire the same way.
+sub-wire : {A B C : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
+         → 𝒫._≈_ {A ⊗ᴵ C} {B ⊗ᴵ C} (subᴵ (wireᴹ up down))
+             (wireᴹ (Sum.map up (λ c → c)) (Sum.map down (λ c → c)))
+sub-wire up down = ≲⇒≈ᴹ (mk-cong pt)
+  where
+  pt : (p : _) → _
+  pt (s , inj₁ (inj₁ a)) = >>=ₚ-identityˡ _ _
+  pt (s , inj₁ (inj₂ c)) = ≈refl
+  pt (s , inj₂ (inj₁ b)) = >>=ₚ-identityˡ _ _
+  pt (s , inj₂ (inj₂ c)) = ≈refl
+
+-- Opening a hole beside a pair is opening it beside the first component.
+λ-tri : {B F : Iface}
+      → 𝒫._≈_ {B ⊗ᴵ F} {(unitᴵ ⊗ᴵ B) ⊗ᴵ F} (a⇒ᴵ 𝒫.∘ λᴵ⇐) (subᴵ λᴵ⇐)
+λ-tri {B} {F} =
+     ∘-wireᴹ inj₂ [ ⊥-elim , id ] (a⇒ᴵ {unitᴵ} {B} {F})
+  ○ᴹ ≲⇒≈ᴹ (mk-cong pt)
+  ○ᴹ ⟺ᴹ (sub-wire inj₂ [ ⊥-elim , id ])
+  where
+  pt : (p : _) → _
+  pt (s , inj₁ (inj₁ _))        = >>=ₚ-identityˡ _ _
+  pt (s , inj₁ (inj₂ _))        = >>=ₚ-identityˡ _ _
+  pt (s , inj₂ (inj₁ (inj₁ ())))
+  pt (s , inj₂ (inj₁ (inj₂ _))) = >>=ₚ-identityˡ _ _
+  pt (s , inj₂ (inj₂ _))        = >>=ₚ-identityˡ _ _
+
+-- Closing the trivial ancilla at the hole is closing it beside the process.
+ρᴵ⇒ : {Y : Iface} → Proc (Y ⊗ᴵ unitᴵ) Y
+ρᴵ⇒ = wireᴹ [ id , ⊥-elim ] inj₁
+
+ρ-tri : {Y B : Iface}
+      → 𝒫._≈_ {(Y ⊗ᴵ unitᴵ) ⊗ᴵ B} {Y ⊗ᴵ B} (T₁ᴵ Y λᴵ⇒ 𝒫.∘ a⇐ᴵ) (subᴵ ρᴵ⇒)
+ρ-tri {Y} {B} =
+     𝒫.∘-resp-≈ˡ (T₁-wire Y [ ⊥-elim , id ] inj₂)
+  ○ᴹ wire-∘ᴹ (Sum.map (λ y → y) [ ⊥-elim , id ]) (Sum.map (λ y → y) inj₂)
+             (a⇐ᴵ {Y} {unitᴵ} {B})
+  ○ᴹ ≲⇒≈ᴹ (mk-cong pt)
+  ○ᴹ ⟺ᴹ (sub-wire [ id , ⊥-elim ] inj₁)
+  where
+  pt : (p : _) → _
+  pt (s , inj₁ (inj₁ (inj₁ _)))  = >>=ₚ-identityˡ _ _
+  pt (s , inj₁ (inj₁ (inj₂ ())))
+  pt (s , inj₁ (inj₂ _))         = >>=ₚ-identityˡ _ _
+  pt (s , inj₂ (inj₁ _))         = >>=ₚ-identityˡ _ _
+  pt (s , inj₂ (inj₂ _))         = >>=ₚ-identityˡ _ _
+
 -- …and the slide at the hole itself, which is where the ancilla and the
 -- closure change places.  The only live activation is a query on `Y`: every
 -- other summand of a closed interface is empty.
@@ -137,6 +188,57 @@ T₁-wire Y up down = ≲⇒≈ᴹ (mk-cong pt)
       λ where (_ , inj₂ (inj₁ _)) → refl
     pt (s , inj₂ (inj₂ (inj₁ ())))
     pt (s , inj₂ (inj₂ (inj₂ ())))
+
+-- A closed ancilla wired in beside the hole crosses a relay ON the hole: the
+-- interchange of the closure acting on the ancilla leg with the relay acting
+-- on the hole, every other factor being a wire.  The only facts it spends are
+-- the hole wire's naturality and its triangle.
+relay-slide : {Y B F : Iface} (w : Proc unitᴵ Y) (μ : Proc B (B ⊗ᴵ F))
+            → 𝒫._≈_ {B} {(Y ⊗ᴵ B) ⊗ᴵ F}
+                (a⇒ᴵ 𝒫.∘ (T₁ᴵ Y μ 𝒫.∘ (subᴵ w 𝒫.∘ λᴵ⇐)))
+                (subᴵ (subᴵ w 𝒫.∘ λᴵ⇐) 𝒫.∘ μ)
+relay-slide {Y} {B} {F} w μ = begin
+  a⇒ᴵ 𝒫.∘ (T₁ᴵ Y μ 𝒫.∘ (subᴵ w 𝒫.∘ λᴵ⇐))
+    ≈⟨ 𝒫.∘-resp-≈ (a⇒-α⇐ {Y} {B} {F})
+         (𝒫.∘-resp-≈ (T₁-⊗₁ {Y} μ) (𝒫.∘-resp-≈ˡ (sub-⊗₁ {unitᴵ} {Y} {B} w))) ⟩
+  α⇐ᴳ 𝒫.∘ (𝔾._⊗₁_ (𝒫.id {Y}) μ 𝒫.∘ (𝔾._⊗₁_ w (𝒫.id {B}) 𝒫.∘ λᴵ⇐))
+    ≈⟨ refl⟩∘⟨ 𝒫.sym-assoc ⟩
+  α⇐ᴳ 𝒫.∘ ((𝔾._⊗₁_ (𝒫.id {Y}) μ 𝒫.∘ 𝔾._⊗₁_ w (𝒫.id {B})) 𝒫.∘ λᴵ⇐)
+    ≈⟨ refl⟩∘⟨ (⟺ serialize₂₁ ⟩∘⟨refl) ⟩
+  α⇐ᴳ 𝒫.∘ (𝔾._⊗₁_ w μ 𝒫.∘ λᴵ⇐)
+    ≈⟨ refl⟩∘⟨ (serialize₁₂ ⟩∘⟨refl) ⟩
+  α⇐ᴳ 𝒫.∘ ((𝔾._⊗₁_ w (𝒫.id {B ⊗ᴵ F}) 𝒫.∘ 𝔾._⊗₁_ (𝒫.id {unitᴵ}) μ) 𝒫.∘ λᴵ⇐)
+    ≈⟨ refl⟩∘⟨ 𝒫.assoc ⟩
+  α⇐ᴳ 𝒫.∘ (𝔾._⊗₁_ w (𝒫.id {B ⊗ᴵ F}) 𝒫.∘ (𝔾._⊗₁_ (𝒫.id {unitᴵ}) μ 𝒫.∘ λᴵ⇐))
+    ≈⟨ 𝒫.sym-assoc ⟩
+  (α⇐ᴳ 𝒫.∘ 𝔾._⊗₁_ w (𝒫.id {B ⊗ᴵ F})) 𝒫.∘ (𝔾._⊗₁_ (𝒫.id {unitᴵ}) μ 𝒫.∘ λᴵ⇐)
+    ≈⟨ (refl⟩∘⟨ (refl⟩⊗⟨ ⟺ 𝔾.⊗.identity)) ⟩∘⟨refl ⟩
+  (α⇐ᴳ 𝒫.∘ 𝔾._⊗₁_ w (𝔾._⊗₁_ (𝒫.id {B}) (𝒫.id {F})))
+    𝒫.∘ (𝔾._⊗₁_ (𝒫.id {unitᴵ}) μ 𝒫.∘ λᴵ⇐)
+    ≈⟨ 𝔾.assoc-commute-to ⟩∘⟨refl ⟩
+  (𝔾._⊗₁_ (𝔾._⊗₁_ w (𝒫.id {B})) (𝒫.id {F}) 𝒫.∘ α⇐ᴳ)
+    𝒫.∘ (𝔾._⊗₁_ (𝒫.id {unitᴵ}) μ 𝒫.∘ λᴵ⇐)
+    ≈⟨ 𝒫.assoc ⟩
+  𝔾._⊗₁_ (𝔾._⊗₁_ w (𝒫.id {B})) (𝒫.id {F})
+    𝒫.∘ (α⇐ᴳ 𝒫.∘ (𝔾._⊗₁_ (𝒫.id {unitᴵ}) μ 𝒫.∘ λᴵ⇐))
+    ≈˘⟨ refl⟩∘⟨ (refl⟩∘⟨ (λ-nat μ ○ᴹ 𝒫.∘-resp-≈ˡ (T₁-⊗₁ {unitᴵ} μ))) ⟩
+  𝔾._⊗₁_ (𝔾._⊗₁_ w (𝒫.id {B})) (𝒫.id {F}) 𝒫.∘ (α⇐ᴳ 𝒫.∘ (λᴵ⇐ 𝒫.∘ μ))
+    ≈⟨ refl⟩∘⟨ 𝒫.sym-assoc ⟩
+  𝔾._⊗₁_ (𝔾._⊗₁_ w (𝒫.id {B})) (𝒫.id {F}) 𝒫.∘ ((α⇐ᴳ 𝒫.∘ λᴵ⇐) 𝒫.∘ μ)
+    ≈˘⟨ refl⟩∘⟨ ((a⇒-α⇐ {unitᴵ} {B} {F} ⟩∘⟨refl) ⟩∘⟨refl) ⟩
+  𝔾._⊗₁_ (𝔾._⊗₁_ w (𝒫.id {B})) (𝒫.id {F}) 𝒫.∘ ((a⇒ᴵ 𝒫.∘ λᴵ⇐) 𝒫.∘ μ)
+    ≈⟨ refl⟩∘⟨ (λ-tri ⟩∘⟨refl) ⟩
+  𝔾._⊗₁_ (𝔾._⊗₁_ w (𝒫.id {B})) (𝒫.id {F}) 𝒫.∘ (subᴵ λᴵ⇐ 𝒫.∘ μ)
+    ≈⟨ refl⟩∘⟨ (sub-⊗₁ {B} {unitᴵ ⊗ᴵ B} {F} λᴵ⇐ ⟩∘⟨refl) ⟩
+  𝔾._⊗₁_ (𝔾._⊗₁_ w (𝒫.id {B})) (𝒫.id {F}) 𝒫.∘ (𝔾._⊗₁_ λᴵ⇐ (𝒫.id {F}) 𝒫.∘ μ)
+    ≈⟨ 𝒫.sym-assoc ⟩
+  (𝔾._⊗₁_ (𝔾._⊗₁_ w (𝒫.id {B})) (𝒫.id {F}) 𝒫.∘ 𝔾._⊗₁_ λᴵ⇐ (𝒫.id {F})) 𝒫.∘ μ
+    ≈˘⟨ 𝔾.⊗.homomorphism ⟩∘⟨refl ⟩
+  𝔾._⊗₁_ (𝔾._⊗₁_ w (𝒫.id {B}) 𝒫.∘ λᴵ⇐) (𝒫.id {F} 𝒫.∘ 𝒫.id {F}) 𝒫.∘ μ
+    ≈⟨ ((⟺ (sub-⊗₁ {unitᴵ} {Y} {B} w) ⟩∘⟨refl) ⟩⊗⟨ 𝒫.identity²) ⟩∘⟨refl ⟩
+  𝔾._⊗₁_ (subᴵ w 𝒫.∘ λᴵ⇐) (𝒫.id {F}) 𝒫.∘ μ
+    ≈˘⟨ sub-⊗₁ {B} {Y ⊗ᴵ B} {F} (subᴵ w 𝒫.∘ λᴵ⇐) ⟩∘⟨refl ⟩
+  subᴵ (subᴵ w 𝒫.∘ λᴵ⇐) 𝒫.∘ μ ∎
 
 ------------------------------------------------------------------------
 -- The slide

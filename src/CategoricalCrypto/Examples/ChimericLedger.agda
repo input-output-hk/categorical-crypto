@@ -119,6 +119,14 @@ module Ledger (ℓ : ℕ) where
   checkWdrls a ((x , v) ∷ ws) =
     if v ≤ᵇ acctOf a x then checkWdrls (subOne x v a) ws else nothing
 
+  -- Nothing credits an account: every clause above either fails or recurses
+  -- under `subOne`, which adds no key and raises no balance — so an empty
+  -- table stays empty and every accepted withdrawal at one is zero.
+  checkWdrls-[] : (ws : List (Addr × ℕ)) {a′ : Accts}
+                → checkWdrls [] ws ≡ just a′ → a′ ≡ []
+  checkWdrls-[] []                refl = refl
+  checkWdrls-[] ((_ , zero) ∷ ws) eq   = checkWdrls-[] ws eq
+
   consumes : Variant → List TxIn → Bool
   consumes chimeric       _   = true
   consumes inputConsuming ins = not (null ins)

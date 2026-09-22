@@ -111,17 +111,11 @@ accepted : Answer → Bool
 accepted (ok b)      = b
 accepted (totalIs _) = false
 
--- Nothing credits an account.  `applyTx`'s ONLY effect on the account table is
--- `checkWdrls a wds`, and every clause of that either fails or recurses under
--- `subOne`, which adds no key and raises no balance — so an empty table stays
--- empty and every accepted withdrawal at one is zero.
-checkWdrls-[] : (ws : List (Addr × ℕ)) {a′ : Accts} → checkWdrls [] ws ≡ just a′ → a′ ≡ []
-checkWdrls-[] []                refl = refl
-checkWdrls-[] ((_ , zero) ∷ ws) eq   = checkWdrls-[] ws eq
-
--- …read at the ledger's own activation, at either variant.  `genesis` has an
--- empty account table, so no run from it reaches a funded account: that is the
--- reachability gap `ChimericLedger.ReplayFamily` reports.
+-- `applyTx`'s ONLY effect on the account table is `checkWdrls a wds`, so
+-- `Ledger.checkWdrls-[]` read at the ledger's own activation, at either
+-- variant.  `genesis` has an empty account table, so no run from it reaches a
+-- funded account: that is the reachability gap `ChimericLedger.ReplayFamily`
+-- reports.
 ledger-keeps-accts-[] : (vr : Variant) (s : LState) (u : Utxo) (q : Query)
   → AllLeaves (λ sa → proj₂ (proj₁ sa) ≡ []) (step (ledger vr s) (u , []) q)
 ledger-keeps-accts-[] _  _ _ audit = refl

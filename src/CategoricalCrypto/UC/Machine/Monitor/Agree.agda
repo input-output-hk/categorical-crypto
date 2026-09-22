@@ -44,6 +44,7 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Pointwise
 open import CategoricalCrypto.Protocol.Machine using (runᴹ)
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
@@ -57,7 +58,6 @@ open import CategoricalCrypto.UC.Seam
 open import CategoricalCrypto.UC.Seam.Adequacy using (adequacy)
 open import CategoricalCrypto.UC.Seam.Plug
 
-import Categories.Category.Kleisli.Discrete.Pure as KDP
 import CategoricalCrypto.Machines.Collapse as Col
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
@@ -67,43 +67,7 @@ module CategoricalCrypto.UC.Machine.Monitor.Agree where
 open Core (𝒱ₚ 0ℓ)
 open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 
-private
-  module 𝒫 = Category 𝒫ᴵ
-  module KP = KDP (Dₚ-DiscreteMonad {0ℓ})
-
-------------------------------------------------------------------------
--- A simulation out of a state function
-
--- `Machines.Pointwise.⊗-pureˡ` names the shape every `_≲_`'s `θ ⊗₁ id` takes
--- at a point; this packages it, so a consumer supplies only the three
--- pointwise laws.  The two `⊛` reductions beside it are `Plug.Plugged`'s
--- `point-red` at an arbitrary pair of states.
-simFn : {S T : State} {X Y : Set}
-        {k : obj S × X → Dₚ (obj S × Y)} {k′ : obj T × X → Dₚ (obj T × Y)}
-        (h : obj S → obj T)
-      → ((s : obj S) → (returnₚ (h s) >>=ₚ discard T) ≈ₚ discard S s)
-      → ((x : ⊤ᵛ) → (point S x >>=ₚ λ s → returnₚ (h s)) ≈ₚ point T x)
-      → ((p : obj S × X) → (k p >>=ₚ λ r → returnₚ (h (proj₁ r) , proj₂ r))
-                           ≈ₚ k′ (h (proj₁ p) , proj₂ p))
-      → mk S k ≲ mk T k′
-simFn {k′ = k′} h hd hp hs = sim (Col.K.pureᵏ h) (KP.structural h) hd hp law
-  where
-  law : (p : _) → _
-  law p = bindᶠ (Col.⊗-pureˡ h) ⟨≈⟩ hs p
-    ⟨≈⟩ ≈sym (bindˣ (Col.⊗-pureˡ h p) ⟨≈⟩ >>=ₚ-identityˡ (h (proj₁ p) , proj₂ p) k′)
-
-point-⊛ : (S T : State) (x : ⊤ᵛ)
-        → point (S ⊛ T) x ≈ₚ (point S ttᵛ >>=ₚ λ a → point T x >>=ₚ λ b → returnₚ (a , b))
-point-⊛ S T x = >>=ₚ-identityˡ (ttᵛ , x) _
-
-discard-⊛ : (S T : State)
-          → ((s : obj S) → discard S s ≈ₚ returnₚ ttᵛ)
-          → ((t : obj T) → discard T t ≈ₚ returnₚ ttᵛ)
-          → (z : obj (S ⊛ T)) → discard (S ⊛ T) z ≈ₚ returnₚ ttᵛ
-discard-⊛ S T hs ht (a , b) =
-  bindˣ ( bindˣ (hs a) ⟨≈⟩ >>=ₚ-identityˡ ttᵛ _
-     ⟨≈⟩ bindˣ (ht b) ⟨≈⟩ >>=ₚ-identityˡ ttᵛ _)
-  ⟨≈⟩ >>=ₚ-identityˡ (ttᵛ , ttᵛ) _
+private module 𝒫 = Category 𝒫ᴵ
 
 ------------------------------------------------------------------------
 -- A strategy embedded as a test
