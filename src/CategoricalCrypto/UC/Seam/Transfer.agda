@@ -92,9 +92,8 @@ nnQ = indᵇ-nn b
 -- A `returnₚ` node's two branches are the same, so the average is that
 -- branch; spelled with one subject because `_*_` is not injective and a
 -- second `_` would be left for unification.
-private
-  dirac-node : (x : ℚ) → 1ℚ ℚ.* x ℚ.+ 0ℚ ℚ.* x ≡ x
-  dirac-node x = node-dirac x x
+dirac-node : (x : ℚ) → 1ℚ ℚ.* x ℚ.+ 0ℚ ℚ.* x ≡ x
+dirac-node x = node-dirac x x
 
 ------------------------------------------------------------------------
 -- The refined loop
