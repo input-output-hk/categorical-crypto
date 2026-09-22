@@ -74,9 +74,7 @@ module _ (s₀ : LState) where
   reportsLoss audit      a = lostValue a
 
   auditWatchFrom : Bool → Strat Query Answer → Strat Query Answer
-  auditWatchFrom acc (out _)    = out acc
-  auditWatchFrom acc (ask q k)  = ask q λ a → auditWatchFrom (acc ∨ reportsLoss q a) (k a)
-  auditWatchFrom acc (coin μ k) = coin μ λ b → auditWatchFrom acc (k b)
+  auditWatchFrom = watchFrom reportsLoss
 
   auditWatch : Strat Query Answer → Strat Query Answer
   auditWatch = auditWatchFrom false
@@ -84,10 +82,7 @@ module _ (s₀ : LState) where
   -- It asks exactly what `d` asks, so it costs the budget nothing.
   asks≤-auditWatch : (n : ℕ) (acc : Bool) (d : Strat Query Answer)
                    → asks≤ n d → asks≤ n (auditWatchFrom acc d)
-  asks≤-auditWatch _       _   (out _)    _ = tt
-  asks≤-auditWatch zero    _   (ask _ _)  a = a
-  asks≤-auditWatch (suc n) acc (ask q k)  a = λ r → asks≤-auditWatch n _ (k r) (a r)
-  asks≤-auditWatch n       acc (coin _ k) a = λ b → asks≤-auditWatch n acc (k b) (a b)
+  asks≤-auditWatch _ = asks≤-watch reportsLoss auditWatchFrom (watchFrom-IsWatch reportsLoss)
 
 TrajectoryLossBounded AuditLossBounded : Variant → LState → (ℕ → ℚ) → Set
 TrajectoryLossBounded vr s₀ = BoundedHit (Sys vr s₀) (badTotal s₀)

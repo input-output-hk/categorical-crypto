@@ -51,18 +51,74 @@ private
   module 𝒫 = Category 𝒫ᴵ
 
 ------------------------------------------------------------------------
--- The tick, at an arbitrary traced loop
+-- The loop, and the tick that enters a closed one
+
+-- One external activation of a ⊕-traced machine: the letter enters `k` on the
+-- external summand and whatever comes back either leaves or re-enters the
+-- loop.  Nothing here is about the closed shape, so a consumer that has to read
+-- an OPEN composite's step off — `UC.Machine.Monitor.Agree`'s two collapses —
+-- uses it at its own interfaces.
+module Loop (A B X : Set) (S : MC.State)
+            (k : MC.obj S × (A ⊎ X) → Dₚ (MC.obj S × (B ⊎ X)))
+            where
+
+  tracedᴹ : MC.Machine A B
+  tracedᴹ = MT.traceᴹ A B X (MC.mk S k)
+
+  -- One pass of the loop: `k` entered on the loop summand.
+  body : Body (MC.obj S) X B
+  body p = k (proj₁ p , inj₂ (proj₂ p))
+
+  private
+    solveᵗ : MC.obj S × (B ⊎ X) → Dₚ (MC.obj S × B)
+    solveᵗ = MT.solve S A B X k
+
+    bodyᵗ : Body (MC.obj S) X B
+    bodyᵗ = MT.loopBody S A B X k
+
+    -- The junctions the Kleisli tensor spends on a pure relabelling.
+    loop-red : (p : MC.obj S × X) → bodyᵗ p ≈ₚ body p
+    loop-red (st , x) = bindˣ (>>=ₚ-identityˡ st _)
+                  ⟨≈⟩ bindˣ (>>=ₚ-identityˡ (inj₂ x) _)
+                  ⟨≈⟩ >>=ₚ-identityˡ (st , inj₂ x) k
+
+    -- The distributor's case split IS the loop's continuation.
+    solve-red : (r : MC.obj S × (B ⊎ X)) → solveᵗ r ≈ₚ contᵢ bodyᵗ r
+    solve-red (st , inj₁ o) = >>=ₚ-identityˡ (inj₁ (st , o)) _
+    solve-red (st , inj₂ x) = >>=ₚ-identityˡ (inj₂ (st , x)) _
+
+  solve-cont : (r : MC.obj S × (B ⊎ X)) → solveᵗ r ≈ₚ contᵢ body r
+  solve-cont (st , inj₁ o) = solve-red (st , inj₁ o)
+  solve-cont (st , inj₂ x) =
+    solve-red (st , inj₂ x) ⟨≈⟩ iterₚ-cong bodyᵗ body loop-red (st , x)
+
+  step-red : (st : MC.obj S) (y : A)
+           → MC.step tracedᴹ (st , y) ≈ₚ (k (st , inj₁ y) >>=ₚ contᵢ body)
+  step-red st y = bindˣ (bindˣ (>>=ₚ-identityˡ st _)
+                    ⟨≈⟩ bindˣ (>>=ₚ-identityˡ (inj₁ y) _)
+                    ⟨≈⟩ >>=ₚ-identityˡ (st , inj₁ y) k)
+            ⟨≈⟩ bindᶠ solve-cont
+
+  -- The three ways a consumer unrolls the solved loop: one more pass, one
+  -- POINTED pass, and a pass that dies.
+  loop-fix : (st : MC.obj S) (x : X)
+           → iterₚ body (st , x) ≈ₚ (k (st , inj₂ x) >>=ₚ contᵢ body)
+  loop-fix st x = iterₚ-fix body (st , x)
+
+  loop-pass : (st : MC.obj S) (x : X) (st′ : MC.obj S) (o : B ⊎ X)
+            → k (st , inj₂ x) ≈ₚ returnₚ (st′ , o)
+            → iterₚ body (st , x) ≈ₚ contᵢ body (st′ , o)
+  loop-pass st x st′ o eq =
+    loop-fix st x ⟨≈⟩ bindˣ eq ⟨≈⟩ >>=ₚ-identityˡ (st′ , o) (contᵢ body)
+
+  loop-bot : (st : MC.obj S) (x : X) → k (st , inj₂ x) ≈ₚ botₚ → iterₚ body (st , x) ≈ₚ botₚ
+  loop-bot st x eq = loop-fix st x ⟨≈⟩ bindˣ eq ⟨≈⟩ bot-bind-≈ₚ (contᵢ body)
 
 module Tick (X : Set) (S : MC.State)
             (k : MC.obj S × ((⊥ ⊎ ⊤) ⊎ X) → Dₚ (MC.obj S × ((⊥ ⊎ Bool) ⊎ X)))
             where
 
-  tracedᴹ : Proc unitᴵ Ωᴵ
-  tracedᴹ = MT.traceᴹ (⊥ ⊎ ⊤) (⊥ ⊎ Bool) X (MC.mk S k)
-
-  -- One pass of the loop: `k` entered on the loop summand.
-  body : Body (MC.obj S) X (⊥ ⊎ Bool)
-  body p = k (proj₁ p , inj₂ (proj₂ p))
+  open Loop (⊥ ⊎ ⊤) (⊥ ⊎ Bool) X S k public
 
   verdict : MC.obj S × (⊥ ⊎ Bool) → Dₚ Bool
   verdict (_ , inj₁ e) = ⊥-elim e
@@ -74,40 +130,10 @@ module Tick (X : Set) (S : MC.State)
   cont (st , inj₂ x) = iterₚ body (st , x) >>=ₚ verdict
 
   private
-    solveᵗ : MC.obj S × ((⊥ ⊎ Bool) ⊎ X) → Dₚ (MC.obj S × (⊥ ⊎ Bool))
-    solveᵗ = MT.solve S (⊥ ⊎ ⊤) (⊥ ⊎ Bool) X k
-
-    bodyᵗ : Body (MC.obj S) X (⊥ ⊎ Bool)
-    bodyᵗ = MT.loopBody S (⊥ ⊎ ⊤) (⊥ ⊎ Bool) X k
-
-    -- The junctions the Kleisli tensor spends on a pure relabelling.
-    loop-red : (p : MC.obj S × X) → bodyᵗ p ≈ₚ body p
-    loop-red (st , x) = bindˣ (>>=ₚ-identityˡ st _)
-                  ⟨≈⟩ bindˣ (>>=ₚ-identityˡ (inj₂ x) _)
-                  ⟨≈⟩ >>=ₚ-identityˡ (st , inj₂ x) k
-
     resume-red : (p : MC.obj S × (⊥ ⊎ Bool))
                → resumeᴹ tracedᴹ (λ _ r → returnₚ r) p ≈ₚ verdict p
     resume-red (_ , inj₁ e) = ⊥-elim e
     resume-red (_ , inj₂ _) = ≈refl
-
-    -- The distributor's case split IS the loop's continuation.
-    solve-red : (r : MC.obj S × ((⊥ ⊎ Bool) ⊎ X)) → solveᵗ r ≈ₚ contᵢ bodyᵗ r
-    solve-red (st , inj₁ o) = >>=ₚ-identityˡ (inj₁ (st , o)) _
-    solve-red (st , inj₂ x) = >>=ₚ-identityˡ (inj₂ (st , x)) _
-
-    solve-cont : (r : MC.obj S × ((⊥ ⊎ Bool) ⊎ X)) → (solveᵗ r >>=ₚ verdict) ≈ₚ cont r
-    solve-cont (st , inj₁ o) = bindˣ (solve-red (st , inj₁ o))
-                         ⟨≈⟩ >>=ₚ-identityˡ (st , o) verdict
-    solve-cont (st , inj₂ x) =
-      bindˣ (solve-red (st , inj₂ x) ⟨≈⟩ iterₚ-cong bodyᵗ body loop-red (st , x))
-
-    trace-red : (st : MC.obj S) (y : ⊥ ⊎ ⊤)
-              → MT.traceStep S (⊥ ⊎ ⊤) (⊥ ⊎ Bool) X k (st , y)
-                ≈ₚ (k (st , inj₁ y) >>=ₚ solveᵗ)
-    trace-red st y = bindˣ (bindˣ (>>=ₚ-identityˡ st _)
-                       ⟨≈⟩ bindˣ (>>=ₚ-identityˡ (inj₁ y) _)
-                       ⟨≈⟩ >>=ₚ-identityˡ (st , inj₁ y) k)
 
   -- `contᵢ` of the loop's own body, read as `cont`: what the induction of a
   -- consumer that unrolls the loop resumes into.
@@ -120,9 +146,9 @@ module Tick (X : Set) (S : MC.State)
            → runᴹFrom tracedᴹ st (ask tt out) ≈ₚ (k (st , inj₁ (inj₂ tt)) >>=ₚ cont)
   tick-run st =
       bindᶠ resume-red
-    ⟨≈⟩ bindˣ (trace-red st (inj₂ tt))
-    ⟨≈⟩ >>=ₚ-assoc (k (st , inj₁ (inj₂ tt))) solveᵗ verdict
-    ⟨≈⟩ bindᶠ solve-cont
+    ⟨≈⟩ bindˣ (step-red st (inj₂ tt))
+    ⟨≈⟩ >>=ₚ-assoc (k (st , inj₁ (inj₂ tt))) (contᵢ body) verdict
+    ⟨≈⟩ bindᶠ cont-red
 
   observe : ⟦ tracedᴹ ⟧ᴼ ≈ₚ (MC.point S ttᵛ >>=ₚ λ st → k (st , inj₁ (inj₂ tt)) >>=ₚ cont)
   observe = bindᶠ tick-run
