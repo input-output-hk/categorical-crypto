@@ -96,17 +96,18 @@ module _ (Y B : Iface) (report : Neg B → Pos B → Bool) {c : ℕ}
   open Read (Y ⊗ᴵ B) N
   open QBᵢ qN
 
-  -- The compiled test as one product-state machine: `Compose.Step`'s reading
-  -- of the composite, at the two factors the collapses above name.
   Nᶜ : Proc (Y ⊗ᴵ B) Ωᴵ
   Nᶜ = CStep.Nᶜ (Y ⊗ᴵ B) ((Y ⊗ᴵ B) ⊗ᴵ Flagᴵ) Ωᴵ readᴹ (monᵀ Y B report)
 
   private
     module CP = CStep.CP (Y ⊗ᴵ B) ((Y ⊗ᴵ B) ⊗ᴵ Flagᴵ) Ωᴵ readᴹ (monᵀ Y B report)
 
-    open CP using (resumeF; resumeG)
-    open CP.Unfolding (CStep.unfoldᶜ (Y ⊗ᴵ B) ((Y ⊗ᴵ B) ⊗ᴵ Flagᴵ) Ωᴵ readᴹ (monᵀ Y B report))
+    open CP
+    open Unfolding (CStep.unfoldᶜ (Y ⊗ᴵ B) ((Y ⊗ᴵ B) ⊗ᴵ Flagᴵ) Ωᴵ readᴹ (monᵀ Y B report))
 
+    -- The crux: the flag round trip never leaves the composite, so every
+    -- downward output of the composite is one of `N`'s and the composite's
+    -- potential is `N`'s on the nose.
     Φᶜ : (FlagSt × St N) × MonSt B → ℕ
     Φᶜ ((_ , se) , _) = Φ se
 
@@ -114,30 +115,31 @@ module _ (Y B : Iface) (report : Neg B → Pos B → Bool) {c : ℕ}
     recordQ m         (inj₁ _) = m
     recordQ (acc , _) (inj₂ q) = acc , just q
 
+    -- Where one emission of `N` goes: a query down through the monitor, which
+    -- records it against the answer to come; or the verdict, which the flag
+    -- reader discards and replaces by the accumulator.
     outE : (fs : FlagSt) (m : MonSt B) {r : ℕ}
          → Ans Φ (Neg Y ⊎ Neg B) Bool r → Dₚ (Ans Φᶜ (Neg Y ⊎ Neg B) Bool r)
-    outE fs    m         (inj₁ ((se , lt) , q)) =
-      returnₚ (inj₁ ((((fs , se) , recordQ m q) , lt) , q))
-    outE waitE (acc , p) (inj₂ ((se , le) , _)) =
-      returnₚ (inj₂ ((((idle , se) , (acc , p)) , le) , acc))
-    outE idle  m         (inj₂ _) = botₚ
-    outE waitF m         (inj₂ _) = botₚ
+    outE fs    m         (inj₁ ((se , lt) , q)) = returnₚ (inj₁ ((((fs , se) , recordQ m q) , lt) , q))
+    outE waitE (acc , p) (inj₂ ((se , le) , _)) = returnₚ (inj₂ ((((idle , se) , (acc , p)) , le) , acc))
+    outE idle  _         (inj₂ _)               = botₚ
+    outE waitF _         (inj₂ _)               = botₚ
 
     cohE : (fs : FlagSt) (m : MonSt B) {r : ℕ} (y : Ans Φ (Neg Y ⊎ Neg B) Bool r)
          → mapₚ forget (outE fs m y) ≈ₚ (efOut fs (forget y) >>=ₚ resumeG m)
-    cohE fs m (inj₁ ((se , lt) , inj₁ y)) =
+    cohE fs m (inj₁ ((se , _) , inj₁ y)) =
           >>=ₚ-identityˡ _ _
       ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ _ _
             ⟨≈⟩ solve-B⁻ (fs , se) m (inj₁ (inj₁ y))
             ⟨≈⟩ >>=ₚ-identityˡ _ _
             ⟨≈⟩ solve-out _ _)
-    cohE fs (acc , p) (inj₁ ((se , lt) , inj₂ q)) =
+    cohE fs (acc , p) (inj₁ ((se , _) , inj₂ q)) =
           >>=ₚ-identityˡ _ _
       ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ _ _
             ⟨≈⟩ solve-B⁻ (fs , se) (acc , p) (inj₁ (inj₂ q))
             ⟨≈⟩ >>=ₚ-identityˡ _ _
             ⟨≈⟩ solve-out _ _)
-    cohE waitE (acc , p) (inj₂ ((se , le) , v)) =
+    cohE waitE (acc , p) (inj₂ ((se , _) , _)) =
           >>=ₚ-identityˡ _ _
       ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ _ _
             ⟨≈⟩ solve-B⁻ (waitF , se) (acc , p) (inj₂ tt)
@@ -145,8 +147,8 @@ module _ (Y B : Iface) (report : Neg B → Pos B → Bool) {c : ℕ}
             ⟨≈⟩ solve-B⁺ (waitF , se) (acc , p) (inj₂ acc)
             ⟨≈⟩ >>=ₚ-identityˡ _ _
             ⟨≈⟩ solve-out _ _)
-    cohE idle  m (inj₂ _) = bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (bot-bind-≈ₚ _)
-    cohE waitF m (inj₂ _) = bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (bot-bind-≈ₚ _)
+    cohE idle  _ (inj₂ _) = bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (bot-bind-≈ₚ _)
+    cohE waitF _ (inj₂ _) = bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (bot-bind-≈ₚ _)
 
     pump : (fs : FlagSt) (m : MonSt B) {r : ℕ}
            (d : Dₚ (Ans Φ (Neg Y ⊎ Neg B) Bool r))
@@ -164,13 +166,13 @@ module _ (Y B : Iface) (report : Neg B → Pos B → Bool) {c : ℕ}
     onLᶜ ((fs , se) , m)               (inj₁ y) = onLᵍ se (inj₁ y) >>=ₚ outE fs m
     onLᶜ ((fs , se) , (acc , just q))  (inj₂ p) =
       onLᵍ se (inj₂ p) >>=ₚ outE fs (acc ∨ report q p , nothing)
-    onLᶜ ((fs , se) , (acc , nothing)) (inj₂ p) = botₚ
+    onLᶜ ((_  , _ ) , (_   , nothing)) (inj₂ _) = botₚ
 
     onRᶜ : (s : (FlagSt × St N) × MonSt B) (n : ⊤)
          → Dₚ (Ans Φᶜ (Neg Y ⊎ Neg B) Bool (Φᶜ s ℕ.+ c))
     onRᶜ ((idle  , se) , m) _ = onRᵍ se tt >>=ₚ outE waitE m
-    onRᶜ ((waitE , se) , m) _ = botₚ
-    onRᶜ ((waitF , se) , m) _ = botₚ
+    onRᶜ ((waitE , _ ) , _) _ = botₚ
+    onRᶜ ((waitF , _ ) , _) _ = botₚ
 
     cohLᶜ : (s : (FlagSt × St N) × MonSt B) (a : Pos Y ⊎ Pos B)
           → mapₚ forget (onLᶜ s a) ≈ₚ step Nᶜ (s , inj₁ a)
