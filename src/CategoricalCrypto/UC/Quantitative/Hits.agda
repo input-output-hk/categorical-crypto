@@ -9,28 +9,26 @@
 -- compiled readout, and `hits-carry` is `carry-boundedBy` at `κμ` with the
 -- closure recertified.
 --
--- Two things are NOT established: semantic agreement of the compiled
--- experiment with the strategy-level watch, and the event-sensitive
--- contextual lift.  `EventDominated` is the second, stated and consumed and
+-- Semantic agreement of the compiled experiment with the strategy-level watch
+-- is `UC.Machine.Monitor.Agree.agree`.  What is NOT established is the
+-- event-sensitive contextual lift: `EventDominated` is stated and consumed and
 -- nowhere inhabited, and `ledger-hits` is the ledger's single-level bound
--- modulo exactly it (`docs/event-bounds-in-setup.md`, work packages A and C).
+-- modulo exactly it (`docs/event-bounds-in-setup.md`, work package C).
 
 open import Categories.Category using (Category)
 
-open import Data.Bool.Base using (Bool; _∨_; false; true)
+open import Data.Bool.Base using (Bool; false; true)
 open import Data.List.Base using (List)
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly using (Poly; poly-*; poly-const; poly-⊔)
 open import Data.Nat.Properties
   using ( *-monoʳ-≤; *-monoˡ-≤; ⊔-monoˡ-≤; m≤n+m; n≤0⇒n≡0; ≤-reflexive; ≤-trans )
-open import Data.Product.Base using (_×_; _,_)
+open import Data.Product.Base using (_,_)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Rational.Properties
   using (+-mono-≤) renaming (≤-reflexive to ≤-reflexiveℚ; ≤-trans to ≤-transℚ)
-open import Data.Unit.Base using (tt)
-open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl; subst; sym)
+open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl)
 
-open import ProbabilisticLogic.Distribution.RationalDist using (Dist-ℚ)
 open import ProbabilisticLogic.Dp using (Dₚ)
 
 open import CategoricalCrypto.Examples.ChimericLedger using (Variant; module Ledger)
@@ -39,7 +37,6 @@ open import CategoricalCrypto.Protocol using (Protocol)
 open import CategoricalCrypto.Protocol.Machine using (morphism; runᴹ)
 open import CategoricalCrypto.Protocol.Machine.Agree using (prAgree)
 open import CategoricalCrypto.Protocol.Observe using (Bounded; Pr)
-open import CategoricalCrypto.Strategy using (Strat; asks≤; asks≤-mono; ask; coin; out)
 open import CategoricalCrypto.UC.Approximate
   using ( GradedBound-+[_]; GradedBound-reindex; Negligible; Negligible-+
         ; NegligibleBound )
@@ -54,9 +51,10 @@ import CategoricalCrypto.Examples.ChimericLedger.System as System
 
 module CategoricalCrypto.UC.Quantitative.Hits where
 
--- TEMPORARY SHIM: the spike's blocks have landed in these three modules, and
+-- TEMPORARY SHIM: the spike's blocks have landed in these four modules, and
 -- the re-export keeps its importers working until they are repointed.
 open import ProbabilisticLogic.Dp.Advantage public
+open import CategoricalCrypto.Strategy public
 open import CategoricalCrypto.UC.Machine.Grading public using (qb-T₁ᴵ; qb-subᴵ)
 open import CategoricalCrypto.UC.Machine.Monitor public
 open import CategoricalCrypto.UC.Model.EventBounds public
@@ -211,47 +209,9 @@ NegligibleBound-carry cs Pcs ε δ nε nδ =
 ------------------------------------------------------------------------
 -- The strategy-level watch the monitor is meant to implement
 
--- `Examples.ChimericLedger.Observable.auditWatchFrom` with its report a
--- parameter; the ledger's watch is this at `reportsLoss s₀`, on the nose.
-watchFrom : {B : Iface} → (Neg B → Pos B → Bool) → Bool
-          → Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)
-watchFrom report acc (out _)    = out acc
-watchFrom report acc (ask q k)  = ask q λ a → watchFrom report (acc ∨ report q a) (k a)
-watchFrom report acc (coin μ k) = coin μ λ b → watchFrom report acc (k b)
-
 watchOf : {B : Iface} → (Neg B → Pos B → Bool)
         → Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)
 watchOf report = watchFrom report false
-
--- What ties a strategy transformer to a monitor's report.  Stated as three
--- equations rather than as `watchFrom` itself: a transformer defined
--- elsewhere — `Examples.ChimericLedger.Observable.auditWatchFrom` — satisfies
--- them by `refl`, where identifying the two definitions would want funext.
-IsWatch : {B : Iface} → (Neg B → Pos B → Bool)
-        → (Bool → Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) → Set
-IsWatch {B} report w =
-    ((acc b : Bool) → w acc (out b) ≡ out acc)
-  × ( ((acc : Bool) (q : Neg B) (k : Pos B → Strat (Neg B) (Pos B))
-       → w acc (ask q k) ≡ ask q λ a → w (acc ∨ report q a) (k a))
-    × ((acc : Bool) (ν : Dist-ℚ Bool) (k : Bool → Strat (Neg B) (Pos B))
-       → w acc (coin ν k) ≡ coin ν λ b → w acc (k b)))
-
-watchFrom-IsWatch : {B : Iface} (report : Neg B → Pos B → Bool)
-                  → IsWatch report (watchFrom report)
-watchFrom-IsWatch _ = (λ _ _ → refl) , (λ _ _ _ → refl) , (λ _ _ _ → refl)
-
--- A watch buys no queries: it plays inside the allowance it is handed.
-asks≤-watch : {B : Iface} (report : Neg B → Pos B → Bool)
-              (w : Bool → Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B))
-            → IsWatch report w → {n : ℕ} (acc : Bool) (d : Strat (Neg B) (Pos B))
-            → asks≤ n d → asks≤ n (w acc d)
-asks≤-watch report w iw@(eo , _ , _) {n} acc (out b) _ =
-  subst (asks≤ n) (sym (eo acc b)) tt
-asks≤-watch report w iw@(_ , ea , _) {ℕ.suc n} acc (ask q k) a =
-  subst (asks≤ (ℕ.suc n)) (sym (ea acc q k))
-        λ r → asks≤-watch report w iw _ (k r) (a r)
-asks≤-watch report w iw@(_ , _ , ec) {n} acc (coin ν k) a =
-  subst (asks≤ n) (sym (ec acc ν k)) λ b → asks≤-watch report w iw acc (k b) (a b)
 
 -- Layer 1's verdict probability bounds EVERY finite approximant of the machine
 -- image's run: `prAgree` reads it off past one budget and `Pr≤` is monotone.

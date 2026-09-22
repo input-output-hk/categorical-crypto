@@ -282,6 +282,14 @@ T₁-resp-≈ {Y} {A} {B} {f} {g} e =
        {(𝒫.id {Y} , f)} {(𝒫.id {Y} , g)} (𝔾.Equiv.refl {x = 𝒫.id {Y}} , e)
   ○ᴹ ⟺ᴹ (T₁-⊗₁ {Y} {A} {B} g)
 
+sub-resp-≈ : {X Y A : Iface} {s t : Proc X Y} → 𝒫._≈_ {X} {Y} s t
+           → 𝒫._≈_ {X ⊗ᴵ A} {Y ⊗ᴵ A} (subᴵ s {A}) (subᴵ t {A})
+sub-resp-≈ {X} {Y} {A} {s} {t} e =
+     sub-⊗₁ {X} {Y} {A} s
+  ○ᴹ 𝔾.⊗.F-resp-≈ {(⟦ X ⟧ᴵ , ⟦ A ⟧ᴵ)} {(⟦ Y ⟧ᴵ , ⟦ A ⟧ᴵ)}
+       {(s , 𝒫.id {A})} {(t , 𝒫.id {A})} (e , 𝔾.Equiv.refl {x = 𝒫.id {A}})
+  ○ᴹ ⟺ᴹ (sub-⊗₁ {X} {Y} {A} t)
+
 T₁-∘ : {Y A B C : Iface} (g : Proc B C) (f : Proc A B)
      → 𝒫._≈_ {Y ⊗ᴵ A} {Y ⊗ᴵ C} (T₁ᴵ Y (g 𝒫.∘ f)) (T₁ᴵ Y g 𝒫.∘ T₁ᴵ Y f)
 T₁-∘ {Y} {A} {B} {C} g f =

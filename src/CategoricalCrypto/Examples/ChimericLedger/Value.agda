@@ -5,7 +5,9 @@
 --
 -- `applyTx-total-fresh` is the ledger side of the birthday bound: no value is
 -- destroyed UNLESS the hash keying the new outputs already keys a live UTxO
--- entry, in which case `unionNew` swallows the output.
+-- entry, in which case `unionNew` swallows the output.  `conservation` is the
+-- same fact at the boundary its probabilistic consumer uses, with the hashes
+-- the state's keys may carry named by a list.
 
 open import Class.DecEq
 
@@ -420,3 +422,15 @@ module _ (ser : Tx → List Bool) where
               balance u + acctΣ a
                 ∎
               where open ≡-Reasoning
+
+  -- Conservation of value, deterministically.  The premises are the whole of
+  -- it and neither mentions probability: `hashed` is the well-formedness a
+  -- state needs — every live key's hash is one of `hs` — and `h ∉ hs` is the
+  -- step's noncollision condition.  A rejected transaction leaves the state
+  -- alone, so it is conserved for free; an `h` that already keys a live entry
+  -- (a genesis key included, once `hs` names it) is the ONE case that loses
+  -- value, and it is what the premise excludes.
+  conservation : ∀ vr s tx hs h → (∀ k → k ∈ keysU (proj₁ s) → proj₁ k ∈ hs)
+               → ¬ (h ∈ hs) → total (after vr s tx h) ≡ total s
+  conservation vr s tx hs h hashed h∉ = applyTx-total-fresh vr s tx h λ j →
+    ∉-lookupU (proj₁ s) (h , j) λ mem → h∉ (hashed (h , j) mem)
