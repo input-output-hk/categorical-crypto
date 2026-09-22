@@ -172,6 +172,17 @@
 --                `UC.Machine.Dominated`
 --                                  `dominated`: that interface DISCHARGED, via
 --                                  the two-machine skeleton
+--                `UC.Machine.Monitor`
+--                                  the compiled readout: a process wrapping a
+--                                  test so that what a context observes is an
+--                                  accumulated EVENT, with the certificate
+--                                  `κμ` it costs.  `.Agree` is its semantic
+--                                  agreement — the compiled experiment at an
+--                                  embedded strategy IS layer 1's run of that
+--                                  strategy under the watch, a SPAN through
+--                                  the reachable configurations rather than a
+--                                  simulation either way
+--                                  (`docs/event-bounds-in-setup.md` §2)
 --                `UC.Seam`         where layer 1's runs meet an emulation: a
 --                                  strategy as an environment and `Adequacy`
 --                                  (`UC.Seam.Carry` turns run closeness into
@@ -282,8 +293,13 @@ open import CategoricalCrypto.UC.Graded public
 open import CategoricalCrypto.UC.Seam.Graded public
 open import CategoricalCrypto.UC.Seam.Grounded public
 
--- Closure-only: the negligible tier's acceptance tests (leaf, nothing to open).
+-- Closure-only: the negligible tier's acceptance tests, and the monitor
+-- agreement (leaves, nothing to open).  The event-bound layer's remaining
+-- three modules — `UC.Quantitative.Hits`, `UC.Seam.EventTransfer`,
+-- `UC.Quantitative.EventLift` — are deliberately OUT of the closure while
+-- Stage B is in flight (`docs/event-bounds-in-setup.md`).
 import CategoricalCrypto.UC.Approximate.LocalTests
+import CategoricalCrypto.UC.Machine.Monitor.Agree
 
 -- …and the quantitative tier: parameterized by an error algebra and a
 -- `QUCSetup`, so imported rather than re-exported, `Bridge` reaching the rest.

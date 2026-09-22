@@ -48,13 +48,11 @@ open import CategoricalCrypto.Protocol.Machine using (runᴹ)
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Bridge using (λᴵ⇐; λᴵ⇒)
+open import CategoricalCrypto.UC.Machine.Monitor
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
 open import CategoricalCrypto.UC.Machine.Slide using (λ-nat)
 open import CategoricalCrypto.UC.Machine.Wire
--- A `using` list because `Hits` carries its own copies of `Strategy`'s
--- `watchFrom`, `IsWatch` and `asks≤-watch`.
-open import CategoricalCrypto.UC.Quantitative.Hits
-  using (FlagSt; Flagᴵ; MonSt; compileᴹ; eventRun; flagReadᴹ; idle; monitorᴹ; waitE; waitF)
+open import CategoricalCrypto.UC.Quantitative.Hits using (eventRun)
 open import CategoricalCrypto.UC.Seam
 open import CategoricalCrypto.UC.Seam.Adequacy using (adequacy)
 open import CategoricalCrypto.UC.Seam.Plug

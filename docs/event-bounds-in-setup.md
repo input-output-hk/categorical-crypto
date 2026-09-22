@@ -635,3 +635,64 @@ The contextual acceptance theorem must have neither `EventDominated` nor the
 desired contextual event bound as a remaining premise. Retain the semantic stop
 conditions above: proving a useful conditional lemma is progress, but is not a
 substitute for discharging the bridge.
+
+## Stage B status (2026-09-22)
+
+Corrections from the three landed work packages. Earlier sections stay as
+written; this one overrides them where they differ.
+
+**§2 obligation 4 is DISCHARGED.** `UC.Machine.Monitor.Agree:agree` proves the
+compiled monitored experiment at an embedded strategy equal to layer 1's run of
+that strategy under the watch, as full `_≈ₚ_` and not a one-sided estimate, for
+any transformer satisfying `Strategy:IsWatch` — so verbatim for
+`Examples.ChimericLedger.Observable:auditWatchFrom`. Three pins fix the
+behaviours: `…Agree:monitor-returns`, `…:monitor-queries` and
+`…:monitor-diverges`, the last pinning divergence rather than a raised flag.
+The obligation was never coupled to the §5 lift, and the lift does not use it.
+
+**The agreement is a SPAN, not a simulation in either direction.** The compiled
+five-machine tower is live at configurations no strategy environment matches,
+and `UC.Seam:EnvSt` holds trees no watch produces; `Maybe`-padding one side does
+not repair it. The proof goes through the reachable-configuration machine
+`…Agree:reachᴹ`, with one leg to each side.
+
+**`EventDominated` is down to one premise.** `UC.Quantitative.EventLift` needs
+only `UC.Machine.Dominated:CovCtx` at the COMPILED context. Two obligations
+remain: O1, carrying that invariant through `UC.QueryBound.Compose`; O2, a tight
+`UC.QueryBound:QB` for the compiled test — `qb-∘` multiplies rates,
+`UC.Machine.Monitor:κμ` is `λ c → 2 · (c ⊔ 1)`, and the flag channel is internal
+to the compiled context.
+
+**§B closure accounting.** Recertification with `UC.QueryBound:qb-closed` works
+verbatim: the closure is a closed process, so `EventBounds:carry-boundedBy`
+takes `qb-closed m` for the closure's own certificate. The ledger bound is then
+cappable (`UC.Quantitative.Hits:κμ-cap`) and tight at allowance zero, where
+`…:κμ-cap-zero` gives `κμ 0 = 2` rather than a vacuity.
+
+**§4 at the total event class.** Absorption is the readout-commutation square
+`UC.Model.EventBounds:Absorbsᵣ` — a real obligation on the ideal-side monitor,
+not a corollary — and the machine-side budget identity is
+`UC.Budget:ctxBudget-simCost` (one guard), NOT `UC.Budget:ctxBudget-absorb`.
+
+**Landing sites, corrected.** Monitor-free generics: `UC.Model.EventBounds`.
+Compiled `Hits*` instances (`HitsAt`/`Hitsᶠ`/`Hitsᴺ`, `hits-carry`):
+`UC.Quantitative.Hits`. The compiler: `UC.Machine.Monitor`.
+
+**§C cost and direction.** The spike's 355-line estimate was too high: about 85
+lines of new forward induction, with `UC.Seam.Transfer` reused. Route (i) is
+unnecessary — `Cov` is leafwise. §C's direction above is the right one (the
+watched event bounds the extracted verdict); the work-package-C agent brief
+paraphrased it inverted.
+
+**Performance.** Never pass a `QB`/`Certified` VALUE to a pattern-matching type
+family: quantifying the certificate instead of naming it took one check from
+18 min / 12 GiB to 10 s.
+
+**Housekeeping done.** `watchFrom`/`IsWatch`/`watchFrom-IsWatch`/`asks≤-watch`
+now live in `CategoricalCrypto.Strategy`, generic in the two alphabets, with
+`UC.Quantitative.Hits` re-exporting them. `UC.Machine.Monitor.Agree` is in
+`CategoricalCrypto.UC`'s closure; `Hits`, `UC.Seam.EventTransfer` and
+`UC.Quantitative.EventLift` stay out while Stage B is in flight. Held back:
+`…Agree:simFn`, `…:point-⊛`, `…:discard-⊛` are general and belong in
+`Machines.Pointwise` (rule 27), which has 82 transitive in-repo importers
+(`Machines.Sim` 130, `Machines.Frame` 132) — the recheck is not paid here.
