@@ -85,6 +85,14 @@ qb-ρ⇐ᴳ A =
   qb-resp-≈ (ρ⇐-ρᴳ {A})
     (certified⇒QB (qbᵢ-wire {A} {A ⊗ᴵ 𝟭ᴵ} inj₁ drop⇒ʳ))
 
+-- …and the two actions read back on the PINNED relays, which is the spelling
+-- a context is built in (`UC.Model.EventBounds`, `UC.Machine.Monitor`).
+qb-T₁ᴵ : (Y A B : Iface) {c : ℕ} (f : Proc A B) → QB c f → QB (c ℕ.⊔ 1) (T₁ᴵ Y f)
+qb-T₁ᴵ Y A B f q = qb-resp-≈ (𝒫.Equiv.sym (T₁-⊗₁ {Y} {A} {B} f)) (qb-T₁ᴳ Y A B f q)
+
+qb-subᴵ : (X Y A : Iface) {c : ℕ} (s : Proc X Y) → QB c s → QB (c ℕ.⊔ 1) (subᴵ s {A})
+qb-subᴵ X Y A s q = qb-resp-≈ (𝒫.Equiv.sym (sub-⊗₁ {X} {Y} {A} s)) (qb-subᴳ X Y A s q)
+
 opaque
   qb-T₁ᴳ-object : (Y A B : 𝒢.Obj) {c : ℕ} (f : 𝒢ₚ 0ℓ [ A , B ])
                 → QBᴳ A B c f

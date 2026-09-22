@@ -49,7 +49,8 @@ open import CategoricalCrypto.Strategy using (ask; out)
 open import CategoricalCrypto.UC.Budget using (ctxBudget)
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Bridge using (λᴵ⇐; λᴵ⇒; conjᴵ; ctxRun)
-open import CategoricalCrypto.UC.Machine.Dictionary using (T₁-⊗₁; sub-⊗₁; a⇐-α⇒)
+open import CategoricalCrypto.UC.Machine.Dictionary
+  using (T₁-⊗₁; T₁-∘; T₁-resp-≈; sub-⊗₁; a⇐-α⇒)
 open import CategoricalCrypto.UC.Machine.Grading using (qb-subᴳ; qb-a⇐ᴳ)
 open import CategoricalCrypto.UC.Machine.Run using (runᴹ-resp-≈ᴹ)
 open import CategoricalCrypto.UC.Machine.Wire
@@ -226,12 +227,7 @@ unit-cancel {B} x =
 T₁-conj : {Y B : Iface} (x : Proc unitᴵ B)
         → 𝒫._≈_ {Y ⊗ᴵ unitᴵ} {Y ⊗ᴵ B} (T₁ᴵ Y x) (T₁ᴵ Y (λᴵ⇒ {B}) 𝒫.∘ T₁ᴵ Y (conjᴵ x))
 T₁-conj {Y} {B} x =
-     T₁-⊗₁ {Y} {unitᴵ} {B} x
-  ○ᴹ 𝔾.⊗.F-resp-≈ {(⟦ Y ⟧ᴵ , ⟦ unitᴵ ⟧ᴵ)} {(⟦ Y ⟧ᴵ , ⟦ B ⟧ᴵ)}
-       {(𝒫.id {Y} , x)} {(𝒫.id {Y} 𝒫.∘ 𝒫.id {Y} , λᴵ⇒ 𝒫.∘ conjᴵ x)}
-       (𝒫.Equiv.sym 𝒫.identity² , 𝒫.Equiv.sym (unit-cancel x))
-  ○ᴹ 𝔾.⊗.homomorphism
-  ○ᴹ 𝒫.Equiv.sym (𝒫.∘-resp-≈ (T₁-⊗₁ {Y} (λᴵ⇒ {B})) (T₁-⊗₁ {Y} (conjᴵ x)))
+  T₁-resp-≈ (𝒫.Equiv.sym (unit-cancel x)) ○ᴹ T₁-∘ (λᴵ⇒ {B}) (conjᴵ x)
 
 -- …hence the bridge's observation is unchanged by opening the hole.
 ctxRun-conj : {B Y : Iface} (E : Proc (Y ⊗ᴵ B) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
