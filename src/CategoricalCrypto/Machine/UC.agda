@@ -42,6 +42,7 @@ open import CategoricalCrypto.Machine.Core
   hiding (id; _∘_; ℰ; map-ℰ)
 import CategoricalCrypto.Machine.Core as CC
 open import CategoricalCrypto.Machine.Iso
+open import CategoricalCrypto.Machine.Bisim
 open import CategoricalCrypto.Machine.Category
 open import CategoricalCrypto.Machine.Monoidal
   using (⊗₁-id; ⊗₁-interchange; ρ⇒-natural; ρ-isoʳ; α-isoˡ)
@@ -62,13 +63,13 @@ Test A = Σ[ Y ∈ Channel ] Machine (A ⊗₀ Y) ℰ-Out
 
 data SameTest {A : Channel} : Test A → Test A → Type₁ where
   same : ∀ {Y} {E₁ E₂ : Machine (A ⊗₀ Y) ℰ-Out}
-       → E₁ ≅ᴹ E₂ → SameTest (Y , E₁) (Y , E₂)
+       → E₁ ≈ᴮ E₂ → SameTest (Y , E₁) (Y , E₂)
 
 -- The machine layer is `--safe` WITH K, so `same` inverts: matching it
 -- deletes the reflexive equation on the shared ancilla `Y`, which
 -- `--without-K` rejects.
 same⁻¹ : ∀ {A Y} {E₁ E₂ : Machine (A ⊗₀ Y) ℰ-Out}
-       → SameTest (Y , E₁) (Y , E₂) → E₁ ≅ᴹ E₂
+       → SameTest (Y , E₁) (Y , E₂) → E₁ ≈ᴮ E₂
 same⁻¹ (same e) = e
 
 Test-setoid : Channel → Setoid (Level.suc 0ℓ) (Level.suc 0ℓ)
@@ -76,9 +77,9 @@ Test-setoid A = record
   { Carrier       = Test A
   ; _≈_           = SameTest
   ; isEquivalence = record
-      { refl  = same ≅ᴹ-refl
-      ; sym   = λ { (same e) → same (≅ᴹ-sym e) }
-      ; trans = λ { (same e₁) (same e₂) → same (≅ᴹ-trans e₁ e₂) }
+      { refl  = same ≈ᴮ-refl
+      ; sym   = λ { (same e) → same (≈ᴮ-sym e) }
+      ; trans = λ { (same e₁) (same e₂) → same (≈ᴮ-trans e₁ e₂) }
       }
   }
 
@@ -87,22 +88,22 @@ test-map f t = proj₁ t , proj₂ t CC.∘ (f ⊗₁ CC.id)
 
 test-map-cong : ∀ {A B} (f : Machine B A) {t t' : Test A}
               → SameTest t t' → SameTest (test-map f t) (test-map f t')
-test-map-cong f (same e) = same (e ⟩∘⟨refl)
+test-map-cong f (same e) = same (∘-congˡ (f ⊗₁ CC.id) e)
 
 ℰ-tests : Presheaf MachineCategory (Setoids (Level.suc 0ℓ) (Level.suc 0ℓ))
 ℰ-tests = record
   { F₀           = Test-setoid
   ; F₁           = λ f → record { to = test-map f ; cong = test-map-cong f }
-  ; identity     = same (elimʳ ⊗₁-id)
-  ; homomorphism = λ {_} {_} {_} {f} {g} → same (begin
+  ; identity     = same (≅ᴹ⇒≈ᴮ (elimʳ ⊗₁-id))
+  ; homomorphism = λ {_} {_} {_} {f} {g} → same (≅ᴹ⇒≈ᴮ (begin
       _ CC.∘ ((f CC.∘ g) ⊗₁ CC.id)
         ≈⟨ refl⟩∘⟨ ⊗₁-resp-≅ᴹ ≅ᴹ-refl (≅ᴹ-sym ∘-identityˡ-≅ᴹ) ⟩
       _ CC.∘ ((f CC.∘ g) ⊗₁ (CC.id CC.∘ CC.id))
         ≈⟨ refl⟩∘⟨ ⊗₁-interchange g f CC.id CC.id ⟩
       _ CC.∘ ((f ⊗₁ CC.id) CC.∘ (g ⊗₁ CC.id))
         ≈⟨ ≅ᴹ-sym ∘-assoc-≅ᴹ ⟩
-      (_ CC.∘ (f ⊗₁ CC.id)) CC.∘ (g ⊗₁ CC.id) ∎)
-  ; F-resp-≈     = λ e → same (refl⟩∘⟨ ⊗₁-resp-≅ᴹ e ≅ᴹ-refl)
+      (_ CC.∘ (f ⊗₁ CC.id)) CC.∘ (g ⊗₁ CC.id) ∎))
+  ; F-resp-≈     = λ e → same (≅ᴹ⇒≈ᴮ (refl⟩∘⟨ ⊗₁-resp-≅ᴹ e ≅ᴹ-refl))
   }
 
 -- The tensor is REVERSED so that the grade sits on the right, as in
@@ -119,23 +120,21 @@ open StdUC machines ℰ-tests public hiding (_⊗₀_; _⊗₁_)
 
 ≈ℰ⇒tests : ∀ {A B} {f g : Machine A B} → f ≈ℰ g
          → ∀ Y (E : Machine (B ⊗₀ Y) ℰ-Out)
-         → (E ∘ (f ⊗₁ id {Y})) ≅ᴹ (E ∘ (g ⊗₁ id {Y}))
+         → (E ∘ (f ⊗₁ id {Y})) ≈ᴮ (E ∘ (g ⊗₁ id {Y}))
 ≈ℰ⇒tests e Y E = same⁻¹ (KE.run∼ e {Y , E})
 
 tests⇒≈ℰ : ∀ {A B} {f g : Machine A B}
-         → (∀ Y (E : Machine (B ⊗₀ Y) ℰ-Out) → (E ∘ (f ⊗₁ id {Y})) ≅ᴹ (E ∘ (g ⊗₁ id {Y})))
+         → (∀ Y (E : Machine (B ⊗₀ Y) ℰ-Out) → (E ∘ (f ⊗₁ id {Y})) ≈ᴮ (E ∘ (g ⊗₁ id {Y})))
          → f ≈ℰ g
 tests⇒≈ℰ e = KE.mk∼ λ {t} → same (e (proj₁ t) (proj₂ t))
 
--- The trivial ancilla `I` recovers `Machine.Iso`'s environment equivalence.
-≈ℰ⇒≅ℰ : ∀ {A B} {f g : Machine A B} → f ≈ℰ g → f ≅ℰ g
-≈ℰ⇒≅ℰ {f = f} {g} e E = begin
-    E ∘ f                                    ≈⟨ insertʳ ρ-isoʳ ⟩
-    ((E ∘ f) ∘ CC.ρ⇒) ∘ CC.ρ⇐                ≈⟨ slide f ⟩∘⟨refl ⟩
-    ((E ∘ CC.ρ⇒) ∘ (f ⊗₁ id)) ∘ CC.ρ⇐        ≈⟨ ≈ℰ⇒tests e I (E ∘ CC.ρ⇒) ⟩∘⟨refl ⟩
-    ((E ∘ CC.ρ⇒) ∘ (g ⊗₁ id)) ∘ CC.ρ⇐        ≈⟨ ⟺ (slide g) ⟩∘⟨refl ⟩
-    ((E ∘ g) ∘ CC.ρ⇒) ∘ CC.ρ⇐                ≈⟨ cancelʳ ρ-isoʳ ⟩
-    E ∘ g                                    ∎
+-- The trivial ancilla `I` recovers environment equivalence, at the same
+-- relation the tests are compared by.
+≈ℰ⇒≈ℰᴮ : ∀ {A B} {f g : Machine A B} → f ≈ℰ g → f ≈ℰᴮ g
+≈ℰ⇒≈ℰᴮ {f = f} {g} e E =
+  ≈ᴮ-trans (≅ᴹ⇒≈ᴮ (≅ᴹ-trans (insertʳ ρ-isoʳ) (slide f ⟩∘⟨refl)))
+  (≈ᴮ-trans (∘-congˡ CC.ρ⇐ (≈ℰ⇒tests e I (E ∘ CC.ρ⇒)))
+            (≅ᴹ⇒≈ᴮ (≅ᴹ-trans (⟺ (slide g) ⟩∘⟨refl) (cancelʳ ρ-isoʳ))))
   where
   slide : ∀ k → (E ∘ k) ∘ CC.ρ⇒ ≅ᴹ (E ∘ CC.ρ⇒) ∘ (k ⊗₁ id {I})
   slide k = pullʳ (⟺ (ρ⇒-natural k)) ○ sym-assoc
@@ -164,13 +163,11 @@ private
       ((E ∘ ⊗-assoc⃖) ∘ (k ⊗₁ id)) ∘ ⊗-assoc ∎
 
 grade-stable : GradeStable
-grade-stable Z {h} {h′} e = tests⇒≈ℰ λ Y E → begin
-    E ∘ (T₁ Z h ⊗₁ id)                          ≈⟨ refl⟩∘⟨ ⊗₁-resp-≅ᴹ (T₁-⊗ʳ Z h) ≅ᴹ-refl ⟩
-    E ∘ ((h ⊗₁ id) ⊗₁ id)                       ≈⟨ regroup h E ⟩
-    ((E ∘ ⊗-assoc⃖) ∘ (h ⊗₁ id)) ∘ ⊗-assoc      ≈⟨ ≈ℰ⇒tests e (Z ⊗₀ Y) (E ∘ ⊗-assoc⃖) ⟩∘⟨refl ⟩
-    ((E ∘ ⊗-assoc⃖) ∘ (h′ ⊗₁ id)) ∘ ⊗-assoc     ≈⟨ ⟺ (regroup h′ E) ⟩
-    E ∘ ((h′ ⊗₁ id) ⊗₁ id)                      ≈⟨ refl⟩∘⟨ ⊗₁-resp-≅ᴹ (≅ᴹ-sym (T₁-⊗ʳ Z h′)) ≅ᴹ-refl ⟩
-    E ∘ (T₁ Z h′ ⊗₁ id)                         ∎
+grade-stable Z {h} {h′} e = tests⇒≈ℰ λ Y E →
+  ≈ᴮ-trans (≅ᴹ⇒≈ᴮ (≅ᴹ-trans (refl⟩∘⟨ ⊗₁-resp-≅ᴹ (T₁-⊗ʳ Z h) ≅ᴹ-refl) (regroup h E)))
+  (≈ᴮ-trans (∘-congˡ ⊗-assoc (≈ℰ⇒tests e (Z ⊗₀ Y) (E ∘ ⊗-assoc⃖)))
+            (≅ᴹ⇒≈ᴮ (≅ᴹ-trans (⟺ (regroup h′ E))
+                             (refl⟩∘⟨ ⊗₁-resp-≅ᴹ (≅ᴹ-sym (T₁-⊗ʳ Z h′)) ≅ᴹ-refl))))
 
 ≈ᵁ⇔≈ℰ : ∀ {A B X} {f g : Machine A (B ⊗₀ X)} → f ≈ᵁ g ⇔ f ≈ℰ g
 ≈ᵁ⇔≈ℰ {f = f} {g} = mk⇔ {B = f ≈ℰ g} ≈ᵁ⇒≈ℰ (bridge grade-stable)
