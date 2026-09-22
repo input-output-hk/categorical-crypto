@@ -146,11 +146,11 @@ module Attack (ℓ : ℕ) (ser : Ledger.Tx ℓ → List Bool) (V : ℕ) where
       -- nothing further is sampled.
       second-shape : (h : Hash) → kernel P (once h , tbl h) (submit txᵃ)
                                   ≡ return⊥ ((twice h , tbl h) , ok true)
-      second-shape h = cong (λ t → evalC (serve (ledger chimeric s₀) oracle (κ h) t))
+      second-shape h = cong (λ t → evalC (serve (ledger chimeric s₀) oracle κ t))
                             (oracle-repeat [] fzero (ser txᵃ) h)
         where
-        κ : Hash → RO.Output → Calls HashIf (LState × Answer)
-        κ h ih = ret (proj₁ (runCall (λ _ → proj₂ ih) (applyTx chimeric (once h) txᵃ)) , ok true)
+        κ : RO.Output → Calls HashIf (LState × Answer)
+        κ ih = ret (proj₁ (runCall (λ _ → proj₂ ih) (applyTx chimeric (once h) txᵃ)) , ok true)
 
       -- Every branch of the sample ends at the same audit answer, so the
       -- verdict does not depend on the hash at all.

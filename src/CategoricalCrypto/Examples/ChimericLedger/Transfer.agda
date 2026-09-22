@@ -261,12 +261,14 @@ Liar n = record { St = ⊤ ; init = tt ; step = λ _ _ → ret (tt , AtLevel.ok 
 always-bad : Bad Liar
 always-bad _ _ = true
 
+-- What makes a watch that never reports satisfy the property: the allowance is
+-- never negative.  (Its natural home is `Property`, beside `εᴸ` itself.)
+0≤εᴸ : (n q : ℕ) → 0ℚ ℚ.≤ εᴸ n q
+0≤εᴸ n q = 0≤* (0≤fromℕ (q ℕ.* q ℕ.+ q)) (0≤inv-pow-2 n)
+
 module _ (a V : ℕ) where
 
   private
-    0≤εᴸ : (n q : ℕ) → 0ℚ ℚ.≤ εᴸ n q
-    0≤εᴸ n q = 0≤* (0≤fromℕ (q ℕ.* q ℕ.+ q)) (0≤inv-pow-2 n)
-
     -- A watch that never reports is below every allowance, at slack 0.
     never-reports : (P : Systems LedgerIf^ω)
                   → ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
