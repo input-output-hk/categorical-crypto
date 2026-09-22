@@ -4,14 +4,17 @@
 -- claims of the example, kept apart.
 --
 --   `preserves-value-transfer`  OBSERVABLE AUDIT SAFETY.  Assumes `SerInj` and
---     an emulation; bounds the probability that a discrepant audit ANSWER is
---     accumulated during an interaction and reported when it terminates.  It
---     is not a statement about the implementation's internal state, and not a
---     statement that the implementation answers at all.
+--     an emulation; bounds, against every certified machine context, the
+--     probability that a discrepant audit ANSWER is accumulated during the
+--     interaction and reported when it terminates.  It is not a statement
+--     about the implementation's internal state, and not a statement that the
+--     implementation answers at all.
 --
 --   `ledger-uc-to-pov-family`  AUDIT TO TRAJECTORY.  The appendix.  Assumes
 --     the above plus `TruthfulAudit`, and pays `withAudits`' doubled
 --     allowance; it concludes about the real system's own state trajectory.
+--     It reads the transfer at the embedded strategies (`watched-transfer`),
+--     so the monitor's extra query is not charged to it on top.
 --
 --   `ideal-spends-genesis`  POSITIVE BEHAVIOUR.  Assumes nothing.  At every
 --     level the genesis output is spent with probability one and the state
@@ -32,7 +35,7 @@ open import Data.Nat.Poly
 open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 0ℚ; 1ℚ)
 open import Data.Rational.Properties using (+-identityʳ)
-open import Data.Rational.Properties.Ext using (0≤*; 1≰0)
+open import Data.Rational.Properties.Ext using (1≰0)
 open import Data.Unit.Base using (⊤; tt)
 open import Relation.Binary.PropositionalEquality using (_≡_; cong; subst; subst₂; sym; trans)
 open import Relation.Nullary.Negation.Core using (¬_)
@@ -40,7 +43,7 @@ open import Relation.Nullary.Negation.Core using (¬_)
 open import ProbabilisticLogic.Prelude
 open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation using (E-bind; E-const)
-open import ProbabilisticLogic.Distribution.Uniform using (0≤fromℕ; 0≤inv-pow-2)
+open import ProbabilisticLogic.Dp.Advantage using (upper-≈[])
 
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Examples.ChimericLedger.QueryBound
@@ -61,6 +64,7 @@ open import CategoricalCrypto.UC.Model.Family
 open import CategoricalCrypto.UC.Model.Family.Ingest
 open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.Model.Setup
+open import CategoricalCrypto.UC.Quantitative.Hits using (upper-run)
 open import CategoricalCrypto.UC.Saturated
 open import CategoricalCrypto.UC.Seam.Grounded
 
@@ -78,12 +82,36 @@ open import CategoricalCrypto.Examples.ChimericLedger.Property ser
 -- The point of the example: the proved ideal bound plus an emulation premise
 -- give the SAME property about the real system, with nothing else assumed.
 -- `R ≤UC^ωⁿ I` is an allowance-uniform emulation with negligible error.
+--
+-- Two allowances, both EXACT.  The comparison is read at `p n + 1` — the
+-- context's cap plus the monitor's accumulator, which is also where the ideal
+-- bound is read — and never at the compiled test's coarse certificate `κμ`:
+-- the flag is an internal port of the compiled context, so what a strategy
+-- extracted from it can spend on the LEDGER is the honest allowance alone
+-- (`docs/event-bounds-in-setup.md` §B).  No schedule monotonicity is spent
+-- anywhere; the premise's `ε` becomes the saturated slack, quantified after
+-- the allowance, so the conclusion's own number is the ideal one.
 preserves-value-transfer : (a V : ℕ) (R : Systems LedgerIf^ω) → SerInj
                          → R ≤UC^ωⁿ Ideal a V → PreservesValue a V R
-preserves-value-transfer a V R si em =
+preserves-value-transfer a V R si (ε , neg , h) p Pp =
+    (λ n → ε n (p n ℕ.+ 1))
+  , neg (λ n → p n ℕ.+ 1) (poly-+ Pp (poly-const 1))
+  , λ n → hitsᴸ a V R n (p n) λ d ad →
+      upper-≈[] (≈ᶠ-runs {R = R} {I = Ideal a V} ε h n (p n ℕ.+ 1) (auditWatch a V n d)
+                         (auditWatch-preserving a V n (p n ℕ.+ 1) d ad))
+                (upper-run (Ideal a V n) (auditWatch a V n d)
+                           (ideal-bounded a V si n (p n ℕ.+ 1) d ad))
+
+-- …and the same transfer read at the EMBEDDED strategies, where the watch
+-- costs the allowance nothing at all.  Claim 2's instrumentation is charged
+-- against this bound rather than against the monitored one, so no flag query
+-- ever enters the trajectory conclusion's budget.
+watched-transfer : (a V : ℕ) (R : Systems LedgerIf^ω) → SerInj
+                 → R ≤UC^ωⁿ Ideal a V → SaturatedBoundedᴺ R (auditWatch a V) εᴸ
+watched-transfer a V R si em =
   uc-preservesᴺ {R = R} {I = Ideal a V} {ε = εᴸ} {bad = auditWatch a V}
     (auditWatch-preserving a V) (≤UC^ωⁿ⇒≈negl {R = R} {I = Ideal a V} em)
-    (ideal-preserves-value a V si)
+    (boundedᴺ {I = Ideal a V} {ε = εᴸ} {bad = auditWatch a V} (ideal-bounded a V si))
 
 ------------------------------------------------------------------------
 -- …off a premise about the hash alone
@@ -208,7 +236,7 @@ module _ (a V : ℕ) where
   ledger-uc-to-pov-family si R badR em truthful =
     saturatedHitᴺ-from-monitor {ε = εᴸ} {P = R} {Bad = badR} {bad = auditWatch a V}
       (λ _ q → q ℕ.+ q) Watched.withAudits (λ _ Pp → poly-+ Pp Pp)
-      Watched.asks≤-withAudits truthful (preserves-value-transfer a V R si em)
+      Watched.asks≤-withAudits truthful (watched-transfer a V R si em)
 
   -- …read as one number: the real system's preservation-of-value failure is
   -- negligible in the security parameter at every polynomial allowance.
@@ -261,22 +289,20 @@ Liar n = record { St = ⊤ ; init = tt ; step = λ _ _ → ret (tt , AtLevel.ok 
 always-bad : Bad Liar
 always-bad _ _ = true
 
--- What makes a watch that never reports satisfy the property: the allowance is
--- never negative.  (Its natural home is `Property`, beside `εᴸ` itself.)
-0≤εᴸ : (n q : ℕ) → 0ℚ ℚ.≤ εᴸ n q
-0≤εᴸ n q = 0≤* (0≤fromℕ (q ℕ.* q ℕ.+ q)) (0≤inv-pow-2 n)
-
 module _ (a V : ℕ) where
 
   private
-    -- A watch that never reports is below every allowance, at slack 0.
+    -- A watch that never reports is below every allowance, at slack 0 — and
+    -- `hitsᴸ` carries that to every context, the flag being what the compiled
+    -- experiment's verdict is.
     never-reports : (P : Systems LedgerIf^ω)
                   → ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
                      → Pr (P n) (auditWatch a V n d) ≡ 0ℚ)
                   → PreservesValue a V P
-    never-reports P zero-pr p Pp = (λ _ → 0ℚ) , Negligible-0 , λ n d _ →
-      subst (ℚ._≤ εᴸ n (p n) ℚ.+ 0ℚ) (sym (zero-pr n d))
-            (subst (0ℚ ℚ.≤_) (sym (+-identityʳ (εᴸ n (p n)))) (0≤εᴸ n (p n)))
+    never-reports P zero-pr p Pp = (λ _ → 0ℚ) , Negligible-0 , λ n →
+      hitsᴸ a V P n (p n) λ d _ → upper-run (P n) (auditWatch a V n d)
+        (subst (ℚ._≤ εᴹ n (p n) ℚ.+ 0ℚ) (sym (zero-pr n d))
+               (subst (0ℚ ℚ.≤_) (sym (+-identityʳ (εᴹ n (p n)))) (0≤εᴸ n (p n ℕ.+ 1))))
 
   mute-silent : (n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
               → Pr (Mute n) (auditWatch a V n d) ≡ 0ℚ

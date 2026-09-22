@@ -3,9 +3,11 @@
 -- What the replay attack does to the FAMILY property, and where it stops.
 --
 -- `Replay.Attack.chimeric-loses-value` holds at every hash width, at a
--- constant query depth, through the very watch `Property.PreservesValue`
--- reads.  So the chimeric family violates that property outright: a bound
--- `εᴸ n (p n) + ν n` that is eventually below 1 cannot dominate probability
+-- constant query depth, through the very watch the monitor
+-- `Property.PreservesValue` reads implements.  So the chimeric family
+-- violates that property outright: `Property.preservesValue⇒saturated` hands
+-- the attack's strategy back the contextual bound, and a bound
+-- `εᴹ n (p n) + ν n` that is eventually below 1 cannot dominate probability
 -- one, at any polynomial allowance and any negligible slack.  No single
 -- security parameter is picked — the allowance is quantified first, as the
 -- property quantifies it.
@@ -68,8 +70,9 @@ module _ (a V : ℕ) where
   -- negligible slack over a polynomial allowance can cover that.
   chimeric-not-preserving : ¬ PreservesValue a (suc (suc V)) (Chimericᶠ V)
   chimeric-not-preserving pv =
-    let ν , neg , bnd = pv (λ _ → 3) (poly-const 3)
-        N , small     = →0-+ (Negligible⇒→0 (εᴸ-negligible (λ _ → 3) (poly-const 3)))
+    let ν , neg , bnd = preservesValue⇒saturated a (suc (suc V)) (Chimericᶠ V) pv
+                          (λ _ → 3) (poly-const 3)
+        N , small     = →0-+ (Negligible⇒→0 (εᴹ-negligible (λ _ → 3) (poly-const 3)))
                              (Negligible⇒→0 neg) ½ (positive⁻¹ ½)
     in 1≰½ (≤-trans (≤-reflexive (sym (chimeric-loses-value^ω N)))
                     (≤-trans (bnd N (At.replay V N) (At.replay-asks V N)) (small N ≤ᴺ-refl)))
