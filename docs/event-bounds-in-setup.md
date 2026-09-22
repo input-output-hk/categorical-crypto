@@ -696,3 +696,73 @@ now live in `CategoricalCrypto.Strategy`, generic in the two alphabets, with
 `…Agree:simFn`, `…:point-⊛`, `…:discard-⊛` are general and belong in
 `Machines.Pointwise` (rule 27), which has 82 transitive in-repo importers
 (`Machines.Sim` 130, `Machines.Frame` 132) — the recheck is not paid here.
+
+## Stage B status, corrections 2026-09-22 (2)
+
+The section above stays as written; this one overrides it where they differ.
+
+**O1 and O2 are discharged, and the compiled context is not over-charged.**
+O2 is `UC.Machine.Monitor.Tight:qb-compileᵀ`: the compiled test spends the
+allowance of the test it was compiled from, rate `c`, not `κμ c`. It is bought
+by reading the composite as ONE machine (`UC.QueryBound.Compose.Step`'s
+`Nᶜ`/`unfoldᶜ`, with `Monitor.Agree`'s collapse of `flagReadᴹ ∘ subᴵ E`), not
+by refining `QBᵢ`. §B's `compiled allowance = 2 · (c ⊔ 1)` therefore
+over-charges: with the closure recertified by `qb-closed`,
+`UC.Quantitative.EventLift.Budget:qb-compiled′` gives the compiled CLOSED
+context rate `c` on the nose. The coarse `qb-compileᴹ`/`qb-compiled` at `κμ c`
+is kept as the cheaper term, not as the accounting. O1 is
+`UC.Quantitative.EventLift.Cov`, and it does not walk `qb-∘`: the certificate
+is built on the collapsed tower (`Monitor.Agree.Watch:watchᴹ`), where the
+accumulator is a state component and the invariant is an induction on the
+test's own emission tree.
+
+**`c + 1` is optimal for the invariant, not slack.** `CovCtx` is read at EVERY
+zero-potential state, so a raised accumulator must carry potential; `Cov:pend`
+is that potential, and it costs one unit of the rate rather than a factor. At
+rate `c` the premise is FALSE, not merely unproved — the five-fold `qb-∘`
+tower's monitor potential is constantly zero
+(`UC.Machine.Monitor:qbᵢ-monitor`), so a state with the flag raised and the
+whole allowance spent still has potential zero and reports `true` with no
+traffic covering it. `EventLift:eventDominatedᵘ` at `c + 1` is therefore the
+one rate the lift can be discharged at; `EventLift:eventDominated` keeps its
+premise at `c` because the `QB` half exists there (`qb-compiled′`) while the
+`CovCtx` half does not.
+
+**The ledger consumer** is `EventLift:ledger-hitsᵘ`, unconditional, with the
+schedule read one query past the environment's own cap. The leaves it serves
+are `Examples.ChimericLedger.Transfer` and `…ReplayFamily` — the wiring of the
+two is a separate work package and is not landed here. `ReplayFamily` is the
+replay generalisation, the attack at every `ℓ`, `ser` and `V` at a FUNDED
+initialization; its gap to the positive theorem is that no prefix from the
+UTxO genesis credits an account (`Examples.ChimericLedger:checkWdrls-[]`, read
+at the ledger's activation by `…System:ledger-keeps-accts-[]`).
+
+**Closure, corrected.** `UC.Quantitative.Hits` and `UC.Seam.EventTransfer` were
+never out of it: `UC.Machine.Monitor.Agree` imports the first and
+`UC.Machine.Dominated` — public in `CategoricalCrypto.UC` — the second. The
+event-bound layer is now listed explicitly in that module's closure-only block
+(`Monitor.Slide`, `Monitor.Tight`, `EventLift.Budget`, `EventLift.Cov`,
+`Seam.EventTransfer`), through which `UC.Quantitative.EventLift` also arrives.
+
+**Placement, done.** The held-back `…Agree:simFn`, `…:point-⊛` and
+`…:discard-⊛` now live in `Machines.Pointwise`, beside the `⊗-pureˡ` that
+`simFn` packages. `Monitor.Slide:sub-resp-≈` was an exact duplicate of
+`UC.Machine.Dictionary:sub-resp-≈` and is gone; `sub-∘` joins `T₁-∘` there.
+The hole-wire block (`sub-wire`, `λ-tri`, `ρᴵ⇒`, `ρ-tri`) moves beside
+`T₁-wire` in `UC.Machine.Slide`, and the interchange `relay-slide` into
+`UC.Machine.Slide.Relay` — its own module because the elaborated 45-step
+monoidal chain costs every importer of `UC.Machine.Slide` about 17 s of
+deserialization (warm `Monitor.Tight` 21 s baseline, 52 s undivided, 21 s
+split). `…System:checkWdrls-[]` moves beside `checkWdrls` in
+`Examples.ChimericLedger`.
+
+**The two collapses are not factorable.** `Tight:qb-compileᵀ` and `Cov:covCtx`
+unfold the same tower, but they certify DIFFERENT machines — the generic
+composite `CStep.Nᶜ` at `Y ⊗ᴵ B` and the hand-written `Watch.watchᴹ` at `B` —
+so their `cohL`/`cohR` obligations are against different `step`s, and that
+proof is most of each body (`Tight`'s `cohE`/`pump` against the unfolding,
+`Cov`'s four-line chains against `wPass`). Their potentials differ in kind
+too: `Tight`'s ignores the monitor state, which is exactly what `CovCtx`
+refutes. What they do share is one plumbing step,
+`mapₚ forget (d >>=ₚ ref) ≈ₚ (e >>=ₚ base)`, worth about 9 lines against a
+10-line lemma; it was measured and not taken.
