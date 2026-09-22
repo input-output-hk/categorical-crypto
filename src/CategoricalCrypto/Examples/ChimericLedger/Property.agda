@@ -17,8 +17,9 @@ open import Data.Bool.Base using (Bool; false)
 open import Data.List.Base using (List)
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly
-open import Data.Nat.Properties using (≤-refl)
-open import Data.Rational as ℚ using (ℚ)
+open import Data.Nat.Properties using (*-mono-≤; +-mono-≤; ≤-refl)
+open import Data.Rational as ℚ using (ℚ; nonNegative)
+open import Data.Rational.Properties using (*-monoʳ-≤-nonNeg)
 open import Data.Vec.Base using (replicate)
 open import Relation.Binary.PropositionalEquality using (_≡_)
 
@@ -66,6 +67,12 @@ LedgerIf^ω = AtLevel.LedgerIf
 εᴸ-negligible : NegligibleBound εᴸ
 εᴸ-negligible = negligibleBound-inv-pow-2 {t = λ _ q → q ℕ.* q ℕ.+ q} {sch = λ n → n}
                   (λ _ Pq → poly-+ (poly-* Pq Pq) Pq) (λ _ → ≤-refl)
+
+-- `UC.Model.EventBounds.Monotone` at every level, which is what reading the
+-- schedule at a CAP rather than at a context's carried allowance costs.
+εᴸ-mono : (n : ℕ) {q q′ : ℕ} → q ℕ.≤ q′ → εᴸ n q ℚ.≤ εᴸ n q′
+εᴸ-mono n le = *-monoʳ-≤-nonNeg (inv-pow-2 n) ⦃ nonNegative (0≤inv-pow-2 n) ⦄
+                 (fromℕ-mono-≤ (+-mono-≤ (*-mono-≤ le le) le))
 
 h₀ : (n : ℕ) → Ledger.Hash n
 h₀ n = replicate n false

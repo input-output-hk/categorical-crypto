@@ -264,3 +264,30 @@ opaque
     ○ᴹ ≲⇒≈ᴹ (∘ᴹ-resp-≲ ≲-refl (pure-∘ʳ (pureᵏ midfn) _))
     ○ᴹ ≲⇒≈ᴹ (pure-∘ˡ (pureᵏ midfn) _)
     ○ᴹ ≲⇒≈ᴹ (mk-cong (sub-step {X} {Y} {A} s)) )
+
+------------------------------------------------------------------------
+-- The ancilla relay is a functor
+
+-- What the zigzag above buys without unfolding anything: the 𝒢-tensor's own
+-- functoriality read back on `T₁ᴵ`.  A composite relayed past an ancilla is
+-- the relays composed, which is what lets a morphism absorbed into a context
+-- slide off the process and onto the test
+-- (`UC.Model.EventBounds.ctxRun-∘`).
+
+T₁-resp-≈ : {Y A B : Iface} {f g : Proc A B} → 𝒫._≈_ {A} {B} f g
+          → 𝒫._≈_ {Y ⊗ᴵ A} {Y ⊗ᴵ B} (T₁ᴵ Y f) (T₁ᴵ Y g)
+T₁-resp-≈ {Y} {A} {B} {f} {g} e =
+     T₁-⊗₁ {Y} {A} {B} f
+  ○ᴹ 𝔾.⊗.F-resp-≈ {(⟦ Y ⟧ᴵ , ⟦ A ⟧ᴵ)} {(⟦ Y ⟧ᴵ , ⟦ B ⟧ᴵ)}
+       {(𝒫.id {Y} , f)} {(𝒫.id {Y} , g)} (𝔾.Equiv.refl {x = 𝒫.id {Y}} , e)
+  ○ᴹ ⟺ᴹ (T₁-⊗₁ {Y} {A} {B} g)
+
+T₁-∘ : {Y A B C : Iface} (g : Proc B C) (f : Proc A B)
+     → 𝒫._≈_ {Y ⊗ᴵ A} {Y ⊗ᴵ C} (T₁ᴵ Y (g 𝒫.∘ f)) (T₁ᴵ Y g 𝒫.∘ T₁ᴵ Y f)
+T₁-∘ {Y} {A} {B} {C} g f =
+     T₁-⊗₁ {Y} {A} {C} (g 𝒫.∘ f)
+  ○ᴹ 𝔾.⊗.F-resp-≈ {(⟦ Y ⟧ᴵ , ⟦ A ⟧ᴵ)} {(⟦ Y ⟧ᴵ , ⟦ C ⟧ᴵ)}
+       {(𝒫.id {Y} , g 𝒫.∘ f)} {(𝒫.id {Y} 𝒫.∘ 𝒫.id {Y} , g 𝒫.∘ f)}
+       (𝒫.Equiv.sym 𝒫.identity² , 𝔾.Equiv.refl {x = g 𝒫.∘ f})
+  ○ᴹ 𝔾.⊗.homomorphism
+  ○ᴹ ⟺ᴹ (𝒫.∘-resp-≈ (T₁-⊗₁ {Y} {B} {C} g) (T₁-⊗₁ {Y} {A} {B} f))

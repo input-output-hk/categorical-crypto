@@ -157,21 +157,31 @@ carry-obs : (f : A ⇒ X ⊗₀ B′) (g : A ⇒ Y ⊗₀ B′) (s : Y ⇒ X) �
 carry-obs f g s em W Et m δ δ>0 =
   dominate (∼-trans (em W Et m) (⟦⟧-resp-≈ (∘-resp-≈ˡ (tv₁-∘ W (s ⊗₁ id) g Et)))) δ δ>0
 
--- The graded carry.  The ideal side is tested through `Et ∘ id ⊗₁ (s ⊗₁ id)` —
--- the same context with the simulator in front of it — so the hypothesis
--- applies at a budget the test pays for and at an event the absorption keeps
--- permitted, and the emulation's slack `δ` is what separates the two masses.
-audit-carry : (f : A ⇒ X ⊗₀ B′) (g : A ⇒ Y ⊗₀ B′) {cs : ℕ} (em : f ≤UC[ cs ] g)
-              {𝔈 : AuditEvent w A X B′} {𝔉 : AuditEvent w′ A Y B′}
-            → Absorbs (sim em) cs 𝔈 𝔉
-            → (ε : ℕ → ℚ) (δ : ℚ) → 0ℚ ℚ.< δ
-            → AuditBound g 𝔉 ε → AuditBound f 𝔈 (λ q → ε (simCost q cs) ℚ.+ δ)
-audit-carry {B′ = B′} {Y = Y} f g {cs} em {𝔉 = 𝔉} cl ε δ δ>0
-            bnd W Et m {c} {c′} qEt qm ev n =
-  subst (λ k → at n x ℚ.≤ ε k ℚ.+ δ) (ctxBudget-absorb c c′ cs) bound
+-- The whole of the carry that is not the comparison: the ideal side is tested
+-- through `Et ∘ id ⊗₁ (s ⊗₁ id)` — the same context with the simulator in
+-- front of it — so the ideal bound applies at a budget the test pays for and
+-- at an event the absorption keeps permitted, and the comparison's own error
+-- is what separates the two masses.
+--
+-- The comparison is a SCHEDULE read at the allowance the real context carries,
+-- because an explicit-error consumer (`UC.Quantitative.Family._≈ctx[_]_`) has
+-- one and an arbitrary positive slack cannot stand in for it at a fixed
+-- security parameter.  The two allowances are different and both are visible:
+-- `ε` is read at the real context's `ctxBudget c c′`, `δ` at the absorbed
+-- context's, which `ctxBudget-absorb` identifies with `simCost _ cs`.
+audit-carryᵉ : (f : A ⇒ X ⊗₀ B′) (g : A ⇒ Y ⊗₀ B′) (s : Y ⇒ X) {cs : ℕ} → QB cs s
+             → {𝔈 : AuditEvent w A X B′} {𝔉 : AuditEvent w′ A Y B′}
+             → Absorbs s cs 𝔈 𝔉 → (ε δ : ℕ → ℚ)
+             → ((W : Obj) (Et : Test (W ⊗₀ (X ⊗₀ B′))) (m : Closure (W ⊗₀ A))
+                {c c′ : ℕ} → QB c Et → QB c′ m → (n : ℕ)
+                → Σ[ k ∈ ℕ ] at n (obs (tv₁ W f Et) m)
+                             ℚ.≤ at k (obs (tv₁ W g (tv₁ W (s ⊗₁ id) Et)) m)
+                                 ℚ.+ ε (ctxBudget c c′))
+             → AuditBound g 𝔉 δ → AuditBound f 𝔈 (λ q → δ (simCost q cs) ℚ.+ ε q)
+audit-carryᵉ {B′ = B′} {Y = Y} f g s {cs} qs {𝔉 = 𝔉} cl ε δ near
+             bnd W Et m {c} {c′} qEt qm ev n =
+  subst (λ k → at n x ℚ.≤ δ k ℚ.+ ε (ctxBudget c c′)) (ctxBudget-absorb c c′ cs) bound
   where
-  s = sim em
-
   Et′ : Test (W ⊗₀ (Y ⊗₀ B′))
   Et′ = Et ∘ id ⊗₁ (s ⊗₁ id)
 
@@ -179,14 +189,27 @@ audit-carry {B′ = B′} {Y = Y} f g {cs} em {𝔉 = 𝔉} cl ε δ δ>0
   z = obs (tv₁ W g Et′) m
 
   qEt′ : QB (c ℕ.* ((cs ℕ.⊔ 1) ℕ.⊔ 1)) Et′
-  qEt′ = qb-∘ qEt (qb-T₁ (qb-sub (sim-qb em)))
+  qEt′ = qb-∘ qEt (qb-T₁ (qb-sub qs))
 
   ev′ : 𝔉 W Et′ m (ctxBudget (c ℕ.* ((cs ℕ.⊔ 1) ℕ.⊔ 1)) c′)
   ev′ = subst (𝔉 W Et′ m) (sym (ctxBudget-absorb c c′ cs)) (cl W Et m (ctxBudget c c′) ev)
 
-  bound : at n x ℚ.≤ ε (ctxBudget (c ℕ.* ((cs ℕ.⊔ 1) ℕ.⊔ 1)) c′) ℚ.+ δ
-  bound = let k , le = carry-obs f g s (emulate em) W Et m δ δ>0 n in begin
-    at n x        ≤⟨ le ⟩
-    at k z ℚ.+ δ  ≤⟨ +-monoˡ-≤ δ (bnd W Et′ m qEt′ qm ev′ k) ⟩
-    ε _ ℚ.+ δ     ∎
+  bound : at n x ℚ.≤ δ (ctxBudget (c ℕ.* ((cs ℕ.⊔ 1) ℕ.⊔ 1)) c′) ℚ.+ ε (ctxBudget c c′)
+  bound = let k , le = near W Et m qEt qm n in begin
+    at n x                        ≤⟨ le ⟩
+    at k z ℚ.+ ε (ctxBudget c c′)
+      ≤⟨ +-monoˡ-≤ (ε (ctxBudget c c′)) (bnd W Et′ m qEt′ qm ev′ k) ⟩
+    δ _ ℚ.+ ε (ctxBudget c c′)    ∎
     where open ≤-Reasoning
+
+-- The graded carry: the same, at the comparison a QUALITATIVE emulation
+-- supplies — `carry-obs`, whose error is the constant `δ` the domination is
+-- read at.
+audit-carry : (f : A ⇒ X ⊗₀ B′) (g : A ⇒ Y ⊗₀ B′) {cs : ℕ} (em : f ≤UC[ cs ] g)
+              {𝔈 : AuditEvent w A X B′} {𝔉 : AuditEvent w′ A Y B′}
+            → Absorbs (sim em) cs 𝔈 𝔉
+            → (ε : ℕ → ℚ) (δ : ℚ) → 0ℚ ℚ.< δ
+            → AuditBound g 𝔉 ε → AuditBound f 𝔈 (λ q → ε (simCost q cs) ℚ.+ δ)
+audit-carry f g em {𝔈} {𝔉} cl ε δ δ>0 =
+  audit-carryᵉ f g (sim em) (sim-qb em) {𝔈} {𝔉} cl (λ _ → δ) ε
+    λ W Et m _ _ → carry-obs f g (sim em) (emulate em) W Et m δ δ>0

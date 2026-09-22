@@ -22,6 +22,12 @@
 --                        immaterial: the metatheory never sees it
 --   `Model.Enrichment`   the budget and the mass `UC.Audit` asks of a base,
 --                        supplied here rather than assumed
+--   `Model.EventBounds`  one-sided event bounds on a certified context's
+--                        observation, their two allowance presentations and
+--                        the explicit-error carry between them — `UC.Audit`'s
+--                        carry in the machine's own `ctxRun`/`Dₚ` vocabulary,
+--                        independent of any way of building a context that
+--                        reads an event
 --   `Model.Dominated`    `UC.Machine.Bridge.ContextDominated` at SEAL objects
 --                        — `ifaceᵒ` is onto — which is the ancilla quantifier
 --                        an ℰ-agreement has
@@ -47,6 +53,7 @@ module CategoricalCrypto.UC.Model where
 
 import CategoricalCrypto.UC.Model.Dominated
 import CategoricalCrypto.UC.Model.Enrichment
+import CategoricalCrypto.UC.Model.EventBounds
 import CategoricalCrypto.UC.Model.Family
 import CategoricalCrypto.UC.Model.Family.Ingest
 import CategoricalCrypto.UC.Model.Family.Negligible

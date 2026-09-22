@@ -23,4 +23,5 @@ private module A = Aud 𝔾ᵒ observationᵒ budgetᵒ massᵒ
 
 open A public
   using (_≤UC[_]_; sim; sim-qb; emulate; simCost; q≤simCost; AuditEvent; AuditBound;
-         pinned; pinned-bound; absorb; Absorbs; absorb-absorbs; carry-obs; audit-carry)
+         pinned; pinned-bound; absorb; Absorbs; absorb-absorbs; carry-obs; audit-carry;
+         audit-carryᵉ)

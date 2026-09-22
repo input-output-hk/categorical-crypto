@@ -38,7 +38,7 @@ open import ProbabilisticLogic.Dp
 module ProbabilisticLogic.Dp.Advantage where
 
 private variable d e h d′ e′ : Dₚ Bool
-                 ε δ : ℚ
+                 ε δ r r′ : ℚ
 
 -- The mass of verdict `b` reached within `n` steps.
 Pr≤[_] : Bool → ℕ → Dₚ Bool → ℚ
@@ -125,3 +125,33 @@ d ≈ₚ[ ε ] e = (d ≼ₚ[ ε ] e) × (e ≼ₚ[ ε ] d)
 ≈ₚ[]-resp : d ≈ₚ d′ → e ≈ₚ e′ → d ≈ₚ[ ε ] e → d′ ≈ₚ[ ε ] e′
 ≈ₚ[]-resp (dd , dd′) (ee , ee′) (p , q) =
   ≼ₚ[]-resp dd′ ee p , ≼ₚ[]-resp ee′ dd q
+
+------------------------------------------------------------------------
+-- One-sided upper bounds
+
+-- The probability of a reported event, as close as this layer can state it:
+-- the limiting mass is a supremum never formed, so a bound on it is a bound on
+-- every finite approximant.  One-sided by design — this is not a degenerate
+-- `_≈ₚ[_]_` against `returnₚ false`, which would also constrain the
+-- `false`-mass and so fail for `botₚ`.
+Upper : Dₚ Bool → ℚ → Set
+Upper d r = (k : ℕ) → Pr≤ k d ℚ.≤ r
+
+upper-mono : r ℚ.≤ r′ → Upper d r → Upper d r′
+upper-mono le up k = ≤-trans (up k) le
+
+-- The transport: the comparison supplies a depth of `e` at each depth of `d`,
+-- and no positive slack is spent doing it.
+upper-≼[] : d ≼ₚ[ ε ] e → Upper e r → Upper d (r ℚ.+ ε)
+upper-≼[] {ε = ε} le up k = let m , bd = le true k in ≤-trans bd (+-monoˡ-≤ ε (up m))
+
+upper-≈[] : d ≈ₚ[ ε ] e → Upper e r → Upper d (r ℚ.+ ε)
+upper-≈[] (le , _) = upper-≼[] le
+
+-- …and along an exact agreement, which is what crossing a model's seal costs
+-- (`CategoricalCrypto.UC.Model.Dominated.ctxRunᵒ`).
+upper-≼ : d ≼ₚ e → Upper e r → Upper d r
+upper-≼ le up k = let m , bd = le _ (indᵇ-nn true) k in ≤-trans bd (up m)
+
+upper-≈ : d ≈ₚ e → Upper e r → Upper d r
+upper-≈ (le , _) = upper-≼ le
