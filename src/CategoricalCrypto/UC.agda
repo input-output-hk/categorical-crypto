@@ -270,6 +270,7 @@ open import CategoricalCrypto.UC.Machine public
 open import CategoricalCrypto.UC.Machine.Bridge public
 open import CategoricalCrypto.UC.Machine.Dominated public
 open import CategoricalCrypto.UC.Machine.Grading public
+open import CategoricalCrypto.UC.Machine.Monitor public
 open import CategoricalCrypto.UC.Machine.Plug public
 open import CategoricalCrypto.UC.QueryBound public
 open import CategoricalCrypto.UC.QueryBound.Counting public
