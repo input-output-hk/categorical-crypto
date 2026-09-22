@@ -237,3 +237,30 @@ carries that were tried and retired, is route history:
 [`ledger-lift-eps.md`](ledger-lift-eps.md),
 [`consumer-migration.md`](consumer-migration.md),
 [`retirement.md`](retirement.md).
+
+## 8. The serializer, concretely
+
+`…Serialize` supplies one `ser` and proves `SerInj` for it, so the ideal
+headline is available with nothing assumed about encoding:
+
+```agda
+ser    : (n : ℕ) → Ledger.Tx n → List Bool
+serInj : SerInj
+ideal-preserves-value′ : (a V : ℕ) → PreservesValue a V (Ideal a V)
+```
+
+It is built from `Data.Bits.Codec`, whose `Codec A` bundles an encoder with a
+decoder that consumes a *prefix* and returns the unread remainder, subject to
+`decode (encode x ++ r) ≡ just (x , r)`. That law is what makes concatenation
+unambiguous — the first decoder finds the boundary — so `×-codec` needs no
+separator and injectivity is one `cong` away. Lists carry a length prefix
+(which is also what makes the decoder structurally recursive); `ℕ` is unary,
+since the example needs injectivity rather than compactness; a hash is written
+as its `n` bits with no prefix, its width being known to both sides.
+`txCodec n` is these combinators read at `Tx`'s shape, and `ser n` is its
+`encode`. The generic theorems stay parameterized by `ser`: this is an
+instance, not a narrowing.
+
+`SerInj` is literal transaction equality, and the encoding is faithful to
+that: permuting a transaction's inputs changes its bits. A canonical encoding
+of some quotient of `Tx` would be a different, unstated semantic choice.
