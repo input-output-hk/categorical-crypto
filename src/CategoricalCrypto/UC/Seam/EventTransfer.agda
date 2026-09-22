@@ -81,6 +81,12 @@ mutual
   CovL acc f r (inj₁ (inj₂ (_ , v)))       = v ≡ true → acc ≡ true
   CovL acc f r (inj₂ X′)                   = Cov acc f r X′
 
+-- A tree with no leaves covers nothing, which is how a certificate's dead
+-- positions discharge the invariant.
+cov-bot : (acc : Bool) (f r : ℕ) → Cov acc f r botₚ
+cov-bot acc zero    r = tt
+cov-bot acc (suc f) r = cov-bot acc f r , cov-bot acc f r
+
 -- Once the watch has fired nothing is left to cover, which is also the base
 -- case of any discharge: the invariant is a real predicate, not an empty one.
 mutual
