@@ -46,6 +46,14 @@ module RandomOracle (p : ℕ) (In : Type) ⦃ _ : DecEq In ⦄ (outN : ℕ) wher
   ... | yes _ = just v
   ... | no  _ = lookup-bs xs q
 
+  -- A point already in the table is answered FROM the table.  `lookup-bs`
+  -- branches on a `with`, so the reflexive case has to be taken here rather
+  -- than rewritten away by `Class.DecEq.Ext.≟-refl`.
+  lookup-bs-here : ∀ s q h → lookup-bs ((q , h) ∷ s) q ≡ just h
+  lookup-bs-here s q h with q ≟ q
+  ... | yes _  = refl
+  ... | no ¬eq = ⊥-elim (¬eq refl)
+
   step : SFunType Input Output Table
   step (s , i , q) = case lookup-bs s q of λ where
     (just h)  → return-ℚ (s , i , h)
