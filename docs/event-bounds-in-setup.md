@@ -329,8 +329,10 @@ counts and proof-length estimates are not substitutes for these checks.
 ## Spike findings (2026-09-21, branch `hits-spike`, not merged)
 
 Steps 1–3 were attempted in one scratch module, `UC/Quantitative/Hits.agda` (456 lines,
-green, no existing module edited, hatch count unchanged). Outcome: the design passes its
-load-bearing check and stops at §5's lift. Half of §3–§4 already exists in `UC.Audit`.
+green, no existing module edited, hatch count unchanged). Outcome: the construction and
+certificate checks pass, but semantic agreement with the watch and event-sensitive
+contextual adequacy remain open. The spike establishes neither of those obligations by
+the behavior pins alone. Substantial event-bound infrastructure exists in `UC.Audit`.
 
 ### Delivered and checked
 
@@ -386,26 +388,37 @@ load-bearing check and stops at §5's lift. Half of §3–§4 already exists in 
 
 `Mass.at` is `Pr≤` (`UC/Model/Enrichment.agda`); `AuditBound f 𝔈 ε` (`UC/Audit.agda`) is
 `(n : ℕ) → at n (obs (tv₁ Y f Et) m) ≤ ε (ctxBudget c c′)` at every permitted context —
-`Upper` at every context, unnamed; `audit-carry` is §4's transport (simulator absorbed
-into the test, `simCost` rescaling via `ctxBudget-absorb`, one positive slack), generic
-in base and grade, proved, with `Examples.HashForward.Audit` as a worked instance at a
-nontrivial grade. `UC/Audit.agda`'s header names the very gap `Hits` closes ("quantifying
+`Upper` at every context, unnamed. `audit-carry` supplies the structural pattern for
+§4 (simulator absorbed into the test, `simCost` rescaling via `ctxBudget-absorb`, one
+positive slack), with `Examples.HashForward.Audit` as a worked instance at a
+nontrivial grade. Its premise is QUALITATIVE `f ≤UC[ cs ] g`, however, not an
+explicit-error comparison. Its arbitrary positive slack cannot replace a nonzero
+quantitative error at a fixed security parameter. Reuse its event designation,
+absorption, and accounting machinery, and factor or add an explicit-error carry using
+`upper-≈[]`; do not claim the existing theorem already discharges §4.
+`UC/Audit.agda`'s header names the very gap `Hits` closes ("quantifying
 over every budgeted test … bounds the mass of a constant-`true` verdict too"); making the
-verdict be the flag is the repair. §3–§4 should be written as consumers of `audit-carry`.
+verdict be the flag is the proposed repair, subject to semantic adequacy.
 
-**Convention clash.** `AuditBound` reads the schedule at the CARRIED budget
-`ctxBudget c c′`; §3 forbids that in favour of the cap `ctxBudget c c′ ≤ q` read at the
-constant. For the ledger's `εᴸ` the two coincide (monotone in `q`); in general one must
-give. Needs a ruling before step 4.
+**Two allowance presentations.** `AuditBound` reads the schedule at the CARRIED budget
+`ctxBudget c c′`; §3 uses a cap `ctxBudget c c′ ≤ q` for the public statement. Neither
+must be discarded: use carried budgets internally and prove the adapter to capped
+allowances. For a monotone schedule the carried bound implies the capped bound; a
+bound at every cap can be specialized to the carried allowance. At the family level,
+also preserve the slack's quantifier position: this pointwise observation does not
+produce a uniform capped slack from context-local witnesses.
 
-### Rulings needed
+### Post-spike decision
 
-1. Convention: adopt `AuditBound`'s carried-budget reading and derive the capped form per
-   schedule where monotonicity holds (recommended: it reuses `audit-carry`), or keep the
-   cap and reprice `audit-carry`.
-2. The lift: commission the event-sensitive decomposition (route (ii), Transfer-scale), or
-   accept the ideal-side theorem at the strategy level with `EventDominated` as the one
-   explicitly named bridge.
+Continue toward the contextual event theorem. The report identifies missing proofs,
+not a counterexample to the construction. Retain the strategy-level results while
+proving the lift, but do not treat a contextual headline conditional on
+`EventDominated` as completion.
+
+Use carried budgets internally and capped allowances publicly, with proved adapters
+for the schedules used by the ledger. Commission event-sensitive adequacy, preferring
+factoring or parameterizing the existing decomposition over a second independent
+copy of `UC.Seam.Transfer`.
 
 ### Landing sites, if continued
 
@@ -417,3 +430,108 @@ with `Observable.auditWatchFrom = watchFrom (reportsLoss s₀)` so the pin is `r
 transports/`EventDominated` → `UC.Model.EventBounds`, after reconciling with `UC.Audit`;
 `auditMonitor`, `auditWatch-IsWatch` → `Examples.ChimericLedger.Observable`, `ledger-hits`
 → `Property`.
+
+## Post-spike work package
+
+This is a substantive semantic bridge, not a small vocabulary cleanup. The next
+success criterion is an inhabited event-sensitive lift for the actual compiler;
+deleting `UC.Saturated` is downstream of that result.
+
+### A. Prove monitor agreement at embedded strategies
+
+Discharge §2 obligation 4 for the compiled monitor and completion reader. Preserve
+the accumulated audit event, termination, and divergence. A flag raised before a
+diverging continuation must not become a reported hit. The existing behavior pins
+are useful checks but do not replace this theorem.
+
+### B. Resolve the closure and zero-allowance accounting
+
+The spike's compiled TEST certificate is `κμ(c) = 2 · (c ⊔ 1)`. With the original
+closure certificate, the compiled contextual allowance is:
+
+```text
+2 · (c ⊔ 1) · (c′ ⊔ 1).
+```
+
+This is not bounded by a function of the original allowance
+`q = c · (c′ ⊔ 1)` alone: at `c = 0`, `q = 0` regardless of `c′`.
+Do not infer a polynomial-cap theorem from the test certificate alone.
+
+At the concrete closed-machine boundary, try recertifying the SAME closure at
+`QB 0` using the closed-process certificate. Prove the passage through the model's
+closure representation. This would give:
+
+```text
+compiled allowance = 2 · (c ⊔ 1) ≤ 2 · (q ⊔ 1).
+```
+
+This is a proposed model-specific proof, not a law of an arbitrary `Budget`.
+It changes a certificate, not the closure or the admitted experiment.
+
+Keep two costs distinct throughout:
+
+- The compiled contextual allowance used to instantiate quantitative comparison.
+- The honest-interface query allowance of the strategy used with `Birthday.target`.
+
+A flag-port query need not be a ledger query. First try to preserve the original
+honest-query bound in the event-sensitive decomposition even if the coarse compiled
+certificate charges more. Do not make a new port-specific budget calculus a
+prerequisite. If only a conservative polynomial rescaling can be established,
+expose it in the numerical statement and check it against the intended public
+bound; do not silently retain the old formula.
+
+### C. Prove semantic event-sensitive decomposition
+
+Do not require the extracted strategy to be syntactically equal to `auditWatch d`.
+Truncation may make that formulation unsuitable. The sufficient target is the
+one-sided semantic estimate:
+
+```text
+for every certified context C, depth k, and positive slack η,
+there exists a finite strategy d with the proved honest-query allowance such that
+
+Pr≤ k (compiled monitored context run)
+  ≤ watched-event probability under d + η.
+```
+
+The strategy may depend on the context, depth, slack, and compared process. The
+ideal-side strategy bound must apply uniformly to every strategy so obtained.
+Identify the precise accumulator invariant that connects extracted verdicts to the
+audit event. Reuse or factor the existing extraction/decomposition proof where
+possible; a semantic relation or inequality is enough, without function
+extensionality or equality of strategy syntax.
+
+Check the stop/return, query/answer, random choice, and truncation cases explicitly.
+The proof must establish the required direction of the event inequality, not merely
+preserve an arbitrary Boolean verdict.
+
+### D. Discharge the lift and migrate the quantitative carry
+
+Instantiate `EventDominated` for the actual compiler using C, then derive the ideal
+contextual event bound from `Birthday.target` and watch soundness. Choose positive
+negligible slack at the required position, independently of the context, to obtain
+the family result.
+
+Factor or add the explicit-error audit carry described above. Preserve event-class
+membership under simulator absorption and charge the comparison at the compiled
+test's actual allowance. Reuse `upper-≈[]` for the numerical step; do not replace
+the explicit error by the qualitative carry's arbitrary slack.
+
+Migrate the ledger transfer through this proved lift and quantitative carry before
+retiring any old event machinery.
+
+### Acceptance and sequence
+
+1. Checked agreement with `auditWatch` at embedded strategies.
+2. Checked compiled-context and honest-query accounting, including allowance zero.
+3. Event-sensitive one-sided decomposition and an inhabited `EventDominated`.
+4. The ideal contextual bound and explicit-error transfer applied to the ledger.
+5. The existing observable counterexample and trajectory appendix retain their
+   events and justified accounting.
+6. Only then, retirement and full closure checks under the existing verification
+   rules.
+
+The contextual acceptance theorem must have neither `EventDominated` nor the
+desired contextual event bound as a remaining premise. Retain the semantic stop
+conditions above: proving a useful conditional lemma is progress, but is not a
+substitute for discharging the bridge.
