@@ -10,10 +10,11 @@
 -- closure recertified.
 --
 -- Semantic agreement of the compiled experiment with the strategy-level watch
--- is `UC.Machine.Monitor.Agree.agree`.  What is NOT established is the
--- event-sensitive contextual lift: `EventDominated` is stated and consumed and
--- nowhere inhabited, and `ledger-hits` is the ledger's single-level bound
--- modulo exactly it (`docs/event-bounds-in-setup.md`, work package C).
+-- is `UC.Machine.Monitor.Agree.agree`.  `EventDominated` is the lift of
+-- `docs/event-bounds-in-setup.md` §5 read at the ORIGINAL allowance, which
+-- nothing inhabits: `UC.Quantitative.EventLift.eventDominatedᵘ` is the lift
+-- that is proved, one query dearer, and `ledger-hitsᵘ` there supersedes the
+-- conditional `ledger-hits` below.
 
 open import Categories.Category using (Category)
 
@@ -27,9 +28,10 @@ open import Data.Product.Base using (_,_)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Rational.Properties
   using (+-mono-≤) renaming (≤-reflexive to ≤-reflexiveℚ; ≤-trans to ≤-transℚ)
-open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl)
+open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl; sym)
 
 open import ProbabilisticLogic.Dp using (Dₚ)
+open import ProbabilisticLogic.Dp.Advantage
 
 open import CategoricalCrypto.Examples.ChimericLedger using (Variant; module Ledger)
 open import CategoricalCrypto.Iface
@@ -37,6 +39,7 @@ open import CategoricalCrypto.Protocol using (Protocol)
 open import CategoricalCrypto.Protocol.Machine using (morphism; runᴹ)
 open import CategoricalCrypto.Protocol.Machine.Agree using (prAgree)
 open import CategoricalCrypto.Protocol.Observe using (Bounded; Pr)
+open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Approximate
   using ( GradedBound-+[_]; GradedBound-reindex; Negligible; Negligible-+
         ; NegligibleBound )
@@ -44,20 +47,14 @@ open import CategoricalCrypto.UC.Budget
   using (ctxBudget; ctxBudget-closed; q≤simCost; simCost)
 open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; Ωᴵ)
 open import CategoricalCrypto.UC.Machine.Bridge using (ctxRun)
+open import CategoricalCrypto.UC.Machine.Monitor
+open import CategoricalCrypto.UC.Model.EventBounds
 open import CategoricalCrypto.UC.QueryBound using (QB; qb-closed)
 
 import CategoricalCrypto.Examples.ChimericLedger.Observable as Observable
 import CategoricalCrypto.Examples.ChimericLedger.System as System
 
 module CategoricalCrypto.UC.Quantitative.Hits where
-
--- TEMPORARY SHIM: the spike's blocks have landed in these four modules, and
--- the re-export keeps its importers working until they are repointed.
-open import ProbabilisticLogic.Dp.Advantage public
-open import CategoricalCrypto.Strategy public
-open import CategoricalCrypto.UC.Machine.Grading public using (qb-T₁ᴵ; qb-subᴵ)
-open import CategoricalCrypto.UC.Machine.Monitor public
-open import CategoricalCrypto.UC.Model.EventBounds public
 
 private module 𝒫 = Category 𝒫ᴵ
 
@@ -85,6 +82,11 @@ Hitsᶠ {B = B} ε f μ = Boundedᶠ f (λ n → readoutᴹ (B n) (μ n)) ε
 Hitsᴺ : {A B : ℕ → Iface} → ((n : ℕ) → Proc (A n) (B n))
       → ((n : ℕ) → Proc (B n) (B n ⊗ᴵ Flagᴵ)) → (ℕ → ℕ → ℚ) → Set₁
 Hitsᴺ {B = B} f μ ε = Boundedᴺ f (λ n → readoutᴹ (B n) (μ n)) ε
+
+hitsᶠ⇒hitsᴺ : {A B : ℕ → Iface} (f : (n : ℕ) → Proc (A n) (B n))
+              (μ : (n : ℕ) → Proc (B n) (B n ⊗ᴵ Flagᴵ)) (ε : ℕ → ℕ → ℚ)
+            → Hitsᶠ ε f μ → Hitsᴺ f μ ε
+hitsᶠ⇒hitsᴺ f μ = boundedᶠ⇒boundedᴺ f _
 
 ------------------------------------------------------------------------
 -- The closure recertification
@@ -223,13 +225,22 @@ upper-run P d bnd k =
                         (≤-reflexiveℚ (h k)))
               bnd
 
+-- …and back, at the one depth `prAgree` names: layer 1's verdict probability
+-- IS an approximant of the machine image's run, so bounding every approximant
+-- bounds it.
+run-upper : {B : Iface} (P : Protocol unitᴵ B) (d : Strat (Neg B) (Pos B)) {r : ℚ}
+          → Upper (runᴹ (morphism P) d) r → Pr P d ℚ.≤ r
+run-upper P d up =
+  let n , h = prAgree true P d in ≤-transℚ (≤-reflexiveℚ (sym (h 0))) (up (n ℕ.+ 0))
+
 ------------------------------------------------------------------------
 -- The event-sensitive one-sided lift, and what it would buy
 
--- NOT PROVED HERE, and NOT an axiom: nothing below inhabits it, and the only
+-- NOT PROVED HERE, and NOT an axiom: nothing inhabits it, and the only
 -- consumer takes it as a hypothesis.  `docs/event-bounds-in-setup.md` §5 is
--- the statement; the spike report says exactly where the existing domination
--- machinery stops short of it.
+-- the statement; what IS proved is the same lift with the strategy allowance
+-- one query larger (`UC.Quantitative.EventLift.eventDominatedᵘ`), that unit
+-- being the monitor accumulator's own potential.
 EventDominated : Set₁
 EventDominated =
     {B : Iface} (report : Neg B → Pos B → Bool)
@@ -258,8 +269,10 @@ module _ (ℓ : ℕ) (ser : Ledger.Tx ℓ → List Bool) (s₀ : Ledger.LState �
   auditWatch-IsWatch = (λ _ _ → refl) , (λ _ _ _ → refl) , (λ _ _ _ → refl)
 
   -- `Observable.auditWatch-bounded`'s conclusion, crossed to the machine
-  -- observation and read at every admitted context: the single-level content
-  -- of `Property.ideal-preserves-value`, modulo the one unproved lift.
+  -- observation and read at every admitted context, modulo the lift above:
+  -- it keeps the environment's own allowance where
+  -- `UC.Quantitative.EventLift.ledger-hitsᵘ` pays a query for it, and pays a
+  -- positive slack instead.
   ledger-hits : EventDominated → (vr : Variant) {ε : ℕ → ℚ}
               → Bounded (Sy.Sys vr s₀) (Ob.auditWatch s₀) ε
               → (q : ℕ) (η : ℚ) → 0ℚ ℚ.< η

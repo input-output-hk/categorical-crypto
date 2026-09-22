@@ -29,31 +29,43 @@
 open import Categories.Category using (Category)
 
 open import Data.Bool.Base using (Bool; false)
+open import Data.Empty using (⊥-elim)
 open import Data.List.Base using (List)
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Product.Base using (Σ-syntax; _,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ)
 open import Data.Rational.Properties
-open import Relation.Binary.PropositionalEquality using (sym)
+open import Data.Sum.Base using ([_,_]; inj₂)
+open import Function.Base using (id)
+open import Relation.Binary.PropositionalEquality using (subst; sym)
 
 import Data.Nat.Properties as ℕP
 
-open import ProbabilisticLogic.Dp using (_≈ₚ_)
+open import ProbabilisticLogic.Dp using (_≈ₚ_; ≈ₚ-sym)
+open import ProbabilisticLogic.Dp.Advantage using (Upper; upper-≈)
 open import ProbabilisticLogic.Dp.Reasoning using (_⟨≈⟩_)
 
 open import CategoricalCrypto.Examples.ChimericLedger using (Variant; module Ledger)
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Protocol using (Protocol)
 open import CategoricalCrypto.Protocol.Machine using (morphism; runᴹ)
-open import CategoricalCrypto.Protocol.Observe using (Bounded)
-open import CategoricalCrypto.Strategy using (Strat; asks≤; asks≤-mono)
-open import CategoricalCrypto.UC.Budget using (ctxBudget)
+open import CategoricalCrypto.Protocol.Observe using (Bounded; Pr)
+open import CategoricalCrypto.Strategy using (Strat; IsWatch; asks≤; asks≤-mono)
+open import CategoricalCrypto.UC.Budget using (c≤ctxBudget; ctxBudget; ctxBudget-closed)
 open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; Ωᴵ; T₁ᴵ; ⟦_⟧ᴼ)
 open import CategoricalCrypto.UC.Machine.Bridge using (λᴵ⇒)
 open import CategoricalCrypto.UC.Machine.Dominated using (CovCtx; eventSkeleton)
+open import CategoricalCrypto.UC.Machine.Monitor using (compileᴹ; monitorᴹ; κμ)
+open import CategoricalCrypto.UC.Machine.Monitor.Agree
+  using (agree; m₀; stratTest; stratTest-embeds)
 open import CategoricalCrypto.UC.Machine.Slide using (Kctx; ctxRun-conj; ctxRun-slide)
-open import CategoricalCrypto.UC.QueryBound using (QB)
+open import CategoricalCrypto.UC.QueryBound
+  using (QB; certified⇒QB; qb-closed; qb-resp-≈; qbᵢ-wire)
+open import CategoricalCrypto.UC.QueryBound.Compose.Laws using (qb-∘-category)
 open import CategoricalCrypto.UC.Quantitative.EventLift.Cov using (covCtx)
 open import CategoricalCrypto.UC.Quantitative.Hits
+open import CategoricalCrypto.UC.Seam using (strategyEnv)
+open import CategoricalCrypto.UC.Seam.Budget using (qb-strategyEnv)
 
 import CategoricalCrypto.Examples.ChimericLedger.Observable as Observable
 import CategoricalCrypto.Examples.ChimericLedger.System as System
@@ -64,12 +76,6 @@ private module 𝒫 = Category 𝒫ᴵ
 
 ------------------------------------------------------------------------
 -- The compiled context, closed
-
--- An environment's allowance covers its test's own rate; `UC.Budget` is
--- where this belongs, beside `q≤simCost`.
-c≤ctxBudget : (c c′ : ℕ) → c ℕ.≤ ctxBudget c c′
-c≤ctxBudget c c′ = ℕP.≤-trans (ℕP.≤-reflexive (sym (ℕP.*-identityʳ c)))
-                              (ℕP.*-monoʳ-≤ c (ℕP.m≤n⊔m c′ 1))
 
 -- The compiled test with the hole `ctxRun` closes over reopened, which is the
 -- shape `Kctx` slides the closure into.
@@ -148,6 +154,50 @@ eventDominatedᵘ {B} report w iw u Y E m {c} qE r h =
   where
   pm = covCtx Y B report E m qE
 
+-- …as an event bound at a CAPPED allowance, which is the public shape
+-- (`UC.Model.EventBounds`'s two presentations).  The strategy hypothesis is
+-- read at the cap plus the accumulator's one unit, `c ≤ ctxBudget c c′ ≤ q`
+-- being what rescales the test's own rate to the cap.
+hitsᵘ : {B : Iface} (report : Neg B → Pos B → Bool)
+        (w : Bool → Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) → IsWatch report w
+      → (u : Proc unitᴵ B) (q : ℕ) {r : ℚ}
+      → ((d : Strat (Neg B) (Pos B)) → asks≤ (q ℕ.+ 1) d → Upper (runᴹ u (w false d)) r)
+      → HitsAt q r u (monitorᴹ report)
+hitsᵘ report w iw u q h Y E m {c} {c′} qE qm le =
+  eventDominatedᵘ report w iw u Y E m qE _
+    λ d a → h d (asks≤-mono (ℕP.+-monoˡ-≤ 1 (ℕP.≤-trans (c≤ctxBudget c c′) le)) d a)
+
+------------------------------------------------------------------------
+-- …and back to the strategy level
+
+-- The strategy context `UC.Machine.Monitor.Agree.agree` is stated at, with the
+-- certificate the strategy's own ask-depth gives it: `stratTest-embeds` reads
+-- the test as the strategy environment behind one wire, and `qb-∘` multiplies
+-- by that wire's rate of 1.
+qb-stratTest : (B : Iface) {q : ℕ} (d : Strat (Neg B) (Pos B)) → asks≤ q d
+             → QB q (stratTest B d)
+qb-stratTest B {q} d a =
+  qb-resp-≈ (𝒫.Equiv.sym (stratTest-embeds B d))
+    (subst (λ k → QB k (strategyEnv B d 𝒫.∘ λᴵ⇒)) (ℕP.*-identityʳ q)
+      (qb-∘-category (unitᴵ ⊗ᴵ B) B Ωᴵ (strategyEnv B d) λᴵ⇒
+        (qb-strategyEnv B q d a) (certified⇒QB (qbᵢ-wire [ ⊥-elim , id ] inj₂))))
+
+-- …so a contextual event bound, read at that context, IS the strategy-level
+-- watched bound at the same allowance: the closure is closed, so
+-- `ctxBudget q 0 = q` and the strategy keeps the whole cap.  Nothing is spent
+-- coming back — the one extra query `hitsᵘ` charges is charged going out.
+hits⇒bounded :
+    {B : Iface} (report : Neg B → Pos B → Bool)
+    (w : Bool → Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) → IsWatch report w
+  → (P : Protocol unitᴵ B) (q : ℕ) {r : ℚ}
+  → HitsAt q r (morphism P) (monitorᴹ report)
+  → (d : Strat (Neg B) (Pos B)) → asks≤ q d → Pr P (w false d) ℚ.≤ r
+hits⇒bounded {B} report w iw P q h d a =
+  run-upper P (w false d)
+    (upper-≈ (≈ₚ-sym _ _ (agree B report w iw (morphism P) d))
+             (h unitᴵ (stratTest B d) m₀ (qb-stratTest B d a) (qb-closed m₀)
+                (ℕP.≤-reflexive (ctxBudget-closed q))))
+
 ------------------------------------------------------------------------
 -- The ledger, at one level
 
@@ -192,10 +242,7 @@ module _ (ℓ : ℕ) (ser : Ledger.Tx ℓ → List Bool) (s₀ : Ledger.LState �
                → Bounded (Sy.Sys vr s₀) (Ob.auditWatch s₀) ε → (q : ℕ)
                → HitsAt q (ε (q ℕ.+ 1)) (morphism (Sy.Sys vr s₀))
                           (auditMonitor ℓ ser s₀)
-  ledger-hitsᵘ vr {ε} bnd q Y E m {c} {c′} qE qm le =
-    eventDominatedᵘ (Ob.reportsLoss s₀) (Ob.auditWatchFrom s₀)
-      (auditWatch-IsWatch ℓ ser s₀) (morphism (Sy.Sys vr s₀)) Y E m qE (ε (q ℕ.+ 1))
-      λ d a → upper-run (Sy.Sys vr s₀) (Ob.auditWatch s₀ d)
-                        (bnd (q ℕ.+ 1) d
-                             (asks≤-mono (ℕP.+-monoˡ-≤ 1
-                                           (ℕP.≤-trans (c≤ctxBudget c c′) le)) d a))
+  ledger-hitsᵘ vr bnd q =
+    hitsᵘ (Ob.reportsLoss s₀) (Ob.auditWatchFrom s₀) (auditWatch-IsWatch ℓ ser s₀)
+          (morphism (Sy.Sys vr s₀)) q
+          λ d a → upper-run (Sy.Sys vr s₀) (Ob.auditWatch s₀ d) (bnd (q ℕ.+ 1) d a)

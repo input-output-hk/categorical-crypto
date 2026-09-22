@@ -94,6 +94,13 @@ simCost q cs = q ℕ.* (cs ℕ.⊔ 1)
 q≤simCost : (q cs : ℕ) → q ℕ.≤ simCost q cs
 q≤simCost q cs = ≤-trans (≤-reflexive (sym (*-identityʳ q))) (*-monoʳ-≤ q (m≤n⊔m cs 1))
 
+-- …and the same arithmetic read at a context's own allowance, which the two
+-- being the same function of their arguments makes the same theorem: an
+-- environment's allowance covers its test's rate, so a cap on the allowance
+-- caps the rate.
+c≤ctxBudget : (c c′ : ℕ) → c ℕ.≤ ctxBudget c c′
+c≤ctxBudget = q≤simCost
+
 -- …and it does not matter which of the context's two legs is charged, which is
 -- what lets an absorption be read as a substitution in the allowance alone.
 -- Absorptions reach the test through `qb-∘`, so this is the whole arithmetic

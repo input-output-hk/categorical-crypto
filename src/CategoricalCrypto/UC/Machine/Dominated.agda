@@ -219,7 +219,7 @@ CovCtx B q report (N , cert , _) =
 -- between a verdict and the event that produced it, and `CovCtx` is that
 -- connection.  The hypothesis bounds the WATCHED event of every affordable
 -- strategy, `w` being any transformer satisfying the three equations
--- `UC.Quantitative.Hits.IsWatch` asks for.  No slack is spent: the extraction
+-- `Strategy.IsWatch` asks for.  No slack is spent: the extraction
 -- is chosen once the observation's budget is known, as in `skeleton`.
 EventSkeleton : Set₁
 EventSkeleton =
