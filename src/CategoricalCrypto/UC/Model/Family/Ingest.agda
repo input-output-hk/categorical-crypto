@@ -47,8 +47,6 @@ open import CategoricalCrypto.UC.Model.Dominated using (dominatedᵒ; qb-graded�
 open import CategoricalCrypto.UC.Model.Family
   using ( Obj^ω; Δ; _⇒^ω_; _⊛ω_; _≈ℰ[_]_; _≈ℰ_; _≈ℰⁿ_; module Canonical^ω
         ; absorb-negl; carried-negligible; ≈ℰ^ω⇒≤UC )
-open import CategoricalCrypto.UC.Model.Family.Negligible
-  using (module Canonicalᴺ; ≈ℰⁿ⇒≤UC)
 open import CategoricalCrypto.UC.Model.Observation using (𝟘ᵒ)
 open import CategoricalCrypto.UC.Model.Seal using (gradedᵒ; ifaceᵒ)
 open import CategoricalCrypto.UC.QueryBound using (QB)
@@ -121,10 +119,3 @@ module _ (B : ℕ → Iface) where
       -- (`UC.Family.Vanishing`, over the generic `UC.Core.Bridge`).
       ingest-≤UCᵁ : real Canonical^ω.≤UC ideal
       ingest-≤UCᵁ = ≈ℰ^ω⇒≤UC real ideal ingest-≈ℰ
-
-      -- …and in the CANONICAL NEGLIGIBLE order, which keeps `εδ`: the same
-      -- metatheory over a comparison that carries the bound instead of
-      -- quantifying it away (`UC.Asymptotic.Family.≤UC^ωᵉ⇒≤UCᴺ` is the
-      -- simulator-bearing twin).
-      ingest-≤UCᴺ : real Canonicalᴺ.≤UC ideal
-      ingest-≤UCᴺ = ≈ℰⁿ⇒≤UC real ideal ingest-≈ℰⁿ
