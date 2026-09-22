@@ -7,7 +7,7 @@
 --
 -- The content is one interchange: the closure `m` acts on the ancilla leg and
 -- the monitor on the hole, so the two cross, and every other factor is a wire.
--- That interchange is `UC.Machine.Slide.relay-slide`, stated at the hole wire
+-- That interchange is `UC.Machine.Slide.Relay.relay-slide`, at the hole wire
 -- `λᴵ⇐` rather than at a unitor — the machine layer's closed interface is not
 -- the 𝒢-tensor's unit (`UC.Machine.Dictionary.𝟭ᴵ`).
 
@@ -25,8 +25,8 @@ open import CategoricalCrypto.UC.Machine.Dictionary using (sub-resp-≈; sub-∘
 open import CategoricalCrypto.UC.Machine.Monitor using (Flagᴵ; compileᴹ; flagReadᴹ; monitorᴹ)
 open import CategoricalCrypto.UC.Machine.Monitor.Agree
   using (mon-wire; monᴹ; module Read; module Watch)
-open import CategoricalCrypto.UC.Machine.Slide
-  using (Kctx; relay-slide; λ-tri; ρ-tri; ρᴵ⇒)
+open import CategoricalCrypto.UC.Machine.Slide using (Kctx; λ-tri; ρ-tri; ρᴵ⇒)
+open import CategoricalCrypto.UC.Machine.Slide.Relay using (relay-slide)
 
 import Categories.Category.Monoidal.Reasoning as MR
 import CategoricalCrypto.Machines.Sim as Sim
