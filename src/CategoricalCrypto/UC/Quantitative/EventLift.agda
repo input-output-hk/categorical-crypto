@@ -10,20 +10,21 @@
 -- `ctxRun-slide`.
 --
 -- The certificate of that closed context is QUANTIFIED rather than named: the
--- one `UC.Quantitative.EventLift.Budget` builds is a five-fold composite, and
--- `CovCtx` reads a certificate's potential and emissions, so naming it in a
+-- ones `UC.Quantitative.EventLift.Budget` builds are `qb-∘` composites, and
+-- `CovCtx` reads a certificate's potential and emissions, so naming one in a
 -- type makes the elaborator normalize the whole tower.
 --
 -- Two allowances stay apart, as §B asks.  The CLOSURE is recertified at rate
 -- zero (`qb-closed`, `m` being a closed process), so the compiled context's
--- allowance is `κμ c` and not `ctxBudget (κμ c) c′`, which at `c = 0` is
--- bounded by no function of the original `ctxBudget c c′`.  The honest-query
--- allowance is then `κμ c = 2 · (c ⊔ 1)`, NOT the original `c`: the coarse
--- compiled certificate charges the flag read as a second downward activation,
--- and `ctxBudget` cannot tell a flag-port query from an honest one
--- (`UC.Budget`'s header).  That rescaling is exposed below and is why these
--- are not `UC.Quantitative.Hits.EventDominated`, whose hypothesis is read at
--- the original `ctxBudget c c′`.
+-- allowance is a function of the test's own rate `c` and not of
+-- `ctxBudget c c′`, which at `c = 0` is `0` whatever the closure does.  The
+-- honest-query allowance is then `c + 1`, NOT `c`: the extra unit is the
+-- monitor's accumulator, which `CovCtx` forces a certificate to give
+-- potential to (`UC.Quantitative.EventLift.Cov`), and `ctxBudget` cannot tell
+-- a flag-port query from an honest one (`UC.Budget`'s header).  That
+-- rescaling is exposed below and is why these are not
+-- `UC.Quantitative.Hits.EventDominated`, whose hypothesis is read at the
+-- original `ctxBudget c c′`.
 
 open import Categories.Category using (Category)
 
@@ -62,6 +63,12 @@ private module 𝒫 = Category 𝒫ᴵ
 
 ------------------------------------------------------------------------
 -- The compiled context, closed
+
+-- An environment's allowance covers its test's own rate; `UC.Budget` is
+-- where this belongs, beside `q≤simCost`.
+c≤ctxBudget : (c c′ : ℕ) → c ℕ.≤ ctxBudget c c′
+c≤ctxBudget c c′ = ℕP.≤-trans (ℕP.≤-reflexive (sym (ℕP.*-identityʳ c)))
+                              (ℕP.*-monoʳ-≤ c (ℕP.m≤n⊔m c′ 1))
 
 -- The compiled test with the hole `ctxRun` closes over reopened, which is the
 -- shape `Kctx` slides the closure into.
@@ -105,10 +112,10 @@ eventDominatedᶜ {B} report w (wo , wa , wc) u Y E m k kb cov r h =
 
 -- …and what separates that from `EventDominated` itself: ONE premise, a
 -- certificate of the compiled closed context at the ORIGINAL allowance `c`
--- satisfying the accumulator invariant.  The rate is not absurd — at `c = 0`
--- the flag query is answered by the monitor and never reaches `B` — but
--- `qb-∘` charges the flag read as a second downward activation and cannot see
--- that, so `UC.Quantitative.EventLift.Budget` only reaches `κμ c`.
+-- satisfying the accumulator invariant.  Its `QB` half is available —
+-- `UC.Quantitative.EventLift.Budget.qb-compiled′`, off the tight compiled
+-- certificate — but its `CovCtx` half is FALSE at that rate: see
+-- `eventDominatedᵘ` below, which is the same lift at `c + 1`.
 eventDominated :
     ((Y B : Iface) (report : Neg B → Pos B → Bool) {c : ℕ}
      (E : Proc (Y ⊗ᴵ B) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ)) → QB c E
@@ -116,14 +123,29 @@ eventDominated :
   → EventDominated
 eventDominated prem {B} report w iw u Y E m {c} {c′} qE qm r η 0<η h k =
   ≤-trans (eventDominatedᶜ report w iw u Y E m c (proj₁ pm) (proj₂ pm) r
-             (λ d a → h d (asks≤-mono c≤ctx d a)) k)
+             (λ d a → h d (asks≤-mono (c≤ctxBudget c c′) d a)) k)
           (≤-trans (≤-reflexive (sym (+-identityʳ r))) (+-monoʳ-≤ r (<⇒≤ 0<η)))
   where
   pm = prem Y B report E m qE
 
-  c≤ctx : c ℕ.≤ ctxBudget c c′
-  c≤ctx = ℕP.≤-trans (ℕP.≤-reflexive (sym (ℕP.*-identityʳ c)))
-                     (ℕP.*-monoʳ-≤ c (ℕP.m≤n⊔m c′ 1))
+-- …and the lift with that premise discharged, at the one rate it can be:
+-- `UC.Quantitative.EventLift.Cov.covCtx` pays one unit of allowance for the
+-- accumulator's potential and no slack.  At the test's own rate `c` the
+-- premise is not merely unproved but false — `CovCtx` is read at EVERY
+-- zero-potential state, and a context that spends its whole allowance before
+-- its answer reports leaves the accumulator raised with no potential left,
+-- so the next activation's verdict is a `true` with nothing covering it.
+eventDominatedᵘ :
+    {B : Iface} (report : Neg B → Pos B → Bool)
+    (w : Bool → Strat (Neg B) (Pos B) → Strat (Neg B) (Pos B)) → IsWatch report w
+  → (u : Proc unitᴵ B) (Y : Iface) (E : Proc (Y ⊗ᴵ B) Ωᴵ)
+    (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ)) {c : ℕ} → QB c E → (r : ℚ)
+  → ((d : Strat (Neg B) (Pos B)) → asks≤ (c ℕ.+ 1) d → Upper (runᴹ u (w false d)) r)
+  → Upper (eventRun Y u (monitorᴹ report) E m) r
+eventDominatedᵘ {B} report w iw u Y E m {c} qE r h =
+  eventDominatedᶜ report w iw u Y E m (c ℕ.+ 1) (proj₁ pm) (proj₂ pm) r h
+  where
+  pm = covCtx Y B report E m qE
 
 ------------------------------------------------------------------------
 -- The ledger, at one level

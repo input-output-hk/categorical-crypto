@@ -21,18 +21,21 @@
 -- invariant is then an induction on that tree rather than a walk through
 -- `qb-∘`.
 
+open import Categories.Category using (Category)
+
 open import Data.Bool.Base using (Bool; _∨_; false; true)
 open import Data.Bool.Properties using (∨-identityʳ; ∨-zeroʳ)
 open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Nat.Base as ℕ using (ℕ; zero; suc; s≤s; z≤n)
 open import Data.Nat.Properties
-  using (+-assoc; +-comm; +-identityʳ; +-monoʳ-≤; +-monoˡ-≤; m≤m+n; n≮0; ≤-refl;
-         ≤-reflexive; ≤-trans)
-open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
+  using (*-identityʳ; +-assoc; +-comm; +-identityʳ; +-monoʳ-≤; +-monoˡ-≤; m≤m+n;
+         n≮0; ≤-refl; ≤-reflexive; ≤-trans)
+open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Sum.Base using (_⊎_; inj₁; inj₂; [_,_])
 open import Data.Unit.Base using (⊤; tt)
 open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)
+open import Function.Base using (id)
 open import Level using (0ℓ)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; cong; refl; subst; sym; trans)
@@ -41,19 +44,34 @@ open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Machines.Base using (𝒱ₚ)
-open import CategoricalCrypto.UC.Machine using (Proc; Ωᴵ)
+open import CategoricalCrypto.Machines.Base using (𝒱ₚ; 𝒫ₚ)
+open import CategoricalCrypto.UC.Machine using (Proc; 𝒫ᴵ; Ωᴵ; T₁ᴵ; a⇐ᴵ; subᴵ)
+open import CategoricalCrypto.UC.Machine.Bridge using (λᴵ⇒)
+open import CategoricalCrypto.UC.Machine.Dictionary using (a⇐-α⇒)
+open import CategoricalCrypto.UC.Machine.Dominated using (CovCtx)
+open import CategoricalCrypto.UC.Machine.Grading using (qb-a⇐ᴳ; qb-subᴵ; qb-T₁ᴵ)
 open import CategoricalCrypto.UC.Machine.Monitor
-  using (FlagSt; MonSt; idle; waitE; waitF)
+  using (FlagSt; MonSt; compileᴹ; idle; monitorᴹ; waitE; waitF)
 open import CategoricalCrypto.UC.Machine.Monitor.Agree using (module Watch)
-open import CategoricalCrypto.UC.QueryBound using (Ans; AtMost; Certified; QBᵢ; forget)
+open import CategoricalCrypto.UC.Machine.Monitor.Slide
+  using (closedᴹ; compiled-slide; watch-resp-≈)
+open import CategoricalCrypto.UC.Machine.Slide using (Kctx)
+open import CategoricalCrypto.UC.QueryBound
+  using (Ans; AtMost; Certified; QB; QBᵢ; certified⇒QB; forget; qb-closed; qb-resp-≈;
+         qbᵢ-wire)
+open import CategoricalCrypto.UC.QueryBound.Compose.Laws using (qb-∘-category)
 
 import CategoricalCrypto.Machines.Core as Core
+import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.UC.Seam.EventTransfer as ET
 
 module CategoricalCrypto.UC.Quantitative.EventLift.Cov where
 
-private module MC = Core (𝒱ₚ 0ℓ)
+private
+  module MC = Core (𝒱ₚ 0ℓ)
+  module 𝒫 = Category 𝒫ᴵ
+
+open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ) using (_≈ᴹ_; _○ᴹ_; ⟺ᴹ)
 
 module Cert (B : Iface) (report : Neg B → Pos B → Bool)
             (E : Proc (unitᴵ ⊗ᴵ B) Ωᴵ) {c : ℕ} (qE : Certified c E) where
@@ -261,3 +279,46 @@ module Cert (B : Iface) (report : Neg B → Pos B → Bool)
   covᵂ f (((idle  , _)  , (true  , nothing)) , z) = ⊥-elim (owed z)
   covᵂ f (((waitE , _)  , _) , _) = cov-bot false f _
   covᵂ f (((waitF , _)  , _) , _) = cov-bot false f _
+
+------------------------------------------------------------------------
+-- The compiled context, certified and covered
+
+-- The closure is a closed process, so it is recertified at rate zero
+-- (`qb-closed`) and the closed test costs exactly what the original test
+-- does — the second leg of `ctxBudget` never enters.
+qb-closedᴹ : (Y B : Iface) {c : ℕ} (E : Proc (Y ⊗ᴵ B) Ωᴵ)
+             (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ)) → QB c E → QB c (closedᴹ Y B E m)
+qb-closedᴹ Y B {c} E m qE =
+  subst (λ k → QB k (closedᴹ Y B E m))
+        (trans (*-identityʳ (c ℕ.* 1)) (*-identityʳ c))
+    (qb-∘-category (unitᴵ ⊗ᴵ B) (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ
+      (E 𝒫.∘ T₁ᴵ Y λᴵ⇒) (a⇐ᴵ 𝒫.∘ subᴵ m)
+      (qb-∘-category (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) (Y ⊗ᴵ B) Ωᴵ E (T₁ᴵ Y λᴵ⇒) qE
+        (qb-T₁ᴵ Y (unitᴵ ⊗ᴵ B) B λᴵ⇒ (certified⇒QB (qbᵢ-wire [ ⊥-elim , id ] inj₂))))
+      (qb-∘-category (unitᴵ ⊗ᴵ B) ((Y ⊗ᴵ unitᴵ) ⊗ᴵ B) (Y ⊗ᴵ (unitᴵ ⊗ᴵ B))
+        a⇐ᴵ (subᴵ m)
+        (qb-resp-≈ (⟺ᴹ (a⇐-α⇒ {Y} {unitᴵ} {B})) (qb-a⇐ᴳ Y unitᴵ B))
+        (qb-subᴵ unitᴵ (Y ⊗ᴵ unitᴵ) B m (qb-closed m))))
+
+-- The premise of `UC.Quantitative.EventLift.eventDominated`, at the rate the
+-- invariant costs: ONE more than the test's own.  That unit is not slack —
+-- `CovCtx` reads the invariant at every zero-potential state, a raised
+-- accumulator must therefore carry potential, and a context that spends its
+-- whole allowance before reporting leaves none at rate `c`.
+covCtx : (Y B : Iface) (report : Neg B → Pos B → Bool) {c : ℕ}
+         (E : Proc (Y ⊗ᴵ B) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ)) → QB c E
+       → Σ[ kb ∈ QB (c ℕ.+ 1)
+                    (Kctx (compileᴹ Y B (monitorᴹ report) E 𝒫.∘ T₁ᴵ Y λᴵ⇒) m) ]
+           CovCtx B (c ℕ.+ 1) report kb
+covCtx Y B report {c} E m qE =
+    (Watch.watchᴹ B report N , Cert.certᵂ B report N certN , eq)
+  , Cert.covᵂ B report N certN
+  where
+  qD = qb-closedᴹ Y B E m qE
+
+  N = proj₁ qD
+  certN = proj₁ (proj₂ qD)
+
+  eq : Watch.watchᴹ B report N ≈ᴹ Kctx (compileᴹ Y B (monitorᴹ report) E 𝒫.∘ T₁ᴵ Y λᴵ⇒) m
+  eq = watch-resp-≈ B report (proj₂ (proj₂ qD))
+    ○ᴹ ⟺ᴹ (compiled-slide Y B report E m)
