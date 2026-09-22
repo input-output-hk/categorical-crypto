@@ -5,8 +5,8 @@
 -- ingredients `UC.Model.Family` feeds the qualitative tier.
 --
 -- So the tier is not a construction awaiting a model — `_≈ℰᴺ_` and `Canonicalᴺ`
--- exist HERE, and `≈ℰⁿ⇒≤UC` puts an ingested bound
--- (`UC.Model.Family.Ingest.ingest-≈ℰⁿ`) into the INHERITED order with its
+-- exist HERE, and `≈ℰⁿ⇒≤UC` puts a bound of
+-- `UC.Model.Family.Ingest.ingest-≈ℰⁿ`'s shape into the INHERITED order with its
 -- error witness kept, which is where `ingest-≤UCᵁ` lands it too.
 
 open import Data.Nat.Base using (ℕ)
