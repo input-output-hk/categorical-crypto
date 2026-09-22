@@ -5,13 +5,22 @@
 -- `εbirthday q`.  `Protocol.Safety.hit-bounded` carries the adaptivity, so
 -- what is owed here is a non-adaptive per-step certificate.
 --
--- Its crux is the `Stale` field of the invariant: every hash already in the
--- oracle table belongs to a transaction one of whose inputs is already spent,
--- so with `ser-inj` a table HIT at an accepted transaction is impossible —
--- which is what rules out the replay that destroys value with probability 1.
--- The witness for a freshly hashed transaction is its FIRST INPUT, which
--- exists only because `inputConsuming` demands one: this is where the slides'
--- repair is actually spent, and with `chimeric` in its place `Stale` is false.
+-- The certificate decomposes the statement into three independent pieces:
+--
+--   ledger rules + a fresh hash → conservation of `total`
+--     — `Value.conservation`, with no probability in it;
+--   oracle sampling → freshness fails with probability ≤ `εbirthday`
+--     — the potential `φ`, over `Uniform.Duplicate.Φ`;
+--   audit soundness → the observable bound
+--     — `Observable.auditWatch-bounded`, downstream in `Property`.
+--
+-- Freshness fails in two quite different ways, and the invariant's `Stale`
+-- field is what keeps them apart: a table HIT is a repeated query, excluded
+-- outright by `no-replay`, while a coincidence of DISTINCT digests is the bad
+-- event `φ` pays for.  The `Stale` witness for a freshly hashed transaction is
+-- its FIRST INPUT, which exists only because `inputConsuming` demands one:
+-- this is where the slides' repair is actually spent, and with `chimeric` in
+-- its place `Stale` is false.
 
 open import Class.DecEq
 
@@ -74,8 +83,18 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
   -- The invariant
   ----------------------------------------------------------------------
 
+  -- The four ways two hashings can interact, and what decides each:
+  --   the same transaction resubmitted — a table HIT, not a collision between
+  --     distinct inputs; excluded by `Stale` (this is `inputConsuming`'s job);
+  --   distinct transactions with equal serialization — excluded by `ser-inj`,
+  --     spent once, in `stale-not-accepted`;
+  --   distinct queries with equal digests — the bad event, `flag`;
+  --   a new output key `(h , i)` colliding with a live one — also `flag`,
+  --     since `Good.hashed` keeps every live key's hash inside `Hs`.
+
   private
-    -- The hashes in play, and the flag that says two of them coincide.
+    -- The hashes in play, `h₀` among them: the genesis outputs are keyed by
+    -- it, so a fresh digest may swallow them too.  That slot is the `+ q`.
     Hs : RO.Table → List Hash
     Hs []             = h₀ ∷ []
     Hs ((_ , h) ∷ tb) = h ∷ Hs tb
@@ -94,6 +113,15 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
         key∈  : key ∈ proj₁ tx
         spent : lookupU u key ≡ nothing
         hash∈ : proj₁ key ∈ hs
+
+    -- Same-transaction replay, excluded: `ser-inj` identifies the stale
+    -- transaction with the submitted one, and `checkIns-live` insists every
+    -- input the submitted one spends is still live.
+    stale-not-accepted : ∀ u tx u′ vIn hs → checkIns u (proj₁ tx) ≡ just (vIn , u′)
+                       → Stale u hs (ser tx) → ⊥
+    stale-not-accepted u tx u′ vIn hs e₁ (stale t serEq k k∈ spent _) =
+      checkIns-live u (proj₁ tx) vIn u′ k e₁
+        (subst (λ z → k ∈ proj₁ z) (ser-inj serEq) k∈) spent
 
   module _ (a₀ : Addr) (V : ℕ) where
 
@@ -159,18 +187,14 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
       ... | no  _ with lookup-bs-∈ xs q h eq
       ...   | e , mem , pe = e , there mem , pe
 
-    -- A hit at a good state is the replay, and it cannot happen.
+    -- A hit at a good state is the replay, and it cannot happen: the table
+    -- entry it names is indicted by `Stales`.
     private
-      no-replay : ∀ s tbl ins wds outs u′ vIn h
-                → checkIns (proj₁ s) ins ≡ just (vIn , u′)
-                → RO.lookup-bs tbl (ser (ins , wds , outs)) ≡ just h
-                → Good (s , tbl) → ⊥
-      no-replay s tbl ins wds outs u′ vIn h e₁ eo good
-        with lookup-bs-∈ tbl (ser (ins , wds , outs)) h eo
-      ... | e , mem , pe with subst (Stale (proj₁ s) (Hs tbl)) pe (All.lookup (Good.stales good) mem)
-      ...   | stale t serEq k k∈ spent _ =
-              checkIns-live (proj₁ s) ins vIn u′ k e₁
-                (subst (λ z → k ∈ proj₁ z) (ser-inj serEq) k∈) spent
+      no-replay : ∀ s tbl tx u′ vIn h → checkIns (proj₁ s) (proj₁ tx) ≡ just (vIn , u′)
+                → RO.lookup-bs tbl (ser tx) ≡ just h → Good (s , tbl) → ⊥
+      no-replay s tbl tx u′ vIn h e₁ eo good with lookup-bs-∈ tbl (ser tx) h eo
+      ... | e , mem , pe = stale-not-accepted (proj₁ s) tx u′ vIn (Hs tbl) e₁
+              (subst (Stale (proj₁ s) (Hs tbl)) pe (All.lookup (Good.stales good) mem))
 
     ----------------------------------------------------------------------
     -- The invariant survives a freshly hashed transaction
@@ -186,6 +210,9 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
                → Inv ((newU u′ outs h , a′) , (ser (ins , wds , outs) , h) ∷ tbl)
       freshInv s tbl ins wds outs u′ a′ vIn e₁ ec eq (inj₁ fl) h =
         inj₁ (trans (cong (memb h (Hs tbl) ∨_) fl) (∨-zeroʳ (memb h (Hs tbl))))
+      -- The empty-input case is refuted by `ec`: `consumes inputConsuming []`
+      -- is `false`.  THIS is where the repair is spent — it is what puts a
+      -- first input `i₀` in scope to be `headStale`'s `Stale.key`.
       freshInv s tbl (i₀ ∷ is) wds outs u′ a′ vIn e₁ ec eq (inj₂ good) h
         with memb h (Hs tbl) in em
       ... | true  = inj₁ refl
@@ -196,7 +223,8 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
             ; stales = headStale All.∷ tailStales tbl (Good.stales good)
             ; intact = trans
                 (subst (λ c → total (proj₁ (runCall (λ _ → h) c)) ≡ total s) eq
-                  (applyTx-total-fresh ser inputConsuming s (i₀ ∷ is , wds , outs) h fresh))
+                  (conservation ser inputConsuming s (i₀ ∷ is , wds , outs) (Hs tbl) h
+                    (Good.hashed good) h∉))
                 (Good.intact good)
             }
         where
@@ -211,9 +239,6 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
         -- Every hash the state knows about is one the fresh sample missed.
         known-≢ : ∀ k → proj₁ k ∈ Hs tbl → proj₁ k ≢ h
         known-≢ k mem p = h∉ (subst (_∈ Hs tbl) p mem)
-
-        fresh : ∀ j → lookupU (proj₁ s) (h , j) ≡ nothing
-        fresh j = ∉-lookupU (proj₁ s) (h , j) λ mem → h∉ (Good.hashed good (h , j) mem)
 
         hashed′ : ∀ k → k ∈ keysU (newU u′ outs h) → proj₁ k ∈ h ∷ Hs tbl
         hashed′ k mem with keysU-unionNew-outsAt u′ h 0 outs k mem
@@ -279,7 +304,8 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
         hit : (h : Hash) → RO.lookup-bs tbl qs ≡ just h → Inv (s , tbl)
             → Inv ((newU u′ outs h , a′) , tbl)
         hit h eo (inj₁ fl)   = inj₁ fl
-        hit h eo (inj₂ good) = ⊥-elim (no-replay s tbl ins wds outs u′ vIn h e₁ eo good)
+        hit h eo (inj₂ good) =
+          ⊥-elim (no-replay s tbl (ins , wds , outs) u′ vIn h e₁ eo good)
 
         go : (r : Maybe Hash) → RO.lookup-bs tbl qs ≡ r → Goal
         go (just h) eo rewrite oracle-hit tbl qs h eo = hit h eo inv

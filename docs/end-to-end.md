@@ -156,6 +156,37 @@ The step from `target` to the watch is `Observable.auditWatch-bounded`, on
 `auditWatch-sound`: the watch reports nothing the trajectory did not have.
 No hypothesis is added.
 
+### …and what in it is not probabilistic
+
+The certificate decomposes: *rules + freshness → conservation*, *sampling →
+freshness fails with probability ≤ birthday*, *audit soundness → the
+observable bound*. Only the middle step is probabilistic, and the first is
+factored out and named, in `…ChimericLedger.Value`:
+
+```agda
+conservation : ∀ vr s tx hs h → (∀ k → k ∈ keysU (proj₁ s) → proj₁ k ∈ hs)
+             → ¬ (h ∈ hs) → total (after vr s tx h) ≡ total s
+```
+
+Its conclusion mentions no oracle and no probability, and its two premises are
+the whole of what the rules need: `hs` names the hashes the state's live UTxO
+keys may carry — the only well-formedness conservation asks for — and `h ∉ hs`
+is the step's noncollision condition. A *rejected* transaction is conserved
+for free, because it leaves the state alone; an accepted one is conserved by
+the balance equation `checkIns` and `checkWdrls` enforce. The certificate
+supplies `hs = Hs tbl` and uses this for its `intact` field instead of
+carrying a second conservation proof.
+
+So what is left to the probability is exactly the failure of `h ∉ hs`, and the
+four exceptional cases sort as follows.
+
+| case | decided by |
+|---|---|
+| the same transaction resubmitted | the ledger rules: this is a table *hit*, not a collision between distinct inputs. `Stale` + `no-replay`, whose witness is the transaction's first input and so exists only under `inputConsuming` |
+| distinct transactions with equal serialization | `SerInj`, spent once, in `stale-not-accepted` |
+| distinct oracle inputs with equal digests | remains in the bad event: `flag`, paid for by `Φ` |
+| a generated output identifier `(h , i)` coinciding with an existing one, genesis identifiers included | also the bad event: the invariant keeps every live key's hash inside `Hs`, whose base case is `h₀ ∷ []`, so the coincidence shows up as a duplicate there. That extra slot is `εbirthday`'s `+ q` |
+
 ## 6. The transfer
 
 ```agda
