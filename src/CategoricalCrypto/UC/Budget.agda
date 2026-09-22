@@ -74,6 +74,14 @@ record Budget {o ℓ e} (M : MonoidalCategory o ℓ e) (qs : Level)
 ctxBudget : ℕ → ℕ → ℕ
 ctxBudget c c′ = c ℕ.* (c′ ℕ.⊔ 1)
 
+-- A closure recertified at rate 0 contributes nothing: the guard makes the
+-- second leg vacuous and the allowance is the test's own rate.  This is the
+-- arithmetic behind `UC.Machine.Monitor`'s closure recertification, where the
+-- model's `UC.QueryBound.qb-closed` supplies that certificate for free — no
+-- `Budget` law does, which is why that recertification is model-specific.
+ctxBudget-closed : (c : ℕ) → ctxBudget c 0 ≡ c
+ctxBudget-closed = *-identityʳ
+
 -- What absorbing a morphism of cost `cs` into a context's test costs the
 -- strategy playing in that context's place: the allowance rescaled by the
 -- absorbed morphism's own budget, guarded exactly as `ctxBudget` guards its.
