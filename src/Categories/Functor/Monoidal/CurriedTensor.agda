@@ -6,15 +6,13 @@ open import Categories.Category.Monoidal
 
 module Categories.Functor.Monoidal.CurriedTensor {o ℓ e} (M : MonoidalCategory o ℓ e) where
 
-open import Data.Fin
 open import Data.Product
-open import Data.Vec using (_∷_; [])
 
 open import Categories.Category
 open import Categories.Category.Construction.Functors
 open import Categories.Category.Monoidal.Construction.Endofunctors
 open import Categories.Category.Product
-import Categories.Coherence.Monoidal as Coh
+open import Categories.Coherence.Monoidal.Tactic using (solve-mor)
 open import Categories.Functor renaming (id to idF)
 open import Categories.Functor.Monoidal
 open import Categories.NaturalTransformation
@@ -69,39 +67,29 @@ curriedTensor = record { F = F ; isMonoidal = isMon }
   ⊗-homo = ntHelper record { η = homo-η ; commute = homo-commute }
 
   assoc-law : ∀ {X Y Z x} →
-    α⇒ ⊗₁ 𝒞.id 𝒞.∘ α⇐ 𝒞.∘ 𝒞.id ⊗₁ 𝒞.id 𝒞.∘ α⇐ 𝒞.≈ α⇐ 𝒞.∘ (𝒞.id ⊗₁ α⇐ 𝒞.∘ 𝒞.id) 𝒞.∘ 𝒞.id
-  assoc-law {X} {Y} {Z} {x} = S.solveM lhs rhs
-    where
-      module S = Coh.Structural M (X ∷ Y ∷ Z ∷ x ∷ [])
-      x₀ = S.Var zero
-      y₀ = S.Var (suc zero)
-      z₀ = S.Var (suc (suc zero))
-      q₀ = S.Var (suc (suc (suc zero)))
-      lhs = (S.α⇒ {x₀} {y₀} {z₀} S.⊗₁ S.id {q₀}) S.∘
-            (S.α⇐ {x₀ S.⊗₀ y₀} {z₀} {q₀} S.∘
-             ((S.id {x₀ S.⊗₀ y₀} S.⊗₁ S.id {z₀ S.⊗₀ q₀}) S.∘ S.α⇐ {x₀} {y₀} {z₀ S.⊗₀ q₀}))
-      rhs = S.α⇐ {x₀} {y₀ S.⊗₀ z₀} {q₀} S.∘
-            (((S.id {x₀} S.⊗₁ S.α⇐ {y₀} {z₀} {q₀}) S.∘ S.id) S.∘ S.id)
+      α⇒ {X} {Y} {Z} ⊗₁ 𝒞.id {x}
+    𝒞.∘ α⇐ {X ⊗₀ Y} {Z} {x}
+    𝒞.∘ 𝒞.id {X ⊗₀ Y} ⊗₁ 𝒞.id {Z ⊗₀ x}
+    𝒞.∘ α⇐ {X} {Y} {Z ⊗₀ x}
+    𝒞.≈ α⇐ {X} {Y ⊗₀ Z} {x}
+    𝒞.∘ (𝒞.id {X} ⊗₁ α⇐ {Y} {Z} {x} 𝒞.∘ 𝒞.id) 𝒞.∘ 𝒞.id
+  assoc-law = solve-mor M
 
-  unitˡ-law : ∀ {X x} → λ⇒ ⊗₁ 𝒞.id 𝒞.∘ α⇐ 𝒞.∘ 𝒞.id ⊗₁ 𝒞.id 𝒞.∘ λ⇐ 𝒞.≈ 𝒞.id
-  unitˡ-law {X} {x} = S.solveM lhs (S.id {x₀ S.⊗₀ q₀})
-    where
-      module S = Coh.Structural M (X ∷ x ∷ [])
-      x₀ = S.Var zero
-      q₀ = S.Var (suc zero)
-      lhs = (S.λ⇒ {x₀} S.⊗₁ S.id {q₀}) S.∘
-            (S.α⇐ {S.unit} {x₀} {q₀} S.∘
-             ((S.id {S.unit} S.⊗₁ S.id {x₀ S.⊗₀ q₀}) S.∘ S.λ⇐ {x₀ S.⊗₀ q₀}))
+  unitˡ-law : ∀ {X x} →
+      λ⇒ {X} ⊗₁ 𝒞.id {x}
+    𝒞.∘ α⇐ {unit} {X} {x}
+    𝒞.∘ 𝒞.id {unit} ⊗₁ 𝒞.id {X ⊗₀ x}
+    𝒞.∘ λ⇐ {X ⊗₀ x}
+    𝒞.≈ 𝒞.id {X ⊗₀ x}
+  unitˡ-law = solve-mor M
 
-  unitʳ-law : ∀ {X x} → ρ⇒ ⊗₁ 𝒞.id 𝒞.∘ α⇐ 𝒞.∘ 𝒞.id ⊗₁ λ⇐ 𝒞.∘ 𝒞.id 𝒞.≈ 𝒞.id
-  unitʳ-law {X} {x} = S.solveM lhs (S.id {x₀ S.⊗₀ q₀})
-    where
-      module S = Coh.Structural M (X ∷ x ∷ [])
-      x₀ = S.Var zero
-      q₀ = S.Var (suc zero)
-      lhs = (S.ρ⇒ {x₀} S.⊗₁ S.id {q₀}) S.∘
-            (S.α⇐ {x₀} {S.unit} {q₀} S.∘
-             ((S.id {x₀} S.⊗₁ S.λ⇐ {q₀}) S.∘ S.id))
+  unitʳ-law : ∀ {X x} →
+      ρ⇒ {X} ⊗₁ 𝒞.id {x}
+    𝒞.∘ α⇐ {X} {unit} {x}
+    𝒞.∘ 𝒞.id {X} ⊗₁ λ⇐ {x}
+    𝒞.∘ 𝒞.id
+    𝒞.≈ 𝒞.id {X ⊗₀ x}
+  unitʳ-law = solve-mor M
 
   isMon : IsMonoidalFunctor M E F
   isMon = record

@@ -24,7 +24,7 @@ open import Categories.Category
 open import Categories.Category.Helper
 open import Categories.Category.Instance.Setoids
 open import Categories.Category.Monoidal
-open import Categories.Coherence.Monoidal
+open import Categories.Coherence.Monoidal.Tactic
 open import Categories.Diagram.Coend.Ext.Setoids
 open import Categories.FreeMonoidal
 open import Categories.Functor
@@ -105,16 +105,7 @@ module _ {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e}
             , (g L.∙ f , β ℐᵁ.∘ ₁ (-⊗ Y) α ℐᵁ.∘ α⇐)
             , ( L.Equiv.trans L.sub-identity
                   (L.∙-resp-≈ (L.Equiv.sym L.sub-identity) L.Equiv.refl)
-              , (let vs = i ∷ k ∷ j ∷ X ∷ Y ∷ r ∷ []
-                     open MorAtoms ℐ vs
-                     open MorSolve ℐ vs
-                          ( ((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , α)
-                          ∷ ((V (# 2) ⊗ᵒ V (# 4) , V (# 5)) , β)
-                          ∷ ((V (# 3) , V (# 4)) , ψ) ∷ [] )
-                 in solveMor!
-                      ((gen (# 1) S.∘ gen (# 0) S.⊗₁ S.id S.∘ S.α⇐)
-                         S.∘ S.id S.⊗₁ (S.id S.⊗₁ gen (# 2)))
-                      ((gen (# 1) S.∘ S.id S.⊗₁ gen (# 2)) S.∘ gen (# 0) S.⊗₁ S.id S.∘ S.α⇐)) )
+              , solve-mor ℐ )
             , ( L.Equiv.trans (L.Equiv.sym L.interchange)
                   (L.∙-resp-≈ L.Equiv.refl L.sub-identity)
               , (let open ℐᵁ in elimʳ (identity (i ⊗-))
@@ -125,16 +116,7 @@ module _ {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e}
             , (g L.∙ f , β ℐᵁ.∘ ₁ (-⊗ l) α ℐᵁ.∘ α⇐)
             , ( L.Equiv.trans L.sub-identity
                   (L.∙-resp-≈ L.Equiv.refl (L.Equiv.sym L.sub-identity))
-              , (let vs = i ∷ X ∷ Y ∷ l ∷ j ∷ r ∷ []
-                     open MorAtoms ℐ vs
-                     open MorSolve ℐ vs
-                          ( ((V (# 0) ⊗ᵒ V (# 2) , V (# 4)) , α)
-                          ∷ ((V (# 4) ⊗ᵒ V (# 3) , V (# 5)) , β)
-                          ∷ ((V (# 1) , V (# 2)) , φ) ∷ [] )
-                 in solveMor!
-                      ((gen (# 1) S.∘ gen (# 0) S.⊗₁ S.id S.∘ S.α⇐)
-                         S.∘ S.id S.⊗₁ (gen (# 2) S.⊗₁ S.id))
-                      (gen (# 1) S.∘ (gen (# 0) S.∘ S.id S.⊗₁ gen (# 2)) S.⊗₁ S.id S.∘ S.α⇐)) )
+              , solve-mor ℐ )
             , ( L.Equiv.trans (L.Equiv.sym L.interchange)
                   (L.∙-resp-≈ L.sub-identity L.Equiv.refl)
               , (let open ℐᵁ in elimʳ (identity (i ⊗-))
@@ -160,16 +142,7 @@ module _ {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e}
             , ( (h L.∙ g) L.∙ f
               , φh ℐᵁ.∘ ₁ (-⊗ c) (φg ℐᵁ.∘ ₁ (-⊗ b) φf ℐᵁ.∘ α⇐) ℐᵁ.∘ α⇐ )
             , ( L.sub-identity
-              , (let vs = Xi ∷ a ∷ b ∷ c ∷ Yi ∷ Zi ∷ Wi ∷ []
-                     open MorAtoms ℐ vs
-                     open MorSolve ℐ vs
-                          ( ((V (# 0) ⊗ᵒ V (# 1) , V (# 4)) , φf)
-                          ∷ ((V (# 4) ⊗ᵒ V (# 2) , V (# 5)) , φg)
-                          ∷ ((V (# 5) ⊗ᵒ V (# 3) , V (# 6)) , φh) ∷ [] )
-                 in solveMor!
-                      ((gen (# 2) S.∘ (gen (# 1) S.∘ gen (# 0) S.⊗₁ S.id S.∘ S.α⇐) S.⊗₁ S.id S.∘ S.α⇐)
-                         S.∘ S.id S.⊗₁ S.α⇐)
-                      ((gen (# 2) S.∘ gen (# 1) S.⊗₁ S.id S.∘ S.α⇐) S.∘ gen (# 0) S.⊗₁ S.id S.∘ S.α⇐)) )
+              , solve-mor ℐ )
             , ( L.Equiv.trans (L.sub-resp-≈ ℐᵁ.Equiv.refl L.assoc)
                   (L.Equiv.trans (L.Equiv.sym L.sub-homomorphism)
                     (L.Equiv.trans (L.sub-resp-≈ associator.isoˡ L.Equiv.refl) L.sub-identity))
@@ -179,20 +152,14 @@ module _ {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e}
           ( ρ⇒
           , (L.id L.∙ f , α)
           , ( L.sub-identity
-            , (let vs = ai ∷ k ∷ bj ∷ []
-                   open MorAtoms ℐ vs
-                   open MorSolve ℐ vs (((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , α) ∷ [])
-               in solveMor! (gen (# 0) S.∘ S.id S.⊗₁ S.ρ⇒) (S.ρ⇒ S.∘ gen (# 0) S.⊗₁ S.id S.∘ S.α⇐)) )
+            , solve-mor ℐ )
           , ( L.identityˡ , ℐᵁ.elimʳ (identity (ai ⊗-)) ) )
     ; identityʳ = λ where
         {ai , _} {bj , _} {k , f , α} → return
           ( λ⇒
           , (f L.∙ L.id , α)
           , ( L.sub-identity
-            , (let vs = ai ∷ k ∷ bj ∷ []
-                   open MorAtoms ℐ vs
-                   open MorSolve ℐ vs (((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , α) ∷ [])
-               in solveMor! (gen (# 0) S.∘ S.id S.⊗₁ S.λ⇒) (gen (# 0) S.∘ S.ρ⇒ S.⊗₁ S.id S.∘ S.α⇐)) )
+            , solve-mor ℐ )
           , ( L.identityʳ , ℐᵁ.elimʳ (identity (ai ⊗-)) ) )
     ; equiv     = λ {X} {Y} → Setoid.isEquivalence (∮hom X Y)
     ; ∘-resp-≈  = ∘∮-resp-≈
@@ -230,12 +197,7 @@ module _ {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e}
     ( ρ⇒
     , (L.id L.∙ f , c ℐᵁ.∘ α)
     , ( L.sub-identity
-      , (let vs = i ∷ k ∷ j ∷ j′ ∷ []
-             open MorAtoms ℐ vs
-             open MorSolve ℐ vs ( ((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , α)
-                                ∷ ((V (# 2) , V (# 3)) , c) ∷ [] )
-         in solveMor! ((gen (# 1) S.∘ gen (# 0)) S.∘ S.id S.⊗₁ S.ρ⇒)
-                      ((gen (# 1) S.∘ S.ρ⇒) S.∘ gen (# 0) S.⊗₁ S.id S.∘ S.α⇐)) )
+      , solve-mor ℐ )
     , ( L.identityˡ , ℐᵁ.elimʳ (identity (i ⊗-)) ) )
 
   reindex-∘ʳ : ∀ {i′ i j A B} {k} (f : L.Hom k A B) (α : (i ⊗₀ k) ℐᵁ.⇒ j) (d : i′ ℐᵁ.⇒ i)
@@ -244,12 +206,7 @@ module _ {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e}
     ( λ⇒
     , (f L.∙ L.id , α ℐᵁ.∘ ₁ (-⊗ k) d)
     , ( L.sub-identity
-      , (let vs = i′ ∷ i ∷ k ∷ j ∷ []
-             open MorAtoms ℐ vs
-             open MorSolve ℐ vs ( ((V (# 1) ⊗ᵒ V (# 2) , V (# 3)) , α)
-                                ∷ ((V (# 0) , V (# 1)) , d) ∷ [] )
-         in solveMor! ((gen (# 0) S.∘ gen (# 1) S.⊗₁ S.id) S.∘ S.id S.⊗₁ S.λ⇒)
-                      (gen (# 0) S.∘ (gen (# 1) S.∘ S.ρ⇒) S.⊗₁ S.id S.∘ S.α⇐)) )
+      , solve-mor ℐ )
     , ( L.identityʳ , ℐᵁ.elimʳ (identity (i′ ⊗-)) ) )
 
   reindex-∘ : ∀ {i i′ i″ A} (c : i′ ℐᵁ.⇒ i″) (d : i ℐᵁ.⇒ i′)
@@ -267,14 +224,7 @@ module _ {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e}
     ; commute = λ where
         {u , _} {u′ , _} (φ , ψ) {f , α} →
           ( L.Equiv.refl
-          , (let vs = x ∷ x′ ∷ i ∷ j ∷ u ∷ u′ ∷ []
-                 open MorAtoms ℐ vs
-                 open MorSolve ℐ vs ( ((V (# 2) ⊗ᵒ V (# 4) , V (# 3)) , α)
-                                    ∷ ((V (# 5) , V (# 4)) , φ)
-                                    ∷ ((V (# 0) , V (# 1)) , v) ∷ [] )
-             in solveMor!
-                  ((gen (# 2) S.⊗₁ (gen (# 0) S.∘ S.id S.⊗₁ gen (# 1))) S.∘ S.α⇒)
-                  (((gen (# 2) S.⊗₁ gen (# 0)) S.∘ S.α⇒) S.∘ S.id S.⊗₁ gen (# 1))) )
+          , solve-mor ℐ )
     }
 
   infix 10 _∗∮_
@@ -284,21 +234,12 @@ module _ {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e}
   ∗∮-reindex : ∀ {x x′ i i′ A} (v : x ℐᵁ.⇒ x′) (c : i ℐᵁ.⇒ i′)
              → v ∗∮ reindex {A = A} c ≈∮ reindex (v ⊗₁ c)
   ∗∮-reindex {x} {x′} {i} {i′} v c = ι-resp L.Equiv.refl
-    (let vs = x ∷ x′ ∷ i ∷ i′ ∷ []
-         open MorAtoms ℐ vs
-         open MorSolve ℐ vs ( ((V (# 0) , V (# 1)) , v)
-                            ∷ ((V (# 2) , V (# 3)) , c) ∷ [] )
-     in solveMor! ((gen (# 0) S.⊗₁ (gen (# 1) S.∘ S.ρ⇒)) S.∘ S.α⇒)
-                  (gen (# 0) S.⊗₁ gen (# 1) S.∘ S.ρ⇒))
+    (solve-mor ℐ)
 
   ∗∮-id : ∀ {x x′ i A} (v : x ℐᵁ.⇒ x′)
         → v ∗∮ ∮C.id {(i , A)} ≈∮ reindex (v ⊗₁ ℐ.id)
   ∗∮-id {x} {x′} {i} v = ι-resp L.Equiv.refl
-    (let vs = x ∷ x′ ∷ i ∷ []
-         open MorAtoms ℐ vs
-         open MorSolve ℐ vs (((V (# 0) , V (# 1)) , v) ∷ [])
-     in solveMor! ((gen (# 0) S.⊗₁ S.ρ⇒ {V (# 2)}) S.∘ S.α⇒)
-                  (gen (# 0) S.⊗₁ S.id {V (# 2)} S.∘ S.ρ⇒))
+    (solve-mor ℐ)
 
   ∮-actegory : Actegory ℐ ∮
   ∮-actegory = record
@@ -313,15 +254,7 @@ module _ {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e}
     ; ∗-homomorphism = λ where
         {x} {x′} {x″} {i , _} {j , _} {r , _} {v} {w} {k , f , α} {l , g , β} →
           ι-resp L.Equiv.refl
-            (let vs = x ∷ x′ ∷ x″ ∷ i ∷ k ∷ j ∷ l ∷ r ∷ []
-                 open MorAtoms ℐ vs
-                 open MorSolve ℐ vs ( ((V (# 0) , V (# 1)) , v)
-                                    ∷ ((V (# 1) , V (# 2)) , w)
-                                    ∷ ((V (# 3) ⊗ᵒ V (# 4) , V (# 5)) , α)
-                                    ∷ ((V (# 5) ⊗ᵒ V (# 6) , V (# 7)) , β) ∷ [] )
-             in solveMor!
-                  (((gen (# 1) S.∘ gen (# 0)) S.⊗₁ (gen (# 3) S.∘ gen (# 2) S.⊗₁ S.id S.∘ S.α⇐)) S.∘ S.α⇒)
-                  (((gen (# 1) S.⊗₁ gen (# 3)) S.∘ S.α⇒) S.∘ (gen (# 0) S.⊗₁ gen (# 2) S.∘ S.α⇒) S.⊗₁ S.id S.∘ S.α⇐))
+            (solve-mor ℐ)
     ; unitor = record
         { from = reindex λ⇒
         ; to   = reindex λ⇐
@@ -343,25 +276,14 @@ module _ {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e}
           let open ∮C.HomReasoning in
           reindex-∘ˡ λ⇒ f ((ℐ.id ⊗₁ α) ℐᵁ.∘ α⇒)
             ○ ι-resp L.Equiv.refl
-                (let vs = i ∷ k ∷ j ∷ []
-                     open MorAtoms ℐ vs
-                     open MorSolve ℐ vs (((V (# 0) ⊗ᵒ V (# 1) , V (# 2)) , α) ∷ [])
-                 in solveMor! (S.λ⇒ S.∘ (S.id S.⊗₁ gen (# 0)) S.∘ S.α⇒)
-                              (gen (# 0) S.∘ S.λ⇒ S.⊗₁ S.id))
+                (solve-mor ℐ)
             ○ ⟺ (reindex-∘ʳ f α λ⇒)
     ; multiplicator-commute = λ where
         {x} {x′} {y} {y′} {i , _} {j , _} {v} {w} {k , f , α} →
           let open ∮C.HomReasoning in
           reindex-∘ˡ α⇒ f (((v ⊗₁ w) ⊗₁ α) ℐᵁ.∘ α⇒)
             ○ ι-resp L.Equiv.refl
-                (let vs = x ∷ x′ ∷ y ∷ y′ ∷ i ∷ k ∷ j ∷ []
-                     open MorAtoms ℐ vs
-                     open MorSolve ℐ vs ( ((V (# 0) , V (# 1)) , v)
-                                        ∷ ((V (# 2) , V (# 3)) , w)
-                                        ∷ ((V (# 4) ⊗ᵒ V (# 5) , V (# 6)) , α) ∷ [] )
-                 in solveMor!
-                      (S.α⇒ S.∘ ((gen (# 0) S.⊗₁ gen (# 1)) S.⊗₁ gen (# 2)) S.∘ S.α⇒)
-                      (((gen (# 0) S.⊗₁ (gen (# 1) S.⊗₁ gen (# 2) S.∘ S.α⇒)) S.∘ S.α⇒) S.∘ S.α⇒ S.⊗₁ S.id))
+                (solve-mor ℐ)
             ○ ⟺ (reindex-∘ʳ f ((v ⊗₁ ((w ⊗₁ α) ℐᵁ.∘ α⇒)) ℐᵁ.∘ α⇒) α⇒)
     ; assoc-coherence = let open ∮C.HomReasoning in
         reindex-∘ α⇒ α⇒
@@ -392,11 +314,7 @@ module _ {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e}
               ( a
               , (f , ρ⇐ ℐᵁ.∘ λ⇒)
               , ( L.sub-identity
-                , (let vs = k ∷ k′ ∷ []
-                       open MorAtoms ℐ vs
-                       open MorSolve ℐ vs (((V (# 0) , V (# 1)) , a) ∷ [])
-                   in solveMor! ((S.ρ⇐ S.∘ S.λ⇒) S.∘ S.id S.⊗₁ gen (# 0))
-                                (gen (# 0) S.⊗₁ S.id S.∘ S.ρ⇐ S.∘ S.λ⇒)) )
+                , solve-mor ℐ )
               , ( L.Equiv.refl , ℐᵁ.elimʳ (identity (ℐ.unit ⊗-)) ) ) )
     ; identity = ι-resp L.Equiv.refl
         (ℐᵁ.∘-resp-≈ (ℐᵁ.Equiv.sym coherence-inv₃) coherence₃)
@@ -404,14 +322,7 @@ module _ {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e}
         let open ∮C.HomReasoning in
         ⟺ ( reindex-∘ˡ α⇐ (g L.∙ f) _
           ○ ι-resp L.Equiv.refl
-              (let vs = k ∷ l ∷ []
-                   open MorAtoms ℐ vs
-                   open MorSolve ℐ vs []
-               in solveMor!
-                    (S.α⇐ {V (# 0)} {V (# 1)} {unitᵒ}
-                       S.∘ (S.id S.⊗₁ (S.ρ⇐ S.∘ S.λ⇒) S.∘ S.α⇒)
-                       S.∘ ((S.ρ⇐ S.∘ S.λ⇒) S.⊗₁ S.id) S.∘ S.α⇐)
-                    (S.ρ⇐ {V (# 0) ⊗ᵒ V (# 1)} S.∘ S.λ⇒)) )
+              (solve-mor ℐ) )
     }
 
   --------------------------------------------------------------------------------
