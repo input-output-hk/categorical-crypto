@@ -35,11 +35,7 @@ module AbstractUC
     A B C′ : 𝒞.Obj
     X X′ Y Z P Q : ℐ.Obj
 
-  infixr 9 _∙_
   infix  4 _≈ᵁ_ _≤UC_
-
-  _∙_ : B 𝒞.⇒ T₀ P C′ → A 𝒞.⇒ T₀ X B → A 𝒞.⇒ T₀ (X ⊗₀ P) C′
-  _∙_ {X = X} h f = ext X h 𝒞.∘ f
 
   ------------------------------------------------------------------------
   -- The U-kernel ≈ᵁ and its congruences
@@ -65,37 +61,6 @@ module AbstractUC
 
   ≈C⇒≈ᵁ : {f g : A 𝒞.⇒ T₀ X B} → f 𝒞.≈ g → f ≈ᵁ g
   ≈C⇒≈ᵁ e _ = ≈C⇒≈ℰ (𝒞.∘-resp-≈ʳ (T-resp-≈ e))
-
-  sub-decomp : (c : X ℐ.⇒ X′) (x : A 𝒞.⇒ T₀ X B) (Y : ℐ.Obj)
-             → μ Y X′ 𝒞.∘ T₁ Y (sub c 𝒞.∘ x) 𝒞.≈ sub (ℐ.id ⊗₁ c) 𝒞.∘ μ Y X 𝒞.∘ T₁ Y x
-  sub-decomp {X = X} {X′} c x Y = let open 𝒞 in begin
-      μ Y X′ ∘ T₁ Y (sub c ∘ x)              ≈⟨ refl⟩∘⟨ T-homomorphism ⟩
-      μ Y X′ ∘ T₁ Y (sub c) ∘ T₁ Y x         ≈⟨ sym-assoc ⟩
-      (μ Y X′ ∘ T₁ Y (sub c)) ∘ T₁ Y x       ≈⟨ μst ⟩∘⟨refl ⟩
-      (sub (ℐ.id ⊗₁ c) ∘ μ Y X) ∘ T₁ Y x     ≈⟨ assoc ⟩
-      sub (ℐ.id ⊗₁ c) ∘ μ Y X ∘ T₁ Y x       ∎
-    where μst : μ Y X′ 𝒞.∘ T₁ Y (sub c) 𝒞.≈ sub (ℐ.id ⊗₁ c) 𝒞.∘ μ Y X
-          μst = let open 𝒞 in (refl⟩∘⟨ introʳ sub-identity) ○ μ-sub-commute
-
-  ∙-decomp : (h : B 𝒞.⇒ T₀ P C′) (f : A 𝒞.⇒ T₀ X B) (W : ℐ.Obj)
-           → μ W (X ⊗₀ P) 𝒞.∘ T₁ W (ext X h 𝒞.∘ f)
-             𝒞.≈ (sub α⇒ 𝒞.∘ ext (W ⊗₀ X) h) 𝒞.∘ μ W X 𝒞.∘ T₁ W f
-  ∙-decomp {P = P} {X = X} h f W = let open 𝒞 in begin
-      μ W (X ⊗₀ P) ∘ T₁ W (ext X h ∘ f)
-        ≈⟨ refl⟩∘⟨ T-homomorphism ⟩
-      μ W (X ⊗₀ P) ∘ T₁ W (ext X h) ∘ T₁ W f
-        ≈⟨ sym-assoc ⟩
-      (μ W (X ⊗₀ P) ∘ T₁ W (ext X h)) ∘ T₁ W f
-        ≈⟨ μT (ext X h) ⟩∘⟨refl ⟩
-      ext W (ext X h) ∘ T₁ W f
-        ≈⟨ extassoc ⟩∘⟨refl ⟩
-      (sub α⇒ ∘ ext (W ⊗₀ X) h ∘ μ W X) ∘ T₁ W f
-        ≈⟨ sym-assoc ⟩∘⟨refl ⟩
-      ((sub α⇒ ∘ ext (W ⊗₀ X) h) ∘ μ W X) ∘ T₁ W f
-        ≈⟨ assoc ⟩
-      (sub α⇒ ∘ ext (W ⊗₀ X) h) ∘ μ W X ∘ T₁ W f  ∎
-    where extassoc : ext W (ext X h) 𝒞.≈ sub α⇒ 𝒞.∘ ext (W ⊗₀ X) h 𝒞.∘ μ W X
-          extassoc = let open 𝒞 in ⟺ (ext-resp-≈ identityʳ) ○ ext-assoc
 
   sub-cong : (c : X ℐ.⇒ X′) {x x′ : A 𝒞.⇒ T₀ X B} → x ≈ᵁ x′ → sub c 𝒞.∘ x ≈ᵁ sub c 𝒞.∘ x′
   sub-cong c {x} {x′} e Y = ≈ℰ-trans (≈C⇒≈ℰ (sub-decomp c x Y))
@@ -169,13 +134,6 @@ module AbstractUC
   ≤UC-refl : (f : A 𝒞.⇒ T₀ X B) → f ≤UC f
   ≤UC-refl f a = a , ≈ᵁ-refl
 
-  dummy-complete : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
-                 → Σ[ s₀ ∈ Y ℐ.⇒ X ] f ≈ᵁ sub s₀ 𝒞.∘ g
-                 → f ≤UC g
-  dummy-complete {g = g} (s₀ , e) a = a ℐ.∘ s₀ , ≈ᵁ-trans (sub-cong a e) (≈C⇒≈ᵁ strict)
-    where strict : sub a 𝒞.∘ sub s₀ 𝒞.∘ g 𝒞.≈ sub (a ℐ.∘ s₀) 𝒞.∘ g
-          strict = let open 𝒞 in sym-assoc ○ ⟺ sub-homomorphism ⟩∘⟨refl
-
   ≤UC-trans : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B} {h : A 𝒞.⇒ T₀ Z B}
             → f ≤UC g → g ≤UC h → f ≤UC h
   ≤UC-trans f≤g g≤h a =
@@ -183,28 +141,43 @@ module AbstractUC
         (s₂ , e₂) = g≤h s₁
     in s₂ , ≈ᵁ-trans e₁ e₂
 
+  ≤UC-resp-≈ : {f f′ : A 𝒞.⇒ T₀ X B} {g g′ : A 𝒞.⇒ T₀ Y B}
+             → f 𝒞.≈ f′ → g 𝒞.≈ g′ → f ≤UC g → f′ ≤UC g′
+  ≤UC-resp-≈ ef eg p a =
+    let s , e = p a
+    in s , ≈ᵁ-trans (≈C⇒≈ᵁ (𝒞.∘-resp-≈ʳ (𝒞.Equiv.sym ef)))
+                    (≈ᵁ-trans e (≈C⇒≈ᵁ (𝒞.∘-resp-≈ʳ eg)))
+
+  dummy-complete : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
+                 → Σ[ s₀ ∈ Y ℐ.⇒ X ] f ≈ᵁ sub s₀ 𝒞.∘ g
+                 → f ≤UC g
+  dummy-complete {g = g} (s₀ , e) a = a ℐ.∘ s₀ , ≈ᵁ-trans (sub-cong a e) (≈C⇒≈ᵁ strict)
+    where strict : sub a 𝒞.∘ sub s₀ 𝒞.∘ g 𝒞.≈ sub (a ℐ.∘ s₀) 𝒞.∘ g
+          strict = let open 𝒞 in sym-assoc ○ ⟺ sub-homomorphism ⟩∘⟨refl
+
+  ≤UC⇒dummy : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
+            → f ≤UC g → Σ[ s ∈ Y ℐ.⇒ X ] f ≈ᵁ sub s 𝒞.∘ g
+  ≤UC⇒dummy {f = f} le =
+    let s , e = le ℐ.id in s , ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ f))) e
+
   UC-compose : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
                {h : B 𝒞.⇒ T₀ P C′} {k : B 𝒞.⇒ T₀ Q C′}
              → f ≤UC g → h ≤UC k → h ∙ f ≤UC k ∙ g
   UC-compose {X = X} {Y = Y} {P = P} {Q = Q} {f = f} {g = g} {h = h} {k = k} f≤g h≤k {Z} a =
       s , (let open SetoidR (≈ᵁ-setoid _ _ _) in begin
         sub a 𝒞.∘ (h ∙ f)
-          ≈⟨ sub-cong a (∙-cong-arg f eh) ⟩
+          ≈⟨ sub-cong a (∙-cong-arg f (proj₂ (≤UC⇒dummy h≤k))) ⟩
         sub a 𝒞.∘ ext X (sub t 𝒞.∘ k) 𝒞.∘ f
-          ≈⟨ sub-cong a (ext-cong (sub t 𝒞.∘ k) ef) ⟩
+          ≈⟨ sub-cong a (ext-cong (sub t 𝒞.∘ k) (proj₂ (≤UC⇒dummy f≤g))) ⟩
         sub a 𝒞.∘ ext X (sub t 𝒞.∘ k) 𝒞.∘ sub sf 𝒞.∘ g
           ≈⟨ ≈C⇒≈ᵁ strict-final ⟩
         sub s 𝒞.∘ k ∙ g  ∎)
     where
       t : Q ℐ.⇒ P
-      t = proj₁ (h≤k ℐ.id)
-      eh : h ≈ᵁ sub t 𝒞.∘ k
-      eh = ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ h))) (proj₂ (h≤k ℐ.id))
+      t = proj₁ (≤UC⇒dummy h≤k)
 
       sf : Y ℐ.⇒ X
-      sf = proj₁ (f≤g ℐ.id)
-      ef : f ≈ᵁ sub sf 𝒞.∘ g
-      ef = ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ f))) (proj₂ (f≤g ℐ.id))
+      sf = proj₁ (≤UC⇒dummy f≤g)
 
       s : Y ⊗₀ Q ℐ.⇒ Z
       s = a ℐ.∘ ℐ.id ⊗₁ t ℐ.∘ sf ⊗₁ ℐ.id
@@ -235,3 +208,34 @@ module AbstractUC
   -- Note the hom-equality of this packaging is 𝒞._≈_, NOT ≈ᵁ.
   naiveKleisli : LocallyGradedCategory ℐ o′ ℓ′ e′
   naiveKleisli = LGKleisli.naiveKleisli ℳ
+
+  ≤UC-sub : (c : X ℐ.⇒ Y) (r : Y ℐ.⇒ X) → r ℐ.∘ c ℐ.≈ ℐ.id
+          → {f g : A 𝒞.⇒ T₀ X B} → f ≤UC g → sub c 𝒞.∘ f ≤UC sub c 𝒞.∘ g
+  ≤UC-sub {X = X} c r inv {f} {g} p = dummy-complete (c ℐ.∘ s₀ ℐ.∘ r , eq)
+    where
+    s₀ : X ℐ.⇒ X
+    s₀ = proj₁ (p ℐ.id)
+
+    em : f ≈ᵁ sub s₀ 𝒞.∘ g
+    em = ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ f))) (proj₂ (p ℐ.id))
+
+    -- The conjugation, which is where the retraction is spent.
+    grade : (c ℐ.∘ s₀ ℐ.∘ r) ℐ.∘ c ℐ.≈ c ℐ.∘ s₀
+    grade = let open ℐ.HomReasoning in begin
+        (c ℐ.∘ s₀ ℐ.∘ r) ℐ.∘ c  ≈⟨ ℐ.assoc ⟩
+        c ℐ.∘ (s₀ ℐ.∘ r) ℐ.∘ c  ≈⟨ refl⟩∘⟨ ℐ.assoc ⟩
+        c ℐ.∘ s₀ ℐ.∘ r ℐ.∘ c    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ inv ⟩
+        c ℐ.∘ s₀ ℐ.∘ ℐ.id       ≈⟨ refl⟩∘⟨ ℐ.identityʳ ⟩
+        c ℐ.∘ s₀                ∎
+
+    strict : sub c 𝒞.∘ sub s₀ 𝒞.∘ g 𝒞.≈ sub (c ℐ.∘ s₀ ℐ.∘ r) 𝒞.∘ (sub c 𝒞.∘ g)
+    strict = let open 𝒞 in begin
+        sub c ∘ sub s₀ ∘ g                  ≈⟨ sym-assoc ⟩
+        (sub c ∘ sub s₀) ∘ g                ≈⟨ ⟺ sub-homomorphism ⟩∘⟨refl ⟩
+        sub (c ℐ.∘ s₀) ∘ g                  ≈⟨ sub-resp-≈ (ℐ.Equiv.sym grade) ⟩∘⟨refl ⟩
+        sub ((c ℐ.∘ s₀ ℐ.∘ r) ℐ.∘ c) ∘ g    ≈⟨ sub-homomorphism ⟩∘⟨refl ⟩
+        (sub (c ℐ.∘ s₀ ℐ.∘ r) ∘ sub c) ∘ g  ≈⟨ assoc ⟩
+        sub (c ℐ.∘ s₀ ℐ.∘ r) ∘ sub c ∘ g    ∎
+
+    eq : sub c 𝒞.∘ f ≈ᵁ sub (c ℐ.∘ s₀ ℐ.∘ r) 𝒞.∘ (sub c 𝒞.∘ g)
+    eq = ≈ᵁ-trans (sub-cong c em) (≈C⇒≈ᵁ strict)
