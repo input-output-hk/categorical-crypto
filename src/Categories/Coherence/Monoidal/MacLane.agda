@@ -7,11 +7,8 @@ module Categories.Coherence.Monoidal.MacLane where
 -- morphisms: `mor = λ _ _ → ⊥`, so every morphism is a composite of
 -- structural isos).  `CoherenceThm.all-Comm` proves any two parallel
 -- such morphisms are equal, via the normal-form functor `Nf` and the
--- natural iso `Nf≅id`.  `Solver.solveM` is the downstream-facing wrapper:
--- it discharges `⟦ f ⟧₁ ≈ ⟦ g ⟧₁` in any target MonoidalCategory for
--- parallel free morphisms `f g`.  It handles monoidal coherence only
--- (no braiding/symmetry — supplied via `noSymmetric`, the shared absurd
--- `⦃ () ⦄` instance from `Categories.FreeMonoidal`).
+-- natural iso `Nf≅id`; `Solver.solveM` discharges `⟦ f ⟧₁ ≈ ⟦ g ⟧₁` in any
+-- target MonoidalCategory.
 --------------------------------------------------------------------------------
 
 open import Categories.Category
@@ -78,9 +75,8 @@ module CoherenceThm (X : Set) ⦃ _ : DecEq X ⦄ where
   hom⇒≡⟦⟧' α⇒ refl = refl
   hom⇒≡⟦⟧' α⇐ refl = refl
 
-  -- the normalization bifunctor's action on objects/morphisms; `private`
-  -- (rather than `hiding`-suppressed) since `⟦_⟧₁` clashes with the
-  -- FreeFunctor `⟦_⟧₁` the Solver re-exports.
+  -- the normalization bifunctor's action; `private` since `⟦_⟧₁` clashes with
+  -- the FreeFunctor `⟦_⟧₁` the Solver re-exports.
   private
     ⟦_⟧₀ : ObjTerm × List X → List X
     ⟦_⟧₀ = uncurry ⟦_⟧
@@ -160,9 +156,9 @@ module CoherenceThm (X : Set) ⦃ _ : DecEq X ⦄ where
       → e ∘ f⇒ ⊗₁ id ∘ f⇐ ⊗₁ id FM.≈ id ∘ e
     cancel-⊗ˡ isoR = refl⟩∘⟨ (merge₁ˡ ○ isoR ⟩⊗⟨refl ○ FM.⊗.identity) ○ id-comm
 
-    -- Naturality of the inverse from naturality of the forward iso: the
-    -- shared skeleton of natural-λ⇐/ρ⇐/α⇐.  Like pentagon-conj/⊗-conj this is
-    -- iso₁-independent, so its stored intermediates stay variable-sized.
+    -- Naturality of the inverse from naturality of the forward iso.  Like
+    -- pentagon-conj/⊗-conj it is iso₁-independent, so its stored intermediates
+    -- stay variable-sized.
     nat-inv : ∀ {B C Z W} {e₁ : HomTerm (C ⊗₀ Z) W} {e₂ : HomTerm (B ⊗₀ Z) W}
                 {f⇒ : HomTerm B C} {f⇐ : HomTerm C B}
             → e₁ ∘ f⇒ ⊗₁ id FM.≈ id ∘ e₂
@@ -191,7 +187,7 @@ module CoherenceThm (X : Set) ⦃ _ : DecEq X ⦄ where
       → iso₁ (C , d) ∘ Functor.F₁ F1 (g ∘ f , refl) FM.≈ Functor.F₁ F2 (g ∘ f , refl) ∘ iso₁ (A , d)
     natural-∘ {A} {B} {C} d g f Hg Hf = begin
       iso₁ (C , d) ∘ Functor.F₁ F1 (g ∘ f , refl)
-        ≈⟨ refl⟩∘⟨ Functor.homomorphism F1 {f = f , refl} ⟩
+        ≈⟨ refl⟩∘⟨ Functor.homomorphism F1 ⟩
       iso₁ (C , d) ∘ Functor.F₁ F1 (g , refl) ∘ Functor.F₁ F1 (f , refl)
         ≈⟨ extendʳ Hg ⟩
       Functor.F₁ F2 (g , refl) ∘ iso₁ (B , d) ∘ Functor.F₁ F1 (f , refl)
@@ -204,8 +200,7 @@ module CoherenceThm (X : Set) ⦃ _ : DecEq X ⦄ where
       → iso₁ (B , ⟦ C ⟧ d) ∘ Functor.F₁ F1 (f , refl) FM.≈ Functor.F₁ F2 (f , refl) ∘ iso₁ (A , ⟦ C ⟧ d)
       → iso₁ (D , d) ∘ Functor.F₁ F1 (g , refl) FM.≈ Functor.F₁ F2 (g , refl) ∘ iso₁ (C , d)
       → iso₁ (B ⊗₀ D , d) ∘ Functor.F₁ F1 (f ⊗₁ g , refl) FM.≈ Functor.F₁ F2 (f ⊗₁ g , refl) ∘ iso₁ (A ⊗₀ C , d)
-    -- Like pentagon-conj below, the ⊗ case is an instance of a generic lemma:
-    -- everything iso₁/ι₁-specific enters through the four hypotheses, so the
+    -- Everything iso₁/ι₁-specific enters through the four hypotheses, so the
     -- chain's stored intermediates are over variables.
     ⊗-conj : ∀ {A B C D N P P' Q Q' Q''}
              {f : HomTerm A B} {g : HomTerm C D}
@@ -267,10 +262,9 @@ module CoherenceThm (X : Set) ⦃ _ : DecEq X ⦄ where
             FM.≈ Functor.F₁ F2 (ρ⇐ , refl) ∘ iso₁ (A , d)
     natural-ρ⇐ = nat-inv natural-ρ⇒ FM.unitorʳ.isoʳ
 
-    -- The α⇒ case of naturality is an instance of this fully generic pentagon
-    -- conjugation: nothing about iso₁ is used beyond its type.  Keeping a/b/c
-    -- as variables keeps the stored intermediates small (the module's
-    -- interface-size hotspot).
+    -- Nothing about iso₁ is used beyond its type; keeping a/b/c as variables
+    -- keeps the stored intermediates small (the module's interface-size
+    -- hotspot).
     pentagon-conj : ∀ {A B C N P Q R}
              (a : HomTerm (A ⊗₀ Q) R) (b : HomTerm (B ⊗₀ P) Q) (c : HomTerm (C ⊗₀ N) P)
            → (a ∘ id ⊗₁ (b ∘ id ⊗₁ c ∘ α⇒) ∘ α⇒) ∘ α⇒ ⊗₁ id

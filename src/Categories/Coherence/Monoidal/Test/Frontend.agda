@@ -1,33 +1,28 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- Test suite for the PUBLIC monoidal solver front-end
+-- Test suite for the public monoidal solver front-end
 -- (`Categories.Coherence.Monoidal`), organised by capability.  Every test
--- states its goal in an ARBITRARY target monoidal category `C`'s own
+-- states its goal in an arbitrary target monoidal category `C`'s own
 -- vocabulary and discharges it with a public solver:
 --
 --   * `Coherence`     — pure MacLane coherence (unitors, associator,
 --                       triangle, pentagon), via `Structural.solveM`.
---   * `Naturality`    — unitor/associator naturality THROUGH box generators,
---                       via `Mor.solveMor!`.
+--   * `Naturality`    — unitor/associator naturality through box generators,
+--                       via `solveMor!`.
 --   * `Functorial`    — id/∘ laws and in-order ⊗-functoriality, via
---                       `Mor.solveMor!`.
+--                       `solveMor!`.
 --   * `Interchange`   — disjoint boxes in either firing order: multi-wire
 --                       boxes (μ), empty-domain boxes (η), scalars
---                       (u : unit → unit); NON-HEAD inversions and a 3-swap
+--                       (u : unit → unit); non-head inversions and a 3-swap
 --                       full sort exercise machine-fired interchange swaps,
---                       via `Mor.solveMor!`.
+--                       via `solveMor!`.
 --   * `Rewrite`       — rule application in context, via the
---                       `Mor.rewriteMor!` family.
+--                       `rewriteMor!` family.
 --
--- Because the goals read in `C`'s vocabulary, `solveMor!`/`solveM` over an
--- arbitrary `C` exercise the free-level decision procedures, just stated in
--- the target's terms.
---
--- The `Negative` module below adds SOUND-REJECTION tests via the
--- INTERNAL front-end API: they pin the decision procedure with
--- `decide?F … ≡ nothing` on FALSE equations, which the public solvers
--- cannot express.
+-- The `Negative` module below adds sound-rejection tests via the internal
+-- front-end API: they pin `decide?F … ≡ nothing` on false equations, which the
+-- public solvers cannot express.
 --------------------------------------------------------------------------------
 
 module Categories.Coherence.Monoidal.Test.Frontend where
@@ -46,10 +41,6 @@ import Categories.Coherence.Monoidal as Coh
 
 ------------------------------------------------------------------------
 -- Coherence: pure MacLane equations decide, via the structural solver.
---
--- Two object atoms `A , B`; the solver's term DSL (`Var`, `_⊗₀_`, `unit`,
--- `_⊗₁_`, `_∘_`, `id`, `λ⇒`, `ρ⇒`, `α⇒`, …) and interpretation `⟦_⟧₁` are
--- exposed by the `Structural` module.
 
 module Coherence {o ℓ e : Level} (C : MonoidalCategory o ℓ e) (A B : C .MonoidalCategory.Obj) where
 
@@ -75,13 +66,13 @@ module Coherence {o ℓ e : Level} (C : MonoidalCategory o ℓ e) (A B : C .Mono
   test-λ≈ρ-unit = solveM (λ⇒) (ρ⇒)
 
   test-triangle : C .MonoidalCategory.U [ ⟦ (id ⊗₁ λ⇒) ∘ α⇒ {a} {unit} {b} ⟧₁ ≈ ⟦ ρ⇒ {a} ⊗₁ id {b} ⟧₁ ]
-  test-triangle = solveM ((id ⊗₁ λ⇒) ∘ α⇒ {a} {unit}) (ρ⇒ ⊗₁ id {b})
+  test-triangle = solveM ((id ⊗₁ λ⇒) ∘ α⇒ {a}) (ρ⇒ ⊗₁ id {b})
 
   test-pentagon
     : C .MonoidalCategory.U
         [ ⟦ (id ⊗₁ α⇒) ∘ α⇒ ∘ (α⇒ {a} {b} {a} ⊗₁ id {b}) ⟧₁
         ≈ ⟦ α⇒ ∘ α⇒ {a ⊗₀ b} {a} {b} ⟧₁ ]
-  test-pentagon = solveM ((id ⊗₁ α⇒) ∘ α⇒ ∘ (α⇒ {a} ⊗₁ id)) (α⇒ ∘ α⇒ {a ⊗₀ b} {a} {b})
+  test-pentagon = solveM ((id ⊗₁ α⇒) ∘ α⇒ ∘ (α⇒ ⊗₁ id)) (α⇒ ∘ α⇒ {a ⊗₀ b} {a} {b})
 
 ------------------------------------------------------------------------
 -- The morphism-solver tests: over an arbitrary monoidal category `C` with
@@ -111,7 +102,6 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
 
     vars = A ∷ B ∷ []
     open Coh.MorAtoms C vars
-    -- this suite fires rewrite rules, so it opens the rewriting façade
     open Coh.MorRewrite C vars
          ( ((V zero ⊗ᵒ V zero , V zero)         , μᴹ)   -- gen 0 : A⊗A → A ↦ μ
          ∷ ((unitᵒ , V zero)                     , ηᴹ)   -- gen 1 : unit → A ↦ η
@@ -225,13 +215,12 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
         solveMor! ((s'' S.⊗₁ S.id) S.∘ (s' S.⊗₁ S.id) S.∘ (S.id S.⊗₁ t'))
                   ((s'' S.⊗₁ S.id) S.∘ (S.id S.⊗₁ t') S.∘ (s' S.⊗₁ S.id))
 
-      -- a NON-HEAD inversion (layers 2-3): the position loop `step?` walks past
-      -- the in-order head pair and fires deeper.
+      -- a non-head inversion (layers 2-3).
       test-non-head-swap : MC.U [ (s'ᴹ ∘ sᴹ) ⊗₁ tᴹ ≈ (s'ᴹ ⊗₁ id) ∘ (sᴹ ⊗₁ tᴹ) ]
       test-non-head-swap = solveMor! ((s'' S.∘ s') S.⊗₁ t') ((s'' S.⊗₁ S.id) S.∘ (s' S.⊗₁ t'))
 
-      -- three independent boxes fired fully descending vs ascending: the
-      -- fuel-driven loop (`normFuelWith`) fires THREE genuine swaps.
+      -- three independent boxes fired fully descending vs ascending: three
+      -- genuine swaps.
       private
         W₃ : ObjTerm
         W₃ = V zero ⊗ᵒ (V zero ⊗ᵒ V zero)
@@ -247,13 +236,10 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
       test-three-desc = solveMor! desc₃ asc₃
 
     ------------------------------------------------------------------------
-    -- Rewriting: rule application in context.  A rule is
-    -- any C-equation between interpretations of front-end terms — here
-    -- abstract hypotheses (commuting endos, an inverse law); the rewrite
-    -- layer carries it across and the solver absorbs surrounding structure.
+    -- Rewriting: rule application in context.  The rules here are abstract
+    -- hypotheses about the generators — commuting endos, an inverse law.
 
     module Rewrite
-      -- the rules: abstract hypotheses about the generators.
       (comm : MC.U [ s'ᴹ ∘ sᴹ ≈ sᴹ ∘ s'ᴹ ])
       (inv  : MC.U [ sᴹ ∘ s'ᴹ ≈ id ])
       where
@@ -282,7 +268,7 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
       test-rw-cancel : MC.U [ tᴹ ⊗₁ (sᴹ ∘ s'ᴹ) ≈ tᴹ ⊗₁ id ]
       test-rw-cancel = rewriteMorAuto! (t' S.⊗₁ (s' S.∘ s'')) (t' S.⊗₁ S.id) (s' S.∘ s'') S.id inv
 
-      -- explicit occurrence index: the redex appears in BOTH tensor factors;
+      -- explicit occurrence index: the redex appears in both tensor factors;
       -- `rewriteMorₙ!` at n = 1 selects the second occurrence (right factor),
       -- leaving the first untouched.
       test-rw-nth : MC.U [ (s'ᴹ ∘ sᴹ) ⊗₁ (s'ᴹ ∘ sᴹ) ≈ (s'ᴹ ∘ sᴹ) ⊗₁ (sᴹ ∘ s'ᴹ) ]
@@ -291,9 +277,36 @@ module Morphism {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
                      (s'' S.∘ s') (s' S.∘ s'') 1 comm
 
 ------------------------------------------------------------------------
+-- `MorSolve`: the solve-only façade
+
+module Solve {o ℓ e : Level} (C : MonoidalCategory o ℓ e) where
+
+  private module MC = MonoidalCategory C
+  open MC
+
+  module _ (A B : MC.Obj) (sᴹ : MC.U [ A , A ]) (tᴹ : MC.U [ B , B ]) where
+
+    vars = A ∷ B ∷ []
+    open Coh.MorAtoms C vars
+    open Coh.MorSolve C vars
+         ( ((V zero , V zero)                 , sᴹ)   -- gen 0 : A → A ↦ s
+         ∷ ((V (suc zero) , V (suc zero))     , tᴹ)   -- gen 1 : B → B ↦ t
+         ∷ [] )
+
+    private
+      s' = gen zero
+      t' = gen (suc zero)
+
+    test-interchange : MC.U [ (sᴹ ⊗₁ id) ∘ (id ⊗₁ tᴹ) ≈ sᴹ ⊗₁ tᴹ ]
+    test-interchange = solveMor! ((s' S.⊗₁ S.id) S.∘ (S.id S.⊗₁ t')) (s' S.⊗₁ t')
+
+    test-ρ-nat : MC.U [ unitorʳ.from ∘ (sᴹ ⊗₁ id) ≈ sᴹ ∘ unitorʳ.from ]
+    test-ρ-nat = solveMor! (S.ρ⇒ S.∘ (s' S.⊗₁ S.id)) (s' S.∘ S.ρ⇒)
+
+------------------------------------------------------------------------
 -- Sound rejections
 --
--- These assert `decide?F … ≡ nothing`, so they require the INTERNAL front-end
+-- These assert `decide?F … ≡ nothing`, so they require the internal front-end
 -- decision procedure (`Frontend.Decide.decide?F`) rather than a public solver.
 -- We wire it by hand from a `FinSig` signature: a two-colour atom alphabet and
 -- a Fin-indexed table of two endo generators.
@@ -317,7 +330,7 @@ arityT : Fin 2 → ObjTermᴵ × ObjTermᴵ
 arityT zero       = Varᴵ ⋆ , Varᴵ ⋆
 arityT (suc zero) = Varᴵ ⋆ , Varᴵ ⋆
 
-private module FS = FinSig Mon {Ty} arityT
+private module FS = FinSig {Ty} arityT
 open FS
 
 open Frontend {Ty} GenS
@@ -336,12 +349,10 @@ module Negative where
   neg-distinct-endos : decide?F s' s'' ≡ nothing
   neg-distinct-endos = refl
 
-  -- sequential order of two boxes on the SAME wire matters.
+  -- sequential order of two boxes on the same wire matters.
   neg-sequential-order : decide?F (s'' ∘ᴵ s') (s' ∘ᴵ s'') ≡ nothing
   neg-sequential-order = refl
 
-  -- diagrams of DIFFERENT length stay apart: one box vs an extra layer.
-  -- (The reflected diagrams have unequal layer counts, so the structural
-  -- compare rejects on the nil-vs-cons branch of the encoding.)
+  -- diagrams of different length stay apart: one box vs an extra layer.
   neg-extra-layer : decide?F s' (s'' ∘ᴵ s') ≡ nothing
   neg-extra-layer = refl

@@ -3,15 +3,15 @@
 --------------------------------------------------------------------------------
 -- Limitations catalogue for the monoidal coherence solver
 --
--- This module is the SINGLE authoritative list of what the solver family does
--- NOT do.  Every limitation is named here once, with a status tag:
+-- This module is the single authoritative list of what the solver family does
+-- not do.  Every limitation is named here once, with a status tag:
 --
 --   {machine-checked here}      — pinned below as a `decide?F … ≡ nothing`
---                                 (a TRUE equation the solver soundly declines
+--                                 (a true equation the solver soundly declines
 --                                 to prove), checked by `refl`.
---   {meta-property, prose only} — the ABSENCE of a theorem; no single equation
+--   {meta-property, prose only} — the absence of a theorem; no single equation
 --                                 witnesses it either way.
---   {type-error, commented out} — exhibited only by a snippet that FAILS to
+--   {type-error, commented out} — exhibited only by a snippet that fails to
 --                                 typecheck; kept commented below so this file
 --                                 still builds, with a note on the expected
 --                                 error.
@@ -22,11 +22,9 @@
 --   * Soundness without completeness      {meta-property, prose only}
 --   * Non-injective rank                   {machine-checked — `lim-equal-rank`}
 --   * Generator naturality not decided     {machine-checked — `lim-generator-naturality`}
---   * Braided hexagon not decided          {machine-checked — `lim-hexagon`}
---   * Straddling box does not slide        {machine-checked — `lim-straddle`}
 --   * No canonicity for `norm ∘ reflect`   {meta-property, prose only}
---   * `Structural` is monoidal only        {type-error, commented out below}
---   * Concrete signatures only             {meta-property, prose only}
+--   * Non-termination on degenerate
+--     signatures (reported, not fixed)     {machine-checked — `lim-cycle-*`}
 --
 -- Soundness without completeness.  The solver is sound — every `just` it
 -- returns is a real proof — but not complete: it may return `nothing` on a
@@ -41,32 +39,30 @@
 -- Generator naturality not decided.  Box generators are opaque; the solver
 -- assumes no generator-specific law (naturality of a box, an internal identity,
 -- …).  Such laws, when they hold, must be supplied as rewrite rules (the
--- `rewriteMor!` / `rewriteMorσ!` family).  `lim-generator-naturality` pins
--- that a bare naturality goal for an opaque box is not decided.
---
--- Braided hexagon not decided.  The symmetric normalizer never splits or
--- merges crossing BLOCKS, so the hexagon axiom's two routings are distinct
--- normal forms (`lim-hexagon`).
---
--- Straddling box does not slide.  A box consuming one wire from each image
--- block of a crossing straddles it and will not slide, even when the equation
--- is true (`lim-straddle`).
+-- `rewriteMor!` family).  `lim-generator-naturality` pins that a bare
+-- naturality goal for an opaque box is not decided.
 --
 -- No canonicity for `norm ∘ reflect`.  There is no claim that interchange-equal
 -- diagrams reach the same normal form — the open confluence question for the
 -- normalizer.
 --
--- `Structural` is monoidal only, no braiding.  The braiding term `σ` is guarded
--- by an instance witnessing that the free variant is symmetric (`Symm ≤
--- variant`), which the monoidal variant underlying `Structural` does not
--- provide, so a goal using `σ` under `Structural` does not typecheck; use
--- `Symmetric` for braided goals.  See the commented `StructuralHasNoBraiding`
--- module at the bottom of this file for the exhibit.
---
--- Concrete signatures only.  The front-end takes a concrete `Fin`-indexed
--- signature (`FinSig`); an abstract generator family cannot be fed through the
--- same entry point.  This is an API-shape constraint, not a crisp type error,
--- so it is prose only.
+-- Non-termination on degenerate signatures — reported, not fixed.  On a
+-- signature with an empty-arity generator side the guarded step relation has
+-- genuine cycles (a scalar orbiting a state/effect pair; period 4 at the
+-- minimal instance below), so no fuel budget normalizes such inputs and the
+-- equation is refused even when true.  The loop (`Normalize.normDetectWith`,
+-- budget `1 + k²` in the diagram depth `k`) detects this: the step function is
+-- deterministic, so a revisited state is a proof of divergence, and the loop
+-- stops there with the verdict `cycled` (`exhausted` when the budget ran out
+-- first, `converged` when the result is a genuine normal form).  The verdict
+-- is exposed per side as `Frontend.Decide.statusF` / the call-site `statusMor`,
+-- so a caller CAN distinguish "the normal forms differ" from "the normalizer
+-- did not terminate" — `lim-cycle-status` pins the verdict on the minimal
+-- cycling family and `lim-cycle-nothing` that the true equation is still
+-- refused; `lim-converged` pins the honest verdict on a decided goal.
+-- Completeness on such signatures is out of reach for this normalizer family
+-- (an insertion-order-free counterexample exists); nondegenerate signatures
+-- have no cycles.
 --------------------------------------------------------------------------------
 
 module Categories.Coherence.Monoidal.Test.Limitations where
@@ -74,18 +70,16 @@ module Categories.Coherence.Monoidal.Test.Limitations where
 open import categorical-crypto.Prelude hiding (_∘_; id; map; merge; zero; suc; [_]; [_,_]; _∷_; [])
 
 open import Data.Fin
-open import Data.Vec using (_∷_; [])
+open import Data.Maybe using (is-just)
 
-open import Categories.Category.Monoidal
 open import Categories.FreeMonoidal
 open import Categories.Coherence.Monoidal.Frontend
 open import Categories.Coherence.Monoidal.Frontend.Core
-open import Categories.Coherence.Monoidal.Frontend.Sigma
-import Categories.Coherence.Monoidal as Coh
+open import Categories.Coherence.Monoidal.Normalize using (NormStatus; converged; cycled; exhausted)
 
 ------------------------------------------------------------------------
--- Machine-checked, monoidal front-end: the non-injective-rank and
--- generator-naturality limitations, pinned with `decide?F … ≡ nothing`.
+-- Machine-checked: the non-injective-rank and generator-naturality
+-- limitations, pinned with `decide?F … ≡ nothing`.
 --
 -- We wire the internal front-end decision procedure by hand from a `FinSig`
 -- signature: a two-colour atom alphabet and a Fin-indexed arity table.
@@ -120,7 +114,7 @@ module MonLimits where
   arityT (suc (suc (suc (suc zero))))    = Varᴵ • , Varᴵ •
   arityT (suc (suc (suc (suc (suc _))))) = unitᴵ , unitᴵ   -- 5 → u, 6 → v
 
-  private module FS = FinSig Mon {Ty} arityT
+  private module FS = FinSig {Ty} arityT
   open FS
   open Frontend {Ty} GenS
   open Decide rankS
@@ -151,86 +145,73 @@ module MonLimits where
   lim-equal-rank : D₀.decide?F (u' ∘ᴵ v') (v' ∘ᴵ u') ≡ nothing
   lim-equal-rank = refl
 
+  -- The honest verdict on a decided goal: the compared form is a genuine
+  -- normal form.
+  lim-converged : statusF (s' ∘ᴵ μ') ≡ converged
+  lim-converged = refl
+
 ------------------------------------------------------------------------
--- Machine-checked, symmetric front-end: the braided-hexagon and
--- straddling-box limitations, pinned with `decide?F … ≡ nothing`.
+-- Machine-checked: non-termination on a degenerate signature, reported.
 --
---   0 → μ : ⋆ ⊗ ⋆ → ⋆     (multi-wire input)
---   1 → s : ⋆ → ⋆          (endo on ⋆)
---   2 → t : • → •          (endo on •)
+-- The minimal cycling family: e : ⋆ → unit, w : unit → unit, u : unit → ⋆.
+-- `rankS` gives rank e = 0 < rank w = 1 < rank u = 2, and exactly this order
+-- closes the scalar `w`'s orbit around the `u`/`e` pair into a period-4
+-- cycle, so the true scalar equation below is refused — with the verdict
+-- saying why.
 
-module SigmaLimits where
+module CycleLimits where
 
-  data Ty : Set where ⋆ • : Ty
+  data Ty : Set where ⋆ : Ty
 
   instance
     DecEq-Ty : DecEq Ty
-    DecEq-Ty .DecEq._≟_ = λ where
-      ⋆ ⋆ → yes refl
-      ⋆ • → no λ ()
-      • ⋆ → no λ ()
-      • • → yes refl
+    DecEq-Ty .DecEq._≟_ = λ where ⋆ ⋆ → yes refl
 
-  open FreeMonoidalHelper Symm Ty using () renaming (ObjTerm to ObjTermᴵ; unit to unitᴵ; _⊗₀_ to _⊗₀ᴵ_; Var to Varᴵ)
+  open FreeMonoidalHelper Mon Ty using () renaming (ObjTerm to ObjTermᴵ; unit to unitᴵ; Var to Varᴵ)
 
   arityT : Fin 3 → ObjTermᴵ × ObjTermᴵ
-  arityT zero             = Varᴵ ⋆ ⊗₀ᴵ Varᴵ ⋆ , Varᴵ ⋆
-  arityT (suc zero)       = Varᴵ ⋆ , Varᴵ ⋆
-  arityT (suc (suc zero)) = Varᴵ • , Varᴵ •
+  arityT zero             = Varᴵ ⋆ , unitᴵ    -- 0 → e : ⋆ → unit
+  arityT (suc zero)       = unitᴵ , unitᴵ     -- 1 → w : unit → unit
+  arityT (suc (suc zero)) = unitᴵ , Varᴵ ⋆    -- 2 → u : unit → ⋆
 
-  private module FS = FinSig Symm {Ty} arityT
-  open FS renaming (gen to genᵗ)
-  open FrontendS {Ty} GenS
+  private module FS = FinSig {Ty} arityT
+  open FS
+  open Frontend {Ty} GenS
   open Decide rankS
 
   private
     infixr 9 _∘ᴵ_
     _∘ᴵ_ : ∀ {A B C} → S.HomTerm B C → S.HomTerm A B → S.HomTerm A C
     _∘ᴵ_ = S._∘_
-    infixr 10 _⊗ᴵ_
-    _⊗ᴵ_ : ∀ {A B C D} → S.HomTerm A B → S.HomTerm C D → S.HomTerm (A ⊗₀ᴵ C) (B ⊗₀ᴵ D)
-    _⊗ᴵ_ = S._⊗₁_
-    idᴵ : ∀ {A} → S.HomTerm A A
-    idᴵ = S.id
-    σᴵ : ∀ {A B} → S.HomTerm (A ⊗₀ᴵ B) (B ⊗₀ᴵ A)
-    σᴵ = S.σ
-    μ' = genᵗ zero
+    e' = gen zero
+    w' = gen (suc zero)
+    u' = gen (suc (suc zero))
 
-  -- Braided hexagon not decided: the normalizer never splits or merges crossing
-  -- BLOCKS, so the hexagon axiom's two routings are distinct normal forms.
-  lim-hexagon
-    : decide?F ((idᴵ ⊗ᴵ σᴵ) ∘ᴵ S.α⇒ ∘ᴵ (σᴵ {Varᴵ ⋆} {Varᴵ •} ⊗ᴵ idᴵ {Varᴵ ⋆}))
-               (S.α⇒ ∘ᴵ σᴵ ∘ᴵ S.α⇒)
-      ≡ nothing
-  lim-hexagon = refl
+    -- the same scalar equation, laid out with `w` before and after `u ∘ e`
+    t₀ = e' ∘ᴵ (u' ∘ᴵ w')
+    t₂ = w' ∘ᴵ (e' ∘ᴵ u')
 
-  -- Straddling box does not slide.  Over `σ {⋆⊗⋆}{⋆}`, mapping wires
-  -- [a₁,a₂,b]↦[b,a₁,a₂], the multi-input box `μ` (after `α⇐`) consumes [b,a₁] —
-  -- one wire from each image block — so it straddles the crossing.  Both sides
-  -- denote the SAME free-symmetric morphism (the equation is TRUE), but the
-  -- solver returns `nothing`: sliding μ would split it across the two image
-  -- blocks.  (This pin also exercises the hexagon crossing-routing boundary; a
-  -- straddle-only pin is not constructible here.)
-  lim-straddle
-    : decide?F ((μ' ⊗ᴵ idᴵ) ∘ᴵ S.α⇐ ∘ᴵ σᴵ)
-               ((μ' ⊗ᴵ idᴵ) ∘ᴵ
-                  (σᴵ ⊗ᴵ idᴵ) ∘ᴵ S.α⇐ ∘ᴵ
-                  (idᴵ ⊗ᴵ σᴵ {Varᴵ ⋆}) ∘ᴵ S.α⇒)
-      ≡ nothing
-  lim-straddle = refl
+  -- both sides cycle, and the loop says so …
+  lim-cycle-status : statusF t₀ ≡ cycled
+  lim-cycle-status = refl
 
-------------------------------------------------------------------------
--- `Structural` is monoidal only, no braiding {type-error, commented out}.
---
--- The braiding term `σ` is guarded by an instance argument witnessing that the
--- free variant is (at least) symmetric (`Symm ≤ variant`); the monoidal variant
--- underlying `Structural` provides no such instance.  Uncommenting the module
--- below should therefore FAIL to typecheck with an `InstanceNoCandidate` error
--- ("No instance of type … Symm ≤ …"), demonstrating that braided goals cannot
--- be stated under `Structural` (use `Symmetric`).
---
--- module StructuralHasNoBraiding
---   {o ℓ e} (C : MonoidalCategory o ℓ e) (A B : C .MonoidalCategory.Obj) where
---   open Coh.Structural C (A ∷ B ∷ [])
---   -- `σ`'s `Symm ≤ variant` instance is unavailable for the monoidal variant.
---   _ = σ
+  lim-cycle-statusʳ : statusF t₂ ≡ cycled
+  lim-cycle-statusʳ = refl
+
+  -- … and the true equation is refused.
+  lim-cycle-nothing : decide?F t₀ t₂ ≡ nothing
+  lim-cycle-nothing = refl
+
+  -- The machine check that the refused equation IS true (solver soundness):
+  -- the identical pair under a rank making `w` minimal converges and is
+  -- decided.
+  private
+    rankW : GenΣ → ℕ
+    rankW (_ , _ , genS zero)          = 1
+    rankW (_ , _ , genS (suc zero))    = 0
+    rankW (_ , _ , genS (suc (suc _))) = 2
+
+    module DW = Decide rankW
+
+  lim-cycle-true : is-just (DW.decide?F t₀ t₂) ≡ true
+  lim-cycle-true = refl

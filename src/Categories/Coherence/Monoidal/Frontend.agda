@@ -1,32 +1,18 @@
 {-# OPTIONS --safe --without-K #-}
 
 --------------------------------------------------------------------------------
--- The solver FRONT-END: from wire-list diagrams to ObjTerm-arity generators.
+-- The solver front-end: from wire-list diagrams to ObjTerm-arity generators.
 --
--- The reflect/normalize/compare pipeline (Reflect / Normalize /
--- Compare) lives in the *wire-list* world, where the tensor of flat
--- terms is a merge/split conjugation (paid once, in `embed-resp-≈`).  This
--- module lifts that to ARBITRARY-object-term generators `GenF`, so a clean
--- target-category goal like `(id ⊗₁ tᴹ) ∘ (sᴹ ⊗₁ id) ≈ sᴹ ⊗₁ tᴹ` reads
--- directly, mirroring the hypergraph (SMC) solver's setup layer.
---
--- `flatten : ObjTerm → List X` (with `flatten (Y ⊗₀ Z) ≡ flatten Y ++
--- flatten Z` definitionally) re-indexes the generators to the wire level, and
--- the soundness bridge is proven ONCE at the free level:
+-- The reflect/normalize/compare pipeline lives in the *wire-list* world; this
+-- module lifts it to arbitrary-object-term generators `GenF`, so a target-
+-- category goal like `(id ⊗₁ tᴹ) ∘ (sᴹ ⊗₁ id) ≈ sᴹ ⊗₁ tᴹ` reads directly.
+-- `flatten : ObjTerm → List X` re-indexes the generators to the wire level,
+-- and the soundness bridge is proven once at the free level:
 --
 --     bridgeF : inj (embed (reflectF t)) ∘ flat⇒ ≈ flat⇒ ∘ t
 --
--- `Decide.decide?F` packages reflect → normalize → compare → bridge into a
--- decision procedure for the front-end `_≈Term_`; `FinSetup.Sig` feeds it to
--- the shared `FinSetupCore.Sig` pipeline, whose `solveMor!` transports a hit
--- into an arbitrary target monoidal category along the free functor —
--- definitionally, so the equation reads in the target's vocabulary.
---
--- The shared machinery (flatten/MorW, flat⇒/flat⇐, inj,
--- reflectF, bridgeF, solveF) lives in `Categories.Coherence.Monoidal.Frontend.Core`
--- (`FCore`/`FBridge`), instantiated here at (Mon, MorW, ⟦_⟧ᵇ).  This file
--- supplies the Mon-specific clauses (`injBox`, `reflectVarM`, vacuous σ on the
--- empty `Symm ≤ Mon`).
+-- The shared machinery lives in `Frontend.Core`; this file assembles the
+-- decision procedure and the call-site wrapper `FinSetup`.
 --------------------------------------------------------------------------------
 
 module Categories.Coherence.Monoidal.Frontend where
@@ -55,52 +41,16 @@ module Frontend
   (GenF : ObjTerm → ObjTerm → Set)
   where
 
-  ------------------------------------------------------------------------
-  -- The engine-free shared layer: flatten, MorW, GenΣ
-  ------------------------------------------------------------------------
-
-  private module Core = FCore Mon {X = X} GenF
+  private module Core = FCore {X = X} GenF
   open Core
 
-  -- the wire-level engine instance (MorW at the standard interpretation),
-  -- shared by the whole wire pipeline and FBridge/DecideCore.
-  private
-    EW : WireEngine Mon
-    EW = stdEngine Mon MorW
-
-    -- the generator signature, shared by the engine modules below; `F` is its
-    -- free category (HomTerm over GenF).
-    sig : FreeSig Mon
-    sig = record { GenF = GenF }
-  open FreeSig sig using (module F)
-
-  open DiagramI EW
-  open ReflectI EW
-
-  ------------------------------------------------------------------------
-  -- The engine-generic shared layer, at (Mon, MorW, ⟦_⟧ᵇ)
-  ------------------------------------------------------------------------
-
-  private module FB = FBridge sig EW
+  -- the reflection / soundness-bridge layer at the wire-level generators
+  -- `MorW`; `F` is the front-end free category.
+  private module FB = FBridge GenF
   open FB
 
-  ------------------------------------------------------------------------
-  -- The Mon-specific clauses: a box is conjugated by the canonical iso;
-  -- the σ clauses are vacuous (`Symm ≤ Mon` is empty)
-  ------------------------------------------------------------------------
-
-  private
-    injBox : ∀ {a b} → MorW a b → F.HomTerm (wires a) (wires b)
-    injBox (mk {Y} {Z} g) = flat⇒ Z F.∘ (F.var g F.∘ flat⇐ Y)
-
-    reflectVarM : ∀ {Y Z} → GenF Y Z → WTerm (flatten Y) (flatten Z)
-    reflectVarM g = boxʷ (mk g)
-
-  private module FBI = FB.WithInj injBox reflectVarM (λ where ⦃ () ⦄)
-  open FBI
-
-  private module FBB = FBI.Bridge (λ _ → refl) (λ where ⦃ () ⦄)
-  open FBB
+  open DiagramI MorW
+  open ReflectI MorW
 
   ------------------------------------------------------------------------
   -- The decision procedure
@@ -112,43 +62,42 @@ module Frontend
     where
 
     private
-      open NormalizeI EW
+      open NormalizeI MorW
       open SortD
       open Steps PrimSwap
       open FreeMonoidalHelper.Mor Mon X mor
-      module DC = DecideCore EW
+      module DC = DecideCore MorW
 
       rankW : ∀ {a b} → MorW a b → ℕ
       rankW = Core.rankMorW rank
 
-      -- one interchange swap at the FIRST applicable position, as an `_⤳D_`
+      -- one interchange swap at the first applicable position, as an `_⤳D_`
       -- rewrite witness.
       step? : ∀ {n m} (d : Diag n m) → Maybe (Σ[ d' ∈ Diag n m ] (d ⤳D d'))
       step? = stepWith (interchangeGo rankW)
 
-      -- a fuel-bounded bubble sort emitting an `_⤳D_` trace, discharged to a
-      -- STRICT semantic witness by `normSoundˢ` at the EMPTY engine `R = ⊥`
-      -- (the Mon path has no engine axioms).  The worst-case budget is
-      -- ≥ #inversions.
-      norm = normSoundˢ (λ _ _ → ⊥) (prim-swap-soundˢ (λ _ _ → ⊥)) step? (λ k → nsuc (k * k))
+      open DC.SCmp.Decide using (_≟Diag_)
 
-    open DC.Decide (λ _ _ → ⊥) (λ ()) norm using () renaming (decideW to decide?W)
+      -- a fuel-bounded bubble sort, stopping at the first revisited state.
+      norm = normDetectSoundˢ prim-swap-soundˢ _≟Diag_ step? (λ k → nsuc (k * k))
 
-    -- front-end decision: a hit is a genuine `_≈Term_` of the free
-    -- monoidal category over the ObjTerm-arity generators.
+    open DC.Decide norm using () renaming (decideW to decide?W; statusW to status?W)
+
     decide?F : ∀ {Y Z} (l r : F.HomTerm Y Z) → Maybe (l F.≈Term r)
     decide?F l r = Data.Maybe.map solveF (decide?W (reflectF l) (reflectF r))
+
+    -- Diagnostic mirror of `decide?F`, per side: `converged` means the
+    -- compared form is a genuine normal form; `cycled`/`exhausted` mean
+    -- the normalizer did not terminate on this input.
+    statusF : ∀ {Y Z} (t : F.HomTerm Y Z) → NormStatus
+    statusF t = status?W (reflectF t)
 
 --------------------------------------------------------------------------------
 -- `FinSetup`: the call-site convenience wrapper.  From a target monoidal
 -- category `C`, a `Vec` of object atoms, and a Fin-indexed `arity` table, it
 -- assembles the signature, decidable equalities and rank, exposing the term
--- language `S`, the embedding `gen`, the object interpretation `⟦_⟧ₒ` and —
--- after `WithGen` supplies the generator interpretations — `solveMor!`.
--- (Mirror of `Frontend.Sigma`'s `FinSetupσ`.  The entry points in
--- `Categories.Coherence.Monoidal` go through these wrappers; the negative
--- test suites instead open `Frontend`/`Decide` directly, to state
--- `decide?F … ≡ nothing` boundaries.)
+-- language `S`, the embedding `gen`, the object interpretation `⟦_⟧ₒ` and
+-- `solveMor!`.
 --------------------------------------------------------------------------------
 
 module FinSetup
@@ -156,16 +105,26 @@ module FinSetup
   {nA : ℕ} (vars : Vec (C .MonoidalCategory.U .Category.Obj) nA)
   where
 
-  private module Core = FinSetupCore {v = Mon} C noSymmetric vars
-  open Core public using (ObjTerm; V; unitᵒ; _⊗ᵒ_; ⟦_⟧ₒ)
+  -- the object language over the atom indices, with constructors renamed so
+  -- they coexist with a caller's own free-category vocabulary.
+  open FreeMonoidalHelper Mon (Fin nA) public using (ObjTerm) renaming (Var to V; unit to unitᵒ; _⊗₀_ to _⊗ᵒ_)
+
+  -- the object interpretation `ObjTerm → C.Obj`, independent of any generator
+  -- signature, so it can type a generator's interpretation before the
+  -- signature is fixed.
+  open FreeObjInterp Mon (Fin nA) (fromMC C noSymmetric) (lookup vars) public using () renaming (⟦_⟧₀ to ⟦_⟧ₒ)
 
   module Sig {nG : ℕ} (arity : Fin nG → ObjTerm × ObjTerm) where
 
-    -- build the Mon front-end's decision procedure at this signature, then
-    -- hand it to the variant-generic `FinSetupCore.Sig` (the `FinSig Mon arity`
-    -- here and inside `Core.Sig` are the SAME `GenS`/`S`, so the types match).
-    open FinSig Mon {X = Fin nA} arity
-    open Frontend {Fin nA} GenS
-    open Decide rankS
+    open FinSig {X = Fin nA} arity public using (GenS; genS; module S; gen; GenΣ; DecEq-Gen; rankS)
 
-    open Core.Sig arity decide?F public
+    -- build the front-end's decision procedure at this signature, then run
+    -- the transport pipeline at the target.
+    open Frontend {Fin nA} GenS
+    private module D = Decide rankS
+    open D
+
+    open FSolve GenS decide?F public using (solveTerm!; module Into)
+    open Into C (lookup vars) public
+
+    statusMor = D.statusF
