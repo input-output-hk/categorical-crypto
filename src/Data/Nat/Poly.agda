@@ -6,6 +6,7 @@ module Data.Nat.Poly where
 
 open import Data.Nat
 open import Data.Nat.Properties
+open import Data.Nat.Properties.Ext
 open import Data.Product
 open import Function
 open import Relation.Binary.PropositionalEquality
@@ -51,6 +52,10 @@ poly-* {p} {q} (c , d , bp) (c′ , e , bq) = c * c′ , d + e , λ n → begin
   c * suc n ^ d * (c′ * suc n ^ e)  ≡⟨ [m*n]*[o*p]≡[m*o]*[n*p] c (suc n ^ d) c′ (suc n ^ e) ⟩
   c * c′ * (suc n ^ d * suc n ^ e)  ≡⟨ sym (cong (c * c′ *_) (^-distribˡ-+-* (suc n) d e)) ⟩
   c * c′ * suc n ^ (d + e)          ∎
+
+poly-≤2^ : Poly p → Σ[ N ∈ ℕ ] ∀ n → N ≤ n → p n ≤ 2 ^ n
+poly-≤2^ {p} (c , d , bnd) = let (N , dom) = deg≤2^ c d in
+  N , λ n N≤n → ≤-trans (bnd n) (dom n N≤n)
 
 ------------------------------------------------------------------------
 -- The base-n formulation
