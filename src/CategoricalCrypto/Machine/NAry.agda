@@ -28,6 +28,15 @@ import CategoricalCrypto.Machine.Core as CC
 open import CategoricalCrypto.Machine.Iso
 open import CategoricalCrypto.Machine.Category
 open import CategoricalCrypto.Machine.Monoidal
+open import CategoricalCrypto.Machine.Monoidal.Interchange using (Aᴸ)
+open import CategoricalCrypto.Machine.Monoidal.Braiding using (pt-σLᵢ)
+open import CategoricalCrypto.Machine.Monoidal.Associator using (nrᵢ)
+open import CategoricalCrypto.Machine.Reindex using (πᵢ; ∘κᵢ)
+open import CategoricalCrypto.Machine.Reindex.Slide using (cdᵢ)
+open import CategoricalCrypto.Machine.Reindex.Collapse using (cod-routeᵢ)
+open import CategoricalCrypto.Machine.Reindex.PairAssoc using (asc3ᵢ)
+open import CategoricalCrypto.Machine.Reindex.Post using (Pair-Post)
+open import CategoricalCrypto.Machine.Forwarder using (Xφ)
 open import Tactic.Defaults
 
 module CategoricalCrypto.Machine.NAry where
@@ -237,3 +246,129 @@ module Derived where
 -- The module's intended public surface, for transfer arguments that this tree
 -- does not yet contain.
 open Derived public using (unit-∘ᴷ; insert-id; ⨂-reshape-env; ⨂-absorb-env)
+
+-- ============================================================================
+-- What the rewirings do to an individual node's STATE.
+--
+-- The laws above say the rewirings are isomorphisms; a transfer argument also
+-- has to follow one node's sub-state across them.  Every step of those chains
+-- acts on states as a `×.map` or a tuple reassociation, so once the opaque
+-- blocks of the Reindex algebra are unfolded the only content left is the
+-- induction on `Fin n` that `⨂-post` recurses over.
+-- ============================================================================
+
+open _≅ᴹ_
+
+-- The sub-state of a `⨂₁`, as `⨂ᴷ-sub-state` is for `⨂ᴷ`.
+⨂₁-sub-state : ∀ {n} {A B : Fin n → Channel} {u : (k : Fin n) → Machine (A k) (B k)}
+             → (k : Fin n) → Machine.State (⨂₁ u) → Machine.State (u k)
+⨂₁-sub-state fzero    (s , _) = s
+⨂₁-sub-state (fsuc k) (_ , s) = ⨂₁-sub-state k s
+
+opaque
+  unfolding destruct-⊗ πᵢ ∘κᵢ cdᵢ Xφ asc3ᵢ cod-routeᵢ Pair-Post Aᴸ pt-σLᵢ nrᵢ
+
+  -- `⨂-post` acts on the `k`-th sub-state as the `k`-th component iso does.
+  ⨂-post-sub : ∀ {n} {B C E₂ E₂' : Fin n → Channel}
+    (f  : (k : Fin n) → Machine (B k) (C k ⊗₀ E₂ k))
+    (f' : (k : Fin n) → Machine (B k) (C k ⊗₀ E₂' k))
+    (u  : (k : Fin n) → Machine (E₂' k) (E₂ k))
+    (eq : ∀ k → ((CC.id ⊗₁ u k) CC.∘ f' k) ≅ᴹ f k)
+    → ∀ k s w
+    → ⨂ᴷ-sub-state k (to (Derived.⨂-post f f' u eq) (s , (tt , w)))
+      ≡ to (eq k) (⨂ᴷ-sub-state k s , (tt , ⨂₁-sub-state k w))
+  ⨂-post-sub f f' u eq fzero    s w = refl
+  ⨂-post-sub f f' u eq (fsuc k) ((_ , s) , _) (_ , w) =
+    ⨂-post-sub (λ j → f (fsuc j)) (λ j → f' (fsuc j))
+               (λ j → u (fsuc j)) (λ j → eq (fsuc j)) k s w
+
+  -- `⨂-functorial` likewise: the `k`-th sub-state of the zipped composite is
+  -- the `k`-th sub-states of the two factors, paired.
+  ⨂-functorial-sub : ∀ {n} {B C D E₁ E₂ : Fin n → Channel}
+    (f : (k : Fin n) → Machine (C k) (D k ⊗₀ E₂ k))
+    (g : (k : Fin n) → Machine (B k) (C k ⊗₀ E₁ k))
+    → ∀ (k : Fin n) sg sf z
+    → ⨂ᴷ-sub-state k (to (Derived.⨂-functorial f g) (((sg , (sf , tt)) , tt) , (tt , z)))
+      ≡ ((⨂ᴷ-sub-state k sg , (⨂ᴷ-sub-state k sf , tt)) , tt)
+  ⨂-functorial-sub f g fzero    sg sf z = refl
+  ⨂-functorial-sub f g (fsuc k) ((_ , sg) , _) ((_ , sf) , _) z =
+    ⨂-functorial-sub (λ j → f (fsuc j)) (λ j → g (fsuc j)) k sg sf _
+
+  -- The two plumbing steps, on states.  Both are `×.map`s and reassociations,
+  -- so both hold by computation; they are named because the composite lemmas
+  -- below have to mention the component isomorphism's `from`.
+  post-α-to : ∀ {A X Y D} (α : Machine Y D) (H : Machine X Y)
+              (P : Machine A X) (Q : Machine A Y)
+              (eq : (H CC.∘ P) ≅ᴹ Q)
+            → ∀ sQ sα
+            → to (Derived.post-α α H P Q eq) (sQ , sα)
+              ≡ (proj₁ (from eq sQ) , (proj₂ (from eq sQ) , sα))
+  post-α-to α H P Q eq sQ sα = refl
+
+  slide-∘ᴷ-from : ∀ {A B C E₁ E₂ E₂'}
+                  (F : Machine B (C ⊗₀ E₂)) (F' : Machine B (C ⊗₀ E₂'))
+                  (u : Machine E₂' E₂) (g : Machine A (B ⊗₀ E₁))
+                  (eq : ((CC.id ⊗₁ u) CC.∘ F') ≅ᴹ F)
+                → ∀ sg sF
+                → from (Derived.slide-∘ᴷ F F' u g eq) ((sg , (sF , tt)) , tt)
+                  ≡ (((sg , (proj₁ (from eq sF) , tt)) , tt)
+                    , (tt , (tt , proj₂ (proj₂ (from eq sF)))))
+  slide-∘ᴷ-from F F' u g eq sg sF = refl
+
+  -- The `from` direction of `⨂-post-sub`, which is the one the composites
+  -- need: `post-α` runs its hypothesis backwards.
+  ⨂-post-sub-from : ∀ {n} {B C E₂ E₂' : Fin n → Channel}
+    (f  : (k : Fin n) → Machine (B k) (C k ⊗₀ E₂ k))
+    (f' : (k : Fin n) → Machine (B k) (C k ⊗₀ E₂' k))
+    (u  : (k : Fin n) → Machine (E₂' k) (E₂ k))
+    (eq : ∀ k → ((CC.id ⊗₁ u k) CC.∘ f' k) ≅ᴹ f k)
+    → ∀ (k : Fin n) s
+    → ⨂ᴷ-sub-state k (proj₁ (from (Derived.⨂-post f f' u eq) s))
+      ≡ proj₁ (from (eq k) (⨂ᴷ-sub-state k s))
+  ⨂-post-sub-from f f' u eq fzero    s         = refl
+  ⨂-post-sub-from f f' u eq (fsuc k) ((_ , s) , _) =
+    ⨂-post-sub-from (λ j → f (fsuc j)) (λ j → f' (fsuc j))
+                    (λ j → u (fsuc j)) (λ j → eq (fsuc j)) k s
+
+  -- The composite the transfer argument actually uses: reshaping the
+  -- environment leaves node `k`'s sub-state as `eq k` puts it.
+  ⨂-reshape-env-sub : ∀ {A D} {n} {E₁} {B C E₂ E₂' : Fin n → Channel}
+    (f  : (k : Fin n) → Machine (B k) (C k ⊗₀ E₂ k))
+    (f' : (k : Fin n) → Machine (B k) (C k ⊗₀ E₂' k))
+    (u  : (k : Fin n) → Machine (E₂' k) (E₂ k))
+    (eq : ∀ k → ((CC.id ⊗₁ u k) CC.∘ f' k) ≅ᴹ f k)
+    (g : Machine A (⨂ B ⊗₀ E₁)) (α : Machine (⨂ C ⊗₀ E₁ ⊗₀ ⨂ E₂) D)
+    → ∀ (k : Fin n) sg sF sα
+    → ⨂ᴷ-sub-state k
+        (proj₁ (proj₂ (proj₁ (proj₁
+          (to (Derived.⨂-reshape-env f f' u eq g α) (((sg , (sF , tt)) , tt) , sα))))))
+      ≡ proj₁ (from (eq k) (⨂ᴷ-sub-state k sF))
+  ⨂-reshape-env-sub f f' u eq g α k sg sF sα = ⨂-post-sub-from f f' u eq k sF
+
+  -- The `from` direction of `⨂-functorial-sub`, restricted to the factor the
+  -- transfer follows: the inner machine `g`, which stays in the node slot
+  -- while `f` is absorbed into the environment.
+  ⨂-functorial-sub-from : ∀ {n} {B C D E₁ E₂ : Fin n → Channel}
+    (f : (k : Fin n) → Machine (C k) (D k ⊗₀ E₂ k))
+    (g : (k : Fin n) → Machine (B k) (C k ⊗₀ E₁ k))
+    → ∀ (k : Fin n) s
+    → ⨂ᴷ-sub-state k (proj₁ (proj₁ (proj₁ (from (Derived.⨂-functorial f g) s))))
+      ≡ proj₁ (proj₁ (⨂ᴷ-sub-state k s))
+  ⨂-functorial-sub-from f g fzero    s              = refl
+  ⨂-functorial-sub-from f g (fsuc k) ((_ , s) , _) =
+    ⨂-functorial-sub-from (λ j → f (fsuc j)) (λ j → g (fsuc j)) k s
+
+  -- Absorbing the per-node outer machines into the environment leaves node
+  -- `k`'s inner sub-state untouched.
+  ⨂-absorb-env-sub : ∀ {A E F} {n} {B C D E₁ E₂ : Fin n → Channel}
+    (f : (k : Fin n) → Machine (C k) (D k ⊗₀ E₂ k))
+    (g : (k : Fin n) → Machine (B k) (C k ⊗₀ E₁ k))
+    (h : Machine A (⨂ B ⊗₀ E))
+    (α : Machine (⨂ D ⊗₀ E ⊗₀ ⨂ (λ k → E₁ k ⊗₀ E₂ k)) F)
+    → ∀ (k : Fin n) sN sα
+    → ⨂ᴷ-sub-state k
+        (proj₁ (proj₂ (proj₁ (proj₁
+          (to (Derived.⨂-absorb-env f g h α) ((sN , sα)))))))
+      ≡ proj₁ (proj₁ (⨂ᴷ-sub-state k (proj₁ (proj₂ (proj₁ sN)))))
+  ⨂-absorb-env-sub f g h α k sN sα =
+    ⨂-functorial-sub-from f g k (proj₁ (proj₂ (proj₁ sN)))
