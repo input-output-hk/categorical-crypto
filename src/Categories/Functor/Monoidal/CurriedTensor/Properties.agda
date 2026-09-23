@@ -22,6 +22,18 @@ private
 
 open GradedKleisliTriple ℳ
 
+sub-⊗ : {u v : Obj} (α : u ⇒ v) {A : Obj} → sub α {A} ≈ α ⊗₁ id
+sub-⊗ _ = Equiv.refl
+
+return-λ⇐ : {A : Obj} → return {A} ≈ λ⇐
+return-λ⇐ = Equiv.refl
+
+ext-⊗ : ∀ u {v A B} (f : A ⇒ T₀ v B) → ext u f ≈ α⇐ ∘ id ⊗₁ f
+ext-⊗ _ _ = Equiv.refl
+
+μ-α⇐ : ∀ u v {A} → μ u v {A} ≈ α⇐
+μ-α⇐ _ _ = elimʳ ⊗.identity
+
 T₁-⊗ : ∀ u {A B} (h : A ⇒ B) → T₁ u h ≈ id ⊗₁ h
 T₁-⊗ u h = begin
     (ρ⇒ ⊗₁ id) ∘ (α⇐ ∘ (id ⊗₁ (λ⇐ ∘ h)))         ≈⟨ (⟺ triangle) ⟩∘⟨refl ⟩
@@ -29,3 +41,6 @@ T₁-⊗ u h = begin
     (id ⊗₁ λ⇒) ∘ (id ⊗₁ (λ⇐ ∘ h))                ≈⟨ merge₂ʳ ⟩
     id ⊗₁ (λ⇒ ∘ (λ⇐ ∘ h))                        ≈⟨ refl⟩⊗⟨ cancelˡ unitorˡ.isoʳ ⟩
     id ⊗₁ h                                      ∎
+
+μT₁-α⇐ : ∀ u {v A B} (f : A ⇒ T₀ v B) → μ u v ∘ T₁ u f ≈ α⇐ ∘ id ⊗₁ f
+μT₁-α⇐ u f = ∘-resp-≈ (μ-α⇐ u _) (T₁-⊗ u f)
