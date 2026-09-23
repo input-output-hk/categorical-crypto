@@ -56,3 +56,9 @@ open import Class.Monad public
 open import Class.DecEq public; instance DecEq-×′ = DecEq-×
 open import Class.Decidable public
 open import Class.Show public
+
+open import Relation.Binary.Bundles
+open import Function.Properties.Equivalence using (⇔-setoid)
+-- predicates on a setoid
+PredS : ∀ {c ℓ} (S : Setoid c ℓ) (p : Level) → Set (c ⊔ˡ ℓ ⊔ˡ sucˡ p)
+PredS A p = Func A (⇔-setoid p)
