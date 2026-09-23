@@ -3,6 +3,8 @@
 -- The extra structure on a category that the UC models here are generated
 -- from.
 
+open import categorical-crypto.Prelude using (PredS)
+
 open import Categories.Category
 open import Categories.Category.Instance.Setoids
 open import Categories.Functor
@@ -148,3 +150,12 @@ record Evaluation {o ℓ e} (𝒞 : Category o ℓ e) (cs ℓs : Level) : Set (o
     ; θ-natural = λ f t m → read-resp assoc
     }
     where open HomReasoning
+
+  module Obs = Observable observable
+
+  -- always P e :<=> for any closure to run e with, P holds
+  always : ∀ {p D} → PredS S p → PredS (Obs.ℰ₀ D) (ℓ ⊔ p)
+  always {D = D} P = record
+    { to   = λ e → (m : Closure D) → P ⟨$⟩ observe e m
+    ; cong = λ eq → mk⇔ (λ h m → Equivalence.to (Func.cong P (eq m)) (h m))
+                        (λ h m → Equivalence.from (Func.cong P (eq m)) (h m)) }
