@@ -48,7 +48,7 @@ module _ {A B : Channel} (let open Channel (A ⊗ᵀ B)) where
   -- which is prevented here
 
 id : ∀ {A} → Machine A A
-id = TotalFunctionMachine' ⇒-solver ⇒-solver
+id = TotalFunctionMachine' (mk⇒ λ x → x) (mk⇒ λ x → x)
 
 modifyStepRel : ∀ {A B C D} → (∀ {m} → C ⊗₀ D ᵀ [ m ]⇒[ m ] A ⊗₀ B ᵀ) → Machine A B → Machine C D
 modifyStepRel p (MkMachine stepRel) = MkMachine $ \s m m' s' → stepRel s (app {mᵢ = In} p m) (app {mₒ = Out} p <$> m') s'
