@@ -6,7 +6,7 @@ open import Level
 open import Relation.Binary.Bundles
 
 import Categories.KernelCongruence as KernelCong
-import Categories.Monad.Graded.Ext as GradedExt
+import Categories.Monad.Graded.FromMonad as FromMonad
 import Categories.Morphism.Reasoning as MR
 open import Categories.Category
 open import Categories.Category.Instance.Setoids
@@ -21,7 +21,7 @@ record UCSetup (o ℓ e o′ ℓ′ e′ cs ℓs : Level) : Set (suc (o ⊔ ℓ 
   field
     𝒞 : Category o′ ℓ′ e′
     ℐ : MonoidalCategory o ℓ e
-    ℳ : GradedKleisliTriple ℐ 𝒞
+    ℳ : GradedMonad ℐ 𝒞
     ℰ : Presheaf 𝒞 (Setoids cs ℓs)
 
   module 𝒞 where
@@ -29,8 +29,7 @@ record UCSetup (o ℓ e o′ ℓ′ e′ cs ℓs : Level) : Set (suc (o ⊔ ℓ 
     open HomReasoning public
     open MR 𝒞 public
   module ℐ = MonoidalCategory ℐ
-  open GradedKleisliTriple ℳ public
-  open GradedExt ℳ public
+  open FromMonad ℳ public
   open import Categories.Category.Monoidal.Utilities ℐ.monoidal public
   open Shorthands public
 
@@ -82,7 +81,8 @@ record UCSetup (o ℓ e o′ ℓ′ e′ cs ℓs : Level) : Set (suc (o ⊔ ℓ 
         ≈⟨ assoc ⟩
       (sub α⇒ ∘ ext (W ⊗₀ X) h) ∘ μ W X ∘ T₁ W f  ∎
     where extassoc : ext W (ext X h) 𝒞.≈ sub α⇒ 𝒞.∘ ext (W ⊗₀ X) h 𝒞.∘ μ W X
-          extassoc = let open 𝒞 in ⟺ (ext-resp-≈ identityʳ) ○ ext-assoc
+          extassoc = let open 𝒞 in
+            ⟺ (ext-resp-≈ identityʳ) ○ ext-assoc ○ (refl⟩∘⟨ refl⟩∘⟨ elimʳ T-identity)
 
   sub-decomp : (c : X ℐ.⇒ X′) (x : A 𝒞.⇒ T₀ X B) (Y : ℐ.Obj)
              → μ Y X′ 𝒞.∘ T₁ Y (sub c 𝒞.∘ x) 𝒞.≈ sub (ℐ.id ⊗₁ c) 𝒞.∘ μ Y X 𝒞.∘ T₁ Y x

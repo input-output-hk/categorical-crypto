@@ -47,7 +47,6 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
   open GradedKleisliTriple M
   open import Categories.Category.Monoidal.Utilities (I.monoidal)
   open import Categories.Category.Monoidal.Properties (I.monoidal) using (coherence₃)
-  open import Categories.Monad.Graded.Ext M
   open Shorthands
 
   private
@@ -125,34 +124,22 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
   U₀ (i , c) = T₀ i c
 
   U₁ : ∀ {A B} → GradedKleisli [ A , B ] → C [ U₀ A , U₀ B ]
-  U₁ {i , _} (X , f , a) = sub a C.∘ μ i X C.∘ T₁ i f
+  U₁ {i , _} (X , f , a) = sub a C.∘ ext i f
 
   U-resp : ∀ {A B} {x y : GradedKleisli [ A , B ]} → x K.≈ y → C [ U₁ x ≈ U₁ y ]
   U-resp p = gfold C.equiv U₁ U-slide p
     where
       U-slide : ∀ {A B} {x y : A ⇒ᴳ B} → x ≈ᴳ y → C [ U₁ x ≈ U₁ y ]
       U-slide {ai , _} {x = i , f , α} {y = j , g , β} (φ , p , q) = let open C in begin
-          sub α ∘ μ ai i ∘ T₁ ai f
-            ≈⟨ ⟺ (sub-resp-≈ q) ⟩∘⟨refl ⟩
-          sub (β I.∘ ₁ (ai ⊗-) φ) ∘ μ ai i ∘ T₁ ai f
-            ≈⟨ pushˡ sub-homomorphism ⟩
-          sub β ∘ sub (₁ (ai ⊗-) φ) ∘ μ ai i ∘ T₁ ai f
-            ≈⟨ refl⟩∘⟨ pullˡ crux ⟩
-          sub β ∘ (μ ai j ∘ T₁ ai (sub φ)) ∘ T₁ ai f
-            ≈⟨ refl⟩∘⟨ tail ⟩
-          sub β ∘ μ ai j ∘ T₁ ai g ∎
-        where
-          crux : C [ sub (₁ (ai ⊗-) φ) C.∘ μ ai i ≈ μ ai j C.∘ T₁ ai (sub φ) ]
-          crux = let open C in ⟺ μ-sub-commute ○ (refl⟩∘⟨ elimʳ sub-identity)
-
-          tail : C [ (μ ai j C.∘ T₁ ai (sub φ)) C.∘ T₁ ai f ≈ μ ai j C.∘ T₁ ai g ]
-          tail = let open C in C.assoc ○ (refl⟩∘⟨ (⟺ T-homomorphism ○ T-resp-≈ p))
+          sub α ∘ ext ai f                        ≈⟨ ⟺ (sub-resp-≈ q) ⟩∘⟨refl ⟩
+          sub (β I.∘ ₁ (ai ⊗-) φ) ∘ ext ai f      ≈⟨ pushˡ sub-homomorphism ⟩
+          sub β ∘ sub (₁ (ai ⊗-) φ) ∘ ext ai f    ≈⟨ refl⟩∘⟨ ⟺ sub-commute₂ ⟩
+          sub β ∘ ext ai (sub φ ∘ f)              ≈⟨ refl⟩∘⟨ ext-resp-≈ p ⟩
+          sub β ∘ ext ai g                        ∎
 
   U-∘ : ∀ {A B D} (x : GradedKleisli [ B , D ]) (y : GradedKleisli [ A , B ])
       → C [ U₁ (x K.∘ y) ≈ U₁ x C.∘ U₁ y ]
   U-∘ {P , cA} {Q , cB} {R , cD} (j , g , β) (i , f , α) = let open C in begin
-      sub (β I.∘ ₁ (-⊗ j) α I.∘ α⇐) ∘ μ P (i ⊗₀ j) ∘ T₁ P (ext i g ∘ f)
-        ≈⟨ refl⟩∘⟨ μT (ext i g ∘ f) ⟩
       sub (β I.∘ ₁ (-⊗ j) α I.∘ α⇐) ∘ ext P (ext i g ∘ f)
         ≈⟨ refl⟩∘⟨ ext-assoc ⟩
       sub (β I.∘ ₁ (-⊗ j) α I.∘ α⇐) ∘ sub α⇒ ∘ (ext (P ⊗₀ i) g ∘ ext P f)
@@ -165,9 +152,7 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
         ≈⟨ refl⟩∘⟨ pullˡ (⟺ sub-commute₁) ⟩
       sub β ∘ (ext Q g ∘ sub α) ∘ ext P f
         ≈⟨ solve C ⟩
-      (sub β ∘ ext Q g) ∘ (sub α ∘ ext P f)
-        ≈⟨ (refl⟩∘⟨ ⟺ (μT g)) ⟩∘⟨ (refl⟩∘⟨ ⟺ (μT f)) ⟩
-      (sub β ∘ μ Q j ∘ T₁ Q g) ∘ (sub α ∘ μ P i ∘ T₁ P f) ∎
+      (sub β ∘ ext Q g) ∘ (sub α ∘ ext P f) ∎
     where
       I-eq : I.U [ (β I.∘ ₁ (-⊗ j) α I.∘ α⇐) I.∘ α⇒ ≈ β I.∘ ₁ (-⊗ j) α ]
       I-eq = solve-mor I
@@ -176,7 +161,7 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
   U-functor = record
     { F₀ = U₀
     ; F₁ = U₁
-    ; identity = μ-identityʳ
+    ; identity = ext-identityˡ
     ; homomorphism = λ {_ _ _ f g} → U-∘ g f
     ; F-resp-≈ = U-resp
     }
@@ -235,11 +220,7 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
   F⊣U = record
     { unit = ntHelper record
       { η       = λ _ → return
-      ; commute = λ f → let open C in ⟺ (begin
-          (sub ρ⇒ ∘ μ I.unit I.unit ∘ T₁ I.unit (return ∘ f)) ∘ return
-            ≈⟨ (refl⟩∘⟨ μT (return ∘ f)) ⟩∘⟨refl ⟩
-          T₁ I.unit f ∘ return  ≈⟨ ⟺ return-commute ⟩
-          return ∘ f            ∎)
+      ; commute = λ _ → return-commute
       }
     ; counit = ntHelper record
       { η       = λ where (j , d) → j , C.id , λ⇒
@@ -253,14 +234,14 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
                      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ identityʳ ⟩
                    sub λ⇐ ∘ (sub φx ∘ ext j fx) ∎)
                ○ ⟺ (begin
-                   μ I.unit j′ ∘ (return ∘ (sub φx ∘ μ j kx ∘ T₁ j fx))
+                   μ I.unit j′ ∘ (return ∘ (sub φx ∘ ext j fx))
                      ≈⟨ refl⟩∘⟨ sym-assoc ⟩
-                   μ I.unit j′ ∘ ((return ∘ sub φx) ∘ (μ j kx ∘ T₁ j fx))
+                   μ I.unit j′ ∘ ((return ∘ sub φx) ∘ (ext j fx))
                      ≈⟨ sym-assoc ⟩
-                   (μ I.unit j′ ∘ (return ∘ sub φx)) ∘ (μ j kx ∘ T₁ j fx)
+                   (μ I.unit j′ ∘ (return ∘ sub φx)) ∘ (ext j fx)
                      ≈⟨ (sym-assoc ○ (μ-ret ⟩∘⟨refl)) ⟩∘⟨refl ⟩
-                   (sub λ⇐ ∘ sub φx) ∘ (μ j kx ∘ T₁ j fx)
-                     ≈⟨ assoc ○ (refl⟩∘⟨ refl⟩∘⟨ μT fx) ⟩
+                   (sub λ⇐ ∘ sub φx) ∘ (ext j fx)
+                     ≈⟨ assoc ⟩
                    sub λ⇐ ∘ (sub φx ∘ ext j fx) ∎))
             , (let vs = j ∷ kx ∷ j′ ∷ []
                    open MorAtoms I vs
@@ -281,11 +262,6 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
           ρ⇒ ∘ (id ⊗₁ λ⇒)  ≈⟨ ⟺ coherence₃ ⟩∘⟨refl ⟩
           λ⇒ ∘ (id ⊗₁ λ⇒)  ≈⟨ refl⟩∘⟨ (⟺ (cancelʳ associator.isoʳ) ○ (I.triangle ⟩∘⟨refl)) ⟩
           λ⇒ ∘ ((ρ⇒ ⊗₁ id) ∘ α⇐) ∎))
-    ; zag = let open C in begin
-        (sub λ⇒ ∘ μ I.unit _ ∘ T₁ I.unit id) ∘ return  ≈⟨ assoc ⟩
-        sub λ⇒ ∘ (μ I.unit _ ∘ T₁ I.unit id) ∘ return  ≈⟨ refl⟩∘⟨ assoc ⟩
-        sub λ⇒ ∘ μ I.unit _ ∘ (T₁ I.unit id ∘ return)  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ elimˡ T-identity ⟩
-        sub λ⇒ ∘ μ I.unit _ ∘ return                   ≈⟨ μ-identityˡ ⟩
-        id                                              ∎
+    ; zag = let open C in assoc ○ μ-identityˡ
     }
 
