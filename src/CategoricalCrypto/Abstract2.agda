@@ -15,10 +15,11 @@
 
 module CategoricalCrypto.Abstract2 where
 
+import Relation.Binary.Reasoning.Setoid as SetoidR
 open import Data.Product
+open import Function.Bundles
 open import Level
 open import Relation.Binary.Bundles
-import Relation.Binary.Reasoning.Setoid as SetoidR
 
 open import Categories.LocallyGraded
 import Categories.LocallyGraded.Kleisli as LGKleisli
@@ -131,6 +132,10 @@ module AbstractUC
   _≤UC_ {X = X} {Y = Y} f g =
     ∀ {X′} (a : X ℐ.⇒ X′) → Σ[ s ∈ Y ℐ.⇒ X′ ] sub a 𝒞.∘ f ≈ᵁ sub s 𝒞.∘ g
 
+  -- dummy variant, equivalent to `_≤UC_` (see below)
+  _≤UCᵈ_ : A 𝒞.⇒ T₀ X B → A 𝒞.⇒ T₀ Y B → Set (o ⊔ ℓ ⊔ cs ⊔ ℓs)
+  _≤UCᵈ_ {X = X} {Y = Y} f g = Σ[ s ∈ Y ℐ.⇒ X ] f ≈ᵁ sub s 𝒞.∘ g
+
   ≤UC-refl : (f : A 𝒞.⇒ T₀ X B) → f ≤UC f
   ≤UC-refl f a = a , ≈ᵁ-refl
 
@@ -155,10 +160,16 @@ module AbstractUC
     where strict : sub a 𝒞.∘ sub s₀ 𝒞.∘ g 𝒞.≈ sub (a ℐ.∘ s₀) 𝒞.∘ g
           strict = let open 𝒞 in sym-assoc ○ ⟺ sub-homomorphism ⟩∘⟨refl
 
+  ≈ᵁ⇒≤UC : {f g : A 𝒞.⇒ T₀ X B} → f ≈ᵁ g → f ≤UC g
+  ≈ᵁ⇒≤UC {g = g} h = dummy-complete (ℐ.id , ≈ᵁ-trans h (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ g))))
+
   ≤UC⇒dummy : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
             → f ≤UC g → Σ[ s ∈ Y ℐ.⇒ X ] f ≈ᵁ sub s 𝒞.∘ g
   ≤UC⇒dummy {f = f} le =
     let s , e = le ℐ.id in s , ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ f))) e
+
+  ≤UCᵈ⇔≤UC : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B} → f ≤UCᵈ g ⇔ f ≤UC g
+  ≤UCᵈ⇔≤UC {f = f} {g} = mk⇔ {B = f ≤UC g} dummy-complete ≤UC⇒dummy
 
   UC-compose : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
                {h : B 𝒞.⇒ T₀ P C′} {k : B 𝒞.⇒ T₀ Q C′}
@@ -207,7 +218,7 @@ module AbstractUC
 
   -- Note the hom-equality of this packaging is 𝒞._≈_, NOT ≈ᵁ.
   naiveKleisli : LocallyGradedCategory ℐ o′ ℓ′ e′
-  naiveKleisli = LGKleisli.naiveKleisli ℳ
+  naiveKleisli = LGKleisli.naiveKleisli triple
 
   ≤UC-sub : (c : X ℐ.⇒ Y) (r : Y ℐ.⇒ X) → r ℐ.∘ c ℐ.≈ ℐ.id
           → {f g : A 𝒞.⇒ T₀ X B} → f ≤UC g → sub c 𝒞.∘ f ≤UC sub c 𝒞.∘ g

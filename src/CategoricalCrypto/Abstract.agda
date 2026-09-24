@@ -31,16 +31,16 @@ module AbstractUC
   open Coherence ℐ
   module ℂ = MonoidalCategory Coh
 
-  OAP      = Rg.Klℐ       𝒞 Coh ℐ ⟦-⟧-monoidal ℳ
-  OP       = Rg.Kl𝒥       𝒞 Coh ℐ ⟦-⟧-monoidal ℳ
-  Regrade₀ = Rg.Regrade₀  𝒞 Coh ℐ ⟦-⟧-monoidal ℳ
-  Regrade₁ = Rg.Regrade₁  𝒞 Coh ℐ ⟦-⟧-monoidal ℳ
-  ι-hom    = Functor.homomorphism (Rg.Regrade 𝒞 Coh ℐ ⟦-⟧-monoidal ℳ)
+  OAP      = Rg.Klℐ       𝒞 Coh ℐ ⟦-⟧-monoidal triple
+  OP       = Rg.Kl𝒥       𝒞 Coh ℐ ⟦-⟧-monoidal triple
+  Regrade₀ = Rg.Regrade₀  𝒞 Coh ℐ ⟦-⟧-monoidal triple
+  Regrade₁ = Rg.Regrade₁  𝒞 Coh ℐ ⟦-⟧-monoidal triple
+  ι-hom    = Functor.homomorphism (Rg.Regrade 𝒞 Coh ℐ ⟦-⟧-monoidal triple)
   module OAP = Category OAP
   module OP  = Category OP
 
-  U-resp = GK.U-resp 𝒞 ℐ ℳ
-  U-∘C   = GK.U-∘ 𝒞 ℐ ℳ
+  U-resp = GK.U-resp 𝒞 ℐ triple
+  U-∘C   = GK.U-∘ 𝒞 ℐ triple
 
   infix  10 _⇒ᴼ_ _⇒ᴼᴾ_
   infix  4  _≤UC_
@@ -63,10 +63,10 @@ module AbstractUC
   pattern mkᴼ X f a = X , f , a
 
   U : ∀ {A B} → (A ⇒ᴼ B) → T₀ (grd A) (car A) 𝒞.⇒ T₀ (grd B) (car B)
-  U = GK.U₁ 𝒞 ℐ ℳ
+  U = GK.U₁ 𝒞 ℐ triple
 
   U-functor : Functor OAP 𝒞
-  U-functor = GK.U-functor 𝒞 ℐ ℳ
+  U-functor = GK.U-functor 𝒞 ℐ triple
 
   -- `_≈ℰ'_` is the kernel congruence of ℰ∘Uᵒᵖ on OAP-homs
   module KO = KernelCong (Category.op OAP) (Setoids cs ℓs) (ℰ ∘F Functor.op U-functor)
@@ -100,17 +100,7 @@ module AbstractUC
   pureAtk a = mkᴼ ℐ.unit return (a ℐ.∘ ρ⇒)
 
   U-pureAtk : ∀ {A X Y} (a : X ℐ.⇒ Y) → U (pureAtk {A} a) 𝒞.≈ sub a
-  U-pureAtk {X = X} w = begin
-      sub (w ℐ.∘ ρ⇒) 𝒞.∘ μ X ℐ.unit 𝒞.∘ T₁ X return
-        ≈⟨ sub-homomorphism ⟩∘⟨refl ⟩
-      (sub w 𝒞.∘ sub ρ⇒) 𝒞.∘ μ X ℐ.unit 𝒞.∘ T₁ X return
-        ≈⟨ 𝒞.assoc ⟩
-      sub w 𝒞.∘ sub ρ⇒ 𝒞.∘ μ X ℐ.unit 𝒞.∘ T₁ X return
-        ≈⟨ 𝒞.∘-resp-≈ʳ μ-identityʳ ⟩
-      sub w 𝒞.∘ 𝒞.id
-        ≈⟨ 𝒞.identityʳ ⟩
-      sub w ∎
-    where open 𝒞.HomReasoning
+  U-pureAtk _ = 𝒞.pushˡ sub-homomorphism 𝒞.○ 𝒞.elimʳ ext-identityˡ
 
   pureAtk-id : ∀ {A X} → U (pureAtk {A} {X} ℐ.id) ≈ℰ 𝒞.id
   pureAtk-id = ≈C⇒≈ℰ (U-pureAtk ℐ.id ○ sub-identity)
@@ -186,31 +176,8 @@ module AbstractUC
         where open ℐ.HomReasoning
 
       slide : U (ι (mkᴼ β g α)) 𝒞.∘ sub s 𝒞.≈ sub s″ 𝒞.∘ U (ι (mkᴼ β g α))
-      slide = begin
-          (sub a 𝒞.∘ μ ⟦ K ⟧₀ ⟦ β ⟧₀ 𝒞.∘ T₁ ⟦ K ⟧₀ g) 𝒞.∘ sub s
-            ≈⟨ 𝒞.assoc ⟩
-          sub a 𝒞.∘ (μ ⟦ K ⟧₀ ⟦ β ⟧₀ 𝒞.∘ T₁ ⟦ K ⟧₀ g) 𝒞.∘ sub s
-            ≈⟨ refl⟩∘⟨ 𝒞.assoc ⟩
-          sub a 𝒞.∘ μ ⟦ K ⟧₀ ⟦ β ⟧₀ 𝒞.∘ T₁ ⟦ K ⟧₀ g 𝒞.∘ sub s
-            ≈⟨ refl⟩∘⟨ refl⟩∘⟨ (⟺ sub-commute′) ⟩
-          sub a 𝒞.∘ μ ⟦ K ⟧₀ ⟦ β ⟧₀ 𝒞.∘ sub s 𝒞.∘ T₁ ⟦ K ⟧₀ g
-            ≈⟨ refl⟩∘⟨ 𝒞.sym-assoc ⟩
-          sub a 𝒞.∘ (μ ⟦ K ⟧₀ ⟦ β ⟧₀ 𝒞.∘ sub s) 𝒞.∘ T₁ ⟦ K ⟧₀ g
-            ≈⟨ refl⟩∘⟨ sub-commute₁ ⟩∘⟨refl ⟩
-          sub a 𝒞.∘ (sub (s ℐ.⊗₁ ℐ.id) 𝒞.∘ μ ⟦ K ⟧₀ ⟦ β ⟧₀) 𝒞.∘ T₁ ⟦ K ⟧₀ g
-            ≈⟨ refl⟩∘⟨ 𝒞.assoc ⟩
-          sub a 𝒞.∘ sub (s ℐ.⊗₁ ℐ.id) 𝒞.∘ μ ⟦ K ⟧₀ ⟦ β ⟧₀ 𝒞.∘ T₁ ⟦ K ⟧₀ g
-            ≈⟨ 𝒞.sym-assoc ⟩
-          (sub a 𝒞.∘ sub (s ℐ.⊗₁ ℐ.id)) 𝒞.∘ μ ⟦ K ⟧₀ ⟦ β ⟧₀ 𝒞.∘ T₁ ⟦ K ⟧₀ g
-            ≈⟨ ⟺ sub-homomorphism ⟩∘⟨refl ⟩
-          sub (a ℐ.∘ (s ℐ.⊗₁ ℐ.id)) 𝒞.∘ μ ⟦ K ⟧₀ ⟦ β ⟧₀ 𝒞.∘ T₁ ⟦ K ⟧₀ g
-            ≈⟨ sub-resp-≈ ℐeqn ⟩∘⟨refl ⟩
-          sub (s″ ℐ.∘ a) 𝒞.∘ μ ⟦ K ⟧₀ ⟦ β ⟧₀ 𝒞.∘ T₁ ⟦ K ⟧₀ g
-            ≈⟨ sub-homomorphism ⟩∘⟨refl ⟩
-          (sub s″ 𝒞.∘ sub a) 𝒞.∘ μ ⟦ K ⟧₀ ⟦ β ⟧₀ 𝒞.∘ T₁ ⟦ K ⟧₀ g
-            ≈⟨ 𝒞.assoc ⟩
-          sub s″ 𝒞.∘ sub a 𝒞.∘ μ ⟦ K ⟧₀ ⟦ β ⟧₀ 𝒞.∘ T₁ ⟦ K ⟧₀ g  ∎
-        where open 𝒞.HomReasoning
+      slide = let open 𝒞 in
+        pullʳ sub-commute₁ ○ pullˡ (⟺ sub-homomorphism) ○ (sub-resp-≈ ℐeqn ⟩∘⟨refl) ○ pushˡ sub-homomorphism
 
       chain : U (ι (mkᴼ β g α) OAP.∘ pureAtk s) 𝒞.≈ U (pureAtk s″ OAP.∘ ι (mkᴼ β g α))
       chain = begin

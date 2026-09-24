@@ -18,8 +18,6 @@ open import CategoricalCrypto.FamilyCategory MA
 open import CategoricalCrypto.Standard2
 open import CategoricalCrypto.UCSetup
 
-open import Categories.Functor.Monoidal.CurriedTensor.Properties 𝒞^ω
-
 import CategoricalCrypto.VanishingTV as VTV
 private module TV = VTV MA
 
@@ -30,9 +28,7 @@ StdSetupᵗᵛ : UCSetup o (ℓ ⊔ qs) e o (ℓ ⊔ qs) e (o ⊔ ℓ ⊔ qs) (o
 StdSetupᵗᵛ = StdSetup
 
 grade-stableᵗᵛ : GradeStable
-grade-stableᵗᵛ Y {h} {h′} e =
-  ≈ℰ-trans (≈C⇒≈ℰ (T₁-⊗ Y h))
-    (≈ℰ-trans (TV.grade-stable hom-triv Y e) (≈ℰ-sym (≈C⇒≈ℰ (T₁-⊗ Y h′))))
+grade-stableᵗᵛ = TV.grade-stable hom-triv
 
 ≈ᵁ⇔≈ℰᵗᵛ : {A B X : Channel} {f g : A ⇒ T₀ X B} → f ≈ᵁ g ⇔ f ≈ℰ g
 ≈ᵁ⇔≈ℰᵗᵛ {f = f} {g} = mk⇔ {B = f ≈ℰ g} ≈ᵁ⇒≈ℰ (bridge grade-stableᵗᵛ)
