@@ -6,6 +6,7 @@
 
 module Categories.LocallyGraded where
 
+open import Data.Product
 open import Level
 open import Relation.Binary
 
@@ -90,3 +91,15 @@ module _ {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e}
     ; homomorphism = L.sub-homomorphism
     ; F-resp-≈     = λ ψ≈ → L.sub-resp-≈ ψ≈ L.Equiv.refl
     }
+
+module _ {o ℓ e o₁ ℓ₁ e₁ o₂ ℓ₂ e₂} {ℐ : MonoidalCategory o ℓ e}
+  {L : LocallyGradedCategory ℐ o₁ ℓ₁ e₁} {M : LocallyGradedCategory ℐ o₂ ℓ₂ e₂}
+  (F : LocallyGradedFunctor L M) where
+
+  private
+    module L = LocallyGradedCategory L
+    module M = LocallyGradedCategory M
+  open LocallyGradedFunctor F
+
+  Image : ∀ {A B} X → M.Hom X (F₀ A) (F₀ B) → Set (ℓ₁ ⊔ e₂)
+  Image {A} {B} X f = Σ[ h ∈ L.Hom X A B ] F₁ h M.≈ f
