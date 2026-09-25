@@ -111,6 +111,10 @@ is independent of any particular machine implementation:
 - `StandardTV` — everything plugged together: the `Standard2` setup at
   𝒞 = ℐ = `𝒞^ω`, with `GradeStable` discharged and `≈ᵁ ⇔ ≈ℰ` as the
   headline corollary.
+- `UC.Family` / `UC.Family.Vanishing` — the security-parameter family category
+  and the vanishing-bound layer over it.
+- `UC.Quantitative.Observed` — the ε-indexed form of `_≈ᵁ_` and its
+  collapse.
 
 ## 4. Concrete machine layer
 
