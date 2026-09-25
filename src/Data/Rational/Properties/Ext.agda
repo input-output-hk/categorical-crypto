@@ -32,14 +32,73 @@ private module AG = AbelianGroupProperties +-0-abelianGroup
 
 private variable x y c : ℚ
 
+neg-sub : ∀ p q → p - q ≡ - (q - p)
+neg-sub p q = sym (AG.⁻¹-anti-homo‿- q p)
+
++-−-cancel : ∀ x d → (x + d) - d ≡ x
++-−-cancel x d = trans (+-assoc x d (- d)) (trans (cong (x +_) (+-inverseʳ d)) (+-identityʳ x))
+
+−-+-cancel : ∀ x d → (x - d) + d ≡ x
+−-+-cancel x d = trans (+-assoc x (- d) d) (trans (cong (x +_) (+-inverseˡ d)) (+-identityʳ x))
+
+telescope : ∀ a b c → (a - b) + (b - c) ≡ a - c
+telescope a b c = trans (+-assoc a (- b) (b - c))
+  (cong (a +_) (trans (sym (+-assoc (- b) b (- c)))
+                  (trans (cong (_+ (- c)) (+-inverseˡ b)) (+-identityˡ (- c)))))
+
 0≤1ℚ : 0ℚ ≤ 1ℚ
 0≤1ℚ = 0≤∣p∣ 1ℚ
+
+-- The two refutations an "eventually below ε" bound needs to contradict
+-- probability one.  `Data.Rational.Properties` has no `<⇒≱`, so they come off
+-- the decision procedure rather than off an order lemma.
+1≰0 : ¬ (1ℚ ≤ 0ℚ)
+1≰0 = toWitnessFalse {a? = 1ℚ ≤? 0ℚ} _
+
+1≰½ : ¬ (1ℚ ≤ ½)
+1≰½ = toWitnessFalse {a? = 1ℚ ≤? ½} _
 
 -- The `_≤_` spelling of `nonNeg*nonNeg⇒nonNeg`, which is stated in the
 -- instance-argument `NonNegative` idiom.
 0≤* : 0ℚ ≤ x → 0ℚ ≤ y → 0ℚ ≤ x * y
 0≤* {x} {y} 0≤x 0≤y = nonNegative⁻¹ (x * y)
   {{nonNeg*nonNeg⇒nonNeg x {{nonNegative 0≤x}} y {{nonNegative 0≤y}}}}
+
+neg≤0 : 0ℚ ≤ y → (- y) ≤ 0ℚ
+neg≤0 = neg-antimono-≤
+
+x-y≤x : ∀ x → 0ℚ ≤ y → (x - y) ≤ x
+x-y≤x x 0≤y = ≤-trans (+-monoʳ-≤ x (neg≤0 0≤y)) (≤-reflexive (+-identityʳ x))
+
+p≤∣p∣ : ∀ p → p ≤ ∣ p ∣
+p≤∣p∣ p with ≤-total 0ℚ p
+... | inj₁ 0≤p = ≤-reflexive (sym (0≤p⇒∣p∣≡p 0≤p))
+... | inj₂ p≤0 = ≤-trans p≤0 (0≤∣p∣ p)
+
+-- ∣x∣ ≤ c  from  x ≤ c  and  -x ≤ c
+∣∣≤ : x ≤ c → (- x) ≤ c → ∣ x ∣ ≤ c
+∣∣≤ {x} {c} x≤c -x≤c with ≤-total 0ℚ x
+... | inj₁ 0≤x = subst (_≤ c) (sym (0≤p⇒∣p∣≡p 0≤x)) x≤c
+... | inj₂ x≤0 = subst (_≤ c) (sym ∣x∣≡-x) -x≤c
+  where ∣x∣≡-x = trans (sym (∣-p∣≡∣p∣ x)) (0≤p⇒∣p∣≡p (neg-antimono-≤ x≤0))
+
+∣diff∣≤1 : 0ℚ ≤ x → x ≤ 1ℚ → 0ℚ ≤ y → y ≤ 1ℚ → ∣ x - y ∣ ≤ 1ℚ
+∣diff∣≤1 {x} {y} 0≤x x≤1 0≤y y≤1 =
+  ∣∣≤ (≤-trans (x-y≤x x 0≤y) x≤1)
+      (subst (_≤ 1ℚ) (neg-sub y x) (≤-trans (x-y≤x y 0≤x) y≤1))
+
+------------------------------------------------------------------------
+-- ∣_-_∣ as a metric
+
+∣x-x∣≡0 : ∀ x → ∣ x - x ∣ ≡ 0ℚ
+∣x-x∣≡0 x = trans (cong ∣_∣ (+-inverseʳ x)) (0≤p⇒∣p∣≡p ≤-refl)
+
+∣-∣-comm : ∀ x y → ∣ x - y ∣ ≡ ∣ y - x ∣
+∣-∣-comm x y = sym (trans (cong ∣_∣ (neg-sub y x)) (∣-p∣≡∣p∣ (x - y)))
+
+∣-∣-triangle : ∀ x y z → ∣ x - z ∣ ≤ ∣ x - y ∣ + ∣ y - z ∣
+∣-∣-triangle x y z = ≤-trans (≤-reflexive (cong ∣_∣ (sym (telescope x y z))))
+                             (∣p+q∣≤∣p∣+∣q∣ (x - y) (y - z))
 
 ------------------------------------------------------------------------
 -- Halving, for ε/2 + ε/2 arguments
@@ -60,6 +119,16 @@ private variable x y c : ℚ
 private
   toℚᵘ-/ : ∀ (i : ℤ) (n : ℕ) .{{_ : ℕ.NonZero n}} → toℚᵘ (i / n) ℚᵘ.≃ i ℚᵘ./ n
   toℚᵘ-/ i (suc n) = toℚᵘ-fromℚᵘ (mkℚᵘ i n)
+
+  -- ℚᵘ addition cross-multiplies even when the denominators already agree.
+  /ᵘ-+-same : ∀ (i j : ℤ) (n : ℕ) .{{_ : ℕ.NonZero n}}
+            → (i ℚᵘ./ n) ℚᵘ.+ (j ℚᵘ./ n) ℚᵘ.≃ (i ℤ.+ j) ℚᵘ./ n
+  /ᵘ-+-same i j (suc n-1) = *≡*
+    (trans (cong (ℤ._* d) (sym (ℤₚ.*-distribʳ-+ d i j)))
+      (trans (ℤₚ.*-assoc (i ℤ.+ j) d d)
+             (cong ((i ℤ.+ j) ℤ.*_) (sym (ℤₚ.pos-* D D)))))
+    where D = suc n-1
+          d = ℤ.+ D
 
 /-mono-≤ : ∀ (i : ℤ) (n : ℕ) (j : ℤ) (m : ℕ) .{{_ : ℕ.NonZero n}} .{{_ : ℕ.NonZero m}}
          → i ℤ.* (ℤ.+ m) ℤ.≤ j ℤ.* (ℤ.+ n) → i / n ≤ j / m
@@ -83,3 +152,11 @@ private
   (ℚᵘₚ.≃-trans (toℚᵘ-homo-+ (i / n) (j / m))
     (ℚᵘₚ.≃-trans (ℚᵘₚ.+-cong (toℚᵘ-/ i n) (toℚᵘ-/ j m))
                  (ℚᵘₚ.≃-sym (toℚᵘ-/ (i ℤ.* (ℤ.+ m) ℤ.+ j ℤ.* (ℤ.+ n)) (n ℕ.* m)))))
+
+-- The common-denominator case of `/-+-/`: cross-multiplying there would square
+-- the denominator.
+/-+-/-same : ∀ (i j : ℤ) (n : ℕ) .{{_ : ℕ.NonZero n}} → (i / n) + (j / n) ≡ (i ℤ.+ j) / n
+/-+-/-same i j n@(suc _) = toℚᵘ-injective
+  (ℚᵘₚ.≃-trans (toℚᵘ-homo-+ (i / n) (j / n))
+    (ℚᵘₚ.≃-trans (ℚᵘₚ.+-cong (toℚᵘ-/ i n) (toℚᵘ-/ j n))
+      (ℚᵘₚ.≃-trans (/ᵘ-+-same i j n) (ℚᵘₚ.≃-sym (toℚᵘ-/ (i ℤ.+ j) n)))))
