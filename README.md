@@ -100,6 +100,10 @@ is independent of any particular machine implementation:
 - `UC.Core` — observables, their test presheaf `ℰᴼ`, and evaluations; each
   consumer instantiates `Standard2.StdUC` at `ℰᴼ`, whose `_≈ᵁ_` is the
   ancilla-quantified indistinguishability.
+- `UC.Family` / `UC.Family.Vanishing` — the security-parameter family category
+  and the vanishing-bound layer over it.
+- `UC.Quantitative.Observed` — the ε-indexed form of `_≈ᵁ_` and its
+  collapse.
 
 ## 4. Concrete machine layer
 
