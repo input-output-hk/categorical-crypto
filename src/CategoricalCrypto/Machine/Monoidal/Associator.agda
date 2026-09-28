@@ -45,7 +45,7 @@ open Channel
 opaque
   unfolding _⊗₀_ destruct-⊗ construct-⊗ ⊗-sym ⊗-right-assoc ⊗-left-assoc
             ⊗-right-intro ⊗-ᵀ-distrib ⊗-ᵀ-factor ⊗-right-neutral ⊗-fusion
-            ⊗-combine πᵢ ∘κᵢ cdᵢ Xφ asc3ᵢ
+            ⊗-combine πᵢ ∘κᵢ cdᵢ Xφ asc3ᵢ cod-routeᵢ Pair-Post
 
   -- ========================================================================
   -- Normalising a tensor to a `Pair`-nest.  `_⊗₁_` IS a `Reindex` of a `Pair`
@@ -433,3 +433,11 @@ opaque
                      ≅ᴹ (⊗-assoc⃖ CC.∘ (a ⊗₁ (b ⊗₁ d)))
   ⊗-assoc⃖-natural a b d =
     ≅ᴹ-trans (α-lhs-norm a b d) (≅ᴹ-sym (α-rhs-norm a b d))
+
+  -- PROBE
+  ⊗-assoc⃖-natural-to : ∀ {A A' B B' D D'}
+                        (a : Machine A A') (b : Machine B B') (d : Machine D D')
+                      → ∀ sa sb sd
+                      → _≅ᴹ_.to (⊗-assoc⃖-natural a b d) (tt , ((sa , sb) , sd))
+                        ≡ ((sa , (sb , sd)) , tt)
+  ⊗-assoc⃖-natural-to a b d sa sb sd = refl

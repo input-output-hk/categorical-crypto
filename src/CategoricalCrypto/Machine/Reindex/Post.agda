@@ -1026,14 +1026,14 @@ opaque
   Xfwd-∘-Post : ∀ {A B C} (M : Machine A B)
                 (f : inType B → inType C)
                 (g : outType C → outType B)
-              → (Xfwd f g CC.∘ M) ≅ᴹ Post M (cdᵢ {A} {B} {C} g) (cdₒ⁺ {A} {B} {C} f)
-  Xfwd-∘-Post {A} {B} {C} M f g = ≅ᴹ-trans (∘-Reindex M (Xfwd f g)) (Trc-relay-cod M f g)
+              → (Xfwd f g CC.∘ M) ≅ᴹ Post M (cdᵢ g) (cdₒ⁺ f)
+  Xfwd-∘-Post M f g = ≅ᴹ-trans (∘-Reindex M (Xfwd f g)) (Trc-relay-cod M f g)
 
   ∘-Xfwd-Post : ∀ {A B C} (N : Machine B C)
                 (f : inType A → inType B)
                 (g : outType B → outType A)
-              → (N CC.∘ Xfwd f g) ≅ᴹ Post N (dmᵢ {B} {A} {C} f) (dmₒ⁺ {B} {A} {C} g)
-  ∘-Xfwd-Post {A} {B} {C} N f g = ≅ᴹ-trans (∘-Reindex (Xfwd f g) N) (Trc-relay-dom f g N)
+              → (N CC.∘ Xfwd f g) ≅ᴹ Post N (dmᵢ f) (dmₒ⁺ g)
+  ∘-Xfwd-Post N f g = ≅ᴹ-trans (∘-Reindex (Xfwd f g) N) (Trc-relay-dom f g N)
 
   -- ------------------------------------------------------------------------
   -- The identity laws are the relay lemmas at `f = g = id`, with the identity
