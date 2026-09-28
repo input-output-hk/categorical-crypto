@@ -35,6 +35,8 @@ module AbstractUC
   private variable
     A B C′ : 𝒞.Obj
     X X′ Y Z P Q : ℐ.Obj
+    f f′ h : A 𝒞.⇒ T₀ X B
+    g g′ : A 𝒞.⇒ T₀ Y B
 
   infix  4 _≈ᵁ_ _≤UC_
 
@@ -45,13 +47,13 @@ module AbstractUC
   _≈ᵁ_ : (f g : A 𝒞.⇒ T₀ X B) → Set (o ⊔ cs ⊔ ℓs)
   _≈ᵁ_ {X = X} f g = ∀ Y → μ Y X 𝒞.∘ T₁ Y f ≈ℰ μ Y X 𝒞.∘ T₁ Y g
 
-  ≈ᵁ-refl : {f : A 𝒞.⇒ T₀ X B} → f ≈ᵁ f
+  ≈ᵁ-refl : f ≈ᵁ f
   ≈ᵁ-refl _ = ≈ℰ-refl
 
-  ≈ᵁ-sym : {f g : A 𝒞.⇒ T₀ X B} → f ≈ᵁ g → g ≈ᵁ f
+  ≈ᵁ-sym : f ≈ᵁ g → g ≈ᵁ f
   ≈ᵁ-sym e Y = ≈ℰ-sym (e Y)
 
-  ≈ᵁ-trans : {f g h : A 𝒞.⇒ T₀ X B} → f ≈ᵁ g → g ≈ᵁ h → f ≈ᵁ h
+  ≈ᵁ-trans : f ≈ᵁ g → g ≈ᵁ h → f ≈ᵁ h
   ≈ᵁ-trans e₁ e₂ Y = ≈ℰ-trans (e₁ Y) (e₂ Y)
 
   ≈ᵁ-setoid : (A B : 𝒞.Obj) (X : ℐ.Obj) → Setoid ℓ′ (o ⊔ cs ⊔ ℓs)
@@ -60,7 +62,7 @@ module AbstractUC
     ; _≈_ = _≈ᵁ_
     ; isEquivalence = record { refl = ≈ᵁ-refl ; sym = ≈ᵁ-sym ; trans = ≈ᵁ-trans } }
 
-  ≈C⇒≈ᵁ : {f g : A 𝒞.⇒ T₀ X B} → f 𝒞.≈ g → f ≈ᵁ g
+  ≈C⇒≈ᵁ : f 𝒞.≈ g → f ≈ᵁ g
   ≈C⇒≈ᵁ e _ = ≈C⇒≈ℰ (𝒞.∘-resp-≈ʳ (T-resp-≈ e))
 
   sub-cong : (c : X ℐ.⇒ X′) {x x′ : A 𝒞.⇒ T₀ X B} → x ≈ᵁ x′ → sub c 𝒞.∘ x ≈ᵁ sub c 𝒞.∘ x′
@@ -68,9 +70,9 @@ module AbstractUC
       (≈ℰ-trans (≈ℰ-cong-post (sub (ℐ.id ⊗₁ c)) (e Y))
                 (≈ℰ-sym (≈C⇒≈ℰ (sub-decomp c x′ Y))))
 
-  ext-cong : (k : B 𝒞.⇒ T₀ P C′) {f f′ : A 𝒞.⇒ T₀ X B}
+  ext-cong : (k : B 𝒞.⇒ T₀ P C′)
            → f ≈ᵁ f′ → ext X k 𝒞.∘ f ≈ᵁ ext X k 𝒞.∘ f′
-  ext-cong {X = X} k {f} {f′} e W = ≈ℰ-trans (≈C⇒≈ℰ (∙-decomp k f W))
+  ext-cong {X = X} {f = f} {f′} k e W = ≈ℰ-trans (≈C⇒≈ℰ (∙-decomp k f W))
       (≈ℰ-trans (≈ℰ-cong-post (sub α⇒ 𝒞.∘ ext (W ⊗₀ X) k) (e W))
                 (≈ℰ-sym (≈C⇒≈ℰ (∙-decomp k f′ W))))
 
@@ -114,15 +116,15 @@ module AbstractUC
               sub λ⇐ ∘ 𝒞.id                              ≈⟨ identityʳ ⟩
               sub λ⇐                                     ∎
 
-  ≈ᵁ⇒≈ℰ : {f g : A 𝒞.⇒ T₀ X B} → f ≈ᵁ g → f ≈ℰ g
+  ≈ᵁ⇒≈ℰ : f ≈ᵁ g → f ≈ℰ g
   ≈ᵁ⇒≈ℰ {f = f} {g} e = ≈ℰ-trans (≈ℰ-sym (≈C⇒≈ℰ (λ-cancel f)))
       (≈ℰ-trans (≈ℰ-cong-post (sub λ⇒) key) (≈C⇒≈ℰ (λ-cancel g)))
     where key : (sub λ⇐ 𝒞.∘ f) ≈ℰ (sub λ⇐ 𝒞.∘ g)
           key = ≈ℰ-trans (≈ℰ-sym (≈C⇒≈ℰ (unit-comp f)))
                   (≈ℰ-trans (≈ℰ-cong-pre return (e ℐ.unit)) (≈C⇒≈ℰ (unit-comp g)))
 
-  bridge : {f g : A 𝒞.⇒ T₀ X B} → GradeStable → f ≈ℰ g → f ≈ᵁ g
-  bridge {X = X} gs e Y = ≈ℰ-cong-post (μ Y X) (gs Y e)
+  bridge : GradeStable → f ≈ℰ g → f ≈ᵁ g
+  bridge gs e Y = ≈ℰ-cong-post (μ Y _) (gs Y e)
 
   ------------------------------------------------------------------------
   -- The UC metatheory
@@ -132,44 +134,45 @@ module AbstractUC
   _≤UC_ {X = X} {Y = Y} f g =
     ∀ {X′} (a : X ℐ.⇒ X′) → Σ[ s ∈ Y ℐ.⇒ X′ ] sub a 𝒞.∘ f ≈ᵁ sub s 𝒞.∘ g
 
+  UC-dummy-sim : {f : A 𝒞.⇒ T₀ X B} → {g : A 𝒞.⇒ T₀ Y B} → f ≤UC g → Y ℐ.⇒ X
+  UC-dummy-sim uc = proj₁ (uc ℐ.id)
+
   -- dummy variant, equivalent to `_≤UC_` (see below)
   _≤UCᵈ_ : A 𝒞.⇒ T₀ X B → A 𝒞.⇒ T₀ Y B → Set (o ⊔ ℓ ⊔ cs ⊔ ℓs)
   _≤UCᵈ_ {X = X} {Y = Y} f g = Σ[ s ∈ Y ℐ.⇒ X ] f ≈ᵁ sub s 𝒞.∘ g
 
-  ≤UC-refl : (f : A 𝒞.⇒ T₀ X B) → f ≤UC f
-  ≤UC-refl f a = a , ≈ᵁ-refl
+  UCᵈ-sim : {f : A 𝒞.⇒ T₀ X B} → {g : A 𝒞.⇒ T₀ Y B} → f ≤UCᵈ g → Y ℐ.⇒ X
+  UCᵈ-sim = proj₁
 
-  ≤UC-trans : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B} {h : A 𝒞.⇒ T₀ Z B}
-            → f ≤UC g → g ≤UC h → f ≤UC h
+  ≤UC-refl : f ≤UC f
+  ≤UC-refl a = a , ≈ᵁ-refl
+
+  ≤UC-trans : f ≤UC g → g ≤UC h → f ≤UC h
   ≤UC-trans f≤g g≤h a =
     let (s₁ , e₁) = f≤g a
         (s₂ , e₂) = g≤h s₁
     in s₂ , ≈ᵁ-trans e₁ e₂
 
-  ≤UC-resp-≈ : {f f′ : A 𝒞.⇒ T₀ X B} {g g′ : A 𝒞.⇒ T₀ Y B}
-             → f 𝒞.≈ f′ → g 𝒞.≈ g′ → f ≤UC g → f′ ≤UC g′
+  ≤UC-resp-≈ : f 𝒞.≈ f′ → g 𝒞.≈ g′ → f ≤UC g → f′ ≤UC g′
   ≤UC-resp-≈ ef eg p a =
     let s , e = p a
     in s , ≈ᵁ-trans (≈C⇒≈ᵁ (𝒞.∘-resp-≈ʳ (𝒞.Equiv.sym ef)))
                     (≈ᵁ-trans e (≈C⇒≈ᵁ (𝒞.∘-resp-≈ʳ eg)))
 
-  dummy-complete : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
-                 → Σ[ s₀ ∈ Y ℐ.⇒ X ] f ≈ᵁ sub s₀ 𝒞.∘ g
-                 → f ≤UC g
+  dummy-complete : f ≤UCᵈ g → f ≤UC g
   dummy-complete {g = g} (s₀ , e) a = a ℐ.∘ s₀ , ≈ᵁ-trans (sub-cong a e) (≈C⇒≈ᵁ strict)
     where strict : sub a 𝒞.∘ sub s₀ 𝒞.∘ g 𝒞.≈ sub (a ℐ.∘ s₀) 𝒞.∘ g
           strict = let open 𝒞 in sym-assoc ○ ⟺ sub-homomorphism ⟩∘⟨refl
 
-  ≈ᵁ⇒≤UC : {f g : A 𝒞.⇒ T₀ X B} → f ≈ᵁ g → f ≤UC g
+  ≈ᵁ⇒≤UC : f ≈ᵁ g → f ≤UC g
   ≈ᵁ⇒≤UC {g = g} h = dummy-complete (ℐ.id , ≈ᵁ-trans h (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ g))))
 
-  ≤UC⇒dummy : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
-            → f ≤UC g → Σ[ s ∈ Y ℐ.⇒ X ] f ≈ᵁ sub s 𝒞.∘ g
+  ≤UC⇒dummy : f ≤UC g → Σ[ s ∈ Y ℐ.⇒ X ] f ≈ᵁ sub s 𝒞.∘ g
   ≤UC⇒dummy {f = f} le =
     let s , e = le ℐ.id in s , ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ f))) e
 
-  ≤UCᵈ⇔≤UC : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B} → f ≤UCᵈ g ⇔ f ≤UC g
-  ≤UCᵈ⇔≤UC {f = f} {g} = mk⇔ {B = f ≤UC g} dummy-complete ≤UC⇒dummy
+  ≤UCᵈ⇔≤UC : f ≤UCᵈ g ⇔ f ≤UC g
+  ≤UCᵈ⇔≤UC = mk⇔ dummy-complete ≤UC⇒dummy
 
   UC-compose : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B}
                {h : B 𝒞.⇒ T₀ P C′} {k : B 𝒞.⇒ T₀ Q C′}
@@ -221,8 +224,8 @@ module AbstractUC
   naiveKleisli = LGKleisli.naiveKleisli triple
 
   ≤UC-sub : (c : X ℐ.⇒ Y) (r : Y ℐ.⇒ X) → r ℐ.∘ c ℐ.≈ ℐ.id
-          → {f g : A 𝒞.⇒ T₀ X B} → f ≤UC g → sub c 𝒞.∘ f ≤UC sub c 𝒞.∘ g
-  ≤UC-sub {X = X} c r inv {f} {g} p = dummy-complete (c ℐ.∘ s₀ ℐ.∘ r , eq)
+          → f ≤UC g → sub c 𝒞.∘ f ≤UC sub c 𝒞.∘ g
+  ≤UC-sub {X = X} {f = f} {g = g} c r inv p = dummy-complete (c ℐ.∘ s₀ ℐ.∘ r , eq)
     where
     s₀ : X ℐ.⇒ X
     s₀ = proj₁ (p ℐ.id)
