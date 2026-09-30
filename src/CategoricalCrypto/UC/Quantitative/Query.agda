@@ -195,12 +195,12 @@ module Tests
     ; F₁ = pullᵠ
     ; identity = ( reindex-cong (λ r′ → value-injective (ℕₚ.*-identityʳ (value r′)))
                  , λ _ _ _ _ → obs-resp (∘-resp-≈ˡ identityʳ) )
-               , λ q → value-injective (scale-unit (value q))
+               , λ q → scale-unit (value q)
     ; homomorphism = λ {_} {_} {_} {(r , _)} {(s , _)} →
         ( reindex-cong (λ r′ → value-injective (sym (ℕₚ.*-assoc (value r′) (value s) (value r))))
         , λ _ _ _ _ → obs-resp (∘-resp-≈ˡ sym-assoc) )
-        , λ q → value-injective (trans (scale-· (value q) s r) (scale-comm (value q) s r))
+        , λ q → trans (scale-· (value q) s r) (scale-comm (value q) s r)
     ; F-resp-≈ = λ (he , be) → ( reindex-cong (λ r′ → cong (r′ ·_) be)
                                , λ _ _ _ _ → obs-resp (∘-resp-≈ˡ (∘-resp-≈ʳ he)) )
-                               , λ q → cong (q ·_) be
+                               , λ q → cong (scale (value q)) be
     }
