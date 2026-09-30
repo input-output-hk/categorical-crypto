@@ -20,14 +20,13 @@ open import Relation.Binary.Bundles using (Setoid)
 open import Relation.Binary.Core using (Rel)
 open import Relation.Binary.Structures using (IsEquivalence)
 
-open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
-open import CategoricalCrypto.UC.Approximate using (module AllPositive; Refinement)
+open import CategoricalCrypto.Approx.Error using (module AllPositive; OrderedErrorAlgebra; Refinement)
 open import CategoricalCrypto.UC.Core using (Evaluation)
 
 module CategoricalCrypto.Approx.Evaluation
   {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe) where
 
-open OrderedErrorAlgebra E using (errors; ε₀)
+open OrderedErrorAlgebra E using (ε₀)
 open import CategoricalCrypto.Approx.Space E
 
 private variable
@@ -65,6 +64,6 @@ qualBy Q {_∼_} eqv coarsen = record
 qual : (Q : QEvaluation 𝒞 cs ℓa) → Evaluation 𝒞 cs ℓa
 qual Q = qualBy Q (Setoid.isEquivalence (zeroSetoid (QEvaluation.X Q))) λ h → h
 
-qual₊ : Refinement errors → (Q : QEvaluation 𝒞 cs ℓa) → Evaluation 𝒞 cs (es ⊔ ℓe ⊔ ℓa)
+qual₊ : Refinement E → (Q : QEvaluation 𝒞 cs ℓa) → Evaluation 𝒞 cs (es ⊔ ℓe ⊔ ℓa)
 qual₊ R Q = qualBy Q ∼ᵃ-isEquivalence zero⇒positive
   where open AllPositive R (QEvaluation.approx Q)

@@ -1,8 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- Vanishing bounds: polynomially many `1/2^j`-sized parts tend to 0.  `_→0` is
--- spelled exactly as `CategoricalCrypto.UC.Family._→0`, so that these lemmas
--- inhabit `UC.Family.VanishingBound` on the nose.
+-- the vanishing grade `CategoricalCrypto.UC.Approximate.VanishingBound` is
+-- stated at, so these lemmas inhabit it on the nose.
 
 module ProbabilisticLogic.Distribution.Uniform.Decay where
 

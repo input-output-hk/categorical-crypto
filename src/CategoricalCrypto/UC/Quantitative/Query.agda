@@ -34,9 +34,8 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; cong; cong₂; refl; sym; trans)
 
 open import CategoricalCrypto.Approx.Error
-  using (OrderedErrorAlgebra; ℚ-ordered; ≈[]-resp₀)
+  using (Approximation; OrderedErrorAlgebra; ℚ-ordered; ≈[]-resp₀)
 open import CategoricalCrypto.Approx.Schedule using (pointwise; module Reindexing)
-open import CategoricalCrypto.UC.Approximate using (Approximation; ℚ-errors)
 
 import CategoricalCrypto.Approx.Controlled as Controlledᴹ
 import CategoricalCrypto.Approx.Filtered as Filteredᴹ
@@ -84,7 +83,7 @@ absorb-closure c r ε = (λ r′ → ℚₚ.≤-reflexive (cong ε (scale-· (va
 module Tests
   {o ℓ e os ℓa qs : Level} (M : MonoidalCategory o ℓ e)
   (Rg : GradedSubCat Rates.monoidalCategory M qs)
-  {Obs : Set os} (Ap : Approximation Obs ℚ-errors ℓa)
+  {Obs : Set os} (Ap : Approximation Obs ℚ-ordered ℓa)
   (𝟙 Ω : MonoidalCategory.Obj M)
   (⟦_⟧ : MonoidalCategory._⇒_ M 𝟙 Ω → Obs)
   (obs-resp : {u v : MonoidalCategory._⇒_ M 𝟙 Ω}
@@ -119,7 +118,7 @@ module Tests
     (m : Closure C) (r′ : ℕ⁺) → Image forget r′ m → ⟦ E ∘ m ⟧ A.≈[ τ r′ ] ⟦ F ∘ m ⟧
 
   approxᵠ : (C : Obj)
-          → Approximation (Test C) (OrderedErrorAlgebra.errors Sched) (ℓ ⊔ e ⊔ ℓa ⊔ qs)
+          → Approximation (Test C) Sched (ℓ ⊔ e ⊔ ℓa ⊔ qs)
   approxᵠ C = record
     { _≈[_]_    = _≈ᵠ[_]_
     ; ≈[]-refl  = λ _ _ _ → A.≈[]-refl

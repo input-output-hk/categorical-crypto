@@ -22,9 +22,8 @@ open import Relation.Nullary using (¬_)
 
 open import ProbabilisticLogic.Distribution.Uniform using (inv-pow-2)
 
-open import CategoricalCrypto.Approx.Error using (ℚ-ordered)
-open import CategoricalCrypto.UC.Approximate
-  using (Approximation; Negligible⇒→0; ℚ-errors; ℚ-refinement)
+open import CategoricalCrypto.Approx.Error using (Approximation; ℚ-ordered; ℚ-refinement)
+open import CategoricalCrypto.UC.Approximate using (Negligible⇒→0)
 open import CategoricalCrypto.UC.Approximate.Decay using (0<inv-pow-2; negligible-slack)
 open import CategoricalCrypto.UC.Approximate.Separating using (≈ᵐ-0; ≈ᵐ-gap)
 
@@ -46,7 +45,7 @@ s ≈ᵉ[ ε ] t = Σ[ N ∈ ℕ ] ((n : ℕ) → N ℕ.≤ n → ∣ s n ℚ.- 
 
 -- A negative ε admits nothing, so the laws never have to weigh one: an absolute
 -- value under it is already absurd.
-eventually : Approximation (ℕ → ℚ) ℚ-errors 0ℓ
+eventually : Approximation (ℕ → ℚ) ℚ-ordered 0ℓ
 eventually = record
   { _≈[_]_    = _≈ᵉ[_]_
   ; ≈[]-refl  = λ {s} → 0 , λ n _ → ℚₚ.≤-reflexive (∣x-x∣≡0 (s n))

@@ -32,8 +32,10 @@ open import Relation.Nullary using (¬_)
 
 open import ProbabilisticLogic.Distribution.Uniform
   using (archimedean; fromℕ; fromℕ-/; fromℕ-mono-≤; 0<fromℕ-suc)
+open import ProbabilisticLogic.Distribution.Uniform.Decay using (_→0)
 
-open import CategoricalCrypto.UC.Approximate using (Approximation; Negligible; _→0; ℚ-errors)
+open import CategoricalCrypto.Approx.Error using (Approximation; ℚ-ordered)
+open import CategoricalCrypto.UC.Approximate using (Negligible)
 
 import Data.Nat.Properties as ℕₚ
 
@@ -47,7 +49,7 @@ infix 4 _≈ᵐ[_]_
 _≈ᵐ[_]_ : ℚ → ℚ → ℚ → Set
 x ≈ᵐ[ ε ] y = ∣ x ℚ.- y ∣ ℚ.≤ ε
 
-ℚ-metric : Approximation ℚ ℚ-errors 0ℓ
+ℚ-metric : Approximation ℚ ℚ-ordered 0ℓ
 ℚ-metric = record
   { _≈[_]_    = _≈ᵐ[_]_
   ; ≈[]-refl  = λ {x} → ≤-reflexive (∣x-x∣≡0 x)
