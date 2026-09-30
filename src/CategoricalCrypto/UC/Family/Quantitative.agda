@@ -29,7 +29,7 @@ open import Level using (Level; _⊔_)
 open import CategoricalCrypto.Abstract2.Morphism using (module Refine)
 open import CategoricalCrypto.Approx.Error using (ℚ-ordered)
 open import CategoricalCrypto.Approx.Evaluation ℚ-ordered using (QEvaluation)
-open import CategoricalCrypto.Approx.Space ℚ-ordered using (ApproxSpace; zero⇒positive)
+open import CategoricalCrypto.UC.Approximate using (module AllPositive; ℚ-refinement)
 open import CategoricalCrypto.UCSetup using (UCSetup)
 
 import CategoricalCrypto.UC.Family.Vanishing as Vanᴹ
@@ -50,25 +50,25 @@ open import CategoricalCrypto.UC.Family M qro Rg Ix κ κ-cofinal
 private
   module Van = Vanᴹ M qro Rg Ix κ κ-cofinal
   module C^ω = Van.Canonical^ω
-  module X^ω = ApproxSpace (QEvaluation.X QEvaluation^ω)
+  module P^ω = AllPositive ℚ-refinement (QEvaluation.approx QEvaluation^ω)
 
 -- Spelled exactly as `Approx.Evaluation.qual₊` spells it, so the readout this
 -- lands at IS `Evaluation^ω` and `C^ω` is the setup it is compared with.
-module Q^ω = Observedᴹ Famᴹ ℚ-ordered QEvaluation^ω X^ω.∼ᵃ-isEquivalence
-                      (zero⇒positive (QEvaluation.X QEvaluation^ω))
+module Q^ω = Observedᴹ Famᴹ ℚ-ordered QEvaluation^ω P^ω.∼ᵃ-isEquivalence P^ω.zero⇒positive
 
 -- `Evaluation^ω` is `qual₊`'s, so `_∼_` IS eventual closeness at every positive
 -- error and both comparisons with it are the identity.
-open Q^ω.Absorbing (λ h → h) public
+open Q^ω.AllPositive ℚ-refinement using (module Absorbing)
+open Absorbing (λ h → h) public
 open Reflecting (λ h → h) public
 
 setup₊ : UCSetup o (ℓ ⊔ qs) e o (ℓ ⊔ qs) e (ℓ ⊔ qs) (ℓ ⊔ qs ⊔ ℓa)
-setup₊ = Q^ω.Quant.underlying₊
+setup₊ = Q^ω.Quant.underlying₊ ℚ-refinement
 
 -- Tests and homs are supplied explicitly throughout, for the measured reason
 -- `UC.Family.Negligible.≈ℰⁿ⇒≈ℰᴺ` records.
 private
-  module A₊ = Q^ω.Quant.A₊
+  module A₊ = Q^ω.Quant.AllPositive.A₊ ℚ-refinement
   module R₊  = Refine C^ω.StdSetup (UCSetup.ℰ setup₊)
                  (λ {D} {_} {f} {g} h → A₊.KE.mk∼ λ {t} →
                     ≋⇒∼₊ {A = D} {t C^ω.∘ f} {t C^ω.∘ g} (C^ω.KE.run∼ h {t}))

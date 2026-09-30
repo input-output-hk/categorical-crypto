@@ -55,8 +55,8 @@ open import Relation.Binary.Structures using (IsEquivalence)
 
 open import CategoricalCrypto.Approx.Error using (ℚ-ordered; ≈[]-resp₀)
 open import CategoricalCrypto.UC.Approximate
-  using ( Approximation; GradedBound-+[_]; GradedBound-reindex; Negligible
-        ; Negligible-+; NegligibleBound; ℚ-errors )
+  using ( Approximation; module AllPositive; GradedBound-+[_]; GradedBound-reindex; Negligible
+        ; Negligible-+; NegligibleBound; ℚ-errors; ℚ-refinement )
 open import CategoricalCrypto.UC.Core using (Evaluation; Observable)
 
 import CategoricalCrypto.Approx.Evaluation as Evaluationᴹ
@@ -75,7 +75,7 @@ module CategoricalCrypto.UC.Quantitative.Family
   (∼-from-zero : {x y : Evaluationᴹ.QEvaluation.Carrier qro}
                → Evaluationᴹ.QEvaluation._≈[_]_ qro x 0ℚ y → x ∼ y)
   (reflects : {x y : Evaluationᴹ.QEvaluation.Carrier qro}
-            → x ∼ y → Evaluationᴹ.QEvaluation._∼ᵃ_ qro x y)
+            → x ∼ y → AllPositive._∼ᵃ_ ℚ-refinement (Evaluationᴹ.QEvaluation.approx qro) x y)
   where
 
 private module Qr = Evaluationᴹ.QEvaluation qro

@@ -33,11 +33,13 @@ open import Relation.Binary.Core using (Rel)
 open import Relation.Binary.Structures using (IsEquivalence)
 
 open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra; ≈[]-resp₀)
-open import CategoricalCrypto.UC.Approximate using (Approximation)
+open import CategoricalCrypto.UC.Approximate using (Approximation; Refinement)
 open import CategoricalCrypto.UC.Core using (Evaluation; Observable)
 
 import CategoricalCrypto.Approx.Evaluation as Evaluationᴹ
+import CategoricalCrypto.Approx.Forget as Forgetᴹ
 import CategoricalCrypto.Standard2 as Std2
+import CategoricalCrypto.UC.Approximate as Approximateᴹ
 
 module CategoricalCrypto.UC.Quantitative.Observed
   {o ℓ e cs ℓs es ℓe ℓa : Level} (M : MonoidalCategory o ℓ e)
@@ -49,7 +51,6 @@ module CategoricalCrypto.UC.Quantitative.Observed
     → Evaluationᴹ.QEvaluation._≈[_]_ qro x (OrderedErrorAlgebra.ε₀ E) y → x ∼ y)
   where
 
-open import CategoricalCrypto.Approx.Forget E ℓ (ℓ ⊔ ℓa)
 open import CategoricalCrypto.Approx.Evaluation E using (qual₊; qualBy)
 open import CategoricalCrypto.Approx.Space E
 
@@ -124,20 +125,6 @@ QSetup = record { 𝒞 = ∣machines∣ ; ℐ = M ; ℳ = ℳ-standard ; Q = Q }
 module Quant = QBridge QSetup
 
 ------------------------------------------------------------------------
--- …and forgetting the error gives the qualitative test presheaf back
-
--- The EXACT forgetting IS the test presheaf of `qual`; the all-positive one
--- is that of `qual₊` up to the order of the closure quantifier and the error
--- one.  Neither costs `induces`; the coarsening `_∼_` this module is
--- parameterized by is what does.
-private module Plus = Evaluation (qual₊ qro)
-
-Q₊⇔ℰ₊ : {E₁ E₂ : Test A}
-      → Setoid._≈_ ⟦ spaceᵗ A ⟧₊ E₁ E₂
-      ⇔ Setoid._≈_ (Functor.₀ Plus.Pᴱ A) (Plus.transpose E₁) (Plus.transpose E₂)
-Q₊⇔ℰ₊ = mk⇔ (λ h m ε pos → h ε pos m) (λ h ε pos m → h m ε pos)
-
-------------------------------------------------------------------------
 -- …and the core's ancilla-quantified agreement, with the error kept
 
 infix 4 _≈ℰ[_]_
@@ -159,24 +146,43 @@ _≈ℰ[_]_ {A} {B} f ε g = (Y : Channel) (Et : Test (Y ⊗₀ B)) (m : Closure
 ≈ℰ[]⇔≈ᵁ[] = mk⇔ ≈ℰ[]⇒≈ᵁ[] ≈ᵁ[]⇒≈ℰ[]
 
 ------------------------------------------------------------------------
--- …and what the comparison with `_∼_` costs
+-- …and forgetting the error gives the qualitative test presheaf back
 
-module Absorbing (induces : {x y : Qr.Carrier} → x ∼ᵃ y → x ∼ y) where
+-- The EXACT forgetting IS the test presheaf of `qual`; the all-positive one
+-- is that of `qual₊` up to the order of the closure quantifier and the error
+-- one.  Neither costs `induces`; the coarsening `_∼_` this module is
+-- parameterized by is what does.
+module AllPositive (R : Refinement errors) where
 
-  ∼₊⇒≋ : {E₁ E₂ : Test A} → Setoid._≈_ ⟦ spaceᵗ A ⟧₊ E₁ E₂ → E₁ ≋ E₂
-  ∼₊⇒≋ h m = induces λ ε pos → h ε pos m
+  open Refinement R using (Positive)
+  open Forgetᴹ E R ℓ (ℓ ⊔ ℓa) using (⟦_⟧₊)
+  open Approximateᴹ.AllPositive R Qr.approx using (_∼ᵃ_)
 
-  -- `_≈ℰ[ ε ]_` is where a security statement is PROVED, `_≈ᵁ_` where one
-  -- lands, and this is `induces` read at the environment level.  The slack may
-  -- not depend on a budget here; that is one layer up, at `UC.Family.absorb`.
-  absorbᵘ : {f g : A ⇒ T₀ X B} → ((ε : Error) → Positive ε → f ≈ℰ[ ε ] g) → f ≈ᵁ g
-  absorbᵘ h Y = KE.mk∼ λ {Et} m → induces λ ε pos → ≈ℰ[]⇒≈ᵁ[] (h ε pos) Y Et m
+  private module Plus = Evaluation (qual₊ R qro)
 
-  -- …and with the converse the qualitative test presheaf is the `F₊` image.
-  module Reflecting (reflects : {x y : Qr.Carrier} → x ∼ y → x ∼ᵃ y) where
+  Q₊⇔ℰ₊ : {E₁ E₂ : Test A}
+        → Setoid._≈_ ⟦ spaceᵗ A ⟧₊ E₁ E₂
+        ⇔ Setoid._≈_ (Functor.₀ Plus.Pᴱ A) (Plus.transpose E₁) (Plus.transpose E₂)
+  Q₊⇔ℰ₊ = mk⇔ (λ h m ε pos → h ε pos m) (λ h ε pos m → h m ε pos)
 
-    ≋⇒∼₊ : {E₁ E₂ : Test A} → E₁ ≋ E₂ → Setoid._≈_ ⟦ spaceᵗ A ⟧₊ E₁ E₂
-    ≋⇒∼₊ h ε pos m = reflects (h m) ε pos
+  -- …and what the comparison with `_∼_` costs.
+  module Absorbing (induces : {x y : Qr.Carrier} → x ∼ᵃ y → x ∼ y) where
 
-    ≋⇔∼₊ : {E₁ E₂ : Test A} → (E₁ ≋ E₂) ⇔ Setoid._≈_ ⟦ spaceᵗ A ⟧₊ E₁ E₂
-    ≋⇔∼₊ = mk⇔ ≋⇒∼₊ ∼₊⇒≋
+    ∼₊⇒≋ : {E₁ E₂ : Test A} → Setoid._≈_ ⟦ spaceᵗ A ⟧₊ E₁ E₂ → E₁ ≋ E₂
+    ∼₊⇒≋ h m = induces λ ε pos → h ε pos m
+
+    -- `_≈ℰ[ ε ]_` is where a security statement is PROVED, `_≈ᵁ_` where one
+    -- lands, and this is `induces` read at the environment level.  The slack
+    -- may not depend on a budget here; that is one layer up, at
+    -- `UC.Family.absorb`.
+    absorbᵘ : {f g : A ⇒ T₀ X B} → ((ε : Error) → Positive ε → f ≈ℰ[ ε ] g) → f ≈ᵁ g
+    absorbᵘ h Y = KE.mk∼ λ {Et} m → induces λ ε pos → ≈ℰ[]⇒≈ᵁ[] (h ε pos) Y Et m
+
+    -- …and with the converse the qualitative test presheaf is the `F₊` image.
+    module Reflecting (reflects : {x y : Qr.Carrier} → x ∼ y → x ∼ᵃ y) where
+
+      ≋⇒∼₊ : {E₁ E₂ : Test A} → E₁ ≋ E₂ → Setoid._≈_ ⟦ spaceᵗ A ⟧₊ E₁ E₂
+      ≋⇒∼₊ h ε pos m = reflects (h m) ε pos
+
+      ≋⇔∼₊ : {E₁ E₂ : Test A} → (E₁ ≋ E₂) ⇔ Setoid._≈_ ⟦ spaceᵗ A ⟧₊ E₁ E₂
+      ≋⇔∼₊ = mk⇔ ≋⇒∼₊ ∼₊⇒≋
