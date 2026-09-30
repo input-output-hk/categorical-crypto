@@ -7,7 +7,8 @@
 -- allowance-restricted model needs one more datum than `Approx.Controlled`
 -- carries: which elements a given allowance admits.  The two indices are
 -- independent — an allowance transformation is not determined by an error
--- control — so a filtered map carries its own monotone allowance map.
+-- control — so a filtered map carries its own allowance map, a monotone
+-- endomap of the allowance poset (stdlib's `PosetHomomorphism`).
 --
 -- Allowances range over a poset `I`; the query model's is `ℕ⁺`, the rates of its
 -- certificates (`UC.Quantitative.Query.filteredᵠ`).
@@ -17,8 +18,12 @@ open import Categories.Category using (Category)
 open import Data.Product.Base using (_×_; _,_)
 open import Level using (Level; suc; _⊔_)
 open import Relation.Binary.Bundles using (Poset)
+open import Relation.Binary.Morphism.Bundles
 open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl; sym; trans)
 open import Relation.Binary.Structures using (IsEquivalence)
+
+import Relation.Binary.Morphism.Construct.Composition as Comp
+import Relation.Binary.Morphism.Construct.Identity as Id
 
 open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
 
@@ -27,6 +32,7 @@ module CategoricalCrypto.Approx.Filtered
 
 open OrderedErrorAlgebra E
 open Poset I using (_≤_) renaming (Carrier to Ix)
+open PosetHomomorphism using (⟦_⟧)
 open import CategoricalCrypto.Approx.Controlled E
 open import CategoricalCrypto.Approx.Space E
 
@@ -43,23 +49,10 @@ record FilteredSpace (c ℓa ℓd : Level) : Set (suc (c ⊔ ℓa ⊔ ℓd) ⊔ 
     Admit      : Ix → Carrier → Set ℓd
     admit-mono : {q q′ : Ix} {x : Carrier} → q ≤ q′ → Admit q x → Admit q′ x
 
-record Allowance : Set (i ⊔ ℓ≤) where
-  field
-    at       : Ix → Ix
-    monotone : {q q′ : Ix} → q ≤ q′ → at q ≤ at q′
+Allowance : Set (i ⊔ ℓ≈ ⊔ ℓ≤)
+Allowance = PosetHomomorphism I I
 
-idᵃ : Allowance
-idᵃ = record { at = λ q → q ; monotone = λ le → le }
-
-infixr 9 _∘ᵃ_
-
-_∘ᵃ_ : Allowance → Allowance → Allowance
-β ∘ᵃ α = record
-  { at = λ q → β.at (α.at q) ; monotone = λ le → β.monotone (α.monotone le) }
-  where module α = Allowance α
-        module β = Allowance β
-
-record Filtered (X Y : FilteredSpace c ℓa ℓd) : Set (c ⊔ es ⊔ ℓe ⊔ ℓa ⊔ ℓd ⊔ i ⊔ ℓ≤) where
+record Filtered (X Y : FilteredSpace c ℓa ℓd) : Set (c ⊔ es ⊔ ℓe ⊔ ℓa ⊔ ℓd ⊔ i ⊔ ℓ≈ ⊔ ℓ≤) where
   private
     module X = FilteredSpace X
     module Y = FilteredSpace Y
@@ -72,7 +65,7 @@ record Filtered (X Y : FilteredSpace c ℓa ℓd) : Set (c ⊔ es ⊔ ℓe ⊔ �
 
   field
     admits : {q : Ix} {x : X.Carrier}
-           → X.Admit q x → Y.Admit (Allowance.at allowance q) (map x)
+           → X.Admit q x → Y.Admit (⟦ allowance ⟧ q) (map x)
 
 module _ {X Y : FilteredSpace c ℓa ℓd} where
 
@@ -82,7 +75,7 @@ module _ {X Y : FilteredSpace c ℓa ℓd} where
 
   _≈ᶠ_ : Filtered X Y → Filtered X Y → Set (c ⊔ es ⊔ ℓe ⊔ ℓa ⊔ i)
   f ≈ᶠ g = (underlying f ≈ᶜ underlying g)
-         × ((q : Ix) → Allowance.at (allowance f) q ≡ Allowance.at (allowance g) q)
+         × ((q : Ix) → ⟦ allowance f ⟧ q ≡ ⟦ allowance g ⟧ q)
 
   -- Spelled out rather than lifted through `≈ᶜ-isEquivalence`: even with that
   -- lemma's spaces named, its `Controlled` implicits are not inferable here.
@@ -99,12 +92,12 @@ module _ {X Y : FilteredSpace c ℓa ℓd} where
     where module SY = FilteredSpace Y
 
 identityᶠ : {X : FilteredSpace c ℓa ℓd} → Filtered X X
-identityᶠ = record { underlying = identityᶜ ; allowance = idᵃ ; admits = λ a → a }
+identityᶠ = record { underlying = identityᶜ ; allowance = Id.posetHomomorphism I ; admits = λ a → a }
 
 composeᶠ : {X Y Z : FilteredSpace c ℓa ℓd} → Filtered Y Z → Filtered X Y → Filtered X Z
 composeᶠ g f = record
   { underlying = composeᶜ (underlying g) (underlying f)
-  ; allowance  = allowance g ∘ᵃ allowance f
+  ; allowance  = Comp.posetHomomorphism (allowance f) (allowance g)
   ; admits     = λ a → admits g (admits f a)
   }
   where open Filtered
@@ -118,11 +111,10 @@ composeᶠ-resp {X = X} {Y = Y} {Z = Z} {g = g} {g′ = g′} {f = f} {f′ = f�
                 {Z = FilteredSpace.space Z}
                 {g = Filtered.underlying g} {g′ = Filtered.underlying g′}
                 {f = Filtered.underlying f} {f′ = Filtered.underlying f′} ce₁ ce₂
-  , λ q → trans (cong (Allowance.at (Filtered.allowance g)) (ae₂ q))
-                (ae₁ (Allowance.at (Filtered.allowance f′) q))
+  , λ q → trans (cong ⟦ Filtered.allowance g ⟧ (ae₂ q)) (ae₁ (⟦ Filtered.allowance f′ ⟧ q))
 
 Filt : (c ℓa ℓd : Level)
-     → Category (suc (c ⊔ ℓa ⊔ ℓd) ⊔ es ⊔ ℓe ⊔ i ⊔ ℓ≤) (c ⊔ es ⊔ ℓe ⊔ ℓa ⊔ ℓd ⊔ i ⊔ ℓ≤)
+     → Category (suc (c ⊔ ℓa ⊔ ℓd) ⊔ es ⊔ ℓe ⊔ i ⊔ ℓ≤) (c ⊔ es ⊔ ℓe ⊔ ℓa ⊔ ℓd ⊔ i ⊔ ℓ≈ ⊔ ℓ≤)
                 (c ⊔ es ⊔ ℓe ⊔ ℓa ⊔ i)
 Filt c ℓa ℓd = record
   { Obj       = FilteredSpace c ℓa ℓd
@@ -193,7 +185,7 @@ module _ {X Y : FilteredSpace c ℓa ℓd} where
          {u v : FilteredSpace.Carrier X → FilteredSpace.Carrier Y}
        → _≈ᵃ[_]_ {X = X} {Y = Y} u Ε v
        → _≈ᵃ[_]_ {X = X′} {Y = Y} (λ x → u (Filtered.map κ x))
-                 (λ q → Ε (Allowance.at (Filtered.allowance κ) q))
+                 (λ q → Ε (⟦ Filtered.allowance κ ⟧ q))
                  (λ x → v (Filtered.map κ x))
 ≈ᵃ-pre κ h = agree λ a → admitted h (Filtered.admits κ a)
 
