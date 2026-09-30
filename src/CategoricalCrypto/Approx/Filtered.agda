@@ -11,7 +11,9 @@
 -- endomap of the allowance poset (stdlib's `PosetHomomorphism`).
 --
 -- Allowances range over a poset `I`; the query model's is `ℕ⁺`, the rates of its
--- certificates (`UC.Quantitative.Query.filteredᵠ`).
+-- certificates (`UC.Quantitative.Query.filteredᵠ`).  Two allowance maps are
+-- compared by `I`'s own `_≈_`, never by `≡`: at a function-valued allowance
+-- pointwise agreement is not an equation without funext.
 
 open import Categories.Category using (Category)
 
@@ -19,7 +21,7 @@ open import Data.Product.Base using (_×_; _,_)
 open import Level using (Level; suc; _⊔_)
 open import Relation.Binary.Bundles using (Poset)
 open import Relation.Binary.Morphism.Bundles
-open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl; sym; trans)
+open import Relation.Binary.PropositionalEquality using (refl)
 open import Relation.Binary.Structures using (IsEquivalence)
 
 import Relation.Binary.Morphism.Construct.Composition as Comp
@@ -31,8 +33,8 @@ module CategoricalCrypto.Approx.Filtered
   {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe) {i ℓ≈ ℓ≤ : Level} (I : Poset i ℓ≈ ℓ≤) where
 
 open OrderedErrorAlgebra E
-open Poset I using (_≤_) renaming (Carrier to Ix)
-open PosetHomomorphism using (⟦_⟧)
+open Poset I using (_≈_; _≤_; module Eq) renaming (Carrier to Ix)
+open PosetHomomorphism using (⟦_⟧; cong)
 open import CategoricalCrypto.Approx.Controlled E
 open import CategoricalCrypto.Approx.Space E
 
@@ -48,6 +50,9 @@ record FilteredSpace (c ℓa ℓd : Level) : Set (suc (c ⊔ ℓa ⊔ ℓd) ⊔ 
   field
     Admit      : Ix → Carrier → Set ℓd
     admit-mono : {q q′ : Ix} {x : Carrier} → q ≤ q′ → Admit q x → Admit q′ x
+
+  admit-resp : {q q′ : Ix} {x : Carrier} → q ≈ q′ → Admit q x → Admit q′ x
+  admit-resp eq = admit-mono (Poset.reflexive I eq)
 
 Allowance : Set (i ⊔ ℓ≈ ⊔ ℓ≤)
 Allowance = PosetHomomorphism I I
@@ -73,21 +78,20 @@ module _ {X Y : FilteredSpace c ℓa ℓd} where
 
   infix 4 _≈ᶠ_
 
-  _≈ᶠ_ : Filtered X Y → Filtered X Y → Set (c ⊔ es ⊔ ℓe ⊔ ℓa ⊔ i)
-  f ≈ᶠ g = (underlying f ≈ᶜ underlying g)
-         × ((q : Ix) → ⟦ allowance f ⟧ q ≡ ⟦ allowance g ⟧ q)
+  _≈ᶠ_ : Filtered X Y → Filtered X Y → Set (c ⊔ es ⊔ ℓe ⊔ ℓa ⊔ i ⊔ ℓ≈)
+  f ≈ᶠ g = (underlying f ≈ᶜ underlying g) × ((q : Ix) → ⟦ allowance f ⟧ q ≈ ⟦ allowance g ⟧ q)
 
   -- Spelled out rather than lifted through `≈ᶜ-isEquivalence`: even with that
   -- lemma's spaces named, its `Controlled` implicits are not inferable here.
   ≈ᶠ-isEquivalence : IsEquivalence _≈ᶠ_
   ≈ᶠ-isEquivalence = record
-    { refl  = (≐-reflexive refl , λ _ → SY.≈[]-refl) , λ _ → refl
+    { refl  = (≐-reflexive refl , λ _ → SY.≈[]-refl) , λ _ → Eq.refl
     ; sym   = λ (((l , r) , me) , ae) →
-        ((r , l) , λ x → SY.≈[]-sym (me x)) , λ q → sym (ae q)
+        ((r , l) , λ x → SY.≈[]-sym (me x)) , λ q → Eq.sym (ae q)
     ; trans = λ (((l₁ , r₁) , me₁) , ae₁) (((l₂ , r₂) , me₂) , ae₂) →
         ( ( (λ ε → ⊑-trans (l₁ ε) (l₂ ε)) , λ ε → ⊑-trans (r₂ ε) (r₁ ε) )
         , λ x → SY.≈[]-mono ⊕-identityˡ (SY.≈[]-trans (me₁ x) (me₂ x)) )
-        , λ q → trans (ae₁ q) (ae₂ q)
+        , λ q → Eq.trans (ae₁ q) (ae₂ q)
     }
     where module SY = FilteredSpace Y
 
@@ -111,11 +115,11 @@ composeᶠ-resp {X = X} {Y = Y} {Z = Z} {g = g} {g′ = g′} {f = f} {f′ = f�
                 {Z = FilteredSpace.space Z}
                 {g = Filtered.underlying g} {g′ = Filtered.underlying g′}
                 {f = Filtered.underlying f} {f′ = Filtered.underlying f′} ce₁ ce₂
-  , λ q → trans (cong ⟦ Filtered.allowance g ⟧ (ae₂ q)) (ae₁ (⟦ Filtered.allowance f′ ⟧ q))
+  , λ q → Eq.trans (cong (Filtered.allowance g) (ae₂ q)) (ae₁ (⟦ Filtered.allowance f′ ⟧ q))
 
 Filt : (c ℓa ℓd : Level)
      → Category (suc (c ⊔ ℓa ⊔ ℓd) ⊔ es ⊔ ℓe ⊔ i ⊔ ℓ≤) (c ⊔ es ⊔ ℓe ⊔ ℓa ⊔ ℓd ⊔ i ⊔ ℓ≈ ⊔ ℓ≤)
-                (c ⊔ es ⊔ ℓe ⊔ ℓa ⊔ i)
+                (c ⊔ es ⊔ ℓe ⊔ ℓa ⊔ i ⊔ ℓ≈)
 Filt c ℓa ℓd = record
   { Obj       = FilteredSpace c ℓa ℓd
   ; _⇒_       = Filtered
@@ -123,12 +127,12 @@ Filt c ℓa ℓd = record
   ; id        = identityᶠ
   ; _∘_       = composeᶠ
   ; assoc     = λ {_} {_} {_} {D} →
-      (≐-reflexive refl , λ _ → FilteredSpace.≈[]-refl D) , λ _ → refl
+      (≐-reflexive refl , λ _ → FilteredSpace.≈[]-refl D) , λ _ → Eq.refl
   ; sym-assoc = λ {_} {_} {_} {D} →
-      (≐-reflexive refl , λ _ → FilteredSpace.≈[]-refl D) , λ _ → refl
-  ; identityˡ = λ {_} {B} → (≐-reflexive refl , λ _ → FilteredSpace.≈[]-refl B) , λ _ → refl
-  ; identityʳ = λ {_} {B} → (≐-reflexive refl , λ _ → FilteredSpace.≈[]-refl B) , λ _ → refl
-  ; identity² = λ {A} → (≐-reflexive refl , λ _ → FilteredSpace.≈[]-refl A) , λ _ → refl
+      (≐-reflexive refl , λ _ → FilteredSpace.≈[]-refl D) , λ _ → Eq.refl
+  ; identityˡ = λ {_} {B} → (≐-reflexive refl , λ _ → FilteredSpace.≈[]-refl B) , λ _ → Eq.refl
+  ; identityʳ = λ {_} {B} → (≐-reflexive refl , λ _ → FilteredSpace.≈[]-refl B) , λ _ → Eq.refl
+  ; identity² = λ {A} → (≐-reflexive refl , λ _ → FilteredSpace.≈[]-refl A) , λ _ → Eq.refl
   ; equiv     = λ {A} {B} → ≈ᶠ-isEquivalence {X = A} {Y = B}
   ; ∘-resp-≈  = λ {A} {B} {C} {f} {h} {g} {i} →
       composeᶠ-resp {X = A} {Y = B} {Z = C} {g = f} {g′ = h} {f = g} {f′ = i}
