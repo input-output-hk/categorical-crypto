@@ -30,6 +30,7 @@ open import Data.Nat.Positive
 open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Level using (Level; _⊔_)
+open import Relation.Binary.Morphism.Bundles
 open import Relation.Binary.PropositionalEquality
   using (_≡_; cong; cong₂; refl; sym; trans)
 
@@ -183,7 +184,7 @@ module Tests
             ≈[]-resp₀ ℚ-ordered Ap (obs-resp assoc) (obs-resp sym-assoc)
               (hyp (⌊ ĥ ⌋ ∘ n) (r″ · r) (ĥ L.∙ n̂ , ∘-resp-≈ʳ n̂≈n))
         }
-    ; allowance = record { at = _· r ; monotone = ℕₚ.*-monoˡ-≤ (value r) }
+    ; allowance = mkPosetHomo ≤⁺-poset ≤⁺-poset (_· r) (ℕₚ.*-monoˡ-≤ (value r))
     ; admits = λ {q} (Ê , Ê≈E) →
         L.sub[ ℕₚ.≤-reflexive (ℕₚ.*-comm (value r) (value q)) ] (Ê L.∙ ĥ) , ∘-resp-≈ˡ Ê≈E
     }
