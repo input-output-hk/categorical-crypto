@@ -20,33 +20,32 @@
 
 open import Data.Product.Base using (_,_; proj₁; proj₂)
 open import Level using (Level; _⊔_)
-open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl; subst)
+open import Relation.Binary.PropositionalEquality using (_≡_; cong; isEquivalence; refl; subst)
 
-open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
-open import CategoricalCrypto.UC.Approximate using (Refinement)
+open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra; Refinement)
 
 module CategoricalCrypto.Approx.Schedule where
 
 pointwise : {i es ℓe : Level} (I : Set i) → OrderedErrorAlgebra es ℓe
           → OrderedErrorAlgebra (i ⊔ es) (i ⊔ ℓe)
 pointwise I V = record
-  { errors = record
-      { Error = I → Error
-      ; ε₀    = λ _ → ε₀
-      ; _⊕_   = λ ε δ j → ε j ⊕ δ j
-      ; _⊑_   = λ ε δ → (j : I) → ε j ⊑ δ j
+  { Error        = I → Error
+  ; ε₀           = λ _ → ε₀
+  ; _⊕_          = λ ε δ j → ε j ⊕ δ j
+  ; _⊑_          = λ ε δ → (j : I) → ε j ⊑ δ j
+  ; ⊑-isPreorder = record
+      { isEquivalence = isEquivalence
+      ; reflexive     = λ { refl _ → ⊑-refl }
+      ; trans         = λ le₁ le₂ j → ⊑-trans (le₁ j) (le₂ j)
       }
-  ; ⊑-refl      = λ _ → ⊑-refl
-  ; ⊑-trans     = λ le₁ le₂ j → ⊑-trans (le₁ j) (le₂ j)
-  ; ⊕-identityˡ = λ _ → ⊕-identityˡ
-  ; ⊕-identityʳ = λ _ → ⊕-identityʳ
-  ; ⊕-mono      = λ le₁ le₂ j → ⊕-mono (le₁ j) (le₂ j)
+  ; ⊕-mono       = λ le₁ le₂ j → ⊕-mono (le₁ j) (le₂ j)
+  ; ⊕-identityˡ  = λ _ → ⊕-identityˡ
+  ; ⊕-identityʳ  = λ _ → ⊕-identityʳ
   }
   where open OrderedErrorAlgebra V
 
 pointwise-refinement : {i es ℓe : Level} (I : Set i) (V : OrderedErrorAlgebra es ℓe)
-                     → Refinement (OrderedErrorAlgebra.errors V)
-                     → Refinement (OrderedErrorAlgebra.errors (pointwise I V))
+                     → Refinement V → Refinement (pointwise I V)
 pointwise-refinement I V R = record
   { Positive = λ ε → (j : I) → Positive (ε j)
   ; ε₀-least = λ pos j → ε₀-least (pos j)

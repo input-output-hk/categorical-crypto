@@ -24,12 +24,12 @@ open import Categories.NaturalTransformation using (NaturalTransformation)
 open import Level using (Level; _⊔_)
 open import Relation.Binary.Bundles using (Setoid)
 
-open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
-open import CategoricalCrypto.UC.Approximate using (module AllPositive; Refinement)
+open import CategoricalCrypto.Approx.Error
+  using (module AllPositive; OrderedErrorAlgebra; Refinement)
 
 module CategoricalCrypto.Approx.Forget
   {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe)
-  (R : Refinement (OrderedErrorAlgebra.errors E)) (c ℓb : Level) where
+  (R : Refinement E) (c ℓb : Level) where
 
 open import CategoricalCrypto.Approx.Space E
 
@@ -37,8 +37,7 @@ private module P (X : ApproxSpace c (es ⊔ ℓe ⊔ ℓb)) = AllPositive R (App
 
 ⟦_⟧₀ ⟦_⟧₊ : ApproxSpace c (es ⊔ ℓe ⊔ ℓb) → Setoid c (es ⊔ ℓe ⊔ ℓb)
 ⟦_⟧₀ = zeroSetoid
-⟦ X ⟧₊ = record
-  { Carrier = ApproxSpace.Carrier X ; _≈_ = P._∼ᵃ_ X ; isEquivalence = P.∼ᵃ-isEquivalence X }
+⟦_⟧₊ = P.positiveSetoid
 
 F₊ : Functor (Approx c (es ⊔ ℓe ⊔ ℓb)) (Setoids c (es ⊔ ℓe ⊔ ℓb))
 F₊ = record

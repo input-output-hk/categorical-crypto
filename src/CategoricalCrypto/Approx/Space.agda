@@ -17,8 +17,7 @@ open import Level using (Level; suc; _⊔_)
 open import Relation.Binary.Bundles using (Setoid)
 open import Relation.Binary.Structures using (IsEquivalence)
 
-open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra; ≈[]-resp₀)
-open import CategoricalCrypto.UC.Approximate using (Approximation)
+open import CategoricalCrypto.Approx.Error using (Approximation; OrderedErrorAlgebra; ≈[]-resp₀)
 
 module CategoricalCrypto.Approx.Space {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe) where
 
@@ -29,7 +28,7 @@ private variable c ℓa : Level
 record ApproxSpace (c ℓa : Level) : Set (suc (c ⊔ ℓa) ⊔ es ⊔ ℓe) where
   field
     Carrier : Set c
-    approx  : Approximation Carrier errors ℓa
+    approx  : Approximation Carrier E ℓa
 
   -- `Approximation` re-exports its error algebra, which the module parameter
   -- already fixes; taking only the relation keeps the two spellings apart.

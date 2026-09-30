@@ -26,8 +26,7 @@ import Categories.Monad.Graded.FromMonad as FromMonad
 open import Level using (Level; suc; _⊔_)
 
 open import CategoricalCrypto.Abstract2
-open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
-open import CategoricalCrypto.UC.Approximate using (Refinement)
+open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra; Refinement)
 open import CategoricalCrypto.UCSetup using (UCSetup)
 
 import CategoricalCrypto.Approx.Forget as Forgetᴹ
@@ -56,7 +55,7 @@ module QuantitativeUC {o ℓ e o′ ℓ′ e′ c ℓb : Level}
   underlying₀ : UCSetup o ℓ e o′ ℓ′ e′ c (es ⊔ ℓe ⊔ ℓb)
   underlying₀ = record { 𝒞 = S.𝒞 ; ℐ = S.ℐ ; ℳ = S.ℳ ; ℰ = F₀ c (es ⊔ ℓe ⊔ ℓb) ∘F S.Q }
 
-  underlying₊ : Refinement errors → UCSetup o ℓ e o′ ℓ′ e′ c (es ⊔ ℓe ⊔ ℓb)
+  underlying₊ : Refinement E → UCSetup o ℓ e o′ ℓ′ e′ c (es ⊔ ℓe ⊔ ℓb)
   underlying₊ R =
     record { 𝒞 = S.𝒞 ; ℐ = S.ℐ ; ℳ = S.ℳ ; ℰ = Forgetᴹ.F₊ E R c ℓb ∘F S.Q }
 

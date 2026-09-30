@@ -28,7 +28,7 @@
 -- the base's ε-closeness becomes *eventual* ε-closeness in `κ`, and
 -- `Approx.Evaluation.qual₊` turns that into the qualitative agreement the core
 -- consumes, which is then literally the vanishing-advantage relation (its ε/2
--- transitivity proved once, in `UC.Approximate`).  `absorb` is that
+-- transitivity proved once, in `Approx.Error`).  `absorb` is that
 -- coarsening read at a vanishing error.
 --
 -- Vanishing is all `absorb` spends, but it is not what a cryptographic bound
@@ -54,14 +54,13 @@ open import Data.Product.Base using (Σ-syntax; _×_; _,_)
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Level using (Level; _⊔_)
 
-open import CategoricalCrypto.Approx.Error using (ℚ-ordered)
+open import CategoricalCrypto.Approx.Error using (Approximation; ℚ-ordered; ℚ-refinement)
 open import CategoricalCrypto.Approx.Evaluation ℚ-ordered
   using (QEvaluation; qual₊)
 open import CategoricalCrypto.Approx.Space ℚ-ordered using (ApproxSpace)
 open import CategoricalCrypto.UC.Approximate
-  using ( Approximation; Negligible; Negligible-+; Negligible-0
-        ; Negligible⇒→0; NegligibleBound; NegligibleBound⇒VanishingBound; VanishingBound
-        ; ℚ-errors; ℚ-refinement )
+  using ( Negligible; Negligible-+; Negligible-0; Negligible⇒→0; NegligibleBound
+        ; NegligibleBound⇒VanishingBound; VanishingBound )
 open import CategoricalCrypto.UC.Core using (Evaluation; Observable)
 open import CategoricalCrypto.UCSetup using (UCSetup)
 
@@ -97,7 +96,7 @@ _≈^ω[_]_ : (Ix → Carrier) → ℚ → (Ix → Carrier) → Set ℓa
 ≈^ω-witness : {μ ν : Ix → Carrier} {ε : ℚ} → μ ≈^ω[ ε ] ν → Σ[ i ∈ Ix ] μ i ≈[ ε ] ν i
 ≈^ω-witness (N , h) = let i , le = κ-cofinal N in i , h i le
 
-Approximation^ω : Approximation (Ix → Carrier) ℚ-errors ℓa
+Approximation^ω : Approximation (Ix → Carrier) ℚ-ordered ℓa
 Approximation^ω = record
   { _≈[_]_    = _≈^ω[_]_
   ; ≈[]-refl  = 0 , λ _ _ → ≈[]-refl
