@@ -23,7 +23,7 @@ open import Data.Product.Base using (Σ-syntax; _×_; _,_)
 open import Data.Rational as ℚ using (ℚ; 0ℚ; ½)
 open import Data.Rational.Properties.Ext using (0<½*; ½*+½*)
 open import Level using (Level; 0ℓ; suc; _⊔_)
-open import Relation.Binary.Bundles using (Setoid)
+open import Relation.Binary.Bundles using (Preorder; Setoid)
 open import Relation.Binary.Definitions using (Monotonic₂)
 open import Relation.Binary.PropositionalEquality using (_≡_)
 open import Relation.Binary.Structures using (IsEquivalence; IsPreorder)
@@ -54,6 +54,9 @@ record OrderedErrorAlgebra (es ℓe : Level) : Set (suc (es ⊔ ℓe)) where
     ⊕-identityʳ  : {ε : Error} → ε ⊕ ε₀ ⊑ ε
 
   open IsPreorder ⊑-isPreorder public using () renaming (refl to ⊑-refl; trans to ⊑-trans)
+
+  ⊑-preorder : Preorder es es ℓe
+  ⊑-preorder = record { isPreorder = ⊑-isPreorder }
 
 record Approximation (Obs : Set os) (E : OrderedErrorAlgebra es ℓe) (ℓa : Level)
                    : Set (os ⊔ es ⊔ ℓe ⊔ suc ℓa) where

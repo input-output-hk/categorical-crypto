@@ -7,6 +7,12 @@
 -- it, and the transformation is part of the morphism rather than a side
 -- condition on it.
 --
+-- A `Control` is a monotone map of the error preorder (stdlib's
+-- `PreorderHomomorphism`) that does not raise zero and is subadditive.  Read
+-- `⊑` as arrows, those two laws point the OPLAX way (`φ ε₀ → ε₀`,
+-- `φ (ε ⊕ δ) → φ ε ⊕ φ δ`), but the errors are only a lax-unital preordered
+-- magma, so no oplax monoidal functor is claimed.
+--
 -- Everything is stated with `⊑`, in the direction that makes a BOUND
 -- admissible: the intended model's allowance substitutions are equations
 -- (`Data.Nat.Positive.scale-·`, `scale-comm`), but a model whose resource
@@ -26,8 +32,12 @@ open import Categories.Functor using (Functor)
 
 open import Data.Product.Base using (_×_; _,_)
 open import Level using (Level; suc; _⊔_)
+open import Relation.Binary.Morphism.Bundles
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Relation.Binary.Structures using (IsEquivalence)
+
+import Relation.Binary.Morphism.Construct.Composition as Comp
+import Relation.Binary.Morphism.Construct.Identity as Id
 
 open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
 
@@ -43,26 +53,27 @@ private variable c ℓa : Level
 -- The error transformations a morphism may carry
 
 record Control : Set (es ⊔ ℓe) where
+  field homomorphism : PreorderHomomorphism ⊑-preorder ⊑-preorder
+
+  open PreorderHomomorphism homomorphism public renaming (⟦_⟧ to at)
+
   field
-    at           : Error → Error
     preserves-ε₀ : at ε₀ ⊑ ε₀
     preserves-⊕  : {ε δ : Error} → at (ε ⊕ δ) ⊑ at ε ⊕ at δ
-    monotone     : {ε δ : Error} → ε ⊑ δ → at ε ⊑ at δ
 
 open Control using (at)
 
 idᶜ : Control
 idᶜ = record
-  { at = λ ε → ε ; preserves-ε₀ = ⊑-refl ; preserves-⊕ = ⊑-refl ; monotone = λ le → le }
+  { homomorphism = Id.preorderHomomorphism ⊑-preorder ; preserves-ε₀ = ⊑-refl ; preserves-⊕ = ⊑-refl }
 
 infixr 9 _∘ᶜ_
 
 _∘ᶜ_ : Control → Control → Control
 ψ ∘ᶜ φ = record
-  { at           = λ ε → ψ.at (φ.at ε)
-  ; preserves-ε₀ = ⊑-trans (ψ.monotone φ.preserves-ε₀) ψ.preserves-ε₀
-  ; preserves-⊕  = ⊑-trans (ψ.monotone φ.preserves-⊕) ψ.preserves-⊕
-  ; monotone     = λ le → ψ.monotone (φ.monotone le)
+  { homomorphism = Comp.preorderHomomorphism φ.homomorphism ψ.homomorphism
+  ; preserves-ε₀ = ⊑-trans (ψ.mono φ.preserves-ε₀) ψ.preserves-ε₀
+  ; preserves-⊕  = ⊑-trans (ψ.mono φ.preserves-⊕) ψ.preserves-⊕
   }
   where module ψ = Control ψ
         module φ = Control φ
@@ -132,8 +143,8 @@ composeᶜ-resp : {X Y Z : ApproxSpace c ℓa}
                 {g g′ : Controlled Y Z} {f f′ : Controlled X Y}
               → g ≈ᶜ g′ → f ≈ᶜ f′ → composeᶜ g f ≈ᶜ composeᶜ g′ f′
 composeᶜ-resp {Z = Z} {g = g} {f′ = f′} ((l₁ , r₁) , me₁) ((l₂ , r₂) , me₂) =
-  ( (λ ε → ⊑-trans (Control.monotone ψ (l₂ ε)) (l₁ (at φ′ ε)))
-  , (λ ε → ⊑-trans (r₁ (at φ′ ε)) (Control.monotone ψ (r₂ ε))) )
+  ( (λ ε → ⊑-trans (Control.mono ψ (l₂ ε)) (l₁ (at φ′ ε)))
+  , (λ ε → ⊑-trans (r₁ (at φ′ ε)) (Control.mono ψ (r₂ ε))) )
   , λ x → Z.≈[]-mono ⊕-identityˡ (Z.≈[]-trans
       (Z.≈[]-mono (Control.preserves-ε₀ ψ) (Controlled.preserves g (me₂ x)))
       (me₁ (Controlled.map f′ x)))

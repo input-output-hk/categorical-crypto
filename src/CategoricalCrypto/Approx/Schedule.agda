@@ -64,10 +64,12 @@ module Reindexing {i es ℓe : Level} {I : Set i} (V : OrderedErrorAlgebra es �
 
   reindex : (ρ : I → I) → Control
   reindex ρ = record
-    { at           = λ ε j → ε (ρ j)
+    { homomorphism = record
+        { ⟦_⟧ = λ ε j → ε (ρ j)
+        ; isOrderHomomorphism = record { cong = cong λ ε j → ε (ρ j) ; mono = λ le j → le (ρ j) }
+        }
     ; preserves-ε₀ = λ _ → V.⊑-refl
     ; preserves-⊕  = λ _ → V.⊑-refl
-    ; monotone     = λ le j → le (ρ j)
     }
 
   -- Substitutions agreeing at every allowance reindex the same way.  This is
