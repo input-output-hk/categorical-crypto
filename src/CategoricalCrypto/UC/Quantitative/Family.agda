@@ -53,10 +53,10 @@ open import Relation.Binary.Core using (Rel)
 open import Relation.Binary.PropositionalEquality using (cong; cong₂; trans)
 open import Relation.Binary.Structures using (IsEquivalence)
 
-open import CategoricalCrypto.Approx.Error using (ℚ-ordered; ≈[]-resp₀)
+open import CategoricalCrypto.Approx.Error
+  using (Approximation; module AllPositive; ℚ-ordered; ℚ-refinement; ≈[]-resp₀)
 open import CategoricalCrypto.UC.Approximate
-  using ( Approximation; module AllPositive; GradedBound-+[_]; GradedBound-reindex; Negligible
-        ; Negligible-+; NegligibleBound; ℚ-errors; ℚ-refinement )
+  using (GradedBound-+[_]; GradedBound-reindex; Negligible; Negligible-+; NegligibleBound)
 open import CategoricalCrypto.UC.Core using (Evaluation; Observable)
 
 import CategoricalCrypto.Approx.Evaluation as Evaluationᴹ
@@ -80,7 +80,7 @@ module CategoricalCrypto.UC.Quantitative.Family
 
 private module Qr = Evaluationᴹ.QEvaluation qro
 
-Ap : Approximation Qr.Carrier ℚ-errors ℓa
+Ap : Approximation Qr.Carrier ℚ-ordered ℓa
 Ap = Qr.approx
 
 readout : Evaluation (MonoidalCategory.U M) os ℓs

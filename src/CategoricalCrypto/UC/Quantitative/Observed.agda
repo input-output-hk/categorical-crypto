@@ -32,14 +32,14 @@ open import Relation.Binary.Bundles using (Setoid)
 open import Relation.Binary.Core using (Rel)
 open import Relation.Binary.Structures using (IsEquivalence)
 
-open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra; ≈[]-resp₀)
-open import CategoricalCrypto.UC.Approximate using (Approximation; Refinement)
+open import CategoricalCrypto.Approx.Error
+  using (Approximation; OrderedErrorAlgebra; Refinement; ≈[]-resp₀)
 open import CategoricalCrypto.UC.Core using (Evaluation; Observable)
 
+import CategoricalCrypto.Approx.Error as Errorᴹ
 import CategoricalCrypto.Approx.Evaluation as Evaluationᴹ
 import CategoricalCrypto.Approx.Forget as Forgetᴹ
 import CategoricalCrypto.Standard2 as Std2
-import CategoricalCrypto.UC.Approximate as Approximateᴹ
 
 module CategoricalCrypto.UC.Quantitative.Observed
   {o ℓ e cs ℓs es ℓe ℓa : Level} (M : MonoidalCategory o ℓ e)
@@ -66,7 +66,6 @@ open Evaluation readout
 open Observable observable using (Test; _≋_; ℰᴼ)
 open Std2.StdUC M ℰᴼ
 open Approximation Qr.approx
-open OrderedErrorAlgebra E using (errors)
 open Qr using (read-resp₀)
 open HomReasoning
 open MR ∣machines∣
@@ -90,7 +89,7 @@ infix 4 _≈ᵗ[_]_
 _≈ᵗ[_]_ : Test A → Error → Test A → Set (es ⊔ ℓe ⊔ ℓ ⊔ ℓa)
 _≈ᵗ[_]_ {A} E₁ ε E₂ = (m : Closure A) → observe E₁ m ≈[ ε ] observe E₂ m
 
-approxᵗ : (A : Channel) → Approximation (Test A) errors (es ⊔ ℓe ⊔ ℓ ⊔ ℓa)
+approxᵗ : (A : Channel) → Approximation (Test A) E (es ⊔ ℓe ⊔ ℓ ⊔ ℓa)
 approxᵗ A = record
   { _≈[_]_    = _≈ᵗ[_]_
   ; ≈[]-refl  = λ _ → ≈[]-refl
@@ -152,11 +151,11 @@ _≈ℰ[_]_ {A} {B} f ε g = (Y : Channel) (Et : Test (Y ⊗₀ B)) (m : Closure
 -- is that of `qual₊` up to the order of the closure quantifier and the error
 -- one.  Neither costs `induces`; the coarsening `_∼_` this module is
 -- parameterized by is what does.
-module AllPositive (R : Refinement errors) where
+module AllPositive (R : Refinement E) where
 
   open Refinement R using (Positive)
   open Forgetᴹ E R ℓ (ℓ ⊔ ℓa) using (⟦_⟧₊)
-  open Approximateᴹ.AllPositive R Qr.approx using (_∼ᵃ_)
+  open Errorᴹ.AllPositive R Qr.approx using (_∼ᵃ_)
 
   private module Plus = Evaluation (qual₊ R qro)
 

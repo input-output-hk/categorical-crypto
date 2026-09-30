@@ -19,8 +19,7 @@ open import Function.Bundles using (_⇔_; mk⇔)
 open import Level using (Level; _⊔_)
 
 open import CategoricalCrypto.Abstract2
-open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
-open import CategoricalCrypto.UC.Approximate using (Refinement)
+open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra; Refinement)
 
 module CategoricalCrypto.UC.Quantitative.Bridge
   {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe) where
@@ -71,7 +70,7 @@ module QBridge {o ℓ e o′ ℓ′ e′ c ℓb : Level}
   ------------------------------------------------------------------------
   -- All-positive agreement
 
-  module AllPositive (R : Refinement errors) where
+  module AllPositive (R : Refinement E) where
 
     open Refinement R using (Positive)
 

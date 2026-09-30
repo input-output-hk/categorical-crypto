@@ -18,9 +18,9 @@
 -- than being proved again.  What a collapse class must be is exactly what
 -- `Negligible` is: it contains zero and is closed under sums.
 --
--- Stated over `ℚ-errors` rather than an arbitrary `ErrorAlgebra`, because
--- `Negligible` is a decay class of `ℕ → ℚ`; the index is read through `κ`
--- alone, as in `UC.Family`.
+-- Stated over `ℚ-ordered` rather than an arbitrary `OrderedErrorAlgebra`,
+-- because `Negligible` is a decay class of `ℕ → ℚ`; the index is read through
+-- `κ` alone, as in `UC.Family`.
 
 open import Data.Nat.Base using (ℕ)
 open import Data.Product.Base using (Σ-syntax; _×_; _,_)
@@ -29,16 +29,15 @@ open import Level using (Level; 0ℓ)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; subst)
 open import Relation.Binary.Structures using (IsEquivalence)
 
-open import CategoricalCrypto.Approx.Error using (ℚ-ordered)
+open import CategoricalCrypto.Approx.Error using (Approximation; ℚ-ordered)
 open import CategoricalCrypto.Approx.Schedule using (pointwise)
-open import CategoricalCrypto.UC.Approximate
-  using (Approximation; Negligible; Negligible-+; Negligible-0; ℚ-errors)
+open import CategoricalCrypto.UC.Approximate using (Negligible; Negligible-+; Negligible-0)
 
 import CategoricalCrypto.Approx.Small as Smallᴹ
 import CategoricalCrypto.Approx.Space as Spaceᴹ
 
 module CategoricalCrypto.UC.Approximate.Local
-  {os ℓa : Level} {Obs : Set os} (apx : Approximation Obs ℚ-errors ℓa)
+  {os ℓa : Level} {Obs : Set os} (apx : Approximation Obs ℚ-ordered ℓa)
   (Ix : Set) (κ : Ix → ℕ) where
 
 open Approximation apx

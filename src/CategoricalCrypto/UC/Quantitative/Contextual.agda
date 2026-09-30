@@ -36,7 +36,7 @@ open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Level using (Level; _⊔_)
 open import Relation.Binary.PropositionalEquality using (cong; trans)
 
-open import CategoricalCrypto.UC.Approximate using (Approximation; ℚ-errors)
+open import CategoricalCrypto.Approx.Error using (Approximation; ℚ-ordered)
 open import CategoricalCrypto.UC.Quantitative.Query
   using (absorb-closure; absorb-test; module Fl; module Tests)
 
@@ -48,7 +48,7 @@ module Rates = SymmetricMonoidalCategory Rates
 module CategoricalCrypto.UC.Quantitative.Contextual
   {o ℓ e os ℓa qs : Level}
   (M : MonoidalCategory o ℓ e) (Rg : GradedSubCat Rates.monoidalCategory M qs)
-  {Obs : Set os} (Ap : Approximation Obs ℚ-errors ℓa)
+  {Obs : Set os} (Ap : Approximation Obs ℚ-ordered ℓa)
   (𝟙 Ω : MonoidalCategory.Obj M)
   (⟦_⟧ : MonoidalCategory._⇒_ M 𝟙 Ω → Obs)
   (obs-resp : {u v : MonoidalCategory._⇒_ M 𝟙 Ω}

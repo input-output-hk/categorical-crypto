@@ -27,9 +27,8 @@ open import Function.Bundles using (_⇔_; mk⇔)
 open import Level using (Level; _⊔_)
 
 open import CategoricalCrypto.Abstract2.Morphism using (module Refine)
-open import CategoricalCrypto.Approx.Error using (ℚ-ordered)
+open import CategoricalCrypto.Approx.Error using (module AllPositive; ℚ-ordered; ℚ-refinement)
 open import CategoricalCrypto.Approx.Evaluation ℚ-ordered using (QEvaluation)
-open import CategoricalCrypto.UC.Approximate using (module AllPositive; ℚ-refinement)
 open import CategoricalCrypto.UCSetup using (UCSetup)
 
 import CategoricalCrypto.UC.Family.Vanishing as Vanᴹ
