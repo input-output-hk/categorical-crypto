@@ -16,7 +16,7 @@ open import Categories.LocallyGraded.Monoidal
 open import Categories.LocallyGraded.SubCategory
 import Categories.Morphism.Reasoning as MR
 
-open import Data.Nat.Base as ℕ using (ℕ)
+open import Data.Nat as ℕ using (ℕ)
 open import Data.Nat.Positive
 open import Data.Nat.Properties
 open import Data.Product.Base
@@ -28,7 +28,7 @@ open import Relation.Binary.PropositionalEquality hiding (J)
 open import Relation.Unary using (_⊆_)
 
 import CategoricalCrypto.Standard2 as Std2
-open import CategoricalCrypto.UC.Core using (Evaluation; Observable)
+open import CategoricalCrypto.UC.Core
 
 module Rates = SymmetricMonoidalCategory Rates
 
@@ -45,35 +45,36 @@ open GradedSubCat Rg
 module L = LocallyGradedCategory L
 open GradedMonoidal (monoidalᴸ Rates.braided) using () renaming (_⊗₁_ to _⊗ʰ_)
 
-private variable A B′ X Z : Channel
+private variable A B X Z : Channel
                  w w′ : Level
                  r : ℕ⁺
 
 infix 4 _≤UC[_]_
 infixl 7 _∙ᶜ_ _∙ˢ_
 
-_≤UC[_]_ : {A B′ X Y : Channel} → A ⇒ X ⊗₀ B′ → ℕ⁺ → A ⇒ Y ⊗₀ B′ → Set (o ⊔ ℓ ⊔ ℓs ⊔ qs)
-_≤UC[_]_ {X = X} {Y} f r g = Σ[ ŝ ∈ L.Hom r Y X ] f ≈ᵁ (⌊ ŝ ⌋ ⊗₁ id ∘ g)
+-- `≤UC` with a graded simulator (e.g. a polynomial bound)
+_≤UC[_]_ : A ⇒ X ⊗₀ B → ℕ⁺ → A ⇒ Z ⊗₀ B → Set (o ⊔ ℓ ⊔ ℓs ⊔ qs)
+_≤UC[_]_ {X = X} {Z = Z} f r g = Σ[ s ∈ L.Hom r Z X ] f ≈ᵁ ⌊ s ⌋ ⊗₁ id ∘ g
 
-≤UC[]⇒≤UC : {f : A ⇒ X ⊗₀ B′} {g : A ⇒ Z ⊗₀ B′} → f ≤UC[ r ] g → f ≤UC g
-≤UC[]⇒≤UC (ŝ , h) = dummy-complete (⌊ ŝ ⌋ , h)
+≤UC[]⇒≤UC : {f : A ⇒ X ⊗₀ B} {g : A ⇒ Z ⊗₀ B} → f ≤UC[ r ] g → f ≤UC g
+≤UC[]⇒≤UC (s , eq) = dummy-complete (⌊ s ⌋ , eq)
 
-record Context (A X B′ : Channel) : Set (o ⊔ ℓ) where
+record Context (A X B : Channel) : Set (o ⊔ ℓ) where
   field Y  : Channel
-        Et : Test (Y ⊗₀ (X ⊗₀ B′))
+        Et : Test (Y ⊗₀ (X ⊗₀ B))
         m  : Closure (Y ⊗₀ A)
 
-observeᶜ : Context A X B′ → A ⇒ X ⊗₀ B′ → S.Carrier
+observeᶜ : Context A X B → A ⇒ X ⊗₀ B → S.Carrier
 observeᶜ k f = observe (Et ∘ id ⊗₁ f) m where open Context k
 
-_∙ᶜ_ : Context A X B′ → Z ⇒ X → Context A Z B′
+_∙ᶜ_ : Context A X B → Z ⇒ X → Context A Z B
 k ∙ᶜ s = record { Y = Y ; Et = Et ∘ id ⊗₁ (s ⊗₁ id) ; m = m } where open Context k
 
-record Certified (A X B′ : Channel) : Set (o ⊔ ℓ ⊔ e ⊔ qs) where
-  field ctx  : Context A X B′
+record Certified (A X B : Channel) : Set (o ⊔ ℓ ⊔ e ⊔ qs) where
+  field ctx  : Context A X B
         c r′ : ℕ⁺
   open Context ctx
-  field Êt  : L.Hom c (Y ⊗₀ (X ⊗₀ B′)) Ω
+  field Êt  : L.Hom c (Y ⊗₀ (X ⊗₀ B)) Ω
         m̂   : L.Hom r′ J (Y ⊗₀ A)
         Êt≈ : ⌊ Êt ⌋ ≈ Et
         m̂≈  : ⌊ m̂ ⌋ ≈ m
@@ -83,52 +84,52 @@ record Certified (A X B′ : Channel) : Set (o ⊔ ℓ ⊔ e ⊔ qs) where
 
 open Certified
 
-_∙ˢ_ : Certified A X B′ → L.Hom r Z X → Certified A Z B′
-_∙ˢ_ {r = r} k ŝ = record
-  { ctx = ctx k ∙ᶜ ⌊ ŝ ⌋ ; c = c k · r ; r′ = r′ k ; m̂ = m̂ k ; m̂≈ = m̂≈ k
+_∙ˢ_ : Certified A X B → L.Hom r Z X → Certified A Z B
+_∙ˢ_ {r = r} k s = record
+  { ctx = ctx k ∙ᶜ ⌊ s ⌋ ; c = c k · r ; r′ = r′ k ; m̂ = m̂ k ; m̂≈ = m̂≈ k
   ; Êt  = L.sub[ ≤-reflexive (trans (cong (ℕ._* value (c k)) (trans (*-identityˡ _) (*-identityʳ (value r))))
                                      (*-comm (value r) (value (c k)))) ]
-            (Êt k L.∙ (L.id ⊗ʰ (ŝ ⊗ʰ L.id)))
+            (Êt k L.∙ (L.id ⊗ʰ (s ⊗ʰ L.id)))
   ; Êt≈ = ∘-resp-≈ˡ (Êt≈ k) }
 
-budget-∙ˢ : (k : Certified A X B′) (ŝ : L.Hom r Z X) → budget (k ∙ˢ ŝ) ≡ scale (budget k) r
+budget-∙ˢ : (k : Certified A X B) (s : L.Hom r Z X) → budget (k ∙ˢ s) ≡ scale (budget k) r
 budget-∙ˢ {r = r} k _ = xy∙z≈xz∙y (value (c k)) (value r) (value (r′ k))
   where open CommSemigroupProperties *-commutativeSemigroup
 
-Permitted : (w : Level) (A X B′ : Channel) → Set (o ⊔ ℓ ⊔ e ⊔ qs ⊔ suc w)
-Permitted w A X B′ = Certified A X B′ → Set w
+Permitted : (w : Level) (A X B : Channel) → Set (o ⊔ ℓ ⊔ e ⊔ qs ⊔ suc w)
+Permitted w A X B = Certified A X B → Set w
 
-AuditBound : A ⇒ X ⊗₀ B′ → Permitted w A X B′ → (ℕ → ℚ) → Set (o ⊔ ℓ ⊔ e ⊔ qs ⊔ w)
+AuditBound : A ⇒ X ⊗₀ B → Permitted w A X B → (ℕ → ℚ) → Set (o ⊔ ℓ ⊔ e ⊔ qs ⊔ w)
 AuditBound f 𝔈 ε = ∀ k → 𝔈 k → mass ⟨$⟩ observeᶜ (ctx k) f ≤ℚ ε (budget k)
 
-pinned : A ⇒ X ⊗₀ B′ → (ℕ → S.Carrier) → Permitted ℓs A X B′
+pinned : A ⇒ X ⊗₀ B → (ℕ → S.Carrier) → Permitted ℓs A X B
 pinned f μ k = observeᶜ (ctx k) f S.≈ μ (budget k)
 
 -- The slack is the price of reading an equality of lower reals as a numeric comparison.
-pinned-bound : (f : A ⇒ X ⊗₀ B′) (μ : ℕ → S.Carrier) (ε : ℕ → ℚ) (δ : ℚ) → 0ℚ ℚ.< δ
+pinned-bound : (f : A ⇒ X ⊗₀ B) (μ : ℕ → S.Carrier) (ε : ℕ → ℚ) (δ : ℚ) → 0ℚ ℚ.< δ
              → ((q : ℕ) → mass ⟨$⟩ μ q ≤ℚ ε q) → AuditBound f (pinned f μ) (λ q → ε q ℚ.+ δ)
 pinned-bound f μ ε δ δ>0 bnd k ev = ≲-≤ℚ _ _ (≈⇒≲ _ _ (Func.cong mass ev)) (bnd (budget k)) δ δ>0
 
-absorb : L.Hom r Z X → Permitted w A Z B′ → Permitted w A X B′
-absorb ŝ 𝔉 k = 𝔉 (k ∙ˢ ŝ)
+absorb : L.Hom r Z X → Permitted w A Z B → Permitted w A X B
+absorb s 𝔉 k = 𝔉 (k ∙ˢ s)
 
-Absorbs : L.Hom r Z X → Permitted w A X B′ → Permitted w′ A Z B′ → Set _
-Absorbs ŝ 𝔈 𝔉 = 𝔈 ⊆ absorb ŝ 𝔉
+Absorbs : L.Hom r Z X → Permitted w A X B → Permitted w′ A Z B → Set _
+Absorbs s 𝔈 𝔉 = 𝔈 ⊆ absorb s 𝔉
 
-≈ᵁ-at : {f : A ⇒ X ⊗₀ B′} {g : A ⇒ Z ⊗₀ B′} (s : Z ⇒ X) → f ≈ᵁ (s ⊗₁ id ∘ g)
-      → (k : Context A X B′) → observeᶜ k f S.≈ observeᶜ (k ∙ᶜ s) g
-≈ᵁ-at {f = f} {g} s em k = read-cast (cast f) (cast (s ⊗₁ id ∘ g) ○ ∘-resp-≈ˡ (pushʳ T-homomorphism))
-                                     (KE.run∼ (em Y) {Et ∘ α⇒} m)
+≈ᵁ-at : {f : A ⇒ X ⊗₀ B} {g : A ⇒ Z ⊗₀ B} (s : Z ⇒ X) → f ≈ᵁ s ⊗₁ id ∘ g
+      → (k : Context A X B) → observeᶜ k f S.≈ observeᶜ (k ∙ᶜ s) g
+≈ᵁ-at {f = f} {g} s eq k = read-cast (cast f) (cast (s ⊗₁ id ∘ g) ○ ∘-resp-≈ˡ (pushʳ T-homomorphism))
+                                     (KE.run∼ (eq Y) {Et ∘ α⇒} m)
   where
   open Context k
   open HomReasoning
   open MR ∣machines∣
   cast = λ w → pullʳ (cancelˡ associator.isoʳ) ⟩∘⟨refl
 
-audit-carry : (f : A ⇒ X ⊗₀ B′) (g : A ⇒ Z ⊗₀ B′) (em : f ≤UC[ r ] g)
-              {𝔈 : Permitted w A X B′} {𝔉 : Permitted w′ A Z B′} → Absorbs (proj₁ em) 𝔈 𝔉
+audit-carry : (f : A ⇒ X ⊗₀ B) (g : A ⇒ Z ⊗₀ B) (em : f ≤UC[ r ] g)
+              {𝔈 : Permitted w A X B} {𝔉 : Permitted w′ A Z B} → Absorbs (proj₁ em) 𝔈 𝔉
             → (ε : ℕ → ℚ) (δ : ℚ) → 0ℚ ℚ.< δ
             → AuditBound g 𝔉 ε → AuditBound f 𝔈 (λ q → ε (scale q r) ℚ.+ δ)
-audit-carry f g (ŝ , em) cl ε δ δ>0 bnd k ev =
-  subst (λ q → mass ⟨$⟩ observeᶜ (ctx k) f ≤ℚ ε q ℚ.+ δ) (budget-∙ˢ k ŝ)
-        (≲-≤ℚ _ _ (≈⇒≲ _ _ (Func.cong mass (≈ᵁ-at ⌊ ŝ ⌋ em (ctx k)))) (bnd (k ∙ˢ ŝ) (cl ev)) δ δ>0)
+audit-carry f g (s , eq) cl ε δ δ>0 bnd k ev =
+  subst (λ q → mass ⟨$⟩ observeᶜ (ctx k) f ≤ℚ ε q ℚ.+ δ) (budget-∙ˢ k s)
+        (≲-≤ℚ _ _ (≈⇒≲ _ _ (Func.cong mass (≈ᵁ-at ⌊ s ⌋ eq (ctx k)))) (bnd (k ∙ˢ s) (cl ev)) δ δ>0)
