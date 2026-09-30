@@ -435,6 +435,28 @@ OnSupport-bind : {P : A → Type ℓ′} {Q : B → Type ℓ″}
                → OnSupport Q (μ >>=ᴹ h)
 OnSupport-bind μ h = all-bindᴰ (entries μ) (entries ∘ h)
 
+OnSupport-⊤ : (μ : Dist-ℚ A) → OnSupport (λ _ → ⊤) μ
+OnSupport-⊤ μ = All.universal (λ _ → tt) (NE.toList (entries μ))
+
+OnSupport-map : {Q : B → Type ℓ″} (μ : Dist-ℚ A) (f : A → B)
+              → (∀ a → Q (f a)) → OnSupport Q (μ >>=ᴹ λ a → return-ℚ (f a))
+OnSupport-map μ f h = OnSupport-bind μ (λ a → return-ℚ (f a)) (OnSupport-⊤ μ)
+                                     (λ a _ → OnSupport-return (h a))
+
+OnSupport-mono : {P Q : A → Type ℓ′} (μ : Dist-ℚ A)
+               → (∀ a → P a → Q a) → OnSupport P μ → OnSupport Q μ
+OnSupport-mono μ f = All.map (λ {e} → f (proj₂ e))
+
+OnSupport-∧ : {P : A → Type ℓ′} {Q : A → Type ℓ″} (μ : Dist-ℚ A)
+            → OnSupport P μ → OnSupport Q μ → OnSupport (λ a → P a × Q a) μ
+OnSupport-∧ μ pp qq = All.zip (pp , qq)
+
+OnSupport-bind-return : {Q : B → Type ℓ″} (a : A) (h : A → Dist-ℚ B)
+                      → OnSupport Q (h a) → OnSupport Q (return-ℚ a >>=ᴹ h)
+OnSupport-bind-return {Q = Q} a h os =
+  OnSupport-bind (return-ℚ a) h (OnSupport-return {P = λ x → x ≡ a} refl)
+    (λ x x≡ → subst (λ x₀ → OnSupport Q (h x₀)) (sym x≡) os)
+
 OnSupport-Dmap : {P : B → Type ℓ′} (f : A → B) (μ : Dist-ℚ A)
                → OnSupport (λ a → P (f a)) μ → OnSupport P (Dmap f μ)
 OnSupport-Dmap f μ os = OnSupport-bind μ (return-ℚ ∘ f) os (λ _ → OnSupport-return)

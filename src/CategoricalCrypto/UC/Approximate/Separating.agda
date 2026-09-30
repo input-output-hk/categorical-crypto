@@ -10,8 +10,9 @@
 --
 -- The second instrument is a sequence the `Negligible` grade excludes.
 -- `1/(n+1)` is the canonical one, and it is exactly the gap between the two
--- grades: it vanishes (`UC.Approximate._→0`, whose header names it) and no
--- polynomial magnification of it does, since `n+1` cancels it outright.
+-- grades: it vanishes (`Uniform.Decay._→0`; `UC.Approximate`'s header names
+-- it) and no polynomial magnification of it does, since `n+1` cancels it
+-- outright.
 -- `Decay` is the positive counterpart, at the exponential schedule.
 
 open import Data.Integer.Base using (+<+)

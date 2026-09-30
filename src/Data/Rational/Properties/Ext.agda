@@ -11,17 +11,18 @@ module Data.Rational.Properties.Ext where
 open import Data.Integer as ℤ using (ℤ)
 open import Data.Nat as ℕ using (ℕ; suc)
 open import Data.Rational using
-  (ℚ; 0ℚ; 1ℚ; ½; _+_; _-_; -_; _*_; _/_; ∣_∣; _≤_; _≤?_; _<_; nonNegative; toℚᵘ)
+  (ℚ; 0ℚ; 1ℚ; ½; _+_; _-_; -_; _*_; _/_; ∣_∣; _≤_; _≤?_; _<_; _<?_; nonNegative; toℚᵘ)
 open import Data.Rational.Properties using
-  ( +-0-abelianGroup; +-assoc; +-identityˡ; +-identityʳ; +-inverseˡ; +-inverseʳ
-  ; +-monoʳ-≤; ≤-refl; ≤-reflexive; ≤-total; ≤-trans; neg-antimono-≤
+  ( +-0-abelianGroup; +-assoc; +-comm; +-identityˡ; +-identityʳ; +-inverseˡ; +-inverseʳ
+  ; +-monoˡ-≤; +-monoʳ-≤; ≤-antisym; ≤-refl; ≤-reflexive; ≤-total; ≤-trans; neg-antimono-≤
   ; 0≤p⇒∣p∣≡p; 0≤∣p∣; ∣-p∣≡∣p∣; ∣p+q∣≤∣p∣+∣q∣; nonNegative⁻¹; nonNeg*nonNeg⇒nonNeg
   ; *-distribʳ-+; *-identityˡ; *-monoʳ-<-pos; *-zeroʳ
   ; toℚᵘ-cancel-≤; toℚᵘ-fromℚᵘ; toℚᵘ-homo-*; toℚᵘ-homo-+; toℚᵘ-injective )
 open import Data.Rational.Unnormalised.Base as ℚᵘ using (mkℚᵘ; *≡*; *≤*)
+open import Data.Product.Base using (_×_; _,_)
 open import Data.Sum.Base using (inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
-open import Relation.Nullary.Decidable.Core using (toWitnessFalse)
+open import Relation.Nullary.Decidable.Core using (toWitness; toWitnessFalse)
 open import Relation.Nullary.Negation.Core using (¬_)
 
 import Algebra.Properties.AbelianGroup as AbelianGroupProperties
@@ -48,6 +49,33 @@ telescope a b c = trans (+-assoc a (- b) (b - c))
 
 0≤1ℚ : 0ℚ ≤ 1ℚ
 0≤1ℚ = 0≤∣p∣ 1ℚ
+
+0<1ℚ : 0ℚ < 1ℚ
+0<1ℚ = toWitness {a? = 0ℚ <? 1ℚ} _
+
+p≤p+q : ∀ x → 0ℚ ≤ y → x ≤ x + y
+p≤p+q x 0≤y = ≤-trans (≤-reflexive (sym (+-identityʳ x))) (+-monoʳ-≤ x 0≤y)
+
+p≤q+p : ∀ x → 0ℚ ≤ y → x ≤ y + x
+p≤q+p x 0≤y = ≤-trans (≤-reflexive (sym (+-identityˡ x))) (+-monoˡ-≤ x 0≤y)
+
+nonNeg+nonNeg≡0 : ∀ x y → 0ℚ ≤ x → 0ℚ ≤ y → x + y ≡ 0ℚ → x ≡ 0ℚ × y ≡ 0ℚ
+nonNeg+nonNeg≡0 x y 0≤x 0≤y s0 =
+    ≤-antisym (≤-trans (p≤p+q x 0≤y) (≤-reflexive s0)) 0≤x
+  , ≤-antisym (≤-trans (p≤q+p y 0≤x) (≤-reflexive s0)) 0≤y
+
+------------------------------------------------------------------------
+-- Complements `1 - p`
+
+0≤1- : x ≤ 1ℚ → 0ℚ ≤ 1ℚ - x
+0≤1- {x} le = ≤-trans (≤-reflexive (sym (+-inverseʳ x))) (+-monoˡ-≤ (- x) le)
+
+1-[1-x] : ∀ x → 1ℚ - (1ℚ - x) ≡ x
+1-[1-x] x = trans (cong (1ℚ +_) (sym (neg-sub x 1ℚ))) (trans (+-comm 1ℚ (x - 1ℚ)) (−-+-cancel x 1ℚ))
+
+1-x-[1-y] : ∀ x y → (1ℚ - x) - (1ℚ - y) ≡ y - x
+1-x-[1-y] x y = trans (cong ((1ℚ - x) +_) (sym (neg-sub y 1ℚ)))
+                      (trans (+-comm (1ℚ - x) (y - 1ℚ)) (telescope y 1ℚ x))
 
 -- The two refutations an "eventually below ε" bound needs to contradict
 -- probability one.  `Data.Rational.Properties` has no `<⇒≱`, so they come off

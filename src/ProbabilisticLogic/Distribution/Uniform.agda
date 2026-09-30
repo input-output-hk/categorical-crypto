@@ -20,7 +20,7 @@ open import Data.Rational.Properties using
   ( *-zeroˡ; *-zeroʳ; *-identityˡ; *-identityʳ; *-1-commutativeMonoid
   ; +-assoc; +-identityˡ; +-identityʳ; +-monoˡ-≤; +-monoʳ-≤; *-distribʳ-+
   ; ≤-refl; ≤-reflexive; ≤-trans; <-≤-trans; /-cong; positive⁻¹; ↥p/↧p≡p )
-open import Data.Rational.Properties.Ext using (0≤1ℚ; 0≤*; /-*-/; /-+-/; /-mono-≤)
+open import Data.Rational.Properties.Ext using (0≤1ℚ; 0≤*; p≤p+q; p≤q+p; /-*-/; /-+-/; /-mono-≤)
 open import Data.Vec using (Vec; []; _∷_)
 
 import Algebra.Properties.CommutativeSemigroup as CommutativeSemigroupProperties
@@ -46,8 +46,31 @@ indᵇ : Bool → Bool → ℚ
 indᵇ true  = bool→ℚ
 indᵇ false = bool→ℚ ∘ not
 
+0≤bool : ∀ b → 0ℚ ≤ bool→ℚ b
+0≤bool true  = 0≤1ℚ
+0≤bool false = ≤-refl
+
+bool≤1 : ∀ b → bool→ℚ b ≤ 1ℚ
+bool≤1 true  = ≤-refl
+bool≤1 false = 0≤1ℚ
+
+indᵇ-nn : ∀ b c → 0ℚ ≤ indᵇ b c
+indᵇ-nn true  = 0≤bool
+indᵇ-nn false = 0≤bool ∘ not
+
+indᵇ-≤1 : ∀ b c → indᵇ b c ≤ 1ℚ
+indᵇ-≤1 true  = bool≤1
+indᵇ-≤1 false = bool≤1 ∘ not
+
 δ : ∀ {k} → Vec Bool k → Vec Bool k → ℚ
 δ y x = bool→ℚ ⌊ x ≟ y ⌋
+
+δ-sym : ∀ {k} (x y : Vec Bool k) → δ x y ≡ δ y x
+δ-sym x y with y ≟ x | x ≟ y
+... | yes _ | yes _ = refl
+... | yes p | no ¬q = ⊥-elim (¬q (sym p))
+... | no ¬p | yes q = ⊥-elim (¬p (sym q))
+... | no _  | no _  = refl
 
 -- Cons rules for δ on Vec Bool: heads agree means the tail's
 -- indicator, heads disagree means 0.
@@ -93,17 +116,13 @@ suc·c n c = trans (cong (_+ n * c) (sym (*-identityˡ c)))
 -- and the Archimedean property of ℚ in the shape the vanishing bounds of
 -- `ProbabilisticLogic.Distribution.Uniform.Decay` consume.
 
-private
-  x≤1+x : ∀ x → x ≤ 1ℚ + x
-  x≤1+x x = ≤-trans (≤-reflexive (sym (+-identityˡ x))) (+-monoˡ-≤ x 0≤1ℚ)
-
 0≤fromℕ : ∀ n → 0ℚ ≤ fromℕ n
 0≤fromℕ zero    = ≤-refl
-0≤fromℕ (suc m) = ≤-trans (0≤fromℕ m) (x≤1+x (fromℕ m))
+0≤fromℕ (suc m) = ≤-trans (0≤fromℕ m) (p≤q+p (fromℕ m) 0≤1ℚ)
 
 0<fromℕ-suc : ∀ m → 0ℚ < fromℕ (suc m)
 0<fromℕ-suc m = <-≤-trans (positive⁻¹ 1ℚ)
-  (≤-trans (≤-reflexive (sym (+-identityʳ 1ℚ))) (+-monoʳ-≤ 1ℚ (0≤fromℕ m)))
+  (p≤p+q 1ℚ (0≤fromℕ m))
 
 fromℕ-mono-≤ : ∀ {m n} → m ℕ.≤ n → fromℕ m ≤ fromℕ n
 fromℕ-mono-≤ {n = n} z≤n = 0≤fromℕ n
@@ -137,8 +156,7 @@ fromℕ-/ (suc m) = begin
 -- degenerate case of `GamePlaying.Potential.guess-drift`, which the oracle
 -- games need at every query that draws nothing.
 0≤drift : ∀ k (g : Bool) → bool→ℚ g ≤ bool→ℚ g + inv-pow-2 k
-0≤drift k g = ≤-trans (≤-reflexive (sym (+-identityʳ (bool→ℚ g))))
-                      (+-monoʳ-≤ (bool→ℚ g) (0≤inv-pow-2 k))
+0≤drift k g = p≤p+q (bool→ℚ g) (0≤inv-pow-2 k)
 
 fromℕ-inv-pow-2 : ∀ k → fromℕ (2 ℕ.^ k) * inv-pow-2 k ≡ 1ℚ
 fromℕ-inv-pow-2 zero    = trans (*-identityʳ (fromℕ 1)) (+-identityʳ 1ℚ)
