@@ -18,11 +18,12 @@
 -- `λ n q → ε n (scale q (cost c n))`) are instances of composing controlled
 -- maps, not a UC-specific axiom.
 
-open import Data.Product.Base using (_,_)
+open import Data.Product.Base using (_,_; proj₁; proj₂)
 open import Level using (Level; _⊔_)
 open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl; subst)
 
 open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
+open import CategoricalCrypto.UC.Approximate using (Refinement)
 
 module CategoricalCrypto.Approx.Schedule where
 
@@ -42,6 +43,19 @@ pointwise I V = record
   ; ⊕-mono      = λ le₁ le₂ j → ⊕-mono (le₁ j) (le₂ j)
   }
   where open OrderedErrorAlgebra V
+
+pointwise-refinement : {i es ℓe : Level} (I : Set i) (V : OrderedErrorAlgebra es ℓe)
+                     → Refinement (OrderedErrorAlgebra.errors V)
+                     → Refinement (OrderedErrorAlgebra.errors (pointwise I V))
+pointwise-refinement I V R = record
+  { Positive = λ ε → (j : I) → Positive (ε j)
+  ; ε₀-least = λ pos j → ε₀-least (pos j)
+  ; refine   = λ pos → let r = λ j → refine (pos j) in
+        (λ j → proj₁ (r j)) , (λ j → proj₁ (proj₂ (r j)))
+      , (λ j → proj₁ (proj₂ (proj₂ (r j)))) , (λ j → proj₁ (proj₂ (proj₂ (proj₂ (r j)))))
+      , λ j → proj₂ (proj₂ (proj₂ (proj₂ (r j))))
+  }
+  where open Refinement R
 
 module Reindexing {i es ℓe : Level} {I : Set i} (V : OrderedErrorAlgebra es ℓe) where
 
