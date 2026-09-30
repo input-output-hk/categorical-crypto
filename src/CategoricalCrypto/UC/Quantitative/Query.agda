@@ -16,7 +16,7 @@
 -- determined by the morphism, so the rate is part of the hom and of its
 -- equality.  Closure schedules and test allowances are both indexed by `ℕ⁺`,
 -- so no schedule is read at a rate no certificate has.  Only the non-tensor part
--- of the graded subcategory is spent, in `UC.Test`'s discipline.
+-- of the graded subcategory is spent.
 
 open import Categories.Category using (Category)
 open import Categories.Category.Instance.Rates
