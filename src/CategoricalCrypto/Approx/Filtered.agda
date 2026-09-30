@@ -13,7 +13,8 @@
 -- Allowances range over a poset `I`; the query model's is `ℕ⁺`, the rates of its
 -- certificates (`UC.Quantitative.Query.filteredᵠ`).  Two allowance maps are
 -- compared by `I`'s own `_≈_`, never by `≡`: at a function-valued allowance
--- pointwise agreement is not an equation without funext.
+-- (`Approx.FilteredTests`) pointwise agreement is not an equation without
+-- funext.
 
 open import Categories.Category using (Category)
 
