@@ -5,7 +5,8 @@
 --
 -- Only the environment presheaf moves, from `Setoids` to `Approx`; forgetting
 -- it along `F₀` or `F₊` gives an ordinary `UCSetup`, so the whole qualitative
--- metatheory is INHERITED rather than restated.
+-- metatheory is INHERITED rather than restated.  Only `F₊` costs a
+-- `Refinement` of the errors; nothing else here mentions positivity.
 --
 -- `underlying₀` is also the working tool, not just an instance: its
 -- environment equality IS closeness at zero error, so every presheaf law the
@@ -26,7 +27,10 @@ open import Level using (Level; suc; _⊔_)
 
 open import CategoricalCrypto.Abstract2
 open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
+open import CategoricalCrypto.UC.Approximate using (Refinement)
 open import CategoricalCrypto.UCSetup using (UCSetup)
+
+import CategoricalCrypto.Approx.Forget as Forgetᴹ
 
 module CategoricalCrypto.UC.Quantitative {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe) where
 
@@ -49,11 +53,12 @@ module QuantitativeUC {o ℓ e o′ ℓ′ e′ c ℓb : Level}
 
   private module S = QUCSetup S
 
-  open import CategoricalCrypto.Approx.Forget E c ℓb
+  underlying₀ : UCSetup o ℓ e o′ ℓ′ e′ c (es ⊔ ℓe ⊔ ℓb)
+  underlying₀ = record { 𝒞 = S.𝒞 ; ℐ = S.ℐ ; ℳ = S.ℳ ; ℰ = F₀ c (es ⊔ ℓe ⊔ ℓb) ∘F S.Q }
 
-  underlying₀ underlying₊ : UCSetup o ℓ e o′ ℓ′ e′ c (es ⊔ ℓe ⊔ ℓb)
-  underlying₀ = record { 𝒞 = S.𝒞 ; ℐ = S.ℐ ; ℳ = S.ℳ ; ℰ = F₀ ∘F S.Q }
-  underlying₊ = record { 𝒞 = S.𝒞 ; ℐ = S.ℐ ; ℳ = S.ℳ ; ℰ = F₊ ∘F S.Q }
+  underlying₊ : Refinement errors → UCSetup o ℓ e o′ ℓ′ e′ c (es ⊔ ℓe ⊔ ℓb)
+  underlying₊ R =
+    record { 𝒞 = S.𝒞 ; ℐ = S.ℐ ; ℳ = S.ℳ ; ℰ = Forgetᴹ.F₊ E R c ℓb ∘F S.Q }
 
   -- The third way to forget (`Approx.Small`), which the all-positive one is
   -- NOT an instance of: here the error is merely EXISTENTIAL, so what the
@@ -66,7 +71,6 @@ module QuantitativeUC {o ℓ e o′ ℓ′ e′ c ℓb : Level}
     ; ℰ = Collapse.FSmall Sm c (es ⊔ ℓe ⊔ ℓb) ∘F S.Q }
 
   open AbstractUC underlying₀ public
-  module A₊ = AbstractUC underlying₊
 
   private
     module Q = Functor S.Q

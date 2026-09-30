@@ -2,6 +2,8 @@
 
 -- The two ways to forget an approximate space to a setoid
 -- (`docs/quantitative-uc-setup-plan.typ` §3), and the comparison between them.
+-- The exact one, `Approx.Space.F₀`, needs nothing of the errors; the
+-- all-positive one needs a `Refinement` of them.
 --
 -- The comparison `forget` is the identity on carriers and is deliberately NOT
 -- an isomorphism: a space whose error balls are not closed has points that no
@@ -23,37 +25,34 @@ open import Level using (Level; _⊔_)
 open import Relation.Binary.Bundles using (Setoid)
 
 open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
+open import CategoricalCrypto.UC.Approximate using (module AllPositive; Refinement)
 
 module CategoricalCrypto.Approx.Forget
-  {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe) (c ℓb : Level) where
+  {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe)
+  (R : Refinement (OrderedErrorAlgebra.errors E)) (c ℓb : Level) where
 
-open OrderedErrorAlgebra E
 open import CategoricalCrypto.Approx.Space E
+
+private module P (X : ApproxSpace c (es ⊔ ℓe ⊔ ℓb)) = AllPositive R (ApproxSpace.approx X)
 
 ⟦_⟧₀ ⟦_⟧₊ : ApproxSpace c (es ⊔ ℓe ⊔ ℓb) → Setoid c (es ⊔ ℓe ⊔ ℓb)
 ⟦_⟧₀ = zeroSetoid
-⟦_⟧₊ = positiveSetoid
+⟦ X ⟧₊ = record
+  { Carrier = ApproxSpace.Carrier X ; _≈_ = P._∼ᵃ_ X ; isEquivalence = P.∼ᵃ-isEquivalence X }
 
-F₀ F₊ : Functor (Approx c (es ⊔ ℓe ⊔ ℓb)) (Setoids c (es ⊔ ℓe ⊔ ℓb))
-F₀ = record
-  { F₀ = ⟦_⟧₀
-  ; F₁ = λ f → record { to = Nonexpansive.map f ; cong = Nonexpansive.preserves f }
-  ; identity     = λ {A} → ApproxSpace.≈[]-refl A
-  ; homomorphism = λ {_} {_} {Z} → ApproxSpace.≈[]-refl Z
-  ; F-resp-≈     = λ e {x} → e x
-  }
+F₊ : Functor (Approx c (es ⊔ ℓe ⊔ ℓb)) (Setoids c (es ⊔ ℓe ⊔ ℓb))
 F₊ = record
   { F₀ = ⟦_⟧₊
   ; F₁ = λ f → record
       { to = Nonexpansive.map f ; cong = λ h ε pos → Nonexpansive.preserves f (h ε pos) }
-  ; identity     = λ {A} → zero⇒positive A (ApproxSpace.≈[]-refl A)
-  ; homomorphism = λ {_} {_} {Z} → zero⇒positive Z (ApproxSpace.≈[]-refl Z)
-  ; F-resp-≈     = λ {_} {B} e {x} → zero⇒positive B (e x)
+  ; identity     = λ {A} → P.zero⇒positive A (ApproxSpace.≈[]-refl A)
+  ; homomorphism = λ {_} {_} {Z} → P.zero⇒positive Z (ApproxSpace.≈[]-refl Z)
+  ; F-resp-≈     = λ {_} {B} e {x} → P.zero⇒positive B (e x)
   }
 
-forget : NaturalTransformation F₀ F₊
+forget : NaturalTransformation (F₀ c (es ⊔ ℓe ⊔ ℓb)) F₊
 forget = record
-  { η = zeroToPositive
-  ; commute     = λ {_} {Y} _ → zero⇒positive Y (ApproxSpace.≈[]-refl Y)
-  ; sym-commute = λ {_} {Y} _ → zero⇒positive Y (ApproxSpace.≈[]-refl Y)
+  { η = λ X → record { to = λ x → x ; cong = P.zero⇒positive X }
+  ; commute     = λ {_} {Y} _ → P.zero⇒positive Y (ApproxSpace.≈[]-refl Y)
+  ; sym-commute = λ {_} {Y} _ → P.zero⇒positive Y (ApproxSpace.≈[]-refl Y)
   }

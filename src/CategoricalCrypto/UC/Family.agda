@@ -61,7 +61,7 @@ open import CategoricalCrypto.Approx.Space ℚ-ordered using (ApproxSpace)
 open import CategoricalCrypto.UC.Approximate
   using ( Approximation; Negligible; Negligible-+; Negligible-0
         ; Negligible⇒→0; NegligibleBound; NegligibleBound⇒VanishingBound; VanishingBound
-        ; ℚ-errors )
+        ; ℚ-errors; ℚ-refinement )
 open import CategoricalCrypto.UC.Core using (Evaluation; Observable)
 open import CategoricalCrypto.UCSetup using (UCSetup)
 
@@ -121,7 +121,7 @@ QEvaluation^ω = record
 -- …and the qualitative readout the core consumes: `S`'s equality is vanishing
 -- advantage.
 Evaluation^ω : Evaluation Fam os ℓa
-Evaluation^ω = qual₊ QEvaluation^ω
+Evaluation^ω = qual₊ ℚ-refinement QEvaluation^ω
 
 ------------------------------------------------------------------------
 -- Ingestion: a concrete bound, and its collapse
