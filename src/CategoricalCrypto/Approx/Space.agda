@@ -10,8 +10,9 @@
 -- quantitative bound exactly (plan §2.2).
 
 open import Categories.Category using (Category)
+open import Categories.Category.Instance.Setoids using (Setoids)
+open import Categories.Functor using (Functor)
 
-open import Function.Bundles using (Func)
 open import Level using (Level; suc; _⊔_)
 open import Relation.Binary.Bundles using (Setoid)
 open import Relation.Binary.Structures using (IsEquivalence)
@@ -32,8 +33,7 @@ record ApproxSpace (c ℓa : Level) : Set (suc (c ⊔ ℓa) ⊔ es ⊔ ℓe) whe
 
   -- `Approximation` re-exports its error algebra, which the module parameter
   -- already fixes; taking only the relation keeps the two spellings apart.
-  open Approximation approx public
-    using (_≈[_]_; ≈[]-refl; ≈[]-sym; ≈[]-trans; ≈[]-mono; _∼ᵃ_; ∼ᵃ-isEquivalence)
+  open Approximation approx public using (_≈[_]_; ≈[]-refl; ≈[]-sym; ≈[]-trans; ≈[]-mono)
 
 private variable X Y Z : ApproxSpace c ℓa
 
@@ -44,9 +44,6 @@ module _ (X : ApproxSpace c ℓa) where
         → x′ ≈[ ε₀ ] x → y ≈[ ε₀ ] y′ → x ≈[ ε ] y → x′ ≈[ ε ] y′
   resp₀ = ≈[]-resp₀ E approx
 
-  zero⇒positive : {x y : Carrier} → x ≈[ ε₀ ] y → x ∼ᵃ y
-  zero⇒positive h _ pos = ≈[]-mono (ε₀-least pos) h
-
   zeroSetoid : Setoid c ℓa
   zeroSetoid = record
     { Carrier = Carrier
@@ -55,13 +52,6 @@ module _ (X : ApproxSpace c ℓa) where
         { refl = ≈[]-refl ; sym = ≈[]-sym
         ; trans = λ h k → ≈[]-mono ⊕-identityˡ (≈[]-trans h k) }
     }
-
-  positiveSetoid : Setoid c (es ⊔ ℓe ⊔ ℓa)
-  positiveSetoid = record
-    { Carrier = Carrier ; _≈_ = _∼ᵃ_ ; isEquivalence = ∼ᵃ-isEquivalence }
-
-  zeroToPositive : Func zeroSetoid positiveSetoid
-  zeroToPositive = record { to = λ x → x ; cong = zero⇒positive }
 
 record Nonexpansive (X Y : ApproxSpace c ℓa) : Set (c ⊔ es ⊔ ℓa) where
   private
@@ -121,4 +111,13 @@ Approx c ℓa = record
   -- recoverable either; the outer pair is `f h`, the inner pair `g i`.
   ; ∘-resp-≈  = λ {A} {B} {C} {f} {h} {g} {i} →
       compose-resp {X = A} {Y = B} {Z = C} {g = f} {g′ = h} {f = g} {f′ = i}
+  }
+
+F₀ : (c ℓa : Level) → Functor (Approx c ℓa) (Setoids c ℓa)
+F₀ c ℓa = record
+  { F₀ = zeroSetoid
+  ; F₁ = λ f → record { to = Nonexpansive.map f ; cong = Nonexpansive.preserves f }
+  ; identity     = λ {A} → ApproxSpace.≈[]-refl A
+  ; homomorphism = λ {_} {_} {Z} → ApproxSpace.≈[]-refl Z
+  ; F-resp-≈     = λ e {x} → e x
   }

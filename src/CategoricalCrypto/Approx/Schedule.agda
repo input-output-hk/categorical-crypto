@@ -30,15 +30,10 @@ pointwise : {i es ℓe : Level} (I : Set i) → OrderedErrorAlgebra es ℓe
           → OrderedErrorAlgebra (i ⊔ es) (i ⊔ ℓe)
 pointwise I V = record
   { errors = record
-      { Error    = I → Error
-      ; ε₀       = λ _ → ε₀
-      ; _⊕_      = λ ε δ j → ε j ⊕ δ j
-      ; _⊑_      = λ ε δ → (j : I) → ε j ⊑ δ j
-      ; Positive = λ ε → (j : I) → Positive (ε j)
-      ; half     = λ ε j → half (ε j)
-      ; ε₀-least = λ pos j → ε₀-least (pos j)
-      ; half-pos = λ pos j → half-pos (pos j)
-      ; half-sum = λ ε j → half-sum (ε j)
+      { Error = I → Error
+      ; ε₀    = λ _ → ε₀
+      ; _⊕_   = λ ε δ j → ε j ⊕ δ j
+      ; _⊑_   = λ ε δ → (j : I) → ε j ⊑ δ j
       }
   ; ⊑-refl      = λ _ → ⊑-refl
   ; ⊑-trans     = λ le₁ le₂ j → ⊑-trans (le₁ j) (le₂ j)

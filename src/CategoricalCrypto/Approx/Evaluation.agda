@@ -7,9 +7,9 @@
 -- nonexpansive downstream (`UC.Quantitative.Observed`).  Forgetting the error
 -- leaves the reading itself untouched and only coarsens its equality, which is
 -- what `qualBy` takes: any equivalence that zero error already implies.
--- `qual` is the exact one and `qual₊` closeness at every positive error; a
--- tier that KEEPS an error witness coarsens by its own class instead
--- (`UC.Family.Negligible.Evaluationᴺ`).
+-- `qual` is the exact one and `qual₊` closeness at every positive error of a
+-- `Refinement`; a tier that KEEPS an error witness coarsens by its own class
+-- instead (`UC.Family.Negligible.Evaluationᴺ`).
 
 open import Categories.Category.Core using (Category)
 
@@ -21,12 +21,13 @@ open import Relation.Binary.Core using (Rel)
 open import Relation.Binary.Structures using (IsEquivalence)
 
 open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
+open import CategoricalCrypto.UC.Approximate using (module AllPositive; Refinement)
 open import CategoricalCrypto.UC.Core using (Evaluation)
 
 module CategoricalCrypto.Approx.Evaluation
   {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe) where
 
-open OrderedErrorAlgebra E using (ε₀)
+open OrderedErrorAlgebra E using (errors; ε₀)
 open import CategoricalCrypto.Approx.Space E
 
 private variable
@@ -64,6 +65,6 @@ qualBy Q {_∼_} eqv coarsen = record
 qual : (Q : QEvaluation 𝒞 cs ℓa) → Evaluation 𝒞 cs ℓa
 qual Q = qualBy Q (Setoid.isEquivalence (zeroSetoid (QEvaluation.X Q))) λ h → h
 
-qual₊ : (Q : QEvaluation 𝒞 cs ℓa) → Evaluation 𝒞 cs (es ⊔ ℓe ⊔ ℓa)
-qual₊ Q = qualBy Q (ApproxSpace.∼ᵃ-isEquivalence X) (zero⇒positive X)
-  where open QEvaluation Q using (X)
+qual₊ : Refinement errors → (Q : QEvaluation 𝒞 cs ℓa) → Evaluation 𝒞 cs (es ⊔ ℓe ⊔ ℓa)
+qual₊ R Q = qualBy Q ∼ᵃ-isEquivalence zero⇒positive
+  where open AllPositive R (QEvaluation.approx Q)

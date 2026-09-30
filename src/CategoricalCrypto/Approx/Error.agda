@@ -1,9 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
--- What a CATEGORY of approximate spaces costs, on top of the ε/2 argument
--- `UC.Approximate.ErrorAlgebra` already pays for.
+-- What a CATEGORY of approximate spaces costs of its errors.  No positivity:
+-- the all-positive collapse takes its `Refinement` separately (`Approx.Forget`).
 --
--- Composition needs the errors to be an ordered monoid as well: two zero-error
+-- Composition needs the errors to be ordered and unital: two zero-error
 -- identifications must compose back to zero error, a fixed bound must survive a
 -- zero-error change of either endpoint, and a bound built from two others must
 -- be weakenable in both arguments.

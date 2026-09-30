@@ -23,7 +23,8 @@ open import Relation.Nullary using (¬_)
 open import ProbabilisticLogic.Distribution.Uniform using (inv-pow-2)
 
 open import CategoricalCrypto.Approx.Error using (ℚ-ordered)
-open import CategoricalCrypto.UC.Approximate using (Approximation; Negligible⇒→0; ℚ-errors)
+open import CategoricalCrypto.UC.Approximate
+  using (Approximation; Negligible⇒→0; ℚ-errors; ℚ-refinement)
 open import CategoricalCrypto.UC.Approximate.Decay using (0<inv-pow-2; negligible-slack)
 open import CategoricalCrypto.UC.Approximate.Separating using (≈ᵐ-0; ≈ᵐ-gap)
 
@@ -32,7 +33,7 @@ import Data.Rational.Properties as ℚₚ
 
 module CategoricalCrypto.Approx.Separating where
 
-open import CategoricalCrypto.Approx.Forget ℚ-ordered 0ℓ 0ℓ
+open import CategoricalCrypto.Approx.Forget ℚ-ordered ℚ-refinement 0ℓ 0ℓ
 open import CategoricalCrypto.Approx.Space ℚ-ordered
 
 zeroᶠ : ℕ → ℚ
