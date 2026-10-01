@@ -9,6 +9,10 @@
     agda-nix = {
       url = "github:input-output-hk/agda.nix";
       inputs.nixpkgs.follows = "nixpkgs";
+      # The reflection frontend (Categories.Coherence.Monoidal.Tactic) needs
+      # the generic solver frontend `Tactic.Solver.Core`, which is not on
+      # agda-stdlib-meta's master yet.
+      inputs.standard-library-meta.url = "github:agda/agda-stdlib-meta/algebraic-solvers";
     };
 
     pagda.url = "github:WhatisRT/pagda";

@@ -29,16 +29,16 @@ General-purpose category theory, independent of cryptography:
 - `LocallyGraded` — locally ℐ-graded categories (categories enriched in
   presheaves on ℐ under Day convolution, in elementary presentation; Wood
   1976/78), the *grade-on-morphism* point of view. `LocallyGraded.Kleisli` is
-  the naive graded Kleisli presentation of a triple; `LocallyGraded.Collage`
-  the collage `∮` of a locally graded category; and
-  `LocallyGraded.Collage.Kleisli` the **bridge theorem**: the collage of the
+  the naive graded Kleisli presentation of a triple; `LocallyGraded.FreeActegory`
+  the free actegory `∮` on a locally graded category; and
+  `LocallyGraded.FreeActegory.Kleisli` the **bridge theorem**: `∮` of the
   naive presentation *is* `GradedKleisli` — objects, homs, identities and
   composition agree on the nose. This connects the two points of view and is
   the formal backbone of the two UC formulations below.
 - `KernelCongruence` — the kernel congruence of a functor (`f ∼ g` iff
   `F₁ f ≈ F₁ g`), the notion of observational equality used everywhere.
-- `Diagram.Coend.Setoids` — concrete Setoid-valued coends with a definitional
-  mapping-out principle (the substrate for the collage).
+- `Diagram.Coend.Ext.Setoids` — concrete Setoid-valued coends with a definitional
+  mapping-out principle (the substrate for `∮`).
 - `Functor.Monoidal.CurriedTensor` (+ `.Properties`) — the tensor `X ⊗ −` as
   a graded monad; this is the graded monad of the standard instantiations.
 - `CoherenceIsos` — the wide subcategory `Coh(ℐ)` of coherence isomorphisms.
@@ -103,12 +103,12 @@ is independent of any particular machine implementation:
 - `UC.Family` / `UC.Family.Vanishing` — the security-parameter family category
   and the vanishing-bound layer over it.
 - `UC.Quantitative.Observed` — the ε-indexed form of `_≈ᵁ_` and its
-  collapse.
+  collapse; `UC.Machine` plugs the whole stack into the machine model.
 
 ## 4. Concrete machine layer
 
-The executable model (predating the layers above; connecting it to
-`MachineAxioms` is planned work):
+The executable model (predating the layers above; connecting it to them is
+planned work):
 
 - `Channel/` — channels (typed communication ports), their category, and a
   wiring DSL (`Selection`).
@@ -118,19 +118,3 @@ The executable model (predating the layers above; connecting it to
 - `SFunM` — the category of stateful, monadic functions.
 - `Examples/` — commitment, signature, and basic protocol examples.
 - `CategoricalCrypto` — the root module re-exporting this layer.
-
-# Contributing
-
-Contributions are welcome, however please make sure that the
-contribution is of reasonable quality. AI contributions are welcome,
-but they must clear a higher quality bar than human
-contributions. **If you have access to AI tools, you should use them
-to do better work, not just more work.**
-
-# AI disclaimer
-
-AI tools were used in the development of this project. All code and
-designs were extensively reviewed manually, but while the maintainer
-tries very hard to keep this codebase free from AI slop there is no
-guarantee that there doesn't sit some low quality bit somewhere that
-was missed.
