@@ -16,7 +16,6 @@ open import Categories.Category.EquivClosureHelper
 open import Categories.Category.Monoidal
 import Categories.Category.Monoidal.Reasoning as MonR
 open import Categories.Coherence.Monoidal using (module MorAtoms; module MorSolve)
-open import Categories.Coherence.Monoidal.Tactic
 open import Categories.Functor using (Functor)
 open import Categories.Monad.Graded
 import Categories.Morphism.Reasoning as MR
@@ -47,6 +46,7 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
   open GradedKleisliTriple M
   open import Categories.Category.Monoidal.Utilities (I.monoidal)
   open import Categories.Category.Monoidal.Properties (I.monoidal) using (coherence₃)
+  open import Categories.GradedKleisli.Coherence I
   open Shorthands
 
   private
@@ -80,17 +80,17 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
           α⇐
         , (let open C in (refl⟩∘⟨ ⊙-assoc)
              ○ cancelˡ (⟺ sub-homomorphism ○ sub-resp-≈ associator.isoˡ ○ sub-identity))
-        , solve-mor I
+        , slide-assoc φf φg φh
     ; identityˡ = λ where
       {ai , _} {B , _} {i , _ , α} →
           ρ⇒
         , ⊙-identityˡ
-        , solve-mor I
+        , slide-identityˡ α
     ; identityʳ = λ where
       {ai , _} {B , _} {i , _ , α} →
           λ⇒
         , ⊙-identityʳ
-        , solve-mor I
+        , slide-identityʳ α
     ; ∘-resp-≈ = λ where
       {Ai , _} {Bi , _} {Ci , _}
         {fk , ff , fα} {hk , hf , hα} {gk , gf , gα} {ik , if′ , iα}
@@ -104,7 +104,7 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
         , (let open Category.HomReasoning (I.U)
            in begin
              (hα I.∘ (iα ⊗₁ I.id) I.∘ α⇐) I.∘ (I.id ⊗₁ (ψ ⊗₁ φ))
-               ≈⟨ solve-mor I ⟩
+               ≈⟨ slide-∘-resp hα iα ψ φ ⟩
              (hα I.∘ I.id ⊗₁ φ) I.∘ (iα I.∘ I.id ⊗₁ ψ) ⊗₁ I.id I.∘ α⇐
                ≈⟨ ifh ⟩∘⟨ (igi ⟩⊗⟨refl ⟩∘⟨refl) ⟩
              fα I.∘ (gα ⊗₁ I.id) I.∘ α⇐ ∎)
@@ -145,7 +145,7 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
       sub (β I.∘ ₁ (-⊗ j) α I.∘ α⇐) ∘ sub α⇒ ∘ (ext (P ⊗₀ i) g ∘ ext P f)
         ≈⟨ pullˡ (⟺ sub-homomorphism) ⟩
       sub ((β I.∘ ₁ (-⊗ j) α I.∘ α⇐) I.∘ α⇒) ∘ (ext (P ⊗₀ i) g ∘ ext P f)
-        ≈⟨ sub-resp-≈ I-eq ⟩∘⟨refl ⟩
+        ≈⟨ sub-resp-≈ (sub-assoc β α) ⟩∘⟨refl ⟩
       sub (β I.∘ ₁ (-⊗ j) α) ∘ (ext (P ⊗₀ i) g ∘ ext P f)
         ≈⟨ pushˡ sub-homomorphism ⟩
       sub β ∘ sub (₁ (-⊗ j) α) ∘ ext (P ⊗₀ i) g ∘ ext P f
@@ -153,9 +153,6 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
       sub β ∘ (ext Q g ∘ sub α) ∘ ext P f
         ≈⟨ solve C ⟩
       (sub β ∘ ext Q g) ∘ (sub α ∘ ext P f) ∎
-    where
-      I-eq : I.U [ (β I.∘ ₁ (-⊗ j) α I.∘ α⇐) I.∘ α⇒ ≈ β I.∘ ₁ (-⊗ j) α ]
-      I-eq = solve-mor I
 
   U-functor : Functor GradedKleisli C
   U-functor = record
