@@ -229,8 +229,7 @@ ideal-spends-genesis a V n = Live.genesis-live a V n , Live.genesis-moves a V n
 -- What claims 1 and 2 do not say
 ------------------------------------------------------------------------
 
--- Diverges at every query: satisfies claim 1 at zero slack yet never
--- accepts, so neither safety claim implies responsiveness.
+-- Diverges at every query: satisfies claim 1 at zero slack yet never accepts.
 Mute : Systems LedgerIf^ω
 Mute n = record { St = ⊤ ; init = tt ; step = λ _ _ → dead }
 

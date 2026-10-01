@@ -1,12 +1,12 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- The coin-toss stage at the UC model, and its query certificate for
--- `UC.Quantitative.Family.≤UC[]-compose`: the stage makes no downward call at all (`tossCert`), since
--- `Neg Honᴵ` is empty; the receiver's is `Examples.ROCommitment.UC.recvCert`.  The grading's rates are
--- positive, so the stage enters it at `1⁺`.
+-- `UC.Quantitative.Family.≤UC[]-compose`: the stage makes no downward call at all
+-- (`tossCert`; see `Examples.CoinToss`); the receiver's is
+-- `Examples.ROCommitment.UC.recvCert`.  The grading's rates are positive, so the
+-- stage enters it at `1⁺`.
 
 open import Categories.LocallyGraded.SubCategory
-
 
 open import Data.Bool.Base
 open import Data.Nat.Base
@@ -36,9 +36,6 @@ open GradedSubCat gradingᵒ using (Pred)
 
 tossᵒ : ifaceᵒ Honᴵ ⇒ T₀ (ifaceᵒ Advᴵᶜ) (ifaceᵒ Honᴵᶜ)
 tossᵒ = gradedᵒ toss
-
-------------------------------------------------------------------------
--- The coin-toss stage spends nothing
 
 tossCert : Certified 0 toss
 tossCert = record

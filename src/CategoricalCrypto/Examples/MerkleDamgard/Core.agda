@@ -139,25 +139,14 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   bound q = Comp.triangle (q * k) *ℚ inv-pow-2 n
 
   ------------------------------------------------------------------------
-  -- The coupling.  Shared state = an explicit bad FLAG, the compression table,
-  -- and a GHOST copy of the ideal (general) table.  ONE kernel (`respB`)
-  -- produces the state evolution and BOTH answers; the two worlds are its
-  -- projections `C.realK` / `C.idealK`:
-  --
-  --   real answer  = the MD chaining value (always);
-  --   ideal answer = for a repeated message the ghost-recorded value; for a new
-  --                  message the chaining value itself while unflagged (then it
-  --                  is recorded), an independent uniform once flagged.
-  --
-  -- The flag is raised by the kernel's own freshness checks, EXACTLY when the
-  -- MD answer fails to be a fresh uniform:
-  --   (i)  the final compression call of a NEW message was a lookup HIT — only
-  --        possible after a chaining collision (two chains reached the same
-  --        (value, block, position) triple);
-  --   (ii) a REPEATED message replayed to a value different from the recorded
-  --        one — impossible without an earlier collision (replay through a
-  --        grow-only table is deterministic), but checked anyway so that
-  --        consistency of the ideal view holds by fiat.
+  -- The coupling: one kernel `respB` over (bad flag, compression table, ghost
+  -- ideal table), whose projections are the worlds `C.realK` / `C.idealK`.
+  -- The ideal answer to a new message is the chaining value while unflagged,
+  -- an independent uniform once flagged.  The flag rises when (i) a new
+  -- message's final compression call is a lookup hit (only after a chaining
+  -- collision), or (ii) a repeated message replays to a different value —
+  -- impossible without an earlier collision, but checked so that consistency
+  -- of the ideal view holds by fiat.
 
   FState : Type
   FState = Bool × Comp.Table × General.Table
@@ -306,11 +295,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     runWith-bisim C.realK respR ErasesTo stepR-bisim d (f , sc , sg) sc refl
 
   private
-    -- Freshness detachment: walking the chain and testing `G` on the final
-    -- value — with the uniform average produced instead whenever the final call
-    -- HIT or the flag was already up — IS the uniform average.  At a fresh final
-    -- call the sampled value detaches as one uniform draw; every earlier step
-    -- averages out (`E-const`).
     dInt : (CV → ℚ) → Bool → Comp.Table × (CV × Bool) → ℚ
     dInt G f w = cond (proj₂ (proj₂ w) ∨ f) (E Comp.uniform-Out G) (G (proj₁ (proj₂ w)))
 
@@ -674,7 +658,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   Chain : Comp.Table → Vec Bool (k * n) → CV → Type
   Chain sc M h = runPath (stepT sc) IV (labels (toBlocks M) 1) ≡ just h
 
-  -- every FINAL key present in the table is the last call of a recorded chain
   OwnedLast : Comp.Table → General.Table → Type
   OwnedLast sc sg = ∀ v b w → stepT sc v (b , k) ≡ just w
     → Σ (Vec Bool (k * n)) λ M' → Σ CV λ h' →
@@ -1080,7 +1063,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
       in cong₂ _,_ (cong (λ z → proj₁ z) keq)
                    (cong₂ _,_ (cong (λ z → proj₁ (proj₂ z)) keq) (cong (λ z → proj₂ (proj₂ (proj₂ z))) keq))
 
-  -- A NEW message whose final call hits an existing entry re-meets a recorded
+  -- A new message whose final call hits an existing entry re-meets a recorded
   -- chain M' ≠ M.  If collC ≡ 0 the interior transition system is co-deterministic,
   -- so the two equal-length prefix runs to the shared pre-final value coincide
   -- (`unique-run`); with the shared last block, `toBlocks M ≡ toBlocks M'`, hence

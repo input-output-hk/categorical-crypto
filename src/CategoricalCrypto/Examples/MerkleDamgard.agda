@@ -1,18 +1,15 @@
 {-# OPTIONS --safe #-}
 
 --------------------------------------------------------------------------------
--- MERKLE–DAMGÅRD as a protocol, and its concrete-security theorem: SINGLE-
--- ORACLE indistinguishability with the compression function HIDDEN.  The
--- distinguisher is a `Strat (Neg Generalᴵ) (Pos Generalᴵ)` — `Sys = md ∘ᵖ comp`
--- closes `comp` off, so there is no compression-oracle interface — and there is
--- no simulator anywhere.  That is strictly weaker than indifferentiability,
+-- Merkle–Damgård as a protocol, and its concrete-security theorem: single-
+-- oracle indistinguishability with the compression function hidden.  The
+-- distinguisher sees only `Generalᴵ` (`Sys = md ∘ᵖ comp` closes `comp` off) and
+-- there is no simulator, so this is strictly weaker than indifferentiability,
 -- i.e. than "MD is a random oracle".
 --
--- `md`'s step is a `Calls` tree with one `call` per block (`chainᶜ`), so one
--- activation of the composite IS the core's `mdRun`, by induction on the block
--- list (`graft-chain`).  The cryptography is `Examples.MerkleDamgard.Core`;
--- `indistinguishable` hands its `ghost-erase`, `ideal-marginal` and `md-cert`
--- to `GamePlaying.Hop.hop-bound`, so this module adds only the seam between
+-- One activation of the composite is the core's `mdRun` (`graft-chain`, by
+-- induction on the block list).  The cryptography is
+-- `Examples.MerkleDamgard.Core`; this module adds only the seam between
 -- `Protocol.Observe.runObs` and `Interaction.runWith`.
 --------------------------------------------------------------------------------
 
@@ -64,8 +61,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   general : Protocol unitᴵ Generalᴵ
   general = General.Lazy.oracle
 
-  -- `p = 1`, so a compression query carries the party `i₀`, as `Core.mdRun`
-  -- does.
   chainᶜ : CV → List Blk → ℕ → Calls Compᴵ CV
   chainᶜ h []       idx = ret h
   chainᶜ h (b ∷ bs) idx = call (i₀ , pack h b idx) λ o → chainᶜ (proj₂ o) bs (suc idx)

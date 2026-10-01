@@ -45,7 +45,6 @@ private variable
 ℰ-faithful : Faithful ℰ-tests
 ℰ-faithful {x = f} {y = g} eq = fwd , bwd
   where
-  -- the test that observes a single interface value
   point : B → B ⇒ ⊤
   point b₀ b _ = b ≡ b₀
 
@@ -93,19 +92,15 @@ otp-perfect = (λ _ → tt , tt , tt) , λ where {m} {c} _ → c xor m , sym (en
 -- Two protocols and their ideal counterparts
 ------------------------------------------------------------------------
 
--- Hop 1: transmit the message, leaking a one-time-pad ciphertext …
 sendEnc : Msg ⇒ T₀ Cipher Msg
 sendEnc m (c , m′) = encChan m c × m ≡ m′
 
--- … while the ideal channel leaks nothing.
 sendIdeal : Msg ⇒ T₀ unit Msg
 sendIdeal m (_ , m′) = m ≡ m′
 
--- Hop 2: forward the message, leaking its complement …
 relayEnc : Msg ⇒ T₀ Msg Msg
 relayEnc m (t , m′) = t ≡ not m × m ≡ m′
 
--- … while the ideal relay leaks the message itself.
 relayPlain : Msg ⇒ T₀ Msg Msg
 relayPlain m (t , m′) = t ≡ m × m ≡ m′
 
@@ -121,7 +116,6 @@ send-sim = (λ { {m} (_ , m≡m′) → (tt , m) , refl , tt , lift m≡m′ })
          , λ { (_ , m≡m₀ , _ , lift m₀≡m′) →
                proj₂ otp-perfect (tt , tt , tt) , trans m≡m₀ m₀≡m′ }
 
--- The one-time-pad channel realizes the ideal channel
 send≤ideal : sendEnc ≤UC sendIdeal
 send≤ideal = dummy-complete (anyCipher , ≈C⇒≈ᵁ send-sim)
 
@@ -130,11 +124,9 @@ relay-sim = (λ { {m} (t≡ , m≡) → (m , m) , (refl , refl) , t≡ , lift m�
           , λ { (_ , (t₀≡m , m≡m₀) , t≡ , lift m₀≡m′) →
                 trans t≡ (cong not t₀≡m) , trans m≡m₀ m₀≡m′ }
 
--- The complement-leaking relay realizes the message-leaking one
 relay≤plain : relayEnc ≤UC relayPlain
 relay≤plain = dummy-complete (complement , ≈C⇒≈ᵁ relay-sim)
 
--- Some more examples
 relayed-otp : relayEnc ∙ sendEnc ≤UC relayPlain ∙ sendIdeal
 relayed-otp = UC-compose send≤ideal relay≤plain
 
@@ -145,16 +137,11 @@ ideal-sim : sendIdeal ≈ sub discard ∘ relayPlain
 ideal-sim = (λ { {m} m≡m′ → (m , m) , (refl , refl) , tt , lift m≡m′ })
           , λ { (_ , (_ , m≡m₀) , _ , lift m₀≡m′) → trans m≡m₀ m₀≡m′ }
 
--- Leakage may always be added
 ideal≤leaky : sendIdeal ≤UC relayPlain
 ideal≤leaky = dummy-complete (discard , ≈C⇒≈ᵁ ideal-sim)
 
 send≤leaky : sendEnc ≤UC relayPlain
 send≤leaky = ≤UC-trans send≤ideal ideal≤leaky
-
-------------------------------------------------------------------------
--- the leaky channel does not realize the ideal one
-------------------------------------------------------------------------
 
 leaky-not-secure : ¬ relayPlain ≤UC sendIdeal
 leaky-not-secure p =

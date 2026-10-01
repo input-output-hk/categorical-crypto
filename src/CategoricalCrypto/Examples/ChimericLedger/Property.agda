@@ -78,8 +78,8 @@ h₀ n = replicate n false
 -- The two properties
 ------------------------------------------------------------------------
 
--- The source test `bad`, read on the machine at the protocol's `idle` states
--- only (`idleTest`): the boundaries `Protocol.Observe.PrHit` samples.
+-- The idle states `idleTest` reads at are the boundaries
+-- `Protocol.Observe.PrHit` samples.
 StateSafe : (R : Systems LedgerIf^ω) → ((n : ℕ) → St (R n) → Bool) → (ℕ → ℕ → ℚ) → Set₁
 StateSafe R bad = StateBoundedᴺ (λ n → morphism (R n)) (λ n → idleTest (R n) (bad n))
 

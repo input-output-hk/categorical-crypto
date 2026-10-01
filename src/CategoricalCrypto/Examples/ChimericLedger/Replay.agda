@@ -48,10 +48,6 @@ module CategoricalCrypto.Examples.ChimericLedger.Replay where
 -- `lookupU` was elaborated against.
 private instance DecEq-×′ = DecEq-×
 
-------------------------------------------------------------------------
--- The attack
-------------------------------------------------------------------------
-
 module Attack (ℓ : ℕ) (ser : Ledger.Tx ℓ → List Bool) (V : ℕ) where
 
   open Ledger ℓ
@@ -156,10 +152,6 @@ module Attack (ℓ : ℕ) (ser : Ledger.Tx ℓ → List Bool) (V : ℕ) where
       where
       hit : (h : Hash) → Pr₁⊥ (μ₁ h >>=⊥ K₁) ≡ 1ℚ
       hit h = trans (>>=⊥-identityˡ ((once h , tbl h) , ok true) K₁ mb) (branch h)
-
-------------------------------------------------------------------------
--- The genesis the positive theorem starts at is live
-------------------------------------------------------------------------
 
 -- `Pr` is 0 both when the ledger is safe and when it deadlocks, so the
 -- genesis the birthday bound starts at is pinned live: its output is spent

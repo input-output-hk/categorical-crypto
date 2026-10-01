@@ -74,8 +74,8 @@ tossᶠ = CTU.tossᵒ
 simᶜᵗ : {Lk Adv Advᶜ : ℕ → Channel} → Lk ⇒^ω Adv → (Lk ⊛ω Advᶜ) ⇒^ω (Adv ⊛ω Advᶜ)
 simᶜᵗ sf = sf ⊗^ω Category.id Fam
 
--- A stage entering the grading at `1⁺` over a commitment at the same rate, at
--- either corruption and over either resource boundary.
+-- Generic in the stage and the commitment, so both corruptions and both
+-- resource boundaries share it.
 module _ {Rs Adv Lk Hon Advᶜ Honᶜ : ℕ → Channel} {real : Homᶠ Rs Adv Hon}
          {ideal : Homᶠ Rs Lk Hon} (toss : Homᶠ Hon Advᶜ Honᶜ)
          (cr : (n : ℕ) → Pred 1⁺ (real n)) (ct : (n : ℕ) → Pred 1⁺ (toss n)) where

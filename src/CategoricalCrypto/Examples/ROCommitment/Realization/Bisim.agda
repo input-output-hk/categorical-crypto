@@ -110,7 +110,6 @@ private
   exitᴿ : ℕ → Stᴿ × (Aᴿ ⊎ Xᴿ) → Dist⊥ (Stᴿ × Aᴿ)
   exitᴿ = exit∘ real resource Kʳ Kᵒ real-settles res-settles rankᴿ rankedᴿ 2 boundᴿ
 
-  -- The trace's own answer alphabet keeps the empty domain summand in front.
   lift⊥ : (Stᴿ × Pos (Advᴵ ⊗ᴵ Honᴵ) → ℚ) → Stᴿ × Aᴿ → ℚ
   lift⊥ F (s , inj₂ p) = F (s , p)
 

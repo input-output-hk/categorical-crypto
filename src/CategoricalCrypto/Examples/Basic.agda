@@ -9,9 +9,6 @@ open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
 
---------------------------------------------------------------------------------
--- Example functionalities
-
 module TemplateChannel (M : Type) {M' : Type} (f : M → M') where
 
   open Channel
@@ -42,7 +39,7 @@ module TemplateChannel (M : Type) {M' : Type} (f : M → M') where
                      newState s
 
   Functionality : Machine I ((A ⊗₀ B) ⊗₀ E)
-  Functionality .State = List M -- queue of messages
+  Functionality .State = List M
   Functionality .stepRel = WithState_receive_return_newState_
   
 -- authenticated, non-lossy, leaks all messages

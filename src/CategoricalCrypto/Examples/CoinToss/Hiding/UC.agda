@@ -35,9 +35,6 @@ open GradedSubCat gradingᵒ using (Pred)
 tossʰᵒ : ifaceᵒ Honᴵʰ ⇒ T₀ (ifaceᵒ Advᴵᶜʰ) (ifaceᵒ Honᴵᶜʰ)
 tossʰᵒ = gradedᵒ tossʰ
 
-------------------------------------------------------------------------
--- One drive of `F_com` per activation from above
-
 tossʰCert : Certified 1 tossʰ
 tossʰCert = qbᵢ-upward _ _ _ onL cohL
   where

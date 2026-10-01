@@ -69,8 +69,8 @@ ComRʰ : Set
 ComRʰ = Maybe (Dig × Bool × Dig × Bool)
 
 St StLʰ StRʰ : Set
-St   = Tbl × Comʰ × Bool         -- the coupling: + the hit flag
-StLʰ = Tbl × Comʰ                -- the deferred and the ideal games
+St   = Tbl × Comʰ × Bool
+StLʰ = Tbl × Comʰ
 StRʰ = Maybe Dig × Tbl × ComRʰ
 
 eraseʰ : St → StLʰ
@@ -128,7 +128,7 @@ outComR r b u = (just r , proj₁ u , just (proj₂ u , b , r , false)) , comRʰ
 
 -- The first component is the secret, PLANTED or not yet drawn.  `comR` is the
 -- only step that looks at it, and it draws it when it is not there; that is
--- what `defer-commit` below is about.
+-- what `Hiding.Defer.defer-commit` is about.
 askR : StRʰ → Pt → Dist-ℚ (StRʰ × Rʰ)
 askR (mr , t , z) x = fetchT id t x >>=ᴹ λ u → return-ℚ (outAskR mr z u)
 

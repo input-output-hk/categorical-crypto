@@ -1,20 +1,16 @@
 {-# OPTIONS --safe --guardedness #-}
 
 --------------------------------------------------------------------------------
--- Merkle–Damgård's query count, as a `UC.QueryBound` certificate.
+-- Merkle–Damgård's query count, as a `UC.QueryBound` certificate: `md` makes
+-- one compression call per block and every message is `k` blocks, so
+-- `morphism md` is `k`-bounded (`qbᴹᴰ`).
 --
--- `md` makes exactly one compression call per block and every message is `k`
--- blocks, so `morphism md` is `k`-bounded in the amortised sense `QBᵢ` means:
--- one activation from above causes at most `k` completed activations below.
---
--- The potential CANNOT be read off `Protocol.Machine.MSt`: its `wait` holds
--- the parked continuation as a FUNCTION, and no `Φ : MSt → ℕ` can recover from
--- it how many calls are left.  That is what `QB`'s `≈ᴹ`-closure is for: the
--- certificate is carried by `mdᴹ`, the same relay named by its RESIDUAL BLOCK
--- LIST (a query while suspended, or an answer while idle, diverges), whose
--- potential is that list's length.  `Pw.simFn θᴰ` is the simulation onto
--- `morphism md`, definitional at every node because `θᴰ` rebuilds precisely
--- the continuation `chainᶜ` parked.
+-- The potential cannot be read off `Protocol.Machine.MSt`: its `wait` holds
+-- the parked continuation as a function, from which no `Φ : MSt → ℕ` recovers
+-- how many calls are left.  So the certificate is carried by `mdᴹ`, the same
+-- relay named by its residual block list (potential = its length), and moved
+-- along `QB`'s `≈ᴹ`-closure by `Pw.simFn θᴰ`, definitional at every node
+-- because `θᴰ` rebuilds precisely the continuation `chainᶜ` parked.
 --------------------------------------------------------------------------------
 
 open import Data.Bool.Base
@@ -138,8 +134,8 @@ private
   θᴰ nothing              = idle tt
   θᴰ (just (i , idx , bs)) = wait (resume i idx bs)
 
-  -- The point is passed explicitly: left to a meta, `θᴰ`'s constructor-headed
-  -- clauses invert and strand `resume`'s arguments.
+  -- `>>=ₚ-identityˡ`'s point is passed explicitly: left to a meta, `θᴰ`'s
+  -- constructor-headed clauses invert and strand `resume`'s arguments.
   advance-drive : (i : Fin p) (idx : ℕ) (bs : List Blk) (h : CV)
                 → (returnₚ (advance i idx bs h) >>=ₚ λ r → returnₚ (θᴰ (proj₁ r) , proj₂ r))
                   ≈ₚ drive md (chainᶜ h bs idx >>=ᶜ λ v → ret (tt , (i , v)))

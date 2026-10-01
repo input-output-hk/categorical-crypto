@@ -86,16 +86,7 @@ module Signatures (VK M S : Set) where
             return just $ L⊗ ((ϵ ⊗R) ⊗R) ᵗ² ↑ᵢ GetSig σ
             newState record s { verList = (vk , m , σ) ∷ State.verList s ; seenIds = k ∷ seenIds }
 
-    -- TODO: the verification clause.  The sketch below is STALE — it is
-    -- written against an earlier channel DSL (`adversarialInput`,
-    -- `honestOutputO`, `rcvˡ`, `(-, ·)`, none of which exist any more).
-    -- Re-spell it in the `L⊗ … ᵗⁿ ↑ₒ/↑ᵢ` form the clauses above use.
-    -- Ver : ∀ {s vk σ k m}
-    --       → let open State s in
-    --         WithState s
-    --         receive adversarialInput (-, SignSig σ k)
-    --         return just $ honestOutputO (rcvˡ (-, GetSig σ))
-    --         newState record s { verList = (vk , m , σ) ∷ State.verList s ; seenIds = k ∷ seenIds }
+    -- TODO: the verification clause (`Verify` on `Ver`).
 
   _-⟦_/_⟧⇀_ = WithState_receive_return_newState_
 

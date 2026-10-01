@@ -149,9 +149,6 @@ resource-settles (t , just b) getᴿ = 1 , respᴿ ((t , just b) , outᴿ b)
 resource-settles (t , nothing) getᴿ = 0 , respᴮ
 resource-settles (t , m) nakᴿ = 1 , respᴿ ((t , m) , rejᴿ)
 
--- The closed `Dₚ` run of the resource is the kernel's run:
--- `Protocol.Machine.Agree.prAgree`'s conclusion without protocol images
--- (`docs/dp-transport.md`).
 resource-run : (b : Bool) (d : Strat (Neg Resᴵ) (Pos Resᴵ))
              → Σ[ n ∈ ℕ ] ((i : ℕ) → cum (n + i) (runᴹ resource d) (indᵇ b)
                                     ≡ E⊥ (runWith⊥ resK ([] , nothing) d) (indᵇ b))
