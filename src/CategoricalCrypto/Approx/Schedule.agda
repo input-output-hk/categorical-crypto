@@ -14,8 +14,8 @@
 -- Substituting an allowance is the control `ε ∘ ρ`, and it is EXACT — both its
 -- zero and its additivity law hold by reflexivity — so the schedule
 -- substitutions the existing composition theorems perform
--- (`UC.Model.Family.Contextual.Compose`'s
--- `λ n q → ε n (scale q (cost c n))`) are instances of composing controlled
+-- (`UC.Quantitative.Family`'s
+-- `λ n q → ε n (scale q (schedOf s n))`) are instances of composing controlled
 -- maps, not a UC-specific axiom.
 
 open import Data.Product.Base using (_,_; proj₁; proj₂)
