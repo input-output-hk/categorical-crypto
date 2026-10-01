@@ -1,9 +1,17 @@
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --without-K #-}
 
 open import categorical-crypto.Prelude
 
 open import Class.Core
-open import Class.Prelude using (Typeω)
+open import Class.Prelude
+
+import Categories.Monad as C
+open import Categories.Category.Core
+open import Categories.Category.Construction.Kleisli
+open import Categories.Category.Instance.Sets
+open import Categories.Monad.Construction.Kleisli
+open import Categories.Monad.Discrete
+open import Relation.Binary.PropositionalEquality.Properties using () renaming (setoid to ≡-setoid)
 
 module Class.Monad.Ext where
 
@@ -32,26 +40,15 @@ record CommutativeMonad (M : Type↑) ⦃ Monad-M : Monad M ⦄ ⦃ _ : MonadLaw
   field >>=-comm : ∀ {a b} {X : Type a} {Y : Type b} {x : M X} {y : M Y}
           → (x >>= λ x → y >>= λ y → return (x ,′ y)) ≡ (y >>= λ y → x >>= λ x → return (x , y))
 
-  -- yoneda variant
+  -- Yoneda variant
   >>=-comm-y : ∀ ⦃ _ : ExtensionalMonad M ⦄ {X Y Z : Type} {x : M X} {y : M Y} (f : X → Y → M Z)
     → (x >>= λ x → y >>= λ y → f x y) ≡ (y >>= λ y → x >>= λ x → f x y)
-  >>=-comm-y {x = x} {y} f = begin
-    (x >>= λ x → y >>= λ y → f x y)
-      ≡⟨ (refl⟩>>=⟨ λ x → refl⟩>>=⟨ λ y → sym >>=-identityˡ) ⟩
-    (x >>= λ x → y >>= λ y → return (x ,′ y) >>= λ (x , y) → f x y)
-      ≡⟨ refl⟩>>=⟨ (λ x → sym (>>=-assoc _)) ⟩
-    (x >>= λ x → (y >>= λ y → return (x ,′ y)) >>= λ (x , y) → f x y)
-      ≡⟨ sym (>>=-assoc _) ⟩
-    ((x >>= λ x → y >>= λ y → return (x ,′ y)) >>= λ (x , y) → f x y)
-      ≡⟨ >>=-comm ⟩>>=⟨refl ⟩
-    ((y >>= λ y → x >>= λ x → return (x ,′ y)) >>= λ (x , y) → f x y)
-      ≡⟨ >>=-assoc _ ⟩
-    (y >>= λ y → (x >>= λ x → return (x ,′ y)) >>= λ (x , y) → f x y)
-      ≡⟨ refl⟩>>=⟨ (λ y → >>=-assoc _) ⟩
-    (y >>= λ y → x >>= λ x → return (x ,′ y) >>= λ (x , y) → f x y)
-      ≡⟨ (refl⟩>>=⟨ λ y → refl⟩>>=⟨ λ x → >>=-identityˡ) ⟩
-    (y >>= λ y → x >>= λ x → f x y) ∎
-    where open ≡-Reasoning
+  >>=-comm-y = DiscreteMonad.>>=-comm-y record
+    { elementwise = record
+        { ≈ᴹ-setoid = ≡-setoid ∘ M ; return = return ; _>>=_ = _>>=_ ; >>=-cong = _⟩>>=⟨_
+        ; >>=-identityˡ-≈ = >>=-identityˡ ; >>=-identityʳ-≈ = >>=-identityʳ ; >>=-assoc-≈ = >>=-assoc }
+    ; >>=-comm = >>=-comm
+    }
 
 open CommutativeMonad ⦃...⦄ public
 
@@ -61,12 +58,6 @@ instance
   Commutative-Maybe .>>=-comm {x = just  _} {nothing} = refl
   Commutative-Maybe .>>=-comm {x = nothing} {just  _} = refl
   Commutative-Maybe .>>=-comm {x = nothing} {nothing} = refl
-
-import Categories.Monad as C
-open import Categories.Category.Core
-open import Categories.Category.Construction.Kleisli
-open import Categories.Category.Instance.Sets
-open import Categories.Monad.Construction.Kleisli
 
 module _ {M : Type↑} ⦃ Monad-M : Monad M ⦄ ⦃ F-Laws : FunctorLaws M ⦄
   ⦃ M-Laws : MonadLaws M ⦄ ⦃ M-Extensional : ExtensionalMonad M ⦄ where
