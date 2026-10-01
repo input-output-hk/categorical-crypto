@@ -29,6 +29,7 @@ open import Level using (Level; _⊔_)
 open import CategoricalCrypto.Abstract2.Morphism using (module Refine)
 open import CategoricalCrypto.Approx.Error using (module AllPositive; ℚ-ordered; ℚ-refinement)
 open import CategoricalCrypto.Approx.Evaluation ℚ-ordered using (QEvaluation)
+open import CategoricalCrypto.UC.Quantitative.Bridge ℚ-ordered using (module QBridge)
 open import CategoricalCrypto.UCSetup using (UCSetup)
 
 import CategoricalCrypto.UC.Family.Vanishing as Vanᴹ
@@ -46,9 +47,10 @@ module CategoricalCrypto.UC.Family.Quantitative
 open import CategoricalCrypto.UC.Family M qro Rg Ix κ κ-cofinal
   using (Famᴹ; QEvaluation^ω)
 
--- Each private application copies only what its `using` list names: a whole
--- `StdUC` or `AbstractUC` copied under this module's telescope cost 0.7 GB of
--- the root's heap here.
+-- A module application copies everything it exports under this module's
+-- telescope, so each one here takes only what is used: the whole `StdUC` and
+-- `AbstractUC` copies cost 0.7 GB of the root's heap, `Observed`'s `Quant`
+-- 2.5 GB.
 private
   module C^ω = Vanᴹ.Canonical^ω M qro Rg Ix κ κ-cofinal
     using (Channel; _⇒_; T₀; _∘_; _≈ᵁ_; _≤UC_; StdSetup; module KE)
@@ -57,7 +59,11 @@ private
 
 -- Spelled exactly as `Approx.Evaluation.qual₊` spells it, so the readout this
 -- lands at IS `Evaluation^ω` and `C^ω` is the setup it is compared with.
-module Q^ω = Observedᴹ Famᴹ ℚ-ordered QEvaluation^ω P^ω.∼ᵃ-isEquivalence P^ω.zero⇒positive
+-- `QBridge Q^ω.QSetup` gives the rest of the metatheory.
+module Q^ω where
+  open Observedᴹ Famᴹ ℚ-ordered QEvaluation^ω P^ω.∼ᵃ-isEquivalence P^ω.zero⇒positive public
+    hiding (module Quant)
+  module Quant = QBridge QSetup using (underlying₊)
 
 -- `Evaluation^ω` is `qual₊`'s, so `_∼_` IS eventual closeness at every positive
 -- error and both comparisons with it are the identity.
@@ -71,7 +77,8 @@ setup₊ = Q^ω.Quant.underlying₊ ℚ-refinement
 -- Tests and homs are supplied explicitly throughout, for the measured reason
 -- `UC.Family.Negligible.≈ℰⁿ⇒≈ℰᴺ` records.
 private
-  module A₊ = Q^ω.Quant.AllPositive.A₊ ℚ-refinement using (_≈ᵁ_; _≤UC_; module KE)
+  module A₊ = QBridge.AllPositive.A₊ Q^ω.QSetup ℚ-refinement
+    using (_≈ᵁ_; _≤UC_; module KE)
   module R₊  = Refine C^ω.StdSetup (UCSetup.ℰ setup₊)
                  (λ {D} {_} {f} {g} h → A₊.KE.mk∼ λ {t} →
                     ≋⇒∼₊ {A = D} {t C^ω.∘ f} {t C^ω.∘ g} (C^ω.KE.run∼ h {t}))
