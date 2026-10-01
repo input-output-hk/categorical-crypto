@@ -20,3 +20,9 @@ open import CategoricalCrypto.SFunM public
 open import CategoricalCrypto.Examples.Basic
 open import CategoricalCrypto.Examples.Commitment
 open import CategoricalCrypto.Examples.Signatures
+
+open import ProbabilisticLogic
+
+import Categories.Category.Construction.Kleisli.Distributive
+import Categories.Category.Distributive.Monoidal
+import Categories.Category.Monoidal.Distributive.Instance.Rels
