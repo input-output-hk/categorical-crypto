@@ -1,45 +1,15 @@
 {-# OPTIONS --safe --without-K #-}
 
--- `𝒞^ω`, the indexed family layer: objects are `Ix`-indexed object families and
--- homs are levelwise certified at a rate schedule polynomial in the security
--- parameter.  The category and its monoidal structure are
--- `Categories.LocallyGraded.Family` at the `Poly⁺` admissibility over the
--- resource grading; this module adds the observation on top of it.
---
--- The index is a PARAMETER `Ix` with a security-parameter projection
--- `κ : Ix → ℕ`, where the reference arc hardwired `Ix = ℕ`.  Only three things
--- ever needed `ℕ` there: the polynomial's argument, the asymptotics' order, and
--- the allowance arithmetic — and all three read the index through `κ` alone.  So
--- a second axis costs nothing: `Ix = ℕ × ℕ` with `κ = proj₁` gives a family
--- graded by the security parameter and anything else, and `(ℕ , id)` recovers
--- the reference.
---
--- `κ` must be COFINAL, and that is a soundness requirement rather than
--- bookkeeping: eventual closeness quantifies over the indices above a
--- threshold, so a bounded `κ` (constantly zero, say) makes every eventual
--- statement — hence the whole UC preorder — vacuously true.  `κ-cofinal` is
--- what `≈^ω-witness` spends.  It is an ASYMPTOTIC-INSTANCE requirement and not
--- a requirement of general UC: nothing in the core or the emulation metatheory
--- mentions an index at all.
---
--- This layer is where the notes' quantitative-to-qualitative arrow runs.
--- Everything categorical is levelwise, so the whole monoidal structure
--- transports; the readout, however, is CONSTRUCTED rather than transported —
--- the base's ε-closeness becomes *eventual* ε-closeness in `κ`, and
--- `Approx.Evaluation.qual₊` turns that into the qualitative agreement the core
--- consumes, which is then literally the vanishing-advantage relation (its ε/2
--- transitivity proved once, in `Approx.Error`).  `absorb` is that
--- coarsening read at a vanishing error.
---
--- Vanishing is all `absorb` spends, but it is not what a cryptographic bound
--- must satisfy: that is NEGLIGIBILITY, eventually below every inverse
--- polynomial (proposal §3, `docs/kb/frontier/15-probabilistic-uc-model.typ`).
--- Hence the negligible layer below, at the same allowances — which grade the
--- PREMISE and nothing else.  `_≈ᵁ_` is vanishing agreement whichever grade
--- goes in, so it does not transport a property whose slack must stay
--- negligible: a bad bit of probability `1/(n+1)` is `≈ᵁ`-equal to an
--- always-safe one.  A statement of that kind keeps its error witness instead:
--- `_≈ℰⁿ_`.
+-- `𝒞^ω`, the indexed family layer: `Categories.LocallyGraded.Family` at the
+-- `Poly⁺` admissibility over the resource grading, with an asymptotic
+-- observation on top — eventual ε-closeness in `κ`, coarsened by
+-- `Approx.Evaluation.qual₊` to vanishing advantage, into which `absorb` reads
+-- a vanishing bound.
+-- `κ` must be COFINAL: a bounded `κ` makes every eventual statement, hence the
+-- whole UC preorder, vacuously true (`≈^ω-witness` spends `κ-cofinal`).
+-- A cryptographic bound must be NEGLIGIBLE, which `_≈ᵁ_` does not transport —
+-- a bad event of probability `1/(n+1)` is `≈ᵁ`-equal to none — so a statement
+-- of that kind keeps its error witness: `_≈ℰⁿ_`.
 
 open import Categories.Category.Instance.Rates
 open import Categories.Category.Monoidal.Bundle
@@ -253,21 +223,3 @@ f ≈ℰⁿ g = Σ[ ε ∈ (ℕ → ℕ → ℚ) ] CarriedNegligible ε × f ≈
        let Pc = schedOf-adm Et′ ; c = λ i → hom Et′ i , Equiv.refl
            N , hN = Negligible⇒→0 (neg Y Et′ m {schedOf Et′} Pc c) δ δ>0
        in N , λ i le → ≈[]-mono (hN (κ i) le) (bnd Y Et′ m {schedOf Et′} Pc c i)
-
--- What is NOT delivered here is an `Evaluation` whose comparison is `_≈ℰⁿ_`:
--- `qual₊` coarsens by quantifying an ambient ε AWAY, and retaining the
--- witness is the opposite move.  That would mean either a second `Evaluation`
--- on `Fam` carrying this relation, with every emulation notion re-derived
--- over it (`≤UC` included), or an `Evaluation` interface parameterized by its
--- grade — redesigns of the core's readout interface rather than of this
--- module, which is why the negligible tier consumers use lives at layer 1.
---
--- Of the two, the first proved NOT to be a core redesign: `UC.Core.Evaluation`
--- asks for an arbitrary setoid, so `UC.Family.Negligible` builds that
--- second `Evaluation` on `Fam` and inherits the emulation notions at it with
--- nothing in the qualitative core moving.  Neither is owed by the ε-RETAINING
--- composition law any more: `UC.Model.Family.Contextual.Compose` proves it
--- directly over the contextual relation, carrying the simulator witness and
--- charging each plugged
--- morphism's allowance substitution, and only forgets into `_≈ℰⁿ_`/`_≈ᵁ_` at
--- the end.
