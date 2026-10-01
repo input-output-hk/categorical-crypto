@@ -1,0 +1,1079 @@
+{
+ "sweep": "using-drop",
+ "root": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-R3A",
+ "files": {
+  "src/CategoricalCrypto/Examples/Basic.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 10,
+     "edit": "drop `using (List; []; _∷_; map; foldl; null)`"
+    },
+    {
+     "line": 14,
+     "edit": "drop `using (_×_; _,_; proj₁; proj₂)`"
+    },
+    {
+     "line": 15,
+     "edit": "drop `using (Vec)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 6,
+   "seconds": 924.9
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda": {
+   "candidates": 5,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 13,
+     "edit": "drop `using (T-≡; ∨-zeroʳ)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (≡⇒≡ᵇ)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (ℚ; 1ℚ; _*_)`"
+    },
+    {
+     "line": 25,
+     "edit": "drop `using (+-identityˡ; ≤-reflexive; ≤-trans)`"
+    },
+    {
+     "line": 57,
+     "edit": "drop `using\n  (dup; memb; memb-∉; Φ; 0≤Φ; dup⇒1≤Φ; Φ-keep; Φ-fresh`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 15,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Fin.Base using () renaming (zero to fzero)"
+    }
+   ],
+   "checks": 10,
+   "seconds": 59.8
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda": {
+   "candidates": 4,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 12,
+     "edit": "drop `using (T-≡; ≤-minimum)`"
+    },
+    {
+     "line": 16,
+     "edit": "drop `using (ℕ; zero; suc)`"
+    },
+    {
+     "line": 17,
+     "edit": "drop `using (+-suc; ≡⇒≡ᵇ)`"
+    },
+    {
+     "line": 19,
+     "edit": "drop `using (ℚ)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 8,
+   "seconds": 47.0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 10,
+     "edit": "drop `using (List)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 21.8
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda": {
+   "candidates": 4,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 18,
+     "edit": "drop `using (List; []; _∷_)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (0ℚ; 1ℚ)`"
+    },
+    {
+     "line": 249,
+     "edit": "drop `using (s₀; txᵃ; once; twice; replay; replay-asks)`"
+    },
+    {
+     "line": 276,
+     "edit": "drop `using (g₀; spend)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 17,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Fin.Base using () renaming (zero to fzero)"
+    }
+   ],
+   "checks": 8,
+   "seconds": 47.5
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/System.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 10,
+     "edit": "drop `using (Fin)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 11.4
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 21,
+     "edit": "drop `using (∨-identityʳ)`"
+    },
+    {
+     "line": 27,
+     "edit": "drop `using (m≤m+n; m≤n+m; ≤-refl)`"
+    },
+    {
+     "line": 30,
+     "edit": "drop `using (+-identityʳ; positive⁻¹; ≤-reflexive; ≤-trans)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 6,
+   "seconds": 71.2
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda": {
+   "candidates": 7,
+   "kept": [
+    {
+     "line": 22,
+     "edit": "drop `using (x∙yz≈y∙xz)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 10,
+     "edit": "drop `using (Bool; true; false; if_then_else_; T)`"
+    },
+    {
+     "line": 14,
+     "edit": "drop `using (here; there)`"
+    },
+    {
+     "line": 15,
+     "edit": "drop `using (Maybe; just; nothing; is-just)`"
+    },
+    {
+     "line": 18,
+     "edit": "drop `using\n  ( +-assoc; +-comm; +-commutativeSemigroup; +-identit`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (_×_; _,_; proj₁; proj₂; Σ-syntax)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (_⊎_; inj₁; inj₂)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 15,
+   "seconds": 79.1
+  },
+  "src/CategoricalCrypto/Examples/CoinToss.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Compose.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 42,
+     "edit": "drop `using (Pred)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 15,
+     "edit": "drop `using (*-identityʳ)`"
+    },
+    {
+     "line": 17,
+     "edit": "drop `using (ℚ; 0ℚ)`"
+    },
+    {
+     "line": 18,
+     "edit": "drop `using (+-identityˡ)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 9,
+   "seconds": 94.8
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Hiding.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 33,
+     "edit": "drop `using (Pred)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 20.0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda": {
+   "candidates": 5,
+   "kept": [
+    {
+     "line": 11,
+     "edit": "drop `using (_[_∘_])`"
+    },
+    {
+     "line": 35,
+     "edit": "drop `using (qb-closed; qb-mono)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 16,
+     "edit": "drop `using (≤-refl)`"
+    },
+    {
+     "line": 18,
+     "edit": "drop `using (ℚ; 0ℚ)`"
+    },
+    {
+     "line": 19,
+     "edit": "drop `using (+-identityʳ)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 11,
+   "seconds": 122.2
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 16,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 16,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 22,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda": {
+   "candidates": 5,
+   "kept": [
+    {
+     "line": 14,
+     "edit": "drop `using (_[_∘_])`"
+    },
+    {
+     "line": 43,
+     "edit": "drop `using (qb-closed; qb-mono)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 19,
+     "edit": "drop `using (*-identityʳ; ≤-refl)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (ℚ; 0ℚ)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (+-identityˡ)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 11,
+   "seconds": 124.2
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 13,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 21,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 16,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 14,
+     "edit": "drop `using (_∘′_)`"
+    },
+    {
+     "line": 41,
+     "edit": "drop `using (Pred)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 40.6
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 13,
+     "edit": "drop `using (_∘′_)`"
+    },
+    {
+     "line": 41,
+     "edit": "drop `using (Pred)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 40.7
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Test.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 15,
+     "edit": "drop `using (_/_)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 12,
+     "edit": "drop `using (+_)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 5,
+   "seconds": 55.7
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/UC.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 35,
+     "edit": "drop `using (Pred)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 19.9
+  },
+  "src/CategoricalCrypto/Examples/Commitment.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/HashForward.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/HashForward/Audit.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 12,
+     "edit": "drop `using (ℚ)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 31.8
+  },
+  "src/CategoricalCrypto/Examples/HashForward/UC.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 23,
+     "edit": "drop `using (_∘′_)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 19.4
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 25,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Rational using () renaming (_-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)"
+    },
+    {
+     "line": 55,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Core.MD n k IV public"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda": {
+   "candidates": 9,
+   "kept": [
+    {
+     "line": 59,
+     "edit": "drop `using (cond; cond-diag)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 25,
+     "edit": "drop `using (_+_; _*_; _≤_; _<_; _∸_; NonZero; _≤′_; ≤′-refl; ≤′-s`"
+    },
+    {
+     "line": 26,
+     "edit": "drop `using (_<?_)`"
+    },
+    {
+     "line": 28,
+     "edit": "drop `using (Fin; zero)`"
+    },
+    {
+     "line": 29,
+     "edit": "drop `using (Vec; []; _∷_; toList)`"
+    },
+    {
+     "line": 38,
+     "edit": "drop `using (ℚ; 0ℚ; 1ℚ; nonNegative)`"
+    },
+    {
+     "line": 40,
+     "edit": "drop `using\n  ( ≤-trans; ≤-refl; ≤-reflexive; +-monoʳ-≤; +-monoˡ-≤`"
+    },
+    {
+     "line": 48,
+     "edit": "drop `using (∨-identityʳ; ∨-zeroʳ)`"
+    },
+    {
+     "line": 53,
+     "edit": "drop `using (length-toList)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 19,
+   "seconds": 121.4
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 21,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Integer.Base using () renaming (+_ to +ℤ_)"
+    },
+    {
+     "line": 42,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open MD 1 1 (false ∷ []) public"
+    },
+    {
+     "line": 82,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open MD 1 2 (false ∷ []) public"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 21,
+     "edit": "drop `using (Fin)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 29,
+     "edit": "drop `using (Vec)`"
+    },
+    {
+     "line": 30,
+     "edit": "drop `using (0ℓ)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 7,
+   "seconds": 66.8
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 24,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Vec.Base using () renaming (_∷_ to _∷ᵛ_)"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Asymptotic.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 10,
+     "edit": "drop `using (≤-refl)`"
+    },
+    {
+     "line": 11,
+     "edit": "drop `using (ℚ)`"
+    },
+    {
+     "line": 13,
+     "edit": "drop `using (*-distribʳ-+; ≤-reflexive; ≤-trans)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 6,
+   "seconds": 35.5
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda": {
+   "candidates": 6,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 15,
+     "edit": "drop `using (∨-conicalˡ; ∨-conicalʳ)`"
+    },
+    {
+     "line": 17,
+     "edit": "drop `using (List; []; _∷_; map)`"
+    },
+    {
+     "line": 18,
+     "edit": "drop `using (All; []; _∷_)`"
+    },
+    {
+     "line": 19,
+     "edit": "drop `using (Maybe; just; nothing)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (_×_; _,_; proj₁; proj₂)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (Vec; head)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 12,
+   "seconds": 68.8
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Game.agda": {
+   "candidates": 9,
+   "kept": [
+    {
+     "line": 36,
+     "edit": "drop `using (cond; cond-diag)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 18,
+     "edit": "drop `using (∨-zeroʳ)`"
+    },
+    {
+     "line": 20,
+     "edit": "drop `using (List; []; _∷_)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (Maybe; just; nothing)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (_×_; _,_; proj₁; proj₂)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (ℚ)`"
+    },
+    {
+     "line": 26,
+     "edit": "drop `using (+-identityʳ; +-monoʳ-≤; ≤-reflexive; ≤-trans)`"
+    },
+    {
+     "line": 27,
+     "edit": "drop `using (_⊎_; inj₁; inj₂; map)`"
+    },
+    {
+     "line": 29,
+     "edit": "drop `using (head; tail)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 19,
+   "seconds": 113.8
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 22,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Vec.Base using () renaming (_∷_ to _∷ᵛ_)"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Asymptotic.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 9,
+     "edit": "drop `using (≤-refl)`"
+    },
+    {
+     "line": 12,
+     "edit": "drop `using (*-distribʳ-+; ≤-reflexive; ≤-trans)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 24.1
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda": {
+   "candidates": 6,
+   "kept": [
+    {
+     "line": 49,
+     "edit": "drop `using (cond)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 26,
+     "edit": "drop `using (∨-identityʳ)`"
+    },
+    {
+     "line": 28,
+     "edit": "drop `using ([]; _∷_)`"
+    },
+    {
+     "line": 32,
+     "edit": "drop `using (ℚ; 0ℚ)`"
+    },
+    {
+     "line": 34,
+     "edit": "drop `using\n  ( +-identityˡ; +-identityʳ; +-mono-≤; +-monoʳ-≤; +-m`"
+    },
+    {
+     "line": 40,
+     "edit": "drop `using (head; tail)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 13,
+   "seconds": 80.2
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 35,
+     "edit": "drop `using (cond; cond-diag)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 19,
+     "edit": "drop `using ([]; _∷_)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (ℚ)`"
+    },
+    {
+     "line": 25,
+     "edit": "drop `using (≤-reflexive; ≤-trans)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 9,
+   "seconds": 53.7
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Test.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 13,
+     "edit": "drop `using (+_)`"
+    },
+    {
+     "line": 14,
+     "edit": "drop `using (ℚ; _/_)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 17,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Vec.Base using () renaming (_∷_ to _∷ᵛ_)"
+    }
+   ],
+   "checks": 4,
+   "seconds": 26.0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 36,
+     "edit": "drop `using (Pred)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 16,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Vec.Base using () renaming (_∷_ to _∷ᵛ_)"
+    }
+   ],
+   "checks": 2,
+   "seconds": 19.8
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Oracle.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 16,
+     "edit": "drop `using ([]; _∷_)`"
+    },
+    {
+     "line": 20,
+     "edit": "drop `using (ℚ)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 39.0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 17,
+     "edit": "drop `using (ℚ)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 20.3
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 23,
+     "edit": "drop `using (0ℓ)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 21,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Vec.Base using () renaming (_∷_ to _∷ᵛ_)"
+    }
+   ],
+   "checks": 3,
+   "seconds": 28.0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Test.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 10,
+     "edit": "drop `using (+_)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 13,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Vec.Base using () renaming (_∷_ to _∷ᵛ_)"
+    }
+   ],
+   "checks": 2,
+   "seconds": 12.2
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 15,
+     "edit": "drop `using (ℚ)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 18.5
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/UC.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 44,
+     "edit": "drop `using (Pred)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 22,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Vec.Base using () renaming (_∷_ to _∷ᵛ_)"
+    }
+   ],
+   "checks": 2,
+   "seconds": 20.0
+  },
+  "src/CategoricalCrypto/Examples/RandomOracle.agda": {
+   "candidates": 5,
+   "kept": [
+    {
+     "line": 16,
+     "edit": "drop `using (uniformVec-bind)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 7,
+     "edit": "drop `using (Fin)`"
+    },
+    {
+     "line": 8,
+     "edit": "drop `using (ℚ; 0ℚ; 1ℚ; _+_; _*_)`"
+    },
+    {
+     "line": 9,
+     "edit": "drop `using (*-zeroˡ)`"
+    },
+    {
+     "line": 15,
+     "edit": "drop `using (Calls; Protocol; coin; ret; uniformVec)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 11,
+   "seconds": 65.9
+  },
+  "src/CategoricalCrypto/Examples/RelSetup.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/Signatures.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 7,
+     "edit": "drop `using (fromℕ<)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 12.0
+  },
+  "src/CategoricalCrypto/RandomOracle.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 15,
+     "edit": "drop `using (ℕ)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 24.2
+  },
+  "src/CategoricalCrypto/RandomOracle2.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 18,
+     "edit": "drop `using (ℕ)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 13.9
+  }
+ },
+ "totalChecks": 237
+}

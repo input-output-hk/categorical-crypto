@@ -1,0 +1,1325 @@
+[
+ {
+  "file": "src/CategoricalCrypto/Examples/Basic.agda",
+  "lines": "12-13",
+  "disposition": "cut",
+  "reason": "banner over the whole file: repeats the module name, no landmark",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/Basic.agda",
+  "lines": "21-21",
+  "disposition": "keep",
+  "reason": "role of channel A (Alice -> functionality); direction of ⊥ ⇿ M is not readable at a glance",
+  "replacement": "  -- can receive messages from Alice"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/Basic.agda",
+  "lines": "24-24",
+  "disposition": "keep",
+  "reason": "role of B (functionality -> Bob), same family as A",
+  "replacement": "  -- can send messages to Bob"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/Basic.agda",
+  "lines": "27-27",
+  "disposition": "keep",
+  "reason": "role of E: leak only on request (the ⊤ query), not obvious from M' ⇿ ⊤",
+  "replacement": "  -- upon request, can send next message to Eve"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/Basic.agda",
+  "lines": "45-45",
+  "disposition": "reword",
+  "reason": "inline gloss of `List M`; Send/Req show the queue discipline",
+  "replacement": "  Functionality .State = List M"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/Basic.agda",
+  "lines": "48-48",
+  "disposition": "keep",
+  "reason": "security property of LeakyChannel (authenticated, non-lossy, full leak) is not stated by the code",
+  "replacement": "-- authenticated, non-lossy, leaks all messages"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/Basic.agda",
+  "lines": "51-51",
+  "disposition": "keep",
+  "reason": "security property of SecureChannel (leak only length) - the f argument is left implicit here",
+  "replacement": "-- authenticated, non-lossy, leaks only message length"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/Basic.agda",
+  "lines": "88-89",
+  "disposition": "keep",
+  "reason": "maintainer caveat that the wrapper design is the wrong approach - non-obvious why",
+  "replacement": "-- Note: it's a bad idea to do this as a wrapper, just make a shim to\n-- compose with Encryption & the channel instead"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "3-5",
+  "disposition": "keep",
+  "reason": "orientation: chimeric vs inputConsuming, pointer to Replay and docs/end-to-end.md",
+  "replacement": "-- The chimeric UTxO ledger of the talk's slides.  `chimeric` accepts a\n-- transaction with no inputs, `inputConsuming` does not (`ChimericLedger.Replay`\n-- shows why that matters).  Walkthrough: `docs/end-to-end.md`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "24-25",
+  "disposition": "keep",
+  "reason": "instance gotcha: DecEq-× is not upstream (competes with --with-K DecEq-Σ); canonical copy referenced by Replay/Value",
+  "replacement": "-- `DecEq-×` is not an upstream instance (it competes with the `--with-K`\n-- `DecEq-Σ`); register it, as `categorical-crypto.Prelude` does."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "31-32",
+  "disposition": "keep",
+  "reason": "why the odd `V + 0 + 0` spelling: definitionally what total computes at System.genesis, which the watch keys on",
+  "replacement": "-- The total of a one-output UTxO genesis of value `V`, as `Ledger.total`\n-- computes it at `System.genesis`: what the audit watch keys on."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "49-51",
+  "disposition": "keep",
+  "reason": "landmark grouping lookupU..subOne",
+  "replacement": "  ------------------------------------------------------------------------\n  -- The two finite maps\n  ------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "61-62",
+  "disposition": "keep",
+  "reason": "why: insertNew is what swallows a replayed output (the attack mechanism)",
+  "replacement": "  -- Union favouring the entry already present.  This is what swallows a\n  -- replayed transaction's output."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "78-80",
+  "disposition": "keep",
+  "reason": "landmark grouping balance..wdrlΣ",
+  "replacement": "  ------------------------------------------------------------------------\n  -- Value\n  ------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "97-99",
+  "disposition": "keep",
+  "reason": "landmark grouping the validation functions and applyTx",
+  "replacement": "  ------------------------------------------------------------------------\n  -- The step rule: sequential validation\n  ------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "101-102",
+  "disposition": "keep",
+  "reason": "invariant: lookup against the REMAINING set makes duplicate inputs fail",
+  "replacement": "  -- Consumes the inputs one at a time against the REMAINING set, so a\n  -- duplicate input fails its lookup."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "109-110",
+  "disposition": "keep",
+  "reason": "invariant: sequential debit makes ∸ exact (never truncates)",
+  "replacement": "  -- Debit the withdrawals one at a time: each is checked against the\n  -- already-debited accounts, so the debit is always exact."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "3-8",
+  "disposition": "keep",
+  "reason": "orientation: HitCert framing and the crux (stales field: table hit = resubmission excluded by spent first input); doc pointer",
+  "replacement": "-- The birthday bound for the input-consuming ledger over the random oracle, as\n-- a `Protocol.Safety.HitCert` (`hit-bounded` carries the adaptivity).  The\n-- crux is the invariant's `stales` field: a table HIT is a resubmitted\n-- transaction, excluded because its first input is spent, while a coincidence\n-- of DISTINCT digests is the bad event the potential `φ` pays for.\n-- Walkthrough, including the four collision cases: `docs/end-to-end.md` §5."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "56-56",
+  "disposition": "keep",
+  "reason": "names the clash (`Hash` vs Ledger.Hash) that justifies the using list (rule 11)",
+  "replacement": "-- `Hash` would clash with `Ledger.Hash`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "62-64",
+  "disposition": "keep",
+  "reason": "landmark over Hs/flag/Stale/... and Good/Inv/φ; the anonymous module spans the whole file so these act as top-level sections; groups >1 definition",
+  "replacement": "  ----------------------------------------------------------------------\n  -- The invariant\n  ----------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "116-118",
+  "disposition": "keep",
+  "reason": "section landmark grouping newU, step-rejected, step-accepted, lookup-bs-∈, no-replay, freshInv",
+  "replacement": "    ----------------------------------------------------------------------\n    -- Reading one activation\n    ----------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "161-163",
+  "disposition": "keep",
+  "reason": "the crux: where the input-consuming repair is spent (gives i₀ for headStale)",
+  "replacement": "      -- The empty-input case is refuted by `ec`: `consumes inputConsuming []`\n      -- is `false`.  THIS is where the repair is spent — it is what puts a\n      -- first input `i₀` in scope to be `headStale`'s `Stale.key`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "212-214",
+  "disposition": "keep",
+  "reason": "section landmark grouping point-step, presTree, cert, target",
+  "replacement": "    ----------------------------------------------------------------------\n    -- The certificate\n    ----------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "255-258",
+  "disposition": "keep",
+  "reason": "why birthday-bound has the extra q term (h₀ is in the sampled namespace; unionNew swallows)",
+  "replacement": "      -- `birthday-bound q` is `q²` fresh-hash pairs, plus `q` chances for a\n      -- fresh hash to hit `h₀` itself: the genesis key is in the namespace the\n      -- oracle samples from, and an output keyed by an already-present key is\n      -- swallowed by `unionNew`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "3-9",
+  "disposition": "keep",
+  "reason": "orientation + non-obvious why the watch accumulates rather than stopping (early out true would break soundness)",
+  "replacement": "-- `auditWatch-sound` and `auditWatch-complete` tie the audit watch to the\n-- state-trajectory event; both are plain inductions because an audit answer is\n-- definitionally the audited state's total.\n--\n-- The watch accumulates instead of stopping at the first violation: an early\n-- `out true` weighs 1 where the continued run may deadlock and weigh nothing,\n-- which would break `auditWatch-sound`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "44-46",
+  "disposition": "keep",
+  "reason": "landmark grouping badTotal, the watch, and the two Bounded notions",
+  "replacement": "------------------------------------------------------------------------\n-- The two readings of \"value was lost\"\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "71-71",
+  "disposition": "keep",
+  "reason": "why: audits placed at exactly the boundaries hitFrom inspects",
+  "replacement": "-- An audit after every answer: exactly the boundaries `hitFrom` inspects."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "84-86",
+  "disposition": "keep",
+  "reason": "landmark grouping the truthfulness lemmas and auditWatch-bounded",
+  "replacement": "------------------------------------------------------------------------\n-- The audit answer is truthful\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "112-114",
+  "disposition": "keep",
+  "reason": "proof trick: Boolean order on accumulators replaces a monotonicity lemma",
+  "replacement": "  -- Both directions run at any two accumulators the first of which is behind:\n  -- the Boolean order carries \"behind\" through the induction, which is what an\n  -- accumulating watch needs in place of a separate monotonicity lemma."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "141-143",
+  "disposition": "keep",
+  "reason": "why no case on the query is needed in `complete`",
+  "replacement": "  -- Every state the trajectory inspects is audited at the boundary it is\n  -- inspected, and the audit answer there is `Bad`, so no case on the query is\n  -- needed — what the watch reads of `d`'s own answers can only help."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "3-7",
+  "disposition": "keep",
+  "reason": "orientation: the two properties and where their relation is proved; doc pointer",
+  "replacement": "-- The two safety properties of a family of ledger systems: `PreservesValue`\n-- (interface-observable: the audit monitor's flag, read at every certified\n-- context, `UC.Machine.Monitor`) and `StateSafe` (a supplied state test,\n-- sampled at the protocol's idle states).  How they relate and what each\n-- does not say: `…ChimericLedger.Transfer`.  Walkthrough: `docs/end-to-end.md` §4."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "55-57",
+  "disposition": "keep",
+  "reason": "landmark grouping LedgerIf^ω, εᴸ, its lemmas, h₀",
+  "replacement": "------------------------------------------------------------------------\n-- The schedule\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "59-60",
+  "disposition": "keep",
+  "reason": "why width n (bound reads (q²+q)·2⁻ⁿ) and that any ℓ n ≥ n would do",
+  "replacement": "-- Hash width `n` at security parameter `n`, so the birthday bound reads\n-- `(q² + q)·2⁻ⁿ`; any width `ℓ n ≥ n` would do (the `≤-refl` in `εᴸ-negligible`)."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "77-79",
+  "disposition": "keep",
+  "reason": "landmark grouping StateSafe and the PreservesValue block",
+  "replacement": "------------------------------------------------------------------------\n-- The two properties\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "81-82",
+  "disposition": "reword",
+  "reason": "\"read at the idle states\" duplicates the module header (rule 24); keep only the link to PrHit",
+  "replacement": "-- The idle states `idleTest` reads at are the boundaries\n-- `Protocol.Observe.PrHit` samples."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "92-93",
+  "disposition": "keep",
+  "reason": "why the process spelling exists and where its agreement with the strategy watch is proved",
+  "replacement": "  -- The process spelling of that watch, which is what a context can be made\n  -- to read: `UC.Quantitative.EventLift.agree` is the agreement between them."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "106-107",
+  "disposition": "keep",
+  "reason": "non-obvious: reading back at the embedded context spends nothing (ε unchanged)",
+  "replacement": "  -- Read back at the context a strategy embeds to, where the compiled\n  -- experiment is the watched run; nothing is spent returning."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "114-116",
+  "disposition": "keep",
+  "reason": "scope caveat: one-sided, not adequacy - guards against overclaiming",
+  "replacement": "  -- One-sided: the audited run flags at least the completed-hit mass of\n  -- `bad` (detection/completeness).  Not two-sided adequacy of the audit,\n  -- and silent on whether the audits interfere with the run."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "121-122",
+  "disposition": "keep",
+  "reason": "why q + q, and where the lift is proved",
+  "replacement": "  -- `withAudits` doubles the allowance (hence `q + q`); the lift to every admitted\n  -- experiment is `UC.Machine.StateEvent.Adequacy`'s, exact."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "132-134",
+  "disposition": "keep",
+  "reason": "landmark naming the anonymous ideal-family module",
+  "replacement": "------------------------------------------------------------------------\n-- The ideal family\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "159-159",
+  "disposition": "keep",
+  "reason": "contrast with preservesValue⇒stateSafe: no doubled allowance here",
+  "replacement": "  -- Straight from the birthday bound, at `εᴸ`: no audit is spent."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "3-10",
+  "disposition": "keep",
+  "reason": "orientation: attack mechanism, refs to oracle-repeat/unionNew, funded-account caveat, Genesis purpose; doc pointer",
+  "replacement": "-- The chimeric variant destroys value at every hash width and serialization.\n-- No hash collision is needed: a transaction with no inputs is resubmitted\n-- verbatim, the oracle answers the repeat from its table\n-- (`System.oracle-repeat`), and `unionNew` keeps the first output while the\n-- withdrawal is charged twice.  `inputConsuming` rejects the transaction.\n-- The attack runs from a funded account, unreachable from `System.genesis`\n-- (see `Transfer.Chimericᶠ`); `Genesis` pins instead that the positive theorem's own\n-- initialization is live.  Walkthrough: `docs/end-to-end.md` §2."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "47-48",
+  "disposition": "keep",
+  "reason": "points to the canonical instance note and adds the Replay-specific reason (≟-refl must hit the same instance)",
+  "replacement": "-- See `ChimericLedger`; here `≟-refl` must also resolve at the instance\n-- `lookupU` was elaborated against."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "51-53",
+  "disposition": "cut",
+  "reason": "banner over the single module Attack; the module name already says it (rule 25)",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "90-92",
+  "disposition": "keep",
+  "reason": "why the watch total t is a separate parameter from total s₀",
+  "replacement": "  -- `t` is the total the WATCH measures against, which need not be spelled\n  -- as the start state's: the family property reads the watch at the UTxO\n  -- genesis total while the attack runs at a funded account of the same total."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "160-162",
+  "disposition": "cut",
+  "reason": "banner over the single module Genesis; duplicates the comment at 164-167 (rules 24/25; family with 51-53)",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "164-167",
+  "disposition": "keep",
+  "reason": "why genesis liveness is pinned (Pr = 0 also when deadlocked) + scope caveat + citation",
+  "replacement": "-- `Pr` is 0 both when the ledger is safe and when it deadlocks, so the\n-- genesis the birthday bound starts at is pinned live: its output is spent\n-- with probability one, through the oracle (`docs/rewrite-verdict.md`,\n-- Addendum, finding 1).  One accepted transaction is not global liveness."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "192-193",
+  "disposition": "keep",
+  "reason": "gotcha: the key test must be rewritten twice (removeIn copy behind checkIns case)",
+  "replacement": "    -- The key test is rewritten TWICE: `removeIn`'s copy sits behind\n    -- `checkIns`'s `case` until the first is discharged."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "236-238",
+  "disposition": "keep",
+  "reason": "top-level landmark over the ℓ = 1 regression block (many definitions)",
+  "replacement": "------------------------------------------------------------------------\n-- The ℓ = 1 regression instance\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "240-241",
+  "disposition": "keep",
+  "reason": "non-obvious: at ℓ=1 everything, including sampling and ℚ arithmetic, is refl",
+  "replacement": "-- At 1-bit hashes and the constant serialization every statement holds by\n-- `refl`, oracle sampling and ℚ arithmetic included."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda",
+  "lines": "3-5",
+  "disposition": "keep",
+  "reason": "why a concrete serializer (SerInj becomes a theorem) and why literal encoding is required",
+  "replacement": "-- One concrete serializer, so that `SerInj` is a theorem rather than a\n-- hypothesis.  It is literal: reordering a transaction's inputs changes its\n-- encoding, as it must, since `SerInj` is about `_≡_` on `Tx`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda",
+  "lines": "41-43",
+  "disposition": "keep",
+  "reason": "landmark grouping the boundary tests",
+  "replacement": "------------------------------------------------------------------------\n-- Boundary cases\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda",
+  "lines": "45-45",
+  "disposition": "cut",
+  "reason": "glosses the refl test whose expected bits are in its type",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda",
+  "lines": "49-50",
+  "disposition": "keep",
+  "reason": "names the ambiguity the test guards against (raw concatenation)",
+  "replacement": "-- A zero-valued output in the third component versus the same pair as a\n-- withdrawal in the second: what raw concatenation would confuse."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda",
+  "lines": "54-54",
+  "disposition": "keep",
+  "reason": "names the ambiguity the test guards against (component boundary)",
+  "replacement": "-- Zero-valued fields do not shift the boundary between a pair's components."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda",
+  "lines": "58-58",
+  "disposition": "keep",
+  "reason": "names the ambiguity the test guards against (list boundary)",
+  "replacement": "-- One output versus two whose encodings concatenate to the same bits."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda",
+  "lines": "62-62",
+  "disposition": "keep",
+  "reason": "what the round-trip exercises (fixed-width hash then index)",
+  "replacement": "-- A hash is spent at its fixed width, with the index reading on from there."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/System.agda",
+  "lines": "3-5",
+  "disposition": "keep",
+  "reason": "orientation: Sys/Sysᴴ and that environments never see the oracle",
+  "replacement": "-- The ledger plugged onto a random oracle, `Sys = ledger ∘ᵖ oracle`; `Sysᴴ`\n-- is the same ledger over an arbitrary hash implementation.  An environment\n-- sees only `LedgerIf`, never the oracle."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/System.agda",
+  "lines": "32-33",
+  "disposition": "keep",
+  "reason": "why the oracle is keyed on bitstrings, not Tx",
+  "replacement": "-- One party, hashing BITSTRINGS to ℓ bits: keying the oracle on `Tx` would\n-- hide the serialization."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/System.agda",
+  "lines": "36-38",
+  "disposition": "keep",
+  "reason": "landmark grouping interfaces and components",
+  "replacement": "------------------------------------------------------------------------\n-- The interfaces and the two components\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/System.agda",
+  "lines": "58-58",
+  "disposition": "keep",
+  "reason": "invariant tied to the hypothesis of UC.QueryBound.qb-oneCall",
+  "replacement": "-- At most one oracle call per activation: `UC.QueryBound.qb-oneCall`'s hypothesis."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/System.agda",
+  "lines": "76-78",
+  "disposition": "keep",
+  "reason": "landmark grouping genesis/spendGenesis/accepted/ledger-keeps-accts-[]",
+  "replacement": "------------------------------------------------------------------------\n-- Where the experiment starts\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/System.agda",
+  "lines": "80-82",
+  "disposition": "keep",
+  "reason": "why a UTxO genesis (account-only makes the birthday bound vacuous); pointer to liveness proof",
+  "replacement": "-- A UTxO genesis, not an account-only one: at the latter the birthday bound\n-- is vacuous, since `checkIns` rejects every input against an empty UTxO set\n-- while `inputConsuming` demands one (liveness: `Replay.Genesis`)."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "3-14",
+  "disposition": "keep",
+  "reason": "orientation: the three claims, their assumptions, and the two counterexamples; doc pointer",
+  "replacement": "-- The ledger's properties carried across a UC emulation, as three distinct\n-- results (`docs/end-to-end.md` §6):\n--   `preserves-value-transfer`  observable audit safety (`PreservesValue`):\n--     assumes `SerInj` and an emulation; bounds a discrepant audit ANSWER;\n--   `ledger-uc-to-state`  state-event safety (`StateSafe`) for a supplied\n--     test `badR`: also assumes `TruthfulAudit`, at a doubled allowance.  At\n--     the ledger's own `badTotal` it is conservation of the internal total,\n--     and there `TruthfulAudit` is a theorem (`ledger-conserves-value-from-hash`);\n--   `ideal-spends-genesis`  responsiveness: assumes nothing, and neither\n--     safety result implies it (`Mute`).\n-- `Liar` pins what the first does not say; the replay attack refutes\n-- `PreservesValue` for the chimeric family."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "68-70",
+  "disposition": "keep",
+  "reason": "landmark for claim 1 (several definitions; header refers to claims by number)",
+  "replacement": "------------------------------------------------------------------------\n-- Claim 1: observable audit safety\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "72-77",
+  "disposition": "keep",
+  "reason": "why cap p n + 1 and why no certificate of the compiled test is spent; citation",
+  "replacement": "-- The ideal bound is read at the context's own cap `p n`, the comparison at\n-- `p n + 1` only because `≈ᶠ-runs` takes a positive cap; neither is read at a\n-- certificate of the compiled test: the flag is an internal port of the\n-- monitored process, so what a strategy extracted from it spends on the\n-- ledger is the honest allowance alone (`docs/event-bounds-in-setup.md` §B).\n-- No schedule monotonicity is spent."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "90-93",
+  "disposition": "keep",
+  "reason": "why the factoring exists (UC sees only the closed system) and its limit; citation",
+  "replacement": "-- The UC layer sees only the CLOSED system, in which the hash is invisible;\n-- `ledger-factor` re-reads it as `ledgerᵒ ∙ hashᵒ hash` through the exposed\n-- port `hashPortᵒ`.  It gives no nontrivial simulator\n-- (`docs/ledger-factoring.md`)."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "119-121",
+  "disposition": "keep",
+  "reason": "why εᴴ has two exact substitutions",
+  "replacement": "-- What the lift costs the premise's schedule: the ledger goes into the test at\n-- its own rate `1`, then the unit regrading goes in at rate `1` as well, so the\n-- allowance is substituted twice and both substitutions are EXACT."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "150-151",
+  "disposition": "keep",
+  "reason": "why no simulator-forgetting step is needed; citation",
+  "replacement": "  -- With one upper stage there is no simulator to compose, hence none to\n  -- forget afterwards (`docs/ledger-lift-eps.md` §§1, 5)."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "170-172",
+  "disposition": "keep",
+  "reason": "landmark for claim 2",
+  "replacement": "------------------------------------------------------------------------\n-- Claim 2: state-event safety\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "174-176",
+  "disposition": "keep",
+  "reason": "why TruthfulAudit is needed (UC identifies no state) and where it is a theorem",
+  "replacement": "-- UC identifies no internal state, so a state event comes back only through\n-- `TruthfulAudit` (a theorem for the ideal ledger, `ideal-truthful`; part of\n-- the statement otherwise)."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "217-219",
+  "disposition": "keep",
+  "reason": "landmark for claim 3 (Live + ideal-spends-genesis)",
+  "replacement": "------------------------------------------------------------------------\n-- Claim 3: the genesis is live\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "228-230",
+  "disposition": "keep",
+  "reason": "landmark grouping Mute, Liar and their lemmas",
+  "replacement": "------------------------------------------------------------------------\n-- What claims 1 and 2 do not say\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "232-233",
+  "disposition": "reword",
+  "reason": "\"so neither safety claim implies responsiveness\" repeats the module header (rule 24; header canonical)",
+  "replacement": "-- Diverges at every query: satisfies claim 1 at zero slack yet never accepts."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "237-238",
+  "disposition": "keep",
+  "reason": "what Liar witnesses (gap is exactly TruthfulAudit)",
+  "replacement": "-- Always bad, never says so: satisfies claim 1 while its trajectory event has\n-- probability one; the gap is exactly `TruthfulAudit`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "309-311",
+  "disposition": "keep",
+  "reason": "landmark grouping At, Chimericᶠ, the refutation",
+  "replacement": "------------------------------------------------------------------------\n-- The replay attack at family level\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "313-319",
+  "disposition": "keep",
+  "reason": "proof idea of chimeric-not-preserving + why Chimericᶠ is account-funded + open question; canonical copy (Replay header points here)",
+  "replacement": "-- `preservesValue⇒saturated` hands the attack's strategy back a bound\n-- `ε n 3 + ν n`, eventually below `½` for any negligible schedule `ε`, against\n-- probability one.\n-- `Chimericᶠ` starts account-funded rather than at `Ideal`'s UTxO genesis,\n-- which never funds an account (`System.ledger-keeps-accts-[]`); only the\n-- watch is shared, via `funded-total`.  Whether the chimeric variant preserves\n-- value at the UTxO genesis is left open (`docs/end-to-end.md` §2)."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "3-6",
+  "disposition": "keep",
+  "reason": "orientation: when value is lost, naming the two main lemmas",
+  "replacement": "-- What one transaction does to `total`, with the hash answered by an\n-- arbitrary oracle: value is lost only when the hash keying the new outputs\n-- already keys a live UTxO entry, whose output `unionNew` then swallows\n-- (`applyTx-total-fresh`, `conservation`)."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "36-36",
+  "disposition": "keep",
+  "reason": "rule-24 pointer to the canonical instance note",
+  "replacement": "-- See `ChimericLedger`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "58-60",
+  "disposition": "keep",
+  "reason": "landmark grouping the UTxO-side lemmas",
+  "replacement": "------------------------------------------------------------------------\n-- Spending: the UTxO side\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "89-91",
+  "disposition": "reword",
+  "reason": "accuracy: the section also holds balance-unionNew-outsAt (paying out), not only the account side",
+  "replacement": "------------------------------------------------------------------------\n-- Withdrawing (the account side), and paying out\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "110-111",
+  "disposition": "keep",
+  "reason": "why the index bound in balance-unionNew-outsAt keeps the induction honest",
+  "replacement": "-- The index bound keeps the induction honest: the entries `outsAt` creates\n-- are pairwise distinct, so only the indices not yet inserted must be free."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "137-139",
+  "disposition": "keep",
+  "reason": "landmark grouping freshness lemmas",
+  "replacement": "------------------------------------------------------------------------\n-- Freshness survives the input side\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "166-168",
+  "disposition": "keep",
+  "reason": "landmark grouping keysU/Uniq lemmas",
+  "replacement": "------------------------------------------------------------------------\n-- Keys and uniqueness\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "173-175",
+  "disposition": "keep",
+  "reason": "why Uniq matters (removeIn removes a KEY; birthday argument rests on it)",
+  "replacement": "-- Each key absent from the rest of the list.  This is what makes `removeIn`\n-- remove a KEY rather than one copy of it, and every step of the birthday\n-- argument that says \"this input is gone now\" rests on it."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "192-193",
+  "disposition": "keep",
+  "reason": "gotcha: with abstracts only the outer occurrence, so the decision is re-applied by hand",
+  "replacement": "  -- `removeIn` rebuilds the cons, so the decision has to be re-applied by\n  -- hand: a `with` on it abstracts the outer occurrence only."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "288-290",
+  "disposition": "keep",
+  "reason": "landmark naming the anonymous one-step module",
+  "replacement": "------------------------------------------------------------------------\n-- One step of the ledger\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "296-298",
+  "disposition": "keep",
+  "reason": "gotcha: with does not reach applyTx in a constructor argument, hence shape + rewrite",
+  "replacement": "  -- A `with` on the validation cascade does not reach `applyTx` inside a\n  -- constructor argument (the abstraction only rewrites the goal), so `shape`\n  -- walks the cascade once and `rewrite`s its equations in."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss.agda",
+  "lines": "3-8",
+  "disposition": "keep",
+  "reason": "orientation + canonical explanation that Neg Honᴵ is empty and why _∙ᶠ_ plugs onto the F_com realization; doc pointer",
+  "replacement": "-- Blum coin-tossing over `F_com`, corrupted committer (P1): P2's side, as a\n-- process over the commitment's honest interface `Honᴵ`.  P2 answers the\n-- receipt with a fresh share `b₂`, sent in the clear on `Advᴵᶜ`, and outputs\n-- `b₁ xor b₂` at the opening.  Its domain `Honᴵ` has an empty `Neg` (P2 never\n-- talks to the commitment) and is the codomain of the `F_com` realization, so\n-- `_∙ᶠ_` plugs the two together (`docs/coin-toss.md`)."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss.agda",
+  "lines": "37-38",
+  "disposition": "keep",
+  "reason": "landmark grouping the four interface definitions",
+  "replacement": "------------------------------------------------------------------------\n-- Interfaces"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss.agda",
+  "lines": "40-41",
+  "disposition": "keep",
+  "reason": "why Advᴵᶜ has no query direction (corrupted P1 sends nothing outside the commitment)",
+  "replacement": "-- No query: a corrupted P1 sends P2 nothing that is not already a commitment\n-- message."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss.agda",
+  "lines": "55-56",
+  "disposition": "keep",
+  "reason": "landmark grouping PSt, πStep, stateᵖ, toss",
+  "replacement": "------------------------------------------------------------------------\n-- The protocol"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "3-7",
+  "disposition": "keep",
+  "reason": "orientation: what is proved, why the commitment ε-statement is a hypothesis; pointers",
+  "replacement": "-- Blum coin-tossing over the hash-based commitment emulates the same protocol\n-- over the ideal `F_com`, at the commitment's schedule reindexed by what the\n-- composition spends.  The commitment's UC-level ε-statement is not yet a\n-- theorem (`docs/dp-transport.md`), so it is the hypothesis; the hop to an\n-- ideal coin is `Examples.CoinToss.Ideal.Compose`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "44-45",
+  "disposition": "keep",
+  "reason": "landmark grouping the family channels and stages",
+  "replacement": "------------------------------------------------------------------------\n-- The two stages as families"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "64-65",
+  "disposition": "keep",
+  "reason": "landmark grouping εᶜᵗ, simᶜᵗ, the generic module and its instance",
+  "replacement": "------------------------------------------------------------------------\n-- The composed statement"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "77-78",
+  "disposition": "reword",
+  "reason": "first half restates the module parameters (cr/ct : Pred 1⁺); keep only why it is generic",
+  "replacement": "-- Generic in the stage and the commitment, so both corruptions and both\n-- resource boundaries share it."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "101-102",
+  "disposition": "keep",
+  "reason": "landmark for the corrupted-receiver block",
+  "replacement": "------------------------------------------------------------------------\n-- The same, at the other corruption"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "104-105",
+  "disposition": "keep",
+  "reason": "why the schedule is again εᶜᵗ despite the stage driving F_com; citation",
+  "replacement": "-- The corrupted-receiver case (`docs/fcom-hiding.md`): its stage drives\n-- `F_com` but still enters the grading at `1⁺`, so the schedule is again `εᶜᵗ`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "132-133",
+  "disposition": "keep",
+  "reason": "landmark grouping comSim, comSimʰ, coin-toss-from-comᶜ, composed-ε",
+  "replacement": "------------------------------------------------------------------------\n-- …at the commitment's own simulator and its own schedule"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "135-137",
+  "disposition": "keep",
+  "reason": "why the premise narrows to one relation; citation of raw-emulation",
+  "replacement": "-- The premise's simulator, certificate and schedule are all in the\n-- repository, so `coin-toss-from-comᶜ` narrows it to the one relation that is\n-- not (`docs/fcom-extraction.md`'s `raw-emulation`)."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "141-142",
+  "disposition": "keep",
+  "reason": "why comSimʰ costs 1 rather than 2 (programs instead of extracts)",
+  "replacement": "-- …and the corrupted receiver's, which programs rather than extracts and so\n-- costs one downward message per activation instead of two."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "150-151",
+  "disposition": "keep",
+  "reason": "why the formula is unrescaled",
+  "replacement": "-- The commitment's own formula, unrescaled: the stage enters the grading at\n-- `1⁺` (`Examples.CoinToss.UC.tossQB`) and the upper simulator is the identity."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Hiding.agda",
+  "lines": "3-7",
+  "disposition": "reword",
+  "reason": "last sentence is a sibling-module comparison (rule 22) and duplicates Hiding.UC's header (commitᴱ/openᴱ downward messages, rule 24)",
+  "replacement": "-- Blum coin-tossing over `F_com`, corrupted receiver (P2): P1's side, as a\n-- process over the commitment's hiding honest interface.  Started by the\n-- environment, it samples and commits to `b₁`, hears `b₂` in the clear, opens,\n-- and outputs `b₁ xor b₂`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Hiding.agda",
+  "lines": "36-37",
+  "disposition": "keep",
+  "reason": "landmark grouping interface definitions",
+  "replacement": "------------------------------------------------------------------------\n-- Interfaces"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Hiding.agda",
+  "lines": "56-57",
+  "disposition": "keep",
+  "reason": "landmark grouping QSt, τStep, stateᵗ, tossʰ",
+  "replacement": "------------------------------------------------------------------------\n-- The protocol"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda",
+  "lines": "3-7",
+  "disposition": "keep",
+  "reason": "orientation: why the certificate is Certified 1 at potential 0; pointer to the committer's certificate",
+  "replacement": "-- The corrupted-receiver coin-toss stage at the UC model, with the certificate\n-- `UC.Quantitative.Family.≤UC[]-compose` demands: each activation from above buys exactly one downward\n-- message (`commitᴱ`/`openᴱ`) and nothing is owed afterwards, so it is\n-- `Certified 1` at potential 0.  The honest committer's is\n-- `Examples.ROCommitment.Hiding.UC.comCert`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda",
+  "lines": "38-39",
+  "disposition": "cut",
+  "reason": "banner restates the module header (\"one downward message per activation\"), and Certified 1 says it (rule 24; family with UC.agda 40-41, Receiver/UC.agda 46-47)",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda",
+  "lines": "3-14",
+  "disposition": "keep",
+  "reason": "orientation + why: Fcoin must leak before delivering (Cleve unfairness) and why simJ is joint; citations",
+  "replacement": "-- The ideal coin and the joint simulator for Blum coin-tossing over `F_com`\n-- against a corrupted committer.\n--\n-- `Fcoin` leaks the coin before delivering it (`sampleᵏ`, then `deliverᵏ` or\n-- `abortᵏ`): Blum's corrupted committer sees the honest share before deciding\n-- whether to open, so the coin is unfair in Cleve's sense and a fair ideal\n-- coin has no simulator (`docs/coin-toss.md` §5).\n--\n-- `simJ` faces both the commitment's leak port and the toss's adversary port\n-- (§5 Form A rules out a tensor simulator).  It runs the random oracle itself,\n-- buys the coin at `commitˢ b₁` and publishes the share `b₁ xor c`, so the\n-- hybrid's output `b₁ xor share` is `Fcoin`'s `c`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda",
+  "lines": "44-45",
+  "disposition": "keep",
+  "reason": "landmark grouping CoinQ/CoinR/Lkᴵᶜ",
+  "replacement": "------------------------------------------------------------------------\n-- The simulator-facing port of the ideal coin"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda",
+  "lines": "58-59",
+  "disposition": "keep",
+  "reason": "landmark grouping the ideal coin",
+  "replacement": "------------------------------------------------------------------------\n-- The ideal coin"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda",
+  "lines": "86-87",
+  "disposition": "keep",
+  "reason": "landmark grouping the joint simulator",
+  "replacement": "------------------------------------------------------------------------\n-- The joint simulator"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "3-9",
+  "disposition": "keep",
+  "reason": "orientation + why the boundary must be closed and why plugging resource is free; citation",
+  "replacement": "-- The second hop, and the whole statement: Blum coin-tossing over the\n-- hash-based commitment, over the concrete resource, emulates an ideal coin.\n--\n-- The comparison boundary is closed: at an open domain the closure quantifier\n-- of `_≈ctx[_]_` owns `F_com`'s memory, and nothing says the cell returns the\n-- bit it was given (`docs/coin-toss.md` §5).  Plugging `resource` under both\n-- sides is free: it is closed, so `≤UC[]-dom` absorbs it at rate `1⁺`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "47-48",
+  "disposition": "keep",
+  "reason": "landmark grouping Lkᶜᶠ..simᶜᶠ",
+  "replacement": "------------------------------------------------------------------------\n-- The closed boundary, and the ideal coin over it"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "62-63",
+  "disposition": "keep",
+  "reason": "landmark for the second hop (2 definitions)",
+  "replacement": "------------------------------------------------------------------------\n-- The second hop"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "71-72",
+  "disposition": "keep",
+  "reason": "landmark grouping εᶜⁱ..coin-toss-ideal",
+  "replacement": "------------------------------------------------------------------------\n-- …and the simulator and the schedule the composite carries"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "96-97",
+  "disposition": "keep",
+  "reason": "landmark grouping coin-toss-idealᶜ and ideal-ε",
+  "replacement": "------------------------------------------------------------------------\n-- …at the commitment's own simulator and schedule"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "106-107",
+  "disposition": "keep",
+  "reason": "landmark grouping Fcoinʷ, coinRealʷ, coin-toss-idealᴺ",
+  "replacement": "------------------------------------------------------------------------\n-- …and its consequence in the canonical negligible `UCSetup`"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "109-109",
+  "disposition": "keep",
+  "reason": "why both enter Famᴹ at the unit rate (closedness)",
+  "replacement": "-- Both families are closed, so they enter `Famᴹ` at the unit rate."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "122-125",
+  "disposition": "keep",
+  "reason": "non-obvious: lands in ucSetupᴺ, not only Canonical^ω, and what it does NOT keep (εᶜⁱ)",
+  "replacement": "-- `≤UC[]⇒≤UCᴺ` does not go through the vanishing collapse, so the statement\n-- lands in the LOCAL-NEGLIGIBLE `ucSetupᴺ` and not only in `Canonical^ω`.\n-- What it keeps is the certified simulator and a negligible witness chosen\n-- per context — NOT `εᶜⁱ` itself, which stays at `coin-toss-idealᵇ`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda",
+  "lines": "3-8",
+  "disposition": "keep",
+  "reason": "orientation + measured perf gotcha (with lookupPt 3m22s vs 10s); canonical copy referenced by Machine/Receiver files",
+  "replacement": "-- The hybrid half of the second hop: the coin-toss stage over the ideal\n-- `F_com` over the concrete resource IS `Examples.CoinToss.Ideal.Reach.coinᶜ`.\n--\n-- `hashᴴ` takes the lookup as an explicit argument: `with lookupPt t x` costs\n-- 3m22s against 10s (measured), because `with` normalises a goal that names\n-- the composite's step."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda",
+  "lines": "52-53",
+  "disposition": "keep",
+  "reason": "landmark grouping the composite definitions",
+  "replacement": "------------------------------------------------------------------------\n-- The composite"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda",
+  "lines": "61-61",
+  "disposition": "keep",
+  "reason": "why this bracketing: it is the one ext-graded/graded₂-∘ produce",
+  "replacement": "-- The hybrid as `UC.Graded.ext-graded`/`graded₂-∘` leave it."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda",
+  "lines": "77-78",
+  "disposition": "keep",
+  "reason": "landmark grouping θᴴ, the per-letter lemmas and hyb-sim",
+  "replacement": "------------------------------------------------------------------------\n-- The state map, and the composite's loop at each letter"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda",
+  "lines": "193-194",
+  "disposition": "keep",
+  "reason": "landmark grouping reassoc and hybrid-eq",
+  "replacement": "------------------------------------------------------------------------\n-- …and the composite, read as `coinᶜ`"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "3-7",
+  "disposition": "keep",
+  "reason": "orientation: names the one non-structural step (coin-flip at commitˢ b₁); citation",
+  "replacement": "-- The second hop's machine equality: Blum coin-tossing over the ideal `F_com`,\n-- run over the concrete resource, IS the joint simulator over the ideal coin\n-- (through `Examples.CoinToss.Ideal.Reach.coinᶜ`).  The one non-structural step\n-- is `Dp.Coin.coin-flip` at `commitˢ b₁`: the hybrid samples the share, the\n-- ideal side the coin (`docs/coin-toss.md` §5)."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "52-53",
+  "disposition": "keep",
+  "reason": "landmark grouping the ideal composite",
+  "replacement": "------------------------------------------------------------------------\n-- The ideal composite"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "71-72",
+  "disposition": "keep",
+  "reason": "landmark grouping θᴵ and per-letter lemmas",
+  "replacement": "------------------------------------------------------------------------\n-- The state map, and the composite's loop at each letter"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "106-106",
+  "disposition": "keep",
+  "reason": "rule-24 pointer to the perf gotcha",
+  "replacement": "  -- Lookup as an explicit argument: see `Examples.CoinToss.Ideal.Hybrid`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "182-183",
+  "disposition": "keep",
+  "reason": "landmark grouping idl-sim and coin-machine",
+  "replacement": "------------------------------------------------------------------------\n-- The machine equality"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda",
+  "lines": "3-15",
+  "disposition": "keep",
+  "reason": "why a third machine is needed (no simulation between differing loop objects; unreachable state a total map must place)",
+  "replacement": "-- The reachable configurations of Blum coin-tossing over `F_com` over the\n-- concrete resource, as a machine in their own right.\n--\n-- Both sides of the second hop (`Examples.CoinToss.Ideal.Machine`) are\n-- ⊕-traces, and their loop objects differ — `Lkᴵ ⊗ᴵ Honᴵ` against\n-- `Lkᴵᶜ ⊗ᴵ Honᴵᶜ` — so no simulation runs between them.  `coinᶜ` is the third\n-- machine both simulate out of, which is all an `EqClosure` needs; that is\n-- `Protocol.Machine.Compose`'s `machineᶜ` method.\n--\n-- A third machine is not a convenience.  `(heldᵖ b₂ , (t , nothing))` — the\n-- stage holding a share over an empty cell — is unreachable, but a total state\n-- map has to place it, and it refuses `openˢ` while answering `failˢ` with\n-- `abortedᶜ`, which no state of the ideal side does.  `coinᶜ` drops it."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda",
+  "lines": "47-49",
+  "disposition": "reword",
+  "reason": "garbled phrasing (\"in the two brackets the associator ... sits between\"); keep the point: both bracketings, related by the associator `_∙ᶠ_` leaves",
+  "replacement": "-- The hybrid's grade, in both bracketings: `UC.Quantitative.Family._∙ᶠ_` leaves\n-- an associator in front of it that maps one to the other."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda",
+  "lines": "3-16",
+  "disposition": "keep",
+  "reason": "orientation + why Fcoinʰ leaks first and has no abort (nakᴱ unreachable via downᶠʰ); how simJʰ lands the coin; citation",
+  "replacement": "-- The ideal coin and the joint simulator for Blum coin-tossing over `F_com`\n-- against a corrupted receiver.\n--\n-- `Fcoinʰ` leaks before it delivers, as `Fcoin` does (`Examples.CoinToss.Ideal`):\n-- `startᵏʰ` when the honest committer is started, then `coinᵏʰ c` when the\n-- simulator buys the bit, which is the functionality's own uniform draw.  It\n-- has no abort because the composite has none: `F_com`'s refusal `nakᴱ`\n-- reaches the stage only through `rejᴿ`, which\n-- `Examples.ROCommitment.Hiding.downᶠʰ` never asks for.\n--\n-- `simJʰ` (`docs/coin-toss.md` §5 Form B) runs the random oracle itself,\n-- publishes the receipt, and at the receiver's share `b₂` buys the coin and\n-- reports the committed bit as `bitᶠ (c xor b₂)`, so the hybrid's `b₁ xor b₂`\n-- is `Fcoinʰ`'s `c`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda",
+  "lines": "46-47",
+  "disposition": "keep",
+  "reason": "landmark grouping the leak port definitions",
+  "replacement": "------------------------------------------------------------------------\n-- The simulator-facing port of the ideal coin"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda",
+  "lines": "59-60",
+  "disposition": "keep",
+  "reason": "landmark grouping the ideal coin",
+  "replacement": "------------------------------------------------------------------------\n-- The ideal coin"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda",
+  "lines": "87-88",
+  "disposition": "keep",
+  "reason": "landmark grouping the joint simulator",
+  "replacement": "------------------------------------------------------------------------\n-- The joint simulator"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "3-12",
+  "disposition": "keep",
+  "reason": "orientation + why this hop costs 2⁻ⁿ (run agreement only, domination slack); canonical copy of the slack explanation",
+  "replacement": "-- The corrupted-receiver second hop, and the whole statement at that\n-- corruption: Blum coin-tossing over the hash-based commitment, over the\n-- concrete resource, emulates an ideal coin.\n--\n-- Assembled as `Examples.CoinToss.Ideal.Compose`, except for the second hop's\n-- error.  The honest committer's share is drawn when the environment starts\n-- it and read when the corrupted receiver answers, so the ideal coin draws one\n-- activation later (`docs/coin-toss.md` §5) and the two systems agree only as\n-- runs (`Receiver.Machine.coin-runʰ`).  Carrying a run agreement into a\n-- context costs the domination's positive slack, so this hop lands at `2⁻ⁿ`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "59-60",
+  "disposition": "keep",
+  "reason": "landmark grouping the closed-boundary definitions",
+  "replacement": "------------------------------------------------------------------------\n-- The ideal coin over the closed boundary"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "62-64",
+  "disposition": "keep",
+  "reason": "why two spellings of the grade exist and what relates them (seal keeps them apart)",
+  "replacement": "-- The composed grade in the two spellings the seal keeps apart: `Lk♯ᶠ` is the\n-- one a single `gradedᵒ` hands out, `Lkʰᶠ ⊛ω Advᶜʰᶠ` the one `_∙ᶠ_` produces,\n-- and `CTRU.flatʰ` is the identity between them."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "82-83",
+  "disposition": "keep",
+  "reason": "landmark grouping ηʰ, its negligibility and the hop",
+  "replacement": "------------------------------------------------------------------------\n-- The second hop, and its slack"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "85-87",
+  "disposition": "cut",
+  "reason": "repeats the header's slack explanation (rule 24; header is canonical); the parenthetical is a sibling-module comparison (rule 22)",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "101-103",
+  "disposition": "keep",
+  "reason": "why the regrading costs nothing (identity process; scale reads an unused allowance)",
+  "replacement": "-- …regraded to the spelling the composition produces, which costs nothing:\n-- the regrading is the identity process, so `scale _ 1⁺` reads the schedule\n-- at an allowance it does not depend on."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "112-113",
+  "disposition": "keep",
+  "reason": "landmark grouping the whole-statement definitions",
+  "replacement": "------------------------------------------------------------------------\n-- …and the whole statement"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "147-148",
+  "disposition": "keep",
+  "reason": "landmark grouping the UCSetup consequence",
+  "replacement": "------------------------------------------------------------------------\n-- …and its consequence in the canonical negligible `UCSetup`"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda",
+  "lines": "3-5",
+  "disposition": "keep",
+  "reason": "orientation + rule-24 pointer to the perf gotcha",
+  "replacement": "-- The hybrid half of the corrupted-receiver hop: the coin-toss stage over the\n-- ideal `F_com` over the concrete resource IS `Receiver.Reach.eagerᶜʰ`.\n-- `hashᴴʰ` takes the lookup explicitly: see `Examples.CoinToss.Ideal.Hybrid`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda",
+  "lines": "50-51",
+  "disposition": "keep",
+  "reason": "landmark grouping the composite",
+  "replacement": "------------------------------------------------------------------------\n-- The composite"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda",
+  "lines": "74-75",
+  "disposition": "keep",
+  "reason": "landmark grouping θᴴʰ and per-letter lemmas",
+  "replacement": "------------------------------------------------------------------------\n-- The state map, and the composite's loop at each letter"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda",
+  "lines": "202-203",
+  "disposition": "keep",
+  "reason": "landmark grouping reassocʰ and hybrid-eqʰ",
+  "replacement": "------------------------------------------------------------------------\n-- …and the composite, read as `eagerᶜʰ`"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "3-12",
+  "disposition": "keep",
+  "reason": "why a run equality rather than ≈ᴹ (state function cannot relate point mass to mixture) and how the proof is routed; citation",
+  "replacement": "-- The corrupted-receiver hop's agreement: Blum coin-tossing over the ideal\n-- `F_com`, run over the concrete resource, runs like the joint simulator over\n-- the ideal coin, at every closed strategy, exactly.\n--\n-- It is a run equality, not an `≈ᴹ`: the hybrid draws the honest share at\n-- `goᶜ` while the ideal coin can only draw at `shareᴬʰ`, and a `Machines.Sim`\n-- simulation (a state FUNCTION) cannot relate a point mass to a mixture\n-- (`docs/coin-toss.md` §5).  So `deferᶜʰ`, the reachable machine drawing at\n-- `shareᴬʰ`, is the ideal side (`ideal-eqʰ`, one `coin-flip` step through\n-- `θᴵʰ`), and `eagerᶜʰ` runs like `deferᶜʰ` by `GamePlaying.Defer.Run`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "63-64",
+  "disposition": "keep",
+  "reason": "landmark grouping the ideal composite",
+  "replacement": "------------------------------------------------------------------------\n-- The ideal composite"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "82-83",
+  "disposition": "keep",
+  "reason": "landmark grouping θᴵʰ and per-letter lemmas",
+  "replacement": "------------------------------------------------------------------------\n-- The state map, and the composite's loop at each letter"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "124-124",
+  "disposition": "keep",
+  "reason": "rule-24 pointer to the perf gotcha",
+  "replacement": "  -- Lookup as an explicit argument: see `Examples.CoinToss.Ideal.Hybrid`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "143-145",
+  "disposition": "reword",
+  "reason": "sits over Outᴵʰ but is about shareᴵʰ (name it); \"the same term\" at b₂ = false is inaccurate - that case still needs xor-identityʳ",
+  "replacement": "  -- The one non-structural step (`shareᴵʰ`): the deferred machine draws the\n  -- committer's share and the coin draws the OUTCOME, and `b₁ ↦ b₁ xor b₂`\n  -- carries one to the other; at `b₂ = false` it is the identity."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "226-227",
+  "disposition": "keep",
+  "reason": "landmark grouping the deferred-sampling development",
+  "replacement": "------------------------------------------------------------------------\n-- Moving the draw"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "229-231",
+  "disposition": "keep",
+  "reason": "what the relation means (family indexed by the secret vs undrawn state) and where it varies",
+  "replacement": "-- The relation the deferred sampling runs on: a family of eagerly-drawn\n-- states, indexed by the secret, against one state that has not drawn.  Only\n-- in the committed phase does the family actually vary."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "262-264",
+  "disposition": "keep",
+  "reason": "proof idea for hashCᶜ: queries read no secret; >>=ₚ-swap reorders the draws",
+  "replacement": "  -- An oracle query reads no secret, so the two sides agree entry by entry;\n  -- on a miss the fresh digest is drawn on both and `>>=ₚ-swap` puts the two\n  -- draws in the same order."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "344-346",
+  "disposition": "keep",
+  "reason": "why the sandwich relabelling transports by cong",
+  "replacement": "  -- The sandwich's relabelling commutes with everything the induction reads:\n  -- it leaves the state alone and only renames the answer, so the outcome\n  -- hypothesis transports by a `cong`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "3-9",
+  "disposition": "keep",
+  "reason": "orientation: two machines differing in draw time, and why the ideal coin cannot draw at goᶜ; citation",
+  "replacement": "-- The reachable configurations of Blum coin-tossing over `F_com` over the\n-- concrete resource, corrupted receiver, as TWO machines differing only in\n-- when the honest committer's share is drawn: `eagerᶜʰ` at `goᶜ` (the hybrid's\n-- order, `Receiver.Hybrid`) and `deferᶜʰ` at `shareᴬʰ` (the ideal coin's,\n-- `Receiver.Machine`).  The ideal coin cannot draw at `goᶜ` — its bit would be\n-- `b₁ xor b₂` at a `b₂` not yet chosen — so no state map relates the hybrid to\n-- the ideal side (`docs/coin-toss.md` §5)."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "48-49",
+  "disposition": "keep",
+  "reason": "landmark grouping the eager machine",
+  "replacement": "------------------------------------------------------------------------\n-- Drawing at `goᶜ`"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "51-51",
+  "disposition": "keep",
+  "reason": "why endᴱ keeps b₁ (commitment cell still holds it)",
+  "replacement": "-- `endᴱ` keeps `b₁` because the commitment cell still holds it."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "81-82",
+  "disposition": "keep",
+  "reason": "landmark grouping the deferred machine",
+  "replacement": "------------------------------------------------------------------------\n-- …and drawing at `shareᴬʰ`"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "84-85",
+  "disposition": "keep",
+  "reason": "why endᴰ keeps the share (pointwise relation instead of an existential)",
+  "replacement": "-- `endᴰ` keeps the share, which makes the relation to `eagerᶜʰ` a pointwise\n-- equality rather than an existential."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "116-117",
+  "disposition": "keep",
+  "reason": "landmark grouping the two sandwiched machines",
+  "replacement": "------------------------------------------------------------------------\n-- …at the bracket the grade is compared in"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda",
+  "lines": "3-7",
+  "disposition": "keep",
+  "reason": "orientation: why both sides are regraded (dominatedᵍ vs _∙ᶠ_ shapes)",
+  "replacement": "-- The corrupted-receiver hop at the UC model: the joint simulator's query\n-- certificate, and the two sides of `Receiver.Machine.coin-runʰ` read as\n-- graded homs.  Both are also regraded (`UC.Graded.regrade`) from\n-- `ifaceᵒ (Lkᴵʰ ⊗ᴵ Advᴵᶜʰ)` to `ifaceᵒ Lkᴵʰ ⊗₀ ifaceᵒ Advᴵᶜʰ`: `dominatedᵍ`\n-- is stated at the first shape and `_∙ᶠ_` produces the second."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda",
+  "lines": "46-47",
+  "disposition": "cut",
+  "reason": "banner restates the header (\"the joint simulator's query certificate\") and mis-groups flatʰ/flatʰQB under it (rule 24; family with Hiding/UC 38-39, UC 40-41)",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda",
+  "lines": "84-85",
+  "disposition": "keep",
+  "reason": "landmark grouping hyb-flatʰ and idl-flatʰ",
+  "replacement": "------------------------------------------------------------------------\n-- The two sides, regraded"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda",
+  "lines": "3-6",
+  "disposition": "keep",
+  "reason": "orientation: names which UC.Graded coercion handles each layer of the composite",
+  "replacement": "-- The second hop at the UC model: the joint simulator's query certificate, and\n-- `Examples.CoinToss.Ideal.Machine.coin-machine` read across the seal through\n-- `UC.Graded`'s coercions for a composed system: `ext-graded` for the stage on\n-- top, `graded₂-∘` for the resource under it, `sub-graded₂` for the simulator."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "3-9",
+  "disposition": "keep",
+  "reason": "why the schedules are pinned at n=5 rather than the machines' k=3 (all ≥ 1 there)",
+  "replacement": "-- Acceptance instances for the composed statements: their schedules where they\n-- bite, and one live round of each ideal coin and joint simulator, read\n-- through `UC.QueryBound.behᴾ` at the processes the theorems name.\n--\n-- The schedules are pinned at security parameter 5 and three queries; at the\n-- machines' own `k = 3` all three are at least 1 (15/8, 15/8 and 5/4), so a\n-- pin there would test the arithmetic only."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "42-43",
+  "disposition": "keep",
+  "reason": "landmark grouping the schedule pins",
+  "replacement": "------------------------------------------------------------------------\n-- The schedules"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "54-55",
+  "disposition": "keep",
+  "reason": "landmark grouping coin-round and sim-round",
+  "replacement": "------------------------------------------------------------------------\n-- The ideal coin, and the simulator that lands the toss on it"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "91-92",
+  "disposition": "keep",
+  "reason": "landmark grouping the receiver-corruption rounds",
+  "replacement": "------------------------------------------------------------------------\n-- …and at the other corruption"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/UC.agda",
+  "lines": "3-6",
+  "disposition": "reword",
+  "reason": "\"since `Neg Honᴵ` is empty\" duplicates the canonical explanation in `Examples.CoinToss`'s header (rule 24); point there instead",
+  "replacement": "-- The coin-toss stage at the UC model, and its query certificate for\n-- `UC.Quantitative.Family.≤UC[]-compose`: the stage makes no downward call at all\n-- (`tossCert`; see `Examples.CoinToss`); the receiver's is\n-- `Examples.ROCommitment.UC.recvCert`.  The grading's rates are positive, so the\n-- stage enters it at `1⁺`."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/UC.agda",
+  "lines": "40-41",
+  "disposition": "cut",
+  "reason": "banner restates the header (tossCert spends nothing) over two definitions (rule 24; family with Hiding/UC 38-39)",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RelSetup.agda",
+  "lines": "3-7",
+  "disposition": "keep",
+  "reason": "orientation: which setup (𝒞=ℐ=Rel, ℳ, ℰ) instantiates Abstract2 and what ≤UC means here",
+  "replacement": "-- The locally graded UC theory (`Abstract2`) run at a concrete setup:\n-- 𝒞 = ℐ = Rel monoidal via ×, ℳ = the curried tensor, ℰ = the hom\n-- presheaf into the observation object. A protocol A ⇒ T₀ X B is a\n-- relation from inputs to (leakage, output) pairs and `f ≤UC g` is\n-- possibilistic simulation."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RelSetup.agda",
+  "lines": "32-32",
+  "disposition": "keep",
+  "reason": "meaning of ℰ = Hom[-,⊤]: tests are subsets of the interface",
+  "replacement": "-- An environment observes a subset of the interface it is attached to."
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RelSetup.agda",
+  "lines": "41-43",
+  "disposition": "keep",
+  "reason": "top-level landmark over ℰ-faithful and ≈ᵁ⇒≈; states the section result",
+  "replacement": "------------------------------------------------------------------------\n-- ≈ᵁ at this setup is equality of relations\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RelSetup.agda",
+  "lines": "48-48",
+  "disposition": "cut",
+  "reason": "glosses `point b₀ b _ = b ≡ b₀`, readable in seconds",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RelSetup.agda",
+  "lines": "65-67",
+  "disposition": "keep",
+  "reason": "top-level landmark grouping Msg..otp-perfect",
+  "replacement": "------------------------------------------------------------------------\n-- A one-time pad, and algebraic perfect security\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RelSetup.agda",
+  "lines": "92-94",
+  "disposition": "keep",
+  "reason": "top-level landmark grouping the four protocols and complement",
+  "replacement": "------------------------------------------------------------------------\n-- Two protocols and their ideal counterparts\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RelSetup.agda",
+  "lines": "96-96",
+  "disposition": "cut",
+  "reason": "per-definition gloss restating the leak visible in the type T₀ Cipher Msg / encChan (rule 26: family of four)",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RelSetup.agda",
+  "lines": "100-100",
+  "disposition": "cut",
+  "reason": "per-definition gloss; T₀ unit Msg shows \"leaks nothing\" (family)",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RelSetup.agda",
+  "lines": "104-104",
+  "disposition": "cut",
+  "reason": "per-definition gloss; `t ≡ not m` shows the complement leak (family)",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RelSetup.agda",
+  "lines": "108-108",
+  "disposition": "cut",
+  "reason": "per-definition gloss; `t ≡ m` (family)",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RelSetup.agda",
+  "lines": "115-117",
+  "disposition": "keep",
+  "reason": "top-level landmark grouping the simulations and ≤UC results",
+  "replacement": "------------------------------------------------------------------------\n-- Emulation, and its composition\n------------------------------------------------------------------------"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RelSetup.agda",
+  "lines": "124-124",
+  "disposition": "cut",
+  "reason": "restates the statement `sendEnc ≤UC sendIdeal`",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RelSetup.agda",
+  "lines": "133-133",
+  "disposition": "cut",
+  "reason": "restates the statement `relayEnc ≤UC relayPlain`",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RelSetup.agda",
+  "lines": "137-137",
+  "disposition": "cut",
+  "reason": "\"Some more examples\" carries nothing",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RelSetup.agda",
+  "lines": "148-148",
+  "disposition": "cut",
+  "reason": "restates (and over-generalises) the specific statement sendIdeal ≤UC relayPlain",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RelSetup.agda",
+  "lines": "155-157",
+  "disposition": "cut",
+  "reason": "single-definition banner over leaky-not-secure; restates its statement (rule 25)",
+  "replacement": ""
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/Signatures.agda",
+  "lines": "89-98",
+  "disposition": "reword",
+  "reason": "TODO is live, but the commented sketch is admittedly stale (identifiers adversarialInput/honestOutputO/rcvˡ no longer exist; newState copies Sign₂) and the note-to-self about re-spelling is a development leftover",
+  "replacement": "    -- TODO: the verification clause (`Verify` on `Ver`)."
+ }
+]
