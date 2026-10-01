@@ -1,0 +1,132 @@
+{-# OPTIONS --safe --without-K --guardedness #-}
+
+-- Domination at one fixed test (`Dp.Dom`/`Cofinal`) across a bind, for a transfer
+-- valid at one test only: a truncation scoring 0 under `indᵇ b` but 1 under
+-- `indᵇ (not b)` is neither `_≼ₚ_` nor `_≼ₚ[_]_`.  `Dom≤` also bounds the budget,
+-- for a target faithful only up to a depth.
+--
+-- The slack crosses a bind by convexity (`cum-shift`): a node's weights sum to
+-- one.
+
+open import Data.Bool.Base
+open import Data.Nat.Base renaming (_+_ to _+ℕ_; _≤_ to _≤ℕ_)
+open import Data.Nat.Properties as ℕP using ()
+open import Data.Product.Base
+open import Data.Rational as ℚ
+open import Data.Rational.Properties
+open import Data.Rational.Solver
+open import Data.Sum.Base
+open import Level
+open import Relation.Binary.PropositionalEquality
+
+open import ProbabilisticLogic.Dp
+
+module ProbabilisticLogic.Dp.Dominate where
+
+private variable
+  a : Level
+  A B : Set a
+  P : A → ℚ
+  ε : ℚ
+  d e : Dₚ A
+
+------------------------------------------------------------------------
+-- Convexity: a slack survives an average
+
+private
+  spread : (w₁ w₂ x₁ x₂ e : ℚ)
+         → w₁ ℚ.* (x₁ ℚ.+ e) ℚ.+ w₂ ℚ.* (x₂ ℚ.+ e)
+           ≡ (w₁ ℚ.* x₁ ℚ.+ w₂ ℚ.* x₂) ℚ.+ (w₁ ℚ.+ w₂) ℚ.* e
+  spread = solve 5 (λ w₁ w₂ x₁ x₂ e →
+    w₁ :* (x₁ :+ e) :+ w₂ :* (x₂ :+ e) := (w₁ :* x₁ :+ w₂ :* x₂) :+ (w₁ :+ w₂) :* e) refl
+    where open +-*-Solver
+
+  mix : (w₁ w₂ x₁ x₂ e : ℚ) → w₁ ℚ.+ w₂ ≡ 1ℚ
+      → w₁ ℚ.* (x₁ ℚ.+ e) ℚ.+ w₂ ℚ.* (x₂ ℚ.+ e) ≡ (w₁ ℚ.* x₁ ℚ.+ w₂ ℚ.* x₂) ℚ.+ e
+  mix w₁ w₂ x₁ x₂ e eq =
+    trans (spread w₁ w₂ x₁ x₂ e)
+          (cong ((w₁ ℚ.* x₁ ℚ.+ w₂ ℚ.* x₂) ℚ.+_)
+                (trans (cong (ℚ._* e) eq) (*-identityˡ e)))
+
+mutual
+  cum-shift : (n : ℕ) (d : Dₚ A) (P : A → ℚ) (ε : ℚ) → 0ℚ ℚ.≤ ε
+            → cum n d (λ p → P p ℚ.+ ε) ℚ.≤ cum n d P ℚ.+ ε
+  cum-shift zero    d P ε 0≤ε = ≤-trans 0≤ε (≤-reflexive (sym (+-identityˡ ε)))
+  cum-shift (suc n) d P ε 0≤ε =
+    ≤-trans (node-mono (wt d true) (wt d false) (wt-nn d true) (wt-nn d false)
+                       (leafₚ-shift n (br d true) P ε 0≤ε)
+                       (leafₚ-shift n (br d false) P ε 0≤ε))
+            (≤-reflexive (mix (wt d true) (wt d false)
+                              (leafₚ n (br d true) P) (leafₚ n (br d false) P)
+                              ε (wt-1 d)))
+
+  leafₚ-shift : (n : ℕ) (x : A ⊎ Dₚ A) (P : A → ℚ) (ε : ℚ) → 0ℚ ℚ.≤ ε
+              → leafₚ n x (λ p → P p ℚ.+ ε) ℚ.≤ leafₚ n x P ℚ.+ ε
+  leafₚ-shift n (inj₁ p)  P ε 0≤ε = ≤-refl
+  leafₚ-shift n (inj₂ d′) P ε 0≤ε = cum-shift n d′ P ε 0≤ε
+
+bind-const-zero : {A B : Set a} (P : B → ℚ) → NNF P → (c : B) → P c ≡ 0ℚ
+                → (d : Dₚ A) (n : ℕ) → cum n (d >>=ₚ λ _ → returnₚ c) P ℚ.≤ 0ℚ
+bind-const-zero P nn c eq d n =
+  ≤-trans (>>=ₚ-boundA n d (λ _ → returnₚ c) P nn)
+  (≤-trans (cum-mono-P n d (λ _ → cum n (returnₚ c) P) (λ _ → 0ℚ)
+             (λ _ → ≤-trans (returnₚ-cum-≤ n c P nn) (≤-reflexive eq)))
+           (≤-reflexive (cum-zero n d)))
+
+------------------------------------------------------------------------
+-- The relation
+
+Dom≤ : (A → ℚ) → ℕ → Dₚ A → Dₚ A → Set
+Dom≤ P f d e = (n : ℕ) → n ≤ℕ f → Σ[ m ∈ ℕ ] (cum n d P ℚ.≤ cum m e P)
+
+dom≤⇒cofinal : ((f : ℕ) → Dom≤ P f d e) → Cofinal P P d e
+dom≤⇒cofinal h n = h n n ℕP.≤-refl
+
+------------------------------------------------------------------------
+-- The bind congruence
+
+-- Module parameters, not `variable`s: see `Dp.Iter`.
+module _ {A B : Set a} (P : B → ℚ) (nn : NNF P) {ε : ℚ} (0≤ε : 0ℚ ℚ.≤ ε)
+         (d : Dₚ A) (f g : A → Dₚ B) (dm : (p : A) → Dom P ε (f p) (g p)) where
+
+  dom-bind : Dom P ε (d >>=ₚ f) (d >>=ₚ g)
+  dom-bind n =
+    n +ℕ i′
+    , ≤-trans (>>=ₚ-boundA n d f P nn)
+      (≤-trans (cum-mono-Supp n d (λ p → cum n (f p) P) (λ p → cum i′ (g p) P ℚ.+ ε) sp)
+      (≤-trans (cum-shift n d (λ p → cum i′ (g p) P) ε 0≤ε)
+               (+-monoˡ-≤ ε (>>=ₚ-boundB n i′ d g P nn))))
+    where
+    Φ : A → ℕ → Set
+    Φ p i = cum n (f p) P ℚ.≤ cum i (g p) P ℚ.+ ε
+
+    up : ∀ p {i i′} → i ≤ℕ i′ → Φ p i → Φ p i′
+    up p le q = ≤-trans q (+-monoˡ-≤ ε (cum-mono le (g p) P nn))
+
+    unif = uniformize Φ up (λ p → dm p n) n d
+    i′ = proj₁ unif
+    sp = proj₂ unif
+
+module _ {A B : Set a} (P : B → ℚ) (nn : NNF P) (k : ℕ)
+         (d : Dₚ A) (f g : A → Dₚ B) (dm : (p : A) → Dom≤ P k (f p) (g p)) where
+
+  dom≤-bind : Dom≤ P k (d >>=ₚ f) (d >>=ₚ g)
+  dom≤-bind n le =
+    n +ℕ i′
+    , ≤-trans (>>=ₚ-boundA n d f P nn)
+      (≤-trans (cum-mono-Supp n d (λ p → cum n (f p) P) (λ p → cum i′ (g p) P) sp)
+               (>>=ₚ-boundB n i′ d g P nn))
+    where
+    Φ : A → ℕ → Set
+    Φ p i = cum n (f p) P ℚ.≤ cum i (g p) P
+
+    up : ∀ p {i i′} → i ≤ℕ i′ → Φ p i → Φ p i′
+    up p le′ q = ≤-trans q (cum-mono le′ (g p) P nn)
+
+    unif = uniformize Φ up (λ p → dm p n le) n d
+    i′ = proj₁ unif
+    sp = proj₂ unif
+
+cofinal-bind : {A B : Set a} (P : B → ℚ) → NNF P → (d : Dₚ A) (f g : A → Dₚ B)
+             → ((p : A) → Cofinal P P (f p) (g p)) → Cofinal P P (d >>=ₚ f) (d >>=ₚ g)
+cofinal-bind P nn d f g dm = dom≤⇒cofinal λ k → dom≤-bind P nn k d f g (λ p n _ → dm p n)
