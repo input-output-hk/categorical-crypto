@@ -29,7 +29,6 @@ open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.EventBounds.Transport
 open import CategoricalCrypto.UC.Machine.Monitor.Agree
 open import CategoricalCrypto.UC.Machine.StateEvent
 open import CategoricalCrypto.UC.Machine.StateEvent.Adequacy

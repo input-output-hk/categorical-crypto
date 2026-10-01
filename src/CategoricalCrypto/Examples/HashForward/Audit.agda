@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- The toy's emulation as an event bound at the machine: the simulator is absorbed
--- into the adversary (`UC.Machine.EventBounds.Transport.bounded-absorb`), and its
+-- into the adversary (`UC.Machine.EventBounds.bounded-absorb`), and its
 -- two queries per `peekᴬ` (`Examples.HashForward.UC.simQB`) double the adversary's
 -- rate.  `real-factors` is an exact machine equality, so any bound on the ideal
 -- run carries to the real one with no slack.
@@ -20,7 +20,6 @@ open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Dictionary
 open import CategoricalCrypto.UC.Machine.EventBounds
-open import CategoricalCrypto.UC.Machine.EventBounds.Transport
 open import CategoricalCrypto.UC.Machine.Run
 
 module CategoricalCrypto.Examples.HashForward.Audit (Msg Dig : Set) where
