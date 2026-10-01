@@ -20,9 +20,9 @@ open import Categories.Category.Monoidal.Bundle
 open import Categories.Category.Monoidal.Pure
 import Categories.Category.Monoidal.Distributive as MD
 
-open import Data.Product.Base using (_,_)
+open import Data.Product.Base
 open import Level
-open import Relation.Binary.Construct.Composition using (_;_)
+open import Relation.Binary.Construct.Composition
 
 import CategoricalCrypto.Machines.Category as MCat
 import CategoricalCrypto.Machines.Core as Core

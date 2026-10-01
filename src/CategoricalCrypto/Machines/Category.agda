@@ -18,7 +18,7 @@ import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
 open import Data.Fin
 open import Data.Product
-open import Data.Vec using (_∷_; [])
+open import Data.Vec
 open import Level
 
 import CategoricalCrypto.Machines.Core as Core

@@ -13,7 +13,7 @@ open import Categories.Category.Monoidal.Pure
 open import Categories.Category.Monoidal.Symmetric
 open import Categories.Functor.Bifunctor
 open import Categories.Functor.Core
-open import Categories.Functor.Properties using ([_]-resp-≅)
+open import Categories.Functor.Properties
 open import Categories.NaturalTransformation.NaturalIsomorphism
 import Categories.Category.Cocartesian.Ext as CE
 import Categories.Category.Monoidal.Distributive as MD

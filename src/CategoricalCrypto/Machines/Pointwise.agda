@@ -10,7 +10,7 @@ open import Categories.Category.Monoidal.Bundle
 import Categories.Category.Construction.Kleisli.Discrete as KD
 import Categories.Category.Construction.Kleisli.Discrete.Pure as KDP
 
-open import Data.Product.Base using (_×_; _,_; proj₁; proj₂; swap)
+open import Data.Product.Base
 open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)
 open import Function.Base
 open import Level
