@@ -12,7 +12,7 @@ import Categories.Category.Construction.Kleisli.Discrete as KD
 
 open import Data.Product.Base
 open import Data.Sum.Base using (inj₁; inj₂; [_,_])
-open import Data.Unit.Polymorphic.Base using (tt)
+open import Data.Unit.Polymorphic.Base
 open import Function.Base
 
 module Categories.Category.Construction.Kleisli.Discrete.Pure {ℓ} (Mo : DiscreteMonad ℓ) where

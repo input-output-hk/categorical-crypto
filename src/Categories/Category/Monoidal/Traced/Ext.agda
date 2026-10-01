@@ -58,8 +58,8 @@ module _ (L : Laws) where
     open HomReasoning
     open import Categories.Category.Monoidal.Reasoning M
       using (⊗-distrib-over-∘; _⟩⊗⟨_; _⟩⊗⟨refl; refl⟩⊗⟨_; serialize₂₁)
-    open import Categories.Morphism.Reasoning C using (cancelˡ; elimʳ; pullˡ)
-    open import Data.Product using (_,_)
+    open import Categories.Morphism.Reasoning C
+    open import Data.Product
 
     g-trace : g ≈ trace (σ⇒ ∘ g ⊗₁ id)
     g-trace = ⟺ identityˡ ○ (⟺ yanking ⟩∘⟨refl) ○ trace-∘ʳ

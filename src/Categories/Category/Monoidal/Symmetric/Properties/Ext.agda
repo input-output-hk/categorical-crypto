@@ -9,7 +9,7 @@ open import Categories.Category.Monoidal.Symmetric
 import Categories.Category.Monoidal.Braided.Properties as BraidedProps
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
-open import Data.Product.Base using (_,_)
+open import Data.Product.Base
 
 module Categories.Category.Monoidal.Symmetric.Properties.Ext
   {o ℓ e} {C : Category o ℓ e} {M : Monoidal C} (S : Symmetric M) where

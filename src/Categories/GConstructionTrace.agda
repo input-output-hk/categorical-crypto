@@ -78,15 +78,15 @@ mid-σ = C.switch-fromtoʳ (IS.swapInner-iso C.symmetric) (C.assoc ○ mid-braid
 -- these are its `swapInner-unitˡ`/`-unitʳ`/`-assoc` read through the conjugation.
 module _ where
   open C
-  open import Categories.Category.Construction.Core C using (module Shorthands)
-  open import Categories.Category.Monoidal.Properties Monoidal using (module Kelly's)
+  open import Categories.Category.Construction.Core C
+  open import Categories.Category.Monoidal.Properties Monoidal
   open import Categories.Category.Monoidal.Reasoning Monoidal using (⊗-distrib-over-∘; _⟩⊗⟨_; _⟩⊗⟨refl)
-  open import Categories.Category.Monoidal.Symmetric.Properties.Ext symmetric using (σ-unit)
+  open import Categories.Category.Monoidal.Symmetric.Properties.Ext symmetric
   open import Categories.Category.Monoidal.Utilities Monoidal using (_⊗ᵢ_)
-  open import Categories.Morphism C using (module ≅; _≅_)
-  open import Categories.Morphism.IsoEquiv C using (to-unique)
+  open import Categories.Morphism C
+  open import Categories.Morphism.IsoEquiv C
   open import Categories.Morphism.Reasoning C hiding (introˡ; pullʳ; elimʳ; switch-fromtoʳ)
-  open import Categories.Tactic.Category using (solve)
+  open import Categories.Tactic.Category
   open Kelly's
   open Shorthands
 
