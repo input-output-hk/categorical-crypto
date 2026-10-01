@@ -82,8 +82,6 @@ module _ {X Y : FilteredSpace c ℓa ℓd} where
   _≈ᶠ_ : Filtered X Y → Filtered X Y → Set (c ⊔ es ⊔ ℓe ⊔ ℓa ⊔ i ⊔ ℓ≈)
   f ≈ᶠ g = (underlying f ≈ᶜ underlying g) × ((q : Ix) → ⟦ allowance f ⟧ q ≈ ⟦ allowance g ⟧ q)
 
-  -- Spelled out rather than lifted through `≈ᶜ-isEquivalence`: even with that
-  -- lemma's spaces named, its `Controlled` implicits are not inferable here.
   ≈ᶠ-isEquivalence : IsEquivalence _≈ᶠ_
   ≈ᶠ-isEquivalence = record
     { refl  = (≐-reflexive refl , λ _ → SY.≈[]-refl) , λ _ → Eq.refl

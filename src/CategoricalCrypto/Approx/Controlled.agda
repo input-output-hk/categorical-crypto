@@ -26,15 +26,10 @@
 -- prove it otherwise.  Composition respects that equality because a control is
 -- monotone and preserves zero, which is where those two laws are spent.
 
-open import Categories.Category using (Category)
-open import Categories.Category.Instance.Setoids using (Setoids)
-open import Categories.Functor using (Functor)
-
 open import Data.Product.Base using (_×_; _,_)
-open import Level using (Level; suc; _⊔_)
+open import Level using (Level; _⊔_)
 open import Relation.Binary.Morphism.Bundles
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open import Relation.Binary.Structures using (IsEquivalence)
 
 import Relation.Binary.Morphism.Construct.Composition as Comp
 import Relation.Binary.Morphism.Construct.Identity as Id
@@ -117,15 +112,6 @@ module _ {X Y : ApproxSpace c ℓa} where
   f ≈ᶜ g = (control f ≐ᶜ control g)
          × ((x : ApproxSpace.Carrier X) → map f x Y.≈[ ε₀ ] map g x)
 
-  ≈ᶜ-isEquivalence : IsEquivalence _≈ᶜ_
-  ≈ᶜ-isEquivalence = record
-    { refl  = ≐-reflexive refl , λ _ → Y.≈[]-refl
-    ; sym   = λ ((l , r) , me) → (r , l) , λ x → Y.≈[]-sym (me x)
-    ; trans = λ ((l₁ , r₁) , me₁) ((l₂ , r₂) , me₂) →
-        ( (λ ε → ⊑-trans (l₁ ε) (l₂ ε)) , λ ε → ⊑-trans (r₂ ε) (r₁ ε) )
-        , λ x → Y.≈[]-mono ⊕-identityˡ (Y.≈[]-trans (me₁ x) (me₂ x))
-    }
-
 identityᶜ : {X : ApproxSpace c ℓa} → Controlled X X
 identityᶜ = record { map = λ x → x ; control = idᶜ ; preserves = λ h → h }
 
@@ -151,52 +137,3 @@ composeᶜ-resp {Z = Z} {g = g} {f′ = f′} ((l₁ , r₁) , me₁) ((l₂ , r
   where module Z = ApproxSpace Z
         ψ  = Controlled.control g
         φ′ = Controlled.control f′
-
-Ctrl : (c ℓa : Level)
-     → Category (suc (c ⊔ ℓa) ⊔ es ⊔ ℓe) (c ⊔ es ⊔ ℓe ⊔ ℓa) (c ⊔ es ⊔ ℓe ⊔ ℓa)
-Ctrl c ℓa = record
-  { Obj       = ApproxSpace c ℓa
-  ; _⇒_       = Controlled
-  ; _≈_       = _≈ᶜ_
-  ; id        = identityᶜ
-  ; _∘_       = composeᶜ
-  ; assoc     = λ {_} {_} {_} {D} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl D
-  ; sym-assoc = λ {_} {_} {_} {D} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl D
-  ; identityˡ = λ {_} {B} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl B
-  ; identityʳ = λ {_} {B} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl B
-  ; identity² = λ {A} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl A
-  ; equiv     = λ {A} {B} → ≈ᶜ-isEquivalence {X = A} {Y = B}
-  ; ∘-resp-≈  = λ {A} {B} {C} {f} {h} {g} {i} →
-      composeᶜ-resp {X = A} {Y = B} {Z = C} {g = f} {g′ = h} {f = g} {f′ = i}
-  }
-
-------------------------------------------------------------------------
--- Links to the exact theories
-
-include : Functor (Approx c ℓa) (Ctrl c ℓa)
-include = record
-  { F₀ = λ X → X
-  ; F₁ = λ f → record
-      { map = Nonexpansive.map f ; control = idᶜ
-      ; preserves = Nonexpansive.preserves f }
-  ; identity     = λ {A} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl A
-  ; homomorphism = λ {_} {_} {Z} → ≐-reflexive refl , λ _ → ApproxSpace.≈[]-refl Z
-  ; F-resp-≈     = λ {_} {B} e → ≐-reflexive refl , e
-  }
-
--- `Control.preserves-ε₀` is the whole content of the other direction: an
--- ε₀-comparison is carried to an `at φ ε₀`-comparison, which is one again, so
--- the resource-aware theory spends presheaf laws as exact zero-error steps
--- just as the nonexpansive one does through `Approx.Forget.F₀`.
-F₀ᶜ : (c ℓa : Level) → Functor (Ctrl c ℓa) (Setoids c ℓa)
-F₀ᶜ c ℓa = record
-  { F₀ = zeroSetoid
-  ; F₁ = λ {_} {B} f → record
-      { to   = Controlled.map f
-      ; cong = λ h → ApproxSpace.≈[]-mono B
-          (Control.preserves-ε₀ (Controlled.control f)) (Controlled.preserves f h)
-      }
-  ; identity     = λ {A} → ApproxSpace.≈[]-refl A
-  ; homomorphism = λ {_} {_} {Z} → ApproxSpace.≈[]-refl Z
-  ; F-resp-≈     = λ (_ , me) {x} → me x
-  }
