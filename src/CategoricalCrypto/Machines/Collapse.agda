@@ -68,7 +68,7 @@ private
 γᶠ (inj₂ (inj₁ r)) = inj₂ (inj₂ r)
 γᶠ (inj₂ (inj₂ s)) = inj₁ (inj₁ s)
 
-α-pure : (P Q R N : Set) → W.α {R} {N} {P} {Q} S.≈ᴹ pureᶠ (αᶠ {P} {Q} {R} {N})
+α-pure : (P Q R N : Set) → W.α S.≈ᴹ pureᶠ (αᶠ)
 α-pure P Q R N =
   ∘ᶠ (∘ᶠ (∘ᶠ (∘ᶠ (∘ᶠ (α⇒ᶠ P Q (R ⊎ N)) (⊗ᶠ (idᶠ P) (α⇐ᶠ Q R N)))
                  (⊗ᶠ (idᶠ P) (⊗ᶠ (σᶠ Q R) (idᶠ N))))
@@ -81,7 +81,7 @@ private
     (inj₂ (inj₁ _)) → refl
     (inj₂ (inj₂ _)) → refl)))
 
-γ-pure : (P Q R N : Set) → W.γ {P} {N} {R} {Q} S.≈ᴹ pureᶠ (γᶠ {P} {Q} {R} {N})
+γ-pure : (P Q R N : Set) → W.γ S.≈ᴹ pureᶠ (γᶠ)
 γ-pure P Q R N =
   ∘ᶠ (∘ᶠ (∘ᶠ (∘ᶠ (∘ᶠ (∘ᶠ (⊗ᶠ (idᶠ (P ⊎ Q)) (σᶠ R N)) (α⇒ᶠ P Q (N ⊎ R)))
                      (⊗ᶠ (idᶠ P) (α⇐ᶠ Q N R)))
@@ -128,12 +128,12 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
                     S.≈ᴹ composeᴳ g f
     compose-raw≈ᴳ = ℳ.Equiv.sym (GC.composeᴳ-raw ℳ.U ℳ.monoidal (Tracedₚ 0ℓ))
 
-    compose≈∘ᴳ : composeᴳ g f S.≈ᴹ 𝒢._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {C⁺ , C⁻} g f
+    compose≈∘ᴳ : composeᴳ g f S.≈ᴹ 𝒢._∘_ g f
     compose≈∘ᴳ = S.reflᴹ
 
     compose-raw≈∘ᴳ : MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺)
                        (W.α MC.∘ᴹ ((g T.⊗ᵉ f) MC.∘ᴹ W.γ))
-                     S.≈ᴹ 𝒢._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {C⁺ , C⁻} g f
+                     S.≈ᴹ 𝒢._∘_ g f
     compose-raw≈∘ᴳ = compose-raw≈ᴳ S.○ᴹ compose≈∘ᴳ
 
   Sᴳ : MC.State
@@ -214,13 +214,13 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
             ⟨≈⟩ >>=ₚ-identityˡ ((sg , sf) , inj₁ (inj₁ b)) tw)
       ⟨≈⟩ onLcase sg sf (inj₁ b)
 
-    inner : ((g T.⊗ᵉ f) MC.∘ᴹ W.γ {A⁺} {B⁺} {B⁻} {C⁻}) S.≈ᴹ mid
+    inner : ((g T.⊗ᵉ f) MC.∘ᴹ W.γ) S.≈ᴹ mid
     inner = Cat.∘ᴹ-resp-≈ᴹ S.reflᴹ (γ-pure A⁺ C⁻ B⁻ B⁺)
        S.○ᴹ S.≲⇒≈ᴹ (T.pure-∘ʳ (K.pureᵏ ĉ) (g T.⊗ᵉ f))
 
   -- The body of `𝒢ₚ`'s composite, both legs absorbed.
-  outer : (W.α {A⁻} {B⁺} {B⁻} {C⁺} MC.∘ᴹ
-            ((g T.⊗ᵉ f) MC.∘ᴹ W.γ {A⁺} {B⁺} {B⁻} {C⁻}))
+  outer : (W.α MC.∘ᴹ
+            ((g T.⊗ᵉ f) MC.∘ᴹ W.γ))
           S.≈ᴹ MC.mk Sᴳ kᴳ
   outer = Cat.∘ᴹ-resp-≈ᴹ (α-pure B⁻ C⁺ A⁻ B⁺) inner
      S.○ᴹ S.≲⇒≈ᴹ (T.pure-∘ˡ (K.pureᵏ â) mid)
@@ -228,10 +228,10 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
 
   -- `𝒢ₚ`'s composite, up to the record projection (see the header).
   collapseᵀ : MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺)
-                (W.α {A⁻} {B⁺} {B⁻} {C⁺} MC.∘ᴹ
-                  ((g T.⊗ᵉ f) MC.∘ᴹ W.γ {A⁺} {B⁺} {B⁻} {C⁻}))
+                (W.α MC.∘ᴹ
+                  ((g T.⊗ᵉ f) MC.∘ᴹ W.γ))
               S.≈ᴹ MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺) (MC.mk Sᴳ kᴳ)
-  collapseᵀ = TC.trace-resp-≈ᴹ {A⁺ ⊎ C⁻} {A⁻ ⊎ C⁺} {B⁻ ⊎ B⁺} outer
+  collapseᵀ = TC.trace-resp-≈ᴹ outer
 
 ------------------------------------------------------------------------
 -- A traced machine's step at a point

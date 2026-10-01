@@ -62,7 +62,7 @@ onLR-α g = solve-mor 𝕄
 -- parser being unable to recover them itself; the objects are bound on the
 -- left because the solver's atom vector needs them.
 onL-α : (h : P ⊗₀ X ⇒ P ⊗₀ Y)
-      → α⇒ {P} {Q} ⊗₁ id ∘ onL (onL h)
+      → α⇒ {P} ⊗₁ id ∘ onL (onL h)
       ≈ onL {Q = Q ⊗₀ R} h ∘ α⇒ ⊗₁ id
 onL-α {P = P} {X = X} {Y = Y} {Q = Q} {R = R} h = solved ○ ⟺ (((refl⟩∘⟨ refl⟩⊗⟨ σ-splitˡ ⟩∘⟨refl) ⟩∘⟨ refl⟩∘⟨ (refl⟩∘⟨ refl⟩⊗⟨ σ-splitʳ ⟩∘⟨refl)) ⟩∘⟨refl)
   where

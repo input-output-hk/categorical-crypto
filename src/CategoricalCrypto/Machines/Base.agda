@@ -75,14 +75,14 @@ Dₚ-DiscreteMonad = record
   }
 
 𝒱ₚ : (ℓ : Level) → SymmetricMonoidalCategory (suc ℓ) ℓ ℓ
-𝒱ₚ ℓ = KD.Klᴹ-SymmetricMonoidal (Dₚ-DiscreteMonad {ℓ})
+𝒱ₚ ℓ = KD.Klᴹ-SymmetricMonoidal (Dₚ-DiscreteMonad)
 
 distₚ : (ℓ : Level) → MD.MonoidalDistributive (𝒱ₚ ℓ)
-distₚ ℓ = KDD.MonoidalDistributiveᵏ (Dₚ-DiscreteMonad {ℓ})
+distₚ ℓ = KDD.MonoidalDistributiveᵏ (Dₚ-DiscreteMonad)
 
 -- The pure state maps: `iterₚ` transfers along these and no others.
 𝒫ₚ : (ℓ : Level) → PureSub (𝒱ₚ ℓ)
-𝒫ₚ ℓ = KDP.PureSubᵏ (Dₚ-DiscreteMonad {ℓ})
+𝒫ₚ ℓ = KDP.PureSubᵏ (Dₚ-DiscreteMonad)
 
 module Elgotᵏ (ℓ : Level) where
   open DiscreteMonad (Dₚ-DiscreteMonad {ℓ})
@@ -258,7 +258,7 @@ Elgotₚ ℓ = record
   }
   where
   open Elgotᵏ ℓ
-  open KDP (Dₚ-DiscreteMonad {ℓ})
+  open KDP (Dₚ-DiscreteMonad)
 
 ------------------------------------------------------------------------
 -- The machine category

@@ -38,12 +38,12 @@ _↑ : ∀ {m m' A B} → A [ m ]⇒[ m' ]ᵍ B → A [ m ]⇒[ m' ] B
 (x ᵗ²) ↑ = (x ↑) ⇒ₜ ⇒-negate-transpose-left
 
 _↑ᵢ_ : ∀ {m' A B} → A [ In ]⇒[ m' ]ᵍ B → modeType In A → modeType m' B
-_↑ᵢ_ p = app (_↑ {In} p)
+_↑ᵢ_ p = app (_↑ p)
 
 _↑ₒ_ : ∀ {m' A B} → A [ Out ]⇒[ m' ]ᵍ B → modeType Out A → modeType m' B
-_↑ₒ_ p = app (_↑ {Out} p)
+_↑ₒ_ p = app (_↑ p)
 
-instance _ = Functor-M ⦃ Class.Monad.Monad-TC ⦄
+instance _ = Functor-M
 
 ⇒-solver-tactic' : TC ⊤
 ⇒-solver-tactic' =
