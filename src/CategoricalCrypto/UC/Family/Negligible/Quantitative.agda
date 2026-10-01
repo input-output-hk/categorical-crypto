@@ -51,11 +51,13 @@ module CategoricalCrypto.UC.Family.Negligible.Quantitative
 
 open import CategoricalCrypto.UC.Family M qro Rg Ix κ κ-cofinal using (Famᴹ)
 
+-- `using` keeps each copy small; see `UC.Family.Quantitative`.
 private
-  module N   = Negᴹ   M qro Rg Ix κ κ-cofinal
-  module Set = Setupᴹ M qro Rg Ix κ κ-cofinal
-  module Cᴺ  = Set.Canonicalᴺ
-  module Qr  = QEvaluation qro
+  module N  = Negᴹ M qro Rg Ix κ κ-cofinal
+    using (Evaluationᴺ; QEvaluationᴺ; ∼ᴺ-isEquivalence; negligible)
+  module Cᴺ = Setupᴹ.Canonicalᴺ M qro Rg Ix κ κ-cofinal
+    using (Channel; _⇒_; T₀; _∘_; _≈ᵁ_; _≤UC_; StdSetup; module KE)
+  module Qr = QEvaluation qro
   open Evaluation N.Evaluationᴺ using (Closure; observe)
   open Observable (Evaluation.observable N.Evaluationᴺ) using (Test; _≋_)
 
@@ -65,7 +67,9 @@ module Qᴺ = Observedᴹ Famᴹ (pointwise ℕ ℚ-ordered) N.QEvaluationᴺ
                      N.∼ᴺ-isEquivalence (λ h → (λ _ → 0ℚ) , Negligible-0 , h)
 
 private
-  module Sm = Qᴺ.Quant.Small N.negligible
+  module Sm where
+    open Qᴺ.Quant.Small N.negligible public using (small-emulation⇐)
+    module Aˢ = Qᴺ.Quant.Small.Aˢ N.negligible using (_≈ᵁ_; _≤UC_; module KE)
 
 setupᴺ⁺ : UCSetup o (ℓ ⊔ qs) e o (ℓ ⊔ qs) e (ℓ ⊔ qs) (ℓ ⊔ qs ⊔ ℓa)
 setupᴺ⁺ = Qᴺ.Quant.underlyingSmall N.negligible
