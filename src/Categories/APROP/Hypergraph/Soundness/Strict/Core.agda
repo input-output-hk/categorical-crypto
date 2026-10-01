@@ -1,0 +1,76 @@
+{-# OPTIONS --safe --without-K #-}
+
+--------------------------------------------------------------------------------
+-- The strict SMC instance the strictified soundness pipeline works in:
+-- `FreeStrictSMC.Build` over the flat graph generators `FlatGen`, plus the two
+-- pieces of the strictification that mention nothing outside it: the object
+-- coercions `coe` and the strictification functor `st`.  Kept light (no
+-- boundary imports) so the DECODER side depends on it alone; the embedding
+-- back into the free SMC (`embF`, `st-roundtrip`) needs `Embed`/`Bridge/*`
+-- and lives in `Strict.Soundness`.
+--------------------------------------------------------------------------------
+
+open import Categories.APROP
+
+module Categories.APROP.Hypergraph.Soundness.Strict.Core
+  (sig : APROPSignature)
+  where
+
+open APROP sig
+
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig using (FlatGen; flat; flatten)
+open import Categories.FreeStrictSMC using (module Build)
+open import Data.List.Properties using (++-assoc; ++-identityʳ)
+
+open Build X _≟X_ FlatGen public
+
+--------------------------------------------------------------------------------
+-- `genˢ` commutes with `castˢ`: a boundary transport of a generator is the
+-- generator of the transported `FlatGen` (`refl refl` matched).  Lives here
+-- because the `Decode` chain reaches it publicly and BOTH decoder modules
+-- that need it (`DecodeGen`, `DecodeCompose`) once spelled their own copy.
+
+gen-cast
+  : ∀ {as as' bs bs'} (p : as ≡ as') (q : bs ≡ bs') (x : FlatGen as bs)
+  → castˢ p q (genˢ x) ≡ genˢ (subst₂ FlatGen p q x)
+gen-cast refl refl x = refl
+
+--------------------------------------------------------------------------------
+-- `coe`: the object-equality coercions the structural atoms become.
+
+coe : ∀ {xs ys : List X} → xs ≡ ys → HomS xs ys
+coe p = castˢ refl p idˢ
+
+coe-id≈ : ∀ {xs} (p : xs ≡ xs) → coe p ≈ˢ idˢ
+coe-id≈ p = cast-id refl p
+
+coe-uip : ∀ {xs ys} (p q : xs ≡ ys) → coe p ≈ˢ coe q
+coe-uip p q = ≡⇒≈ˢ (cast-irrel refl refl p q idˢ)
+
+coe-cancel : ∀ {xs ys} (p : xs ≡ ys) → coe (sym p) ∘ˢ coe p ≈ˢ idˢ
+coe-cancel refl = idˡ
+
+coe-cancelʳ : ∀ {xs ys} (p : xs ≡ ys) → coe p ∘ˢ coe (sym p) ≈ˢ idˢ
+coe-cancelʳ refl = idˡ
+
+-- a cast as conjugation by `coe`s
+coe-conj
+  : ∀ {xs xs' ys ys'} (p : xs ≡ xs') (q : ys ≡ ys') (t : HomS xs ys)
+  → castˢ p q t ≈ˢ coe q ∘ˢ t ∘ˢ coe (sym p)
+coe-conj refl refl t = ≈-sym (≈-trans idˡ idʳ)
+
+--------------------------------------------------------------------------------
+-- The strictification functor.
+
+st : ∀ {A B} → HomTerm A B → HomS (flatten A) (flatten B)
+st (Agen g)         = genˢ (flat g)
+st id               = idˢ
+st (g ∘ f)          = st g ∘ˢ st f
+st (f ⊗₁ g)         = st f ⊗ˢ st g
+st λ⇒               = idˢ
+st λ⇐               = idˢ
+st (ρ⇒ {A})         = coe (++-identityʳ (flatten A))
+st (ρ⇐ {A})         = coe (sym (++-identityʳ (flatten A)))
+st (α⇒ {A} {B} {C}) = coe (++-assoc (flatten A) (flatten B) (flatten C))
+st (α⇐ {A} {B} {C}) = coe (sym (++-assoc (flatten A) (flatten B) (flatten C)))
+st (σ {A} {B})      = σˢ (flatten A) (flatten B)

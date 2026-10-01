@@ -8,15 +8,6 @@ open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
 
-open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
-
-data CRST : Mode → Type where
-  Gen : CRST In
-  Res : List Bool → CRST Out
-
-CRS : Channel
-CRS = simpleChannel CRST
-
 module COM where
 
   data ComT : Mode → Type where

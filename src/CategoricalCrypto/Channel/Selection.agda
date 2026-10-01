@@ -1,5 +1,4 @@
 {-# OPTIONS --safe --no-require-unique-meta-solutions #-}
-{-# OPTIONS -v allTactics:100 #-}
 
 module CategoricalCrypto.Channel.Selection where
 
@@ -11,14 +10,10 @@ open import Data.Sum hiding (reduce)
 open import Data.List renaming (map to mapₗ)
 open import Reflection.AST.Term
 open import Reflection.Tactic
-open import Reflection.Utils
 open import Reflection.Utils.TCI
 open import Class.Monad
-open import Class.Functor
 open import Class.MonadError.Instances
-open import Class.MonadReader.Instances
 open import Class.MonadTC.Instances hiding (_ᵗ)
-open import Function
 
 infix 4 _[_]⇒[_]ᵍ_
 

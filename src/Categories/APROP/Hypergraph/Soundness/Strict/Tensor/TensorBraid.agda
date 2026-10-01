@@ -1,0 +1,764 @@
+{-# OPTIONS --safe --without-K #-}
+
+--------------------------------------------------------------------------------
+-- The K-BLOCK BRAID `braidˢ` of `Strict.Tensor.TensorReconcile` — the LAST
+-- residual of the strict ⊗-shape
+-- `decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g` — AND, since the round-6
+-- TKB collapse, its DISCHARGE.  The whole K-block argument is here: the
+-- residual `KBlockσ`, the ⊗-shape conditional on it, `Reconcile-e` — the
+-- derivation that proves it — and the final wiring
+-- `decodePˢ-⊗-concrete`, which applies `Reconcile-e.kblockσ` to
+-- `Braid.decodePˢ-⊗-cond` (the former `TensorKBlockFinal`).
+--
+-- `⟪ f ⊗₁ g ⟫ = hTensor ⟪f⟫ ⟪g⟫`, edges `range C.nE = gblk ++ kblk`
+-- (`gblk = map (_↑ˡ K.nE)(range G.nE)`, `kblk = map (G.nE ↑ʳ_)(range K.nE)`),
+-- boundary `map injL G.dom ++ map injR K.dom` / `… cod …`.
+--
+-- STRATEGY (mirror of the former non-strict `DecodeTensorShape` assembly tail, ~3800
+-- LOC, but riding the proven strict substrate):
+--
+--   1. RUN-SPLIT.  `proj₂ runˢ` factors over `gblk ++ kblk` as
+--      `(K-block run on after-G) ∘ˢ (G-block run on C.dom)` — PROVEN
+--      `DecodeCompose.RunBlocks.pe-term-++ˢ`.
+--   2. G-BLOCK FRAME.  The G-block run factors `(G-run on injL G.dom) ⊗ˢ
+--      idˢ {map injR K.dom}` via the proven right-frame `Decoder.term-sepᵛ`
+--      (assembled as `gframe` below); the G-run is bridged to
+--      `decodePˢ f` through `TermEmbedˢ` at `φ = injL, ψ = _↑ˡ K.nE`.
+--   3. K-BLOCK BRAID.  After G fires, the K-edge block acts on the `injR`
+--      suffix but PREPENDS K's outputs in FRONT of `injL G.cod`, giving a
+--      BRAIDED stack.  This is the genuine residual `KBlockσ` below (the
+--      strict twin of the non-strict `kblock-factor` + `box-braid`): one
+--      clearly-typed `≈ˢ` stating the K-block run on the clean mixed stack
+--      `map injL sG ++ map injR K.dom` factors as a `permuteˢ` braid
+--      composed with `idˢ {injL sG} ⊗ˢ (K-run)`.  The K-run is bridged to
+--      `decodePˢ g` through `TermEmbedˢ` at `φ = injR, ψ = G.nE ↑ʳ_`.
+--   4. EQUIVARIANCE.  `process-edges-equivariantˢ` conjugates the K-block on
+--      the actual `after-G` stack onto the canonical clean stack — the route
+--      `Reconcile-e` below takes to discharge `KBlockσ`.
+--   5. CANONICAL `cand` + FINAL RESORT.  `cand` is the assembled derivation;
+--      `TensorReconcile.final-resortˢ` (`perm-rigidˢ`, `Unique` cod) closes
+--      the loop with `finalPermˢ`.
+--
+-- WHAT IS GREEN HERE (postulate-free, `--safe --without-K`), in file order:
+--   * `KBlockDisjoint` — the `injL`/`injR` block disjointness both steps 2
+--     and 3 need, plus the one home of the two edge injections `ψG`/`ψK`.
+--   * `Embeds`' `TG` / `TK` — the G-/K-side `TermEmbedˢ` instances, giving the
+--     two block term-twins.
+--   * `Braid.braidˢ-from-kblock` — the run-split (`split-eq`, from the proven
+--     `run-split-atˢ`) and the G-frame (`gframe`, from the proven `term-sepᵛ`)
+--     substituted into the C-run, reducing `braidˢ` — hence the whole ⊗-shape
+--     — to the single clearly-typed K-block residual `KBlockσ`.
+--   * `Braid.decodePˢ-⊗-cond` — the ⊗-shape THEOREM, conditional on
+--     `KBlockσ`, which the next item then discharges.
+--   * `Braid.Reconcile-e` — the (e)-RECONCILE, the file's largest population
+--     (from its own banner below to just before the final wiring).  It DERIVES the
+--     K-block run factorization here (`kfac`: equivariance + right-frame
+--     separability + σ-conjugation), reconciles it to the residual
+--     (`KBlockσ-from-factorization`), and closes with `kblockσ : KBlockσ`.
+--     So the conditional theorem above is discharged IN THIS FILE and nothing
+--     downstream carries `KBlockσ` as a hypothesis.
+--   * `decodePˢ-⊗-concrete` — the final wiring: the UNCONDITIONAL ⊗-shape,
+--     at the exact type of `PartI`'s / `Strict.Soundness`'s `decodePˢ-⊗`
+--     parameter.  This is the file's last definition.
+--   * `Reconcile-e`'s own statements are HETEROGENEOUS (`_≈̂_`) wherever a
+--     homogeneous one would have to name a cast path (`Gc-≈̂`, `Kc-≈̂`,
+--     `comb-frame`, `W-≈̂`, `stepD`, `target-≈̂`, and
+--     `DecodeCompose.TermEmbedˢ.term-emb-≈̂` from outside) — which is why NO
+--     `cast-fuse` / `cast-irrel` / `∘-cast-split` endpoint algebra survives
+--     anywhere in this file.
+--------------------------------------------------------------------------------
+
+open import Categories.APROP
+
+module Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorBraid
+  (sig : APROPSignature)
+  where
+
+open APROP sig
+
+open import Categories.APROP.Hypergraph.Model.Core using (Hypergraph)
+open import Categories.APROP.Hypergraph.Model.FromAPROP sig
+  using (FlatGen; range; hTensor; module hTensor-impl; map-via)
+open import Categories.APROP.Hypergraph.Model.Translation sig using (⟪_⟫; ⟪⟫-domL; ⟪⟫-codL)
+
+open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig
+open import Categories.Morphism.Reasoning SCat using (pullʳ; cancelInner)
+open import Categories.Tactic.Category using (solve)
+open import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.StackEquiv sig
+  using (module EquivStep)
+open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
+  using (extract-elem)
+open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
+  using (extract-elem-↑ˡ-on-↑ʳ-list; extract-elem-↑ʳ-on-↑ˡ-list)
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeCompose sig as DC
+import Categories.APROP.Hypergraph.Soundness.Strict.Decode.DecodeShapes sig as DSh
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.BlockSwapComm sig as BSC
+import Categories.APROP.Hypergraph.Soundness.Strict.Tensor.TensorReconcile sig as TR
+import Categories.APROP.Hypergraph.Soundness.Strict.Interchange.PermCalc sig as PC
+open import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermRelabel sig
+  using (pvv-≈̂)
+import Categories.APROP.Hypergraph.Soundness.Discharge.DecodeAttemptLinearP sig as DAL
+import Categories.APROP.Hypergraph.Soundness.Stack.StackUnique sig as SU
+import Categories.APROP.Hypergraph.Soundness.Stack.StackUniqueReach sig as SUR
+
+open import Data.Fin using (Fin; _↑ˡ_; _↑ʳ_)
+open import Data.Fin.Properties using (↑ˡ-injective; ↑ʳ-injective)
+open import Data.Maybe using (nothing)
+open import Data.List.Relation.Unary.All using (All; universal)
+open import Data.List.Relation.Unary.All.Properties using (map⁺)
+open Perm using (_↭_)
+
+--------------------------------------------------------------------------------
+-- ## Block disjointness at the concrete `hTensor` layout, both sides.
+--
+-- K-side: the K-edge inputs `C.ein (ψK eK) = map injR (K.ein eK)` are disjoint
+-- from any `injL`-block `map injL P` — the side condition `KBlockσ`'s
+-- `disj-kblk` needs at `P = s_G_final`, `e = ψK eK`, and through it the
+-- `stack-sepˢ`/`term-sepᵛ` separability of the K-block run on the
+-- block-swapped stack.
+-- G-side (the mirror `gblock-ein-disjoint`/`gblock-disjoint`): the G-block's
+-- inputs are absent from the `injR` residual `map injR K.dom` — the
+-- `stack-sepˢ`/`term-sepᵛ` side condition the G-frame (`Braid.gframe`)
+-- consumes.
+-- Also the one home of the two EDGE injections `ψG`/`ψK`.
+
+module KBlockDisjoint (G K : Hypergraph FlatGen) where
+  private
+    module G = Hypergraph G
+    module K = Hypergraph K
+    module C = Hypergraph (hTensor G K)
+  open hTensor-impl G K using (injL; injR; ein-c-inj₁-red; ein-c-inj₂-red)
+  open StrictDecoder (hTensor G K) using (vl; ein-disjoint; block-disjoint)
+
+  ψK : Fin K.nE → Fin C.nE
+  ψK eK = G.nE ↑ʳ eK
+
+  ψG : Fin G.nE → Fin C.nE
+  ψG eG = eG ↑ˡ K.nE
+
+  -- `ein-disjoint (ψK eK) (map injL P)` / `(ψG eG) (map injR Q)` at
+  -- `H = hTensor G K`: the block's inputs are all on the other side.  The
+  -- element-level facts are the decode layer's own
+  -- `extract-elem-↑ʳ-on-↑ˡ-list` / `-↑ˡ-on-↑ʳ-list` at `injR = G.nV ↑ʳ_`,
+  -- `injL = _↑ˡ K.nV`; `map⁺ ∘ universal` lifts them over the block, exactly
+  -- as `DecodeProperties`' own `extract-prefix-↑*-on-mixed-nothing` do.
+  kblock-ein-disjoint
+    : ∀ (eK : Fin K.nE) (P : List (Fin G.nV))
+    → All (λ k → extract-elem k (map injL P) ≡ nothing) (C.ein (ψK eK))
+  kblock-ein-disjoint eK P =
+    subst (All (λ k → extract-elem k (map injL P) ≡ nothing))
+          (sym (ein-c-inj₂-red eK))
+          (map⁺ (universal (λ j → extract-elem-↑ʳ-on-↑ˡ-list G.nV j P) (K.ein eK)))
+
+  gblock-ein-disjoint : ∀ (eG : Fin G.nE) (Q : List (Fin K.nV)) → ein-disjoint (ψG eG) (map injR Q)
+  gblock-ein-disjoint eG Q =
+    subst (All (λ k → extract-elem k (map injR Q) ≡ nothing))
+          (sym (ein-c-inj₁-red eG))
+          (map⁺ (universal (λ k → extract-elem-↑ˡ-on-↑ʳ-list k Q) (G.ein eG)))
+
+  gblk : List (Fin C.nE)
+  gblk = map (_↑ˡ K.nE) (range G.nE)
+
+  -- the whole G-block's inputs are absent from the `injR` residual.
+  gblock-disjoint : block-disjoint gblk (map injR K.dom)
+  gblock-disjoint =
+    map⁺ (universal (λ e → gblock-ein-disjoint e K.dom) (range G.nE))
+
+--------------------------------------------------------------------------------
+-- ## The two block embeddings.
+--
+-- These instantiate the proven strict `TermEmbedˢ` (the relabelling-
+-- equivariance gate), giving each block run as a relabel of the matching
+-- sub-decoder run.  The injectivity / label / endpoint fields all transfer
+-- from `hTensor-impl`.
+
+module Embeds (G K : Hypergraph FlatGen) where
+  private
+    module G = Hypergraph G
+    module K = Hypergraph K
+    module C = Hypergraph (hTensor G K)
+  open hTensor-impl G K public
+    using ( injL; injR; vlab-injL; vlab-injR
+          ; ein-c-inj₁-red; eout-c-inj₁-red; ein-c-inj₂-red; eout-c-inj₂-red
+          ; elab-c-inj₁; elab-c-inj₂ )
+  -- the two edge injections, from their one home above.
+  open KBlockDisjoint G K using (ψG; ψK)
+
+  ------------------------------------------------------------------------
+  -- G-side embedding: φ = injL, ψ = _↑ˡ K.nE, H = G, J = hTensor G K.
+  --
+  -- `atom-ein`/`atom-eout`/`ψ-elab` are DERIVED from the raw endpoint
+  -- reductions + edge-label reduction inside `DC.EmbedGlue`, which is
+  -- `TermEmbedˢ` at that derived glue (same entry point
+  -- `DecodeComposeAssembly` uses for the `hComposeP` twin).
+
+  module TG = DC.EmbedGlue {H = G} {J = hTensor G K}
+                injL (λ {x} {y} → ↑ˡ-injective K.nV x y) vlab-injL
+                ψG ein-c-inj₁-red eout-c-inj₁-red
+                (map-via vlab-injL) elab-c-inj₁
+
+  ------------------------------------------------------------------------
+  -- K-side embedding: φ = injR, ψ = G.nE ↑ʳ_, H = K, J = hTensor G K.
+
+  module TK = DC.EmbedGlue {H = K} {J = hTensor G K}
+                injR (λ {x} {y} → ↑ʳ-injective G.nV x y) vlab-injR
+                ψK ein-c-inj₂-red eout-c-inj₂-red
+                (map-via vlab-injR) elab-c-inj₂
+
+--------------------------------------------------------------------------------
+-- ## The ⊗-shape, assembled from the K-block braid residual.
+--
+-- The strict Kelly residual is taken CONCRETELY from `Perm.PermK` (axiom-free
+-- for every vertex set), used by `TensorReconcile.final-resortˢ` and by
+-- `Braid.pf-rigid` below (through `StrictDecoder.rigidˢ`).
+
+module Braid {A B C D : ObjTerm}
+  (f : HomTerm A B) (g : HomTerm C D)
+  where
+  private
+    fg : HomTerm (A ⊗₀ C) (B ⊗₀ D)
+    fg = f ⊗₁ g
+
+    G K : Hypergraph FlatGen
+    G = ⟪ f ⟫
+    K = ⟪ g ⟫
+
+    module Gd = Hypergraph G
+    module Kd = Hypergraph K
+    module RF = Run ⟪ fg ⟫
+    module Hf = Hypergraph ⟪ fg ⟫
+    open StrictDecoder ⟪ fg ⟫
+      using (process-edgesˢ; vl; block-disjoint; stack-sepˢ; term-sepᵛ; rigidˢ)
+
+    open import Categories.APROP.Hypergraph.Model.Invariant sig using (range-++)
+
+    gblk kblk : List (Fin Hf.nE)
+    gblk = map (_↑ˡ Kd.nE) (range Gd.nE)
+    kblk = map (Gd.nE ↑ʳ_) (range Kd.nE)
+
+    -- `range Hf.nE ≡ gblk ++ kblk` (definitional split of the edge range).
+    range≡ : range Hf.nE ≡ gblk ++ kblk
+    range≡ = range-++ Gd.nE Kd.nE
+
+    open DC.RunBlocks ⟪ fg ⟫
+      using (absorbˢ; coeCod; run-split-atˢ; pe-stack-++ˢ)
+    module KBD = KBlockDisjoint G K
+    open Restrict (Fin Hf.nV) vl
+      using ( HomV; idᵛ; _∘ᵛ_; _⊗ᵛ_; castᵛ; _≈ᵛ_; permuteᵛ; cast-flipᵛ
+            ; cast-respᵛ; box-conjᵛ; ⊗-respᵛ; interchangeᵛ; ⊗ᵛ-≈̂ )
+
+    open Embeds G K using (injL; injR)
+
+    -- The whole G-block's inputs are absent from the `injR` residual; the
+    -- proof lives at the `hTensor G K` layout, in `KBlockDisjoint` above.
+    g-disjoint : block-disjoint gblk (map injR Kd.dom)
+    g-disjoint = KBD.gblock-disjoint
+
+    ------------------------------------------------------------------
+    -- ## The G-block FRAME (the G-side core, via the proven RIGHT-frame
+    -- `term-sepᵛ`).  `Hf.dom = Lpre ++ Rsuf` definitionally, so the G-block
+    -- run factors as `Gon ⊗ᵛ idᵛ {Rsuf}` over the `List (Fin Hf.nV)` stack
+    -- equality `sep`; no `map-++` endpoint is ever named.
+
+    Rsuf : List (Fin Hf.nV)
+    Rsuf = map injR Kd.dom
+
+    Lpre : List (Fin Hf.nV)
+    Lpre = map injL Gd.dom
+
+    -- the G-block run on the pure-`injL` prefix.
+    Gon : HomV Lpre (proj₁ (process-edgesˢ gblk Lpre))
+    Gon = proj₂ (process-edgesˢ gblk Lpre)
+
+    -- `aG ≡ sG ++ Rsuf` (definitional `Hf.dom = Lpre ++ Rsuf` + `stack-sepˢ`).
+    sep : proj₁ (process-edgesˢ gblk Hf.dom)
+          ≡ proj₁ (process-edgesˢ gblk Lpre) ++ Rsuf
+    sep = stack-sepˢ gblk Lpre Rsuf g-disjoint
+
+    -- the G-block run as a (back-)cast of the framed form.
+    gframe
+      : proj₂ (process-edgesˢ gblk Hf.dom)
+        ≈ᵛ castᵛ refl (sym sep) (Gon ⊗ᵛ idᵛ {Rsuf})
+    gframe = cast-flipᵛ refl sep (term-sepᵛ gblk Lpre Rsuf g-disjoint sep)
+
+  ----------------------------------------------------------------------
+  -- ## The K-BLOCK BRAID residual `KBlockσ`.
+  --
+  -- The strict, whole-run-level twin of `DecodeTensorShape`'s `Pcomp-eq`:
+  -- with the run SPLIT over `gblk ++ kblk` (the K-block run on the post-G
+  -- stack `after-G` precomposed with the G-block run on `Hf.dom`), there is
+  -- a canonical re-sort derivation `cand : s-finˢ ↭ Hf.cod` such that the
+  -- run-split inner term post-sorted by `cand` is the clean tensor at the
+  -- boundary objects.  This packages: the K-block prepend braid (`σˢ` slide
+  -- of the K-outputs back past `map injL G.cod`), the two block embeddings
+  -- `TG`/`TK` (bridging the block runs to `decodePˢ f`/`decodePˢ g`), and
+  -- the final collapse.  Cast-FREE at the boundary objects.
+  -- the K-block run on the post-G stack.
+  private
+    Krun : HomV (proj₁ (process-edgesˢ gblk Hf.dom))
+                (proj₁ (process-edgesˢ kblk (proj₁ (process-edgesˢ gblk Hf.dom))))
+    Krun = proj₂ (process-edgesˢ kblk (proj₁ (process-edgesˢ gblk Hf.dom)))
+
+    stkSplit₀ : proj₁ (process-edgesˢ kblk (proj₁ (process-edgesˢ gblk Hf.dom)))
+                ≡ proj₁ (process-edgesˢ (range Hf.nE) Hf.dom)
+    stkSplit₀ =
+      sym (trans (cong (λ z → proj₁ (process-edgesˢ z Hf.dom)) range≡)
+                 (pe-stack-++ˢ gblk kblk Hf.dom))
+
+  KBlockσ : Set
+  KBlockσ =
+    Σ[ cand ∈ RF.s-finˢ ↭ Hf.cod ]
+      ( RF.permuteˢ cand
+          ∘ˢ coeCod stkSplit₀
+               (Krun ∘ᵛ castᵛ refl (sym sep) (Gon ⊗ᵛ idᵛ {Rsuf}))
+        ≈ˢ castˢ (sym (⟪⟫-domL fg)) (sym (⟪⟫-codL fg))
+            (decodePˢ f ⊗ˢ decodePˢ g) )
+
+  ----------------------------------------------------------------------
+  -- ## `braidˢ` from `KBlockσ`.
+  --
+  -- Substituting the run-split `run-split-atˢ` (PROVEN) and the G-frame
+  -- `gframe` (PROVEN, ⇐ `term-sepᵛ`) into the C-run turns `KBlockσ` into
+  -- exactly `TensorReconcile.BraidSigˢ` — the `braidˢ` parameter of
+  -- `reconcile-from-braid` — at the chosen `cand`, so this file never restates
+  -- the residual's type.  The narrowed `KBlockσ` now mentions only the
+  -- K-block run and the FRAMED G-side `Gon ⊗ˢ idˢ`.
+
+  braidˢ-from-kblock
+    : KBlockσ → Σ[ cand ∈ RF.s-finˢ ↭ Hf.cod ] TR.Reconcile.BraidSigˢ f g cand
+  braidˢ-from-kblock (cand , kb) =
+    cand , ≈-trans (∘-resp ≈-refl split-eq) kb
+    where
+      -- `proj₂ runˢ ≈ castˢ refl (sym stkSplit) (Krun ∘ (G-framed))`.
+      split-eq
+        : proj₂ (Run.runˢ ⟪ fg ⟫)
+          ≈ˢ coeCod stkSplit₀
+               (Krun ∘ᵛ castᵛ refl (sym sep) (Gon ⊗ᵛ idᵛ {Rsuf}))
+      split-eq =
+        ≈-trans (run-split-atˢ gblk kblk range≡ Hf.dom)
+                (cast-resp refl (cong (map vl) stkSplit₀)
+                           (∘-resp ≈-refl gframe))
+
+  ----------------------------------------------------------------------
+  -- ## The ⊗-shape, conditional on `KBlockσ`.
+
+  decodePˢ-⊗-cond : KBlockσ → decodePˢ fg ≈ˢ decodePˢ f ⊗ˢ decodePˢ g
+  decodePˢ-⊗-cond kb =
+    let cand , braidˢ = braidˢ-from-kblock kb
+    in TR.Reconcile.decodePˢ-⊗-from-braid f g cand braidˢ
+
+  ----------------------------------------------------------------------
+  -- ## (e)-RECONCILE: `KBlockσ` from the K-block run factorization.
+  --
+  -- This is the LAST step.  The K-block run factorization at the concrete
+  -- K-block (`L = sG`, the G-output block; `s = aG`, the post-G stack;
+  -- `s_R = Rsuf`, the canonical pure-`injR` K-stack) is DERIVED below
+  -- (`kfac`), for ANY K-prepend braid `Br`:
+  --     Krun ≈ˢ permuteˢ Br ∘ˢ (KCln ∘ˢ permuteˢ pf₀).
+  -- We reconcile this to `KBlockσ` by: collapsing the G-frame against the
+  -- clean K-head via `interchangeˢ` (giving `Gon ⊗ Kclean`), bridging `Gon`
+  -- ↦ `decodePˢ f`-core / `Kclean` ↦ `decodePˢ g`-core via `TG`/`TK`, and
+  -- absorbing `Br`, `pf`, and the two sub-final-permutes into the single
+  -- `cand` by `perm-rigidˢ` on the `Unique` cod (`⟪⟫-cod-Unique`).
+  ----------------------------------------------------------------------
+
+  module Reconcile-e where
+    private
+      -- the wiring-groupoid calculus at `⟪ fg ⟫` (the `≈̂`-level frames).
+      open PC.Kit ⟪ fg ⟫ using (⟦absorbʳ⟧)
+
+      -- the G-output block (all `injL`), and the post-G stack `aG`.
+      sG : List (Fin Hf.nV)
+      sG = proj₁ (process-edgesˢ gblk Lpre)
+
+      aG : List (Fin Hf.nV)
+      aG = proj₁ (process-edgesˢ gblk Hf.dom)
+
+      -- the canonical clean K-run on `Rsuf`.
+      Kfin : List (Fin Hf.nV)
+      Kfin = proj₁ (process-edgesˢ kblk Rsuf)
+
+      Kclean : HomV Rsuf Kfin
+      Kclean = proj₂ (process-edgesˢ kblk Rsuf)
+
+      -- the clean K-block frame: the clean K-run on the pure-`injR` stack,
+      -- framed on the left by the inert G-output block.
+      KCln : HomV (sG ++ Rsuf) (sG ++ Kfin)
+      KCln = idᵛ {sG} ⊗ᵛ Kclean
+
+      open DSh.Scr (Fin Hf.nV) Hf.vlab using (bswap)
+      open EquivStep ⟪ fg ⟫
+        using (process-edges-equivariantˢ; pvv-transˢ; pvv-inverse-leftˢ)
+
+    ------------------------------------------------------------------
+    -- ### Foundational stack / boundary identities.
+
+    module Gd' = Run G
+    module Kd' = Run K
+
+    s_G_final : List (Fin Gd.nV)
+    s_G_final = proj₁ (Gd'.process-edgesˢ (range Gd.nE) Gd.dom)
+
+    s_K_final : List (Fin Kd.nV)
+    s_K_final = proj₁ (Kd'.process-edgesˢ (range Kd.nE) Kd.dom)
+
+    -- `sG ≡ map injL s_G_final` (G-block stack-emb, via `TG.proc-stack-embˢ`).
+    sG≡ : sG ≡ map injL s_G_final
+    sG≡ = Embeds.TG.proc-stack-embˢ G K (range Gd.nE) Gd.dom
+
+    -- `Kfin ≡ map injR s_K_final` (K-block stack-emb, via `TK.proc-stack-embˢ`).
+    Kfin≡ : Kfin ≡ map injR s_K_final
+    Kfin≡ = Embeds.TK.proc-stack-embˢ G K (range Kd.nE) Kd.dom
+
+    ------------------------------------------------------------------
+    -- ### The two sub-decoder runs.  `Gon`/`Kclean` (the G-block run on the
+    -- pure-`injL` prefix / the K-block run on the pure-`injR` suffix) relabel
+    -- to them by the proven `TG`/`TK` embeddings' `≈̂` face — canonical
+    -- endpoint proofs, so nothing here names a `vlab-φ`/`pCod` boundary path.
+    -- (`map ψG (range Gd.nE) = gblk`, `map injL Gd.dom = Lpre`, dually for K.)
+
+    Grun : HomS (map Gd.vlab Gd.dom) (map Gd.vlab s_G_final)
+    Grun = proj₂ (Run.runˢ G)
+
+    Krun-K : HomS (map Kd.vlab Kd.dom) (map Kd.vlab s_K_final)
+    Krun-K = proj₂ (Run.runˢ K)
+
+    ------------------------------------------------------------------
+    -- ### The two sub-final-permutes, relabelled to the C-level.
+
+    -- the injL-/injR-lifted sub-final permutes, on `Fin Hf.nV`.
+    pL : (map injL s_G_final) Perm.↭ (map injL Gd.cod)
+    pL = PermProp.map⁺ injL (finalPermˢ f)
+
+    pR : (map injR s_K_final) Perm.↭ (map injR Kd.cod)
+    pR = PermProp.map⁺ injR (finalPermˢ g)
+
+    -- the combined boundary derivation `(sG ++ Kfin) ↭ Hf.cod`, built from the
+    -- two lifted sub-permutes (subst the endpoints by `sG≡`/`Kfin≡`).
+    combRaw : (map injL s_G_final ++ map injR s_K_final)
+              Perm.↭ (map injL Gd.cod ++ map injR Kd.cod)
+    combRaw = Perm.trans (PermProp.++⁺ʳ (map injR s_K_final) pL)
+                         (PermProp.++⁺ˡ (map injL Gd.cod) pR)
+
+    comb : (sG ++ Kfin) Perm.↭ Hf.cod
+    comb = Perm.trans (Perm.↭-reflexive (cong₂ _++_ sG≡ Kfin≡)) combRaw
+
+    ------------------------------------------------------------------
+    -- ### G-/K-part C-level twins (`decodePˢ f`/`g`-cores under relabel).
+
+    -- G-side `sG≡`-corrected G-run, and the C-level G-part `permuteˢ pL ∘ Gon'`.
+    Gon' : HomV (map injL Gd.dom) (map injL s_G_final)
+    Gon' = castˢ refl (cong (map vl) sG≡) Gon
+
+    Gc : HomS (map vl (map injL Gd.dom)) (map vl (map injL Gd.cod))
+    Gc = RF.permuteˢ pL ∘ˢ Gon'
+
+    -- the G sub-decoder INNER (`permuteˢ (finalPermˢ f) ∘ Grun`).
+    decf-inner : HomS (map Gd.vlab Gd.dom) (map Gd.vlab Gd.cod)
+    decf-inner = Gd'.permuteˢ (finalPermˢ f) ∘ˢ Grun
+
+    -- G-part twin, HETEROGENEOUSLY: `Gc ≈̂ decf-inner`, factor by factor.
+    -- `pL` IS `map⁺ injL (finalPermˢ f)`, so the permute factor is `pvv-≈̂`
+    -- itself; nothing names a MIDDLE, so `∘-cast-split` goes.
+    Gc-≈̂ : Gc ≈̂ decf-inner
+    Gc-≈̂ = ∘-resp-≈̂ Gperm-≈̂ Gon'-≈̂
+      where
+        Gperm-≈̂ : RF.permuteˢ pL ≈̂ Gd'.permuteˢ (finalPermˢ f)
+        Gperm-≈̂ = pvv-≈̂ injL vl Gd.vlab (Embeds.vlab-injL G K) (finalPermˢ f)
+        Gon'-≈̂ : Gon' ≈̂ Grun
+        Gon'-≈̂ = ≈̂-trans cast-≈̂ (Embeds.TG.term-emb-≈̂ G K (range Gd.nE) Gd.dom)
+
+    -- K-side `Kfin≡`-corrected clean K-run, and the C-level K-part.
+    Kclean' : HomV (map injR Kd.dom) (map injR s_K_final)
+    Kclean' = castˢ refl (cong (map vl) Kfin≡) Kclean
+
+    Kc : HomS (map vl (map injR Kd.dom)) (map vl (map injR Kd.cod))
+    Kc = RF.permuteˢ pR ∘ˢ Kclean'
+
+    decg-inner : HomS (map Kd.vlab Kd.dom) (map Kd.vlab Kd.cod)
+    decg-inner = Kd'.permuteˢ (finalPermˢ g) ∘ˢ Krun-K
+
+    -- the mirror of `Gc-≈̂` at `φ = injR`.
+    Kc-≈̂ : Kc ≈̂ decg-inner
+    Kc-≈̂ = ∘-resp-≈̂ Kperm-≈̂ Kclean'-≈̂
+      where
+        Kperm-≈̂ : RF.permuteˢ pR ≈̂ Kd'.permuteˢ (finalPermˢ g)
+        Kperm-≈̂ = pvv-≈̂ injR vl Kd.vlab (Embeds.vlab-injR G K) (finalPermˢ g)
+        Kclean'-≈̂ : Kclean' ≈̂ Krun-K
+        Kclean'-≈̂ = ≈̂-trans cast-≈̂ (Embeds.TK.term-emb-≈̂ G K (range Kd.nE) Kd.dom)
+
+    ------------------------------------------------------------------
+    -- ### TARGET equation, HETEROGENEOUSLY: the C-level
+    -- `(pL⊗pR) ∘ (Gon'⊗Kclean')` IS the boundary tensor.  `decodePˢ f` IS
+    -- `castˢ (⟪⟫-domL f) (⟪⟫-codL f) decf-inner` definitionally, so the two
+    -- boundary casts peel FACTORWISE (`⊗-resp-≈̂` of two `cast-≈̂`s) and no
+    -- `cast-⊗-both`/`cast-fuse`/`cast-irrel` endpoint algebra survives.
+
+    target-≈̂
+      : (RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR) ∘ˢ (Gon' ⊗ˢ Kclean')
+        ≈̂ decodePˢ f ⊗ˢ decodePˢ g
+    target-≈̂ =
+      ≈̂-trans (≈ˢ⇒≈̂ interchangeˢ)
+      (≈̂-trans (⊗-resp-≈̂ Gc-≈̂ Kc-≈̂)
+               (≈̂-sym (⊗-resp-≈̂ (cast-≈̂ {p = ⟪⟫-domL f} {q = ⟪⟫-codL f})
+                                (cast-≈̂ {p = ⟪⟫-domL g} {q = ⟪⟫-codL g}))))
+
+    ------------------------------------------------------------------
+    -- ### The G-framed factor (matching `KBlockσ`'s body), and the inner
+    -- interchange `KCln ∘ (permuteˢ pf₀ ∘ G-framed) ≈ castₓ (Gon' ⊗ Kclean')`.
+
+    G-framed : HomV Hf.dom aG
+    G-framed = castᵛ refl (sym sep) (Gon ⊗ᵛ idᵛ {Rsuf})
+
+    pf₀ : aG Perm.↭ sG ++ Rsuf
+    pf₀ = Perm.↭-reflexive sep
+
+    private
+      -- A clean generic interchange, matched on the `sep` stack equality so
+      -- the `permuteᵛ pf₀` collapses to `idᵛ` and the `castᵛ` vanishes;
+      -- leaves the bare `interchangeᵛ`.
+      inner-gen
+        : ∀ {sGx Kfinx aGx : List (Fin Hf.nV)}
+            (Gonx : HomV Lpre sGx) (Kcleanx : HomV Rsuf Kfinx)
+            (sepe : aGx ≡ sGx ++ Rsuf)
+        → (idᵛ {sGx} ⊗ᵛ Kcleanx)
+            ∘ᵛ (permuteᵛ (Perm.↭-reflexive sepe)
+                  ∘ᵛ castᵛ refl (sym sepe) (Gonx ⊗ᵛ idᵛ {Rsuf}))
+          ≈ᵛ Gonx ⊗ᵛ Kcleanx
+      inner-gen Gonx Kcleanx refl =
+        ≈-trans (∘-resp ≈-refl idˡ)
+                (≈-trans interchangeᵛ (⊗-respᵛ idˡ idʳ))
+
+    -- the inner interchange, producing the C-level `Gon ⊗ᵛ Kclean`.
+    inner-frame : KCln ∘ᵛ (permuteᵛ pf₀ ∘ᵛ G-framed) ≈ᵛ Gon ⊗ᵛ Kclean
+    inner-frame = inner-gen Gon Kclean sep
+
+    ------------------------------------------------------------------
+    -- ### The two inner factors of `KBlockσ`'s target, HETEROGENEOUSLY.
+    --
+    -- `comb`'s reindexing factor is absorbed inside `permuteˢ` (`⟦absorbʳ⟧`)
+    -- and the two lifted sub-permutes are read off the residual frames
+    -- (`permuteˢ-frame{,ˡ}` state them heterogeneously, `interchangeˢ`
+    -- merges them), so no intermediate `map-++` endpoint is ever named.  The
+    -- `⊗ᵛ`'s own `map-++` cast and the two `sG≡`/`Kfin≡` corrections peel by
+    -- `⊗ᵛ-≈̂`/`⊗-resp-≈̂`; no `refl`-matched generic is needed.
+
+    comb-frame : RF.permuteˢ comb ≈̂ RF.permuteˢ pL ⊗ˢ RF.permuteˢ pR
+    comb-frame =
+      ≈̂-trans (⟦absorbʳ⟧ (cong₂ _++_ sG≡ Kfin≡))
+      (≈̂-trans (∘-resp-≈̂ (RF.permuteˢ-frameˡ (map injL Gd.cod) pR)
+                         (RF.permuteˢ-frame (map injR s_K_final) pL))
+               (≈ˢ⇒≈̂ (≈-trans interchangeˢ (⊗-resp idˡ idʳ))))
+
+    W-≈̂ : (Gon ⊗ᵛ Kclean) ≈̂ Gon' ⊗ˢ Kclean'
+    W-≈̂ =
+      ≈̂-trans (⊗ᵛ-≈̂ Gon Kclean)
+              (⊗-resp-≈̂ (≈̂-sym (cast-≈̂ {p = refl} {q = cong (map vl) sG≡}))
+                        (≈̂-sym (cast-≈̂ {p = refl} {q = cong (map vl) Kfin≡})))
+
+    ----------------------------------------------------------------
+    -- ## THE (e)-RECONCILE: `KBlockσ` from the K-block factorization.
+    --
+    -- Given the K-block factorization at the chosen reflexive `pf₀` and ANY
+    -- braid `Br`, build `cand` (absorbing `Br`, `pf₀`, and the two sub-final
+    -- permutes) and discharge the `KBlockσ` equation.
+
+    KBlockσ-from-factorization
+      : (Br : (sG ++ Kfin) Perm.↭ proj₁ (process-edgesˢ kblk aG))
+      → ( proj₂ (process-edgesˢ kblk aG)
+          ≈ˢ RF.permuteˢ Br ∘ˢ (KCln ∘ˢ RF.permuteˢ pf₀) )
+      → KBlockσ
+    KBlockσ-from-factorization Br kfac =
+      cand , goal
+      where
+        cand : RF.s-finˢ Perm.↭ Hf.cod
+        cand = subst (Perm._↭ Hf.cod) stkSplit₀ (Perm.trans (Perm.↭-sym Br) comb)
+
+        -- the inner W = `Gon ⊗ᵛ Kclean` (from `inner-frame`).
+        W : HomV Hf.dom (sG ++ Kfin)
+        W = Gon ⊗ᵛ Kclean
+
+        -- Step A: `Krun ∘ G-framed ≈ permuteˢ Br ∘ W`.
+        stepA : Krun ∘ᵛ G-framed ≈ᵛ RF.permuteˢ Br ∘ᵛ W
+        stepA =
+          ≈-trans (∘-resp kfac ≈-refl)
+                  (pullʳ (≈-trans assocˢ inner-frame))
+
+        candP≡ : subst (Perm._↭ Hf.cod) (sym stkSplit₀) cand
+                 ≡ Perm.trans (Perm.↭-sym Br) comb
+        candP≡ = subst-sym-subst stkSplit₀
+
+        -- Step B/C: absorb `coeCod stkSplit₀` + cancel `Br`.
+        stepBC
+          : RF.permuteˢ cand ∘ˢ coeCod stkSplit₀ (RF.permuteˢ Br ∘ˢ W)
+            ≈ˢ RF.permuteˢ comb ∘ˢ W
+        stepBC =
+          ≈-trans (absorbˢ stkSplit₀ cand (RF.permuteˢ Br ∘ˢ W))
+          (≈-trans (∘-resp (≡⇒≈ˢ (cong RF.permuteˢ candP≡)) ≈-refl)
+          (≈-trans (∘-resp (pvv-transˢ (Perm.↭-sym Br) comb) ≈-refl)
+                   (cancelInner (pvv-inverse-leftˢ Br))))
+
+        -- Step D: the whole inner composite IS the boundary tensor
+        -- (`∘-resp-≈̂` pays both `map-++` endpoints once, inside itself).
+        stepD : RF.permuteˢ comb ∘ˢ W ≈̂ decodePˢ f ⊗ˢ decodePˢ g
+        stepD = ≈̂-trans (∘-resp-≈̂ comb-frame W-≈̂) target-≈̂
+
+        goal
+          : RF.permuteˢ cand
+              ∘ˢ coeCod stkSplit₀ (Krun ∘ᵛ G-framed)
+            ≈ˢ castˢ (sym (⟪⟫-domL fg)) (sym (⟪⟫-codL fg))
+                (decodePˢ f ⊗ˢ decodePˢ g)
+        goal =
+          ≈-trans (∘-resp ≈-refl (cast-resp refl (cong (map vl) stkSplit₀) stepA))
+          (≈-trans stepBC
+            -- Step E: re-attach the boundary cast around Step D.
+            (viâ stepD ≈̂-refl
+                 (cast-≈̂ {p = sym (⟪⟫-domL fg)} {q = sym (⟪⟫-codL fg)})))
+
+    ----------------------------------------------------------------
+    -- ## THE K-BLOCK FACTORIZATION, from three already-proven theorems.
+    --
+    -- `KBlockσ-from-factorization` quantifies `Br` universally (it cancels
+    -- against `cand` by `pvv-inverse-leftˢ`), so ANY braid does — including
+    -- the one the derivation below produces:
+    --
+    --   1. EQUIVARIANCE (`process-edges-equivariantˢ`) — conjugate the
+    --      K-block run from the actual post-G stack `aG` onto the
+    --      BLOCK-SWAPPED clean stack `Rsuf ++ sG`, along
+    --      `ρ = sep ⨟ bswap sG Rsuf`;
+    --   2. RIGHT-frame SEPARABILITY (`stack-sepˢ`/`term-sepᵛ`) — on
+    --      `Rsuf ++ sG` the inert G-output block `sG` is a SUFFIX, so the run
+    --      there is `Kclean ⊗ᵛ idᵛ {sG}`;
+    --   3. σ-CONJUGATION (`box-conjᵛ` + `block-swap-comm`) — turn that right
+    --      frame into the LEFT frame `KCln`, both σ-blocks realised as
+    --      `permuteᵛ (bswap …)`.
+    --
+    -- The derived locating permute `pf'` is reconciled to the reflexive `pf₀`
+    -- by one `perm-rigidˢ` on the `Unique` stack (`Reservoir≤1⇒Unique`).
+    -- Putting the inert block on the RIGHT is what makes the frame clean: the
+    -- naive LEFT-frame separability is FALSE (fired outputs push in front of
+    -- the untouched prefix).
+    ----------------------------------------------------------------
+
+    private
+      -- ### the K-block disjointness `block-disjoint kblk sG`, transported
+      -- from `kblock-ein-disjoint` (stated at `map injL s_G_final`) along
+      -- `sG≡`.
+      disj-kblk : block-disjoint kblk sG
+      disj-kblk =
+        map⁺ (universal (λ e → subst (λ z → All (λ k → extract-elem k z ≡ nothing)
+                                                (Hf.ein (Gd.nE ↑ʳ e)))
+                                     (sym sG≡)
+                                     (KBD.kblock-ein-disjoint e s_G_final))
+                        (range Kd.nE))
+
+      -- ### the run-order reservoir `Reservoir≤1 ⟪fg⟫ kblk aG`: the full-run
+      -- reservoir from linearity (`dom-reservoir-prov` at the trivial
+      -- `range ↭ range`), split at the `gblk ++ kblk` edge-range.  The
+      -- strict post-G stack `aG` IS the non-strict one.
+      res-kblk : SUR.Reservoir≤1 ⟪ fg ⟫ kblk aG
+      res-kblk =
+        SUR.reservoir-split ⟪ fg ⟫ gblk kblk Hf.dom
+          (subst (λ z → SUR.Reservoir≤1 ⟪ fg ⟫ z Hf.dom) range≡
+            (SUR.dom-reservoir-prov ⟪ fg ⟫ (proj₂ (DAL.⟪⟫-LinearP fg))
+              (range Hf.nE) Perm.↭-refl))
+
+      -- ### (1) equivariance onto the block-swapped clean stack.
+      ρ : aG Perm.↭ Rsuf ++ sG
+      ρ = Perm.trans (Perm.↭-reflexive sep) (bswap sG Rsuf)
+
+      equiv = process-edges-equivariantˢ kblk {s = Rsuf ++ sG} {s' = aG} ρ res-kblk
+
+      ρf : proj₁ (process-edgesˢ kblk aG)
+           Perm.↭ proj₁ (process-edgesˢ kblk (Rsuf ++ sG))
+      ρf = proj₁ equiv
+
+      -- ### (2) right-frame separability + (3) σ-conjugation, kept
+      -- HOMOGENEOUS under the single `castᵛ refl (sym sepK)`.
+      sepK : proj₁ (process-edgesˢ kblk (Rsuf ++ sG)) ≡ Kfin ++ sG
+      sepK = stack-sepˢ kblk Rsuf sG disj-kblk
+
+      -- W: the σ-conjugated clean form, with the σs realised as permutes.
+      W' : HomV (Rsuf ++ sG) (Kfin ++ sG)
+      W' = permuteᵛ (bswap sG Kfin) ∘ᵛ (KCln ∘ᵛ permuteᵛ (bswap Rsuf sG))
+
+      mid-form
+        : proj₂ (process-edgesˢ kblk (Rsuf ++ sG))
+          ≈ᵛ castᵛ refl (sym sepK) W'
+      mid-form =
+        ≈-trans (cast-flipᵛ refl sepK (term-sepᵛ kblk Rsuf sG disj-kblk sepK))
+          (cast-respᵛ refl (sym sepK)
+            (≈-trans (box-conjᵛ Kclean sG)
+              (∘-resp (≈-sym (BSC.block-swap-comm (Fin Hf.nV) Hf.vlab sG Kfin))
+                      (∘-resp ≈-refl
+                        (≈-sym (BSC.block-swap-comm (Fin Hf.nV) Hf.vlab
+                                  Rsuf sG))))))
+
+      -- ### (4) absorb the separation cast into the equivariance permute, as
+      -- a reflexive reindexing factor of the derivation.
+      perm-cast-absorb
+        : ∀ {as s s' ys : List (Fin Hf.nV)}
+            (eq : s ≡ s') (p : s' Perm.↭ ys) (T : HomV as s)
+        → permuteᵛ p ∘ᵛ castᵛ refl eq T
+          ≈ᵛ permuteᵛ (Perm.trans (Perm.↭-reflexive eq) p) ∘ᵛ T
+      perm-cast-absorb refl p T = ≈-sym (∘-resp idʳ ≈-refl)
+
+      -- ### (5) the derived braid, the derived locating perm, and rigidity.
+      Br' : (sG ++ Kfin) Perm.↭ proj₁ (process-edgesˢ kblk aG)
+      Br' = Perm.trans (bswap sG Kfin)
+              (Perm.trans (Perm.↭-reflexive (sym sepK)) (Perm.↭-sym ρf))
+
+      pf' : aG Perm.↭ sG ++ Rsuf
+      pf' = Perm.trans ρ (bswap Rsuf sG)
+
+      pf-rigid : permuteᵛ pf' ≈ᵛ permuteᵛ pf₀
+      pf-rigid =
+        rigidˢ (SU.Unique-resp-↭ (Perm.↭-reflexive sep)
+                 (SUR.Reservoir≤1⇒Unique ⟪ fg ⟫ kblk aG res-kblk))
+               pf' pf₀
+
+      -- pure homogeneous regrouping:
+      --   (H ∘ (O ∘ (M ∘ I))) ∘ P  ≈ˢ  (H ∘ O) ∘ (M ∘ (I ∘ P))
+      regroup
+        : ∀ {o1 o2 o3 o4 o5 o6 : List X}
+            {H : HomS o5 o6} {O : HomS o4 o5} {M : HomS o3 o4}
+            {I : HomS o2 o3} {P : HomS o1 o2}
+        → (H ∘ˢ (O ∘ˢ (M ∘ˢ I))) ∘ˢ P
+          ≈ˢ (H ∘ˢ O) ∘ˢ (M ∘ˢ (I ∘ˢ P))
+      regroup = solve SCat
+
+      kfac
+        : proj₂ (process-edgesˢ kblk aG)
+          ≈ᵛ permuteᵛ Br' ∘ᵛ (KCln ∘ᵛ permuteᵛ pf₀)
+      kfac =
+        ≈-trans (proj₂ equiv)
+        (≈-trans (∘-resp ≈-refl (∘-resp mid-form ≈-refl))
+        -- perm(↭-sym ρf) ∘ (castᵛ refl (sym sepK) W' ∘ perm ρ)
+        (≈-trans (≈-sym assocˢ)
+        -- (perm(↭-sym ρf) ∘ castᵛ refl (sym sepK) W') ∘ perm ρ
+        (≈-trans (∘-resp (perm-cast-absorb (sym sepK) (Perm.↭-sym ρf) W') ≈-refl)
+        -- (perm(trans refl' (↭-sym ρf)) ∘ W') ∘ perm ρ
+        (≈-trans regroup
+        -- (perm … ∘ perm bswapOut) ∘ (KCln ∘ (perm bswapIn ∘ perm ρ))
+          (∘-resp ≈-refl (∘-resp ≈-refl pf-rigid))))))
+
+    -- ## THE K-BLOCK BRAID, discharged.  This is the last residual of the
+    -- strict ⊗-shape; `decodePˢ-⊗-concrete` below only instantiates it.
+    kblockσ : KBlockσ
+    kblockσ = KBlockσ-from-factorization Br' kfac
+
+--------------------------------------------------------------------------------
+-- ## Phase 8 — THE FINAL WIRING.  The UNCONDITIONAL ⊗-shape, `Braid`'s
+-- conditional theorem fed its own last hypothesis:
+--
+--     decodePˢ-⊗ : decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g    (UNCOND.)
+--
+-- This has the EXACT type of `PartI`'s / `Strict.Soundness`'s `decodePˢ-⊗`
+-- parameter, so it closes the last residual of the strict soundness assembly.
+-- ZERO postulates, `--safe --without-K`.
+
+decodePˢ-⊗-concrete
+  : ∀ {A B C D} (f : HomTerm A B) (g : HomTerm C D)
+  → decodePˢ (f ⊗₁ g) ≈ˢ decodePˢ f ⊗ˢ decodePˢ g
+decodePˢ-⊗-concrete f g = Brd.decodePˢ-⊗-cond Brd.Reconcile-e.kblockσ
+  where module Brd = Braid f g
