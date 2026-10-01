@@ -221,9 +221,9 @@ private
 ------------------------------------------------------------------------
 -- Certified families of grade morphisms
 
--- A grade-morphism family with a polynomial rate schedule: the asymptotic
--- spelling of `UC.Audit._≤UC[_]_`'s `sim`, and `Categories.LocallyGraded.Family`'s
--- family hom at `(ℕ , id)`, whose composite and unit it reuses.  A Σ and not a
+-- A grade-morphism family with a polynomial rate schedule:
+-- `Categories.LocallyGraded.Family`'s family hom at `(ℕ , id)`, whose composite
+-- and unit it reuses.  A Σ and not a
 -- record, for a MEASURED reason: a record field depending on two earlier fields
 -- exhausts a 20 GiB heap at the sealed machine, where the Σ whose second
 -- component binds those two checks in seconds.
