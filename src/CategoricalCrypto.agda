@@ -67,14 +67,11 @@ open import CategoricalCrypto.Approx.FilteredTests
 open import CategoricalCrypto.Approx.Separating
 open import CategoricalCrypto.Approx.Small.Controlled
 open import CategoricalCrypto.UC.Approximate.LocalTests
-open import CategoricalCrypto.UC.Family.Negligible.Quantitative
-open import CategoricalCrypto.UC.Family.Quantitative
 open import CategoricalCrypto.UC.Machine.EventBounds.Transport
 open import CategoricalCrypto.UC.Machine.MonitorTests
 open import CategoricalCrypto.UC.Machine.Run.Lax
 open import CategoricalCrypto.UC.Machine.StateEvent.HitTests
 open import CategoricalCrypto.UC.Model.Family.Ingest
-open import CategoricalCrypto.UC.Model.Quantitative
 open import CategoricalCrypto.UC.Quantitative.EventLift
 open import CategoricalCrypto.UC.QueryBound.Counting
 open import CategoricalCrypto.UC.Robust.Model
