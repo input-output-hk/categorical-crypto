@@ -1,25 +1,23 @@
 {-# OPTIONS --safe --without-K #-}
 
--- `Approx.Filtered` at a non-discrete allowance poset: cost profiles `ℕ → ℕ`,
--- ordered and identified POINTWISE (stdlib's `IndexedPoset.poset`).  Profiles
--- agreeing at every argument need not be `≡` without funext, so doubling the
--- parameter as `n + n` and as `2 * n` gives two allowance maps whose outputs
--- no `≡`-comparison identifies; `Filt` identifies them, before and after
--- composition.
+-- `Approx.Filtered` at the pointwise poset of cost profiles `ℕ → ℕ` (stdlib's
+-- `IndexedPoset.poset`; `Approx.Filtered`'s header says why allowance maps are
+-- compared by `_≈_`): the doublings `n + n` and `2 * n`, identified by `Filt`
+-- before and after composition.
 
-open import Categories.Category using (Category)
+open import Categories.Category
 
-open import Data.Nat.Base using (ℕ; _+_; _*_; _≤_)
-open import Data.Product.Base using (_,_; proj₂)
-open import Function.Base using (_∘_)
-open import Level using (0ℓ)
-open import Relation.Binary.Bundles using (Poset)
-open import Relation.Binary.Indexed.Homogeneous.Bundles using (IndexedPoset)
-open import Relation.Binary.PropositionalEquality using (_≡_; cong; refl; sym; trans)
+open import Data.Nat.Base
+open import Data.Product.Base
+open import Function.Base
+open import Level
+open import Relation.Binary.Bundles
+open import Relation.Binary.Indexed.Homogeneous.Bundles
+open import Relation.Binary.PropositionalEquality
 
 import Data.Nat.Properties as ℕₚ
 
-open import CategoricalCrypto.Approx.Error using (ℕ-ordered)
+open import CategoricalCrypto.Approx.Error
 
 module CategoricalCrypto.Approx.FilteredTests where
 
@@ -41,8 +39,6 @@ Profiles = IndexedPoset.poset {I = ℕ} record
 open import CategoricalCrypto.Approx.Controlled ℕ-ordered
 open import CategoricalCrypto.Approx.Filtered ℕ-ordered Profiles
 
--- Runs are cost profiles too, compared exactly; a run is admitted at every
--- allowance it stays under.
 Runs : FilteredSpace 0ℓ 0ℓ 0ℓ
 Runs = record
   { space = record
@@ -59,7 +55,6 @@ Runs = record
   ; admit-mono = λ le h n → ℕₚ.≤-trans (h n) (le n)
   }
 
--- Reading runs and allowances at `ρ n` instead of `n`.
 along : (ℕ → ℕ) → Filtered Runs Runs
 along ρ = record
   { underlying = record { map = _∘ ρ ; control = idᶜ ; preserves = λ h → h ∘ ρ }
@@ -82,8 +77,7 @@ doubled² : along (λ n → n + n) F.∘ along (λ n → n + n) F.≈ along (2 *
 doubled² = F.∘-resp-≈ {f = along λ n → n + n} {h = along (2 *_)}
                       {g = along λ n → n + n} {i = along (2 *_)} doubled doubled
 
--- A run admitted at `a` is carried by one spelling to an output admitted at the
--- other spelling's allowance: admission moves along `_≈_`, not along `≡`.
+-- Admission moves along the allowance's `_≈_`, not along `≡`.
 admitted-doubled : {a x : ℕ → ℕ} → FilteredSpace.Admit Runs a x
                  → FilteredSpace.Admit Runs (a ∘ (2 *_)) (x ∘ λ n → n + n)
 admitted-doubled {a} h =
