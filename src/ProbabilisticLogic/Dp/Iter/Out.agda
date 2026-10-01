@@ -118,8 +118,7 @@ module _ {S A B C : Set ℓ} (u : Body S A B) (k : S × B → Dₚ (S × C))
     Ψ r i = cum (suc n) (outκ k r) (Tᵗ (bodyₒ u k) P n) ℚ.≤ Tᵗ u Q i r
 
     up : ∀ r {i i₂} → i ≤ℕ i₂ → Ψ r i → Ψ r i₂
-    up (s , inj₁ b) le q = q
-    up (s , inj₂ p) le q = ≤-trans q (cum-mono le (iterₚ u (s , p)) Q nnQ)
+    up r le q = ≤-trans q (Tᵗ-mono u Q nnQ le r)
 
     wit : ∀ r → Σ[ i ∈ ℕ ] Ψ r i
     wit (s , inj₁ b) =

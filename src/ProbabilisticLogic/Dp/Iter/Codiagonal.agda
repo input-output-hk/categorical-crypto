@@ -57,11 +57,7 @@ module _ {S A B : Set ℓ} (v : Body S A (B ⊎ A)) (P : S × B → ℚ) (nn : N
     Φ r i = Tᵗ v (Tᵗ (iterₚ v) P n) j r ℚ.≤ Tᵗ (flatBody v) P i (flat r)
 
     up : ∀ r {i i₂} → i ≤ℕ i₂ → Φ r i → Φ r i₂
-    up (s , inj₁ (inj₁ b)) le q = q
-    up (s , inj₁ (inj₂ p)) le q =
-      ≤-trans q (cum-mono le (iterₚ (flatBody v) (s , p)) P nn)
-    up (s , inj₂ p)        le q =
-      ≤-trans q (cum-mono le (iterₚ (flatBody v) (s , p)) P nn)
+    up r le q = ≤-trans q (Tᵗ-mono (flatBody v) P nn le (flat r))
 
     wit : ∀ r → Σ[ i ∈ ℕ ] Φ r i
     wit (s , inj₁ (inj₁ b)) = 0 , ≤-refl
