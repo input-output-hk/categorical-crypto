@@ -21,7 +21,7 @@ import Categories.Category.Monoidal.Utilities as MU
 open import Data.Product.Base
 open import Data.Sum.Base as Sum using (_⊎_; inj₁; inj₂)
 open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)
-open import Function.Base using (_∘′_)
+open import Function.Base
 open import Level
 open import Relation.Binary.PropositionalEquality using (refl)
 

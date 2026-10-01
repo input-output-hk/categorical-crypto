@@ -4,7 +4,7 @@ module CategoricalCrypto.Machine.Core where
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
 import categorical-crypto.Prelude as P
-open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
+open import Data.Fin renaming (zero to fzero; suc to fsuc)
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 -- Instance-only: supplies the `Class.MonadTC.TCOptions` every `⇒-solver` call
@@ -183,7 +183,7 @@ module _
   {A B : Channel}
   (m   : Machine A B) where
   
-  open Machine m using (State) renaming (stepRel to _-⟦_/_⟧ᵐ⇀_)
+  open Machine m renaming (stepRel to _-⟦_/_⟧ᵐ⇀_)
   open Channel (A ⊗₀ B ᵀ)
 
   data Trace : State → State → Type where
