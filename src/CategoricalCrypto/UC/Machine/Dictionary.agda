@@ -81,7 +81,6 @@ private
 ------------------------------------------------------------------------
 -- The ancilla reassociators are the 𝒢-associator
 
--- The form `UC.Machine.Wire`'s absorption applies to.
 wire-pure : {A B : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
             (u : 𝒱._⇒_ (Pos A) (Pos B)) (v : 𝒱._⇒_ (Neg B) (Neg A))
           → 𝒱._≈_ u (pureᵏ up) → 𝒱._≈_ v (pureᵏ down)

@@ -8,7 +8,7 @@
 -- the ancilla slot — and `ctxRun-slide` says the two observations agree.  The
 -- budget `Kctx` carries is `scale c (positive c′)`, on the nose: the product
 -- `c * (c′ ⊔ 1)` is exactly what `qb-∘` charges the four factors, with
--- `qb-sub`'s guard supplying the `⊔ 1`.
+-- `UC.Machine.Grading.qb-subᴵ`'s guard supplying the `⊔ 1`.
 --
 -- That turns a statement quantified over budgeted ANCILLA CONTEXTS into one
 -- quantified over budgeted CLOSED CONTEXTS — the two-machine shape every
@@ -22,7 +22,7 @@
 -- `UC.Machine.Wire` has already absorbed the wires.
 --
 -- The last section runs the hole the other way: a GRADED statement arrives
--- with the hole already open, and `UC.Model.Dominated.dominatedᵍ` has to close
+-- with the hole already open, and `UC.Model.Dominated.dominatedᵍᵠ` has to close
 -- it before `dominated` will accept the context.
 
 open import Categories.Category using (Category)
