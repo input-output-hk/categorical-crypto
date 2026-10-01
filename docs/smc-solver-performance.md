@@ -62,7 +62,7 @@ time, and that machinery's cost is **multiplicative in (wire count) × (structur
 count)**, with associators and braids being individually expensive.
 
 This is not a search blowup or a complexity bug; it is the **decode/transport tax** — the same
-accidental complexity catalogued in `size-reduction-strategies.md` — showing up at *use* time
+accidental complexity catalogued in `history/size-reduction-strategies.md` — showing up at *use* time
 instead of *proof* time.
 
 ## Why the pentagon is fine but `GConstruction.assoc'-coherence` OOMs
@@ -546,7 +546,7 @@ composition tree per access path, so balance is ~free speed.
 ## Implication
 
 The fix is the same as for shrinking the soundness proof itself: a real coherence solver
-(`size-reduction-strategies.md`, Lever 1 / `braided-coherence-solver.md`, Option 2) or a
+(`history/size-reduction-strategies.md`, Lever 1 / `history/braided-coherence-solver.md`, Option 2) or a
 strict-monoidal representation (Option A) would collapse exactly the decode/transport normal forms
 that explode here. The head-to-head confirms the *representation* matters: the matrix/normalization
 decide step is an order of magnitude cheaper than the hypergraph round-trip, so a finished direct
@@ -557,6 +557,6 @@ The algorithm comparison adds a cheaper near-term option: since `findIso`'s cost
 and verifying* the iso rather than *searching* for it, replacing it with an explicit DAG canonical
 labelling (reusing the linear-extension + `FinBij` machinery) would port the matrix's speed-up to the
 hypergraph side **without** leaving the proven hypergraph world — complementary to the
-`≈M → ≅ᴴ` bridge (`braided-coherence-solver.md`), which reaches the same canonical form via the
+`≈M → ≅ᴴ` bridge (`history/braided-coherence-solver.md`), which reaches the same canonical form via the
 matrix representation. *(Superseded in part by the attribution probe above: the cheapest path is to
 keep `findIso` and remove the re-evaluation, via literalization.)*

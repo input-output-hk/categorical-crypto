@@ -1,0 +1,845 @@
+{
+ "sweep": "enum-with",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/Examples/ChimericLedger.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda": {
+   "sites": [
+    {
+     "line": 185,
+     "with": "with q ≟ k",
+     "clause": "lookup-bs-∈ ((k , v) ∷ xs) q h eq with q ≟ k"
+    },
+    {
+     "line": 187,
+     "with": "with lookup-bs-∈ xs q h eq",
+     "clause": "... | no  _ with lookup-bs-∈ xs q h eq"
+    },
+    {
+     "line": 195,
+     "with": "with lookup-bs-∈ tbl (ser tx) h eo",
+     "clause": "no-replay s tbl tx u′ vIn h e₁ eo good with lookup-bs-∈ tbl (ser tx) h eo"
+    },
+    {
+     "line": 217,
+     "with": "with memb h (Hs tbl) in em",
+     "clause": "freshInv s tbl (i₀ ∷ is) wds outs u′ a′ vIn e₁ ec eq (inj₂ good) h"
+    },
+    {
+     "line": 244,
+     "with": "with keysU-unionNew-outsAt u′ h 0 outs k mem",
+     "clause": "hashed′ k mem with keysU-unionNew-outsAt u′ h 0 outs k mem"
+    },
+    {
+     "line": 249,
+     "with": "with checkIns-head (proj₁ s) i₀ is vIn u′ e₁",
+     "clause": "i₀∈ with checkIns-head (proj₁ s) i₀ is vIn u′ e₁"
+    },
+    {
+     "line": 287,
+     "with": "with shape ser inputConsuming s tx",
+     "clause": "presTree (s , tbl) (submit tx) inv with shape ser inputConsuming s tx"
+    },
+    {
+     "line": 348,
+     "with": "with shape ser inputConsuming s tx",
+     "clause": "φ-step m (s , tbl) (submit tx) inv with shape ser inputConsuming s tx"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/System.agda": {
+   "sites": [
+    {
+     "line": 123,
+     "with": "with checkIns u ins | checkWdrls [] wds in eq",
+     "clause": "ledger-keeps-accts-[] vr _ u (submit (ins , wds , outs))"
+    },
+    {
+     "line": 127,
+     "with": "with (vIn + wdrlΣ wds ≡ᴺ valΣ outs) ∧ consumes vr ins",
+     "clause": "... | just (vIn , _) | just _"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda": {
+   "sites": [
+    {
+     "line": 72,
+     "with": "with i ≟ k",
+     "clause": "balance-removeIn ((k , v) ∷ m) i o eq with i ≟ k"
+    },
+    {
+     "line": 81,
+     "with": "with lookupU u i in eqL",
+     "clause": "checkIns-balance u (i ∷ is) v u′ eq with lookupU u i in eqL"
+    },
+    {
+     "line": 83,
+     "with": "with checkIns (removeIn i u) is in eqC",
+     "clause": "... | just o with checkIns (removeIn i u) is in eqC"
+    },
+    {
+     "line": 98,
+     "with": "with x ≟ y",
+     "clause": "acctΣ-subOne ((y , w) ∷ a) x v le with x ≟ y"
+    },
+    {
+     "line": 107,
+     "with": "with v ≤ᵇ acctOf a x in eqb",
+     "clause": "checkWdrls-acctΣ a ((x , v) ∷ ws) a′ eq with v ≤ᵇ acctOf a x in eqb"
+    },
+    {
+     "line": 138,
+     "with": "with (h , j) ≟ (h , i)",
+     "clause": "fresh′ j le with (h , j) ≟ (h , i)"
+    },
+    {
+     "line": 148,
+     "with": "with k ≟ k₀",
+     "clause": "lookupU-tail k₀ v m k hyp with k ≟ k₀"
+    },
+    {
+     "line": 154,
+     "with": "with k ≟ k₀",
+     "clause": "lookupU-cons k₀ v m m′ k hyp hyp′ with k ≟ k₀"
+    },
+    {
+     "line": 160,
+     "with": "with i ≟ k₀",
+     "clause": "lookupU-removeIn ((k₀ , v) ∷ m) i k hyp with i ≟ k₀"
+    },
+    {
+     "line": 169,
+     "with": "with lookupU u i in eqL",
+     "clause": "checkIns-lookupU u (i ∷ is) v u′ k eq hyp with lookupU u i in eqL"
+    },
+    {
+     "line": 171,
+     "with": "with checkIns (removeIn i u) is in eqC",
+     "clause": "... | just o with checkIns (removeIn i u) is in eqC"
+    },
+    {
+     "line": 192,
+     "with": "with k ≟ k₀",
+     "clause": "lookupU-just-∈ ((k₀ , v) ∷ m) k o eq with k ≟ k₀"
+    },
+    {
+     "line": 198,
+     "with": "with k ≟ k₀",
+     "clause": "∉-lookupU ((k₀ , v) ∷ m) k h with k ≟ k₀"
+    },
+    {
+     "line": 207,
+     "with": "with k ≟ k₀",
+     "clause": "lookupU-cons-≢ k₀ v m k ne hyp with k ≟ k₀"
+    },
+    {
+     "line": 213,
+     "with": "with k ≟ k₀",
+     "clause": "uniq-removeIn-lookup ((k₀ , v) ∷ m) k (fst , rest) with k ≟ k₀"
+    },
+    {
+     "line": 219,
+     "with": "with i ≟ k₀",
+     "clause": "uniq-removeIn ((k₀ , v) ∷ m) i (fst , rest) with i ≟ k₀"
+    },
+    {
+     "line": 224,
+     "with": "with lookupU u k in eq",
+     "clause": "uniq-insertNew u (k , v) uq with lookupU u k in eq"
+    },
+    {
+     "line": 235,
+     "with": "with lookupU u i in eqL",
+     "clause": "checkIns-uniq u (i ∷ is) v u′ uq eq with lookupU u i in eqL"
+    },
+    {
+     "line": 237,
+     "with": "with checkIns (removeIn i u) is in eqC",
+     "clause": "... | just o with checkIns (removeIn i u) is in eqC"
+    },
+    {
+     "line": 244,
+     "with": "with lookupU u i",
+     "clause": "checkIns-head u i is v u′ eq with lookupU u i"
+    },
+    {
+     "line": 251,
+     "with": "with lookupU u i in eqL",
+     "clause": "checkIns-consumed u i is v u′ uq eq with lookupU u i in eqL"
+    },
+    {
+     "line": 253,
+     "with": "with checkIns (removeIn i u) is in eqC",
+     "clause": "... | just o with checkIns (removeIn i u) is in eqC"
+    },
+    {
+     "line": 262,
+     "with": "with lookupU u i in eqL",
+     "clause": "checkIns-live u (i ∷ is) v u′ k eq mem hyp with lookupU u i in eqL"
+    },
+    {
+     "line": 264,
+     "with": "with checkIns (removeIn i u) is in eqC",
+     "clause": "... | just o with checkIns (removeIn i u) is in eqC"
+    },
+    {
+     "line": 266,
+     "with": "with mem",
+     "clause": "...   | just (v₀ , u₁) with mem"
+    },
+    {
+     "line": 273,
+     "with": "with i ≟ k₀",
+     "clause": "keysU-removeIn ((k₀ , v) ∷ m) i k mem with i ≟ k₀"
+    },
+    {
+     "line": 275,
+     "with": "with mem",
+     "clause": "... | no  _ with mem"
+    },
+    {
+     "line": 283,
+     "with": "with lookupU u i in eqL",
+     "clause": "checkIns-keysU u (i ∷ is) v u′ k eq mem with lookupU u i in eqL"
+    },
+    {
+     "line": 285,
+     "with": "with checkIns (removeIn i u) is in eqC",
+     "clause": "... | just o with checkIns (removeIn i u) is in eqC"
+    },
+    {
+     "line": 292,
+     "with": "with is-just (lookupU u k₀)",
+     "clause": "keysU-insertNew u (k₀ , v) k mem with is-just (lookupU u k₀)"
+    },
+    {
+     "line": 294,
+     "with": "with mem",
+     "clause": "... | false with mem"
+    },
+    {
+     "line": 302,
+     "with": "with keysU-unionNew-outsAt (insertNew u ((h , i) , o)) h (suc i) os k mem",
+     "clause": "keysU-unionNew-outsAt u h i (o ∷ os) k mem"
+    },
+    {
+     "line": 304,
+     "with": "with keysU-insertNew u ((h , i) , o) k m₁",
+     "clause": "... | inj₁ m₁ with keysU-insertNew u ((h , i) , o) k m₁"
+    },
+    {
+     "line": 310,
+     "with": "with is-just (lookupU u k₀)",
+     "clause": "lookupU-insertNew u (k₀ , v) k ne hyp with is-just (lookupU u k₀)"
+    },
+    {
+     "line": 312,
+     "with": "with k ≟ k₀",
+     "clause": "... | false with k ≟ k₀"
+    },
+    {
+     "line": 391,
+     "with": "with checkIns u ins in e₁",
+     "clause": "shape vr s@(u , a) tx@(ins , wds , outs) with checkIns u ins in e₁"
+    },
+    {
+     "line": 393,
+     "with": "with checkWdrls a wds in e₂",
+     "clause": "... | just (vIn , u′) with checkWdrls a wds in e₂"
+    },
+    {
+     "line": 395,
+     "with": "with (vIn + wdrlΣ wds) ≡ᴺ valΣ outs in eb",
+     "clause": "...   | just a′ with (vIn + wdrlΣ wds) ≡ᴺ valΣ outs in eb"
+    },
+    {
+     "line": 397,
+     "with": "with consumes vr ins in ec",
+     "clause": "...     | true with consumes vr ins in ec"
+    },
+    {
+     "line": 404,
+     "with": "with checkIns u ins in e₁ | checkWdrls a wds in e₂",
+     "clause": "applyTx-total-fresh vr (u , a) (ins , wds , outs) h fresh"
+    },
+    {
+     "line": 407,
+     "with": "with (vIn + wdrlΣ wds) ≡ᴺ valΣ outs in eb",
+     "clause": "... | just (vIn , u′) | just a′ with (vIn + wdrlΣ wds) ≡ᴺ valΣ outs in eb"
+    },
+    {
+     "line": 409,
+     "with": "with consumes vr ins",
+     "clause": "...   | true with consumes vr ins"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Compose.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Hiding.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Test.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/UC.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/HashForward.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/HashForward/Audit.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/HashForward/UC.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard.agda": {
+   "sites": [
+    {
+     "line": 126,
+     "with": "with Comp.lookup-bs sc q",
+     "clause": "compStep-eval κ sc i q with Comp.lookup-bs sc q"
+    },
+    {
+     "line": 186,
+     "with": "with General.lookup-bs sg M",
+     "clause": "generalStep-eval sg (i , M) with General.lookup-bs sg M"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda": {
+   "sites": [
+    {
+     "line": 192,
+     "with": "with idx <? len",
+     "clause": "interior (e@((_ , _ , len , idx) , _) ∷ es) with idx <? len"
+    },
+    {
+     "line": 298,
+     "with": "with Comp.lookup-bs sc (pack h b idx)",
+     "clause": "callC-marg sc h b idx P with Comp.lookup-bs sc (pack h b idx)"
+    },
+    {
+     "line": 537,
+     "with": "with proj₁ (proj₂ w) ≟ h",
+     "clause": "pointRep w with proj₁ (proj₂ w) ≟ h"
+    },
+    {
+     "line": 662,
+     "with": "with y ≟ x | x ≟ y",
+     "clause": "δ-sym x y with y ≟ x | x ≟ y"
+    },
+    {
+     "line": 671,
+     "with": "with ii <? k",
+     "clause": "interior-cons< hh bb ii vv sc lt with ii <? k"
+    },
+    {
+     "line": 677,
+     "with": "with ii <? k",
+     "clause": "interior-consᶠ hh bb ii vv sc ¬lt with ii <? k"
+    },
+    {
+     "line": 969,
+     "with": "with ii <? k",
+     "clause": "collC-mono1 hh bb ii vv sc with ii <? k"
+    },
+    {
+     "line": 1034,
+     "with": "with x ≟ x",
+     "clause": "⌊≟⌋-refl x with x ≟ x"
+    },
+    {
+     "line": 1117,
+     "with": "with key ≟ k₀",
+     "clause": "lookup-cons-≢ k₀ v₀ sc key ne with key ≟ k₀"
+    },
+    {
+     "line": 1143,
+     "with": "with k₀ ≟ k | absent",
+     "clause": "lookup-nothing⇒All≢ ((k , v) ∷ sc) k₀ absent with k₀ ≟ k | absent"
+    },
+    {
+     "line": 1162,
+     "with": "with idx <? len",
+     "clause": "HasVal-cons-any ((hh , bb , len , idx) , vv) sc x hv with idx <? len"
+    },
+    {
+     "line": 1168,
+     "with": "with idx <? k",
+     "clause": "new-val-HasVal v b idx vv sc lt with idx <? k"
+    },
+    {
+     "line": 1175,
+     "with": "with (pack v b idx) ≟ key | hit",
+     "clause": "lookup-interior-HasVal ((key , val) ∷ sc) v b idx v'' lt hit with (pack v b idx)"
+    },
+    {
+     "line": 1182,
+     "with": "with key ≟ key",
+     "clause": "lookup-cons-here key val sc with key ≟ key"
+    },
+    {
+     "line": 1208,
+     "with": "with Comp.lookup-bs sc (pack v b idx) in eq",
+     "clause": "callC-supp sc v b idx lt uk rt vroot with Comp.lookup-bs sc (pack v b idx) in eq"
+    },
+    {
+     "line": 1300,
+     "with": "with M₀ ≟ M | lk",
+     "clause": "rec-extend sc sg sc' M v' ext chain rc M₀ h₀ lk with M₀ ≟ M | lk"
+    },
+    {
+     "line": 1358,
+     "with": "with (v' , b' , k , k) ≟ pack v b idx | e",
+     "clause": "dich hm v' b' u' e with (v' , b' , k , k) ≟ pack v b idx | e"
+    },
+    {
+     "line": 1375,
+     "with": "with dich2 v' b' u' e",
+     "clause": "dd v' b' u' e with dich2 v' b' u' e"
+    },
+    {
+     "line": 1408,
+     "with": "with dich2 v' b' u' e",
+     "clause": "dd v' b' u' e with dich2 v' b' u' e"
+    },
+    {
+     "line": 1418,
+     "with": "with key ≟ M₀",
+     "clause": "G-lookup-cons-≢ M₀ v₀ sg key ne with key ≟ M₀"
+    },
+    {
+     "line": 1423,
+     "with": "with M₀ ≟ M₀",
+     "clause": "G-lookup-cons-here M₀ v₀ sg with M₀ ≟ M₀"
+    },
+    {
+     "line": 1437,
+     "with": "with h ≟ v | eq0",
+     "clause": "cm0-all ((key , v) ∷ xs) h eq0 with h ≟ v | eq0"
+    },
+    {
+     "line": 1450,
+     "with": "with key ≟ k' | e",
+     "clause": "lookup⇒mem ((k' , v') ∷ xs) key w e with key ≟ k' | e"
+    },
+    {
+     "line": 1457,
+     "with": "with j <? k",
+     "clause": "∈interior (_ ∷ es) v b j w lt (ListAny.here refl) with j <? k"
+    },
+    {
+     "line": 1460,
+     "with": "with idx' <? len'",
+     "clause": "∈interior (((cv' , b' , len' , idx') , val') ∷ es) v b j w lt (ListAny.there a) "
+    },
+    {
+     "line": 1501,
+     "with": "with h ≟ v | cm-01 xs h",
+     "clause": "cm-01 ((_ , v) ∷ xs) h with h ≟ v | cm-01 xs h"
+    },
+    {
+     "line": 1508,
+     "with": "with cm-01 ps h | collC-01 ps",
+     "clause": "collC-01 ((_ , h) ∷ ps) with cm-01 ps h | collC-01 ps"
+    },
+    {
+     "line": 1538,
+     "with": "with j <? k",
+     "clause": "stepT<k sc v (b , j) with j <? k"
+    },
+    {
+     "line": 1545,
+     "with": "with j <? k",
+     "clause": "runPath-≡<k sc r (b ∷ bs) j le with j <? k"
+    },
+    {
+     "line": 1547,
+     "with": "with Comp.lookup-bs sc (r , b , k , j)",
+     "clause": "... | yes _ with Comp.lookup-bs sc (r , b , k , j)"
+    },
+    {
+     "line": 1580,
+     "with": "with j <? k | e",
+     "clause": "stepT<k-inv sc v b j w e with j <? k | e"
+    },
+    {
+     "line": 1670,
+     "with": "with dich v' b w'' e",
+     "clause": "walk-owned sc sg M w eq ext dich rc ol v' b w'' e with dich v' b w'' e"
+    },
+    {
+     "line": 1673,
+     "with": "with ol v' b w'' old",
+     "clause": "... | inj₁ old with ol v' b w'' old"
+    },
+    {
+     "line": 1700,
+     "with": "with proj₂ (proj₂ w)",
+     "clause": "cont w ((ext , uk' , rt' , seg) , (_ , dich)) with proj₂ (proj₂ w)"
+    },
+    {
+     "line": 1709,
+     "with": "with dich v' b' u' e",
+     "clause": "dich-old v' b' u' e with dich v' b' u' e"
+    },
+    {
+     "line": 1720,
+     "with": "with dich v' b' u' e",
+     "clause": "dich-owned v' b' u' e with dich v' b' u' e"
+    },
+    {
+     "line": 1733,
+     "with": "with General.lookup-bs sg M in eq",
+     "clause": "inner with General.lookup-bs sg M in eq"
+    },
+    {
+     "line": 1739,
+     "with": "with f",
+     "clause": "mdInv-pres (f , sc , sg) (i , M) inv with f"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/Possibilistic.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Asymptotic.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda": {
+   "sites": [
+    {
+     "line": 48,
+     "with": "with x ≟ y",
+     "clause": "lookupPt ((y , d) ∷ L) x with x ≟ y"
+    },
+    {
+     "line": 55,
+     "with": "with x ≟ x",
+     "clause": "lookup-here x d L with x ≟ x"
+    },
+    {
+     "line": 62,
+     "with": "with x ≟ y",
+     "clause": "lookup-there x y d L ne with x ≟ y"
+    },
+    {
+     "line": 68,
+     "with": "with d ≟ c",
+     "clause": "preimages c ((x , d) ∷ L) with d ≟ c"
+    },
+    {
+     "line": 97,
+     "with": "with c ≟ d | d ≟ c",
+     "clause": "memb-pre c ((x , d) ∷ L) eq with c ≟ d | d ≟ c"
+    },
+    {
+     "line": 104,
+     "with": "with d ≟ c",
+     "clause": "pins-[] c b ((x , d) ∷ L) eq with d ≟ c"
+    },
+    {
+     "line": 112,
+     "with": "with ∨-false (memb d (answers L)) (dup (answers L)) nd",
+     "clause": "pins-extract c ((x , d) ∷ L) nd with ∨-false (memb d (answers L)) (dup (answers "
+    },
+    {
+     "line": 113,
+     "with": "with d ≟ c",
+     "clause": "pins-extract c ((x , d) ∷ L) nd | mb , dd with d ≟ c"
+    },
+    {
+     "line": 132,
+     "with": "with x ≟ y",
+     "clause": "pins-lookup c b ((y , e) ∷ L) x d hit p d≡c with x ≟ y"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Game.agda": {
+   "sites": [
+    {
+     "line": 115,
+     "with": "with lookupPt t x",
+     "clause": "fetch (t , m , f) x with lookupPt t x"
+    },
+    {
+     "line": 233,
+     "with": "with h ≟ c",
+     "clause": "inv-sample t (just (c , e)) f x h inv with h ≟ c"
+    },
+    {
+     "line": 254,
+     "with": "with d ≟ c",
+     "clause": "agree-off t c e f b x d inv nb hit hx with d ≟ c"
+    },
+    {
+     "line": 256,
+     "with": "with b ≟ e",
+     "clause": "... | yes d≡c with b ≟ e"
+    },
+    {
+     "line": 283,
+     "with": "with lookupPt t x in eq",
+     "clause": "fetch-bis (t , m , f) x G G′ inv pt with lookupPt t x in eq"
+    },
+    {
+     "line": 494,
+     "with": "with lookupPt t x",
+     "clause": "fetch-log (t , m , f) x F with lookupPt t x"
+    },
+    {
+     "line": 504,
+     "with": "with lookupPt t x",
+     "clause": "fetch-hit (t , nothing , f) x with lookupPt t x"
+    },
+    {
+     "line": 515,
+     "with": "with lookupPt t x",
+     "clause": "fetch-hit (t , just (c , e) , f) x with lookupPt t x"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda": {
+   "sites": [
+    {
+     "line": 178,
+     "with": "with x ≟ y",
+     "clause": "pinnedʰ (pinᵖ y c) x with x ≟ y"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Asymptotic.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda": {
+   "sites": [
+    {
+     "line": 79,
+     "with": "with x ≟ y",
+     "clause": "⌊⌋-false {x = x} {y} eq with x ≟ y"
+    },
+    {
+     "line": 306,
+     "with": "with x ≟ (b ∷ᵛ r)",
+     "clause": "tblAt-miss (just (c , b , false)) r t x with x ≟ (b ∷ᵛ r)"
+    },
+    {
+     "line": 323,
+     "with": "with y ≟ x",
+     "clause": "tbl-∷ nothing r t t′ x h tbl g y with y ≟ x"
+    },
+    {
+     "line": 326,
+     "with": "with y ≟ x",
+     "clause": "tbl-∷ (just (_ , _ , true)) r t t′ x h tbl g y with y ≟ x"
+    },
+    {
+     "line": 329,
+     "with": "with y ≟ (b ∷ᵛ r)",
+     "clause": "tbl-∷ (just (c , b , false)) r t t′ x h tbl g y with y ≟ (b ∷ᵛ r)"
+    },
+    {
+     "line": 332,
+     "with": "with y ≟ x",
+     "clause": "... | no ne with y ≟ x"
+    },
+    {
+     "line": 345,
+     "with": "with lookupPt t′ x",
+     "clause": "fetchR t′ x h with lookupPt t′ x"
+    },
+    {
+     "line": 437,
+     "with": "with hitAt m x ρ in eqh | guessAt m r x in eqg",
+     "clause": "stp u ρ us with hitAt m x ρ in eqh | guessAt m r x in eqg"
+    },
+    {
+     "line": 496,
+     "with": "with y ≟ (b ∷ᵛ r)",
+     "clause": "tblc y with y ≟ (b ∷ᵛ r)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Test.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda": {
+   "sites": [
+    {
+     "line": 129,
+     "with": "with pinnedʰ p x",
+     "clause": "cohR (idleᵖ p)  (askᴿᶜ x) with pinnedʰ p x"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Oracle.agda": {
+   "sites": [
+    {
+     "line": 38,
+     "with": "with lookupPt t x",
+     "clause": "fetchT g t x with lookupPt t x"
+    },
+    {
+     "line": 59,
+     "with": "with lookupPt t x",
+     "clause": "fetchT-cong g g′ t x H H′ pt with lookupPt t x"
+    },
+    {
+     "line": 75,
+     "with": "with lookupPt t x",
+     "clause": "fetchT-sup t x with lookupPt t x"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda": {
+   "sites": [
+    {
+     "line": 104,
+     "with": "with d ≟ c",
+     "clause": "verdict-realOpen c b d with d ≟ c"
+    },
+    {
+     "line": 306,
+     "with": "with c ≟ c",
+     "clause": "pre-hit c x L with c ≟ c"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda": {
+   "sites": [
+    {
+     "line": 127,
+     "with": "with deadR (t , digOf m) q",
+     "clause": "marginalᴿ s@(t , m , f) q G with deadR (t , digOf m) q"
+    },
+    {
+     "line": 139,
+     "with": "with deadR (t , digOf m) q",
+     "clause": "bisimᴿᵍ s@(t , m , f) _ (refl , inv) q F F′ pt with deadR (t , digOf m) q"
+    },
+    {
+     "line": 150,
+     "with": "with deadR (t , digOf m) q",
+     "clause": "bisimᴵᵍ s@(t , m , f) _ (refl , inv) q F F′ pt with deadR (t , digOf m) q"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Test.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda": {
+   "sites": [
+    {
+     "line": 82,
+     "with": "with lookupPt t x",
+     "clause": "resKᵀ-fetchT (t , m) x with lookupPt t x"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/UC.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/RandomOracle.agda": {
+   "sites": [
+    {
+     "line": 35,
+     "with": "with q ≟ k",
+     "clause": "lookup-bs ((k , v) ∷ xs) q with q ≟ k"
+    },
+    {
+     "line": 43,
+     "with": "with q ≟ q",
+     "clause": "lookup-bs-here s q h with q ≟ q"
+    }
+   ]
+  }
+ },
+ "totalChecks": 0
+}

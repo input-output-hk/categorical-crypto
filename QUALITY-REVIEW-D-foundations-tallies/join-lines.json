@@ -1,0 +1,826 @@
+{
+ "sweep": "join-lines",
+ "root": ".",
+ "files": {
+  "src/Categories/Category/Cocartesian/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Kleisli/Discrete.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Kleisli/Discrete/Distributive.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Kleisli/Discrete/Pure.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Monoidal/Distributive.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Monoidal/Distributive/Properties.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Monoidal/Pure.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Monoidal/Traced/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Monoidal/Utilities/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/GConstructionEmbedding.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/GConstructionEmbeddingCoherence.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/GConstructionHomCoherence.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 76,
+     "edit": "join 2 lines: `αᵗ : ∀ {A⁻ B⁺ B⁻ C⁺} → HomTerm ((B⁻ ⊗₀ C⁺) ⊗₀ (A⁻ …`"
+    },
+    {
+     "line": 80,
+     "edit": "join 2 lines: `γᵗ : ∀ {A⁺ B⁺ B⁻ C⁻} → HomTerm ((A⁺ ⊗₀ C⁻) ⊗₀ (B⁻ …`"
+    },
+    {
+     "line": 103,
+     "edit": "join 2 lines: `Lin : HomTerm (W ⊗₀ (X ⊗₀ Y)) (((b⁺ ⊗₀ d⁻) ⊗₀ (a⁺ …`"
+    },
+    {
+     "line": 111,
+     "edit": "join 2 lines: `Rin : HomTerm (W ⊗₀ (X ⊗₀ Y)) (((b⁺ ⊗₀ d⁻) ⊗₀ (q⁺ …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 66.6
+  },
+  "src/Categories/GConstructionLoop.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 76,
+     "edit": "join 2 lines: `g : A C.⊗₀ ((P C.⊗₀ Q) C.⊗₀ (R C.⊗₀ S)) C.⇒ B C.⊗₀…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 90.1
+  },
+  "src/Categories/GConstructionLoopCoherence.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/GConstructionMonoidal.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 41,
+     "edit": "join 2 lines: `open import Categories.Morphism.Reasoning C public…`"
+    },
+    {
+     "line": 107,
+     "edit": "join 2 lines: `identityᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ : C.Obj} → G.id {A⁺ , A…`"
+    },
+    {
+     "line": 199,
+     "edit": "join 4 lines: `triangleᴳ = G.∘-resp-≈ˡ ⌜⌝-⊗ˡ ○ ⌜⌝-∘ ○ ⌜⌝-resp-≈ C…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 92.4
+  },
+  "src/Categories/GConstructionTensorCoherence.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/GConstructionTrace.agda": {
+   "candidates": 6,
+   "kept": [
+    {
+     "line": 44,
+     "edit": "join 2 lines: `α : ∀ {A⁻ B⁺ B⁻ C⁺ : C.Obj} → (B⁻ C.⊗₀ C⁺) C.⊗₀ (A…`"
+    },
+    {
+     "line": 48,
+     "edit": "join 2 lines: `γ : ∀ {A⁺ B⁺ B⁻ C⁻ : C.Obj} → (A⁺ C.⊗₀ C⁻) C.⊗₀ (B…`"
+    },
+    {
+     "line": 59,
+     "edit": "join 2 lines: `mid : ∀ {P Q R S : C.Obj} → (P C.⊗₀ Q) C.⊗₀ (R C.⊗…`"
+    },
+    {
+     "line": 72,
+     "edit": "join 2 lines: `mid-braiding : ∀ {P Q R S : C.Obj} → mid C.∘ C.σ⇒ …`"
+    },
+    {
+     "line": 78,
+     "edit": "join 2 lines: `mid-σ : ∀ {P Q R S : C.Obj} → mid C.∘ C.σ⇒ C.⊗₁ C.…`"
+    },
+    {
+     "line": 118,
+     "edit": "join 2 lines: `braiding-swap = C.introˡ C.commutative ○ C.pullʳ (…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 25.2
+  },
+  "src/Categories/GConstructionTraceCoherence.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Monad/Construction/Kleisli/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Monad/Discrete.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Monad/Graded/Trivial.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Monad/Setoids/Discrete.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 54,
+     "edit": "join 2 lines: `>>=-cong : {x y : M A} {f g : A → M B} → x ≈ᴹ y → …`"
+    },
+    {
+     "line": 65,
+     "edit": "join 2 lines: `>>=-assoc-≈ : (m : M A) {g : A → M B} {h : B → M C…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 7.2
+  },
+  "src/Categories/Monad/Setoids/Discrete/Morphism.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Monad/Setoids/Maybe.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Class/DecEq/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Class/Monad/Ext/Setoid.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/Bits/Codec.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 10,
+     "edit": "join 2 lines: `open import Data.Maybe.Base renaming (map to mapᵐ)…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 9.5
+  },
+  "src/Data/Bool/Properties/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/List/Relation/Binary/BagAndSetEquality/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/List/Relation/Unary/Any/Properties/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/List/Run.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/Sum/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/Vec/Properties/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Function/Bundles/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Abstract.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 203,
+     "edit": "join 2 lines: `P-∁≈0 : ∀ {P : ProbDistr Ω} {A : Ω → Type} ⦃ A? : …`"
+    },
+    {
+     "line": 226,
+     "edit": "join 2 lines: `P≈0-of-⊆ : ∀ {P : ProbDistr Ω} {X Y : Ω → Type} → …`"
+    },
+    {
+     "line": 228,
+     "edit": "join 3 lines: `P≈0-of-⊆ X⊆Y PY≈0 = HPo.≤-antisym (HP.≤-trans (pro…`"
+    },
+    {
+     "line": 232,
+     "edit": "join 2 lines: `mass-restrict : ∀ {P : ProbDistr Ω} {A B : Ω → Typ…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 22.8
+  },
+  "src/ProbabilisticLogic/Distribution/Bernoulli.agda": {
+   "candidates": 5,
+   "kept": [
+    {
+     "line": 38,
+     "edit": "join 2 lines: `outcomes-toList zero    (suc n) = cong (false ∷_) …`"
+    },
+    {
+     "line": 45,
+     "edit": "join 2 lines: `filterᵇ-trues-length : ∀ m n → length (filterᵇ id …`"
+    },
+    {
+     "line": 76,
+     "edit": "join 2 lines: `outcomes-length : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄ →…`"
+    },
+    {
+     "line": 78,
+     "edit": "join 2 lines: `outcomes-length m n = P.trans (cong length (outcom…`"
+    },
+    {
+     "line": 113,
+     "edit": "join 2 lines: `bernoulli-full : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄ → …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 886.2
+  },
+  "src/ProbabilisticLogic/Distribution/Binomial.agda": {
+   "candidates": 5,
+   "kept": [
+    {
+     "line": 95,
+     "edit": "join 2 lines: `P-all-true : ∀ k m n ⦃ _ : NonZero (m +ℕ n) ⦄ → bi…`"
+    },
+    {
+     "line": 155,
+     "edit": "join 2 lines: `binomial-0-full : ∀ m n ⦃ _ : NonZero (m +ℕ n) ⦄ →…`"
+    },
+    {
+     "line": 161,
+     "edit": "join 2 lines: `binomial-support-distinct (suc k) = Unique-×ᴸ bool…`"
+    },
+    {
+     "line": 164,
+     "edit": "join 2 lines: `binomial-full : ∀ k m n ⦃ _ : NonZero (m +ℕ n) ⦄ →…`"
+    },
+    {
+     "line": 224,
+     "edit": "join 2 lines: `first-eq : weight-sum (binomial (suc k) m n) 1[ ↑ …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 20.6
+  },
+  "src/ProbabilisticLogic/Distribution/Markov.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Advantage.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 10,
+     "edit": "join 2 lines: `open import Data.Rational renaming (_+_ to _+ℚ_; _…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 19.5
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda": {
+   "candidates": 6,
+   "kept": [
+    {
+     "line": 93,
+     "edit": "join 2 lines: `E⊥-map : (f : A → B) (ν : Dist⊥ A) (G : B → ℚ) → E…`"
+    },
+    {
+     "line": 126,
+     "edit": "join 2 lines: `E-mono-on : (μ : Dist-ℚ A) (f g : A → ℚ) → OnSuppo…`"
+    },
+    {
+     "line": 159,
+     "edit": "join 2 lines: `E-abs-diff : (μ : Dist-ℚ A) (a b : A → ℚ) → ∣ E μ …`"
+    },
+    {
+     "line": 190,
+     "edit": "join 2 lines: `E⊥-mono-on : (μ : Dist⊥ A) (F G : A → ℚ) → OnSuppo…`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 89,
+     "edit": "join 5 lines: `E⊥-cong-P ν F G eq = lookupᴰℚ-cong-P (entries ν) λ…`"
+    },
+    {
+     "line": 148,
+     "edit": "join 5 lines: `E⊥-mono μ F G pt = E-mono μ (maybeℚ F) (maybeℚ G) …`"
+    }
+   ],
+   "skipped": [],
+   "checks": 9,
+   "seconds": 33.6
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 122,
+     "edit": "join 2 lines: `>>=⊥-congʳ : (f : A → Dist⊥ B) (μ ν : Dist⊥ A) → μ…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 19.2
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Setoid.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 35,
+     "edit": "join 2 lines: `>>=ᴹ-congʳ : (K : A → Dist-ℚ B) (μ ν : Dist-ℚ A) →…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 19.4
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Support.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Collision.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 131,
+     "edit": "join 2 lines: `Φ-init m = ≤-trans (≤-reflexive (+-identityˡ (Γ 0 …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 20.1
+  },
+  "src/ProbabilisticLogic/Dp.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 280,
+     "edit": "join 4 lines: `cofinal-trans d e h de eh n = let m , le  = de n i…`"
+    },
+    {
+     "line": 336,
+     "edit": "join 4 lines: `exactˢ⇒≈ₚ d e eq = exact⇒≈ₚ d e λ where P zero    …`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 298.5
+  },
+  "src/ProbabilisticLogic/Dp/Advantage.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 90,
+     "edit": "join 2 lines: `≈ₚ[]-resp (dd , dd′) (ee , ee′) (p , q) = ≼ₚ[]-res…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 18.6
+  },
+  "src/ProbabilisticLogic/Dp/Coin.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 53,
+     "edit": "join 2 lines: `coinₚ-cum : (μ : Dist-ℚ Bool) (n : ℕ) (P : Bool → …`"
+    },
+    {
+     "line": 64,
+     "edit": "join 2 lines: `pull : (Q : Bool → ℚ) (x : ℚ) → E μ Q ℚ.* x ≡ look…`"
+    },
+    {
+     "line": 95,
+     "edit": "join 2 lines: `agree : (Q : A → ℚ) (n : ℕ) → cum n (coinₚ μ >>=ₚ …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 19.6
+  },
+  "src/ProbabilisticLogic/Dp/Commutative.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Dominate.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 148,
+     "edit": "join 2 lines: `dom₀-bind P nn d f g dm = dom≤⇒dom₀ λ k → dom≤-bin…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 14.7
+  },
+  "src/ProbabilisticLogic/Dp/Elgot.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Iter.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Codiagonal.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Out.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Transfer.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Mass.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Reasoning.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Settle.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 152,
+     "edit": "join 2 lines: `Settles-mono {d = d} le s = settles (Halts-mono le…`"
+    },
+    {
+     "line": 189,
+     "edit": "join 2 lines: `Halts-bind zero    j d f κ z sp = Null⇒Halts j (d …`"
+    },
+    {
+     "line": 191,
+     "edit": "join 2 lines: `Halts-bind (suc n) j d f κ (inj₁ z) sp = Null⇒Halt…`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 181,
+     "edit": "join 5 lines: `hlt = inj₂ λ where true  → inj₂ λ _ → tt false → i…`"
+    }
+   ],
+   "skipped": [],
+   "checks": 7,
+   "seconds": 31.8
+  },
+  "src/ProbabilisticLogic/Dp/Settle/Iter.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 49,
+     "edit": "join 2 lines: `Halts-stepᵢ zero j u x κ z sp = Null⇒Halts (suc j)…`"
+    },
+    {
+     "line": 127,
+     "edit": "join 2 lines: `Settles-stepᵢ⋆ n u x ν κ s w = Settles-stepᵢˢ n u …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 20.2
+  },
+  "src/ProbabilisticLogic/Dp/Stable.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 40,
+     "edit": "join 5 lines: `Stable-return p P = 1 , λ where zero    () (suc m)…`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 8.0
+  },
+  "src/ProbabilisticLogic/Dp/Support.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Examples/BiasedCoin.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Examples/Coins.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Examples/MultipleCoins.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Examples/Weather.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Expectation.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 307,
+     "edit": "join 2 lines: `cons-equiv : ((λ ω' → X ω' × ω ≡ ω') ∪ (X ∩ (_∈ˡ ω…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 42.6
+  },
+  "src/ProbabilisticLogic/Logic.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 27,
+     "edit": "join 2 lines: `Σ-resp-≈ : {P : ProbDistr Ω} {X : Ω → Type} {p p' …`"
+    },
+    {
+     "line": 35,
+     "edit": "join 2 lines: `Σ-resp-≐ : {P : ProbDistr Ω} {p : Probability} {X …`"
+    },
+    {
+     "line": 46,
+     "edit": "join 2 lines: `Σ-weaken : {P : ProbDistr Ω} {X : Ω → Type} {p q :…`"
+    },
+    {
+     "line": 54,
+     "edit": "join 2 lines: `Σ-mono : {P : ProbDistr Ω} {p : Probability} {X Y …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 21.3
+  },
+  "src/ProbabilisticLogic/Models/Trivial.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 64,
+     "edit": "join 4 lines: `⊤-HasPartialOrder = record { hasPreorder = ⊤-HasPr…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 20.2
+  },
+  "src/ProbabilisticLogic/Prelude.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Reasoning.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Relation/Binary/Bundles/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  }
+ },
+ "totalChecks": 82
+}

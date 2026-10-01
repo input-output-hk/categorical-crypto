@@ -1,0 +1,1446 @@
+{
+ "sweep": "binder-drop",
+ "root": ".",
+ "files": {
+  "src/Categories/Category/Cocartesian/Ext.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 26,
+     "edit": "drop binder `{u v : A + B ⇒ Y}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 4.7
+  },
+  "src/Categories/Category/Kleisli/Discrete.agda": {
+   "candidates": 7,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 77,
+     "edit": "drop binder `{h k : A → B}` + arrow"
+    },
+    {
+     "line": 108,
+     "edit": "drop binder `{g′ : B′ → M C′}` + arrow"
+    },
+    {
+     "line": 121,
+     "edit": "drop binder `{g i : C → M D}` + arrow"
+    },
+    {
+     "line": 186,
+     "edit": "drop binder `{f : A → M B}` + arrow"
+    },
+    {
+     "line": 198,
+     "edit": "drop binder `{f : A → M B}` + arrow"
+    },
+    {
+     "line": 210,
+     "edit": "drop binder `{h : C → M C′}` + arrow"
+    },
+    {
+     "line": 223,
+     "edit": "drop binder `{g : B → M B′}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 14,
+   "seconds": 26.0
+  },
+  "src/Categories/Category/Kleisli/Discrete/Distributive.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Kleisli/Discrete/Pure.agda": {
+   "candidates": 4,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 31,
+     "edit": "drop binder `{f g : A → M B}` + arrow"
+    },
+    {
+     "line": 38,
+     "edit": "drop binder `{g : A → M B}` + arrow"
+    },
+    {
+     "line": 44,
+     "edit": "drop binder `{g : C → M D}` + arrow"
+    },
+    {
+     "line": 52,
+     "edit": "drop binder `{g : B → M C}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 8,
+   "seconds": 14.6
+  },
+  "src/Categories/Category/Monoidal/Distributive.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Monoidal/Distributive/Properties.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 19,
+     "edit": "drop binder `{u v : X ⊗₀ (A + B) ⇒ Y}` + arrow"
+    },
+    {
+     "line": 49,
+     "edit": "drop binder `{u v : X ⊗₀ ⊥ ⇒ Y}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 12.9
+  },
+  "src/Categories/Category/Monoidal/Pure.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 31,
+     "edit": "drop binder `{A B : Obj}` + arrow"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 33,
+     "edit": "drop binder `{f g : A ⇒ B}` + arrow"
+    },
+    {
+     "line": 35,
+     "edit": "drop binder `{g : A ⇒ B}` + arrow"
+    },
+    {
+     "line": 36,
+     "edit": "drop binder `{g : C ⇒ D}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 9,
+   "seconds": 1089.4
+  },
+  "src/Categories/Category/Monoidal/Traced/Ext.agda": {
+   "candidates": 4,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 29,
+     "edit": "drop binder `{f g : A ⊗₀ X ⇒ B ⊗₀ X}` + arrow"
+    },
+    {
+     "line": 30,
+     "edit": "drop binder `{f : A ⊗₀ X ⇒ B ⊗₀ X}` + arrow"
+    },
+    {
+     "line": 31,
+     "edit": "drop binder `{h : A′ ⇒ A}` + arrow"
+    },
+    {
+     "line": 32,
+     "edit": "drop binder `{f : (A ⊗₀ X) ⊗₀ Y ⇒ (B ⊗₀ X) ⊗₀ Y}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 8,
+   "seconds": 14.7
+  },
+  "src/Categories/Category/Monoidal/Utilities/Ext.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 42,
+     "edit": "drop binder `{B : Obj}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 5.4
+  },
+  "src/Categories/GConstructionEmbedding.agda": {
+   "candidates": 10,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 47,
+     "edit": "drop binder `{A⁺ A⁻ B⁺ B⁻ : C.Obj}` + arrow"
+    },
+    {
+     "line": 54,
+     "edit": "drop binder `{v v' : B⁻ C.⇒ A⁻}` + arrow"
+    },
+    {
+     "line": 68,
+     "edit": "drop binder `{A⁺ A⁻ : C.Obj}` + arrow"
+    },
+    {
+     "line": 75,
+     "edit": "drop binder `{g : A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺}` + arrow"
+    },
+    {
+     "line": 85,
+     "edit": "drop binder `{f : B⁺ C.⊗₀ D⁻ C.⇒ B⁻ C.⊗₀ D⁺}` + arrow"
+    },
+    {
+     "line": 95,
+     "edit": "drop binder `{q : B⁻ C.⇒ A⁻}` + arrow"
+    },
+    {
+     "line": 114,
+     "edit": "drop binder `{A⁺ A⁻ B⁺ B⁻ : C.Obj}` + arrow"
+    },
+    {
+     "line": 126,
+     "edit": "drop binder `{A⁺ A⁻ : C.Obj}` + arrow"
+    },
+    {
+     "line": 129,
+     "edit": "drop binder `{A⁺ A⁻ : C.Obj}` + arrow"
+    },
+    {
+     "line": 132,
+     "edit": "drop binder `{A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : C.Obj}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 20,
+   "seconds": 40.9
+  },
+  "src/Categories/GConstructionEmbeddingCoherence.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/GConstructionHomCoherence.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/GConstructionLoop.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 41,
+     "edit": "drop binder `{k : B C.⇒ B'}` + arrow"
+    },
+    {
+     "line": 46,
+     "edit": "drop binder `{f : A C.⊗₀ ((P C.⊗₀ R) C.⊗₀ (Q C.⊗₀ S))` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 13.8
+  },
+  "src/Categories/GConstructionLoopCoherence.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/GConstructionMonoidal.agda": {
+   "candidates": 13,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 62,
+     "edit": "drop binder `{A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ : C.Obj}` + arrow"
+    },
+    {
+     "line": 72,
+     "edit": "drop binder `{g g' : D⁺ C.⊗₀ E⁻ C.⇒ D⁻ C.⊗₀ E⁺}` + arrow"
+    },
+    {
+     "line": 77,
+     "edit": "drop binder `{q : E⁻ C.⇒ D⁻}` + arrow"
+    },
+    {
+     "line": 98,
+     "edit": "drop binder `{q : E⁻ C.⇒ D⁻}` + arrow"
+    },
+    {
+     "line": 102,
+     "edit": "drop binder `{v : B⁻ C.⇒ A⁻}` + arrow"
+    },
+    {
+     "line": 106,
+     "edit": "drop binder `{A⁺ A⁻ B⁺ B⁻ : C.Obj}` + arrow"
+    },
+    {
+     "line": 123,
+     "edit": "drop binder `{g′ : Q⁺ C.⊗₀ R⁻ C.⇒ Q⁻ C.⊗₀ R⁺}` + arrow"
+    },
+    {
+     "line": 177,
+     "edit": "drop binder `{v₀ : U₀ C.⇒ U}` + arrow"
+    },
+    {
+     "line": 194,
+     "edit": "drop binder `{A⁺ A⁻ B⁺ B⁻ : C.Obj}` + arrow"
+    },
+    {
+     "line": 199,
+     "edit": "drop binder `{A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ : C.Obj}` + arrow"
+    },
+    {
+     "line": 211,
+     "edit": "drop binder `{f : A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺}` + arrow"
+    },
+    {
+     "line": 218,
+     "edit": "drop binder `{f : A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺}` + arrow"
+    },
+    {
+     "line": 227,
+     "edit": "drop binder `{h : P⁺ C.⊗₀ Q⁻ C.⇒ P⁻ C.⊗₀ Q⁺}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 26,
+   "seconds": 54.7
+  },
+  "src/Categories/GConstructionTensorCoherence.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/GConstructionTrace.agda": {
+   "candidates": 12,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 44,
+     "edit": "drop binder `{A⁻ B⁺ B⁻ C⁺ : C.Obj}` + arrow"
+    },
+    {
+     "line": 47,
+     "edit": "drop binder `{A⁺ B⁺ B⁻ C⁻ : C.Obj}` + arrow"
+    },
+    {
+     "line": 57,
+     "edit": "drop binder `{P Q R S : C.Obj}` + arrow"
+    },
+    {
+     "line": 60,
+     "edit": "drop binder `{P Q R S : C.Obj}` + arrow"
+    },
+    {
+     "line": 64,
+     "edit": "drop binder `{k : S C.⇒ S′}` + arrow"
+    },
+    {
+     "line": 69,
+     "edit": "drop binder `{P Q R S : C.Obj}` + arrow"
+    },
+    {
+     "line": 74,
+     "edit": "drop binder `{P Q R S : C.Obj}` + arrow"
+    },
+    {
+     "line": 87,
+     "edit": "drop binder `{Y X : C.Obj}` + arrow"
+    },
+    {
+     "line": 90,
+     "edit": "drop binder `{g : Y C.⊗₀ X C.⇒ B'}` + arrow"
+    },
+    {
+     "line": 95,
+     "edit": "drop binder `{f' : A' C.⊗₀ X C.⇒ B' C.⊗₀ X}` + arrow"
+    },
+    {
+     "line": 116,
+     "edit": "drop binder `{v : A' C.⊗₀ Y C.⇒ B' C.⊗₀ Y}` + arrow"
+    },
+    {
+     "line": 140,
+     "edit": "drop binder `{v : A' C.⊗₀ Y C.⇒ B' C.⊗₀ Y}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 24,
+   "seconds": 45.6
+  },
+  "src/Categories/GConstructionTraceCoherence.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Monad/Construction/Kleisli/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Monad/Discrete.agda": {
+   "candidates": 18,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 24,
+     "edit": "drop binder `{A : Set ℓ}` + arrow"
+    },
+    {
+     "line": 25,
+     "edit": "drop binder `{A B : Set ℓ}` + arrow"
+    },
+    {
+     "line": 26,
+     "edit": "drop binder `{f g : A → M B}` + arrow"
+    },
+    {
+     "line": 28,
+     "edit": "drop binder `{h : A → M B}` + arrow"
+    },
+    {
+     "line": 29,
+     "edit": "drop binder `{h : B → M C}` + arrow"
+    },
+    {
+     "line": 39,
+     "edit": "drop binder `{A B C : Set ℓ}` + arrow"
+    },
+    {
+     "line": 42,
+     "edit": "drop binder `{A B : Set ℓ}` + arrow"
+    },
+    {
+     "line": 45,
+     "edit": "drop binder `{f g : A → M B}` + arrow"
+    },
+    {
+     "line": 49,
+     "edit": "drop binder `{f : A → M B}` + arrow"
+    },
+    {
+     "line": 52,
+     "edit": "drop binder `{m n : M A}` + arrow"
+    },
+    {
+     "line": 67,
+     "edit": "drop binder `{y : M B}` + arrow"
+    },
+    {
+     "line": 105,
+     "edit": "drop binder `{A : Set ℓ}` + arrow"
+    },
+    {
+     "line": 109,
+     "edit": "drop binder `{A : Set ℓ}` + arrow"
+    },
+    {
+     "line": 110,
+     "edit": "drop binder `{A B : Set ℓ}` + arrow"
+    },
+    {
+     "line": 112,
+     "edit": "drop binder `{f g : A → M B}` + arrow"
+    },
+    {
+     "line": 114,
+     "edit": "drop binder `{h : A → M B}` + arrow"
+    },
+    {
+     "line": 116,
+     "edit": "drop binder `{h : B → M C}` + arrow"
+    },
+    {
+     "line": 123,
+     "edit": "drop binder `{y : M B}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 36,
+   "seconds": 59.5
+  },
+  "src/Categories/Monad/Graded/Trivial.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Monad/Setoids/Discrete.agda": {
+   "candidates": 4,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 54,
+     "edit": "drop binder `{f g : A → M B}` + arrow"
+    },
+    {
+     "line": 58,
+     "edit": "drop binder `{h : A → M B}` + arrow"
+    },
+    {
+     "line": 64,
+     "edit": "drop binder `{h : B → M C}` + arrow"
+    },
+    {
+     "line": 75,
+     "edit": "drop binder `{y : M B}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 8,
+   "seconds": 13.5
+  },
+  "src/Categories/Monad/Setoids/Discrete/Morphism.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 34,
+     "edit": "drop binder `{x y : ℳ.M A}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 5.0
+  },
+  "src/Categories/Monad/Setoids/Maybe.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 31,
+     "edit": "drop binder `{f g : Carrier S → Maybe (Carrier S′)}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 4.1
+  },
+  "src/Class/DecEq/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Class/Monad/Ext/Setoid.agda": {
+   "candidates": 11,
+   "kept": [
+    {
+     "line": 25,
+     "edit": "drop binder `{A : Type ℓ}` + arrow"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 23,
+     "edit": "drop binder `{A : Type ℓ}` + arrow"
+    },
+    {
+     "line": 27,
+     "edit": "drop binder `{f g : A → M B}` + arrow"
+    },
+    {
+     "line": 32,
+     "edit": "drop binder `{A : Type ℓ}` + arrow"
+    },
+    {
+     "line": 39,
+     "edit": "drop binder `{f g : A → M B}` + arrow"
+    },
+    {
+     "line": 43,
+     "edit": "drop binder `{f : A → M B}` + arrow"
+    },
+    {
+     "line": 51,
+     "edit": "drop binder `{h : A → M B}` + arrow"
+    },
+    {
+     "line": 55,
+     "edit": "drop binder `{h : B → M C}` + arrow"
+    },
+    {
+     "line": 66,
+     "edit": "drop binder `{B : Type ℓ′}` + arrow"
+    },
+    {
+     "line": 69,
+     "edit": "drop binder `{m n : M A}` + arrow"
+    },
+    {
+     "line": 94,
+     "edit": "drop binder `{y : M Y}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 23,
+   "seconds": 62.5
+  },
+  "src/Data/Bits/Codec.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 32,
+     "edit": "drop binder `{x y : A}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 6.4
+  },
+  "src/Data/Bool/Properties/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/List/Relation/Binary/BagAndSetEquality/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/List/Relation/Unary/Any/Properties/Ext.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 24,
+     "edit": "drop binder `{σ τ : List Carrier}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 5.5
+  },
+  "src/Data/List/Run.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/Sum/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/Vec/Properties/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Function/Bundles/Ext.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 14,
+     "edit": "drop binder `{S : Setoid b ℓ}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 4.3
+  },
+  "src/ProbabilisticLogic.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Abstract.agda": {
+   "candidates": 30,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 38,
+     "edit": "drop binder `⦃ _ : NonZero (proj₁ (NE.head l)) ⦄` + arrow"
+    },
+    {
+     "line": 57,
+     "edit": "drop binder `{p p' q q' : Probability}` + arrow"
+    },
+    {
+     "line": 59,
+     "edit": "drop binder `{p p' q q' : Probability}` + arrow"
+    },
+    {
+     "line": 60,
+     "edit": "drop binder `{p q r : Probability}` + arrow"
+    },
+    {
+     "line": 64,
+     "edit": "drop binder `{p q : ℚ}` + arrow"
+    },
+    {
+     "line": 79,
+     "edit": "drop binder `{q : ℚ}` + arrow"
+    },
+    {
+     "line": 95,
+     "edit": "drop binder `{P : ProbDistr Ω}` + arrow"
+    },
+    {
+     "line": 96,
+     "edit": "drop binder `{P : ProbDistr Ω}` + arrow"
+    },
+    {
+     "line": 97,
+     "edit": "drop binder `{P : ProbDistr Ω}` + arrow"
+    },
+    {
+     "line": 100,
+     "edit": "drop binder `{X X' Y : Ω → Type}` + arrow"
+    },
+    {
+     "line": 103,
+     "edit": "drop binder `{X : Ω → Bool}` + arrow"
+    },
+    {
+     "line": 105,
+     "edit": "drop binder `{Y : Ω → Type}` + arrow"
+    },
+    {
+     "line": 109,
+     "edit": "drop binder `{Y : Ω₂ → Type}` + arrow"
+    },
+    {
+     "line": 112,
+     "edit": "drop binder `{Y : Ω₂ → Type}` + arrow"
+    },
+    {
+     "line": 113,
+     "edit": "drop binder `{X : Ω₁ → Type}` + arrow"
+    },
+    {
+     "line": 123,
+     "edit": "drop binder `⦃ _ : NonZero (proj₁ (NE.head l)) ⦄` + arrow"
+    },
+    {
+     "line": 148,
+     "edit": "drop binder `{X : Ω₁ → Type}` + arrow"
+    },
+    {
+     "line": 156,
+     "edit": "drop binder `{Y : Ω₂ → Type}` + arrow"
+    },
+    {
+     "line": 164,
+     "edit": "drop binder `{Y : Ω₂ → Type}` + arrow"
+    },
+    {
+     "line": 175,
+     "edit": "drop binder `{Y : Ω₂ → Bool}` + arrow"
+    },
+    {
+     "line": 192,
+     "edit": "drop binder `{x y : Probability}` + arrow"
+    },
+    {
+     "line": 195,
+     "edit": "drop binder `{p : Probability}` + arrow"
+    },
+    {
+     "line": 203,
+     "edit": "drop binder `⦃ A? : A ⁇¹ ⦄` + arrow"
+    },
+    {
+     "line": 225,
+     "edit": "drop binder `{X Y : Ω → Type}` + arrow"
+    },
+    {
+     "line": 228,
+     "edit": "drop binder `⦃ A? : A ⁇¹ ⦄` + arrow"
+    },
+    {
+     "line": 251,
+     "edit": "drop binder `{Q : ProbDistr Ω₂}` + arrow"
+    },
+    {
+     "line": 297,
+     "edit": "drop binder `{X : Ω → Type}` + arrow"
+    },
+    {
+     "line": 302,
+     "edit": "drop binder `{Y : Ω₂ → Type}` + arrow"
+    },
+    {
+     "line": 303,
+     "edit": "drop binder `{X : Ω₁ → Type}` + arrow"
+    },
+    {
+     "line": 306,
+     "edit": "drop binder `{Y : Ω₂ → Type}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 60,
+   "seconds": 216.0
+  },
+  "src/ProbabilisticLogic/Distribution/Bernoulli.agda": {
+   "candidates": 11,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 30,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 34,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 62,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 68,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 74,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 77,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 80,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 89,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 109,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 113,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 119,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 22,
+   "seconds": 41.2
+  },
+  "src/ProbabilisticLogic/Distribution/Binomial.agda": {
+   "candidates": 10,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 39,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 95,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 105,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 119,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 128,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 154,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 161,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 170,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 204,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    },
+    {
+     "line": 239,
+     "edit": "drop binder `⦃ _ : NonZero (m +ℕ n) ⦄` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 20,
+   "seconds": 36.5
+  },
+  "src/ProbabilisticLogic/Distribution/Markov.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 27,
+     "edit": "drop binder `{A : Type ℓ}` + arrow"
+    },
+    {
+     "line": 45,
+     "edit": "drop binder `{P Q : A → Bool}` + arrow"
+    },
+    {
+     "line": 88,
+     "edit": "drop binder `{f g : A → List B}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 6,
+   "seconds": 23.1
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 47,
+     "edit": "drop binder `{σ τ : List A}` + arrow"
+    },
+    {
+     "line": 54,
+     "edit": "drop binder `{a b : Carrier S}` + arrow"
+    },
+    {
+     "line": 63,
+     "edit": "drop binder `{f g : Carrier S → List (Carrier S′)}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 6,
+   "seconds": 25.0
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Advantage.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 43,
+     "edit": "drop binder `{μ ν : Dist⊥ Bool}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 13.7
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 69,
+     "edit": "drop binder `{A : Type ℓ}` + arrow"
+    },
+    {
+     "line": 73,
+     "edit": "drop binder `{A : Type ℓ}` + arrow"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 19.0
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 82,
+     "edit": "drop binder `{f g : A → Dist⊥ B}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 21.4
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Setoid.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Support.agda": {
+   "candidates": 6,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 53,
+     "edit": "drop binder `{x y : ℚ}` + arrow"
+    },
+    {
+     "line": 56,
+     "edit": "drop binder `{q : ℚ}` + arrow"
+    },
+    {
+     "line": 73,
+     "edit": "drop binder `{x y : ℚ}` + arrow"
+    },
+    {
+     "line": 81,
+     "edit": "drop binder `{x y : ℚ}` + arrow"
+    },
+    {
+     "line": 158,
+     "edit": "drop binder `{μ ν : Dist-ℚ A}` + arrow"
+    },
+    {
+     "line": 206,
+     "edit": "drop binder `{μ ν : Dist⊥ A}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 12,
+   "seconds": 75.6
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Collision.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp.agda": {
+   "candidates": 7,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 120,
+     "edit": "drop binder `{A : Set a}` + arrow"
+    },
+    {
+     "line": 131,
+     "edit": "drop binder `{x₁ y₁ x₂ y₂ : ℚ}` + arrow"
+    },
+    {
+     "line": 265,
+     "edit": "drop binder `{B : Set b}` + arrow"
+    },
+    {
+     "line": 285,
+     "edit": "drop binder `{d e : Dₚ A}` + arrow"
+    },
+    {
+     "line": 289,
+     "edit": "drop binder `{d e : Dₚ A}` + arrow"
+    },
+    {
+     "line": 292,
+     "edit": "drop binder `{d e h : Dₚ A}` + arrow"
+    },
+    {
+     "line": 301,
+     "edit": "drop binder `{d d′ e e′ : Dₚ A}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 14,
+   "seconds": 51.2
+  },
+  "src/ProbabilisticLogic/Dp/Advantage.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Coin.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 85,
+     "edit": "drop binder `{w₁ w₂ : ℚ}` + arrow"
+    },
+    {
+     "line": 103,
+     "edit": "drop binder `{f g : Bool → Dₚ A}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 24.4
+  },
+  "src/ProbabilisticLogic/Dp/Commutative.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Dominate.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Elgot.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 50,
+     "edit": "drop binder `{S S′ X : Set ℓ}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 9.8
+  },
+  "src/ProbabilisticLogic/Dp/Iter.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Codiagonal.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 41,
+     "edit": "drop binder `{S A B : Set ℓ}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 9.0
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Out.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 30,
+     "edit": "drop binder `{S C A : Set ℓ}` + arrow"
+    },
+    {
+     "line": 33,
+     "edit": "drop binder `{S A B C : Set ℓ}` + arrow"
+    },
+    {
+     "line": 37,
+     "edit": "drop binder `{S A B C : Set ℓ}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 6,
+   "seconds": 26.6
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Transfer.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Mass.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 62,
+     "edit": "drop binder `{n m : ℕ}` + arrow"
+    },
+    {
+     "line": 161,
+     "edit": "drop binder `{B : Set b}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 15.0
+  },
+  "src/ProbabilisticLogic/Dp/Reasoning.agda": {
+   "candidates": 7,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 24,
+     "edit": "drop binder `{d e h : Dₚ A}` + arrow"
+    },
+    {
+     "line": 27,
+     "edit": "drop binder `{d : Dₚ A}` + arrow"
+    },
+    {
+     "line": 30,
+     "edit": "drop binder `{d e : Dₚ A}` + arrow"
+    },
+    {
+     "line": 33,
+     "edit": "drop binder `{k l : A → Dₚ B}` + arrow"
+    },
+    {
+     "line": 36,
+     "edit": "drop binder `{k : A → Dₚ B}` + arrow"
+    },
+    {
+     "line": 49,
+     "edit": "drop binder `{x y : A}` + arrow"
+    },
+    {
+     "line": 52,
+     "edit": "drop binder `{d e : Dₚ A}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 14,
+   "seconds": 47.2
+  },
+  "src/ProbabilisticLogic/Dp/Settle.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Settle/Iter.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 115,
+     "edit": "drop binder `{i i′ : ℕ}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 8.1
+  },
+  "src/ProbabilisticLogic/Dp/Stable.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Support.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Examples/BiasedCoin.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Examples/Coins.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Examples/MultipleCoins.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Examples/Weather.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Expectation.agda": {
+   "candidates": 12,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 43,
+     "edit": "drop binder `⦃ _ : X ⁇¹ ⦄` + arrow"
+    },
+    {
+     "line": 58,
+     "edit": "drop binder `{f g : Ω → Probability}` + arrow"
+    },
+    {
+     "line": 110,
+     "edit": "drop binder `{s t : List Ω}` + arrow"
+    },
+    {
+     "line": 148,
+     "edit": "drop binder `{e e' : Probability}` + arrow"
+    },
+    {
+     "line": 157,
+     "edit": "drop binder `{e : Probability}` + arrow"
+    },
+    {
+     "line": 166,
+     "edit": "drop binder `{P : ProbDistr Ω}` + arrow"
+    },
+    {
+     "line": 174,
+     "edit": "drop binder `{e : Probability}` + arrow"
+    },
+    {
+     "line": 266,
+     "edit": "drop binder `⦃ X? : X ⁇¹ ⦄` + arrow"
+    },
+    {
+     "line": 318,
+     "edit": "drop binder `{s : List Ω}` + arrow"
+    },
+    {
+     "line": 325,
+     "edit": "drop binder `{P : ProbDistr Ω}` + arrow"
+    },
+    {
+     "line": 327,
+     "edit": "drop binder `⦃ X? : X ⁇¹ ⦄` + arrow"
+    },
+    {
+     "line": 339,
+     "edit": "drop binder `{ef eg : Probability}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 24,
+   "seconds": 98.8
+  },
+  "src/ProbabilisticLogic/Logic.agda": {
+   "candidates": 8,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 27,
+     "edit": "drop binder `{p p' : Probability}` + arrow"
+    },
+    {
+     "line": 34,
+     "edit": "drop binder `{X X' : Ω → Type}` + arrow"
+    },
+    {
+     "line": 41,
+     "edit": "drop binder `{X : Ω → Type}` + arrow"
+    },
+    {
+     "line": 44,
+     "edit": "drop binder `{p q : Probability}` + arrow"
+    },
+    {
+     "line": 51,
+     "edit": "drop binder `{X Y : Ω → Type}` + arrow"
+    },
+    {
+     "line": 61,
+     "edit": "drop binder `{X Y Y' : Ω → Type}` + arrow"
+    },
+    {
+     "line": 65,
+     "edit": "drop binder `{X Y : Ω → Type}` + arrow"
+    },
+    {
+     "line": 75,
+     "edit": "drop binder `⦃ X? : X ⁇¹ ⦄` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 16,
+   "seconds": 28.7
+  },
+  "src/ProbabilisticLogic/Models/Trivial.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Prelude.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Reasoning.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Relation/Binary/Bundles/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  }
+ },
+ "totalChecks": 419
+}

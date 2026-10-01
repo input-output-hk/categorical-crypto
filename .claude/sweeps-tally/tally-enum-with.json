@@ -1,0 +1,55 @@
+{
+ "sweep": "enum-with",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/SFunM.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/SFunM/Monoidal.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/SFunM/Morphism.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/SFunM/Properties.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/SFunM/Test/Possibility.agda": {
+   "sites": []
+  },
+  "src/Class/Monad/Ext/Setoid.agda": {
+   "sites": []
+  },
+  "src/Class/Monad/Ext.agda": {
+   "sites": [
+    {
+     "line": 36,
+     "with": "with x",
+     "clause": "Extensional-Maybe ._⟩>>=⟨_ {x = x} refl f≗g with x"
+    }
+   ]
+  },
+  "src/Data/Sum/Ext.agda": {
+   "sites": []
+  },
+  "src/Data/Bool/ListAction/Ext.agda": {
+   "sites": []
+  },
+  "src/Data/List/Properties/Ext.agda": {
+   "sites": [
+    {
+     "line": 40,
+     "with": "with x ≟ y",
+     "clause": "stripPrefix _≟_ (x ∷ p)  (y ∷ xs) with x ≟ y"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto.agda": {
+   "sites": []
+  }
+ },
+ "totalChecks": 0
+}

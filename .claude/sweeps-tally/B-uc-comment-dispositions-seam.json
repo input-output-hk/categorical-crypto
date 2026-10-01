@@ -1,0 +1,1381 @@
+{
+ "edits": [
+  {
+   "file": "src/CategoricalCrypto/UC/Seam.agda",
+   "old": "--\n-- The seam runs along that EMBEDDING, not along a reflection.  Reading a carry\n-- off a reflection — closeness of direct runs into closeness under a machine\n-- context — is the wrong way round: a carry needs a contextual hypothesis to\n-- imply closeness of the direct runs (external theory review, finding 3).\n--\n-- Simulator accounting: `f ≤UC g` is `f ≈ℰ sub s ∘ g` at a GRADED codomain\n-- `X ⊗₀ B`, so an embedded strategy playing against that agreement sees the\n-- adversary interface as well.  At the TRIVIAL grade the simulator collapses\n-- and the emulation is the direct agreement (`UC.Seam.Grounded.emulAgreeᵁ`).\n-- At a real grade it does not collapse, and what carries is a bound on an\n-- INTERFACE-OBSERVABLE event — the audit form, `auditWatch` in\n-- `Examples.ChimericLedger.Observable` — with the simulator absorbed into the\n-- environment leg (`UC.Audit.audit-carry`, at this instance `UC.Model.Audit`);\n-- the state trajectory comes back from it only under the extra truthfulness\n-- hypothesis that example's appendix makes explicit.\n--\n-- Everything here keeps the machine layer at arm's length, and both reasons are\n-- measured.  Interfaces are EXPLICIT in every definition below, and each\n-- observation of a process goes through `ctxRunˢ`/`runˢ` and is then used by\n-- name: an interface left implicit in a `Proc` argument makes Agda solve a meta\n-- *under* the machine tensor, the ~1 GiB inversion `UC.Machine`'s header\n-- records.  And the environment layer lives next door, because instantiating\n-- it here costs a budget of the same order.\n",
+   "new": "--\n-- Interfaces are EXPLICIT in every definition below, and each observation of a\n-- process goes through `ctxRunˢ`/`runˢ` and is then used by name: an interface\n-- left implicit in a `Proc` argument makes Agda invert a `Machine` type under\n-- the machine tensor (the 10 GiB inversion `UC.Machine.𝒫ᴵ` records).\n",
+   "rule": "22/23/FIX",
+   "why": "cut design-alternative essay (reflection), review citation, simulator-accounting essay, unmeasured 'next door' claim; kept the measured explicit-interface gotcha with pointer corrected (UC.Machine's header does not record it; 𝒫ᴵ's comment does, at 10 GiB not ~1 GiB)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam.agda",
+   "old": "  -- Play the tree to its next interface boundary: a query on `B`, or the\n  -- verdict on the tick interface.  Structural recursion, as `drive` is.\n",
+   "new": "  -- Play the tree to its next interface boundary: a query on `B`, or the\n  -- verdict on the tick interface.\n",
+   "rule": "22",
+   "why": "dropped 'Structural recursion, as drive is' (visible)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam.agda",
+   "old": "-- Under an embedded strategy as an environment, and under layer 1's own run.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the banner"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam.agda",
+   "old": "-- Stated and priced at ~250–350 LOC, one module: this is `prAgree`'s unrolling\n-- again, over `𝒫ᴵ`'s composition instead of `Dist⊥`'s bind.  The ⊕-trace's\n-- `iter` performs one pass per message and `playˢ` against `runᴹFrom` is the\n-- induction on the `Strat` tree that matches them, with the junction delays it\n-- absorbed by `iter-fix` (`absorbˡ`/`absorbʳ` of the embedding layer).  `_≈ₚ_`\n-- and not `≡`: a trace does not compute to a run.\n",
+   "new": "-- `_≈ₚ_` and not `≡`: a trace does not compute to a run.\n",
+   "rule": "22/24",
+   "why": "dev leftover 'Stated and priced at ~250-350 LOC'; proof sketch lives in UC.Seam.Adequacy's header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy.agda",
+   "old": "--\n-- The G-composite's structural wiring is already collapsed in\n-- `UC.Seam.Adequacy.Wiring`, whose `kᵂ` is the loop's one-pass dispatch, and\n-- the tick that enters the loop is `UC.Seam.Plug`'s, at an arbitrary such\n-- dispatch.  What is left here is `Dₚ` arithmetic and the strategy tree.\n",
+   "new": "",
+   "rule": "22",
+   "why": "narrates what Wiring/Plug do"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy.agda",
+   "old": "  -- The traced wire carries both polarities of the plugged interface, and the\n  -- paired state is the environment's tree beside the process's own.\n",
+   "new": "",
+   "rule": "22",
+   "why": "glosses Tick's arguments"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy.agda",
+   "old": "  -- The induction: an environment about to play `e` against `u` in state `su`\n  -- observes layer 1's run of `u` on `e`.  Each `ask` costs two loop passes.\n",
+   "new": "",
+   "rule": "22/24",
+   "why": "type paraphrase; 'two loop passes' already in header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy.agda",
+   "old": "    -- The process's answer resumes the environment: the second pass.\n",
+   "new": "",
+   "rule": "22",
+   "why": "per-step paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy.agda",
+   "old": "  -- …and the composite's one activation enters that induction at the tick.\n",
+   "new": "",
+   "rule": "22",
+   "why": "per-step paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy/Wiring.agda",
+   "old": "-- `Adequacy` runs an induction on a `Strat` tree against the composite, so it\n-- has to read the composite's step off.  `Machines.Collapse` does that for any\n-- `𝒢ₚ`-composite; `kᵂ` is its `kᴳ` at this closed shape, where the two maps out\n-- of `Pos unitᴵ = ⊥` are written as such.  What is left to dispatch is the\n-- environment's tick, the process's answer, and the environment's answer.\n",
+   "new": "-- `kᵂ` is `Machines.Collapse`'s `kᴳ` at this closed shape, with the two maps\n-- out of `Pos unitᴵ = ⊥` written as such.\n",
+   "rule": "22",
+   "why": "trimmed narration of why Adequacy needs a readable step and what is left to dispatch"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy/Wiring.agda",
+   "old": "  -- Where the environment's two possible emissions go: a query on `B` re-enters\n  -- the trace's loop, the verdict leaves on the external interface.\n",
+   "new": "",
+   "rule": "22",
+   "why": "outE clause paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "old": "--\n-- The context is the one `UC.Seam.Grounded` already builds — an embedded\n-- strategy behind the two unitors that kill the grade and the ancilla.  Two\n-- things make it one of the contexts an audit event can permit, and both are\n-- theorems elsewhere:\n--\n--   rate    `UC.Seam.Budget.qb-strategyEnv` at the strategy's own ask-depth and\n--           the two unitors at rate `1⁺`, so the context's rate is that depth\n--   run     `UC.Seam.Grounded.plug-run` and `UC.Seam.Adequacy.adequacy` identify\n--           the context's observation with layer 1's run\n--\n-- `extractᵍ` is the extraction at a NONTRIVIAL grade, where the event class\n-- stays a parameter: there the bound is `Dₚ`-valued, because the process below\n-- an adversary is a raw machine rather than a protocol image.\n",
+   "new": "",
+   "rule": "22/24",
+   "why": "where-it-comes-from table is the imports/proofs; the Dₚ-valued why is kept once at extractᵍ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "old": "-- The ancilla is deflated away, whatever the interface below it.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates auditClose's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "old": "  -- The context: the embedded strategy with the grade and the ancilla deflated.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates auditTest"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "old": "  -- Both wires cancel, what is left is the plugged strategy, and its\n  -- observation is layer 1's run of `e`.\n",
+   "new": "",
+   "rule": "22",
+   "why": "proof paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "old": "  -- The adversary's own rate, charged exactly as `absorbed-budget` charges a\n  -- simulator's: the tensor with identities at `1⁺`, and composition multiplies.\n",
+   "new": "  -- The adversary's own rate, charged exactly as\n  -- `Examples.HashForward.Audit.absorbed-budget` charges a simulator's: the\n  -- tensor with identities at `1⁺`, and composition multiplies.\n",
+   "rule": "FIX",
+   "why": "absorbed-budget is not in scope here; qualify the citation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "old": "    -- The system with its adversary plugged and its resource below.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates closedᵍ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "old": "    -- `unprocᵒ-∘` twice — once for the adversary at the grade\n    -- (`UC.Graded.plug-graded`), once for the resource below — with the two\n    -- unitors cancelling exactly as at the trivial grade.\n",
+   "new": "",
+   "rule": "22",
+   "why": "per-step proof paraphrase (also names unprocᵒ-∘, which the proof does not use)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "old": "    -- …and the observation IS layer 1's run of the strategy against it.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates audit-runᵍ's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Budget.agda",
+   "old": "  -- The environment's state refined by the ask-depth still available to it.\n",
+   "new": "",
+   "rule": "22",
+   "why": "CSt gloss; header already says it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Budget.agda",
+   "old": "    -- The two `returnₚ` junctions a refined answer costs.\n",
+   "new": "",
+   "rule": "22",
+   "why": "private helper gloss"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Budget.agda",
+   "old": "  -- An environment playing a `c`-ask strategy issues at most `c` queries per\n  -- activation from above, which is the bound at the hom.\n",
+   "new": "",
+   "rule": "22/24",
+   "why": "restates QB; header line 3-4 says it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/EventTransfer.agda",
+   "old": "-- `Cov acc f r X` reads \"every verdict this emission tree can still reach\n-- within `f` steps is already covered by `acc`\", and it is indexed exactly as\n-- `UC.Seam.Extract.extract` recurses, one `br` per `Supp` level and the\n-- accumulator advanced by `report` at each query leaf.  The four cases the\n-- induction decides are the four the extraction has: a coin node passes `acc`\n-- through unchanged, a query leaf advances it by `report n p`, a verdict leaf\n-- spends the invariant, and the truncation is never reached — the fuel is the\n-- budget the observation has already been read at (`Dom≤`).\n--\n-- The watch is a PARAMETER with its three defining equations rather than a\n-- fixed transformer: `CategoricalCrypto.Strategy.IsWatch` is that triple, and\n-- identifying two transformers satisfying it would want funext.\n",
+   "new": "-- `Cov acc f r X` reads \"every verdict this emission tree can still reach\n-- within `f` steps is already covered by `acc`\", indexed exactly as\n-- `UC.Seam.Extract.extract` recurses; the fuel is the budget the observation\n-- has already been read at (`Dom≤`), so the truncation is never reached.\n",
+   "rule": "22/24",
+   "why": "cut per-case paraphrase; cut copy of IsWatch's funext explanation (Strategy.agda IsWatch)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/EventTransfer.agda",
+   "old": "-- Once the watch has fired nothing is left to cover, which is also the base\n-- case of any discharge: the invariant is a real predicate, not an empty one.\n",
+   "new": "-- Once the watch has fired nothing is left to cover.\n",
+   "rule": "22",
+   "why": "dropped vague second clause"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/EventTransfer.agda",
+   "old": "-- The watch is `w`, pinned only by the three equations\n-- `CategoricalCrypto.Strategy.IsWatch` asks for.\n",
+   "new": "-- `w` is pinned only by the equations of `CategoricalCrypto.Strategy.IsWatch`\n-- (see there for why not `watchFrom` itself).\n",
+   "rule": "24",
+   "why": "point to the one explanation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/EventTransfer.agda",
+   "old": "  -- What the invariant reads at each position of the loop.\n",
+   "new": "",
+   "rule": "22",
+   "why": "CovX gloss"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/EventTransfer.agda",
+   "old": "  -- `Transfer.runFwd` at the watched target: the process's own run, against the\n  -- watch of the strategy the certificate's activation sequence extracts to.\n",
+   "new": "  -- `Transfer.runFwd` at the watched target.\n",
+   "rule": "22",
+   "why": "second line restates the type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Extract.agda",
+   "old": "-- A `Strat` is a finite tree and a `Dₚ` context's coin tree is not, so no\n-- single strategy simulates a context: the extraction is FUEL-indexed, and\n-- past the fuel it answers `out (not b)` — the verdict that scores 0 under\n-- `indᵇ b`, which is what makes the truncation invisible from BOTH sides at\n-- that one test (`UC.Seam.Transfer`).\n",
+   "new": "-- A `Strat` is a finite tree and a `Dₚ` context's coin tree is not, so no\n-- single strategy simulates a context: the extraction is FUEL-indexed, and\n-- past the fuel it answers `out (not b)`, the verdict that scores 0 under\n-- `indᵇ b` (what that buys each direction: `UC.Seam.Transfer`).\n",
+   "rule": "24",
+   "why": "'invisible from BOTH sides' overlaps/contradicts Transfer's asymmetry paragraph (forwards only up to fuel); point there"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Extract.agda",
+   "old": "-- is then the same induction as the extraction.  The step is recovered from\n-- the refinement by `cohL`/`cohR`, which is where the two agree.\n--\n-- Each node of the emission tree becomes a `coin` on that node's own two\n-- weights, which is exactly what `Dₚ`'s record carries: `coinᵈ`'s\n-- non-negativity and mass-one are the node's `wt-nn` and `wt-1`.\n",
+   "new": "-- is then the same induction as the extraction.\n",
+   "rule": "22",
+   "why": "cut cohL/cohR narration and coinᵈ field paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Extract.agda",
+   "old": "-- The certificate's refined emission: a query below, with the potential\n-- strictly dropped, or a verdict above.\n",
+   "new": "",
+   "rule": "22",
+   "why": "Ansᶜ gloss"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Extract.agda",
+   "old": "-- `E` of a two-entry distribution is the node's own average.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates E-coinᵈ's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Transfer.agda",
+   "old": "-- …and the process's, whose external summand is empty.\n",
+   "new": "",
+   "rule": "22",
+   "why": "ρᵁ's ⊥-elim clause shows it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Transfer.agda",
+   "old": "-- The certificate's emissions are the step's up to `_≈ₚ_`, and `cont` is the\n-- loop read as an observation.  Both conversions happen HERE, outside the\n-- inductions, because the fuel is still free to be chosen at this point.\n\n",
+   "new": "",
+   "rule": "24",
+   "why": "duplicate of header lines 22-23 and the banner"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "old": "-- A closed process plugged into a context is a `𝒢ₚ`-composite at `unitᴵ`/`Ωᴵ`,\n-- which `Machines.Collapse` presents as ONE traced machine whose step `kᴳ`\n-- dispatches each letter to the factor that owns it.  Observing it is layer\n-- 1's `runᴹ` at the one-ask strategy, and `observe` below reduces that to the\n-- loop: the tick enters `kᴳ` on the external summand, and whatever comes back\n-- either leaves with the verdict or re-enters `iterₚ`.\n--\n-- Nothing here looks at either factor, so it is stated at an arbitrary state\n-- and step: `UC.Seam.Adequacy` runs its strategy induction on top of the same\n-- reduction, and the only part of that module which is about a strategy is\n-- what happens AFTER `cont`.\n",
+   "new": "-- `Machines.Collapse` presents a closed composite as ONE traced machine whose\n-- step `kᴳ` dispatches each letter to the factor that owns it.  Nothing here\n-- looks at either factor, so the loop is stated at an arbitrary state and step.\n",
+   "rule": "22",
+   "why": "cut narration of observe's clauses and of Adequacy"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "old": "-- One external activation of a ⊕-traced machine: the letter enters `k` on the\n-- external summand and whatever comes back either leaves or re-enters the\n-- loop.  Nothing here is about the closed shape, so a consumer that has to read\n-- an OPEN composite's step off — `UC.Machine.Monitor.Agree`'s two collapses —\n-- uses it at its own interfaces.\n",
+   "new": "",
+   "rule": "22/24",
+   "why": "dup of header; consumer mention"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "old": "  -- One pass of the loop: `k` entered on the loop summand.\n",
+   "new": "",
+   "rule": "22",
+   "why": "body paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "old": "  -- The three ways a consumer unrolls the solved loop: one more pass, one\n  -- POINTED pass, and a pass that dies.\n",
+   "new": "",
+   "rule": "22",
+   "why": "consumer mention / lists the three lemmas"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "old": "  -- What a pass's output means: leave with the verdict, or keep solving.\n",
+   "new": "",
+   "rule": "22",
+   "why": "cont paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "old": "  -- `contᵢ` of the loop's own body, read as `cont`: what the induction of a\n  -- consumer that unrolls the loop resumes into.\n",
+   "new": "",
+   "rule": "22",
+   "why": "consumer mention"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "old": "  -- The composite's single activation is the tick, and it runs one pass.\n",
+   "new": "",
+   "rule": "22/24",
+   "why": "header says it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "old": "-- `Machines.Collapse`'s `kᴳ` at this shape: the tick and the plugged\n-- interface's two polarities, with the empty external summand left to\n-- `⊥-elim` at the use site.\n-- Every interface is EXPLICIT: left implicit, a `Proc` argument makes Agda\n-- invert `Machine (Pos A + Neg B) …` for the pair (`UC.Machine`'s header).\n",
+   "new": "-- Every interface is EXPLICIT (see `UC.Machine.𝒫ᴵ`).\n",
+   "rule": "22/FIX",
+   "why": "kᴳ paraphrase cut; pointer corrected ('UC.Machine's header' does not record it)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "old": "-- finding F1).  Grades and ancillas are objects of the SEAL rather than\n-- `Iface`s, and the ancilla quantifier ranges over every one of them:\n-- restricting the witnesses to `ifaceᵒ`-images would be a weakening.  The\n-- inverse is exported under the seal (`UC.Model.Seal.objᵒ`), so a statement\n-- written at `Iface` can be READ at every object (`UC.Model.Dominated`).\n",
+   "new": "-- finding F1).  The ancilla quantifier ranges over every object of the SEAL:\n-- restricting the witnesses to `ifaceᵒ`-images would be a weakening.\n",
+   "rule": "22",
+   "why": "cut narration of Seal.objᵒ / Model.Dominated"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "old": "-- At `unit` no iso is needed: `T₁ unit w` is `id ⊗₁ w`, so the unitor's\n-- naturality and its own iso are all that is spent.  `plug-run` is the one place a sealed composite\n-- is read back as the machine composite it is (`UC.Model.Seal.unprocᵒ-∘`).\n",
+   "new": "",
+   "rule": "22/24",
+   "why": "dup of plug-λ; broken over-long line; plug-run claim moved/trimmed at its site"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "old": "-- The trivial grade\n\n-- The degenerate end of the grading: a grade object that can carry no message,\n-- and the wire that inflates a closed process to it.  At the intended instance\n-- both are the bundle's own (`𝟘 = unit`, `ι = unitorˡ.to`).  Both are module\n-- PARAMETERS rather than fields of a record bundling them, which is the\n-- medicine `UC.QueryBound.Certified` takes for the same cliff: a use site\n-- supplies them where the conversion is a plain application.\n",
+   "new": "-- What the collapse owes\n\n-- The degenerate end of the grading: a grade object that can carry no message,\n-- and the wire that inflates a closed process to it.  At the intended instance\n-- both are the bundle's own (`𝟘 = unit`, `ι = unitorˡ.to`).  Both are module\n-- PARAMETERS rather than fields of a record bundling them, which is the\n-- medicine `UC.QueryBound.Certificate` takes for the same cliff: a use site\n-- supplies them where the conversion is a plain application.\n",
+   "rule": "25/FIX",
+   "why": "two identical 'The trivial grade' banners: rename second; the parameter-module medicine is UC.QueryBound.Certificate, not Certified (a record)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "old": "  -- `SimTotal` is that hypothesis, read where the seal lets it be read.  The\n  -- scalar's point is not nameable here — under the seal a hom exposes no\n  -- machine — so the mass is read off the simulated ideal instead, at the\n  -- embedded strategies, through a test that deflates the grade to one (`𝟘` is\n  -- a parameter here; its unitor is `ιᴳ`).  Almost\n  -- sure rather than exact: a cofinal domination cannot say more, and an\n  -- ε-closed agreement needs no more.\n",
+   "new": "  -- `SimTotal` is that hypothesis, read where the seal lets it be read.  The\n  -- scalar's point is not nameable here — under the seal a hom exposes no\n  -- machine — so the mass is read off the simulated ideal instead, at the\n  -- embedded strategies, through a test that deflates the grade along `ι`.\n  -- Almost sure rather than exact: a cofinal domination cannot say more, and an\n  -- ε-closed agreement needs no more.\n",
+   "rule": "FIX",
+   "why": "parameter is ι, not ιᴳ; broken line reflowed"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "old": "-- The plugging law: at the unit ancilla the two wires cancel, by the unitor's\n-- naturality and its own iso.  Nothing in it looks at the plugged morphism's\n-- domain, so it is stated at any — which is what\n-- `UC.Seam.Audit.Context.plug-runᵍ` needs, where the process below the ancilla\n-- is OPEN and its resource is plugged after the fact.\n",
+   "new": "",
+   "rule": "22",
+   "why": "proof paraphrase + consumer mention; generality visible in the implicit D"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "old": "-- `plugˢ` is `𝒢`'s composite with the G-record's projection already performed;\n-- `Machines.Collapse` supplies both halves of that reading, and `unprocᵒ-∘`\n-- crosses the seal.\n",
+   "new": "-- `plugˢ` is `𝒢`'s composite with the G-record's projection already performed.\n",
+   "rule": "22",
+   "why": "proof-ingredient narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "old": "-- `_≤UC_` quantifies its simulator over a DIVERGENT `s` as well, so blindness\n-- is not free: a never-starting simulator makes the ideal invisible, and a\n-- process observing nothing emulates everything.\n-- What rules that out is not a restriction on the simulator but the real\n-- process's own totality, and the step that turns the one into the other is\n-- the squeeze below.\n--\n-- Read at one embedded strategy the emulation is a two-sided ε-domination\n-- between `u`'s run and the simulated ideal's observation.  `u`'s run carries\n-- verdict mass one EXACTLY (`TotalRun`, a finite budget), the observation\n-- carries at most one for free, and `Dp.Mass.total-dominated` squeezes: the\n-- observation's mass is within ε of one, at every ε.  That is `SimTotal` — the\n-- simulator's initialization terminates almost surely — which is all\n-- `SubBlind` asks.  The asymmetry is real: only the REAL side anchors the\n-- scale.\n",
+   "new": "-- `_≤UC_` quantifies its simulator over a DIVERGENT `s` as well, so blindness\n-- is not free: a never-starting simulator makes the ideal invisible, and a\n-- process observing nothing emulates everything.  What rules that out is the\n-- REAL process's totality: `u`'s run carries verdict mass one exactly\n-- (`TotalRun`), the simulated observation at most one, and\n-- `Dp.Mass.total-dominated` squeezes the latter to within every ε of one.\n",
+   "rule": "22",
+   "why": "trimmed proof narration, kept the why"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "old": "  -- `Adequacy` moves `u`'s totality onto the observation the strategy makes.\n",
+   "new": "",
+   "rule": "22",
+   "why": "proof-step paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "old": "-- The collapse itself: the simulator is removed and what is left is the direct\n-- `≈ᵁ` agreement, an ε-QUANTIFIED CONTEXTUAL statement.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates subBlind⇒emul's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "old": "-- The whole of what a trivial-grade simulator contributes to a context: its\n-- own initialization, in front of whatever that context observes.  A\n-- trivial-grade scalar carries no message, so it is the identity except for\n-- that point (`UC.Seam.Grounding.scalar-blindᵒ`), and `sub` and the ancilla keep\n-- it a prefix.  The experiment is read at an ancilla, a test and a closure,\n-- where the simulator is the single factor `id ⊗₁ sub s` between the test and\n-- everything below it — `k` being that everything, which is why nothing about\n-- the process it acts on is asked for here.\n",
+   "new": "-- The whole of what a trivial-grade simulator contributes to a context: its\n-- own initialization, in front of whatever that context observes.  A\n-- trivial-grade scalar carries no message, so it is the identity except for\n-- that point (`UC.Seam.Grounding.scalar-blindᵒ`), and `sub` and the ancilla keep\n-- it a prefix.\n",
+   "rule": "22",
+   "why": "generality of k is visible in the signature"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "old": "  -- The simulator acts on the grade alone, which is where it is blind.\n",
+   "new": "",
+   "rule": "22",
+   "why": "local what"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "old": "-- …so the collapse is a closed theorem — the one the asymptotic family premise\n-- consumes.\n",
+   "new": "",
+   "rule": "FIX/22",
+   "why": "FALSE: emulAgreeᵁ has no consumer (grep: only Seam.agda's header mentioned it); header already names it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "old": "-- Every object argument is EXPLICIT, for the reason `UC.QueryBound`'s header\n-- gives: left implicit, a hom of `𝒢ₚ` makes Agda invert\n-- `Machine (A⁺ + B⁻) (A⁻ + B⁺)` for the pair at every use site.  With the\n-- objects implicit the mass half does not come back inside 4m47 CPU.\n",
+   "new": "-- Every object argument is EXPLICIT, for the reason `UC.Machine.𝒫ᴵ` records:\n-- left implicit, a hom of `𝒢ₚ` makes Agda invert\n-- `Machine (A⁺ + B⁻) (A⁻ + B⁺)` for the pair at every use site.  With the\n-- objects implicit the mass half does not come back inside 4m47 CPU.\n",
+   "rule": "FIX",
+   "why": "UC.QueryBound's header does not give that reason; UC.Machine.𝒫ᴵ does. Measured 4m47 kept"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "old": "------------------------------------------------------------------------\n-- Lossy initialization\n\n",
+   "new": "",
+   "rule": "25",
+   "why": "single-definition banner (Massed only)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "old": "-- A `𝒢`-composite's state is the pair of the factors' states, so either\n-- factor's point bounds it.\n",
+   "new": "",
+   "rule": "24",
+   "why": "dup of header lines 7-9"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "old": "  -- …and what the seam reads off it: a closed observation weighs no more than\n  -- the initialization of anything it is built from.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates massedᵒ-obs's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "old": "  -- The base case: the trivial grade carries no message, so a hom of it is\n  -- never activated and its step equation is vacuous.\n",
+   "new": "",
+   "rule": "24",
+   "why": "dup of header lines 13-15"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "old": "  -- …and what the seam reads off a prefix: the closed observation IS the prefix\n  -- followed by the observation of what it prefixes.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates prefixedᵒ-bind's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "old": "  -- …so an almost surely terminating prefix is invisible to an ε-closed\n  -- observation.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates prefixedᵒ-obs's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "old": "-- `UC.Model.EventBounds` states event bounds with no reference to any\n-- particular way of reading an event, and `UC.Machine.Monitor` builds one:\n-- `HitsAt`/`Hitsᶠ`/`Hitsᴺ` below are `BoundedAt`/`Boundedᶠ`/`Boundedᴺ` at its\n-- `readerᴹ`.  Semantic agreement of the compiled experiment with the\n-- strategy-level watch is `UC.Machine.Monitor.Agree.agree`.\n--\n-- `UC.Machine.Dominated.eventSkeleton` bounds a closed context's verdict mass\n-- by a bound on the watched event of the strategies its certificate extracts\n-- to, given the accumulator invariant.  What is added here is the passage from\n-- `UC.Machine.Monitor.eventRun` to that closed context — `ctxRun-conj` then\n-- `ctxRun-slide`.\n--\n-- The certificate of that closed context is QUANTIFIED rather than named: the\n-- available ones are `qb-∘` composites, and `CovCtx` reads a certificate's\n-- potential and emissions, so naming one in a type makes the elaborator\n-- normalize the whole tower.\n",
+   "new": "-- The certificate of the compiled closed context is QUANTIFIED rather than\n-- named: the available ones are `qb-∘` composites, and `CovCtx` reads a\n-- certificate's potential and emissions, so naming one in a type makes the\n-- elaborator normalize the whole tower.\n",
+   "rule": "22",
+   "why": "cut narration of sibling modules and of what eventRun-closed composes; kept the quantified-certificate gotcha, re-anchored ('that closed context' referred to cut text)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "old": "-- Two allowances stay apart, as §B asks.  The CLOSURE is recertified at rate\n-- zero (`qb-closed`, `m` being a closed process), so the compiled context's\n-- allowance is a function of the test's own rate `c` and not of\n-- `scale c (positive c′)`, which at `c = 0` is `0` whatever the closure does.\n-- The honest-query allowance is then `c + 1`, NOT `c`: the extra unit is the\n-- monitor's accumulator, which `CovCtx` forces a certificate to give\n-- potential to (`UC.Quantitative.EventLift.Cov`), and a whole-hom rate cannot\n-- tell a flag-port query from an honest one.  That rescaling is exposed below.\n",
+   "new": "-- The compiled context's allowance is `c + 1` in the test's own rate `c`: the\n-- closure is recertified at rate zero (`Cov.qb-closedᴹ`) and the extra unit is\n-- the monitor's accumulator (`Cov.covCtx`).\n",
+   "rule": "24",
+   "why": "+1-unit explanation kept once at Cov.covCtx; closure-rate at Cov.qb-closedᴹ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "old": "-- The monitored experiment IS that closed context's observation.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates eventRun-closed's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "old": "-- The lift with the accumulator invariant and the compiled context's own\n-- certificate taken as premises.  No positive slack is spent — the extraction\n-- is chosen once the observation's budget is known — so a consumer is free to\n-- add one.\n",
+   "new": "-- No positive slack is spent — the extraction is chosen once the\n-- observation's budget is known — so a consumer is free to add one.\n",
+   "rule": "22",
+   "why": "first sentence restates the signature"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "old": "-- …and the lift with those premises discharged, at the rate `covCtx` builds:\n-- `UC.Quantitative.EventLift.Cov.covCtx` pays one unit of allowance for the\n-- accumulator's potential and no slack.  `CovCtx` reads the invariant at\n-- EVERY zero-potential state of the certificate it is handed, and of the\n-- collapsed tower `covCtx` constructs a rate-`c` certificate admits one with\n-- the accumulator raised and nothing left to cover the next `true` — so the\n-- premise is false THERE.  No lower bound is claimed over the other `QB c`\n-- certificates of the same context, or over sound event lifts\n-- (`docs/event-bounds-in-setup.md`, WP4 verdict §6).\n",
+   "new": "-- …and with those premises discharged, at `covCtx`'s rate `c + 1` (see there\n-- for why the extra unit).  No lower bound is claimed over the other `QB c`\n-- certificates of the same context, or over sound event lifts\n-- (`docs/event-bounds-in-setup.md`, WP4 verdict §6).\n",
+   "rule": "24",
+   "why": "+1-unit copy replaced by pointer; scope caveat + citation kept"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "old": "-- …as an event bound at a CAPPED allowance, which is the public shape\n-- (`UC.Model.EventBounds.BoundedAt`).  The strategy hypothesis is\n-- read at the cap plus the accumulator's one unit, `c ≤ scale c (positive c′) ≤ q`\n-- being what rescales the test's own rate to the cap.\n",
+   "new": "-- …as an event bound at a CAPPED allowance, the public shape\n-- (`UC.Model.EventBounds.BoundedAt`); `c ≤ scale c (positive c′) ≤ q` is what\n-- rescales the test's own rate to the cap.\n",
+   "rule": "24",
+   "why": "dropped +1-unit repeat"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "old": "-- The strategy context `UC.Machine.Monitor.Agree.agree` is stated at, with the\n-- certificate the strategy's own ask-depth gives it: `stratTest-embeds` reads\n-- the test as the strategy environment behind one wire, and `qb-∘` multiplies\n-- by that wire's rate of 1.\n",
+   "new": "-- The strategy context `UC.Machine.Monitor.Agree.agree` is stated at,\n-- certified at the strategy's own ask-depth.\n",
+   "rule": "22",
+   "why": "proof paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "old": "--\n-- `CovCtx` reads the invariant at EVERY zero-potential state of the\n-- certificate, not only at the initial one, so the certificate has to be\n-- chosen so that a zero-potential state HAS an empty accumulator.  The\n-- five-fold `qb-∘` tower does not: the monitor's own potential there is\n-- constantly zero (`UC.Machine.Monitor.qbᵢ-monitor`), so the product state\n-- carrying a raised flag and everything else spent still has potential zero,\n-- and from it the compiled context reports `true` with no traffic to cover\n-- it.  `pend` below is the repair — the monitor's potential is positive\n-- exactly when the accumulator has fired or an answer is owed — and it costs\n-- one unit of the rate, not a factor.\n",
+   "new": "",
+   "rule": "24",
+   "why": "tower-failure explanation moved to covCtx, the user-facing site"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "old": "    -- The single extra unit the rate spends: the accumulator's own.\n",
+   "new": "",
+   "rule": "22",
+   "why": "misplaced: swap₃ is generic arithmetic"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "old": "    -- The accumulators advance at the same answer, so the covering survives.\n",
+   "new": "",
+   "rule": "22",
+   "why": "paraphrase of ∨-cover's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "old": "  ------------------------------------------------------------------------\n  -- …at every zero-potential state\n\n",
+   "new": "",
+   "rule": "25",
+   "why": "single-definition banner (covᵂ only)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "old": "-- The closure is a closed process, so it is recertified at rate zero\n-- (`qb-closed`) and the closed test costs exactly what the original test\n-- does — the closure's rate never enters.\n",
+   "new": "-- The closure is a closed process, so it is recertified at rate zero\n-- (`qb-closed`) and the closed test costs exactly what the original test does.\n",
+   "rule": "22",
+   "why": "redundant tail"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "old": "-- The premise of `UC.Quantitative.EventLift.eventDominatedᶜ`, at the rate the\n-- invariant costs: ONE more than the test's own.  That unit is not slack —\n-- `CovCtx` reads the invariant at every zero-potential state, a raised\n-- accumulator must therefore carry potential, and a context that spends its\n-- whole allowance before reporting leaves none at rate `c`.\n",
+   "new": "-- The premise of `UC.Quantitative.EventLift.eventDominatedᶜ`, at ONE more than\n-- the test's own rate.  That unit is not slack: `CovCtx` reads the invariant\n-- at EVERY zero-potential state, so a raised accumulator must carry potential.\n-- The five-fold `qb-∘` tower gives the monitor constant potential zero\n-- (`UC.Machine.Monitor.qbᵢ-monitor`), and from its state with the flag raised\n-- and everything else spent the context reports `true` with no traffic to\n-- cover it; `Cert.pend` repairs that at one unit of the rate, not a factor.\n",
+   "rule": "24",
+   "why": "the single home of the +1-unit explanation (merged from Cov header)"
+  }
+ ],
+ "dispositions": [
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "lines": "3-30",
+   "verdict": "TRIM",
+   "reason": "header first lines + doc §5 citation; rest trimmed; partial edit(s): 6-21 cut narration of sibling modules and of what eventRun-closed composes; kept the quantified-certificate gotcha, re-anchored ('that closed context' referred to cut text); 23-30 +1-unit explanation kept once at Cov.covCtx; closure-rate at Cov.qb-closedᴹ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "lines": "76-77",
+   "verdict": "KEEP",
+   "reason": "banner groups Hits*"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "lines": "95-96",
+   "verdict": "KEEP",
+   "reason": "banner groups openedᴹ/eventRun-closed"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "lines": "98-99",
+   "verdict": "KEEP",
+   "reason": "why openedᴹ's shape (what Kctx slides into)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "lines": "104-104",
+   "verdict": "CUT",
+   "reason": "rule 22: restates eventRun-closed's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "lines": "114-115",
+   "verdict": "KEEP",
+   "reason": "banner groups the lift"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "lines": "117-120",
+   "verdict": "TRIM",
+   "reason": "rule 22: first sentence restates the signature"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "lines": "134-142",
+   "verdict": "TRIM",
+   "reason": "rule 24: +1-unit copy replaced by pointer; scope caveat + citation kept"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "lines": "155-158",
+   "verdict": "TRIM",
+   "reason": "rule 24: dropped +1-unit repeat"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "lines": "168-169",
+   "verdict": "KEEP",
+   "reason": "banner groups qb-stratTest/hits⇒bounded"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "lines": "171-174",
+   "verdict": "TRIM",
+   "reason": "rule 22: proof paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift.agda",
+   "lines": "183-186",
+   "verdict": "KEEP",
+   "reason": "why nothing is spent coming back (scale-unit)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "lines": "3-22",
+   "verdict": "TRIM",
+   "reason": "header orientation + collapsed-tower why; tower-failure moved to covCtx; partial edit(s): 6-16 tower-failure explanation moved to covCtx, the user-facing site"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "lines": "82-83",
+   "verdict": "KEEP",
+   "reason": "banner groups bit/pend/pend≤1/Φᵂ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "lines": "89-91",
+   "verdict": "KEEP",
+   "reason": "gotcha: split order makes pend reduce without acc"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "lines": "111-112",
+   "verdict": "KEEP",
+   "reason": "banner groups the potential-arithmetic helpers (7 defs)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "lines": "114-115",
+   "verdict": "KEEP",
+   "reason": "why qBound: the answer owed is paid by the test's drop"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "lines": "122-122",
+   "verdict": "CUT",
+   "reason": "rule 22: misplaced: swap₃ is generic arithmetic"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "lines": "141-142",
+   "verdict": "KEEP",
+   "reason": "banner groups wAns/wAns-coh"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "lines": "144-145",
+   "verdict": "KEEP",
+   "reason": "cites mirrored Watch.wPass + the discarded-verdict gotcha"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "lines": "165-166",
+   "verdict": "KEEP",
+   "reason": "banner groups the certificate"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "lines": "219-220",
+   "verdict": "KEEP",
+   "reason": "banner groups ∨-cover/cov*/covᵂ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "lines": "225-225",
+   "verdict": "CUT",
+   "reason": "rule 22: paraphrase of ∨-cover's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "lines": "232-234",
+   "verdict": "KEEP",
+   "reason": "why the covering holds (verdict IS the accumulator)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "lines": "267-268",
+   "verdict": "CUT",
+   "reason": "rule 25: single-definition banner (covᵂ only)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "lines": "270-272",
+   "verdict": "KEEP",
+   "reason": "local invariant covᵂ's case split rests on (pend ⇒ empty accumulator)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "lines": "283-284",
+   "verdict": "KEEP",
+   "reason": "banner groups qb-closedᴹ/covCtx"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "lines": "286-288",
+   "verdict": "TRIM",
+   "reason": "rule 22: redundant tail"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda",
+   "lines": "303-307",
+   "verdict": "TRIM",
+   "reason": "rule 24: the single home of the +1-unit explanation (merged from Cov header)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam.agda",
+   "lines": "3-31",
+   "verdict": "TRIM",
+   "reason": "header: first lines are orientation (kept); rest trimmed, see edit; partial edit(s): 8-31 cut design-alternative essay (reflection), review citation, simulator-accounting essay, unmeasured 'next door' claim; kept the measured explicit-interface gotcha with pointer corrected (UC.Machine's header does not record it; 𝒫ᴵ's comment does, at 10 GiB not ~1 GiB)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam.agda",
+   "lines": "58-59",
+   "verdict": "KEEP",
+   "reason": "banner groups EnvSt/playˢ/stepˢ/stateˢ/strategyEnv"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam.agda",
+   "lines": "61-62",
+   "verdict": "KEEP",
+   "reason": "names what the two constructors mean between activations (suspended on an answer), not readable off the types"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam.agda",
+   "lines": "69-70",
+   "verdict": "TRIM",
+   "reason": "rule 22: dropped 'Structural recursion, as drive is' (visible)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam.agda",
+   "lines": "76-77",
+   "verdict": "KEEP",
+   "reason": "why off-protocol letters go to botₚ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam.agda",
+   "lines": "91-92",
+   "verdict": "KEEP",
+   "reason": "banner groups plugˢ/ctxRunˢ/runˢ/Adequacy"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam.agda",
+   "lines": "94-94",
+   "verdict": "CUT",
+   "reason": "rule 22: restates the banner"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam.agda",
+   "lines": "106-111",
+   "verdict": "TRIM",
+   "reason": "rule 22/24: dev leftover 'Stated and priced at ~250-350 LOC'; proof sketch lives in UC.Seam.Adequacy's header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy.agda",
+   "lines": "3-15",
+   "verdict": "CUT",
+   "reason": "rule 22: narrates what Wiring/Plug do"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy.agda",
+   "lines": "55-56",
+   "verdict": "CUT",
+   "reason": "rule 22: glosses Tick's arguments"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy.agda",
+   "lines": "63-64",
+   "verdict": "CUT",
+   "reason": "rule 22/24: type paraphrase; 'two loop passes' already in header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy.agda",
+   "lines": "79-79",
+   "verdict": "CUT",
+   "reason": "rule 22: per-step paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy.agda",
+   "lines": "96-96",
+   "verdict": "CUT",
+   "reason": "rule 22: per-step paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy.agda",
+   "lines": "113-117",
+   "verdict": "KEEP",
+   "reason": "non-obvious why no second loop is needed for the three-party system + doc citation (docs/fcom-extraction.md, verified)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy/Wiring.agda",
+   "lines": "3-15",
+   "verdict": "TRIM",
+   "reason": "rule 22: trimmed narration of why Adequacy needs a readable step and what is left to dispatch"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy/Wiring.agda",
+   "lines": "49-50",
+   "verdict": "KEEP",
+   "reason": "banner groups outE/outU/kᵂ/pairedᴹ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy/Wiring.agda",
+   "lines": "54-55",
+   "verdict": "CUT",
+   "reason": "rule 22: outE clause paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy/Wiring.agda",
+   "lines": "77-78",
+   "verdict": "KEEP",
+   "reason": "banner groups kᴳ-kᵂ/compose-≈ᴹ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Adequacy/Wiring.agda",
+   "lines": "81-81",
+   "verdict": "KEEP",
+   "reason": "the one place the two steps differ (gotcha)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "lines": "3-18",
+   "verdict": "CUT",
+   "reason": "rule 22/24: where-it-comes-from table is the imports/proofs; the Dₚ-valued why is kept once at extractᵍ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "lines": "66-66",
+   "verdict": "CUT",
+   "reason": "rule 22: restates auditClose's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "lines": "79-79",
+   "verdict": "CUT",
+   "reason": "rule 22: restates auditTest"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "lines": "88-89",
+   "verdict": "CUT",
+   "reason": "rule 22: proof paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "lines": "99-100",
+   "verdict": "KEEP",
+   "reason": "banner: landmark for the nontrivial-grade half (several defs)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "lines": "102-105",
+   "verdict": "KEEP",
+   "reason": "why the grade the strategy sees is again trivial; cites the mirrored UC.Audit.absorb shape (verified)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "lines": "111-112",
+   "verdict": "FIX",
+   "reason": "rule FIX: absorbed-budget is not in scope here; qualify the citation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "lines": "121-121",
+   "verdict": "CUT",
+   "reason": "rule 22: restates closedᵍ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "lines": "125-127",
+   "verdict": "CUT",
+   "reason": "rule 22: per-step proof paraphrase (also names unprocᵒ-∘, which the proof does not use)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "lines": "144-144",
+   "verdict": "CUT",
+   "reason": "rule 22: restates audit-runᵍ's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "lines": "148-151",
+   "verdict": "KEEP",
+   "reason": "why the bound stops in Dₚ (raw machine) + doc citation docs/hash-forward.md item 5 (verified); the single home of that explanation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Audit/Context.agda",
+   "lines": "171-174",
+   "verdict": "KEEP",
+   "reason": "why absorb-plugᵍ matters: keeps the ideal side of UC.Audit.absorb inside these contexts"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Budget.agda",
+   "lines": "3-16",
+   "verdict": "KEEP",
+   "reason": "header: why the certificate lives on a refined machine and why asks≤ is the potential invariant (non-obvious)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Budget.agda",
+   "lines": "71-71",
+   "verdict": "CUT",
+   "reason": "rule 22: CSt gloss; header already says it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Budget.agda",
+   "lines": "81-82",
+   "verdict": "KEEP",
+   "reason": "invariant: a query strictly spends potential, a verdict matches an exhausted tree"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Budget.agda",
+   "lines": "127-128",
+   "verdict": "KEEP",
+   "reason": "banner groups forgetᶜ…simᶜ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Budget.agda",
+   "lines": "138-138",
+   "verdict": "CUT",
+   "reason": "rule 22: private helper gloss"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Budget.agda",
+   "lines": "181-182",
+   "verdict": "CUT",
+   "reason": "rule 22/24: restates QB; header line 3-4 says it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/EventTransfer.agda",
+   "lines": "3-26",
+   "verdict": "TRIM",
+   "reason": "header: orientation + why an event bound cannot use runFwd (doc citation verified); trimmed below; partial edit(s): 15-26 cut per-case paraphrase; cut copy of IsWatch's funext explanation (Strategy.agda IsWatch)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/EventTransfer.agda",
+   "lines": "70-71",
+   "verdict": "KEEP",
+   "reason": "banner groups Cov/CovL/cov-bot/cov-true"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/EventTransfer.agda",
+   "lines": "84-85",
+   "verdict": "KEEP",
+   "reason": "why: how dead certificate positions discharge the invariant"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/EventTransfer.agda",
+   "lines": "90-91",
+   "verdict": "TRIM",
+   "reason": "rule 22: dropped vague second clause"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/EventTransfer.agda",
+   "lines": "102-103",
+   "verdict": "KEEP",
+   "reason": "banner groups the Watched module's lemmas"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/EventTransfer.agda",
+   "lines": "105-106",
+   "verdict": "TRIM",
+   "reason": "rule 24: point to the one explanation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/EventTransfer.agda",
+   "lines": "119-120",
+   "verdict": "KEEP",
+   "reason": "marks the single place the invariant is spent"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/EventTransfer.agda",
+   "lines": "125-125",
+   "verdict": "KEEP",
+   "reason": "cites the mirrored Transfer.resume (verified to exist)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/EventTransfer.agda",
+   "lines": "129-129",
+   "verdict": "CUT",
+   "reason": "rule 22: CovX gloss"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/EventTransfer.agda",
+   "lines": "225-226",
+   "verdict": "TRIM",
+   "reason": "rule 22: second line restates the type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Extract.agda",
+   "lines": "3-19",
+   "verdict": "TRIM",
+   "reason": "header orientation + why fuel-indexed + why the ask bound is free; partial edit(s): 5-9 'invisible from BOTH sides' overlaps/contradicts Transfer's asymmetry paragraph (forwards only up to fuel); point there; 14-19 cut cohL/cohR narration and coinᵈ field paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Extract.agda",
+   "lines": "49-50",
+   "verdict": "CUT",
+   "reason": "rule 22: Ansᶜ gloss"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Extract.agda",
+   "lines": "54-55",
+   "verdict": "KEEP",
+   "reason": "banner groups coinᵈ/E-coinᵈ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Extract.agda",
+   "lines": "62-62",
+   "verdict": "CUT",
+   "reason": "rule 22: restates E-coinᵈ's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Extract.agda",
+   "lines": "67-68",
+   "verdict": "KEEP",
+   "reason": "banner over the mutual extract/extractL pair (landmark)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Extract.agda",
+   "lines": "70-71",
+   "verdict": "KEEP",
+   "reason": "names the roles of the unnamed parameters b/f/r"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Extract.agda",
+   "lines": "82-83",
+   "verdict": "KEEP",
+   "reason": "banner over the mutual extract-asks pair (landmark)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "3-32",
+   "verdict": "TRIM",
+   "reason": "rule 22: cut narration of Seal.objᵒ / Model.Dominated; dup of plug-λ; broken over-long line; plug-run claim moved/trimmed at its site"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "66-67",
+   "verdict": "KEEP",
+   "reason": "banner groups 𝟘ᴳ/ιᴳ/closedᵒ/stageᵒ/Proc≈"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "75-76",
+   "verdict": "KEEP",
+   "reason": "closedᵒ: the shape everything downstream is stated at"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "80-81",
+   "verdict": "KEEP",
+   "reason": "consumer citation UC.Factor (verified: uses stageᵒ/closedᵒ as the two factors)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "98-99",
+   "verdict": "FIX",
+   "reason": "rule 25/FIX: two identical 'The trivial grade' banners: rename second; the parameter-module medicine is UC.QueryBound.Certificate, not Certified (a record)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "101-106",
+   "verdict": "FIX",
+   "reason": "rule 25/FIX: two identical 'The trivial grade' banners: rename second; the parameter-module medicine is UC.QueryBound.Certificate, not Certified (a record)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "109-121",
+   "verdict": "TRIM",
+   "reason": "why blindness needs a hypothesis at all (mass-0 simulator); lines 115-121 fixed; partial edit(s): 115-121 parameter is ι, not ιᴳ; broken line reflowed"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "133-134",
+   "verdict": "KEEP",
+   "reason": "banner groups plug-λ/plug-run"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "136-140",
+   "verdict": "CUT",
+   "reason": "rule 22: proof paraphrase + consumer mention; generality visible in the implicit D"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "146-148",
+   "verdict": "TRIM",
+   "reason": "rule 22: proof-ingredient narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "157-158",
+   "verdict": "KEEP",
+   "reason": "banner groups ≈ᵁ-at/emSimTotal/subBlind⇒emul"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "160-161",
+   "verdict": "KEEP",
+   "reason": "gotcha: the associator the kernel reads the test at"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "168-182",
+   "verdict": "TRIM",
+   "reason": "rule 22: trimmed proof narration, kept the why"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "187-187",
+   "verdict": "CUT",
+   "reason": "rule 22: proof-step paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "200-201",
+   "verdict": "CUT",
+   "reason": "rule 22: restates subBlind⇒emul's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "212-213",
+   "verdict": "KEEP",
+   "reason": "banner groups simTotal⇒point…emulAgreeᵁ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "215-218",
+   "verdict": "KEEP",
+   "reason": "why SimTotal means what it says (via Grounding's propagation)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "236-243",
+   "verdict": "TRIM",
+   "reason": "rule 22: generality of k is visible in the signature"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "258-258",
+   "verdict": "CUT",
+   "reason": "rule 22: local what"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "270-271",
+   "verdict": "KEEP",
+   "reason": "which factorization SubBlind compares (why)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "283-284",
+   "verdict": "KEEP",
+   "reason": "citation of Dp.Mass.astotal-bind (verified exists)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounded.agda",
+   "lines": "291-292",
+   "verdict": "CUT",
+   "reason": "rule FIX/22: FALSE: emulAgreeᵁ has no consumer (grep: only Seam.agda's header mentioned it); header already names it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "lines": "3-25",
+   "verdict": "TRIM",
+   "reason": "header: why mass is the one contribution, Prefixedᵒ = Machines.Sim.Lax citation, Seal third discipline (verified); lines 22-25 fixed; partial edit(s): 22-25 UC.QueryBound's header does not give that reason; UC.Machine.𝒫ᴵ does. Measured 4m47 kept"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "lines": "77-78",
+   "verdict": "CUT",
+   "reason": "rule 25: single-definition banner (Massed only)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "lines": "84-85",
+   "verdict": "KEEP",
+   "reason": "banner groups propagation lemmas"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "lines": "101-102",
+   "verdict": "CUT",
+   "reason": "rule 24: dup of header lines 7-9"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "lines": "132-133",
+   "verdict": "KEEP",
+   "reason": "banner groups the sealed Massedᵒ family"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "lines": "135-135",
+   "verdict": "KEEP",
+   "reason": "why the bound can leave the seal"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "lines": "146-147",
+   "verdict": "KEEP",
+   "reason": "why pointᵒ: the one thing the seal lets out"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "lines": "166-167",
+   "verdict": "CUT",
+   "reason": "rule 22: restates massedᵒ-obs's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "lines": "171-172",
+   "verdict": "KEEP",
+   "reason": "banner groups the Prefixedᵒ family"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "lines": "212-213",
+   "verdict": "CUT",
+   "reason": "rule 24: dup of header lines 13-15"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "lines": "224-225",
+   "verdict": "CUT",
+   "reason": "rule 22: restates prefixedᵒ-bind's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Grounding.agda",
+   "lines": "232-233",
+   "verdict": "CUT",
+   "reason": "rule 22: restates prefixedᵒ-obs's type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "lines": "3-16",
+   "verdict": "TRIM",
+   "reason": "rule 22: cut narration of observe's clauses and of Adequacy"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "lines": "52-53",
+   "verdict": "KEEP",
+   "reason": "banner groups Loop/Tick"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "lines": "55-59",
+   "verdict": "CUT",
+   "reason": "rule 22/24: dup of header; consumer mention"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "lines": "67-67",
+   "verdict": "CUT",
+   "reason": "rule 22: body paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "lines": "78-78",
+   "verdict": "KEEP",
+   "reason": "why: the junctions a pure relabelling costs"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "lines": "84-84",
+   "verdict": "KEEP",
+   "reason": "insight: the distributor's case split is the continuation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "lines": "101-102",
+   "verdict": "CUT",
+   "reason": "rule 22: consumer mention / lists the three lemmas"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "lines": "126-126",
+   "verdict": "CUT",
+   "reason": "rule 22: cont paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "lines": "137-138",
+   "verdict": "CUT",
+   "reason": "rule 22: consumer mention"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "lines": "143-143",
+   "verdict": "CUT",
+   "reason": "rule 22/24: header says it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "lines": "155-156",
+   "verdict": "KEEP",
+   "reason": "banner groups Plugged/obs-resp"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "lines": "158-162",
+   "verdict": "FIX",
+   "reason": "rule 22/FIX: kᴳ paraphrase cut; pointer corrected ('UC.Machine's header' does not record it)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "lines": "174-175",
+   "verdict": "KEEP",
+   "reason": "why: the junction is λ⇐'s"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "lines": "181-183",
+   "verdict": "KEEP",
+   "reason": "why the projection is paid once here, points to Collapse's measured header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Plug.agda",
+   "lines": "190-192",
+   "verdict": "KEEP",
+   "reason": "why obs-resp exists: QB is the ≈-closure of Certified"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Transfer.agda",
+   "lines": "3-23",
+   "verdict": "KEEP",
+   "reason": "header: why the budget tie forbids the packaged bounds, the forward/backward asymmetry, why the refined body (all non-obvious)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Transfer.agda",
+   "lines": "85-85",
+   "verdict": "KEEP",
+   "reason": "the one test the transfer is valid at"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Transfer.agda",
+   "lines": "92-94",
+   "verdict": "KEEP",
+   "reason": "gotcha: `_*_` not injective, single subject"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Transfer.agda",
+   "lines": "98-99",
+   "verdict": "KEEP",
+   "reason": "banner groups ρᴷ…Stepᴿ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Transfer.agda",
+   "lines": "101-103",
+   "verdict": "KEEP",
+   "reason": "cites mirrored Machines.Collapse.outᵍ (verified) + why case-split"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Transfer.agda",
+   "lines": "111-111",
+   "verdict": "CUT",
+   "reason": "rule 22: ρᵁ's ⊥-elim clause shows it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Transfer.agda",
+   "lines": "126-127",
+   "verdict": "KEEP",
+   "reason": "banner groups run/tgtᴷ/strat/resume"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Transfer.agda",
+   "lines": "142-143",
+   "verdict": "KEEP",
+   "reason": "banner over the forward mutual block (landmark)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Transfer.agda",
+   "lines": "216-217",
+   "verdict": "KEEP",
+   "reason": "banner over the backward mutual block (landmark)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Transfer.agda",
+   "lines": "293-294",
+   "verdict": "KEEP",
+   "reason": "banner groups obsᴿ/private reductions/observe-≈"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Transfer.agda",
+   "lines": "296-298",
+   "verdict": "CUT",
+   "reason": "rule 24: duplicate of header lines 22-23 and the banner"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Seam/Transfer.agda",
+   "lines": "341-342",
+   "verdict": "KEEP",
+   "reason": "banner groups runFwd/runBwd"
+  }
+ ]
+}

@@ -1,0 +1,1498 @@
+{
+ "sweep": "enum-where",
+ "root": ".",
+ "files": {
+  "src/Categories/Category/Cocartesian/Ext.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Kleisli/Discrete.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Kleisli/Discrete/Distributive.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Kleisli/Discrete/Pure.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Monoidal/Distributive.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Monoidal/Distributive/Properties.agda": {
+   "sites": [
+    {
+     "line": 60,
+     "binding": "i-collapse",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/Categories/Category/Monoidal/Pure.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Monoidal/Traced/Ext.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Monoidal/Utilities/Ext.agda": {
+   "sites": []
+  },
+  "src/Categories/GConstructionEmbedding.agda": {
+   "sites": []
+  },
+  "src/Categories/GConstructionEmbeddingCoherence.agda": {
+   "sites": []
+  },
+  "src/Categories/GConstructionHomCoherence.agda": {
+   "sites": []
+  },
+  "src/Categories/GConstructionLoop.agda": {
+   "sites": [
+    {
+     "line": 81,
+     "binding": "g",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 84,
+     "binding": "f₁",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 85,
+     "binding": "f₂",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 86,
+     "binding": "f₃",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 87,
+     "binding": "g₁",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 88,
+     "binding": "g₂",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 89,
+     "binding": "g₃",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 90,
+     "binding": "residue",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/Categories/GConstructionLoopCoherence.agda": {
+   "sites": []
+  },
+  "src/Categories/GConstructionMonoidal.agda": {
+   "sites": [
+    {
+     "line": 162,
+     "binding": "Φ₁",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 165,
+     "binding": "Φ₂",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 168,
+     "binding": "Ψ",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 174,
+     "binding": "BoxL",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 180,
+     "binding": "BoxR",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 188,
+     "binding": "⊗-expand",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 195,
+     "binding": "residue",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/Categories/GConstructionTensorCoherence.agda": {
+   "sites": []
+  },
+  "src/Categories/GConstructionTrace.agda": {
+   "sites": [
+    {
+     "line": 130,
+     "binding": "braiding-swap",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 157,
+     "binding": "body₁",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 158,
+     "binding": "body₂",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    }
+   ]
+  },
+  "src/Categories/GConstructionTraceCoherence.agda": {
+   "sites": []
+  },
+  "src/Categories/Monad/Construction/Kleisli/Ext.agda": {
+   "sites": [
+    {
+     "line": 78,
+     "binding": "θ-natural",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 86,
+     "binding": "θ",
+     "approxUses": 21,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 89,
+     "binding": "θ-extend",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/Categories/Monad/Discrete.agda": {
+   "sites": []
+  },
+  "src/Categories/Monad/Graded/Trivial.agda": {
+   "sites": []
+  },
+  "src/Categories/Monad/Setoids/Discrete.agda": {
+   "sites": []
+  },
+  "src/Categories/Monad/Setoids/Discrete/Morphism.agda": {
+   "sites": []
+  },
+  "src/Categories/Monad/Setoids/Maybe.agda": {
+   "sites": [
+    {
+     "line": 57,
+     "binding": "identityˡᴹᵇ",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 61,
+     "binding": "assocᴹᵇ",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 70,
+     "binding": "commᴹᵇ",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/Class/DecEq/Ext.agda": {
+   "sites": []
+  },
+  "src/Class/Monad/Ext/Setoid.agda": {
+   "sites": []
+  },
+  "src/Data/Bits/Codec.agda": {
+   "sites": [
+    {
+     "line": 66,
+     "binding": "enc",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 70,
+     "binding": "dec",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 75,
+     "binding": "law",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 106,
+     "binding": "encs",
+     "approxUses": 6,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 110,
+     "binding": "decs",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 114,
+     "binding": "encs-law",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/Data/Bool/Properties/Ext.agda": {
+   "sites": []
+  },
+  "src/Data/List/Relation/Binary/BagAndSetEquality/Ext.agda": {
+   "sites": []
+  },
+  "src/Data/List/Relation/Unary/Any/Properties/Ext.agda": {
+   "sites": [
+    {
+     "line": 35,
+     "binding": "to-Q",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 36,
+     "binding": "from-P",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 38,
+     "binding": "Q-resp",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 39,
+     "binding": "P-resp",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/Data/List/Run.agda": {
+   "sites": [
+    {
+     "line": 78,
+     "binding": "unsnoc",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 83,
+     "binding": "u",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 84,
+     "binding": "u'",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 85,
+     "binding": "ru",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 86,
+     "binding": "ru'",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 87,
+     "binding": "last",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 98,
+     "binding": "unrev",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/Data/Sum/Ext.agda": {
+   "sites": []
+  },
+  "src/Data/Vec/Properties/Ext.agda": {
+   "sites": []
+  },
+  "src/Function/Bundles/Ext.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Abstract.agda": {
+   "sites": [
+    {
+     "line": 218,
+     "binding": "A∁A-disj",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 221,
+     "binding": "PA+P∁A≈1",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 228,
+     "binding": "1+P∁A≈1",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 231,
+     "binding": "P∁A≤0",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 256,
+     "binding": "disj",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Bernoulli.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/Binomial.agda": {
+   "sites": [
+    {
+     "line": 208,
+     "binding": "first-true-prob",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 252,
+     "binding": "sup",
+     "approxUses": 8,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 255,
+     "binding": "first-eq",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 269,
+     "binding": "second-eq",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Markov.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda": {
+   "sites": [
+    {
+     "line": 73,
+     "binding": "cong-Any",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Advantage.agda": {
+   "sites": [
+    {
+     "line": 70,
+     "binding": "pt",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda": {
+   "sites": [
+    {
+     "line": 46,
+     "binding": "eq",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 160,
+     "binding": "b≤1",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 175,
+     "binding": "bd",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 185,
+     "binding": "H",
+     "approxUses": 7,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 186,
+     "binding": "upper",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 189,
+     "binding": "lower",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 192,
+     "binding": "negEq",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 194,
+     "binding": "bnd",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 196,
+     "binding": "absEq",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 222,
+     "binding": "sink",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda": {
+   "sites": [
+    {
+     "line": 98,
+     "binding": "kpt",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 176,
+     "binding": "ptL",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 188,
+     "binding": "ptR",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 182,
+     "binding": "inner",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Setoid.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Support.agda": {
+   "sites": [
+    {
+     "line": 244,
+     "binding": "step",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 318,
+     "binding": "0≤ε",
+     "approxUses": 6,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 321,
+     "binding": "0≤1-ε",
+     "approxUses": 4,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 324,
+     "binding": "close",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 340,
+     "binding": "head-true",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 343,
+     "binding": "tail-false",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 346,
+     "binding": "differ",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 327,
+     "binding": "shape",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 334,
+     "binding": "bound",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Collision.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda": {
+   "sites": [
+    {
+     "line": 118,
+     "binding": "aux",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 138,
+     "binding": "pointwise",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp.agda": {
+   "sites": [
+    {
+     "line": 315,
+     "binding": "shuffle",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 501,
+     "binding": "up",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 504,
+     "binding": "wit",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Advantage.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Coin.agda": {
+   "sites": [
+    {
+     "line": 49,
+     "binding": "sum-1",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 65,
+     "binding": "branches",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 70,
+     "binding": "pull",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 76,
+     "binding": "split",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 103,
+     "binding": "agree",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 147,
+     "binding": "below",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 152,
+     "binding": "above",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Commutative.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Dominate.agda": {
+   "sites": [
+    {
+     "line": 129,
+     "binding": "Φ",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 132,
+     "binding": "up",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 135,
+     "binding": "unif",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 136,
+     "binding": "i′",
+     "approxUses": 6,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 137,
+     "binding": "sp",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Elgot.agda": {
+   "sites": [
+    {
+     "line": 72,
+     "binding": "sim",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter.agda": {
+   "sites": [
+    {
+     "line": 203,
+     "binding": "Φ",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 206,
+     "binding": "up",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 210,
+     "binding": "wit",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Codiagonal.agda": {
+   "sites": [
+    {
+     "line": 56,
+     "binding": "Φ",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 59,
+     "binding": "up",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 66,
+     "binding": "wit",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 71,
+     "binding": "unif",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 72,
+     "binding": "i′",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 74,
+     "binding": "f1",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 75,
+     "binding": "f2",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 77,
+     "binding": "f3",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 78,
+     "binding": "f4",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 94,
+     "binding": "K2",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 107,
+     "binding": "Ψ",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 127,
+     "binding": "d1",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 128,
+     "binding": "d2",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 129,
+     "binding": "d3",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 131,
+     "binding": "d4",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 132,
+     "binding": "d5",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Out.agda": {
+   "sites": [
+    {
+     "line": 80,
+     "binding": "Q",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 83,
+     "binding": "nnQ",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 86,
+     "binding": "Φ",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 89,
+     "binding": "up",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 96,
+     "binding": "wit",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 105,
+     "binding": "unif",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 106,
+     "binding": "i′",
+     "approxUses": 8,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 108,
+     "binding": "c1",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 109,
+     "binding": "c2",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 111,
+     "binding": "c3",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 113,
+     "binding": "c4",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 127,
+     "binding": "Ψ",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 146,
+     "binding": "e1",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 147,
+     "binding": "e2",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 153,
+     "binding": "e3",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 156,
+     "binding": "e4",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 162,
+     "binding": "fst",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 167,
+     "binding": "snd",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Transfer.agda": {
+   "sites": [
+    {
+     "line": 58,
+     "binding": "Φ",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 61,
+     "binding": "up",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 65,
+     "binding": "wit",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 69,
+     "binding": "unif",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 70,
+     "binding": "i′",
+     "approxUses": 8,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 72,
+     "binding": "s1",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 73,
+     "binding": "s2",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 75,
+     "binding": "s3",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 77,
+     "binding": "dom",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 78,
+     "binding": "j",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 79,
+     "binding": "s4",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 80,
+     "binding": "s5",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 91,
+     "binding": "Ψ",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 103,
+     "binding": "t1",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 107,
+     "binding": "t2",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 108,
+     "binding": "t2′",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 109,
+     "binding": "t3",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 114,
+     "binding": "t4",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 116,
+     "binding": "t5",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 124,
+     "binding": "fst",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 129,
+     "binding": "snd",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Mass.agda": {
+   "sites": [
+    {
+     "line": 60,
+     "binding": "one",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 136,
+     "binding": "ind-sum",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 218,
+     "binding": "half",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 301,
+     "binding": "nn",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 371,
+     "binding": "cancel",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 384,
+     "binding": "m₁",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 385,
+     "binding": "m₂",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 386,
+     "binding": "m",
+     "approxUses": 4,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 387,
+     "binding": "m′",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 389,
+     "binding": "bound",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Reasoning.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Settle.agda": {
+   "sites": [
+    {
+     "line": 160,
+     "binding": "rd₀",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 163,
+     "binding": "cap",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 166,
+     "binding": "capₑ",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 200,
+     "binding": "hlt",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 273,
+     "binding": "κ",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 306,
+     "binding": "value",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Settle/Iter.agda": {
+   "sites": [
+    {
+     "line": 121,
+     "binding": "Φ",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 124,
+     "binding": "Ψ",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 126,
+     "binding": "Φ⋆",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 128,
+     "binding": "up",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 131,
+     "binding": "bump",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 180,
+     "binding": "serve",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Stable.agda": {
+   "sites": [
+    {
+     "line": 75,
+     "binding": "Q",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 82,
+     "binding": "n",
+     "approxUses": 7,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 85,
+     "binding": "go",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 88,
+     "binding": "pt",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Support.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Examples/BiasedCoin.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Examples/Coins.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Examples/MultipleCoins.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Examples/Weather.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Expectation.agda": {
+   "sites": [
+    {
+     "line": 170,
+     "binding": "extras-sum-0",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 287,
+     "binding": "disj",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 333,
+     "binding": "head-eq",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 335,
+     "binding": "yes",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 341,
+     "binding": "no",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 351,
+     "binding": "head-tail-disj",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 355,
+     "binding": "cons-equiv",
+     "approxUses": 4,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 357,
+     "binding": "proj₁",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 359,
+     "binding": "proj₂",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 391,
+     "binding": "ws-1[X]≈P∙X",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 413,
+     "binding": "sf",
+     "approxUses": 26,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 414,
+     "binding": "sg",
+     "approxUses": 8,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 416,
+     "binding": "¬∈sf?",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 419,
+     "binding": "extras",
+     "approxUses": 16,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 422,
+     "binding": "extras-d",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 425,
+     "binding": "extras-∉sf",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 428,
+     "binding": "∉sf→sg→extras",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 431,
+     "binding": "s-d",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 439,
+     "binding": "off-fg",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 456,
+     "binding": "sg⊆combined",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 461,
+     "binding": "ws-f-eq",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 465,
+     "binding": "ws-g-eq",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 469,
+     "binding": "value-eq",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 434,
+     "binding": "cross",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 449,
+     "binding": "ω∉sf",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 451,
+     "binding": "ω∉sg",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 498,
+     "binding": "ω≡-↔-∈[ω]",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 502,
+     "binding": "pω-self",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Logic.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Models/Trivial.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Prelude.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Reasoning.agda": {
+   "sites": []
+  },
+  "src/Relation/Binary/Bundles/Ext.agda": {
+   "sites": []
+  }
+ },
+ "totalChecks": 0
+}

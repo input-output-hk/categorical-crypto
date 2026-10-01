@@ -1,0 +1,287 @@
+{
+ "sweep": "enum-with",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/GamePlaying.agda": {
+   "sites": [
+    {
+     "line": 49,
+     "with": "with bad s",
+     "clause": "badProb resp bad s (ask q k)  with bad s"
+    },
+    {
+     "line": 52,
+     "with": "with bad s",
+     "clause": "badProb resp bad s (coin μ k) with bad s"
+    },
+    {
+     "line": 66,
+     "with": "with bad s",
+     "clause": "badProb-embed resp bad s (ask q k)  with bad s"
+    },
+    {
+     "line": 71,
+     "with": "with bad s",
+     "clause": "badProb-embed resp bad s (coin μ k) with bad s"
+    },
+    {
+     "line": 138,
+     "with": "with dead s q",
+     "clause": "pres⊥ s q inv with dead s q"
+    },
+    {
+     "line": 144,
+     "with": "with dead s q",
+     "clause": "step⊥ m s q inv with dead s q"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/GamePlaying/Average.agda": {
+   "sites": [
+    {
+     "line": 74,
+     "with": "with bad s in eqb",
+     "clause": "badProb≡endProb mono s (ask q k) with bad s in eqb"
+    },
+    {
+     "line": 78,
+     "with": "with bad s in eqb",
+     "clause": "badProb≡endProb mono s (coin μ k) with bad s in eqb"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/GamePlaying/Defer.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/GamePlaying/Defer/Run.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/GamePlaying/Hop.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/GamePlaying/Partial.agda": {
+   "sites": [
+    {
+     "line": 50,
+     "with": "with bad s",
+     "clause": "badProb⊥ resp bad s (ask q k)  with bad s"
+    },
+    {
+     "line": 53,
+     "with": "with bad s",
+     "clause": "badProb⊥ resp bad s (coin μ k) with bad s"
+    },
+    {
+     "line": 71,
+     "with": "with bad s",
+     "clause": "badProb⊥-cong resp resp′ bad eq s (ask q k) with bad s"
+    },
+    {
+     "line": 77,
+     "with": "with bad s",
+     "clause": "badProb⊥-cong resp resp′ bad eq s (coin μ k) with bad s"
+    },
+    {
+     "line": 112,
+     "with": "with bad s in eqb",
+     "clause": "badProb⊥-super resp bad Inv φ pres nn lb step m (out b) s le inv with bad s in e"
+    },
+    {
+     "line": 117,
+     "with": "with bad s in eqb",
+     "clause": "badProb⊥-super resp bad Inv φ pres nn lb step (suc m) (ask q kd) s le inv"
+    },
+    {
+     "line": 132,
+     "with": "with bad s in eqb",
+     "clause": "badProb⊥-super resp bad Inv φ pres nn lb step m (coin μ kd) s le inv with bad s "
+    },
+    {
+     "line": 169,
+     "with": "with bad s in eqbad",
+     "clause": "FLGP⊥ s (ask q k) with bad s in eqbad"
+    },
+    {
+     "line": 200,
+     "with": "with bad (proj₁ t) in eqt",
+     "clause": "pointwise t with bad (proj₁ t) in eqt"
+    },
+    {
+     "line": 206,
+     "with": "with bad s",
+     "clause": "FLGP⊥ s (coin μ k) with bad s"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/GamePlaying/Potential.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/GamePlaying/Test.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Iface.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Interaction.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Base.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Bundle.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Category.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Collapse.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Core.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Frame.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/G.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/G/Lax.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Iteration.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Pointwise.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Pure.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Reassoc.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Sandwich.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Sim.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Sim/Lax.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Tensor.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Assoc.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Structural.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace/Congruence.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace/Fubini.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace/Naturality.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace/Superposing.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace/Vanishing.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/OracleCall.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Agree.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Compose.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Pin.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Raw.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Total.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Trace.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Trace/Compose.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Observe.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Safety.agda": {
+   "sites": [
+    {
+     "line": 67,
+     "with": "with Bad s in eqb",
+     "clause": "super m (out b) s le inv with Bad s in eqb"
+    },
+    {
+     "line": 71,
+     "with": "with Bad s in eqb",
+     "clause": "super (suc m) (ask q k) s le inv with Bad s in eqb"
+    },
+    {
+     "line": 92,
+     "with": "with Bad s in eqb",
+     "clause": "super m (coin μ k) s le inv with Bad s in eqb"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/SFunM/Kleisli.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/SFunM/Kleisli/Monoidal.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/SFunM/Kleisli/Morphism.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/SFunM/Kleisli/Properties.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/SFunM/Monoidal.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/SFunM/Morphism.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/SFunM/Properties.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/SFunM/Test/Possibility.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/SFunPartial.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/SFunPossibility.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Strategy.agda": {
+   "sites": []
+  }
+ },
+ "totalChecks": 0
+}

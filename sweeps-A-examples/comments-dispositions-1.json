@@ -1,0 +1,2305 @@
+[
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "3-13",
+  "now": 3,
+  "verdict": "reword",
+  "reason": "keep slides provenance, the chimeric/inputConsuming contrast with its `Replay` why-pointer, and the docs pointer; cut the keying/`Call` sentence (what, visible in outsAt/applyTx)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "32-33",
+  "now": 26,
+  "verdict": "keep",
+  "reason": "gotcha: `DecEq-×` is not an upstream instance (clashes with the --with-K `DecEq-Σ`), cross-ref to Prelude; canonical site that Replay/Value point to"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "36-37",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "48-48",
+  "now": 40,
+  "verdict": "cut",
+  "reason": "type echo: field names of the tuple, visible in applyTx's `(ins , wds , outs)` pattern"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "55-57",
+  "now": 47,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "67-68",
+  "now": 59,
+  "verdict": "keep",
+  "reason": "gotcha: first-entry-wins union is exactly what swallows a replayed transaction's output"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "84-86",
+  "now": 76,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "103-105",
+  "now": 95,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "107-108",
+  "now": 99,
+  "verdict": "keep",
+  "reason": "invariant: inputs checked against the REMAINING set, so a duplicate input fails"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "115-116",
+  "now": 107,
+  "verdict": "keep",
+  "reason": "why the `∸` debit is exact: each withdrawal is checked against already-debited accounts"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "122-124",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "134-134",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger.agda",
+  "lines": "139-140",
+  "now": 127,
+  "verdict": "cut",
+  "reason": "assumption-placement narration; injectivity is visible as `ser-inj`/`SerInj` where assumed (also slightly overclaims: Transfer takes SerInj too)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "3-23",
+  "now": 3,
+  "verdict": "reword",
+  "reason": "keep: HitCert framing, the Stale-vs-distinct-digest crux, docs §5 pointer (verified: 'four exceptional cases' table in §5); fix accuracy: the invariant's field is `stales`, `Stale` is the record"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "70-70",
+  "now": 55,
+  "verdict": "keep",
+  "reason": "justifies the `using` list (rule 11): `Hash` clashes with `Ledger.Hash`"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "76-78",
+  "now": 61,
+  "verdict": "keep",
+  "reason": "why the `+ q` term: fresh hash can hit `h₀`, whose key `unionNew` would swallow"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "82-84",
+  "now": 67,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "86-93",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "96-97",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "105-106",
+  "now": 79,
+  "verdict": "cut",
+  "reason": "duplicates the header's crux sentence (rule 24: one explanation, at the header)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "117-119",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "152-154",
+  "now": 123,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "182-182",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "190-191",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "199-201",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "213-215",
+  "now": 177,
+  "verdict": "keep",
+  "reason": "the missing-clause why: `ec` refutes the empty-input case; this is where the inputConsuming repair is spent (supplies i₀ for headStale)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "239-239",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "272-274",
+  "now": 234,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "277-278",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda",
+  "lines": "365-365",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "3-17",
+  "now": 3,
+  "verdict": "reword",
+  "reason": "keep the non-obvious why (plain inductions because an audit answer is definitionally the state's total) and the accumulate-vs-stop gotcha (early `out true` would break soundness); trim the per-lemma paraphrase of what sound/complete state"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "53-55",
+  "now": 45,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "57-58",
+  "now": 49,
+  "verdict": "cut",
+  "reason": "type echo: `{S : Set}` already shows genericity"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "68-70",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "81-81",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "90-91",
+  "now": 79,
+  "verdict": "keep",
+  "reason": "why this instrumentation: exactly the boundaries `hitFrom` inspects"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "97-98",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "106-108",
+  "now": 92,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "110-113",
+  "now": 96,
+  "verdict": "cut",
+  "reason": "explains why a parameterization type-checks; the module parameters show it (default cut)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "122-123",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "127-128",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "136-136",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "140-142",
+  "now": 119,
+  "verdict": "keep",
+  "reason": "proof trick: the Boolean order on accumulators replaces a separate monotonicity lemma"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "179-181",
+  "now": 158,
+  "verdict": "keep",
+  "reason": "proof idea: every inspected state is audited there, so no case on the query is needed"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "208-208",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "231-232",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda",
+  "lines": "now:59",
+  "now": 59,
+  "verdict": "cut",
+  "reason": "per-clause paraphrase of reportsLoss's two clauses [block not in the (older) tally]"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "3-27",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "orientation: ONE predicate, monitor compiled into the context's test (`UC.Machine.Monitor`), quantifies over certified contexts not strategies; docs §4 pointer verified"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "65-65",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "69-72",
+  "now": 48,
+  "verdict": "cut",
+  "reason": "visible from `ser n`/`Ledger.Tx n` in the type: why SerInj is per level is obvious"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "76-78",
+  "now": 53,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "80-82",
+  "now": 57,
+  "verdict": "keep",
+  "reason": "why width = security parameter, and that `n ≤ ℓ n` is all the arithmetic spends"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "93-94",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "99-100",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "104-107",
+  "now": 77,
+  "verdict": "keep",
+  "reason": "why `+ 1`: the monitor's accumulator, citation `UC.Quantitative.EventLift.hitsᵘ` (verified)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "118-120",
+  "now": 89,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "134-134",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "140-141",
+  "now": 110,
+  "verdict": "keep",
+  "reason": "why the process spelling exists + citation `UC.Machine.Monitor.Agree.agree` (verified)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "145-145",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "153-155",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "164-165",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "175-177",
+  "now": 139,
+  "verdict": "keep",
+  "reason": "why nothing is spent returning: the compiled experiment is the watched run at the embedded context"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda",
+  "lines": "189-190",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "3-24",
+  "now": 3,
+  "verdict": "reword",
+  "reason": "keep the attack mechanism (no collision needed; oracle repeat + unionNew + double charge); fix a broken line wrap; the reachability-gap detail is consolidated to ReplayFamily's header (rule 24), replaced by `see ReplayFamily`"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "60-62",
+  "now": 48,
+  "verdict": "keep",
+  "reason": "points to ChimericLedger's explanation and adds the site-specific gotcha (`≟-refl` must resolve at lookupU's instance)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "65-67",
+  "now": 52,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "76-77",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "94-94",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "101-101",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "108-109",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "113-115",
+  "now": 91,
+  "verdict": "keep",
+  "reason": "non-obvious: the watch's reference state `r` differs from the start state; family property reads it at the UTxO genesis"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "134-135",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "145-146",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "155-156",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "182-183",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "203-205",
+  "now": 173,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "207-212",
+  "now": 177,
+  "verdict": "keep",
+  "reason": "why `Genesis` exists (Pr is 0 at deadlock too) + citation rewrite-verdict.md first Addendum finding 1 (verified)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "234-235",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "239-241",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "246-247",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "301-303",
+  "now": 262,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "305-308",
+  "now": 266,
+  "verdict": "keep",
+  "reason": "section orientation with non-obvious content: everything including oracle sampling and ℚ arithmetic reduces by refl at ℓ = 1"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda",
+  "lines": "now:205",
+  "now": 205,
+  "verdict": "keep",
+  "reason": "gotcha: the key test is rewritten TWICE, removeIn's copy is behind checkIns's case [block not in the (older) tally]"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda",
+  "lines": "3-23",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "orientation + the account-funded-vs-UTxO-genesis reachability gap (canonical site after consolidation) + open question with docs §2 pointer (verified 'left open' in §2)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda",
+  "lines": "51-52",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda",
+  "lines": "58-59",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda",
+  "lines": "69-70",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda",
+  "lines": "3-11",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "why the module exists (SerInj a theorem) and why literal encoding is required (`_≡_` on Tx)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda",
+  "lines": "47-47",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda",
+  "lines": "51-53",
+  "now": 44,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda",
+  "lines": "55-55",
+  "now": 48,
+  "verdict": "keep",
+  "reason": "explains the non-obvious expected bits (three unary zero lengths)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda",
+  "lines": "59-60",
+  "now": 52,
+  "verdict": "keep",
+  "reason": "why this regression test: what raw concatenation would confuse"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda",
+  "lines": "64-64",
+  "now": 57,
+  "verdict": "keep",
+  "reason": "why this regression test: zero fields must not shift component boundary"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda",
+  "lines": "68-68",
+  "now": 61,
+  "verdict": "keep",
+  "reason": "why this regression test: concatenation ambiguity one-vs-two outputs"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda",
+  "lines": "72-72",
+  "now": 65,
+  "verdict": "keep",
+  "reason": "why the round-trip fixture: fixed-width hash then index"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/System.agda",
+  "lines": "3-11",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "orientation: Sys vs Sysᴴ, environment sees only LedgerIf"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/System.agda",
+  "lines": "39-40",
+  "now": 32,
+  "verdict": "keep",
+  "reason": "why oracle keyed on bitstrings: keying on Tx would hide the serialization"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/System.agda",
+  "lines": "43-45",
+  "now": 36,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/System.agda",
+  "lines": "59-60",
+  "now": 52,
+  "verdict": "keep",
+  "reason": "citation: mirrors `RandomOracle.step`'s lazily sampled distribution (rule 21)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/System.agda",
+  "lines": "69-71",
+  "now": 64,
+  "verdict": "keep",
+  "reason": "why the Call shape: at most one call per activation is `UC.QueryBound.qb-oneCall`'s hypothesis (verified)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/System.agda",
+  "lines": "86-89",
+  "now": 78,
+  "verdict": "cut",
+  "reason": "duplicate of Replay's header ('no hash collision is needed … System.oracle-repeat'); rule 24"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/System.agda",
+  "lines": "94-96",
+  "now": 84,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/System.agda",
+  "lines": "98-101",
+  "now": 88,
+  "verdict": "keep",
+  "reason": "why a UTxO genesis: account-only genesis makes the birthday bound vacuous (liveness pointer)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/System.agda",
+  "lines": "105-106",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/System.agda",
+  "lines": "114-118",
+  "now": 101,
+  "verdict": "cut",
+  "reason": "restates the lemma's type + duplicate of the reachability gap explained in ReplayFamily's header; rule 24"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "3-26",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "orientation: the three claims, what each assumes and does NOT say, docs §6 pointer (verified); names verified"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "81-83",
+  "now": 64,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "85-96",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "109-111",
+  "now": 85,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "113-118",
+  "now": 89,
+  "verdict": "keep",
+  "reason": "why the factoring is needed + what it does not give; citation ledger-factoring.md"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "129-130",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "143-143",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "147-149",
+  "now": 118,
+  "verdict": "keep",
+  "reason": "why two exact `scale _ 1⁺` substitutions in εᴴ"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "161-163",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "185-187",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "200-204",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "217-218",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "226-228",
+  "now": 176,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "230-240",
+  "now": 180,
+  "verdict": "keep",
+  "reason": "why TruthfulAudit is needed and why the allowance doubles"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "269-270",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "284-286",
+  "now": 226,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "290-295",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "301-303",
+  "now": 237,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "305-307",
+  "now": 241,
+  "verdict": "keep",
+  "reason": "what Mute pins: claim 1 does not imply responsiveness"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "311-313",
+  "now": 246,
+  "verdict": "keep",
+  "reason": "what Liar pins: the gap is exactly TruthfulAudit"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "323-325",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "390-391",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "now:68",
+  "now": 68,
+  "verdict": "keep",
+  "reason": "why `p n + 1` and not a certificate of the compiled test; citation event-bounds-in-setup.md §B (verified) [block not in the (older) tally]"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda",
+  "lines": "now:155",
+  "now": 155,
+  "verdict": "keep",
+  "reason": "why no simulator to forget; citation ledger-lift-eps.md §§1,5 (verified) [block not in the (older) tally]"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "3-10",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "orientation + the one way value is lost (hash already keying a live entry), naming the two key lemmas"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "37-37",
+  "now": 35,
+  "verdict": "reword",
+  "reason": "the pair-instance explanation lives at ChimericLedger (rule 24); reduce to a pointer"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "53-54",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "65-67",
+  "now": 57,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "91-93",
+  "now": 88,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "113-116",
+  "now": 109,
+  "verdict": "keep",
+  "reason": "why the index bound: keeps the induction honest since outsAt keys are pairwise distinct"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "142-144",
+  "now": 136,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "177-179",
+  "now": 166,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "184-186",
+  "now": 173,
+  "verdict": "keep",
+  "reason": "invariant: Uniq is what makes removeIn remove a KEY; the birthday argument rests on it"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "203-204",
+  "now": 192,
+  "verdict": "keep",
+  "reason": "`with` gotcha: removeIn rebuilds the cons, so the decision is re-applied by hand"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "248-248",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "258-259",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "323-325",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "331-331",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "335-343",
+  "now": 302,
+  "verdict": "keep",
+  "reason": "`with` gotcha: the abstraction does not reach applyTx inside a constructor argument, hence `shape`"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "426-432",
+  "now": 386,
+  "verdict": "cut",
+  "reason": "the premise's meaning is exactly its type `∀ k → k ∈ keysU … → proj₁ k ∈ hs`; the lost-value case is the module header's"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda",
+  "lines": "now:291",
+  "now": 291,
+  "verdict": "keep",
+  "reason": "keep: top-level boxed banner grouping several definitions (rule 25) [block not in the (older) tally]"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss.agda",
+  "lines": "3-17",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "orientation: protocol description (Blum, corrupted committer), why `_∙ᶠ_` plugs (Neg Honᴵ empty, codomain of F_com realization); docs pointer"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss.agda",
+  "lines": "46-47",
+  "now": 37,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss.agda",
+  "lines": "49-51",
+  "now": 40,
+  "verdict": "reword",
+  "reason": "keep the modelling why of `ShareA ⇿ ⊥` (a corrupted P1 sends P2 nothing beyond commitment messages); cut the share-in-the-clear restatement of the header"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss.agda",
+  "lines": "58-58",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss.agda",
+  "lines": "66-67",
+  "now": 56,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss.agda",
+  "lines": "69-69",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss.agda",
+  "lines": "75-76",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "3-17",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "why the commitment emulation is a hypothesis (dp-transport.md) + pointer to the second hop"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "53-54",
+  "now": 42,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "56-57",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "72-73",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "77-78",
+  "now": 62,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "80-84",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "88-90",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "96-98",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "102-103",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "117-118",
+  "now": 87,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "120-124",
+  "now": 90,
+  "verdict": "keep",
+  "reason": "why the other corruption has the same schedule εᶜᵗ (still enters at 1⁺); docs pointer"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "157-158",
+  "now": 123,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "160-164",
+  "now": 126,
+  "verdict": "keep",
+  "reason": "why coin-toss-from-comᶜ narrows the premise; citation fcom-extraction.md `raw-emulation` (verified)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "168-169",
+  "now": 132,
+  "verdict": "keep",
+  "reason": "why rate 1⁺ vs 2: programming simulator costs one message, not two"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Compose.agda",
+  "lines": "177-179",
+  "now": 141,
+  "verdict": "reword",
+  "reason": "keep the why (unrescaled because stage enters at 1⁺ via tossQB and upper simulator is idᶜ; verified); drop the dangling '…' continuation"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Hiding.agda",
+  "lines": "3-16",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "orientation: protocol description at the other corruption and the Neg-inhabited contrast with Examples.CoinToss"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Hiding.agda",
+  "lines": "45-46",
+  "now": 36,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Hiding.agda",
+  "lines": "48-50",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Hiding.agda",
+  "lines": "57-57",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Hiding.agda",
+  "lines": "69-70",
+  "now": 56,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda",
+  "lines": "3-11",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "why both certificates are Certified 1 at potential 0 (one downward message per activation, nothing owed)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda",
+  "lines": "43-44",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda",
+  "lines": "49-50",
+  "now": 41,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda",
+  "lines": "111-112",
+  "now": 92,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda",
+  "lines": "125-126",
+  "now": 106,
+  "verdict": "keep",
+  "reason": "pointer to the letter-before-state gotcha at CoinToss.UC.recvCert (rule 24)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda",
+  "lines": "3-21",
+  "now": 3,
+  "verdict": "reword",
+  "reason": "keep the Cleve-unfairness why + Form A citation (docs §5); cut the 'Off-protocol activations are botₚ' convention sentence (what, visible)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda",
+  "lines": "53-54",
+  "now": 45,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda",
+  "lines": "67-68",
+  "now": 59,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda",
+  "lines": "70-70",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda",
+  "lines": "96-97",
+  "now": 87,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda",
+  "lines": "99-101",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda",
+  "lines": "108-111",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "3-15",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "why the boundary is closed (closure quantifier owns F_com's memory; docs §5) and why plugging the resource is free (≈ctx-dom at 1⁺)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "54-55",
+  "now": 48,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "66-66",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "70-71",
+  "now": 63,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "73-74",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "81-82",
+  "now": 72,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "84-86",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "90-91",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "112-113",
+  "now": 97,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "122-123",
+  "now": 107,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "125-127",
+  "now": 110,
+  "verdict": "keep",
+  "reason": "why rate 1⁺ for both Famᴹ arrows: both families are closed"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda",
+  "lines": "140-143",
+  "now": 123,
+  "verdict": "keep",
+  "reason": "what the ᴺ statement keeps and loses (not εᶜⁱ); lands in ucSetupᴺ = Canonicalᴺ.StdSetup (verified)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda",
+  "lines": "3-16",
+  "now": 3,
+  "verdict": "reword",
+  "reason": "keep orientation, the Step/Unfolding reading, and the measured `with` perf gotcha (3m22s vs 10s); drop 'rather than UC.Machine.Wire' — misleading, the module does use Wire.wire-∘ᴹ"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda",
+  "lines": "64-65",
+  "now": 56,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda",
+  "lines": "67-68",
+  "now": 59,
+  "verdict": "cut",
+  "reason": "what the sandwich does, visible in `sandwichᴹ resource (map₂ downᶠ) (map₂ upᶠ)`; the Receiver twin resᴵᵈʰ already has none (rule 26)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda",
+  "lines": "75-75",
+  "now": 67,
+  "verdict": "keep",
+  "reason": "why this bracketing: it is what ext-graded/graded₂-∘ leave (verified names)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda",
+  "lines": "90-91",
+  "now": 82,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda",
+  "lines": "102-103",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda",
+  "lines": "108-108",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda",
+  "lines": "122-122",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda",
+  "lines": "131-131",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda",
+  "lines": "143-144",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda",
+  "lines": "238-239",
+  "now": 212,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda",
+  "lines": "242-243",
+  "now": 216,
+  "verdict": "keep",
+  "reason": "why reassoc is free: the associator and the ideal functionality are wires (wire-∘ᴹ), no trace"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "3-14",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "orientation: the one non-structural step is coin-flip at commitˢ b₁; docs §5 pointer"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "63-64",
+  "now": 52,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "81-82",
+  "now": 70,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "93-93",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "97-97",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "107-107",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "116-116",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "129-129",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "139-139",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "147-148",
+  "now": 127,
+  "verdict": "keep",
+  "reason": "pointer to the `with`-perf gotcha in Ideal.Hybrid (rule 24)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "176-178",
+  "now": 146,
+  "verdict": "keep",
+  "reason": "proof idea: hybrid draws the SHARE, ideal the COIN, `b₁ xor _` carries one to the other"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "236-237",
+  "now": 206,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda",
+  "lines": "254-255",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda",
+  "lines": "3-15",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "why a third machine: loop objects differ so no simulation between the sides, and a total state map must place the unreachable (heldᵖ b₂ , (t , nothing)); citation machineᶜ (verified)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda",
+  "lines": "50-52",
+  "now": 47,
+  "verdict": "keep",
+  "reason": "what the two brackets Cⁱ/Cᵗ are relative to the `_∙ᶠ_` associator (non-obvious from the types)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda",
+  "lines": "57-58",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda",
+  "lines": "92-94",
+  "now": 87,
+  "verdict": "cut",
+  "reason": "STALE: claims the sandwich must use `(λ a → a)` not `id`, but after fd15c863 the code uses `Sum.map₂` (= `map id`) and checks; first sentence only restates the Cᵗ type"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda",
+  "lines": "3-29",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "why the leak structure and why no abort (nakᴱ only via rejᴿ, which downᶠʰ never asks for), Form B citation, how simJʰ lands the xor"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda",
+  "lines": "62-63",
+  "now": 46,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda",
+  "lines": "75-76",
+  "now": 59,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda",
+  "lines": "78-78",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda",
+  "lines": "104-105",
+  "now": 87,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda",
+  "lines": "107-109",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda",
+  "lines": "116-119",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "3-21",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "why this hop is not exact: share drawn one activation apart, run agreement only, slack 2⁻ⁿ; docs §5"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "70-71",
+  "now": 60,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "73-75",
+  "now": 63,
+  "verdict": "keep",
+  "reason": "why two spellings of the composed grade and that flatʰ is the identity between them"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "83-84",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "89-89",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "96-97",
+  "now": 83,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "99-101",
+  "now": 86,
+  "verdict": "keep",
+  "reason": "why a positive slack (no zero instance) + citation negligible-slack in Decay/Ingest (verified)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "110-111",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "117-119",
+  "now": 102,
+  "verdict": "keep",
+  "reason": "why regrading costs nothing: identity process, schedule independent of the allowance"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "128-129",
+  "now": 113,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "131-132",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "157-158",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "163-164",
+  "now": 144,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda",
+  "lines": "166-168",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda",
+  "lines": "3-14",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "orientation + pointer to Ideal.Hybrid's `with` gotcha + the two extra loop legs"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda",
+  "lines": "63-64",
+  "now": 54,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda",
+  "lines": "66-67",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda",
+  "lines": "88-89",
+  "now": 77,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda",
+  "lines": "101-102",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda",
+  "lines": "107-108",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda",
+  "lines": "122-122",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda",
+  "lines": "133-133",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda",
+  "lines": "145-145",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda",
+  "lines": "153-153",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda",
+  "lines": "158-159",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda",
+  "lines": "254-255",
+  "now": 222,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda",
+  "lines": "258-259",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "3-21",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "why a run equality not ≈ᴹ (a state function cannot relate point mass to mixture) and how defer bridges; docs §5"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "77-78",
+  "now": 63,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "95-96",
+  "now": 81,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "98-99",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "107-107",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "111-111",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "122-122",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "131-131",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "144-144",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "155-155",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "165-165",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "173-174",
+  "now": 150,
+  "verdict": "keep",
+  "reason": "pointer to Ideal.Hybrid's `with` gotcha (rule 24)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "202-204",
+  "now": 169,
+  "verdict": "keep",
+  "reason": "proof idea of the coin-flip step (share vs outcome, xor bijection)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "292-293",
+  "now": 255,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "295-297",
+  "now": 258,
+  "verdict": "keep",
+  "reason": "the deferred-sampling relation's idea: family indexed by the secret vs one undrawn state"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "321-321",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "329-331",
+  "now": 291,
+  "verdict": "keep",
+  "reason": "proof trick: `>>=ₚ-swap` puts the two draws in the same order on a miss"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "361-361",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "415-417",
+  "now": 373,
+  "verdict": "keep",
+  "reason": "why the transport is a `cong`: the relabelling leaves the state alone"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "434-435",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda",
+  "lines": "437-439",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "3-21",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "why two machines: the ideal coin cannot draw at goᶜ; docs §5"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "57-59",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "64-65",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "67-68",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "72-73",
+  "now": 48,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "75-76",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "106-107",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "109-111",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "142-143",
+  "now": 116,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "145-146",
+  "now": 119,
+  "verdict": "cut",
+  "reason": "STALE pointer to the `(λ a → a)` gotcha, which no longer applies (code uses Sum.map₂; Ideal.Reach's block cut)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "now:81",
+  "now": 81,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form) [block not in the (older) tally]"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "now:51",
+  "now": 51,
+  "verdict": "keep",
+  "reason": "why endᴱ keeps b₁: the commitment cell still holds it [block not in the (older) tally]"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda",
+  "lines": "now:84",
+  "now": 84,
+  "verdict": "keep",
+  "reason": "why endᴰ keeps the share: makes the relation pointwise, not existential [block not in the (older) tally]"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda",
+  "lines": "3-15",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "why both sides are regraded: dominatedᵍ is stated at one shape, _∙ᶠ_ produces the other"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda",
+  "lines": "63-64",
+  "now": 50,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda",
+  "lines": "66-69",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda",
+  "lines": "142-143",
+  "now": 126,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda",
+  "lines": "145-147",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda",
+  "lines": "now:53",
+  "now": 53,
+  "verdict": "cut",
+  "reason": "proof paraphrase of the certificate (which letter buys a message); visible in onR; uniform with Ideal/UC's twin (rule 26) [block not in the (older) tally]"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda",
+  "lines": "3-10",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "orientation: which UC.Graded coercion covers which part of the composite"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda",
+  "lines": "56-57",
+  "now": 50,
+  "verdict": "cut",
+  "reason": "banner now the file's only banner and mis-titles what it groups (coin-hop etc. sit under 'The joint simulator spends one call'); header already names both parts"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda",
+  "lines": "59-62",
+  "now": 53,
+  "verdict": "cut",
+  "reason": "proof paraphrase of the certificate, visible in onR; twin of Receiver/UC's (rule 26)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda",
+  "lines": "135-136",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda",
+  "lines": "140-141",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda",
+  "lines": "143-145",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "3-21",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "acceptance orientation: the bias attack, why its advantage sits inside the extraction bound, the formula (q²+2q)·2⁻ᵏ matches composed-ε (verified)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "66-67",
+  "now": 56,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "69-70",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "74-75",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "79-81",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "85-86",
+  "now": 68,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "88-90",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "98-100",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "124-125",
+  "now": 100,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "127-128",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "136-138",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "162-163",
+  "now": 132,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "165-167",
+  "now": 135,
+  "verdict": "keep",
+  "reason": "why Startᴵ = ⊥ ⇿ ⊤: the corrupted committer must be woken"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "197-199",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/Test.agda",
+  "lines": "now:167",
+  "now": 167,
+  "verdict": "cut",
+  "reason": "duplicate of the header's 'opening refused whenever s ≢ true' (rule 24) [block not in the (older) tally]"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/UC.agda",
+  "lines": "3-14",
+  "now": 3,
+  "verdict": "keep",
+  "reason": "orientation: which certificate is which and why the stage enters the grading at 1⁺ (rates positive)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/UC.agda",
+  "lines": "49-50",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/UC.agda",
+  "lines": "52-53",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/UC.agda",
+  "lines": "57-58",
+  "now": 45,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/UC.agda",
+  "lines": "60-61",
+  "now": null,
+  "verdict": "cut",
+  "reason": "already absent from the current tree (removed by the earlier comment-trim commits e539d5f6/c009e4b5/51aa7856/797ab38b or later cleanups); nothing further to do"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/UC.agda",
+  "lines": "98-99",
+  "now": 81,
+  "verdict": "keep",
+  "reason": "keep + boxed: top-level banner grouping several definitions; closing rule added (rule 25 boxed form)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/UC.agda",
+  "lines": "101-104",
+  "now": 84,
+  "verdict": "keep",
+  "reason": "why written out: qb-oneCall is stated only at a `morphism` image (verified: `qb-oneCall : QB 1 (morphism P)`)"
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/CoinToss/UC.agda",
+  "lines": "116-117",
+  "now": 99,
+  "verdict": "keep",
+  "reason": "gotcha: split the letter before the state so cohL at a variable state reduces"
+ }
+]

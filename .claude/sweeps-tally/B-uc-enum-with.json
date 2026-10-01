@@ -1,0 +1,163 @@
+{
+ "sweep": "enum-with",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/UC.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Factor.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Graded.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/Bridge.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/Dictionary.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/Dominated.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/Grading.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/Run.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/Run/Lax.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/Slide.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/Slide/Relay.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/Wire.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Model.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Model/Audit.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Model/Dominated.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Model/Enrichment.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Model/EventBounds.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Model/Family.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Model/Family/Contextual.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Model/Family/Emulation.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Model/Family/Ingest.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Model/Family/Negligible.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Model/Graded.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Model/Observation.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Model/Quantitative.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Model/Seal.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Model/Setup.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Quantitative/EventLift.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/QueryBound.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Compose.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Compose/Laws.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Counting.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Exact.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Object.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Robust/Model.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Seam.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Seam/Adequacy.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Seam/Adequacy/Wiring.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Seam/Audit/Context.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Seam/Budget.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Seam/EventTransfer.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Seam/Extract.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Seam/Grounded.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Seam/Grounding.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Seam/Plug.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Seam/Transfer.agda": {
+   "sites": []
+  }
+ },
+ "totalChecks": 0
+}

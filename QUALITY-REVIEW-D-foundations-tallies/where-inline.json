@@ -1,0 +1,1778 @@
+{
+ "sweep": "where-inline (EXPERIMENTAL)",
+ "root": ".",
+ "apply": true,
+ "files": {
+  "src/Categories/Category/Monoidal/Distributive/Properties.agda": {
+   "sites": [
+    {
+     "binding": "i-collapse",
+     "line": 52,
+     "inlinedLineChars": 138,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    }
+   ]
+  },
+  "src/Categories/GConstructionLoop.agda": {
+   "sites": [
+    {
+     "binding": "g",
+     "line": 76,
+     "inlinedLineChars": 51,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/Categories/GConstructionLoop.agda:79.21-22: error: [NotInScope]"
+    },
+    {
+     "binding": "f₁",
+     "line": 78,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "f₂",
+     "line": 79,
+     "inlinedLineChars": 74,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/Categories/GConstructionLoop.agda:79.21-23: error: [NotInScope]"
+    },
+    {
+     "binding": "f₃",
+     "line": 80,
+     "verdict": "skipped-shape",
+     "why": "3 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "g₁",
+     "line": 81,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "g₂",
+     "line": 82,
+     "inlinedLineChars": 74,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/Categories/GConstructionLoop.agda:82.21-23: error: [NotInScope]"
+    },
+    {
+     "binding": "g₃",
+     "line": 83,
+     "inlinedLineChars": 64,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "residue",
+     "line": 83,
+     "inlinedLineChars": 117,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    }
+   ]
+  },
+  "src/Categories/GConstructionMonoidal.agda": {
+   "sites": [
+    {
+     "binding": "Φ₁",
+     "line": 151,
+     "verdict": "skipped-shape",
+     "why": "4 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "Φ₂",
+     "line": 154,
+     "verdict": "skipped-shape",
+     "why": "4 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "Ψ",
+     "line": 157,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "BoxL",
+     "line": 163,
+     "inlinedLineChars": 116,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/Categories/GConstructionMonoidal.agda:177.50-54: error: [NotInScope]"
+    },
+    {
+     "binding": "BoxR",
+     "line": 169,
+     "inlinedLineChars": 120,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/Categories/GConstructionMonoidal.agda:180.52-56: error: [NotInScope]"
+    },
+    {
+     "binding": "⊗-expand",
+     "line": 175,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "residue",
+     "line": 182,
+     "inlinedLineChars": 106,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    }
+   ]
+  },
+  "src/Categories/GConstructionTrace.agda": {
+   "sites": [
+    {
+     "binding": "braiding-swap",
+     "line": 111,
+     "inlinedLineChars": 70,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "body₁",
+     "line": 129,
+     "verdict": "skipped-shape",
+     "why": "4 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "body₂",
+     "line": 130,
+     "verdict": "skipped-shape",
+     "why": "4 use(s) outside the where block (need exactly 1)"
+    }
+   ]
+  },
+  "src/Categories/Monad/Construction/Kleisli/Ext.agda": {
+   "sites": [
+    {
+     "binding": "θ-natural",
+     "line": 78,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`θ-natural f`)"
+    },
+    {
+     "binding": "θ",
+     "line": 86,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "θ-extend",
+     "line": 89,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`θ-extend f`)"
+    }
+   ]
+  },
+  "src/Categories/Monad/Setoids/Maybe.agda": {
+   "sites": [
+    {
+     "binding": "identityˡᴹᵇ",
+     "line": 57,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "assocᴹᵇ",
+     "line": 61,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "commᴹᵇ",
+     "line": 70,
+     "verdict": "skipped-shape",
+     "why": "5 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/Data/Bits/Codec.agda": {
+   "sites": [
+    {
+     "binding": "enc",
+     "line": 55,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "dec",
+     "line": 59,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "law",
+     "line": 64,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "enc",
+     "line": 75,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`enc (x , y)`)"
+    },
+    {
+     "binding": "dec",
+     "line": 78,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`dec bs`)"
+    },
+    {
+     "binding": "law",
+     "line": 81,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`law (x , y) r rewrite ++-assoc (C.encode x) (D.encode y) r\n                      | C.decode-encode x (D.encode y ++ r)\n                      | D.decode-encode y r`)"
+    },
+    {
+     "binding": "encs",
+     "line": 95,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "decs",
+     "line": 99,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "encs-law",
+     "line": 103,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "enc",
+     "line": 110,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`enc xs`)"
+    },
+    {
+     "binding": "dec",
+     "line": 113,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`dec bs`)"
+    },
+    {
+     "binding": "law",
+     "line": 116,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`law xs r rewrite ++-assoc (N.encode (length xs)) (encs xs) r\n                 | N.decode-encode (length xs) (encs xs ++ r)\n                 | encs-law xs r`)"
+    },
+    {
+     "binding": "enc",
+     "line": 128,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "dec",
+     "line": 132,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "law",
+     "line": 136,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/Data/List/Relation/Unary/Any/Properties/Ext.agda": {
+   "sites": [
+    {
+     "binding": "to-Q",
+     "line": 32,
+     "inlinedLineChars": 114,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/Data/List/Relation/Unary/Any/Properties/Ext.agda:34.40-44: error: [NotInSco"
+    },
+    {
+     "binding": "from-P",
+     "line": 33,
+     "inlinedLineChars": 116,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "Q-resp",
+     "line": 35,
+     "inlinedLineChars": 138,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "P-resp",
+     "line": 36,
+     "inlinedLineChars": 140,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    }
+   ]
+  },
+  "src/Data/List/Run.agda": {
+   "sites": [
+    {
+     "binding": "unsnoc",
+     "line": 71,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`unsnoc z zs eq`)"
+    },
+    {
+     "binding": "u",
+     "line": 76,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "u'",
+     "line": 77,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "ru",
+     "line": 78,
+     "inlinedLineChars": 105,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "ru'",
+     "line": 79,
+     "inlinedLineChars": 105,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "last",
+     "line": 80,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "unrev",
+     "line": 91,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`unrev zs`)"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Abstract.agda": {
+   "sites": [
+    {
+     "binding": "A∁A-disj",
+     "line": 209,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`A∁A-disj Aω ¬Aω`)"
+    },
+    {
+     "binding": "PA+P∁A≈1",
+     "line": 212,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "1+P∁A≈1",
+     "line": 219,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "P∁A≤0",
+     "line": 222,
+     "inlinedLineChars": 65,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "disj",
+     "line": 240,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`disj (_ , Aω) (_ , ¬Aω)`)"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Binomial.agda": {
+   "sites": [
+    {
+     "binding": "first-true-prob",
+     "line": 178,
+     "inlinedLineChars": 167,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "sup",
+     "line": 218,
+     "verdict": "skipped-shape",
+     "why": "4 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "first-eq",
+     "line": 220,
+     "inlinedLineChars": 431,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "second-eq",
+     "line": 232,
+     "inlinedLineChars": 164,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda": {
+   "sites": [
+    {
+     "binding": "cong-Any",
+     "line": 69,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Advantage.agda": {
+   "sites": [
+    {
+     "binding": "pt",
+     "line": 54,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda": {
+   "sites": [
+    {
+     "binding": "eq",
+     "line": 41,
+     "inlinedLineChars": 144,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda:41.15: error:"
+    },
+    {
+     "binding": "b≤1",
+     "line": 138,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "bd",
+     "line": 152,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "H",
+     "line": 160,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "upper",
+     "line": 161,
+     "inlinedLineChars": 121,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "lower",
+     "line": 164,
+     "verdict": "skipped-shape",
+     "why": "RHS has its own `where` block"
+    },
+    {
+     "binding": "negEq",
+     "line": 167,
+     "inlinedLineChars": 113,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "bnd",
+     "line": 169,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`bnd x`)"
+    },
+    {
+     "binding": "absEq",
+     "line": 171,
+     "inlinedLineChars": 127,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda:171.26: error"
+    },
+    {
+     "binding": "sink",
+     "line": 190,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "bd",
+     "line": 196,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda": {
+   "sites": [
+    {
+     "binding": "kpt",
+     "line": 87,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "kpt",
+     "line": 99,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "kpt",
+     "line": 113,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "ptL",
+     "line": 163,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "ptR",
+     "line": 175,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "inner",
+     "line": 169,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "inner",
+     "line": 181,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "inner",
+     "line": 193,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Support.agda": {
+   "sites": [
+    {
+     "binding": "step",
+     "line": 236,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "0≤ε",
+     "line": 310,
+     "inlinedLineChars": 92,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Distribution/RationalDist/Support.agda:313.28-31: error:"
+    },
+    {
+     "binding": "0≤1-ε",
+     "line": 313,
+     "inlinedLineChars": 141,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Distribution/RationalDist/Support.agda:313.32-37: error:"
+    },
+    {
+     "binding": "close",
+     "line": 316,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`close P 0≤P P≤1`)"
+    },
+    {
+     "binding": "head-true",
+     "line": 332,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "tail-false",
+     "line": 335,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "differ",
+     "line": 338,
+     "verdict": "skipped-shape",
+     "why": "0 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "shape",
+     "line": 319,
+     "inlinedLineChars": 209,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "bound",
+     "line": 326,
+     "inlinedLineChars": 189,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda": {
+   "sites": [
+    {
+     "binding": "aux",
+     "line": 105,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "pointwise",
+     "line": 125,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`pointwise h`)"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp.agda": {
+   "sites": [
+    {
+     "binding": "shuffle",
+     "line": 298,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`shuffle x y z`)"
+    },
+    {
+     "binding": "up",
+     "line": 478,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`up p le h`)"
+    },
+    {
+     "binding": "wit",
+     "line": 481,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`wit p`)"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Coin.agda": {
+   "sites": [
+    {
+     "binding": "sum-1",
+     "line": 43,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "branches",
+     "line": 58,
+     "inlinedLineChars": 183,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "pull",
+     "line": 63,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`pull Q x`)"
+    },
+    {
+     "binding": "split",
+     "line": 68,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "agree",
+     "line": 93,
+     "verdict": "skipped-shape",
+     "why": "4 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "below",
+     "line": 130,
+     "verdict": "skipped-shape",
+     "why": "4 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "above",
+     "line": 135,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Dominate.agda": {
+   "sites": [
+    {
+     "binding": "Φ",
+     "line": 116,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Φ p i`)"
+    },
+    {
+     "binding": "up",
+     "line": 119,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`up p le q`)"
+    },
+    {
+     "binding": "unif",
+     "line": 122,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i′",
+     "line": 123,
+     "verdict": "skipped-shape",
+     "why": "4 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "sp",
+     "line": 124,
+     "inlinedLineChars": 98,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "Φ",
+     "line": 136,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Φ p i`)"
+    },
+    {
+     "binding": "up",
+     "line": 139,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`up p le′ q`)"
+    },
+    {
+     "binding": "unif",
+     "line": 142,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i′",
+     "line": 143,
+     "verdict": "skipped-shape",
+     "why": "3 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "sp",
+     "line": 144,
+     "inlinedLineChars": 92,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Elgot.agda": {
+   "sites": [
+    {
+     "binding": "sim",
+     "line": 64,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`sim sa′`)"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter.agda": {
+   "sites": [
+    {
+     "binding": "Φ",
+     "line": 190,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Φ r i`)"
+    },
+    {
+     "binding": "up",
+     "line": 193,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "wit",
+     "line": 197,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Codiagonal.agda": {
+   "sites": [
+    {
+     "binding": "Φ",
+     "line": 56,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Φ r i`)"
+    },
+    {
+     "binding": "up",
+     "line": 59,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "wit",
+     "line": 66,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "unif",
+     "line": 71,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i′",
+     "line": 72,
+     "inlinedLineChars": 87,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Dp/Iter/Codiagonal.agda:74.43-45: error: [NotInScope]"
+    },
+    {
+     "binding": "f1",
+     "line": 74,
+     "inlinedLineChars": 144,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "f2",
+     "line": 75,
+     "inlinedLineChars": 177,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "f3",
+     "line": 77,
+     "inlinedLineChars": 134,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "f4",
+     "line": 78,
+     "inlinedLineChars": 140,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "K2",
+     "line": 93,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`K2 i sq`)"
+    },
+    {
+     "binding": "Ψ",
+     "line": 106,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Ψ r i`)"
+    },
+    {
+     "binding": "up",
+     "line": 109,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "wit",
+     "line": 118,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "unif",
+     "line": 123,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i′",
+     "line": 124,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "d1",
+     "line": 126,
+     "inlinedLineChars": 136,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "d2",
+     "line": 127,
+     "inlinedLineChars": 132,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "d3",
+     "line": 128,
+     "inlinedLineChars": 183,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "d4",
+     "line": 130,
+     "inlinedLineChars": 160,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "d5",
+     "line": 131,
+     "inlinedLineChars": 141,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Out.agda": {
+   "sites": [
+    {
+     "binding": "Q",
+     "line": 70,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Q sb`)"
+    },
+    {
+     "binding": "nnQ",
+     "line": 73,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`nnQ sb`)"
+    },
+    {
+     "binding": "Φ",
+     "line": 76,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Φ r i`)"
+    },
+    {
+     "binding": "up",
+     "line": 79,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`up r {i} {i₂} le q`)"
+    },
+    {
+     "binding": "wit",
+     "line": 86,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "unif",
+     "line": 95,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i′",
+     "line": 96,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "c1",
+     "line": 98,
+     "inlinedLineChars": 94,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "c2",
+     "line": 99,
+     "inlinedLineChars": 165,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "c3",
+     "line": 101,
+     "inlinedLineChars": 153,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "c4",
+     "line": 103,
+     "inlinedLineChars": 126,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "Q",
+     "line": 111,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Q sb`)"
+    },
+    {
+     "binding": "nnQ",
+     "line": 114,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`nnQ sb`)"
+    },
+    {
+     "binding": "Ψ",
+     "line": 117,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Ψ r i`)"
+    },
+    {
+     "binding": "up",
+     "line": 120,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "wit",
+     "line": 124,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "e1",
+     "line": 136,
+     "inlinedLineChars": 120,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "e2",
+     "line": 137,
+     "inlinedLineChars": 157,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "unif",
+     "line": 140,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i′",
+     "line": 141,
+     "inlinedLineChars": 84,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Dp/Iter/Out.agda:143.32-34: error: [NotInScope]"
+    },
+    {
+     "binding": "e3",
+     "line": 143,
+     "inlinedLineChars": 179,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "e4",
+     "line": 146,
+     "inlinedLineChars": 112,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "fst",
+     "line": 152,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "snd",
+     "line": 157,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Transfer.agda": {
+   "sites": [
+    {
+     "binding": "Φ",
+     "line": 40,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Φ r i`)"
+    },
+    {
+     "binding": "up",
+     "line": 43,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "wit",
+     "line": 47,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "unif",
+     "line": 51,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i′",
+     "line": 52,
+     "inlinedLineChars": 92,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Dp/Iter/Transfer.agda:54.35-37: error: [NotInScope]"
+    },
+    {
+     "binding": "s1",
+     "line": 54,
+     "inlinedLineChars": 127,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "s2",
+     "line": 55,
+     "inlinedLineChars": 172,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "s3",
+     "line": 57,
+     "inlinedLineChars": 132,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "dom",
+     "line": 59,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "j",
+     "line": 60,
+     "inlinedLineChars": 92,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Dp/Iter/Transfer.agda:61.25-26: error: [NotInScope]"
+    },
+    {
+     "binding": "s4",
+     "line": 61,
+     "inlinedLineChars": 91,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "s5",
+     "line": 62,
+     "inlinedLineChars": 119,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "Ψ",
+     "line": 73,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Ψ r i`)"
+    },
+    {
+     "binding": "up",
+     "line": 76,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "wit",
+     "line": 81,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "t1",
+     "line": 85,
+     "inlinedLineChars": 111,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "dom",
+     "line": 87,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "j",
+     "line": 88,
+     "inlinedLineChars": 87,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Dp/Iter/Transfer.agda:89.29-30: error: [NotInScope]"
+    },
+    {
+     "binding": "t2",
+     "line": 89,
+     "inlinedLineChars": 86,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "t2′",
+     "line": 89,
+     "inlinedLineChars": 155,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "t3",
+     "line": 90,
+     "inlinedLineChars": 123,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "unif",
+     "line": 92,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i′",
+     "line": 93,
+     "inlinedLineChars": 96,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Dp/Iter/Transfer.agda:94.50-52: error: [NotInScope]"
+    },
+    {
+     "binding": "t4",
+     "line": 95,
+     "inlinedLineChars": 118,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "t5",
+     "line": 97,
+     "inlinedLineChars": 82,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "fst",
+     "line": 103,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`fst P nn n`)"
+    },
+    {
+     "binding": "snd",
+     "line": 108,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Mass.agda": {
+   "sites": [
+    {
+     "binding": "one",
+     "line": 48,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`one w₁ w₂ eq`)"
+    },
+    {
+     "binding": "ind-sum",
+     "line": 123,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "half",
+     "line": 193,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`half x y z b n`)"
+    },
+    {
+     "binding": "nn",
+     "line": 267,
+     "inlinedLineChars": 199,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "cancel",
+     "line": 323,
+     "verdict": "skipped-shape",
+     "why": "RHS has its own `where` block"
+    },
+    {
+     "binding": "m₁",
+     "line": 336,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "m₂",
+     "line": 337,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "m",
+     "line": 338,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "m′",
+     "line": 339,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "bound",
+     "line": 341,
+     "inlinedLineChars": 422,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Settle.agda": {
+   "sites": [
+    {
+     "binding": "rd₀",
+     "line": 142,
+     "inlinedLineChars": 148,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "cap",
+     "line": 145,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`cap j`)"
+    },
+    {
+     "binding": "capₑ",
+     "line": 148,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`capₑ j`)"
+    },
+    {
+     "binding": "hlt",
+     "line": 179,
+     "verdict": "skipped-shape",
+     "why": "RHS has its own `where` block"
+    },
+    {
+     "binding": "κ",
+     "line": 247,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`κ _`)"
+    },
+    {
+     "binding": "value",
+     "line": 277,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Settle/Iter.agda": {
+   "sites": [
+    {
+     "binding": "Φ",
+     "line": 108,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Φ p i`)"
+    },
+    {
+     "binding": "Ψ",
+     "line": 111,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Ψ  p`)"
+    },
+    {
+     "binding": "Φ⋆",
+     "line": 113,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Φ⋆ p`)"
+    },
+    {
+     "binding": "up",
+     "line": 115,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`up p le`)"
+    },
+    {
+     "binding": "bump",
+     "line": 118,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`bump p (i , t)`)"
+    },
+    {
+     "binding": "serve",
+     "line": 158,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Stable.agda": {
+   "sites": [
+    {
+     "binding": "Q",
+     "line": 70,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Q c`)"
+    },
+    {
+     "binding": "n",
+     "line": 77,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`n c`)"
+    },
+    {
+     "binding": "go",
+     "line": 80,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "pt",
+     "line": 83,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Expectation.agda": {
+   "sites": [
+    {
+     "binding": "extras-sum-0",
+     "line": 143,
+     "inlinedLineChars": 166,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "disj",
+     "line": 244,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`disj P.refl ω∈ωs`)"
+    },
+    {
+     "binding": "head-eq",
+     "line": 285,
+     "verdict": "skipped-shape",
+     "why": "0 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "yes",
+     "line": 287,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | yes Xω`)"
+    },
+    {
+     "binding": "no",
+     "line": 293,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | no ¬Xω`)"
+    },
+    {
+     "binding": "head-tail-disj",
+     "line": 303,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`head-tail-disj {ω'} (_ , ω≡ω') (_ , ω'∈ωs)`)"
+    },
+    {
+     "binding": "cons-equiv",
+     "line": 307,
+     "verdict": "skipped-shape",
+     "why": "0 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "proj₁",
+     "line": 308,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "proj₂",
+     "line": 310,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "ws-1[X]≈P∙X",
+     "line": 333,
+     "inlinedLineChars": 202,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "sf",
+     "line": 351,
+     "inlinedLineChars": 43,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Expectation.agda:353.35-37: error: [NotInScope]"
+    },
+    {
+     "binding": "sg",
+     "line": 352,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "¬∈sf?",
+     "line": 354,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`¬∈sf? y`)"
+    },
+    {
+     "binding": "extras",
+     "line": 357,
+     "inlinedLineChars": 43,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Expectation.agda:357.25-31: error: [NotInScope]"
+    },
+    {
+     "binding": "extras-d",
+     "line": 360,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "extras-∉sf",
+     "line": 363,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`extras-∉sf x∈`)"
+    },
+    {
+     "binding": "∉sf→sg→extras",
+     "line": 366,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`∉sf→sg→extras x∉sf x∈sg`)"
+    },
+    {
+     "binding": "s-d",
+     "line": 369,
+     "verdict": "skipped-shape",
+     "why": "RHS has its own `where` block"
+    },
+    {
+     "binding": "off-fg",
+     "line": 377,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`off-fg {ω} ω∉`)"
+    },
+    {
+     "binding": "sg⊆combined",
+     "line": 394,
+     "verdict": "skipped-shape",
+     "why": "0 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "yes",
+     "line": 396,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | yes ω∈sf`)"
+    },
+    {
+     "binding": "no",
+     "line": 397,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | no  ω∉sf'`)"
+    },
+    {
+     "binding": "ws-f-eq",
+     "line": 399,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "ws-g-eq",
+     "line": 403,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "value-eq",
+     "line": 407,
+     "inlinedLineChars": 293,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "cross",
+     "line": 372,
+     "inlinedLineChars": 161,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "ω∉sf",
+     "line": 387,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`ω∉sf ω∈sf`)"
+    },
+    {
+     "binding": "ω∉sg",
+     "line": 389,
+     "verdict": "skipped-shape",
+     "why": "0 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "yes",
+     "line": 391,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | yes ω∈sf`)"
+    },
+    {
+     "binding": "no",
+     "line": 392,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | no  ω∉sf'`)"
+    },
+    {
+     "binding": "ω≡-↔-∈[ω]",
+     "line": 432,
+     "verdict": "skipped-shape",
+     "why": "0 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "proj₁",
+     "line": 433,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`proj₁ ω≡-↔-∈[ω] ω≡ω'`)"
+    },
+    {
+     "binding": "proj₂",
+     "line": 434,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`proj₂ ω≡-↔-∈[ω] (here ω'≡ω)`)"
+    },
+    {
+     "binding": "pω-self",
+     "line": 436,
+     "inlinedLineChars": 85,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    }
+   ]
+  }
+ },
+ "totalChecks": 75
+}

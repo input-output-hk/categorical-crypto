@@ -1,0 +1,352 @@
+{
+ "sweep": "using-drop",
+ "root": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-R2b",
+ "files": {
+  "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 20,
+     "edit": "drop `using (∨-identityʳ)`"
+    },
+    {
+     "line": 26,
+     "edit": "drop `using (m≤n+m; ≤-refl)`"
+    },
+    {
+     "line": 29,
+     "edit": "drop `using (+-identityʳ; positive⁻¹; ≤-reflexive; ≤-trans)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 6,
+   "seconds": 68.0
+  },
+  "src/CategoricalCrypto/Machines/Category.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 32,
+     "edit": "drop `using (_∷_; [])`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 13.6
+  },
+  "src/CategoricalCrypto/Machines/G.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Trace/Compose.agda": {
+   "candidates": 11,
+   "kept": [
+    {
+     "line": 32,
+     "edit": "drop `using (Category)`"
+    },
+    {
+     "line": 37,
+     "edit": "drop `using (⊥)`"
+    },
+    {
+     "line": 42,
+     "edit": "drop `using (tt)`"
+    },
+    {
+     "line": 49,
+     "edit": "drop `using (indᵇ; indᵇ-nn)`"
+    },
+    {
+     "line": 55,
+     "edit": "drop `using (runWith⊥)`"
+    },
+    {
+     "line": 57,
+     "edit": "drop `using (runᴹ)`"
+    },
+    {
+     "line": 59,
+     "edit": "drop `using (Strat)`"
+    },
+    {
+     "line": 60,
+     "edit": "drop `using (runᴹ-resp-≈ᴹ)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 36,
+     "edit": "drop `using (Bool)`"
+    },
+    {
+     "line": 40,
+     "edit": "drop `using (ℚ)`"
+    },
+    {
+     "line": 43,
+     "edit": "drop `using (0ℓ)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 17,
+   "seconds": 164.1
+  },
+  "src/CategoricalCrypto/UC/Machine/EventBounds.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 27,
+     "edit": "drop `using (ℚ; 0ℚ)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 19.0
+  },
+  "src/CategoricalCrypto/UC/Machine/EventBounds/Transport.agda": {
+   "candidates": 5,
+   "kept": [
+    {
+     "line": 7,
+     "edit": "drop `using (CommutativeMonoid)`"
+    },
+    {
+     "line": 9,
+     "edit": "drop `using (ℕ; suc; s≤s; z≤n)`"
+    },
+    {
+     "line": 13,
+     "edit": "drop `using (ℚ; 0ℚ)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (indᵇ)`"
+    },
+    {
+     "line": 33,
+     "edit": "drop `using (agree; stratTest; m₀)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 35.6
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 41,
+     "why": "empty using () (renaming idiom)",
+     "text": "open MU.Shorthands 𝔾.monoidal using () renaming (α⇐ to α⇐ᴳ)"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 24,
+     "edit": "drop `using (_∘_; case_of_)`"
+    },
+    {
+     "line": 26,
+     "edit": "drop `using (¬_)`"
+    },
+    {
+     "line": 36,
+     "edit": "drop `using (Flagᴵ)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 80,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open EventSim public"
+    }
+   ],
+   "checks": 6,
+   "seconds": 101.1
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Adequacy.agda": {
+   "candidates": 5,
+   "kept": [
+    {
+     "line": 15,
+     "edit": "drop `using (ℕ; zero; suc)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (_∘_)`"
+    },
+    {
+     "line": 32,
+     "edit": "drop `using (indᵇ; indᵇ-nn)`"
+    },
+    {
+     "line": 54,
+     "edit": "drop `using (qb-stratTest)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 19,
+     "edit": "drop `using (ℚ)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 22,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)"
+    }
+   ],
+   "checks": 7,
+   "seconds": 93.1
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Agree.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 13,
+     "edit": "drop `using (Category)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (0ℓ)`"
+    },
+    {
+     "line": 97,
+     "edit": "drop `using (readᴹ; readStep; efOut)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 23,
+     "edit": "drop `using (refl)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 20,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)"
+    }
+   ],
+   "checks": 7,
+   "seconds": 78.0
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/HitTests.agda": {
+   "candidates": 6,
+   "kept": [
+    {
+     "line": 9,
+     "edit": "drop `using (ℕ)`"
+    },
+    {
+     "line": 11,
+     "edit": "drop `using (ℚ; 0ℚ; 1ℚ; ½)`"
+    },
+    {
+     "line": 13,
+     "edit": "drop `using (id)`"
+    },
+    {
+     "line": 15,
+     "edit": "drop `using (¬_)`"
+    },
+    {
+     "line": 17,
+     "edit": "drop `using (return-ℚ)`"
+    },
+    {
+     "line": 27,
+     "edit": "drop `using (stratTest; m₀)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 41.5
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Lift.agda": {
+   "error": "parse errors -- file skipped (report this)"
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Read.agda": {
+   "candidates": 5,
+   "kept": [
+    {
+     "line": 17,
+     "edit": "drop `using (ℕ; zero; suc)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (_∘_)`"
+    },
+    {
+     "line": 37,
+     "edit": "drop `using (Flagᴵ; flagReadᴹ)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 14,
+     "edit": "drop `using (Category)`"
+    },
+    {
+     "line": 19,
+     "edit": "drop `using (ℚ)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 9,
+   "seconds": 89.0
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Spike/Carry.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 11,
+     "edit": "drop `using (ℕ)`"
+    },
+    {
+     "line": 14,
+     "edit": "drop `using (ℚ; 0ℚ)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (Flagᴵ)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 30.8
+  },
+  "src/CategoricalCrypto/UC/Seam/Grounded.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 11,
+     "edit": "drop `using (Category)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 29.7
+  }
+ },
+ "totalChecks": 68
+}

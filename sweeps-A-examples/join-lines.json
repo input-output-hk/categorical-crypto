@@ -1,0 +1,917 @@
+{
+ "sweep": "join-lines",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/Examples/ChimericLedger.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 216,
+     "edit": "join 2 lines: `freshInv s tbl (i₀ ∷ is) wds outs u′ a′ vIn e₁ ec …`"
+    },
+    {
+     "line": 307,
+     "edit": "join 2 lines: `hit h eo (inj₂ good) = ⊥-elim (no-replay s tbl (in…`"
+    },
+    {
+     "line": 345,
+     "edit": "join 2 lines: `φ-step : ∀ m st q → Inv st → E⊥ (kernel Sys₀ st q)…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 32.0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 19,
+     "edit": "join 2 lines: `open import Data.Bool.Base renaming (_≤_ to _≤ᵇ_)…`"
+    },
+    {
+     "line": 235,
+     "edit": "join 2 lines: `auditWatch-bounded vr s₀ bnd q d a = ≤-trans (audi…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 20.4
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/System.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 126,
+     "edit": "join 2 lines: `... | just (vIn , _) | just _ with (vIn + wdrlΣ wd…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 20.1
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 104,
+     "edit": "join 2 lines: `checkWdrls-acctΣ : ∀ a ws a′ → checkWdrls a ws ≡ j…`"
+    },
+    {
+     "line": 376,
+     "edit": "join 2 lines: `accept-eq vr (u , a) (ins , wds , outs) e₁ e₂ eb e…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 18.5
+  },
+  "src/CategoricalCrypto/Examples/CoinToss.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Compose.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 112,
+     "edit": "join 2 lines: `coin-toss-from-com : realᶠ ≤UC^ωᵉ idealᶠ → (tossᶠ …`"
+    },
+    {
+     "line": 152,
+     "edit": "join 2 lines: `coin-toss-from-comʰ : realʰᶠ ≤UC^ωᵉ idealʰᶠ → (tos…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 36.0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Hiding.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 70,
+     "edit": "join 2 lines: `onR (comᵗ b₁)    (inj₁ (shareᴬʰ b₂)) = returnₚ (in…`"
+    },
+    {
+     "line": 92,
+     "edit": "join 2 lines: `cohR : (s : QSt) (b : Neg (Advᴵᶜʰ ⊗ᴵ Honᴵᶜʰ)) → ma…`"
+    },
+    {
+     "line": 136,
+     "edit": "join 2 lines: `onR (readyʰ h)            (inj₁ (askᴿᶜ x))  = retu…`"
+    },
+    {
+     "line": 163,
+     "edit": "join 2 lines: `cohR : (s : HStʰ) (b : Neg (Advᴵʰ ⊗ᴵ Honᴵʰ)) → map…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 32.8
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 115,
+     "edit": "join 2 lines: `jStep : JSt × (Pos Lkᴵᶜ ⊎ Neg (Lkᴵ ⊗ᴵ Advᴵᶜ)) → Dₚ…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 29.6
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 104,
+     "edit": "join 2 lines: `coin-toss-ideal : realᶠ ≤UC^ωᵉ idealᶠ → (λ n → (to…`"
+    },
+    {
+     "line": 144,
+     "edit": "join 3 lines: `coin-toss-idealᴺ : realᶠ ≤UC^ωᵉ idealᶠ → coinRealʷ…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 45.1
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 263,
+     "edit": "join 2 lines: `reassocʰ = 𝒫.assoc S.○ᴹ 𝒫.∘-resp-≈ʳ (𝒫.assoc S.○ᴹ …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 32.9
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 289,
+     "edit": "join 2 lines: `ideal-eqʰ = S.≲⇒≈ᴹ idl-simʰ S.○ᴹ CS.eq-∘ᶜ unitᴵ (L…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 39.5
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Test.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 95,
+     "edit": "join 2 lines: `coin-round c = >>=ₚ-identityˡ (doneᵏ , inj₂ (inj₂ …`"
+    },
+    {
+     "line": 133,
+     "edit": "join 2 lines: `coin-roundʰ c = >>=ₚ-identityˡ (doneᵏʰ , inj₂ (inj…`"
+    },
+    {
+     "line": 217,
+     "edit": "join 2 lines: `afterOpen = >>=ₚ-identityˡ (doneᵇ , inj₁ (inj₁ (op…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 37.9
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/UC.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/HashForward.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/HashForward/Audit.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 119,
+     "edit": "join 2 lines: `hf-audit-silent δ η δ>0 η>0 = hf-audit-carry silen…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 32.0
+  },
+  "src/CategoricalCrypto/Examples/HashForward/UC.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 148,
+     "edit": "join 2 lines: `cohᴴ : (s : SSt) (x : Pos Lkᴵ ⊎ Neg Advᴵ) → mapₚ p…`"
+    },
+    {
+     "line": 184,
+     "edit": "join 2 lines: `cohᴬ : (s : SSt) (x : Pos Lkᴵ ⊎ Neg Advᴵ) → mapₚ p…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 31.4
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda": {
+   "candidates": 62,
+   "kept": [
+    {
+     "line": 175,
+     "edit": "join 2 lines: `mdRun s h (b ∷ bs) idx = Comp.step (s , i₀ , pack …`"
+    },
+    {
+     "line": 250,
+     "edit": "join 2 lines: `callC' s h b idx nothing   = Comp.uniform-Out >>=ᴹ…`"
+    },
+    {
+     "line": 260,
+     "edit": "join 2 lines: `walk s h (b ∷ bs@(_ ∷ _)) idx = callC s h b idx >>…`"
+    },
+    {
+     "line": 268,
+     "edit": "join 2 lines: `newAns i M sg true  sc' hR = Comp.uniform-Out >>=ᴹ…`"
+    },
+    {
+     "line": 270,
+     "edit": "join 2 lines: `newAns i M sg false sc' hR = return-ℚ ((false , sc…`"
+    },
+    {
+     "line": 273,
+     "edit": "join 2 lines: `respB' : Fin p → Vec Bool (k * n) → FState → Maybe…`"
+    },
+    {
+     "line": 359,
+     "edit": "join 2 lines: `walkE : E μW (λ (w : Comp.Table × (CV × Bool)) → F…`"
+    },
+    {
+     "line": 368,
+     "edit": "join 2 lines: `newAnsE : ∀ bb sc′ hRv → E (newAns i M sg bb sc′ h…`"
+    },
+    {
+     "line": 385,
+     "edit": "join 2 lines: `aux : ∀ mv → General.lookup-bs sg M ≡ mv → E (C.re…`"
+    },
+    {
+     "line": 397,
+     "edit": "join 2 lines: `tupR w = (((not ⌊ proj₁ (proj₂ w) ≟ h ⌋) ∨ f , pro…`"
+    },
+    {
+     "line": 415,
+     "edit": "join 2 lines: `ghost-erase : ∀ f sc sg d → Pr₁ (runWith C.realK (…`"
+    },
+    {
+     "line": 417,
+     "edit": "join 2 lines: `ghost-erase f sc sg d = runWith-bisim C.realK resp…`"
+    },
+    {
+     "line": 431,
+     "edit": "join 3 lines: `condE : ∀ (G : CV → ℚ) f → E Comp.uniform-Out (λ h…`"
+    },
+    {
+     "line": 439,
+     "edit": "join 2 lines: `detach : ∀ (G : CV → ℚ) f sc h bs idx → E (walk sc…`"
+    },
+    {
+     "line": 441,
+     "edit": "join 2 lines: `detachL : ∀ (G : CV → ℚ) f sc h b idx (m : Maybe C…`"
+    },
+    {
+     "line": 451,
+     "edit": "join 2 lines: `detach G f sc h (b ∷ []) idx = detachL G f sc h b …`"
+    },
+    {
+     "line": 453,
+     "edit": "join 2 lines: `detach G f sc h (b ∷ b' ∷ bs) idx = detachC G f sc…`"
+    },
+    {
+     "line": 498,
+     "edit": "join 2 lines: `respG-hit : ∀ sg i M h → General.lookup-bs sg M ≡ …`"
+    },
+    {
+     "line": 523,
+     "edit": "join 2 lines: `aux : ∀ mv → General.lookup-bs sg M ≡ mv → E (resp…`"
+    },
+    {
+     "line": 530,
+     "edit": "join 2 lines: `tupR w = (((not ⌊ proj₁ (proj₂ w) ≟ h ⌋) ∨ f , pro…`"
+    },
+    {
+     "line": 541,
+     "edit": "join 2 lines: `... | no ¬q = sym (agree (sg , (i , h)) ((true , p…`"
+    },
+    {
+     "line": 556,
+     "edit": "join 2 lines: `lhsE : E (General.uniform-Out >>=ᴹ λ u → return-ℚ …`"
+    },
+    {
+     "line": 601,
+     "edit": "join 2 lines: `ideal-marginal : ∀ d → Pr₁ (runWith respG [] d) ≡ …`"
+    },
+    {
+     "line": 603,
+     "edit": "join 2 lines: `ideal-marginal d = runWith-bisim respG C.idealK Gh…`"
+    },
+    {
+     "line": 652,
+     "edit": "join 2 lines: `cm-nn ((_ , v) ∷ s) h = ≤-trans (≤-reflexive (sym …`"
+    },
+    {
+     "line": 657,
+     "edit": "join 2 lines: `sc-nn ((_ , v) ∷ s) = ≤-trans (≤-reflexive (sym (+…`"
+    },
+    {
+     "line": 674,
+     "edit": "join 2 lines: `interior-consᶠ : ∀ hh bb ii vv sc → ¬ (ii < k) → i…`"
+    },
+    {
+     "line": 693,
+     "edit": "join 2 lines: `collC-consᶠ : ∀ hh bb ii vv sc → ¬ (ii < k) → coll…`"
+    },
+    {
+     "line": 695,
+     "edit": "join 2 lines: `collC-consᶠ hh bb ii vv sc ¬lt = cong (λ z → Comp.…`"
+    },
+    {
+     "line": 698,
+     "edit": "join 2 lines: `pool-cons< : ∀ hh bb ii vv sc → ii < k → pool (((h…`"
+    },
+    {
+     "line": 700,
+     "edit": "join 2 lines: `pool-cons< hh bb ii vv sc lt = cong (λ z → length …`"
+    },
+    {
+     "line": 703,
+     "edit": "join 2 lines: `pool-consᶠ : ∀ hh bb ii vv sc → ¬ (ii < k) → pool …`"
+    },
+    {
+     "line": 705,
+     "edit": "join 2 lines: `pool-consᶠ hh bb ii vv sc ¬lt = cong (λ z → length…`"
+    },
+    {
+     "line": 728,
+     "edit": "join 3 lines: `idx≡k = ℕP.suc-injective (trans (cong suc (sym (ℕP…`"
+    },
+    {
+     "line": 753,
+     "edit": "join 3 lines: `walk-φC m sc h b [] idx mv lt pr = ⊥-elim (ℕP.<-ir…`"
+    },
+    {
+     "line": 813,
+     "edit": "join 3 lines: `newAns-φ : ∀ m i M sg bb sc' hR → E (newAns i M sg…`"
+    },
+    {
+     "line": 836,
+     "edit": "join 3 lines: `aux : (mv : Maybe CV) → E (Dmap C.fR (respB' i M s…`"
+    },
+    {
+     "line": 893,
+     "edit": "join 3 lines: `sumR1 = trans (sym (+-identityˡ (sumR 1 N))) (tran…`"
+    },
+    {
+     "line": 897,
+     "edit": "join 2 lines: `arith = ℕP.+-mono-≤ (ℕP.≤-reflexive (ℕP.suc-pred k…`"
+    },
+    {
+     "line": 973,
+     "edit": "join 2 lines: `callC-collC-mono : ∀ c sc h b idx → c ≤ℚ collC sc …`"
+    },
+    {
+     "line": 983,
+     "edit": "join 2 lines: `walk-collC-mono : ∀ c sc h bs idx → c ≤ℚ collC sc …`"
+    },
+    {
+     "line": 995,
+     "edit": "join 2 lines: `MDInv-flagged x sc' sg' h = subst (λ b → MDInv (b …`"
+    },
+    {
+     "line": 1008,
+     "edit": "join 2 lines: `flagged-step : ∀ sc sg i M → 1ℚ ≤ℚ collC sc → OnSu…`"
+    },
+    {
+     "line": 1099,
+     "edit": "join 2 lines: `flag≡false = trans (∨-identityʳ _) (trans (cong (λ…`"
+    },
+    {
+     "line": 1124,
+     "edit": "join 2 lines: `⊒-cons-fresh : ∀ (k₀ : CV × Blk × ℕ × ℕ) v₀ sc → C…`"
+    },
+    {
+     "line": 1130,
+     "edit": "join 2 lines: `runPath-⊒ : ∀ sc' sc → sc' ⊒ sc → ∀ r ls t → runPa…`"
+    },
+    {
+     "line": 1153,
+     "edit": "join 2 lines: `Any-insert : ∀ {A : Type} {P : A → Type} {x z : A}…`"
+    },
+    {
+     "line": 1159,
+     "edit": "join 2 lines: `HasVal-cons-any : ∀ (e : (CV × Blk × ℕ × ℕ) × CV) …`"
+    },
+    {
+     "line": 1297,
+     "edit": "join 2 lines: `rec-extend : ∀ sc sg sc' M v' → sc' ⊒ sc → Chain s…`"
+    },
+    {
+     "line": 1300,
+     "edit": "join 2 lines: `... | yes p | l = subst (λ hh → Chain sc' M₀ hh) (…`"
+    },
+    {
+     "line": 1308,
+     "edit": "join 2 lines: `final≢interior v' b' v b idx lt p = ℕP.<-irrefl re…`"
+    },
+    {
+     "line": 1324,
+     "edit": "join 2 lines: `walk-fk  : ∀ sc v bs idx → idx + length bs ≡ suc k…`"
+    },
+    {
+     "line": 1334,
+     "edit": "join 2 lines: `walk-fk sc v (b ∷ [])      idx pr = walk-fkL sc v …`"
+    },
+    {
+     "line": 1513,
+     "edit": "join 2 lines: `snoc-view : ∀ (xs : List Blk) → 0 < length xs → Σ …`"
+    },
+    {
+     "line": 1558,
+     "edit": "join 2 lines: `toList-inj (x ∷ xs) (y ∷ ys) eq = cong₂ _∷_ (proj₁…`"
+    },
+    {
+     "line": 1577,
+     "edit": "join 2 lines: `stepT<k-inv : ∀ sc v b j w → stepT<k sc v (b , j) …`"
+    },
+    {
+     "line": 1670,
+     "edit": "join 2 lines: `... | inj₂ (pre , blkeq , run') = M , proj₁ (proj₂…`"
+    },
+    {
+     "line": 1679,
+     "edit": "join 2 lines: `M'≢M p = nothing≢just (trans (sym eq) (subst (λ z …`"
+    },
+    {
+     "line": 1730,
+     "edit": "join 2 lines: `inner : OnSupport (λ t → MDInv (proj₁ t)) (respB' …`"
+    },
+    {
+     "line": 1739,
+     "edit": "join 2 lines: `... | true  = OnSupport-Dmap C.fR (respB (true , s…`"
+    },
+    {
+     "line": 1744,
+     "edit": "join 3 lines: `mdInv = record { Inv = MDInv ; inv₀ = MDInv₀ ; pre…`"
+    },
+    {
+     "line": 1764,
+     "edit": "join 2 lines: `bad-bound : ∀ n d → asks≤ n d → badProb C.realK pr…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 26.8
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 96,
+     "edit": "join 2 lines: `stateᴰ = record { obj = MDState ; point = λ _ → re…`"
+    },
+    {
+     "line": 178,
+     "edit": "join 2 lines: `enter-drive i []       = >>=ₚ-identityˡ (enter i […`"
+    },
+    {
+     "line": 180,
+     "edit": "join 2 lines: `enter-drive i (b ∷ bs) = >>=ₚ-identityˡ (enter i (…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 31.9
+  },
+  "src/CategoricalCrypto/Examples/Possibilistic.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 149,
+     "edit": "join 2 lines: `realStep : RSt × (Pos Resᴵ ⊎ Neg (Advᴵ ⊗ᴵ Honᴵ)) →…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 29.2
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Asymptotic.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 60,
+     "edit": "join 2 lines: `lookup-there : (x y : Pt) (d : Dig) (L : Tbl) → x …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 19.0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Game.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 202,
+     "edit": "join 5 lines: `simStepʰ (s , inj₂ (askᴿᶜ x)) = case s of λ where …`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 12.0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Asymptotic.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda": {
+   "candidates": 7,
+   "kept": [
+    {
+     "line": 347,
+     "edit": "join 2 lines: `fetchR-hit : (t′ : Tbl) (x : Pt) (d h : Dig) → loo…`"
+    },
+    {
+     "line": 384,
+     "edit": "join 2 lines: `κa u ρ = outAskP r m false x u ρ , outAskR (just r…`"
+    },
+    {
+     "line": 560,
+     "edit": "join 2 lines: `0≤εᴾ = ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ))…`"
+    },
+    {
+     "line": 563,
+     "edit": "join 2 lines: `pull-B : {A : Set} (ν : Dist-ℚ A) (Y : A → ℚ) (B :…`"
+    },
+    {
+     "line": 568,
+     "edit": "join 2 lines: `∧-mass : (a : Bool) (p : Dig) → E (uniform-Vec k) …`"
+    },
+    {
+     "line": 573,
+     "edit": "join 2 lines: `hit-mass : (m : Comʰ) (x : Pt) → E (uniform-Vec k)…`"
+    },
+    {
+     "line": 653,
+     "edit": "join 2 lines: `expand : E (uniform-Vec k) (λ r → E (respPʰ (f r) …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 25.3
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 186,
+     "edit": "join 2 lines: `opnL (t , just (c , b , false)) = uniform-Vec k >>…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 20.1
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Test.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Oracle.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda": {
+   "candidates": 5,
+   "kept": [
+    {
+     "line": 102,
+     "edit": "join 2 lines: `verdict-realOpen : (c : Dig) (b : Bool) (d : Dig) …`"
+    },
+    {
+     "line": 147,
+     "edit": "join 2 lines: `loopᴿ : ℕ → RState → (Stᴿ × Pos (Advᴵ ⊗ᴵ Honᴵ) → ℚ…`"
+    },
+    {
+     "line": 225,
+     "edit": "join 2 lines: `gameᶜ t c F′ = trans (Eⱼ (comR (t , nothing) c) F′…`"
+    },
+    {
+     "line": 241,
+     "edit": "join 2 lines: `refused P P′ = trans (lookupᴰℚ-return nothing (may…`"
+    },
+    {
+     "line": 311,
+     "edit": "join 2 lines: `extract-relog x h = cong pick (trans (pre-hit h x …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 44.6
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda": {
+   "candidates": 5,
+   "kept": [
+    {
+     "line": 64,
+     "edit": "join 2 lines: `Kʳ : RSt → Pos Resᴵ ⊎ Neg (Advᴵ ⊗ᴵ Honᴵ) → Dist⊥ (…`"
+    },
+    {
+     "line": 157,
+     "edit": "join 2 lines: `Kᴿ : RSt × RState → Neg (Advᴵ ⊗ᴵ Honᴵ) → Dist⊥ ((R…`"
+    },
+    {
+     "line": 205,
+     "edit": "join 2 lines: `Kᶠ : ⊤ᵛ × RState → ⊥ ⊎ Neg (Lkᴵ ⊗ᴵ Honᴵ) → Dist⊥ (…`"
+    },
+    {
+     "line": 267,
+     "edit": "join 2 lines: `sub-up (waitˢ _ _) Φ ex dn (inj₁ (digˢ _)) i = Sup…`"
+    },
+    {
+     "line": 314,
+     "edit": "join 2 lines: `Kᴵ : SSt × (⊤ᵛ × RState) → Neg (Advᴵ ⊗ᴵ Honᴵ) → Di…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 35.0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Test.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 182,
+     "edit": "join 2 lines: `resource-settles (t , nothing) (putᴿ b) = 1 , resp…`"
+    },
+    {
+     "line": 185,
+     "edit": "join 2 lines: `resource-settles (t , just b) getᴿ = 1 , respᴿ ((t…`"
+    },
+    {
+     "line": 188,
+     "edit": "join 2 lines: `resource-settles (t , m) nakᴿ = 1 , respᴿ ((t , m)…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 37.1
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/UC.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 183,
+     "edit": "join 2 lines: `st (waitˢ L m) (inj₂ (queryᴬ x)) = returnₚ ((relay…`"
+    },
+    {
+     "line": 226,
+     "edit": "join 2 lines: `st (waitˢ L m) (inj₂ (queryᴬ x)) = returnₚ ((relay…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 33.3
+  },
+  "src/CategoricalCrypto/Examples/RandomOracle.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 53,
+     "edit": "join 5 lines: `Functionality = record { State = Table ; init  = […`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 19.8
+  }
+ },
+ "totalChecks": 74
+}

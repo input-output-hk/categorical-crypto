@@ -1,0 +1,312 @@
+{
+ "sweep": "enum-where",
+ "root": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-R2b",
+ "files": {
+  "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda": {
+   "sites": [
+    {
+     "line": 271,
+     "binding": "G",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 304,
+     "binding": "atAcc",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 308,
+     "binding": "quiet",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 323,
+     "binding": "hits",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 326,
+     "binding": "reports",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Category.agda": {
+   "sites": [
+    {
+     "line": 71,
+     "binding": "split",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 77,
+     "binding": "solved",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/G.agda": {
+   "sites": [
+    {
+     "line": 85,
+     "binding": "S′",
+     "approxUses": 4,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 88,
+     "binding": "m",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 91,
+     "binding": "reduce",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 98,
+     "binding": "p-ok",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 102,
+     "binding": "s-ok",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 112,
+     "binding": "S″",
+     "approxUses": 4,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 115,
+     "binding": "n",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 161,
+     "binding": "k′",
+     "approxUses": 6,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 164,
+     "binding": "enter₁",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 170,
+     "binding": "enter₂",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 177,
+     "binding": "loop-relabel",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 182,
+     "binding": "exit-relabel",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 193,
+     "binding": "branch₁",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 197,
+     "binding": "branch₂",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 207,
+     "binding": "M",
+     "approxUses": 3,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 208,
+     "binding": "V",
+     "approxUses": 6,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 210,
+     "binding": "k",
+     "approxUses": 2,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 213,
+     "binding": "reconcile",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 216,
+     "binding": "step-eq",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Trace/Compose.agda": {
+   "sites": [
+    {
+     "line": 131,
+     "binding": "value",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 304,
+     "binding": "point",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 311,
+     "binding": "raw",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/EventBounds.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/EventBounds/Transport.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda": {
+   "sites": [
+    {
+     "line": 159,
+     "binding": "μ",
+     "approxUses": 20,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 161,
+     "binding": "w",
+     "approxUses": 9,
+     "singleUseCandidate": false
+    },
+    {
+     "line": 164,
+     "binding": "bottom",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 169,
+     "binding": "core",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent.agda": {
+   "sites": [
+    {
+     "line": 134,
+     "binding": "stepU",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 142,
+     "binding": "pt",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 146,
+     "binding": "back",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 151,
+     "binding": "go",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 159,
+     "binding": "st",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Adequacy.agda": {
+   "sites": [
+    {
+     "line": 93,
+     "binding": "cont",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 171,
+     "binding": "κ",
+     "approxUses": 1,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Agree.agda": {
+   "sites": [
+    {
+     "line": 62,
+     "binding": "pt",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    },
+    {
+     "line": 202,
+     "binding": "read-point",
+     "approxUses": 0,
+     "singleUseCandidate": true
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/HitTests.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Lift.agda": {
+   "error": "parse errors -- file skipped (report this)"
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Read.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Spike/Carry.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Seam/Grounded.agda": {
+   "sites": []
+  }
+ },
+ "totalChecks": 0
+}

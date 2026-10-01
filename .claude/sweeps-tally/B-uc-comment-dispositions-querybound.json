@@ -1,0 +1,946 @@
+{
+ "edits": [
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "old": "-- The initial state is EFFECTFUL (a Kleisli point, not an element), so the\n-- zero-potential condition is itself a refined value: `pointᵍ` is a distribution over zero-potential\n-- states erasing to the machine's own point.  The certificate is stated\n-- over a state, a point and a step given as PARAMETERS rather than projected\n-- from a process — see the note above `Certificate`.\n--\n-- This is a definition, not an axiom list: a `GradedSubCat`'s `Pred` is a\n-- parameter and admits the degenerate `Pred r f = ⊤`, whereas `QBᵢ` cannot be\n-- inhabited without exhibiting the potential, and `Counting` is what makes the\n-- potential mean something about runs.\n",
+   "new": "-- The initial state is EFFECTFUL (a Kleisli point, not an element), so the\n-- zero-potential condition is itself a refined value: `pointᵍ` is a\n-- distribution over zero-potential states erasing to the machine's own point.\n-- The certificate is stated over a state, a point and a step given as\n-- PARAMETERS rather than projected from a process — see the note above\n-- `Certificate`.\n",
+   "rule": "22/23",
+   "why": "cut design-alternative essay (GradedSubCat Pred vs QBᵢ); rewrap overlong line 22"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "old": "  -- Only `onRᵍ` mentions `c`, so only its answers are widened.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the record body: only onRᵍ is rebuilt"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "old": "  -- The environment chooses an activation word; the machine answers with one\n  -- output per activation.  This is the only place the layer unrolls a machine,\n  -- and the observable a counting statement is about.\n",
+   "new": "-- The only place the layer unrolls a machine, and the observable a counting\n-- statement is about.\n",
+   "rule": "22",
+   "why": "first sentence paraphrases the two clauses; keep the invariant"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "old": "-- A stateless forwarder answers each activation with exactly one output, so it\n-- is 1-bounded: the potential is constantly zero, an upward relay is free, and\n-- a downward relay spends the single unit the activation deposited.  This is\n-- also where the rate cannot be zero, which is what forces `qbᵢ-T₁`/`qbᵢ-sub`\n-- to `c ⊔ 1`.\n",
+   "new": "",
+   "rule": "24/22",
+   "why": "Φ=0/relay narration is the record; the c ⊔ 1 point is made once at the closure-properties banner (which already cites qbᵢ-wire)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "old": "-- A CLOSED process spends nothing: `Neg unitᴵ` is empty, so no output of its\n-- is downward, the potential stays at zero and the rate is zero too.  This is\n-- the certificate a resource plugged below a closed system carries without\n-- anything being known about it (`UC.Seam.Audit.Context.extractᵍ`).\n",
+   "new": "-- `Neg unitᴵ` is empty, so a closed process has no downward output: the\n-- certificate a resource plugged below a closed system carries without\n-- anything being known about it (via `qb-closed`, in\n-- `UC.Quantitative.EventLift.Cov.qb-closedᴹ`).\n",
+   "rule": "FIX",
+   "why": "named consumer UC.Seam.Audit.Context.extractᵍ does not use qbᵢ-closed/qb-closed (it takes QBᴹ hypotheses); the only consumer is EventLift.Cov.qb-closedᴹ via qb-closed; also drop rate restatement"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "old": "-- A process's certificate, read off its own state, point and step.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the one-line definition"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "old": "\n-- `call₁` is the protocol's step written in `Call` rather than in `Calls`: a\n-- protocol IS one-shot exactly when its step factors through `fromCall`.\n",
+   "new": "",
+   "rule": "22/24",
+   "why": "call₁/factors restate their types; 305-306 already says every step is a Call"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "old": "    -- Idle at a protocol state, or suspended on the ONE continuation the call\n    -- parked — where `MSt`'s `wait` holds an arbitrary residual tree.\n",
+   "new": "",
+   "rule": "24",
+   "why": "dup of the OneCall note (suspension named by the continuation fromCall parks)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "old": "    -- Nothing is ever owed: the one unit an activation deposits is spent on the\n    -- call it makes, and the answer to that call only returns.\n",
+   "new": "",
+   "rule": "24",
+   "why": "dup of the OneCall note (\"potential constantly zero because no second call can follow\")"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "old": "    -- Both drives land on the same pair, `θᴺ` rebuilding precisely the\n    -- continuation `fromCall` parks.\n",
+   "new": "",
+   "rule": "22/24",
+   "why": "proof paraphrase; the θ rebuild point is in the OneCall note"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "old": "-- give: `c ⊔ 1` is what pays for it, and `qbᵢ-wire`'s `1` is the same fact at\n-- the bare wire.  Nothing here unrolls a machine or touches the ⊕-trace.\n",
+   "new": "-- give: `c ⊔ 1` is what pays for it, and `qbᵢ-wire`'s `1` is the same fact at\n-- the bare wire.\n",
+   "rule": "22",
+   "why": "\"nothing unrolls a machine or touches the trace\" repeats the banner title"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "old": "  -- The bypassed interface can always afford its one downward relay.\n",
+   "new": "",
+   "rule": "24",
+   "why": "restates the banner's c ⊔ 1 explanation two lines above"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "old": "------------------------------------------------------------------------\n\nmodule _ (Y A B : Iface) {c : ℕ} (f : Proc A B) (q : Certified c f) where\n",
+   "new": "module _ (Y A B : Iface) {c : ℕ} (f : Proc A B) (q : Certified c f) where\n",
+   "rule": "25",
+   "why": "untitled rule-only divider (qbᵢ-T₁ block is under the closure-properties banner). old includes the unchanged following code line only as a uniqueness anchor"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "old": "    -- The plugged process's answer, retagged into the second summand; the\n    -- reference potential only ever grows, so the witnesses survive.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-def gloss of liftT; its twin liftS carries none"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "old": "------------------------------------------------------------------------\n\nmodule _ (X Y A : Iface) {c : ℕ} (s : Proc X Y) (q : Certified c s) where\n",
+   "new": "module _ (X Y A : Iface) {c : ℕ} (s : Proc X Y) (q : Certified c s) where\n",
+   "rule": "25",
+   "why": "untitled rule-only divider; old includes the unchanged following code line only as a uniqueness anchor"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "old": "------------------------------------------------------------------------\n\nqb-idᴹ : {A : Iface} → QB 1 (𝒫.id {A})\n",
+   "new": "------------------------------------------------------------------------\n-- The hom-level closure properties\n\nqb-idᴹ : {A : Iface} → QB 1 (𝒫.id {A})\n",
+   "rule": "25",
+   "why": "untitled divider in front of qb-idᴹ/qb-T₁ᴹ/qb-subᴹ (3 defs): give it a title; old includes the unchanged following code line only as a uniqueness anchor"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "old": "-- The hom-level forms need the action to respect `_≈_`, because `QB` is the\n-- `≈`-closure of `Certified` and the certificate lives on a representative;\n-- those two are `UC.Machine.Dictionary`'s trace-free readings.  Every interface is\n-- EXPLICIT here, and that is measured rather than tidy: left implicit, a `Proc`\n-- argument makes Agda invert `Machine (Pos A + Neg B) …` for the pair, and this\n-- module stops coming back inside 200 s (`UC.Machine`'s header records the same\n-- inversion at ~1 GiB apiece).  The assembly into the graded subcategory lives\n-- in `UC.Machine.Grading` (`gradingᴹ`), behind the same implicit-pinning.\n",
+   "new": "-- The hom-level forms need the action to respect `_≈_`, because `QB` is the\n-- `≈`-closure of `Certified` and the certificate lives on a representative;\n-- those two are `UC.Machine.Dictionary`'s trace-free readings.  Every interface is\n-- EXPLICIT here, and that is measured rather than tidy: left implicit, a `Proc`\n-- argument makes Agda invert `Machine (Pos A + Neg B) …` for the pair, and this\n-- module stops coming back inside 200 s (the inversion noted at `UC.Machine.𝒫ᴵ`).\n",
+   "rule": "FIX/22",
+   "why": "\"UC.Machine's header records the same inversion at ~1 GiB apiece\" is false: the note is at 𝒫ᴵ (not the header) and records a 10 GiB exhaustion; last sentence narrates where the consumer (gradingᴹ) lives"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "old": "--\n-- Separate from `UC.QueryBound` because that module is at its measured\n-- typechecking budget; nothing here mentions `Proc`.\n",
+   "new": "",
+   "rule": "24",
+   "why": "dup of UC.QueryBound's pointer at `Counting` (separate module = measured budget)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "old": "  -- Push a continuation across an erasure: if `d` erases to `dᵉ` along `h` and\n  -- `k` factors through `h`, the two binds agree.  Every use below takes `h` at\n  -- `forget`, which is what lets a proof-carrying answer under a continuation be\n  -- replaced by the erased one.\n",
+   "new": "",
+   "rule": "22",
+   "why": "first sentence restates the type, second narrates the uses"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "old": "  -- A run of `w` from `s`: where it ends, what it emitted, and the amortised\n  -- invariant relating the two.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the field names"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "old": "    -- One activation from above deposits `c`, cashed against the extra `c` its\n    -- own entry contributes to the word's count.\n",
+   "new": "",
+   "rule": "22",
+   "why": "arithmetic gloss; the equation is the type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "old": "    -- The tail of one `traceᵍ` step: run the rest of the word, prepend this\n    -- activation's output.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the one-line body"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "old": "  -- The refined run, driven by the certificate's own activations.  The account\n  -- is empty at the end of the word, so the base case is pure slack.\n",
+   "new": "",
+   "rule": "22",
+   "why": "first sentence restates the clauses; the second is inaccurate (the account holds Φ s at the end, the base case is m≤m+n)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "old": "    -- Erasing the bound off a consing step.  The recursive instance is the\n    -- hypothesis `rec` rather than a call, so `countᵍ-erase`'s own recursion is\n    -- the only one in the walk.\n",
+   "new": "    -- The recursive instance is the hypothesis `rec` rather than a call, so\n    -- `countᵍ-erase`'s own recursion is the only one in the walk.\n",
+   "rule": "22",
+   "why": "drop the what-gloss, keep the structural why"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "old": "  -- The refined run really is the machine's: forgetting the bound leaves the\n  -- behaviour `behᵍ` is read off.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "restates the type; same cut as Exact runᴱ-erases"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "old": "-- The account starts empty — `pointᵍ` is a distribution over zero-potential\n-- states — so the initial slack vanishes and the potential left at the end can\n-- be dropped; `coh₀` then identifies the refined start with the machine's own.\n",
+   "new": "",
+   "rule": "24",
+   "why": "proof sketch duplicating the header (\"initial slack is zeroed by pointᵍ/coh₀\")"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Exact.agda",
+   "old": "--\n-- `qeᵢ-wire` is the inhabitation: a stateless relay emits exactly one downward\n-- output per activation from above and none otherwise.\n--\n-- This is enrichment, in the grading's sense and no more: `QEᵢ` is `QBᵢ`'s\n-- twin, over the same three parameters (a state, a point, a step — the\n-- measured spelling `UC.QueryBound`'s header explains) and concluding about\n-- the same `behᵍ`.  It is not a field of `UCSetup`, nothing is stated over it,\n-- and it introduces no notion of simulator, context or experiment: a simulator\n-- remains a grade morphism acting through `sub`\n-- (`docs/uc-presheaf-preservation-plan.md` §1, decisions 3 and 5).\n",
+   "new": "--\n-- `QEᵢ` is `QBᵢ`'s exact twin, over the same state/point/step parameters and\n-- concluding about the same `behᵍ`.\n",
+   "rule": "22/23/24",
+   "why": "qeᵢ-wire sentence duplicates its own comment; design narration (not a UCSetup field, no simulator notion) replaced by the one-line twin pointer"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Exact.agda",
+   "old": "-- The weight of a word: `sum ∘ map`, spelled so that it reduces on a cons.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the one-line body; \"spelled so that it reduces on a cons\" is vacuous — the definition IS sum (map w xs), there is no other spelling in play"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Exact.agda",
+   "old": "  -- The ledger equation, at a run: the counted outputs plus what the final\n  -- state still owes are what the word paid for.\n",
+   "new": "",
+   "rule": "24",
+   "why": "dup of the header equation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Exact.agda",
+   "old": "    -- The refined run.  The `Dₚ`-level recursion is the trace's own; only the\n    -- witness is new, and it is the ledger chain below.\n",
+   "new": "",
+   "rule": "22",
+   "why": "narration with leftover \"only the witness is new\""
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Exact.agda",
+   "old": "    -- …and it IS the run: forget the witness and the refinement is the trace.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Exact.agda",
+   "old": "    -- The closed form: the initial ledger is zero, so the word alone pays.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "restates the type; same family as 116"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Exact.agda",
+   "old": "-- The two weightings a plain query count uses: one per output that travels\n-- DOWN, one per activation that arrives from ABOVE.\n",
+   "new": "",
+   "rule": "22",
+   "why": "names + clauses say it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Exact.agda",
+   "old": "-- A stateless relay emits exactly one downward output per activation from\n-- above and none per answer from below.  This is `UC.QueryBound.qbᵢ-wire`'s\n-- bound read as an equation, and it is where the notion is seen not to be\n-- vacuous.\n",
+   "new": "-- `UC.QueryBound.qbᵢ-wire`'s bound read as an equation: where `QEᵢ` is seen\n-- not to be vacuous.\n",
+   "rule": "22",
+   "why": "first sentence restates the record; keep the cross-reference"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "old": "-- below unfolds a trace or an iteration.  Everything is stated over\n-- state/point/step PARAMETERS for the reason `UC.QueryBound`'s header records.\n",
+   "new": "-- below unfolds a trace or an iteration.  Everything is stated over\n-- state/point/step PARAMETERS for the reason noted above\n-- `UC.QueryBound.Certificate`.\n",
+   "rule": "FIX",
+   "why": "UC.QueryBound's header does not record the reason, it points to the note above Certificate"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "old": "  -- The token has just left `f`: a downward message exits the composite, an\n  -- upward one climbs the loop wire to `g`.\n",
+   "new": "  -- Once the token leaves `f` (resp. `g`), an output on the composite's own\n  -- interface exits and one on `B` crosses the loop wire to the other factor.\n",
+   "rule": "22/26",
+   "why": "merge the per-clause pair into one decoding of the loop-wire tags"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "old": "  -- …and symmetrically out of `g`: an upward message exits, a downward one\n  -- descends the loop wire to `f`.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "merged into the resumeF comment"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "old": "      -- A `g`-unit is worth an activation of `f`…\n",
+   "new": "",
+   "rule": "24",
+   "why": "dup of the header (\"one unit of the outer … is worth a whole activation\")"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "old": "      -- …so `g`'s deposit of `c` is the composite's deposit of `c · c′`.\n",
+   "new": "",
+   "rule": "24",
+   "why": "dup of the header (\"the outer's deposit of c buys c · c′\")"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "old": "      -- `f`'s slack and the composite's deposit, moved past `g`'s potential.\n",
+   "new": "",
+   "rule": "22",
+   "why": "arithmetic gloss"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "old": "      --\n      -- An external activation deposits nothing on the left and `c · c′` on the\n      -- right, matching where the composite's own step feeds it in.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the types of enterLᵍ/enterRᵍ (Aᶜ (Φᶜ s) vs Aᶜ (Φᶜ s + c * c′))"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "old": "-- The target names the same raw G-composition before it is packed into the\n-- Category record; congruence is paid by the hom-level closure in\n-- `Compose.Laws`, not by this concrete step.  Measured warm cost: 10.1 s;\n-- rebuilding this module does not rebuild the 94 s congruence module.\n--\n-- `Nᶜ`/`unfoldᶜ`/`eq-∘ᶜ` are the reusable half: any consumer that has to read a\n-- composite's behaviour off — not just one certifying it — gets the composite\n-- as one product-state machine plus the six equations, and unrolls no trace.\n-- `Examples.CoinToss.Ideal.Machine` is the second consumer.\n",
+   "new": "-- The target names the same raw G-composition before it is packed into the\n-- Category record; congruence is paid by the hom-level closure in\n-- `Compose.Laws`, not by this concrete step.  Measured warm cost: 10.1 s.\n--\n-- `Nᶜ`/`unfoldᶜ`/`eq-∘ᶜ` are the reusable half: any consumer that has to read a\n-- composite's behaviour off — not just one certifying it — gets the composite\n-- as one product-state machine plus the six equations, and unrolls no trace.\n",
+   "rule": "FIX/22",
+   "why": "\"the 94 s congruence module\" was Machines.Collapse.Congruence, deleted in 2e6d54f2; \"second consumer\" is a stale leftover (4 CoinToss.Ideal modules consume it)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "old": "  -- `k` is `returnₚ ∘ h`, up to junctions.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "old": "    -- The composite as ONE traced machine with product state: what a consumer\n    -- reading a `𝒢ₚ`-composite off gets, and what `unfoldᶜ` below describes.\n",
+   "new": "",
+   "rule": "24",
+   "why": "dup of the header's reusable-half sentence"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "old": "      -- One external step feeds its input in on the `A` summand…\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-def gloss family"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "old": "      -- …the dispatch exits on the `B` summand…\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-def gloss family (and \"B summand\" is wrong: it is inj₁)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "old": "      -- …and re-enters the body on the loop wire.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-def gloss family"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "old": "    -- …and the composite in the category's own vocabulary, which is the form a\n    -- consumer's goal names.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the type (𝒫._∘_ form); the raw/closure split is in the header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Object.agda",
+   "old": "-- The ancilla action lives on 𝒢's objects, so the graded subcategory needs\n-- THIS spelling in its field types: with the `Iface` form\n-- there, each field re-indexes its objects and pays one `Proc` inversion\n-- (`UC.Machine.Grading`'s header measured the nine together at >250 s).\n",
+   "new": "-- The ancilla action lives on 𝒢's objects, so the graded subcategory needs\n-- THIS spelling in its field types; `UC.Machine.Grading`'s header records the\n-- cost of the `Iface` form.\n",
+   "rule": "24/FIX",
+   "why": "dup of Grading's parenthetical; \"the nine\" is not what Grading says (\">250 s together\")"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Graded.agda",
+   "old": "--\n-- The unit grade is the special case at `X = Y = 𝟭ᴵ`, in the sense that the\n-- statements here are the `ιᴳ`-free ones and specialize to it; nothing in\n-- `UC.Seam.Grounded` is weakened or re-proved.\n",
+   "new": "",
+   "rule": "22",
+   "why": "narration: specialization remark + \"nothing in Seam.Grounded is weakened\""
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Graded.agda",
+   "old": "-- The factoring the emulation consumes: the real process IS the simulator's\n-- relay in front of the ideal one, at the machine layer.  This is `𝒢ₚ`'s own\n-- hom equality under a name, not a relation of its own — the simulator stays a\n-- grade morphism `Y ⇒ X` acting through `sub`, and nothing here wraps it.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the one-line definition + design narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Graded.agda",
+   "old": "-- `UC.Model.Graded`'s coercion lemmas re-typed into the setup's vocabulary\n-- (`sub`, `unitorˡ`, `∘` of `UC.Model.Setup`), which `Model.Graded` cannot\n-- open.  `plug-graded` fills the grade with an adversary machine `X ⇒ 𝟭ᴵ`,\n-- `graded₂-∘` closes a composed system's domain, and `sub-graded₂` puts a JOINT\n-- simulator in front of both halves of a composed grade.\n",
+   "new": "-- `UC.Model.Graded`'s coercion lemmas re-typed into the setup's vocabulary\n-- (`sub`, `unitorˡ`, `∘` of `UC.Model.Setup`), which `Model.Graded` cannot\n-- open (see its header).\n",
+   "rule": "22",
+   "why": "per-def paraphrase of plug-graded/graded₂-∘/sub-graded₂ cut; keep why the wrappers exist"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Graded.agda",
+   "old": "-- The grade `ifaceᵒ (X ⊗ᴵ P)` one `gradedᵒ` hands out and the grade\n-- `ifaceᵒ X ⊗₀ ifaceᵒ P` that `UC.Model.Family.Contextual.Compose._∙ᶠ_`\n-- produces are the same object, and the seal keeps them apart.  No coercion\n-- can identify them\n-- on the nose: an export's TYPE is checked with the seal CLOSED, so\n-- `gradedᵒ f ≈ graded₂ᵒ f` does not typecheck even inside the block.  This\n-- wire, the identity process read at the split grade, is the morphism instead.\n",
+   "new": "-- The grade `ifaceᵒ (X ⊗ᴵ P)` one `gradedᵒ` hands out and the grade\n-- `ifaceᵒ X ⊗₀ ifaceᵒ P` that `UC.Model.Family.Contextual.Compose._∙ᶠ_`\n-- produces are the same object, and the seal keeps them apart.  No coercion\n-- can identify them on the nose: an export's TYPE is checked with the seal\n-- CLOSED, so `gradedᵒ f ≈ graded₂ᵒ f` does not typecheck even inside the\n-- block.  This wire, the identity process read at the split grade, is the\n-- morphism instead.\n",
+   "rule": "style",
+   "why": "rewrap broken lines; content is a genuine seal gotcha"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Graded.agda",
+   "old": "-- …and `sub-graded₂` at the IDENTITY simulator is that it regrades.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the proof's first step"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Graded.agda",
+   "old": "-- …hence an emulation in the INHERITED order, at the grade `ifaceᵒ X` and with\n-- the simulator `procᵒ s`, whose interface is `ifaceᵒ Y`.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Graded.agda",
+   "old": "-- …and with the simulator's query budget attached: the premise `UC.Audit`'s\n-- graded carry consumes.  The query bound is the machine layer's, the\n-- agreement is `emulᵍ`'s.\n",
+   "new": "-- The premise `UC.Audit.audit-carry` (the graded carry) consumes.\n",
+   "rule": "22",
+   "why": "drop the what-narration; keep the consumer pointer (verified: audit-carry takes f ≤UC[ r ] g)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Factor.agda",
+   "old": "------------------------------------------------------------------------\n-- The factoring\n\n",
+   "new": "",
+   "rule": "25",
+   "why": "lone banner over the file's only two definitions is not a landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Factor.agda",
+   "old": "-- The UC-object image of `_∘ᵖ_`: the closed system IS the stage composed with\n-- the closed lower component, regraded by the unit.\n",
+   "new": "",
+   "rule": "24",
+   "why": "restates the header (\"closed system … is a CATEGORICAL composite\") and the type"
+  }
+ ],
+ "dispositions": [
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "3-30",
+   "verdict": "TRIM",
+   "reason": "keep orientation (amortised reading + why per-chain/additive fails, potential, effectful point); cut 27-30 design essay; rewrap 21-25"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "101",
+   "verdict": "KEEP",
+   "reason": "why the opaque block: perf (avoid normalizing the chain into each certificate)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "113-114",
+   "verdict": "KEEP",
+   "reason": "landmark over Below/AtMost/Ans/forget"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "129-130",
+   "verdict": "KEEP",
+   "reason": "landmark over module Certificate"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "132-141",
+   "verdict": "KEEP",
+   "reason": "measured gotcha: 10 GiB record-eta cliff if fields project a Proc"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "156",
+   "verdict": "CUT",
+   "reason": "rule 22 restates record body"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "178-179",
+   "verdict": "KEEP",
+   "reason": "landmark over traceᵍ/behᵍ inside Certificate"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "181-183",
+   "verdict": "TRIM",
+   "reason": "keep invariant (only place a machine is unrolled); cut clause paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "193-194",
+   "verdict": "KEEP",
+   "reason": "landmark over #inj₁/#inj₂/CountBound/Counting"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "217-218",
+   "verdict": "KEEP",
+   "reason": "pointer + measured-budget why (the single site; Counting copy cut)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "224-225",
+   "verdict": "KEEP",
+   "reason": "landmark over qbᵢ-wire/qbᵢ-closed"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "227-231",
+   "verdict": "CUT",
+   "reason": "rule 24 dup of 433-435 (c ⊔ 1 forced by the relay); rest is the record"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "244-247",
+   "verdict": "FIX",
+   "reason": "wrong consumer: Seam.Audit.Context.extractᵍ does not use it; real consumer UC.Quantitative.EventLift.Cov.qb-closedᴹ via qb-closed"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "271-272",
+   "verdict": "KEEP",
+   "reason": "landmark over Certified/QB/certified⇒QB/qb-closed/qb-resp-≈/qb-mono"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "274",
+   "verdict": "CUT",
+   "reason": "rule 22 restates definition"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "278-285",
+   "verdict": "KEEP",
+   "reason": "why ≈-closure (no right inverse) + perf gotcha (projecting from 𝒫ᴵ forces G-construction record)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "302-303",
+   "verdict": "KEEP",
+   "reason": "landmark over module OneCall"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "305-313",
+   "verdict": "KEEP",
+   "reason": "non-obvious why: potential cannot be read off MSt (function-valued wait); cites MD header (verified)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "315-316",
+   "verdict": "CUT",
+   "reason": "rule 22/24 restates call₁/factors types; 305 already says steps are Calls"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "323-324",
+   "verdict": "CUT",
+   "reason": "rule 24 dup of OneCall note"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "345-346",
+   "verdict": "CUT",
+   "reason": "rule 24 dup of OneCall note"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "392-393",
+   "verdict": "CUT",
+   "reason": "rule 22 proof paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "427-436",
+   "verdict": "TRIM",
+   "reason": "keep banner + why c ⊔ 1; cut final \"nothing unrolls a machine\" (repeats title)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "439",
+   "verdict": "CUT",
+   "reason": "rule 24 restates banner two lines above"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "443-445",
+   "verdict": "KEEP",
+   "reason": "why resp-step exists: build against a reducing step, then transport"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "457-458",
+   "verdict": "KEEP",
+   "reason": "why qbᵢ-id needs resp-step: σᴹ vs wire differ by pureᴹ junctions"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "471",
+   "verdict": "CUT",
+   "reason": "rule 25 untitled rule-only divider"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "501-502",
+   "verdict": "CUT",
+   "reason": "rule 22/26 per-def gloss (twin liftS has none)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "548",
+   "verdict": "CUT",
+   "reason": "rule 25 untitled rule-only divider"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "623",
+   "verdict": "FIX",
+   "reason": "untitled divider over 3 hom-level defs: titled \"The hom-level closure properties\""
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound.agda",
+   "lines": "628-635",
+   "verdict": "FIX",
+   "reason": "keep measured 200 s gotcha; \"UC.Machine header ~1 GiB apiece\" false (note at 𝒫ᴵ, 10 GiB); cut gradingᴹ narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "lines": "3-23",
+   "verdict": "TRIM",
+   "reason": "keep orientation + why final potential retained + record-not-Σ gotcha; cut 22-23 dup of UC.QueryBound 217-218"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "lines": "69-72",
+   "verdict": "CUT",
+   "reason": "rule 22 type restatement + usage narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "lines": "79-80",
+   "verdict": "KEEP",
+   "reason": "landmark over module Refined"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "lines": "88-89",
+   "verdict": "CUT",
+   "reason": "rule 22 restates field names"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "lines": "100-101",
+   "verdict": "CUT",
+   "reason": "rule 22 arithmetic gloss"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "lines": "108-111",
+   "verdict": "KEEP",
+   "reason": "why suc on le; gotcha: #inj₂-valued bound determines no index"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "lines": "122-123",
+   "verdict": "CUT",
+   "reason": "rule 22 restates body"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "lines": "127-128",
+   "verdict": "CUT",
+   "reason": "rule 22; second sentence inaccurate (account holds Φ s at end)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "lines": "150-152",
+   "verdict": "TRIM",
+   "reason": "keep structural why (rec hypothesis keeps one recursion); cut what-gloss"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "lines": "161-162",
+   "verdict": "CUT",
+   "reason": "rule 22 restates type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "lines": "199-200",
+   "verdict": "KEEP",
+   "reason": "landmark over qbᵢ⇒count/counting"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Counting.agda",
+   "lines": "202-204",
+   "verdict": "CUT",
+   "reason": "rule 24 proof sketch dup of header line 16"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Exact.agda",
+   "lines": "3-36",
+   "verdict": "TRIM",
+   "reason": "keep orientation, ledger equation, residual-Λ/no-admissibility why; cut 27-28 dup of qeᵢ-wire comment and 30-36 design narration -> one-line twin pointer"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Exact.agda",
+   "lines": "58",
+   "verdict": "CUT",
+   "reason": "rule 22; \"spelled so that it reduces on a cons\" vacuous (body IS sum (map w xs))"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Exact.agda",
+   "lines": "76-77",
+   "verdict": "CUT",
+   "reason": "rule 24 dup of header equation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Exact.agda",
+   "lines": "90-91",
+   "verdict": "CUT",
+   "reason": "rule 22 narration + leftover \"new\""
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Exact.agda",
+   "lines": "116",
+   "verdict": "CUT",
+   "reason": "rule 22 restates type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Exact.agda",
+   "lines": "129",
+   "verdict": "CUT",
+   "reason": "rule 22/26 restates type (same family as 116)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Exact.agda",
+   "lines": "147-148",
+   "verdict": "KEEP",
+   "reason": "landmark over downward/fromAbove/qeᵢ-wire"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Exact.agda",
+   "lines": "150-151",
+   "verdict": "CUT",
+   "reason": "rule 22 names+clauses say it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Exact.agda",
+   "lines": "160-163",
+   "verdict": "TRIM",
+   "reason": "keep cross-reference to qbᵢ-wire / non-vacuity; cut record restatement"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "lines": "3-21",
+   "verdict": "FIX",
+   "reason": "keep orientation (potential formula, two invariants, fuel measure, Unfolding); pointer fixed: the reason is the note above UC.QueryBound.Certificate, not its header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "lines": "41-42",
+   "verdict": "KEEP",
+   "reason": "top-level landmark over module Compose"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "lines": "53-54",
+   "verdict": "TRIM",
+   "reason": "merged with 59-60 into one decoding of the loop-wire tags (non-obvious summand encoding)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "lines": "59-60",
+   "verdict": "CUT",
+   "reason": "rule 22/26 merged into 53-54"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "lines": "96-97",
+   "verdict": "KEEP",
+   "reason": "singleDefBanner flag false positive: groups unit/grant/grant</slack/reassoc (5 defs); the private block is the whole module body, so these banners are its landmarks"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "lines": "99",
+   "verdict": "CUT",
+   "reason": "rule 24 dup of header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "lines": "103",
+   "verdict": "CUT",
+   "reason": "rule 24 dup of header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "lines": "110",
+   "verdict": "CUT",
+   "reason": "rule 22 arithmetic gloss"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "lines": "118-122",
+   "verdict": "KEEP",
+   "reason": "singleDefBanner false positive: groups loopGᵍ/atGᵍ/loopFᵍ/atFᵍ; gloss keys the opaque binders r (reference) and k (fuel)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "lines": "154-155",
+   "verdict": "KEEP",
+   "reason": "singleDefBanner false positive: groups cohGᵍ/dispGᵍ/cohFᵍ/dispFᵍ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "lines": "198-202",
+   "verdict": "TRIM",
+   "reason": "banner KEEP (enterL/R, onL/Rᶜᵍ, entryL/R, cohL/Rᶜ); gloss cut, restates the types"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose.agda",
+   "lines": "265-266",
+   "verdict": "KEEP",
+   "reason": "singleDefBanner false positive: groups zeroᶜ/pointᵍᶜ/coh₀ᶜ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "lines": "3-14",
+   "verdict": "FIX",
+   "reason": "keep measured 10.1 s + reusable-half orientation; \"94 s congruence module\" was Machines.Collapse.Congruence (deleted 2e6d54f2); \"second consumer\" stale (4 consumers)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "lines": "51-52",
+   "verdict": "KEEP",
+   "reason": "singleDefBanner false positive: groups Pt/pt-id/pt-pre/pt-⊗/pt-i₁/pt-i₂"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "lines": "55",
+   "verdict": "CUT",
+   "reason": "rule 22 restates type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "lines": "80-81",
+   "verdict": "KEEP",
+   "reason": "top-level landmark over the main module"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "lines": "100-101",
+   "verdict": "CUT",
+   "reason": "rule 24 dup of header reusable-half sentence"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "lines": "119-120",
+   "verdict": "KEEP",
+   "reason": "singleDefBanner false positive: groups padF/padG/bodyF/bodyG"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "lines": "144-145",
+   "verdict": "KEEP",
+   "reason": "singleDefBanner false positive: groups resume*-pad/step-in/solve-outᶜ/solve-loopᶜ/resumed*"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "lines": "157",
+   "verdict": "CUT",
+   "reason": "rule 22/26 gloss family"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "lines": "162",
+   "verdict": "CUT",
+   "reason": "rule 22/26 gloss family (\"B summand\" also wrong)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "lines": "168",
+   "verdict": "CUT",
+   "reason": "rule 22/26 gloss family"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda",
+   "lines": "217-218",
+   "verdict": "CUT",
+   "reason": "rule 22 restates type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Compose/Laws.agda",
+   "lines": "3-7",
+   "verdict": "KEEP",
+   "reason": "consumer pointer (gradingᴹ uses qb-∘ᴳ, verified) + why pinned/isolated + measured 10 s"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/QueryBound/Object.agda",
+   "lines": "3-16",
+   "verdict": "FIX",
+   "reason": "keep definitional-inverse orientation and opaque gotcha; 8-11 dup of Grading header -> pointer; \"the nine\" not in Grading"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Graded.agda",
+   "lines": "3-21",
+   "verdict": "TRIM",
+   "reason": "keep orientation; cut 18-21 narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Graded.agda",
+   "lines": "51-54",
+   "verdict": "CUT",
+   "reason": "rule 22 restates definition + design narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Graded.agda",
+   "lines": "58-62",
+   "verdict": "TRIM",
+   "reason": "keep why the re-typed wrappers exist; cut per-def paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Graded.agda",
+   "lines": "71-74",
+   "verdict": "KEEP",
+   "reason": "why ext-graded is one machine composite (ext = α⇐ ∘ id ⊗₁ on the nose). NOTE: near-dup of UC/Model/Graded.agda 97-100 (not my file) — that copy should shrink to a pointer to UC.Graded.ext-graded"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Graded.agda",
+   "lines": "88-94",
+   "verdict": "TRIM",
+   "reason": "seal gotcha kept; rewrapped broken lines"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Graded.agda",
+   "lines": "98",
+   "verdict": "CUT",
+   "reason": "rule 22 restates proof step"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Graded.agda",
+   "lines": "111-112",
+   "verdict": "CUT",
+   "reason": "rule 22 restates type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Graded.agda",
+   "lines": "117-119",
+   "verdict": "TRIM",
+   "reason": "keep consumer pointer (audit-carry takes ≤UC[ r ], verified); cut narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Factor.agda",
+   "lines": "3-20",
+   "verdict": "KEEP",
+   "reason": "orientation + citations (Seal.procᵒ-∘, Protocol.Machine.Compose.morphismCompose, verified)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Factor.agda",
+   "lines": "35-36",
+   "verdict": "CUT",
+   "reason": "rule 25 lone banner over the file's only two defs"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Factor.agda",
+   "lines": "38-39",
+   "verdict": "KEEP",
+   "reason": "why ∙-return applies (closedᵒ w = return ∘ procᵒ w on the nose)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Factor.agda",
+   "lines": "44-45",
+   "verdict": "CUT",
+   "reason": "rule 24 dup of header + type"
+  }
+ ]
+}

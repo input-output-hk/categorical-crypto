@@ -1,0 +1,551 @@
+{
+ "sweep": "binder-drop",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/Examples/ChimericLedger.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 125,
+     "edit": "drop binder `{a′ : Accts}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 1014.3
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 74,
+     "edit": "drop binder `{t u : Tx}` + arrow"
+    },
+    {
+     "line": 258,
+     "edit": "drop binder `{e : List Bool × Hash}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 28.1
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda": {
+   "candidates": 4,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 59,
+     "edit": "drop binder `{S : Set}` + arrow"
+    },
+    {
+     "line": 143,
+     "edit": "drop binder `{acc acc′ : Bool}` + arrow"
+    },
+    {
+     "line": 182,
+     "edit": "drop binder `{acc acc′ : Bool}` + arrow"
+    },
+    {
+     "line": 233,
+     "edit": "drop binder `{ε : ℕ → ℚ}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 8,
+   "seconds": 40.2
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda": {
+   "candidates": 4,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 74,
+     "edit": "drop binder `{t u : Ledger.Tx n}` + arrow"
+    },
+    {
+     "line": 95,
+     "edit": "drop binder `{q q′ : ℕ}` + arrow"
+    },
+    {
+     "line": 156,
+     "edit": "drop binder `{r : ℚ}` + arrow"
+    },
+    {
+     "line": 166,
+     "edit": "drop binder `{ε : ℕ → ℚ}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 8,
+   "seconds": 24.4
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/System.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 43,
+     "edit": "drop binder `{x : A}` + arrow"
+    },
+    {
+     "line": 46,
+     "edit": "drop binder `{x : A}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 10.7
+  },
+  "src/CategoricalCrypto/Examples/CoinToss.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Compose.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Hiding.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 110,
+     "edit": "drop binder `{D : Dₚ (RState × (Neg unitᴵ ⊎ Pos Resᴵ)` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 15.6
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 119,
+     "edit": "drop binder `{D : Dₚ (FSt × (Neg unitᴵ ⊎ Pos (Lkᴵᶜ ⊗ᴵ` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 26.2
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 110,
+     "edit": "drop binder `{D : Dₚ (RState × (Neg unitᴵ ⊎ Pos Resᴵ)` + arrow"
+    },
+    {
+     "line": 135,
+     "edit": "drop binder `{D : Dₚ (RState × (Neg unitᴵ ⊎ Pos Resᴵ)` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 19.5
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 134,
+     "edit": "drop binder `{D : Dₚ (FStʰ × (Neg unitᴵ ⊎ Pos (Lkᴵᶜʰ ` + arrow"
+    },
+    {
+     "line": 146,
+     "edit": "drop binder `{D : Dₚ (FStʰ × (Neg unitᴵ ⊎ Pos (Lkᴵᶜʰ ` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 29.7
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 69,
+     "edit": "drop binder `{S : Set}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 20.6
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Test.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/UC.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/HashForward.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/HashForward/Audit.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 138,
+     "edit": "drop binder `{q c c′ : ℕ⁺}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 13.3
+  },
+  "src/CategoricalCrypto/Examples/HashForward/UC.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/Possibilistic.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Asymptotic.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Game.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 129,
+     "edit": "drop binder `{M : Set}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 49.4
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Asymptotic.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 76,
+     "edit": "drop binder `{x y : A}` + arrow"
+    },
+    {
+     "line": 169,
+     "edit": "drop binder `{w : StPʰ}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 11.6
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 542,
+     "edit": "drop binder `{ε′ : ℕ → ℚ}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 13.4
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Test.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Oracle.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 37,
+     "edit": "drop binder `{A : Set}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 13.1
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 290,
+     "edit": "drop binder `{a b : ℕ}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 24.7
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 55,
+     "edit": "drop binder `{R : Set}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 20.4
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Test.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 122,
+     "edit": "drop binder `{d : Dₚ Ans}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 11.5
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/UC.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/RandomOracle.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  }
+ },
+ "totalChecks": 58
+}

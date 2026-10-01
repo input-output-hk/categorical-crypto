@@ -103,7 +103,7 @@ non-circular and absorbs more of the σ-conjugation *framing* on the K-side.)
 - The solver itself (~500–1,500 LOC of reusable infra) belongs in `Categories/Tactic` and
   does **not** count against the APROP subtree.
 
-The two micro-tactics in `docs/proposed-tactics.md` (the `subst₂`/list-append *framing
+The two micro-tactics in `docs/history/proposed-tactics.md` (the `subst₂`/list-append *framing
 solver* and the `⊗`-regroup combinators) are the incremental, hand-rollable seeds of this
 solver — worth doing first as a proving ground even if the full solver is never built.
 
