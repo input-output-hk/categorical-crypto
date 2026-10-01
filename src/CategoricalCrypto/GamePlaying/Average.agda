@@ -70,7 +70,7 @@ module _ (resp : St → Q → Dist-ℚ (St × R)) (bad : St → Bool) where
 
   endProb-bad : Monotone → ∀ s d → bad s ≡ true → endProb resp bad s d ≡ 1ℚ
   endProb-bad mono s d eq = trans
-    (endProb-frozen {Fz = λ s → bad s ≡ true}
+    (endProb-frozen
        (λ s q b → ListAll.map (λ b′ → b′ , trans b′ (sym b)) (mono s q b)) s d eq)
     (cong bool→ℚ eq)
 
