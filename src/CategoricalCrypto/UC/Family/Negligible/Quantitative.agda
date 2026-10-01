@@ -35,6 +35,7 @@ open import CategoricalCrypto.Approx.Evaluation ℚ-ordered using (QEvaluation)
 open import CategoricalCrypto.Approx.Schedule using (pointwise)
 open import CategoricalCrypto.UC.Approximate using (Negligible; Negligible-0)
 open import CategoricalCrypto.UC.Core using (Evaluation; Observable)
+open import CategoricalCrypto.UC.Quantitative.Bridge (pointwise ℕ ℚ-ordered) using (module QBridge)
 open import CategoricalCrypto.UCSetup using (UCSetup)
 import CategoricalCrypto.UC.Family.Negligible as Negᴹ
 import CategoricalCrypto.UC.Family.Negligible.Setup as Setupᴹ
@@ -51,7 +52,7 @@ module CategoricalCrypto.UC.Family.Negligible.Quantitative
 
 open import CategoricalCrypto.UC.Family M qro Rg Ix κ κ-cofinal using (Famᴹ)
 
--- `using` keeps each copy small; see `UC.Family.Quantitative`.
+-- Each module application takes only what is used; see `UC.Family.Quantitative`.
 private
   module N  = Negᴹ M qro Rg Ix κ κ-cofinal
     using (Evaluationᴺ; QEvaluationᴺ; ∼ᴺ-isEquivalence; negligible)
@@ -63,13 +64,16 @@ private
 
 -- Spelled exactly as `UC.Family.Negligible.Evaluationᴺ` spells it, so the
 -- readout this lands at IS that one and `Cᴺ` is the setup it is compared with.
-module Qᴺ = Observedᴹ Famᴹ (pointwise ℕ ℚ-ordered) N.QEvaluationᴺ
-                     N.∼ᴺ-isEquivalence (λ h → (λ _ → 0ℚ) , Negligible-0 , h)
+module Qᴺ where
+  open Observedᴹ Famᴹ (pointwise ℕ ℚ-ordered) N.QEvaluationᴺ
+                 N.∼ᴺ-isEquivalence (λ h → (λ _ → 0ℚ) , Negligible-0 , h) public
+    hiding (module Quant)
+  module Quant = QBridge QSetup using (At; underlyingSmall)
 
 private
   module Sm where
-    open Qᴺ.Quant.Small N.negligible public using (small-emulation⇐)
-    module Aˢ = Qᴺ.Quant.Small.Aˢ N.negligible using (_≈ᵁ_; _≤UC_; module KE)
+    open QBridge.Small Qᴺ.QSetup N.negligible public using (small-emulation⇐)
+    module Aˢ = QBridge.Small.Aˢ Qᴺ.QSetup N.negligible using (_≈ᵁ_; _≤UC_; module KE)
 
 setupᴺ⁺ : UCSetup o (ℓ ⊔ qs) e o (ℓ ⊔ qs) e (ℓ ⊔ qs) (ℓ ⊔ qs ⊔ ℓa)
 setupᴺ⁺ = Qᴺ.Quant.underlyingSmall N.negligible
