@@ -20,10 +20,6 @@ open import CategoricalCrypto.Channel.Core public
 open import CategoricalCrypto.Channel.Selection public
 open import CategoricalCrypto.Machine.Constraints public
 open import CategoricalCrypto.Machine.Core public
-open import CategoricalCrypto.SFunM public
-open import CategoricalCrypto.SFunM.Test.Possibility
-open import CategoricalCrypto.SFunPartial public
-open import CategoricalCrypto.SFunPossibility
 open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.GamePlaying
 open import CategoricalCrypto.GamePlaying.Average
