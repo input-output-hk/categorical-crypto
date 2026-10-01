@@ -20,7 +20,7 @@ tip: the 7 non-root leaves plus the root, results in the table at the end. Sweep
 
 ## Committed
 
-- `f200ab1e` Sweep using-drop over Examples (+15/−16). Toolkit class; each site kept only if its file stayed green.
+- `f200ab1e` Sweep using-drop over Examples (+14/−15). Toolkit class; each site kept only if its file stayed green.
 - `daefd005` Comments: per-block trim and accuracy fixes over the scope (+122/−262).
   - Comment-only, every block dispositioned.
   - Stale pointers fixed: `UC.Seam.Grounded.SubBlind`, `QBᵢ`, the "`defer-commit` below" pointer, `lookup-bs` "branches on a `with`".
