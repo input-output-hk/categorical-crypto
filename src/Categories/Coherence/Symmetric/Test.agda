@@ -1,0 +1,92 @@
+{-# OPTIONS --safe --without-K #-}
+
+--------------------------------------------------------------------------------
+-- Test suite & documentation for the string-diagram solver infrastructure
+-- (`Categories.Coherence.Symmetric`).  Checking this module checks the whole
+-- suite.
+--
+-- ARCHITECTURE.  The engine follows TensorRocq (arXiv:2604.17592): free-SMC
+-- terms over a generator signature are translated to hypergraphs (`⟪_⟫`),
+-- where "only connectivity matters"; a *verified* decision procedure
+-- (`findIso`, sound by the postulate-free theorem `soundness`)
+-- turns a hypergraph isomorphism into an equation in any target SMC `C`.
+-- All *search* (position finding, sub-hypergraph matching, context carving)
+-- is deliberately UNVERIFIED: a wrong search result simply fails the final
+-- `findIso` certification and the call does not type-check.  Soundness rests
+-- only on the verified gate — searches fail closed.
+--
+-- THE TOOL PALETTE (in `Setup` scope, in increasing power):
+--
+--   * `solveH! f g`        — discharge a *coherence* equation: `f ≈ g` holds
+--                            for free because both sides have the same string
+--                            diagram.        → `Suite.{Cycle3,Braiding,…}`
+--   * `rewriteH!`          — rewrite with a *rule* `⟦lᵗ⟧ ≈ ⟦rᵗ⟧` at a position
+--                            the caller pins down with two context terms.
+--                                                    → `Suite.MonoidRewrite`
+--   * `rewriteAuto(ₙ)!`    — the position is found by structural focusing
+--                            (`focusAt`/`focusAll`); the redex must be a
+--                            *subterm* of `s` (occurrence `n` selectable).
+--                                                    → `Suite.MonoidRewrite`
+--   * `rewriteDeep(ₙ)!`    — the position is found on the *hypergraph*
+--                            (`deepFocₙ`: sub-match enumeration → hole-carve
+--                            with retry → decode), so the redex need only be
+--                            a connected sub-diagram — rewriting modulo
+--                            deformation.  `n` indexes the carvable (convex)
+--                            occurrences in match order.
+--                             → `Suite.{DeepRewrite,DeepArity}` (both configs)
+--   * `rewriteDeepTo!`     — `rewriteDeepₙ!` landing on a caller-stated clean
+--                            term: the step form for chained derivations (it
+--                            keeps the carved frame out of all exposed types,
+--                            which is essential for type-checking speed).
+--                             → `Suite.{DeepRewrite,FrobeniusAlgebra}`
+--   * `normalize(To)!`     — DRIVERS: fire a `List Rule` (oriented rewrites
+--                            with soundness proofs) at the first applicable
+--                            position, repeatedly, to fuel-bounded
+--                            exhaustion.  Re-searches after every firing, so
+--                            a singleton list is "rewrite everywhere"; the
+--                            search carries its own proof.
+--                                                  → `Suite.MonoidNormalize`
+--
+-- SHOWCASE: `Suite.FrobeniusAlgebra` derives the two alternative formulations
+-- of the Frobenius law from the standard one by chains of `rewriteDeepTo!`
+-- steps — the TensorRocq §5 worked example, end-to-end.
+--
+-- KNOWN LIMITATIONS (each demonstrated by the probe cited):
+--
+--   * PADDED rule LHSs (`p ⊗ id {Var w}` / `id {Var w} ⊗ p` — possibly the
+--     only type at which the rule's proof exists, since `⊗` is not faithful)
+--     ARE handled: the pad is stripped from the match query and a same-typed
+--     parallel context wire is threaded through the rule's vacuous slot.
+--     v1 caveat: pads must be syntactically outermost single-atom layers.
+--                        → `Suite.DeepRewrite.test-deep-padded-{rule,left,two}`
+--   * Purely structural rule LHSs (`σ`, `id`, coherence morphisms) have
+--     edge-free hypergraphs — they are coherence facts; use `solveH!`.
+--                              → `Suite.DeepRewrite.deep-structural-limitation`
+--   * Occurrences overlapping themselves are rejected at the search's
+--     injectivity check.  → `Suite.DeepRewrite.deep-overlap-{,match-}rejected`
+--   * Non-convex occurrences are rejected at the carve (correctly: no
+--     pushout complement exists); the match retry skips them, so they never
+--     mask a convex occurrence elsewhere.
+--                                 → `Suite.DeepArity.deep-non-convex-rejected`,
+--                                   `…deep-non-convex-match-succeeds`,
+--                                   `Suite.DeepArity.test-deep-retry`
+--     (the two `…match-…` probes are what pin each rejection to its STAGE: a
+--     `deepFoc` failure alone cannot tell match from carve.)
+--   * `focusAt`'s leaf test compares the rule's interface objects `P`, `Q`
+--     literally (decidable `ObjTerm` equality); inside the redex matching is
+--     up to SMC structure.        → `Suite.MonoidRewrite.test-unitˡ-noisy`
+--
+-- Backend-internal smoke tests (raw `findIso`, raw `subMatch`, and the
+-- equation-splitting front-end `solveH!ˢ`, each at one fixed signature) live
+-- next to their subjects in `Categories.APROP.Hypergraph.Solver.Test.{
+-- FindIsoTests, SubMatchTests, SplitTests}` (the first two share the
+-- three-generator fixture `…Solver.Test.ThreeGens`).
+--------------------------------------------------------------------------------
+
+-- No content of its own: an `import` typechecks its module in full, so the
+-- import line below IS the suite.  Clients wanting a configuration (say the
+-- derived `FrobeniusAlgebra.frobL`) apply that module directly — no re-export
+-- layer here.
+module Categories.Coherence.Symmetric.Test where
+
+import Categories.Coherence.Symmetric.Test.Suite

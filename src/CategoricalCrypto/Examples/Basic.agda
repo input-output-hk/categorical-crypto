@@ -5,8 +5,6 @@ module CategoricalCrypto.Examples.Basic where
 open import categorical-crypto.Prelude hiding (_∘_; Dec)
 import categorical-crypto.Prelude as P
 
-open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
-
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
@@ -137,5 +135,7 @@ module SecureFromAuthenticated (PlainText CipherText PubKey PrivKey : Type)
   Functionality : Machine I ((S.A ⊗₀ S.B) ⊗₀ S.E)
   Functionality = SH.Functionality ∘ L.Functionality
 
-  -- F≤Secure : Functionality ≤'UC S.Functionality msgLength
+  -- `Machine.Core._≤'UC_` is binary; the `msgLength` this sketch
+  -- passed as a third argument belongs inside `S.Functionality`.
+  -- F≤Secure : Functionality ≤'UC S.Functionality
   -- F≤Secure = {!!}
