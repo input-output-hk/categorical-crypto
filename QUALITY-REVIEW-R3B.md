@@ -15,6 +15,17 @@ Sweep tally (toolkit JSONs in `QUALITY-REVIEW-R3B.d/`): `using-drop` 223 kept / 
 toolkit grammar and was skipped. `enum-with`: 0 sites. `enum-where`: 125 sites (95 flagged) and `enum-comments`:
 549 blocks, both enumerated only; see *Not reached*.
 
+## Checks at the tip (`4e4a47b0` code; `-M8G -H2G`, rc / warn-grep / Checking-count / wall)
+
+| module | result |
+|---|---|
+| `CategoricalCrypto` (root) | rc=0, warn 0, 92 rechecked, 142 s |
+| `Abstract2.{Equivalence,OAPEmulation,WideSubcategory}`, `Standard2.Morphism` | all rc=0, warn 0 |
+| `RandomOracle`, `RandomOracle2`, `Examples.RelSetup` | all rc=0, warn 0 |
+| `Examples.ChimericLedger.{Transfer,Serialize}`, `Examples.MerkleDamgard.{Pin,QueryBound}` | all rc=0, warn 0 |
+
+Soundness grep: 16 lines before and after, identical as sets. NUL: 0 of 57 new blobs. `git diff --check`: clean.
+
 ## Committed (you can skim these)
 
 - `9c28a807` Sweep using-drop: bare opens where no clash. 36 files, +208/−227. Interface-neutral: these are
