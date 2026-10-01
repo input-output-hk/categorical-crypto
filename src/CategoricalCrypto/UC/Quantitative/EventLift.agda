@@ -14,7 +14,7 @@ open import Data.Bool.Base
 open import Data.Nat.Base as ℕ
 open import Data.Nat.Positive
 open import Data.Product.Base
-open import Data.Rational as ℚ using (ℚ)
+open import Data.Rational as ℚ
 open import Data.Unit.Base
 
 import Data.Nat.Properties as ℕP

@@ -21,7 +21,7 @@ open import Data.Bool.Base
 open import Data.Product.Base
 open import Data.Sum.Base hiding (map₁)
 open import Data.Unit.Base
-open import Function.Base using (_∘_)
+open import Function.Base
 open import Relation.Binary.PropositionalEquality hiding ([_])
 
 import Relation.Binary.Construct.Closure.Equivalence as EqC

@@ -9,7 +9,7 @@
 -- it IS the run of the process under the watch, as `_≈ₚ_`, because the flag
 -- equals the accumulator along the run.
 
-open import Categories.Category using (Category)
+open import Categories.Category
 
 open import Data.Bool.Base
 open import Data.Bool.Properties.Ext

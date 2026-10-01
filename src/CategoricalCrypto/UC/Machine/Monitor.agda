@@ -28,7 +28,7 @@ open import Data.Sum.Base
 open import Data.Unit.Base
 open import Function.Base
 open import Level
-open import Relation.Binary.PropositionalEquality using (cong; sym)
+open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Iter

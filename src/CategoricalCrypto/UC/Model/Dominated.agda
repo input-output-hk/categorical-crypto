@@ -20,7 +20,7 @@ open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Data.Sum.Base
 open import Data.Unit.Base
 open import Function.Base
-open import Relation.Binary.PropositionalEquality using (cong; subst)
+open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Advantage
