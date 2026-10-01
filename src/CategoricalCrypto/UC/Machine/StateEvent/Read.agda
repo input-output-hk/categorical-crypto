@@ -101,3 +101,8 @@ stateBounded-resp-≈ᵉ : {A B : Iface} {q : ℕ} {r : ℚ} {x y : Annotated A 
                      → StateBoundedAt q r (proj₁ y) (proj₂ y)
 stateBounded-resp-≈ᵉ {x = x} {y} e h Y E m qE qm le =
   upper-≈ (stateRead-resp-≈ᵉ Y (EqC.symmetric EventSim e) E m) (h Y E m qE qm le)
+
+-- Exact, at any `A`.
+transportᵉ : {A B : Iface} {q : ℕ} {r : ℚ} {R I : Proc A B} {P : StateTest R} {Q : StateTest I}
+           → EventSim (R , P) (I , Q) → StateBoundedAt q r I Q → StateBoundedAt q r R P
+transportᵉ e = stateBounded-resp-≈ᵉ (EqC.symmetric EventSim (EqC.return e))

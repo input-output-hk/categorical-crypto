@@ -43,6 +43,7 @@ open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.Dictionary
 open import CategoricalCrypto.UC.Machine.Run
 open import CategoricalCrypto.UC.QueryBound
+open import CategoricalCrypto.UC.QueryBound.Compose.Laws
 
 module CategoricalCrypto.UC.Machine.EventBounds where
 
@@ -50,7 +51,10 @@ private
   module 𝒫 = Category 𝒫ᴵ
   open 𝒫.HomReasoning
 
-  variable A B B′ C X Z : Iface
+  variable
+    A B B′ C X Z : Iface
+    k q t : ℕ
+    r : ℚ
 
 ------------------------------------------------------------------------
 -- Reading an event off a context
@@ -111,6 +115,13 @@ BoundedAt {A = A} {B = B} q r f 𝔠 =
 AdvBoundedAt : ℕ → ℕ → ℚ → Proc A (X ⊗ᴵ B) → Set₁
 AdvBoundedAt {X = X} k q r f = (a : Proc X 𝟭ᴵ) → QB k a → BoundedAt q r f (advReader a)
 
+-- The simulator's rate multiplies the ADVERSARY's allowance; the context cap is
+-- untouched, and an exact factoring costs no slack.
+bounded-absorb : {f : Proc A (X ⊗ᴵ B)} {s : Proc Z X} {g : Proc A (Z ⊗ᴵ B)}
+               → f 𝒫.≈ subᴵ s 𝒫.∘ g → QB t s → AdvBoundedAt (k ℕ.* t) q r g → AdvBoundedAt k q r f
+bounded-absorb {X = X} {Z = Z} {s = s} e qs h a qa Y E m qE qm le =
+  upper-≈ (readRun-absorb a e Y E m) (h (a 𝒫.∘ s) (qb-∘-category Z X 𝟭ᴵ a s qa qs) Y E m qE qm le)
+
 ------------------------------------------------------------------------
 -- Families, and where the slack's quantifier sits
 
@@ -135,9 +146,7 @@ module _ {A B B′ : ℕ → Iface} (f : (n : ℕ) → Proc (A n) (B′ n))
 
   -- A capped family bound is already a saturated one, at zero slack: its
   -- schedule `ε n (p n)` is uniform over the contexts `p n` admits.  A bound
-  -- whose slack is chosen INSIDE the context quantifier yields no `Boundedᴺ`,
-  -- which is why `EventBounds.Transport.transport` takes its error before the
-  -- context.
+  -- whose slack is chosen INSIDE the context quantifier yields no `Boundedᴺ`.
   boundedᶠ⇒boundedᴺ : (ε : ℕ → ℕ → ℚ) → Boundedᶠ ε → Boundedᴺ ε
   -- A schedule read at a larger cap is still a bound: the contexts a cap
   -- admits only grow with it.
