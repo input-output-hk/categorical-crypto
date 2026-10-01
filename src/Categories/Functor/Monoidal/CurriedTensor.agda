@@ -15,6 +15,7 @@ open import Categories.Category.Product
 open import Categories.Coherence.Monoidal.Tactic using (solve-mor)
 open import Categories.Functor renaming (id to idF)
 open import Categories.Functor.Monoidal
+open import Categories.Monad.Graded using (GradedMonad)
 open import Categories.NaturalTransformation
 
 private
@@ -29,7 +30,11 @@ open M
 open import Categories.Category.Monoidal.Utilities M.monoidal
 open Shorthands
 
-curriedTensor : MonoidalFunctor M E
+-- Typed at `GradedMonad`'s own spelling rather than at the private `E`: a
+-- consumer's `GradedMonad ℐ 𝒞` field then matches syntactically, where any
+-- mismatch unfolds `Endofunctors` (`UC.Quantitative.Spike.Instance`:
+-- 16.5 s → 10.3 s).
+curriedTensor : GradedMonad M (MonoidalCategory.U M)
 curriedTensor = record { F = F ; isMonoidal = isMon }
   where
   open Functor
