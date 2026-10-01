@@ -3,9 +3,7 @@
 module CategoricalCrypto.Machine.Constraints where
 
 open import CategoricalCrypto.Channel.Core
-open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
-open import Tactic.Defaults
 
 open import categorical-crypto.Prelude
 
