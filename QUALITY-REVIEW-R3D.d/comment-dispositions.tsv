@@ -1,0 +1,194 @@
+file	lines	kind	flags	disposition	reason
+src/Categories/Category/Cocartesian/Ext.agda	3-5	header		KEEP	why the Ext exists: upstream associator is dualized, so equations are inject chains
+src/Categories/Category/Construction/Kleisli/Discrete.agda	3-10	header		KEEP	gotcha: upstream Kleisli-Symmetric heap-exhausts; do-not-replace warning
+src/Categories/Category/Construction/Kleisli/Discrete.agda	34-36	banner		KEEP	section banner grouping several definitions
+src/Categories/Category/Construction/Kleisli/Discrete.agda	66-68	banner		KEEP	section banner grouping several definitions
+src/Categories/Category/Construction/Kleisli/Discrete.agda	79-81	banner		KEEP	section banner grouping several definitions
+src/Categories/Category/Construction/Kleisli/Discrete.agda	85-87	standalone		KEEP	gotcha: projections make _⊗ᵏ_ reduce on non-literal pairs
+src/Categories/Category/Construction/Kleisli/Discrete.agda	126-128	banner		KEEP	section banner grouping several definitions
+src/Categories/Category/Construction/Kleisli/Discrete.agda	154-156	banner		KEEP	section banner grouping several definitions
+src/Categories/Category/Construction/Kleisli/Discrete.agda	204-206	banner		KEEP	section banner grouping several definitions
+src/Categories/Category/Construction/Kleisli/Discrete.agda	225-227	banner		KEEP	section banner grouping several definitions
+src/Categories/Category/Construction/Kleisli/Discrete/Pure.agda	3-6	header		KEEP	why IsPure is existential (junction delays)
+src/Categories/Category/Construction/Kleisli/Distributive.agda	3-4	header		KEEP	orientation header (2 lines)
+src/Categories/Category/Distributive/Monoidal.agda	3-4	header		KEEP	why isIsoˡ transfers verbatim (_⁂_ = F₁)
+src/Categories/Category/Monoidal/Distributive.agda	3-5	header		KEEP	citation (upstream Distributive) + why no uniqueness field
+src/Categories/Category/Monoidal/Distributive/Instance/Rels.agda	3-4	header		KEEP	non-obvious: Rels categorical product is also ⊎
+src/Categories/Category/Monoidal/Properties/Ext.agda	3-12	header		KEEP	why J/ℓ⇐ are parameters; measured 150 s, doc citation (checked: docs/stduc-supersession-plan.md §1.1)
+src/Categories/Category/Monoidal/Properties/Ext.agda	29-30	standalone		KEEP	citation Kelly–Laplaza
+src/Categories/Category/Monoidal/Pure.agda	3-12	header		KEEP	why purity matters for iteration + why the level is fixed
+src/Categories/Category/Monoidal/Symmetric/Properties/Ext.agda	3-4	header		KEEP	orientation (2 lines)
+src/Categories/Category/Monoidal/Symmetric/Properties/Ext.agda	59-59	standalone		CUT	type echo of β-nat
+src/Categories/Category/Monoidal/Traced/Ext.agda	3-7	header		KEEP	citation JSV + what upstream omits
+src/Categories/Category/Monoidal/Traced/Ext.agda	39-41	standalone		CUT	per-step proof narration (rule 22)
+src/Categories/GConstructionEmbedding.agda	3-11	header		KEEP	why absorption collapses the loop
+src/Categories/GConstructionEmbeddingCoherence.agda	3-10	header		KEEP	why one signature per law
+src/Categories/GConstructionEmbeddingCoherence.agda	39-40	banner		KEEP	section banner grouping several definitions
+src/Categories/GConstructionEmbeddingCoherence.agda	101-102	banner		KEEP	section banner grouping several definitions
+src/Categories/GConstructionHomCoherence.agda	3-11	header		KEEP	measured: whole solve out of reach; decomposition rationale
+src/Categories/GConstructionHomCoherence.agda	73-75	standalone		KEEP	why verbatim twins (conversion)
+src/Categories/GConstructionHomCoherence.agda	111-111	standalone		KEEP	why spelled exactly (conversion)
+src/Categories/GConstructionLoop.agda	3-6	header		KEEP	orientation
+src/Categories/GConstructionMonoidal.agda	3-10	header		REWRITE	dropped the "(see there)" pointer to the cut #32
+src/Categories/GConstructionMonoidal.agda	110-113	standalone		CUT	proof outline; components named in the chain itself
+src/Categories/GConstructionMonoidal.agda	248-252	standalone		KEEP	measured >8 GB gotcha
+src/Categories/GConstructionTrace.agda	3-9	header		KEEP	orientation + where RS lives (checked: GConstructionIdentityCoherence RS exists)
+src/Categories/GConstructionTrace.agda	51-56	standalone		KEEP	why spelled out (conversion)
+src/Categories/GConstructionTrace.agda	75-78	standalone		KEEP	citation: upstream swapInner-unit/assoc
+src/Categories/GConstructionTrace.agda	96-96	standalone		KEEP	why generic (solve)
+src/Categories/GConstructionTrace.agda	111-111	standalone		CUT	section label restating mid-λ/mid-ρ names
+src/Categories/GConstructionTrace.agda	210-210	standalone		KEEP	citation: mirror of Traced.superposing
+src/Categories/GConstructionTrace.agda	248-250	standalone		KEEP	why TM + vanishing₂
+src/Categories/GConstructionTraceCoherence.agda	3-6	header		KEEP	orientation
+src/Categories/GradedKleisli/Coherence.agda	3-6	header		KEEP	measured residency reason for the split
+src/Categories/Monad/Construction/Kleisli/Ext.agda	3-8	header		KEEP	why setoid Inverse (law fields not props)
+src/Categories/Monad/Construction/Kleisli/Ext.agda	48-49	standalone		KEEP	gotcha: argument order of Monad⇒-id
+src/Categories/Monad/Discrete.agda	3-12	header		KEEP	why elementwise record; why two records
+src/Categories/Monad/Discrete.agda	83-83	standalone		CUT	name gloss; the type is the statement
+src/Categories/Monad/Discrete.agda	111-114	standalone		KEEP	why discrete commutativity
+src/Categories/Monad/Graded/Trivial.agda	3-3	header		KEEP	orientation
+src/Categories/Monad/Graded/Trivial.agda	50-51	standalone		KEEP	why only two laws remain
+src/Categories/Monad/Setoids/Discrete.agda	3-4	header		KEEP	orientation
+src/Categories/Monad/Setoids/Discrete/Morphism.agda	3-4	header		KEEP	orientation + pointer
+src/Categories/Monad/Setoids/Maybe.agda	3-4	header		KEEP	orientation
+src/Categories/Monad/Setoids/Maybe.agda	93-94	standalone		KEEP	rule-24 pointer to the gotcha
+src/Class/DecEq/Ext.agda	3-5	header		KEEP	why: reduction at abstract argument
+src/Data/Bits/Codec.agda	3-5	header		KEEP	why prefix decoding
+src/Data/Bits/Codec.agda	42-44	banner		KEEP	section banner grouping several definitions
+src/Data/Bits/Codec.agda	86-87	standalone		KEEP	why length prefix
+src/Data/Bits/Codec.agda	121-121	standalone		KEEP	why no prefix
+src/Data/Bool/Properties/Ext.agda	3-3	header		KEEP	why the Ext exists (stdlib gap)
+src/Data/List/Relation/Binary/BagAndSetEquality/Ext.agda	18-18	standalone		KEEP	stdlib gap citation
+src/Data/List/Relation/Unary/Any/Properties/Ext.agda	22-23	standalone		KEEP	stdlib gap: stronger premise
+src/Data/List/Run.agda	3-5	header		KEEP	orientation
+src/Data/List/Run.agda	58-59	standalone		KEEP	why reversed induction
+src/Data/Rational/LowerReal.agda	3-5	header		KEEP	citation Coquand–Spitters
+src/Data/Rational/LowerReal.agda	104-106	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Distribution/Possibility.agda	3-7	header		KEEP	what 𝒫 quotients and why commutative
+src/ProbabilisticLogic/Distribution/Possibility.agda	9-9	header		CUT	import-choice note; duplicate of #92 (rule 24)
+src/ProbabilisticLogic/Distribution/Possibility.agda	40-41	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Distribution/Possibility.agda	67-67	standalone		KEEP	why: Fubini is the reason
+src/ProbabilisticLogic/Distribution/Possibility.agda	76-78	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda	3-7	header		KEEP	relation to the Bool-test equality
+src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda	40-42	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda	73-74	standalone		KEEP	why no congruence needed
+src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda	95-97	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Distribution/RationalDist/Advantage.agda	3-6	header		KEEP	why both verdicts read
+src/ProbabilisticLogic/Distribution/RationalDist/Advantage.agda	44-45	standalone		KEEP	why one-sided bound at advᵇ⊥
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	28-29	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	71-72	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	134-135	standalone		KEEP	statement is encoded; English reading of the kernel shape
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	144-145	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	167-167	standalone		KEEP	rule-24 cross-reference
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	215-216	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda	3-5	header		KEEP	what ⊥ means (sub-probability)
+src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda	31-32	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda	42-43	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda	59-60	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda	96-96	standalone		KEEP	rule-24 pointer to #90
+src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda	104-104	standalone		KEEP	proof idea not visible: affine law
+src/ProbabilisticLogic/Distribution/RationalDist/Setoid.agda	15-17	standalone		KEEP	gotcha: stray mass-1 meta
+src/ProbabilisticLogic/Distribution/RationalDist/Setoid.agda	23-26	standalone		KEEP	gotcha: heap blow-up when not pinned
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	3-10	header		KEEP	why strictly-positive support (supp-cong would be false)
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	12-12	header		CUT	import-choice note; duplicate of #67
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	39-40	standalone		KEEP	why definitional (same instantiation)
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	47-48	banner	singleDefBanner	KEEP	flag is a false positive: groups the private block 0≤+, ≮⇒≡0, dec-∨, …
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	57-58	standalone		KEEP	gotcha: with does not abstract _<?_
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	87-88	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	133-134	standalone		KEEP	statement encoded through does; English reading
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	148-149	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	192-194	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	234-235	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	252-253	standalone		KEEP	intent of pad (enc = xor) not readable from mk-Dist entries
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	267-268	standalone		KEEP	significance of the result
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	275-276	standalone		KEEP	significance of the result
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	281-282	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	295-297	standalone		KEEP	significance of the result
+src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda	3-7	header		KEEP	formula of Γ
+src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda	38-38	standalone		KEEP	meaning of the charge
+src/ProbabilisticLogic/Distribution/Uniform/Collision.agda	3-9	header		KEEP	why countMatch (no independence argument)
+src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda	3-10	header		KEEP	formula of Φ and why no invariant
+src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda	73-74	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp.agda	3-14	header		KEEP	design constraints (guardedness, divergence, junction step)
+src/ProbabilisticLogic/Dp.agda	45-46	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp.agda	72-73	standalone		KEEP	gotcha: corecursion under application
+src/ProbabilisticLogic/Dp.agda	82-82	standalone		CUT	gloss of detₚ type
+src/ProbabilisticLogic/Dp.agda	112-117	banner		KEEP	what cum is; sup never formed
+src/ProbabilisticLogic/Dp.agda	129-130	standalone		KEEP	why NNF
+src/ProbabilisticLogic/Dp.agda	134-135	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp.agda	155-156	banner	singleDefBanner	KEEP	flag is a false positive: groups four mutual families (cum-nn, cum-mono, cum-mono-P, cum-cong-P)
+src/ProbabilisticLogic/Dp.agda	205-209	banner		KEEP	why flatten does not hit guardedness
+src/ProbabilisticLogic/Dp.agda	258-264	banner		KEEP	why Supp is the instrument
+src/ProbabilisticLogic/Dp.agda	320-321	standalone		KEEP	why computed at literal terms
+src/ProbabilisticLogic/Dp.agda	331-332	standalone		KEEP	why quantified budget
+src/ProbabilisticLogic/Dp.agda	366-367	standalone		KEEP	why uniformizeˢ exists
+src/ProbabilisticLogic/Dp.agda	386-391	banner		KEEP	meaning of ≼ₚ (sup ≤ sup)
+src/ProbabilisticLogic/Dp.agda	396-397	standalone		KEEP	gotcha: +0ℚ does not reduce
+src/ProbabilisticLogic/Dp.agda	461-462	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp.agda	480-481	standalone		KEEP	why the arithmetic still works
+src/ProbabilisticLogic/Dp.agda	491-492	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp.agda	545-546	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp.agda	571-575	banner	singleDefBanner	KEEP	banner over the two sandwich lemmas (boundA/boundB) + why
+src/ProbabilisticLogic/Dp.agda	606-607	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Advantage.agda	3-9	header		KEEP	why relation not function; why both masses
+src/ProbabilisticLogic/Dp/Advantage.agda	38-38	standalone		CUT	type echo of indᵇ-cover
+src/ProbabilisticLogic/Dp/Advantage.agda	54-55	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Advantage.agda	91-92	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Advantage.agda	94-95	standalone		KEEP	why not ≈ₚ[_] against returnₚ false
+src/ProbabilisticLogic/Dp/Coin.agda	3-4	header		KEEP	why aggregate masses
+src/ProbabilisticLogic/Dp/Coin.agda	42-42	standalone		KEEP	why budget suc (suc n)
+src/ProbabilisticLogic/Dp/Coin.agda	64-65	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Coin.agda	79-80	standalone		KEEP	why that budget
+src/ProbabilisticLogic/Dp/Coin.agda	103-104	standalone		KEEP	what the pad statement means
+src/ProbabilisticLogic/Dp/Coin.agda	115-116	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Coin.agda	127-128	standalone		KEEP	why only for coins
+src/ProbabilisticLogic/Dp/Coin.agda	140-140	standalone		KEEP	cross-reference uniformVec cascade
+src/ProbabilisticLogic/Dp/Commutative.agda	3-6	header		KEEP	why only cofinal; what is exact
+src/ProbabilisticLogic/Dp/Commutative.agda	27-28	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Dominate.agda	3-9	header		KEEP	why one-test domination exists
+src/ProbabilisticLogic/Dp/Dominate.agda	33-34	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Dominate.agda	76-77	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Dominate.agda	85-86	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Dominate.agda	88-88	standalone		KEEP	rule-24 pointer to Dp.Iter
+src/ProbabilisticLogic/Dp/Elgot.agda	3-6	header		KEEP	why pointwise bridge
+src/ProbabilisticLogic/Dp/Elgot.agda	23-23	standalone		KEEP	rule-24 pointer to Dp.Iter
+src/ProbabilisticLogic/Dp/Elgot.agda	26-27	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Iter.agda	3-9	header		KEEP	proof architecture: budget induction (non-obvious)
+src/ProbabilisticLogic/Dp/Iter.agda	31-32	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Iter.agda	37-38	standalone		KEEP	why no corecursion of its own
+src/ProbabilisticLogic/Dp/Iter.agda	54-55	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Iter.agda	61-61	standalone		KEEP	why behind by one step
+src/ProbabilisticLogic/Dp/Iter.agda	100-101	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Iter.agda	147-148	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Iter.agda	150-152	standalone		KEEP	gotcha: variable re-generalization
+src/ProbabilisticLogic/Dp/Iter.agda	187-191	banner		KEEP	citation: codiagonal ∇
+src/ProbabilisticLogic/Dp/Iter/Codiagonal.agda	3-22	header		KEEP	termination argument (lexicographic, no WF machinery)
+src/ProbabilisticLogic/Dp/Iter/Out.agda	3-8	header		KEEP	why budgets independent
+src/ProbabilisticLogic/Dp/Iter/Out.agda	27-28	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Iter/Out.agda	57-58	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Iter/Transfer.agda	3-5	header		KEEP	why not lockstep
+src/ProbabilisticLogic/Dp/Mass.agda	3-4	header		KEEP	why ASTotal is not Σ
+src/ProbabilisticLogic/Dp/Mass.agda	30-31	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Mass.agda	60-61	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Mass.agda	91-94	banner		KEEP	why ≼ᵐ exists
+src/ProbabilisticLogic/Dp/Mass.agda	114-115	standalone		KEEP	why budget-uniform hypothesis
+src/ProbabilisticLogic/Dp/Mass.agda	120-121	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Mass.agda	123-123	standalone		KEEP	why attained
+src/ProbabilisticLogic/Dp/Mass.agda	213-214	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Reasoning.agda	3-8	header		KEEP	why implicit-subject wrappers exist (explicit subjects keep Dp fast)
+src/ProbabilisticLogic/Dp/Settle.agda	3-7	header		KEEP	what Settles means and why closed under bind
+src/ProbabilisticLogic/Dp/Settle.agda	31-32	standalone		KEEP	why everything at Set
+src/ProbabilisticLogic/Dp/Settle.agda	41-42	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Settle.agda	98-99	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Settle.agda	101-104	standalone		KEEP	gotcha: record rather than pair (unification)
+src/ProbabilisticLogic/Dp/Settle.agda	124-126	standalone		KEEP	why reading transports; doc citation (checked docs/fcom-uc.md §1)
+src/ProbabilisticLogic/Dp/Settle.agda	147-149	standalone		KEEP	consumer instruction + why explicit
+src/ProbabilisticLogic/Dp/Settle.agda	154-155	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Settle.agda	224-225	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Settle.agda	239-240	standalone		KEEP	why only at p
+src/ProbabilisticLogic/Dp/Settle.agda	252-253	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Settle/Iter.agda	3-7	header		KEEP	why the rank (Ranked)
+src/ProbabilisticLogic/Dp/Settle/Iter.agda	30-31	banner		KEEP	section banner grouping several definitions
+src/ProbabilisticLogic/Dp/Settle/Iter.agda	41-42	standalone		KEEP	why suc j
+src/ProbabilisticLogic/Dp/Settle/Iter.agda	127-128	banner		KEEP	section banner grouping several definitions
+src/Relation/Binary/Bundles/Ext.agda	10-11	standalone		KEEP	citation agda-categories 𝒞 [ f ≈ g ] + why

@@ -1,0 +1,223 @@
+  src/Categories/Category/Cocartesian/Ext.agda:7 kept | open import Categories.Category.Cocartesian
+  src/Categories/Category/Cocartesian/Ext.agda:8 kept | open import Categories.Category.Core
+  src/Categories/Category/Cocartesian/Ext.agda:10 kept | import Categories.Category.Cocartesian as Cocart
+  src/Categories/Category/Cocartesian/Ext.agda:19 kept | open import Categories.Morphism.Reasoning C
+src/Categories/Category/Cocartesian/Ext.agda: {'kept': 4}
+  src/Categories/Category/Construction/Kleisli/Discrete.agda:12 kept | open import Categories.Category.Core
+  src/Categories/Category/Construction/Kleisli/Discrete.agda:13 kept | open import Categories.Category.Helper
+  src/Categories/Category/Construction/Kleisli/Discrete.agda:14 kept | open import Categories.Category.Monoidal
+  src/Categories/Category/Construction/Kleisli/Discrete.agda:15 kept | open import Categories.Category.Monoidal.Symmetric
+  src/Categories/Category/Construction/Kleisli/Discrete.agda:16 kept | open import Categories.Functor.Bifunctor
+  src/Categories/Category/Construction/Kleisli/Discrete.agda:17 kept | open import Categories.Monad.Discrete
+  src/Categories/Category/Construction/Kleisli/Discrete.agda:18 kept | open import Categories.NaturalTransformation.NaturalIsomorphism using 
+  src/Categories/Category/Construction/Kleisli/Discrete.agda:20 kept | open import Data.Product
+  src/Categories/Category/Construction/Kleisli/Discrete.agda:21 kept | open import Data.Unit.Polymorphic
+  src/Categories/Category/Construction/Kleisli/Discrete.agda:22 kept | open import Function.Base
+  src/Categories/Category/Construction/Kleisli/Discrete.agda:23 kept | open import Level
+  src/Categories/Category/Construction/Kleisli/Discrete.agda:24 kept | open import Relation.Binary using (IsEquivalence)
+  src/Categories/Category/Construction/Kleisli/Discrete.agda:25 kept | open import Relation.Binary.PropositionalEquality
+src/Categories/Category/Construction/Kleisli/Discrete.agda: {'kept': 13}
+  src/Categories/Category/Construction/Kleisli/Discrete/Distributive.agda:3 kept | open import Categories.Category.Cocartesian
+  src/Categories/Category/Construction/Kleisli/Discrete/Distributive.agda:4 kept | open import Categories.Monad.Discrete
+  src/Categories/Category/Construction/Kleisli/Discrete/Distributive.agda:6 kept | import Categories.Category.Construction.Kleisli.Discrete as KD
+  src/Categories/Category/Construction/Kleisli/Discrete/Distributive.agda:7 kept | import Categories.Category.Monoidal.Distributive as MD
+  src/Categories/Category/Construction/Kleisli/Discrete/Distributive.agda:9 kept | open import Data.Empty.Polymorphic
+  src/Categories/Category/Construction/Kleisli/Discrete/Distributive.agda:10 kept | open import Data.Product.Algebra
+  src/Categories/Category/Construction/Kleisli/Discrete/Distributive.agda:11 kept | open import Data.Product.Base
+  src/Categories/Category/Construction/Kleisli/Discrete/Distributive.agda:12 kept | open import Data.Sum.Base
+  src/Categories/Category/Construction/Kleisli/Discrete/Distributive.agda:13 kept | open import Function.Bundles
+src/Categories/Category/Construction/Kleisli/Discrete/Distributive.agda: {'kept': 9}
+  src/Categories/Category/Construction/Kleisli/Discrete/Pure.agda:8 kept | open import Categories.Category.Monoidal.Pure
+  src/Categories/Category/Construction/Kleisli/Discrete/Pure.agda:9 kept | open import Categories.Monad.Discrete
+  src/Categories/Category/Construction/Kleisli/Discrete/Pure.agda:11 kept | import Categories.Category.Construction.Kleisli.Discrete as KD
+  src/Categories/Category/Construction/Kleisli/Discrete/Pure.agda:13 kept | open import Data.Product.Base
+  src/Categories/Category/Construction/Kleisli/Discrete/Pure.agda:14 kept | open import Data.Sum.Base using (inj₁; inj₂; [_,_])
+  src/Categories/Category/Construction/Kleisli/Discrete/Pure.agda:15 kept | open import Data.Unit.Polymorphic.Base
+  src/Categories/Category/Construction/Kleisli/Discrete/Pure.agda:16 kept | open import Function.Base
+src/Categories/Category/Construction/Kleisli/Discrete/Pure.agda: {'kept': 7}
+  src/Categories/Category/Construction/Kleisli/Distributive.agda:6 kept | open import Categories.Category.Cocartesian
+  src/Categories/Category/Construction/Kleisli/Distributive.agda:7 kept | open import Categories.Category.Construction.Kleisli
+  src/Categories/Category/Construction/Kleisli/Distributive.agda:8 kept | open import Categories.Category.Core
+  src/Categories/Category/Construction/Kleisli/Distributive.agda:9 kept | open import Categories.Category.Monoidal.Bundle
+  src/Categories/Category/Construction/Kleisli/Distributive.agda:10 kept | open import Categories.Category.Monoidal.Construction.Kleisli
+  src/Categories/Category/Construction/Kleisli/Distributive.agda:11 kept | open import Categories.Category.Monoidal.Construction.Kleisli.Symmetri
+  src/Categories/Category/Construction/Kleisli/Distributive.agda:12 kept | open import Categories.Monad using (Monad)
+  src/Categories/Category/Construction/Kleisli/Distributive.agda:13 kept | open import Categories.Monad.Commutative
+  src/Categories/Category/Construction/Kleisli/Distributive.agda:14 kept | open import Categories.Monad.Commutative.Properties
+  src/Categories/Category/Construction/Kleisli/Distributive.agda:15 kept | import Categories.Category.Monoidal.Distributive as MD
+  src/Categories/Category/Construction/Kleisli/Distributive.agda:16 kept | import Categories.Category.Monoidal.Reasoning as ⊗R
+  src/Categories/Category/Construction/Kleisli/Distributive.agda:17 kept | import Categories.Morphism.Reasoning as MR
+  src/Categories/Category/Construction/Kleisli/Distributive.agda:19 kept | open import Level
+src/Categories/Category/Construction/Kleisli/Distributive.agda: {'kept': 13}
+  src/Categories/Category/Distributive/Monoidal.agda:6 kept | open import Categories.Category.Cartesian.Monoidal
+  src/Categories/Category/Distributive/Monoidal.agda:7 kept | open import Categories.Category.Core
+  src/Categories/Category/Distributive/Monoidal.agda:8 kept | open import Categories.Category.Distributive
+  src/Categories/Category/Distributive/Monoidal.agda:9 kept | open import Categories.Category.Monoidal.Bundle
+  src/Categories/Category/Distributive/Monoidal.agda:10 kept | import Categories.Category.Cartesian.SymmetricMonoidal as CartesianSym
+  src/Categories/Category/Distributive/Monoidal.agda:11 kept | import Categories.Category.Monoidal.Distributive as MD
+src/Categories/Category/Distributive/Monoidal.agda: {'kept': 6}
+  src/Categories/Category/Monoidal/Distributive.agda:7 kept | open import Categories.Category.Cocartesian
+  src/Categories/Category/Monoidal/Distributive.agda:8 kept | open import Categories.Category.Monoidal.Bundle
+  src/Categories/Category/Monoidal/Distributive.agda:10 kept | import Categories.Morphism as M
+  src/Categories/Category/Monoidal/Distributive.agda:12 kept | open import Level
+src/Categories/Category/Monoidal/Distributive.agda: {'kept': 4}
+  src/Categories/Category/Monoidal/Distributive/Instance/Rels.agda:6 kept | open import Categories.Category.Instance.Rels
+  src/Categories/Category/Monoidal/Distributive/Instance/Rels.agda:7 kept | open import Categories.Category.Monoidal.Bundle
+  src/Categories/Category/Monoidal/Distributive/Instance/Rels.agda:8 kept | open import Categories.Category.Monoidal.Distributive
+  src/Categories/Category/Monoidal/Distributive/Instance/Rels.agda:9 kept | open import Categories.Category.Monoidal.Instance.Rels
+  src/Categories/Category/Monoidal/Distributive/Instance/Rels.agda:11 kept | open import Data.Empty.Polymorphic
+  src/Categories/Category/Monoidal/Distributive/Instance/Rels.agda:12 kept | open import Data.Product
+  src/Categories/Category/Monoidal/Distributive/Instance/Rels.agda:13 kept | open import Data.Sum
+  src/Categories/Category/Monoidal/Distributive/Instance/Rels.agda:14 kept | open import Level
+  src/Categories/Category/Monoidal/Distributive/Instance/Rels.agda:15 kept | open import Relation.Binary.PropositionalEquality
+src/Categories/Category/Monoidal/Distributive/Instance/Rels.agda: {'kept': 9}
+  src/Categories/Category/Monoidal/Distributive/Properties.agda:3 kept | open import Categories.Category.Monoidal.Bundle
+  src/Categories/Category/Monoidal/Distributive/Properties.agda:4 kept | import Categories.Category.Monoidal.Distributive as MD
+  src/Categories/Category/Monoidal/Distributive/Properties.agda:13 kept | open import Categories.Category.Monoidal.Reasoning monoidal
+  src/Categories/Category/Monoidal/Distributive/Properties.agda:14 kept | open import Categories.Morphism.Reasoning U
+src/Categories/Category/Monoidal/Distributive/Properties.agda: {'kept': 4}
+  src/Categories/Category/Monoidal/Properties/Ext.agda:14 kept | open import Categories.Category
+  src/Categories/Category/Monoidal/Properties/Ext.agda:15 kept | open import Categories.Category.Monoidal.Core
+  src/Categories/Category/Monoidal/Properties/Ext.agda:20 kept | open import Categories.Category.Monoidal.Properties M
+  src/Categories/Category/Monoidal/Properties/Ext.agda:21 kept | open import Categories.Category.Monoidal.Reasoning M
+  src/Categories/Category/Monoidal/Properties/Ext.agda:22 kept | open import Categories.Category.Monoidal.Utilities M
+  src/Categories/Category/Monoidal/Properties/Ext.agda:23 kept | open import Categories.Morphism.Reasoning C
+src/Categories/Category/Monoidal/Properties/Ext.agda: {'kept': 6}
+  src/Categories/Category/Monoidal/Pure.agda:14 kept | open import Categories.Category.Monoidal.Bundle
+  src/Categories/Category/Monoidal/Pure.agda:15 kept | import Categories.Category.Monoidal.Braided.Properties as BraidedProps
+  src/Categories/Category/Monoidal/Pure.agda:16 kept | import Categories.Category.Monoidal.Utilities as MonoidalUtilities
+  src/Categories/Category/Monoidal/Pure.agda:18 kept | open import Level
+src/Categories/Category/Monoidal/Pure.agda: {'kept': 4}
+  src/Categories/Category/Monoidal/Symmetric/Properties/Ext.agda:6 kept | open import Categories.Category
+  src/Categories/Category/Monoidal/Symmetric/Properties/Ext.agda:7 kept | open import Categories.Category.Monoidal.Core
+  src/Categories/Category/Monoidal/Symmetric/Properties/Ext.agda:8 kept | open import Categories.Category.Monoidal.Symmetric
+  src/Categories/Category/Monoidal/Symmetric/Properties/Ext.agda:9 kept | import Categories.Category.Monoidal.Braided.Properties as BraidedProps
+  src/Categories/Category/Monoidal/Symmetric/Properties/Ext.agda:10 kept | import Categories.Category.Monoidal.Utilities as MonoidalUtilities
+  src/Categories/Category/Monoidal/Symmetric/Properties/Ext.agda:12 kept | open import Data.Product.Base
+  src/Categories/Category/Monoidal/Symmetric/Properties/Ext.agda:22 kept | open import Categories.Category.Monoidal.Properties M
+  src/Categories/Category/Monoidal/Symmetric/Properties/Ext.agda:23 kept | open import Categories.Category.Monoidal.Properties.Ext M
+  src/Categories/Category/Monoidal/Symmetric/Properties/Ext.agda:24 kept | open import Categories.Category.Monoidal.Reasoning M
+  src/Categories/Category/Monoidal/Symmetric/Properties/Ext.agda:25 kept | open import Categories.Morphism.Reasoning C
+src/Categories/Category/Monoidal/Symmetric/Properties/Ext.agda: {'kept': 10}
+  src/Categories/Category/Monoidal/Traced/Ext.agda:9 kept | open import Categories.Category
+  src/Categories/Category/Monoidal/Traced/Ext.agda:10 kept | open import Categories.Category.Monoidal
+  src/Categories/Category/Monoidal/Traced/Ext.agda:11 kept | open import Categories.Category.Monoidal.Traced
+  src/Categories/Category/Monoidal/Traced/Ext.agda:12 kept | import Categories.Category.Monoidal.Braided.Properties as BProps
+  src/Categories/Category/Monoidal/Traced/Ext.agda:13 kept | import Categories.Category.Monoidal.Utilities as U
+  src/Categories/Category/Monoidal/Traced/Ext.agda:15 kept | open import Level
+  src/Categories/Category/Monoidal/Traced/Ext.agda:62 kept | open import Categories.Category.Monoidal.Reasoning M
+      using (⊗-di
+  src/Categories/Category/Monoidal/Traced/Ext.agda:64 kept | open import Categories.Morphism.Reasoning C
+  src/Categories/Category/Monoidal/Traced/Ext.agda:65 kept | open import Data.Product
+src/Categories/Category/Monoidal/Traced/Ext.agda: {'kept': 9}
+  src/Categories/GConstructionEmbedding.agda:15 kept | open import Categories.Category
+  src/Categories/GConstructionEmbedding.agda:16 kept | open import Categories.Category.Monoidal
+  src/Categories/GConstructionEmbedding.agda:17 kept | open import Categories.Category.Monoidal.Traced
+  src/Categories/GConstructionEmbedding.agda:18 kept | import Categories.Category.Monoidal.Traced.Ext as TE
+  src/Categories/GConstructionEmbedding.agda:19 kept | open import Categories.GConstruction
+  src/Categories/GConstructionEmbedding.agda:21 kept | open import Data.Product
+  src/Categories/GConstructionEmbedding.agda:23 kept | import Categories.Category.Monoidal.Braided.Properties as BProps
+  src/Categories/GConstructionEmbedding.agda:24 kept | import Categories.Category.Monoidal.Utilities as U
+  src/Categories/GConstructionEmbedding.agda:25 kept | import Categories.GConstructionEmbeddingCoherence as ECoh
+  src/Categories/GConstructionEmbedding.agda:26 kept | import Categories.Morphism as Mor
+src/Categories/GConstructionEmbedding.agda: {'kept': 10}
+  src/Categories/GConstructionEmbeddingCoherence.agda:14 kept | open import Level
+  src/Categories/GConstructionEmbeddingCoherence.agda:16 kept | open import Categories.Category.Monoidal.Bundle
+  src/Categories/GConstructionEmbeddingCoherence.agda:17 kept | open import Categories.Functor using (Functor)
+  src/Categories/GConstructionEmbeddingCoherence.agda:18 kept | open import Data.Fin using (Fin)
+  src/Categories/GConstructionEmbeddingCoherence.agda:19 kept | open import Data.Fin.Patterns
+  src/Categories/GConstructionEmbeddingCoherence.agda:20 kept | open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
+  src/Categories/GConstructionEmbeddingCoherence.agda:21 kept | open import Relation.Binary.Definitions
+  src/Categories/GConstructionEmbeddingCoherence.agda:22 PRUNED drop whole import (rows 22-22) | open import Relation.Binary.PropositionalEquality
+  src/Categories/GConstructionEmbeddingCoherence.agda:22 kept | open import Relation.Nullary
+  src/Categories/GConstructionEmbeddingCoherence.agda:24 kept | open import Categories.APROP
+  src/Categories/GConstructionEmbeddingCoherence.agda:25 PRUNED drop whole import (rows 25-25) | open import Categories.FreeMonoidal
+  src/Categories/GConstructionEmbeddingCoherence.agda:26 kept | import Categories.APROP.Hypergraph.Solver.Frontend as Interp
+  src/Categories/GConstructionEmbeddingCoherence.agda:69 kept | open import Categories.APROP.Hypergraph.Solver.Split sig
+    using () 
+  src/Categories/GConstructionEmbeddingCoherence.agda:131 kept | open import Categories.APROP.Hypergraph.Solver.Split sig
+    using () 
+src/Categories/GConstructionEmbeddingCoherence.agda: {'kept': 12, 'pruned': 2}
+  src/Categories/GConstructionHomCoherence.agda:15 kept | open import Level
+  src/Categories/GConstructionHomCoherence.agda:17 kept | open import Categories.Category
+  src/Categories/GConstructionHomCoherence.agda:18 kept | open import Categories.Category.Monoidal.Bundle
+  src/Categories/GConstructionHomCoherence.agda:19 kept | open import Categories.Category.Monoidal.Symmetric
+  src/Categories/GConstructionHomCoherence.agda:20 kept | open import Categories.Functor using (Functor)
+  src/Categories/GConstructionHomCoherence.agda:21 kept | open import Data.Fin using (Fin; suc)
+  src/Categories/GConstructionHomCoherence.agda:22 kept | open import Data.Fin.Patterns
+  src/Categories/GConstructionHomCoherence.agda:23 kept | open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
+  src/Categories/GConstructionHomCoherence.agda:24 kept | open import Relation.Binary.Definitions
+  src/Categories/GConstructionHomCoherence.agda:25 PRUNED drop whole import (rows 25-25) | open import Relation.Binary.PropositionalEquality
+  src/Categories/GConstructionHomCoherence.agda:25 kept | open import Relation.Nullary
+  src/Categories/GConstructionHomCoherence.agda:27 kept | open import Categories.APROP
+  src/Categories/GConstructionHomCoherence.agda:28 PRUNED drop whole import (rows 28-28) | open import Categories.FreeMonoidal
+  src/Categories/GConstructionHomCoherence.agda:29 kept | import Categories.APROP.Hypergraph.Solver.Frontend as Interp
+  src/Categories/GConstructionHomCoherence.agda:30 kept | import Categories.Category.Monoidal.Interchange.Braided as IB
+  src/Categories/GConstructionHomCoherence.agda:31 kept | import Categories.Category.Monoidal.Interchange.Symmetric as IS
+  src/Categories/GConstructionHomCoherence.agda:65 kept | open import Categories.APROP.Hypergraph.Solver.Split sig
+  using () re
+  src/Categories/GConstructionHomCoherence.agda:67 kept | open import Categories.Morphism.Reasoning FreeMonoidal
+src/Categories/GConstructionHomCoherence.agda: {'kept': 16, 'pruned': 2}
+  src/Categories/GConstructionLoop.agda:8 kept | open import Categories.Category
+  src/Categories/GConstructionLoop.agda:9 kept | open import Categories.Category.Monoidal
+  src/Categories/GConstructionLoop.agda:10 kept | open import Categories.Category.Monoidal.Traced
+  src/Categories/GConstructionLoop.agda:11 kept | import Categories.Category.Monoidal.Traced.Ext as TE
+  src/Categories/GConstructionLoop.agda:16 kept | import Categories.Category.Monoidal.Utilities as U
+  src/Categories/GConstructionLoop.agda:17 kept | import Categories.GConstructionTrace as GT
+src/Categories/GConstructionLoop.agda: {'kept': 6}
+  src/Categories/GConstructionMonoidal.agda:14 kept | open import Categories.Category
+  src/Categories/GConstructionMonoidal.agda:15 kept | open import Categories.Category.Monoidal
+  src/Categories/GConstructionMonoidal.agda:16 kept | open import Categories.Category.Monoidal.Traced
+  src/Categories/GConstructionMonoidal.agda:17 kept | import Categories.Category.Monoidal.Traced.Ext as TE
+  src/Categories/GConstructionMonoidal.agda:18 kept | open import Categories.GConstruction
+  src/Categories/GConstructionMonoidal.agda:19 kept | open import Categories.GConstructionEmbedding
+  src/Categories/GConstructionMonoidal.agda:21 kept | open import Data.Product
+  src/Categories/GConstructionMonoidal.agda:23 kept | import Categories.Category.Monoidal.Braided.Properties as BProps
+  src/Categories/GConstructionMonoidal.agda:24 kept | import Categories.Category.Monoidal.Utilities as U
+  src/Categories/GConstructionMonoidal.agda:25 kept | import Categories.GConstructionHomCoherence as HCoh
+  src/Categories/GConstructionMonoidal.agda:26 kept | import Categories.GConstructionLoop as GL
+  src/Categories/GConstructionMonoidal.agda:27 kept | import Categories.GConstructionTrace as GT
+src/Categories/GConstructionMonoidal.agda: {'kept': 12}
+  src/Categories/GConstructionTrace.agda:11 kept | open import Categories.Category
+  src/Categories/GConstructionTrace.agda:12 kept | open import Categories.Category.Monoidal
+  src/Categories/GConstructionTrace.agda:13 kept | open import Categories.Category.Monoidal.Traced
+  src/Categories/GConstructionTrace.agda:14 kept | import Categories.Category.Monoidal.Traced.Ext as TE
+  src/Categories/GConstructionTrace.agda:20 kept | import Categories.Category.Monoidal.Braided.Properties as BProps
+  src/Categories/GConstructionTrace.agda:21 kept | import Categories.Category.Monoidal.Interchange.Braided as IB
+  src/Categories/GConstructionTrace.agda:22 kept | import Categories.Category.Monoidal.Interchange.Symmetric as IS
+  src/Categories/GConstructionTrace.agda:23 kept | import Categories.Category.Monoidal.Utilities as U
+  src/Categories/GConstructionTrace.agda:24 kept | import Categories.GConstructionIdentityCoherence as GCohId
+  src/Categories/GConstructionTrace.agda:25 kept | import Categories.GConstructionTraceCoherence as TCoh
+  src/Categories/GConstructionTrace.agda:81 kept | open import Categories.Category.Construction.Core C
+  src/Categories/GConstructionTrace.agda:82 kept | open import Categories.Category.Monoidal.Properties Monoidal
+  src/Categories/GConstructionTrace.agda:83 kept | open import Categories.Category.Monoidal.Reasoning Monoidal using (⊗-d
+  src/Categories/GConstructionTrace.agda:84 kept | open import Categories.Category.Monoidal.Symmetric.Properties.Ext symm
+  src/Categories/GConstructionTrace.agda:85 kept | open import Categories.Category.Monoidal.Utilities Monoidal using (_⊗ᵢ
+  src/Categories/GConstructionTrace.agda:86 kept | open import Categories.Morphism C
+  src/Categories/GConstructionTrace.agda:87 kept | open import Categories.Morphism.IsoEquiv C
+  src/Categories/GConstructionTrace.agda:88 kept | open import Categories.Morphism.Reasoning C hiding (introˡ; pullʳ; eli
+  src/Categories/GConstructionTrace.agda:89 kept | open import Categories.Tactic.Category
+src/Categories/GConstructionTrace.agda: {'kept': 19}
+  src/Categories/GConstructionTraceCoherence.agda:10 kept | open import Level
+  src/Categories/GConstructionTraceCoherence.agda:12 kept | open import Categories.Category.Monoidal.Bundle
+  src/Categories/GConstructionTraceCoherence.agda:13 kept | open import Categories.Functor using (Functor)
+  src/Categories/GConstructionTraceCoherence.agda:14 kept | open import Data.Fin using (Fin)
+  src/Categories/GConstructionTraceCoherence.agda:15 kept | open import Data.Fin.Patterns
+  src/Categories/GConstructionTraceCoherence.agda:16 kept | open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
+  src/Categories/GConstructionTraceCoherence.agda:17 kept | open import Relation.Binary.Definitions
+  src/Categories/GConstructionTraceCoherence.agda:18 PRUNED drop whole import (rows 18-18) | open import Relation.Binary.PropositionalEquality
+  src/Categories/GConstructionTraceCoherence.agda:18 kept | open import Relation.Nullary
+  src/Categories/GConstructionTraceCoherence.agda:20 kept | open import Categories.APROP
+  src/Categories/GConstructionTraceCoherence.agda:21 PRUNED drop whole import (rows 21-21) | open import Categories.FreeMonoidal
+  src/Categories/GConstructionTraceCoherence.agda:22 kept | import Categories.APROP.Hypergraph.Solver.Frontend as Interp
+  src/Categories/GConstructionTraceCoherence.agda:57 kept | open import Categories.APROP.Hypergraph.Solver.Split sig
+  using () re
+src/Categories/GConstructionTraceCoherence.agda: {'kept': 11, 'pruned': 2}
+  src/Categories/GradedKleisli/Coherence.agda:8 kept | open import Level
+  src/Categories/GradedKleisli/Coherence.agda:10 PRUNED drop whole import (rows 10-10) | open import Categories.Category
+  src/Categories/GradedKleisli/Coherence.agda:10 kept | open import Categories.Category.Monoidal
+  src/Categories/GradedKleisli/Coherence.agda:11 kept | open import Categories.Coherence.Monoidal.Tactic
+  src/Categories/GradedKleisli/Coherence.agda:16 kept | open import Categories.Category.Monoidal.Utilities monoidal
+src/Categories/GradedKleisli/Coherence.agda: {'kept': 4, 'pruned': 1}
+  src/Categories/Monad/Construction/Kleisli/Ext.agda:10 kept | open import Level
+  src/Categories/Monad/Construction/Kleisli/Ext.agda:12 kept | open import Categories.Category

@@ -1,0 +1,255 @@
+{
+ "sweep": "enum-with",
+ "root": ".claude/worktrees/quality-R3D-sweep",
+ "files": {
+  "src/Categories/Category/Cocartesian/Ext.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Construction/Kleisli/Discrete.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Construction/Kleisli/Discrete/Distributive.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Construction/Kleisli/Discrete/Pure.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Construction/Kleisli/Distributive.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Distributive/Monoidal.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Monoidal/Distributive.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Monoidal/Distributive/Instance/Rels.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Monoidal/Distributive/Properties.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Monoidal/Properties/Ext.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Monoidal/Pure.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Monoidal/Symmetric/Properties/Ext.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Monoidal/Traced/Ext.agda": {
+   "sites": []
+  },
+  "src/Categories/GConstructionEmbedding.agda": {
+   "sites": []
+  },
+  "src/Categories/GConstructionEmbeddingCoherence.agda": {
+   "sites": []
+  },
+  "src/Categories/GConstructionHomCoherence.agda": {
+   "sites": []
+  },
+  "src/Categories/GConstructionLoop.agda": {
+   "sites": []
+  },
+  "src/Categories/GConstructionMonoidal.agda": {
+   "sites": []
+  },
+  "src/Categories/GConstructionTrace.agda": {
+   "sites": []
+  },
+  "src/Categories/GConstructionTraceCoherence.agda": {
+   "sites": []
+  },
+  "src/Categories/GradedKleisli/Coherence.agda": {
+   "sites": []
+  },
+  "src/Categories/Monad/Construction/Kleisli/Ext.agda": {
+   "sites": []
+  },
+  "src/Categories/Monad/Discrete.agda": {
+   "sites": []
+  },
+  "src/Categories/Monad/Graded/Trivial.agda": {
+   "sites": []
+  },
+  "src/Categories/Monad/Setoids/Discrete.agda": {
+   "sites": []
+  },
+  "src/Categories/Monad/Setoids/Discrete/Morphism.agda": {
+   "sites": []
+  },
+  "src/Categories/Monad/Setoids/Maybe.agda": {
+   "sites": []
+  },
+  "src/Class/DecEq/Ext.agda": {
+   "sites": []
+  },
+  "src/Data/Bits/Codec.agda": {
+   "sites": []
+  },
+  "src/Data/Bool/Properties/Ext.agda": {
+   "sites": []
+  },
+  "src/Data/List/Relation/Binary/BagAndSetEquality/Ext.agda": {
+   "sites": []
+  },
+  "src/Data/List/Relation/Unary/Any/Properties/Ext.agda": {
+   "sites": []
+  },
+  "src/Data/List/Run.agda": {
+   "sites": [
+    {
+     "line": 24,
+     "with": "with step v l",
+     "clause": "runPath v (l ∷ ls) with step v l"
+    },
+    {
+     "line": 29,
+     "with": "with step r l",
+     "clause": "runPath-single r l with step r l"
+    },
+    {
+     "line": 41,
+     "with": "with step r l | e",
+     "clause": "runPath-cons-inv r l ls t e with step r l | e"
+    }
+   ]
+  },
+  "src/Data/Rational/LowerReal.agda": {
+   "sites": []
+  },
+  "src/Data/Vec/Properties/Ext.agda": {
+   "sites": []
+  },
+  "src/Function/Bundles/Ext.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Advantage.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Setoid.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Support.agda": {
+   "sites": [
+    {
+     "line": 144,
+     "with": "with P a",
+     "clause": "χ-pos P a with P a"
+    },
+    {
+     "line": 278,
+     "with": "with e (χ id)",
+     "clause": "pad-not-perfect e with e (χ id)"
+    },
+    {
+     "line": 332,
+     "with": "with trans (sym head-true) (trans (e id) tail-false)",
+     "clause": "differ e with trans (sym head-true) (trans (e id) tail-false)"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Collision.agda": {
+   "sites": [
+    {
+     "line": 52,
+     "with": "with h ≟ g",
+     "clause": "1≤countMatch {h} (g ∷ gs) (here refl) with h ≟ g"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda": {
+   "sites": [
+    {
+     "line": 56,
+     "with": "with h ≟ g",
+     "clause": "memb-∈ (g ∷ gs) h e with h ≟ g"
+    },
+    {
+     "line": 61,
+     "with": "with h ≟ g",
+     "clause": "memb-∉ (g ∷ gs) h e (here p)    with h ≟ g"
+    },
+    {
+     "line": 64,
+     "with": "with h ≟ g",
+     "clause": "memb-∉ (g ∷ gs) h e (there mem) with h ≟ g"
+    },
+    {
+     "line": 69,
+     "with": "with memb h hs in e",
+     "clause": "indicator-≤ hs h with memb h hs in e"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Advantage.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Coin.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Commutative.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Dominate.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Elgot.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Iter.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Codiagonal.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Out.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Transfer.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Mass.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Reasoning.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Settle.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Settle/Iter.agda": {
+   "sites": []
+  },
+  "src/Relation/Binary/Bundles/Ext.agda": {
+   "sites": []
+  },
+  "src/Relation/Binary/Properties/Setoid/Ext.agda": {
+   "sites": []
+  }
+ },
+ "totalChecks": 0
+}
