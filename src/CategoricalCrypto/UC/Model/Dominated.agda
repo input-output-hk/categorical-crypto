@@ -1,10 +1,10 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- `UC.Machine.Bridge.ContextDominated` at SEAL objects, and its proof.
+-- `UC.Machine.Dominated.dominated` at SEAL objects.
 --
 -- The bridge quantifies its ancilla over `Iface` and `UC.Family._≈ℰ[_]_` over
 -- objects of the seal; `UC.Model.Seal.objᵒ` is a section of `ifaceᵒ`, so the
--- two quantifiers agree and `dominatedᵒ` is `dominated` read at `objᵒ X`.
+-- two quantifiers agree and `dominatedᵍᵠ` is `dominated` read at `objᵒ X`.
 
 open import Categories.Category
 open import Categories.Category.Monoidal.Bundle
@@ -97,35 +97,14 @@ private
 
 -- `UC.Machine.Dominated.dominated` with its ancilla quantified over the
 -- seal's objects and its rates read off `gradingᵒ`: the shape
--- `UC.Family._≈ℰ[_]_` presents at one level.  The hole is at the trivial grade
--- and the compared processes are closed, exactly as there.  At a positive
--- closure rate the machine layer's guarded allowance `scale c (positive c′)`
--- is the product of the two rates (`value-positive`).
-dominatedᵒ :
-    (B : Iface) (X : G.Obj)
-    (E : X G.⊗₀ (𝟘ᵒ G.⊗₀ ifaceᵒ B) G.⇒ Ωᵒ) (m : 𝟘ᵒ G.⇒ X G.⊗₀ 𝟘ᵒ)
-    {c c′ : ℕ⁺} → Image forget c E → Image forget c′ m
-  → (u v : Proc unitᴵ B) (ε δ : ℚ) → 0ℚ ℚ.< δ
-  → ((d : Strat (Neg B) (Pos B)) → asks≤ (value (c · c′)) d
-     → runᴹ u d ≈ₚ[ ε ] runᴹ v d)
-  → Obs ((E G.∘ T₁ᵒ X (gradedᵒ (conjᴵ u))) G.∘ m)
-    ≈ₚ[ ε ℚ.+ δ ] Obs ((E G.∘ T₁ᵒ X (gradedᵒ (conjᴵ v))) G.∘ m)
-dominatedᵒ B X E m {c} {c′} qE qm u v ε δ 0<δ h =
-  ≈ₚ[]-resp (≈ₚ-sym _ _ (ctxRunᵒ X E m (conjᴵ u)))
-            (≈ₚ-sym _ _ (ctxRunᵒ X E m (conjᴵ v)))
-            (dominated B (objᵒ X) (untestᵒ X E) (unclosᵒ X m)
-                       (unqb-testᵒ X qE) (unqb-closᵒ X qm) u v ε δ 0<δ (guard {c} {c′} h))
-
-------------------------------------------------------------------------
--- …and at a nontrivial grade
-
--- `dominatedᵒ` at a hole that is a real grade rather than `𝟘ᵒ`.
--- so a grade beside it is already inside the statement, and `ctxRunᵒ` crosses
--- the seal at an arbitrary grade.  What is in the way is the unitor `conjᴵ`
--- leaves in front of the process, and `UC.Machine.Slide.ctxRun-conj` cancels
--- it.  That unitor costs the test one activation, and `*-identityʳ` takes the
--- product back to the test's own rate, so the hypothesis is read at
--- `value (c · c′)` exactly as `dominatedᵒ`'s is.
+-- `UC.Family._≈ℰ[_]_` presents at one level, at a hole that is a real grade.
+-- `ctxRunᵒ` crosses the seal at an arbitrary grade; what is in the way is the
+-- unitor `conjᴵ` leaves in front of the process, and
+-- `UC.Machine.Slide.ctxRun-conj` cancels it.  That unitor costs the test one
+-- activation, and `*-identityʳ` takes the product back to the test's own rate.
+-- At a positive closure rate the machine layer's guarded allowance
+-- `scale c (positive c′)` is the product of the two rates (`value-positive`),
+-- so the hypothesis is read at `value (c · c′)`.
 dominatedᵍᵠ : {P B : Iface} (W : G.Obj)
               (E : W G.⊗₀ (ifaceᵒ P G.⊗₀ ifaceᵒ B) G.⇒ Ωᵒ) (m : 𝟘ᵒ G.⇒ W G.⊗₀ 𝟘ᵒ)
               {c c′ : ℕ⁺} → Image forget c E → Image forget c′ m
