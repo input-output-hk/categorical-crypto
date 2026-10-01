@@ -22,11 +22,9 @@ open import Data.Fin using (Fin; suc)
 open import Data.Fin.Patterns
 open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)
 open import Relation.Binary.Definitions
-open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 
 open import Categories.APROP
-open import Categories.FreeMonoidal
 
 import Categories.APROP.Hypergraph.Solver.Frontend as Interp
 import Categories.Category.Monoidal.Interchange.Braided as IB
