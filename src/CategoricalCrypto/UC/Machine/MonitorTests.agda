@@ -5,7 +5,7 @@ open import Data.Maybe.Base
 open import Data.Product.Base
 open import Data.Sum.Base
 open import Data.Unit.Base
-open import Level using (0ℓ)
+open import Level
 open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Dp

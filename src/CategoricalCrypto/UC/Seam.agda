@@ -13,7 +13,7 @@ open import Data.Bool.Base
 open import Data.Empty
 open import Data.Product.Base
 open import Data.Sum.Base
-open import Data.Unit.Base using (⊤)
+open import Data.Unit.Base
 open import Data.Unit.Polymorphic.Base using (tt)
 open import Level
 

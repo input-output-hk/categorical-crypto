@@ -6,7 +6,7 @@ module CategoricalCrypto.Abstract2.Morphism where
 
 open import Data.Product
 open import Level
-open import Relation.Nullary using (¬_)
+open import Relation.Nullary
 
 open import Categories.Functor.Presheaf.Morphism
 open import Categories.Functor.Properties
