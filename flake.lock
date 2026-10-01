@@ -176,6 +176,7 @@
       },
       "original": {
         "owner": "agda",
+        "ref": "algebraic-solvers",
         "repo": "agda-stdlib-meta",
         "type": "github"
       }
