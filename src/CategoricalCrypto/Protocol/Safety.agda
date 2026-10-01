@@ -19,12 +19,12 @@
 -- (it stops at the first bad state); they differ only on runs that hit and
 -- then diverge (`docs/state-event-contract.md` §1, row 11).
 
-open import Data.Bool.Base using (Bool; true; false)
-open import Data.Maybe.Base using (just)
-open import Data.Nat.Base using (ℕ)
-open import Data.Product.Base using (_×_; _,_)
-open import Data.Rational using (ℚ) renaming (_≤_ to _≤ℚ_)
-open import Data.Rational.Properties using (≤-reflexive; ≤-trans)
+open import Data.Bool.Base
+open import Data.Maybe.Base
+open import Data.Nat.Base
+open import Data.Product.Base
+open import Data.Rational renaming (_≤_ to _≤ℚ_)
+open import Data.Rational.Properties
 open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Distribution.RationalDist
