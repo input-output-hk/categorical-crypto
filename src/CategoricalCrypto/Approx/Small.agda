@@ -12,9 +12,7 @@
 -- every pair admits one — as it is for a bounded observation distance.
 --
 -- `UC.Approximate.Local._∼ᴺ_` IS this relation at the negligible class over
--- rational sequences, and takes its equivalence from here.  The controlled
--- half is `Approx.Small.Controlled`, kept apart so that a consumer of the
--- RELATION does not pay for `SubCategory`.
+-- rational sequences, and takes its equivalence from here.
 
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Functor using (Functor)
