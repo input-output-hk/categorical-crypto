@@ -1,0 +1,140 @@
+{-# OPTIONS --safe --without-K #-}
+
+--------------------------------------------------------------------------------
+-- The φ-naturality of the `extract-elem`/`extract-prefix` search, proved
+-- generically (no APROP, fast).
+--
+-- §1 proves it at the DERIVATION level: for an injective vertex relabel
+-- `φ : Fin nH → Fin nJ`, the search on the relabelled input returns exactly the
+-- `map⁺ φ`-lift of the H-side derivation (`extract-elem-map⁺` /
+-- `extract-prefix-map⁺`, both consumed directly by `Decode.DecodeProperties`).
+--
+-- §2 turns that into the form the strict decoder's per-edge permute twin
+-- consumes: since the result type is a `Maybe (List (Fin nJ) × _)` and
+-- `List (Fin nJ)` has decidable equality (hence UIP), the derivation is PINNED —
+-- whatever `permJ` the caller holds must BE that lift (`extract-prefix-pin`).
+--------------------------------------------------------------------------------
+
+module Categories.Combinatorics.ExtractPrefixEvalPhi where
+
+open import Data.Nat using (ℕ)
+open import Data.Fin using (Fin; _≟_)
+open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.List.Properties using (map-++)
+open import Data.List.Properties.Ext using (≡-irrelevant)
+open import Data.Maybe using (just; nothing)
+open import Data.Maybe.Properties using (just-injective)
+open import Data.Product using (_,_)
+open import Data.Product.Properties using (,-injectiveʳ-UIP)
+import Data.List.Relation.Binary.Permutation.Propositional as Perm
+open Perm using (_↭_)
+import Data.List.Relation.Binary.Permutation.Propositional.Properties as PermProp
+open import Data.Empty using (⊥-elim)
+open import Relation.Nullary using (yes; no)
+open import Relation.Binary.PropositionalEquality
+  using (_≡_; refl; sym; trans; cong; subst)
+open import Axiom.UniquenessOfIdentityProofs using (module Decidable⇒UIP)
+
+open import Categories.Combinatorics.ExtractPrefix using (extract-elem; extract-prefix)
+
+--------------------------------------------------------------------------------
+-- §1.  φ-naturality of the search at the derivation level.
+
+private
+  -- UIP on `Fin` (Hedberg; --without-K-safe via decidable equality).
+  fin-uip : ∀ {l} {a b : Fin l} (p q : a ≡ b) → p ≡ q
+  fin-uip {l} = Decidable⇒UIP.≡-irrelevant (_≟_ {l})
+
+  -- `subst` over the codomain of `trans A (prep a B)` pushes into `B`
+  -- (refl-pattern on the codomain equality).  Mentions neither the
+  -- relabelling `f` nor its injectivity, so it sits outside the module
+  -- parameterised by them and is elaborated once.
+  push-subst-cons
+    : ∀ {m} {xs V V' V'' : List (Fin m)} {a : Fin m}
+        (A : xs ↭ a ∷ V) (B : V ↭ V') (e : V' ≡ V'')
+    → subst (λ z → xs ↭ z) (cong (a ∷_) e) (Perm.trans A (Perm.prep a B))
+      ≡ Perm.trans A (Perm.prep a (subst (λ z → V ↭ z) e B))
+  push-subst-cons A B refl = refl
+
+module _ {n m : ℕ} (f : Fin n → Fin m)
+         (f-inj : ∀ {x y} → f x ≡ f y → x ≡ y) where
+
+  -- `map⁺ f` commutes with the head-relabel `subst _ pf Perm.refl` of
+  -- `extract-elem`'s found-at-head branch.
+  map⁺-subst
+    : ∀ {x k : Fin n} (xs : List (Fin n)) (pf : x ≡ k) (pf' : f x ≡ f k)
+    → subst (λ y → (f x ∷ map f xs) ↭ y ∷ map f xs) pf' Perm.refl
+      ≡ PermProp.map⁺ f (subst (λ y → (x ∷ xs) ↭ y ∷ xs) pf Perm.refl)
+  map⁺-subst xs refl pf' rewrite fin-uip pf' refl = refl
+
+  -- `extract-elem` commutes with `map f` at the derivation level.
+  extract-elem-map⁺
+    : ∀ (k : Fin n) (xs rest : List (Fin n)) (p : xs ↭ k ∷ rest)
+    → extract-elem k xs ≡ just (rest , p)
+    → extract-elem (f k) (map f xs) ≡ just (map f rest , PermProp.map⁺ f p)
+  extract-elem-map⁺ k []       rest p ()
+  extract-elem-map⁺ k (x ∷ xs) rest p eq with x ≟ k
+  extract-elem-map⁺ k (x ∷ xs) rest p eq | yes pf with eq
+  ... | refl with f x ≟ f k
+  ...   | yes pf' = cong (λ d → just (map f xs , d)) (map⁺-subst xs pf pf')
+  ...   | no ¬pf' = ⊥-elim (¬pf' (cong f pf))
+  extract-elem-map⁺ k (x ∷ xs) rest p eq | no ¬xk
+      with extract-elem k xs in eq-inner
+  ... | nothing with eq
+  ...   | ()
+  extract-elem-map⁺ k (x ∷ xs) rest p eq | no ¬xk
+      | just (rest' , p') with eq
+  ... | refl with f x ≟ f k
+  ...   | yes fxk = ⊥-elim (¬xk (f-inj fxk))
+  ...   | no _ rewrite extract-elem-map⁺ k xs rest' p' eq-inner = refl
+
+  -- `extract-prefix` commutes with `map f` at the derivation level (modulo the
+  -- `map-++` identification of the residual codomain).
+  extract-prefix-map⁺
+    : ∀ (ks xs rest : List (Fin n)) (p : xs ↭ ks ++ rest)
+    → extract-prefix ks xs ≡ just (rest , p)
+    → extract-prefix (map f ks) (map f xs)
+      ≡ just (map f rest ,
+              subst (λ z → map f xs ↭ z) (map-++ f ks rest) (PermProp.map⁺ f p))
+  extract-prefix-map⁺ []       xs rest p eq with eq
+  ... | refl = refl
+  extract-prefix-map⁺ (k ∷ ks) xs rest p eq with extract-elem k xs in eq-elem
+  ... | nothing with eq
+  ...   | ()
+  extract-prefix-map⁺ (k ∷ ks) xs rest p eq | just (xs' , p-e)
+      with extract-prefix ks xs' in eq-pre
+  ...   | nothing with eq
+  ...     | ()
+  extract-prefix-map⁺ (k ∷ ks) xs rest p eq | just (xs' , p-e)
+      | just (rest' , q-pre) with eq
+  ...     | refl
+            rewrite extract-elem-map⁺ k xs xs' p-e eq-elem
+                  | extract-prefix-map⁺ ks xs' rest' q-pre eq-pre =
+            cong (λ d → just (map f rest' , d))
+              (sym (push-subst-cons (PermProp.map⁺ f p-e) (PermProp.map⁺ f q-pre)
+                                    (map-++ f ks rest')))
+
+--------------------------------------------------------------------------------
+-- §2.  The pinned derivation.
+--
+-- `extract-prefix-map⁺` says the relabelled search *produces* the `map⁺ φ`-lift
+-- of the H-side derivation.  Since `extract-prefix`'s result is a `Maybe` pair
+-- and the index type is a `List (Fin nJ)` (decidable, hence UIP), that pins the
+-- SECOND component too: any `permJ` the caller happens to be holding IS
+-- `map⁺ φ permH` transported along `map-++`.
+
+module _ {nH nJ : ℕ}
+         (φ : Fin nH → Fin nJ) (φ-inj : ∀ {x y} → φ x ≡ φ y → x ≡ y) where
+
+  extract-prefix-pin
+    : ∀ (ks xs rest : List (Fin nH))
+        (permH : xs ↭ ks ++ rest)
+        (permJ : map φ xs ↭ map φ ks ++ map φ rest)
+    → extract-prefix ks xs ≡ just (rest , permH)
+    → extract-prefix (map φ ks) (map φ xs) ≡ just (map φ rest , permJ)
+    → permJ ≡ subst (λ z → map φ xs ↭ z) (map-++ φ ks rest)
+                    (PermProp.map⁺ φ permH)
+  extract-prefix-pin ks xs rest permH permJ eqH eqJ =
+    ,-injectiveʳ-UIP (≡-irrelevant _≟_)
+      (just-injective
+        (trans (sym eqJ) (extract-prefix-map⁺ φ φ-inj ks xs rest permH eqH)))
