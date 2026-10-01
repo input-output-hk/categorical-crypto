@@ -18,25 +18,23 @@
 -- so no schedule is read at a rate no certificate has.  Only the non-tensor part
 -- of the graded subcategory is spent.
 
-open import Categories.Category using (Category)
+open import Categories.Category
 open import Categories.Category.Instance.Rates
 open import Categories.Category.Monoidal.Bundle
-open import Categories.Functor.Presheaf using (Presheaf)
+open import Categories.Functor.Presheaf
 open import Categories.LocallyGraded
 open import Categories.LocallyGraded.SubCategory
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Positive
-open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Product.Base
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
-open import Level using (Level; _⊔_)
+open import Level
 open import Relation.Binary.Morphism.Bundles
 open import Relation.Binary.PropositionalEquality
-  using (_≡_; cong; cong₂; refl; sym; trans)
 
 open import CategoricalCrypto.Approx.Error
-  using (Approximation; OrderedErrorAlgebra; ℚ-ordered; ≈[]-resp₀)
-open import CategoricalCrypto.Approx.Schedule using (pointwise; module Reindexing)
+open import CategoricalCrypto.Approx.Schedule
 
 import CategoricalCrypto.Approx.Controlled as Controlledᴹ
 import CategoricalCrypto.Approx.Filtered as Filteredᴹ
@@ -57,9 +55,9 @@ module Fl = Filteredᴹ Sched ≤⁺-poset
 
 private
   module S = Controlledᴹ Sched
-  open OrderedErrorAlgebra Sched using (_⊑_)
+  open OrderedErrorAlgebra Sched
 
-open Reindexing {I = ℕ⁺} ℚ-ordered using (reindex; reindex-cong)
+open Reindexing {I = ℕ⁺} ℚ-ordered
 
 ------------------------------------------------------------------------
 -- The two absorptions of a rated morphism, as schedule equalities

@@ -18,11 +18,11 @@
 -- `λ n q → ε n (scale q (schedOf s n))`) are instances of composing controlled
 -- maps, not a UC-specific axiom.
 
-open import Data.Product.Base using (_,_; proj₁; proj₂)
-open import Level using (Level; _⊔_)
-open import Relation.Binary.PropositionalEquality using (_≡_; cong; isEquivalence; refl; subst)
+open import Data.Product.Base
+open import Level
+open import Relation.Binary.PropositionalEquality
 
-open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra; Refinement)
+open import CategoricalCrypto.Approx.Error
 
 module CategoricalCrypto.Approx.Schedule where
 

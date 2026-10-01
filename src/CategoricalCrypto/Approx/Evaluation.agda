@@ -11,22 +11,22 @@
 -- `Refinement`; a tier that KEEPS an error witness coarsens by its own class
 -- instead (`UC.Family.Negligible.Evaluationᴺ`).
 
-open import Categories.Category.Core using (Category)
+open import Categories.Category.Core
 
-open import Function.Base using (_∘′_)
-open import Function.Bundles using (Func)
-open import Level using (Level; _⊔_; suc)
-open import Relation.Binary.Bundles using (Setoid)
+open import Function.Base
+open import Function.Bundles
+open import Level
+open import Relation.Binary.Bundles
 open import Relation.Binary.Core using (Rel)
-open import Relation.Binary.Structures using (IsEquivalence)
+open import Relation.Binary.Structures
 
-open import CategoricalCrypto.Approx.Error using (module AllPositive; OrderedErrorAlgebra; Refinement)
-open import CategoricalCrypto.UC.Core using (Evaluation)
+open import CategoricalCrypto.Approx.Error
+open import CategoricalCrypto.UC.Core
 
 module CategoricalCrypto.Approx.Evaluation
   {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe) where
 
-open OrderedErrorAlgebra E using (ε₀)
+open OrderedErrorAlgebra E
 open import CategoricalCrypto.Approx.Space E
 
 private variable

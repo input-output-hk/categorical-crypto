@@ -16,26 +16,26 @@
 -- (`Approx.FilteredTests`) pointwise agreement is not an equation without
 -- funext.
 
-open import Categories.Category using (Category)
+open import Categories.Category
 
 open import Data.Product.Base using (_×_; _,_)
-open import Level using (Level; suc; _⊔_)
-open import Relation.Binary.Bundles using (Poset)
+open import Level
+open import Relation.Binary.Bundles
 open import Relation.Binary.Morphism.Bundles
 open import Relation.Binary.PropositionalEquality using (refl)
-open import Relation.Binary.Structures using (IsEquivalence)
+open import Relation.Binary.Structures
 
 import Relation.Binary.Morphism.Construct.Composition as Comp
 import Relation.Binary.Morphism.Construct.Identity as Id
 
-open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
+open import CategoricalCrypto.Approx.Error
 
 module CategoricalCrypto.Approx.Filtered
   {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe) {i ℓ≈ ℓ≤ : Level} (I : Poset i ℓ≈ ℓ≤) where
 
 open OrderedErrorAlgebra E
 open Poset I using (_≈_; _≤_; module Eq) renaming (Carrier to Ix)
-open PosetHomomorphism using (⟦_⟧; cong)
+open PosetHomomorphism
 open import CategoricalCrypto.Approx.Controlled E
 open import CategoricalCrypto.Approx.Space E
 

@@ -14,15 +14,15 @@
 -- `UC.Approximate.Local._∼ᴺ_` IS this relation at the negligible class over
 -- rational sequences, and takes its equivalence from here.
 
-open import Categories.Category.Instance.Setoids using (Setoids)
-open import Categories.Functor using (Functor)
+open import Categories.Category.Instance.Setoids
+open import Categories.Functor
 
-open import Data.Product.Base using (Σ-syntax; _×_; _,_)
-open import Level using (Level; suc; _⊔_)
-open import Relation.Binary.Bundles using (Setoid)
-open import Relation.Binary.Structures using (IsEquivalence)
+open import Data.Product.Base
+open import Level
+open import Relation.Binary.Bundles
+open import Relation.Binary.Structures
 
-open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
+open import CategoricalCrypto.Approx.Error
 
 module CategoricalCrypto.Approx.Small
   {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe) where

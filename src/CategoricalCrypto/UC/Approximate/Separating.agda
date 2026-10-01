@@ -17,26 +17,21 @@
 
 open import Data.Integer.Base using (+<+)
 open import Data.Nat.Base as ℕ using (ℕ; suc; z≤n; s≤s)
-open import Data.Nat.Poly using (poly-+; poly-const; poly-id)
-open import Data.Product.Base using (_,_)
+open import Data.Nat.Poly
+open import Data.Product.Base
 open import Data.Rational as ℚ
-  using (ℚ; 0ℚ; ½; ∣_∣; 1/_; NonZero; nonNegative; positive; *<*)
 open import Data.Rational.Properties
-  using ( *-cancelˡ-≤-pos; *-inverseʳ; *-monoʳ-≤-nonNeg; +-identityʳ; +-mono-≤
-        ; <-irrefl; <⇒≤; ≤-<-trans
-        ; ≤-reflexive; ≤-trans; 0≤p⇒∣p∣≡p; pos⇒nonZero; positive⁻¹ )
 open import Data.Rational.Properties.Ext
-  using (p≤∣p∣; ∣x-x∣≡0; ∣-∣-comm; ∣-∣-triangle)
 open import Level using (0ℓ)
-open import Relation.Binary.PropositionalEquality using (cong; refl; subst; sym; trans)
-open import Relation.Nullary using (¬_)
+open import Relation.Binary.PropositionalEquality
+open import Relation.Nullary
 
 open import ProbabilisticLogic.Distribution.Uniform
-  using (archimedean; fromℕ; fromℕ-/; fromℕ-mono-≤; 0<fromℕ-suc)
-open import ProbabilisticLogic.Distribution.Uniform.Decay using (_→0)
 
-open import CategoricalCrypto.Approx.Error using (Approximation; ℚ-ordered)
-open import CategoricalCrypto.UC.Approximate using (Negligible)
+open import ProbabilisticLogic.Distribution.Uniform.Decay
+
+open import CategoricalCrypto.Approx.Error
+open import CategoricalCrypto.UC.Approximate
 
 import Data.Nat.Properties as ℕₚ
 

@@ -13,18 +13,17 @@
 -- `UC.Family.Negligible` installs as the family's second observation, so these
 -- are verdicts about that instance's `_≈ℰᴺ_` read at a single context.
 
-open import Data.Nat.Base using (ℕ)
-open import Data.Nat.Properties using (≤-refl)
-open import Data.Product.Base using (_,_)
-open import Data.Rational using (ℚ; 0ℚ)
-open import Relation.Binary.PropositionalEquality using (refl)
-open import Relation.Nullary using (¬_)
+open import Data.Nat.Base
+open import Data.Nat.Properties
+open import Data.Product.Base
+open import Data.Rational
+open import Relation.Binary.PropositionalEquality
+open import Relation.Nullary
 
-open import ProbabilisticLogic.Distribution.Uniform using (inv-pow-2; 0≤inv-pow-2)
+open import ProbabilisticLogic.Distribution.Uniform
 
-open import CategoricalCrypto.UC.Approximate.Decay using (Negligible-≤; negligible-slack)
+open import CategoricalCrypto.UC.Approximate.Decay
 open import CategoricalCrypto.UC.Approximate.Separating
-  using (ℚ-metric; inv-suc; ¬negligible-inv-suc; ≈ᵐ-0; ≈ᵐ-gap)
 
 module CategoricalCrypto.UC.Approximate.LocalTests where
 

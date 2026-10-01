@@ -9,15 +9,15 @@
 -- alongside the coarse one, and a functor into `Approx` transports every
 -- quantitative bound exactly (plan §2.2).
 
-open import Categories.Category using (Category)
-open import Categories.Category.Instance.Setoids using (Setoids)
-open import Categories.Functor using (Functor)
+open import Categories.Category
+open import Categories.Category.Instance.Setoids
+open import Categories.Functor
 
-open import Level using (Level; suc; _⊔_)
-open import Relation.Binary.Bundles using (Setoid)
-open import Relation.Binary.Structures using (IsEquivalence)
+open import Level
+open import Relation.Binary.Bundles
+open import Relation.Binary.Structures
 
-open import CategoricalCrypto.Approx.Error using (Approximation; OrderedErrorAlgebra; ≈[]-resp₀)
+open import CategoricalCrypto.Approx.Error
 
 module CategoricalCrypto.Approx.Space {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe) where
 

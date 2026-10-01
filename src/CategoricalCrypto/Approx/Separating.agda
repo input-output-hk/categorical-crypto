@@ -11,21 +11,21 @@
 -- The plan's own witness is the model-level one; this is the same phenomenon on
 -- the smallest carrier that exhibits it.
 
-open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Product.Base using (Σ-syntax; _,_)
-open import Data.Rational as ℚ using (ℚ; 0ℚ; ∣_∣)
-open import Data.Rational.Properties.Ext using (∣-∣-comm; ∣-∣-triangle; ∣x-x∣≡0)
-open import Level using (0ℓ)
-open import Relation.Binary.Bundles using (Setoid)
-open import Relation.Binary.PropositionalEquality using (refl; subst)
-open import Relation.Nullary using (¬_)
+open import Data.Nat.Base as ℕ
+open import Data.Product.Base
+open import Data.Rational as ℚ
+open import Data.Rational.Properties.Ext
+open import Level
+open import Relation.Binary.Bundles
+open import Relation.Binary.PropositionalEquality
+open import Relation.Nullary
 
-open import ProbabilisticLogic.Distribution.Uniform using (inv-pow-2)
+open import ProbabilisticLogic.Distribution.Uniform
 
-open import CategoricalCrypto.Approx.Error using (Approximation; ℚ-ordered; ℚ-refinement)
-open import CategoricalCrypto.UC.Approximate using (Negligible⇒→0)
-open import CategoricalCrypto.UC.Approximate.Decay using (0<inv-pow-2; negligible-slack)
-open import CategoricalCrypto.UC.Approximate.Separating using (≈ᵐ-0; ≈ᵐ-gap)
+open import CategoricalCrypto.Approx.Error
+open import CategoricalCrypto.UC.Approximate
+open import CategoricalCrypto.UC.Approximate.Decay
+open import CategoricalCrypto.UC.Approximate.Separating
 
 import Data.Nat.Properties as ℕₚ
 import Data.Rational.Properties as ℚₚ

@@ -19,14 +19,14 @@ open import Categories.Category.Monoidal.Bundle
 open import Categories.LocallyGraded.SubCategory
 
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Product.Base using (Σ-syntax; _×_; _,_)
-open import Level using (Level; _⊔_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Data.Product.Base
+open import Level
+open import Relation.Binary.PropositionalEquality
 
-open import CategoricalCrypto.Approx.Error using (ℚ-ordered)
-open import CategoricalCrypto.Approx.Evaluation ℚ-ordered using (QEvaluation)
-open import CategoricalCrypto.UC.Core using (Evaluation; Observable)
-open import CategoricalCrypto.UCSetup using (UCSetup)
+open import CategoricalCrypto.Approx.Error
+open import CategoricalCrypto.Approx.Evaluation ℚ-ordered
+open import CategoricalCrypto.UC.Core
+open import CategoricalCrypto.UCSetup
 
 import CategoricalCrypto.Standard2 as Std2
 import CategoricalCrypto.UC.Family.Negligible as Negᴹ
@@ -41,7 +41,6 @@ module CategoricalCrypto.UC.Family.Negligible.Setup
   (Ix : Set) (κ : Ix → ℕ) (κ-cofinal : (N : ℕ) → Σ[ i ∈ Ix ] N ℕ.≤ κ i) where
 
 open import CategoricalCrypto.UC.Family M qro Rg Ix κ κ-cofinal
-  using (Famᴹ; ucSetup^ω; _≈ℰⁿ_)
 
 private module N = Negᴹ M qro Rg Ix κ κ-cofinal
 
