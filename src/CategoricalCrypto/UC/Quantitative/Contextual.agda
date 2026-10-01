@@ -18,8 +18,8 @@
 -- CLOSURE, which is `pullᵠ`'s control — and `scale-comm`/`scale-·` (as
 -- `Query.absorb-test`/`absorb-closure`) are what makes each of them exact.
 -- `ctx-sub` is the instance at a simulator's action;
--- `UC.Quantitative.Family.≈ctx-ext`/`-pre`/`-dom` are the instances at a
--- continuation, an earlier process and a domain plug.
+-- `UC.Quantitative.Family.≈ctx-ext`/`≈ctx-pre`/`≤UC[]-dom` are the instances
+-- at a continuation, an earlier process and a domain plug.
 
 open import Categories.Category.Instance.Rates
 open import Categories.Category.Monoidal.Bundle
@@ -80,10 +80,7 @@ _≈ᵁᵠ[_]_ {A} {X} {B} f ε g =
   → ⟦ (E ∘ id ⊗₁ f) ∘ m ⟧ A.≈[ ε (value (c · r′)) ] ⟦ (E ∘ id ⊗₁ g) ∘ m ⟧
 
 -- Two pullbacks of tests agreeing on the ADMITTED ones, at the schedule this
--- layer reads: the test's own rate scaled by the closure's.  The
--- bracket a context is written in is not fixed here —
--- `UC.Quantitative.Family._≈ctx[_]_` is the same agreement at `prefixᵒ`, so
--- the two absorptions below serve both.
+-- layer reads: the test's own rate scaled by the closure's.
 Agreeᵠ : (ε : ℕ → ℚ) {C D : Obj} (r r′ : Tᵠ.Test D → Tᵠ.Test C) → Set (ℓ ⊔ e ⊔ ℓa ⊔ qs)
 Agreeᵠ ε {C} {D} r r′ =
   _≈ᵃ[_]_ {X = Tᵠ.filteredᵠ D} {Y = Tᵠ.filteredᵠ C} r (λ q r′ → ε (value (q · r′))) r′
@@ -110,12 +107,8 @@ cast₀ eq m _ _ = obs-resp (∘-resp-≈ˡ eq)
 ctx-refl : {f : A ⇒ X ⊗₀ B} → f ≈ᵁᵠ[ (λ _ → 0ℚ) ] f
 ctx-refl = agree⇒ctx (λ _ → 0ℚ) λ _ → ≈ᵃ-refl
 
--- The schedules are explicit, as they are throughout the existing API
--- (`UC.Quantitative.Family.≈ctx-resp`): a sum of two of them is not
--- recoverable from the goal by unification.
-ctx-sym : (ε : ℕ → ℚ) {f g : A ⇒ X ⊗₀ B} → f ≈ᵁᵠ[ ε ] g → g ≈ᵁᵠ[ ε ] f
-ctx-sym ε h = agree⇒ctx ε λ W → ≈ᵃ-sym (ctx⇒agree ε h W)
-
+-- The schedules are explicit: a sum of two of them is not recoverable from
+-- the goal by unification.
 ctx-trans : (ε δ : ℕ → ℚ) {f g h : A ⇒ X ⊗₀ B}
           → f ≈ᵁᵠ[ ε ] g → g ≈ᵁᵠ[ δ ] h
           → f ≈ᵁᵠ[ (λ q → ε q ℚ.+ δ q) ] h

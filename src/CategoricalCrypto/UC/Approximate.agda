@@ -10,6 +10,7 @@
 open import Data.Integer.Base using (+_)
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly using (Poly; poly-const)
+open import Data.Nat.Positive
 open import Data.Nat.Properties using (m≤m⊔n; m≤n⊔m; ≤-trans)
 open import Data.Product.Base using (_,_)
 open import Data.Rational as ℚ using (ℚ; 0ℚ; ½; _/_)
@@ -115,3 +116,10 @@ GradedBound-reindex : (G : Grade) (r : ℕ → ℕ → ℕ)
                     → (ε : ℕ → ℕ → ℚ) → GradedBound G ε
                     → GradedBound G (λ n q → ε n (r n q))
 GradedBound-reindex _ r pres _ b p Pp = b (λ n → r n (p n)) (pres p Pp)
+
+-- …at `Negligible` along `scale _ r`, which is polynomial in its allowance
+-- whenever `r` is.
+NegligibleBound-scale : (r : ℕ → ℕ⁺) → Poly⁺ r → (ε : ℕ → ℕ → ℚ)
+                      → NegligibleBound ε → NegligibleBound (λ n q → ε n (scale q (r n)))
+NegligibleBound-scale r Pr =
+  GradedBound-reindex Negligible (λ n q → scale q (r n)) (λ p Pp → poly-scale {p} {r} Pp Pr)
