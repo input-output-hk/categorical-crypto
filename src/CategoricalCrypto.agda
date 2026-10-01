@@ -65,7 +65,6 @@ open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Protocol.Safety
 open import CategoricalCrypto.Approx.FilteredTests
 open import CategoricalCrypto.Approx.Separating
-open import CategoricalCrypto.Approx.Small.Controlled
 open import CategoricalCrypto.UC.Approximate.LocalTests
 open import CategoricalCrypto.UC.Machine.EventBounds.Transport
 open import CategoricalCrypto.UC.Machine.MonitorTests
