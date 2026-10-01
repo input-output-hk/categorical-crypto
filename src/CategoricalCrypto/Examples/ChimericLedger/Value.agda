@@ -19,7 +19,6 @@ open import Data.Nat.Properties using
   ( +-assoc; +-comm; +-commutativeSemigroup; +-identityʳ; ≤-refl; ≤-trans
   ; ≡ᵇ⇒≡; ≤ᵇ⇒≤; m+[n∸m]≡n; n≤1+n; n≤0⇒n≡0; 1+n≰n )
 open import Algebra.Properties.CommutativeSemigroup +-commutativeSemigroup
-  using (x∙yz≈y∙xz)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂; Σ-syntax)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Base

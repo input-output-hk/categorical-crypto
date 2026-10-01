@@ -12,7 +12,7 @@ open import Data.Bool.Base
 open import Data.Integer.Base using (+_)
 open import Data.List.Base
 open import Data.Product.Base
-open import Data.Rational using (_/_)
+open import Data.Rational
 open import Data.Sum.Base
 open import Relation.Binary.PropositionalEquality
 

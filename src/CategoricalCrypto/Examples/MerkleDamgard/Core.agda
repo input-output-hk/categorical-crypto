@@ -55,7 +55,7 @@ open import Function.Base
 open import CategoricalCrypto.Examples.RandomOracle
 open import CategoricalCrypto.GamePlaying
 open import CategoricalCrypto.GamePlaying.Hop
-open import CategoricalCrypto.GamePlaying.Partial using (cond; cond-diag)
+open import CategoricalCrypto.GamePlaying.Partial
 open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.Strategy
 open import ProbabilisticLogic.Distribution.RationalDist

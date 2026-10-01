@@ -33,7 +33,7 @@ open import Relation.Nullary.Decidable.Core
 
 open import CategoricalCrypto.GamePlaying
 open import CategoricalCrypto.GamePlaying.Hop
-open import CategoricalCrypto.GamePlaying.Partial using (cond; cond-diag)
+open import CategoricalCrypto.GamePlaying.Partial
 open import CategoricalCrypto.GamePlaying.Potential
 open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.Strategy

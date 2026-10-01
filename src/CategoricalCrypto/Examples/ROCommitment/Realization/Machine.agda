@@ -20,7 +20,7 @@ open import Data.Sum.Base
 open import Data.Unit.Base
 open import Data.Vec.Base using () renaming (_∷_ to _∷ᵛ_)
 open import Function.Base
-open import Level using (0ℓ)
+open import Level
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary.Decidable.Core
 
