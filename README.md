@@ -122,7 +122,6 @@ The executable model (predating the layers above; connecting it to
 - `Machine/` — stateful machines communicating over channels, with UC
   security notions stated directly on them; `Constraints` adds extra
   side conditions.
-- `SFunM` — the category of stateful, monadic functions.
 - `Examples/` — commitment, signature, and basic protocol examples.
 - `CategoricalCrypto` — the root module re-exporting this layer.
 
