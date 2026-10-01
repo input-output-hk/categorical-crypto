@@ -5,13 +5,8 @@
 -- and REJECTS a one-shot `1/(n+1)` one, the latter being what mere vanishing
 -- would let in.
 --
--- Read at `ℚ-metric`, the separating approximation, with `Ix = ℕ` and `κ` the
--- identity.  Nothing weaker carries the negative half: an approximation that
--- identifies everything at every error satisfies all four laws, so a rejection
--- is a statement about the model and not about the relation alone
--- (`UC.Approximate.Separating`'s header).  `_∼ᴺ_` is what
--- `UC.Family.Negligible` installs as the family's second observation, so these
--- are verdicts about that instance's `_≈ℰᴺ_` read at a single context.
+-- Read at `ℚ-metric`, `Ix = ℕ`, `κ` the identity; why the negative half needs a
+-- separating approximation is `UC.Approximate.Separating`'s header.
 
 open import Data.Nat.Base
 open import Data.Nat.Properties

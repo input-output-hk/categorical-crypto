@@ -5,11 +5,9 @@
 --
 -- `Approx` is already generic in its error structure, so §7's "generalize to a
 -- fixed ordered additive commutative monoid `V`" asks for an INSTANCE rather
--- than a second category: the schedules the resource-aware layer needs are
--- `pointwise ℕ ℚ-ordered` in the closure allowance and
--- `pointwise ℕ (pointwise ℕ ℚ-ordered)` at a family's level and allowance.
--- Signed rationals are kept — `ℚ-ordered` is `ℚ`, not `ℚ≥0`, the domain the
--- existing bounds are stated over (`UC.Approximate.GradedBound`).
+-- than a second category: the instances in use are `pointwise ℕ ℚ-ordered` over
+-- the security parameter and `pointwise ℕ⁺ ℚ-ordered` over closure rates
+-- (`UC.Quantitative.Query.Sched`).
 --
 -- Substituting an allowance is the control `ε ∘ ρ`, and it is EXACT — both its
 -- zero and its additivity law hold by reflexivity — so the schedule

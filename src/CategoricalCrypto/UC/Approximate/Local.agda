@@ -4,12 +4,10 @@
 --
 --     μ ∼ᴺ ν  =  ∃ negligible δ. ∀ i. μ i is δ(κ i)-close to ν i
 --
--- The existential is INSIDE nothing: one δ serves every index, but δ is chosen
--- per PAIR, which is what makes this the local relation of
--- `docs/graded-observation-redesign.md` — a consumer that quantifies contexts
+-- One δ serves every index, but δ is chosen per PAIR (the local relation of
+-- `docs/graded-observation-redesign.md`): a consumer that quantifies contexts
 -- outside it (`UC.Family.Negligible`'s `_≈ℰᴺ_`) gets a witness per context and
--- no uniform one.  Keeping the witness is the whole difference from
--- `UC.Approximate.Induced`, which quantifies its ambient error away.
+-- no uniform one.
 --
 -- It is an instance, not a construction of its own: `familySpace` is the
 -- approximate space of observation families over rational-sequence errors, and
