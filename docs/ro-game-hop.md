@@ -184,8 +184,8 @@ Target: `commit m r = H(m ∥ r)` with `r` a secret k-bit opening, `H` the rando
 
 * **`md-cert`'s invariant and potential.** MD's potential is a collision *count* plus a
   triangle budget (`φsc m sc = collC sc +ℚ Γ (pool sc) (m * (k ∸ 1))`), not an
-  indicator; its `Inv` is the chain-forest invariant `MDInv` (UniqueKeys, Rooted,
-  RecChains, OwnedLast) and the descent `walk-hit-collC`. None of that is a birthday
+  indicator; its `Inv` is the chain-forest invariant `MDInv` (RecChains,
+  OwnedLast) and the descent `walk-hit-collC`. None of that is a birthday
   potential in the generic sense, and it is not reusable: it is the combinatorics of
   *chaining*.
 * **`KeepOrSample` fails for MD.** One MD query walks up to `k` blocks, so its log

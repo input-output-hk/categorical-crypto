@@ -29,7 +29,6 @@ open import Data.Fin using (Fin; zero)
 open import Data.Vec using (Vec; []; _∷_; toList) renaming (take to takeᵛ; drop to dropᵛ)
 import Data.Vec as DV
 open import Data.List
-import Data.List as L
 open import Data.List.Properties
 open import Data.Maybe.Ext
 import Data.List.Relation.Unary.Any as ListAny
@@ -675,16 +674,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   Chain : Comp.Table → Vec Bool (k * n) → CV → Type
   Chain sc M h = runPath (stepT sc) IV (labels (toBlocks M) 1) ≡ just h
 
-  HasVal : Comp.Table → CV → Type
-  HasVal t v = ListAny.Any (λ e → proj₂ e ≡ v) t
-
-  UniqueKeys : Comp.Table → Type
-  UniqueKeys sc = AllPairs _≢_ (L.map proj₁ sc)
-
-  -- every key's chaining component is rooted in the pool ({IV} ∪ interior outputs)
-  Rooted : Comp.Table → Type
-  Rooted sc = ListAll.All (λ e → HasVal (poolL sc) (proj₁ (proj₁ e))) sc
-
   -- every FINAL key present in the table is the last call of a recorded chain
   OwnedLast : Comp.Table → General.Table → Type
   OwnedLast sc sg = ∀ v b w → stepT sc v (b , k) ≡ just w
@@ -705,13 +694,10 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   MDInv s =
       (proj₁ s ≡ true → 1ℚ ≤ℚ collC (proj₁ (proj₂ s)))
     × (proj₁ s ≡ false →
-         UniqueKeys (proj₁ (proj₂ s))
-       × Rooted (proj₁ (proj₂ s))
-       × RecChains (proj₁ (proj₂ s)) (proj₂ (proj₂ s))
-       × OwnedLast (proj₁ (proj₂ s)) (proj₂ (proj₂ s)))
+         RecChains (proj₁ (proj₂ s)) (proj₂ (proj₂ s)) × OwnedLast (proj₁ (proj₂ s)) (proj₂ (proj₂ s)))
 
   MDInv₀ : MDInv (false , [] , [])
-  MDInv₀ = (λ ()) , (λ _ → [] , ListAll.[] , (λ M h ()) , (λ v b w ()))
+  MDInv₀ = (λ ()) , (λ _ → (λ M h ()) , (λ v b w ()))
 
   ------------------------------------------------------------------------
   -- Preservation: the collision count is monotone along the walk, and the
@@ -815,10 +801,10 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
         (trans (sym (runPath-nothing (stepT sc) v (b , j) (labels bs' (suc j)) eqmv)) rp))
 
     mdInv-good-repeat : ∀ sc sg i M h
-      → UniqueKeys sc × Rooted sc × RecChains sc sg × OwnedLast sc sg
+      → RecChains sc sg × OwnedLast sc sg
       → General.lookup-bs sg M ≡ just h
       → OnSupport (λ t → MDInv (proj₁ t)) (respB' i M (false , sc , sg) (just h))
-    mdInv-good-repeat sc sg i M h str@(uk , rt , rc , ol) eq =
+    mdInv-good-repeat sc sg i M h str@(rc , ol) eq =
       OnSupport-bind (walk sc IV (toBlocks M) 1)
         (λ w → return-ℚ (repAns i sg false h w))
         (walk-replay sc (toBlocks M) IV 1 h (rc M h eq))
@@ -836,8 +822,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
                                (trans (cong (λ z → not ⌊ z ≟ h ⌋) v≡) (cong not (⌊≟⌋-refl h)))
 
   ------------------------------------------------------------------------
-  -- New-message branch: table extension, fresh inserts, walk support and the
-  -- final-key tracker
+  -- New-message branch: table extension, fresh inserts and the walk tracker
   private
     _⊒_ : Comp.Table → Comp.Table → Type
     sc' ⊒ sc = ∀ key x → Comp.lookup-bs sc key ≡ just x → Comp.lookup-bs sc' key ≡ just x
@@ -865,102 +850,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
       in trans (runPath-step (stepT sc') r (b , j) w ls (ext (pack r b j) w hd))
                (runPath-⊒ sc' sc ext w ls t tl)
 
-    lookup-nothing⇒All≢ : ∀ sc (k₀ : CV × Blk × ℕ × ℕ) → Comp.lookup-bs sc k₀ ≡ nothing
-                        → ListAll.All (λ key → k₀ ≢ key) (L.map proj₁ sc)
-    lookup-nothing⇒All≢ []             k₀ absent = ListAll.[]
-    lookup-nothing⇒All≢ ((k , v) ∷ sc) k₀ absent with k₀ ≟ k | absent
-    ... | yes _ | ab = ⊥-elim (just≢nothing ab)
-    ... | no ¬p | ab = ¬p ListAll.∷ lookup-nothing⇒All≢ sc k₀ ab
-
-    UniqueKeys-cons-fresh : ∀ (k₀ : CV × Blk × ℕ × ℕ) v₀ sc
-                          → Comp.lookup-bs sc k₀ ≡ nothing → UniqueKeys sc → UniqueKeys ((k₀ , v₀) ∷ sc)
-    UniqueKeys-cons-fresh k₀ v₀ sc absent uk = lookup-nothing⇒All≢ sc k₀ absent ∷ uk
-
-    Any-insert : ∀ {A : Type} {P : A → Type} {x z : A} {ys}
-               → ListAny.Any P (x ∷ ys) → ListAny.Any P (x ∷ z ∷ ys)
-    Any-insert (ListAny.here p)  = ListAny.here p
-    Any-insert (ListAny.there a) = ListAny.there (ListAny.there a)
-
-    HasVal-cons-any : ∀ (e : (CV × Blk × ℕ × ℕ) × CV) sc x
-                    → HasVal (poolL sc) x → HasVal (poolL (e ∷ sc)) x
-    HasVal-cons-any ((hh , bb , len , idx) , vv) sc x hv with idx <? len
-    ... | yes _ = Any-insert hv
-    ... | no  _ = hv
-
-    new-val-HasVal : ∀ v b idx vv sc → idx < k → HasVal (poolL ((pack v b idx , vv) ∷ sc)) vv
-    new-val-HasVal v b idx vv sc lt with idx <? k
-    ... | yes _   = ListAny.there (ListAny.here refl)
-    ... | no  ¬lt = ⊥-elim (¬lt lt)
-
-    lookup-interior-HasVal : ∀ sc v b idx v'' → idx < k
-                           → Comp.lookup-bs sc (pack v b idx) ≡ just v'' → HasVal (poolL sc) v''
-    lookup-interior-HasVal ((key , val) ∷ sc) v b idx v'' lt hit with (pack v b idx) ≟ key | hit
-    ... | yes p | h = subst (λ K → HasVal (poolL ((K , val) ∷ sc)) v'') p
-                        (subst (HasVal (poolL ((pack v b idx , val) ∷ sc))) (just-injective h)
-                          (new-val-HasVal v b idx val sc lt))
-    ... | no ¬p | h = HasVal-cons-any (key , val) sc v'' (lookup-interior-HasVal sc v b idx v'' lt h)
-
-    Rooted-cons-fresh : ∀ (e : (CV × Blk × ℕ × ℕ) × CV) sc
-                      → HasVal (poolL sc) (proj₁ (proj₁ e)) → Rooted sc → Rooted (e ∷ sc)
-    Rooted-cons-fresh e sc eroot rt =
-      HasVal-cons-any e sc (proj₁ (proj₁ e)) eroot
-        ListAll.∷ ListAll.map (λ {ent} hv → HasVal-cons-any e sc (proj₁ (proj₁ ent)) hv) rt
-
-    CBnd : Comp.Table → CV → Blk → ℕ → Comp.Table × (CV × Bool) → Type
-    CBnd sc v b idx w = (proj₁ w ⊒ sc) × UniqueKeys (proj₁ w) × Rooted (proj₁ w)
-                      × HasVal (poolL (proj₁ w)) (proj₁ (proj₂ w))
-                      × (stepT (proj₁ w) v (b , idx) ≡ just (proj₁ (proj₂ w)))
-
-    Bnd : Comp.Table → CV → List Blk → ℕ → Comp.Table × (CV × Bool) → Type
-    Bnd sc v bs idx w = (proj₁ w ⊒ sc) × UniqueKeys (proj₁ w) × Rooted (proj₁ w)
-                      × (runPath (stepT (proj₁ w)) v (labels bs idx) ≡ just (proj₁ (proj₂ w)))
-
-    callC-supp : ∀ sc v b idx → idx < k → UniqueKeys sc → Rooted sc → HasVal (poolL sc) v
-               → OnSupport (CBnd sc v b idx) (callC sc v b idx)
-    callC-supp sc v b idx lt uk rt vroot with Comp.lookup-bs sc (pack v b idx) in eq
-    ... | just hm = OnSupport-return (⊒-refl sc , uk , rt , lookup-interior-HasVal sc v b idx hm lt eq , eq)
-    ... | nothing = OnSupport-map Comp.uniform-Out _
-                      (λ hm →
-                        ( ⊒-cons-fresh (pack v b idx) hm sc eq
-                        , UniqueKeys-cons-fresh (pack v b idx) hm sc eq uk
-                        , Rooted-cons-fresh (pack v b idx , hm) sc vroot rt
-                        , new-val-HasVal v b idx hm sc lt
-                        , Comp.lookup-bs-here sc (pack v b idx) hm ))
-
-    walk-supp  : ∀ sc v bs idx → UniqueKeys sc → Rooted sc → HasVal (poolL sc) v
-               → idx + length bs ≡ suc k → OnSupport (Bnd sc v bs idx) (walk sc v bs idx)
-    walk-suppL : ∀ sc v b idx (mv : Maybe CV) → UniqueKeys sc → Rooted sc → HasVal (poolL sc) v
-               → Comp.lookup-bs sc (pack v b idx) ≡ mv
-               → OnSupport (Bnd sc v (b ∷ []) idx) (callC' sc v b idx mv)
-
-    walk-supp sc v []            idx uk rt vroot pr = OnSupport-return (⊒-refl sc , uk , rt , refl)
-    walk-supp sc v (b ∷ [])      idx uk rt vroot pr =
-      walk-suppL sc v b idx (Comp.lookup-bs sc (pack v b idx)) uk rt vroot refl
-    walk-supp sc v (b ∷ bs'@(_ ∷ bs)) idx uk rt vroot pr =
-      OnSupport-bind (callC sc v b idx) (λ w → walk (proj₁ w) (proj₁ (proj₂ w)) bs' (suc idx))
-        (callC-supp sc v b idx (proj₁ (interior-step idx (length bs) pr)) uk rt vroot)
-        (λ w cb → OnSupport-mono (walk (proj₁ w) (proj₁ (proj₂ w)) bs' (suc idx)) (mapc w cb)
-                    (walk-supp (proj₁ w) (proj₁ (proj₂ w)) bs' (suc idx)
-                       (proj₁ (proj₂ cb)) (proj₁ (proj₂ (proj₂ cb))) (proj₁ (proj₂ (proj₂ (proj₂ cb)))) pr'))
-      where
-        pr' = proj₂ (interior-step idx (length bs) pr)
-        mapc : ∀ w → CBnd sc v b idx w → ∀ w2 → Bnd (proj₁ w) (proj₁ (proj₂ w)) bs' (suc idx) w2
-             → Bnd sc v (b ∷ bs') idx w2
-        mapc w (ext , uk' , rt' , hvroot , stepeq) w2 (ext2 , uk2 , rt2 , seg2) =
-          ⊒-trans (proj₁ w2) (proj₁ w) sc ext2 ext , uk2 , rt2
-          , trans (runPath-step (stepT (proj₁ w2)) v (b , idx) (proj₁ (proj₂ w))
-                    (labels bs' (suc idx)) (ext2 (pack v b idx) (proj₁ (proj₂ w)) stepeq)) seg2
-
-    walk-suppL sc v b idx (just hm) uk rt vroot eq =
-      OnSupport-return (⊒-refl sc , uk , rt , runPath-step (stepT sc) v (b , idx) hm [] eq)
-    walk-suppL sc v b idx nothing uk rt vroot eq =
-      OnSupport-map Comp.uniform-Out _
-        (λ hm →
-          ( ⊒-cons-fresh (pack v b idx) hm sc eq
-          , UniqueKeys-cons-fresh (pack v b idx) hm sc eq uk
-          , Rooted-cons-fresh (pack v b idx , hm) sc vroot rt
-          , runPath-step (stepT ((pack v b idx , hm) ∷ sc)) v (b , idx) hm [] (Comp.lookup-bs-here sc (pack v b idx) hm) ))
-
   private
     rec-extend : ∀ sc sg sc' M v' → sc' ⊒ sc → Chain sc' M v'
                → RecChains sc sg → RecChains sc' ((M , v') ∷ sg)
@@ -980,6 +869,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
 
     FKout : Comp.Table → CV → List Blk → ℕ → Comp.Table × (CV × Bool) → Type
     FKout sc v bs idx w = (proj₁ w ⊒ sc)
+      × (runPath (stepT (proj₁ w)) v (labels bs idx) ≡ just (proj₁ (proj₂ w)))
       × (∀ v' b' u' → stepT (proj₁ w) v' (b' , k) ≡ just u'
            → (stepT sc v' (b' , k) ≡ just u')
            ⊎ (FinalCallOf v bs idx (proj₁ w) v' b' × (proj₂ (proj₂ w) ≡ false)))
@@ -1003,7 +893,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     walk-fkL : ∀ sc v b idx (mv : Maybe CV) → Comp.lookup-bs sc (pack v b idx) ≡ mv
              → OnSupport (FKout sc v (b ∷ []) idx) (callC' sc v b idx mv)
 
-    walk-fk sc v []            idx pr = OnSupport-return (⊒-refl sc , λ v' b' u' e → inj₁ e)
+    walk-fk sc v []            idx pr = OnSupport-return (⊒-refl sc , refl , λ v' b' u' e → inj₁ e)
     walk-fk sc v (b ∷ [])      idx pr =
       walk-fkL sc v b idx (Comp.lookup-bs sc (pack v b idx)) refl
     walk-fk sc v (b ∷ bs'@(_ ∷ bs)) idx pr =
@@ -1016,8 +906,11 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
         mapc : ∀ w → FKstep sc v b idx w
              → ∀ w2 → FKout (proj₁ w) (proj₁ (proj₂ w)) bs' (suc idx) w2
              → FKout sc v (b ∷ bs') idx w2
-        mapc w (exth , steph , finalrev) w2 (ext2 , dich2) =
-          ⊒-trans (proj₁ w2) (proj₁ w) sc ext2 exth , dd
+        mapc w (exth , steph , finalrev) w2 (ext2 , seg2 , dich2) =
+          ⊒-trans (proj₁ w2) (proj₁ w) sc ext2 exth
+          , trans (runPath-step (stepT (proj₁ w2)) v (b , idx) (proj₁ (proj₂ w))
+                    (labels bs' (suc idx)) (ext2 (pack v b idx) (proj₁ (proj₂ w)) steph)) seg2
+          , dd
           where
             dd : ∀ v' b' u' → stepT (proj₁ w2) v' (b' , k) ≡ just u'
                → (stepT sc v' (b' , k) ≡ just u')
@@ -1028,10 +921,13 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
                                                  , trans (runPath-step (stepT (proj₁ w2)) v (b , idx) (proj₁ (proj₂ w)) (labels pre' (suc idx))
                                                            (ext2 (pack v b idx) (proj₁ (proj₂ w)) steph)) req) , bf)
 
-    walk-fkL sc v b idx (just hm) eq = OnSupport-return (⊒-refl sc , λ v' b' u' e → inj₁ e)
+    walk-fkL sc v b idx (just hm) eq =
+      OnSupport-return (⊒-refl sc , runPath-step (stepT sc) v (b , idx) hm [] eq , λ v' b' u' e → inj₁ e)
     walk-fkL sc v b idx nothing eq =
       OnSupport-map Comp.uniform-Out _
-        (λ hm → (⊒-cons-fresh (pack v b idx) hm sc eq , dich hm))
+        (λ hm → ( ⊒-cons-fresh (pack v b idx) hm sc eq
+                , runPath-step (stepT ((pack v b idx , hm) ∷ sc)) v (b , idx) hm [] (Comp.lookup-bs-here sc (pack v b idx) hm)
+                , dich hm ))
       where
         dich : ∀ hm → ∀ v' b' u' → stepT ((pack v b idx , hm) ∷ sc) v' (b' , k) ≡ just u'
              → (stepT sc v' (b' , k) ≡ just u')
@@ -1191,12 +1087,12 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   -- (`toBlocks`-injective) M ≡ M' — contradicting M ∉ sg.  So 1 ≤ collC.
   walk-hit-collC : ∀ sc sg M (w : Comp.Table × (CV × Bool))
                  → General.lookup-bs sg M ≡ nothing
-                 → (proj₁ w ⊒ sc) → UniqueKeys (proj₁ w) → Rooted (proj₁ w)
+                 → (proj₁ w ⊒ sc)
                  → (∀ v' b' u' → stepT (proj₁ w) v' (b' , k) ≡ just u' → stepT sc v' (b' , k) ≡ just u')
-                 → RecChains sc sg → OwnedLast sc sg
+                 → OwnedLast sc sg
                  → runPath (stepT (proj₁ w)) IV (labels (toBlocks M) 1) ≡ just (proj₁ (proj₂ w))
                  → 1ℚ ≤ℚ collC (proj₁ w)
-  walk-hit-collC sc sg M w eq ext uk' rt' allold rc ol seg = go (collC-01 (poolL (proj₁ w)))
+  walk-hit-collC sc sg M w eq ext allold ol seg = go (collC-01 (poolL (proj₁ w)))
     where
       go : (Comp.state-collisions (poolL (proj₁ w)) ≡ 0ℚ) ⊎ (1ℚ ≤ℚ Comp.state-collisions (poolL (proj₁ w)))
          → 1ℚ ≤ℚ collC (proj₁ w)
@@ -1255,9 +1151,9 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
              → (proj₁ w ⊒ sc)
              → (∀ v' b' u' → stepT (proj₁ w) v' (b' , k) ≡ just u'
                   → (stepT sc v' (b' , k) ≡ just u') ⊎ FinalCallOf IV (toBlocks M) 1 (proj₁ w) v' b')
-             → RecChains sc sg → OwnedLast sc sg
+             → OwnedLast sc sg
              → OwnedLast (proj₁ w) ((M , proj₁ (proj₂ w)) ∷ sg)
-  walk-owned sc sg M w eq ext dich rc ol v' b w'' e with dich v' b w'' e
+  walk-owned sc sg M w eq ext dich ol v' b w'' e with dich v' b w'' e
   ... | inj₂ (pre , blkeq , run') =
         M , proj₁ (proj₂ w) , General.lookup-bs-here sg M (proj₁ (proj₂ w)) , pre , blkeq , run'
   ... | inj₁ old with ol v' b w'' old
@@ -1271,24 +1167,22 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
                      (subst (λ z → General.lookup-bs sg z ≡ just h') p lk'))
 
   mdInv-good-new : ∀ sc sg i M
-    → UniqueKeys sc × Rooted sc × RecChains sc sg × OwnedLast sc sg
+    → RecChains sc sg × OwnedLast sc sg
     → General.lookup-bs sg M ≡ nothing
     → OnSupport (λ t → MDInv (proj₁ t)) (respB' i M (false , sc , sg) nothing)
-  mdInv-good-new sc sg i M (uk , rt , rc , ol) eq =
+  mdInv-good-new sc sg i M (rc , ol) eq =
     OnSupport-bind (walk sc IV (toBlocks M) 1)
       (λ w → newAns i M sg (proj₂ (proj₂ w) ∨ false) (proj₁ w) (proj₁ (proj₂ w)))
-      (OnSupport-∧ (walk sc IV (toBlocks M) 1)
-        (walk-supp sc IV (toBlocks M) 1 uk rt (ListAny.here refl) (cong suc (toBlocks-length M)))
-        (walk-fk sc IV (toBlocks M) 1 (cong suc (toBlocks-length M))))
+      (walk-fk sc IV (toBlocks M) 1 (cong suc (toBlocks-length M)))
       cont
     where
-      cont : ∀ w → Bnd sc IV (toBlocks M) 1 w × FKout sc IV (toBlocks M) 1 w
+      cont : ∀ w → FKout sc IV (toBlocks M) 1 w
            → OnSupport (λ t → MDInv (proj₁ t))
                (newAns i M sg (proj₂ (proj₂ w) ∨ false) (proj₁ w) (proj₁ (proj₂ w)))
-      cont w ((ext , uk' , rt' , seg) , (_ , dich)) with proj₂ (proj₂ w)
+      cont w (ext , seg , dich) with proj₂ (proj₂ w)
       ... | true  = OnSupport-map Comp.uniform-Out _
                       (λ u →
-                         ( (λ _ → walk-hit-collC sc sg M w eq ext uk' rt' dich-old rc ol seg)
+                         ( (λ _ → walk-hit-collC sc sg M w eq ext dich-old ol seg)
                          , (λ ()) ))
         where
           dich-old : ∀ v' b' u' → stepT (proj₁ w) v' (b' , k) ≡ just u' → stepT sc v' (b' , k) ≡ just u'
@@ -1297,9 +1191,8 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
           ... | inj₂ (_ , ())
       ... | false = OnSupport-return
                       ( (λ ())
-                      , (λ _ → uk' , rt'
-                             , rec-extend sc sg (proj₁ w) M (proj₁ (proj₂ w)) ext seg rc
-                             , walk-owned sc sg M w eq ext dich-owned rc ol) )
+                      , (λ _ → rec-extend sc sg (proj₁ w) M (proj₁ (proj₂ w)) ext seg rc
+                             , walk-owned sc sg M w eq ext dich-owned ol) )
         where
           dich-owned : ∀ v' b' u' → stepT (proj₁ w) v' (b' , k) ≡ just u'
                      → (stepT sc v' (b' , k) ≡ just u') ⊎ FinalCallOf IV (toBlocks M) 1 (proj₁ w) v' b'
@@ -1308,7 +1201,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
             (inj₂ (fc , _)) → inj₂ fc
 
   mdInv-pres-good : ∀ sc sg i M
-    → UniqueKeys sc × Rooted sc × RecChains sc sg × OwnedLast sc sg
+    → RecChains sc sg × OwnedLast sc sg
     → OnSupport (λ t → MDInv (proj₁ t)) (C.realK (false , sc , sg) (i , M))
   mdInv-pres-good sc sg i M st =
     OnSupport-Dmap C.fR (respB (false , sc , sg) (i , M)) inner
