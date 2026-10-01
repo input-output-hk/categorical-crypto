@@ -8,7 +8,7 @@
 -- bit it was given (`docs/coin-toss.md` §5).  Plugging `resource` under both
 -- sides is free: it is closed, so `≤UC[]-dom` absorbs it at rate `1⁺`.
 
-open import Categories.Category using (_[_∘_])
+open import Categories.Category
 open import Categories.LocallyGraded.SubCategory
 
 open import Data.Nat.Base
@@ -32,7 +32,7 @@ open import CategoricalCrypto.UC.Model.Family.Emulation
 open import CategoricalCrypto.UC.Model.Observation
 open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.Model.Setup
-open import CategoricalCrypto.UC.QueryBound using (qb-closed; qb-mono)
+open import CategoricalCrypto.UC.QueryBound
 
 import CategoricalCrypto.Examples.CoinToss.Ideal as CTI
 import CategoricalCrypto.Examples.CoinToss.Ideal.UC as CTIU

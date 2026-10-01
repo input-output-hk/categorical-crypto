@@ -46,7 +46,7 @@ open import CategoricalCrypto.GamePlaying
 open import CategoricalCrypto.GamePlaying.Average
 open import CategoricalCrypto.GamePlaying.Defer
 open import CategoricalCrypto.GamePlaying.Hop
-open import CategoricalCrypto.GamePlaying.Partial using (cond)
+open import CategoricalCrypto.GamePlaying.Partial
 open import CategoricalCrypto.GamePlaying.Potential
 open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.Strategy

@@ -39,7 +39,7 @@ import CategoricalCrypto.Examples.ROCommitment.UC as ROU
 
 module CategoricalCrypto.Examples.CoinToss.Compose where
 
-open GradedSubCat gradingᵒ using (Pred)
+open GradedSubCat gradingᵒ
 
 ------------------------------------------------------------------------
 -- The two stages as families

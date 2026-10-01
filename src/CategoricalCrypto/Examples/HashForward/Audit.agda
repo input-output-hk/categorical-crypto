@@ -9,7 +9,7 @@
 open import Categories.Category
 
 open import Data.Nat.Base as ℕ
-open import Data.Rational using (ℚ)
+open import Data.Rational
 
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Advantage

@@ -13,7 +13,7 @@ import Relation.Binary.Reasoning.Setoid as RS
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol using (Calls; Protocol; coin; ret; uniformVec)
-open import CategoricalCrypto.Protocol.Observe using (uniformVec-bind)
+open import CategoricalCrypto.Protocol.Observe
 
 open import ProbabilisticLogic.Distribution.RationalDist renaming (_>>=ᴹ_ to _>>=_)
 open import ProbabilisticLogic.Distribution.RationalDist.Setoid

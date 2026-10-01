@@ -18,7 +18,7 @@
 --------------------------------------------------------------------------------
 
 open import Data.Bool.Base
-open import Data.Fin.Base using (Fin)
+open import Data.Fin.Base
 open import Data.List.Base
 open import Data.Maybe.Base
 open import Data.Nat.Base
