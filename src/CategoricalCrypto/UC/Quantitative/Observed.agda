@@ -23,6 +23,7 @@
 
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 open import Categories.Functor using (Functor)
+open import Categories.Functor.Monoidal.CurriedTensor
 open import Categories.Functor.Presheaf using (Presheaf)
 import Categories.Morphism.Reasoning as MR
 
@@ -116,8 +117,11 @@ Q = record
   ; F-resp-≈     = λ eq _ → cast (∘-resp-≈ʳ eq)
   }
 
+-- `ℳ-standard` is `curriedTensor M`, but its type names the category through
+-- `StdUC`'s own copy of `U`; against `∣machines∣` that spelling mismatch sends
+-- conversion through the unfolded `Endofunctors` record (5.8 s against 1.4 s).
 QSetup : QUCSetup o ℓ e o ℓ e ℓ (ℓ ⊔ ℓa)
-QSetup = record { 𝒞 = ∣machines∣ ; ℐ = M ; ℳ = ℳ-standard ; Q = Q }
+QSetup = record { 𝒞 = ∣machines∣ ; ℐ = M ; ℳ = curriedTensor M ; Q = Q }
 
 -- The quantitative metatheory at this instance.  Named rather than opened: a
 -- consumer that also opens the qualitative theory would see each name twice.
