@@ -32,3 +32,8 @@ open import CategoricalCrypto.Examples.Signatures
 
 import CategoricalCrypto.Machines.G
 import CategoricalCrypto.Machines.Sim.Lax
+open import ProbabilisticLogic
+
+import Categories.Category.Construction.Kleisli.Distributive
+import Categories.Category.Distributive.Monoidal
+import Categories.Category.Monoidal.Distributive.Instance.Rels
