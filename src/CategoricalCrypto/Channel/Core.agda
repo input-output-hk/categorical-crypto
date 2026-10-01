@@ -111,10 +111,10 @@ infixr 10 _⇒ₜ_
 ⇒-negate-transpose-left = ⇒-negate-transpose-right ⇒ₜ ⇒-double-negate-left
 
 ⇒-transpose-left-negate-right : ∀ {m A} → A ᵀ [ m ]⇒[ ¬ₘ m ] A
-⇒-transpose-left-negate-right {A = A} rewrite ᵀ-idempotent {A} = ⇒-negate-transpose-right {A = A ᵀ}
+⇒-transpose-left-negate-right {A = A} rewrite ᵀ-idempotent {A} = ⇒-negate-transpose-right
 
 ⇒-negate-left-transpose-right : ∀ {m A} → A [ ¬ₘ m ]⇒[ m ] A ᵀ
-⇒-negate-left-transpose-right {A = A} rewrite ᵀ-idempotent {A} = ⇒-negate-transpose-left {A = A ᵀ}
+⇒-negate-left-transpose-right {A = A} rewrite ᵀ-idempotent {A} = ⇒-negate-transpose-left
 
 -----------------------------------
 -- Tensorial product on Channels --

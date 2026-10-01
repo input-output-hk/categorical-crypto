@@ -44,7 +44,7 @@ module _ {A B : Channel} (let open Channel (A ⊗ᵀ B)) where
   StatelessMachine      R   = MkMachine {State = ⊤} $ λ _ i o _ → R i o
   FunctionMachine       f   = StatelessMachine      $ λ i → f i ≡_
   TotalFunctionMachine  p   = FunctionMachine       $ just P.∘ app p
-  TotalFunctionMachine' p q = TotalFunctionMachine  $ ⊗-combine {In} {Out} (p ⇒ₜ ⇒-negate-transpose-right) (⇒-transpose-left-negate-right ⇒ₜ q) ⇒ₜ ⊗-sym
+  TotalFunctionMachine' p q = TotalFunctionMachine  $ ⊗-combine (p ⇒ₜ ⇒-negate-transpose-right) (⇒-transpose-left-negate-right ⇒ₜ q) ⇒ₜ ⊗-sym
   -- TotalFunctionMachine' forces all messages to go 'through' the machine, i.e.
   -- messages on the domain become messages on the codomain and vice versa if
   -- e.g. A ≡ B then it's easy to accidentally send a message the wrong way
