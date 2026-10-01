@@ -188,12 +188,6 @@ Pr₁⊥-bind-mono μ L R pt = ≤-trans (≤-reflexive (E⊥-bind μ L bool→�
   (≤-trans (E⊥-mono μ (λ a → Pr₁⊥ (L a)) (λ a → Pr₁⊥ (R a)) pt)
            (≤-reflexive (sym (E⊥-bind μ R bool→ℚ))))
 
-Pr₁⊥≤1 : (μ : Dist⊥ Bool) → Pr₁⊥ μ ≤ℚ 1ℚ
-Pr₁⊥≤1 μ = ≤-trans (E-mono μ mb (λ _ → 1ℚ) bd) (≤-reflexive (E-const μ 1ℚ))
-  where bd : ∀ x → mb x ≤ℚ 1ℚ
-        bd (just b) = bool≤1 b
-        bd nothing  = 0≤1ℚ
-
 E-abs-diff : (μ : Dist-ℚ A) (a b : A → ℚ) → ∣ E μ a -ℚ E μ b ∣ℚ ≤ℚ E μ (λ x → ∣ a x -ℚ b x ∣ℚ)
 E-abs-diff μ a b = ∣∣≤ upper lower
   where
@@ -228,6 +222,12 @@ E⊥-mono-on μ F G sp = E-mono-on μ (maybeℚ F) (maybeℚ G)
   where sink : (x : Maybe _) → Mb (λ a → F a ≤ℚ G a) x → maybeℚ F x ≤ℚ maybeℚ G x
         sink (just a) le = le
         sink nothing  _  = ≤-refl
+
+Pr₁⊥≤1 : (μ : Dist⊥ Bool) → Pr₁⊥ μ ≤ℚ 1ℚ
+Pr₁⊥≤1 μ = ≤-trans (E-mono μ mb (λ _ → 1ℚ) bd) (≤-reflexive (E-const μ 1ℚ))
+  where bd : ∀ x → mb x ≤ℚ 1ℚ
+        bd (just b) = bool≤1 b
+        bd nothing  = 0≤1ℚ
 
 Pr₁⊥≥0 : (μ : Dist⊥ Bool) → 0ℚ ≤ℚ Pr₁⊥ μ
 Pr₁⊥≥0 μ = ≤-trans (≤-reflexive (sym (E-const μ 0ℚ))) (E-mono μ (λ _ → 0ℚ) mb bd)
