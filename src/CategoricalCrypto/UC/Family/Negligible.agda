@@ -3,26 +3,16 @@
 -- The negligible tier as a SECOND observation on the family category, and the
 -- one-way bridge into it (`docs/graded-observation-redesign.md`).
 --
--- `UC.Family`'s closing comment records what it does not deliver: an
--- `Evaluation` whose comparison keeps a negligible error witness, because
--- `qual₊` coarsens by quantifying an ambient ε away.  It is not a core redesign
--- though — `UC.Core.Evaluation` asks for an ARBITRARY setoid, and
 -- `Approx.Evaluation.qualBy` coarsens by any equivalence zero error implies,
--- which `UC.Approximate.Local`'s `_∼ᴺ_` is.  So the whole negligible tier is
--- this instance plus the emulation notions inherited at it, and nothing in the
--- qualitative core moves: `Evaluation^ω` and `_≈ᵁ_` are exactly as they were.
+-- and `UC.Approximate.Local`'s `_∼ᴺ_` is one, so the tier is this instance plus
+-- the emulation notions inherited at it.
 --
 -- `_≈ℰⁿ_` implies the new relation at every context by SPECIALIZING its global
 -- allowance-indexed error to the allowance that context carries — its test
--- certified at its own rate, scaled by its closure's.  The
--- converse does not hold and the two are deliberately not identified: a
--- witness chosen per context is weaker than one global bound, and no
+-- certified at its own rate, scaled by its closure's.  The converse does not
+-- hold: a witness chosen per context is weaker than one global bound, and no
 -- uniformization theorem closes the gap (`docs/protocol-implementation-review.md`
--- §4).
---
--- The acceptance criteria of review §1 — a one-shot `2⁻ⁿ` difference admitted,
--- a one-shot `1/(n+1)` difference rejected — are theorems about `_∼ᴺ_` at a
--- separating approximation, proved in `UC.Approximate.LocalTests`.
+-- §4).  The acceptance criteria of review §1 are `UC.Approximate.LocalTests`.
 
 open import Categories.Category.Instance.Rates
 open import Categories.Category.Monoidal.Bundle

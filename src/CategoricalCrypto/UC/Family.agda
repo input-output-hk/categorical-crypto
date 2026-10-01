@@ -102,12 +102,6 @@ private module Std^ω = Std2.StdUC Famᴹ ℰ^ω
 
 open Std^ω public using (_≈ᵁ_; ≈ᵁ-refl; ≈ᵁ-sym; ≈ᵁ-trans; ≈ᵁ-setoid; ≈C⇒≈ᵁ; sub-cong)
 
--- P6 of `docs/stduc-supersession-plan.md`: the four fields of `UCSetup` at
--- `Fam`.  `ℳ` is the curried tensor of `Famᴹ` and `ℰ` is `Observable`'s
--- `Im θ` construction at `Evaluation^ω`, so the whole of
--- `Abstract2.AbstractUC` — `≤UC-refl`, `dummy-complete`, `≤UC-trans`,
--- `UC-compose`, `≈ᵁ⇒≈ℰ` — is available at the asymptotic family.
---
 -- Spelled through `Std^ω`, as a consumer's `Std2.StdUC` application is: the
 -- direct `Std2.StdUC.StdSetup Famᴹ ℰ^ω` makes the `refl` of
 -- `UC.Family.Negligible.Setup.shared-computational` unfold the curried tensor
@@ -167,13 +161,9 @@ absorb {A} {B} {X} {f} {g} {ε} bnd van Y = Std^ω.KE.mk∼ λ {Et} m →
 ------------------------------------------------------------------------
 -- The negligible layer
 
--- `VanishingBound` is the WEAKER enrichment, and stays: `absorb` spends nothing
--- more than convergence.  A cryptographic bound is held to `Negligible` instead
--- (proposal §3, `docs/kb/frontier/15-probabilistic-uc-model.typ`), and the
--- allowances it is negligible at are the ones the model already supplies: a
--- polynomial rate of the test scaled by the closure's.
-
--- The §3 discipline read at exactly the allowances `_≈ℰ[_]_` evaluates `ε` on.
+-- `absorb` spends no more than convergence; a cryptographic bound is held to
+-- `Negligible` instead, read at exactly the allowances `_≈ℰ[_]_` evaluates `ε`
+-- on: a polynomial rate of the test scaled by the closure's.
 CarriedNegligible : (ℕ → ℕ → ℚ) → Set (o ⊔ ℓ ⊔ e ⊔ qs)
 CarriedNegligible ε = {A B : Obj^ω} (Y : Obj^ω) (Et : Test (Y ⊛ω B))
                       (m : Closure (Y ⊛ω A)) {pc : ℕ → ℕ⁺} → Poly⁺ pc

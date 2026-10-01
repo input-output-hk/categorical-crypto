@@ -3,9 +3,8 @@
 -- Decay classes of rational sequences, and the bounds graded by them.
 --
 -- `Negligible` sits beside `_→0` because a cryptographic bound has to beat
--- every inverse polynomial and mere convergence does not — `1/n` is `_→0`
--- (proposal §3, `docs/kb/frontier/15-probabilistic-uc-model.typ`).  The error
--- algebra these bounds are measured in is `Approx.Error`.
+-- every inverse polynomial and mere convergence does not — `1/n` is `_→0`.  The
+-- error algebra these bounds are measured in is `Approx.Error`.
 
 open import Data.Integer.Base using (+_)
 open import Data.Nat.Base as ℕ using (ℕ)

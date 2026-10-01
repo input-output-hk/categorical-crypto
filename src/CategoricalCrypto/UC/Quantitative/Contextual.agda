@@ -17,9 +17,6 @@
 -- is `pullᵠ`'s allowance map, and `absorb-closureᵠ` moves one behind the
 -- CLOSURE, which is `pullᵠ`'s control — and `scale-comm`/`scale-·` (as
 -- `Query.absorb-test`/`absorb-closure`) are what makes each of them exact.
--- `ctx-sub` is the instance at a simulator's action;
--- `UC.Quantitative.Family.≈ctx-ext`/`≈ctx-pre`/`≤UC[]-dom` are the instances
--- at a continuation, an earlier process and a domain plug.
 
 open import Categories.Category.Instance.Rates
 open import Categories.Category.Monoidal.Bundle
@@ -179,8 +176,7 @@ ctx-absorb ε r κ cκ stepf stepg h = agree⇒ctx (λ q → ε (scale q r)) λ 
   cut eq = Equiv.trans (∘-resp-≈ʳ eq) sym-assoc
 
 -- …and at a simulator's action, certified by whiskering the simulator's
--- certificate at rate `1⁺` on both sides, the substitution is `scale _ r`: the
--- schedule of `UC.Quantitative.Family.≈ctx-sub`, derived.
+-- certificate at rate `1⁺` on both sides, the substitution is `scale _ r`.
 ctx-sub : (ε : ℕ → ℚ) {s : X ⇒ Z} (r : ℕ⁺) → Image forget r s
         → {f g : A ⇒ X ⊗₀ B} → f ≈ᵁᵠ[ ε ] g
         → (s ⊗₁ id ∘ f) ≈ᵁᵠ[ (λ q → ε (scale q r)) ] (s ⊗₁ id ∘ g)

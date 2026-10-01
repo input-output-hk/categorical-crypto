@@ -23,8 +23,7 @@
 -- propositional equality: at a schedule-valued error `at φ ε` is itself a
 -- function, and agreement of two such is not an equation without funext — the
 -- query model needs `τ ∘ (1 *_)` to count as the identity control and cannot
--- prove it otherwise.  Composition respects that equality because a control is
--- monotone and preserves zero, which is where those two laws are spent.
+-- prove it otherwise.
 
 open import Data.Product.Base using (_×_; _,_)
 open import Level
