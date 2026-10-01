@@ -1,0 +1,52 @@
+{
+ "sweep": "enum-with",
+ "root": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-R2b",
+ "files": {
+  "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Category.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/G.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Trace/Compose.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/EventBounds.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/EventBounds/Transport.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Adequacy.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Agree.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/HitTests.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Lift.agda": {
+   "error": "parse errors -- file skipped (report this)"
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Read.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Spike/Carry.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Seam/Grounded.agda": {
+   "sites": []
+  }
+ },
+ "totalChecks": 0
+}

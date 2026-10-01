@@ -1,0 +1,223 @@
+{
+ "sweep": "using-drop",
+ "root": ".",
+ "files": {
+  "src/ProbabilisticLogic/Expectation.agda": {
+   "candidates": 16,
+   "kept": [
+    {
+     "line": 7,
+     "edit": "drop `using (Setoid)`"
+    },
+    {
+     "line": 8,
+     "edit": "drop `using (∅; U; _∩_; _∪_; _≐_; ∁)`"
+    },
+    {
+     "line": 11,
+     "edit": "drop `using (here; there)`"
+    },
+    {
+     "line": 12,
+     "edit": "drop `using (All)`"
+    },
+    {
+     "line": 13,
+     "edit": "drop `using ([]; _∷_)`"
+    },
+    {
+     "line": 16,
+     "edit": "drop `using (_↭_)`"
+    },
+    {
+     "line": 18,
+     "edit": "drop `using (∈-resp-↭)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (filter)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using\n  (∈-++⁺ˡ; ∈-++⁺ʳ; ∈-filter⁺; ∈-filter⁻)`"
+    },
+    {
+     "line": 27,
+     "edit": "drop `using (¬?)`"
+    },
+    {
+     "line": 29,
+     "edit": "drop `using (module Lists; module Predicates)`"
+    },
+    {
+     "line": 30,
+     "edit": "drop `using (_×ᴸ_; Unique-×ᴸ; partition-↭; ∈-cons-≐; ∈ˡ-?)`"
+    },
+    {
+     "line": 31,
+     "edit": "drop `using (≐-sym)`"
+    },
+    {
+     "line": 37,
+     "edit": "drop `using (solve-≈)`"
+    },
+    {
+     "line": 367,
+     "edit": "drop `using (_∈?_)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 14,
+     "edit": "drop `using (Unique)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 62,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open E[_,_]≈_ public"
+    }
+   ],
+   "checks": 11,
+   "seconds": 284.3
+  },
+  "src/ProbabilisticLogic/Distribution/Bernoulli.agda": {
+   "candidates": 9,
+   "kept": [
+    {
+     "line": 6,
+     "edit": "drop `using (Setoid)`"
+    },
+    {
+     "line": 7,
+     "edit": "drop `using (U; _≐_)`"
+    },
+    {
+     "line": 10,
+     "edit": "drop `using (length-++; length-replicate; ++-identityʳ)`"
+    },
+    {
+     "line": 12,
+     "edit": "drop `using (here; there)`"
+    },
+    {
+     "line": 14,
+     "edit": "drop `using ([]; _∷_)`"
+    },
+    {
+     "line": 17,
+     "edit": "drop `using (/-cong)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 15,
+     "edit": "drop `using (Unique)`"
+    },
+    {
+     "line": 16,
+     "edit": "drop `using (ℚ; _/_)`"
+    },
+    {
+     "line": 18,
+     "edit": "drop `using (+_)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 13,
+   "seconds": 88.5
+  },
+  "src/ProbabilisticLogic/Distribution/Binomial.agda": {
+   "candidates": 10,
+   "kept": [
+    {
+     "line": 5,
+     "edit": "drop `using (Setoid)`"
+    },
+    {
+     "line": 6,
+     "edit": "drop `using (U; _≐_; _∩_)`"
+    },
+    {
+     "line": 11,
+     "edit": "drop `using (here)`"
+    },
+    {
+     "line": 13,
+     "edit": "drop `using ([]; _∷_)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (module Lists)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (_×ᴸ_; Unique-×ᴸ; ∈ˡ-?)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 10,
+     "edit": "drop `using (_≤_)`"
+    },
+    {
+     "line": 14,
+     "edit": "drop `using (Unique)`"
+    },
+    {
+     "line": 15,
+     "edit": "drop `using (ℚ; _/_)`"
+    },
+    {
+     "line": 16,
+     "edit": "drop `using (+_)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 15,
+   "seconds": 100.7
+  },
+  "src/ProbabilisticLogic/Examples/BiasedCoin.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 13,
+     "edit": "drop `using (_⊠_)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 7,
+     "edit": "drop `using (ℚ; _/_)`"
+    },
+    {
+     "line": 8,
+     "edit": "drop `using (+_)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 7,
+   "seconds": 46.7
+  },
+  "src/ProbabilisticLogic/Examples/MultipleCoins.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 7,
+     "edit": "drop `using (ℚ; _/_)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 8,
+     "edit": "drop `using (+_)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 5,
+   "seconds": 33.8
+  }
+ },
+ "totalChecks": 51
+}

@@ -1,6 +1,6 @@
 # UC preservation through the presheaf action — steps 1 and 2
 
-What steps 1 and 2 of `docs/uc-presheaf-preservation-plan.md` delivered, on branch
+What steps 1 and 2 of `docs/history/uc-presheaf-preservation-plan.md` delivered, on branch
 `presheaf-action` off `protocol-rewrite` at `89e09091`. Paths are relative to
 `src/CategoricalCrypto/` unless prefixed.
 

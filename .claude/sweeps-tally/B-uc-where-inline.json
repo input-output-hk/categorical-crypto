@@ -1,0 +1,1205 @@
+{
+ "sweep": "where-inline (EXPERIMENTAL)",
+ "root": ".",
+ "apply": true,
+ "files": {
+  "src/CategoricalCrypto/UC/Machine.agda": {
+   "sites": [
+    {
+     "binding": "outT",
+     "line": 131,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "relay",
+     "line": 135,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "stepT",
+     "line": 139,
+     "verdict": "skipped-shape",
+     "why": "4 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "outS",
+     "line": 151,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "relay",
+     "line": 155,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "stepS",
+     "line": 159,
+     "verdict": "skipped-shape",
+     "why": "4 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Dictionary.agda": {
+   "sites": [
+    {
+     "binding": "bridge",
+     "line": 93,
+     "inlinedLineChars": 113,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "relabel",
+     "line": 181,
+     "inlinedLineChars": 175,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "relabel",
+     "line": 187,
+     "inlinedLineChars": 175,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "relabel",
+     "line": 214,
+     "inlinedLineChars": 175,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "relabel",
+     "line": 220,
+     "inlinedLineChars": 175,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Dominated.agda": {
+   "sites": [
+    {
+     "binding": "n₁",
+     "line": 132,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "le₁",
+     "line": 133,
+     "inlinedLineChars": 82,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "n₂",
+     "line": 135,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "le₂",
+     "line": 136,
+     "inlinedLineChars": 112,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "spend",
+     "line": 138,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "n₃",
+     "line": 142,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "le₃",
+     "line": 143,
+     "inlinedLineChars": 97,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "n₄",
+     "line": 145,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "le₄",
+     "line": 146,
+     "inlinedLineChars": 83,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "n₅",
+     "line": 146,
+     "inlinedLineChars": 105,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "le₅",
+     "line": 147,
+     "inlinedLineChars": 105,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "bound",
+     "line": 159,
+     "inlinedLineChars": 67,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Machine/Dominated.agda:159.28-33: error: [NotInScope]"
+    },
+    {
+     "binding": "zero-mass",
+     "line": 161,
+     "inlinedLineChars": 190,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "ε≤ε+δ",
+     "line": 180,
+     "inlinedLineChars": 146,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "playsᵂ",
+     "line": 226,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`playsᵂ f`)"
+    },
+    {
+     "binding": "fwdᵂ",
+     "line": 229,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "0≤r",
+     "line": 233,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "bound",
+     "line": 236,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`bound f i`)"
+    },
+    {
+     "binding": "n₁",
+     "line": 246,
+     "inlinedLineChars": 64,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Machine/Dominated.agda:248.20-22: error: [NotInScope]"
+    },
+    {
+     "binding": "le₁",
+     "line": 247,
+     "inlinedLineChars": 63,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "n₂",
+     "line": 247,
+     "inlinedLineChars": 91,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "le₂",
+     "line": 248,
+     "inlinedLineChars": 90,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor.agda": {
+   "sites": [
+    {
+     "binding": "stateᴹ",
+     "line": 75,
+     "inlinedLineChars": 147,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "stateᴹ",
+     "line": 95,
+     "inlinedLineChars": 115,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "Φ",
+     "line": 121,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Φ _`)"
+    },
+    {
+     "binding": "onL",
+     "line": 124,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onR",
+     "line": 129,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohL",
+     "line": 134,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohR",
+     "line": 139,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda": {
+   "sites": [
+    {
+     "binding": "pt",
+     "line": 86,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "out-case",
+     "line": 156,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "i₁",
+     "line": 238,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "o₁",
+     "line": 241,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i₂",
+     "line": 244,
+     "inlinedLineChars": 63,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "o₂",
+     "line": 244,
+     "inlinedLineChars": 81,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "pt",
+     "line": 244,
+     "verdict": "skipped-shape",
+     "why": "4 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda": {
+   "sites": [
+    {
+     "binding": "μ",
+     "line": 102,
+     "verdict": "skipped-shape",
+     "why": "9 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "w",
+     "line": 104,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "bottom",
+     "line": 107,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "core",
+     "line": 112,
+     "inlinedLineChars": 653,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Slide.agda": {
+   "sites": [
+    {
+     "binding": "pt",
+     "line": 82,
+     "verdict": "skipped-shape",
+     "why": "4 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "relayed",
+     "line": 95,
+     "verdict": "skipped-shape",
+     "why": "RHS has its own `where` block"
+    },
+    {
+     "binding": "pt",
+     "line": 101,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "pt",
+     "line": 114,
+     "verdict": "skipped-shape",
+     "why": "4 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "pt",
+     "line": 127,
+     "verdict": "skipped-shape",
+     "why": "4 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "pt",
+     "line": 146,
+     "verdict": "skipped-shape",
+     "why": "4 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "subbed",
+     "line": 169,
+     "verdict": "skipped-shape",
+     "why": "RHS contains a comment (inlining would drop it)"
+    },
+    {
+     "binding": "pt",
+     "line": 176,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`pt (s , inj₂ (inj₁ y))`)"
+    },
+    {
+     "binding": "pt",
+     "line": 232,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`pt (s , z)`)"
+    },
+    {
+     "binding": "i₁",
+     "line": 249,
+     "verdict": "skipped-shape",
+     "why": "3 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "o₁",
+     "line": 252,
+     "verdict": "skipped-shape",
+     "why": "3 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i₂",
+     "line": 255,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "o₂",
+     "line": 258,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Model/Dominated.agda": {
+   "sites": [
+    {
+     "binding": "Eᶜ",
+     "line": 152,
+     "inlinedLineChars": 114,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Model/Dominated.agda:152.22-24: error: [NotInScope]"
+    },
+    {
+     "binding": "qEᶜ",
+     "line": 155,
+     "inlinedLineChars": 336,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "open-hole",
+     "line": 162,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`open-hole x`)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Quantitative/EventLift.agda": {
+   "sites": [
+    {
+     "binding": "pm",
+     "line": 125,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda": {
+   "sites": [
+    {
+     "binding": "zeroᵂ",
+     "line": 185,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`zeroᵂ z`)"
+    },
+    {
+     "binding": "answer",
+     "line": 240,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`answer p`)"
+    },
+    {
+     "binding": "qD",
+     "line": 296,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "N",
+     "line": 298,
+     "verdict": "skipped-shape",
+     "why": "3 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "certN",
+     "line": 299,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "eq",
+     "line": 301,
+     "inlinedLineChars": 142,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/QueryBound.agda": {
+   "sites": [
+    {
+     "binding": "widen",
+     "line": 161,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "agree",
+     "line": 166,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "up",
+     "line": 250,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "forget-up",
+     "line": 254,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onL",
+     "line": 351,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onR",
+     "line": 355,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohL",
+     "line": 359,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohR",
+     "line": 363,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "id-step",
+     "line": 440,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onL",
+     "line": 497,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onR",
+     "line": 502,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohL′",
+     "line": 507,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohR′",
+     "line": 512,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onL",
+     "line": 570,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onR",
+     "line": 575,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohL′",
+     "line": 580,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohR′",
+     "line": 585,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Counting.agda": {
+   "sites": [
+    {
+     "binding": "kᵍ",
+     "line": 151,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`kᵍ y`)"
+    },
+    {
+     "binding": "factor",
+     "line": 154,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "kᵍ",
+     "line": 167,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`kᵍ y`)"
+    },
+    {
+     "binding": "factor",
+     "line": 170,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "drop",
+     "line": 192,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`drop w (s₀ , le₀) r`)"
+    },
+    {
+     "binding": "runs",
+     "line": 198,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`runs w`)"
+    },
+    {
+     "binding": "erases",
+     "line": 202,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`erases w`)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Exact.agda": {
+   "sites": [
+    {
+     "binding": "chain",
+     "line": 84,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`chain r z`)"
+    },
+    {
+     "binding": "o",
+     "line": 97,
+     "verdict": "skipped-shape",
+     "why": "7 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "s′",
+     "line": 98,
+     "verdict": "skipped-shape",
+     "why": "3 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "s″",
+     "line": 99,
+     "verdict": "skipped-shape",
+     "why": "3 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "os",
+     "line": 100,
+     "verdict": "skipped-shape",
+     "why": "3 use(s) outside the where block (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Robust/Model.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Seam/Adequacy.agda": {
+   "sites": [
+    {
+     "binding": "resume-loop",
+     "line": 70,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "u",
+     "line": 114,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam/Audit/Context.agda": {
+   "sites": [
+    {
+     "binding": "reduce",
+     "line": 78,
+     "inlinedLineChars": 82,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "reduceᵍ",
+     "line": 108,
+     "verdict": "skipped-shape",
+     "why": "RHS has its own `where` block"
+    },
+    {
+     "binding": "merge",
+     "line": 116,
+     "inlinedLineChars": 55,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "reach",
+     "line": 132,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "qbᴱ",
+     "line": 134,
+     "inlinedLineChars": 131,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "qbʷ",
+     "line": 137,
+     "inlinedLineChars": 199,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Seam/Audit/Context.agda:77.5-10: warning: -W[no]EmptyWhere"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam/Budget.agda": {
+   "sites": [
+    {
+     "binding": "onL",
+     "line": 97,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onR",
+     "line": 101,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohL",
+     "line": 105,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohR",
+     "line": 109,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "square",
+     "line": 161,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`square p`)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam/EventTransfer.agda": {
+   "sites": [
+    {
+     "binding": "g",
+     "line": 152,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`g c`)"
+    },
+    {
+     "binding": "w₁",
+     "line": 155,
+     "inlinedLineChars": 130,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Seam/EventTransfer.agda:156.18-20: error: [NotInScope]"
+    },
+    {
+     "binding": "w₂",
+     "line": 156,
+     "inlinedLineChars": 133,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Seam/EventTransfer.agda:157.18-20: error: [NotInScope]"
+    },
+    {
+     "binding": "i₁",
+     "line": 157,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i₂",
+     "line": 158,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i",
+     "line": 159,
+     "verdict": "skipped-shape",
+     "why": "4 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "le′",
+     "line": 194,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "w₁",
+     "line": 195,
+     "inlinedLineChars": 66,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Seam/EventTransfer.agda:196.18-20: error: [NotInScope]"
+    },
+    {
+     "binding": "w₂",
+     "line": 196,
+     "inlinedLineChars": 67,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Seam/EventTransfer.agda:197.18-20: error: [NotInScope]"
+    },
+    {
+     "binding": "i₁",
+     "line": 197,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i₂",
+     "line": 198,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i",
+     "line": 199,
+     "inlinedLineChars": 19,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam/Grounded.agda": {
+   "sites": [
+    {
+     "binding": "e",
+     "line": 140,
+     "verdict": "skipped-shape",
+     "why": "3 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "cast",
+     "line": 151,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "total",
+     "line": 163,
+     "inlinedLineChars": 153,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "reads",
+     "line": 166,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "near",
+     "line": 170,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`near ε ε>0`)"
+    },
+    {
+     "binding": "s",
+     "line": 179,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "em",
+     "line": 182,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "t",
+     "line": 198,
+     "inlinedLineChars": 115,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Seam/Grounded.agda:199.7-8: error: [NotInScope]"
+    },
+    {
+     "binding": "u",
+     "line": 201,
+     "inlinedLineChars": 65,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Seam/Grounded.agda:201.26-27: error: [NotInScope]"
+    },
+    {
+     "binding": "massed",
+     "line": 204,
+     "inlinedLineChars": 159,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "σ",
+     "line": 222,
+     "verdict": "skipped-shape",
+     "why": "3 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "Bᵍ",
+     "line": 225,
+     "verdict": "skipped-shape",
+     "why": "3 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "blindˢ",
+     "line": 228,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "ancilla",
+     "line": 233,
+     "inlinedLineChars": 218,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "wire",
+     "line": 249,
+     "inlinedLineChars": 48,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam/Transfer.agda": {
+   "sites": [
+    {
+     "binding": "g",
+     "line": 163,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`g c`)"
+    },
+    {
+     "binding": "w₁",
+     "line": 166,
+     "inlinedLineChars": 111,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Seam/Transfer.agda:167.16-18: error: [NotInScope]"
+    },
+    {
+     "binding": "w₂",
+     "line": 167,
+     "inlinedLineChars": 114,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Seam/Transfer.agda:168.16-18: error: [NotInScope]"
+    },
+    {
+     "binding": "i₁",
+     "line": 168,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i₂",
+     "line": 169,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i",
+     "line": 170,
+     "verdict": "skipped-shape",
+     "why": "3 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "le′",
+     "line": 197,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "w₁",
+     "line": 198,
+     "inlinedLineChars": 54,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Seam/Transfer.agda:199.16-18: error: [NotInScope]"
+    },
+    {
+     "binding": "w₂",
+     "line": 199,
+     "inlinedLineChars": 55,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Seam/Transfer.agda:200.16-18: error: [NotInScope]"
+    },
+    {
+     "binding": "i₁",
+     "line": 200,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i₂",
+     "line": 201,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i",
+     "line": 202,
+     "inlinedLineChars": 17,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "g",
+     "line": 242,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`g c`)"
+    },
+    {
+     "binding": "w₁",
+     "line": 245,
+     "inlinedLineChars": 64,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Seam/Transfer.agda:246.16-18: error: [NotInScope]"
+    },
+    {
+     "binding": "w₂",
+     "line": 246,
+     "inlinedLineChars": 65,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Seam/Transfer.agda:247.16-18: error: [NotInScope]"
+    },
+    {
+     "binding": "i₁",
+     "line": 247,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i₂",
+     "line": 248,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i",
+     "line": 249,
+     "inlinedLineChars": 17,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "w₁",
+     "line": 273,
+     "inlinedLineChars": 50,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Seam/Transfer.agda:274.16-18: error: [NotInScope]"
+    },
+    {
+     "binding": "w₂",
+     "line": 274,
+     "inlinedLineChars": 51,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-B-uc/src/CategoricalCrypto/UC/Seam/Transfer.agda:275.16-18: error: [NotInScope]"
+    },
+    {
+     "binding": "i₁",
+     "line": 275,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i₂",
+     "line": 276,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "i",
+     "line": 277,
+     "inlinedLineChars": 17,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    }
+   ]
+  }
+ },
+ "totalChecks": 52
+}

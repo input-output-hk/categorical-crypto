@@ -17,6 +17,8 @@
   15 September 2026
 ]
 
+_Name note._ `_≤UC^ωⁿ_` below is `UC.Model.Family.Emulation._≈ᶠᴺ_` in the current tree (renamed 2026-09-30).
+
 This revision replaces the earlier large-record proposal. The foundation is a
 presheaf valued in a category of approximate spaces, not an ordinary `UCSetup`
 with separate `ApproximateCarriers`, `Certificates`, `ResourceAction`, and
@@ -25,14 +27,14 @@ collapse-compatibility records attached.
 The implementation references were reviewed at `protocol-rewrite`, `92479a31`.
 This is a mathematical design and migration plan, *not a completed or typechecked
 Agda implementation*. Signatures are schematic: universe levels and implicit
-variables are omitted. See `docs/uc-observation-and-relation-consolidation.typ`
+variables are omitted. See `docs/history/uc-observation-and-relation-consolidation.typ`
 for the account of `Obs` and the inventory of existing relations. The present
 document supersedes that note's earlier implementation direction where they differ.
 
 = The foundational construction
 
 The computational data stay unchanged: a category of computations, a monoidal
-category of grades, and a graded Kleisli triple. Replace the qualitative
+category of grades, and a graded monad. Replace the qualitative
 environment presheaf by an approximate-space-valued presheaf:
 
 ```agda
@@ -152,7 +154,7 @@ record QUCSetup : Set where
   field
     C : Category
     I : MonoidalCategory
-    M : GradedKleisliTriple I C
+    M : GradedMonad I C
     Q : Functor (op C) Approx
 
 underlying₀ underlying₊ : QUCSetup → UCSetup
@@ -500,7 +502,7 @@ positive slack in safety transport.
   canonical setups with the correct quantifier order. Prove transfers from
   globally retained schedules and explicit process-family certificates.
 + *Equivalences and retirement.* Prove the old/new relations equivalent where
-  their semantics coincide. Recompute importers and follow `docs/retirement.md`.
+  their semantics coincide. Recompute importers and follow `docs/history/retirement.md`.
   Migrate consumers before deleting duplicate bodies; retain real distinctions.
 
 Keep `hash-liftⁿ`, `coin-toss-ideal`, and audit carry as regression targets, with

@@ -1,0 +1,231 @@
+{
+ "sweep": "using-drop",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/SFunM.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/SFunM/Monoidal.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 12,
+     "edit": "drop `using (niHelper)`"
+    },
+    {
+     "line": 32,
+     "edit": "drop `using (_○_; ⟺; _⟩∘⟨_; refl⟩∘⟨_; _⟩∘⟨refl)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 27.8
+  },
+  "src/CategoricalCrypto/SFunM/Morphism.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 11,
+     "edit": "drop `using (Functor)`"
+    },
+    {
+     "line": 13,
+     "edit": "drop `using (niHelper)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 23.3
+  },
+  "src/CategoricalCrypto/SFunM/Properties.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 9,
+     "edit": "drop `using (Functor)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 11.0
+  },
+  "src/CategoricalCrypto/SFunM/Test/Possibility.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 18,
+     "edit": "drop `using (fromMaybe)`"
+    },
+    {
+     "line": 19,
+     "edit": "drop `using (++-identityʳ)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 15,
+     "edit": "drop `using (Functor)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 5,
+   "seconds": 28.8
+  },
+  "src/Class/Monad/Ext/Setoid.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 8,
+     "edit": "drop `using (Typeω)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 56,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open MonadSetoid ⦃...⦄ public"
+    },
+    {
+     "line": 81,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open MonadLawsSetoid ⦃...⦄ public"
+    },
+    {
+     "line": 113,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open CommutativeMonadSetoid ⦃...⦄ public"
+    }
+   ],
+   "checks": 2,
+   "seconds": 10.9
+  },
+  "src/Class/Monad/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 32,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open ExtensionalMonad ⦃...⦄ public"
+    },
+    {
+     "line": 65,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open CommutativeMonad ⦃...⦄ public"
+    }
+   ],
+   "checks": 0
+  },
+  "src/Data/Sum/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/Bool/ListAction/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/List/Properties/Ext.agda": {
+   "candidates": 8,
+   "kept": [
+    {
+     "line": 9,
+     "edit": "drop `using (module Decidable⇒UIP)`"
+    },
+    {
+     "line": 11,
+     "edit": "drop `using (≡-dec; ++-assoc; concatMap-++)`"
+    },
+    {
+     "line": 12,
+     "edit": "drop `using (Maybe; just; nothing; map)`"
+    },
+    {
+     "line": 14,
+     "edit": "drop `using (DecidableEquality; Irrelevant)`"
+    },
+    {
+     "line": 15,
+     "edit": "drop `using (_≡_; refl; sym; trans; cong; cong₂)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 10,
+     "edit": "drop `using (List; []; _∷_; _++_; concatMap)`"
+    },
+    {
+     "line": 13,
+     "edit": "drop `using (Σ-syntax; _,_)`"
+    },
+    {
+     "line": 16,
+     "edit": "drop `using (yes; no)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 15,
+   "seconds": 42.8
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 14,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.Channel.Category public"
+    },
+    {
+     "line": 15,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.Channel.Core public"
+    },
+    {
+     "line": 16,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.Channel.Selection public"
+    },
+    {
+     "line": 17,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.Machine.Constraints public"
+    },
+    {
+     "line": 18,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.Machine.Core public"
+    },
+    {
+     "line": 19,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.SFunM public"
+    }
+   ],
+   "checks": 0
+  }
+ },
+ "totalChecks": 32
+}

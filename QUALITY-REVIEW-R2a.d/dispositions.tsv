@@ -1,0 +1,357 @@
+file	lines	class	disposition	reason
+src/CategoricalCrypto/Machines/Core.agda	3-12	comment	TRIM	A-comments.py
+src/CategoricalCrypto/Machines/Core.agda	28-28	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Core.agda	32-33	comment	KEEP	banner over State/Iˢ/_⊛_/Machine/mk
+src/CategoricalCrypto/Machines/Core.agda	35-37	comment	REWORD	A-comments.py
+src/CategoricalCrypto/Machines/Core.agda	68-69	comment	KEEP	banner over onL/onRᵍ/onR
+src/CategoricalCrypto/Machines/Core.agda	74-74	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Core.agda	81-82	comment	KEEP	banner over idᴹ and _∘ᴹ_
+src/CategoricalCrypto/Machines/Core.agda	89-90	comment	KEEP	why _∘ᴹ_ is opaque and that laws reading the paired state opt in via unfolding
+src/CategoricalCrypto/Machines/Frame.agda	3-12	comment	TRIM	A-comments.py
+src/CategoricalCrypto/Machines/Frame.agda	40-41	comment	KEEP	why 𝕄 exists: the reflection frontend needs the MonoidalCategory bundle (ledger L359 pending move)
+src/CategoricalCrypto/Machines/Frame.agda	45-46	comment	KEEP	banner over the shuffle/padding lemmas
+src/CategoricalCrypto/Machines/Frame.agda	60-60	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Frame.agda	64-65	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Frame.agda	74-75	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Frame.agda	86-87	comment	KEEP	banner over swp-nat/swp-natural/swp-natural′
+src/CategoricalCrypto/Machines/Frame.agda	109-110	comment	KEEP	banner over the eight functoriality/congruence lemmas
+src/CategoricalCrypto/Machines/Frame.agda	134-134	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Frame.agda	141-141	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Frame.agda	145-146	comment	KEEP	banner over onL-branch/onR-branch
+src/CategoricalCrypto/Machines/Frame.agda	174-175	comment	KEEP	banner over onL-sim/onR-sim
+src/CategoricalCrypto/Machines/Frame.agda	209-210	comment	KEEP	banner over σ-onR/σ-onL/σ-unit
+src/CategoricalCrypto/Machines/Frame.agda	235-235	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Frame.agda	240-241	comment	KEEP	banner over the trivial-factor collapse lemmas
+src/CategoricalCrypto/Machines/Frame.agda	252-252	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Frame.agda	261-261	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Frame.agda	266-267	comment	KEEP	banner over the paired-point lemmas
+src/CategoricalCrypto/Machines/Frame.agda	274-275	comment	REWORD	A-comments.py
+src/CategoricalCrypto/Machines/Frame.agda	223:out	where	KEEP	names the hexagon square (σ⇒ ⊗₁ id ∘ α⇐) ∘ σ⇒ ≈ swp; inlined it becomes a 5-line nested ⟩∘⟨ in one begin-step
+src/CategoricalCrypto/Machines/Frame.agda	227:inn	where	KEEP	names the hexagon square σ⇒ ∘ α⇒ ≈ swp ∘ σ⇒ ⊗₁ id; same inline blow-up as out
+src/CategoricalCrypto/Machines/Pointwise.agda	3-10	comment	REWORD	A-comments.py
+src/CategoricalCrypto/Machines/Pointwise.agda	52-53	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Pointwise.agda	55-56	comment	KEEP	cites the mirrored Machines.Pure.pureᴵ and why the shape matters for every _≲_
+src/CategoricalCrypto/Machines/Pointwise.agda	60-61	comment	KEEP	banner over pureᶠ and its laws
+src/CategoricalCrypto/Machines/Pointwise.agda	91-92	comment	REWORD	A-comments.py
+src/CategoricalCrypto/Machines/Pointwise.agda	105-106	comment	REWORD	A-comments.py
+src/CategoricalCrypto/Machines/Pointwise.agda	108-109	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Pointwise.agda	101:law	where	INLINE	A-where-Pointwise.py
+src/CategoricalCrypto/Machines/Sim.agda	3-15	comment	TRIM	A-comments.py
+src/CategoricalCrypto/Machines/Sim.agda	43-44	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Sim.agda	59-59	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Sim.agda	65-65	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Sim.agda	101-102	comment	KEEP	banner over collapseˡ/collapseʳ
+src/CategoricalCrypto/Machines/Sim/Lax.agda	3-19	comment	TRIM	A-comments.py
+src/CategoricalCrypto/Machines/Sim/Lax.agda	93-94	comment	KEEP	banner over the three ≲ˡ congruences
+src/CategoricalCrypto/Machines/Sim/Lax.agda	130-131	comment	KEEP	banner over the ≈ˡ closure family
+src/CategoricalCrypto/Machines/Tensor.agda	3-14	comment	TRIM	A-comments.py
+src/CategoricalCrypto/Machines/Tensor.agda	48-49	comment	KEEP	banner over the tstep family
+src/CategoricalCrypto/Machines/Tensor.agda	51-52	comment	KEEP	why tstep frees the codomain state: Iteration uses it for a state map θ ⊗₁ id
+src/CategoricalCrypto/Machines/Tensor.agda	71-72	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Tensor.agda	77-77	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Tensor.agda	88-89	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Tensor.agda	120-121	comment	KEEP	banner over pureᴹ and its laws
+src/CategoricalCrypto/Machines/Tensor.agda	139-139	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Tensor.agda	150-150	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Tensor.agda	160-161	comment	KEEP	banner over α⇒ᴹ/α⇐ᴹ/σᴹ (now also λ⇒ᴹ/ρ⇒ᴹ)
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	3-9	comment	KEEP	proof architecture: ⊗-split reduces functoriality and associator naturality to tstep-α, no state-tree matching
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	57-58	comment	KEEP	banner over ⊗-split/braid-conj/⊗-split′
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	60-62	comment	KEEP	⊗-split is the only state interchange; the unitors come from the one-sided halves
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	83-83	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	88-89	comment	TRIM	A-comments.py
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	97-98	comment	KEEP	banner over the functoriality lemmas
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	100-101	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	130-131	comment	KEEP	banner over tstep-α and the naturality lemmas
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	133-134	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	171-173	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	71:pt-u	where	KEEP	signature spells the paired states (state f ⊛ Iˢ) ⊛ (Iˢ ⊛ state g) inside the opaque unfolding block (prior KEEP)
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	75:step-u	where	KEEP	signature pins the step square sim needs inside the opaque unfolding block (prior KEEP)
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	141:fuse	where	KEEP	used four times
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	145:brA	where	KEEP	signature fixes the id ⊗₁ (i₁ ∘ i₁) form that fuse ○ brA ○ ⟺ fuse rewrites between
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	153:brC	where	KEEP	signature fixes the id ⊗₁ (i₁ ∘ i₂) form that fuse ○ brC ○ ⟺ fuse rewrites between
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	163:brE	where	KEEP	signature states the δ-unique i₂ branch goal (prior KEEP)
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	212:decompˡ	where	KEEP	names the left triple-tensor decomposition the assoc-commuteᴹ chain is built around (prior KEEP)
+src/CategoricalCrypto/Machines/Tensor/Assoc.agda	215:decompʳ	where	KEEP	names the right triple-tensor decomposition the assoc-commuteᴹ chain is built around (prior KEEP)
+src/CategoricalCrypto/Machines/Tensor/Structural.agda	3-12	comment	KEEP	why coherence is pureᴹ-conjugation and why the naturalities hold (⊥ initial; state braiding)
+src/CategoricalCrypto/Machines/Tensor/Structural.agda	63-64	comment	CUT	A-relocate-tstep-comp.py
+src/CategoricalCrypto/Machines/Tensor/Structural.agda	74-75	comment	REWORD	A-relocate-unitor-machines.py
+src/CategoricalCrypto/Machines/Tensor/Structural.agda	89-90	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Tensor/Structural.agda	99-100	comment	REWORD	A-comments.py
+src/CategoricalCrypto/Machines/Tensor/Structural.agda	127-128	comment	KEEP	banner over the unitor naturality lemmas
+src/CategoricalCrypto/Machines/Tensor/Structural.agda	137-138	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Tensor/Structural.agda	164-165	comment	KEEP	banner over tstep-swap/braiding-commuteᴹ
+src/CategoricalCrypto/Machines/Tensor/Structural.agda	167-167	comment	CUT	A-comments.py
+src/CategoricalCrypto/Machines/Tensor/Structural.agda	189-190	comment	MOVED	A-relocate-onesided-collapse.py
+src/CategoricalCrypto/Machines/Tensor/Structural.agda	185:point-σ	where	KEEP	signature supplies the argument of braiding.⇒.commute _ (prior KEEP)
+src/CategoricalCrypto/Machines/Trace/Congruence.agda	3-6	comment	TRIM	A-comments.py
+src/CategoricalCrypto/Machines/Trace/Congruence.agda	69-70	comment	KEEP	why traceStep-onL is derived: onL is onR conjugated by the braiding, carried through the loop by traceStep-sim
+src/CategoricalCrypto/Machines/Trace/Congruence.agda	54:branch₁	where	KEEP	δ-unique i₁ branch of solve-sim kept beside branch₂ (prior KEEP)
+src/CategoricalCrypto/Machines/Trace/Congruence.agda	58:branch₂	where	KEEP	δ-unique i₂ branch carrying iter-uniform (prior KEEP)
+src/CategoricalCrypto/Machines/Trace/Congruence.agda	66:enter	where	KEEP	signature fixes the k′ ∘ (id ⊗₁ i₁ ∘ pad θ) bracketing the traceStep-sim chain relies on (prior KEEP)
+src/CategoricalCrypto/Protocol/Machine.agda	3-24	comment	TRIM	B-comments.py
+src/CategoricalCrypto/Protocol/Machine.agda	64-65	comment	CUT	B-comments.py
+src/CategoricalCrypto/Protocol/Machine.agda	84-85	comment	KEEP	banner over Closed/resumeᴹ/runᴹFrom/runᴹ
+src/CategoricalCrypto/Protocol/Machine.agda	87-90	comment	REWORD	B-comments.py (fixed Pos unitᴵ -> both polarities empty)
+src/CategoricalCrypto/Protocol/Machine.agda	96-98	comment	TRIM	B-comments.py
+src/CategoricalCrypto/Protocol/Machine/Compose.agda	3-23	comment	KEEP	why a third machine (grafted wait loses both continuations; (idle,wait) has no MSt image), ι-graft/ι-serve architecture, measured 11 s perf reason for naming the G-composite
+src/CategoricalCrypto/Protocol/Machine/Compose.agda	64-65	comment	KEEP	banner over the reachable-configuration machine (CSt..machineᶜ)
+src/CategoricalCrypto/Protocol/Machine/Compose.agda	75-76	comment	CUT	B-comments.py
+src/CategoricalCrypto/Protocol/Machine/Compose.agda	100-101	comment	KEEP	banner over π/πpad/π-serve/π-graft/π-step/π-sim
+src/CategoricalCrypto/Protocol/Machine/Compose.agda	111-112	comment	CUT	B-comments.py
+src/CategoricalCrypto/Protocol/Machine/Compose.agda	155-156	comment	KEEP	banner over the ι simulation into the G-composite
+src/CategoricalCrypto/Protocol/Machine/Compose.agda	179-181	comment	CUT	B-comments.py
+src/CategoricalCrypto/Protocol/Machine/Compose.agda	259-260	comment	KEEP	banner over morphism-∘ and morphismCompose
+src/CategoricalCrypto/Protocol/Machine/Compose.agda	274-277	comment	REWORD	B-comments.py (stale UC.QueryBound pointer -> UC.Machine.𝒫ᴵ)
+src/CategoricalCrypto/Protocol/Observe.agda	3-7	comment	TRIM	B-comments.py
+src/CategoricalCrypto/Protocol/Observe.agda	40-42	comment	REWORD	B-comments.py (title -> Reading call trees)
+src/CategoricalCrypto/Protocol/Observe.agda	44-44	comment	CUT	B-comments.py
+src/CategoricalCrypto/Protocol/Observe.agda	51-54	comment	TRIM	B-comments.py
+src/CategoricalCrypto/Protocol/Observe.agda	86-88	comment	KEEP	banner over AllLeaves/evalC-support/serve lemmas
+src/CategoricalCrypto/Protocol/Observe.agda	90-92	comment	TRIM	B-comments.py
+src/CategoricalCrypto/Protocol/Observe.agda	108-113	comment	TRIM	B-comments.py
+src/CategoricalCrypto/Protocol/Observe.agda	138-140	comment	CUT	B-comments.py
+src/CategoricalCrypto/Protocol/Observe.agda	150-152	comment	CUT	B-comments.py
+src/CategoricalCrypto/Protocol/Observe.agda	159-162	comment	TRIM	B-comments.py
+src/CategoricalCrypto/Protocol/Observe.agda	177-179	comment	KEEP	banner over Bounded/BoundedHit/_≈adv[_]_
+src/CategoricalCrypto/Protocol/Observe.agda	190-194	comment	KEEP	divergence moves the advantage like a ¬b answer so the false reading is needed; cites rewrite-verdict Addendum 4
+src/CategoricalCrypto/Protocol/Observe.agda	80:G	where	KEEP	8 uses: the chain continuation shared by every step and congruence
+src/CategoricalCrypto/Protocol/Observe.agda	81:Fb	where	KEEP	2 uses (displayed step and congruence argument), not 1
+src/CategoricalCrypto/Protocol/Observe.agda	82:Hb	where	KEEP	3 uses in display and two congruences
+src/CategoricalCrypto/Protocol/Observe.agda	83:Db	where	KEEP	2 uses (display and congruence argument)
+src/CategoricalCrypto/UC/Machine.agda	3-22	comment	TRIM	B-comments.py (stale Protocol.Machine 𝒫ᴵ claim cut)
+src/CategoricalCrypto/UC/Machine.agda	56-57	comment	KEEP	banner over Proc/𝒫ᴵ/⊤ᵛ/wireStep/wireᴹ/initˢ
+src/CategoricalCrypto/UC/Machine.agda	59-60	comment	CUT	B-comments.py
+src/CategoricalCrypto/UC/Machine.agda	64-68	comment	REWORD	B-comments.py (+ -> ⊎; keeps measured 10 GiB inversion OOM)
+src/CategoricalCrypto/UC/Machine.agda	72-73	comment	KEEP	identifies ⊤ᵛ with 𝒱ₚ tensor unit, the state object of MC.Iˢ
+src/CategoricalCrypto/UC/Machine.agda	77-78	comment	KEEP	why wireStep is named: statements about it without projecting from a Proc (UC.QueryBound)
+src/CategoricalCrypto/UC/Machine.agda	87-87	comment	CUT	B-comments.py
+src/CategoricalCrypto/UC/Machine.agda	91-92	comment	KEEP	banner over Ωᴵ/⟦_⟧ᴼ/Approximationᴹ/spaceᴹ/QEvaluationᴹ/Evaluationᴹ
+src/CategoricalCrypto/UC/Machine.agda	100-101	comment	TRIM	B-comments.py
+src/CategoricalCrypto/UC/Machine.agda	111-112	comment	MOVED	B-comments.py (onto QEvaluationᴹ)
+src/CategoricalCrypto/UC/Machine.agda	126-127	comment	KEEP	banner over outT/T₁ᴵ/subᴵ/a⇐ᴵ/a⇒ᴵ
+src/CategoricalCrypto/UC/Machine.agda	129-131	comment	CUT	B-comments.py
+src/CategoricalCrypto/UC/Machine.agda	150-151	comment	CUT	B-comments.py
+src/CategoricalCrypto/UC/Machine.agda	176-176	comment	MOVED	B-ucmachine-retI-regroup.py (reworded, moved beside 𝒫ᴵ)
+src/CategoricalCrypto/UC/Machine.agda	139:relay	where	SUGGESTED	B-where-UC_Machine.py not landed: wrap-up before its 71-importer check (Suggestions 22)
+src/CategoricalCrypto/UC/Machine.agda	143:stepT	where	KEEP	four-clause pattern-matching step; inline only as λ where, losing the name in QueryBound goals
+src/CategoricalCrypto/UC/Machine.agda	155:outS	where	KEEP	two-clause output map mirroring top-level outT; used by both relayed branches
+src/CategoricalCrypto/UC/Machine.agda	163:stepS	where	KEEP	four-clause pattern-matching step; inline only as λ where, losing the name in QueryBound goals
+src/CategoricalCrypto/UC/Machine/Monitor.agda	3-16	comment	KEEP	why the test is a sandwich, flag unforgeable by the test, divergence leaves flagReadᴹ in waitE; pointer to Monitor.Agree.agree
+src/CategoricalCrypto/UC/Machine/Monitor.agda	47-48	comment	KEEP	banner over Flagᴵ/MonSt/monitorStep/monitorᴹ/qbᵢ-monitor
+src/CategoricalCrypto/UC/Machine/Monitor.agda	50-51	comment	KEEP	Flagᴵ is Ωᴵ-shaped for Ωᴵ's reactivity reason (Flagᴵ = Ωᴵ ruled suggestion-only)
+src/CategoricalCrypto/UC/Machine/Monitor.agda	55-57	comment	TRIM	B-comments.py
+src/CategoricalCrypto/UC/Machine/Monitor.agda	70-71	comment	KEEP	names the strategy-level counterpart Strategy.watchFrom
+src/CategoricalCrypto/UC/Machine/Monitor.agda	78-79	comment	KEEP	query-transparency of the restored qbᵢ-monitor (rate 1, constant potential)
+src/CategoricalCrypto/UC/Machine/Monitor.agda	113-114	comment	KEEP	banner over FlagSt/flagReadStep/flagReadᴹ/compileᴹ/eventRun
+src/CategoricalCrypto/UC/Machine/Monitor.agda	75:stateᴹ	where	INLINE	B-where-Monitor.py
+src/CategoricalCrypto/UC/Machine/Monitor.agda	92:Φ	where	KEEP	5 uses: record field and the index of onL/onR result types
+src/CategoricalCrypto/UC/Machine/Monitor.agda	95:onL	where	KEEP	clause-defined, dependent result type over Φ; fills record field onLᵍ
+src/CategoricalCrypto/UC/Machine/Monitor.agda	99:onR	where	KEEP	clause-defined, dependent result type over Φ; fills record field onRᵍ
+src/CategoricalCrypto/UC/Machine/Monitor.agda	103:cohL	where	KEEP	clause-defined coherence by cases on the pending query; fills field cohL
+src/CategoricalCrypto/UC/Machine/Monitor.agda	108:cohR	where	KEEP	clause-defined coherence by cases on the message; fills field cohR
+src/CategoricalCrypto/UC/Machine/MonitorTests.agda	3-5	comment	CUT	B-comments.py
+src/CategoricalCrypto/UC/Machine/Run/Lax.agda	3-9	comment	TRIM	B-comments.py
+src/CategoricalCrypto/UC/Graded.agda	3-17	comment	TRIM	C-comments.py
+src/CategoricalCrypto/UC/Graded.agda	50-52	comment	KEEP	why the four aliases exist: Model.Graded cannot open the setup vocabulary (pointer to its header)
+src/CategoricalCrypto/UC/Graded.agda	57-60	comment	KEEP	why ext-graded is one machine composite: _∙ᶠ_ is ext X k ∘ f and ext is α⇐ ∘ id ⊗₁ _ on the nose
+src/CategoricalCrypto/UC/Graded.agda	74-80	comment	TRIM	C-comments.py
+src/CategoricalCrypto/UC/Graded.agda	100-100	comment	CUT	C-comments.py
+src/CategoricalCrypto/UC/Model/Family/Emulation.agda	3-17	comment	KEEP	the canonical order drops the global schedule and nothing recovers it, so callers keep the ≤UC[_,_] data
+src/CategoricalCrypto/UC/Model/Family/Emulation.agda	50-50	comment	CUT	C-comments.py
+src/CategoricalCrypto/UC/Model/Family/Emulation.agda	57-58	comment	KEEP	banner over four definitions (gradedᶠ, imgᶠ, _≈ᶠ[_]_, _≈ᶠᴺ_)
+src/CategoricalCrypto/UC/Model/Family/Emulation.agda	68-69	comment	CUT	C-comments.py
+src/CategoricalCrypto/UC/Model/Family/Emulation.agda	75-76	comment	TRIM	C-comments.py
+src/CategoricalCrypto/UC/Model/Family/Emulation.agda	80-81	comment	KEEP	banner over ≈ctxᴬ⇒≈ℰ[], the ≤UC[] module and ≈ᶠ-runs
+src/CategoricalCrypto/UC/Model/Family/Emulation.agda	83-89	comment	TRIM	C-comments.py
+src/CategoricalCrypto/UC/Model/Family/Emulation.agda	95-95	comment	CUT	C-comments.py
+src/CategoricalCrypto/UC/Model/Family/Emulation.agda	107-111	comment	TRIM	C-comments.py
+src/CategoricalCrypto/UC/Model/Seal.agda	3-34	comment	TRIM	C-comments.py
+src/CategoricalCrypto/UC/Model/Seal.agda	63-69	comment	REWORD	C-comments.py
+src/CategoricalCrypto/UC/Model/Seal.agda	76-77	comment	CUT	C-comments.py
+src/CategoricalCrypto/UC/Model/Seal.agda	98-99	comment	CUT	C-comments.py
+src/CategoricalCrypto/UC/Model/Seal.agda	103-104	comment	REWORD	C-comments.py
+src/CategoricalCrypto/UC/Model/Seal.agda	108-112	comment	TRIM	C-comments.py
+src/CategoricalCrypto/UC/Model/Seal.agda	122-124	comment	REWORD	C-comments.py
+src/CategoricalCrypto/UC/Model/Seal.agda	129-132	comment	REWORD	C-comments.py
+src/CategoricalCrypto/UC/Quantitative/EventLift.agda	3-13	comment	TRIM	C-comments.py
+src/CategoricalCrypto/UC/Quantitative/EventLift.agda	56-57	comment	KEEP	banner over HitsAt, Hitsᶠ, Hitsᴺ, hitsᶠ⇒hitsᴺ
+src/CategoricalCrypto/UC/Quantitative/EventLift.agda	59-62	comment	KEEP	completed-run event semantics (diverging run after the flag counts nothing) with docs/state-event-contract.md row 11 citation
+src/CategoricalCrypto/UC/Quantitative/EventLift.agda	79-80	comment	KEEP	banner over openedᴹ and eventRun-closed
+src/CategoricalCrypto/UC/Quantitative/EventLift.agda	82-83	comment	KEEP	why the test is reopened by λᴵ⇒: the shape Kctx slides the closure into
+src/CategoricalCrypto/UC/Quantitative/EventLift.agda	97-98	comment	KEEP	banner over eventDominatedᶜ, eventDominatedᵘ, hitsᵘ
+src/CategoricalCrypto/UC/Quantitative/EventLift.agda	100-101	comment	KEEP	no positive slack is spent because the extraction is chosen after the budget is known
+src/CategoricalCrypto/UC/Quantitative/EventLift.agda	114-117	comment	TRIM	C-comments.py
+src/CategoricalCrypto/UC/Quantitative/EventLift.agda	129-131	comment	TRIM	C-comments.py
+src/CategoricalCrypto/UC/Quantitative/EventLift.agda	140-141	comment	KEEP	banner over qb-stratTest and hits⇒bounded
+src/CategoricalCrypto/UC/Quantitative/EventLift.agda	143-144	comment	CUT	C-comments.py
+src/CategoricalCrypto/UC/Quantitative/EventLift.agda	153-156	comment	TRIM	C-comments.py
+src/CategoricalCrypto/UC/Quantitative/EventLift.agda	127:pm	where	KEEP	pm is projected twice (proj₁ pm and proj₂ pm)
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	3-11	comment	KEEP	why the certificate is built on the collapsed watchᴹ tower: invariant becomes an induction on the test emission tree
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	66-67	comment	KEEP	banner over bit, pend, pend≤1, Φᵂ
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	73-75	comment	KEEP	splitting on the pending query first makes pend (acc , just q) reduce without knowing acc
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	95-96	comment	KEEP	banner over the potential-arithmetic group (qBound, swap₃, ltR, leR, owed)
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	98-99	comment	KEEP	a query leaf owes one unit, paid by the test own potential drop
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	123-124	comment	KEEP	banner over wAns and wAns-coh
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	126-127	comment	KEEP	mirrors Watch.wPass; the verdict is DISCARDED and the accumulator reported instead
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	147-148	comment	KEEP	banner over the certificate fields onRᵂ…certᵂ
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	201-202	comment	KEEP	banner over ∨-cover, covTree/covLeaf/covVal, covᵂ
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	213-215	comment	KEEP	covering invariant: the verdict IS the accumulator and both advance by report at the same answer
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	248-250	comment	KEEP	pend makes covᵂ provable: a zero-potential state has an empty accumulator
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	261-262	comment	KEEP	banner over qb-closedᴹ and covCtx
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	264-265	comment	KEEP	the closure is closed so it recertifies at rate zero and the closed test costs what the test does
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	280-286	comment	TRIM	C-comments.py
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	185:zeroᵂ	where	INLINE	C-where-Cov.py
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	240:answer	where	KEEP	answer is used as both components of answer , answer
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	296:qD	where	INLINE	C-cov-covctx-case.py
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	298:N	where	INLINE	C-cov-covctx-case.py
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	299:certN	where	INLINE	C-cov-covctx-case.py
+src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda	301:eq	where	INLINE	C-cov-covctx-case.py
+src/CategoricalCrypto/UC/QueryBound.agda	3-26	comment	TRIM	C-comments.py
+src/CategoricalCrypto/UC/QueryBound.agda	95-95	comment	REWORD	C-comments.py
+src/CategoricalCrypto/UC/QueryBound.agda	107-108	comment	KEEP	banner over Below, AtMost, Ans, forget
+src/CategoricalCrypto/UC/QueryBound.agda	123-124	comment	KEEP	banner over Certificate/QBᵢ/qbᵢ-mono
+src/CategoricalCrypto/UC/QueryBound.agda	126-135	comment	REWORD	C-comments.py
+src/CategoricalCrypto/UC/QueryBound.agda	171-172	comment	CUT	C-comments.py
+src/CategoricalCrypto/UC/QueryBound.agda	174-175	comment	REWORD	C-comments.py
+src/CategoricalCrypto/UC/QueryBound.agda	185-186	comment	KEEP	banner over qbᵢ-wire, qbᵢ-closed, qbᵢ-upward
+src/CategoricalCrypto/UC/QueryBound.agda	200-203	comment	TRIM	C-comments.py
+src/CategoricalCrypto/UC/QueryBound.agda	227-229	comment	KEEP	why qbᵢ-upward needs no from-above hypothesis: downward fits 0<1, upward 0≤1
+src/CategoricalCrypto/UC/QueryBound.agda	255-256	comment	KEEP	banner over Certified, behᴾ, QB and the qb-* hom-level lemmas
+src/CategoricalCrypto/UC/QueryBound.agda	261-261	comment	CUT	C-comments.py
+src/CategoricalCrypto/UC/QueryBound.agda	265-272	comment	KEEP	why QB is the ≈-closure (Certified not ≈-invariant) and why the raw machine equality is stored (perf at composite witnesses)
+src/CategoricalCrypto/UC/QueryBound.agda	293-294	comment	CUT	C-comments.py
+src/CategoricalCrypto/UC/QueryBound.agda	296-304	comment	KEEP	why the potential cannot be read off MSt (wait holds a function over arbitrary call trees) and how oneCallᴹ avoids it
+src/CategoricalCrypto/UC/QueryBound.agda	407-416	comment	KEEP	why rate c ⊔ 1: the downward bypass relay must withdraw a unit a zero rate cannot supply
+src/CategoricalCrypto/UC/QueryBound.agda	422-424	comment	KEEP	a certificate sees its step only up to ≈ₚ, which lets the action laws be built against a reducing step
+src/CategoricalCrypto/UC/QueryBound.agda	436-437	comment	KEEP	why qbᵢ-id goes through qbᵢ-resp-step: σᴹ vs the case-splitting wire differ by pureᴹ junctions
+src/CategoricalCrypto/UC/QueryBound.agda	596-597	comment	CUT	C-querybound-qb-idM.py
+src/CategoricalCrypto/UC/QueryBound.agda	161:widen	where	KEEP	widen is used in onRᵍ and again in cohR map-map
+src/CategoricalCrypto/UC/QueryBound.agda	166:agree	where	KEEP	its type fixes map-cong implicit h/k; inlining needs K1 map-fuse (K1 not taken)
+src/CategoricalCrypto/UC/QueryBound.agda	219:up	where	KEEP	up is used in onRᵍ and again in cohR
+src/CategoricalCrypto/UC/QueryBound.agda	223:forget-up	where	KEEP	its type fixes map-cong implicit h/k; inlining needs K1 map-fuse (K1 not taken)
+src/CategoricalCrypto/UC/QueryBound.agda	247:tag	where	KEEP	tag is used in onRᵍ and again in cohR
+src/CategoricalCrypto/UC/QueryBound.agda	251:forget-tag	where	KEEP	its type fixes map-cong implicit h/k; inlining needs K1 map-fuse (K1 not taken)
+src/CategoricalCrypto/UC/QueryBound.agda	355:onL	where	KEEP	onL is named in cohL type (mapₚ forget (onL s a)) as well as the record field
+src/CategoricalCrypto/UC/QueryBound.agda	359:onR	where	KEEP	onR is named in cohR type as well as the record field
+src/CategoricalCrypto/UC/QueryBound.agda	363:cohL	where	INLINE	C-where-QueryBound.py
+src/CategoricalCrypto/UC/QueryBound.agda	367:cohR	where	INLINE	C-where-QueryBound.py
+src/CategoricalCrypto/UC/QueryBound.agda	443:id-step	where	INLINE	C-where-QueryBound.py
+src/CategoricalCrypto/UC/QueryBound.agda	510:cohL′	where	INLINE	C-where-QueryBound.py
+src/CategoricalCrypto/UC/QueryBound.agda	515:cohR′	where	INLINE	C-where-QueryBound.py
+src/CategoricalCrypto/UC/Seam/Budget.agda	3-16	comment	TRIM	C-comments.py
+src/CategoricalCrypto/UC/Seam/Budget.agda	67-68	comment	KEEP	mirrors playˢ: a query strictly spends potential, a verdict leaves it where an exhausted tree does
+src/CategoricalCrypto/UC/Seam/Budget.agda	112-113	comment	KEEP	banner over forgetᶜ, fuse, playᴬ-erase, θᶜ, pad, step-erase, simᶜ
+src/CategoricalCrypto/UC/Seam/Budget.agda	96:onL	where	KEEP	onL is named in cohL type as well as the record field
+src/CategoricalCrypto/UC/Seam/Budget.agda	100:onR	where	KEEP	onR is named in cohR type as well as the record field
+src/CategoricalCrypto/UC/Seam/Budget.agda	104:cohL	where	INLINE	C-where-Budget.py
+src/CategoricalCrypto/UC/Seam/Budget.agda	108:cohR	where	INLINE	C-where-Budget.py
+src/CategoricalCrypto/UC/Seam/Budget.agda	151:square	where	INLINE	C-where-Budget.py
+src/CategoricalCrypto/Approx/FilteredTests.agda	3-8	comment	TRIM	D-comments.py
+src/CategoricalCrypto/Approx/FilteredTests.agda	44-45	comment	CUT	D-comments.py
+src/CategoricalCrypto/Approx/FilteredTests.agda	62-62	comment	CUT	D-comments.py
+src/CategoricalCrypto/Approx/FilteredTests.agda	85-86	comment	TRIM	D-comments.py
+src/CategoricalCrypto/Examples/ChimericLedger/Property.agda	3-15	comment	TRIM	D-comments.py
+src/CategoricalCrypto/Examples/ChimericLedger/Property.agda	62-64	comment	KEEP	top-level landmark over the schedule family (LedgerIf^ω, εᴸ, εᴸ-negligible, 0≤εᴸ, εᴹ, εᴹ-negligible, h₀)
+src/CategoricalCrypto/Examples/ChimericLedger/Property.agda	66-68	comment	REWORD	D-comments.py
+src/CategoricalCrypto/Examples/ChimericLedger/Property.agda	82-83	comment	KEEP	why the +1 in εᴹ: the monitor accumulator is the whole monitoring cost (cites EventLift.hitsᵘ)
+src/CategoricalCrypto/Examples/ChimericLedger/Property.agda	94-96	comment	KEEP	top-level landmark over the 8 property definitions
+src/CategoricalCrypto/Examples/ChimericLedger/Property.agda	98-99	comment	KEEP	why idleTest: these are exactly the boundaries Protocol.Observe.PrHit samples, so TruthfulAudit compares like with like
+src/CategoricalCrypto/Examples/ChimericLedger/Property.agda	109-110	comment	KEEP	cites Monitor.Agree.agree as the bridge between the process spelling and the strategy watch
+src/CategoricalCrypto/Examples/ChimericLedger/Property.agda	123-124	comment	KEEP	why the bound comes back unchanged: at the embedded context the compiled experiment is the watched run
+src/CategoricalCrypto/Examples/ChimericLedger/Property.agda	134-136	comment	KEEP	statement caveat: one-sided detection only, not two-sided adequacy, silent on audit interference
+src/CategoricalCrypto/Examples/ChimericLedger/Property.agda	141-143	comment	TRIM	D-comments.py
+src/CategoricalCrypto/Examples/ChimericLedger/Property.agda	153-155	comment	KEEP	top-level landmark over the ideal family (8 definitions)
+src/CategoricalCrypto/Examples/ChimericLedger/Property.agda	180-180	comment	KEEP	why the bound is εᴸ not εᴹ: straight from the birthday bound, no audit spent
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda	3-11	comment	TRIM	D-comments.py
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda	55-56	comment	KEEP	landmark over resᴵᵈ, stageᴴ, hybridᴹ and the composite module applications
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda	64-64	comment	KEEP	why hybridᴹ has its odd bracketing: it is the form UC.Graded.ext-graded/graded₂-∘ produce (consumed in Ideal/UC)
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda	80-81	comment	KEEP	landmark over θᴴ and the per-letter loop lemmas
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda	204-205	comment	KEEP	landmark over reassoc and hybrid-eq
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda	208-209	comment	CUT	D-comments.py
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda	135:κ	where	KEEP	used at both lazy-bind calls (lines 130 and 133); the two chains must meet at the same continuation term
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda	3-7	comment	KEEP	names the single non-structural step (Dp.Coin.coin-flip at commitˢ: share vs coin) and cites docs/coin-toss.md §5
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda	52-53	comment	KEEP	landmark over simᴵᵈ, idealᴹ and the composite module applications
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda	71-72	comment	KEEP	landmark over θᴵ and the per-letter loop lemmas
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda	106-106	comment	KEEP	rule-24 cross-reference to the measured with-lookup perf gotcha recorded in Ideal.Hybrid
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda	125-127	comment	CUT	D-comments.py
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda	185-186	comment	KEEP	landmark over idl-sim and coin-machine
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda	122:κ₁	where	KEEP	used at lines 117 and 119: inner lazy-bind output is the outer lazy-bind input
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda	123:κ	where	KEEP	used at lines 113 and 119: shared continuation of both sides of the chain
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda	3-9	comment	TRIM	D-comments.py
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda	54-55	comment	KEEP	landmark over resᴵᵈʰ, stageᴴʰ, hybridᴹʰ and the composite module applications
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda	78-79	comment	KEEP	landmark over θᴴʰ and the per-letter loop lemmas
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda	209-210	comment	KEEP	landmark over reassocʰ and hybrid-eqʰ
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda	139:κ	where	KEEP	used at both lazy-bind calls (lines 134 and 137); the chains must meet at the same continuation
+src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda	3-18	comment	KEEP	records the obstruction: MSt wait holds a function so no potential can be read off it, hence mdᴹ and the ≈ᴹ-closure (cited by Pointwise and UC/QueryBound)
+src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda	58-59	comment	KEEP	landmark over MDState, resume, advance, stepᴰ, stateᴰ, mdᴹ
+src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda	61-61	comment	KEEP	meaning of the tuple components (party, next block index, remaining blocks) not visible from Fin p × ℕ × List Blk
+src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda	85-86	comment	KEEP	landmark over Φᴰ, Answer, onEnter/onAdvance family, certifiedᴹᴰ
+src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda	95-96	comment	KEEP	where the rate k comes from: entering deposits k and the block list has length k (the ≤-reflexive e)
+src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda	142-143	comment	KEEP	landmark over θᴰ, advance-drive, θ-step, qbᴹᴰ
+src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda	150-151	comment	KEEP	gotcha: the point must be explicit or θᴰ constructor-headed clauses invert and strand resume arguments
+src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda	126:onL	where	INLINE	D-where-QueryBound.py
+src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda	130:onR	where	INLINE	D-where-QueryBound.py
+src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda	134:cohL	where	INLINE	D-where-QueryBound.py
+src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda	138:cohR	where	INLINE	D-where-QueryBound.py
+src/CategoricalCrypto/SFunM/Test/Possibility.agda	3-8	comment	TRIM	D-comments.py
+src/CategoricalCrypto/SFunM/Test/Possibility.agda	84-85	comment	KEEP	landmark over fromMaybeᵏ, the Maybe→𝒫 morphism modules and their pins
+src/CategoricalCrypto/SFunM/Test/Possibility.agda	114-115	comment	KEEP	landmark over the five Setoids payoff pins
+src/CategoricalCrypto/SFunM/Test/Possibility.agda	133-134	comment	KEEP	section landmark over Lossy/Cut/Network/Buffer/CRS once its per-definition sub-banners are cut
+src/CategoricalCrypto/SFunM/Test/Possibility.agda	138-139	comment	CUT	D-comments.py
+src/CategoricalCrypto/SFunM/Test/Possibility.agda	141-141	comment	KEEP	encoding choice: at most one message per round, nothing = idle round (why Maybe)
+src/CategoricalCrypto/SFunM/Test/Possibility.agda	170-171	comment	CUT	D-comments.py
+src/CategoricalCrypto/SFunM/Test/Possibility.agda	187-188	comment	CUT	D-comments.py
+src/CategoricalCrypto/SFunM/Test/Possibility.agda	154:step	where	KEEP	its signature is what fixes kleisliᵉ-cong implicit h/k, which sit under kleisliᵉ/<$>ᴹ and are not recoverable by unification
+src/CategoricalCrypto/SFunM/Test/Possibility.agda	176:send	where	INLINE	D-where-Possibility.py
+src/CategoricalCrypto/SFunM/Test/Possibility.agda	179:schedule	where	INLINE	D-where-Possibility.py
+src/Categories/Category/Construction/Kleisli/Discrete.agda	3-10	comment	TRIM	E-comments.py
+src/Categories/Category/Construction/Kleisli/Discrete.agda	34-36	comment	KEEP	landmark over _≈ᵏ_, ≈ᵏ-isEquivalence, Klᴹ (>1 def)
+src/Categories/Category/Construction/Kleisli/Discrete.agda	68-70	comment	KEEP	landmark over pureᵏ, pureᵏ-cong, pureᵏ-∘
+src/Categories/Category/Construction/Kleisli/Discrete.agda	81-83	comment	KEEP	landmark over the tensor family (_⊗ᵏ_ … ⊗ᵏ-bifunctor)
+src/Categories/Category/Construction/Kleisli/Discrete.agda	87-89	comment	KEEP	projections let _⊗ᵏ_ reduce on a pair that is not yet a literal, so consumers structural shuffles compute (canonical site, rule 24)
+src/Categories/Category/Construction/Kleisli/Discrete.agda	128-130	comment	KEEP	landmark over the eight structural morphisms
+src/Categories/Category/Construction/Kleisli/Discrete.agda	156-158	comment	KEEP	landmark over the four naturality lemmas
+src/Categories/Category/Construction/Kleisli/Discrete.agda	207-209	comment	KEEP	landmark over triangle/pentagon/hexagon
+src/Categories/Category/Construction/Kleisli/Discrete.agda	228-230	comment	KEEP	landmark over the three bundles
+src/Categories/Category/Construction/Kleisli/Discrete.agda	258:σσ	where	KEEP	shared by braiding isoˡ, isoʳ and commutative (3 uses)
+src/Categories/Category/Construction/Kleisli/Distributive.agda	3-14	comment	TRIM	E-comments.py
+src/Categories/Category/Construction/Kleisli/Distributive.agda	97:pure-distributeˡ	where	KEEP	used by both isoˡ and isoʳ and needs the local open of MonoidalDistributive dist
+src/Categories/Category/Distributive/Monoidal.agda	3-4	comment	KEEP	-×- F₁ is _⁂_, so the two distributeˡ are the same term: why isIsoˡ = isIsoˡ checks definitionally
+src/Categories/Category/Monoidal/Distributive/Instance/Rels.agda	3-4	comment	KEEP	gotcha: Rels is distributive for × over ⊎ even though its categorical product is also ⊎
+src/Categories/Category/Monoidal/Distributive/Instance/Rels.agda	22-22	comment	CUT	E-comments.py
+src/Categories/Monad/Construction/Kleisli/Ext.agda	3-8	comment	KEEP	law fields are not propositions, so the two presentations agree only as setoids comparing component families (family ruled KEEP)
+src/Categories/Monad/Construction/Kleisli/Ext.agda	48-49	comment	KEEP	upstream Monad⇒-id M N carries α : N.F ⇒ M.F, so the source triple is the second argument
+src/Categories/Monad/Construction/Kleisli/Ext.agda	53-54	comment	CUT	E-comments.py
+src/Categories/Monad/Construction/Kleisli/Ext.agda	78:θ-natural	where	KEEP	used twice: the α commute field and the mult-comp chain
+src/Categories/Monad/Construction/Kleisli/Ext.agda	86:θ	where	KEEP	abbreviation for α.η _ used ~20 times in fromMonad⇒
+src/Categories/Monad/Construction/Kleisli/Ext.agda	89:θ-extend	where	KEEP	its signature fixes the local θ for a 10-step reasoning chain; family ruled KEEP, not reworked
+src/Categories/Monad/Setoids/Discrete.agda	3-4	comment	KEEP	orientation: the DiscreteMonad vocabulary read off a Setoids Kleisli triple at ≡-setoid; the single site for this explanation
+src/Categories/Monad/Setoids/Maybe.agda	3-4	comment	TRIM	E-comments.py
+src/Categories/Monad/Setoids/Maybe.agda	98-99	comment	REWORD	E-comments.py
+src/Categories/Monad/Setoids/Maybe.agda	69:identityˡᴹᵇ	where	INLINE	E-where-Maybe.py
+src/Categories/Monad/Setoids/Maybe.agda	73:assocᴹᵇ	where	KEEP	shared by the assoc and sym-assoc fields
+src/Categories/Monad/Setoids/Maybe.agda	85:commᴹᵇ	where	INLINE	E-where-Maybe.py
+src/Categories/Monad/Setoids/Maybe.agda	106:congσ	where	KEEP	takes m n explicitly so the Pointwise constructor index is not unified against the projection proj₂ p
+src/Class/Monad/Ext/Setoid.agda	3-3	comment	KEEP	only orientation line of the module (setoid-valued monad laws for Class monads)
+src/Class/Monad/Ext/Setoid.agda	57-58	comment	KEEP	landmark over the five-definition derived-<$>ᴹ section (section ruled KEEP)
+src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda	3-5	comment	KEEP	states that at ≡-setoid the equality is stdlib _∼[ set ]_, pinned by the refl test below
+src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda	7-8	comment	TRIM	E-comments.py
+src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda	41-43	comment	KEEP	landmark over 𝒫ˢ and its three congruence/commutativity lemmas
+src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda	74-75	comment	KEEP	why >>=𝒫-comm needs no congruence of f: membership only asks some a, some b, so swap↔ is the whole content
+src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda	96-98	comment	KEEP	landmark over 𝒫-KleisliTriple and 𝒫-DiscreteMonad
+src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda	70:cong-Any	where	KEEP	used in both the to and from directions of mk⇔
+src/ProbabilisticLogic/Dp/Mass.agda	3-7	comment	TRIM	E-comments.py
+src/ProbabilisticLogic/Dp/Mass.agda	34-35	comment	KEEP	landmark over mass and its ≤1/nonneg/verdict bounds
+src/ProbabilisticLogic/Dp/Mass.agda	70-71	comment	KEEP	landmark over const-bindA/B and mass-bindˡ/ʳ
+src/ProbabilisticLogic/Dp/Mass.agda	97-100	comment	KEEP	_≼ᵐ_ compares runs with different value types, which _≼ₚ_ cannot
+src/ProbabilisticLogic/Dp/Mass.agda	120-121	comment	KEEP	hypothesis is budget-uniform: a per-branch cofinal bound cannot be maxed over an unbounded support
+src/ProbabilisticLogic/Dp/Mass.agda	126-127	comment	KEEP	landmark over Total, ASTotal and their closure lemmas
+src/ProbabilisticLogic/Dp/Mass.agda	129-130	comment	REWORD	E-comments.py
+src/ProbabilisticLogic/Dp/Mass.agda	221-222	comment	KEEP	landmark over squeeze, squeeze-astotal and their private helpers
+src/ProbabilisticLogic/Dp/Mass.agda	48:one	where	INLINE	E-where-Mass.py
+src/ProbabilisticLogic/Dp/Mass.agda	66:ind-sum	where	INLINE	E-where-Mass.py
+src/ProbabilisticLogic/Dp/Mass.agda	237:m₁	where	KEEP	used in m and in the Pr≤-mono bound
+src/ProbabilisticLogic/Dp/Mass.agda	238:m₂	where	KEEP	used in m and in the Pr≤-mono bound
+src/ProbabilisticLogic/Dp/Mass.agda	239:m	where	KEEP	the joint budget, used four times
+src/ProbabilisticLogic/Dp/Mass.agda	240:m′	where	KEEP	the witness budget, used in the result and in the shift target
+src/ProbabilisticLogic/Dp/Mass.agda	242:bound	where	INLINE	E-where-Mass.py

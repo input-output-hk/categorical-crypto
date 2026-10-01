@@ -1,0 +1,140 @@
+{
+ "sweep": "join-lines",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/SFunM.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 38,
+     "edit": "join 6 lines: `_∘ᵉ'_ g f ((sg , sf) , a) = do (sf , b) ← f (sf , …`"
+    },
+    {
+     "line": 52,
+     "edit": "join 6 lines: `trace f s (a ∷ as) = do (s , b) ← f (s , a) bs ← t…`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 9.7
+  },
+  "src/CategoricalCrypto/SFunM/Monoidal.agda": {
+   "candidates": 6,
+   "kept": [
+    {
+     "line": 325,
+     "edit": "join 2 lines: `K   = λ P → (idᵏ ⊗ᵏ G.fun) ((tt , t) , proj₂ P) >>…`"
+    },
+    {
+     "line": 340,
+     "edit": "join 2 lines: `K   = λ P → (idᵏ ⊗ᵏ G.fun) ((tt , t) , proj₂ P) >>…`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 113,
+     "edit": "join 3 lines: `λ-isoˡ = statelessᵉ-inv λ where (inj₂ _) → refl …`"
+    },
+    {
+     "line": 119,
+     "edit": "join 3 lines: `ρ-isoˡ = statelessᵉ-inv λ where (inj₁ _) → refl …`"
+    },
+    {
+     "line": 125,
+     "edit": "join 6 lines: `α-isoˡ = statelessᵉ-inv λ where (inj₁ (inj₁ _)) → …`"
+    },
+    {
+     "line": 131,
+     "edit": "join 6 lines: `α-isoʳ = statelessᵉ-inv λ where (inj₁ _)        → …`"
+    }
+   ],
+   "skipped": [],
+   "checks": 11,
+   "seconds": 32.0
+  },
+  "src/CategoricalCrypto/SFunM/Morphism.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/SFunM/Properties.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/SFunM/Test/Possibility.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Class/Monad/Ext/Setoid.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 130,
+     "edit": "join 2 lines: `θ-<$>ᴹ : {A : Type ℓ} {B : Type ℓ′} (h : A → B) (m…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 17.3
+  },
+  "src/Class/Monad/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/Sum/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/Bool/ListAction/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Data/List/Properties/Ext.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 42,
+     "edit": "join 2 lines: `... | yes x≡y = map (λ (ys , eq) → ys , cong₂ _∷_ …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 8.6
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  }
+ },
+ "totalChecks": 21
+}

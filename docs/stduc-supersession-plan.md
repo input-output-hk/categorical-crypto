@@ -3,9 +3,10 @@
 > **Historical as of 2026-09-21.** The supersession finished: `UC.Emulation`,
 > `UC.Core.Standard`, the `Grading`/`UCBase` records, `UC.Model.Bridge`,
 > `UC.Model.Environment`, `UC.Model.Reading` and `UC.Family.Monoidal` are all
-> deleted. `UC.Core.Bridge` holds the generic qualitative machinery this file
-> built at the model, and `UC.Model.Setup` is it at the seal; see
-> [retirement](retirement.md) and
+> deleted. The generic qualitative machinery this file built at the model is
+> `Standard2.StdUC` over `UC.Core`'s `ℰᴼ`, and `UC.Model.Setup` is it at the
+> seal; see
+> [retirement](history/retirement.md) and
 > [retirement-negligible-order](retirement-negligible-order.md).
 
 Maintainer's ruling: the hand-rolled qualitative core (`UC.Core`, `UC.Environment`,

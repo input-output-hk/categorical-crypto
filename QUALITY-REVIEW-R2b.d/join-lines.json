@@ -1,0 +1,268 @@
+{
+ "sweep": "join-lines",
+ "root": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-R2b",
+ "files": {
+  "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Category.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 48,
+     "edit": "join 3 lines: `onR-α : (k : R ⊗₀ X ⇒ R ⊗₀ Y) → α⇒ {P} {Q} ⊗₁ id ∘…`"
+    },
+    {
+     "line": 130,
+     "edit": "join 2 lines: `∘ᴹ-resp-≲ : {f h : Machine B C} {g i : Machine A B…`"
+    },
+    {
+     "line": 153,
+     "edit": "join 2 lines: `∘ᴹ-resp-≈ᴹ : {f h : Machine B C} {g i : Machine A …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 22.8
+  },
+  "src/CategoricalCrypto/Machines/G.agda": {
+   "candidates": 6,
+   "kept": [
+    {
+     "line": 92,
+     "edit": "join 2 lines: `p-ok : (ρ⇒ ⊗₁ id) ∘ point ((state g ⊛ Iˢ) ⊛ state …`"
+    },
+    {
+     "line": 119,
+     "edit": "join 2 lines: `p-ok : (id ⊗₁ ρ⇒) ∘ point (state f ⊛ (state h ⊛ Iˢ…`"
+    },
+    {
+     "line": 171,
+     "edit": "join 2 lines: `loop-relabel : loopBody V (P + A) (P + B) X k′ ≈ t…`"
+    },
+    {
+     "line": 173,
+     "edit": "join 2 lines: `loop-relabel = enter₂ α+⇒-i₂ ○ (⟺ (tstep-cong refl…`"
+    },
+    {
+     "line": 176,
+     "edit": "join 2 lines: `exit-relabel : solve V (P + A) (P + B) X k′ ∘ id ⊗…`"
+    },
+    {
+     "line": 210,
+     "edit": "join 2 lines: `step-eq : traceStep V (P + A) (P + B) X (id ⊗₁ α+⇐…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 44.3
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Trace/Compose.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 219,
+     "edit": "join 2 lines: `K∘ : (MC.St g × MC.St f) × (A⁺ ⊎ C⁻) → Dist⊥ ((MC.…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 38.8
+  },
+  "src/CategoricalCrypto/UC/Machine/EventBounds.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Machine/EventBounds/Transport.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 57,
+     "edit": "join 2 lines: `Near {B} τ q ε R I = (d : Strat (Neg B) (Pos B)) →…`"
+    },
+    {
+     "line": 73,
+     "edit": "join 2 lines: `unlift : Agrees u → BoundedAt q r u 𝔠 → (d : Strat…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 200.3
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 164,
+     "edit": "join 2 lines: `bottom : 𝒫._≈_ (T₁ᴵ Y λᴵ⇒ 𝒫.∘ (a⇒ᴵ 𝒫.∘ (subᴵ m 𝒫.∘…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 38.3
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent.agda": {
+   "candidates": 11,
+   "kept": [
+    {
+     "line": 60,
+     "edit": "join 2 lines: `pullTest-id : {M : Proc A B} (Q : StateTest M) (s …`"
+    },
+    {
+     "line": 87,
+     "edit": "join 2 lines: `eventSim-trans σ τ = record { sim = S.≲-trans (sim…`"
+    },
+    {
+     "line": 107,
+     "edit": "join 2 lines: `▷step : (MC.St M × Bool) × (Pos A ⊎ (Neg B ⊎ ⊤)) →…`"
+    },
+    {
+     "line": 141,
+     "edit": "join 2 lines: `pt : (x : _) → (MC.point (▷state M P) x >>=ₚ λ s →…`"
+    },
+    {
+     "line": 191,
+     "edit": "join 2 lines: `pt : (x : _) → (MC.point (▷state M P) x >>=ₚ λ s →…`"
+    },
+    {
+     "line": 203,
+     "edit": "join 2 lines: `▷-≈ : {A B : Iface} {x y : Annotated A B} → x ≈ᵉ y…`"
+    },
+    {
+     "line": 213,
+     "edit": "join 2 lines: `rename : {M N : Proc A B} (σ : M S.≲ N) (Q : State…`"
+    },
+    {
+     "line": 223,
+     "edit": "join 2 lines: `unused : (T : Set) (t : T) (M : Proc A B) (Q : Sta…`"
+    },
+    {
+     "line": 227,
+     "edit": "join 2 lines: `pt : (x : _) → (mapₚ (_, t) (MC.point (MC.state M)…`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 237,
+     "edit": "join 5 lines: `ghost = MC.mk (initˢ Bool false) λ where (_ , inj₁…`"
+    },
+    {
+     "line": 242,
+     "edit": "join 5 lines: `erased = MC.mk (initˢ ⊤ tt) λ where (_ , inj₁ ()) …`"
+    }
+   ],
+   "skipped": [],
+   "checks": 11,
+   "seconds": 80.2
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Adequacy.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 78,
+     "edit": "join 2 lines: `resume : (Pos B ⊎ Bool → Strat (Neg B ⊎ ⊤) (Pos B …`"
+    },
+    {
+     "line": 182,
+     "edit": "join 2 lines: `n , h = flagRun (morphism P) (Kᴾ P) T (ker P) (ret…`"
+    },
+    {
+     "line": 204,
+     "edit": "join 2 lines: `up = h unitᴵ (stratTest B d) m₀ (qb-stratTest B d …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 69.3
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Agree.agda": {
+   "candidates": 6,
+   "kept": [
+    {
+     "line": 58,
+     "edit": "join 2 lines: `embeds : (B : Iface) (d : Strat (Neg B) (Pos B)) →…`"
+    },
+    {
+     "line": 126,
+     "edit": "join 2 lines: `pass : (st : SK × SU) (x : Neg B′ ⊎ Pos B′) → iter…`"
+    },
+    {
+     "line": 210,
+     "edit": "join 2 lines: `stateRead-agree {B} M P d = runᴹ-resp-≈ᴹ (flag-tow…`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 116,
+     "edit": "join 4 lines: `k-red ((sk , su) , inj₁ (inj₂ _)) = bindᶠ λ where …`"
+    },
+    {
+     "line": 119,
+     "edit": "join 4 lines: `k-red ((sk , su) , inj₂ (inj₁ n)) = bindᶠ λ where …`"
+    },
+    {
+     "line": 122,
+     "edit": "join 5 lines: `k-red ((sk , su) , inj₂ (inj₂ p)) = bindᶠ λ where …`"
+    }
+   ],
+   "skipped": [],
+   "checks": 11,
+   "seconds": 54.0
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/HitTests.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 111,
+     "edit": "join 3 lines: `adaptive = ask tt λ where true → out false ; false…`"
+    },
+    {
+     "line": 118,
+     "edit": "join 3 lines: `zero-branch = coin (return-ℚ true) λ where true → …`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 87.3
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Lift.agda": {
+   "error": "parse errors -- file skipped (report this)"
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Read.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Spike/Carry.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Seam/Grounded.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  }
+ },
+ "totalChecks": 44
+}

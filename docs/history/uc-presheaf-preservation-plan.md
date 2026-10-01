@@ -6,7 +6,8 @@
 > [consumer-migration](consumer-migration.md), [retirement](retirement.md)),
 > and the retirement arc since deleted several modules §5 asked to keep —
 > `UC.Model.Bridge`, `UC.Model.Reading`, `UC.Model.Family.Uniform`,
-> `UC.Emulation` — against replacements in `UC.Core.Bridge`.
+> `UC.Emulation` — against replacements that `UC.Core`, `Standard2.StdUC` and
+> `Abstract2` hold.
 
 Implementation plan against `protocol-rewrite` at `d461b1fa`. This covers the
 family-premise and property-preservation work discussed in the review, with the
@@ -178,8 +179,8 @@ visible instead of encoding them in another experiment category.
 
 ### 3.1 Recover the current operational reading
 
-`UC.Environment.Presheaf` remains the constructor of an environment presheaf
-from a closed observation. At such an instance, `Env D` is represented by a
+`UC.Core`'s `ℰᴼ` is the constructor of an environment presheaf from a closed
+observation. At such an instance, `Env D` is represented by a
 test `D → Ω`; its equality quantifies over closing morphisms `𝟙 → D`.
 
 For an observation-invariant predicate `Q`, define the adapter:

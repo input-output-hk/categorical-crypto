@@ -1,0 +1,805 @@
+{
+ "edits": [
+  {
+   "file": "src/CategoricalCrypto/UC.agda",
+   "old": "-- The UC layer's entry point: one import for a consumer.  Four tiers, one line\n-- each; the module-by-module inventory is `docs/uc-module-inventory.md`.\n--\n--   core          `UC.Core`: the observation and readout of a base, over which\n--                 `Standard2.StdUC` is the qualitative theory\n--   enrichment    `UC.Approximate`, `UC.Audit`, `UC.Family`: error, a graded\n--                 subcategory of rated morphisms, mass and the asymptotic family\n--   quantitative  `Approx.*`, `UC.Quantitative.*`: the error kept, not collapsed\n--   model         `UC.Machine.*`, `UC.QueryBound.*`, `UC.Seam.*`, `UC.Graded`,\n--                 `UC.Factor`: the `Dₚ` machine instance and its seam to layer 1\n--\n-- `UC.Model` is the layer's SECOND root and is not re-exported here: it\n-- instantiates the inherited abstract theory (`Standard2.StdUC`) behind an\n-- `opaque` seal, so its names only make sense inside that discipline.  The\n-- parameterized modules are imported rather than re-exported; `𝒢ₚᴹ 0ℓ`,\n-- `UC.Machine.Grading.gradingᴹ` and `UC.Machine.Evaluationᴹ` are what to feed\n-- them at the model.\n",
+   "new": "-- The UC layer's entry point: one import for a consumer.  The module-by-module\n-- inventory is `docs/uc-module-inventory.md`.\n--\n-- `UC.Model`, the sealed instance of `Standard2.StdUC`, is a second root and is\n-- not re-exported here, except for `Model.Family.Contextual.Compose` and\n-- `Model.Family.Emulation`.  `𝒢ₚᴹ 0ℓ`, `UC.Machine.Grading.gradingᴹ` and\n-- `UC.Machine.Evaluationᴹ` are what to feed the parameterized modules below at\n-- the model.\n",
+   "rule": "22/23",
+   "why": "tier list restates the inventory doc it points to; 'UC.Model is not re-exported' was FALSE (Contextual.Compose and Emulation are opened public); 'imported rather than re-exported' is said again at lines 51-52"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model.agda",
+   "old": "-- `Standard2.StdUC` — at the machine layer\n-- (`docs/kb/frontier/15-probabilistic-uc-model.typ`, §§1–2).\n--\n--   `Model.Seal`          the machine bundle behind an `opaque` seal\n--   `Model.Observation`   the ticked verdict object `Ωᵒ` and the closed run `Obs`\n--   `Model.Setup`         the inherited metatheory at the seal, and `ℰᵒ`\n--   `Model.Enrichment`    the budget and the mass `UC.Audit` asks of a base\n--   `Model.Audit`         `UC.Audit` at the seal\n--   `Model.EventBounds`   one-sided event bounds on a certified context\n--   `Model.Dominated`     `UC.Machine.Bridge.ContextDominated` at seal objects\n--   `Model.Graded`        the graded coercions across the seal\n--   `Model.Family`        `UC.Family` at the seal, and its `.Ingest`,\n--                         `.Negligible`, `.Contextual` and `.Emulation`\n--   `Model.Quantitative`  `ℰᵒ` with the slack still visible, valued in `Approx`\n",
+   "new": "-- `Standard2.StdUC` — at the machine layer.\n",
+   "rule": "22/21",
+   "why": "docs/kb/frontier/15-probabilistic-uc-model.typ does not exist in the repo; TOC restates imports and lists modules not imported (Audit, Graded, Contextual, Emulation)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Setup.agda",
+   "old": "-- presheaf of the model's readout.  One module application, and it carries\n-- `UCSetup` and the whole of `Abstract2`, all inherited and already proved.\n-- There is no second UC definition anywhere in this cone.\n",
+   "new": "-- presheaf of the model's readout.\n",
+   "rule": "22",
+   "why": "'one module application / all inherited / no second UC definition' narrates the code"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Audit.agda",
+   "old": "-- `UC.Audit`'s graded carry at the intended instance: the base is the sealed\n-- bundle and its observation, the grading and the mass are `UC.Model.Enrichment`,\n-- and nothing exported is a parameter.  `UC.Audit.Canonical`, relating that\n-- carry's premise to the inherited order's cost-certified witness, is applied\n-- at the same data.\n",
+   "new": "-- `UC.Audit` and `UC.Audit.Canonical` at the intended instance: the sealed\n-- bundle, its observation, and `UC.Model.Enrichment`'s grading and mass.\n",
+   "rule": "22",
+   "why": "restated the module applications"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family.agda",
+   "old": "-- INHERITED order, where `UC-compose` is.\n--\n-- `docs/protocol-implementation-review.md` §4 asks for the intended\n-- machine-family UC setup to be CONSTRUCTED rather than described.  Every\n-- ingredient is already proved: the monoidal bundle is the seal's own, the\n-- grading is `UC.Model.Enrichment`'s, and the readout is\n-- `UC.Model.Observation.qevaluationᵒ`, whose `eval₀` is the model's exact\n-- reading of the seal's hom equality.  The index is the security parameter\n-- itself, cofinal by `≤-refl`.\n--\n-- The ingestion is next door: turning a level-indexed layer-1 bound into\n-- `_≈ℰ[_]_` here needs `UC.Machine.Bridge.ContextDominated` read at SEAL\n-- objects, which is `UC.Model.Dominated`, and `UC.Model.Family.Ingest` is what\n-- spends it.\n",
+   "new": "-- INHERITED order, where `UC-compose` is.\n",
+   "rule": "22",
+   "why": "design narration ('§4 asks for it to be CONSTRUCTED', ingredients already proved, index visible in code) and sibling-module narration (Dominated/Ingest)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Negligible.agda",
+   "old": "-- ingredients `UC.Model.Family` feeds the qualitative tier.\n--\n-- So the tier is not a construction awaiting a model — `_≈ℰᴺ_` and `Canonicalᴺ`\n-- exist HERE, and `≈ℰⁿ⇒≤UC` puts a bound of\n-- `UC.Model.Family.Ingest.ingest-≈ℰⁿ`'s shape into the INHERITED order with its\n-- error witness kept, which is where `ingest-≤UCᵁ` lands it too.\n",
+   "new": "-- ingredients `UC.Model.Family` feeds the qualitative tier.\n",
+   "rule": "22",
+   "why": "'not a construction awaiting a model' is a development leftover; the ≈ℰⁿ⇒≤UC/ingest-≤UCᵁ comparison narrates other modules"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Contextual.agda",
+   "old": "-- simulator-bearing emulation witness `_≤UC^ωᵉ_` over it.\n--\n-- The model-specific input is `UC.Model.Observation.qevaluationᵒ`: its `eval₀`\n-- reads the seal's hom equality EXACTLY, which is the zero-error input the\n-- generic module asks for, and the qualitative readout it induces is `qual₊`,\n-- so `_∼_` IS closeness at every positive error and the `reflects` input is\n-- the identity.\n",
+   "new": "-- simulator-bearing emulation witness `_≤UC^ωᵉ_` over it.\n",
+   "rule": "24",
+   "why": "merged into the application-site comment (one explanation once)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Contextual.agda",
+   "old": "-- Spelled exactly as `Approx.Evaluation.qual₊` spells it, so that the readout\n-- this module lands at IS `evaluationᵒ` and the two orders are the same one.\n",
+   "new": "-- Spelled exactly as `Approx.Evaluation.qual₊` spells it, so that the readout\n-- this module lands at IS `evaluationᵒ`, the two orders are the same one, and\n-- the `reflects` input is the identity.\n",
+   "rule": "24",
+   "why": "merged header 7-11's why here"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Quantitative.agda",
+   "old": "-- machine bundle (`docs/quantitative-uc-setup-plan.typ` §6).\n--\n-- The argument is `UC.Model.Observation.qevaluationᵒ`, whose qualitative\n-- readout is `qual₊` — so the model's `_∼ᵃ_` IS closeness at every positive error,\n-- `induces` and `reflects` are both the identity, and `UC.Model.Setup.ℰᵒ` is\n-- recovered as the `F₊` image of the test presheaf.\n",
+   "new": "-- machine bundle (`docs/quantitative-uc-setup-plan.typ` §6), at which\n-- `UC.Model.Setup.ℰᵒ` is recovered as the `F₊` image of the test presheaf.\n",
+   "rule": "24",
+   "why": "qual₊ / induces-reflects-identity explanation duplicated Contextual's; kept the ℰᵒ-recovery fact specific to this module"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Quantitative.agda",
+   "old": "-- Spelled exactly as `Approx.Evaluation.qual₊` spells it, so the readout this\n-- lands at IS `evaluationᵒ` and `UC.Model.Setup` is the setup it is compared\n-- with.\n",
+   "new": "-- Spelled as `Approx.Evaluation.qual₊` spells it: see `UC.Model.Family.Contextual`.\n",
+   "rule": "24",
+   "why": "duplicate of Contextual's spelling gotcha → pointer"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Observation.agda",
+   "old": "-- The verdict object and what a closed process shows at it (proposal §1–2,\n-- `docs/kb/frontier/15-probabilistic-uc-model.typ`).\n",
+   "new": "-- The verdict object and what a closed process shows at it.\n",
+   "rule": "21",
+   "why": "dangling path: docs/kb/frontier/15-probabilistic-uc-model.typ does not exist"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Observation.agda",
+   "old": "-- `UC.Machine.QEvaluationᴹ` is this same route one layer down, at the\n-- transparent machines.\n",
+   "new": "",
+   "rule": "22",
+   "why": "sibling narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Enrichment.agda",
+   "old": "-- not `GradedSubCat _ (𝒢ₚᴹ 0ℓ) _` outside the block where `𝔾ᵒ` reduces.  It is\n-- the same record, so the coercion is `p = p` exported from inside —\n-- `UC.Model.Seal`'s third discipline: under the seal there is nothing to\n-- re-index.\n--\n-- Its own module because it is the one place in the Model cone that unfolds\n-- the seal, and nothing here opens `StdUC`: `unfolding 𝔾ᵒ` in a module that\n-- does is the 12 GiB configuration `docs/stduc-supersession-plan.md` finding\n-- F5 records.\n",
+   "new": "-- not `GradedSubCat _ (𝒢ₚᴹ 0ℓ) _` outside the block where `𝔾ᵒ` reduces, so it\n-- is transported along `UC.Model.Seal.sealᵒ` (see there for why not retyped).\n--\n-- Nothing here may open `StdUC`: `unfolding` the seal in a module that does is\n-- the 12 GiB configuration `docs/stduc-supersession-plan.md` finding F5 records.\n",
+   "rule": "21",
+   "why": "FIX: 'the coercion is p = p exported from inside' is false (gradingᵒ is a subst along sealᵒ outside the block); 'the one place in the Model cone that unfolds the seal' is false (Dominated, Graded unfold too); kept the 12 GiB gotcha + F5 citation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Enrichment.agda",
+   "old": "  -- …and the certificates that grading accepts, at the machine-layer spelling a\n  -- consumer builds them in (`UC.Seam.Budget`).  Where the seal is transparent\n  -- the transport above is `refl`, so this is `UC.Model.Seal`'s third\n  -- discipline once more and nothing downstream needs an `unfolding`.\n",
+   "new": "  -- The certificates that grading accepts, at the machine-layer spelling\n  -- (`UC.Seam.Budget`); under `unfolding sealᵒ` the transport above is `refl`.\n",
+   "rule": "22",
+   "why": "trimmed discipline narration; kept the why (transport reduces here)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Enrichment.agda",
+   "old": "-- The fibre form a generic consumer asks for, at the certified hom itself.\n",
+   "new": "",
+   "rule": "22",
+   "why": "narrates the type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Graded.agda",
+   "old": "-- The seal's coercions for a NONTRIVIALLY graded process image.\n--\n-- `UC.Model.Seal.gradedᵒ` already crosses the seal for the object part: a\n-- `Proc A (X ⊗ᴵ B)` — a process with an adversary interface `X` beside its\n-- honest one — is a hom `ifaceᵒ A ⇒ ifaceᵒ X ⊗₀ ifaceᵒ B`, i.e. a graded hom at\n-- the grade `ifaceᵒ X`.  What was missing is the three facts a UC statement\n-- about such a hom needs, none of them derivable outside the block: that\n-- `gradedᵒ` respects the machine equality, that the grading's `sub` acting on\n-- it is the machine-layer relay `subᴵ` composed with it, and that a process\n-- plugged under it leaves one machine composite.\n--\n-- `graded₂ᵒ` and the four exports around it are the same facts for a stage\n-- plugged ON TOP of such a hom, which is what\n-- `UC.Model.Family.Contextual.Compose._∙ᶠ_` builds: its grade is a tensor, so\n-- it needs its own coercion, and composing\n-- a closed process under it, a joint simulator in front of it, or a stage over\n-- it each leaves one machine composite.\n--\n-- The two below them are the same exports for an adversary machine FILLING\n-- that grade, whose own coercion `procᵘ` is `UC.Model.Enrichment`'s (it is\n-- inseparable from its certificate there): `plug-gradedᵒ` is what says the\n-- filled grade is a machine composite.\n--\n-- All ten are `UC.Model.Seal`'s third discipline (export from inside, one\n-- export per shape).  The statements are written in the bundle's own vocabulary\n-- rather than in `StdUC`'s, because `unfolding 𝔾ᵒ` in a module that opens\n-- `StdUC` is the 12 GiB configuration `UC.Model.Enrichment`'s header records;\n-- `UC.Graded` is where they are read as statements about `sub`.\n",
+   "new": "-- The seal's coercions for a NONTRIVIALLY graded process image, exported from\n-- inside the block (`UC.Model.Seal`'s third discipline, one export per shape).\n-- They are stated in the bundle's own vocabulary rather than in `StdUC`'s,\n-- because `unfolding 𝔾ᵒ` in a module that opens `StdUC` is the 12 GiB\n-- configuration `UC.Model.Enrichment`'s header records; `UC.Graded` is where\n-- they are read as statements about `sub`.\n",
+   "rule": "22/23",
+   "why": "header paraphrased the exports ('what was missing' leftover); kept orientation + 12 GiB why"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Graded.agda",
+   "old": "  -- A process plugged UNDER such a hom — a resource installed below a graded\n  -- system — leaves one machine composite, which is the `Proc` form\n  -- `UC.Model.Dominated.dominatedᵍᵠ` consumes.\n",
+   "new": "",
+   "rule": "21/22",
+   "why": "FALSE: UC.Model.Dominated.dominatedᵍᵠ does not consume graded-∘ᵒ (no consumer in src); remainder restates the type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Graded.agda",
+   "old": "  -- The graded image of a process whose grade is already a tensor, which is the\n  -- shape a COMPOSED system has.  A separate export because the seal hides the\n  -- tensor and the bracketing is what distinguishes it (`UC.Model.Seal`'s third\n  -- discipline: one export per shape).\n",
+   "new": "  -- The shape a COMPOSED system has; a separate export because the seal hides\n  -- the tensor (see `UC.Graded.flatᵍ`).\n",
+   "rule": "22/24",
+   "why": "one-export-per-shape already in header; pointer to where the non-identification is explained"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Graded.agda",
+   "old": "  -- `graded-∘ᵒ` at a tensor grade.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "restates the type; family cut with graded-∘ᵒ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Graded.agda",
+   "old": "  -- …and a stage plugged ON TOP of a graded image, which is what\n  -- `UC.Model.Family.Contextual.Compose._∙ᶠ_` is: `ext X k ∘ f`, and `ext` is\n  -- `α⇐ ∘ id ⊗₁ _` on the nose outside the seal; what is not derivable there\n  -- is that the result is one machine composite.\n",
+   "new": "  -- A stage plugged ON TOP of a graded image (see `UC.Graded.ext-graded`): not\n  -- derivable outside the seal.\n",
+   "rule": "24",
+   "why": "duplicate of UC.Graded's ext-graded comment → pointer"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Graded.agda",
+   "old": "  -- A simulator in front of an adversary is again an adversary.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Graded.agda",
+   "old": "  -- …and what is left once it has: the grade is the unit, the unitor deflates\n  -- it (`λ⇒-λᴳ` is that unitor as a wire), and the whole is one machine\n  -- composite.  This is the graded reading of `UC.Seam.Grounded.plug-run`'s\n  -- `unprocᵒ-∘` — with the grade filled rather than absent.\n",
+   "new": "  -- The filled grade is the unit, which the unitor deflates (`λ⇒-λᴳ` is that\n  -- unitor as a wire): the graded reading of `UC.Seam.Grounded.plug-run`'s\n  -- `unprocᵒ-∘`.\n",
+   "rule": "22",
+   "why": "dropped dangling '…and' after cut; kept citation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Dominated.agda",
+   "old": "-- The bridge quantifies its ancilla over `Iface`; `UC.Family._≈ℰ[_]_` — hence\n-- `UC.Model.Family`'s — quantifies over objects of the seal, and under the seal\n-- `ifaceᵒ` is not known to be onto (`UC.Seam.Grounded`'s header records the\n-- same asymmetry, `UC.Model.Family.Ingest` is the consequence).  It IS onto: `UC.Machine.retᴵ` inverts `⟦_⟧ᴵ` definitionally,\n-- so `UC.Model.Seal.objᵒ` is a section and the two quantifiers agree.  Nothing\n-- about the domination argument changes — `dominatedᵒ` is `dominated` read at\n-- `objᵒ X` — and no statement is restricted to an image.\n--\n-- What the reading costs is the three coercions below plus one machine\n-- equation: the seal's own action `id ⊗₁ _` against the relay `T₁ᴵ` the bridge\n-- is written with, which is `UC.Machine.Dictionary.T₁-⊗₁` and nothing else.\n-- The coercions are `p = p` under the seal and must be exported from inside it\n-- (`UC.Model.Seal`'s third discipline), one per shape: the TYPE of a definition\n-- in an `opaque` block is checked with the seal closed, and only its body sees\n-- through.\n--\n-- The ancilla is the only quantifier that has to be general.  The grade, the\n-- interfaces and the two compared processes come from the statement being read,\n-- which is written at `Iface` — a concrete security theorem names its\n-- interface — so nothing is gained by generalizing them and the coercions stay\n-- small.\n",
+   "new": "-- The bridge quantifies its ancilla over `Iface` and `UC.Family._≈ℰ[_]_` over\n-- objects of the seal; `UC.Model.Seal.objᵒ` is a section of `ifaceᵒ`, so the\n-- two quantifiers agree and `dominatedᵒ` is `dominated` read at `objᵒ X`.\n",
+   "rule": "21/24",
+   "why": "'ifaceᵒ is not known to be onto … It IS onto' self-contradictory leftover; coercion/opaque-typing discipline and ancilla-generality duplicate UC.Model.Seal's header and 108-112; 'whole content is T₁-⊗₁' is stated at ctxRunᵒ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Dominated.agda",
+   "old": "-- `dominatedᵒ` at a hole that is a real grade rather than `𝟘ᵒ`.  Every\n-- quantitative statement above the model that carries a grade is EXACT and\n-- reads `UC.Model.Family.Contextual.≈C⇒≈ctx`; a hop that is approximate AND\n-- graded has nothing to read.\n--\n-- The grade is not the obstacle: `dominated`'s honest interface is arbitrary,\n",
+   "new": "-- `dominatedᵒ` at a hole that is a real grade rather than `𝟘ᵒ`.\n",
+   "rule": "21/22",
+   "why": "STALE: 'a hop that is approximate AND graded has nothing to read' is false — dominatedᵍᵠ/dominatedᵍ are exactly that (consumed by Examples.CoinToss.Ideal.Receiver.Compose)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/EventBounds.agda",
+   "old": "-- the environment is run inside — and nothing below knows how one is built:\n-- `UC.Machine.Monitor.compileᴹ` is the construction this layer exists for, and\n-- `UC.Audit` makes the same restriction at an arbitrary base as a CLASS of\n-- permitted contexts instead; the two are not identified — bridging them is\n-- the sealed model's job (`docs/event-bounds-in-setup.md`, \"Architectural\n-- clarification\").\n",
+   "new": "-- the environment is run inside — and nothing below knows how one is built.\n-- `UC.Machine.Monitor.compileᴹ` builds one; `UC.Audit` makes the same\n-- restriction at an arbitrary base as a CLASS of permitted contexts, and the\n-- two are not identified (`docs/event-bounds-in-setup.md`, \"Architectural\n-- clarification\").\n",
+   "rule": "22",
+   "why": "trimmed purpose narration ('the construction this layer exists for', 'the sealed model's job'); kept the non-identification + citation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/EventBounds.agda",
+   "old": "------------------------------------------------------------------------\n-- The capped allowance presentation\n\n",
+   "new": "",
+   "rule": "25",
+   "why": "banner over a single definition (BoundedAt)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/EventBounds.agda",
+   "old": "------------------------------------------------------------------------\n-- Absorbing a morphism into the context\n\n",
+   "new": "",
+   "rule": "25",
+   "why": "banner over a single definition (ctxRun-∘)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "old": "-- `_≈ᶠ[_]_` is `UC.Model.Family.Contextual._≈ctxᴬ[_]_` at those images — the\n-- one quantitative relation on families of graded homs, here at a closed\n-- domain and the trivial grade — and `_≤UC^ωⁿ_` is that relation with its `ε`\n-- kept and graded.  The witness-retaining composition laws live in\n-- `UC.Model.Family.Contextual.Compose`.\n--\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the definitions below + sibling narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "old": "-- `_≤UC[_,_]_` data rather than reconstructing it from the corollary.\n--\n-- Both halves of the seam are theorems elsewhere: `UC.Model.Family.Ingest`\n-- ingests a per-level advantage bound INTO the family relation, and\n-- `UC.Seam.Audit.Context` reads one back OUT at the embedded-strategy contexts\n-- (`≈ᶠ-runs`), with no exact agreement anywhere in between.\n",
+   "new": "-- `_≤UC[_,_]_` data rather than reconstructing it from the corollary.\n",
+   "rule": "22",
+   "why": "sibling narration (Ingest / Seam.Audit.Context); also misattributed ≈ᶠ-runs, which is in this module"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "old": "-- A family of closed systems indexed by the security parameter: the shape\n-- every premise and conclusion below is stated at.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "old": "-- The codomain the compared homs live at: the trivial grade over the\n-- interfaces.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the definition"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "old": "-- `UC.Model.Family.Contextual._≈ctxᴬ[_]_` at those images.  Unfolded: at each\n-- level, no budgeted ancilla context separates the two images by more than\n-- `ε` read at the budget the context's two legs CARRY.\n",
+   "new": "-- Unfolded: at each level, no budgeted ancilla context separates the two\n-- images by more than `ε` read at the budget the context's two legs CARRY.\n",
+   "rule": "22",
+   "why": "first sentence restated the definition; kept the unfolded reading (non-obvious CARRY budget)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "old": "-- The premise: the agreement above with its `ε` kept and graded at the\n-- allowance-uniform grade the ledger's headline is stated at.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the definition"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "old": "-- The inputs are the fixed data themselves — a certified simulator family, a\n-- schedule, its negligibility and the bound at both — at two `Famᴹ` arrows,\n-- the certified families the compared homs are.  The bound needs no\n-- certificate of its own (`UC.Quantitative.Family`'s header).\n",
+   "new": "-- The bound needs no certificate of its own (`UC.Quantitative.Family`'s header).\n",
+   "rule": "22",
+   "why": "parameter list paraphrase cut; kept the pointer"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "old": "  -- One schedule, negligible at every polynomial allowance, that every level's\n  -- context reads.  Nothing here quantifies an allowance before the schedule.\n",
+   "new": "",
+   "rule": "22/24",
+   "why": "restates _≈ℰⁿ_; header already says the route carries the one global schedule"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "old": "  -- …and the CANONICAL NEGLIGIBLE order, which is where the schedule stops\n  -- being visible (the header's second paragraph): the retained `_≈ℰⁿ_` IS a\n  -- `ucSetupᴺ` kernel agreement, so only the simulator moves, but the order it\n  -- lands in keeps just a per-context negligible witness.\n",
+   "new": "",
+   "rule": "24",
+   "why": "duplicate of the header's second/third paragraphs"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "old": "------------------------------------------------------------------------\n-- Reading it at the embedded strategies\n\n",
+   "new": "",
+   "rule": "25",
+   "why": "banner over a single definition (≈ᶠ-runs)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Ingest.agda",
+   "old": "-- The premise is the shape a concrete security theorem has and the one\n-- `UC.Machine.Bridge`'s domination consumes: at each level, no strategy of a\n-- given budget separates the two direct runs by more than `ε` of that budget.\n-- `UC.Model.Dominated.dominatedᵒ` turns it into closeness under every ancilla\n-- CONTEXT, at seal objects, which is exactly what `_≈ℰ[_]_` quantifies over,\n-- and the budget both sides read `ε` at is the one the context's two legs\n-- CARRY.  So the whole ingestion is that theorem plus the family layer's own\n-- bookkeeping; nothing here is quantitative.\n",
+   "new": "-- The premise is the shape a concrete security theorem has, and\n-- `UC.Model.Dominated.dominatedᵒ` turns it into closeness under every ancilla\n-- context at seal objects — what `_≈ℰ[_]_` quantifies over, at the budget the\n-- context's two legs CARRY; the rest is the family layer's bookkeeping.\n",
+   "rule": "22",
+   "why": "trimmed narration; kept the one non-obvious reduction"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Ingest.agda",
+   "old": "-- will do — `UC.Approximate.Decay.negligible-slack` is one.\n--\n-- With the agreement in hand the inherited metatheory applies to a concrete\n-- family: `≈ᵁ⇒≤UC` puts it in the INHERITED order at the identity simulator,\n-- where `≤UC-trans`, `dummy-complete` and `UC-compose` are.\n",
+   "new": "-- will do — `UC.Approximate.Decay.negligible-slack` is one.\n",
+   "rule": "24",
+   "why": "duplicate of UC.Model.Family's header (inherited order, UC-compose)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Ingest.agda",
+   "old": "    -- The two compared families, and the bound the ingestion lands at: the\n    -- premise's, widened by the slack the domination charges.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates definitions"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Ingest.agda",
+   "old": "    -- The collapses, at the §3 discipline: `absorb-negl` spends only vanishing,\n    -- `_≈ℰⁿ_` keeps the witness a negligible-graded consumer needs\n    -- (`UC.Family`'s header), and the order is where the metatheory is read.\n",
+   "new": "    -- The collapses: `absorb-negl` spends only vanishing, `_≈ℰⁿ_` keeps the\n    -- witness a negligible-graded consumer needs (`UC.Family`'s header), and the\n    -- order is where the metatheory is read.\n",
+   "rule": "21",
+   "why": "STALE: '§3 discipline' refers to a proposal doc not in the repo"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Ingest.agda",
+   "old": "      -- …and in the INHERITED order, which is where `UC-compose` is\n      -- (`UC.Family.Vanishing`).\n",
+   "new": "",
+   "rule": "24",
+   "why": "duplicate of UC.Model.Family's header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Robust/Model.agda",
+   "old": "-- `UC.Robust.Observation` at the sealed bundle and its readout carries the\n-- observation-scoped statements and their reading through the canonical\n-- `UC.Robust`; what is model-specific is a simulator that is a real machine,\n-- `relayᵒ`, and the preservation applied at that explicit witness.\n--\n-- SCOPE: see `UC.Robust`'s header.  Nothing here bounds a probability, so\n-- nothing here discharges the monitor-inclusion or error-uniformity obligations\n-- of `docs/protocol-implementation-review.md` §§1-2.\n",
+   "new": "-- SCOPE: see `UC.Robust`'s header.\n",
+   "rule": "22/24",
+   "why": "6-9 narrates the module content (restated at relay-selectedᵒ); scope reduced to pointer"
+  }
+ ],
+ "dispositions": [
+  {
+   "file": "src/CategoricalCrypto/UC.agda",
+   "lines": "3-19",
+   "verdict": "TRIM",
+   "reason": "cut tier narration (inventory doc exists); fixed false non-re-export claim; kept what-to-feed-at-the-model"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC.agda",
+   "lines": "42-43",
+   "verdict": "KEEP",
+   "reason": "why these are import-only + doc pointer"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC.agda",
+   "lines": "51-52",
+   "verdict": "KEEP",
+   "reason": "why the quantitative tier is imported rather than re-exported (single site)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model.agda",
+   "lines": "3-18",
+   "verdict": "TRIM",
+   "reason": "kept orientation 3-5; dropped dangling doc path and inaccurate import TOC"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Setup.agda",
+   "lines": "3-14",
+   "verdict": "TRIM",
+   "reason": "kept ℰᵒ formula and the measured 80 s vs 9 s why for re-exporting the presheaf"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Audit.agda",
+   "lines": "3-7",
+   "verdict": "TRIM",
+   "reason": "to orientation only"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family.agda",
+   "lines": "3-19",
+   "verdict": "TRIM",
+   "reason": "kept 3-6 orientation (Vanishing supplies the inherited order where UC-compose is)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Negligible.agda",
+   "lines": "3-10",
+   "verdict": "TRIM",
+   "reason": "kept 3-5 orientation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Contextual.agda",
+   "lines": "3-11",
+   "verdict": "TRIM",
+   "reason": "kept 3-5; qual₊/reflects why merged into 25-26"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Contextual.agda",
+   "lines": "25-26",
+   "verdict": "KEEP",
+   "reason": "spelling gotcha (now the single site), extended with reflects=identity"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Quantitative.agda",
+   "lines": "3-9",
+   "verdict": "TRIM",
+   "reason": "kept citation + ℰᵒ recovery"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Quantitative.agda",
+   "lines": "27-29",
+   "verdict": "TRIM",
+   "reason": "pointer to Contextual"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Quantitative.agda",
+   "lines": "38-40",
+   "verdict": "KEEP",
+   "reason": "gotcha: a DIFFERENT space from Observed.spaceᵗ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Observation.agda",
+   "lines": "3-23",
+   "verdict": "FIX",
+   "reason": "dropped dangling doc path; kept TICKED why, two-sided why, 𝟘ᵒ-vs-unit gotcha with >150 s cost"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Observation.agda",
+   "lines": "65-66",
+   "verdict": "KEEP",
+   "reason": "why observation is exact"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Observation.agda",
+   "lines": "70-71",
+   "verdict": "KEEP",
+   "reason": "banner groups qevaluationᵒ + evaluationᵒ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Observation.agda",
+   "lines": "73-77",
+   "verdict": "TRIM",
+   "reason": "kept why quantitative readout is primary; cut sibling narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Enrichment.agda",
+   "lines": "3-17",
+   "verdict": "FIX",
+   "reason": "kept massᵒ/gradingᵒ coercion why and 12 GiB/F5 gotcha; corrected two false claims"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Enrichment.agda",
+   "lines": "56-59",
+   "verdict": "TRIM",
+   "reason": "kept Seam.Budget pointer + transport-is-refl why"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Enrichment.agda",
+   "lines": "63-68",
+   "verdict": "KEEP",
+   "reason": "why procᵘ is a separate coercion and why it must live with qbᵘ (transparency gotcha)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Enrichment.agda",
+   "lines": "75",
+   "verdict": "CUT",
+   "reason": "restates imageᵒ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Enrichment.agda",
+   "lines": "79-82",
+   "verdict": "KEEP",
+   "reason": "why Mass takes the true half (one-sided)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Graded.agda",
+   "lines": "3-30",
+   "verdict": "TRIM",
+   "reason": "≤6 lines: orientation + 12 GiB why"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Graded.agda",
+   "lines": "57-60",
+   "verdict": "KEEP",
+   "reason": "citations sub-⊗ / sub-⊗₁"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Graded.agda",
+   "lines": "66-68",
+   "verdict": "FIX",
+   "reason": "false consumer claim (dominatedᵍᵠ) → cut"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Graded.agda",
+   "lines": "73-76",
+   "verdict": "TRIM",
+   "reason": "pointer to UC.Graded.flatᵍ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Graded.agda",
+   "lines": "85",
+   "verdict": "CUT",
+   "reason": "restates type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Graded.agda",
+   "lines": "90-91",
+   "verdict": "KEEP",
+   "reason": "citation docs/coin-toss.md §5"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Graded.agda",
+   "lines": "97-100",
+   "verdict": "TRIM",
+   "reason": "dup of UC.Graded ext-graded → pointer"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Graded.agda",
+   "lines": "107",
+   "verdict": "CUT",
+   "reason": "restates type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Graded.agda",
+   "lines": "112-115",
+   "verdict": "TRIM",
+   "reason": "kept λ⇒-λᴳ / plug-run citation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Dominated.agda",
+   "lines": "3-25",
+   "verdict": "FIX",
+   "reason": "cut self-contradiction and Seal duplicates"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Dominated.agda",
+   "lines": "72-73",
+   "verdict": "KEEP",
+   "reason": "why this spelling of the action (matches UC.Family.Famᴹ levelwise)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Dominated.agda",
+   "lines": "77-78",
+   "verdict": "KEEP",
+   "reason": "banner groups 4 defs in the opaque block"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Dominated.agda",
+   "lines": "83-84",
+   "verdict": "KEEP",
+   "reason": "pointer to Enrichment.qbᵒ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Dominated.agda",
+   "lines": "89-91",
+   "verdict": "KEEP",
+   "reason": "what a context CARRIES is a gradingᵒ certificate — why these coercions"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Dominated.agda",
+   "lines": "103-105",
+   "verdict": "KEEP",
+   "reason": "whole content is T₁-⊗₁ (single site now)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Dominated.agda",
+   "lines": "114-115",
+   "verdict": "KEEP",
+   "reason": "banner groups ContextDominatedᵒ, guard, dominatedᵒ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Dominated.agda",
+   "lines": "117-122",
+   "verdict": "KEEP",
+   "reason": "value-positive product-of-rates why"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Dominated.agda",
+   "lines": "147-148",
+   "verdict": "KEEP",
+   "reason": "banner groups dominatedᵍᵠ, dominatedᵍ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Dominated.agda",
+   "lines": "150-161",
+   "verdict": "FIX",
+   "reason": "cut stale claim; kept conjᴵ-unitor / ctxRun-conj / *-identityʳ why"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Dominated.agda",
+   "lines": "192-195",
+   "verdict": "KEEP",
+   "reason": "why no allowance arithmetic"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/EventBounds.agda",
+   "lines": "3-19",
+   "verdict": "TRIM",
+   "reason": "kept Reader orientation, Audit non-identification, three-resources distinction"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/EventBounds.agda",
+   "lines": "52-53",
+   "verdict": "KEEP",
+   "reason": "banner groups Reader + readRun"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/EventBounds.agda",
+   "lines": "55-58",
+   "verdict": "KEEP",
+   "reason": "why restrict tests"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/EventBounds.agda",
+   "lines": "66-67",
+   "verdict": "CUT",
+   "reason": "single-def banner"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/EventBounds.agda",
+   "lines": "69-72",
+   "verdict": "KEEP",
+   "reason": "why the cap is essential"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/EventBounds.agda",
+   "lines": "78-79",
+   "verdict": "KEEP",
+   "reason": "banner groups 3 defs"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/EventBounds.agda",
+   "lines": "87-88",
+   "verdict": "KEEP",
+   "reason": "quantifier-order invariant"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/EventBounds.agda",
+   "lines": "94-98",
+   "verdict": "KEEP",
+   "reason": "why carry takes error before context; Audit.audit-carryᵉ citation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/EventBounds.agda",
+   "lines": "105-106",
+   "verdict": "CUT",
+   "reason": "single-def banner"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/EventBounds.agda",
+   "lines": "108-111",
+   "verdict": "KEEP",
+   "reason": "functoriality why + UC.Audit.absorb citation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "lines": "3-27",
+   "verdict": "TRIM",
+   "reason": "kept title, ≤UC[]⇒≤UCᴺ route (no absorb-negl), and the weaker-statement gotcha"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "lines": "65-66",
+   "verdict": "CUT",
+   "reason": "restates type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "lines": "73-74",
+   "verdict": "KEEP",
+   "reason": "banner groups 4 defs"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "lines": "76-77",
+   "verdict": "CUT",
+   "reason": "restates def"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "lines": "86-88",
+   "verdict": "TRIM",
+   "reason": "kept unfolded reading"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "lines": "94-95",
+   "verdict": "CUT",
+   "reason": "restates def"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "lines": "99-100",
+   "verdict": "KEEP",
+   "reason": "banner groups ≈ctxᴬ⇒≈ℰ[] + the module"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "lines": "102-108",
+   "verdict": "KEEP",
+   "reason": "explicit-bound gotcha; named implication not identification why"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "lines": "114-117",
+   "verdict": "TRIM",
+   "reason": "kept certificate pointer"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "lines": "122-123",
+   "verdict": "CUT",
+   "reason": "restates ≈ℰⁿ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "lines": "128-131",
+   "verdict": "CUT",
+   "reason": "dup of header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "lines": "135-136",
+   "verdict": "CUT",
+   "reason": "single-def banner"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Emulation.agda",
+   "lines": "138-142",
+   "verdict": "KEEP",
+   "reason": "why ε lands on direct runs; closure at 1⁺"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Ingest.agda",
+   "lines": "3-24",
+   "verdict": "TRIM",
+   "reason": "kept title, dominatedᵒ reduction, δ-slack why; cut dup tail"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Ingest.agda",
+   "lines": "59-62",
+   "verdict": "KEEP",
+   "reason": "conjᴵ inflation why (empty summand never fires; polynomial is its own query bound)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Ingest.agda",
+   "lines": "72-73",
+   "verdict": "KEEP",
+   "reason": "mirrors layer 1 _≈adv[_]_"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Ingest.agda",
+   "lines": "86-87",
+   "verdict": "CUT",
+   "reason": "restates defs"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Ingest.agda",
+   "lines": "101-103",
+   "verdict": "FIX",
+   "reason": "stale §3 reference dropped"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Ingest.agda",
+   "lines": "109-111",
+   "verdict": "KEEP",
+   "reason": "inference gotcha"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Family/Ingest.agda",
+   "lines": "118-119",
+   "verdict": "CUT",
+   "reason": "dup of UC.Model.Family header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Robust/Model.agda",
+   "lines": "3-13",
+   "verdict": "TRIM",
+   "reason": "kept orientation + scope pointer"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Robust/Model.agda",
+   "lines": "32-35",
+   "verdict": "KEEP",
+   "reason": "why gradedᵒ is needed for relayᵒ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Robust/Model.agda",
+   "lines": "43-46",
+   "verdict": "KEEP",
+   "reason": "what the acceptance test exhibits that the top class cannot"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Seal.agda",
+   "lines": "3-34",
+   "verdict": "KEEP",
+   "reason": "measured costs (12 GiB/50 s vs 7 s, 5.7×, 8 GiB OOM) + load-bearing disciplines + onto/per-shape why; ~32 lines justified"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Seal.agda",
+   "lines": "63-69",
+   "verdict": "KEEP",
+   "reason": "why propositional seal (eta-expansion of 13 law types)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Seal.agda",
+   "lines": "76-77",
+   "verdict": "KEEP",
+   "reason": "why retᴵ is a definitional inverse"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Seal.agda",
+   "lines": "98-99",
+   "verdict": "KEEP",
+   "reason": "gotcha: seal hides tensor"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Seal.agda",
+   "lines": "103-104",
+   "verdict": "KEEP",
+   "reason": "not derivable outside"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Seal.agda",
+   "lines": "108-112",
+   "verdict": "KEEP",
+   "reason": "why ancilla general, rest Iface"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Seal.agda",
+   "lines": "122-124",
+   "verdict": "KEEP",
+   "reason": "seal hides functoriality; plug-run citation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Model/Seal.agda",
+   "lines": "129-132",
+   "verdict": "KEEP",
+   "reason": "not derivable from unprocᵒ-∘; citations"
+  }
+ ]
+}

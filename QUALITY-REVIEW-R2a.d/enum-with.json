@@ -1,0 +1,127 @@
+{
+ "sweep": "enum-with",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/Approx/FilteredTests.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Core.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Frame.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Pointwise.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Sim.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Sim/Lax.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Tensor.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Assoc.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Structural.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace/Congruence.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Compose.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Observe.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/SFunM/Test/Possibility.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Graded.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/MonitorTests.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Machine/Run/Lax.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Model/Family/Emulation.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Model/Seal.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Quantitative/EventLift.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/QueryBound.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/UC/Seam/Budget.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Construction/Kleisli/Discrete.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Construction/Kleisli/Distributive.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Distributive/Monoidal.agda": {
+   "sites": []
+  },
+  "src/Categories/Category/Monoidal/Distributive/Instance/Rels.agda": {
+   "sites": []
+  },
+  "src/Categories/Monad/Construction/Kleisli/Ext.agda": {
+   "sites": []
+  },
+  "src/Categories/Monad/Setoids/Discrete.agda": {
+   "sites": []
+  },
+  "src/Categories/Monad/Setoids/Maybe.agda": {
+   "sites": []
+  },
+  "src/Class/Monad/Ext/Setoid.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Dp/Mass.agda": {
+   "sites": []
+  }
+ },
+ "totalChecks": 0
+}

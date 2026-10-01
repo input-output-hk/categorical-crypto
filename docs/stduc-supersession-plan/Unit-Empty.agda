@@ -40,7 +40,6 @@ import CategoricalCrypto.Machines.G as MG
 import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Tensor as Tensor
 import CategoricalCrypto.Machines.Trace as Trace
-import CategoricalCrypto.Machines.Trace.Naturality as Naturality
 
 module CategoricalCrypto.UC.Model.Unit.Empty where
 
@@ -50,7 +49,7 @@ private
   open MD.MonoidalDistributive (distₚ 0ℓ) using (initial; ⊥)
   open Bundle (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) using (Mealy-Monoidal)
   open MCat (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ) using (Mealy-Category)
-  open Naturality (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ) using (trace-∘ˡ; trace-∘ʳ)
+  open MG (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ) using (trace-∘ˡ; trace-∘ʳ)
   open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ) using (_○ᴹ_; ≲⇒≈ᴹ)
   open Tensor (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) using (pureᴹ; pureᴹ-cong; pureᴹ-id; pureᴹ-∘)
   open Trace (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ) using (Remaining)

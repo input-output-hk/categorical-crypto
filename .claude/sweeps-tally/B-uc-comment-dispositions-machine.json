@@ -1,0 +1,1313 @@
+{
+ "edits": [
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "old": "-- No `Channel` appears anywhere.\n",
+   "new": "",
+   "rule": "22",
+   "why": "development leftover"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "old": "-- The relays `T₁ᴵ`/`subᴵ` and the two ancilla reassociators are kept as\n-- VOCABULARY: they are direct — the plugged process's state, the interface sum\n-- relabelled, no coherence morphism and no trace — which is what makes a query\n-- bound about them readable (`UC.QueryBound`).  They are not the tensor's own\n-- action, and `UC.Machine.Dictionary`'s zigzags are the bridge between the\n-- two.\n",
+   "new": "-- The relays `T₁ᴵ`/`subᴵ` and the ancilla reassociators are direct — no\n-- coherence morphism, no trace — which keeps a query bound about them readable\n-- (`UC.QueryBound`); `UC.Machine.Dictionary` relates them to the tensor's action.\n",
+   "rule": "24",
+   "why": "trim; the bridge is explained in Dictionary's header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "old": "-- A stateless forwarder: a positive message travels up, a negative one down.\n-- The step is a named function so that a statement about it can be made\n",
+   "new": "-- The step is a named function so that a statement about it can be made\n",
+   "rule": "22",
+   "why": "drop per-clause paraphrase, keep the why"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "old": "-- The advantage is a RELATION, not a function: `Dₚ`'s termination mass is a\n-- supremum this layer never forms, so an `adv : Obs → Obs → ℚ` would be\n-- uninhabited here (`ProbabilisticLogic.Dp.Advantage`'s header).  Rational\n-- slack is what survives, and it carries exactly the four laws the abstract\n-- error layer asks for.  It compares BOTH verdict masses, since divergence\n-- weighs 0 under either indicator and the `true`-mass alone would identify a\n-- process that answers `false` with one that diverges\n-- (`ProbabilisticLogic.Dp.Advantage`'s header states the same choice).\n",
+   "new": "-- A relation rather than a function, comparing both verdict masses: see\n-- `ProbabilisticLogic.Dp.Advantage`'s header.\n",
+   "rule": "24",
+   "why": "duplicates Advantage's header; point to it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "old": "-- The readout is homed on `𝒢ₚ`, not on `𝒫ᴵ`, because that is where the\n-- grading is: `Proc unitᴵ Ωᴵ` IS `𝒢ₚ [ ⟦ unitᴵ ⟧ᴵ , ⟦ Ωᴵ ⟧ᴵ ]`, so `⟦_⟧ᴼ` and\n-- its congruence apply verbatim and only the index moves.  A simulation is\n-- invisible to a closed run, so the hom equality is read EXACTLY.\n",
+   "new": "-- The readout is homed on `𝒢ₚ`, not on `𝒫ᴵ`, because that is where the\n-- grading is; the hom equality is read at slack 0 (`UC.Machine.Run`).\n",
+   "rule": "22/24",
+   "why": "keep the why; Proc=𝒢ₚ-hom is the header's, simulation-invisibility is Run's header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "old": "-- …and the qualitative readout the core wants: two closed runs agree when no\n-- positive slack separates their verdict masses.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates qual₊"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "old": "-- `subᴵ` with the bypassed interface moved ahead of the simulator;\n-- definitionally `subᴵ′ s = subᴵ s`.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the one-line definition"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "old": "-- `⟦_⟧ᴵ`'s retraction: `Iface` and `𝒢ₚ`'s objects are both eta records, so this\n-- is a definitional inverse and a hom of `𝒢ₚ` at any objects is a `Proc`.  It is\n-- what lets a statement written in the `Iface` vocabulary be read at the\n-- tensor's objects without a coercion.\n",
+   "new": "-- Definitional because `Iface` and `𝒢ₚ`'s objects are both eta records.\n",
+   "rule": "24",
+   "why": "consequence already in the module header; keep the gotcha"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Bridge.agda",
+   "old": "-- The statement is UNIVERSAL in the strategy, which is also the shape its\n-- consumers have: a layer-1 theorem (`_≈adv[_]_`, `Bounded`) is already\n-- quantified over budgeted strategies, so it feeds this hypothesis by\n-- instantiating its own budget at `scale c (positive c′)`.  Asking instead for ONE\n-- finite strategy that dominates the context is constructively overdemanding\n-- twice over: the witness is an\n-- optimal deterministic policy of a `Dₚ` context, and it must ATTAIN the\n-- context's advantage rather than approximate it.  Its uniform variant (one\n-- strategy before the compared pair) is outright refuted: `Strat` is a finite\n-- tree, so it mentions finitely many possible first queries, while a `Dₚ`\n-- context may sample a question of unbounded support and ask that one at query\n-- bound one, and two implementations differing only outside the tree's support\n-- separate the context but not the strategy.  Moving the pair in front of the\n-- witness answers that refutation but leaves the extraction, so the existential\n-- is gone rather than demoted (external theory review, findings 2 and 3).\n--\n-- The slack δ is arbitrary and positive rather than zero because the model's\n-- readout —\n-- hence `_≈ℰ_` — quantifies over every positive slack anyway, so it costs a\n-- consumer nothing.  The decomposition does not need it: the extraction is\n-- chosen once the observation's budget is known, so no residue is left for a\n-- positive δ to absorb, and `skeleton⇒dominated` spends it on `≈ₚ[]-mono`\n-- alone.\n",
+   "new": "-- The hypothesis is universal in the strategy, the shape a layer-1 theorem\n-- (`_≈adv[_]_`, `Bounded`) already has: it feeds it at budget\n-- `scale c (positive c′)`.  Why not one dominating strategy:\n-- `docs/rewrite-verdict.md`, external theory review addendum.\n--\n-- The slack δ is positive rather than zero because the model's readout, hence\n-- `_≈ℰ_`, quantifies over every positive slack anyway, so it costs a consumer\n-- nothing; the decomposition never needs it (`UC.Machine.Dominated`).\n",
+   "rule": "22/23",
+   "why": "design-alternative essay moved to its docs pointer; δ explanation kept once here (Dominated's copy cut)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Bridge.agda",
+   "old": "-- Proved in `UC.Machine.Dominated`, by decomposing the context's activation\n-- sequence against a strategy of that budget: a crossing to the plugged\n-- interface is an `ask`, a coin is a `coin`, a verdict is an `out`, and the\n-- hypothesis is applied branchwise and reassembled by convexity of `Pr≤` in\n-- the branch distribution.  It is instance-specific — reading \"given this\n-- answer, the next query\" needs an inspectable step — so it belongs beside\n-- `UC.Machine`, not in the abstract layer.  The decomposition runs once per\n-- verdict, `_≈ₚ[_]_` comparing both masses.\n",
+   "new": "-- Proved as `UC.Machine.Dominated.dominated`.\n",
+   "rule": "24",
+   "why": "proof sketch lives in Dominated; placement rationale duplicates this header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "old": "--\n-- The Kleisli-pure layer the readings run on — `pureᵏ` of a relabelling, the\n-- junction calculus, `midᴹ` — is machine-layer, not UC, and lives in\n-- `Machines.Pure`.\n",
+   "new": "",
+   "rule": "22",
+   "why": "what a sibling module holds"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "old": "-- Every object implicit is passed explicitly, for the reason `UC.Machine`'s\n-- header gives: inferring one asks Agda to invert `_⊗₁ᴳ_`.\n",
+   "new": "-- Every object implicit is passed explicitly, for the reason given at\n-- `UC.Machine.𝒫ᴵ`: inferring one asks Agda to invert `_⊗₁ᴳ_`.\n",
+   "rule": "FIX",
+   "why": "the reason is at 𝒫ᴵ's comment, not UC.Machine's header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "old": "-- The 𝒢-level reassociators, which the base's own `α⇒`/`α⇐` would shadow.\n",
+   "new": "",
+   "rule": "22",
+   "why": "the renaming shows it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "old": "------------------------------------------------------------------------\n-- Every wire is an embedding\n\n",
+   "new": "",
+   "rule": "25",
+   "why": "banner over one private helper"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "old": "  -- A wire's step is the copairing of its two relabellings, crossed.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "old": "-- The relays' common shape: a stateless relabelling IS `⌜_,_⌝` of the two\n-- directions, whenever the two base maps are pure.  This is what makes\n-- `UC.Machine.Wire`'s absorption apply to them — and the six structural\n-- zigzags below are its instances, spelled out at the 𝒢-associator and the two\n-- 𝒢-unitors.\n",
+   "new": "-- The form `UC.Machine.Wire`'s absorption applies to.\n",
+   "rule": "22",
+   "why": "type restatement and structure narration cut; keep the why"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "old": "-- The relabellings a unitor performs: the trivial ancilla contributes no case.\n",
+   "new": "",
+   "rule": "22",
+   "why": "narrates the definitions"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "old": "-- The left unitor as a machine.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "old": "-- `plugᴹ a` is `subᴵ a` with that unit deflated, so a system with its adversary\n-- plugged is again an ordinary `Proc A B` — which is what layer 1's closed run\n-- and `UC.Seam.Adequacy` are stated at.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates definition and type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "old": "-- What the zigzag above buys without unfolding anything: the 𝒢-tensor's own\n-- functoriality read back on `T₁ᴵ`.  A composite relayed past an ancilla is\n-- the relays composed, which is what lets a morphism absorbed into a context\n-- slide off the process and onto the test\n-- (`UC.Model.EventBounds.ctxRun-∘`).\n\n",
+   "new": "-- Lets a morphism absorbed into a context slide off the process onto the test\n-- (`UC.Model.EventBounds.ctxRun-∘`).\n",
+   "rule": "22/24",
+   "why": "keep consumer why; functoriality restates the types; comment reattached"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "old": "-- The δ is spent there and nowhere else: the skeleton is an ε-statement, and\n-- `≈ₚ[]-mono` widens it to `ε + δ` because δ is positive.  That is the sense in\n-- which the bridge's arbitrary positive slack \"costs a consumer nothing\" — no\n-- step of the reduction needs it.\n--\n",
+   "new": "",
+   "rule": "24",
+   "why": "δ explained once in Bridge's header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "old": "-- `skeleton` is the branchwise decomposition, and its three moving parts live\n-- next door: `UC.Seam.Plug`, `UC.Seam.Extract`, `UC.Seam.Transfer`.  What is\n-- assembled here is the ε-arithmetic — the extraction is chosen ONCE the\n-- observation's budget is known, so a truncation past it never shows; the\n-- hypothesis is spent at that one strategy per initial state; and the\n-- branchwise ε's are averaged back into one by convexity (`cum-shift`).\n",
+   "new": "-- `skeleton` assembles the ε-arithmetic of the branchwise decomposition whose\n-- moving parts are `UC.Seam.Plug`, `UC.Seam.Extract` and `UC.Seam.Transfer`;\n-- the extraction is chosen once the observation's budget is known.\n",
+   "rule": "22/FIX",
+   "why": "proof narration trimmed; `cum-shift` is not used by skeleton (only eventSkeleton)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "old": "-- The obligation at a closed context: if no strategy of the context's budget\n-- separates the two processes by more than ε, neither does the context.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "old": "-- The context, the representative its certificate lives on, and the\n-- extraction: everything the decomposition does before a slack is chosen.\n",
+   "new": "-- Everything the decomposition does before a slack is chosen, shared with\n-- `eventSkeleton`.\n",
+   "rule": "22",
+   "why": "drop parameter narration, keep why it is separate"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "old": "  -- The context's activation sequence, read off the certificate: one\n  -- strategy per initial state and fuel, and the potential bounds its asks.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "old": "-- Everything but the two processes is fixed here: the extraction, and the\n-- slack.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the parameters"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "old": "    -- Half the conclusion; the other half is this one with the pair swapped.\n",
+   "new": "",
+   "rule": "22",
+   "why": "skeleton shows it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "old": "-- `Strategy.IsWatch` asks for.  No slack is spent: the extraction\n-- is chosen once the observation's budget is known, as in `skeleton`.\n",
+   "new": "-- `Strategy.IsWatch` asks for.\n",
+   "rule": "24",
+   "why": "dup of header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "old": "  -- A bound holding at every initial state and every budget survives the\n  -- average, the divergent mass counting for nothing.\n",
+   "new": "",
+   "rule": "22",
+   "why": "proof paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Grading.agda",
+   "old": "-- A `UC.QueryBound` certificate is about the pinned relay\n-- (`T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`) or a bare wire; the grading asks for one about\n-- `_⊗₁_` and about the 𝒢-associator and 𝒢-unitors, and\n-- `UC.Machine.Dictionary`'s zigzags carry one to the other through\n-- `qb-resp-≈`.  At a positive rate the relays' `⊔ 1` guard is `value-positive`.\n",
+   "new": "-- Certificates are about the pinned relays; `UC.Machine.Dictionary`'s zigzags\n-- carry them to the grading's fields.  At a positive rate the relays' `⊔ 1`\n-- guard is `value-positive`.\n",
+   "rule": "24",
+   "why": "dup of Dictionary's header; pointer kept"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Grading.agda",
+   "old": "-- …and the two actions read back on the PINNED relays, which is the spelling\n-- a context is built in (`UC.Model.EventBounds`, `UC.Machine.Monitor`).\n",
+   "new": "-- The two actions read back on the pinned relays, the spelling a context is\n-- built in (`UC.Quantitative.EventLift.Cov`).\n",
+   "rule": "FIX",
+   "why": "wrong consumers named; only importer of qb-T₁ᴵ/qb-subᴵ is EventLift.Cov"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Grading.agda",
+   "old": "  -- The tensor through its two one-sided actions, `f ⊗₁ g ≈ f ⊗₁ id ∘ id ⊗₁ g`.\n",
+   "new": "",
+   "rule": "22",
+   "why": "proof paraphrase (serialize₁₂)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor.agda",
+   "old": "--\n-- What this module does NOT establish is semantic agreement with the\n-- strategy-level watch it implements; the traffic pins below are checks, not\n-- that theorem (`docs/event-bounds-in-setup.md`, work package A).\n",
+   "new": "--\n-- Semantic agreement with the strategy-level watch is\n-- `UC.Machine.Monitor.Agree.agree`.\n",
+   "rule": "FIX",
+   "why": "stale: Monitor.Agree.agree now proves it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor.agda",
+   "old": "-- The watch as a PROCESS: `Examples.ChimericLedger.Observable.auditWatchFrom`\n-- with its accumulator in a machine state and its verdict on a port.\n",
+   "new": "-- The watch as a PROCESS: `Strategy.watchFrom` with its accumulator in a\n-- machine state and its verdict on a port.\n",
+   "rule": "FIX",
+   "why": "monitorᴹ is generic in report; it mirrors Strategy.watchFrom (auditWatchFrom is one instance)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor.agda",
+   "old": "-- …as the event-bound layer's `Reader`, and the experiment it reads.  Here\n-- rather than with the bounds because it is this module's construction, and\n-- because `UC.Machine.Monitor.Agree` and `UC.Quantitative.EventLift` both\n-- need it and the second imports the first.\n",
+   "new": "",
+   "rule": "22",
+   "why": "type restatement + placement narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor.agda",
+   "old": "------------------------------------------------------------------------\n-- The certificates\n\n",
+   "new": "",
+   "rule": "25",
+   "why": "banner over a single definition"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor.agda",
+   "old": "  -- Traffic agreement: the query goes down unchanged and is remembered, the\n  -- answer comes up unchanged, and the report is read off the PAIR.\n",
+   "new": "",
+   "rule": "22",
+   "why": "per-lemma paraphrase; banner and MonSt comment cover it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "old": "-- The tie to `strategyEnv` is a SPAN and not a simulation either way: the\n-- tower is live at configurations no strategy environment matches, and `EnvSt`\n-- holds trees no watch produces.\n--\n-- Resources are NOT this module's subject, and the two quantities stay apart:\n-- the embedded strategy's honest queries (preserved exactly — the watch asks\n-- what `d` asks, `Strategy.asks≤-watch`) and the internal flag retrieval (one\n-- activation of the private port, invisible here because it never leaves the\n-- collapsed context).\n",
+   "new": "",
+   "rule": "24/22",
+   "why": "SPAN explained at WSt; resources paragraph is scope narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "old": "-- `UC.Seam.strategyEnv` read on the compiler's own domain.  The ancilla is\n-- trivial, so the test is the strategy environment with the empty summand\n-- eliminated; `stratTest-embeds` is that reading.\n",
+   "new": "-- `UC.Seam.strategyEnv` read on the compiler's own domain: the ancilla is\n-- trivial, so the empty summand is eliminated.\n",
+   "rule": "22",
+   "why": "drop structure narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "old": "    -- Where the test's own emission goes: a query leaves, a verdict re-enters\n    -- the loop at the flag reader.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-lemma gloss family"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "old": "    -- The flag reader answering a verdict: it asks the flag, and the ancilla\n    -- relay passes that query straight down.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-lemma gloss family"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "old": "    -- The ancilla relay, entered from below or from the flag reader's tick.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-lemma gloss family"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "old": "-- `monitorᴹ` with the compiler's two wires absorbed into its interface.\n",
+   "new": "",
+   "rule": "22",
+   "why": "mon-wire's type states it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "old": "  -- What the compiled context does with one emission of the test: a query\n  -- goes down through the monitor, a verdict is DISCARDED and answered by the\n  -- accumulated flag instead.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-clause paraphrase; Monitor header states the discard"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "old": "    -- The emission's own fate, once the flag reader has produced it.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-lemma gloss family"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "old": "    -- The compiled context and the watched strategy environment are the same\n    -- machine of the layer's own equality.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "old": "-- The closure of a strategy context: no ancilla, nothing below the process.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "old": "-- The compiled monitored experiment is the watched environment over the\n-- process: the two unitors and the reassociator absorb into the monitor, and\n-- the compiler's three machines collapse into one.\n",
+   "new": "",
+   "rule": "22",
+   "why": "type restatement + proof paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "old": "-- Obligation 4 of `docs/event-bounds-in-setup.md` §2.  `w` is any transformer\n-- satisfying the watch equations, so this applies verbatim to\n-- `Examples.ChimericLedger.Observable.auditWatchFrom`.\n",
+   "new": "-- `w` is any transformer satisfying the watch equations, so this applies\n-- verbatim to `Examples.ChimericLedger.Observable.auditWatchFrom`.\n",
+   "rule": "24",
+   "why": "doc citation already in module header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda",
+   "old": "-- The content is one interchange: the closure `m` acts on the ancilla leg and\n-- the monitor on the hole, so the two cross, and every other factor is a wire.\n-- That interchange is `UC.Machine.Slide.Relay.relay-slide`, at the hole wire\n-- `λᴵ⇐` rather than at a unitor — the machine layer's closed interface is not\n-- the 𝒢-tensor's unit (`UC.Machine.Dictionary.𝟭ᴵ`).\n",
+   "new": "-- The content is one interchange, `UC.Machine.Slide.Relay.relay-slide`, at the\n-- hole wire `λᴵ⇐` rather than at a unitor — the machine layer's closed interface\n-- is not the 𝒢-tensor's unit (`UC.Machine.Dictionary.𝟭ᴵ`).\n",
+   "rule": "24",
+   "why": "interchange explained in Slide.Relay's header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda",
+   "old": "-- `Monitor.Agree`'s two collapses, as one: the monitored test over a closed\n-- one is a single machine, whose state carries the accumulator.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates type; header covers it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda",
+   "old": "-- …so the collapsed machine respects the machine equality in its test, which\n-- `Watch.watchᴹ` itself does not visibly do.\n",
+   "new": "-- `Watch.watchᴹ` does not visibly respect the machine equality in its test;\n-- the collapse transports it.\n",
+   "rule": "22",
+   "why": "keep the why, detach from cut predecessor"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda",
+   "old": "-- The original test with the ancilla closed by `m`, the hole still open.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the definition"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda",
+   "old": "-- The monitored context of `UC.Quantitative.EventLift.openedᴹ`, with its\n-- closure slid in, IS the collapsed watch over the closed test.\n",
+   "new": "-- At the monitored context of `UC.Quantitative.EventLift.openedᴹ`.\n",
+   "rule": "22",
+   "why": "type restatement cut; consumer pointer kept"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda",
+   "old": "  -- The four wires below the monitor are the ancilla `w` wired in beside the\n  -- hole; `relay-slide` then crosses it.\n",
+   "new": "",
+   "rule": "24",
+   "why": "dup of module header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Run.agda",
+   "old": "-- A closed machine at an interface: nothing can be asked of its domain side.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Run/Lax.agda",
+   "old": "--\n-- The induction itself is shared, not repeated: `UC.Machine.Run.runFrom-ϕ` is\n-- parameterized by the state map and its step law rather than by a `_≲_`,\n-- whose `θ-discard` a lax simulation deliberately does not carry.  Sharing\n-- over the SIMULATION would not work — re-presenting a lax one as a strict one\n-- would change the two machines' state records and so the very `runᴹFrom`\n-- being compared — so only the pair the induction actually spends is shared.\n",
+   "new": "",
+   "rule": "22/24",
+   "why": "design-alternative essay; sharing explained at Run's induction"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "old": "-- facts buy is `UC.Machine.Slide.Relay`, kept apart because its monoidal\n-- reasoning is 17 s that every importer of this module would otherwise\n-- deserialize.\n",
+   "new": "-- facts buy is `UC.Machine.Slide.Relay` (see its header for the split).\n",
+   "rule": "24",
+   "why": "measured cost kept once, in Slide.Relay's header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "old": "-- Relaying a wire is relabelling one summand of it.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-lemma gloss family restating types"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "old": "-- Opening a hole beside a closed process commutes with the process.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-lemma gloss family restating types"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "old": "-- …and the bypassed relay relabels a wire the same way.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-lemma gloss family restating types"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "old": "-- Opening a hole beside a pair is opening it beside the first component.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-lemma gloss family restating types"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "old": "-- Closing the trivial ancilla at the hole is closing it beside the process.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-lemma gloss family restating types"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "old": "-- The context with its hole exposed.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-lemma gloss family restating types"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "old": "-- What the bridge's observation becomes: the closed run of the plugged\n-- process against `Kctx`.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-lemma gloss family restating types"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "old": "-- A renaming by two identities is no renaming.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-lemma gloss family restating types"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "old": "-- The two hole wires absorb into one renaming, and that renaming is the\n-- identity.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-lemma gloss family restating types"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "old": "-- …so relaying it past an ancilla is no relay either.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-lemma gloss family restating types"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "old": "-- …hence the bridge's observation is unchanged by opening the hole.\n",
+   "new": "",
+   "rule": "22/26",
+   "why": "per-lemma gloss family restating types"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "old": "-- …and the slide at the hole itself, which is where the ancilla and the\n-- closure change places.  The only live activation is a query on `Y`: every\n-- other summand of a closed interface is empty.\n",
+   "new": "-- The only live activation is a query on `Y`: every other summand of a closed\n-- interface is empty.\n",
+   "rule": "22/26",
+   "why": "family cut applied; keep the case-split why"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Wire.agda",
+   "old": "  -- `id +₁ pureᵏ h` and `pureᵏ h +₁ id`, as functions.\n",
+   "new": "",
+   "rule": "22",
+   "why": "restates the types"
+  }
+ ],
+ "dispositions": [
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "3-4",
+   "verdict": "KEEP",
+   "reason": "orientation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "5-12",
+   "verdict": "KEEP",
+   "reason": "retraction-means-no-coercion orientation + measured >1500 s cost"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "13",
+   "verdict": "CUT",
+   "reason": "leftover"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "15-19",
+   "verdict": "KEEP",
+   "reason": "why the verdict interface is ticked"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "21-26",
+   "verdict": "TRIM",
+   "reason": "keep why relays are direct; bridge -> Dictionary"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "62-63",
+   "verdict": "KEEP",
+   "reason": "landmark, 5 defs"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "65-66",
+   "verdict": "KEEP",
+   "reason": "orientation convention: answers above, queries below"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "70-74",
+   "verdict": "KEEP",
+   "reason": "gotcha: 10 GiB heap on implicit inference"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "80-81",
+   "verdict": "KEEP",
+   "reason": "why PolyUnit ⊤"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "85-87",
+   "verdict": "TRIM",
+   "reason": "keep why wireStep is named"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "96-97",
+   "verdict": "KEEP",
+   "reason": "landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "105-112",
+   "verdict": "TRIM",
+   "reason": "pointer to Advantage header (rule 24)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "122-125",
+   "verdict": "TRIM",
+   "reason": "keep why 𝒢ₚ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "136-137",
+   "verdict": "CUT",
+   "reason": "restates qual₊"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "141-142",
+   "verdict": "KEEP",
+   "reason": "landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "144-145",
+   "verdict": "KEEP",
+   "reason": "role reading of T₁ᴵ (which leg forwarded)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "164-165",
+   "verdict": "KEEP",
+   "reason": "role reading of subᴵ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "184-185",
+   "verdict": "CUT",
+   "reason": "restates definition"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine.agda",
+   "lines": "195-198",
+   "verdict": "TRIM",
+   "reason": "keep eta-record gotcha"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Bridge.agda",
+   "lines": "3-8",
+   "verdict": "KEEP",
+   "reason": "orientation + placement why"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Bridge.agda",
+   "lines": "10-22",
+   "verdict": "KEEP",
+   "reason": "context-vs-strategy reading, open caveat"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Bridge.agda",
+   "lines": "24-38",
+   "verdict": "TRIM",
+   "reason": "design essay -> docs/rewrite-verdict.md pointer"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Bridge.agda",
+   "lines": "40-46",
+   "verdict": "TRIM",
+   "reason": "δ why kept once here"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Bridge.agda",
+   "lines": "71-73",
+   "verdict": "KEEP",
+   "reason": "why the degenerate grade"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Bridge.agda",
+   "lines": "77-78",
+   "verdict": "KEEP",
+   "reason": "consumer pointer unit-cancel"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Bridge.agda",
+   "lines": "85-86",
+   "verdict": "KEEP",
+   "reason": "ties ctxRun to _≈ℰ_"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Bridge.agda",
+   "lines": "91-98",
+   "verdict": "TRIM",
+   "reason": "pointer to Dominated.dominated"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "3-9",
+   "verdict": "KEEP",
+   "reason": "orientation + cost pointer"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "11-13",
+   "verdict": "CUT",
+   "reason": "sibling-module narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "15-16",
+   "verdict": "FIX",
+   "reason": "reason is at UC.Machine.𝒫ᴵ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "71",
+   "verdict": "CUT",
+   "reason": "renaming shows it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "77-78",
+   "verdict": "CUT",
+   "reason": "single-def banner"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "81",
+   "verdict": "CUT",
+   "reason": "restates type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "92-93",
+   "verdict": "KEEP",
+   "reason": "landmark, 4 defs"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "95-99",
+   "verdict": "TRIM",
+   "reason": "keep why (Wire absorption)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "126-127",
+   "verdict": "KEEP",
+   "reason": "landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "129-131",
+   "verdict": "KEEP",
+   "reason": "gotcha 𝟭ᴵ≠unitᴵ + docs cost citation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "135",
+   "verdict": "CUT",
+   "reason": "narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "143-144",
+   "verdict": "KEEP",
+   "reason": "why one clause suffices"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "157",
+   "verdict": "CUT",
+   "reason": "restates type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "176-181",
+   "verdict": "TRIM",
+   "reason": "keep why codomain 𝟭ᴵ"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "185-186",
+   "verdict": "KEEP",
+   "reason": "landmark, 4 defs"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "189-190",
+   "verdict": "KEEP",
+   "reason": "why the step shape (⊗₁ᴳ with mids absorbed)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "280-281",
+   "verdict": "KEEP",
+   "reason": "landmark, 4 defs"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dictionary.agda",
+   "lines": "283-287",
+   "verdict": "TRIM",
+   "reason": "keep consumer why, reattach"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "3-10",
+   "verdict": "KEEP",
+   "reason": "orientation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "12-15",
+   "verdict": "CUT",
+   "reason": "δ explained in Bridge"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "17-22",
+   "verdict": "TRIM+FIX",
+   "reason": "cum-shift not in skeleton"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "24-25",
+   "verdict": "KEEP",
+   "reason": "why statement omits 0≤ε"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "71-72",
+   "verdict": "CUT",
+   "reason": "restates type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "79-80",
+   "verdict": "KEEP",
+   "reason": "landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "82-83",
+   "verdict": "TRIM",
+   "reason": "why separate module"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "89-90",
+   "verdict": "CUT",
+   "reason": "restates type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "102-104",
+   "verdict": "KEEP",
+   "reason": "why point is refined"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "132-133",
+   "verdict": "CUT",
+   "reason": "restates params"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "140",
+   "verdict": "CUT",
+   "reason": "skeleton shows it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "150-151",
+   "verdict": "KEEP",
+   "reason": "trick: fuel = observation budget"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "168-170",
+   "verdict": "KEEP",
+   "reason": "trick: never-asking strategy"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "191-192",
+   "verdict": "KEEP",
+   "reason": "landmark 2 defs"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "206-207",
+   "verdict": "KEEP",
+   "reason": "landmark 3 defs"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "209-210",
+   "verdict": "KEEP",
+   "reason": "invariant citation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "218-223",
+   "verdict": "TRIM",
+   "reason": "tail dup"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Dominated.agda",
+   "lines": "256-257",
+   "verdict": "CUT",
+   "reason": "proof paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Grading.agda",
+   "lines": "3-4",
+   "verdict": "KEEP",
+   "reason": "orientation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Grading.agda",
+   "lines": "6-10",
+   "verdict": "TRIM",
+   "reason": "pointer to Dictionary; keep value-positive why"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Grading.agda",
+   "lines": "12-16",
+   "verdict": "KEEP",
+   "reason": "measured >250 s"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Grading.agda",
+   "lines": "99-100",
+   "verdict": "FIX",
+   "reason": "consumer is UC.Quantitative.EventLift.Cov"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Grading.agda",
+   "lines": "186",
+   "verdict": "CUT",
+   "reason": "proof paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor.agda",
+   "lines": "3-13",
+   "verdict": "KEEP",
+   "reason": "why sandwich; divergence gotcha"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor.agda",
+   "lines": "15-17",
+   "verdict": "FIX",
+   "reason": "stale; Agree.agree proves agreement"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor.agda",
+   "lines": "49-50",
+   "verdict": "KEEP",
+   "reason": "landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor.agda",
+   "lines": "52-53",
+   "verdict": "KEEP",
+   "reason": "why ticked"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor.agda",
+   "lines": "57-59",
+   "verdict": "KEEP",
+   "reason": "why pending query is state"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor.agda",
+   "lines": "72-73",
+   "verdict": "FIX",
+   "reason": "mirrors Strategy.watchFrom"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor.agda",
+   "lines": "82-83",
+   "verdict": "KEEP",
+   "reason": "landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor.agda",
+   "lines": "104-107",
+   "verdict": "CUT",
+   "reason": "placement narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor.agda",
+   "lines": "115-116",
+   "verdict": "CUT",
+   "reason": "single-def banner"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor.agda",
+   "lines": "153-154",
+   "verdict": "KEEP",
+   "reason": "landmark 3 lemmas"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor.agda",
+   "lines": "158-159",
+   "verdict": "CUT",
+   "reason": "paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "3-15",
+   "verdict": "KEEP",
+   "reason": "citation, statement, reuse of Plug.Loop/adequacy"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "16-18",
+   "verdict": "CUT",
+   "reason": "dup of WSt comment"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "20-24",
+   "verdict": "CUT",
+   "reason": "scope narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "72-73",
+   "verdict": "KEEP",
+   "reason": "landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "75-77",
+   "verdict": "TRIM",
+   "reason": "drop narration"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "105-106",
+   "verdict": "KEEP",
+   "reason": "landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "108-110",
+   "verdict": "KEEP",
+   "reason": "invariant: loop runs at most two passes"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "147-148",
+   "verdict": "CUT",
+   "reason": "gloss family"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "154-155",
+   "verdict": "CUT",
+   "reason": "gloss family"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "176",
+   "verdict": "CUT",
+   "reason": "gloss family"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "228-229",
+   "verdict": "KEEP",
+   "reason": "landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "231",
+   "verdict": "CUT",
+   "reason": "mon-wire type states it"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "274-275",
+   "verdict": "KEEP",
+   "reason": "landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "285-287",
+   "verdict": "CUT",
+   "reason": "paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "296-298",
+   "verdict": "KEEP",
+   "reason": "gotcha: case-tree order"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "337",
+   "verdict": "CUT",
+   "reason": "gloss"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "408-409",
+   "verdict": "KEEP",
+   "reason": "landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "411-416",
+   "verdict": "KEEP",
+   "reason": "why a SPAN"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "517-518",
+   "verdict": "CUT",
+   "reason": "restates type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "522-523",
+   "verdict": "KEEP",
+   "reason": "landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "525",
+   "verdict": "CUT",
+   "reason": "restates type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "529-531",
+   "verdict": "CUT",
+   "reason": "paraphrase"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda",
+   "lines": "551-553",
+   "verdict": "TRIM",
+   "reason": "doc citation in header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda",
+   "lines": "3-6",
+   "verdict": "KEEP",
+   "reason": "orientation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda",
+   "lines": "8-12",
+   "verdict": "TRIM",
+   "reason": "interchange explained in Relay; keep 𝟭ᴵ gotcha"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda",
+   "lines": "43-44",
+   "verdict": "KEEP",
+   "reason": "landmark 4 defs"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda",
+   "lines": "46-47",
+   "verdict": "CUT",
+   "reason": "restates type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda",
+   "lines": "57-58",
+   "verdict": "TRIM",
+   "reason": "keep why"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda",
+   "lines": "67",
+   "verdict": "CUT",
+   "reason": "restates definition"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda",
+   "lines": "72-73",
+   "verdict": "TRIM",
+   "reason": "consumer pointer"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda",
+   "lines": "114-115",
+   "verdict": "CUT",
+   "reason": "dup of header"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Run.agda",
+   "lines": "3-10",
+   "verdict": "KEEP",
+   "reason": "why ⟦⟧-resp-≈ is a theorem"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Run.agda",
+   "lines": "43",
+   "verdict": "CUT",
+   "reason": "restates type"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Run.agda",
+   "lines": "50-51",
+   "verdict": "KEEP",
+   "reason": "landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Run.agda",
+   "lines": "53-56",
+   "verdict": "KEEP",
+   "reason": "why parameterized by the pair"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Run.agda",
+   "lines": "84-85",
+   "verdict": "KEEP",
+   "reason": "landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Run.agda",
+   "lines": "111-112",
+   "verdict": "KEEP",
+   "reason": "landmark 3 defs"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Run/Lax.agda",
+   "lines": "3-10",
+   "verdict": "KEEP",
+   "reason": "orientation + astotal-bind citation"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Run/Lax.agda",
+   "lines": "12-17",
+   "verdict": "CUT",
+   "reason": "design-alternative essay; Run covers sharing"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "lines": "3-16",
+   "verdict": "KEEP",
+   "reason": "orientation, budget on the nose"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "lines": "18-25",
+   "verdict": "TRIM",
+   "reason": "keep Hole citation; 17 s cost kept in Relay"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "lines": "27-29",
+   "verdict": "KEEP",
+   "reason": "orientation for last section (dominatedᵍᵠ uses ctxRun-conj)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "lines": "78-79",
+   "verdict": "KEEP",
+   "reason": "landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "lines": "81,93,115,127,142,214,230-231,240,252-253,277,283",
+   "verdict": "CUT",
+   "reason": "gloss family restating types (rule 26)"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "lines": "162-164",
+   "verdict": "TRIM",
+   "reason": "keep case-split why"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "lines": "192-193",
+   "verdict": "KEEP",
+   "reason": "landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "lines": "237-238",
+   "verdict": "KEEP",
+   "reason": "landmark"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide.agda",
+   "lines": "291-292",
+   "verdict": "KEEP",
+   "reason": "landmark 2 defs"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide/Relay.agda",
+   "lines": "3-7",
+   "verdict": "KEEP",
+   "reason": "the interchange explained once here"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Slide/Relay.agda",
+   "lines": "9-12",
+   "verdict": "KEEP",
+   "reason": "measured 17 s"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Wire.agda",
+   "lines": "3-10",
+   "verdict": "KEEP",
+   "reason": "why wires cost no trace"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Wire.agda",
+   "lines": "12-16",
+   "verdict": "KEEP",
+   "reason": "gotcha + 8 GiB measured"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Wire.agda",
+   "lines": "57-58",
+   "verdict": "KEEP",
+   "reason": "landmark over 4 private defs"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Wire.agda",
+   "lines": "61-62",
+   "verdict": "KEEP",
+   "reason": "why instantiated at 𝒢ₚ's trace laws"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Wire.agda",
+   "lines": "75",
+   "verdict": "CUT",
+   "reason": "restates types"
+  },
+  {
+   "file": "src/CategoricalCrypto/UC/Machine/Wire.agda",
+   "lines": "82-83",
+   "verdict": "KEEP",
+   "reason": "landmark 2 defs"
+  }
+ ]
+}

@@ -1,0 +1,669 @@
+{
+ "sweep": "implicit-drop",
+ "root": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-R2b",
+ "files": {
+  "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/Machines/Category.agda": {
+   "candidates": 44,
+   "kept": [
+    {
+     "line": 49,
+     "edit": "drop `{R}`"
+    },
+    {
+     "line": 49,
+     "edit": "drop `{P = P ⊗₀ Q}`"
+    },
+    {
+     "line": 50,
+     "edit": "drop `{P = P}`"
+    },
+    {
+     "line": 50,
+     "edit": "drop `{P = Q}`"
+    },
+    {
+     "line": 54,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 54,
+     "edit": "drop `{Q}`"
+    },
+    {
+     "line": 54,
+     "edit": "drop `{R}`"
+    },
+    {
+     "line": 54,
+     "edit": "drop `{Q = R}`"
+    },
+    {
+     "line": 54,
+     "edit": "drop `{P = P}`"
+    },
+    {
+     "line": 66,
+     "edit": "drop `{R}`"
+    },
+    {
+     "line": 66,
+     "edit": "drop `{Q = R}`"
+    },
+    {
+     "line": 66,
+     "edit": "drop `{Q = Q}`"
+    },
+    {
+     "line": 70,
+     "edit": "drop `{Q = Q ⊗₀ R}`"
+    },
+    {
+     "line": 71,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 73,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 76,
+     "edit": "drop `{R}`"
+    },
+    {
+     "line": 76,
+     "edit": "drop `{Q = Q}`"
+    },
+    {
+     "line": 77,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 79,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 93,
+     "edit": "drop `{p}`"
+    },
+    {
+     "line": 94,
+     "edit": "drop `{p}`"
+    },
+    {
+     "line": 95,
+     "edit": "drop `{p ⊗ᵒ q}`"
+    },
+    {
+     "line": 96,
+     "edit": "drop `{p ⊗ᵒ q}`"
+    },
+    {
+     "line": 97,
+     "edit": "drop `{q}`"
+    },
+    {
+     "line": 97,
+     "edit": "drop `{r}`"
+    },
+    {
+     "line": 98,
+     "edit": "drop `{r}`"
+    },
+    {
+     "line": 98,
+     "edit": "drop `{q}`"
+    },
+    {
+     "line": 99,
+     "edit": "drop `{q}`"
+    },
+    {
+     "line": 100,
+     "edit": "drop `{y}`"
+    },
+    {
+     "line": 100,
+     "edit": "drop `{r}`"
+    },
+    {
+     "line": 101,
+     "edit": "drop `{p}`"
+    },
+    {
+     "line": 102,
+     "edit": "drop `{q ⊗ᵒ r}`"
+    },
+    {
+     "line": 103,
+     "edit": "drop `{p}`"
+    },
+    {
+     "line": 104,
+     "edit": "drop `{x}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 49,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 49,
+     "edit": "drop `{Q}`"
+    },
+    {
+     "line": 55,
+     "edit": "drop `{P = P}`"
+    },
+    {
+     "line": 55,
+     "edit": "drop `{Q = R}`"
+    },
+    {
+     "line": 66,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 66,
+     "edit": "drop `{Q}`"
+    },
+    {
+     "line": 67,
+     "edit": "drop `{Q = Q ⊗₀ R}`"
+    },
+    {
+     "line": 76,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 76,
+     "edit": "drop `{Q}`"
+    },
+    {
+     "line": 76,
+     "edit": "drop `{Q = R}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 41,
+   "seconds": 594.5
+  },
+  "src/CategoricalCrypto/Machines/G.agda": {
+   "candidates": 13,
+   "kept": [
+    {
+     "line": 68,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 75,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 83,
+     "edit": "drop `{Q = obj (state f)}`"
+    },
+    {
+     "line": 83,
+     "edit": "drop `{Q = unit}`"
+    },
+    {
+     "line": 85,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 102,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 110,
+     "edit": "drop `{P = obj (state f)}`"
+    },
+    {
+     "line": 110,
+     "edit": "drop `{Q = unit}`"
+    },
+    {
+     "line": 112,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 196,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 197,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 201,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 211,
+     "edit": "drop `{P}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 45.1
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Trace/Compose.agda": {
+   "candidates": 7,
+   "kept": [
+    {
+     "line": 141,
+     "edit": "drop `{C⁺ , C⁻}`"
+    },
+    {
+     "line": 314,
+     "edit": "drop `{⊥ , ⊥}`"
+    },
+    {
+     "line": 314,
+     "edit": "drop `{B⁺ , B⁻}`"
+    },
+    {
+     "line": 314,
+     "edit": "drop `{Pos C , Neg C}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 62,
+     "edit": "drop `{0ℓ}`"
+    },
+    {
+     "line": 141,
+     "edit": "drop `{A⁺ , A⁻}`"
+    },
+    {
+     "line": 141,
+     "edit": "drop `{B⁺ , B⁻}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 9,
+   "seconds": 97.4
+  },
+  "src/CategoricalCrypto/UC/Machine/EventBounds.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 75,
+     "edit": "drop `{Ωᴵ}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 50.6
+  },
+  "src/CategoricalCrypto/UC/Machine/EventBounds/Transport.agda": {
+   "candidates": 4,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda": {
+   "candidates": 71,
+   "kept": [
+    {
+     "line": 51,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 51,
+     "edit": "drop `{(Y ⊗ᴵ B) ⊗ᴵ F}`"
+    },
+    {
+     "line": 56,
+     "edit": "drop `{Y}`"
+    },
+    {
+     "line": 56,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 56,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 57,
+     "edit": "drop `{Y}`"
+    },
+    {
+     "line": 57,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 57,
+     "edit": "drop `{Y}`"
+    },
+    {
+     "line": 57,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 58,
+     "edit": "drop `{Y}`"
+    },
+    {
+     "line": 58,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 60,
+     "edit": "drop `{Y}`"
+    },
+    {
+     "line": 60,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 64,
+     "edit": "drop `{B ⊗ᴵ F}`"
+    },
+    {
+     "line": 64,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 66,
+     "edit": "drop `{B ⊗ᴵ F}`"
+    },
+    {
+     "line": 66,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 68,
+     "edit": "drop `{B ⊗ᴵ F}`"
+    },
+    {
+     "line": 68,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 70,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 70,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 71,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 73,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 73,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 74,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 76,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 76,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 77,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 78,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 79,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 79,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 81,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 81,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 82,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 82,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 82,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 83,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 83,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 85,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 85,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 86,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 86,
+     "edit": "drop `{unitᴵ ⊗ᴵ B}`"
+    },
+    {
+     "line": 86,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 87,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 87,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 87,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 89,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 89,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 89,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 91,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 91,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 91,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 92,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 92,
+     "edit": "drop `{Y}`"
+    },
+    {
+     "line": 92,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 93,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 94,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 94,
+     "edit": "drop `{Y ⊗ᴵ B}`"
+    },
+    {
+     "line": 94,
+     "edit": "drop `{F}`"
+    },
+    {
+     "line": 102,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 102,
+     "edit": "drop `{Ωᴵ}`"
+    },
+    {
+     "line": 112,
+     "edit": "drop `{unitᴵ ⊗ᴵ B}`"
+    },
+    {
+     "line": 112,
+     "edit": "drop `{Ωᴵ}`"
+    },
+    {
+     "line": 113,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 113,
+     "edit": "drop `{Ωᴵ}`"
+    },
+    {
+     "line": 126,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 126,
+     "edit": "drop `{Ωᴵ}`"
+    },
+    {
+     "line": 164,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 164,
+     "edit": "drop `{Y ⊗ᴵ B}`"
+    },
+    {
+     "line": 169,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 169,
+     "edit": "drop `{(Y ⊗ᴵ B) ⊗ᴵ Flagᴵ}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 53.4
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Adequacy.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Agree.agda": {
+   "candidates": 5,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/HitTests.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Lift.agda": {
+   "error": "parse errors -- file skipped (report this)"
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Read.agda": {
+   "candidates": 6,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Spike/Carry.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Seam/Grounded.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  }
+ },
+ "totalChecks": 64
+}

@@ -1,12 +1,23 @@
 # The quantitative family layer — steps 3 and 4
 
-What steps 3 and 4 of `docs/uc-presheaf-preservation-plan.md` delivered, on branch
+What steps 3 and 4 of `docs/history/uc-presheaf-preservation-plan.md` delivered, on branch
 `quantitative-family` off `protocol-rewrite` at `ac8b018f`. Paths are relative to
 `src/CategoricalCrypto/` unless prefixed.
 
-Module names in §§1-11 are the CURRENT ones; the `file:line` references in those
-sections are the ones that landing recorded and have since drifted. §14 is the
-source-backed map at `cee4efca` and is what to read for a current location.
+§§1-11 are that landing's record, stated over the retired `UC.Budget`: read
+`ctxBudget c c′` as `value (c · r′)`, `simCost q c` as `scale q r`, a `QB c`
+certificate as an `Image forget c` one and `Poly`/`PolyQB` as `Poly⁺` rate
+schedules (§16). Their `file:line` references have drifted. §14 is the
+source-backed map at `cee4efca`.
+
+`_≤UC^ωⁿ_` outside §14 is `UC.Model.Family.Emulation._≈ᶠᴺ_` in the current tree
+(renamed 2026-09-30).
+
+Names that have moved since, at `4aa8d3a9`: `UC.Model.EventBounds` is
+`UC.Machine.EventBounds` and its `Readout` is `Reader`; `IsWatch` is gone
+(`Strategy.watchFrom report` is the watched strategy, `asks≤-watch` its cap);
+`UC.Machine.Monitor.qbᵢ-monitor` is deleted. The inventory sections below keep
+the names of their baselines.
 
 ## 1. The relation, and why it is spelled this way
 
@@ -276,7 +287,7 @@ The wiring this section asked for is in the tree: `src/CategoricalCrypto/UC.agda
 carries rows for `UC.Model.Family.Contextual` (`:223`), `UC.Model.Family.Contextual.Compose`
 (`:229`) and `UC.Model.Family.Emulation` (`:241`), and opens the latter two publicly
 (`:287`, `:288`). `src/CategoricalCrypto.agda` still imports no `Examples/ChimericLedger`
-module, deliberately (`docs/consumer-migration.md` §5).
+module, deliberately (`docs/history/consumer-migration.md` §5).
 
 Checked green, unedited: `src/CategoricalCrypto.agda`, `UC.agda`, `UC/Model.agda`,
 `UC/Approximate/LocalTests.agda`, all `Examples/ChimericLedger/*` roots, both
@@ -898,7 +909,7 @@ R ≤UC^ωⁿ I = Σ[ ε ∈ (ℕ → ℕ → ℚ) ] NegligibleBound ε × R ≈
   per-level contextual agreement.
 - Callers: `Systems` — `Examples/ChimericLedger/{Property.agda:126,:149,:155,:178;
   Transfer.agda:91,:119,:124,:131,:137,:155,:165,:183,:210,:220,:235,:271,:277,:289;
-  ReplayFamily.agda:53}`. `imgᶠ` — `Examples/ChimericLedger/Transfer.agda:156`, `:157`.
+  Transfer.agda:337}`. `imgᶠ` — `Examples/ChimericLedger/Transfer.agda:156`, `:157`.
   `_≈ᶠ[_]_` — only inside `_≤UC^ωⁿ_` and `≈ᶠ-runs`. `_≤UC^ωⁿ_` —
   `Examples/ChimericLedger/Transfer.agda:92`, `:165`, `:166`, `:183`, `:221`, `:236`.
 - Replacement: none.
@@ -972,7 +983,7 @@ width `n`. `auditMonitorᶠ n = monitorᴹ (Watched.reportsLoss n (genesisAt n))
   Cap first, slack after the cap and before the level.
 - The headline reads the COMPILED observable event, not hidden-state conservation.
 - Callers: `Property.agda:178`, `:194`; `Transfer.agda:92`, `:184`, `:292`, `:312`,
-  `:350`; `ReplayFamily.agda:71`; `Serialize.agda:48`.
+  `:350`; `Transfer.agda:351`; `Serialize.agda:48`.
 - Replacement: none — WP3 instruction 5 requires its cap and slack quantifiers
   unchanged.
 
@@ -988,16 +999,6 @@ hitsᴸ : (R : Systems LedgerIf^ω) (n q : ℕ) {r : ℚ}
 - `hitsᵘ` at the ledger's report/watch pair. The `q + 1` is the monitor accumulator's
   unit (see §7). Callers: `Transfer.agda:96`, `:294`; `Property.agda:170`.
 
-#### `ledger-hitsᵘ` — `Property.agda:165`
-
-```agda
-ledger-hitsᵘ : (n : ℕ) (vr : Variant) {ε : ℕ → ℚ}
-             → Bounded (AtLevel.Sys n vr (genesisAt n)) (auditWatch n) ε → (q : ℕ)
-             → HitsAt q (ε (q ℕ.+ 1)) (morphism (AtLevel.Sys n vr (genesisAt n)))
-                        (auditMonitorᶠ n)
-```
-Callers: `Property.agda:196`.
-
 #### `preservesValue⇒saturated` — `Property.agda:177`
 
 ```agda
@@ -1010,7 +1011,7 @@ preservesValue⇒saturated :
 
 - The way back, at the context an ordinary strategy embeds to. Nothing is spent
   returning — the extra query was charged going out (`hits⇒bounded`).
-- Callers: `ReplayFamily.agda:73`; `Transfer.agda:226`.
+- Callers: `Transfer.agda:226`, `:353`.
 
 #### `ideal-preserves-value` — `Property.agda:194`
 
@@ -1019,13 +1020,13 @@ ideal-preserves-value : SerInj → PreservesValue Ideal
 ```
 Assumes only `SerInj` (per-level injectivity of `ser`); proved from
 `ideal-bounded` (the birthday theorem through the watch, `:190`) by
-`hitsᶠ⇒hitsᴺ ∘ ledger-hitsᵘ`. Callers: `Serialize.agda:49`.
+`hitsᶠ⇒hitsᴺ` of `hitsᴸ` at `upper-run`. Callers: `Serialize.agda:49`.
 
 #### `preserves-value-transfer` — `Transfer.agda:91`
 
 ```agda
 preserves-value-transfer : (a V : ℕ) (R : Systems LedgerIf^ω) → SerInj
-                         → R ≤UC^ωⁿ Ideal a V → PreservesValue a V R
+                         → R ≤UC^ωⁿ Ideal a V → PreservesValue (genesisTotal V) R
 ```
 
 - Premise relation: `_≤UC^ωⁿ_` — allowance-uniform emulation with negligible error at
@@ -1043,7 +1044,7 @@ preserves-value-transfer : (a V : ℕ) (R : Systems LedgerIf^ω) → SerInj
 - Callers: `Transfer.agda:186` (`ledger-preserves-value-from-hash`), `:227`
   (`ledger-uc-to-pov-family`).
 - Replacement (WP3, schematic): the plan's `preserves-value-transfer` body with
-  `comparison-at-watched-strategy` = `≈ᶠ-runs` + `auditWatch-preserving` and
+  `comparison-at-watched-strategy` = `≈ᶠ-runs` + `Strategy.asks≤-watch` and
   `ideal-watched-upper-bound` = `upper-run` + `ideal-bounded`; a WP1 specialization
   may replace the bound transport, and the operational lift and its `q + 1` stay
   explicit.
@@ -1070,7 +1071,7 @@ hash-liftⁿ : (hash : Systems HashIf^ω) → hash ≤UC^ωⁿ oracle^ω
 ```agda
 ledger-preserves-value-from-hash :
     (a V : ℕ) (hash : Systems HashIf^ω) → SerInj → hash ≤UC^ωⁿ oracle^ω
-  → PreservesValue a V (Realᴴ hash inputConsuming (genesisAt a V))
+  → PreservesValue (genesisTotal V) (Realᴴ hash inputConsuming (genesisAt a V))
 ```
 No in-repo caller (it is a public headline). Replacement: none.
 
@@ -1113,10 +1114,10 @@ ledger-pov-family-negligible :
 - Replacement: none. WP3 instruction 6 protects it from being weakened, and WP6 check
   1 requires the truthfulness premise stay visible.
 
-#### `ReplayFamily.chimeric-not-preserving` — `ReplayFamily.agda:71`
+#### `Transfer.chimeric-not-preserving` — `Transfer.agda:351`
 
 ```agda
-chimeric-not-preserving : ¬ PreservesValue a (suc (suc V)) (Chimericᶠ V)
+chimeric-not-preserving : ¬ PreservesValue (genesisTotal (suc (suc V))) (Chimericᶠ V)
 ```
 
 - The negative side: three queries at every level (`λ _ → 3`, `poly-const 3`),
@@ -1141,10 +1142,6 @@ Icom n = idealᶠ n ∘ resᶠ n
 Realization Realizationʰ : Set _           -- :50
 Realization  = Rcom  ≤UC^ωᵉ Icom
 Realizationʰ = Rcomʰ ≤UC^ωᵉ Icomʰ
-
-Assembly Assemblyʰ : Set _                 -- :57
-Assembly  = Realization  → (λ n → (tossᶠ  ∙ᶠ realᶠ)  n ∘ resᶠ n) ≤UC^ωᵉ Fcoinᶠ
-Assemblyʰ = Realizationʰ → (λ n → (tossʰᶠ ∙ᶠ realʰᶠ) n ∘ resᶠ n) ≤UC^ωᵉ Fcoinʰᶠ
 ```
 
 - The resource-installed boundary: `Examples.ROCommitment.Resource.resource` below
@@ -1155,7 +1152,7 @@ Assemblyʰ = Realizationʰ → (λ n → (tossʰᶠ ∙ᶠ realʰᶠ) n ∘ res�
   sampled oracle and one-shot cell, and the machine-level bridge is blocked (see
   "Decisions recorded"). WP6 check 5: this is not a full machine realization.
 - Callers: `Realization` at `Assembly.agda:82`, `:111`; `Realizationʰ` at `:90`,
-  `:114`; `Assembly`/`Assemblyʰ` at `:101`, `:106`.
+  `:114`; `assembly`/`assemblyʰ` at `:101`, `:106`.
 
 #### `Realization/Assembly.agda`
 
@@ -1163,7 +1160,7 @@ Assemblyʰ = Realizationʰ → (λ n → (tossʰᶠ ∙ᶠ realʰᶠ) n ∘ res�
 coin-from-Rcom : Realization → (tossᶠ ∙ᶠ Rcom) ≤UC^ωᵉ (tossᶠ ∙ᶠ Icom)   -- :82
 coin-from-Rcomʰ : Realizationʰ → (tossʰᶠ ∙ᶠ Rcomʰ) ≤UC^ωᵉ (tossʰᶠ ∙ᶠ Icomʰ)  -- :90
 
-assembly : Assembly                                                     -- :101
+assembly : Realization → (λ n → (tossᶠ ∙ᶠ realᶠ) n ∘ resᶠ n) ≤UC^ωᵉ Fcoinᶠ  -- :101
 assembly w =
   ≤UC^ωᵉ-trans (≤UC^ωᵉ-resp (λ _ → sym-assoc) (λ _ → sym-assoc) (coin-from-Rcom w))
                coin-hybridᵉ
@@ -1215,7 +1212,7 @@ coin-hybridᵉ = simᶜᶠ , (λ _ _ → 0ℚ) , (λ _ _ → Negligible-0) , ≈
 coin-toss-ideal : realᶠ ≤UC^ωᵉ idealᶠ
                 → (λ n → (tossᶠ ∙ᶠ realᶠ) n ∘ resᶠ n) ≤UC^ωᵉ Fcoinᶠ     -- :77
 coin-toss-ideal w =
-  ≤UC^ωᵉ-trans (≤UC^ωᵉ-dom resᶠ CTIU.resourceQBᵒ (coin-toss-from-com w)) coin-hybridᵉ
+  ≤UC^ωᵉ-trans (≤UC^ωᵉ-dom resᶠ ROU.resourceQBᵒ (coin-toss-from-com w)) coin-hybridᵉ
 
 εᶜⁱ : (ℕ → ℕ → ℚ) → ℕ → ℕ → ℚ                                           -- :88
 εᶜⁱ ε n q = εᶜᵗ ε n q ℚ.+ 0ℚ
@@ -1273,11 +1270,11 @@ ideal-εʳ : (n q : ℕ) → εᶜʳ εᵗ n q ≡ fromℕ (q + (q + q)) *ℚ in
 ### 6. `Examples/HashForward/Audit.agda` — the audit-carry consumer
 
 ```agda
-hf-witness : AuditWitness 2 realᵒ idealᵒ                                -- :67
+hf-witness : AuditWitness 2⁺ realᵒ idealᵒ                               -- :54
 hf-witness = audit⇒witness (≤UC[]ᵍ simQB real-factors)
 
-hf-emul : realᵒ ≤UC[ 2 ] idealᵒ                                         -- :70
-hf-emul = witness⇒audit hf-witness
+hf-emul : realᵒ ≤UC[ 2⁺ ] idealᵒ                                        -- :57
+hf-emul = ≤UC[]ᵍ simQB real-factors
 ```
 
 ```agda
@@ -1337,7 +1334,7 @@ hf-pr-bound : (μ : ℕ → Dₚ Bool) (ε : ℕ → ℚ) (δ η : ℚ) → 0ℚ
 
 ### 7. The event-bound / monitor / lift layer
 
-#### `UC/Model/EventBounds.agda`
+#### `UC/Model/EventBounds.agda` (now `UC/Machine/EventBounds.agda`)
 
 ```agda
 Readout : Iface → Set₁                                                  -- :59
@@ -1500,7 +1497,7 @@ qb-stratTest : (B : Iface) {q : ℕ} (d : Strat (Neg B) (Pos B)) → asks≤ q d
 
 - Callers: `HitsAt` — `EventLift.agda:164`, `:213`,
   `Examples/ChimericLedger/Property.agda:158`, `:167`. `Hitsᶠ` — `EventLift.agda:95`
-  only. `Hitsᴺ` — `EventLift.agda:95`, `Property.agda:150`. `hitsᶠ⇒hitsᴺ` —
+  only. `Hitsᴺ` — `EventLift.agda:95`, `Property.agda:97`. `hitsᶠ⇒hitsᴺ` —
   `Property.agda:196`. `hitsᵘ` — `Property.agda:159`. `hits⇒bounded` —
   `Property.agda:184`. `eventDominatedᵘ` — `EventLift.agda:166` only.
   `eventDominatedᶜ` — `EventLift.agda:152` only. `qb-stratTest` — `EventLift.agda:218`
@@ -1664,7 +1661,7 @@ the lambdas that were inlined before.
 
 `_≤UC^ωᵉ_` is NOT retired. Its remaining callers are
 `Examples.ROCommitment.Realization.Statement`'s `Realization`/`Realizationʰ`
-and `Assembly`/`Assemblyʰ`, which must hide the simulator and the schedule
+and the types of `assembly`/`assemblyʰ`, which must hide the simulator and the schedule
 because the commitment proof has not yet chosen them, and the coin headline
 theorems stated against that boundary. It owns no metatheory of its own any
 more — each of its lemmas is three lines over the fixed-data ones.
@@ -1752,18 +1749,19 @@ pass is +32 lines overall. What it buys is that the three copies of
 `runs⇒≈ᵁ`-transport-`run-resp-≈ᵁ` are now one each, and the bridges supply only
 their kernel step.
 
-## 14. Public theorem map (2026-09-23, baseline `cee4efca`)
+## 14. Public theorem map (2026-09-23; cites re-verified against `94ed4375`)
 
 WP6 of `docs/quantitative-theory-consolidation-review-plan.md`. One record per
-public headline, each read off the tree at `cee4efca`; `file:line` is that
-tree's line of the signature's first token, paths relative to
-`src/CategoricalCrypto/`. Where an earlier section of this file or of
-`docs/end-to-end.md` disagrees, this section is current.
+public headline; its `file:line` cites were re-verified against `94ed4375`,
+each the line of the signature's first token (of the `module` line, for a
+module cite), paths relative to `src/CategoricalCrypto/`. Where an earlier
+section of this file or of `docs/end-to-end.md` disagrees, this section is
+current.
 
-On this branch the generic API of §14.4 is stated over the resource grading
-(§16); its records below are rewritten to it, and their line numbers are
-omitted. The example and model records (§14.1-§14.3, checks 1-6, §14.6)
-describe `protocol-rewrite`'s instances, which still take `UC.Budget`: read
+The generic API of §14.4 is stated over the resource grading (§16); its
+records below are rewritten to it, and their line numbers are omitted. The
+example and model records (§14.1-§14.3, checks 1-6, §14.6), cites re-verified
+against `94ed4375`, are stated over the retired `UC.Budget`: read
 their `simCost q cs` as `scale q (positive cs)` and `ctxBudget c c′` as
 `value (c · positive c′)` at a test rate `c : ℕ⁺` (numerically their
 `scale c (positive c′)`, `refl`; a zero-query context has no counterpart), and
@@ -1785,27 +1783,27 @@ Field key, the plan's:
 
 ### 14.1 The ledger example
 
-#### `Property.PreservesValue` — `Examples/ChimericLedger/Property.agda:150`
+#### `Property.PreservesValue` — `Examples/ChimericLedger/Property.agda:97`
 
 ```agda
 PreservesValue : Systems LedgerIf^ω → Set₁
 PreservesValue R = Hitsᴺ (λ n → morphism (R n)) auditMonitorᶠ εᴹ
 ```
 
-in `module _ (a V : ℕ)` (`:122`), with `auditMonitorᶠ n = monitorᴹ
-(Watched.reportsLoss n (genesisAt n))` (`:142`), `εᴹ n q = εᴸ n (q + 1)`
-(`:108`) and `εᴸ n q = (q·q + q)·2⁻ⁿ` (`:86`).
+in `module _ (t : ℕ)` (`:86`), with `auditMonitorᶠ n = monitorᴹ
+(Watched.reportsLoss n t)` (`:94`), `εᴹ n q = εᴸ n (q + 1)`
+(`:72`) and `εᴸ n q = (q·q + q)·2⁻ⁿ` (`:60`).
 
 - **Compared / resources** — not a comparison: a bound on ONE family of closed
   protocol images `R : Systems LedgerIf^ω`. Nothing is installed below it; the
   monitor is the compiled observer, not a resource.
 - **Contexts / certificates** — `Hitsᴺ` is `Boundedᴺ` at `readoutᴹ`
-  (`UC/Quantitative/EventLift.agda:87`, `UC/Model/EventBounds.agda:89`), and
+  (`UC/Quantitative/EventLift.agda:70`, `UC/Machine/EventBounds.agda:89`), and
   `BoundedAt q r f 𝔠` (`EventBounds.agda:73`) quantifies every ancilla `Y`,
   every test `E` with `QB c E`, every closure `m` with `QB c′ m`, subject to
   `ctxBudget c c′ ℕ.≤ q`. The compared system carries no certificate. The event
   read is the COMPILED observable flag — `compileᴹ`
-  (`UC/Machine/Monitor.agda:101`) wraps the context's own test, so the
+  (`UC/Machine/Monitor.agda:96`) wraps the context's own test, so the
   experiment's verdict IS the flag, and no internal state is read.
 - **Simulator** — none; there is none at the trivial grade.
 - **Error / allowance** — `εᴹ n (p n) + ν n`, read at the CAP `p n`, not at the
@@ -1817,44 +1815,43 @@ in `module _ (a V : ℕ)` (`:122`), with `auditMonitorᶠ n = monitorᴹ
 - **Kind** — definition. It is the statement `ideal-preserves-value`,
   `preserves-value-transfer` and `chimeric-not-preserving` are about.
 
-#### `ideal-preserves-value` — `Property.agda:195`
+#### `ideal-preserves-value` — `Property.agda:133`
 
-`SerInj → PreservesValue Ideal`, with `Ideal n = AtLevel.Sys n inputConsuming
-(genesisAt n)` (`:127`).
+`SerInj → PreservesValue (genesisTotal V) Ideal`, with `Ideal n = AtLevel.Sys n inputConsuming
+(genesisAt n)` (`:126`).
 
 - **Compared / resources** — the repaired ledger over the lazily sampled random
   oracle, closed. No second system.
 - **Contexts / certificates** — `PreservesValue`'s, above. The route in is
-  `ideal-bounded` (`:191`, the birthday theorem through the watch) then
-  `ledger-hitsᵘ` (`:166`) then `hitsᶠ⇒hitsᴺ`
-  (`UC/Quantitative/EventLift.agda:91`); `ledger-hitsᵘ` reads the strategy
-  bound at `q + 1`.
+  `ideal-bounded` (`:129`, the birthday theorem through the watch) then
+  `hitsᴸ` at `upper-run` then `hitsᶠ⇒hitsᴺ`
+  (`UC/Quantitative/EventLift.agda:74`), reading the strategy bound at `q + 1`.
 - **Simulator** — none.
 - **Error / allowance** — exactly `εᴹ`, with slack `0` before `hitsᶠ⇒hitsᴺ`
   inserts the (zero) `Boundedᴺ` slack. No UC and no approximation step is spent.
 - **Quantifiers** — `SerInj` first, then `PreservesValue`'s own order.
-- **Assumptions** — `SerInj` (`:73`), per-level injectivity of `ser`.
-  DISCHARGED for one encoding by `Serialize.serInj` (`Serialize.agda:44`),
-  giving `Serialize.ideal-preserves-value′` (`:48`) with nothing assumed.
+- **Assumptions** — `SerInj` (`:47`), per-level injectivity of `ser`.
+  DISCHARGED for one encoding by `Serialize.serInj` (`Serialize.agda:35`),
+  giving `Serialize.ideal-preserves-valueˢ` (`:38`) with nothing assumed.
 - **Kind** — instantiated (unconditional at the supplied serializer).
 
-#### `preserves-value-transfer` — `Transfer.agda:91`
+#### `preserves-value-transfer` — `Transfer.agda:74`
 
 ```agda
 preserves-value-transfer : (a V : ℕ) (R : Systems LedgerIf^ω) → SerInj
-                         → R ≤UC^ωⁿ Ideal a V → PreservesValue a V R
+                         → R ≈ᶠᴺ Ideal a V → PreservesValue (genesisTotal V) R
 ```
 
 - **Compared / resources** — `R` against `Ideal a V`, both CLOSED protocol
-  images at the trivial grade (`imgᶠ`, `UC/Model/Family/Emulation.agda:80`).
-- **Contexts / certificates** — the premise `_≤UC^ωⁿ_`
-  (`Emulation.agda:95`) is read at the embedded-strategy contexts through
-  `≈ᶠ-runs` (`:161`), budget `ctxBudget q 1 = q · 1`; the conclusion is at every
+  images at the trivial grade (`imgᶠ`, `UC/Model/Family/Emulation.agda:63`).
+- **Contexts / certificates** — the premise `_≈ᶠᴺ_`
+  (`Emulation.agda:77`) is read at the embedded-strategy contexts through
+  `≈ᶠ-runs` (`:112`), budget `ctxBudget q 1 = q · 1`; the conclusion is at every
   certified machine context the cap admits. `R` carries no certificate, and the
   certificate of the compiled TEST is deliberately not read — the flag is an
   internal port, so a strategy extracted from the compiled context spends only
   the honest allowance.
-- **Simulator** — none retained, because `_≤UC^ωⁿ_` is direct agreement and has
+- **Simulator** — none retained, because `_≈ᶠᴺ_` is direct agreement and has
   none to retain.
 - **Error / allowance** — comparison and ideal bound BOTH read at `p n + 1`; the
   premise's `ε` becomes the saturated slack `λ n → ε n (p n + 1)`, quantified
@@ -1866,38 +1863,38 @@ preserves-value-transfer : (a V : ℕ) (R : Systems LedgerIf^ω) → SerInj
 - **Assumptions** — `SerInj`; the emulation, which is the premise.
 - **Kind** — conditional (on the emulation).
 
-#### `ledger-preserves-value-from-hash` — `Transfer.agda:190`, with `hash-liftⁿ` `:184` and `hash-liftᵇ` `:176`
+#### `ledger-preserves-value-from-hash` — `Transfer.agda:163`, with `hash-liftⁿ` `:159` and `hash-liftᵇ` `:151`
 
 ```agda
 ledger-preserves-value-from-hash :
-    (a V : ℕ) (hash : Systems HashIf^ω) → SerInj → hash ≤UC^ωⁿ oracle^ω
-  → PreservesValue a V (Realᴴ hash inputConsuming (genesisAt a V))
+    (a V : ℕ) (hash : Systems HashIf^ω) → SerInj → hash ≈ᶠᴺ oracle^ω
+  → PreservesValue (genesisTotal V) (Realᴴ hash inputConsuming (genesisAt a V))
 ```
 
 - **Compared / resources** — the premise compares two HASH families, `hash`
-  against `oracle^ω` (`:119`); the conclusion is about the ledger built over
-  `hash`. The factoring `ledger-factor` (`:131`, on `UC.Factor.factorᵖ`) is what
+  against `oracle^ω` (`:101`); the conclusion is about the ledger built over
+  `hash`. The factoring `ledger-factor` (`:111`, on `UC.Factor.factorᵖ`) is what
   exposes the hash port of the otherwise closed system.
 - **Contexts / certificates** — `hash-liftᵇ` is the fixed-data lift
   (`hash ≈ᶠ[ ε ] oracle^ω → Realᴴ hash vr s ≈ᶠ[ εᴴ ε ] Realᴴ oracle^ω vr s`);
-  `≈ctx-ext` (`UC/Quantitative/Family.agda:391`) absorbs the ledger stage into
-  the test at its own certificate `ledgerᶠ-qb : QB 1` (`Transfer.agda:163`, one
+  `≈ctx-ext` (`UC/Quantitative/Family.agda:411`) absorbs the ledger stage into
+  the test at its own certificate `ledgerᶠ-qb : Image forgetᴳ 1⁺` (`Transfer.agda:142`, one
   hash call per transaction plus the `stageᵒ` regrading), and `≈ctx-sub`
-  (`Family.agda:246`) the unit regrading `λ⇒ᶜ`, also `QB 1`.
+  (`Family.agda:267`) the unit regrading `λ⇒ᶜ`, structural at rate `1⁺`.
 - **Simulator** — none: with one upper stage there is nothing to compose and
   nothing to forget. The port is provably blind (`docs/ledger-factoring.md`).
-- **Error / allowance** — `εᴴ ε n q = ε n (simCost (simCost q 1) 1)` (`:143`),
-  two EXACT `simCost` reindexings; `εᴴ-negligible` (`:146`) is two
+- **Error / allowance** — `εᴴ ε n q = ε n (simCost (simCost q 1) 1)` (`:122`),
+  two EXACT `simCost` reindexings; `εᴴ-negligible` (`:125`) is two
   `NegligibleBound-simCost` applications.
 - **Quantifiers** — `hash-liftᵇ` takes the schedule as an explicit parameter;
   `hash-liftⁿ` is its existential packaging, which is where negligibility is
   spent.
-- **Assumptions** — `SerInj`; `hash ≤UC^ωⁿ oracle^ω`, RECORDED AND NOT
+- **Assumptions** — `SerInj`; `hash ≈ᶠᴺ oracle^ω`, RECORDED AND NOT
   DISCHARGED — no named hash construction in the repository supplies it
   (`docs/end-to-end.md` §7).
 - **Kind** — conditional.
 
-#### `preservesValue⇒saturated` — `Property.agda:178`
+#### `preservesValue⇒saturated` — `Property.agda:108`
 
 The way back: `PreservesValue R` gives, per polynomial cap, a negligible `ν`
 with `Pr (R n) (auditWatch n d) ℚ.≤ εᴹ n (p n) + ν n` at every `asks≤ (p n) d`.
@@ -1905,22 +1902,22 @@ with `Pr (R n) (auditWatch n d) ℚ.≤ εᴹ n (p n) + ν n` at every `asks≤ 
 - **Compared / resources** — one system, read at the strategy contexts an
   ordinary strategy embeds to.
 - **Contexts / certificates** — `hits⇒bounded`
-  (`UC/Quantitative/EventLift.agda:186`): the closure is closed, so
+  (`UC/Quantitative/EventLift.agda:157`): the closure is closed, so
   `ctxBudget q 0 = q` and the strategy keeps the whole cap.
 - **Simulator** — none.
 - **Error / allowance** — the same `εᴹ n (p n) + ν n`. NOTHING is spent
   returning; the monitor's extra query was charged on the way out
-  (`ledger-hitsᵘ` / `hitsᵘ`).
+  (`hitsᴸ` / `hitsᵘ`).
 - **Quantifiers** — the property's own (cap, slack, level, strategy).
 - **Assumptions** — none beyond the property.
 - **Kind** — compatibility (the strategy-level reading of the contextual bound).
 
-#### `ledger-uc-to-pov-family` — `Transfer.agda:227`; `ledger-pov-family-negligible` `:242`; `TruthfulAudit` `:218`
+#### `ledger-uc-to-pov-family` — `Transfer.agda:197`; `ledger-pov-family-negligible` `:210`; `TruthfulAudit` `:188`
 
 ```agda
 ledger-uc-to-pov-family :
     SerInj → (R : Systems LedgerIf^ω) (badR : (n : ℕ) → St (R n) → Bool)
-  → R ≤UC^ωⁿ Ideal a V → TruthfulAudit R badR → (p : ℕ → ℕ) → Poly p
+  → R ≈ᶠᴺ Ideal a V → TruthfulAudit R badR → (p : ℕ → ℕ) → Poly p
   → Σ[ ν ∈ (ℕ → ℚ) ] Negligible ν
     × ((n : ℕ) (d : …) → asks≤ (p n) d
        → PrHit (R n) (badR n) d ℚ.≤ εᴹ n (p n ℕ.+ p n) ℚ.+ ν n)
@@ -1940,38 +1937,38 @@ ledger-uc-to-pov-family :
   deliberately and its number is NOT the public type.
 - **Quantifiers** — cap first, slack second, level third, strategy last.
 - **Assumptions** — `SerInj`; the emulation; **`TruthfulAudit R badR`**, which
-  stays in the statement. `ideal-truthful` (`:223`) discharges it for the ideal
-  family only; `liar-not-truthful` (`:363`) shows it genuinely fails of some `R`
+  stays in the statement. `ideal-truthful` (`:193`) discharges it for the ideal
+  family only; `liar-not-truthful` (`:318`) shows it genuinely fails of some `R`
   satisfying claim 1.
 - **Kind** — conditional. `ledger-pov-family-negligible` is the same conclusion
   read as one negligible number (`Negligible-+` of `εᴹ-negligible` and `ν`).
 
-#### `chimeric-not-preserving` — `ReplayFamily.agda:71`; `Replay.chimeric-loses-value` `Replay.agda:184`
+#### `chimeric-not-preserving` — `Transfer.agda:353`; `Replay.chimeric-loses-value` `Replay.agda:153`
 
-`¬ PreservesValue a (suc (suc V)) (Chimericᶠ V)` — the negative side.
+`¬ PreservesValue (genesisTotal (suc (suc V))) (Chimericᶠ V)` — the negative side.
 
 - **Compared / resources** — `Chimericᶠ V n = AtLevel.Sys n chimeric (At.s₀ V n)`
-  (`:53`), the broken variant at the ACCOUNT-FUNDED initialization.
+  (`Transfer.agda:340`), the broken variant at the ACCOUNT-FUNDED initialization.
 - **Contexts / certificates** — the attack strategy `At.replay V n` with
-  `At.replay-asks : asks≤ 3` (`Replay.agda:105`), so the allowance is the
+  `At.replay-asks : asks≤ 3` (`Replay.agda:87`), so the allowance is the
   constant `3` with `poly-const 3`; it is handed back a bound by
   `preservesValue⇒saturated`.
 - **Simulator** — none.
 - **Error / allowance** — probability exactly `1ℚ` at every level
-  (`chimeric-loses-value^ω`, `ReplayFamily.agda:64`, on
-  `Replay.Attack.chimeric-loses-value`, `Replay.agda:184`), against
+  (`chimeric-loses-value^ω`, `Transfer.agda:348`, on
+  `Replay.Attack.chimeric-loses-value`, `Replay.agda:153`), against
   `εᴹ n 3 + ν n`, which both being negligible falls eventually below `½`.
 - **Quantifiers** — the allowance is quantified FIRST, as the property
   quantifies it; no single security parameter is picked, so the refutation is
   asymptotic, not one numerical instance.
 - **Assumptions** — none. But it is NOT a refutation at the positive theorem's
-  initialization: `funded-total` (`:60`) is the equal-total side condition that
+  initialization: `funded-total` (`Examples/ChimericLedger/Transfer.agda:348`) is the equal-total side condition that
   lets one watch serve both, while `Chimericᶠ` starts account-funded and `Ideal`
-  at the UTxO genesis, which `System.ledger-keeps-accts-[]` (`System.agda:119`)
+  at the UTxO genesis, which `System.ledger-keeps-accts-[]` (`System.agda:93`)
   shows never reaches a funded account.
 - **Kind** — instantiated negative result.
 
-#### `ideal-spends-genesis` — `Transfer.agda:267`
+#### `ideal-spends-genesis` — `Transfer.agda:229`
 
 ```agda
 ideal-spends-genesis : (a V n : ℕ)
@@ -1990,16 +1987,16 @@ ideal-spends-genesis : (a V n : ℕ)
   state effect, not global liveness, and neither safety claim takes it as a
   premise.
 
-#### The `Mute` / `Liar` pins — `Transfer.agda:279`, `:285`
+#### The `Mute` / `Liar` pins — `Transfer.agda:240`, `:245`
 
 Two checked counterexamples, both `Systems LedgerIf^ω`, both satisfying claim 1
-through `never-reports` (`:297`) at slack `0`:
+through `never-reports` (`:254`) at slack `0`:
 
-- `mute-preserves-value` (`:320`) with `mute-never-accepts` (`:323`): the
+- `mute-preserves-value` (`:277`) with `mute-never-accepts` (`:280`): the
   observable bound does not imply responsiveness, so claim 3 is a separate job
   and not a premise of claim 1.
-- `liar-preserves-value` (`:358`) with `always-bad` (`:288`) and
-  `liar-not-truthful` (`:363`): a trajectory conclusion genuinely needs the
+- `liar-preserves-value` (`:315`) with `always-bad` (`:248`) and
+  `liar-not-truthful` (`:318`): a trajectory conclusion genuinely needs the
   audit connection claim 2 assumes.
 
 **Kind** — instantiated separations. They bound what claims 1 and 2 say; they
@@ -2007,7 +2004,7 @@ assume nothing.
 
 ### 14.2 The audit-carry consumer — `Examples/HashForward/Audit.agda`
 
-#### `hf-emul` — `:70`; `hf-audit-carry` — `:88`; `hf-pr-bound` — `:127`
+#### `hf-emul` — `:54`; `hf-audit-carry` — `:74`; `hf-pr-bound` — `:101`
 
 - **Compared / resources** — `realᵒ` against `idealᵒ` at a NONTRIVIAL grade
   (`ifaceᵒ Advᴵ`), which is the point of the example; the resource
@@ -2015,18 +2012,18 @@ assume nothing.
 - **Contexts / certificates** — `UC.Seam.Audit.Context`'s graded audit tests:
   honest strategy `e` with `asks≤ q e`, adversary `a : Proc Advᴵ 𝟭ᴵ` with
   `QBᴹ c a`, resource `w` with `QBᴹ c′ w`. The absorbed test's certificate is
-  stated explicitly, `absorbed-budget : QB (c * ((2 ⊔ 1) ⊔ 1))` (`:80`).
+  stated explicitly, `absorbed-budget : QB (c * ((2 ⊔ 1) ⊔ 1))` (`:64`).
 - **Simulator** — RETAINED and named: `simᵒ` at cost 2
-  (`simQB : QB 2 simulator`, `Examples/HashForward/UC.agda:103`), and
-  `simExactAll` (`:166`) says 2 is exact, not a ceiling. The
-  qualitative record `_≤UC[_]_` (`UC/Audit.agda:73`) carries `sim`, `sim-qb`
-  and `emulate`.
+  (`simQB : QB 2 simulator`, `Examples/HashForward/UC.agda:126`), and
+  `simExactAll` (`:115`) says 2 is exact, not a ceiling. The
+  qualitative `_≤UC[_]_` (`UC/Audit.agda:55`) is a Σ of the graded simulator
+  `ŝ` and the emulation `f ≈ᵁ (⌊ ŝ ⌋ ⊗₁ id ∘ g)`.
 - **Error / allowance** — `(ε (simCost q 2) + δ) + η`: the designated bound `ε`
   read at the absorbed allowance, plus TWO positive slacks — `δ` from
-  `pinned-bound`'s `dominate` (`UC/Audit.agda:112`) and `η` from
-  `audit-carry`'s (`:208`). At the toy's own designation (`silent`) the
+  `pinned-bound`'s `dominate` (`UC/Audit.agda:108`) and `η` from
+  `audit-carry`'s (`:128`). At the toy's own designation (`silent`) the
   designated bound is `0` and the error is the two slacks alone
-  (`hf-audit-silent`, `:107`).
+  (`hf-audit-silent`, `Examples/HashForward/Audit.agda:93`).
 - **Quantifiers** — `μ`, `ε`, `δ`, `η` all fixed BEFORE any context; no
   polynomial cap (the toy has no security parameter); no simulator existential.
 - **Assumptions** — none beyond `Examples.HashForward.real-factors`, which is
@@ -2037,58 +2034,58 @@ assume nothing.
 
 ### 14.3 The coin / commitment chain
 
-#### `coin-toss-idealᵇ` — `Examples/CoinToss/Ideal/Compose.agda:94`; `coin-toss-ideal` `:103`; `coin-toss-idealᴺ` `:145`; `coin-hybridᵇ` `:74`; `coin-toss-idealᶜ` `:118`; `schedule-pinⁱ` `:111`
+#### `coin-toss-idealᵇ` — `Examples/CoinToss/Ideal/Compose.agda:81`; `coin-toss-ideal` `:90`; `coin-toss-idealᴺ` `:127`; `coin-hybridᵇ` `:66`; `coin-toss-idealᶜ` `:100`; `schedule-pinⁱ` (deleted)
 
 - **Compared / resources** — `(λ n → (tossᶠ ∙ᶠ realᶠ) n ∘ resᶠ n)` against
   `Fcoinᶠ`, with `Examples.ROCommitment.Resource.resource` INSTALLED below both
-  (`resᶠ`, `:59`), hence closed in the domain and still graded by the corrupted
+  (`resᶠ`, `:54`), hence closed in the domain and still graded by the corrupted
   committer's port.
-- **Contexts / certificates** — `_≈ctx[_]_` (`UC/Quantitative/Family.agda:100`):
+- **Contexts / certificates** — `_≈ctx[_]_` (`UC/Quantitative/Family.agda:125`):
   per level, every ancilla `W`, every test with `QB c E`, every closure with
   `QB c′ m`, error read at `ctxBudget c c′`. `≤UC[]-dom` at the resource
-  (`Family.agda:465`) is what CLOSES the comparison boundary and is free (rate
+  (`Family.agda:474`) is what CLOSES the comparison boundary and is free (rate
   `0`, schedule unchanged) — required, because at an open domain the closure
   quantifier owns `F_com`'s memory.
 - **Simulator** — RETAINED and named in the `ᵇ` form: `simᶜⁱ sf = simᶜᵗ sf ∘ᶜ
-  simᶜᶠ` (`:91`), with `simᶜᶠ : Certified Lkᶜᶠ (Lkᶠ ⊗ᶠ Advᶜᶠ)` at cost 1
-  (`:66`). `coin-toss-ideal` is the existential packaging.
-- **Error / allowance** — `εᶜⁱ ε n q = εᶜᵗ ε n q + 0ℚ` (`:86`), with
-  `εᶜᵗ ε n q = 0ℚ + ε n (simCost q 0)` (`Compose.agda:82`). The second hop is
+  simᶜᶠ` (`:78`), with `simᶜᶠ : Certified Lkᶜᶠ (Lkᶠ ⊗ᶠ Advᶜᶠ)` at cost 1
+  (`:60`). `coin-toss-ideal` is the existential packaging.
+- **Error / allowance** — `εᶜⁱ ε n q = εᶜᵗ ε n q + 0ℚ` (`:75`), with
+  `εᶜᵗ ε n q = 0ℚ + ε n (simCost q 0)` (`Examples/CoinToss/Compose.agda:66`). The second hop is
   EXACT (zero schedule, `CTIU.coin-hop` across the seal), so the whole error is
-  the first hop's, itself the commitment's, UNRESCALED: `ideal-ε` (`:122`) pins
-  `εᶜⁱ εᶜ n q ≡ (q·q + q + q)·2⁻ⁿ`. `schedule-pinⁱ` (`:111`) is `refl`.
+  the first hop's, itself the commitment's, UNRESCALED: `ideal-ε` (`:104`) pins
+  `εᶜⁱ εᶜ n q ≡ (q·q + q + q)·2⁻ⁿ`. `schedule-pinⁱ` (deleted) is `refl`.
 - **Quantifiers** — in `coin-toss-idealᵇ` the simulator and the schedule are
   explicit parameters and no negligibility is asked; `coin-toss-ideal` adds the
   existentials and `seqError-negligible`, which is where the polynomials are
   spent.
 - **Assumptions** — `realᶠ ≤UC^ωᵉ idealᶠ`, the commitment's own emulation,
-  UNDISCHARGED (see `binding-real` below). `coin-toss-idealᶜ` (`:118`) narrows
+  UNDISCHARGED (see `extraction-real` below). `coin-toss-idealᶜ` (`:100`) narrows
   the premise to the single relation the repository does not have,
   `realᶠ ≈ctx[ εᶜ ] subᶠ comSim idealᶠ`, the other three components
-  (`comSim` `Compose.agda:171`, its certificate, `εᶜ` with its negligibility)
+  (`comSim` `Examples/CoinToss/Compose.agda:137`, its certificate, `εᶜ` with its negligibility)
   being present.
-- **Kind** — conditional. `coin-toss-idealᴺ` (`:145`) is the same result in the
+- **Kind** — conditional. `coin-toss-idealᴺ` (`:127`) is the same result in the
   canonical negligible `UCSetup`; it keeps the certified simulator but NOT the
   schedule (§12.4).
 
 The corrupted-receiver twins are `Ideal/Receiver/Compose.agda`:
-`coin-hybridʳᵇ` (`:119`), `coin-toss-idealʳᵇ` (`:138`), `coin-toss-idealʳ`
-(`:148`), `schedule-pinʳ` (`:158`), `coin-toss-idealʳᴺ` (`:183`). The one
+`coin-hybridʳᵇ` (`:105`), `coin-toss-idealʳᵇ` (`:122`), `coin-toss-idealʳ`
+(`:132`), `schedule-pinʳ` (deleted), `coin-toss-idealʳᴺ` (`:163`). The one
 difference is that the second hop is NOT exact there: the honest committer's
 share is drawn one activation earlier than the ideal coin's, so what is exact is
 the two systems' RUNS (`Receiver.Machine.coin-runʰ`), and carrying a run
 agreement into a context costs the domination's positive slack `2⁻ⁿ` — hence
-`ηʰ n _ = 0ℚ + 2⁻ⁿ` (`:101`), `εᶜʳ ε n q = εᶜᵗ ε n q + ηʰ n q` (`:132`), and
-`ideal-εʳ` (`:164`) pins `(q + (q + q))·2⁻ⁿ + 2⁻ⁿ`.
+`ηʰ n _ = 0ℚ + 2⁻ⁿ` (`:89`), `εᶜʳ ε n q = εᶜᵗ ε n q + ηʰ n q` (`:116`), and
+`ideal-εʳ` (`:144`) pins `(q + (q + q))·2⁻ⁿ + 2⁻ⁿ`.
 
-#### `assembly` — `Examples/ROCommitment/Realization/Assembly.agda:101`; `coin-from-Rcom` `:82`; `pin` `:111`
+#### `assembly` — `Examples/ROCommitment/Realization/Assembly.agda:89`; `coin-from-Rcom` `:78`; `pin` `:99`
 
 - **Compared / resources** — `Rcom n = realᶠ n ∘ resᶠ n` against
-  `Icom n = idealᶠ n ∘ resᶠ n` (`Realization/Statement.agda:34`, `:37`), the
-  resource-installed boundary; `Assembly` (`:57`) is the implication from
+  `Icom n = idealᶠ n ∘ resᶠ n` (`Realization/Assembly.agda:45`, `:48`), the
+  resource-installed boundary; `assembly`'s type is the implication from
   `Realization` to the coin conclusion.
-- **Contexts / certificates** — `RcomQB`/`RcomʰQB : QB 0` (`:56`, `:59`), the
-  resource's `QB 0` swallowing the product; `coin-from-Rcom` is `UC-composeᵉ`
+- **Contexts / certificates** — `RcomQB`/`RcomʰQB : Pred 1⁺` (`:67`, `:70`), the
+  resource's rate-`1⁺` certificate swallowing the product; `coin-from-Rcom` is `UC-composeᵉ`
   with the upper stage compared with ITSELF (`idᶜ` at the zero schedule) and
   both moved morphisms closed.
 - **Simulator** — the premise's, unchanged: `≤UC^ωᵉ-dom` is NOT spent here (the
@@ -2096,16 +2093,16 @@ agreement into a context costs the domination's positive slack `2⁻ⁿ` — hen
   `≤UC^ωᵉ-resp`, which keeps the same simulator and schedule.
 - **Error / allowance** — unchanged: `pin`/`pinʰ` are `refl`, so moving the
   boundary changes no number.
-- **Quantifiers** — `Assembly` is stated as an implication, so the premise's
+- **Quantifiers** — `assembly` is stated as an implication, so the premise's
   existentials are consumed and re-emitted.
 - **Assumptions** — `Realization`/`Realizationʰ`
-  (`Statement.agda:50`-`:52`) are HYPOTHESES, not theorems.
+  (`Assembly.agda:60`-`:62`) are HYPOTHESES, not theorems.
 - **Kind** — conditional.
 
-#### `binding-real` — `Examples/ROCommitment/Realization/Bound.agda:203`
+#### `extraction-real` — `Examples/ROCommitment/Realization/Bound.agda:154`
 
 ```agda
-binding-real : (m : ℕ) (d : Strat (Neg (Advᴵ ⊗ᴵ Honᴵ)) (Pos (Advᴵ ⊗ᴵ Honᴵ))) → asks≤ m d
+extraction-real : (m : ℕ) (d : Strat (Neg (Advᴵ ⊗ᴵ Honᴵ)) (Pos (Advᴵ ⊗ᴵ Honᴵ))) → asks≤ m d
              → Σ[ n ∈ ℕ ] ((i : ℕ) → ∣ Pr₁⊥ (runWith⊥ respI⊥ sI₀ (mapStrat toQ fromR d))
                                        -ℚ cum (n + i) (runᴹ (real 𝒫.∘ resource) d) (indᵇ true) ∣ℚ
                                      ≤ℚ ε m)
@@ -2120,8 +2117,8 @@ binding-real : (m : ℕ) (d : Strat (Neg (Advᴵ ⊗ᴵ Honᴵ)) (Pos (Advᴵ �
   ask).
 - **Simulator** — none on this leg; the ideal side is `Game`'s, not the UC
   simulator.
-- **Error / allowance** — `Game.ε m` (`Game.agda:566`), through `Game.cert`
-  (`:569`) and `prune-cert`.
+- **Error / allowance** — `Game.ε m` (`Game.agda:451`), through `Game.cert`
+  (`:454`) and `prune-cert`.
 - **Quantifiers** — `m` and `d` first, then the `cum` index.
 - **Assumptions** — none added; but see the defect below.
 - **Kind** — instantiated, and PARTIAL. It is a real-machine/ideal-GAME bound.
@@ -2167,15 +2164,15 @@ interface (§12).
   `rtv`.
 - **Assumptions** — none. **Kind** — unconditional metatheory.
 
-#### `≤UC[]⇒≤UCᴺ` — `UC/Model/Family/Emulation.agda:149` (module opened at `:134`)
+#### `≤UC[]⇒≤UCᴺ` — `UC/Model/Family/Emulation.agda:104` (module opened at `:96`)
 
 - **Compared / resources** — two families certified levelwise at a `Poly⁺` rate
   schedule, as `Famᴹ` arrows.
-- **Contexts / certificates** — the premise's `≈ctx`, plus such a schedule on
-  each compared family — the only thing this boundary adds.
-- **Simulator** — RETAINED: `certᶠ s` (`:126`) is a `Fam`-hom, which is what the
+- **Contexts / certificates** — the premise's `≈ctx` alone: each schedule is
+  part of its `Famᴹ` arrow, so no separate `qf`/`qg` certificate pair is taken.
+- **Simulator** — RETAINED: `certᶠ s` (deleted) is a `Fam`-hom, which is what the
   inherited order asks a simulator to be.
-- **Error / allowance** — the route stops at `_≈ℰⁿ_` (`≤UC[]⇒≈ℰⁿ`, `:141`) and
+- **Error / allowance** — the route stops at `_≈ℰⁿ_` (`≤UC[]⇒≈ℰⁿ`, `:100`) and
   is read in `ucSetupᴺ`'s own kernel; it does NOT go through vanishing and
   spends no `absorb-negl`. The single GLOBAL schedule does not survive: `≈ℰⁿ⇒≈ℰᴺ`
   specializes it to the allowance each context carries, so `Canonicalᴺ._≤UC_`
@@ -2202,23 +2199,23 @@ interface (§12).
 - **Assumptions** — `refineℰ`, supplied by each instance's kernel step. No
   `GradeStable` and no epi/mono side condition, unlike `Transfer`.
 - **Kind** — compatibility. Six instances, statements byte-identical
-  (`UC.Family.Quantitative:75,79,89,94`; `UC.Family.Negligible.Quantitative:89,93`).
+  (`UC.Family.Quantitative:78,82,92,97`; `UC.Family.Negligible.Quantitative:89,93`).
   The vanishing pair has both directions; the uniform/local pair has only
   `uniform⇒local`, and no uniformization premise was introduced for the converse.
 
-#### `audit-carryᵉ` — `UC/Audit.agda:172`; `audit-carry` — `:208`
+#### `audit-carryᵉ` — (deleted); `audit-carry` — `UC/Audit.agda:128`
 
 - **Compared / resources** — `f : A ⇒ X ⊗₀ B′` against `g : A ⇒ Y ⊗₀ B′` at an
   arbitrary monoidal base with an `Evaluation`, a `GradedSubCat` over `Rates`
   and a `Mass`;
-  the one application is `UC/Seam/Audit.agda:25`-`:31`.
+  the one application is `UC/Model/Audit.agda:15`-`:19`.
 - **Contexts / certificates** — every `(W, Et, m)` with `Image forget c Et`,
   `Image forget r′ m`; ADMISSION is the event class `𝔈` on the real side and
   `𝔉` on the ideal side, joined by `Absorbs s r 𝔈 𝔉`. The simulator's
   `Image forget r s` is essential, because the simulator ends up inside the
   environment leg.
 - **Simulator** — RETAINED: `s` is explicit in `audit-carryᵉ` (no existential);
-  `audit-carry` carries it in the `_≤UC[_]_` record (`:73`).
+  `audit-carry` carries it as the first component of the `_≤UC[_]_` Σ (`UC/Audit.agda:55`).
 - **Error / allowance** — `audit-carryᵉ` concludes at `λ q → δ (scale q r) +
   ε q`: the two allowances stay visible and DIFFERENT, `ε` at the real context's
   `value (c · r′)` and `δ` at the absorbed one's `value (r · c · r′)`, which
@@ -2231,18 +2228,18 @@ interface (§12).
 - **Assumptions** — the premise relation is NOT a symmetric approximate
   equality: it is an unnamed, directed, one-sided MASS domination, plus the
   ideal-side `AuditBound g 𝔉 δ`. WP1 forbids strengthening it to a symmetric
-  premise; WP1's verdict (`docs/uc-presheaf-preservation-plan.md`) kept the
+  premise; WP1's verdict (`docs/history/uc-presheaf-preservation-plan.md`) kept the
   local proof after measuring the generic alternative at net +67 lines.
 - **Kind** — unconditional metatheory, with one in-repo client each.
 
-#### `UC.Robust.uc-preserves` — `UC/Robust.agda:110`
+#### `UC.Robust.uc-preserves` — `UC/Robust.agda:75`
 
 - **Compared / resources** — `f` against `g` at an arbitrary `UCSetup`; nothing
   numerical is in play.
-- **Contexts / certificates** — `Admissible B d` (`:56`), a class of
+- **Contexts / certificates** — `Admissible B d` (`:39`), a class of
   environments; no query bound, no resource certificate.
 - **Simulator** — supplied by `≤UC⇒dummy` and immediately passed to
-  `uc-preserves-at` (`:104`), which takes it EXPLICITLY — because a class that
+  `uc-preserves-at` (`:70`), which takes it EXPLICITLY — because a class that
   is not closed under arbitrary simulators must not obtain closure merely from
   `f ≤UC g`.
 - **Error / allowance** — none.
@@ -2250,10 +2247,10 @@ interface (§12).
   every simulator, before the order.
 - **Assumptions** — `ClosedUnder Adm s`, a PREMISE. Nothing is claimed about a
   simulator being silent, total or bounded.
-- **Kind** — unconditional metatheory. `uc⁺-preserves` (`:120`) is the
+- **Kind** — unconditional metatheory. `uc⁺-preserves` (deleted) is the
   adversary-attached form at `_≤UC_`'s own quantifier order.
 
-#### `UC.Core.Bridge.≤UCᶜ⇔≤UC` — `:33`
+#### `UC.Core.Bridge.≤UCᶜ⇔≤UC` — (deleted)
 
 A two-way identification between the core's dummy-form order and the inherited
 one, at one setup. No error, no certificate, no simulator existential beyond
@@ -2267,14 +2264,14 @@ its kind on each arrow:
 
 | from | to | by | kind |
 |---|---|---|---|
-| ambient machine equality `_≈ᴹ_` | exact equality of closed readings | `UC.Model.Observation.obs-resp` (`:78`) | implication |
+| ambient machine equality `_≈ᴹ_` | exact equality of closed readings | `UC.Model.Observation.obs-resp` (`:60`) | implication |
 | exact observation equality | zero-error Boolean comparison `≈ₚ[ 0 ]` | `≈ₚ⇒≈ₚ[0]` | implication |
 | zero-error comparison | all-positive-error closeness | identity — the model's readout is `qual₊`, so `_∼_` already IS closeness at every positive error and `UC/Model/Family/Contextual.agda` supplies `reflects = λ h → h` | definitional |
 | `_≈ctx[_]_` | `_≈ctxᴬ[_]_` (operational bracket) | `≈ctx⇒≈ctxᴬ`, `≈ctxᴬ⇒≈ctx` (`UC/Quantitative/Family.agda`) | **equivalence**, at the cost of one structural morphism at rate `1⁺` (the test's certificate `c ↦ 1⁺ · c`, regraded back to `c` by `L.sub[_]`) |
-| `_≈ctxᴬ[_]_` (per level) | `_≈ℰ[_]_` (family of contexts, one polynomial) | `≈ctxᴬ⇒≈ℰ[]` `UC/Model/Family/Emulation.agda:108` | implication ONLY — not an identification |
-| `_≤UCᶜ_` | `_≤UC_` | `UC/Core/Bridge.agda:33` | **equivalence** |
+| `_≈ctxᴬ[_]_` (per level) | `_≈ℰ[_]_` (family of contexts, one polynomial) | `≈ctxᴬ⇒≈ℰ[]` `UC/Model/Family/Emulation.agda:90` | implication ONLY — not an identification |
+| `_≤UCᶜ_` | `_≤UC_` | `UC.Core.Bridge.≤UCᶜ⇔≤UC` (deleted) | **equivalence** |
 | one setup's `_≈ᵁ_`/`_≤UC_` | a reobserved setup's | `Refine` `Abstract2/Morphism.agda:131`, `:134` | implication, conditional on `refineℰ` |
-| `_≤UC[_,_]_` (global schedule) | `Canonicalᴺ._≤UC_` (per-context witness) | `≤UC[]⇒≤UCᴺ` `Emulation.agda:149` | implication ONLY — the schedule is not recoverable (§12.4) |
+| `_≤UC[_,_]_` (global schedule) | `Canonicalᴺ._≤UC_` (per-context witness) | `≤UC[]⇒≤UCᴺ` `Emulation.agda:104` | implication ONLY — the schedule is not recoverable (§12.4) |
 
 No arrow is drawn between expressions of different types without its
 interpretation map: the two family bridges that look like they compare
@@ -2286,61 +2283,61 @@ convertible on the nose (§13).
 
 1. **The ledger headline uses the compiled observable event, and trajectory
    conclusions retain their truthfulness premises.** PASS.
-   `PreservesValue R = Hitsᴺ … auditMonitorᶠ εᴹ` (`Property.agda:150`) is
+   `PreservesValue R = Hitsᴺ … auditMonitorᶠ εᴹ` (`Property.agda:97`) is
    `BoundedAt` at `readoutᴹ` of `monitorᴹ (Watched.reportsLoss …)`, a process on
    the ledger interface that reads only queries and answers; the compiled
-   experiment's verdict IS the flag. `TruthfulAudit` (`Transfer.agda:218`) is an
-   explicit premise of `ledger-uc-to-pov-family` (`:227`) and
-   `ledger-pov-family-negligible` (`:242`), discharged only for the ideal family
-   (`ideal-truthful`, `:223`) and refuted for `Liar` (`liar-not-truthful`,
-   `:363`).
+   experiment's verdict IS the flag. `TruthfulAudit` (`Transfer.agda:188`) is an
+   explicit premise of `ledger-uc-to-pov-family` (`:197`) and
+   `ledger-pov-family-negligible` (`:210`), discharged only for the ideal family
+   (`ideal-truthful`, `:193`) and refuted for `Liar` (`liar-not-truthful`,
+   `:318`).
 2. **The `q + 1` route is not described as a universal lower bound.** PASS after
    the correction below. Established: `eventDominatedᵘ`
-   (`UC/Quantitative/EventLift.agda:142`) and `hitsᵘ` (`:158`) are `--safe`
+   (`UC/Quantitative/EventLift.agda:118`) and `hitsᵘ` (`:132`) are `--safe`
    theorems at `c + 1` / `q + 1`, and the `c + 1` lift is discharged by
-   `covCtx` (`EventLift/Cov.agda:308`). The rate-`c` refutation is a SCHEME
+   `covCtx` (`EventLift/Cov.agda:287`). The rate-`c` refutation is a SCHEME
    about `covCtx`'s certificate — the collapsed tower — not a machine-checked
    `¬`, and not a statement about every `QB c` certificate of the compiled
    context. NOT established: any lower bound over certificates (`QB c M`
-   quantifies the representative, and `eventDominatedᶜ` (`:122`) quantifies both
+   quantifies the representative, and `eventDominatedᶜ` (`:102`) quantifies both
    the rate `k` and the certificate `kb`), and any lower bound over lifts (the
    all-zero-potential-state quantifier is a design choice forced by
    `dom≤-bind`'s everywhere-quantification, and the refutation does not survive
    restriction to the initial support). Source correction made by this work
-   package: `EventLift.agda:135`-`:143`. The historical line "`c + 1` is optimal
+   package: `EventLift.agda:114`-`:118`. The historical line "`c + 1` is optimal
    for the invariant" in `docs/event-bounds-in-setup.md` "Stage B status,
    corrections 2026-09-22 (2)" is left as a dated record and is superseded by
    this check.
 3. **Global quantitative schedules, local negligible witnesses and vanishing
    observations are not conflated.** PASS. Three tiers, named apart:
    `_≤UC[_,_]_`/`_≤UC^ωᵉ_` carry ONE global schedule read at each context's
-   carried allowance; `≤UC[]⇒≤UCᴺ` (`Emulation.agda:149`) lands in
+   carried allowance; `≤UC[]⇒≤UCᴺ` (`Emulation.agda:104`) lands in
    `Canonicalᴺ._≤UC_`, which keeps only a per-context negligible witness and
    from which no theorem recovers the global schedule (§12.4); the vanishing
    collapse is NOT on this route — `≤UC[]⇒≤UCᴺ` spends no `absorb-negl`
-   (`UC/Family.agda:313`, which survives for other callers), and the route that
+   (`UC/Family.agda:223`, which survives for other callers), and the route that
    did, `≤UC^ωᵉ⇒≈ℰᶠ`, was retired 2026-09-22.
-   `≈ctxᴬ⇒≈ℰ[]` (`Emulation.agda:108`) is a named implication from the
+   `≈ctxᴬ⇒≈ℰ[]` (`Emulation.agda:90`) is a named implication from the
    per-level relation to the family-of-contexts one, not an identification (§3).
 4. **Query certificates are not described as polynomial local-runtime bounds.**
-   PASS. `QB c M` (`UC/QueryBound.agda:287`) is
+   PASS. `QB c M` (`UC/QueryBound.agda:273`) is
    `Σ[ N ] Certified c N × N ≈ᴹ M` — a bound on downward QUERIES per activation
    of some representative, nothing about time. `Poly`/`Poly⁺` classify how a
-   query count or rate grows in the security parameter, and `scale` (on this
-   branch; `ctxBudget`/`simCost` on `protocol-rewrite`) is arithmetic on query
+   query count or rate grows in the security parameter, and `scale` (`ctxBudget`/`simCost`
+   at `cee4efca`) is arithmetic on query
    allowances. No module claims a runtime, and
    `docs/end-to-end.md` §7 records the absence of a bounded-machine notion as
    not delivered. In particular `qb-closed : (M : Proc unitᴵ B) → QB 0 M`
-   (`UC/QueryBound.agda:293`) says a closed process makes no DOWNWARD query; it
+   (`UC/QueryBound.agda:283`) says a closed process makes no DOWNWARD query; it
    does not say it does no internal computation, and it does not characterize
    faithful resources. The `QB 0` certificates the coin assembly rests on
    (`RcomQB`, `IcomPolyQB`, `FcoinQB`, `resourceQBᵒ`) are all of that kind.
 5. **The commitment result is not called a full machine realization.** PASS.
-   `binding-real` (`Realization/Bound.agda:203`) bounds the closed real MACHINE
+   `extraction-real` (`Realization/Bound.agda:154`) bounds the closed real MACHINE
    against the pruned ideal GAME. `Realization`/`Realizationʰ`
-   (`Realization/Statement.agda:50`-`:52`) remain hypotheses and
+   (`Realization/Assembly.agda:60`-`:62`) remain hypotheses and
    `assembly`/`assemblyʰ` remain conditional. **BLOCKER, still listed:** the
-   repeated-query simulator-log defect at `Examples/ROCommitment.agda:193`-`:214`
+   repeated-query simulator-log defect at `Examples/ROCommitment.agda:166`-`:187`
    — `simStep` conses `(x , d)` onto the simulator's log at EVERY relayed
    answer, including one the oracle served from its table, so after a repeated
    query the log holds the digest twice and `extract` reads `false`
@@ -2360,19 +2357,19 @@ convertible on the nose (§13).
 
 ### 14.6 Deferred assumptions
 
-1. **The real-hash assumption.** `hash ≤UC^ωⁿ oracle^ω`, the premise of
-   `ledger-preserves-value-from-hash` (`Transfer.agda:190`). RECORDED, NOT
+1. **The real-hash assumption.** `hash ≈ᶠᴺ oracle^ω`, the premise of
+   `ledger-preserves-value-from-hash` (`Transfer.agda:163`). RECORDED, NOT
    DISCHARGED: no named hash construction in the repository supplies it.
-   `Examples.MerkleDamgard.indistinguishable` (`MerkleDamgard.agda:253`) is
+   `Examples.MerkleDamgard.indistinguishable` (`MerkleDamgard.agda:141`) is
    stated at `≈adv[_]` over fixed-length messages where the ledger hashes
-   bitstrings, so an instance wants a padding adapter and then a `_≤UC^ωⁿ_`
+   bitstrings, so an instance wants a padding adapter and then a `_≈ᶠᴺ_`
    proof. This consolidation neither discharges nor replaces the premise.
-2. **The `simStep` defect.** `Examples/ROCommitment.agda:193`-`:214`, as in
+2. **The `simStep` defect.** `Examples/ROCommitment.agda:166`-`:187`, as in
    check 5. Until it is resolved, `Realization`/`Realizationʰ` stay hypotheses
    and the whole coin chain above them is conditional.
 3. **The chimeric verdict at the UTxO genesis.** `chimeric-not-preserving`
    refutes the family property at an ACCOUNT-FUNDED initialization, and
-   `System.ledger-keeps-accts-[]` (`System.agda:119`) shows a run started at an
+   `System.ledger-keeps-accts-[]` (`System.agda:93`) shows a run started at an
    empty account table never reaches one (the per-activation statement is what
    is checked; the induction along a whole run is not a theorem here). Whether
    the chimeric variant preserves value AT the UTxO genesis is open.
@@ -2385,30 +2382,40 @@ retirement ledger itself is `docs/event-bounds-in-setup.md` §"Retired 2026-09-2
 and its two orphan sweeps.
 
 - `docs/coin-toss.md` — `UC.Asymptotic.Compose`, `UC.Asymptotic.Family.≤UC^ωᵉ⇒≤UCᴺ`.
-- `docs/consumer-migration.md` — `UC.Asymptotic.Audit`/`.Compose`, `Allowance-mono`.
-- `docs/direct-extraction.md` — `UC.Asymptotic.Audit`.
+- `docs/history/consumer-migration.md` — `UC.Asymptotic.Audit`/`.Compose`, `Allowance-mono`.
+- `docs/history/direct-extraction.md` — `UC.Asymptotic.Audit`.
 - `docs/dp-transport.md` — `UC/Asymptotic/`.
 - `docs/event-bounds-in-setup.md` — all of them; it is the retirement log.
 - `docs/fcom-extraction.md` — `UC.Asymptotic.Family`.
 - `docs/fcom-hiding.md` — `UC.Asymptotic.Family`.
 - `docs/fcom-uc.md` — `UC/Asymptotic/Contextual.agda`.
-- `docs/graded-bridge.md` — `UC.Asymptotic.*`.
+- `docs/history/graded-bridge.md` — `UC.Asymptotic.*`.
 - `docs/graded-observation-redesign.md` — `UC.Saturated`, `SaturatedBoundedᴺ`.
 - `docs/hash-forward.md` — `UC.Asymptotic.Audit._≤UC^ω[_]_`.
-- `docs/issue-quantitative-uc-resources-and-migration.md` — `UC.Asymptotic.Contextual`/`.Compose`.
+- `docs/history/issue-quantitative-uc-resources-and-migration.md` — `UC.Asymptotic.Contextual`/`.Compose`.
 - `docs/ledger-factoring.md` — `UC.Asymptotic._≤UC^ω_`, `UC.Asymptotic.Audit.uc-audit-carry`.
 - `docs/ledger-lift-eps.md` — `UC.Asymptotic.Compose`/`.Contextual`/`.Family`.
-- `docs/prefix-tolerant-audit-plan.md` — `UC.Saturated`, `UC.Asymptotic.Audit`.
+- `docs/history/prefix-tolerant-audit-plan.md` — `UC.Saturated`, `UC.Asymptotic.Audit`.
 - `docs/protocol-implementation-review.md` — `SaturatedBoundedᴺ`.
-- `docs/protocol-rewrite-abstraction-notes.md` — `UC.Saturated`.
+- `docs/history/protocol-rewrite-abstraction-notes.md` — `UC.Saturated`.
 - `docs/protocol-rewrite.md` — `UC.Asymptotic`/`.Audit`, `SaturatedBoundedᴺ`, `Seam.Carry`, `Allowance-mono`.
 - `docs/rcom-icom-b1.md` — `UC/Asymptotic/Compose.agda` (`:91`), `UC/Asymptotic/Contextual.agda` (`:49`), both as the sealed-instance path beside the still-correct `UC/Quantitative/Family.agda`; read them as `UC/Model/Family/Contextual{,/Compose}.agda`.
 - `docs/retirement-negligible-order.md` — `UC.Asymptotic.Audit`.
-- `docs/retirement.md` — `UC.Asymptotic.Audit`/`.Family`, `Allowance-mono`.
+- `docs/history/retirement.md` — `UC.Asymptotic.Audit`/`.Family`, `Allowance-mono`.
 - `docs/rewrite-verdict.md` — `UC.Saturated`, `UC.Seam.Carry`.
 - `docs/stduc-supersession-plan.md` — `UC.Saturated`, `UC.Seam.Carry`.
-- `docs/uc-observation-and-relation-consolidation.typ` — `UC.Asymptotic*`.
-- `docs/uc-presheaf-preservation-plan.md` — `UC.Asymptotic.Family`/`.Audit`/`.Contextual`.
+- `docs/history/uc-observation-and-relation-consolidation.typ` — `UC.Asymptotic*`.
+- `docs/history/uc-presheaf-preservation-plan.md` — `UC.Asymptotic.Family`/`.Audit`/`.Contextual`.
+
+This document's own §7 and §14.1 (event-bound layer and ledger example) predate the
+monitor-flag landing (`docs/monitor-flag-spike.md`): `compileᴹ`, `eventRun`,
+`eventRun-closed`, `openedᴹ`, `eventDominatedᶜ/ᵘ`, `CovCtx`, `covCtx`, `eventSkeleton`,
+`UC.Quantitative.EventLift.Cov`, `UC.Machine.Monitor.Slide`, `UC.Seam.EventTransfer`,
+`Hitsᶠ`, `hitsᶠ⇒hitsᴺ`, `Flagᴵ` (now `Ωᴵ`) and the schedule `εᴹ` are retired there; the
+monitor's lift is `stateLift` at its accumulator, at the context's own cap, and
+`PreservesValue` is at `εᴸ`. The same holds for `docs/flag-wire-spike.md`,
+`docs/state-event-transport-spike.md`, `docs/lower-real-reading-spike.md`,
+`docs/one-accounting-theory-spike.md` and `docs/retirement-review.md`.
 
 ## 15. Observable and Evaluation (2026-09-23)
 

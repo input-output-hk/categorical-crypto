@@ -1,0 +1,1080 @@
+{
+ "sweep": "using-drop",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/UC.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 23,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Approximate public"
+    },
+    {
+     "line": 24,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Core public"
+    },
+    {
+     "line": 25,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Machine public"
+    },
+    {
+     "line": 26,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Machine.Bridge public"
+    },
+    {
+     "line": 27,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Machine.Dominated public"
+    },
+    {
+     "line": 28,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Machine.Grading public"
+    },
+    {
+     "line": 29,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Machine.Monitor public"
+    },
+    {
+     "line": 30,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Machine.Dictionary public using (λᴵ; plugᴹ)"
+    },
+    {
+     "line": 32,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Compose public"
+    },
+    {
+     "line": 33,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Model.Family.Emulation public"
+    },
+    {
+     "line": 34,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.QueryBound public"
+    },
+    {
+     "line": 35,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.QueryBound.Counting public"
+    },
+    {
+     "line": 36,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.QueryBound.Exact public"
+    },
+    {
+     "line": 37,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Seam.Audit.Context public"
+    },
+    {
+     "line": 38,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Factor public"
+    },
+    {
+     "line": 39,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Graded public"
+    },
+    {
+     "line": 40,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Seam.Grounded public"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Factor.agda": {
+   "candidates": 7,
+   "kept": [
+    {
+     "line": 22,
+     "edit": "drop `using (Iface; unitᴵ)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (Protocol; _∘ᵖ_)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (morphism)`"
+    },
+    {
+     "line": 25,
+     "edit": "drop `using (morphismCompose)`"
+    },
+    {
+     "line": 26,
+     "edit": "drop `using (Proc)`"
+    },
+    {
+     "line": 27,
+     "edit": "drop `using (procᵒ; procᵒ-∘; ≈ᴹ⇒≈ᵒ)`"
+    },
+    {
+     "line": 29,
+     "edit": "drop `using (closedᵒ; stageᵒ; ιᴳ)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 32.2
+  },
+  "src/CategoricalCrypto/UC/Graded.agda": {
+   "candidates": 13,
+   "kept": [
+    {
+     "line": 23,
+     "edit": "drop `using (Category; _[_≈_])`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (MonoidalCategory)`"
+    },
+    {
+     "line": 27,
+     "edit": "drop `using (ℕ⁺; value)`"
+    },
+    {
+     "line": 28,
+     "edit": "drop `using (_,_)`"
+    },
+    {
+     "line": 29,
+     "edit": "drop `using (0ℓ)`"
+    },
+    {
+     "line": 32,
+     "edit": "drop `using (𝒢ₚ; 𝒢ₚᴹ)`"
+    },
+    {
+     "line": 33,
+     "edit": "drop `using (Proc; 𝒫ᴵ; T₁ᴵ; a⇒ᴵ; subᴵ′)`"
+    },
+    {
+     "line": 34,
+     "edit": "drop `using (plugᴹ; 𝟭ᴵ; sub-⊗₁)`"
+    },
+    {
+     "line": 35,
+     "edit": "drop `using (_≤UC[_]_)`"
+    },
+    {
+     "line": 36,
+     "edit": "drop `using (procᵘ; qbᵒ)`"
+    },
+    {
+     "line": 38,
+     "edit": "drop `using (ext-gradedᵒ; graded₂ᵒ; graded₂-∘ᵒ; plug-gradedᵒ; sub-`"
+    },
+    {
+     "line": 40,
+     "edit": "drop `using (gradedᵒ; ifaceᵒ; procᵒ; 𝔾ᵒ)`"
+    },
+    {
+     "line": 42,
+     "edit": "drop `using (QB)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 77.9
+  },
+  "src/CategoricalCrypto/UC/Machine.agda": {
+   "candidates": 17,
+   "kept": [
+    {
+     "line": 28,
+     "edit": "drop `using (Category; _[_,_])`"
+    },
+    {
+     "line": 29,
+     "edit": "drop `using (FullSubCategory)`"
+    },
+    {
+     "line": 31,
+     "edit": "drop `using (Bool)`"
+    },
+    {
+     "line": 32,
+     "edit": "drop `using (_×_; _,_; proj₁; proj₂)`"
+    },
+    {
+     "line": 34,
+     "edit": "drop `using (⊤; tt)`"
+    },
+    {
+     "line": 36,
+     "edit": "drop `using (0ℓ; suc)`"
+    },
+    {
+     "line": 38,
+     "edit": "drop `using (Dₚ; mapₚ; returnₚ)`"
+    },
+    {
+     "line": 41,
+     "edit": "drop `using (ℚ-ordered)`"
+    },
+    {
+     "line": 43,
+     "edit": "drop `using (QEvaluation; qual₊)`"
+    },
+    {
+     "line": 44,
+     "edit": "drop `using (ApproxSpace)`"
+    },
+    {
+     "line": 46,
+     "edit": "drop `using (𝒱ₚ; 𝒢ₚ)`"
+    },
+    {
+     "line": 47,
+     "edit": "drop `using (⟦_⟧ᴵ; runᴹ)`"
+    },
+    {
+     "line": 48,
+     "edit": "drop `using (ask; out)`"
+    },
+    {
+     "line": 49,
+     "edit": "drop `using (Approximation; ℚ-errors)`"
+    },
+    {
+     "line": 50,
+     "edit": "drop `using (Evaluation)`"
+    },
+    {
+     "line": 51,
+     "edit": "drop `using (runᴹ-resp-≈ᴹ)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 33,
+     "edit": "drop `using (_⊎_; inj₁; inj₂)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 57,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)"
+    }
+   ],
+   "checks": 11,
+   "seconds": 113.4
+  },
+  "src/CategoricalCrypto/UC/Machine/Bridge.agda": {
+   "candidates": 14,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Machine/Dictionary.agda": {
+   "candidates": 11,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 31,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)"
+    },
+    {
+     "line": 72,
+     "why": "empty using () (renaming idiom)",
+     "text": "open MU.Shorthands 𝔾.monoidal using () renaming (α⇒ to α⇒ᴳ; α⇐ to α⇐ᴳ)"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Machine/Dominated.agda": {
+   "candidates": 18,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 35,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)"
+    },
+    {
+     "line": 87,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Ext B N q cert public"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Machine/Grading.agda": {
+   "candidates": 12,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 29,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor.agda": {
+   "candidates": 15,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 27,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda": {
+   "candidates": 15,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 33,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)"
+    },
+    {
+     "line": 35,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda": {
+   "candidates": 11,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Machine/Run.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Machine/Run/Lax.agda": {
+   "candidates": 6,
+   "kept": [
+    {
+     "line": 21,
+     "edit": "drop `using (⊥)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (_×_; _,_; proj₁; proj₂)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (_⊎_)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (tt)`"
+    },
+    {
+     "line": 25,
+     "edit": "drop `using (0ℓ)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 34,
+     "edit": "drop `using (Closed; padϕ; runFrom-ϕ)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 9,
+   "seconds": 90.2
+  },
+  "src/CategoricalCrypto/UC/Machine/Slide.agda": {
+   "candidates": 21,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 40,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Machine/Slide/Relay.agda": {
+   "candidates": 8,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 38,
+     "why": "empty using () (renaming idiom)",
+     "text": "open MU.Shorthands 𝔾.monoidal using () renaming (α⇐ to α⇐ᴳ)"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Machine/Wire.agda": {
+   "candidates": 11,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Model.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Model/Audit.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 22,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open A public\n  using (_≤UC[_]_; sim; emulate; AuditEvent; AuditBound;\n         pinned; pi"
+    },
+    {
+     "line": 27,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open AC public\n  using (AuditWitness; audit⇒witness; witness⇒audit; audit⇔witness; audit-f"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Model/Dominated.agda": {
+   "candidates": 30,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Model/Enrichment.agda": {
+   "candidates": 16,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Model/EventBounds.agda": {
+   "candidates": 19,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Model/Family.agda": {
+   "candidates": 6,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 31,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Family\n  𝔾ᵒ qevaluationᵒ gradingᵒ ℕ (λ n → n) (λ N → N , "
+    },
+    {
+     "line": 34,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Family.Vanishing\n  𝔾ᵒ qevaluationᵒ gradingᵒ ℕ (λ n → n) ("
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Model/Family/Contextual.agda": {
+   "candidates": 6,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 27,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Quantitative.Family\n  𝔾ᵒ qevaluationᵒ gradingᵒ\n  (ApproxS"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Model/Family/Emulation.agda": {
+   "candidates": 18,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Model/Family/Ingest.agda": {
+   "candidates": 18,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Model/Family/Negligible.agda": {
+   "candidates": 6,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 22,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Family.Negligible\n  𝔾ᵒ qevaluationᵒ gradingᵒ ℕ (λ n → n) "
+    },
+    {
+     "line": 25,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Family.Negligible.Setup\n  𝔾ᵒ qevaluationᵒ gradingᵒ ℕ (λ n"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Model/Graded.agda": {
+   "candidates": 8,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Model/Observation.agda": {
+   "candidates": 15,
+   "kept": [
+    {
+     "line": 25,
+     "edit": "drop `using (MonoidalCategory)`"
+    },
+    {
+     "line": 27,
+     "edit": "drop `using (Bool)`"
+    },
+    {
+     "line": 28,
+     "edit": "drop `using (<⇒≤)`"
+    },
+    {
+     "line": 29,
+     "edit": "drop `using (tt)`"
+    },
+    {
+     "line": 30,
+     "edit": "drop `using (0ℓ)`"
+    },
+    {
+     "line": 32,
+     "edit": "drop `using (Dₚ; _≈ₚ_)`"
+    },
+    {
+     "line": 33,
+     "edit": "drop `using (≈ₚ⇒≈ₚ[0]; ≈ₚ[]-mono; ≈ₚ[]-resp)`"
+    },
+    {
+     "line": 35,
+     "edit": "drop `using (ℚ-ordered)`"
+    },
+    {
+     "line": 37,
+     "edit": "drop `using (QEvaluation; qual₊)`"
+    },
+    {
+     "line": 38,
+     "edit": "drop `using (unitᴵ)`"
+    },
+    {
+     "line": 39,
+     "edit": "drop `using (ask; out)`"
+    },
+    {
+     "line": 40,
+     "edit": "drop `using (Approximation)`"
+    },
+    {
+     "line": 41,
+     "edit": "drop `using (Evaluation)`"
+    },
+    {
+     "line": 42,
+     "edit": "drop `using (Approximationᴹ; Ωᴵ; spaceᴹ; ⟦_⟧ᴼ)`"
+    },
+    {
+     "line": 43,
+     "edit": "drop `using (runᴹ-resp-≈ᴹ)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 30.5
+  },
+  "src/CategoricalCrypto/UC/Model/Quantitative.agda": {
+   "candidates": 9,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 30,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import CategoricalCrypto.UC.Quantitative.Observed\n  𝔾ᵒ ℚ-ordered qevaluationᵒ\n  (Appr"
+    },
+    {
+     "line": 35,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Absorbing (λ h → h) public"
+    },
+    {
+     "line": 36,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Reflecting (λ h → h) public"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Model/Seal.agda": {
+   "candidates": 7,
+   "kept": [
+    {
+     "line": 36,
+     "edit": "drop `using (Category; _[_≈_])`"
+    },
+    {
+     "line": 37,
+     "edit": "drop `using (MonoidalCategory)`"
+    },
+    {
+     "line": 39,
+     "edit": "drop `using (0ℓ; suc)`"
+    },
+    {
+     "line": 40,
+     "edit": "drop `using (_≡_; refl)`"
+    },
+    {
+     "line": 43,
+     "edit": "drop `using (𝒢ₚ; 𝒢ₚᴹ)`"
+    },
+    {
+     "line": 44,
+     "edit": "drop `using (⟦_⟧ᴵ)`"
+    },
+    {
+     "line": 45,
+     "edit": "drop `using (Proc; retᴵ)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 30.7
+  },
+  "src/CategoricalCrypto/UC/Model/Setup.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 24,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Evaluation evaluationᵒ public"
+    },
+    {
+     "line": 25,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Observable observable public using (Test; _≋_; ≋-isEquivalence; ℰ₀)\n  renaming (≈⇒≋ t"
+    },
+    {
+     "line": 27,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Std2.StdUC 𝔾ᵒ ℰᵒ public"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Quantitative/EventLift.agda": {
+   "candidates": 29,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda": {
+   "candidates": 26,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 37,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/QueryBound.agda": {
+   "candidates": 18,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 191,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Certificate public using (QBᵢ; qbᵢ-mono; traceᵍ; behᵍ)"
+    },
+    {
+     "line": 425,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open OneCall public using (qb-oneCall)"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Compose.agda": {
+   "candidates": 7,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Compose/Laws.agda": {
+   "candidates": 10,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda": {
+   "candidates": 12,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Counting.agda": {
+   "candidates": 7,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Exact.agda": {
+   "candidates": 11,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 145,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Ledger public"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Object.agda": {
+   "candidates": 8,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Robust/Model.agda": {
+   "candidates": 5,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 28,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open RobO 𝔾ᵒ evaluationᵒ public\n  using ( module Gen; SaturatedProperty; holds; saturated;"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Seam.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 34,
+     "edit": "drop `using (⊥)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 37,
+     "edit": "drop `using (⊤)`"
+    },
+    {
+     "line": 38,
+     "edit": "drop `using (tt)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 7,
+   "seconds": 71.6
+  },
+  "src/CategoricalCrypto/UC/Seam/Adequacy.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 24,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Seam/Adequacy/Wiring.agda": {
+   "candidates": 6,
+   "kept": [
+    {
+     "line": 19,
+     "edit": "drop `using (Bool)`"
+    },
+    {
+     "line": 20,
+     "edit": "drop `using (⊥; ⊥-elim)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (_×_; _,_; proj₁; proj₂)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (_⊎_; inj₁; inj₂)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (⊤; tt)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (0ℓ)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 503.4
+  },
+  "src/CategoricalCrypto/UC/Seam/Audit/Context.agda": {
+   "candidates": 27,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 52,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import CategoricalCrypto.UC.QueryBound using () renaming (QB to QBᴹ)"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Seam/Budget.agda": {
+   "candidates": 14,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 27,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Seam/EventTransfer.agda": {
+   "candidates": 18,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 36,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Seam/Extract.agda": {
+   "candidates": 14,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 47,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open QBᵢ cert public"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Seam/Grounded.agda": {
+   "candidates": 15,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Seam/Grounding.agda": {
+   "candidates": 19,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 37,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Seam/Plug.agda": {
+   "candidates": 11,
+   "kept": [
+    {
+     "line": 18,
+     "edit": "drop `using (Category)`"
+    },
+    {
+     "line": 20,
+     "edit": "drop `using (Bool)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (⊥; ⊥-elim)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (_×_; _,_; proj₁; proj₂)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (_⊎_; inj₁; inj₂)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (⊤; tt)`"
+    },
+    {
+     "line": 26,
+     "edit": "drop `using (0ℓ)`"
+    },
+    {
+     "line": 34,
+     "edit": "drop `using (runᴹFrom; resumeᴹ)`"
+    },
+    {
+     "line": 35,
+     "edit": "drop `using (ask; out)`"
+    },
+    {
+     "line": 36,
+     "edit": "drop `using (Proc; 𝒫ᴵ; Ωᴵ; ⟦_⟧ᴼ)`"
+    },
+    {
+     "line": 37,
+     "edit": "drop `using (runᴹ-resp-≈ᴹ)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 25,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)"
+    },
+    {
+     "line": 120,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Loop (⊥ ⊎ ⊤) (⊥ ⊎ Bool) X S k public"
+    },
+    {
+     "line": 172,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Tick (Neg B ⊎ Pos B) Sᴷ kᴷ public"
+    }
+   ],
+   "checks": 3,
+   "seconds": 31.7
+  },
+  "src/CategoricalCrypto/UC/Seam/Transfer.agda": {
+   "candidates": 20,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 35,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  }
+ },
+ "totalChecks": 86
+}

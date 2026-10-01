@@ -1,0 +1,433 @@
+file	lines	flags	disposition	reason
+src/ProbabilisticLogic/Dp.agda	3-23		REWRITE	header trimmed; keeps guardedness why, divergence-as-delay, junction step
+src/ProbabilisticLogic/Dp.agda	48-49		KEEP	landmark over six constructors
+src/ProbabilisticLogic/Dp.agda	75-76		KEEP	corecursive call may not sit under an application
+src/ProbabilisticLogic/Dp.agda	110-115		KEEP	cum semantics; canonical "supremum never formed" site
+src/ProbabilisticLogic/Dp.agda	127-128		KEEP	cum monotone in budget only for non-negative tests
+src/ProbabilisticLogic/Dp.agda	132-133		KEEP	groups the four node-* lemmas
+src/ProbabilisticLogic/Dp.agda	153-154	singleDefBanner	KEEP	groups four mutual families (singleDef flag = mutual miscount)
+src/ProbabilisticLogic/Dp.agda	203-209	singleDefBanner	KEEP	why Supp/uniformize: per-value budgets maxed over a support
+src/ProbabilisticLogic/Dp.agda	265-274		REWRITE	kept banner + sup<=sup paragraph; cut why-not-X paragraph (rule 22)
+src/ProbabilisticLogic/Dp.agda	276-281		REWRITE	reduced to the +0ℚ-not-definitional gotcha
+src/ProbabilisticLogic/Dp.agda	318-319		CUT	proof/usage narration
+src/ProbabilisticLogic/Dp.agda	350-351		CUT	restates code/type
+src/ProbabilisticLogic/Dp.agda	366-367		KEEP	landmark
+src/ProbabilisticLogic/Dp.agda	385-386		KEEP	botₚ >>=ₚ f is not a dirac (canonical site, rule 24)
+src/ProbabilisticLogic/Dp.agda	396-397		KEEP	landmark
+src/ProbabilisticLogic/Dp.agda	406-406		CUT	restates code/type
+src/ProbabilisticLogic/Dp.agda	451-456	singleDefBanner	REWRITE	banner + one-line sandwich role
+src/ProbabilisticLogic/Dp.agda	487-488		KEEP	landmark
+src/ProbabilisticLogic/Dp/Advantage.agda	3-24		REWRITE	kept both-verdicts why; dropped citation to doc not in branch; cut narration
+src/ProbabilisticLogic/Dp/Advantage.agda	43-43		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Advantage.agda	47-48		CUT	stale citation (UC.Approximate.Mass does not exist)
+src/ProbabilisticLogic/Dp/Advantage.agda	58-59		CUT	proof/usage narration
+src/ProbabilisticLogic/Dp/Advantage.agda	75-76		KEEP	landmark
+src/ProbabilisticLogic/Dp/Advantage.agda	113-114		KEEP	landmark
+src/ProbabilisticLogic/Dp/Advantage.agda	116-120		REWRITE	kept why not ≈ₚ[] against returnₚ false
+src/ProbabilisticLogic/Dp/Advantage.agda	127-128		CUT	inaccurate (slack is spent)
+src/ProbabilisticLogic/Dp/Advantage.agda	135-136		CUT	proof/usage narration
+src/ProbabilisticLogic/Dp/Coin.agda	3-8		REWRITE	kept: repeated entries enter only via two masses
+src/ProbabilisticLogic/Dp/Coin.agda	33-33		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Coin.agda	45-45		CUT	proof/usage narration
+src/ProbabilisticLogic/Dp/Coin.agda	58-58		KEEP	why budget is suc (suc n)
+src/ProbabilisticLogic/Dp/Coin.agda	82-83		KEEP	landmark
+src/ProbabilisticLogic/Dp/Coin.agda	86-87		CUT	proof/usage narration
+src/ProbabilisticLogic/Dp/Coin.agda	112-115		REWRITE	one-time-pad orientation only
+src/ProbabilisticLogic/Dp/Coin.agda	126-127		KEEP	landmark
+src/ProbabilisticLogic/Dp/Coin.agda	130-131		CUT	proof/usage narration
+src/ProbabilisticLogic/Dp/Coin.agda	140-143		REWRITE	kept: not true for every d (botₚ)
+src/ProbabilisticLogic/Dp/Coin.agda	155-157		REWRITE	kept Protocol.uniformVec citation only
+src/ProbabilisticLogic/Dp/Commutative.agda	3-12		REWRITE	kept cofinal-only + exact Fubini idea, lookupᴰℚ-swap analogue
+src/ProbabilisticLogic/Dp/Commutative.agda	27-27		CUT	sibling narration
+src/ProbabilisticLogic/Dp/Commutative.agda	45-46	singleDefBanner	CUT	divider over one private pair
+src/ProbabilisticLogic/Dp/Commutative.agda	62-63	singleDefBanner	KEEP	groups three linearity families
+src/ProbabilisticLogic/Dp/Commutative.agda	107-108	singleDefBanner	CUT	per-lemma divider
+src/ProbabilisticLogic/Dp/Commutative.agda	128-129		KEEP	landmark
+src/ProbabilisticLogic/Dp/Commutative.agda	170-171		CUT	proof/usage narration
+src/ProbabilisticLogic/Dp/Dominate.agda	3-13		REWRITE	kept why fixed-test domination + convexity; cut duplication
+src/ProbabilisticLogic/Dp/Dominate.agda	38-39		KEEP	landmark (convexity helpers)
+src/ProbabilisticLogic/Dp/Dominate.agda	73-74		CUT	inaccurate (test is constant 0)
+src/ProbabilisticLogic/Dp/Dominate.agda	95-96		KEEP	landmark
+src/ProbabilisticLogic/Dp/Dominate.agda	98-98		CUT	duplicates header
+src/ProbabilisticLogic/Dp/Dominate.agda	105-105		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Dominate.agda	109-114		REWRITE	banner only; prose was proof narration
+src/ProbabilisticLogic/Dp/Dominate.agda	116-117		REWRITE	reference to Dp.Iter gotcha (rule 24)
+src/ProbabilisticLogic/Dp/Elgot.agda	3-12		REWRITE	kept uniformity scope + mapₚ-fn pointwise bridge; dropped re-export narration
+src/ProbabilisticLogic/Dp/Elgot.agda	30-32		REWRITE	reference to Dp.Iter gotcha (rule 24)
+src/ProbabilisticLogic/Dp/Elgot.agda	40-41		LEFT-conditional	cut tied to F4
+src/ProbabilisticLogic/Dp/Elgot.agda	55-56		KEEP	landmark
+src/ProbabilisticLogic/Dp/Iter.agda	3-15		REWRITE	trimmed; kept budget induction, well-foundedness, explicit-subject pointer
+src/ProbabilisticLogic/Dp/Iter.agda	37-38		LEFT-conditional	cut tied to F5/F6
+src/ProbabilisticLogic/Dp/Iter.agda	56-57		KEEP	landmark
+src/ProbabilisticLogic/Dp/Iter.agda	62-63		KEEP	only self-call guarded, no own corecursion
+src/ProbabilisticLogic/Dp/Iter.agda	79-80		KEEP	landmark
+src/ProbabilisticLogic/Dp/Iter.agda	86-86		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Iter.agda	91-91		KEEP	one-step lag explains suc n
+src/ProbabilisticLogic/Dp/Iter.agda	122-124		CUT	proof/usage narration
+src/ProbabilisticLogic/Dp/Iter.agda	133-137	leftoverMarker	REWRITE	banner only; Tᵗ gloss restated clauses (leftover flag false positive)
+src/ProbabilisticLogic/Dp/Iter.agda	183-184		KEEP	landmark
+src/ProbabilisticLogic/Dp/Iter.agda	186-188		KEEP	variable re-generalization gotcha (canonical site)
+src/ProbabilisticLogic/Dp/Iter.agda	223-228		REWRITE	kept ∇ = [id , i₂] identification
+src/ProbabilisticLogic/Dp/Iter.agda	238-242		LEFT-conditional	cut tied to F5
+src/ProbabilisticLogic/Dp/Iter/Codiagonal.agda	3-22		KEEP	lexicographic (n , j) recursion the termination checker accepts
+src/ProbabilisticLogic/Dp/Iter/Codiagonal.agda	93-93		CUT	duplicates header
+src/ProbabilisticLogic/Dp/Iter/Out.agda	3-16	leftoverMarker	REWRITE	kept effectful-vs-pure scope and independent-budget trick
+src/ProbabilisticLogic/Dp/Iter/Out.agda	35-36		KEEP	landmark
+src/ProbabilisticLogic/Dp/Iter/Out.agda	48-49		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Iter/Out.agda	67-68		KEEP	landmark
+src/ProbabilisticLogic/Dp/Iter/Transfer.agda	3-21		REWRITE	kept no-lockstep why; cut per-step bullets and consumer pointer
+src/ProbabilisticLogic/Dp/Iter/Transfer.agda	40-41		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Mass.agda	3-18		REWRITE	kept mass def, prefix scaling, ASTotal-not-Σ why
+src/ProbabilisticLogic/Dp/Mass.agda	45-46		KEEP	landmark
+src/ProbabilisticLogic/Dp/Mass.agda	51-51		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Mass.agda	77-78		KEEP	landmark
+src/ProbabilisticLogic/Dp/Mass.agda	131-131		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Mass.agda	140-141		KEEP	landmark
+src/ProbabilisticLogic/Dp/Mass.agda	153-153		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Mass.agda	159-160		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Mass.agda	170-175		REWRITE	banner + heterogeneous-types why
+src/ProbabilisticLogic/Dp/Mass.agda	188-188		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Mass.agda	196-199		REWRITE	kept budget-uniform hypothesis why
+src/ProbabilisticLogic/Dp/Mass.agda	204-205		LEFT-conditional	cut tied to F5
+src/ProbabilisticLogic/Dp/Mass.agda	207-209		CUT	proof/usage narration
+src/ProbabilisticLogic/Dp/Mass.agda	213-213		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Mass.agda	223-224		KEEP	landmark
+src/ProbabilisticLogic/Dp/Mass.agda	226-230		REWRITE	kept attainment-as-anchor why
+src/ProbabilisticLogic/Dp/Mass.agda	248-249		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Mass.agda	257-258		CUT	proof/usage narration
+src/ProbabilisticLogic/Dp/Mass.agda	291-292		CUT	proof/usage narration
+src/ProbabilisticLogic/Dp/Mass.agda	305-306		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Mass.agda	317-317		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Mass.agda	326-327		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Mass.agda	340-341		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Mass.agda	346-347		CUT	proof/usage narration
+src/ProbabilisticLogic/Dp/Mass.agda	359-365		REWRITE	banner only; prose paraphrased statement
+src/ProbabilisticLogic/Dp/Mass.agda	398-398		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Mass.agda	406-407		CUT	proof/usage narration
+src/ProbabilisticLogic/Dp/Reasoning.agda	3-8		KEEP	explicit vs implicit subjects: meta stranding / elaboration speed
+src/ProbabilisticLogic/Dp/Reasoning.agda	33-33		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Reasoning.agda	37-37		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Reasoning.agda	41-41		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Reasoning.agda	55-56		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Settle.agda	3-16		REWRITE	kept Halts+score, uniform-in-test why, Null disjunct
+src/ProbabilisticLogic/Dp/Settle.agda	39-40		KEEP	why everything is at Set
+src/ProbabilisticLogic/Dp/Settle.agda	49-50		KEEP	landmark
+src/ProbabilisticLogic/Dp/Settle.agda	52-52		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Settle.agda	56-56		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Settle.agda	88-88		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Settle.agda	103-103		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Settle.agda	110-111		CUT	one-lemma banner
+src/ProbabilisticLogic/Dp/Settle.agda	120-121		KEEP	landmark
+src/ProbabilisticLogic/Dp/Settle.agda	123-126		KEEP	record not Σ: unification blocks on a weight
+src/ProbabilisticLogic/Dp/Settle.agda	147-151		REWRITE	kept reading-transports-but-Settles-does-not + docs/fcom-uc.md §1
+src/ProbabilisticLogic/Dp/Settle.agda	173-175		KEEP	λ Q → eq (maybeℚ Q) recipe; explicit values
+src/ProbabilisticLogic/Dp/Settle.agda	180-181		KEEP	landmark
+src/ProbabilisticLogic/Dp/Settle.agda	191-192		CUT	duplicates Dp.agda 385-386 (rule 24)
+src/ProbabilisticLogic/Dp/Settle.agda	250-251		KEEP	landmark
+src/ProbabilisticLogic/Dp/Settle.agda	253-254		CUT	proof/usage narration
+src/ProbabilisticLogic/Dp/Settle.agda	262-264		REWRITE	kept why all-values witness unavailable
+src/ProbabilisticLogic/Dp/Settle.agda	276-280		REWRITE	banner only
+src/ProbabilisticLogic/Dp/Settle.agda	313-314		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Settle.agda	322-324		CUT	proof/usage narration
+src/ProbabilisticLogic/Dp/Settle/Iter.agda	3-16		REWRITE	kept round-trip-bound idea and loopK reading
+src/ProbabilisticLogic/Dp/Settle/Iter.agda	40-41		KEEP	landmark
+src/ProbabilisticLogic/Dp/Settle/Iter.agda	45-45		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Settle/Iter.agda	52-53		KEEP	why suc j (returnₚ exit unseen at budget 0)
+src/ProbabilisticLogic/Dp/Settle/Iter.agda	110-111		CUT	proof/usage narration
+src/ProbabilisticLogic/Dp/Settle/Iter.agda	142-143		KEEP	landmark
+src/ProbabilisticLogic/Dp/Settle/Iter.agda	148-150		CUT	duplicates header
+src/ProbabilisticLogic/Dp/Settle/Iter.agda	162-163		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Settle/Iter.agda	168-170		CUT	proof/usage narration
+src/ProbabilisticLogic/Dp/Stable.agda	3-10		REWRITE	kept n ≤ m rather than n + m why
+src/ProbabilisticLogic/Dp/Stable.agda	41-42		KEEP	landmark
+src/ProbabilisticLogic/Dp/Stable.agda	65-66		KEEP	budget matches coinₚ-cum: junction eats returnₚ step
+src/ProbabilisticLogic/Dp/Support.agda	3-15		REWRITE	kept uniformizeˢ why and non-≈ₚ-stability of Supp
+src/ProbabilisticLogic/Dp/Support.agda	33-33		CUT	restates code/type
+src/ProbabilisticLogic/Dp/Support.agda	42-44		REWRITE	kept budget-quantified-not-inherited why
+src/ProbabilisticLogic/Distribution/Bernoulli.agda	29-31		CUT	narrates weighted-K use; P-bernoulli-true states semantics
+src/ProbabilisticLogic/Distribution/Bernoulli.agda	106-107		KEEP	banner over 6 expected-value defs
+src/ProbabilisticLogic/Distribution/Bernoulli.agda	109-109		CUT	restates types
+src/ProbabilisticLogic/Distribution/Binomial.agda	32-33		KEEP	banner
+src/ProbabilisticLogic/Distribution/Binomial.agda	35-35		CUT	restates def
+src/ProbabilisticLogic/Distribution/Binomial.agda	40-42		CUT	restates def
+src/ProbabilisticLogic/Distribution/Binomial.agda	47-48		KEEP	banner
+src/ProbabilisticLogic/Distribution/Binomial.agda	50-50		CUT	restates
+src/ProbabilisticLogic/Distribution/Binomial.agda	56-56		CUT	restates
+src/ProbabilisticLogic/Distribution/Binomial.agda	60-60		CUT	restates
+src/ProbabilisticLogic/Distribution/Binomial.agda	64-64		CUT	restates
+src/ProbabilisticLogic/Distribution/Binomial.agda	68-69		CUT	unproved coincidence claims
+src/ProbabilisticLogic/Distribution/Binomial.agda	74-74		CUT	unproved claim
+src/ProbabilisticLogic/Distribution/Binomial.agda	79-80		KEEP	banner over pow family
+src/ProbabilisticLogic/Distribution/Binomial.agda	95-97		CUT	narrates proof
+src/ProbabilisticLogic/Distribution/Binomial.agda	106-107		KEEP	banner
+src/ProbabilisticLogic/Distribution/Binomial.agda	109-110		CUT	restates type
+src/ProbabilisticLogic/Distribution/Binomial.agda	122-123		CUT	restates type
+src/ProbabilisticLogic/Distribution/Binomial.agda	135-136		KEEP	banner
+src/ProbabilisticLogic/Distribution/Binomial.agda	138-138		CUT	restates
+src/ProbabilisticLogic/Distribution/Binomial.agda	148-148		CUT	restates
+src/ProbabilisticLogic/Distribution/Binomial.agda	158-159		KEEP	banner
+src/ProbabilisticLogic/Distribution/Binomial.agda	171-172		CUT	narrates
+src/ProbabilisticLogic/Distribution/Binomial.agda	193-198		REWRITE	banner title only; body narrates proof
+src/ProbabilisticLogic/Distribution/Binomial.agda	216-217		KEEP	banner
+src/ProbabilisticLogic/Distribution/Binomial.agda	219-221		REWRITE	keep why of renaming off Data.Product._×_
+src/ProbabilisticLogic/Distribution/Binomial.agda	229-229		CUT	restates
+src/ProbabilisticLogic/Distribution/Binomial.agda	234-236		REWRITE	keep gotcha: .support does not reduce at symbolic k
+src/ProbabilisticLogic/Distribution/Binomial.agda	254-254		CUT	per-step gloss
+src/ProbabilisticLogic/Distribution/Binomial.agda	268-268		CUT	per-step gloss
+src/ProbabilisticLogic/Distribution/Binomial.agda	276-277	leftoverMarker	CUT	restates type
+src/ProbabilisticLogic/Distribution/Markov.agda	14-15		KEEP	banner over 3 defs
+src/ProbabilisticLogic/Distribution/Markov.agda	17-19		KEEP	multiplicity of next states = weight
+src/ProbabilisticLogic/Distribution/Markov.agda	29-30		KEEP	banner over 2 defs
+src/ProbabilisticLogic/Distribution/Possibility.agda	3-7		KEEP	Bool-test equality quotients order/multiplicity so List is commutative
+src/ProbabilisticLogic/Distribution/Possibility.agda	9-9		KEEP	why hiding (any): deprecated alias
+src/ProbabilisticLogic/Distribution/Possibility.agda	42-43		KEEP	banner: any as homomorphism into _∨_
+src/ProbabilisticLogic/Distribution/Possibility.agda	75-75		KEEP	any-pair is the reason ≈𝒫 is commutative
+src/ProbabilisticLogic/Distribution/Possibility.agda	84-86		KEEP	bind is flip concatMap (Monad-List instance)
+src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda	3-5		KEEP	at ≡-setoid it is stdlib _∼[ set ]_
+src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda	7-10		REWRITE	one line: finer than _≈𝒫_, agree only at DecEq
+src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda	42-44		KEEP	banner
+src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda	46-47		CUT	duplicates header; _ = refl shows it
+src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda	92-93		KEEP	no congruence of f needed: swap↔ is the content
+src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda	114-116		KEEP	banner
+src/ProbabilisticLogic/Distribution/RationalDist/Advantage.agda	3-11		REWRITE	pointer to Dp.Advantage header; dropped nonexistent docs citation
+src/ProbabilisticLogic/Distribution/RationalDist/Advantage.agda	34-36		CUT	stale: Observe uses adv⊥-sym only
+src/ProbabilisticLogic/Distribution/RationalDist/Advantage.agda	56-57		CUT	banner over one public def
+src/ProbabilisticLogic/Distribution/RationalDist/Advantage.agda	59-62		REWRITE	moved above advᵇ⊥-just: one-sided bound at two-sided advᵇ⊥
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	3-4		CUT	restates contents
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	26-26		CUT	restates code
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	33-34		KEEP	banner
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	57-58		CUT	consumer narration
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	65-66		CUT	restates type
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	75-76		REWRITE	banner title only
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	85-85		CUT	code shows nothing case
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	121-123		CUT	rule-24 duplicate of Dp.Advantage header
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	127-127		CUT	restates code (ledger :834)
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	137-142		REWRITE	banner title only; body duplicates RationalDist:459
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	152-153		CUT	restates
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	167-167		CUT	restates
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	180-180		CUT	restates type
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	202-207		REWRITE	banner title only; count stale
+src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda	209-210		CUT	Mb nothing = ⊤ shows it
+src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda	3-12		REWRITE	drop design narration/export listing
+src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda	33-34		LEFT-conditional	tied to F1 (Lin removal); left as is
+src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda	46-49		REWRITE	banner title only
+src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda	67-67		CUT	restates type
+src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda	72-73		KEEP	banner
+src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda	81-81		CUT	unsubstantiated
+src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda	90-91		KEEP	banner
+src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda	128-128		KEEP	pointer to Setoid pinning gotcha
+src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda	137-137		CUT	restates code
+src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda	145-145		KEEP	Maybe-layer commutativity rests on affineness
+src/ProbabilisticLogic/Distribution/RationalDist/Setoid.agda	19-21		KEEP	inferred intermediate leaves mass-1 meta
+src/ProbabilisticLogic/Distribution/RationalDist/Setoid.agda	27-30		KEEP	unpinned refl causes heap blow-up
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	3-14		REWRITE	drop section-structure narration 12-14
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	16-16		KEEP	why hiding (any)
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	46-47		KEEP	Lin instantiation definitionally = lookupᴰℚ
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	54-55		KEEP	banner
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	67-68		KEEP	with does not abstract _<?_
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	97-98		KEEP	banner
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	143-144		REWRITE	drop "Everything below is a corollary"
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	163-164		KEEP	banner
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	207-209		KEEP	banner: divergent computation has no outcome
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	249-250		KEEP	banner
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	267-268		KEEP	enc k m = k xor m explains entries
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	282-283		KEEP	meaning: possibilistically perfectly secure
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	290-291		KEEP	meaning: supp does not reflect security
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	296-297		KEEP	banner
+src/ProbabilisticLogic/Distribution/RationalDist/Support.agda	310-312		KEEP	vanishing-distance kernel has no possibilistic shadow
+src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda	3-12		REWRITE	keep Γ formula; drop cross-module narration
+src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda	35-35		CUT	recursion shows it
+src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda	46-46		KEEP	t is the collision pool
+src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda	51-52	leftoverMarker	CUT	gloss
+src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda	63-63		CUT	gloss
+src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda	68-68		CUT	gloss
+src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda	74-74		CUT	proof idea of private lemma
+src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda	86-87		CUT	restates type
+src/ProbabilisticLogic/Distribution/Uniform/Collision.agda	3-13		REWRITE	drop sibling-module narration 11-13
+src/ProbabilisticLogic/Distribution/Uniform/Collision.agda	66-66		CUT	duplicates header
+src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda	3-12		REWRITE	keep Φ formula + no-invariant why
+src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda	70-71		CUT	duplicates Collision header
+src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda	77-78		KEEP	banner
+src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda	100-100		CUT	gloss
+src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda	104-106		CUT	header covers it
+src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda	115-117		CUT	proof-case narration
+src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda	143-144		CUT	restates type
+src/ProbabilisticLogic/Abstract.agda	52-57		KEEP	why the nonnegativity guards matter: unguarded *-mono-≤ at fromℚ(-1) collapses every model
+src/ProbabilisticLogic/Abstract.agda	79-80		REWRITE	cut restated what; kept role as discharge of *-mono-≤ guards
+src/ProbabilisticLogic/Abstract.agda	93-93	insideDefinition	KEEP	why events are arbitrary predicates: discrete setting needs no σ-algebra
+src/ProbabilisticLogic/Abstract.agda	121-122		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Abstract.agda	192-194	singleDefBanner	CUT	per-lemma/section divider or what-narration (rules 22,25)
+src/ProbabilisticLogic/Abstract.agda	259-260	singleDefBanner	CUT	per-lemma/section divider or what-narration (rules 22,25)
+src/ProbabilisticLogic/Abstract.agda	262-262		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Abstract.agda	284-286	singleDefBanner	CUT	per-lemma/section divider or what-narration (rules 22,25)
+src/ProbabilisticLogic/Abstract.agda	311-319	singleDefBanner	CUT	design narration / fossil (former >>=-empirical axiom)
+src/ProbabilisticLogic/Abstract.agda	327-329		REWRITE	kept only the non-obvious contrast with empirical-eq (all events, not only decidable)
+src/ProbabilisticLogic/Abstract.agda	334-338		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Abstract.agda	344-345		CUT	fossil: "corrected form of the former" axiom
+src/ProbabilisticLogic/Expectation.agda	50-53		CUT	per-lemma/section divider or what-narration (rules 22,25)
+src/ProbabilisticLogic/Expectation.agda	64-65		CUT	per-lemma/section divider or what-narration (rules 22,25)
+src/ProbabilisticLogic/Expectation.agda	67-67		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	75-75		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	83-83		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	91-91		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	101-101		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	109-111		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	127-129		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	140-141		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	150-154		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	175-176		CUT	per-lemma/section divider or what-narration (rules 22,25)
+src/ProbabilisticLogic/Expectation.agda	178-178		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	188-188		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	198-198		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	207-207		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	220-221		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	229-230		KEEP	top-level landmark banner grouping the Fubini weight-sum lemmas (rule 25)
+src/ProbabilisticLogic/Expectation.agda	232-232		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	240-241		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	251-252		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	267-268		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	290-291		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	311-313		CUT	per-lemma/section divider or what-narration (rules 22,25)
+src/ProbabilisticLogic/Expectation.agda	362-363		CUT	per-lemma/section divider or what-narration (rules 22,25)
+src/ProbabilisticLogic/Expectation.agda	369-372		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	381-382		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	397-400		CUT	per-lemma/section divider or what-narration (rules 22,25)
+src/ProbabilisticLogic/Expectation.agda	479-480		CUT	per-lemma/section divider or what-narration (rules 22,25)
+src/ProbabilisticLogic/Expectation.agda	497-497		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Expectation.agda	505-509		CUT	development leftover ("further work") + restates type
+src/ProbabilisticLogic/Models/Trivial.agda	3-6		REWRITE	old claim overstated; now says model is degenerate (0#≈1#) so it does not witness non-degeneracy
+src/ProbabilisticLogic/Models/Trivial.agda	53-53		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Prelude.agda	3-7		REWRITE	cut export restatement; kept why Partial is re-exported unrestricted (Dist⊥ instances)
+src/ProbabilisticLogic/Examples/BiasedCoin.agda	21-21		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Examples/BiasedCoin.agda	25-26		CUT	design-alternative narration; "9 weighted outcomes" inaccurate
+src/ProbabilisticLogic/Examples/BiasedCoin.agda	30-31		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Examples/BiasedCoin.agda	36-37		CUT	per-lemma/section divider or what-narration (rules 22,25)
+src/ProbabilisticLogic/Examples/BiasedCoin.agda	45-46		CUT	per-lemma/section divider or what-narration (rules 22,25)
+src/ProbabilisticLogic/Examples/BiasedCoin.agda	55-56		CUT	per-lemma/section divider or what-narration (rules 22,25)
+src/ProbabilisticLogic/Examples/Coins.agda	23-23		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Examples/Coins.agda	29-30		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Examples/Coins.agda	39-39		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Examples/Coins.agda	47-47		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Examples/Coins.agda	57-57		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Examples/MultipleCoins.agda	20-24		CUT	per-lemma/section divider or what-narration (rules 22,25)
+src/ProbabilisticLogic/Examples/MultipleCoins.agda	32-32		CUT	narrates what the code/type/name already shows
+src/ProbabilisticLogic/Examples/MultipleCoins.agda	39-41		CUT	per-lemma/section divider or what-narration (rules 22,25)
+src/ProbabilisticLogic/Examples/Weather.agda	19-24		CUT	per-lemma/section divider or what-narration (rules 22,25)
+src/ProbabilisticLogic/Examples/Weather.agda	37-38		CUT	per-lemma/section divider or what-narration (rules 22,25)
+src/Categories/GConstructionEmbedding.agda	3-19		REWRITE	dropped statement restatement, stale "four" count and dangling docs/ro-model-phase1.md; kept why absorptions collapse the loop
+src/Categories/GConstructionEmbedding.agda	55-56		CUT	restates type / ⌜⌝-id
+src/Categories/GConstructionEmbedding.agda	104-104		CUT	restates ⌜⌝-∘ type
+src/Categories/GConstructionEmbedding.agda	125-126		CUT	narrates what ⌜⌝-≅ does
+src/Categories/GConstructionEmbedding.agda	139-141		CUT	restates the iso definitions
+src/Categories/GConstructionEmbeddingCoherence.agda	3-19		REWRITE	kept bracketing invariant + one-signature-per-law why; cut formula restatement and narration
+src/Categories/GConstructionEmbeddingCoherence.agda	51-52		REWRITE	landmark for module L; title shortened to "absorbˡ (embedding is the outer factor)"
+src/Categories/GConstructionEmbeddingCoherence.agda	113-114		REWRITE	landmark for module R; title shortened to "absorbʳ (embedding is the inner factor)"
+src/Categories/GConstructionHomCoherence.agda	3-28	headerOverTier	REWRITE	over-tier; kept measured 900 s cost and split rationale, proof bookkeeping delegated to homomorphismᴳ (rule 24)
+src/Categories/GConstructionHomCoherence.agda	90-90		REWRITE	merged with 99-100: verbatim-twin invariant (HOM read off by conversion; ob-nat needs midᵗ = swapInner.from)
+src/Categories/GConstructionHomCoherence.agda	99-100		CUT	merged into line 90
+src/Categories/GConstructionHomCoherence.agda	104-105		CUT	glosses names the definitions show
+src/Categories/GConstructionHomCoherence.agda	110-110		CUT	narration; header covers
+src/Categories/GConstructionHomCoherence.agda	119-119		CUT	narration
+src/Categories/GConstructionHomCoherence.agda	136-138		REWRITE	kept spelling invariant: matches homomorphismᴳ residue step
+src/Categories/GConstructionLoop.agda	3-10		REWRITE	condensed to orientation: one transposition/Fubini, residue LC (master copy, rule 24)
+src/Categories/GConstructionLoop.agda	42-44		CUT	restates trace-conj type and narrates use
+src/Categories/GConstructionLoopCoherence.agda	3-16		REWRITE	kept bracketing invariant; strategy delegated to GConstructionLoop (rule 24)
+src/Categories/GConstructionLoopCoherence.agda	45-45		CUT	restates L
+src/Categories/GConstructionLoopCoherence.agda	66-66		CUT	types show wire order
+src/Categories/GConstructionLoopCoherence.agda	76-76		CUT	types show wire order
+src/Categories/GConstructionMonoidal.agda	3-16		REWRITE	condensed orientation; residue pointer updated
+src/Categories/GConstructionMonoidal.agda	83-85		CUT	narrates proof steps of ⌜⌝-⊗
+src/Categories/GConstructionMonoidal.agda	108-108		CUT	restates type
+src/Categories/GConstructionMonoidal.agda	124-126		REWRITE	master explanation of homomorphismᴳ (loops fuse / re-bracket); dropped "gate" jargon
+src/Categories/GConstructionMonoidal.agda	186-187		CUT	restates ⊗-expand type
+src/Categories/GConstructionMonoidal.agda	272-276		KEEP	measured >8 GB conversion hazard dictating single-application bundle entry point
+src/Categories/GConstructionTensorCoherence.agda	3-24		REWRITE	cut mid type display and dev-leftover "third residue NOT here"; one-signature reason referenced to EmbeddingCoherence (rule 24)
+src/Categories/GConstructionTensorCoherence.agda	47-49		REWRITE	banner title shortened to "Unitor naturality squares"
+src/Categories/GConstructionTensorCoherence.agda	115-117		REWRITE	banner title shortened to "Associator naturality square"
+src/Categories/GConstructionTrace.agda	3-16		REWRITE	cut rule-22 history (were where-local ...) and duplicate "trace is monoidal"
+src/Categories/GConstructionTrace.agda	51-53		CUT	composeᴳ shows the roles of α/γ
+src/Categories/GConstructionTrace.agda	63-68		KEEP	cites upstream Interchange.Braided.swapInner.from and why literal spelling kept (conversion; measured >912 s alternative)
+src/Categories/GConstructionTrace.agda	86-87		LEFT-conditional	tied to finding F3 (mid-σ one-liner); cut only if F3 lands
+src/Categories/GConstructionTrace.agda	102-103		CUT	restates trace-βyank type
+src/Categories/GConstructionTrace.agda	107-108		CUT	restates trace-gyank type
+src/Categories/GConstructionTrace.agda	113-113		KEEP	citation: mirrors upstream Traced.superposing
+src/Categories/GConstructionTrace.agda	129-129	insideDefinition	CUT	per-step narration inside right-superposing where
+src/Categories/GConstructionTrace.agda	135-138		CUT	proof narration / design aside
+src/Categories/GConstructionTrace.agda	160-163		REWRITE	master copy (rule 24) of TM role; condensed
+src/Categories/GConstructionTraceCoherence.agda	3-13		REWRITE	cut TM formula restatement; points to ⊗-trace-mid
+src/Categories/Category/Cocartesian/Ext.agda	3-6		REWRITE	consumer narration dropped; kept why: dualized +-monoidal makes associator nested [_,_]
+src/Categories/Category/Cocartesian/Ext.agda	57-59		CUT	narrates consumer
+src/Categories/Category/Kleisli/Discrete.agda	3-13		REWRITE	sibling-module narration condensed; kept >>= computes on closed inputs + measured Kleisli-Symmetric heap-exhaust
+src/Categories/Category/Kleisli/Discrete.agda	37-39		KEEP	top-level landmark over 3 defs
+src/Categories/Category/Kleisli/Discrete.agda	71-73		KEEP	top-level landmark over pureᵏ family
+src/Categories/Category/Kleisli/Discrete.agda	75-75		CUT	restates code
+src/Categories/Category/Kleisli/Discrete.agda	85-87		KEEP	top-level landmark over tensor family
+src/Categories/Category/Kleisli/Discrete.agda	91-93		KEEP	gotcha: projections let _⊗ᵏ_ reduce on non-literal pairs
+src/Categories/Category/Kleisli/Discrete.agda	97-97		CUT	narration
+src/Categories/Category/Kleisli/Discrete.agda	111-112		CUT	narrates proof step visible in code
+src/Categories/Category/Kleisli/Discrete.agda	138-140		KEEP	top-level landmark over structural morphisms
+src/Categories/Category/Kleisli/Discrete.agda	187-189		KEEP	top-level landmark over naturality lemmas
+src/Categories/Category/Kleisli/Discrete.agda	228-228		CUT	narrates proof step
+src/Categories/Category/Kleisli/Discrete.agda	239-241		KEEP	top-level landmark over coherence lemmas
+src/Categories/Category/Kleisli/Discrete.agda	260-262		KEEP	top-level landmark over bundles
+src/Categories/Category/Kleisli/Discrete/Distributive.agda	3-9		CUT	proof narration; claim "only left unit law" false (⊗ᵏ-expand uses >>=-assoc-≈)
+src/Categories/Category/Kleisli/Discrete/Distributive.agda	31-31		CUT	restates code
+src/Categories/Category/Kleisli/Discrete/Pure.agda	3-11		REWRITE	record-vs-Σ narration and duplicated iteration why removed (points to Monoidal.Pure); kept fn existential not definitional
+src/Categories/Category/Kleisli/Discrete/Pure.agda	57-59		CUT	consumer narration
+src/Categories/Category/Monoidal/Distributive.agda	3-12		REWRITE	RigCategory why-not-X cut; kept upstream citation + X⊗⊥ uniqueness derived not a field (initial->uniqueness for accuracy)
+src/Categories/Category/Monoidal/Distributive/Properties.agda	3-5		CUT	role narration
+src/Categories/Category/Monoidal/Distributive/Properties.agda	36-37		CUT	proof narration of private helper
+src/Categories/Category/Monoidal/Distributive/Properties.agda	55-56		CUT	rule 24: explanation lives in Distributive header
+src/Categories/Category/Monoidal/Pure.agda	3-16		REWRITE	inaccurate "structural isos" -> forward maps only; consumer narration cut; kept iteration-uniformity why + level why
+src/Categories/Category/Monoidal/Traced/Ext.agda	3-7		REWRITE	kept JSV citation + upstream omission; added dinaturality not included (overclaim fix)
+src/Categories/Category/Monoidal/Traced/Ext.agda	25-25		CUT	restates type of β
+src/Categories/Category/Monoidal/Utilities/Ext.agda	3-18		REWRITE	type-restating para cut; kept why J/ℓ⇐ are parameters (measured 150 s, docs cite) and why Hole asks for those two facts
+src/Categories/Category/Monoidal/Utilities/Ext.agda	34-37		REWRITE	proof narration cut; kept Kelly–Laplaza citation
+src/Categories/Monad/Construction/Kleisli/Ext.agda	3-8		LEFT-conditional	tied to F2 (dead equivalence) not applied; not-applied variant = current text
+src/Categories/Monad/Construction/Kleisli/Ext.agda	48-49		KEEP	gotcha: Monad⇒-id takes source triple second
+src/Categories/Monad/Construction/Kleisli/Ext.agda	53-54		KEEP	why both triples explicit: defined type cannot be read back
+src/Categories/Monad/Construction/Kleisli/Ext.agda	118-118		CUT	restates code
+src/Categories/Monad/Discrete.agda	3-12		REWRITE	false "builds one" fixed; kept why elementwise record not KleisliTriple (no unit congruence at non-discrete setoid)
+src/Categories/Monad/Discrete.agda	22-23		CUT	narration
+src/Categories/Monad/Discrete.agda	73-73		KEEP	explains -y (Yoneda) suffix
+src/Categories/Monad/Discrete.agda	121-124		KEEP	why comm only at discrete objects + upstream Commutative needs strength
+src/Categories/Monad/Graded/Trivial.agda	3-3		REWRITE	orientation reworded: triples graded over One
+src/Categories/Monad/Graded/Trivial.agda	50-51		KEEP	why only two hypotheses: κ-sub vacuous
+src/Categories/Monad/Graded/Trivial.agda	82-83		CUT	restates signature
+src/Categories/Monad/Setoids/Discrete.agda	3-7		REWRITE	duplicate of Monad.Discrete header condensed to pointer
+src/Categories/Monad/Setoids/Discrete.agda	57-59		CUT	banner splits return/>>= from their laws
+src/Categories/Monad/Setoids/Discrete.agda	69-70		CUT	context for a one-line proof
+src/Categories/Monad/Setoids/Discrete.agda	81-84		REWRITE	rule 24 pointer to Monad.Discrete; kept why general form strictly stronger; consumer narration cut
+src/Categories/Monad/Setoids/Discrete.agda	93-95		KEEP	top-level landmark over Kleisliᴹ + ∘ᴹ-bind
+src/Categories/Monad/Setoids/Discrete.agda	97-97		CUT	restates FullSubCategory ≡-setoid
+src/Categories/Monad/Setoids/Discrete.agda	103-103		CUT	rule 24: Kleisli.Discrete header carries it
+src/Categories/Monad/Setoids/Discrete/Morphism.agda	3-4		KEEP	orientation + pointer to object side
+src/Categories/Monad/Setoids/Discrete/Morphism.agda	40-41		CUT	context for a short proof
+src/Categories/Monad/Setoids/Maybe.agda	3-3		KEEP	one-line orientation: equality is the element setoid pointwise
+src/Class/DecEq/Ext.agda	3-5		KEEP	why: ⌊ x ≟ x ⌋ stuck at abstract x without it
+src/Class/Monad/Ext/Setoid.agda	3-3		KEEP	one-line orientation
+src/Class/Monad/Ext/Setoid.agda	49-50		CUT	banner over a single record
+src/Class/Monad/Ext/Setoid.agda	62-66		REWRITE	prose narration cut; plain banner title kept
+src/Class/Monad/Ext/Setoid.agda	98-99		CUT	banner over a single record
+src/Class/Monad/Ext/Setoid.agda	107-107		REWRITE	reworded to name the Yoneda variant of >>=-comm-≈
+src/Class/Monad/Ext/Setoid.agda	133-139		REWRITE	F4 not applied: if-kept variant, one-line banner title
+src/Data/Bits/Codec.agda	3-15		REWRITE	unary-vs-binary essay cut; kept prefix-decoding why for separator-free concatenation
+src/Data/Bits/Codec.agda	53-55		KEEP	top-level landmark over five codecs
+src/Data/Bits/Codec.agda	97-98		KEEP	why length prefix: element decoder may consume any number of bits
+src/Data/Bits/Codec.agda	132-132		KEEP	why no prefix: width known to both sides
+src/Data/Bool/Properties/Ext.agda	3-4		REWRITE	false claim fixed: stdlib has no monotonicity lemmas
+src/Data/List/Relation/Binary/BagAndSetEquality/Ext.agda	3-5		CUT	restates module name
+src/Data/List/Relation/Binary/BagAndSetEquality/Ext.agda	22-23		REWRITE	type restatement cut; kept stdlib citation (x,x≈x local to ¬-drop-cons)
+src/Data/List/Relation/Unary/Any/Properties/Ext.agda	22-26		REWRITE	proof narration cut; kept why stdlib Any-cong does not apply
+src/Data/List/Run.agda	3-5		KEEP	module orientation: partial labelled transition system runs
+src/Data/List/Run.agda	22-22		CUT	restates code
+src/Data/List/Run.agda	34-34		CUT	restates type
+src/Data/List/Run.agda	43-43		CUT	restates type
+src/Data/List/Run.agda	49-49		CUT	restates type
+src/Data/List/Run.agda	60-62		CUT	restates codet hypothesis and unique-run type
+src/Data/List/Run.agda	67-68		KEEP	trick: induction over reversed lists since codet fixes the last label
+src/Data/Sum/Ext.agda	3-4		REWRITE	F5 not applied: if-kept variant; stale Data.Sum.Algebra claim replaced by stdlib fromInj citation
+src/Data/Vec/Properties/Ext.agda	3-5		CUT	restates module name
+src/Data/Vec/Properties/Ext.agda	20-20		CUT	restates type
+src/Function/Bundles/Ext.agda	14-14		CUT	restates type
+src/Relation/Binary/Bundles/Ext.agda	10-11		KEEP	cites agda-categories 𝒞 [ f ≈ g ] notation + why naming the setoid

@@ -1,5 +1,8 @@
 # The protocol rewrite
 
+> A development log: each inventory and ledger below is as of the commit its
+> section names. The current UC module set is [uc-module-inventory](uc-module-inventory.md).
+
 Greenfield rewrite of the post-`string-diagram-solver` arc (base: `f71a2381`), built
 statement-first. Reference material: `spike-pov-tower` (example, observables),
 `spike-pov-dp`/`spike-dp`/`spike-elgot` (the Dₚ/machine layer, M2), `sfunm-setoid`
@@ -120,14 +123,13 @@ not by themselves supply an inherited graded asymptotic UC→POV theorem.
 | `…Machines.Category` | 90 | `Mealy-Category`, `∘ᴹ-resp-≈ᴹ` |
 | `…Machines.Tensor` | 174 | `tstep`, `_⊗ᵉ_`, `⊗ᵉ-resp-≲`/`⊗ᵉ-resp-≈ᴹ`, `pureᴹ` + functoriality, `α⇒ᴹ`/`α⇐ᴹ`/`σᴹ` |
 | `…Machines.Iteration` | 113 | the `Elgot` hypothesis record, `tstep-pad`, the derived `iter-uniform`/`pure-+₁` |
-| `…Machines.Trace` | 267 | `solve`/`traceStep`/`traceᴹ`, `iter-onL`, yanking, vanishing₁, step-level naturality, state extension, `Remaining` |
+| `…Machines.Trace` | 267 | `solve`/`traceStep`/`traceᴹ`, `iter-onL`, yanking, vanishing₁, step-level naturality, state extension |
 | `…Machines.Trace.Naturality` | 97 | `trace-∘ˡ`, `trace-∘ʳ` for arbitrary machines |
 | `…Machines.Trace.Congruence` | 80 | `trace-resp-≲`, `trace-resp-≈ᴹ` |
 | `…Machines.Trace.Superposing` | 119 | `superposing`, `super-step` |
 | `…Machines.Trace.Vanishing` | 256 | `vanishing₂`, `vanish-step`, `[]-δ⇐` |
 | `…Machines.Trace.Fubini` | 202 | `trace-comm`, `relabel-step`, `β+` |
-| `…Machines.Trace.Laws` | 39 | `Remaining`, as a term |
-| `…Machines.Base` | 281 | `Dₚ-DiscreteMonad`, `𝒱ₚ`, `distₚ`, `𝒫ₚ`, `Elgotₚ`, `Remainingₚ`, `ℳₚ`, `Tracedₚ`, `𝒢ₚ` — the intended instance, hypothesis-free |
+| `…Machines.Base` | 281 | `Dₚ-DiscreteMonad`, `𝒱ₚ`, `distₚ`, `𝒫ₚ`, `Elgotₚ`, `ℳₚ`, `Tracedₚ`, `TraceLawsₚ`, `𝒢ₚ` — the intended instance, hypothesis-free |
 
 Cost at `6256a140`: the whole machine closure elaborates in ~40 s; no module is
 over 8 s warm and each `Dₚ` module is ~4 s.  `Trace.Naturality` is split off `Trace` on the
@@ -165,7 +167,7 @@ crossings named as generators.
   both too weak (it cannot carry the trace congruence, whose state map is not
   invertible) and, at a Kleisli base, uninhabited (an arbitrary hom is
   effectful).
-* **`Remaining.trace-resp-≲` is asked in generator form** (`f ≲ g → traceᴹ f ≲
+* **`trace-resp-≲` is proved in generator form** (`f ≲ g → traceᴹ f ≲
   traceᴹ g`), the minimal obligation; the `≈ᴹ` form `GConstruction` wants is
   derived by `EqClosure`'s `gmap` (`Trace.Congruence.trace-resp-≈ᴹ`).
 * **`DiscreteMonad` replaces `KleisliTriple (Setoids ℓ ℓ)`** as the base's
@@ -180,8 +182,8 @@ crossings named as generators.
 ## M2 wave 2
 
 All four residual trace laws are theorems and `Elgot` is inhabited at `Kl(Dₚ)`,
-so the machine layer has no hypothesis left: `Machines.Base.Remainingₚ` is a
-closed term of `Trace.Remaining (𝒱ₚ ℓ) (distₚ ℓ) (𝒫ₚ ℓ) (Elgotₚ ℓ)`.
+so the machine layer has no hypothesis left: `Machines.Base.TraceLawsₚ` is a
+closed term of `Categories.Category.Monoidal.Traced.Ext.Laws (Tracedₚ ℓ)`.
 
 | deliverable | LOC (est → real) | verdict |
 |---|---|---|
@@ -532,10 +534,10 @@ mass has not reached a value at all.
 
 Empty.  Every term in every module of M2 is total; zero postulates, zero
 `TERMINATING`, zero holes; whole-`src` hatch grep 21 before and after (the M1
-baseline).  `Machines.Iteration.Elgot` and `Machines.Trace.Remaining` are still
-module *parameters* of the generic layer — that is what keeps it generic — and
-both are discharged at the intended base in `Machines.Base`, where `ℳₚ`,
-`Tracedₚ` and `𝒢ₚ` are closed terms.
+baseline).  `Machines.Iteration.Elgot` is a module *parameter* of the generic
+layer — that is what keeps it generic — and is discharged at the intended base
+in `Machines.Base`, where `ℳₚ`, `Tracedₚ`, `TraceLawsₚ` and `𝒢ₚ` are closed
+terms.
 
 `Morphism-∘` and `PrAgree` are theorems. `Total.totalRun-morphism` additionally
 requires a protocol totality premise (the two verdict masses sum to at least
@@ -568,12 +570,12 @@ this layer needed them.)
 is canonical, `UC.Core.Bridge` identifies the two orders both ways, and the
 core-scoped statements that remained — `UC.Emulation`'s metatheorems and
 `UC.Robust.Observation`'s preservation theorem — stood as INDEPENDENTLY SCOPED
-`UCBase` results (`docs/presheaf-action.md` §2, `docs/retirement.md` §7). Both
+`UCBase` results (`docs/history/presheaf-action.md` §2, `docs/history/retirement.md` §7). Both
 were retired, and `UC.Emulation`, the `Grading`/`UCBase` records and
 `UC.Core.Standard` deleted, on 2026-09-21. The generic preservation theorem at
 a `UCSetup` is `UC.Robust` over `Abstract2.Action`. The supersession itself is
 `docs/stduc-supersession-plan.md`; what it was rebuilt on is
-`docs/uc-presheaf-preservation-plan.md` §§2–3.
+`docs/history/uc-presheaf-preservation-plan.md` §§2–3.
 
 | module | layer | LOC | role |
 |---|---|---|---|
@@ -868,10 +870,10 @@ endpoint is `bounded-carry`/`uc-audit-bounded` off `sim-prefixed` and
 `extract-obs`. `watched`, `TrivialGrade`, `AuditIsBounded`/`BoundedIsAudit`,
 `Context.extract`, `uc-audit-carry` and `ChimericLedger.Audit.auditEvent` are
 retired, against those replacements and their §5 gates
-(`docs/consumer-migration.md`, `docs/direct-extraction.md`,
-`docs/retirement.md`). The review correction below still holds of the route it
+(`docs/history/consumer-migration.md`, `docs/history/direct-extraction.md`,
+`docs/history/retirement.md`). The review correction below still holds of the route it
 is about, and the reason the two carries do not compose is recorded, typed, in
-`docs/consumer-migration.md` §2 and `docs/end-to-end.md` §4.
+`docs/history/consumer-migration.md` §2 and `docs/end-to-end.md` §4.
 
 Proved, hypothesis-free: the whole `Dp.Advantage` layer; `UC.Approximate`'s
 `∼ᵃ-isEquivalence` and the `Induced` construction; `UC.Core.Standard.gradingᵗ`;
@@ -1216,9 +1218,9 @@ still computes both verdicts by `refl`.
 ### Assumption ledger
 
 The historical hatch census was 21 before and after (the M1 baseline), not a
-fresh verification here. `Machines.Iteration.Elgot` and
-`Machines.Trace.Remaining` are discharged at the intended base, as are the
-model's Grading/Budget/UCBase/Mass and inherited model/family setup constructions.
+fresh verification here. `Machines.Iteration.Elgot` and the trace laws
+(`Traced.Ext.Laws`) are discharged at the intended base, as are the model's
+grading and mass and the inherited model/family setup constructions.
 Generic parameters (including family `κ` cofinality) remain explicit; they are
 not missing instance proofs. The table above now consists of proved theorems
 throughout, `SaturatedRespects` included since its quantifier repair.
@@ -1481,7 +1483,7 @@ this cone.
 ## Where things stand at `587999b5`
 
 Written 2026-09-12. The consolidation plan
-[`docs/uc-presheaf-preservation-plan.md`](uc-presheaf-preservation-plan.md) ran
+[`docs/history/uc-presheaf-preservation-plan.md`](history/uc-presheaf-preservation-plan.md) ran
 to completion over the branches below; each one's record is the doc it cites and
 its judgment calls are a `## Resolved (…)` section of `QUALITY-REVIEW.md`.
 
@@ -1489,17 +1491,17 @@ its judgment calls are a `## Resolved (…)` section of `QUALITY-REVIEW.md`.
 
 | step | what carries it | record |
 |---|---|---|
-| 1 generic action | `Abstract2.Action` (`run`, `run-sub`, `regradeEnv`, the two run-agreement laws) and `Abstract2.≤UC⇒dummy` | [presheaf-action](presheaf-action.md) |
-| 2 generic preservation | `UC.Robust` at an arbitrary `UCSetup`, `UC.Robust.Selected`'s `Factors` class, `UC.Robust.Model`; the `UCBase` theorem kept independently scoped as `UC.Robust.Observation` | [presheaf-action](presheaf-action.md) |
+| 1 generic action | `Abstract2.Action` (`run`, `run-sub`, `regradeEnv`, the two run-agreement laws) and `Abstract2.≤UC⇒dummy` | [presheaf-action](history/presheaf-action.md) |
+| 2 generic preservation | `UC.Robust` at an arbitrary `UCSetup`, `UC.Robust.Selected`'s `Factors` class, `UC.Robust.Model`; the `UCBase` theorem kept independently scoped as `UC.Robust.Observation` | [presheaf-action](history/presheaf-action.md) |
 | 3 quantitative consolidation | `UC.Asymptotic.Contextual`: `_≈ctx[_]_` and `_≈ctxᴬ[_]_` on families of graded morphisms, with `UC.Asymptotic.Family._≈ᶠ[_]_` a definitional alias | [quantitative-family](quantitative-family.md) |
 | 4 quantitative action/composition | `UC.Asymptotic.Compose`: `≤UC^ωᵉ-trans`, `≈ctx-ext`, `≈ctx-pre`, `UC-composeᵉ`, each with its allowance substitution proved | [quantitative-family](quantitative-family.md) |
-| 5 direct model extraction | `extract-obs`/`extract-bounded`, `sim-prefixed`/`bounded-carry`, and `UC.Seam.Slide` | [direct-extraction](direct-extraction.md) |
-| 6 consumer migration | `carry-obs`, `uc-audit-carryᵈ`, `pov-target`, `ledger-audit-carryᵈ`; and the hash premise lifted with its error (`hash-liftᵉ`/`hash-liftⁿ`, `ledger-pov-from-hashⁿ`) | [consumer-migration](consumer-migration.md), [ledger-lift-eps](ledger-lift-eps.md) |
-| 7 retirement | six candidates against §5 gates, −426 lines in `src/` | [retirement](retirement.md) |
+| 5 direct model extraction | `extract-obs`/`extract-bounded`, `sim-prefixed`/`bounded-carry`, and `UC.Seam.Slide` | [direct-extraction](history/direct-extraction.md) |
+| 6 consumer migration | `carry-obs`, `uc-audit-carryᵈ`, `pov-target`, `ledger-audit-carryᵈ`; and the hash premise lifted with its error (`hash-liftᵉ`/`hash-liftⁿ`, `ledger-pov-from-hashⁿ`) | [consumer-migration](history/consumer-migration.md), [ledger-lift-eps](ledger-lift-eps.md) |
+| 7 retirement | six candidates against §5 gates, −426 lines in `src/` | [retirement](history/retirement.md) |
 
 The nontrivial-grade line ran beside it and is not part of the ledger chain:
 `Examples.HashForward` (exact, [hash-forward](hash-forward.md)), the graded
-extraction bridge ([graded-bridge](graded-bridge.md)), `Examples.ROCommitment`
+extraction bridge ([graded-bridge](history/graded-bridge.md)), `Examples.ROCommitment`
 and `.Hiding` (approximate, [fcom-extraction](fcom-extraction.md),
 [fcom-hiding](fcom-hiding.md)), and the `Dₚ`/`Dist-ℚ` transport
 ([dp-transport](dp-transport.md)).
@@ -1518,7 +1520,7 @@ hypothesis inhabited at a resource that really samples
 
 The escape-hatch baseline over `src/` is **16 hits** of
 `postulate|TERMINATING|primTrustMe|\{!`, every one the words "postulate-free" in
-an inherited comment (`docs/retirement.md` §10). The `21` of M1's and M2's
+an inherited comment (`docs/history/retirement.md` §10). The `21` of M1's and M2's
 assumption ledgers is the older grep at the older tree.
 
 ### Hypothesis
@@ -1531,7 +1533,7 @@ assumption ledgers is the older grep at the older tree.
   concrete resource, and `StratIsEnv` goes one way only
   ([dp-transport](dp-transport.md) §5).
 * **The hiding half's `ε′`.** `defer-hiding`, the deferred-sampling step for
-  that game, is the one hypothesis of `hiding-bound-defer` — a proved theorem,
+  that game, is the second hop of `Defer.hiding-bound-total` — a proved theorem,
   never a postulate. The averaging route's three pieces are `defer-commit`
   (delivered, an instance of `GamePlaying.Defer.runWith-avg`), an averaged
   supermartingale `badProb-avg`, and an averaged FLGP
@@ -1575,11 +1577,11 @@ question and none is decided here.
   met** — `Model.Family.Uniform.uc-compose-agree`, `Model.Family.Ingest`'s four
   projections, ten names in `Model.Bridge`, `Model.Reading.≈ᵁ⇔≈ᴬ`. None of them
   BECAME consumerless through the arc, so no gate reading "after callers
-  migrate" is satisfied by it ([retirement](retirement.md) §7). Moot for all
+  migrate" is satisfied by it ([retirement](history/retirement.md) §7). Moot for all
   but the `Ingest` projections since 2026-09-21: `Model.Family.Uniform`,
   `Model.Bridge` and `Model.Reading` are deleted.
 * ~~**The Track-A stack**~~ — carried by name from
-  [retirement](retirement.md) §8. Retired 2026-09-21: `FamilyCategory`,
+  [retirement](history/retirement.md) §8. Retired 2026-09-21: `FamilyCategory`,
   `VanishingTV`, `StandardTV` and `OutputOnly` are deleted.
 * **The `Collapse`/`Wire`/`Dictionary` relocation is EXECUTED**, not parked:
   `Machines.Pointwise`, `Machines.Pure` and `Machines.Sandwich` are the three
@@ -1601,49 +1603,49 @@ this file is the snapshot its section names.
 
 | module | LOC | warm | measured in |
 |---|---|---|---|
-| `Abstract2` | 244 | 4.7 s | [presheaf-action](presheaf-action.md) §4 |
-| `Abstract2.Action` | 105 | 3.5 s | [presheaf-action](presheaf-action.md) §4 |
-| `UC.Environment` | 169 | 2.2 s | [consumer-migration](consumer-migration.md) §6 |
+| `Abstract2` | 244 | 4.7 s | [presheaf-action](history/presheaf-action.md) §4 |
+| `Abstract2.Action` | 105 | 3.5 s | [presheaf-action](history/presheaf-action.md) §4 |
+| `UC.Environment` | 169 | 2.2 s | [consumer-migration](history/consumer-migration.md) §6 |
 | `UC.Approximate` | 280 | 4.4 s | [quantitative-family](quantitative-family.md) §8 (`-M20G -H2G`) |
 | `UC.Budget` | 127 | 2.6 s | [quantitative-family](quantitative-family.md) §8 (`-M20G -H2G`) |
-| `UC.Audit` | 195 | 5 s | [retirement](retirement.md) §9 |
+| `UC.Audit` | 195 | 5 s | [retirement](history/retirement.md) §9 |
 | `UC.Family` | 316 | 4.6 s | [quantitative-family](quantitative-family.md) §8 (`-M20G -H2G`) |
-| `UC.Family.Negligible` | 85 | 5 s | [retirement](retirement.md) §9 |
-| `UC.QueryBound` | 647 | 15.8 s | [consumer-migration](consumer-migration.md) §6 |
+| `UC.Family.Negligible` | 85 | 5 s | [retirement](history/retirement.md) §9 |
+| `UC.QueryBound` | 647 | 15.8 s | [consumer-migration](history/consumer-migration.md) §6 |
 | `UC.QueryBound.Exact` | 168 | 9.3 s | [hash-forward](hash-forward.md) |
 | `UC.Graded` | 72 | 9.4 s | [dp-transport](dp-transport.md) |
 | `UC.Seam.Graded` | 28 | 9.8 s | [hash-forward](hash-forward.md) |
-| `UC.Seam.Grounded` | 280 | 10 s | [direct-extraction](direct-extraction.md) |
-| `UC.Seam.Slide` | 44 | 10 s | [direct-extraction](direct-extraction.md) |
-| `UC.Seam.Audit` | 26 | 9 s | [retirement](retirement.md) §9 |
-| `UC.Seam.Audit.Bounded` | 49 | 9 s | [retirement](retirement.md) §9 |
-| `UC.Seam.Audit.Context` | 226 | 10 s | [retirement](retirement.md) §9 |
-| `UC.Seam.Audit.Prefix` | 136 | 10 s | [retirement](retirement.md) §9 |
-| `UC.Asymptotic` | 146 | 9 s | [retirement](retirement.md) §9 |
-| `UC.Asymptotic.Audit` | 111 | 9 s | [retirement](retirement.md) §9 |
+| `UC.Seam.Grounded` | 280 | 10 s | [direct-extraction](history/direct-extraction.md) |
+| `UC.Seam.Slide` | 44 | 10 s | [direct-extraction](history/direct-extraction.md) |
+| `UC.Seam.Audit` | 26 | 9 s | [retirement](history/retirement.md) §9 |
+| `UC.Seam.Audit.Bounded` | 49 | 9 s | [retirement](history/retirement.md) §9 |
+| `UC.Seam.Audit.Context` | 226 | 10 s | [retirement](history/retirement.md) §9 |
+| `UC.Seam.Audit.Prefix` | 136 | 10 s | [retirement](history/retirement.md) §9 |
+| `UC.Asymptotic` | 146 | 9 s | [retirement](history/retirement.md) §9 |
+| `UC.Asymptotic.Audit` | 111 | 9 s | [retirement](history/retirement.md) §9 |
 | `UC.Asymptotic.Family` | 342 | 23.7 s | [ledger-lift-eps](ledger-lift-eps.md) §7 |
 | `UC.Asymptotic.Contextual` | 313 | 10.7 s | [ledger-lift-eps](ledger-lift-eps.md) §7 |
 | `UC.Asymptotic.Compose` | 277 | 11.5 s | [ledger-lift-eps](ledger-lift-eps.md) §7 |
-| `UC.Robust` | 125 | 3.6 s | [presheaf-action](presheaf-action.md) §4 |
-| `UC.Robust.Selected` | 64 | 3.6 s | [presheaf-action](presheaf-action.md) §4 |
-| `UC.Robust.Observation` | 118 | 2.0 s | [consumer-migration](consumer-migration.md) §6 |
-| `UC.Robust.Model` | 116 | 13.9 s | [presheaf-action](presheaf-action.md) §4 |
+| `UC.Robust` | 125 | 3.6 s | [presheaf-action](history/presheaf-action.md) §4 |
+| `UC.Robust.Selected` | 64 | 3.6 s | [presheaf-action](history/presheaf-action.md) §4 |
+| `UC.Robust.Observation` | 118 | 2.0 s | [consumer-migration](history/consumer-migration.md) §6 |
+| `UC.Robust.Model` | 116 | 13.9 s | [presheaf-action](history/presheaf-action.md) §4 |
 | `UC.Model.Family` | 31 | 8.7 s | [quantitative-family](quantitative-family.md) §8 (`-M20G -H2G`) |
-| `UC.Model.Reading` | 77 | 12.6 s | [presheaf-action](presheaf-action.md) §4 |
-| `UC.Model.Bridge` | 193 | 13.0 s | [presheaf-action](presheaf-action.md) §4 |
+| `UC.Model.Reading` | 77 | 12.6 s | [presheaf-action](history/presheaf-action.md) §4 |
+| `UC.Model.Bridge` | 193 | 13.0 s | [presheaf-action](history/presheaf-action.md) §4 |
 | `UC.Model.Enrichment` | 79 | 9.4 s | [dp-transport](dp-transport.md) |
 | `UC.Model.Graded` | 73 | 9.5 s | [dp-transport](dp-transport.md) |
-| `CategoricalCrypto.UC` | 229 | 10 s | [retirement](retirement.md) §9 |
+| `CategoricalCrypto.UC` | 229 | 10 s | [retirement](history/retirement.md) §9 |
 | `ProbabilisticLogic.Dp.Settle` | 294 | 6.0 s | [dp-transport](dp-transport.md) |
 | `Protocol.Machine.Raw` | 133 | 8.8 s | [dp-transport](dp-transport.md) |
 
 `UC.Machine.Plug` (32 LOC) and `UC.Seam.Adequacy` (126) were not isolated warm
-on the branch that wrote them ([graded-bridge](graded-bridge.md) records why),
+on the branch that wrote them ([graded-bridge](history/graded-bridge.md) records why),
 and the M1/M2 machine layer has not been re-measured since `6256a140`.
 
 The whole-library root `src/CategoricalCrypto.agda` checks green at **71 s**
 ([dp-transport](dp-transport.md)); a change under `Data/Rational/` re-elaborates
 141 modules in **208 s**, 12 % of the 1800 s rebuild ceiling
-([consumer-migration](consumer-migration.md) §4(e)). The per-module `Cast`/`Laws`
+([consumer-migration](history/consumer-migration.md) §4(e)). The per-module `Cast`/`Laws`
 figures in *The gate, diagnosed and closed* are the retired cone's and are not a
 current cost at all: those nine modules are deleted.

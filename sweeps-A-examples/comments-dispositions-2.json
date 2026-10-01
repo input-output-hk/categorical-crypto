@@ -1,0 +1,5448 @@
+[
+ {
+  "file": "src/CategoricalCrypto/Examples/Possibilistic.agda",
+  "lines": "3-6",
+  "tallyLines": [
+   "3-7"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: states the modelling convention (nondeterminism = the adversary's choices) and the gotcha that these are SFun morphisms, not UC functionalities",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/Possibilistic.agda",
+  "lines": "30-31",
+  "tallyLines": [
+   "31-32"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over lossy/Lossy/Lossy-idempotent/Cut/Network (5 defs)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/Possibilistic.agda",
+  "lines": "33-34",
+  "tallyLines": [
+   "34-35"
+  ],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "keep only the encoding (one message per round, `nothing` = idle round); the adversary-chooses sentence restates the header's convention and the two-element list",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/Possibilistic.agda",
+  "lines": "50-51",
+  "tallyLines": [
+   "52-53"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "narrates Cut's three clauses (just true forwards, just false drops) readable in seconds",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/Possibilistic.agda",
+  "lines": "65-66",
+  "tallyLines": [
+   "67-68"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Buffer and its eval test; each example section is a landmark in this catalogue file",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/Possibilistic.agda",
+  "lines": "82-83",
+  "tallyLines": [
+   "84-85"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over CRS and its eval test (same scheme as Buffer, a section landmark)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/Possibilistic.agda",
+  "lines": null,
+  "tallyLines": [
+   "45-45"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Two lossy links in series are one lossy link",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RandomOracle.agda",
+  "lines": "35-36",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "gotcha: why lookup-bs-here is proved by `with` rather than via Class.DecEq.Ext.≟-refl (which only gives ⌊x≟x⌋≡true, not the with-reduction)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RandomOracle.agda",
+  "lines": "55-56",
+  "tallyLines": [
+   "59-61"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over count-matches/sum-bound/E-collisions/triangle/state-collisions",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RandomOracle.agda",
+  "lines": "62-62",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why sum-bound is recursive rather than the closed form: so E-collisions-rec can follow it",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RandomOracle.agda",
+  "lines": "98-98",
+  "tallyLines": [
+   "109-109"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "states the counted quantity (UNORDERED pairs), which is what triangle's k(k-1)/2 bounds; not evident from the recursion at a glance",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RandomOracle.agda",
+  "lines": null,
+  "tallyLines": [
+   "17-19"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: ------------------------------------------------------------------------ -- Rand",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RandomOracle.agda",
+  "lines": null,
+  "tallyLines": [
+   "39-41"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A point already in the table is answered FROM the table. `lookup-bs` -- branc",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RandomOracle.agda",
+  "lines": null,
+  "tallyLines": [
+   "63-63"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Number of entries in `s` whose stored hash equals `h`.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RandomOracle.agda",
+  "lines": null,
+  "tallyLines": [
+   "68-69"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Sum of `1/2ᵒᵘᵗᴺ` over entries — i.e. `|s| · (1/2ᵒᵘᵗᴺ)` — but defined -- induc",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RandomOracle.agda",
+  "lines": null,
+  "tallyLines": [
+   "75-75"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Closed form: `|s| · (1/2ᵒᵘᵗᴺ)`.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RandomOracle.agda",
+  "lines": null,
+  "tallyLines": [
+   "82-83"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The expected number of entries in `s` whose hash equals a -- uniformly-sample",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/RandomOracle.agda",
+  "lines": null,
+  "tallyLines": [
+   "104-104"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The triangle number `k · (k-1) / 2`.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment.agda",
+  "lines": "3-12",
+  "tallyLines": [
+   "3-19"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: protocol orientation (who is corrupted, which port), the design decision that F_com's cell lives in the resource so the ideal functionality is a stateless wireᴹ (docs/fcom-extraction.md), and that the ε lives in Game",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment.agda",
+  "lines": "45-46",
+  "tallyLines": [
+   "52-53"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over the four interface groups",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment.agda",
+  "lines": "48-51",
+  "tallyLines": [
+   "55-58"
+  ],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "first sentence repeats the header (oracle + F_com's cell); keep the cell's letter semantics, which are implemented in Resource, not here, and the real/ideal asymmetry",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment.agda",
+  "lines": "98-99",
+  "tallyLines": [
+   "111-112"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over downᶠ/upᶠ/ideal",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment.agda",
+  "lines": "101-102",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "the stateless-wire rationale is already in the module header (with the docs/fcom-extraction.md pointer, whose §'Where F_com's memory lives' gives the ⊕-trace argument); rule 24",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment.agda",
+  "lines": "118-119",
+  "tallyLines": [
+   "133-134"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over RSt/verdict/realStep/stateᴿ/real",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment.agda",
+  "lines": "155-156",
+  "tallyLines": [
+   "175-176"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over SSt/release/simStep/stateˢ/simulator",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment.agda",
+  "lines": null,
+  "tallyLines": [
+   "74-75"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The honest receiver's environment-facing port. It carries no queries: the -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment.agda",
+  "lines": null,
+  "tallyLines": [
+   "84-85"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The REAL adversary-facing port: the corrupted committer's oracle access and -",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment.agda",
+  "lines": null,
+  "tallyLines": [
+   "97-98"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The IDEAL simulator-facing port: the oracle relayed, and the three things -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment.agda",
+  "lines": null,
+  "tallyLines": [
+   "114-117"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A WIRE: the resource's ports relabelled onto the simulator's and the -- recei",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment.agda",
+  "lines": null,
+  "tallyLines": [
+   "136-139"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Three states: idle with whatever commitment has arrived, an adversary oracle ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment.agda",
+  "lines": null,
+  "tallyLines": [
+   "178-183"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- It runs the receiver's program against the ideal functionality instead of -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Asymptotic.agda",
+  "lines": "3-6",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: the merged numerator (m²+2m)·2⁻ᵏ, why the schedule is the identity (digest length = security parameter), and the caveat that the contextual relation is not proved (docs/fcom-extraction.md 'Not delivered' §1)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Asymptotic.agda",
+  "lines": null,
+  "tallyLines": [
+   "3-15"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The extraction bound read at the security parameter: one merged ε, and its --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda",
+  "lines": "3-12",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "drop the paraphrase of extract/pick and of Pins's definition (readable from the clauses); keep what ties this module to the binding argument: which lemma is behind each of Game.Inv's two flags",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda",
+  "lines": "35-36",
+  "tallyLines": [
+   "34-35"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "design invariant: the committed bit is the head of the point, which is what makes a preimage extractable (why Pt = Vec Bool (suc k))",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda",
+  "lines": "77-78",
+  "tallyLines": [
+   "81-82"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Pins/memb-pre/pins-[]/pins-extract/pins-∷/pins-lookup",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda",
+  "lines": null,
+  "tallyLines": [
+   "3-12"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- What the extracting simulator computes, and the one combinatorial fact the --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda",
+  "lines": null,
+  "tallyLines": [
+   "52-53"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The point just sampled is in the post-table, which is what a bisimulation -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda",
+  "lines": null,
+  "tallyLines": [
+   "59-59"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and every other point reads past it.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda",
+  "lines": null,
+  "tallyLines": [
+   "76-77"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The simulator's reading of a commitment digest: the bit of its unique -- prei",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda",
+  "lines": null,
+  "tallyLines": [
+   "84-84"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Every preimage of `c` in the table starts with `b`.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda",
+  "lines": null,
+  "tallyLines": [
+   "108-109"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- At a duplicate-free answer log the extraction is pinned: `c` has at most one ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda",
+  "lines": null,
+  "tallyLines": [
+   "123-123"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A sample that misses `c` adds no preimage of it.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda",
+  "lines": null,
+  "tallyLines": [
+   "128-129"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and what the pin is FOR: a tabulated point whose answer is the commitment --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Oracle.agda",
+  "lines": "3-9",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header gotcha: why fetchT takes the embedding g instead of being Dmap'd afterwards (keeps the kernel reducing under the games' E-bind rewrites); both call shapes verified (fetchT id in Hiding.Game, fetchT (_, m) in Game.askX)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Oracle.agda",
+  "lines": null,
+  "tallyLines": [
+   "3-15"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The lazily sampled oracle the two closed `F_com` games run on. -- -- A tabula",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Oracle.agda",
+  "lines": null,
+  "tallyLines": [
+   "50-54"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- One query read through two different post-table embeddings: the table moves -",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Oracle.agda",
+  "lines": null,
+  "tallyLines": [
+   "69-70"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Either the point was tabulated and nothing moved, or it was fresh and the -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda",
+  "lines": "3-6",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: relates lazyₚ to Oracle.fetchT's kernel and records the invariant that the off-protocol cell activations are botₚ and never sent",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda",
+  "lines": "39-40",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why lazyₚ is shared: all table-holding machines (ROCommitment, CoinToss.Ideal*, Reach) step through it, so their steps share one stuck subterm",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda",
+  "lines": "54-55",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "first sentence restates lazy-bind's type; keep the gotcha explaining the (w, eq) parameters",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda",
+  "lines": "89-90",
+  "tallyLines": [
+   "97-98"
+  ],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "banner title is inaccurate: cell-put/get/nak are consumed by the CoinToss.Ideal hybrids, not by 'the game'; retitle to what it groups",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda",
+  "lines": null,
+  "tallyLines": [
+   "3-17"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The resource the two worlds sit on, as a machine: a lazily sampled oracle -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda",
+  "lines": null,
+  "tallyLines": [
+   "50-54"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The lazily sampled oracle's answer to one query, read into whatever state -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda",
+  "lines": null,
+  "tallyLines": [
+   "68-68"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The lookup is scrutinized by both sides at once, so it is `rewrite`n once.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda",
+  "lines": null,
+  "tallyLines": [
+   "76-76"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The table, and the bit the cell is holding.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda",
+  "lines": null,
+  "tallyLines": [
+   "100-102"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- `GamePlaying.Potential.KeepOrSample` in the machine layer's own vocabulary: -",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda",
+  "lines": null,
+  "tallyLines": [
+   "112-113"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and the cell: the first `putᴿ` receipts and stores, `getᴿ` releases what is ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda",
+  "lines": null,
+  "tallyLines": [
+   "126-126"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A closed process spends no downward query, this one included.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Test.agda",
+  "lines": "3-6",
+  "tallyLines": [
+   "3-8"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: why the test exists (the bound's quantifier is inhabited by a run that reaches the opening), citing GamePlaying.Test's acceptance sense",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Test.agda",
+  "lines": null,
+  "tallyLines": [
+   "24-25"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The digest the adversary commits to: the one it was answered with, falling --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda",
+  "lines": "3-8",
+  "tallyLines": [
+   "3-14"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: orientation (resource-settles inhabits Protocol.Machine.Raw.StepSettles at a sampling machine; resKᵀ-fetchT) and why the kernel is Dist⊥-valued (docs/dp-transport.md)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda",
+  "lines": "47-48",
+  "tallyLines": [
+   "53-54"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over fetchᴰ/resKᵀ/resK/up/resKᵀ-fetchT",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda",
+  "lines": "50-51",
+  "tallyLines": [
+   "56-57"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why fetchᴰ branches on the lookup like the machine does: each half is a settled distribution outright",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda",
+  "lines": "91-92",
+  "tallyLines": [
+   "99-100"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over the private Settles lemmas and resource-settles",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda",
+  "lines": "117-118",
+  "tallyLines": [
+   "126-127"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "gotcha: Dmap⊥ is a bind, so respᴿ/respᴮ are needed (not definitionally Settles-return/Settles-bot)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda",
+  "lines": "126-128",
+  "tallyLines": [
+   "135-137"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "gotcha: lookup passed in because `with` does not abstract the copy inside the machine's step",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda",
+  "lines": "178-179",
+  "tallyLines": [
+   "191-192"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "single-definition banner (resource-run only); its content moves into the comment below",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda",
+  "lines": "181-182",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "absorb the dropped banner's claim; keep the prAgree citation and docs pointer",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda",
+  "lines": null,
+  "tallyLines": [
+   "77-78"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and it IS the closed game's oracle, relabelled onto `Resᴵ` (the cell rides -",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda",
+  "lines": null,
+  "tallyLines": [
+   "120-120"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Two total values agreeing on every test agree as settled values.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda",
+  "lines": null,
+  "tallyLines": [
+   "179-179"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- `Protocol.Machine.Raw`'s hypothesis, inhabited at a machine that samples.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda",
+  "lines": null,
+  "tallyLines": [
+   "194-196"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- At either verdict, past a budget of its own, and with no protocol image -- an",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/UC.agda",
+  "lines": "3-8",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: what simCert vs simExactHash/simExactAll state, and why there is no ≈ᵁ (approximate emulation, ε = Game.extraction-bound)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/UC.agda",
+  "lines": "38-39",
+  "tallyLines": [
+   "45-46"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over realᵒ/idealᵒ/simᵒ",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/UC.agda",
+  "lines": "50-51",
+  "tallyLines": [
+   "57-58"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Φˢ/simCert/simQB/idealQB",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/UC.agda",
+  "lines": "53-54",
+  "tallyLines": [
+   "60-61"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why Φˢ checkˢ = 1: the opening's second downward message is still owed there",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/UC.agda",
+  "lines": "112-113",
+  "tallyLines": [
+   "128-129"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over the exact-count ledgers (hashes..sim-message-count)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/UC.agda",
+  "lines": "115-116",
+  "tallyLines": [
+   "131-132"
+  ],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "the comment sits on `hashes` but describes `points`; name both so it reads at either, keep the non-obvious half (the opening counts because the receiver would have hashed it)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/UC.agda",
+  "lines": "154-154",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "what-narration of st's Σ-type (two balance witnesses, each projected); visible from the type and simExactHash/simExactAll; same cut as HashForward.UC's twin (rule 26)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/UC.agda",
+  "lines": "203-204",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "Λᴬ's reason repeats the Φˢ comment (same clauses); keep Λᴴ's reason and point at Φˢ",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/UC.agda",
+  "lines": null,
+  "tallyLines": [
+   "3-15"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The three machines at the UC model, and what the extracting simulator -- spen",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/UC.agda",
+  "lines": null,
+  "tallyLines": [
+   "123-124"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The functionality is a relabelling wire, so it relays exactly one message -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/UC.agda",
+  "lines": null,
+  "tallyLines": [
+   "146-147"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and, of downward messages of ANY kind, one per query, one per commitment -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/UC.agda",
+  "lines": null,
+  "tallyLines": [
+   "167-167"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The release message is not a relay, whichever way the two checks went.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/UC.agda",
+  "lines": null,
+  "tallyLines": [
+   "259-263"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The occurrence statements: on EVERY branch of the simulator's run over an -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda",
+  "lines": "3-12",
+  "tallyLines": [
+   "3-19"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "keep",
+  "reason": "header: protocol orientation (corrupted receiver, simulator publishes before knowing b, programs one point) and why the ideal stays a wireᴹ over ROCommitment's resource (docs/fcom-hiding.md)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda",
+  "lines": "45-46",
+  "tallyLines": [
+   "52-53"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over the interface groups",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda",
+  "lines": "48-49",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "design why: the environment hears only a refusal, everything the hiding experiment observes goes through the corrupted receiver",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda",
+  "lines": "82-83",
+  "tallyLines": [
+   "95-96"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over downᶠʰ/upᶠʰ/idealʰ",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda",
+  "lines": "99-100",
+  "tallyLines": [
+   "116-117"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Held/HStʰ/realStepʰ/stateʰ/realʰ",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda",
+  "lines": "139-140",
+  "tallyLines": [
+   "161-162"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Progʰ/SStʰ/pinnedʰ/serveʰ/simStepʰ/stateᵖ/simulatorʰ",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda",
+  "lines": null,
+  "tallyLines": [
+   "55-58"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The honest committer's environment-facing port. The environment drives it -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda",
+  "lines": null,
+  "tallyLines": [
+   "69-70"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The corrupted receiver's port: oracle access, and the two protocol messages -",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda",
+  "lines": null,
+  "tallyLines": [
+   "82-83"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The simulator-facing port: the oracle it may relay to, the receipt `F_com` --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda",
+  "lines": null,
+  "tallyLines": [
+   "98-101"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A WIRE again, and the SAME cell: `putᴿ` takes the environment's bit and -- re",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda",
+  "lines": null,
+  "tallyLines": [
+   "119-120"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- What the committer holds: nothing, the bit with its opening randomness, or --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda",
+  "lines": null,
+  "tallyLines": [
+   "126-128"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- As in `Examples.ROCommitment`, the STATE is split inside each letter's -- cla",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda",
+  "lines": null,
+  "tallyLines": [
+   "164-166"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- What the programming simulator holds: the fresh digest it published before --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda",
+  "lines": null,
+  "tallyLines": [
+   "176-176"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The digest this query is programmed to, if it is the programmed point.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda",
+  "lines": null,
+  "tallyLines": [
+   "184-186"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The programmed point is answered from the simulator's own record; every -- ot",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Asymptotic.agda",
+  "lines": "3-5",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: identity schedule and the not-proved contextual-relation caveat (docs/fcom-hiding.md)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Asymptotic.agda",
+  "lines": "39-40",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over εᵗ/εᵗ-negligible/hiding-boundᵗ",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Asymptotic.agda",
+  "lines": "42-43",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "decomposition of εᵗ's numerator into the two hops, citing Hiding.Defer.defer-hiding",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Asymptotic.agda",
+  "lines": null,
+  "tallyLines": [
+   "3-13"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The hiding bound read at the security parameter, and its negligibility. -- --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Asymptotic.agda",
+  "lines": null,
+  "tallyLines": [
+   "47-48"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: ------------------------------------------------------------------------ -- …aga",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Asymptotic.agda",
+  "lines": null,
+  "tallyLines": [
+   "50-53"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- `m·2⁻ⁿ` for the programming and `2m·2⁻ⁿ` for the two places the deferred -- g",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Test.agda",
+  "lines": "3-6",
+  "tallyLines": [
+   "3-10"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: why these attacks (each reaches one of the places the games differ), GamePlaying.Test's acceptance sense",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Test.agda",
+  "lines": null,
+  "tallyLines": [
+   "33-34"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The digest the committer published, falling back on `d₀` at an off-protocol -",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Test.agda",
+  "lines": null,
+  "tallyLines": [
+   "56-58"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The commitment-time divergence: the point is in the table BEFORE the -- commi",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda",
+  "lines": "3-5",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: orientation and why no ≈ᵁ (approximate emulation)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda",
+  "lines": "30-31",
+  "tallyLines": [
+   "43-44"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over the three images",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda",
+  "lines": "42-43",
+  "tallyLines": [
+   "55-56"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Φᵖ/simCertʰ/simQBʰ/idealʰQB",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda",
+  "lines": "45-47",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "gotcha: why no UC.QueryBound.Exact ledger exists for this simulator (cost depends on state, Exact weighs by letter)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda",
+  "lines": "62-63",
+  "tallyLines": [
+   "82-83"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "gotcha: why pubᴬ/pinᴬ are named (_>>=ₚ_ is coinductive, map-bind cannot recover the continuation)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda",
+  "lines": null,
+  "tallyLines": [
+   "3-17"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The three machines at the UC model, and what the programming simulator -- spe",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda",
+  "lines": null,
+  "tallyLines": [
+   "58-67"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Nothing is ever owed: every message from below is answered upward, and the --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda",
+  "lines": null,
+  "tallyLines": [
+   "137-137"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- See `Examples.ROCommitment.UC.idealQB`.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": "3-20",
+  "tallyLines": [
+   "3-27"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "keep",
+  "reason": "header: the proof architecture's non-obvious whys — identical-until-bad not equal, the flag is small only on AVERAGE hence badProb-avg not SuperCert, the two divergences and Fresh's role, Frozen after opening; all cited names verified (Game.defer-commit, defer-hop, join-J, Average.badProb-avg, Fresh, hitAt, Average.Frozen)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": "70-71",
+  "tallyLines": [
+   "82-83"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over preOpen.. respPʰ (planted game)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": "131-132",
+  "tallyLines": [
+   "147-148"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over eraseP/_≋D_/.../defer-hop",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": "137-142",
+  "tallyLines": [
+   "153-158"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why _≋D_ has two disjuncts: plant unread before opening, runWith-avg merges at the opening, family constant after",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": "249-250",
+  "tallyLines": [
+   "269-270"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over TblAt/recOf/Fresh/_≋J_/...",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": "252-254",
+  "tallyLines": [
+   "272-274"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "invariant: H(b∷r) is filed at the commitment in the real game and only at the opening in the deferred one, so off that point the tables agree",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": "264-266",
+  "tallyLines": [
+   "285-287"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "first sentence glosses Fresh's type; the rest (it stops the commitment step reading H(b∷r) from the table; destroying it raises the flag) is the module header's first-divergence bullet, which names `Fresh` — rule 24",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": "271-273",
+  "tallyLines": [
+   "292-294"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why _≋J_ requires f ≡ false: past the flag the coupling drops the relation, neither game tracked inside the other",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": "321-322",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why fetchR takes the sample as an argument: so the join can feed it the deferred game's draw",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": "336-337",
+  "tallyLines": [
+   "357-358"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over good-J and the join lemmas",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": "448-449",
+  "tallyLines": [
+   "472-473"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "inside join-J's where, lowercase with a dangling 'too'; the reason missR holds is Fresh's role, already stated in the module header (third site of the same explanation, rule 24)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": "498-499",
+  "tallyLines": [
+   "522-523"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over εᴾ/RelP/mono-P/frozen-P/drift-P; title states the 2⁻ᵏ+2⁻ᵏ split",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": "504-506",
+  "tallyLines": [
+   "528-530"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why RelP is the right family: while the plant is secret only the flag depends on it",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": "709-710",
+  "tallyLines": [
+   "737-738"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over flag-bound/defer-hiding/hiding-bound-total",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": null,
+  "tallyLines": [
+   "68-69"
+  ],
+  "tallyFlags": [
+   "singleDefBanner"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: ------------------------------------------------------------------------ -- Read",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": null,
+  "tallyLines": [
+   "85-86"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Is the commitment still a secret? Nothing the adversary does after the -- ope",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": null,
+  "tallyLines": [
+   "92-92"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The adversary has named the plant while it is still a secret.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": null,
+  "tallyLines": [
+   "96-96"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and the flag: that, or the deferred game's own fresh test hitting.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": null,
+  "tallyLines": [
+   "179-180"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the premise at a constant family, where the average collapses: past the -- op",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": null,
+  "tallyLines": [
+   "261-262"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The real game draws the opening randomness at the opening, and that IS the --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": null,
+  "tallyLines": [
+   "280-280"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and its commitment record, which is the deferred game's plus the plant.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": null,
+  "tallyLines": [
+   "342-343"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The real game's own fetch, driven by the deferred game's draw where the two -",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": null,
+  "tallyLines": [
+   "364-366"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Neither kernel draws and neither parts from the other: the join is the -- pai",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": null,
+  "tallyLines": [
+   "569-569"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- a fresh uniform draw tested against one point, behind a gate",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": null,
+  "tallyLines": [
+   "581-582"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and the plant, which is where the average does the work the state -- cannot:",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": null,
+  "tallyLines": [
+   "634-634"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- an activation the flag cannot rise at still has to fit the budget",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": null,
+  "tallyLines": [
+   "740-742"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Averaged over the plant, the flag is up with probability at most `2m·2⁻ᵏ` -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": null,
+  "tallyLines": [
+   "758-760"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- `2m·2⁻ᵏ`: one `2⁻ᵏ` per activation for the guess at the plant — which the -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda",
+  "lines": null,
+  "tallyLines": [
+   "781-783"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and the statement `Game.hiding-bound-defer` was stated to take: `F_com` -- w",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "3-12",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: roles of respRʰ/respLʰ/respIʰ, where respLʰ and respIʰ differ and why rare-cert bounds it by m·2⁻ᵏ, and where the other hop lives",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "48-49",
+  "tallyLines": [
+   "58-59"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Qʰ/Rʰ/Comʰ/ComRʰ/St/...",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "62-63",
+  "tallyLines": [
+   "74-75"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "component semantics of Comʰ's tuple (digest, bit, opened?) not recoverable from the type",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "67-67",
+  "tallyLines": [
+   "79-79"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "component semantics of ComRʰ (adds the opening randomness)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "82-83",
+  "tallyLines": [
+   "94-95"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over hitAt/pinAt/out* outcomes",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "85-88",
+  "tallyLines": [
+   "97-100"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why hitAt is false before a commitment and after the opening",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "94-94",
+  "tallyLines": [
+   "106-106"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "pinAt's meaning (the real committer's table entry at the hit point)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "99-101",
+  "tallyLines": [
+   "111-113"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "gotcha: _>>=ᴹ_ is a defined function, so every E-bind continuation must be named",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "133-134",
+  "tallyLines": [
+   "145-146"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over askR/comAt/comR/opnR/respRʰ",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "136-138",
+  "tallyLines": [
+   "148-150"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "invariant of StRʰ's first component (secret planted or not yet drawn; only comR reads it) and its link to defer-commit",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "162-163",
+  "tallyLines": [
+   "174-175"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over comL/opnL/askL/askI/respLʰ/respIʰ",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "165-169",
+  "tallyLines": [
+   "177-181"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "reword",
+  "reason": "keep (why comL/opnL are shared and how each world's digest arises); `c*` is not a name in the code — say what it is",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "194-195",
+  "tallyLines": [
+   "209-210"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over askB/comB/opnB/respB",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "229-230",
+  "tallyLines": [
+   "244-245"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over the ask-red/marginal lemmas",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "347-348",
+  "tallyLines": [
+   "371-372"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over drift lemmas/rare-raise; title states the per-query 2⁻ᵏ rate",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "422-423",
+  "tallyLines": [
+   "452-453"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over _≋P_/ask-redᴿ/.../defer-commit",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "425-429",
+  "tallyLines": [
+   "455-459"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why deferral is exact at the real game (secret unread until the commitment hashes) and where E-const collapses the average",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "480-480",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "citation kept; the doc has no 'item 2' — the defer statement is under 'Not delivered' §2",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "487-488",
+  "tallyLines": [
+   "520-521"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over εᴸ/cert/hiding-bound",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "3-21"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The closed hiding game, and its ε. -- -- Three reactive kernels over one alph",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "61-62"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- What the corrupted receiver and the environment between them can do: query --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "72-72",
+  "tallyLines": [
+   "84-84"
+  ],
+  "tallyFlags": [
+   "insideDefinition"
+  ],
+  "verdict": "keep",
+  "reason": "inline: identifies St as the coupling's state (+ hit flag)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": "73-73",
+  "tallyLines": [
+   "85-85"
+  ],
+  "tallyFlags": [
+   "insideDefinition"
+  ],
+  "verdict": "keep",
+  "reason": "inline: records that StLʰ is shared by the deferred AND the ideal game — not evident from its name",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "86-86"
+  ],
+  "tallyFlags": [
+   "insideDefinition"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the real game: + the secret, planted or not",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "192-193"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The one place the two games part: the deferred game draws the opening -- rand",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "247-248"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The deferred game's query, expanded: the table's draw, then its own draw of -",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "266-268"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Off the flag the deferred game's answer IS the ideal one, and on the flag -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "279-279"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The deferred marginal: the coupling's FIRST answer is the deferred game's.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "319-320"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The ideal marginal: the coupling's second answer is the ideal game's, and -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "375-378"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A flag the kernel raises by comparing a FRESH uniform draw against a point --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "399-399"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A query that does not reach the oracle leaves the flag where it was.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "408-408"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and one that only SAMPLES leaves it where it was too.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "476-476"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the premise at a CONSTANT family: the two integrands agree everywhere",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "511-513"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The real game draws its secret at the commitment, and that IS its average -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "529-531"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- For every adversary of at most `m` activations, `F_com` with the programming ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "539-542"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and the statement the residual buys: with the deferred game identified with ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": "3-13",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: roles of respR/respI/respB, the ε's two summands and which Potential cert pays each, and why docs/ro-game-hop.md's fixed-secret caveat does not apply",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": "49-50",
+  "tallyLines": [
+   "55-56"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Q/R/Com/St.../erase*",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": "64-64",
+  "tallyLines": [
+   "73-73"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "Com's Bool is the simulator's extracted bit — not recoverable from Maybe (Dig × Bool)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": "95-96",
+  "tallyLines": [
+   "104-105"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over raise/fetch",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": "98-99",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "relates fetch to Oracle.fetchT (same, plus the hit flag) and says when the flag rises",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": "109-110",
+  "tallyLines": [
+   "119-120"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over realOpen/idealOpen/askX/…/respB",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": "149-150",
+  "tallyLines": [
+   "161-162"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why kAsk/kOpn are named: the E-bind rewrites must point at them",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": "187-188",
+  "tallyLines": [
+   "201-202"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Good/Inv/inv-*/agree-off; title states the invariant",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": "242-243",
+  "tallyLines": [
+   "265-266"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over ec/fetch-bis/_≋R_/_≋I_/stepR/stepI",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": "250-251",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "gotcha: the lookup premise is what agree-off needs and what a bare `with` would discard (hence `with … in eq`)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": "273-274",
+  "tallyLines": [
+   "297-298"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why _≋R_ carries Inv although the real side never reads it (fetch-bis re-establishes it)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": "379-380",
+  "tallyLines": [
+   "406-407"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why collapse holds: off the bad event the verdict is the functionality's (via agree-off), so the cond collapses to the ideal answer",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": "411-412",
+  "tallyLines": [
+   "438-439"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over viaR/…/keep-or-sample/rare-raise",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": "523-524",
+  "tallyLines": [
+   "563-564"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over ε/cert/extraction-bound",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "3-18"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The closed extraction game, and its ε. -- -- Two reactive kernels over the sa",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "58-59"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- What a corrupted committer can do: query the oracle, send the commitment, -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "65-65"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and what it sees back, the receiver's own reaction included.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": "69-69",
+  "tallyLines": [
+   "78-78"
+  ],
+  "tallyFlags": [
+   "insideDefinition"
+  ],
+  "verdict": "keep",
+  "reason": "inline: identifies St as the coupling's state and its Bool as the hit flag (StR/StI are named by world, St is not)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "79-79"
+  ],
+  "tallyFlags": [
+   "typeEcho",
+   "insideDefinition"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the real game: table, commitment",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "80-80"
+  ],
+  "tallyFlags": [
+   "insideDefinition"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the ideal game: table, commitment + extraction",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "107-109"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- `Oracle.fetchT` with one more thing recorded: the reference games carry no --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "122-123"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The receiver accepts an opening whose digest is the one it stored; the -- fun",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "185-186"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The bad event: a repeat in the oracle's answer log, or a sample that hit the ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "215-215"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Both flags are monotone, so a run that is already bad stays bad.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "228-229"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A fresh sample either hits the outstanding digest — and then the flag is up -",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "240-240"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and the commitment pins the extraction at a duplicate-free log.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "248-249"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The agreement off the bad event: an accepted opening whose point is in the --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "273-275"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- One oracle call, coupled: the two tables move alike, the post-state keeps -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "305-305"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The real marginal: the coupling's first answer IS the real game's.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "358-359"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The ideal marginal: the coupling's second answer is the ideal game's, and at ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "442-444"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The real marginal is the coupling with its second answer dropped, and the -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "469-470"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A query that does not reach the oracle leaves both quantities where they -- w",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "490-490"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The answer log either stays put or gains one fresh uniform sample…",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "502-502"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and the hit flag rises by at most 2⁻ᵏ, by `guess-drift` at the sample.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Game.agda",
+  "lines": null,
+  "tallyLines": [
+   "573-575"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- For every adversary of at most `m` oracle-or-protocol queries, the real -- co",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda",
+  "lines": "3-12",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: why this module exists (coin-toss consumers take the emulation at the open resource domain, the game bound is against one resource) and what Realization/assembly state",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda",
+  "lines": "47-48",
+  "tallyLines": [
+   "60-61"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Rcom/Icom/Rcomʰ/Icomʰ",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda",
+  "lines": "62-63",
+  "tallyLines": [
+   "79-80"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Realization(ʰ)/Assembly(ʰ)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda",
+  "lines": "69-70",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why Assembly's shape needs sym-assoc (UC-composeᵉ's bracketing vs the coin hybrid's)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda",
+  "lines": "75-76",
+  "tallyLines": [
+   "93-94"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over the QB/ʷ families",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda",
+  "lines": "98-99",
+  "tallyLines": [
+   "117-118"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over coin-from-Rcom(ʰ)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda",
+  "lines": "101-102",
+  "tallyLines": [
+   "120-122"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "keep",
+  "reason": "citation of the lemma this instantiates (Examples.CoinToss.Compose.coin-toss-from-com)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda",
+  "lines": "119-120",
+  "tallyLines": [
+   "139-140"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over assembly/assemblyʰ/pin/pinʰ",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda",
+  "lines": null,
+  "tallyLines": [
+   "3-25"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The commitment realization at the RESOURCE-INSTALLED boundary -- (`docs/rcom-",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda",
+  "lines": null,
+  "tallyLines": [
+   "63-65"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The corrupted-committer pair: the honest receiver and the ideal -- functional",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda",
+  "lines": null,
+  "tallyLines": [
+   "72-72"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and the corrupted-receiver pair.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda",
+  "lines": null,
+  "tallyLines": [
+   "86-88"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The assembly obligations: the conclusions of `coin-toss-ideal` and -- `coin-t",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda",
+  "lines": null,
+  "tallyLines": [
+   "96-96"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Every factor is at the unit rate, so each family is a `Famᴹ` arrow at `1⁺`.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda",
+  "lines": "3-9",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: why hop-boundᵇ⊥ (pruned coupling vs pruned marginal only E⊥-equal) and why the ideal side stays a game (Bisim.extract-relog)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda",
+  "lines": "52-53",
+  "tallyLines": [
+   "58-59"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over the machine-half private lemmas and real-run",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda",
+  "lines": "67-68",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "gotcha: naming the three steps separately avoids normalizing the composite's step",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda",
+  "lines": "94-95",
+  "tallyLines": [
+   "103-104"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over deadB/deadI/respB⊥/respI⊥/…/game-bound⊥",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda",
+  "lines": "97-98",
+  "tallyLines": [
+   "106-107"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why deadB/deadI are defined through the erasures: the three prunes cut at the same places",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda",
+  "lines": "157-158",
+  "tallyLines": [
+   "170-171"
+  ],
+  "tallyFlags": [
+   "singleDefBanner"
+  ],
+  "verdict": "keep",
+  "reason": "banner over transferᴿ/binding-real",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda",
+  "lines": "160-162",
+  "tallyLines": [
+   "181-183"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "gotcha: rewriting under ∣_-_∣ only at an abstract equation, else Agda unfolds the subtraction's fold",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda",
+  "lines": null,
+  "tallyLines": [
+   "3-14"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The closed real system's verdict mass, and the game bound it inherits. -- -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda",
+  "lines": null,
+  "tallyLines": [
+   "68-68"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Both factors start with a point mass, and the pairing is three `returnₚ`s.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda",
+  "lines": null,
+  "tallyLines": [
+   "74-76"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The three steps the machine half is: the transport, the initial-state -- junc",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda",
+  "lines": null,
+  "tallyLines": [
+   "94-94"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The closed real machine's `true`-mass IS the pruned real game's.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda",
+  "lines": null,
+  "tallyLines": [
+   "123-124"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A marginal of the pruned coupling, against the pruned marginal: the two -- di",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda",
+  "lines": null,
+  "tallyLines": [
+   "136-137"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- `Game.stepR`/`stepI` at the pruned kernels: off the cut both sides are -- the",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda",
+  "lines": null,
+  "tallyLines": [
+   "173-179"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- At every distinguisher of at most `m` activations, the closed real MACHINE --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda",
+  "lines": null,
+  "tallyLines": [
+   "199-203"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- At every distinguisher of at most `m` activations, the closed real MACHINE --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": "3-10",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: how Game.Q/R relate to the machine alphabets, what prune buys (bijection/section as runWith⊥-bisimʳ needs), pointer to the ideal-leg section",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": "52-53",
+  "tallyLines": [
+   "54-55"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over toQ/toR/fromR/…",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": "81-82",
+  "tallyLines": [
+   "86-87"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "fromR is only a section; its idleR value is arbitrary and unreachable after pruning",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": "102-103",
+  "tallyLines": [
+   "108-109"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over deadR/respR⊥",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": "115-116",
+  "tallyLines": [
+   "123-124"
+  ],
+  "tallyFlags": [
+   "singleDefBanner"
+  ],
+  "verdict": "keep",
+  "reason": "banner over the private block of ~15 reading lemmas (singleDefBanner flag is stale: it heads a private block)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": "134-134",
+  "tallyLines": [
+   "142-142"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why lift⊥ only matches inj₂: the trace's answer alphabet keeps the empty ⊥ summand in front",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": "229-230",
+  "tallyLines": [
+   "244-245"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over _≋ᴿ_/bisimᴿ",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": "232-233",
+  "tallyLines": [
+   "247-248"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why _≋ᴿ_ relates only resting receivers over an untouched cell",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": "274-275",
+  "tallyLines": [
+   "289-290"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over sim-log-repeat/pre-hit/extract-relog/extract-table (the header points at it by name)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": "277-282",
+  "tallyLines": [
+   "292-298"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "the negative result: why no relation makes the simulator machine bisimilar to Game.respI (log ≠ table), with the witnessing sim-log-repeat/extract-relog",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": null,
+  "tallyLines": [
+   "3-12"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The closed real system and the closed real GAME, letter for letter. -- -- The",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": null,
+  "tallyLines": [
+   "57-57"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The corrupted committer's port IS the game's question alphabet.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": null,
+  "tallyLines": [
+   "78-79"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and its answers embed in the game's, `idleR` excepted: the game idles -- exa",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": null,
+  "tallyLines": [
+   "101-101"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The receiver's verdict and the game's opening rule are the same letter.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": null,
+  "tallyLines": [
+   "111-112"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A second commitment, and an opening before one: the two clauses where -- `rea",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": null,
+  "tallyLines": [
+   "146-146"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- What the loop does with the receiver's emission, `j` rounds from the end.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": null,
+  "tallyLines": [
+   "151-151"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The letter enters the dispatch and the receiver acts.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": null,
+  "tallyLines": [
+   "166-166"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- What the receiver makes of a digest, and the loop of its reaction.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": null,
+  "tallyLines": [
+   "170-171"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- One oracle round trip: the receiver's query goes down, the table answers, -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": null,
+  "tallyLines": [
+   "213-213"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and the same three activations at the pruned game.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda",
+  "lines": null,
+  "tallyLines": [
+   "238-238"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- An activation neither side serves scores nothing on either.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda",
+  "lines": "3-13",
+  "tallyLines": [
+   "3-15"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: why each composite needs a rank and why the ranks are what they are (real-up, sub-up, Φˢ), and why the resource's activations need no inspection",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda",
+  "lines": "57-58",
+  "tallyLines": [
+   "59-60"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Kʳ/real-settles/real-up",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda",
+  "lines": "60-61",
+  "tallyLines": [
+   "62-63"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why Kʳ mirrors realStep's clause structure: both sides reduce together",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda",
+  "lines": "113-114",
+  "tallyLines": [
+   "118-119"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Kᵒ/res-settles",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda",
+  "lines": "123-124",
+  "tallyLines": [
+   "128-129"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over rankᴿ/Dropsᴿ/…/boundᴿ",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda",
+  "lines": "152-153",
+  "tallyLines": [
+   "161-162"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Kⁱ/ideal-settles/…",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda",
+  "lines": "203-204",
+  "tallyLines": [
+   "214-215"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over simᴵ/Kˢ/sub-settles/sub-up",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda",
+  "lines": "261-262",
+  "tallyLines": [
+   "275-276"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over rankᴵ/Dropsᴵ/…",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda",
+  "lines": null,
+  "tallyLines": [
+   "105-107"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The receiver never answers the resource with another query: every clause of -",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda",
+  "lines": null,
+  "tallyLines": [
+   "139-140"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A resource answer is a loop point of rank 0; the receiver's reaction to it --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda",
+  "lines": null,
+  "tallyLines": [
+   "155-156"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The closed real system's kernel: one activation of the corrupted committer, -",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda",
+  "lines": null,
+  "tallyLines": [
+   "164-164"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A wire: one letter in, one letter out, in either direction.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda",
+  "lines": null,
+  "tallyLines": [
+   "201-201"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- `F_com` installed on the resource, as one machine with a kernel.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda",
+  "lines": null,
+  "tallyLines": [
+   "260-262"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- What the simulator does with an answer from below: it exits, or it owes one -",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda",
+  "lines": null,
+  "tallyLines": [
+   "278-279"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Twice the simulator's allowance, plus one while the query is still in -- flig",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda",
+  "lines": null,
+  "tallyLines": [
+   "289-289"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- `a < b` in the simulator's own ledger is the doubled drop the loop needs.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda",
+  "lines": null,
+  "tallyLines": [
+   "313-313"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The closed simulated-ideal system's kernel.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": "3-18",
+  "tallyLines": [
+   "3-22",
+   "127-128"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: what the toy is for (inhabited simulator interface, nontrivial grade, exact agreement, nothing assumed about the resource) and the docs/hash-forward.md pointer",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": "47-48",
+  "tallyLines": [
+   "51-52"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over the four interface groups",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": "50-51",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "repeats the header (leaky channel + hash oracle as one resource, nothing assumed about it)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": "98-99",
+  "tallyLines": [
+   "105-106"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over downᶠ/upᶠ/ideal",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": "101-104",
+  "tallyLines": [
+   "108-111"
+  ],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "drop 'It is a WIRE: … relabelled' (ideal = wireᴹ upᶠ downᶠ says it); keep the why — statelessness avoids the ⊕-trace, and is honest since the state is the resource's. This is the user-facing site of that explanation (ROCommitment's copy is cut)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": "120-121",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over SSt/simStep/stateˢ/simulator",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": "123-125",
+  "tallyLines": [
+   "130-132"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why three states (two queries per peekᴬ) and the botₚ convention citing Protocol.Machine.stepᴹ",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": "143-144",
+  "tallyLines": [
+   "150-151"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over realStep/real",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": "146-151",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "first paragraph narrates realStep (and restates the header); keep the gotcha about splitting the state inside each clause",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": "171-172",
+  "tallyLines": [
+   "181-182"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over relayed/dead/real-factors",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": "182-184",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "'a wire below costs no trace' now said once, at downᶠ; keep the proof-shape why",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": null,
+  "tallyLines": [
+   "54-55"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The resource below: a channel that stores one message, delivers it and leaks ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": null,
+  "tallyLines": [
+   "71-71"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The honest interface, common to both worlds.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": null,
+  "tallyLines": [
+   "83-83"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The REAL adversary-facing port: one query, answered with a digest.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": null,
+  "tallyLines": [
+   "93-93"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The IDEAL simulator-facing port: the leak, and the oracle relayed.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": null,
+  "tallyLines": [
+   "153-161"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The simulator's own program, run against the resource instead of against the ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": null,
+  "tallyLines": [
+   "191-192"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The two shapes a relayed step takes: the simulator answers, or it is -- off-p",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward.agda",
+  "lines": null,
+  "tallyLines": [
+   "200-203"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The real protocol IS the simulator standing in front of the ideal -- function",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/Audit.agda",
+  "lines": "3-11",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "header: what audit-carry is instantiated at, why no prefix tolerance is spent, docs pointer on designations",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/Audit.agda",
+  "lines": "54-55",
+  "tallyLines": [
+   "62-63"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over hf-witness/hf-emul/absorbed-budget",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/Audit.agda",
+  "lines": "57-59",
+  "tallyLines": [
+   "65-72"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "the allowance-2 reason and its exactness are the HashForward.UC header's ('two queries per peekᴬ … equations, not ceilings'); rule 24",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/Audit.agda",
+  "lines": "66-69",
+  "tallyLines": [
+   "82-85"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why absorbed-budget's rate is 2⁺·c: the tested context is Et ∘ id ⊗₁ (simᵒ ⊗₁ id), identities at 1⁺, simulator at 2⁺",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/Audit.agda",
+  "lines": "77-78",
+  "tallyLines": [
+   "93-94"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over hf-audit-carry/silent/…/hf-pr-bound",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/Audit.agda",
+  "lines": "90-91",
+  "tallyLines": [
+   "107-108"
+  ],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "its antecedent ('at an arbitrary designation', hf-audit-carry's comment) was cut, leaving a dangling '…and at the one'; make it stand alone",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/Audit.agda",
+  "lines": "104-109",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "first sentence restates hf-pr-bound's type; the scale-cost sentence repeats absorbed-budget's comment; keep the Dₚ/Bounded gotcha",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/Audit.agda",
+  "lines": null,
+  "tallyLines": [
+   "3-19"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The graded carry, run at `X = ifaceᵒ Advᴵ`. -- -- `UC.Audit.audit-carry` is g",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/Audit.agda",
+  "lines": null,
+  "tallyLines": [
+   "79-80"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: ------------------------------------------------------------------------ -- The ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/Audit.agda",
+  "lines": null,
+  "tallyLines": [
+   "96-96"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- At an arbitrary designation of the ideal experiment's observation.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/Audit.agda",
+  "lines": null,
+  "tallyLines": [
+   "122-123"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: ------------------------------------------------------------------------ -- The ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/Audit.agda",
+  "lines": null,
+  "tallyLines": [
+   "125-134"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Review §3's last acceptance criterion, at this toy: a `Pr` bound on the REAL ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/UC.agda",
+  "lines": "3-15",
+  "tallyLines": [
+   "3-15",
+   "57-58"
+  ],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "keep; `UC.Seam.Grounded.subBlind` is not a name — the predicate is `SubBlind`",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/UC.agda",
+  "lines": "39-40",
+  "tallyLines": [
+   "39-40"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over realᵒ/idealᵒ/simᵒ/real-agrees/real-≤UC",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/UC.agda",
+  "lines": "57-58",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Φˢ/simCert/simQB",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/UC.agda",
+  "lines": "60-61",
+  "tallyLines": [
+   "60-61"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "Φ's meaning as units still owed (amortised deposit/withdraw)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/UC.agda",
+  "lines": "103-104",
+  "tallyLines": [
+   "106-107"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Λˢ/…/sim-round",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/UC.agda",
+  "lines": "106-106",
+  "tallyLines": [
+   "109-109"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why one Λˢ serves both weightings (awaitL = a peekᴬ in flight)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/UC.agda",
+  "lines": "129-129",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "what-narration of stepᵂ's Σ-type; same cut as ROCommitment.UC's twin (rule 26)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/UC.agda",
+  "lines": "164-167",
+  "tallyLines": [
+   "196-199"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "spells out what EH.Balanced asserts on every branch (not evident from the name) and cites runᴱ-erases",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/UC.agda",
+  "lines": "191-195",
+  "tallyLines": [
+   "225-229"
+  ],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "antecedent ('…and when the run ends between transactions', sim-hash-count-settled's comment) was cut; drop the dangling '…and', keep why sim-round exists (live-run witness)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/UC.agda",
+  "lines": null,
+  "tallyLines": [
+   "115-115"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- One ORACLE query per `peekᴬ`.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/UC.agda",
+  "lines": null,
+  "tallyLines": [
+   "125-125"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and two queries of ANY kind per `peekᴬ`.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/UC.agda",
+  "lines": null,
+  "tallyLines": [
+   "134-135"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The three live transitions and the off-protocol rest, shared by the two -- ce",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/HashForward/UC.agda",
+  "lines": null,
+  "tallyLines": [
+   "210-211"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- …and when the run ends between transactions the ledger is zero, so the -- cou",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard.agda",
+  "lines": "3-24",
+  "tallyLines": [
+   "3-31"
+  ],
+  "tallyFlags": [
+   "headerOverTier"
+  ],
+  "verdict": "reword",
+  "reason": "keep the claim/caveat (single-oracle indistinguishability, strictly weaker than indifferentiability) and the proof-structure paragraph; cut the four-line protocol table (restates the signatures below) and the warm-timing line (8 s is far under the rule-5 budget, so documenting it exempts nothing; QUALITY-REVIEW.md already records different Core timings)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard.agda",
+  "lines": "53-54",
+  "tallyLines": [
+   "60-61"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over the MD module's protocol definitions",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard.agda",
+  "lines": "64-66",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why compStep takes the lookup result as an argument (compStep-eval cases on it), citing Core.callC' which uses the same device",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard.agda",
+  "lines": "84-85",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why the compression query carries i₀ (p = 1, as Core.mdRun)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard.agda",
+  "lines": "97-98",
+  "tallyLines": [
+   "109-110"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Go/Kret/compStep-eval/graft-chain/sysStep/generalStep-eval/run-*",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard.agda",
+  "lines": "108-109",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "gotcha: the with reaches the scrutinee inside Comp.step because the statement names it (as Core.callC-marg)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard.agda",
+  "lines": "198-200",
+  "tallyLines": [
+   "216-220"
+  ],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "first clause restates indistinguishable's type; keep why the two verdicts collapse",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard.agda",
+  "lines": null,
+  "tallyLines": [
+   "71-75"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A lazily sampled oracle as a call tree: repeat from the table, or draw the --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard.agda",
+  "lines": null,
+  "tallyLines": [
+   "93-95"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Merkle–Damgård itself: one compression call per block, threading the -- chain",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard.agda",
+  "lines": null,
+  "tallyLines": [
+   "100-101"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Between activations MD holds nothing: a whole message is hashed in one -- act",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard.agda",
+  "lines": null,
+  "tallyLines": [
+   "120-122"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- One compression call of the composite, whichever branch the oracle -- takes. ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard.agda",
+  "lines": null,
+  "tallyLines": [
+   "145-145"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- THE computation: grafting `md`'s chain onto `comp` replays `Core.mdRun`.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard.agda",
+  "lines": null,
+  "tallyLines": [
+   "206-206"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The two runs, read at the core's kernels.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard.agda",
+  "lines": null,
+  "tallyLines": [
+   "213-214"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: ------------------------------------------------------------------------ -- The ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard.agda",
+  "lines": null,
+  "tallyLines": [
+   "228-229"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- all that is left of the seam: layer 1's two runs, read at the core's -- kerne",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "3-24",
+  "tallyLines": [
+   "3-63"
+  ],
+  "tallyFlags": [
+   "headerOverTier",
+   "leftoverMarker"
+  ],
+  "verdict": "reword",
+  "reason": "keep: the split rationale (protocol changes do not re-elaborate the crypto) and the per-fact key idea with its lemma names (pointRep, detach, walkR, φMD, MDInv, walk-hit-collC — all present); cut the warm-timing line (stale: QUALITY-REVIEW.md measures this module at 35 s; and far under budget, rule 26 with the other three MD headers)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "74-75",
+  "tallyLines": [
+   "121-122"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why NonZero k is required (k = 0 makes indistinguishable false)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "87-91",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "the citation named no paper — verified against the PDF: the length+index-tagged f is the construction in the proof of Coron–Dodis–Malinaud–Puniya's Thm 3.1; drop the last line (restates the RandomOracle instantiation's input type)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "121-124",
+  "tallyLines": [
+   "184-189"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "defines the structural collision (IV ∪ interior) and why final-hash collisions are harmless",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "146-165",
+  "tallyLines": [
+   "217-240"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "keep",
+  "reason": "banner+design of the coupling: state components, the two answers, and exactly when the flag rises ((i)/(ii), (ii) checked 'by fiat'); the definition site of the explanation the header summarizes",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "173-173",
+  "tallyLines": [
+   "248-248"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "lowercase gloss of callC''s Bool (true = hit), readable from its two clauses",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "182-182",
+  "tallyLines": [
+   "257-257"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "lowercase gloss of walk's Bool; same family as callC''s (rule 26); the one non-obvious bit, the empty-list convention, stays as the inline '-- no call ⇒ NOT fresh'",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "283-284",
+  "tallyLines": [
+   "367-368"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "insideDefinition per-step gloss of newAnsE's statement/proof (E-bind then E-const); rule 22",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "336-340",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "states what detach means (dInt is opaque) — the freshness-detachment idea the header cites",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "350-351",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "gotcha: lookup-as-argument keeps the mutual recursion structurally decreasing; same device as the walk-…L/…C lemmas (walk-replayL/C, walk-suppL, walk-fkL still exist)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "433-434",
+  "tallyLines": [
+   "534-535"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "insideDefinition gloss of pointRep's two with-branches; the 'flagged by fiat' reason is the coupling banner's (ii) (rule 24)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "502-506",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner+why: φ is an EXACT martingale, what an interior miss creates and spends (pool, E-collisions)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "781-784",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner+orientation: the table as an LTS (stepT), Chain, the shape unique-run consumes",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "802-802",
+  "tallyLines": [
+   "927-927"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "defines the pool ({IV} ∪ interior outputs) that Rooted's one-liner refers to by poolL",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "806-806",
+  "tallyLines": [
+   "931-931"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "one-line reading of OwnedLast's 6-line Σ-type",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "818-821",
+  "tallyLines": [
+   "944-947"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "why MDInv's structural parts are gated on ¬flag (flagged preservation becomes collision-count monotonicity)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "834-836",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over collC-mono1/…/walk-collC-mono",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "838-839",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "gotcha: inlined to avoid a mismatched second with-neutral from collC-cons<",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "960-962",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over _⊒_/fresh inserts/walk support/final-key tracker",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "1176-1177",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over pos-sum-≡0/…/walk-hit-collC",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "1328-1332",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "the mathematical argument of walk-hit-collC (co-determinism ⇒ unique-run ⇒ M ≡ M' contradiction)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "114-119"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: --------------------------------------------------------------------------------",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "125-125"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- ignore parties for now: a single party.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "130-130"
+  ],
+  "tallyFlags": [
+   "insideDefinition"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- chaining value / hash",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "132-132"
+  ],
+  "tallyFlags": [
+   "insideDefinition"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- one message block",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "135-140"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- 4-input compression oracle (Theorem 3.1 — the citation is for the -- construc",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "146-147"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A compression query packs the chaining value, the block, the message length -",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "155-155"
+  ],
+  "tallyFlags": [
+   "insideDefinition"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- a (k·n)-bit message as k blocks",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "158-159"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Merkle-Damgard -- FIXME: we just want to fail on invalid input, not give garb",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "108-108",
+  "tallyLines": [
+   "161-161"
+  ],
+  "tallyFlags": [
+   "insideDefinition"
+  ],
+  "verdict": "keep",
+  "reason": "inline: component semantics of MDState's tuple (party, NEXT block index, remaining blocks) — the ℕ's role is not in the type",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "163-167"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: ------------------------------------------------------------------------ -- Secu",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "172-173"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- MD chaining the compression oracle over one message's blocks, threading the -",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "179-180"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- REAL per-query response = the reactive kernel of `MD ⊚ Comp.M`: run MD's -- c",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "199-199"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the collision POOL: {IV} ∪ interior outputs, as an entry list",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "206-206"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- number of colliding pairs in the pool",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "210-213"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The birthday bound `triangle (q·k) · 2⁻ⁿ` for q queries of k blocks each — th",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": "184-184",
+  "tallyLines": [
+   "259-259"
+  ],
+  "tallyFlags": [
+   "insideDefinition"
+  ],
+  "verdict": "keep",
+  "reason": "inline: why walk's empty case reports true: no call means the answer is NOT fresh",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "264-265"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- answer/record for a NEW message: flagged → an independent uniform; -- unflagg",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "276-276"
+  ],
+  "tallyFlags": [
+   "insideDefinition"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- repeat: check replay consistency",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "280-280"
+  ],
+  "tallyFlags": [
+   "leftoverMarker",
+   "insideDefinition"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- new: check final-call freshness",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "289-289"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the ideal machine's reactive kernel, LITERALLY the functionality's step",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "294-294"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- one call's (table , value) marginal agrees with `Comp.step`",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "317-317"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the walk's (table , final value) marginal is exactly `mdRun`",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "341-345"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The flag and the ghost table are invisible to the real world: erasing them --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "347-347"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the real world's reading of a coupled state: flag and ghost erased",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "359-359"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- both branches end at the walk's (table , value) marginal",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "422-427"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- ★ FRESHNESS DETACHMENT: walking the chain and testing `G` on the final -- val",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "431-431"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- casing on the flag once and for all: averaging `G` under `cond f` is the aver",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "438-439"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- forward declarations (detach ↔ detachC are mutually recursive; passing the --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "457-458"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the LAST call: a hit is (flagged ⇒) the constant average; a miss detaches -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "467-467"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- an INTERIOR call: recurse on a hit, average out the fresh sample on a miss.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "493-494"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the ideal world's reading of a coupled state: the ghost table IS the -- rando",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "498-498"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the two readings of the RO's own step, as equations rather than unfoldings",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "508-512"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- ★ THE KEY LEMMA, generalized: from ANY flag/compression state whose ghost -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "563-564"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- a NEW answer is the uniform average when flagged, `G₀` of the -- (necessarily",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "600-601"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- ★ THE KEY LEMMA, PROVEN: the coupling's ideal view IS the variable-length -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "607-612"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: ------------------------------------------------------------------------ -- THE ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "616-616"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the triangle slice `Γ` sums, as a rational",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "627-628"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- literal-free: `inv-pow-2 n` is the uniform point-mass (P-uniform-Vec), -- and",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "635-635"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- triangle facts",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "650-650"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- counting facts",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "668-668"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- table-shape facts",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "709-709"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- ★ THE WALK MARTINGALE — forward-declared, detach-style",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "813-813"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the newAns marginal is φ-constant (ghost/flag/answers don't enter φ)",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "829-829"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- ★ the per-query supermartingale inequality",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "901-904"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: ------------------------------------------------------------------------ -- ★ TH",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "906-906"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the table as a labelled partial transition function on values",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "910-910"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- position-tagged labels of a block list, starting at position j",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "915-915"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- \"M's chain is embedded in sc, ending at value h\"",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "919-919"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- a value occurs among the stored outputs of a table fragment",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "923-923"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- keys are pairwise distinct (inserts only happen on misses)",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "940-940"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- recorded messages have embedded chains ending at the recorded value",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "960-963"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: ------------------------------------------------------------------------ -- Pres",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "965-967"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- collC is monotone under prepending a (length-k-tagged) compression entry. -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "994-994"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- a flagged state is `MDInv` as soon as `1 ≤ collC` (structural parts vacuous)",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1007-1008"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- ★ THE FLAGGED BRANCH of preservation, PROVEN: from `1 ≤ collC sc`, every -- r",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1038-1042"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Replaying an EMBEDDED chain: with every lookup a hit, the walk is a -- determ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1076-1079"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- REPEAT branch, PROVEN: a recorded message replays deterministically (its -- c",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1103-1103"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- ═══ new-message branch (group E): fresh-insert / lookup-extension machinery ═",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1105-1105"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- \"sc' extends sc\": every present lookup is preserved (⟹ successful runs preser",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1130-1130"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- successful runs are preserved under extension",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1139-1139"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- a fresh (absent) key differs from every present key",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1151-1151"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- ═══ new-message branch (group E cont.): Rooted maintenance under inserts ═══",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1153-1153"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- insert one element after the head of an Any-witness list",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1159-1159"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- prepending any entry only grows the pool: pool membership is preserved",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1166-1166"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the value of a freshly inserted INTERIOR entry is in the new pool",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1172-1172"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- an INTERIOR key's stored value is rooted in the pool",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1186-1186"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- prepending a fresh entry preserves Rooted (its chaining is already rooted)",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1193-1193"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- ═══ new-message branch (group F): the walk-support lemma ═══",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1195-1195"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the walk-support bundle (structural facts on a support element)",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1205-1205"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- single call: structural facts on its support (INTERIOR variant, idx < k)",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1244-1244"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- FINAL call (single block): no recursion",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1257-1257"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- INTERIOR call then recurse (mirrors walk-φC)",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1296-1297"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- length of a message in blocks is exactly k -- extending a table by fresh inse",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1305-1305"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- ═══ new-message branch (group F cont.): the final-key tracker ═══",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1307-1307"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- an interior key (idx < k) is never a final key (idx = k)",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1312-1312"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- \"the key (v',b',k) is the last block of this walk, reaching v'\"",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1317-1318"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- output bundle: extension + every FINAL key of sc' is either old (in sc) or --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1347-1347"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- FINAL call (single block, no recursion)",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1363-1363"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- INTERIOR call then recurse (mirrors walk-suppC)",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1415-1415"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- ghost-table lookup lemmas (mirror the Comp-table ones)",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1427-1427"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- ═══ descent (S2): collC ≡ 0 ⇒ interior co-determinism ═══",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1434-1434"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- count-matches ≡ 0 ⇒ no entry has value h",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1441-1441"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- state-collisions ≡ 0 ⇒ all stored values pairwise distinct",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1448-1448"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- a successful lookup exhibits the found entry as a member",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1454-1454"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- an interior member (idx < k) survives the `interior` filter",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1468-1468"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- two members of an AllPairs-list are equal or R-related",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1480-1480"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- interior co-determinism: two interior keys looking up to the same value are e",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1496-1496"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- ═══ descent (S1/S4): integrality + structural list/vector lemmas ═══",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1498-1498"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- integrality: a δ-sum is 0 or ≥ 1",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1513-1513"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- snoc decomposition of a nonempty block list",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1521-1521"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- labels of a snoc: last label carries position (j + length bs)",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1528-1528"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- labels is injective at a fixed start position",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1536-1536"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- interior-restricted step; all-interior runs agree with the full step",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1551-1551"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- chunk is injective (via take/drop reconstruction)",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1570-1570"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- length of a snoc-decomposed message's prefix is k − 1 (so 1 + it ≡ k)",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1577-1577"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- inversion of the interior-restricted step",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1584-1584"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- co-determinism of the interior step from collC ≡ 0",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1594-1599"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- ═══ HIT residual, PROVEN: the birthday descent ═══ -- A NEW message whose fin",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1661-1662"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- MISS residual, PROVEN: a final key present in sc' is either OLD (owned by an ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1683-1684"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- NEW-message preservation, ASSEMBLED: UniqueKeys/Rooted/RecChains PROVEN via -",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1724-1724"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- unflagged preservation, ASSEMBLED: repeat branch PROVEN, new branch residual.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1737-1737"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- one-query preservation, ASSEMBLED: flagged branch PROVEN, unflagged residual.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1749-1749"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the certificate, ASSEMBLED (all probabilistic fields PROVEN)",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda",
+  "lines": null,
+  "tallyLines": [
+   "1764-1764"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- the ADAPTIVE birthday bound, PROVEN from the certificate",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda",
+  "lines": "3-19",
+  "tallyLines": [
+   "3-19"
+  ],
+  "tallyFlags": [],
+  "verdict": "reword",
+  "reason": "keep the why-these-pins paragraph (non-vacuity, tightness at one block, the ¼ gap, the vacuous two-block bound); cut the warm-timing line (rule 26 with the other MD headers)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda",
+  "lines": "39-40",
+  "tallyLines": [
+   "39-40"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over module OneBlock (10 defs)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda",
+  "lines": "79-80",
+  "tallyLines": [
+   "87-88"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over module TwoBlocks (11 defs)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda",
+  "lines": "86-89",
+  "tallyLines": [
+   "94-97"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "repeats the header's two-block collision explanation (second block shared, collide iff first chaining values agree, half the time) — rule 24",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda",
+  "lines": "98-98",
+  "tallyLines": [
+   "106-106"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "the arithmetic behind 3/4 (½ + ½·½), which the header states only as a result",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda",
+  "lines": "111-111",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "repeats the header ('bound 2 ≡ 3 > 1 … vacuous … exercises the arithmetic only') — rule 24",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda",
+  "lines": null,
+  "tallyLines": [
+   "46-46"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Hash one message and report the single output bit.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda",
+  "lines": null,
+  "tallyLines": [
+   "53-53"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A fresh message hashes to a uniform bit, in both worlds.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda",
+  "lines": null,
+  "tallyLines": [
+   "60-60"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Ask the same message twice: both worlds answer consistently.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda",
+  "lines": null,
+  "tallyLines": [
+   "72-73"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- `bound 1` is `0ℚ` at one block, and the advantage really is zero: the -- theo",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda",
+  "lines": null,
+  "tallyLines": [
+   "80-82"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The theorem itself at those parameters, which is what `hash-asks` is for. -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda",
+  "lines": null,
+  "tallyLines": [
+   "110-110"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The variable-length oracle answers two distinct messages independently.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda",
+  "lines": null,
+  "tallyLines": [
+   "114-114"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The gap the chaining costs.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda",
+  "lines": null,
+  "tallyLines": [
+   "118-120"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- `bound 2` exceeds 1, so `indistinguishable` is VACUOUS at `n = 1, k = 2`: -- ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda",
+  "lines": null,
+  "tallyLines": [
+   "124-126"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- The theorem applied anyway, at the budget `collide-asks` certifies: it -- typ",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda",
+  "lines": null,
+  "tallyLines": [
+   "130-131"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Both queries repeated: every compression call is a table hit the second -- ti",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda",
+  "lines": "3-20",
+  "tallyLines": [
+   "3-21"
+  ],
+  "tallyFlags": [
+   "leftoverMarker"
+  ],
+  "verdict": "reword",
+  "reason": "keep (why the potential cannot be read off MSt and what QB's ≈ᴹ-closure is for); `θ-sim` no longer exists (landed 7072094f made it `Pw.simFn θᴰ` inline in qbᴹᴰ); cut the warm-timing line (rule 26)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda",
+  "lines": "61-62",
+  "tallyLines": [
+   "70-71"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over resume/advance/stepᴰ/stateᴰ/mdᴹ",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda",
+  "lines": "85-86",
+  "tallyLines": [
+   "102-103"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over Φᴰ/blk-len/onEnter/onAdvance/certifiedᴹᴰ",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda",
+  "lines": "98-99",
+  "tallyLines": [
+   "115-116"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "where the rate k comes from (deposit k, spend one on block 1; list length k)",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda",
+  "lines": "145-146",
+  "tallyLines": [
+   "163-164"
+  ],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "banner over θᴰ/advance-drive/θ-step/qbᴹᴰ",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda",
+  "lines": "153-154",
+  "tallyLines": [],
+  "tallyFlags": [],
+  "verdict": "keep",
+  "reason": "gotcha: point passed explicitly, else θᴰ's constructor-headed clauses invert and strand resume's arguments",
+  "present": true
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda",
+  "lines": null,
+  "tallyLines": [
+   "74-75"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- What `chainᶜ` parks: the rest of the chain, at the party the general query --",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda",
+  "lines": null,
+  "tallyLines": [
+   "79-79"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A compression answer arrives mid-chain: fire the next block, or finish.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda",
+  "lines": null,
+  "tallyLines": [
+   "84-84"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A general query arrives: fire block 1 at index 1.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda",
+  "lines": null,
+  "tallyLines": [
+   "126-126"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- A compression answer spends one unit, or returns without spending.",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda",
+  "lines": null,
+  "tallyLines": [
+   "171-174"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Both drives park the SAME continuation: `θᴰ` is `resume`, which is the -- sub",
+  "present": false
+ },
+ {
+  "file": "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda",
+  "lines": null,
+  "tallyLines": [
+   "217-217"
+  ],
+  "tallyFlags": [],
+  "verdict": "cut",
+  "reason": "already absent at HEAD 7482d8c7 (removed by the landed Comments: trim commits); no action. Preview: -- Merkle–Damgård costs at most `k` compression activations per message.",
+  "present": false
+ }
+]

@@ -1,0 +1,373 @@
+{
+ "sweep": "join-lines",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/Approx/FilteredTests.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda": {
+   "candidates": 4,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/Machines/Core.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Frame.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 212,
+     "edit": "join 2 lines: `σ-onR : {k : Q ⊗₀ A ⇒ Q ⊗₀ B} → σ⇒ ⊗₁ id ∘ onR k ≈…`"
+    },
+    {
+     "line": 230,
+     "edit": "join 2 lines: `σ-onL : {k : P ⊗₀ A ⇒ P ⊗₀ B} → σ⇒ ⊗₁ id ∘ onL k ≈…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 8.4
+  },
+  "src/CategoricalCrypto/Machines/Pointwise.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Sim.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Sim/Lax.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Tensor.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Assoc.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 66,
+     "edit": "join 2 lines: `⊗-split : (f : Machine A B) (g : Machine C D) → (f…`"
+    },
+    {
+     "line": 90,
+     "edit": "join 2 lines: `⊗-split′ : (f : Machine A B) (g : Machine C D) → (…`"
+    },
+    {
+     "line": 174,
+     "edit": "join 2 lines: `natˡ : (f : Machine A B) → (α⇒ᴹ ∘ᴹ ((f ⊗ᵉ idᴹ) ⊗ᵉ …`"
+    },
+    {
+     "line": 193,
+     "edit": "join 2 lines: `natʳ : (h : Machine E F) → (α⇒ᴹ ∘ᴹ (idᴹ ⊗ᵉ h)) ≈ᴹ …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 29.6
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Structural.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Trace/Congruence.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Protocol/Machine.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Compose.agda": {
+   "candidates": 5,
+   "kept": [
+    {
+     "line": 69,
+     "edit": "join 2 lines: `susp : (Pos B → Calls B (St P₂ × Pos C)) → (Pos A …`"
+    },
+    {
+     "line": 118,
+     "edit": "join 2 lines: `π-serve k₂ (coin μ k₁)     = >>=ₚ-assoc (coinₚ μ) …`"
+    },
+    {
+     "line": 126,
+     "edit": "join 2 lines: `π-graft (coin μ k₂)     s₁ = >>=ₚ-assoc (coinₚ μ) …`"
+    },
+    {
+     "line": 168,
+     "edit": "join 2 lines: `exit : MC.obj Sᴳ × ((Neg A ⊎ Pos C) ⊎ (Neg B ⊎ Pos…`"
+    },
+    {
+     "line": 250,
+     "edit": "join 2 lines: `ι-sim : machineᶜ S.≲ MT.traceᴹ (Pos A ⊎ Neg C) (Ne…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 51.3
+  },
+  "src/CategoricalCrypto/Protocol/Observe.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 99,
+     "edit": "join 2 lines: `evalC-support : {P : X → Set} (t : Calls unitᴵ X) …`"
+    },
+    {
+     "line": 133,
+     "edit": "join 2 lines: `evalC-serve-uniformVec k = uniformVec-bind (λ t → …`"
+    },
+    {
+     "line": 167,
+     "edit": "join 2 lines: `hitFrom acc s (ask q k)  = kernel s q >>=⊥ λ (s′ ,…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 17.4
+  },
+  "src/CategoricalCrypto/SFunM/Test/Possibility.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Graded.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Machine.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Machine/MonitorTests.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Machine/Run/Lax.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Model/Family/Emulation.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Model/Seal.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 90,
+     "edit": "join 2 lines: `≈ᴹ⇒≈ᵒ : {A B : Iface} {f g : Proc A B} → 𝒢ₚ 0ℓ [ f…`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 28.1
+  },
+  "src/CategoricalCrypto/UC/Quantitative/EventLift.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/QueryBound.agda": {
+   "candidates": 10,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Seam/Budget.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/Categories/Category/Construction/Kleisli/Discrete.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 184,
+     "edit": "join 2 lines: `assoc-commuteᵏ : {f : A → M A′} {g : B → M B′} {h …`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 6.9
+  },
+  "src/Categories/Category/Construction/Kleisli/Distributive.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Distributive/Monoidal.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Monoidal/Distributive/Instance/Rels.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Monad/Construction/Kleisli/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Monad/Setoids/Discrete.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Monad/Setoids/Maybe.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Class/Monad/Ext/Setoid.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Mass.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  }
+ },
+ "totalChecks": 28
+}

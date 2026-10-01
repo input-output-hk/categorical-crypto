@@ -1,0 +1,802 @@
+{
+ "src/CategoricalCrypto/Examples/ChimericLedger.agda": [
+  {
+   "line": 4,
+   "head": "-- transaction with no inputs, `inputConsuming` does not (`ChimericLedger.Replay`",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 24,
+   "head": "-- `DecEq-×` is not an upstream instance (it competes with the `--with-K`",
+   "reason": "phantom: `with` inside a comment"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/RandomOracle.agda": [
+  {
+   "line": 39,
+   "head": "lookup-bs-here s q h with q ≟ q",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 44,
+   "head": "lookup-bs-there s q h q′ ne with q′ ≟ q",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 99,
+   "head": "-- Number of unordered pairs of entries with the same hash.",
+   "reason": "phantom: `with` inside a comment"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ChimericLedger/System.agda": [
+  {
+   "line": 103,
+   "head": "with checkIns u ins | checkWdrls [] wds in eq",
+   "reason": "`with … in eq` (the equation has no case_of_ counterpart)"
+  },
+  {
+   "line": 106,
+   "head": "... | just (vIn , _) | just _ with (vIn + wdrlΣ wds ≡ᴺ valΣ outs) ∧ consumes vr ins",
+   "reason": "nested `with` inside a branch of an outer `with`"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda": [],
+ "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda": [
+  {
+   "line": 3,
+   "head": "-- What one transaction does to `total`, with the hash answered by an",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 65,
+   "head": "balance-removeIn ((k , v) ∷ m) i o eq with i ≟ k",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 73,
+   "head": "checkIns-∷ u i is v u′ eq with lookupU u i",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 75,
+   "head": "... | just o with checkIns (removeIn i u) is",
+   "reason": "nested `with` inside a branch of an outer `with`"
+  },
+  {
+   "line": 77,
+   "head": "...   | just (v₀ , u₁) with just-injective eq",
+   "reason": "nested `with` inside a branch of an outer `with`"
+  },
+  {
+   "line": 83,
+   "head": "checkIns-balance u (i ∷ is) v u′ eq with checkIns-∷ u i is v u′ eq",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 96,
+   "head": "acctΣ-subOne ((y , w) ∷ a) x v le with x ≟ y",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 104,
+   "head": "checkWdrls-acctΣ a ((x , v) ∷ ws) a′ eq with v ≤ᵇ acctOf a x in eqb",
+   "reason": "`with … in eq` (the equation has no case_of_ counterpart)"
+  },
+  {
+   "line": 133,
+   "head": "fresh′ j le with (h , j) ≟ (h , i)",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 143,
+   "head": "lookupU-tail k₀ v m k hyp with k ≟ k₀",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 149,
+   "head": "lookupU-cons k₀ v m m′ k hyp hyp′ with k ≟ k₀",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 155,
+   "head": "lookupU-removeIn ((k₀ , v) ∷ m) i k hyp with i ≟ k₀",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 163,
+   "head": "checkIns-lookupU u (i ∷ is) v u′ k eq hyp with checkIns-∷ u i is v u′ eq",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 182,
+   "head": "lookupU-just-∈ ((k₀ , v) ∷ m) k o eq with k ≟ k₀",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 188,
+   "head": "∉-lookupU ((k₀ , v) ∷ m) k h with k ≟ k₀",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 197,
+   "head": "lookupU-cons-≢ k₀ v m k ne hyp with k ≟ k₀",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 203,
+   "head": "uniq-removeIn-lookup ((k₀ , v) ∷ m) k (fst , rest) with k ≟ k₀",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 209,
+   "head": "uniq-removeIn ((k₀ , v) ∷ m) i (fst , rest) with i ≟ k₀",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 214,
+   "head": "uniq-insertNew u (k , v) uq with lookupU u k in eq",
+   "reason": "`with … in eq` (the equation has no case_of_ counterpart)"
+  },
+  {
+   "line": 224,
+   "head": "checkIns-uniq u (i ∷ is) v u′ uq eq with checkIns-∷ u i is v u′ eq",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 229,
+   "head": "checkIns-head u i is v u′ eq with checkIns-∷ u i is v u′ eq",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 234,
+   "head": "checkIns-consumed u i is v u′ uq eq with checkIns-∷ u i is v u′ eq",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 240,
+   "head": "checkIns-live u (i ∷ is) v u′ k eq mem hyp with checkIns-∷ u i is v u′ eq | mem",
+   "reason": "multi-scrutinee `with a | b`"
+  },
+  {
+   "line": 247,
+   "head": "keysU-removeIn ((k₀ , v) ∷ m) i k mem with i ≟ k₀",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 256,
+   "head": "checkIns-keysU u (i ∷ is) v u′ k eq mem with checkIns-∷ u i is v u′ eq",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 261,
+   "head": "keysU-insertNew u (k₀ , v) k mem with is-just (lookupU u k₀)",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 271,
+   "head": "with keysU-unionNew-outsAt (insertNew u ((h , i) , o)) h (suc i) os k mem",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 279,
+   "head": "lookupU-insertNew u (k₀ , v) k ne hyp with is-just (lookupU u k₀)",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 281,
+   "head": "... | false with k ≟ k₀",
+   "reason": "nested `with` inside a branch of an outer `with`"
+  },
+  {
+   "line": 352,
+   "head": "shape vr s@(u , a) tx@(ins , wds , outs) with checkIns u ins in e₁",
+   "reason": "`with … in eq` (the equation has no case_of_ counterpart)"
+  },
+  {
+   "line": 354,
+   "head": "... | just (vIn , u′) with checkWdrls a wds in e₂",
+   "reason": "`with … in eq` (the equation has no case_of_ counterpart)"
+  },
+  {
+   "line": 356,
+   "head": "...   | just a′ with (vIn + wdrlΣ wds) ≡ᴺ valΣ outs in eb",
+   "reason": "`with … in eq` (the equation has no case_of_ counterpart)"
+  },
+  {
+   "line": 358,
+   "head": "...     | true with consumes vr ins in ec",
+   "reason": "`with … in eq` (the equation has no case_of_ counterpart)"
+  },
+  {
+   "line": 365,
+   "head": "with checkIns u ins in e₁ | checkWdrls a wds in e₂",
+   "reason": "`with … in eq` (the equation has no case_of_ counterpart)"
+  },
+  {
+   "line": 368,
+   "head": "... | just (vIn , u′) | just a′ with (vIn + wdrlΣ wds) ≡ᴺ valΣ outs in eb",
+   "reason": "`with … in eq` (the equation has no case_of_ counterpart)"
+  },
+  {
+   "line": 370,
+   "head": "...   | true with consumes vr ins",
+   "reason": "nested `with` inside a branch of an outer `with`"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda": [
+  {
+   "line": 55,
+   "head": "-- `Hash` would clash with `Ledger.Hash`.",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 153,
+   "head": "lookup-bs-∈ ((k , v) ∷ xs) q h eq with q ≟ k",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 155,
+   "head": "... | no  _ with lookup-bs-∈ xs q h eq",
+   "reason": "nested `with` inside a branch of an outer `with`"
+  },
+  {
+   "line": 161,
+   "head": "no-replay s tbl tx u′ vIn h e₁ eo good with lookup-bs-∈ tbl (ser tx) h eo",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 178,
+   "head": "freshInv s tbl (i₀ ∷ is) wds outs u′ a′ vIn e₁ ec eq (inj₂ good) h with memb h (Hs tbl) in",
+   "reason": "`with … in eq` (the equation has no case_of_ counterpart)"
+  },
+  {
+   "line": 209,
+   "head": "i₀∈ with checkIns-head (proj₁ s) i₀ is vIn u′ e₁",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 239,
+   "head": "presTree (s , tbl) (submit tx) inv with shape ser inputConsuming s tx",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 298,
+   "head": "φ-step m (s , tbl) (submit tx) inv with shape ser inputConsuming s tx",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda": [
+  {
+   "line": 5,
+   "head": "-- genesis total only with negligible probability.  The event is read by a",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 57,
+   "head": "-- with `n ≤ ℓ n` would do — that inequality is all the arithmetic spends.",
+   "reason": "phantom: `with` inside a comment"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda": [
+  {
+   "line": 4,
+   "head": "-- No hash collision is needed: a transaction with no inputs is resubmitted",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 177,
+   "head": "-- with probability one, through the oracle (`docs/rewrite-verdict.md`,",
+   "reason": "phantom: `with` inside a comment"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda": [],
+ "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda": [
+  {
+   "line": 65,
+   "head": "-- A hash is spent at its fixed width, with the index reading on from there.",
+   "reason": "phantom: `with` inside a comment"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda": [],
+ "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda": [
+  {
+   "line": 52,
+   "head": "lookup-here x d L with x ≟ x",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 58,
+   "head": "lookup-there x y d L ne with x ≟ y",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 85,
+   "head": "memb-pre c ((x , d) ∷ L) eq with c ≟ d | d ≟ c",
+   "reason": "multi-scrutinee `with a | b`"
+  },
+  {
+   "line": 92,
+   "head": "pins-[] c b ((x , d) ∷ L) eq with d ≟ c",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 98,
+   "head": "pins-extract c ((x , d) ∷ L) nd with d ≟ c",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 114,
+   "head": "pins-lookup c b ((y , e) ∷ L) x d hit p d≡c with x ≟ y",
+   "reason": "handled shape: probed (see verdict)"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ROCommitment.agda": [],
+ "src/CategoricalCrypto/Examples/CoinToss.agda": [
+  {
+   "line": 5,
+   "head": "-- receipt with a fresh share `b₂`, sent in the clear on `Advᴵᶜ`, and outputs",
+   "reason": "phantom: `with` inside a comment"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda": [],
+ "src/CategoricalCrypto/Examples/CoinToss/Hiding.agda": [],
+ "src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda": [
+  {
+   "line": 4,
+   "head": "-- with the certificates `UC-composeᵉ` demands: each activation from above buys",
+   "reason": "phantom: `with` inside a comment"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/CoinToss/UC.agda": [],
+ "src/CategoricalCrypto/Examples/ROCommitment/Oracle.agda": [
+  {
+   "line": 46,
+   "head": "fetchT-cong g g′ t x H H′ pt with lookupPt t x",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 57,
+   "head": "fetchT-sup t x with lookupPt t x",
+   "reason": "handled shape: probed (see verdict)"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ROCommitment/Game.agda": [
+  {
+   "line": 206,
+   "head": "inv-sample t (just (c , e)) f x h inv with h ≟ c",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 224,
+   "head": "agree-off t c e f b x d inv nb hit hx with d ≟ c",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 226,
+   "head": "... | yes d≡c with b ≟ e",
+   "reason": "nested `with` inside a branch of an outer `with`"
+  },
+  {
+   "line": 252,
+   "head": "fetch-bis (t , m , f) x G G′ inv pt with lookupPt t x in eq",
+   "reason": "`with … in eq` (the equation has no case_of_ counterpart)"
+  },
+  {
+   "line": 398,
+   "head": "fetch-log (t , m , f) x F with lookupPt t x",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 404,
+   "head": "fetch-hit (t , nothing , f) x with lookupPt t x",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 412,
+   "head": "fetch-hit (t , just (c , e) , f) x with lookupPt t x",
+   "reason": "handled shape: probed (see verdict)"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ROCommitment/Asymptotic.agda": [],
+ "src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda": [
+  {
+   "line": 101,
+   "head": "cohR (idleᵖ p)  (askᴿᶜ x) with pinnedʰ p x",
+   "reason": "handled shape: probed (see verdict)"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ROCommitment/UC.agda": [],
+ "src/CategoricalCrypto/Examples/CoinToss/Compose.agda": [],
+ "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda": [],
+ "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda": [],
+ "src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda": [],
+ "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda": [],
+ "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda": [],
+ "src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda": [],
+ "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda": [],
+ "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda": [],
+ "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda": [],
+ "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda": [],
+ "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda": [
+  {
+   "line": 363,
+   "head": "-- The sandwich's relabelling commutes with everything the induction reads:",
+   "reason": "phantom: `with` inside a comment"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda": [],
+ "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda": [
+  {
+   "line": 6,
+   "head": "-- commitment; `respLʰ` the same protocol with that draw deferred to the step",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 319,
+   "head": "-- The secret is unread until the commitment hashes with it, so planting it at",
+   "reason": "phantom: `with` inside a comment"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda": [
+  {
+   "line": 68,
+   "head": "-- The deferred game with the opening randomness PLANTED",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 132,
+   "head": "-- one deferring state with a flag hung on it.  At the opening the planted run",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 276,
+   "head": "tblAt-miss (just (c , b , false)) r t x with x ≟ (b ∷ᵛ r)",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 293,
+   "head": "tbl-∷ nothing r t t′ x h tbl g y with y ≟ x",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 296,
+   "head": "tbl-∷ (just (_ , _ , true)) r t t′ x h tbl g y with y ≟ x",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 299,
+   "head": "tbl-∷ (just (c , b , false)) r t t′ x h tbl g y with y ≟ (b ∷ᵛ r)",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 302,
+   "head": "... | no ne with y ≟ x",
+   "reason": "nested `with` inside a branch of an outer `with`"
+  },
+  {
+   "line": 312,
+   "head": "-- The real game's fetch with the fresh sample supplied, so the join can feed",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 404,
+   "head": "stp u ρ us with hitAt m x ρ in eqh | guessAt m r x in eqg",
+   "reason": "`with … in eq` (the equation has no case_of_ counterpart)"
+  },
+  {
+   "line": 461,
+   "head": "tblc y with y ≟ (b ∷ᵛ r)",
+   "reason": "handled shape: probed (see verdict)"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Asymptotic.agda": [],
+ "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda": [],
+ "src/CategoricalCrypto/Examples/CoinToss/Test.agda": [],
+ "src/CategoricalCrypto/Examples/HashForward.agda": [
+  {
+   "line": 7,
+   "head": "-- IDEAL functionality is that resource with its leak exposed on the",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 9,
+   "head": "-- query `peekᴬ` with the DIGEST of the leaked message instead of the message.",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 144,
+   "head": "-- with a constructor in the state position would make the relayed cases stick",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 176,
+   "head": "-- By `∘-wireᴹ` the composite is the relay `subᴵ simulator` with its",
+   "reason": "phantom: `with` inside a comment"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/HashForward/UC.agda": [
+  {
+   "line": 9,
+   "head": "-- exact: `UC.Graded.emulᵍ` turns `real-factors` into it with no error term.",
+   "reason": "phantom: `with` inside a comment"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/HashForward/Audit.agda": [
+  {
+   "line": 5,
+   "head": "-- machine with an inhabited interface, whose two queries per `peekᴬ` are what",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 61,
+   "head": "-- real side's context with the simulator in front of it — and this is the",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 62,
+   "head": "-- rate that context carries: the tensor with identities is at `1⁺`, and",
+   "reason": "phantom: `with` inside a comment"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda": [
+  {
+   "line": 212,
+   "head": "callC-marg sc h b idx P with Comp.lookup-bs sc (pack h b idx)",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 310,
+   "head": "-- value — with the uniform average produced instead whenever the final call",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 378,
+   "head": "pointRep w with proj₁ (proj₂ w) ≟ h",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 486,
+   "head": "δ-sym x y with y ≟ x | x ≟ y",
+   "reason": "multi-scrutinee `with a | b`"
+  },
+  {
+   "line": 494,
+   "head": "interior-cons< hh bb ii vv sc lt with ii <? k",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 500,
+   "head": "interior-consᶠ hh bb ii vv sc ¬lt with ii <? k",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 744,
+   "head": "collC-mono1 hh bb ii vv sc with ii <? k",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 805,
+   "head": "⌊≟⌋-refl x with x ≟ x",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 896,
+   "head": "lookup-nothing⇒All≢ ((k , v) ∷ sc) k₀ absent with k₀ ≟ k | absent",
+   "reason": "multi-scrutinee `with a | b`"
+  },
+  {
+   "line": 911,
+   "head": "HasVal-cons-any ((hh , bb , len , idx) , vv) sc x hv with idx <? len",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 916,
+   "head": "new-val-HasVal v b idx vv sc lt with idx <? k",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 922,
+   "head": "lookup-interior-HasVal ((key , val) ∷ sc) v b idx v'' lt hit with (pack v b idx) ≟ key | h",
+   "reason": "multi-scrutinee `with a | b`"
+  },
+  {
+   "line": 945,
+   "head": "callC-supp sc v b idx lt uk rt vroot with Comp.lookup-bs sc (pack v b idx) in eq",
+   "reason": "`with … in eq` (the equation has no case_of_ counterpart)"
+  },
+  {
+   "line": 997,
+   "head": "rec-extend sc sg sc' M v' ext chain rc M₀ h₀ lk with M₀ ≟ M | lk",
+   "reason": "multi-scrutinee `with a | b`"
+  },
+  {
+   "line": 1022,
+   "head": "callC-fk sc v b idx lt with Comp.lookup-bs sc (pack v b idx) in eq",
+   "reason": "`with … in eq` (the equation has no case_of_ counterpart)"
+  },
+  {
+   "line": 1074,
+   "head": "dich hm v' b' u' e with (v' , b' , k , k) ≟ pack v b idx | e",
+   "reason": "multi-scrutinee `with a | b`"
+  },
+  {
+   "line": 1089,
+   "head": "cm0-all ((key , v) ∷ xs) h eq0 with h ≟ v | eq0",
+   "reason": "multi-scrutinee `with a | b`"
+  },
+  {
+   "line": 1100,
+   "head": "lookup⇒mem ((k' , v') ∷ xs) key w e with key ≟ k' | e",
+   "reason": "multi-scrutinee `with a | b`"
+  },
+  {
+   "line": 1106,
+   "head": "∈interior (_ ∷ es) v b j w lt (ListAny.here refl) with j <? k",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 1109,
+   "head": "∈interior (((cv' , b' , len' , idx') , val') ∷ es) v b j w lt (ListAny.there a) with idx' ",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 1146,
+   "head": "cm-01 ((_ , v) ∷ xs) h with h ≟ v | cm-01 xs h",
+   "reason": "multi-scrutinee `with a | b`"
+  },
+  {
+   "line": 1153,
+   "head": "collC-01 ((_ , h) ∷ ps) with cm-01 ps h | collC-01 ps",
+   "reason": "multi-scrutinee `with a | b`"
+  },
+  {
+   "line": 1186,
+   "head": "runPath-≡<k sc r (b ∷ bs) j le with j <? k",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 1188,
+   "head": "... | yes _ with Comp.lookup-bs sc (r , b , k , j)",
+   "reason": "nested `with` inside a branch of an outer `with`"
+  },
+  {
+   "line": 1218,
+   "head": "stepT<k-inv sc v b j w e with j <? k | e",
+   "reason": "multi-scrutinee `with a | b`"
+  },
+  {
+   "line": 1234,
+   "head": "-- (`unique-run`); with the shared last block, `toBlocks M ≡ toBlocks M'`, hence",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 1304,
+   "head": "walk-owned sc sg M w eq ext dich rc ol v' b w'' e with dich v' b w'' e",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 1307,
+   "head": "... | inj₁ old with ol v' b w'' old",
+   "reason": "nested `with` inside a branch of an outer `with`"
+  },
+  {
+   "line": 1332,
+   "head": "cont w ((ext , uk' , rt' , seg) , (_ , dich)) with proj₂ (proj₂ w)",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 1341,
+   "head": "dich-old v' b' u' e with dich v' b' u' e",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 1364,
+   "head": "inner with General.lookup-bs sg M in eq",
+   "reason": "`with … in eq` (the equation has no case_of_ counterpart)"
+  },
+  {
+   "line": 1369,
+   "head": "mdInv-pres (f , sc , sg) (i , M) inv with f",
+   "reason": "handled shape: probed (see verdict)"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/MerkleDamgard.agda": [
+  {
+   "line": 5,
+   "head": "-- ORACLE indistinguishability with the compression function HIDDEN.  The",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 11,
+   "head": "-- `md`'s step is a `Calls` tree with one `call` per block (`chainᶜ`), so one",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 106,
+   "head": "compStep-eval κ sc i q with Comp.lookup-bs sc q",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  },
+  {
+   "line": 165,
+   "head": "generalStep-eval sg (i , M) with General.lookup-bs sg M",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda": [
+  {
+   "line": 14,
+   "head": "-- ¼ gap is the reason `bound` grows with the block count.  The two-block",
+   "reason": "phantom: `with` inside a comment"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda": [],
+ "src/CategoricalCrypto/Examples/Possibilistic.agda": [
+  {
+   "line": 4,
+   "head": "-- with nondeterminism standing for the adversary's choices.",
+   "reason": "phantom: `with` inside a comment"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Test.agda": [],
+ "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda": [
+  {
+   "line": 10,
+   "head": "-- state the comparison with `Examples.ROCommitment.Resource.resource`",
+   "reason": "phantom: `with` inside a comment"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda": [
+  {
+   "line": 74,
+   "head": "resKᵀ-fetchT (t , m) x with lookupPt t x",
+   "reason": "branches are not a flat `... | pat = rhs` list (nested with, where-block, or a single branch)"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda": [
+  {
+   "line": 9,
+   "head": "-- and 0 on an answer, because the receiver never answers the resource with a",
+   "reason": "phantom: `with` inside a comment"
+  },
+  {
+   "line": 60,
+   "head": "-- `realStep` with its `returnₚ`s read as point masses and its `botₚ`s as the",
+   "reason": "phantom: `with` inside a comment"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda": [
+  {
+   "line": 98,
+   "head": "verdict-realOpen c b d with d ≟ c",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 285,
+   "head": "pre-hit c x L with c ≟ c",
+   "reason": "handled shape: probed (see verdict)"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda": [
+  {
+   "line": 114,
+   "head": "marginalᴿ s@(t , m , f) q G with deadR (t , digOf m) q",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 124,
+   "head": "bisimᴿᵍ s@(t , m , f) _ (refl , inv) q F F′ pt with deadR (t , digOf m) q",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 135,
+   "head": "bisimᴵᵍ s@(t , m , f) _ (refl , inv) q F F′ pt with deadR (t , digOf m) q",
+   "reason": "handled shape: probed (see verdict)"
+  },
+  {
+   "line": 159,
+   "head": "-- with the run's own reading substituted in, Agda unfolds the subtraction",
+   "reason": "phantom: `with` inside a comment"
+  }
+ ],
+ "src/CategoricalCrypto/Examples/ROCommitment/Test.agda": []
+}

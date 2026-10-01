@@ -1,7 +1,7 @@
 # Protocol rewrite: remaining review work
 
 The consolidation plan in
-[UC preservation through the existing presheaf action](uc-presheaf-preservation-plan.md)
+[UC preservation through the existing presheaf action](history/uc-presheaf-preservation-plan.md)
 accounts for the later implementations through `d461b1fa`. Use it for the
 generic/model proof split and retirement order; the review snapshot below
 predates that work.
@@ -125,7 +125,7 @@ and requires `Absorbs` evidence instead of declaring its interaction silent.
 
 ### Concrete steps
 
-1. Narrow [the prefix proposal](prefix-tolerant-audit-plan.md) to the budgeted
+1. Narrow [the prefix proposal](history/prefix-tolerant-audit-plan.md) to the budgeted
    unit-grade probability bridge. Its claim to handle a simulator that
    "actually burns oracle queries" is not supported by the existing application
    types. Almost-sure totality does not guarantee exact `≈ₚ` equality, but

@@ -1,0 +1,274 @@
+{
+ "sweep": "binder-drop",
+ "root": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-R2b",
+ "files": {
+  "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Category.agda": {
+   "candidates": 5,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 109,
+     "edit": "drop binder `{h : Machine C D}` + arrow"
+    },
+    {
+     "line": 124,
+     "edit": "drop binder `{f : Machine A B}` + arrow"
+    },
+    {
+     "line": 127,
+     "edit": "drop binder `{f : Machine A B}` + arrow"
+    },
+    {
+     "line": 130,
+     "edit": "drop binder `{g i : Machine A B}` + arrow"
+    },
+    {
+     "line": 153,
+     "edit": "drop binder `{g i : Machine A B}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 10,
+   "seconds": 30.4
+  },
+  "src/CategoricalCrypto/Machines/G.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 68,
+     "edit": "drop binder `{t : P ⊗₀ A ⇒ P ⊗₀ B}` + arrow"
+    },
+    {
+     "line": 164,
+     "edit": "drop binder `{j′ : W ⇒ A + X}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 19.9
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Trace/Compose.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Machine/EventBounds.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 84,
+     "edit": "drop binder `{c c′ : ℕ}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 10.7
+  },
+  "src/CategoricalCrypto/UC/Machine/EventBounds/Transport.agda": {
+   "candidates": 8,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 66,
+     "edit": "drop binder `{r : ℚ}` + arrow"
+    },
+    {
+     "line": 78,
+     "edit": "drop binder `{R I : Proc unitᴵ B′}` + arrow"
+    },
+    {
+     "line": 92,
+     "edit": "drop binder `{p : ℕ → ℕ}` + arrow"
+    },
+    {
+     "line": 104,
+     "edit": "drop binder `{Q : StateTest I}` + arrow"
+    },
+    {
+     "line": 109,
+     "edit": "drop binder `{Q : StateTest I}` + arrow"
+    },
+    {
+     "line": 113,
+     "edit": "drop binder `{Q : StateTest I}` + arrow"
+    },
+    {
+     "line": 142,
+     "edit": "drop binder `{R I : Proc unitᴵ B}` + arrow"
+    },
+    {
+     "line": 149,
+     "edit": "drop binder `{δ εI : ℕ → ℕ → ℚ}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 16,
+   "seconds": 42.5
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 112,
+     "edit": "drop binder `{D₀ D₁ : Proc (unitᴵ ⊗ᴵ B) Ωᴵ}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 11.0
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent.agda": {
+   "candidates": 7,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 83,
+     "edit": "drop binder `{x : Annotated A B}` + arrow"
+    },
+    {
+     "line": 86,
+     "edit": "drop binder `{x y z : Annotated A B}` + arrow"
+    },
+    {
+     "line": 95,
+     "edit": "drop binder `{x y : Annotated A B}` + arrow"
+    },
+    {
+     "line": 125,
+     "edit": "drop binder `{S X Y : Set}` + arrow"
+    },
+    {
+     "line": 130,
+     "edit": "drop binder `{A B : Iface}` + arrow"
+    },
+    {
+     "line": 171,
+     "edit": "drop binder `{Z : Set}` + arrow"
+    },
+    {
+     "line": 203,
+     "edit": "drop binder `{x y : Annotated A B}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 14,
+   "seconds": 97.9
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Adequacy.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 200,
+     "edit": "drop binder `{r : ℚ}` + arrow"
+    },
+    {
+     "line": 209,
+     "edit": "drop binder `{r : ℚ}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 14.6
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Agree.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/HitTests.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 42,
+     "edit": "drop binder `{v : ℚ}` + arrow"
+    },
+    {
+     "line": 62,
+     "edit": "drop binder `{r : ℚ}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 22.8
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Lift.agda": {
+   "error": "parse errors -- file skipped (report this)"
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Read.agda": {
+   "candidates": 5,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 57,
+     "edit": "drop binder `{Q R : Set}` + arrow"
+    },
+    {
+     "line": 71,
+     "edit": "drop binder `{A B : Iface}` + arrow"
+    },
+    {
+     "line": 91,
+     "edit": "drop binder `{x y : Annotated A B}` + arrow"
+    },
+    {
+     "line": 98,
+     "edit": "drop binder `{m m′ : Proc unitᴵ (Y ⊗ᴵ A)}` + arrow"
+    },
+    {
+     "line": 106,
+     "edit": "drop binder `{x y : Annotated A B}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 10,
+   "seconds": 52.2
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Spike/Carry.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 46,
+     "edit": "drop binder `{𝔉 : Permitted w′ (ifaceᵒ A) (ifaceᵒ Y) ` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 11.3
+  },
+  "src/CategoricalCrypto/UC/Seam/Grounded.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 53,
+     "edit": "drop binder `{A B : Iface}` + arrow"
+    },
+    {
+     "line": 57,
+     "edit": "drop binder `{B : Iface}` + arrow"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 37.4
+  }
+ },
+ "totalChecks": 72
+}
