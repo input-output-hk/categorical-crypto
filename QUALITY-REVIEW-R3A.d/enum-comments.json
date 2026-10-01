@@ -1,0 +1,3567 @@
+{
+ "sweep": "enum-comments",
+ "root": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-R3A",
+ "files": {
+  "src/CategoricalCrypto/Examples/Basic.agda": {
+   "sites": [
+    {
+     "lines": "12-13",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "TemplateChannel",
+     "preview": "-------------------------------------------------------------------------------- -- Exampl"
+    },
+    {
+     "lines": "21-21",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "-- can receive messages from Alice"
+    },
+    {
+     "lines": "24-24",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "-- can send messages to Bob"
+    },
+    {
+     "lines": "27-27",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "E",
+     "preview": "-- upon request, can send next message to Eve"
+    },
+    {
+     "lines": "45-45",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "Functionality",
+     "preview": "-- queue of messages"
+    },
+    {
+     "lines": "48-48",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Encryption",
+     "preview": "-- authenticated, non-lossy, leaks all messages"
+    },
+    {
+     "lines": "51-51",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Encryption",
+     "preview": "-- authenticated, non-lossy, leaks only message length"
+    },
+    {
+     "lines": "88-89",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "EncryptionShim",
+     "preview": "-- Note: it's a bad idea to do this as a wrapper, just make a shim to -- compose with Encr"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger.agda": {
+   "sites": [
+    {
+     "lines": "3-5",
+     "kind": "header",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- The chimeric UTxO ledger of the talk's slides. `chimeric` accepts a -- transaction with"
+    },
+    {
+     "lines": "24-25",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "chimeric",
+     "preview": "-- `DecEq-×` is not an upstream instance (it competes with the `--with-K` -- `DecEq-Σ`); r"
+    },
+    {
+     "lines": "31-32",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "genesisTotal",
+     "preview": "-- The total of a one-output UTxO genesis of value `V`, as `Ledger.total` -- computes it a"
+    },
+    {
+     "lines": "49-51",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "lookupU",
+     "preview": "------------------------------------------------------------------------ -- The two finite"
+    },
+    {
+     "lines": "61-62",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "insertNew",
+     "preview": "-- Union favouring the entry already present. This is what swallows a -- replayed transact"
+    },
+    {
+     "lines": "78-80",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "balance",
+     "preview": "------------------------------------------------------------------------ -- Value --------"
+    },
+    {
+     "lines": "97-99",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "checkIns",
+     "preview": "------------------------------------------------------------------------ -- The step rule:"
+    },
+    {
+     "lines": "101-102",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "checkIns",
+     "preview": "-- Consumes the inputs one at a time against the REMAINING set, so a -- duplicate input fa"
+    },
+    {
+     "lines": "109-110",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "checkWdrls",
+     "preview": "-- Debit the withdrawals one at a time: each is checked against the -- already-debited acc"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda": {
+   "sites": [
+    {
+     "lines": "3-8",
+     "kind": "header",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- The birthday bound for the input-consuming ledger over the random oracle, as -- a `Prot"
+    },
+    {
+     "lines": "56-56",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "ProbabilisticLogic.Distribution.Uniform.Duplicate",
+     "preview": "-- `Hash` would clash with `Ledger.Hash`."
+    },
+    {
+     "lines": "62-64",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "a₀",
+     "preview": "---------------------------------------------------------------------- -- The invariant --"
+    },
+    {
+     "lines": "116-118",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "",
+     "preview": "---------------------------------------------------------------------- -- Reading one acti"
+    },
+    {
+     "lines": "161-163",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The empty-input case is refuted by `ec`: `consumes inputConsuming []` -- is `false`. TH"
+    },
+    {
+     "lines": "212-214",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "",
+     "preview": "---------------------------------------------------------------------- -- The certificate "
+    },
+    {
+     "lines": "255-258",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- `birthday-bound q` is `q²` fresh-hash pairs, plus `q` chances for a -- fresh hash to hi"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda": {
+   "sites": [
+    {
+     "lines": "3-9",
+     "kind": "header",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- `auditWatch-sound` and `auditWatch-complete` tie the audit watch to the -- state-trajec"
+    },
+    {
+     "lines": "44-46",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "badTotal",
+     "preview": "------------------------------------------------------------------------ -- The two readin"
+    },
+    {
+     "lines": "71-71",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "withAudits",
+     "preview": "-- An audit after every answer: exactly the boundaries `hitFrom` inspects."
+    },
+    {
+     "lines": "84-86",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "hash",
+     "preview": "------------------------------------------------------------------------ -- The audit answ"
+    },
+    {
+     "lines": "112-114",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "sound",
+     "preview": "-- Both directions run at any two accumulators the first of which is behind: -- the Boolea"
+    },
+    {
+     "lines": "141-143",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "complete",
+     "preview": "-- Every state the trajectory inspects is audited at the boundary it is -- inspected, and "
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda": {
+   "sites": [
+    {
+     "lines": "3-7",
+     "kind": "header",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The two safety properties of a family of ledger systems: `PreservesValue` -- (interface"
+    },
+    {
+     "lines": "55-57",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "LedgerIf^ω",
+     "preview": "------------------------------------------------------------------------ -- The schedule -"
+    },
+    {
+     "lines": "59-60",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "LedgerIf^ω",
+     "preview": "-- Hash width `n` at security parameter `n`, so the birthday bound reads -- `(q² + q)·2⁻ⁿ`"
+    },
+    {
+     "lines": "77-79",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "StateSafe",
+     "preview": "------------------------------------------------------------------------ -- The two proper"
+    },
+    {
+     "lines": "81-82",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "StateSafe",
+     "preview": "-- The source test `bad`, read on the machine at the protocol's `idle` states -- only (`id"
+    },
+    {
+     "lines": "92-93",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "auditMonitorᶠ",
+     "preview": "-- The process spelling of that watch, which is what a context can be made -- to read: `UC"
+    },
+    {
+     "lines": "106-107",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "preservesValue⇒saturated",
+     "preview": "-- Read back at the context a strategy embeds to, where the compiled -- experiment is the "
+    },
+    {
+     "lines": "114-116",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "TruthfulAudit",
+     "preview": "-- One-sided: the audited run flags at least the completed-hit mass of -- `bad` (detection"
+    },
+    {
+     "lines": "121-122",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "preservesValue⇒stateSafe",
+     "preview": "-- `withAudits` doubles the allowance (hence `q + q`); the lift to every admitted -- exper"
+    },
+    {
+     "lines": "132-134",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "a",
+     "preview": "------------------------------------------------------------------------ -- The ideal fami"
+    },
+    {
+     "lines": "159-159",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "ideal-conserves-value",
+     "preview": "-- Straight from the birthday bound, at `εᴸ`: no audit is spent."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda": {
+   "sites": [
+    {
+     "lines": "3-10",
+     "kind": "header",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- The chimeric variant destroys value at every hash width and serialization. -- No hash c"
+    },
+    {
+     "lines": "47-48",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Attack",
+     "preview": "-- See `ChimericLedger`; here `≟-refl` must also resolve at the instance -- `lookupU` was "
+    },
+    {
+     "lines": "51-53",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Attack",
+     "preview": "------------------------------------------------------------------------ -- The attack ---"
+    },
+    {
+     "lines": "90-92",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "t",
+     "preview": "-- `t` is the total the WATCH measures against, which need not be spelled -- as the start "
+    },
+    {
+     "lines": "160-162",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Genesis",
+     "preview": "------------------------------------------------------------------------ -- The genesis th"
+    },
+    {
+     "lines": "164-167",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "Genesis",
+     "preview": "-- `Pr` is 0 both when the ledger is safe and when it deadlocks, so the -- genesis the bir"
+    },
+    {
+     "lines": "192-193",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "genesis-moves",
+     "preview": "-- The key test is rewritten TWICE: `removeIn`'s copy sits behind -- `checkIns`'s `case` u"
+    },
+    {
+     "lines": "236-238",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Ledger",
+     "preview": "------------------------------------------------------------------------ -- The ℓ = 1 regr"
+    },
+    {
+     "lines": "240-241",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Ledger",
+     "preview": "-- At 1-bit hashes and the constant serialization every statement holds by -- `refl`, orac"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda": {
+   "sites": [
+    {
+     "lines": "3-5",
+     "kind": "header",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- One concrete serializer, so that `SerInj` is a theorem rather than a -- hypothesis. It "
+    },
+    {
+     "lines": "41-43",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "ser-empty",
+     "preview": "------------------------------------------------------------------------ -- Boundary cases"
+    },
+    {
+     "lines": "45-45",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "ser-empty",
+     "preview": "-- An empty transaction is three empty lists, each a unary length `0`."
+    },
+    {
+     "lines": "49-50",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "outs-not-wdrls",
+     "preview": "-- A zero-valued output in the third component versus the same pair as a -- withdrawal in "
+    },
+    {
+     "lines": "54-54",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "addr-not-value",
+     "preview": "-- Zero-valued fields do not shift the boundary between a pair's components."
+    },
+    {
+     "lines": "58-58",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "one-out-not-two",
+     "preview": "-- One output versus two whose encodings concatenate to the same bits."
+    },
+    {
+     "lines": "62-62",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "txᵗ",
+     "preview": "-- A hash is spent at its fixed width, with the index reading on from there."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/System.agda": {
+   "sites": [
+    {
+     "lines": "3-5",
+     "kind": "header",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- The ledger plugged onto a random oracle, `Sys = ledger ∘ᵖ oracle`; `Sysᴴ` -- is the sam"
+    },
+    {
+     "lines": "32-33",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "submit",
+     "preview": "-- One party, hashing BITSTRINGS to ℓ bits: keying the oracle on `Tx` would -- hide the se"
+    },
+    {
+     "lines": "36-38",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "submit",
+     "preview": "------------------------------------------------------------------------ -- The interfaces"
+    },
+    {
+     "lines": "58-58",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "ledgerCall",
+     "preview": "-- At most one oracle call per activation: `UC.QueryBound.qb-oneCall`'s hypothesis."
+    },
+    {
+     "lines": "76-78",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "genesis",
+     "preview": "------------------------------------------------------------------------ -- Where the expe"
+    },
+    {
+     "lines": "80-82",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "genesis",
+     "preview": "-- A UTxO genesis, not an account-only one: at the latter the birthday bound -- is vacuous"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda": {
+   "sites": [
+    {
+     "lines": "3-14",
+     "kind": "header",
+     "nLines": 12,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- The ledger's properties carried across a UC emulation, as three distinct -- results (`d"
+    },
+    {
+     "lines": "68-70",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "preserves-value-transfer",
+     "preview": "------------------------------------------------------------------------ -- Claim 1: obser"
+    },
+    {
+     "lines": "72-77",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "preserves-value-transfer",
+     "preview": "-- The ideal bound is read at the context's own cap `p n`, the comparison at -- `p n + 1` "
+    },
+    {
+     "lines": "90-93",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "HashIf^ω",
+     "preview": "-- The UC layer sees only the CLOSED system, in which the hash is invisible; -- `ledger-fa"
+    },
+    {
+     "lines": "119-121",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "εᴴ",
+     "preview": "-- What the lift costs the premise's schedule: the ledger goes into the test at -- its own"
+    },
+    {
+     "lines": "150-151",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "hash-liftᵇ",
+     "preview": "-- With one upper stage there is no simulator to compose, hence none to -- forget afterwar"
+    },
+    {
+     "lines": "170-172",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "a",
+     "preview": "------------------------------------------------------------------------ -- Claim 2: state"
+    },
+    {
+     "lines": "174-176",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "a",
+     "preview": "-- UC identifies no internal state, so a state event comes back only through -- `TruthfulA"
+    },
+    {
+     "lines": "217-219",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "ideal-spends-genesis",
+     "preview": "------------------------------------------------------------------------ -- Claim 3: the g"
+    },
+    {
+     "lines": "228-230",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Mute",
+     "preview": "------------------------------------------------------------------------ -- What claims 1 "
+    },
+    {
+     "lines": "232-233",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Mute",
+     "preview": "-- Diverges at every query: satisfies claim 1 at zero slack yet never -- accepts, so neith"
+    },
+    {
+     "lines": "237-238",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Liar",
+     "preview": "-- Always bad, never says so: satisfies claim 1 while its trajectory event has -- probabil"
+    },
+    {
+     "lines": "309-311",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Chimericᶠ",
+     "preview": "------------------------------------------------------------------------ -- The replay att"
+    },
+    {
+     "lines": "313-319",
+     "kind": "standalone",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "Chimericᶠ",
+     "preview": "-- `preservesValue⇒saturated` hands the attack's strategy back a bound -- `ε n 3 + ν n`, e"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda": {
+   "sites": [
+    {
+     "lines": "3-6",
+     "kind": "header",
+     "nLines": 4,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- What one transaction does to `total`, with the hash answered by an -- arbitrary oracle:"
+    },
+    {
+     "lines": "36-36",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Ledger",
+     "preview": "-- See `ChimericLedger`."
+    },
+    {
+     "lines": "58-60",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "balance-removeIn",
+     "preview": "------------------------------------------------------------------------ -- Spending: the "
+    },
+    {
+     "lines": "89-91",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "acctΣ-subOne",
+     "preview": "------------------------------------------------------------------------ -- Withdrawing: t"
+    },
+    {
+     "lines": "110-111",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "balance-unionNew-outsAt",
+     "preview": "-- The index bound keeps the induction honest: the entries `outsAt` creates -- are pairwis"
+    },
+    {
+     "lines": "137-139",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "lookupU-removeIn",
+     "preview": "------------------------------------------------------------------------ -- Freshness surv"
+    },
+    {
+     "lines": "166-168",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "keysU",
+     "preview": "------------------------------------------------------------------------ -- Keys and uniqu"
+    },
+    {
+     "lines": "173-175",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Uniq",
+     "preview": "-- Each key absent from the rest of the list. This is what makes `removeIn` -- remove a KE"
+    },
+    {
+     "lines": "192-193",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "uniq-removeIn-lookup",
+     "preview": "-- `removeIn` rebuilds the cons, so the decision has to be re-applied by -- hand: a `with`"
+    },
+    {
+     "lines": "288-290",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "module",
+     "preview": "------------------------------------------------------------------------ -- One step of th"
+    },
+    {
+     "lines": "296-298",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "vr",
+     "preview": "-- A `with` on the validation cascade does not reach `applyTx` inside a -- constructor arg"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss.agda": {
+   "sites": [
+    {
+     "lines": "3-8",
+     "kind": "header",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- Blum coin-tossing over `F_com`, corrupted committer (P1): P2's side, as a -- process ov"
+    },
+    {
+     "lines": "37-38",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "shareᴬ",
+     "preview": "------------------------------------------------------------------------ -- Interfaces"
+    },
+    {
+     "lines": "40-41",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "shareᴬ",
+     "preview": "-- No query: a corrupted P1 sends P2 nothing that is not already a commitment -- message."
+    },
+    {
+     "lines": "55-56",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "freshᵖ",
+     "preview": "------------------------------------------------------------------------ -- The protocol"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Compose.agda": {
+   "sites": [
+    {
+     "lines": "3-7",
+     "kind": "header",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Categories.Category.Core",
+     "preview": "-- Blum coin-tossing over the hash-based commitment emulates the same protocol -- over the"
+    },
+    {
+     "lines": "44-45",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Resᶠ",
+     "preview": "------------------------------------------------------------------------ -- The two stages"
+    },
+    {
+     "lines": "64-65",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "εᶜᵗ",
+     "preview": "------------------------------------------------------------------------ -- The composed s"
+    },
+    {
+     "lines": "77-78",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Rs",
+     "preview": "-- A stage entering the grading at `1⁺` over a commitment at the same rate, at -- either c"
+    },
+    {
+     "lines": "101-102",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Advʰᶠ",
+     "preview": "------------------------------------------------------------------------ -- The same, at t"
+    },
+    {
+     "lines": "104-105",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Advʰᶠ",
+     "preview": "-- The corrupted-receiver case (`docs/fcom-hiding.md`): its stage drives -- `F_com` but st"
+    },
+    {
+     "lines": "132-133",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "comSim",
+     "preview": "------------------------------------------------------------------------ -- …at the commit"
+    },
+    {
+     "lines": "135-137",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "comSim",
+     "preview": "-- The premise's simulator, certificate and schedule are all in the -- repository, so `coi"
+    },
+    {
+     "lines": "141-142",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "comSimʰ",
+     "preview": "-- …and the corrupted receiver's, which programs rather than extracts and so -- costs one "
+    },
+    {
+     "lines": "150-151",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "composed-ε",
+     "preview": "-- The commitment's own formula, unrescaled: the stage enters the grading at -- `1⁺` (`Exa"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Hiding.agda": {
+   "sites": [
+    {
+     "lines": "3-7",
+     "kind": "header",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- Blum coin-tossing over `F_com`, corrupted receiver (P2): P1's side, as a -- process ove"
+    },
+    {
+     "lines": "36-37",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "shareᴬʰ",
+     "preview": "------------------------------------------------------------------------ -- Interfaces"
+    },
+    {
+     "lines": "56-57",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "freshᵗ",
+     "preview": "------------------------------------------------------------------------ -- The protocol"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda": {
+   "sites": [
+    {
+     "lines": "3-7",
+     "kind": "header",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Categories.LocallyGraded.SubCategory",
+     "preview": "-- The corrupted-receiver coin-toss stage at the UC model, with the certificate -- `UC.Qua"
+    },
+    {
+     "lines": "38-39",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "tossʰCert",
+     "preview": "------------------------------------------------------------------------ -- One drive of `"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda": {
+   "sites": [
+    {
+     "lines": "3-14",
+     "kind": "header",
+     "nLines": 12,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The ideal coin and the joint simulator for Blum coin-tossing over `F_com` -- against a "
+    },
+    {
+     "lines": "44-45",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "sampleᵏ",
+     "preview": "------------------------------------------------------------------------ -- The simulator-"
+    },
+    {
+     "lines": "58-59",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "freshᵏ",
+     "preview": "------------------------------------------------------------------------ -- The ideal coin"
+    },
+    {
+     "lines": "86-87",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "preʲ",
+     "preview": "------------------------------------------------------------------------ -- The joint simu"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda": {
+   "sites": [
+    {
+     "lines": "3-9",
+     "kind": "header",
+     "nLines": 7,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The second hop, and the whole statement: Blum coin-tossing over the -- hash-based commi"
+    },
+    {
+     "lines": "47-48",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Lkᶜᶠ",
+     "preview": "------------------------------------------------------------------------ -- The closed bou"
+    },
+    {
+     "lines": "62-63",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "coin-hybridᵇ",
+     "preview": "------------------------------------------------------------------------ -- The second hop"
+    },
+    {
+     "lines": "71-72",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "εᶜⁱ",
+     "preview": "------------------------------------------------------------------------ -- …and the simul"
+    },
+    {
+     "lines": "96-97",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "coin-toss-idealᶜ",
+     "preview": "------------------------------------------------------------------------ -- …at the commit"
+    },
+    {
+     "lines": "106-107",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Fcoinʷ",
+     "preview": "------------------------------------------------------------------------ -- …and its conse"
+    },
+    {
+     "lines": "109-109",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Fcoinʷ",
+     "preview": "-- Both families are closed, so they enter `Famᴹ` at the unit rate."
+    },
+    {
+     "lines": "122-125",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "coin-toss-idealᴺ",
+     "preview": "-- `≤UC[]⇒≤UCᴺ` does not go through the vanishing collapse, so the statement -- lands in t"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda": {
+   "sites": [
+    {
+     "lines": "3-8",
+     "kind": "header",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The hybrid half of the second hop: the coin-toss stage over the ideal -- `F_com` over t"
+    },
+    {
+     "lines": "52-53",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "resᴵᵈ",
+     "preview": "------------------------------------------------------------------------ -- The composite"
+    },
+    {
+     "lines": "61-61",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "hybridᴹ",
+     "preview": "-- The hybrid as `UC.Graded.ext-graded`/`graded₂-∘` leave it."
+    },
+    {
+     "lines": "77-78",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "θᴴ",
+     "preview": "------------------------------------------------------------------------ -- The state map,"
+    },
+    {
+     "lines": "193-194",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "hybrid-eq",
+     "preview": "------------------------------------------------------------------------ -- …and the compo"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda": {
+   "sites": [
+    {
+     "lines": "3-7",
+     "kind": "header",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The second hop's machine equality: Blum coin-tossing over the ideal `F_com`, -- run ove"
+    },
+    {
+     "lines": "52-53",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "simᴵᵈ",
+     "preview": "------------------------------------------------------------------------ -- The ideal comp"
+    },
+    {
+     "lines": "71-72",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "θᴵ",
+     "preview": "------------------------------------------------------------------------ -- The state map,"
+    },
+    {
+     "lines": "106-106",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "idl-sim",
+     "preview": "-- Lookup as an explicit argument: see `Examples.CoinToss.Ideal.Hybrid`."
+    },
+    {
+     "lines": "182-183",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "idl-sim",
+     "preview": "------------------------------------------------------------------------ -- The machine eq"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda": {
+   "sites": [
+    {
+     "lines": "3-15",
+     "kind": "header",
+     "nLines": 13,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The reachable configurations of Blum coin-tossing over `F_com` over the -- concrete res"
+    },
+    {
+     "lines": "47-49",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Cⁱ",
+     "preview": "-- The grade the hybrid carries, in the two brackets the associator that -- `UC.Quantitati"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The ideal coin and the joint simulator for Blum coin-tossing over `F_com` -- against a "
+    },
+    {
+     "lines": "46-47",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "sampleᵏʰ",
+     "preview": "------------------------------------------------------------------------ -- The simulator-"
+    },
+    {
+     "lines": "59-60",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "freshᵏʰ",
+     "preview": "------------------------------------------------------------------------ -- The ideal coin"
+    },
+    {
+     "lines": "87-88",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "preʲʰ",
+     "preview": "------------------------------------------------------------------------ -- The joint simu"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The corrupted-receiver second hop, and the whole statement at that -- corruption: Blum "
+    },
+    {
+     "lines": "59-60",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Lk♯ᶠ",
+     "preview": "------------------------------------------------------------------------ -- The ideal coin"
+    },
+    {
+     "lines": "62-64",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Lk♯ᶠ",
+     "preview": "-- The composed grade in the two spellings the seal keeps apart: `Lk♯ᶠ` is the -- one a si"
+    },
+    {
+     "lines": "82-83",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "ηʰ",
+     "preview": "------------------------------------------------------------------------ -- The second hop"
+    },
+    {
+     "lines": "85-87",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "ηʰ",
+     "preview": "-- The domination's positive slack, paid at `2⁻ⁿ`: an exact run agreement has -- no zero i"
+    },
+    {
+     "lines": "101-103",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "coin-hybridʳᵇ",
+     "preview": "-- …regraded to the spelling the composition produces, which costs nothing: -- the regradi"
+    },
+    {
+     "lines": "112-113",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "εᶜʳ",
+     "preview": "------------------------------------------------------------------------ -- …and the whole"
+    },
+    {
+     "lines": "147-148",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Fcoinʰʷ",
+     "preview": "------------------------------------------------------------------------ -- …and its conse"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda": {
+   "sites": [
+    {
+     "lines": "3-5",
+     "kind": "header",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The hybrid half of the corrupted-receiver hop: the coin-toss stage over the -- ideal `F"
+    },
+    {
+     "lines": "50-51",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "resᴵᵈʰ",
+     "preview": "------------------------------------------------------------------------ -- The composite"
+    },
+    {
+     "lines": "74-75",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "θᴴʰ",
+     "preview": "------------------------------------------------------------------------ -- The state map,"
+    },
+    {
+     "lines": "202-203",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "hybrid-eqʰ",
+     "preview": "------------------------------------------------------------------------ -- …and the compo"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The corrupted-receiver hop's agreement: Blum coin-tossing over the ideal -- `F_com`, ru"
+    },
+    {
+     "lines": "63-64",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "simᴵᵈʰ",
+     "preview": "------------------------------------------------------------------------ -- The ideal comp"
+    },
+    {
+     "lines": "82-83",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "θᴵʰ",
+     "preview": "------------------------------------------------------------------------ -- The state map,"
+    },
+    {
+     "lines": "124-124",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "idl-simʰ",
+     "preview": "-- Lookup as an explicit argument: see `Examples.CoinToss.Ideal.Hybrid`."
+    },
+    {
+     "lines": "143-145",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "idl-simʰ",
+     "preview": "-- The one non-structural step: the deferred machine draws the committer's -- share and th"
+    },
+    {
+     "lines": "226-227",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "canonʰ",
+     "preview": "------------------------------------------------------------------------ -- Moving the dra"
+    },
+    {
+     "lines": "229-231",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "canonʰ",
+     "preview": "-- The relation the deferred sampling runs on: a family of eagerly-drawn -- states, indexe"
+    },
+    {
+     "lines": "262-264",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "defer-runʰ",
+     "preview": "-- An oracle query reads no secret, so the two sides agree entry by entry; -- on a miss th"
+    },
+    {
+     "lines": "344-346",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "defer-runʰ",
+     "preview": "-- The sandwich's relabelling commutes with everything the induction reads: -- it leaves t"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda": {
+   "sites": [
+    {
+     "lines": "3-9",
+     "kind": "header",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The reachable configurations of Blum coin-tossing over `F_com` over the -- concrete res"
+    },
+    {
+     "lines": "48-49",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "preᴱ",
+     "preview": "------------------------------------------------------------------------ -- Drawing at `go"
+    },
+    {
+     "lines": "51-51",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "preᴱ",
+     "preview": "-- `endᴱ` keeps `b₁` because the commitment cell still holds it."
+    },
+    {
+     "lines": "81-82",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "preᴰ",
+     "preview": "------------------------------------------------------------------------ -- …and drawing a"
+    },
+    {
+     "lines": "84-85",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "preᴰ",
+     "preview": "-- `endᴰ` keeps the share, which makes the relation to `eagerᶜʰ` a pointwise -- equality r"
+    },
+    {
+     "lines": "116-117",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "eagerᶜʰ",
+     "preview": "------------------------------------------------------------------------ -- …at the bracke"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda": {
+   "sites": [
+    {
+     "lines": "3-7",
+     "kind": "header",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The corrupted-receiver hop at the UC model: the joint simulator's query -- certificate,"
+    },
+    {
+     "lines": "46-47",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "simJʰCert",
+     "preview": "------------------------------------------------------------------------ -- The joint simu"
+    },
+    {
+     "lines": "84-85",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "hyb-flatʰ",
+     "preview": "------------------------------------------------------------------------ -- The two sides,"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda": {
+   "sites": [
+    {
+     "lines": "3-6",
+     "kind": "header",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The second hop at the UC model: the joint simulator's query certificate, and -- `Exampl"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Test.agda": {
+   "sites": [
+    {
+     "lines": "3-9",
+     "kind": "header",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- Acceptance instances for the composed statements: their schedules where they -- bite, a"
+    },
+    {
+     "lines": "42-43",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "attack-bound",
+     "preview": "------------------------------------------------------------------------ -- The schedules"
+    },
+    {
+     "lines": "54-55",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "coin-round",
+     "preview": "------------------------------------------------------------------------ -- The ideal coin"
+    },
+    {
+     "lines": "91-92",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "coin-roundʰ",
+     "preview": "------------------------------------------------------------------------ -- …and at the ot"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/UC.agda": {
+   "sites": [
+    {
+     "lines": "3-6",
+     "kind": "header",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "Categories.LocallyGraded.SubCategory",
+     "preview": "-- The coin-toss stage at the UC model, and its query certificate for -- `UC.Quantitative."
+    },
+    {
+     "lines": "40-41",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "tossCert",
+     "preview": "------------------------------------------------------------------------ -- The coin-toss "
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/Commitment.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/HashForward.agda": {
+   "sites": [
+    {
+     "lines": "3-18",
+     "kind": "header",
+     "nLines": 16,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- Hash-then-forward: the toy whose simulator has an inhabited interface and -- spends a q"
+    },
+    {
+     "lines": "47-48",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "putᴿ",
+     "preview": "------------------------------------------------------------------------ -- Interfaces"
+    },
+    {
+     "lines": "96-97",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "downᶠ",
+     "preview": "------------------------------------------------------------------------ -- The ideal func"
+    },
+    {
+     "lines": "99-101",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "downᶠ",
+     "preview": "-- Stateless, which keeps the simulated composite free of the ⊕-trace -- (`UC.Machine.Wire"
+    },
+    {
+     "lines": "117-118",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "idleˢ",
+     "preview": "------------------------------------------------------------------------ -- The simulator"
+    },
+    {
+     "lines": "120-122",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "idleˢ",
+     "preview": "-- Three states, because answering one `peekᴬ` takes two queries: fetch the -- leak, then "
+    },
+    {
+     "lines": "140-141",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "realStep",
+     "preview": "------------------------------------------------------------------------ -- The real proto"
+    },
+    {
+     "lines": "143-145",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "realStep",
+     "preview": "-- The state is split INSIDE each letter's clause, never across them: a clause -- with a c"
+    },
+    {
+     "lines": "165-166",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "real-factors",
+     "preview": "------------------------------------------------------------------------ -- The factoring"
+    },
+    {
+     "lines": "176-178",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "real-factors",
+     "preview": "-- By `∘-wireᴹ` the composite is the relay `subᴵ simulator` with its -- interface renamed "
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/HashForward/Audit.agda": {
+   "sites": [
+    {
+     "lines": "3-7",
+     "kind": "header",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The toy's emulation as an event bound at the machine: the simulator is absorbed -- into"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/HashForward/UC.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [],
+     "attachedTo": "Data.List.Base",
+     "preview": "-- The toy at the UC model: emulation at a nontrivial grade, and what the -- simulator spe"
+    },
+    {
+     "lines": "40-41",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "realᵒ",
+     "preview": "------------------------------------------------------------------------ -- The emulation"
+    },
+    {
+     "lines": "58-59",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Φˢ",
+     "preview": "------------------------------------------------------------------------ -- What the simul"
+    },
+    {
+     "lines": "61-62",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Φˢ",
+     "preview": "-- The amortised bound: a `peekᴬ` deposits two units and the simulator's two -- queries wi"
+    },
+    {
+     "lines": "68-69",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "hashes",
+     "preview": "------------------------------------------------------------------------ -- …exactly"
+    },
+    {
+     "lines": "129-132",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "sim-hash-count",
+     "preview": "-- The occurrence statement: on EVERY branch of the simulator's run over an -- activation "
+    },
+    {
+     "lines": "156-160",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "round",
+     "preview": "-- The same count at one concrete transaction, computed rather than counted: a -- `peekᴬ` "
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard.agda": {
+   "sites": [
+    {
+     "lines": "3-17",
+     "kind": "header",
+     "nLines": 15,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-------------------------------------------------------------------------------- -- MERKLE"
+    },
+    {
+     "lines": "50-51",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "MD",
+     "preview": "------------------------------------------------------------------------ -- The three prot"
+    },
+    {
+     "lines": "67-68",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "chainᶜ",
+     "preview": "-- `p = 1`, so a compression query carries the party `i₀`, as `Core.mdRun` -- does."
+    },
+    {
+     "lines": "80-81",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "run-general",
+     "preview": "------------------------------------------------------------------------ -- One activation"
+    },
+    {
+     "lines": "139-140",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "indistinguishable",
+     "preview": "-- Neither run diverges, so at either verdict the `false` reading is the -- complement of "
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda": {
+   "sites": [
+    {
+     "lines": "3-22",
+     "kind": "header",
+     "nLines": 20,
+     "flags": [],
+     "attachedTo": "categorical-crypto.Prelude",
+     "preview": "-------------------------------------------------------------------------------- -- MERKLE"
+    },
+    {
+     "lines": "73-74",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "MD",
+     "preview": "-- `k ≥ 1` is REQUIRED: for `k = 0` every message hashes deterministically to -- `IV` whil"
+    },
+    {
+     "lines": "85-89",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "pack",
+     "preview": "-- 4-input compression oracle (Coron–Dodis–Malinaud–Puniya, \"Merkle-Damgård -- Revisited\","
+    },
+    {
+     "lines": "117-120",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "interior",
+     "preview": "-- The *structural* chaining collision: a coincidence among {IV} ∪ {interior -- chaining v"
+    },
+    {
+     "lines": "142-161",
+     "kind": "banner",
+     "nLines": 20,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "FState",
+     "preview": "------------------------------------------------------------------------ -- The coupling. "
+    },
+    {
+     "lines": "175-175",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "walk",
+     "preview": "-- no call ⇒ NOT fresh"
+    },
+    {
+     "lines": "310-314",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "ideal-marginal",
+     "preview": "-- Freshness detachment: walking the chain and testing `G` on the final -- value — with th"
+    },
+    {
+     "lines": "324-325",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "ideal-marginal",
+     "preview": "-- `detachL` takes the lookup result as an ARGUMENT, which keeps the recursion -- structur"
+    },
+    {
+     "lines": "429-433",
+     "kind": "banner",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Birthday",
+     "preview": "------------------------------------------------------------------------ -- The birthday p"
+    },
+    {
+     "lines": "663-666",
+     "kind": "banner",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "stepT",
+     "preview": "------------------------------------------------------------------------ -- The chain-fore"
+    },
+    {
+     "lines": "684-684",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Rooted",
+     "preview": "-- every key's chaining component is rooted in the pool ({IV} ∪ interior outputs)"
+    },
+    {
+     "lines": "688-688",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "OwnedLast",
+     "preview": "-- every FINAL key present in the table is the last call of a recorded chain"
+    },
+    {
+     "lines": "700-703",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "MDInv",
+     "preview": "-- The structural parts are needed only WHILE UNFLAGGED (to justify the descent -- at the "
+    },
+    {
+     "lines": "716-718",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "MDInvData",
+     "preview": "------------------------------------------------------------------------ -- Preservation: "
+    },
+    {
+     "lines": "720-721",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "MDInvData",
+     "preview": "-- Inlined so the single `with ii <? k` reduces `collC` directly — -- delegating to `collC"
+    },
+    {
+     "lines": "838-840",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [
+      "leftoverMarker",
+      "singleDefBanner"
+     ],
+     "attachedTo": "walk-hit-collC",
+     "preview": "------------------------------------------------------------------------ -- New-message br"
+    },
+    {
+     "lines": "1044-1045",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "walk-hit-collC",
+     "preview": "------------------------------------------------------------------------ -- Birthday desce"
+    },
+    {
+     "lines": "1187-1191",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "walk-hit-collC",
+     "preview": "-- A NEW message whose final call hits an existing entry re-meets a recorded -- chain M' ≠"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda": {
+   "sites": [
+    {
+     "lines": "3-17",
+     "kind": "header",
+     "nLines": 15,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-------------------------------------------------------------------------------- -- Comput"
+    },
+    {
+     "lines": "37-38",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "OneBlock",
+     "preview": "------------------------------------------------------------------------ -- One block: the"
+    },
+    {
+     "lines": "77-78",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "TwoBlocks",
+     "preview": "------------------------------------------------------------------------ -- Two blocks: th"
+    },
+    {
+     "lines": "92-92",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "real-collides",
+     "preview": "-- ½ (first chaining values agree) + ½·½ (they do not, fresh coincidence)."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda": {
+   "sites": [
+    {
+     "lines": "3-18",
+     "kind": "header",
+     "nLines": 16,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-------------------------------------------------------------------------------- -- Merkle"
+    },
+    {
+     "lines": "57-58",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "MDState",
+     "preview": "------------------------------------------------------------------------ -- The relay name"
+    },
+    {
+     "lines": "60-60",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "MDState",
+     "preview": "-- Idle, or (party, next block index, remaining blocks)."
+    },
+    {
+     "lines": "84-85",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "certifiedᴹᴰ",
+     "preview": "------------------------------------------------------------------------ -- The certificat"
+    },
+    {
+     "lines": "94-95",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "certifiedᴹᴰ",
+     "preview": "-- Entering deposits `k` units and spends one on the first block; the block -- list has le"
+    },
+    {
+     "lines": "133-134",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qbᴹᴰ",
+     "preview": "------------------------------------------------------------------------ -- …and it is a c"
+    },
+    {
+     "lines": "141-142",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qbᴹᴰ",
+     "preview": "-- The point is passed explicitly: left to a meta, `θᴰ`'s constructor-headed -- clauses in"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- Hash-based commitment against a corrupted committer: the ideal -- functionality, the ho"
+    },
+    {
+     "lines": "45-46",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "hashᴿ",
+     "preview": "------------------------------------------------------------------------ -- Interfaces"
+    },
+    {
+     "lines": "48-49",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "hashᴿ",
+     "preview": "-- `putᴿ` stores the committed bit and receipts the RECEIVER; `getᴿ` releases -- it; `nakᴿ"
+    },
+    {
+     "lines": "96-97",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "downᶠ",
+     "preview": "------------------------------------------------------------------------ -- The ideal func"
+    },
+    {
+     "lines": "114-115",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "waitᴿ",
+     "preview": "------------------------------------------------------------------------ -- The real proto"
+    },
+    {
+     "lines": "154-155",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "waitˢ",
+     "preview": "------------------------------------------------------------------------ -- The simulator:"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Asymptotic.agda": {
+   "sites": [
+    {
+     "lines": "3-6",
+     "kind": "header",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "Data.Nat.Base",
+     "preview": "-- The extraction bound at the security parameter: `Game.ε` merged into one -- numerator, "
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda": {
+   "sites": [
+    {
+     "lines": "3-10",
+     "kind": "header",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- The extracting simulator's reading of a commitment digest, and the one -- combinatorial"
+    },
+    {
+     "lines": "33-34",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Pt",
+     "preview": "-- An oracle point carries the committed bit in front of the opening -- randomness, which "
+    },
+    {
+     "lines": "80-81",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Pins",
+     "preview": "------------------------------------------------------------------------ -- The extraction"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Game.agda": {
+   "sites": [
+    {
+     "lines": "3-13",
+     "kind": "header",
+     "nLines": 11,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- The closed extraction game and its ε. -- -- `respR` is the real protocol against a lazi"
+    },
+    {
+     "lines": "50-51",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "askQ",
+     "preview": "------------------------------------------------------------------------ -- The alphabet a"
+    },
+    {
+     "lines": "65-65",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Com",
+     "preview": "-- The commitment digest, and the bit the simulator extracted for it."
+    },
+    {
+     "lines": "70-70",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "StR",
+     "preview": "-- the coupling: table, commitment, the hit flag"
+    },
+    {
+     "lines": "90-91",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "raise",
+     "preview": "------------------------------------------------------------------------ -- The coupling's"
+    },
+    {
+     "lines": "93-94",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "raise",
+     "preview": "-- `Oracle.fetchT` that also raises the hit flag when a fresh sample lands on -- the outst"
+    },
+    {
+     "lines": "104-105",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "realOpen",
+     "preview": "------------------------------------------------------------------------ -- The two games "
+    },
+    {
+     "lines": "144-144",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "ansB",
+     "preview": "-- The two coupled answers to a sampled point."
+    },
+    {
+     "lines": "181-182",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Good",
+     "preview": "------------------------------------------------------------------------ -- The invariant:"
+    },
+    {
+     "lines": "236-237",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "M",
+     "preview": "------------------------------------------------------------------------ -- Both marginals"
+    },
+    {
+     "lines": "244-245",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "fetch-bis",
+     "preview": "-- The `lookupPt … ≡ just (proj₂ u)` premise is what `agree-off` needs, and -- what a bare"
+    },
+    {
+     "lines": "267-268",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_≋R_",
+     "preview": "-- Both relations carry the invariant, because `fetch-bis` needs it to re-establish -- it "
+    },
+    {
+     "lines": "339-340",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "keep-or-sample",
+     "preview": "-- Off the bad event the receiver's verdict is the functionality's, so the -- coupling's c"
+    },
+    {
+     "lines": "358-359",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "keep-or-sample",
+     "preview": "------------------------------------------------------------------------ -- The two potent"
+    },
+    {
+     "lines": "448-449",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "ε",
+     "preview": "------------------------------------------------------------------------ -- The bound"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- The same hash-based commitment against a corrupted receiver: the ideal -- functionality"
+    },
+    {
+     "lines": "45-46",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "commitᴱ",
+     "preview": "------------------------------------------------------------------------ -- Interfaces"
+    },
+    {
+     "lines": "48-49",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "commitᴱ",
+     "preview": "-- The environment hears back only a refusal: everything a hiding experiment -- observes g"
+    },
+    {
+     "lines": "82-83",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "downᶠʰ",
+     "preview": "------------------------------------------------------------------------ -- The ideal func"
+    },
+    {
+     "lines": "99-100",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "freshᴴ",
+     "preview": "------------------------------------------------------------------------ -- The real proto"
+    },
+    {
+     "lines": "137-138",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "blankᵖ",
+     "preview": "------------------------------------------------------------------------ -- The simulator:"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Asymptotic.agda": {
+   "sites": [
+    {
+     "lines": "3-5",
+     "kind": "header",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Data.Nat.Base",
+     "preview": "-- The hiding bounds at the security parameter, and their negligibility at the -- identity"
+    },
+    {
+     "lines": "39-40",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "εᵗ",
+     "preview": "------------------------------------------------------------------------ -- …against the r"
+    },
+    {
+     "lines": "42-43",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "εᵗ",
+     "preview": "-- `m·2⁻ⁿ` for the programming hop plus `2m·2⁻ⁿ` for the deferral hop -- (`Hiding.Defer.de"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda": {
+   "sites": [
+    {
+     "lines": "3-20",
+     "kind": "header",
+     "nLines": 18,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- The deferred-sampling hop of the hiding game: `respLʰ` against `respRʰ`. -- -- The two "
+    },
+    {
+     "lines": "70-71",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "preOpen",
+     "preview": "------------------------------------------------------------------------ -- The deferred g"
+    },
+    {
+     "lines": "131-132",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_≋D_",
+     "preview": "------------------------------------------------------------------------ -- Deferring the "
+    },
+    {
+     "lines": "134-139",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "_≋D_",
+     "preview": "-- Before the opening the plant is unread, so a family of planted states is -- one deferri"
+    },
+    {
+     "lines": "244-245",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_≋P_",
+     "preview": "------------------------------------------------------------------------ -- Deferred sampl"
+    },
+    {
+     "lines": "247-251",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "_≋P_",
+     "preview": "-- The secret is unread until the commitment hashes with it, so planting it at -- the star"
+    },
+    {
+     "lines": "294-294",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "defer-commit",
+     "preview": "-- `docs/fcom-extraction.md` \"Not delivered\" §2's `defer`, at this game."
+    },
+    {
+     "lines": "301-302",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "TblAt",
+     "preview": "------------------------------------------------------------------------ -- The two games'"
+    },
+    {
+     "lines": "304-306",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "TblAt",
+     "preview": "-- The real game's table, read as the deferred game's plus the commitment's -- own point: "
+    },
+    {
+     "lines": "316-318",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Fresh",
+     "preview": "-- No tabulated point names the plant: this is what stops the real game's -- commitment st"
+    },
+    {
+     "lines": "323-325",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "_≋J_",
+     "preview": "-- The two planted games, in step at the same plant. It holds only while the -- flag is do"
+    },
+    {
+     "lines": "373-374",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "good-J",
+     "preview": "------------------------------------------------------------------------ -- The coupling, "
+    },
+    {
+     "lines": "509-510",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "εᴾ",
+     "preview": "------------------------------------------------------------------------ -- The flag's ave"
+    },
+    {
+     "lines": "515-517",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "RelP",
+     "preview": "-- The families one distinguisher can chase at every plant at once: while the -- plant is "
+    },
+    {
+     "lines": "695-696",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "flag-bound",
+     "preview": "------------------------------------------------------------------------ -- The bound"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda": {
+   "sites": [
+    {
+     "lines": "3-14",
+     "kind": "header",
+     "nLines": 12,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- The closed hiding game and its ε. -- -- `respRʰ` is a hand transcription of the real pr"
+    },
+    {
+     "lines": "48-49",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "askQʰ",
+     "preview": "------------------------------------------------------------------------ -- The alphabet a"
+    },
+    {
+     "lines": "62-63",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Comʰ",
+     "preview": "-- The commitment on the table: the digest published, the bit, and whether the -- opening "
+    },
+    {
+     "lines": "67-67",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "ComRʰ",
+     "preview": "-- …and what the real game keeps instead, the opening randomness included."
+    },
+    {
+     "lines": "72-72",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "StLʰ",
+     "preview": "-- the coupling: + the hit flag"
+    },
+    {
+     "lines": "73-73",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "StRʰ",
+     "preview": "-- the deferred and the ideal games"
+    },
+    {
+     "lines": "82-83",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "hitAt",
+     "preview": "------------------------------------------------------------------------ -- The point the "
+    },
+    {
+     "lines": "85-88",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "hitAt",
+     "preview": "-- Does this query name the commitment's own point, for THIS draw of the -- opening random"
+    },
+    {
+     "lines": "94-94",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "pinAt",
+     "preview": "-- …and what the real committer's own table entry answers there."
+    },
+    {
+     "lines": "99-101",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "outAskB",
+     "preview": "-- The outcome of one step in each game, NAMED. `_>>=ᴹ_` is a defined -- function, so no `"
+    },
+    {
+     "lines": "126-127",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "askR",
+     "preview": "------------------------------------------------------------------------ -- The real game:"
+    },
+    {
+     "lines": "129-131",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "askR",
+     "preview": "-- The first component is the secret, PLANTED or not yet drawn. `comR` is the -- only step"
+    },
+    {
+     "lines": "155-156",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "comL",
+     "preview": "------------------------------------------------------------------------ -- The deferred g"
+    },
+    {
+     "lines": "158-163",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "comL",
+     "preview": "-- The commitment and the opening are the SAME step in both. At the -- commitment a fresh "
+    },
+    {
+     "lines": "188-189",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "askB",
+     "preview": "------------------------------------------------------------------------ -- The coupling"
+    },
+    {
+     "lines": "195-196",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "liftʰ",
+     "preview": "-- Off the oracle the two games step alike: the coupling carries the flag -- along and emi"
+    },
+    {
+     "lines": "217-218",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "ask-redᴸ",
+     "preview": "------------------------------------------------------------------------ -- Both marginals"
+    },
+    {
+     "lines": "278-279",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "hit-drift",
+     "preview": "------------------------------------------------------------------------ -- The potential:"
+    },
+    {
+     "lines": "306-307",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "εᴸ",
+     "preview": "------------------------------------------------------------------------ -- The bound"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Test.agda": {
+   "sites": [
+    {
+     "lines": "3-8",
+     "kind": "header",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- Acceptance instances for the hiding bounds (`GamePlaying.Test`'s sense): -- adaptive at"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda": {
+   "sites": [
+    {
+     "lines": "3-6",
+     "kind": "header",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "Categories.LocallyGraded.SubCategory",
+     "preview": "-- The corrupted-receiver machines at the UC model, and the programming -- simulator's que"
+    },
+    {
+     "lines": "38-39",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "realʰᵒ",
+     "preview": "------------------------------------------------------------------------ -- The images"
+    },
+    {
+     "lines": "50-51",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "comCert",
+     "preview": "------------------------------------------------------------------------ -- The honest com"
+    },
+    {
+     "lines": "56-56",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "comQB",
+     "preview": "-- Letter before state, as in `Examples.ROCommitment.UC.recvCert`."
+    },
+    {
+     "lines": "76-77",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Φᵖ",
+     "preview": "------------------------------------------------------------------------ -- The allowance"
+    },
+    {
+     "lines": "79-81",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Φᵖ",
+     "preview": "-- No `UC.QueryBound.Exact` ledger exists for this simulator: whether a query -- costs a r"
+    },
+    {
+     "lines": "96-97",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "simQBʰ",
+     "preview": "-- The two refined answers a draw lands on, named: `_>>=ₚ_` is a coinductive -- record, so"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Oracle.agda": {
+   "sites": [
+    {
+     "lines": "3-9",
+     "kind": "header",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "Data.List.Base",
+     "preview": "-- The lazily sampled oracle both closed `F_com` games run on. -- -- The games keep the ta"
+    },
+    {
+     "lines": "62-64",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "fetchR",
+     "preview": "-- The fetch with the fresh sample supplied, so that a coupling can feed it -- another gam"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Categories.LocallyGraded.SubCategory",
+     "preview": "-- The commitment's emulation at the resource-installed boundary -- (`docs/rcom-icom-b1.md"
+    },
+    {
+     "lines": "41-42",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Rcom",
+     "preview": "------------------------------------------------------------------------ -- The two compar"
+    },
+    {
+     "lines": "56-57",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Realization",
+     "preview": "------------------------------------------------------------------------ -- The theorem to"
+    },
+    {
+     "lines": "63-64",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "RcomQB",
+     "preview": "------------------------------------------------------------------------ -- The two real r"
+    },
+    {
+     "lines": "72-73",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "coin-from-Rcom",
+     "preview": "------------------------------------------------------------------------ -- The first hop,"
+    },
+    {
+     "lines": "75-76",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "coin-from-Rcom",
+     "preview": "-- `Examples.CoinToss.Compose.coin-toss-from-com` at the resource-installed -- pair."
+    },
+    {
+     "lines": "83-84",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "assembly",
+     "preview": "------------------------------------------------------------------------ -- …and the whole"
+    },
+    {
+     "lines": "86-87",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "assembly",
+     "preview": "-- `toss-over` builds `toss ∙ᶠ (real ∘ res)` where the coin hybrid wants -- `(toss ∙ᶠ real"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda": {
+   "sites": [
+    {
+     "lines": "3-10",
+     "kind": "header",
+     "nLines": 8,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- The closed real machine against the pruned real game, letter for letter. -- -- `Game.Q`"
+    },
+    {
+     "lines": "52-53",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "toQ",
+     "preview": "------------------------------------------------------------------------ -- The alphabets"
+    },
+    {
+     "lines": "66-67",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "fromR",
+     "preview": "-- A section of `toR`; its value at `idleR` is arbitrary, and no pruned -- activation reac"
+    },
+    {
+     "lines": "81-82",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "deadR",
+     "preview": "------------------------------------------------------------------------ -- The activation"
+    },
+    {
+     "lines": "94-95",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "_≋ᴿ_",
+     "preview": "------------------------------------------------------------------------ -- Reading one ac"
+    },
+    {
+     "lines": "113-113",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "_≋ᴿ_",
+     "preview": "-- The trace's own answer alphabet keeps the empty domain summand in front."
+    },
+    {
+     "lines": "201-202",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_≋ᴿ_",
+     "preview": "------------------------------------------------------------------------ -- The real margi"
+    },
+    {
+     "lines": "204-205",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_≋ᴿ_",
+     "preview": "-- Only a resting receiver over an untouched cell is related: the composite -- solves its "
+    },
+    {
+     "lines": "246-247",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "sim-log-repeat",
+     "preview": "------------------------------------------------------------------------ -- Where the idea"
+    },
+    {
+     "lines": "249-254",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "sim-log-repeat",
+     "preview": "-- `Examples.ROCommitment.simulator` logs EVERY answer it relays, including one -- the ora"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda": {
+   "sites": [
+    {
+     "lines": "3-10",
+     "kind": "header",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The closed real machine's verdict mass, and the game bound it inherits. -- -- `real-run"
+    },
+    {
+     "lines": "54-55",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "real-run",
+     "preview": "------------------------------------------------------------------------ -- The machine ha"
+    },
+    {
+     "lines": "69-70",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "real-run",
+     "preview": "-- The machine half's three steps are named separately: inferring them inside -- one `wher"
+    },
+    {
+     "lines": "95-96",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "deadB",
+     "preview": "------------------------------------------------------------------------ -- The game half,"
+    },
+    {
+     "lines": "98-99",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "deadB",
+     "preview": "-- The coupling and the ideal game inherit the real game's dead set through -- the two era"
+    },
+    {
+     "lines": "133-134",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "extraction-real",
+     "preview": "------------------------------------------------------------------------ -- …and the two c"
+    },
+    {
+     "lines": "136-138",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "extraction-real",
+     "preview": "-- Rewriting UNDER `∣_-_∣` is done at an abstract equation and nowhere else: -- with the r"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda": {
+   "sites": [
+    {
+     "lines": "3-10",
+     "kind": "header",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- The closed real commitment system `real 𝒫.∘ resource` as a kernel: it -- settles, so it"
+    },
+    {
+     "lines": "48-49",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Kʳ",
+     "preview": "------------------------------------------------------------------------ -- The honest rec"
+    },
+    {
+     "lines": "69-70",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Kᵒ",
+     "preview": "------------------------------------------------------------------------ -- The resource's"
+    },
+    {
+     "lines": "79-80",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "rankᴿ",
+     "preview": "------------------------------------------------------------------------ -- The round-trip"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda": {
+   "sites": [
+    {
+     "lines": "3-6",
+     "kind": "header",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- The resource both worlds sit on, as a machine: a lazily sampled oracle -- (`Examples.RO"
+    },
+    {
+     "lines": "39-40",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "lazyₚ",
+     "preview": "-- Every machine that holds the table answers a query through this one term, -- so their s"
+    },
+    {
+     "lines": "54-54",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "lazy-bind",
+     "preview": "-- The lookup is scrutinized by both sides at once, so it is `rewrite`n once."
+    },
+    {
+     "lines": "88-89",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "cell-put",
+     "preview": "------------------------------------------------------------------------ -- The cell's ste"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Test.agda": {
+   "sites": [
+    {
+     "lines": "3-7",
+     "kind": "header",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- Acceptance instance for the extraction bound (`GamePlaying.Test`'s sense): -- an adapti"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda": {
+   "sites": [
+    {
+     "lines": "3-8",
+     "kind": "header",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The concrete resource crosses the `Dₚ`/`Dist-ℚ` boundary: every activation -- settles ("
+    },
+    {
+     "lines": "47-48",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "digᵀ",
+     "preview": "------------------------------------------------------------------------ -- The kernel"
+    },
+    {
+     "lines": "64-65",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "resource-settles",
+     "preview": "------------------------------------------------------------------------ -- Every activati"
+    },
+    {
+     "lines": "90-91",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "resource-settles",
+     "preview": "-- A relabelled value and a relabelled sink: `Dmap⊥` is a bind, so neither is -- definitio"
+    },
+    {
+     "lines": "99-101",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "resource-settles",
+     "preview": "-- The oracle's activation, at the lookup result passed in rather than -- scrutinised: `wi"
+    },
+    {
+     "lines": "152-154",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "resource-run",
+     "preview": "-- The closed `Dₚ` run of the resource is the kernel's run: -- `Protocol.Machine.Agree.prA"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/UC.agda": {
+   "sites": [
+    {
+     "lines": "3-9",
+     "kind": "header",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "Categories.LocallyGraded.SubCategory",
+     "preview": "-- The corrupted-committer machines at the UC model, and what the extracting -- simulator "
+    },
+    {
+     "lines": "46-47",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "realᵒ",
+     "preview": "------------------------------------------------------------------------ -- The images"
+    },
+    {
+     "lines": "58-59",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "recvCert",
+     "preview": "------------------------------------------------------------------------ -- The honest sid"
+    },
+    {
+     "lines": "61-63",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "recvCert",
+     "preview": "-- An activation from above buys one downward oracle call and the answer to it -- only ret"
+    },
+    {
+     "lines": "67-68",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "recvQB",
+     "preview": "-- The letter is split before the state, so that a `cohL` clause at a -- VARIABLE state st"
+    },
+    {
+     "lines": "92-93",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Φˢ",
+     "preview": "------------------------------------------------------------------------ -- The allowance"
+    },
+    {
+     "lines": "95-96",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Φˢ",
+     "preview": "-- An activation from above buys two downward messages; only the opening uses -- both, and"
+    },
+    {
+     "lines": "105-106",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "hashes",
+     "preview": "------------------------------------------------------------------------ -- …exactly"
+    },
+    {
+     "lines": "108-110",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "hashes",
+     "preview": "-- One oracle relay (`hashes`) per adversary message that names a point -- (`points`) — it"
+    },
+    {
+     "lines": "202-202",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "sim-hash-count",
+     "preview": "-- `Λᴴ` is 0 because each relay is issued in the step that pays for it."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/RandomOracle.agda": {
+   "sites": [
+    {
+     "lines": "40-41",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "lookup-bs-here",
+     "preview": "-- `lookup-bs` branches on a `with`, so the reflexive case is taken here -- rather than re"
+    },
+    {
+     "lines": "64-65",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "Lazy",
+     "preview": "-------------------------------------------------------------------- -- The lazily sampled"
+    },
+    {
+     "lines": "69-70",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "count-matches",
+     "preview": "-- The lookup result is an ARGUMENT, so that `answer-eval` can case on it -- without reach"
+    },
+    {
+     "lines": "78-80",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "count-matches",
+     "preview": "-- `step`, read through any semantics of call trees that turns a coin into a -- bind; the "
+    },
+    {
+     "lines": "109-110",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "count-matches",
+     "preview": "-------------------------------------------------------------------- -- Collision counting"
+    },
+    {
+     "lines": "116-116",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "E-collisions",
+     "preview": "-- `|s| · 2⁻ᵒᵘᵗᴺ`, by recursion on `s` so that `E-collisions-rec` can follow it."
+    },
+    {
+     "lines": "152-152",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "state-collisions",
+     "preview": "-- Number of unordered pairs of entries with the same hash."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/RelSetup.agda": {
+   "sites": [
+    {
+     "lines": "3-7",
+     "kind": "header",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "CategoricalCrypto.Examples.RelSetup",
+     "preview": "-- The locally graded UC theory (`Abstract2`) run at a concrete setup: -- 𝒞 = ℐ = Rel mono"
+    },
+    {
+     "lines": "32-32",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "ℰ-tests",
+     "preview": "-- An environment observes a subset of the interface it is attached to."
+    },
+    {
+     "lines": "41-43",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "ℰ-faithful",
+     "preview": "------------------------------------------------------------------------ -- ≈ᵁ at this set"
+    },
+    {
+     "lines": "48-48",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "≈ᵁ⇒≈",
+     "preview": "-- the test that observes a single interface value"
+    },
+    {
+     "lines": "65-67",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Msg",
+     "preview": "------------------------------------------------------------------------ -- A one-time pad"
+    },
+    {
+     "lines": "92-94",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "sendEnc",
+     "preview": "------------------------------------------------------------------------ -- Two protocols "
+    },
+    {
+     "lines": "96-96",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "sendEnc",
+     "preview": "-- Hop 1: transmit the message, leaking a one-time-pad ciphertext …"
+    },
+    {
+     "lines": "100-100",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "sendIdeal",
+     "preview": "-- … while the ideal channel leaks nothing."
+    },
+    {
+     "lines": "104-104",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "relayEnc",
+     "preview": "-- Hop 2: forward the message, leaking its complement …"
+    },
+    {
+     "lines": "108-108",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "relayPlain",
+     "preview": "-- … while the ideal relay leaks the message itself."
+    },
+    {
+     "lines": "115-117",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "send-sim",
+     "preview": "------------------------------------------------------------------------ -- Emulation, and"
+    },
+    {
+     "lines": "124-124",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "send≤ideal",
+     "preview": "-- The one-time-pad channel realizes the ideal channel"
+    },
+    {
+     "lines": "133-133",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "relay≤plain",
+     "preview": "-- The complement-leaking relay realizes the message-leaking one"
+    },
+    {
+     "lines": "137-137",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "relayed-otp",
+     "preview": "-- Some more examples"
+    },
+    {
+     "lines": "148-148",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "ideal≤leaky",
+     "preview": "-- Leakage may always be added"
+    },
+    {
+     "lines": "155-157",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "leaky-not-secure",
+     "preview": "------------------------------------------------------------------------ -- the leaky chan"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/Signatures.agda": {
+   "sites": [
+    {
+     "lines": "89-98",
+     "kind": "standalone",
+     "nLines": 10,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "_-⟦_/_⟧⇀_",
+     "preview": "-- TODO: the verification clause. The sketch below is STALE — it is -- written against an "
+    }
+   ]
+  },
+  "src/CategoricalCrypto/RandomOracle.agda": {
+   "sites": [
+    {
+     "lines": "3-10",
+     "kind": "header",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "CategoricalCrypto.RandomOracle",
+     "preview": "-- §3 of the plan (M5/M6): the random oracle, end to end. Over the standard -- model (§2) "
+    },
+    {
+     "lines": "32-33",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "StdUC",
+     "preview": "-- The RO interface has DISTINCT adversary interfaces for real (Jre) and ideal -- (Kid) — "
+    },
+    {
+     "lines": "40-42",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Ao",
+     "preview": "-- U lands OAP-homs at `T₀ J · = J ⊗ ·`, so the machines live over these -- channels; the "
+    },
+    {
+     "lines": "50-53",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "ROData",
+     "preview": "-- ── The RO/MD interface, hypothesised at its MerkleDamgard.agda types ─────── -- E Strat"
+    },
+    {
+     "lines": "57-58",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Payoff",
+     "preview": "-- `_≈ℰ[ ε ]_`: any distinguisher of ≤ n queries has advantage ≤ ε n -- (MD `_≈ℰ[_]_`, gen"
+    },
+    {
+     "lines": "60-60",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "Payoff",
+     "preview": "-- bound"
+    },
+    {
+     "lines": "61-61",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "Payoff",
+     "preview": "-- Comp.M"
+    },
+    {
+     "lines": "62-62",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "Payoff",
+     "preview": "-- MD"
+    },
+    {
+     "lines": "63-63",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "Payoff",
+     "preview": "-- General.M (the ideal RO)"
+    },
+    {
+     "lines": "64-64",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "Payoff",
+     "preview": "-- indistinguishable"
+    },
+    {
+     "lines": "65-66",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Payoff",
+     "preview": "-- BRIDGE (M5): a concrete per-budget bound with a vanishing profile -- establishes the ε-"
+    },
+    {
+     "lines": "70-70",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Payoff",
+     "preview": "-- BRIDGE (M6): the OP protocols and the U-images of real / simulated ideal."
+    },
+    {
+     "lines": "77-77",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Payoff",
+     "preview": "-- ── THE PAYOFF, DERIVED ─────────────────────────────────────────────────────"
+    },
+    {
+     "lines": "84-87",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- Consumes ONLY the §1 abstract theorem (dummy-complete), the bridge -- (absorb + U-real/"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/RandomOracle2.agda": {
+   "sites": [
+    {
+     "lines": "3-14",
+     "kind": "header",
+     "nLines": 12,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "CategoricalCrypto.RandomOracle2",
+     "preview": "-- §3 of the plan (M5/M6) over the naive locally graded layer: the random -- oracle, end t"
+    },
+    {
+     "lines": "35-36",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "StdUC",
+     "preview": "-- The RO interface has DISTINCT adversary interfaces for real (Jre) and ideal -- (Kid) — "
+    },
+    {
+     "lines": "42-42",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Ao",
+     "preview": "-- The protocol domain is closed on the input side; Bo = T₀ Jre GenIf."
+    },
+    {
+     "lines": "47-50",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "ROData",
+     "preview": "-- ── The RO/MD interface, hypothesised at its MerkleDamgard.agda types ─────── -- E Strat"
+    },
+    {
+     "lines": "54-56",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Payoff",
+     "preview": "-- `_≈ℰ[ ε ]_`: any distinguisher of ≤ n queries has advantage ≤ ε n. MD's -- own `_≈ℰ[_]_"
+    },
+    {
+     "lines": "58-58",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "Payoff",
+     "preview": "-- bound"
+    },
+    {
+     "lines": "59-59",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "Payoff",
+     "preview": "-- Comp.M"
+    },
+    {
+     "lines": "60-60",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "Payoff",
+     "preview": "-- MD"
+    },
+    {
+     "lines": "61-61",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "Payoff",
+     "preview": "-- General.M (the ideal RO)"
+    },
+    {
+     "lines": "62-62",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "Payoff",
+     "preview": "-- indistinguishable"
+    },
+    {
+     "lines": "63-64",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Payoff",
+     "preview": "-- BRIDGE (M5): a concrete per-budget bound with a vanishing profile -- establishes the ε-"
+    },
+    {
+     "lines": "68-68",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Payoff",
+     "preview": "-- BRIDGE (M6): the ideal protocol and its simulator."
+    },
+    {
+     "lines": "72-73",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Payoff",
+     "preview": "-- The ℳ-module property of ℰ-standard: bare kernel = U-kernel (see the -- Abstract2 heade"
+    },
+    {
+     "lines": "76-76",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Payoff",
+     "preview": "-- ── THE PAYOFF, DERIVED ─────────────────────────────────────────────────────"
+    },
+    {
+     "lines": "80-81",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The real protocol is the MD composite itself — a bare machine morphism at -- grade Jre."
+    },
+    {
+     "lines": "85-86",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- Consumes only the ε-absorption of the existing MD artifact (MD-secure + -- van) and `id"
+    }
+   ]
+  }
+ },
+ "totalChecks": 0
+}
