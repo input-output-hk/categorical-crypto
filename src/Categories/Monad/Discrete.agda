@@ -80,7 +80,6 @@ record Elementwise (ℓ : Level) : Set (suc ℓ) where
                         → (x >>= λ a → y >>= λ b → return (a , b))
                         ≈ᴹ (y >>= λ b → x >>= λ a → return (a , b))) where
 
-    -- Yoneda variant of `>>=-comm`
     >>=-comm-y : {A B C : Set ℓ} {x : M A} {y : M B} (f : A → B → M C)
                → (x >>= λ a → y >>= f a) ≈ᴹ (y >>= λ b → x >>= λ a → f a b)
     >>=-comm-y {x = x} {y} f = begin
