@@ -108,7 +108,6 @@ module _ where
               → x ∘ (y ∘ z ∘ w) ∘ v ≈ (x ∘ y) ∘ z ∘ (w ∘ v)
     mid-shape = solve C
 
-    -- `mid` from the unit, and back
     mid-λ : ∀ {X Y} → mid {unit} {unit} {X} {Y} ≈ λ⇐ ⊗₁ λ⇐ ∘ λ⇒ ∘ λ⇒ ⊗₁ id
     mid-λ = switch-fromtoʳ (≅.sym (unitorˡ ⊗ᵢ idᵢ))
               (switch-fromtoˡ (unitorˡ ⊗ᵢ unitorˡ) (IB.swapInner-unitˡ braided)) ○ assoc

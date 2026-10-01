@@ -56,7 +56,6 @@ unbraid {L = L} h = (refl⟩∘⟨ pad-braid L h ⟩∘⟨refl) ○ (refl⟩∘�
                      ○ (refl⟩∘⟨ insertʳ associator.isoˡ)
                      ○ (refl⟩∘⟨ (⟺ (hexagon₂ {P} {Q}) ⟩∘⟨refl))
 
--- `β` is natural in all three factors.
 β-nat : (u : P ⇒ R) (v : Q ⇒ Z) (t : X ⇒ Y) → (u ⊗₁ t) ⊗₁ v ∘ β ≈ β ∘ (u ⊗₁ v) ⊗₁ t
 β-nat u v t = begin
   (u ⊗₁ t) ⊗₁ v ∘ (α⇐ ∘ (id ⊗₁ σ⇒ ∘ α⇒))

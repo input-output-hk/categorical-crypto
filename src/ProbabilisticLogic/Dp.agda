@@ -79,7 +79,6 @@ wt-nn botₚ false = ≤-refl
 wt-1  botₚ       = +-identityʳ 1ℚ
 br    botₚ _     = inj₂ botₚ
 
--- A deterministic step that may refuse.
 detₚ : Maybe A → Dₚ A
 detₚ (just a) = returnₚ a
 detₚ nothing  = botₚ

@@ -6,7 +6,7 @@
 -- uses no trace.  Every structural morphism is an embedding
 -- `⌜ u , v ⌝`, so `⌜⌝-⊗`, `⌜⌝-∘` and `absorbˡ`/`absorbʳ` reduce each
 -- coherence law to a base-level one (`GConstructionTrace.mid-unitˡ/ʳ/-assoc`);
--- only `homomorphismᴳ` meets the trace (see there).
+-- only `homomorphismᴳ` meets the trace.
 ------------------------------------------------------------------------
 
 module Categories.GConstructionMonoidal where
@@ -107,10 +107,6 @@ module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
               ○ ⌜⌝-resp-≈ C.⊗.identity C.⊗.identity
               ○ ⌜⌝-id
 
-    -- The two composites' loops `B⁻⊗B⁺` and `Q⁻⊗Q⁺` fuse into their tensor
-    -- (`⊗-trace-mid`), and the tensor's own loop `(B⁻⊗Q⁻)⊗(B⁺⊗Q⁺)`
-    -- re-brackets to it (`trace-mid`); what remains is the loop-body
-    -- coherence `GConstructionHomCoherence.HOM`.
     opaque
       unfolding _⊗₁ᴳ_
 

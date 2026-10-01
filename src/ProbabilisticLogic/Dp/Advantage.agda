@@ -35,7 +35,6 @@ indᵇ-not : (b : Bool) → indᵇ b (not b) ≡ 0ℚ
 indᵇ-not true  = refl
 indᵇ-not false = refl
 
--- A verdict scores at most what a flag covering it scores.
 indᵇ-cover : {v b : Bool} → (v ≡ true → b ≡ true) → indᵇ true v ℚ.≤ indᵇ true b
 indᵇ-cover {false} {b} h = ≤-trans (≤-reflexive (indᵇ-not true)) (indᵇ-nn true b)
 indᵇ-cover {true}      h = ≤-reflexive (cong (indᵇ true) (sym (h refl)))

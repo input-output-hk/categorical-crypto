@@ -36,9 +36,6 @@ module _ (L : Laws) where
 
   open Laws L
 
-  -- Dinaturality (sliding), derived: yanking writes `g` as a trace, superposing
-  -- and `trace-∘ˡ` merge it into the loop, `trace-comm` swaps the two loops, and
-  -- yanking takes the second one away again.
   trace-slide : ∀ {X Y A B} {h : A ⊗₀ X ⇒ B ⊗₀ Y} {g : Y ⇒ X} →
                 trace (id ⊗₁ g ∘ h) ≈ trace (h ∘ id ⊗₁ g)
   trace-slide {X} {Y} {A} {B} {h} {g} = ⟺ (begin
