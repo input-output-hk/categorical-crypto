@@ -67,7 +67,7 @@ Com : Set
 Com = Maybe (Dig × Bool)
 
 St StR StI : Set
-St  = Tbl × (Com × Bool)      -- the coupling: table, commitment, the hit flag
+St  = Tbl × (Com × Bool)
 StR = Tbl × Maybe Dig
 StI = Tbl × Com
 
@@ -90,8 +90,6 @@ digOf (just (c , _)) = just c
 ------------------------------------------------------------------------
 -- The coupling's oracle
 
--- `Oracle.fetchT` that also raises the hit flag when a fresh sample lands on
--- the outstanding commitment digest.
 raise : Com → Dig → Bool
 raise nothing        _ = false
 raise (just (c , _)) h = ⌊ h ≟ c ⌋
@@ -141,7 +139,6 @@ respI s (askQ x)   = askX s x
 respI s (comQ c)   = comI s c
 respI s (opnQ b r) = opnI s b r
 
--- The two coupled answers to a sampled point.
 ansB : St × Dig → St × (R × R)
 ansB u = proj₁ u , (ansR (proj₂ u) , ansR (proj₂ u))
 
@@ -336,8 +333,6 @@ stepI s@(t , just (c , e) , f) _ (refl , inv) (opnQ b r) F F′ pt =
         (sym (lookupᴰℚ-Dmap (λ u → proj₁ u , idealOpen c e b (proj₂ u))
                (fetchT (_, just (c , e)) t (b ∷ᵛ r)) F′))))
   where
-  -- Off the bad event the receiver's verdict is the functionality's, so the
-  -- coupling's copy of the real answer is the ideal one after all.
   collapse : (v : St) (d : Dig) → Inv v → comOf v ≡ just (c , e)
            → lookupPt (tblOf v) (b ∷ᵛ r) ≡ just d
            → cond (bad v) (idealOpen c e b d) (realOpen c b d) ≡ idealOpen c e b d

@@ -44,9 +44,8 @@ open import CategoricalCrypto.Examples.ROCommitment.Resource k
 
 open Core (𝒱ₚ 0ℓ)
 
--- The grade the hybrid carries, in the two brackets the associator that
--- `UC.Quantitative.Family._∙ᶠ_` leaves in front of it sits
--- between.
+-- The hybrid's grade, in both bracketings: `UC.Quantitative.Family._∙ᶠ_` leaves
+-- an associator in front of it that maps one to the other.
 Cⁱ Cᵗ : Iface
 Cⁱ = Lkᴵ ⊗ᴵ (Advᴵᶜ ⊗ᴵ Honᴵᶜ)
 Cᵗ = (Lkᴵ ⊗ᴵ Advᴵᶜ) ⊗ᴵ Honᴵᶜ

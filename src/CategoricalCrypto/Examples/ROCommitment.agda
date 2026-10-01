@@ -4,12 +4,11 @@
 -- functionality, the honest receiver and the extracting simulator.
 --
 -- The committer is the adversary (port `Advᴵ`); the honest receiver reports on
--- `Honᴵ`.  The receiver relays oracle queries, stores `commitᴬ c`, and at
--- `openᴬ b r` hashes `b ∷ r` and accepts iff the digest is `c`.  The simulator
--- logs every answer it relays and extracts the committed bit from that log.
--- The resource carries both the oracle and `F_com`'s one-bit cell, so the
--- ideal functionality is a stateless `wireᴹ` (`docs/fcom-extraction.md`).  The
--- emulation is approximate; its ε is `Examples.ROCommitment.Game`.
+-- `Honᴵ`.  The simulator logs every answer it relays and extracts the
+-- committed bit from that log.  The resource carries both the oracle and
+-- `F_com`'s one-bit cell, so the ideal functionality is a stateless `wireᴹ`
+-- (`docs/fcom-extraction.md`).  The emulation is approximate; its ε is
+-- `Examples.ROCommitment.Game`.
 
 open import Class.DecEq
 
@@ -45,8 +44,9 @@ open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 ------------------------------------------------------------------------
 -- Interfaces
 
--- `putᴿ` stores the committed bit and receipts the RECEIVER; `getᴿ` releases
--- it; `nakᴿ` refuses.  The real protocol uses only `hashᴿ`.
+-- The cell's verbs (`Examples.ROCommitment.Resource`): `putᴿ` stores the
+-- committed bit and receipts the receiver, `getᴿ` releases it, `nakᴿ` refuses.
+-- The real protocol uses only `hashᴿ`.
 data ResQ : Set where
   hashᴿ : Pt → ResQ
   putᴿ  : Bool → ResQ

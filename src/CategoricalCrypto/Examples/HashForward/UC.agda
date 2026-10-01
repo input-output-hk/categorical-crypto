@@ -3,17 +3,15 @@
 -- The toy at the UC model: emulation at a nontrivial grade, and what the
 -- simulator spends.
 --
--- The grade is `ifaceᵒ Advᴵ`, inhabited by the adversary's `peekᴬ`, and the
--- simulator is `procᵒ simulator : ifaceᵒ Lkᴵ ⇒ ifaceᵒ Advᴵ` — not a scalar, so
--- nothing here is in reach of `UC.Seam.Grounded.SubBlind`.  The emulation is
--- exact: `UC.Graded.emulᵍ` turns `real-factors` into it with no error term.
+-- The grade is `ifaceᵒ Advᴵ`, inhabited by `peekᴬ`, and the simulator
+-- `procᵒ simulator` is not a scalar.  The emulation is exact: `emulᵍ` of
+-- `real-factors`, no error term.
 --
--- What the simulator spends is stated twice, at two weightings of the same
--- ledger (`UC.QueryBound.Exact`): `simExactHash` counts ORACLE queries and
--- `simExactAll` counts downward outputs of any kind, so "one hash query per
--- `peekᴬ`" and "two queries per `peekᴬ`" are both equations, not ceilings.
--- `simCert` is the matching upper bound, which is what the grading asks for
--- (`exact⇒certified` of `simExactAll`).
+-- The spend is stated at two weightings of one ledger (`UC.QueryBound.Exact`):
+-- `simExactHash` counts oracle queries, `simExactAll` all downward outputs, so
+-- "one hash query per `peekᴬ`" and "two queries per `peekᴬ`" are equations,
+-- not ceilings.  `simCert` (`exact⇒certified` of `simExactAll`) is the upper
+-- bound the grading consumes.
 
 open import Data.List.Base
 open import Data.Nat.Base
@@ -58,15 +56,12 @@ real-≤UC = ≤UCᵍ real-factors
 ------------------------------------------------------------------------
 -- What the simulator spends
 
--- The amortised bound: a `peekᴬ` deposits two units and the simulator's two
--- queries withdraw them, so `Φ` is the number still owed.
+-- Amortisation potential: the queries the simulator still owes the pending
+-- `peekᴬ`; the same Φ balances both ledgers below.
 Φˢ : SSt → ℕ
 Φˢ idleˢ  = 0
 Φˢ awaitL = 1
 Φˢ awaitD = 0
-
-------------------------------------------------------------------------
--- …exactly
 
 hashes : Neg Lkᴵ ⊎ Pos Advᴵ → ℕ
 hashes (inj₁ leakˢ)     = 0
@@ -126,10 +121,6 @@ simCert = exact⇒certified simExactAll (λ _ → refl) λ where
 simQB : QB 2 simulator
 simQB = certified⇒QB simCert
 
--- The occurrence statement: on EVERY branch of the simulator's run over an
--- activation word, the number of `hashˢ` queries plus the ledger of the state
--- it ends in is the number of `peekᴬ`s the word asked for.  `runᴱ-erases` says
--- the refined run is the run.
 sim-hash-count : (w : List (Pos Lkᴵ ⊎ Neg Advᴵ))
                → Dₚ (Σ[ p ∈ SSt × List (Neg Lkᴵ ⊎ Pos Advᴵ) ]
                       EH.Balanced Φˢ (weight peeks w) p)
@@ -153,10 +144,7 @@ sim-hash-count-settled w = mapₚ settle (sim-hash-count w)
     trans (sym (+-identityʳ _))
           (trans (cong (weight hashes (proj₂ (proj₁ z)) +_) (sym nil)) (proj₂ z))
 
--- The same count at one concrete transaction, computed rather than counted: a
--- `peekᴬ` answered in order produces `leakˢ`, then `hashˢ` AT THE LEAKED
--- MESSAGE, then the digest.  This is the witness that the words
--- `sim-hash-count` quantifies over are inhabited by a live run and not only by
+-- A live run: the words `sim-hash-count` quantifies over are not only
 -- divergent ones.
 round : Msg → Dig → List (Pos Lkᴵ ⊎ Neg Advᴵ)
 round m d = inj₂ peekᴬ ∷ inj₁ (lkˢ m) ∷ inj₁ (digˢ d) ∷ []

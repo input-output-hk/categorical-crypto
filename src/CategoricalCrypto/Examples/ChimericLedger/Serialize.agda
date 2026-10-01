@@ -42,7 +42,6 @@ ideal-preserves-valueˢ a V = ideal-preserves-value a V serInj
 -- Boundary cases
 ------------------------------------------------------------------------
 
--- An empty transaction is three empty lists, each a unary length `0`.
 ser-empty : ser 1 ([] , [] , []) ≡ false ∷ false ∷ false ∷ []
 ser-empty = refl
 

@@ -82,9 +82,6 @@ flatᶜʰ = (λ _ → 1⁺) , poly⁺-1 , λ n → CTRU.flatʰ n , CTRU.flatʰQB
 ------------------------------------------------------------------------
 -- The second hop, and its slack
 
--- The domination's positive slack, paid at `2⁻ⁿ`: an exact run agreement has
--- no zero instance to hand a context (`UC.Approximate.Decay.negligible-slack`
--- is the same schedule).
 ηʰ : ℕ → ℕ → ℚ
 ηʰ n _ = 0ℚ ℚ.+ inv-pow-2 n
 

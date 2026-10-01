@@ -3,8 +3,7 @@
 -- Blum coin-tossing over `F_com`, corrupted receiver (P2): P1's side, as a
 -- process over the commitment's hiding honest interface.  Started by the
 -- environment, it samples and commits to `b₁`, hears `b₂` in the clear, opens,
--- and outputs `b₁ xor b₂`.  `Neg Honᴵʰ` is inhabited (`commitᴱ`, `openᴱ`), so
--- unlike `Examples.CoinToss` this stage makes downward calls.
+-- and outputs `b₁ xor b₂`.
 
 open import Data.Bool.Base
 open import Data.Empty

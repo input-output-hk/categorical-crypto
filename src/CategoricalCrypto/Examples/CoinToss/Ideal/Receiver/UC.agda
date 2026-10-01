@@ -43,9 +43,6 @@ open HomReasoning
 
 private module M = Category (𝒢ₚ 0ℓ)
 
-------------------------------------------------------------------------
--- The joint simulator spends one call per activation
-
 simJʰCert : Certified 1 simJʰ
 simJʰCert = qbᵢ-upward _ _ _ onL cohL
   where

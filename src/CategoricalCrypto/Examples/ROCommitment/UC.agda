@@ -59,8 +59,7 @@ simᵒ = procᵒ simulator
 -- The honest side: the receiver relays at most one query per message
 
 -- An activation from above buys one downward oracle call and the answer to it
--- only returns, so the potential is constantly zero (`UC.QueryBound.qbᵢ-upward`,
--- the raw-machine counterpart of `qb-oneCall`).
+-- only returns, so the potential is constantly zero (`UC.QueryBound.qbᵢ-upward`).
 recvCert : Certified 1 real
 recvCert = qbᵢ-upward _ _ _ onL cohL
   where
@@ -101,9 +100,6 @@ resourceQBᵒ = qbᵒ (qb-mono z≤n resourceQB)
 
 idealQB : QB 1 ideal
 idealQB = qb-wire upᶠ downᶠ
-
-------------------------------------------------------------------------
--- …exactly
 
 -- One oracle relay (`hashes`) per adversary message that names a point
 -- (`points`) — its own query, and the opening the receiver would have hashed

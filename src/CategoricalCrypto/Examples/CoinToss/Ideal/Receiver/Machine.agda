@@ -140,9 +140,9 @@ private
     κ₁ = λ u d → ψ u , inj₂ (inj₁ (inj₁ (digᶠ d)))
     κ  = λ u d → (ψ u , sf) , inj₂ (inj₁ (inj₁ (digᶠ d)))
 
-  -- The one non-structural step: the deferred machine draws the committer's
-  -- share and the coin draws the OUTCOME, and `b₁ ↦ b₁ xor b₂` carries one to
-  -- the other.  At `b₂ = false` the two are the same term.
+  -- The one non-structural step (`shareᴵʰ`): the deferred machine draws the
+  -- committer's share and the coin draws the OUTCOME, and `b₁ ↦ b₁ xor b₂`
+  -- carries one to the other; at `b₂ = false` it is the identity.
   Outᴵʰ : Set
   Outᴵʰ = (JStʰ × FStʰ) × (Neg unitᴵ ⊎ Pos Cᵗʰ)
 

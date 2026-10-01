@@ -1,21 +1,16 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- Hash-then-forward: the toy whose simulator has an inhabited interface and
--- spends a query, at an explicitly NONTRIVIAL grade.
+-- Hash-then-forward: a toy whose simulator has an inhabited interface and
+-- spends a query.
 --
 -- A leaky channel and a hash oracle sit below, as one resource `Resᴵ`.  The
--- IDEAL functionality is that resource with its leak exposed on the
--- simulator-facing port `Lkᴵ`; the REAL protocol answers the adversary's single
--- query `peekᴬ` with the DIGEST of the leaked message instead of the message.
--- The simulator fetches the leak and hashes it, so its run is two queries on
--- `Lkᴵ`, exactly one of them a hash query.
---
--- The agreement is EXACT — one machine equality, no error term — and nothing
--- is assumed about the resource: the example exists for the types and the
--- grading, not for a probabilistic argument.
+-- ideal functionality exposes the leak on the simulator port `Lkᴵ`; the real
+-- protocol answers the adversary's `peekᴬ` with the digest of the leaked
+-- message.  The simulator fetches the leak and hashes it (two `Lkᴵ` queries,
+-- one of them a hash), and `real-factors` is an exact machine equality.
 --
 -- `docs/hash-forward.md` records why the oracle sits below rather than inside
--- either system, and what the alternatives cost.
+-- either system.
 
 open import Categories.Category
 
@@ -97,8 +92,7 @@ Lkᴵ = LkA ⇿ LkQ
 -- The ideal functionality
 
 -- Stateless, which keeps the simulated composite free of the ⊕-trace
--- (`UC.Machine.Wire.∘-wireᴹ`), and honestly so: the channel's state is the
--- resource's, not the functionality's.
+-- (`UC.Machine.Wire.∘-wireᴹ`); the channel's state is the resource's.
 downᶠ : Neg (Lkᴵ ⊗ᴵ Honᴵ) → Neg Resᴵ
 downᶠ (inj₁ leakˢ)     = leakᴿ
 downᶠ (inj₁ (hashˢ m)) = hashᴿ m
@@ -117,9 +111,6 @@ ideal = wireᴹ upᶠ downᶠ
 ------------------------------------------------------------------------
 -- The simulator
 
--- Three states, because answering one `peekᴬ` takes two queries: fetch the
--- leak, then hash it.  `botₚ` is the honest image of an off-protocol
--- activation, as in `Protocol.Machine.stepᴹ`.
 data SSt : Set where
   idleˢ  : SSt
   awaitL : SSt
@@ -173,9 +164,6 @@ private
   dead : {A B C : Set} (g : A → B) (h : B → C) → botₚ ≈ₚ mapₚ h (mapₚ g (botₚ {A = A}))
   dead g h = ≈sym (bindˣ (bot-bind-≈ₚ _) ⟨≈⟩ bot-bind-≈ₚ _)
 
--- By `∘-wireᴹ` the composite is the relay `subᴵ simulator` with its
--- interface renamed — same state — so the equality is one pointwise case
--- analysis.
 real-factors : 𝒫._≈_ {Resᴵ} {Advᴵ ⊗ᴵ Honᴵ} real
                  (𝒫._∘_ (subᴵ {Lkᴵ} {Advᴵ} {Honᴵ} simulator) ideal)
 real-factors = ≲⇒≈ᴹ (mk-cong pt) ○ᴹ ⟺ᴹ (∘-wireᴹ upᶠ downᶠ (subᴵ simulator))

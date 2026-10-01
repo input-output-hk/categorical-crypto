@@ -86,7 +86,7 @@ checkIns-balance u (i ∷ is) v u′ eq with checkIns-∷ u i is v u′ eq
            (sym (+-assoc (proj₂ o) v₀ (balance u′))))
 
 ------------------------------------------------------------------------
--- Withdrawing: the account side
+-- Withdrawing (the account side), and paying out
 ------------------------------------------------------------------------
 
 acctΣ-subOne : ∀ a x v → T (v ≤ᵇ acctOf a x) → acctΣ a ≡ v + acctΣ (subOne x v a)

@@ -37,8 +37,6 @@ module RandomOracle (p : ℕ) (In : Type) ⦃ _ : DecEq In ⦄ (outN : ℕ) wher
     (yes _) → just v
     (no  _) → lookup-bs xs q
 
-  -- `lookup-bs` branches on a `with`, so the reflexive case is taken here
-  -- rather than rewritten away by `Class.DecEq.Ext.≟-refl`.
   lookup-bs-here : ∀ s q h → lookup-bs ((q , h) ∷ s) q ≡ just h
   lookup-bs-here s q h with q ≟ q
   ... | yes _  = refl
@@ -75,9 +73,8 @@ module RandomOracle (p : ℕ) (In : Type) ⦃ _ : DecEq In ⦄ (outN : ℕ) wher
     oracle : Protocol unitᴵ (Output ⇿ Input)
     oracle = record { St = Table ; init = [] ; step = λ s q → answer s q (lookup-bs s (proj₂ q)) }
 
-    -- `step`, read through any semantics of call trees that turns a coin into a
-    -- bind; the `with` reaches the scrutinee inside `step` because the
-    -- statement names it.
+    -- The `with` reaches the scrutinee inside `step` because the statement
+    -- names it.
     answer-eval : {Z : Type} (⟦_⟧ : Calls unitᴵ (Table × Output) → Dist-ℚ Z)
                 → (∀ μ g → ⟦ coin μ g ⟧ ≈Mℚ (μ >>= λ b → ⟦ g b ⟧))
                 → (Go : Table × Output → Dist-ℚ Z) → (∀ o → ⟦ ret o ⟧ ≈Mℚ Go o)
@@ -149,7 +146,6 @@ module RandomOracle (p : ℕ) (In : Type) ⦃ _ : DecEq In ⦄ (outN : ℕ) wher
   triangle zero    = 0ℚ
   triangle (suc k) = fromℕ k + triangle k
 
-  -- Number of unordered pairs of entries with the same hash.
   state-collisions : Table → ℚ
   state-collisions []             = 0ℚ
   state-collisions ((_ , h) ∷ ps) = count-matches ps h + state-collisions ps
