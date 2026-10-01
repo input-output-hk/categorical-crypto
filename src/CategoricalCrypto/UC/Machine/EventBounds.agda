@@ -126,7 +126,7 @@ bounded-absorb {X = X} {Z = Z} {s = s} e qs h a qa Y E m qE qm le =
 -- Families, and where the slack's quantifier sits
 
 -- One negligible slack per polynomial cap, chosen before the security
--- parameter.  Belongs beside `UC.Approximate.GradedBound` once that file is open.
+-- parameter.
 Saturated : {ℓ : Level} → (ℕ → ℕ → ℚ → Set ℓ) → (ℕ → ℕ → ℚ) → Set ℓ
 Saturated X ε = (p : ℕ → ℕ) → Poly p
               → Σ[ ν ∈ (ℕ → ℚ) ] Negligible ν × ((n : ℕ) → X n (p n) (ε n (p n) ℚ.+ ν n))

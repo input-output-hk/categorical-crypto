@@ -75,8 +75,6 @@ Prot A B J = OAP.⟨ A , ℂ.unit ⟩ᴼᴾ OAP.⇒ᴼᴾ OAP.⟨ B , J ⟩ᴼ�
 
 infix 4 _≤UCᵇ_
 
--- The bare-kernel one-sided emulation: output-side simulators only, compared
--- under ≈ℰ.
 _≤UCᵇ_ : A 𝒞.⇒ T₀ X B → A 𝒞.⇒ T₀ Y B → Set (o ⊔ ℓ ⊔ cs ⊔ ℓs)
 _≤UCᵇ_ {X = X} {Y = Y} f g =
   ∀ {X′} (a : X ℐ.⇒ X′) → Σ[ s ∈ Y ℐ.⇒ X′ ] (sub a 𝒞.∘ f) ≈ℰ (sub s 𝒞.∘ g)

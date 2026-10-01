@@ -4,8 +4,8 @@
 -- strategy embeds to (`UC.Machine.Monitor.Agree.stratTest`), read against
 -- `M ▷ P`, IS the closed run of `M ▷ P` at `flagStrat d`, as `_≈ₚ_`.
 --
--- Unlike the monitor, the compiled context and `strategyEnv` at `flagStrat d`
--- are NOT equal machines: once the flag is read, the reader returns to a state
+-- The flag reader over `stratTest B d` and `strategyEnv` at `flagStrat d` are
+-- NOT equal machines: once the flag is read, the reader returns to a state
 -- whose next tick asks the flag again, while the strategy environment replays
 -- its verdict.  So the agreement is proved at the observation, one tick,
 -- against `M ▷ P` itself, whose flag port only ever answers with the flag.
