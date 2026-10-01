@@ -1,0 +1,86 @@
+{-# OPTIONS --safe --without-K #-}
+
+-- `traceᴹ` respects simulation: the two loops run at different state objects,
+-- and `iter-uniform` at the simulation's own `𝒫`-map carries one to the other.
+
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Pure
+import Categories.Category.Monoidal.Braided.Properties as BraidedProps
+import Categories.Category.Monoidal.Distributive as MD
+import Categories.Category.Monoidal.Distributive.Properties as MDP
+
+import Relation.Binary.Construct.Closure.Equivalence as EqC
+
+import CategoricalCrypto.Machines.Core as Core
+import CategoricalCrypto.Machines.Frame as Frame
+import CategoricalCrypto.Machines.Iteration as Iteration
+import CategoricalCrypto.Machines.Sim as Sim
+import CategoricalCrypto.Machines.Trace as Trace
+
+module CategoricalCrypto.Machines.Trace.Congruence
+  {o ℓ e} (𝒱 : SymmetricMonoidalCategory o ℓ e)
+  (dist : MD.MonoidalDistributive 𝒱) (𝒫 : PureSub 𝒱)
+  (E : Iteration.Elgot 𝒱 dist 𝒫) where
+
+open SymmetricMonoidalCategory 𝒱
+open BraidedProps.Shorthands braided
+open Core 𝒱
+open Frame 𝒱
+open Iteration 𝒱 dist 𝒫
+open Iteration.Elgot E
+open MD.MonoidalDistributive dist
+open MDP 𝒱 dist
+open PureSub 𝒫
+open Sim 𝒱 𝒫
+open Trace 𝒱 dist 𝒫 E
+
+open import Categories.Category.Monoidal.Properties.Ext monoidal
+open import Categories.Category.Monoidal.Reasoning monoidal
+open import Categories.Category.Monoidal.Symmetric.Properties.Ext symmetric
+open import Categories.Morphism.Reasoning U
+
+module _ (S T : State) (A B X : Obj)
+  {k : obj S ⊗₀ (A + X) ⇒ obj S ⊗₀ (B + X)} {k′ : obj T ⊗₀ (A + X) ⇒ obj T ⊗₀ (B + X)}
+  (θ : obj S ⇒ obj T) (θᵖ : Pure θ) (θˢ : pad θ ∘ k ≈ k′ ∘ pad θ) where
+
+  private
+    loop-sim : loopBody T A B X k′ ∘ pad θ ≈ pad θ ∘ loopBody S A B X k
+    loop-sim = assoc ○ (refl⟩∘⟨ pad-transport θ (i₂)) ○ sym-assoc
+             ○ (⟺ θˢ ⟩∘⟨refl) ○ assoc
+
+  solve-sim : pad θ ∘ solve S A B X k ≈ solve T A B X k′ ∘ pad θ
+  solve-sim = δ-unique branch₁ branch₂
+    where
+      branch₁ = (pullʳ (solve-i₁ S A B X k) ○ identityʳ)
+              ○ ⟺ (pullʳ (⟺ (pad-transport θ i₁))
+                   ○ pullˡ (solve-i₁ T A B X k′) ○ identityˡ)
+
+      branch₂ = pullʳ (solve-i₂ S A B X k)
+              ○ ⟺ (iter-uniform θ θᵖ loop-sim)
+              ○ ⟺ (pullʳ (⟺ (pad-transport θ i₂)) ○ pullˡ (solve-i₂ T A B X k′))
+
+  traceStep-sim : pad θ ∘ traceStep S A B X k ≈ traceStep T A B X k′ ∘ pad θ
+  traceStep-sim = sym-assoc ○ (solve-sim ⟩∘⟨refl) ○ assoc ○ (refl⟩∘⟨ enter)
+                ○ (refl⟩∘⟨ sym-assoc) ○ sym-assoc
+    where
+      enter : pad θ ∘ (k ∘ id ⊗₁ i₁) ≈ k′ ∘ (id ⊗₁ i₁ ∘ pad θ)
+      enter = sym-assoc ○ (θˢ ⟩∘⟨refl) ○ assoc ○ (refl⟩∘⟨ ⟺ (pad-transport θ i₁))
+
+-- `traceStep-onR`'s mirror: `onL` is `onR` conjugated by the braiding, which
+-- `traceStep-sim` carries through the loop.
+traceStep-onL : (S Q : State) (A B X : Obj) (k : obj S ⊗₀ (A + X) ⇒ obj S ⊗₀ (B + X))
+              → traceStep (S ⊛ Q) A B X (onL k) ≈ onL (traceStep S A B X k)
+traceStep-onL S Q A B X k =
+    ⟺ (cancelˡ σ⊗-inv)
+  ○ (refl⟩∘⟨ traceStep-sim (S ⊛ Q) (Q ⊛ S) A B X σ⇒ pure-σ⇒ (σ-onL))
+  ○ (refl⟩∘⟨ traceStep-onR Q S A B X k ⟩∘⟨refl) ○ (refl⟩∘⟨ ⟺ σ-onL) ○ cancelˡ σ⊗-inv
+
+trace-resp-≲ : {A B X : Obj} {f g : Machine (A + X) (B + X)}
+             → f ≲ g → traceᴹ A B X f ≲ traceᴹ A B X g
+trace-resp-≲ {A} {B} {X} {f} {g} s =
+  sim (θ s) (θ-pure s) (θ-point s)
+      (traceStep-sim (state f) (state g) A B X (θ s) (θ-pure s) (θ-step s))
+
+trace-resp-≈ᴹ : {A B X : Obj} {f g : Machine (A + X) (B + X)}
+              → f ≈ᴹ g → traceᴹ A B X f ≈ᴹ traceᴹ A B X g
+trace-resp-≈ᴹ = EqC.gmap (traceᴹ _ _ _) trace-resp-≲
