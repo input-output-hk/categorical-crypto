@@ -1,5 +1,4 @@
 {-# OPTIONS --safe --no-require-unique-meta-solutions #-}
-{-# OPTIONS -v allTactics:100 #-}
 
 module CategoricalCrypto.Machine.Core where
 
@@ -8,7 +7,6 @@ import categorical-crypto.Prelude as P
 open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
-open import Relation.Binary.PropositionalEquality.Properties
 open import Tactic.Defaults
 
 -- --------------------------------------------------------------------------------
@@ -140,12 +138,6 @@ idᴷ = liftᴷ id
 transpose : ∀ {A B} → Machine A B → Machine (B ᵀ) (A ᵀ)
 transpose = modifyStepRel ⇒-solver
  
--- cup : Machine I (A ⊗ A ᵀ)
--- cup = StatelessMachine λ x x₁ → {!!}
-
--- cap : Machine (A ᵀ ⊗ A) I
--- cap {A} = modifyStepRel ⇒-solver (transpose (cup {A})) {!!} {!!}
-
 ⨂₁ : ∀ {n} → {A B : Fin n → Channel} → ((k : Fin n) → Machine (A k) (B k)) → Machine (⨂ A) (⨂ B)
 ⨂₁ {zero} M = id
 ⨂₁ {suc n} M = M fzero ⊗₁ ⨂₁ (M P.∘ fsuc)
