@@ -4,7 +4,7 @@
 
 open import Data.Bool.Base
 open import Data.Bool.Properties
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality
 
 module Data.Bool.Properties.Ext where
 
