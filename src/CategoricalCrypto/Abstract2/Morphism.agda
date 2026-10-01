@@ -1,8 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Transport of `_≈ℰ_` and `_≤UC_` between setups: along a `UCSetupMorphism`,
--- and — where 𝒞, ℐ and ℳ are shared and only the observation moves — along a
--- refinement of the bare kernel alone.
+-- The transfer of `_≈ℰ_` and `_≤UC_` along a `UCSetupMorphism`.
 
 module CategoricalCrypto.Abstract2.Morphism where
 
@@ -10,9 +8,6 @@ open import Data.Product
 open import Level
 open import Relation.Nullary using (¬_)
 
-open import Categories.Category
-open import Categories.Category.Instance.Setoids
-open import Categories.Functor.Presheaf
 open import Categories.Functor.Presheaf.Morphism
 open import Categories.Functor.Properties
 
@@ -21,7 +16,7 @@ open import CategoricalCrypto.UCSetup
 open import CategoricalCrypto.UCSetup.Morphism
 
 private variable
-  o₁ ℓ₁ e₁ o₁′ ℓ₁′ e₁′ o₂ ℓ₂ e₂ o₂′ ℓ₂′ e₂′ cs ℓs cs′ ℓs′ : Level
+  o₁ ℓ₁ e₁ o₁′ ℓ₁′ e₁′ o₂ ℓ₂ e₂ o₂′ ℓ₂′ e₂′ cs ℓs : Level
 
 module Transfer {𝕊 : UCSetup o₁ ℓ₁ e₁ o₁′ ℓ₁′ e₁′ cs ℓs}
                 {𝕊′ : UCSetup o₂ ℓ₂ e₂ o₂′ ℓ₂′ e₂′ cs ℓs}
@@ -98,38 +93,3 @@ module Transfer {𝕊 : UCSetup o₁ ℓ₁ e₁ o₁′ ℓ₁′ e₁′ cs �
         key : f S.≈ℰ S.sub s S.𝒞.∘ g
         key = mono⇒reflects-≈ℰ mono
                 (κ-mono (S′.≈ℰ-trans (S′.≈ᵁ⇒≈ℰ dummy) (S′.≈C⇒≈ℰ strict)))
-
-------------------------------------------------------------------------
--- One computational structure, two observations
-------------------------------------------------------------------------
-
-reobserve : (𝕊 : UCSetup o₁ ℓ₁ e₁ o₁′ ℓ₁′ e₁′ cs ℓs)
-          → Presheaf (UCSetup.𝒞 𝕊) (Setoids cs′ ℓs′)
-          → UCSetup o₁ ℓ₁ e₁ o₁′ ℓ₁′ e₁′ cs′ ℓs′
-reobserve 𝕊 ℰ′ = record { 𝒞 = 𝒞 ; ℐ = ℐ ; ℳ = ℳ ; ℰ = ℰ′ } where open UCSetup 𝕊
-
--- Unlike `Transfer`, the compared morphisms are the ORIGINAL ones, so no
--- `GradeStable` and no epi/mono hypothesis is spent: `_≈ᵁ_` is the bare kernel
--- read at the prefix contexts `μ ∘ T₁`, which both readings share, and the
--- order then crosses by the dummy-adversary theorem with its simulator
--- unchanged.  Instantiated at both family bridges, `UC.Family.Quantitative`
--- and `UC.Family.Negligible.Quantitative`.
-module Refine (𝕊 : UCSetup o₁ ℓ₁ e₁ o₁′ ℓ₁′ e₁′ cs ℓs)
-              (ℰ′ : Presheaf (UCSetup.𝒞 𝕊) (Setoids cs′ ℓs′))
-              (refineℰ : {A B : Category.Obj (UCSetup.𝒞 𝕊)}
-                         {f g : UCSetup.𝒞 𝕊 [ A , B ]}
-                       → UCSetup._≈ℰ_ 𝕊 f g → UCSetup._≈ℰ_ (reobserve 𝕊 ℰ′) f g)
-              where
-  private
-    module S  = AbstractUC 𝕊
-    module S′ = AbstractUC (reobserve 𝕊 ℰ′)
-
-    variable
-      A B : S.𝒞.Obj
-      X Y : S.ℐ.Obj
-
-  ≈ᵁ-refine : {f g : A S.𝒞.⇒ S.T₀ X B} → f S.≈ᵁ g → f S′.≈ᵁ g
-  ≈ᵁ-refine h W = refineℰ (h W)
-
-  ≤UC-refine : {f : A S.𝒞.⇒ S.T₀ X B} {g : A S.𝒞.⇒ S.T₀ Y B} → f S.≤UC g → f S′.≤UC g
-  ≤UC-refine le = let s , h = S.≤UC⇒dummy le in S′.dummy-complete (s , ≈ᵁ-refine h)
