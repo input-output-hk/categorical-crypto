@@ -1,0 +1,186 @@
+{-# OPTIONS --safe --without-K #-}
+
+------------------------------------------------------------------------
+-- Interpreting `Word`s (position-level adjacent transpositions over `Fin`
+-- with the Coxeter congruence `_~ʷ_`) as actual list `↭`-derivations:
+--
+--   * `swapAt i`  swaps list positions `i, i+1` (identity if the list is
+--     too short — a harmless junk case, never hit for valid lengths);
+--   * `applyW w`  applies the whole word tail-first, matching `evalW`'s
+--     right-to-left convention;
+--   * `⟦ w ⟧↭ xs : xs ↭ applyW w xs`  is the derivation.
+--
+-- Generic in the carrier `X`.  Establishes length preservation and
+-- `eval-respect`, the keystone connecting the list-level derivation to the
+-- position-level `FinBij` evaluation.
+------------------------------------------------------------------------
+
+module Categories.PermuteCoherence.Coxeter.WordInterp {a} {X : Set a} where
+
+open import Data.Nat.Base using (ℕ; suc)
+open import Data.Nat.Properties using (suc-injective)
+open import Data.Nat.Properties using () renaming (≡-irrelevant to ℕ-≡-irrelevant)
+open import Data.Fin.Base using (Fin) renaming (suc to fsuc)
+open import Data.Fin.Patterns using (0F)
+open import Data.List.Base using (List; []; _∷_; length)
+import Data.List.Relation.Binary.Permutation.Propositional as Perm
+open Perm using (_↭_)
+open import Relation.Binary.PropositionalEquality.Core
+  using (_≡_; refl; sym; cong; trans)
+open import Relation.Binary.PropositionalEquality using (subst; subst₂)
+
+import Data.Fin.Permutation as P
+
+open import Categories.PermuteCoherence.Coxeter.Word
+  using ( Word; genFB; evalW; ∘-fb-cong; ∘-fb-congʳ; cons-fb-cong )
+
+open import Categories.PermuteCoherence.FinBij
+  using ( FinBij; _≈-fb_; _∘-fb_; id-fb; cons-fb; swap-fb )
+
+open import Categories.PermuteCoherence.Eval using (eval-↭)
+
+open import Categories.PermuteCoherence.Coxeter.EvalSoundness
+  using ( cons²-fb-id )
+
+private
+  variable
+    n : ℕ
+
+------------------------------------------------------------------------
+-- 1. The interpretation.
+
+-- Swap list positions `i` and `i+1` (identity junk when too short).
+swapAt : {n : ℕ} → Fin n → List X → List X
+swapAt _        []              = []
+swapAt 0F       (a ∷ [])        = a ∷ []
+swapAt 0F       (a ∷ b ∷ rest)  = b ∷ a ∷ rest
+swapAt (fsuc i) (a ∷ xs)        = a ∷ swapAt i xs
+
+-- The single-generator derivation `xs ↭ swapAt i xs`.
+swapAt-↭ : (i : Fin n) (xs : List X) → xs ↭ swapAt i xs
+swapAt-↭ _        []              = Perm.refl
+swapAt-↭ 0F       (a ∷ [])        = Perm.refl
+swapAt-↭ 0F       (a ∷ b ∷ rest)  = Perm.swap a b Perm.refl
+swapAt-↭ (fsuc i) (a ∷ xs)        = Perm.prep a (swapAt-↭ i xs)
+
+swapAt-length : (i : Fin n) (xs : List X) → length (swapAt i xs) ≡ length xs
+swapAt-length _        []              = refl
+swapAt-length 0F       (a ∷ [])        = refl
+swapAt-length 0F       (a ∷ b ∷ rest)  = refl
+swapAt-length (fsuc i) (a ∷ xs)        = cong suc (swapAt-length i xs)
+
+-- Apply a whole word, tail-first (right-to-left), matching `evalW`.
+applyW : Word n → List X → List X
+applyW []      xs = xs
+applyW (i ∷ w) xs = swapAt i (applyW w xs)
+
+applyW-length : (w : Word n) (xs : List X) → length (applyW w xs) ≡ length xs
+applyW-length []      xs = refl
+applyW-length (i ∷ w) xs = trans (swapAt-length i (applyW w xs)) (applyW-length w xs)
+
+⟦_⟧↭ : (w : Word n) (xs : List X) → xs ↭ applyW w xs
+⟦ []    ⟧↭ xs = Perm.refl
+⟦ i ∷ w ⟧↭ xs = Perm.trans (⟦ w ⟧↭ xs) (swapAt-↭ i (applyW w xs))
+
+------------------------------------------------------------------------
+-- 2. `eval-respect` (keystone): the list-level derivation `⟦ w ⟧↭ xs`
+-- evaluates (`eval-↭`) to the SAME finite bijection as the position-level
+-- word `w` (`evalW`), once both are cast to `FinBij (suc n) (suc n)`.
+
+-- The cast: transport `FinBij p q` to `FinBij (suc n) (suc n)`.
+castFB : {p q : ℕ} → p ≡ suc n → q ≡ suc n
+       → FinBij p q → FinBij (suc n) (suc n)
+castFB e₁ e₂ b = subst₂ P.Permutation e₁ e₂ b
+
+-- Pushing the forward action through the `subst₂` cast.
+cast-push : {p q : ℕ} (e₁ : p ≡ suc n) (e₂ : q ≡ suc n)
+            (b : FinBij p q) (k : Fin (suc n))
+          → castFB e₁ e₂ b P.⟨$⟩ʳ k
+            ≡ subst Fin e₂ (b P.⟨$⟩ʳ subst Fin (sym e₁) k)
+cast-push refl refl b k = refl
+
+-- `cons-fb` commutes with the cast.  The endpoint proofs are ARBITRARY and
+-- the peeled ones are produced by `suc-injective` in the conclusion: a
+-- `cong suc`-shaped hypothesis would force every caller to recode the proof
+-- it has, which is the only thing a cast-irrelevance layer was ever for
+-- (`ℕ` has UIP, so the recoding is free — but it is not free of lines).
+cons-cast : {p q : ℕ} (e₁ : suc p ≡ suc (suc n)) (e₂ : suc q ≡ suc (suc n))
+            (b : FinBij p q)
+          → castFB e₁ e₂ (cons-fb b)
+            ≈-fb cons-fb (castFB (suc-injective e₁) (suc-injective e₂) b)
+cons-cast refl refl b k = refl
+
+-- The cast distributes over composition (middle proof `e₂`).
+comp-cast : {p q r : ℕ} (e₁ : p ≡ suc n) (e₂ : q ≡ suc n) (e₃ : r ≡ suc n)
+            (g : FinBij q r) (f : FinBij p q)
+          → castFB e₁ e₃ (g ∘-fb f)
+            ≈-fb (castFB e₂ e₃ g ∘-fb castFB e₁ e₂ f)
+comp-cast refl refl refl g f k = refl
+
+-- Casting the identity is the identity.
+cast-id : {p : ℕ} (e : p ≡ suc n) → castFB e e (id-fb {n = p}) ≈-fb id-fb
+cast-id refl _ = refl
+
+------------------------------------------------------------------------
+-- Helper: the single-generator case
+--   eval-↭ (swapAt-↭ i ys)  cast to FinBij (suc n)(suc n)  ≈-fb  genFB i
+
+gen-eval : {n : ℕ} (i : Fin n) (ys : List X) (len : length ys ≡ suc n)
+           (cod : length (swapAt i ys) ≡ suc n)
+         → castFB len cod (eval-↭ (swapAt-↭ i ys)) ≈-fb genFB i
+-- `0F`: the swap does not move the length, so `cod` and `len` have the same
+-- type and `ℕ`-UIP identifies them; then match `len` to `refl`.
+gen-eval {suc n} 0F (a ∷ b ∷ rest) len cod k
+  rewrite ℕ-≡-irrelevant cod len =
+  trans (cast-push {n = suc n} len len
+                   (eval-↭ (swapAt-↭ {n = suc n} 0F (a ∷ b ∷ rest))) k)
+        (aux len k)
+  where
+    -- Matching `len` to `refl` collapses both `subst`s and exposes
+    -- `eval-↭ (swap a b refl) ≈ swap-fb _ = genFB 0F`.
+    aux : {m : ℕ} (e : suc (suc (length rest)) ≡ suc (suc m)) (j : Fin (suc (suc m)))
+        → subst Fin e
+            (eval-↭ (Perm.swap a b (Perm.refl {xs = rest}))
+             P.⟨$⟩ʳ subst Fin (sym e) j)
+          ≡ swap-fb m P.⟨$⟩ʳ j
+    aux refl j =
+      ∘-fb-congʳ (swap-fb (length rest))
+                 (cons-fb (cons-fb (id-fb {n = length rest})))
+                 (id-fb {n = suc (suc (length rest))})
+                 (cons²-fb-id {n = length rest}) j
+-- `fsuc i`: move the cast through `cons-fb` and apply the IH to the peeled
+-- proofs.  Chained pointwise at `k` to avoid non-injective `≈-fb`
+-- middle-term metas.
+gen-eval {suc n} (fsuc i) (a ∷ xs) len cod k =
+  trans (cons-cast {n = n} len cod (eval-↭ (swapAt-↭ i xs)) k)
+        (cons-fb-cong (gen-eval i xs (suc-injective len) (suc-injective cod)) k)
+
+------------------------------------------------------------------------
+-- The main lemma.
+
+-- Stated at the ONE shape it is consumed at — a cons list, whose length proof
+-- is definitional.  The generality belongs one level down, to `gen-eval`.
+eval-respect : (z : X) (zs : List X) (w : Word (length zs))
+             → castFB refl (applyW-length w (z ∷ zs))
+                      (eval-↭ (⟦ w ⟧↭ (z ∷ zs)))
+               ≈-fb evalW w
+eval-respect z zs [] = cast-id refl
+-- `i ∷ w′`: split the cast over the composition (`comp-cast`), then apply
+-- `gen-eval` to the head factor and the IH to the tail.  Chained at `k`.
+eval-respect z zs (i ∷ w) k =
+  trans (comp-cast {n = length zs} refl lenMid lenCod
+                   (eval-↭ (swapAt-↭ i (applyW w (z ∷ zs))))
+                   (eval-↭ (⟦ w ⟧↭ (z ∷ zs))) k)
+        (∘-fb-cong {g = castFB lenMid lenCod
+                              (eval-↭ (swapAt-↭ i (applyW w (z ∷ zs))))}
+                   {g′ = genFB i}
+                   {f = castFB refl lenMid (eval-↭ (⟦ w ⟧↭ (z ∷ zs)))}
+                   {f′ = evalW w}
+                   (gen-eval i (applyW w (z ∷ zs)) lenMid lenCod)
+                   (eval-respect z zs w)
+                   k)
+  where
+    lenMid : length (applyW w (z ∷ zs)) ≡ suc (length zs)
+    lenMid = applyW-length w (z ∷ zs)
+    lenCod : length (applyW (i ∷ w) (z ∷ zs)) ≡ suc (length zs)
+    lenCod = applyW-length (i ∷ w) (z ∷ zs)
