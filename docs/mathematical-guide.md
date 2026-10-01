@@ -99,8 +99,7 @@ over every admitted context that reads it through a monitor.
 - `UC.Machine.EventBounds :: Reader`, `BoundedAt`, `Boundedᴺ`: event bounds against
   certified contexts, for fixed and negligible schedules. The slack is chosen after the
   allowance and uniformly over contexts.
-- `UC.Machine.EventBounds :: advReader`, `AdvBoundedAt`;
-  `UC.Machine.EventBounds.Transport :: bounded-absorb`, `closed-bound`: an adversary as
+- `UC.Machine.EventBounds :: advReader`, `AdvBoundedAt`, `bounded-absorb`: an adversary as
   a `Reader` between the test and the process, a bound at every adversary of a rate, and
   its carry along an exact factoring `f ≈ subᴵ s ∘ g` — the simulator's rate multiplies
   the adversary's, the context cap is untouched, and no slack is paid. The toy instance
