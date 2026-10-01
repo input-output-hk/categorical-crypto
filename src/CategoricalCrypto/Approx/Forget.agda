@@ -17,15 +17,14 @@
 -- The levels are module PARAMETERS because `⊔` is not invertible: `ℓb` is not
 -- recoverable from `es ⊔ ℓe ⊔ ℓb` by unification.
 
-open import Categories.Category.Instance.Setoids using (Setoids)
-open import Categories.Functor using (Functor)
-open import Categories.NaturalTransformation using (NaturalTransformation)
+open import Categories.Category.Instance.Setoids
+open import Categories.Functor
+open import Categories.NaturalTransformation
 
-open import Level using (Level; _⊔_)
-open import Relation.Binary.Bundles using (Setoid)
+open import Level
+open import Relation.Binary.Bundles
 
 open import CategoricalCrypto.Approx.Error
-  using (module AllPositive; OrderedErrorAlgebra; Refinement)
 
 module CategoricalCrypto.Approx.Forget
   {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe)

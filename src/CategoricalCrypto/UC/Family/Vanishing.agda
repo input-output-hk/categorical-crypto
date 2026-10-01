@@ -11,12 +11,12 @@ open import Categories.Category.Instance.Rates
 open import Categories.Category.Monoidal.Bundle
 open import Categories.LocallyGraded.SubCategory
 
-open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Product.Base using (Σ-syntax)
-open import Level using (Level)
+open import Data.Nat.Base as ℕ
+open import Data.Product.Base
+open import Level
 
-open import CategoricalCrypto.Approx.Error using (ℚ-ordered)
-open import CategoricalCrypto.Approx.Evaluation ℚ-ordered using (QEvaluation)
+open import CategoricalCrypto.Approx.Error
+open import CategoricalCrypto.Approx.Evaluation ℚ-ordered
 
 import CategoricalCrypto.Standard2 as Std2
 
@@ -30,6 +30,5 @@ module CategoricalCrypto.UC.Family.Vanishing
   (Ix : Set) (κ : Ix → ℕ) (κ-cofinal : (N : ℕ) → Σ[ i ∈ Ix ] N ℕ.≤ κ i) where
 
 open import CategoricalCrypto.UC.Family M qro Rg Ix κ κ-cofinal
-  using (Famᴹ; ℰ^ω)
 
 module Canonical^ω = Std2.StdUC Famᴹ ℰ^ω

@@ -27,14 +27,14 @@
 -- monotone and preserves zero, which is where those two laws are spent.
 
 open import Data.Product.Base using (_×_; _,_)
-open import Level using (Level; _⊔_)
+open import Level
 open import Relation.Binary.Morphism.Bundles
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality
 
 import Relation.Binary.Morphism.Construct.Composition as Comp
 import Relation.Binary.Morphism.Construct.Identity as Id
 
-open import CategoricalCrypto.Approx.Error using (OrderedErrorAlgebra)
+open import CategoricalCrypto.Approx.Error
 
 module CategoricalCrypto.Approx.Controlled
   {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe) where
@@ -56,7 +56,7 @@ record Control : Set (es ⊔ ℓe) where
     preserves-ε₀ : at ε₀ ⊑ ε₀
     preserves-⊕  : {ε δ : Error} → at (ε ⊕ δ) ⊑ at ε ⊕ at δ
 
-open Control using (at)
+open Control
 
 idᶜ : Control
 idᶜ = record

@@ -30,15 +30,14 @@ open import Categories.LocallyGraded.Monoidal
 open import Categories.LocallyGraded.SubCategory
 
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Nat.Positive using (ℕ⁺; 1⁺; _·_; scale; scale-unit; value)
-open import Data.Product.Base using (_,_; proj₁)
+open import Data.Nat.Positive
+open import Data.Product.Base
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
-open import Level using (Level; _⊔_)
-open import Relation.Binary.PropositionalEquality using (cong; trans)
+open import Level
+open import Relation.Binary.PropositionalEquality
 
-open import CategoricalCrypto.Approx.Error using (Approximation; ℚ-ordered)
+open import CategoricalCrypto.Approx.Error
 open import CategoricalCrypto.UC.Quantitative.Query
-  using (absorb-closure; absorb-test; module Fl; module Tests)
 
 import Data.Nat.Properties as ℕₚ
 import Data.Rational.Properties as ℚₚ

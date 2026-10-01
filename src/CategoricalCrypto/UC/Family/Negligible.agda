@@ -28,17 +28,17 @@ open import Categories.Category.Instance.Rates
 open import Categories.Category.Monoidal.Bundle
 open import Categories.LocallyGraded.SubCategory
 
-open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Nat.Positive using (_·_; value)
-open import Data.Product.Base using (Σ-syntax; _,_)
+open import Data.Nat.Base as ℕ
+open import Data.Nat.Positive
+open import Data.Product.Base
 open import Data.Rational using (0ℚ)
-open import Level using (Level; _⊔_)
+open import Level
 
-open import CategoricalCrypto.Approx.Error using (ℚ-ordered)
-open import CategoricalCrypto.Approx.Evaluation ℚ-ordered using (QEvaluation)
-open import CategoricalCrypto.Approx.Schedule using (pointwise)
-open import CategoricalCrypto.UC.Approximate using (Negligible-0)
-open import CategoricalCrypto.UC.Core using (Evaluation; Observable)
+open import CategoricalCrypto.Approx.Error
+open import CategoricalCrypto.Approx.Evaluation ℚ-ordered
+open import CategoricalCrypto.Approx.Schedule
+open import CategoricalCrypto.UC.Approximate
+open import CategoricalCrypto.UC.Core
 
 import CategoricalCrypto.Approx.Evaluation as Evaluationᴹ
 import CategoricalCrypto.Standard2 as Std2

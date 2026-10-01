@@ -22,16 +22,16 @@
 -- because `Negligible` is a decay class of `ℕ → ℚ`; the index is read through
 -- `κ` alone, as in `UC.Family`.
 
-open import Data.Nat.Base using (ℕ)
-open import Data.Product.Base using (Σ-syntax; _×_; _,_)
-open import Data.Rational as ℚ using (ℚ)
-open import Level using (Level; 0ℓ)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; subst)
-open import Relation.Binary.Structures using (IsEquivalence)
+open import Data.Nat.Base
+open import Data.Product.Base
+open import Data.Rational as ℚ
+open import Level
+open import Relation.Binary.PropositionalEquality
+open import Relation.Binary.Structures
 
-open import CategoricalCrypto.Approx.Error using (Approximation; ℚ-ordered)
-open import CategoricalCrypto.Approx.Schedule using (pointwise)
-open import CategoricalCrypto.UC.Approximate using (Negligible; Negligible-+; Negligible-0)
+open import CategoricalCrypto.Approx.Error
+open import CategoricalCrypto.Approx.Schedule
+open import CategoricalCrypto.UC.Approximate
 
 import CategoricalCrypto.Approx.Small as Smallᴹ
 import CategoricalCrypto.Approx.Space as Spaceᴹ
@@ -68,7 +68,7 @@ negligible : Sm.SmallClass 0ℓ
 negligible = record
   { Small = Negligible ; small-ε₀ = Negligible-0 ; small-⊕ = Negligible-+ }
 
-open Sm.Collapse negligible os ℓa using (_∼Small_; ∼Small-isEquivalence)
+open Sm.Collapse negligible os ℓa
 
 ∼ᴺ≡∼Small : {μ ν : Ix → Obs} → (μ ∼ᴺ ν) ≡ _∼Small_ familySpace μ ν
 ∼ᴺ≡∼Small = refl

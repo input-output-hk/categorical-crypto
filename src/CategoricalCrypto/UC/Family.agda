@@ -18,21 +18,18 @@ open import Categories.LocallyGraded.Family
 open import Categories.LocallyGraded.SubCategory
 
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Nat.Positive using (ℕ⁺; _·_; poly⁺-1; poly⁺-·; Poly⁺; value)
-open import Data.Nat.Properties using (m≤m⊔n; m≤n⊔m; ≤-trans)
-open import Data.Product.Base using (Σ-syntax; _×_; _,_)
+open import Data.Nat.Positive
+open import Data.Nat.Properties
+open import Data.Product.Base
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
-open import Level using (Level; _⊔_)
+open import Level
 
-open import CategoricalCrypto.Approx.Error using (Approximation; ℚ-ordered; ℚ-refinement)
+open import CategoricalCrypto.Approx.Error
 open import CategoricalCrypto.Approx.Evaluation ℚ-ordered
-  using (QEvaluation; qual₊)
-open import CategoricalCrypto.Approx.Space ℚ-ordered using (ApproxSpace)
+open import CategoricalCrypto.Approx.Space ℚ-ordered
 open import CategoricalCrypto.UC.Approximate
-  using ( Negligible; Negligible-+; Negligible-0; Negligible⇒→0; NegligibleBound
-        ; NegligibleBound⇒VanishingBound; VanishingBound )
-open import CategoricalCrypto.UC.Core using (Evaluation; Observable)
-open import CategoricalCrypto.UCSetup using (UCSetup)
+open import CategoricalCrypto.UC.Core
+open import CategoricalCrypto.UCSetup
 
 import CategoricalCrypto.Standard2 as Std2
 

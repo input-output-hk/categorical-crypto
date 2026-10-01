@@ -19,15 +19,15 @@
 -- needs no refinement at all (`Approx.Small`).
 
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Product.Base using (Σ-syntax; _×_; _,_)
+open import Data.Product.Base
 open import Data.Rational as ℚ using (ℚ; 0ℚ; ½)
-open import Data.Rational.Properties.Ext using (0<½*; ½*+½*)
-open import Level using (Level; 0ℓ; suc; _⊔_)
-open import Relation.Binary.Bundles using (Preorder; Setoid)
-open import Relation.Binary.Definitions using (Monotonic₂)
-open import Relation.Binary.PropositionalEquality using (_≡_)
-open import Relation.Binary.Structures using (IsEquivalence; IsPreorder)
-open import Relation.Nullary using (¬_)
+open import Data.Rational.Properties.Ext
+open import Level
+open import Relation.Binary.Bundles
+open import Relation.Binary.Definitions
+open import Relation.Binary.PropositionalEquality
+open import Relation.Binary.Structures
+open import Relation.Nullary
 
 import Data.Nat.Properties as ℕₚ
 import Data.Rational.Properties as ℚₚ

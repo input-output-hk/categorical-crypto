@@ -12,21 +12,17 @@
 -- `NegligibleBound` obligation has.
 
 open import Data.Integer.Base using (+_)
-open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Nat.Poly using (Poly; poly-*; poly-const)
-open import Data.Rational as ℚ using (ℚ; 0ℚ; 1ℚ; nonNegative)
+open import Data.Nat.Base as ℕ
+open import Data.Nat.Poly
+open import Data.Rational as ℚ
 open import Data.Rational.Properties
-  using (*-assoc; *-identityˡ; *-monoˡ-≤-nonNeg; positive⁻¹)
-open import Data.Rational.Properties.Ext using (0<½*)
-open import Relation.Binary.PropositionalEquality using (_≡_; cong; subst; trans)
+open import Data.Rational.Properties.Ext
+open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Distribution.Uniform
-  using (fromℕ; inv-pow-2; fromℕ-*; fromℕ-/; 0≤fromℕ)
 open import ProbabilisticLogic.Distribution.Uniform.Decay
-  using (poly-inv-pow-2-→0; →0-≤)
 
 open import CategoricalCrypto.UC.Approximate
-  using (Negligible; NegligibleBound; →0-cong)
 
 module CategoricalCrypto.UC.Approximate.Decay where
 

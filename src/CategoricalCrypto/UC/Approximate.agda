@@ -9,14 +9,14 @@
 
 open import Data.Integer.Base using (+_)
 open import Data.Nat.Base as ℕ using (ℕ)
-open import Data.Nat.Poly using (Poly; poly-const)
+open import Data.Nat.Poly
 open import Data.Nat.Positive
 open import Data.Nat.Properties using (m≤m⊔n; m≤n⊔m; ≤-trans)
-open import Data.Product.Base using (_,_)
-open import Data.Rational as ℚ using (ℚ; 0ℚ; ½; _/_)
+open import Data.Product.Base
+open import Data.Rational as ℚ
 open import Data.Rational.Properties using (*-distribˡ-+; *-identityˡ; *-zeroʳ; +-mono-≤; <⇒≤)
-open import Data.Rational.Properties.Ext using (0<½*; ½*+½*)
-open import Relation.Binary.PropositionalEquality using (_≡_; subst; sym)
+open import Data.Rational.Properties.Ext
+open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Distribution.Uniform.Decay using (_→0)
 
