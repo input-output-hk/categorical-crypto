@@ -1,0 +1,264 @@
+{
+ "sweep": "enum-with",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/Channel/Category.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Channel/Core.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Channel/Selection.agda": {
+   "sites": [
+    {
+     "line": 70,
+     "with": "with isYes (A ≟ B ×-dec m ≟ m')",
+     "clause": "handle-pattern A m m' B"
+    },
+    {
+     "line": 77,
+     "with": "with A | m",
+     "clause": "... | false"
+    },
+    {
+     "line": 104,
+     "with": "with m' | B",
+     "clause": "... | _ | _"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/GamePlaying.agda": {
+   "sites": [
+    {
+     "line": 83,
+     "with": "with dead s q",
+     "clause": "pres⊥ s q inv with dead s q"
+    },
+    {
+     "line": 89,
+     "with": "with dead s q",
+     "clause": "step⊥ m s q inv with dead s q"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/GamePlaying/Average.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/GamePlaying/Defer.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/GamePlaying/Defer/Run.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/GamePlaying/Hop.agda": {
+   "sites": [
+    {
+     "line": 54,
+     "with": "with dead′ s′ q",
+     "clause": "prune-bisim dead dead′ agree bis s s′ r q F F′ h rewrite agree s s′ r q with dea"
+    },
+    {
+     "line": 161,
+     "with": "with bad (proj₁ t)",
+     "clause": "pt t with bad (proj₁ t)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/GamePlaying/Partial.agda": {
+   "sites": [
+    {
+     "line": 49,
+     "with": "with bad s",
+     "clause": "badProb⊥ resp bad s (ask q k)  with bad s"
+    },
+    {
+     "line": 52,
+     "with": "with bad s",
+     "clause": "badProb⊥ resp bad s (coin μ k) with bad s"
+    },
+    {
+     "line": 79,
+     "with": "with bad s",
+     "clause": "badProb⊥-cong resp resp′ bad eq s (ask q k) with bad s"
+    },
+    {
+     "line": 85,
+     "with": "with bad s",
+     "clause": "badProb⊥-cong resp resp′ bad eq s (coin μ k) with bad s"
+    },
+    {
+     "line": 120,
+     "with": "with bad s in eqb",
+     "clause": "badProb⊥-super resp bad Inv φ pres nn lb step m (out b) s le inv with bad s in e"
+    },
+    {
+     "line": 125,
+     "with": "with bad s in eqb",
+     "clause": "badProb⊥-super resp bad Inv φ pres nn lb step (suc m) (ask q kd) s le inv"
+    },
+    {
+     "line": 140,
+     "with": "with bad s in eqb",
+     "clause": "badProb⊥-super resp bad Inv φ pres nn lb step m (coin μ kd) s le inv with bad s "
+    },
+    {
+     "line": 175,
+     "with": "with bad s",
+     "clause": "FLGP⊥ s (ask q k) with bad s"
+    },
+    {
+     "line": 206,
+     "with": "with bad (proj₁ t) in eqt",
+     "clause": "pointwise t with bad (proj₁ t) in eqt"
+    },
+    {
+     "line": 212,
+     "with": "with bad s",
+     "clause": "FLGP⊥ s (coin μ k) with bad s"
+    },
+    {
+     "line": 306,
+     "with": "with dead s q",
+     "clause": "prune-Dmap dead K p s q G with dead s q"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/GamePlaying/Potential.agda": {
+   "sites": [
+    {
+     "line": 131,
+     "with": "with f s in ef",
+     "clause": "bad m s i e with f s in ef"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/GamePlaying/Test.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Interaction.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machine/Constraints.agda": {
+   "sites": [
+    {
+     "line": 44,
+     "with": "with completeness {query} {s}",
+     "clause": "queryCompute query s with completeness {query} {s}"
+    },
+    {
+     "line": 45,
+     "with": "with correctness p",
+     "clause": "... | response' , s' , p with correctness p"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machine/Core.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Base.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Bundle.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Category.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Collapse.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Core.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Frame.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/G.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Iteration.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Pointwise.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Pure.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Sandwich.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Sim.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Sim/Lax.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Tensor.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Assoc.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Structural.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace/Congruence.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace/Fubini.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Machines/Trace/Vanishing.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/OracleCall.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Agree.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Compose.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Pin.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Raw.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Trace/Compose.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Observe.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Protocol/Safety.agda": {
+   "sites": [
+    {
+     "line": 56,
+     "with": "with Bad s in eqb",
+     "clause": "hit≤badProb⊥ (ask q k) s with Bad s in eqb"
+    },
+    {
+     "line": 63,
+     "with": "with Bad s in eqb",
+     "clause": "hit≤badProb⊥ (coin μ k) s with Bad s in eqb"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Strategy.agda": {
+   "sites": []
+  }
+ },
+ "totalChecks": 0
+}

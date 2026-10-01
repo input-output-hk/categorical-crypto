@@ -1,0 +1,600 @@
+{
+ "sweep": "using-drop",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/Channel/Category.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Channel/Core.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 6,
+     "edit": "drop `using (swap ; assocʳ ; assocˡ)`"
+    },
+    {
+     "line": 7,
+     "edit": "drop `using (Fin)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 74,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open _[_]⇒[_]_ public"
+    }
+   ],
+   "checks": 3,
+   "seconds": 585.1
+  },
+  "src/CategoricalCrypto/Channel/Selection.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/GamePlaying.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 22,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.List.Relation.Unary.All as ListAll using ()"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/GamePlaying/Average.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 22,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.List.Relation.Unary.All as ListAll using ()"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/GamePlaying/Defer.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/GamePlaying/Defer/Run.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/GamePlaying/Hop.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 21,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.List.Relation.Unary.All as ListAll using ()"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/GamePlaying/Partial.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 12,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.List.Relation.Unary.All as ListAll using ()"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/GamePlaying/Potential.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 29,
+     "edit": "drop `using (∨-identityʳ)`"
+    },
+    {
+     "line": 34,
+     "edit": "drop `using (ℚ; 0ℚ; 1ℚ)`"
+    },
+    {
+     "line": 36,
+     "edit": "drop `using\n  ( +-assoc; +-identityˡ; +-identityʳ; +-mono-≤; +-mon`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 31,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.List.Relation.Unary.All as ListAll using ()"
+    }
+   ],
+   "checks": 6,
+   "seconds": 37.2
+  },
+  "src/CategoricalCrypto/GamePlaying/Test.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 23,
+     "edit": "drop `using (ℚ)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (≤-reflexive; ≤-trans)`"
+    },
+    {
+     "line": 27,
+     "edit": "drop `using (Vec)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 6,
+   "seconds": 212.1
+  },
+  "src/CategoricalCrypto/Interaction.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machine/Constraints.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machine/Core.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 7,
+     "edit": "drop `using (Fin)`"
+    },
+    {
+     "line": 186,
+     "edit": "drop `using (State)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 78,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Tensor using (_⊗₁_) public"
+    }
+   ],
+   "checks": 3,
+   "seconds": 19.9
+  },
+  "src/CategoricalCrypto/Machines/Base.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 92,
+     "edit": "drop `using (distributeˡ; _+₁_)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 17.9
+  },
+  "src/CategoricalCrypto/Machines/Bundle.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 16,
+     "edit": "drop `using ([_]-resp-≅)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 21.4
+  },
+  "src/CategoricalCrypto/Machines/Category.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 21,
+     "edit": "drop `using (_∷_; [])`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 23.4
+  },
+  "src/CategoricalCrypto/Machines/Collapse.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Core.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 32,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open State public"
+    },
+    {
+     "line": 52,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Machine public"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Frame.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/G.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Iteration.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Pointwise.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 13,
+     "edit": "drop `using (_×_; _,_; proj₁; proj₂; swap)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 14,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)"
+    }
+   ],
+   "checks": 3,
+   "seconds": 44.4
+  },
+  "src/CategoricalCrypto/Machines/Pure.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 24,
+     "edit": "drop `using (_∘′_)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 22,
+     "edit": "drop `using (_⊎_; inj₁; inj₂)`"
+    },
+    {
+     "line": 26,
+     "edit": "drop `using (refl)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 23,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)"
+    }
+   ],
+   "checks": 7,
+   "seconds": 65.1
+  },
+  "src/CategoricalCrypto/Machines/Sandwich.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Sim.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 18,
+     "edit": "drop `using (IsEquivalence)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 46,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open _≲_ public"
+    }
+   ],
+   "checks": 2,
+   "seconds": 4.7
+  },
+  "src/CategoricalCrypto/Machines/Sim/Lax.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 23,
+     "edit": "drop `using (_,_)`"
+    },
+    {
+     "line": 25,
+     "edit": "drop `using (_;_)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 69,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open _≲ˡ[_]_ public"
+    }
+   ],
+   "checks": 3,
+   "seconds": 21.7
+  },
+  "src/CategoricalCrypto/Machines/Tensor.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Assoc.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 52,
+     "why": "empty using () (renaming idiom)",
+     "text": "open ℳ.HomReasoning using ()\n  renaming (_⟩∘⟨_ to _⟩∘ᴹ⟨_; refl⟩∘⟨_ to reflᴹ⟩∘ᴹ⟨_; _⟩∘⟨refl"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Structural.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 58,
+     "why": "empty using () (renaming idiom)",
+     "text": "open ℳ.HomReasoning using ()\n  renaming (_⟩∘⟨_ to _⟩∘ᴹ⟨_; refl⟩∘⟨_ to reflᴹ⟩∘ᴹ⟨_; _⟩∘⟨refl"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Trace.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Trace/Congruence.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Trace/Fubini.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 53,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Categories.Category.Monoidal.Symmetric.Properties.Ext\n  (Cocart.CocartesianSym"
+    }
+   ],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Trace/Vanishing.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/OracleCall.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Protocol.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 17,
+     "edit": "drop `using (Vec; []; _∷_)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 64,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Protocol public"
+    }
+   ],
+   "checks": 2,
+   "seconds": 11.4
+  },
+  "src/CategoricalCrypto/Protocol/Machine.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 26,
+     "edit": "drop `using (_⊎_; inj₁; inj₂)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 18.4
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Agree.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 16,
+     "edit": "drop `using (_⊎_; inj₁; inj₂)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 18.8
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Compose.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Pin.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Raw.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Trace/Compose.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 25,
+     "edit": "drop `using (Bool)`"
+    },
+    {
+     "line": 29,
+     "edit": "drop `using (ℚ)`"
+    },
+    {
+     "line": 32,
+     "edit": "drop `using (0ℓ)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 6,
+   "seconds": 63.7
+  },
+  "src/CategoricalCrypto/Protocol/Observe.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 16,
+     "edit": "drop `using (Vec; []; _∷_)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 11.9
+  },
+  "src/CategoricalCrypto/Protocol/Safety.agda": {
+   "candidates": 6,
+   "kept": [
+    {
+     "line": 22,
+     "edit": "drop `using (Bool; true; false)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (just)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (ℕ)`"
+    },
+    {
+     "line": 25,
+     "edit": "drop `using (_×_; _,_)`"
+    },
+    {
+     "line": 26,
+     "edit": "drop `using (ℚ)`"
+    },
+    {
+     "line": 27,
+     "edit": "drop `using (≤-reflexive; ≤-trans)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 18.3
+  },
+  "src/CategoricalCrypto/Strategy.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 14,
+     "edit": "drop `using (_×_; _,_)`"
+    },
+    {
+     "line": 16,
+     "edit": "drop `using (_≡_; refl; subst; sym)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 17.4
+  }
+ },
+ "totalChecks": 61
+}

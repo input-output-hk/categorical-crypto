@@ -1,0 +1,1260 @@
+diff --git a/src/CategoricalCrypto/Channel/Category.agda b/src/CategoricalCrypto/Channel/Category.agda
+index f569091f..d4239cdf 100644
+--- a/src/CategoricalCrypto/Channel/Category.agda
++++ b/src/CategoricalCrypto/Channel/Category.agda
+@@ -16,7 +16,7 @@ open import categorical-crypto.Prelude hiding (Functor; Bifunctor)
+ 
+ opaque
+   unfolding _⊗₀_
+-  
++
+   channel-category                       : Category (sucˡ zeroˡ) zeroˡ zeroˡ
+ 
+   ⊗-bifunctor                           : Bifunctor channel-category channel-category channel-category
+diff --git a/src/CategoricalCrypto/Channel/Core.agda b/src/CategoricalCrypto/Channel/Core.agda
+index f050b851..95378921 100644
+--- a/src/CategoricalCrypto/Channel/Core.agda
++++ b/src/CategoricalCrypto/Channel/Core.agda
+@@ -122,7 +122,7 @@ infixr 10 _⇒ₜ_
+ 
+ infixr 9 _⊗₀_
+ 
+-opaque 
++opaque
+   _⊗₀_ : Fun₂ Channel
+   A ⊗₀ B = (inType A ⊎ inType B) ⇿ (outType A ⊎ outType B)
+ 
+diff --git a/src/CategoricalCrypto/GamePlaying.agda b/src/CategoricalCrypto/GamePlaying.agda
+index e9152190..b348b729 100644
+--- a/src/CategoricalCrypto/GamePlaying.agda
++++ b/src/CategoricalCrypto/GamePlaying.agda
+@@ -1,21 +1,11 @@
+ {-# OPTIONS --safe --without-K #-}
+ 
+--- The two adaptive-robust bridges every concrete-security proof over the
+--- reactive interaction model runs on, both PROVEN:
+---
+---   • `badProb-bounded` — the SUPERMARTINGALE bound.  A potential `φ` (indexed by
+---     the remaining query budget) with a support-preserved invariant `Inv`, at
+---     least 1 on bad states and non-increasing in expectation per query, bounds
+---     the bad-probability of ANY adaptive distinguisher by the initial
+---     potential.  This carries the whole adaptivity argument, so what a concrete
+---     system still owes is a NON-adaptive per-step certificate (`SuperCert`).
+---   • `Hop.FLGP` over `Coupling` — the Fundamental Lemma of Game-Playing in COUPLED form:
+---     one kernel emits the shared state and BOTH answers, the ideal projection
+---     copying the real answer while the POST-state is good.  "Identical until
+---     bad" then holds by construction, so the lemma has NO side conditions.
+---
+--- Both are `GamePlaying.Partial`'s at the embedded kernel `embedᵏ`, read back
+--- through `total⇒⊥`.
++-- The supermartingale bound `badProb-bounded`: a potential `φ` (indexed by the
++-- remaining query budget) with a support-preserved invariant, at least 1 on bad
++-- states and non-increasing in expectation per query, bounds the bad-probability
++-- of ANY adaptive distinguisher by the initial potential.  It carries the whole
++-- adaptivity argument, so a concrete system owes only a NON-adaptive per-step
++-- certificate (`SuperCert`).
+ 
+ open import categorical-crypto.Prelude hiding (_>>=_)
+ 
+@@ -41,7 +31,7 @@ private variable Q R St : Type
+ 
+ -- The probability that `bad` fires at some visited state during the run of `d`
+ -- against `resp` from `s` (1 immediately at a bad state — no monotonicity
+--- needed): `GamePlaying.Partial`'s at the embedded kernel.
++-- needed).
+ badProb : (St → Q → Dist-ℚ (St × R)) → (St → Bool) → St → Strat Q R → ℚ
+ badProb resp = badProb⊥ (embedᵏ resp)
+ 
+@@ -51,8 +41,6 @@ badProb resp = badProb⊥ (embedᵏ resp)
+ Preserved : (St → Type) → (St → Q → Dist-ℚ (St × R)) → Type
+ Preserved Inv resp = ∀ s q → Inv s → OnSupport (λ sr → Inv (proj₁ sr)) (resp s q)
+ 
+--- A supermartingale at a total kernel (`badProb⊥-super`'s hypotheses), with
+--- the initial potential dominated by the claimed bound.
+ record SuperCert (resp : St → Q → Dist-ℚ (St × R)) (bad : St → Bool)
+                  (s₀ : St) (ε : ℕ → ℚ) : Type₁ where
+   field
+@@ -100,6 +88,9 @@ badProb-bounded c = badProb⊥-bounded (prune-cert (λ _ _ → false) c)
+ ------------------------------------------------------------------------
+ -- The coupling the Fundamental Lemma (`Hop.FLGP`) is stated at
+ 
++-- One kernel emits the shared state and BOTH answers, the ideal projection
++-- copying the real answer while the POST-state is good: "identical until bad"
++-- holds by construction, so the lemma has no side conditions.
+ module Coupling (bad : St → Bool)
+                 (respB : St → Q → Dist-ℚ (St × (R × R))) where
+ 
+diff --git a/src/CategoricalCrypto/GamePlaying/Average.agda b/src/CategoricalCrypto/GamePlaying/Average.agda
+index 27d0c3a0..490d8ba5 100644
+--- a/src/CategoricalCrypto/GamePlaying/Average.agda
++++ b/src/CategoricalCrypto/GamePlaying/Average.agda
+@@ -8,14 +8,10 @@
+ -- plant, and the potential is the average of the flag plus the remaining
+ -- query budget's worth of drift.
+ --
+--- Two things make the induction go through where `badProb-super`'s does not.
+--- `endProb` — the probability that the flag is up at the END of the run,
+--- equal to `badProb` for a MONOTONE flag — has no case split on the flag, so
+--- the average never has to be split inside the integral.  And a family whose
+--- answers no longer depend on the plant is what lets one adaptive strategy
+--- serve every plant at once; once the plant IS revealed, the strategies part,
+--- and `Fz` is the frozen mode — a state the flag no longer changes from,
+--- where the run's contribution is the flag itself whatever the adversary does.
++-- The induction runs on `endProb` — the probability that the flag is up at
++-- the END of the run, equal to `badProb` for a MONOTONE flag — because it has
++-- no case split on the flag, so the average is never split inside the
++-- integral (`Partial.badProb⊥-super`'s induction does split).
+ 
+ open import categorical-crypto.Prelude hiding (_>>=_)
+ 
+@@ -123,9 +119,7 @@ module _ {V : Type} (μ : Dist-ℚ V) (resp : St → Q → Dist-ℚ (St × R)) (
+               → ∀ m d f → asks≤ m d → (Rel f ⊎ (∀ v → Fz (f v)))
+               → E μ (λ v → endProb resp bad (f v) d)
+                 ≤ℚ E μ (λ v → bool→ℚ (bad (f v))) +ℚ fromℕ m *ℚ e
+-  endProb-avg 0≤e frz drift m (out b) f le ok = ≤-trans
+-    (≤-reflexive (sym (+-identityʳ (E μ (λ v → bool→ℚ (bad (f v)))))))
+-    (+-monoʳ-≤ (E μ (λ v → bool→ℚ (bad (f v)))) (0≤* (0≤fromℕ m) 0≤e))
++  endProb-avg 0≤e frz drift m (out b) f le ok = p≤p+q _ (0≤* (0≤fromℕ m) 0≤e)
+   endProb-avg 0≤e frz drift zero (ask q k) f () ok
+   endProb-avg 0≤e frz drift (suc m) (ask q k) f le (inj₂ fz) = ≤-trans
+     (≤-reflexive (trans (lookupᴰℚ-cong-P (entries μ)
+diff --git a/src/CategoricalCrypto/GamePlaying/Defer.agda b/src/CategoricalCrypto/GamePlaying/Defer.agda
+index ef25611a..8eb2fe23 100644
+--- a/src/CategoricalCrypto/GamePlaying/Defer.agda
++++ b/src/CategoricalCrypto/GamePlaying/Defer.agda
+@@ -3,19 +3,11 @@
+ -- Deferred sampling: a secret PLANTED in the state and the same secret DRAWN
+ -- at the step that first reads it give the same run distribution.
+ --
+--- `runWith-avg` is `Hop.runWith-bisim` with an average in front of one side.
+--- The planted kernel is run at a FAMILY of states indexed by the secret, the
+--- deferring kernel at a single state, and the two agree at every adaptive
+--- distinguisher once they agree at one query.  At a point-mass `μ` and a
+--- constant family it IS `runWith-bisim`, so the induction
+--- `Examples.MerkleDamgard.Core.ideal-marginal` runs is its `V ≡ ⊤` case.
+---
+ -- What it is FOR is the caveat `docs/ro-game-hop.md` records: a secret already
+ -- determined by the state is one the next query hits with probability 1, so no
+ -- `SuperCert` can bound a flag that reads it.  Moving the draw is the only way
+ -- to put such a flag in reach of `Potential.rare-cert`, and this is the lemma
+--- that moves it.  Two `Dist-ℚ`s never share a sample, which is why the `coin`
+--- case is `Expectation.E-swap` and nothing else.
++-- that moves it.
+ 
+ open import categorical-crypto.Prelude hiding (_>>=_)
+ 
+@@ -46,8 +38,7 @@ module _ {Q R V StE StL : Type} (μ : Dist-ℚ V)
+ 
+   -- One query, averaged.  The relation compares a family of planted states
+   -- with one deferring state; a family of outcomes counts as related when its
+-  -- states are and its answer does not depend on the secret; `avg-here` is the
+-  -- constant-family case.
++  -- states are and its answer does not depend on the secret.
+   AvgBisim : Type
+   AvgBisim = ∀ f s → f ≋ s → ∀ q (F : StE × R → ℚ) (F′ : StL × R → ℚ)
+            → (∀ (g : V → StE × R) t → (λ v → proj₁ (g v)) ≋ proj₁ t
+diff --git a/src/CategoricalCrypto/GamePlaying/Defer/Run.agda b/src/CategoricalCrypto/GamePlaying/Defer/Run.agda
+index 1903598d..4afc3bfa 100644
+--- a/src/CategoricalCrypto/GamePlaying/Defer/Run.agda
++++ b/src/CategoricalCrypto/GamePlaying/Defer/Run.agda
+@@ -4,11 +4,6 @@
+ -- and the same secret drawn at the step that first reads it give the same
+ -- closed run.
+ --
+--- `GamePlaying.Defer.runWith-avg` is this argument at the `Dist-ℚ` game layer.
+--- Here the runs are `Protocol.Machine.runᴹ`, the comparison is `_≈ₚ_` rather
+--- than `_≡_`, and the draw is a `Dₚ`, so the `coin` case is
+--- `Dp.Commutative.>>=ₚ-swap` where the game layer's is `Expectation.E-swap`.
+---
+ -- It is the one argument `Machines.Sim`'s equality cannot make: a `≲`'s state
+ -- map is a function, so it relates a point mass to a point mass, where moving
+ -- a draw across an activation relates a point mass to a mixture
+diff --git a/src/CategoricalCrypto/GamePlaying/Hop.agda b/src/CategoricalCrypto/GamePlaying/Hop.agda
+index 9504789c..274ed362 100644
+--- a/src/CategoricalCrypto/GamePlaying/Hop.agda
++++ b/src/CategoricalCrypto/GamePlaying/Hop.agda
+@@ -1,20 +1,12 @@
+ {-# OPTIONS --safe --without-K #-}
+ 
+--- Assembling a game hop out of `GamePlaying`'s two bridges.
+---
+---   • `runWith-bisim` — two kernels COUPLED step by step (their one-query
+---     expectations agree at related states, on any pair of integrands that
+---     agrees at related outcomes) run alike at EVERY adaptive distinguisher,
+---     exactly.  This identifies a coupling's marginals with the reference
+---     kernels they stand for.
+---   • `hop-bound` — with both marginals identified and a `SuperCert` bounding
+---     the coupling's flag, the advantage of any m-query distinguisher between
+---     the two REFERENCE kernels is at most `ε m`.
+---   • `runWith-join` — the identical-until-bad half for two kernels that keep
+---     their OWN state spaces: each step exhibits a joint draw whose marginals
+---     are the two kernels.  `FLGP` is the case where that join is
+---     `respB`'s two projections; where the two games' states diverge once the
+---     flag is up, carrying both inside one coupled state is what this avoids.
++-- Assembling a game hop: `runWith-bisim` identifies a coupling's marginals with
++-- the reference kernels they stand for, and `hop-bound` then bounds the
++-- advantage between the two reference kernels by the coupling's `SuperCert`.
++-- `runWith-join` is the identical-until-bad step for two kernels on their OWN
++-- state spaces (each step exhibits a joint draw with the two kernels as
++-- marginals): where the games' states part once the flag is up, one coupled
++-- state would have to carry both.  `FLGP` is its instance at `Coupling`.
+ 
+ open import categorical-crypto.Prelude hiding (_>>=_)
+ 
+@@ -46,8 +38,6 @@ module _ {Q R St St′ : Type} (resp : St → Q → Dist-ℚ (St × R))
+             → (∀ t t′ → proj₁ t ≋ proj₁ t′ → proj₂ t ≡ proj₂ t′ → F t ≡ F′ t′)
+             → E (resp s q) F ≡ E (resp′ s′ q) F′
+ 
+-  -- Both kernels cut where related states agree to cut: on the cut both
+-  -- score nothing, off it the coupling is the total one.
+   prune-bisim : (dead : St → Q → Bool) (dead′ : St′ → Q → Bool)
+               → (∀ s s′ → s ≋ s′ → ∀ q → dead s q ≡ dead′ s′ q)
+               → StepBisim → StepBisim⊥ (prune dead resp) (prune dead′ resp′) _≋_
+diff --git a/src/CategoricalCrypto/GamePlaying/Partial.agda b/src/CategoricalCrypto/GamePlaying/Partial.agda
+index c99b8e99..a19c2014 100644
+--- a/src/CategoricalCrypto/GamePlaying/Partial.agda
++++ b/src/CategoricalCrypto/GamePlaying/Partial.agda
+@@ -1,11 +1,11 @@
+ {-# OPTIONS --safe --without-K #-}
+ 
+--- `GamePlaying`'s two bridges at a PARTIAL kernel, which is the general case.
++-- The supermartingale bound and the coupled Fundamental Lemma at a PARTIAL
++-- kernel, which is the general case.
+ --
+ -- A machine's step DIVERGES where a game's kernel idles, so the transport of
+--- `Protocol.Machine.Raw` lands on a `Dist⊥`-valued kernel.  `Dist⊥` is
+--- `Dist-ℚ ∘ Maybe` and the sink scores 0, which only helps the
+--- supermartingale and which the coupling carries through untouched.
++-- `Protocol.Machine.Raw` lands on a `Dist⊥`-valued kernel.  The sink scores 0,
++-- which only helps the supermartingale and which the coupling carries through untouched.
+ 
+ open import categorical-crypto.Prelude hiding (_>>=_)
+ 
+@@ -89,8 +89,6 @@ badProb⊥-cong resp resp′ bad eq s (coin μ k) with bad s
+ ------------------------------------------------------------------------
+ -- What a concrete system owes
+ 
+--- Divergence constrains nothing: an activation the machine refuses to serve
+--- reaches no state, so it preserves any invariant.
+ Preserved⊥ : (St → Type) → (St → Q → Dist⊥ (St × R)) → Type
+ Preserved⊥ Inv resp = ∀ s q → Inv s → OnSupport⊥ (λ sr → Inv (proj₁ sr)) (resp s q)
+ 
+@@ -265,9 +263,7 @@ module _ {Q R St St′ : Type} (resp : St → Q → Dist⊥ (St × R))
+          (resp′ : St′ → Q → Dist⊥ (St′ × R)) (_≋_ : St → St′ → Type) where
+ 
+   StepBisim⊥ : Type
+-  StepBisim⊥ = ∀ s s′ → s ≋ s′ → ∀ q (F : St × R → ℚ) (F′ : St′ × R → ℚ)
+-             → (∀ t t′ → proj₁ t ≋ proj₁ t′ → proj₂ t ≡ proj₂ t′ → F t ≡ F′ t′)
+-             → E⊥ (resp s q) F ≡ E⊥ (resp′ s′ q) F′
++  StepBisim⊥ = StepBisim⊥ʳ id id resp resp′ _≋_
+ 
+   -- `runWith⊥-bisimʳ` at the identities, twice: `mapStrat id id` rebuilds the
+   -- tree, and the run against `resp′` itself removes it without funext.
+@@ -299,7 +295,6 @@ total⇒⊥ K s d =
+ prune : (St → Q → Bool) → (St → Q → Dist-ℚ (St × R)) → St → Q → Dist⊥ (St × R)
+ prune dead K s q = cond (dead s q) (return-ℚ nothing) (embedᵏ K s q)
+ 
+--- `Dmap⊥` commutes past the cut, as far as `E⊥` sees.
+ prune-Dmap : {A : Type} (dead : St → Q → Bool) (K : St → Q → Dist-ℚ (St × A))
+              (p : St × A → St × R) (s : St) (q : Q) (G : St × R → ℚ)
+            → E⊥ (Dmap⊥ p (prune dead K s q)) G ≡ E⊥ (prune dead (λ s q → Dmap p (K s q)) s q) G
+diff --git a/src/CategoricalCrypto/GamePlaying/Potential.agda b/src/CategoricalCrypto/GamePlaying/Potential.agda
+index 7c9b4248..0d4a14a3 100644
+--- a/src/CategoricalCrypto/GamePlaying/Potential.agda
++++ b/src/CategoricalCrypto/GamePlaying/Potential.agda
+@@ -13,11 +13,8 @@
+ --     at most ε per query is up at some point with probability at most
+ --     `m·ε`.  `guess-drift` discharges its hypothesis at ε ≡ 2⁻ᵏ for the flag
+ --     "this query hit a fresh uniform k-bit point" — the GUESSING potential a
+---     hiding argument for `commit = H(m ∥ r)` runs on.  NB the FRESH draw is
+---     what makes the per-query drift provable: a secret already determined by
+---     the state is one the next query can hit with probability 1, so a fixed
+---     secret must be sampled LAZILY for this potential to apply (see
+---     `docs/ro-game-hop.md`).
++--     hiding argument for `commit = H(m ∥ r)` runs on.  A secret fixed in the
++--     state must be sampled lazily for it to apply (`GamePlaying.Defer`).
+ --
+ -- `∨-cert` is the union bound the two are combined by: a proof whose bad event
+ -- is a disjunction — a binding argument's is — adds the potentials and adds the
+@@ -70,11 +67,9 @@ rare-cert {St = St} resp flag s₀ e 0≤e init raise = record
+   ; φ      = φ
+   ; inv₀   = tt
+   ; pres   = λ s q _ → OnSupport-⊤ (resp s q)
+-  ; φ-nn   = λ m s _ → ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ)))
+-                               (+-mono-≤ (0≤bool (flag s)) (0≤* (0≤fromℕ m) 0≤e))
++  ; φ-nn   = λ m s _ → ≤-trans (0≤bool (flag s)) (p≤p+q _ (0≤* (0≤fromℕ m) 0≤e))
+   ; φ-bad  = λ m s _ fl → subst (λ b → 1ℚ ≤ℚ bool→ℚ b +ℚ fromℕ m *ℚ e) (sym fl)
+-                            (≤-trans (≤-reflexive (sym (+-identityʳ 1ℚ)))
+-                                     (+-monoʳ-≤ 1ℚ (0≤* (0≤fromℕ m) 0≤e)))
++                            (p≤p+q 1ℚ (0≤* (0≤fromℕ m) 0≤e))
+   ; φ-step = λ m s q _ → step m s q
+   ; φ-init = λ m → ≤-trans (≤-reflexive (cong (λ b → bool→ℚ b +ℚ fromℕ m *ℚ e) init))
+                            (≤-reflexive (+-identityˡ (fromℕ m *ℚ e)))
+@@ -93,8 +88,7 @@ rare-cert {St = St} resp flag s₀ e 0≤e init raise = record
+ guess-drift : ∀ k (f : Bool) (p : Vec Bool k)
+             → E (uniform-Vec k) (λ r → bool→ℚ (f ∨ ⌊ r ≟ p ⌋))
+             ≤ℚ bool→ℚ f +ℚ inv-pow-2 k
+-guess-drift k true  p = ≤-trans (≤-reflexive (E-const (uniform-Vec k) 1ℚ))
+-  (≤-trans (≤-reflexive (sym (+-identityʳ 1ℚ))) (+-monoʳ-≤ 1ℚ (0≤inv-pow-2 k)))
++guess-drift k true  p = ≤-trans (≤-reflexive (E-const (uniform-Vec k) 1ℚ)) (p≤p+q 1ℚ (0≤inv-pow-2 k))
+ guess-drift k false p = ≤-trans (≤-reflexive (P-uniform-Vec k p))
+                                 (≤-reflexive (sym (+-identityˡ (inv-pow-2 k))))
+ 
+@@ -116,8 +110,7 @@ drift-∧ k g false p = ≤-trans
+   ; φ      = λ m s → C₁.φ m s +ℚ C₂.φ m s
+   ; inv₀   = C₁.inv₀ , C₂.inv₀
+   ; pres   = λ s q i → ListAll.zip (C₁.pres s q (proj₁ i) , C₂.pres s q (proj₂ i))
+-  ; φ-nn   = λ m s i → ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ)))
+-                               (+-mono-≤ (C₁.φ-nn m s (proj₁ i)) (C₂.φ-nn m s (proj₂ i)))
++  ; φ-nn   = λ m s i → ≤-trans (C₁.φ-nn m s (proj₁ i)) (p≤p+q _ (C₂.φ-nn m s (proj₂ i)))
+   ; φ-bad  = bad
+   ; φ-step = step
+   ; φ-init = λ m → +-mono-≤ (C₁.φ-init m) (C₂.φ-init m)
+@@ -129,10 +122,8 @@ drift-∧ k g false p = ≤-trans
+   bad : ∀ m s → C₁.Inv s × C₂.Inv s → (f s ∨ g s) ≡ true
+       → 1ℚ ≤ℚ C₁.φ m s +ℚ C₂.φ m s
+   bad m s i e with f s in ef
+-  ... | true  = ≤-trans (≤-reflexive (sym (+-identityʳ 1ℚ)))
+-      (+-mono-≤ (C₁.φ-bad m s (proj₁ i) ef) (C₂.φ-nn m s (proj₂ i)))
+-  ... | false = ≤-trans (≤-reflexive (sym (+-identityˡ 1ℚ)))
+-      (+-mono-≤ (C₁.φ-nn m s (proj₁ i)) (C₂.φ-bad m s (proj₂ i) e))
++  ... | true  = ≤-trans (C₁.φ-bad m s (proj₁ i) ef) (p≤p+q _ (C₂.φ-nn m s (proj₂ i)))
++  ... | false = ≤-trans (C₂.φ-bad m s (proj₂ i) e) (p≤q+p _ (C₁.φ-nn m s (proj₁ i)))
+ 
+   step : ∀ m s q → C₁.Inv s × C₂.Inv s
+        → E (resp s q) (λ sr → C₁.φ m (proj₁ sr) +ℚ C₂.φ m (proj₁ sr))
+diff --git a/src/CategoricalCrypto/GamePlaying/Test.agda b/src/CategoricalCrypto/GamePlaying/Test.agda
+index e3c1b39f..ada8d3f2 100644
+--- a/src/CategoricalCrypto/GamePlaying/Test.agda
++++ b/src/CategoricalCrypto/GamePlaying/Test.agda
+@@ -1,19 +1,8 @@
+ {-# OPTIONS --safe --without-K #-}
+ 
+--- Acceptance instances for the two ready-made potentials of
+--- `GamePlaying.Potential`: the smallest kernel each one is about, carried all
+--- the way to an ADAPTIVE bound (`badProb-bounded`), which is what says the
+--- builders are usable and not merely well-typed.
+---
+---   • `LogMachine` — a query either idles or draws one fresh uniform n-bit
+---     sample into a log; the flag is a repeat.  `(m² + m)·2⁻ⁿ`.
+---   • `GuessMachine` — a query names a k-bit point and the kernel tests it
+---     against a fresh uniform draw; the flag is a hit.  `m·2⁻ᵏ`.
+---
+--- …and for `GamePlaying.Defer`:
+---
+---   • `DeferMachine` — a secret point that only the `readQ` query looks at:
+---     planting it and drawing it at that query run alike.
++-- Acceptance instances: each ready-made potential of `GamePlaying.Potential`,
++-- and `GamePlaying.Defer`, at the smallest kernel it is about, carried to an
++-- ADAPTIVE bound — what says the builders are usable and not merely well-typed.
+ 
+ open import Data.Bool.Base
+ open import Data.List.Base
+@@ -51,13 +40,12 @@ module LogMachine (n : ℕ) where
+ 
+   open Dup n
+ 
+-  -- `false` idles, `true` draws one fresh sample and logs it.
+   logK : Log → Bool → Dist-ℚ (Log × Maybe Hash)
+   logK L false = return-ℚ (L , nothing)
+   logK L true  = uniform-Vec n >>=ᴹ λ h → return-ℚ (h ∷ L , just h)
+ 
+   private
+-    -- the integrand, annotated: the answer type is what fixes `nothing`'s
++    -- annotated: the answer type fixes the type of `nothing`
+     onLog : (Log → ℚ) → Log × Maybe Hash → ℚ
+     onLog F sr = F (proj₁ sr)
+ 
+@@ -71,7 +59,6 @@ module LogMachine (n : ℕ) where
+   cert : SuperCert logK dup [] (λ m → fromℕ (m * m + m) *ℚ inv-pow-2 n)
+   cert = collision-cert n logK id [] refl keep-or-sample
+ 
+-  -- the adaptive bound: `m` queries collide with probability ≤ (m² + m)·2⁻ⁿ
+   bounded : ∀ m d → asks≤ m d → badProb logK dup [] d ≤ℚ fromℕ (m * m + m) *ℚ inv-pow-2 n
+   bounded = badProb-bounded cert
+ 
+@@ -100,7 +87,6 @@ module GuessMachine (k : ℕ) where
+   cert : SuperCert guessK id false (λ m → fromℕ m *ℚ inv-pow-2 k)
+   cert = rare-cert guessK id false (inv-pow-2 k) (0≤inv-pow-2 k) refl raise
+ 
+-  -- the adaptive bound: `m` guesses hit the point with probability ≤ m·2⁻ᵏ
+   bounded : ∀ m d → asks≤ m d → badProb guessK id false d ≤ℚ fromℕ m *ℚ inv-pow-2 k
+   bounded = badProb-bounded cert
+ 
+@@ -165,7 +151,6 @@ module DeferMachine (k : ℕ) where
+            (E-const μ (E (respD s q) F)))
+     (lookupᴰℚ-cong-P (entries (respD s q)) (here F F′ pt))
+ 
+-  -- the identity: the secret may be drawn at `readQ` instead of up front
+   defer : ∀ d → E μ (λ p → Pr₁ (runWith respD (just p , []) d))
+               ≡ Pr₁ (runWith respD (nothing , []) d)
+   defer d = runWith-avg μ respD respD _≋_ avg-bisim d (λ p → just p , [])
+diff --git a/src/CategoricalCrypto/Interaction.agda b/src/CategoricalCrypto/Interaction.agda
+index d2e6ba05..479f4f46 100644
+--- a/src/CategoricalCrypto/Interaction.agda
++++ b/src/CategoricalCrypto/Interaction.agda
+@@ -2,8 +2,7 @@
+ 
+ -- The reactive interaction model: an ADAPTIVE distinguisher probing a stateful
+ -- response kernel, totally (`runWith`) or partially (`runWith⊥`), returning the
+--- verdict bit.  This is the semantics every concrete-security statement in the
+--- library is phrased in.
++-- verdict bit.
+ 
+ open import categorical-crypto.Prelude hiding (_>>=_)
+ 
+@@ -53,8 +52,7 @@ runWith⊥-emb {R = R} resp resp⊥ emb ker s (ask q k) = begin
+   ((resp s q >>=ᴹ Eret) >>=⊥ K⊥)
+     ≈⟨ >>=ᴹ-assoc (resp s q) Eret (kmaybe K⊥) ⟩
+   (resp s q >>=ᴹ λ sr → (Eret sr >>=⊥ K⊥))
+-    ≈⟨ >>=ᴹ-cong {μ = resp s q} {resp s q} {λ sr → Eret sr >>=⊥ K⊥}
+-         {λ sr → Dmap just (G sr)} (λ P → refl)
++    ≈⟨ >>=ᴹ-congˡ (resp s q) (λ sr → Eret sr >>=⊥ K⊥) (λ sr → Dmap just (G sr))
+          (λ sr → Mℚ.trans {i = Eret sr >>=⊥ K⊥}
+                           {j = runWith⊥ resp⊥ (emb (proj₁ sr)) (k (proj₂ sr))}
+                           {k = Dmap just (G sr)}
+@@ -70,8 +68,7 @@ runWith⊥-emb {R = R} resp resp⊥ emb ker s (ask q k) = begin
+     open RS (Mℚ-setoid _)
+ runWith⊥-emb resp resp⊥ emb ker s (coin μ k) = begin
+   (μ >>=ᴹ λ b → runWith⊥ resp⊥ (emb s) (k b))
+-    ≈⟨ >>=ᴹ-cong {μ = μ} {μ} {λ b → runWith⊥ resp⊥ (emb s) (k b)}
+-         {λ b → Dmap just (G b)} (λ P → refl)
++    ≈⟨ >>=ᴹ-congˡ μ (λ b → runWith⊥ resp⊥ (emb s) (k b)) (λ b → Dmap just (G b))
+          (λ b → runWith⊥-emb resp resp⊥ emb ker s (k b)) ⟩
+   (μ >>=ᴹ λ b → Dmap just (G b))
+     ≈˘⟨ >>=ᴹ-assoc μ G (return-ℚ ∘ just) ⟩
+diff --git a/src/CategoricalCrypto/Machine/Constraints.agda b/src/CategoricalCrypto/Machine/Constraints.agda
+index 1b065c74..fd0594fd 100644
+--- a/src/CategoricalCrypto/Machine/Constraints.agda
++++ b/src/CategoricalCrypto/Machine/Constraints.agda
+@@ -22,17 +22,17 @@ record IsConstrained
+   field
+     -- We can create an input message from a query
+     queryI : Query → machine-channel .inType
+-    
++
+     -- We can create an output message for all the possible types of the queries
+     -- responses
+     queryO : ∀ {query} → QueryReturnType query → machine-channel .outType
+-    
++
+     -- Correctness: For every received query of a given shape and wiring which
+     -- gets a response, the response is also properly shaped and wired.
+     correctness : ∀ {query s response' s'}
+       → s -⟦ queryI query / response' ⟧ᵐ⇀ s'
+       → ∃ λ response → response' ≡ just (queryO {query} response)
+-      
++
+     -- Completeness: queries of the right shape and wiring always get a response
+     completeness : ∀ {query s}
+       → ∃ λ response'
+@@ -45,7 +45,7 @@ record IsConstrained
+   ... | response' , s' , p with correctness p
+   ... | response , _ = response , s'
+ 
+--- Ensures that a certain constrained machine does not change it inner state
++-- Ensures that a certain constrained machine does not change its inner state
+ -- when receiving a specific constrained query
+ IsPureOn :
+   {A B             : Channel}
+@@ -64,7 +64,7 @@ IsPureOn {m = m} isConstrained query =
+ 
+ -- Ensures that a certain constrained machine does not change its inner state
+ -- when receiving any constrained query
+-IsPure : 
++IsPure :
+   {A B             : Channel}
+   {m               : Machine A B}
+   {Query           : Type}
+diff --git a/src/CategoricalCrypto/Machine/Core.agda b/src/CategoricalCrypto/Machine/Core.agda
+index 3ea933fb..9f083ec1 100644
+--- a/src/CategoricalCrypto/Machine/Core.agda
++++ b/src/CategoricalCrypto/Machine/Core.agda
+@@ -11,9 +11,6 @@ open import CategoricalCrypto.Channel.Selection
+ -- below resolves against (dropping it gives `InstanceNoCandidate`, no name).
+ open import Tactic.Defaults
+ 
+--- --------------------------------------------------------------------------------
+--- -- Machines, which form the morphisms
+-
+ machine-type : Type → Channel → Type₁
+ machine-type S A = let open Channel A in S → inType → Maybe outType → S → Type
+ 
+@@ -32,15 +29,13 @@ record Machine (A B : Channel) : Type₁ where
+     {State} : Type
+     stepRel : machine-type State machine-channel
+ 
+--- This module exposes various ways of building machines
+--- TODO: all of these are functors from the appropriate categories
+ module _ {A B : Channel} (let open Channel (A ⊗ᵀ B)) where
+ 
+   StatelessMachine      : (inType → Maybe outType → Type)          → Machine A B
+   FunctionMachine       : (inType → Maybe outType)                 → Machine A B
+   TotalFunctionMachine  : A ⊗₀ B ᵀ [ In ]⇒[ Out ] A ⊗₀ B ᵀ          → Machine A B
+   TotalFunctionMachine' : A [ In ]⇒[ In ] B → B [ Out ]⇒[ Out ] A  → Machine A B
+-  
++
+   StatelessMachine      R   = MkMachine {State = ⊤} $ λ _ i o _ → R i o
+   FunctionMachine       f   = StatelessMachine      $ λ i → f i ≡_
+   TotalFunctionMachine  p   = FunctionMachine       $ just P.∘ app p
+@@ -53,7 +48,6 @@ module _ {A B : Channel} (let open Channel (A ⊗ᵀ B)) where
+ id : ∀ {A} → Machine A A
+ id = TotalFunctionMachine' ⇒-solver ⇒-solver
+ 
+--- given transformation on the channels, transform the machine
+ modifyStepRel : ∀ {A B C D} → (∀ {m} → C ⊗₀ D ᵀ [ m ]⇒[ m ] A ⊗₀ B ᵀ) → Machine A B → Machine C D
+ modifyStepRel p (MkMachine stepRel) = MkMachine $ \s m m' s' → stepRel s (app {mᵢ = In} p m) (app {mₒ = Out} p <$> m') s'
+ 
+@@ -74,7 +68,7 @@ module Tensor {A B C D} (M₁ : Machine A B) (M₂ : Machine C D) where
+     where
+       machine-inter : Machine (A ⊗₀ B ᵀ) ((C ⊗₀ D ᵀ) ᵀ)
+       machine-inter = MkMachine CompRel
+-   
++
+ open Tensor using (_⊗₁_) public
+ 
+ _⊗ˡ_ : ∀ {A B} (C : Channel) → Machine A B → Machine (C ⊗₀ A) (C ⊗₀ B)
+@@ -91,18 +85,13 @@ _∣ʳ = modifyStepRel ⇒-solver
+ 
+ _∣^ˡ : ∀ {A B C} → Machine A (B ⊗₀ C) → Machine A B
+ _∣^ˡ = modifyStepRel ⇒-solver
+-  
++
+ _∣^ʳ : ∀ {A B C} → Machine A (B ⊗₀ C) → Machine A C
+ _∣^ʳ = modifyStepRel ⇒-solver
+ 
+ liftᴷ : ∀ {A B E} → Machine A B → Machine A (B ⊗₀ E)
+ liftᴷ {E = E} M = (M ⊗ʳ E) ∣ˡ
+ 
+--- trace monoidal category?
+--- What happens when you compose with a trace ?
+--- Product of the traces ?
+--- The regular composition "eats" messages
+--- Trace: input-output behavior of the machines, list of messages
+ module _ {A B C} (M : Machine (A ⊗₀ C) (B ⊗₀ C)) (let open Machine M) where
+ 
+   data TraceRel : machine-type State ((A ⊗₀ C) ⊗ᵀ (B ⊗₀ C)) where
+@@ -112,7 +101,7 @@ module _ {A B C} (M : Machine (A ⊗₀ C) (B ⊗₀ C)) (let open Machine M) wh
+     _Trace∷ₒ_ : ∀ {s s' s'' inM outC outMₘ} → stepRel s inM (just ((L⊗ ϵ) ⊗R ↑ₒ outC)) s' →
+                                              TraceRel s' (L⊗ (L⊗ ϵ ᵗ¹) ᵗ¹ ↑ᵢ outC) outMₘ s'' →
+                                              TraceRel s inM outMₘ s''
+-                                        
++
+     _Trace∷ᵢ_ : ∀ {s s' s'' inM inC outMₘ} → stepRel s inM (just (L⊗ (L⊗ ϵ ᵗ¹) ᵗ¹ ↑ₒ inC)) s' →
+                                             TraceRel s' ((L⊗ ϵ) ⊗R ↑ᵢ inC) outMₘ s'' →
+                                             TraceRel s inM outMₘ s''
+@@ -127,7 +116,7 @@ _∘_ {B} M₁ M₂ = tr {C = B} $ modifyStepRel ⇒-solver (M₂ ⊗₁ M₁)
+ 
+ ⊗-assoc : ∀ {A B C} → Machine ((A ⊗₀ B) ⊗₀ C) (A ⊗₀ (B ⊗₀ C))
+ ⊗-assoc = TotalFunctionMachine' ⇒-solver ⇒-solver
+-  
++
+ ⊗-assoc⃖ : ∀ {A B C} → Machine (A ⊗₀ (B ⊗₀ C)) ((A ⊗₀ B) ⊗₀ C)
+ ⊗-assoc⃖ = TotalFunctionMachine' ⇒-solver ⇒-solver
+ 
+@@ -139,7 +128,7 @@ idᴷ = liftᴷ id
+ 
+ transpose : ∀ {A B} → Machine A B → Machine (B ᵀ) (A ᵀ)
+ transpose = modifyStepRel ⇒-solver
+- 
++
+ ⨂₁ : ∀ {n} → {A B : Fin n → Channel} → ((k : Fin n) → Machine (A k) (B k)) → Machine (⨂ A) (⨂ B)
+ ⨂₁ {zero} M = id
+ ⨂₁ {suc n} M = M fzero ⊗₁ ⨂₁ (M P.∘ fsuc)
+@@ -182,7 +171,7 @@ record _≡ᴹ_ {A B C D : Channel} (M₁ : Machine A B) (M₂ : Machine C D) :
+ module _
+   {A B : Channel}
+   (m   : Machine A B) where
+-  
++
+   open Machine m renaming (stepRel to _-⟦_/_⟧ᵐ⇀_)
+   open Channel (A ⊗₀ B ᵀ)
+ 
+diff --git a/src/CategoricalCrypto/Machines/Bundle.agda b/src/CategoricalCrypto/Machines/Bundle.agda
+index f1c883c7..c1e933e1 100644
+--- a/src/CategoricalCrypto/Machines/Bundle.agda
++++ b/src/CategoricalCrypto/Machines/Bundle.agda
+@@ -39,7 +39,6 @@ open Sim 𝒱 𝒫
+ open Structural 𝒱 dist 𝒫
+ open Tensor 𝒱 dist 𝒫
+ 
+--- A base map is a machine, functorially; so are its isomorphisms.
+ pureF : Functor (SymmetricMonoidalCategory.U 𝒱) Mealy-Category
+ pureF = record
+   { F₀ = λ A → A ; F₁ = pureᴹ ; identity = ≲⇒≈ᴹ pureᴹ-id
+diff --git a/src/CategoricalCrypto/Machines/Category.agda b/src/CategoricalCrypto/Machines/Category.agda
+index e8ba7916..79daab6c 100644
+--- a/src/CategoricalCrypto/Machines/Category.agda
++++ b/src/CategoricalCrypto/Machines/Category.agda
+@@ -47,12 +47,12 @@ private variable A B C D P Q R X Y : Obj
+ -- it was.  `onR-α` and `onLR-α` are decided by the monoidal solver: every
+ -- crossing occurs at the same arity on both sides, hence as an opaque box.
+ onR-α : (k : R ⊗₀ X ⇒ R ⊗₀ Y) → α⇒ {P} {Q} ⊗₁ id ∘ onR k ≈ onR (onR k) ∘ α⇒ ⊗₁ id
+-onR-α k = solve-mor 𝕄
++onR-α k = solve-mor monoidalCategory
+ 
+ onLR-α : (g : Q ⊗₀ X ⇒ Q ⊗₀ Y)
+        → α⇒ ⊗₁ id ∘ onL (onR g)
+        ≈ onR {P = P} (onL {Q = R} g) ∘ α⇒ ⊗₁ id
+-onLR-α g = solve-mor 𝕄
++onLR-α g = solve-mor monoidalCategory
+ 
+ -- Not decided by the solver: `onL {Q = Q ⊗₀ R}` crosses the block
+ -- `σ⇒ {Q ⊗₀ R} {X}` where the nested `onL (onL …)` crosses `σ⇒ {Q} {X}` and
+@@ -73,8 +73,8 @@ onL-α {P = P} {X = X} {Y = Y} {Q = Q} {R = R} h = solved ○ ⟺ (((refl⟩∘
+              ∘ α⇒ ⊗₁ id
+     solved =
+       let vs = P ∷ Q ∷ R ∷ X ∷ Y ∷ []
+-          open MorAtoms 𝕄 vs
+-          open MorSolve 𝕄 vs
++          open MorAtoms monoidalCategory vs
++          open MorSolve monoidalCategory vs
+                ( ((V (# 0) ⊗ᵒ V (# 3) , V (# 0) ⊗ᵒ V (# 4)) , h)
+                ∷ ((V (# 1) ⊗ᵒ V (# 3) , V (# 3) ⊗ᵒ V (# 1)) , σ⇒)
+                ∷ ((V (# 2) ⊗ᵒ V (# 3) , V (# 3) ⊗ᵒ V (# 2)) , σ⇒)
+diff --git a/src/CategoricalCrypto/Machines/Collapse.agda b/src/CategoricalCrypto/Machines/Collapse.agda
+index c753c739..4bf9a8d4 100644
+--- a/src/CategoricalCrypto/Machines/Collapse.agda
++++ b/src/CategoricalCrypto/Machines/Collapse.agda
+@@ -7,17 +7,12 @@
+ -- `Categories.GConstructionTrace`'s `α`/`γ` is an associator or a braiding — so
+ -- `pure-∘ˡ`/`pure-∘ʳ` fold them into the tensor's own step, and what survives is
+ -- `kᴳ`: a four-way dispatch sending each letter to the factor that owns it and
+--- routing that factor's emission out or around the loop.  Any consumer that has
+--- to read a `𝒢ₚ`-composite's step off starts here.
++-- routing that factor's emission out or around the loop.
+ --
+--- The point calculus the legs are read with is `Machines.Pointwise`.  Everything here stays inside `ℳₚ` and measures 16 s warm.
+ -- `collapseᵀ` is stated as a trace rather than as `𝒢ₚ`'s `_∘_` on purpose: a
+ -- consumer's goal names `_∘_` already, so leaving the projection out of the
+ -- G-construction record to the consumer costs ONE such projection, while a
+--- lemma stated with `_∘_` costs the consumer a second one — measured at 269 s
+--- against 704 s (`Protocol.Machine.Compose`) and 282 s against 507 s
+--- (`UC.Seam.Adequacy.Wiring`).  Opaque machine composition keeps that boundary
+--- nominal instead of eta-expanding both composite records.
++-- lemma stated with `_∘_` costs the consumer a second one.
+ 
+ open import Categories.Category
+ open import Categories.Category.Monoidal.Bundle
+diff --git a/src/CategoricalCrypto/Machines/Core.agda b/src/CategoricalCrypto/Machines/Core.agda
+index 3ea252e2..a3b2579a 100644
+--- a/src/CategoricalCrypto/Machines/Core.agda
++++ b/src/CategoricalCrypto/Machines/Core.agda
+@@ -22,8 +22,8 @@ private variable A B P Q R X Y : Obj
+ ------------------------------------------------------------------------
+ -- Machines
+ 
+--- `point` is the initial state, possibly effectful: in a Kleisli category
+--- `unit` is not initial.
++-- `point` is the initial state; over a Kleisli base it may be effectful (a
++-- distribution over states).
+ record State : Set (o ⊔ ℓ) where
+   field
+     obj   : Obj
+diff --git a/src/CategoricalCrypto/Machines/Frame.agda b/src/CategoricalCrypto/Machines/Frame.agda
+index 142ece96..24b5cec6 100644
+--- a/src/CategoricalCrypto/Machines/Frame.agda
++++ b/src/CategoricalCrypto/Machines/Frame.agda
+@@ -34,11 +34,6 @@ open MonoidalUtilities monoidal
+ 
+ private variable A B P Q R W W′ X Y Z : Obj
+ 
+--- The reflection frontend wants the `MonoidalCategory` bundle, which the
+--- symmetric one projects (`Categories.Category.Monoidal.Bundle`).
+-𝕄 : MonoidalCategory o ℓ e
+-𝕄 = monoidalCategory
+-
+ ------------------------------------------------------------------------
+ -- The two state actions: functoriality and congruence
+ 
+diff --git a/src/CategoricalCrypto/Machines/G.agda b/src/CategoricalCrypto/Machines/G.agda
+index 0bad5bdd..5a28b996 100644
+--- a/src/CategoricalCrypto/Machines/G.agda
++++ b/src/CategoricalCrypto/Machines/G.agda
+@@ -1,8 +1,7 @@
+ {-# OPTIONS --safe --without-K #-}
+ 
+ -- The machine layer as a traced symmetric monoidal category, and the
+--- G construction over it with its monoidal structure.  `Traced.Ext`'s `β`
+--- reduces to `Machines.Trace.Fubini.βᴹ`.
++-- G construction over it with its monoidal structure.
+ 
+ open import Categories.Category.Monoidal.Bundle
+ open import Categories.Category.Monoidal.Pure
+diff --git a/src/CategoricalCrypto/Machines/Pointwise.agda b/src/CategoricalCrypto/Machines/Pointwise.agda
+index bcdce2fb..19b79963 100644
+--- a/src/CategoricalCrypto/Machines/Pointwise.agda
++++ b/src/CategoricalCrypto/Machines/Pointwise.agda
+@@ -3,8 +3,6 @@
+ -- The `Kl(Dₚ)` point-level calculus machine steps are read with: simulations
+ -- along a function (`simFn`) and back (`fnStep`), and the paired point and the
+ -- state actions evaluated at a point.
+--- It has no `GConstruction` in its closure, so a consumer of this calculus alone
+--- does not pay for the trace.
+ 
+ open import Categories.Category.Monoidal.Bundle
+ import Categories.Category.Construction.Kleisli.Discrete as KD
+diff --git a/src/CategoricalCrypto/Machines/Pure.agda b/src/CategoricalCrypto/Machines/Pure.agda
+index a781fca4..f96c7665 100644
+--- a/src/CategoricalCrypto/Machines/Pure.agda
++++ b/src/CategoricalCrypto/Machines/Pure.agda
+@@ -1,15 +1,9 @@
+ {-# OPTIONS --safe --without-K --guardedness #-}
+ 
+ -- The base `𝒱ₚ` is a Kleisli category, so every structural map of the machine
+--- layer is a FUNCTION: `pureᵏ` of a relabelling.  This module is that reading —
+--- the base half (`pure-idᵏ`/`swapᵏ`/`assocˡᵏ`/`assocʳᵏ` and the two
+--- congruences), the junction calculus a pure factor spends
+--- (`pureᴵ`/`enter-pure`/`exit-pure`/`tstep-inj₁`/`tstep-inj₂`), and the machine
+--- half (`pureᴹ` congruences, the machines that are functions `pureᶠ` and
+--- their laws, the interchange `midᴹ`, and `⌜⌝-pureᴹ`).
+---
+--- `midᴹ` is kept nominal by `opaque`: its expansion is proved once, in
+--- `midᴹ-pure`, and consumers that need the composite say `unfolding midᴹ`.
++-- layer is a FUNCTION: `pureᵏ` of a relabelling.  This module is that reading
++-- for base maps (`…ᵏ`), the junctions a pure factor spends (`…ᴵ`), and
++-- machines (`pureᶠ`).
+ 
+ open import Categories.Category.Monoidal.Bundle
+ open import Categories.Monad.Discrete
+@@ -29,7 +23,6 @@ open import ProbabilisticLogic.Dp
+ 
+ open import CategoricalCrypto.Machines.Base
+ 
+-
+ import CategoricalCrypto.Machines.Category as MCat
+ import CategoricalCrypto.Machines.Core as Core
+ import CategoricalCrypto.Machines.Frame as Frame
+@@ -184,8 +177,6 @@ idᶠ _ = ≲⇒≈ᴹ˘ pureᴹ-id
+ σᶠ : (V W : 𝒱.Obj) → σᴹ {V} {W} ≈ᴹ pureᶠ Sum.swap
+ σᶠ _ _ = ≲⇒≈ᴹ (pureᴹ-cong swapᵏ)
+ 
+--- Every factor of `mid` is a structural machine, hence `pureᴹ`; what it
+--- collapses to is the interchange on sums.
+ opaque
+   unfolding midᴹ
+ 
+diff --git a/src/CategoricalCrypto/Machines/Sandwich.agda b/src/CategoricalCrypto/Machines/Sandwich.agda
+index 14cd8c73..3ffb20a8 100644
+--- a/src/CategoricalCrypto/Machines/Sandwich.agda
++++ b/src/CategoricalCrypto/Machines/Sandwich.agda
+@@ -36,20 +36,16 @@ open import Categories.Category.Monoidal.Reasoning 𝒱.monoidal
+ private
+   variable X Y X′ Y′ X″ Y″ : Set
+ 
+--- The machine `f` with its interface renamed: `i` on the way in, `o` on the
+--- way out, `f`'s own state kept.
+ sandwichᴹ : Machine X Y → (X′ → X) → (Y → Y′) → Machine X′ Y′
+ sandwichᴹ f i o = mk (state f)
+   λ p → mapₚ (λ q → proj₁ q , o (proj₂ q)) (step f (proj₁ p , i (proj₂ p)))
+ 
+--- Two renamings in a row are one.
+ sandwich-∘ : (f : Machine X Y) (i : X′ → X) (o : Y → Y′) (i′ : X″ → X′) (o′ : Y′ → Y″)
+            → sandwichᴹ (sandwichᴹ f i o) i′ o′
+              ≈ᴹ sandwichᴹ f (λ x → i (i′ x)) (λ y → o′ (o y))
+ sandwich-∘ f i o i′ o′ =
+   ≲⇒≈ᴹ (mk-cong λ p → map-map (step f (proj₁ p , i (i′ (proj₂ p)))) _ _)
+ 
+--- A renaming by identities is no renaming.
+ sandwich-id : (f : Machine X Y) (i : X → X) (o : Y → Y)
+             → ((z : X) → i z ≡ z) → ((w : Y) → o w ≡ w)
+             → sandwichᴹ f i o ≈ᴹ f
+@@ -61,7 +57,6 @@ sandwich-id f i o ei eo = ≲⇒≈ᴹ (mk-cong pt)
+                       (λ q → cong (proj₁ q ,_) (eo (proj₂ q)))
+            ⟨≈⟩ >>=ₚ-identityʳ (step f (s , z))
+ 
+--- The pointwise content of a wire's absorption.
+ squeeze : (f : Machine X Y) (h : X′ → X) (k : Y → Y′)
+           {H : 𝒱._⇒_ X′ X} {K : 𝒱._⇒_ Y Y′}
+         → 𝒱._≈_ H (pureᵏ h) → 𝒱._≈_ K (pureᵏ k)
+diff --git a/src/CategoricalCrypto/Machines/Sim.agda b/src/CategoricalCrypto/Machines/Sim.agda
+index b6442fb8..f0dead62 100644
+--- a/src/CategoricalCrypto/Machines/Sim.agda
++++ b/src/CategoricalCrypto/Machines/Sim.agda
+@@ -15,7 +15,6 @@ open import Categories.Category.Monoidal.Pure
+ import Categories.Category.Monoidal.Utilities as MonoidalUtilities
+ 
+ open import Level
+-open import Relation.Binary using (IsEquivalence)
+ import Relation.Binary.Construct.Closure.Equivalence as EqC
+ 
+ import CategoricalCrypto.Machines.Core as Core
+@@ -70,9 +69,6 @@ mk-cong eq = sim id pure-id identityˡ (elimˡ ⊗.identity ○ eq ○ ⟺ (elim
+             ○ (θ-step t ⟩∘⟨refl) ○ assoc ○ (refl⟩∘⟨ ⟺ split₁ˡ)
+   }
+ 
+-≈ᴹ-isEquivalence : IsEquivalence (_≈ᴹ_ {A} {B})
+-≈ᴹ-isEquivalence = EqC.isEquivalence _≲_
+-
+ ≲⇒≈ᴹ : {f g : Machine A B} → f ≲ g → f ≈ᴹ g
+ ≲⇒≈ᴹ = EqC.return
+ 
+@@ -82,13 +78,13 @@ mk-cong eq = sim id pure-id identityˡ (elimˡ ⊗.identity ○ eq ○ ⟺ (elim
+ infixr 9 _○ᴹ_
+ 
+ reflᴹ : {f : Machine A B} → f ≈ᴹ f
+-reflᴹ = IsEquivalence.refl ≈ᴹ-isEquivalence
++reflᴹ = EqC.reflexive _≲_
+ 
+ ⟺ᴹ : {f g : Machine A B} → f ≈ᴹ g → g ≈ᴹ f
+-⟺ᴹ = IsEquivalence.sym ≈ᴹ-isEquivalence
++⟺ᴹ = EqC.symmetric _≲_
+ 
+ _○ᴹ_ : {f g h : Machine A B} → f ≈ᴹ g → g ≈ᴹ h → f ≈ᴹ h
+-_○ᴹ_ = IsEquivalence.trans ≈ᴹ-isEquivalence
++_○ᴹ_ = EqC.transitive _≲_
+ 
+ ------------------------------------------------------------------------
+ -- Collapsing a trivial state factor
+diff --git a/src/CategoricalCrypto/Machines/Tensor/Assoc.agda b/src/CategoricalCrypto/Machines/Tensor/Assoc.agda
+index b0b35d00..ea708c8b 100644
+--- a/src/CategoricalCrypto/Machines/Tensor/Assoc.agda
++++ b/src/CategoricalCrypto/Machines/Tensor/Assoc.agda
+@@ -75,7 +75,7 @@ opaque
+   unfolding _∘ᴹ_
+ 
+   ⊗-split : (f : Machine A B) (g : Machine C D) → (f ⊗ᵉ g) ≈ᴹ ((f ⊗ᵉ idᴹ) ∘ᴹ (idᴹ ⊗ᵉ g))
+-  ⊗-split {A} {B} {C} {D} f g =
++  ⊗-split f g =
+     ≲⇒≈ᴹ˘ (sim (ρ⇒ ⊗₁ λ⇒) (pure-⊗₁ pure-ρ⇒ pure-λ⇒) pt-u step-u)
+     where
+       pt-u : (ρ⇒ ⊗₁ λ⇒) ∘ point ((state f ⊛ Iˢ) ⊛ (Iˢ ⊛ state g)) ≈ point (state f ⊛ state g)
+diff --git a/src/CategoricalCrypto/Machines/Tensor/Structural.agda b/src/CategoricalCrypto/Machines/Tensor/Structural.agda
+index 58bee619..f423b1a2 100644
+--- a/src/CategoricalCrypto/Machines/Tensor/Structural.agda
++++ b/src/CategoricalCrypto/Machines/Tensor/Structural.agda
+@@ -1,11 +1,11 @@
+ {-# OPTIONS --safe --without-K #-}
+ 
+--- The interface tensor's unit and braiding coherence.  Every law here is its
+--- `+`-monoidal instance conjugated by `pureᴹ`: the structural machines are pure
+--- and `pureᴹ` preserves `∘` and `⊗` (`pureᴹ-∘`, `⊗ᵉ-pureᴹ`), so
++-- The interface tensor's unit and braiding coherence.  The coherence laws are
++-- their `+`-monoidal instances conjugated by `pureᴹ`: the structural machines
++-- are pure and `pureᴹ` preserves `∘` and `⊗` (`pureᴹ-∘`, `⊗ᵉ-pureᴹ`), so
+ -- `triangleᴹ`/`pentagonᴹ`/`hexagonᴹ` are one `pureᴹ-cong` each.
+ --
+--- The two naturalities are not: they relate a structural machine to an
++-- The naturalities are not: they relate a structural machine to an
+ -- arbitrary one.  The unitors' hold because `X ⊗₀ ⊥` is initial (`⊥-unique`),
+ -- so the summand that would carry the other machine cannot fire; the
+ -- braiding's is the state braiding `σ⇒` exchanging the two state actions
+diff --git a/src/CategoricalCrypto/Machines/Trace.agda b/src/CategoricalCrypto/Machines/Trace.agda
+index c537a8ab..2eabfa20 100644
+--- a/src/CategoricalCrypto/Machines/Trace.agda
++++ b/src/CategoricalCrypto/Machines/Trace.agda
+@@ -12,7 +12,6 @@
+ 
+ open import Categories.Category.Monoidal.Bundle
+ open import Categories.Category.Monoidal.Pure
+-import Categories.Category.Monoidal.Braided.Properties as BraidedProps
+ import Categories.Category.Monoidal.Distributive as MD
+ import Categories.Category.Monoidal.Distributive.Properties as MDP
+ 
+@@ -28,15 +27,12 @@ module CategoricalCrypto.Machines.Trace
+   (E : Iteration.Elgot 𝒱 dist 𝒫) where
+ 
+ open SymmetricMonoidalCategory 𝒱
+-open BraidedProps.Shorthands braided
+ open Core 𝒱
+ open Equiv
+ open Frame 𝒱
+-open Iteration 𝒱 dist 𝒫
+ open Iteration.Elgot E
+ open MD.MonoidalDistributive dist
+ open MDP 𝒱 dist
+-open PureSub 𝒫
+ open Sim 𝒱 𝒫
+ open Tensor 𝒱 dist 𝒫
+ 
+@@ -50,11 +46,9 @@ private variable A B C P Q X : Obj
+ 
+ module _ (S : State) (A B X : Obj) (k : obj S ⊗₀ (A + X) ⇒ obj S ⊗₀ (B + X)) where
+ 
+-  -- One pass of the loop: re-enter the body on the `X` summand.
+   loopBody : obj S ⊗₀ X ⇒ obj S ⊗₀ (B + X)
+   loopBody = k ∘ id ⊗₁ i₂
+ 
+-  -- Exit on `B`, iterate on `X`.
+   solve : obj S ⊗₀ (B + X) ⇒ obj S ⊗₀ B
+   solve = [ id , iter loopBody ] ∘ δ⇐
+ 
+@@ -67,7 +61,6 @@ module _ (S : State) (A B X : Obj) (k : obj S ⊗₀ (A + X) ⇒ obj S ⊗₀ (B
+   solve-i₂ : solve ∘ id ⊗₁ i₂ ≈ iter loopBody
+   solve-i₂ = pullʳ δ⇐-i₂ ○ inject₂
+ 
+-  -- The fixpoint law, in the form the trace laws consume it.
+   solve-loop : iter loopBody ≈ solve ∘ loopBody
+   solve-loop = iter-fix ○ sym-assoc
+ 
+@@ -80,11 +73,6 @@ traceStep-cong : (S : State) (A B X : Obj)
+ traceStep-cong S A B X e =
+   ([]-cong₂ refl (iter-cong (e ⟩∘⟨refl)) ⟩∘⟨refl) ⟩∘⟨ (e ⟩∘⟨refl)
+ 
+-traceᴹ-cong : (S : State) (A B X : Obj)
+-              {k k′ : obj S ⊗₀ (A + X) ⇒ obj S ⊗₀ (B + X)}
+-            → k ≈ k′ → traceᴹ A B X (mk S k) ≲ traceᴹ A B X (mk S k′)
+-traceᴹ-cong S A B X e = mk-cong (traceStep-cong S A B X e)
+-
+ ------------------------------------------------------------------------
+ -- Yanking
+ 
+diff --git a/src/CategoricalCrypto/Machines/Trace/Fubini.agda b/src/CategoricalCrypto/Machines/Trace/Fubini.agda
+index 1b105d04..08be0cca 100644
+--- a/src/CategoricalCrypto/Machines/Trace/Fubini.agda
++++ b/src/CategoricalCrypto/Machines/Trace/Fubini.agda
+@@ -6,10 +6,6 @@
+ -- over `P + X` on the right — and what is left is that the trace does not see a
+ -- pure reindexing of its loop variable (`relabel-step`, one `iter-transfer` at
+ -- `id ⊗₁ s`).
+---
+--- `βᴹ` is first recognized as the pure machine of `β+`; the two associators of
+--- the fusion then cancel against `β+`'s own (`α+⇒-β+`, `β+-α+⇐`), which is why
+--- the swap that survives is `+-swap` alone.
+ 
+ open import Categories.Category.Monoidal.Bundle
+ open import Categories.Category.Monoidal.Pure
+@@ -19,7 +15,6 @@ import Categories.Category.Monoidal.Distributive as MD
+ 
+ import CategoricalCrypto.Machines.Category as MCat
+ import CategoricalCrypto.Machines.Core as Core
+-import CategoricalCrypto.Machines.Frame as Frame
+ import CategoricalCrypto.Machines.Iteration as Iteration
+ import CategoricalCrypto.Machines.Sim as Sim
+ import CategoricalCrypto.Machines.Tensor as Tensor
+@@ -36,7 +31,6 @@ open SymmetricMonoidalCategory 𝒱
+ open Congruence 𝒱 dist 𝒫 E
+ open Core 𝒱
+ open Equiv
+-open Frame 𝒱
+ open Iteration.Elgot E
+ open MCat 𝒱 𝒫
+ open MD.MonoidalDistributive dist
+@@ -62,9 +56,6 @@ private variable A B P X : Obj
+ βᴹ : Machine ((A + B) + P) ((A + P) + B)
+ βᴹ = α⇐ᴹ ∘ᴹ (idᴹ ⊗ᵉ σᴹ) ∘ᴹ α⇒ᴹ
+ 
+-pure-swap : Pure (+-swap {A} {B})
+-pure-swap = pure-[] pure-i₂ pure-i₁
+-
+ α+⇒-β+ : α+⇒ {A} {P} {X} ∘ β+ {A} {X} {P} ≈ (id +₁ +-swap) ∘ α+⇒
+ α+⇒-β+ = cancelˡ ⊕.associator.isoʳ
+ 
+@@ -81,7 +72,7 @@ pure-swap = pure-[] pure-i₂ pure-i₁
+     inner = ∘ᴹ-resp-≈ᴹ tensor reflᴹ ○ᴹ ≲⇒≈ᴹ (pureᴹ-∘ (id +₁ +-swap) α+⇒)
+ 
+ ------------------------------------------------------------------------
+--- The trace does not see a pure iso of its loop variable
++-- The trace does not see a pure, left-invertible reindexing of its loop variable
+ 
+ module _ (V : State) (A B X X′ : Obj) (s : X ⇒ X′) (s⁻ : X′ ⇒ X)
+   (sᵖ : Pure s) (s-inv : s⁻ ∘ s ≈ id)
+@@ -127,8 +118,6 @@ module _ (V : State) (A B X X′ : Obj) (s : X ⇒ X′) (s⁻ : X′ ⇒ X)
+ ------------------------------------------------------------------------
+ -- Exchanging the two loops
+ 
+--- Both fusions and both `β+`s are two-sided interface relabellings, so each
+--- side normalizes to the same shape before the ⊕-identities are applied.
+ norm : {S A₁ A₂ A₃ B₁ B₂ B₃ : Obj} (r₁ : A₁ ⇒ A₂) (r₂ : A₂ ⇒ A₃)
+        (l₁ : B₁ ⇒ B₂) (l₂ : B₂ ⇒ B₃) (n : S ⊗₀ A₃ ⇒ S ⊗₀ B₁)
+      → id ⊗₁ l₂ ∘ ((id ⊗₁ l₁ ∘ (n ∘ id ⊗₁ r₂)) ∘ id ⊗₁ r₁)
+@@ -173,7 +162,7 @@ module _ (V : State) (A B X P : Obj)
+                ○ ⟺ (norm (id +₁ +-swap) α+⇐ α+⇒ (id +₁ +-swap) m)
+ 
+     swap : traceStep V A B (X + P) k₁ ≈ traceStep V A B (P + X) k₂
+-    swap = ⟺ (relabel-step V A B (X + P) (P + X) +-swap +-swap pure-swap
++    swap = ⟺ (relabel-step V A B (X + P) (P + X) +-swap +-swap (pure-[] pure-i₂ pure-i₁)
+                            +-swap∘swap k₁)
+          ○ ⟺ (traceStep-cong V A B (P + X) k₂-relabel)
+ 
+diff --git a/src/CategoricalCrypto/Machines/Trace/Vanishing.agda b/src/CategoricalCrypto/Machines/Trace/Vanishing.agda
+index 7dfc5523..b6e49abc 100644
+--- a/src/CategoricalCrypto/Machines/Trace/Vanishing.agda
++++ b/src/CategoricalCrypto/Machines/Trace/Vanishing.agda
+@@ -15,7 +15,6 @@ import Categories.Category.Monoidal.Distributive.Properties as MDP
+ 
+ import CategoricalCrypto.Machines.Category as MCat
+ import CategoricalCrypto.Machines.Core as Core
+-import CategoricalCrypto.Machines.Frame as Frame
+ import CategoricalCrypto.Machines.Iteration as Iteration
+ import CategoricalCrypto.Machines.Sim as Sim
+ import CategoricalCrypto.Machines.Tensor as Tensor
+@@ -31,7 +30,6 @@ open SymmetricMonoidalCategory 𝒱
+ open Congruence 𝒱 dist 𝒫 E
+ open Core 𝒱
+ open Equiv
+-open Frame 𝒱
+ open Iteration.Elgot E
+ open MCat 𝒱 𝒫
+ open MD.MonoidalDistributive dist
+diff --git a/src/CategoricalCrypto/OracleCall.agda b/src/CategoricalCrypto/OracleCall.agda
+index 5a470771..d5a1210c 100644
+--- a/src/CategoricalCrypto/OracleCall.agda
++++ b/src/CategoricalCrypto/OracleCall.agda
+@@ -28,8 +28,8 @@ mapCall : (A → B) → Call Q R A → Call Q R B
+ mapCall f (inj₁ a)       = inj₁ (f a)
+ mapCall f (inj₂ (q , k)) = inj₂ (q , λ r → f (k r))
+ 
+--- Re-index the oracle's channel: tag the query, untag the reply.  This is what
+--- puts a bitstring-keyed call onto a party-indexed random-oracle interface.
++-- Re-index the oracle's channel, e.g. a bitstring-keyed call onto a
++-- party-indexed random-oracle interface.
+ reCall : (Q → Q′) → (R′ → R) → Call Q R A → Call Q′ R′ A
+ reCall _ _ (inj₁ a)       = inj₁ a
+ reCall f g (inj₂ (q , k)) = inj₂ (f q , λ r → k (g r))
+diff --git a/src/CategoricalCrypto/Protocol.agda b/src/CategoricalCrypto/Protocol.agda
+index dc865c5c..af3cd3e8 100644
+--- a/src/CategoricalCrypto/Protocol.agda
++++ b/src/CategoricalCrypto/Protocol.agda
+@@ -6,8 +6,8 @@
+ -- making finitely many calls on the left interface and flipping rational
+ -- coins; `dead` is divergence (mass on ⊥ under observation).  Everything is an
+ -- inductive syntax tree, so composition `_∘ᵖ_` — plug a protocol onto the one
+--- below it and hide the shared interface — is structural recursion: no fuel,
+--- no clocks, no partiality.
++-- below it and hide the shared interface — is structural recursion: no fuel
++-- and no clocks.
+ 
+ open import Data.Bool.Base
+ open import Data.Nat.Base
+diff --git a/src/CategoricalCrypto/Protocol/Machine/Agree.agda b/src/CategoricalCrypto/Protocol/Machine/Agree.agda
+index 1055777c..b3698e5f 100644
+--- a/src/CategoricalCrypto/Protocol/Machine/Agree.agda
++++ b/src/CategoricalCrypto/Protocol/Machine/Agree.agda
+@@ -93,11 +93,9 @@ module _ {B : Iface} (P : Protocol unitᴵ B) where
+                    (sym (trans (E⊥-map ansᴹ (return-ℚ nothing) G) (nothing₀ (λ p → G (ansᴹ p))))))
+           Settles-bot
+ 
+--- The interaction is finite — the strategy tree bounds it and every call tree
+--- is inductive — so past some depth the cumulative mass is *exactly* layer 1's
+--- verdict probability.  It is asked at EITHER verdict, since that is what the
+--- observation relation compares (`Dp.Advantage`'s header); `indᵇ b` is never
+--- inspected, so both are one induction.
++-- The strategy tree and every call tree are finite, so past some depth the
++-- cumulative mass is *exactly* layer 1's verdict probability — at EITHER
++-- verdict, which is what the observation compares (`Dp.Advantage`'s header).
+ prAgree : {B : Iface} (b : Bool) (P : Protocol unitᴵ B) (d : Strat (Neg B) (Pos B))
+         → Σ[ n ∈ ℕ ] ((m : ℕ) → cum (n ℕ.+ m) (runᴹ (morphism P) d) (indᵇ b) ≡ Prᵇ P b d)
+ prAgree b P d =
+diff --git a/src/CategoricalCrypto/Protocol/Machine/Compose.agda b/src/CategoricalCrypto/Protocol/Machine/Compose.agda
+index 74a88aa7..1ddaf9da 100644
+--- a/src/CategoricalCrypto/Protocol/Machine/Compose.agda
++++ b/src/CategoricalCrypto/Protocol/Machine/Compose.agda
+@@ -18,9 +18,8 @@
+ -- an `EqClosure` needs (`(wait , idle)` never surfaces: `traceᴹ` solves the
+ -- loop inside one step).
+ --
+--- The theorem names the G-composition before it is packed into `𝒢ₚ`'s Category
+--- record.  This is definitionally the same operation but avoids projecting
+--- `_∘_` through the assembled G-construction.  Measured warm cost: 11 s.
++-- `morphism-∘` is stated at the trace, before `𝒢ₚ`'s `_∘_`, for the reason in
++-- `Machines.Collapse`'s header.  Measured warm cost: 11 s.
+ 
+ open import Categories.Category
+ 
+diff --git a/src/CategoricalCrypto/Protocol/Machine/Pin.agda b/src/CategoricalCrypto/Protocol/Machine/Pin.agda
+index f6dae928..6e54c8de 100644
+--- a/src/CategoricalCrypto/Protocol/Machine/Pin.agda
++++ b/src/CategoricalCrypto/Protocol/Machine/Pin.agda
+@@ -73,8 +73,7 @@ agree-false : cum 6 (runᴹ (morphism flip) echo) (indᵇ false) ≡ Prᵇ flip
+ agree-false = refl
+ 
+ -- Divergence: `drive dead` is `botₚ`, whose mass `cum` never counts, and layer
+--- 1's `evalC dead` parks the same mass on `nothing`.  Both branches of the
+--- header's claim about `dead`, at one instance.
++-- 1's `evalC dead` parks the same mass on `nothing`.
+ stuck : Protocol unitᴵ Coin
+ stuck = record { St = ⊤ ; init = tt ; step = λ _ _ → dead }
+ 
+@@ -86,8 +85,8 @@ machine-dead = refl
+ 
+ -- …and what observing the SECOND verdict buys, at that instance: `nay` answers
+ -- `false` where `stuck` diverges, so the two agree on the `true`-mass and are a
+--- whole unit apart on the `false`-mass.  A one-sided observation identified
+--- them (proposal §1, `docs/kb/frontier/15-probabilistic-uc-model.typ`).
++-- whole unit apart on the `false`-mass.  A one-sided observation identifies
++-- them (`Dp.Advantage`'s header).
+ nay : Protocol unitᴵ Coin
+ nay = record { St = ⊤ ; init = tt ; step = λ _ _ → ret (tt , false) }
+ 
+diff --git a/src/CategoricalCrypto/Protocol/Machine/Raw.agda b/src/CategoricalCrypto/Protocol/Machine/Raw.agda
+index f0f9ae7f..b4fce969 100644
+--- a/src/CategoricalCrypto/Protocol/Machine/Raw.agda
++++ b/src/CategoricalCrypto/Protocol/Machine/Raw.agda
+@@ -8,9 +8,8 @@
+ -- `Calls` (`Protocol.Machine.Agree`) is here a HYPOTHESIS, `StepSettles`: each
+ -- activation settles, at its own fuel, on a `Dist⊥` answer.
+ --
+--- The fuel is per activation and never global: `Dp.Settle.Settles-bind⋆` maxes
+--- the continuations' fuels over the finitely many values one junction reaches,
+--- so a run of `d` asks and a run of `d` answers at whatever depth each needs.
++-- The fuel is per activation, never global: `Dp.Settle.Settles-bind⋆` takes the
++-- maximum over the finitely many values one junction reaches.
+ 
+ open import Data.Bool.Base
+ open import Data.Empty
+@@ -95,8 +94,7 @@ module _ {B : Iface} (M : Closed B)
+         n , Settles-resp (Dmap⊥ ansᴹ (K m q) >>=⊥ κ) (K m q >>=⊥ λ sr → κ (ansᴹ sr))
+                          (E⊥-map-bind ansᴹ (K m q) κ) s
+ 
+-    -- The initial state is itself effectful at a Kleisli base, so it settles
+-    -- like any other step and the closed run is one more junction.
++    -- The initial state settles like any other step.
+     module _ (σ₀ : Dist⊥ (MC.St M)) (n₀ : ℕ)
+              (pt : Settles n₀ (MC.point (MC.state M) tt) σ₀) where
+ 
+diff --git a/src/CategoricalCrypto/Protocol/Machine/Trace/Compose.agda b/src/CategoricalCrypto/Protocol/Machine/Trace/Compose.agda
+index 461d115d..0f2ba7d0 100644
+--- a/src/CategoricalCrypto/Protocol/Machine/Trace/Compose.agda
++++ b/src/CategoricalCrypto/Protocol/Machine/Trace/Compose.agda
+@@ -92,7 +92,7 @@ module _ (S : MC.State) (A B X : Set)
+   -- The round-trip bound: a rank that drops on every pass, strictly below `f`
+   -- on the whole state space.  At a G-composite it counts the messages the upper
+   -- factor has still to bounce off the lower one.
+-  module _ (rank : MC.obj S × X → ℕ) (rk : I.Ranked rank)
++  module _ (rank : MC.obj S × X → ℕ) (rk : Ranked rank)
+            (f : ℕ) (rb : (w : MC.obj S × X) → rank w < f) where
+ 
+     private
+@@ -102,7 +102,7 @@ module _ (S : MC.State) (A B X : Set)
+         Settles-ret⋆ (inj₁ (m , b)) _ (return⊥ (m , b)) (1 , Settles-return (m , b))
+       solveS (m , inj₂ x) =
+         Settles-ret⋆ (inj₂ (m , x)) _ (loopK f (m , x))
+-                     (I.Settles-iter rank rk f (m , x) (rb (m , x)))
++                     (Settles-iter rank rk f (m , x) (rb (m , x)))
+ 
+     Ktrace : MC.obj S × A → Dist⊥ (MC.obj S × B)
+     Ktrace z = Kk (proj₁ z , inj₁ (proj₂ z)) >>=⊥ exitK f
+@@ -169,25 +169,12 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
+                ≡ E⊥ (Kg sg y) (λ r → Q ((proj₁ r , sf) , outG (proj₂ r)))
+   dispatch-g sg sf y Q = E⊥-map (λ r → (proj₁ r , sf) , outG (proj₂ r)) (Kg sg y) Q
+ 
+-  private
+-    dispF : (sg : MC.St g) (sf : MC.St f) (z : A⁺ ⊎ B⁻)
+-          → Σ[ i ∈ ℕ ] Settles i
+-              (MC.step f (sf , z) >>=ₚ λ r → returnₚ ((sg , proj₁ r) , outF (proj₂ r)))
+-              (Kf sf z >>=⊥ λ r → return⊥ ((sg , proj₁ r) , outF (proj₂ r)))
+-    dispF sg sf z = Settles-map⋆ (λ r → (sg , proj₁ r) , outF (proj₂ r)) (fS sf z)
+-
+-    dispG : (sg : MC.St g) (sf : MC.St f) (y : B⁺ ⊎ C⁻)
+-          → Σ[ i ∈ ℕ ] Settles i
+-              (MC.step g (sg , y) >>=ₚ λ r → returnₚ ((proj₁ r , sf) , outG (proj₂ r)))
+-              (Kg sg y >>=⊥ λ r → return⊥ ((proj₁ r , sf) , outG (proj₂ r)))
+-    dispG sg sf y = Settles-map⋆ (λ r → (proj₁ r , sf) , outG (proj₂ r)) (gS sg y)
+-
+   kᴳ-settles : (z : (MC.St g × MC.St f) × ((A⁺ ⊎ C⁻) ⊎ (B⁻ ⊎ B⁺)))
+              → Σ[ i ∈ ℕ ] Settles i (Col.kᴳ g f z) (Kᴳ z)
+-  kᴳ-settles ((sg , sf) , inj₁ (inj₁ a)) = dispF sg sf (inj₁ a)
+-  kᴳ-settles ((sg , sf) , inj₁ (inj₂ c)) = dispG sg sf (inj₂ c)
+-  kᴳ-settles ((sg , sf) , inj₂ (inj₁ b)) = dispF sg sf (inj₂ b)
+-  kᴳ-settles ((sg , sf) , inj₂ (inj₂ b)) = dispG sg sf (inj₁ b)
++  kᴳ-settles ((sg , sf) , inj₁ (inj₁ a)) = Settles-map⋆ (λ r → (sg , proj₁ r) , outF (proj₂ r)) (fS sf (inj₁ a))
++  kᴳ-settles ((sg , sf) , inj₁ (inj₂ c)) = Settles-map⋆ (λ r → (proj₁ r , sf) , outG (proj₂ r)) (gS sg (inj₂ c))
++  kᴳ-settles ((sg , sf) , inj₂ (inj₁ b)) = Settles-map⋆ (λ r → (sg , proj₁ r) , outF (proj₂ r)) (fS sf (inj₂ b))
++  kᴳ-settles ((sg , sf) , inj₂ (inj₂ b)) = Settles-map⋆ (λ r → (proj₁ r , sf) , outG (proj₂ r)) (gS sg (inj₁ b))
+ 
+   module Lp = I (Col.Sᴳ g f) (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺) (Col.kᴳ g f) Kᴳ kᴳ-settles
+ 
+@@ -292,12 +279,7 @@ module _ {B⁺ B⁻ : Set} {C : Iface}
+ 
+     value : (Q : Stᴳ × (⊥ ⊎ Pos C) → ℚ)
+           → E⊥ (trᴳ (m , inj₂ q)) Q ≡ E⊥ (Dmap⊥ ansᴹ (Kᶜˡ m q)) Q
+-    value Q = sym (trans (E⊥-map ansᴹ (Kᶜˡ m q) Q)
+-                         (trans (E⊥-map shed (trᴳ (m , inj₂ q)) (λ p → Q (ansᴹ p)))
+-                                (E⊥-cong-P (trᴳ (m , inj₂ q)) _ Q point)))
+-      where
+-      point : (w : Stᴳ × (⊥ ⊎ Pos C)) → Q (ansᴹ (shed w)) ≡ Q w
+-      point (s , inj₂ p) = refl
++    value Q = sym (trans (E⊥-map ansᴹ (Kᶜˡ m q) Q) (Kᶜˡ-read m q _ Q λ _ _ → refl))
+ 
+   compose-pr : (σ₀ : Dist⊥ Stᴳ) (n₀ : ℕ)
+                (pt : Settles n₀ (MC.point (Col.Sᴳ g f) tt) σ₀)
+diff --git a/src/CategoricalCrypto/Protocol/Safety.agda b/src/CategoricalCrypto/Protocol/Safety.agda
+index aa43984b..106ab540 100644
+--- a/src/CategoricalCrypto/Protocol/Safety.agda
++++ b/src/CategoricalCrypto/Protocol/Safety.agda
+@@ -1,19 +1,9 @@
+ {-# OPTIONS --safe --without-K #-}
+ 
+--- The supermartingale bound for `BoundedHit`: what a concrete protocol owes a
+--- safety bound, once the adaptivity is taken care of generically.
+---
+--- A potential `φ`, indexed by the REMAINING query budget, with a
+--- support-preserved invariant `Inv`, at least 1 on bad states and
+--- non-increasing in expectation per query, bounds the probability that ANY
+--- adaptive strategy of that budget reaches a bad state.  So a concrete system
+--- owes only a NON-adaptive per-step certificate (`HitCert`).
+---
+--- This is `GamePlaying.Partial.badProb⊥-super` at `kernel P`, read through
+--- `hit≤badProb⊥`: the protocol layer's own observable, the trajectory reading
+--- `hitRun`, is dominated by the reactive model's bad-event probability.
+--- Divergence is not a violation: the `nothing` sink is vacuously
+--- invariant-preserving and scores 0 in `E⊥`.
++-- The supermartingale bound for `BoundedHit`: a non-adaptive per-step
++-- certificate (`HitCert`, `GamePlaying.Partial.SuperCert⊥` at `kernel P`)
++-- bounds every adaptive strategy of the budget, through `hit≤badProb⊥`.
++-- Divergence is not a violation: the `nothing` sink scores 0 in `E⊥`.
+ --
+ -- `PrHit` is the COMPLETED-RUN event, `badProb⊥` the PREFIX-REACHABILITY one
+ -- (it stops at the first bad state); they differ only on runs that hit and
+@@ -42,9 +32,6 @@ module CategoricalCrypto.Protocol.Safety where
+ 
+ module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
+ 
+-  -- What a concrete system owes: a non-adaptive per-step certificate, with the
+-  -- initial potential dominated by the claimed bound — `GamePlaying.Partial`'s
+-  -- at `kernel P`.
+   HitCert : (ℕ → ℚ) → Set₁
+   HitCert = SuperCert⊥ (kernel P) Bad (init P)
+ 
+@@ -67,15 +54,5 @@ module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
+         subst (λ z → Pr₁⊥ (hitFrom P Bad z s (k b)) ≤ℚ badProb⊥ (kernel P) Bad s (k b)) eqb
+               (hit≤badProb⊥ (k b) s))
+ 
+-  module _ {ε : ℕ → ℚ} (cert : HitCert ε) where
+-
+-    open SuperCert⊥ cert
+-
+-    -- The accumulator is exactly `Bad` at the state the run is at, which is
+-    -- what `hitRun` starts from, so no separate initialization step is owed.
+-    super : ∀ m d s → asks≤ m d → Inv s → Pr₁⊥ (hitFrom P Bad (Bad s) s d) ≤ℚ φ m s
+-    super m d s le inv = ≤-trans (hit≤badProb⊥ d s)
+-      (badProb⊥-super (kernel P) Bad Inv φ pres φ-nn φ-bad φ-step m d s le inv)
+-
+-    hit-bounded : BoundedHit P Bad ε
+-    hit-bounded m d le = ≤-trans (super m d (init P) le inv₀) (φ-init m)
++  hit-bounded : {ε : ℕ → ℚ} → HitCert ε → BoundedHit P Bad ε
++  hit-bounded cert m d le = ≤-trans (hit≤badProb⊥ d (init P)) (badProb⊥-bounded cert m d le)
+diff --git a/src/CategoricalCrypto/Strategy.agda b/src/CategoricalCrypto/Strategy.agda
+index 38ba8540..3a362102 100644
+--- a/src/CategoricalCrypto/Strategy.agda
++++ b/src/CategoricalCrypto/Strategy.agda
+@@ -2,9 +2,8 @@
+ 
+ -- Adaptive query strategies (distinguishers): decision trees over a query
+ -- interface, with a rational coin so randomized environments are first-class:
+--- a deterministic strategy class is provably too weak for reflecting
+--- environments (a fair coin choosing between two queries beats any single
+--- deterministic tree).
++-- against a reflecting environment a coin choosing between two queries can beat
++-- every deterministic tree.
+ --
+ -- `asks≤ n` bounds the ask-depth of every branch; coins are free.
+ 
+@@ -38,7 +37,7 @@ asks≤-mono (s≤s le)   (ask _ k)  h = λ r → asks≤-mono le (k r) (h r)
+ asks≤-mono le         (coin _ k) h = λ b → asks≤-mono le (k b) (h b)
+ 
+ -- The same strategy read over another alphabet: asks relabelled forwards,
+--- answers backwards.  One ask stays one ask, so no budget moves.
++-- answers backwards.
+ mapStrat : (Q → Q′) → (R′ → R) → Strat Q R → Strat Q′ R′
+ mapStrat u v (out b)    = out b
+ mapStrat u v (ask q k)  = ask (u q) λ r → mapStrat u v (k (v r))
+@@ -57,7 +56,6 @@ watchFrom report acc (out _)    = out acc
+ watchFrom report acc (ask q k)  = ask q λ r → watchFrom report (acc ∨ report q r) (k r)
+ watchFrom report acc (coin μ k) = coin μ λ b → watchFrom report acc (k b)
+ 
+--- A watch buys no queries: it plays inside the allowance it is handed.
+ asks≤-watch : (report : Q → R → Bool) {n : ℕ} (acc : Bool) (d : Strat Q R)
+             → asks≤ n d → asks≤ n (watchFrom report acc d)
+ asks≤-watch report acc (out b) _ = tt
