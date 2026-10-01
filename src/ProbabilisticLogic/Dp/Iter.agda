@@ -168,8 +168,7 @@ module _ {S A B : Set ℓ} (u u′ : Body S A B) (h : ∀ sa → u sa ≼ₚ u�
     Φ r i = Tᵗ u P n r ℚ.≤ Tᵗ u′ P i r
 
     up : ∀ r {i i′} → i ≤ℕ i′ → Φ r i → Φ r i′
-    up (s , inj₁ b) le q = q
-    up (s , inj₂ p) le q = ≤-trans q (cum-mono le (iterₚ u′ (s , p)) P nn)
+    up r le q = ≤-trans q (Tᵗ-mono u′ P nn le r)
 
     wit : ∀ r → Σ[ i ∈ ℕ ] Φ r i
     wit (s , inj₁ b) = 0 , ≤-refl

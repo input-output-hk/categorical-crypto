@@ -41,8 +41,7 @@ module _ {S A B S′ A′ B′ : Set ℓ}
       Φ r i = Tᵗ u (λ sb → P (m sb)) n r ℚ.≤ Tᵗ u′ P i (φ k m r)
 
       up : ∀ r {i i′} → i ≤ℕ i′ → Φ r i → Φ r i′
-      up (s , inj₁ b) le q = q
-      up (s , inj₂ p) le q = ≤-trans q (cum-mono le (iterₚ u′ (k (s , p))) P nn)
+      up r le q = ≤-trans q (Tᵗ-mono u′ P nn le (φ k m r))
 
       wit : ∀ r → Σ[ i ∈ ℕ ] Φ r i
       wit (s , inj₁ b) = 0 , ≤-refl
@@ -74,9 +73,7 @@ module _ {S A B S′ A′ B′ : Set ℓ}
       Ψ r i = Tᵗ u′ P n (φ k m r) ℚ.≤ Tᵗ u (λ sb → P (m sb)) i r
 
       up : ∀ r {i i′} → i ≤ℕ i′ → Ψ r i → Ψ r i′
-      up (s , inj₁ b) le q = q
-      up (s , inj₂ p) le q =
-        ≤-trans q (cum-mono le (iterₚ u (s , p)) (λ sb → P (m sb)) nnm)
+      up r le q = ≤-trans q (Tᵗ-mono u (λ sb → P (m sb)) nnm le r)
 
       wit : ∀ r → Σ[ i ∈ ℕ ] Ψ r i
       wit (s , inj₁ b) = 0 , ≤-refl
