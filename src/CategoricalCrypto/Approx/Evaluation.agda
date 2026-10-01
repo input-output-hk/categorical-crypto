@@ -4,7 +4,7 @@
 --
 -- `eval₀` lands in an APPROXIMATE space and observes the ambient hom equality
 -- EXACTLY — that is what `zeroSetoid` says, and what makes precomposition
--- nonexpansive downstream (`UC.Quantitative.Observed`).  Forgetting the error
+-- nonexpansive downstream.  Forgetting the error
 -- leaves the reading itself untouched and only coarsens its equality, which is
 -- what `qualBy` takes: any equivalence that zero error already implies.
 -- `qual` is the exact one and `qual₊` closeness at every positive error of a
