@@ -45,7 +45,7 @@ module RO
   Bo = Jre ⊗₀ GenIf
 
   -- ── The RO/MD interface, hypothesised at its MerkleDamgard.agda types ───────
-  --   E Dgr asks≤ runWith badProb Pr₁ adv
+  --   E Strat asks≤ runWith badProb Pr₁ adv
   --   Preserved badProb-super SuperCert badProb-bounded
   --   Coupling{fR,fI,realK,idealK,FLGP}  _≈ℰ[_]_  bound
   record ROData : Set (suc ℓr ⊔ ℓq ⊔ o ⊔ ℓ ⊔ cs ⊔ ℓs) where
