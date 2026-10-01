@@ -35,15 +35,18 @@ after**, all 16 the words "postulate-free" in inherited comments).
 
 ## 1. The placement, and the interface algebra
 
-`UC.Asymptotic.Compose.UC-composeᵉ` (`UC/Asymptotic/Compose.agda:221`) reads
+`UC-composeᵉ` (`UC/Quantitative/Family.agda`'s `Compose`, at the seal through
+`UC/Model/Family/Contextual.agda`) reads
 
 ```text
-  (sf : Certified Y X) (εf) → NegligibleBound εf → f ≈ctx[ εf ] subᶠ sf g
-→ (t : Certified Q P) (εu) → NegligibleBound εu → u ≈ctx[ εu ] subᶠ t v
-→ (cf) → Poly cf → QB (cf n) (f n)
-→ (cv) → Poly cv → QB (cv n) (v n)
+  (sf : Certified Y X) (εf) → NegligibleBound εf → f ≤UC[ sf , εf ] g
+→ (t : Certified Q P) (εu) → NegligibleBound εu → u ≤UC[ t , εu ] v
+→ (rf : ℕ → ℕ⁺) → Poly⁺ rf → Image forget (rf n) (f n)
+→ (rv : ℕ → ℕ⁺) → Poly⁺ rv → Image forget (rv n) (v n)
 → (u ∙ᶠ f) ≤UC^ωᵉ (v ∙ᶠ g)
 ```
+
+where `f ≤UC[ s , ε ] g` is `f ≈ctx[ ε ] subᶠ s g` by definition.
 
 with `_∙ᶠ_ : Homᶠ B P C → Homᶠ A X B → Homᶠ A (X ⊗ᶠ P) C`. So **`f` is the INNER
 realization** (`A ⇒ X ⊛ B`, here the commitment) and **`u` the OUTER protocol**
@@ -108,12 +111,12 @@ the other.
 | `toss` | `CoinToss.agda:93` | the corrupt-committer case's stage, `Proc Honᴵ (Advᴵᶜ ⊗ᴵ Honᴵᶜ)` |
 | `tossᵒ` | `CoinToss/UC.agda:50` | its image, `gradedᵒ toss` |
 | `tossCert` | `:58` | **`Certified 0 toss`** |
-| `tossQB` | `:91` | `QB 0 tossᵒ`, by `UC.Model.Dominated.qb-gradedᵒ` |
-| `recvCert` | `:101` | **`Certified 1 real`** — `Examples.ROCommitment`'s honest receiver |
-| `recvQB` | `:158` | `QB 1 (gradedᵒ real)` |
+| `tossQB` | `:95` | `Pred 1⁺ tossᵒ`: `tossCert` raised to rate 1 by `qb-mono`, by `UC.Model.Dominated.qb-gradedᵒ` |
+| `recvCert` | `ROCommitment/UC.agda:64` | **`Certified 1 real`** — `Examples.ROCommitment`'s honest receiver |
+| `recvQB` | `:120` | `Pred 1⁺ (gradedᵒ real)` |
 | `tossʰ` | `CoinToss/Hiding.agda:97` | the corrupt-receiver case's stage |
 | `tossʰCert` | `CoinToss/Hiding/UC.agda:51` | **`Certified 1 tossʰ`** |
-| `comCert` | `:113` | **`Certified 1 realʰ`** — `Hiding`'s honest committer |
+| `comCert` | `ROCommitment/Hiding/UC.agda:52` | **`Certified 1 realʰ`** — `Hiding`'s honest committer |
 | `simJCert` | `CoinToss/Ideal/UC.agda:62` | **`Certified 1 simJ`** — §5's joint simulator |
 
 `tossCert` at rate **0** is the statement that the extraction half's stage makes
@@ -124,13 +127,13 @@ the unit. `tossʰCert` at rate 1 is the hiding half's stage, which does drive
 `F_com`: one `commitᴱ` or `openᴱ` per activation from above, nothing owed
 afterwards.
 
-`recvCert` and `comCert` are the two `F_com` real protocols' own bounds. Neither
-existed: `Examples.ROCommitment.UC` and `…Hiding.UC` certify the SIMULATORS
-only, because until now nothing moved the real process into a context.
+`recvCert` and `comCert` are the two `F_com` real protocols' own bounds; they
+live in `Examples.ROCommitment.UC` and `…Hiding.UC`, beside the simulators'
+certificates.
 `UC.QueryBound.qb-oneCall` does not apply — it is stated over a
 `Protocol A B`, and these are raw machines (`docs/hash-forward.md` item 5) — so
-both are the amortised certificate written out, with a constantly-zero
-potential.
+both are `UC.QueryBound.qbᵢ-upward`, its raw-machine counterpart: at a
+constantly-zero potential only the half from below is written out.
 
 Two mechanical notes, both cost-free once known and both worth a reader's
 second: a `Certified` clause table must split the LETTER before the STATE
@@ -157,86 +160,77 @@ hypothesis because it is not a theorem yet: `docs/fcom-extraction.md`
 and they are the sibling's, not this branch's. It is **not** postulated
 anywhere — it is an argument of both theorems, and `src/` stays hatch-free.
 
-Everything `UC-composeᵉ` asks about the morphisms it MOVES is proved here:
+Everything `UC-composeᵉ` (in its bound form `≤UC[]-compose′`) asks about the morphisms it MOVES is proved here:
 
 | obligation | discharge | where |
 |---|---|---|
-| `QB (cf n) (f n)`, `cf n = 1` | `recvQB` / `comQB` — the real `F_com` protocol's own bound | `CoinToss/UC.agda:158`, `Hiding/UC.agda:179` |
-| `QB (cv n) (v n)`, `cv n = 0` resp. `1` | `tossQB` / `tossʰQB` | `CoinToss/UC.agda:91`, `Hiding/UC.agda:107` |
-| `Poly cf`, `Poly cv` | `poly-const 1`; `poly-const 0` resp. `poly-const 1` | `Compose.agda:88-89`, `:138-139` |
-| `NegligibleBound εu` | `λ _ _ → Negligible-0` | `:85` |
-| `u ≈ctx[ εu ] subᶠ t v` at `t = idᶜ` | `≈C⇒≈ctx` off `sub-identityˡ` | `:86` |
+| `Image forget (rf n) (f n)`, `rf n = 1⁺` | `imageᵒ recvQB` / `imageᵒ comQB` — the real `F_com` protocol's own bound | `ROCommitment/UC.agda:120`, `ROCommitment/Hiding/UC.agda:112` |
+| `Image forget (rv n) (v n)`, `rv n = 1⁺` | `imageᵒ tossQB` / `imageᵒ tossʰQB` | `CoinToss/UC.agda:95`, `Hiding/UC.agda:108` |
+| `Poly⁺` of the reindexing `λ _ → 1⁺` | `poly⁺-1`, in `εᶜᵗ-negligible` | `Compose.agda:95` |
+| `NegligibleBound εu` | `λ _ _ → Negligible-0`, in `εᶜᵗ-negligible` | `:95` |
+| `u ≤UC[ t , εu ] v` at `t = idᶜ` | `≈C⇒≈ctx` off `sub-identityˡ` | `:110` |
 
-Nothing is asked of the schedules' order: `≈ctx-pre` bumps its closure
-certificate with `qb-mono` and substitutes exactly
-(`UC.Budget.ctxBudget-closure`).
+Nothing is asked of the schedules' order: `≈ctx-pre` regrades its closure
+certificate with `L.sub[_]` and substitutes exactly
+(`UC.Quantitative.Contextual.absorb-closureᵠ`).
 
 ### The composed ε, exactly
 
-`UC-composeᵉ`'s two substitutions, instantiated:
+`≤UC[]-compose′`'s two substitutions, instantiated:
 
 ```text
-εu ↦ λ n q → εu n (simCost q (cf n))                 = λ n q → 0ℚ
-εf ↦ λ n q → εf n (simCost q ((cost idᶜ n ⊔ 1) * cv n))
+εu ↦ λ n q → εu n (scale q (rf n))                   = λ n q → 0ℚ
+εf ↦ λ n q → εf n (scale q (rv n · cost idᶜ n))
 ```
 
-with `cost idᶜ n = 1` and `cv n ∈ {0, 1}`, so `(1 ⊔ 1) * cv n = cv n` and
-`simCost q (cv n) = q * (cv n ⊔ 1) = q * 1` in **both** cases. The composed
-schedule is therefore
+with `cost idᶜ n = 1⁺` and `rv n = 1⁺`, so `rv n · cost idᶜ n = 1⁺` and
+`scale q 1⁺ = q * 1` in **both** cases. The composed schedule is therefore
 
 ```agda
-εᶜᵗ ε n q = 0ℚ ℚ.+ ε n (simCost q 0)                  -- Compose.agda:98
+εᶜᵗ ε n q = 0ℚ ℚ.+ ε n (scale q 1⁺)                   -- Compose.agda:86
 ```
 
-and `schedule-pin` / `schedule-pinʰ` (`:103`, `:141`) are `refl`-proofs that the
-theorems really carry it — mechanical, so they stop checking the moment the
-substitution changes, in `FactorEps.migration-pin`'s sense.
+and both theorems are stated at it, so a change of the substitution stops them
+checking.
 
-Negligibility is proved AFTER the substitution, by `UC-composeᵉ` itself:
-`GradedBound-+[ Negligible ] Negligible-+` over two `NegligibleBound-simCost`,
-the first summand being identically `0ℚ`.
+Negligibility is proved AFTER the substitution, by `εᶜᵗ-negligible`:
+`GradedBound-+[ Negligible ] Negligible-+` over `Negligible-0` and one
+`NegligibleBound-scale` at `poly⁺-1`.
 
 ### …and in closed form
 
 Three of the four components of the premise ARE in the repository — the
-extracting simulator `simᵒ`, its `QB 2`, and `εᶜ` with `εᶜ-negligible` — so the
+extracting simulator `simᵒ`, its rate-2 certificate, and `εᶜ` with `εᶜ-negligible` — so the
 premise narrows to the single relation that is not:
 
 ```agda
-comSim              : Certified Lkᶠ Advᶠ                                    -- :153
+comSim              : Certified Lkᶠ Advᶠ                                    -- :165
 coin-toss-from-comᶜ : realᶠ ≈ctx[ εᶜ ] subᶠ comSim idealᶠ
-                    → (tossᶠ ∙ᶠ realᶠ) ≤UC^ωᵉ (tossᶠ ∙ᶠ idealᶠ)             -- :156
-composed-ε          : (n q : ℕ) → εᶜᵗ εᶜ n q ≡ fromℕ (q * q + q + q) *ℚ inv-pow-2 n  -- :163
+                    → (tossᶠ ∙ᶠ realᶠ) ≤UC^ωᵉ (tossᶠ ∙ᶠ idealᶠ)             -- :173
+composed-ε          : (n q : ℕ) → εᶜᵗ εᶜ n q ≡ fromℕ (q * q + q + q) *ℚ inv-pow-2 n  -- :180
 ```
 
 So the composed error is **`(q² + 2q)·2⁻ⁿ`** — `Examples.ROCommitment.Asymptotic.εᶜ`
-UNRESCALED. The coin-toss stage costs the test one activation and no more, and
-`simCost`'s `_⊔ 1` floor absorbs it exactly; nothing is paid for the
-composition beyond the `q ↦ q * 1` the floor already charges.
+UNRESCALED. The coin-toss stage costs the test one activation and no more: it
+enters the grading at `1⁺`, which `scale` reads as `q ↦ q * 1`, and nothing
+else is paid for the composition.
 
 ## 4. Acceptance
 
-`CoinToss/Test.agda`, at `k = 3`:
+`CoinToss/Test.agda`:
 
-* `attack-bound : εᶜᵗ εᶜ 3 3 ≡ fromℕ 15 *ℚ inv-pow-2 3` (`:59`) — the ceiling,
-  evaluated.
-* `bias` (`:94`), a corrupted committer that queries the oracle at `true ∷ r`,
-  commits to the answer, waits for the honest share `s`, and opens at `s` — a
-  bit it did not commit to unless `s ≡ true`, which forces P2's output to
-  `s xor s`, i.e. constantly `false`. Its whole advantage is the commitment's
-  extraction bad event, and §3's closed form says the composition carries that
-  bound unchanged.
-* `bias-round` (`:103`) computes one live run of it, so the words the trace
-  statement quantifies over are inhabited by an attack that reaches the
-  opening — `Examples.HashForward.UC.sim-round`'s role, same chain.
-* `ideal-bound` (`:71`) is the same ceiling for the WHOLE statement, §5's hop
-  included, and `coin-round`/`sim-round` (`:80`, `:90`) are the two live runs
-  that hop rests on: the ideal coin leaking before it delivers, and the joint
-  simulator publishing the share that lands the toss on that bit.
+* `attack-bound`, `ideal-bound`, `ideal-boundʳ` pin the three composed
+  schedules (`εᶜᵗ εᶜ`, `εᶜⁱ εᶜ`, `εᶜʳ εᵗ`) at security parameter 5 and three
+  queries, where they are below 1; at `k = 3` they are 15/8, 15/8 and 5/4.
+* `coin-round`/`sim-round` and `coin-roundʰ`/`sim-roundʰ` are one live round
+  of each ideal coin and joint simulator, read through `UC.QueryBound.behᴾ` at
+  `Fcoin`, `simJ`, `Fcoinʰ`, `simJʰ`: the ideal coin leaking before it
+  delivers, and the joint simulator publishing the share that lands the toss
+  on that bit.
 
 **The `F_com` premise at this instance is still the abstract one.** What the
-repository has at `k = 3` is the CLOSED-GAME bound
-(`Examples.ROCommitment.Test.bounded`), which is a `Dist-ℚ` statement about two
+repository has is the CLOSED-GAME bound (`Examples.ROCommitment.Test.bounded`,
+at `k = 5`), which is a `Dist-ℚ` statement about two
 reactive kernels; the UC relation `coin-toss-from-comᶜ` takes is the one
 `docs/fcom-extraction.md` §1 calls `raw-emulation`, and it is not proved at any
 `k`.
@@ -307,25 +301,23 @@ sides and compare at the CLOSED domain.
 #### …and closing it is free
 
 ```agda
-≈ctx-dom   : (p : (n : ℕ) → A′ n ⇒ A n) → ((n : ℕ) → QB 0 (p n))
+≈ctx-dom   : (p : (n : ℕ) → A′ n ⇒ A n) → ((n : ℕ) → Image forget 1⁺ (p n))
            → (ε) → u ≈ctx[ ε ] v → (λ n → u n ∘ p n) ≈ctx[ ε ] (λ n → v n ∘ p n)
-≤UC^ωᵉ-dom : (p) → ((n : ℕ) → QB 0 (p n)) → f ≤UC^ωᵉ g
+≤UC^ωᵉ-dom : (p) → ((n : ℕ) → Image forget 1⁺ (p n)) → f ≤UC^ωᵉ g
            → (λ n → f n ∘ p n) ≤UC^ωᵉ (λ n → g n ∘ p n)
 ```
 
-(`UC/Quantitative/Family.agda`, `≈ctx-dom` and `≤UC^ωᵉ-dom`, re-exported by
-`UC/Asymptotic/Compose.agda`.) The closure absorbs `p`, so its
-budget becomes `(0 ⊔ 1) * c′` — and `ctxBudget` GUARDS its closure leg at
-`_⊔ 1` rather than multiplying by it, so a factor the guard swallows costs the
-allowance nothing. The schedule is **unchanged** in the second hop.
+(`UC/Quantitative/Family.agda`'s `Compose`, with `≤UC[]-dom` the bound form.)
+The closure absorbs `p`, so its rate becomes `1⁺ · r′`, and the allowance
+`value (c · (1⁺ · r′))` is `value (c · r′)` by `scale-unit`: a closed factor at
+the unit rate costs the allowance nothing. The schedule is **unchanged** in
+the second hop.
 
 That is the route taken, in preference to instantiating `UC-composeᵉ` with the
 resource as its inner realization. Both work; the `UC-composeᵉ` one would put
 the resource's own trivial grade in front of the composed one
 (`𝟙 ⊗ (Lk ⊗ Advᶜ)` instead of `Lk ⊗ Advᶜ`) and read the outer schedule at a
-`simCost` substitution. `≈ctx-dom` leaves the grade and the schedule alone, and
-its proof is six lines of
-`T-homomorphism` plus one `*-identityˡ`.
+`scale` substitution. `≈ctx-dom` leaves the grade and the schedule alone.
 
 #### The ideal coin, and what it leaks
 
@@ -409,27 +401,26 @@ coin-toss-ideal  : realᶠ ≤UC^ωᵉ idealᶠ
                  → (λ n → (tossᶠ ∙ᶠ realᶠ) n ∘ resᶠ n) ≤UC^ωᵉ Fcoinᶠ      -- :67
 coin-toss-idealᶜ : realᶠ ≈ctx[ εᶜ ] subᶠ comSim idealᶠ
                  → (λ n → (tossᶠ ∙ᶠ realᶠ) n ∘ resᶠ n) ≤UC^ωᵉ Fcoinᶠ      -- :88
-schedule-pinⁱ    : proj₁ (proj₂ (coin-toss-ideal w)) ≡ εᶜⁱ (proj₁ (proj₂ w))
 ideal-ε          : εᶜⁱ εᶜ n q ≡ fromℕ (q * q + q + q) *ℚ inv-pow-2 n       -- :92
 coin-toss-idealᴺ : realᶠ ≤UC^ωᵉ idealᶠ
-                 → Canonicalᴺ._≤UC_ (… , coinRealQB) (Fcoinᶠ , FcoinQB)   -- :118
+                 → coinRealʷ Canonicalᴺ.≤UC Fcoinʷ                     -- :144
 ```
 
 (`Ideal/Compose.agda`.) The premise is the SAME one §3 takes — the
 commitment's UC-level ε-statement, an argument and not a postulate. The second
 hop is exact, so `≤UC^ωᵉ-trans`'s sum reads `εᶜᵗ ε n q + 0ℚ`: reindexing the
-second schedule at `simCost q (cost s₁ n)` changes nothing when that schedule
+second schedule at `scale q (cost s₁ n)` changes nothing when that schedule
 is constantly `0ℚ`. The closed form is therefore §3's, unrescaled —
 **`(q² + 2q)·2⁻ⁿ`** — and `Test.agda:71` evaluates it at `k = q = 3`.
 
 `coin-toss-idealᴺ` is the same statement in the canonical LOCAL-NEGLIGIBLE
 `UCSetup` (`UC.Family.Negligible.Setup.ucSetupᴺ`), through
-`UC.Asymptotic.Family.≤UC^ωᵉ⇒≤UCᴺ`: that forgetting stops at `_≈ℰⁿ_` and reads
-it in `ucSetupᴺ`'s own kernel instead of spending `absorb-negl`, so the
-negligible witness survives where `≤UC^ωᵉ⇒≤UCᵁ` loses it. Both compared
-processes are closed, so the `Fam`-homs it wants carry `QB 0` — `qb-closed`
-for the coin, and the product of `tossQB`, `recvQB` and `resourceQBᵒ` for the
-real side. The order is qualitative, so `Test.agda`'s numerical pins say
+`UC.Model.Family.Emulation.≤UC[]⇒≤UCᴺ`: that forgetting stops at `_≈ℰⁿ_` and
+reads it in `ucSetupᴺ`'s own kernel instead of spending `absorb-negl`, so the
+negligible witness survives. Both compared processes are closed, so the
+`Fam`-homs it wants (`Fcoinʷ`, `coinRealʷ`) carry the unit rate — `qb-closed`
+raised by `qb-mono` for the coin, and the composite of `tossQB`, `recvQB` and
+`resourceQBᵒ` for the real side. The order is qualitative, so `Test.agda`'s numerical pins say
 everything there is to say about the schedule and gain nothing from a twin.
 
 ### …and the corrupted RECEIVER, one layer up
@@ -483,8 +474,7 @@ coin-hybridʳ      : (λ n → (tossʰᶠ ∙ᶠ idealʰᶠ) n ∘ resᶠ n) ≤
 coin-toss-idealʳ  : realʰᶠ ≤UC^ωᵉ idealʰᶠ
                   → (λ n → (tossʰᶠ ∙ᶠ realʰᶠ) n ∘ resᶠ n) ≤UC^ωᵉ Fcoinʰᶠ
 ideal-εʳ          : εᶜʳ εᵗ n q ≡ fromℕ (q + (q + q)) *ℚ inv-pow-2 n ℚ.+ inv-pow-2 n
-coin-toss-idealʳᴺ : realʰᶠ ≤UC^ωᵉ idealʰᶠ
-                  → Canonicalᴺ._≤UC_ (… , coinRealʰQB) (Fcoinʰᶠ , FcoinʰQB)
+coin-toss-idealʳᴺ : realʰᶠ ≤UC^ωᵉ idealʰᶠ → coinRealʰʷ Canonicalᴺ.≤UC Fcoinʰʷ
 ```
 
 Carrying a run agreement into a CONTEXT is what costs: `UC.Model.Dominated`'s
@@ -499,17 +489,16 @@ trivial one, every graded statement above it being exact), and
 `UC.Graded.regrade` identifies the two spellings of a tensor grade the seal
 keeps apart — `sub-graded₂` at the IDENTITY process.
 
-The chain lemmas were still not hoisted: `hearᴴʰ`/`askᴴʰ`/`cellᴴʰ`/`lkᴴʰ` and
-`upᴵʰ`/`downᴵʰ`/`bypᴵʰ`/`backᴵʰ`/`honᴵʰ` are at the receiver's own ports and
-have two more legs than the extraction half's, the stage driving `F_com` here
-where there it only listened.
+The chain lemmas' generic walks are `UC.QueryBound.Compose.Walk` (`R-bot`,
+`R-down`, `F-up`), shared by both halves; `hearᴴʰ`/`askᴴʰ`/`cellᴴʰ` stay at the
+receiver's own ports, the two legs the stage's driving of `F_com` adds.
 
 ### What this does not touch
 
 `Abstract2.UC-compose` and the `_≈ctx[_]_` relation are untouched and
 unweakened; `UC.Asymptotic.Compose` gains `≈ctx-dom`/`≤UC^ωᵉ-dom` and nothing
 is changed in it. No `Simulator`, `Monitor` or `MonitoredExperiment` record and
-no new category appears anywhere (`docs/uc-presheaf-preservation-plan.md` §1
+no new category appears anywhere (`docs/history/uc-presheaf-preservation-plan.md` §1
 decisions 1-6); the new `data` declarations are the protocols' message types
 and their states plus the ideal coin's port, and the only records inhabited are
 `UC.QueryBound`'s existing `QBᵢ` and `Machines.Sim`'s `_≲_`.
@@ -608,7 +597,7 @@ Done on the branch, not left to the maintainer:
    at the example (this branch not having `UC/` to edit) and have since been
    hoisted beside `dominatedᵒ` and `sub-graded₂`.
 2. **No `≤UC[ c ]` form of the composed statement, and no COST-certified one.**
-   `UC.Graded.≤UCᵍ` and `UC.Seam.Graded.≤UC[]ᵍ` consume a `Factors` — an exact
+   `UC.Graded.≤UCᵍ` and `UC.Graded.≤UC[]ᵍ` consume a `Factors` — an exact
    machine equality — and the composed statement is approximate, exactly as
    `docs/fcom-extraction.md` §"Not delivered" 3 records for the commitment
    itself. Nothing here weakens them; they do not apply. What IS delivered is
@@ -617,21 +606,17 @@ Done on the branch, not left to the maintainer:
 3. **No closed-game bound for the composed system.** The acceptance instance's
    attack is a machine, and the probability it is bounded by is the
    commitment's; a `Dist-ℚ` statement about the coin-toss experiment would need
-   the game-layer/machine-layer bridge `docs/graded-bridge.md` builds for the
+   the game-layer/machine-layer bridge `docs/history/graded-bridge.md` builds for the
    one-level case, re-run at the composite.
 4. **`recvCert`/`comCert` are not `UC.QueryBound.Exact` ledgers.** Both are
    amortised ceilings. An exact ledger for the honest receiver would weigh an
    activation by a function of the LETTER alone, and it does — one oracle call
    per `queryᴬ` and per `openᴬ`, none per `commitᴬ` — so the ledger exists and
-   was simply not needed by anything: `UC-composeᵉ` reads a `QB`.
-5. **No `Proc`-level `qb-oneCall`.** `UC.QueryBound.qb-oneCall` is where
-   `docs/ledger-lift-eps.md` §9 item 3 asked for it, but it is stated at
-   `morphism P` for a `Protocol A B`, and all five machines certified here are
-   raw ones (`docs/hash-forward.md` item 5), so all five write the amortised
-   certificate out by hand. A `Proc`-level analogue — "every activation from
-   above emits at most one downward message and nothing is owed afterwards",
-   which is what a constantly-zero potential says — would collapse
-   `tossʰCert`, `recvCert`, `comCert` and `simJCert` to one line each.
+   was simply not needed by anything: `UC-composeᵉ` reads an `Image` certificate.
+5. **`Proc`-level `qb-oneCall`: `UC.QueryBound.qbᵢ-upward`.** "Every
+   activation from above emits at most one downward message and nothing is owed
+   afterwards" is `qbᵢ-upward`; `tossʰCert`, `recvCert`, `comCert`, `simJCert`
+   and `simJʰCert` supply only their half from below.
 6. **No closed-game bound for the ideal coin either.** `Test`'s
    `coin-round`/`sim-round` and `coin-roundʰ`/`sim-roundʰ` are live runs of
    the four new machines, not a probability statement; item 3 covers both

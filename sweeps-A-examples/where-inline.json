@@ -1,0 +1,1945 @@
+{
+ "sweep": "where-inline (where_inline.py, patched copy: no parens around an atomic RHS; --width 100)",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/Examples/ChimericLedger.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda": {
+   "sites": [
+    {
+     "binding": "ins",
+     "line": 192,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "h∉",
+     "line": 194,
+     "inlinedLineChars": 63,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:198.27-29: error: [NotInScope]"
+    },
+    {
+     "binding": "uniq′",
+     "line": 197,
+     "inlinedLineChars": 114,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "known-≢",
+     "line": 200,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`known-≢ k mem p`)"
+    },
+    {
+     "binding": "hashed′",
+     "line": 203,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`hashed′ k mem`)"
+    },
+    {
+     "binding": "i₀∈",
+     "line": 208,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "headStale",
+     "line": 212,
+     "inlinedLineChars": 259,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "tailStale",
+     "line": 218,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`tailStale (stale t serEq k k∈ spent hash∈)`)"
+    },
+    {
+     "binding": "qs",
+     "line": 247,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "K",
+     "line": 249,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`K r`)"
+    },
+    {
+     "binding": "Goal",
+     "line": 252,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "hit",
+     "line": 256,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "go",
+     "line": 261,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "served",
+     "line": 268,
+     "inlinedLineChars": 93,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "φ-bad",
+     "line": 287,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "φ-step",
+     "line": 293,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "rejected",
+     "line": 296,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | rejected eq`)"
+    },
+    {
+     "binding": "qs",
+     "line": 304,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "K",
+     "line": 306,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`K r`)"
+    },
+    {
+     "binding": "F",
+     "line": 309,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`F sr`)"
+    },
+    {
+     "binding": "expand",
+     "line": 312,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "fresh-bound",
+     "line": 327,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "StepGoal",
+     "line": 332,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "go",
+     "line": 337,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "served",
+     "line": 342,
+     "inlinedLineChars": 95,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda": {
+   "sites": [
+    {
+     "binding": "Lb",
+     "line": 126,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Lb b`)"
+    },
+    {
+     "binding": "Rb",
+     "line": 128,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Rb b`)"
+    },
+    {
+     "binding": "μq",
+     "line": 134,
+     "verdict": "skipped-shape",
+     "why": "3 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "L",
+     "line": 136,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`L (st′ , r)`)"
+    },
+    {
+     "binding": "R",
+     "line": 138,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`R (st′ , r)`)"
+    },
+    {
+     "binding": "ptw",
+     "line": 140,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`ptw (st′ , r)`)"
+    },
+    {
+     "binding": "L",
+     "line": 147,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`L (st′ , r)`)"
+    },
+    {
+     "binding": "R",
+     "line": 149,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`R (st′ , r)`)"
+    },
+    {
+     "binding": "Hb",
+     "line": 165,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Hb b`)"
+    },
+    {
+     "binding": "Rb",
+     "line": 167,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Rb b`)"
+    },
+    {
+     "binding": "μq",
+     "line": 173,
+     "verdict": "skipped-shape",
+     "why": "3 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "H",
+     "line": 175,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`H (st′ , r)`)"
+    },
+    {
+     "binding": "R",
+     "line": 177,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`R (st′ , r)`)"
+    },
+    {
+     "binding": "after",
+     "line": 180,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`after r (st″ , a)`)"
+    },
+    {
+     "binding": "ptw",
+     "line": 184,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`ptw (st′ , r)`)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda": {
+   "sites": [
+    {
+     "binding": "κ",
+     "line": 113,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`κ ih`)"
+    },
+    {
+     "binding": "fresh",
+     "line": 116,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`fresh h`)"
+    },
+    {
+     "binding": "κ",
+     "line": 124,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`κ ih`)"
+    },
+    {
+     "binding": "G",
+     "line": 143,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`G st`)"
+    },
+    {
+     "binding": "Gᵃ",
+     "line": 146,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Gᵃ st`)"
+    },
+    {
+     "binding": "miss",
+     "line": 149,
+     "inlinedLineChars": 107,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "hit",
+     "line": 168,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "K",
+     "line": 253,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`K st`)"
+    },
+    {
+     "binding": "hit",
+     "line": 256,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda": {
+   "sites": [
+    {
+     "binding": "inCodec",
+     "line": 27,
+     "inlinedLineChars": 75,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "ℕ²-codec",
+     "line": 27,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/System.agda": {
+   "sites": [
+    {
+     "binding": "go",
+     "line": 56,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`go tbl (i , q)`)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda": {
+   "sites": [
+    {
+     "binding": "G",
+     "line": 265,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`G st`)"
+    },
+    {
+     "binding": "G",
+     "line": 280,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`G st`)"
+    },
+    {
+     "binding": "G",
+     "line": 293,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`G st`)"
+    },
+    {
+     "binding": "atAcc",
+     "line": 298,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`atAcc b`)"
+    },
+    {
+     "binding": "quiet",
+     "line": 302,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "hits",
+     "line": 317,
+     "inlinedLineChars": 103,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "reports",
+     "line": 320,
+     "inlinedLineChars": 101,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda": {
+   "sites": [
+    {
+     "binding": "ins",
+     "line": 129,
+     "inlinedLineChars": 139,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "fresh′",
+     "line": 132,
+     "verdict": "skipped-shape",
+     "why": "0 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "yes",
+     "line": 134,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | yes e`)"
+    },
+    {
+     "binding": "no",
+     "line": 135,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | no  _`)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Compose.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Hiding.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda": {
+   "sites": [
+    {
+     "binding": "onL",
+     "line": 55,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onR",
+     "line": 60,
+     "verdict": "skipped-shape",
+     "why": "4 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohL",
+     "line": 68,
+     "verdict": "skipped-shape",
+     "why": "4 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohR",
+     "line": 74,
+     "verdict": "skipped-shape",
+     "why": "12 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onL",
+     "line": 107,
+     "verdict": "skipped-shape",
+     "why": "6 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onR",
+     "line": 115,
+     "verdict": "skipped-shape",
+     "why": "8 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohL",
+     "line": 131,
+     "verdict": "skipped-shape",
+     "why": "6 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohR",
+     "line": 139,
+     "verdict": "skipped-shape",
+     "why": "13 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda": {
+   "sites": [
+    {
+     "binding": "κ",
+     "line": 137,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda": {
+   "sites": [
+    {
+     "binding": "κ₁",
+     "line": 134,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "κ",
+     "line": 135,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda": {
+   "sites": [
+    {
+     "binding": "κ",
+     "line": 145,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda": {
+   "sites": [
+    {
+     "binding": "κ₁",
+     "line": 156,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "κ",
+     "line": 157,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda": {
+   "sites": [
+    {
+     "binding": "Aᵍ",
+     "line": 64,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "hashG",
+     "line": 67,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`hashG t φ`)"
+    },
+    {
+     "binding": "cohHash",
+     "line": 70,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`cohHash t φ`)"
+    },
+    {
+     "binding": "onL",
+     "line": 74,
+     "verdict": "skipped-shape",
+     "why": "7 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onR",
+     "line": 84,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohL",
+     "line": 94,
+     "verdict": "skipped-shape",
+     "why": "8 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohR",
+     "line": 104,
+     "verdict": "skipped-shape",
+     "why": "8 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda": {
+   "sites": [
+    {
+     "binding": "Aᵍ",
+     "line": 61,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "hashG",
+     "line": 64,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`hashG t φ`)"
+    },
+    {
+     "binding": "cohHash",
+     "line": 67,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`cohHash t φ`)"
+    },
+    {
+     "binding": "onL",
+     "line": 71,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onR",
+     "line": 76,
+     "verdict": "skipped-shape",
+     "why": "4 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohL",
+     "line": 93,
+     "verdict": "skipped-shape",
+     "why": "4 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohR",
+     "line": 99,
+     "verdict": "skipped-shape",
+     "why": "16 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Test.agda": {
+   "sites": [
+    {
+     "binding": "afterOpen",
+     "line": 89,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "afterCoin",
+     "line": 94,
+     "inlinedLineChars": 125,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "afterCoin",
+     "line": 120,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "afterStart",
+     "line": 126,
+     "inlinedLineChars": 111,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "afterOpen",
+     "line": 181,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "afterAns",
+     "line": 186,
+     "inlinedLineChars": 119,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/UC.agda": {
+   "sites": [
+    {
+     "binding": "onL",
+     "line": 59,
+     "verdict": "skipped-shape",
+     "why": "4 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohL",
+     "line": 66,
+     "verdict": "skipped-shape",
+     "why": "9 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onL",
+     "line": 101,
+     "verdict": "skipped-shape",
+     "why": "6 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onR",
+     "line": 110,
+     "verdict": "skipped-shape",
+     "why": "7 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohL",
+     "line": 122,
+     "verdict": "skipped-shape",
+     "why": "6 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohR",
+     "line": 130,
+     "verdict": "skipped-shape",
+     "why": "11 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/HashForward.agda": {
+   "sites": [
+    {
+     "binding": "pt",
+     "line": 183,
+     "verdict": "skipped-shape",
+     "why": "13 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/HashForward/Audit.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/HashForward/UC.agda": {
+   "sites": [
+    {
+     "binding": "onL",
+     "line": 78,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onR",
+     "line": 83,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohL",
+     "line": 87,
+     "verdict": "skipped-shape",
+     "why": "6 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohR",
+     "line": 95,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "settle",
+     "line": 177,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`settle z`)"
+    },
+    {
+     "binding": "afterDigest",
+     "line": 201,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "afterLeak",
+     "line": 205,
+     "inlinedLineChars": 109,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard.agda": {
+   "sites": [
+    {
+     "binding": "F",
+     "line": 121,
+     "verdict": "skipped-shape",
+     "why": "4 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "Rt",
+     "line": 122,
+     "verdict": "skipped-shape",
+     "why": "4 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "κ",
+     "line": 142,
+     "verdict": "skipped-shape",
+     "why": "4 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "MR",
+     "line": 143,
+     "verdict": "skipped-shape",
+     "why": "3 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "Rw",
+     "line": 159,
+     "verdict": "skipped-shape",
+     "why": "3 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "KE",
+     "line": 160,
+     "verdict": "skipped-shape",
+     "why": "5 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "KE",
+     "line": 168,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "F",
+     "line": 180,
+     "verdict": "skipped-shape",
+     "why": "4 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "Rt",
+     "line": 181,
+     "verdict": "skipped-shape",
+     "why": "4 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "KE",
+     "line": 182,
+     "verdict": "skipped-shape",
+     "why": "5 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "advEq",
+     "line": 200,
+     "inlinedLineChars": 188,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda": {
+   "sites": [
+    {
+     "binding": "μW",
+     "line": 255,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "μM",
+     "line": 256,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "walkE",
+     "line": 258,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "newAnsE",
+     "line": 263,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "aux",
+     "line": 276,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "tupR",
+     "line": 286,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "μW",
+     "line": 364,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "G₀",
+     "line": 366,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`G₀ u`)"
+    },
+    {
+     "binding": "aux",
+     "line": 369,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "tupR",
+     "line": 375,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "pointRep",
+     "line": 377,
+     "verdict": "skipped-shape",
+     "why": "0 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "yes",
+     "line": 379,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | yes q`)"
+    },
+    {
+     "binding": "no",
+     "line": 383,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | no ¬q`)"
+    },
+    {
+     "binding": "idealE",
+     "line": 386,
+     "inlinedLineChars": 334,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "lhsE",
+     "line": 397,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "newAnsVal",
+     "line": 401,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "idealE",
+     "line": 416,
+     "inlinedLineChars": 456,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "go",
+     "line": 463,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "eq",
+     "line": 519,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "idx≡k",
+     "line": 539,
+     "inlinedLineChars": 177,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "i",
+     "line": 545,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "pr",
+     "line": 625,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "tail-eq",
+     "line": 627,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "aux",
+     "line": 629,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "φ₀",
+     "line": 665,
+     "inlinedLineChars": 109,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "N",
+     "line": 675,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "sumR1",
+     "line": 676,
+     "inlinedLineChars": 137,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "arith",
+     "line": 680,
+     "inlinedLineChars": 108,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "aux",
+     "line": 752,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "aux",
+     "line": 785,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cont",
+     "line": 852,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`cont w (sc≡ , v≡)`)"
+    },
+    {
+     "binding": "flag≡false",
+     "line": 859,
+     "inlinedLineChars": 145,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "lt",
+     "line": 973,
+     "inlinedLineChars": 86,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "pr'",
+     "line": 973,
+     "inlinedLineChars": 148,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "mapc",
+     "line": 974,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`mapc w (ext , uk' , rt' , hvroot , stepeq) w2 (ext2 , uk2 , rt2 , seg2)`)"
+    },
+    {
+     "binding": "lt",
+     "line": 1046,
+     "inlinedLineChars": 72,
+     "fitsWidth": true,
+     "green": true,
+     "verdict": "inlined"
+    },
+    {
+     "binding": "pr'",
+     "line": 1046,
+     "inlinedLineChars": 127,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "mapc",
+     "line": 1047,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`mapc w (exth , steph , finalrev) w2 (ext2 , dich2)`)"
+    },
+    {
+     "binding": "dd",
+     "line": 1053,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`dd v' b' u' e`)"
+    },
+    {
+     "binding": "dich",
+     "line": 1069,
+     "verdict": "skipped-shape",
+     "why": "0 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "yes",
+     "line": 1073,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | yes p | e'`)"
+    },
+    {
+     "binding": "no",
+     "line": 1075,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | no ¬p | e'`)"
+    },
+    {
+     "binding": "go",
+     "line": 1135,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "go",
+     "line": 1243,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "0<len",
+     "line": 1248,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "sv",
+     "line": 1250,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "preM",
+     "line": 1251,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "bk",
+     "line": 1252,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "decomp",
+     "line": 1253,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "posk",
+     "line": 1255,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "seg2",
+     "line": 1257,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "sinv",
+     "line": 1260,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "vprev",
+     "line": 1261,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "runM",
+     "line": 1262,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "finalk",
+     "line": 1264,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "own",
+     "line": 1266,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "M'",
+     "line": 1267,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "h'",
+     "line": 1268,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "lk'",
+     "line": 1269,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "pre'",
+     "line": 1271,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "blkeq'",
+     "line": 1272,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "run'",
+     "line": 1274,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "posk'",
+     "line": 1276,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "runMk",
+     "line": 1278,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "runM'k",
+     "line": 1280,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "lengtheq",
+     "line": 1283,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "preM≡pre'",
+     "line": 1286,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "M-recorded",
+     "line": 1290,
+     "inlinedLineChars": 210,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "M'≢M",
+     "line": 1311,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`M'≢M p`)"
+    },
+    {
+     "binding": "cont",
+     "line": 1327,
+     "verdict": "skipped-shape",
+     "why": "0 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "true",
+     "line": 1331,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | true`)"
+    },
+    {
+     "binding": "false",
+     "line": 1342,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | false`)"
+    },
+    {
+     "binding": "dich-old",
+     "line": 1338,
+     "verdict": "skipped-shape",
+     "why": "0 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "inj₁",
+     "line": 1340,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | inj₁ old`)"
+    },
+    {
+     "binding": "inj₂",
+     "line": 1341,
+     "verdict": "skipped-shape",
+     "why": "0 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "dich-owned",
+     "line": 1348,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`dich-owned v' b' u' e`)"
+    },
+    {
+     "binding": "inner",
+     "line": 1360,
+     "verdict": "skipped-shape",
+     "why": "0 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "just",
+     "line": 1363,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | just h`)"
+    },
+    {
+     "binding": "nothing",
+     "line": 1364,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | nothing`)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda": {
+   "sites": [
+    {
+     "binding": "onL",
+     "line": 131,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onR",
+     "line": 135,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohL",
+     "line": 139,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohR",
+     "line": 143,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/Possibilistic.agda": {
+   "sites": [
+    {
+     "binding": "step",
+     "line": 46,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "send",
+     "line": 68,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`send (q , m)`)"
+    },
+    {
+     "binding": "schedule",
+     "line": 71,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Asymptotic.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda": {
+   "sites": [
+    {
+     "binding": "pre≡[]",
+     "line": 102,
+     "inlinedLineChars": 187,
+     "fitsWidth": false,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda:103.34-40: error: [NotInScope]"
+    },
+    {
+     "binding": "eq",
+     "line": 105,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Game.agda": {
+   "sites": [
+    {
+     "binding": "aux",
+     "line": 198,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "aux",
+     "line": 216,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "pins",
+     "line": 230,
+     "verdict": "skipped-shape",
+     "why": "RHS contains a comment (inlining would drop it)"
+    },
+    {
+     "binding": "collapse",
+     "line": 345,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`collapse v d iv cm hit`)"
+    },
+    {
+     "binding": "reduce",
+     "line": 350,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`reduce (t′ , _ , f′) iv′ refl bt hit′`)"
+    },
+    {
+     "binding": "aux",
+     "line": 356,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "red",
+     "line": 422,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "red",
+     "line": 434,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Asymptotic.agda": {
+   "sites": [
+    {
+     "binding": "collect",
+     "line": 56,
+     "inlinedLineChars": 192,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda": {
+   "sites": [
+    {
+     "binding": "κa",
+     "line": 352,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`κa u ρ`)"
+    },
+    {
+     "binding": "νa",
+     "line": 356,
+     "inlinedLineChars": 89,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda:356.17-19: error: [NotInScope]"
+    },
+    {
+     "binding": "mgL",
+     "line": 358,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`mgL F`)"
+    },
+    {
+     "binding": "redR",
+     "line": 362,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`redR F`)"
+    },
+    {
+     "binding": "mgR",
+     "line": 389,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`mgR F`)"
+    },
+    {
+     "binding": "stp",
+     "line": 396,
+     "verdict": "skipped-shape",
+     "why": "0 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "true",
+     "line": 405,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | true  | _`)"
+    },
+    {
+     "binding": "false",
+     "line": 406,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "sup",
+     "line": 423,
+     "inlinedLineChars": 253,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "Rout",
+     "line": 367,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Rout u′`)"
+    },
+    {
+     "binding": "aux",
+     "line": 370,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "good",
+     "line": 409,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "κc",
+     "line": 433,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`κc c`)"
+    },
+    {
+     "binding": "νc",
+     "line": 437,
+     "inlinedLineChars": 62,
+     "fitsWidth": true,
+     "green": false,
+     "verdict": "red",
+     "why": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda:440.17-19: error: [NotInScope]"
+    },
+    {
+     "binding": "missR",
+     "line": 439,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "mgL",
+     "line": 442,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`mgL F`)"
+    },
+    {
+     "binding": "mgR",
+     "line": 446,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`mgR F`)"
+    },
+    {
+     "binding": "stp",
+     "line": 454,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`stp c`)"
+    },
+    {
+     "binding": "sup",
+     "line": 465,
+     "inlinedLineChars": 145,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "tblc",
+     "line": 460,
+     "verdict": "skipped-shape",
+     "why": "0 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "yes",
+     "line": 462,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | yes _`)"
+    },
+    {
+     "binding": "no",
+     "line": 463,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | no  _`)"
+    },
+    {
+     "binding": "Φ",
+     "line": 591,
+     "verdict": "skipped-shape",
+     "why": "4 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "Rise",
+     "line": 606,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Rise ρ r`)"
+    },
+    {
+     "binding": "Val",
+     "line": 609,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Val u`)"
+    },
+    {
+     "binding": "Bnd",
+     "line": 611,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`Bnd u`)"
+    },
+    {
+     "binding": "expand",
+     "line": 613,
+     "inlinedLineChars": 473,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "bounded",
+     "line": 625,
+     "inlinedLineChars": 432,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "collect",
+     "line": 635,
+     "inlinedLineChars": 286,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "final",
+     "line": 644,
+     "inlinedLineChars": 244,
+     "fitsWidth": false,
+     "green": true,
+     "verdict": "declined-width"
+    },
+    {
+     "binding": "PrP",
+     "line": 724,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`PrP r`)"
+    },
+    {
+     "binding": "PrR",
+     "line": 726,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`PrR r`)"
+    },
+    {
+     "binding": "split",
+     "line": 728,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`split n`)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Test.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda": {
+   "sites": [
+    {
+     "binding": "pubᴬ",
+     "line": 64,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`pubᴬ c`)"
+    },
+    {
+     "binding": "pinᴬ",
+     "line": 67,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`pinᴬ c b r`)"
+    },
+    {
+     "binding": "onL",
+     "line": 70,
+     "verdict": "skipped-shape",
+     "why": "4 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onR",
+     "line": 76,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohL",
+     "line": 82,
+     "verdict": "skipped-shape",
+     "why": "12 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohR",
+     "line": 100,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`cohR (relayᵖ _) (askᴿᶜ _)`)"
+    },
+    {
+     "binding": "just",
+     "line": 102,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | just _`)"
+    },
+    {
+     "binding": "nothing",
+     "line": 103,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`... | nothing`)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Oracle.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda": {
+   "sites": [
+    {
+     "binding": "step₁",
+     "line": 181,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`step₁ p`)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Test.agda": {
+   "sites": []
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda": {
+   "sites": [
+    {
+     "binding": "sample",
+     "line": 85,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`sample h`)"
+    },
+    {
+     "binding": "tag",
+     "line": 88,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`tag h`)"
+    },
+    {
+     "binding": "hit",
+     "line": 137,
+     "verdict": "skipped-shape",
+     "why": "4 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "value",
+     "line": 140,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`value Q`)"
+    },
+    {
+     "binding": "ent",
+     "line": 150,
+     "verdict": "skipped-shape",
+     "why": "clause takes arguments (`ent h`)"
+    },
+    {
+     "binding": "draw",
+     "line": 153,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "value",
+     "line": 159,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "σ₀",
+     "line": 179,
+     "verdict": "skipped-shape",
+     "why": "0 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "run",
+     "line": 182,
+     "verdict": "skipped-shape",
+     "why": "2 use(s) outside the where block (need exactly 1)"
+    },
+    {
+     "binding": "collapse",
+     "line": 184,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/UC.agda": {
+   "sites": [
+    {
+     "binding": "onL",
+     "line": 70,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "onR",
+     "line": 78,
+     "verdict": "skipped-shape",
+     "why": "4 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohL",
+     "line": 87,
+     "verdict": "skipped-shape",
+     "why": "3 defining clause(s) with `=` (need exactly 1)"
+    },
+    {
+     "binding": "cohR",
+     "line": 92,
+     "verdict": "skipped-shape",
+     "why": "11 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Examples/RandomOracle.agda": {
+   "sites": [
+    {
+     "binding": "E-collisions-rec",
+     "line": 81,
+     "verdict": "skipped-shape",
+     "why": "2 defining clause(s) with `=` (need exactly 1)"
+    }
+   ]
+  }
+ },
+ "summary": {
+  "skipped-shape": 239,
+  "red": 4,
+  "declined-width": 28,
+  "inlined": 5
+ }
+}

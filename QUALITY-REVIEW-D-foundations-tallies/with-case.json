@@ -1,0 +1,156 @@
+{
+ "sweep": "with-case",
+ "root": ".",
+ "apply": true,
+ "files": {
+  "src/Class/DecEq/Ext.agda": {
+   "sites": [
+    {
+     "line": 23,
+     "verdict": "red",
+     "head": "≟-refl x with x ≟ x",
+     "firstError": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/Class/DecEq/Ext.agda:24.3-6: error: [TooFewArgumentsToPatternSynonym]"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/Data/List/Run.agda": {
+   "sites": [
+    {
+     "line": 44,
+     "verdict": "skipped-shape",
+     "head": "runPath-cons-inv r l ls t e with step r l | e"
+    },
+    {
+     "line": 39,
+     "verdict": "skipped-shape",
+     "head": "runPath-nothing v l ls eq with step v l | eq"
+    },
+    {
+     "line": 35,
+     "verdict": "skipped-shape",
+     "head": "runPath-step v l w ls eq with step v l | eq"
+    },
+    {
+     "line": 30,
+     "verdict": "red",
+     "head": "runPath-single r l with step r l",
+     "firstError": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/Data/List/Run.agda:31.5-9: error: [WrongNumberOfConstructorArguments]"
+    },
+    {
+     "line": 25,
+     "verdict": "red",
+     "head": "runPath v (l ∷ ls) with step v l",
+     "firstError": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/Data/List/Run.agda:26.5-9: error: [WrongNumberOfConstructorArguments]"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Support.agda": {
+   "sites": [
+    {
+     "line": 340,
+     "verdict": "skipped-shape",
+     "head": "differ e with trans (sym head-true) (trans (e id) tail-false)"
+    },
+    {
+     "line": 286,
+     "verdict": "skipped-shape",
+     "head": "pad-not-perfect e with e (χ id)"
+    },
+    {
+     "line": 152,
+     "verdict": "red",
+     "head": "χ-pos P a with P a",
+     "firstError": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Distribution/RationalDist/Support.agda:154.13-50: error:"
+    },
+    {
+     "line": 147,
+     "verdict": "red",
+     "head": "0≤χ P a with P a",
+     "firstError": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Distribution/RationalDist/Support.agda:149.13-19: error:"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Collision.agda": {
+   "sites": [
+    {
+     "line": 52,
+     "verdict": "red",
+     "head": "1≤countMatch {h} (g ∷ gs) (here refl) with h ≟ g",
+     "firstError": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Distribution/Uniform/Collision.agda:53.3-6: error: [TooF"
+    },
+    {
+     "line": 3,
+     "verdict": "skipped-shape",
+     "head": "-- Hitting a recorded set of bit-strings with a fresh uniform sample: the"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda": {
+   "sites": [
+    {
+     "line": 68,
+     "verdict": "skipped-shape",
+     "head": "indicator-≤ hs h with memb h hs in e"
+    },
+    {
+     "line": 63,
+     "verdict": "red",
+     "head": "memb-∉ (g ∷ gs) h e (there mem) with h ≟ g",
+     "firstError": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda:64.3-6: error: [TooF"
+    },
+    {
+     "line": 60,
+     "verdict": "red",
+     "head": "memb-∉ (g ∷ gs) h e (here p)    with h ≟ g",
+     "firstError": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda:61.3-6: error: [TooF"
+    },
+    {
+     "line": 55,
+     "verdict": "red",
+     "head": "memb-∈ (g ∷ gs) h e with h ≟ g",
+     "firstError": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda:56.3-6: error: [TooF"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/ProbabilisticLogic/Expectation.agda": {
+   "sites": [
+    {
+     "line": 396,
+     "verdict": "red",
+     "head": "sg⊆combined {ω} ω∈sg with ω ∈? sf",
+     "firstError": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Expectation.agda:397.9-12: error: [TooFewArgumentsToPatt"
+    },
+    {
+     "line": 391,
+     "verdict": "red",
+     "head": "ω∉sg ω∈sg with ω ∈? sf",
+     "firstError": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Expectation.agda:392.13-16: error: [TooFewArgumentsToPat"
+    },
+    {
+     "line": 287,
+     "verdict": "red",
+     "head": "head-eq with ¿ X ω ¿",
+     "firstError": "/tmp/claude-1000/-Users-andre-IOHK-categorical-crypto/9c7b4c16-0005-4f15-af43-45450eb361e1/scratchpad/quality/D/cw/sweep/src/ProbabilisticLogic/Expectation.agda:288.7-10: error: [TooFewArgumentsToPatt"
+    },
+    {
+     "line": 136,
+     "verdict": "skipped-shape",
+     "head": "with extras , t↭ , _ , extras∉s ← partition-↭ t s t-d s-d s⊆t = begin"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  }
+ },
+ "totalChecks": 12
+}

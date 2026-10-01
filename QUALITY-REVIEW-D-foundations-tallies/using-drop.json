@@ -1,0 +1,2001 @@
+{
+ "sweep": "using-drop",
+ "root": ".",
+ "files": {
+  "src/Categories/Category/Cocartesian/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Kleisli/Discrete.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 21,
+     "edit": "drop `using (niHelper)`"
+    },
+    {
+     "line": 27,
+     "edit": "drop `using (IsEquivalence)`"
+    },
+    {
+     "line": 69,
+     "edit": "drop `using (_○_; ⟺; _⟩∘⟨_; refl⟩∘⟨_)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 6,
+   "seconds": 48.5
+  },
+  "src/Categories/Category/Kleisli/Discrete/Distributive.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Kleisli/Discrete/Pure.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 19,
+     "edit": "drop `using (inj₁; inj₂; [_,_])`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 34,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open IsPure public"
+    }
+   ],
+   "checks": 2,
+   "seconds": 5.1
+  },
+  "src/Categories/Category/Monoidal/Distributive.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 31,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Cocartesian cocartesian public"
+    }
+   ],
+   "checks": 0
+  },
+  "src/Categories/Category/Monoidal/Distributive/Properties.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Monoidal/Pure.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Monoidal/Traced/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Monoidal/Utilities/Ext.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 20,
+     "edit": "drop `using (Category)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (Monoidal)`"
+    },
+    {
+     "line": 26,
+     "edit": "drop `using (coherence-inv₃)`"
+    },
+    {
+     "line": 28,
+     "edit": "drop `using (module Shorthands)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 7.7
+  },
+  "src/Categories/GConstructionEmbedding.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 53,
+     "edit": "drop `using (β)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 42,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Category C public"
+    },
+    {
+     "line": 43,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Traced Traced public"
+    },
+    {
+     "line": 44,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open U.Shorthands Monoidal public"
+    },
+    {
+     "line": 45,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import Categories.Category.Monoidal.Reasoning Monoidal public\n        using (⊗-distri"
+    },
+    {
+     "line": 47,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import Categories.Morphism.Reasoning C public using (elimʳ; pullˡ)"
+    },
+    {
+     "line": 48,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open BProps.Shorthands braided public"
+    }
+   ],
+   "checks": 2,
+   "seconds": 17.0
+  },
+  "src/Categories/GConstructionEmbeddingCoherence.agda": {
+   "candidates": 5,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 26,
+     "edit": "drop `using (Functor)`"
+    },
+    {
+     "line": 27,
+     "edit": "drop `using (Fin)`"
+    },
+    {
+     "line": 45,
+     "edit": "drop `using (ObjTerm; Var; _⊗₀_)`"
+    },
+    {
+     "line": 69,
+     "edit": "drop `using (HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_)`"
+    },
+    {
+     "line": 131,
+     "edit": "drop `using (HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 29,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)"
+    },
+    {
+     "line": 84,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Categories.APROP.Hypergraph.Solver.Split sig\n    using () renaming (solveTerm!"
+    },
+    {
+     "line": 146,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Categories.APROP.Hypergraph.Solver.Split sig\n    using () renaming (solveTerm!"
+    }
+   ],
+   "checks": 10,
+   "seconds": 86.7
+  },
+  "src/Categories/GConstructionHomCoherence.agda": {
+   "candidates": 8,
+   "kept": [
+    {
+     "line": 34,
+     "edit": "drop `using (Category)`"
+    },
+    {
+     "line": 36,
+     "edit": "drop `using (Symmetric)`"
+    },
+    {
+     "line": 86,
+     "edit": "drop `using (pullˡ; cancelʳ)`"
+    },
+    {
+     "line": 88,
+     "edit": "drop `using (_○_; _⟩∘⟨_; _⟩∘⟨refl; refl⟩∘⟨_)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 37,
+     "edit": "drop `using (Functor)`"
+    },
+    {
+     "line": 38,
+     "edit": "drop `using (Fin; suc)`"
+    },
+    {
+     "line": 58,
+     "edit": "drop `using (ObjTerm; Var; _⊗₀_)`"
+    },
+    {
+     "line": 81,
+     "edit": "drop `using (FreeMonoidal; Symmetric-Monoidal; HomTerm; Agen; id; `"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 40,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)"
+    },
+    {
+     "line": 85,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Categories.APROP.Hypergraph.Solver.Split sig\n  using () renaming (stepSplitR! "
+    }
+   ],
+   "checks": 13,
+   "seconds": 150.5
+  },
+  "src/Categories/GConstructionLoop.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 25,
+     "edit": "drop `using (β; mid)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 29,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Category C public"
+    },
+    {
+     "line": 30,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Traced Traced public"
+    },
+    {
+     "line": 31,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open U.Shorthands Monoidal public"
+    }
+   ],
+   "checks": 2,
+   "seconds": 16.6
+  },
+  "src/Categories/GConstructionLoopCoherence.agda": {
+   "candidates": 4,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 23,
+     "edit": "drop `using (Functor)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (Fin)`"
+    },
+    {
+     "line": 39,
+     "edit": "drop `using (ObjTerm; Var; _⊗₀_)`"
+    },
+    {
+     "line": 58,
+     "edit": "drop `using (HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 26,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)"
+    },
+    {
+     "line": 94,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Categories.APROP.Hypergraph.Solver.Split sig\n  using () renaming (solveTerm!ᵀ "
+    }
+   ],
+   "checks": 8,
+   "seconds": 64.9
+  },
+  "src/Categories/GConstructionMonoidal.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 28,
+     "edit": "drop `using (_×_; _,_)`"
+    },
+    {
+     "line": 58,
+     "edit": "drop `using (⌜_,_⌝; ⌜⌝-resp-≈)`"
+    },
+    {
+     "line": 59,
+     "edit": "drop `using (α; β; γ; mid; mid-involutive; mid-natural; mid-σ)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 41,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Category C public"
+    },
+    {
+     "line": 42,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Traced T public"
+    },
+    {
+     "line": 43,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open U M public using (triangle-inv; pentagon-inv)"
+    },
+    {
+     "line": 44,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open U.Shorthands M public"
+    },
+    {
+     "line": 45,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import Categories.Category.Monoidal.Reasoning M public\n        using (⊗-distrib-over-"
+    },
+    {
+     "line": 47,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import Categories.Morphism.Reasoning C public\n        using (pullˡ; pullʳ; cancelʳ)"
+    },
+    {
+     "line": 49,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open BProps.Shorthands braided public"
+    }
+   ],
+   "checks": 3,
+   "seconds": 29.5
+  },
+  "src/Categories/GConstructionTensorCoherence.agda": {
+   "candidates": 6,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 31,
+     "edit": "drop `using (Functor)`"
+    },
+    {
+     "line": 32,
+     "edit": "drop `using (Fin; suc)`"
+    },
+    {
+     "line": 53,
+     "edit": "drop `using (ObjTerm; Var; unit; _⊗₀_)`"
+    },
+    {
+     "line": 68,
+     "edit": "drop `using (HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; λ⇒; λ⇐; ρ⇒; `"
+    },
+    {
+     "line": 121,
+     "edit": "drop `using (ObjTerm; Var; _⊗₀_)`"
+    },
+    {
+     "line": 144,
+     "edit": "drop `using (HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 34,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)"
+    },
+    {
+     "line": 82,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Categories.APROP.Hypergraph.Solver.Split sig\n    using () renaming (solveTerm!"
+    },
+    {
+     "line": 161,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Categories.APROP.Hypergraph.Solver.Split sig\n    using () renaming (solveTerm!"
+    }
+   ],
+   "checks": 12,
+   "seconds": 98.7
+  },
+  "src/Categories/GConstructionTrace.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 36,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Category C public"
+    },
+    {
+     "line": 37,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Traced Traced public"
+    },
+    {
+     "line": 38,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open U.Shorthands Monoidal public"
+    },
+    {
+     "line": 39,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import Categories.Category.Monoidal.Reasoning Monoidal public\n      using (serialize₁"
+    },
+    {
+     "line": 41,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import Categories.Morphism.Reasoning C public using (introˡ; pullʳ; elimʳ)"
+    },
+    {
+     "line": 42,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open BProps.Shorthands braided public"
+    },
+    {
+     "line": 49,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open TE Traced public using (β)"
+    }
+   ],
+   "checks": 0
+  },
+  "src/Categories/GConstructionTraceCoherence.agda": {
+   "candidates": 4,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 20,
+     "edit": "drop `using (Functor)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (Fin)`"
+    },
+    {
+     "line": 36,
+     "edit": "drop `using (ObjTerm; Var; _⊗₀_)`"
+    },
+    {
+     "line": 53,
+     "edit": "drop `using (HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 23,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Fin.Properties using () renaming (_≟_ to _≟F_)"
+    },
+    {
+     "line": 67,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Categories.APROP.Hypergraph.Solver.Split sig\n  using () renaming (solveTerm!ᵀ "
+    }
+   ],
+   "checks": 8,
+   "seconds": 65.6
+  },
+  "src/Categories/Monad/Construction/Kleisli/Ext.agda": {
+   "candidates": 7,
+   "kept": [
+    {
+     "line": 16,
+     "edit": "drop `using (RMonad⇒Functor)`"
+    },
+    {
+     "line": 20,
+     "edit": "drop `using (_,_)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (Inverse)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (Setoid)`"
+    },
+    {
+     "line": 84,
+     "edit": "drop `using (unit-comp; mult-comp)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 13,
+     "edit": "drop `using (Functor)`"
+    },
+    {
+     "line": 18,
+     "edit": "drop `using (NaturalTransformation; ntHelper)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 9,
+   "seconds": 21.2
+  },
+  "src/Categories/Monad/Discrete.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 129,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Derived ≈ᴹ-setoid return _>>=_ >>=-cong >>=-identityˡ-≈ >>=-assoc-≈ public\n    hiding"
+    },
+    {
+     "line": 131,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Derived.Comm ≈ᴹ-setoid return _>>=_ >>=-cong >>=-identityˡ-≈ >>=-assoc-≈ >>=-comm pub"
+    }
+   ],
+   "checks": 0
+  },
+  "src/Categories/Monad/Graded/Trivial.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 18,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Categories.Monad.Relative using () renaming (Monad to RMonad)"
+    }
+   ],
+   "checks": 0
+  },
+  "src/Categories/Monad/Setoids/Discrete.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 18,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Categories.Monad.Relative using () renaming (Monad to RMonad)"
+    },
+    {
+     "line": 25,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Relation.Binary.PropositionalEquality.Properties using () renaming (setoid to "
+    },
+    {
+     "line": 78,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Derived ≈ᴹ-setoid return _>>=_ >>=-cong >>=-identityˡ-≈ >>=-assoc-≈ public\n  hiding ("
+    },
+    {
+     "line": 91,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Derived.Comm ≈ᴹ-setoid return _>>=_ >>=-cong >>=-identityˡ-≈ >>=-assoc-≈ >>=-comm pub"
+    }
+   ],
+   "checks": 0
+  },
+  "src/Categories/Monad/Setoids/Discrete/Morphism.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 11,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Categories.Monad.Relative using () renaming (Monad to RMonad)"
+    },
+    {
+     "line": 17,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Relation.Binary.PropositionalEquality.Properties using () renaming (setoid to "
+    }
+   ],
+   "checks": 0
+  },
+  "src/Categories/Monad/Setoids/Maybe.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 12,
+     "edit": "drop `using (Pointwise)`"
+    },
+    {
+     "line": 19,
+     "edit": "drop `using (Carrier)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 15,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Relation.Binary.PropositionalEquality.Properties using () renaming (setoid to "
+    }
+   ],
+   "checks": 3,
+   "seconds": 7.3
+  },
+  "src/Class/DecEq/Ext.agda": {
+   "candidates": 5,
+   "kept": [
+    {
+     "line": 9,
+     "edit": "drop `using (true)`"
+    },
+    {
+     "line": 10,
+     "edit": "drop `using (Level)`"
+    },
+    {
+     "line": 11,
+     "edit": "drop `using (_≡_; refl)`"
+    },
+    {
+     "line": 12,
+     "edit": "drop `using (⌊_⌋; yes; no)`"
+    },
+    {
+     "line": 13,
+     "edit": "drop `using (contradiction)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 17.3
+  },
+  "src/Class/Monad/Ext/Setoid.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 12,
+     "edit": "drop `using (IsEquivalence; Setoid)`"
+    },
+    {
+     "line": 147,
+     "edit": "drop `using (_≡_; refl; isEquivalence)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 11,
+     "edit": "drop `using (Typeω)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 47,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open MonadSetoid ⦃...⦄ public"
+    },
+    {
+     "line": 60,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open MonadLawsSetoid ⦃...⦄ public"
+    },
+    {
+     "line": 131,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open CommutativeMonadSetoid ⦃...⦄ public"
+    }
+   ],
+   "checks": 5,
+   "seconds": 32.4
+  },
+  "src/Data/Bits/Codec.agda": {
+   "candidates": 8,
+   "kept": [
+    {
+     "line": 17,
+     "edit": "drop `using (Bool; true; false)`"
+    },
+    {
+     "line": 18,
+     "edit": "drop `using (List; []; _∷_; _++_; length)`"
+    },
+    {
+     "line": 19,
+     "edit": "drop `using (++-assoc; ++-identityʳ)`"
+    },
+    {
+     "line": 20,
+     "edit": "drop `using (Maybe; just; nothing; maybe′; _>>=_)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (ℕ; zero; suc)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (_×_; _,_; proj₁; map₁)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 24,
+     "edit": "drop `using (Vec)`"
+    },
+    {
+     "line": 25,
+     "edit": "drop `using (Level; _⊔_)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 9,
+   "seconds": 235.9
+  },
+  "src/Data/Bool/Properties/Ext.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 6,
+     "edit": "drop `using (Bool; true; false; _∨_; _≤_; f≤t; b≤b)`"
+    },
+    {
+     "line": 7,
+     "edit": "drop `using (≤-maximum; ≤-minimum)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 6.9
+  },
+  "src/Data/List/Relation/Binary/BagAndSetEquality/Ext.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 7,
+     "edit": "drop `using (List; _∷_)`"
+    },
+    {
+     "line": 8,
+     "edit": "drop `using (_∈_)`"
+    },
+    {
+     "line": 9,
+     "edit": "drop `using (_∼[_]_; set)`"
+    },
+    {
+     "line": 10,
+     "edit": "drop `using (here; there)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 12.2
+  },
+  "src/Data/List/Relation/Unary/Any/Properties/Ext.agda": {
+   "candidates": 10,
+   "kept": [
+    {
+     "line": 3,
+     "edit": "drop `using (List)`"
+    },
+    {
+     "line": 5,
+     "edit": "drop `using (Any-resp-⊆)`"
+    },
+    {
+     "line": 6,
+     "edit": "drop `using (Any)`"
+    },
+    {
+     "line": 7,
+     "edit": "drop `using (_∘_)`"
+    },
+    {
+     "line": 8,
+     "edit": "drop `using (Equivalence; _⇔_; mk⇔)`"
+    },
+    {
+     "line": 9,
+     "edit": "drop `using (Level)`"
+    },
+    {
+     "line": 10,
+     "edit": "drop `using (Setoid)`"
+    },
+    {
+     "line": 19,
+     "edit": "drop `using (Carrier; _≈_; refl; sym)`"
+    },
+    {
+     "line": 20,
+     "edit": "drop `using (_∈_)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 11,
+     "edit": "drop `using (Pred)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 9,
+   "seconds": 35.3
+  },
+  "src/Data/List/Run.agda": {
+   "candidates": 7,
+   "kept": [
+    {
+     "line": 10,
+     "edit": "drop `using (length-reverse; reverse-involutive; unfold-reverse)`"
+    },
+    {
+     "line": 11,
+     "edit": "drop `using (Maybe; just; nothing)`"
+    },
+    {
+     "line": 12,
+     "edit": "drop `using (suc-injective)`"
+    },
+    {
+     "line": 13,
+     "edit": "drop `using (Σ; _×_; _,_; proj₁; proj₂)`"
+    },
+    {
+     "line": 14,
+     "edit": "drop `using (Level)`"
+    },
+    {
+     "line": 15,
+     "edit": "drop `using (_≡_; refl; sym; trans; cong; cong₂; subst)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 9,
+     "edit": "drop `using (List; []; _∷_; _++_; length; reverse)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 7,
+   "seconds": 23.2
+  },
+  "src/Data/Sum/Ext.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 8,
+     "edit": "drop `using (⊥)`"
+    },
+    {
+     "line": 9,
+     "edit": "drop `using (_⊎_; inj₁; inj₂)`"
+    },
+    {
+     "line": 10,
+     "edit": "drop `using (Level)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 4.8
+  },
+  "src/Data/Vec/Properties/Ext.agda": {
+   "candidates": 5,
+   "kept": [
+    {
+     "line": 9,
+     "edit": "drop `using (ℕ; _+_)`"
+    },
+    {
+     "line": 10,
+     "edit": "drop `using (Vec; _++_; take; drop)`"
+    },
+    {
+     "line": 11,
+     "edit": "drop `using (take++drop≡id)`"
+    },
+    {
+     "line": 12,
+     "edit": "drop `using (Level)`"
+    },
+    {
+     "line": 13,
+     "edit": "drop `using (_≡_; sym; trans; cong₂)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 9.9
+  },
+  "src/Function/Bundles/Ext.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 8,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Relation.Binary.PropositionalEquality.Properties using () renaming (setoid to "
+    }
+   ],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 5,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import ProbabilisticLogic.Abstract    public"
+    },
+    {
+     "line": 6,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import ProbabilisticLogic.Reasoning   public"
+    }
+   ],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Abstract.agda": {
+   "candidates": 10,
+   "kept": [
+    {
+     "line": 8,
+     "edit": "drop `using (Setoid; IsPreorder)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (module Lists; module Arith; module Predicates;\n      `"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (_×ᴸ_; ×ᴸ-≐-rect; ∈ˡ-?; ∈ˡ-≐-T-∈?; filterᵇ-self)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (n/n≡1ℚ)`"
+    },
+    {
+     "line": 25,
+     "edit": "drop `using (∪-∁-LEM; ∩-∁-partition)`"
+    },
+    {
+     "line": 29,
+     "edit": "drop `using (solve-≈)`"
+    },
+    {
+     "line": 291,
+     "edit": "drop `using (_∈?_)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 7,
+     "edit": "drop `using (module SemiringMorphisms)`"
+    },
+    {
+     "line": 15,
+     "edit": "drop `using (ℚ; _/_; 1ℚ)`"
+    },
+    {
+     "line": 17,
+     "edit": "drop `using (+_)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 46,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open CommutativeSemiring Probabilityᴿ renaming (Carrier to Probability) public"
+    },
+    {
+     "line": 68,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open IsSemiringHomomorphism fromℚ-isSemiringHomomorphism public\n    using (1#-homo)\n    re"
+    },
+    {
+     "line": 91,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open AbstractProbability abstractProbability public"
+    },
+    {
+     "line": 324,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open AbstractCore core public"
+    }
+   ],
+   "checks": 13,
+   "seconds": 92.2
+  },
+  "src/ProbabilisticLogic/Distribution/Bernoulli.agda": {
+   "candidates": 9,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/ProbabilisticLogic/Distribution/Binomial.agda": {
+   "candidates": 10,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/ProbabilisticLogic/Distribution/Markov.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 14,
+     "edit": "drop `using (any)`"
+    },
+    {
+     "line": 15,
+     "edit": "drop `using (∨-assoc; ∨-comm; ∨-identityʳ)`"
+    },
+    {
+     "line": 16,
+     "edit": "drop `using (++-identityʳ; concatMap-pure)`"
+    },
+    {
+     "line": 17,
+     "edit": "drop `using (IsEquivalence; Setoid)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 19.1
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 22,
+     "edit": "drop `using (_∼[_]_; set; [_]-Equality)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (Any)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 27,
+     "edit": "drop `using (InducedEquivalence₂; module EquationalReasoning)`"
+    },
+    {
+     "line": 34,
+     "edit": "drop `using (Carrier; reflexive)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 30,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Relation.Binary.PropositionalEquality.Properties using () renaming (setoid to "
+    },
+    {
+     "line": 112,
+     "why": "empty using () (renaming idiom)",
+     "text": "open Membership S″ using () renaming (_∈_ to _∈″_)"
+    }
+   ],
+   "checks": 7,
+   "seconds": 47.1
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Advantage.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 14,
+     "edit": "drop `using (just)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (bool→ℚ; indᵇ)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 20.1
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 10,
+     "edit": "drop `using (ℚ; 0ℚ; 1ℚ)`"
+    },
+    {
+     "line": 12,
+     "edit": "drop `using\n  (≤-antisym; ≤-refl; ≤-reflexive; ≤-trans; *-identity`"
+    },
+    {
+     "line": 18,
+     "edit": "drop `using (bool→ℚ; indᵇ)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 8,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.List.NonEmpty as NE using ()"
+    },
+    {
+     "line": 9,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.List.Relation.Unary.All as ListAll using ()"
+    }
+   ],
+   "checks": 3,
+   "seconds": 19.6
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 20,
+     "edit": "drop `using (CommutativeRing)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (ℚ; 0ℚ; 1ℚ)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (*-identityˡ; *-distribʳ-+; *-zeroˡ; +-*-commutativeRi`"
+    },
+    {
+     "line": 25,
+     "edit": "drop `using (IsEquivalence)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 19.5
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Setoid.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 9,
+     "edit": "drop `using (Setoid)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 19.4
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Support.agda": {
+   "candidates": 10,
+   "kept": [
+    {
+     "line": 19,
+     "edit": "drop `using (CommutativeRing)`"
+    },
+    {
+     "line": 20,
+     "edit": "drop `using (if_then_else_)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (any)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (+_)`"
+    },
+    {
+     "line": 27,
+     "edit": "drop `using (ℚ; 0ℚ; 1ℚ)`"
+    },
+    {
+     "line": 29,
+     "edit": "drop `using ( +-*-commutativeRing; +-comm; +-identityʳ; +-inverseʳ`"
+    },
+    {
+     "line": 35,
+     "edit": "drop `using (module +-*-Solver)`"
+    },
+    {
+     "line": 36,
+     "edit": "drop `using (dec-false; dec-true; does)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 22,
+     "edit": "drop `using (∨-comm; ∨-identityʳ)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (fromMaybe)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 15,
+   "seconds": 100.3
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 16,
+     "edit": "drop `using (ℚ; 0ℚ; _+_; _*_; _≤_; nonNegative)`"
+    },
+    {
+     "line": 17,
+     "edit": "drop `using\n  ( *-distribʳ-+; *-monoʳ-≤-nonNeg; *-zeroˡ; +-comm; +`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using\n  ( 0≤fromℕ; 0≤inv-pow-2; fromℕ; fromℕ-+; fromℕ-mono-≤`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 14,
+     "edit": "drop `using (ℕ; zero; suc; z≤n)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 7,
+   "seconds": 43.1
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Collision.agda": {
+   "candidates": 13,
+   "kept": [
+    {
+     "line": 18,
+     "edit": "drop `using (⊥-elim)`"
+    },
+    {
+     "line": 19,
+     "edit": "drop `using (List; []; _∷_; length)`"
+    },
+    {
+     "line": 20,
+     "edit": "drop `using (_∈_)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (here; there)`"
+    },
+    {
+     "line": 29,
+     "edit": "drop `using (yes; no; ⌊_⌋)`"
+    },
+    {
+     "line": 31,
+     "edit": "drop `using\n  (entries; lookupᴰℚ-zero; lookupᴰℚ-+)`"
+    },
+    {
+     "line": 33,
+     "edit": "drop `using (E; 0≤bool)`"
+    },
+    {
+     "line": 34,
+     "edit": "drop `using\n  (P-uniform-Vec; bool→ℚ; fromℕ; inv-pow-2; suc·c; uni`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 17,
+     "edit": "drop `using (Bool)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (ℕ)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (ℚ; 0ℚ; 1ℚ; _+_; _*_; _≤_)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using\n  ( *-zeroˡ; +-identityˡ; +-identityʳ; +-mono-≤; +-mon`"
+    },
+    {
+     "line": 27,
+     "edit": "drop `using (Vec)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 19,
+   "seconds": 125.4
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda": {
+   "candidates": 14,
+   "kept": [
+    {
+     "line": 16,
+     "edit": "drop `using (Bool; true; false; _∨_)`"
+    },
+    {
+     "line": 17,
+     "edit": "drop `using (⊥-elim)`"
+    },
+    {
+     "line": 18,
+     "edit": "drop `using (List; []; _∷_; length)`"
+    },
+    {
+     "line": 19,
+     "edit": "drop `using (_∈_)`"
+    },
+    {
+     "line": 20,
+     "edit": "drop `using (here; there)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (ℕ; suc; _*_; _+_)`"
+    },
+    {
+     "line": 28,
+     "edit": "drop `using (case_of_)`"
+    },
+    {
+     "line": 30,
+     "edit": "drop `using (yes; no; ⌊_⌋)`"
+    },
+    {
+     "line": 31,
+     "edit": "drop `using (¬_)`"
+    },
+    {
+     "line": 33,
+     "edit": "drop `using\n  (E; E-add; E-const; E-mono; 0≤bool)`"
+    },
+    {
+     "line": 35,
+     "edit": "drop `using\n  (bool→ℚ; fromℕ; inv-pow-2; uniform-Vec)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 22,
+     "edit": "drop `using (ℚ; 0ℚ; 1ℚ)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using\n  ( +-identityˡ; +-identityʳ; +-mono-≤; +-monoˡ-≤; +-m`"
+    },
+    {
+     "line": 27,
+     "edit": "drop `using (Vec)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 17,
+   "seconds": 113.3
+  },
+  "src/ProbabilisticLogic/Dp.agda": {
+   "candidates": 4,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 27,
+     "edit": "drop `using (m≤m⊔n; m≤n⊔m; m≤n+m; n≤1+n)`"
+    },
+    {
+     "line": 29,
+     "edit": "drop `using (ℚ; 0ℚ; 1ℚ)`"
+    },
+    {
+     "line": 33,
+     "edit": "drop `using (_⊎_; inj₁; inj₂)`"
+    },
+    {
+     "line": 36,
+     "edit": "drop `using (Level)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 59,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Dₚ public"
+    }
+   ],
+   "checks": 8,
+   "seconds": 38.9
+  },
+  "src/ProbabilisticLogic/Dp/Advantage.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 35,
+     "edit": "drop `using (indᵇ)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 12.5
+  },
+  "src/ProbabilisticLogic/Dp/Coin.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 12,
+     "edit": "drop `using (_,_)`"
+    },
+    {
+     "line": 17,
+     "edit": "drop `using (_∘′_)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 16,
+     "edit": "drop `using (Vec)`"
+    },
+    {
+     "line": 18,
+     "edit": "drop `using (Level)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 9,
+   "seconds": 74.2
+  },
+  "src/ProbabilisticLogic/Dp/Commutative.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 25,
+     "edit": "drop `using (CommutativeMonoid)`"
+    },
+    {
+     "line": 33,
+     "edit": "drop `using (x∙yz≈y∙xz)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 16,
+     "edit": "drop `using (n≤1+n)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (Level)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 30,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Algebra.Properties.CommutativeSemigroup\n  (CommutativeMonoid.commutativeSemigr"
+    }
+   ],
+   "checks": 7,
+   "seconds": 34.3
+  },
+  "src/ProbabilisticLogic/Dp/Dominate.agda": {
+   "candidates": 9,
+   "kept": [
+    {
+     "line": 15,
+     "edit": "drop `using (true; false)`"
+    },
+    {
+     "line": 16,
+     "edit": "drop `using (ℕ; zero; suc)`"
+    },
+    {
+     "line": 18,
+     "edit": "drop `using (Σ-syntax; _,_; proj₁; proj₂)`"
+    },
+    {
+     "line": 19,
+     "edit": "drop `using (ℚ; 0ℚ; 1ℚ)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (module +-*-Solver)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (_⊎_; inj₁; inj₂)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (Level)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (_≡_; refl; sym; trans; cong; cong₂)`"
+    },
+    {
+     "line": 27,
+     "edit": "drop `using (returnₚ-cum-≤)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 17,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Nat.Properties as ℕP using ()"
+    }
+   ],
+   "checks": 3,
+   "seconds": 14.6
+  },
+  "src/ProbabilisticLogic/Dp/Elgot.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 35,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open ProbabilisticLogic.Dp.Iter public using (iterₚ; iterₚ-cong; iterₚ-fix)"
+    },
+    {
+     "line": 36,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open ProbabilisticLogic.Dp.Iter.Codiagonal public using (iterₚ-codiagonal)"
+    },
+    {
+     "line": 37,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open ProbabilisticLogic.Dp.Iter.Out public using (iterₚ-out)"
+    },
+    {
+     "line": 38,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open ProbabilisticLogic.Dp.Iter.Transfer public using (iterₚ-transfer)"
+    }
+   ],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Dp/Iter.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 19,
+     "edit": "drop `using (m≤n+m; n≤1+n)`"
+    },
+    {
+     "line": 25,
+     "edit": "drop `using (Level)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 19.5
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Codiagonal.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 25,
+     "edit": "drop `using (n≤1+n)`"
+    },
+    {
+     "line": 31,
+     "edit": "drop `using (Level)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 19.2
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Out.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 19,
+     "edit": "drop `using (n≤1+n)`"
+    },
+    {
+     "line": 25,
+     "edit": "drop `using (Level)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 19.6
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Transfer.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 24,
+     "edit": "drop `using (n≤1+n)`"
+    },
+    {
+     "line": 30,
+     "edit": "drop `using (Level)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 19.3
+  },
+  "src/ProbabilisticLogic/Dp/Mass.agda": {
+   "candidates": 10,
+   "kept": [
+    {
+     "line": 20,
+     "edit": "drop `using (Bool; true; false)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (ℕ; zero; suc; _⊔_)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (Σ-syntax; _,_; proj₁; proj₂)`"
+    },
+    {
+     "line": 26,
+     "edit": "drop `using (module +-*-Solver)`"
+    },
+    {
+     "line": 27,
+     "edit": "drop `using (_⊎_; inj₁; inj₂)`"
+    },
+    {
+     "line": 30,
+     "edit": "drop `using (_≡_; refl; sym; trans; cong; cong₂; subst)`"
+    },
+    {
+     "line": 33,
+     "edit": "drop `using (indᵇ)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 22,
+     "edit": "drop `using (m≤m⊔n; m≤n⊔m)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (ℚ; 0ℚ; 1ℚ; ½)`"
+    },
+    {
+     "line": 28,
+     "edit": "drop `using (Level)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 15,
+   "seconds": 95.9
+  },
+  "src/ProbabilisticLogic/Dp/Reasoning.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 10,
+     "edit": "drop `using (_∘′_)`"
+    },
+    {
+     "line": 11,
+     "edit": "drop `using (Level)`"
+    },
+    {
+     "line": 12,
+     "edit": "drop `using (_≡_; refl)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 14.4
+  },
+  "src/ProbabilisticLogic/Dp/Settle.agda": {
+   "candidates": 10,
+   "kept": [
+    {
+     "line": 19,
+     "edit": "drop `using (just; nothing)`"
+    },
+    {
+     "line": 20,
+     "edit": "drop `using (ℕ; zero; suc; _+_; _∸_; _≤_)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (Σ-syntax; _,_; proj₁; proj₂)`"
+    },
+    {
+     "line": 25,
+     "edit": "drop `using (_⊎_; inj₁; inj₂)`"
+    },
+    {
+     "line": 26,
+     "edit": "drop `using (⊤; tt)`"
+    },
+    {
+     "line": 33,
+     "edit": "drop `using (uniform-Bool; uniform-Vec)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 18,
+     "edit": "drop `using (Bool; true; false)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (m+[n∸m]≡n; m∸n+n≡m; m≤m+n; m≤n+m; +-identityʳ)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (ℚ; 0ℚ)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (≤-antisym; ≤-refl; ≤-reflexive; ≤-trans)`"
+    }
+   ],
+   "skipped": [
+    {
+     "line": 27,
+     "why": "empty using () (renaming idiom)",
+     "text": "open import Data.Vec.Base as Vec using ()"
+    },
+    {
+     "line": 133,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Settles public"
+    }
+   ],
+   "checks": 17,
+   "seconds": 116.6
+  },
+  "src/ProbabilisticLogic/Dp/Settle/Iter.agda": {
+   "candidates": 9,
+   "kept": [
+    {
+     "line": 19,
+     "edit": "drop `using (nothing)`"
+    },
+    {
+     "line": 20,
+     "edit": "drop `using (ℕ; zero; suc; _+_; _≤_; _<_; s≤s; s≤s⁻¹)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (Σ-syntax; _×_; _,_; proj₁; proj₂)`"
+    },
+    {
+     "line": 25,
+     "edit": "drop `using (≤-antisym; ≤-reflexive; ≤-trans)`"
+    },
+    {
+     "line": 26,
+     "edit": "drop `using (_⊎_; inj₁; inj₂)`"
+    },
+    {
+     "line": 27,
+     "edit": "drop `using (⊤; tt)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 18,
+     "edit": "drop `using (Bool; true; false)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (m≤n+m; n≤1+n)`"
+    },
+    {
+     "line": 24,
+     "edit": "drop `using (ℚ)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 15,
+   "seconds": 99.9
+  },
+  "src/ProbabilisticLogic/Dp/Stable.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 12,
+     "edit": "drop `using (Bool; true; false)`"
+    },
+    {
+     "line": 16,
+     "edit": "drop `using (ℚ; 0ℚ)`"
+    },
+    {
+     "line": 17,
+     "edit": "drop `using (Level)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 6,
+   "seconds": 38.0
+  },
+  "src/ProbabilisticLogic/Dp/Support.agda": {
+   "candidates": 7,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "kept-set final check RED -- file reverted",
+   "checks": 11
+  },
+  "src/ProbabilisticLogic/Examples/BiasedCoin.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/ProbabilisticLogic/Examples/Coins.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/ProbabilisticLogic/Examples/MultipleCoins.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/ProbabilisticLogic/Examples/Weather.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/ProbabilisticLogic/Expectation.agda": {
+   "candidates": 16,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 62,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open E[_,_]≈_ public"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/ProbabilisticLogic/Logic.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 25,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Σ[_][_]_ public"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/ProbabilisticLogic/Models/Trivial.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/ProbabilisticLogic/Prelude.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 11,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import ProbabilisticLogic.Distribution.RationalDist public using\n  ( Dist-ℚ; entries;"
+    },
+    {
+     "line": 18,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import ProbabilisticLogic.Distribution.RationalDist.Partial public"
+    },
+    {
+     "line": 20,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import ProbabilisticLogic.Distribution.RationalDist.Expectation public using\n  ( E; m"
+    },
+    {
+     "line": 23,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import ProbabilisticLogic.Distribution.RationalDist.Setoid public using\n  ( Mℚ-setoid"
+    },
+    {
+     "line": 26,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import ProbabilisticLogic.Distribution.RationalDist.Advantage public using\n  ( advᵇ⊥;"
+    },
+    {
+     "line": 29,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open import ProbabilisticLogic.Distribution.Uniform public using\n  ( bool→ℚ; indᵇ; δ; from"
+    }
+   ],
+   "checks": 0
+  },
+  "src/ProbabilisticLogic/Reasoning.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 14,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open ≤-Reasoning' record { isPartialOrder = ≤-isPartialOrder {A = A} } public"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/Relation/Binary/Bundles/Ext.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  }
+ },
+ "totalChecks": 342
+}

@@ -1,0 +1,720 @@
+  src/CategoricalCrypto/Examples/ChimericLedger.agda:15 kept | open import Class.DecEq
+  src/CategoricalCrypto/Examples/ChimericLedger.agda:17 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/ChimericLedger.agda:18 kept | open import Data.List.Base using (List; []; _∷_; map; foldl; null)
+  src/CategoricalCrypto/Examples/ChimericLedger.agda:19 kept | open import Data.Maybe.Base renaming (map to mapᵐ)
+  src/CategoricalCrypto/Examples/ChimericLedger.agda:20 kept | open import Data.Nat.Base renaming (_≡ᵇ_ to _≡ᴺ_)
+  src/CategoricalCrypto/Examples/ChimericLedger.agda:21 kept | open import Data.Nat.ListAction
+  src/CategoricalCrypto/Examples/ChimericLedger.agda:22 kept | open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
+  src/CategoricalCrypto/Examples/ChimericLedger.agda:23 kept | open import Data.Vec.Base using (Vec)
+  src/CategoricalCrypto/Examples/ChimericLedger.agda:24 kept | open import Function.Base
+  src/CategoricalCrypto/Examples/ChimericLedger.agda:25 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/ChimericLedger.agda:26 kept | open import Relation.Nullary.Decidable.Core
+  src/CategoricalCrypto/Examples/ChimericLedger.agda:28 kept | open import CategoricalCrypto.OracleCall
+src/CategoricalCrypto/Examples/ChimericLedger.agda: {'kept': 12}
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:25 kept | open import Class.DecEq
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:27 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:28 kept | open import Data.Bool.Properties using (T-≡; ∨-zeroʳ)
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:29 kept | open import Data.Empty
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:30 kept | open import Data.Fin.Base using () renaming (zero to fzero)
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:31 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:32 kept | open import Data.List.Membership.Propositional
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:33 kept | open import Data.List.Relation.Unary.All as All
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:34 kept | open import Data.List.Relation.Unary.Any
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:35 kept | open import Data.Maybe.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:36 kept | open import Data.Nat.Base renaming (_+_ to _+ᴺ_; _*_ to _*ᴺ_)
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:37 kept | open import Data.Nat.Properties using (≡⇒≡ᵇ)
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:38 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:39 kept | open import Data.Rational using (ℚ; 1ℚ; _*_) renaming (_≤_ to _≤ℚ_)
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:40 kept | open import Data.Rational.Properties using (+-identityˡ; ≤-reflexive; 
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:41 kept | open import Data.Sum.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:42 kept | open import Data.Unit.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:43 kept | open import Function.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:44 kept | open import Function.Bundles
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:45 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:46 kept | open import Relation.Nullary.Decidable.Core
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:47 kept | open import Relation.Nullary.Negation.Core
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:49 kept | open import ProbabilisticLogic.Prelude
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:50 kept | open import ProbabilisticLogic.Distribution.RationalDist
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:51 kept | open import ProbabilisticLogic.Distribution.RationalDist.Expectation
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:53 kept | open import CategoricalCrypto.Examples.ChimericLedger
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:54 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:55 kept | open import CategoricalCrypto.OracleCall
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:56 kept | open import CategoricalCrypto.Protocol
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:57 kept | open import CategoricalCrypto.Protocol.Observe
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:58 kept | open import CategoricalCrypto.Protocol.Safety
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:66 kept | open import CategoricalCrypto.Examples.ChimericLedger.Observable ℓ ser
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:67 kept | open import CategoricalCrypto.Examples.ChimericLedger.System ℓ ser
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:68 kept | open import CategoricalCrypto.Examples.ChimericLedger.Value ℓ
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:69 kept | open import ProbabilisticLogic.Distribution.Uniform.Birthday ℓ
+  src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda:71 kept | open import ProbabilisticLogic.Distribution.Uniform.Duplicate ℓ using
+
+src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda: {'kept': 36}
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:19 kept | open import Data.Bool.Base renaming (_≤_ to _≤ᵇ_)
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:20 kept | open import Data.Bool.Properties using (T-≡; ≤-minimum)
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:21 kept | open import Data.Bool.Properties.Ext
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:22 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:23 kept | open import Data.Maybe.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:24 kept | open import Data.Nat.Base using (ℕ; zero; suc) renaming (_+_ to _+ᴺ_; 
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:25 kept | open import Data.Nat.Properties using (+-suc; ≡⇒≡ᵇ)
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:26 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:27 kept | open import Data.Rational using (ℚ) renaming (_≤_ to _≤ℚ_)
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:28 kept | open import Data.Rational.Properties
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:29 kept | open import Data.Rational.Properties.Ext
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:30 kept | open import Data.Unit.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:31 kept | open import Function.Bundles
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:32 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:34 kept | open import ProbabilisticLogic.Prelude
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:35 kept | open import ProbabilisticLogic.Distribution.RationalDist
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:36 kept | open import ProbabilisticLogic.Distribution.RationalDist.Expectation
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:37 PRUNED drop whole import (rows 37-37) | open import ProbabilisticLogic.Distribution.Uniform
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:38 kept | open import CategoricalCrypto.Examples.ChimericLedger
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:39 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:40 kept | open import CategoricalCrypto.Protocol
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:41 kept | open import CategoricalCrypto.Protocol.Observe
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:42 kept | open import CategoricalCrypto.Strategy
+  src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda:49 kept | open import CategoricalCrypto.Examples.ChimericLedger.System ℓ ser
+src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda: {'kept': 23, 'pruned': 1}
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:29 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:30 kept | open import Data.List.Base using (List)
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:31 kept | open import Data.Nat.Base as ℕ
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:32 kept | open import Data.Nat.Poly
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:33 kept | open import Data.Nat.Properties
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:34 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:35 kept | open import Data.Rational as ℚ
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:36 kept | open import Data.Rational.Properties using (*-monoʳ-≤-nonNeg)
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:37 kept | open import Data.Rational.Properties.Ext
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:38 kept | open import Data.Vec.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:39 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:41 kept | open import ProbabilisticLogic.Distribution.Uniform
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:42 kept | open import ProbabilisticLogic.Dp.Advantage
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:44 kept | open import CategoricalCrypto.Examples.ChimericLedger
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:45 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:46 kept | open import CategoricalCrypto.Protocol.Machine
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:47 kept | open import CategoricalCrypto.Protocol.Machine.Agree
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:48 kept | open import CategoricalCrypto.Protocol.Observe
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:49 kept | open import CategoricalCrypto.Strategy
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:50 kept | open import CategoricalCrypto.UC.Approximate
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:51 kept | open import CategoricalCrypto.UC.Approximate.Decay
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:52 kept | open import CategoricalCrypto.UC.Machine
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:53 kept | open import CategoricalCrypto.UC.Machine.Monitor
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:54 kept | open import CategoricalCrypto.UC.Model.Family.Emulation
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:55 kept | open import CategoricalCrypto.UC.Quantitative.EventLift
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:58 kept | import CategoricalCrypto.Examples.ChimericLedger.Birthday   as Birthda
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:59 kept | import CategoricalCrypto.Examples.ChimericLedger.Observable as Observa
+  src/CategoricalCrypto/Examples/ChimericLedger/Property.agda:60 kept | import CategoricalCrypto.Examples.ChimericLedger.System     as System
+src/CategoricalCrypto/Examples/ChimericLedger/Property.agda: {'kept': 28}
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:26 kept | open import Class.DecEq
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:27 kept | open import Class.DecEq.Ext
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:29 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:30 kept | open import Data.Bool.Properties
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:31 kept | open import Data.Fin.Base using () renaming (zero to fzero)
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:32 kept | open import Data.List.Base using (List; []; _∷_)
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:33 kept | open import Data.Maybe.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:34 kept | open import Data.Nat.Base renaming (_≡ᵇ_ to _≡ᴺ_)
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:35 kept | open import Data.Nat.Properties
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:36 kept | open import Data.Nat.Properties.Ext
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:37 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:38 kept | open import Data.Rational using (0ℚ; 1ℚ)
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:39 kept | open import Data.Unit.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:40 kept | open import Data.Vec.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:41 kept | open import Function.Bundles
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:42 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:44 kept | open import ProbabilisticLogic.Prelude
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:45 kept | open import ProbabilisticLogic.Distribution.RationalDist
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:46 kept | open import ProbabilisticLogic.Distribution.RationalDist.Expectation
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:48 kept | open import CategoricalCrypto.Examples.ChimericLedger
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:49 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:50 kept | open import CategoricalCrypto.OracleCall
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:51 kept | open import CategoricalCrypto.Protocol
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:52 kept | open import CategoricalCrypto.Protocol.Observe
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:53 kept | open import CategoricalCrypto.Strategy
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:55 kept | import CategoricalCrypto.Examples.ChimericLedger.Observable as Observa
+  src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda:56 kept | import CategoricalCrypto.Examples.ChimericLedger.System     as System
+src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda: {'kept': 27}
+  src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda:25 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda:26 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda:27 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda:28 kept | open import Data.Nat.Poly
+  src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda:29 kept | open import Data.Nat.Properties using (+-identityʳ) renaming (≤-refl t
+  src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda:30 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda:31 kept | open import Data.Rational as ℚ using (1ℚ; ½)
+  src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda:32 kept | open import Data.Rational.Properties using (positive⁻¹; ≤-reflexive; ≤
+  src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda:33 kept | open import Data.Rational.Properties.Ext
+  src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda:34 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda:35 kept | open import Relation.Nullary.Negation.Core
+  src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda:37 kept | open import CategoricalCrypto.Examples.ChimericLedger
+  src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda:38 kept | open import CategoricalCrypto.Protocol.Observe
+  src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda:39 kept | open import CategoricalCrypto.UC.Approximate
+  src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda:40 kept | open import CategoricalCrypto.UC.Model.Family.Emulation
+  src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda:42 kept | import CategoricalCrypto.Examples.ChimericLedger.Replay as Replay
+  src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda:47 kept | open import CategoricalCrypto.Examples.ChimericLedger.Property ser
+src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda: {'kept': 17}
+  src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda:13 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda:14 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda:15 kept | open import Data.Maybe.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda:16 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda:17 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda:18 kept | open import Data.Vec.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda:19 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda:21 kept | open import Data.Bits.Codec
+  src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda:23 kept | open import CategoricalCrypto.Examples.ChimericLedger
+  src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda:25 kept | import CategoricalCrypto.Examples.ChimericLedger.Property as Property
+src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda: {'kept': 10}
+  src/CategoricalCrypto/Examples/ChimericLedger/System.agda:13 kept | open import Class.DecEq
+  src/CategoricalCrypto/Examples/ChimericLedger/System.agda:15 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/System.agda:16 kept | open import Data.Fin.Base using (Fin) renaming (zero to fzero)
+  src/CategoricalCrypto/Examples/ChimericLedger/System.agda:17 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/System.agda:18 kept | open import Data.Maybe.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/System.agda:19 kept | open import Data.Nat.Base renaming (_≡ᵇ_ to _≡ᴺ_)
+  src/CategoricalCrypto/Examples/ChimericLedger/System.agda:20 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/System.agda:21 kept | open import Function.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/System.agda:22 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/ChimericLedger/System.agda:24 PRUNED drop whole import (rows 24-24) | open import ProbabilisticLogic.Prelude
+  src/CategoricalCrypto/Examples/ChimericLedger/System.agda:25 kept | open import CategoricalCrypto.Examples.ChimericLedger
+  src/CategoricalCrypto/Examples/ChimericLedger/System.agda:26 kept | open import CategoricalCrypto.Examples.RandomOracle
+  src/CategoricalCrypto/Examples/ChimericLedger/System.agda:27 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/ChimericLedger/System.agda:28 kept | open import CategoricalCrypto.OracleCall
+  src/CategoricalCrypto/Examples/ChimericLedger/System.agda:29 kept | open import CategoricalCrypto.Protocol
+  src/CategoricalCrypto/Examples/ChimericLedger/System.agda:30 kept | open import CategoricalCrypto.Protocol.Observe
+src/CategoricalCrypto/Examples/ChimericLedger/System.agda: {'kept': 15, 'pruned': 1}
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:28 kept | open import Categories.LocallyGraded
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:29 kept | open import Categories.LocallyGraded.SubCategory
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:31 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:32 kept | open import Data.Bool.Properties using (∨-identityʳ)
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:33 kept | open import Data.Fin.Base using () renaming (zero to fzero)
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:34 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:35 kept | open import Data.Maybe.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:36 kept | open import Data.Nat.Base as ℕ
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:37 kept | open import Data.Nat.Poly
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:38 kept | open import Data.Nat.Positive
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:39 kept | open import Data.Nat.Properties using (m≤n+m; ≤-refl)
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:40 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:41 kept | open import Data.Rational as ℚ
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:42 kept | open import Data.Rational.Properties using (+-identityʳ; ≤-trans)
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:43 kept | open import Data.Rational.Properties.Ext
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:44 kept | open import Data.Unit.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:45 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:46 kept | open import Relation.Nullary.Negation.Core
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:48 kept | open import ProbabilisticLogic.Prelude
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:49 kept | open import ProbabilisticLogic.Distribution.RationalDist
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:50 kept | open import ProbabilisticLogic.Distribution.RationalDist.Expectation
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:51 kept | open import ProbabilisticLogic.Dp.Advantage
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:53 kept | open import CategoricalCrypto.Examples.ChimericLedger
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:54 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:55 kept | open import CategoricalCrypto.OracleCall
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:56 kept | open import CategoricalCrypto.Protocol
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:57 kept | open import CategoricalCrypto.Protocol.Machine
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:58 kept | open import CategoricalCrypto.Protocol.Machine.Agree
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:59 kept | open import CategoricalCrypto.Protocol.Observe
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:60 kept | open import CategoricalCrypto.Strategy
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:61 kept | open import CategoricalCrypto.UC.Approximate
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:62 kept | open import CategoricalCrypto.UC.Factor
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:63 kept | open import CategoricalCrypto.UC.Model.Enrichment
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:64 kept | open import CategoricalCrypto.UC.Model.Family
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:65 kept | open import CategoricalCrypto.UC.Model.Family.Contextual
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:66 kept | open import CategoricalCrypto.UC.Model.Family.Emulation
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:67 kept | open import CategoricalCrypto.UC.Model.Family.Ingest
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:68 kept | open import CategoricalCrypto.UC.Model.Seal
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:69 kept | open import CategoricalCrypto.UC.Model.Setup
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:70 kept | open import CategoricalCrypto.UC.QueryBound renaming (QB to QBᴹ)
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:71 kept | open import CategoricalCrypto.UC.Seam.Grounded
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:73 kept | import CategoricalCrypto.Examples.ChimericLedger.Replay as Replay
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:78 kept | open import CategoricalCrypto.Examples.ChimericLedger.Property ser
+  src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda:168 kept | open import CategoricalCrypto.Examples.ChimericLedger.System ℓ (ser ℓ)
+src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda: {'kept': 44}
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:12 kept | open import Class.DecEq
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:14 kept | open import Data.Bool.Base using (Bool; true; false; if_then_else_; T)
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:15 kept | open import Data.Empty
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:16 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:17 kept | open import Data.List.Membership.Propositional
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:18 kept | open import Data.List.Relation.Unary.Any using (here; there)
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:19 kept | open import Data.Maybe.Base using (Maybe; just; nothing; is-just)
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:20 kept | open import Data.Maybe.Properties
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:21 kept | open import Data.Nat.Base renaming (_≡ᵇ_ to _≡ᴺ_)
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:22 kept | open import Data.Nat.Properties using
+  ( +-assoc; +-comm; +-identityʳ
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:25 kept | open import Data.Product.Base using (_×_; _,_; proj₁; proj₂; Σ-syntax)
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:26 kept | open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:27 kept | open import Data.Unit.Base
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:28 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:29 kept | open import Relation.Nullary.Decidable.Core
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:30 kept | open import Relation.Nullary.Negation.Core
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:32 kept | open import CategoricalCrypto.Examples.ChimericLedger
+  src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:33 kept | open import CategoricalCrypto.OracleCall
+src/CategoricalCrypto/Examples/ChimericLedger/Value.agda: {'kept': 18}
+  src/CategoricalCrypto/Examples/CoinToss.agda:19 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/CoinToss.agda:20 kept | open import Data.Empty
+  src/CategoricalCrypto/Examples/CoinToss.agda:21 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/CoinToss.agda:22 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/CoinToss.agda:23 kept | open import Data.Sum.Base
+  src/CategoricalCrypto/Examples/CoinToss.agda:24 kept | open import Data.Unit.Polymorphic.Base
+  src/CategoricalCrypto/Examples/CoinToss.agda:25 kept | open import Function.Base
+  src/CategoricalCrypto/Examples/CoinToss.agda:26 kept | open import Level
+  src/CategoricalCrypto/Examples/CoinToss.agda:28 kept | open import ProbabilisticLogic.Distribution.Uniform
+  src/CategoricalCrypto/Examples/CoinToss.agda:29 kept | open import ProbabilisticLogic.Dp
+  src/CategoricalCrypto/Examples/CoinToss.agda:30 kept | open import ProbabilisticLogic.Dp.Coin
+  src/CategoricalCrypto/Examples/CoinToss.agda:32 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/CoinToss.agda:33 kept | open import CategoricalCrypto.Machines.Base
+  src/CategoricalCrypto/Examples/CoinToss.agda:34 kept | open import CategoricalCrypto.UC.Machine
+  src/CategoricalCrypto/Examples/CoinToss.agda:36 kept | import CategoricalCrypto.Machines.Core as Core
+  src/CategoricalCrypto/Examples/CoinToss.agda:37 kept | import CategoricalCrypto.Machines.Sim as Sim
+  src/CategoricalCrypto/Examples/CoinToss.agda:41 kept | open import CategoricalCrypto.Examples.ROCommitment k
+src/CategoricalCrypto/Examples/CoinToss.agda: {'kept': 17}
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:19 kept | open import Categories.LocallyGraded.SubCategory
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:21 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:22 kept | open import Data.Nat.Poly
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:23 kept | open import Data.Nat.Positive
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:24 kept | open import Data.Nat.Properties using (*-identityʳ)
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:25 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:26 kept | open import Data.Rational as ℚ using (ℚ; 0ℚ) renaming (_*_ to _*ℚ_)
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:27 kept | open import Data.Rational.Properties using (+-identityˡ)
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:28 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:30 kept | open import ProbabilisticLogic.Distribution.Uniform
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:32 kept | open import CategoricalCrypto.Examples.ROCommitment.Asymptotic
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:33 kept | open import CategoricalCrypto.UC.Approximate
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:35 kept | open import CategoricalCrypto.UC.Model.Enrichment
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:36 kept | open import CategoricalCrypto.UC.Model.Family.Contextual
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:37 kept | open import CategoricalCrypto.UC.Model.Seal
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:38 kept | open import CategoricalCrypto.UC.Model.Setup
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:40 kept | import CategoricalCrypto.Examples.CoinToss as CT
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:41 kept | import CategoricalCrypto.Examples.CoinToss.Hiding as CTH
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:42 kept | import CategoricalCrypto.Examples.CoinToss.Hiding.UC as CTHU
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:43 kept | import CategoricalCrypto.Examples.CoinToss.UC as CTU
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:44 kept | import CategoricalCrypto.Examples.ROCommitment as RO
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:45 kept | import CategoricalCrypto.Examples.ROCommitment.Hiding as ROH
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:46 kept | import CategoricalCrypto.Examples.ROCommitment.Hiding.UC as ROHU
+  src/CategoricalCrypto/Examples/CoinToss/Compose.agda:47 kept | import CategoricalCrypto.Examples.ROCommitment.UC as ROU
+src/CategoricalCrypto/Examples/CoinToss/Compose.agda: {'kept': 24}
+  src/CategoricalCrypto/Examples/CoinToss/Hiding.agda:18 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/CoinToss/Hiding.agda:19 kept | open import Data.Empty
+  src/CategoricalCrypto/Examples/CoinToss/Hiding.agda:20 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/CoinToss/Hiding.agda:21 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/CoinToss/Hiding.agda:22 kept | open import Data.Sum.Base
+  src/CategoricalCrypto/Examples/CoinToss/Hiding.agda:23 kept | open import Data.Unit.Polymorphic.Base
+  src/CategoricalCrypto/Examples/CoinToss/Hiding.agda:24 kept | open import Function.Base
+  src/CategoricalCrypto/Examples/CoinToss/Hiding.agda:25 kept | open import Level
+  src/CategoricalCrypto/Examples/CoinToss/Hiding.agda:27 kept | open import ProbabilisticLogic.Distribution.Uniform
+  src/CategoricalCrypto/Examples/CoinToss/Hiding.agda:28 kept | open import ProbabilisticLogic.Dp
+  src/CategoricalCrypto/Examples/CoinToss/Hiding.agda:29 kept | open import ProbabilisticLogic.Dp.Coin
+  src/CategoricalCrypto/Examples/CoinToss/Hiding.agda:31 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/CoinToss/Hiding.agda:32 kept | open import CategoricalCrypto.Machines.Base
+  src/CategoricalCrypto/Examples/CoinToss/Hiding.agda:33 kept | open import CategoricalCrypto.UC.Machine
+  src/CategoricalCrypto/Examples/CoinToss/Hiding.agda:35 kept | import CategoricalCrypto.Machines.Core as Core
+  src/CategoricalCrypto/Examples/CoinToss/Hiding.agda:36 kept | import CategoricalCrypto.Machines.Sim as Sim
+  src/CategoricalCrypto/Examples/CoinToss/Hiding.agda:40 kept | open import CategoricalCrypto.Examples.ROCommitment.Hiding k
+src/CategoricalCrypto/Examples/CoinToss/Hiding.agda: {'kept': 17}
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:13 kept | open import Categories.LocallyGraded.SubCategory
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:15 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:16 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:17 kept | open import Data.Nat.Positive
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:18 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:19 kept | open import Data.Sum.Base
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:20 kept | open import Data.Vec.Base using () renaming (_∷_ to _∷ᵛ_)
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:21 kept | open import Function.Base
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:23 kept | open import ProbabilisticLogic.Distribution.Uniform
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:24 kept | open import ProbabilisticLogic.Dp
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:25 kept | open import ProbabilisticLogic.Dp.Coin
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:26 kept | open import ProbabilisticLogic.Dp.Reasoning
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:28 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:29 kept | open import CategoricalCrypto.UC.Model.Dominated
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:30 kept | open import CategoricalCrypto.UC.Model.Enrichment
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:31 kept | open import CategoricalCrypto.UC.Model.Seal
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:32 kept | open import CategoricalCrypto.UC.Model.Setup
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:33 kept | open import CategoricalCrypto.UC.QueryBound
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:37 kept | open import CategoricalCrypto.Examples.CoinToss.Hiding k
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:38 kept | open import CategoricalCrypto.Examples.ROCommitment k
+  src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda:39 kept | open import CategoricalCrypto.Examples.ROCommitment.Hiding k
+src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda: {'kept': 21}
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:23 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:24 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:25 PRUNED drop whole import (rows 25-25) | open import Data.Maybe.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:25 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:26 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:27 kept | open import Data.Sum.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:28 kept | open import Data.Unit.Polymorphic.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:29 kept | open import Function.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:30 kept | open import Level
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:31 PRUNED drop whole import (rows 31-31) | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:32 kept | open import ProbabilisticLogic.Distribution.Uniform
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:33 kept | open import ProbabilisticLogic.Dp
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:34 kept | open import ProbabilisticLogic.Dp.Coin
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:36 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:37 kept | open import CategoricalCrypto.Machines.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:38 kept | open import CategoricalCrypto.UC.Machine
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:40 kept | import CategoricalCrypto.Machines.Core as Core
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:44 kept | open import CategoricalCrypto.Examples.CoinToss k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:45 kept | open import CategoricalCrypto.Examples.ROCommitment k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:46 kept | open import CategoricalCrypto.Examples.ROCommitment.Extraction k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal.agda:47 kept | open import CategoricalCrypto.Examples.ROCommitment.Resource k
+src/CategoricalCrypto/Examples/CoinToss/Ideal.agda: {'kept': 19, 'pruned': 2}
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:17 kept | open import Categories.LocallyGraded.SubCategory
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:19 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:20 kept | open import Data.Nat.Positive
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:21 kept | open import Data.Nat.Properties using (≤-refl)
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:22 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:23 kept | open import Data.Rational as ℚ using (ℚ; 0ℚ) renaming (_*_ to _*ℚ_)
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:24 kept | open import Data.Rational.Properties using (+-identityʳ)
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:25 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:27 kept | open import ProbabilisticLogic.Distribution.Uniform
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:29 kept | open import CategoricalCrypto.Examples.CoinToss.Compose
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:30 kept | open import CategoricalCrypto.Examples.ROCommitment.Asymptotic
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:31 kept | open import CategoricalCrypto.UC.Approximate
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:32 kept | open import CategoricalCrypto.UC.Model.Dominated
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:33 kept | open import CategoricalCrypto.UC.Model.Enrichment
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:34 kept | open import CategoricalCrypto.UC.Model.Family
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:35 kept | open import CategoricalCrypto.UC.Model.Family.Contextual
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:36 kept | open import CategoricalCrypto.UC.Model.Family.Emulation
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:37 kept | open import CategoricalCrypto.UC.Model.Family.Negligible
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:38 kept | open import CategoricalCrypto.UC.Model.Observation
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:39 kept | open import CategoricalCrypto.UC.Model.Seal
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:40 kept | open import CategoricalCrypto.UC.Model.Setup
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:41 kept | open import CategoricalCrypto.UC.QueryBound using (qb-closed; qb-mono)
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:43 kept | import CategoricalCrypto.Examples.CoinToss.Ideal as CTI
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:44 kept | import CategoricalCrypto.Examples.CoinToss.Ideal.UC as CTIU
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:45 kept | import CategoricalCrypto.Examples.CoinToss.UC as CTU
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda:46 kept | import CategoricalCrypto.Examples.ROCommitment.Resource as RR
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda: {'kept': 26}
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:18 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:19 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:20 kept | open import Data.Maybe.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:21 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:22 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:23 kept | open import Data.Sum.Base as Sum
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:24 kept | open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:25 kept | open import Data.Unit.Polymorphic.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:26 kept | open import Level
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:27 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:29 kept | open import Categories.Category
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:30 kept | import Categories.Category.Kleisli.Discrete as KD
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:31 kept | import Categories.Category.Kleisli.Discrete.Pure as KDP
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:33 kept | open import ProbabilisticLogic.Distribution.Uniform
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:34 kept | open import ProbabilisticLogic.Dp
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:35 kept | open import ProbabilisticLogic.Dp.Coin
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:36 kept | open import ProbabilisticLogic.Dp.Reasoning
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:38 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:39 kept | open import CategoricalCrypto.Machines.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:40 kept | open import CategoricalCrypto.Machines.Sandwich
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:41 kept | open import CategoricalCrypto.UC.Machine
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:42 kept | open import CategoricalCrypto.UC.Machine.Wire
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:44 kept | import CategoricalCrypto.Machines.Core as Core
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:45 kept | import CategoricalCrypto.Machines.Pointwise as Pw
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:46 kept | import CategoricalCrypto.UC.QueryBound.Compose.Step as CS
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:50 kept | open import CategoricalCrypto.Examples.CoinToss k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:51 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal.Reach k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:52 kept | open import CategoricalCrypto.Examples.ROCommitment k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:53 kept | open import CategoricalCrypto.Examples.ROCommitment.Extraction k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda:54 kept | open import CategoricalCrypto.Examples.ROCommitment.Resource k
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda: {'kept': 30}
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:16 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:17 kept | open import Data.Bool.Properties
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:18 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:19 kept | open import Data.Maybe.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:20 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:21 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:22 kept | open import Data.Sum.Base as Sum
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:23 kept | open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:24 kept | open import Data.Unit.Polymorphic.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:25 kept | open import Level
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:26 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:28 kept | open import Categories.Category
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:29 kept | import Categories.Category.Kleisli.Discrete as KD
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:30 kept | import Categories.Category.Kleisli.Discrete.Pure as KDP
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:32 kept | open import ProbabilisticLogic.Distribution.Uniform
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:33 kept | open import ProbabilisticLogic.Dp
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:34 kept | open import ProbabilisticLogic.Dp.Coin
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:35 kept | open import ProbabilisticLogic.Dp.Reasoning
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:37 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:38 kept | open import CategoricalCrypto.Machines.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:39 kept | open import CategoricalCrypto.UC.Machine
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:41 kept | import CategoricalCrypto.Machines.Core as Core
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:42 kept | import CategoricalCrypto.Machines.Pointwise as Pw
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:43 kept | import CategoricalCrypto.UC.QueryBound.Compose.Step as CS
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:47 kept | open import CategoricalCrypto.Examples.CoinToss k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:48 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:49 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal.Hybrid k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:50 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal.Reach k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:51 kept | open import CategoricalCrypto.Examples.ROCommitment k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:52 kept | open import CategoricalCrypto.Examples.ROCommitment.Extraction k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda:53 kept | open import CategoricalCrypto.Examples.ROCommitment.Resource k
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda: {'kept': 31}
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:17 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:18 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:19 PRUNED drop whole import (rows 19-19) | open import Data.Maybe.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:19 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:20 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:21 kept | open import Data.Sum.Base as Sum
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:22 kept | open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:23 kept | open import Data.Unit.Polymorphic.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:24 kept | open import Function.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:25 kept | open import Level
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:26 PRUNED drop whole import (rows 26-26) | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:27 kept | open import ProbabilisticLogic.Distribution.Uniform
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:28 kept | open import ProbabilisticLogic.Dp
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:29 kept | open import ProbabilisticLogic.Dp.Coin
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:30 PRUNED drop whole import (rows 30-30) | open import ProbabilisticLogic.Dp.Reasoning
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:31 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:32 kept | open import CategoricalCrypto.Machines.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:33 kept | open import CategoricalCrypto.Machines.Sandwich
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:34 kept | open import CategoricalCrypto.UC.Machine
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:36 kept | import CategoricalCrypto.Machines.Core as Core
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:40 kept | open import CategoricalCrypto.Examples.CoinToss k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:41 kept | open import CategoricalCrypto.Examples.ROCommitment k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:42 kept | open import CategoricalCrypto.Examples.ROCommitment.Extraction k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda:43 kept | open import CategoricalCrypto.Examples.ROCommitment.Resource k
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda: {'kept': 21, 'pruned': 3}
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:31 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:32 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:33 PRUNED drop whole import (rows 33-33) | open import Data.Maybe.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:33 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:34 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:35 kept | open import Data.Sum.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:36 kept | open import Data.Unit.Polymorphic.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:37 kept | open import Function.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:38 kept | open import Level
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:39 PRUNED drop whole import (rows 39-39) | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:40 kept | open import ProbabilisticLogic.Distribution.Uniform
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:41 kept | open import ProbabilisticLogic.Dp
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:42 kept | open import ProbabilisticLogic.Dp.Coin
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:44 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:45 kept | open import CategoricalCrypto.Machines.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:46 kept | open import CategoricalCrypto.UC.Machine
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:48 kept | import CategoricalCrypto.Machines.Core as Core
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:52 kept | open import CategoricalCrypto.Examples.CoinToss.Hiding k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:53 PRUNED drop whole import (rows 53-53) | open import CategoricalCrypto.Examples.ROCommitment k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:53 kept | open import CategoricalCrypto.Examples.ROCommitment.Extraction k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:54 kept | open import CategoricalCrypto.Examples.ROCommitment.Resource k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda:55 kept | open import CategoricalCrypto.Examples.ROCommitment.Hiding k
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda: {'kept': 19, 'pruned': 3}
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:23 kept | open import Categories.LocallyGraded.SubCategory
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:25 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:26 kept | open import Data.Nat.Positive
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:27 kept | open import Data.Nat.Properties using (*-identityʳ; ≤-refl)
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:28 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:29 kept | open import Data.Rational as ℚ using (ℚ; 0ℚ) renaming (_*_ to _*ℚ_)
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:30 kept | open import Data.Rational.Properties using (+-identityˡ)
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:31 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:33 kept | open import ProbabilisticLogic.Distribution.Uniform
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:34 kept | open import ProbabilisticLogic.Dp.Advantage
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:36 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:38 kept | open import CategoricalCrypto.Examples.CoinToss.Compose
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:39 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal.Compose
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:40 kept | open import CategoricalCrypto.Examples.ROCommitment.Hiding.Asymptotic
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:41 kept | open import CategoricalCrypto.UC.Approximate
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:43 kept | open import CategoricalCrypto.UC.Approximate.Decay
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:44 kept | open import CategoricalCrypto.UC.Model.Dominated
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:45 kept | open import CategoricalCrypto.UC.Model.Enrichment
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:46 kept | open import CategoricalCrypto.UC.Model.Family
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:47 kept | open import CategoricalCrypto.UC.Model.Family.Contextual
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:48 kept | open import CategoricalCrypto.UC.Model.Family.Emulation
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:49 kept | open import CategoricalCrypto.UC.Model.Family.Negligible
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:50 kept | open import CategoricalCrypto.UC.Model.Observation
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:51 kept | open import CategoricalCrypto.UC.Model.Seal
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:52 kept | open import CategoricalCrypto.UC.Model.Setup
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:53 kept | open import CategoricalCrypto.UC.QueryBound using (qb-closed; qb-mono)
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:55 kept | import CategoricalCrypto.Examples.CoinToss.Hiding as CTH
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:56 kept | import CategoricalCrypto.Examples.CoinToss.Hiding.UC as CTHU
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:57 kept | import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver as CTR
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:58 kept | import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Hybrid as CT
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:59 kept | import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Machine as C
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:60 kept | import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.UC as CTRU
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:61 kept | import CategoricalCrypto.Examples.CoinToss.Ideal.UC as CTIU
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda:62 kept | import CategoricalCrypto.Examples.ROCommitment.Hiding as ROH
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda: {'kept': 34}
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:16 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:17 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:18 kept | open import Data.Maybe.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:19 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:20 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:21 kept | open import Data.Sum.Base as Sum
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:22 kept | open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:23 kept | open import Data.Unit.Polymorphic.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:24 kept | open import Level
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:25 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:27 kept | open import Categories.Category
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:28 kept | import Categories.Category.Kleisli.Discrete as KD
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:29 kept | import Categories.Category.Kleisli.Discrete.Pure as KDP
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:31 kept | open import ProbabilisticLogic.Distribution.Uniform
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:32 kept | open import ProbabilisticLogic.Dp
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:33 kept | open import ProbabilisticLogic.Dp.Coin
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:34 kept | open import ProbabilisticLogic.Dp.Reasoning
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:36 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:37 kept | open import CategoricalCrypto.Machines.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:38 kept | open import CategoricalCrypto.Machines.Sandwich
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:39 kept | open import CategoricalCrypto.UC.Machine
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:40 kept | open import CategoricalCrypto.UC.Machine.Wire
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:42 kept | import CategoricalCrypto.Machines.Core as Core
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:43 kept | import CategoricalCrypto.Machines.Pointwise as Pw
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:44 kept | import CategoricalCrypto.UC.QueryBound.Compose.Step as CS
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:48 kept | open import CategoricalCrypto.Examples.CoinToss.Hiding k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:49 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Reach k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:50 kept | open import CategoricalCrypto.Examples.ROCommitment k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:51 kept | open import CategoricalCrypto.Examples.ROCommitment.Extraction k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:52 kept | open import CategoricalCrypto.Examples.ROCommitment.Hiding k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda:53 kept | open import CategoricalCrypto.Examples.ROCommitment.Resource k
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda: {'kept': 31}
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:23 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:24 kept | open import Data.Bool.Properties
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:25 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:26 kept | open import Data.Maybe.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:27 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:28 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:29 kept | open import Data.Sum.Base as Sum
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:30 kept | open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:31 kept | open import Data.Unit.Polymorphic.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:32 kept | open import Function.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:33 kept | open import Level
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:34 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:36 kept | open import Categories.Category
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:37 kept | import Categories.Category.Kleisli.Discrete as KD
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:38 kept | import Categories.Category.Kleisli.Discrete.Pure as KDP
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:40 kept | open import ProbabilisticLogic.Distribution.Uniform
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:41 kept | open import ProbabilisticLogic.Dp
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:42 kept | open import ProbabilisticLogic.Dp.Coin
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:43 kept | open import ProbabilisticLogic.Dp.Commutative
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:44 kept | open import ProbabilisticLogic.Dp.Reasoning
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:46 kept | open import CategoricalCrypto.GamePlaying.Defer.Run
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:47 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:48 kept | open import CategoricalCrypto.Machines.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:49 kept | open import CategoricalCrypto.Protocol.Machine
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:50 kept | open import CategoricalCrypto.Strategy
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:51 kept | open import CategoricalCrypto.UC.Machine
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:52 kept | open import CategoricalCrypto.UC.Machine.Run
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:54 kept | import CategoricalCrypto.Machines.Core as Core
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:55 kept | import CategoricalCrypto.Machines.Pointwise as Pw
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:56 kept | import CategoricalCrypto.UC.QueryBound.Compose.Step as CS
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:60 kept | open import CategoricalCrypto.Examples.CoinToss.Hiding k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:61 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:62 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Hybrid 
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:63 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Reach k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:64 PRUNED drop whole import (rows 64-64) | open import CategoricalCrypto.Examples.ROCommitment k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:64 kept | open import CategoricalCrypto.Examples.ROCommitment.Extraction k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:65 kept | open import CategoricalCrypto.Examples.ROCommitment.Resource k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda:66 kept | open import CategoricalCrypto.Examples.ROCommitment.Hiding k
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda: {'kept': 37, 'pruned': 1}
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:23 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:24 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:25 PRUNED drop whole import (rows 25-25) | open import Data.Maybe.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:25 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:26 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:27 kept | open import Data.Sum.Base as Sum
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:28 kept | open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:29 kept | open import Data.Unit.Polymorphic.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:30 kept | open import Function.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:31 kept | open import Level
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:32 PRUNED drop whole import (rows 32-32) | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:33 kept | open import ProbabilisticLogic.Distribution.Uniform
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:34 kept | open import ProbabilisticLogic.Dp
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:35 kept | open import ProbabilisticLogic.Dp.Coin
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:36 PRUNED drop whole import (rows 36-36) | open import ProbabilisticLogic.Dp.Reasoning
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:37 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:38 kept | open import CategoricalCrypto.Machines.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:39 kept | open import CategoricalCrypto.Machines.Sandwich
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:40 kept | open import CategoricalCrypto.UC.Machine
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:42 kept | import CategoricalCrypto.Machines.Core as Core
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:46 kept | open import CategoricalCrypto.Examples.CoinToss.Hiding k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:47 PRUNED drop whole import (rows 47-47) | open import CategoricalCrypto.Examples.ROCommitment k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:47 kept | open import CategoricalCrypto.Examples.ROCommitment.Extraction k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:48 kept | open import CategoricalCrypto.Examples.ROCommitment.Resource k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda:49 kept | open import CategoricalCrypto.Examples.ROCommitment.Hiding k
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda: {'kept': 21, 'pruned': 4}
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:17 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:18 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:19 kept | open import Data.Maybe.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:20 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:21 kept | open import Data.Nat.Positive
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:22 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:23 kept | open import Data.Sum.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:24 kept | open import Function.Base using (case_of_; _∘′_)
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:25 kept | open import Level
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:26 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:28 kept | open import Categories.Category
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:29 kept | open import Categories.LocallyGraded.SubCategory
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:31 kept | open import ProbabilisticLogic.Dp
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:32 PRUNED drop whole import (rows 32-32) | open import ProbabilisticLogic.Dp.Coin
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:32 PRUNED drop whole import (rows 32-32) | open import ProbabilisticLogic.Dp.Reasoning
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:33 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:34 kept | open import CategoricalCrypto.Machines.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:35 kept | open import CategoricalCrypto.UC.Graded
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:37 kept | open import CategoricalCrypto.UC.Machine
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:38 kept | open import CategoricalCrypto.UC.Model.Dominated
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:39 kept | open import CategoricalCrypto.UC.Model.Enrichment
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:40 kept | open import CategoricalCrypto.UC.Model.Seal
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:41 kept | open import CategoricalCrypto.UC.Model.Setup
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:42 kept | open import CategoricalCrypto.UC.QueryBound
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:47 kept | open import CategoricalCrypto.Examples.CoinToss.Hiding k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:48 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:49 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Hybrid 
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:50 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Machine
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:51 PRUNED drop whole import (rows 51-51) | open import CategoricalCrypto.Examples.ROCommitment k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:51 kept | open import CategoricalCrypto.Examples.ROCommitment.Extraction k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:52 kept | open import CategoricalCrypto.Examples.ROCommitment.Hiding k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda:53 kept | open import CategoricalCrypto.Examples.ROCommitment.Resource k
+src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda: {'kept': 29, 'pruned': 3}
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:12 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:13 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:14 kept | open import Data.Maybe.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:15 kept | open import Data.Nat.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:16 kept | open import Data.Nat.Positive
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:17 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:18 kept | open import Data.Sum.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:19 kept | open import Function.Base using (case_of_; _∘′_)
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:20 kept | open import Level
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:21 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:23 kept | open import Categories.Category
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:24 kept | open import Categories.LocallyGraded.SubCategory
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:26 kept | open import ProbabilisticLogic.Dp
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:27 PRUNED drop whole import (rows 27-27) | open import ProbabilisticLogic.Dp.Coin
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:27 PRUNED drop whole import (rows 27-27) | open import ProbabilisticLogic.Dp.Reasoning
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:28 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:29 kept | open import CategoricalCrypto.UC.Graded
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:30 kept | open import CategoricalCrypto.UC.Machine
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:31 kept | open import CategoricalCrypto.UC.Model.Dominated
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:32 kept | open import CategoricalCrypto.UC.Model.Enrichment
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:33 kept | open import CategoricalCrypto.UC.Model.Graded
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:34 kept | open import CategoricalCrypto.UC.Model.Seal
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:35 kept | open import CategoricalCrypto.UC.Model.Setup
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:36 kept | open import CategoricalCrypto.UC.QueryBound
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:38 kept | open import CategoricalCrypto.Machines.Base
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:42 kept | open import CategoricalCrypto.Examples.CoinToss k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:43 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:44 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal.Machine k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:45 kept | open import CategoricalCrypto.Examples.ROCommitment k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:46 kept | open import CategoricalCrypto.Examples.ROCommitment.Extraction k
+  src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda:47 kept | open import CategoricalCrypto.Examples.ROCommitment.Resource k
+src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda: {'kept': 29, 'pruned': 2}
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:23 kept | open import Data.Bool.Base
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:24 kept | open import Data.Empty
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:25 kept | open import Data.List.Base
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:26 kept | open import Data.Product.Base
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:27 kept | open import Data.Rational using () renaming (_+_ to _+ℚ_; _*_ to _*ℚ_)
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:28 kept | open import Data.Sum.Base
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:29 kept | open import Data.Unit.Base
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:30 kept | open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:31 kept | open import Data.Vec.Base renaming (_∷_ to _∷ᵛ_)
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:32 kept | open import Function.Base
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:33 kept | open import Level
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:34 kept | open import Relation.Binary.PropositionalEquality
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:36 kept | open import ProbabilisticLogic.Distribution.Uniform
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:37 kept | open import ProbabilisticLogic.Dp
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:38 kept | open import ProbabilisticLogic.Dp.Reasoning
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:40 kept | open import CategoricalCrypto.Iface
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:41 kept | open import CategoricalCrypto.Machines.Base
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:42 kept | open import CategoricalCrypto.UC.Machine
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:43 kept | open import CategoricalCrypto.UC.QueryBound
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:45 kept | import CategoricalCrypto.Machines.Core as Core
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:46 kept | import CategoricalCrypto.Machines.Sim as Sim
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:50 kept | open import CategoricalCrypto.Examples.CoinToss 3
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:51 kept | open import CategoricalCrypto.Examples.CoinToss.Compose
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:52 kept | open import CategoricalCrypto.Examples.CoinToss.Hiding 3
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:53 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal 3
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:54 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal.Compose
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:55 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver 3
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:56 kept | open import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Compose
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:57 kept | open import CategoricalCrypto.Examples.ROCommitment 3
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:58 kept | open import CategoricalCrypto.Examples.ROCommitment.Asymptotic
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:59 kept | open import CategoricalCrypto.Examples.ROCommitment.Extraction 3
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:60 kept | open import CategoricalCrypto.Examples.ROCommitment.Hiding 3
+  src/CategoricalCrypto/Examples/CoinToss/Test.agda:61 kept | open import CategoricalCrypto.Examples.ROCommitment.Hiding.Asymptotic
+src/CategoricalCrypto/Examples/CoinToss/Test.agda: {'kept': 33}
+  src/CategoricalCrypto/Examples/CoinToss/UC.agda:16 kept | open import Categories.LocallyGraded.SubCategory
+  src/CategoricalCrypto/Examples/CoinToss/UC.agda:18 kept | open import Class.DecEq

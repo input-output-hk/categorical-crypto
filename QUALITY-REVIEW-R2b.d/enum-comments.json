@@ -1,0 +1,1138 @@
+{
+ "sweep": "enum-comments",
+ "root": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-R2b",
+ "files": {
+  "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda": {
+   "sites": [
+    {
+     "lines": "3-14",
+     "kind": "header",
+     "nLines": 12,
+     "flags": [],
+     "attachedTo": "Categories.LocallyGraded",
+     "preview": "-- The ledger's properties carried across a UC emulation, as three distinct -- results (`d"
+    },
+    {
+     "lines": "67-69",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "preserves-value-transfer",
+     "preview": "------------------------------------------------------------------------ -- Claim 1: obser"
+    },
+    {
+     "lines": "71-75",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "preserves-value-transfer",
+     "preview": "-- The comparison is read at `p n + 1`, the context's cap plus the monitor's -- accumulato"
+    },
+    {
+     "lines": "88-90",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "HashIf^ω",
+     "preview": "------------------------------------------------------------------------ -- …off a premise"
+    },
+    {
+     "lines": "92-95",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "HashIf^ω",
+     "preview": "-- The UC layer sees only the CLOSED system, in which the hash is invisible; -- `ledger-fa"
+    },
+    {
+     "lines": "121-123",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "εᴴ",
+     "preview": "-- What the lift costs the premise's schedule: the ledger goes into the test at -- its own"
+    },
+    {
+     "lines": "151-152",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "hash-liftᵇ",
+     "preview": "-- With one upper stage there is no simulator to compose, hence none to -- forget afterwar"
+    },
+    {
+     "lines": "172-174",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "a",
+     "preview": "------------------------------------------------------------------------ -- Claim 2: state"
+    },
+    {
+     "lines": "176-178",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "a",
+     "preview": "-- UC identifies no internal state, so a state event comes back only through -- `TruthfulA"
+    },
+    {
+     "lines": "189-189",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "ledger-uc-to-pov-family",
+     "preview": "-- The operational corollaries, read back at the embedded strategies."
+    },
+    {
+     "lines": "213-214",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "ledger-conserves-value-from-hash",
+     "preview": "-- Monetary conservation: the ledger's internal total, over any hash that -- emulates the "
+    },
+    {
+     "lines": "225-227",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "ideal-spends-genesis",
+     "preview": "------------------------------------------------------------------------ -- Claim 3: the g"
+    },
+    {
+     "lines": "236-238",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Mute",
+     "preview": "------------------------------------------------------------------------ -- What claims 1 "
+    },
+    {
+     "lines": "240-241",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Mute",
+     "preview": "-- Diverges at every query: satisfies claim 1 at zero slack yet never -- accepts, so neith"
+    },
+    {
+     "lines": "245-246",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Liar",
+     "preview": "-- Always bad, never says so: satisfies claim 1 while its trajectory event has -- probabil"
+    },
+    {
+     "lines": "329-331",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Chimericᶠ",
+     "preview": "------------------------------------------------------------------------ -- The replay att"
+    },
+    {
+     "lines": "333-338",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "Chimericᶠ",
+     "preview": "-- `preservesValue⇒saturated` hands the attack's strategy back a bound -- `εᴹ n 3 + ν n`, "
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/Category.agda": {
+   "sites": [
+    {
+     "lines": "3-19",
+     "kind": "header",
+     "nLines": 17,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Categories.Category.Core",
+     "preview": "-- The category of Mealy machines, with the simulation zig-zag as its equality. -- -- Each"
+    },
+    {
+     "lines": "65-65",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "onL-α",
+     "preview": "-- The objects are bound on the left because the solver's atom vector needs them."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Machines/G.agda": {
+   "sites": [
+    {
+     "lines": "3-11",
+     "kind": "header",
+     "nLines": 9,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- The machine layer as a traced symmetric monoidal category, and the -- G construction ov"
+    },
+    {
+     "lines": "50-51",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "SymmetricMonoidalCategory",
+     "preview": "------------------------------------------------------------------------ -- Naturality"
+    },
+    {
+     "lines": "53-57",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "SymmetricMonoidalCategory",
+     "preview": "-- The `⊗ᵉ idᴹ` on the right-hand side adds a trivial state factor, so the two -- sides di"
+    },
+    {
+     "lines": "134-135",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "SymmetricMonoidalCategory",
+     "preview": "------------------------------------------------------------------------ -- Superposing"
+    },
+    {
+     "lines": "137-141",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "SymmetricMonoidalCategory",
+     "preview": "-- An interface summand `P` the traced machine never sees. Both sides run at -- `Iˢ ⊛ stat"
+    },
+    {
+     "lines": "223-224",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Mealy-Traced",
+     "preview": "------------------------------------------------------------------------ -- The traced cat"
+    },
+    {
+     "lines": "244-247",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "Mealy-Gᴹ",
+     "preview": "-- States and processes over the machine layer, monoidal. One application, and -- consumer"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Trace/Compose.agda": {
+   "sites": [
+    {
+     "lines": "3-30",
+     "kind": "header",
+     "nLines": 28,
+     "flags": [
+      "headerOverTier"
+     ],
+     "attachedTo": "Categories.Category",
+     "preview": "-- `Protocol.Machine.Raw`'s hypothesis discharged at a TRACED machine, and then -- at a G-"
+    },
+    {
+     "lines": "75-76",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "S",
+     "preview": "------------------------------------------------------------------------ -- A traced machi"
+    },
+    {
+     "lines": "84-84",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "I",
+     "preview": "-- `id ⊗₁ pureᵏ h` at a point is three `returnₚ`s and nothing else."
+    },
+    {
+     "lines": "91-91",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "I",
+     "preview": "-- One pass of the loop: the same junction, then the body."
+    },
+    {
+     "lines": "103-105",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "rank",
+     "preview": "-- The round-trip bound, at a rank the whole state space respects: for these -- machines i"
+    },
+    {
+     "lines": "136-137",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "A⁺",
+     "preview": "------------------------------------------------------------------------ -- The collapsed "
+    },
+    {
+     "lines": "155-156",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "outF",
+     "preview": "-- `Machines.Collapse`'s routings with their object implicits pinned; left -- open they ar"
+    },
+    {
+     "lines": "174-174",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "dispatch-f",
+     "preview": "-- `E⊥-map` at the two routings `Kᴳ`'s clauses use."
+    },
+    {
+     "lines": "213-214",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "ranked-from-kᴳ",
+     "preview": "-- …read at the dispatch itself: `loopBody` is `kᴳ` behind the two `returnₚ` -- junctions "
+    },
+    {
+     "lines": "241-242",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B⁺",
+     "preview": "-- The three steps an activation is read by: it enters the dispatch, and -- each answer ei"
+    },
+    {
+     "lines": "264-265",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B⁺",
+     "preview": "------------------------------------------------------------------------ -- …and at a CLOS"
+    },
+    {
+     "lines": "267-268",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B⁺",
+     "preview": "-- The domain summand is empty, so the trace's answers are all on the right and -- the ker"
+    },
+    {
+     "lines": "286-287",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Kᶜˡ",
+     "preview": "-- The trace's codomain summand `⊥ ⊎ Pos C` read back as `Pos C`; `ansᴹ` -- is its inverse"
+    },
+    {
+     "lines": "297-297",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Kᶜˡ-read",
+     "preview": "-- …and read at the trace, where the domain summand is still in the way."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/EventBounds.agda": {
+   "sites": [
+    {
+     "lines": "3-18",
+     "kind": "header",
+     "nLines": 16,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- Event bounds at the machine: the capped-allowance presentation, and the -- absorption o"
+    },
+    {
+     "lines": "51-52",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Reader",
+     "preview": "------------------------------------------------------------------------ -- Reading an eve"
+    },
+    {
+     "lines": "54-60",
+     "kind": "standalone",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "Reader",
+     "preview": "-- A way of turning a budgeted test into one whose verdict IS the event. A -- bound quanti"
+    },
+    {
+     "lines": "68-70",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "ctxRun-∘",
+     "preview": "-- The relay is functorial, so a morphism in front of the process is the same -- experimen"
+    },
+    {
+     "lines": "78-84",
+     "kind": "standalone",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "BoundedAt",
+     "preview": "-- No certified context of allowance at most `q` makes the event's mass exceed -- `r`. The"
+    },
+    {
+     "lines": "90-91",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "------------------------------------------------------------------------ -- Families, and "
+    },
+    {
+     "lines": "99-100",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Boundedᴺ",
+     "preview": "-- The slack is chosen after the polynomial allowance and before the level, -- and is unif"
+    },
+    {
+     "lines": "106-110",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "boundedᶠ⇒boundedᴺ",
+     "preview": "-- A capped family bound is already a saturated one, at zero slack: its -- schedule `ε n ("
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/EventBounds/Transport.agda": {
+   "sites": [
+    {
+     "lines": "3-5",
+     "kind": "header",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Algebra.Bundles",
+     "preview": "-- Transporting an event bound from an ideal to a real closed process along a -- one-sided"
+    },
+    {
+     "lines": "51-52",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Near",
+     "preview": "------------------------------------------------------------------------ -- The schema"
+    },
+    {
+     "lines": "54-55",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Near",
+     "preview": "-- Only `true`'s mass is compared, cofinally: every real depth is dominated by -- some ide"
+    },
+    {
+     "lines": "60-61",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "module",
+     "preview": "-- The adequacy pair is two premises (`Lifts`, `Agrees`), not a record: a -- record packag"
+    },
+    {
+     "lines": "64-64",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Lifts",
+     "preview": "-- `cap` is what the lift charges the strategy beyond the context's cap."
+    },
+    {
+     "lines": "72-72",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "unlift",
+     "preview": "-- The converse of a lift, at the embedded strategy: nothing is spent."
+    },
+    {
+     "lines": "98-99",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "FlagNear",
+     "preview": "------------------------------------------------------------------------ -- The flag wire"
+    },
+    {
+     "lines": "108-108",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "transportᵉ",
+     "preview": "-- Exact, at any `A`."
+    },
+    {
+     "lines": "117-118",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "-- `_≈ᶠ[_]_` compares protocol images, and `R ▷ P` is not one, so the premise -- names fla"
+    },
+    {
+     "lines": "125-125",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "flagged-near",
+     "preview": "-- The flag ask is one more query: the error is read at depth `q + 1`."
+    },
+    {
+     "lines": "139-140",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "hitsTransport",
+     "preview": "------------------------------------------------------------------------ -- The compiled m"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- Compiling a monitor and closing an ancilla context commute: the compiled -- context wit"
+    },
+    {
+     "lines": "44-45",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "relay-slide",
+     "preview": "------------------------------------------------------------------------ -- The hole wire'"
+    },
+    {
+     "lines": "47-49",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "relay-slide",
+     "preview": "-- A closed ancilla wired in beside the hole crosses a relay ON the hole: the -- closure a"
+    },
+    {
+     "lines": "97-98",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "watch-collapsed",
+     "preview": "------------------------------------------------------------------------ -- The compiled c"
+    },
+    {
+     "lines": "109-110",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "watch-resp-≈",
+     "preview": "-- `Watch.watchᴹ` does not visibly respect the machine equality in its test; -- the collap"
+    },
+    {
+     "lines": "123-123",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "compiled-slide",
+     "preview": "-- At the monitored context of `UC.Quantitative.EventLift.openedᴹ`."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent.agda": {
+   "sites": [
+    {
+     "lines": "3-17",
+     "kind": "header",
+     "nLines": 15,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- State predicates over machine PRESENTATIONS, and the flag-wire machine that -- turns a "
+    },
+    {
+     "lines": "41-42",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "------------------------------------------------------------------------ -- Predicates and"
+    },
+    {
+     "lines": "68-69",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Annotated",
+     "preview": "------------------------------------------------------------------------ -- Event-compatib"
+    },
+    {
+     "lines": "71-71",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Annotated",
+     "preview": "-- A presented machine with a Boolean state event."
+    },
+    {
+     "lines": "91-92",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_≈ᵉ_",
+     "preview": "-- Zigzags of COMPATIBLE simulations. Forgetting the annotation lands in the -- machine eq"
+    },
+    {
+     "lines": "99-100",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "------------------------------------------------------------------------ -- The flag-wire "
+    },
+    {
+     "lines": "122-123",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "dropF",
+     "preview": "------------------------------------------------------------------------ -- Forgetting the"
+    },
+    {
+     "lines": "125-125",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "dropF",
+     "preview": "-- A machine that never asks its flag port; a flag answer is off-protocol."
+    },
+    {
+     "lines": "138-138",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "unflag-▷",
+     "preview": "-- Up to simulation, not definitionally: the state objects differ."
+    },
+    {
+     "lines": "163-164",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "------------------------------------------------------------------------ -- A compatible s"
+    },
+    {
+     "lines": "208-209",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "------------------------------------------------------------------------ -- Acceptance exa"
+    },
+    {
+     "lines": "213-213",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "rename",
+     "preview": "-- A renaming carries a test back by inverse image, compatibly."
+    },
+    {
+     "lines": "218-218",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "padᴹ",
+     "preview": "-- An unused state component, carried along untouched."
+    },
+    {
+     "lines": "223-223",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "unused",
+     "preview": "-- …preserves every test pulled back from the original state."
+    },
+    {
+     "lines": "235-236",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "ghost",
+     "preview": "-- A ghost bit: flipped at every activation, never observed. Erasing it is a -- simulation"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Adequacy.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- `Strat` as an adequacy instance of the state-event reading: at a protocol -- image, the"
+    },
+    {
+     "lines": "58-59",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "------------------------------------------------------------------------ -- The completed-"
+    },
+    {
+     "lines": "64-64",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "hitK",
+     "preview": "-- `PrHit`'s `hitFrom` over an arbitrary step kernel."
+    },
+    {
+     "lines": "125-126",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "-- Past a depth, the flag read at completion is the kernel-level hit, at -- either verdict"
+    },
+    {
+     "lines": "146-147",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "------------------------------------------------------------------------ -- …at a protocol"
+    },
+    {
+     "lines": "151-151",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "idleTest",
+     "preview": "-- The default boundary interpretation."
+    },
+    {
+     "lines": "190-190",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "-- The adequacy theorem: exact equality past a depth."
+    },
+    {
+     "lines": "200-200",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "B",
+     "preview": "-- The old theorem, recovered from the model reading at the same cap…"
+    },
+    {
+     "lines": "209-209",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "-- …and lifted to every admitted experiment at the same cap."
+    },
+    {
+     "lines": "218-219",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "------------------------------------------------------------------------ -- Families"
+    },
+    {
+     "lines": "223-223",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "BoundedHitᴺ",
+     "preview": "-- `PrHit` at the saturated quantifier order of `UC.Machine.EventBounds.Boundedᴺ`."
+    },
+    {
+     "lines": "241-241",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The slack is carried across unchanged, in both directions."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Agree.agda": {
+   "sites": [
+    {
+     "lines": "3-11",
+     "kind": "header",
+     "nLines": 9,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The state-event reading at embedded strategies: the experiment an ordinary -- strategy "
+    },
+    {
+     "lines": "55-56",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "embeds",
+     "preview": "------------------------------------------------------------------------ -- The embedded s"
+    },
+    {
+     "lines": "70-71",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "flag-tower",
+     "preview": "-- The closed flagged context at `stratTest`, as the flag reader over the -- strategy envi"
+    },
+    {
+     "lines": "87-88",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "------------------------------------------------------------------------ -- One tick of th"
+    },
+    {
+     "lines": "104-104",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "flag-adequacy",
+     "preview": "-- `Col.kᴳ` at this closed shape, case-split so that the loop reduces."
+    },
+    {
+     "lines": "130-130",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "flag-adequacy",
+     "preview": "-- What the environment's emission leads to, once the loop has taken it."
+    },
+    {
+     "lines": "134-134",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "flag-adequacy",
+     "preview": "-- The flag ask and its answer: two passes, and the answer is the verdict."
+    },
+    {
+     "lines": "151-151",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "flag-adequacy",
+     "preview": "-- `Seam.Adequacy.play-run` with the flag reader's post-processing."
+    },
+    {
+     "lines": "189-189",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "flag-adequacy",
+     "preview": "-- The whole observation."
+    },
+    {
+     "lines": "206-207",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "stateRead-agree",
+     "preview": "------------------------------------------------------------------------ -- Agreement"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/HitTests.agda": {
+   "sites": [
+    {
+     "lines": "3-5",
+     "kind": "header",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The distinguishing cases of the state-event reading, through its public -- entry points"
+    },
+    {
+     "lines": "36-36",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Reads",
+     "preview": "-- The reading of `Bad` at `d` eventually equals `v`."
+    },
+    {
+     "lines": "51-52",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "initBad",
+     "preview": "------------------------------------------------------------------------ -- Initially bad,"
+    },
+    {
+     "lines": "60-61",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "initially-bad-cap₀",
+     "preview": "-- …so no bound below 1 holds even at cap 0: the zero-query experiment is -- admitted, and"
+    },
+    {
+     "lines": "65-66",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "becomesBad",
+     "preview": "------------------------------------------------------------------------ -- Badness after "
+    },
+    {
+     "lines": "77-78",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "onWait",
+     "preview": "------------------------------------------------------------------------ -- A suspended co"
+    },
+    {
+     "lines": "88-89",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "badThenDead",
+     "preview": "------------------------------------------------------------------------ -- A bad activati"
+    },
+    {
+     "lines": "98-98",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "hit-prefix",
+     "preview": "-- …although the prefix that stops after the bad activation reads the hit."
+    },
+    {
+     "lines": "102-103",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "flips",
+     "preview": "------------------------------------------------------------------------ -- Adaptive and r"
+    },
+    {
+     "lines": "105-105",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "flips",
+     "preview": "-- Each activation flips a fair coin, answers it, and turns bad on `true`."
+    },
+    {
+     "lines": "109-109",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "adaptive",
+     "preview": "-- Ask again only after a `false`."
+    },
+    {
+     "lines": "116-116",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "zero-branch",
+     "preview": "-- A branch of weight zero still counts against the syntactic ask bound."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Lift.agda": {
+   "error": "parse errors -- file skipped (report this)"
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Read.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- Reading a state event in an ordinary experiment: the experiment `E , m` at -- `B` is ru"
+    },
+    {
+     "lines": "45-46",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "flagReader",
+     "preview": "------------------------------------------------------------------------ -- The reading"
+    },
+    {
+     "lines": "55-56",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "flagStrat",
+     "preview": "-- The strategy-level closing experiment: play `d`, ignore its verdict, ask -- the flag. A"
+    },
+    {
+     "lines": "62-62",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "asks≤-flag",
+     "preview": "-- The flag costs exactly one ask."
+    },
+    {
+     "lines": "68-69",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "StateBoundedAt",
+     "preview": "------------------------------------------------------------------------ -- The bound, as "
+    },
+    {
+     "lines": "86-87",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "------------------------------------------------------------------------ -- Invariance"
+    },
+    {
+     "lines": "91-91",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "stateRead-resp-≈ᵉ",
+     "preview": "-- Along zigzags of compatible simulations."
+    },
+    {
+     "lines": "98-98",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "stateRead-resp-env",
+     "preview": "-- Along the machine equality of the test and of the closure."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Spike/Carry.agda": {
+   "sites": [
+    {
+     "lines": "3-7",
+     "kind": "header",
+     "nLines": 5,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Categories.Category",
+     "preview": "-- (c) `UC.Audit.audit-carry`, verbatim, at the flagged graded image: the -- adversary int"
+    },
+    {
+     "lines": "44-44",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "flag-carry",
+     "preview": "-- The images are explicit: inferring them (`audit-carry _ _`) ran >10 min."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam/Grounded.agda": {
+   "sites": [
+    {
+     "lines": "3-9",
+     "kind": "header",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The trivial grade at the sealed machine bundle (`UC.Model.Setup`): the grade -- object,"
+    },
+    {
+     "lines": "41-42",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "𝟘ᴳ",
+     "preview": "------------------------------------------------------------------------ -- The trivial gr"
+    },
+    {
+     "lines": "50-52",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "stageᵒ",
+     "preview": "-- A protocol image at the trivial grade, OPEN at the port the component below -- it answe"
+    },
+    {
+     "lines": "56-56",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "closedᵒ",
+     "preview": "-- …and a CLOSED one, as the UC layer sees it."
+    },
+    {
+     "lines": "60-61",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "factorᵒ",
+     "preview": "------------------------------------------------------------------------ -- A closed two-s"
+    },
+    {
+     "lines": "63-73",
+     "kind": "standalone",
+     "nLines": 11,
+     "flags": [],
+     "attachedTo": "factorᵒ",
+     "preview": "-- Layer 1's `_∘ᵖ_` read as a composite of two homs of the seal, so its lower -- component"
+    },
+    {
+     "lines": "75-76",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "factorᵒ",
+     "preview": "-- `closedᵒ w` is `return ∘ procᵒ w` on the nose, which is what lets a pure -- composite b"
+    },
+    {
+     "lines": "88-89",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "plug-λ",
+     "preview": "------------------------------------------------------------------------ -- The degenerate"
+    },
+    {
+     "lines": "96-96",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "plug-run",
+     "preview": "-- The environment's composite, read across the seal."
+    }
+   ]
+  }
+ },
+ "totalChecks": 0
+}

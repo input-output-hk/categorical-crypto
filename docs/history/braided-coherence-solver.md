@@ -1,7 +1,7 @@
 # Option 2: a direct braided coherence solver (investigation)
 
 The recurring conclusion of the size-reduction and solver-performance analyses
-(`size-reduction-strategies.md`, `smc-solver-performance.md`) is that the one lever which would
+(`size-reduction-strategies.md`, `../smc-solver-performance.md`) is that the one lever which would
 *both* shrink the soundness proof *and* make a usable SMC solver is a **direct coherence
 decision procedure** — one that decides free symmetric-monoidal term equality by
 **normalization**, not by the hypergraph round-trip (`soundness ∘ findIso`).
@@ -185,7 +185,7 @@ built from `f`. It is **direct** (not routed through `≈Term`), so it is not ci
 1. `matrix-faithful` comes free from the existing soundness theorem — **no re-proving coherence**.
 2. It **replaces the slow `findIso` *search* with a deterministic *construction*** of the iso from
    the (canonical) matrix — directly fixing the APROP solver's measured bottleneck
-   (`smc-solver-performance.md`: `findIso` is the residual cost after `opaque`).
+   (`../smc-solver-performance.md`: `findIso` is the residual cost after `opaque`).
 3. It **skips the entire soundness tier** (the ~1–1.9k-LOC `wdiagram-resp-≈` "≈Term ⇒ equal matrix"
    direction) **and** `matrix-faithful`-via-FinBij — you only need the *completeness* direction
    `matrix≈M → ≅ᴴ`. Plausibly *less* work than the route above.

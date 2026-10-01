@@ -1,0 +1,104 @@
+diff --git a/src/ProbabilisticLogic/Dp.agda b/src/ProbabilisticLogic/Dp.agda
+index be64a85b..235d1b75 100644
+--- a/src/ProbabilisticLogic/Dp.agda
++++ b/src/ProbabilisticLogic/Dp.agda
+@@ -260,50 +260,77 @@ mutual
+ -- `d′`.  For a fixed non-negative test the two `cum` families are monotone, so
+ -- this says exactly `sup ≤ sup` — with rational witnesses and no supremum.
+ 
++-- SPIKE: the generic approximant-sequence relations (stand-in for
++-- `Data.Rational.Approximants` with an exact primitive).  Sequences are explicit:
++-- both relations unfold to a Π, so a sequence is never inferable from its type.
++module Seq where
++  infix 4 _≼_ _≼[_]_
++
++  _≼_ : (ℕ → ℚ) → (ℕ → ℚ) → Set
++  x ≼ y = (n : ℕ) → Σ[ m ∈ ℕ ] (x n ℚ.≤ y m)
++
++  _≼[_]_ : (ℕ → ℚ) → ℚ → (ℕ → ℚ) → Set
++  x ≼[ δ ] y = x ≼ (λ m → y m ℚ.+ δ)
++
++  ≼-refl : (x : ℕ → ℚ) → x ≼ x
++  ≼-refl x n = n , ≤-refl
++
++  ≼-trans : (x y z : ℕ → ℚ) → x ≼ y → y ≼ z → x ≼ z
++  ≼-trans x y z xy yz n = let m , le = xy n ; i , le′ = yz m in i , ≤-trans le le′
++
++  ≼-mapʳ : (x y y′ : ℕ → ℚ) → (∀ m → y m ℚ.≤ y′ m) → x ≼ y → x ≼ y′
++  ≼-mapʳ x y y′ f xy n = let m , le = xy n in m , ≤-trans le (f m)
++
++  ≼-+ʳ : (y y′ : ℕ → ℚ) (δ : ℚ) → y ≼ y′ → (λ m → y m ℚ.+ δ) ≼ (λ m → y′ m ℚ.+ δ)
++  ≼-+ʳ y y′ δ yy n = let m , le = yy n in m , +-monoˡ-≤ δ le
++
++  ≼⇒≼[0] : (x y : ℕ → ℚ) → x ≼ y → x ≼[ 0ℚ ] y
++  ≼⇒≼[0] x y = ≼-mapʳ x y _ λ m → ≤-reflexive (sym (+-identityʳ (y m)))
++
++  ≼[]-mono : (x y : ℕ → ℚ) → ε ℚ.≤ δ → x ≼[ ε ] y → x ≼[ δ ] y
++  ≼[]-mono x y le = ≼-mapʳ x _ _ λ m → +-monoʳ-≤ (y m) le
++
++  ≼[]-trans : (x y z : ℕ → ℚ) → x ≼[ ε ] y → y ≼[ δ ] z → x ≼[ ε ℚ.+ δ ] z
++  ≼[]-trans {ε = ε} {δ = δ} x y z p q =
++    ≼-mapʳ x _ _ (λ i → ≤-reflexive (trans (+-assoc (z i) δ ε) (cong (z i ℚ.+_) (+-comm δ ε))))
++           (≼-trans x _ _ p (≼-+ʳ y _ ε q))
++
++  ≼[]-resp : (x x′ y y′ : ℕ → ℚ) → x′ ≼ x → y ≼ y′ → x ≼[ ε ] y → x′ ≼[ ε ] y′
++  ≼[]-resp {ε = ε} x x′ y y′ l r p = ≼-trans x′ x _ l (≼-trans x _ _ p (≼-+ʳ y y′ ε r))
++
++cumₛ : {A : Set a} → Dₚ A → (A → ℚ) → ℕ → ℚ
++cumₛ d P n = cum n d P
++
+ -- `Cofinal` is exact rather than `Dom` at `0ℚ`: `+ 0ℚ` does not reduce, so every
+ -- exact witness would pay a `+-identityʳ`.
+ Cofinal : {A : Set a} {B : Set b} → (A → ℚ) → (B → ℚ) → Dₚ A → Dₚ B → Set
+-Cofinal P Q d e = (n : ℕ) → Σ[ m ∈ ℕ ] (cum n d P ℚ.≤ cum m e Q)
++Cofinal P Q d e = cumₛ d P Seq.≼ cumₛ e Q
+ 
+ Dom₀ : (A → ℚ) → Dₚ A → Dₚ A → Set
+ Dom₀ P = Cofinal P P
+ 
+ Dom : (A → ℚ) → ℚ → Dₚ A → Dₚ A → Set
+-Dom P ε d e = (n : ℕ) → Σ[ m ∈ ℕ ] (cum n d P ℚ.≤ cum m e P ℚ.+ ε)
++Dom P ε d e = cumₛ d P Seq.≼[ ε ] cumₛ e P
+ 
+ cofinal-refl : (P : A → ℚ) (d : Dₚ A) → Cofinal P P d d
+-cofinal-refl P d n = n , ≤-refl
++cofinal-refl P d = Seq.≼-refl (cumₛ d P)
+ 
+ cofinal-trans : {A : Set a} {B : Set b} {C : Set c} {P : A → ℚ} {Q : B → ℚ} {R : C → ℚ}
+                 (d : Dₚ A) (e : Dₚ B) (h : Dₚ C)
+               → Cofinal P Q d e → Cofinal Q R e h → Cofinal P R d h
+-cofinal-trans d e h de eh n =
+-  let m , le  = de n
+-      i , le′ = eh m
+-  in i , ≤-trans le le′
++cofinal-trans {P = P} {Q} {R} d e h = Seq.≼-trans (cumₛ d P) (cumₛ e Q) (cumₛ h R)
+ 
+ dom₀⇒dom : {d e : Dₚ A} → Dom₀ P d e → Dom P 0ℚ d e
+-dom₀⇒dom {P = P} {e = e} le n =
+-  let m , bd = le n in m , ≤-trans bd (≤-reflexive (sym (+-identityʳ (cum m e P))))
++dom₀⇒dom {P = P} {d = d} {e = e} = Seq.≼⇒≼[0] (cumₛ d P) (cumₛ e P)
+ 
+ dom-mono : {d e : Dₚ A} → ε ℚ.≤ δ → Dom P ε d e → Dom P δ d e
+-dom-mono {P = P} {e = e} le h n = let m , bd = h n in m , ≤-trans bd (+-monoʳ-≤ (cum m e P) le)
++dom-mono {P = P} {d = d} {e = e} = Seq.≼[]-mono (cumₛ d P) (cumₛ e P)
+ 
+ dom-trans : {d e h : Dₚ A} → Dom P ε d e → Dom P δ e h → Dom P (ε ℚ.+ δ) d h
+-dom-trans {P = P} {ε = ε} {δ = δ} {h = h} p q n =
+-  let m , bd = p n
+-      i , cd = q m
+-  in i , ≤-trans bd (≤-trans (+-monoˡ-≤ ε cd) (≤-reflexive (shuffle (cum i h P) δ ε)))
+-  where
+-  shuffle : ∀ x y z → (x ℚ.+ y) ℚ.+ z ≡ x ℚ.+ (z ℚ.+ y)
+-  shuffle x y z = trans (+-assoc x y z) (cong (x ℚ.+_) (+-comm y z))
++dom-trans {P = P} {d = d} {e = e} {h = h} = Seq.≼[]-trans (cumₛ d P) (cumₛ e P) (cumₛ h P)
+ 
+ dom-resp : {d d′ e e′ : Dₚ A} → Dom₀ P d′ d → Dom₀ P e e′ → Dom P ε d e → Dom P ε d′ e′
+-dom-resp {ε = ε} l r p n =
+-  let m , bl = l n
+-      i , bd = p m
+-      j , rb = r i
+-  in j , ≤-trans bl (≤-trans bd (+-monoˡ-≤ ε rb))
++dom-resp {P = P} {d = d} {d′ = d′} {e = e} {e′ = e′} = Seq.≼[]-resp (cumₛ d P) (cumₛ d′ P) (cumₛ e P) (cumₛ e′ P)
+ 
+ infix 4 _≼ₚ_ _≈ₚ_
+ 

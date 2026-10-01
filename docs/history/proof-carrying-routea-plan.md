@@ -1,7 +1,7 @@
 # Plan: proof-carrying Route A (make `rewriteDeep` gate #1 a theorem)
 
 Status: PLAN (2026-06-14). Supersedes the 3-leg graph-roundtrip approach in
-`findiso-witness-plan.md`, which the Route B audit (`/tmp/opt3-routeb/
+`../findiso-witness-plan.md`, which the Route B audit (`/tmp/opt3-routeb/
 ROUTEB-AUDIT.md`, archived findings in memory) found to be NO-GO: its leg 2
 (`⟪decode-attempt H'⟫ ≅ᴴ H'`, full on-graph decoder completeness) is the
 project's hardest open problem (~thousands of LOC, 3–6 months).

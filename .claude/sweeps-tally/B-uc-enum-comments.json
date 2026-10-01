@@ -1,0 +1,3793 @@
+{
+ "sweep": "enum-comments",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/UC.agda": {
+   "sites": [
+    {
+     "lines": "3-19",
+     "kind": "header",
+     "nLines": 17,
+     "flags": [],
+     "attachedTo": "CategoricalCrypto.UC",
+     "preview": "-- The UC layer's entry point: one import for a consumer. Four tiers, one line -- each; th"
+    },
+    {
+     "lines": "42-43",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "CategoricalCrypto.UC.Approximate.LocalTests",
+     "preview": "-- Closure-only: the negligible tier's acceptance tests, and the event-bound -- layer's le"
+    },
+    {
+     "lines": "51-52",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "CategoricalCrypto.Approx.Controlled",
+     "preview": "-- …and the quantitative tier: parameterized by an error algebra and a -- `QUCSetup`, so i"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Factor.agda": {
+   "sites": [
+    {
+     "lines": "3-20",
+     "kind": "header",
+     "nLines": 18,
+     "flags": [],
+     "attachedTo": "CategoricalCrypto.Iface",
+     "preview": "-- The UC-object reading of layer 1's `_∘ᵖ_`: a closed system built from two -- protocols "
+    },
+    {
+     "lines": "35-36",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "factorᵒ",
+     "preview": "------------------------------------------------------------------------ -- The factoring"
+    },
+    {
+     "lines": "38-39",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "factorᵒ",
+     "preview": "-- `closedᵒ w` is `return ∘ procᵒ w` on the nose, which is what lets a pure -- composite b"
+    },
+    {
+     "lines": "44-45",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "factorᵖ",
+     "preview": "-- The UC-object image of `_∘ᵖ_`: the closed system IS the stage composed with -- the clos"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Graded.agda": {
+   "sites": [
+    {
+     "lines": "3-21",
+     "kind": "header",
+     "nLines": 19,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Categories.Category",
+     "preview": "-- Emulation at a NONTRIVIAL grade, from a machine-level factoring. -- -- `UC.Seam.Grounde"
+    },
+    {
+     "lines": "53-56",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "Factors",
+     "preview": "-- The factoring the emulation consumes: the real process IS the simulator's -- relay in f"
+    },
+    {
+     "lines": "60-64",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "sub-graded",
+     "preview": "-- `UC.Model.Graded`'s coercion lemmas re-typed into the setup's vocabulary -- (`sub`, `un"
+    },
+    {
+     "lines": "73-76",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "ext-graded",
+     "preview": "-- …and the reading a COMPOSED system needs: -- `UC.Model.Family.Contextual.Compose._∙ᶠ_` "
+    },
+    {
+     "lines": "90-96",
+     "kind": "standalone",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "flatᵍ",
+     "preview": "-- The grade `ifaceᵒ (X ⊗ᴵ P)` one `gradedᵒ` hands out and the grade -- `ifaceᵒ X ⊗₀ iface"
+    },
+    {
+     "lines": "100-100",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "regrade",
+     "preview": "-- …and `sub-graded₂` at the IDENTITY simulator is that it regrades."
+    },
+    {
+     "lines": "113-114",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "≤UCᵍ",
+     "preview": "-- …hence an emulation in the INHERITED order, at the grade `ifaceᵒ X` and with -- the sim"
+    },
+    {
+     "lines": "119-121",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "≤UC[]ᵍ",
+     "preview": "-- …and with the simulator's query budget attached: the premise `UC.Audit`'s -- graded car"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine.agda": {
+   "sites": [
+    {
+     "lines": "3-26",
+     "kind": "header",
+     "nLines": 24,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The intended model: the UC layer over the machine layer. -- -- `⟦_⟧ᴵ` is a bijection be"
+    },
+    {
+     "lines": "63-64",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Proc",
+     "preview": "------------------------------------------------------------------------ -- Processes on i"
+    },
+    {
+     "lines": "66-67",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Proc",
+     "preview": "-- A `𝒢ₚ`-hom read at interfaces: `Machine (A⁺ + B⁻) (A⁻ + B⁺)`, a process that -- answers"
+    },
+    {
+     "lines": "71-75",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "𝒫ᴵ",
+     "preview": "-- A consumer passes every object implicit of `𝒫ᴵ` explicitly. Left to -- inference, each "
+    },
+    {
+     "lines": "81-82",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊤ᵛ",
+     "preview": "-- The base category's tensor unit, which is also the state object of every -- stateless m"
+    },
+    {
+     "lines": "86-88",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "wireStep",
+     "preview": "-- A stateless forwarder: a positive message travels up, a negative one down. -- The step "
+    },
+    {
+     "lines": "97-98",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Ωᴵ",
+     "preview": "------------------------------------------------------------------------ -- The observatio"
+    },
+    {
+     "lines": "106-113",
+     "kind": "standalone",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "Approximationᴹ",
+     "preview": "-- The advantage is a RELATION, not a function: `Dₚ`'s termination mass is a -- supremum t"
+    },
+    {
+     "lines": "123-126",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "spaceᴹ",
+     "preview": "-- The readout is homed on `𝒢ₚ`, not on `𝒫ᴵ`, because that is where the -- grading is: `Pr"
+    },
+    {
+     "lines": "137-138",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Evaluationᴹ",
+     "preview": "-- …and the qualitative readout the core wants: two closed runs agree when no -- positive "
+    },
+    {
+     "lines": "142-143",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "T₁ᴵ",
+     "preview": "------------------------------------------------------------------------ -- The ancilla re"
+    },
+    {
+     "lines": "145-146",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "T₁ᴵ",
+     "preview": "-- An ancilla interface bypassing a process: the process's own messages go -- through it, "
+    },
+    {
+     "lines": "165-166",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "subᴵ",
+     "preview": "-- A simulator acting on the ancilla alone; this time it is the bypassed -- interface that"
+    },
+    {
+     "lines": "185-186",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "subᴵ′",
+     "preview": "-- `subᴵ` with the bypassed interface moved ahead of the simulator; -- definitionally `sub"
+    },
+    {
+     "lines": "196-199",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "retᴵ",
+     "preview": "-- `⟦_⟧ᴵ`'s retraction: `Iface` and `𝒢ₚ`'s objects are both eta records, so this -- is a d"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Bridge.agda": {
+   "sites": [
+    {
+     "lines": "3-46",
+     "kind": "header",
+     "nLines": 44,
+     "flags": [
+      "headerOverTier"
+     ],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The bridge between the environment layer and layer 1's concrete statements. -- -- It li"
+    },
+    {
+     "lines": "71-73",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "λᴵ⇐",
+     "preview": "-- The unitor wire. `Proc unitᴵ B` is a closed process at `B`; a graded -- statement wants"
+    },
+    {
+     "lines": "77-78",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "λᴵ⇒",
+     "preview": "-- …and its retraction, which closes a hole a graded statement has already -- opened (`UC."
+    },
+    {
+     "lines": "85-86",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "ctxRun",
+     "preview": "-- What a budgeted ancilla context observes when a process is plugged into it: -- exactly "
+    },
+    {
+     "lines": "91-98",
+     "kind": "standalone",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "ContextDominated",
+     "preview": "-- Proved in `UC.Machine.Dominated`, by decomposing the context's activation -- sequence a"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Dictionary.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The ancilla dictionary: `UC.Machine`'s direct relays read as the monoidal -- spellings "
+    },
+    {
+     "lines": "71-71",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "MU.Shorthands",
+     "preview": "-- The 𝒢-level reassociators, which the base's own `α⇒`/`α⇐` would shadow."
+    },
+    {
+     "lines": "77-78",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "wire-pure",
+     "preview": "------------------------------------------------------------------------ -- Every wire is "
+    },
+    {
+     "lines": "81-81",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "wire-pure",
+     "preview": "-- A wire's step is the copairing of its two relabellings, crossed."
+    },
+    {
+     "lines": "92-93",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "wire-pure",
+     "preview": "------------------------------------------------------------------------ -- The ancilla re"
+    },
+    {
+     "lines": "95-99",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "wire-pure",
+     "preview": "-- The relays' common shape: a stateless relabelling IS `⌜_,_⌝` of the two -- directions, "
+    },
+    {
+     "lines": "126-127",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "𝟭ᴵ",
+     "preview": "------------------------------------------------------------------------ -- The trivial-an"
+    },
+    {
+     "lines": "129-131",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "𝟭ᴵ",
+     "preview": "-- The bundle's own monoidal unit, read as an interface. It is NOT `unitᴵ`: -- that one is"
+    },
+    {
+     "lines": "135-135",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "drop⇒ˡ",
+     "preview": "-- The relabellings a unitor performs: the trivial ancilla contributes no case."
+    },
+    {
+     "lines": "143-144",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "λᴵ",
+     "preview": "-- The cocartesian unitors are pure: `to` is an injection on the nose, and -- `from` is th"
+    },
+    {
+     "lines": "157-157",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "λᴵ",
+     "preview": "-- The left unitor as a machine."
+    },
+    {
+     "lines": "176-181",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "plugᴹ",
+     "preview": "-- Closing a grade with an adversary machine. An adversary CONSUMES `X` and -- answers to "
+    },
+    {
+     "lines": "185-186",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "T₁-resp-≈",
+     "preview": "------------------------------------------------------------------------ -- The two relays"
+    },
+    {
+     "lines": "189-190",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "T₁-resp-≈",
+     "preview": "-- Both relays collapse to the same shape: the conjugation of a `tstep` by the -- intercha"
+    },
+    {
+     "lines": "280-281",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "T₁-resp-≈",
+     "preview": "------------------------------------------------------------------------ -- The ancilla re"
+    },
+    {
+     "lines": "283-287",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "T₁-resp-≈",
+     "preview": "-- What the zigzag above buys without unfolding anything: the 𝒢-tensor's own -- functorial"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Dominated.agda": {
+   "sites": [
+    {
+     "lines": "3-25",
+     "kind": "header",
+     "nLines": 23,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- `ContextDominated`, via the two-machine skeleton. -- -- `UC.Machine.Slide` turns the br"
+    },
+    {
+     "lines": "71-72",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Skeleton",
+     "preview": "-- The obligation at a closed context: if no strategy of the context's budget -- separates"
+    },
+    {
+     "lines": "79-80",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Refine",
+     "preview": "------------------------------------------------------------------------ -- The decomposit"
+    },
+    {
+     "lines": "82-83",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Refine",
+     "preview": "-- The context, the representative its certificate lives on, and the -- extraction: everyt"
+    },
+    {
+     "lines": "89-90",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "dstrat",
+     "preview": "-- The context's activation sequence, read off the certificate: one -- strategy per initia"
+    },
+    {
+     "lines": "102-104",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "skeleton",
+     "preview": "-- The observation, with the point refined as well: the certificate's -- initial states ar"
+    },
+    {
+     "lines": "132-133",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "skeleton",
+     "preview": "-- Everything but the two processes is fixed here: the extraction, and the -- slack."
+    },
+    {
+     "lines": "140-140",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "skeleton",
+     "preview": "-- Half the conclusion; the other half is this one with the pair swapped."
+    },
+    {
+     "lines": "150-151",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "skeleton",
+     "preview": "-- The fuel is the budget the observation has just been read at, so the -- truncation is n"
+    },
+    {
+     "lines": "168-170",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "skeleton",
+     "preview": "-- A strategy that never asks is affordable at any budget, and neither run -- ever answers"
+    },
+    {
+     "lines": "191-192",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "skeleton⇒dominated",
+     "preview": "------------------------------------------------------------------------ -- …and the oblig"
+    },
+    {
+     "lines": "206-207",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "CovCtx",
+     "preview": "------------------------------------------------------------------------ -- The event-sens"
+    },
+    {
+     "lines": "209-210",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "CovCtx",
+     "preview": "-- `UC.Seam.EventTransfer`'s accumulator invariant, read at the context's -- initial activ"
+    },
+    {
+     "lines": "218-223",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "EventSkeleton",
+     "preview": "-- One-sided and event-sensitive: an ordinary domination loses the connection -- between a"
+    },
+    {
+     "lines": "256-257",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- A bound holding at every initial state and every budget survives the -- average, the di"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Grading.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The machine model's graded subcategory: `UC.QueryBound`'s certificate at a -- positive "
+    },
+    {
+     "lines": "99-100",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qb-T₁ᴵ",
+     "preview": "-- …and the two actions read back on the PINNED relays, which is the spelling -- a context"
+    },
+    {
+     "lines": "186-186",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "gradingᴹ",
+     "preview": "-- The tensor through its two one-sided actions, `f ⊗₁ g ≈ f ⊗₁ id ∘ id ⊗₁ g`."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor.agda": {
+   "sites": [
+    {
+     "lines": "3-17",
+     "kind": "header",
+     "nLines": 15,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- Compiling a watch into a machine test: the monitor relay, the completion -- reader abov"
+    },
+    {
+     "lines": "49-50",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Flagᴵ",
+     "preview": "------------------------------------------------------------------------ -- The flag port "
+    },
+    {
+     "lines": "52-53",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Flagᴵ",
+     "preview": "-- A one-bit query port: ticked, answering a Boolean. It is `Ωᴵ`'s shape for -- `Ωᴵ`'s rea"
+    },
+    {
+     "lines": "57-59",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "MonSt",
+     "preview": "-- The monitor's state: the accumulated report, and the query an answer is -- still owed t"
+    },
+    {
+     "lines": "72-73",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "monitorᴹ",
+     "preview": "-- The watch as a PROCESS: `Examples.ChimericLedger.Observable.auditWatchFrom` -- with its"
+    },
+    {
+     "lines": "82-83",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "idle",
+     "preview": "------------------------------------------------------------------------ -- Reading the fl"
+    },
+    {
+     "lines": "104-107",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "readerᴹ",
+     "preview": "-- …as the event-bound layer's `Reader`, and the experiment it reads. Here -- rather than "
+    },
+    {
+     "lines": "115-116",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qbᵢ-monitor",
+     "preview": "------------------------------------------------------------------------ -- The certificat"
+    },
+    {
+     "lines": "153-154",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "------------------------------------------------------------------------ -- The three beha"
+    },
+    {
+     "lines": "158-159",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "monitor-query",
+     "preview": "-- Traffic agreement: the query goes down unchanged and is remembered, the -- answer comes"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor/Agree.agda": {
+   "sites": [
+    {
+     "lines": "3-24",
+     "kind": "header",
+     "nLines": 22,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Categories.Category",
+     "preview": "-- Monitor agreement at embedded strategies: `docs/event-bounds-in-setup.md` -- §2 obligat"
+    },
+    {
+     "lines": "72-73",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "outᵁ",
+     "preview": "------------------------------------------------------------------------ -- A strategy emb"
+    },
+    {
+     "lines": "75-77",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "outᵁ",
+     "preview": "-- `UC.Seam.strategyEnv` read on the compiler's own domain. The ancilla is -- trivial, so "
+    },
+    {
+     "lines": "105-106",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Read",
+     "preview": "------------------------------------------------------------------------ -- The test with "
+    },
+    {
+     "lines": "108-110",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Read",
+     "preview": "-- `flagReadᴹ ∘ subᴵ E` collapsed: the loop between the two runs at most two -- passes, so"
+    },
+    {
+     "lines": "147-148",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "read-collapse",
+     "preview": "-- Where the test's own emission goes: a query leaves, a verdict re-enters -- the loop at "
+    },
+    {
+     "lines": "154-155",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "read-collapse",
+     "preview": "-- The flag reader answering a verdict: it asks the flag, and the ancilla -- relay passes "
+    },
+    {
+     "lines": "176-176",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "read-collapse",
+     "preview": "-- The ancilla relay, entered from below or from the flag reader's tick."
+    },
+    {
+     "lines": "228-229",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "monStep",
+     "preview": "------------------------------------------------------------------------ -- The monitor be"
+    },
+    {
+     "lines": "231-231",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "monStep",
+     "preview": "-- `monitorᴹ` with the compiler's two wires absorbed into its interface."
+    },
+    {
+     "lines": "274-275",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Watch",
+     "preview": "------------------------------------------------------------------------ -- The whole comp"
+    },
+    {
+     "lines": "285-287",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "wPass",
+     "preview": "-- What the compiled context does with one emission of the test: a query -- goes down thro"
+    },
+    {
+     "lines": "296-298",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "watchTick",
+     "preview": "-- Split before the state, so that the case tree branches on the ACTIVATION -- first: a tr"
+    },
+    {
+     "lines": "337-337",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "watch-discard",
+     "preview": "-- The emission's own fate, once the flag reader has produced it."
+    },
+    {
+     "lines": "408-409",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "------------------------------------------------------------------------ -- The reachable "
+    },
+    {
+     "lines": "411-416",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "-- The configurations the compiled context actually reaches: an accumulator -- beside the "
+    },
+    {
+     "lines": "517-518",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "m₀",
+     "preview": "-- The compiled context and the watched strategy environment are the same -- machine of th"
+    },
+    {
+     "lines": "522-523",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "m₀",
+     "preview": "------------------------------------------------------------------------ -- Agreement"
+    },
+    {
+     "lines": "525-525",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "m₀",
+     "preview": "-- The closure of a strategy context: no ancilla, nothing below the process."
+    },
+    {
+     "lines": "529-531",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "tower",
+     "preview": "-- The compiled monitored experiment is the watched environment over the -- process: the t"
+    },
+    {
+     "lines": "551-553",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "agree",
+     "preview": "-- Obligation 4 of `docs/event-bounds-in-setup.md` §2. `w` is any transformer -- satisfyin"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor/Slide.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- Compiling a monitor and closing an ancilla context commute: the compiled -- context wit"
+    },
+    {
+     "lines": "43-44",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "watch-collapsed",
+     "preview": "------------------------------------------------------------------------ -- The compiled c"
+    },
+    {
+     "lines": "46-47",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "watch-collapsed",
+     "preview": "-- `Monitor.Agree`'s two collapses, as one: the monitored test over a closed -- one is a s"
+    },
+    {
+     "lines": "57-58",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "watch-resp-≈",
+     "preview": "-- …so the collapsed machine respects the machine equality in its test, which -- `Watch.wa"
+    },
+    {
+     "lines": "67-67",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "closedᴹ",
+     "preview": "-- The original test with the ancilla closed by `m`, the hole still open."
+    },
+    {
+     "lines": "72-73",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "compiled-slide",
+     "preview": "-- The monitored context of `UC.Quantitative.EventLift.openedᴹ`, with its -- closure slid "
+    },
+    {
+     "lines": "114-115",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The four wires below the monitor are the ancilla `w` wired in beside the -- hole; `rela"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Run.agda": {
+   "sites": [
+    {
+     "lines": "3-10",
+     "kind": "header",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- A simulation is invisible to a closed run. -- -- `Machines.Sim`'s generator carries a P"
+    },
+    {
+     "lines": "43-43",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Closed",
+     "preview": "-- A closed machine at an interface: nothing can be asked of its domain side."
+    },
+    {
+     "lines": "50-51",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "------------------------------------------------------------------------ -- The induction,"
+    },
+    {
+     "lines": "53-56",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "-- A state map and the law relating the two steps through it is ALL the -- induction on th"
+    },
+    {
+     "lines": "84-85",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "X",
+     "preview": "------------------------------------------------------------------------ -- What a simulat"
+    },
+    {
+     "lines": "111-112",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "------------------------------------------------------------------------ -- …hence a whole"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Run/Lax.agda": {
+   "sites": [
+    {
+     "lines": "3-17",
+     "kind": "header",
+     "nLines": 15,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- What a lax simulation does to a closed run: it prefixes it. -- -- `UC.Machine.Run` is t"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Slide.agda": {
+   "sites": [
+    {
+     "lines": "3-29",
+     "kind": "header",
+     "nLines": 27,
+     "flags": [
+      "headerOverTier"
+     ],
+     "attachedTo": "Categories.Category",
+     "preview": "-- A closed ancilla context with a hole is a plain context on the hole. -- -- `UC.Machine."
+    },
+    {
+     "lines": "78-79",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "T₁-wire",
+     "preview": "------------------------------------------------------------------------ -- The hole wire"
+    },
+    {
+     "lines": "81-81",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "T₁-wire",
+     "preview": "-- Relaying a wire is relabelling one summand of it."
+    },
+    {
+     "lines": "93-93",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "λ-nat",
+     "preview": "-- Opening a hole beside a closed process commutes with the process."
+    },
+    {
+     "lines": "115-115",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "sub-wire",
+     "preview": "-- …and the bypassed relay relabels a wire the same way."
+    },
+    {
+     "lines": "127-127",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "λ-tri",
+     "preview": "-- Opening a hole beside a pair is opening it beside the first component."
+    },
+    {
+     "lines": "142-142",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "ρᴵ⇒",
+     "preview": "-- Closing the trivial ancilla at the hole is closing it beside the process."
+    },
+    {
+     "lines": "162-164",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "λ-slide",
+     "preview": "-- …and the slide at the hole itself, which is where the ancilla and the -- closure change"
+    },
+    {
+     "lines": "192-193",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Kctx",
+     "preview": "------------------------------------------------------------------------ -- The slide"
+    },
+    {
+     "lines": "214-214",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Kctx",
+     "preview": "-- The context with its hole exposed."
+    },
+    {
+     "lines": "230-231",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "ctxRun-slide",
+     "preview": "-- What the bridge's observation becomes: the closed run of the plugged -- process against"
+    },
+    {
+     "lines": "237-238",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "sandwich-id",
+     "preview": "------------------------------------------------------------------------ -- Closing the ho"
+    },
+    {
+     "lines": "240-240",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "sandwich-id",
+     "preview": "-- A renaming by two identities is no renaming."
+    },
+    {
+     "lines": "252-253",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "unit-cancel",
+     "preview": "-- The two hole wires absorb into one renaming, and that renaming is the -- identity."
+    },
+    {
+     "lines": "277-277",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "T₁-conj",
+     "preview": "-- …so relaying it past an ancilla is no relay either."
+    },
+    {
+     "lines": "283-283",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "ctxRun-conj",
+     "preview": "-- …hence the bridge's observation is unchanged by opening the hole."
+    },
+    {
+     "lines": "291-292",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qb-Kctx",
+     "preview": "------------------------------------------------------------------------ -- …and the budge"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Slide/Relay.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The hole wire's interchange: a closed ancilla wired in beside the hole -- crosses a rel"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Machine/Wire.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Categories.Category",
+     "preview": "-- Composing with a wire costs no trace. -- -- `𝒢ₚ`'s composition is a ⊕-trace, but when o"
+    },
+    {
+     "lines": "57-58",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "A",
+     "preview": "------------------------------------------------------------------------ -- Absorption"
+    },
+    {
+     "lines": "61-62",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "A",
+     "preview": "-- Read at the four trace laws `𝒢ₚ` itself was built from, so that the -- `_∘_` in the sta"
+    },
+    {
+     "lines": "75-75",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "-- `id +₁ pureᵏ h` and `pureᵏ h +₁ id`, as functions."
+    },
+    {
+     "lines": "82-83",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "------------------------------------------------------------------------ -- Composing with"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Model.agda": {
+   "sites": [
+    {
+     "lines": "3-18",
+     "kind": "header",
+     "nLines": 16,
+     "flags": [],
+     "attachedTo": "CategoricalCrypto.UC.Model",
+     "preview": "-- The probabilistic machine model of categorical UC: the root of the cone that -- instant"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Model/Audit.agda": {
+   "sites": [
+    {
+     "lines": "3-7",
+     "kind": "header",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "CategoricalCrypto.UC.Model.Enrichment",
+     "preview": "-- `UC.Audit`'s graded carry at the intended instance: the base is the sealed -- bundle an"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Model/Dominated.agda": {
+   "sites": [
+    {
+     "lines": "3-25",
+     "kind": "header",
+     "nLines": 23,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- `UC.Machine.Bridge.ContextDominated` at SEAL objects, and its proof. -- -- The bridge q"
+    },
+    {
+     "lines": "72-73",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "T₁ᵒ",
+     "preview": "-- The seal's ancilla action, which is what the family layer's is, levelwise -- (`UC.Famil"
+    },
+    {
+     "lines": "77-78",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "ContextDominatedᵒ",
+     "preview": "------------------------------------------------------------------------ -- Crossing the s"
+    },
+    {
+     "lines": "83-84",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "ContextDominatedᵒ",
+     "preview": "-- A query bound on a graded process, as the family layer's hom data asks for -- it (`UC.M"
+    },
+    {
+     "lines": "89-91",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "ContextDominatedᵒ",
+     "preview": "-- …and the two the other way: what a context's test and closure CARRY is a -- `gradingᵒ` "
+    },
+    {
+     "lines": "103-105",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "ContextDominatedᵒ",
+     "preview": "-- The reading itself: an ancilla context of the seal, observed, IS the -- bridge's `ctxRu"
+    },
+    {
+     "lines": "114-115",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "ContextDominatedᵒ",
+     "preview": "------------------------------------------------------------------------ -- …and the state"
+    },
+    {
+     "lines": "117-122",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "ContextDominatedᵒ",
+     "preview": "-- `UC.Machine.Bridge.ContextDominated` with its ancilla quantified over the -- seal's obj"
+    },
+    {
+     "lines": "147-148",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "dominatedᵍᵠ",
+     "preview": "------------------------------------------------------------------------ -- …and at a nont"
+    },
+    {
+     "lines": "150-161",
+     "kind": "standalone",
+     "nLines": 12,
+     "flags": [],
+     "attachedTo": "dominatedᵍᵠ",
+     "preview": "-- `dominatedᵒ` at a hole that is a real grade rather than `𝟘ᵒ`. Every -- quantitative sta"
+    },
+    {
+     "lines": "192-195",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "dominatedᵍ",
+     "preview": "-- …at EVERY strategy instead of at every strategy of the context's budget, -- which is th"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Model/Enrichment.agda": {
+   "sites": [
+    {
+     "lines": "3-17",
+     "kind": "header",
+     "nLines": 15,
+     "flags": [],
+     "attachedTo": "Categories.Category.Instance.Rates",
+     "preview": "-- The two enrichment data `UC.Audit` asks of a base, at the sealed model: a -- graded sub"
+    },
+    {
+     "lines": "56-59",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "imageᵒ",
+     "preview": "-- …and the certificates that grading accepts, at the machine-layer spelling a -- consumer"
+    },
+    {
+     "lines": "63-68",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "imageᵒ",
+     "preview": "-- An adversary machine filling a grade: its codomain is the bundle's own -- unit, which `"
+    },
+    {
+     "lines": "75-75",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "imageᵒ",
+     "preview": "-- The fibre form a generic consumer asks for, at the certified hom itself."
+    },
+    {
+     "lines": "79-82",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "massᵒ",
+     "preview": "-- The reading `Evaluation` deliberately lacks: a mass at a budget, and the -- ε-dominatio"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Model/EventBounds.agda": {
+   "sites": [
+    {
+     "lines": "3-19",
+     "kind": "header",
+     "nLines": 17,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- Event bounds at the machine: the capped-allowance presentation, and the -- absorption o"
+    },
+    {
+     "lines": "52-53",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Reader",
+     "preview": "------------------------------------------------------------------------ -- Reading an eve"
+    },
+    {
+     "lines": "55-58",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "Reader",
+     "preview": "-- A way of turning a budgeted test into one whose verdict IS the event. A -- bound quanti"
+    },
+    {
+     "lines": "66-67",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "BoundedAt",
+     "preview": "------------------------------------------------------------------------ -- The capped all"
+    },
+    {
+     "lines": "69-72",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "BoundedAt",
+     "preview": "-- No certified context of allowance at most `q` makes the event's mass exceed -- `r`. The"
+    },
+    {
+     "lines": "78-79",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "------------------------------------------------------------------------ -- Families, and "
+    },
+    {
+     "lines": "87-88",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Boundedᴺ",
+     "preview": "-- The slack is chosen after the polynomial allowance and before the level, -- and is unif"
+    },
+    {
+     "lines": "94-98",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "boundedᶠ⇒boundedᴺ",
+     "preview": "-- A capped family bound is already a saturated one, at zero slack: its -- schedule `ε n ("
+    },
+    {
+     "lines": "105-106",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "ctxRun-∘",
+     "preview": "------------------------------------------------------------------------ -- Absorbing a mo"
+    },
+    {
+     "lines": "108-111",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "ctxRun-∘",
+     "preview": "-- The relay is functorial, so a morphism in front of the process is the same -- experimen"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Model/Family.agda": {
+   "sites": [
+    {
+     "lines": "3-19",
+     "kind": "header",
+     "nLines": 17,
+     "flags": [],
+     "attachedTo": "Data.Nat.Base",
+     "preview": "-- `UCSetup` at the machine FAMILY: `UC.Family` instantiated at the -- sealed bundle, so t"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Model/Family/Contextual.agda": {
+   "sites": [
+    {
+     "lines": "3-11",
+     "kind": "header",
+     "nLines": 9,
+     "flags": [],
+     "attachedTo": "CategoricalCrypto.Approx.Error",
+     "preview": "-- `UC.Quantitative.Family` at the sealed machine bundle: the quantitative -- contextual r"
+    },
+    {
+     "lines": "25-26",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "CategoricalCrypto.UC.Quantitative.Family",
+     "preview": "-- Spelled exactly as `Approx.Evaluation.qual₊` spells it, so that the readout -- this mod"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Model/Family/Emulation.agda": {
+   "sites": [
+    {
+     "lines": "3-27",
+     "kind": "header",
+     "nLines": 25,
+     "flags": [],
+     "attachedTo": "Categories.LocallyGraded.SubCategory",
+     "preview": "-- The family UC premise on protocol images, with its error KEPT: `_≤UC^ωⁿ_`. -- -- `_≈ᶠ[_"
+    },
+    {
+     "lines": "65-66",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Systems",
+     "preview": "-- A family of closed systems indexed by the security parameter: the shape -- every premis"
+    },
+    {
+     "lines": "73-74",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "gradedᶠ",
+     "preview": "------------------------------------------------------------------------ -- The images and"
+    },
+    {
+     "lines": "76-77",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "gradedᶠ",
+     "preview": "-- The codomain the compared homs live at: the trivial grade over the -- interfaces."
+    },
+    {
+     "lines": "86-88",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "_≈ᶠ[_]_",
+     "preview": "-- `UC.Model.Family.Contextual._≈ctxᴬ[_]_` at those images. Unfolded: at each -- level, no"
+    },
+    {
+     "lines": "94-95",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_≤UC^ωⁿ_",
+     "preview": "-- The premise: the agreement above with its `ε` kept and graded at the -- allowance-unifo"
+    },
+    {
+     "lines": "99-100",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "≈ctxᴬ⇒≈ℰ[]",
+     "preview": "------------------------------------------------------------------------ -- The witness fo"
+    },
+    {
+     "lines": "102-108",
+     "kind": "standalone",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "≈ctxᴬ⇒≈ℰ[]",
+     "preview": "-- The bound is EXPLICIT here and in `≈ᶠ-runs` below, for -- `UC.Approximate.GradedBound-+"
+    },
+    {
+     "lines": "114-117",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "-- The inputs are the fixed data themselves — a certified simulator family, a -- schedule,"
+    },
+    {
+     "lines": "122-123",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "≤UC[]⇒≈ℰⁿ",
+     "preview": "-- One schedule, negligible at every polynomial allowance, that every level's -- context r"
+    },
+    {
+     "lines": "128-131",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "≤UC[]⇒≤UCᴺ",
+     "preview": "-- …and the CANONICAL NEGLIGIBLE order, which is where the schedule stops -- being visible"
+    },
+    {
+     "lines": "135-136",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "≈ᶠ-runs",
+     "preview": "------------------------------------------------------------------------ -- Reading it at "
+    },
+    {
+     "lines": "138-142",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "≈ᶠ-runs",
+     "preview": "-- The context is `UC.Seam.Audit.Context`'s: an embedded strategy behind the two -- unitor"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Model/Family/Ingest.agda": {
+   "sites": [
+    {
+     "lines": "3-24",
+     "kind": "header",
+     "nLines": 22,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- Family ingestion: a machine-layer advantage bound, level by level, read as -- `UC.Model"
+    },
+    {
+     "lines": "59-62",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "ifaceᶠ",
+     "preview": "-- The interfaces as an object family of the seal, and the hom family a -- level-indexed c"
+    },
+    {
+     "lines": "72-73",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_≈advᴹ[_]_",
+     "preview": "-- The premise: layer 1's `_≈adv[_]_` in the machine vocabulary the -- domination is state"
+    },
+    {
+     "lines": "86-87",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The two compared families, and the bound the ingestion lands at: the -- premise's, wide"
+    },
+    {
+     "lines": "101-103",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The collapses, at the §3 discipline: `absorb-negl` spends only vanishing, -- `_≈ℰⁿ_` ke"
+    },
+    {
+     "lines": "109-111",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The bound and the two families are passed rather than inferred, for -- `GradedBound-+[_"
+    },
+    {
+     "lines": "118-119",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- …and in the INHERITED order, which is where `UC-compose` is -- (`UC.Family.Vanishing`)."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Model/Family/Negligible.agda": {
+   "sites": [
+    {
+     "lines": "3-10",
+     "kind": "header",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "Data.Nat.Base",
+     "preview": "-- `UC.Family.Negligible` at the machine family: the negligible tier's -- readout and emul"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Model/Graded.agda": {
+   "sites": [
+    {
+     "lines": "3-30",
+     "kind": "header",
+     "nLines": 28,
+     "flags": [
+      "leftoverMarker",
+      "headerOverTier"
+     ],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The seal's coercions for a NONTRIVIALLY graded process image. -- -- `UC.Model.Seal.grad"
+    },
+    {
+     "lines": "57-60",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The grading's `sub` is the machine layer's own relay: `sub c` is `c ⊗₁ id` -- (`Curried"
+    },
+    {
+     "lines": "66-68",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- A process plugged UNDER such a hom — a resource installed below a graded -- system — le"
+    },
+    {
+     "lines": "73-76",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The graded image of a process whose grade is already a tensor, which is the -- shape a "
+    },
+    {
+     "lines": "85-85",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- `graded-∘ᵒ` at a tensor grade."
+    },
+    {
+     "lines": "90-91",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- `sub-gradedᵒ` at a simulator whose own codomain is a tensor, which is what -- a JOINT s"
+    },
+    {
+     "lines": "97-100",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- …and a stage plugged ON TOP of a graded image, which is what -- `UC.Model.Family.Contex"
+    },
+    {
+     "lines": "107-107",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- A simulator in front of an adversary is again an adversary."
+    },
+    {
+     "lines": "112-115",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- …and what is left once it has: the grade is the unit, the unitor deflates -- it (`λ⇒-λᴳ"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Model/Observation.agda": {
+   "sites": [
+    {
+     "lines": "3-23",
+     "kind": "header",
+     "nLines": 21,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- The verdict object and what a closed process shows at it (proposal §1–2, -- `docs/kb/fr"
+    },
+    {
+     "lines": "65-66",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "obs-resp",
+     "preview": "-- A simulation is invisible to a closed run (`UC.Machine.Run`), so the seal's -- hom equa"
+    },
+    {
+     "lines": "70-71",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qevaluationᵒ",
+     "preview": "------------------------------------------------------------------------ -- …as the record"
+    },
+    {
+     "lines": "73-77",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "qevaluationᵒ",
+     "preview": "-- The QUANTITATIVE readout is primary and the qualitative one is `qual₊` of -- it, so `UC"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Model/Quantitative.agda": {
+   "sites": [
+    {
+     "lines": "3-9",
+     "kind": "header",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "ProbabilisticLogic.Dp.Advantage",
+     "preview": "-- The model's quantitative UC setup: `UC.Quantitative.Observed` at the sealed -- machine "
+    },
+    {
+     "lines": "27-29",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "CategoricalCrypto.UC.Quantitative.Observed",
+     "preview": "-- Spelled exactly as `Approx.Evaluation.qual₊` spells it, so the readout this -- lands at"
+    },
+    {
+     "lines": "38-40",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The same observation restricted by allowance: `UC.Quantitative.Query` at -- the model's"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Model/Seal.agda": {
+   "sites": [
+    {
+     "lines": "3-34",
+     "kind": "header",
+     "nLines": 32,
+     "flags": [
+      "headerOverTier"
+     ],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The machine monoidal bundle behind an `opaque` seal, and the coercions across -- it. Th"
+    },
+    {
+     "lines": "63-69",
+     "kind": "standalone",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The seal itself, as a PROPOSITIONAL equation. A datum derived from the -- whole bundle "
+    },
+    {
+     "lines": "76-77",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- …and its section: `Iface` and the bundle's objects are both eta records, -- so `retᴵ` i"
+    },
+    {
+     "lines": "98-99",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The tensor, which the seal also hides: on interface objects it is the -- interface tens"
+    },
+    {
+     "lines": "103-104",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- …hence the coercion a graded hom needs: `A ⇒ T₀ X B` is `A ⇒ X ⊗₀ B`, and -- the seal h"
+    },
+    {
+     "lines": "108-112",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The two halves of an ancilla context, at an ARBITRARY ancilla: a test on -- the ancilla"
+    },
+    {
+     "lines": "122-124",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- `procᵒ` is functorial on the nose, and the seal hides that too. This is -- what lets th"
+    },
+    {
+     "lines": "129-132",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- …the same fact read the other way, which is what a machine-layer -- functoriality theor"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Model/Setup.agda": {
+   "sites": [
+    {
+     "lines": "3-14",
+     "kind": "header",
+     "nLines": 12,
+     "flags": [],
+     "attachedTo": "CategoricalCrypto.UC.Core",
+     "preview": "-- The UC setup of the model: `StdUC` at the sealed machine bundle and the test -- preshea"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Quantitative/EventLift.agda": {
+   "sites": [
+    {
+     "lines": "3-30",
+     "kind": "header",
+     "nLines": 28,
+     "flags": [
+      "leftoverMarker",
+      "headerOverTier"
+     ],
+     "attachedTo": "Categories.Category",
+     "preview": "-- Event bounds at the compiled monitor, and the strategy-to-contexts lift -- (`docs/event"
+    },
+    {
+     "lines": "76-77",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "HitsAt",
+     "preview": "------------------------------------------------------------------------ -- Event bounds a"
+    },
+    {
+     "lines": "95-96",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "openedᴹ",
+     "preview": "------------------------------------------------------------------------ -- The compiled c"
+    },
+    {
+     "lines": "98-99",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "openedᴹ",
+     "preview": "-- The compiled test with the hole `ctxRun` closes over reopened, which is the -- shape `K"
+    },
+    {
+     "lines": "104-104",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "eventRun-closed",
+     "preview": "-- The monitored experiment IS that closed context's observation."
+    },
+    {
+     "lines": "114-115",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "eventDominatedᶜ",
+     "preview": "------------------------------------------------------------------------ -- The lift"
+    },
+    {
+     "lines": "117-120",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "eventDominatedᶜ",
+     "preview": "-- The lift with the accumulator invariant and the compiled context's own -- certificate t"
+    },
+    {
+     "lines": "134-142",
+     "kind": "standalone",
+     "nLines": 9,
+     "flags": [],
+     "attachedTo": "eventDominatedᵘ",
+     "preview": "-- …and the lift with those premises discharged, at the rate `covCtx` builds: -- `UC.Quant"
+    },
+    {
+     "lines": "155-158",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "hitsᵘ",
+     "preview": "-- …as an event bound at a CAPPED allowance, which is the public shape -- (`UC.Model.Event"
+    },
+    {
+     "lines": "168-169",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qb-stratTest",
+     "preview": "------------------------------------------------------------------------ -- …and back to t"
+    },
+    {
+     "lines": "171-174",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "qb-stratTest",
+     "preview": "-- The strategy context `UC.Machine.Monitor.Agree.agree` is stated at, with the -- certifi"
+    },
+    {
+     "lines": "183-186",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "hits⇒bounded",
+     "preview": "-- …so a contextual event bound, read at that context, IS the strategy-level -- watched bo"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda": {
+   "sites": [
+    {
+     "lines": "3-22",
+     "kind": "header",
+     "nLines": 20,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The accumulator invariant at the compiled context: a certificate of the -- collapsed mo"
+    },
+    {
+     "lines": "82-83",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "bit",
+     "preview": "------------------------------------------------------------------------ -- The potential"
+    },
+    {
+     "lines": "89-91",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "pend",
+     "preview": "-- The monitor's own potential. Splitting on the pending query FIRST makes -- `pend (acc ,"
+    },
+    {
+     "lines": "111-112",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "onRᵂ",
+     "preview": "------------------------------------------------------------------------ -- The potential "
+    },
+    {
+     "lines": "114-115",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "onRᵂ",
+     "preview": "-- A query leaf owes one unit for the answer it is waiting for, and the -- test's own drop"
+    },
+    {
+     "lines": "122-122",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "onRᵂ",
+     "preview": "-- The single extra unit the rate spends: the accumulator's own."
+    },
+    {
+     "lines": "141-142",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "onRᵂ",
+     "preview": "------------------------------------------------------------------------ -- The test's emi"
+    },
+    {
+     "lines": "144-145",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "onRᵂ",
+     "preview": "-- `Watch.wPass` with the potentials attached: a query owes an answer, a -- verdict is DIS"
+    },
+    {
+     "lines": "165-166",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "onRᵂ",
+     "preview": "------------------------------------------------------------------------ -- The certificat"
+    },
+    {
+     "lines": "219-220",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "ET",
+     "preview": "------------------------------------------------------------------------ -- The invariant"
+    },
+    {
+     "lines": "225-225",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "covᵂ",
+     "preview": "-- The accumulators advance at the same answer, so the covering survives."
+    },
+    {
+     "lines": "232-234",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "covᵂ",
+     "preview": "-- The accumulator the machine carries is covered by the one the -- invariant has walked u"
+    },
+    {
+     "lines": "267-268",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "covᵂ",
+     "preview": "------------------------------------------------------------------------ -- …at every zero"
+    },
+    {
+     "lines": "270-272",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "covᵂ",
+     "preview": "-- `pend` is what makes this provable: a state of potential zero has an -- EMPTY accumulat"
+    },
+    {
+     "lines": "283-284",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qb-closedᴹ",
+     "preview": "------------------------------------------------------------------------ -- The compiled c"
+    },
+    {
+     "lines": "286-288",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "qb-closedᴹ",
+     "preview": "-- The closure is a closed process, so it is recertified at rate zero -- (`qb-closed`) and"
+    },
+    {
+     "lines": "303-307",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "covCtx",
+     "preview": "-- The premise of `UC.Quantitative.EventLift.eventDominatedᶜ`, at the rate the -- invarian"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/QueryBound.agda": {
+   "sites": [
+    {
+     "lines": "3-30",
+     "kind": "header",
+     "nLines": 28,
+     "flags": [
+      "headerOverTier"
+     ],
+     "attachedTo": "Categories.Category",
+     "preview": "-- Query bounds with content: the amortised-potential certificate, and the -- run-level co"
+    },
+    {
+     "lines": "101-101",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Below",
+     "preview": "-- Reuse this map-law chain without normalizing it into each certificate."
+    },
+    {
+     "lines": "113-114",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Below",
+     "preview": "------------------------------------------------------------------------ -- The refined an"
+    },
+    {
+     "lines": "129-130",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Certificate",
+     "preview": "------------------------------------------------------------------------ -- The certificat"
+    },
+    {
+     "lines": "132-141",
+     "kind": "standalone",
+     "nLines": 10,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Certificate",
+     "preview": "-- The state, point and step are PARAMETERS, not projections out of a `Proc`. -- Declaring"
+    },
+    {
+     "lines": "156-156",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "qbᵢ-mono",
+     "preview": "-- Only `onRᵍ` mentions `c`, so only its answers are widened."
+    },
+    {
+     "lines": "178-179",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "traceᵍ",
+     "preview": "------------------------------------------------------------------------ -- What the poten"
+    },
+    {
+     "lines": "181-183",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "traceᵍ",
+     "preview": "-- The environment chooses an activation word; the machine answers with one -- output per "
+    },
+    {
+     "lines": "193-194",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "#inj₁",
+     "preview": "------------------------------------------------------------------------ -- Counting"
+    },
+    {
+     "lines": "217-218",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Counting",
+     "preview": "-- The counting theorem, proved by `UC.QueryBound.Counting.counting` — a -- separate modul"
+    },
+    {
+     "lines": "224-225",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qbᵢ-wire",
+     "preview": "------------------------------------------------------------------------ -- Inhabitation"
+    },
+    {
+     "lines": "227-231",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "qbᵢ-wire",
+     "preview": "-- A stateless forwarder answers each activation with exactly one output, so it -- is 1-bo"
+    },
+    {
+     "lines": "244-247",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "qbᵢ-closed",
+     "preview": "-- A CLOSED process spends nothing: `Neg unitᴵ` is empty, so no output of its -- is downwa"
+    },
+    {
+     "lines": "271-272",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Certified",
+     "preview": "------------------------------------------------------------------------ -- The hom-level "
+    },
+    {
+     "lines": "274-274",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Certified",
+     "preview": "-- A process's certificate, read off its own state, point and step."
+    },
+    {
+     "lines": "278-285",
+     "kind": "standalone",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "QB",
+     "preview": "-- `Certified` is not invariant under the machine equality: a simulation's state -- map is"
+    },
+    {
+     "lines": "302-303",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "OneCall",
+     "preview": "------------------------------------------------------------------------ -- One call per a"
+    },
+    {
+     "lines": "305-313",
+     "kind": "standalone",
+     "nLines": 9,
+     "flags": [],
+     "attachedTo": "OneCall",
+     "preview": "-- A protocol whose every step is a `CategoricalCrypto.OracleCall.Call` asks at -- most on"
+    },
+    {
+     "lines": "315-316",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "OneCall",
+     "preview": "-- `call₁` is the protocol's step written in `Call` rather than in `Calls`: a -- protocol "
+    },
+    {
+     "lines": "323-324",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qb-oneCall",
+     "preview": "-- Idle at a protocol state, or suspended on the ONE continuation the call -- parked — whe"
+    },
+    {
+     "lines": "345-346",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qb-oneCall",
+     "preview": "-- Nothing is ever owed: the one unit an activation deposits is spent on the -- call it ma"
+    },
+    {
+     "lines": "392-393",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qb-oneCall",
+     "preview": "-- Both drives land on the same pair, `θᴺ` rebuilding precisely the -- continuation `fromC"
+    },
+    {
+     "lines": "427-436",
+     "kind": "banner",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "qbᵢ-resp-step",
+     "preview": "------------------------------------------------------------------------ -- The three trac"
+    },
+    {
+     "lines": "439-439",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "qbᵢ-resp-step",
+     "preview": "-- The bypassed interface can always afford its one downward relay."
+    },
+    {
+     "lines": "443-445",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "qbᵢ-resp-step",
+     "preview": "-- A certificate sees its step only up to `_≈ₚ_`. That is what lets the two -- action laws"
+    },
+    {
+     "lines": "457-458",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qbᵢ-id",
+     "preview": "-- The identity is `σᴹ`, a pure machine, where the wire case-splits the sum; the -- two ar"
+    },
+    {
+     "lines": "471-471",
+     "kind": "banner",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Y",
+     "preview": "------------------------------------------------------------------------"
+    },
+    {
+     "lines": "501-502",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qbᵢ-T₁",
+     "preview": "-- The plugged process's answer, retagged into the second summand; the -- reference potent"
+    },
+    {
+     "lines": "548-548",
+     "kind": "banner",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "X",
+     "preview": "------------------------------------------------------------------------"
+    },
+    {
+     "lines": "623-623",
+     "kind": "banner",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "qb-idᴹ",
+     "preview": "------------------------------------------------------------------------"
+    },
+    {
+     "lines": "628-635",
+     "kind": "standalone",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "qb-T₁ᴹ",
+     "preview": "-- The hom-level forms need the action to respect `_≈_`, because `QB` is the -- `≈`-closur"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Compose.agda": {
+   "sites": [
+    {
+     "lines": "3-21",
+     "kind": "header",
+     "nLines": 19,
+     "flags": [],
+     "attachedTo": "Data.Empty",
+     "preview": "-- The query bound multiplies along composition: the two-position token walk. -- -- The po"
+    },
+    {
+     "lines": "41-42",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Compose",
+     "preview": "------------------------------------------------------------------------ -- The composite'"
+    },
+    {
+     "lines": "53-54",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "resumeF",
+     "preview": "-- The token has just left `f`: a downward message exits the composite, an -- upward one c"
+    },
+    {
+     "lines": "59-60",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "resumeG",
+     "preview": "-- …and symmetrically out of `g`: an upward message exits, a downward one -- descends the "
+    },
+    {
+     "lines": "96-97",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "",
+     "preview": "-------------------------------------------------------------------- -- The potential arit"
+    },
+    {
+     "lines": "99-99",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- A `g`-unit is worth an activation of `f`…"
+    },
+    {
+     "lines": "103-103",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- …so `g`'s deposit of `c` is the composite's deposit of `c · c′`."
+    },
+    {
+     "lines": "110-110",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- `f`'s slack and the composite's deposit, moved past `g`'s potential."
+    },
+    {
+     "lines": "118-122",
+     "kind": "banner",
+     "nLines": 5,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "",
+     "preview": "-------------------------------------------------------------------- -- The walk -- -- `r`"
+    },
+    {
+     "lines": "154-155",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "",
+     "preview": "-------------------------------------------------------------------- -- …and it erases to "
+    },
+    {
+     "lines": "198-202",
+     "kind": "banner",
+     "nLines": 5,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "",
+     "preview": "-------------------------------------------------------------------- -- The two entries --"
+    },
+    {
+     "lines": "265-266",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "",
+     "preview": "-------------------------------------------------------------------- -- The zero-potential"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Compose/Laws.agda": {
+   "sites": [
+    {
+     "lines": "3-7",
+     "kind": "header",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The composition closure of `QB`, at the hom level and at 𝒢's own objects — -- what `UC."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Compose/Step.agda": {
+   "sites": [
+    {
+     "lines": "3-14",
+     "kind": "header",
+     "nLines": 12,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The composite's step, computed: `Unfolding` discharged for the real `𝒫ᴵ` -- composite, "
+    },
+    {
+     "lines": "51-52",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "A",
+     "preview": "------------------------------------------------------------------------ -- Pure base morp"
+    },
+    {
+     "lines": "55-55",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "-- `k` is `returnₚ ∘ h`, up to junctions."
+    },
+    {
+     "lines": "80-81",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "------------------------------------------------------------------------ -- The two wires "
+    },
+    {
+     "lines": "100-101",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The composite as ONE traced machine with product state: what a consumer -- reading a `𝒢"
+    },
+    {
+     "lines": "119-120",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "",
+     "preview": "---------------------------------------------------------------- -- The two factors' steps"
+    },
+    {
+     "lines": "144-145",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "",
+     "preview": "---------------------------------------------------------------- -- …and the solved loop t"
+    },
+    {
+     "lines": "157-157",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- One external step feeds its input in on the `A` summand…"
+    },
+    {
+     "lines": "162-162",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- …the dispatch exits on the `B` summand…"
+    },
+    {
+     "lines": "168-168",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- …and re-enters the body on the loop wire."
+    },
+    {
+     "lines": "217-218",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- …and the composite in the category's own vocabulary, which is the form a -- consumer's "
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Counting.agda": {
+   "sites": [
+    {
+     "lines": "3-23",
+     "kind": "header",
+     "nLines": 21,
+     "flags": [],
+     "attachedTo": "Data.List.Base",
+     "preview": "-- What the potential in `QBᵢ` means on a run: `UC.QueryBound.Counting` -- inhabited. -- -"
+    },
+    {
+     "lines": "69-72",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "Refined",
+     "preview": "-- Push a continuation across an erasure: if `d` erases to `dᵉ` along `h` and -- `k` facto"
+    },
+    {
+     "lines": "79-80",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Refined",
+     "preview": "------------------------------------------------------------------------ -- The refined ru"
+    },
+    {
+     "lines": "88-89",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "CountedRun",
+     "preview": "-- A run of `w` from `s`: where it ends, what it emitted, and the amortised -- invariant r"
+    },
+    {
+     "lines": "100-101",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "countᵍ",
+     "preview": "-- One activation from above deposits `c`, cashed against the extra `c` its -- own entry c"
+    },
+    {
+     "lines": "108-111",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "countᵍ",
+     "preview": "-- Prepending a downward output costs one unit of potential, which the step's -- own withd"
+    },
+    {
+     "lines": "122-123",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "countᵍ",
+     "preview": "-- The tail of one `traceᵍ` step: run the rest of the word, prepend this -- activation's o"
+    },
+    {
+     "lines": "127-128",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "countᵍ",
+     "preview": "-- The refined run, driven by the certificate's own activations. The account -- is empty a"
+    },
+    {
+     "lines": "150-152",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "countᵍ-erase",
+     "preview": "-- Erasing the bound off a consing step. The recursive instance is the -- hypothesis `rec`"
+    },
+    {
+     "lines": "161-162",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "countᵍ-erase",
+     "preview": "-- The refined run really is the machine's: forgetting the bound leaves the -- behaviour `"
+    },
+    {
+     "lines": "199-200",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qbᵢ⇒count",
+     "preview": "------------------------------------------------------------------------ -- The counting t"
+    },
+    {
+     "lines": "202-204",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "qbᵢ⇒count",
+     "preview": "-- The account starts empty — `pointᵍ` is a distribution over zero-potential -- states — s"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Exact.agda": {
+   "sites": [
+    {
+     "lines": "3-36",
+     "kind": "header",
+     "nLines": 34,
+     "flags": [
+      "headerOverTier"
+     ],
+     "attachedTo": "Data.List.Base",
+     "preview": "-- Exact output counts: what a query BOUND cannot say. -- -- `UC.QueryBound.QBᵢ` is an amo"
+    },
+    {
+     "lines": "58-58",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "weight",
+     "preview": "-- The weight of a word: `sum ∘ map`, spelled so that it reduces on a cons."
+    },
+    {
+     "lines": "76-77",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Balanced",
+     "preview": "-- The ledger equation, at a run: the counted outputs plus what the final -- state still o"
+    },
+    {
+     "lines": "90-91",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Ledger",
+     "preview": "-- The refined run. The `Dₚ`-level recursion is the trace's own; only the -- witness is ne"
+    },
+    {
+     "lines": "116-116",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Ledger",
+     "preview": "-- …and it IS the run: forget the witness and the refinement is the trace."
+    },
+    {
+     "lines": "129-129",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Ledger",
+     "preview": "-- The closed form: the initial ledger is zero, so the word alone pays."
+    },
+    {
+     "lines": "147-148",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "downward",
+     "preview": "------------------------------------------------------------------------ -- Inhabitation"
+    },
+    {
+     "lines": "150-151",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "downward",
+     "preview": "-- The two weightings a plain query count uses: one per output that travels -- DOWN, one p"
+    },
+    {
+     "lines": "160-163",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "qeᵢ-wire",
+     "preview": "-- A stateless relay emits exactly one downward output per activation from -- above and no"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/QueryBound/Object.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- `UC.QueryBound`'s hom-level predicate at 𝒢's OWN objects. -- -- `⟦_⟧ᴵ` and `retᴵ` are d"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Robust/Model.agda": {
+   "sites": [
+    {
+     "lines": "3-13",
+     "kind": "header",
+     "nLines": 11,
+     "flags": [],
+     "attachedTo": "Data.Empty",
+     "preview": "-- The qualitative carry at the intended instance, and the API's acceptance -- test at a s"
+    },
+    {
+     "lines": "32-35",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "relayᵒ",
+     "preview": "-- The stateless relay that exposes its own caller interface as its adversary -- grade, so"
+    },
+    {
+     "lines": "43-46",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "relay-selectedᵒ",
+     "preview": "-- The acceptance test the top class cannot give: a nontrivial `Adm` -- (`UC.Robust.Select"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam.agda": {
+   "sites": [
+    {
+     "lines": "3-31",
+     "kind": "header",
+     "nLines": 29,
+     "flags": [
+      "headerOverTier"
+     ],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- A finite strategy embedded as an environment (`strategyEnv`: its state is -- the remain"
+    },
+    {
+     "lines": "58-59",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "------------------------------------------------------------------------ -- A strategy as "
+    },
+    {
+     "lines": "61-62",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "-- Between activations the environment is about to play the rest of its tree, -- or suspen"
+    },
+    {
+     "lines": "69-70",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "playˢ",
+     "preview": "-- Play the tree to its next interface boundary: a query on `B`, or the -- verdict on the "
+    },
+    {
+     "lines": "76-77",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "stepˢ",
+     "preview": "-- The environment is activated by the verdict interface's tick and by the -- process's an"
+    },
+    {
+     "lines": "91-92",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "plugˢ",
+     "preview": "------------------------------------------------------------------------ -- The two runs i"
+    },
+    {
+     "lines": "94-94",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "plugˢ",
+     "preview": "-- Under an embedded strategy as an environment, and under layer 1's own run."
+    },
+    {
+     "lines": "106-111",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "Adequacy",
+     "preview": "-- Stated and priced at ~250–350 LOC, one module: this is `prAgree`'s unrolling -- again, "
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam/Adequacy.agda": {
+   "sites": [
+    {
+     "lines": "3-15",
+     "kind": "header",
+     "nLines": 13,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- `Adequacy`: an embedded strategy, run as an environment against a closed -- process, ob"
+    },
+    {
+     "lines": "55-56",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Tick",
+     "preview": "-- The traced wire carries both polarities of the plugged interface, and the -- paired sta"
+    },
+    {
+     "lines": "63-64",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "play-run",
+     "preview": "-- The induction: an environment about to play `e` against `u` in state `su` -- observes l"
+    },
+    {
+     "lines": "79-79",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "step-run",
+     "preview": "-- The process's answer resumes the environment: the second pass."
+    },
+    {
+     "lines": "96-96",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "step-run",
+     "preview": "-- …and the composite's one activation enters that induction at the tick."
+    },
+    {
+     "lines": "113-117",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "adequacyᵍ",
+     "preview": "-- The three-party closed system — an environment above, an adversary machine -- at the gr"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam/Adequacy/Wiring.agda": {
+   "sites": [
+    {
+     "lines": "3-15",
+     "kind": "header",
+     "nLines": 13,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The closed G-composite `strategyEnv B d ∘ u` as one machine with a readable -- step. --"
+    },
+    {
+     "lines": "49-50",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "------------------------------------------------------------------------ -- The collapsed "
+    },
+    {
+     "lines": "54-55",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "outE",
+     "preview": "-- Where the environment's two possible emissions go: a query on `B` re-enters -- the trac"
+    },
+    {
+     "lines": "77-78",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "compose-≈ᴹ",
+     "preview": "------------------------------------------------------------------------ -- The composite,"
+    },
+    {
+     "lines": "81-81",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "compose-≈ᴹ",
+     "preview": "-- `kᴳ` and `kᵂ` differ only where `outU` reads the empty summand."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam/Audit/Context.agda": {
+   "sites": [
+    {
+     "lines": "3-18",
+     "kind": "header",
+     "nLines": 16,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The context an audit bound is extracted at, and what a graded bound at any -- class per"
+    },
+    {
+     "lines": "66-66",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "auditClose",
+     "preview": "-- The ancilla is deflated away, whatever the interface below it."
+    },
+    {
+     "lines": "79-79",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "auditTest",
+     "preview": "-- The context: the embedded strategy with the grade and the ancilla deflated."
+    },
+    {
+     "lines": "88-89",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "audit-run",
+     "preview": "-- Both wires cancel, what is left is the plugged strategy, and its -- observation is laye"
+    },
+    {
+     "lines": "99-100",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "------------------------------------------------------------------------ -- …and at a NONT"
+    },
+    {
+     "lines": "102-105",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "B",
+     "preview": "-- The same context with the grade FILLED by an adversary machine. Its shape -- is `UC.Aud"
+    },
+    {
+     "lines": "111-112",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "audit-qbᵍ",
+     "preview": "-- The adversary's own rate, charged exactly as `absorbed-budget` charges a -- simulator's"
+    },
+    {
+     "lines": "121-121",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "absorb-plugᵍ",
+     "preview": "-- The system with its adversary plugged and its resource below."
+    },
+    {
+     "lines": "125-127",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "absorb-plugᵍ",
+     "preview": "-- `unprocᵒ-∘` twice — once for the adversary at the grade -- (`UC.Graded.plug-graded`), o"
+    },
+    {
+     "lines": "144-144",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "absorb-plugᵍ",
+     "preview": "-- …and the observation IS layer 1's run of the strategy against it."
+    },
+    {
+     "lines": "148-151",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "absorb-plugᵍ",
+     "preview": "-- A graded bound at any class this context inhabits is a `Pr` bound on that -- run, stopp"
+    },
+    {
+     "lines": "171-174",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "absorb-plugᵍ",
+     "preview": "-- Absorbing a simulator into this context is composing it with the adversary: -- the tens"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam/Budget.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- What an embedded strategy costs: `UC.Seam.strategyEnv B d` carries the query -- bound `"
+    },
+    {
+     "lines": "71-71",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "playᶜ",
+     "preview": "-- The environment's state refined by the ask-depth still available to it."
+    },
+    {
+     "lines": "81-82",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "playᴬ",
+     "preview": "-- `playˢ` with the refined answer the certificate owes: a query strictly -- spends potent"
+    },
+    {
+     "lines": "127-128",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "simᶜ",
+     "preview": "------------------------------------------------------------------------ -- …and the refin"
+    },
+    {
+     "lines": "138-138",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "simᶜ",
+     "preview": "-- The two `returnₚ` junctions a refined answer costs."
+    },
+    {
+     "lines": "181-182",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "qb-strategyEnv",
+     "preview": "-- An environment playing a `c`-ask strategy issues at most `c` queries per -- activation "
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam/EventTransfer.agda": {
+   "sites": [
+    {
+     "lines": "3-26",
+     "kind": "header",
+     "nLines": 24,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The extracted strategy's verdict is dominated by the WATCHED verdict of the -- same str"
+    },
+    {
+     "lines": "70-71",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "cov-bot",
+     "preview": "------------------------------------------------------------------------ -- The accumulato"
+    },
+    {
+     "lines": "84-85",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "cov-bot",
+     "preview": "-- A tree with no leaves covers nothing, which is how a certificate's dead -- positions di"
+    },
+    {
+     "lines": "90-91",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Watched",
+     "preview": "-- Once the watch has fired nothing is left to cover, which is also the base -- case of an"
+    },
+    {
+     "lines": "102-103",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Watched",
+     "preview": "------------------------------------------------------------------------ -- The watched fo"
+    },
+    {
+     "lines": "105-106",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Watched",
+     "preview": "-- The watch is `w`, pinned only by the three equations -- `CategoricalCrypto.Strategy.IsW"
+    },
+    {
+     "lines": "119-120",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "cov-ind",
+     "preview": "-- The one place the invariant is spent: a verdict the test scores is one the -- accumulat"
+    },
+    {
+     "lines": "125-125",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "resumeᵂ",
+     "preview": "-- `Transfer.resume` with the answer accumulated into the watch."
+    },
+    {
+     "lines": "129-129",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "CovX",
+     "preview": "-- What the invariant reads at each position of the loop."
+    },
+    {
+     "lines": "225-226",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "runFwdᵂ",
+     "preview": "-- `Transfer.runFwd` at the watched target: the process's own run, against the -- watch of"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam/Extract.agda": {
+   "sites": [
+    {
+     "lines": "3-19",
+     "kind": "header",
+     "nLines": 17,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- A budgeted context, read off its certificate as a strategy. -- -- A `Strat` is a finite"
+    },
+    {
+     "lines": "49-50",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Ansᶜ",
+     "preview": "-- The certificate's refined emission: a query below, with the potential -- strictly dropp"
+    },
+    {
+     "lines": "54-55",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "coinᵈ",
+     "preview": "------------------------------------------------------------------------ -- A node's two w"
+    },
+    {
+     "lines": "62-62",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "E-coinᵈ",
+     "preview": "-- `E` of a two-entry distribution is the node's own average."
+    },
+    {
+     "lines": "67-68",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "",
+     "preview": "------------------------------------------------------------------------ -- The extraction"
+    },
+    {
+     "lines": "70-71",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- `b` is the verdict the truncation must not score; `f` the fuel, `r` the -- potential th"
+    },
+    {
+     "lines": "82-83",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "",
+     "preview": "------------------------------------------------------------------------ -- …and the ask b"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam/Grounded.agda": {
+   "sites": [
+    {
+     "lines": "3-32",
+     "kind": "header",
+     "nLines": 30,
+     "flags": [
+      "headerOverTier"
+     ],
+     "attachedTo": "Categories.Category.Monoidal.Reasoning",
+     "preview": "-- The trivial-grade collapse: what it owes, stated — `SimTotal`, that the -- simulator's "
+    },
+    {
+     "lines": "66-67",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "𝟘ᴳ",
+     "preview": "------------------------------------------------------------------------ -- The trivial gr"
+    },
+    {
+     "lines": "75-76",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "closedᵒ",
+     "preview": "-- A closed protocol image, as the UC layer sees it: the shape everything -- downstream of"
+    },
+    {
+     "lines": "80-81",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "stageᵒ",
+     "preview": "-- …and an OPEN one, whose domain is the port the component below it answers on -- (`UC.Fa"
+    },
+    {
+     "lines": "98-99",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "TrivialGrade",
+     "preview": "------------------------------------------------------------------------ -- The trivial gr"
+    },
+    {
+     "lines": "101-106",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "TrivialGrade",
+     "preview": "-- The degenerate end of the grading: a grade object that can carry no message, -- and the"
+    },
+    {
+     "lines": "109-121",
+     "kind": "standalone",
+     "nLines": 13,
+     "flags": [],
+     "attachedTo": "SimTotal",
+     "preview": "-- A simulator on the trivial grade never fires: its interface is empty. The -- one thing "
+    },
+    {
+     "lines": "133-134",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "plug-λ",
+     "preview": "------------------------------------------------------------------------ -- The degenerate"
+    },
+    {
+     "lines": "136-140",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "plug-λ",
+     "preview": "-- The plugging law: at the unit ancilla the two wires cancel, by the unitor's -- naturali"
+    },
+    {
+     "lines": "146-148",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "plug-run",
+     "preview": "-- `plugˢ` is `𝒢`'s composite with the G-record's projection already performed; -- `Machin"
+    },
+    {
+     "lines": "157-158",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "≈ᵁ-at",
+     "preview": "------------------------------------------------------------------------ -- The collapse a"
+    },
+    {
+     "lines": "160-161",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "≈ᵁ-at",
+     "preview": "-- An agreement at a graded codomain, read at one context: the test beside the -- grade is"
+    },
+    {
+     "lines": "168-182",
+     "kind": "standalone",
+     "nLines": 15,
+     "flags": [],
+     "attachedTo": "emSimTotal",
+     "preview": "-- `_≤UC_` quantifies its simulator over a DIVERGENT `s` as well, so blindness -- is not f"
+    },
+    {
+     "lines": "187-187",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "subBlind⇒emul",
+     "preview": "-- `Adequacy` moves `u`'s totality onto the observation the strategy makes."
+    },
+    {
+     "lines": "200-201",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "subBlind⇒emul",
+     "preview": "-- The collapse itself: the simulator is removed and what is left is the direct -- `≈ᵁ` ag"
+    },
+    {
+     "lines": "212-213",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "simTotal⇒point",
+     "preview": "------------------------------------------------------------------------ -- Blindness"
+    },
+    {
+     "lines": "215-218",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "simTotal⇒point",
+     "preview": "-- `SimTotal` says what it is meant to say: \"the simulator's own initialization -- termina"
+    },
+    {
+     "lines": "236-243",
+     "kind": "standalone",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "subPrefixedˢ",
+     "preview": "-- The whole of what a trivial-grade simulator contributes to a context: its -- own initia"
+    },
+    {
+     "lines": "258-258",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "subPrefixed",
+     "preview": "-- The simulator acts on the grade alone, which is where it is blind."
+    },
+    {
+     "lines": "270-271",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "subPrefixed",
+     "preview": "-- …read where the simulator sits on the PROCESS rather than on the context, -- which is t"
+    },
+    {
+     "lines": "283-284",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "subBlind",
+     "preview": "-- …and an initialization that terminates almost surely is invisible: -- `Dp.Mass.astotal-"
+    },
+    {
+     "lines": "291-292",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "emulAgreeᵁ",
+     "preview": "-- …so the collapse is a closed theorem — the one the asymptotic family premise -- consume"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam/Grounding.agda": {
+   "sites": [
+    {
+     "lines": "3-25",
+     "kind": "header",
+     "nLines": 23,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- What a process's initialization does to every observation it takes part in. -- -- A mac"
+    },
+    {
+     "lines": "77-78",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Massed",
+     "preview": "------------------------------------------------------------------------ -- Lossy initiali"
+    },
+    {
+     "lines": "84-85",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "massed-∘ˡ",
+     "preview": "------------------------------------------------------------------------ -- Propagation"
+    },
+    {
+     "lines": "101-102",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "massed-∘ˡ",
+     "preview": "-- A `𝒢`-composite's state is the pair of the factors' states, so either -- factor's point"
+    },
+    {
+     "lines": "132-133",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "",
+     "preview": "------------------------------------------------------------------------ -- The same, at t"
+    },
+    {
+     "lines": "135-135",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- `Dₚ ⊤ᵛ` and `_≼ᵐ_` mention nothing sealed, which is what lets the bound out."
+    },
+    {
+     "lines": "146-147",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- A hom's own initialization with its state forgotten: the one thing about a -- machine t"
+    },
+    {
+     "lines": "166-167",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- …and what the seam reads off it: a closed observation weighs no more than -- the initia"
+    },
+    {
+     "lines": "171-172",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "",
+     "preview": "------------------------------------------------------------------------ -- Initialization"
+    },
+    {
+     "lines": "212-213",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The base case: the trivial grade carries no message, so a hom of it is -- never activat"
+    },
+    {
+     "lines": "224-225",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- …and what the seam reads off a prefix: the closed observation IS the prefix -- followed"
+    },
+    {
+     "lines": "232-233",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- …so an almost surely terminating prefix is invisible to an ε-closed -- observation."
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam/Plug.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- What a closed composite observes at the verdict interface's tick: one pass -- of the tr"
+    },
+    {
+     "lines": "52-53",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Loop",
+     "preview": "------------------------------------------------------------------------ -- The loop, and "
+    },
+    {
+     "lines": "55-59",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Loop",
+     "preview": "-- One external activation of a ⊕-traced machine: the letter enters `k` on the -- external"
+    },
+    {
+     "lines": "67-67",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "body",
+     "preview": "-- One pass of the loop: `k` entered on the loop summand."
+    },
+    {
+     "lines": "78-78",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "solve-cont",
+     "preview": "-- The junctions the Kleisli tensor spends on a pure relabelling."
+    },
+    {
+     "lines": "84-84",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "solve-cont",
+     "preview": "-- The distributor's case split IS the loop's continuation."
+    },
+    {
+     "lines": "101-102",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "loop-fix",
+     "preview": "-- The three ways a consumer unrolls the solved loop: one more pass, one -- POINTED pass, "
+    },
+    {
+     "lines": "126-126",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "cont",
+     "preview": "-- What a pass's output means: leave with the verdict, or keep solving."
+    },
+    {
+     "lines": "137-138",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "cont-red",
+     "preview": "-- `contᵢ` of the loop's own body, read as `cont`: what the induction of a -- consumer tha"
+    },
+    {
+     "lines": "143-143",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "tick-run",
+     "preview": "-- The composite's single activation is the tick, and it runs one pass."
+    },
+    {
+     "lines": "155-156",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Plugged",
+     "preview": "------------------------------------------------------------------------ -- …at a closed c"
+    },
+    {
+     "lines": "158-162",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Plugged",
+     "preview": "-- `Machines.Collapse`'s `kᴳ` at this shape: the tick and the plugged -- interface's two p"
+    },
+    {
+     "lines": "174-175",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "point-red",
+     "preview": "-- The paired state's point is the two factors', in order; the junction is -- the one `λ⇐`"
+    },
+    {
+     "lines": "181-183",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "collapse",
+     "preview": "-- The composite `𝒫ᴵ` names and the collapsed trace this module is about are -- the same m"
+    },
+    {
+     "lines": "190-192",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "obs-resp",
+     "preview": "-- A composite is observed through a representative of its context factor, -- which is wha"
+    }
+   ]
+  },
+  "src/CategoricalCrypto/UC/Seam/Transfer.agda": {
+   "sites": [
+    {
+     "lines": "3-23",
+     "kind": "header",
+     "nLines": 21,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The extracted strategy observes what the context observes, at one verdict. -- -- Both d"
+    },
+    {
+     "lines": "85-85",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Q",
+     "preview": "-- The one test the transfer is valid at."
+    },
+    {
+     "lines": "92-94",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "dirac-node",
+     "preview": "-- A `returnₚ` node's two branches are the same, so the average is that -- branch; spelled"
+    },
+    {
+     "lines": "98-99",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "ρᴷ",
+     "preview": "------------------------------------------------------------------------ -- The refined lo"
+    },
+    {
+     "lines": "101-103",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "ρᴷ",
+     "preview": "-- Where the context's emission goes: a query re-enters the loop, a verdict -- leaves. Thi"
+    },
+    {
+     "lines": "111-111",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "ρᵁ",
+     "preview": "-- …and the process's, whose external summand is empty."
+    },
+    {
+     "lines": "126-127",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "run",
+     "preview": "------------------------------------------------------------------------ -- …and the strat"
+    },
+    {
+     "lines": "142-143",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "obsᴿ",
+     "preview": "------------------------------------------------------------------------ -- The context is"
+    },
+    {
+     "lines": "216-217",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "obsᴿ",
+     "preview": "------------------------------------------------------------------------ -- …and dominates"
+    },
+    {
+     "lines": "293-294",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "obsᴿ",
+     "preview": "------------------------------------------------------------------------ -- Undoing the re"
+    },
+    {
+     "lines": "296-298",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "obsᴿ",
+     "preview": "-- The certificate's emissions are the step's up to `_≈ₚ_`, and `cont` is the -- loop read"
+    },
+    {
+     "lines": "341-342",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "runFwd",
+     "preview": "------------------------------------------------------------------------ -- …and the two d"
+    }
+   ]
+  }
+ },
+ "totalChecks": 0
+}

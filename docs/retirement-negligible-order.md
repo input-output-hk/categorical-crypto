@@ -1,9 +1,11 @@
 # Retirement: the negligible tier's emulation order — RETIRED
 
+> `_≤UC^ωⁿ_` below is `UC.Model.Family.Emulation._≈ᶠᴺ_` in the current tree (renamed 2026-09-30).
+
 `Abstract2._≤UC_` at `ucSetupᴺ` is ADOPTED as the negligible tier's canonical
 emulation order, and the tier's three own order names are retired in its
 favour. A single candidate in the form of
-[`docs/retirement.md`](retirement.md), whose §6 kept those names when the tier
+[`docs/history/retirement.md`](history/retirement.md), whose §6 kept those names when the tier
 still had no inherited order to adopt.
 
 Paths are relative to `src/CategoricalCrypto/` unless prefixed.
@@ -24,13 +26,13 @@ and by `UC.Family.Negligible.Setup`.
 
 ## The decision, and what is checked
 
-`retirement.md` §6 retired fourteen metatheorem reexports from this same block
+`history/retirement.md` §6 retired fourteen metatheorem reexports from this same block
 and explicitly kept these three, listing them under "the negligible semantics
 are untouched". That was right at the time: the tier had no inherited order of
 its own, so `_≤UCᴺ_` was the only emulation order it had, and deleting it would
 have deleted a notion rather than a duplicate.
 
-`retirement.md` §7 also states the standard a zero-consumer name has to meet,
+`history/retirement.md` §7 also states the standard a zero-consumer name has to meet,
 and it is not mere absence of consumers:
 
 > none of them **became** consumerless through anything steps 1–6 built — they
@@ -105,7 +107,7 @@ Both remaining questions were then chased to an answer.
 
 **`UC.Family`'s re-export — blocked behind a parked call, not technically.**
 Deleting the six names from the `using` list at `Family:203-205` breaks exactly
-one site, `UC/Model/Family/Ingest.agda:48` (`_≤UC_`, `≈ℰ⇒≤UC`). `retirement.md`
+one site, `UC/Model/Family/Ingest.agda:48` (`_≤UC_`, `≈ℰ⇒≤UC`). `history/retirement.md`
 §7 already lists `Ingest`'s `ingest-≤UC`/`ingest-≤UCᵁ` as zero-consumer with a
 replacement named, and declines them: their gate reads "after callers migrate"
 and the module has never had a caller, so the gate is vacuous rather than met.
@@ -135,7 +137,7 @@ direction goes with it and is left to the derivation above; keep `≈ℰᴺ⇒�
 Net ≈ −30 lines. `UC/Model/Family/Negligible.agda:7-8`'s comment needs its
 names updated.
 
-**Performed**, on the maintainer's instruction. `retirement.md`'s own workflow
+**Performed**, on the maintainer's instruction. `history/retirement.md`'s own workflow
 is a dedicated branch with one commit per candidate; this was taken on
 `protocol-rewrite` instead, and is one self-contained green change.
 

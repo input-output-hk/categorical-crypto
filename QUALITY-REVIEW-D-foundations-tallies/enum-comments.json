@@ -1,0 +1,3794 @@
+{
+ "sweep": "enum-comments",
+ "root": ".",
+ "files": {
+  "src/Categories/Category/Cocartesian/Ext.agda": {
+   "sites": [
+    {
+     "lines": "3-6",
+     "kind": "header",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "Categories.Category.Cocartesian",
+     "preview": "-- The coproduct associator and braiding, read off on the injections. Upstream -- builds `"
+    },
+    {
+     "lines": "57-59",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "α+⇐-i₂",
+     "preview": "-- The form the ⊕-trace's `vanishing₂` and `superposing` consume: entering -- `A + (B + D)"
+    }
+   ]
+  },
+  "src/Categories/Category/Kleisli/Discrete.agda": {
+   "sites": [
+    {
+     "lines": "3-13",
+     "kind": "header",
+     "nLines": 11,
+     "flags": [],
+     "attachedTo": "Categories.Category.Core",
+     "preview": "-- The Kleisli category of a `DiscreteMonad` at the discrete objects — TYPES and -- maps `"
+    },
+    {
+     "lines": "37-39",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "_≈ᵏ_",
+     "preview": "------------------------------------------------------------------------ -- The category -"
+    },
+    {
+     "lines": "71-73",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "pureᵏ",
+     "preview": "------------------------------------------------------------------------ -- Pure morphisms"
+    },
+    {
+     "lines": "75-75",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "pureᵏ",
+     "preview": "-- Every structural morphism of the cartesian tensor is a function."
+    },
+    {
+     "lines": "85-87",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "_⊗ᵏ_",
+     "preview": "------------------------------------------------------------------------ -- The tensor ---"
+    },
+    {
+     "lines": "91-93",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "_⊗ᵏ_",
+     "preview": "-- Projections rather than a pattern-matching lambda: `_⊗ᵏ_` then reduces on an -- argumen"
+    },
+    {
+     "lines": "97-97",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "⊗ᵏ-expand",
+     "preview": "-- The workhorse behind every law below."
+    },
+    {
+     "lines": "111-112",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊗ᵏ-homomorphism",
+     "preview": "-- The interchange law is the one place the tensor needs `>>=-comm-y`: the two -- factors'"
+    },
+    {
+     "lines": "138-140",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "⊤ᵏ",
+     "preview": "------------------------------------------------------------------------ -- The structural"
+    },
+    {
+     "lines": "187-189",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "unitorˡ-commuteᵏ",
+     "preview": "------------------------------------------------------------------------ -- Naturality ---"
+    },
+    {
+     "lines": "228-228",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "braiding-commuteᵏ",
+     "preview": "-- The braiding is the second and last place `>>=-comm-y` is needed."
+    },
+    {
+     "lines": "239-241",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "triangleᵏ",
+     "preview": "------------------------------------------------------------------------ -- Coherence ----"
+    },
+    {
+     "lines": "260-262",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Klᴹ-Monoidal",
+     "preview": "------------------------------------------------------------------------ -- The bundles --"
+    }
+   ]
+  },
+  "src/Categories/Category/Kleisli/Discrete/Distributive.agda": {
+   "sites": [
+    {
+     "lines": "3-9",
+     "kind": "header",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "Categories.Category.Cocartesian",
+     "preview": "-- `Klᴹ` is monoidal distributive, with `_⊎_` for the coproduct. Both halves are -- one-li"
+    },
+    {
+     "lines": "31-31",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "undistribute",
+     "preview": "-- The pure shuffle the distributor inverts."
+    }
+   ]
+  },
+  "src/Categories/Category/Kleisli/Discrete/Pure.agda": {
+   "sites": [
+    {
+     "lines": "3-11",
+     "kind": "header",
+     "nLines": 9,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Pure",
+     "preview": "-- The pure morphisms of `Klᴹ` — those `≈ᵏ`-equal to a `return`-composed -- function — for"
+    },
+    {
+     "lines": "57-59",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "[]-pure",
+     "preview": "-- The coproduct at these objects is `_⊎_`, so a copairing of pure maps is the -- copairin"
+    }
+   ]
+  },
+  "src/Categories/Category/Monoidal/Distributive.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Categories.Category.Cocartesian",
+     "preview": "-- Upstream's `Categories.Category.Distributive` with the cartesian product -- replaced by"
+    }
+   ]
+  },
+  "src/Categories/Category/Monoidal/Distributive/Properties.agda": {
+   "sites": [
+    {
+     "lines": "3-5",
+     "kind": "header",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- One letter of the distributor. `δ-unique` is the lever that replaces the -- coproduct s"
+    },
+    {
+     "lines": "36-37",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊥-unique",
+     "preview": "-- `[ id , id ] : ⊥ + ⊥ ⇒ ⊥` is an iso, its inverse `i₁`, because maps out of -- the initi"
+    },
+    {
+     "lines": "55-56",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⊥-unique",
+     "preview": "-- Binary distributivity already makes `X ⊗₀ ⊥` initial: the injections of -- `(X ⊗₀ ⊥) + "
+    }
+   ]
+  },
+  "src/Categories/Category/Monoidal/Pure.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [],
+     "attachedTo": "Categories.Category.Monoidal.Bundle",
+     "preview": "-- A wide symmetric monoidal subcategory of `𝒱`, presented as a predicate on -- morphisms:"
+    }
+   ]
+  },
+  "src/Categories/Category/Monoidal/Traced/Ext.agda": {
+   "sites": [
+    {
+     "lines": "3-7",
+     "kind": "header",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- The laws of a traced symmetric monoidal category (Joyal–Street–Verity) that -- agda-cat"
+    },
+    {
+     "lines": "25-25",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "β",
+     "preview": "-- Swap the last two factors: the conjugation Fubini is stated with."
+    }
+   ]
+  },
+  "src/Categories/Category/Monoidal/Utilities/Ext.agda": {
+   "sites": [
+    {
+     "lines": "3-18",
+     "kind": "header",
+     "nLines": 16,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "-- Sliding a closed morphism out of a one-hole context, the centrality of -- scalars. -- -"
+    },
+    {
+     "lines": "34-37",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "scalar-λ⇐",
+     "preview": "-- Kelly–Laplaza: scalars are central, so a pair of them merges into their -- composite ac"
+    }
+   ]
+  },
+  "src/Categories/GConstructionEmbedding.agda": {
+   "sites": [
+    {
+     "lines": "3-19",
+     "kind": "header",
+     "nLines": 17,
+     "flags": [],
+     "attachedTo": "Categories.GConstructionEmbedding",
+     "preview": "------------------------------------------------------------------------ -- Embedding a pa"
+    },
+    {
+     "lines": "55-56",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "⌜_,_⌝",
+     "preview": "-- `u` acts on the positive polarity, `v` on the negative one. The -- G-identity at `(A⁺ ,"
+    },
+    {
+     "lines": "104-104",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- Embedding is functorial: contravariant on the negative polarity."
+    },
+    {
+     "lines": "125-126",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- Hence a pair of base isos embeds as a G-iso, which is what makes every -- structural mo"
+    },
+    {
+     "lines": "139-141",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The structural isos of the pairwise tensor `(A⁺,A⁻) ⊗ (B⁺,B⁻) = -- (A⁺⊗B⁺ , A⁻⊗B⁻)` wit"
+    }
+   ]
+  },
+  "src/Categories/GConstructionEmbeddingCoherence.agda": {
+   "sites": [
+    {
+     "lines": "3-19",
+     "kind": "header",
+     "nLines": 17,
+     "flags": [],
+     "attachedTo": "Categories.GConstructionEmbeddingCoherence",
+     "preview": "-------------------------------------------------------------------------------- -- The co"
+    },
+    {
+     "lines": "51-52",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "L",
+     "preview": "-------------------------------------------------------------------------------- -- absorb"
+    },
+    {
+     "lines": "113-114",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "R",
+     "preview": "-------------------------------------------------------------------------------- -- absorb"
+    }
+   ]
+  },
+  "src/Categories/GConstructionHomCoherence.agda": {
+   "sites": [
+    {
+     "lines": "3-28",
+     "kind": "header",
+     "nLines": 26,
+     "flags": [
+      "headerOverTier"
+     ],
+     "attachedTo": "Categories.GConstructionHomCoherence",
+     "preview": "-------------------------------------------------------------------------------- -- The co"
+    },
+    {
+     "lines": "90-90",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "αᵗ",
+     "preview": "-- The free twins of `GConstructionTrace`'s wiring."
+    },
+    {
+     "lines": "99-100",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "midᵗ",
+     "preview": "-- Upstream's `swapInner.from` at the free SMC, so that its interchange lemmas -- read off"
+    },
+    {
+     "lines": "104-105",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "X",
+     "preview": "-- The two composites' loops (`X`/`Y` — the fused loop is `X ⊗ Y`) and the -- tensor's int"
+    },
+    {
+     "lines": "110-110",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "BoxL",
+     "preview": "-- The four boxes, grouped the two ways the two sides group them."
+    },
+    {
+     "lines": "119-119",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Lout",
+     "preview": "-- The wiring around them: left of / right of the boxes on each side."
+    },
+    {
+     "lines": "136-138",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "lhs",
+     "preview": "-- The two sides, spelled as the semantic chain leaves them (the tensor's -- `mid`s outsid"
+    }
+   ]
+  },
+  "src/Categories/GConstructionLoop.agda": {
+   "sites": [
+    {
+     "lines": "3-10",
+     "kind": "header",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "------------------------------------------------------------------------ -- Re-bracketing "
+    },
+    {
+     "lines": "42-44",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "trace-conj",
+     "preview": "-- Conjugating a trace by a pre- and a post-composition pushes both into -- the loop body;"
+    }
+   ]
+  },
+  "src/Categories/GConstructionLoopCoherence.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [],
+     "attachedTo": "Categories.GConstructionLoopCoherence",
+     "preview": "-------------------------------------------------------------------------------- -- The co"
+    },
+    {
+     "lines": "45-45",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "L",
+     "preview": "-- the left-hand trace's loop object"
+    },
+    {
+     "lines": "66-66",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "f₁ᵗ",
+     "preview": "-- The three splits of the left loop `L`, wire order P,R,Q,S."
+    },
+    {
+     "lines": "76-76",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "gᵗ",
+     "preview": "-- The same three splits of the right loop `(p ⊗ q) ⊗ (r ⊗ s)`, order P,Q,R,S."
+    }
+   ]
+  },
+  "src/Categories/GConstructionMonoidal.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [],
+     "attachedTo": "Categories.GConstructionMonoidal",
+     "preview": "------------------------------------------------------------------------ -- The monoidal s"
+    },
+    {
+     "lines": "83-85",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "L",
+     "preview": "-- Embedding is monoidal: `mid-σ` absorbs the two embeddings' braidings -- into the one th"
+    },
+    {
+     "lines": "108-108",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- `⌜⌝-⊗` with one factor the G-identity, which is `⌜ id , id ⌝`."
+    },
+    {
+     "lines": "124-126",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The gate: the two composites' loops `B⁻⊗B⁺` and `Q⁻⊗Q⁺` fuse into -- their tensor, and "
+    },
+    {
+     "lines": "186-187",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- both sides' box product is `wiring ∘ boxes ∘ wiring`, by -- ⊗-∘-distributivity twice"
+    },
+    {
+     "lines": "272-276",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The bundle, and the entry point an instance should use. Asking instead -- for `Monoidal"
+    }
+   ]
+  },
+  "src/Categories/GConstructionTensorCoherence.agda": {
+   "sites": [
+    {
+     "lines": "3-24",
+     "kind": "header",
+     "nLines": 22,
+     "flags": [],
+     "attachedTo": "Categories.GConstructionTensorCoherence",
+     "preview": "-------------------------------------------------------------------------------- -- The ba"
+    },
+    {
+     "lines": "47-49",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "U",
+     "preview": "-------------------------------------------------------------------------------- -- The tw"
+    },
+    {
+     "lines": "115-117",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "-------------------------------------------------------------------------------- -- The as"
+    }
+   ]
+  },
+  "src/Categories/GConstructionTrace.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [],
+     "attachedTo": "Categories.Category",
+     "preview": "------------------------------------------------------------------------ -- The wiring and"
+    },
+    {
+     "lines": "51-53",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "α",
+     "preview": "-- The two coherence isomorphisms of the G-construction composition: `α` -- routes the two"
+    },
+    {
+     "lines": "63-68",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "mid",
+     "preview": "-- The middle-four interchange, the only structural morphism the -- G-construction's tenso"
+    },
+    {
+     "lines": "86-87",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "mid-σ",
+     "preview": "-- `mid-braiding` with one copy of `mid` cancelled: `mid` intertwines the -- braiding with"
+    },
+    {
+     "lines": "102-103",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "trace-βyank",
+     "preview": "-- trace of the yanking core: β at Q = R = X swaps the loop wire with a -- parallel copy o"
+    },
+    {
+     "lines": "107-108",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "trace-gyank",
+     "preview": "-- framed yanking: a loop whose body is a yanking core followed by -- loop-independent pro"
+    },
+    {
+     "lines": "113-113",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "right-superposing",
+     "preview": "-- Right superposing, the mirror of `Traced.superposing`."
+    },
+    {
+     "lines": "129-129",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "⊗-trace",
+     "preview": "-- introduce σ⇒ ∘ σ⇒ ≈ id on the left, then braiding naturality"
+    },
+    {
+     "lines": "135-138",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "⊗-trace",
+     "preview": "-- A tensor of traces is one nested double trace: serialize, superpose -- each factor over"
+    },
+    {
+     "lines": "160-163",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "⊗-trace-mid",
+     "preview": "-- …and that double trace is one trace over `X ⊗ Y`: the β-conjugations -- `⊗-trace` leave"
+    }
+   ]
+  },
+  "src/Categories/GConstructionTraceCoherence.agda": {
+   "sites": [
+    {
+     "lines": "3-13",
+     "kind": "header",
+     "nLines": 11,
+     "flags": [],
+     "attachedTo": "Categories.GConstructionTraceCoherence",
+     "preview": "-------------------------------------------------------------------------------- -- The co"
+    }
+   ]
+  },
+  "src/Categories/Monad/Construction/Kleisli/Ext.agda": {
+   "sites": [
+    {
+     "lines": "3-8",
+     "kind": "header",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "Level",
+     "preview": "-- Morphisms of Kleisli triples in two presentations, proved equivalent: -- `KleisliTriple"
+    },
+    {
+     "lines": "48-49",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "KleisliTriple⇒ᴹ",
+     "preview": "-- Upstream's `Monad⇒-id M N` carries `α : N.F ⇒ M.F`, so the *source* triple is -- the se"
+    },
+    {
+     "lines": "53-54",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "K",
+     "preview": "-- `KleisliTriple⇒ᴹ` is a defined type, so its two triples cannot be read back -- off a mo"
+    },
+    {
+     "lines": "118-118",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "⇒↔⇒ᴹ",
+     "preview": "-- Both translations are the identity on components, so every law is `λ p → p`."
+    }
+   ]
+  },
+  "src/Categories/Monad/Discrete.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Data.Product",
+     "preview": "-- A commutative monad presented elementwise: the raw `return`/`_>>=_` a -- consumer compu"
+    },
+    {
+     "lines": "22-23",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Derived",
+     "preview": "-- What `return`, `_>>=_`, bind congruence and two of the triple laws give, -- before comm"
+    },
+    {
+     "lines": "73-73",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "DiscreteMonad",
+     "preview": "-- Yoneda variant of `>>=-comm`"
+    },
+    {
+     "lines": "121-124",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- Commutativity at the *discrete* objects: what a cartesian tensor over -- this monad nee"
+    }
+   ]
+  },
+  "src/Categories/Monad/Graded/Trivial.agda": {
+   "sites": [
+    {
+     "lines": "3-3",
+     "kind": "header",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Data.Unit",
+     "preview": "-- The monads are trivially graded monads"
+    },
+    {
+     "lines": "50-51",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "module",
+     "preview": "-- `κ-sub` is vacuous here, so what is left is exactly the two laws of a -- morphism of tr"
+    },
+    {
+     "lines": "82-83",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "module",
+     "preview": "-- On one category the filler's two laws are a morphism of triples, i.e. a -- monad morphi"
+    }
+   ]
+  },
+  "src/Categories/Monad/Setoids/Discrete.agda": {
+   "sites": [
+    {
+     "lines": "3-7",
+     "kind": "header",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Level",
+     "preview": "-- A monad on `Setoids` viewed elementwise at the discrete setoids: the raw -- `return`/`_"
+    },
+    {
+     "lines": "57-59",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": ">>=-cong",
+     "preview": "------------------------------------------------------------------------ -- The laws -----"
+    },
+    {
+     "lines": "69-70",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": ">>=-identityʳ-≈",
+     "preview": "-- `extend` is applied to `discreteFunc return` here and to the triple's own -- `unit` in "
+    },
+    {
+     "lines": "81-84",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "Commutative",
+     "preview": "-- Commutativity at the *discrete* setoids: what the machine layer needs and what every --"
+    },
+    {
+     "lines": "93-95",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Kleisliᴹ",
+     "preview": "------------------------------------------------------------------------ -- The Kleisli ca"
+    },
+    {
+     "lines": "97-97",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Kleisliᴹ",
+     "preview": "-- The discrete objects of `Kleisli`: `A ⇒ B` is a map `A → M B`, up to `_≈ᴹ_`."
+    },
+    {
+     "lines": "103-103",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "∘ᴹ-bind",
+     "preview": "-- `Kleisliᴹ` composes through `μ ∘ F₁ g`, which is `_>>=_` only up to `_≈ᴹ_`."
+    }
+   ]
+  },
+  "src/Categories/Monad/Setoids/Discrete/Morphism.agda": {
+   "sites": [
+    {
+     "lines": "3-4",
+     "kind": "header",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Level",
+     "preview": "-- A morphism of monads on `Setoids`, viewed elementwise at the discrete -- setoids; see `"
+    },
+    {
+     "lines": "40-41",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "θ-bind",
+     "preview": "-- `θ-extend` lands in `extend` of the composite setoid map; that agrees with -- `θ ∘ k`'s"
+    }
+   ]
+  },
+  "src/Categories/Monad/Setoids/Maybe.agda": {
+   "sites": [
+    {
+     "lines": "3-3",
+     "kind": "header",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Level",
+     "preview": "-- `Maybe` as a monad on `Setoids`, up to the element setoid's own equality."
+    }
+   ]
+  },
+  "src/Class/DecEq/Ext.agda": {
+   "sites": [
+    {
+     "lines": "3-5",
+     "kind": "header",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- What a definition branching on a decided equality needs in order to reduce -- at an ABS"
+    }
+   ]
+  },
+  "src/Class/Monad/Ext/Setoid.agda": {
+   "sites": [
+    {
+     "lines": "3-3",
+     "kind": "header",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "categorical-crypto.Prelude",
+     "preview": "-- Setoid variants of the monad laws"
+    },
+    {
+     "lines": "49-50",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "MonadLawsSetoid",
+     "preview": "------------------------------------------------------------------------ -- The three mona"
+    },
+    {
+     "lines": "62-66",
+     "kind": "banner",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "M",
+     "preview": "------------------------------------------------------------------------ -- The functorial"
+    },
+    {
+     "lines": "98-99",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "CommutativeMonadSetoid",
+     "preview": "------------------------------------------------------------------------ -- Commutativity,"
+    },
+    {
+     "lines": "107-107",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "CommutativeMonadSetoid",
+     "preview": "-- Yoneda variant: with both laws and commutativity in scope."
+    },
+    {
+     "lines": "133-139",
+     "kind": "banner",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "FromPropositional",
+     "preview": "------------------------------------------------------------------------ -- Bridge: any mo"
+    }
+   ]
+  },
+  "src/Data/Bits/Codec.agda": {
+   "sites": [
+    {
+     "lines": "3-15",
+     "kind": "header",
+     "nLines": 13,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- Self-delimiting encodings into `List Bool`, closed under products, lists -- and fixed-w"
+    },
+    {
+     "lines": "53-55",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "bool-codec",
+     "preview": "------------------------------------------------------------------------ -- The codecs ---"
+    },
+    {
+     "lines": "97-98",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "list-codec",
+     "preview": "-- Length-prefixed: the count is what the decoder recurses on, so the -- element decoder m"
+    },
+    {
+     "lines": "132-132",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "vec-codec",
+     "preview": "-- The width is already known to both sides, so no prefix is written."
+    }
+   ]
+  },
+  "src/Data/Bool/Properties/Ext.agda": {
+   "sites": [
+    {
+     "lines": "3-4",
+     "kind": "header",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- Monotonicity of `_∨_` in the Boolean order, which `Data.Bool.Properties` -- states for "
+    }
+   ]
+  },
+  "src/Data/List/Relation/Binary/BagAndSetEquality/Ext.agda": {
+   "sites": [
+    {
+     "lines": "3-5",
+     "kind": "header",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Data.List.Base",
+     "preview": "------------------------------------------------------------------------ -- Extensions to "
+    },
+    {
+     "lines": "22-23",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "∷-absorb",
+     "preview": "-- Consing on an element the list already has changes no membership. The stdlib -- proves "
+    }
+   ]
+  },
+  "src/Data/List/Relation/Unary/Any/Properties/Ext.agda": {
+   "sites": [
+    {
+     "lines": "22-26",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Any-congˢ",
+     "preview": "-- `Any-cong` over a setoid: the two predicates need only agree on `_≈_`-related -- points"
+    }
+   ]
+  },
+  "src/Data/List/Run.agda": {
+   "sites": [
+    {
+     "lines": "3-5",
+     "kind": "header",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Data.List.Run",
+     "preview": "------------------------------------------------------------------------ -- Runs of a part"
+    },
+    {
+     "lines": "22-22",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "runPath",
+     "preview": "-- Follow the labels from a source vertex, failing as soon as a step is undefined."
+    },
+    {
+     "lines": "34-34",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "runPath-step",
+     "preview": "-- Fixing the head transition unfolds one step."
+    },
+    {
+     "lines": "43-43",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "runPath-cons-inv",
+     "preview": "-- Head decomposition of a successful run."
+    },
+    {
+     "lines": "49-49",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "runPath-snoc-inv",
+     "preview": "-- The last step of a snoc-run."
+    },
+    {
+     "lines": "60-62",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "codet",
+     "preview": "-- In a CO-DETERMINISTIC system (in-degree ≤ 1: a transition's target -- determines its so"
+    },
+    {
+     "lines": "67-68",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- Co-determinism identifies the LAST label, so the induction is driven by -- the REVERSED"
+    }
+   ]
+  },
+  "src/Data/Sum/Ext.agda": {
+   "sites": [
+    {
+     "lines": "3-4",
+     "kind": "header",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Data.Sum.Ext",
+     "preview": "-- The unit maps of `_⊎_`: `⊥` contributes no case. `Data.Sum.Algebra` has -- them only in"
+    }
+   ]
+  },
+  "src/Data/Vec/Properties/Ext.agda": {
+   "sites": [
+    {
+     "lines": "3-5",
+     "kind": "header",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Data.Vec.Properties.Ext",
+     "preview": "------------------------------------------------------------------------ -- Extensions to "
+    },
+    {
+     "lines": "20-20",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "take-drop-inj",
+     "preview": "-- A vector is determined by its take/drop split at any position."
+    }
+   ]
+  },
+  "src/Function/Bundles/Ext.agda": {
+   "sites": [
+    {
+     "lines": "14-14",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "discreteFunc",
+     "preview": "-- A map out of a discrete setoid is a setoid map for free."
+    }
+   ]
+  },
+  "src/ProbabilisticLogic.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Abstract.agda": {
+   "sites": [
+    {
+     "lines": "52-57",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "AbstractCore",
+     "preview": "-- Multiplication is monotone on nonnegative elements. The -- nonnegativity guards are ess"
+    },
+    {
+     "lines": "79-80",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "AbstractCore",
+     "preview": "-- Nonnegative rationals map to nonnegative probabilities — the -- discharge lemma for `*-"
+    },
+    {
+     "lines": "93-93",
+     "kind": "inline",
+     "nLines": 1,
+     "flags": [
+      "insideDefinition"
+     ],
+     "attachedTo": "Abstract",
+     "preview": "-- we assume discrete probability distributions, which don't need a σ-algebra"
+    },
+    {
+     "lines": "121-122",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Abstract",
+     "preview": "-- Evaluation of a finite `Probability`-weighted mixture of the -- kernel `k`'s outputs on"
+    },
+    {
+     "lines": "192-194",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "Abstract",
+     "preview": "---------------------------------------------------------------------- -- Complement of a "
+    },
+    {
+     "lines": "259-260",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "Abstract",
+     "preview": "---------------------------------------------------------------------- -- Singleton events"
+    },
+    {
+     "lines": "262-262",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Abstract",
+     "preview": "-- A singleton in `P ⊗ Q` factors as the product of singletons."
+    },
+    {
+     "lines": "284-286",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "Abstract",
+     "preview": "---------------------------------------------------------------------- -- Lemmas requiring"
+    },
+    {
+     "lines": "311-319",
+     "kind": "banner",
+     "nLines": 9,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "Abstract",
+     "preview": "------------------------------------------------------------------------ -- The full abstr"
+    },
+    {
+     "lines": "327-329",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- `empirical l` is observationally the uniform mixture of the -- Dirac distributions at t"
+    },
+    {
+     "lines": "334-338",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- Marginalisation: binding a distribution that is -- observationally a finite Dirac mixtu"
+    },
+    {
+     "lines": "344-345",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The corrected form of the former `>>=-empirical` axiom: binding an -- empirical distrib"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Bernoulli.agda": {
+   "sites": [
+    {
+     "lines": "29-31",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "bernoulli",
+     "preview": "-- The Bernoulli distribution Bernoulli(m / (m + n)) on `Bool`, with -- probability of `tr"
+    },
+    {
+     "lines": "106-107",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "bool-distinct",
+     "preview": "------------------------------------------------------------------------ -- Expected value"
+    },
+    {
+     "lines": "109-109",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "bool-distinct",
+     "preview": "-- Distinctness / U-coverage for the canonical Bool support [true, false]."
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Binomial.agda": {
+   "sites": [
+    {
+     "lines": "32-33",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Bool^",
+     "preview": "------------------------------------------------------------------------ -- The Binomial d"
+    },
+    {
+     "lines": "35-35",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Bool^",
+     "preview": "-- The k-fold trial space: a nested product of `Bool`."
+    },
+    {
+     "lines": "40-42",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "binomial",
+     "preview": "-- The Binomial distribution: k independent Bernoulli(m / (m + n)) trials, -- assembled as"
+    },
+    {
+     "lines": "47-48",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "count",
+     "preview": "------------------------------------------------------------------------ -- Predicates on "
+    },
+    {
+     "lines": "50-50",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "count",
+     "preview": "-- Number of trials that landed `true`."
+    },
+    {
+     "lines": "56-56",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "exactly",
+     "preview": "-- Exactly i trials are true."
+    },
+    {
+     "lines": "60-60",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "at-least",
+     "preview": "-- At least i trials are true."
+    },
+    {
+     "lines": "64-64",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "at-most",
+     "preview": "-- At most i trials are true."
+    },
+    {
+     "lines": "68-69",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "all-true",
+     "preview": "-- Every trial landed `true`. Coincides with `exactly k` and `at-least k` -- on a `Bool^ k"
+    },
+    {
+     "lines": "74-74",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "all-false",
+     "preview": "-- Every trial landed `false`. Coincides with `exactly 0` and `at-most 0`."
+    },
+    {
+     "lines": "79-80",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "pow",
+     "preview": "------------------------------------------------------------------------ -- Iterated multi"
+    },
+    {
+     "lines": "95-97",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "P-all-true",
+     "preview": "-- The Probability-level k-fold product of `fromℚ p` is the image of -- the ℚ-level k-fold"
+    },
+    {
+     "lines": "106-107",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "P-all-true",
+     "preview": "------------------------------------------------------------------------ -- Probability th"
+    },
+    {
+     "lines": "109-110",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "P-all-true",
+     "preview": "-- Probability that all k trials succeed equals the k-th power of the -- single-trial succ"
+    },
+    {
+     "lines": "122-123",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "P-all-false",
+     "preview": "-- Probability that all k trials fail equals the k-th power of the -- single-trial failure"
+    },
+    {
+     "lines": "135-136",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "P-all-true-ℚ",
+     "preview": "------------------------------------------------------------------------ -- Probabilities "
+    },
+    {
+     "lines": "138-138",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "P-all-true-ℚ",
+     "preview": "-- Probability that all k trials succeed = (m / (m + n))^k as a rational."
+    },
+    {
+     "lines": "148-148",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "P-all-false-ℚ",
+     "preview": "-- Probability that all k trials fail = (n / (m + n))^k as a rational."
+    },
+    {
+     "lines": "158-159",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "binomial-support",
+     "preview": "------------------------------------------------------------------------ -- Recursive enum"
+    },
+    {
+     "lines": "171-172",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "binomial-support-distinct",
+     "preview": "-- ⊤ is exhausted by [tt]; the singleton support has full mass under -- the binomial-0 dis"
+    },
+    {
+     "lines": "193-198",
+     "kind": "banner",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "E-binomial-1-first-true",
+     "preview": "------------------------------------------------------------------------ -- Expected value"
+    },
+    {
+     "lines": "216-217",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Algebra.Properties.Monoid.Mult",
+     "preview": "------------------------------------------------------------------------ -- Expected count"
+    },
+    {
+     "lines": "219-221",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Algebra.Properties.Monoid.Mult",
+     "preview": "-- ℕ-scaling on the additive monoid (`Algebra.Properties.Monoid.Mult`), -- aliased here as"
+    },
+    {
+     "lines": "229-229",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "count-as-prob",
+     "preview": "-- The count function (number of successes) lifted to Probability."
+    },
+    {
+     "lines": "234-236",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "ws-count-eq",
+     "preview": "-- The weight-sum of count-as-prob over the binomial-support equals -- `k × m/(m+n)`. This"
+    },
+    {
+     "lines": "254-254",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "E-binomial-count",
+     "preview": "-- Indicator rule + ⊗-marg₁ + Bernoulli's mean."
+    },
+    {
+     "lines": "268-268",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "E-binomial-count",
+     "preview": "-- Fubini for proj₂ + the inductive hypothesis."
+    },
+    {
+     "lines": "276-277",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "E-binomial-count",
+     "preview": "-- The expected count under Binomial(k, m/(m+n)) equals k × m/(m+n) — that is, -- m/(m+n) "
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Markov.agda": {
+   "sites": [
+    {
+     "lines": "14-15",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "StochasticMatrix",
+     "preview": "------------------------------------------------------------------------ -- Stochastic mat"
+    },
+    {
+     "lines": "17-19",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "StochasticMatrix",
+     "preview": "-- A stochastic matrix on `S`: each row is a non-empty list of next -- states whose multip"
+    },
+    {
+     "lines": "29-30",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "stepⁿ-list",
+     "preview": "------------------------------------------------------------------------ -- The n-step dis"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility.agda": {
+   "sites": [
+    {
+     "lines": "3-7",
+     "kind": "header",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "categorical-crypto.Prelude",
+     "preview": "-- The finite POSSIBILITY monad `𝒫`: `List` under the test-extensional equality -- `_≈𝒫_`."
+    },
+    {
+     "lines": "9-9",
+     "kind": "header",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "categorical-crypto.Prelude",
+     "preview": "-- `Data.List`'s `any` is the deprecated alias of `Data.Bool.ListAction.any`."
+    },
+    {
+     "lines": "42-43",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "any-cong",
+     "preview": "------------------------------------------------------------------------ -- `any` as a hom"
+    },
+    {
+     "lines": "75-75",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "any-pair",
+     "preview": "-- Fubini for `any`: the reason `_≈𝒫_` makes `List` commutative."
+    },
+    {
+     "lines": "84-86",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": ">>=𝒫-cong",
+     "preview": "------------------------------------------------------------------------ -- Setoid monad s"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda": {
+   "sites": [
+    {
+     "lines": "3-5",
+     "kind": "header",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "categorical-crypto.Prelude",
+     "preview": "-- The finite possibility monad on `Setoids`: `List` under set equality, taken -- up to th"
+    },
+    {
+     "lines": "7-10",
+     "kind": "header",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "categorical-crypto.Prelude",
+     "preview": "-- The sibling `ProbabilisticLogic.Distribution.Possibility` carries the same -- monad und"
+    },
+    {
+     "lines": "42-44",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "𝒫ˢ",
+     "preview": "------------------------------------------------------------------------ -- Set equality u"
+    },
+    {
+     "lines": "46-47",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "𝒫ˢ",
+     "preview": "-- The stdlib's induced-equivalence machinery at *setoid* membership, so at -- `≡-setoid` "
+    },
+    {
+     "lines": "92-93",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": ">>=𝒫-comm",
+     "preview": "-- Membership only ever asks \"some `a`, some `b`\", so `swap↔` is the whole -- content: no "
+    },
+    {
+     "lines": "114-116",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "𝒫-KleisliTriple",
+     "preview": "------------------------------------------------------------------------ -- The monad on `"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Advantage.agda": {
+   "sites": [
+    {
+     "lines": "3-11",
+     "kind": "header",
+     "nLines": 9,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The distinguishing advantage between two partial verdict distributions: the -- gap betw"
+    },
+    {
+     "lines": "34-36",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "advᵇ⊥-sym",
+     "preview": "-- The pseudometric laws hold at each verdict separately, which is the form a -- statement"
+    },
+    {
+     "lines": "56-57",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "advᵇ⊥-just",
+     "preview": "------------------------------------------------------------------------ -- Where the two "
+    },
+    {
+     "lines": "59-62",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "advᵇ⊥-just",
+     "preview": "-- An experiment with NO divergence mass answers `false` exactly when it does -- not answe"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Expectation.agda": {
+   "sites": [
+    {
+     "lines": "3-4",
+     "kind": "header",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "categorical-crypto.Prelude",
+     "preview": "-- Expectation of a ℚ-valued observable under a `Dist-ℚ`, the probability of -- `true`, an"
+    },
+    {
+     "lines": "26-26",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "E",
+     "preview": "-- Expectation (= `lookupᴰℚ` over the entries) and the probability of `true`."
+    },
+    {
+     "lines": "33-34",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "E-add",
+     "preview": "------------------------------------------------------------------------ -- The expectatio"
+    },
+    {
+     "lines": "57-58",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "E-bind₂",
+     "preview": "-- Two independent draws and a function of both — the shape a reactive -- kernel's step ta"
+    },
+    {
+     "lines": "65-66",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "E-swap",
+     "preview": "-- Fubini: independent expectations commute. Two `Dist-ℚ`s never share a -- sample, so nes"
+    },
+    {
+     "lines": "75-76",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "maybeℚ",
+     "preview": "------------------------------------------------------------------------ -- The partial (`"
+    },
+    {
+     "lines": "85-85",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "E⊥-bind",
+     "preview": "-- The `nothing` sink is absorbing, so the bind law survives the Maybe layer."
+    },
+    {
+     "lines": "121-123",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Prᵇ⊥",
+     "preview": "-- The mass of verdict `b`, with `nothing` scoring 0 for EITHER indicator: that -- is what"
+    },
+    {
+     "lines": "127-127",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Pr₁⊥",
+     "preview": "-- `Pr₁⊥` is `E⊥` at the verdict indicator, on the nose."
+    },
+    {
+     "lines": "137-142",
+     "kind": "banner",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "E-mono-on",
+     "preview": "------------------------------------------------------------------------ -- Monotonicity, "
+    },
+    {
+     "lines": "152-153",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "E-cong-on",
+     "preview": "-- Congruence off the support is free, so `lookupᴰℚ-cong-P`'s pointwise -- hypothesis is m"
+    },
+    {
+     "lines": "167-167",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "E⊥-mono",
+     "preview": "-- The same through the Maybe layer: the divergence sink scores 0 either way."
+    },
+    {
+     "lines": "180-180",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "E-abs-diff",
+     "preview": "-- expectation triangle inequality: ∣E a − E b∣ ≤ E ∣a − b∣"
+    },
+    {
+     "lines": "202-207",
+     "kind": "banner",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "Mb",
+     "preview": "------------------------------------------------------------------------ -- …and the same "
+    },
+    {
+     "lines": "209-210",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Mb",
+     "preview": "-- A predicate on the values, read through the sink: divergence constrains -- nothing, whi"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Partial.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "categorical-crypto.Prelude",
+     "preview": "-- The PARTIAL rational distribution monad: `Dist⊥ A = Dist-ℚ (Maybe A)` -- (the Maybe tra"
+    },
+    {
+     "lines": "33-34",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "mass-L-toList",
+     "preview": "-- the same instantiation as `RationalDist`'s private `Lin`, so everything -- below is def"
+    },
+    {
+     "lines": "46-49",
+     "kind": "banner",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "mass-L-toList",
+     "preview": "------------------------------------------------------------------------ -- Affineness of "
+    },
+    {
+     "lines": "67-67",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": ">>=ᴹ-const",
+     "preview": "-- Affine law: binding and ignoring the sample is the identity."
+    },
+    {
+     "lines": "72-73",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Dist⊥",
+     "preview": "------------------------------------------------------------------------ -- The partial mo"
+    },
+    {
+     "lines": "81-81",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "kmaybe",
+     "preview": "-- Kleisli extension through the Maybe layer (named, for proof-friendliness)."
+    },
+    {
+     "lines": "90-91",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": ">>=⊥-cong",
+     "preview": "------------------------------------------------------------------------ -- Monad + setoid"
+    },
+    {
+     "lines": "128-128",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": ">>=⊥-congˡ",
+     "preview": "-- Bind congruences with the reflexive side PINNED explicitly (cf. `>>=ᴹ-congˡ`)."
+    },
+    {
+     "lines": "137-137",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "dmap-ret",
+     "preview": "-- `Dmap just` embeds a total distribution; on a point mass it is `return⊥`."
+    },
+    {
+     "lines": "145-145",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "X",
+     "preview": "-- Commutativity, via the affine law (a dropped sample on either side)."
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Setoid.agda": {
+   "sites": [
+    {
+     "lines": "19-21",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Mℚ-setoid",
+     "preview": "-- `_≈Mℚ_` bundled for reasoning chains. It mentions only `entries`, so an -- INFERRED int"
+    },
+    {
+     "lines": "27-30",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": ">>=ᴹ-congˡ",
+     "preview": "-- Bind congruences with the reflexive side PINNED explicitly. Inside a -- reasoning chain"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/RationalDist/Support.agda": {
+   "sites": [
+    {
+     "lines": "3-14",
+     "kind": "header",
+     "nLines": 12,
+     "flags": [],
+     "attachedTo": "categorical-crypto.Prelude",
+     "preview": "-- The support map as a setoid monad morphism `Dist-ℚ ⇒ 𝒫` (and `Dist⊥ ⇒ 𝒫`): -- the possi"
+    },
+    {
+     "lines": "16-16",
+     "kind": "header",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "categorical-crypto.Prelude",
+     "preview": "-- `Data.List`'s `any` is the deprecated alias of `Data.Bool.ListAction.any`."
+    },
+    {
+     "lines": "46-47",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "0<1ℚ",
+     "preview": "-- the same instantiation as `RationalDist`'s, so `Lin.lookup-L` is -- definitionally `loo"
+    },
+    {
+     "lines": "54-55",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "0<1ℚ",
+     "preview": "------------------------------------------------------------------------ -- Positivity of "
+    },
+    {
+     "lines": "67-68",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "suppL",
+     "preview": "-- The decisions are passed as ARGUMENTS: `with (0ℚ ℚ.<? x)` would not -- abstract, since "
+    },
+    {
+     "lines": "97-98",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "suppL",
+     "preview": "------------------------------------------------------------------------ -- The support ma"
+    },
+    {
+     "lines": "143-144",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "supp-pos",
+     "preview": "-- For a NON-NEGATIVE test, the integral is positive exactly when the test is -- positive "
+    },
+    {
+     "lines": "163-164",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "supp-cong",
+     "preview": "------------------------------------------------------------------------ -- `supp` is a se"
+    },
+    {
+     "lines": "207-209",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "supp⊥",
+     "preview": "------------------------------------------------------------------------ -- The partial la"
+    },
+    {
+     "lines": "249-250",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "¾",
+     "preview": "------------------------------------------------------------------------ -- The abstractio"
+    },
+    {
+     "lines": "267-268",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "pad",
+     "preview": "-- The one-time-pad ciphertext of `m` under a key that is `true` with -- probability `q`: "
+    },
+    {
+     "lines": "282-283",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "pad-supp-perfect",
+     "preview": "-- Possibilistically the biased pad is PERFECTLY secure: whatever the message, -- the supp"
+    },
+    {
+     "lines": "290-291",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "pad-not-perfect",
+     "preview": "-- …yet the two ciphertext distributions differ, so `supp` does not reflect -- security: t"
+    },
+    {
+     "lines": "296-297",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Close",
+     "preview": "------------------------------------------------------------------------ -- Closeness does"
+    },
+    {
+     "lines": "310-312",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "close-supp-differs",
+     "preview": "-- However small ε, `ε·true + (1-ε)·false` is ε-close to the point mass at -- `false` and "
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Birthday.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Data.Nat.Base",
+     "preview": "-- The birthday potential: the collision mass a run of `j` more fresh uniform -- samples c"
+    },
+    {
+     "lines": "35-35",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "sumN",
+     "preview": "-- `j` consecutive naturals starting at `t`: a triangle slice."
+    },
+    {
+     "lines": "46-46",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Γ-step",
+     "preview": "-- One sample's exact charge: `t/2ⁿ`, the pool it can collide with."
+    },
+    {
+     "lines": "51-52",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Γ-suc",
+     "preview": "-- Spending a budget unit on a pool that has already grown costs no more than -- spending "
+    },
+    {
+     "lines": "63-63",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Γ-monoˡ",
+     "preview": "-- A pool that starts larger can accumulate more."
+    },
+    {
+     "lines": "68-68",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Γ-mono",
+     "preview": "-- A step of budget left over is a step of budget gained."
+    },
+    {
+     "lines": "74-74",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "birthday",
+     "preview": "-- Every one of the `j` summands is below `t + j`."
+    },
+    {
+     "lines": "86-87",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "birthday",
+     "preview": "-- The headline shape: from a pool of one, `q` samples cost at most -- `(q² + q)·2⁻ⁿ`."
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Collision.agda": {
+   "sites": [
+    {
+     "lines": "3-13",
+     "kind": "header",
+     "nLines": 11,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- Hitting a recorded set of bit-strings with a fresh uniform sample: the -- counting a bi"
+    },
+    {
+     "lines": "66-66",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "E-countMatch",
+     "preview": "-- Linearity of expectation, one entry at a time: no independence anywhere."
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Class.DecEq",
+     "preview": "-- The DUPLICATE flag and its birthday potential, for a run that keeps a -- growing log of"
+    },
+    {
+     "lines": "70-71",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "indicator-≤",
+     "preview": "-- \"the sample is one of them\" is dominated by the number of them it equals, -- which is w"
+    },
+    {
+     "lines": "77-78",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Φ",
+     "preview": "------------------------------------------------------------------------ -- The potential"
+    },
+    {
+     "lines": "100-100",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Φ-keep",
+     "preview": "-- A step that does not sample pays nothing and gains a unit of budget."
+    },
+    {
+     "lines": "104-106",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Φ-fresh",
+     "preview": "-- ★ A step that appends ONE fresh uniform sample is paid for exactly: the -- expected num"
+    },
+    {
+     "lines": "115-117",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Φ-init",
+     "preview": "-- flagged already: the indicator is 1 and the budget only has to survive -- the pool's gr"
+    },
+    {
+     "lines": "143-144",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Φ-init",
+     "preview": "-- The headline shape: from an empty log, `m` samples cost at most -- `(m² + m)·2⁻ⁿ`."
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp.agda": {
+   "sites": [
+    {
+     "lines": "3-23",
+     "kind": "header",
+     "nLines": 21,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- The rational probabilistic delay monad `Dₚ A = ν X. S_ℚ (A ⊎ X)`, with a -- delay-insen"
+    },
+    {
+     "lines": "48-49",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Dₚ",
+     "preview": "------------------------------------------------------------------------ -- The carrier"
+    },
+    {
+     "lines": "75-76",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "botₚ",
+     "preview": "-- Written out rather than as `dirac (inj₂ botₚ)`: the corecursive call may sit -- under c"
+    },
+    {
+     "lines": "110-115",
+     "kind": "banner",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "NNF",
+     "preview": "------------------------------------------------------------------------ -- Depth-`n` cumu"
+    },
+    {
+     "lines": "127-128",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "NNF",
+     "preview": "-- Non-negative tests: `cum` is monotone in the budget only for these, and the -- equivale"
+    },
+    {
+     "lines": "132-133",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "node-nn",
+     "preview": "------------------------------------------------------------------------ -- The two-term a"
+    },
+    {
+     "lines": "153-154",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "Cofinal",
+     "preview": "------------------------------------------------------------------------ -- `cum` is non-n"
+    },
+    {
+     "lines": "203-209",
+     "kind": "banner",
+     "nLines": 7,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "Cofinal",
+     "preview": "------------------------------------------------------------------------ -- Depth-`n` supp"
+    },
+    {
+     "lines": "265-274",
+     "kind": "banner",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Cofinal",
+     "preview": "------------------------------------------------------------------------ -- The equivalenc"
+    },
+    {
+     "lines": "276-281",
+     "kind": "standalone",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "Cofinal",
+     "preview": "-- Every budget of `d` under `P` is matched at SOME budget of `e` under `Q`, -- exactly (`"
+    },
+    {
+     "lines": "318-319",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "dom-resp",
+     "preview": "-- The two ends can be replaced by exactly comparable ones; this is how an -- observation "
+    },
+    {
+     "lines": "350-351",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "exact⇒≈ₚ",
+     "preview": "-- Both sides are blind at budget 0, so an exact `cum` identity from budget 1 on -- suffic"
+    },
+    {
+     "lines": "366-367",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "dirac-cum",
+     "preview": "------------------------------------------------------------------------ -- Delays are inv"
+    },
+    {
+     "lines": "385-386",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "bot-bind-cum",
+     "preview": "-- A junction on a divergence diverges: `botₚ >>=ₚ f` is not a `dirac`, but its -- weights"
+    },
+    {
+     "lines": "396-397",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": ">>=ₚ-identityˡ-cum",
+     "preview": "------------------------------------------------------------------------ -- Monad laws, as"
+    },
+    {
+     "lines": "406-406",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "leafₚ-tag-zero",
+     "preview": "-- Budget 0 sees nothing of a bind: every branch of `d >>=ₚ f` is an `inj₂`."
+    },
+    {
+     "lines": "451-456",
+     "kind": "banner",
+     "nLines": 6,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": ">>=ₚ-congᵖ",
+     "preview": "------------------------------------------------------------------------ -- The bind sandw"
+    },
+    {
+     "lines": "487-488",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": ">>=ₚ-congᵖ",
+     "preview": "------------------------------------------------------------------------ -- The bind congr"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Advantage.agda": {
+   "sites": [
+    {
+     "lines": "3-24",
+     "kind": "header",
+     "nLines": 22,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- Distinguishing advantage on `Dₚ Bool`, as a RELATION indexed by a rational -- slack rat"
+    },
+    {
+     "lines": "43-43",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Pr≤[_]",
+     "preview": "-- The mass of verdict `b` reached within `n` steps."
+    },
+    {
+     "lines": "47-48",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Pr≤",
+     "preview": "-- The `true` reading alone, which is what a one-sided probability-of-event -- statement a"
+    },
+    {
+     "lines": "58-59",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "indᵇ-not",
+     "preview": "-- The other verdict weighs nothing, which is what lets a construction that -- answers it "
+    },
+    {
+     "lines": "75-76",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "≼ₚ⇒≼ₚ[0]",
+     "preview": "------------------------------------------------------------------------ -- The pseudometr"
+    },
+    {
+     "lines": "113-114",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Upper",
+     "preview": "------------------------------------------------------------------------ -- One-sided uppe"
+    },
+    {
+     "lines": "116-120",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Upper",
+     "preview": "-- The probability of a reported event, as close as this layer can state it: -- the limiti"
+    },
+    {
+     "lines": "127-128",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "upper-≼[]",
+     "preview": "-- The transport: the comparison supplies a depth of `e` at each depth of `d`, -- and no p"
+    },
+    {
+     "lines": "135-136",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "upper-≼",
+     "preview": "-- …and along an exact agreement, which is what crossing a model's seal costs -- (`Categor"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Coin.agda": {
+   "sites": [
+    {
+     "lines": "3-8",
+     "kind": "header",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- A finite rational distribution on `Bool` as a single biased coin. `Dₚ`'s -- step is del"
+    },
+    {
+     "lines": "33-33",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "ind˘",
+     "preview": "-- The indicator of `false`; `bool→ℚ` is the indicator of `true`."
+    },
+    {
+     "lines": "45-45",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "coinₚ",
+     "preview": "-- The two masses add to one because the two indicators do, pointwise."
+    },
+    {
+     "lines": "58-58",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "coinₚ-cum",
+     "preview": "-- Both branches spend one delay step, so the budget is `suc (suc n)`."
+    },
+    {
+     "lines": "82-83",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "coin-not",
+     "preview": "------------------------------------------------------------------------ -- A balanced coi"
+    },
+    {
+     "lines": "86-87",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "coin-not",
+     "preview": "-- `cum` reads a coin's bind as a two-term sum whose factors are the two -- masses; equal "
+    },
+    {
+     "lines": "112-115",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "coin-flip",
+     "preview": "-- …so its two branch functions need only agree AFTER the flip. This is the -- one-time pa"
+    },
+    {
+     "lines": "126-127",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "coinₚ-const",
+     "preview": "------------------------------------------------------------------------ -- A coin is affi"
+    },
+    {
+     "lines": "130-131",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "coinₚ-const",
+     "preview": "-- The two branch masses sum to one, so a continuation that ignores the draw -- is scored "
+    },
+    {
+     "lines": "140-143",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "coinₚ-const",
+     "preview": "-- `Dₚ` has divergence, so binding away a draw is not free in general — `botₚ` -- annihila"
+    },
+    {
+     "lines": "155-157",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "uniformₚ",
+     "preview": "-- A uniform bit vector: `Protocol.uniformVec`'s cascade one layer down, one -- fair coin "
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Commutative.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- `Dₚ` is a commutative monad up to `_≈ₚ_`. -- -- `cum n (d >>=ₚ f) P` is NOT a product o"
+    },
+    {
+     "lines": "27-27",
+     "kind": "header",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Algebra.Properties.CommutativeSemigroup",
+     "preview": "-- `Distribution.Linearity` spends the same two rearrangements on the list carrier."
+    },
+    {
+     "lines": "45-46",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "mapₚ-≤",
+     "preview": "------------------------------------------------------------------------ -- The `ℚ` rearra"
+    },
+    {
+     "lines": "62-63",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "mapₚ-≤",
+     "preview": "------------------------------------------------------------------------ -- `cum n d` is a"
+    },
+    {
+     "lines": "107-108",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [
+      "singleDefBanner"
+     ],
+     "attachedTo": "mapₚ-≤",
+     "preview": "------------------------------------------------------------------------ -- Fubini at two "
+    },
+    {
+     "lines": "128-129",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "mapₚ-≤",
+     "preview": "------------------------------------------------------------------------ -- Commutativity"
+    },
+    {
+     "lines": "170-171",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": ">>=ₚ-swap",
+     "preview": "-- …at an arbitrary continuation, which is the form a consumer uses: route both -- draws t"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Dominate.agda": {
+   "sites": [
+    {
+     "lines": "3-13",
+     "kind": "header",
+     "nLines": 11,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- One-sided domination at a FIXED test (`Dp.Dom`), across a bind. A transfer -- that is o"
+    },
+    {
+     "lines": "38-39",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "bind-const-zero",
+     "preview": "------------------------------------------------------------------------ -- Convexity: a s"
+    },
+    {
+     "lines": "73-74",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "bind-const-zero",
+     "preview": "-- A test that vanishes on every value a run can reach scores it at nothing — -- the `cum`"
+    },
+    {
+     "lines": "95-96",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Dom≤",
+     "preview": "------------------------------------------------------------------------ -- The relation"
+    },
+    {
+     "lines": "98-98",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Dom≤",
+     "preview": "-- A target faithful only to a depth is dominated only up to that depth."
+    },
+    {
+     "lines": "105-105",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "≈⇒dom₀",
+     "preview": "-- How an ambient `_≈ₚ_` enters a domination chain."
+    },
+    {
+     "lines": "109-114",
+     "kind": "banner",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "------------------------------------------------------------------------ -- The bind congr"
+    },
+    {
+     "lines": "116-117",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "A",
+     "preview": "-- `A`/`B` are module parameters, not `private variable`s: the `where` block's -- own sign"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Elgot.agda": {
+   "sites": [
+    {
+     "lines": "3-12",
+     "kind": "header",
+     "nLines": 10,
+     "flags": [],
+     "attachedTo": "Data.Nat.Base",
+     "preview": "-- Uniformity and the context law for `iterₚ`, and the single entry point for the -- itera"
+    },
+    {
+     "lines": "30-32",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "ProbabilisticLogic.Dp.Iter",
+     "preview": "-- Object variables are bound explicitly in every signature below: the `where` -- blocks m"
+    },
+    {
+     "lines": "40-41",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "mapₚ-fn-cum",
+     "preview": "------------------------------------------------------------------------ -- `mapₚ` in its "
+    },
+    {
+     "lines": "55-56",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "padₛ",
+     "preview": "------------------------------------------------------------------------ -- Uniformity alo"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter.agda": {
+   "sites": [
+    {
+     "lines": "3-15",
+     "kind": "header",
+     "nLines": 13,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- Elgot iteration on the Kleisli category of `Dₚ`, elementwise. A body -- `S × A → Dₚ (S "
+    },
+    {
+     "lines": "37-38",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "mapₚ-≈ₚ",
+     "preview": "------------------------------------------------------------------------ -- `mapₚ`, exactl"
+    },
+    {
+     "lines": "56-57",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Body",
+     "preview": "------------------------------------------------------------------------ -- The operator"
+    },
+    {
+     "lines": "62-63",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "iterₚ",
+     "preview": "-- `stepᵢ` consumes the body's own steps and adds one per turn, so the only -- self-call i"
+    },
+    {
+     "lines": "79-80",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "contᵢ",
+     "preview": "------------------------------------------------------------------------ -- Unfolding (the"
+    },
+    {
+     "lines": "86-86",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "returnₚ-cum-≤",
+     "preview": "-- `returnₚ` is only reached after a step, so budget 0 sees nothing of it."
+    },
+    {
+     "lines": "91-91",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "stepᵢ-unfold",
+     "preview": "-- The unfolded loop is behind by exactly the one step the junction spends."
+    },
+    {
+     "lines": "122-124",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "stepᵢ-unfold",
+     "preview": "-- A pass of the loop taken from an arbitrary pending output, not only from a -- body appl"
+    },
+    {
+     "lines": "133-137",
+     "kind": "banner",
+     "nLines": 5,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Tᵗ",
+     "preview": "------------------------------------------------------------------------ -- The loop sandw"
+    },
+    {
+     "lines": "183-184",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "S",
+     "preview": "------------------------------------------------------------------------ -- `iterₚ` respec"
+    },
+    {
+     "lines": "186-188",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "S",
+     "preview": "-- `S`/`A`/`B` are module parameters, not `private variable`s: the `where` block's -- own "
+    },
+    {
+     "lines": "223-228",
+     "kind": "banner",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "φ",
+     "preview": "------------------------------------------------------------------------ -- Pure reindexin"
+    },
+    {
+     "lines": "238-242",
+     "kind": "banner",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "iterₚ-turn",
+     "preview": "------------------------------------------------------------------------ -- Replaying a de"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Codiagonal.agda": {
+   "sites": [
+    {
+     "lines": "3-22",
+     "kind": "header",
+     "nLines": 20,
+     "flags": [],
+     "attachedTo": "Data.Nat.Base",
+     "preview": "-- `iterₚ-codiagonal` — a loop whose body is itself a loop over the same variable -- is on"
+    },
+    {
+     "lines": "93-93",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "iterₚ-codiagonal",
+     "preview": "-- The inner loop's test re-exposed: one more `stepᵢ-boundA` past `K1`."
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Out.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [
+      "leftoverMarker"
+     ],
+     "attachedTo": "Data.Nat.Base",
+     "preview": "-- `iterₚ-out` — naturality of `iterₚ` in its output, for an EFFECTFUL -- post-composition"
+    },
+    {
+     "lines": "35-36",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "inlₒ",
+     "preview": "------------------------------------------------------------------------ -- Post-composing"
+    },
+    {
+     "lines": "48-49",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Tᵗ-inlₒ",
+     "preview": "-- `Tᵗ`'s exit clause is `P` composed with `inlₒ` up to `Σ`-eta, so relabelling -- the tes"
+    },
+    {
+     "lines": "67-68",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "S",
+     "preview": "------------------------------------------------------------------------ -- The two indepe"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Iter/Transfer.agda": {
+   "sites": [
+    {
+     "lines": "3-21",
+     "kind": "header",
+     "nLines": 19,
+     "flags": [],
+     "attachedTo": "Data.Nat.Base",
+     "preview": "-- `iterₚ-transfer` — transfer of `iterₚ` along a PURE simulation. -- -- `mapₚ` inserts a "
+    },
+    {
+     "lines": "40-41",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "S",
+     "preview": "-- `S`…`B′`, the two bodies, the two pure relabellings and the test are all module -- para"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Mass.agda": {
+   "sites": [
+    {
+     "lines": "3-18",
+     "kind": "header",
+     "nLines": 16,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- Termination mass at a budget, and what a lossy prefix does to what follows -- it. -- --"
+    },
+    {
+     "lines": "45-46",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "mass",
+     "preview": "------------------------------------------------------------------------ -- The mass, and "
+    },
+    {
+     "lines": "51-51",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "mass-nn",
+     "preview": "-- A test bounded by one is scored by at most one: the node weights sum to one."
+    },
+    {
+     "lines": "77-78",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "indᵇ-≤1",
+     "preview": "------------------------------------------------------------------------ -- A constant tes"
+    },
+    {
+     "lines": "131-131",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "verdict-mass",
+     "preview": "-- The two verdict masses ARE the termination mass: the indicators sum to one."
+    },
+    {
+     "lines": "140-141",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "const-bindA",
+     "preview": "------------------------------------------------------------------------ -- A prefix scale"
+    },
+    {
+     "lines": "153-153",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "mass-bindˡ",
+     "preview": "-- …and a prefix can only lose mass, whatever follows it."
+    },
+    {
+     "lines": "159-160",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "mass-bindʳ",
+     "preview": "-- The same for the continuation: a uniform bound on every branch bounds the -- whole, the"
+    },
+    {
+     "lines": "170-175",
+     "kind": "banner",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "_≼ᵐ_",
+     "preview": "------------------------------------------------------------------------ -- Domination of "
+    },
+    {
+     "lines": "188-188",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "mapₚ-≼ᵐ",
+     "preview": "-- Relabelling loses nothing: the junction step costs one budget."
+    },
+    {
+     "lines": "196-199",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "bindʳ-≼ᵐ",
+     "preview": "-- …and the same for the continuation. The hypothesis is budget-UNIFORM: a -- per-branch c"
+    },
+    {
+     "lines": "204-205",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "≼ᵐbot⇒0",
+     "preview": "------------------------------------------------------------------------ -- The zero end o"
+    },
+    {
+     "lines": "207-209",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "≼ᵐbot⇒0",
+     "preview": "-- Domination by `botₚ` says every budgeted mass is `0ℚ` against the constant -- test, whi"
+    },
+    {
+     "lines": "213-213",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "massless-≈ₚ[0]",
+     "preview": "-- Two runs that reach no verdict are indistinguishable, at no slack at all."
+    },
+    {
+     "lines": "223-224",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Total",
+     "preview": "------------------------------------------------------------------------ -- Termination, e"
+    },
+    {
+     "lines": "226-230",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Total",
+     "preview": "-- A run that reaches a verdict: the two verdict masses are at one already at -- a finite "
+    },
+    {
+     "lines": "248-249",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "astotal-≼ᵐ",
+     "preview": "-- Totality travels UP a mass domination: whatever bounds an almost surely -- terminating "
+    },
+    {
+     "lines": "257-258",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "module",
+     "preview": "-- `x` is `m`-weighted plus the remainder, and the remainder is what the -- slack pays for"
+    },
+    {
+     "lines": "291-292",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "module",
+     "preview": "-- `a + b - 1 ≤ a * b` in the unit interval — the remainder `(1-a)*(1-b)` is -- nonnegativ"
+    },
+    {
+     "lines": "305-306",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "module",
+     "preview": "-- `x ≤ m * x + ε`, for a mass `m` within `ε` of one and an `x` in the unit -- interval: t"
+    },
+    {
+     "lines": "317-317",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "const-bind-≼",
+     "preview": "-- A prefix is never seen to ADD mass, whether or not it terminates."
+    },
+    {
+     "lines": "326-327",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "const-bind-≽",
+     "preview": "-- …and an almost surely terminating one is not seen to lose any either, -- past every pos"
+    },
+    {
+     "lines": "340-341",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "astotal-returnₚ",
+     "preview": "-- A junction terminates at once, so the empty prefix is an almost surely -- terminating o"
+    },
+    {
+     "lines": "346-347",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "const-bind-astotal",
+     "preview": "-- …and two almost surely terminating computations in sequence are one: the -- masses mult"
+    },
+    {
+     "lines": "359-365",
+     "kind": "banner",
+     "nLines": 7,
+     "flags": [],
+     "attachedTo": "squeeze",
+     "preview": "------------------------------------------------------------------------ -- The squeeze --"
+    },
+    {
+     "lines": "398-398",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "squeeze-astotal",
+     "preview": "-- …and at every slack, which is `ASTotal` on the nose."
+    },
+    {
+     "lines": "406-407",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "total-dominated",
+     "preview": "-- The case the seam consumes: the dominating observation bounds itself, so a -- dominatio"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Reasoning.agda": {
+   "sites": [
+    {
+     "lines": "3-8",
+     "kind": "header",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "Function.Base",
+     "preview": "-- Implicit-subject forms of `Dₚ`'s setoid and bind laws. -- -- `Dp`'s own lemmas take the"
+    },
+    {
+     "lines": "33-33",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "bindᶠ",
+     "preview": "-- Congruence in the continuation."
+    },
+    {
+     "lines": "37-37",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "bindˣ",
+     "preview": "-- Congruence in the subject."
+    },
+    {
+     "lines": "41-41",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "push",
+     "preview": "-- `>>=ₚ-identityˡ` read backwards: introduce a junction."
+    },
+    {
+     "lines": "55-56",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "≡⇒≈ₚ",
+     "preview": "-- …and a rewrite of the whole subject, where the two sides are the same -- computation na"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Settle.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- When a `Dₚ` computation has finished, and what it then scores. -- -- `Settles n d ν` sa"
+    },
+    {
+     "lines": "39-40",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Null",
+     "preview": "-- Everything is at `Set`: `RationalDist.Expectation`'s algebra is, and the -- machine lay"
+    },
+    {
+     "lines": "49-50",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Null",
+     "preview": "------------------------------------------------------------------------ -- Halting"
+    },
+    {
+     "lines": "52-52",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Null",
+     "preview": "-- Mass that never reaches a value, at any budget and any non-negative test."
+    },
+    {
+     "lines": "56-56",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Null⇒Halts",
+     "preview": "-- Every branch has produced a value within `n` steps, or carries no mass."
+    },
+    {
+     "lines": "88-88",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Null-bind",
+     "preview": "-- Past the halting budget the cumulative mass no longer moves."
+    },
+    {
+     "lines": "103-103",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Null-bind",
+     "preview": "-- A junction on mass that never lands is again mass that never lands."
+    },
+    {
+     "lines": "110-111",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "E⊥-coin",
+     "preview": "------------------------------------------------------------------------ -- What `E⊥` make"
+    },
+    {
+     "lines": "120-121",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Settles",
+     "preview": "------------------------------------------------------------------------ -- Settling"
+    },
+    {
+     "lines": "123-126",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "Settles",
+     "preview": "-- A RECORD rather than a pair: `Dist-ℚ` is itself a record and `E⊥` projects -- it, so wh"
+    },
+    {
+     "lines": "147-151",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "cum-settled-≈ₚ",
+     "preview": "-- …and that reading — unlike the `Settles` witness carrying it, whose `Halts` -- is a fac"
+    },
+    {
+     "lines": "173-175",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Settles-resp",
+     "preview": "-- Only what `E⊥` reads of the value is pinned, so a consumer holding an -- `_≈Mℚ_` suppli"
+    },
+    {
+     "lines": "180-181",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Settles-return",
+     "preview": "------------------------------------------------------------------------ -- The four ways "
+    },
+    {
+     "lines": "191-192",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Settles-bot⋆",
+     "preview": "-- A junction on the sink is the sink; `Settles-bot` itself does not apply, -- `botₚ >>=ₚ "
+    },
+    {
+     "lines": "250-251",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Settles-bind⋆",
+     "preview": "------------------------------------------------------------------------ -- …and the form "
+    },
+    {
+     "lines": "253-254",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Settles-bind⋆",
+     "preview": "-- The continuation settles at every value, at its own budget; `Dp.uniformize` -- maxes th"
+    },
+    {
+     "lines": "262-264",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "Settles-ret⋆",
+     "preview": "-- The junction a pure Kleisli map spends: one step, and only the continuation -- AT that "
+    },
+    {
+     "lines": "276-280",
+     "kind": "banner",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "Settlesᵀ",
+     "preview": "------------------------------------------------------------------------ -- Settling on a "
+    },
+    {
+     "lines": "313-314",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Settlesᵀ-tag",
+     "preview": "-- …and the tagged form a machine step settles at: the kernel is total, the -- machine's a"
+    },
+    {
+     "lines": "322-324",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "uniformₚ-settles",
+     "preview": "-- The uniform cascade settles on the uniform distribution: `uniformₚ` halts -- after its "
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Settle/Iter.agda": {
+   "sites": [
+    {
+     "lines": "3-16",
+     "kind": "header",
+     "nLines": 14,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- `Dp.Settle` at `Dp.Iter`'s loop. -- -- `Settles-bind` is the junction a closed RUN pass"
+    },
+    {
+     "lines": "40-41",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "S",
+     "preview": "------------------------------------------------------------------------ -- One turn of th"
+    },
+    {
+     "lines": "45-45",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Null-stepᵢ",
+     "preview": "-- A loop taken on mass that never lands never lands either."
+    },
+    {
+     "lines": "52-53",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Settles-stepᵢ",
+     "preview": "-- The continuations settle at `suc j` because an exit is a `returnₚ`, whose -- reading bu"
+    },
+    {
+     "lines": "110-111",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Settles-stepᵢˢ",
+     "preview": "-- The budgets maxed over the junction's depth-`n` support, which is where -- the loop's o"
+    },
+    {
+     "lines": "142-143",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Loop",
+     "preview": "------------------------------------------------------------------------ -- The round-trip"
+    },
+    {
+     "lines": "148-150",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "rank",
+     "preview": "-- The body's kernel unrolled `f` rounds. A loop still running after `f` is -- read as div"
+    },
+    {
+     "lines": "162-163",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- What one pass of the body may leave behind: an exit, or a re-entry of -- strictly small"
+    },
+    {
+     "lines": "168-170",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- The round-trip bound, exactly. At a two-factor composite `rank` counts -- the messages "
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Stable.agda": {
+   "sites": [
+    {
+     "lines": "3-10",
+     "kind": "header",
+     "nLines": 8,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- When a `cum` family has stopped moving: `Stable P d u` says every budget past -- some w"
+    },
+    {
+     "lines": "41-42",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "Stable-return",
+     "preview": "------------------------------------------------------------------------ -- Closure proper"
+    },
+    {
+     "lines": "65-66",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "coin-bind-cum",
+     "preview": "-- Same budget as `coinₚ-cum`: the junction consumes the step the branch's -- `returnₚ` le"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Dp/Support.agda": {
+   "sites": [
+    {
+     "lines": "3-15",
+     "kind": "header",
+     "nLines": 13,
+     "flags": [],
+     "attachedTo": "Data.Bool.Base",
+     "preview": "-- Facts about `Dp.Supp` that `Dp`'s own `uniformize` does not give. -- -- `Supp-map` weak"
+    },
+    {
+     "lines": "33-33",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Supp-bot",
+     "preview": "-- Mass that never lands reaches no value, so it supports anything."
+    },
+    {
+     "lines": "42-44",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "",
+     "preview": "-- A junction reaches what its continuations reach. The continuation's budget -- is quanti"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Examples/BiasedCoin.agda": {
+   "sites": [
+    {
+     "lines": "21-21",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "biased",
+     "preview": "-- A biased coin: lands `true` with probability 2/3."
+    },
+    {
+     "lines": "25-26",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "P",
+     "preview": "-- Two independent biased coins, built directly via the product distribution -- rather tha"
+    },
+    {
+     "lines": "30-31",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "X",
+     "preview": "-- X: the first coin is `true` -- Y: both coins are `true`"
+    },
+    {
+     "lines": "36-37",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "biased-single",
+     "preview": "------------------------------------------------------------------------ -- Single-coin: t"
+    },
+    {
+     "lines": "45-46",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "PX≥2/3",
+     "preview": "------------------------------------------------------------------------ -- Joint: margina"
+    },
+    {
+     "lines": "55-56",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "PY≥4/9",
+     "preview": "------------------------------------------------------------------------ -- Joint: the uni"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Examples/Coins.agda": {
+   "sites": [
+    {
+     "lines": "23-23",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Z",
+     "preview": "-- flipping 2 coins"
+    },
+    {
+     "lines": "29-30",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "X",
+     "preview": "-- X: the first coin is `true` -- Y: both coins are `true`"
+    },
+    {
+     "lines": "39-39",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "PX≥1/2",
+     "preview": "-- X has probability at least 1/2"
+    },
+    {
+     "lines": "47-47",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "X⇒1/2Y",
+     "preview": "-- If X is true, Y has probability at least 1/2"
+    },
+    {
+     "lines": "57-57",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "PY≥1/4",
+     "preview": "-- This implies Y has probability at least 1/4"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Examples/MultipleCoins.agda": {
+   "sites": [
+    {
+     "lines": "20-24",
+     "kind": "banner",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "two-fair-all",
+     "preview": "------------------------------------------------------------------------ -- Two independen"
+    },
+    {
+     "lines": "32-32",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "two-fair-none",
+     "preview": "-- Two fair coins both `false` with probability ≥ 1/4 (symmetric)."
+    },
+    {
+     "lines": "39-41",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "three-biased-all",
+     "preview": "------------------------------------------------------------------------ -- Three independ"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Examples/Weather.agda": {
+   "sites": [
+    {
+     "lines": "19-24",
+     "kind": "banner",
+     "nLines": 6,
+     "flags": [],
+     "attachedTo": "Type",
+     "preview": "------------------------------------------------------------------------ -- A two-state we"
+    },
+    {
+     "lines": "37-38",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "P-step1-sunny",
+     "preview": "------------------------------------------------------------------------ -- Probability of"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Expectation.agda": {
+   "sites": [
+    {
+     "lines": "50-53",
+     "kind": "banner",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "E[_,_]≈_",
+     "preview": "------------------------------------------------------------------------ -- The relational"
+    },
+    {
+     "lines": "64-65",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "weight-sum-cong-f",
+     "preview": "------------------------------------------------------------------------ -- Lemmas about `"
+    },
+    {
+     "lines": "67-67",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "weight-sum-cong-f",
+     "preview": "-- Pointwise-`≈` congruence in the function argument."
+    },
+    {
+     "lines": "75-75",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "weight-sum-+",
+     "preview": "-- Linearity in additions: weight-sum is additive in `f`."
+    },
+    {
+     "lines": "83-83",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "weight-sum-*ₗ",
+     "preview": "-- Linearity in scalar multiplication: a constant factor pulls out."
+    },
+    {
+     "lines": "91-91",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "weight-sum-0",
+     "preview": "-- The constant-zero function has weighted sum zero."
+    },
+    {
+     "lines": "101-101",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "weight-sum-++",
+     "preview": "-- `weight-sum` distributes over list concatenation in the support."
+    },
+    {
+     "lines": "109-111",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "weight-sum-cons-middle",
+     "preview": "-- A `cons in the middle` rearrangement: an element `a` placed between -- two list segment"
+    },
+    {
+     "lines": "127-129",
+     "kind": "standalone",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "weight-sum-↭",
+     "preview": "-- `weight-sum` is invariant under permutation of the support. Each -- constructor case is"
+    },
+    {
+     "lines": "140-141",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "weight-sum-vanish",
+     "preview": "-- A `weight-sum` over a support whose every weighted contribution -- vanishes is itself z"
+    },
+    {
+     "lines": "150-154",
+     "kind": "standalone",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "weight-sum-extend-vanish",
+     "preview": "-- \"Support enlargement by vanishing elements\": if `t` covers `s`, both -- distinct, and t"
+    },
+    {
+     "lines": "175-176",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "E-resp-≈",
+     "preview": "------------------------------------------------------------------------ -- Lemmas at the "
+    },
+    {
+     "lines": "178-178",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "E-resp-≈",
+     "preview": "-- Replacing the value by an `≈`-equal one."
+    },
+    {
+     "lines": "188-188",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "E-resp-≈-f",
+     "preview": "-- Replacing `f` by a pointwise-`≈` function."
+    },
+    {
+     "lines": "198-198",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "E-zero",
+     "preview": "-- The constant-zero function has expected value zero, on the empty support."
+    },
+    {
+     "lines": "207-207",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "E-*ₗ",
+     "preview": "-- Scalar pre-multiplication."
+    },
+    {
+     "lines": "220-221",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "E-of-support",
+     "preview": "-- Building an E witness directly from a support and an `off-support` -- proof for the fun"
+    },
+    {
+     "lines": "229-230",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "weight-sum-*ᵣ",
+     "preview": "------------------------------------------------------------------------ -- Fubini-style d"
+    },
+    {
+     "lines": "232-232",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "weight-sum-*ᵣ",
+     "preview": "-- `weight-sum` factors out a constant scalar (right multiplication)."
+    },
+    {
+     "lines": "240-241",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "weight-sum-mapL",
+     "preview": "-- `weight-sum` over `mapL (a ,_) s₂` collapses to a constant times the inner -- weight-su"
+    },
+    {
+     "lines": "251-252",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "weight-sum-×ᴸ",
+     "preview": "-- Fubini-style: weight-sum over `s₁ ×ᴸ s₂` factors as a sum over s₁ of the -- inner weigh"
+    },
+    {
+     "lines": "267-268",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "weight-sum-1#-distinct",
+     "preview": "-- For a distinct support s, summing the singletons P ∙ (ω ≡_) over s -- gives P ∙ (_∈ˡ s)"
+    },
+    {
+     "lines": "290-291",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "weight-sum-proj₂",
+     "preview": "-- Fubini for the second projection: weight-sum (P ⊗ Q) (f ∘ proj₂) over a -- product supp"
+    },
+    {
+     "lines": "311-313",
+     "kind": "banner",
+     "nLines": 3,
+     "flags": [],
+     "attachedTo": "weight-sum-1[X]",
+     "preview": "------------------------------------------------------------------------ -- The indicator "
+    },
+    {
+     "lines": "362-363",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "module",
+     "preview": "------------------------------------------------------------------------ -- Lemmas requiri"
+    },
+    {
+     "lines": "369-372",
+     "kind": "standalone",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "off-support-of-full-mass",
+     "preview": "-- For a support that carries full P-mass, every singleton off the -- support has zero P-m"
+    },
+    {
+     "lines": "381-382",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "E-indicator",
+     "preview": "-- Indicator rule: the expected value of an indicator over a full-mass -- support equals t"
+    },
+    {
+     "lines": "397-400",
+     "kind": "banner",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "E-+",
+     "preview": "------------------------------------------------------------------------ -- Two-witness li"
+    },
+    {
+     "lines": "479-480",
+     "kind": "banner",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "E-pure",
+     "preview": "------------------------------------------------------------------------ -- Expected value"
+    },
+    {
+     "lines": "497-497",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "E-empirical-distinct",
+     "preview": "-- (ω ≡_) and (_∈ˡ [ω]) define the same event up to symmetry of ≡."
+    },
+    {
+     "lines": "505-509",
+     "kind": "banner",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "E-empirical-distinct",
+     "preview": "------------------------------------------------------------------------ -- Expected value"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Logic.agda": {
+   "sites": []
+  },
+  "src/ProbabilisticLogic/Models/Trivial.agda": {
+   "sites": [
+    {
+     "lines": "3-6",
+     "kind": "header",
+     "nLines": 4,
+     "flags": [],
+     "attachedTo": "categorical-crypto.Prelude",
+     "preview": "-- The trivial 1-element model of `Abstract`. -- -- All probabilities are `tt`, so 0 = 1 a"
+    },
+    {
+     "lines": "53-53",
+     "kind": "standalone",
+     "nLines": 1,
+     "flags": [],
+     "attachedTo": "Triv-AbstractProbability",
+     "preview": "-- The trivial preorder/partial order on ⊤ via _≡_."
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Prelude.agda": {
+   "sites": [
+    {
+     "lines": "3-7",
+     "kind": "header",
+     "nLines": 5,
+     "flags": [],
+     "attachedTo": "ProbabilisticLogic.Prelude",
+     "preview": "-- The probability vocabulary, in one import: carriers, the monad and its -- equality, sub"
+    }
+   ]
+  },
+  "src/ProbabilisticLogic/Reasoning.agda": {
+   "sites": []
+  },
+  "src/Relation/Binary/Bundles/Ext.agda": {
+   "sites": [
+    {
+     "lines": "10-11",
+     "kind": "standalone",
+     "nLines": 2,
+     "flags": [],
+     "attachedTo": "_⟨_≈_⟩",
+     "preview": "-- `agda-categories`' `𝒞 [ f ≈ g ]`, for setoids: naming the setoid lets a -- statement qu"
+    }
+   ]
+  }
+ },
+ "totalChecks": 0
+}

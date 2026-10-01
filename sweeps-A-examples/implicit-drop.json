@@ -1,0 +1,1146 @@
+{
+ "sweep": "implicit-drop",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/Examples/ChimericLedger.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 184,
+     "edit": "drop `{e}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 14.8
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 65,
+     "edit": "drop `{t = λ _ q → q ℕ.* q ℕ.+ q}`"
+    },
+    {
+     "line": 69,
+     "edit": "drop `⦃ nonNegative (0≤inv-pow-2 n) ⦄`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 66.4
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/System.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 79,
+     "edit": "drop `{R = R}`"
+    },
+    {
+     "line": 79,
+     "edit": "drop `{I = Ideal a V}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 140,
+     "edit": "drop `{r = 1⁺}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 7,
+   "seconds": 81.7
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Compose.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 130,
+     "edit": "drop `{r = positive 2}`"
+    },
+    {
+     "line": 135,
+     "edit": "drop `{r = 1⁺}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 33.3
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Hiding.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda": {
+   "candidates": 19,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 66,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 66,
+     "edit": "drop `{Resᴵ}`"
+    },
+    {
+     "line": 66,
+     "edit": "drop `{Cᵗ}`"
+    },
+    {
+     "line": 67,
+     "edit": "drop `{Resᴵ}`"
+    },
+    {
+     "line": 67,
+     "edit": "drop `{Cⁱ}`"
+    },
+    {
+     "line": 67,
+     "edit": "drop `{Cᵗ}`"
+    },
+    {
+     "line": 67,
+     "edit": "drop `{Resᴵ}`"
+    },
+    {
+     "line": 67,
+     "edit": "drop `{Lkᴵ ⊗ᴵ Honᴵ}`"
+    },
+    {
+     "line": 67,
+     "edit": "drop `{Cⁱ}`"
+    },
+    {
+     "line": 215,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 215,
+     "edit": "drop `{Cᵗ}`"
+    },
+    {
+     "line": 216,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 216,
+     "edit": "drop `{Cⁱ}`"
+    },
+    {
+     "line": 216,
+     "edit": "drop `{Cᵗ}`"
+    },
+    {
+     "line": 217,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 217,
+     "edit": "drop `{Lkᴵ ⊗ᴵ Honᴵ}`"
+    },
+    {
+     "line": 217,
+     "edit": "drop `{Cⁱ}`"
+    },
+    {
+     "line": 221,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 221,
+     "edit": "drop `{Cᵗ}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 38,
+   "seconds": 415.1
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda": {
+   "candidates": 10,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 56,
+     "edit": "drop `{Lkᴵᶜ}`"
+    },
+    {
+     "line": 56,
+     "edit": "drop `{Lkᴵ ⊗ᴵ Advᴵᶜ}`"
+    },
+    {
+     "line": 56,
+     "edit": "drop `{Honᴵᶜ}`"
+    },
+    {
+     "line": 59,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 59,
+     "edit": "drop `{Lkᴵᶜ ⊗ᴵ Honᴵᶜ}`"
+    },
+    {
+     "line": 59,
+     "edit": "drop `{Cᵗ}`"
+    },
+    {
+     "line": 144,
+     "edit": "drop `{A = Outᴵ}`"
+    },
+    {
+     "line": 146,
+     "edit": "drop `{A = Outᴵ}`"
+    },
+    {
+     "line": 212,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 212,
+     "edit": "drop `{Cᵗ}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 20,
+   "seconds": 256.2
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda": {
+   "candidates": 19,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 64,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 64,
+     "edit": "drop `{Resᴵ}`"
+    },
+    {
+     "line": 64,
+     "edit": "drop `{Cᵗʰ}`"
+    },
+    {
+     "line": 65,
+     "edit": "drop `{Resᴵ}`"
+    },
+    {
+     "line": 65,
+     "edit": "drop `{Cⁱʰ}`"
+    },
+    {
+     "line": 65,
+     "edit": "drop `{Cᵗʰ}`"
+    },
+    {
+     "line": 65,
+     "edit": "drop `{Resᴵ}`"
+    },
+    {
+     "line": 65,
+     "edit": "drop `{Lkᴵʰ ⊗ᴵ Honᴵʰ}`"
+    },
+    {
+     "line": 65,
+     "edit": "drop `{Cⁱʰ}`"
+    },
+    {
+     "line": 222,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 222,
+     "edit": "drop `{Cᵗʰ}`"
+    },
+    {
+     "line": 223,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 223,
+     "edit": "drop `{Cⁱʰ}`"
+    },
+    {
+     "line": 223,
+     "edit": "drop `{Cᵗʰ}`"
+    },
+    {
+     "line": 224,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 224,
+     "edit": "drop `{Lkᴵʰ ⊗ᴵ Honᴵʰ}`"
+    },
+    {
+     "line": 224,
+     "edit": "drop `{Cⁱʰ}`"
+    },
+    {
+     "line": 227,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 227,
+     "edit": "drop `{Cᵗʰ}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 38,
+   "seconds": 421.9
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda": {
+   "candidates": 10,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 67,
+     "edit": "drop `{Lkᴵᶜʰ}`"
+    },
+    {
+     "line": 67,
+     "edit": "drop `{Lkᴵʰ ⊗ᴵ Advᴵᶜʰ}`"
+    },
+    {
+     "line": 67,
+     "edit": "drop `{Honᴵᶜʰ}`"
+    },
+    {
+     "line": 70,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 70,
+     "edit": "drop `{Lkᴵᶜʰ ⊗ᴵ Honᴵᶜʰ}`"
+    },
+    {
+     "line": 70,
+     "edit": "drop `{Cᵗʰ}`"
+    },
+    {
+     "line": 166,
+     "edit": "drop `{A = Outᴵʰ}`"
+    },
+    {
+     "line": 168,
+     "edit": "drop `{A = Outᴵʰ}`"
+    },
+    {
+     "line": 242,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 242,
+     "edit": "drop `{Cᵗʰ}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 20,
+   "seconds": 211.8
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 65,
+     "edit": "drop `{JStʰ}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 31.2
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 62,
+     "edit": "drop `{JSt}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 32.1
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Test.agda": {
+   "candidates": 22,
+   "kept": [
+    {
+     "line": 72,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 72,
+     "edit": "drop `{Lkᴵᶜ ⊗ᴵ Honᴵᶜ}`"
+    },
+    {
+     "line": 78,
+     "edit": "drop `{Lkᴵᶜ}`"
+    },
+    {
+     "line": 78,
+     "edit": "drop `{Lkᴵ ⊗ᴵ Advᴵᶜ}`"
+    },
+    {
+     "line": 89,
+     "edit": "drop `{Lkᴵᶜ}`"
+    },
+    {
+     "line": 89,
+     "edit": "drop `{Lkᴵ ⊗ᴵ Advᴵᶜ}`"
+    },
+    {
+     "line": 94,
+     "edit": "drop `{Lkᴵᶜ}`"
+    },
+    {
+     "line": 94,
+     "edit": "drop `{Lkᴵ ⊗ᴵ Advᴵᶜ}`"
+    },
+    {
+     "line": 104,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 104,
+     "edit": "drop `{Lkᴵᶜʰ ⊗ᴵ Honᴵᶜʰ}`"
+    },
+    {
+     "line": 110,
+     "edit": "drop `{Lkᴵᶜʰ}`"
+    },
+    {
+     "line": 110,
+     "edit": "drop `{Lkᴵʰ ⊗ᴵ Advᴵᶜʰ}`"
+    },
+    {
+     "line": 120,
+     "edit": "drop `{Lkᴵᶜʰ}`"
+    },
+    {
+     "line": 120,
+     "edit": "drop `{Lkᴵʰ ⊗ᴵ Advᴵᶜʰ}`"
+    },
+    {
+     "line": 126,
+     "edit": "drop `{Lkᴵᶜʰ}`"
+    },
+    {
+     "line": 126,
+     "edit": "drop `{Lkᴵʰ ⊗ᴵ Advᴵᶜʰ}`"
+    },
+    {
+     "line": 171,
+     "edit": "drop `{Advᴵ ⊗ᴵ Advᴵᶜ}`"
+    },
+    {
+     "line": 171,
+     "edit": "drop `{Startᴵ}`"
+    },
+    {
+     "line": 181,
+     "edit": "drop `{Advᴵ ⊗ᴵ Advᴵᶜ}`"
+    },
+    {
+     "line": 181,
+     "edit": "drop `{Startᴵ}`"
+    },
+    {
+     "line": 186,
+     "edit": "drop `{Advᴵ ⊗ᴵ Advᴵᶜ}`"
+    },
+    {
+     "line": 186,
+     "edit": "drop `{Startᴵ}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 34.4
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/UC.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/HashForward.agda": {
+   "candidates": 6,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 173,
+     "edit": "drop `{A = A}`"
+    },
+    {
+     "line": 179,
+     "edit": "drop `{Resᴵ}`"
+    },
+    {
+     "line": 179,
+     "edit": "drop `{Advᴵ ⊗ᴵ Honᴵ}`"
+    },
+    {
+     "line": 180,
+     "edit": "drop `{Lkᴵ}`"
+    },
+    {
+     "line": 180,
+     "edit": "drop `{Advᴵ}`"
+    },
+    {
+     "line": 180,
+     "edit": "drop `{Honᴵ}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 12,
+   "seconds": 123.1
+  },
+  "src/CategoricalCrypto/Examples/HashForward/Audit.agda": {
+   "candidates": 12,
+   "kept": [
+    {
+     "line": 79,
+     "edit": "drop `{2⁺}`"
+    },
+    {
+     "line": 81,
+     "edit": "drop `{s = simᵒ}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 68,
+     "edit": "drop `{r = 2⁺}`"
+    },
+    {
+     "line": 80,
+     "edit": "drop `{absorb simᵒ 2⁺ (pinned idealᵒ μ)}`"
+    },
+    {
+     "line": 80,
+     "edit": "drop `{pinned idealᵒ μ}`"
+    },
+    {
+     "line": 81,
+     "edit": "drop `{r = 2⁺}`"
+    },
+    {
+     "line": 81,
+     "edit": "drop `{𝔉 = pinned idealᵒ μ}`"
+    },
+    {
+     "line": 112,
+     "edit": "drop `{ε = λ q → (ε (scale q 2⁺) ℚ.+ δ) ℚ.+ η}`"
+    },
+    {
+     "line": 112,
+     "edit": "drop `{𝔈 = absorb simᵒ 2⁺ (pinned idealᵒ μ)}`"
+    },
+    {
+     "line": 112,
+     "edit": "drop `{q}`"
+    },
+    {
+     "line": 112,
+     "edit": "drop `{c}`"
+    },
+    {
+     "line": 112,
+     "edit": "drop `{c′}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 25,
+   "seconds": 267.5
+  },
+  "src/CategoricalCrypto/Examples/HashForward/UC.agda": {
+   "candidates": 6,
+   "kept": [
+    {
+     "line": 193,
+     "edit": "drop `{Lkᴵ}`"
+    },
+    {
+     "line": 193,
+     "edit": "drop `{Advᴵ}`"
+    },
+    {
+     "line": 201,
+     "edit": "drop `{Lkᴵ}`"
+    },
+    {
+     "line": 201,
+     "edit": "drop `{Advᴵ}`"
+    },
+    {
+     "line": 205,
+     "edit": "drop `{Lkᴵ}`"
+    },
+    {
+     "line": 205,
+     "edit": "drop `{Advᴵ}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 30.2
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard.agda": {
+   "candidates": 6,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 107,
+     "edit": "drop `{x = return-ℚ (sc , i , hm) >>=ᴹ Go κ}`"
+    },
+    {
+     "line": 107,
+     "edit": "drop `{y = Go κ (sc , i , hm)}`"
+    },
+    {
+     "line": 129,
+     "edit": "drop `{x = return-ℚ (sc , h) >>=ᴹ Kret i}`"
+    },
+    {
+     "line": 129,
+     "edit": "drop `{y = Kret i (sc , h)}`"
+    },
+    {
+     "line": 166,
+     "edit": "drop `{x = return-ℚ (sg , i , h) >>=ᴹ KE}`"
+    },
+    {
+     "line": 166,
+     "edit": "drop `{y = return⊥ (sg , (i , h))}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 12,
+   "seconds": 87.7
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 1212,
+     "edit": "drop `{b ∷ []}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 670,
+     "edit": "drop `⦃ nonNegative (0≤inv-pow-2 n) ⦄`"
+    },
+    {
+     "line": 830,
+     "edit": "drop `{P = λ u → u ≡ (sc , w , true)}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 7,
+   "seconds": 75.8
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/Possibilistic.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 23,
+     "edit": "drop `{0ℓ}`"
+    },
+    {
+     "line": 43,
+     "edit": "drop `{Msg}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 25.4
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Asymptotic.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 31,
+     "edit": "drop `{sch = λ n → n}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 31,
+     "edit": "drop `{t = λ _ q → q * q + q + q}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 5,
+   "seconds": 32.5
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Game.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Asymptotic.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 31,
+     "edit": "drop `{sch = λ n → n}`"
+    },
+    {
+     "line": 48,
+     "edit": "drop `{sch = λ n → n}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 31,
+     "edit": "drop `{t = λ _ q → q}`"
+    },
+    {
+     "line": 48,
+     "edit": "drop `{t = λ _ q → q + (q + q)}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 9,
+   "seconds": 56.6
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda": {
+   "candidates": 7,
+   "kept": [
+    {
+     "line": 428,
+     "edit": "drop `{P = λ _ → ⊤}`"
+    },
+    {
+     "line": 468,
+     "edit": "drop `{P = λ _ → ⊤}`"
+    },
+    {
+     "line": 501,
+     "edit": "drop `{P = λ _ → ⊤}`"
+    },
+    {
+     "line": 504,
+     "edit": "drop `{P = λ _ → ⊤}`"
+    },
+    {
+     "line": 507,
+     "edit": "drop `{P = λ _ → ⊤}`"
+    },
+    {
+     "line": 516,
+     "edit": "drop `{P = λ _ → ⊤}`"
+    },
+    {
+     "line": 519,
+     "edit": "drop `{P = λ _ → ⊤}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 22.5
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Test.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Oracle.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 59,
+     "edit": "drop `{P = λ _ → ⊤}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 19.4
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 87,
+     "edit": "drop `{r = 1⁺}`"
+    },
+    {
+     "line": 94,
+     "edit": "drop `{r = 1⁺}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 49.1
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 220,
+     "edit": "drop `{A = Maybe A}`"
+    },
+    {
+     "line": 220,
+     "edit": "drop `{A = Maybe B}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 81.2
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda": {
+   "candidates": 15,
+   "kept": [
+    {
+     "line": 70,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 70,
+     "edit": "drop `{Resᴵ}`"
+    },
+    {
+     "line": 70,
+     "edit": "drop `{Advᴵ ⊗ᴵ Honᴵ}`"
+    },
+    {
+     "line": 86,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 86,
+     "edit": "drop `{Resᴵ}`"
+    },
+    {
+     "line": 86,
+     "edit": "drop `{Advᴵ ⊗ᴵ Honᴵ}`"
+    },
+    {
+     "line": 163,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 163,
+     "edit": "drop `{Resᴵ}`"
+    },
+    {
+     "line": 163,
+     "edit": "drop `{Advᴵ ⊗ᴵ Honᴵ}`"
+    },
+    {
+     "line": 168,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 168,
+     "edit": "drop `{Resᴵ}`"
+    },
+    {
+     "line": 168,
+     "edit": "drop `{Advᴵ ⊗ᴵ Honᴵ}`"
+    },
+    {
+     "line": 179,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 179,
+     "edit": "drop `{Resᴵ}`"
+    },
+    {
+     "line": 179,
+     "edit": "drop `{Advᴵ ⊗ᴵ Honᴵ}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 61.9
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 207,
+     "edit": "drop `{Honᴵ}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 32.0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Test.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda": {
+   "candidates": 10,
+   "kept": [
+    {
+     "line": 123,
+     "edit": "drop `{A = Ans}`"
+    },
+    {
+     "line": 123,
+     "edit": "drop `{RState}`"
+    },
+    {
+     "line": 123,
+     "edit": "drop `{ResA}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 75,
+     "edit": "drop `{x = return-ℚ ((t , m) , d) >>=ᴹ up}`"
+    },
+    {
+     "line": 75,
+     "edit": "drop `{y = return-ℚ ((t , m) , digᴿ d)}`"
+    },
+    {
+     "line": 77,
+     "edit": "drop `{x = (uniform-Vec k >>=ᴹ sample) >>=ᴹ up`"
+    },
+    {
+     "line": 77,
+     "edit": "drop `{y = uniform-Vec k >>=ᴹ tag}`"
+    },
+    {
+     "line": 78,
+     "edit": "drop `{i = (uniform-Vec k >>=ᴹ sample) >>=ᴹ up`"
+    },
+    {
+     "line": 79,
+     "edit": "drop `{j = uniform-Vec k >>=ᴹ λ h → sample h >`"
+    },
+    {
+     "line": 80,
+     "edit": "drop `{k = uniform-Vec k >>=ᴹ tag}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 17,
+   "seconds": 245.9
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/UC.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Examples/RandomOracle.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 52,
+     "edit": "drop `{M = Dist-ℚ}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 35.9
+  }
+ },
+ "totalChecks": 257,
+ "summary": {
+  "candidates": 170,
+  "kept": 70,
+  "reverted": 100,
+  "skipped": 0,
+  "checks": 257
+ }
+}

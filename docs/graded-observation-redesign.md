@@ -1,5 +1,8 @@
 # Proposal: a local negligible observation (and the quantifier triage)
 
+> **Executed.** The local instance is `UC.Family.Negligible.Evaluationᴺ` (`_∼ᴺ_`, `_≈ℰᴺ_`), its order
+> `Abstract2._≤UC_` at `ucSetupᴺ` ([retirement-negligible-order](retirement-negligible-order.md)); names below are as proposed.
+
 Status: proposed, reshaped per
 [the follow-up review](protocol-implementation-review.md) §4. An earlier
 version of this document treated a negligible-tier observation as necessarily a

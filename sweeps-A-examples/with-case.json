@@ -1,0 +1,1158 @@
+{
+ "sweep": "with-case (with_case.py, patched copy: parenthesized constructor patterns)",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/Examples/ChimericLedger.agda": {
+   "sites": [
+    {
+     "line": 25,
+     "verdict": "skipped-shape",
+     "head": "-- `DecEq-×` is not an upstream instance (it competes with the `--with-K`"
+    },
+    {
+     "line": 4,
+     "verdict": "skipped-shape",
+     "head": "-- transaction with no inputs, `inputConsuming` does not (`ChimericLedger.Replay`"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Birthday.agda": {
+   "sites": [
+    {
+     "line": 299,
+     "verdict": "skipped-shape",
+     "head": "φ-step m (s , tbl) (submit tx) inv with shape ser inputConsuming s tx"
+    },
+    {
+     "line": 240,
+     "verdict": "skipped-shape",
+     "head": "presTree (s , tbl) (submit tx) inv with shape ser inputConsuming s tx"
+    },
+    {
+     "line": 210,
+     "verdict": "skipped-shape",
+     "head": "i₀∈ with checkIns-head (proj₁ s) i₀ is vIn u′ e₁"
+    },
+    {
+     "line": 205,
+     "verdict": "converted",
+     "head": "hashed′ k mem with keysU-unionNew-outsAt u′ h 0 outs k mem"
+    },
+    {
+     "line": 179,
+     "verdict": "skipped-shape",
+     "head": "freshInv s tbl (i₀ ∷ is) wds outs u′ a′ vIn e₁ ec eq (inj₂ good) h with memb h (Hs tbl) in"
+    },
+    {
+     "line": 162,
+     "verdict": "skipped-shape",
+     "head": "no-replay s tbl tx u′ vIn h e₁ eo good with lookup-bs-∈ tbl (ser tx) h eo"
+    },
+    {
+     "line": 156,
+     "verdict": "skipped-shape",
+     "head": "... | no  _ with lookup-bs-∈ xs q h eq"
+    },
+    {
+     "line": 154,
+     "verdict": "skipped-shape",
+     "head": "lookup-bs-∈ ((k , v) ∷ xs) q h eq with q ≟ k"
+    },
+    {
+     "line": 56,
+     "verdict": "skipped-shape",
+     "head": "-- `Hash` would clash with `Ledger.Hash`."
+    }
+   ],
+   "converted": 1,
+   "importAdded": true
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Observable.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda": {
+   "sites": [
+    {
+     "line": 58,
+     "verdict": "skipped-shape",
+     "head": "-- with `n ≤ ℓ n` would do — that inequality is all the arithmetic spends."
+    },
+    {
+     "line": 5,
+     "verdict": "skipped-shape",
+     "head": "-- genesis total only with negligible probability.  The event is read by a"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Replay.agda": {
+   "sites": [
+    {
+     "line": 178,
+     "verdict": "skipped-shape",
+     "head": "-- with probability one, through the oracle (`docs/rewrite-verdict.md`,"
+    },
+    {
+     "line": 4,
+     "verdict": "skipped-shape",
+     "head": "-- No hash collision is needed: a transaction with no inputs is resubmitted"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/ReplayFamily.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Serialize.agda": {
+   "sites": [
+    {
+     "line": 66,
+     "verdict": "skipped-shape",
+     "head": "-- A hash is spent at its fixed width, with the index reading on from there."
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/System.agda": {
+   "sites": [
+    {
+     "line": 107,
+     "verdict": "red",
+     "head": "... | just (vIn , _) | just _ with (vIn + wdrlΣ wds ≡ᴺ valΣ outs) ∧ consumes vr ins",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ChimericLedger/System.agda:109.10-36: error: [UnequalTerms]"
+    },
+    {
+     "line": 104,
+     "verdict": "skipped-shape",
+     "head": "with checkIns u ins | checkWdrls [] wds in eq"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Value.agda": {
+   "sites": [
+    {
+     "line": 370,
+     "verdict": "skipped-shape",
+     "head": "...   | true with consumes vr ins"
+    },
+    {
+     "line": 368,
+     "verdict": "skipped-shape",
+     "head": "... | just (vIn , u′) | just a′ with (vIn + wdrlΣ wds) ≡ᴺ valΣ outs in eb"
+    },
+    {
+     "line": 365,
+     "verdict": "skipped-shape",
+     "head": "with checkIns u ins in e₁ | checkWdrls a wds in e₂"
+    },
+    {
+     "line": 358,
+     "verdict": "skipped-shape",
+     "head": "...     | true with consumes vr ins in ec"
+    },
+    {
+     "line": 356,
+     "verdict": "skipped-shape",
+     "head": "...   | just a′ with (vIn + wdrlΣ wds) ≡ᴺ valΣ outs in eb"
+    },
+    {
+     "line": 354,
+     "verdict": "skipped-shape",
+     "head": "... | just (vIn , u′) with checkWdrls a wds in e₂"
+    },
+    {
+     "line": 352,
+     "verdict": "skipped-shape",
+     "head": "shape vr s@(u , a) tx@(ins , wds , outs) with checkIns u ins in e₁"
+    },
+    {
+     "line": 281,
+     "verdict": "red",
+     "head": "... | false with k ≟ k₀",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:281.15-283.16: error: [UnequalTerms]"
+    },
+    {
+     "line": 279,
+     "verdict": "skipped-shape",
+     "head": "lookupU-insertNew u (k₀ , v) k ne hyp with is-just (lookupU u k₀)"
+    },
+    {
+     "line": 273,
+     "verdict": "converted",
+     "head": "... | inj₁ m₁ with keysU-insertNew u ((h , i) , o) k m₁"
+    },
+    {
+     "line": 271,
+     "verdict": "red",
+     "head": "with keysU-unionNew-outsAt (insertNew u ((h , i) , o)) h (suc i) os k mem",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:273.64: error: [ParseError]"
+    },
+    {
+     "line": 263,
+     "verdict": "converted",
+     "head": "... | false with mem"
+    },
+    {
+     "line": 261,
+     "verdict": "red",
+     "head": "keysU-insertNew u (k₀ , v) k mem with is-just (lookupU u k₀)",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:264.12-18: error: [SplitError.UnificationStuck]"
+    },
+    {
+     "line": 256,
+     "verdict": "skipped-shape",
+     "head": "checkIns-keysU u (i ∷ is) v u′ k eq mem with checkIns-∷ u i is v u′ eq"
+    },
+    {
+     "line": 249,
+     "verdict": "converted",
+     "head": "... | no  _ with mem"
+    },
+    {
+     "line": 247,
+     "verdict": "red",
+     "head": "keysU-removeIn ((k₀ , v) ∷ m) i k mem with i ≟ k₀",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:250.14-20: error: [SplitError.UnificationStuck]"
+    },
+    {
+     "line": 240,
+     "verdict": "skipped-shape",
+     "head": "checkIns-live u (i ∷ is) v u′ k eq mem hyp with checkIns-∷ u i is v u′ eq | mem"
+    },
+    {
+     "line": 234,
+     "verdict": "skipped-shape",
+     "head": "checkIns-consumed u i is v u′ uq eq with checkIns-∷ u i is v u′ eq"
+    },
+    {
+     "line": 229,
+     "verdict": "skipped-shape",
+     "head": "checkIns-head u i is v u′ eq with checkIns-∷ u i is v u′ eq"
+    },
+    {
+     "line": 224,
+     "verdict": "skipped-shape",
+     "head": "checkIns-uniq u (i ∷ is) v u′ uq eq with checkIns-∷ u i is v u′ eq"
+    },
+    {
+     "line": 214,
+     "verdict": "skipped-shape",
+     "head": "uniq-insertNew u (k , v) uq with lookupU u k in eq"
+    },
+    {
+     "line": 209,
+     "verdict": "red",
+     "head": "uniq-removeIn ((k₀ , v) ∷ m) i (fst , rest) with i ≟ k₀",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:211.13-65: error: [UnequalTerms]"
+    },
+    {
+     "line": 203,
+     "verdict": "red",
+     "head": "uniq-removeIn-lookup ((k₀ , v) ∷ m) k (fst , rest) with k ≟ k₀",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:205.14-84: error: [UnequalTerms]"
+    },
+    {
+     "line": 197,
+     "verdict": "red",
+     "head": "lookupU-cons-≢ k₀ v m k ne hyp with k ≟ k₀",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:197.36-199.18: error: [UnequalTerms]"
+    },
+    {
+     "line": 188,
+     "verdict": "red",
+     "head": "∉-lookupU ((k₀ , v) ∷ m) k h with k ≟ k₀",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:188.32-190.50: error: [UnequalTerms]"
+    },
+    {
+     "line": 182,
+     "verdict": "red",
+     "head": "lookupU-just-∈ ((k₀ , v) ∷ m) k o eq with k ≟ k₀",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:184.41-43: error: [UnequalTerms]"
+    },
+    {
+     "line": 163,
+     "verdict": "skipped-shape",
+     "head": "checkIns-lookupU u (i ∷ is) v u′ k eq hyp with checkIns-∷ u i is v u′ eq"
+    },
+    {
+     "line": 155,
+     "verdict": "red",
+     "head": "lookupU-removeIn ((k₀ , v) ∷ m) i k hyp with i ≟ k₀",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:157.13-158.64: error: [UnequalTerms]"
+    },
+    {
+     "line": 149,
+     "verdict": "red",
+     "head": "lookupU-cons k₀ v m m′ k hyp hyp′ with k ≟ k₀",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:151.15-19: error: [UnequalTerms]"
+    },
+    {
+     "line": 143,
+     "verdict": "red",
+     "head": "lookupU-tail k₀ v m k hyp with k ≟ k₀",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:144.25-28: error: [UnequalTerms]"
+    },
+    {
+     "line": 133,
+     "verdict": "red",
+     "head": "fresh′ j le with (h , j) ≟ (h , i)",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:133.17-135.45: error: [UnequalTerms]"
+    },
+    {
+     "line": 104,
+     "verdict": "skipped-shape",
+     "head": "checkWdrls-acctΣ a ((x , v) ∷ ws) a′ eq with v ≤ᵇ acctOf a x in eqb"
+    },
+    {
+     "line": 96,
+     "verdict": "red",
+     "head": "acctΣ-subOne ((y , w) ∷ a) x v le with x ≟ y",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:97.64-66: error: [UnequalTerms]"
+    },
+    {
+     "line": 83,
+     "verdict": "skipped-shape",
+     "head": "checkIns-balance u (i ∷ is) v u′ eq with checkIns-∷ u i is v u′ eq"
+    },
+    {
+     "line": 77,
+     "verdict": "skipped-shape",
+     "head": "...   | just (v₀ , u₁) with just-injective eq"
+    },
+    {
+     "line": 75,
+     "verdict": "skipped-shape",
+     "head": "... | just o with checkIns (removeIn i u) is"
+    },
+    {
+     "line": 73,
+     "verdict": "skipped-shape",
+     "head": "checkIns-∷ u i is v u′ eq with lookupU u i"
+    },
+    {
+     "line": 65,
+     "verdict": "red",
+     "head": "balance-removeIn ((k , v) ∷ m) i o eq with i ≟ k",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ChimericLedger/Value.agda:66.61-63: error: [UnequalTerms]"
+    },
+    {
+     "line": 3,
+     "verdict": "skipped-shape",
+     "head": "-- What one transaction does to `total`, with the hash answered by an"
+    }
+   ],
+   "note": "probed first (3 converted); the rerun over the converted file is superseded"
+  },
+  "src/CategoricalCrypto/Examples/CoinToss.agda": {
+   "sites": [
+    {
+     "line": 5,
+     "verdict": "skipped-shape",
+     "head": "-- receipt with a fresh share `b₂`, sent in the clear on `Advᴵᶜ`, and outputs"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Compose.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Hiding.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Hiding/UC.agda": {
+   "sites": [
+    {
+     "line": 4,
+     "verdict": "skipped-shape",
+     "head": "-- with the certificates `UC-composeᵉ` demands: each activation from above buys"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda": {
+   "sites": [
+    {
+     "line": 364,
+     "verdict": "skipped-shape",
+     "head": "-- The sandwich's relabelling commutes with everything the induction reads:"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Reach.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/UC.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/UC.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Test.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/UC.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/HashForward.agda": {
+   "sites": [
+    {
+     "line": 177,
+     "verdict": "skipped-shape",
+     "head": "-- By `∘-wireᴹ` the composite is the relay `subᴵ simulator` with its"
+    },
+    {
+     "line": 145,
+     "verdict": "skipped-shape",
+     "head": "-- with a constructor in the state position would make the relayed cases stick"
+    },
+    {
+     "line": 9,
+     "verdict": "skipped-shape",
+     "head": "-- query `peekᴬ` with the DIGEST of the leaked message instead of the message."
+    },
+    {
+     "line": 7,
+     "verdict": "skipped-shape",
+     "head": "-- IDEAL functionality is that resource with its leak exposed on the"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/HashForward/Audit.agda": {
+   "sites": [
+    {
+     "line": 63,
+     "verdict": "skipped-shape",
+     "head": "-- rate that context carries: the tensor with identities is at `1⁺`, and"
+    },
+    {
+     "line": 62,
+     "verdict": "skipped-shape",
+     "head": "-- real side's context with the simulator in front of it — and this is the"
+    },
+    {
+     "line": 5,
+     "verdict": "skipped-shape",
+     "head": "-- machine with an inhabited interface, whose two queries per `peekᴬ` are what"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/HashForward/UC.agda": {
+   "sites": [
+    {
+     "line": 9,
+     "verdict": "skipped-shape",
+     "head": "-- exact: `UC.Graded.emulᵍ` turns `real-factors` into it with no error term."
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard.agda": {
+   "sites": [
+    {
+     "line": 166,
+     "verdict": "skipped-shape",
+     "head": "generalStep-eval sg (i , M) with General.lookup-bs sg M"
+    },
+    {
+     "line": 107,
+     "verdict": "skipped-shape",
+     "head": "compStep-eval κ sc i q with Comp.lookup-bs sc q"
+    },
+    {
+     "line": 11,
+     "verdict": "skipped-shape",
+     "head": "-- `md`'s step is a `Calls` tree with one `call` per block (`chainᶜ`), so one"
+    },
+    {
+     "line": 5,
+     "verdict": "skipped-shape",
+     "head": "-- ORACLE indistinguishability with the compression function HIDDEN.  The"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda": {
+   "sites": [
+    {
+     "line": 1369,
+     "verdict": "red",
+     "head": "mdInv-pres (f , sc , sg) (i , M) inv with f",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda:1371.47-51: error: [UnequalTerms]"
+    },
+    {
+     "line": 1364,
+     "verdict": "skipped-shape",
+     "head": "inner with General.lookup-bs sg M in eq"
+    },
+    {
+     "line": 1352,
+     "verdict": "converted",
+     "head": "dich-owned v' b' u' e with dich v' b' u' e"
+    },
+    {
+     "line": 1341,
+     "verdict": "skipped-shape",
+     "head": "dich-old v' b' u' e with dich v' b' u' e"
+    },
+    {
+     "line": 1332,
+     "verdict": "skipped-shape",
+     "head": "cont w ((ext , uk' , rt' , seg) , (_ , dich)) with proj₂ (proj₂ w)"
+    },
+    {
+     "line": 1307,
+     "verdict": "skipped-shape",
+     "head": "... | inj₁ old with ol v' b w'' old"
+    },
+    {
+     "line": 1304,
+     "verdict": "skipped-shape",
+     "head": "walk-owned sc sg M w eq ext dich rc ol v' b w'' e with dich v' b w'' e"
+    },
+    {
+     "line": 1234,
+     "verdict": "skipped-shape",
+     "head": "-- (`unique-run`); with the shared last block, `toBlocks M ≡ toBlocks M'`, hence"
+    },
+    {
+     "line": 1218,
+     "verdict": "skipped-shape",
+     "head": "stepT<k-inv sc v b j w e with j <? k | e"
+    },
+    {
+     "line": 1188,
+     "verdict": "red",
+     "head": "... | yes _ with Comp.lookup-bs sc (r , b , k , j)",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda:1190.18-87: error: [MetaCannotDependOn]"
+    },
+    {
+     "line": 1186,
+     "verdict": "skipped-shape",
+     "head": "runPath-≡<k sc r (b ∷ bs) j le with j <? k"
+    },
+    {
+     "line": 1179,
+     "verdict": "converted",
+     "head": "stepT<k sc v (b , j) with j <? k"
+    },
+    {
+     "line": 1153,
+     "verdict": "skipped-shape",
+     "head": "collC-01 ((_ , h) ∷ ps) with cm-01 ps h | collC-01 ps"
+    },
+    {
+     "line": 1146,
+     "verdict": "skipped-shape",
+     "head": "cm-01 ((_ , v) ∷ xs) h with h ≟ v | cm-01 xs h"
+    },
+    {
+     "line": 1109,
+     "verdict": "red",
+     "head": "∈interior (((cv' , b' , len' , idx') , val') ∷ es) v b j w lt (ListAny.there a) with idx' ",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda:1111.17-42: error: [UnequalTerms]"
+    },
+    {
+     "line": 1106,
+     "verdict": "red",
+     "head": "∈interior (_ ∷ es) v b j w lt (ListAny.here refl) with j <? k",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda:1106.57-1108.33: error: [UnequalTerms]"
+    },
+    {
+     "line": 1100,
+     "verdict": "skipped-shape",
+     "head": "lookup⇒mem ((k' , v') ∷ xs) key w e with key ≟ k' | e"
+    },
+    {
+     "line": 1089,
+     "verdict": "skipped-shape",
+     "head": "cm0-all ((key , v) ∷ xs) h eq0 with h ≟ v | eq0"
+    },
+    {
+     "line": 1074,
+     "verdict": "skipped-shape",
+     "head": "dich hm v' b' u' e with (v' , b' , k , k) ≟ pack v b idx | e"
+    },
+    {
+     "line": 1058,
+     "verdict": "converted",
+     "head": "dd v' b' u' e with dich2 v' b' u' e"
+    },
+    {
+     "line": 1022,
+     "verdict": "skipped-shape",
+     "head": "callC-fk sc v b idx lt with Comp.lookup-bs sc (pack v b idx) in eq"
+    },
+    {
+     "line": 997,
+     "verdict": "skipped-shape",
+     "head": "rec-extend sc sg sc' M v' ext chain rc M₀ h₀ lk with M₀ ≟ M | lk"
+    },
+    {
+     "line": 945,
+     "verdict": "skipped-shape",
+     "head": "callC-supp sc v b idx lt uk rt vroot with Comp.lookup-bs sc (pack v b idx) in eq"
+    },
+    {
+     "line": 922,
+     "verdict": "skipped-shape",
+     "head": "lookup-interior-HasVal ((key , val) ∷ sc) v b idx v'' lt hit with (pack v b idx) ≟ key | h"
+    },
+    {
+     "line": 916,
+     "verdict": "red",
+     "head": "new-val-HasVal v b idx vv sc lt with idx <? k",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda:916.39-918.34: error: [UnequalTerms]"
+    },
+    {
+     "line": 911,
+     "verdict": "red",
+     "head": "HasVal-cons-any ((hh , bb , len , idx) , vv) sc x hv with idx <? len",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda:913.17-19: error: [UnequalTerms]"
+    },
+    {
+     "line": 896,
+     "verdict": "skipped-shape",
+     "head": "lookup-nothing⇒All≢ ((k , v) ∷ sc) k₀ absent with k₀ ≟ k | absent"
+    },
+    {
+     "line": 805,
+     "verdict": "red",
+     "head": "⌊≟⌋-refl x with x ≟ x",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda:805.18-807.33: error: [UnequalTerms]"
+    },
+    {
+     "line": 744,
+     "verdict": "red",
+     "head": "collC-mono1 hh bb ii vv sc with ii <? k",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda:744.34-747.24: error: [UnequalTerms]"
+    },
+    {
+     "line": 500,
+     "verdict": "red",
+     "head": "interior-consᶠ hh bb ii vv sc ¬lt with ii <? k",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda:500.41-502.20: error: [UnequalTerms]"
+    },
+    {
+     "line": 494,
+     "verdict": "red",
+     "head": "interior-cons< hh bb ii vv sc lt with ii <? k",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/MerkleDamgard/Core.agda:494.40-496.33: error: [UnequalTerms]"
+    },
+    {
+     "line": 486,
+     "verdict": "skipped-shape",
+     "head": "δ-sym x y with y ≟ x | x ≟ y"
+    },
+    {
+     "line": 378,
+     "verdict": "skipped-shape",
+     "head": "pointRep w with proj₁ (proj₂ w) ≟ h"
+    },
+    {
+     "line": 310,
+     "verdict": "skipped-shape",
+     "head": "-- value — with the uniform average produced instead whenever the final call"
+    },
+    {
+     "line": 212,
+     "verdict": "skipped-shape",
+     "head": "callC-marg sc h b idx P with Comp.lookup-bs sc (pack h b idx)"
+    },
+    {
+     "line": 119,
+     "verdict": "converted",
+     "head": "interior (e@((_ , _ , len , idx) , _) ∷ es) with idx <? len"
+    }
+   ],
+   "converted": 4,
+   "importAdded": true
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/Pin.agda": {
+   "sites": [
+    {
+     "line": 14,
+     "verdict": "skipped-shape",
+     "head": "-- ¼ gap is the reason `bound` grows with the block count.  The two-block"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/Possibilistic.agda": {
+   "sites": [
+    {
+     "line": 4,
+     "verdict": "skipped-shape",
+     "head": "-- with nondeterminism standing for the adversary's choices."
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Asymptotic.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda": {
+   "sites": [
+    {
+     "line": 115,
+     "verdict": "red",
+     "head": "pins-lookup c b ((y , e) ∷ L) x d hit p d≡c with x ≟ y",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda:116.69-72: error: [UnequalTerms]"
+    },
+    {
+     "line": 99,
+     "verdict": "skipped-shape",
+     "head": "pins-extract c ((x , d) ∷ L) nd with d ≟ c"
+    },
+    {
+     "line": 93,
+     "verdict": "red",
+     "head": "pins-[] c b ((x , d) ∷ L) eq with d ≟ c",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda:95.59-61: error: [UnequalTerms]"
+    },
+    {
+     "line": 86,
+     "verdict": "skipped-shape",
+     "head": "memb-pre c ((x , d) ∷ L) eq with c ≟ d | d ≟ c"
+    },
+    {
+     "line": 65,
+     "verdict": "converted",
+     "head": "preimages c ((x , d) ∷ L) with d ≟ c"
+    },
+    {
+     "line": 59,
+     "verdict": "red",
+     "head": "lookup-there x y d L ne with x ≟ y",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda:59.27-61.17: error: [UnequalTerms]"
+    },
+    {
+     "line": 53,
+     "verdict": "red",
+     "head": "lookup-here x d L with x ≟ x",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Extraction.agda:53.21-55.30: error: [UnequalTerms]"
+    },
+    {
+     "line": 48,
+     "verdict": "converted",
+     "head": "lookupPt ((y , d) ∷ L) x with x ≟ y"
+    }
+   ],
+   "converted": 2,
+   "importAdded": true
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Game.agda": {
+   "sites": [
+    {
+     "line": 413,
+     "verdict": "red",
+     "head": "fetch-hit (t , just (c , e) , f) x with lookupPt t x",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Game.agda:417.16-107: error: [UnequalTerms]"
+    },
+    {
+     "line": 405,
+     "verdict": "red",
+     "head": "fetch-hit (t , nothing , f) x with lookupPt t x",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Game.agda:409.16-98: error: [UnequalTerms]"
+    },
+    {
+     "line": 399,
+     "verdict": "skipped-shape",
+     "head": "fetch-log (t , m , f) x F with lookupPt t x"
+    },
+    {
+     "line": 253,
+     "verdict": "skipped-shape",
+     "head": "fetch-bis (t , m , f) x G G′ inv pt with lookupPt t x in eq"
+    },
+    {
+     "line": 227,
+     "verdict": "skipped-shape",
+     "head": "... | yes d≡c with b ≟ e"
+    },
+    {
+     "line": 225,
+     "verdict": "skipped-shape",
+     "head": "agree-off t c e f b x d inv nb hit hx with d ≟ c"
+    },
+    {
+     "line": 207,
+     "verdict": "red",
+     "head": "inv-sample t (just (c , e)) f x h inv with h ≟ c",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Game.agda:210.14-212.56: error: [UnequalTerms]"
+    },
+    {
+     "line": 100,
+     "verdict": "converted",
+     "head": "fetch (t , m , f) x with lookupPt t x"
+    }
+   ],
+   "converted": 1,
+   "importAdded": true
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding.agda": {
+   "sites": [
+    {
+     "line": 151,
+     "verdict": "converted",
+     "head": "pinnedʰ (pinᵖ y c) x with x ≟ y"
+    }
+   ],
+   "converted": 1,
+   "importAdded": true
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Asymptotic.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda": {
+   "sites": [
+    {
+     "line": 462,
+     "verdict": "red",
+     "head": "tblc y with y ≟ (b ∷ᵛ r)",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda:464.17-22: error: [UnequalTerms]"
+    },
+    {
+     "line": 405,
+     "verdict": "skipped-shape",
+     "head": "stp u ρ us with hitAt m x ρ in eqh | guessAt m r x in eqg"
+    },
+    {
+     "line": 316,
+     "verdict": "converted",
+     "head": "fetchR t′ x h with lookupPt t′ x"
+    },
+    {
+     "line": 313,
+     "verdict": "skipped-shape",
+     "head": "-- The real game's fetch with the fresh sample supplied, so the join can feed"
+    },
+    {
+     "line": 303,
+     "verdict": "red",
+     "head": "... | no ne with y ≟ x",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda:305.30-60: error: [UnequalTerms]"
+    },
+    {
+     "line": 300,
+     "verdict": "skipped-shape",
+     "head": "tbl-∷ (just (c , b , false)) r t t′ x h tbl g y with y ≟ (b ∷ᵛ r)"
+    },
+    {
+     "line": 297,
+     "verdict": "red",
+     "head": "tbl-∷ (just (_ , _ , true)) r t t′ x h tbl g y with y ≟ x",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda:299.15-20: error: [UnequalTerms]"
+    },
+    {
+     "line": 294,
+     "verdict": "red",
+     "head": "tbl-∷ nothing r t t′ x h tbl g y with y ≟ x",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda:296.15-20: error: [UnequalTerms]"
+    },
+    {
+     "line": 277,
+     "verdict": "red",
+     "head": "tblAt-miss (just (c , b , false)) r t x with x ≟ (b ∷ᵛ r)",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Hiding/Defer.agda:277.45-279.17: error: [UnequalTerms]"
+    },
+    {
+     "line": 133,
+     "verdict": "skipped-shape",
+     "head": "-- one deferring state with a flag hung on it.  At the opening the planted run"
+    },
+    {
+     "line": 69,
+     "verdict": "skipped-shape",
+     "head": "-- The deferred game with the opening randomness PLANTED"
+    }
+   ],
+   "converted": 1,
+   "importAdded": true
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Game.agda": {
+   "sites": [
+    {
+     "line": 320,
+     "verdict": "skipped-shape",
+     "head": "-- The secret is unread until the commitment hashes with it, so planting it at"
+    },
+    {
+     "line": 6,
+     "verdict": "skipped-shape",
+     "head": "-- commitment; `respLʰ` the same protocol with that draw deferred to the step"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/Test.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda": {
+   "sites": [
+    {
+     "line": 102,
+     "verdict": "red",
+     "head": "cohR (idleᵖ p)  (askᴿᶜ x) with pinnedʰ p x",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Hiding/UC.agda:102.31-104.51: error: [UnequalTerms]"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Oracle.agda": {
+   "sites": [
+    {
+     "line": 58,
+     "verdict": "red",
+     "head": "fetchT-sup t x with lookupPt t x",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Oracle.agda:60.13-63.60: error: [UnequalTerms]"
+    },
+    {
+     "line": 47,
+     "verdict": "red",
+     "head": "fetchT-cong g g′ t x H H′ pt with lookupPt t x",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Oracle.agda:48.21-48: error: [MetaCannotDependOn]"
+    },
+    {
+     "line": 31,
+     "verdict": "converted",
+     "head": "fetchT g t x with lookupPt t x"
+    }
+   ],
+   "converted": 1,
+   "importAdded": true
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda": {
+   "sites": [
+    {
+     "line": 10,
+     "verdict": "skipped-shape",
+     "head": "-- state the comparison with `Examples.ROCommitment.Resource.resource`"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda": {
+   "sites": [
+    {
+     "line": 286,
+     "verdict": "red",
+     "head": "pre-hit c x L with c ≟ c",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda:286.19-288.32: error: [UnequalTerms]"
+    },
+    {
+     "line": 99,
+     "verdict": "red",
+     "head": "verdict-realOpen c b d with d ≟ c",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Realization/Bisim.agda:99.26-101.17: error: [UnequalTerms]"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda": {
+   "sites": [
+    {
+     "line": 160,
+     "verdict": "skipped-shape",
+     "head": "-- with the run's own reading substituted in, Agda unfolds the subtraction"
+    },
+    {
+     "line": 136,
+     "verdict": "red",
+     "head": "bisimᴵᵍ s@(t , m , f) _ (refl , inv) q F F′ pt with deadR (t , digOf m) q",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda:140.20-57: error: [UnequalTerms]"
+    },
+    {
+     "line": 125,
+     "verdict": "red",
+     "head": "bisimᴿᵍ s@(t , m , f) _ (refl , inv) q F F′ pt with deadR (t , digOf m) q",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda:129.20-57: error: [UnequalTerms]"
+    },
+    {
+     "line": 115,
+     "verdict": "red",
+     "head": "marginalᴿ s@(t , m , f) q G with deadR (t , digOf m) q",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/ROCommitment/Realization/Bound.agda:119.20-57: error: [UnequalTerms]"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Realization/Machine.agda": {
+   "sites": [
+    {
+     "line": 61,
+     "verdict": "skipped-shape",
+     "head": "-- `realStep` with its `returnₚ`s read as point masses and its `botₚ`s as the"
+    },
+    {
+     "line": 9,
+     "verdict": "skipped-shape",
+     "head": "-- and 0 on an answer, because the receiver never answers the resource with a"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Resource.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Test.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/Transport.agda": {
+   "sites": [
+    {
+     "line": 75,
+     "verdict": "skipped-shape",
+     "head": "resKᵀ-fetchT (t , m) x with lookupPt t x"
+    }
+   ],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/ROCommitment/UC.agda": {
+   "sites": [],
+   "converted": 0,
+   "importAdded": false
+  },
+  "src/CategoricalCrypto/Examples/RandomOracle.agda": {
+   "sites": [
+    {
+     "line": 99,
+     "verdict": "skipped-shape",
+     "head": "-- Number of unordered pairs of entries with the same hash."
+    },
+    {
+     "line": 44,
+     "verdict": "red",
+     "head": "lookup-bs-there s q h q′ ne with q′ ≟ q",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/RandomOracle.agda:44.33-46.19: error: [UnequalTerms]"
+    },
+    {
+     "line": 39,
+     "verdict": "red",
+     "head": "lookup-bs-here s q h with q ≟ q",
+     "firstError": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-A-examples/src/CategoricalCrypto/Examples/RandomOracle.agda:39.26-41.33: error: [UnequalTerms]"
+    },
+    {
+     "line": 32,
+     "verdict": "converted",
+     "head": "lookup-bs ((k , v) ∷ xs) q with q ≟ k"
+    }
+   ],
+   "converted": 1,
+   "importAdded": true
+  }
+ },
+ "summary": {
+  "skipped-shape": 95,
+  "converted": 15,
+  "red": 48
+ }
+}

@@ -1,0 +1,1403 @@
+{
+ "sweep": "implicit-drop",
+ "root": ".",
+ "files": {
+  "src/CategoricalCrypto/Approx/FilteredTests.agda": {
+   "candidates": 5,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 27,
+     "edit": "drop `{I = ℕ}`"
+    },
+    {
+     "line": 82,
+     "edit": "drop `{f = along λ n → n + n}`"
+    },
+    {
+     "line": 82,
+     "edit": "drop `{h = along (2 *_)}`"
+    },
+    {
+     "line": 83,
+     "edit": "drop `{g = along λ n → n + n}`"
+    },
+    {
+     "line": 83,
+     "edit": "drop `{i = along (2 *_)}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 10,
+   "seconds": 54.9
+  },
+  "src/CategoricalCrypto/Examples/ChimericLedger/Property.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Hybrid.agda": {
+   "candidates": 19,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Machine.agda": {
+   "candidates": 10,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Hybrid.agda": {
+   "candidates": 19,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Core.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Frame.agda": {
+   "candidates": 70,
+   "kept": [
+    {
+     "line": 51,
+     "edit": "drop `{L}`"
+    },
+    {
+     "line": 57,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 57,
+     "edit": "drop `{Q}`"
+    },
+    {
+     "line": 79,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 84,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 179,
+     "edit": "drop `{Y}`"
+    },
+    {
+     "line": 179,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 195,
+     "edit": "drop `{Y}`"
+    },
+    {
+     "line": 195,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 213,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 213,
+     "edit": "drop `{Q}`"
+    },
+    {
+     "line": 213,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 213,
+     "edit": "drop `{P = P}`"
+    },
+    {
+     "line": 213,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 223,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 223,
+     "edit": "drop `{Q}`"
+    },
+    {
+     "line": 223,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 227,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 227,
+     "edit": "drop `{Q ⊗₀ A}`"
+    },
+    {
+     "line": 231,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 231,
+     "edit": "drop `{Q}`"
+    },
+    {
+     "line": 231,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 231,
+     "edit": "drop `{Q = Q}`"
+    },
+    {
+     "line": 231,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 236,
+     "edit": "drop `{unit}`"
+    },
+    {
+     "line": 236,
+     "edit": "drop `{unit}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 48,
+     "edit": "drop `{L}`"
+    },
+    {
+     "line": 51,
+     "edit": "drop `{L ⊗₀ (Q ⊗₀ X)}`"
+    },
+    {
+     "line": 54,
+     "edit": "drop `{(P ⊗₀ Q) ⊗₀ X}`"
+    },
+    {
+     "line": 57,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 57,
+     "edit": "drop `{Q}`"
+    },
+    {
+     "line": 57,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 66,
+     "edit": "drop `{L}`"
+    },
+    {
+     "line": 76,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 76,
+     "edit": "drop `{Q ⊗₀ X}`"
+    },
+    {
+     "line": 79,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 79,
+     "edit": "drop `{Q}`"
+    },
+    {
+     "line": 81,
+     "edit": "drop `{P ⊗₀ Q}`"
+    },
+    {
+     "line": 81,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 84,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 84,
+     "edit": "drop `{Q}`"
+    },
+    {
+     "line": 103,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 103,
+     "edit": "drop `{Q}`"
+    },
+    {
+     "line": 106,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 106,
+     "edit": "drop `{Y}`"
+    },
+    {
+     "line": 106,
+     "edit": "drop `{Q}`"
+    },
+    {
+     "line": 113,
+     "edit": "drop `{Q = Q}`"
+    },
+    {
+     "line": 118,
+     "edit": "drop `{P = P}`"
+    },
+    {
+     "line": 122,
+     "edit": "drop `{Q = Q}`"
+    },
+    {
+     "line": 125,
+     "edit": "drop `{P = P}`"
+    },
+    {
+     "line": 128,
+     "edit": "drop `{Q = Q}`"
+    },
+    {
+     "line": 128,
+     "edit": "drop `{P ⊗₀ A}`"
+    },
+    {
+     "line": 131,
+     "edit": "drop `{P = P}`"
+    },
+    {
+     "line": 131,
+     "edit": "drop `{Q ⊗₀ A}`"
+    },
+    {
+     "line": 135,
+     "edit": "drop `{Q = Q}`"
+    },
+    {
+     "line": 135,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 138,
+     "edit": "drop `{Q = Q}`"
+    },
+    {
+     "line": 138,
+     "edit": "drop `{P = P}`"
+    },
+    {
+     "line": 142,
+     "edit": "drop `{P = P}`"
+    },
+    {
+     "line": 142,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 150,
+     "edit": "drop `{Q = Q}`"
+    },
+    {
+     "line": 162,
+     "edit": "drop `{P = P}`"
+    },
+    {
+     "line": 213,
+     "edit": "drop `{Q = P}`"
+    },
+    {
+     "line": 231,
+     "edit": "drop `{P = Q}`"
+    },
+    {
+     "line": 243,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 243,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 246,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 246,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 249,
+     "edit": "drop `{P}`"
+    },
+    {
+     "line": 249,
+     "edit": "drop `{A}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 117,
+   "seconds": 440.8
+  },
+  "src/CategoricalCrypto/Machines/Pointwise.agda": {
+   "candidates": 15,
+   "kept": [
+    {
+     "line": 76,
+     "edit": "drop `{k}`"
+    },
+    {
+     "line": 121,
+     "edit": "drop `{Q = Q}`"
+    },
+    {
+     "line": 130,
+     "edit": "drop `{P = P}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 45,
+     "edit": "drop `{0ℓ}`"
+    },
+    {
+     "line": 46,
+     "edit": "drop `{0ℓ}`"
+    },
+    {
+     "line": 76,
+     "edit": "drop `{h = h}`"
+    },
+    {
+     "line": 79,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 82,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 82,
+     "edit": "drop `{Y}`"
+    },
+    {
+     "line": 82,
+     "edit": "drop `{Z}`"
+    },
+    {
+     "line": 85,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 85,
+     "edit": "drop `{Y}`"
+    },
+    {
+     "line": 85,
+     "edit": "drop `{Z}`"
+    },
+    {
+     "line": 88,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 88,
+     "edit": "drop `{Y}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 29,
+   "seconds": 289.3
+  },
+  "src/CategoricalCrypto/Machines/Sim.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 81,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 81,
+     "edit": "drop `{B}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 10.1
+  },
+  "src/CategoricalCrypto/Machines/Sim/Lax.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Machines/Tensor.agda": {
+   "candidates": 8,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 68,
+     "edit": "drop `{X ⊗₀ A}`"
+    },
+    {
+     "line": 68,
+     "edit": "drop `{X ⊗₀ C}`"
+    },
+    {
+     "line": 73,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 91,
+     "edit": "drop `{Q = Q}`"
+    },
+    {
+     "line": 96,
+     "edit": "drop `{P = P}`"
+    },
+    {
+     "line": 129,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 156,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 156,
+     "edit": "drop `{B}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 16,
+   "seconds": 65.4
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Assoc.agda": {
+   "candidates": 22,
+   "kept": [
+    {
+     "line": 67,
+     "edit": "drop `{D}`"
+    },
+    {
+     "line": 67,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 75,
+     "edit": "drop `{D}`"
+    },
+    {
+     "line": 75,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 91,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 91,
+     "edit": "drop `{C}`"
+    },
+    {
+     "line": 106,
+     "edit": "drop `{D}`"
+    },
+    {
+     "line": 106,
+     "edit": "drop `{D}`"
+    },
+    {
+     "line": 113,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 113,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 175,
+     "edit": "drop `{C}`"
+    },
+    {
+     "line": 175,
+     "edit": "drop `{D}`"
+    },
+    {
+     "line": 184,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 184,
+     "edit": "drop `{E}`"
+    },
+    {
+     "line": 194,
+     "edit": "drop `{A + C}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 106,
+     "edit": "drop `{D}`"
+    },
+    {
+     "line": 113,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 175,
+     "edit": "drop `{C + D}`"
+    },
+    {
+     "line": 184,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 184,
+     "edit": "drop `{E}`"
+    },
+    {
+     "line": 194,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 194,
+     "edit": "drop `{C}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 31,
+   "seconds": 385.4
+  },
+  "src/CategoricalCrypto/Machines/Tensor/Structural.agda": {
+   "candidates": 22,
+   "kept": [
+    {
+     "line": 150,
+     "edit": "drop `{⊥}`"
+    },
+    {
+     "line": 157,
+     "edit": "drop `{⊥}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 91,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 95,
+     "edit": "drop `{C}`"
+    },
+    {
+     "line": 105,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 105,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 108,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 108,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 113,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 113,
+     "edit": "drop `{C}`"
+    },
+    {
+     "line": 113,
+     "edit": "drop `{D}`"
+    },
+    {
+     "line": 113,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 120,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 120,
+     "edit": "drop `{C}`"
+    },
+    {
+     "line": 120,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 120,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 131,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 131,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 134,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 134,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 192,
+     "edit": "drop `{C}`"
+    },
+    {
+     "line": 196,
+     "edit": "drop `{A}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 45,
+   "seconds": 404.3
+  },
+  "src/CategoricalCrypto/Machines/Trace/Congruence.agda": {
+   "candidates": 3,
+   "kept": [
+    {
+     "line": 48,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 48,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 75,
+     "edit": "drop `{k = k}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 10.0
+  },
+  "src/CategoricalCrypto/Protocol/Machine.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/Protocol/Machine/Compose.agda": {
+   "candidates": 34,
+   "kept": [
+    {
+     "line": 160,
+     "edit": "drop `{Pos B}`"
+    },
+    {
+     "line": 160,
+     "edit": "drop `{Neg B}`"
+    },
+    {
+     "line": 160,
+     "edit": "drop `{Pos C}`"
+    },
+    {
+     "line": 160,
+     "edit": "drop `{Neg C}`"
+    },
+    {
+     "line": 164,
+     "edit": "drop `{Pos C}`"
+    },
+    {
+     "line": 164,
+     "edit": "drop `{Neg C}`"
+    },
+    {
+     "line": 265,
+     "edit": "drop `{Pos C}`"
+    },
+    {
+     "line": 267,
+     "edit": "drop `{Neg C}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 58,
+     "edit": "drop `{0ℓ}`"
+    },
+    {
+     "line": 59,
+     "edit": "drop `{0ℓ}`"
+    },
+    {
+     "line": 160,
+     "edit": "drop `{Pos A}`"
+    },
+    {
+     "line": 160,
+     "edit": "drop `{Neg A}`"
+    },
+    {
+     "line": 164,
+     "edit": "drop `{Pos A}`"
+    },
+    {
+     "line": 164,
+     "edit": "drop `{Neg A}`"
+    },
+    {
+     "line": 164,
+     "edit": "drop `{Pos B}`"
+    },
+    {
+     "line": 164,
+     "edit": "drop `{Neg B}`"
+    },
+    {
+     "line": 265,
+     "edit": "drop `{Neg A}`"
+    },
+    {
+     "line": 265,
+     "edit": "drop `{Pos B}`"
+    },
+    {
+     "line": 265,
+     "edit": "drop `{Neg B}`"
+    },
+    {
+     "line": 267,
+     "edit": "drop `{Pos A}`"
+    },
+    {
+     "line": 267,
+     "edit": "drop `{Pos B}`"
+    },
+    {
+     "line": 267,
+     "edit": "drop `{Neg B}`"
+    },
+    {
+     "line": 271,
+     "edit": "drop `{Pos A}`"
+    },
+    {
+     "line": 271,
+     "edit": "drop `{Neg A}`"
+    },
+    {
+     "line": 271,
+     "edit": "drop `{Pos B}`"
+    },
+    {
+     "line": 271,
+     "edit": "drop `{Neg B}`"
+    },
+    {
+     "line": 271,
+     "edit": "drop `{Pos C}`"
+    },
+    {
+     "line": 271,
+     "edit": "drop `{Neg C}`"
+    },
+    {
+     "line": 282,
+     "edit": "drop `{Pos A}`"
+    },
+    {
+     "line": 282,
+     "edit": "drop `{Neg A}`"
+    },
+    {
+     "line": 282,
+     "edit": "drop `{Pos B}`"
+    },
+    {
+     "line": 282,
+     "edit": "drop `{Neg B}`"
+    },
+    {
+     "line": 282,
+     "edit": "drop `{Pos C}`"
+    },
+    {
+     "line": 282,
+     "edit": "drop `{Neg C}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 61,
+   "seconds": 971.5
+  },
+  "src/CategoricalCrypto/Protocol/Observe.agda": {
+   "candidates": 5,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 60,
+     "edit": "drop `{x = uniform-Vec zero >>=ᴹ (λ v → ⟦ f v `"
+    },
+    {
+     "line": 60,
+     "edit": "drop `{y = ⟦ f [] ⟧}`"
+    },
+    {
+     "line": 70,
+     "edit": "drop `{i = Db b}`"
+    },
+    {
+     "line": 71,
+     "edit": "drop `{j = uniform-Vec m >>=ᴹ λ v → (return-ℚ `"
+    },
+    {
+     "line": 72,
+     "edit": "drop `{k = Hb b}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 10,
+   "seconds": 61.6
+  },
+  "src/CategoricalCrypto/SFunM/Test/Possibility.agda": {
+   "candidates": 11,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 92,
+     "edit": "drop `{S = S}`"
+    },
+    {
+     "line": 123,
+     "edit": "drop `{0ℓ}`"
+    },
+    {
+     "line": 123,
+     "edit": "drop `{0ℓ}`"
+    },
+    {
+     "line": 123,
+     "edit": "drop `{0ℓ}`"
+    },
+    {
+     "line": 126,
+     "edit": "drop `{0ℓ}`"
+    },
+    {
+     "line": 126,
+     "edit": "drop `{0ℓ}`"
+    },
+    {
+     "line": 126,
+     "edit": "drop `{0ℓ}`"
+    },
+    {
+     "line": 129,
+     "edit": "drop `{0ℓ}`"
+    },
+    {
+     "line": 129,
+     "edit": "drop `{0ℓ}`"
+    },
+    {
+     "line": 129,
+     "edit": "drop `{0ℓ}`"
+    },
+    {
+     "line": 151,
+     "edit": "drop `{Msg}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 22,
+   "seconds": 174.0
+  },
+  "src/CategoricalCrypto/UC/Graded.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Machine.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Machine/Monitor.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Machine/MonitorTests.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Machine/Run/Lax.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 36,
+     "edit": "drop `{0ℓ}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 19.6
+  },
+  "src/CategoricalCrypto/UC/Model/Family/Emulation.agda": {
+   "candidates": 9,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Model/Seal.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Quantitative/EventLift.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/CategoricalCrypto/UC/Quantitative/EventLift/Cov.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/QueryBound.agda": {
+   "candidates": 18,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/CategoricalCrypto/UC/Seam/Budget.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/Categories/Category/Construction/Kleisli/Discrete.agda": {
+   "candidates": 15,
+   "kept": [
+    {
+     "line": 211,
+     "edit": "drop `{⊤ᵏ}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 43,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 43,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 211,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 211,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 214,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 214,
+     "edit": "drop `{C}`"
+    },
+    {
+     "line": 214,
+     "edit": "drop `{D}`"
+    },
+    {
+     "line": 214,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 221,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 221,
+     "edit": "drop `{C}`"
+    },
+    {
+     "line": 221,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 221,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 258,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 258,
+     "edit": "drop `{B}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 31,
+   "seconds": 80.5
+  },
+  "src/Categories/Category/Construction/Kleisli/Distributive.agda": {
+   "candidates": 4,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 76,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 98,
+     "edit": "drop `{X}`"
+    },
+    {
+     "line": 98,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 98,
+     "edit": "drop `{B}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 8,
+   "seconds": 47.1
+  },
+  "src/Categories/Category/Distributive/Monoidal.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Category/Monoidal/Distributive/Instance/Rels.agda": {
+   "candidates": 0,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "checks": 0
+  },
+  "src/Categories/Monad/Construction/Kleisli/Ext.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 45,
+     "edit": "drop `{A}`"
+    },
+    {
+     "line": 104,
+     "edit": "drop `{A}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 9.7
+  },
+  "src/Categories/Monad/Setoids/Discrete.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 30,
+     "edit": "drop `{h = K.unit}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 6.6
+  },
+  "src/Categories/Monad/Setoids/Maybe.agda": {
+   "candidates": 25,
+   "kept": [
+    {
+     "line": 60,
+     "edit": "drop `{S = S}`"
+    },
+    {
+     "line": 60,
+     "edit": "drop `{S′ = S′}`"
+    },
+    {
+     "line": 60,
+     "edit": "drop `{S″ = S″}`"
+    },
+    {
+     "line": 62,
+     "edit": "drop `{S = S}`"
+    },
+    {
+     "line": 62,
+     "edit": "drop `{S′ = S′}`"
+    },
+    {
+     "line": 62,
+     "edit": "drop `{S″ = S″}`"
+    },
+    {
+     "line": 64,
+     "edit": "drop `{x = x}`"
+    },
+    {
+     "line": 64,
+     "edit": "drop `{f = k ⟨$⟩_}`"
+    },
+    {
+     "line": 64,
+     "edit": "drop `{g = h ⟨$⟩_}`"
+    },
+    {
+     "line": 133,
+     "edit": "drop `{ℓ}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 55,
+     "edit": "drop `{S = S}`"
+    },
+    {
+     "line": 55,
+     "edit": "drop `{S′ = S′}`"
+    },
+    {
+     "line": 58,
+     "edit": "drop `{S = S}`"
+    },
+    {
+     "line": 60,
+     "edit": "drop `{k = k}`"
+    },
+    {
+     "line": 60,
+     "edit": "drop `{l = l}`"
+    },
+    {
+     "line": 62,
+     "edit": "drop `{k = k}`"
+    },
+    {
+     "line": 62,
+     "edit": "drop `{l = l}`"
+    },
+    {
+     "line": 64,
+     "edit": "drop `{S = S}`"
+    },
+    {
+     "line": 64,
+     "edit": "drop `{S′ = S′}`"
+    },
+    {
+     "line": 64,
+     "edit": "drop `{y = x}`"
+    },
+    {
+     "line": 92,
+     "edit": "drop `{ℓ}`"
+    },
+    {
+     "line": 92,
+     "edit": "drop `{ℓ}`"
+    },
+    {
+     "line": 112,
+     "edit": "drop `{ℓ}`"
+    },
+    {
+     "line": 133,
+     "edit": "drop `{ℓ}`"
+    },
+    {
+     "line": 136,
+     "edit": "drop `{ℓ}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 47,
+   "seconds": 215.6
+  },
+  "src/Class/Monad/Ext/Setoid.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 23,
+     "edit": "drop `{A = A}`"
+    },
+    {
+     "line": 28,
+     "edit": "drop `{A = A}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 4,
+   "seconds": 22.7
+  },
+  "src/ProbabilisticLogic/Distribution/Possibility/Setoids.agda": {
+   "candidates": 15,
+   "kept": [
+    {
+     "line": 68,
+     "edit": "drop `{f = g}`"
+    },
+    {
+     "line": 68,
+     "edit": "drop `{f = f}`"
+    },
+    {
+     "line": 69,
+     "edit": "drop `{f = f}`"
+    },
+    {
+     "line": 69,
+     "edit": "drop `{f = g}`"
+    },
+    {
+     "line": 70,
+     "edit": "drop `{z}`"
+    },
+    {
+     "line": 114,
+     "edit": "drop `{σ = σ}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 103,
+     "edit": "drop `{S = S}`"
+    },
+    {
+     "line": 106,
+     "edit": "drop `{S = S}`"
+    },
+    {
+     "line": 106,
+     "edit": "drop `{S′ = S′}`"
+    },
+    {
+     "line": 114,
+     "edit": "drop `{S = S}`"
+    },
+    {
+     "line": 114,
+     "edit": "drop `{S′ = S′}`"
+    },
+    {
+     "line": 114,
+     "edit": "drop `{τ = σ}`"
+    },
+    {
+     "line": 122,
+     "edit": "drop `{S = ≡-setoid A}`"
+    },
+    {
+     "line": 122,
+     "edit": "drop `{S′ = ≡-setoid B}`"
+    },
+    {
+     "line": 122,
+     "edit": "drop `{S″ = ≡-setoid (A × B)}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 25,
+   "seconds": 157.6
+  },
+  "src/ProbabilisticLogic/Dp/Mass.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 94,
+     "edit": "drop `⦃ ℚ.nonNegative 0≤c ⦄`"
+    },
+    {
+     "line": 168,
+     "edit": "drop `⦃ ℚ.nonNegative (0≤1- m≤1) ⦄`"
+    },
+    {
+     "line": 205,
+     "edit": "drop `⦃ ℚ.nonNegative (cum-nn n e (indᵇ b) (in`"
+    }
+   ],
+   "skipped": [],
+   "checks": 6,
+   "seconds": 22.2
+  }
+ },
+ "totalChecks": 486
+}

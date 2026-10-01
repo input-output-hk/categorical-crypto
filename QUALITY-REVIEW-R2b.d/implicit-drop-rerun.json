@@ -1,0 +1,121 @@
+{
+ "sweep": "implicit-drop",
+ "root": "/Users/andre/IOHK/categorical-crypto/.claude/worktrees/quality-R2b",
+ "files": {
+  "src/CategoricalCrypto/Examples/ChimericLedger/Transfer.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 139,
+     "edit": "drop `{r = 1⁺}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 45.0
+  },
+  "src/CategoricalCrypto/UC/Machine/EventBounds/Transport.agda": {
+   "candidates": 4,
+   "kept": [
+    {
+     "line": 102,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 143,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 150,
+     "edit": "drop `{B n}`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 154,
+     "edit": "drop `{εI = εI}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 7,
+   "seconds": 87.4
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent.agda": {
+   "candidates": 1,
+   "kept": [],
+   "reverted": [
+    {
+     "line": 61,
+     "edit": "drop `{f = M}`"
+    }
+   ],
+   "skipped": [],
+   "checks": 2,
+   "seconds": 26.9
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Agree.agda": {
+   "candidates": 5,
+   "kept": [
+    {
+     "line": 59,
+     "edit": "drop `{B}`"
+    },
+    {
+     "line": 59,
+     "edit": "drop `{Ωᴵ}`"
+    },
+    {
+     "line": 73,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 73,
+     "edit": "drop `{Ωᴵ}`"
+    },
+    {
+     "line": 211,
+     "edit": "drop `{Ωᴵ}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 32.9
+  },
+  "src/CategoricalCrypto/UC/Machine/StateEvent/Read.agda": {
+   "candidates": 6,
+   "kept": [
+    {
+     "line": 95,
+     "edit": "drop `{Ωᴵ}`"
+    },
+    {
+     "line": 99,
+     "edit": "drop `{Y ⊗ᴵ B}`"
+    },
+    {
+     "line": 99,
+     "edit": "drop `{Ωᴵ}`"
+    },
+    {
+     "line": 99,
+     "edit": "drop `{unitᴵ}`"
+    },
+    {
+     "line": 99,
+     "edit": "drop `{Y ⊗ᴵ A}`"
+    },
+    {
+     "line": 102,
+     "edit": "drop `{Ωᴵ}`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 28.6
+  }
+ },
+ "totalChecks": 17
+}

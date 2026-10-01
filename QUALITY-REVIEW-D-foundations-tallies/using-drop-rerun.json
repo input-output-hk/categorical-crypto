@@ -1,0 +1,195 @@
+{
+ "sweep": "using-drop",
+ "root": ".",
+ "files": {
+  "src/ProbabilisticLogic/Distribution/Bernoulli.agda": {
+   "candidates": 9,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/ProbabilisticLogic/Distribution/Binomial.agda": {
+   "candidates": 10,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/ProbabilisticLogic/Dp/Support.agda": {
+   "candidates": 7,
+   "kept": [
+    {
+     "line": 18,
+     "edit": "drop `using (ℕ; zero; suc; _⊔_; _≤_)`"
+    },
+    {
+     "line": 19,
+     "edit": "drop `using (m≤m⊔n; m≤n⊔m)`"
+    },
+    {
+     "line": 20,
+     "edit": "drop `using (Σ-syntax; _,_)`"
+    },
+    {
+     "line": 21,
+     "edit": "drop `using (_⊎_; inj₁; inj₂)`"
+    },
+    {
+     "line": 22,
+     "edit": "drop `using (tt)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 17,
+     "edit": "drop `using (Bool; true; false)`"
+    },
+    {
+     "line": 23,
+     "edit": "drop `using (Level)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 11,
+   "seconds": 49.0
+  },
+  "src/ProbabilisticLogic/Examples/BiasedCoin.agda": {
+   "candidates": 3,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/ProbabilisticLogic/Examples/Coins.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 11,
+     "edit": "drop `using (ℚ; _/_)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 13,
+     "edit": "drop `using (+_)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 5,
+   "seconds": 35.7
+  },
+  "src/ProbabilisticLogic/Examples/MultipleCoins.agda": {
+   "candidates": 2,
+   "kept": [],
+   "reverted": [],
+   "skipped": [],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/ProbabilisticLogic/Examples/Weather.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 8,
+     "edit": "drop `using (ℚ; _/_)`"
+    }
+   ],
+   "reverted": [
+    {
+     "line": 9,
+     "edit": "drop `using (+_)`"
+    }
+   ],
+   "skipped": [],
+   "checks": 5,
+   "seconds": 32.7
+  },
+  "src/ProbabilisticLogic/Expectation.agda": {
+   "candidates": 16,
+   "kept": [],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 62,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open E[_,_]≈_ public"
+    }
+   ],
+   "error": "file RED before sweep -- aborted",
+   "checks": 1
+  },
+  "src/ProbabilisticLogic/Logic.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 9,
+     "edit": "drop `using (Setoid)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 25,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open Σ[_][_]_ public"
+    }
+   ],
+   "checks": 3,
+   "seconds": 21.0
+  },
+  "src/ProbabilisticLogic/Models/Trivial.agda": {
+   "candidates": 2,
+   "kept": [
+    {
+     "line": 63,
+     "edit": "drop `using (isPreorder)`"
+    },
+    {
+     "line": 64,
+     "edit": "drop `using (mk⇔)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 20.0
+  },
+  "src/ProbabilisticLogic/Reasoning.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 6,
+     "edit": "drop `using (Rel)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [
+    {
+     "line": 14,
+     "why": "public re-export -- interface change, agent judgment",
+     "text": "open ≤-Reasoning' record { isPartialOrder = ≤-isPartialOrder {A = A} } public"
+    }
+   ],
+   "checks": 3,
+   "seconds": 17.4
+  },
+  "src/Relation/Binary/Bundles/Ext.agda": {
+   "candidates": 1,
+   "kept": [
+    {
+     "line": 4,
+     "edit": "drop `using (Setoid)`"
+    }
+   ],
+   "reverted": [],
+   "skipped": [],
+   "checks": 3,
+   "seconds": 5.1
+  }
+ },
+ "totalChecks": 38
+}
