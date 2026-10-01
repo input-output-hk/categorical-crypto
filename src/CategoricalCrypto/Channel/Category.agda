@@ -12,7 +12,7 @@ open import Categories.Category.Monoidal.Symmetric
 open import Categories.Functor
 open import Categories.Functor.Monoidal
 open import Categories.Functor.Bifunctor
-open import categorical-crypto.Prelude hiding (Functor)
+open import categorical-crypto.Prelude hiding (Functor; Bifunctor)
 
 opaque
   unfolding _⊗₀_
