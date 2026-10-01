@@ -17,7 +17,8 @@
 -- realization — `docs/fcom-extraction.md`, `docs/fcom-hiding.md`,
 -- `docs/rcom-icom-b1.md`) and `Examples.CoinToss.*` (Blum coin-tossing over it,
 -- both corruptions, to an ideal coin — `docs/coin-toss.md`).  Tests:
--- `GamePlaying.Test`, `Protocol.Machine.Pin`, `UC.Machine.MonitorTests`,
+-- `GamePlaying.Test`, `Protocol.Machine.Pin`, `Approx.FilteredTests`,
+-- `UC.Approximate.LocalTests`, `UC.Machine.MonitorTests`,
 -- `UC.Machine.StateEvent.HitTests`.
 -- Outside, checked per file through their leaves: `Examples.ChimericLedger`
 -- (`Transfer`, `Serialize`), `Examples.MerkleDamgard` (`Pin`, `QueryBound`,
