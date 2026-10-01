@@ -32,7 +32,7 @@ open C.HomReasoning
 module WithTrace (L : TE.Laws Traced) where
 
   open TE.Laws L
-  open TE Traced using (trace-slide)
+  open TE Traced
 
   trace-conj : ∀ {X A A' B B'} {t : A C.⊗₀ X C.⇒ B C.⊗₀ X}
                  {h : A' C.⇒ A} {k : B C.⇒ B'} →

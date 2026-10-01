@@ -13,10 +13,10 @@
 -- `_>>=ₚ_` spends one step at the junction; that step buys the exact `cum`
 -- identities the monad laws are proved from.
 
-open import Algebra.Bundles using (CommutativeRing)
+open import Algebra.Bundles
 open import Data.Bool.Base
-open import Data.List.Base using (List; []; _∷_; _++_)
-open import Data.Maybe.Base using (Maybe; just; nothing)
+open import Data.List.Base
+open import Data.Maybe.Base
 open import Data.Nat.Base renaming (_+_ to _+ℕ_; _≤_ to _≤ℕ_)
 open import Data.Nat.Properties using (m≤m⊔n; m≤n⊔m; m≤n+m; n≤1+n)
 open import Data.Product.Base
