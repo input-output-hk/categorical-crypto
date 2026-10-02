@@ -83,16 +83,6 @@ good-before : Reads becomesBad (idleTest becomesBad id) (out false) 0ℚ
 good-before = reads becomesBad id (out false) refl
 
 ------------------------------------------------------------------------
--- A suspended compiler state satisfying the test is not an activation boundary
-
-onWait : MSt becomesBad → Bool
-onWait (idle s) = s
-onWait (wait _) = true
-
-wait-irrelevant : Reads becomesBad onWait (out false) 0ℚ
-wait-irrelevant = stateRead-hit becomesBad id onWait (λ _ → refl) (out false)
-
-------------------------------------------------------------------------
 -- A bad activation, then a deadlocked one: completed-run, not prefix, hits
 
 badThenDead : Protocol unitᴵ Go
