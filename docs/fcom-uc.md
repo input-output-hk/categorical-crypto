@@ -80,7 +80,7 @@ Three things about this shape are the point.
   Without the rank the reading is simply wrong, and `Settles-iter` would be
   false rather than unprovable.
 
-### At a traced machine and at a G-composite — `Protocol.Machine.Trace.Compose`
+### At a traced machine and at a G-composite — `Protocol.Machine.Trace`
 
 `Machines.Trace.traceStep` is `solve ∘ k ∘ id ⊗₁ i₁`; the two wirings are pure,
 so `Settles-ret⋆` takes them one step at a time and the loop is
@@ -133,7 +133,7 @@ repair is a `maybeℚ`-relativisation of the toolkit, done once in
 | `badProb⊥-super`, `badProb⊥-bounded` | `badProb-bounded` |
 | `Coupling⊥` / `FLGP⊥` | `Coupling` / `Hop.FLGP` |
 | `StepBisim⊥` / `runWith⊥-bisim`, `StepBisim⊥ʳ` / `runWith⊥-bisimʳ` | `Hop.StepBisim` / `runWith-bisim` |
-| `hop-bound⊥`, `hop-boundᵇ⊥` | `Hop.hop-bound` |
+| `hop-boundᵇ⊥` | `Hop.hop-bound` |
 
 Two structural differences. `Preserved⊥` is genuinely WEAKER than
 `Preserved` — an activation the machine refuses to serve reaches no state, so

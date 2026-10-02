@@ -265,10 +265,10 @@ number.
 | item | content | where |
 |---|---|---|
 | B2-1 | `Settles` at a loop junction | `ProbabilisticLogic.Dp.Settle.Iter`: `Settles-stepᵢ`, `Settles-stepᵢˢ`, `Settles-stepᵢ⋆`, `Ranked`, `Settles-iter` |
-| B2-2, B2-M1 | `StepSettles` at a traced machine and at a `𝒢ₚ`-composite | `Protocol.Machine.Trace.Compose`: `trace-settles`; `Kᴳ`/`kᴳ-settles`, `ranked-from-kᴳ`, `compose-settles`, `compose-StepSettles`, `compose-pr`. No `Settles` witness rides an `S.≈ᴹ` to `𝒢ₚ`'s own `_∘_`, but the CLOSED RUN's conclusion does, by `ProbabilisticLogic.Dp.Settle.cum-settled-≈ₚ` |
+| B2-2, B2-M1 | `StepSettles` at a traced machine and at a `𝒢ₚ`-composite | `Protocol.Machine.Trace`: `trace-settles`; `Kᴳ`/`kᴳ-settles`, `ranked-from-kᴳ`, `compose-settles`, `compose-StepSettles`, `compose-pr`. No `Settles` witness rides an `S.≈ᴹ` to `𝒢ₚ`'s own `_∘_`, but the CLOSED RUN's conclusion does, by `ProbabilisticLogic.Dp.Settle.cum-settled-≈ₚ` |
 | B2-3 | the `Dₚ`→kernel transport at an arbitrary closed machine | `Protocol.Machine.Raw`: `StepSettles`, `rawAgree`, `rawPr` |
 | B2-4 | the RESOURCE's own instance of it | `Examples.ROCommitment.Transport`: `resK`, `resource-settles`, `resource-run`, `resKᵀ` (the game's `fetchT`, relabelled) |
-| B2-5 | the partial-kernel game toolkit | `GamePlaying.Partial`: `badProb⊥`, `SuperCert⊥`, `badProb⊥-super`, `FLGP⊥`, `StepBisim⊥`/`StepBisim⊥ʳ`, `runWith⊥-bisim`/`runWith⊥-bisimʳ`, `embedᵏ`, `total⇒⊥`, `prune`, `hop-bound⊥`, `hop-boundᵇ⊥`, `badProb⊥-cong`; `GamePlaying.prune-cert` |
+| B2-5 | the partial-kernel game toolkit | `GamePlaying.Partial`: `badProb⊥`, `SuperCert⊥`, `badProb⊥-super`, `FLGP⊥`, `StepBisim⊥`/`StepBisim⊥ʳ`, `runWith⊥-bisim`/`runWith⊥-bisimʳ`, `embedᵏ`, `total⇒⊥`, `prune`, `hop-boundᵇ⊥`, `badProb⊥-cong`; `GamePlaying.prune-cert` |
 | B2-6 | the closed game and its supermartingale | `Examples.ROCommitment.Game`: `keep-or-sample`, `rare-raise`, `cert`, `extraction-bound`, `stepR`, `stepI` |
 | B2-8, B2-M5 | the density lemma at a NONTRIVIAL grade, budgeted | `UC.Model.Dominated.dominatedᵍᵠ` (hypothesis at `asks≤ (value (c · c′)) d`) and its unbudgeted instance `dominatedᵍ`, in use at `Examples.CoinToss.Ideal.Receiver.Compose` |
 | B2-9 | the run-agreement deferred-sampling engine | `GamePlaying.Defer.Run`: `DeferStep`, `runFrom-defer`, `run-defer` |

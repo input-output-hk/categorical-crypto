@@ -220,9 +220,9 @@ over `_≤UC^ωᵉ_`.
         → runᴹ (morphism (R n)) d ≈ₚ[ ε n (value q) ] runᴹ (morphism (I n)) d
 ```
 
-The adequacy step. It reads the premise at `UC.Seam.Audit.Context`'s context:
+The adequacy step. It reads the premise at the context defined beside it:
 the embedded strategy (`auditTest`, certified by `audit-qb` at the strategy's
-own ask depth) behind the unitors, with closure `auditClose` at `1⁺`. Hence
+own ask depth) behind the unitors, with closure `Gr.ιᴳ unitᴵ` at `1⁺`. Hence
 `*-identityʳ`, and `audit-run` lands the premise's `ε` on the direct runs. The
 cap is `ℕ⁺` because a context's allowance has no zero.
 
@@ -301,7 +301,7 @@ level third, context last.
 | `Transfer :: ledger-preserves-value-from-hash` | cond | `SerInj → hash ≈ᶠᴺ oracle^ω → PreservesValue (genesisTotal V) (Realᴴ hash inputConsuming (genesisAt a V))` |
 | `Property :: preservesValue⇒saturated` | uncond | back to strategies at the same cap (`hits⇒bounded`); nothing is spent returning |
 | `Property :: preservesValue⇒stateSafe` | cond on `TruthfulAudit` | `Hitsᴺ … ε → TruthfulAudit R bad → StateSafe R bad (λ n q → ε n (q ℕ.+ q))`. `withAudits` doubles the allowance |
-| `Transfer :: ledger-uc-to-state`, `ledger-uc-to-pov-family`, `ledger-pov-family-negligible` | cond | state-event safety for a supplied `badR` at `λ n q → εᴸ n (q ℕ.+ q)`, as `StateSafe`, as `BoundedHitᴺ`, and as one negligible `f`. They rest on `SerInj`, the emulation, and `TruthfulAudit` |
+| `Transfer :: ledger-uc-to-state`, `ledger-uc-to-hit-family`, `ledger-hit-family-negligible` | cond | state-event safety for a supplied `badR` at `λ n q → εᴸ n (q ℕ.+ q)`, as `StateSafe`, as `BoundedHitᴺ`, and as one negligible `f`. They rest on `SerInj`, the emulation, and `TruthfulAudit` |
 | `Transfer :: ledger-conserves-value-from-hash` | cond | the same at the ledger's own `badTotal`, where `TruthfulAudit` is a theorem (`auditWatch-complete`) |
 | `Property :: ideal-conserves-value` | cond on `SerInj` | `StateSafe Ideal badᴸ εᴸ`, straight from the birthday bound; no audit is spent |
 | `Transfer :: ideal-spends-genesis` | inst | acceptance at probability `1ℚ` plus its state effect, at every level |
@@ -309,7 +309,7 @@ level third, context last.
 | `Transfer :: liar-preserves-value`, `liar-not-truthful` | inst | a trajectory conclusion needs `TruthfulAudit` |
 | `Transfer :: chimeric-not-preserving` | neg | `(ε : ℕ → ℕ → ℚ) → NegligibleBound ε → ¬ Hitsᴺ (λ n → morphism (Chimericᶠ V n)) (auditMonitorᶠ (genesisTotal (suc (suc V)))) ε`. Probability 1 against `ε n 3 + ν n` at the replay strategy (`asks≤ 3`). Asymptotic, at an account-funded start (`funded-total`) |
 
-### 6.3 The hash-forward toy (`Examples.HashForward.Audit`)
+### 6.3 The hash-forward toy (`Examples.HashForward.UC`)
 
 `hf-bounded : AdvBoundedAt (k ℕ.* 2) q r ideal → AdvBoundedAt k q r real` is
 `bounded-absorb real-factors simQB`. The simulator is retained and absorbed
@@ -346,15 +346,14 @@ strategy, one adversary and one closed input. *inst*.
   presheaf `Pᴱ`. `J` is not assumed to be the monoidal unit.
 - `Approx.Evaluation.QEvaluation`: the reading lands in an approximate space and
   observes hom equality exactly (`eval₀` into `zeroSetoid`). `qualBy` coarsens
-  only the equality: `qual` is the exact coarsening and `qual₊` closeness at
-  every positive error. So `Evaluation.read (qualBy Q _ _)` *is*
+  only the equality: `qual₊` is closeness at every positive error. So `Evaluation.read (qualBy Q _ _)` *is*
   `QEvaluation.read Q`.
 - Instances: `UC.Model.Observation.qevaluationᵒ` (the one this layer is applied
   at) with `evaluationᵒ = qual₊ ℚ-refinement qevaluationᵒ`,
-  `UC.Machine.QEvaluationᴹ`/`Evaluationᴹ`, `UC.Family.QEvaluation^ω`, and
+  `UC.Family.QEvaluation^ω`, and
   `UC.Family.Negligible.Evaluationᴺ`, which is `qualBy` at the negligible class.
-- `Approx.Forget.forget : F₀ ⇒ F₊` is the identity on carriers and deliberately
-  not an isomorphism (`Approx.Separating`). An exact bound therefore stays in
+- `Approx.Forget`'s `F₀` and `F₊` agree on carriers but are not isomorphic
+  (`Approx.Separating`). An exact bound therefore stays in
   `Approx` rather than being asked to respect `F₊`'s coarser equality.
 
 ## 8. Deferred assumptions

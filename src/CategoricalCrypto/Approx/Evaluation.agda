@@ -7,9 +7,9 @@
 -- nonexpansive downstream.  Forgetting the error
 -- leaves the reading itself untouched and only coarsens its equality, which is
 -- what `qualBy` takes: any equivalence that zero error already implies.
--- `qual` is the exact one and `qual₊` closeness at every positive error of a
--- `Refinement`; a tier that KEEPS an error witness coarsens by its own class
--- instead (`UC.Family.Negligible.Evaluationᴺ`).
+-- `qual₊` is closeness at every positive error of a `Refinement`; a tier that
+-- KEEPS an error witness coarsens by its own class instead
+-- (`UC.Family.Negligible.Evaluationᴺ`).
 
 open import Categories.Category.Core
 

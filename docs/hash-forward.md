@@ -1,6 +1,6 @@
 # Hash-then-forward: a simulator that spends a query
 
-`Examples.HashForward`, `Examples.HashForward.UC` and `Examples.HashForward.Audit`
+`Examples.HashForward` and `Examples.HashForward.UC`
 are an application at an explicit nontrivial grade: a process of the generic
 `A ⇒ X ⊛ B` shape, a simulator `Y ⇒ X` with an inhabited simulator-facing port that
 actually performs a query, and the query's count stated exactly, not only as an upper
@@ -171,8 +171,7 @@ weight δ (outputs) + Λ (final) ≡ weight cost (word) -- per run (exactᴱ)
 mapₚ … (exactᴱ w) ≈ₚ behᵍ S point step w            -- and it IS the run (exactᴱ-erases)
 ```
 
-`qeᵢ-wire` inhabits it generically: a stateless relay emits exactly one downward
-output per activation from above and none otherwise. At the toy, two instantiations
+At the toy, two instantiations
 of the SAME ledger `Φˢ`:
 
 | statement | weighting | reading |
@@ -203,7 +202,7 @@ asks nothing as firmly as one that asks too much.
 
 ## The event bound at the machine
 
-`Examples.HashForward.Audit` states the toy as an event bound against an adversary:
+`Examples.HashForward.UC` states the toy as an event bound against an adversary:
 
 ```agda
 hf-bounded  : AdvBoundedAt (k * 2) q r ideal → AdvBoundedAt k q r real
@@ -242,10 +241,9 @@ be the same statement and a polynomial allowance would have nothing to grow in.
 |---|---|
 | `UC.Model.Graded` | generic — the seal coercions for `gradedᵒ` |
 | `UC.Graded` | generic — `Factors`, `emulᵍ`, `≤UCᵍ` at any interfaces |
-| `UC.QueryBound.Exact` | generic — the ledger `QEᵢ`, its run theorem, `qeᵢ-wire`, `exact⇒certified` |
+| `UC.QueryBound.Exact` | generic — the ledger `QEᵢ`, its run theorem, `exact⇒certified` |
 | `UC.Machine.EventBounds` | generic — `advReader`, `AdvBoundedAt`, `plug-absorb`, `bounded-absorb` |
 | `Examples.HashForward` | the toy: interfaces, three machines, `real-factors` |
-| `Examples.HashForward.UC` | the toy: emulation, the two exact counts, `Certified 2` |
-| `Examples.HashForward.Audit` | the toy: the adversary-absorbed event bound |
+| `Examples.HashForward.UC` | the toy: emulation, the two exact counts, `Certified 2`, the adversary-absorbed event bound |
 
 Nothing generic mentions the toy, and nothing in the toy restates a generic fact.

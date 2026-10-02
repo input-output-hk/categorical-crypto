@@ -3,7 +3,7 @@
 The definitions the state-event and ledger-safety results are stated over:
 their quantifier order, representation, resource, error, and the theorem
 connecting each to its operational counterpart (§1). §2 is the proof path from
-the ideal birthday bound to `ledger-pov-family-negligible`, with its pinned
+the ideal birthday bound to `ledger-hit-family-negligible`, with its pinned
 numbers. §3 says where state events attach. Module names are relative to
 `CategoricalCrypto.` unless they start with `ProbabilisticLogic.`, `Data.` or
 `Categories.`. "Definitionally" means the code uses the identification with no
@@ -30,7 +30,7 @@ The verbatim signatures are in §1.1, keyed by row number.
 | 1 | `Systems` | `UC.Model.Family.Emulation` | `B`, then level `n` | P family | — | — | image `imgᶠ B R n = Gr.closedᵒ (morphism (R n))` |
 | 2 | `_≈ᶠ[_]_` | `UC.Model.Family.Emulation` | `{B}` `R` `ε` `I`; unfolds through `_≈ctx[_]_` to `∀ n W E m {c r′ : ℕ⁺} → Image forget c E → Image forget r′ m → …` | G (images of P) | rates `c r′ : ℕ⁺` on test and closure | `ε : ℕ → ℕ → ℚ`, read at `ε n (value (c · r′))` under `≈[_]` (two-sided) | `≈ᶠ-runs` (row 4); `≈ctx⇒≈ℰ[]` to `UC.Family._≈ℰ[_]_` (an implication, not an identification) |
 | 3 | `_≈ᶠᴺ_` | `UC.Model.Family.Emulation` | `Σ ε`, then `NegligibleBound ε × R ≈ᶠ[ ε ] I`: one global schedule, chosen before any allowance | G | as row 2 | `NegligibleBound ε = ∀ p → Poly p → Negligible (λ n → ε n (p n))` | consumed only through its components; symmetric and simulator-free, with no map into `_≤UC^ωᵉ_` |
-| 4 | `≈ᶠ-runs` | `UC.Model.Family.Emulation` | `{B R I}` `ε` `h` `n` `(q : ℕ⁺)` `d` `asks≤ (value q) d` | G → M runs at S | rate `q : ℕ⁺` (no zero), closure at `1⁺` | `ε n (value q)` via `*-identityʳ` | it *is* the adequacy step: row 2 at ancilla `Gr.𝟘ᴳ`, test `auditTest _ d`, closure `auditClose`, certificate `audit-qb`, then `audit-run` (`UC.Seam.Audit.Context`) |
+| 4 | `≈ᶠ-runs` | `UC.Model.Family.Emulation` | `{B R I}` `ε` `h` `n` `(q : ℕ⁺)` `d` `asks≤ (value q) d` | G → M runs at S | rate `q : ℕ⁺` (no zero), closure at `1⁺` | `ε n (value q)` via `*-identityʳ` | it *is* the adequacy step: row 2 at ancilla `Gr.𝟘ᴳ`, test `auditTest _ d`, closure `Gr.ιᴳ unitᴵ`, certificate `audit-qb`, then `audit-run` (beside it) |
 | 5 | `≤UC[]⇒≤UCᴺ` | `UC.Model.Family.Emulation` | `[{A X Y B} s ε neg f g e]` | G | simulator `s : Y ⇒^ω X` | fixed `ε`, forgotten into `Canonicalᴺ._≤UC_` | not on the ledger chain; consumers `Examples.CoinToss.Ideal.Compose`, `….Receiver.Compose` |
 | 6 | `Strat` | `Strategy` | `Q R : Set` | S (`out`/`ask`/`coin`, coin `Dist-ℚ Bool`) | — | — | layer-1 run `runWith⊥`; machine run `runᴹ` (`Protocol.Machine`); embedding `strategyEnv` (`UC.Seam`) with `adequacy : ⟦ strategyEnv B d 𝒫.∘ u ⟧ᴼ ≈ₚ runᴹ u d` (`UC.Seam.Adequacy`); `stratTest`/`stratTest-embeds` (`UC.Machine.Monitor.Agree`) |
 | 7 | `asks≤` | `Strategy` | `(n : ℕ)` then `d`; `{Q R}` generalized | S | cap `ℕ`, 0 allowed (`asks≤ zero (ask …) = ⊥`, coins free) | — | `qb-stratTest : asks≤ q d → QB q (stratTest B d)`; `audit-qb` (row 4); `asks≤-flag` (one extra ask for the flag) |
@@ -43,31 +43,31 @@ The verbatim signatures are in §1.1, keyed by row number.
 | 14 | `Reader` (and `readRun`, `readRun-resp-≈`) | `UC.Machine.EventBounds` | `B B′`, then `∀ Y → Proc (Y ⊗ᴵ B) Ωᴵ → Proc (Y ⊗ᴵ B′) Ωᴵ` | M | — | — | instances `flagReader : Reader B (B ⊗ᴵ Ωᴵ)` (`UC.Machine.Monitor`), which reads both `μ ∘ f` and `M ▷ P`, and `advReader a : Reader B (X ⊗ᴵ B)`; `readRun Y f 𝔠 E m = ctxRun Y (𝔠 Y E) m f` (`UC.Machine.Bridge`) |
 | 15 | `BoundedAt` | `UC.Machine.EventBounds` | `{A B}` `q r f 𝔠`, then `∀ Y E m {c c′} → QB c E → QB c′ m → scale c (positive c′) ≤ q → Upper …` | M (arbitrary certified context) | cap `q : ℕ`; certificates `QB c`, `QB c′` (counts `ℕ`); admission `scale c (positive c′) ≤ q`; depth: `Upper d r = ∀ k → Pr≤ k d ≤ r` | `r : ℚ`, one-sided | in: `hitsᵘ` (row 19), `stateLift` (row 38); out: `hits⇒upper`, `stateBounded⇒hit`; simulator absorption `bounded-absorb` |
 | 16 | `Boundedᶠ` | `UC.Machine.EventBounds` | `[{A B B′} f 𝔠]` `ε`, then `∀ n q → BoundedAt q (ε n q) …` | M | as row 15 | `ε : ℕ → ℕ → ℚ`, fixed | `boundedᶠ⇒boundedᴺ` at `ν = 0` |
-| 17 | `Boundedᴺ` | `UC.Machine.EventBounds` | `[{A B B′} f 𝔠]` `ε` = `Saturated (λ n q r → BoundedAt q r (f n) (𝔠 n)) ε`: `∀ p → Poly p → Σ ν. Negligible ν × ∀ n → …` at `ε n (p n) + ν n`; `ν` comes after `p`, before `n`, and is uniform over contexts | M | polynomial cap `p n` | `ε` plus a negligible slack `ν : ℕ → ℚ` | `boundedᴺ-reindex`; `saturated-map` carries `ν` unchanged |
+| 17 | `Boundedᴺ` | `UC.Machine.EventBounds` | `[{A B B′} f 𝔠]` `ε` = `Saturated (λ n q r → BoundedAt q r (f n) (𝔠 n)) ε`: `∀ p → Poly p → Σ ν. Negligible ν × ∀ n → …` at `ε n (p n) + ν n`; `ν` comes after `p`, before `n`, and is uniform over contexts | M | polynomial cap `p n` | `ε` plus a negligible slack `ν : ℕ → ℚ` | `saturated-map` carries `ν` unchanged |
 | 18 | `HitsAt` / `Hitsᴺ` | `UC.Quantitative.EventLift` | rows 15/17 at the process `μ ∘ f` and `flagReader B`, with `μ : Proc B (B ⊗ᴵ Ωᴵ)` | M | as rows 15, 17 | as rows 15, 17 | completed-run, as row 11 |
 | 19 | `hitsᵘ` (the lifting theorem) | `UC.Quantitative.EventLift` | `{B}` `report u q {r}` `h`; `h : ∀ d → asks≤ q d → Upper (runᴹ u (watchFrom report false d)) r` | S premise → M conclusion | premise at the context's own cap `q`; the flag ask is the certificate's one extra unit (`FlagCert` at `k + 1`) | `r`, unchanged: no slack | `monitor-flag` (`monitorᴹ report ∘ u` is the flag wire of `accᴹ report u`) under `readRun-resp-≈`, then `stateLift` at `accᴹ report u`, premise read back by `flag-agree` |
-| 20 | `hits⇒bounded` | `UC.Quantitative.EventLift` | `{B}` `report P q {r}` `h d a` | M premise → P × S conclusion | the same cap `q` (`scale-unit`) | `r` | `hits⇒upper` (row 15 at `Y = unitᴵ`, `E = stratTest B d` via `qb-stratTest`, `m = m₀` via `qb-closed`), then `run-upper`; `agree` is `monitor-flag` + `stateRead-agree` + `flag-agree` |
+| 20 | `hits⇒bounded` | `UC.Quantitative.EventLift` | `{B}` `report P q {r}` `h d a` | M premise → P × S conclusion | the same cap `q` (`scale-unit`) | `r` | `hits⇒upper` (row 15 at `Y = unitᴵ`, `E = stratTest B d` via `qb-stratTest`, `m = λᴵ⇐` via `qb-closed`), then `run-upper`; `agree` is `monitor-flag` + `stateRead-agree` + `flag-agree` |
 | 21 | `PreservesValue` | `Examples.ChimericLedger.Property` | `[ser] [t]` `R`: `Hitsᴺ (λ n → morphism (R n)) auditMonitorᶠ εᴸ` | M | as row 17 | `εᴸ` (§2) plus `ν` | `preservesValue⇒saturated` (row 22) |
 | 22 | `preservesValue⇒saturated` | `Examples.ChimericLedger.Property` | `[ser] [t]` `R {ε} pv`: `Hitsᴺ … ε → Saturated (λ n q r → ∀ d → asks≤ q d → Pr (R n) (auditWatch n d) ≤ r) ε`, at any schedule | M → P × S | cap `p n` | `ε n (p n) + ν n`, the same `ν` | `saturated-map` of `hits⇒bounded` |
 | 23 | `TruthfulAudit` | `Examples.ChimericLedger.Property` | `[ser] [t]` `R bad`, then `∀ n d → PrHit (R n) (bad n) d ≤ Pr (R n) (auditWatch n (withAudits n d))` | P × S | **no cap**: every `d` | exact inequality, no slack | one-sided detection. Proved for `Ideal` by `ideal-truthful` (via `auditWatch-complete`); refuted for `Liar` by `liar-not-truthful` (`Examples.ChimericLedger.Transfer`) |
 | 24 | `preserves-value-transfer` (claim 1) | `Examples.ChimericLedger.Transfer` | `[ser]` `a V R si`, then `R ≈ᶠᴺ Ideal a V → PreservesValue (genesisTotal V) R` | G premise → M conclusion | see §2 steps 7-10 | `ν n = ε n (p n + 1)` | §2 |
-| 25 | `ledger-uc-to-pov-family` (claim 2) | `Examples.ChimericLedger.Transfer` | `[ser] [a V]` `si R badR em truthful`, then `BoundedHitᴺ R badR (λ n q → εᴸ n (q + q))` | G premise → P × S conclusion | cap `p n`, read at `p n + p n` | `εᴸ n (p n + p n) + ν n` | `stateᴺ⇒hitᴺ` at `idleTest` of `ledger-uc-to-state` (row 39) |
-| 26 | `ledger-pov-family-negligible` | `Examples.ChimericLedger.Transfer` | `[ser] [a V]` `si R badR em truthful p Pp`, then `Σ f. Negligible f × ∀ n d → asks≤ (p n) d → PrHit … ≤ f n` | as row 25 | as row 25 | `f n = εᴸ n (p n + p n) + νₚ n` | row 25 plus `Negligible-+` |
+| 25 | `ledger-uc-to-hit-family` (claim 2) | `Examples.ChimericLedger.Transfer` | `[ser] [a V]` `si R badR em truthful`, then `BoundedHitᴺ R badR (λ n q → εᴸ n (q + q))` | G premise → P × S conclusion | cap `p n`, read at `p n + p n` | `εᴸ n (p n + p n) + ν n` | `stateᴺ⇒hitᴺ` at `idleTest` of `ledger-uc-to-state` (row 39) |
+| 26 | `ledger-hit-family-negligible` | `Examples.ChimericLedger.Transfer` | `[ser] [a V]` `si R badR em truthful p Pp`, then `Σ f. Negligible f × ∀ n d → asks≤ (p n) d → PrHit … ≤ f n` | as row 25 | as row 25 | `f n = εᴸ n (p n + p n) + νₚ n` | row 25 plus `Negligible-+` |
 | 27 | `ideal-spends-genesis` (claim 3) | `Examples.ChimericLedger.Transfer` | `[ser]` `a V n` | P × S | one fixed strategy | exact `≡ 1ℚ` | `Replay.Genesis` (`genesis-live`, `genesis-moves`) |
 | 28 | `ledger-preserves-value-from-hash` | `Examples.ChimericLedger.Transfer` | `[ser]` `a V hash si hp` | G | the premise schedule is rescaled to `εᴴ ε n q = ε n (scale (scale q 1⁺) 1⁺)` | `εᴴ` | `hash-liftⁿ` then row 24 |
 | 29 | `State` / `Machine` / `St` | `Machines.Core` | `[𝒱]` `A B` | M | — | — | `State = obj, point : unit ⇒ obj`, where `point` may be effectful (in a Kleisli category `unit` is not initial); `St = obj state`. There is no `discard`: machines are pointed only |
 | 30 | `_∘ᴹ_` | `Machines.Core` (in an `opaque` block) | `[𝒱]` `g f` | M | — | — | composite state is `state g ⊛ state f`; opaque, so laws opt in with `unfolding` |
-| 31 | `_≲_` | `Machines.Sim` | `[𝒱 𝒫]` `{A B}` `f g`, fields `θ θ-pure θ-point θ-step` | M | — | — | a state simulation, not invertible. `θ` is drawn from the pure subcategory `𝒫`; at the probabilistic model its underlying function is `UC.Machine.Run.ϕ = P.fn (S.θ-pure sim)` (`fn = proj₁` of `IsPure f = Σ h. f ≈ᵏ pureᵏ h`) |
-| 32 | `_≈ᴹ_` | `Machines.Sim` | `[𝒱 𝒫]` `EqClosure _≲_` | M | — | — | `runᴹ-resp-≈ᴹ` (`UC.Machine.Run`); `obs-resp` (`UC.Model.Observation`); the hom equality of the machine category |
+| 31 | `_≲_` | `Machines.Sim` | `[𝒱 𝒫]` `{A B}` `f g`, fields `θ θ-pure θ-point θ-step` | M | — | — | a state simulation, not invertible. `θ` is drawn from the pure subcategory `𝒫`; at the probabilistic model its underlying function is `Protocol.Machine.Run.ϕ = P.fn (S.θ-pure sim)` (`fn = proj₁` of `IsPure f = Σ h. f ≈ᵏ pureᵏ h`) |
+| 32 | `_≈ᴹ_` | `Machines.Sim` | `[𝒱 𝒫]` `EqClosure _≲_` | M | — | — | `runᴹ-resp-≈ᴹ` (`Protocol.Machine.Run`); `obs-resp` (`UC.Model.Observation`); the hom equality of the machine category |
 | 33 | `Protocol`, `morphism`, `MSt` | `Protocol`; `Protocol.Machine` | `A B`; `St init step` | P → M | — | — | the image state is `MSt = idle (St P) \| wait k`; `drive` returns to `idle` only on an answer (`ret`); adequacy by `prAgree` |
 | 34 | Seal: `𝔾ᵒ`, `sealᵒ`, `procᵒ`/`unprocᵒ`, `≈ᴹ⇒≈ᵒ`/`≈ᵒ⇒≈ᴹ`, `unprocᵒ-∘`/`procᵒ-∘` | `UC.Model.Seal` | — | G ↔ M | — | — | a seal hom at interface objects *is* a `Proc`, and its equality *is* `𝒢ₚ`'s; no state is exposed through `𝔾ᵒ`'s interface, and every state read crosses `unprocᵒ` |
 | 35 | `Certified` / `QB` | `UC.QueryBound` | `{A B}` `c M`; `QB c M = Σ N. Certified c N × N ≈ᴹ M` | M | count `c : ℕ`, 0 allowed | — | `Certified` is not `≈ᴹ`-invariant, so `QB` is its closure; `qb-resp-≈`, `qb-closed : QB 0 M` for closed `M` |
-| 36 | `StateTest`, `pullTest`, `_▷_`, `unflag-▷` | `UC.Machine.StateEvent` | `{A B}` `M`; `P : MC.St M → Bool` | M | — | — | `M ▷ P : Proc A (B ⊗ᴵ Ωᴵ)` samples `P` at the (possibly effectful) initial state and at every completed activation (an answer on `B`), and answers the accumulated flag on one extra `Ωᴵ` port. Forgetting the port undoes it up to simulation (`unflag-▷ : unflag (M ▷ P) S.≲ M`) |
+| 36 | `StateTest`, `pullTest`, `_▷_` | `UC.Machine.StateEvent` | `{A B}` `M`; `P : MC.St M → Bool` | M | — | — | `M ▷ P : Proc A (B ⊗ᴵ Ωᴵ)` samples `P` at the (possibly effectful) initial state and at every completed activation (an answer on `B`), and answers the accumulated flag on one extra `Ωᴵ` port. |
 | 37 | `stateRead`, `StateBoundedAt` / `StateBoundedᶠ` / `StateBoundedᴺ` | `UC.Machine.StateEvent.Read` | `Y M P E m`; rows 15-17 at `M ▷ P` and `flagReader B` | M | as rows 15-17 | as rows 15-17 | completed-run, as row 11 (`flagReadᴹ` waits for the verdict). At an embedded strategy the reading is `flagStrat` (`stateRead-agree`); at a protocol image it is `PrHit` past a depth (`stateRead-hit`, `stateBounded⇒hit`, `hit⇒stateBounded` at `idleTest`) |
 | 38 | `stateLift` | `UC.Machine.StateEvent.Lift` | `{B}` `M P q {r}` `h`; `h : ∀ d → asks≤ q d → Upper (runᴹ (M ▷ P) (flagStrat d)) r` | S premise → M conclusion | the same cap `q`; certificate `FlagCert` at the test's count plus one, the flag ask | `r`, no slack | every extracted strategy is `FlagShaped` (`B`-asks, at most one flag ask, then only coins and a verdict), and its run is dominated by `flagStrat` of its `B`-part (`shaped-run`) |
 | 39 | `StateSafe`, `preservesValue⇒stateSafe`, `ledger-uc-to-state` | `Examples.ChimericLedger.Property`; `….Transfer` | `StateSafe R bad = StateBoundedᴺ (λ n → morphism (R n)) (λ n → idleTest (R n) (bad n))` | M | as row 17 | `ε n (q + q)`: `withAudits` doubles the allowance | `hitᴺ⇒stateᴺ` of (row 22 at `p + p`, then `TruthfulAudit`, then `asks≤-withAudits`) |
 | 40 | `BoundedHitᴺ`, `hitᴺ⇒stateᴺ` / `stateᴺ⇒hitᴺ`, `boundedHit⇒stateᶠ` / `stateᶠ⇒boundedHit` | `UC.Machine.StateEvent.Adequacy` | `[{B} P Bad]`, then `BoundedHitᴺ = Saturated (λ n q r → ∀ d → asks≤ q d → PrHit (P n) (Bad n) d ≤ r)`; the conversions under `[T bd]`, `bd : T n (idle s) ≡ Bad n s` | P × S ↔ M | cap preserved | `ε`, `ν` unchanged in both directions | `saturated-map` of `hit⇒stateBounded` / `stateBounded⇒hit` |
-| 41 | `EventSim`, `_≈ᵉ_`, `▷-≲` / `▷-≈`, `stateRead-resp-≈ᵉ` | `UC.Machine.StateEvent`; `….Read` | `(M , P) (N , Q)`; fields `sim : M S.≲ N`, `compat : P s ≡ Q (ϕ sim s)` | M | — | — | a test moves only along a test-compatible simulation; machine equality alone does not transport it (`UC.Machine.StateEvent.HitTests.ghost-no-descent`); `≈ᵉ⇒≈ᴹ` forgets the annotation, and nothing goes back |
+| 41 | `EventSim`, `▷-≲`, `transportᵉ` | `UC.Machine.StateEvent`; `….Read` | `(M , P) (N , Q)`; fields `sim : M S.≲ N`, `compat : P s ≡ Q (ϕ sim s)` | M | — | — | a test moves only along a test-compatible simulation; machine equality alone does not transport it (`UC.Machine.StateEvent.HitTests.ghost-no-descent`) |
 
 Row count: **41**.
 
@@ -103,8 +103,8 @@ Row count: **41**.
 22. `preservesValue⇒saturated : (R : Systems LedgerIf^ω) {ε : ℕ → ℕ → ℚ} → Hitsᴺ (λ n → morphism (R n)) auditMonitorᶠ ε → Saturated (λ n q r → (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n))) → asks≤ q d → Pr (R n) (auditWatch n d) ℚ.≤ r) ε`
 23. `TruthfulAudit : (R : Systems LedgerIf^ω) → ((n : ℕ) → St (R n) → Bool) → Set` · `TruthfulAudit R bad = (n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n))) → PrHit (R n) (bad n) d ℚ.≤ Pr (R n) (auditWatch n (Watched.withAudits n d))`
 24. `preserves-value-transfer : (a V : ℕ) (R : Systems LedgerIf^ω) → SerInj → R ≈ᶠᴺ Ideal a V → PreservesValue (genesisTotal V) R`
-25. `ledger-uc-to-pov-family : SerInj → (R : Systems LedgerIf^ω) (badR : (n : ℕ) → St (R n) → Bool) → R ≈ᶠᴺ Ideal a V → TruthfulAudit (genesisTotal V) R badR → BoundedHitᴺ R badR (λ n q → εᴸ n (q ℕ.+ q))`
-26. `ledger-pov-family-negligible : SerInj → (R : Systems LedgerIf^ω) (badR : (n : ℕ) → St (R n) → Bool) → R ≈ᶠᴺ Ideal a V → TruthfulAudit (genesisTotal V) R badR → (p : ℕ → ℕ) → Poly p → Σ[ f ∈ (ℕ → ℚ) ] Negligible f × ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n))) → asks≤ (p n) d → PrHit (R n) (badR n) d ℚ.≤ f n)`
+25. `ledger-uc-to-hit-family : SerInj → (R : Systems LedgerIf^ω) (badR : (n : ℕ) → St (R n) → Bool) → R ≈ᶠᴺ Ideal a V → TruthfulAudit (genesisTotal V) R badR → BoundedHitᴺ R badR (λ n q → εᴸ n (q ℕ.+ q))`
+26. `ledger-hit-family-negligible : SerInj → (R : Systems LedgerIf^ω) (badR : (n : ℕ) → St (R n) → Bool) → R ≈ᶠᴺ Ideal a V → TruthfulAudit (genesisTotal V) R badR → (p : ℕ → ℕ) → Poly p → Σ[ f ∈ (ℕ → ℚ) ] Negligible f × ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n))) → asks≤ (p n) d → PrHit (R n) (badR n) d ℚ.≤ f n)`
 27. `ideal-spends-genesis : (a V n : ℕ) → Pr (Ideal a V n) (Live.spend a V n) ≡ 1ℚ × ((h : Ledger.Hash n) → Live.moved a V n h ≡ (((h , 0) , (a , V)) ∷ [] , []))`
 28. `ledger-preserves-value-from-hash : (a V : ℕ) (hash : Systems HashIf^ω) → SerInj → hash ≈ᶠᴺ oracle^ω → PreservesValue (genesisTotal V) (Realᴴ hash inputConsuming (genesisAt a V))`
 29. `record State : Set (o ⊔ ℓ) where field obj : Obj; point : unit ⇒ obj` · `record Machine (A B : Obj) : Set (o ⊔ ℓ) where field state : State; step : St ⊗₀ A ⇒ St ⊗₀ B` (`St = obj state`)
@@ -114,12 +114,12 @@ Row count: **41**.
 33. `record Protocol (A B : Iface) : Set₁ where field St : Set; init : St; step : St → Neg B → Calls A (St × Pos B)` · `morphism : Protocol A B → 𝒢ₚ 0ℓ [ ⟦ A ⟧ᴵ , ⟦ B ⟧ᴵ ]` · `data MSt : Set where idle : St P → MSt; wait : (Pos A → Calls A (St P × Pos B)) → MSt`
 34. `𝔾ᵒ : MonoidalCategory (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)` (opaque) · `sealᵒ : 𝔾ᵒ ≡ 𝒢ₚᴹ 0ℓ` · `procᵒ : {A B : Iface} → Proc A B → ifaceᵒ A G.⇒ ifaceᵒ B` · `unprocᵒ : {A B : Iface} → ifaceᵒ A G.⇒ ifaceᵒ B → Proc A B` · `≈ᴹ⇒≈ᵒ : {A B : Iface} {f g : Proc A B} → 𝒢ₚ 0ℓ [ f ≈ g ] → procᵒ f G.≈ procᵒ g` · `≈ᵒ⇒≈ᴹ : {A B : Iface} {f g : ifaceᵒ A G.⇒ ifaceᵒ B} → f G.≈ g → 𝒢ₚ 0ℓ [ unprocᵒ f ≈ unprocᵒ g ]` · `unprocᵒ-∘ : {A B C : Iface} (g : Proc B C) (f : Proc A B) → 𝒢ₚ 0ℓ [ unprocᵒ (procᵒ g G.∘ procᵒ f) ≈ M._∘_ g f ]`
 35. `Certified : {A B : Iface} → ℕ → Proc A B → Set` · `QB : {A B : Iface} → ℕ → Proc A B → Set₁` · `QB {A} {B} c M = Σ[ N ∈ Proc A B ] Certified c N × (N S.≈ᴹ M)`
-36. `StateTest : Proc A B → Set` · `StateTest M = MC.St M → Bool` · `pullTest : {M N : Proc A B} (σ : M S.≲ N) → StateTest N → StateTest M` · `_▷_ : Proc A (B ⊗ᴵ Ωᴵ)` (in `module _ {A B : Iface} (M : Proc A B) (P : StateTest M)`) · `unflag-▷ : {A B : Iface} (M : Proc A B) (P : StateTest M) → unflag (M ▷ P) S.≲ M`
+36. `StateTest : Proc A B → Set` · `StateTest M = MC.St M → Bool` · `pullTest : {M N : Proc A B} (σ : M S.≲ N) → StateTest N → StateTest M` · `_▷_ : Proc A (B ⊗ᴵ Ωᴵ)` (in `module _ {A B : Iface} (M : Proc A B) (P : StateTest M)`)
 37. `stateRead : {A B : Iface} (Y : Iface) (M : Proc A B) → StateTest M → Proc (Y ⊗ᴵ B) Ωᴵ → Proc unitᴵ (Y ⊗ᴵ A) → Dₚ Bool` · `stateRead {B = B} Y M P = readRun Y (M ▷ P) (flagReader B)` · `StateBoundedAt : {A B : Iface} → ℕ → ℚ → (M : Proc A B) → StateTest M → Set₁` · `StateBoundedAt {B = B} q r M P = BoundedAt q r (M ▷ P) (flagReader B)`
 38. `stateLift : {B : Iface} (M : Proc unitᴵ B) (P : StateTest M) (q : ℕ) {r : ℚ} → ((d : Strat (Neg B) (Pos B)) → asks≤ q d → Upper (runᴹ (M ▷ P) (flagStrat d)) r) → StateBoundedAt q r M P`
 39. `StateSafe : (R : Systems LedgerIf^ω) → ((n : ℕ) → St (R n) → Bool) → (ℕ → ℕ → ℚ) → Set₁` · `preservesValue⇒stateSafe : (R : Systems LedgerIf^ω) (bad : (n : ℕ) → St (R n) → Bool) {ε : ℕ → ℕ → ℚ} → Hitsᴺ (λ n → morphism (R n)) auditMonitorᶠ ε → TruthfulAudit R bad → StateSafe R bad (λ n q → ε n (q ℕ.+ q))` · `ledger-uc-to-state : SerInj → (R : Systems LedgerIf^ω) (badR : (n : ℕ) → St (R n) → Bool) → R ≈ᶠᴺ Ideal a V → TruthfulAudit (genesisTotal V) R badR → StateSafe R badR (λ n q → εᴸ n (q ℕ.+ q))`
 40. `BoundedHitᴺ : (ℕ → ℕ → ℚ) → Set` · `hitᴺ⇒stateᴺ : (ε : ℕ → ℕ → ℚ) → BoundedHitᴺ ε → StateBoundedᴺ (λ n → morphism (P n)) T ε` · `stateᴺ⇒hitᴺ : (ε : ℕ → ℕ → ℚ) → StateBoundedᴺ (λ n → morphism (P n)) T ε → BoundedHitᴺ ε`
-41. `record EventSim {A B : Iface} (x y : Annotated A B) : Set₁ where field sim : proj₁ x S.≲ proj₁ y; compat : (s : MC.St (proj₁ x)) → proj₂ x s ≡ proj₂ y (ϕ sim s)` · `_≈ᵉ_ = EqC.EqClosure EventSim` · `▷-≈ : {A B : Iface} {x y : Annotated A B} → x ≈ᵉ y → (proj₁ x ▷ proj₂ x) S.≈ᴹ (proj₁ y ▷ proj₂ y)`
+41. `record EventSim {A B : Iface} (x y : Annotated A B) : Set₁ where field sim : proj₁ x S.≲ proj₁ y; compat : (s : MC.St (proj₁ x)) → proj₂ x s ≡ proj₂ y (ϕ sim s)` · `▷-≲ : EventSim (M , P) (N , Q) → (M ▷ P) S.≲ (N ▷ Q)` · `transportᵉ : EventSim (R , P) (I , Q) → StateBoundedAt q r I Q → StateBoundedAt q r R P`
 
 ## 2. The proof path, ideal birthday bound → `ledger-hit-family-negligible`
 
@@ -176,16 +176,16 @@ Row count: **41**.
     `ledger-uc-to-state`. It applies `preservesValue⇒saturated` at
     `p″ := λ n → p n + p n` and `poly-+ Pp Pp`; `p″` is the `p′` of steps 7-10.
     `hits⇒bounded` runs at the same cap (`Y = unitᴵ`, `E = stratTest`,
-    `m = m₀`, `c′ = 0`), so nothing is spent coming back. For each `n` it
+    `m = λᴵ⇐`, `c′ = 0`), so nothing is spent coming back. For each `n` it
     instantiates the strategy as `withAudits n d₀`, admitted by
     `asks≤-withAudits n (p n) d₀ ad : asks≤ (p n + p n) …`, and chains with
     `truthful n d₀`. `TruthfulAudit` has no cap, so `d₀` passes unchanged. The
     strategy-level bound is lifted to `StateSafe` by `hitᴺ⇒stateᴺ` at
     `idleTest`.
-12. **`ledger-uc-to-pov-family`** reads it back with `stateᴺ⇒hitᴺ` at
+12. **`ledger-uc-to-hit-family`** reads it back with `stateᴺ⇒hitᴺ` at
     `idleTest`. Both conversions are `saturated-map`, so `ν` is unchanged:
     `PrHit (R n) (badR n) d₀ ≤ εᴸ n (p n + p n) + ν n`.
-13. **`ledger-pov-family-negligible`**:
+13. **`ledger-hit-family-negligible`**:
     `f := λ n → εᴸ n (p n ℕ.+ p n) ℚ.+ νₚ n`, negligible by
     `Negligible-+ (εᴸ-negligible (λ n → p n ℕ.+ p n) (poly-+ Pp Pp)) neg`.
     `εᴸ-negligible` is `negligibleBound-inv-pow-2` (`UC.Approximate.Decay`)
@@ -203,7 +203,7 @@ contexts (step 7), never at a monitored context.
 | Quantity | Code |
 |---|---|
 | `εᴸ(n,q) = (q² + q)·2⁻ⁿ` | `εᴸ n q = fromℕ (q ℕ.* q ℕ.+ q) ℚ.* inv-pow-2 n` (`Property`) |
-| `fₚ(n) = εᴸ(n, p(n) + p(n)) + νₚ(n)` | `λ n → εᴸ n (p n ℕ.+ p n) ℚ.+ νₚ n` (`ledger-pov-family-negligible`) |
+| `fₚ(n) = εᴸ(n, p(n) + p(n)) + νₚ(n)` | `λ n → εᴸ n (p n ℕ.+ p n) ℚ.+ νₚ n` (`ledger-hit-family-negligible`) |
 | `νₚ(n) = ε(n, (p(n) + p(n)) + 1)` | step 10's `ν` at `p′ = p″`, with `ε` the first component of `em`, carried unchanged by steps 11-12 |
 
 Fully unfolded: `fₚ(n) = ((2p(n))² + 2p(n))·2⁻ⁿ + ε(n, 2p(n) + 1)`.
