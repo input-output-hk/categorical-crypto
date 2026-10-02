@@ -60,11 +60,6 @@ lazy-bind _ _ K hK t x (just d) eq rewrite eq = >>=ₚ-identityˡ _ K ⟨≈⟩ 
 lazy-bind _ _ K hK t x nothing  eq rewrite eq =
   >>=ₚ-assoc (uniformₚ k) _ K ⟨≈⟩ bindᶠ λ h → >>=ₚ-identityˡ _ K ⟨≈⟩ hK ((x , h) ∷ t) h
 
-lazy-map : {R R′ : Set} (f : R → R′) (κ : Tbl → Dig → R) (t : Tbl) (x : Pt)
-           (w : Maybe Dig) → lookupPt t x ≡ w
-         → mapₚ f (lazyₚ κ t x) ≈ₚ lazyₚ (λ u d → f (κ u d)) t x
-lazy-map f κ = lazy-bind κ _ (returnₚ ∘′ f) λ _ _ → ≈ₚ-refl _
-
 RState : Set
 RState = Tbl × Maybe Bool
 
@@ -79,11 +74,8 @@ resStep ((t , m) , inj₂ getᴿ)      = case m of λ where
   nothing  → botₚ
 resStep ((t , m) , inj₂ nakᴿ)      = returnₚ ((t , m) , inj₂ rejᴿ)
 
-stateᵒ : State
-stateᵒ = initˢ RState ([] , nothing)
-
 resource : Proc unitᴵ Resᴵ
-resource = mk stateᵒ resStep
+resource = mk (initˢ RState ([] , nothing)) resStep
 
 ------------------------------------------------------------------------
 -- The cell's steps, and the query bound

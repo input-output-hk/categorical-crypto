@@ -237,8 +237,7 @@ open Step (λ _ → [])
 open Observable 1 (λ _ → [])
 open System 1 (λ _ → [])
 
-module One = Attack 1 (λ _ → []) 0
-open One using (s₀; txᵃ; once; twice; replay; replay-asks)
+open Attack 1 (λ _ → []) 0 using (s₀; txᵃ; once; twice; replay; replay-asks)
 
 h : Hash
 h = replicate 1 false
@@ -264,8 +263,7 @@ consuming-preserves-value = refl
 h₁ : Hash
 h₁ = replicate 1 true
 
-module OneG = Genesis 1 (λ _ → []) h 0 2
-open OneG using (g₀; spend)
+open Genesis 1 (λ _ → []) h 0 2 using (g₀; spend)
 
 genesis-live : Pr (Sys inputConsuming g₀) spend ≡ 1ℚ
 genesis-live = refl

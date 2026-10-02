@@ -80,29 +80,6 @@ private
   padᴵᵒ : CSt × (Neg unitᴵ ⊎ Pos Cⁱ) → (JSt × FSt) × (Neg unitᴵ ⊎ Pos Cᵗ)
   padᴵᵒ w = θᴵ (proj₁ w) , Sum.map₂ ⊎assocˡ (proj₂ w)
 
-  botᴵ : (sg : JSt) (sf : FSt) (n : LkQ)
-       → jStep (sg , inj₂ (inj₁ n)) ≈ₚ botₚ
-       → stepᴵ ((sg , sf) , inj₂ (inj₁ (inj₁ n))) ≈ₚ botₚ
-  botᴵ sg sf n eq = Iᵂ.R-bot sg sf (inj₁ (inj₁ n)) (bindˣ eq ⟨≈⟩ bot-bind-≈ₚ _)
-
-  downᴵ : (sg : JSt) (sf : FSt) (n : LkQ) (sg′ : JSt) (c : CoinQ)
-        → jStep (sg , inj₂ (inj₁ n)) ≈ₚ returnₚ (sg′ , inj₁ c)
-        → {D : Dₚ (FSt × (Neg unitᴵ ⊎ Pos (Lkᴵᶜ ⊗ᴵ Honᴵᶜ)))}
-        → coinStep (sf , inj₂ (inj₁ c)) ≈ₚ D
-        → stepᴵ ((sg , sf) , inj₂ (inj₁ (inj₁ n))) ≈ₚ (D >>=ₚ Iᶜ.resumeF sg′)
-  downᴵ sg sf n sg′ c eq =
-    Iᵂ.R-down sg sf (inj₁ (inj₁ n)) sg′ (inj₁ c) (bindˣ eq ⟨≈⟩ >>=ₚ-identityˡ (sg′ , inj₁ c) _)
-
-  backᴵ : (sg : JSt) (sf : FSt) (c : CoinR) (sg′ : JSt) (y : Pos (Lkᴵ ⊗ᴵ Advᴵᶜ))
-        → jStep (sg , inj₁ c) ≈ₚ returnₚ (sg′ , inj₂ y)
-        → Iᶜ.resumeF sg (sf , inj₂ (inj₁ c)) ≈ₚ returnₚ ((sg′ , sf) , inj₂ (inj₁ y))
-  backᴵ sg sf c sg′ y eq =
-    Iᵂ.F-up sg sf (inj₁ c) sg′ (inj₁ y) (bindˣ eq ⟨≈⟩ >>=ₚ-identityˡ (sg′ , inj₂ y) _)
-
-  honᴵ : (sg : JSt) (sf : FSt) (a : CoinA)
-       → Iᶜ.resumeF sg (sf , inj₂ (inj₂ a)) ≈ₚ returnₚ ((sg , sf) , inj₂ (inj₂ a))
-  honᴵ sg sf a = Iᵂ.F-up sg sf (inj₂ a) sg (inj₂ a) ≈refl
-
   -- Lookup as an explicit argument: see `Examples.CoinToss.Ideal.Hybrid`.
   hashᴵ : (φ : Tbl → CSt) (ψ : Tbl → JSt) (sf : FSt)
         → ((u : Tbl) → θᴵ (φ u) ≡ (ψ u , sf))
@@ -151,33 +128,37 @@ private
         >>=ₚ-assoc (coinₚ uniform-Bool) _ _
     ⟨≈⟩ bindᶠ (λ b₂ → >>=ₚ-identityˡ (midᶜ t b₁ b₂ , inj₂ (inj₂ (inj₁ (shareᴬ b₂)))) _)
     ⟨≈⟩ shareᴵ t b₁
-    ⟨≈⟩ ≈sym ( downᴵ (preʲ t) freshᵏ (commitˢ b₁) (askʲ t b₁) sampleᵏ ≈refl ≈refl
+    ⟨≈⟩ ≈sym ( Iᵂ.R-down (preʲ t) freshᵏ (inj₁ (inj₁ (commitˢ b₁))) (askʲ t b₁) (inj₁ sampleᵏ)
+                         (>>=ₚ-identityˡ _ _) ≈refl
            ⟨≈⟩ >>=ₚ-assoc (coinₚ uniform-Bool) _ _
            ⟨≈⟩ bindᶠ (λ c → >>=ₚ-identityˡ (heldᵏ c , inj₂ (inj₁ (coinᵏ c))) _
-                        ⟨≈⟩ backᴵ (askʲ t b₁) (heldᵏ c) (coinᵏ c) (midʲ t)
-                                  (inj₂ (shareᴬ (b₁ xor c))) ≈refl) )
+                        ⟨≈⟩ Iᵂ.F-up (askʲ t b₁) (heldᵏ c) (inj₁ (coinᵏ c)) (midʲ t)
+                                    (inj₁ (inj₂ (shareᴬ (b₁ xor c)))) (>>=ₚ-identityˡ _ _)) )
   idlStep (midᶜ t b₁ b₂) (inj₂ (inj₁ (inj₁ (commitˢ b)))) =
-    bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (botᴵ (midʲ t) (heldᵏ (b₁ xor b₂)) (commitˢ b) ≈refl)
+    bot-bind-≈ₚ _
+      ⟨≈⟩ ≈sym (Iᵂ.R-bot (midʲ t) (heldᵏ (b₁ xor b₂)) (inj₁ (inj₁ (commitˢ b))) (bot-bind-≈ₚ _))
   idlStep (postᶜ t b₁)   (inj₂ (inj₁ (inj₁ (commitˢ b)))) =
-    bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (botᴵ (endʲ t) doneᵏ (commitˢ b) ≈refl)
+    bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (Iᵂ.R-bot (endʲ t) doneᵏ (inj₁ (inj₁ (commitˢ b))) (bot-bind-≈ₚ _))
   idlStep (preᶜ t)       (inj₂ (inj₁ (inj₁ openˢ))) =
-    bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (botᴵ (preʲ t) freshᵏ openˢ ≈refl)
+    bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (Iᵂ.R-bot (preʲ t) freshᵏ (inj₁ (inj₁ openˢ)) (bot-bind-≈ₚ _))
   idlStep (midᶜ t b₁ b₂) (inj₂ (inj₁ (inj₁ openˢ))) =
         >>=ₚ-identityˡ (postᶜ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜ (b₁ xor b₂))))) _
-    ⟨≈⟩ ≈sym ( downᴵ (midʲ t) (heldᵏ (b₁ xor b₂)) openˢ (endʲ t) deliverᵏ ≈refl ≈refl
+    ⟨≈⟩ ≈sym ( Iᵂ.R-down (midʲ t) (heldᵏ (b₁ xor b₂)) (inj₁ (inj₁ openˢ)) (endʲ t) (inj₁ deliverᵏ)
+                         (>>=ₚ-identityˡ _ _) ≈refl
            ⟨≈⟩ >>=ₚ-identityˡ (doneᵏ , inj₂ (inj₂ (tossedᶜ (b₁ xor b₂)))) _
-           ⟨≈⟩ honᴵ (endʲ t) doneᵏ (tossedᶜ (b₁ xor b₂)) )
+           ⟨≈⟩ Iᵂ.F-up (endʲ t) doneᵏ (inj₂ (tossedᶜ (b₁ xor b₂))) (endʲ t) _ ≈refl )
   idlStep (postᶜ t b₁)   (inj₂ (inj₁ (inj₁ openˢ))) =
-    bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (botᴵ (endʲ t) doneᵏ openˢ ≈refl)
+    bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (Iᵂ.R-bot (endʲ t) doneᵏ (inj₁ (inj₁ openˢ)) (bot-bind-≈ₚ _))
   idlStep (preᶜ t)       (inj₂ (inj₁ (inj₁ failˢ))) =
-    bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (botᴵ (preʲ t) freshᵏ failˢ ≈refl)
+    bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (Iᵂ.R-bot (preʲ t) freshᵏ (inj₁ (inj₁ failˢ)) (bot-bind-≈ₚ _))
   idlStep (midᶜ t b₁ b₂) (inj₂ (inj₁ (inj₁ failˢ))) =
         >>=ₚ-identityˡ (postᶜ t b₁ , inj₂ (inj₂ (inj₂ abortedᶜ))) _
-    ⟨≈⟩ ≈sym ( downᴵ (midʲ t) (heldᵏ (b₁ xor b₂)) failˢ (endʲ t) abortᵏ ≈refl ≈refl
+    ⟨≈⟩ ≈sym ( Iᵂ.R-down (midʲ t) (heldᵏ (b₁ xor b₂)) (inj₁ (inj₁ failˢ)) (endʲ t) (inj₁ abortᵏ)
+                         (>>=ₚ-identityˡ _ _) ≈refl
            ⟨≈⟩ >>=ₚ-identityˡ (doneᵏ , inj₂ (inj₂ abortedᶜ)) _
-           ⟨≈⟩ honᴵ (endʲ t) doneᵏ abortedᶜ )
+           ⟨≈⟩ Iᵂ.F-up (endʲ t) doneᵏ (inj₂ abortedᶜ) (endʲ t) _ ≈refl )
   idlStep (postᶜ t b₁)   (inj₂ (inj₁ (inj₁ failˢ))) =
-    bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (botᴵ (endʲ t) doneᵏ failˢ ≈refl)
+    bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (Iᵂ.R-bot (endʲ t) doneᵏ (inj₁ (inj₁ failˢ)) (bot-bind-≈ₚ _))
 
 ------------------------------------------------------------------------
 -- The machine equality

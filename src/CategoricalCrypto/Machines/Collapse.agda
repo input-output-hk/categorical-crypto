@@ -7,17 +7,12 @@
 -- `Categories.GConstructionTrace`'s `α`/`γ` is an associator or a braiding — so
 -- `pure-∘ˡ`/`pure-∘ʳ` fold them into the tensor's own step, and what survives is
 -- `kᴳ`: a four-way dispatch sending each letter to the factor that owns it and
--- routing that factor's emission out or around the loop.  Any consumer that has
--- to read a `𝒢ₚ`-composite's step off starts here.
+-- routing that factor's emission out or around the loop.
 --
--- The point calculus the legs are read with is `Machines.Pointwise`.  Everything here stays inside `ℳₚ` and measures 16 s warm.
 -- `collapseᵀ` is stated as a trace rather than as `𝒢ₚ`'s `_∘_` on purpose: a
 -- consumer's goal names `_∘_` already, so leaving the projection out of the
 -- G-construction record to the consumer costs ONE such projection, while a
--- lemma stated with `_∘_` costs the consumer a second one — measured at 269 s
--- against 704 s (`Protocol.Machine.Compose`) and 282 s against 507 s
--- (`UC.Seam.Adequacy.Wiring`).  Opaque machine composition keeps that boundary
--- nominal instead of eta-expanding both composite records.
+-- lemma stated with `_∘_` costs the consumer a second one.
 
 open import Categories.Category
 open import Categories.Category.Monoidal.Bundle
@@ -279,15 +274,11 @@ module Loop (A B X : Set) (S : MC.State)
                     ⟨≈⟩ >>=ₚ-identityˡ (st , inj₁ y) k)
             ⟨≈⟩ bindᶠ solve-cont
 
-  loop-fix : (st : MC.obj S) (x : X)
-           → iterₚ body (st , x) ≈ₚ (k (st , inj₂ x) >>=ₚ contᵢ body)
-  loop-fix st x = iterₚ-fix body (st , x)
-
   loop-pass : (st : MC.obj S) (x : X) (st′ : MC.obj S) (o : B ⊎ X)
             → k (st , inj₂ x) ≈ₚ returnₚ (st′ , o)
             → iterₚ body (st , x) ≈ₚ contᵢ body (st′ , o)
   loop-pass st x st′ o eq =
-    loop-fix st x ⟨≈⟩ bindˣ eq ⟨≈⟩ >>=ₚ-identityˡ (st′ , o) (contᵢ body)
+    iterₚ-fix body (st , x) ⟨≈⟩ bindˣ eq ⟨≈⟩ >>=ₚ-identityˡ (st′ , o) (contᵢ body)
 
   loop-bot : (st : MC.obj S) (x : X) → k (st , inj₂ x) ≈ₚ botₚ → iterₚ body (st , x) ≈ₚ botₚ
-  loop-bot st x eq = loop-fix st x ⟨≈⟩ bindˣ eq ⟨≈⟩ bot-bind-≈ₚ (contᵢ body)
+  loop-bot st x eq = iterₚ-fix body (st , x) ⟨≈⟩ bindˣ eq ⟨≈⟩ bot-bind-≈ₚ (contᵢ body)

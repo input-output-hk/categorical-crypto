@@ -18,9 +18,8 @@
 -- an `EqClosure` needs (`(wait , idle)` never surfaces: `traceᴹ` solves the
 -- loop inside one step).
 --
--- The theorem names the G-composition before it is packed into `𝒢ₚ`'s Category
--- record.  This is definitionally the same operation but avoids projecting
--- `_∘_` through the assembled G-construction.  Measured warm cost: 11 s.
+-- `morphism-∘` is stated at the trace, before `𝒢ₚ`'s `_∘_`, for the reason in
+-- `Machines.Collapse`'s header.  Measured warm cost: 11 s.
 
 open import Categories.Category
 
@@ -40,17 +39,12 @@ open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
 
 import CategoricalCrypto.Machines.Collapse as Col
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Pointwise as Pw
-import CategoricalCrypto.Machines.Sim as Sim
-import CategoricalCrypto.Machines.Trace as Trace
 
 module CategoricalCrypto.Protocol.Machine.Compose where
 
-private
-  module MC = Core (𝒱ₚ 0ℓ)
-  module MT = Trace (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
-  module S  = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
+open Col using (module MT)
+open Pw using (module MC; module S)
 
 module _ {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B) where
 

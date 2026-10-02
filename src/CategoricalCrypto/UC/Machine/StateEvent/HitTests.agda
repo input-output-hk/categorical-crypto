@@ -21,6 +21,7 @@ open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.Uniform
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Reasoning
+open import ProbabilisticLogic.Dp.Settle
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Pointwise
@@ -42,7 +43,7 @@ Go = Bool ⇿ ⊤
 -- The reading of the test `T` at `d` eventually equals `v`.
 Reads : (P : Protocol unitᴵ Go) → (MSt P → Bool) → Strat ⊤ Bool → ℚ → Set
 Reads P T d v =
-  Σ[ n ∈ ℕ ] ((i : ℕ) → cum (n ℕ.+ i) (stateRead unitᴵ (morphism P) T (stratTest Go d) m₀) (indᵇ true) ≡ v)
+  Attains (stateRead unitᴵ (morphism P) T (stratTest Go d) m₀) (indᵇ true) v
 
 private
   reads : (P : Protocol unitᴵ Go) (Bad : St P → Bool) (d : Strat ⊤ Bool) {v : ℚ}

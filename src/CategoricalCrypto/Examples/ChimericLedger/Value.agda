@@ -222,10 +222,6 @@ checkIns-uniq u []       _ _ uq refl = uq
 checkIns-uniq u (i ∷ is) v u′ uq eq = case checkIns-∷ u i is v u′ eq of λ (_ , v₀ , _ , eqC , _) →
   checkIns-uniq (removeIn i u) is v₀ u′ (uniq-removeIn u i uq) eqC
 
-checkIns-head : ∀ u i is v u′ → checkIns u (i ∷ is) ≡ just (v , u′)
-              → Σ[ o ∈ TxOut ] lookupU u i ≡ just o
-checkIns-head u i is v u′ eq = case checkIns-∷ u i is v u′ eq of λ (o , _ , eqL , _) → o , eqL
-
 checkIns-consumed : ∀ u i is v u′ → Uniq u → checkIns u (i ∷ is) ≡ just (v , u′)
                   → lookupU u′ i ≡ nothing
 checkIns-consumed u i is v u′ uq eq = case checkIns-∷ u i is v u′ eq of λ (_ , v₀ , _ , eqC , _) →

@@ -206,7 +206,7 @@ behᴾ M = behᵍ (MC.St M) (MC.point (MC.state M) tt) (MC.step M)
 -- other's states outside its image, and none can be pulled back for want of a
 -- right inverse.  The hom-level predicate is therefore the `≈`-closure, which
 -- makes `qb-resp-≈` hold by construction and identifies nothing a test can tell
--- apart (`UC.Machine.Run.runᴹ-resp-≈ᴹ`).  Store that underlying machine
+-- apart (`Protocol.Machine.Run.runᴹ-resp-≈ᴹ`).  Store that underlying machine
 -- equality directly: projecting the definitionally identical relation from
 -- `𝒫ᴵ` forces the whole G-construction record at composite witnesses.
 QB : {A B : Iface} → ℕ → Proc A B → Set₁

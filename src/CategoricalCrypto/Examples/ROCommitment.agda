@@ -145,11 +145,8 @@ realStepᵈ (s , inj₂ (inj₂ ()))
 realStep : RSt × (Pos Resᴵ ⊎ Neg (Advᴵ ⊗ᴵ Honᴵ)) → Dₚ (RSt × (Neg Resᴵ ⊎ Pos (Advᴵ ⊗ᴵ Honᴵ)))
 realStep x = detₚ (realStepᵈ x)
 
-stateᴿ : State
-stateᴿ = initˢ RSt (waitᴿ nothing)
-
 real : Proc Resᴵ (Advᴵ ⊗ᴵ Honᴵ)
-real = mk stateᴿ realStep
+real = mk (initˢ RSt (waitᴿ nothing)) realStep
 
 ------------------------------------------------------------------------
 -- The simulator: extraction
@@ -180,8 +177,5 @@ simStep (s , inj₂ (openᴬ b r))   = case s of λ where
   (waitˢ L (just (c , e))) → returnₚ (checkˢ (b ∷ᵛ r) b L c e , inj₁ (hashˢ (b ∷ᵛ r)))
   _                        → botₚ
 
-stateˢ : State
-stateˢ = initˢ SSt (waitˢ [] nothing)
-
 simulator : Proc Lkᴵ Advᴵ
-simulator = mk stateˢ simStep
+simulator = mk (initˢ SSt (waitˢ [] nothing)) simStep

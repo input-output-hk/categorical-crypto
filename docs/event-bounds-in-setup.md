@@ -904,13 +904,13 @@ there. No module under `UC/` imports `Examples.ChimericLedger*` any more.
 
 **The two ruled statement changes.**
 
-1. `Transfer.ledger-uc-to-pov-family` (the trajectory appendix) now reads its
+1. `Transfer.ledger-uc-to-hit-family` (the trajectory appendix) now reads its
    schedule at `q + q + 1` rather than `q + q`: it is routed through claim 1
    (`preserves-value-transfer` → `Property.preservesValue⇒saturated` →
    `withAudits`' doubling → `TruthfulAudit`) instead of through the deleted
    strategy-level transfer, so the monitor's one accumulator query is charged
    on top of the honest interface's doubling. The event, the `TruthfulAudit`
-   premise and `ledger-pov-family-negligible`'s shape are unchanged, and the
+   premise and `ledger-hit-family-negligible`'s shape are unchanged, and the
    new schedule's negligibility is `Property.εᴹ-negligible`.
 2. `Property.preservesValue⇒saturated` states its conclusion directly — for
    every polynomial allowance `p` there is a negligible `ν` with
@@ -1415,11 +1415,11 @@ It stays beside its only consumer, `hits⇒bounded`.
 
 Plan item 6 ("preserve useful strategy-level results … do not weaken a sharper
 trajectory theorem solely to reuse a coarser contextual bound") does **not**
-apply to `Transfer.ledger-uc-to-pov-family`. By the maintainer's 2026-09-22
+apply to `Transfer.ledger-uc-to-hit-family`. By the maintainer's 2026-09-22
 ruling that appendix reads its schedule at `εᴹ n (p n + p n)`, i.e.
 `εᴸ n (q + q + 1)`: it is routed through claim 1
 (`preserves-value-transfer` → `Property.preservesValue⇒saturated` →
 `withAudits`' doubling → `TruthfulAudit`), and the sharper strategy-level route
 was retired deliberately. That number is the public type and is NOT to be
 restored to the older one; item 6 governs future cases only. Verified present
-and unchanged at `Transfer.agda`'s `ledger-uc-to-pov-family`.
+and unchanged at `Transfer.agda`'s `ledger-uc-to-hit-family`.

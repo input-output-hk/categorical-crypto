@@ -46,15 +46,8 @@ private module M = Category (𝒢ₚ 0ℓ)
 simJʰCert : Certified 1 simJʰ
 simJʰCert = qbᵢ-upward _ _ _ onL cohL
   where
-  Aᵍ : ℕ → Set
-  Aᵍ = Ans (λ _ → 0) (Neg Lkᴵᶜʰ) (Pos (Lkᴵʰ ⊗ᴵ Advᴵᶜʰ))
-
-  onL : (s : JStʰ) (a : Pos Lkᴵᶜʰ) → Dₚ (Aᵍ 0)
+  onL : (s : JStʰ) (a : Pos Lkᴵᶜʰ) → Dₚ (Ans (λ _ → 0) (Neg Lkᴵᶜʰ) (Pos (Lkᴵʰ ⊗ᴵ Advᴵᶜʰ)) 0)
   onL (preʲʰ t)    startᵏʰ    = returnₚ (inj₂ ((midʲʰ t , z≤n) , inj₁ rcptᶠ))
-  onL (preʲʰ _)    (coinᵏʰ _) = botₚ
-  onL (midʲʰ _)    startᵏʰ    = botₚ
-  onL (midʲʰ _)    (coinᵏʰ _) = botₚ
-  onL (askʲʰ _ _)  startᵏʰ    = botₚ
   onL (askʲʰ t b₂) (coinᵏʰ c) =
     returnₚ (inj₂ ((endʲʰ t , z≤n) , inj₁ (bitᶠ (c xor b₂))))
   onL _ _                     = botₚ

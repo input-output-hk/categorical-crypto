@@ -1,15 +1,9 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- The base `𝒱ₚ` is a Kleisli category, so every structural map of the machine
--- layer is a FUNCTION: `pureᵏ` of a relabelling.  This module is that reading —
--- the base half (`pure-idᵏ`/`swapᵏ`/`assocˡᵏ`/`assocʳᵏ` and the two
--- congruences), the junction calculus a pure factor spends
--- (`pureᴵ`/`enter-pure`/`exit-pure`/`tstep-inj₁`/`tstep-inj₂`), and the machine
--- half (`pureᴹ` congruences, the machines that are functions `pureᶠ` and
--- their laws, the interchange `midᴹ`, and `⌜⌝-pureᴹ`).
---
--- `midᴹ` is kept nominal by `opaque`: its expansion is proved once, in
--- `midᴹ-pure`, and consumers that need the composite say `unfolding midᴹ`.
+-- layer is a FUNCTION: `pureᵏ` of a relabelling.  This module is that reading
+-- for base maps (`…ᵏ`), the junctions a pure factor spends (`…ᴵ`), and
+-- machines (`pureᶠ`).
 
 open import Categories.Category.Monoidal.Bundle
 open import Categories.Monad.Discrete
@@ -28,7 +22,6 @@ open import Relation.Binary.PropositionalEquality using (refl)
 open import ProbabilisticLogic.Dp
 
 open import CategoricalCrypto.Machines.Base
-
 
 import CategoricalCrypto.Machines.Category as MCat
 import CategoricalCrypto.Machines.Core as Core
@@ -184,8 +177,6 @@ idᶠ _ = ≲⇒≈ᴹ˘ pureᴹ-id
 σᶠ : (V W : 𝒱.Obj) → σᴹ {V} {W} ≈ᴹ pureᶠ Sum.swap
 σᶠ _ _ = ≲⇒≈ᴹ (pureᴹ-cong swapᵏ)
 
--- Every factor of `mid` is a structural machine, hence `pureᴹ`; what it
--- collapses to is the interchange on sums.
 opaque
   unfolding midᴹ
 
@@ -213,7 +204,7 @@ opaque
 -- which name the `idᴹ` side.
 pure⊗-stateˡ : (h : 𝒱._⇒_ V W) (M : Machine V′ W′)
              → (pureᴹ h ⊗ᵉ M) ≲ mk (state M) (tstep (𝒱._⊗₁_ 𝒱.id h) (step M))
-pure⊗-stateˡ h M = collapseˡ ((refl⟩∘⟨ tstep-cong (onL-str h) 𝒱.Equiv.refl)
+pure⊗-stateˡ h M = collapseˡ ((refl⟩∘⟨ tstep-cong (onL-id⊗ h) 𝒱.Equiv.refl)
                               ○ tstep-sim (⟺ (pad-transport λ⇒ h)) onR-collapseˡ)
 
 pure⊗-stateʳ : (M : Machine V W) (h : 𝒱._⇒_ V′ W′)
@@ -224,13 +215,7 @@ pure⊗-stateʳ M h = collapseʳ ((refl⟩∘⟨ tstep-cong 𝒱.Equiv.refl (onR
 ------------------------------------------------------------------------
 -- Every wire is an embedding
 
--- The base half of the embedding `⌜ u , v ⌝`: swapping after relabelling each
--- summand is the copairing that routes each summand to the other side.
-swap-copair : (u : 𝒱._⇒_ V W) (v : 𝒱._⇒_ V′ W′)
-            → 𝒱._≈_ (𝒱._∘_ +-swap (u +₁ v)) [ 𝒱._∘_ i₂ u , 𝒱._∘_ i₁ v ]
-swap-copair u v = []∘+₁
-
--- …and the machine half: an embedding of two pure machines is pure.
+-- An embedding `⌜ u , v ⌝` of two pure machines is pure.
 ⌜⌝-pureᴹ : (u : 𝒱._⇒_ V W) (v : 𝒱._⇒_ V′ W′)
          → (σᴹ ∘ᴹ (pureᴹ u ⊗ᵉ pureᴹ v)) ≲ pureᴹ (𝒱._∘_ +-swap (u +₁ v))
 ⌜⌝-pureᴹ u v = ≲-trans (∘ᴹ-resp-≲ ≲-refl (⊗ᵉ-pureᴹ u v)) (pureᴹ-∘ +-swap (u +₁ v))

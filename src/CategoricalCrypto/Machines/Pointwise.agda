@@ -3,8 +3,6 @@
 -- The `Kl(Dₚ)` point-level calculus machine steps are read with: simulations
 -- along a function (`simFn`) and back (`fnStep`), and the paired point and the
 -- state actions evaluated at a point.
--- It has no `GConstruction` in its closure, so a consumer of this calculus alone
--- does not pay for the trace.
 
 open import Categories.Category.Monoidal.Bundle
 import Categories.Category.Construction.Kleisli.Discrete as KD
@@ -48,7 +46,7 @@ padϕ : (X → Y) → X × Z → Dₚ (Y × Z)
 padϕ ϕ p = returnₚ (ϕ (proj₁ p) , proj₂ p)
 
 ⊗-pureˡ : (h : X → Y) (p : X × Z) → (K.pureᵏ h V.⊗₁ V.id) p ≈ₚ padϕ h p
-⊗-pureˡ h p = >>=ₚ-identityˡ (h (proj₁ p)) _ ⟨≈⟩ >>=ₚ-identityˡ (proj₂ p) _
+⊗-pureˡ h = K.pureᵏ-⊗ h id
 
 ------------------------------------------------------------------------
 -- Simulations along a function

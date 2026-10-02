@@ -352,7 +352,7 @@ resulting `PrHit` bound is lifted to every admitted experiment by
 doubles the allowance and monitoring costs nothing, so the schedule is
 `εᴸ n (q + q)`.
 
-`ledger-uc-to-pov-family` and `ledger-pov-family-negligible` are the
+`ledger-uc-to-hit-family` and `ledger-hit-family-negligible` are the
 operational corollaries, read back at the embedded strategies through
 `stateᴺ⇒hitᴺ` with the same premises and numbers.
 

@@ -591,7 +591,7 @@ a `UCSetup` is `UC.Robust` over `Abstract2.Action`. The supersession itself is
 | `…UC.Family` | enrichment | 370 | `𝒞^ω` at a parameterized index, `PolyQB`, `Fam`, `Famᴹ` (whose standard grading is the family's only one), `Approximation^ω`, `Observation^ω`/`Approximate^ω`, `UCBase^ω`, `ucSetup^ω`, `ctxQB`, `_≈ℰ[_]_`, `absorb`, and the negligible layer `CarriedNegligible`/`carried-negligible`/`absorb-negl` |
 | `…UC.Machine` | model | 206 | `Proc`, `𝒫ᴵ`, `wireStep`/`wireᴹ`, `Ωᴵ`, `⟦_⟧ᴼ`, `Approximationᴹ`/`Observationᴹ`/`ApproximateObservationᴹ`, `T₁ᴵ`/`subᴵ`/`a⇒ᴵ`/`a⇐ᴵ`, `UCBaseᴹ` |
 | `…UC.Machine.Grading` | model | 74 | the four re-basings `qb-T₁ᴳ`/`qb-subᴳ`/`qb-a⇒ᴳ`/`qb-a⇐ᴳ`, carrying a query-bound certificate about a pinned relay to `gradingᴹ`'s action through a `…Dictionary` zigzag.  `GradingLawsᴹ`, `Gradingᴹ` and `Budgetᴹ` are GONE (perf finding 8); the `Budget (𝒢ₚ 0ℓ) gradingᴹ` assembly this row used to call owed is `UC.Machine.Budget.budgetᴹ`, and `UC.Model.Enrichment.budgetᵒ` carries it across the seal |
-| `…UC.Machine.Run` | model | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
+| `…Protocol.Machine.Run` | model | 157 | `step-sim`, `point-sim`, `run-sim`, `runᴹ-resp-≈ᴹ` — a simulation is invisible to a closed run |
 | `…UC.QueryBound` | model | 480 | `Below`/`AtMost`/`Ans`/`forget`, `QBᵢ`, `qbᵢ-mono`, `traceᵍ`/`behᵍ`, `#inj₁`/`#inj₂`, `CountBound`, `Counting`, `qbᵢ-wire`, `Certified`, `QB`, `qb-resp-≈`, `qb-mono`, `qbᵢ-resp-step`, `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub` and their hom-level forms.  `BudgetLawsᴹ` is GONE with `GradingLawsᴹ` and the rest (row above); the resource doctrine is inhabited directly by `UC.Machine.Budget.budgetᴹ` |
 | `…UC.QueryBound.Counting` | model | 237 | `CountedRun`, `countᵍ`/`countᵍ-erase`, `qbᵢ⇒count` — `Counting` inhabited |
 | `…UC.QueryBound.Compose` | model | 330 | `resumeF`/`resumeG`, `Unfolding` (the composite step's six equations), `qbᵢ-∘ᵍ` — the two-position token walk at rate `c * c′` |
@@ -882,7 +882,7 @@ congruence, `grade-stable`) and `…Environment.Approximate`'s `absorbᵘ`; `UC.
 metatheorems and the equivalence of the plain and dummy-adversary forms;
 `UC.Family` in full (`Fam` a category, the grading and observation lifted,
 `absorb`, and the negligible layer `carried-negligible`/`absorb-negl`);
-`UC.Machine.Run`'s `runᴹ-resp-≈ᴹ`, hence `Observationᴹ`;
+`Protocol.Machine.Run`'s `runᴹ-resp-≈ᴹ`, hence `Observationᴹ`;
 `UC.QueryBound`'s `qbᵢ-mono`, `qb-resp-≈`, `qb-mono`, the inhabitation
 `qbᵢ-wire` and the three trace-free closure laws `qbᵢ-id`/`qbᵢ-T₁`/`qbᵢ-sub`
 (`qbᵢ-resp-step` is what carries them), and the run-level meaning of the
@@ -1212,7 +1212,7 @@ ingestion half, `StandardTV` → `UC.Machine`, `OutputOnly` →
 
 One module of M2 changed: `Protocol.Machine`'s `runᴹFrom` now calls a named
 continuation `resumeᴹ` instead of a `where`-local one, extensionally the same
-step, so that `UC.Machine.Run` can quantify over it.  `Protocol.Machine.Pin`
+step, so that `Protocol.Machine.Run` can quantify over it.  `Protocol.Machine.Pin`
 still computes both verdicts by `refl`.
 
 ### Assumption ledger
@@ -1457,7 +1457,7 @@ Two smaller findings worth carrying forward:
 foot of this file has the current ones. In particular the last three rows are
 closed — the graded carry is stated with no event class in it
 (`uc-audit-carryᵈ`), the family premise is `UC.Asymptotic.Family._≤UC^ωⁿ_` and
-is consumed by `ledger-uc-to-pov-family`, and the end-to-end theorem is
+is consumed by `ledger-uc-to-hit-family`, and the end-to-end theorem is
 `ChimericLedger.EndToEnd` (`docs/end-to-end.md`).
 
 | item | where | status |

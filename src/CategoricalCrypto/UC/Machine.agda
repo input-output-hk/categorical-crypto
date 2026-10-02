@@ -37,9 +37,9 @@ open import CategoricalCrypto.Approx.Space ℚ-ordered
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Machine.Run
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Core
-open import CategoricalCrypto.UC.Machine.Run
 
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
@@ -133,7 +133,7 @@ spaceᴹ : ApproxSpace 0ℓ 0ℓ
 spaceᴹ = record { Carrier = Dₚ Bool ; approx = Approximationᴹ }
 
 -- The readout is homed on `𝒢ₚ`, not on `𝒫ᴵ`, because that is where the
--- grading is; the hom equality is read at slack 0 (`UC.Machine.Run`).
+-- grading is; the hom equality is read at slack 0 (`Protocol.Machine.Run`).
 QEvaluationᴹ : QEvaluation (𝒢ₚ 0ℓ) 0ℓ 0ℓ
 QEvaluationᴹ = record
   { J = ⟦ unitᴵ ⟧ᴵ ; Ω = ⟦ Ωᴵ ⟧ᴵ ; X = spaceᴹ

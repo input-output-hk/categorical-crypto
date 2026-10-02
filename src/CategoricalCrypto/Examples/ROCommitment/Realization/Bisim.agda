@@ -33,7 +33,7 @@ open import CategoricalCrypto.GamePlaying.Partial
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Protocol.Machine.Raw
-open import CategoricalCrypto.Protocol.Machine.Trace.Compose
+open import CategoricalCrypto.Protocol.Machine.Trace
 
 import CategoricalCrypto.Machines.Core as Core
 
@@ -105,10 +105,10 @@ private
   Xᴿ = Neg Resᴵ ⊎ Pos Resᴵ
 
   outᴳ : Neg Resᴵ ⊎ Pos (Advᴵ ⊗ᴵ Honᴵ) → Aᴿ ⊎ Xᴿ
-  outᴳ = outG real resource Kʳ Kᵒ real-settles res-settles
+  outᴳ = outG real resource
 
   exitᴿ : ℕ → Stᴿ × (Aᴿ ⊎ Xᴿ) → Dist⊥ (Stᴿ × Aᴿ)
-  exitᴿ = exit∘ real resource Kʳ Kᵒ real-settles res-settles rankᴿ rankedᴿ 2 boundᴿ
+  exitᴿ = Lp.exitK real resource Kʳ Kᵒ
 
   lift⊥ : (Stᴿ × Pos (Advᴵ ⊗ᴵ Honᴵ) → ℚ) → Stᴿ × Aᴿ → ℚ
   lift⊥ F (s , inj₂ p) = F (s , p)
@@ -121,15 +121,14 @@ private
            (F : Stᴿ × Pos (Advᴵ ⊗ᴵ Honᴵ) → ℚ)
          → E⊥ (Kᴿ (sg , sf) q) F ≡ E⊥ (Kʳ sg (inj₂ q)) (loopᴿ 2 sf F)
   enterᴿ sg sf q F =
-    trans (Kᶜˡ-read real resource Kʳ Kᵒ real-settles res-settles rankᴿ rankedᴿ 2 boundᴿ
+    trans (Kᶜˡ-read real resource Kʳ Kᵒ 2
                     (sg , sf) q F (lift⊥ F) (λ _ _ → refl))
-          (trans (K∘-enter real resource Kʳ Kᵒ real-settles res-settles
-                           rankᴿ rankedᴿ 2 boundᴿ ((sg , sf) , inj₂ q) (lift⊥ F))
-                 (dispatch-g real resource Kʳ Kᵒ real-settles res-settles
+          (trans (K∘-enter real resource Kʳ Kᵒ 2 ((sg , sf) , inj₂ q) (lift⊥ F))
+                 (dispatch-g real resource Kʳ Kᵒ
                              sg sf (inj₂ q) (λ w → E⊥ (exitᴿ 2 w) (lift⊥ F))))
 
   outᶠᴿ : ⊥ ⊎ Pos Resᴵ → Aᴿ ⊎ Xᴿ
-  outᶠᴿ = outF real resource Kʳ Kᵒ real-settles res-settles
+  outᶠᴿ = outF real resource
 
   digestᴿ : RSt → RState → (Stᴿ × Pos (Advᴵ ⊗ᴵ Honᴵ) → ℚ) → Dig → ℚ
   digestᴿ sg sf F d = E⊥ (Kʳ sg (inj₁ (digᴿ d))) (loopᴿ 0 sf F)
@@ -139,19 +138,18 @@ private
           → E⊥ (exitᴿ 2 ((sg , t , mb) , outᴳ (inj₁ (hashᴿ x)))) (lift⊥ F)
             ≡ E (fetchT (_, mb) t x) (λ u → digestᴿ sg (proj₁ u) F (proj₂ u))
   oracleᴿ sg t mb x F =
-    trans (exit-loop real resource Kʳ Kᵒ real-settles res-settles rankᴿ rankedᴿ 2 boundᴿ
+    trans (exit-loop real resource Kʳ Kᵒ
                      1 (sg , t , mb) (inj₁ (hashᴿ x)) (lift⊥ F))
-   (trans (dispatch-f real resource Kʳ Kᵒ real-settles res-settles
+   (trans (dispatch-f real resource Kʳ Kᵒ
                       sg (t , mb) (inj₂ (hashᴿ x)) (λ w → E⊥ (exitᴿ 1 w) (lift⊥ F)))
    (trans (E⊥-map ansᴹ (resK (t , mb) (hashᴿ x))
                   (λ r → E⊥ (exitᴿ 1 ((sg , proj₁ r) , outᶠᴿ (proj₂ r))) (lift⊥ F)))
    (trans (Eⱼ (resKᵀ (t , mb) x) step₁)
    (trans (lookupᴰℚ-Dmap digᵀ (fetchT (_, mb) t x) step₁)
           (lookupᴰℚ-cong-P (entries (fetchT (_, mb) t x)) λ u →
-            trans (exit-loop real resource Kʳ Kᵒ real-settles res-settles
-                             rankᴿ rankedᴿ 2 boundᴿ
+            trans (exit-loop real resource Kʳ Kᵒ
                              0 (sg , proj₁ u) (inj₂ (digᴿ (proj₂ u))) (lift⊥ F))
-                  (dispatch-g real resource Kʳ Kᵒ real-settles res-settles
+                  (dispatch-g real resource Kʳ Kᵒ
                               sg (proj₁ u) (inj₁ (digᴿ (proj₂ u)))
                               (λ w → E⊥ (exitᴿ 0 w) (lift⊥ F))))))))
     where
@@ -162,7 +160,7 @@ private
                → digestᴿ (relayᴿ m) sf F d ≡ F ((waitᴿ m , sf) , inj₁ (ansᴬ d))
   digest-relay m sf F d =
     trans (E⊥-return (waitᴿ m , inj₂ (inj₁ (ansᴬ d))) (loopᴿ 0 sf F))
-          (exit-out real resource Kʳ Kᵒ real-settles res-settles rankᴿ rankedᴿ 2 boundᴿ
+          (exit-out real resource Kʳ Kᵒ
                     0 (waitᴿ m , sf) (inj₂ (inj₁ (ansᴬ d))) (lift⊥ F))
 
   digest-check : (c : Dig) (b : Bool) (sf : RState) (F : Stᴿ × Pos (Advᴵ ⊗ᴵ Honᴵ) → ℚ) (d : Dig)
@@ -170,7 +168,7 @@ private
                  ≡ F ((waitᴿ (just c) , sf) , inj₂ (verdict b ⌊ d ≟ c ⌋))
   digest-check c b sf F d =
     trans (E⊥-return (waitᴿ (just c) , inj₂ (inj₂ (verdict b ⌊ d ≟ c ⌋))) (loopᴿ 0 sf F))
-          (exit-out real resource Kʳ Kᵒ real-settles res-settles rankᴿ rankedᴿ 2 boundᴿ
+          (exit-out real resource Kʳ Kᵒ
                     0 (waitᴿ (just c) , sf) (inj₂ (inj₂ (verdict b ⌊ d ≟ c ⌋))) (lift⊥ F))
 
   gameᴬ : (t : Tbl) (m : Maybe Dig) (x : Pt) (F′ : StR × R → ℚ)
@@ -221,7 +219,7 @@ bisimᴿ (waitᴿ m , t , nothing) _ refl (inj₁ (queryᴬ x)) F F′ hF =
 bisimᴿ (waitᴿ nothing , t , nothing) _ refl (inj₁ (commitᴬ c)) F F′ hF =
   trans (enterᴿ (waitᴿ nothing) (t , nothing) (inj₁ (commitᴬ c)) F)
  (trans (E⊥-return (waitᴿ (just c) , inj₂ (inj₂ rcptᴴ)) (loopᴿ 2 (t , nothing) F))
- (trans (exit-out real resource Kʳ Kᵒ real-settles res-settles rankᴿ rankedᴿ 2 boundᴿ
+ (trans (exit-out real resource Kʳ Kᵒ
                   2 (waitᴿ (just c) , t , nothing) (inj₂ (inj₂ rcptᴴ)) (lift⊥ F))
  (trans (hF _ _ refl refl) (sym (gameᶜ t c F′)))))
 bisimᴿ (waitᴿ (just c′) , t , nothing) _ refl (inj₁ (commitᴬ c)) F F′ hF =

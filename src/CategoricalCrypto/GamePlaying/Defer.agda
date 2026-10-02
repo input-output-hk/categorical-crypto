@@ -3,19 +3,11 @@
 -- Deferred sampling: a secret PLANTED in the state and the same secret DRAWN
 -- at the step that first reads it give the same run distribution.
 --
--- `runWith-avg` is `Hop.runWith-bisim` with an average in front of one side.
--- The planted kernel is run at a FAMILY of states indexed by the secret, the
--- deferring kernel at a single state, and the two agree at every adaptive
--- distinguisher once they agree at one query.  At a point-mass `μ` and a
--- constant family it IS `runWith-bisim`, so the induction
--- `Examples.MerkleDamgard.Core.ideal-marginal` runs is its `V ≡ ⊤` case.
---
 -- What it is FOR is the caveat `docs/ro-game-hop.md` records: a secret already
 -- determined by the state is one the next query hits with probability 1, so no
 -- `SuperCert` can bound a flag that reads it.  Moving the draw is the only way
 -- to put such a flag in reach of `Potential.rare-cert`, and this is the lemma
--- that moves it.  Two `Dist-ℚ`s never share a sample, which is why the `coin`
--- case is `Expectation.E-swap` and nothing else.
+-- that moves it.
 
 open import categorical-crypto.Prelude hiding (_>>=_)
 
@@ -30,12 +22,16 @@ module CategoricalCrypto.GamePlaying.Defer where
 
 module _ {R V StE StL : Type} (μ : Dist-ℚ V) (_≋_ : (V → StE) → StL → Type) where
 
-  -- The point hypothesis of an averaged bisimulation (below) at a constant
-  -- family: at the step that DRAWS the secret, `E-const` collapses the average
-  -- that has just been created.
-  avg-here : (F : StE × R → ℚ) (F′ : StL × R → ℚ)
-           → (∀ (g : V → StE × R) t → (λ v → proj₁ (g v)) ≋ proj₁ t
-              → (∀ v → proj₂ (g v) ≡ proj₂ t) → E μ (λ v → F (g v)) ≡ F′ t)
+  -- The point hypothesis of an averaged bisimulation (below): a family of
+  -- outcomes counts as related to one outcome when its states are and its
+  -- answer does not depend on the secret.
+  AvgPoint : (StE × R → ℚ) → (StL × R → ℚ) → Type
+  AvgPoint F F′ = ∀ (g : V → StE × R) t → (λ v → proj₁ (g v)) ≋ proj₁ t
+                → (∀ v → proj₂ (g v) ≡ proj₂ t) → E μ (λ v → F (g v)) ≡ F′ t
+
+  -- …at a constant family: at the step that DRAWS the secret, `E-const`
+  -- collapses the average that has just been created.
+  avg-here : (F : StE × R → ℚ) (F′ : StL × R → ℚ) → AvgPoint F F′
            → ∀ w s → (λ _ → proj₁ w) ≋ s → F w ≡ F′ (s , proj₂ w)
   avg-here F F′ pt w s rel =
     trans (sym (E-const μ (F w))) (pt (λ _ → w) (s , proj₂ w) rel (λ _ → refl))
@@ -45,14 +41,10 @@ module _ {Q R V StE StL : Type} (μ : Dist-ℚ V)
          (_≋_ : (V → StE) → StL → Type) where
 
   -- One query, averaged.  The relation compares a family of planted states
-  -- with one deferring state; a family of outcomes counts as related when its
-  -- states are and its answer does not depend on the secret; `avg-here` is the
-  -- constant-family case.
+  -- with one deferring state.
   AvgBisim : Type
   AvgBisim = ∀ f s → f ≋ s → ∀ q (F : StE × R → ℚ) (F′ : StL × R → ℚ)
-           → (∀ (g : V → StE × R) t → (λ v → proj₁ (g v)) ≋ proj₁ t
-              → (∀ v → proj₂ (g v) ≡ proj₂ t) → E μ (λ v → F (g v)) ≡ F′ t)
-           → E μ (λ v → E (resp (f v) q) F) ≡ E (resp′ s q) F′
+           → AvgPoint μ _≋_ F F′ → E μ (λ v → E (resp (f v) q) F) ≡ E (resp′ s q) F′
 
   runWith-avg : AvgBisim → ∀ d f s → f ≋ s
               → E μ (λ v → Pr₁ (runWith resp (f v) d)) ≡ Pr₁ (runWith resp′ s d)
@@ -64,8 +56,7 @@ module _ {Q R V StE StL : Type} (μ : Dist-ℚ V)
     where
       K  = λ (t : StE × R) → runWith resp (proj₁ t) (k (proj₂ t))
       K′ = λ (t′ : StL × R) → runWith resp′ (proj₁ t′) (k (proj₂ t′))
-      point : ∀ g t → (λ v → proj₁ (g v)) ≋ proj₁ t → (∀ v → proj₂ (g v) ≡ proj₂ t)
-            → E μ (λ v → Pr₁ (K (g v))) ≡ Pr₁ (K′ t)
+      point : AvgPoint μ _≋_ (λ t → Pr₁ (K t)) (λ t′ → Pr₁ (K′ t′))
       point g t r eq =
         trans (lookupᴰℚ-cong-P (entries μ)
                 (λ v → cong (λ z → Pr₁ (runWith resp (proj₁ (g v)) (k z))) (eq v)))

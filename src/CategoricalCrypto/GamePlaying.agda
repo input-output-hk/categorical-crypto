@@ -1,21 +1,11 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The two adaptive-robust bridges every concrete-security proof over the
--- reactive interaction model runs on, both PROVEN:
---
---   • `badProb-bounded` — the SUPERMARTINGALE bound.  A potential `φ` (indexed by
---     the remaining query budget) with a support-preserved invariant `Inv`, at
---     least 1 on bad states and non-increasing in expectation per query, bounds
---     the bad-probability of ANY adaptive distinguisher by the initial
---     potential.  This carries the whole adaptivity argument, so what a concrete
---     system still owes is a NON-adaptive per-step certificate (`SuperCert`).
---   • `Hop.FLGP` over `Coupling` — the Fundamental Lemma of Game-Playing in COUPLED form:
---     one kernel emits the shared state and BOTH answers, the ideal projection
---     copying the real answer while the POST-state is good.  "Identical until
---     bad" then holds by construction, so the lemma has NO side conditions.
---
--- Both are `GamePlaying.Partial`'s at the embedded kernel `embedᵏ`, read back
--- through `total⇒⊥`.
+-- The supermartingale bound `badProb-bounded`: a potential `φ` (indexed by the
+-- remaining query budget) with a support-preserved invariant, at least 1 on bad
+-- states and non-increasing in expectation per query, bounds the bad-probability
+-- of ANY adaptive distinguisher by the initial potential.  It carries the whole
+-- adaptivity argument, so a concrete system owes only a NON-adaptive per-step
+-- certificate (`SuperCert`).
 
 open import categorical-crypto.Prelude hiding (_>>=_)
 
@@ -41,7 +31,7 @@ private variable Q R St : Type
 
 -- The probability that `bad` fires at some visited state during the run of `d`
 -- against `resp` from `s` (1 immediately at a bad state — no monotonicity
--- needed): `GamePlaying.Partial`'s at the embedded kernel.
+-- needed).
 badProb : (St → Q → Dist-ℚ (St × R)) → (St → Bool) → St → Strat Q R → ℚ
 badProb resp = badProb⊥ (embedᵏ resp)
 
@@ -51,8 +41,6 @@ badProb resp = badProb⊥ (embedᵏ resp)
 Preserved : (St → Type) → (St → Q → Dist-ℚ (St × R)) → Type
 Preserved Inv resp = ∀ s q → Inv s → OnSupport (λ sr → Inv (proj₁ sr)) (resp s q)
 
--- A supermartingale at a total kernel (`badProb⊥-super`'s hypotheses), with
--- the initial potential dominated by the claimed bound.
 record SuperCert (resp : St → Q → Dist-ℚ (St × R)) (bad : St → Bool)
                  (s₀ : St) (ε : ℕ → ℚ) : Type₁ where
   field
@@ -67,10 +55,9 @@ record SuperCert (resp : St → Q → Dist-ℚ (St × R)) (bad : St → Bool)
 
 -- A supermartingale survives cutting the kernel down to the activations a
 -- machine serves: the dead branch scores 0, which `φ-nn` already dominates.
-prune-cert : {Q R St : Type} {K : St → Q → Dist-ℚ (St × R)} {bad : St → Bool}
-             {s₀ : St} {ε : ℕ → ℚ} (dead : St → Q → Bool)
-           → SuperCert K bad s₀ ε → SuperCert⊥ (prune dead K) bad s₀ ε
-prune-cert {R = R} {St = St} {K = K} dead c = record
+prune-cert : {K : St → Q → Dist-ℚ (St × R)} {bad : St → Bool} {s₀ : St} {ε : ℕ → ℚ}
+             (dead : St → Q → Bool) → SuperCert K bad s₀ ε → SuperCert⊥ (prune dead K) bad s₀ ε
+prune-cert {St = St} {R = R} {K = K} dead c = record
   { Inv = C.Inv ; φ = C.φ ; inv₀ = C.inv₀ ; φ-nn = C.φ-nn ; φ-bad = C.φ-bad
   ; φ-init = C.φ-init ; pres = pres⊥ ; φ-step = step⊥ }
   where
@@ -100,6 +87,9 @@ badProb-bounded c = badProb⊥-bounded (prune-cert (λ _ _ → false) c)
 ------------------------------------------------------------------------
 -- The coupling the Fundamental Lemma (`Hop.FLGP`) is stated at
 
+-- One kernel emits the shared state and BOTH answers, the ideal projection
+-- copying the real answer while the POST-state is good: "identical until bad"
+-- holds by construction, so the lemma has no side conditions.
 module Coupling (bad : St → Bool)
                 (respB : St → Q → Dist-ℚ (St × (R × R))) where
 

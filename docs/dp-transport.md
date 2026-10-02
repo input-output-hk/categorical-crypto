@@ -281,7 +281,7 @@ it is where the branch stops.
 
 **Since**: the round-trip bound is `ProbabilisticLogic.Dp.Settle.Iter.Ranked`
 and `StepSettles` at a traced machine is
-`Protocol.Machine.Trace.Compose.trace-settles`; no unrolling of `solve-loop` is spent,
+`Protocol.Machine.Trace.trace-settles`; no unrolling of `solve-loop` is spent,
 because the trace's step IS the bind chain. What is left is the second leg
 (`𝒢ₚ`'s `_∘_` against `traceᴹ`) — see
 [`docs/fcom-uc.md`](fcom-uc.md) §1, §"1b".
@@ -323,7 +323,7 @@ argument. Neither is in `src/`.
 
 **Since**: (b) is lifted, once and generically —
 `CategoricalCrypto.GamePlaying.Partial` (`FLGP⊥`, `badProb⊥-super`,
-`runWith⊥-bisim`, `hop-bound⊥`) with `prune`/`prune-cert` carrying a total
+`runWith⊥-bisim`, `hop-boundᵇ⊥`) with `prune`/`prune-cert` carrying a total
 `SuperCert` across the cut; see [`docs/fcom-uc.md`](fcom-uc.md) §2. The
 example's two `StepBisim⊥`s are what is left.
 

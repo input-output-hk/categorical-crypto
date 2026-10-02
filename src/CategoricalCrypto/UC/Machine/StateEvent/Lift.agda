@@ -45,6 +45,7 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pointwise
 open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Machine.Run
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Bridge
@@ -53,7 +54,6 @@ open import CategoricalCrypto.UC.Machine.Dominated
 open import CategoricalCrypto.UC.Machine.Grading
 open import CategoricalCrypto.UC.Machine.Monitor
 open import CategoricalCrypto.UC.Machine.Monitor.Agree
-open import CategoricalCrypto.UC.Machine.Run
 open import CategoricalCrypto.UC.Machine.Slide
 open import CategoricalCrypto.UC.Machine.StateEvent
 open import CategoricalCrypto.UC.Machine.StateEvent.Read

@@ -217,18 +217,7 @@ sR₀ = nothing , [] , nothing
 ------------------------------------------------------------------------
 -- Both marginals are the reference games
 
-ask-redᴸ : (t : Tbl) (m : Comʰ) (x : Pt) (G : StLʰ × Rʰ → ℚ)
-         → E (askL (t , m) x) G
-           ≡ E (fetchT id t x) (λ u → E (uniform-Vec k) (λ ρ → G (outAskL m x u ρ)))
-ask-redᴸ t m x = E-bind₂ (fetchT id t x) (uniform-Vec k) (outAskL m x)
-
 private
-  ask-redᴮ : (t : Tbl) (m : Comʰ) (f : Bool) (x : Pt) (G : St × (Rʰ × Rʰ) → ℚ)
-           → E (askB (t , m , f) x) G
-             ≡ E (fetchT id t x)
-                 (λ u → E (uniform-Vec k) (λ ρ → G (outAskB m f x u ρ)))
-  ask-redᴮ t m f x = E-bind₂ (fetchT id t x) (uniform-Vec k) (outAskB m f x)
-
   lift-E : (f : Bool) (μ : Dist-ℚ (StLʰ × Rʰ)) (p : St × (Rʰ × Rʰ) → St × Rʰ)
            (F : St × Rʰ → ℚ) (F′ : StLʰ × Rʰ → ℚ)
          → (∀ w → F (p (liftʰ f w)) ≡ F′ w) → E (Dmap p (Dmap (liftʰ f) μ)) F ≡ E μ F′
@@ -250,10 +239,10 @@ s ≋ s′ = eraseʰ s ≡ s′
 stepL : StepBisim C.realK respLʰ _≋_
 stepL (t , m , f) _ refl (askQʰ x) F F′ pt =
   trans (lookupᴰℚ-Dmap C.fR (askB (t , m , f) x) F)
- (trans (ask-redᴮ t m f x (λ w → F (C.fR w)))
+ (trans (E-bind₂ (fetchT id t x) (uniform-Vec k) (outAskB m f x) (λ w → F (C.fR w)))
  (trans (lookupᴰℚ-cong-P (entries (fetchT id t x)) (λ u →
           lookupᴰℚ-cong-P (entries (uniform-Vec k)) (λ ρ → pt _ _ refl refl)))
-        (sym (ask-redᴸ t m x F′))))
+        (sym (E-bind₂ (fetchT id t x) (uniform-Vec k) (outAskL m x) F′))))
 stepL (t , m , f) _ refl (comQʰ b) F F′ pt =
   lift-E f (comL (t , m) b) C.fR F F′ (λ _ → pt _ _ refl refl)
 stepL (t , m , f) _ refl opnQʰ F F′ pt =
@@ -262,7 +251,7 @@ stepL (t , m , f) _ refl opnQʰ F F′ pt =
 stepI : StepBisim C.idealK respIʰ _≋_
 stepI (t , m , f) _ refl (askQʰ x) F F′ pt =
   trans (lookupᴰℚ-Dmap C.fI (askB (t , m , f) x) F)
- (trans (ask-redᴮ t m f x (λ w → F (C.fI w)))
+ (trans (E-bind₂ (fetchT id t x) (uniform-Vec k) (outAskB m f x) (λ w → F (C.fI w)))
  (trans (lookupᴰℚ-cong-P (entries (fetchT id t x)) (λ u → trans
           (lookupᴰℚ-cong-P (entries (uniform-Vec k)) (λ ρ → trans
             (cong (λ z → F ((proj₁ u , m , f ∨ hitAt m x ρ) , z))
@@ -295,7 +284,7 @@ private
 rare-raise : RareRaise C.realK hitOf (inv-pow-2 k)
 rare-raise (t , m , f) (askQʰ x) = ≤-trans
   (≤-reflexive (trans (lookupᴰℚ-Dmap C.fR (askB (t , m , f) x) hitP)
-                      (ask-redᴮ t m f x (λ w → hitP (C.fR w)))))
+                      (E-bind₂ (fetchT id t x) (uniform-Vec k) (outAskB m f x) (λ w → hitP (C.fR w)))))
   (≤-trans (E-mono (fetchT id t x)
              (λ u → E (uniform-Vec k) (λ ρ → hitP (C.fR (outAskB m f x u ρ))))
              (λ _ → bool→ℚ f +ℚ inv-pow-2 k) (λ u → hit-drift m f x))

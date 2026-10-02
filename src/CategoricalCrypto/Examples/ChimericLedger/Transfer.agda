@@ -184,22 +184,22 @@ module _ (a V : ℕ) where
   ledger-uc-to-state si R badR em =
     preservesValue⇒stateSafe (genesisTotal V) R badR {εᴸ} (preserves-value-transfer a V R si em)
 
-  ledger-uc-to-pov-family :
+  ledger-uc-to-hit-family :
       SerInj → (R : Systems LedgerIf^ω) (badR : (n : ℕ) → St (R n) → Bool)
     → R ≈ᶠᴺ Ideal a V → TruthfulAudit (genesisTotal V) R badR → BoundedHitᴺ R badR (λ n q → εᴸ n (q ℕ.+ q))
-  ledger-uc-to-pov-family si R badR em truthful =
+  ledger-uc-to-hit-family si R badR em truthful =
     stateᴺ⇒hitᴺ R badR (λ n → idleTest (R n) (badR n)) (λ _ _ → refl) (λ n q → εᴸ n (q ℕ.+ q))
       (ledger-uc-to-state si R badR em truthful)
 
-  ledger-pov-family-negligible :
+  ledger-hit-family-negligible :
       SerInj → (R : Systems LedgerIf^ω) (badR : (n : ℕ) → St (R n) → Bool)
     → R ≈ᶠᴺ Ideal a V → TruthfulAudit (genesisTotal V) R badR
     → (p : ℕ → ℕ) → Poly p
     → Σ[ f ∈ (ℕ → ℚ) ] Negligible f
       × ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n)))
          → asks≤ (p n) d → PrHit (R n) (badR n) d ℚ.≤ f n)
-  ledger-pov-family-negligible si R badR em truthful p Pp =
-    let νₚ , neg , bnd = ledger-uc-to-pov-family si R badR em truthful p Pp
+  ledger-hit-family-negligible si R badR em truthful p Pp =
+    let νₚ , neg , bnd = ledger-uc-to-hit-family si R badR em truthful p Pp
     in (λ n → εᴸ n (p n ℕ.+ p n) ℚ.+ νₚ n)
      , Negligible-+ (εᴸ-negligible (λ n → p n ℕ.+ p n) (poly-+ Pp Pp)) neg
      , bnd

@@ -77,11 +77,8 @@ module _ (B : Iface) (c : ℕ) where
   stepᶜ (playᶜ _ _   , inj₁ _) = botₚ
   stepᶜ (suspᶜ _ _ _ , inj₂ _) = botₚ
 
-  stateᶜ : (d : Strat (Neg B) (Pos B)) → asks≤ c d → MC.State
-  stateᶜ d h = initˢ CSt (playᶜ d h)
-
   envᶜ : (d : Strat (Neg B) (Pos B)) → asks≤ c d → Proc B Ωᴵ
-  envᶜ d h = MC.mk (stateᶜ d h) stepᶜ
+  envᶜ d h = MC.mk (initˢ CSt (playᶜ d h)) stepᶜ
 
   certᶜ : (d : Strat (Neg B) (Pos B)) (h : asks≤ c d) → Certified c (envᶜ d h)
   certᶜ d h = record

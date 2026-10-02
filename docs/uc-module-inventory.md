@@ -41,8 +41,8 @@ sub-modules. A plain `grep -rlF CategoricalCrypto.M` would count those as well.
 | `UC.Machine.Monitor` | 241 | 7 |  | a watch as a process (`monitorᴹ`), the completion reader `flagReader`, and the monitored process as its accumulator's flag wire (`monitor-flag`) |
 | `UC.Machine.Monitor.Agree` | 250 | 5 |  | the test a strategy embeds to (`stratTest`, `qb-stratTest`), the flag reader collapsed, and `flag-agree`: the accumulator's flag wire at `flagStrat d` is the watched run (`_≈ₚ_`) |
 | `UC.Machine.MonitorTests` | 37 | 1 | yes | the three behaviours the watch compiler is accepted on, at the monitor steps deciding them |
-| `UC.Machine.Run` | 118 | 17 |  | a simulation is invisible to a closed run |
-| `UC.Machine.Run.Lax` | 55 | 1 | yes | what a lax simulation does to a closed run: it prefixes it |
+| `Protocol.Machine.Run` | 118 | 17 |  | a simulation is invisible to a closed run |
+| `Protocol.Machine.Run.Lax` | 55 | 1 | yes | what a lax simulation does to a closed run: it prefixes it |
 | `UC.Machine.Slide` | 283 | 4 |  | a closed ancilla context with a hole is a plain context on the hole (`Kctx`, `ctxRun-slide`) |
 | `UC.Machine.StateEvent` | 181 | 7 |  | state predicates over machine presentations (`EventSim`), and the flag-wire machine `M ▷ P` that turns a Boolean state test into an interface event |
 | `UC.Machine.StateEvent.Adequacy` | 236 | 3 |  | at a protocol image the state-event reading is `PrHit` past a depth, and `BoundedHit` ⇔ `StateBoundedAt` at the same cap |

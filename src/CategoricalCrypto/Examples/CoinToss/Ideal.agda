@@ -77,11 +77,8 @@ coinStep (s , inj₂ (inj₁ abortᵏ))   = case s of λ where
   _         → botₚ
 coinStep (_ , inj₂ (inj₂ ()))
 
-stateᵏ : State
-stateᵏ = initˢ FSt freshᵏ
-
 Fcoin : Proc unitᴵ (Lkᴵᶜ ⊗ᴵ Honᴵᶜ)
-Fcoin = mk stateᵏ coinStep
+Fcoin = mk (initˢ FSt freshᵏ) coinStep
 
 ------------------------------------------------------------------------
 -- The joint simulator
@@ -115,8 +112,5 @@ jStep (s , inj₁ (coinᵏ c))           = case s of λ where
   _           → botₚ
 jStep (_ , inj₂ (inj₂ ()))
 
-stateʲ : State
-stateʲ = initˢ JSt (preʲ [])
-
 simJ : Proc Lkᴵᶜ (Lkᴵ ⊗ᴵ Advᴵᶜ)
-simJ = mk stateʲ jStep
+simJ = mk (initˢ JSt (preʲ [])) jStep

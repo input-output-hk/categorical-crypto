@@ -8,14 +8,10 @@
 -- plant, and the potential is the average of the flag plus the remaining
 -- query budget's worth of drift.
 --
--- Two things make the induction go through where `badProb-super`'s does not.
--- `endProb` — the probability that the flag is up at the END of the run,
--- equal to `badProb` for a MONOTONE flag — has no case split on the flag, so
--- the average never has to be split inside the integral.  And a family whose
--- answers no longer depend on the plant is what lets one adaptive strategy
--- serve every plant at once; once the plant IS revealed, the strategies part,
--- and `Fz` is the frozen mode — a state the flag no longer changes from,
--- where the run's contribution is the flag itself whatever the adversary does.
+-- The induction runs on `endProb` — the probability that the flag is up at
+-- the END of the run, equal to `badProb` for a MONOTONE flag — because it has
+-- no case split on the flag, so the average is never split inside the
+-- integral (`Partial.badProb⊥-super`'s induction does split).
 
 open import categorical-crypto.Prelude hiding (_>>=_)
 
@@ -123,9 +119,7 @@ module _ {V : Type} (μ : Dist-ℚ V) (resp : St → Q → Dist-ℚ (St × R)) (
               → ∀ m d f → asks≤ m d → (Rel f ⊎ (∀ v → Fz (f v)))
               → E μ (λ v → endProb resp bad (f v) d)
                 ≤ℚ E μ (λ v → bool→ℚ (bad (f v))) +ℚ fromℕ m *ℚ e
-  endProb-avg 0≤e frz drift m (out b) f le ok = ≤-trans
-    (≤-reflexive (sym (+-identityʳ (E μ (λ v → bool→ℚ (bad (f v)))))))
-    (+-monoʳ-≤ (E μ (λ v → bool→ℚ (bad (f v)))) (0≤* (0≤fromℕ m) 0≤e))
+  endProb-avg 0≤e frz drift m (out b) f le ok = p≤p+q _ (0≤* (0≤fromℕ m) 0≤e)
   endProb-avg 0≤e frz drift zero (ask q k) f () ok
   endProb-avg 0≤e frz drift (suc m) (ask q k) f le (inj₂ fz) = ≤-trans
     (≤-reflexive (trans (lookupᴰℚ-cong-P (entries μ)

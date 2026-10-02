@@ -22,6 +22,8 @@ import Data.Rational.Properties as ℚP
 open import ProbabilisticLogic.Distribution.Uniform
 open import ProbabilisticLogic.Dp.Advantage
 
+import ProbabilisticLogic.Distribution.Uniform.Birthday as UB
+
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol
@@ -62,7 +64,7 @@ LedgerIf^ω : ℕ → Iface
 LedgerIf^ω = AtLevel.LedgerIf
 
 εᴸ : ℕ → ℕ → ℚ
-εᴸ n q = fromℕ (q ℕ.* q ℕ.+ q) ℚ.* inv-pow-2 n
+εᴸ n = UB.birthday-bound n
 
 εᴸ-negligible : NegligibleBound εᴸ
 εᴸ-negligible = negligibleBound-inv-pow-2 {t = λ _ q → q ℕ.* q ℕ.+ q}

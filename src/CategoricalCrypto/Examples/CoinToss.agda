@@ -74,8 +74,5 @@ data PSt : Set where
 πStep (_ , inj₂ (inj₁ ()))
 πStep (_ , inj₂ (inj₂ ()))
 
-stateᵖ : State
-stateᵖ = initˢ PSt freshᵖ
-
 toss : Proc Honᴵ (Advᴵᶜ ⊗ᴵ Honᴵᶜ)
-toss = mk stateᵖ πStep
+toss = mk (initˢ PSt freshᵖ) πStep

@@ -13,11 +13,8 @@
 --     at most ε per query is up at some point with probability at most
 --     `m·ε`.  `guess-drift` discharges its hypothesis at ε ≡ 2⁻ᵏ for the flag
 --     "this query hit a fresh uniform k-bit point" — the GUESSING potential a
---     hiding argument for `commit = H(m ∥ r)` runs on.  NB the FRESH draw is
---     what makes the per-query drift provable: a secret already determined by
---     the state is one the next query can hit with probability 1, so a fixed
---     secret must be sampled LAZILY for this potential to apply (see
---     `docs/ro-game-hop.md`).
+--     hiding argument for `commit = H(m ∥ r)` runs on.  A secret fixed in the
+--     state must be sampled lazily for it to apply (`GamePlaying.Defer`).
 --
 -- `∨-cert` is the union bound the two are combined by: a proof whose bad event
 -- is a disjunction — a binding argument's is — adds the potentials and adds the
@@ -70,11 +67,9 @@ rare-cert {St = St} resp flag s₀ e 0≤e init raise = record
   ; φ      = φ
   ; inv₀   = tt
   ; pres   = λ s q _ → OnSupport-⊤ (resp s q)
-  ; φ-nn   = λ m s _ → ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ)))
-                               (+-mono-≤ (0≤bool (flag s)) (0≤* (0≤fromℕ m) 0≤e))
+  ; φ-nn   = λ m s _ → ≤-trans (0≤bool (flag s)) (p≤p+q _ (0≤* (0≤fromℕ m) 0≤e))
   ; φ-bad  = λ m s _ fl → subst (λ b → 1ℚ ≤ℚ bool→ℚ b +ℚ fromℕ m *ℚ e) (sym fl)
-                            (≤-trans (≤-reflexive (sym (+-identityʳ 1ℚ)))
-                                     (+-monoʳ-≤ 1ℚ (0≤* (0≤fromℕ m) 0≤e)))
+                            (p≤p+q 1ℚ (0≤* (0≤fromℕ m) 0≤e))
   ; φ-step = λ m s q _ → step m s q
   ; φ-init = λ m → ≤-trans (≤-reflexive (cong (λ b → bool→ℚ b +ℚ fromℕ m *ℚ e) init))
                            (≤-reflexive (+-identityˡ (fromℕ m *ℚ e)))
@@ -93,8 +88,7 @@ rare-cert {St = St} resp flag s₀ e 0≤e init raise = record
 guess-drift : ∀ k (f : Bool) (p : Vec Bool k)
             → E (uniform-Vec k) (λ r → bool→ℚ (f ∨ ⌊ r ≟ p ⌋))
             ≤ℚ bool→ℚ f +ℚ inv-pow-2 k
-guess-drift k true  p = ≤-trans (≤-reflexive (E-const (uniform-Vec k) 1ℚ))
-  (≤-trans (≤-reflexive (sym (+-identityʳ 1ℚ))) (+-monoʳ-≤ 1ℚ (0≤inv-pow-2 k)))
+guess-drift k true  p = ≤-trans (≤-reflexive (E-const (uniform-Vec k) 1ℚ)) (p≤p+q 1ℚ (0≤inv-pow-2 k))
 guess-drift k false p = ≤-trans (≤-reflexive (P-uniform-Vec k p))
                                 (≤-reflexive (sym (+-identityˡ (inv-pow-2 k))))
 
@@ -116,8 +110,7 @@ drift-∧ k g false p = ≤-trans
   ; φ      = λ m s → C₁.φ m s +ℚ C₂.φ m s
   ; inv₀   = C₁.inv₀ , C₂.inv₀
   ; pres   = λ s q i → ListAll.zip (C₁.pres s q (proj₁ i) , C₂.pres s q (proj₂ i))
-  ; φ-nn   = λ m s i → ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ)))
-                               (+-mono-≤ (C₁.φ-nn m s (proj₁ i)) (C₂.φ-nn m s (proj₂ i)))
+  ; φ-nn   = λ m s i → ≤-trans (C₁.φ-nn m s (proj₁ i)) (p≤p+q _ (C₂.φ-nn m s (proj₂ i)))
   ; φ-bad  = bad
   ; φ-step = step
   ; φ-init = λ m → +-mono-≤ (C₁.φ-init m) (C₂.φ-init m)
@@ -129,10 +122,8 @@ drift-∧ k g false p = ≤-trans
   bad : ∀ m s → C₁.Inv s × C₂.Inv s → (f s ∨ g s) ≡ true
       → 1ℚ ≤ℚ C₁.φ m s +ℚ C₂.φ m s
   bad m s i e with f s in ef
-  ... | true  = ≤-trans (≤-reflexive (sym (+-identityʳ 1ℚ)))
-      (+-mono-≤ (C₁.φ-bad m s (proj₁ i) ef) (C₂.φ-nn m s (proj₂ i)))
-  ... | false = ≤-trans (≤-reflexive (sym (+-identityˡ 1ℚ)))
-      (+-mono-≤ (C₁.φ-nn m s (proj₁ i)) (C₂.φ-bad m s (proj₂ i) e))
+  ... | true  = ≤-trans (C₁.φ-bad m s (proj₁ i) ef) (p≤p+q _ (C₂.φ-nn m s (proj₂ i)))
+  ... | false = ≤-trans (C₂.φ-bad m s (proj₂ i) e) (p≤q+p _ (C₁.φ-nn m s (proj₁ i)))
 
   step : ∀ m s q → C₁.Inv s × C₂.Inv s
        → E (resp s q) (λ sr → C₁.φ m (proj₁ sr) +ℚ C₂.φ m (proj₁ sr))

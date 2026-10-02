@@ -11,7 +11,7 @@
 -- examples do not reach.  At the model, the parameterized UC modules are fed
 -- `𝒢ₚᴹ 0ℓ`, `UC.Machine.Grading.gradingᴹ` and `UC.Machine.Evaluationᴹ`.
 --
--- Example leaves: `Examples.HashForward.Audit` (the toy's machine-level bound),
+-- Example leaves: `Examples.HashForward.UC` (the toy's machine-level bound),
 -- `Examples.ROCommitment.*` (a commitment that carries an error: UC images,
 -- extraction and hiding games, transport, and the resource-installed
 -- realization — `docs/fcom-extraction.md`, `docs/fcom-hiding.md`,
@@ -61,14 +61,14 @@ open import CategoricalCrypto.Protocol.Machine.Agree
 open import CategoricalCrypto.Protocol.Machine.Compose
 open import CategoricalCrypto.Protocol.Machine.Pin
 open import CategoricalCrypto.Protocol.Machine.Raw
-open import CategoricalCrypto.Protocol.Machine.Trace.Compose
+open import CategoricalCrypto.Protocol.Machine.Run.Lax
+open import CategoricalCrypto.Protocol.Machine.Trace
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Protocol.Safety
 open import CategoricalCrypto.Approx.FilteredTests
 open import CategoricalCrypto.Approx.Separating
 open import CategoricalCrypto.UC.Approximate.LocalTests
 open import CategoricalCrypto.UC.Machine.MonitorTests
-open import CategoricalCrypto.UC.Machine.Run.Lax
 open import CategoricalCrypto.UC.Machine.StateEvent.HitTests
 open import CategoricalCrypto.UC.Quantitative.EventLift
 open import CategoricalCrypto.UC.QueryBound.Counting
@@ -77,7 +77,7 @@ open import CategoricalCrypto.Examples.Basic
 open import CategoricalCrypto.Examples.Commitment
 open import CategoricalCrypto.Examples.Signatures
 open import CategoricalCrypto.Examples.RandomOracle
-open import CategoricalCrypto.Examples.HashForward.Audit
+open import CategoricalCrypto.Examples.HashForward.UC
 open import CategoricalCrypto.Examples.CoinToss.Compose
 open import CategoricalCrypto.Examples.CoinToss.Ideal.Compose
 open import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Compose

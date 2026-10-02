@@ -67,14 +67,14 @@ The verbatim signatures are in §1.1, keyed by row number.
 | 22 | `preservesValue⇒saturated` | `Examples/ChimericLedger/Property.agda` | `[ser] [a V]` `R {ε} pv`: `Hitsᴺ … ε → Saturated (λ n q r → ∀ d → asks≤ q d → Pr (R n) (auditWatch n d) ≤ r) ε`, at any schedule | M → P × S | cap `p n` | `ε n (p n) + ν n`, the same `ν` | `saturated-map` of `hits⇒bounded` |
 | 23 | `TruthfulAudit` | `Examples/ChimericLedger/Transfer.agda:184` | `[ser] [a V]` `R bad`, then `∀ n d → PrHit (R n) (bad n) d ≤ Pr (R n) (auditWatch a V n (withAudits n d))` | P × S | **no cap**: every `d` | exact inequality, no slack | a one-sided detection inequality. Proved for `Ideal` by `ideal-truthful` (`:189`, via `auditWatch-complete`); `liar-not-truthful` (`:314`) refutes it for `Liar` |
 | 24 | `preserves-value-transfer` (claim 1) | `Examples/ChimericLedger/Transfer.agda:73` | `[ser]` `a V R si`, then `R ≈ᶠᴺ Ideal a V → PreservesValue a V R` | G premise → M conclusion | see §2 steps 7-11 | `ν n = ε n (p n + 1)` | §2 |
-| 25 | `ledger-uc-to-pov-family` (claim 2) | at `fa45eaf5`: `Examples/ChimericLedger/Transfer.agda:185` | `[a V]` `si R badR em truthful`, then `BoundedHitᴺ R badR (λ n q → εᴹ n (q + q))` (`UC/Machine/StateEvent/Adequacy.agda:216`), i.e. `Saturated` (`UC/Machine/EventBounds.agda:93`) at `∀ d → asks≤ q d → PrHit (R n) (badR n) d ≤ r` | G premise → P × S conclusion | cap `p n`, read at `p n + p n` | `εᴹ n (p n + p n) + ν n` | `stateᴺ⇒hitᴺ` (`Adequacy.agda:234`) at `idleTest`, applied to the machine-level `ledger-uc-to-state : … → StateSafe R badR …` (`Transfer.agda:178`; `StateSafe`, `Examples/ChimericLedger/Property.agda:100`) |
-| 26 | `ledger-pov-family-negligible` | `Examples/ChimericLedger/Transfer.agda:206` | `[ser] [a V]` `si R badR em truthful p Pp`, then `Σ f. Negligible f × ∀ n d → asks≤ (p n) d → PrHit … ≤ f n` | as row 25 | as row 25 | `f n = εᴹ n (p n + p n) + νₚ n` | row 25 plus `Negligible-+` |
+| 25 | `ledger-uc-to-hit-family` (claim 2) | at `fa45eaf5`: `Examples/ChimericLedger/Transfer.agda:185` | `[a V]` `si R badR em truthful`, then `BoundedHitᴺ R badR (λ n q → εᴹ n (q + q))` (`UC/Machine/StateEvent/Adequacy.agda:216`), i.e. `Saturated` (`UC/Machine/EventBounds.agda:93`) at `∀ d → asks≤ q d → PrHit (R n) (badR n) d ≤ r` | G premise → P × S conclusion | cap `p n`, read at `p n + p n` | `εᴹ n (p n + p n) + ν n` | `stateᴺ⇒hitᴺ` (`Adequacy.agda:234`) at `idleTest`, applied to the machine-level `ledger-uc-to-state : … → StateSafe R badR …` (`Transfer.agda:178`; `StateSafe`, `Examples/ChimericLedger/Property.agda:100`) |
+| 26 | `ledger-hit-family-negligible` | `Examples/ChimericLedger/Transfer.agda:206` | `[ser] [a V]` `si R badR em truthful p Pp`, then `Σ f. Negligible f × ∀ n d → asks≤ (p n) d → PrHit … ≤ f n` | as row 25 | as row 25 | `f n = εᴹ n (p n + p n) + νₚ n` | row 25 plus `Negligible-+` |
 | 27 | `ideal-spends-genesis` (claim 3) | `Examples/ChimericLedger/Transfer.agda:225` | `[ser]` `a V n` | P × S | one fixed strategy | exact `≡ 1ℚ` | `Replay.Genesis` (`Transfer.agda:223`) |
 | 28 | `ledger-preserves-value-from-hash` | `Examples/ChimericLedger/Transfer.agda:162` | `[ser]` `a V hash si hp` | G | the premise schedule is rescaled to `εᴴ ε n q = ε n (scale (scale q 1⁺) 1⁺)` (`:121`) | `εᴴ` | `hash-liftⁿ` (`:158`) then row 24 |
 | 29 | `State` / `Machine` / `St` | `Machines/Core.agda:40,60,64` | `[𝒱]` `A B` | M | — | — | `State = obj, point : unit ⇒ obj, discard : obj ⇒ unit`, where `point` may be effectful (`:35-39`); `St = obj state` |
 | 30 | `_∘ᴹ_` | `Machines/Core.agda:99` (in an `opaque` block, `:98`) | `[𝒱]` `g f` | M | — | — | composite state is `state g ⊛ state f` (`:100`); opaque, so laws opt in with `unfolding` |
 | 31 | `_≲_` | `Machines/Sim.agda:45` | `[𝒱 𝒫]` `{A B}` `f g`, fields `θ θ-pure θ-discard θ-point θ-step` | M | — | — | a state simulation, not invertible. At `𝒱ₚ`, `Pure θ = Σ h. θ ≈ᵏ pureᵏ h` (`Categories/Category/Construction/Kleisli/Discrete/Pure.agda:25-26`), so an underlying function exists but only as an existential (`fn`, `:28`) |
-| 32 | `_≈ᴹ_` | `Machines/Sim.agda:57` | `[𝒱 𝒫]` `EqClosure _≲_` | M | — | — | `runᴹ-resp-≈ᴹ : f ≈ᴹ g → ∀ d → runᴹ f d ≈ₚ runᴹ g d` (`UC/Machine/Run.agda:133`); `obs-resp` (`UC/Model/Observation.agda:61`). This is the hom equality of `Mealy-Category` (`Machines/Category.agda:81`, `_≈_ = _≲_` closed by `categoryHelperᵉ`) |
+| 32 | `_≈ᴹ_` | `Machines/Sim.agda:57` | `[𝒱 𝒫]` `EqClosure _≲_` | M | — | — | `runᴹ-resp-≈ᴹ : f ≈ᴹ g → ∀ d → runᴹ f d ≈ₚ runᴹ g d` (`Protocol/Machine/Run.agda:133`); `obs-resp` (`UC/Model/Observation.agda:61`). This is the hom equality of `Mealy-Category` (`Machines/Category.agda:81`, `_≈_ = _≲_` closed by `categoryHelperᵉ`) |
 | 33 | `Protocol`, `morphism`, `MSt` | `Protocol.agda:59`; `Protocol/Machine.agda:60,85` | `A B`; `St init step` | P → M | — | — | the image state is `MSt = idle (St P) | wait k` (`:60-62`), with pure point `returnₚ (idle (init P))` (`:78-82`); `drive` returns to `idle` only on an answer (`:66-70`); adequacy by `prAgree` |
 | 34 | Seal: `𝔾ᵒ`, `sealᵒ`, `procᵒ`/`unprocᵒ`, `≈ᴹ⇒≈ᵒ`/`≈ᵒ⇒≈ᴹ`, `unprocᵒ-∘`/`procᵒ-∘` | `UC/Model/Seal.agda:50,70,81,84,87,91,122,130` | — | G ↔ M | — | — | a seal hom at interface objects *is* a `Proc`, and its equality *is* `𝒢ₚ`'s (`:21-24`); no state is exposed through `𝔾ᵒ`'s interface, and every state read must cross `unprocᵒ` |
 | 35 | `Certified` / `QB` | `UC/QueryBound.agda:230,241` | `{A B}` `c M`; `QB c M = Σ N. Certified c N × N ≈ᴹ M` | M | count `c : ℕ`, 0 allowed | — | `Certified` is not `≈ᴹ`-invariant (`:232-238`), so `QB` is its closure; `qb-resp-≈` (`:254`), `qb-closed : QB 0 M` for closed `M` (`:251`) |
@@ -112,8 +112,8 @@ Module telescopes are in brackets. `Property` and `Transfer` are parameterised b
 22. `preservesValue⇒saturated : (R : Systems LedgerIf^ω) {ε : ℕ → ℕ → ℚ} → Hitsᴺ (λ n → morphism (R n)) auditMonitorᶠ ε → Saturated (λ n q r → (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n))) → asks≤ q d → Pr (R n) (auditWatch n d) ℚ.≤ r) ε`
 23. `TruthfulAudit : (R : Systems LedgerIf^ω) → ((n : ℕ) → St (R n) → Bool) → Set` · `TruthfulAudit R bad = (n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n))) → PrHit (R n) (bad n) d ℚ.≤ Pr (R n) (auditWatch a V n (Watched.withAudits n d))`
 24. `preserves-value-transfer : (a V : ℕ) (R : Systems LedgerIf^ω) → SerInj → R ≈ᶠᴺ Ideal a V → PreservesValue a V R`
-25. `ledger-uc-to-pov-family : SerInj → (R : Systems LedgerIf^ω) (badR : (n : ℕ) → St (R n) → Bool) → R ≈ᶠᴺ Ideal a V → TruthfulAudit R badR → (p : ℕ → ℕ) → Poly p → Σ[ ν ∈ (ℕ → ℚ) ] Negligible ν × ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n))) → asks≤ (p n) d → PrHit (R n) (badR n) d ℚ.≤ εᴹ n (p n ℕ.+ p n) ℚ.+ ν n)`
-26. `ledger-pov-family-negligible : SerInj → (R : Systems LedgerIf^ω) (badR : (n : ℕ) → St (R n) → Bool) → R ≈ᶠᴺ Ideal a V → TruthfulAudit R badR → (p : ℕ → ℕ) → Poly p → Σ[ f ∈ (ℕ → ℚ) ] Negligible f × ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n))) → asks≤ (p n) d → PrHit (R n) (badR n) d ℚ.≤ f n)`
+25. `ledger-uc-to-hit-family : SerInj → (R : Systems LedgerIf^ω) (badR : (n : ℕ) → St (R n) → Bool) → R ≈ᶠᴺ Ideal a V → TruthfulAudit R badR → (p : ℕ → ℕ) → Poly p → Σ[ ν ∈ (ℕ → ℚ) ] Negligible ν × ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n))) → asks≤ (p n) d → PrHit (R n) (badR n) d ℚ.≤ εᴹ n (p n ℕ.+ p n) ℚ.+ ν n)`
+26. `ledger-hit-family-negligible : SerInj → (R : Systems LedgerIf^ω) (badR : (n : ℕ) → St (R n) → Bool) → R ≈ᶠᴺ Ideal a V → TruthfulAudit R badR → (p : ℕ → ℕ) → Poly p → Σ[ f ∈ (ℕ → ℚ) ] Negligible f × ((n : ℕ) (d : Strat (Neg (LedgerIf^ω n)) (Pos (LedgerIf^ω n))) → asks≤ (p n) d → PrHit (R n) (badR n) d ℚ.≤ f n)`
 27. `ideal-spends-genesis : (a V n : ℕ) → Pr (Ideal a V n) (Live.spend a V n) ≡ 1ℚ × ((h : Ledger.Hash n) → Live.moved a V n h ≡ (((h , 0) , (a , V)) ∷ [] , []))`
 28. `ledger-preserves-value-from-hash : (a V : ℕ) (hash : Systems HashIf^ω) → SerInj → hash ≈ᶠᴺ oracle^ω → PreservesValue a V (Realᴴ hash inputConsuming (genesisAt a V))`
 29. `record State : Set (o ⊔ ℓ) where field obj : Obj; point : unit ⇒ obj; discard : obj ⇒ unit` · `record Machine (A B : Obj) : Set (o ⊔ ℓ) where field state : State; step : St ⊗₀ A ⇒ St ⊗₀ B` (`St = obj state`)
@@ -142,7 +142,7 @@ Module telescopes are in brackets. `Property` and `Transfer` are parameterised b
 - Import counts: `Machines.Core` 60, `Machines.Sim` 37, `UC.Model.Seal` 27, `Strategy` 55,
   `Protocol.Observe` 15.
 
-## 2. The proof path, ideal birthday bound → `ledger-pov-family-negligible`
+## 2. The proof path, ideal birthday bound → `ledger-hit-family-negligible`
 
 `p` is the caller's polynomial. `d₀` is the caller's strategy with `asks≤ (p n) d₀`. `ε` is
 the schedule inside the premise `em : R ≈ᶠᴺ Ideal a V`. Each step names the lemma, the
@@ -156,11 +156,11 @@ binder it instantiates, and the value it receives.
 2. **`cert : HitCert Sys₀ Bad εbirthday`** (`Examples/ChimericLedger/Birthday.agda:270`).
    The potential is `φ m st = Φ m (Hs (proj₂ st))` (`:119-120`), with
    `Φ m L = bool→ℚ (dup L) + Γ (length L) m` (`ProbabilisticLogic/Distribution/Uniform/Duplicate.agda:76-77`).
-   Here `m` is the REMAINING query budget (`Protocol/Safety.agda` header). At `init`,
+   Here `m` is the REMAINING query budget (`GamePlaying.agda` header). At `init`,
    `Hs [] = h₀ ∷ []`, so `φ-init` (`Birthday.agda:285`) is `+-identityˡ` then `birthday m`.
    `εbirthday q = fromℕ (q *ᴺ q +ᴺ q) * inv-pow-2 ℓ` (`:65-66`).
-3. **`hit-bounded`** (`Protocol/Safety.agda:76`): `BoundedHit P Bad ε`, via `super` (`:72`)
-   and `hit≤badProb⊥` (`:50`). The strategy's cap `m` is the argument of `εbirthday`.
+3. **`hit-bounded`** (`Protocol/Safety.agda:57`): `BoundedHit P Bad ε`, via `hit≤badProb⊥` (`:41`)
+   and `GamePlaying.Partial.badProb⊥-bounded`. The strategy's cap `m` is the argument of `εbirthday`.
 4. **`target`** (`Birthday.agda:343`): `TrajectoryLossBounded inputConsuming (genesis h₀ a₀ V) εbirthday`,
    which is `BoundedHit (Sys vr s₀) (badTotal s₀) εbirthday` (`Observable.agda:72`).
    Premises: `ser-inj` and `h₀` (`Birthday.agda:60`), `a₀ V` (`:96`).
@@ -193,16 +193,16 @@ binder it instantiates, and the value it receives.
     (`:77`). Since `εᴹ n (p′ n) = εᴸ n (p′ n + 1)` by definition (`Property.agda:77-78`),
     this is `PreservesValue a V R` with no cast.
 12. **`preservesValue⇒saturated`** (`Property.agda:133`), called from
-    `ledger-uc-to-pov-family` (`Transfer.agda:200-202`) with `p″ := λ n → p n + p n` and
+    `ledger-uc-to-hit-family` (`Transfer.agda:200-202`) with `p″ := λ n → p n + p n` and
     `poly-+ Pp Pp`; `p″` becomes the `p′` of steps 7-11. For each `n`,
     `hits⇒bounded (reportsLoss …) (R n) (p″ n) (bnd n)` (`EventLift.agda:153`) runs at the
     same cap: `Y = unitᴵ`, `E = stratTest`, `m = m₀`, `c = p″ n`, `c′ = 0`. Nothing is
     spent coming back.
-13. **`ledger-uc-to-pov-family`** (`Transfer.agda:193-204`) instantiates step 12's strategy
+13. **`ledger-uc-to-hit-family`** (`Transfer.agda:193-204`) instantiates step 12's strategy
     as `withAudits n d₀`, admitted by `asks≤-withAudits n (p n) d₀ ad : asks≤ (p n + p n) …`
     (`Observable.agda:81`). It chains with `truthful n d₀`; `TruthfulAudit` has no cap, so
     `d₀` is passed unchanged.
-14. **`ledger-pov-family-negligible`** (`Transfer.agda:206-217`):
+14. **`ledger-hit-family-negligible`** (`Transfer.agda:206-217`):
     `f := λ n → εᴹ n (p n + p n) + νₚ n`, negligible by
     `Negligible-+ (εᴹ-negligible (λ n → p n + p n) (poly-+ Pp Pp)) neg`
     (`UC/Approximate.agda:159`). `εᴹ-negligible` (`Property.agda:80`) is

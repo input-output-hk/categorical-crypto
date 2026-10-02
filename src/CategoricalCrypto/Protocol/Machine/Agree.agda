@@ -87,19 +87,13 @@ module _ {B : Iface} (P : Protocol unitᴵ B) where
 
   ker : StepSettles (morphism P) Kᴾ
   ker (idle s) q = drive-settles (step P s q)
-  ker (wait _) q =
-    0 , Settles-resp (return-ℚ nothing) (Dmap⊥ ansᴹ (return-ℚ nothing))
-          (λ G → trans (nothing₀ G)
-                   (sym (trans (E⊥-map ansᴹ (return-ℚ nothing) G) (nothing₀ (λ p → G (ansᴹ p))))))
-          Settles-bot
+  ker (wait _) q = 0 , Settles-map-bot ansᴹ
 
--- The interaction is finite — the strategy tree bounds it and every call tree
--- is inductive — so past some depth the cumulative mass is *exactly* layer 1's
--- verdict probability.  It is asked at EITHER verdict, since that is what the
--- observation relation compares (`Dp.Advantage`'s header); `indᵇ b` is never
--- inspected, so both are one induction.
+-- The strategy tree and every call tree are finite, so past some depth the
+-- cumulative mass is *exactly* layer 1's verdict probability — at EITHER
+-- verdict, which is what the observation compares (`Dp.Advantage`'s header).
 prAgree : {B : Iface} (b : Bool) (P : Protocol unitᴵ B) (d : Strat (Neg B) (Pos B))
-        → Σ[ n ∈ ℕ ] ((m : ℕ) → cum (n ℕ.+ m) (runᴹ (morphism P) d) (indᵇ b) ≡ Prᵇ P b d)
+        → Attains (runᴹ (morphism P) d) (indᵇ b) (Prᵇ P b d)
 prAgree b P d =
   let n , h = rawPr (morphism P) (Kᴾ P) (ker P) (return⊥ (idle (init P))) 1
                     (Settles-return _) b d

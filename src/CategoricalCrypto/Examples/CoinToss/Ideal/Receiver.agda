@@ -78,11 +78,8 @@ coinStepʰ (s , inj₂ (inj₂ getᶜ))     = case s of λ where
   (heldᵏʰ c) → returnₚ (doneᵏʰ , inj₂ (inj₂ (tossedᶜʰ c)))
   _          → botₚ
 
-stateᵏʰ : State
-stateᵏʰ = initˢ FStʰ freshᵏʰ
-
 Fcoinʰ : Proc unitᴵ (Lkᴵᶜʰ ⊗ᴵ Honᴵᶜʰ)
-Fcoinʰ = mk stateᵏʰ coinStepʰ
+Fcoinʰ = mk (initˢ FStʰ freshᵏʰ) coinStepʰ
 
 ------------------------------------------------------------------------
 -- The joint simulator
@@ -113,8 +110,5 @@ jStepʰ (s , inj₁ (coinᵏʰ c))          = case s of λ where
   (askʲʰ t b₂) → returnₚ (endʲʰ t , inj₂ (inj₁ (bitᶠ (c xor b₂))))
   _            → botₚ
 
-stateʲʰ : State
-stateʲʰ = initˢ JStʰ (preʲʰ [])
-
 simJʰ : Proc Lkᴵᶜʰ (Lkᴵʰ ⊗ᴵ Advᴵᶜʰ)
-simJʰ = mk stateʲʰ jStepʰ
+simJʰ = mk (initˢ JStʰ (preʲʰ [])) jStepʰ

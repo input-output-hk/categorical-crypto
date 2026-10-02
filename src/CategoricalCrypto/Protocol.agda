@@ -6,8 +6,8 @@
 -- making finitely many calls on the left interface and flipping rational
 -- coins; `dead` is divergence (mass on ⊥ under observation).  Everything is an
 -- inductive syntax tree, so composition `_∘ᵖ_` — plug a protocol onto the one
--- below it and hide the shared interface — is structural recursion: no fuel,
--- no clocks, no partiality.
+-- below it and hide the shared interface — is structural recursion: no fuel
+-- and no clocks.
 
 open import Data.Bool.Base
 open import Data.Nat.Base

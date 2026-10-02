@@ -29,7 +29,7 @@ stay in place so the citation keeps resolving. Classified at `fa45eaf5`.
 | [coin-toss.md](coin-toss.md) | historical, kept in place: cited from `src/CategoricalCrypto.agda` | landing record of Blum coin-tossing over `F_com` and the hop to an ideal coin |
 | [fcom-extraction.md](fcom-extraction.md) | historical, kept in place: cited from `src/CategoricalCrypto.agda` | landing record of the RO commitment's extraction half |
 | [fcom-hiding.md](fcom-hiding.md) | historical, kept in place: cited from `src/CategoricalCrypto.agda` | landing record of the RO commitment's hiding / equivocation half |
-| [fcom-uc.md](fcom-uc.md) | historical, kept in place: cited from `src/CategoricalCrypto/Protocol/Machine/Trace/Compose.agda` | landing record of `F_com`'s closed-game bounds and the distance to UC-level ε-emulation |
+| [fcom-uc.md](fcom-uc.md) | historical, kept in place: cited from `src/CategoricalCrypto/Protocol/Machine/Trace.agda` | landing record of `F_com`'s closed-game bounds and the distance to UC-level ε-emulation |
 | [dp-transport.md](dp-transport.md) | historical, kept in place: cited from `src/CategoricalCrypto/Examples/CoinToss/Compose.agda` | landing record of the `Dₚ`-to-`Dist-ℚ` kernel-run transport |
 | [hash-forward.md](hash-forward.md) | historical, kept in place: cited from `src/CategoricalCrypto/Examples/HashForward.agda` | landing record of the hash-then-forward nontrivial-grade example |
 | [ro-game-hop.md](ro-game-hop.md) | historical, kept in place: cited from `src/CategoricalCrypto/Examples/ROCommitment/Game.agda` | landing record of the RO game-hopping toolkit hoisted out of Merkle–Damgård |

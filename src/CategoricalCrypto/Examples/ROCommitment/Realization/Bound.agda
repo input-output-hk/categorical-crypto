@@ -34,7 +34,7 @@ open import CategoricalCrypto.GamePlaying.Partial
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Machine.Trace.Compose
+open import CategoricalCrypto.Protocol.Machine.Trace
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 
@@ -69,11 +69,9 @@ private
   -- The machine half's three steps are named separately: inferring them inside
   -- one `where` forces the composite's step to normalize.
   composeᴿ : (d : Strat (Neg (Advᴵ ⊗ᴵ Honᴵ)) (Pos (Advᴵ ⊗ᴵ Honᴵ)))
-           → Σ[ n ∈ ℕ ] ((i : ℕ)
-               → cum (n + i) (runᴹ (𝒫._∘_ real resource) d)
-                             (indᵇ true)
-               ≡ E⊥ (σ₀ᴿ >>=⊥ λ m → runWith⊥ Kᴿ m d) (indᵇ true))
-  composeᴿ = compose-pr real resource Kʳ Kᵒ real-settles res-settles rankᴿ rankedᴿ 2 boundᴿ
+           → Attains (runᴹ (𝒫._∘_ real resource) d) (indᵇ true)
+                     (E⊥ (σ₀ᴿ >>=⊥ λ m → runWith⊥ Kᴿ m d) (indᵇ true))
+  composeᴿ = compose-pr real resource Kʳ Kᵒ 2 real-settles res-settles rankᴿ rankedᴿ boundᴿ
                         σ₀ᴿ (proj₁ pointᴿ) (proj₂ pointᴿ) true
 
   collapseᴿ : (d : Strat (Neg (Advᴵ ⊗ᴵ Honᴵ)) (Pos (Advᴵ ⊗ᴵ Honᴵ)))
@@ -85,10 +83,8 @@ private
   gameᴿ d = runWith⊥-bisimʳ toQ fromR Kᴿ respR⊥ _≋ᴿ_ bisimᴿ d m₀ sR₀ refl (indᵇ true)
 
 real-run : (d : Strat (Neg (Advᴵ ⊗ᴵ Honᴵ)) (Pos (Advᴵ ⊗ᴵ Honᴵ)))
-         → Σ[ n ∈ ℕ ] ((i : ℕ)
-             → cum (n + i) (runᴹ (𝒫._∘_ real resource) d)
-                           (indᵇ true)
-             ≡ Pr₁⊥ (runWith⊥ respR⊥ sR₀ (mapStrat toQ fromR d)))
+         → Attains (runᴹ (𝒫._∘_ real resource) d) (indᵇ true)
+                   (Pr₁⊥ (runWith⊥ respR⊥ sR₀ (mapStrat toQ fromR d)))
 real-run d = proj₁ (composeᴿ d)
            , λ i → trans (proj₂ (composeᴿ d) i) (trans (collapseᴿ d) (gameᴿ d))
 

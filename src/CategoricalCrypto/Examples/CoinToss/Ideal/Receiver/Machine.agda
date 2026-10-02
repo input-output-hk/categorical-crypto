@@ -36,9 +36,9 @@ open import CategoricalCrypto.GamePlaying.Defer.Run
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Machine.Run
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Run
 
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Pointwise as Pw
@@ -92,34 +92,11 @@ private
   padᴵᵒʰ : DStʰ × (Neg unitᴵ ⊎ Pos Cⁱʰ) → (JStʰ × FStʰ) × (Neg unitᴵ ⊎ Pos Cᵗʰ)
   padᴵᵒʰ w = θᴵʰ (proj₁ w) , Sum.map₂ ⊎assocˡ (proj₂ w)
 
-  botᴵʰ : (sg : JStʰ) (sf : FStʰ) (n : Neg (Lkᴵʰ ⊗ᴵ Advᴵᶜʰ))
-        → jStepʰ (sg , inj₂ n) ≈ₚ botₚ
-        → stepᴵ ((sg , sf) , inj₂ (inj₁ n)) ≈ₚ botₚ
-  botᴵʰ sg sf n eq = Iᵂ.R-bot sg sf (inj₁ n) (bindˣ eq ⟨≈⟩ bot-bind-≈ₚ _)
-
-  downᴵʰ : (sg : JStʰ) (sf : FStʰ) (n : Neg (Lkᴵʰ ⊗ᴵ Advᴵᶜʰ)) (sg′ : JStʰ) (c : LeakQʰ)
-         → jStepʰ (sg , inj₂ n) ≈ₚ returnₚ (sg′ , inj₁ c)
-         → {D : Dₚ (FStʰ × (Neg unitᴵ ⊎ Pos (Lkᴵᶜʰ ⊗ᴵ Honᴵᶜʰ)))}
-         → coinStepʰ (sf , inj₂ (inj₁ c)) ≈ₚ D
-         → stepᴵ ((sg , sf) , inj₂ (inj₁ n)) ≈ₚ (D >>=ₚ Iᶜ.resumeF sg′)
-  downᴵʰ sg sf n sg′ c eq =
-    Iᵂ.R-down sg sf (inj₁ n) sg′ (inj₁ c) (bindˣ eq ⟨≈⟩ >>=ₚ-identityˡ (sg′ , inj₁ c) _)
-
   bypᴵʰ : (sg : JStʰ) (sf : FStʰ) (q : CoinQʰ)
           {D : Dₚ (FStʰ × (Neg unitᴵ ⊎ Pos (Lkᴵᶜʰ ⊗ᴵ Honᴵᶜʰ)))}
         → coinStepʰ (sf , inj₂ (inj₂ q)) ≈ₚ D
         → stepᴵ ((sg , sf) , inj₂ (inj₂ q)) ≈ₚ (D >>=ₚ Iᶜ.resumeF sg)
   bypᴵʰ sg sf q = Iᵂ.R-down sg sf (inj₂ q) sg (inj₂ q) ≈refl
-
-  backᴵʰ : (sg : JStʰ) (sf : FStʰ) (c : LeakRʰ) (sg′ : JStʰ) (y : Pos (Lkᴵʰ ⊗ᴵ Advᴵᶜʰ))
-         → jStepʰ (sg , inj₁ c) ≈ₚ returnₚ (sg′ , inj₂ y)
-         → Iᶜ.resumeF sg (sf , inj₂ (inj₁ c)) ≈ₚ returnₚ ((sg′ , sf) , inj₂ (inj₁ y))
-  backᴵʰ sg sf c sg′ y eq =
-    Iᵂ.F-up sg sf (inj₁ c) sg′ (inj₁ y) (bindˣ eq ⟨≈⟩ >>=ₚ-identityˡ (sg′ , inj₂ y) _)
-
-  honᴵʰ : (sg : JStʰ) (sf : FStʰ) (a : CoinAʰ)
-        → Iᶜ.resumeF sg (sf , inj₂ (inj₂ a)) ≈ₚ returnₚ ((sg , sf) , inj₂ (inj₂ a))
-  honᴵʰ sg sf a = Iᵂ.F-up sg sf (inj₂ a) sg (inj₂ a) ≈refl
 
   -- Lookup as an explicit argument: see `Examples.CoinToss.Ideal.Hybrid`.
   hashᴵʰ : (φ : Tbl → DStʰ) (ψ : Tbl → JStʰ) (sf : FStʰ)
@@ -172,26 +149,30 @@ private
   idlStepʰ (endᴰ t b₁)    (inj₂ (inj₁ (inj₁ (relayᶠ x)))) =
     hashᴵʰ (λ u → endᴰ u b₁) endʲʰ doneᵏʰ (λ _ → refl) (λ _ _ → ≈refl) t x _ refl
   idlStepʰ (preᴰ t)       (inj₂ (inj₁ (inj₂ (shareᴬʰ b₂)))) =
-    bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (botᴵʰ (preʲʰ t) freshᵏʰ (inj₂ (shareᴬʰ b₂)) ≈refl)
+    bot-bind-≈ₚ _
+      ⟨≈⟩ ≈sym (Iᵂ.R-bot (preʲʰ t) freshᵏʰ (inj₁ (inj₂ (shareᴬʰ b₂))) (bot-bind-≈ₚ _))
   idlStepʰ (comᴰ t)       (inj₂ (inj₁ (inj₂ (shareᴬʰ b₂)))) =
         >>=ₚ-assoc (coinₚ uniform-Bool) _ _
     ⟨≈⟩ bindᶠ (λ b₁ → >>=ₚ-identityˡ (opnᴰ t b₁ b₂ , inj₂ (inj₁ (bitᶠ b₁))) _)
     ⟨≈⟩ shareᴵʰ t b₂
-    ⟨≈⟩ ≈sym ( downᴵʰ (midʲʰ t) waitᵏʰ (inj₂ (shareᴬʰ b₂)) (askʲʰ t b₂) sampleᵏʰ ≈refl ≈refl
+    ⟨≈⟩ ≈sym ( Iᵂ.R-down (midʲʰ t) waitᵏʰ (inj₁ (inj₂ (shareᴬʰ b₂))) (askʲʰ t b₂) (inj₁ sampleᵏʰ)
+                         (>>=ₚ-identityˡ _ _) ≈refl
            ⟨≈⟩ >>=ₚ-assoc (coinₚ uniform-Bool) _ _
            ⟨≈⟩ bindᶠ (λ c → >>=ₚ-identityˡ (heldᵏʰ c , inj₂ (inj₁ (coinᵏʰ c))) _
-                        ⟨≈⟩ backᴵʰ (askʲʰ t b₂) (heldᵏʰ c) (coinᵏʰ c) (endʲʰ t)
-                                   (inj₁ (bitᶠ (c xor b₂))) ≈refl) )
+                        ⟨≈⟩ Iᵂ.F-up (askʲʰ t b₂) (heldᵏʰ c) (inj₁ (coinᵏʰ c)) (endʲʰ t)
+                                    (inj₁ (inj₁ (bitᶠ (c xor b₂)))) (>>=ₚ-identityˡ _ _)) )
   idlStepʰ (opnᴰ t b₁ b₂) (inj₂ (inj₁ (inj₂ (shareᴬʰ b)))) =
     bot-bind-≈ₚ _
-      ⟨≈⟩ ≈sym (botᴵʰ (endʲʰ t) (heldᵏʰ (b₁ xor b₂)) (inj₂ (shareᴬʰ b)) ≈refl)
+      ⟨≈⟩ ≈sym (Iᵂ.R-bot (endʲʰ t) (heldᵏʰ (b₁ xor b₂)) (inj₁ (inj₂ (shareᴬʰ b))) (bot-bind-≈ₚ _))
   idlStepʰ (endᴰ t b₁)    (inj₂ (inj₁ (inj₂ (shareᴬʰ b)))) =
-    bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (botᴵʰ (endʲʰ t) doneᵏʰ (inj₂ (shareᴬʰ b)) ≈refl)
+    bot-bind-≈ₚ _
+      ⟨≈⟩ ≈sym (Iᵂ.R-bot (endʲʰ t) doneᵏʰ (inj₁ (inj₂ (shareᴬʰ b))) (bot-bind-≈ₚ _))
   idlStepʰ (preᴰ t)       (inj₂ (inj₂ goᶜ)) =
         >>=ₚ-identityˡ (comᴰ t , inj₂ (inj₁ rcptᶠ)) _
     ⟨≈⟩ ≈sym ( bypᴵʰ (preʲʰ t) freshᵏʰ goᶜ ≈refl
            ⟨≈⟩ >>=ₚ-identityˡ (waitᵏʰ , inj₂ (inj₁ startᵏʰ)) _
-           ⟨≈⟩ backᴵʰ (preʲʰ t) waitᵏʰ startᵏʰ (midʲʰ t) (inj₁ rcptᶠ) ≈refl )
+           ⟨≈⟩ Iᵂ.F-up (preʲʰ t) waitᵏʰ (inj₁ startᵏʰ) (midʲʰ t) (inj₁ (inj₁ rcptᶠ))
+                       (>>=ₚ-identityˡ _ _) )
   idlStepʰ (comᴰ t)       (inj₂ (inj₂ goᶜ)) =
     bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (bypᴵʰ (midʲʰ t) waitᵏʰ goᶜ ≈refl ⟨≈⟩ bot-bind-≈ₚ _)
   idlStepʰ (opnᴰ t b₁ b₂) (inj₂ (inj₂ goᶜ)) =
@@ -207,7 +188,7 @@ private
         >>=ₚ-identityˡ (endᴰ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜʰ (b₁ xor b₂))))) _
     ⟨≈⟩ ≈sym ( bypᴵʰ (endʲʰ t) (heldᵏʰ (b₁ xor b₂)) getᶜ ≈refl
            ⟨≈⟩ >>=ₚ-identityˡ (doneᵏʰ , inj₂ (inj₂ (tossedᶜʰ (b₁ xor b₂)))) _
-           ⟨≈⟩ honᴵʰ (endʲʰ t) doneᵏʰ (tossedᶜʰ (b₁ xor b₂)) )
+           ⟨≈⟩ Iᵂ.F-up (endʲʰ t) doneᵏʰ (inj₂ (tossedᶜʰ (b₁ xor b₂))) (endʲʰ t) _ ≈refl )
   idlStepʰ (endᴰ t b₁)    (inj₂ (inj₂ getᶜ)) =
     bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (bypᴵʰ (endʲʰ t) doneᵏʰ getᶜ ≈refl ⟨≈⟩ bot-bind-≈ₚ _)
 
@@ -344,7 +325,7 @@ private
   -- The sandwich's relabelling commutes with everything the induction reads:
   -- it leaves the state alone and only renames the answer, so the outcome
   -- hypothesis transports by a `cong`.
-  deferStepʰ : DeferStep μʰ (coinₚ-const uniform-Bool) eagerᶜʰ deferᶜʰ _≋ʰ_
+  deferStepʰ : DeferStep μʰ eagerᶜʰ deferᶜʰ _≋ʰ_
   deferStepʰ fs s rel q K K′ pt =
         bindᶠ (λ v → bind-map (eStep (fs v , inj₂ (⊎assocʳ q))) padʰ K)
     ⟨≈⟩ bindᶠ (λ v → ≡⇒≈ₚ (cong (λ z → eStep (z , inj₂ (⊎assocʳ q)) >>=ₚ (K ∘′ padʰ))
@@ -355,7 +336,7 @@ private
     ⟨≈⟩ ≈sym (bind-map (dStep (s , inj₂ (⊎assocʳ q))) padʰ K′)
 
 defer-runʰ : (d : Strat (Neg Cᵗʰ) (Pos Cᵗʰ)) → runᴹ eagerᶜʰ d ≈ₚ runᴹ deferᶜʰ d
-defer-runʰ = run-defer μʰ (coinₚ-const uniform-Bool) eagerᶜʰ deferᶜʰ _≋ʰ_ deferStepʰ
+defer-runʰ = run-defer μʰ eagerᶜʰ deferᶜʰ _≋ʰ_ (coinₚ-const uniform-Bool) deferStepʰ
                        (preᴱ []) (preᴰ []) (λ _ → refl) ≈refl ≈refl
 
 coin-runʰ : (d : Strat (Neg Cᵗʰ) (Pos Cᵗʰ)) → runᴹ hybridᴹʰ d ≈ₚ runᴹ idealᴹʰ d

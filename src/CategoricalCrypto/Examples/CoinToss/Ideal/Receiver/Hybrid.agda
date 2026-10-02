@@ -115,10 +115,6 @@ private
     ⟨≈⟩ >>=ₚ-assoc _ _ _
     ⟨≈⟩ bindᶠ (λ _ → >>=ₚ-identityˡ _ _)
 
-  lkᴴʰ : (sg : QSt) (r : RState) (y : LkAʰ)
-       → Hᶜ.resumeF sg (r , inj₂ (inj₁ y)) ≈ₚ returnₚ ((sg , r) , inj₂ (inj₁ y))
-  lkᴴʰ sg r y = Hᵂ.F-up sg r (inj₁ y) sg (inj₁ y) ≈refl
-
   hashᴴʰ : (φ : Tbl → EStʰ) (sg : QSt) (m : Maybe Bool)
          → ((u : Tbl) → θᴴʰ (φ u) ≡ (sg , (u , m)))
          → (t : Tbl) (x : Pt) (w : Maybe Dig) → lookupPt t x ≡ w
@@ -127,8 +123,8 @@ private
         lazy-bind _ κ (λ z → returnₚ (padᴴʰ z)) (λ u d → ret≡ (cong (_, inj₂ (inj₁ (digᶠ d))) (hyp u)))
                   t x w eqL
     ⟨≈⟩ ≈sym ( hearᴴʰ sg t m (relayᶠ x) (≈ₚ-refl _)
-           ⟨≈⟩ lazy-bind (λ u d → (u , m) , inj₂ (digᴿ d)) κ _ (λ u d → lkᴴʰ sg (u , m) (digᶠ d))
-                         t x w eqL )
+           ⟨≈⟩ lazy-bind (λ u d → (u , m) , inj₂ (digᴿ d)) κ _
+                         (λ u d → Hᵂ.F-up sg (u , m) (inj₁ (digᶠ d)) sg _ ≈refl) t x w eqL )
     where κ = λ u d → (sg , (u , m)) , inj₂ (inj₁ (digᶠ d))
 
   hybStep : (cs : EStʰ) (z : Pos unitᴵ ⊎ Neg Cⁱʰ)
@@ -151,7 +147,7 @@ private
            ⟨≈⟩ >>=ₚ-identityˡ (openᵗ b₁ b₂ , inj₁ openᴱ) _
            ⟨≈⟩ cellᴴʰ (openᵗ b₁ b₂) t (just b₁) openᴱ (cell-get t b₁)
            ⟨≈⟩ >>=ₚ-identityˡ ((t , just b₁) , inj₂ (outᴿ b₁)) _
-           ⟨≈⟩ lkᴴʰ (openᵗ b₁ b₂) (t , just b₁) (bitᶠ b₁) )
+           ⟨≈⟩ Hᵂ.F-up (openᵗ b₁ b₂) (t , just b₁) (inj₁ (bitᶠ b₁)) (openᵗ b₁ b₂) _ ≈refl )
   hybStep (opnᴱ t b₁ b₂) (inj₂ (inj₂ (inj₁ (shareᴬʰ b)))) =
         bot-bind-≈ₚ _
     ⟨≈⟩ ≈sym (askᴴʰ (openᵗ b₁ b₂) (t , just b₁) (inj₁ (shareᴬʰ b)) ⟨≈⟩ bot-bind-≈ₚ _)
@@ -166,7 +162,7 @@ private
            ⟨≈⟩ bindᶠ (λ b₁ → >>=ₚ-identityˡ (comᵗ b₁ , inj₁ (commitᴱ b₁)) _
                          ⟨≈⟩ cellᴴʰ (comᵗ b₁) t nothing (commitᴱ b₁) (cell-put t b₁)
                          ⟨≈⟩ >>=ₚ-identityˡ ((t , just b₁) , inj₂ rcptᴿ) _
-                         ⟨≈⟩ lkᴴʰ (comᵗ b₁) (t , just b₁) rcptᶠ) )
+                         ⟨≈⟩ Hᵂ.F-up (comᵗ b₁) (t , just b₁) (inj₁ rcptᶠ) (comᵗ b₁) _ ≈refl) )
   hybStep (comᴱ t b₁)    (inj₂ (inj₂ (inj₂ goᶜ))) =
         bot-bind-≈ₚ _
     ⟨≈⟩ ≈sym (askᴴʰ (comᵗ b₁) (t , just b₁) (inj₂ goᶜ) ⟨≈⟩ bot-bind-≈ₚ _)

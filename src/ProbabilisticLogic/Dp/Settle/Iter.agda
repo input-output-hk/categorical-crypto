@@ -127,8 +127,7 @@ module _ {S A B : Set} where
 ------------------------------------------------------------------------
 -- The round-trip bound
 
-module Loop {S A B : Set} (u : Body S A B) (Ku : S × A → Dist⊥ (S × (B ⊎ A)))
-            (bodyS : (w : S × A) → Σ[ i ∈ ℕ ] Settles i (u w) (Ku w)) where
+module Loop {S A B : Set} (Ku : S × A → Dist⊥ (S × (B ⊎ A))) where
 
   mutual
     loopK : ℕ → S × A → Dist⊥ (S × B)
@@ -139,22 +138,27 @@ module Loop {S A B : Set} (u : Body S A B) (Ku : S × A → Dist⊥ (S × (B ⊎
     exitK f (s , inj₁ b) = return⊥ (s , b)
     exitK f (s , inj₂ p) = loopK f (s , p)
 
-  module _ (rank : S × A → ℕ) where
+module _ {S A B : Set} (rank : S × A → ℕ) where
 
-    Drops : ℕ → S × (B ⊎ A) → Set
-    Drops r (_ , inj₁ _) = ⊤
-    Drops r (s , inj₂ p) = rank (s , p) < r
+  Drops : ℕ → S × (B ⊎ A) → Set
+  Drops r (_ , inj₁ _) = ⊤
+  Drops r (s , inj₂ p) = rank (s , p) < r
 
-    Ranked : Set
-    Ranked = (w : S × A) (i : ℕ) → Supp i (u w) (Drops (rank w))
+  Ranked : Body S A B → Set
+  Ranked u = (w : S × A) (i : ℕ) → Supp i (u w) (Drops (rank w))
 
-    Settles-iter : Ranked → (f : ℕ) (w : S × A) → rank w < f
-                 → Σ[ i ∈ ℕ ] Settles i (iterₚ u w) (loopK f w)
-    Settles-iter rk (suc f) w lt =
-      Settles-stepᵢˢ (proj₁ (bodyS w)) u (u w) (Ku w) (exitK f) (proj₂ (bodyS w))
-        (Supp-map (Drops (rank w)) _ serve (proj₁ (bodyS w)) (u w) (rk w _))
-      where
-      serve : (p : S × (B ⊎ A)) → Drops (rank w) p
-            → Σ[ i ∈ ℕ ] Settles i (contᵢ u p) (exitK f p)
-      serve (s , inj₁ b) _  = 1 , Settles-return (s , b)
-      serve (s , inj₂ p) dr = Settles-iter rk f (s , p) (≤ℕ-trans dr (s≤s⁻¹ lt))
+module _ {S A B : Set} (u : Body S A B) (Ku : S × A → Dist⊥ (S × (B ⊎ A)))
+         (bodyS : (w : S × A) → Σ[ i ∈ ℕ ] Settles i (u w) (Ku w)) where
+
+  open Loop Ku
+
+  Settles-iter : (rank : S × A → ℕ) → Ranked rank u → (f : ℕ) (w : S × A) → rank w < f
+               → Σ[ i ∈ ℕ ] Settles i (iterₚ u w) (loopK f w)
+  Settles-iter rank rk (suc f) w lt =
+    Settles-stepᵢˢ (proj₁ (bodyS w)) u (u w) (Ku w) (exitK f) (proj₂ (bodyS w))
+      (Supp-map (Drops rank (rank w)) _ serve (proj₁ (bodyS w)) (u w) (rk w _))
+    where
+    serve : (p : S × (B ⊎ A)) → Drops rank (rank w) p
+          → Σ[ i ∈ ℕ ] Settles i (contᵢ u p) (exitK f p)
+    serve (s , inj₁ b) _  = 1 , Settles-return (s , b)
+    serve (s , inj₂ p) dr = Settles-iter rank rk f (s , p) (≤ℕ-trans dr (s≤s⁻¹ lt))

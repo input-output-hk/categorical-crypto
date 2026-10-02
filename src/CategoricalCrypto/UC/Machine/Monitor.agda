@@ -171,7 +171,7 @@ module _ {A B : Iface} (report : Neg B → Pos B → Bool) (u : Proc A B) where
           step-red ((acc , p) , s) (inj₂ (inj₁ q))
       ⟨≈⟩ bindˣ (>>=ₚ-identityˡ ((acc , just q) , inj₁ q) _)
       ⟨≈⟩ >>=ₚ-identityˡ (((acc , just q) , s) , inj₂ (inj₁ q)) _
-      ⟨≈⟩ loop-fix ((acc , just q) , s) (inj₁ q)
+      ⟨≈⟩ iterₚ-fix body (((acc , just q) , s) , inj₁ q)
       ⟨≈⟩ upump (acc , just q) (MC.step u (s , inj₂ q))
     col-step (((acc , p) , s) , inj₂ (inj₂ _)) =
           step-red ((acc , p) , s) (inj₂ (inj₂ tt))

@@ -13,7 +13,7 @@ are relative to `src/CategoricalCrypto/` unless prefixed.
 What was missing: `Examples.ChimericLedger.Factor.ledger-pov-from-hash` takes the
 POINTWISE QUALITATIVE premise `hash ≤UC^ω oracle^ω` and lifts it with `UC.Factor.liftᵖ`
 (`UC-compose` + `≤UC-sub`), so the error is forgotten *before* the factoring is crossed.
-`EndToEnd.ledger-uc-to-pov-family` keeps an error but its premise sits at the LEDGER.
+`EndToEnd.ledger-uc-to-hit-family` keeps an error but its premise sits at the LEDGER.
 Nothing joined the two. `UC.Asymptotic.Compose` now provides the composition that does.
 
 ## 1. The premise shape at the hash, and why
@@ -161,22 +161,22 @@ ledger-pov-from-hashⁿ : SerInj → hash ≤UC^ωⁿ oracle^ω → (p : ℕ →
                            → PrHit (Realᵉ n) (badᵉ n) d ℚ.≤ f n)
 ```
 
-(`FactorEps.agda:159`), routed through `EndToEnd.ledger-pov-family-negligible` — whose
+(`FactorEps.agda:159`), routed through `EndToEnd.ledger-hit-family-negligible` — whose
 premise is `_≤UC^ωⁿ_` AT THE LEDGER, which `hash-liftⁿ` supplies. Two things to read off
 it:
 
 * **Neither `TotalRun` nor `NoDeadStep` appears.** The pointwise theorem spends totality
   to collapse a per-level emulation into an agreement; the family premise is already
   quantitative and there is nothing to collapse. The conclusion is
-  `ledger-pov-family-negligible`'s, i.e. `Real.ledger-pov`'s bound verbatim.
-* **The forgetting happens at the END and nowhere earlier.** `ledger-pov-family-negligible`
+  `ledger-hit-family-negligible`'s, i.e. `Real.ledger-pov`'s bound verbatim.
+* **The forgetting happens at the END and nowhere earlier.** `ledger-hit-family-negligible`
   folds the ε into the saturated slack (`≤UC^ωⁿ⇒≈negl`, `≈negl-respects`), which is the
   last step; the error crosses the factoring intact before that. The old route forgot at
   the start.
 
 ### Why the ᵉ route does not also reach a probability here
 
-`ledger-pov-family-negligible` wants `_≤UC^ωⁿ_`, and turning a general `_≤UC^ωᵉ_` witness
+`ledger-hit-family-negligible` wants `_≤UC^ωⁿ_`, and turning a general `_≤UC^ωᵉ_` witness
 into one is `UC.Asymptotic.Family.≤UC^ωᵉ⇒≤UC^ωⁿ`, whose premise is that the witness's
 simulator acts trivially on the ideal side:
 

@@ -2,9 +2,8 @@
 
 -- Adaptive query strategies (distinguishers): decision trees over a query
 -- interface, with a rational coin so randomized environments are first-class:
--- a deterministic strategy class is provably too weak for reflecting
--- environments (a fair coin choosing between two queries beats any single
--- deterministic tree).
+-- against a reflecting environment a coin choosing between two queries can beat
+-- every deterministic tree.
 --
 -- `asks≤ n` bounds the ask-depth of every branch; coins are free.
 
@@ -38,7 +37,7 @@ asks≤-mono (s≤s le)   (ask _ k)  h = λ r → asks≤-mono le (k r) (h r)
 asks≤-mono le         (coin _ k) h = λ b → asks≤-mono le (k b) (h b)
 
 -- The same strategy read over another alphabet: asks relabelled forwards,
--- answers backwards.  One ask stays one ask, so no budget moves.
+-- answers backwards.
 mapStrat : (Q → Q′) → (R′ → R) → Strat Q R → Strat Q′ R′
 mapStrat u v (out b)    = out b
 mapStrat u v (ask q k)  = ask (u q) λ r → mapStrat u v (k (v r))
@@ -57,7 +56,6 @@ watchFrom report acc (out _)    = out acc
 watchFrom report acc (ask q k)  = ask q λ r → watchFrom report (acc ∨ report q r) (k r)
 watchFrom report acc (coin μ k) = coin μ λ b → watchFrom report acc (k b)
 
--- A watch buys no queries: it plays inside the allowance it is handed.
 asks≤-watch : (report : Q → R → Bool) {n : ℕ} (acc : Bool) (d : Strat Q R)
             → asks≤ n d → asks≤ n (watchFrom report acc d)
 asks≤-watch report acc (out b) _ = tt

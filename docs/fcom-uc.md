@@ -149,7 +149,7 @@ not a new argument" — is what is done, once.
 | `badProb⊥-bounded` | 119 | `badProb-bounded` |
 | `Coupling⊥` / `FLGP⊥` | 132 / 143 | `Coupling` / `FLGP` |
 | `StepBisim⊥` / `runWith⊥-bisim` | 233 / 240 | `Hop.StepBisim` / `runWith-bisim` |
-| `hop-bound⊥` | 268 | `Hop.hop-bound` |
+| `hop-boundᵇ⊥` | 318 | `Hop.hop-bound` (bound hypothesis in place of the `SuperCert`) |
 
 Each statement is its total counterpart with `E⊥`/`Pr₁⊥`/`OnSupport⊥` for
 `E`/`Pr₁`/`OnSupport`, and each proof is the same induction: the sink scores 0,
@@ -183,7 +183,7 @@ stated at the total form, and the `Dist-ℚ` versions are not *derived* from the
 turning one into the other would be a fourth lemma nobody needs. What `prune`
 buys is the direction that matters: a `SuperCert` proved once about the total
 coupling (`Game.cert`, `Game.stepR`, `Game.stepI`) transfers to the pruned
-kernels for free, so `hop-bound⊥` at the pruned `respR`/`respI` is
+kernels for free, so `hop-boundᵇ⊥` with `badProb⊥-bounded` at the pruned `respR`/`respI` is
 `docs/dp-transport.md`'s `prune-bound` as soon as the two `runWith⊥-bisim`
 marginals are in place.
 
@@ -205,7 +205,7 @@ and none of them is reached. Their statements, with the exact types:
 
 ### 1b. `Settles-∘` at a two-factor composite — the second leg
 
-The FIRST leg is delivered: `Protocol.Machine.Trace.Compose.trace-settles`
+The FIRST leg is delivered: `Protocol.Machine.Trace.trace-settles`
 (`Trace.agda:95`) is `StepSettles` at a traced machine, which is the shape
 every G-composite has. What is missing is the identification of `𝒢ₚ`'s `_∘_`
 with a trace of a machine whose step has a kernel:
@@ -268,7 +268,7 @@ binding-bound : (b : Bool) (m : ℕ)
 
 Route for it: 1b gives `StepSettles` for both closed systems, `Raw.rawPr` turns
 each side's `cum` family into a `Pr₁⊥` of a `runWith⊥`, 2b identifies those two
-`runWith⊥`s with the pruned game kernels, and `hop-bound⊥` at
+`runWith⊥`s with the pruned game kernels, and `hop-boundᵇ⊥` at
 `Game.cert`-via-`prune-cert` is the bound. Every step of that route is now
 either a checked term or one of 1b/2b.
 
@@ -277,7 +277,7 @@ predicts this and the prediction holds. `Examples.ROCommitment.Hiding.Honᴵʰ` 
 `HonAʰ ⇿ HonQʰ` with `HonQʰ` inhabited, so `Neg Honᴵʰ` is not empty,
 `UC.Seam.Audit.Context.extractᵍ` at an adversary machine `a : Proc Advᴵʰ 𝟭ᴵ` is
 not vacuous, and `audit-runᵍ`/`plug-runᵍ` apply as they do at
-`Examples.HashForward.Audit.hf-pr-bound`. Route A is cheaper there because it
+`Examples.HashForward.UC.hf-pr-bound`. Route A is cheaper there because it
 does not need 1b at all: `extractᵍ`'s conclusion is a `Pr≤` on
 `runᴹ closedᵍ e`, and `closedᵍ` being a composite is not something `extractᵍ`
 reads. What Route A still owes on that side is unchanged and is

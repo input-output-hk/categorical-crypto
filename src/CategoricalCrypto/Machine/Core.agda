@@ -40,7 +40,7 @@ module _ {A B : Channel} (let open Channel (A ⊗ᵀ B)) where
   FunctionMachine       : (inType → Maybe outType)                 → Machine A B
   TotalFunctionMachine  : A ⊗₀ B ᵀ [ In ]⇒[ Out ] A ⊗₀ B ᵀ          → Machine A B
   TotalFunctionMachine' : A [ In ]⇒[ In ] B → B [ Out ]⇒[ Out ] A  → Machine A B
-  
+
   StatelessMachine      R   = MkMachine {State = ⊤} $ λ _ i o _ → R i o
   FunctionMachine       f   = StatelessMachine      $ λ i → f i ≡_
   TotalFunctionMachine  p   = FunctionMachine       $ just P.∘ app p
@@ -74,7 +74,7 @@ module Tensor {A B C D} (M₁ : Machine A B) (M₂ : Machine C D) where
     where
       machine-inter : Machine (A ⊗₀ B ᵀ) ((C ⊗₀ D ᵀ) ᵀ)
       machine-inter = MkMachine CompRel
-   
+
 open Tensor using (_⊗₁_) public
 
 _⊗ˡ_ : ∀ {A B} (C : Channel) → Machine A B → Machine (C ⊗₀ A) (C ⊗₀ B)
@@ -91,7 +91,7 @@ _∣ʳ = modifyStepRel ⇒-solver
 
 _∣^ˡ : ∀ {A B C} → Machine A (B ⊗₀ C) → Machine A B
 _∣^ˡ = modifyStepRel ⇒-solver
-  
+
 _∣^ʳ : ∀ {A B C} → Machine A (B ⊗₀ C) → Machine A C
 _∣^ʳ = modifyStepRel ⇒-solver
 
@@ -112,7 +112,7 @@ module _ {A B C} (M : Machine (A ⊗₀ C) (B ⊗₀ C)) (let open Machine M) wh
     _Trace∷ₒ_ : ∀ {s s' s'' inM outC outMₘ} → stepRel s inM (just ((L⊗ ϵ) ⊗R ↑ₒ outC)) s' →
                                              TraceRel s' (L⊗ (L⊗ ϵ ᵗ¹) ᵗ¹ ↑ᵢ outC) outMₘ s'' →
                                              TraceRel s inM outMₘ s''
-                                        
+
     _Trace∷ᵢ_ : ∀ {s s' s'' inM inC outMₘ} → stepRel s inM (just (L⊗ (L⊗ ϵ ᵗ¹) ᵗ¹ ↑ₒ inC)) s' →
                                             TraceRel s' ((L⊗ ϵ) ⊗R ↑ᵢ inC) outMₘ s'' →
                                             TraceRel s inM outMₘ s''
@@ -127,7 +127,7 @@ _∘_ {B} M₁ M₂ = tr {C = B} $ modifyStepRel ⇒-solver (M₂ ⊗₁ M₁)
 
 ⊗-assoc : ∀ {A B C} → Machine ((A ⊗₀ B) ⊗₀ C) (A ⊗₀ (B ⊗₀ C))
 ⊗-assoc = TotalFunctionMachine' ⇒-solver ⇒-solver
-  
+
 ⊗-assoc⃖ : ∀ {A B C} → Machine (A ⊗₀ (B ⊗₀ C)) ((A ⊗₀ B) ⊗₀ C)
 ⊗-assoc⃖ = TotalFunctionMachine' ⇒-solver ⇒-solver
 
@@ -139,7 +139,7 @@ idᴷ = liftᴷ id
 
 transpose : ∀ {A B} → Machine A B → Machine (B ᵀ) (A ᵀ)
 transpose = modifyStepRel ⇒-solver
- 
+
 ⨂₁ : ∀ {n} → {A B : Fin n → Channel} → ((k : Fin n) → Machine (A k) (B k)) → Machine (⨂ A) (⨂ B)
 ⨂₁ {zero} M = id
 ⨂₁ {suc n} M = M fzero ⊗₁ ⨂₁ (M P.∘ fsuc)
@@ -182,7 +182,7 @@ record _≡ᴹ_ {A B C D : Channel} (M₁ : Machine A B) (M₂ : Machine C D) : 
 module _
   {A B : Channel}
   (m   : Machine A B) where
-  
+
   open Machine m renaming (stepRel to _-⟦_/_⟧ᵐ⇀_)
   open Channel (A ⊗₀ B ᵀ)
 

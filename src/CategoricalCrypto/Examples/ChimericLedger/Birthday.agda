@@ -141,14 +141,12 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
       ... | no  _ with lookup-bs-∈ xs q h eq
       ...   | e , mem , pe = e , there mem , pe
 
-    private
       no-replay : ∀ s tbl tx u′ vIn h → checkIns (proj₁ s) (proj₁ tx) ≡ just (vIn , u′)
                 → RO.lookup-bs tbl (ser tx) ≡ just h → Good (s , tbl) → ⊥
       no-replay s tbl tx u′ vIn h e₁ eo good = case lookup-bs-∈ tbl (ser tx) h eo of λ (e , mem , pe) →
         stale-not-accepted (proj₁ s) tx u′ vIn (Hs tbl) e₁
               (subst (Stale (proj₁ s) (Hs tbl)) pe (All.lookup (Good.stales good) mem))
 
-    private
       freshInv : ∀ s tbl ins wds outs u′ a′ vIn
                → checkIns (proj₁ s) ins ≡ just (vIn , u′)
                → consumes inputConsuming ins ≡ true
@@ -192,7 +190,7 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
           (inj₂ p) → here p
 
         i₀∈ : proj₁ i₀ ∈ Hs tbl
-        i₀∈ = case checkIns-head (proj₁ s) i₀ is vIn u′ e₁ of λ (o , eqo) →
+        i₀∈ = case checkIns-∷ (proj₁ s) i₀ is vIn u′ e₁ of λ (o , _ , eqo , _) →
           Good.hashed good i₀ (lookupU-just-∈ (proj₁ s) i₀ o eqo)
 
         headStale : Stale (newU u′ outs h) (h ∷ Hs tbl) (ser (ins , wds , outs))
@@ -251,7 +249,6 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
             (λ h → ret ((qs , h) ∷ tbl , (fzero , h)))
             (freshInv s tbl ins wds outs u′ a′ vIn e₁ ec eq inv)
 
-    private
       -- `birthday-bound q` is `q²` fresh-hash pairs, plus `q` chances for a
       -- fresh hash to hit `h₀` itself: the genesis key is in the namespace the
       -- oracle samples from, and an output keyed by an already-present key is
