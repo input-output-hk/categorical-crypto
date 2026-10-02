@@ -6,8 +6,8 @@
 --   * `EdgeStepRˢ`/`edge-stepˢ-graph` — the inductive graph of `edge-stepˢ`,
 --     re-exported from the shared `EdgeStepRel` leaf under this module's
 --     `(H)` telescope.  `fire-termˢ` is NOT among them: `EdgeStepView`'s
---     `open StrictDecoder H` is deliberately not `public`, so every consumer
---     reads the fired layer from its own `open StrictDecoder`.
+--     `open StrictDecoder H` is deliberately not `public`, so consumers get
+--     the fired layer from their own `open StrictDecoder` or through `Run`'s.
 --   * `Incomp`, `pe-stackˢ`/`pe-termˢ` — incomparability + `process-edgesˢ`
 --     projection abbreviations.
 --------------------------------------------------------------------------------
@@ -54,5 +54,3 @@ module _ (H : Hypergraph FlatGen) where
   --------------------------------------------------------------------
 
   open LinExt (Fin H.nE) (Dep H) public using (Incomp)
-
-

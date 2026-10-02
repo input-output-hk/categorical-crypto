@@ -37,8 +37,6 @@
 open import Relation.Binary.PropositionalEquality using (refl; sym; subst)
 open import Relation.Nullary using (¬_)
 open import Data.Product using (_×_; _,_)
-open import Data.List.Relation.Binary.Permutation.Propositional.Properties
-  using (∈-resp-↭)
 open import Level using (_⊔_)
 
 open import Data.List.Base using (List; []; _∷_; _++_)
@@ -51,7 +49,7 @@ open import Data.List.Membership.Propositional using (_∈_)
 open import Data.List.Relation.Binary.Permutation.Propositional
   using (_↭_; ↭-refl; ↭-sym; ↭-trans; prep; swap)
 open import Data.List.Relation.Binary.Permutation.Propositional.Properties
-  using (drop-∷; ↭-empty-inv)
+  using (∈-resp-↭; drop-∷; ↭-empty-inv)
 
 open import Relation.Binary.Construct.Closure.ReflexiveTransitive
   using (Star; ε; _◅◅_; gmap; return; reverse)

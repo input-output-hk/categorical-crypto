@@ -49,7 +49,6 @@ open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 
 --------------------------------------------------------------------------------
 
-
 --------------------------------------------------------------------------------
 -- ===== submodule FMS =====
 --------------------------------------------------------------------------------
@@ -157,14 +156,12 @@ module FMS (H : Hypergraph FlatGen) where
         (≈-sym interchangeᵛ))))
 
   ------------------------------------------------------------------------
-  -- The `SwapCore` / `PermCalc` bricks the located coherences below use.
+  -- What the located coherences below use: `SwapCore`'s incomparability,
+  -- `PermCalc`'s thin wiring-groupoid calculus (F11) and `bswap`.  (Their
+  -- rigidity step reads `rigidˢ` from this module's own `StrictDecoder`.)
   ------------------------------------------------------------------------
   Incompˢ = Incomp H
-  rigidᵛ  = rigidˢ
-
-  -- The thin wiring-groupoid calculus (F11): ⟦bswap⟧ᵛ.
   open PC.Kit H using (⟦bswap⟧ᵛ)
-
   open DSh.Scr (Fin H.nV) H.vlab using (bswap)
 
   ------------------------------------------------------------------------
@@ -215,7 +212,7 @@ module FMS (H : Hypergraph FlatGen) where
     -- `swp-in` into `σᵛ ⊗ᵛ idᵛ`.
     vin-cohᵛ : Lin₁ ≈ᵛ (σᵛ (H.ein e') (H.ein e) ⊗ᵛ idᵛ {Rlist}) ∘ᵛ Lin₂
     vin-cohᵛ =
-      ≈-trans (rigidᵛ (SU.Unique-resp-↭ loc₁ us-sp) loc₁
+      ≈-trans (rigidˢ (SU.Unique-resp-↭ loc₁ us-sp) loc₁
                  (Perm.trans loc₂ swp-in))
               (∘-resp (⟦bswap⟧ᵛ (H.ein e') (H.ein e) Rlist) ≈-refl)
 
@@ -225,7 +222,7 @@ module FMS (H : Hypergraph FlatGen) where
       : Pr ∘ᵛ Lout₁
         ≈ᵛ Lout₂ ∘ᵛ (σᵛ (H.eout e) (H.eout e') ⊗ᵛ idᵛ {Rlist})
     vout-cohᵛ =
-      ≈-trans (rigidᵛ us-cod (Perm.trans vout-loc₁ r-stk)
+      ≈-trans (rigidˢ us-cod (Perm.trans vout-loc₁ r-stk)
                  (Perm.trans swp-out vout-loc₂))
               (∘-resp ≈-refl (⟦bswap⟧ᵛ (H.eout e) (H.eout e') Rlist))
 
@@ -610,4 +607,3 @@ module _ (H : Hypergraph FlatGen)
 
   -- Re-export the headline result.
   open RunInterchangeˢ using (run-interchange₀ˢ) public
-

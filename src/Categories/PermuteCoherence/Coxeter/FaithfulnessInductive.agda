@@ -39,15 +39,13 @@ open import Data.List.Base using (List; []; _∷_; _++_; length)
 import Data.List.Relation.Binary.Permutation.Propositional as Perm
 open Perm using (_↭_)
 open import Data.Nat.Base using (ℕ; suc; pred)
-open import Data.Nat.Properties using (suc-injective)
-open import Data.Nat.Properties using () renaming (≡-irrelevant to ℕ-≡-irrelevant)
+open import Data.Nat.Properties using (suc-injective) renaming (≡-irrelevant to ℕ-≡-irrelevant)
 open import Data.Fin.Base using (Fin) renaming (suc to fsuc)
 open import Data.Fin.Patterns using (0F)
 import Data.Fin.Permutation as P
-open import Relation.Binary.PropositionalEquality.Core using (_≡_; refl; sym; trans; cong; subst)
-open import Relation.Binary.PropositionalEquality using (subst₂)
-open import Data.List.Properties using () renaming (≡-dec to List-≡-dec)
-import Axiom.UniquenessOfIdentityProofs as UIPmod
+open import Relation.Binary.PropositionalEquality
+  using (_≡_; refl; sym; trans; cong; subst; subst₂)
+import Data.List.Properties.Ext as ListExt
 open import Data.List.Relation.Binary.Permutation.Propositional.Properties using (↭-length)
 open import Data.Product using (_,_; Σ-syntax)
 
@@ -77,7 +75,7 @@ private
 -- Used to discharge constrained `List X` endpoint equalities in the
 -- heterogeneous wrapper without `--with-K`.
 uipX : ∀ {us vs : List X} (p q : us ≡ vs) → p ≡ q
-uipX = UIPmod.Decidable⇒UIP.≡-irrelevant (List-≡-dec _≟X_)
+uipX = ListExt.≡-irrelevant _≟X_
 
 ------------------------------------------------------------------------
 -- 1. The inductive congruence `_≅↭ⁱ_`.
@@ -324,21 +322,23 @@ swapBraidᴴ (adjS adj) (a ∷ ys′)          len =
 -- Soundness of the bridge: `~ʷ`-equal words give `≅↭ᴴ`-equal
 -- interpretations.  `c1/c2/c3` ↦ re-associate, replace the inner block by
 -- its generator lemma (`swap²ᴴ`/`swapFarᴴ`/`swapBraidᴴ`), re-associate back.
-bridge-sound : {n : ℕ} {w w′ : Word n} → w ~ʷ w′ → (xs : List X) → length xs ≡ suc n
-             → ⟦ w ⟧↭ xs ≅↭ᴴ ⟦ w′ ⟧↭ xs
-bridge-sound ~refl          xs len = hrefl
-bridge-sound (~sym r)       xs len = hsym (bridge-sound r xs len)
-bridge-sound (~trans r₁ r₂) xs len = htrn (bridge-sound r₁ xs len) (bridge-sound r₂ xs len)
-bridge-sound (∷c r) xs len = ∷ᴴ (bridge-sound r xs len)
-bridge-sound (c1 i {w = w}) xs len =
+-- Stated at the ONE shape it is consumed at — a cons list, whose length proof
+-- is definitional, so `swapBraidᴴ`'s hypothesis is just `applyW-length`.
+bridge-sound : {z : X} {zs : List X} {w w′ : Word (length zs)} → w ~ʷ w′
+             → ⟦ w ⟧↭ (z ∷ zs) ≅↭ᴴ ⟦ w′ ⟧↭ (z ∷ zs)
+bridge-sound ~refl          = hrefl
+bridge-sound (~sym r)       = hsym (bridge-sound r)
+bridge-sound (~trans r₁ r₂) = htrn (bridge-sound r₁) (bridge-sound r₂)
+bridge-sound (∷c r)         = ∷ᴴ (bridge-sound r)
+bridge-sound {z} {zs} (c1 i {w = w}) =
   htrn (liftⁱ tr-assoc)
-       (htrn (trcᴴ hrefl (swap²ᴴ i (applyW w xs))) (liftⁱ tr-unitʳ))
-bridge-sound (c2 {i = i} {j = j} {w = w} f) xs len =
+       (htrn (trcᴴ hrefl (swap²ᴴ i (applyW w (z ∷ zs)))) (liftⁱ tr-unitʳ))
+bridge-sound {z} {zs} (c2 {w = w} f) =
   htrn (liftⁱ tr-assoc)
-       (htrn (trcᴴ hrefl (swapFarᴴ f (applyW w xs))) (liftⁱ (isym tr-assoc)))
-bridge-sound (c3 {i = i} {k = k} {w = w} adj) xs len =
+       (htrn (trcᴴ hrefl (swapFarᴴ f (applyW w (z ∷ zs)))) (liftⁱ (isym tr-assoc)))
+bridge-sound {z} {zs} (c3 {w = w} adj) =
   htrn (liftⁱ (itrn tr-assoc tr-assoc))
-       (htrn (trcᴴ hrefl (swapBraidᴴ adj (applyW w xs) (trans (applyW-length w xs) len)))
+       (htrn (trcᴴ hrefl (swapBraidᴴ adj (applyW w (z ∷ zs)) (applyW-length w (z ∷ zs))))
              (liftⁱ (isym (itrn tr-assoc tr-assoc))))
 
 ------------------------------------------------------------------------
@@ -478,4 +478,4 @@ complete {xs = z ∷ zs} {ys = ys} {p = p} {q = q} h
   word~ = ~trans (straightenW w_p)
                  (~trans (canonW-resp-≈ eval≈) (~sym (straightenW w_q)))
   bridge : ⟦ w_p ⟧↭ (z ∷ zs) ≅↭ᴴ ⟦ w_q ⟧↭ (z ∷ zs)
-  bridge = bridge-sound word~ (z ∷ zs) refl
+  bridge = bridge-sound word~

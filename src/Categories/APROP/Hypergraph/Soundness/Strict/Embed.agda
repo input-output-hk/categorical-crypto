@@ -81,7 +81,6 @@ emb-cast-conj
   → emb (castˢ p q t) ≈Term subst-id-cod q ∘ emb t ∘ subst-id-dom p
 emb-cast-conj refl refl t = ≈-Term-sym (≈-Term-trans idˡ idʳ)
 
-
 --------------------------------------------------------------------------------
 -- THE CRUX: the `⊗-assocˢ` case — the laxator-associativity payment,
 -- made ONCE here instead of per positional site.

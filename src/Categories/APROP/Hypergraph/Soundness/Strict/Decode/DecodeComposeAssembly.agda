@@ -143,10 +143,10 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   s_G_final = proj₁ (RG.process-edgesˢ (range G.nE) G.dom)
 
   -- `after-G ≡ map injL s_G_final`.  The strict stack IS the non-strict
-  -- stack, so this is exactly `process-edges-↑ˡ-pure-L`.
+  -- stack, so this is exactly the G-side stack lift.
   after-G-≡ : after-G ≡ map injL s_G_final
   after-G-≡ =
-    LP.process-edges-↑ˡ-pure-L G K bdy lin-G lin-K (range G.nE) G.dom
+    LP.PureL.process-edges-lift G K bdy lin-G lin-K (range G.nE) G.dom
 
   -- The boundary permutation `after-G ↭ map remapP K.dom`.  Needs the
   -- final-stack permutation of `f` (`finalPermˢ f`) lifted through `injL`,
@@ -154,11 +154,14 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   perm-f : RG.s-finˢ Perm.↭ G.cod
   perm-f = finalPermˢ f
 
+  map-rKd : map remapP K.dom ≡ map injL G.cod
+  map-rKd = LP.map-remapP-K-dom G K bdy lin-G lin-K
+
   after-G-↭ : after-G Perm.↭ map remapP K.dom
   after-G-↭ =
     Perm.↭-trans (Perm.↭-reflexive after-G-≡)
       (Perm.↭-trans (PermProp.map⁺ injL perm-f)
-        (Perm.↭-reflexive (sym (LP.map-remapP-K-dom G K bdy lin-G lin-K))))
+        (Perm.↭-reflexive (sym map-rKd)))
 
   -- Reservoir on the strict post-G stack (= the non-strict one).
   reservoir-K : SUR.Reservoir≤1 Chg kblk after-G
@@ -178,7 +181,7 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   uCcod = Linear⇒cod-Unique Chg lin-C
   uRemapKdom : Unique (map remapP K.dom)
   uRemapKdom =
-    subst Unique (sym (LP.map-remapP-K-dom G K bdy lin-G lin-K))
+    subst Unique (sym map-rKd)
       (UniqueProp.map⁺ (λ {x} {y} → inject+-inj cn {x} {y})
                        (Linear⇒cod-Unique G lin-G))
 
@@ -227,7 +230,7 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
   run-split = RB.run-split-atˢ gblk kblk range-eq C.dom
 
   ----------------------------------------------------------------------
-  -- ## The core composite equation (strict mirror of `Pcomp-eq`).
+  -- ## The core composite equation `Pcomp-eqˢ`.
 
   -- The absorbed final permutation, on the post-`kblk` stack.
   perm-C2ˢ : proj₁ (RC.process-edgesˢ kblk after-G) Perm.↭ C.cod
@@ -286,10 +289,6 @@ module ComposeShape {A B C₀ : ObjTerm} (g : HomTerm B C₀) (f : HomTerm A B) 
 
   PGˢ : HomS (map K.vlab s_K_final) (map K.vlab K.cod)
   PGˢ = RK.permuteˢ perm-g
-
-  -- Boundary equalities for the G-block.
-  map-rKd : map remapP K.dom ≡ map injL G.cod
-  map-rKd = LP.map-remapP-K-dom G K bdy lin-G lin-K
 
   ----------------------------------------------------------------------
   -- Y-twin, HETEROGENEOUSLY: the G-part IS `PFˢ ∘ˢ pterm-f`, factor by

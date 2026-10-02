@@ -89,7 +89,6 @@ embF t = E.emb (mapS t)
 embF-resp-≈ˢ : ∀ {xs ys} {f g : HomS xs ys} → f ≈ˢ g → embF f ≈Term embF g
 embF-resp-≈ˢ e = E.EmbRespFull.emb-resp-≈ˢ (mapS-resp e)
 
-
 --------------------------------------------------------------------------------
 -- The roundtrip: `embF (st f) ≈Term bridge f`.
 

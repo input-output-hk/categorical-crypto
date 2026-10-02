@@ -94,58 +94,46 @@ module Scr (V : Set) (vlab : V → X) where
 -- one unit law and one `cast`-of-`idˢ` is the whole proof, with NO rigidity
 -- (K-faithfulness) payment and no `nE ≡ 0` / `dom ≡ cod` transport.
 --
--- `st (id) = st λ⇒ = st λ⇐ = idˢ`, closed by `cast-id`; the other four are a
--- `coe` of a `List`-equality, closed by `cast-id-coe` and `coe-uip`.
-
--- a boundary cast of `idˢ` IS the corresponding object-coercion `coe`
-cast-id-coe
-  : ∀ {xs as bs} (p : xs ≡ as) (q : xs ≡ bs)
-  → castˢ p q (idˢ {xs}) ≈ˢ coe (trans (sym p) q)
-cast-id-coe refl q = ≈-refl
+-- ONE lemma closes all seven: peel the run's unit law, then read the boundary
+-- cast of `idˢ` as the object coercion `st` produces (`e = refl` for `id`/`λ⇒`/
+-- `λ⇐`, since `coe refl` IS `idˢ`; a `++`-identity/associativity for the rest).
+atom-coe
+  : ∀ {xs as bs} (p : xs ≡ as) (q : xs ≡ bs) (e : as ≡ bs)
+  → castˢ p q (idˢ {xs} ∘ˢ idˢ) ≈ˢ coe e
+atom-coe refl q e = ≈-trans (cast-resp refl q idʳ) (coe-uip q e)
 
 module _ {A : ObjTerm} where
   -- id, λ⇒, λ⇐  →  idˢ
   decodePˢ-id : decodePˢ (id {A}) ≈ˢ st (id {A})
-  decodePˢ-id =
-    ≈-trans (cast-resp (⟪⟫-domL (id {A})) (⟪⟫-codL (id {A})) idʳ)
-            (cast-id (⟪⟫-domL (id {A})) (⟪⟫-codL (id {A})))
+  decodePˢ-id = atom-coe (⟪⟫-domL (id {A})) (⟪⟫-codL (id {A})) refl
 
   decodePˢ-λ⇒ : decodePˢ (λ⇒ {A}) ≈ˢ st (λ⇒ {A})
-  decodePˢ-λ⇒ =
-    ≈-trans (cast-resp (⟪⟫-domL (λ⇒ {A})) (⟪⟫-codL (λ⇒ {A})) idʳ)
-            (cast-id (⟪⟫-domL (λ⇒ {A})) (⟪⟫-codL (λ⇒ {A})))
+  decodePˢ-λ⇒ = atom-coe (⟪⟫-domL (λ⇒ {A})) (⟪⟫-codL (λ⇒ {A})) refl
 
   decodePˢ-λ⇐ : decodePˢ (λ⇐ {A}) ≈ˢ st (λ⇐ {A})
-  decodePˢ-λ⇐ =
-    ≈-trans (cast-resp (⟪⟫-domL (λ⇐ {A})) (⟪⟫-codL (λ⇐ {A})) idʳ)
-            (cast-id (⟪⟫-domL (λ⇐ {A})) (⟪⟫-codL (λ⇐ {A})))
+  decodePˢ-λ⇐ = atom-coe (⟪⟫-domL (λ⇐ {A})) (⟪⟫-codL (λ⇐ {A})) refl
 
   -- ρ⇒, ρ⇐  →  coe (±++-identityʳ)
   decodePˢ-ρ⇒ : decodePˢ (ρ⇒ {A}) ≈ˢ st (ρ⇒ {A})
   decodePˢ-ρ⇒ =
-    ≈-trans (cast-resp (⟪⟫-domL (ρ⇒ {A})) (⟪⟫-codL (ρ⇒ {A})) idʳ)
-    (≈-trans (cast-id-coe (⟪⟫-domL (ρ⇒ {A})) (⟪⟫-codL (ρ⇒ {A})))
-             (coe-uip _ (++-identityʳ (flatten A))))
+    atom-coe (⟪⟫-domL (ρ⇒ {A})) (⟪⟫-codL (ρ⇒ {A})) (++-identityʳ (flatten A))
 
   decodePˢ-ρ⇐ : decodePˢ (ρ⇐ {A}) ≈ˢ st (ρ⇐ {A})
   decodePˢ-ρ⇐ =
-    ≈-trans (cast-resp (⟪⟫-domL (ρ⇐ {A})) (⟪⟫-codL (ρ⇐ {A})) idʳ)
-    (≈-trans (cast-id-coe (⟪⟫-domL (ρ⇐ {A})) (⟪⟫-codL (ρ⇐ {A})))
-             (coe-uip _ (sym (++-identityʳ (flatten A)))))
+    atom-coe (⟪⟫-domL (ρ⇐ {A})) (⟪⟫-codL (ρ⇐ {A}))
+             (sym (++-identityʳ (flatten A)))
 
 -- α⇒, α⇐  →  coe (±++-assoc)
 module _ {A B C : ObjTerm} where
   decodePˢ-α⇒ : decodePˢ (α⇒ {A} {B} {C}) ≈ˢ st (α⇒ {A} {B} {C})
   decodePˢ-α⇒ =
-    ≈-trans (cast-resp (⟪⟫-domL (α⇒ {A} {B} {C})) (⟪⟫-codL (α⇒ {A} {B} {C})) idʳ)
-    (≈-trans (cast-id-coe (⟪⟫-domL (α⇒ {A} {B} {C})) (⟪⟫-codL (α⇒ {A} {B} {C})))
-             (coe-uip _ (++-assoc (flatten A) (flatten B) (flatten C))))
+    atom-coe (⟪⟫-domL (α⇒ {A} {B} {C})) (⟪⟫-codL (α⇒ {A} {B} {C}))
+             (++-assoc (flatten A) (flatten B) (flatten C))
 
   decodePˢ-α⇐ : decodePˢ (α⇐ {A} {B} {C}) ≈ˢ st (α⇐ {A} {B} {C})
   decodePˢ-α⇐ =
-    ≈-trans (cast-resp (⟪⟫-domL (α⇐ {A} {B} {C})) (⟪⟫-codL (α⇐ {A} {B} {C})) idʳ)
-    (≈-trans (cast-id-coe (⟪⟫-domL (α⇐ {A} {B} {C})) (⟪⟫-codL (α⇐ {A} {B} {C})))
-             (coe-uip _ (sym (++-assoc (flatten A) (flatten B) (flatten C)))))
+    atom-coe (⟪⟫-domL (α⇐ {A} {B} {C})) (⟪⟫-codL (α⇐ {A} {B} {C}))
+             (sym (++-assoc (flatten A) (flatten B) (flatten C)))
 
 --------------------------------------------------------------------------------
 -- COMPOUND AND σ SHAPES.  The boundary objects align DEFINITIONALLY (flatten

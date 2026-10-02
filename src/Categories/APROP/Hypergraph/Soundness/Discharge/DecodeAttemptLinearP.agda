@@ -40,8 +40,7 @@ open import Categories.APROP.Hypergraph.Soundness.Decode.Decode sig
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeProperties sig
 
 import Categories.APROP.Hypergraph.Model.Invariant sig as Inv
-import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
-open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
+open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig as Lin
   using ( count-map-↑ˡ; count-map-inj
         ; count-map-↑ˡ-mismatch; count-swap
         ; producedList; consumedList; Linear; concat-tabulate-blocks)
@@ -49,24 +48,22 @@ open import Categories.APROP.Hypergraph.Soundness.Linearity.Linearity sig
 -- Reused-as-is generic decode lemmas (arbitrary `H`).
 open import Categories.APROP.Hypergraph.Soundness.Decode.DecodeAttempt sig
 
-
-open import Data.Nat
+open import Data.Nat as Nat
 open import Data.List.Properties
 open import Data.Maybe using (nothing)
 
 open import Data.Empty using (⊥-elim)
-open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; cast; toℕ)
 -- `Data.List`, opened wholesale for the decode half, also exports `splitAt`.
-open import Data.Fin using () renaming (splitAt to splitAtF)
+open import Data.Fin using (Fin; zero; suc; _↑ˡ_; _↑ʳ_; cast; toℕ) renaming (splitAt to splitAtF)
 open import Data.Fin.Properties using
   ( splitAt⁻¹-↑ˡ; splitAt⁻¹-↑ʳ
   ; toℕ-cast; toℕ-injective)
   -- `Data.Nat`, opened wholesale for the decode half, also exports `_≟_`.
   renaming (_≟_ to _≟F_)
+open import Data.List.Properties.Ext using (lookup-injective-unique)
 open import Data.List.Membership.Propositional.Properties using (∈-map⁻)
 open import Data.List.Relation.Unary.Any using (any?)
 open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-open import Data.Nat as Nat using ()
 import Data.Nat.Properties as Nat
 open import Data.Sum using (inj₁; inj₂)
 open import Relation.Nullary.Decidable using (yes; no)
@@ -202,7 +199,6 @@ module _
 
   ------------------------------------------------------------------------
   -- Structural decompositions of `concat (tabulate eout-c / ein-c)`.
-
 
   eout-comp-eq : concat (tabulate eout-c) ≡ map injL G-eb ++ map remapP K-eb
   eout-comp-eq = concat-tabulate-blocks eout-c G.eout K.eout injL remapP
@@ -377,18 +373,13 @@ module _
   ------------------------------------------------------------------------
   -- G-side: `injL` is injective and the endpoint reductions are the raw
   -- `ein-c-inj₁-red`/`eout-c-inj₁-red`, so the whole lifting is the derived
-  -- kernel `DecodeAttempt.StackLiftEmb` with nothing left to supply.
+  -- kernel `DecodeAttempt.StackLiftEmb` with nothing left to supply.  Its
+  -- `process-edges-lift` is read directly, here and by
+  -- `Strict.Decode.DecodeComposeAssembly`.
 
-  private
-    module PureL =
-      StackLiftEmb (hComposeP G K bdy-eq) G (_↑ˡ K.nE) injL (Inv.inject+-inj cn)
-                   ein-c-inj₁-red eout-c-inj₁-red
-
-  process-edges-↑ˡ-pure-L
-    : ∀ (es : List (Fin G.nE)) (xs : List (Fin G.nV))
-    → process-edges (hComposeP G K bdy-eq) (map (_↑ˡ K.nE) es) (map injL xs)
-      ≡ map injL (process-edges G es xs)
-  process-edges-↑ˡ-pure-L = PureL.process-edges-lift
+  module PureL =
+    StackLiftEmb (hComposeP G K bdy-eq) G (_↑ˡ K.nE) injL (Inv.inject+-inj cn)
+                 ein-c-inj₁-red eout-c-inj₁-red
 
   --------------------------------------------------------------------
   -- K-side: the frame-free instance of `DecodeAttempt.PermLift` — with no

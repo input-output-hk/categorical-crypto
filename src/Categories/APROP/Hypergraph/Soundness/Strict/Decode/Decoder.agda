@@ -138,7 +138,6 @@ module StrictDecoder (H : Hypergraph FlatGen) where
               | sym (++-assoc (H.eout e) rest R)
         = stack-sepˢ es (H.eout e ++ rest) R des
 
-
   ------------------------------------------------------------------------
   -- Separability, term level — in the `Restrict` layer (F7).
   --

@@ -17,7 +17,7 @@
 -- (map vlab as) (map vlab bs)`, whose `_⊗ᵛ_`/`σᵛ` absorb the `map-++`
 -- transports.  `Scr.BswapSig` unfolds to `permuteᵛ (bswap L R) ≈ᵛ σᵛ L R` on
 -- the nose, so the exported statement is unchanged; what disappears is the
--- endpoint bookkeeping (`Scr.mdom`/`Scr.mcod`, `cast-fuse`,
+-- endpoint bookkeeping (the former `mdom`/`mcod`, plus `cast-fuse`,
 -- `cast-irrel`, `∘-cast-split`), because at the SINGLETON left frames this
 -- induction produces every `List V` associator and every `map-++` reduces.
 --

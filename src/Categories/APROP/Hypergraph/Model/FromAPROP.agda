@@ -277,11 +277,10 @@ module _ (G K : Hypergraph FlatGen) where
 -- through `hTensor`, so that `nE (hId A)` is literally `0` and
 -- `dom (hId A)` is literally `cod (hId A)` for an ABSTRACT `A`.  All seven
 -- structural atoms (`id`, the four unitors, the two associators) translate
--- to some `hId`, so their consumers get the edge-free and `dom ≡ cod` facts
--- by `refl` instead of by a parallel induction on `A` — and in
--- `DecodeShapes` the whole decoder run reduces, so no such lemma is needed
--- there at all (`FinOrderNoInv.NoSelfDep-hId`,
--- `DecodeAttempt.decode-attempt-hId`, `Linearity.Linear-hId`).
+-- to some `hId`, so a consumer gets the edge-free and `dom ≡ cod` facts by
+-- `refl` instead of by a parallel induction on `A` — which is what
+-- `DecodeAttempt.decode-attempt-hId` and `Linearity.Linear-hId` rest on,
+-- while in `DecodeShapes` the whole decoder run reduces, so it needs none.
 
 hId : ObjTerm → Hypergraph FlatGen
 hId A = record

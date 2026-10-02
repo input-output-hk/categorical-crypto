@@ -38,7 +38,7 @@ open import Categories.APROP.Hypergraph.Soundness.Strict.Decode.Decode sig publi
 -- The search's φ-naturality: the relabelled search PRODUCES `map⁺ φ permH`.
 open import Categories.Combinatorics.ExtractPrefixEvalPhi using (extract-prefix-pin)
 -- The cross-vertex-type permute relabel (functoriality of `map⁺` under
--- `permuteˢ`); it imports only `Strict.Decode.Decode`, so no cycle.
+-- `permuteˢ`); it imports `Strict.Core`, not this module, so no cycle.
 import Categories.APROP.Hypergraph.Soundness.Strict.Perm.PermRelabel sig
   as PVV
 
@@ -128,7 +128,6 @@ module RunBlocks (H : Hypergraph FlatGen) where
   -- REDUCES at `eq := refl` (`trans refl q = q` matches on the left), so the
   -- clause is `pe-term-++ˢ` itself rather than that lemma re-cast by hand.
   run-split-atˢ gblk kblk refl s = pe-term-++ˢ gblk kblk s
-
 
 --------------------------------------------------------------------------------
 -- ## Local plumbing.
@@ -266,7 +265,6 @@ module TermEmbedˢ
           pinned : pJ ≡ subst (λ z → map φ sH Perm.↭ z) mpp lift
           pinned = extract-prefix-pin φ φ-inj (H.ein e) sH restH permH pJ eqH eJ
 
-
   ----------------------------------------------------------------------
   -- FIRE/FIRE per-edge term-twin, assembled from box-emb + perm-emb.
 
@@ -326,7 +324,6 @@ module TermEmbedˢ
         ≈̂-trans (cast-≈̂ {p = refl} {q = map-++ vlJ (J.ein (ψ e)) restJ})
         (≈̂-trans (castˢ⇒≈̂ pDom Qp (perm-emb e sH restH permH eqH restJ permJ eqJ pDom Qp))
                  (≈̂-sym (cast-≈̂ {p = refl} {q = map-++ vlH (H.ein e) restH})))
-
 
   ----------------------------------------------------------------------
   -- Per-edge term-twin (dispatch on `extract-prefix`, both sides).

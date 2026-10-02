@@ -72,9 +72,11 @@ UIP-ListX = ≡-irrelevant _≟X_
 -- unification when comparing two `FlatGen` values.
 
 -- `view` reads `f`/`A`/`B` and the boundary proofs by shallow record-pattern
--- projection.  Because every `elab` is built as a *direct* `flat-rec` (no
--- `subst₂` wrapper — see `FromAPROP.retype`), this never forces the
--- tower-deep boundary equalities to normalise.
+-- projection.  Every `elab` the untabulated pipeline builds is a *direct*
+-- `flat-rec` (no `subst₂` wrapper — see `FromAPROP.retype`); on the tabulated
+-- path `Tabulate.tab-elab`'s transport IS a `subst₂`, but over the shallow
+-- `lookup∘tabulate`/`map-cong` equalities, not the frame tower.  Either way
+-- this never forces the tower-deep boundary proofs to normalise.
 record FlatView {As Bs : List X} (x : FlatGen As Bs) : Set where
   constructor flatV
   field
@@ -110,7 +112,7 @@ flatgen-irrel refl refl _ _ f oa ob oa' ob' refl refl with UIP-ListX oa oa' | UI
 -- transported term — we `view` the underlying `v`/`y` (record-pattern
 -- projection only, no proof normalisation), dispatch on the hidden `(A,B,f)`,
 -- and assemble the equality directly.  This is the hot path for `findIso`'s
--- per-edge label sweep: all call sites pass exactly `subst₂ FlatGen p q (…elab…)`.
+-- per-edge label sweep: `subst₂ FlatGen p q (elab …) ≡ elab …` at every site.
 flat-match-subst
   : ∀ {As Bs As' Bs'} (p : As ≡ As') (q : Bs ≡ Bs')
       (v : FlatGen As Bs) (y : FlatGen As' Bs')
