@@ -5,7 +5,9 @@
 -- (`UC.Family.Negligible.Setup.Canonicalᴺ`), which keeps the certified simulator
 -- but not the schedule: a caller that needs the number keeps the bound's data.
 
+import Categories.Category.Monoidal.Reasoning as MonR
 open import Categories.LocallyGraded.SubCategory
+import Categories.Morphism.Reasoning as MR
 
 open import Data.Nat.Base
 open import Data.Nat.Positive
@@ -14,6 +16,7 @@ open import Data.Product.Base
 open import Data.Rational using (ℚ)
 open import Relation.Binary.PropositionalEquality
 
+open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Advantage
 
 open import CategoricalCrypto.Iface
@@ -21,12 +24,16 @@ open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Approximate
+open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Model.Enrichment
-open import CategoricalCrypto.UC.Model.Family
+open import CategoricalCrypto.UC.Model.Family hiding (observe)
 open import CategoricalCrypto.UC.Model.Family.Contextual
 open import CategoricalCrypto.UC.Model.Observation
+open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.Model.Setup
-open import CategoricalCrypto.UC.Seam.Audit.Context
+open import CategoricalCrypto.UC.Seam
+open import CategoricalCrypto.UC.Seam.Adequacy
+open import CategoricalCrypto.UC.Seam.Budget
 
 import CategoricalCrypto.UC.Seam.Grounded as Gr
 
@@ -86,15 +93,41 @@ module _ {A X Y B : Obj^ω} (s : Y ⇒^ω X) (ε : ℕ → ℕ → ℚ)
   ≤UC[]⇒≤UCᴺ : f Cᴺ.≤UC g
   ≤UC[]⇒≤UCᴺ = Cᴺ.dummy-complete {f = f} {g = g} (s , ≈ℰⁿ⇒≈ℰᴺ f (Cᴺ.sub s Cᴺ.∘ g) ≤UC[]⇒≈ℰⁿ)
 
--- Read at `UC.Seam.Audit.Context`'s context — the embedded strategy behind the
--- two unitors, at its own ask-depth, with a unitor closure at `1⁺` (hence
--- `*-identityʳ`) — the premise's `ε` lands on the DIRECT runs.
+-- The context a strategy's closed run is read at: the embedded strategy behind
+-- the two unitors at the trivial grade, at its own ask-depth, closed by the
+-- unitor `Gr.ιᴳ unitᴵ`.
+module _ (B : Iface) (e : Strat (Neg B) (Pos B)) where
+
+  open Gr
+  open MonR monoidal
+  open MR ∣machines∣
+
+  private
+    test : T₀ 𝟘ᴳ (ifaceᵒ B) ⇒ Ωᵒ
+    test = procᵒ (strategyEnv B e) ∘ unitorˡ.from
+
+  auditTest : T₀ 𝟘ᴳ (T₀ 𝟘ᴳ (ifaceᵒ B)) ⇒ Ωᵒ
+  auditTest = test ∘ unitorˡ.from
+
+  audit-qb : (q : ℕ⁺) → asks≤ (value q) e → Pred q auditTest
+  audit-qb q a =
+    pred-sub (≤-reflexive (trans (*-identityˡ _) (*-identityˡ (value q))))
+      (pred-∘ (pred-∘ (qbᵒ {r = q} (qb-strategyEnv B (value q) e a)) pred-λ⇒) pred-λ⇒)
+
+  audit-run : (w : Proc unitᴵ B)
+            → observe (auditTest ∘ id ⊗₁ closedᵒ w) (ιᴳ unitᴵ) ≈ₚ runᴹ w e
+  audit-run w =
+    ≈ₚ-trans _ _ _ (obs-resp (plug-λ test (closedᵒ w) ○ cancelInner unitorˡ.isoʳ))
+      (≈ₚ-trans _ _ _ (≈ₚ-sym _ _ (plug-run B e w)) (adequacy B w e))
+
+-- At a unitor closure at `1⁺` (hence `*-identityʳ`), the premise's `ε` lands
+-- on the DIRECT runs.
 ≈ᶠ-runs : (ε : ℕ → ℕ → ℚ) → R ≈ᶠ[ ε ] I
         → (n : ℕ) (q : ℕ⁺) (d : Strat (Neg (B n)) (Pos (B n))) → asks≤ (value q) d
         → runᴹ (morphism (R n)) d ≈ₚ[ ε n (value q) ] runᴹ (morphism (I n)) d
 ≈ᶠ-runs ε h n q d a =
   subst (λ k → _ ≈ₚ[ ε n k ] _) (*-identityʳ (value q))
         (≈ₚ[]-resp (audit-run _ d _) (audit-run _ d _)
-                   (h n Gr.𝟘ᴳ (auditTest _ d) auditClose {q} {1⁺}
+                   (h n Gr.𝟘ᴳ (auditTest _ d) (Gr.ιᴳ unitᴵ) {q} {1⁺}
                       ((auditTest _ d , audit-qb _ d q a) , Equiv.refl)
-                      ((auditClose , pred-λ⇐) , Equiv.refl)))
+                      ((Gr.ιᴳ unitᴵ , pred-λ⇐) , Equiv.refl)))
