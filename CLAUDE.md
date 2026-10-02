@@ -94,9 +94,10 @@ is a current-state ledger, not an append-only log.
     keep-quota).
 24. One explanation, once, at the most user-facing site in the import graph; the other
     site references it (`see <where>`) or says only what is specific to itself.
-25. Section banners keep the project's boxed dash-rule form (rule / `-- Title` / rule,
-    matching the file's rule width). A banner earns its place only as a top-level landmark
-    grouping more than one definition under a shared theme; a per-lemma divider is noise.
+25. Section banners use a dash-rule form matching the file's rule width: boxed
+    (rule / `-- Title` / rule) or two-line (rule / `-- Title`, as in `ProbabilisticLogic/**`).
+    A banner earns its place only as a top-level landmark grouping more than one definition
+    under a shared theme; a per-lemma divider is noise.
 26. **Uniformity is not a keep-reason.** "It's part of a consistent scheme / breaks the
     per-file uniformity" never justifies keeping noise (a divider per definition, an
     unused-implicit telescope repeated across a lemma family, a per-clause gloss pattern)
