@@ -1,7 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Controlled maps: the resource-aware morphisms of approximate spaces
--- (`docs/quantitative-uc-setup-plan.typ` §7.2).
+-- Controlled maps: the resource-aware morphisms of approximate spaces.
 --
 -- A nonexpansive map keeps its bound; a resource-sensitive pullback TRANSFORMS
 -- it, and the transformation is part of the morphism rather than a side

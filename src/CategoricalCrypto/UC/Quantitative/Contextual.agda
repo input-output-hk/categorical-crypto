@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- The query-sensitive contextual comparison, as the admitted agreement of the
--- filtered test presheaf (`docs/quantitative-uc-setup-plan.typ` §7.3).
+-- filtered test presheaf.
 --
 -- The compared morphisms are NOT certified — only the test and the closure
 -- are, which is what keeps certified simulators from forcing every compared

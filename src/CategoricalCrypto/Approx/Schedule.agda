@@ -1,11 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Schedule-valued errors, and allowance reindexing as a control
--- (`docs/quantitative-uc-setup-plan.typ` §7.1, §7.2).
+-- Schedule-valued errors, and allowance reindexing as a control.
 --
--- `Approx` is already generic in its error structure, so §7's "generalize to a
--- fixed ordered additive commutative monoid `V`" asks for an INSTANCE rather
--- than a second category: the instances in use are `pointwise ℕ ℚ-ordered` over
+-- `Approx` is already generic in its error structure, so schedule-valued
+-- errors are an INSTANCE rather than a second category: the instances in use are `pointwise ℕ ℚ-ordered` over
 -- the security parameter and `pointwise ℕ⁺ ℚ-ordered` over closure rates
 -- (`UC.Quantitative.Query.Sched`).
 --

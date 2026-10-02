@@ -52,7 +52,7 @@ Negligible⇒→0 {s} neg ε ε>0 =
   let N , bnd = neg (λ _ → 1) (poly-const 1) ε ε>0
   in N , λ n le → subst (ℚ._≤ ε) (*-identityˡ (s n)) (bnd n le)
 
--- The discipline the proposal asks of a concrete two-argument bound (§3): it is
+-- The discipline asked of a concrete two-argument bound: it is
 -- admitted when `ε(n, p n)` is NEGLIGIBLE at every polynomial allowance `p`,
 -- which is what the model's own allowance supplies (`UC.Family`'s `Poly⁺`
 -- admissibility).  It yields no single slack uniform over arbitrary, possibly

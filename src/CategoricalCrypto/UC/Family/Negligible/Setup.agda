@@ -1,7 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The canonical LOCAL-NEGLIGIBLE `UCSetup`, and the bridge into it
--- (`docs/quantitative-uc-setup-plan.typ` §9's `local-negligible⇔canonical`).
+-- The canonical LOCAL-NEGLIGIBLE `UCSetup`, and the bridge into it.
 --
 -- `UC.Family.ucSetup^ω` is `Famᴹ` at `Evaluation^ω`, whose comparison has
 -- quantified its error away.  This is the same four fields at

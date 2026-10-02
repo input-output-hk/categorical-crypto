@@ -8,9 +8,9 @@
 -- survives a zero-error change of either endpoint (`≈[]-resp₀`).  It is NOT an
 -- ordered monoid: no consumer spends associativity, commutativity or the
 -- converse unit bounds, the lax direction keeps an upper-bound model
--- admissible (the resource extension of `docs/quantitative-uc-setup-plan.typ`
--- §7), and schedule errors (`Approx.Schedule.pointwise`) are antisymmetric only
--- up to pointwise equality.
+-- admissible (`Approx.Controlled`'s resource-sensitive maps), and schedule
+-- errors (`Approx.Schedule.pointwise`) are antisymmetric only up to pointwise
+-- equality.
 --
 -- `_∼ᵃ_`, closeness at EVERY positive error, is the qualitative equivalence
 -- closeness collapses to, and positivity is spent there alone, so it is a

@@ -10,7 +10,7 @@
 -- which `agree-off` puts under two flags: a repeat in the oracle's answer log
 -- (`Potential.collision-cert`) or a fresh sample landing on the outstanding
 -- digest (`Potential.rare-cert`).  The digest is drawn by the oracle at the
--- query, so `docs/ro-game-hop.md`'s fixed-secret caveat does not apply.
+-- query, so `GamePlaying.Potential`'s fixed-secret caveat does not apply.
 
 open import Class.DecEq
 

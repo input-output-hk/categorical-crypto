@@ -18,8 +18,9 @@
 --
 -- The hypothesis is universal in the strategy, the shape a layer-1 theorem
 -- (`_≈adv[_]_`, `Bounded`) already has: it feeds it at budget
--- `scale c (positive c′)`.  Why not one dominating strategy:
--- `docs/rewrite-verdict.md`, external theory review addendum.
+-- `scale c (positive c′)`.  Not one dominating strategy: a finite strategy
+-- mentions finitely many first queries, so none reflects a context that
+-- samples an unbounded-support question at query bound one.
 --
 -- The slack δ is positive rather than zero because the model's readout, hence
 -- `_≈ℰ_`, quantifies over every positive slack anyway, so it costs a consumer

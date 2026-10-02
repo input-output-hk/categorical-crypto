@@ -1,7 +1,6 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- Event bounds at the compiled monitor, and the strategy-to-contexts lift
--- (`docs/event-bounds-in-setup.md` §5).
+-- Event bounds at the compiled monitor, and the strategy-to-contexts lift.
 --
 -- A monitored event is a state event: `monitorᴹ report ∘ u` is the flag wire
 -- of the accumulator `accᴹ report u` (`UC.Machine.Monitor.monitor-flag`), so

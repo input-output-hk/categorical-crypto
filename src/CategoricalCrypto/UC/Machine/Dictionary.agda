@@ -111,7 +111,7 @@ a⇒-α⇒ = wire-pure ⊎assocʳ ⊎assocˡ α+⇒ α+⇐ assocʳᵏ assocˡᵏ
 
 -- The bundle's own monoidal unit, read as an interface.  It is NOT `unitᴵ`:
 -- that one is empty at `Data.Empty.⊥` and this one at `𝒱ₚ`'s initial object,
--- and `docs/stduc-supersession-plan.md` §1.1 prices the iso between them.
+-- and the iso between them costs >150 s to check.
 𝟭ᴵ : Iface
 𝟭ᴵ = retᴵ 𝔾.unit
 

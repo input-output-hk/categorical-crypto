@@ -1,13 +1,12 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The category `Approx` of approximate spaces and nonexpansive maps
--- (`docs/quantitative-uc-setup-plan.typ` §2).
+-- The category `Approx` of approximate spaces and nonexpansive maps.
 --
 -- Hom equality is pointwise agreement AT ZERO ERROR, and that is the whole
 -- point of the packaging: `resp₀` says a fixed bound survives a zero-error
 -- change of either endpoint, so no separate fine equality has to be carried
 -- alongside the coarse one, and a functor into `Approx` transports every
--- quantitative bound exactly (plan §2.2).
+-- quantitative bound exactly.
 
 open import Categories.Category
 open import Categories.Category.Instance.Setoids

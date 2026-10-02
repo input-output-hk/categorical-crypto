@@ -1,7 +1,6 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- Monitor agreement at embedded strategies: `docs/event-bounds-in-setup.md`
--- §2 obligation 4.
+-- Monitor agreement at embedded strategies.
 --
 -- `flag-agree` runs the accumulator's flag wire (`UC.Machine.Monitor.accᴹ`) at
 -- `flagStrat d`: it IS the run of the process under the watch, as `_≈ₚ_`,

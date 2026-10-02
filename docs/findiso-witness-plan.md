@@ -1,12 +1,15 @@
 # Plan: proving the `deepFrame` iso (Route B for the rewriteDeep `findIso` gates)
 
-Status: PLAN ONLY (2026-06-11). Route A (computational witness + `Verify`)
-is being spiked separately; this records the full-theorem route for when /
-if we want the gate to vanish entirely.
+Status: unbuilt plan. Route A (a proof-carrying gate) is a NO-GO
+(`spikes/GlobalPhiDirect.agda`: the frame iso reduces to the faithfulness
+kernel); this is the full-theorem route, if the gate is ever to vanish.
+`spikes/Leg1Carve.agda` and `spikes/Leg3Recomp.agda` hold its partial legs.
+File paths below predate the solver's reorganisation into `Model/`, `Soundness/`
+and `Solver/Rewrite/`; the definition names are current.
 
 ## Problem and payoff
 
-Every `rewriteDeepₙ!` / `rewriteDeepTo!` call (`Solver/Interpret.agda`)
+Every `rewriteDeepₙ!` / `rewriteDeepTo!` call (`Solver/Frontend.agda`)
 carries the typecheck-time gate
 
 ```
@@ -29,7 +32,7 @@ new information and stays a search). Payoff: gate #1 costs 0; per-call cost
 of `rewriteDeepTo!` drops ~170 s → ~75 s, and `rewriteDeep!`/`rewriteDeepₙ!`
 become essentially free (only `deepFocₙ`, ~0.4 s).
 
-## The pipeline being verified (all in `Solver/Deep.agda` unless noted)
+## The pipeline being verified (all in `Solver/Rewrite/Deep.agda` unless noted)
 
 ```
 emb : ⟪ lᵗ ⟫ ↪ᴴ ⟪ s ⟫            -- subMatchAll, ALREADY verified (SubMatch.verifySub)
@@ -38,7 +41,7 @@ ctx = D⁺.decode-attempt H'         -- graph → term over sig⁺, ctx mentions
 foc = C⁺.focusAtₙ ctx (Agen⁺ hole!) 0 → (k , pre⁺ , post⁺)
 pre/post = retract pre⁺ / post⁺    -- sig⁺ → sig (h does not occur)
 glue: two decide-≡ substs aligning unflatten⁺ boundaries
-frame = post ∘ (id {k} ⊗₁ mid) ∘ pre   -- deepFrame, Interpret.agda:75
+frame = post ∘ (id {k} ⊗₁ mid) ∘ pre   -- deepFrame, Solver/Frontend.agda
 ```
 
 ## Theorem decomposition

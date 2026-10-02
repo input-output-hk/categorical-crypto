@@ -7,9 +7,7 @@ of value; the primitive is a hash function; the bridge between the idealized
 hash and a real one is UC emulation.
 
 Everything named below is a checked term in `src/CategoricalCrypto/Examples/`
-unless it is marked otherwise. The escape-hatch grep over `src/` stands at its
-baseline of 16 hits, every one the words "postulate-free" or "no postulate
-left" in an inherited comment (`docs/history/retirement.md` §10).
+unless it is marked otherwise.
 
 Reading order — seven modules, plus two support modules a reader never has to
 open (`Value`, `Observable`):
@@ -28,8 +26,7 @@ The two covering leaves are `Transfer` and `Serialize`:
 their import closures cover the directory (`Transfer` reaches `Replay`, for
 §6's positive-behaviour claim, and through `Property` reaches `Birthday`,
 `Observable`, `System` and `Value`). `src/CategoricalCrypto.agda` deliberately
-imports none of it (`docs/history/consumer-migration.md` §5), so the directory is
-checked per file through those two.
+imports none of it, so the directory is checked per file through those two.
 
 ## 1. The ledger
 
@@ -99,12 +96,12 @@ chimeric-not-preserving : (ε : ℕ → ℕ → ℚ) → NegligibleBound ε
                         → ¬ Hitsᴺ (λ n → morphism (Chimericᶠ V n)) (auditMonitorᶠ (genesisTotal (2 + V))) ε
 ```
 
-hold for every genesis address `a` and every funded value `2 + V`; the second
+hold for every funded value `2 + V`; the second
 refutes the monitored event bound at **every** negligible schedule, `PreservesValue`'s
 `εᴸ` among them. The negation is asymptotic, not a single numerical instance: `preservesValue⇒saturated`
 hands the attack's own strategy back a bound out of the contextual property,
-the allowance is quantified first (at the constant `3`, the attack's
-certificate), the slack second, and then negligibility of the birthday term
+the allowance is quantified first (at the constant `3`, the attack's ask
+bound `replay-asks`), the slack second, and then negligibility of the birthday term
 and of the slack puts `ε n 3 + ν n` eventually below `½` — which cannot
 dominate probability one.
 
@@ -166,7 +163,8 @@ Three design points are worth the reader's attention.
   query and answer and raises a private flag the first time an *audit answer*
   reports a total other than the genesis one — nothing about the system's
   internal state is read, which is why a UC emulation can carry it (a
-  trajectory bound cannot, and is demoted to the appendix of §6).
+  trajectory bound cannot, and comes back only under an extra hypothesis:
+  §6, claim 2).
   `UC.Machine.Monitor.flagReader` reads the environment's own test over
   `auditMonitorᶠ n ∘ R n`, so the experiment's **verdict is the flag**: the bound is a probability of
   that event, not of an arbitrary Boolean the test might return. And the
@@ -182,16 +180,14 @@ Three design points are worth the reader's attention.
   process is the flag wire of its accumulator (`UC.Machine.Monitor.monitor-flag`),
   so the lift is `UC.Machine.StateEvent.Lift.stateLift`, whose one extra unit is
   the flag ask — a real query of the extracted strategy, already inside its
-  cap. (The retired monitor-side certificate charged a `q + 1` for the
-  accumulator's potential instead; `docs/monitor-flag-spike.md` §4.) No
-  certificate of the compiled *test* is charged either: the flag channel is
+  cap. No certificate of the compiled *test* is charged either: the flag channel is
   internal to the monitored process, so what a strategy extracted from it can
   spend on the **ledger** is the honest allowance alone.
 
 `preservesValue⇒saturated` reads the same bound back at the contexts an
 ordinary strategy embeds to, on `UC.Quantitative.EventLift.agree` — the monitored
 experiment there *is* layer 1's run of that strategy under `auditWatch`. That
-is what lets §2's family refutation and §6's appendix keep speaking about
+is what lets §2's family refutation and §6's claim 2 keep speaking about
 strategies with no change of meaning, and nothing is spent coming back.
 
 The schedule is the canonical one — hash width `n` at security parameter `n` —
@@ -209,7 +205,8 @@ target : TrajectoryLossBounded inputConsuming (genesis h₀ a₀ V) birthday-bou
 `Protocol.Safety.hit-bounded` carries the adaptivity, so what is owed is a
 non-adaptive per-step certificate, built from a potential
 (`Uniform.Duplicate.Φ` over the hashes in the oracle table) and an invariant.
-The crux is the invariant's `Stale` field: every hash already in the table
+The crux is the invariant's `stales` field (a `Stale` witness per table
+entry): every hash already in the table
 belongs to a transaction one of whose inputs is already spent, so with
 `SerInj` a table *hit* at an accepted transaction is impossible — which is what
 rules out §2's replay. The witness for a freshly hashed transaction is its
@@ -272,7 +269,7 @@ internal state nor a statement that the implementation answers at all.
 | claim | assumes | concludes |
 |---|---|---|
 | `preserves-value-transfer` | `SerInj`, an emulation | a discrepant audit **answer** is rarely accumulated and reported |
-| `ledger-uc-to-state` | the above **+ `TruthfulAudit`** for a supplied state test, at a doubled allowance plus the monitor's one query | that **state event** is rarely raised, under every admitted experiment (`StateSafe`) |
+| `ledger-uc-to-state` | the above **+ `TruthfulAudit`** for a supplied state test, at a doubled allowance | that **state event** is rarely raised, under every admitted experiment (`StateSafe`) |
 | `ideal-spends-genesis` | nothing | the genesis output **is spent**, and the state moves |
 
 ### Claim 1: observable audit safety
@@ -300,8 +297,8 @@ because an arbitrary `NegligibleBound` has none.
 `_≈ᶠᴺ_` is the direct-agreement relation this example needs; the generic
 quantitative API the rest of the library is stated at is `_≤UC[_,_]_` with its
 composition theorems, and `UC.Model.Family.Emulation.≤UC[]⇒≤UCᴺ` is its
-crossing into the canonical negligible order (`docs/quantitative-family.md`
-§§12, 14.4). The ledger does not go that way: it stays at `_≈ᶠ[_]_` throughout.
+crossing into the canonical negligible order (`docs/quantitative-family.md`).
+The ledger does not go that way: it stays at `_≈ᶠ[_]_` throughout.
 
 ### …off a premise about the hash alone
 
@@ -396,7 +393,7 @@ Assumed, and nowhere hidden:
 
 * `SerInj` — the birthday theorem's own injective-serialization hypothesis;
 * the emulation — the one cryptographic premise, in §6's shape;
-* `TruthfulAudit` — appendix only, never for the headline property.
+* `TruthfulAudit` — claim 2 only, never for the headline property.
 
 Not delivered:
 
@@ -406,26 +403,15 @@ Not delivered:
    messages where the ledger hashes bitstrings, so the instance wants a padding
    adapter and then a `_≈ᶠᴺ_` proof off `MD.indistinguishable`.
 2. **A nontrivially graded hash port.** The port is an object boundary and both
-   stages are pure, so every simulator there is a scalar and is provably blind
-   (`docs/ledger-factoring.md`, closing section).
-3. **A reachability result joining §2 to §4.** The replay attack is now proved
+   stages are pure, so every simulator there is a scalar and is provably blind:
+   the factoring yields no nontrivial simulator.
+3. **A reachability result joining §2 to §4.** The replay attack is proved
    at every hash width and serialization, and it refutes the family property at
    its own initialization — but that initialization is an account-funded state,
    and `System.ledger-keeps-accts-[]` shows the UTxO genesis never reaches one.
    What is missing is either a genesis from which a funded account *is*
    reachable, or the separate verdict on the chimeric variant at the UTxO
    genesis itself.
-
-The source-backed record of every claim above — compared systems, contexts,
-certificates, simulators, error transformations and quantifier order — is
-`docs/quantitative-family.md` §14.
-
-The route this arc took to get here, including the premise shapes and the
-carries that were tried and retired, is route history:
-[`ledger-factoring.md`](ledger-factoring.md),
-[`ledger-lift-eps.md`](ledger-lift-eps.md),
-[`consumer-migration.md`](history/consumer-migration.md),
-[`retirement.md`](history/retirement.md).
 
 ## 8. The serializer, concretely
 

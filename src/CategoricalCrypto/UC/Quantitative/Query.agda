@@ -1,7 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The query-sensitive test model as a genuine filtered instance
--- (`docs/quantitative-uc-setup-plan.typ` §7.3).
+-- The query-sensitive test model as a genuine filtered instance.
 --
 -- Tests are compared through CERTIFIED closures, at a schedule read off the
 -- closure's own rate.  Pulling a test back along a morphism of rate `r` moves

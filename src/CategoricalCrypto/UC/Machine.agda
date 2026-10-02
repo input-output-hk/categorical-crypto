@@ -6,8 +6,8 @@
 -- retraction `retᴵ`, so a hom of `𝒢ₚ` at any objects IS a `Proc` and either
 -- vocabulary reads the other with no coercion.  The ancilla action is taken
 -- on 𝒢's own objects, where it is free: re-presenting it on `Iface` objects is
--- a measured >1500 s wall (`docs/protocol-rewrite.md`'s "A `Monoidal` law
--- costs ~470 s to RECEIVE and nothing to PLUG").
+-- a measured >1500 s wall (a `Monoidal` law costs ~470 s to RECEIVE there
+-- and nothing to PLUG).
 --
 -- The verdict interface is TICKED (`Neg Ωᴵ = ⊤`).  A machine is reactive, so a
 -- closed composite at a verdict interface with an empty negative side could

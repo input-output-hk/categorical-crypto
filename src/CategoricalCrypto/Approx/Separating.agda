@@ -1,7 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The example keeping `F₀` and `F₊` apart
--- (`docs/quantitative-uc-setup-plan.typ` §3).
+-- The example keeping `F₀` and `F₊` apart.
 --
 -- The two forgetful functors differ exactly where a space's error balls are not
 -- closed, and one space is enough to show that they do: rational sequences

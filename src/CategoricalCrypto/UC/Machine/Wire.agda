@@ -12,8 +12,8 @@
 --
 -- The embedding's lemmas are applied through their QUALIFIED names rather than
 -- by instantiating `Embed.WithTrace` as a module: a module application copies
--- every sibling, and those siblings' types mention the trace
--- (`docs/stduc-supersession-plan.md` §1.1 measures the difference at 8 GiB).
+-- every sibling, and those siblings' types mention the trace (measured: the
+-- module application exhausts 8 GiB).
 
 open import Categories.Category
 open import Categories.Category.Monoidal.Bundle

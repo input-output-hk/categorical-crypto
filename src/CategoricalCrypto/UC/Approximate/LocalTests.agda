@@ -1,7 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The acceptance criteria of `docs/protocol-implementation-review.md` §1, as
--- theorems: the local negligible agreement ADMITS a one-shot `2⁻ⁿ` difference
+-- The acceptance criteria of the negligible tier, as theorems: the local negligible agreement ADMITS a one-shot `2⁻ⁿ` difference
 -- and REJECTS a one-shot `1/(n+1)` one, the latter being what mere vanishing
 -- would let in.
 --
