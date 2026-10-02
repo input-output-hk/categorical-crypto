@@ -72,11 +72,8 @@ eStep (s , inj₂ (inj₂ (inj₂ getᶜ)))         = case s of λ where
   (opnᴱ t b₁ b₂) → returnₚ (endᴱ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜʰ (b₁ xor b₂)))))
   _              → botₚ
 
-stateᴱ : State
-stateᴱ = initˢ EStʰ (preᴱ [])
-
 eagerᶜʰ′ : Proc unitᴵ Cⁱʰ
-eagerᶜʰ′ = mk stateᴱ eStep
+eagerᶜʰ′ = mk (initˢ EStʰ (preᴱ [])) eStep
 
 ------------------------------------------------------------------------
 -- …and drawing at `shareᴬʰ`
@@ -107,11 +104,8 @@ dStep (s , inj₂ (inj₂ (inj₂ getᶜ)))         = case s of λ where
   (opnᴰ t b₁ b₂) → returnₚ (endᴰ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜʰ (b₁ xor b₂)))))
   _              → botₚ
 
-stateᴰ : State
-stateᴰ = initˢ DStʰ (preᴰ [])
-
 deferᶜʰ′ : Proc unitᴵ Cⁱʰ
-deferᶜʰ′ = mk stateᴰ dStep
+deferᶜʰ′ = mk (initˢ DStʰ (preᴰ [])) dStep
 
 ------------------------------------------------------------------------
 -- …at the bracket the grade is compared in

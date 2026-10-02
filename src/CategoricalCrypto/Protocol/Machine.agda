@@ -83,7 +83,7 @@ Closed B = MC.Machine (⊥ ⊎ Neg B) (⊥ ⊎ Pos B)
 module _ (M : Closed B) where
 
   -- Named rather than `where`-local so that a lemma about a run can quantify
-  -- over it (`UC.Machine.Run.resume-ϕ`).
+  -- over it (`Protocol.Machine.Run.resume-ϕ`).
   resumeᴹ : (MC.St M → Pos B → Dₚ Bool) → MC.St M × (⊥ ⊎ Pos B) → Dₚ Bool
   resumeᴹ c (_  , inj₁ a) = ⊥-elim a
   resumeᴹ c (m′ , inj₂ r) = c m′ r

@@ -89,7 +89,7 @@ wire-pure up down u v eu ev =
     ≲⇒≈ᴹ (mk-cong (wireStep-copair up down ○ ⟺ (refl⟩⊗⟨ bridge)))
   ○ᴹ ≲⇒≈ᴹ˘ (⌜⌝-pureᴹ u v)
   where
-  bridge = swap-copair u v ○ []-cong₂ (refl⟩∘⟨ eu) (refl⟩∘⟨ ev)
+  bridge = []∘+₁ ○ []-cong₂ (refl⟩∘⟨ eu) (refl⟩∘⟨ ev)
 
 wire-⌜⌝ : {A B : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
         → 𝒫._≈_ {A} {B} (wireᴹ up down)

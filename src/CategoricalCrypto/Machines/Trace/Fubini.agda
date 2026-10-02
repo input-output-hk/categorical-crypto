@@ -6,10 +6,6 @@
 -- over `P + X` on the right — and what is left is that the trace does not see a
 -- pure reindexing of its loop variable (`relabel-step`, one `iter-transfer` at
 -- `id ⊗₁ s`).
---
--- `βᴹ` is first recognized as the pure machine of `β+`; the two associators of
--- the fusion then cancel against `β+`'s own (`α+⇒-β+`, `β+-α+⇐`), which is why
--- the swap that survives is `+-swap` alone.
 
 open import Categories.Category.Monoidal.Bundle
 open import Categories.Category.Monoidal.Pure
@@ -19,7 +15,6 @@ import Categories.Category.Monoidal.Distributive as MD
 
 import CategoricalCrypto.Machines.Category as MCat
 import CategoricalCrypto.Machines.Core as Core
-import CategoricalCrypto.Machines.Frame as Frame
 import CategoricalCrypto.Machines.Iteration as Iteration
 import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Tensor as Tensor
@@ -36,7 +31,6 @@ open SymmetricMonoidalCategory 𝒱
 open Congruence 𝒱 dist 𝒫 E
 open Core 𝒱
 open Equiv
-open Frame 𝒱
 open Iteration.Elgot E
 open MCat 𝒱 𝒫
 open MD.MonoidalDistributive dist
@@ -62,9 +56,6 @@ private variable A B P X : Obj
 βᴹ : Machine ((A + B) + P) ((A + P) + B)
 βᴹ = α⇐ᴹ ∘ᴹ (idᴹ ⊗ᵉ σᴹ) ∘ᴹ α⇒ᴹ
 
-pure-swap : Pure (+-swap {A} {B})
-pure-swap = pure-[] pure-i₂ pure-i₁
-
 α+⇒-β+ : α+⇒ {A} {P} {X} ∘ β+ {A} {X} {P} ≈ (id +₁ +-swap) ∘ α+⇒
 α+⇒-β+ = cancelˡ ⊕.associator.isoʳ
 
@@ -81,7 +72,7 @@ pure-swap = pure-[] pure-i₂ pure-i₁
     inner = ∘ᴹ-resp-≈ᴹ tensor reflᴹ ○ᴹ ≲⇒≈ᴹ (pureᴹ-∘ (id +₁ +-swap) α+⇒)
 
 ------------------------------------------------------------------------
--- The trace does not see a pure iso of its loop variable
+-- The trace does not see a pure, left-invertible reindexing of its loop variable
 
 module _ (V : State) (A B X X′ : Obj) (s : X ⇒ X′) (s⁻ : X′ ⇒ X)
   (sᵖ : Pure s) (s-inv : s⁻ ∘ s ≈ id)
@@ -90,9 +81,6 @@ module _ (V : State) (A B X X′ : Obj) (s : X ⇒ X′) (s⁻ : X′ ⇒ X)
   private
     k♯ : obj V ⊗₀ (A + X′) ⇒ obj V ⊗₀ (B + X′)
     k♯ = id ⊗₁ (id +₁ s) ∘ (k ∘ id ⊗₁ (id +₁ s⁻))
-
-    tstep-relabel : tstep (id {obj V ⊗₀ B}) (id ⊗₁ s) ≈ id ⊗₁ (id +₁ s)
-    tstep-relabel = tstep-cong (⟺ ⊗.identity) refl ○ tstep-str id s
 
     loop-relabel : loopBody V A B X′ k♯
                  ≈ id ⊗₁ (id +₁ s) ∘ (loopBody V A B X k ∘ id ⊗₁ s⁻)
@@ -109,7 +97,7 @@ module _ (V : State) (A B X X′ : Obj) (s : X ⇒ X′) (s⁻ : X′ ⇒ X)
             ≈ tstep id (id ⊗₁ s) ∘ loopBody V A B X k
         hyp = (loop-relabel ⟩∘⟨refl) ○ assoc
             ○ (refl⟩∘⟨ cancelʳ (pad-inv s-inv))
-            ○ ⟺ (tstep-relabel ⟩∘⟨refl)
+            ○ ⟺ (tstep-relabel s ⟩∘⟨refl)
 
     solve-relabel : solve V A B X′ k♯ ∘ id ⊗₁ (id +₁ s) ≈ solve V A B X k
     solve-relabel = assoc ○ []-δ⇐ id s
@@ -127,8 +115,6 @@ module _ (V : State) (A B X X′ : Obj) (s : X ⇒ X′) (s⁻ : X′ ⇒ X)
 ------------------------------------------------------------------------
 -- Exchanging the two loops
 
--- Both fusions and both `β+`s are two-sided interface relabellings, so each
--- side normalizes to the same shape before the ⊕-identities are applied.
 norm : {S A₁ A₂ A₃ B₁ B₂ B₃ : Obj} (r₁ : A₁ ⇒ A₂) (r₂ : A₂ ⇒ A₃)
        (l₁ : B₁ ⇒ B₂) (l₂ : B₂ ⇒ B₃) (n : S ⊗₀ A₃ ⇒ S ⊗₀ B₁)
      → id ⊗₁ l₂ ∘ ((id ⊗₁ l₁ ∘ (n ∘ id ⊗₁ r₂)) ∘ id ⊗₁ r₁)
@@ -173,7 +159,7 @@ module _ (V : State) (A B X P : Obj)
                ○ ⟺ (norm (id +₁ +-swap) α+⇐ α+⇒ (id +₁ +-swap) m)
 
     swap : traceStep V A B (X + P) k₁ ≈ traceStep V A B (P + X) k₂
-    swap = ⟺ (relabel-step V A B (X + P) (P + X) +-swap +-swap pure-swap
+    swap = ⟺ (relabel-step V A B (X + P) (P + X) +-swap +-swap (pure-[] pure-i₂ pure-i₁)
                            +-swap∘swap k₁)
          ○ ⟺ (traceStep-cong V A B (P + X) k₂-relabel)
 

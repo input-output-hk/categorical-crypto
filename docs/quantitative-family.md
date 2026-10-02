@@ -325,8 +325,8 @@ Checked green, unedited: `src/CategoricalCrypto.agda`, `UC.agda`, `UC/Model.agda
 3. ~~**The filtered layer as the relation's actual home.**~~ RESOLVED 2026-09-21 on
    branch `filtered-qsetup`; see §11.
 
-4. **Consumer migration (plan step 6).** `ledger-uc-to-pov-family`,
-   `ledger-pov-family-negligible` and `ledger-pov` are unchanged and green; nothing was
+4. **Consumer migration (plan step 6).** `ledger-uc-to-hit-family`,
+   `ledger-hit-family-negligible` and `ledger-pov` are unchanged and green; nothing was
    migrated onto the new witness form. (`ledger-uc-to-pov-simCost` and
    `ledger-pov-simCost-negligible` stood here too until the budgeted route was retired
    2026-09-21, `docs/end-to-end.md` §4.)
@@ -1054,7 +1054,7 @@ preserves-value-transfer : (a V : ℕ) (R : Systems LedgerIf^ω) → SerInj
   allowances are exact; no schedule monotonicity is spent.
 - Quantifier order: `(p, Poly p)` first, then slack, then level, then context.
 - Callers: `Transfer.agda:186` (`ledger-preserves-value-from-hash`), `:227`
-  (`ledger-uc-to-pov-family`).
+  (`ledger-uc-to-hit-family`).
 - Replacement (WP3, schematic): the plan's `preserves-value-transfer` body with
   `comparison-at-watched-strategy` = `≈ᶠ-runs` + `Strategy.asks≤-watch` and
   `ideal-watched-upper-bound` = `upper-run` + `ideal-bounded`; a WP1 specialization
@@ -1090,7 +1090,7 @@ No in-repo caller (it is a public headline). Replacement: none.
 #### The trajectory conclusion — `Transfer.agda:219` and `:234`
 
 ```agda
-ledger-uc-to-pov-family :
+ledger-uc-to-hit-family :
     SerInj → (R : Systems LedgerIf^ω) (badR : (n : ℕ) → St (R n) → Bool)
   → R ≤UC^ωⁿ Ideal a V → TruthfulAudit R badR → (p : ℕ → ℕ) → Poly p
   → Σ[ ν ∈ (ℕ → ℚ) ] Negligible ν
@@ -1099,7 +1099,7 @@ ledger-uc-to-pov-family :
 ```
 
 ```agda
-ledger-pov-family-negligible :
+ledger-hit-family-negligible :
     SerInj → (R : Systems LedgerIf^ω) (badR : (n : ℕ) → St (R n) → Bool)
   → R ≤UC^ωⁿ Ideal a V → TruthfulAudit R badR
   → (p : ℕ → ℕ) → Poly p
@@ -1121,8 +1121,8 @@ ledger-pov-family-negligible :
   trajectory, so the bound comes back only from the implementation's own audit
   truthfulness. `ideal-truthful` (`:215`) discharges it for the ideal family.
 - Quantifier order: cap `(p, Poly p)` first, then slack, then level, then strategy.
-- Callers: `ledger-uc-to-pov-family` at `Transfer.agda:242`;
-  `ledger-pov-family-negligible` has no in-repo caller (public headline).
+- Callers: `ledger-uc-to-hit-family` at `Transfer.agda:242`;
+  `ledger-hit-family-negligible` has no in-repo caller (public headline).
 - Replacement: none. WP3 instruction 6 protects it from being weakened, and WP6 check
   1 requires the truthfulness premise stay visible.
 
@@ -1568,7 +1568,7 @@ eventSkeleton : EventSkeleton                                    -- Dominated.ag
 
 ### Decisions recorded
 
-1. **The appendix schedule is `q + q + 1`** (2026-09-22). `ledger-uc-to-pov-family`
+1. **The appendix schedule is `q + q + 1`** (2026-09-22). `ledger-uc-to-hit-family`
    (`Examples/ChimericLedger/Transfer.agda:219`) concludes at
    `εᴹ n (p n + p n) + ν n`, i.e. `εᴸ n (q + q + 1)`: the doubling is `withAudits`'
    honest-interface instrumentation, the `+ 1` is the monitor accumulator's. Ruled by
@@ -1924,10 +1924,10 @@ with `Pr (R n) (auditWatch n d) ℚ.≤ εᴹ n (p n) + ν n` at every `asks≤ 
 - **Assumptions** — none beyond the property.
 - **Kind** — compatibility (the strategy-level reading of the contextual bound).
 
-#### `ledger-uc-to-pov-family` — `Transfer.agda:197`; `ledger-pov-family-negligible` `:210`; `TruthfulAudit` `:188`
+#### `ledger-uc-to-hit-family` — `Transfer.agda:197`; `ledger-hit-family-negligible` `:210`; `TruthfulAudit` `:188`
 
 ```agda
-ledger-uc-to-pov-family :
+ledger-uc-to-hit-family :
     SerInj → (R : Systems LedgerIf^ω) (badR : (n : ℕ) → St (R n) → Bool)
   → R ≈ᶠᴺ Ideal a V → TruthfulAudit R badR → (p : ℕ → ℕ) → Poly p
   → Σ[ ν ∈ (ℕ → ℚ) ] Negligible ν
@@ -1952,7 +1952,7 @@ ledger-uc-to-pov-family :
   stays in the statement. `ideal-truthful` (`:193`) discharges it for the ideal
   family only; `liar-not-truthful` (`:318`) shows it genuinely fails of some `R`
   satisfying claim 1.
-- **Kind** — conditional. `ledger-pov-family-negligible` is the same conclusion
+- **Kind** — conditional. `ledger-hit-family-negligible` is the same conclusion
   read as one negligible number (`Negligible-+` of `εᴹ-negligible` and `ν`).
 
 #### `chimeric-not-preserving` — `Transfer.agda:353`; `Replay.chimeric-loses-value` `Replay.agda:153`
@@ -2285,8 +2285,8 @@ convertible on the nose (§13).
    `BoundedAt` at `readoutᴹ` of `monitorᴹ (Watched.reportsLoss …)`, a process on
    the ledger interface that reads only queries and answers; the compiled
    experiment's verdict IS the flag. `TruthfulAudit` (`Transfer.agda:188`) is an
-   explicit premise of `ledger-uc-to-pov-family` (`:197`) and
-   `ledger-pov-family-negligible` (`:210`), discharged only for the ideal family
+   explicit premise of `ledger-uc-to-hit-family` (`:197`) and
+   `ledger-hit-family-negligible` (`:210`), discharged only for the ideal family
    (`ideal-truthful`, `:193`) and refuted for `Liar` (`liar-not-truthful`,
    `:318`).
 2. **The `q + 1` route is not described as a universal lower bound.** PASS after

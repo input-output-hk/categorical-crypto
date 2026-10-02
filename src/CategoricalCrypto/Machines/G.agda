@@ -1,8 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- The machine layer as a traced symmetric monoidal category, and the
--- G construction over it with its monoidal structure.  `Traced.Ext`'s `β`
--- reduces to `Machines.Trace.Fubini.βᴹ`.
+-- G construction over it with its monoidal structure.
 
 open import Categories.Category.Monoidal.Bundle
 open import Categories.Category.Monoidal.Pure

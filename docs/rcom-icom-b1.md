@@ -371,7 +371,7 @@ Each item below says what was verified and where.
 | B2-2 | `StepSettles` at a traced machine | DONE — `Protocol/Machine/Trace.agda:95 trace-settles`, hypotheses `kS` (body settles) and `rank`/`rk : Ranked`/`f`/`rb` |
 | B2-3 | the `Dₚ`→kernel transport at an arbitrary closed machine | DONE — `Protocol/Machine/Raw.agda:61 StepSettles`, `:67 rawAgree`, `:112 rawPr`, `:126 rawKernel` |
 | B2-4 | the RESOURCE's own instance of it | DONE — `Examples/ROCommitment/Transport.agda:66 resK`, `:181 resource-settles`, `:198 resource-run`, with `resKᵀ` defined as the game's oracle `fetchT`, relabelled |
-| B2-5 | the partial-kernel game toolkit | DONE — `GamePlaying/Partial.agda`: `badProb⊥`:46, `SuperCert⊥`:69, `badProb⊥-super`:84, `FLGP⊥`:143, `StepBisim⊥`:206, `runWith⊥-bisim`:211, `embedᵏ`:239, `total⇒⊥`:242, `prune`:249, `prune-cert`:252, `hop-bound⊥`:284 |
+| B2-5 | the partial-kernel game toolkit | DONE — `GamePlaying/Partial.agda`: `badProb⊥`:46, `SuperCert⊥`:69, `badProb⊥-super`:84, `FLGP⊥`:143, `StepBisim⊥`:206, `runWith⊥-bisim`:211, `embedᵏ`:239, `total⇒⊥`:242, `prune`:249, `prune-cert`:252, `hop-boundᵇ⊥`:318 |
 | B2-6 | the closed game and its supermartingale | DONE — `Examples/ROCommitment/Game.agda:525 keep-or-sample`, `:543 rare-raise`, `:569 cert`, `:576 extraction-bound`; total-kernel bisimulations `:306 stepR`, `:360 stepI` |
 | B2-7 | the density lemma at the TRIVIAL grade | DONE — `UC/Model/Dominated.agda:114 ContextDominatedᵒ`, `:125 dominatedᵒ` |
 | B2-8 | the density lemma at a NONTRIVIAL grade | DONE and IN USE — `UC/Model/Dominated.agda:183 dominatedᵍ`, consumed at `Examples/CoinToss/Ideal/Receiver/Compose.agda:113` |

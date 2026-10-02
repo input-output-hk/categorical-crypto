@@ -122,7 +122,7 @@ infixr 10 _⇒ₜ_
 
 infixr 9 _⊗₀_
 
-opaque 
+opaque
   _⊗₀_ : Fun₂ Channel
   A ⊗₀ B = (inType A ⊎ inType B) ⇿ (outType A ⊎ outType B)
 

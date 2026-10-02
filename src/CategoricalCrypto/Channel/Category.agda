@@ -16,7 +16,7 @@ open import categorical-crypto.Prelude hiding (Functor; Bifunctor)
 
 opaque
   unfolding _⊗₀_
-  
+
   channel-category                       : Category (sucˡ zeroˡ) zeroˡ zeroˡ
 
   ⊗-bifunctor                           : Bifunctor channel-category channel-category channel-category

@@ -42,14 +42,14 @@ open import CategoricalCrypto.Examples.ROCommitment.Hiding.Asymptotic
 ------------------------------------------------------------------------
 -- The schedules
 
-attack-bound : εᶜᵗ εᶜ 5 3 ≡ + 15 / 32
-attack-bound = refl
+attack-bound : ∀ e → proj₁ (proj₂ (coin-toss-from-comᶜ e)) 5 3 ≡ + 15 / 32
+attack-bound _ = refl
 
-ideal-bound : εᶜⁱ εᶜ 5 3 ≡ + 15 / 32
-ideal-bound = refl
+ideal-bound : ∀ e → proj₁ (proj₂ (coin-toss-idealᶜ e)) 5 3 ≡ + 15 / 32
+ideal-bound _ = refl
 
-ideal-boundʳ : εᶜʳ εᵗ 5 3 ≡ + 5 / 16
-ideal-boundʳ = refl
+ideal-boundʳ : ∀ e → proj₁ (proj₂ (coin-toss-idealʳᶜ e)) 5 3 ≡ + 5 / 16
+ideal-boundʳ _ = refl
 
 ------------------------------------------------------------------------
 -- The ideal coin, and the simulator that lands the toss on it

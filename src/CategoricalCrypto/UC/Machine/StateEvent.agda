@@ -31,8 +31,8 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Pointwise
+open import CategoricalCrypto.Protocol.Machine.Run
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Run
 
 module CategoricalCrypto.UC.Machine.StateEvent where
 

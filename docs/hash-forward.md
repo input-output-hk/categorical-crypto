@@ -11,7 +11,7 @@ ledger cannot be that example and what one would need. This is that example.
 
 > **Superseded in part.** `UC.Audit` is deleted (`docs/audit-retirement-spike.md`), and
 > with it §3's rated `hf-emul`/`≤UC[]ᵍ`/`absorbed-budget`, §4's absorbed class and §5's
-> `hf-audit-carry`/`hf-audit-silent` and the old `hf-pr-bound`. `Examples.HashForward.Audit`
+> `hf-audit-carry`/`hf-audit-silent` and the old `hf-pr-bound`. `Examples.HashForward.UC`
 > now states the toy at the machine: `hf-bounded : AdvBoundedAt (k * 2) q r ideal →
 > AdvBoundedAt k q r real` (`EventBounds.Transport.bounded-absorb real-factors simQB`:
 > the simulator joins the adversary, doubling its rate), `hf-exact` (the closed runs
@@ -342,7 +342,7 @@ gate; the warm column is a single-`Checking`-line run.
    that touches review §3's acceptance criteria directly: the carry runs at
    `X ≠ unit` and its accounting includes the interaction, but the bound it
    produces is an `AuditBound`, not a `Pr`/`PrHit` inequality.
-   **Delivered since**, as `Examples.HashForward.Audit.hf-pr-bound` off the
+   **Delivered since**, as `Examples.HashForward.UC.hf-pr-bound` off the
    generic `UC.Seam.Audit.Context.extractᵍ` — see `docs/history/graded-bridge.md` (e).
 2. **A non-trivial audit designation.** `hf-audit-silent` supplies `ε ≡ 0` at
    the designation "the ideal monitored experiment reports `false`". A

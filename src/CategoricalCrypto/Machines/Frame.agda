@@ -34,11 +34,6 @@ open MonoidalUtilities monoidal
 
 private variable A B P Q R W W′ X Y Z : Obj
 
--- The reflection frontend wants the `MonoidalCategory` bundle, which the
--- symmetric one projects (`Categories.Category.Monoidal.Bundle`).
-𝕄 : MonoidalCategory o ℓ e
-𝕄 = monoidalCategory
-
 ------------------------------------------------------------------------
 -- The two state actions: functoriality and congruence
 
@@ -64,8 +59,8 @@ onL-id = (refl⟩∘⟨ elimˡ ⊗.identity) ○ β-β
 onR-id : onR {P = P} (id {Q ⊗₀ A}) ≈ id
 onR-id = (refl⟩∘⟨ elimˡ ⊗.identity) ○ associator.isoˡ
 
-onL-str : (g : X ⇒ Y) → onL {Q = Q} (id {P} ⊗₁ g) ≈ id ⊗₁ g
-onL-str g = (refl⟩∘⟨ (⟺ (β-natural g))) ○ pullˡ β-β ○ identityˡ
+onL-id⊗ : (g : X ⇒ Y) → onL {Q = Q} (id {P} ⊗₁ g) ≈ id ⊗₁ g
+onL-id⊗ g = (refl⟩∘⟨ (⟺ (β-natural g))) ○ pullˡ β-β ○ identityˡ
 
 onR-id⊗ : (h : W ⇒ W′) → onR {Q = Q} {P = P} (id ⊗₁ h) ≈ id ⊗₁ h
 onR-id⊗ h = pullˡ assoc-commute-to ○ cancelʳ associator.isoˡ ○ (⊗.identity ⟩⊗⟨refl)

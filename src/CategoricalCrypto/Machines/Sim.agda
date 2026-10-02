@@ -15,7 +15,6 @@ open import Categories.Category.Monoidal.Pure
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
 open import Level
-open import Relation.Binary using (IsEquivalence)
 import Relation.Binary.Construct.Closure.Equivalence as EqC
 
 import CategoricalCrypto.Machines.Core as Core
@@ -70,9 +69,6 @@ mk-cong eq = sim id pure-id identityˡ (elimˡ ⊗.identity ○ eq ○ ⟺ (elim
             ○ (θ-step t ⟩∘⟨refl) ○ assoc ○ (refl⟩∘⟨ ⟺ split₁ˡ)
   }
 
-≈ᴹ-isEquivalence : IsEquivalence (_≈ᴹ_ {A} {B})
-≈ᴹ-isEquivalence = EqC.isEquivalence _≲_
-
 ≲⇒≈ᴹ : {f g : Machine A B} → f ≲ g → f ≈ᴹ g
 ≲⇒≈ᴹ = EqC.return
 
@@ -82,13 +78,13 @@ mk-cong eq = sim id pure-id identityˡ (elimˡ ⊗.identity ○ eq ○ ⟺ (elim
 infixr 9 _○ᴹ_
 
 reflᴹ : {f : Machine A B} → f ≈ᴹ f
-reflᴹ = IsEquivalence.refl ≈ᴹ-isEquivalence
+reflᴹ = EqC.reflexive _≲_
 
 ⟺ᴹ : {f g : Machine A B} → f ≈ᴹ g → g ≈ᴹ f
-⟺ᴹ = IsEquivalence.sym ≈ᴹ-isEquivalence
+⟺ᴹ = EqC.symmetric _≲_
 
 _○ᴹ_ : {f g h : Machine A B} → f ≈ᴹ g → g ≈ᴹ h → f ≈ᴹ h
-_○ᴹ_ = IsEquivalence.trans ≈ᴹ-isEquivalence
+_○ᴹ_ = EqC.transitive _≲_
 
 ------------------------------------------------------------------------
 -- Collapsing a trivial state factor

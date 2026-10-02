@@ -22,8 +22,8 @@ private variable A B P Q R X Y : Obj
 ------------------------------------------------------------------------
 -- Machines
 
--- `point` is the initial state, possibly effectful: in a Kleisli category
--- `unit` is not initial.
+-- `point` is the initial state; over a Kleisli base it may be effectful (a
+-- distribution over states).
 record State : Set (o ⊔ ℓ) where
   field
     obj   : Obj
@@ -40,6 +40,7 @@ _⊛_ : State → State → State
 S ⊛ T = record { obj = obj S ⊗₀ obj T ; point = point S ⊗₁ point T ∘ λ⇐ }
 
 record Machine (A B : Obj) : Set (o ⊔ ℓ) where
+  constructor mk
   field
     state : State
 
@@ -50,9 +51,6 @@ record Machine (A B : Obj) : Set (o ⊔ ℓ) where
     step : St ⊗₀ A ⇒ St ⊗₀ B
 
 open Machine public
-
-mk : (S : State) → obj S ⊗₀ A ⇒ obj S ⊗₀ B → Machine A B
-mk S k = record { state = S ; step = k }
 
 ------------------------------------------------------------------------
 -- The ways a step can act on a paired state

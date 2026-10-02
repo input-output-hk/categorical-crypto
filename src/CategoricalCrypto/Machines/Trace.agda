@@ -12,7 +12,6 @@
 
 open import Categories.Category.Monoidal.Bundle
 open import Categories.Category.Monoidal.Pure
-import Categories.Category.Monoidal.Braided.Properties as BraidedProps
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Distributive.Properties as MDP
 
@@ -28,15 +27,12 @@ module CategoricalCrypto.Machines.Trace
   (E : Iteration.Elgot 𝒱 dist 𝒫) where
 
 open SymmetricMonoidalCategory 𝒱
-open BraidedProps.Shorthands braided
 open Core 𝒱
 open Equiv
 open Frame 𝒱
-open Iteration 𝒱 dist 𝒫
 open Iteration.Elgot E
 open MD.MonoidalDistributive dist
 open MDP 𝒱 dist
-open PureSub 𝒫
 open Sim 𝒱 𝒫
 open Tensor 𝒱 dist 𝒫
 
@@ -50,11 +46,9 @@ private variable A B C P Q X : Obj
 
 module _ (S : State) (A B X : Obj) (k : obj S ⊗₀ (A + X) ⇒ obj S ⊗₀ (B + X)) where
 
-  -- One pass of the loop: re-enter the body on the `X` summand.
   loopBody : obj S ⊗₀ X ⇒ obj S ⊗₀ (B + X)
   loopBody = k ∘ id ⊗₁ i₂
 
-  -- Exit on `B`, iterate on `X`.
   solve : obj S ⊗₀ (B + X) ⇒ obj S ⊗₀ B
   solve = [ id , iter loopBody ] ∘ δ⇐
 
@@ -67,7 +61,6 @@ module _ (S : State) (A B X : Obj) (k : obj S ⊗₀ (A + X) ⇒ obj S ⊗₀ (B
   solve-i₂ : solve ∘ id ⊗₁ i₂ ≈ iter loopBody
   solve-i₂ = pullʳ δ⇐-i₂ ○ inject₂
 
-  -- The fixpoint law, in the form the trace laws consume it.
   solve-loop : iter loopBody ≈ solve ∘ loopBody
   solve-loop = iter-fix ○ sym-assoc
 
@@ -79,11 +72,6 @@ traceStep-cong : (S : State) (A B X : Obj)
                → k ≈ k′ → traceStep S A B X k ≈ traceStep S A B X k′
 traceStep-cong S A B X e =
   ([]-cong₂ refl (iter-cong (e ⟩∘⟨refl)) ⟩∘⟨refl) ⟩∘⟨ (e ⟩∘⟨refl)
-
-traceᴹ-cong : (S : State) (A B X : Obj)
-              {k k′ : obj S ⊗₀ (A + X) ⇒ obj S ⊗₀ (B + X)}
-            → k ≈ k′ → traceᴹ A B X (mk S k) ≲ traceᴹ A B X (mk S k′)
-traceᴹ-cong S A B X e = mk-cong (traceStep-cong S A B X e)
 
 ------------------------------------------------------------------------
 -- Yanking

@@ -47,12 +47,12 @@ private variable A B C D P Q R X Y : Obj
 -- it was.  `onR-α` and `onLR-α` are decided by the monoidal solver: every
 -- crossing occurs at the same arity on both sides, hence as an opaque box.
 onR-α : (k : R ⊗₀ X ⇒ R ⊗₀ Y) → α⇒ {P} {Q} ⊗₁ id ∘ onR k ≈ onR (onR k) ∘ α⇒ ⊗₁ id
-onR-α k = solve-mor 𝕄
+onR-α k = solve-mor monoidalCategory
 
 onLR-α : (g : Q ⊗₀ X ⇒ Q ⊗₀ Y)
        → α⇒ ⊗₁ id ∘ onL (onR g)
        ≈ onR {P = P} (onL {Q = R} g) ∘ α⇒ ⊗₁ id
-onLR-α g = solve-mor 𝕄
+onLR-α g = solve-mor monoidalCategory
 
 -- Not decided by the solver: `onL {Q = Q ⊗₀ R}` crosses the block
 -- `σ⇒ {Q ⊗₀ R} {X}` where the nested `onL (onL …)` crosses `σ⇒ {Q} {X}` and
@@ -73,8 +73,8 @@ onL-α {P = P} {X = X} {Y = Y} {Q = Q} {R = R} h = solved ○ ⟺ (((refl⟩∘�
              ∘ α⇒ ⊗₁ id
     solved =
       let vs = P ∷ Q ∷ R ∷ X ∷ Y ∷ []
-          open MorAtoms 𝕄 vs
-          open MorSolve 𝕄 vs
+          open MorAtoms monoidalCategory vs
+          open MorSolve monoidalCategory vs
                ( ((V (# 0) ⊗ᵒ V (# 3) , V (# 0) ⊗ᵒ V (# 4)) , h)
                ∷ ((V (# 1) ⊗ᵒ V (# 3) , V (# 3) ⊗ᵒ V (# 1)) , σ⇒)
                ∷ ((V (# 2) ⊗ᵒ V (# 3) , V (# 3) ⊗ᵒ V (# 2)) , σ⇒)

@@ -22,17 +22,17 @@ record IsConstrained
   field
     -- We can create an input message from a query
     queryI : Query → machine-channel .inType
-    
+
     -- We can create an output message for all the possible types of the queries
     -- responses
     queryO : ∀ {query} → QueryReturnType query → machine-channel .outType
-    
+
     -- Correctness: For every received query of a given shape and wiring which
     -- gets a response, the response is also properly shaped and wired.
     correctness : ∀ {query s response' s'}
       → s -⟦ queryI query / response' ⟧ᵐ⇀ s'
       → ∃ λ response → response' ≡ just (queryO {query} response)
-      
+
     -- Completeness: queries of the right shape and wiring always get a response
     completeness : ∀ {query s}
       → ∃ λ response'
@@ -45,7 +45,7 @@ record IsConstrained
   ... | response' , s' , p with correctness p
   ... | response , _ = response , s'
 
--- Ensures that a certain constrained machine does not change it inner state
+-- Ensures that a certain constrained machine does not change its inner state
 -- when receiving a specific constrained query
 IsPureOn :
   {A B             : Channel}
@@ -64,7 +64,7 @@ IsPureOn {m = m} isConstrained query =
 
 -- Ensures that a certain constrained machine does not change its inner state
 -- when receiving any constrained query
-IsPure : 
+IsPure :
   {A B             : Channel}
   {m               : Machine A B}
   {Query           : Type}

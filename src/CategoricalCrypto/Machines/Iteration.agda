@@ -48,17 +48,6 @@ open import Categories.Category.Monoidal.Reasoning monoidal
 private variable A B C P S T : Obj
 private variable u v : S ⊗₀ A ⇒ S ⊗₀ (B + A)
 
--- A state map padded out to a machine interface: the shape every state
--- reconciliation in the layer takes.
-pad : S ⇒ T → S ⊗₀ A ⇒ T ⊗₀ A
-pad θ = θ ⊗₁ id
-
--- A padded state map relabels a sum interface summandwise, hence is its own
--- `tstep`: the distributor is natural in the state.
-tstep-pad : {S T X Y : Obj} (θ : S ⇒ T)
-          → tstep (θ ⊗₁ id {X}) (θ ⊗₁ id {Y}) ≈ θ ⊗₁ id {X + Y}
-tstep-pad θ = δ-unique (tstep-i₁ ○ pad-transport θ i₁) (tstep-i₂ ○ pad-transport θ i₂)
-
 record Elgot : Set (levelOfTerm 𝒱) where
   field
     iter : (S ⊗₀ A ⇒ S ⊗₀ (B + A)) → S ⊗₀ A ⇒ S ⊗₀ B
@@ -100,7 +89,7 @@ record Elgot : Set (levelOfTerm 𝒱) where
 
   iter-uniform : {S T A B : Obj} {u : S ⊗₀ A ⇒ S ⊗₀ (B + A)} (θ : S ⇒ T) → Pure θ
                → {v : T ⊗₀ A ⇒ T ⊗₀ (B + A)}
-               → v ∘ pad θ ≈ pad θ ∘ u → iter v ∘ pad θ ≈ pad θ ∘ iter u
+               → v ∘ θ ⊗₁ id ≈ θ ⊗₁ id ∘ u → iter v ∘ θ ⊗₁ id ≈ θ ⊗₁ id ∘ iter u
   iter-uniform {A = A} {B} {u} θ θᵖ {v} hyp =
     iter-transfer (θ ⊗₁ id {A}) (θ ⊗₁ id {B})
                   (pure-⊗₁ θᵖ pure-id) (pure-⊗₁ θᵖ pure-id) {u} {v}

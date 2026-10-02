@@ -2,7 +2,7 @@
 
 -- The closed real commitment system `real 𝒫.∘ resource` as a kernel: it
 -- settles, so its `Dₚ` run is a run of a `Dist⊥` kernel
--- (`Protocol.Machine.Trace.Compose`).
+-- (`Protocol.Machine.Trace`).
 --
 -- The composite's loop needs a rank: 1 on a resource query and 0 on an
 -- answer, because the receiver never answers the resource with a further
@@ -28,11 +28,12 @@ open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Settle
+open import ProbabilisticLogic.Dp.Settle.Iter
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Protocol.Machine.Raw
-open import CategoricalCrypto.Protocol.Machine.Trace.Compose
+open import CategoricalCrypto.Protocol.Machine.Trace
 
 import CategoricalCrypto.Machines.Collapse as Col
 import CategoricalCrypto.Machines.Core as Core
@@ -85,7 +86,7 @@ rankᴿ (_ , inj₂ _) = 0
 
 private
   Dropsᴿ : ℕ → (RSt × RState) × ((⊥ ⊎ Pos (Advᴵ ⊗ᴵ Honᴵ)) ⊎ (Neg Resᴵ ⊎ Pos Resᴵ)) → Set
-  Dropsᴿ = Lp.Drops real resource Kʳ Kᵒ real-settles res-settles rankᴿ
+  Dropsᴿ = Drops rankᴿ
 
   dispatchᴿ : (w : (RSt × RState) × (Neg Resᴵ ⊎ Pos Resᴵ)) (i : ℕ)
             → Supp i (Col.kᴳ real resource (proj₁ w , inj₂ (proj₂ w))) (Dropsᴿ (rankᴿ w))
@@ -94,8 +95,8 @@ private
   dispatchᴿ ((sg , sf) , inj₂ a) i =
     Supp-bind (Dropsᴿ 0) i _ _ (real-up _ (λ _ _ → Supp-return _ _ tt) sg a i)
 
-rankedᴿ : Lp.Ranked real resource Kʳ Kᵒ real-settles res-settles rankᴿ
-rankedᴿ = ranked-from-kᴳ real resource Kʳ Kᵒ real-settles res-settles rankᴿ dispatchᴿ
+rankedᴿ : Ranked rankᴿ (loopᴳ real resource)
+rankedᴿ = ranked-from-kᴳ real resource rankᴿ dispatchᴿ
 
 boundᴿ : (w : (RSt × RState) × (Neg Resᴵ ⊎ Pos Resᴵ)) → rankᴿ w < 2
 boundᴿ (_ , inj₁ _) = s≤s (s≤s z≤n)
@@ -103,4 +104,4 @@ boundᴿ (_ , inj₂ _) = s≤s z≤n
 
 Kᴿ : RSt × RState → Neg (Advᴵ ⊗ᴵ Honᴵ)
    → Dist⊥ ((RSt × RState) × Pos (Advᴵ ⊗ᴵ Honᴵ))
-Kᴿ = Kᶜˡ real resource Kʳ Kᵒ real-settles res-settles rankᴿ rankedᴿ 2 boundᴿ
+Kᴿ = Kᶜˡ real resource Kʳ Kᵒ 2

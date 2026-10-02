@@ -33,10 +33,10 @@ open import ProbabilisticLogic.Dp.Advantage
 open import CategoricalCrypto.Approx.Error
 open import CategoricalCrypto.Approx.Evaluation ℚ-ordered
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Protocol.Machine.Run
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Core
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Run
 open import CategoricalCrypto.UC.Model.Seal
 
 module CategoricalCrypto.UC.Model.Observation where
@@ -55,7 +55,7 @@ Obs u = ⟦ unprocᵒ u ⟧ᴼ
 ∼ᴼ-resp : {d d′ e e′ : Dₚ Bool} → d ≈ₚ d′ → e ≈ₚ e′ → d Ap.∼ᵃ e → d′ Ap.∼ᵃ e′
 ∼ᴼ-resp p q h ε pos = ≈ₚ[]-resp p q (h ε pos)
 
--- A simulation is invisible to a closed run (`UC.Machine.Run`), so the seal's
+-- A simulation is invisible to a closed run (`Protocol.Machine.Run`), so the seal's
 -- hom equality is observed EXACTLY, not merely up to every positive slack.
 obs-resp : {u v : 𝟘ᵒ G.⇒ Ωᵒ} → u G.≈ v → Obs u ≈ₚ Obs v
 obs-resp e = runᴹ-resp-≈ᴹ (≈ᵒ⇒≈ᴹ e) (ask tt out)

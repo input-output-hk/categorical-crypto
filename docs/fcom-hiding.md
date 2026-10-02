@@ -314,9 +314,8 @@ third: after the opening the two tables answer alike at every point and
 No pre-existing statement was edited or weakened. `Expectation.agda` gains
 three lemmas beside `Pr₁-bind`; `GamePlaying/Test.agda` gains a third machine
 beside its two; `Hop.agda` gains `runWith-join` beside `hop-bound`;
-`Hiding/Game.agda`'s `ask-redᴸ`/`ask-redᴿ` left its `private` blocks (the hop
-importing it reduces the same two kernels) and its four query expansions
-collapsed onto `E-bind₂`/`lookupᴰℚ-Dmap`; `Extraction.agda` and `Oracle.agda`
+`Hiding/Game.agda`'s four query expansions collapsed onto
+`E-bind₂`/`lookupᴰℚ-Dmap`, which the hop now applies directly; `Extraction.agda` and `Oracle.agda`
 gain the four table/oracle facts the hop needed, each beside the definition it
 is about rather than in the hop. Nothing else outside
 `Examples/ROCommitment/**` and `GamePlaying/**` was touched.

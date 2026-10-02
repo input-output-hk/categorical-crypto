@@ -7,7 +7,7 @@
 -- `σ : unit ⇒ unit` buried in a composite contributes its own initialization to
 -- the run and nothing else, and no state map makes that disappear.  `_≲ˡ[_]_`
 -- records exactly that gap — step and state map as strict as `_≲_`, the point
--- only up to a scalar prefix; its run-level reading is `UC.Machine.Run.Lax`.
+-- only up to a scalar prefix; its run-level reading is `Protocol.Machine.Run.Lax`.
 --
 -- The scalar is an INDEX rather than a field, so that a congruence names the
 -- scalar it produces (`σ ∘ τ` for a composite) and a consumer normalizes it

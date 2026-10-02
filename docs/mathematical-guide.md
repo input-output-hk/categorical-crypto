@@ -103,7 +103,7 @@ over every admitted context that reads it through a monitor.
   a `Reader` between the test and the process, a bound at every adversary of a rate, and
   its carry along an exact factoring `f ≈ subᴵ s ∘ g` — the simulator's rate multiplies
   the adversary's, the context cap is untouched, and no slack is paid. The toy instance
-  is `Examples.HashForward.Audit :: hf-pr-bound`.
+  is `Examples.HashForward.UC :: hf-pr-bound`.
 - `UC.Quantitative.EventLift :: Hitsᴺ`, `hitsᵘ`, `hits⇒bounded`: event bounds at the
   monitored readout. `hitsᵘ` lifts a bound on strategies at cap `q` to all contexts at
   cap `q` (it is `stateLift` at `accᴹ`, through `monitor-flag` and
@@ -134,7 +134,7 @@ that is `_≈ᶠᴺ_`-close to it inherits that bound.
   (`StateBoundedᴺ` of a supplied test), the one-sided detection premise, and the
   step from observable safety plus detection to state-event safety.
 - `Examples.ChimericLedger.Transfer :: ledger-uc-to-state`, `ledger-conserves-value-from-hash`,
-  `liar-not-truthful`, `ledger-pov-family-negligible`: the transferred state-event
+  `liar-not-truthful`, `ledger-hit-family-negligible`: the transferred state-event
   bound, its conservation instance over any emulating hash, the lying counterexample,
   and the operational corollary at the embedded strategies.
 - `Examples.ChimericLedger.Transfer :: chimeric-not-preserving`, `ideal-spends-genesis`:

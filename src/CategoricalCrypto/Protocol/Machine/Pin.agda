@@ -73,8 +73,7 @@ agree-false : cum 6 (runᴹ (morphism flip) echo) (indᵇ false) ≡ Prᵇ flip 
 agree-false = refl
 
 -- Divergence: `drive dead` is `botₚ`, whose mass `cum` never counts, and layer
--- 1's `evalC dead` parks the same mass on `nothing`.  Both branches of the
--- header's claim about `dead`, at one instance.
+-- 1's `evalC dead` parks the same mass on `nothing`.
 stuck : Protocol unitᴵ Coin
 stuck = record { St = ⊤ ; init = tt ; step = λ _ _ → dead }
 
@@ -86,8 +85,8 @@ machine-dead = refl
 
 -- …and what observing the SECOND verdict buys, at that instance: `nay` answers
 -- `false` where `stuck` diverges, so the two agree on the `true`-mass and are a
--- whole unit apart on the `false`-mass.  A one-sided observation identified
--- them (proposal §1, `docs/kb/frontier/15-probabilistic-uc-model.typ`).
+-- whole unit apart on the `false`-mass.  A one-sided observation identifies
+-- them (`Dp.Advantage`'s header).
 nay : Protocol unitᴵ Coin
 nay = record { St = ⊤ ; init = tt ; step = λ _ _ → ret (tt , false) }
 

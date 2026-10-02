@@ -34,11 +34,11 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pointwise
 open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Machine.Run
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.Monitor
-open import CategoricalCrypto.UC.Machine.Run
 open import CategoricalCrypto.UC.Machine.StateEvent
 open import CategoricalCrypto.UC.Machine.StateEvent.Read
 open import CategoricalCrypto.UC.Machine.Wire
@@ -203,7 +203,7 @@ module Read (D : Iface) (E : Proc D Ωᴵ) where
         step-red (idle , se) (inj₂ tt)
       ⟨≈⟩ bindˣ (>>=ₚ-identityˡ (waitE , inj₁ (inj₁ tt)) _)
       ⟨≈⟩ >>=ₚ-identityˡ ((waitE , se) , inj₂ (inj₁ (inj₁ tt))) _
-      ⟨≈⟩ loop-fix (waitE , se) (inj₁ (inj₁ tt))
+      ⟨≈⟩ iterₚ-fix body ((waitE , se) , inj₁ (inj₁ tt))
       ⟨≈⟩ bindˣ (relay-red waitE se (inj₂ tt))
       ⟨≈⟩ pump waitE (step E (se , inj₂ tt))
     read-step ((waitE , se) , inj₂ _) =

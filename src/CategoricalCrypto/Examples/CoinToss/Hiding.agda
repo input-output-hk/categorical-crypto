@@ -77,8 +77,5 @@ data QSt : Set where
   (openᵗ b₁ b₂) → returnₚ (doneᵗ , inj₂ (inj₂ (tossedᶜʰ (b₁ xor b₂))))
   _             → botₚ
 
-stateᵗ : State
-stateᵗ = initˢ QSt freshᵗ
-
 tossʰ : Proc Honᴵʰ (Advᴵᶜʰ ⊗ᴵ Honᴵᶜʰ)
-tossʰ = mk stateᵗ τStep
+tossʰ = mk (initˢ QSt freshᵗ) τStep

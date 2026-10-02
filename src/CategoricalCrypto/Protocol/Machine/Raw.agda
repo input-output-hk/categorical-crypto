@@ -8,9 +8,8 @@
 -- `Calls` (`Protocol.Machine.Agree`) is here a HYPOTHESIS, `StepSettles`: each
 -- activation settles, at its own fuel, on a `Dist⊥` answer.
 --
--- The fuel is per activation and never global: `Dp.Settle.Settles-bind⋆` maxes
--- the continuations' fuels over the finitely many values one junction reaches,
--- so a run of `d` asks and a run of `d` answers at whatever depth each needs.
+-- The fuel is per activation, never global: `Dp.Settle.Settles-bind⋆` takes the
+-- maximum over the finitely many values one junction reaches.
 
 open import Data.Bool.Base
 open import Data.Empty
@@ -95,8 +94,7 @@ module _ {B : Iface} (M : Closed B)
         n , Settles-resp (Dmap⊥ ansᴹ (K m q) >>=⊥ κ) (K m q >>=⊥ λ sr → κ (ansᴹ sr))
                          (E⊥-map-bind ansᴹ (K m q) κ) s
 
-    -- The initial state is itself effectful at a Kleisli base, so it settles
-    -- like any other step and the closed run is one more junction.
+    -- The initial state settles like any other step.
     module _ (σ₀ : Dist⊥ (MC.St M)) (n₀ : ℕ)
              (pt : Settles n₀ (MC.point (MC.state M) tt) σ₀) where
 
@@ -107,7 +105,6 @@ module _ {B : Iface} (M : Closed B)
 
       -- `Protocol.Machine.Agree.prAgree`'s shape at a raw machine, at either verdict.
       rawPr : (b : Bool) (d : Strat (Neg B) (Pos B))
-            → Σ[ n ∈ ℕ ] ((i : ℕ) → cum (n + i) (runᴹ M d) (indᵇ b)
-                                   ≡ E⊥ (σ₀ >>=⊥ λ m → runWith⊥ K m d) (indᵇ b))
+            → Attains (runᴹ M d) (indᵇ b) (E⊥ (σ₀ >>=⊥ λ m → runWith⊥ K m d) (indᵇ b))
       rawPr b d = proj₁ (rawRun d)
                 , λ i → Settles-cum (proj₂ (rawRun d)) (indᵇ-nn b) _ (m≤m+n _ i)

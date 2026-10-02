@@ -36,12 +36,12 @@ open import ProbabilisticLogic.Dp.Advantage
 open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Protocol.Machine.Run
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Approximate
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.Dictionary
-open import CategoricalCrypto.UC.Machine.Run
 open import CategoricalCrypto.UC.QueryBound
 open import CategoricalCrypto.UC.QueryBound.Compose.Laws
 

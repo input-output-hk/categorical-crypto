@@ -121,13 +121,16 @@ Settles-cum {n = n} {d = d} {P = P} (settles h e) nn m le =
                (Halts-cum n (m ∸ n) d P nn h))
         (e P nn)
 
+-- `d`'s `Q`-reading is `v` from some depth on.
+Attains : Dₚ A → (A → ℚ) → ℚ → Set
+Attains d Q v = Σ[ n ∈ ℕ ] ((i : ℕ) → cum (n + i) d Q ≡ v)
+
 -- The reading transports along `_≈ₚ_` although `Settles` does not (`Halts` is
 -- about the tree): monotone `cum` families that dominate each other cofinally
 -- attain the same value (`docs/fcom-uc.md` §1).
-cum-settled-≈ₚ : (d e : Dₚ A) (Q : A → ℚ) → NNF Q → (v : ℚ) (n : ℕ)
-               → ((i : ℕ) → cum (n + i) d Q ≡ v) → d ≈ₚ e
-               → Σ[ m ∈ ℕ ] ((i : ℕ) → cum (m + i) e Q ≡ v)
-cum-settled-≈ₚ d e Q nn v n rd (de , ed) =
+cum-settled-≈ₚ : (d e : Dₚ A) (Q : A → ℚ) → NNF Q → (v : ℚ)
+               → Attains d Q v → d ≈ₚ e → Attains e Q v
+cum-settled-≈ₚ d e Q nn v (n , rd) (de , ed) =
   let m , le = de Q nn n in
   m , λ i → ≤-antisym (capₑ (m + i))
               (≤-trans (≤-trans (≤-reflexive (sym rd₀)) le) (cum-mono (m≤m+n m i) e Q nn))
@@ -161,6 +164,21 @@ Settles-return p = settles (inj₂ λ _ → tt)
 Settles-bot : Settles 0 (botₚ {A = A}) (return-ℚ nothing)
 Settles-bot = settles (λ Q nn i → botₚ-cum i Q)
                       λ Q nn → sym (lookupᴰℚ-return nothing (maybeℚ Q))
+
+-- A relabelled value and a relabelled sink: `Dmap⊥` is a bind, so neither is
+-- definitionally what `Settles-return`/`Settles-bot` produces.
+Settles-map-return : (f : A → B) (y : A) → Settles 1 (returnₚ (f y)) (Dmap⊥ f (return⊥ y))
+Settles-map-return f y =
+  Settles-resp (return⊥ (f y)) (Dmap⊥ f (return⊥ y))
+    (λ Q → trans (E⊥-return (f y) Q) (sym (trans (E⊥-map f (return⊥ y) Q) (E⊥-return y (Q ∘ f)))))
+    (Settles-return (f y))
+
+Settles-map-bot : (f : A → B) → Settles 0 botₚ (Dmap⊥ f (return-ℚ nothing))
+Settles-map-bot f =
+  Settles-resp (return-ℚ nothing) (Dmap⊥ f (return-ℚ nothing))
+    (λ Q → trans (lookupᴰℚ-return nothing (maybeℚ Q))
+                 (sym (trans (E⊥-map f (return-ℚ nothing) Q) (lookupᴰℚ-return nothing (maybeℚ (Q ∘ f))))))
+    Settles-bot
 
 Settles-det : (m : Maybe A) → Σ[ i ∈ ℕ ] Settles i (detₚ m) (return-ℚ m)
 Settles-det (just a) = 1 , Settles-return a
@@ -254,6 +272,9 @@ Settles-ret⋆ {A = A} {B = B} p f ν (j , s) =
 
 Settlesᵀ : ℕ → Dₚ A → Dist-ℚ A → Set
 Settlesᵀ n d μ = Settles n d (Dmap just μ)
+
+Settlesᵀ-resp : (μ μ′ : Dist-ℚ A) → ((Q : A → ℚ) → E μ Q ≡ E μ′ Q) → Settlesᵀ n d μ → Settlesᵀ n d μ′
+Settlesᵀ-resp μ μ′ h = Settles-resp (Dmap just μ) (Dmap just μ′) λ Q → trans (Eⱼ μ Q) (trans (h Q) (sym (Eⱼ μ′ Q)))
 
 Settlesᵀ-cum : Settlesᵀ n d μ → NNF P → (m : ℕ) → n ≤ m → cum m d P ≡ E μ P
 Settlesᵀ-cum {μ = μ} {P = P} s nn m le = trans (Settles-cum s nn m le) (Eⱼ μ P)

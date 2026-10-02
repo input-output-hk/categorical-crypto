@@ -128,11 +128,8 @@ realStepʰ (s , inj₂ (inj₂ openᴱ))       = case s of λ where
   (readyʰ h)            → returnₚ (readyʰ h , inj₂ (inj₂ nakᴱ))
   _                     → botₚ
 
-stateʰ : State
-stateʰ = initˢ HStʰ (readyʰ freshᴴ)
-
 realʰ : Proc Resᴵ (Advᴵʰ ⊗ᴵ Honᴵʰ)
-realʰ = mk stateʰ realStepʰ
+realʰ = mk (initˢ HStʰ (readyʰ freshᴴ)) realStepʰ
 
 ------------------------------------------------------------------------
 -- The simulator: equivocation by programming
@@ -171,8 +168,5 @@ simStepʰ (s , inj₂ (askᴿᶜ x)) = case s of λ where
   (idleᵖ p) → serveʰ p x
   _         → botₚ
 
-stateᵖ : State
-stateᵖ = initˢ SStʰ (idleᵖ blankᵖ)
-
 simulatorʰ : Proc Lkᴵʰ Advᴵʰ
-simulatorʰ = mk stateᵖ simStepʰ
+simulatorʰ = mk (initˢ SStʰ (idleᵖ blankᵖ)) simStepʰ

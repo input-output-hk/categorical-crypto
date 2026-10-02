@@ -9,7 +9,7 @@
 -- which would break `auditWatch-sound`.
 
 open import Data.Bool.Base renaming (_≤_ to _≤ᵇ_)
-open import Data.Bool.Properties using (T-≡; ≤-minimum)
+open import Data.Bool.Properties using (T-≡; ≤-minimum) renaming (≤-reflexive to ≤ᵇ-reflexive)
 open import Data.Bool.Properties.Ext
 open import Data.List.Base
 open import Data.Maybe.Base
@@ -168,17 +168,11 @@ module _ (hash : Protocol unitᴵ HashIf) (vr : Variant) (s₀ : LState) where
               (≤-reflexive (sym (served st′ (after r))))
 
   auditWatch-sound : (d : Strat Query Answer) → Pr P (auditWatch (total s₀) d) ≤ℚ PrHit P Bad d
-  auditWatch-sound d =
-    subst (λ b → Pr₁⊥ (runFrom P (s₀ , init hash) (auditWatch t₀ d))
-                 ≤ℚ Pr₁⊥ (hitFrom P Bad b (s₀ , init hash) d))
-          (sym init-good) (sound b≤b (s₀ , init hash) d)
+  auditWatch-sound = sound (≤-minimum _) (s₀ , init hash)
 
   auditWatch-complete : (d : Strat Query Answer)
                       → PrHit P Bad d ≤ℚ Pr P (auditWatch (total s₀) (withAudits d))
-  auditWatch-complete d =
-    subst (λ b → Pr₁⊥ (hitFrom P Bad b (s₀ , init hash) d)
-                 ≤ℚ Pr₁⊥ (runFrom P (s₀ , init hash) (auditWatch t₀ (withAudits d))))
-          (sym init-good) (complete b≤b (s₀ , init hash) d)
+  auditWatch-complete = complete (≤ᵇ-reflexive init-good) (s₀ , init hash)
 
 auditWatch-bounded : (vr : Variant) (s₀ : LState) {ε : ℕ → ℚ}
                    → TrajectoryLossBounded vr s₀ ε → AuditLossBounded vr s₀ ε

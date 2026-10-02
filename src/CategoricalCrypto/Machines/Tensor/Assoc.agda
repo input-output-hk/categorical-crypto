@@ -75,7 +75,7 @@ opaque
   unfolding _∘ᴹ_
 
   ⊗-split : (f : Machine A B) (g : Machine C D) → (f ⊗ᵉ g) ≈ᴹ ((f ⊗ᵉ idᴹ) ∘ᴹ (idᴹ ⊗ᵉ g))
-  ⊗-split {A} {B} {C} {D} f g =
+  ⊗-split f g =
     ≲⇒≈ᴹ˘ (sim (ρ⇒ ⊗₁ λ⇒) (pure-⊗₁ pure-ρ⇒ pure-λ⇒) pt-u step-u)
     where
       pt-u : (ρ⇒ ⊗₁ λ⇒) ∘ point ((state f ⊛ Iˢ) ⊛ (Iˢ ⊛ state g)) ≈ point (state f ⊛ state g)

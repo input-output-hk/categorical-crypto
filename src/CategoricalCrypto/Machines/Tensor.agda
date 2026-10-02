@@ -73,15 +73,21 @@ tstep-str : (h : A ⇒ B) (k : C ⇒ D) → tstep (id {X} ⊗₁ h) (id ⊗₁ k
 tstep-str h k = δ-unique (tstep-i₁ ○ merge₂ʳ ○ ⟺ (merge₂ʳ ○ refl⟩⊗⟨ +₁∘i₁))
                          (tstep-i₂ ○ merge₂ʳ ○ ⟺ (merge₂ʳ ○ refl⟩⊗⟨ +₁∘i₂))
 
+tstep-relabel : (s : C ⇒ D) → tstep (id {X ⊗₀ A}) (id ⊗₁ s) ≈ id ⊗₁ (id +₁ s)
+tstep-relabel s = tstep-cong (⟺ ⊗.identity) Equiv.refl ○ tstep-str id s
+
+-- A padded state map relabels a sum interface summandwise, hence is its own
+-- `tstep`: the distributor is natural in the state.
+tstep-pad : {S T X Y : Obj} (θ : S ⇒ T)
+          → tstep (θ ⊗₁ id {X}) (θ ⊗₁ id {Y}) ≈ θ ⊗₁ id {X + Y}
+tstep-pad θ = δ-unique (tstep-i₁ ○ pad-transport θ i₁) (tstep-i₂ ○ pad-transport θ i₂)
+
 tstep-sim : {X′ : Obj} {v : X ⇒ X′} {k : X ⊗₀ A ⇒ X ⊗₀ B} {k′ : X′ ⊗₀ A ⇒ X′ ⊗₀ B}
             {l : X ⊗₀ C ⇒ X ⊗₀ D} {l′ : X′ ⊗₀ C ⇒ X′ ⊗₀ D}
           → v ⊗₁ id ∘ k ≈ k′ ∘ v ⊗₁ id → v ⊗₁ id ∘ l ≈ l′ ∘ v ⊗₁ id
           → v ⊗₁ id ∘ tstep k l ≈ tstep k′ l′ ∘ v ⊗₁ id
-tstep-sim {v = v} e₁ e₂ = δ-unique
-  (pullʳ tstep-i₁ ○ pullˡ (⟺ (pad-transport v i₁)) ○ assoc ○ (refl⟩∘⟨ e₁)
-   ○ ⟺ (pullʳ (⟺ (pad-transport v i₁)) ○ pullˡ tstep-i₁ ○ assoc))
-  (pullʳ tstep-i₂ ○ pullˡ (⟺ (pad-transport v i₂)) ○ assoc ○ (refl⟩∘⟨ e₂)
-   ○ ⟺ (pullʳ (⟺ (pad-transport v i₂)) ○ pullˡ tstep-i₂ ○ assoc))
+tstep-sim {v = v} e₁ e₂ = (⟺ (tstep-pad v) ⟩∘⟨refl) ○ tstep-∘ ○ tstep-cong e₁ e₂
+                        ○ ⟺ tstep-∘ ○ (refl⟩∘⟨ tstep-pad v)
 
 onL-tstep : {k : P ⊗₀ A ⇒ P ⊗₀ B} {l : P ⊗₀ C ⇒ P ⊗₀ D}
           → onL {Q = Q} (tstep k l) ≈ tstep (onL k) (onL l)
@@ -129,12 +135,12 @@ opaque
   unfolding _∘ᴹ_
 
   pureᴹ-∘ : (g : B ⇒ C) (f : A ⇒ B) → (pureᴹ g ∘ᴹ pureᴹ f) ≲ pureᴹ (g ∘ f)
-  pureᴹ-∘ g f = collapseˡ ((refl⟩∘⟨ ((onL-str g ⟩∘⟨ onR-id⊗ f) ○ merge₂ˡ))
+  pureᴹ-∘ g f = collapseˡ ((refl⟩∘⟨ ((onL-id⊗ g ⟩∘⟨ onR-id⊗ f) ○ merge₂ˡ))
                            ○ ⟺ (pad-transport λ⇒ (g ∘ f)))
 
   pure-∘ˡ : (h : B ⇒ C) (M : Machine A B)
           → (pureᴹ h ∘ᴹ M) ≲ mk (state M) (id ⊗₁ h ∘ step M)
-  pure-∘ˡ h M = collapseˡ ((refl⟩∘⟨ onL-str h ⟩∘⟨refl) ○ pullˡ (⟺ (pad-transport λ⇒ h))
+  pure-∘ˡ h M = collapseˡ ((refl⟩∘⟨ onL-id⊗ h ⟩∘⟨refl) ○ pullˡ (⟺ (pad-transport λ⇒ h))
                            ○ assoc ○ (refl⟩∘⟨ onR-collapseˡ) ○ sym-assoc)
 
   pure-∘ʳ : (h : A ⇒ B) (M : Machine B C)
@@ -143,7 +149,7 @@ opaque
                            ○ (refl⟩∘⟨ ⟺ (pad-transport ρ⇒ h)) ○ sym-assoc)
 
 ⊗ᵉ-pureᴹ : (h : A ⇒ B) (k : C ⇒ D) → (pureᴹ h ⊗ᵉ pureᴹ k) ≲ pureᴹ (h +₁ k)
-⊗ᵉ-pureᴹ h k = collapseˡ ((refl⟩∘⟨ (tstep-cong (onL-str h) (onR-id⊗ k)
+⊗ᵉ-pureᴹ h k = collapseˡ ((refl⟩∘⟨ (tstep-cong (onL-id⊗ h) (onR-id⊗ k)
                                     ○ tstep-str h k))
                           ○ ⟺ (pad-transport λ⇒ (h +₁ k)))
 

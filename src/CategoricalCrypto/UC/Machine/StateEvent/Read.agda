@@ -29,13 +29,13 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Pointwise
+open import CategoricalCrypto.Protocol.Machine.Run
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.Dictionary
 open import CategoricalCrypto.UC.Machine.EventBounds
 open import CategoricalCrypto.UC.Machine.Monitor
-open import CategoricalCrypto.UC.Machine.Run
 open import CategoricalCrypto.UC.Machine.StateEvent
 
 module CategoricalCrypto.UC.Machine.StateEvent.Read where

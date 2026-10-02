@@ -28,10 +28,10 @@ open import ProbabilisticLogic.Dp.Reasoning
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Machine.Run
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Dictionary
-open import CategoricalCrypto.UC.Machine.Run
 open import CategoricalCrypto.UC.Seam
 open import CategoricalCrypto.UC.Seam.Adequacy.Wiring
 open import CategoricalCrypto.UC.Seam.Plug

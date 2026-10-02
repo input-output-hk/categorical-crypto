@@ -41,14 +41,14 @@ open import Categories.Morphism.Reasoning U
 
 module _ (S T : State) (A B X : Obj)
   {k : obj S ⊗₀ (A + X) ⇒ obj S ⊗₀ (B + X)} {k′ : obj T ⊗₀ (A + X) ⇒ obj T ⊗₀ (B + X)}
-  (θ : obj S ⇒ obj T) (θᵖ : Pure θ) (θˢ : pad θ ∘ k ≈ k′ ∘ pad θ) where
+  (θ : obj S ⇒ obj T) (θᵖ : Pure θ) (θˢ : θ ⊗₁ id ∘ k ≈ k′ ∘ θ ⊗₁ id) where
 
   private
-    loop-sim : loopBody T A B X k′ ∘ pad θ ≈ pad θ ∘ loopBody S A B X k
+    loop-sim : loopBody T A B X k′ ∘ θ ⊗₁ id ≈ θ ⊗₁ id ∘ loopBody S A B X k
     loop-sim = assoc ○ (refl⟩∘⟨ pad-transport θ (i₂)) ○ sym-assoc
              ○ (⟺ θˢ ⟩∘⟨refl) ○ assoc
 
-  solve-sim : pad θ ∘ solve S A B X k ≈ solve T A B X k′ ∘ pad θ
+  solve-sim : θ ⊗₁ id ∘ solve S A B X k ≈ solve T A B X k′ ∘ θ ⊗₁ id
   solve-sim = δ-unique branch₁ branch₂
     where
       branch₁ = (pullʳ (solve-i₁ S A B X k) ○ identityʳ)
@@ -59,11 +59,11 @@ module _ (S T : State) (A B X : Obj)
               ○ ⟺ (iter-uniform θ θᵖ loop-sim)
               ○ ⟺ (pullʳ (⟺ (pad-transport θ i₂)) ○ pullˡ (solve-i₂ T A B X k′))
 
-  traceStep-sim : pad θ ∘ traceStep S A B X k ≈ traceStep T A B X k′ ∘ pad θ
+  traceStep-sim : θ ⊗₁ id ∘ traceStep S A B X k ≈ traceStep T A B X k′ ∘ θ ⊗₁ id
   traceStep-sim = sym-assoc ○ (solve-sim ⟩∘⟨refl) ○ assoc ○ (refl⟩∘⟨ enter)
                 ○ (refl⟩∘⟨ sym-assoc) ○ sym-assoc
     where
-      enter : pad θ ∘ (k ∘ id ⊗₁ i₁) ≈ k′ ∘ (id ⊗₁ i₁ ∘ pad θ)
+      enter : θ ⊗₁ id ∘ (k ∘ id ⊗₁ i₁) ≈ k′ ∘ (id ⊗₁ i₁ ∘ θ ⊗₁ id)
       enter = sym-assoc ○ (θˢ ⟩∘⟨refl) ○ assoc ○ (refl⟩∘⟨ ⟺ (pad-transport θ i₁))
 
 -- `traceStep-onR`'s mirror: `onL` is `onR` conjugated by the braiding, which

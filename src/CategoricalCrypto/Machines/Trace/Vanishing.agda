@@ -15,7 +15,6 @@ import Categories.Category.Monoidal.Distributive.Properties as MDP
 
 import CategoricalCrypto.Machines.Category as MCat
 import CategoricalCrypto.Machines.Core as Core
-import CategoricalCrypto.Machines.Frame as Frame
 import CategoricalCrypto.Machines.Iteration as Iteration
 import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Tensor as Tensor
@@ -31,7 +30,6 @@ open SymmetricMonoidalCategory 𝒱
 open Congruence 𝒱 dist 𝒫 E
 open Core 𝒱
 open Equiv
-open Frame 𝒱
 open Iteration.Elgot E
 open MCat 𝒱 𝒫
 open MD.MonoidalDistributive dist
@@ -66,18 +64,8 @@ private
   ψ = (ν +₁ i₂) ∘ α+⇐
 
   ∇ψ : [ id , i₂ ] ∘ ψ {B} {X} {P} ≈ id
-  ∇ψ = sym-assoc ○ (∇ν ⟩∘⟨refl) ○ ⊕.associator.isoʳ
-    where
-      ∇ν : [ id , i₂ ] ∘ (ν {B} {X} {P} +₁ i₂) ≈ α+⇒
-      ∇ν = +-unique₂
-        (+-unique₂
-          (assoc ○ assoc
-           ○ (refl⟩∘⟨ (pullˡ +₁∘i₁ ○ assoc ○ (refl⟩∘⟨ (+₁∘i₁ ○ identityʳ))))
-           ○ pullˡ inject₁ ○ identityˡ ○ ⟺ (assoc ○ α+⇒-i₁i₁))
-          (assoc ○ assoc
-           ○ (refl⟩∘⟨ (pullˡ +₁∘i₁ ○ assoc ○ (refl⟩∘⟨ +₁∘i₂)))
-           ○ pullˡ inject₁ ○ identityˡ ○ ⟺ (assoc ○ α+⇒-i₁i₂)))
-        (assoc ○ (refl⟩∘⟨ +₁∘i₂) ○ pullˡ inject₂ ○ ⟺ α+⇒-i₂)
+  ∇ψ = sym-assoc ○ (([]∘+₁ ○ []-cong₂ (identityˡ ○ []-cong₂ identityʳ refl) refl) ⟩∘⟨refl)
+     ○ ⊕.associator.isoʳ
 
 module _ (V : State) (A B X P : Obj)
          (k : obj V ⊗₀ (A + (X + P)) ⇒ obj V ⊗₀ (B + (X + P))) where
@@ -173,11 +161,8 @@ module _ (V : State) (A B X P : Obj)
 
     iterv-i₁ : iter v ∘ id ⊗₁ i₁ {X} {P} ≈ iter (q ∘ id ⊗₁ i₁)
     iterv-i₁ = iter-transfer (id ⊗₁ i₁) id (pure-⊗₁ pure-id pure-i₁) pure-id
-                 {u = q ∘ id ⊗₁ i₁} {v = v} (assoc ○ ⟺ (tstep-ν ⟩∘⟨refl))
+                 {u = q ∘ id ⊗₁ i₁} {v = v} (assoc ○ ⟺ (tstep-relabel i₁ ⟩∘⟨refl))
              ○ identityˡ
-      where
-        tstep-ν : tstep id (id ⊗₁ i₁ {X} {P}) ≈ id ⊗₁ ν
-        tstep-ν = tstep-cong (⟺ ⊗.identity) refl ○ tstep-str id i₁
 
     solve-h : solve V A B X h ≈ [ id , iter (q ∘ id ⊗₁ i₁ {X} {P}) ] ∘ δ⇐
     solve-h = []-cong₂ refl (iter-cong h-loop) ⟩∘⟨refl

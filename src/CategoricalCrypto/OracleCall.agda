@@ -28,8 +28,8 @@ mapCall : (A → B) → Call Q R A → Call Q R B
 mapCall f (inj₁ a)       = inj₁ (f a)
 mapCall f (inj₂ (q , k)) = inj₂ (q , λ r → f (k r))
 
--- Re-index the oracle's channel: tag the query, untag the reply.  This is what
--- puts a bitstring-keyed call onto a party-indexed random-oracle interface.
+-- Re-index the oracle's channel, e.g. a bitstring-keyed call onto a
+-- party-indexed random-oracle interface.
 reCall : (Q → Q′) → (R′ → R) → Call Q R A → Call Q′ R′ A
 reCall _ _ (inj₁ a)       = inj₁ a
 reCall f g (inj₂ (q , k)) = inj₂ (f q , λ r → k (g r))

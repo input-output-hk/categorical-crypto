@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- The toy at the UC model: emulation at a nontrivial grade, and what the
--- simulator spends.
+-- The toy at the UC model: emulation at a nontrivial grade, what the
+-- simulator spends, and the emulation as a machine-level event bound.
 --
 -- The grade is `ifaceᵒ Advᴵ`, inhabited by `peekᴬ`, and the simulator
 -- `procᵒ simulator` is not a scalar.  The emulation is exact: `emulᵍ` of
@@ -13,19 +13,29 @@
 -- not ceilings.  `simCert` (`exact⇒certified` of `simExactAll`) is the upper
 -- bound the grading consumes.
 
+open import Categories.Category
+
 open import Data.List.Base
 open import Data.Nat.Base
 open import Data.Nat.Properties
 open import Data.Product.Base
+open import Data.Rational using (ℚ)
 open import Data.Sum.Base hiding (map₂)
 open import Function.Base using (_∘′_)
 open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Dp
+open import ProbabilisticLogic.Dp.Advantage
 open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Machine.Run
+open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Graded
+open import CategoricalCrypto.UC.Machine
+open import CategoricalCrypto.UC.Machine.Dictionary
+open import CategoricalCrypto.UC.Machine.EventBounds
 open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.QueryBound
@@ -150,7 +160,7 @@ round : Msg → Dig → List (Pos Lkᴵ ⊎ Neg Advᴵ)
 round m d = inj₂ peekᴬ ∷ inj₁ (lkˢ m) ∷ inj₁ (digˢ d) ∷ []
 
 sim-round : (m : Msg) (d : Dig)
-          → behᵍ SSt (returnₚ idleˢ) simStep (round m d)
+          → behᴾ simulator (round m d)
             ≈ₚ returnₚ (inj₁ leakˢ ∷ inj₁ (hashˢ m) ∷ inj₂ (wireᴬ d) ∷ [])
 sim-round m d =
     >>=ₚ-identityˡ idleˢ _
@@ -167,3 +177,31 @@ sim-round m d =
               ≈ₚ returnₚ (inj₁ (hashˢ m) ∷ inj₂ (wireᴬ d) ∷ [])
   afterLeak = >>=ₚ-identityˡ (awaitD , inj₁ (hashˢ m)) _
             ⟨≈⟩ map-arg _ afterDigest ⟨≈⟩ >>=ₚ-identityˡ _ _
+
+------------------------------------------------------------------------
+-- The emulation as an event bound at the machine
+
+-- The simulator is absorbed into the adversary (`UC.Machine.EventBounds.bounded-absorb`),
+-- and its two queries per `peekᴬ` (`simQB`) double the adversary's rate.
+-- `real-factors` is an exact machine equality, so any bound on the ideal run
+-- carries to the real one with no slack.
+
+private
+  module 𝒫 = Category 𝒫ᴵ
+  open 𝒫.HomReasoning
+
+  variable
+    k q : ℕ
+    r : ℚ
+
+hf-bounded : AdvBoundedAt (k * 2) q r ideal → AdvBoundedAt k q r real
+hf-bounded = bounded-absorb real-factors simQB
+
+hf-exact : (d : Strat (Neg Honᴵ) (Pos Honᴵ)) (a : Proc Advᴵ 𝟭ᴵ) (w : Proc unitᴵ Resᴵ)
+         → runᴹ ((plugᴹ a 𝒫.∘ real) 𝒫.∘ w) d ≈ₚ runᴹ ((plugᴹ (a 𝒫.∘ simulator) 𝒫.∘ ideal) 𝒫.∘ w) d
+hf-exact d a w = runᴹ-resp-≈ᴹ ((𝒫.∘-resp-≈ʳ real-factors ○ plug-absorb a simulator ideal) ⟩∘⟨refl) d
+
+hf-pr-bound : (d : Strat (Neg Honᴵ) (Pos Honᴵ)) (a : Proc Advᴵ 𝟭ᴵ) (w : Proc unitᴵ Resᴵ)
+            → Upper (runᴹ ((plugᴹ (a 𝒫.∘ simulator) 𝒫.∘ ideal) 𝒫.∘ w) d) r
+            → Upper (runᴹ ((plugᴹ a 𝒫.∘ real) 𝒫.∘ w) d) r
+hf-pr-bound d a w = upper-≈ (hf-exact d a w)

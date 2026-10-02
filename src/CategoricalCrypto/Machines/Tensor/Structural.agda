@@ -1,11 +1,11 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The interface tensor's unit and braiding coherence.  Every law here is its
--- `+`-monoidal instance conjugated by `pureᴹ`: the structural machines are pure
--- and `pureᴹ` preserves `∘` and `⊗` (`pureᴹ-∘`, `⊗ᵉ-pureᴹ`), so
+-- The interface tensor's unit and braiding coherence.  The coherence laws are
+-- their `+`-monoidal instances conjugated by `pureᴹ`: the structural machines
+-- are pure and `pureᴹ` preserves `∘` and `⊗` (`pureᴹ-∘`, `⊗ᵉ-pureᴹ`), so
 -- `triangleᴹ`/`pentagonᴹ`/`hexagonᴹ` are one `pureᴹ-cong` each.
 --
--- The two naturalities are not: they relate a structural machine to an
+-- The naturalities are not: they relate a structural machine to an
 -- arbitrary one.  The unitors' hold because `X ⊗₀ ⊥` is initial (`⊥-unique`),
 -- so the summand that would carry the other machine cannot fire; the
 -- braiding's is the state braiding `σ⇒` exchanging the two state actions

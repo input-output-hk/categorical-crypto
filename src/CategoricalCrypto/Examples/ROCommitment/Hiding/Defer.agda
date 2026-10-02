@@ -63,8 +63,7 @@ open import CategoricalCrypto.Examples.ROCommitment.Oracle k
 private
 
   ∨-≤ : (a b : Bool) → bool→ℚ (a ∨ b) ≤ℚ bool→ℚ a +ℚ bool→ℚ b
-  ∨-≤ true  b = ≤-trans (≤-reflexive (sym (+-identityʳ (bool→ℚ true))))
-                        (+-monoʳ-≤ (bool→ℚ true) (0≤bool b))
+  ∨-≤ true  b = p≤p+q (bool→ℚ true) (0≤bool b)
   ∨-≤ false b = ≤-reflexive (sym (+-identityˡ (bool→ℚ b)))
 
 ------------------------------------------------------------------------
@@ -123,11 +122,6 @@ respPʰ s opnQʰ     = opnP s
 sP₀ : Dig → StPʰ
 sP₀ r = r , [] , nothing , false
 
-ask-redᴾ : (r : Dig) (t : Tbl) (m : Comʰ) (f : Bool) (x : Pt) (G : StPʰ × Rʰ → ℚ)
-         → E (askP (r , t , m , f) x) G
-           ≡ E (fetchT id t x) (λ u → E (uniform-Vec k) (λ ρ → G (outAskP r m f x u ρ)))
-ask-redᴾ r t m f x = E-bind₂ (fetchT id t x) (uniform-Vec k) (outAskP r m f x)
-
 ------------------------------------------------------------------------
 -- Deferring the plant: the planted game, averaged, IS the deferred game
 
@@ -167,7 +161,7 @@ avg-defer : AvgBisim (uniform-Vec k) respPʰ respLʰ _≋D_
 avg-defer f s (inj₁ (t , m , φ , ff , refl)) (askQʰ x) F F′ pt =
   trans (lookupᴰℚ-cong-P (entries (uniform-Vec k))
           (λ r → trans (cong (λ z → E (respPʰ z (askQʰ x)) F) (ff r))
-                       (ask-redᴾ r t m (φ r) x F)))
+                       (E-bind₂ (fetchT id t x) (uniform-Vec k) (outAskP r m (φ r) x) F)))
  (trans (E-swap (uniform-Vec k) (fetchT id t x)
           (λ r u → E (uniform-Vec k) (λ ρ → F (outAskP r m (φ r) x u ρ))))
  (trans (lookupᴰℚ-cong-P (entries (fetchT id t x)) (λ u →
@@ -178,7 +172,7 @@ avg-defer f s (inj₁ (t , m , φ , ff , refl)) (askQʰ x) F F′ pt =
                        (inj₁ ( proj₁ u , m , (λ r → φ r ∨ riseAt m r x ρ)
                              , (λ r → refl) , refl))
                        (λ r → refl)))))
-        (sym (ask-redᴸ t m x F′))))
+        (sym (E-bind₂ (fetchT id t x) (uniform-Vec k) (outAskL m x) F′))))
 avg-defer f s (inj₁ (t , nothing , φ , ff , refl)) (comQʰ b) F F′ pt =
   trans (lookupᴰℚ-cong-P (entries (uniform-Vec k))
           (λ r → trans (cong (λ z → E (respPʰ z (comQʰ b)) F) (ff r))
@@ -218,12 +212,12 @@ avg-defer f s (inj₁ (t , nothing , φ , ff , refl)) opnQʰ F F′ pt =
         (sym (lookupᴰℚ-return ((t , nothing) , idleRʰ) F′)))
 avg-defer f s (inj₂ (r₀ , t , c , b , fl , ff , refl)) (askQʰ x) F F′ pt =
   trans (const-collapse (askQʰ x) F ff)
- (trans (ask-redᴾ r₀ t (just (c , b , true)) fl x F)
+ (trans (E-bind₂ (fetchT id t x) (uniform-Vec k) (outAskP r₀ (just (c , b , true)) fl x) F)
  (trans (lookupᴰℚ-cong-P (entries (fetchT id t x)) (λ u →
            lookupᴰℚ-cong-P (entries (uniform-Vec k)) (λ ρ →
              hereD F F′ pt r₀ (proj₁ u) c b (fl ∨ riseAt (just (c , b , true)) r₀ x ρ)
                (ansRʰ (proj₂ u)))))
-        (sym (ask-redᴸ t (just (c , b , true)) x F′))))
+        (sym (E-bind₂ (fetchT id t x) (uniform-Vec k) (outAskL (just (c , b , true)) x) F′))))
 avg-defer f s (inj₂ (r₀ , t , c , b , fl , ff , refl)) (comQʰ b′) F F′ pt =
   trans (const-collapse (comQʰ b′) F ff)
  (trans (lookupᴰℚ-return ((r₀ , t , just (c , b , true) , fl) , idleRʰ) F)
@@ -254,23 +248,18 @@ f ≋P s = (Σ[ t ∈ Tbl ] ((∀ r → f r ≡ (just r , t , nothing))
                         × (s ≡ (nothing , t , nothing))))
        ⊎ (∀ r → f r ≡ s)
 
-ask-redᴿ : (mr : Maybe Dig) (t : Tbl) (z : ComRʰ) (x : Pt) (G : StRʰ × Rʰ → ℚ)
-         → E (askR (mr , t , z) x) G
-           ≡ E (fetchT id t x) (λ u → G (outAskR mr z u))
-ask-redᴿ mr t z x = lookupᴰℚ-Dmap (outAskR mr z) (fetchT id t x)
-
 avg-commit : AvgBisim (uniform-Vec k) respRʰ respRʰ _≋P_
 avg-commit f s (inj₁ (t , ff , refl)) (askQʰ x) F F′ pt = trans
   (trans (lookupᴰℚ-cong-P (entries (uniform-Vec k))
            (λ r → trans (cong (λ z → E (respRʰ z (askQʰ x)) F) (ff r))
-                        (ask-redᴿ (just r) t nothing x F)))
+                        (lookupᴰℚ-Dmap (outAskR (just r) nothing) (fetchT id t x) F)))
          (E-swap (uniform-Vec k) (fetchT id t x)
            (λ r u → F ((just r , proj₁ u , nothing) , ansRʰ (proj₂ u)))))
   (trans (lookupᴰℚ-cong-P (entries (fetchT id t x))
            (λ u → pt (λ r → (just r , proj₁ u , nothing) , ansRʰ (proj₂ u))
                      ((nothing , proj₁ u , nothing) , ansRʰ (proj₂ u))
                      (inj₁ (proj₁ u , (λ _ → refl) , refl)) (λ _ → refl)))
-         (sym (ask-redᴿ nothing t nothing x F′)))
+         (sym (lookupᴰℚ-Dmap (outAskR nothing nothing) (fetchT id t x) F′)))
 avg-commit f s (inj₁ (t , ff , refl)) (comQʰ b) F F′ pt = trans
   (lookupᴰℚ-cong-P (entries (uniform-Vec k))
     (λ r → trans (cong (λ z → E (respRʰ z (comQʰ b)) F) (ff r))
@@ -376,21 +365,6 @@ private
 good-J : (s : StPʰ) (s′ : StRʰ) → s ≋J s′ → flagP s ≡ false
 good-J (r , t , m , f) (mr , t′ , z) (ef , _) = ef
 
-private
-  idle-join : (w : StPʰ × Rʰ) (w′ : StRʰ × Rʰ) → proj₁ w ≋J proj₁ w′ → proj₂ w ≡ proj₂ w′
-            → Σ[ ν ∈ Dist-ℚ ((StPʰ × Rʰ) × (StRʰ × Rʰ)) ]
-                ( (∀ F  → E ν (λ p → F  (proj₁ p)) ≡ E (return-ℚ w ) F )
-                × (∀ F′ → E ν (λ p → F′ (proj₂ p)) ≡ E (return-ℚ w′) F′)
-                × OnSupport (λ p → (flagP (proj₁ (proj₁ p)) ≡ true)
-                                 ⊎ ((proj₁ (proj₁ p) ≋J proj₁ (proj₂ p))
-                                    × (proj₂ (proj₁ p) ≡ proj₂ (proj₂ p)))) ν )
-  idle-join w w′ rel ans = return-ℚ (w , w′)
-    , (λ F  → trans (lookupᴰℚ-return (w , w′) (λ p → F  (proj₁ p)))
-                    (sym (lookupᴰℚ-return w  F )))
-    , (λ F′ → trans (lookupᴰℚ-return (w , w′) (λ p → F′ (proj₂ p)))
-                    (sym (lookupᴰℚ-return w′ F′)))
-    , OnSupport-return (inj₂ (rel , ans))
-
 join-J : JoinStep respPʰ respRʰ flagP _≋J_
 join-J (r , t , m , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) (askQʰ x) =
   νa , mgL , mgR , sup
@@ -403,7 +377,7 @@ join-J (r , t , m , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) (askQʰ 
 
   mgL : ∀ F → E νa (λ p → F (proj₁ p)) ≡ E (askP (r , t , m , false) x) F
   mgL F = trans (E-bind₂ (fetchT id t x) (uniform-Vec k) κa (λ p → F (proj₁ p)))
-                (sym (ask-redᴾ r t m false x F))
+                (sym (E-bind₂ (fetchT id t x) (uniform-Vec k) (outAskP r m false x) F))
 
   redR : (F : StRʰ × Rʰ → ℚ)
        → E (fetchT id t x) (λ u → F (outAskR (just r) (recOf m r) (fetchR t′ x (proj₂ u))))
@@ -416,7 +390,7 @@ join-J (r , t , m , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) (askQʰ 
          (trans (lookupᴰℚ-cong-P (entries (fetchT id t x))
                   (λ u → E-const (uniform-Vec k)
                            (F (outAskR (just r) (recOf m r) (fetchR t′ x (proj₂ u))))))
-         (trans (redR F) (sym (ask-redᴿ (just r) t′ (recOf m r) x F))))
+         (trans (redR F) (sym (lookupᴰℚ-Dmap (outAskR (just r) (recOf m r)) (fetchT id t′ x) F))))
 
   stp : (u : Tbl × Dig) (ρ : Dig)
       → (proj₁ u ≡ t × lookupPt t x ≡ just (proj₂ u))
@@ -490,21 +464,22 @@ join-J (r , t , nothing , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) (c
                           × (proj₂ (proj₁ p) ≡ proj₂ (proj₂ p)))) νc
   sup = OnSupport-map (uniform-Vec k) κc (inj₂ ∘ stp)
 join-J (r , t , just mm , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) (comQʰ b) =
-  idle-join ((r , t , just mm , false) , idleRʰ)
-            ((just r , t′ , recOf (just mm) r) , idleRʰ)
-            (refl , refl , refl , tbl , frs) refl
+  join-return flagP _≋J_ ((r , t , just mm , false) , idleRʰ)
+                         ((just r , t′ , recOf (just mm) r) , idleRʰ)
+                         (refl , refl , refl , tbl , frs) refl
 join-J (r , t , just (c , b , false) , f) (mr , t′ , z)
        (refl , refl , refl , tbl , frs) opnQʰ =
-  idle-join (outOpnP r t c b false) ((just r , t′ , just (c , b , r , true)) , opnRʰ b r)
-            (refl , refl , refl , tbl , tt) refl
+  join-return flagP _≋J_ (outOpnP r t c b false)
+                         ((just r , t′ , just (c , b , r , true)) , opnRʰ b r)
+                         (refl , refl , refl , tbl , tt) refl
 join-J (r , t , just (c , b , true) , f) (mr , t′ , z)
        (refl , refl , refl , tbl , frs) opnQʰ =
-  idle-join ((r , t , just (c , b , true) , false) , idleRʰ)
-            ((just r , t′ , just (c , b , r , true)) , idleRʰ)
-            (refl , refl , refl , tbl , frs) refl
+  join-return flagP _≋J_ ((r , t , just (c , b , true) , false) , idleRʰ)
+                         ((just r , t′ , just (c , b , r , true)) , idleRʰ)
+                         (refl , refl , refl , tbl , frs) refl
 join-J (r , t , nothing , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) opnQʰ =
-  idle-join ((r , t , nothing , false) , idleRʰ) ((just r , t′ , nothing) , idleRʰ)
-            (refl , refl , refl , tbl , frs) refl
+  join-return flagP _≋J_ ((r , t , nothing , false) , idleRʰ) ((just r , t′ , nothing) , idleRʰ)
+                         (refl , refl , refl , tbl , frs) refl
 
 ------------------------------------------------------------------------
 -- The flag's average drift: 2⁻ᵏ for the guess, 2⁻ᵏ for the test
@@ -542,8 +517,7 @@ frozen-P (r , t , just (c , b , true) , f) opnQʰ      _ = OnSupport-return (tt 
 
 private
   0≤εᴾ : 0ℚ ≤ℚ εᴾ
-  0≤εᴾ = ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ)))
-                 (+-mono-≤ (0≤inv-pow-2 k) (0≤inv-pow-2 k))
+  0≤εᴾ = ≤-trans (0≤inv-pow-2 k) (p≤p+q _ (0≤inv-pow-2 k))
 
   hit-mass : (m : Comʰ) (x : Pt)
            → E (uniform-Vec k) (λ ρ → bool→ℚ (hitAt m x ρ)) ≤ℚ inv-pow-2 k
@@ -596,8 +570,7 @@ private
   idle-drift f φ fl X B le = ≤-trans le
     (+-monoˡ-≤ B (≤-trans
       (≤-reflexive (lookupᴰℚ-cong-P (entries (uniform-Vec k)) (λ r → cong bool→ℚ (sym (fl r)))))
-      (≤-trans (≤-reflexive (sym (+-identityʳ _)))
-               (+-monoʳ-≤ (E (uniform-Vec k) (λ r → bool→ℚ (flagP (f r)))) 0≤εᴾ))))
+      (p≤p+q _ 0≤εᴾ)))
 
 drift-P : AvgDrift (uniform-Vec k) respPʰ flagP RelP Opened εᴾ
 drift-P f (askQʰ x) (t , m , φ , ff) F B cont =
@@ -615,7 +588,7 @@ drift-P f (askQʰ x) (t , m , φ , ff) F B cont =
   expand = trans
     (lookupᴰℚ-cong-P (entries (uniform-Vec k))
       (λ r → trans (cong (λ z → E (respPʰ z (askQʰ x)) (F r)) (ff r))
-                   (ask-redᴾ r t m (φ r) x (F r))))
+                   (E-bind₂ (fetchT id t x) (uniform-Vec k) (outAskP r m (φ r) x) (F r))))
     (trans (E-swap (uniform-Vec k) (fetchT id t x)
              (λ r u → E (uniform-Vec k) (λ ρ → F r (outAskP r m (φ r) x u ρ))))
            (lookupᴰℚ-cong-P (entries (fetchT id t x))

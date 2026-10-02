@@ -1,20 +1,12 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Assembling a game hop out of `GamePlaying`'s two bridges.
---
---   • `runWith-bisim` — two kernels COUPLED step by step (their one-query
---     expectations agree at related states, on any pair of integrands that
---     agrees at related outcomes) run alike at EVERY adaptive distinguisher,
---     exactly.  This identifies a coupling's marginals with the reference
---     kernels they stand for.
---   • `hop-bound` — with both marginals identified and a `SuperCert` bounding
---     the coupling's flag, the advantage of any m-query distinguisher between
---     the two REFERENCE kernels is at most `ε m`.
---   • `runWith-join` — the identical-until-bad half for two kernels that keep
---     their OWN state spaces: each step exhibits a joint draw whose marginals
---     are the two kernels.  `FLGP` is the case where that join is
---     `respB`'s two projections; where the two games' states diverge once the
---     flag is up, carrying both inside one coupled state is what this avoids.
+-- Assembling a game hop: `runWith-bisim` identifies a coupling's marginals with
+-- the reference kernels they stand for, and `hop-bound` then bounds the
+-- advantage between the two reference kernels by the coupling's `SuperCert`.
+-- `runWith-join` is the identical-until-bad step for two kernels on their OWN
+-- state spaces (each step exhibits a joint draw with the two kernels as
+-- marginals): where the games' states part once the flag is up, one coupled
+-- state would have to carry both.  `FLGP` is its instance at `Coupling`.
 
 open import categorical-crypto.Prelude hiding (_>>=_)
 
@@ -46,8 +38,6 @@ module _ {Q R St St′ : Type} (resp : St → Q → Dist-ℚ (St × R))
             → (∀ t t′ → proj₁ t ≋ proj₁ t′ → proj₂ t ≡ proj₂ t′ → F t ≡ F′ t′)
             → E (resp s q) F ≡ E (resp′ s′ q) F′
 
-  -- Both kernels cut where related states agree to cut: on the cut both
-  -- score nothing, off it the coupling is the total one.
   prune-bisim : (dead : St → Q → Bool) (dead′ : St′ → Q → Bool)
               → (∀ s s′ → s ≋ s′ → ∀ q → dead s q ≡ dead′ s′ q)
               → StepBisim → StepBisim⊥ (prune dead resp) (prune dead′ resp′) _≋_
@@ -66,18 +56,31 @@ module _ {Q R St St′ : Type} (resp : St → Q → Dist-ℚ (St × R))
 ------------------------------------------------------------------------
 -- Coupled up to the flag
 
+module _ {R S S′ : Type} (bad : S → Bool) (_≋_ : S → S′ → Type) where
+
+  -- A joint draw with marginals `μ` and `μ′` whose every outcome is flagged or
+  -- related at a common answer.
+  JoinAt : Dist-ℚ (S × R) → Dist-ℚ (S′ × R) → Type
+  JoinAt μ μ′ = Σ[ ν ∈ Dist-ℚ ((S × R) × (S′ × R)) ]
+                  ( (∀ F  → E ν (λ p → F  (proj₁ p)) ≡ E μ  F )
+                  × (∀ F′ → E ν (λ p → F′ (proj₂ p)) ≡ E μ′ F′)
+                  × OnSupport (λ p → (bad (proj₁ (proj₁ p)) ≡ true)
+                                   ⊎ ((proj₁ (proj₁ p) ≋ proj₁ (proj₂ p))
+                                      × (proj₂ (proj₁ p) ≡ proj₂ (proj₂ p)))) ν )
+
+  join-return : (w : S × R) (w′ : S′ × R) → proj₁ w ≋ proj₁ w′ → proj₂ w ≡ proj₂ w′
+              → JoinAt (return-ℚ w) (return-ℚ w′)
+  join-return w w′ rel ans = return-ℚ (w , w′)
+    , (λ F  → trans (lookupᴰℚ-return (w , w′) (λ p → F  (proj₁ p))) (sym (lookupᴰℚ-return w  F )))
+    , (λ F′ → trans (lookupᴰℚ-return (w , w′) (λ p → F′ (proj₂ p))) (sym (lookupᴰℚ-return w′ F′)))
+    , OnSupport-return (inj₂ (rel , ans))
+
 module _ {Q R S S′ : Type} (resp : S → Q → Dist-ℚ (S × R))
          (resp′ : S′ → Q → Dist-ℚ (S′ × R)) (bad : S → Bool)
          (_≋_ : S → S′ → Type) where
 
   JoinStep : Type
-  JoinStep = ∀ s s′ → s ≋ s′ → ∀ q
-           → Σ[ ν ∈ Dist-ℚ ((S × R) × (S′ × R)) ]
-               ( (∀ F  → E ν (λ p → F  (proj₁ p)) ≡ E (resp  s  q) F )
-               × (∀ F′ → E ν (λ p → F′ (proj₂ p)) ≡ E (resp′ s′ q) F′)
-               × OnSupport (λ p → (bad (proj₁ (proj₁ p)) ≡ true)
-                                ⊎ ((proj₁ (proj₁ p) ≋ proj₁ (proj₂ p))
-                                   × (proj₂ (proj₁ p) ≡ proj₂ (proj₂ p)))) ν )
+  JoinStep = ∀ s s′ → s ≋ s′ → ∀ q → JoinAt bad _≋_ (resp s q) (resp′ s′ q)
 
   runWith-join : (∀ s s′ → s ≋ s′ → bad s ≡ false) → JoinStep
                → ∀ d s s′ → s ≋ s′
@@ -139,7 +142,7 @@ module _ {Q R S S′ : Type} (resp : S → Q → Dist-ℚ (S × R))
       AR b = Pr₁ (runWith resp′ s′ (k b))
       BB b = badProb resp bad s (k b)
 
-module _ {Q R St StR StI : Type} (bad : St → Bool)
+module _ {Q R St : Type} (bad : St → Bool)
          (respB : St → Q → Dist-ℚ (St × (R × R))) where
 
   open Coupling bad respB
@@ -177,13 +180,13 @@ module _ {Q R St StR StI : Type} (bad : St → Bool)
                         (∣-∣-comm (Pr₁ (runWith realK s d)) (Pr₁ (runWith idealK s d)))
                         (runWith-join realK idealK bad _≈_ (λ _ _ → proj₂) coupled d s s (refl , eqb))
 
-  hop-bound : {ε : ℕ → ℚ} (respR : StR → Q → Dist-ℚ (StR × R))
+  hop-bound : {StR StI : Type} {ε : ℕ → ℚ} (respR : StR → Q → Dist-ℚ (StR × R))
               (respI : StI → Q → Dist-ℚ (StI × R)) (s₀ : St) (sR : StR) (sI : StI)
             → (∀ d → Pr₁ (runWith realK s₀ d) ≡ Pr₁ (runWith respR sR d))
             → (∀ d → Pr₁ (runWith idealK s₀ d) ≡ Pr₁ (runWith respI sI d))
             → SuperCert realK bad s₀ ε
             → ∀ m d → asks≤ m d
             → ∣ Pr₁ (runWith respI sI d) -ℚ Pr₁ (runWith respR sR d) ∣ℚ ≤ℚ ε m
-  hop-bound {ε} respR respI s₀ sR sI eR eI cert m d le =
+  hop-bound {ε = ε} respR respI s₀ sR sI eR eI cert m d le =
     subst (_≤ℚ ε m) (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ) (eI d) (eR d))
       (≤-trans (FLGP s₀ d) (badProb-bounded cert m d le))

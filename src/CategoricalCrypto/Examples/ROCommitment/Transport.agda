@@ -71,31 +71,6 @@ private
   Test : Set
   Test = Ans → ℚ
 
-  map-return : (y : RState × ResA) (Q : Test)
-             → E⊥ (return⊥ (ansᴹ y)) Q ≡ E⊥ (Dmap⊥ ansᴹ (return⊥ y)) Q
-  map-return y Q = trans (E⊥-return (ansᴹ y) Q)
-                         (sym (trans (E⊥-map ansᴹ (return⊥ y) Q)
-                                     (E⊥-return y λ p → Q (ansᴹ p))))
-
-  map-bot : (Q : Test) → E⊥ (return-ℚ nothing) Q ≡ E⊥ (Dmap⊥ ansᴹ (return-ℚ nothing)) Q
-  map-bot Q = trans (lookupᴰℚ-return nothing (maybeℚ Q))
-                    (sym (trans (E⊥-map ansᴹ (return-ℚ nothing) Q)
-                                (lookupᴰℚ-return nothing (maybeℚ λ p → Q (ansᴹ p)))))
-
-  respᵀ : (μ ν : Dist-ℚ Ans) → ((Q : Test) → E μ Q ≡ E ν Q)
-        → {n : ℕ} {d : Dₚ Ans} → Settlesᵀ n d μ → Settlesᵀ n d ν
-  respᵀ μ ν h = Settles-resp (Dmap just μ) (Dmap just ν)
-                             λ Q → trans (Eⱼ μ Q) (trans (h Q) (sym (Eⱼ ν Q)))
-
-  -- A relabelled value and a relabelled sink: `Dmap⊥` is a bind, so neither is
-  -- definitionally what `Settles-return`/`Settles-bot` produces.
-  respᴿ : (y : RState × ResA) → Settles 1 (returnₚ (ansᴹ y)) (Dmap⊥ ansᴹ (return⊥ y))
-  respᴿ y = Settles-resp (return⊥ (ansᴹ y)) (Dmap⊥ ansᴹ (return⊥ y))
-                         (map-return y) (Settles-return (ansᴹ y))
-
-  respᴮ : Settles 0 botₚ (Dmap⊥ ansᴹ (return-ℚ nothing))
-  respᴮ = Settles-resp (return-ℚ nothing) (Dmap⊥ ansᴹ (return-ℚ nothing)) map-bot Settles-bot
-
   -- The oracle's activation, at the lookup result passed in rather than
   -- scrutinised: `with` does not abstract the copy of it inside the machine's
   -- own step, where `rewrite` at a matched `r` reduces both sides.
@@ -104,7 +79,7 @@ private
                               (Dmap⊥ ansᴹ (Dmap just (resKᵀ (t , m) x)))
   hash t m x (just d) eq rewrite eq =
     1 , Settlesᵀ-tag ansᴹ (Dmap digᵀ (return-ℚ ((t , m) , d)))
-          (respᵀ (return-ℚ (ansᴹ hit)) (Dmap ansᴹ (Dmap digᵀ (return-ℚ ((t , m) , d)))) value
+          (Settlesᵀ-resp (return-ℚ (ansᴹ hit)) (Dmap ansᴹ (Dmap digᵀ (return-ℚ ((t , m) , d)))) value
                  (Settlesᵀ-return (ansᴹ hit)))
     where
     hit : RState × ResA
@@ -119,7 +94,7 @@ private
   hash t m x nothing eq rewrite eq =
     draw .proj₁
     , Settlesᵀ-tag ansᴹ (Dmap digᵀ (Dmap sample (uniform-Vec k)))
-        (respᵀ (uniform-Vec k >>=ᴹ λ h → return-ℚ (ansᴹ (ent h)))
+        (Settlesᵀ-resp (uniform-Vec k >>=ᴹ λ h → return-ℚ (ansᴹ (ent h)))
                (Dmap ansᴹ (Dmap digᵀ (Dmap sample (uniform-Vec k)))) value (draw .proj₂))
     where
     sample : Dig → RState × Dig
@@ -143,15 +118,14 @@ private
 
 resource-settles : StepSettles resource resK
 resource-settles (t , m) (hashᴿ x) = hash t m x (lookupPt t x) refl
-resource-settles (t , nothing) (putᴿ b) = 1 , respᴿ ((t , just b) , rcptᴿ)
-resource-settles (t , just _) (putᴿ _) = 0 , respᴮ
-resource-settles (t , just b) getᴿ = 1 , respᴿ ((t , just b) , outᴿ b)
-resource-settles (t , nothing) getᴿ = 0 , respᴮ
-resource-settles (t , m) nakᴿ = 1 , respᴿ ((t , m) , rejᴿ)
+resource-settles (t , nothing) (putᴿ b) = 1 , Settles-map-return ansᴹ ((t , just b) , rcptᴿ)
+resource-settles (t , just _) (putᴿ _) = 0 , Settles-map-bot ansᴹ
+resource-settles (t , just b) getᴿ = 1 , Settles-map-return ansᴹ ((t , just b) , outᴿ b)
+resource-settles (t , nothing) getᴿ = 0 , Settles-map-bot ansᴹ
+resource-settles (t , m) nakᴿ = 1 , Settles-map-return ansᴹ ((t , m) , rejᴿ)
 
 resource-run : (b : Bool) (d : Strat (Neg Resᴵ) (Pos Resᴵ))
-             → Σ[ n ∈ ℕ ] ((i : ℕ) → cum (n + i) (runᴹ resource d) (indᵇ b)
-                                    ≡ E⊥ (runWith⊥ resK ([] , nothing) d) (indᵇ b))
+             → Attains (runᴹ resource d) (indᵇ b) (E⊥ (runWith⊥ resK ([] , nothing) d) (indᵇ b))
 resource-run b d = run .proj₁ , λ i → trans (run .proj₂ i) collapse
   where
   σ₀ : Dist⊥ RState

@@ -77,11 +77,8 @@ cStep (s , inj₂ (inj₁ failˢ))        = case s of λ where
 cStep (_ , inj₂ (inj₂ (inj₁ ())))
 cStep (_ , inj₂ (inj₂ (inj₂ ())))
 
-stateᶜ : State
-stateᶜ = initˢ CSt (preᶜ [])
-
 coinᶜ′ : Proc unitᴵ Cⁱ
-coinᶜ′ = mk stateᶜ cStep
+coinᶜ′ = mk (initˢ CSt (preᶜ [])) cStep
 
 coinᶜ : Proc unitᴵ Cᵗ
 coinᶜ = sandwichᴹ coinᶜ′ (Sum.map₂ ⊎assocʳ) (Sum.map₂ ⊎assocˡ)

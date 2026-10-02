@@ -36,20 +36,16 @@ open import Categories.Category.Monoidal.Reasoning 𝒱.monoidal
 private
   variable X Y X′ Y′ X″ Y″ : Set
 
--- The machine `f` with its interface renamed: `i` on the way in, `o` on the
--- way out, `f`'s own state kept.
 sandwichᴹ : Machine X Y → (X′ → X) → (Y → Y′) → Machine X′ Y′
 sandwichᴹ f i o = mk (state f)
   λ p → mapₚ (λ q → proj₁ q , o (proj₂ q)) (step f (proj₁ p , i (proj₂ p)))
 
--- Two renamings in a row are one.
 sandwich-∘ : (f : Machine X Y) (i : X′ → X) (o : Y → Y′) (i′ : X″ → X′) (o′ : Y′ → Y″)
            → sandwichᴹ (sandwichᴹ f i o) i′ o′
              ≈ᴹ sandwichᴹ f (λ x → i (i′ x)) (λ y → o′ (o y))
 sandwich-∘ f i o i′ o′ =
   ≲⇒≈ᴹ (mk-cong λ p → map-map (step f (proj₁ p , i (i′ (proj₂ p)))) _ _)
 
--- A renaming by identities is no renaming.
 sandwich-id : (f : Machine X Y) (i : X → X) (o : Y → Y)
             → ((z : X) → i z ≡ z) → ((w : Y) → o w ≡ w)
             → sandwichᴹ f i o ≈ᴹ f
@@ -61,7 +57,6 @@ sandwich-id f i o ei eo = ≲⇒≈ᴹ (mk-cong pt)
                       (λ q → cong (proj₁ q ,_) (eo (proj₂ q)))
            ⟨≈⟩ >>=ₚ-identityʳ (step f (s , z))
 
--- The pointwise content of a wire's absorption.
 squeeze : (f : Machine X Y) (h : X′ → X) (k : Y → Y′)
           {H : 𝒱._⇒_ X′ X} {K : 𝒱._⇒_ Y Y′}
         → 𝒱._≈_ H (pureᵏ h) → 𝒱._≈_ K (pureᵏ k)

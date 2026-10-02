@@ -133,7 +133,7 @@ All of the following typecheck green.
     initially-bad (`point` samples `Bad (init P)`), a hit after one activation, a
     deadlock after a bad activation (both sides weigh `dead` as 0), and coins.
 - **(c) Compatible simulations lift.** `▷-≲ : (M ▷ P) S.≲ (N ▷ Q)`, from
-  `σ : M S.≲ N` and `compat : ∀ s → P s ≡ Q (ϕ σ s)`, where `ϕ = UC.Machine.Run.ϕ`
+  `σ : M S.≲ N` and `compat : ∀ s → P s ≡ Q (ϕ σ s)`, where `ϕ = Protocol.Machine.Run.ϕ`
   is the existential `fn` of `θ-pure`. This is WP1's `EventSimulation` exactly.
   Sampling-boundary compatibility is automatic, because both sides sample at the same
   interface event (a `B`-answer), and a simulation preserves the step's output letter.

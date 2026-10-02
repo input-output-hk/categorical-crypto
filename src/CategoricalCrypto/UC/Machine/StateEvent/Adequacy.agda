@@ -125,8 +125,7 @@ module _ {B : Iface} (M : Proc unitᴵ B) (K : MC.St M → Neg B → Dist⊥ (MC
              (pt : Settles n₀ (MC.point (MC.state M) ttᵛ) σ₀) where
 
       flagRun : (b : Bool) (d : Strat (Neg B) (Pos B))
-              → Σ[ n ∈ ℕ ] ((i : ℕ) → cum (n ℕ.+ i) (runᴹ (M ▷ P) (flagStrat d)) (indᵇ b)
-                                     ≡ E⊥ (σ₀ >>=⊥ λ m → hitK (P m) m d) (indᵇ b))
+              → Attains (runᴹ (M ▷ P) (flagStrat d)) (indᵇ b) (E⊥ (σ₀ >>=⊥ λ m → hitK (P m) m d) (indᵇ b))
       flagRun b d =
         let n₁ , pt▷ = Settles-map⋆ (λ s → s , P s) (n₀ , pt)
             n , h = rawPr (M ▷ P) K▷ ker▷ _ n₁ pt▷ b (flagStrat d)
@@ -172,8 +171,7 @@ module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
                (sym (E-bind μ (λ b → hitFrom P Bad acc s (k b)) (maybeℚ G))))
 
     run-hit : (d : Strat (Neg B) (Pos B))
-            → Σ[ n ∈ ℕ ] ((i : ℕ) → cum (n ℕ.+ i) (runᴹ (morphism P ▷ T) (flagStrat d)) (indᵇ true)
-                                   ≡ PrHit P Bad d)
+            → Attains (runᴹ (morphism P ▷ T) (flagStrat d)) (indᵇ true) (PrHit P Bad d)
     run-hit d =
       let n , h = flagRun (morphism P) (Kᴾ P) T (ker P) (return⊥ (idle (init P))) 1 (Settles-return _) true d
       in n , λ i → trans (h i)
@@ -183,13 +181,10 @@ module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
                   (cong (λ a → E⊥ (hitFrom P Bad a (init P) d) (indᵇ true)) (bd (init P))))))
 
     stateRead-hit : (d : Strat (Neg B) (Pos B))
-                  → Σ[ n ∈ ℕ ] ((i : ℕ) → cum (n ℕ.+ i) (stateRead unitᴵ (morphism P) T (stratTest B d) m₀)
-                                                    (indᵇ true)
-                                         ≡ PrHit P Bad d)
+                  → Attains (stateRead unitᴵ (morphism P) T (stratTest B d) m₀) (indᵇ true) (PrHit P Bad d)
     stateRead-hit d =
-      let n , h = run-hit d
-      in cum-settled-≈ₚ _ _ (indᵇ true) (indᵇ-nn true) (PrHit P Bad d) n h
-                        (≈ₚ-sym _ _ (stateRead-agree (morphism P) T d))
+      cum-settled-≈ₚ _ _ (indᵇ true) (indᵇ-nn true) (PrHit P Bad d) (run-hit d)
+                     (≈ₚ-sym _ _ (stateRead-agree (morphism P) T d))
 
     -- `BoundedHit` at cap `q`, from the model reading at the same cap…
     stateBounded⇒hit : (q : ℕ) {r : ℚ} → StateBoundedAt q r (morphism P) T

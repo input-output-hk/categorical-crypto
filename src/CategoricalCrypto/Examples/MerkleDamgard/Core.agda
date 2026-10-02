@@ -30,6 +30,7 @@ open import Data.Vec using (Vec; []; _∷_; toList) renaming (take to takeᵛ; d
 import Data.Vec as DV
 open import Data.List
 open import Data.List.Properties
+open import Class.DecEq.Ext
 open import Data.Maybe.Ext
 import Data.List.Relation.Unary.Any as ListAny
 open import Data.List.Relation.Unary.AllPairs
@@ -199,10 +200,9 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
                → E (callC sc h b idx) (λ (w : Comp.Table × (CV × Bool)) → P (proj₁ w , proj₁ (proj₂ w)))
                ≡ E (Comp.step (sc , i₀ , pack h b idx)) (λ (o : Comp.Table × Comp.Output) → P (proj₁ o , proj₂ (proj₂ o)))
     callC-marg sc h b idx P with Comp.lookup-bs sc (pack h b idx)
-    ... | just hm = trans (lookupᴰℚ-return (sc , hm , true)
-                            (λ (w : Comp.Table × (CV × Bool)) → P (proj₁ w , proj₁ (proj₂ w))))
-                          (sym (lookupᴰℚ-return (sc , i₀ , hm)
-                            (λ (o : Comp.Table × Comp.Output) → P (proj₁ o , proj₂ (proj₂ o)))))
+    ... | just hm = E-return-cong (sc , hm , true) (sc , i₀ , hm)
+                      (λ (w : Comp.Table × (CV × Bool)) → P (proj₁ w , proj₁ (proj₂ w)))
+                      (λ (o : Comp.Table × Comp.Output) → P (proj₁ o , proj₂ (proj₂ o))) refl
     ... | nothing =
       trans (lookupᴰℚ-Dmap (λ hm → (pack h b idx , hm) ∷ sc , hm , false) Comp.uniform-Out
               (λ (w : Comp.Table × (CV × Bool)) → P (proj₁ w , proj₁ (proj₂ w))))
@@ -213,8 +213,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
           → E (walk sc h bs idx) (λ (w : Comp.Table × (CV × Bool)) → P (proj₁ w , proj₁ (proj₂ w)))
           ≡ E (mdRun sc h bs idx) P
     walkR sc h [] idx P =
-      trans (lookupᴰℚ-return (sc , h , true) (λ (w : Comp.Table × (CV × Bool)) → P (proj₁ w , proj₁ (proj₂ w))))
-            (sym (lookupᴰℚ-return (sc , h) P))
+      E-return-cong (sc , h , true) (sc , h) (λ (w : Comp.Table × (CV × Bool)) → P (proj₁ w , proj₁ (proj₂ w))) P refl
     walkR sc h (b ∷ []) idx P =
       trans (callC-marg sc h b idx P)
      (trans (lookupᴰℚ-cong-P (entries (Comp.step (sc , i₀ , pack h b idx)))
@@ -239,7 +238,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     stepR : ∀ s i M (F : FState × General.Output → ℚ) (F′ : Comp.Table × General.Output → ℚ)
           → (∀ t t′ → ErasesTo (proj₁ t) (proj₁ t′) → proj₂ t ≡ proj₂ t′ → F t ≡ F′ t′)
           → E (C.realK s (i , M)) F ≡ E (respR (proj₁ (proj₂ s)) (i , M)) F′
-    stepR (f , sc , sg) i M F F′ agree = aux (General.lookup-bs sg M) refl
+    stepR (f , sc , sg) i M F F′ agree = aux (General.lookup-bs sg M)
       where
         μW = walk sc IV (toBlocks M) 1
         μM = mdRun sc IV (toBlocks M) 1
@@ -262,27 +261,24 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
                   (λ t → F (C.fR t)))
                 (agree ((false , sc′ , (M , hRv) ∷ sg) , (i , hRv)) (sc′ , (i , hRv)) refl refl)
 
-        aux : ∀ mv → General.lookup-bs sg M ≡ mv
-            → E (C.realK (f , sc , sg) (i , M)) F ≡ E (respR sc (i , M)) F′
-        aux (just h) eq =
-          trans (cong (λ μ → E (Dmap C.fR μ) F) (cong (respB' i M (f , sc , sg)) eq))
-         (trans (lookupᴰℚ-Dmap C.fR (respB' i M (f , sc , sg) (just h)) F)
+        aux : ∀ mv → E (Dmap C.fR (respB' i M (f , sc , sg) mv)) F ≡ E (respR sc (i , M)) F′
+        aux (just h) =
+          trans (lookupᴰℚ-Dmap C.fR (respB' i M (f , sc , sg) (just h)) F)
          (trans (lookupᴰℚ-Dmap tupR μW (λ t → F (C.fR t)))
          (trans (lookupᴰℚ-cong-P (entries μW) (λ w →
                    agree (C.fR (tupR w)) (proj₁ w , (i , proj₁ (proj₂ w))) refl refl))
-                walkE)))
+                walkE))
           where
             tupR = repAns i sg f h
-        aux nothing eq =
-          trans (cong (λ μ → E (Dmap C.fR μ) F) (cong (respB' i M (f , sc , sg)) eq))
-         (trans (lookupᴰℚ-Dmap C.fR (respB' i M (f , sc , sg) nothing) F)
+        aux nothing =
+          trans (lookupᴰℚ-Dmap C.fR (respB' i M (f , sc , sg) nothing) F)
          (trans (E-bind μW
                   (λ (w : Comp.Table × (CV × Bool)) →
                      newAns i M sg (proj₂ (proj₂ w) ∨ f) (proj₁ w) (proj₁ (proj₂ w)))
                   (λ t → F (C.fR t)))
          (trans (lookupᴰℚ-cong-P (entries μW)
                   (λ w → newAnsE (proj₂ (proj₂ w) ∨ f) (proj₁ w) (proj₁ (proj₂ w))))
-                walkE)))
+                walkE))
 
     stepR-bisim : StepBisim C.realK respR ErasesTo
     stepR-bisim s sc rel (i , M) F F′ agree =
@@ -588,6 +584,9 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
         pr = cong suc (toBlocks-length M)
         tail-eq : (length (toBlocks M) ∸ 1) + m * (k ∸ 1) ≡ suc m * (k ∸ 1)
         tail-eq = cong (λ z → (z ∸ 1) + m * (k ∸ 1)) (toBlocks-length M)
+        walk-tail = ≤-trans (walk-φ m (proj₁ (proj₂ s)) IV (toBlocks M) 1 pr)
+                            (≤-reflexive (cong (λ z → collC (proj₁ (proj₂ s)) +ℚ Γ (pool (proj₁ (proj₂ s))) z)
+                                               tail-eq))
         aux : (mv : Maybe CV)
             → E (Dmap C.fR (respB' i M s mv)) (λ sr → φMD m (proj₁ sr))
             ≤ℚ φMD (suc m) s
@@ -596,9 +595,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
             (trans (lookupᴰℚ-Dmap C.fR (respB' i M s (just h)) (λ sr → φMD m (proj₁ sr)))
             (lookupᴰℚ-Dmap (repAns i (proj₂ (proj₂ s)) (proj₁ s) h)
                      (walk (proj₁ (proj₂ s)) IV (toBlocks M) 1) (λ t → φMD m (proj₁ (C.fR t))))))
-          (≤-trans (walk-φ m (proj₁ (proj₂ s)) IV (toBlocks M) 1 pr)
-                   (≤-reflexive (cong (λ z → collC (proj₁ (proj₂ s))
-                                             +ℚ Γ (pool (proj₁ (proj₂ s))) z) tail-eq)))
+          walk-tail
         aux nothing =
           ≤-trans (≤-reflexive
             (trans (lookupᴰℚ-Dmap C.fR (respB' i M s nothing) (λ sr → φMD m (proj₁ sr)))
@@ -610,9 +607,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
                    (lookupᴰℚ-cong-P (entries (walk (proj₁ (proj₂ s)) IV (toBlocks M) 1))
                      (λ w → newAns-φ m i M (proj₂ (proj₂ s))
                               (proj₂ (proj₂ w) ∨ proj₁ s) (proj₁ w) (proj₁ (proj₂ w)))))))
-          (≤-trans (walk-φ m (proj₁ (proj₂ s)) IV (toBlocks M) 1 pr)
-                   (≤-reflexive (cong (λ z → collC (proj₁ (proj₂ s))
-                                             +ℚ Γ (pool (proj₁ (proj₂ s))) z) tail-eq)))
+          walk-tail
 
     φ-nn : ∀ m s → 0ℚ ≤ℚ φMD m s
     φ-nn m s = ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ)))
@@ -745,11 +740,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
       flag⇒coll : ∀ s → Inv s → proj₁ s ≡ true → 1ℚ ≤ℚ collC (proj₁ (proj₂ s))
 
   private
-    ⌊≟⌋-refl : ∀ (x : CV) → ⌊ x ≟ x ⌋ ≡ true
-    ⌊≟⌋-refl x with x ≟ x
-    ... | yes _ = refl
-    ... | no ¬p = ⊥-elim (¬p refl)
-
     walk-replay  : ∀ sc bs v j hf → runPath (stepT sc) v (labels bs j) ≡ just hf
                  → OnSupport (λ w → proj₁ w ≡ sc × proj₁ (proj₂ w) ≡ hf) (walk sc v bs j)
     walk-replayL : ∀ sc b v j hf → runPath (stepT sc) v ((b , j) ∷ []) ≡ just hf
@@ -770,15 +760,9 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
       ⊥-elim (nothing≢just (trans (sym (runPath-nothing (stepT sc) v (b , j) [] eqmv)) rp))
 
     walk-replayC sc b bs' v j hf rp (just w) eqmv =
-      OnSupport-bind (return-ℚ (sc , w , true))
-        (λ u → walk (proj₁ u) (proj₁ (proj₂ u)) bs' (suc j))
-        (OnSupport-return {P = λ u → u ≡ (sc , w , true)} refl)
-        (λ u u≡ → subst
-           (λ u' → OnSupport (λ w' → proj₁ w' ≡ sc × proj₁ (proj₂ w') ≡ hf)
-                     (walk (proj₁ u') (proj₁ (proj₂ u')) bs' (suc j)))
-           (sym u≡)
-           (walk-replay sc bs' w (suc j) hf
-             (trans (sym (runPath-step (stepT sc) v (b , j) w (labels bs' (suc j)) eqmv)) rp)))
+      OnSupport-bind-return (sc , w , true) (λ u → walk (proj₁ u) (proj₁ (proj₂ u)) bs' (suc j))
+        (walk-replay sc bs' w (suc j) hf
+          (trans (sym (runPath-step (stepT sc) v (b , j) w (labels bs' (suc j)) eqmv)) rp))
     walk-replayC sc b bs' v j hf rp nothing eqmv =
       ⊥-elim (nothing≢just
         (trans (sym (runPath-nothing (stepT sc) v (b , j) (labels bs' (suc j)) eqmv)) rp))
@@ -802,7 +786,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
           where
             flag≡false : (not ⌊ proj₁ (proj₂ w) ≟ h ⌋) ∨ false ≡ false
             flag≡false = trans (∨-identityʳ _)
-                               (trans (cong (λ z → not ⌊ z ≟ h ⌋) v≡) (cong not (⌊≟⌋-refl h)))
+                               (trans (cong (λ z → not ⌊ z ≟ h ⌋) v≡) (cong not (≟-refl h)))
 
   ------------------------------------------------------------------------
   -- New-message branch: table extension, fresh inserts and the walk tracker
@@ -1175,13 +1159,8 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
       ... | false = OnSupport-return
                       ( (λ ())
                       , (λ _ → rec-extend sc sg (proj₁ w) M (proj₁ (proj₂ w)) ext seg rc
-                             , walk-owned sc sg M w eq ext dich-owned ol) )
-        where
-          dich-owned : ∀ v' b' u' → stepT (proj₁ w) v' (b' , k) ≡ just u'
-                     → (stepT sc v' (b' , k) ≡ just u') ⊎ FinalCallOf IV (toBlocks M) 1 (proj₁ w) v' b'
-          dich-owned v' b' u' e = case dich v' b' u' e of λ where
-            (inj₁ old) → inj₁ old
-            (inj₂ (fc , _)) → inj₂ fc
+                             , walk-owned sc sg M w eq ext
+                                 (λ v' b' u' e → Data.Sum.map₂ proj₁ (dich v' b' u' e)) ol) )
 
   mdInv-pres-good : ∀ sc sg i M
     → RecChains sc sg × OwnedLast sc sg

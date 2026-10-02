@@ -31,7 +31,7 @@ import Categories.Category.Construction.Kleisli.Discrete.Pure as KDP
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 
-module CategoricalCrypto.UC.Machine.Run where
+module CategoricalCrypto.Protocol.Machine.Run where
 
 private
   module MC = Core (𝒱ₚ 0ℓ)

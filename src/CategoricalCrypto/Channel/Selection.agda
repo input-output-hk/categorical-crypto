@@ -121,17 +121,15 @@ instance _ = Functor-M
       return $ quote _⇒ₜ_ ∙⟦ rec ∣ quote ⇒-negate-left-transpose-right ∙ ⟧
     -- A [ m ]⇒[ m' ] B ⊗ C
     ... | _ | quote _⊗₀_ ∙⟦ B ∣ C ⟧ = do
-      catch
-        (do
-          res-left ← handle-pattern A m m' B
-          catch
-            (do
-              handle-pattern A m m' C
-              error1 "Unique solution required, multiple found.")
-            (const $ return $ quote _⇒ₜ_ ∙⟦ res-left ∣ quote ⊗-right-intro ∙ ⟧))
-        (const $ do
-          res-right ← handle-pattern A m m' C
-          return $ quote _⇒ₜ_ ∙⟦ res-right ∣ quote ⊗-left-intro ∙ ⟧)
+      res-left ← catch (handle-pattern A m m' B >>= λ t → return (just t)) (const $ return nothing)
+      res-right ← catch (handle-pattern A m m' C >>= λ t → return (just t)) (const $ return nothing)
+      case res-left , res-right of λ where
+        (just l  , nothing) → return $ quote _⇒ₜ_ ∙⟦ l ∣ quote ⊗-right-intro ∙ ⟧
+        (nothing , just r)  → return $ quote _⇒ₜ_ ∙⟦ r ∣ quote ⊗-left-intro ∙ ⟧
+        (just _  , just _)  → error1 "Unique solution required, multiple found."
+        (nothing , nothing) → error $  "No solution found, unable to match " ∷ᵈ A
+                                    ∷ᵈ " with mode " ∷ᵈ m ∷ᵈ " on the right hand side "
+                                    ∷ᵈ quote _⊗₀_ ∙⟦ B ∣ C ⟧ ∷ᵈ " with mode " ∷ᵈ m' ∷ᵈ []
     -- otherwise throw error
     ... | _ | _
       = error $  "No solution found, unable to match " ∷ᵈ A

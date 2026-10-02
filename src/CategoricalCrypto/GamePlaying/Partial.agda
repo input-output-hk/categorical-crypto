@@ -1,11 +1,11 @@
 {-# OPTIONS --safe --without-K #-}
 
--- `GamePlaying`'s two bridges at a PARTIAL kernel, which is the general case.
+-- The supermartingale bound and the coupled Fundamental Lemma at a PARTIAL
+-- kernel, which is the general case.
 --
 -- A machine's step DIVERGES where a game's kernel idles, so the transport of
--- `Protocol.Machine.Raw` lands on a `Dist⊥`-valued kernel.  `Dist⊥` is
--- `Dist-ℚ ∘ Maybe` and the sink scores 0, which only helps the
--- supermartingale and which the coupling carries through untouched.
+-- `Protocol.Machine.Raw` lands on a `Dist⊥`-valued kernel.  The sink scores 0,
+-- which only helps the supermartingale and which the coupling carries through untouched.
 
 open import categorical-crypto.Prelude hiding (_>>=_)
 
@@ -34,12 +34,6 @@ cond false _ y = y
 cond-diag : {A : Type} (b : Bool) (x : A) → cond b x x ≡ x
 cond-diag true  x = refl
 cond-diag false x = refl
-
--- `Pr₁⊥` through the coin junction, whose distribution is total.
-private
-  Pr₁⊥-coin : (μ : Dist-ℚ Bool) (k : Bool → Dist⊥ Bool)
-            → Pr₁⊥ (μ >>=ᴹ k) ≡ E μ (λ b → Pr₁⊥ (k b))
-  Pr₁⊥-coin μ k = E-bind μ k mb
 
 ------------------------------------------------------------------------
 -- The bad event
@@ -89,8 +83,6 @@ badProb⊥-cong resp resp′ bad eq s (coin μ k) with bad s
 ------------------------------------------------------------------------
 -- What a concrete system owes
 
--- Divergence constrains nothing: an activation the machine refuses to serve
--- reaches no state, so it preserves any invariant.
 Preserved⊥ : (St → Type) → (St → Q → Dist⊥ (St × R)) → Type
 Preserved⊥ Inv resp = ∀ s q → Inv s → OnSupport⊥ (λ sr → Inv (proj₁ sr)) (resp s q)
 
@@ -213,8 +205,8 @@ module Coupling⊥ (bad : St → Bool)
   ... | true  = ∣Pr⊥-Pr⊥∣≤1 (runWith⊥ idealK s (coin μ k)) (runWith⊥ realK s (coin μ k))
   ... | false =
       ≤-trans (≤-reflexive (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ)
-                             (Pr₁⊥-coin μ (λ b → runWith⊥ idealK s (k b)))
-                             (Pr₁⊥-coin μ (λ b → runWith⊥ realK s (k b)))))
+                             (E-bind μ (λ b → runWith⊥ idealK s (k b)) mb)
+                             (E-bind μ (λ b → runWith⊥ realK s (k b)) mb)))
      (≤-trans (E-abs-diff μ AI AR)
               (E-mono μ (λ b → ∣ AI b -ℚ AR b ∣ℚ) BB (λ b → FLGP⊥ s (k b))))
     where
@@ -265,9 +257,7 @@ module _ {Q R St St′ : Type} (resp : St → Q → Dist⊥ (St × R))
          (resp′ : St′ → Q → Dist⊥ (St′ × R)) (_≋_ : St → St′ → Type) where
 
   StepBisim⊥ : Type
-  StepBisim⊥ = ∀ s s′ → s ≋ s′ → ∀ q (F : St × R → ℚ) (F′ : St′ × R → ℚ)
-             → (∀ t t′ → proj₁ t ≋ proj₁ t′ → proj₂ t ≡ proj₂ t′ → F t ≡ F′ t′)
-             → E⊥ (resp s q) F ≡ E⊥ (resp′ s′ q) F′
+  StepBisim⊥ = StepBisim⊥ʳ id id resp resp′ _≋_
 
   -- `runWith⊥-bisimʳ` at the identities, twice: `mapStrat id id` rebuilds the
   -- tree, and the run against `resp′` itself removes it without funext.
@@ -299,7 +289,6 @@ total⇒⊥ K s d =
 prune : (St → Q → Bool) → (St → Q → Dist-ℚ (St × R)) → St → Q → Dist⊥ (St × R)
 prune dead K s q = cond (dead s q) (return-ℚ nothing) (embedᵏ K s q)
 
--- `Dmap⊥` commutes past the cut, as far as `E⊥` sees.
 prune-Dmap : {A : Type} (dead : St → Q → Bool) (K : St → Q → Dist-ℚ (St × A))
              (p : St × A → St × R) (s : St) (q : Q) (G : St × R → ℚ)
            → E⊥ (Dmap⊥ p (prune dead K s q)) G ≡ E⊥ (prune dead (λ s q → Dmap p (K s q)) s q) G
@@ -313,30 +302,20 @@ prune-Dmap dead K p s q G with dead s q
 ------------------------------------------------------------------------
 -- The hop
 
-module _ {Q R St StR StI : Type} (bad : St → Bool)
+module _ {Q R St : Type} (bad : St → Bool)
          (respB : St → Q → Dist⊥ (St × (R × R))) where
 
   open Coupling⊥ bad respB
 
   -- The hop with the supermartingale already spent, for a consumer whose
   -- certificate is about a kernel only `E⊥`-equal to `realK`.
-  hop-boundᵇ⊥ : {ε : ℕ → ℚ} (respR : StR → Q → Dist⊥ (StR × R))
+  hop-boundᵇ⊥ : {StR StI : Type} {ε : ℕ → ℚ} (respR : StR → Q → Dist⊥ (StR × R))
                 (respI : StI → Q → Dist⊥ (StI × R)) (s₀ : St) (sR : StR) (sI : StI)
               → (∀ d → Pr₁⊥ (runWith⊥ realK s₀ d) ≡ Pr₁⊥ (runWith⊥ respR sR d))
               → (∀ d → Pr₁⊥ (runWith⊥ idealK s₀ d) ≡ Pr₁⊥ (runWith⊥ respI sI d))
               → (∀ m d → asks≤ m d → badProb⊥ realK bad s₀ d ≤ℚ ε m)
               → ∀ m d → asks≤ m d
               → ∣ Pr₁⊥ (runWith⊥ respI sI d) -ℚ Pr₁⊥ (runWith⊥ respR sR d) ∣ℚ ≤ℚ ε m
-  hop-boundᵇ⊥ {ε} respR respI s₀ sR sI eR eI bnd m d le =
+  hop-boundᵇ⊥ {ε = ε} respR respI s₀ sR sI eR eI bnd m d le =
     subst (_≤ℚ ε m) (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ) (eI d) (eR d))
       (≤-trans (FLGP⊥ s₀ d) (bnd m d le))
-
-  hop-bound⊥ : {ε : ℕ → ℚ} (respR : StR → Q → Dist⊥ (StR × R))
-               (respI : StI → Q → Dist⊥ (StI × R)) (s₀ : St) (sR : StR) (sI : StI)
-             → (∀ d → Pr₁⊥ (runWith⊥ realK s₀ d) ≡ Pr₁⊥ (runWith⊥ respR sR d))
-             → (∀ d → Pr₁⊥ (runWith⊥ idealK s₀ d) ≡ Pr₁⊥ (runWith⊥ respI sI d))
-             → SuperCert⊥ realK bad s₀ ε
-             → ∀ m d → asks≤ m d
-             → ∣ Pr₁⊥ (runWith⊥ respI sI d) -ℚ Pr₁⊥ (runWith⊥ respR sR d) ∣ℚ ≤ℚ ε m
-  hop-bound⊥ respR respI s₀ sR sI eR eI cert =
-    hop-boundᵇ⊥ respR respI s₀ sR sI eR eI λ m d le → badProb⊥-bounded cert m d le

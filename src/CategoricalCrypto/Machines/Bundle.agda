@@ -39,7 +39,6 @@ open Sim 𝒱 𝒫
 open Structural 𝒱 dist 𝒫
 open Tensor 𝒱 dist 𝒫
 
--- A base map is a machine, functorially; so are its isomorphisms.
 pureF : Functor (SymmetricMonoidalCategory.U 𝒱) Mealy-Category
 pureF = record
   { F₀ = λ A → A ; F₁ = pureᴹ ; identity = ≲⇒≈ᴹ pureᴹ-id

@@ -58,7 +58,7 @@ prose uses of the English word, which are not consumers: `Examples/RelSetup.agda
   (`:176-178`) finishes with `returnₚ []`.
 - `traceᴹ` keeps the state (`Machines/Trace.agda:74-75`).
 - The closed-composite observation `UC/Seam/Plug.agda:71-80` reads only `point` and `step`.
-- The run-transfer lemmas `UC/Machine/Run.agda:82-122` use `θ-pure`, `θ-step` and `θ-point`,
+- The run-transfer lemmas `Protocol/Machine/Run.agda:82-122` use `θ-pure`, `θ-step` and `θ-point`,
   never `θ-discard`.
 
 The only class-A site is also an artefact of generality. `watch-discard` has to assume something
@@ -215,7 +215,7 @@ but that figure included the `Sim/Lax` module, which is no longer present.
   the category laws, `*-resp-≈ᴹ`, and trace naturality, sliding and vanishing. They are strictly
   coarser only at non-canonical discards, which the new type cannot even express.
 - **Stronger hypotheses.** Statements that take `≈ᴹ` as a hypothesis get a stronger premise,
-  mainly `run-sim` / `⟦⟧-resp-≈` (`UC/Machine/Run.agda:109-118`). They remain provable verbatim,
+  mainly `run-sim` / `⟦⟧-resp-≈` (`Protocol/Machine/Run.agda:109-118`). They remain provable verbatim,
   since they read only `θ-point` and `θ-step`.
 - **One weakened statement.** `watch-discard` loses its hypothesis `he`, and then its statement
   disappears altogether.

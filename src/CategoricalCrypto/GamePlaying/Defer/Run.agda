@@ -4,11 +4,6 @@
 -- and the same secret drawn at the step that first reads it give the same
 -- closed run.
 --
--- `GamePlaying.Defer.runWith-avg` is this argument at the `Dist-ℚ` game layer.
--- Here the runs are `Protocol.Machine.runᴹ`, the comparison is `_≈ₚ_` rather
--- than `_≡_`, and the draw is a `Dₚ`, so the `coin` case is
--- `Dp.Commutative.>>=ₚ-swap` where the game layer's is `Expectation.E-swap`.
---
 -- It is the one argument `Machines.Sim`'s equality cannot make: a `≲`'s state
 -- map is a function, so it relates a point mass to a point mass, where moving
 -- a draw across an activation relates a point mass to a mixture
@@ -47,8 +42,7 @@ private module MC = Core (𝒱ₚ 0ℓ)
 -- `g` is the DEFERRING side, run at a single state.  The relation compares a
 -- family with one state, which is what carries "the secret is fixed here and
 -- not yet drawn there".
-module _ {V : Set} (μ : Dₚ V) (μ-const : (e : Dₚ Bool) → (μ >>=ₚ (λ _ → e)) ≈ₚ e)
-         {B : Iface} (f g : Closed B) (_≋_ : (V → MC.St f) → MC.St g → Set) where
+module _ {V : Set} (μ : Dₚ V) {B : Iface} (f g : Closed B) (_≋_ : (V → MC.St f) → MC.St g → Set) where
 
   -- One activation, averaged.  A family of outcomes counts as related when its
   -- states are and its answer does not depend on the secret; at the step that
@@ -64,7 +58,7 @@ module _ {V : Set} (μ : Dₚ V) (μ-const : (e : Dₚ Bool) → (μ >>=ₚ (λ 
     → (μ >>=ₚ λ v → MC.step f (fs v , inj₂ q) >>=ₚ K)
       ≈ₚ (MC.step g (s , inj₂ q) >>=ₚ K′)
 
-  module _ (defer : DeferStep) where
+  module _ (μ-const : (e : Dₚ Bool) → (μ >>=ₚ (λ _ → e)) ≈ₚ e) (defer : DeferStep) where
 
     runFrom-defer : (fs : V → MC.St f) (s : MC.St g) → fs ≋ s
                   → (d : Strat (Neg B) (Pos B))

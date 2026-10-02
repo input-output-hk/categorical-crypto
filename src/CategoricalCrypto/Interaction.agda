@@ -2,8 +2,7 @@
 
 -- The reactive interaction model: an ADAPTIVE distinguisher probing a stateful
 -- response kernel, totally (`runWith`) or partially (`runWith⊥`), returning the
--- verdict bit.  This is the semantics every concrete-security statement in the
--- library is phrased in.
+-- verdict bit.
 
 open import categorical-crypto.Prelude hiding (_>>=_)
 
@@ -53,8 +52,7 @@ runWith⊥-emb {R = R} resp resp⊥ emb ker s (ask q k) = begin
   ((resp s q >>=ᴹ Eret) >>=⊥ K⊥)
     ≈⟨ >>=ᴹ-assoc (resp s q) Eret (kmaybe K⊥) ⟩
   (resp s q >>=ᴹ λ sr → (Eret sr >>=⊥ K⊥))
-    ≈⟨ >>=ᴹ-cong {μ = resp s q} {resp s q} {λ sr → Eret sr >>=⊥ K⊥}
-         {λ sr → Dmap just (G sr)} (λ P → refl)
+    ≈⟨ >>=ᴹ-congˡ (resp s q) (λ sr → Eret sr >>=⊥ K⊥) (λ sr → Dmap just (G sr))
          (λ sr → Mℚ.trans {i = Eret sr >>=⊥ K⊥}
                           {j = runWith⊥ resp⊥ (emb (proj₁ sr)) (k (proj₂ sr))}
                           {k = Dmap just (G sr)}
@@ -70,8 +68,7 @@ runWith⊥-emb {R = R} resp resp⊥ emb ker s (ask q k) = begin
     open RS (Mℚ-setoid _)
 runWith⊥-emb resp resp⊥ emb ker s (coin μ k) = begin
   (μ >>=ᴹ λ b → runWith⊥ resp⊥ (emb s) (k b))
-    ≈⟨ >>=ᴹ-cong {μ = μ} {μ} {λ b → runWith⊥ resp⊥ (emb s) (k b)}
-         {λ b → Dmap just (G b)} (λ P → refl)
+    ≈⟨ >>=ᴹ-congˡ μ (λ b → runWith⊥ resp⊥ (emb s) (k b)) (λ b → Dmap just (G b))
          (λ b → runWith⊥-emb resp resp⊥ emb ker s (k b)) ⟩
   (μ >>=ᴹ λ b → Dmap just (G b))
     ≈˘⟨ >>=ᴹ-assoc μ G (return-ℚ ∘ just) ⟩

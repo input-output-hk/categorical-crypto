@@ -31,13 +31,13 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Pointwise
 open import CategoricalCrypto.Machines.Sandwich
 open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Machine.Run
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.Dictionary
 open import CategoricalCrypto.UC.Machine.Monitor
 open import CategoricalCrypto.UC.Machine.Monitor.Agree
-open import CategoricalCrypto.UC.Machine.Run
 open import CategoricalCrypto.UC.Machine.Slide
 open import CategoricalCrypto.UC.Machine.StateEvent
 open import CategoricalCrypto.UC.Machine.StateEvent.Read
@@ -123,7 +123,7 @@ module _ {B : Iface} (M : Proc unitᴵ B) (P : StateTest M) (d : Strat (Neg B) (
       (_ , inj₂ _) → ≈refl
 
     pass : (st : SK × SU) (x : Neg B′ ⊎ Pos B′) → iterₚ body (st , x) ≈ₚ (kᶜ (st , inj₂ x) >>=ₚ contᵢ body)
-    pass st x = loop-fix st x ⟨≈⟩ bindˣ (k-red (st , inj₂ x))
+    pass st x = iterₚ-fix body (st , x) ⟨≈⟩ bindˣ (k-red (st , inj₂ x))
 
     -- What the environment's emission leads to, once the loop has taken it.
     emit : SU → (FlagSt × EnvSt B) × (Neg B′ ⊎ Bool) → Dₚ Bool

@@ -1,19 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The supermartingale bound for `BoundedHit`: what a concrete protocol owes a
--- safety bound, once the adaptivity is taken care of generically.
---
--- A potential `φ`, indexed by the REMAINING query budget, with a
--- support-preserved invariant `Inv`, at least 1 on bad states and
--- non-increasing in expectation per query, bounds the probability that ANY
--- adaptive strategy of that budget reaches a bad state.  So a concrete system
--- owes only a NON-adaptive per-step certificate (`HitCert`).
---
--- This is `GamePlaying.Partial.badProb⊥-super` at `kernel P`, read through
--- `hit≤badProb⊥`: the protocol layer's own observable, the trajectory reading
--- `hitRun`, is dominated by the reactive model's bad-event probability.
--- Divergence is not a violation: the `nothing` sink is vacuously
--- invariant-preserving and scores 0 in `E⊥`.
+-- The supermartingale bound for `BoundedHit`: a non-adaptive per-step
+-- certificate (`HitCert`, `GamePlaying.Partial.SuperCert⊥` at `kernel P`)
+-- bounds every adaptive strategy of the budget, through `hit≤badProb⊥`.
+-- Divergence is not a violation: the `nothing` sink scores 0 in `E⊥`.
 --
 -- `PrHit` is the COMPLETED-RUN event, `badProb⊥` the PREFIX-REACHABILITY one
 -- (it stops at the first bad state); they differ only on runs that hit and
@@ -42,9 +32,6 @@ module CategoricalCrypto.Protocol.Safety where
 
 module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
 
-  -- What a concrete system owes: a non-adaptive per-step certificate, with the
-  -- initial potential dominated by the claimed bound — `GamePlaying.Partial`'s
-  -- at `kernel P`.
   HitCert : (ℕ → ℚ) → Set₁
   HitCert = SuperCert⊥ (kernel P) Bad (init P)
 
@@ -67,15 +54,5 @@ module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
         subst (λ z → Pr₁⊥ (hitFrom P Bad z s (k b)) ≤ℚ badProb⊥ (kernel P) Bad s (k b)) eqb
               (hit≤badProb⊥ (k b) s))
 
-  module _ {ε : ℕ → ℚ} (cert : HitCert ε) where
-
-    open SuperCert⊥ cert
-
-    -- The accumulator is exactly `Bad` at the state the run is at, which is
-    -- what `hitRun` starts from, so no separate initialization step is owed.
-    super : ∀ m d s → asks≤ m d → Inv s → Pr₁⊥ (hitFrom P Bad (Bad s) s d) ≤ℚ φ m s
-    super m d s le inv = ≤-trans (hit≤badProb⊥ d s)
-      (badProb⊥-super (kernel P) Bad Inv φ pres φ-nn φ-bad φ-step m d s le inv)
-
-    hit-bounded : BoundedHit P Bad ε
-    hit-bounded m d le = ≤-trans (super m d (init P) le inv₀) (φ-init m)
+  hit-bounded : {ε : ℕ → ℚ} → HitCert ε → BoundedHit P Bad ε
+  hit-bounded cert m d le = ≤-trans (hit≤badProb⊥ d (init P)) (badProb⊥-bounded cert m d le)
