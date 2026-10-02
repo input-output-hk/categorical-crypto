@@ -22,8 +22,7 @@ import Categories.GConstructionMonoidal as GM
 
 open import Data.Empty.Polymorphic
 open import Data.Product.Base
-open import Data.Sum.Base as Sum using (_⊎_; inj₁; inj₂)
-open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)
+open import Data.Sum.Base as Sum using (_⊎_; inj₁; inj₂) renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)
 open import Level
 open import Relation.Binary.PropositionalEquality using (refl)
 

@@ -10,16 +10,17 @@ open import Data.Integer.Base using (+_)
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly
 open import Data.Nat.Positive
-open import Data.Nat.Properties using (m≤m⊔n; m≤n⊔m; ≤-trans)
 open import Data.Product.Base
 open import Data.Rational as ℚ
-open import Data.Rational.Properties using (*-distribˡ-+; *-identityˡ; *-zeroʳ; +-mono-≤; <⇒≤)
-open import Data.Rational.Properties.Ext
+open import Level using (Level)
+open import Data.Rational.Properties using (*-distribˡ-+; *-identityˡ; *-zeroʳ)
 open import Relation.Binary.PropositionalEquality
 
-open import ProbabilisticLogic.Distribution.Uniform.Decay using (_→0)
+open import ProbabilisticLogic.Distribution.Uniform.Decay using (_→0; →0-cong; →0-0)
 
 module CategoricalCrypto.UC.Approximate where
+
+open ProbabilisticLogic.Distribution.Uniform.Decay using (→0-+) public
 
 -- The grade a slack or an error is held to — a decay class, unrelated to the
 -- UC grade an adversary interface is.  The two bound disciplines below are one
@@ -62,6 +63,16 @@ NegligibleBound = GradedBound Negligible
 NegligibleBound⇒VanishingBound : {ε : ℕ → ℕ → ℚ} → NegligibleBound ε → VanishingBound ε
 NegligibleBound⇒VanishingBound neg p Pp = Negligible⇒→0 (neg p Pp)
 
+-- One negligible slack per polynomial cap, chosen before the security
+-- parameter.
+Saturated : {ℓ : Level} → (ℕ → ℕ → ℚ → Set ℓ) → (ℕ → ℕ → ℚ) → Set ℓ
+Saturated X ε = (p : ℕ → ℕ) → Poly p
+              → Σ[ ν ∈ (ℕ → ℚ) ] Negligible ν × ((n : ℕ) → X n (p n) (ε n (p n) ℚ.+ ν n))
+
+saturated-map : {ℓ ℓ′ : Level} {X : ℕ → ℕ → ℚ → Set ℓ} {Y : ℕ → ℕ → ℚ → Set ℓ′} {ε : ℕ → ℕ → ℚ}
+              → ((n q : ℕ) {r : ℚ} → X n q r → Y n q r) → Saturated X ε → Saturated Y ε
+saturated-map g h p Pp = let ν , neg , b = h p Pp in ν , neg , λ n → g n (p n) (b n)
+
 ------------------------------------------------------------------------
 -- Closure
 
@@ -71,20 +82,6 @@ NegligibleBound⇒VanishingBound neg p Pp = Negligible⇒→0 (neg p Pp)
 -- `GradedBound` at the allowance is already that grade, by definition.  Both
 -- grades close, `Negligible`'s case being the vanishing one under the
 -- magnifying polynomial.
-
-→0-cong : {s t : ℕ → ℚ} → ((n : ℕ) → s n ≡ t n) → s →0 → t →0
-→0-cong eq s→0 ε ε>0 =
-  let N , bnd = s→0 ε ε>0 in N , λ n le → subst (ℚ._≤ ε) (eq n) (bnd n le)
-
-→0-0 : (λ (_ : ℕ) → 0ℚ) →0
-→0-0 _ ε>0 = 0 , λ _ _ → <⇒≤ ε>0
-
-→0-+ : {s t : ℕ → ℚ} → s →0 → t →0 → (λ n → s n ℚ.+ t n) →0
-→0-+ {s} {t} s→0 t→0 ε ε>0 =
-  let Ns , bs = s→0 (½ ℚ.* ε) (0<½* ε>0)
-      Nt , bt = t→0 (½ ℚ.* ε) (0<½* ε>0)
-  in Ns ℕ.⊔ Nt , λ n le → subst (s n ℚ.+ t n ℚ.≤_) (½*+½* ε)
-       (+-mono-≤ (bs n (≤-trans (m≤m⊔n Ns Nt) le)) (bt n (≤-trans (m≤n⊔m Ns Nt) le)))
 
 Negligible-0 : Negligible (λ _ → 0ℚ)
 Negligible-0 p _ = →0-cong (λ n → sym (*-zeroʳ (+ p n / 1))) →0-0

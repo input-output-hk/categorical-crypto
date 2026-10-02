@@ -93,11 +93,6 @@ _>>=⊥_ : Dist⊥ A → (A → Dist⊥ B) → Dist⊥ B
     kpt (just a) = (λ P → refl)
     kpt nothing  = >>=ᴹ-identityˡ nothing (kmaybe h)
 
--- Bind congruences with the reflexive side PINNED explicitly (cf. `>>=ᴹ-congˡ`).
->>=⊥-congˡ : (μ : Dist⊥ A) (f g : A → Dist⊥ B)
-           → (∀ a → f a ≈Mℚ g a) → (μ >>=⊥ f) ≈Mℚ (μ >>=⊥ g)
->>=⊥-congˡ μ f g pt = >>=⊥-cong {μ = μ} {μ} {f} {g} (λ P → refl) pt
-
 >>=⊥-congʳ : (f : A → Dist⊥ B) (μ ν : Dist⊥ A) → μ ≈Mℚ ν → (μ >>=⊥ f) ≈Mℚ (ν >>=⊥ f)
 >>=⊥-congʳ f μ ν μ≈ν = >>=⊥-cong {μ = μ} {ν} {f} {f} μ≈ν (λ a → Eq.refl {x = f a})
 

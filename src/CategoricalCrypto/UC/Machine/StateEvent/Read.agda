@@ -21,8 +21,6 @@ open import Data.Sum.Base
 open import Data.Unit.Base
 open import Function.Base
 
-import Relation.Binary.Construct.Closure.Equivalence as EqC
-
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Advantage
 open import ProbabilisticLogic.Dp.Reasoning
@@ -80,29 +78,8 @@ module _ {A B : ℕ → Iface} (M : (n : ℕ) → Proc (A n) (B n))
 ------------------------------------------------------------------------
 -- Invariance
 
-module _ {A B : Iface} (Y : Iface) where
-
-  stateRead-resp-≈ᵉ : {x y : Annotated A B} → x ≈ᵉ y
-                    → (E : Proc (Y ⊗ᴵ B) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ A))
-                    → stateRead Y (proj₁ x) (proj₂ x) E m ≈ₚ stateRead Y (proj₁ y) (proj₂ y) E m
-  stateRead-resp-≈ᵉ e = readRun-resp-≈ Y (▷-≈ e) (flagReader B)
-
-  stateRead-resp-env : (M : Proc A B) (P : StateTest M)
-                       {E E′ : Proc (Y ⊗ᴵ B) Ωᴵ} {m m′ : Proc unitᴵ (Y ⊗ᴵ A)}
-                     → 𝒫._≈_ E E′ → 𝒫._≈_ m m′
-                     → stateRead Y M P E m ≈ₚ stateRead Y M P E′ m′
-  stateRead-resp-env M P eE em =
-    runᴹ-resp-≈ᴹ
-      (𝒫.∘-resp-≈ (𝒫.∘-resp-≈ˡ (𝒫.∘-resp-≈ʳ (𝒫.∘-resp-≈ˡ (sub-resp-≈ eE)))) em)
-      (ask tt out)
-
-stateBounded-resp-≈ᵉ : {A B : Iface} {q : ℕ} {r : ℚ} {x y : Annotated A B} → x ≈ᵉ y
-                     → StateBoundedAt q r (proj₁ x) (proj₂ x)
-                     → StateBoundedAt q r (proj₁ y) (proj₂ y)
-stateBounded-resp-≈ᵉ {x = x} {y} e h Y E m qE qm le =
-  upper-≈ (stateRead-resp-≈ᵉ Y (EqC.symmetric EventSim e) E m) (h Y E m qE qm le)
-
 -- Exact, at any `A`.
 transportᵉ : {A B : Iface} {q : ℕ} {r : ℚ} {R I : Proc A B} {P : StateTest R} {Q : StateTest I}
            → EventSim (R , P) (I , Q) → StateBoundedAt q r I Q → StateBoundedAt q r R P
-transportᵉ e = stateBounded-resp-≈ᵉ (EqC.symmetric EventSim (EqC.return e))
+transportᵉ {B = B} e h Y E m qE qm le =
+  upper-≈ (readRun-resp-≈ Y (S.≲⇒≈ᴹ (▷-≲ e)) (flagReader B) E m) (h Y E m qE qm le)

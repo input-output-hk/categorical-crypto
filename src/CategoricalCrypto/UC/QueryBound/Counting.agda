@@ -56,7 +56,7 @@ weight-costᶜ c (inj₁ _ ∷ w) = weight-costᶜ c w
 weight-costᶜ c (inj₂ _ ∷ w) =
   trans (cong (c +_) (weight-costᶜ c w)) (sym (*-suc c (weight fromAbove w)))
 
-module Budget = Ledgerᴿ _≤_ ≤-reflexive ≤-trans +-monoʳ-≤ +-monoˡ-≤
+module Budget = Ledgerᴿ _≤_ ≤-isPreorder +-mono-≤
 
 qbᵢ⇒ledger : {A B : Iface} (S : Set) (point : Dₚ S)
              (step : S × (Pos A ⊎ Neg B) → Dₚ (S × (Neg A ⊎ Pos B))) (c : ℕ)

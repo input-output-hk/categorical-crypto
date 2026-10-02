@@ -33,8 +33,7 @@ open import Data.Nat.Base as ℕ
 open import Data.Nat.Positive
 open import Data.Nat.Properties
 open import Data.Product.Base
-open import Data.Sum.Base as Sum
-open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)
+open import Data.Sum.Base as Sum renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)
 open import Data.Unit.Base
 open import Function.Base
 open import Level using (0ℓ)
@@ -75,7 +74,7 @@ open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 
 T₁-wire : (Y : Iface) {A B : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
         → 𝒫._≈_ {Y ⊗ᴵ A} {Y ⊗ᴵ B} (T₁ᴵ Y (wireᴹ up down))
-            (wireᴹ (Sum.map (λ y → y) up) (Sum.map (λ y → y) down))
+            (wireᴹ (Sum.map₂ up) (Sum.map₂ down))
 T₁-wire Y up down = ≲⇒≈ᴹ (mk-cong pt)
   where
   pt : (p : _) → _
@@ -91,10 +90,10 @@ T₁-wire Y up down = ≲⇒≈ᴹ (mk-cong pt)
   ○ᴹ ⟺ᴹ relayed
   ○ᴹ ⟺ᴹ (∘-wireᴹ inj₂ [ ⊥-elim , id ] (T₁ᴵ unitᴵ f))
   where
-  relayed : sandwichᴹ (T₁ᴵ unitᴵ f) (Sum.map inj₂ (λ n → n))
-                                    (Sum.map [ ⊥-elim , id ] (λ n → n))
-            ≈ᴹ sandwichᴹ f (Sum.map (λ n → n) [ ⊥-elim , id ])
-                           (Sum.map (λ n → n) inj₂)
+  relayed : sandwichᴹ (T₁ᴵ unitᴵ f) (Sum.map₁ inj₂)
+                                    (Sum.map₁ [ ⊥-elim , id ])
+            ≈ᴹ sandwichᴹ f (Sum.map₂ [ ⊥-elim , id ])
+                           (Sum.map₂ inj₂)
   relayed = ≲⇒≈ᴹ (mk-cong pt)
     where
     pt : (p : _) → _
@@ -107,7 +106,7 @@ T₁-wire Y up down = ≲⇒≈ᴹ (mk-cong pt)
 
 sub-wire : {A B C : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
          → 𝒫._≈_ {A ⊗ᴵ C} {B ⊗ᴵ C} (subᴵ (wireᴹ up down))
-             (wireᴹ (Sum.map up (λ c → c)) (Sum.map down (λ c → c)))
+             (wireᴹ (Sum.map₁ up) (Sum.map₁ down))
 sub-wire up down = ≲⇒≈ᴹ (mk-cong pt)
   where
   pt : (p : _) → _
@@ -137,7 +136,7 @@ sub-wire up down = ≲⇒≈ᴹ (mk-cong pt)
       → 𝒫._≈_ {(Y ⊗ᴵ unitᴵ) ⊗ᴵ B} {Y ⊗ᴵ B} (T₁ᴵ Y λᴵ⇒ 𝒫.∘ a⇒ᴵ) (subᴵ ρᴵ⇒)
 ρ-tri {Y} {B} =
      𝒫.∘-resp-≈ˡ (T₁-wire Y [ ⊥-elim , id ] inj₂)
-  ○ᴹ wire-∘ᴹ (Sum.map (λ y → y) [ ⊥-elim , id ]) (Sum.map (λ y → y) inj₂)
+  ○ᴹ wire-∘ᴹ (Sum.map₂ [ ⊥-elim , id ]) (Sum.map₂ inj₂)
              (a⇒ᴵ {Y} {unitᴵ} {B})
   ○ᴹ ≲⇒≈ᴹ (mk-cong pt)
   ○ᴹ ⟺ᴹ (sub-wire [ id , ⊥-elim ] inj₁)
@@ -160,20 +159,20 @@ sub-wire up down = ≲⇒≈ᴹ (mk-cong pt)
             (T₁ᴵ Y λᴵ⇐ 𝒫.∘ m) (a⇒ᴵ 𝒫.∘ (subᴵ m 𝒫.∘ λᴵ⇐))
 λ-slide {Y} m =
      𝒫.∘-resp-≈ˡ (T₁-wire Y inj₂ [ ⊥-elim , id ])
-  ○ᴹ wire-∘ᴹ (Sum.map (λ y → y) inj₂) (Sum.map (λ y → y) [ ⊥-elim , id ]) m
+  ○ᴹ wire-∘ᴹ (Sum.map₂ inj₂) (Sum.map₂ [ ⊥-elim , id ]) m
   ○ᴹ ⟺ᴹ subbed
-  ○ᴹ ⟺ᴹ (sandwich-∘ (subᴵ m) (Sum.map inj₂ (λ a → a)) (Sum.map [ ⊥-elim , id ] (λ a → a))
-                             (Sum.map (λ a → a) ⊎assocˡ) (Sum.map (λ a → a) ⊎assocʳ))
+  ○ᴹ ⟺ᴹ (sandwich-∘ (subᴵ m) (Sum.map₁ inj₂) (Sum.map₁ [ ⊥-elim , id ])
+                             (Sum.map₂ ⊎assocˡ) (Sum.map₂ ⊎assocʳ))
   ○ᴹ ⟺ᴹ (wire-∘ᴹ ⊎assocʳ ⊎assocˡ
-            (sandwichᴹ (subᴵ m) (Sum.map inj₂ (λ a → a))
-                                (Sum.map [ ⊥-elim , id ] (λ a → a))))
+            (sandwichᴹ (subᴵ m) (Sum.map₁ inj₂)
+                                (Sum.map₁ [ ⊥-elim , id ])))
   ○ᴹ ⟺ᴹ (𝒫.∘-resp-≈ʳ (∘-wireᴹ inj₂ [ ⊥-elim , id ] (subᴵ m)))
   where
   subbed : sandwichᴹ (subᴵ m)
-             (λ x → Sum.map inj₂ (λ a → a) (Sum.map (λ a → a) ⊎assocˡ x))
-             (λ y → Sum.map (λ a → a) ⊎assocʳ (Sum.map [ ⊥-elim , id ] (λ a → a) y))
-           ≈ᴹ sandwichᴹ m (Sum.map (λ n → n) (Sum.map (λ y → y) [ ⊥-elim , id ]))
-                          (Sum.map (λ n → n) (Sum.map (λ y → y) inj₂))
+             (λ x → Sum.map₁ inj₂ (Sum.map₂ ⊎assocˡ x))
+             (λ y → Sum.map₂ ⊎assocʳ (Sum.map₁ [ ⊥-elim , id ] y))
+           ≈ᴹ sandwichᴹ m (Sum.map₂ (Sum.map₂ [ ⊥-elim , id ]))
+                          (Sum.map₂ (Sum.map₂ inj₂))
   subbed = ≲⇒≈ᴹ (mk-cong pt)
     where
     pt : (p : _) → _
@@ -239,16 +238,16 @@ unit-cancel {B} x =
                 (inj₂ _) → refl)
   where
   i₁ : Pos unitᴵ ⊎ Neg (unitᴵ ⊗ᴵ B) → Pos unitᴵ ⊎ Neg B
-  i₁ = Sum.map (λ a → a) [ ⊥-elim , id ]
+  i₁ = Sum.map₂ [ ⊥-elim , id ]
 
   o₁ : Neg unitᴵ ⊎ Pos B → Neg unitᴵ ⊎ Pos (unitᴵ ⊗ᴵ B)
-  o₁ = Sum.map (λ a → a) inj₂
+  o₁ = Sum.map₂ inj₂
 
   i₂ : Pos unitᴵ ⊎ Neg B → Pos unitᴵ ⊎ Neg (unitᴵ ⊗ᴵ B)
-  i₂ = Sum.map (λ a → a) inj₂
+  i₂ = Sum.map₂ inj₂
 
   o₂ : Neg unitᴵ ⊎ Pos (unitᴵ ⊗ᴵ B) → Neg unitᴵ ⊎ Pos B
-  o₂ = Sum.map (λ a → a) [ ⊥-elim , id ]
+  o₂ = Sum.map₂ [ ⊥-elim , id ]
 
 T₁-conj : {Y B : Iface} (x : Proc unitᴵ B)
         → 𝒫._≈_ {Y ⊗ᴵ unitᴵ} {Y ⊗ᴵ B} (T₁ᴵ Y x) (T₁ᴵ Y (λᴵ⇒ {B}) 𝒫.∘ T₁ᴵ Y (conjᴵ x))
@@ -276,8 +275,7 @@ qb-Kctx {B} {Y} E m {c} {c′} qE qm =
   qb-mono (≤-reflexive (budget c c′))
     (qb-∘-category B (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ E _ qE
       (qb-∘-category B ((Y ⊗ᴵ unitᴵ) ⊗ᴵ B) (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) a⇒ᴵ _
-        (qb-resp-≈ (⟺ᴹ (a⇒-α⇒ {Y} {unitᴵ} {B})) (qb-a⇒ᴳ Y unitᴵ B))
+        (qb-wire {(Y ⊗ᴵ unitᴵ) ⊗ᴵ B} {Y ⊗ᴵ (unitᴵ ⊗ᴵ B)} ⊎assocʳ ⊎assocˡ)
         (qb-∘-category B (unitᴵ ⊗ᴵ B) ((Y ⊗ᴵ unitᴵ) ⊗ᴵ B) (subᴵ m) λᴵ⇐
-          (qb-resp-≈ (⟺ᴹ (sub-⊗₁ {unitᴵ} {Y ⊗ᴵ unitᴵ} {B} m))
-            (qb-subᴳ unitᴵ (Y ⊗ᴵ unitᴵ) B m qm))
+          (qb-subᴵ unitᴵ (Y ⊗ᴵ unitᴵ) B m qm)
           (qb-wire {B} {unitᴵ ⊗ᴵ B} inj₂ [ ⊥-elim , id ]))))

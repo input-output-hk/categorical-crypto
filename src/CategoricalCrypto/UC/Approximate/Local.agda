@@ -12,7 +12,7 @@
 -- It is an instance, not a construction of its own: `familySpace` is the
 -- approximate space of observation families over rational-sequence errors, and
 -- `_∼ᴺ_` is `Approx.Small`'s existential collapse of it at the negligible
--- class — `∼ᴺ≡∼Small` pins that, and the equivalence comes from there rather
+-- class, definitionally, and the equivalence comes from there rather
 -- than being proved again.  What a collapse class must be is exactly what
 -- `Negligible` is: it contains zero and is closed under sums.
 --
@@ -68,23 +68,11 @@ negligible = record
 
 open Sm.Collapse negligible os ℓa
 
-∼ᴺ≡∼Small : {μ ν : Ix → Obs} → (μ ∼ᴺ ν) ≡ _∼Small_ familySpace μ ν
-∼ᴺ≡∼Small = refl
-
 ∼ᴺ-isEquivalence : IsEquivalence _∼ᴺ_
 ∼ᴺ-isEquivalence = ∼Small-isEquivalence familySpace
 
--- One negligible δ serving EVERY index is strictly more than a negligible δ
--- per index.  The implication that holds is recorded so the two orders cannot
--- be exchanged silently; the converse is a uniformization and no theorem here
--- supplies it (plan §8, and `UC.Family.Negligible`'s header for the same
--- asymmetry one quantifier out, at the contexts).
-∼ᴺ⇒pointwise : {μ ν : Ix → Obs} → μ ∼ᴺ ν
-             → (i : Ix) → Σ[ δ ∈ (ℕ → ℚ) ] Negligible δ × μ i ≈[ δ (κ i) ] ν i
-∼ᴺ⇒pointwise (δ , neg , h) i = δ , neg , h i
-
 -- What the relation gives BACK, at an approximation that hides no gap
--- (`UC.Approximate.Separating`): the witness dominates the actual difference,
+-- (`Approx.Error.ℚ-metric`): the witness dominates the actual difference,
 -- so a difference `Negligible` excludes is not admitted.  `κ` must be onto —
 -- a bound at every index says nothing at a security parameter no index reaches.
 --

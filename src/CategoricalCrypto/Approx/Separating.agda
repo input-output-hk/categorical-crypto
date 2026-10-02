@@ -14,7 +14,6 @@
 open import Data.Nat.Base as ℕ
 open import Data.Product.Base
 open import Data.Rational as ℚ
-open import Data.Rational.Properties.Ext
 open import Level
 open import Relation.Binary.Bundles
 open import Relation.Binary.PropositionalEquality
@@ -25,7 +24,6 @@ open import ProbabilisticLogic.Distribution.Uniform
 open import CategoricalCrypto.Approx.Error
 open import CategoricalCrypto.UC.Approximate
 open import CategoricalCrypto.UC.Approximate.Decay
-open import CategoricalCrypto.UC.Approximate.Separating
 
 import Data.Nat.Properties as ℕₚ
 import Data.Rational.Properties as ℚₚ
@@ -38,28 +36,8 @@ open import CategoricalCrypto.Approx.Space ℚ-ordered
 zeroᶠ : ℕ → ℚ
 zeroᶠ _ = 0ℚ
 
-infix 4 _≈ᵉ[_]_
-
-_≈ᵉ[_]_ : (ℕ → ℚ) → ℚ → (ℕ → ℚ) → Set
-s ≈ᵉ[ ε ] t = Σ[ N ∈ ℕ ] ((n : ℕ) → N ℕ.≤ n → ∣ s n ℚ.- t n ∣ ℚ.≤ ε)
-
--- A negative ε admits nothing, so the laws never have to weigh one: an absolute
--- value under it is already absurd.
-eventually : Approximation (ℕ → ℚ) ℚ-ordered 0ℓ
-eventually = record
-  { _≈[_]_    = _≈ᵉ[_]_
-  ; ≈[]-refl  = λ {s} → 0 , λ n _ → ℚₚ.≤-reflexive (∣x-x∣≡0 (s n))
-  ; ≈[]-sym   = λ {s} {t} (N , b) → N ,
-      λ n le → subst (ℚ._≤ _) (∣-∣-comm (s n) (t n)) (b n le)
-  ; ≈[]-trans = λ {s} {t} {u} (N₁ , b₁) (N₂ , b₂) → N₁ ℕ.⊔ N₂ ,
-      λ n le → ℚₚ.≤-trans (∣-∣-triangle (s n) (t n) (u n))
-                 (ℚₚ.+-mono-≤ (b₁ n (ℕₚ.≤-trans (ℕₚ.m≤m⊔n N₁ N₂) le))
-                              (b₂ n (ℕₚ.≤-trans (ℕₚ.m≤n⊔m N₁ N₂) le)))
-  ; ≈[]-mono  = λ le (N , b) → N , λ n l → ℚₚ.≤-trans (b n l) le
-  }
-
 Sequences : ApproxSpace 0ℓ 0ℓ
-Sequences = record { Carrier = ℕ → ℚ ; approx = eventually }
+Sequences = record { Carrier = ℕ → ℚ ; approx = Eventually ℚ-metric ℕ (λ n → n) }
 
 ------------------------------------------------------------------------
 -- …and the two forgetful functors disagree on one pair

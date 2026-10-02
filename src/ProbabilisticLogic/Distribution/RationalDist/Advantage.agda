@@ -25,22 +25,6 @@ advᵇ⊥ b μ ν = ∣ Prᵇ⊥ b μ -ℚ Prᵇ⊥ b ν ∣ℚ
 adv⊥ : Dist⊥ Bool → Dist⊥ Bool → ℚ
 adv⊥ = advᵇ⊥ true
 
-advᵇ⊥-sym : ∀ b μ ν → advᵇ⊥ b μ ν ≡ advᵇ⊥ b ν μ
-advᵇ⊥-sym b μ ν = ∣-∣-comm (Prᵇ⊥ b μ) (Prᵇ⊥ b ν)
-
-advᵇ⊥-triangle : ∀ b μ ν ρ → advᵇ⊥ b μ ρ ≤ℚ advᵇ⊥ b μ ν +ℚ advᵇ⊥ b ν ρ
-advᵇ⊥-triangle b μ ν ρ = ∣-∣-triangle (Prᵇ⊥ b μ) (Prᵇ⊥ b ν) (Prᵇ⊥ b ρ)
-
-adv⊥-sym : ∀ μ ν → adv⊥ μ ν ≡ adv⊥ ν μ
-adv⊥-sym = advᵇ⊥-sym true
-
-adv⊥-triangle : ∀ μ ν ρ → adv⊥ μ ρ ≤ℚ adv⊥ μ ν +ℚ adv⊥ ν ρ
-adv⊥-triangle = advᵇ⊥-triangle true
-
-adv⊥-≈⇒0 : {μ ν : Dist⊥ Bool} → μ ≈Mℚ ν → adv⊥ μ ν ≡ 0ℚ
-adv⊥-≈⇒0 {μ} e = trans (cong (λ z → ∣ Pr₁⊥ μ -ℚ z ∣ℚ) (sym (e mb)))
-                       (∣x-x∣≡0 (Pr₁⊥ μ))
-
 -- With no divergence mass the `false` reading is the complement of the `true`
 -- one, so a one-sided bound can be stated at the two-sided `advᵇ⊥`.
 advᵇ⊥-just : ∀ b (μ ν : Dist-ℚ Bool)

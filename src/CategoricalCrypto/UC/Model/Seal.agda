@@ -83,9 +83,6 @@ opaque
         → f G.≈ g → 𝒢ₚ 0ℓ [ unprocᵒ f ≈ unprocᵒ g ]
   ≈ᵒ⇒≈ᴹ e = e
 
-  ⊗ᵒ : (A B : Iface) → ifaceᵒ A G.⊗₀ ifaceᵒ B ≡ ifaceᵒ (A ⊗ᴵ B)
-  ⊗ᵒ _ _ = refl
-
   -- A graded hom: `T₀ X B` is `X ⊗₀ B`, whose tensor the seal hides.
   gradedᵒ : {A X B : Iface} → Proc A (X ⊗ᴵ B) → ifaceᵒ A G.⇒ ifaceᵒ X G.⊗₀ ifaceᵒ B
   gradedᵒ f = f

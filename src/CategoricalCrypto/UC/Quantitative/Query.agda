@@ -36,13 +36,10 @@ open import Relation.Binary.PropositionalEquality
 open import CategoricalCrypto.Approx.Error
 open import CategoricalCrypto.Approx.Schedule
 
-import CategoricalCrypto.Approx.Controlled as Controlledᴹ
 import CategoricalCrypto.Approx.Filtered as Filteredᴹ
 import CategoricalCrypto.Approx.Space as Spaceᴹ
 import Data.Nat.Properties as ℕₚ
 import Data.Rational.Properties as ℚₚ
-
-module Rates = SymmetricMonoidalCategory Rates
 
 module CategoricalCrypto.UC.Quantitative.Query where
 
@@ -53,9 +50,7 @@ Sched = pointwise ℕ⁺ ℚ-ordered
 -- a second one would make every crossing pay for re-elaborating it.
 module Fl = Filteredᴹ Sched ≤⁺-poset
 
-private
-  module S = Controlledᴹ Sched
-  open OrderedErrorAlgebra Sched
+open OrderedErrorAlgebra Sched
 
 open Reindexing {I = ℕ⁺} ℚ-ordered
 

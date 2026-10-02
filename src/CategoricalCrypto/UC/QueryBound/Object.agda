@@ -29,19 +29,12 @@ module CategoricalCrypto.UC.QueryBound.Object where
 
 private module 𝒢 = Category (𝒢ₚ 0ℓ)
 
-Certifiedᴳ : (A B : 𝒢.Obj) → ℕ → 𝒢ₚ 0ℓ [ A , B ] → Set
-Certifiedᴳ A B = Certified {retᴵ A} {retᴵ B}
-
 opaque
   QBᴳ : (A B : 𝒢.Obj) → ℕ → 𝒢ₚ 0ℓ [ A , B ] → Set₁
   QBᴳ A B = QB {retᴵ A} {retᴵ B}
 
 opaque
   unfolding QBᴳ
-
-  certified⇒QBᴳ : (A B : 𝒢.Obj) {c : ℕ} {M : 𝒢ₚ 0ℓ [ A , B ]}
-                → Certifiedᴳ A B c M → QBᴳ A B c M
-  certified⇒QBᴳ A B = certified⇒QB {retᴵ A} {retᴵ B}
 
   qb-resp-≈ᴳ : (A B : 𝒢.Obj) {c : ℕ} {M N : 𝒢ₚ 0ℓ [ A , B ]}
              → 𝒢ₚ 0ℓ [ M ≈ N ] → QBᴳ A B c M → QBᴳ A B c N

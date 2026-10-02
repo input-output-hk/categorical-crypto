@@ -20,7 +20,7 @@ open import Data.Rational.Properties using
   ( *-zeroˡ; *-zeroʳ; *-identityˡ; *-identityʳ; *-1-commutativeMonoid
   ; +-assoc; +-identityˡ; +-identityʳ; +-monoˡ-≤; +-monoʳ-≤; *-distribʳ-+
   ; ≤-refl; ≤-reflexive; ≤-trans; <-≤-trans; /-cong; positive⁻¹; ↥p/↧p≡p )
-open import Data.Rational.Properties.Ext using (0≤1ℚ; 0≤*; p≤p+q; p≤q+p; /-*-/; /-+-/; /-mono-≤)
+open import Data.Rational.Properties.Ext using (0<½*; 0≤1ℚ; 0≤*; p≤p+q; p≤q+p; /-*-/; /-+-/; /-mono-≤)
 open import Data.Vec using (Vec; []; _∷_)
 
 import Algebra.Properties.CommutativeSemigroup as CommutativeSemigroupProperties
@@ -151,6 +151,10 @@ fromℕ-/ (suc m) = begin
 0≤inv-pow-2 : ∀ k → 0ℚ ≤ inv-pow-2 k
 0≤inv-pow-2 zero    = 0≤1ℚ
 0≤inv-pow-2 (suc k) = 0≤* 0≤½ (0≤inv-pow-2 k)
+
+0<inv-pow-2 : ∀ k → 0ℚ < inv-pow-2 k
+0<inv-pow-2 zero    = ℚₚ.positive⁻¹ 1ℚ
+0<inv-pow-2 (suc k) = 0<½* (0<inv-pow-2 k)
 
 -- A flag the kernel does not touch still fits the `2⁻ᵏ`-per-query budget: the
 -- degenerate case of `GamePlaying.Potential.guess-drift`, which the oracle

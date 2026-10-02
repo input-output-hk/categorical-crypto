@@ -56,9 +56,6 @@ d ≈ₚ[ ε ] e = (d ≼ₚ[ ε ] e) × (e ≼ₚ[ ε ] d)
 ≼ₚ⇒≼ₚ[0] : d ≼ₚ e → d ≼ₚ[ 0ℚ ] e
 ≼ₚ⇒≼ₚ[0] le b = cofinal⇒dom (le (indᵇ b) (indᵇ-nn b))
 
-≼ₚ[]-refl : d ≼ₚ[ 0ℚ ] d
-≼ₚ[]-refl {d} = ≼ₚ⇒≼ₚ[0] (≼ₚ-refl d)
-
 ≼ₚ[]-mono : ε ℚ.≤ δ → d ≼ₚ[ ε ] e → d ≼ₚ[ δ ] e
 ≼ₚ[]-mono le h b = dom-mono le (h b)
 

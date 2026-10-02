@@ -13,9 +13,7 @@ open import Categories.Category
 open import Data.Bool.Base
 open import Data.Nat.Base as ℕ
 open import Data.Nat.Positive
-open import Data.Product.Base
 open import Data.Rational as ℚ
-open import Data.Unit.Base
 
 import Data.Nat.Properties as ℕP
 
@@ -38,6 +36,7 @@ open import CategoricalCrypto.UC.Machine.StateEvent.Agree
 open import CategoricalCrypto.UC.Machine.StateEvent.Lift
 open import CategoricalCrypto.UC.QueryBound
 open import CategoricalCrypto.UC.Seam
+open import CategoricalCrypto.UC.Seam.Budget
 
 module CategoricalCrypto.UC.Quantitative.EventLift where
 
@@ -77,10 +76,10 @@ hitsᵘ {B} report u q h Y E m qE qm le =
 -- The monitored process is the accumulator's flag wire (`monitor-flag`), so
 -- this is `stateRead-agree` followed by `flag-agree`.
 agree : (B : Iface) (report : Neg B → Pos B → Bool) (u : Proc unitᴵ B) (d : Strat (Neg B) (Pos B))
-      → readRun unitᴵ (monitorᴹ report 𝒫.∘ u) (flagReader B) (stratTest B d) m₀
+      → readRun unitᴵ (monitorᴹ report 𝒫.∘ u) (flagReader B) (stratTest B d) (λᴵ⇐ {unitᴵ})
         ≈ₚ runᴹ u (watchFrom report false d)
 agree B report u d =
-      readRun-resp-≈ unitᴵ (monitor-flag report u) (flagReader B) (stratTest B d) m₀
+      readRun-resp-≈ unitᴵ (monitor-flag report u) (flagReader B) (stratTest B d) (λᴵ⇐ {unitᴵ})
   ⟨≈⟩ stateRead-agree (accᴹ report u) (reported report u) d
   ⟨≈⟩ flag-agree report u d
 
@@ -91,7 +90,7 @@ hits⇒upper : {B : Iface} (report : Neg B → Pos B → Bool) (u : Proc unitᴵ
            → (d : Strat (Neg B) (Pos B)) → asks≤ q d → Upper (runᴹ u (watchFrom report false d)) r
 hits⇒upper {B} report u q h d a =
   upper-≈ (≈sym (agree B report u d))
-          (h unitᴵ (stratTest B d) m₀ (qb-stratTest B d a) (qb-closed m₀) (ℕP.≤-reflexive (scale-unit q)))
+          (h unitᴵ (stratTest B d) (λᴵ⇐ {unitᴵ}) (qb-stratTest B d a) (qb-closed (λᴵ⇐ {unitᴵ})) (ℕP.≤-reflexive (scale-unit q)))
 
 hits⇒bounded :
     {B : Iface} (report : Neg B → Pos B → Bool)

@@ -45,14 +45,15 @@ open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Approximate
 open import CategoricalCrypto.UC.Machine
+open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.EventBounds
-open import CategoricalCrypto.UC.Machine.Monitor.Agree
 open import CategoricalCrypto.UC.Machine.StateEvent
 open import CategoricalCrypto.UC.Machine.StateEvent.Agree
 open import CategoricalCrypto.UC.Machine.StateEvent.Lift
 open import CategoricalCrypto.UC.Machine.StateEvent.Read
 open import CategoricalCrypto.UC.QueryBound
 open import CategoricalCrypto.UC.Quantitative.EventLift
+open import CategoricalCrypto.UC.Seam.Budget
 
 module CategoricalCrypto.UC.Machine.StateEvent.Adequacy where
 
@@ -181,7 +182,7 @@ module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
                   (cong (λ a → E⊥ (hitFrom P Bad a (init P) d) (indᵇ true)) (bd (init P))))))
 
     stateRead-hit : (d : Strat (Neg B) (Pos B))
-                  → Attains (stateRead unitᴵ (morphism P) T (stratTest B d) m₀) (indᵇ true) (PrHit P Bad d)
+                  → Attains (stateRead unitᴵ (morphism P) T (stratTest B d) (λᴵ⇐ {unitᴵ})) (indᵇ true) (PrHit P Bad d)
     stateRead-hit d =
       cum-settled-≈ₚ _ _ (indᵇ true) (indᵇ-nn true) (PrHit P Bad d) (run-hit d)
                      (≈ₚ-sym _ _ (stateRead-agree (morphism P) T d))
@@ -191,7 +192,7 @@ module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
                      → (d : Strat (Neg B) (Pos B)) → asks≤ q d → PrHit P Bad d ℚ.≤ r
     stateBounded⇒hit q h d a =
       let n , eq = stateRead-hit d
-          up = h unitᴵ (stratTest B d) m₀ (qb-stratTest B d a) (qb-closed m₀) (ℕP.≤-reflexive (scale-unit q))
+          up = h unitᴵ (stratTest B d) (λᴵ⇐ {unitᴵ}) (qb-stratTest B d a) (qb-closed (λᴵ⇐ {unitᴵ})) (ℕP.≤-reflexive (scale-unit q))
       in ℚP.≤-trans (ℚP.≤-reflexive (sym (eq 0))) (up (n ℕ.+ 0))
 
     -- …and lifted to every admitted experiment at the same cap.
@@ -217,10 +218,6 @@ module _ {B : ℕ → Iface} (P : (n : ℕ) → Protocol unitᴵ (B n)) (Bad : (
     boundedHit⇒stateᶠ : (ε : ℕ → ℕ → ℚ) → ((n : ℕ) → BoundedHit (P n) (Bad n) (ε n))
                       → StateBoundedᶠ (λ n → morphism (P n)) T ε
     boundedHit⇒stateᶠ ε h n q = hit⇒stateBounded (P n) (Bad n) (T n) (bd n) q (h n q)
-
-    stateᶠ⇒boundedHit : (ε : ℕ → ℕ → ℚ) → StateBoundedᶠ (λ n → morphism (P n)) T ε
-                      → (n : ℕ) → BoundedHit (P n) (Bad n) (ε n)
-    stateᶠ⇒boundedHit ε h n q = stateBounded⇒hit (P n) (Bad n) (T n) (bd n) q (h n q)
 
     hitᴺ⇒stateᴺ : (ε : ℕ → ℕ → ℚ) → BoundedHitᴺ ε → StateBoundedᴺ (λ n → morphism (P n)) T ε
     hitᴺ⇒stateᴺ ε = saturated-map {Y = λ n q r → StateBoundedAt q r (morphism (P n)) (T n)} {ε = ε} λ n q →

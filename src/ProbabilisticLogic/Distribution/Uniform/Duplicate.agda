@@ -13,7 +13,6 @@ open import Class.DecEq
 
 open import Data.Bool.Base
 open import Data.Bool.Properties using (∨-identityʳ; ∨-zeroʳ)
-open import Data.Empty
 open import Data.List.Base
 open import Data.List.Membership.Propositional
 open import Data.List.Relation.Unary.Any
@@ -29,6 +28,7 @@ open import Function.Base
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary.Decidable.Core
 open import Relation.Nullary.Negation.Core
+open import Relation.Nullary.Reflects
 
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 open import ProbabilisticLogic.Distribution.Uniform
@@ -45,25 +45,17 @@ Log : Set
 Log = List Hash
 
 memb : Hash → Log → Bool
-memb h []       = false
-memb h (g ∷ gs) = ⌊ h ≟ g ⌋ ∨ memb h gs
+memb h hs = does (any? (h ≟_) hs)
 
 dup : Log → Bool
 dup []       = false
 dup (h ∷ hs) = memb h hs ∨ dup hs
 
 memb-∈ : ∀ hs h → memb h hs ≡ true → h ∈ hs
-memb-∈ (g ∷ gs) h e with h ≟ g
-... | yes p = here p
-... | no  _ = there (memb-∈ gs h e)
+memb-∈ hs h e = invert (subst (Reflects _) e (proof (any? (h ≟_) hs)))
 
 memb-∉ : ∀ hs h → memb h hs ≡ false → ¬ (h ∈ hs)
-memb-∉ (g ∷ gs) h e (here p)    with h ≟ g
-...   | yes _ = case e of λ ()
-...   | no ¬p = ⊥-elim (¬p p)
-memb-∉ (g ∷ gs) h e (there mem) with h ≟ g
-...   | yes _ = case e of λ ()
-...   | no  _ = memb-∉ gs h e mem
+memb-∉ hs h e = invert (subst (Reflects _) e (proof (any? (h ≟_) hs)))
 
 indicator-≤ : ∀ hs h → bool→ℚ (memb h hs) ≤ℚ countMatch hs h
 indicator-≤ hs h with memb h hs in e

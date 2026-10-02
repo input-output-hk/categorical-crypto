@@ -13,7 +13,10 @@
 -- withdraws one, and `asks≤` is exactly the invariant keeping the account
 -- solvent.  Coins are free on both sides — they are internal to one `playˢ`
 -- pass — so the induction is the one `asks≤` itself recurses on.
+--
+-- `stratTest` is the same strategy embedded as a test, and inherits the bound.
 
+open import Categories.Category
 open import Categories.Category.Monoidal.Bundle
 
 open import Data.Bool.Base
@@ -25,6 +28,7 @@ open import Data.Sum.Base hiding (map₁)
 open import Data.Unit.Base
 open import Function.Base
 open import Level
+open import Relation.Binary.PropositionalEquality using (refl; subst)
 
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Coin
@@ -34,7 +38,10 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
+open import CategoricalCrypto.UC.Machine.Bridge
+open import CategoricalCrypto.UC.Machine.Wire
 open import CategoricalCrypto.UC.QueryBound
+open import CategoricalCrypto.UC.QueryBound.Compose.Laws
 open import CategoricalCrypto.UC.Seam
 
 import Categories.Category.Construction.Kleisli.Discrete as KD
@@ -50,6 +57,7 @@ private
   module P = KDP (Dₚ-DiscreteMonad {0ℓ})
   module S = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
   module V = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
+  module 𝒫 = Category 𝒫ᴵ
 
 module _ (B : Iface) (c : ℕ) where
 
@@ -142,3 +150,43 @@ module _ (B : Iface) (c : ℕ) where
 
   qb-strategyEnv : (d : Strat (Neg B) (Pos B)) → asks≤ c d → QB c (strategyEnv B d)
   qb-strategyEnv d h = envᶜ d h , certᶜ d h , S.≲⇒≈ᴹ (simᶜ d h)
+
+------------------------------------------------------------------------
+-- A strategy embedded as a test
+
+-- `strategyEnv` read on the compiler's own domain: the ancilla is
+-- trivial, so the empty summand is eliminated.
+outᵁ : (B : Iface) → Neg B ⊎ Bool → (Pos unitᴵ ⊎ Neg B) ⊎ Bool
+outᵁ B (inj₁ q) = inj₁ (inj₂ q)
+outᵁ B (inj₂ v) = inj₂ v
+
+stepᵁ : (B : Iface) → EnvSt B × ((Pos unitᴵ ⊎ Pos B) ⊎ ⊤)
+      → Dₚ (EnvSt B × ((Neg unitᴵ ⊎ Neg B) ⊎ Bool))
+stepᵁ B (se , inj₁ (inj₁ ()))
+stepᵁ B (se , inj₁ (inj₂ p)) = mapₚ (λ z → proj₁ z , outᵁ B (proj₂ z)) (stepˢ B (se , inj₁ p))
+stepᵁ B (se , inj₂ _)        = mapₚ (λ z → proj₁ z , outᵁ B (proj₂ z)) (stepˢ B (se , inj₂ tt))
+
+stratTest : (B : Iface) → Strat (Neg B) (Pos B) → Proc (unitᴵ ⊗ᴵ B) Ωᴵ
+stratTest B d = MC.mk (stateˢ B d) (stepᵁ B)
+
+stratTest-embeds : (B : Iface) (d : Strat (Neg B) (Pos B))
+                 → 𝒫._≈_ {unitᴵ ⊗ᴵ B} {Ωᴵ} (stratTest B d) (strategyEnv B d 𝒫.∘ λᴵ⇒)
+stratTest-embeds B d =
+  S.⟺ᴹ (∘-wireᴹ [ ⊥-elim , id ] inj₂ (strategyEnv B d) S.○ᴹ S.≲⇒≈ᴹ (S.mk-cong pt))
+  where
+  pt : (z : _) → _
+  pt (se , inj₁ (inj₁ ()))
+  pt (se , inj₁ (inj₂ p)) =
+    map-eq (stepˢ B (se , inj₁ p)) _ _ λ where (_ , inj₁ _) → refl
+                                               (_ , inj₂ _) → refl
+  pt (se , inj₂ _) =
+    map-eq (stepˢ B (se , inj₂ tt)) _ _ λ where (_ , inj₁ _) → refl
+                                                (_ , inj₂ _) → refl
+
+qb-stratTest : (B : Iface) {q : ℕ} (d : Strat (Neg B) (Pos B)) → asks≤ q d
+             → QB q (stratTest B d)
+qb-stratTest B {q} d a =
+  qb-resp-≈ (𝒫.Equiv.sym (stratTest-embeds B d))
+    (subst (λ k → QB k (strategyEnv B d 𝒫.∘ λᴵ⇒)) (*-identityʳ q)
+      (qb-∘-category (unitᴵ ⊗ᴵ B) B Ωᴵ (strategyEnv B d) λᴵ⇒
+        (qb-strategyEnv B q d a) qb-λᴵ⇒))

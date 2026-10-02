@@ -107,10 +107,6 @@ module _ (A B C : Iface) where
                         pointᶜ stepg stepf stepᶜ solveᶜ
 
     private
-      Bd : Pw.MC.Machine ((Pos A ⊎ Neg C) ⊎ (Neg B ⊎ Pos B))
-                          ((Neg A ⊎ Pos C) ⊎ (Neg B ⊎ Pos B))
-      Bd = Pw.MC.mk Sᶜ bodyStep
-
       ----------------------------------------------------------------
       -- The two factors' steps, inside the composite's
 

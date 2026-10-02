@@ -9,7 +9,7 @@
 -- `Strategy`, `Protocol` and below (layer 1 and its machine images), and the UC
 -- layer (`docs/uc-module-inventory.md`), whose lines below are its leaves the
 -- examples do not reach.  At the model, the parameterized UC modules are fed
--- `𝒢ₚᴹ 0ℓ`, `UC.Machine.Grading.gradingᴹ` and `UC.Machine.Evaluationᴹ`.
+-- `𝒢ₚᴹ 0ℓ`, `UC.Machine.Grading.gradingᴹ` and `UC.Model.Observation.qevaluationᵒ`.
 --
 -- Example leaves: `Examples.HashForward.UC` (the toy's machine-level bound),
 -- `Examples.ROCommitment.*` (a commitment that carries an error: UC images,
@@ -98,7 +98,6 @@ open import CategoricalCrypto.Examples.ROCommitment.UC
 
 import CategoricalCrypto.Machines.G
 import CategoricalCrypto.Machines.Sim.Lax
-open import ProbabilisticLogic
 
 import Categories.Category.Construction.Kleisli.Distributive
 import Categories.Category.Distributive.Monoidal

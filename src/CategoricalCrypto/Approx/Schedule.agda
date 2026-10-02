@@ -42,18 +42,6 @@ pointwise I V = record
   }
   where open OrderedErrorAlgebra V
 
-pointwise-refinement : {i es ℓe : Level} (I : Set i) (V : OrderedErrorAlgebra es ℓe)
-                     → Refinement V → Refinement (pointwise I V)
-pointwise-refinement I V R = record
-  { Positive = λ ε → (j : I) → Positive (ε j)
-  ; ε₀-least = λ pos j → ε₀-least (pos j)
-  ; refine   = λ pos → let r = λ j → refine (pos j) in
-        (λ j → proj₁ (r j)) , (λ j → proj₁ (proj₂ (r j)))
-      , (λ j → proj₁ (proj₂ (proj₂ (r j)))) , (λ j → proj₁ (proj₂ (proj₂ (proj₂ (r j)))))
-      , λ j → proj₂ (proj₂ (proj₂ (proj₂ (r j))))
-  }
-  where open Refinement R
-
 module Reindexing {i es ℓe : Level} {I : Set i} (V : OrderedErrorAlgebra es ℓe) where
 
   open import CategoricalCrypto.Approx.Controlled (pointwise I V)
@@ -77,10 +65,3 @@ module Reindexing {i es ℓe : Level} {I : Set i} (V : OrderedErrorAlgebra es �
   reindex-cong : {ρ₁ ρ₂ : I → I} → ((j : I) → ρ₁ j ≡ ρ₂ j) → reindex ρ₁ ≐ᶜ reindex ρ₂
   reindex-cong {ρ₁} eq = (λ ε j → subst (ε (ρ₁ j) V.⊑_) (cong ε (eq j)) V.⊑-refl)
                        , λ ε j → subst (V._⊑ ε (ρ₁ j)) (cong ε (eq j)) V.⊑-refl
-
-  -- …and reindexing composes by composing the substitutions, the outer one
-  -- applied first (plan §7.2's `φρ₂(φρ₁(ε)) = ε ∘ ρ₁ ∘ ρ₂`).
-  reindex-∘ : (ρ₁ ρ₂ : I → I) (ε : I → V.Error)
-            → Control.at (reindex ρ₂ ∘ᶜ reindex ρ₁) ε
-            ≡ Control.at (reindex (λ k → ρ₁ (ρ₂ k))) ε
-  reindex-∘ _ _ _ = refl

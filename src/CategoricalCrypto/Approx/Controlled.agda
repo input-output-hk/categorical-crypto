@@ -130,9 +130,8 @@ composeᶜ-resp : {X Y Z : ApproxSpace c ℓa}
 composeᶜ-resp {Z = Z} {g = g} {f′ = f′} ((l₁ , r₁) , me₁) ((l₂ , r₂) , me₂) =
   ( (λ ε → ⊑-trans (Control.mono ψ (l₂ ε)) (l₁ (at φ′ ε)))
   , (λ ε → ⊑-trans (r₁ (at φ′ ε)) (Control.mono ψ (r₂ ε))) )
-  , λ x → Z.≈[]-mono ⊕-identityˡ (Z.≈[]-trans
-      (Z.≈[]-mono (Control.preserves-ε₀ ψ) (Controlled.preserves g (me₂ x)))
-      (me₁ (Controlled.map f′ x)))
+  , λ x → Z.≈[]-trans₀ (Z.≈[]-mono (Control.preserves-ε₀ ψ) (Controlled.preserves g (me₂ x)))
+                       (me₁ (Controlled.map f′ x))
   where module Z = ApproxSpace Z
         ψ  = Controlled.control g
         φ′ = Controlled.control f′

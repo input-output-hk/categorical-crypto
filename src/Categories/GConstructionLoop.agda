@@ -27,22 +27,23 @@ private
       using (⊗-distrib-over-∘; _⟩⊗⟨_)
     open import Categories.Morphism.Reasoning C public using (cancelʳ)
 
-open C.HomReasoning
+open C
+open HomReasoning
 
 module WithTrace (L : TE.Laws Traced) where
 
   open TE.Laws L
   open TE Traced
 
-  trace-conj : ∀ {X A A' B B'} {t : A C.⊗₀ X C.⇒ B C.⊗₀ X}
-                 {h : A' C.⇒ A} {k : B C.⇒ B'} →
-               k C.∘ C.trace t C.∘ h C.≈ C.trace (k C.⊗₁ C.id C.∘ t C.∘ h C.⊗₁ C.id)
+  trace-conj : ∀ {X A A' B B'} {t : A ⊗₀ X ⇒ B ⊗₀ X}
+                 {h : A' ⇒ A} {k : B ⇒ B'} →
+               k ∘ trace t ∘ h ≈ trace (k ⊗₁ id ∘ t ∘ h ⊗₁ id)
   trace-conj = (refl⟩∘⟨ trace-∘ʳ) ○ trace-∘ˡ
 
-  trace-mid : ∀ {A B P Q R S : C.Obj}
-                {f : A C.⊗₀ ((P C.⊗₀ R) C.⊗₀ (Q C.⊗₀ S)) C.⇒
-                     B C.⊗₀ ((P C.⊗₀ R) C.⊗₀ (Q C.⊗₀ S))} →
-              C.trace f C.≈
-              C.trace (C.id C.⊗₁ mid {P} {R} {Q} {S} C.∘ f C.∘ C.id C.⊗₁ mid {P} {Q} {R} {S})
-  trace-mid = ⟺ (trace-slide L ○ trace-resp-≈ (C.cancelʳ
-    (⟺ C.⊗-distrib-over-∘ ○ (C.identityˡ C.⟩⊗⟨ mid-involutive) ○ C.⊗.identity)))
+  trace-mid : ∀ {A B P Q R S : Obj}
+                {f : A ⊗₀ ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S)) ⇒
+                     B ⊗₀ ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S))} →
+              trace f ≈
+              trace (id ⊗₁ mid {P} {R} {Q} {S} ∘ f ∘ id ⊗₁ mid {P} {Q} {R} {S})
+  trace-mid = ⟺ (trace-slide L ○ trace-resp-≈ (cancelʳ
+    (⟺ ⊗-distrib-over-∘ ○ (identityˡ ⟩⊗⟨ mid-involutive) ○ ⊗.identity)))

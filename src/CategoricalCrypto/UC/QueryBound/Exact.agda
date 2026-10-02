@@ -38,7 +38,9 @@ open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Polymorphic.Base
 open import Function.Base
+open import Relation.Binary.Core using (_Preserves₂_⟶_⟶_)
 open import Relation.Binary.PropositionalEquality
+open import Relation.Binary.Structures using (IsPreorder)
 
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Reasoning
@@ -52,15 +54,14 @@ module CategoricalCrypto.UC.QueryBound.Exact where
 weight : {X : Set} → (X → ℕ) → List X → ℕ
 weight w xs = sum (map w xs)
 
-module Ledgerᴿ (_∼_ : ℕ → ℕ → Set)
-               (∼-reflexive : {m n : ℕ} → m ≡ n → m ∼ n)
-               (∼-trans : {l m n : ℕ} → l ∼ m → m ∼ n → l ∼ n)
-               (∼-monoʳ : (k : ℕ) {m n : ℕ} → m ∼ n → (k + m) ∼ (k + n))
-               (∼-monoˡ : (k : ℕ) {m n : ℕ} → m ∼ n → (m + k) ∼ (n + k))
+module Ledgerᴿ (_∼_ : ℕ → ℕ → Set) (∼-isPreorder : IsPreorder _≡_ _∼_)
+               (+-mono-∼ : _+_ Preserves₂ _∼_ ⟶ _∼_ ⟶ _∼_)
                {A B : Iface} (S : Set) (point : Dₚ S)
                (step : S × (Pos A ⊎ Neg B) → Dₚ (S × (Neg A ⊎ Pos B)))
                (δ : Neg A ⊎ Pos B → ℕ) (cost : Pos A ⊎ Neg B → ℕ)
                where
+
+  open IsPreorder ∼-isPreorder using () renaming (refl to ∼-refl; reflexive to ∼-reflexive; trans to ∼-trans)
 
   record QEᵢ : Set where
     field
@@ -95,9 +96,9 @@ module Ledgerᴿ (_∼_ : ℕ → ℕ → Set)
             → Balanced Λ (Λ s + weight cost (x ∷ w)) (cons (proj₂ (proj₁ r)) z)
       chain r z =
         ∼-trans (∼-reflexive (+-assoc (δ o) (weight δ os) (Λ s″)))
-          (∼-trans (∼-monoʳ (δ o) (proj₂ z))
+          (∼-trans (+-mono-∼ (∼-refl {δ o}) (proj₂ z))
             (∼-trans (∼-reflexive (sym (+-assoc (δ o) (Λ s′) (weight cost w))))
-              (∼-trans (∼-monoˡ (weight cost w) (proj₂ r))
+              (∼-trans (+-mono-∼ (proj₂ r) ∼-refl)
                 (∼-reflexive (+-assoc (Λ s) (cost x) (weight cost w))))))
         where
         o  = proj₂ (proj₁ r)
@@ -120,7 +121,7 @@ module Ledgerᴿ (_∼_ : ℕ → ℕ → Set)
     exactᴱ : (w : List (Pos A ⊎ Neg B))
            → Dₚ (Σ[ p ∈ S × List (Neg A ⊎ Pos B) ] Balanced Λ (weight cost w) p)
     exactᴱ w = pointᴱ >>=ₚ λ r →
-      mapₚ (λ z → proj₁ z , ∼-trans (proj₂ z) (∼-monoˡ (weight cost w) (proj₂ r)))
+      mapₚ (λ z → proj₁ z , ∼-trans (proj₂ z) (+-mono-∼ (proj₂ r) ∼-refl))
            (runᴱ (proj₁ r) w)
 
     exactᴱ-erases : (w : List (Pos A ⊎ Neg B))
@@ -132,7 +133,7 @@ module Ledgerᴿ (_∼_ : ℕ → ℕ → Set)
                ⟨≈⟩ >>=ₚ-assoc pointᴱ _ _
                ⟨≈⟩ bindᶠ (λ r → >>=ₚ-identityˡ (proj₁ r) _))
 
-module Ledger = Ledgerᴿ _≡_ (λ e → e) trans (λ k → cong (k +_)) (λ k → cong (_+ k))
+module Ledger = Ledgerᴿ _≡_ isPreorder (cong₂ _+_)
 
 open Ledger public
 
@@ -146,22 +147,6 @@ downward (inj₂ _) = 0
 fromAbove : {P Q : Set} → P ⊎ Q → ℕ
 fromAbove (inj₁ _) = 0
 fromAbove (inj₂ _) = 1
-
--- `UC.QueryBound.qbᵢ-wire`'s bound read as an equation: where `QEᵢ` is seen
--- not to be vacuous.
-qeᵢ-wire : {A B : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
-         → QEᵢ ⊤ᵛ (returnₚ tt) (wireStep up down) downward fromAbove
-qeᵢ-wire up down = record
-  { Λ      = λ _ → 0
-  ; pointᴱ = returnₚ (tt , refl)
-  ; coh₀   = >>=ₚ-identityˡ (tt , refl) (returnₚ ∘′ proj₁)
-  ; stepᴱ  = λ where
-      s (inj₁ p) → returnₚ ((s , inj₂ (up p))   , refl)
-      s (inj₂ n) → returnₚ ((s , inj₁ (down n)) , refl)
-  ; cohᴱ   = λ where
-      s (inj₁ p) → >>=ₚ-identityˡ ((s , inj₂ (up p))   , refl) (returnₚ ∘′ proj₁)
-      s (inj₂ n) → >>=ₚ-identityˡ ((s , inj₁ (down n)) , refl) (returnₚ ∘′ proj₁)
-  }
 
 ------------------------------------------------------------------------
 -- An exact count is a bound

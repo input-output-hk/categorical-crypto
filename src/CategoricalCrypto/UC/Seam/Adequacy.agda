@@ -12,7 +12,6 @@
 
 open import Categories.Category
 
-open import Data.Bool.Base
 open import Data.Empty
 open import Data.Product.Base
 open import Data.Sum.Base
@@ -37,13 +36,11 @@ open import CategoricalCrypto.UC.Seam.Adequacy.Wiring
 open import CategoricalCrypto.UC.Seam.Plug
 
 import CategoricalCrypto.Machines.Core as Core
-import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.UC.Seam.Adequacy where
 
 private
   module MC = Core (𝒱ₚ 0ℓ)
-  module Sm = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
   module 𝒫 = Category 𝒫ᴵ
 
 module _ (B : Iface) (u : Proc unitᴵ B) (d : Strat (Neg B) (Pos B)) where

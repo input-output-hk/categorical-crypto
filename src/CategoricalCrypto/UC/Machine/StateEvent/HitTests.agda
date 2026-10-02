@@ -30,10 +30,11 @@ open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Monitor.Agree
+open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.StateEvent
 open import CategoricalCrypto.UC.Machine.StateEvent.Adequacy
 open import CategoricalCrypto.UC.Machine.StateEvent.Read
+open import CategoricalCrypto.UC.Seam.Budget
 
 module CategoricalCrypto.UC.Machine.StateEvent.HitTests where
 
@@ -43,7 +44,7 @@ Go = Bool ⇿ ⊤
 -- The reading of the test `T` at `d` eventually equals `v`.
 Reads : (P : Protocol unitᴵ Go) → (MSt P → Bool) → Strat ⊤ Bool → ℚ → Set
 Reads P T d v =
-  Attains (stateRead unitᴵ (morphism P) T (stratTest Go d) m₀) (indᵇ true) v
+  Attains (stateRead unitᴵ (morphism P) T (stratTest Go d) (λᴵ⇐ {unitᴵ})) (indᵇ true) v
 
 private
   reads : (P : Protocol unitᴵ Go) (Bad : St P → Bool) (d : Strat ⊤ Bool) {v : ℚ}

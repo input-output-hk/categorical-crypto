@@ -184,10 +184,6 @@ Settles-det : (m : Maybe A) → Σ[ i ∈ ℕ ] Settles i (detₚ m) (return-ℚ
 Settles-det (just a) = 1 , Settles-return a
 Settles-det nothing  = 0 , Settles-bot
 
-Settles-bot⋆ : (f : A → Dₚ B) → Settles 0 (botₚ >>=ₚ f) (return-ℚ nothing)
-Settles-bot⋆ f = settles (Null-bind botₚ f λ Q nn i → botₚ-cum i Q)
-                         λ Q nn → sym (lookupᴰℚ-return nothing (maybeℚ Q))
-
 Settles-coin : (μ : Dist-ℚ Bool) → Settles 2 (coinₚ μ) (Dmap just μ)
 Settles-coin μ = settles hlt λ Q nn → trans (coinₚ-cum μ 0 Q) (sym (Eⱼ μ Q))
   where
@@ -275,9 +271,6 @@ Settlesᵀ n d μ = Settles n d (Dmap just μ)
 
 Settlesᵀ-resp : (μ μ′ : Dist-ℚ A) → ((Q : A → ℚ) → E μ Q ≡ E μ′ Q) → Settlesᵀ n d μ → Settlesᵀ n d μ′
 Settlesᵀ-resp μ μ′ h = Settles-resp (Dmap just μ) (Dmap just μ′) λ Q → trans (Eⱼ μ Q) (trans (h Q) (sym (Eⱼ μ′ Q)))
-
-Settlesᵀ-cum : Settlesᵀ n d μ → NNF P → (m : ℕ) → n ≤ m → cum m d P ≡ E μ P
-Settlesᵀ-cum {μ = μ} {P = P} s nn m le = trans (Settles-cum s nn m le) (Eⱼ μ P)
 
 Settlesᵀ-return : (p : A) → Settlesᵀ 1 (returnₚ p) (return-ℚ p)
 Settlesᵀ-return p =

@@ -345,10 +345,6 @@ open OneCall public using (qb-oneCall)
 -- give: `c ⊔ 1` is what pays for it, and `qbᵢ-wire`'s `1` is the same fact at
 -- the bare wire.
 
-private
-  0<⊔1 : (c : ℕ) → 0 ℕ.< c ℕ.⊔ 1
-  0<⊔1 c = m≤n⊔m c 1
-
 -- A certificate sees its step only up to `_≈ₚ_`.  That is what lets the two
 -- action laws below be built against an explicit step — one whose relay reduces
 -- — and then transported onto the action's own.
@@ -418,7 +414,7 @@ private
 
     onRN : (s : MC.St f) → Neg B ⊎ Neg Z → Dₚ (Ans Φ NO PO (Φ s ℕ.+ (c ℕ.⊔ 1)))
     onRN s (inj₁ b) = mapₚ (lift (+-monoʳ-≤ (Φ s) (m≤m⊔n c 1))) (onRᵍ s b)
-    onRN s (inj₂ z) = returnₚ (inj₁ ((s , m<m+n (Φ s) (0<⊔1 c)) , inZ⁻ z))
+    onRN s (inj₂ z) = returnₚ (inj₁ ((s , m<m+n (Φ s) (m≤n⊔m c 1)) , inZ⁻ z))
 
     cohLP : (s : MC.St f) (x : Pos A ⊎ Pos Z) → mapₚ forget (onLP s x) ≈ₚ stepP s x
     cohLP s (inj₁ a) = relayed ≤-refl (onLᵍ s a) _ (cohL s a)

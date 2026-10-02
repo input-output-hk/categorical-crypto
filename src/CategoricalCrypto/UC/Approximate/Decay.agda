@@ -75,7 +75,3 @@ negligible-slack : ((j : ℕ) → j ℕ.≤ sch j) → Negligible (λ j → inv-
 negligible-slack {sch} j≤sch =
   Negligible-cong (λ j → *-identityˡ (inv-pow-2 (sch j)))
                   (negligible-inv-pow-2 (poly-const 1) j≤sch)
-
-0<inv-pow-2 : (k : ℕ) → 0ℚ ℚ.< inv-pow-2 k
-0<inv-pow-2 ℕ.zero    = positive⁻¹ 1ℚ
-0<inv-pow-2 (ℕ.suc k) = 0<½* (0<inv-pow-2 k)

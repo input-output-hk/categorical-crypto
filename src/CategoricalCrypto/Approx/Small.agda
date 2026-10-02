@@ -38,7 +38,7 @@ record SmallClass (ℓs : Level) : Set (es ⊔ suc ℓs) where
 
 module Collapse {ℓs : Level} (S : SmallClass ℓs) (c ℓa : Level) where
 
-  open SmallClass S public
+  open SmallClass S
 
   module _ (X : ApproxSpace c ℓa) where
     open ApproxSpace X

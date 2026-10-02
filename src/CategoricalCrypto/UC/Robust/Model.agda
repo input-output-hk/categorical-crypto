@@ -27,7 +27,7 @@ relayᵒ A = gradedᵒ (wireᴹ inj₁ [ (λ n → n) , ⊥-elim ])
 -- The acceptance test the top class cannot give: a nontrivial `Adm`
 -- (`UC.Robust.Factors`), a simulator that is a real machine — `relayᵒ` — and
 -- the preservation applied at that explicit witness rather than at an
--- all-simulators closure.
+-- all-simulators closure, at the trivial agreement (`≈ᵁ-refl`).
 relay-selectedᵒ : (𝔄 : Iface) (r : S.Carrier) (V : Channel)
                 → Robust (λ W → always {D = T₀ W (ifaceᵒ 𝔄)} ∼[ r ]) (Factors V) (relayᵒ 𝔄)
                 → Robust (λ W → always {D = T₀ W (ifaceᵒ 𝔄)} ∼[ r ]) (Factors V)

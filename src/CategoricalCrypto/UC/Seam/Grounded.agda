@@ -12,7 +12,6 @@ open import Categories.Category
 import Categories.Category.Monoidal.Reasoning as MonR
 import Categories.Morphism.Reasoning as MR
 
-open import Data.Bool.Base
 open import Data.Unit.Base
 
 open import ProbabilisticLogic.Dp

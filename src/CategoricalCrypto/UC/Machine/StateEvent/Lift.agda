@@ -53,7 +53,6 @@ open import CategoricalCrypto.UC.Machine.Dictionary
 open import CategoricalCrypto.UC.Machine.Dominated
 open import CategoricalCrypto.UC.Machine.Grading
 open import CategoricalCrypto.UC.Machine.Monitor
-open import CategoricalCrypto.UC.Machine.Monitor.Agree
 open import CategoricalCrypto.UC.Machine.Slide
 open import CategoricalCrypto.UC.Machine.StateEvent
 open import CategoricalCrypto.UC.Machine.StateEvent.Read

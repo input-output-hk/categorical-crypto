@@ -7,8 +7,6 @@
 -- the negligible tier's readout and emulation order.
 
 open import Data.Nat.Base
-open import Data.Nat.Properties
-open import Data.Product.Base
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.UC.Model.Enrichment
@@ -18,16 +16,16 @@ open import CategoricalCrypto.UC.Model.Seal
 module CategoricalCrypto.UC.Model.Family where
 
 open import CategoricalCrypto.UC.Family
-  𝔾ᵒ qevaluationᵒ gradingᵒ ℕ (λ n → n) (λ N → N , ≤-refl) public
+  𝔾ᵒ qevaluationᵒ gradingᵒ ℕ (λ n → n) public
 
 open import CategoricalCrypto.UC.Family.Vanishing
-  𝔾ᵒ qevaluationᵒ gradingᵒ ℕ (λ n → n) (λ N → N , ≤-refl) public
+  𝔾ᵒ qevaluationᵒ gradingᵒ ℕ (λ n → n) public
 
 open import CategoricalCrypto.UC.Family.Negligible
-  𝔾ᵒ qevaluationᵒ gradingᵒ ℕ (λ n → n) (λ N → N , ≤-refl) public
+  𝔾ᵒ qevaluationᵒ gradingᵒ ℕ (λ n → n) public
 
 open import CategoricalCrypto.UC.Family.Negligible.Setup
-  𝔾ᵒ qevaluationᵒ gradingᵒ ℕ (λ n → n) (λ N → N , ≤-refl) public
+  𝔾ᵒ qevaluationᵒ gradingᵒ ℕ (λ n → n) public
 
 -- An interface family as an object family of the seal.
 ifaceᶠ : (ℕ → Iface) → Obj^ω
