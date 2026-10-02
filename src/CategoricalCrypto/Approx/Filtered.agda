@@ -1,7 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Admitted elements as a second index
--- (`docs/quantitative-uc-setup-plan.typ` §7.3).
+-- Admitted elements as a second index.
 --
 -- A distance between tests says nothing about what running them costs, so an
 -- allowance-restricted model needs one more datum than `Approx.Controlled`

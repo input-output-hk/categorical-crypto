@@ -8,8 +8,8 @@
 -- `gradingᵒ` is transported along `UC.Model.Seal.sealᵒ` (see there for why not
 -- retyped).
 --
--- Nothing here may open `StdUC`: `unfolding` the seal in a module that does is
--- the 12 GiB configuration `docs/stduc-supersession-plan.md` finding F5 records.
+-- Nothing here may open `StdUC`: `unfolding` the seal in a module that does
+-- needs 12 GiB (measured).
 
 open import Categories.Category.Instance.Rates
 open import Categories.Category.Monoidal.Bundle

@@ -165,8 +165,7 @@ infix 4 _≈adv[_]_
 -- No budget-`q` strategy separates the two systems by more than `δ q`, at
 -- EITHER verdict: at a fixed `b` divergence moves the advantage exactly as a
 -- `¬ b` answer does, so it is the `false` reading that tells an implementation
--- which answers `false` from one which diverges (`docs/rewrite-verdict.md`,
--- Addendum 4, item 2).
+-- which answers `false` from one which diverges.
 _≈adv[_]_ : Protocol unitᴵ B → (ℕ → ℚ) → Protocol unitᴵ B → Set
 _≈adv[_]_ {B} P δ P′ =
   (b : Bool) (q : ℕ) (d : Strat (Neg B) (Pos B)) → asks≤ q d

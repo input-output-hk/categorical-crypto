@@ -3,7 +3,7 @@
 -- Deferred sampling: a secret PLANTED in the state and the same secret DRAWN
 -- at the step that first reads it give the same run distribution.
 --
--- What it is FOR is the caveat `docs/ro-game-hop.md` records: a secret already
+-- What it is FOR is the fixed-secret caveat: a secret already
 -- determined by the state is one the next query hits with probability 1, so no
 -- `SuperCert` can bound a flag that reads it.  Moving the draw is the only way
 -- to put such a flag in reach of `Potential.rare-cert`, and this is the lemma

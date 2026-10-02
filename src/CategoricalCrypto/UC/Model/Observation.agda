@@ -19,7 +19,7 @@
 -- typed at (`Protocol.Machine.Closed`), which is what lets that run and its
 -- simulation-invariance be reused unchanged.  The two are not identified: the
 -- metatheorems are ℰ-generic and never see the closure object, and the iso
--- costs >150 s (`docs/stduc-supersession-plan.md` §1.1).
+-- costs >150 s.
 
 open import Categories.Category.Monoidal.Bundle
 

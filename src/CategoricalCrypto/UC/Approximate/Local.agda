@@ -4,8 +4,7 @@
 --
 --     μ ∼ᴺ ν  =  ∃ negligible δ. ∀ i. μ i is δ(κ i)-close to ν i
 --
--- One δ serves every index, but δ is chosen per PAIR (the local relation of
--- `docs/graded-observation-redesign.md`): a consumer that quantifies contexts
+-- One δ serves every index, but δ is chosen per PAIR: a consumer that quantifies contexts
 -- outside it (`UC.Family.Negligible`'s `_≈ℰᴺ_`) gets a witness per context and
 -- no uniform one.
 --

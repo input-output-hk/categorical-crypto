@@ -73,7 +73,7 @@ open import CategoricalCrypto.Examples.ChimericLedger.Property ser
 -- `p n + 1` only because `≈ᶠ-runs` takes a positive cap; neither is read at a
 -- certificate of the compiled test: the flag is an internal port of the
 -- monitored process, so what a strategy extracted from it spends on the
--- ledger is the honest allowance alone (`docs/event-bounds-in-setup.md` §B).
+-- ledger is the honest allowance alone.
 -- No schedule monotonicity is spent.
 preserves-value-transfer : (a V : ℕ) (R : Systems LedgerIf^ω) → SerInj
                          → R ≈ᶠᴺ Ideal a V → PreservesValue (genesisTotal V) R
@@ -89,8 +89,7 @@ preserves-value-transfer a V R si (ε , neg , h) p Pp =
 
 -- The UC layer sees only the CLOSED system, in which the hash is invisible;
 -- `ledger-factor` re-reads it as `ledgerᵒ ∙ hashᵒ hash` through the exposed
--- port `hashPortᵒ`.  It gives no nontrivial simulator
--- (`docs/ledger-factoring.md`).
+-- port `hashPortᵒ`.  It gives no nontrivial simulator.
 
 HashIf^ω : ℕ → Iface
 HashIf^ω = AtLevel.HashIf
@@ -148,7 +147,7 @@ module _ (vr : Variant) (s : (n : ℕ) → Ledger.LState n) where
     factorᴿ hash n = ⟺ (ledger-factor hash vr n (s n))
 
   -- With one upper stage there is no simulator to compose, hence none to
-  -- forget afterwards (`docs/ledger-lift-eps.md` §§1, 5).
+  -- forget afterwards.
   hash-liftᵇ : (hash : Systems HashIf^ω) (ε : ℕ → ℕ → ℚ) → hash ≈ᶠ[ ε ] oracle^ω
              → Realᴴ hash vr s ≈ᶠ[ εᴴ ε ] Realᴴ oracle^ω vr s
   hash-liftᵇ hash ε h =

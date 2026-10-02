@@ -1,27 +1,12 @@
-# Hash-then-forward: review §3's nontrivial-grade application
+# Hash-then-forward: a simulator that spends a query
 
-Branch `hash-forward`, off `protocol-rewrite` at `d461b1fa`.
-[The implementation review](protocol-implementation-review.md) §3 asks for an
-application "at explicit nontrivial grades: process families of the generic
-`A ⇒ X ⊛ B` shape and simulator families `Y ⇒ X`", with "a small example with
-an inhabited simulator-facing port whose simulator actually performs a query"
-and "the query's occurrence/count, not just a positive upper bound".
-[`docs/ledger-factoring.md`](ledger-factoring.md)'s closing sections say why the
-ledger cannot be that example and what one would need. This is that example.
-
-> **Superseded in part.** `UC.Audit` is deleted (`docs/audit-retirement-spike.md`), and
-> with it §3's rated `hf-emul`/`≤UC[]ᵍ`/`absorbed-budget`, §4's absorbed class and §5's
-> `hf-audit-carry`/`hf-audit-silent` and the old `hf-pr-bound`. `Examples.HashForward.UC`
-> now states the toy at the machine: `hf-bounded : AdvBoundedAt (k * 2) q r ideal →
-> AdvBoundedAt k q r real` (`EventBounds.Transport.bounded-absorb real-factors simQB`:
-> the simulator joins the adversary, doubling its rate), `hf-exact` (the closed runs
-> with the simulator moved into the adversary are `_≈ₚ_`), and `hf-pr-bound`, which
-> carries ANY `Upper` bound of the ideal run to the real one — no designation, no `δ`,
-> no `η`. §5's obstruction (a three-party adequacy) is `EventBounds.Transport.readRun-closed`.
-> The sections below are the branch's record.
-
-Everything below is a checked term unless marked otherwise; hatches stay at
-zero in `src/`.
+`Examples.HashForward`, `Examples.HashForward.UC` and `Examples.HashForward.Audit`
+are an application at an explicit nontrivial grade: a process of the generic
+`A ⇒ X ⊛ B` shape, a simulator `Y ⇒ X` with an inhabited simulator-facing port that
+actually performs a query, and the query's count stated exactly, not only as an upper
+bound. The chimeric ledger cannot be this example: its hash port is an object boundary
+graded at `𝟘ᴳ`, where every simulator is a scalar and blind to the run
+(`UC.Graded`'s header).
 
 ## The shape
 
@@ -69,26 +54,24 @@ Three alternatives, and why each was rejected.
    it at its adversary port), which is `Examples.MerkleDamgard`'s shape. Then
    `ideal` is stateful, and `sub s ∘ g` is a composite of two stateful machines
    — a genuine ⊕-trace, which at the machine layer is
-   `Protocol.Machine.Compose`'s 312-line argument re-run for a `subᴵ` that is
-   not a `morphism` image. See "The one structural fact" below: this is the
+   `Protocol.Machine.Compose`'s argument re-run for a `subᴵ` that is not a
+   `morphism` image. See "The one structural fact" below: this is the
    whole reason the ideal functionality is a wire.
 2. **Oracle at the resource boundary the way `hashPortᵒ` is**
-   (`Examples.ChimericLedger.Factor` at `d461b1fa`). That port is an OBJECT boundary with
-   every hom graded at `𝟘ᴳ` — `docs/ledger-factoring.md` says so in as many
-   words — so it is exactly what does not give a nontrivial grade. Here the
-   port is still an object boundary (`Resᴵ` is the domain), but the ADVERSARY
-   interface is the grade, which is the difference §3 asks about.
+   (`Examples.ChimericLedger.Transfer`). That port is an OBJECT boundary with
+   every hom graded at `𝟘ᴳ`, so it is exactly what does not give a nontrivial
+   grade. Here the port is still an object boundary (`Resᴵ` is the domain), but
+   the ADVERSARY interface is the grade.
 3. **A one-query, stateless simulator.** Tried and dropped: a simulator that
    translates `peekᴬ` into a single oracle query would have to know the message
    before it asks, and a stateless relabelling cannot. A content-bearing
    simulator here is two-step, and that is why the ledger's is not one — its
-   `POV.oracle` exposes no adversary interface at all, so its simulator has
-   nothing to ask.
+   `ChimericLedger.System.oracle` exposes no adversary interface at all, so its
+   simulator has nothing to ask.
 
-`POV.oracle` was not reused for the same reason `docs/ledger-factoring.md`
-records: it is lazily sampled and has no adversary interface. `GamePlaying.*`
-was not reused either — nothing here is a game hop, because nothing here has an
-error term.
+The ledger's lazily sampled `System.oracle` was not reused for that reason.
+`GamePlaying.*` was not reused either — nothing here is a game hop, because
+nothing here has an error term.
 
 ## The one structural fact that makes it affordable
 
@@ -120,7 +103,7 @@ real ≈ᴹ subᴵ simulator ∘ ideal
 ```
 
 proved as `∘-wireᴹ upᶠ downᶠ (subᴵ simulator)` followed by ONE pointwise case
-analysis (13 clauses, each a `>>=ₚ-identityˡ` or a `bot-bind-≈ₚ`). Statelessness
+analysis (13 clauses, each a unit law or a `botₚ` absorption). Statelessness
 of the ideal functionality is honest, not a dodge: the channel's state is the
 resource's, which is where an ideal channel's state belongs.
 
@@ -135,33 +118,28 @@ the protocol's own computation. The two are separate definitions at separate
 interfaces (`Proc Resᴵ (Advᴵ ⊗ᴵ Honᴵ)` and `Proc Lkᴵ Advᴵ`), and neither is
 defined in terms of the other.
 
-One implementation note worth keeping. `realStep` splits the STATE inside each
+`realStep` splits the STATE inside each
 letter's clause rather than across them (`case s of λ where`), because a clause
 with a constructor in the state position makes the pure-relay cases stick at a
 variable state, and `real-factors` compares them there.
 
-## What each of review §3's five steps delivers
+## The emulation
 
-### 1. The application types at nontrivial grade — DELIVERED
-
-`UC.Model.Seal.gradedᵒ` already crossed the seal for the object part, so no new
-relation and no generalization of `_≤UC_` was needed: `_≤UC_`
-(`Abstract2`) is stated at arbitrary grades and always was. What
-was missing were two facts about `gradedᵒ`, neither derivable outside the
-`opaque` block, added there (`UC.Model.Graded`):
+`UC.Model.Seal.gradedᵒ` already crosses the seal for the object part, so no new
+relation and no generalization of `_≤UC_` is needed: `Abstract2._≤UC_` is stated at
+arbitrary grades. What `gradedᵒ` needs is two facts, neither derivable outside the
+`opaque` block, so `UC.Model.Graded` exports them from inside:
 
 | name | content |
 |---|---|
 | `≈ᴹ⇒≈ᵍ` | `gradedᵒ` respects the machine equality |
 | `sub-gradedᵒ` | `(procᵒ s ⊗₁ id) ∘ gradedᵒ g ≈ gradedᵒ (subᴵ s ∘ g)` |
 
-`UC.Graded` reads the second as a statement about `sub` (`sub-graded`, free —
-`sub c` is `c ⊗₁ id` on the nose) and turns a machine-level factoring into an
-emulation. `UC.Seam.Grounded.closedᵒ`/`stageᵒ` are NOT touched, weakened or
-re-proved; they are the `ιᴳ`-inflated images at `𝟘ᴳ` and remain exactly that.
-The relation between them is that `closedᵒ`/`stageᵒ` insert a unit grade where
-`gradedᵒ` reads an existing one — they are not instances of each other, because
-a protocol image with no adversary interface has no grade to read.
+`UC.Graded` reads them in the setup's vocabulary and turns a machine-level factoring
+(`Factors f s g`, i.e. `f ≈ subᴵ s ∘ g`) into an emulation (`emulᵍ`, `≤UCᵍ`).
+`UC.Seam.Grounded.closedᵒ`/`stageᵒ` are a different reading, not instances of it:
+they insert a unit grade (`ιᴳ`) where `gradedᵒ` reads an existing one, and a protocol
+image with no adversary interface has no grade to read.
 
 At the toy (`Examples.HashForward.UC`):
 
@@ -169,251 +147,105 @@ At the toy (`Examples.HashForward.UC`):
 realᵒ  : ifaceᵒ Resᴵ ⇒ T₀ (ifaceᵒ Advᴵ) (ifaceᵒ Honᴵ)
 idealᵒ : ifaceᵒ Resᴵ ⇒ T₀ (ifaceᵒ Lkᴵ)  (ifaceᵒ Honᴵ)
 simᵒ   : ifaceᵒ Lkᴵ ⇒ ifaceᵒ Advᴵ
-```
 
-`ifaceᵒ Advᴵ` is inhabited — `AdvQ` has `peekᴬ` and `AdvA` has `wireᴬ` — so
-`simᵒ` is not a scalar and `UC.Seam.Grounded.subBlind`, which is expressly
-`unit ⇒ unit`, does not apply to anything here.
-
-### 2. The emulation theorem — DELIVERED, exactly
-
-```agda
 real-agrees : realᵒ ≈ᵁ sub simᵒ ∘ idealᵒ
 real-≤UC    : realᵒ ≤UC idealᵒ
 ```
 
-in the INHERITED order (`UC.Model.Setup`'s, i.e. `Abstract2`'s — where
-`UC-compose` is), with `dummy-complete` supplying the quantifier. There is no
-ε: the emulation is one machine equality read through `≈C⇒≈ᵁ`, so the model's
-relation is not forced to carry an error and none is invented to fill it.
+`ifaceᵒ Advᴵ` is inhabited — `AdvQ` has `peekᴬ` and `AdvA` has `wireᴬ` — so `simᵒ`
+is not a scalar. The order is the INHERITED one (`UC.Model.Setup`'s, i.e.
+`Abstract2`'s), with `dummy-complete` supplying the quantifier. There is no ε: the
+emulation is one machine equality read through `≈C⇒≈ᵁ`, so none is invented.
 
-### 3. Query allowance, and the OCCURRENCE proof — DELIVERED
+## What the simulator spends
 
-The allowance is `2`: `simCert : Certified 2 simulator` (the amortised
-potential `UC.QueryBound.QBᵢ`, `Φ` being what a `peekᴬ` in flight still owes),
-and `simQB : QB 2 simulator`. `UC.Graded.≤UC[]ᵍ` attaches it, at rate `2⁺`:
-`hf-emul : realᵒ ≤UC[ 2⁺ ] idealᵒ`, routed through `UC.Audit.Canonical`'s
-`audit⇒witness`/`witness⇒audit`. The composed monitored experiment's
-certificate is the graded composite of the test's and the simulator's, at
-`2⁺ · c`, restated at the toy as `absorbed-budget`, and `scale` reads it as the
-rescaling of the context's.
-
-Query bounds are not runtime bounds and nothing here claims PPT.
-
-The occurrence/count is new and generic: **`UC.QueryBound.Exact`**. Where
-`QBᵢ` is an amortised upper bound and `Counting` reads it as
-`#downward ≤ c · #upward`, `QEᵢ` replaces the potential's inequalities by an
-EQUATION per step, against two weightings — `δ` on the outputs being counted,
-`cost` on the letters that pay for them — and a ledger `Λ` of what a state still
-owes:
+The count is generic: **`UC.QueryBound.Exact`**. Where `QBᵢ` is an amortised upper
+bound and `UC.QueryBound.Counting` reads it as `#downward ≤ c · #upward`, `QEᵢ`
+replaces the potential's inequalities by an EQUATION per step, against two
+weightings — `δ` on the outputs being counted, `cost` on the letters that pay for
+them — and a ledger `Λ` of what a state still owes:
 
 ```agda
 Λ s + cost x ≡ δ o + Λ s′                           -- per step
 weight δ (outputs) + Λ (final) ≡ weight cost (word) -- per run (exactᴱ)
-mapₚ … (exactᴱ w) ≈ₚ behᵍ S point step w            -- and it IS the run
+mapₚ … (exactᴱ w) ≈ₚ behᵍ S point step w            -- and it IS the run (exactᴱ-erases)
 ```
 
 `qeᵢ-wire` inhabits it generically: a stateless relay emits exactly one downward
-output per activation from above and none otherwise. At the toy, two
-instantiations of the SAME ledger:
+output per activation from above and none otherwise. At the toy, two instantiations
+of the SAME ledger `Φˢ`:
 
 | statement | weighting | reading |
 |---|---|---|
 | `sim-hash-count` | `δ = hashes`, `cost = peeks` | exactly one `hashˢ` query per `peekᴬ` |
 | `sim-query-count` | `δ = downward`, `cost = twoPerPeek` | exactly two queries of any kind per `peekᴬ` |
 
-`sim-hash-count-settled` reads the first without the residual: when the run ends
-at a settled state (`Λ ≡ 0`, i.e. between transactions) the count is
-`weight peeks w` on the nose. `sim-round` is the same thing computed at one
-concrete transaction — a `peekᴬ` answered in order produces `leakˢ`, then
-`hashˢ` AT THE LEAKED MESSAGE, then the digest — which is the witness that the
-words the count quantifies over are inhabited by a live run and not only by
-divergent ones.
+`sim-hash-count-settled` reads the first without the residual: when the run ends at a
+settled state (`Λ ≡ 0`, i.e. between transactions) the count is `weight peeks w` on
+the nose. `sim-round` computes one concrete transaction — a `peekᴬ` answered in order
+produces `leakˢ`, then `hashˢ` AT THE LEAKED MESSAGE, then the digest — which
+witnesses that the words the count quantifies over are inhabited by a live run and
+not only by divergent ones.
 
-**What "the simulator performs a query" means here, exactly.** It is a statement
-about the trace of the very machine the emulation carries — `sim hf-emul` is
-`procᵒ simulator` on the nose — rather than about the emulation relation: for every
-activation word `w` and every branch of `behᵍ` (the machine's own behaviour
-function, the one `UC.QueryBound.CountBound` is also stated at), the multiset of
-outputs contains exactly `weight peeks w` outputs of the form `inj₁ (hashˢ m)`,
-up to a peek still in flight. Divergent branches carry no mass in `Dₚ`, so an
-off-protocol word constrains nothing and the statement needs no admissibility
-side condition. It is an equation in both directions, so it rules out a
-simulator that asks nothing as firmly as one that asks too much.
+The upper bound the grading consumes is derived from the exact one:
+`simCert : Certified 2 simulator` is `exact⇒certified simExactAll`, and
+`simQB : QB 2 simulator` its closure. Query bounds are not runtime bounds and nothing
+here claims PPT.
 
-### 4. The absorbed context as an admissible ideal experiment — DELIVERED, and
-### narrower than the trivial-grade route
+**What "the simulator performs a query" means, exactly.** It is a statement about the
+trace of the very machine the emulation carries (`simᵒ` is `procᵒ simulator` on the
+nose), not about the emulation relation: for every activation word `w` and every
+branch of `behᵍ`, the outputs contain exactly `weight peeks w` of the form
+`inj₁ (hashˢ m)`, up to a peek still in flight. Divergent branches carry no mass in
+`Dₚ`, so an off-protocol word constrains nothing and the statement needs no
+admissibility side condition. It is an equation, so it rules out a simulator that
+asks nothing as firmly as one that asks too much.
 
-`audit-carry` tests the ideal side through `Et ∘ id ⊗₁ (simᵒ ⊗₁ id)` — the
-real side's monitoring context with the simulator in front of it.
-`absorbed-budget` states its certificate:
-`pred-∘ qe (pred-⊗ pred-id (pred-⊗ (qbᵒ simQB) pred-id))` at `2⁺ · c`, whose
-allowance `scale` reads as the rescaling of the original. Membership is
-`absorb-absorbs`: `absorb s r 𝔉` is the largest class closed into `𝔉`, so
-nothing is assumed of the real side.
+## The event bound at the machine
 
-**No prefix tolerance is spent anywhere.** `UC.Seam.Grounded.subPrefixedˢ`
-exists because a trivial-grade simulator's
-whole contribution to a context is an initialization one hopes is silent. This
-simulator's contribution is its actual interaction, it is RUN in the ideal
-experiment, and `sim-hash-count` says exactly how much of it there is.
-
-### 5. The generic graded carry at `X ≠ unit` — DELIVERED; the probability
-### extraction is NOT, and the obstruction is precise
+`Examples.HashForward.Audit` states the toy as an event bound against an adversary:
 
 ```agda
-hf-audit-carry : (μ : ℕ → Dₚ Bool) (ε : ℕ → ℚ) (δ η : ℚ) → 0ℚ < δ → 0ℚ < η
-               → ((q n : ℕ) → Pr≤ n (μ q) ≤ ε q)
-               → AuditBound realᵒ (absorb simᵒ 2⁺ (pinned idealᵒ μ))
-                   (λ q → (ε (scale q 2⁺) + δ) + η)
+hf-bounded  : AdvBoundedAt (k * 2) q r ideal → AdvBoundedAt k q r real
+hf-exact    : runᴹ ((plugᴹ a ∘ real) ∘ w) d ≈ₚ runᴹ ((plugᴹ (a ∘ simulator) ∘ ideal) ∘ w) d
+hf-pr-bound : Upper (runᴹ ((plugᴹ (a ∘ simulator) ∘ ideal) ∘ w) d) r
+            → Upper (runᴹ ((plugᴹ a ∘ real) ∘ w) d) r
 ```
 
-`UC.Audit.audit-carry` was already generic in the grade; what was missing was an
-application at one that is not `unit`, and this is it. The event class is new
-and generic: `UC.Audit.pinned f μ` designates a context by the observation the
-experiment is expected to make, with no monitor run in it, so it is available
-at a nontrivial grade. `pinned-bound` supplies `AuditBound` from a bound on the
-designated observations alone; its `δ` is the `Mass`-level price of reading an
-equivalence as a numeric comparison (`dominate`), and is not a defect of the
-instance.
+`hf-bounded` is `UC.Machine.EventBounds.bounded-absorb real-factors simQB`: the
+simulator joins the adversary (`plug-absorb`), so the adversary's rate is multiplied
+by the simulator's `2`, the context cap is untouched, and the exact factoring costs no
+slack. `hf-exact` is the same move on the closed runs, for every resource `w`
+plugged in below, and `hf-pr-bound` carries ANY one-sided bound of the ideal run to
+the real one.
 
-`hf-audit-silent` is the toy's own designation: the ideal monitored experiment
-reports `false`, `ε ≡ 0`. That half is deliberately trivial and is flagged as
-such below.
+No prefix tolerance is spent. A trivial-grade simulator's whole contribution to a
+context is an initialization one hopes is silent; this simulator's contribution is
+its actual interaction, it is RUN in the ideal experiment, and `sim-hash-count` says
+exactly how much of it there is.
 
-**What is NOT delivered: the layer-1 probability.** The real-side conclusion is
-an `AuditBound`, not a `Protocol.Observe.Bounded`. Turning one into the other
-at the trivial grade is restricted to it for a reason that is structural, not
-incidental: the extraction context is
-`auditTest = (procᵒ env ∘ unitorˡ.from) ∘ unitorˡ.from`, i.e. the embedded
-strategy behind two unitors that DEFLATE the grade, and `unitorˡ.from` at a
-grade `X` exists only for `X = 𝟘ᴳ`. At `X ≠ 𝟘ᴳ` the extraction context must
-plug an ADVERSARY machine into the grade, and identifying the resulting
-observation with a layer-1 run needs an `adequacy`/`plug-run` for a two-sided
-closed composite — an environment above and an adversary at the grade — where
-`UC.Seam.Adequacy` states only the one-sided closed case.
+## Why `real` is a raw machine
 
-**The smallest change that would remove it**: a `plug-runᵍ` beside
-`UC.Seam.Grounded.plug-run` reading `Obs ((Et ∘ T₁ W (sub a) ∘ T₁ W (gradedᵒ f)) ∘ m)`
-as `runᴹ` of the machine composite `subᴵ a ∘ f` closed by `m`, plus
-`UC.Seam.Adequacy`'s identification of that run with a layer-1 one. The first is
-`unprocᵒ-∘` twice and is probably cheap; the second is the genuine addition,
-because `adequacy` is stated for `Proc unitᴵ B` and an adversary at the grade
-makes the closed system a three-party one. Nothing here is blocked by the seal
-and nothing would need the core changed.
+`real` is a `Proc`, not a `morphism` image — deliberately, by the parking mismatch
+above — so `Protocol.Observe.Bounded`, `prAgree` and the rest of the layer-1
+vocabulary are not in play at the toy, and the probability statement is `Upper` on the
+closed `Dₚ` run, which is what a raw machine has. A protocol-image version of `real`
+would not factor through `subᴵ simulator`, so this is not a presentation choice that
+could be changed without redoing the trace argument.
+
+The toy has no security parameter, so it states no family relation: every level would
+be the same statement and a polynomial allowance would have nothing to grow in.
 
 ## Generic versus example-specific
 
 | module | generic? |
 |---|---|
-| `UC.Model.Graded` | generic — two seal coercions for `gradedᵒ`, no example in sight |
-| `UC.Graded` | generic — `Factors`, `sub-graded`, `emulᵍ`, `≤UCᵍ`, `≤UC[]ᵍ` at any interfaces |
-| `UC.QueryBound.Exact` | generic — the ledger certificate, its run theorem, `qeᵢ-wire` |
-| `UC.Audit` (`pinned`, `pinned-bound`) | generic — stated over an arbitrary base, budget and mass |
+| `UC.Model.Graded` | generic — the seal coercions for `gradedᵒ` |
+| `UC.Graded` | generic — `Factors`, `emulᵍ`, `≤UCᵍ` at any interfaces |
+| `UC.QueryBound.Exact` | generic — the ledger `QEᵢ`, its run theorem, `qeᵢ-wire`, `exact⇒certified` |
+| `UC.Machine.EventBounds` | generic — `advReader`, `AdvBoundedAt`, `plug-absorb`, `bounded-absorb` |
 | `Examples.HashForward` | the toy: interfaces, three machines, `real-factors` |
-| `Examples.HashForward.UC` | the toy: emulation, `Certified 2`, the two exact counts |
-| `Examples.HashForward.Audit` | the toy: `≤UC[ 2⁺ ]`, the absorbed budget, the carry |
+| `Examples.HashForward.UC` | the toy: emulation, the two exact counts, `Certified 2` |
+| `Examples.HashForward.Audit` | the toy: the adversary-absorbed event bound |
 
-Nothing generic mentions the toy, and nothing in the toy restates a generic
-fact.
-
-## Modules
-
-All checked with `pagda --useUntracked false check … -- +RTS -M8G -H1G -RTS`,
-rc=0 and an empty
-`ModuleDoesntExport|UselessPublic|UselessPrivate|DuplicateUsing|error:|Failed to solve|Heap exhausted`
-gate; the warm column is a single-`Checking`-line run.
-
-| module | LOC | warm | rule-5 budget |
-|---|---|---|---|
-| `UC.Model.Graded` | 50 | 8.8 s | 72 s |
-| `UC.Graded` | 60 | 9.1 s | 75 s |
-| `UC.Seam.Graded` | 28 | 9.8 s | 67 s |
-| `UC.QueryBound.Exact` | 168 | 9.3 s | 102 s |
-| `UC.Audit` (+27) | 214 | 4.8 s | 113 s |
-| `Examples.HashForward` | 220 | 10.0 s | 115 s |
-| `Examples.HashForward.UC` | 250 | 15.5 s | 122 s |
-| `Examples.HashForward.Audit` | 101 | 10.0 s | 85 s |
-
-## Not delivered, precisely
-
-1. **The layer-1 probability at a nontrivial grade** — see step 5 above for the
-   obstruction and the smallest change that removes it. This is the one item
-   that touches review §3's acceptance criteria directly: the carry runs at
-   `X ≠ unit` and its accounting includes the interaction, but the bound it
-   produces is an `AuditBound`, not a `Pr`/`PrHit` inequality.
-   **Delivered since**, as `Examples.HashForward.UC.hf-pr-bound` off the
-   generic `UC.Seam.Audit.Context.extractᵍ` — see `docs/history/graded-bridge.md` (e).
-2. **A non-trivial audit designation.** `hf-audit-silent` supplies `ε ≡ 0` at
-   the designation "the ideal monitored experiment reports `false`". A
-   designation with content would pin the observation to the run of a monitor
-   against the CLOSED ideal experiment, which means computing the observation of
-   a composite — the same trace work step 5's obstruction is about. The generic
-   half (`hf-audit-carry`, quantified over `μ` and `ε`) is stated so that a
-   better designation drops straight in.
-3. **No asymptotic family.** `UC.Asymptotic.Audit._≤UC^ω[_]_` is stated at
-   `closedᵒ (morphism (R n))` — the trivial grade, and protocol images — so it
-   cannot be instantiated here, and `uc-audit-carry`/`uc-audit-boundedᵖ` with
-   it. `UC.Audit.audit-carry`, which those two wrap, is what the toy applies
-   directly. A graded family relation would be the levelwise `_≤UC[ cs n ]_` at
-   `gradedᵒ`; it was not added because the toy has no security parameter, so
-   every level would be the same statement and the polynomial allowance would
-   have nothing to grow in.
-4. **No concrete resource.** `Resᴵ` is an interface; the emulation is exact for
-   every closure, which is stronger than fixing a lazily sampled oracle, but it
-   also means no `Dₚ`-level oracle is exercised. Plugging `POV.oracle`-style
-   sampling in below would need the closed system, i.e. item 1's machinery.
-   **Delivered since**: `Examples.ROCommitment.Resource` (lazily sampled),
-   `docs/history/graded-bridge.md` (c).
-5. **`real` is a raw machine, not a `morphism` image.** Deliberate — the
-   parking mismatch above — and it is why `Protocol.Observe.Bounded`,
-   `TotalRun`, `prAgree` and the rest of the layer-1 vocabulary are not in play
-   at the toy. Item 1's `Pr` bound is therefore `Pr≤` on the closed `Dₚ` run,
-   which is the probability statement a raw machine has. A protocol-image version of `real` would not factor through
-   `subᴵ simulator`, so this is not a presentation choice that could be changed
-   without redoing the trace argument.
-
-## Against the consolidation plan's architectural decisions
-
-`docs/history/uc-presheaf-preservation-plan.md` postdates this branch's base
-(`d461b1fa`); everything here was checked against it afterwards and nothing had
-to change.
-
-* **Decision 1** (use `UCSetup`/`Abstract2` and the existing graded Kleisli
-  action, preserve `_≈ᵁ_` and the inherited `_≤UC_` quantifiers) — `emulᵍ`
-  lands in `_≈ᵁ_` and `≤UCᵍ` in the inherited `_≤UC_`, through the existing
-  `dummy-complete`, so the quantifier is the one that was there.
-* **Decision 2** (absorbing a simulator is the presheaf's action on `sub`, not
-  an independent operation) — the only absorption used is the pre-existing
-  `UC.Audit.absorb`, i.e. `Et ∘ T₁ W (sub s)`; nothing new was defined for it.
-* **Decision 3** (no generic `Simulator`, `ClosingContext`,
-  `MonitoredExperiment` or `Monitor` records, no new experiment category) — the
-  whole branch adds exactly one record, `UC.QueryBound.Exact.QEᵢ`, and the only
-  new `data` declarations are the toy's own message types and its machine's
-  state. The simulator is a plain `Proc Lkᴵ Advᴵ`, `procᵒ` of it is a grade
-  morphism, tests and closures are `Abstract2`'s own, and no monitor appears
-  at all: `pinned` designates an observation. No `Category` is constructed anywhere.
-* **Decision 4** (`Strat` stays executable finite syntax) — untouched; the toy
-  uses no strategy.
-* **Decision 5** (query certificates are optional model enrichment, not fields
-  of `UCSetup`) — `QEᵢ` is a standalone module, `UCSetup` is untouched, and
-  the allowance the emulation carries goes through the ordinary
-  `Certified`/`QB`/`qbᵒ` pipeline into the model's graded subcategory. Nothing forgets a witness: the
-  emulation is exact, so there is no error to forget.
-* **Decision 6** (several observation instances on one family category) — no
-  observation was added or changed.
-* **§4.4** asks precisely for this example, "reuse the ordinary grading action
-  and query certificates. Neither a new simulator datatype nor a new category is
-  needed" — neither was needed. The oracle-facing grade is exposed by changing
-  the application interface explicitly (`Advᴵ`/`Lkᴵ` are the grades), not by
-  assigning a positive budget to a `unit → unit` scalar, and `absorbed-budget`
-  is the "admits the simulator's actual interaction at the adjusted budget"
-  half.
-
-## Nothing was weakened
-
-No pre-existing statement was edited. The two edits to existing files are
-additive: `UC/Audit.agda` gains `pinned`/`pinned-bound` beside `AuditBound`
-(and one `proj₁; proj₂` in an import), and `UC/Seam/Audit.agda` re-exports the
-two new names. `UC.agda` and `CategoricalCrypto.agda` gain inventory entries and
-`open import` lines.
+Nothing generic mentions the toy, and nothing in the toy restates a generic fact.

@@ -155,8 +155,7 @@ module Attack (ℓ : ℕ) (ser : Ledger.Tx ℓ → List Bool) (V : ℕ) where
 
 -- `Pr` is 0 both when the ledger is safe and when it deadlocks, so the
 -- genesis the birthday bound starts at is pinned live: its output is spent
--- with probability one, through the oracle (`docs/rewrite-verdict.md`,
--- Addendum, finding 1).  One accepted transaction is not global liveness.
+-- with probability one, through the oracle.  One accepted transaction is not global liveness.
 
 module Genesis (ℓ : ℕ) (ser : Ledger.Tx ℓ → List Bool) (h₀ : Ledger.Hash ℓ) (a V : ℕ) where
 

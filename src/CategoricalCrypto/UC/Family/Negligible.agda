@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- The negligible tier as a SECOND observation on the family category, and the
--- one-way bridge into it (`docs/graded-observation-redesign.md`).
+-- one-way bridge into it.
 --
 -- `Approx.Evaluation.qualBy` coarsens by any equivalence zero error implies,
 -- and `UC.Approximate.Local`'s `_∼ᴺ_` is one, so the tier is this instance plus
@@ -11,8 +11,8 @@
 -- allowance-indexed error to the allowance that context carries — its test
 -- certified at its own rate, scaled by its closure's.  The converse does not
 -- hold: a witness chosen per context is weaker than one global bound, and no
--- uniformization theorem closes the gap (`docs/protocol-implementation-review.md`
--- §4).  The acceptance criteria of review §1 are `UC.Approximate.LocalTests`.
+-- uniformization theorem closes the gap.  The tier's acceptance criteria are
+-- `UC.Approximate.LocalTests`.
 
 open import Categories.Category.Instance.Rates
 open import Categories.Category.Monoidal.Bundle
@@ -72,8 +72,7 @@ Evaluationᴺ =
 -- `Standard2.StdUC Famᴹ` at `Evaluationᴺ`'s test presheaf, and a second
 -- copy of it under ᴺ names would be the parallel API this tier is meant not to
 -- be.  The tier's EMULATION ORDER is `Abstract2`'s at `ucSetupᴺ`
--- (`UC.Family.Negligible.Setup`, and the gate in
--- `docs/retirement-negligible-order.md`).
+-- (`UC.Family.Negligible.Setup`).
 private module N = Std2.StdUC Famᴹ (Observable.ℰᴼ (Evaluation.observable Evaluationᴺ))
 
 open N public using () renaming (_≈ᵁ_ to _≈ℰᴺ_)

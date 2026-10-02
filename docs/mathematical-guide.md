@@ -1,6 +1,5 @@
 # A mathematical guide to the machine model
 
-This guide describes `protocol-rewrite` at `fa45eaf5`.
 Names are `module :: name`, with modules relative to `CategoricalCrypto` unless they
 start with `ProbabilisticLogic`.
 Signatures, quantifier orders and operational counterparts are in
@@ -32,7 +31,8 @@ state simulations connects them.
 - `Machines.Category :: Mealy-Category`; `Machines.G :: Mealy-Gᴹ`: the category, and
   its G-construction, which is where interface polarity comes from.
 - `Machines.Base :: Elgotₚ`, `𝒢ₚ`: the iteration at `Dₚ`, and the resulting category.
-  Why states carry no `discard`: `docs/discard-audit.md`.
+  A state object is pointed (`Machines.Core :: State.point`, possibly effectful, since in
+  a Kleisli category the unit is not initial) and carries no `discard`.
 
 ## 3. Processes
 
@@ -71,17 +71,67 @@ comparison bounds every admitted context's advantage by a schedule read at that 
 - `UC.QueryBound :: Certified`, `QB`, `qb-closed`; `UC.Machine.Grading :: gradingᴹ`: a
   potential-function certificate, its `_≈ᴹ_`-closure, the free certificate of a closed
   process, and the certificates as a graded subcategory over positive rates.
-- `UC.Quantitative.Family :: _≈ctx[_]_`, `_≤UC[_,_]_`: closeness at every level for every
-  certified context, and the version with a simulator (a fixed witness).
+- `UC.Quantitative.Family :: _≈ctx[_]_`, `_≤UC[_,_]_`, `_≤UC^ωᵉ_`: closeness at every
+  level for every certified context (`UC.Quantitative.Contextual._≈ᵁᵠ[_]_` levelwise,
+  §6), the version with a simulator family and schedule (a fixed witness), and the
+  version that hides both and asks only that the schedule be negligible.
+- `UC.Quantitative.Family :: ≤UC[]-trans`, `seqError`, `≤UC[]-compose`, `composeError`:
+  sequential composition and composition along `_∙ᶠ_` (simulator `sf ⊗^ω t`), each at
+  its error formula; every allowance substitution there is by a certified rate.
 - `UC.Model.Family.Emulation :: _≈ᶠ[_]_`, `_≈ᶠᴺ_`: the family comparison on protocol
   images, and "some negligible schedule bounds it". This relation is symmetric and has
   no simulator, and it is not identified with `Abstract2._≤UC_`.
 - `UC.Model.Family.Emulation :: ≈ᶠ-runs`, `≤UC[]⇒≤UCᴺ`: the comparison read at an
   embedded strategy's run, and the route from a fixed witness to the canonical
-  negligible order. How error schedules compose: `docs/error-algebra-inventory.md`
-  (on the `integrate/2-qucsetup.*` branches, not on this one).
+  negligible order.
 
-## 6. Events
+## 6. Approximate spaces
+
+An approximate space is a carrier with closeness indexed by an ordered error. A map
+keeps a bound (nonexpansive), transforms it (controlled), or also reindexes which tests
+an allowance admits (filtered); the query-sensitive comparison of §5 is the admitted
+agreement of one filtered test presheaf.
+
+- `Approx.Error :: OrderedErrorAlgebra`, `Approximation`, `Refinement`, `_∼ᵃ_`: errors
+  (a preorder with a monotone sum and a unit `ε₀` up to `⊑` in one direction, not an
+  ordered monoid), closeness at an error, the positivity the all-positive collapse
+  needs, and that collapse. `ℚ-ordered` is the instance in use; `ℕ-unrefinable` shows a
+  refinement is extra data.
+- `Approx.Space :: ApproxSpace`, `Nonexpansive`, `Approx`, `F₀`: spaces, bound-keeping
+  maps, their category (hom equality is agreement at zero error, so a functor into
+  `Approx` transports every bound exactly), and the exact forgetful functor to setoids.
+- `Approx.Forget :: F₊`, `forget`: the all-positive forgetful functor, and the
+  identity-on-carriers comparison `F₀ ⇒ F₊`, which is not an isomorphism; an exact bound
+  therefore stays in `Approx`.
+- `Approx.Separating :: Sequences`, `F₊-identifies`, `F₀-separates`: rational sequences
+  under eventual closeness, where `2⁻ⁿ` and `0` are identified by `F₊` and separated by
+  `F₀`. `UC.Approximate.Separating` holds the instruments a negative closeness statement
+  needs at the model level.
+- `Approx.Small :: SmallClass`, `Collapse._∼Small_`: closeness at some error of a class
+  containing zero and closed under addition, an equivalence with no refinement spent;
+  `UC.Approximate.Local._∼ᴺ_` is it at the negligible class.
+- `Approx.Controlled :: Control`, `Controlled`, `_≐ᶜ_`: a monotone, zero-preserving,
+  subadditive error transformation, the maps that transform their bound by one, and
+  comparison of controls in the errors' own order (no funext).
+- `Approx.Schedule :: pointwise`: schedule-valued errors as an instance, over the
+  security parameter or over rates; substituting an allowance is an exact control, so
+  the schedule substitutions of `UC.Quantitative.Family` compose as controlled maps.
+- `Approx.Filtered :: FilteredSpace`, `Filtered`, `Filt`, `_≈ᵃ[_]_`: spaces with an
+  allowance-indexed admission, maps carrying a control and a monotone allowance map,
+  their category, and closeness on admitted elements.
+- `Approx.Evaluation :: QEvaluation`, `qual`, `qual₊`, `qualBy`: the quantitative
+  readout, observing the hom equality exactly, and the qualitative readouts it induces.
+- `UC.Quantitative.Query :: filteredᵠ`, `pullᵠ`, `Qᵠ`: tests compared through
+  certified closures at a schedule read off the closure's rate, pullback along a rated
+  morphism as a filtered map (both indices reindexed by the rate), and the filtered
+  test presheaf on rated morphisms.
+- `UC.Quantitative.Contextual :: _≈ᵁᵠ[_]_`, `ctx⇒agree`, `agree⇒ctx`, `absorb-testᵠ`,
+  `absorb-closureᵠ`: the query-sensitive comparison, which certifies only the test and
+  the closure, never the compared morphisms; it is `_≈ᵃ[_]_` for `Qᵠ`, and its two
+  substitution principles are the allowance map and the control of `pullᵠ`, both exact.
+- `UC.Quantitative.EventLift`: event bounds at the compiled monitor (§7).
+
+## 7. Events
 
 An event is a Boolean on protocol states. Its probability is the COMPLETED-RUN hit
 probability: `Bad` is sampled at the initial state and after each completed activation,
@@ -119,7 +169,7 @@ over every admitted context that reads it through a monitor.
 - `UC.Machine.StateEvent.Lift :: stateLift`: a bound at every embedded strategy of cap
   `q` bounds every admitted context of cap `q`.
 
-## 7. The ledger instance
+## 8. The ledger instance
 
 The ideal ledger preserves value against polynomially bounded contexts, and any family
 that is `_≈ᶠᴺ_`-close to it inherits that bound.

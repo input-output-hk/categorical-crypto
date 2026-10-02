@@ -9,7 +9,7 @@ instantiated at concrete models.
 
 Documentation can be found [here](https://input-output-hk.github.io/categorical-crypto/).
 
-The development is organized in four layers, from generic category theory down
+The development is organized in five layers, from generic category theory down
 to executable machines. Each layer only imports the ones above it.
 
 ## 1. Categorical substrate (`src/Categories/`)
@@ -73,8 +73,8 @@ Two equivalent formulations of UC emulation are developed:
   Observational equivalence is the U-kernel `_≈ᵁ_` — all prefix-context
   components `μ ∘ T₁ Y f` agree under `≈ℰ` — and over it all four
   metatheorems, including universal composition, are **hypothesis-free**.
-  `GradeStable` (ℰ is a lax ℳ-module, equivalently bare kernel = U-kernel)
-  is needed only by `bridge`, which ingests a bare `≈ℰ` security artifact
+  `GradeStable` (ℰ is a lax ℳ-module; sufficient, not necessary, for the bare
+  kernel to coincide with the U-kernel) is needed only by `bridge`, which ingests a bare `≈ℰ` security artifact
   into the compositional world: a conservation law paid once at artifact
   ingestion, never in the metatheory.
 - `Abstract2.Equivalence` — the machine-checked hierarchy connecting the two:
@@ -84,9 +84,10 @@ Two equivalent formulations of UC emulation are developed:
 
 `Standard` / `Standard2` instantiate the respective layers at 𝒞 = ℐ = a
 monoidal category of machines with ℳ = the curried tensor (attaching an
-interface = tensoring a channel on). `RandomOracle` / `RandomOracle2` package
-a Merkle–Damgård-vs-random-oracle security proof as a record of concrete
-artifacts (`ROData`) and derive `MD≤UC-RO` from it.
+interface = tensoring a channel on). `RandomOracle` / `RandomOracle2` derive
+`MD ≤UC RO` from the dummy-adversary theorem, given a record `ROData` of the
+open artifacts; the Merkle–Damgård statement is one of its fields, a stand-in
+not instantiated from `Examples.MerkleDamgard`.
 
 ## 3. Probabilistic model over axiomatized machines
 
@@ -100,20 +101,40 @@ is independent of any particular machine implementation:
 - `UC.Core` — observables, their test presheaf `ℰᴼ`, and evaluations; each
   consumer instantiates `Standard2.StdUC` at `ℰᴼ`, whose `_≈ᵁ_` is the
   ancilla-quantified indistinguishability.
-- `UC.Family` / `UC.Family.Vanishing` — the security-parameter family category
-  and the vanishing-bound layer over it.
-- `UC.Quantitative.Observed` — the ε-indexed form of `_≈ᵁ_` and its
-  collapse; `UC.Machine` plugs the whole stack into the machine model.
+- `UC.Family` / `UC.Family.Vanishing` / `UC.Family.Negligible` — the
+  security-parameter family category, and the vanishing and negligible tiers
+  over it.
+- `Approx.*` and `UC.Quantitative.*` — quantitative UC: approximate-space-valued
+  test presheaves, the query-sensitive contextual comparison with an explicit
+  error schedule, and its family form.
+- `UC.Machine` plugs the whole stack into the machine model of §4.
 
-## 4. Concrete machine layer
+## 4. Probabilistic machine model and examples
 
-The executable model (predating the layers above; connecting it to them is
-planned work):
+- `ProbabilisticLogic.Dp` — the rational probabilistic delay monad `Dₚ`.
+- `Machines.*` — Mealy machines in the Kleisli category of `Dₚ`, composed by
+  Elgot iteration, with interface polarity from the G-construction
+  (`Machines.G`).
+- `Strategy`, `Protocol` — protocols in plain Agda and their machine images.
+- `GamePlaying` — game-hopping: the supermartingale bound and the fundamental
+  lemma in coupled form.
+- `Examples/` — the chimeric ledger (`docs/end-to-end.md`), a random-oracle
+  commitment, Blum coin-tossing over it, hash-then-forward and Merkle–Damgård.
+
+`docs/README.md` indexes the documentation; `docs/mathematical-guide.md` is the
+entry point to the model's mathematics.
+
+## 5. Channel/machine layer
+
+A second, executable model, independent of the layers above:
 
 - `Channel/` — channels (typed communication ports), their category, and a
   wiring DSL (`Selection`).
 - `Machine/` — stateful machines communicating over channels, with UC
   security notions stated directly on them; `Constraints` adds extra
   side conditions.
-- `Examples/` — commitment, signature, and basic protocol examples.
-- `CategoricalCrypto` — the root module re-exporting this layer.
+- `Examples/{Basic,Commitment,Signatures}` — commitment, signature, and basic
+  protocol examples.
+- `CategoricalCrypto` — the library root: its `public` re-exports are this
+  layer, and its other imports put the rest of the library in the build
+  closure.

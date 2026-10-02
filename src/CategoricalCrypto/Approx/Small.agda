@@ -1,7 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Existential collapse at a class of small errors
--- (`docs/quantitative-uc-setup-plan.typ` §8).
+-- Existential collapse at a class of small errors.
 --
 -- A class containing zero and closed under addition is all `∼Small` needs:
 -- those two are exactly its reflexivity and its transitivity, so nothing about

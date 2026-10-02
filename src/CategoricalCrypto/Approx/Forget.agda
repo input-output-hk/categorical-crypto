@@ -1,8 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The two ways to forget an approximate space to a setoid
--- (`docs/quantitative-uc-setup-plan.typ` §3).  The exact one, `Approx.Space.F₀`,
--- needs nothing of the errors; the all-positive one needs a `Refinement` of them.
+-- The two ways to forget an approximate space to a setoid.  The exact one,
+-- `Approx.Space.F₀`, needs nothing of the errors; the all-positive one needs a
+-- `Refinement` of them.
 --
 -- The two are NOT isomorphic: a space whose error balls are not closed has
 -- points that no positive error separates and zero error does

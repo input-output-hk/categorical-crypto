@@ -6,7 +6,7 @@
 --
 -- The grade is the sealed bundle's OWN monoidal unit, not `unitᴵ`: the two are
 -- the empty interface spelled with two different empty types, and the iso
--- between them is over the perf bar (`docs/stduc-supersession-plan.md` §1.1).
+-- between them costs >150 s to check.
 
 open import Categories.Category
 import Categories.Category.Monoidal.Reasoning as MonR
