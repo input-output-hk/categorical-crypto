@@ -21,9 +21,6 @@ open import Function.Bundles
 open import Level
 open import Relation.Binary.Bundles
 
-open import Categories.LocallyGraded
-import Categories.LocallyGraded.Kleisli as LGKleisli
-
 open import CategoricalCrypto.UCSetup
 
 module AbstractUC
@@ -92,29 +89,15 @@ module AbstractUC
   subλ⇐λ⇒ = let open 𝒞 in ⟺ sub-homomorphism ○ (sub-resp-≈ ℐ.unitorˡ.isoˡ ○ sub-identity)
 
   λ-cancel : (x : A 𝒞.⇒ T₀ X B) → sub λ⇒ 𝒞.∘ sub λ⇐ 𝒞.∘ x 𝒞.≈ x
-  λ-cancel x = let open 𝒞 in begin
-      sub λ⇒ ∘ sub λ⇐ ∘ x    ≈⟨ sym-assoc ⟩
-      (sub λ⇒ ∘ sub λ⇐) ∘ x  ≈⟨ subλ⇒λ⇐ ⟩∘⟨refl ⟩
-      𝒞.id ∘ x               ≈⟨ identityˡ ⟩
-      x                      ∎
+  λ-cancel x = 𝒞.cancelˡ subλ⇒λ⇐
     where subλ⇒λ⇐ : sub λ⇒ 𝒞.∘ sub λ⇐ 𝒞.≈ 𝒞.id
           subλ⇒λ⇐ = let open 𝒞 in ⟺ sub-homomorphism ○ (sub-resp-≈ ℐ.unitorˡ.isoʳ ○ sub-identity)
 
   unit-comp : (f : A 𝒞.⇒ T₀ X B)
             → (μ ℐ.unit X 𝒞.∘ T₁ ℐ.unit f) 𝒞.∘ return 𝒞.≈ sub λ⇐ 𝒞.∘ f
-  unit-comp {X = X} f = let open 𝒞 in begin
-      (μ ℐ.unit X ∘ T₁ ℐ.unit f) ∘ return  ≈⟨ assoc ⟩
-      μ ℐ.unit X ∘ T₁ ℐ.unit f ∘ return    ≈⟨ refl⟩∘⟨ ⟺ return-commute ⟩
-      μ ℐ.unit X ∘ return ∘ f              ≈⟨ sym-assoc ⟩
-      (μ ℐ.unit X ∘ return) ∘ f            ≈⟨ μunit-return ⟩∘⟨refl ⟩
-      sub λ⇐ ∘ f                           ∎
+  unit-comp {X = X} f = let open 𝒞 in pullʳ (⟺ return-commute) ○ pullˡ μunit-return
     where μunit-return : μ ℐ.unit X 𝒞.∘ return 𝒞.≈ sub λ⇐
-          μunit-return = let open 𝒞 in begin
-              μ ℐ.unit X ∘ return                        ≈⟨ introˡ subλ⇐λ⇒ ⟩
-              (sub λ⇐ ∘ sub λ⇒) ∘ μ ℐ.unit X ∘ return    ≈⟨ assoc ⟩
-              sub λ⇐ ∘ sub λ⇒ ∘ μ ℐ.unit X ∘ return      ≈⟨ refl⟩∘⟨ μ-identityˡ ⟩
-              sub λ⇐ ∘ 𝒞.id                              ≈⟨ identityʳ ⟩
-              sub λ⇐                                     ∎
+          μunit-return = let open 𝒞 in introˡ subλ⇐λ⇒ ○ pullʳ μ-identityˡ ○ identityʳ
 
   ≈ᵁ⇒≈ℰ : f ≈ᵁ g → f ≈ℰ g
   ≈ᵁ⇒≈ℰ {f = f} {g} e = ≈ℰ-trans (≈ℰ-sym (≈C⇒≈ℰ (λ-cancel f)))
@@ -167,7 +150,7 @@ module AbstractUC
   ≈ᵁ⇒≤UC : f ≈ᵁ g → f ≤UC g
   ≈ᵁ⇒≤UC {g = g} h = dummy-complete (ℐ.id , ≈ᵁ-trans h (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ g))))
 
-  ≤UC⇒dummy : f ≤UC g → Σ[ s ∈ Y ℐ.⇒ X ] f ≈ᵁ sub s 𝒞.∘ g
+  ≤UC⇒dummy : f ≤UC g → f ≤UCᵈ g
   ≤UC⇒dummy {f = f} le =
     let s , e = le ℐ.id in s , ≈ᵁ-trans (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ f))) e
 
@@ -194,34 +177,12 @@ module AbstractUC
       sf = proj₁ (≤UC⇒dummy f≤g)
 
       s : Y ⊗₀ Q ℐ.⇒ Z
-      s = a ℐ.∘ ℐ.id ⊗₁ t ℐ.∘ sf ⊗₁ ℐ.id
+      s = a ℐ.∘ sf ⊗₁ t
 
       strict-final : sub a 𝒞.∘ ext X (sub t 𝒞.∘ k) 𝒞.∘ sub sf 𝒞.∘ g
                    𝒞.≈ sub s 𝒞.∘ ext Y k 𝒞.∘ g
-      strict-final = let open 𝒞 in begin
-          sub a ∘ ext X (sub t ∘ k) ∘ sub sf ∘ g
-            ≈⟨ refl⟩∘⟨ (sub-commute₂ ⟩∘⟨refl) ⟩
-          sub a ∘ (sub (ℐ.id ⊗₁ t) ∘ ext X k) ∘ sub sf ∘ g
-            ≈⟨ refl⟩∘⟨ assoc ⟩
-          sub a ∘ sub (ℐ.id ⊗₁ t) ∘ ext X k ∘ sub sf ∘ g
-            ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ sym-assoc) ⟩
-          sub a ∘ sub (ℐ.id ⊗₁ t) ∘ (ext X k ∘ sub sf) ∘ g
-            ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (sub-commute₁ ⟩∘⟨refl)) ⟩
-          sub a ∘ sub (ℐ.id ⊗₁ t) ∘ (sub (sf ⊗₁ ℐ.id) ∘ ext Y k) ∘ g
-            ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ assoc) ⟩
-          sub a ∘ sub (ℐ.id ⊗₁ t) ∘ sub (sf ⊗₁ ℐ.id) ∘ ext Y k ∘ g
-            ≈⟨ refl⟩∘⟨ sym-assoc ⟩
-          sub a ∘ (sub (ℐ.id ⊗₁ t) ∘ sub (sf ⊗₁ ℐ.id)) ∘ ext Y k ∘ g
-            ≈⟨ sym-assoc ⟩
-          (sub a ∘ sub (ℐ.id ⊗₁ t) ∘ sub (sf ⊗₁ ℐ.id)) ∘ ext Y k ∘ g
-            ≈⟨ (refl⟩∘⟨ (⟺ sub-homomorphism)) ⟩∘⟨refl ⟩
-          (sub a ∘ sub (ℐ.id ⊗₁ t ℐ.∘ sf ⊗₁ ℐ.id)) ∘ ext Y k ∘ g
-            ≈⟨ (⟺ sub-homomorphism) ⟩∘⟨refl ⟩
-          sub s ∘ ext Y k ∘ g  ∎
-
-  -- Note the hom-equality of this packaging is 𝒞._≈_, NOT ≈ᵁ.
-  naiveKleisli : LocallyGradedCategory ℐ o′ ℓ′ e′
-  naiveKleisli = LGKleisli.naiveKleisli triple
+      strict-final = let open 𝒞 in
+        (refl⟩∘⟨ (pullˡ sub-commute ○ assoc)) ○ pullˡ (⟺ sub-homomorphism)
 
   ≤UC-sub : (c : X ℐ.⇒ Y) (r : Y ℐ.⇒ X) → r ℐ.∘ c ℐ.≈ ℐ.id
           → f ≤UC g → sub c 𝒞.∘ f ≤UC sub c 𝒞.∘ g

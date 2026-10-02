@@ -14,8 +14,7 @@
 -- flag on one extra `Ωᴵ` port, asked for by a tick.  The sampling
 -- boundary is this fixed convention, so a simulation is boundary-compatible as
 -- soon as it preserves the test: it preserves the step's output letter
--- (`▷-≲`).  Forgetting the flag port undoes `▷` up to simulation
--- (`unflag-▷`).  Reading the flag of a composite is `UC.Machine.StateEvent.Read`.
+-- (`▷-≲`).  Reading the flag of a composite is `UC.Machine.StateEvent.Read`.
 
 open import Data.Bool.Base
 open import Data.Product.Base
@@ -23,8 +22,6 @@ open import Data.Sum.Base hiding (map₁)
 open import Data.Unit.Base
 open import Function.Base
 open import Relation.Binary.PropositionalEquality hiding ([_])
-
-import Relation.Binary.Construct.Closure.Equivalence as EqC
 
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Reasoning
@@ -68,14 +65,6 @@ module _ {A B : Iface} where
   eventSim-trans : {x y z : Annotated A B} → EventSim x y → EventSim y z → EventSim x z
   eventSim-trans σ τ = record { sim = S.≲-trans (sim σ) (sim τ) ; compat = λ s → trans (compat σ s) (compat τ _) }
 
-  -- Zigzags of COMPATIBLE simulations.  Forgetting the annotation lands in the
-  -- machine equality; nothing goes back.
-  _≈ᵉ_ : Annotated A B → Annotated A B → Set₁
-  _≈ᵉ_ = EqC.EqClosure EventSim
-
-  ≈ᵉ⇒≈ᴹ : {x y : Annotated A B} → x ≈ᵉ y → proj₁ x S.≈ᴹ proj₁ y
-  ≈ᵉ⇒≈ᴹ = EqC.gmap proj₁ sim
-
 ------------------------------------------------------------------------
 -- The flag-wire machine
 
@@ -97,44 +86,6 @@ module _ {A B : Iface} (M : Proc A B) (P : StateTest M) where
 
   _▷_ : Proc A (B ⊗ᴵ Ωᴵ)
   _▷_ = MC.mk ▷state ▷step
-
-------------------------------------------------------------------------
--- Forgetting the flag port
-
--- A machine that never asks its flag port; a flag answer is off-protocol.
-dropF : {S X Y : Set} → S × (X ⊎ (Y ⊎ Bool)) → Dₚ (S × (X ⊎ Y))
-dropF (s , inj₁ x)         = returnₚ (s , inj₁ x)
-dropF (s , inj₂ (inj₁ y))  = returnₚ (s , inj₂ y)
-dropF (s , inj₂ (inj₂ _))  = botₚ
-
-unflag : {A B : Iface} → Proc A (B ⊗ᴵ Ωᴵ) → Proc A B
-unflag {A} {B} N = MC.mk (MC.state N) stepU
-  where
-  stepU : MC.St N × (Pos A ⊎ Neg B) → Dₚ (MC.St N × (Neg A ⊎ Pos B))
-  stepU (s , inj₁ a) = MC.step N (s , inj₁ a) >>=ₚ dropF
-  stepU (s , inj₂ b) = MC.step N (s , inj₂ (inj₁ b)) >>=ₚ dropF
-
--- Up to simulation, not definitionally: the state objects differ.
-unflag-▷ : {A B : Iface} (M : Proc A B) (P : StateTest M) → unflag (M ▷ P) S.≲ M
-unflag-▷ {A} {B} M P = simFn proj₁ (λ x → bind-map (MC.point (MC.state M) x) _ _ ⟨≈⟩ >>=ₚ-identityʳ _) st
-  where
-
-  back : (f : Bool) (r : MC.St M × (Neg A ⊎ Pos B))
-       → (dropF (sample M P f r) >>=ₚ λ r′ → returnₚ (proj₁ (proj₁ r′) , proj₂ r′)) ≈ₚ returnₚ r
-  back f (s , inj₁ a) = >>=ₚ-identityˡ _ _
-  back f (s , inj₂ b) = >>=ₚ-identityˡ _ _
-
-  go : (s : MC.St M) (f : Bool) (x : Pos A ⊎ Neg B)
-     → ((mapₚ (sample M P f) (MC.step M (s , x)) >>=ₚ dropF)
-         >>=ₚ λ r′ → returnₚ (proj₁ (proj₁ r′) , proj₂ r′))
-       ≈ₚ MC.step M (s , x)
-  go s f x = >>=ₚ-assoc (mapₚ (sample M P f) (MC.step M (s , x))) _ _
-         ⟨≈⟩ bind-map (MC.step M (s , x)) _ _
-         ⟨≈⟩ bindᶠ (back f) ⟨≈⟩ >>=ₚ-identityʳ _
-
-  st : (p : _) → _
-  st ((s , f) , inj₁ a) = go s f (inj₁ a)
-  st ((s , f) , inj₂ b) = go s f (inj₂ b)
 
 ------------------------------------------------------------------------
 -- A compatible simulation lifts
@@ -176,6 +127,3 @@ module _ {A B : Iface} {M N : Proc A B} {P : StateTest M} {Q : StateTest N}
     st ((s , f) , inj₁ a)        = go s f (inj₁ a)
     st ((s , f) , inj₂ (inj₁ b)) = go s f (inj₂ b)
     st ((s , f) , inj₂ (inj₂ _)) = >>=ₚ-identityˡ _ _
-
-▷-≈ : {A B : Iface} {x y : Annotated A B} → x ≈ᵉ y → (proj₁ x ▷ proj₂ x) S.≈ᴹ (proj₁ y ▷ proj₂ y)
-▷-≈ = EqC.gmap (λ x → proj₁ x ▷ proj₂ x) ▷-≲

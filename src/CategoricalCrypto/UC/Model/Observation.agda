@@ -42,7 +42,6 @@ open import CategoricalCrypto.UC.Model.Seal
 module CategoricalCrypto.UC.Model.Observation where
 
 private
-  module Ap = AllPositive ℚ-refinement Approximationᴹ
   module G = MonoidalCategory 𝔾ᵒ
 
 Ωᵒ 𝟘ᵒ : G.Obj
@@ -51,9 +50,6 @@ private
 
 Obs : 𝟘ᵒ G.⇒ Ωᵒ → Dₚ Bool
 Obs u = ⟦ unprocᵒ u ⟧ᴼ
-
-∼ᴼ-resp : {d d′ e e′ : Dₚ Bool} → d ≈ₚ d′ → e ≈ₚ e′ → d Ap.∼ᵃ e → d′ Ap.∼ᵃ e′
-∼ᴼ-resp p q h ε pos = ≈ₚ[]-resp p q (h ε pos)
 
 -- A simulation is invisible to a closed run (`Protocol.Machine.Run`), so the seal's
 -- hom equality is observed EXACTLY, not merely up to every positive slack.

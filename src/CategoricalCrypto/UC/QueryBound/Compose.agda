@@ -29,6 +29,8 @@ open import Data.Sum.Base
 open import Function.Base
 open import Relation.Binary.PropositionalEquality
 
+open import Algebra.Properties.CommutativeSemigroup +-commutativeSemigroup
+
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Reasoning
 
@@ -126,13 +128,6 @@ module Compose {A B C : Iface} (Sg Sf : Set)
       grant< : {x y : ℕ} → x ℕ.< y ℕ.+ c → x ℕ.* c′ ℕ.+ c′ ℕ.≤ y ℕ.* c′ ℕ.+ c ℕ.* c′
       grant< {y = y} le = ≤-trans (unit le) (≤-reflexive (*-distribʳ-+ c′ y c))
 
-      slack : (a y k : ℕ) → a ℕ.+ (y ℕ.+ k) ≡ (a ℕ.+ k) ℕ.+ y
-      slack a y k = trans (cong (a ℕ.+_) (+-comm y k)) (sym (+-assoc a k y))
-
-      reassoc : (a y k : ℕ) → (a ℕ.+ k) ℕ.+ y ≡ (a ℕ.+ y) ℕ.+ k
-      reassoc a y k = trans (+-assoc a k y)
-                            (trans (cong (a ℕ.+_) (+-comm k y)) (sym (+-assoc a y k)))
-
       --------------------------------------------------------------------
       -- The walk
       --
@@ -157,7 +152,7 @@ module Compose {A B C : Iface} (Sg Sf : Set)
       atGᵍ zero r sg sf fk inv (inj₁ ((sg′ , lt) , b)) = ⊥-elim (n≮0 (≤-trans lt fk))
       atGᵍ (suc k) r sg sf fk inv (inj₁ ((sg′ , lt) , b)) =
         loopFᵍ k r sg′ sf (≤-pred (≤-trans lt fk))
-          (≤-trans (≤-reflexive (slack (qg.Φ sg′ ℕ.* c′) (qf.Φ sf) c′))
+          (≤-trans (≤-reflexive (x∙yz≈xz∙y (qg.Φ sg′ ℕ.* c′) (qf.Φ sf) c′))
                    (≤-trans (+-monoˡ-≤ (qf.Φ sf) (unit lt)) inv))
           b
 
@@ -228,13 +223,13 @@ module Compose {A B C : Iface} (Sg Sf : Set)
       enterRᵍ sg sf (inj₂ ((sg′ , l) , p)) =
         returnₚ (inj₂ (((sg′ , sf)
                        , ≤-trans (+-monoˡ-≤ (qf.Φ sf) (grant l))
-                                 (≤-reflexive (reassoc (qg.Φ sg ℕ.* c′) (qf.Φ sf)
-                                                       (c ℕ.* c′)))) , p))
+                                 (≤-reflexive (xy∙z≈xz∙y (qg.Φ sg ℕ.* c′) (c ℕ.* c′)
+                                                          (qf.Φ sf)))) , p))
       enterRᵍ sg sf (inj₁ ((sg′ , lt) , b)) =
         loopFᵍ (qg.Φ sg′) _ sg′ sf ≤-refl
-          (≤-trans (≤-reflexive (slack (qg.Φ sg′ ℕ.* c′) (qf.Φ sf) c′))
+          (≤-trans (≤-reflexive (x∙yz≈xz∙y (qg.Φ sg′ ℕ.* c′) (qf.Φ sf) c′))
             (≤-trans (+-monoˡ-≤ (qf.Φ sf) (grant< lt))
-                     (≤-reflexive (reassoc (qg.Φ sg ℕ.* c′) (qf.Φ sf) (c ℕ.* c′)))))
+                     (≤-reflexive (xy∙z≈xz∙y (qg.Φ sg ℕ.* c′) (c ℕ.* c′) (qf.Φ sf)))))
           b
 
       onLᶜᵍ : (s : Sg × Sf) (a : Pos A) → Dₚ (Aᶜ (Φᶜ s))

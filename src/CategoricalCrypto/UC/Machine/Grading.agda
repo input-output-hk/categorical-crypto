@@ -23,8 +23,7 @@ open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Positive
 open import Data.Nat.Properties
 open import Data.Product.Base
-open import Data.Sum.Base using (inj₁; inj₂)
-open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)
+open import Data.Sum.Base using (inj₁; inj₂) renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)
 open import Level
 open import Relation.Binary.PropositionalEquality using (cong₂)
 
@@ -40,7 +39,6 @@ open import CategoricalCrypto.UC.QueryBound.Object
 module CategoricalCrypto.UC.Machine.Grading where
 
 private
-  module Rates = SymmetricMonoidalCategory Rates
   module 𝔾 = MonoidalCategory (𝒢ₚᴹ 0ℓ)
   module 𝒢 = Category (𝒢ₚ 0ℓ)
   module 𝒫 = Category 𝒫ᴵ
@@ -62,11 +60,6 @@ qb-subᴳ : (X Y A : Iface) {c : ℕ} (s : Proc X Y)
         → QB c s
         → QB (c ℕ.⊔ 1) (𝔾._⊗₁_ {⟦ X ⟧ᴵ} {⟦ Y ⟧ᴵ} {⟦ A ⟧ᴵ} {⟦ A ⟧ᴵ} s (𝒫.id {A}))
 qb-subᴳ X Y A s q = qb-resp-≈ (sub-⊗₁ {X} {Y} {A} s) (qb-subᴵ X Y A s q)
-
-qb-a⇒ᴳ : (X Y A : Iface) → QB 1 (𝔾.associator.from {⟦ X ⟧ᴵ} {⟦ Y ⟧ᴵ} {⟦ A ⟧ᴵ})
-qb-a⇒ᴳ X Y A =
-  qb-resp-≈ (a⇒-α⇒ {X} {Y} {A})
-    (qb-wire {(X ⊗ᴵ Y) ⊗ᴵ A} {X ⊗ᴵ (Y ⊗ᴵ A)} ⊎assocʳ ⊎assocˡ)
 
 opaque
   qb-T₁ᴳ-object : (Y A B : 𝒢.Obj) {c : ℕ} (f : 𝒢ₚ 0ℓ [ A , B ])
@@ -96,7 +89,8 @@ opaque
                       (𝔾.associator.from {X} {Y} {A})
   qb-a⇒ᴳ-object X Y A =
     qb-to-image ((retᴵ X ⊗ᴵ retᴵ Y) ⊗ᴵ retᴵ A) (retᴵ X ⊗ᴵ (retᴵ Y ⊗ᴵ retᴵ A))
-      (qb-a⇒ᴳ (retᴵ X) (retᴵ Y) (retᴵ A))
+      (qb-resp-≈ (a⇒-α⇒ {retᴵ X} {retᴵ Y} {retᴵ A})
+        (qb-wire {(retᴵ X ⊗ᴵ retᴵ Y) ⊗ᴵ retᴵ A} {retᴵ X ⊗ᴵ (retᴵ Y ⊗ᴵ retᴵ A)} ⊎assocʳ ⊎assocˡ))
 
   qb-λ⇒ᴳ-object : (A : 𝒢.Obj) → QBᴳ (𝔾.unit 𝔾.⊗₀ A) A 1 (𝔾.unitorˡ.from {A})
   qb-λ⇒ᴳ-object A =

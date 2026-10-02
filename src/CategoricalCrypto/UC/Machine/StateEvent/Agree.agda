@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- The state-event reading at embedded strategies: the experiment an ordinary
--- strategy embeds to (`UC.Machine.Monitor.Agree.stratTest`), read against
+-- strategy embeds to (`UC.Seam.Budget.stratTest`), read against
 -- `M ▷ P`, IS the closed run of `M ▷ P` at `flagStrat d`, as `_≈ₚ_`.
 --
 -- The flag reader over `stratTest B d` and `strategyEnv` at `flagStrat d` are
@@ -37,13 +37,13 @@ open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.Dictionary
 open import CategoricalCrypto.UC.Machine.Monitor
-open import CategoricalCrypto.UC.Machine.Monitor.Agree
 open import CategoricalCrypto.UC.Machine.Slide
 open import CategoricalCrypto.UC.Machine.StateEvent
 open import CategoricalCrypto.UC.Machine.StateEvent.Read
 open import CategoricalCrypto.UC.Machine.Wire
 open import CategoricalCrypto.UC.Seam
 open import CategoricalCrypto.UC.Seam.Adequacy.Wiring
+open import CategoricalCrypto.UC.Seam.Budget
 open import CategoricalCrypto.UC.Seam.Plug
 
 import CategoricalCrypto.Machines.Collapse as Col
@@ -69,7 +69,7 @@ embeds B d = ∘-wireᴹ inj₂ [ ⊥-elim , id ] (stratTest B d) S.○ᴹ S.≲
 -- The closed flagged context at `stratTest`, as the flag reader over the
 -- strategy environment.
 flag-tower : (B : Iface) (u : Proc unitᴵ (B ⊗ᴵ Ωᴵ)) (d : Strat (Neg B) (Pos B))
-      → 𝒫._≈_ ((flagReader B unitᴵ (stratTest B d) 𝒫.∘ T₁ᴵ unitᴵ u) 𝒫.∘ m₀)
+      → 𝒫._≈_ ((flagReader B unitᴵ (stratTest B d) 𝒫.∘ T₁ᴵ unitᴵ u) 𝒫.∘ λᴵ⇐ {unitᴵ})
                             (Read.readᴹ B (strategyEnv B d) 𝒫.∘ u)
 flag-tower B u d =
      𝒫.assoc
@@ -203,5 +203,5 @@ module _ {B : Iface} (M : Proc unitᴵ B) (P : StateTest M) (d : Strat (Neg B) (
 -- Agreement
 
 stateRead-agree : {B : Iface} (M : Proc unitᴵ B) (P : StateTest M) (d : Strat (Neg B) (Pos B))
-                → stateRead unitᴵ M P (stratTest B d) m₀ ≈ₚ runᴹ (M ▷ P) (flagStrat d)
+                → stateRead unitᴵ M P (stratTest B d) (λᴵ⇐ {unitᴵ}) ≈ₚ runᴹ (M ▷ P) (flagStrat d)
 stateRead-agree {B} M P d = runᴹ-resp-≈ᴹ (flag-tower B (M ▷ P) d) (ask tt out) ⟨≈⟩ flag-adequacy M P d

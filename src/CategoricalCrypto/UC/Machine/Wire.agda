@@ -72,10 +72,10 @@ private
              ≈ᴹ ((q ⊗ᵉ idᴹ) ∘ᴹ (f ∘ᴹ (p ⊗ᵉ idᴹ)))
   absorbʳᵂ = GE.Embed.WithTrace.absorbʳ ℳ.U ℳ.monoidal (Tracedₚ 0ℓ) (TraceLawsₚ 0ℓ)
 
-  idˡ-pure : {V W V′ : Set} (h : V → W) → 𝒱._≈_ (𝒱.id {V′} +₁ pureᵏ h) (pureᵏ (Sum.map (λ v → v) h))
+  idˡ-pure : {V W V′ : Set} (h : V → W) → 𝒱._≈_ (𝒱.id {V′} +₁ pureᵏ h) (pureᵏ (Sum.map₂ h))
   idˡ-pure h = +₁-pureᵏ pure-idᵏ (𝒱.Equiv.refl {x = pureᵏ h})
 
-  idʳ-pure : {V W V′ : Set} (h : V → W) → 𝒱._≈_ (pureᵏ h +₁ 𝒱.id {V′}) (pureᵏ (Sum.map h (λ v → v)))
+  idʳ-pure : {V W V′ : Set} (h : V → W) → 𝒱._≈_ (pureᵏ h +₁ 𝒱.id {V′}) (pureᵏ (Sum.map₁ h))
   idʳ-pure h = +₁-pureᵏ (𝒱.Equiv.refl {x = pureᵏ h}) pure-idᵏ
 
 ------------------------------------------------------------------------
@@ -85,7 +85,7 @@ module _ {A B C : Iface} (up : Pos B → Pos C) (down : Neg C → Neg B) where
 
   wire-∘ᴹ : (f : Proc A B)
           → 𝒫._≈_ {A} {C} (wireᴹ up down 𝒫.∘ f)
-              (sandwichᴹ f (Sum.map (λ a → a) down) (Sum.map (λ a → a) up))
+              (sandwichᴹ f (Sum.map₂ down) (Sum.map₂ up))
   wire-∘ᴹ f =
        𝒫.∘-resp-≈ˡ {f = wireᴹ up down} (wire-⌜⌝ up down)
     ○ᴹ absorbˡᵂ
@@ -99,7 +99,7 @@ module _ {A B C : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A) where
 
   ∘-wireᴹ : (f : Proc B C)
           → 𝒫._≈_ {A} {C} (f 𝒫.∘ wireᴹ up down)
-              (sandwichᴹ f (Sum.map up (λ a → a)) (Sum.map down (λ a → a)))
+              (sandwichᴹ f (Sum.map₁ up) (Sum.map₁ down))
   ∘-wireᴹ f =
        𝒫.∘-resp-≈ʳ {f = wireᴹ up down} (wire-⌜⌝ up down)
     ○ᴹ absorbʳᵂ

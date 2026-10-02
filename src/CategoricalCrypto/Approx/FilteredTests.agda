@@ -3,7 +3,7 @@
 -- `Approx.Filtered` at the pointwise poset of cost profiles `ℕ → ℕ` (stdlib's
 -- `IndexedPoset.poset`; `Approx.Filtered`'s header says why allowance maps are
 -- compared by `_≈_`): the doublings `n + n` and `2 * n`, identified by `Filt`
--- before and after composition.
+-- before and after composition.  Last, `ℕ-ordered` has no `Refinement`.
 
 open import Categories.Category
 
@@ -14,6 +14,7 @@ open import Level
 open import Relation.Binary.Bundles
 open import Relation.Binary.Indexed.Homogeneous.Bundles
 open import Relation.Binary.PropositionalEquality
+open import Relation.Nullary
 
 import Data.Nat.Properties as ℕₚ
 
@@ -82,3 +83,11 @@ admitted-doubled : {a x : ℕ → ℕ} → FilteredSpace.Admit Runs a x
                  → FilteredSpace.Admit Runs (a ∘ (2 *_)) (x ∘ λ n → n + n)
 admitted-doubled {a} h =
   FilteredSpace.admit-resp Runs (proj₂ doubled a) (Filtered.admits (along λ n → n + n) h)
+
+------------------------------------------------------------------------
+-- Counts admit no refinement
+
+ℕ-unrefinable : (R : Refinement ℕ-ordered)
+              → ({n : ℕ} → Refinement.Positive R n → 0 < n) → ¬ Refinement.Positive R 1
+ℕ-unrefinable R pos⇒ p1 = let _ , _ , pδ , pδ′ , le = Refinement.refine R p1
+  in ℕₚ.1+n≰n (ℕₚ.≤-trans (ℕₚ.+-mono-≤ (pos⇒ pδ) (pos⇒ pδ′)) le)

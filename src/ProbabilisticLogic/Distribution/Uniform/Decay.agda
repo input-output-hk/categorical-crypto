@@ -40,6 +40,12 @@ s →0 = ∀ ε → ε > 0ℚ → Σ[ N ∈ ℕ ] ∀ n → N ℕ.≤ n → s n 
 →0-≤ : (∀ n → s n ≤ t n) → t →0 → s →0
 →0-≤ s≤t h ε ε>0 = let (N , bnd) = h ε ε>0 in N , λ n N≤n → ≤-trans (s≤t n) (bnd n N≤n)
 
+→0-cong : (∀ n → s n ≡ t n) → s →0 → t →0
+→0-cong eq h ε ε>0 = let (N , bnd) = h ε ε>0 in N , λ n le → subst (_≤ ε) (eq n) (bnd n le)
+
+→0-0 : (λ (_ : ℕ) → 0ℚ) →0
+→0-0 _ ε>0 = 0 , λ _ _ → <⇒≤ ε>0
+
 -- Scaling by a positive constant: `ε` is asked of `s` shrunk by `1/c`.
 →0-*ˡ : ∀ c → 0ℚ < c → s →0 → (λ n → c * s n) →0
 →0-*ˡ {s} c 0<c h ε ε>0 = let (N , bnd) = h (r * ε) 0<rε in N , λ n N≤n → begin

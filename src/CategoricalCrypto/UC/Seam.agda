@@ -10,11 +10,9 @@
 -- machine tensor (the 10 GiB inversion `UC.Machine.𝒫ᴵ` records).
 
 open import Data.Bool.Base
-open import Data.Empty
 open import Data.Product.Base
 open import Data.Sum.Base
 open import Data.Unit.Base
-open import Data.Unit.Polymorphic.Base using (tt)
 open import Level
 
 open import ProbabilisticLogic.Dp
@@ -22,7 +20,6 @@ open import ProbabilisticLogic.Dp.Coin
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
-open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 

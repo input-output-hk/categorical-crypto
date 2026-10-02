@@ -46,7 +46,7 @@ record FilteredSpace (c ℓa ℓd : Level) : Set (suc (c ⊔ ℓa ⊔ ℓd) ⊔ 
     space : ApproxSpace c ℓa
 
   open ApproxSpace space public
-    using (Carrier; _≈[_]_; ≈[]-refl; ≈[]-sym; ≈[]-trans; ≈[]-mono)
+    using (Carrier; _≈[_]_; ≈[]-refl; ≈[]-sym; ≈[]-trans; ≈[]-trans₀; ≈[]-mono)
 
   field
     Admit      : Ix → Carrier → Set ℓd
@@ -55,9 +55,6 @@ record FilteredSpace (c ℓa ℓd : Level) : Set (suc (c ⊔ ℓa ⊔ ℓd) ⊔ 
   admit-resp : {q q′ : Ix} {x : Carrier} → q ≈ q′ → Admit q x → Admit q′ x
   admit-resp eq = admit-mono (Poset.reflexive I eq)
 
-Allowance : Set (i ⊔ ℓ≈ ⊔ ℓ≤)
-Allowance = PosetHomomorphism I I
-
 record Filtered (X Y : FilteredSpace c ℓa ℓd) : Set (c ⊔ es ⊔ ℓe ⊔ ℓa ⊔ ℓd ⊔ i ⊔ ℓ≈ ⊔ ℓ≤) where
   private
     module X = FilteredSpace X
@@ -65,7 +62,7 @@ record Filtered (X Y : FilteredSpace c ℓa ℓd) : Set (c ⊔ es ⊔ ℓe ⊔ �
 
   field
     underlying : Controlled X.space Y.space
-    allowance  : Allowance
+    allowance  : PosetHomomorphism I I
 
   map = Controlled.map underlying
 
@@ -89,7 +86,7 @@ module _ {X Y : FilteredSpace c ℓa ℓd} where
         ((r , l) , λ x → SY.≈[]-sym (me x)) , λ q → Eq.sym (ae q)
     ; trans = λ (((l₁ , r₁) , me₁) , ae₁) (((l₂ , r₂) , me₂) , ae₂) →
         ( ( (λ ε → ⊑-trans (l₁ ε) (l₂ ε)) , λ ε → ⊑-trans (r₂ ε) (r₁ ε) )
-        , λ x → SY.≈[]-mono ⊕-identityˡ (SY.≈[]-trans (me₁ x) (me₂ x)) )
+        , λ x → SY.≈[]-trans₀ (me₁ x) (me₂ x) )
         , λ q → Eq.trans (ae₁ q) (ae₂ q)
     }
     where module SY = FilteredSpace Y

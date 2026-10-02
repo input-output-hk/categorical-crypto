@@ -27,6 +27,3 @@ module Mℚ {ℓ} {A : Type ℓ} = Setoid (Mℚ-setoid A)
 >>=ᴹ-congˡ : (μ : Dist-ℚ A) (f g : A → Dist-ℚ B)
            → (∀ a → f a ≈Mℚ g a) → (μ >>=ᴹ f) ≈Mℚ (μ >>=ᴹ g)
 >>=ᴹ-congˡ μ f g pt = >>=ᴹ-cong {μ = μ} {μ} {f} {g} (λ P → refl) pt
-
->>=ᴹ-congʳ : (K : A → Dist-ℚ B) (μ ν : Dist-ℚ A) → μ ≈Mℚ ν → (μ >>=ᴹ K) ≈Mℚ (ν >>=ᴹ K)
->>=ᴹ-congʳ K μ ν e = >>=ᴹ-cong {μ = μ} {ν} {K} {K} e (λ a → Mℚ.refl {x = K a})

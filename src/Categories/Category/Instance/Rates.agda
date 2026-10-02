@@ -12,3 +12,5 @@ open import Categories.Category.Monoidal.Construction.Thin
 
 Rates : SymmetricMonoidalCategory 0ℓ 0ℓ 0ℓ
 Rates = Thin-SymmetricMonoidalCategory 0ℓ ·-1-OrderedCommutativeMonoid
+
+module Rates = SymmetricMonoidalCategory Rates

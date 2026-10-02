@@ -48,7 +48,6 @@ module AbstractUC
   Iᵤ : Category o ℓ e
   Iᵤ = ℐ.U
 
-
   ⟨_,_⟩ : 𝒞.Obj → ℐ.Obj → OAP.Obj
   ⟨ A , I ⟩ = I , A
 
@@ -121,7 +120,6 @@ module AbstractUC
   ------------------------------------------------------------------------
   -- The pure-attack algebra
   ------------------------------------------------------------------------
-
 
   atk-idˡ : ∀ {A B} (x : A ⇒ᴼ B) → pureAtk ℐ.id OAP.∘ x ≈ℰ' x
   atk-idˡ x = U-≈ℰ⇒≈ℰ' (begin

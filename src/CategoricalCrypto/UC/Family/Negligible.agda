@@ -33,16 +33,14 @@ open import CategoricalCrypto.UC.Core
 import CategoricalCrypto.Approx.Evaluation as Evaluationᴹ
 import CategoricalCrypto.Standard2 as Std2
 
-module Rates = SymmetricMonoidalCategory Rates
-
 module CategoricalCrypto.UC.Family.Negligible
   {o ℓ e os ℓa qs : Level}
   (M : MonoidalCategory o ℓ e)
   (qro : QEvaluation (MonoidalCategory.U M) os ℓa)
   (Rg : GradedSubCat Rates.monoidalCategory M qs)
-  (Ix : Set) (κ : Ix → ℕ) (κ-cofinal : (N : ℕ) → Σ[ i ∈ Ix ] N ℕ.≤ κ i) where
+  (Ix : Set) (κ : Ix → ℕ) where
 
-open import CategoricalCrypto.UC.Family M qro Rg Ix κ κ-cofinal
+open import CategoricalCrypto.UC.Family M qro Rg Ix κ
 
 open QEvaluation qro
 open GradedSubCat Rg

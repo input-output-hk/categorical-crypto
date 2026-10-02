@@ -1,25 +1,22 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- The two ways to forget an approximate space to a setoid
--- (`docs/quantitative-uc-setup-plan.typ` §3), and the comparison between them.
--- The exact one, `Approx.Space.F₀`, needs nothing of the errors; the
--- all-positive one needs a `Refinement` of them.
+-- (`docs/quantitative-uc-setup-plan.typ` §3).  The exact one, `Approx.Space.F₀`,
+-- needs nothing of the errors; the all-positive one needs a `Refinement` of them.
 --
--- The comparison `forget` is the identity on carriers and is deliberately NOT
--- an isomorphism: a space whose error balls are not closed has points that no
--- positive error separates and zero error does (`Approx.Separating`).  That is
--- why an exact bound must stay in `Approx` rather than be asked to respect
--- `F₊`'s coarser equality.
+-- The two are NOT isomorphic: a space whose error balls are not closed has
+-- points that no positive error separates and zero error does
+-- (`Approx.Separating`).  That is why an exact bound must stay in `Approx`
+-- rather than be asked to respect `F₊`'s coarser equality.
 --
 -- The relation level is spelled `es ⊔ ℓe ⊔ ℓb` because `∼ᵃ` quantifies over an
 -- error and a positivity proof, and only at that shape do the two functors
--- share a target category — which a natural transformation between them needs.
+-- share a target category.
 -- The levels are module PARAMETERS because `⊔` is not invertible: `ℓb` is not
 -- recoverable from `es ⊔ ℓe ⊔ ℓb` by unification.
 
 open import Categories.Category.Instance.Setoids
 open import Categories.Functor
-open import Categories.NaturalTransformation
 
 open import Level
 open import Relation.Binary.Bundles
@@ -46,11 +43,4 @@ F₊ = record
   ; identity     = λ {A} → P.zero⇒positive A (ApproxSpace.≈[]-refl A)
   ; homomorphism = λ {_} {_} {Z} → P.zero⇒positive Z (ApproxSpace.≈[]-refl Z)
   ; F-resp-≈     = λ {_} {B} e {x} → P.zero⇒positive B (e x)
-  }
-
-forget : NaturalTransformation (F₀ c (es ⊔ ℓe ⊔ ℓb)) F₊
-forget = record
-  { η = λ X → record { to = λ x → x ; cong = P.zero⇒positive X }
-  ; commute     = λ {_} {Y} _ → P.zero⇒positive Y (ApproxSpace.≈[]-refl Y)
-  ; sym-commute = λ {_} {Y} _ → P.zero⇒positive Y (ApproxSpace.≈[]-refl Y)
   }

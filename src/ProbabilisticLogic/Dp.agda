@@ -239,10 +239,6 @@ cum-add : (n : ℕ) (d : Dₚ A) (P Q : A → ℚ) → cum n d (λ p → P p ℚ
 cum-add n d P Q = trans (cum-flatten n d _) (trans (Lin.lookup-L-+ (flatten n d) P Q)
   (sym (cong₂ ℚ._+_ (cum-flatten n d P) (cum-flatten n d Q))))
 
-cum-*ₗ : (n : ℕ) (d : Dₚ A) (c : ℚ) (P : A → ℚ) → cum n d (λ p → c ℚ.* P p) ≡ c ℚ.* cum n d P
-cum-*ₗ n d c P = trans (cum-flatten n d _) (trans (Lin.lookup-L-*ₗ c (flatten n d) P)
-  (cong (c ℚ.*_) (sym (cum-flatten n d P))))
-
 cum-const : (n : ℕ) (d : Dₚ A) (c : ℚ) → cum n d (λ _ → c) ≡ cum n d (λ _ → 1ℚ) ℚ.* c
 cum-const n d c = trans (cum-flatten n d _) (trans (Lin.lookup-L-const (flatten n d) c)
   (cong (ℚ._* c) (sym (cum-flatten n d _))))

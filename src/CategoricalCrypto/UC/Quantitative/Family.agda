@@ -37,8 +37,6 @@ open import CategoricalCrypto.UC.Approximate
 
 import Data.Rational.Properties as ℚₚ
 
-module Rates = SymmetricMonoidalCategory Rates
-
 module CategoricalCrypto.UC.Quantitative.Family
   {o ℓ e os ℓa qs : Level}
   (M : MonoidalCategory o ℓ e) (Rg : GradedSubCat Rates.monoidalCategory M qs)
@@ -242,12 +240,4 @@ composeError-negligible rf rtv εf εu Prf Prtv nf nu =
   t₁ = sim t n
 
   strict-final : ext (X n) (sub t₁ ∘ v n) ∘ sub s₁ ∘ g n ≈ sub (s₁ ⊗₁ t₁) ∘ ext (Y n) (v n) ∘ g n
-  strict-final = begin
-    ext (X n) (sub t₁ ∘ v n) ∘ sub s₁ ∘ g n              ≈⟨ sub-commute₂ ⟩∘⟨refl ⟩
-    (sub (id ⊗₁ t₁) ∘ ext (X n) (v n)) ∘ sub s₁ ∘ g n    ≈⟨ assoc ○ (refl⟩∘⟨ sym-assoc) ⟩
-    sub (id ⊗₁ t₁) ∘ (ext (X n) (v n) ∘ sub s₁) ∘ g n    ≈⟨ refl⟩∘⟨ (sub-commute₁ ⟩∘⟨refl) ⟩
-    sub (id ⊗₁ t₁) ∘ (sub (s₁ ⊗₁ id) ∘ ext (Y n) (v n)) ∘ g n
-      ≈⟨ (refl⟩∘⟨ assoc) ○ sym-assoc ⟩
-    (sub (id ⊗₁ t₁) ∘ sub (s₁ ⊗₁ id)) ∘ ext (Y n) (v n) ∘ g n
-      ≈⟨ (⟺ sub-homomorphism ○ sub-resp-≈ (⟺ serialize₂₁)) ⟩∘⟨refl ⟩
-    sub (s₁ ⊗₁ t₁) ∘ ext (Y n) (v n) ∘ g n               ∎
+  strict-final = pullˡ sub-commute ○ assoc

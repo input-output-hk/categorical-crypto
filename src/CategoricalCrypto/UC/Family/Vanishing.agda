@@ -20,15 +20,13 @@ open import CategoricalCrypto.Approx.Evaluation ℚ-ordered
 
 import CategoricalCrypto.Standard2 as Std2
 
-module Rates = SymmetricMonoidalCategory Rates
-
 module CategoricalCrypto.UC.Family.Vanishing
   {o ℓ e os ℓa qs : Level}
   (M : MonoidalCategory o ℓ e)
   (qro : QEvaluation (MonoidalCategory.U M) os ℓa)
   (Rg : GradedSubCat Rates.monoidalCategory M qs)
-  (Ix : Set) (κ : Ix → ℕ) (κ-cofinal : (N : ℕ) → Σ[ i ∈ Ix ] N ℕ.≤ κ i) where
+  (Ix : Set) (κ : Ix → ℕ) where
 
-open import CategoricalCrypto.UC.Family M qro Rg Ix κ κ-cofinal
+open import CategoricalCrypto.UC.Family M qro Rg Ix κ
 
 module Canonical^ω = Std2.StdUC Famᴹ ℰ^ω

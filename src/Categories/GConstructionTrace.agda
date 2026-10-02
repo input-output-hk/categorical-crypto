@@ -37,16 +37,17 @@ private
   Cˢ : SymmetricMonoidalCategory a b c
   Cˢ = record { U = C ; monoidal = Monoidal ; symmetric = C.symmetric }
 
-open C.HomReasoning
+open C
+open HomReasoning
 
 open TE Traced public using (β)
 
-α : ∀ {A⁻ B⁺ B⁻ C⁺ : C.Obj} → (B⁻ C.⊗₀ C⁺) C.⊗₀ (A⁻ C.⊗₀ B⁺) C.⇒ (A⁻ C.⊗₀ C⁺) C.⊗₀ (B⁻ C.⊗₀ B⁺)
-α = C.α⇒ C.∘ C.σ⇒ C.⊗₁ C.id C.∘ C.α⇐ C.∘ C.id C.⊗₁ (C.σ⇒ C.⊗₁ C.id) C.∘ C.id C.⊗₁ C.α⇐ C.∘ C.α⇒
+α : ∀ {A⁻ B⁺ B⁻ C⁺ : Obj} → (B⁻ ⊗₀ C⁺) ⊗₀ (A⁻ ⊗₀ B⁺) ⇒ (A⁻ ⊗₀ C⁺) ⊗₀ (B⁻ ⊗₀ B⁺)
+α = α⇒ ∘ σ⇒ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ (σ⇒ ⊗₁ id) ∘ id ⊗₁ α⇐ ∘ α⇒
 
-γ : ∀ {A⁺ B⁺ B⁻ C⁻ : C.Obj} → (A⁺ C.⊗₀ C⁻) C.⊗₀ (B⁻ C.⊗₀ B⁺) C.⇒ (B⁺ C.⊗₀ C⁻) C.⊗₀ (A⁺ C.⊗₀ B⁻)
-γ = C.α⇒ C.∘ C.σ⇒ C.⊗₁ C.id C.∘ C.α⇐ C.∘ C.id C.⊗₁ (C.σ⇒ C.⊗₁ C.id)
-  C.∘ C.id C.⊗₁ C.α⇐ C.∘ C.α⇒ C.∘ C.id C.⊗₁ C.σ⇒
+γ : ∀ {A⁺ B⁺ B⁻ C⁻ : Obj} → (A⁺ ⊗₀ C⁻) ⊗₀ (B⁻ ⊗₀ B⁺) ⇒ (B⁺ ⊗₀ C⁻) ⊗₀ (A⁺ ⊗₀ B⁻)
+γ = α⇒ ∘ σ⇒ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ (σ⇒ ⊗₁ id)
+  ∘ id ⊗₁ α⇐ ∘ α⇒ ∘ id ⊗₁ σ⇒
 
 -- The middle-four interchange, the only structural morphism the
 -- G-construction's tensor of morphisms needs.  It is upstream's
@@ -54,30 +55,29 @@ open TE Traced public using (β)
 -- conversion checker meets the composite directly; the involution, the
 -- naturality and the braiding law below are upstream's, read at that
 -- spelling.
-mid : ∀ {P Q R S : C.Obj} → (P C.⊗₀ Q) C.⊗₀ (R C.⊗₀ S) C.⇒ (P C.⊗₀ R) C.⊗₀ (Q C.⊗₀ S)
-mid = C.α⇐ C.∘ C.id C.⊗₁ (C.α⇒ C.∘ C.σ⇒ C.⊗₁ C.id C.∘ C.α⇐) C.∘ C.α⇒
+mid : ∀ {P Q R S : Obj} → (P ⊗₀ Q) ⊗₀ (R ⊗₀ S) ⇒ (P ⊗₀ R) ⊗₀ (Q ⊗₀ S)
+mid = α⇐ ∘ id ⊗₁ (α⇒ ∘ σ⇒ ⊗₁ id ∘ α⇐) ∘ α⇒
 
-mid-involutive : ∀ {P Q R S : C.Obj} → mid {P} {Q} {R} {S} C.∘ mid C.≈ C.id
-mid-involutive = IS.swapInner-commutative C.symmetric
+mid-involutive : ∀ {P Q R S : Obj} → mid {P} {Q} {R} {S} ∘ mid ≈ id
+mid-involutive = IS.swapInner-commutative symmetric
 
-mid-natural : ∀ {P P′ Q Q′ R R′ S S′ : C.Obj}
-                {f : P C.⇒ P′} {g : Q C.⇒ Q′} {h : R C.⇒ R′} {k : S C.⇒ S′} →
-              mid C.∘ (f C.⊗₁ g) C.⊗₁ (h C.⊗₁ k)
-              C.≈ (f C.⊗₁ h) C.⊗₁ (g C.⊗₁ k) C.∘ mid
-mid-natural = IB.swapInner-natural C.braided
+mid-natural : ∀ {P P′ Q Q′ R R′ S S′ : Obj}
+                {f : P ⇒ P′} {g : Q ⇒ Q′} {h : R ⇒ R′} {k : S ⇒ S′} →
+              mid ∘ (f ⊗₁ g) ⊗₁ (h ⊗₁ k)
+              ≈ (f ⊗₁ h) ⊗₁ (g ⊗₁ k) ∘ mid
+mid-natural = IB.swapInner-natural braided
 
-mid-braiding : ∀ {P Q R S : C.Obj} → mid C.∘ C.σ⇒ C.⊗₁ C.σ⇒ C.∘ mid {P} {Q} {R} {S} C.≈ C.σ⇒
-mid-braiding = IB.swapInner-braiding C.braided
+mid-braiding : ∀ {P Q R S : Obj} → mid ∘ σ⇒ ⊗₁ σ⇒ ∘ mid {P} {Q} {R} {S} ≈ σ⇒
+mid-braiding = IB.swapInner-braiding braided
 
-mid-σ : ∀ {P Q R S : C.Obj} → mid C.∘ C.σ⇒ C.⊗₁ C.σ⇒ C.≈ C.σ⇒ C.∘ mid {P} {R} {Q} {S}
-mid-σ = C.switch-fromtoʳ (IS.swapInner-iso C.symmetric) (C.assoc ○ mid-braiding)
+mid-σ : ∀ {P Q R S : Obj} → mid ∘ σ⇒ ⊗₁ σ⇒ ≈ σ⇒ ∘ mid {P} {R} {Q} {S}
+mid-σ = switch-fromtoʳ (IS.swapInner-iso symmetric) (assoc ○ mid-braiding)
 
 -- The unitor and associator squares of `f ⊗₁ᴳ g = mid ∘ f ⊗ g ∘ mid`
 -- (`GConstructionMonoidal`, after `absorbˡ`/`absorbʳ`).  `⊗` is strong monoidal
 -- with `⊗-homo = swapInner` (upstream `Categories.Functor.Monoidal.Tensor`), and
 -- these are its `swapInner-unitˡ`/`-unitʳ`/`-assoc` read through the conjugation.
 module _ where
-  open C
   open import Categories.Category.Construction.Core C
   open import Categories.Category.Monoidal.Properties Monoidal
   open import Categories.Category.Monoidal.Reasoning Monoidal using (⊗-distrib-over-∘; _⟩⊗⟨_; _⟩⊗⟨refl)
@@ -199,58 +199,58 @@ module WithTrace (L : TE.Laws Traced) where
 
   open TE.Laws L
 
-  trace-βyank : ∀ {Y X : C.Obj} → C.trace (β {Y} {X} {X}) C.≈ C.id
-  trace-βyank = C.superposing ○ (C.refl⟩⊗⟨ C.yanking) ○ C.⊗.identity
+  trace-βyank : ∀ {Y X : Obj} → trace (β {Y} {X} {X}) ≈ id
+  trace-βyank = superposing ○ (refl⟩⊗⟨ yanking) ○ ⊗.identity
 
-  trace-gyank : ∀ {Y X B' : C.Obj} {g : Y C.⊗₀ X C.⇒ B'} →
-                C.trace (g C.⊗₁ C.id C.∘ β {Y} {X} {X}) C.≈ g
-  trace-gyank = ⟺ trace-∘ˡ ○ C.elimʳ trace-βyank
+  trace-gyank : ∀ {Y X B' : Obj} {g : Y ⊗₀ X ⇒ B'} →
+                trace (g ⊗₁ id ∘ β {Y} {X} {X}) ≈ g
+  trace-gyank = ⟺ trace-∘ˡ ○ elimʳ trace-βyank
 
   -- Right superposing, the mirror of `Traced.superposing`.
-  right-superposing : ∀ {X Y A' B'} {f' : A' C.⊗₀ X C.⇒ B' C.⊗₀ X} →
-    C.trace f' C.⊗₁ C.id {Y} C.≈ C.trace (β C.∘ f' C.⊗₁ C.id C.∘ β)
+  right-superposing : ∀ {X Y A' B'} {f' : A' ⊗₀ X ⇒ B' ⊗₀ X} →
+    trace f' ⊗₁ id {Y} ≈ trace (β ∘ f' ⊗₁ id ∘ β)
   right-superposing {X} {Y} {A'} {B'} {f'} = begin
-    C.trace f' C.⊗₁ C.id
-      ≈⟨ C.introˡ C.commutative ○ C.pullʳ (C.braiding.⇒.commute _) ⟩
-    C.σ⇒ C.∘ C.id C.⊗₁ C.trace f' C.∘ C.σ⇒
-      ≈⟨ refl⟩∘⟨ C.Equiv.sym C.superposing ⟩∘⟨refl ⟩
-    C.σ⇒ C.∘ C.trace (C.α⇐ C.∘ C.id C.⊗₁ f' C.∘ C.α⇒) C.∘ C.σ⇒
+    trace f' ⊗₁ id
+      ≈⟨ introˡ commutative ○ pullʳ (braiding.⇒.commute _) ⟩
+    σ⇒ ∘ id ⊗₁ trace f' ∘ σ⇒
+      ≈⟨ refl⟩∘⟨ Equiv.sym superposing ⟩∘⟨refl ⟩
+    σ⇒ ∘ trace (α⇐ ∘ id ⊗₁ f' ∘ α⇒) ∘ σ⇒
       ≈⟨ refl⟩∘⟨ trace-∘ʳ ⟩
-    C.σ⇒ C.∘ C.trace ((C.α⇐ C.∘ C.id C.⊗₁ f' C.∘ C.α⇒) C.∘ C.σ⇒ C.⊗₁ C.id)
+    σ⇒ ∘ trace ((α⇐ ∘ id ⊗₁ f' ∘ α⇒) ∘ σ⇒ ⊗₁ id)
       ≈⟨ trace-∘ˡ ⟩
-    C.trace (C.σ⇒ C.⊗₁ C.id C.∘ (C.α⇐ C.∘ C.id C.⊗₁ f' C.∘ C.α⇒) C.∘ C.σ⇒ C.⊗₁ C.id)
+    trace (σ⇒ ⊗₁ id ∘ (α⇐ ∘ id ⊗₁ f' ∘ α⇒) ∘ σ⇒ ⊗₁ id)
       ≈⟨ trace-resp-≈ (GCohId.Transport.WithGen.RS Cˢ A' B' X X Y f') ⟩
-    C.trace (β C.∘ f' C.⊗₁ C.id C.∘ β)
+    trace (β ∘ f' ⊗₁ id ∘ β)
     ∎
 
-  ⊗-trace : ∀ {X Y A A' B B' : C.Obj}
-              {u : A C.⊗₀ X C.⇒ B C.⊗₀ X} {v : A' C.⊗₀ Y C.⇒ B' C.⊗₀ Y} →
-            C.trace u C.⊗₁ C.trace v C.≈
-            C.trace (C.trace ((β C.∘ u C.⊗₁ C.id C.∘ β) C.⊗₁ C.id C.∘ β
-                              C.∘ (C.α⇐ C.∘ C.id C.⊗₁ v C.∘ C.α⇒) C.⊗₁ C.id C.∘ β))
+  ⊗-trace : ∀ {X Y A A' B B' : Obj}
+              {u : A ⊗₀ X ⇒ B ⊗₀ X} {v : A' ⊗₀ Y ⇒ B' ⊗₀ Y} →
+            trace u ⊗₁ trace v ≈
+            trace (trace ((β ∘ u ⊗₁ id ∘ β) ⊗₁ id ∘ β
+                              ∘ (α⇐ ∘ id ⊗₁ v ∘ α⇒) ⊗₁ id ∘ β))
   ⊗-trace {X} {Y} {A} {A'} {B} {B'} {u} {v} = begin
-    C.trace u C.⊗₁ C.trace v
-      ≈⟨ C.serialize₁₂ ⟩
-    C.trace u C.⊗₁ C.id C.∘ C.id C.⊗₁ C.trace v
-      ≈⟨ right-superposing ⟩∘⟨ C.Equiv.sym C.superposing ⟩
-    C.trace body₁ C.∘ C.trace body₂
+    trace u ⊗₁ trace v
+      ≈⟨ serialize₁₂ ⟩
+    trace u ⊗₁ id ∘ id ⊗₁ trace v
+      ≈⟨ right-superposing ⟩∘⟨ Equiv.sym superposing ⟩
+    trace body₁ ∘ trace body₂
       ≈⟨ trace-∘ʳ ⟩
-    C.trace (body₁ C.∘ C.trace body₂ C.⊗₁ C.id)
+    trace (body₁ ∘ trace body₂ ⊗₁ id)
       ≈⟨ trace-resp-≈ (refl⟩∘⟨ right-superposing) ⟩
-    C.trace (body₁ C.∘ C.trace (β C.∘ body₂ C.⊗₁ C.id C.∘ β))
+    trace (body₁ ∘ trace (β ∘ body₂ ⊗₁ id ∘ β))
       ≈⟨ trace-resp-≈ trace-∘ˡ ⟩
-    C.trace (C.trace (body₁ C.⊗₁ C.id C.∘ β C.∘ body₂ C.⊗₁ C.id C.∘ β))
+    trace (trace (body₁ ⊗₁ id ∘ β ∘ body₂ ⊗₁ id ∘ β))
     ∎
-    where body₁ = β C.∘ u C.⊗₁ C.id {B'} C.∘ β
-          body₂ = C.α⇐ C.∘ C.id {A} C.⊗₁ v C.∘ C.α⇒
+    where body₁ = β ∘ u ⊗₁ id {B'} ∘ β
+          body₂ = α⇐ ∘ id {A} ⊗₁ v ∘ α⇒
 
   -- The traced category's own "trace is monoidal", with no G-construction
   -- wiring in it: `TM` identifies `⊗-trace`'s β-conjugated body with
   -- `mid ∘ u ⊗ v ∘ mid`, so `vanishing₂` merges the loops.
-  ⊗-trace-mid : ∀ {X Y A A' B B' : C.Obj}
-                  {u : A C.⊗₀ X C.⇒ B C.⊗₀ X} {v : A' C.⊗₀ Y C.⇒ B' C.⊗₀ Y} →
-                C.trace u C.⊗₁ C.trace v C.≈ C.trace (mid C.∘ u C.⊗₁ v C.∘ mid)
+  ⊗-trace-mid : ∀ {X Y A A' B B' : Obj}
+                  {u : A ⊗₀ X ⇒ B ⊗₀ X} {v : A' ⊗₀ Y ⇒ B' ⊗₀ Y} →
+                trace u ⊗₁ trace v ≈ trace (mid ∘ u ⊗₁ v ∘ mid)
   ⊗-trace-mid {X} {Y} {A} {A'} {B} {B'} {u} {v} =
     ⊗-trace
     ○ trace-resp-≈ (trace-resp-≈ (TCoh.Transport.WithGens.TM Cˢ A A' B B' X Y u v))
-    ○ C.vanishing₂
+    ○ vanishing₂

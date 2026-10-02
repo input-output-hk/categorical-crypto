@@ -61,9 +61,6 @@ qualBy Q {_∼_} eqv coarsen = record
   }
   where open QEvaluation Q
 
-qual : (Q : QEvaluation 𝒞 cs ℓa) → Evaluation 𝒞 cs ℓa
-qual Q = qualBy Q (Setoid.isEquivalence (zeroSetoid (QEvaluation.X Q))) λ h → h
-
 qual₊ : Refinement E → (Q : QEvaluation 𝒞 cs ℓa) → Evaluation 𝒞 cs (es ⊔ ℓe ⊔ ℓa)
 qual₊ R Q = qualBy Q ∼ᵃ-isEquivalence zero⇒positive
   where open AllPositive R (QEvaluation.approx Q)

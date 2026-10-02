@@ -8,7 +8,6 @@ open import categorical-crypto.Prelude using (PredS)
 open import Data.Product
 open import Data.Unit
 open import Function.Bundles
-open import Function.Properties.Equivalence
 
 open import Level
 
@@ -20,11 +19,11 @@ open import CategoricalCrypto.UCSetup
 module CategoricalCrypto.UC.Robust
   {o ℓ e o′ ℓ′ e′ cs ℓs : Level} (setup : UCSetup o ℓ e o′ ℓ′ e′ cs ℓs) where
 
-open AbstractUC setup public
+open AbstractUC setup
 
 private variable
   A B : 𝒞.Obj
-  W X X′ Y : ℐ.Obj
+  X Y : ℐ.Obj
   d p : Level
 
 module ℰ = Functor ℰ
@@ -38,12 +37,6 @@ Predℰ A p = (W : ℐ.Obj) → PredS (ℰ.₀ (T₀ W A)) p
 
 Admissible : (A : 𝒞.Obj) (d : Level) → Set (o ⊔ cs ⊔ suc d)
 Admissible A d = ∀ W X → Env (T₀ (W ⊗₀ X) A) → Set d
-
-⊤ᴬ : Admissible A 0ℓ
-⊤ᴬ _ _ _ = ⊤
-
-Respects≈Env : Admissible A d → Set (o ⊔ cs ⊔ ℓs ⊔ d)
-Respects≈Env Adm = ∀ {W X u v} → u Env.≈ v → Adm W X u → Adm W X v
 
 -- A morphism that preserves admissibility
 ClosedUnder : Admissible A d → X ℐ.⇒ Y → Set (o ⊔ cs ⊔ d)
@@ -82,9 +75,6 @@ module _ (P : Predℰ A p) (Adm : Admissible B d) where
 module _ (V : ℐ.Obj) where
   Factors : Admissible B (ℓ ⊔ cs ⊔ ℓs)
   Factors {B = B} W X e = ∃[ a ] Σ[ d ∈ Env (T₀ (W ⊗₀ V) B) ] e Env.≈ regradeEnv W a d
-
-  factors-resp : Respects≈Env (Factors {B})
-  factors-resp eq (a , d , p) = a , d , Env.trans (Env.sym eq) p
 
   factors-closed : (s : Y ℐ.⇒ X) → ClosedUnder (Factors {B}) s
   factors-closed s W e (a , d , p) =

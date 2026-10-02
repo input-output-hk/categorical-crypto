@@ -40,16 +40,17 @@ module Embed {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Trac
     Cˢ : SymmetricMonoidalCategory a b c
     Cˢ = record { U = C ; monoidal = Monoidal ; symmetric = C.symmetric }
 
-  ⌜_,_⌝ : ∀ {A⁺ A⁻ B⁺ B⁻ : C.Obj} → A⁺ C.⇒ B⁺ → B⁻ C.⇒ A⁻ → A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺
-  ⌜ u , v ⌝ = C.σ⇒ C.∘ u C.⊗₁ v
+  open C
+  open HomReasoning
+
+  ⌜_,_⌝ : ∀ {A⁺ A⁻ B⁺ B⁻ : Obj} → A⁺ ⇒ B⁺ → B⁻ ⇒ A⁻ → A⁺ ⊗₀ B⁻ ⇒ A⁻ ⊗₀ B⁺
+  ⌜ u , v ⌝ = σ⇒ ∘ u ⊗₁ v
 
   private module MC = Mor C
 
-  open C.HomReasoning
-
-  ⌜⌝-resp-≈ : ∀ {A⁺ A⁻ B⁺ B⁻ : C.Obj} {u u' : A⁺ C.⇒ B⁺} {v v' : B⁻ C.⇒ A⁻} →
-              u C.≈ u' → v C.≈ v' → ⌜ u , v ⌝ C.≈ ⌜ u' , v' ⌝
-  ⌜⌝-resp-≈ e₁ e₂ = refl⟩∘⟨ (e₁ C.⟩⊗⟨ e₂)
+  ⌜⌝-resp-≈ : ∀ {A⁺ A⁻ B⁺ B⁻ : Obj} {u u' : A⁺ ⇒ B⁺} {v v' : B⁻ ⇒ A⁻} →
+              u ≈ u' → v ≈ v' → ⌜ u , v ⌝ ≈ ⌜ u' , v' ⌝
+  ⌜⌝-resp-≈ e₁ e₂ = refl⟩∘⟨ (e₁ ⟩⊗⟨ e₂)
 
   module WithTrace (L : TE.Laws Traced) where
 
@@ -61,53 +62,53 @@ module Embed {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Trac
       module G = Category G'
       module MG = Mor G'
 
-    ⌜⌝-id : ∀ {A⁺ A⁻ : C.Obj} → ⌜ C.id {A⁺} , C.id {A⁻} ⌝ C.≈ G.id {A⁺ , A⁻}
-    ⌜⌝-id = C.elimʳ C.⊗.identity
+    ⌜⌝-id : ∀ {A⁺ A⁻ : Obj} → ⌜ id {A⁺} , id {A⁻} ⌝ ≈ G.id {A⁺ , A⁻}
+    ⌜⌝-id = elimʳ ⊗.identity
 
     opaque
       unfolding composeᴳ
 
-      absorbˡ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : C.Obj} {u : B⁺ C.⇒ D⁺} {v : D⁻ C.⇒ B⁻}
-                  {g : A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺} →
+      absorbˡ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : Obj} {u : B⁺ ⇒ D⁺} {v : D⁻ ⇒ B⁻}
+                  {g : A⁺ ⊗₀ B⁻ ⇒ A⁻ ⊗₀ B⁺} →
                 G._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {D⁺ , D⁻} ⌜ u , v ⌝ g
-                  C.≈ C.id C.⊗₁ u C.∘ g C.∘ C.id C.⊗₁ v
+                  ≈ id ⊗₁ u ∘ g ∘ id ⊗₁ v
       absorbˡ {A⁺} {A⁻} {B⁺} {B⁻} {D⁺} {D⁻} {u} {v} {g} =
         trace-resp-≈ (ECoh.L.Transport.WithGens.AL Cˢ A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ g u v)
         ○ ⟺ trace-∘ˡ
         ○ (refl⟩∘⟨ ⟺ trace-∘ʳ)
         ○ (refl⟩∘⟨ (G.identityˡ ⟩∘⟨refl))
 
-      absorbʳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : C.Obj} {p : A⁺ C.⇒ B⁺} {q : B⁻ C.⇒ A⁻}
-                  {f : B⁺ C.⊗₀ D⁻ C.⇒ B⁻ C.⊗₀ D⁺} →
+      absorbʳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : Obj} {p : A⁺ ⇒ B⁺} {q : B⁻ ⇒ A⁻}
+                  {f : B⁺ ⊗₀ D⁻ ⇒ B⁻ ⊗₀ D⁺} →
                 G._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {D⁺ , D⁻} f ⌜ p , q ⌝
-                  C.≈ q C.⊗₁ C.id C.∘ f C.∘ p C.⊗₁ C.id
+                  ≈ q ⊗₁ id ∘ f ∘ p ⊗₁ id
       absorbʳ {A⁺} {A⁻} {B⁺} {B⁻} {D⁺} {D⁻} {p} {q} {f} =
         trace-resp-≈ (ECoh.R.Transport.WithGens.AR Cˢ A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ f p q)
         ○ ⟺ trace-∘ˡ
         ○ (refl⟩∘⟨ ⟺ trace-∘ʳ)
         ○ (refl⟩∘⟨ (G.identityʳ ⟩∘⟨refl))
 
-    ⌜⌝-∘ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : C.Obj} {u : B⁺ C.⇒ D⁺} {v : D⁻ C.⇒ B⁻}
-             {p : A⁺ C.⇒ B⁺} {q : B⁻ C.⇒ A⁻} →
+    ⌜⌝-∘ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : Obj} {u : B⁺ ⇒ D⁺} {v : D⁻ ⇒ B⁻}
+             {p : A⁺ ⇒ B⁺} {q : B⁻ ⇒ A⁻} →
            G._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {D⁺ , D⁻} ⌜ u , v ⌝ ⌜ p , q ⌝
-             C.≈ ⌜ u C.∘ p , q C.∘ v ⌝
+             ≈ ⌜ u ∘ p , q ∘ v ⌝
     ⌜⌝-∘ {A⁻ = A⁻} {u = u} {v} {p} {q} = absorbˡ ○ (begin
-      C.id C.⊗₁ u C.∘ (C.σ⇒ C.∘ p C.⊗₁ q) C.∘ C.id C.⊗₁ v
-        ≈⟨ refl⟩∘⟨ C.assoc ⟩
-      C.id C.⊗₁ u C.∘ C.σ⇒ C.∘ p C.⊗₁ q C.∘ C.id C.⊗₁ v
-        ≈⟨ C.pullˡ (⟺ (C.braiding.⇒.commute (u , C.id {A⁻}))) ⟩
-      (C.σ⇒ C.∘ u C.⊗₁ C.id) C.∘ p C.⊗₁ q C.∘ C.id C.⊗₁ v
-        ≈⟨ C.assoc ⟩
-      C.σ⇒ C.∘ u C.⊗₁ C.id C.∘ p C.⊗₁ q C.∘ C.id C.⊗₁ v
-        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ ⟺ C.⊗-distrib-over-∘) ⟩
-      C.σ⇒ C.∘ u C.⊗₁ C.id C.∘ (p C.∘ C.id) C.⊗₁ (q C.∘ v)
-        ≈⟨ refl⟩∘⟨ ⟺ C.⊗-distrib-over-∘ ⟩
-      C.σ⇒ C.∘ (u C.∘ p C.∘ C.id) C.⊗₁ (C.id C.∘ q C.∘ v)
-        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ C.identityʳ) C.⟩⊗⟨ C.identityˡ ⟩
-      C.σ⇒ C.∘ (u C.∘ p) C.⊗₁ (q C.∘ v)
+      id ⊗₁ u ∘ (σ⇒ ∘ p ⊗₁ q) ∘ id ⊗₁ v
+        ≈⟨ refl⟩∘⟨ assoc ⟩
+      id ⊗₁ u ∘ σ⇒ ∘ p ⊗₁ q ∘ id ⊗₁ v
+        ≈⟨ pullˡ (⟺ (braiding.⇒.commute (u , id {A⁻}))) ⟩
+      (σ⇒ ∘ u ⊗₁ id) ∘ p ⊗₁ q ∘ id ⊗₁ v
+        ≈⟨ assoc ⟩
+      σ⇒ ∘ u ⊗₁ id ∘ p ⊗₁ q ∘ id ⊗₁ v
+        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ ⟺ ⊗-distrib-over-∘) ⟩
+      σ⇒ ∘ u ⊗₁ id ∘ (p ∘ id) ⊗₁ (q ∘ v)
+        ≈⟨ refl⟩∘⟨ ⟺ ⊗-distrib-over-∘ ⟩
+      σ⇒ ∘ (u ∘ p ∘ id) ⊗₁ (id ∘ q ∘ v)
+        ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ identityʳ) ⟩⊗⟨ identityˡ ⟩
+      σ⇒ ∘ (u ∘ p) ⊗₁ (q ∘ v)
       ∎)
 
-    ⌜⌝-≅ : ∀ {A⁺ A⁻ B⁺ B⁻ : C.Obj} → MC._≅_ A⁺ B⁺ → MC._≅_ B⁻ A⁻ → MG._≅_ (A⁺ , A⁻) (B⁺ , B⁻)
+    ⌜⌝-≅ : ∀ {A⁺ A⁻ B⁺ B⁻ : Obj} → MC._≅_ A⁺ B⁺ → MC._≅_ B⁻ A⁻ → MG._≅_ (A⁺ , A⁻) (B⁺ , B⁻)
     ⌜⌝-≅ u v = record
       { from = ⌜ u.from , v.from ⌝
       ; to   = ⌜ u.to , v.to ⌝
@@ -119,13 +120,13 @@ module Embed {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Trac
       where module u = MC._≅_ u
             module v = MC._≅_ v
 
-    unitorˡᴳ : ∀ {A⁺ A⁻ : C.Obj} → MG._≅_ (C.unit C.⊗₀ A⁺ , C.unit C.⊗₀ A⁻) (A⁺ , A⁻)
-    unitorˡᴳ = ⌜⌝-≅ C.unitorˡ (MC.≅.sym C.unitorˡ)
+    unitorˡᴳ : ∀ {A⁺ A⁻ : Obj} → MG._≅_ (unit ⊗₀ A⁺ , unit ⊗₀ A⁻) (A⁺ , A⁻)
+    unitorˡᴳ = ⌜⌝-≅ unitorˡ (MC.≅.sym unitorˡ)
 
-    unitorʳᴳ : ∀ {A⁺ A⁻ : C.Obj} → MG._≅_ (A⁺ C.⊗₀ C.unit , A⁻ C.⊗₀ C.unit) (A⁺ , A⁻)
-    unitorʳᴳ = ⌜⌝-≅ C.unitorʳ (MC.≅.sym C.unitorʳ)
+    unitorʳᴳ : ∀ {A⁺ A⁻ : Obj} → MG._≅_ (A⁺ ⊗₀ unit , A⁻ ⊗₀ unit) (A⁺ , A⁻)
+    unitorʳᴳ = ⌜⌝-≅ unitorʳ (MC.≅.sym unitorʳ)
 
-    associatorᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : C.Obj} →
-                  MG._≅_ ((A⁺ C.⊗₀ B⁺) C.⊗₀ D⁺ , (A⁻ C.⊗₀ B⁻) C.⊗₀ D⁻)
-                         (A⁺ C.⊗₀ (B⁺ C.⊗₀ D⁺) , A⁻ C.⊗₀ (B⁻ C.⊗₀ D⁻))
-    associatorᴳ = ⌜⌝-≅ C.associator (MC.≅.sym C.associator)
+    associatorᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : Obj} →
+                  MG._≅_ ((A⁺ ⊗₀ B⁺) ⊗₀ D⁺ , (A⁻ ⊗₀ B⁻) ⊗₀ D⁻)
+                         (A⁺ ⊗₀ (B⁺ ⊗₀ D⁺) , A⁻ ⊗₀ (B⁻ ⊗₀ D⁻))
+    associatorᴳ = ⌜⌝-≅ associator (MC.≅.sym associator)

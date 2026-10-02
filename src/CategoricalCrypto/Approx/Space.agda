@@ -34,6 +34,9 @@ record ApproxSpace (c ℓa : Level) : Set (suc (c ⊔ ℓa) ⊔ es ⊔ ℓe) whe
   -- already fixes; taking only the relation keeps the two spellings apart.
   open Approximation approx public using (_≈[_]_; ≈[]-refl; ≈[]-sym; ≈[]-trans; ≈[]-mono)
 
+  ≈[]-trans₀ : {x y z : Carrier} → x ≈[ ε₀ ] y → y ≈[ ε₀ ] z → x ≈[ ε₀ ] z
+  ≈[]-trans₀ h k = ≈[]-mono ⊕-identityˡ (≈[]-trans h k)
+
 private variable X Y Z : ApproxSpace c ℓa
 
 module _ (X : ApproxSpace c ℓa) where
@@ -47,9 +50,7 @@ module _ (X : ApproxSpace c ℓa) where
   zeroSetoid = record
     { Carrier = Carrier
     ; _≈_ = λ x y → x ≈[ ε₀ ] y
-    ; isEquivalence = record
-        { refl = ≈[]-refl ; sym = ≈[]-sym
-        ; trans = λ h k → ≈[]-mono ⊕-identityˡ (≈[]-trans h k) }
+    ; isEquivalence = record { refl = ≈[]-refl ; sym = ≈[]-sym ; trans = ≈[]-trans₀ }
     }
 
 record Nonexpansive (X Y : ApproxSpace c ℓa) : Set (c ⊔ es ⊔ ℓa) where
@@ -74,7 +75,7 @@ module _ {X Y : ApproxSpace c ℓa} where
   ≈map-isEquivalence = record
     { refl  = λ _ → Y.≈[]-refl
     ; sym   = λ h x → Y.≈[]-sym (h x)
-    ; trans = λ h k x → Y.≈[]-mono ⊕-identityˡ (Y.≈[]-trans (h x) (k x))
+    ; trans = λ h k x → Y.≈[]-trans₀ (h x) (k x)
     }
 
 identity : Nonexpansive X X
@@ -89,8 +90,8 @@ compose g f = record
 -- unification: here and in every law of `Approx` below it has to be named.
 compose-resp : {X Y Z : ApproxSpace c ℓa} {g g′ : Nonexpansive Y Z} {f f′ : Nonexpansive X Y}
              → g ≈map g′ → f ≈map f′ → compose g f ≈map compose g′ f′
-compose-resp {Z = Z} {g = g} {f′ = f′} eg ef x = Z.≈[]-mono ⊕-identityˡ
-  (Z.≈[]-trans (Nonexpansive.preserves g (ef x)) (eg (Nonexpansive.map f′ x)))
+compose-resp {Z = Z} {g = g} {f′ = f′} eg ef x =
+  Z.≈[]-trans₀ (Nonexpansive.preserves g (ef x)) (eg (Nonexpansive.map f′ x))
   where module Z = ApproxSpace Z
 
 Approx : (c ℓa : Level) → Category (suc (c ⊔ ℓa) ⊔ es ⊔ ℓe) (c ⊔ es ⊔ ℓa) (c ⊔ ℓa)

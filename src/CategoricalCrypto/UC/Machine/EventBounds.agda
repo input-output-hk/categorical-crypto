@@ -125,16 +125,6 @@ bounded-absorb {X = X} {Z = Z} {s = s} e qs h a qa Y E m qE qm le =
 ------------------------------------------------------------------------
 -- Families, and where the slack's quantifier sits
 
--- One negligible slack per polynomial cap, chosen before the security
--- parameter.
-Saturated : {ℓ : Level} → (ℕ → ℕ → ℚ → Set ℓ) → (ℕ → ℕ → ℚ) → Set ℓ
-Saturated X ε = (p : ℕ → ℕ) → Poly p
-              → Σ[ ν ∈ (ℕ → ℚ) ] Negligible ν × ((n : ℕ) → X n (p n) (ε n (p n) ℚ.+ ν n))
-
-saturated-map : {ℓ ℓ′ : Level} {X : ℕ → ℕ → ℚ → Set ℓ} {Y : ℕ → ℕ → ℚ → Set ℓ′} {ε : ℕ → ℕ → ℚ}
-              → ((n q : ℕ) {r : ℚ} → X n q r → Y n q r) → Saturated X ε → Saturated Y ε
-saturated-map g h p Pp = let ν , neg , b = h p Pp in ν , neg , λ n → g n (p n) (b n)
-
 module _ {A B B′ : ℕ → Iface} (f : (n : ℕ) → Proc (A n) (B′ n))
          (𝔠 : (n : ℕ) → Reader (B n) (B′ n)) where
 
@@ -148,14 +138,6 @@ module _ {A B B′ : ℕ → Iface} (f : (n : ℕ) → Proc (A n) (B′ n))
   -- schedule `ε n (p n)` is uniform over the contexts `p n` admits.  A bound
   -- whose slack is chosen INSIDE the context quantifier yields no `Boundedᴺ`.
   boundedᶠ⇒boundedᴺ : (ε : ℕ → ℕ → ℚ) → Boundedᶠ ε → Boundedᴺ ε
-  -- A schedule read at a larger cap is still a bound: the contexts a cap
-  -- admits only grow with it.
-  boundedᴺ-reindex : (ε : ℕ → ℕ → ℚ) (cap : ℕ → ℕ) → ((q : ℕ) → q ℕ.≤ cap q)
-                   → ({p : ℕ → ℕ} → Poly p → Poly (λ n → cap (p n)))
-                   → Boundedᴺ ε → Boundedᴺ (λ n q → ε n (cap q))
-  boundedᴺ-reindex _ cap le pc h p pp = let ν , nν , b = h (λ n → cap (p n)) (pc pp) in
-    ν , nν , λ n Y E m qE qm le′ → b n Y E m qE qm (ℕP.≤-trans le′ (le (p n)))
-
   boundedᶠ⇒boundedᴺ _ h _ _ =
       (λ _ → 0ℚ) , Negligible-0
     , λ n Y E m qE qm le →

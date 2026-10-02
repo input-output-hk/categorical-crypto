@@ -39,6 +39,8 @@ open import Categories.Category.Monoidal
 open import Categories.CoherenceIsos
 open import Categories.Functor hiding (id)
 import Categories.GradedKleisli as GK
+open import Categories.LocallyGraded
+import Categories.LocallyGraded.Kleisli as LGKleisli
 import Categories.LocallyGraded.FreeActegory as FA
 import Categories.LocallyGraded.FreeActegory.Kleisli as FAK
 
@@ -185,6 +187,10 @@ oap⇔ᵁ gs {f = f} {g = g} = mk⇔ fwd (ᵁ⇒oap {f = f} {g = g})
 ------------------------------------------------------------------------
 -- The ⌈_⌉ counterparts: ⌊_⌋ and ⌈_⌉ are mutually inverse
 ------------------------------------------------------------------------
+
+-- Note the hom-equality of this packaging is 𝒞._≈_, NOT ≈ᵁ.
+naiveKleisli : LocallyGradedCategory ℐ o′ ℓ′ e′
+naiveKleisli = LGKleisli.naiveKleisli triple
 
 ⌊⌈⌉⌋-id : (x : A 𝒞.⇒ T₀ X B) → ⌊ ⌈ x ⌉ ⌋ 𝒞.≈ x
 ⌊⌈⌉⌋-id = FA.flatten-unflatten naiveKleisli

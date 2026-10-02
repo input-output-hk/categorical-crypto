@@ -39,8 +39,6 @@ open import CategoricalCrypto.UC.Quantitative.Query
 import Data.Nat.Properties as ℕₚ
 import Data.Rational.Properties as ℚₚ
 
-module Rates = SymmetricMonoidalCategory Rates
-
 module CategoricalCrypto.UC.Quantitative.Contextual
   {o ℓ e os ℓa qs : Level}
   (M : MonoidalCategory o ℓ e) (Rg : GradedSubCat Rates.monoidalCategory M qs)

@@ -20,14 +20,13 @@
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Product.Base
-open import Data.Rational as ℚ using (ℚ; 0ℚ; ½)
+open import Data.Rational as ℚ using (ℚ; 0ℚ; ½; ∣_∣)
 open import Data.Rational.Properties.Ext
 open import Level
 open import Relation.Binary.Bundles
 open import Relation.Binary.Definitions
 open import Relation.Binary.PropositionalEquality
 open import Relation.Binary.Structures
-open import Relation.Nullary
 
 import Data.Nat.Properties as ℕₚ
 import Data.Rational.Properties as ℚₚ
@@ -79,12 +78,27 @@ module _ (E : OrderedErrorAlgebra es ℓe) {Obs : Set os} (A : Approximation Obs
   ≈[]-resp₀ l r h = ≈[]-mono (⊑-trans (⊕-mono ⊕-identityˡ ⊑-refl) ⊕-identityʳ)
                              (≈[]-trans (≈[]-trans l h) r)
 
+-- Closeness at every index past a threshold of `κ`.  `κ` should be cofinal: a
+-- bounded `κ` makes every eventual statement true.
+module _ {E : OrderedErrorAlgebra es ℓe} {Obs : Set os} (A : Approximation Obs E ℓa) where
+  open Approximation A
+
+  Eventually : (Ix : Set) → (Ix → ℕ) → Approximation (Ix → Obs) E ℓa
+  Eventually Ix κ = record
+    { _≈[_]_    = λ μ ε ν → Σ[ N ∈ ℕ ] ((i : Ix) → N ℕ.≤ κ i → μ i ≈[ ε ] ν i)
+    ; ≈[]-refl  = 0 , λ _ _ → ≈[]-refl
+    ; ≈[]-sym   = λ (N , h) → N , λ i le → ≈[]-sym (h i le)
+    ; ≈[]-trans = λ (N₁ , h₁) (N₂ , h₂) → N₁ ℕ.⊔ N₂ , λ i le →
+        ≈[]-trans (h₁ i (ℕₚ.≤-trans (ℕₚ.m≤m⊔n N₁ N₂) le)) (h₂ i (ℕₚ.≤-trans (ℕₚ.m≤n⊔m N₁ N₂) le))
+    ; ≈[]-mono  = λ le (N , h) → N , λ i le′ → ≈[]-mono le (h i le′)
+    }
+
 ------------------------------------------------------------------------
 -- The all-positive collapse
 
 -- Tolerances small enough to collapse at: each positive one lies above zero and
 -- splits into two positive ones whose sum is below it.  That split is the
--- whole ε/2 argument; `halving` is the usual way to supply it.
+-- whole ε/2 argument.
 record Refinement (E : OrderedErrorAlgebra es ℓe) : Set (es ⊔ suc ℓe) where
   open OrderedErrorAlgebra E
 
@@ -93,18 +107,6 @@ record Refinement (E : OrderedErrorAlgebra es ℓe) : Set (es ⊔ suc ℓe) wher
     ε₀-least : {ε : Error} → Positive ε → ε₀ ⊑ ε
     refine   : {ε : Error} → Positive ε
              → Σ[ δ ∈ Error ] Σ[ δ′ ∈ Error ] Positive δ × Positive δ′ × δ ⊕ δ′ ⊑ ε
-
-module _ {E : OrderedErrorAlgebra es ℓe} where
-  open OrderedErrorAlgebra E
-
-  halving : (Positive : Error → Set ℓe) → ({ε : Error} → Positive ε → ε₀ ⊑ ε)
-          → (half : Error → Error) → ({ε : Error} → Positive ε → Positive (half ε))
-          → ((ε : Error) → half ε ⊕ half ε ⊑ ε) → Refinement E
-  halving Positive ε₀-least half half-pos half-sum = record
-    { Positive = Positive
-    ; ε₀-least = ε₀-least
-    ; refine   = λ {ε} pos → half ε , half ε , half-pos pos , half-pos pos , half-sum ε
-    }
 
 -- No positive error separates the two.  This is the relation a qualitative
 -- observation exposes; at the asymptotic instance it is vanishing advantage.
@@ -147,11 +149,38 @@ module AllPositive {E : OrderedErrorAlgebra es ℓe} (R : Refinement E)
   ; ⊕-identityʳ  = λ {ε} → ℚₚ.≤-reflexive (ℚₚ.+-identityʳ ε)
   }
 
+-- ℚ at its own metric.  An `Approximation` alone never bounds a gap from
+-- below (the relation identifying everything satisfies the laws); this
+-- instance does (`≈ᵐ-gap`), which is what a NEGATIVE closeness statement needs.
+infix 4 _≈ᵐ[_]_
+
+_≈ᵐ[_]_ : ℚ → ℚ → ℚ → Set
+x ≈ᵐ[ ε ] y = ∣ x ℚ.- y ∣ ℚ.≤ ε
+
+ℚ-metric : Approximation ℚ ℚ-ordered 0ℓ
+ℚ-metric = record
+  { _≈[_]_    = _≈ᵐ[_]_
+  ; ≈[]-refl  = λ {x} → ℚₚ.≤-reflexive (∣x-x∣≡0 x)
+  ; ≈[]-sym   = λ {x} {y} → subst (ℚ._≤ _) (∣-∣-comm x y)
+  ; ≈[]-trans = λ {x} {y} {z} h k → ℚₚ.≤-trans (∣-∣-triangle x y z) (ℚₚ.+-mono-≤ h k)
+  ; ≈[]-mono  = λ le h → ℚₚ.≤-trans h le
+  }
+
+≈ᵐ-0 : {x : ℚ} → 0ℚ ℚ.≤ x → x ≈ᵐ[ x ] 0ℚ
+≈ᵐ-0 {x} 0≤x = ℚₚ.≤-reflexive (trans (cong ∣_∣ (ℚₚ.+-identityʳ x)) (ℚₚ.0≤p⇒∣p∣≡p 0≤x))
+
+≈ᵐ-gap : {x ε : ℚ} → x ≈ᵐ[ ε ] 0ℚ → x ℚ.≤ ε
+≈ᵐ-gap {x} h = ℚₚ.≤-trans (ℚₚ.≤-trans (p≤∣p∣ x) (ℚₚ.≤-reflexive (cong ∣_∣ (sym (ℚₚ.+-identityʳ x))))) h
+
 ℚ-refinement : Refinement ℚ-ordered
-ℚ-refinement = halving (0ℚ ℚ.<_) ℚₚ.<⇒≤ (½ ℚ.*_) 0<½* (λ ε → ℚₚ.≤-reflexive (½*+½* ε))
+ℚ-refinement = record
+  { Positive = 0ℚ ℚ.<_
+  ; ε₀-least = ℚₚ.<⇒≤
+  ; refine   = λ {ε} pos → ½ ℚ.* ε , ½ ℚ.* ε , 0<½* pos , 0<½* pos , ℚₚ.≤-reflexive (½*+½* ε)
+  }
 
 -- Counts: the finite-error layer at an instance with nothing to halve.  A
--- positive count below `1` does not split (`ℕ-unrefinable`).
+-- positive count below `1` does not split (`Approx.FilteredTests.ℕ-unrefinable`).
 ℕ-ordered : OrderedErrorAlgebra 0ℓ 0ℓ
 ℕ-ordered = record
   { Error        = ℕ
@@ -163,8 +192,3 @@ module AllPositive {E : OrderedErrorAlgebra es ℓe} (R : Refinement E)
   ; ⊕-identityˡ  = ℕₚ.≤-refl
   ; ⊕-identityʳ  = λ {n} → ℕₚ.≤-reflexive (ℕₚ.+-identityʳ n)
   }
-
-ℕ-unrefinable : (R : Refinement ℕ-ordered)
-              → ({n : ℕ} → Refinement.Positive R n → 0 ℕ.< n) → ¬ Refinement.Positive R 1
-ℕ-unrefinable R pos⇒ p1 = let _ , _ , pδ , pδ′ , le = Refinement.refine R p1
-  in ℕₚ.1+n≰n (ℕₚ.≤-trans (ℕₚ.+-mono-≤ (pos⇒ pδ) (pos⇒ pδ′)) le)

@@ -2,6 +2,7 @@
 
 module CategoricalCrypto.UCSetup where
 
+open import Function.Bundles
 open import Level
 open import Relation.Binary.Bundles
 
@@ -16,7 +17,6 @@ open import Categories.Functor
 open import Categories.Functor.Presheaf
 open import Categories.Functor.Properties
 open import Categories.Monad.Graded
-open import Function.Bundles
 
 record UCSetup (o ℓ e o′ ℓ′ e′ cs ℓs : Level) : Set (suc (o ⊔ ℓ ⊔ e ⊔ o′ ⊔ ℓ′ ⊔ e′ ⊔ cs ⊔ ℓs)) where
   field
@@ -98,6 +98,7 @@ record UCSetup (o ℓ e o′ ℓ′ e′ cs ℓs : Level) : Set (suc (o ⊔ ℓ 
 
   ------------------------------------------------------------------------
   -- Environments
+  ------------------------------------------------------------------------
 
   Env : 𝒞.Obj → Set cs
   Env D = Setoid.Carrier (E.F₀ D)
@@ -119,12 +120,10 @@ record UCSetup (o ℓ e o′ ℓ′ e′ cs ℓs : Level) : Set (suc (o ⊔ ℓ 
 
   ------------------------------------------------------------------------
   -- The action on graded morphisms
-
-  prefix : (W : ℐ.Obj) → A 𝒞.⇒ T₀ X B → T₀ W A 𝒞.⇒ T₀ (W ⊗₀ X) B
-  prefix {X = X} W f = μ W X 𝒞.∘ T₁ W f
+  ------------------------------------------------------------------------
 
   run : (W : ℐ.Obj) (f : A 𝒞.⇒ T₀ X B) → Env (T₀ (W ⊗₀ X) B) → Env (T₀ W A)
-  run W f e = pull (prefix W f) e
+  run W f e = pull (ext W f) e
 
   regradeEnv : (W : ℐ.Obj) (s : Y ℐ.⇒ X) → Env (T₀ (W ⊗₀ X) B) → Env (T₀ (W ⊗₀ Y) B)
   regradeEnv W s e = pull (sub (ℐ.id ⊗₁ s)) e
@@ -139,9 +138,11 @@ record UCSetup (o ℓ e o′ ℓ′ e′ cs ℓs : Level) : Set (suc (o ⊔ ℓ 
   run-sub : (W : ℐ.Obj) (s : Y ℐ.⇒ X) (g : A 𝒞.⇒ T₀ Y B) (e : Env (T₀ (W ⊗₀ X) B))
           → run W (sub s 𝒞.∘ g) e Env.≈ run W g (regradeEnv W s e)
   run-sub W s g e = Env.trans (pull-resp-≈ (sub-decomp s g W) e)
-                               (pull-∘ (sub (ℐ.id ⊗₁ s)) (prefix W g) e)
+                               (pull-∘ (sub (ℐ.id ⊗₁ s)) (ext W g) e)
+
   ------------------------------------------------------------------------
   -- GradeStable
+  ------------------------------------------------------------------------
 
   GradeStable : Set (o ⊔ o′ ⊔ ℓ′ ⊔ cs ⊔ ℓs)
   GradeStable = ∀ {B C′} (Y : ℐ.Obj) {h h′ : B 𝒞.⇒ C′} → h ≈ℰ h′ → T₁ Y h ≈ℰ T₁ Y h′

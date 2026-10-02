@@ -6,29 +6,6 @@
 -- not about UC: reading "given this answer, the next query" off a context needs
 -- an inspectable step, and the budget it charges is that model's resource
 -- doctrine.  Nothing in the qualitative core mentions a strategy.
---
--- An ℰ-statement quantifies over ancilla CONTEXTS; a hand-written security
--- theorem quantifies over adaptive STRATEGIES.  `UC.Machine.Dominated.dominated`
--- reads the second as the first AT ONE INSTANCE, which is the instance layer 1
--- supplies: the compared processes are CLOSED (`u v : Proc unitᴵ B`, i.e. `A := unitᴵ`)
--- and the hole is at the trivial grade (`conjᴵ` plugs them as
--- `Proc unitᴵ (unitᴵ ⊗ᴵ B)`, where the empty summand can never fire), even
--- though `ctxRun` itself is stated at a general `A`.  At that instance: once
--- every strategy the context's carried budget can afford leaves the two direct
--- runs ε-close, the context itself separates them by no more than ε + δ.  That
--- is what makes an abstract query bound contribute — with no such law, `QB`
--- may as well be `⊤`.  Whether
--- the closed, unit-hole case suffices for a general `f g : Proc A B` at a
--- general hole is not settled here.
---
--- The hypothesis is universal in the strategy, the shape a layer-1 theorem
--- (`_≈adv[_]_`, `Bounded`) already has: it feeds it at budget
--- `scale c (positive c′)`.  Why not one dominating strategy:
--- `docs/rewrite-verdict.md`, external theory review addendum.
---
--- The slack δ is positive rather than zero because the model's readout, hence
--- `_≈ℰ_`, quantifies over every positive slack anyway, so it costs a consumer
--- nothing; the decomposition never needs it (`UC.Machine.Dominated`).
 
 open import Categories.Category using (Category)
 

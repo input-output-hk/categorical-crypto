@@ -5,8 +5,8 @@
 -- observation on top — eventual ε-closeness in `κ`, coarsened by
 -- `Approx.Evaluation.qual₊` to vanishing advantage, into which `absorb` reads
 -- a vanishing bound.
--- `κ` must be COFINAL: a bounded `κ` makes every eventual statement, hence the
--- whole UC preorder, vacuously true (`≈^ω-witness` spends `κ-cofinal`).
+-- `κ` must be cofinal, or every eventual statement, hence the whole UC
+-- preorder, is vacuously true.
 -- A cryptographic bound must be NEGLIGIBLE, which `_≈ᵁ_` does not transport —
 -- a bad event of probability `1/(n+1)` is `≈ᵁ`-equal to none — so a statement
 -- of that kind keeps its error witness: `_≈ℰⁿ_`.
@@ -33,14 +33,12 @@ open import CategoricalCrypto.UCSetup
 
 import CategoricalCrypto.Standard2 as Std2
 
-module Rates = SymmetricMonoidalCategory Rates
-
 module CategoricalCrypto.UC.Family
   {o ℓ e os ℓa qs : Level}
   (M : MonoidalCategory o ℓ e)
   (qro : QEvaluation (MonoidalCategory.U M) os ℓa)
   (Rg : GradedSubCat Rates.monoidalCategory M qs)
-  (Ix : Set) (κ : Ix → ℕ) (κ-cofinal : (N : ℕ) → Σ[ i ∈ Ix ] N ℕ.≤ κ i) where
+  (Ix : Set) (κ : Ix → ℕ) where
 
 open MonoidalCategory M
 open QEvaluation qro
@@ -51,27 +49,14 @@ open Families Rg Ix κ Poly⁺ poly⁺-1 (λ {s} {t} → poly⁺-· {s} {t}) pub
 ------------------------------------------------------------------------
 -- The observation, asymptotically
 
+-- Eventually ε-close in the security parameter.
+Approximation^ω : Approximation (Ix → Carrier) ℚ-ordered ℓa
+Approximation^ω = Eventually (ApproxSpace.approx X) Ix κ
+
 infix 4 _≈^ω[_]_
 
--- Eventually ε-close in the security parameter.
 _≈^ω[_]_ : (Ix → Carrier) → ℚ → (Ix → Carrier) → Set ℓa
-μ ≈^ω[ ε ] ν = Σ[ N ∈ ℕ ] ((i : Ix) → N ℕ.≤ κ i → μ i ≈[ ε ] ν i)
-
--- Cofinality is what keeps the eventual relation from being satisfiable by
--- fiat: every threshold is met by some index, so an eventual closeness is
--- witnessed by an actual one.
-≈^ω-witness : {μ ν : Ix → Carrier} {ε : ℚ} → μ ≈^ω[ ε ] ν → Σ[ i ∈ Ix ] μ i ≈[ ε ] ν i
-≈^ω-witness (N , h) = let i , le = κ-cofinal N in i , h i le
-
-Approximation^ω : Approximation (Ix → Carrier) ℚ-ordered ℓa
-Approximation^ω = record
-  { _≈[_]_    = _≈^ω[_]_
-  ; ≈[]-refl  = 0 , λ _ _ → ≈[]-refl
-  ; ≈[]-sym   = λ (N , h) → N , λ i le → ≈[]-sym (h i le)
-  ; ≈[]-trans = λ (N₁ , h₁) (N₂ , h₂) → N₁ ℕ.⊔ N₂ , λ i le →
-      ≈[]-trans (h₁ i (≤-trans (m≤m⊔n N₁ N₂) le)) (h₂ i (≤-trans (m≤n⊔m N₁ N₂) le))
-  ; ≈[]-mono  = λ le (N , h) → N , λ i le′ → ≈[]-mono le (h i le′)
-  }
+_≈^ω[_]_ = Approximation._≈[_]_ Approximation^ω
 
 space^ω : ApproxSpace os ℓa
 space^ω = record { Carrier = Ix → Carrier ; approx = Approximation^ω }
@@ -189,24 +174,3 @@ infix 4 _≈ℰⁿ_
 -- stay negligible survives it where `_≈ᵁ_` loses it.
 _≈ℰⁿ_ : {A B : Obj^ω} → A ⇒^ω B → A ⇒^ω B → Set (o ⊔ ℓ ⊔ e ⊔ ℓa ⊔ qs)
 f ≈ℰⁿ g = Σ[ ε ∈ (ℕ → ℕ → ℚ) ] CarriedNegligible ε × f ≈ℰ[ ε ] g
-
-≈ℰⁿ-refl : {A B : Obj^ω} {f : A ⇒^ω B} → f ≈ℰⁿ f
-≈ℰⁿ-refl = (λ _ _ → 0ℚ) , (λ _ _ _ _ _ → Negligible-0) , λ _ _ _ _ _ _ → ≈[]-refl
-
-≈ℰⁿ-sym : {A B : Obj^ω} {f g : A ⇒^ω B} → f ≈ℰⁿ g → g ≈ℰⁿ f
-≈ℰⁿ-sym (ε , neg , bnd) = ε , neg , λ Y Et m {pc} Ppc c i → ≈[]-sym (bnd Y Et m {pc} Ppc c i)
-
-≈ℰⁿ-trans : {A B : Obj^ω} {f g h : A ⇒^ω B} → f ≈ℰⁿ g → g ≈ℰⁿ h → f ≈ℰⁿ h
-≈ℰⁿ-trans (ε₁ , neg₁ , bnd₁) (ε₂ , neg₂ , bnd₂) =
-    (λ n q → ε₁ n q ℚ.+ ε₂ n q)
-  , (λ Y Et m {pc} Ppc c → Negligible-+ (neg₁ Y Et m {pc} Ppc c) (neg₂ Y Et m {pc} Ppc c))
-  , λ Y Et m {pc} Ppc c i → ≈[]-trans (bnd₁ Y Et m {pc} Ppc c i) (bnd₂ Y Et m {pc} Ppc c i)
-
--- It refines the vanishing agreement — `absorb` read at the test's own rate.
-≈ℰⁿ⇒≈ᵁ : {A B X : Obj^ω} {f g : A ⇒^ω (X ⊛ω B)} → f ≈ℰⁿ g → f ≈ᵁ g
-≈ℰⁿ⇒≈ᵁ {A} {B} {X} {f} {g} (ε , neg , bnd) Y = Std^ω.KE.mk∼ λ {Et} m →
-  let Et′ = Et Std^ω.∘ Std^ω.α⇐ {Y} {X}
-  in Reassoc.reassoc Evaluation^ω {A} {B} {X} {Y} Et m {f} {g} λ δ δ>0 →
-       let Pc = schedOf-adm Et′ ; c = λ i → hom Et′ i , Equiv.refl
-           N , hN = Negligible⇒→0 (neg Y Et′ m {schedOf Et′} Pc c) δ δ>0
-       in N , λ i le → ≈[]-mono (hN (κ i) le) (bnd Y Et′ m {schedOf Et′} Pc c i)

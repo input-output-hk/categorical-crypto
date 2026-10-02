@@ -45,40 +45,41 @@ module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
     module E₀ = Embed C M T
     module W = GT C M T
 
-  open C.HomReasoning
+  open C
+  open HomReasoning
   open E₀
   open W
 
-  _⊗₀ᴳ_ : C.Obj × C.Obj → C.Obj × C.Obj → C.Obj × C.Obj
-  (A⁺ , A⁻) ⊗₀ᴳ (B⁺ , B⁻) = A⁺ C.⊗₀ B⁺ , A⁻ C.⊗₀ B⁻
+  _⊗₀ᴳ_ : Obj × Obj → Obj × Obj → Obj × Obj
+  (A⁺ , A⁻) ⊗₀ᴳ (B⁺ , B⁻) = A⁺ ⊗₀ B⁺ , A⁻ ⊗₀ B⁻
 
-  unitᴳ : C.Obj × C.Obj
-  unitᴳ = C.unit , C.unit
+  unitᴳ : Obj × Obj
+  unitᴳ = unit , unit
 
   opaque
     infixr 10 _⊗₁ᴳ_
-    _⊗₁ᴳ_ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ : C.Obj} →
-            A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺ → D⁺ C.⊗₀ E⁻ C.⇒ D⁻ C.⊗₀ E⁺ →
-            (A⁺ C.⊗₀ D⁺) C.⊗₀ (B⁻ C.⊗₀ E⁻) C.⇒ (A⁻ C.⊗₀ D⁻) C.⊗₀ (B⁺ C.⊗₀ E⁺)
-    f ⊗₁ᴳ g = mid C.∘ f C.⊗₁ g C.∘ mid
+    _⊗₁ᴳ_ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ : Obj} →
+            A⁺ ⊗₀ B⁻ ⇒ A⁻ ⊗₀ B⁺ → D⁺ ⊗₀ E⁻ ⇒ D⁻ ⊗₀ E⁺ →
+            (A⁺ ⊗₀ D⁺) ⊗₀ (B⁻ ⊗₀ E⁻) ⇒ (A⁻ ⊗₀ D⁻) ⊗₀ (B⁺ ⊗₀ E⁺)
+    f ⊗₁ᴳ g = mid ∘ f ⊗₁ g ∘ mid
 
   opaque
     unfolding _⊗₁ᴳ_
 
-    ⊗₁ᴳ-resp-≈ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ : C.Obj}
-                   {f f' : A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺}
-                   {g g' : D⁺ C.⊗₀ E⁻ C.⇒ D⁻ C.⊗₀ E⁺} →
-                 f C.≈ f' → g C.≈ g' → f ⊗₁ᴳ g C.≈ f' ⊗₁ᴳ g'
-    ⊗₁ᴳ-resp-≈ e₁ e₂ = refl⟩∘⟨ ((e₁ C.⟩⊗⟨ e₂) ⟩∘⟨refl)
+    ⊗₁ᴳ-resp-≈ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ : Obj}
+                   {f f' : A⁺ ⊗₀ B⁻ ⇒ A⁻ ⊗₀ B⁺}
+                   {g g' : D⁺ ⊗₀ E⁻ ⇒ D⁻ ⊗₀ E⁺} →
+                 f ≈ f' → g ≈ g' → f ⊗₁ᴳ g ≈ f' ⊗₁ᴳ g'
+    ⊗₁ᴳ-resp-≈ e₁ e₂ = refl⟩∘⟨ ((e₁ ⟩⊗⟨ e₂) ⟩∘⟨refl)
 
-    ⌜⌝-⊗ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ : C.Obj}
-             {u : A⁺ C.⇒ B⁺} {v : B⁻ C.⇒ A⁻} {p : D⁺ C.⇒ E⁺} {q : E⁻ C.⇒ D⁻} →
-           ⌜ u , v ⌝ ⊗₁ᴳ ⌜ p , q ⌝ C.≈ ⌜ u C.⊗₁ p , v C.⊗₁ q ⌝
-    ⌜⌝-⊗ = refl⟩∘⟨ (C.⊗-distrib-over-∘ ⟩∘⟨refl)
-         ○ C.pullˡ (C.pullˡ mid-σ)
-         ○ (C.pullʳ mid-natural ⟩∘⟨refl)
-         ○ C.assoc
-         ○ refl⟩∘⟨ C.cancelʳ mid-involutive
+    ⌜⌝-⊗ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ : Obj}
+             {u : A⁺ ⇒ B⁺} {v : B⁻ ⇒ A⁻} {p : D⁺ ⇒ E⁺} {q : E⁻ ⇒ D⁻} →
+           ⌜ u , v ⌝ ⊗₁ᴳ ⌜ p , q ⌝ ≈ ⌜ u ⊗₁ p , v ⊗₁ q ⌝
+    ⌜⌝-⊗ = refl⟩∘⟨ (⊗-distrib-over-∘ ⟩∘⟨refl)
+         ○ pullˡ (pullˡ mid-σ)
+         ○ (pullʳ mid-natural ⟩∘⟨refl)
+         ○ assoc
+         ○ refl⟩∘⟨ cancelʳ mid-involutive
 
   module _ (L : TE.Laws T) where
 
@@ -93,132 +94,132 @@ module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
     open GL.WithTrace C M T L
     open W.WithTrace L
 
-    ⌜⌝-⊗ˡ : ∀ {A⁺ A⁻ D⁺ D⁻ E⁺ E⁻ : C.Obj} {p : D⁺ C.⇒ E⁺} {q : E⁻ C.⇒ D⁻} →
-            G.id {A⁺ , A⁻} ⊗₁ᴳ ⌜ p , q ⌝ C.≈ ⌜ C.id C.⊗₁ p , C.id C.⊗₁ q ⌝
-    ⌜⌝-⊗ˡ = ⊗₁ᴳ-resp-≈ (⟺ ⌜⌝-id) C.Equiv.refl ○ ⌜⌝-⊗
+    ⌜⌝-⊗ˡ : ∀ {A⁺ A⁻ D⁺ D⁻ E⁺ E⁻ : Obj} {p : D⁺ ⇒ E⁺} {q : E⁻ ⇒ D⁻} →
+            G.id {A⁺ , A⁻} ⊗₁ᴳ ⌜ p , q ⌝ ≈ ⌜ id ⊗₁ p , id ⊗₁ q ⌝
+    ⌜⌝-⊗ˡ = ⊗₁ᴳ-resp-≈ (⟺ ⌜⌝-id) Equiv.refl ○ ⌜⌝-⊗
 
-    ⌜⌝-⊗ʳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : C.Obj} {u : A⁺ C.⇒ B⁺} {v : B⁻ C.⇒ A⁻} →
-            ⌜ u , v ⌝ ⊗₁ᴳ G.id {D⁺ , D⁻} C.≈ ⌜ u C.⊗₁ C.id , v C.⊗₁ C.id ⌝
-    ⌜⌝-⊗ʳ = ⊗₁ᴳ-resp-≈ C.Equiv.refl (⟺ ⌜⌝-id) ○ ⌜⌝-⊗
+    ⌜⌝-⊗ʳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : Obj} {u : A⁺ ⇒ B⁺} {v : B⁻ ⇒ A⁻} →
+            ⌜ u , v ⌝ ⊗₁ᴳ G.id {D⁺ , D⁻} ≈ ⌜ u ⊗₁ id , v ⊗₁ id ⌝
+    ⌜⌝-⊗ʳ = ⊗₁ᴳ-resp-≈ Equiv.refl (⟺ ⌜⌝-id) ○ ⌜⌝-⊗
 
-    identityᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ : C.Obj} → G.id {A⁺ , A⁻} ⊗₁ᴳ G.id {B⁺ , B⁻} C.≈ G.id
+    identityᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ : Obj} → G.id {A⁺ , A⁻} ⊗₁ᴳ G.id {B⁺ , B⁻} ≈ G.id
     identityᴳ = ⊗₁ᴳ-resp-≈ (⟺ ⌜⌝-id) (⟺ ⌜⌝-id)
               ○ ⌜⌝-⊗
-              ○ ⌜⌝-resp-≈ C.⊗.identity C.⊗.identity
+              ○ ⌜⌝-resp-≈ ⊗.identity ⊗.identity
               ○ ⌜⌝-id
 
     opaque
       unfolding _⊗₁ᴳ_
 
-      homomorphismᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ P⁺ P⁻ Q⁺ Q⁻ R⁺ R⁻ : C.Obj}
-                        {f : A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺}
-                        {f′ : B⁺ C.⊗₀ D⁻ C.⇒ B⁻ C.⊗₀ D⁺}
-                        {g : P⁺ C.⊗₀ Q⁻ C.⇒ P⁻ C.⊗₀ Q⁺}
-                        {g′ : Q⁺ C.⊗₀ R⁻ C.⇒ Q⁻ C.⊗₀ R⁺} →
+      homomorphismᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ P⁺ P⁻ Q⁺ Q⁻ R⁺ R⁻ : Obj}
+                        {f : A⁺ ⊗₀ B⁻ ⇒ A⁻ ⊗₀ B⁺}
+                        {f′ : B⁺ ⊗₀ D⁻ ⇒ B⁻ ⊗₀ D⁺}
+                        {g : P⁺ ⊗₀ Q⁻ ⇒ P⁻ ⊗₀ Q⁺}
+                        {g′ : Q⁺ ⊗₀ R⁻ ⇒ Q⁻ ⊗₀ R⁺} →
                       G._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {D⁺ , D⁻} f′ f
                         ⊗₁ᴳ G._∘_ {P⁺ , P⁻} {Q⁺ , Q⁻} {R⁺ , R⁻} g′ g
-                        C.≈ G._∘_ {A⁺ C.⊗₀ P⁺ , A⁻ C.⊗₀ P⁻}
-                                  {B⁺ C.⊗₀ Q⁺ , B⁻ C.⊗₀ Q⁻}
-                                  {D⁺ C.⊗₀ R⁺ , D⁻ C.⊗₀ R⁻}
+                        ≈ G._∘_ {A⁺ ⊗₀ P⁺ , A⁻ ⊗₀ P⁻}
+                                  {B⁺ ⊗₀ Q⁺ , B⁻ ⊗₀ Q⁻}
+                                  {D⁺ ⊗₀ R⁺ , D⁻ ⊗₀ R⁻}
                                   (f′ ⊗₁ᴳ g′) (f ⊗₁ᴳ g)
       homomorphismᴳ {A⁺} {A⁻} {B⁺} {B⁻} {D⁺} {D⁻} {P⁺} {P⁻} {Q⁺} {Q⁻} {R⁺} {R⁻}
                     {f} {f′} {g} {g′} =
         ⊗₁ᴳ-resp-≈ (composeᴳ-raw C M T) (composeᴳ-raw C M T) ○ (begin
-        mid C.∘ (C.trace Φ₁ C.⊗₁ C.trace Φ₂) C.∘ mid
+        mid ∘ (trace Φ₁ ⊗₁ trace Φ₂) ∘ mid
           ≈⟨ refl⟩∘⟨ (⊗-trace-mid ⟩∘⟨refl) ⟩
-        mid C.∘ C.trace (mid C.∘ Φ₁ C.⊗₁ Φ₂ C.∘ mid) C.∘ mid
+        mid ∘ trace (mid ∘ Φ₁ ⊗₁ Φ₂ ∘ mid) ∘ mid
           ≈⟨ refl⟩∘⟨ trace-∘ʳ ⟩
-        mid C.∘ C.trace ((mid C.∘ Φ₁ C.⊗₁ Φ₂ C.∘ mid) C.∘ mid C.⊗₁ C.id)
+        mid ∘ trace ((mid ∘ Φ₁ ⊗₁ Φ₂ ∘ mid) ∘ mid ⊗₁ id)
           ≈⟨ trace-∘ˡ ⟩
-        C.trace (mid C.⊗₁ C.id C.∘ (mid C.∘ Φ₁ C.⊗₁ Φ₂ C.∘ mid) C.∘ mid C.⊗₁ C.id)
+        trace (mid ⊗₁ id ∘ (mid ∘ Φ₁ ⊗₁ Φ₂ ∘ mid) ∘ mid ⊗₁ id)
           ≈⟨ trace-resp-≈ (refl⟩∘⟨ ((refl⟩∘⟨ (⊗-expand ⟩∘⟨refl)) ⟩∘⟨refl)) ⟩
-        C.trace (mid C.⊗₁ C.id
-                 C.∘ (mid C.∘ (α C.⊗₁ α C.∘ BoxL C.∘ γ C.⊗₁ γ) C.∘ mid) C.∘ mid C.⊗₁ C.id)
+        trace (mid ⊗₁ id
+                 ∘ (mid ∘ (α ⊗₁ α ∘ BoxL ∘ γ ⊗₁ γ) ∘ mid) ∘ mid ⊗₁ id)
           ≈⟨ trace-resp-≈ residue ⟩
-        C.trace (C.id C.⊗₁ mid
-                 C.∘ (α C.∘ (mid C.⊗₁ mid C.∘ BoxR C.∘ mid C.⊗₁ mid) C.∘ γ) C.∘ C.id C.⊗₁ mid)
+        trace (id ⊗₁ mid
+                 ∘ (α ∘ (mid ⊗₁ mid ∘ BoxR ∘ mid ⊗₁ mid) ∘ γ) ∘ id ⊗₁ mid)
           ≈˘⟨ trace-resp-≈ (refl⟩∘⟨ ((refl⟩∘⟨ (⊗-expand ⟩∘⟨refl)) ⟩∘⟨refl)) ⟩
-        C.trace (C.id C.⊗₁ mid C.∘ Ψ C.∘ C.id C.⊗₁ mid)
+        trace (id ⊗₁ mid ∘ Ψ ∘ id ⊗₁ mid)
           ≈˘⟨ trace-mid ⟩
-        C.trace Ψ ∎) ○ ⟺ (composeᴳ-raw C M T)
+        trace Ψ ∎) ○ ⟺ (composeᴳ-raw C M T)
         where
-          Φ₁ : (A⁺ C.⊗₀ D⁻) C.⊗₀ (B⁻ C.⊗₀ B⁺) C.⇒ (A⁻ C.⊗₀ D⁺) C.⊗₀ (B⁻ C.⊗₀ B⁺)
-          Φ₁ = α C.∘ f′ C.⊗₁ f C.∘ γ
+          Φ₁ : (A⁺ ⊗₀ D⁻) ⊗₀ (B⁻ ⊗₀ B⁺) ⇒ (A⁻ ⊗₀ D⁺) ⊗₀ (B⁻ ⊗₀ B⁺)
+          Φ₁ = α ∘ f′ ⊗₁ f ∘ γ
 
-          Φ₂ : (P⁺ C.⊗₀ R⁻) C.⊗₀ (Q⁻ C.⊗₀ Q⁺) C.⇒ (P⁻ C.⊗₀ R⁺) C.⊗₀ (Q⁻ C.⊗₀ Q⁺)
-          Φ₂ = α C.∘ g′ C.⊗₁ g C.∘ γ
+          Φ₂ : (P⁺ ⊗₀ R⁻) ⊗₀ (Q⁻ ⊗₀ Q⁺) ⇒ (P⁻ ⊗₀ R⁺) ⊗₀ (Q⁻ ⊗₀ Q⁺)
+          Φ₂ = α ∘ g′ ⊗₁ g ∘ γ
 
-          Ψ : ((A⁺ C.⊗₀ P⁺) C.⊗₀ (D⁻ C.⊗₀ R⁻))
-                C.⊗₀ ((B⁻ C.⊗₀ Q⁻) C.⊗₀ (B⁺ C.⊗₀ Q⁺)) C.⇒
-              ((A⁻ C.⊗₀ P⁻) C.⊗₀ (D⁺ C.⊗₀ R⁺))
-                C.⊗₀ ((B⁻ C.⊗₀ Q⁻) C.⊗₀ (B⁺ C.⊗₀ Q⁺))
-          Ψ = α C.∘ (f′ ⊗₁ᴳ g′) C.⊗₁ (f ⊗₁ᴳ g) C.∘ γ
+          Ψ : ((A⁺ ⊗₀ P⁺) ⊗₀ (D⁻ ⊗₀ R⁻))
+                ⊗₀ ((B⁻ ⊗₀ Q⁻) ⊗₀ (B⁺ ⊗₀ Q⁺)) ⇒
+              ((A⁻ ⊗₀ P⁻) ⊗₀ (D⁺ ⊗₀ R⁺))
+                ⊗₀ ((B⁻ ⊗₀ Q⁻) ⊗₀ (B⁺ ⊗₀ Q⁺))
+          Ψ = α ∘ (f′ ⊗₁ᴳ g′) ⊗₁ (f ⊗₁ᴳ g) ∘ γ
 
-          BoxL : (((B⁺ C.⊗₀ D⁻) C.⊗₀ (A⁺ C.⊗₀ B⁻)) C.⊗₀
-                    ((Q⁺ C.⊗₀ R⁻) C.⊗₀ (P⁺ C.⊗₀ Q⁻))) C.⇒
-                 (((B⁻ C.⊗₀ D⁺) C.⊗₀ (A⁻ C.⊗₀ B⁺)) C.⊗₀
-                    ((Q⁻ C.⊗₀ R⁺) C.⊗₀ (P⁻ C.⊗₀ Q⁺)))
-          BoxL = (f′ C.⊗₁ f) C.⊗₁ (g′ C.⊗₁ g)
+          BoxL : (((B⁺ ⊗₀ D⁻) ⊗₀ (A⁺ ⊗₀ B⁻)) ⊗₀
+                    ((Q⁺ ⊗₀ R⁻) ⊗₀ (P⁺ ⊗₀ Q⁻))) ⇒
+                 (((B⁻ ⊗₀ D⁺) ⊗₀ (A⁻ ⊗₀ B⁺)) ⊗₀
+                    ((Q⁻ ⊗₀ R⁺) ⊗₀ (P⁻ ⊗₀ Q⁺)))
+          BoxL = (f′ ⊗₁ f) ⊗₁ (g′ ⊗₁ g)
 
-          BoxR : (((B⁺ C.⊗₀ D⁻) C.⊗₀ (Q⁺ C.⊗₀ R⁻)) C.⊗₀
-                    ((A⁺ C.⊗₀ B⁻) C.⊗₀ (P⁺ C.⊗₀ Q⁻))) C.⇒
-                 (((B⁻ C.⊗₀ D⁺) C.⊗₀ (Q⁻ C.⊗₀ R⁺)) C.⊗₀
-                    ((A⁻ C.⊗₀ B⁺) C.⊗₀ (P⁻ C.⊗₀ Q⁺)))
-          BoxR = (f′ C.⊗₁ g′) C.⊗₁ (f C.⊗₁ g)
+          BoxR : (((B⁺ ⊗₀ D⁻) ⊗₀ (Q⁺ ⊗₀ R⁻)) ⊗₀
+                    ((A⁺ ⊗₀ B⁻) ⊗₀ (P⁺ ⊗₀ Q⁻))) ⇒
+                 (((B⁻ ⊗₀ D⁺) ⊗₀ (Q⁻ ⊗₀ R⁺)) ⊗₀
+                    ((A⁻ ⊗₀ B⁺) ⊗₀ (P⁻ ⊗₀ Q⁺)))
+          BoxR = (f′ ⊗₁ g′) ⊗₁ (f ⊗₁ g)
 
-          ⊗-expand : ∀ {V₀ V V′ V″ U₀ U U′ U″ : C.Obj}
-                       {u₂ : V′ C.⇒ V″} {u₁ : V C.⇒ V′} {u₀ : V₀ C.⇒ V}
-                       {v₂ : U′ C.⇒ U″} {v₁ : U C.⇒ U′} {v₀ : U₀ C.⇒ U} →
-                     (u₂ C.∘ u₁ C.∘ u₀) C.⊗₁ (v₂ C.∘ v₁ C.∘ v₀)
-                       C.≈ u₂ C.⊗₁ v₂ C.∘ u₁ C.⊗₁ v₁ C.∘ u₀ C.⊗₁ v₀
-          ⊗-expand = C.⊗-distrib-over-∘ ○ (refl⟩∘⟨ C.⊗-distrib-over-∘)
+          ⊗-expand : ∀ {V₀ V V′ V″ U₀ U U′ U″ : Obj}
+                       {u₂ : V′ ⇒ V″} {u₁ : V ⇒ V′} {u₀ : V₀ ⇒ V}
+                       {v₂ : U′ ⇒ U″} {v₁ : U ⇒ U′} {v₀ : U₀ ⇒ U} →
+                     (u₂ ∘ u₁ ∘ u₀) ⊗₁ (v₂ ∘ v₁ ∘ v₀)
+                       ≈ u₂ ⊗₁ v₂ ∘ u₁ ⊗₁ v₁ ∘ u₀ ⊗₁ v₀
+          ⊗-expand = ⊗-distrib-over-∘ ○ (refl⟩∘⟨ ⊗-distrib-over-∘)
 
-          residue : mid C.⊗₁ C.id
-                      C.∘ (mid C.∘ (α C.⊗₁ α C.∘ BoxL C.∘ γ C.⊗₁ γ) C.∘ mid)
-                      C.∘ mid C.⊗₁ C.id
-                    C.≈ C.id C.⊗₁ mid
-                      C.∘ (α C.∘ (mid C.⊗₁ mid C.∘ BoxR C.∘ mid C.⊗₁ mid) C.∘ γ)
-                      C.∘ C.id C.⊗₁ mid
+          residue : mid ⊗₁ id
+                      ∘ (mid ∘ (α ⊗₁ α ∘ BoxL ∘ γ ⊗₁ γ) ∘ mid)
+                      ∘ mid ⊗₁ id
+                    ≈ id ⊗₁ mid
+                      ∘ (α ∘ (mid ⊗₁ mid ∘ BoxR ∘ mid ⊗₁ mid) ∘ γ)
+                      ∘ id ⊗₁ mid
           residue = HCoh.Transport.WithGens.HOM Cˢ A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ P⁺ P⁻ Q⁺ Q⁻ R⁺ R⁻
                       f f′ g g′
 
     opaque
       unfolding _⊗₁ᴳ_ composeᴳ
 
-      triangleᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ : C.Obj} →
-                  G._∘_ (G.id {A⁺ , A⁻} ⊗₁ᴳ ⌜ C.λ⇒ , C.λ⇐ ⌝) ⌜ C.α⇒ , C.α⇐ ⌝
-                    C.≈ ⌜ C.ρ⇒ , C.ρ⇐ ⌝ ⊗₁ᴳ G.id {B⁺ , B⁻}
-      triangleᴳ = G.∘-resp-≈ˡ ⌜⌝-⊗ˡ ○ ⌜⌝-∘ ○ ⌜⌝-resp-≈ C.triangle C.triangle-inv ○ ⟺ ⌜⌝-⊗ʳ
+      triangleᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ : Obj} →
+                  G._∘_ (G.id {A⁺ , A⁻} ⊗₁ᴳ ⌜ λ⇒ , λ⇐ ⌝) ⌜ α⇒ , α⇐ ⌝
+                    ≈ ⌜ ρ⇒ , ρ⇐ ⌝ ⊗₁ᴳ G.id {B⁺ , B⁻}
+      triangleᴳ = G.∘-resp-≈ˡ ⌜⌝-⊗ˡ ○ ⌜⌝-∘ ○ ⌜⌝-resp-≈ triangle triangle-inv ○ ⟺ ⌜⌝-⊗ʳ
 
-      pentagonᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ : C.Obj} →
-                  G._∘_ (G.id {A⁺ , A⁻} ⊗₁ᴳ ⌜ C.α⇒ {B⁺} {D⁺} {E⁺} , C.α⇐ {B⁻} {D⁻} {E⁻} ⌝)
-                        (G._∘_ ⌜ C.α⇒ , C.α⇐ ⌝
-                               (⌜ C.α⇒ , C.α⇐ ⌝ ⊗₁ᴳ G.id {E⁺ , E⁻}))
-                    C.≈ G._∘_ ⌜ C.α⇒ {A⁺} {B⁺} {D⁺ C.⊗₀ E⁺} , C.α⇐ ⌝
-                              ⌜ C.α⇒ {A⁺ C.⊗₀ B⁺} {D⁺} {E⁺} , C.α⇐ ⌝
-      pentagonᴳ = G.∘-resp-≈ (⌜⌝-⊗ˡ {p = C.α⇒}) (G.∘-resp-≈ʳ ⌜⌝-⊗ʳ ○ ⌜⌝-∘)
+      pentagonᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ : Obj} →
+                  G._∘_ (G.id {A⁺ , A⁻} ⊗₁ᴳ ⌜ α⇒ {B⁺} {D⁺} {E⁺} , α⇐ {B⁻} {D⁻} {E⁻} ⌝)
+                        (G._∘_ ⌜ α⇒ , α⇐ ⌝
+                               (⌜ α⇒ , α⇐ ⌝ ⊗₁ᴳ G.id {E⁺ , E⁻}))
+                    ≈ G._∘_ ⌜ α⇒ {A⁺} {B⁺} {D⁺ ⊗₀ E⁺} , α⇐ ⌝
+                              ⌜ α⇒ {A⁺ ⊗₀ B⁺} {D⁺} {E⁺} , α⇐ ⌝
+      pentagonᴳ = G.∘-resp-≈ (⌜⌝-⊗ˡ {p = α⇒}) (G.∘-resp-≈ʳ ⌜⌝-⊗ʳ ○ ⌜⌝-∘)
                 ○ ⌜⌝-∘
-                ○ ⌜⌝-resp-≈ C.pentagon C.pentagon-inv
+                ○ ⌜⌝-resp-≈ pentagon pentagon-inv
                 ○ ⟺ ⌜⌝-∘
 
-      unitorˡ-commuteᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ : C.Obj}
-                           {f : A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺} →
-                         G._∘_ ⌜ C.λ⇒ , C.λ⇐ ⌝ (G.id {unitᴳ} ⊗₁ᴳ f)
-                           C.≈ G._∘_ f ⌜ C.λ⇒ , C.λ⇐ ⌝
+      unitorˡ-commuteᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ : Obj}
+                           {f : A⁺ ⊗₀ B⁻ ⇒ A⁻ ⊗₀ B⁺} →
+                         G._∘_ ⌜ λ⇒ , λ⇐ ⌝ (G.id {unitᴳ} ⊗₁ᴳ f)
+                           ≈ G._∘_ f ⌜ λ⇒ , λ⇐ ⌝
       unitorˡ-commuteᴳ = absorbˡ ○ mid-unitˡ ○ ⟺ absorbʳ
 
-      unitorʳ-commuteᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ : C.Obj}
-                           {f : A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺} →
-                         G._∘_ ⌜ C.ρ⇒ , C.ρ⇐ ⌝ (f ⊗₁ᴳ G.id {unitᴳ})
-                           C.≈ G._∘_ f ⌜ C.ρ⇒ , C.ρ⇐ ⌝
+      unitorʳ-commuteᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ : Obj}
+                           {f : A⁺ ⊗₀ B⁻ ⇒ A⁻ ⊗₀ B⁺} →
+                         G._∘_ ⌜ ρ⇒ , ρ⇐ ⌝ (f ⊗₁ᴳ G.id {unitᴳ})
+                           ≈ G._∘_ f ⌜ ρ⇒ , ρ⇐ ⌝
       unitorʳ-commuteᴳ = absorbˡ ○ mid-unitʳ ○ ⟺ absorbʳ
 
-      assoc-commuteᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ P⁺ P⁻ Q⁺ Q⁻ : C.Obj}
-                         {f : A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺}
-                         {g : D⁺ C.⊗₀ E⁻ C.⇒ D⁻ C.⊗₀ E⁺}
-                         {h : P⁺ C.⊗₀ Q⁻ C.⇒ P⁻ C.⊗₀ Q⁺} →
-                       G._∘_ ⌜ C.α⇒ , C.α⇐ ⌝ ((f ⊗₁ᴳ g) ⊗₁ᴳ h)
-                         C.≈ G._∘_ (f ⊗₁ᴳ (g ⊗₁ᴳ h)) ⌜ C.α⇒ , C.α⇐ ⌝
+      assoc-commuteᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ P⁺ P⁻ Q⁺ Q⁻ : Obj}
+                         {f : A⁺ ⊗₀ B⁻ ⇒ A⁻ ⊗₀ B⁺}
+                         {g : D⁺ ⊗₀ E⁻ ⇒ D⁻ ⊗₀ E⁺}
+                         {h : P⁺ ⊗₀ Q⁻ ⇒ P⁻ ⊗₀ Q⁺} →
+                       G._∘_ ⌜ α⇒ , α⇐ ⌝ ((f ⊗₁ᴳ g) ⊗₁ᴳ h)
+                         ≈ G._∘_ (f ⊗₁ᴳ (g ⊗₁ᴳ h)) ⌜ α⇒ , α⇐ ⌝
       assoc-commuteᴳ = absorbˡ ○ mid-assoc ○ ⟺ absorbʳ
 
     GConstructionMonoidal : Monoidal G'

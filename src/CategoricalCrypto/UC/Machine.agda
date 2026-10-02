@@ -132,17 +132,6 @@ Approximationᴹ = record
 spaceᴹ : ApproxSpace 0ℓ 0ℓ
 spaceᴹ = record { Carrier = Dₚ Bool ; approx = Approximationᴹ }
 
--- The readout is homed on `𝒢ₚ`, not on `𝒫ᴵ`, because that is where the
--- grading is; the hom equality is read at slack 0 (`Protocol.Machine.Run`).
-QEvaluationᴹ : QEvaluation (𝒢ₚ 0ℓ) 0ℓ 0ℓ
-QEvaluationᴹ = record
-  { J = ⟦ unitᴵ ⟧ᴵ ; Ω = ⟦ Ωᴵ ⟧ᴵ ; X = spaceᴹ
-  ; eval₀ = record
-      { to = ⟦_⟧ᴼ ; cong = λ eq → ≈ₚ⇒≈ₚ[0] (runᴹ-resp-≈ᴹ eq (ask tt out)) }
-  }
-
-Evaluationᴹ : Evaluation (𝒢ₚ 0ℓ) 0ℓ 0ℓ
-Evaluationᴹ = qual₊ ℚ-refinement QEvaluationᴹ
 
 ------------------------------------------------------------------------
 -- The ancilla relays, as data

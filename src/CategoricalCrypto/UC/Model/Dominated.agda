@@ -11,15 +11,12 @@ open import Categories.Category.Monoidal.Bundle
 open import Categories.LocallyGraded
 open import Categories.LocallyGraded.SubCategory
 
-open import Data.Empty
 open import Data.Nat.Base
 open import Data.Nat.Positive
 open import Data.Nat.Properties
 open import Data.Product.Base
 open import Data.Rational as ℚ using (ℚ; 0ℚ)
-open import Data.Sum.Base
 open import Data.Unit.Base
-open import Function.Base
 open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Dp
@@ -39,7 +36,7 @@ open import CategoricalCrypto.UC.Machine.Slide
 open import CategoricalCrypto.UC.Model.Enrichment
 open import CategoricalCrypto.UC.Model.Observation
 open import CategoricalCrypto.UC.Model.Seal
-open import CategoricalCrypto.UC.QueryBound using (QB; certified⇒QB; qb-resp-≈; qbᵢ-wire)
+open import CategoricalCrypto.UC.QueryBound using (QB; qb-resp-≈)
 open import CategoricalCrypto.UC.QueryBound.Compose.Laws
 open import CategoricalCrypto.UC.QueryBound.Object
 

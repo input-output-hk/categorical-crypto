@@ -31,18 +31,16 @@ open import CategoricalCrypto.UCSetup
 import CategoricalCrypto.Standard2 as Std2
 import CategoricalCrypto.UC.Family.Negligible as Negᴹ
 
-module Rates = SymmetricMonoidalCategory Rates
-
 module CategoricalCrypto.UC.Family.Negligible.Setup
   {o ℓ e os ℓa qs : Level}
   (M : MonoidalCategory o ℓ e)
   (qro : QEvaluation (MonoidalCategory.U M) os ℓa)
   (Rg : GradedSubCat Rates.monoidalCategory M qs)
-  (Ix : Set) (κ : Ix → ℕ) (κ-cofinal : (N : ℕ) → Σ[ i ∈ Ix ] N ℕ.≤ κ i) where
+  (Ix : Set) (κ : Ix → ℕ) where
 
-open import CategoricalCrypto.UC.Family M qro Rg Ix κ κ-cofinal
+open import CategoricalCrypto.UC.Family M qro Rg Ix κ
 
-private module N = Negᴹ M qro Rg Ix κ κ-cofinal
+private module N = Negᴹ M qro Rg Ix κ
 
 -- The canonical setup, its whole inherited metatheory, and the bridge.
 module Canonicalᴺ = Std2.StdUC Famᴹ (Observable.ℰᴼ (Evaluation.observable N.Evaluationᴺ))

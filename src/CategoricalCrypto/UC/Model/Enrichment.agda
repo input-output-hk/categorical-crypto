@@ -32,7 +32,6 @@ open import CategoricalCrypto.UC.QueryBound.Object
 module CategoricalCrypto.UC.Model.Enrichment where
 
 private
-  module Rates = SymmetricMonoidalCategory Rates
   module G = MonoidalCategory 𝔾ᵒ
 
 gradingᵒ : GradedSubCat Rates.monoidalCategory 𝔾ᵒ (suc 0ℓ)
