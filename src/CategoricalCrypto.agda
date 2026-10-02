@@ -1,4 +1,13 @@
 {-# OPTIONS --safe #-}
+
+------------------------------------------------------------------------
+-- Root of the categorical-cryptography development: channels, machines,
+-- and example protocols.  This subtree (`CategoricalCrypto/**` plus
+-- `Class.Monad.Ext`, 11 modules) is the OTHER development in this
+-- source tree — it does not depend on the string-diagram solver or the
+-- APROP soundness/completeness stack, and nothing outside it imports it.
+------------------------------------------------------------------------
+
 module CategoricalCrypto where
 
 -- Open problems

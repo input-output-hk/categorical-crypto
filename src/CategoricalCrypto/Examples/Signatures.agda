@@ -4,17 +4,14 @@ module CategoricalCrypto.Examples.Signatures where
 open import categorical-crypto.Prelude
 import categorical-crypto.Prelude as P
 
-open import Data.Fin using (Fin; fromℕ<) renaming (zero to fzero; suc to fsuc)
+open import Data.Fin using (fromℕ<)
 
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Channel.Selection
 open import CategoricalCrypto.Machine.Core
 
 open import Data.Nat
-open import Data.List
 open import Data.List.Membership.Propositional
-
-open import Function
 
 module Signatures (VK M S : Set) where
   data SigT : Mode → Type where
@@ -89,7 +86,10 @@ module Signatures (VK M S : Set) where
             return just $ L⊗ ((ϵ ⊗R) ⊗R) ᵗ² ↑ᵢ GetSig σ
             newState record s { verList = (vk , m , σ) ∷ State.verList s ; seenIds = k ∷ seenIds }
 
-    -- TODO
+    -- TODO: the verification clause.  The sketch below is STALE — it is
+    -- written against an earlier channel DSL (`adversarialInput`,
+    -- `honestOutputO`, `rcvˡ`, `(-, ·)`, none of which exist any more).
+    -- Re-spell it in the `L⊗ … ᵗⁿ ↑ₒ/↑ᵢ` form the clauses above use.
     -- Ver : ∀ {s vk σ k m}
     --       → let open State s in
     --         WithState s
