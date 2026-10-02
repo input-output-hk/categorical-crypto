@@ -1,58 +1,48 @@
 # Open items
 
 Open suggestions from the quality-review rounds and the retired plans, verified against `src/` at
-`8f05fb41`; maintainer rulings are excluded. Each line: `module :: definition` — size — why.
+`8f05fb41` and trimmed after the round-3 leftovers landed; maintainer rulings are excluded. Each
+line: `module :: definition` — size — why.
 
 ## Solver
 
 - `Categories/GConstruction{Identity,Hom,Trace,Embedding}Coherence.agda, GConstructionCoherence/{Terms,Wiring}.agda :: αᵗ βᵗ γᵗ midᵗ, instance S≤S` — ~−40 LOC — the same free-wiring terms are copied in 4–6 files; one shared `FreeWiring sig` module, measured against `Wiring`'s same-`sig` fast path.
 - `Categories/GConstruction{,Trace,Embedding,Monoidal}.agda :: Cˢ` — −9 LOC — the same `record { U ; monoidal ; symmetric }` built in four files; make it public once in `GConstructionTrace`.
-- `Categories/GConstruction{Trace,Loop,Embedding,Monoidal}.agda :: module C` — ~0 LOC, ~250 `C.` prefixes — a local `open C` clashes with nothing; start with `GConstructionLoop.WithTrace`.
 - `Categories/GConstructionEmbedding.agda :: ⌜_,_⌝, ⌜⌝-id, ⌜⌝-resp-≈/-∘/-≅, unitorˡᴳ/unitorʳᴳ/associatorᴳ`, `GConstructionLoop.agda :: trace-conj` — placement, ~0 LOC — `⌜⌝-*` are the functor laws of `C × Cᵒᵖ → G` (package a `Functor`, then `⌜⌝-≅` is upstream's `[_]-resp-≅`); `⌜⌝-id` uses no trace law; `trace-conj` belongs in `GConstructionTrace.WithTrace`.
 - `Categories/Monad/Graded/Uncurried.agda` — one root import line, or delete — no importer and not in the root, so it is never checked.
 
 ## Foundations
 
-- `ProbabilisticLogic.agda` (whole module) — −7 + one root line — forwarding index; the root reaches its three imports without it.
 - `Class/Monad/Ext.agda` — flag only — orphan with no importer, so unchecked.
-- `ProbabilisticLogic/Distribution/RationalDist/{Setoid :: >>=ᴹ-congʳ, Partial :: >>=⊥-congˡ, Advantage :: adv⊥-sym/-triangle/-≈⇒0, advᵇ⊥-sym/-triangle}`, `Dp/Settle :: Settles-bot⋆, Settlesᵀ-cum`, `Dp :: cum-*ₗ`, `Dp/Advantage :: ≼ₚ[]-refl`, `Dp/Mass :: total-resp-≼ₚ`, `Categories/Category/Monoidal/Properties/Ext :: αρ-λ` — ≈ −35 LOC — zero consumers (keep `Dp :: laterₚ-≈ₚ`, rule 32).
+- `ProbabilisticLogic/Dp/Mass.agda :: total-resp-≼ₚ` — ≈ −3 LOC — zero consumers (keep `Dp :: laterₚ-≈ₚ`, rule 32).
 - `ProbabilisticLogic/Dp/Mass.agda :: split, scale, expand, collect, product, 1-≤, shift` — move — unit-interval ℚ facts for `Data.Rational.Properties.Ext`.
 - Hand-rolled `0 ≤ a + b` / `x ≤ x + y` at `Dp.agda`, `Uniform/{Duplicate,Collision}`, `GamePlaying/Potential`, `MerkleDamgard/Core`, `UC/Machine/Dominated` — ~−15 LOC over ~8 files — add `0≤+` beside `Data.Rational.Properties.Ext.p≤p+q` and use both.
 - `ProbabilisticLogic/Dp/Mass.agda :: mapₚ-≼ᵐ` — −4 LOC — the `cum-cong-P`/`>>=ₚ-boundB` sandwich is `mapₚ-cum` used directly.
 - `ProbabilisticLogic/Distribution/Uniform/Birthday.agda :: 0≤scaled, sumN (+ sumN-mono, sumN-≤, square)` — −2 LOC, placement — `0≤scaled` is `0≤*`; `sumN` is pure ℕ inside a module parameterised by an unused `n`, home `Data/Nat/Properties/Ext`.
 - `ProbabilisticLogic/Distribution/RationalDist/Expectation.agda :: Prᵇ⊥` — ±0 — define as `E⊥ μ (indᵇ b)`, the same term.
-- `ProbabilisticLogic/Distribution/Uniform/Duplicate.agda :: memb, memb-∈, memb-∉` — ≈ −8 LOC — `memb` is `does (any? (h ≟_) hs)`; must still reduce in `GamePlaying.Test`.
 - `ProbabilisticLogic/Distribution/Uniform.agda` header — 1 line — describes only `P-uniform-Vec`.
-- `Data/Bits/Codec.agda :: list-codec` — −13 LOC — define via `vec-codec` at `length xs` plus `toList∘fromList` (patch drafted in R3D, never checked).
 - `Categories/Category/Construction/Kleisli/Discrete.agda :: ≈ᵏ-isEquivalence`, `Monoidal/Distributive/Instance/Rels.agda :: δ⁻¹` — −3 / −4..−8 LOC — stdlib pointwise setoid; graph of `×-distribˡ-⊎`'s inverse.
 - `ProbabilisticLogic/Distribution/{Bernoulli,Binomial}` (deleted) — ~370 LOC, restate at `Dist-ℚ` — no biased coin, binomial `pᵏ` or expected count `k·m/(m+n)` in the live library; retirement review disagreed with the deletion.
 
 ## Machines / Protocols
 
 - `CategoricalCrypto/Machine/Core.agda` dead half (`_∣ʳ`, `liftᴷ`, `_⊗ʳ_`, `⊗-assoc*`, `idᴷ`, `transpose`, `⨂₁`, `_∘ᴷ_`, `Trace`/`Invariant*`, `OAP`/`_≈ℰ_`/`_≤UC_`) and `Channel/Core.agda` (`destruct-⊗`, `⊗-*-assoc`, `⊗-*-neutral`, `⨂*`) — ≈ −135 LOC — zero uses inside the kept legacy layer; `_≈ℰ_` there is intensional `≡`, so the "complete by dummy adversary" comment is unproved.
-- `CategoricalCrypto/Channel/Selection.agda :: ⇒-solver-tactic'` — +2 LOC, behaviour change — the "Unique solution required" error is raised inside the `catch` that swallows it, so an ambiguous goal silently takes the left solution.
-- `CategoricalCrypto/Protocol/Machine/Trace/Compose.agda :: traceᴳ, outF, outG, Kᴳ, dispatch-f/g, exit∘, exit-out, exit-loop` and `Dp/Settle/Iter :: Loop` — ≈ −3 LOC, shorter calls — module parameters never used (`Kg Kf gS fS`, rank, fuel), so `ROCommitment/Realization/*` passes 4–8 dead arguments; `exit∘` then is `Lp.exitK`; rename `Trace/Compose` → `Protocol.Machine.Trace` (one child).
-- `CategoricalCrypto/Protocol/Machine/Trace/Compose.agda` imports `UC.Machine.Run` — layering — a protocol-layer module depending on the UC layer.
-- `CategoricalCrypto/Protocol/Machine/Trace/Compose.agda :: MT, V, K, 𝒢`, `Compose.agda :: MC, MT, S`, and ~17 private `module MC = Core (𝒱ₚ 0ℓ)` copies — ≈ −40..−60 LOC — one public instantiation set in `Machines.Base`; blocked earlier by `ShadowedModule` in openers that define their own, so measure.
-- `CategoricalCrypto/GamePlaying/Defer/Run.agda :: DeferStep` — 0 LOC — `μ-const` is a module parameter `DeferStep` ignores; move it to the inner module of `runFrom-defer`.
-- `CategoricalCrypto/GamePlaying/Hop.agda :: FLGP` — 0 LOC — `StR`/`StI` are module parameters only `hop-bound` uses (unsolved from outside); also a special case of `runWith-join` not derived from it.
+- ~16 private `module MC = Core (𝒱ₚ 0ℓ)` copies — ≈ −30..−50 LOC — one public instantiation set in `Machines.Base`; blocked earlier by `ShadowedModule` in openers that define their own, so measure.
+- `CategoricalCrypto/GamePlaying/Hop.agda :: FLGP` — 0 LOC — a special case of `runWith-join` not derived from it.
 - `CategoricalCrypto/GamePlaying/Average.agda :: badProb-avg, AvgDrift` — design call — `SuperCert` could be the `V ≡ ⊤` case; `AvgDrift` is CPS rather than a shared-randomness kernel.
-- `CategoricalCrypto/GamePlaying/Partial.agda :: hop-bound⊥, cond, cond-diag, StepBisim⊥, Pr₁⊥-coin` — ≈ −20 LOC — `hop-bound⊥` has zero consumers (docs `dp-transport.md`, `fcom-uc.md` name it); `cond`/`cond-diag` are stdlib `if_then_else_`/`if-eta`; `StepBisim⊥ = StepBisim⊥ʳ id id …`.
-- `CategoricalCrypto/Machines/Pure.agda :: swap-copair` — −5 LOC — alias of `[]∘+₁`, one consumer (`UC/Machine/Dictionary`).
-- `CategoricalCrypto/Machines/Iteration.agda :: pad` — −4 LOC — `pad θ = θ ⊗₁ id` is a second spelling; inline at Congruence's ≈8 sites.
-- `CategoricalCrypto/Machines/{Trace :: traceᴹ-cong, Sim :: ≈ᴹ-isEquivalence, Frame :: 𝕄, Trace/Fubini :: pure-swap, Tensor/Assoc :: ⊗-split implicits}` and dead opens in `Trace`, `Trace/{Fubini,Vanishing}` — ≈ −15 LOC — zero uses / single-use aliases (`𝕄` moves to `Reassoc` beside its solver calls if kept).
-- `CategoricalCrypto/Protocol/Safety.agda :: super, hit-bounded` — −7 LOC — `hit-bounded = ≤-trans (hit≤badProb⊥ …) (badProb⊥-bounded cert …)`; header owes one line that `hitFrom` samples only at activation boundaries (documented in `Observe`).
+- `CategoricalCrypto/GamePlaying/Partial.agda :: cond, cond-diag` — ≈ −6 LOC — stdlib `if_then_else_`/`if-eta`.
+- `CategoricalCrypto/Machines/{Frame :: 𝕄, Tensor/Assoc :: ⊗-split implicits}` and dead opens in `Trace`, `Trace/{Fubini,Vanishing}` — ≈ −8 LOC — single-use aliases (`𝕄` moves to `Reassoc` beside its solver calls if kept).
+- `CategoricalCrypto/Protocol/Safety.agda` header — 1 line — owes that `hitFrom` samples only at activation boundaries (documented in `Observe`).
 - `CategoricalCrypto/Interaction.agda :: runWith⊥-emb` — −4 LOC — via `>>=ᴹ-congˡ`.
-- `CategoricalCrypto/Machines/Tensor.agda :: tstep-sim`, shared `tstep-relabel` (replacing `Fubini`'s copy and `Vanishing :: iterv-i₁.tstep-ν`), `Vanishing :: ∇ψ.∇ν` as one `[]∘+₁`, `Pure.∘-pureᴹ/⊗-pureᴹ` → `Tensor` — ≈ −18 LOC.
-- `CategoricalCrypto/Machines/Core.agda :: mk` as the record `constructor`; `Collapse :: Loop.loop-fix` eta-wrapper; `Base :: Elgotᵏ` private; `Frame :: onL-str` → `onL-id⊗`; `Pointwise :: ⊗-pureˡ h = K.pureᵏ-⊗ h id` — small — naming/plumbing.
+- `CategoricalCrypto/Machines/Pure.agda :: ∘-pureᴹ, ⊗-pureᴹ` → `Tensor` — placement — skipped in round 3: the move needs `Machines.Category` in `Tensor`.
+- `CategoricalCrypto/Machines/Base.agda :: Elgotᵏ` private — small — skipped in round 3.
 - `CategoricalCrypto/Machines/Collapse.agda :: γ-pure, compose≈∘ᴳ` — −7 LOC, 1 comment — `γ` is `α` with `id ⊗₁ σ⇒` appended, so the chain is `∘ᶠ (⊗ᶠ idᶠ σᶠ) (α-pure …)` (perf-pinned); `compose≈∘ᴳ` is `S.reflᴹ`, an elaboration pin that reads like a theorem.
 - `CategoricalCrypto/Machines/Sim/Lax.agda :: ≲ˡ-trans, _≈ˡ[_]_, ≲⇒≲ˡ, ≲ˡ-refl, ≲ˡ congruences` — −6..−65 LOC or 1 header line — zero consumers (`Run/Lax` uses only the record); module itself is KEEP by ruling.
 - `CategoricalCrypto/Machines/Base.agda :: 𝒢ₚ-Monoidal; 𝒢ₚ/Tracedₚ/ℳₚ` — −2 LOC; perf — `𝒢ₚ-Monoidal` has zero uses; `Base` imports `Machines.G`, so most importers pay for the G closure they never use (split the G side out, measure).
-- `CategoricalCrypto/GamePlaying.agda :: prune-cert` re-binds the `private variable` telescope; `Coupling`/`Coupling⊥` duplicate `fR`/`fI`; `Defer`'s averaged-point premise written 4× — ≈ −7 LOC.
-- `CategoricalCrypto/GamePlaying/Test.agda :: DeferMachine.here` — −5 LOC, rule 33 — re-proves the public `GamePlaying.Defer.avg-here`; retarget.
+- `CategoricalCrypto/GamePlaying.agda :: Coupling`/`Coupling⊥` duplicate `fR`/`fI` — ≈ −4 LOC — skipped in round 3.
 - `CategoricalCrypto/Protocol/Observe.agda :: transfer, transfer-at, ≤-shift` (deleted) — ~20 LOC, restore — the elementary game-hop step (bad-event bound carries to an `≈adv`-close `P′`) has no replacement.
 - `Machines.*` at the `Rels` base (old `SFunM.Spike.Instance.Rel`) — ~100–170 LOC test — nothing checks the general Mealy layer at a non-Kleisli base.
-- Comment pass over the R3C scope (≈ −150 LOC): stale `badProb-super` (Average), false "no `GConstruction` in its closure" (Pointwise), stale timings (Collapse), dead `docs/kb` citation (Pin), stale "two bridges" (GamePlaying, Hop, Partial), overclaims (Interaction, Strategy, Protocol, Fubini's "pure iso"), export-list and proof narration (Pure, Bundle, Sandwich, Trace, Fubini, Safety, Agree, Defer, Hop, Test, `Machine/Core` TODOs), rule-24 duplicates (G's `βᴹ` pointer, Compose §4, Potential's lazy-sampling NB).
+- Comment pass remainder over the R3C scope: the `Machine/Core` TODOs.
 
 ## UC core
 
@@ -60,51 +50,34 @@ Open suggestions from the quality-review rounds and the retired plans, verified 
 - `CategoricalCrypto/UC/QueryBound.agda :: qbᵢ-T₁ / qbᵢ-sub` — ≈ −55..−65 LOC — twin 70-line blocks differing only in the ancilla summand; one side-parameterised private module, or derive `qb-subᴵ` as `σ ∘ T₁ᴵ ∘ σ`. Perf-sensitive.
 - `CategoricalCrypto/UC/QueryBound.agda:69-93` private copy of `Dp.Reasoning` (`_⟨≈⟩_`, `bindᶠ`, `map-arg`, …) — ≈ −22 LOC — bare-open `Dp.Reasoning` instead; the earlier timing objection is weaker now.
 - `CategoricalCrypto/UC/QueryBound.agda :: qbᵢ-wire, qbᵢ-closed, qbᵢ-upward` — ≈ −8..−15 LOC — share `pointᵍ`/`coh₀`/`cohR`; `qbᵢ-wire`'s `onRᵍ` stops being literal `returnₚ` in perf-pinned towers — measure.
-- `CategoricalCrypto/UC/QueryBound/Compose/Laws.agda :: qb-∘` — −12 LOC — only consumer `qb-∘-category`, which can go raw≈∘ᴳ, ⟺, raw≈∘ᴳ; `budgetᴹ`, the reason it was kept, no longer exists.
+- `CategoricalCrypto/UC/QueryBound/Compose/Laws.agda :: qb-∘` — −12 LOC — only consumer `qb-∘-category`, which can go raw≈∘ᴳ, ⟺, raw≈∘ᴳ; kept in round 3: one consumer.
 - `CategoricalCrypto/UC/QueryBound/Compose/Step.agda :: Nᶜ, unfoldᶜ, eq-∘ᶜ` — placement — a public reading of a `𝒢ₚ` composite with nothing about query bounds; belongs in `Machines.*` beside `Collapse`.
-- `CategoricalCrypto/UC/QueryBound/Exact.agda :: qeᵢ-wire, Ledgerᴿ` — −15 LOC, ±0 — `qeᵢ-wire`'s "QEᵢ is not vacuous" role is superseded by HashForward/ROCommitment; `Ledgerᴿ`'s four law parameters are `IsPreorder _≡_ _∼_` + `_+_ Preserves₂ …` (rule 30).
-- `CategoricalCrypto/UC/QueryBound.agda :: 0<⊔1`, `QueryBound/Compose.agda :: slack, reassoc` — −6 LOC — `m≤n⊔m`, stdlib `x∙yz≈xz∙y`/`xy∙z≈xz∙y` (argument order swapped).
-- `CategoricalCrypto/UC/Machine.agda :: T₁ᴵ.relay, subᴵ.relay, outT, subᴵ.outS, Evaluationᴹ, QEvaluationᴹ, open Data.Sum.Ext … public` — ≈ −20 LOC — inline relays as `mapₚ (map₂ outT) (MC.step f …)` (71 importers, measure); `outT` is `Sum.map inj₂ inj₂`; `Evaluationᴹ`/`QEvaluationᴹ` are dead (the model is fed `qevaluationᵒ`; root header says otherwise); the `⊎assoc` re-export is a forwarding layer.
+- `CategoricalCrypto/UC/Machine.agda :: outT, subᴵ.outS` — small — `outT` is `Sum.map inj₂ inj₂`; inline into the relays (71 importers, measure).
 - `CategoricalCrypto/UC/Machine/Monitor.agda :: compileᴹ` vs `flagReader` — stage 1 ≈ −10, stage 2 ≈ −250..−400 LOC — `compileᴹ B μ Y E ≈ flagReader B Y E ∘ T₁ᴵ Y μ` (spiked green); define `HitsAt` as `BoundedAt` of the flag reader; stage 2 merges the two "+1 certificate" developments (`StateEvent/Lift :: FlagCert/flagSkeleton/flag-slide` vs `Dominated`'s monitor cert) via a simulation `monitorᴹ report ∘ u ≈ᴹ u′ ▷ acc` (crux unspiked).
-- `CategoricalCrypto/UC/Machine/StateEvent.agda :: _≈ᵉ_, ≈ᵉ⇒≈ᴹ, ▷-≈` + `Read :: stateRead-resp-≈ᵉ, stateBounded-resp-≈ᵉ` — ≈ −22 LOC — equivalence-closure layer for one single-step consumer (`transportᵉ` in HitTests); `≈ᵉ⇒≈ᴹ` has zero uses.
-- `CategoricalCrypto/UC/Machine/StateEvent.agda :: unflag, unflag-▷, dropF, pullTest-id/∘, acceptance examples` — ≈ −35 LOC / move — dead or test-only material inside a library module; move pins to `StateEvent/HitTests`.
-- `CategoricalCrypto/UC/Machine/StateEvent/HitTests.agda :: wait-irrelevant` — restate — vacuous at `out false` (no `wait` state is ever reached); restate at `ask₁` with `onWait (wait _) = true`.
-- `CategoricalCrypto/UC/Machine/StateEvent/{Read :: stateRead-resp-env, Adequacy :: stateᶠ⇒boundedHit}`, `EventBounds :: boundedᴺ-reindex` — ≈ −20 LOC — zero consumers.
-- `CategoricalCrypto/UC/Machine/StateEvent/Agree.agda :: embeds` vs `Monitor/Agree.agda :: stratTest-embeds` — ≈ −6 LOC — two wire proofs of one embedding; needs `λᴵ⇒ ∘ λᴵ⇐ ≈ id` in 𝒫ᴵ.
-- `CategoricalCrypto/UC/Machine/Monitor/Agree.agda :: stratTest, qb-stratTest, m₀, module Read, flag-agree` — placement — three unrelated things; `qb-stratTest` belongs beside `qb-strategyEnv`, `module Read` beside `flagReader` (name collides with `StateEvent.Read`); `m₀ = λᴵ⇐` alias used 8×.
+- `CategoricalCrypto/UC/Machine/StateEvent/HitTests.agda :: wait-irrelevant` — delete or find a reachable input, maintainer's call — vacuous: no `wait` state is reachable at `A = unitᴵ`, so the test cannot be restated through the public API.
+- `CategoricalCrypto/UC/Machine/StateEvent/Agree.agda :: embeds` vs `Seam/Budget.agda :: stratTest-embeds` — ≈ −6 LOC — two wire proofs of one embedding; skipped in round 3: needs `λᴵ⇒ ∘ λᴵ⇐ ≈ id` in 𝒫ᴵ.
 - `CategoricalCrypto/UC/Machine/StateEvent/Lift.agda :: flag-slide.bottom/w, a⇐-sub, covered, ≈⇒cofinal` — ≈ −13 LOC — duplicate `Monitor/Slide`-style core (one exported `T₁ᴵ Y λᴵ⇒ ∘ (a⇒ᴵ ∘ subᴵ m) ≈ subᴵ (ρᴵ⇒ ∘ m)` in `UC/Machine/Slide`); `≈⇒cofinal` is a missing `≈ₚ⇒cofinal` for `Dp`.
 - `CategoricalCrypto/UC/Machine/StateEvent/Adequacy.agda :: hitK` vs `Protocol/Observe.agda :: hitFrom` — ≈ −5 LOC — same three clauses over a kernel; generalise one over a state `Set`.
-- `CategoricalCrypto/UC/Machine/Slide.agda :: qb-Kctx` — small — two round trips are `qb-wire ⊎assocʳ ⊎assocˡ` and `qb-subᴵ`; perf-pinned, measure warm.
-- `CategoricalCrypto/UC/Machine/{Slide,Wire}.agda` — ≈ −8 LOC — `Sum.map (λ a → a) f` is `Sum.map₂ f` (≈25 sites in public statements, measure); same implicit telescope re-bound in 8–9 signatures with no `private variable` block.
-- `CategoricalCrypto/UC/Machine/Bridge.agda:10-31` — move — explains `dominated`'s statement, which lives in `Machine/Dominated` (rule 24).
+- `CategoricalCrypto/UC/Machine/{Slide,Wire}.agda` — small — the same implicit telescope re-bound in 8–9 signatures with no `private variable` block.
 - `CategoricalCrypto/UC/Machine/Dictionary.agda :: ⊗ᵉ-pureˡ/ʳ; T₁-resp-≈, sub-resp-≈, T₁-∘, sub-∘` — rename; ≈ −18 LOC — collide by name with `Machines.Tensor.Structural`'s with opposite handedness; the four laws are one "family ≈ F₁ inherits the functor laws" lemma (perf-pinned, measure).
 - `CategoricalCrypto/Iface.agda :: unitᴵ` vs `UC/Machine/Dictionary.agda :: 𝟭ᴵ` — −80..−120 LOC, multi-session — two empty interfaces force two unitor-wire families plus `Slide`'s hole-wire apparatus; spike `unitᴵ = 𝟭ᴵ`.
 - `CategoricalCrypto/UC/Model/Enrichment.agda :: imageᵒ` → `Categories/LocallyGraded/SubCategory.agda` — small — a general `pred⇒image` fact sitting in the model, with hand-spelled copies elsewhere.
 - `CategoricalCrypto/UC/Seam/Grounded.agda :: plug-run` vs `UC/Seam/Plug.agda :: Plugged.collapse` — small — two spellings of "observe env ∘ u".
-- `CategoricalCrypto/UC/Seam/Audit/Context.agda` — ≈ −10 LOC, −1 module, −1 dir — fossil directory (`UC.Audit` is gone) holding four definitions with one consumer (`Model/Family/Emulation`); fold them in, with `auditClose` replaced by `Gr.ιᴳ unitᴵ`.
 - `CategoricalCrypto/UC/Seam/{Plug,Extract,Transfer}.agda` — placement, 3 modules — machine-layer content with no seam notion; move under `UC/Machine/`; `Plug :: obs-resp` collides by name with `UC/Model/Observation.obs-resp`.
 - `CategoricalCrypto/UC/Seam/Transfer.agda :: ρᴷ, ρᵁ` vs `Seam/Adequacy/Wiring.agda :: outE, outU`; `Seam/Extract :: coinᵈ, E-coinᵈ`; `Seam/{Adequacy,Plug} :: point-red` — ≈ −15 LOC — same dispatch written twice; `coinᵈ` facts belong in `Dp.Coin`; `point-red` re-proves `Pointwise.point-⊛`.
-- `CategoricalCrypto/UC/Seam.agda`, `Seam/Adequacy.agda`, `Seam/Grounded.agda`, `UC/Model/Dominated.agda`, `UC/Quantitative/{Query,EventLift}.agda`, `UC/Robust.agda` unused imports (`Data.Empty`, `Protocol.Machine`, `module Sm` + `Machines.Sim`, `Data.Bool.Base`, `module S = Controlledᴹ`, …) — ≈ −15 LOC — Agda does not warn on unused imports, each needs a check.
 - `CategoricalCrypto/UC/Model/Enrichment.agda :: qbᵘ, procᵘ` → `Model/Graded :: procᵘ-∘, plug-gradedᵒ` → `UC/Graded :: plug-graded` — −30 LOC — a chain whose last link has no consumer.
-- `CategoricalCrypto/UC/Model/Seal.agda :: ⊗ᵒ, M._∘_ g f`, `UC/QueryBound/Object.agda :: Certifiedᴳ, certified⇒QBᴳ`, `QueryBound/Compose/Step :: Bd`, `UC/Model/Observation :: ∼ᴼ-resp` — ≈ −20 LOC — zero consumers (rule 32); `Object` header owes the line that `qb-∘ᴳ` lives in `Compose/Laws`.
+- `CategoricalCrypto/UC/Model/Seal.agda :: M._∘_ g f` — small — zero consumers (rule 32); `QueryBound/Object` header owes the line that `qb-∘ᴳ` lives in `Compose/Laws`.
 - `CategoricalCrypto/UC/Core.agda :: Observable, Θ, ≋-cast` — ≈ −45 LOC — general presheaf record with one producer (`Evaluation.observable`); define `Test`/`_≋_`/`pull`/`ℰᴼ` in `Evaluation`.
-- `CategoricalCrypto/UC/Robust.agda :: ⊤ᴬ, Respects≈Env, factors-resp, open AbstractUC setup public` and `Robust/Model.agda :: relay-selectedᵒ` — −8 LOC, 1 comment — dead names; the `public` re-export has one importer using none of it; `relay-selectedᵒ` is `robust-sub` at the trivial agreement, say so.
-- `CategoricalCrypto/UCSetup.agda :: faithful⇒grade-stable, GradeStableFromTests, prefix`, `UCSetup/Morphism :: idᵁ, composeᵁ, identity laws, module Factorization`, `Abstract2/Morphism :: transfer-impossible, epi⇒preserves-≈ℰ, mono⇒reflects-≈ℰ`, `Abstract2/WideSubcategory :: W-ext, coarsen, epi⇒coarsens, restrict-dummy, Fine, Trivial`, `Abstract2 :: UC-dummy-sim, UCᵈ-sim, ≤UC-resp-≈, ≤UCᵈ⇔≤UC, ≤UC-sub, naiveKleisli` — ≈ −165 LOC — dead internals of the setup-morphism layer; `prefix` is `ext` by definition (perf crux); the "Identity and composition" banner promises a category never built; `naiveKleisli` belongs in its only consumer `Equivalence`.
-- `CategoricalCrypto/Abstract.agda :: Iᵤ, car, grd, U-≋, atk-idˡ`, `Abstract2 :: λ-cancel (= MR.cancelˡ), unit-comp, UC-compose re-binding f g, ≤UC⇒dummy type spelling` — ≈ −30 LOC — dead names and library swaps in the kept island.
-- `CategoricalCrypto/UC/Quantitative/Family.agda :: ≤UC[]-compose.strict-final`, `Abstract2 :: UC-compose.strict-final` — ≈ −20 LOC — the same `sub-commute₂`/assoc/`sub-commute₁` chain; one `ext-sub-interchange` in `Categories/Monad/Graded/FromMonad`.
+- `CategoricalCrypto/UCSetup.agda :: faithful⇒grade-stable, GradeStableFromTests`, `UCSetup/Morphism :: idᵁ, composeᵁ, identity laws, module Factorization`, `Abstract2/Morphism :: transfer-impossible, epi⇒preserves-≈ℰ, mono⇒reflects-≈ℰ`, `Abstract2/WideSubcategory :: W-ext, coarsen, epi⇒coarsens, restrict-dummy, Fine, Trivial`, `Abstract2 :: UC-dummy-sim, UCᵈ-sim, ≤UC-resp-≈, ≤UCᵈ⇔≤UC, ≤UC-sub` — ≈ −150 LOC — dead internals of the setup-morphism layer; the "Identity and composition" banner promises a category never built.
+- `CategoricalCrypto/Abstract.agda :: Iᵤ, car, grd, U-≋, atk-idˡ`, `Abstract2 :: UC-compose re-binding f g` — ≈ −20 LOC — dead names in the kept island.
 - State-event transport for open systems — ~150–250 LOC proof work — `stateLift` handles closed systems only; a bound carried through a simulator needs a `collapseᵀ`-compatible projection or a permitted-class route.
-- `Rates`: `module Rates = SymmetricMonoidalCategory Rates` repeated in 11 files — one exported bundle name in `Categories/Category/Instance/Rates.agda`.
 
 ## Quantitative
 
 - `CategoricalCrypto/UC/Family/Vanishing.agda`, `UC/Family/Negligible/Setup.agda` — ≈ −95 LOC, −2 modules — each tier applies `Std2.StdUC` twice (private `Std^ω`/`N` then public `Canonical^ω`/`Canonicalᴺ`); make the private ones public and delete both; heap crux: `Family/Negligible` bare-opens `UC.Family`, give it a `using` and measure.
-- `CategoricalCrypto/UC/Family.agda :: ≈ℰⁿ-refl/-sym/-trans, ≈ℰⁿ⇒≈ᵁ, ≈^ω-witness (+ κ-cofinal threading six headers)` — ≈ −35 LOC — zero consumers; `κ-cofinal` may stay as a vacuity guard.
-- `CategoricalCrypto/UC/Quantitative/Query.agda :: Qᵠ, 𝒞ᵇ, _≈ᵇ_, absorb-test, absorb-closure`, `Approx/Schedule.agda :: reindex-cong, reindex-∘, pointwise-refinement` — ≈ −60 LOC — presheaf packaging with no consumer (`Contextual` uses `pullᵠ`/`filteredᵠ`/`Budgeted` directly); `absorb-*` consumed only through `proj₁`, inline.
-- `CategoricalCrypto/UC/Quantitative/EventLift.agda :: agree` — small — public, single use (`hits⇒upper`).
-- `CategoricalCrypto/UC/Approximate/Separating.agda :: ℚ-metric, ≈ᵐ-0, ≈ᵐ-gap, inv-suc, ¬negligible-inv-suc, inv-suc-→0`, `Approx/Separating.agda :: eventually`, `Approx/Error.agda :: ℕ-unrefinable` — ≈ −18 LOC, −1 module — `eventually` is `UC.Family.Approximation^ω` hand-unfolded; the separating instance points the wrong way in the import graph (move `ℚ-metric` into `Approx`, the counterexamples into `LocalTests`); `ℚ-metric`'s three inlined ℚ helpers belong in `Data.Rational.Properties.Ext`.
-- `CategoricalCrypto/UC/Approximate/Local.agda :: ∼ᴺ≡∼Small, ∼ᴺ⇒pointwise`, `UC/Approximate.agda :: →0-cong, →0-0, →0-+`, `UC/Approximate/Decay.agda :: 0<inv-pow-2` — ≈ −20 LOC — dead pins; `→0-+` is a verbatim duplicate of `Uniform.Decay.→0-+` (keep the export via `using (→0-+) public`); the others belong beside `→0-≤`/`0≤inv-pow-2` in `Uniform*`.
-- `CategoricalCrypto/UC/Machine/EventBounds.agda :: Saturated, saturated-map` — move — belong beside `UC.Approximate.GradedBound`.
-- `CategoricalCrypto/Approx/{Error :: halving, Filtered :: Allowance, ≈ᵃ-sym, Forget :: forget, Evaluation :: qual, Small :: Collapse re-export, Controlled :: Control.preserves-⊕}` — ≈ −20 LOC — single-use/dead public names; `≈[]-mono ⊕-identityˡ (≈[]-trans h k)` written six times across `Space`/`Controlled`/`Filtered` (one `≈[]-trans₀`); dropping `preserves-⊕` is a design decision.
+- `CategoricalCrypto/UC/Quantitative/Query.agda :: Qᵠ, 𝒞ᵇ, _≈ᵇ_, absorb-test, absorb-closure`, `Approx/Schedule.agda :: reindex-cong` — ≈ −55 LOC — presheaf packaging with no consumer (`Contextual` uses `pullᵠ`/`filteredᵠ`/`Budgeted` directly); `absorb-*` consumed only through `proj₁`, inline.
+- `CategoricalCrypto/UC/Quantitative/EventLift.agda :: agree` — small — public, single use (`hits⇒upper`); kept in round 3: it is cited.
+- `CategoricalCrypto/Approx/{Filtered :: ≈ᵃ-sym, Controlled :: Control.preserves-⊕}` — small — `≈ᵃ-sym` is dead; dropping `preserves-⊕` is a design decision.
 - Comment trims from R3B not re-verified: `Exact` header (repeats `Counting`'s), `Family/Quantitative`, `Neg/Setup`, `Model/Observation`, `Core`, `Query`, `Grounded`, `Contextual`, `Machine/Dominated` duplicate (88-89 vs 214-216), `Controlled`/`Error`/`Filtered`/`Separating` headers.
 
 ## Examples
@@ -116,44 +89,33 @@ Open suggestions from the quality-review rounds and the retired plans, verified 
 - `CategoricalCrypto/Examples/ChimericLedger/Transfer.agda :: chimeric-not-preserving` — open question — the attack starts account-funded, which the UTxO genesis never reaches (`System.ledger-keeps-accts-[]`); whether the chimeric variant loses value from the UTxO genesis is undecided.
 - `CategoricalCrypto/Examples/ROCommitment.agda :: simStep` — repair + regression test, maintainer's call — conses `(x , d)` onto the log on every relayed answer, including repeats, so `extract` disagrees with `Game.comI`; fix = cache and add only points the log does not already answer, plus a log/table state relation.
 - `CategoricalCrypto/Examples/ROCommitment/Hiding/Asymptotic.agda :: εᵗ`, `Hiding/Game.agda :: respRʰ, respIʰ` — proof work — end-to-end hiding constant is `3q·2⁻ⁿ` (one merged hop `respIʰ → respRʰ` would plausibly give 2); `respRʰ`/`respIʰ` are hand transcriptions of `realʰ` and `idealʰ ∘ simulatorʰ` with no theorem connecting them to the machines; B2-M4 `binding-bound` is blocked on the deleted ideal-side `Ranked` instances.
-- `CategoricalCrypto/Examples/ChimericLedger/Transfer.agda :: ledger-preserves-value-from-hash` — proof work — the premise `hash ≤UC^ωⁿ oracle^ω` is never discharged; `MerkleDamgard.indistinguishable` is at `≈adv` over fixed-length messages, so it needs a padding adapter plus a family-emulation proof.
+- `CategoricalCrypto/Examples/ChimericLedger/Transfer.agda :: ledger-preserves-value-from-hash` — proof work — the premise `hash ≈ᶠᴺ oracle^ω` is never discharged; `MerkleDamgard.indistinguishable` is at `≈adv` over fixed-length messages, so it needs a padding adapter plus a family-emulation proof.
 - `CategoricalCrypto/Examples/Basic.agda :: Encryption.Dec` — flagged spec bug, maintainer's call — computes `p = lookupPlainText …`, ignores it and returns `inj₁ c`, so `DecRcv` is uninhabited and `SecureFromAuthenticated` can never deliver; fix `return just $ L⊗ ϵ ↑ₒ inj₂ p`.
-- `CategoricalCrypto/Examples/CoinToss/Ideal/{Machine,Receiver/Machine,Receiver/Hybrid}.agda :: botᴵ downᴵ backᴵ honᴵ botᴵʰ downᴵʰ backᴵʰ honᴵʰ lkᴴʰ` — −41 LOC — residue of the `Walk` hoist; each is `Walk.R-bot/R-down/F-up` behind a `bindˣ ≈refl` adapter (keep `bypᴵʰ`).
-- Fourteen single-use `stateX : State = initˢ …` aliases in `CoinToss*`, `ROCommitment*`, `HashForward` (`stateᵖ stateᵗ stateᵏ stateʲ stateᵏʰ stateʲʰ stateᶜ stateᴱ stateᴰ stateᴿ stateˢ stateʰ stateᵒ`) — −42 LOC — one `mk` use each; rule 26: more in `UC/Seam`.
-- `CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda` vs `Receiver/Compose.agda` — −15..−20 LOC — `simᶜⁱ/simᶜʳ`, `coin-toss-ideal/ʳ`, `coinRealʷ/ʰʷ`, `coin-toss-idealᴺ/ʳᴺ` differ only in the first-hop certificate; one parameterised second-stage module. Also `Receiver/Compose :: ηʰ = 0ℚ + 2⁻ⁿ` (write `2⁻ⁿ`, ±1).
+- `CategoricalCrypto/Examples/CoinToss/Ideal/Compose.agda` vs `Receiver/Compose.agda` — −15..−20 LOC — `simᶜⁱ/simᶜʳ`, `coin-toss-ideal/ʳ`, `coinRealʷ/ʰʷ`, `coin-toss-idealᴺ/ʳᴺ` differ only in the first-hop certificate; one parameterised second-stage module; skipped in round 3: the corrupted party's channel is implicit, the crux of the merge. Also `Receiver/Compose :: ηʰ = 0ℚ + 2⁻ⁿ` (write `2⁻ⁿ`, ±1).
 - `CategoricalCrypto/Examples/CoinToss/Ideal/{Machine,Hybrid}` vs `Ideal/Receiver/{Machine,Hybrid}` :: `hybridᴹ, idealᴹ, hybrid-eq, ideal-eq` — −60..−90 LOC, unspiked — composite scaffolding duplicated per corruption (a layer below the Compose item above); `Hiding.agda :: CoinAʰ` is a copy of `CoinToss.CoinA` with renamed constructors (−4, ~7 files).
 - `CategoricalCrypto/Examples/CoinToss/{Compose,Ideal/Compose,Ideal/Receiver/Compose}.agda :: coin-toss-from-com*, coin-toss-ideal*` — statement audit — they assume the commitment emulation at the OPEN resource domain, which `docs/rcom-icom-b1.md` suggests is unsatisfiable (then `Assembly :: assembly{,ʰ}` are the real statements); confirm or demote.
-- `CategoricalCrypto/Examples/CoinToss/Ideal/{UC,Receiver/UC}.agda :: onL, Aᵍ` — −11 LOC — five `onL … = botₚ` clauses subsumed by the catch-all; `Aᵍ` one-use alias.
 - `CategoricalCrypto/Examples/CoinToss/Ideal/{Hybrid,Machine,Receiver/Hybrid}.agda :: hyb-sim, idl-sim, hyb-simʰ` and `Protocol/Machine/Compose :: CSt, stateᶜ, serveᶜ, …, π-sim, ι-sim` — interface — public statements over private machines (`Hᴺ`/`Iᴺ`); privatize the sims or publish the machines.
 - `CategoricalCrypto/Examples/CoinToss/Ideal :: Fcoin, Fcoinʰ`, `Receiver/Reach :: endᴰ` — design calls, 0 LOC — `Fcoin` leaks in two steps and has no fairness parameter, `Fcoinʰ` has no abort, `endᴰ` keeps the drawn bit.
-- `CategoricalCrypto/Examples/ROCommitment/Hiding/{Game,Defer}.agda :: ask-redᴸ ask-redᴮ ask-redᴾ ask-redᴿ, idle-join, ∨-≤, 0≤εᴾ, idle-drift`, `Resource :: lazy-map`, `Hiding/Test` redundant `import … as G` — ≈ −40 LOC — named instances of `E-bind₂`/`lookupᴰℚ-Dmap`; `idle-join` re-spells `Hop.JoinStep`'s Σ (add `JoinAt`/`join-return`); hand-rolled `p≤p+q`; `lazy-map` unused.
-- `CategoricalCrypto/Examples/ROCommitment/Transport.agda :: map-return map-bot respᵀ respᴿ respᴮ` — −18 / +8 in `Dp/Settle` — generic `Settles` facts at `Dmap⊥ f`; `Protocol/Machine/Agree` proves `respᴮ` inline, a second consumer.
-- `CategoricalCrypto/Examples/ROCommitment/Extraction.agda :: lookupPt lookup-here lookup-there` — −14 LOC — are `RandomOracle.lookup-bs{,-here,-there}` at `Pt`/`Dig` (argument order differs, heavier import).
-- `CategoricalCrypto/Examples/MerkleDamgard/Core.agda` small swaps — ≈ −22 LOC — `walk-replayC (just w)` = `OnSupport-bind-return`; `callC-marg`/`walkR []` = `E-return-cong … refl`; `dich-owned = map₂ proj₁ ∘ dich`; `stepR.aux` needs no `eq`; `⌊≟⌋-refl = Class.DecEq.Ext.≟-refl`; `MDInvData` single-inhabitant record (−6).
+- `CategoricalCrypto/Examples/ROCommitment/Hiding/Test.agda` redundant `import … as G` — 1 line — kept in round 3: dropping it takes the warm check from 7 s to 84 s.
+- `CategoricalCrypto/Examples/ROCommitment/Extraction.agda :: lookupPt lookup-here lookup-there` — −14 LOC — are `RandomOracle.lookup-bs{,-here,-there}` at `Pt`/`Dig` (argument order differs, heavier import); skipped in round 3.
+- `CategoricalCrypto/Examples/MerkleDamgard/Core.agda :: MDInvData` — −6 LOC — single-inhabitant record.
 - `CategoricalCrypto/Examples/MerkleDamgard/Core.agda :: sumR, sumR-tri, tri-mono; chunk-inj, toList-inj, snoc-view, lookupAll; proj₁ (proj₂ …) ×95; 13 private blocks` — ≈ −45 LOC + legibility — two encodings of the triangle number; stdlib `Vec.group`/`toList-injective`/`initLast`/`All.lookup`; named accessors.
 - `CategoricalCrypto/Examples/MerkleDamgard/QueryBound.agda :: onEnter i [] e` (and `onAdvance`/`onEnter-coh` `[]` clauses); `qbᴹᴰ, certifiedᴹᴰ` — hygiene, pin — unreachable clauses (`NonZero k`) return a plausible value instead of `⊥-elim`; `qbᴹᴰ` has no consumer and no pin.
 - `CategoricalCrypto/Examples/ChimericLedger/Birthday.agda :: lookup-bs-∈` vs `MerkleDamgard/Core :: lookup⇒mem`; `RandomOracle.agda :: count-matches, sum-bound, E-collisions*` — −8 / −30 LOC — one `(q , h) ∈ s` form beside `lookup-bs`; `count-matches` is a special case of `Uniform/Collision :: countMatch`.
-- `CategoricalCrypto/Examples/ChimericLedger` small items — ≈ −25 LOC — `Observable :: auditWatch-sound/-complete` drop the `subst`; three private `DecEq-×′` copies of `Prelude.DecEq-×′`; `Value :: checkIns-head` inline; `Replay :: One/OneG` `open Attack using`; `Birthday` adjacent `private` blocks; `Property :: εᴸ` is `Uniform.Birthday.birthday-bound`; `Value :: Shape.accepted` should carry `eb` (`applyTx-total-fresh` re-walks the `with` cascade); `Birthday :: presTree, φ-step` repeat the `with shape …` cascade (one activation view, ≈ −25).
-- `CategoricalCrypto/Examples/ChimericLedger/Transfer.agda :: ledger-uc-to-pov-family, ledger-pov-family-negligible` — rename — "pov" is a fossil of the retired POV notion (`…-hit`); interface, docs cite it.
-- `CategoricalCrypto/Examples/HashForward/Audit.agda` — rename or fold into `HashForward/UC` (−20, one module fewer) — fossil module name, nothing in it is about audits.
+- `CategoricalCrypto/Examples/ChimericLedger` small items — ≈ −25 LOC — three private `DecEq-×′` copies of `Prelude.DecEq-×′` (skipped in round 3); `Value :: Shape.accepted` should carry `eb` (`applyTx-total-fresh` re-walks the `with` cascade); `Birthday :: presTree, φ-step` repeat the `with shape …` cascade (one activation view, ≈ −25).
 - `CategoricalCrypto/Examples/{ROCommitment/UC, ROCommitment/Hiding/UC, ROCommitment/Realization/Assembly, CoinToss/UC, CoinToss/Ideal/Compose, CoinToss/Hiding/UC, CoinToss/Ideal/UC, CoinToss/Ideal/Receiver/UC}.agda` — −8 import lines — import `UC.Model.Dominated` and use no name from it.
 - `CategoricalCrypto/Examples/ROCommitment :: sim-hash-count` — design call — the simulator queries the oracle at the opening.
 - Merkle–Damgård as the ledger's hash instance — proof work — would discharge the hash premise above together with the padding adapter.
 
 ## Docs / Tests
 
-- `CategoricalCrypto/Examples/CoinToss/Test.agda :: attack-bound ideal-bound ideal-boundʳ` — retarget, rule 33 — pin the auxiliary schedules, not the headline theorems (`proj₁ (proj₂ (coin-toss-idealᶜ e)) 5 3 ≡ …`).
-- `CategoricalCrypto/Examples/HashForward/UC.agda :: sim-round` — retarget — pins the raw `behᵍ` triple, not `behᴾ simulator`.
-- `CategoricalCrypto/UC/Machine/MonitorTests.agda` — retarget — pins `monitorStep`, not the public entry `monitorᴹ`.
 - `CategoricalCrypto/Protocol/Machine/Pin.agda :: machine, agree, agree₊₁, agree₊₂, machine-∘` — interface, ≈ −6 LOC — pins fix `cum` at hand-tuned depths 5/6/8 (restate as the `Σ n ∀ m` witness); `machine-∘` is derivable and the three depths sample one family.
 - Per-layer pin gaps — new test lines — `Dp.Elgot`'s laws and `Machines.Base`'s `ℳₚ`/`Tracedₚ`/`𝒢ₚ` have no behavioural pin; `UC/QueryBound/Counting` and `UC/Family/Quantitative`'s `≤UC` pair likewise.
-- `CategoricalCrypto.agda` root header — 1 line — says the UC modules are fed `UC.Machine.Evaluationᴹ`; they are fed `qevaluationᵒ`.
-- `README.md:76` — 1 line — overclaims GradeStable as an equivalence ("bare kernel = U-kernel"); `Equivalence` proves "sufficient, not equivalent".
 - Unfinished sweep classes (toolkit): `implicit-drop`, `binder-drop`, `join-lines`, `using-minimize`, `import-drop` over the R3 scopes (A: 60 files; B: 92; C: 24 remaining; D: 63 / 42 remaining); `enum-with` (A 93, C 23, D 11 sites) and `enum-where` (A 192, B 125, C 126, D 162 sites) enumerated but not dispositioned; `StateEvent/Lift.agda` needs a by-hand sweep (toolkit parse error). `import-drop` over `Examples/{ROCommitment,MerkleDamgard,HashForward}/**` (~700 import lines) never run. Run after a store GC, one session. The canonical `.claude/sweeps/{with_case,where_inline}.py` still carry the W2 bugs (unparenthesised `yes p` inside `λ where`, needless parens around an atomic RHS, `with` matched inside comments) — two one-line fixes.
 
 ## Deferred by maintainer
 
-- Solver upgrade `dd9c5b88` → `de26b487` (48 files), and the `flake.nix` pin of `agda-stdlib-meta@algebraic-solvers` (rule 35 flag).
+- The `flake.nix` pin of `agda-stdlib-meta@algebraic-solvers` (rule 35 flag); the solver upgrade to `de26b487` is in the stack's base.
 - `simplification-options.md` §1: total, rate-certified machines with bounded-unrolling composition (est. −8–10k LOC) — not adopted.
 - `simplification-options.md` §2.2 full version: rebuild `Dp/**` over a lower-real carrier (~4k LOC), the only route left that deletes `cum`/`Cofinal`/`Dom` — unspiked.
 - `simplification-options.md` §2.4: small-step composition with the supremum taken only in the runner — win uncertain, unspiked.

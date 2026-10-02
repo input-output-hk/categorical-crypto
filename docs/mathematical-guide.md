@@ -100,12 +100,11 @@ agreement of one filtered test presheaf.
 - `Approx.Space :: ApproxSpace`, `Nonexpansive`, `Approx`, `F₀`: spaces, bound-keeping
   maps, their category (hom equality is agreement at zero error, so a functor into
   `Approx` transports every bound exactly), and the exact forgetful functor to setoids.
-- `Approx.Forget :: F₊`, `forget`: the all-positive forgetful functor, and the
-  identity-on-carriers comparison `F₀ ⇒ F₊`, which is not an isomorphism; an exact bound
-  therefore stays in `Approx`.
+- `Approx.Forget :: F₊`: the all-positive forgetful functor; it agrees with `F₀` on
+  carriers but is not isomorphic to it, so an exact bound stays in `Approx`.
 - `Approx.Separating :: Sequences`, `F₊-identifies`, `F₀-separates`: rational sequences
   under eventual closeness, where `2⁻ⁿ` and `0` are identified by `F₊` and separated by
-  `F₀`. `UC.Approximate.Separating` holds the instruments a negative closeness statement
+  `F₀`. `Approx.Error.ℚ-metric` is the faithful metric a negative closeness statement
   needs at the model level.
 - `Approx.Small :: SmallClass`, `Collapse._∼Small_`: closeness at some error of a class
   containing zero and closed under addition, an equivalence with no refinement spent;
@@ -119,7 +118,7 @@ agreement of one filtered test presheaf.
 - `Approx.Filtered :: FilteredSpace`, `Filtered`, `Filt`, `_≈ᵃ[_]_`: spaces with an
   allowance-indexed admission, maps carrying a control and a monotone allowance map,
   their category, and closeness on admitted elements.
-- `Approx.Evaluation :: QEvaluation`, `qual`, `qual₊`, `qualBy`: the quantitative
+- `Approx.Evaluation :: QEvaluation`, `qual₊`, `qualBy`: the quantitative
   readout, observing the hom equality exactly, and the qualitative readouts it induces.
 - `UC.Quantitative.Query :: filteredᵠ`, `pullᵠ`, `Qᵠ`: tests compared through
   certified closures at a schedule read off the closure's rate, pullback along a rated
