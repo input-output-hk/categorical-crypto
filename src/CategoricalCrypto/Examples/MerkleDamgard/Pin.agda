@@ -12,8 +12,7 @@
 -- first chaining values do, which at a 1-bit hash is half the time — so the
 -- real world's collision probability is 3/4 against the ideal's 1/2.  That
 -- ¼ gap is the reason `bound` grows with the block count.  The two-block
--- bound itself is pinned too, but `bound 2 ≡ 3 > 1`, so the theorem is
--- vacuous at those parameters and that pin exercises the arithmetic only.
+-- bound is not pinned: `bound 2` is 3, so the theorem is vacuous there.
 --------------------------------------------------------------------------------
 
 open import Data.Bool.Base
@@ -86,9 +85,6 @@ module TwoBlocks where
             ask (zero , true  ∷ false ∷ []) λ b →
             out (not (head (proj₂ a) xor head (proj₂ b)))
 
-  collide-asks : asks≤ 2 collide
-  collide-asks _ _ = tt
-
   -- ½ (first chaining values agree) + ½·½ (they do not, fresh coincidence).
   real-collides : Pr Sys collide ≡ +ℤ 3 / 4
   real-collides = refl
@@ -98,12 +94,6 @@ module TwoBlocks where
 
   gap : ∣ Pr general collide -ℚ Pr Sys collide ∣ℚ ≡ +ℤ 1 / 4
   gap = refl
-
-  bound-2 : bound 2 ≡ +ℤ 3 / 1
-  bound-2 = refl
-
-  collide-bounded : advᵇ⊥ true (runObs general collide) (runObs Sys collide) ≤ℚ bound 2
-  collide-bounded = indistinguishable true 2 collide collide-asks
 
   replay : Strat (Neg Generalᴵ) (Pos Generalᴵ)
   replay = ask (zero , true ∷ false ∷ []) λ a →

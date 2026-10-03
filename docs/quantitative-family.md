@@ -4,7 +4,7 @@ The ε-contextual relation on families of morphisms, the emulation bound at a
 named simulator and schedule, its composition laws, and the machine instance
 the examples use. Generic home: `UC.Quantitative.Contextual` (one level) and
 `UC.Quantitative.Family` (families). Machine instance:
-`UC.Model.Family.Contextual` (a module application) and
+`UC.Model.Family` (a module application) and
 `UC.Model.Family.Emulation` (protocol images and the crossings out of the
 layer). Paths are relative to `src/CategoricalCrypto/`.
 
@@ -173,7 +173,7 @@ composeError rf rtv εf εu n q = εu n (scale q (rf n)) ℚ.+ εf n (scale q (r
   of the compared homs.
 - **Negligibility is split off.** `seqError-negligible` and
   `composeError-negligible` are where `NegligibleBound-scale` and
-  `GradedBound-+[ Negligible ] Negligible-+` are spent, and where `Poly⁺ rf` /
+  `NegligibleBound-+` are spent, and where `Poly⁺ rf` /
   `Poly⁺ rtv` are consumed. `≤UC^ωᵉ-trans` packages the sequential law. No
   packaged existential form of `≤UC[]-compose` exists. Its consumers package it
   themselves at their own rates (`Examples.CoinToss.Compose.toss-over`).
@@ -182,15 +182,14 @@ composeError rf rtv εf εu n q = εu n (scale q (rf n)) ℚ.+ εf n (scale q (r
 
 ### 5.1 The application
 
-`UC.Model.Family.Contextual` applies `UC.Quantitative.Family` at the sealed
+`UC.Model.Family` applies `UC.Quantitative.Family` at the sealed
 machine bundle:
 
 ```agda
-open import CategoricalCrypto.UC.Quantitative.Family
-  𝔾ᵒ gradingᵒ Q.approx Q.J Q.Ω Q.read Q.read-resp₀ public
+open import CategoricalCrypto.UC.Quantitative.Family 𝔾ᵒ gradingᵒ qevaluationᵒ public
 ```
 
-with `Q = QEvaluation qevaluationᵒ` (`UC.Model.Observation`). The observation is
+with `qevaluationᵒ` from `UC.Model.Observation`. The observation is
 the quantitative readout of §7.
 
 ### 5.2 Protocol images
@@ -200,7 +199,7 @@ Systems : (ℕ → Iface) → Set₁
 Systems B = (n : ℕ) → Protocol unitᴵ (B n)
 
 imgᶠ : (B : ℕ → Iface) (R : Systems B) (n : ℕ) → 𝟘ᵒ ⇒ gradedᶠ B n
-imgᶠ B R n = Gr.closedᵒ (morphism (R n))
+imgᶠ B R n = Gr.stageᵒ (morphism (R n))
 
 _≈ᶠ[_]_ : Systems B → (ℕ → ℕ → ℚ) → Systems B → Set₁
 _≈ᶠ[_]_ {B} R ε I = imgᶠ B R ≈ctx[ ε ] imgᶠ B I
@@ -236,7 +235,7 @@ cap is `ℕ⁺` because a context's allowance has no zero.
 An implication, not an identification. `UC.Family._≈ℰ[_]_` quantifies
 levelwise *families* of contexts carrying one polynomial rate, where
 `_≈ctx[_]_` quantifies each level's context separately. `ε` is explicit, for
-`UC.Approximate.GradedBound-+[_]`'s reason.
+`UC.Approximate.NegligibleBound-+`'s reason.
 
 In `module _ {A X Y B : Obj^ω} (s : Y ⇒^ω X) (ε : ℕ → ℕ → ℚ) (neg : NegligibleBound ε) (f : A ⇒^ω (X ⊛ω B)) (g : A ⇒^ω (Y ⊛ω B)) (e : sim f ≤UC[ s , ε ] sim g)`:
 
@@ -245,10 +244,9 @@ In `module _ {A X Y B : Obj^ω} (s : Y ⇒^ω X) (ε : ℕ → ℕ → ℚ) (neg
 ≤UC[]⇒≤UCᴺ : f Cᴺ.≤UC g
 ```
 
-with `Cᴺ = UC.Family.Negligible.Canonicalᴺ`. The route is
-`carried-negligible` into `_≈ℰⁿ_`, then `≈ℰⁿ⇒≈ℰᴺ`, then `dummy-complete` at `s`.
-It does not pass through the vanishing collapse (`absorb`), so it lands in
-the local-negligible setup, not only in `Canonical^ω`.
+with `Cᴺ = UC.Family.Canonicalᴺ`. The route is
+`carried-negligible` into `_≈ℰⁿ_`, then `≈ℰⁿ⇒≈ℰᴺ`, then `dummy-complete` at `s`,
+so it lands in the local-negligible setup.
 
 **What survives:** the certified simulator. **What does not:** the global
 schedule. `≈ℰⁿ⇒≈ℰᴺ` specializes the one schedule to the allowance each context
@@ -326,8 +324,8 @@ strategy, one adversary and one closed input. *inst*.
 | `… :: coin-toss-idealᵇ` | cond | `realᶠ ≤UC[ sf , εf ] idealᶠ → (λ n → (tossᶠ ∙ᶠ realᶠ) n ∘ resᶠ n) ≤UC[ simᶜⁱ sf , εᶜⁱ εf ] Fcoinᶠ`. `≤UC[]-dom` closes the boundary over the installed resource, then `≤UC[]-trans` |
 | `… :: coin-toss-ideal`, `coin-toss-idealᶜ`, `coin-toss-idealᴺ` | cond | existential packaging; `ᶜ` narrows the premise to `realᶠ ≈ctx[ εᶜ ] subᶠ comSim idealᶠ`; `ᴺ` crosses with `≤UC[]⇒≤UCᴺ`, keeping the simulator but not the schedule |
 | `… :: ideal-ε` | inst | `εᶜⁱ εᶜ n q ≡ fromℕ (q * q + q + q) *ℚ inv-pow-2 n`: the commitment's error, unrescaled |
-| `Examples.CoinToss.Ideal.Receiver.Compose :: coin-hybridʳᵇ`, `coin-toss-idealʳᵇ`, `coin-toss-idealʳ`, `coin-toss-idealʳᴺ`, `ideal-εʳ` | cond / inst | the corrupted-receiver twin. Its second hop is not exact: only the runs agree, and carrying that into a context costs `ηʰ n _ = inv-pow-2 n`, so `ideal-εʳ` pins `fromℕ (q + (q + q)) *ℚ inv-pow-2 n ℚ.+ inv-pow-2 n` |
-| `Examples.ROCommitment.Realization.Assembly :: assembly`, `assemblyʰ`, `pin`, `pinʰ` | cond on `Realization` | `Realization = Rcom ≤UC^ωᵉ Icom` at the resource-installed boundary is a hypothesis. `pin` is `refl` |
+| `Examples.CoinToss.Ideal.Receiver.Compose :: coin-hybridʳᵇ`, `coin-toss-idealʳᵇ`, `coin-toss-idealʳ`, `coin-toss-idealʳᴺ`, `ideal-εʳ` | cond / inst | the corrupted-receiver twin. Only the runs agree, and the domination carries that into every context exactly, so the second hop is at the zero schedule and `ideal-εʳ` pins `fromℕ (q + (q + q)) *ℚ inv-pow-2 n` |
+| `Examples.ROCommitment.Realization.Assembly :: assembly`, `assemblyʰ` | cond on `Realization` | `Realization = Rcom ≤UC^ωᵉ Icom` at the resource-installed boundary is a hypothesis. `Examples.CoinToss.Test :: assembly-ε` pins the schedule by `refl` |
 | `Examples.ROCommitment.Realization.Bound :: extraction-real` | inst, partial | bounds the closed real *machine* against the pruned ideal *game*; not a machine realization |
 
 ## 7. The observation the layer is stated over
@@ -344,8 +342,7 @@ with `read-resp₀`, which says it observes hom equality at error `0ℚ`.
   `QEvaluation.read Q`.
 - Instances: `UC.Model.Observation.qevaluationᵒ` (the one this layer is applied
   at) with `evaluationᵒ = qual₊ ℚ-refinement qevaluationᵒ`,
-  `UC.Family.QEvaluation^ω`, and
-  `UC.Family.Negligible.Evaluationᴺ`, which is `qualBy` at the negligible class.
+  and `UC.Family.Evaluationᴺ`, which is `qualBy` at the negligible class.
 - Zero error (`Approx.Space.zeroSetoid`) and every positive error
   (`Approx.Error.AllPositive`) agree on carriers but not on equality
   (`Approx.Separating`), so an exact bound is not asked to respect the coarser one.

@@ -41,6 +41,7 @@ open import ProbabilisticLogic.Distribution.Uniform.Decay
 open import ProbabilisticLogic.Dp.Advantage
 
 open import CategoricalCrypto.Examples.ChimericLedger
+open import CategoricalCrypto.Examples.ChimericLedger.OneCall
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
@@ -51,7 +52,6 @@ open import CategoricalCrypto.UC.Approximate
 open import CategoricalCrypto.UC.Machine.StateEvent.Adequacy
 open import CategoricalCrypto.UC.Model.Enrichment
 open import CategoricalCrypto.UC.Model.Family
-open import CategoricalCrypto.UC.Model.Family.Contextual
 open import CategoricalCrypto.UC.Model.Family.Emulation
 open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.Model.Setup
@@ -102,14 +102,14 @@ oracle^ω : Systems HashIf^ω
 oracle^ω = AtLevel.oracle
 
 hashᵒ : Systems HashIf^ω → (n : ℕ) → ifaceᵒ unitᴵ ⇒ T₀ 𝟘ᴳ (hashPortᵒ n)
-hashᵒ hash n = closedᵒ (morphism (hash n))
+hashᵒ hash n = stageᵒ (morphism (hash n))
 
 ledgerᵒ : (n : ℕ) (vr : Variant) (s : Ledger.LState n)
         → hashPortᵒ n ⇒ T₀ 𝟘ᴳ (ifaceᵒ (LedgerIf^ω n))
 ledgerᵒ n vr s = stageᵒ (morphism (AtLevel.ledger n vr s))
 
 ledger-factor : (hash : Systems HashIf^ω) (vr : Variant) (n : ℕ) (s : Ledger.LState n)
-              → closedᵒ (morphism (AtLevel.Sysᴴ n (hash n) vr s))
+              → stageᵒ (morphism (AtLevel.Sysᴴ n (hash n) vr s))
                 ≈ sub λ⇒ ∘ (ledgerᵒ n vr s ∙ hashᵒ hash n)
 ledger-factor hash vr n s = factorᵖ (AtLevel.ledger n vr s) (hash n)
 

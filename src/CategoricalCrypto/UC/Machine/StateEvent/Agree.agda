@@ -36,7 +36,6 @@ open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Machines.Run.Sim
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.Dictionary
 open import CategoricalCrypto.UC.Machine.Slide
 open import CategoricalCrypto.UC.Machine.StateEvent

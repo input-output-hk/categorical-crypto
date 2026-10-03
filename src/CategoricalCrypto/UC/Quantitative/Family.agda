@@ -175,7 +175,7 @@ seqError s ε δ n q = ε n q ℚ.+ δ n (scale q (schedOf s n))
 seqError-negligible : (s : Y ⇒^ω X) (ε δ : ℕ → ℕ → ℚ) → NegligibleBound ε → NegligibleBound δ
                     → NegligibleBound (seqError s ε δ)
 seqError-negligible s ε δ nε nδ =
-  GradedBound-+[ Negligible ] Negligible-+ ε (λ n q → δ n (scale q (schedOf s n))) nε
+  NegligibleBound-+ ε (λ n q → δ n (scale q (schedOf s n))) nε
     (NegligibleBound-scale (schedOf s) (schedOf-adm s) δ nδ)
 
 ≤UC[]-trans : (s : Y ⇒^ω X) (t : Z ⇒^ω Y) (ε δ : ℕ → ℕ → ℚ)
@@ -212,7 +212,7 @@ composeError-negligible : (rf rtv : ℕ → ℕ⁺) (εf εu : ℕ → ℕ → �
                         → NegligibleBound εf → NegligibleBound εu
                         → NegligibleBound (composeError rf rtv εf εu)
 composeError-negligible rf rtv εf εu Prf Prtv nf nu =
-  GradedBound-+[ Negligible ] Negligible-+
+  NegligibleBound-+
     (λ n q → εu n (scale q (rf n))) (λ n q → εf n (scale q (rtv n)))
     (NegligibleBound-scale rf Prf εu nu) (NegligibleBound-scale rtv Prtv εf nf)
 

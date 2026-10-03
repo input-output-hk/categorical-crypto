@@ -131,21 +131,16 @@ simCert = exact⇒certified simExactAll (λ _ → refl) λ where
 simQB : QB 2 simulator
 simQB = certified⇒QB simCert
 
-sim-hash-count : (w : List (Pos Lkᴵ ⊎ Neg Advᴵ))
-               → Dₚ (Σ[ p ∈ SSt × List (Neg Lkᴵ ⊎ Pos Advᴵ) ]
-                      EH.Balanced Φˢ (weight peeks w) p)
+sim-hash-count : (w : List (Pos Lkᴵ ⊎ Neg Advᴵ)) → EH.Counted Φˢ w
 sim-hash-count = EH.exactᴱ simExactHash
 
-sim-query-count : (w : List (Pos Lkᴵ ⊎ Neg Advᴵ))
-                → Dₚ (Σ[ p ∈ SSt × List (Neg Lkᴵ ⊎ Pos Advᴵ) ]
-                       EA.Balanced Φˢ (weight twoPerPeek w) p)
+sim-query-count : (w : List (Pos Lkᴵ ⊎ Neg Advᴵ)) → EA.Counted Φˢ w
 sim-query-count = EA.exactᴱ simExactAll
 
 sim-hash-count-settled : (w : List (Pos Lkᴵ ⊎ Neg Advᴵ))
-                       → Dₚ (Σ[ p ∈ SSt × List (Neg Lkᴵ ⊎ Pos Advᴵ) ]
-                              (Φˢ (proj₁ p) ≡ 0
-                               → weight hashes (proj₂ p) ≡ weight peeks w))
-sim-hash-count-settled w = mapₚ (λ (p , b) → p , λ nil →
+                       → Refined (λ p → Φˢ (proj₁ p) ≡ 0 → weight hashes (proj₂ p) ≡ weight peeks w)
+                                 (behᴾ simulator w)
+sim-hash-count-settled w = refined-map (λ {p} b nil →
     trans (sym (+-identityʳ _)) (trans (cong (weight hashes (proj₂ p) +_) (sym nil)) b))
   (sim-hash-count w)
 

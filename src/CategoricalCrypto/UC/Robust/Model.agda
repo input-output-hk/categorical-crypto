@@ -15,7 +15,7 @@ open import CategoricalCrypto.UC.Model.Setup
 
 module CategoricalCrypto.UC.Robust.Model where
 
-open import CategoricalCrypto.UC.Robust StdSetup using (Factors; Robust; factors-closed; uc-preserves)
+open import CategoricalCrypto.UC.Robust StdSetup using (PulledFrom; Robust; pulledFrom-closed; uc-preserves)
 open import Relation.Binary.Properties.Setoid.Ext S
 
 -- The stateless relay that exposes its own caller interface as its adversary
@@ -26,10 +26,10 @@ relayᵒ : (A : Iface) → ifaceᵒ A ⇒ T₀ (ifaceᵒ A) (ifaceᵒ unitᴵ)
 relayᵒ A = gradedᵒ (wireᴹ inj₁ [ (λ n → n) , ⊥-elim ])
 
 -- The acceptance test the top class cannot give: a nontrivial `Adm`
--- (`UC.Robust.Factors`) and a simulator that is a real machine, `relayᵒ`.
+-- (`UC.Robust.PulledFrom`) and a simulator that is a real machine, `relayᵒ`.
 relay-selectedᵒ : (𝔄 : Iface) (r : S.Carrier) (V : Channel)
-                → Robust (λ W → always {D = T₀ W (ifaceᵒ 𝔄)} ∼[ r ]) (Factors V) (relayᵒ 𝔄)
-                → Robust (λ W → always {D = T₀ W (ifaceᵒ 𝔄)} ∼[ r ]) (Factors V)
+                → Robust (λ W → always {D = T₀ W (ifaceᵒ 𝔄)} ∼[ r ]) (PulledFrom V) (relayᵒ 𝔄)
+                → Robust (λ W → always {D = T₀ W (ifaceᵒ 𝔄)} ∼[ r ]) (PulledFrom V)
                          (sub (relayᵒ 𝔄) ∘ relayᵒ 𝔄)
-relay-selectedᵒ 𝔄 r V = uc-preserves (λ W → always {D = T₀ W (ifaceᵒ 𝔄)} ∼[ r ]) (Factors V)
-                                      (factors-closed V) (dummy-complete (relayᵒ 𝔄 , ≈ᵁ-refl))
+relay-selectedᵒ 𝔄 r V = uc-preserves (λ W → always {D = T₀ W (ifaceᵒ 𝔄)} ∼[ r ]) (PulledFrom V)
+                                      (pulledFrom-closed V) (dummy-complete (relayᵒ 𝔄 , ≈ᵁ-refl))

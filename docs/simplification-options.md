@@ -122,9 +122,9 @@ at constant families so that their second proof could go.
 single-level one levelwise: `_≈ctx[_]_` is *defined* as `_≈ᵁᵠ[_]_` at every level, and
 every family composition law wraps a single-level lemma (`≈ctx-sub` wraps `ctx-sub`,
 `≤UC[]-trans` wraps `at-trans`). Deriving the single-level lemmas back through constant
-families works but is circular. The qualitative tier already takes the clean direction:
-`UC/Family.ucSetup^ω` is the vanishing-advantage family as one `UCSetup` over the
-levelwise `Famᴹ`, so `Abstract2`'s theory is inherited for families.
+families works but is circular. The negligible tier already takes the clean direction:
+`UC/Family.ucSetupᴺ` is the family as one `UCSetup` over the levelwise `Famᴹ`, so
+`Abstract2`'s theory is inherited for families.
 
 ### 2.4 Small-step composition, iteration only in the runner
 

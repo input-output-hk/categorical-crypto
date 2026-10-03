@@ -1,8 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The bounds graded by a decay class of rational sequences (`_→0`,
--- `Negligible`: `ProbabilisticLogic.Distribution.Uniform.Decay`).  The error
--- algebra these bounds are measured in is `Approx.Error`.
+-- The two-argument bounds held to `Negligible`
+-- (`ProbabilisticLogic.Distribution.Uniform.Decay`).  The error algebra these
+-- bounds are measured in is `Approx.Error`.
 
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly
@@ -15,29 +15,13 @@ open import ProbabilisticLogic.Distribution.Uniform.Decay
 
 module CategoricalCrypto.UC.Approximate where
 
--- The grade a slack or an error is held to — a decay class, unrelated to the
--- UC grade an adversary interface is.  The two bound disciplines below are one
--- shape at two grades, and a consumer that works for either states itself over
--- `Grade` and takes the closure it spends as an argument.
-Grade : Set₁
-Grade = (ℕ → ℚ) → Set
-
-GradedBound : Grade → (ℕ → ℕ → ℚ) → Set
-GradedBound G ε = (p : ℕ → ℕ) → Poly p → G (λ n → ε n (p n))
-
--- The shape a concrete security bound has: an error vanishing in the security
--- parameter at every polynomial budget.  This is what the asymptotic layer
--- closes over (`UC.Family.absorb`).
-VanishingBound : (ℕ → ℕ → ℚ) → Set
-VanishingBound = GradedBound _→0
-
 -- The discipline asked of a concrete two-argument bound: it is
 -- admitted when `ε(n, p n)` is NEGLIGIBLE at every polynomial allowance `p`,
 -- which is what the model's own allowance supplies (`UC.Family`'s `Poly⁺`
 -- admissibility).  It yields no single slack uniform over arbitrary, possibly
 -- exponential, `q`.
 NegligibleBound : (ℕ → ℕ → ℚ) → Set
-NegligibleBound = GradedBound Negligible
+NegligibleBound ε = (p : ℕ → ℕ) → Poly p → Negligible (λ n → ε n (p n))
 
 -- One negligible slack per polynomial cap, chosen before the security
 -- parameter.
@@ -53,38 +37,21 @@ saturated-map g h p Pp = let ν , neg , b = h p Pp in ν , neg , λ n → g n (p
 -- Closure
 
 -- What a transfer spends.  Moving a bound along a system that differs by `δ`
--- adds `δ`, read at the allowance, to the slack, so the moved statement has
--- the same grade exactly when the grade is closed under sums — and reading a
--- `GradedBound` at the allowance is already that grade, by definition.  Both
--- grades close, `Negligible`'s case being the vanishing one under the
--- magnifying polynomial.
+-- adds `δ`, read at the allowance, to the slack, so the moved statement is
+-- negligible exactly because `Negligible` is closed under sums
+-- (`Negligible-+`) and reading a sum at the allowance is the sum of the two
+-- readings.  The two bounds are EXPLICIT: a `NegligibleBound` reads its
+-- bound at an allowance, so no value of one determines it by unification.
+NegligibleBound-+ : (ε δ : ℕ → ℕ → ℚ) → NegligibleBound ε → NegligibleBound δ
+                  → NegligibleBound (λ n q → ε n q ℚ.+ δ n q)
+NegligibleBound-+ ε δ bε bδ p Pp = Negligible-+ (bε p Pp) (bδ p Pp)
 
--- …and the two-argument discipline inherits it: reading a sum at the allowance
--- is the sum of the two readings, so the grade's own closure is all it costs.
--- Both grades qualify, `→0-+` and `Negligible-+` being the two arguments.
--- The two bounds are EXPLICIT: a `GradedBound` reads its bound at an
--- allowance, so no value of one determines it by unification.
-GradedBound-+[_] : (G : Grade)
-                 → ({s t : ℕ → ℚ} → G s → G t → G (λ n → s n ℚ.+ t n))
-                 → (ε δ : ℕ → ℕ → ℚ) → GradedBound G ε → GradedBound G δ
-                 → GradedBound G (λ n q → ε n q ℚ.+ δ n q)
-GradedBound-+[ G ] G-+ ε δ bε bδ p Pp = G-+ (bε p Pp) (bδ p Pp)
-
--- …and closure under REINDEXING the allowance.  A composition that moves a
+-- …and closure under rescaling the allowance.  A composition that moves a
 -- morphism into a context rescales the allowance the moved-into leg affords
 -- (`Data.Nat.Positive.scale`), so the bound it concludes with is the old one
--- read at `r n q` rather than at `q`.  That is a bound of the same grade exactly when
--- `r` preserves polynomials, which is the only thing a `GradedBound` ever asks
--- of its argument — nothing here assumes `ε` is monotone in the allowance.
-GradedBound-reindex : (G : Grade) (r : ℕ → ℕ → ℕ)
-                    → ((p : ℕ → ℕ) → Poly p → Poly (λ n → r n (p n)))
-                    → (ε : ℕ → ℕ → ℚ) → GradedBound G ε
-                    → GradedBound G (λ n q → ε n (r n q))
-GradedBound-reindex _ r pres _ b p Pp = b (λ n → r n (p n)) (pres p Pp)
-
--- …at `Negligible` along `scale _ r`, which is polynomial in its allowance
--- whenever `r` is.
+-- read at `scale q (r n)` rather than at `q`: still negligible, since that is
+-- polynomial in its allowance whenever `r` is — nothing here assumes `ε` is
+-- monotone in the allowance.
 NegligibleBound-scale : (r : ℕ → ℕ⁺) → Poly⁺ r → (ε : ℕ → ℕ → ℚ)
                       → NegligibleBound ε → NegligibleBound (λ n q → ε n (scale q (r n)))
-NegligibleBound-scale r Pr =
-  GradedBound-reindex Negligible (λ n q → scale q (r n)) (λ p Pp → poly-scale {p} {r} Pp Pr)
+NegligibleBound-scale r Pr _ b p Pp = b (λ n → scale (p n) (r n)) (poly-scale {p} {r} Pp Pr)

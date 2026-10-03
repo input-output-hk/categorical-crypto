@@ -209,12 +209,3 @@ module _ {A B : ℕ → Iface} (M : (n : ℕ) → Proc (A n) (B n))
 
   StateBoundedᴺ : (ℕ → ℕ → ℚ) → Set₁
   StateBoundedᴺ = Boundedᴺ (λ n → M n ▷ P n) (λ n → flagReader (B n))
-
-------------------------------------------------------------------------
--- Invariance
-
--- Exact, at any `A`.
-transportᵉ : {A B : Iface} {q : ℕ} {r : ℚ} {R I : Proc A B} {P : StateTest R} {Q : StateTest I}
-           → EventSim (R , P) (I , Q) → StateBoundedAt q r I Q → StateBoundedAt q r R P
-transportᵉ {B = B} e h Y E m qE qm le =
-  upper-≈ (readRun-resp-≈ Y (MS.≲⇒≈ᴹ (▷-≲ e)) (flagReader B) E m) (h Y E m qE qm le)

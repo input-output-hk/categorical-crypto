@@ -2,7 +2,7 @@
 
 -- Emulation at a NONTRIVIAL grade, from a machine-level factoring.
 --
--- `UC.Seam.Grounded`'s `closedᵒ`/`stageᵒ` read a protocol image at the
+-- `UC.Seam.Grounded.stageᵒ` reads a protocol image at the
 -- TRIVIAL grade `𝟘ᴳ`, where every simulator is a scalar, blind to the run.
 -- `UC.Model.Seal.gradedᵒ` reads a `Proc A (X ⊗ᴵ B)` as a hom
 -- `ifaceᵒ A ⇒ T₀ (ifaceᵒ X) (ifaceᵒ B)` instead, and a simulator in front of it

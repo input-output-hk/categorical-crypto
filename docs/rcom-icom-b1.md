@@ -42,7 +42,7 @@ Realizationʰ = Rcomʰ ≤UC^ωᵉ Icomʰ
 
 `_≤UC^ωᵉ_` is `UC.Quantitative.Family`'s
 `Σ[ s ∈ Y ⇒^ω X ] Σ[ ε ] NegligibleBound ε × f ≤UC[ s , ε ] g`, at the sealed
-machine via `UC.Model.Family.Contextual` — the same instance the two headline
+machine via `UC.Model.Family` — the same instance the two headline
 theorems are stated in. Nothing here is a new relation.
 
 ### 1.2 Closing the domain does not touch the grade
@@ -217,14 +217,14 @@ with `εᵗ n q = fromℕ (q + (q + q)) *ℚ inv-pow-2 n`
 | 4. domination | `dominatedᵍᵠ` is exact | identity |
 | 5. assembly, inner leg | `≤UC[]-compose`'s `composeError` reads `εf n (scale q (1⁺ · 1⁺))`; `scale q 1⁺ = q ℕ.* 1` (`scale-unit`) | identity |
 | 6. assembly, outer leg | the upper stage compared with itself at the zero schedule | `+ 0ℚ` |
-| 7. second hop | `≤UC[]-trans`'s `seqError` reads it at `scale q (schedOf s n)`; the hop's own schedule is `0ℚ` (committer, `coin-hybridᵇ`) or `ηʰ`, which ignores its allowance (receiver, `coin-hybridʳᵇ`) | `+ 0ℚ` / `+ 2⁻ⁿ` |
+| 7. second hop | `≤UC[]-trans`'s `seqError` reads it at `scale q (schedOf s n)`; the hop's own schedule is `0ℚ` (committer, `coin-hybridᵇ`; receiver, `coin-hybridʳᵇ`) | `+ 0ℚ` |
 
 Composed candidates, in the existing pins' own expressions (`εᶜⁱ`,
 `Examples.CoinToss.Ideal.Compose`; `εᶜʳ`, `…Receiver.Compose`):
 
 ```text
 committer :  εᶜⁱ εᴿ  n q  =  (q² + 2q)·2⁻ⁿ
-receiver  :  εᶜʳ εᴿʰ n q  =  3q·2⁻ⁿ + 2⁻ⁿ  =  (3q+1)·2⁻ⁿ
+receiver  :  εᶜʳ εᴿʰ n q  =  3q·2⁻ⁿ
 ```
 
 Neither replaces `ideal-ε` or `ideal-εʳ`: those pin the schedule as a FUNCTION
@@ -237,7 +237,7 @@ instances at `εᴿ`/`εᴿʰ` and get their own pins.
 `coin-from-Rcom`/`coin-from-Rcomʰ` (`Examples.CoinToss.Compose.toss-over` at
 the resource-installed pair), `assembly`/`assemblyʰ` (`≤UC^ωᵉ-resp` for the
 associativity, then `≤UC^ωᵉ-trans` against `coin-hybridᵉ`/`coin-hybridʳ`), and
-`pin`/`pinʰ` (`refl`): the assembly carries the SAME schedule expression
+`Examples.CoinToss.Test :: assembly-ε`/`assembly-εʳ` (`refl`): the assembly carries the SAME schedule expression
 `coin-toss-ideal`/`coin-toss-idealʳ` carry for the open premise, so switching
 the headline theorems' premise from open to resource-installed changes no
 number.
@@ -251,7 +251,7 @@ number.
 | B2-1 | `Settles` at a loop junction | `ProbabilisticLogic.Dp.Settle.Iter`: `Settles-stepᵢ`, `Settles-stepᵢˢ`, `Ranked`, `Settles-iter` |
 | B2-2, B2-M1 | `StepSettles` at a traced machine and at a `𝒢ₚ`-composite | `Machines.Run.Trace`: `trace-settles`; `Kᴳ`/`kᴳ-settles`, `ranked-from-kᴳ`, `compose-settles`, `compose-StepSettles`, `compose-pr`. No `Settles` witness rides an `S.≈ᴹ` to `𝒢ₚ`'s own `_∘_`, but the CLOSED RUN's conclusion does, by `ProbabilisticLogic.Dp.Settle.Attains-≈ₚ` |
 | B2-3 | the `Dₚ`→kernel transport at an arbitrary closed machine | `Machines.Run.Raw`: `StepSettles`, `rawAgree`, `rawPr` |
-| B2-4 | the RESOURCE's own instance of it | `Examples.ROCommitment.Transport`: `resK`, `resource-settles`, `resource-run`, `resKᵀ` (the game's `fetchT`, relabelled) |
+| B2-4 | the RESOURCE's own instance of it | `Examples.ROCommitment.Transport`: `resK`, `resource-settles`, `resKᵀ` (the game's `fetchT`, relabelled) |
 | B2-5 | the partial-kernel game toolkit | `GamePlaying.Partial`: `badProb⊥`, `SuperCert⊥`, `badProb⊥-super`, `FLGP⊥`, `StepBisim⊥`/`StepBisim⊥ʳ`, `runWith⊥-bisim`/`runWith⊥-bisimʳ`, `embedᵏ`, `total⇒⊥`, `prune`, `hop-boundᵇ⊥`, `badProb⊥-cong`; `GamePlaying.prune-cert` |
 | B2-6 | the closed game and its supermartingale | `Examples.ROCommitment.Game`: `keep-or-sample`, `rare-raise`, `cert`, `extraction-bound`, `stepR`, `stepI` |
 | B2-8, B2-M5 | the density lemma at a NONTRIVIAL grade, budgeted | `UC.Model.Dominated.dominatedᵍᵠ` (hypothesis at `asks≤ (value (c · c′)) d`) and its unbudgeted instance `dominatedᵍ`, in use at `Examples.CoinToss.Ideal.Receiver.Compose` |

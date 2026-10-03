@@ -2,8 +2,8 @@
 
 -- The concrete resource crosses the `Dₚ`/`Dist-ℚ` boundary: every activation
 -- settles (`resource-settles`, inhabiting `Machines.Run.Raw.StepSettles`
--- at a machine that samples), so its closed `Dₚ` run is a kernel run, and on
--- the oracle half that kernel is the closed game's (`resKᵀ`).  The
+-- at a machine that samples), so `rawPr` reads its closed `Dₚ` run as a kernel
+-- run, and on the oracle half that kernel is the closed game's (`resKᵀ`).  The
 -- kernel is `Dist⊥`-valued because the two off-protocol cell activations are
 -- `botₚ` in the machine (`docs/dp-transport.md`).
 
@@ -121,16 +121,3 @@ resource-settles (t , just _) (putᴿ _) = 0 , Settles-map-bot ansᴹ
 resource-settles (t , just b) getᴿ = 1 , Settles-map-return ansᴹ ((t , just b) , outᴿ b)
 resource-settles (t , nothing) getᴿ = 0 , Settles-map-bot ansᴹ
 resource-settles (t , m) nakᴿ = 1 , Settles-map-return ansᴹ ((t , m) , rejᴿ)
-
-resource-run : (b : Bool) (d : Strat (Neg Resᴵ) (Pos Resᴵ))
-             → Attains (runᴹ resource d) (indᵇ b) (E⊥ (runWith⊥ resK ([] , nothing) d) (indᵇ b))
-resource-run b d = run .proj₁ , λ i → trans (run .proj₂ i) collapse
-  where
-  σ₀ : Dist⊥ RState
-  σ₀ = return⊥ ([] , nothing)
-
-  run = rawPr resource resK resource-settles σ₀ 1 (Settles-return ([] , nothing)) b d
-
-  collapse : E⊥ (σ₀ >>=⊥ λ s → runWith⊥ resK s d) (indᵇ b)
-           ≡ E⊥ (runWith⊥ resK ([] , nothing) d) (indᵇ b)
-  collapse = >>=⊥-identityˡ ([] , nothing) (λ s → runWith⊥ resK s d) (maybeℚ (indᵇ b))

@@ -27,7 +27,6 @@ open import CategoricalCrypto.Examples.ROCommitment.Asymptotic
 open import CategoricalCrypto.UC.Approximate
 open import CategoricalCrypto.UC.Model.Enrichment
 open import CategoricalCrypto.UC.Model.Family
-open import CategoricalCrypto.UC.Model.Family.Contextual
 open import CategoricalCrypto.UC.Model.Family.Emulation
 open import CategoricalCrypto.UC.Model.Observation
 open import CategoricalCrypto.UC.Model.Seal
@@ -119,8 +118,7 @@ coinRealʷ =
             (pred-∘ (pred-∘ (pred-∘ pred-α⇐ (pred-⊗ pred-id (CTU.tossQB n))) (ROU.recvQB n))
                     (ROU.resourceQBᵒ n))
 
--- `≤UC[]⇒≤UCᴺ` does not go through the vanishing collapse, so the statement
--- lands in the LOCAL-NEGLIGIBLE `ucSetupᴺ` and not only in `Canonical^ω`.
+-- `≤UC[]⇒≤UCᴺ` lands the statement in the LOCAL-NEGLIGIBLE `ucSetupᴺ`.
 -- What it keeps is the certified simulator and a negligible witness chosen
 -- per context — NOT `εᶜⁱ` itself, which stays at `coin-toss-idealᵇ`.
 coin-toss-idealᴺ : realᶠ ≤UC^ωᵉ idealᶠ → coinRealʷ Canonicalᴺ.≤UC Fcoinʷ

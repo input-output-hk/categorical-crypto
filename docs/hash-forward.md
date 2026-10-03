@@ -139,8 +139,8 @@ arbitrary grades. What `gradedᵒ` needs is two facts, neither derivable outside
 
 `UC.Graded` reads them in the setup's vocabulary and turns a machine-level factoring
 (`Factors f s g`, i.e. `f ≈ subᴵ s ∘ g`) into an emulation (`emulᵍ`, `≤UCᵍ`).
-`UC.Seam.Grounded.closedᵒ`/`stageᵒ` are a different reading, not instances of it:
-they insert a unit grade (`ιᴳ`) where `gradedᵒ` reads an existing one, and a protocol
+`UC.Seam.Grounded.stageᵒ` is a different reading, not an instance of it:
+it inserts a unit grade (`ιᴳ`) where `gradedᵒ` reads an existing one, and a protocol
 image with no adversary interface has no grade to read.
 
 At the toy (`Examples.HashForward.UC`):
@@ -169,9 +169,12 @@ them — and a ledger `Λ` of what a state still owes:
 
 ```agda
 δ o + Λ s′ ≡ Λ s + cost x                           -- per step
-weight δ (outputs) + Λ (final) ≡ weight cost (word) -- per run (exactᴱ)
-mapₚ … (exactᴱ w) ≈ₚ behᵍ S point step w            -- and it IS the run (exactᴱ-erases)
+weight δ (outputs) + Λ (final) ≡ weight cost (word) -- per run (exactᴱ's runs)
+mapₚ … (runs (exactᴱ w)) ≈ₚ behᵍ S point step w     -- and it IS the run (erases)
 ```
+
+`exactᴱ w : Counted Λ w` packs both, so a count is a statement about the machine's
+own behaviour and not only about some distribution of balanced runs.
 
 At the toy, two instantiations
 of the SAME ledger `Φˢ`:

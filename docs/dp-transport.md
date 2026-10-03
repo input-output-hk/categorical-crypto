@@ -127,17 +127,15 @@ resKᵀ (t , m) x = Dmap digᵀ (fetchT (_, m) t x)
 
 resK : RState → Neg Resᴵ → Dist⊥ (RState × Pos Resᴵ)
 resource-settles : StepSettles resource resK
-resource-run : (b : Bool) (d : Strat (Neg Resᴵ) (Pos Resᴵ))
-             → Σ[ n ∈ ℕ ] ((i : ℕ) → cum (n + i) (runᴹ resource d) (indᵇ b)
-                                    ≡ E⊥ (runWith⊥ resK ([] , nothing) d) (indᵇ b))
 ```
 
 The RO commitment's own lazily sampled resource. On the oracle half `resK` IS
 `Examples.ROCommitment.Oracle.fetchT` relabelled onto `Resᴵ` — `resKᵀ` is
 defined so, and it is the kernel the closed game's bound is proved about — and
 the fresh branch draws `uniformₚ k`, so `uniformₚ-settles` makes the activation
-settle. The `Dₚ` closed run of the concrete resource is therefore a `Dist⊥`
-kernel run at every strategy, with no protocol image anywhere.
+settle, and `rawPr` at `resource-settles` reads the `Dₚ` closed run of the
+concrete resource as a `Dist⊥` kernel run at every strategy, with no protocol
+image anywhere.
 
 `resK` is `Dist⊥`-valued rather than `Dist-ℚ`-valued and that is not slack: two
 cell activations are off-protocol (a second `putᴿ`, a `getᴿ` before one), the

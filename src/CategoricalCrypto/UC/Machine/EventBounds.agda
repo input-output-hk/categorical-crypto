@@ -42,7 +42,6 @@ open import CategoricalCrypto.Machines.Run.Sim
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Approximate
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.Dictionary
 open import CategoricalCrypto.UC.QueryBound
 open import CategoricalCrypto.UC.QueryBound.Compose.Laws
@@ -60,6 +59,14 @@ private
 
 ------------------------------------------------------------------------
 -- Reading an event off a context
+
+conjᴵ : Proc unitᴵ B → Proc unitᴵ (unitᴵ ⊗ᴵ B)
+conjᴵ u = λᴵ⇐ 𝒫.∘ u
+
+-- What a budgeted ancilla context observes when a process is plugged into it:
+-- exactly the closed run `_≈ℰ_` compares.
+ctxRun : (Y : Iface) → Proc (Y ⊗ᴵ B) Ωᴵ → Proc unitᴵ (Y ⊗ᴵ A) → Proc A B → Dₚ Bool
+ctxRun Y E m f = ⟦ (E 𝒫.∘ T₁ᴵ Y f) 𝒫.∘ m ⟧ᴼ
 
 -- A way of turning a budgeted test into one whose verdict IS the event.  A
 -- bound quantified over ALL tests would bound the mass of a constant-`true`

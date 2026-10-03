@@ -233,7 +233,7 @@ open Step (λ _ → [])
 open Observable 1 (λ _ → [])
 open System 1 (λ _ → [])
 
-open Attack 1 (λ _ → []) 0 using (s₀; txᵃ; once; twice; replay; replay-asks)
+open Attack 1 (λ _ → []) 0 using (s₀; twice; replay)
 
 h : Hash
 h = replicate 1 false
@@ -241,14 +241,8 @@ h = replicate 1 false
 initial-total : total s₀ ≡ 2
 initial-total = refl
 
-preserved : total (once h) ≡ 2
-preserved = refl
-
 destroyed : total (twice h) ≡ 1
 destroyed = refl
-
-rejected : proj₂ (runCall (λ _ → h) (applyTx inputConsuming s₀ txᵃ)) ≡ false
-rejected = refl
 
 chimeric-loses-value : Pr (Sys chimeric s₀) (auditWatch (total s₀) replay) ≡ 1ℚ
 chimeric-loses-value = refl
@@ -256,17 +250,10 @@ chimeric-loses-value = refl
 consuming-preserves-value : Pr (Sys inputConsuming s₀) (auditWatch (total s₀) replay) ≡ 0ℚ
 consuming-preserves-value = refl
 
-h₁ : Hash
-h₁ = replicate 1 true
-
 open Genesis 1 (λ _ → []) h 0 2 using (g₀; spend)
 
 genesis-live : Pr (Sys inputConsuming g₀) spend ≡ 1ℚ
 genesis-live = refl
-
-genesis-moves : after inputConsuming g₀ (spendGenesis h 0 2) h₁
-              ≡ (((h₁ , 0) , (0 , 2)) ∷ [] , [])
-genesis-moves = refl
 
 genesis-preserves : PrHit (Sys inputConsuming g₀) (badTotal g₀) spend ≡ 0ℚ
 genesis-preserves = refl

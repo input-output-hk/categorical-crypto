@@ -9,7 +9,7 @@
 -- what `qualBy` takes: any equivalence that zero error already implies.
 -- `qual₊` is closeness at every positive error of a `Refinement`; a tier that
 -- KEEPS an error witness coarsens by its own class instead
--- (`UC.Family.Negligible.Evaluationᴺ`).
+-- (`UC.Family.Evaluationᴺ`).
 
 open import Categories.Category.Core
 

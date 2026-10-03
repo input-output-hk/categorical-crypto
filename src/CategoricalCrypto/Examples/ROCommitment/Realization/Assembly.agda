@@ -9,7 +9,7 @@
 -- against one lazily sampled oracle and cell.  `Realization`/`Realizationʰ`
 -- state the comparison with `Examples.ROCommitment.Resource.resource`
 -- installed below both sides; `assembly`/`assemblyʰ` derive the coin-toss
--- conclusions from it at the same schedules (`pin`/`pinʰ`).
+-- conclusions from it at the same schedules (`Examples.CoinToss.Test`).
 
 open import Categories.LocallyGraded.SubCategory
 
@@ -24,7 +24,6 @@ open import CategoricalCrypto.Examples.CoinToss.Ideal.Compose
 open import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Compose
 open import CategoricalCrypto.UC.Model.Enrichment
 open import CategoricalCrypto.UC.Model.Family
-open import CategoricalCrypto.UC.Model.Family.Contextual
 open import CategoricalCrypto.UC.Model.Observation
 open import CategoricalCrypto.UC.Model.Setup
 
@@ -93,9 +92,3 @@ assemblyʰ : Realizationʰ → (λ n → (tossʰᶠ ∙ᶠ realʰᶠ) n ∘ res�
 assemblyʰ w =
   ≤UC^ωᵉ-trans (≤UC^ωᵉ-resp (λ _ → sym-assoc) (λ _ → sym-assoc) (coin-from-Rcomʰ w))
                coin-hybridʳ
-
-pin : (w : Realization) → proj₁ (proj₂ (assembly w)) ≡ εᶜⁱ (proj₁ (proj₂ w))
-pin _ = refl
-
-pinʰ : (w : Realizationʰ) → proj₁ (proj₂ (assemblyʰ w)) ≡ εᶜʳ (proj₁ (proj₂ w))
-pinʰ _ = refl

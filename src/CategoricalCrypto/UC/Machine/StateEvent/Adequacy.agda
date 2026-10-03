@@ -47,7 +47,6 @@ open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Approximate
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.EventBounds
 open import CategoricalCrypto.UC.Machine.StateEvent
 open import CategoricalCrypto.UC.Machine.StateEvent.Agree
