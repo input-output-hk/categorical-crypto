@@ -9,6 +9,7 @@
 -- (see `Transfer.Chimericᶠ`); `Genesis` pins instead that the positive theorem's own
 -- initialization is live.  Walkthrough: `docs/end-to-end.md` §2.
 
+open import categorical-crypto.Prelude using (DecEq-×′)
 open import Class.DecEq
 open import Class.DecEq.Ext
 
@@ -43,10 +44,6 @@ import CategoricalCrypto.Examples.ChimericLedger.Observable as Observable
 import CategoricalCrypto.Examples.ChimericLedger.System     as System
 
 module CategoricalCrypto.Examples.ChimericLedger.Replay where
-
--- See `ChimericLedger`; here `≟-refl` must also resolve at the instance
--- `lookupU` was elaborated against.
-private instance DecEq-×′ = DecEq-×
 
 module Attack (ℓ : ℕ) (ser : Ledger.Tx ℓ → List Bool) (V : ℕ) where
 

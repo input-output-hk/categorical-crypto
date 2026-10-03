@@ -22,7 +22,6 @@ open import Relation.Binary.PropositionalEquality
 open import CategoricalCrypto.Examples.CoinToss.Compose
 open import CategoricalCrypto.Examples.CoinToss.Ideal.Compose
 open import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Compose
-open import CategoricalCrypto.UC.Model.Dominated
 open import CategoricalCrypto.UC.Model.Enrichment
 open import CategoricalCrypto.UC.Model.Family
 open import CategoricalCrypto.UC.Model.Family.Contextual

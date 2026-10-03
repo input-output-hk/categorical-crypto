@@ -24,7 +24,6 @@ open import ProbabilisticLogic.Distribution.Uniform
 open import CategoricalCrypto.Examples.CoinToss.Compose
 open import CategoricalCrypto.Examples.ROCommitment.Asymptotic
 open import CategoricalCrypto.UC.Approximate
-open import CategoricalCrypto.UC.Model.Dominated
 open import CategoricalCrypto.UC.Model.Enrichment
 open import CategoricalCrypto.UC.Model.Family
 open import CategoricalCrypto.UC.Model.Family.Contextual

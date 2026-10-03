@@ -40,9 +40,6 @@ open import Relation.Nullary using (yes)
 open import Categories.APROP using (APROPSignature; module APROP)
 open import Categories.FreeMonoidal
 
-private instance S≤S : Symm ≤ Symm
-                 S≤S = v≤v
-
 X5 : Set
 X5 = Fin 5
 
@@ -66,22 +63,11 @@ iSig : APROPSignature
 iSig = record { X = X5 ; mor = IMor ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-IMor_ }
 
 open APROP iSig public
-  using (HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_)
+  using (Symm≤Symm; HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_)
+open import Categories.GConstructionCoherence.FreeWiring iSig
 
 f' : HomTerm (a⁺ ⊗₀ b⁻) (a⁻ ⊗₀ b⁺)
 f' = Agen gf
-
--- routing isos (as in GConstruction / GConstructionCoherence)
-βᵗ : ∀ {P Q R} → HomTerm ((P ⊗₀ Q) ⊗₀ R) ((P ⊗₀ R) ⊗₀ Q)
-βᵗ = α⇐ ∘ id ⊗₁ σ ∘ α⇒
-
-αᵗ : ∀ {A⁻' B⁺' B⁻' C⁺'}
-   → HomTerm ((B⁻' ⊗₀ C⁺') ⊗₀ (A⁻' ⊗₀ B⁺')) ((A⁻' ⊗₀ C⁺') ⊗₀ (B⁻' ⊗₀ B⁺'))
-αᵗ = α⇒ ∘ σ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ (σ ⊗₁ id) ∘ id ⊗₁ α⇐ ∘ α⇒
-
-γᵗ : ∀ {A⁺' B⁺' B⁻' C⁻'}
-   → HomTerm ((A⁺' ⊗₀ C⁻') ⊗₀ (B⁻' ⊗₀ B⁺')) ((B⁺' ⊗₀ C⁻') ⊗₀ (A⁺' ⊗₀ B⁻'))
-γᵗ = α⇒ ∘ σ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ (σ ⊗₁ id) ∘ id ⊗₁ α⇐ ∘ α⇒ ∘ id ⊗₁ σ
 
 --------------------------------------------------------------------------------
 -- identityˡ pieces (loop b⁻ ⊗ b⁺)

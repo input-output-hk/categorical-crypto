@@ -25,9 +25,6 @@ open import Categories.APROP
 
 import Categories.APROP.Hypergraph.Solver.Frontend as Interp
 
-private instance S≤S : Symm ≤ Symm
-                 S≤S = v≤v
-
 open FreeMonoidalHelper Symm (Fin 6) using (ObjTerm; Var; _⊗₀_)
 
 a⁺ a⁻ b⁺ b⁻ d⁺ d⁻ : ObjTerm
@@ -52,15 +49,8 @@ module L where
   sig : APROPSignature
   sig = record { X = Fin 6 ; mor = Mor ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-Mor_ }
 
-  open APROP sig using (HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_)
-
-  αᵗ : ∀ {A⁻' B⁺' B⁻' C⁺'}
-     → HomTerm ((B⁻' ⊗₀ C⁺') ⊗₀ (A⁻' ⊗₀ B⁺')) ((A⁻' ⊗₀ C⁺') ⊗₀ (B⁻' ⊗₀ B⁺'))
-  αᵗ = α⇒ ∘ σ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ (σ ⊗₁ id) ∘ id ⊗₁ α⇐ ∘ α⇒
-
-  γᵗ : ∀ {A⁺' B⁺' B⁻' C⁻'}
-     → HomTerm ((A⁺' ⊗₀ C⁻') ⊗₀ (B⁻' ⊗₀ B⁺')) ((B⁺' ⊗₀ C⁻') ⊗₀ (A⁺' ⊗₀ B⁻'))
-  γᵗ = α⇒ ∘ σ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ (σ ⊗₁ id) ∘ id ⊗₁ α⇐ ∘ α⇒ ∘ id ⊗₁ σ
+  open APROP sig using (Symm≤Symm; HomTerm; Agen; id; _∘_; _⊗₁_; σ; _≈Term_)
+  open import Categories.GConstructionCoherence.FreeWiring sig
 
   lhs rhs : HomTerm ((a⁺ ⊗₀ d⁻) ⊗₀ (b⁻ ⊗₀ b⁺)) ((a⁻ ⊗₀ d⁺) ⊗₀ (b⁻ ⊗₀ b⁺))
   lhs = αᵗ ∘ (σ ∘ Agen gu ⊗₁ Agen gv) ⊗₁ Agen gg ∘ γᵗ
@@ -114,15 +104,8 @@ module R where
   sig : APROPSignature
   sig = record { X = Fin 6 ; mor = Mor ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-Mor_ }
 
-  open APROP sig using (HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_)
-
-  αᵗ : ∀ {A⁻' B⁺' B⁻' C⁺'}
-     → HomTerm ((B⁻' ⊗₀ C⁺') ⊗₀ (A⁻' ⊗₀ B⁺')) ((A⁻' ⊗₀ C⁺') ⊗₀ (B⁻' ⊗₀ B⁺'))
-  αᵗ = α⇒ ∘ σ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ (σ ⊗₁ id) ∘ id ⊗₁ α⇐ ∘ α⇒
-
-  γᵗ : ∀ {A⁺' B⁺' B⁻' C⁻'}
-     → HomTerm ((A⁺' ⊗₀ C⁻') ⊗₀ (B⁻' ⊗₀ B⁺')) ((B⁺' ⊗₀ C⁻') ⊗₀ (A⁺' ⊗₀ B⁻'))
-  γᵗ = α⇒ ∘ σ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ (σ ⊗₁ id) ∘ id ⊗₁ α⇐ ∘ α⇒ ∘ id ⊗₁ σ
+  open APROP sig using (Symm≤Symm; HomTerm; Agen; id; _∘_; _⊗₁_; σ; _≈Term_)
+  open import Categories.GConstructionCoherence.FreeWiring sig
 
   lhs rhs : HomTerm ((a⁺ ⊗₀ d⁻) ⊗₀ (b⁻ ⊗₀ b⁺)) ((a⁻ ⊗₀ d⁺) ⊗₀ (b⁻ ⊗₀ b⁺))
   lhs = αᵗ ∘ Agen gf ⊗₁ (σ ∘ Agen gp ⊗₁ Agen gq) ∘ γᵗ

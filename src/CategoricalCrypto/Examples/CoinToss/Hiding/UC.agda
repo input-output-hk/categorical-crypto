@@ -18,7 +18,6 @@ open import Function.Base
 open import ProbabilisticLogic.Dp
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.UC.Model.Dominated
 open import CategoricalCrypto.UC.Model.Enrichment
 open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.Model.Setup
@@ -39,8 +38,8 @@ tossʰCert : Certified 1 tossʰ
 tossʰCert = qbᵢ-upward _ _ _ onL cohL
   where
   onL : (s : QSt) (a : Pos Honᴵʰ) → Dₚ (Ans (λ _ → 0) (Neg Honᴵʰ) (Pos (Advᴵᶜʰ ⊗ᴵ Honᴵᶜʰ)) 0)
-  onL (comᵗ _)    nakᴱ = returnₚ (inj₂ ((doneᵗ , z≤n) , inj₂ abortedᶜʰ))
-  onL (openᵗ _ _) nakᴱ = returnₚ (inj₂ ((doneᵗ , z≤n) , inj₂ abortedᶜʰ))
+  onL (comᵗ _)    nakᴱ = returnₚ (inj₂ ((doneᵗ , z≤n) , inj₂ abortedᶜ))
+  onL (openᵗ _ _) nakᴱ = returnₚ (inj₂ ((doneᵗ , z≤n) , inj₂ abortedᶜ))
   onL _ _              = botₚ
 
   cohL : (s : QSt) (a : Pos Honᴵʰ) → mapₚ forget (onL s a) ≈ₚ τStep (s , inj₁ a)

@@ -100,3 +100,6 @@ open import CategoricalCrypto.Examples.ROCommitment.UC
 import Categories.Category.Construction.Kleisli.Distributive
 import Categories.Category.Distributive.Monoidal
 import Categories.Category.Monoidal.Distributive.Instance.Rels
+import Categories.Functor.Monoidal.CurriedTensor.Properties
+import Categories.Monad.Graded.Uncurried
+import Class.Monad.Ext

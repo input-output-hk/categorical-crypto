@@ -30,14 +30,10 @@
 module Categories.GConstructionCoherence.Wiring where
 
 open import Relation.Binary.PropositionalEquality using (refl)
-open import Categories.FreeMonoidal using (Symm; _≤_; v≤v)
 open import Categories.GConstructionCoherence.Terms
 open import Categories.Category using (Category)
 open import Categories.Morphism.Reasoning FreeMonoidal using (center; pullʳ)
 open Category.HomReasoning FreeMonoidal using (_○_; _⟩∘⟨refl; refl⟩∘⟨_)
-
-private instance S≤S : Symm ≤ Symm
-                 S≤S = v≤v
 
 private
   -- balanced clones of the routing isos (same morphisms, balanced ∘-trees)

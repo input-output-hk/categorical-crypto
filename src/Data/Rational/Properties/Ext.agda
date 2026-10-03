@@ -4,7 +4,8 @@
 -- group facts (via `Algebra.Properties.AbelianGroup` at `+-0-abelianGroup`), the
 -- absolute-value bounds the distinguishing-advantage arithmetic runs on, the two
 -- order refutations at literals that a vanishing bound needs against probability
--- one, and the arithmetic of the `_/_` constructor.
+-- one, the bounds on masses within ε of one, and the arithmetic of the `_/_`
+-- constructor.
 
 module Data.Rational.Properties.Ext where
 
@@ -14,10 +15,12 @@ open import Data.Rational using
   (ℚ; 0ℚ; 1ℚ; ½; _+_; _-_; -_; _*_; _/_; ∣_∣; _≤_; _≤?_; _<_; _<?_; nonNegative; toℚᵘ)
 open import Data.Rational.Properties using
   ( +-0-abelianGroup; +-assoc; +-comm; +-identityˡ; +-identityʳ; +-inverseˡ; +-inverseʳ
-  ; +-monoˡ-≤; +-monoʳ-≤; ≤-antisym; ≤-refl; ≤-reflexive; ≤-total; ≤-trans; neg-antimono-≤
-  ; 0≤p⇒∣p∣≡p; 0≤∣p∣; ∣-p∣≡∣p∣; ∣p+q∣≤∣p∣+∣q∣; nonNegative⁻¹; nonNeg*nonNeg⇒nonNeg
-  ; *-distribʳ-+; *-identityˡ; *-monoʳ-<-pos; *-zeroʳ
+  ; +-mono-≤; +-monoˡ-≤; +-monoʳ-≤; ≤-antisym; ≤-refl; ≤-reflexive; ≤-total; ≤-trans
+  ; neg-antimono-≤; 0≤p⇒∣p∣≡p; 0≤∣p∣; ∣-p∣≡∣p∣; ∣p+q∣≤∣p∣+∣q∣; nonNegative⁻¹
+  ; nonNeg*nonNeg⇒nonNeg; *-distribʳ-+; *-identityˡ; *-identityʳ; *-monoˡ-≤-nonNeg
+  ; *-monoʳ-<-pos; *-zeroʳ
   ; toℚᵘ-cancel-≤; toℚᵘ-fromℚᵘ; toℚᵘ-homo-*; toℚᵘ-homo-+; toℚᵘ-injective )
+open import Data.Rational.Solver using (module +-*-Solver)
 open import Data.Rational.Unnormalised.Base as ℚᵘ using (mkℚᵘ; *≡*; *≤*)
 open import Data.Product.Base using (_×_; _,_)
 open import Data.Sum.Base using (inj₁; inj₂)
@@ -58,6 +61,9 @@ p≤p+q x 0≤y = ≤-trans (≤-reflexive (sym (+-identityʳ x))) (+-monoʳ-≤
 
 p≤q+p : ∀ x → 0ℚ ≤ y → x ≤ y + x
 p≤q+p x 0≤y = ≤-trans (≤-reflexive (sym (+-identityˡ x))) (+-monoˡ-≤ x 0≤y)
+
+0≤+ : 0ℚ ≤ x → 0ℚ ≤ y → 0ℚ ≤ x + y
+0≤+ 0≤x 0≤y = ≤-trans 0≤x (p≤p+q _ 0≤y)
 
 nonNeg+nonNeg≡0 : ∀ x y → 0ℚ ≤ x → 0ℚ ≤ y → x + y ≡ 0ℚ → x ≡ 0ℚ × y ≡ 0ℚ
 nonNeg+nonNeg≡0 x y 0≤x 0≤y s0 =
@@ -136,6 +142,44 @@ p≤∣p∣ p with ≤-total 0ℚ p
 
 ½*+½* : ∀ x → ½ * x + ½ * x ≡ x
 ½*+½* x = trans (sym (*-distribʳ-+ x ½ ½)) (*-identityˡ x)
+
+------------------------------------------------------------------------
+-- Masses within ε of one
+
+private
+  open +-*-Solver
+
+  split : (m x : ℚ) → m * x + (1ℚ - m) * x ≡ x
+  split = solve 2 (λ m x → m :* x :+ (con 1ℚ :- m) :* x := x) refl
+
+  expand : (ε : ℚ) → 1ℚ - (ε + ε) ≡ ((1ℚ - ε) + (1ℚ - ε)) - 1ℚ
+  expand = solve 1 (λ ε →
+    con 1ℚ :- (ε :+ ε) := ((con 1ℚ :- ε) :+ (con 1ℚ :- ε)) :- con 1ℚ) refl
+
+  collect : (a b : ℚ) → ((a + b) - 1ℚ) + ((1ℚ - a) * (1ℚ - b)) ≡ a * b
+  collect = solve 2 (λ a b →
+    ((a :+ b) :- con 1ℚ) :+ ((con 1ℚ :- a) :* (con 1ℚ :- b)) := a :* b) refl
+
+1-ε≤m⇒1-m≤ε : (m ε : ℚ) → 1ℚ - ε ≤ m → 1ℚ - m ≤ ε
+1-ε≤m⇒1-m≤ε m ε le = ≤-trans (+-monoʳ-≤ 1ℚ (neg-antimono-≤ le)) (≤-reflexive (1-[1-x] ε))
+
+x≤m*x+ε : (m x ε : ℚ) → m ≤ 1ℚ → 1ℚ - ε ≤ m → 0ℚ ≤ x → x ≤ 1ℚ → x ≤ m * x + ε
+x≤m*x+ε m x ε m≤1 close 0≤x x≤1 =
+  ≤-trans (≤-reflexive (sym (split m x)))
+          (+-monoʳ-≤ (m * x)
+            (≤-trans (*-monoˡ-≤-nonNeg (1ℚ - m) ⦃ nonNegative (0≤1- m≤1) ⦄ x≤1)
+            (≤-trans (≤-reflexive (*-identityʳ (1ℚ - m))) (1-ε≤m⇒1-m≤ε m ε close))))
+
+1-[ε+ε]≤a*b : (a b ε : ℚ) → a ≤ 1ℚ → b ≤ 1ℚ → 1ℚ - ε ≤ a → 1ℚ - ε ≤ b
+            → 1ℚ - (ε + ε) ≤ a * b
+1-[ε+ε]≤a*b a b ε a≤1 b≤1 ea eb =
+  ≤-trans (≤-reflexive (expand ε))
+  (≤-trans (+-monoˡ-≤ (- 1ℚ) (+-mono-≤ ea eb))
+  (≤-trans (p≤p+q ((a + b) - 1ℚ) (0≤* (0≤1- a≤1) (0≤1- b≤1)))
+           (≤-reflexive (collect a b))))
+
+x≤y+c⇒x-c≤y : (x y c : ℚ) → x ≤ y + c → x - c ≤ y
+x≤y+c⇒x-c≤y x y c le = ≤-trans (+-monoˡ-≤ (- c) le) (≤-reflexive (+-−-cancel y c))
 
 ------------------------------------------------------------------------
 -- Arithmetic and order for the `_/_` constructor

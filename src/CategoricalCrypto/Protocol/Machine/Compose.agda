@@ -111,8 +111,9 @@ module _ {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B) where
     π-step (both _  _  , inj₁ _)  = bot-bind-≈ₚ (Pw.padϕ π)
     π-step (susp _  _  , inj₂ _)  = bot-bind-≈ₚ (Pw.padϕ π)
 
-  π-sim : machineᶜ S.≲ morphism (P₂ ∘ᵖ P₁)
-  π-sim = Pw.simFn π (λ _ → >>=ₚ-identityˡ (both (init P₂) (init P₁)) _) π-step
+  private
+    π-sim : machineᶜ S.≲ morphism (P₂ ∘ᵖ P₁)
+    π-sim = Pw.simFn π (λ _ → >>=ₚ-identityˡ (both (init P₂) (init P₁)) _) π-step
 
   ------------------------------------------------------------------------
   -- Into the G-composite
@@ -192,28 +193,28 @@ module _ {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B) where
       bot-bind-≈ₚ (Pw.padϕ ι)
       ⟨≈⟩ ≈sym (step-red (wait k₂ , wait k₁) (inj₂ c⁻) ⟨≈⟩ bindˣ (bot-bind-≈ₚ _) ⟨≈⟩ bot-bind-≈ₚ exit)
 
-  ι-sim : machineᶜ S.≲ MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B) (MC.mk Sᴳ kᴳ)
-  ι-sim = Pw.simFn ι
-            (λ x → >>=ₚ-identityˡ (both (init P₂) (init P₁)) _
-                 ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _
-                          ⟨≈⟩ >>=ₚ-identityˡ (idle (init P₂)) _
-                          ⟨≈⟩ >>=ₚ-identityˡ (idle (init P₁)) _))
-            ι-step
+  private
+    ι-sim : machineᶜ S.≲ MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B) (MC.mk Sᴳ kᴳ)
+    ι-sim = Pw.simFn ι
+              (λ x → >>=ₚ-identityˡ (both (init P₂) (init P₁)) _
+                   ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _
+                            ⟨≈⟩ >>=ₚ-identityˡ (idle (init P₂)) _
+                            ⟨≈⟩ >>=ₚ-identityˡ (idle (init P₁)) _))
+              ι-step
 
-------------------------------------------------------------------------
--- Functoriality
+  ------------------------------------------------------------------------
+  -- Functoriality
 
-morphism-∘ : {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B)
-           → morphism (P₂ ∘ᵖ P₁) S.≈ᴹ
-             Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
-               (Col.W.α {Neg A} {Pos B} {Neg B} MC.∘ᴹ
-                 ((morphism P₂ Pw.T.⊗ᵉ morphism P₁) MC.∘ᴹ
-                   Col.W.γ {Pos A} {Pos B} {Neg B}))
-morphism-∘ {A} {B} {C} P₂ P₁ =
-       S.⟺ᴹ (S.≲⇒≈ᴹ (π-sim P₂ P₁))
-  S.○ᴹ S.≲⇒≈ᴹ (ι-sim P₂ P₁)
-  S.○ᴹ S.⟺ᴹ (Col.collapseᵀ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C}
-                           (morphism P₂) (morphism P₁))
+  morphism-∘ : morphism (P₂ ∘ᵖ P₁) S.≈ᴹ
+               Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
+                 (Col.W.α {Neg A} {Pos B} {Neg B} MC.∘ᴹ
+                   ((morphism P₂ Pw.T.⊗ᵉ morphism P₁) MC.∘ᴹ
+                     Col.W.γ {Pos A} {Pos B} {Neg B}))
+  morphism-∘ =
+         S.⟺ᴹ (S.≲⇒≈ᴹ π-sim)
+    S.○ᴹ S.≲⇒≈ᴹ ι-sim
+    S.○ᴹ S.⟺ᴹ (Col.collapseᵀ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C}
+                             (morphism P₂) (morphism P₁))
 
 -- …and at `𝒢`'s own composition.  Every polarity is passed explicitly, for
 -- the reason at `UC.Machine.𝒫ᴵ`.

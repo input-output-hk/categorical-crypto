@@ -21,7 +21,6 @@ open import ProbabilisticLogic.Dp
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.UC.Graded
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Model.Dominated
 open import CategoricalCrypto.UC.Model.Enrichment
 open import CategoricalCrypto.UC.Model.Graded
 open import CategoricalCrypto.UC.Model.Seal

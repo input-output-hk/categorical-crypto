@@ -30,9 +30,6 @@ import Categories.APROP.Hypergraph.Solver.Frontend as Interp
 import Categories.Category.Monoidal.Interchange.Braided as IB
 import Categories.Category.Monoidal.Interchange.Symmetric as IS
 
-private instance S≤S : Symm ≤ Symm
-                 S≤S = v≤v
-
 pattern 10F = suc 9F
 pattern 11F = suc 10F
 
@@ -59,26 +56,14 @@ sig : APROPSignature
 sig = record { X = Fin 12 ; mor = Mor ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-Mor_ }
 
 open APROP sig
-  using (FreeMonoidal; Symmetric-Monoidal; HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐;
-         _≈Term_)
+  using (FreeMonoidal; Symm≤Symm; Symmetric-Monoidal; HomTerm; Agen; id; _∘_; _⊗₁_; _≈Term_)
+open import Categories.GConstructionCoherence.FreeWiring sig
 
 open import Categories.APROP.Hypergraph.Solver.Split sig
   using () renaming (stepSplitR! to stepR!; solveTerm!ᵀ to solve!)
 open import Categories.Morphism.Reasoning FreeMonoidal
 
 open Category.HomReasoning FreeMonoidal
-
--- Verbatim free twins of `GConstructionTrace`'s `α`, `γ`, `mid`: `HOM` is read
--- off by conversion, and `ob-nat` relies on `midᵗ` being upstream's
--- `swapInner.from`.
-αᵗ : ∀ {A⁻ B⁺ B⁻ C⁺} → HomTerm ((B⁻ ⊗₀ C⁺) ⊗₀ (A⁻ ⊗₀ B⁺)) ((A⁻ ⊗₀ C⁺) ⊗₀ (B⁻ ⊗₀ B⁺))
-αᵗ = α⇒ ∘ σ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ (σ ⊗₁ id) ∘ id ⊗₁ α⇐ ∘ α⇒
-
-γᵗ : ∀ {A⁺ B⁺ B⁻ C⁻} → HomTerm ((A⁺ ⊗₀ C⁻) ⊗₀ (B⁻ ⊗₀ B⁺)) ((B⁺ ⊗₀ C⁻) ⊗₀ (A⁺ ⊗₀ B⁻))
-γᵗ = α⇒ ∘ σ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ (σ ⊗₁ id) ∘ id ⊗₁ α⇐ ∘ α⇒ ∘ id ⊗₁ σ
-
-midᵗ : ∀ {P Q R S} → HomTerm ((P ⊗₀ Q) ⊗₀ (R ⊗₀ S)) ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S))
-midᵗ = α⇐ ∘ id ⊗₁ (α⇒ ∘ σ ⊗₁ id ∘ α⇐) ∘ α⇒
 
 X Y W W′ : ObjTerm
 X = b⁻ ⊗₀ b⁺                  ; Y  = q⁻ ⊗₀ q⁺
@@ -117,6 +102,7 @@ ob-out = solve! Lout (Rout ∘ midᵗ) refl
 ob-in : Lin ≈Term (midᵗ ∘ Rin)
 ob-in = solve! Lin (midᵗ ∘ Rin) refl
 
+-- `midᵗ` is upstream's `swapInner.from`.
 ob-nat : (midᵗ ∘ BoxL ∘ midᵗ) ≈Term BoxR
 ob-nat = pullˡ (IB.swapInner-natural (Symmetric.braided Symmetric-Monoidal))
        ○ cancelʳ (IS.swapInner-commutative Symmetric-Monoidal)

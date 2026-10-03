@@ -5,6 +5,7 @@
 -- already keys a live UTxO entry, whose output `unionNew` then swallows
 -- (`applyTx-total-fresh`, `conservation`).
 
+open import categorical-crypto.Prelude using (DecEq-×′)
 open import Class.DecEq
 
 open import Data.Bool.Base using (Bool; true; false; if_then_else_; T)
@@ -31,9 +32,6 @@ open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.OracleCall
 
 module CategoricalCrypto.Examples.ChimericLedger.Value (ℓ : ℕ) where
-
--- See `ChimericLedger`.
-private instance DecEq-×′ = DecEq-×
 
 open Ledger ℓ
 
@@ -330,6 +328,7 @@ module _ (ser : Tx → List Bool) where
     accepted : (vIn : ℕ) (u′ : Utxo) (a′ : Accts)
              → checkIns (proj₁ s) (proj₁ tx) ≡ just (vIn , u′)
              → checkWdrls (proj₂ s) (proj₁ (proj₂ tx)) ≡ just a′
+             → ((vIn + wdrlΣ (proj₁ (proj₂ tx))) ≡ᴺ valΣ (proj₂ (proj₂ tx))) ≡ true
              → consumes vr (proj₁ tx) ≡ true
              → applyTx vr s tx
                ≡ callᶜ (ser tx)
@@ -345,32 +344,29 @@ module _ (ser : Tx → List Bool) where
   ...     | false = rejected (reject-bal vr s tx e₁ e₂ eb)
   ...     | true with consumes vr ins in ec
   ...       | false = rejected (reject-con vr s tx e₁ e₂ eb ec)
-  ...       | true  = accepted vIn u′ a′ e₁ e₂ ec (accept-eq vr s tx e₁ e₂ eb ec)
+  ...       | true  = accepted vIn u′ a′ e₁ e₂ eb ec (accept-eq vr s tx e₁ e₂ eb ec)
 
   applyTx-total-fresh : ∀ vr s tx h → (∀ j → lookupU (proj₁ s) (h , j) ≡ nothing)
                       → total (after vr s tx h) ≡ total s
-  applyTx-total-fresh vr (u , a) (ins , wds , outs) h fresh
-    with checkIns u ins in e₁ | checkWdrls a wds in e₂
-  ... | nothing         | _       = refl
-  ... | just (vIn , u′) | nothing = refl
-  ... | just (vIn , u′) | just a′ with (vIn + wdrlΣ wds) ≡ᴺ valΣ outs in eb
-  ...   | false = refl
-  ...   | true with consumes vr ins
-  ...     | false = refl
-  ...     | true  = begin
-              balance (unionNew u′ (outsAt h 0 outs)) + acctΣ a′
-                ≡⟨ cong (_+ acctΣ a′)
-                     (balance-unionNew-outsAt u′ h 0 outs
-                       (λ j _ → checkIns-lookupU u ins vIn u′ (h , j) e₁ (fresh j))) ⟩
-              (balance u′ + valΣ outs) + acctΣ a′
-                ≡⟨ shuffle vIn (balance u′) (wdrlΣ wds) (acctΣ a′) (valΣ outs)
-                     (≡ᵇ⇒≡ (vIn + wdrlΣ wds) (valΣ outs) (subst T (sym eb) tt)) ⟩
-              (vIn + balance u′) + (wdrlΣ wds + acctΣ a′)
-                ≡⟨ cong₂ _+_ (sym (checkIns-balance u ins vIn u′ e₁))
-                             (sym (checkWdrls-acctΣ a wds a′ e₂)) ⟩
-              balance u + acctΣ a
-                ∎
-              where open ≡-Reasoning
+  applyTx-total-fresh vr s tx h fresh with shape vr s tx
+  ... | rejected eq = cong (λ c → total (proj₁ (runCall (λ _ → h) c))) eq
+  applyTx-total-fresh vr s@(u , a) tx@(ins , wds , outs) h fresh
+    | accepted vIn u′ a′ e₁ e₂ eb ec eq = begin
+      total (after vr s tx h)
+        ≡⟨ cong (λ c → total (proj₁ (runCall (λ _ → h) c))) eq ⟩
+      balance (unionNew u′ (outsAt h 0 outs)) + acctΣ a′
+        ≡⟨ cong (_+ acctΣ a′)
+             (balance-unionNew-outsAt u′ h 0 outs
+               (λ j _ → checkIns-lookupU u ins vIn u′ (h , j) e₁ (fresh j))) ⟩
+      (balance u′ + valΣ outs) + acctΣ a′
+        ≡⟨ shuffle vIn (balance u′) (wdrlΣ wds) (acctΣ a′) (valΣ outs)
+             (≡ᵇ⇒≡ (vIn + wdrlΣ wds) (valΣ outs) (subst T (sym eb) tt)) ⟩
+      (vIn + balance u′) + (wdrlΣ wds + acctΣ a′)
+        ≡⟨ cong₂ _+_ (sym (checkIns-balance u ins vIn u′ e₁))
+                     (sym (checkWdrls-acctΣ a wds a′ e₂)) ⟩
+      balance u + acctΣ a
+        ∎
+      where open ≡-Reasoning
 
   conservation : ∀ vr s tx hs h → (∀ k → k ∈ keysU (proj₁ s) → proj₁ k ∈ hs)
                → ¬ (h ∈ hs) → total (after vr s tx h) ≡ total s

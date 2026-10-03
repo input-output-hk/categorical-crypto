@@ -67,7 +67,7 @@ rare-cert {St = St} resp flag s₀ e 0≤e init raise = record
   ; φ      = φ
   ; inv₀   = tt
   ; pres   = λ s q _ → OnSupport-⊤ (resp s q)
-  ; φ-nn   = λ m s _ → ≤-trans (0≤bool (flag s)) (p≤p+q _ (0≤* (0≤fromℕ m) 0≤e))
+  ; φ-nn   = λ m s _ → 0≤+ (0≤bool (flag s)) (0≤* (0≤fromℕ m) 0≤e)
   ; φ-bad  = λ m s _ fl → subst (λ b → 1ℚ ≤ℚ bool→ℚ b +ℚ fromℕ m *ℚ e) (sym fl)
                             (p≤p+q 1ℚ (0≤* (0≤fromℕ m) 0≤e))
   ; φ-step = λ m s q _ → step m s q
@@ -110,7 +110,7 @@ drift-∧ k g false p = ≤-trans
   ; φ      = λ m s → C₁.φ m s +ℚ C₂.φ m s
   ; inv₀   = C₁.inv₀ , C₂.inv₀
   ; pres   = λ s q i → ListAll.zip (C₁.pres s q (proj₁ i) , C₂.pres s q (proj₂ i))
-  ; φ-nn   = λ m s i → ≤-trans (C₁.φ-nn m s (proj₁ i)) (p≤p+q _ (C₂.φ-nn m s (proj₂ i)))
+  ; φ-nn   = λ m s i → 0≤+ (C₁.φ-nn m s (proj₁ i)) (C₂.φ-nn m s (proj₂ i))
   ; φ-bad  = bad
   ; φ-step = step
   ; φ-init = λ m → +-mono-≤ (C₁.φ-init m) (C₂.φ-init m)

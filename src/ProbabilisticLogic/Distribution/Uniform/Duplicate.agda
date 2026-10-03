@@ -20,7 +20,7 @@ open import Data.Nat.Base
 open import Data.Rational using (ℚ; 0ℚ; 1ℚ)
   renaming (_+_ to _+ℚ_; _*_ to _*ℚ_; _≤_ to _≤ℚ_)
 open import Data.Rational.Properties using
-  ( +-identityˡ; +-identityʳ; +-mono-≤; +-monoˡ-≤; +-monoʳ-≤
+  ( +-identityˡ; +-monoˡ-≤; +-monoʳ-≤
   ; ≤-refl; ≤-reflexive; ≤-trans )
 open import Data.Rational.Properties.Ext
 open import Data.Vec.Base using (Vec)
@@ -69,8 +69,7 @@ indicator-≤ hs h with memb h hs in e
 Φ m L = bool→ℚ (dup L) +ℚ Γ (length L) m
 
 0≤Φ : ∀ m L → 0ℚ ≤ℚ Φ m L
-0≤Φ m L = ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ)))
-                  (+-mono-≤ (0≤bool (dup L)) (0≤Γ (length L) m))
+0≤Φ m L = 0≤+ (0≤bool (dup L)) (0≤Γ (length L) m)
 
 dup⇒1≤Φ : ∀ m L → dup L ≡ true → 1ℚ ≤ℚ Φ m L
 dup⇒1≤Φ m L fl = subst (λ b → 1ℚ ≤ℚ bool→ℚ b +ℚ Γ (length L) m) (sym fl)

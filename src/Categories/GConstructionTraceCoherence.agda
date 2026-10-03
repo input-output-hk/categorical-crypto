@@ -21,9 +21,6 @@ open import Categories.APROP
 
 import Categories.APROP.Hypergraph.Solver.Frontend as Interp
 
-private instance S≤S : Symm ≤ Symm
-                 S≤S = v≤v
-
 open FreeMonoidalHelper Symm (Fin 6) using (ObjTerm; Var; _⊗₀_)
 
 a b a′ b′ x y : ObjTerm
@@ -41,13 +38,8 @@ gv ≟-Mor gv = yes refl
 sig : APROPSignature
 sig = record { X = Fin 6 ; mor = Mor ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-Mor_ }
 
-open APROP sig using (HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_)
-
-βᵗ : ∀ {P Q R} → HomTerm ((P ⊗₀ Q) ⊗₀ R) ((P ⊗₀ R) ⊗₀ Q)
-βᵗ = α⇐ ∘ id ⊗₁ σ ∘ α⇒
-
-midᵗ : ∀ {P Q R S} → HomTerm ((P ⊗₀ Q) ⊗₀ (R ⊗₀ S)) ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S))
-midᵗ = α⇐ ∘ id ⊗₁ (α⇒ ∘ σ ⊗₁ id ∘ α⇐) ∘ α⇒
+open APROP sig using (HomTerm; Agen; id; _∘_; _⊗₁_; α⇒; α⇐; _≈Term_)
+open import Categories.GConstructionCoherence.FreeWiring sig
 
 lhs rhs : HomTerm (((a ⊗₀ a′) ⊗₀ x) ⊗₀ y) (((b ⊗₀ b′) ⊗₀ x) ⊗₀ y)
 lhs = (βᵗ ∘ Agen gu ⊗₁ id ∘ βᵗ) ⊗₁ id ∘ βᵗ

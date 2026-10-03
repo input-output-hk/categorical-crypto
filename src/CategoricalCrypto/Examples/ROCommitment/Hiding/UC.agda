@@ -21,7 +21,6 @@ open import ProbabilisticLogic.Dp.Coin
 open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.UC.Model.Dominated
 open import CategoricalCrypto.UC.Model.Enrichment
 open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.Model.Setup

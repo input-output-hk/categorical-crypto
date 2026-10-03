@@ -35,11 +35,6 @@ module WithTrace (L : TE.Laws Traced) where
   open TE.Laws L
   open TE Traced
 
-  trace-conj : ∀ {X A A' B B'} {t : A ⊗₀ X ⇒ B ⊗₀ X}
-                 {h : A' ⇒ A} {k : B ⇒ B'} →
-               k ∘ trace t ∘ h ≈ trace (k ⊗₁ id ∘ t ∘ h ⊗₁ id)
-  trace-conj = (refl⟩∘⟨ trace-∘ʳ) ○ trace-∘ˡ
-
   trace-mid : ∀ {A B P Q R S : Obj}
                 {f : A ⊗₀ ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S)) ⇒
                      B ⊗₀ ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S))} →

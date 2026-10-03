@@ -9,9 +9,9 @@
 --   f' : A⁺ ⊗ B⁻ → A⁻ ⊗ B⁺      g' : B⁺ ⊗ D⁻ → B⁻ ⊗ D⁺
 --   h' : D⁺ ⊗ E⁻ → D⁻ ⊗ E⁺
 --
--- plus the GConstruction routing isos β/α/γ as generic free terms, and
--- the two sides lhsᵗ/rhsᵗ of the coherence equation, mirroring the
--- definitions in GConstruction.agda verbatim:
+-- and the two sides lhsᵗ/rhsᵗ of the coherence equation over the routing
+-- isos of `FreeWiring`, mirroring the definitions in GConstruction.agda
+-- verbatim:
 --
 --   β = α⇐ ∘ id ⊗ σ ∘ α⇒
 --   α = α⇒ ∘ σ⊗id ∘ α⇐ ∘ id⊗(σ⊗id) ∘ id⊗α⇐ ∘ α⇒
@@ -33,9 +33,6 @@ open import Relation.Nullary using (yes)
 
 open import Categories.APROP using (APROPSignature; module APROP)
 open import Categories.FreeMonoidal
-
-private instance S≤S : Symm ≤ Symm
-                 S≤S = v≤v
 
 X8 : Set
 X8 = Fin 8
@@ -60,25 +57,14 @@ gSig : APROPSignature
 gSig = record { X = X8 ; mor = GMor ; _≟X_ = _≟F_ ; _≟-mor_ = _≟-GMor_ }
 
 open APROP gSig public
-  using (FreeMonoidal; HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_;
+  using (FreeMonoidal; Symm≤Symm; HomTerm; Agen; id; _∘_; _⊗₁_; σ; α⇒; α⇐; _≈Term_;
          ≈-Term-sym; ≈-Term-trans)
+open import Categories.GConstructionCoherence.FreeWiring gSig public
 
 f' g' h' : HomTerm _ _
 f' = Agen gf
 g' = Agen gg
 h' = Agen gh
-
--- The routing isos, generic (mirror `GConstruction`'s `β`/`α`/`γ`).
-βᵗ : ∀ {P Q R} → HomTerm ((P ⊗₀ Q) ⊗₀ R) ((P ⊗₀ R) ⊗₀ Q)
-βᵗ = α⇐ ∘ id ⊗₁ σ ∘ α⇒
-
-αᵗ : ∀ {A⁻' B⁺' B⁻' C⁺'}
-   → HomTerm ((B⁻' ⊗₀ C⁺') ⊗₀ (A⁻' ⊗₀ B⁺')) ((A⁻' ⊗₀ C⁺') ⊗₀ (B⁻' ⊗₀ B⁺'))
-αᵗ = α⇒ ∘ σ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ (σ ⊗₁ id) ∘ id ⊗₁ α⇐ ∘ α⇒
-
-γᵗ : ∀ {A⁺' B⁺' B⁻' C⁻'}
-   → HomTerm ((A⁺' ⊗₀ C⁻') ⊗₀ (B⁻' ⊗₀ B⁺')) ((B⁺' ⊗₀ C⁻') ⊗₀ (A⁺' ⊗₀ B⁻'))
-γᵗ = α⇒ ∘ σ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ (σ ⊗₁ id) ∘ id ⊗₁ α⇐ ∘ α⇒ ∘ id ⊗₁ σ
 
 -- The composites of the coherence equation, at their concrete instances.
 m₀ᵗ : HomTerm ((B⁺ ⊗₀ E⁻) ⊗₀ (D⁻ ⊗₀ D⁺)) ((B⁻ ⊗₀ E⁺) ⊗₀ (D⁻ ⊗₀ D⁺))

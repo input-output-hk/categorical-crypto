@@ -39,9 +39,6 @@ module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
       open import Categories.Morphism.Reasoning C public using (pullˡ; pullʳ; cancelʳ)
       open BProps.Shorthands braided public
 
-    Cˢ : SymmetricMonoidalCategory a b c
-    Cˢ = record { U = C ; monoidal = M ; symmetric = C.symmetric }
-
     module E₀ = Embed C M T
     module W = GT C M T
 

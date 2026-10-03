@@ -75,7 +75,7 @@ coinStepʰ (s , inj₂ (inj₂ goᶜ))      = case s of λ where
   freshᵏʰ → returnₚ (waitᵏʰ , inj₂ (inj₁ startᵏʰ))
   _       → botₚ
 coinStepʰ (s , inj₂ (inj₂ getᶜ))     = case s of λ where
-  (heldᵏʰ c) → returnₚ (doneᵏʰ , inj₂ (inj₂ (tossedᶜʰ c)))
+  (heldᵏʰ c) → returnₚ (doneᵏʰ , inj₂ (inj₂ (tossedᶜ c)))
   _          → botₚ
 
 Fcoinʰ : Proc unitᴵ (Lkᴵᶜʰ ⊗ᴵ Honᴵᶜʰ)

@@ -163,14 +163,15 @@ private
 ------------------------------------------------------------------------
 -- The machine equality
 
-idl-sim : coinᶜ S.≲ Iᴺ
-idl-sim = Pw.simFn θᴵ
-                (λ x → >>=ₚ-identityˡ (preᶜ []) _
-                   ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _
-                          ⟨≈⟩ >>=ₚ-identityˡ (preʲ []) _
-                          ⟨≈⟩ >>=ₚ-identityˡ freshᵏ _))
-                (λ z → map-map (cStep (proj₁ z , Sum.map₂ ⊎assocʳ (proj₂ z))) _ _
-                      ⟨≈⟩ idlStep (proj₁ z) (proj₂ z))
+private
+  idl-sim : coinᶜ S.≲ Iᴺ
+  idl-sim = Pw.simFn θᴵ
+                  (λ x → >>=ₚ-identityˡ (preᶜ []) _
+                     ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _
+                            ⟨≈⟩ >>=ₚ-identityˡ (preʲ []) _
+                            ⟨≈⟩ >>=ₚ-identityˡ freshᵏ _))
+                  (λ z → map-map (cStep (proj₁ z , Sum.map₂ ⊎assocʳ (proj₂ z))) _ _
+                        ⟨≈⟩ idlStep (proj₁ z) (proj₂ z))
 
 coin-machine : 𝒫._≈_ {unitᴵ} {Cᵗ} hybridᴹ idealᴹ
 coin-machine = hybrid-eq S.○ᴹ S.≲⇒≈ᴹ idl-sim

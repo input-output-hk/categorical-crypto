@@ -27,6 +27,7 @@ import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.Examples.CoinToss.Hiding (k : ℕ) where
 
+open import CategoricalCrypto.Examples.CoinToss k public using (CoinA; tossedᶜ; abortedᶜ)
 open import CategoricalCrypto.Examples.ROCommitment.Hiding k
 
 open Core (𝒱ₚ 0ℓ)
@@ -45,12 +46,8 @@ data CoinQʰ : Set where
   goᶜ  : CoinQʰ
   getᶜ : CoinQʰ
 
-data CoinAʰ : Set where
-  tossedᶜʰ  : Bool → CoinAʰ
-  abortedᶜʰ : CoinAʰ
-
 Honᴵᶜʰ : Iface
-Honᴵᶜʰ = CoinAʰ ⇿ CoinQʰ
+Honᴵᶜʰ = CoinA ⇿ CoinQʰ
 
 ------------------------------------------------------------------------
 -- The protocol
@@ -64,8 +61,8 @@ data QSt : Set where
 τStep : QSt × (Pos Honᴵʰ ⊎ Neg (Advᴵᶜʰ ⊗ᴵ Honᴵᶜʰ))
       → Dₚ (QSt × (Neg Honᴵʰ ⊎ Pos (Advᴵᶜʰ ⊗ᴵ Honᴵᶜʰ)))
 τStep (s , inj₁ nakᴱ)                 = case s of λ where
-  (comᵗ _)    → returnₚ (doneᵗ , inj₂ (inj₂ abortedᶜʰ))
-  (openᵗ _ _) → returnₚ (doneᵗ , inj₂ (inj₂ abortedᶜʰ))
+  (comᵗ _)    → returnₚ (doneᵗ , inj₂ (inj₂ abortedᶜ))
+  (openᵗ _ _) → returnₚ (doneᵗ , inj₂ (inj₂ abortedᶜ))
   _           → botₚ
 τStep (s , inj₂ (inj₁ (shareᴬʰ b₂)))  = case s of λ where
   (comᵗ b₁) → returnₚ (openᵗ b₁ b₂ , inj₁ openᴱ)
@@ -74,7 +71,7 @@ data QSt : Set where
   freshᵗ → coinₚ uniform-Bool >>=ₚ λ b₁ → returnₚ (comᵗ b₁ , inj₁ (commitᴱ b₁))
   _      → botₚ
 τStep (s , inj₂ (inj₂ getᶜ))          = case s of λ where
-  (openᵗ b₁ b₂) → returnₚ (doneᵗ , inj₂ (inj₂ (tossedᶜʰ (b₁ xor b₂))))
+  (openᵗ b₁ b₂) → returnₚ (doneᵗ , inj₂ (inj₂ (tossedᶜ (b₁ xor b₂))))
   _             → botₚ
 
 tossʰ : Proc Honᴵʰ (Advᴵᶜʰ ⊗ᴵ Honᴵᶜʰ)

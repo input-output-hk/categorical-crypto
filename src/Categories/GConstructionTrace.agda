@@ -34,13 +34,13 @@ private
     open import Categories.Morphism.Reasoning C public using (introˡ; pullʳ; elimʳ; switch-fromtoʳ)
     open BProps.Shorthands braided public
 
-  Cˢ : SymmetricMonoidalCategory a b c
-  Cˢ = record { U = C ; monoidal = Monoidal ; symmetric = C.symmetric }
-
 open C
 open HomReasoning
 
 open TE Traced public using (β)
+
+Cˢ : SymmetricMonoidalCategory a b c
+Cˢ = record { U = C ; monoidal = Monoidal ; symmetric = symmetric }
 
 α : ∀ {A⁻ B⁺ B⁻ C⁺ : Obj} → (B⁻ ⊗₀ C⁺) ⊗₀ (A⁻ ⊗₀ B⁺) ⇒ (A⁻ ⊗₀ C⁺) ⊗₀ (B⁻ ⊗₀ B⁺)
 α = α⇒ ∘ σ⇒ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ (σ⇒ ⊗₁ id) ∘ id ⊗₁ α⇐ ∘ α⇒
@@ -205,6 +205,11 @@ module WithTrace (L : TE.Laws Traced) where
   trace-gyank : ∀ {Y X B' : Obj} {g : Y ⊗₀ X ⇒ B'} →
                 trace (g ⊗₁ id ∘ β {Y} {X} {X}) ≈ g
   trace-gyank = ⟺ trace-∘ˡ ○ elimʳ trace-βyank
+
+  trace-conj : ∀ {X A A' B B'} {t : A ⊗₀ X ⇒ B ⊗₀ X}
+                 {h : A' ⇒ A} {k : B ⇒ B'} →
+               k ∘ trace t ∘ h ≈ trace (k ⊗₁ id ∘ t ∘ h ⊗₁ id)
+  trace-conj = (refl⟩∘⟨ trace-∘ʳ) ○ trace-∘ˡ
 
   -- Right superposing, the mirror of `Traced.superposing`.
   right-superposing : ∀ {X Y A' B'} {f' : A' ⊗₀ X ⇒ B' ⊗₀ X} →

@@ -69,7 +69,7 @@ eStep (s , inj₂ (inj₂ (inj₂ goᶜ)))          = case s of λ where
   (preᴱ t) → coinₚ uniform-Bool >>=ₚ λ b₁ → returnₚ (comᴱ t b₁ , inj₂ (inj₁ rcptᶠ))
   _        → botₚ
 eStep (s , inj₂ (inj₂ (inj₂ getᶜ)))         = case s of λ where
-  (opnᴱ t b₁ b₂) → returnₚ (endᴱ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜʰ (b₁ xor b₂)))))
+  (opnᴱ t b₁ b₂) → returnₚ (endᴱ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜ (b₁ xor b₂)))))
   _              → botₚ
 
 eagerᶜʰ′ : Proc unitᴵ Cⁱʰ
@@ -101,7 +101,7 @@ dStep (s , inj₂ (inj₂ (inj₂ goᶜ)))          = case s of λ where
   (preᴰ t) → returnₚ (comᴰ t , inj₂ (inj₁ rcptᶠ))
   _        → botₚ
 dStep (s , inj₂ (inj₂ (inj₂ getᶜ)))         = case s of λ where
-  (opnᴰ t b₁ b₂) → returnₚ (endᴰ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜʰ (b₁ xor b₂)))))
+  (opnᴰ t b₁ b₂) → returnₚ (endᴰ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜ (b₁ xor b₂)))))
   _              → botₚ
 
 deferᶜʰ′ : Proc unitᴵ Cⁱʰ

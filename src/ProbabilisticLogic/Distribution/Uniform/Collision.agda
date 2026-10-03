@@ -18,7 +18,7 @@ open import Data.List.Relation.Unary.Any
 open import Data.Nat.Base using (ℕ)
 open import Data.Rational using (ℚ; 0ℚ; 1ℚ; _+_; _*_; _≤_)
 open import Data.Rational.Properties using
-  ( *-zeroˡ; +-identityˡ; +-identityʳ; +-mono-≤; +-monoˡ-≤; +-monoʳ-≤
+  ( *-zeroˡ; +-identityˡ; +-monoˡ-≤; +-monoʳ-≤
   ; ≤-reflexive; ≤-trans )
 open import Data.Rational.Properties.Ext
 open import Data.Vec.Base using (Vec)
@@ -45,8 +45,7 @@ private
 
 0≤countMatch : ∀ hs h → 0ℚ ≤ countMatch hs h
 0≤countMatch []       h = ≤-reflexive refl
-0≤countMatch (g ∷ gs) h = ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ)))
-                                  (+-mono-≤ (0≤δ g h) (0≤countMatch gs h))
+0≤countMatch (g ∷ gs) h = 0≤+ (0≤δ g h) (0≤countMatch gs h)
 
 1≤countMatch : ∀ {h} hs → h ∈ hs → 1ℚ ≤ countMatch hs h
 1≤countMatch {h} (g ∷ gs) (here refl) with h ≟ g

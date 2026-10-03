@@ -4,6 +4,7 @@
 -- transaction with no inputs, `inputConsuming` does not (`ChimericLedger.Replay`
 -- shows why that matters).  Walkthrough: `docs/end-to-end.md`.
 
+open import categorical-crypto.Prelude using (DecEq-×′)
 open import Class.DecEq
 
 open import Data.Bool.Base
@@ -20,10 +21,6 @@ open import Relation.Nullary.Decidable.Core
 open import CategoricalCrypto.OracleCall
 
 module CategoricalCrypto.Examples.ChimericLedger where
-
--- `DecEq-×` is not an upstream instance (it competes with the `--with-K`
--- `DecEq-Σ`); register it, as `categorical-crypto.Prelude` does.
-private instance DecEq-×′ = DecEq-×
 
 data Variant : Set where
   chimeric inputConsuming : Variant

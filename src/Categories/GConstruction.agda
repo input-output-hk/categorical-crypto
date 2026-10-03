@@ -40,13 +40,9 @@ module _ {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced M
         using (pullˡ; pushˡ; elimˡ; cancelˡ)
       open BProps.Shorthands braided public
 
-    -- the bundle the transported coherence lemmas are instantiated at
-    Cˢ : SymmetricMonoidalCategory a b c
-    Cˢ = record { U = C ; monoidal = Monoidal ; symmetric = C.symmetric }
-
     module W = GT C Monoidal Traced
 
-  open W using (α; β; γ)
+  open W using (α; β; γ; Cˢ)
 
   _⇒ᴳ_ : C.Obj × C.Obj → C.Obj × C.Obj → Set b
   (A⁺ , A⁻) ⇒ᴳ (B⁺ , B⁻) = A⁺ C.⊗₀ B⁻ C.⇒ A⁻ C.⊗₀ B⁺

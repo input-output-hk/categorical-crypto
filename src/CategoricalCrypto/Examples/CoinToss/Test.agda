@@ -29,7 +29,7 @@ module CategoricalCrypto.Examples.CoinToss.Test where
 
 open import CategoricalCrypto.Examples.CoinToss 3
 open import CategoricalCrypto.Examples.CoinToss.Compose
-open import CategoricalCrypto.Examples.CoinToss.Hiding 3
+open import CategoricalCrypto.Examples.CoinToss.Hiding 3 hiding (CoinA; tossedᶜ; abortedᶜ)
 open import CategoricalCrypto.Examples.CoinToss.Ideal 3
 open import CategoricalCrypto.Examples.CoinToss.Ideal.Compose
 open import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver 3
@@ -94,7 +94,7 @@ sim-round b₁ c =
 coin-roundʰ : behᴾ Fcoinʰ (inj₂ (inj₂ goᶜ) ∷ inj₂ (inj₁ sampleᵏʰ) ∷ inj₂ (inj₂ getᶜ) ∷ [])
               ≈ₚ (coinₚ uniform-Bool >>=ₚ λ c →
                     returnₚ (inj₂ (inj₁ startᵏʰ) ∷ inj₂ (inj₁ (coinᵏʰ c))
-                             ∷ inj₂ (inj₂ (tossedᶜʰ c)) ∷ []))
+                             ∷ inj₂ (inj₂ (tossedᶜ c)) ∷ []))
 coin-roundʰ =
       >>=ₚ-identityˡ freshᵏʰ _
   ⟨≈⟩ >>=ₚ-identityˡ (waitᵏʰ , inj₂ (inj₁ startᵏʰ)) _
@@ -105,11 +105,11 @@ coin-roundʰ =
   afterGo : traceᵍ FStʰ (returnₚ freshᵏʰ) coinStepʰ waitᵏʰ
               (inj₂ (inj₁ sampleᵏʰ) ∷ inj₂ (inj₂ getᶜ) ∷ [])
             ≈ₚ (coinₚ uniform-Bool >>=ₚ λ c →
-                  returnₚ (inj₂ (inj₁ (coinᵏʰ c)) ∷ inj₂ (inj₂ (tossedᶜʰ c)) ∷ []))
+                  returnₚ (inj₂ (inj₁ (coinᵏʰ c)) ∷ inj₂ (inj₂ (tossedᶜ c)) ∷ []))
   afterGo =
         >>=ₚ-assoc (coinₚ uniform-Bool) _ _
     ⟨≈⟩ bindᶠ λ c → >>=ₚ-identityˡ (heldᵏʰ c , inj₂ (inj₁ (coinᵏʰ c))) _
-                ⟨≈⟩ map-arg _ (>>=ₚ-identityˡ (doneᵏʰ , inj₂ (inj₂ (tossedᶜʰ c))) _
+                ⟨≈⟩ map-arg _ (>>=ₚ-identityˡ (doneᵏʰ , inj₂ (inj₂ (tossedᶜ c))) _
                                ⟨≈⟩ >>=ₚ-identityˡ [] _)
                 ⟨≈⟩ >>=ₚ-identityˡ _ _
 

@@ -14,8 +14,11 @@ module Categories.GConstructionEmbedding where
 
 open import Categories.Category
 open import Categories.Category.Monoidal
+open import Categories.Category.Product
 open import Categories.Category.Monoidal.Traced
 import Categories.Category.Monoidal.Traced.Ext as TE
+open import Categories.Functor using (Functor)
+open import Categories.Functor.Properties
 open import Categories.GConstruction
 
 open import Data.Product
@@ -23,6 +26,7 @@ open import Data.Product
 import Categories.Category.Monoidal.Braided.Properties as BProps
 import Categories.Category.Monoidal.Utilities as U
 import Categories.GConstructionEmbeddingCoherence as ECoh
+import Categories.GConstructionTrace as GT
 import Categories.Morphism as Mor
 
 module Embed {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced Monoidal) where
@@ -37,8 +41,7 @@ module Embed {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Trac
       open import Categories.Morphism.Reasoning C public using (elimʳ; pullˡ)
       open BProps.Shorthands braided public
 
-    Cˢ : SymmetricMonoidalCategory a b c
-    Cˢ = record { U = C ; monoidal = Monoidal ; symmetric = C.symmetric }
+    open GT C Monoidal Traced using (Cˢ)
 
   open C
   open HomReasoning
@@ -108,15 +111,19 @@ module Embed {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Trac
       σ⇒ ∘ (u ∘ p) ⊗₁ (q ∘ v)
       ∎)
 
-    ⌜⌝-≅ : ∀ {A⁺ A⁻ B⁺ B⁻ : Obj} → MC._≅_ A⁺ B⁺ → MC._≅_ B⁻ A⁻ → MG._≅_ (A⁺ , A⁻) (B⁺ , B⁻)
-    ⌜⌝-≅ u v = record
-      { from = ⌜ u.from , v.from ⌝
-      ; to   = ⌜ u.to , v.to ⌝
-      ; iso  = record
-        { isoˡ = ⌜⌝-∘ ○ ⌜⌝-resp-≈ u.isoˡ v.isoʳ ○ ⌜⌝-id
-        ; isoʳ = ⌜⌝-∘ ○ ⌜⌝-resp-≈ u.isoʳ v.isoˡ ○ ⌜⌝-id
-        }
+    embed : Functor (Product C op) G'
+    embed = record
+      { F₀ = λ A → A
+      ; F₁ = λ (u , v) → ⌜ u , v ⌝
+      ; identity = ⌜⌝-id
+      ; homomorphism = ⟺ ⌜⌝-∘
+      ; F-resp-≈ = λ (e₁ , e₂) → ⌜⌝-resp-≈ e₁ e₂
       }
+
+    ⌜⌝-≅ : ∀ {A⁺ A⁻ B⁺ B⁻ : Obj} → MC._≅_ A⁺ B⁺ → MC._≅_ B⁻ A⁻ → MG._≅_ (A⁺ , A⁻) (B⁺ , B⁻)
+    ⌜⌝-≅ u v = [ embed ]-resp-≅ record
+      { from = u.from , v.from ; to = u.to , v.to
+      ; iso = record { isoˡ = u.isoˡ , v.isoʳ ; isoʳ = u.isoʳ , v.isoˡ } }
       where module u = MC._≅_ u
             module v = MC._≅_ v
 

@@ -134,18 +134,10 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
               (step oracle tbl (fzero , ser (ins , wds , outs)))
       step-accepted s tbl ins wds outs eq rewrite eq = refl
 
-      lookup-bs-∈ : ∀ tbl q h → RO.lookup-bs tbl q ≡ just h
-                  → Σ[ e ∈ List Bool × Hash ] ((e ∈ tbl) × (proj₁ e ≡ q))
-      lookup-bs-∈ ((k , v) ∷ xs) q h eq with q ≟ k
-      ... | yes p = (k , v) , here refl , sym p
-      ... | no  _ with lookup-bs-∈ xs q h eq
-      ...   | e , mem , pe = e , there mem , pe
-
       no-replay : ∀ s tbl tx u′ vIn h → checkIns (proj₁ s) (proj₁ tx) ≡ just (vIn , u′)
                 → RO.lookup-bs tbl (ser tx) ≡ just h → Good (s , tbl) → ⊥
-      no-replay s tbl tx u′ vIn h e₁ eo good = case lookup-bs-∈ tbl (ser tx) h eo of λ (e , mem , pe) →
-        stale-not-accepted (proj₁ s) tx u′ vIn (Hs tbl) e₁
-              (subst (Stale (proj₁ s) (Hs tbl)) pe (All.lookup (Good.stales good) mem))
+      no-replay s tbl tx u′ vIn h e₁ eo good = stale-not-accepted (proj₁ s) tx u′ vIn (Hs tbl) e₁
+        (All.lookup (Good.stales good) (RO.lookup-bs-∈ tbl (ser tx) h eo))
 
       freshInv : ∀ s tbl ins wds outs u′ a′ vIn
                → checkIns (proj₁ s) ins ≡ just (vIn , u′)
@@ -224,7 +216,7 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
       ... | rejected eq = subst (AllLeaves (λ sr → Inv (proj₁ sr)))
                                 (sym (step-rejected s tbl tx eq)) inv
       presTree (s , tbl) (submit (ins , wds , outs)) inv
-          | accepted vIn u′ a′ e₁ e₂ ec eq =
+          | accepted vIn u′ a′ e₁ e₂ _ ec eq =
             subst (AllLeaves (λ sr → Inv (proj₁ sr)))
                   (sym (step-accepted s tbl ins wds outs eq)) (go (RO.lookup-bs tbl qs) refl)
         where
@@ -284,7 +276,7 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
                                   (sym (step-rejected s tbl tx eq))
                                   (point-step m s tbl s (ok false))
         φ-step m (s , tbl) (submit (ins , wds , outs)) inv
-            | accepted vIn u′ a′ e₁ e₂ ec eq =
+            | accepted vIn u′ a′ e₁ e₂ _ ec eq =
               subst (λ t → E⊥ (evalC t) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) (s , tbl))
                     (sym (step-accepted s tbl ins wds outs eq)) (go (RO.lookup-bs tbl qs) refl)
           where

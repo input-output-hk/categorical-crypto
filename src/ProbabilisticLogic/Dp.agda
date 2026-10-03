@@ -135,8 +135,7 @@ NNF {A = A} P = (p : A) → 0ℚ ℚ.≤ P p
 
 node-nn : (w₁ w₂ x₁ x₂ : ℚ) → 0ℚ ℚ.≤ w₁ → 0ℚ ℚ.≤ w₂ → 0ℚ ℚ.≤ x₁ → 0ℚ ℚ.≤ x₂
         → 0ℚ ℚ.≤ w₁ ℚ.* x₁ ℚ.+ w₂ ℚ.* x₂
-node-nn w₁ w₂ x₁ x₂ n₁ n₂ m₁ m₂ =
-  ≤-trans (≤-reflexive (sym (+-identityʳ 0ℚ))) (+-mono-≤ (0≤* n₁ m₁) (0≤* n₂ m₂))
+node-nn w₁ w₂ x₁ x₂ n₁ n₂ m₁ m₂ = 0≤+ (0≤* n₁ m₁) (0≤* n₂ m₂)
 
 node-mono : (w₁ w₂ : ℚ) → 0ℚ ℚ.≤ w₁ → 0ℚ ℚ.≤ w₂ → {x₁ y₁ x₂ y₂ : ℚ}
           → x₁ ℚ.≤ y₁ → x₂ ℚ.≤ y₂
