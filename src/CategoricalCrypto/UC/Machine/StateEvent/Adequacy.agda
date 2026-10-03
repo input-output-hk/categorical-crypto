@@ -9,7 +9,7 @@
 -- `idle`: a `B`-answer of `morphism P` only ever comes from `drive` returning
 -- to `idle`, so a suspended `wait` state is never sampled and its value is
 -- irrelevant.  The kernel-level reading (`flagRun`) is generic over any closed
--- machine with a step kernel (`Protocol.Machine.Raw`).
+-- machine with a step kernel (`Machines.Run.Raw`).
 
 open import Data.Bool.Base
 open import Data.Nat.Base as ℕ
@@ -38,10 +38,11 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pointwise
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Machine.Agree
-open import CategoricalCrypto.Protocol.Machine.Raw
+open import CategoricalCrypto.Machines.Run.Raw
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Approximate
@@ -179,7 +180,7 @@ module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
     stateRead-hit : (d : Strat (Neg B) (Pos B))
                   → Attains (stateRead unitᴵ (morphism P) T (stratTest B d) (λᴵ⇐ {unitᴵ})) (indᵇ true) (PrHit P Bad d)
     stateRead-hit d =
-      cum-settled-≈ₚ _ _ (indᵇ true) (indᵇ-nn true) (PrHit P Bad d) (run-hit d)
+      Attains-≈ₚ _ _ (indᵇ true) (indᵇ-nn true) (PrHit P Bad d) (run-hit d)
                      (≈ₚ-sym _ _ (stateRead-agree (morphism P) T d))
 
     -- `BoundedHit` at cap `q`, from the model reading at the same cap…

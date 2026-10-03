@@ -421,8 +421,8 @@ activation. The extraction half escapes because its draw and its use land in
 the SAME activation (`commitˢ b₁` both samples and publishes), which is
 exactly what `coin-flip` settles.
 
-**The route taken.** `GamePlaying.Defer.Run` is `GamePlaying.Defer`'s
-induction against `Protocol.Machine.runᴹ`: at the RUN layer a point mass and a
+**The route taken.** `Machines.Run.Defer` is `GamePlaying.Defer`'s
+induction against `Machines.Run.runᴹ`: at the RUN layer a point mass and a
 mixture may agree, and the draw moves. Two reachable machines are named rather
 than one — `Receiver.Reach.eagerᶜʰ` draws at `goᶜ`, `deferᶜʰ` at `shareᴬʰ` —
 and each simulates into one side (`Receiver.Hybrid`, `Receiver.Machine`, the

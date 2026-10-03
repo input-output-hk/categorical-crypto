@@ -27,6 +27,15 @@ private variable A B X Y : Obj
 δ⇐-i₂ : δ⇐ ∘ id {X} ⊗₁ i₂ ≈ i₂ {X ⊗₀ A} {X ⊗₀ B}
 δ⇐-i₂ = (refl⟩∘⟨ ⟺ inject₂) ○ cancelˡ distributeˡ.isoˡ
 
+[]-δ⇐ : {S A₁ A₂ B₁ B₂ : Obj} {p : S ⊗₀ B₁ ⇒ Y} {t : S ⊗₀ B₂ ⇒ Y}
+        (r : A₁ ⇒ B₁) (s : A₂ ⇒ B₂)
+      → [ p , t ] ∘ δ⇐ ∘ id ⊗₁ (r +₁ s) ≈ [ p ∘ id ⊗₁ r , t ∘ id ⊗₁ s ] ∘ δ⇐
+[]-δ⇐ r s =
+  δ-unique (pullʳ (pullʳ (merge₂ʳ ○ (refl⟩⊗⟨ +₁∘i₁) ○ ⟺ merge₂ʳ)) ○ (refl⟩∘⟨ pullˡ δ⇐-i₁)
+              ○ pullˡ inject₁ ○ ⟺ (pullʳ δ⇐-i₁ ○ inject₁))
+           (pullʳ (pullʳ (merge₂ʳ ○ (refl⟩⊗⟨ +₁∘i₂) ○ ⟺ merge₂ʳ)) ○ (refl⟩∘⟨ pullˡ δ⇐-i₂)
+              ○ pullˡ inject₂ ○ ⟺ (pullʳ δ⇐-i₂ ○ inject₂))
+
 private
   ⊥+⊥-isoˡ : i₁ ∘ [ id {⊥} , id ] ≈ id
   ⊥+⊥-isoˡ = ⟺ (+-unique (pullʳ inject₁ ○ identityʳ)

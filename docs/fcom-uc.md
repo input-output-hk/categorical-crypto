@@ -2,7 +2,7 @@
 
 [`docs/dp-transport.md`](dp-transport.md) moves a closed `Dₚ` run of a raw
 machine onto a `Dist⊥` kernel run, given that every activation settles
-(`Protocol.Machine.Raw.StepSettles`). Between that and the RO commitment's
+(`Machines.Run.Raw.StepSettles`). Between that and the RO commitment's
 UC-level ε-statement stand three generic layers and one example-specific one:
 `StepSettles` at a two-factor composite (§1), the game-playing bridges at a
 partial kernel (§2), the two-sided bound between the closed machines (§3), and
@@ -80,7 +80,7 @@ Three things about this shape are the point.
   Without the rank the reading is simply wrong, and `Settles-iter` would be
   false rather than unprovable.
 
-### At a traced machine and at a G-composite — `Protocol.Machine.Trace`
+### At a traced machine and at a G-composite — `Machines.Run.Trace`
 
 `Machines.Trace.traceStep` is `solve ∘ k ∘ id ⊗₁ i₁`; the two wirings are pure,
 so `Settles-ret⋆` takes them one step at a time and the loop is
@@ -112,7 +112,7 @@ literal term — which is why `Settles-stepᵢ` is stated at `stepᵢ`, not at
 
 What does cross is the reading of a closed run: monotone `cum` families that
 dominate each other cofinally attain the same value, so a `cum` family that has
-settled at `v` transports along `≈ₚ` (`Dp.Settle.cum-settled-≈ₚ`). `Settles`
+settled at `v` transports along `≈ₚ` (`Dp.Settle.Attains-≈ₚ`). `Settles`
 itself would not do, because `Settles-bind` consumes `Halts` of its first
 argument and a composite's `Settles` is used as a continuation; the crossing is
 therefore made once, at the END, by `compose-pr`.

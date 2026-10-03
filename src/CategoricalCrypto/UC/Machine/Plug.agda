@@ -23,32 +23,27 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
-open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Machine.Run
+open import CategoricalCrypto.Machines.Run
+open import CategoricalCrypto.Machines.Run.Sim
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 
 import CategoricalCrypto.Machines.Collapse as Col
-import CategoricalCrypto.Machines.Sim as Sim
-import CategoricalCrypto.Machines.Trace as Trace
-import CategoricalCrypto.Machines.Trace.Congruence as TraceCong
+import CategoricalCrypto.Machines.Pointwise as Pw
 
 module CategoricalCrypto.UC.Machine.Plug where
 
 private
-  module MT = Trace (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
-  module Sm = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
-  module TC = TraceCong (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
   module 𝒫 = Category 𝒫ᴵ
 
 ------------------------------------------------------------------------
--- The tick that enters a closed loop (`Machines.Collapse.Loop`)
+-- The tick that enters a closed loop (`Machines.Pointwise.Loop`)
 
 module Tick (X : Set) (S : MC.State)
             (k : MC.obj S × ((⊥ ⊎ ⊤) ⊎ X) → Dₚ (MC.obj S × ((⊥ ⊎ Bool) ⊎ X)))
             where
 
-  open Col.Loop (⊥ ⊎ ⊤) (⊥ ⊎ Bool) X S k public
+  open Pw.Loop (⊥ ⊎ ⊤) (⊥ ⊎ Bool) X S k public
 
   verdict : MC.obj S × (⊥ ⊎ Bool) → Dₚ Bool
   verdict (_ , inj₁ e) = ⊥-elim e
@@ -95,7 +90,6 @@ module _ (B : Iface) where
   outU (inj₁ e) = ⊥-elim e
   outU (inj₂ p) = inj₂ (inj₂ p)
 
-
 -- Every interface is EXPLICIT (see `UC.Machine.𝒫ᴵ`).
 module Plugged (B : Iface) (K : Proc B Ωᴵ) (u : Proc unitᴵ B) where
 
@@ -133,22 +127,22 @@ module Plugged (B : Iface) (K : Proc B Ωᴵ) (u : Proc unitᴵ B) where
 
   -- Stated at the collapsed representative rather than at `K 𝒫.∘ u`: the
   -- conversion back from the G-category's `_∘_` projection dominates otherwise.
-  traced≈ : tracedᴹ Sm.≈ᴹ MT.traceᴹ (⊥ ⊎ ⊤) (⊥ ⊎ Bool) (Neg B ⊎ Pos B) (MC.mk Sᴷ kᶜ)
-  traced≈ = Sm.≲⇒≈ᴹ (TC.trace-resp-≲ (Sm.mk-cong k-red))
+  traced≈ : tracedᴹ MS.≈ᴹ MT.traceᴹ (⊥ ⊎ ⊤) (⊥ ⊎ Bool) (Neg B ⊎ Pos B) (MC.mk Sᴷ kᶜ)
+  traced≈ = MS.≲⇒≈ᴹ (Col.TC.trace-resp-≲ (MS.mk-cong k-red))
 
   -- The composite `𝒫ᴵ` names and the collapsed trace this module is about are
   -- the same machine; the projection out of the G-construction record is paid
   -- once, here (`Machines.Collapse`'s header).
   collapse : ⟦ K 𝒫.∘ u ⟧ᴼ ≈ₚ ⟦ tracedᴹ ⟧ᴼ
   collapse = runᴹ-resp-≈ᴹ {Ωᴵ}
-    (Sm.⟺ᴹ (Col.compose-raw≈∘ᴳ {⊥} {⊥} {Pos B} {Neg B} {Bool} {⊤} K u)
-     Sm.○ᴹ Col.collapseᵀ {⊥} {⊥} {Pos B} {Neg B} {Bool} {⊤} K u)
+    (MS.⟺ᴹ (Col.compose-raw≈∘ᴳ {⊥} {⊥} {Pos B} {Neg B} {Bool} {⊤} K u)
+     MS.○ᴹ Col.collapseᵀ {⊥} {⊥} {Pos B} {Neg B} {Bool} {⊤} K u)
     (ask tt out)
 
 -- A composite is observed through a representative of its context factor,
 -- which is what a `QB` certificate is carried on (`UC.QueryBound`'s `QB` is
 -- the `≈`-closure of `Certified`).
-obs-resp-ctx : (B : Iface) (u : Proc unitᴵ B) (N K : Proc B Ωᴵ) → N Sm.≈ᴹ K
+obs-resp-ctx : (B : Iface) (u : Proc unitᴵ B) (N K : Proc B Ωᴵ) → N MS.≈ᴹ K
          → ⟦ N 𝒫.∘ u ⟧ᴼ ≈ₚ ⟦ K 𝒫.∘ u ⟧ᴼ
 obs-resp-ctx B u N K e =
   runᴹ-resp-≈ᴹ {Ωᴵ} (𝒫.∘-resp-≈ˡ {unitᴵ} {B} {Ωᴵ} {N} {K} {u} e) (ask tt out)

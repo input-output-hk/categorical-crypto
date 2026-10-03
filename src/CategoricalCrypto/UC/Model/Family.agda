@@ -7,6 +7,8 @@
 
 open import Data.Nat.Base
 
+open import ProbabilisticLogic.Distribution.Uniform.Decay
+
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.UC.Model.Enrichment
 open import CategoricalCrypto.UC.Model.Observation

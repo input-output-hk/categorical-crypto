@@ -25,20 +25,17 @@ open import Level
 open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Dp
-open import ProbabilisticLogic.Dp.Iter
 open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pointwise
 open import CategoricalCrypto.Machines.Pure
 
-import CategoricalCrypto.Machines.Trace as Trace
 import CategoricalCrypto.Machines.Trace.Congruence as TraceCong
 
 module CategoricalCrypto.Machines.Collapse where
 
 
-module MT  = Trace (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
 module TC  = TraceCong (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
 
 module ℳ   = SymmetricMonoidalCategory (ℳₚ 0ℓ)
@@ -63,20 +60,20 @@ private
 γᶠ (inj₂ (inj₁ r)) = inj₂ (inj₂ r)
 γᶠ (inj₂ (inj₂ s)) = inj₁ (inj₁ s)
 
-α-pure : (P Q R N : Set) → W.α S.≈ᴹ pureᶠ (αᶠ)
+α-pure : (P Q R N : Set) → W.α MS.≈ᴹ pureᶠ (αᶠ)
 α-pure P Q R N =
   ∘ᶠ (∘ᶠ (∘ᶠ (∘ᶠ (∘ᶠ (α⇒ᶠ P Q (R ⊎ N)) (⊗ᶠ (idᶠ P) (α⇐ᶠ Q R N)))
                  (⊗ᶠ (idᶠ P) (⊗ᶠ (σᶠ Q R) (idᶠ N))))
              (α⇐ᶠ P (R ⊎ Q) N))
          (⊗ᶠ (σᶠ P (R ⊎ Q)) (idᶠ N)))
      (α⇒ᶠ (R ⊎ Q) P N)
-  S.○ᴹ S.≲⇒≈ᴹ (T.pureᴹ-cong (K.pureᵏ-cong (λ where
+  MS.○ᴹ MS.≲⇒≈ᴹ (T.pureᴹ-cong (K.pureᵏ-cong (λ where
     (inj₁ (inj₁ _)) → refl
     (inj₁ (inj₂ _)) → refl
     (inj₂ (inj₁ _)) → refl
     (inj₂ (inj₂ _)) → refl)))
 
-γ-pure : (P Q R N : Set) → W.γ S.≈ᴹ pureᶠ (γᶠ)
+γ-pure : (P Q R N : Set) → W.γ MS.≈ᴹ pureᶠ (γᶠ)
 γ-pure P Q R N =
   ∘ᶠ (∘ᶠ (∘ᶠ (∘ᶠ (∘ᶠ (∘ᶠ (⊗ᶠ (idᶠ (P ⊎ Q)) (σᶠ R N)) (α⇒ᶠ P Q (N ⊎ R)))
                      (⊗ᶠ (idᶠ P) (α⇐ᶠ Q N R)))
@@ -84,7 +81,7 @@ private
              (α⇐ᶠ P (N ⊎ Q) R))
          (⊗ᶠ (σᶠ P (N ⊎ Q)) (idᶠ R)))
      (α⇒ᶠ (N ⊎ Q) P R)
-  S.○ᴹ S.≲⇒≈ᴹ (T.pureᴹ-cong (K.pureᵏ-cong (λ where
+  MS.○ᴹ MS.≲⇒≈ᴹ (T.pureᴹ-cong (K.pureᵏ-cong (λ where
     (inj₁ (inj₁ _)) → refl
     (inj₁ (inj₂ _)) → refl
     (inj₂ (inj₁ _)) → refl
@@ -110,7 +107,7 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
 
   compose-raw≈∘ᴳ : MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺)
                      (W.α MC.∘ᴹ ((g T.⊗ᵉ f) MC.∘ᴹ W.γ))
-                   S.≈ᴹ 𝒢._∘_ g f
+                   MS.≈ᴹ 𝒢._∘_ g f
   compose-raw≈∘ᴳ = ℳ.Equiv.sym (GC.composeᴳ-raw ℳ.U ℳ.monoidal (Tracedₚ 0ℓ))
 
   Sᴳ : MC.State
@@ -191,79 +188,24 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
             ⟨≈⟩ >>=ₚ-identityˡ ((sg , sf) , inj₁ (inj₁ b)) tw)
       ⟨≈⟩ onLcase sg sf (inj₁ b)
 
-    inner : ((g T.⊗ᵉ f) MC.∘ᴹ W.γ) S.≈ᴹ mid
-    inner = Cat.∘ᴹ-resp-≈ᴹ S.reflᴹ (γ-pure A⁺ C⁻ B⁻ B⁺)
-       S.○ᴹ S.≲⇒≈ᴹ (T.pure-∘ʳ (K.pureᵏ ĉ) (g T.⊗ᵉ f))
+    inner : ((g T.⊗ᵉ f) MC.∘ᴹ W.γ) MS.≈ᴹ mid
+    inner = Cat.∘ᴹ-resp-≈ᴹ MS.reflᴹ (γ-pure A⁺ C⁻ B⁻ B⁺)
+       MS.○ᴹ MS.≲⇒≈ᴹ (T.pure-∘ʳ (K.pureᵏ ĉ) (g T.⊗ᵉ f))
 
   -- The body of `𝒢ₚ`'s composite, both legs absorbed.
   outer : (W.α MC.∘ᴹ
             ((g T.⊗ᵉ f) MC.∘ᴹ W.γ))
-          S.≈ᴹ MC.mk Sᴳ kᴳ
+          MS.≈ᴹ MC.mk Sᴳ kᴳ
   outer = Cat.∘ᴹ-resp-≈ᴹ (α-pure B⁻ C⁺ A⁻ B⁺) inner
-     S.○ᴹ S.≲⇒≈ᴹ (T.pure-∘ˡ (K.pureᵏ â) mid)
-     S.○ᴹ S.≲⇒≈ᴹ (S.mk-cong stepEq)
+     MS.○ᴹ MS.≲⇒≈ᴹ (T.pure-∘ˡ (K.pureᵏ â) mid)
+     MS.○ᴹ MS.≲⇒≈ᴹ (MS.mk-cong stepEq)
 
   -- `𝒢ₚ`'s composite, up to the record projection (see the header).
   collapseᵀ : MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺)
                 (W.α MC.∘ᴹ
                   ((g T.⊗ᵉ f) MC.∘ᴹ W.γ))
-              S.≈ᴹ MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺) (MC.mk Sᴳ kᴳ)
+              MS.≈ᴹ MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺) (MC.mk Sᴳ kᴳ)
   collapseᵀ = TC.trace-resp-≈ᴹ outer
 
-  collapse≈ : MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺) (MC.mk Sᴳ kᴳ) S.≈ᴹ 𝒢._∘_ g f
-  collapse≈ = S.⟺ᴹ collapseᵀ S.○ᴹ compose-raw≈∘ᴳ
-
-------------------------------------------------------------------------
--- A traced machine's step at a point
-
--- One pass of the loop, then the loop: stated at an arbitrary state and
--- pre-trace step, which is how both a closed composite's tick
--- (`UC.Machine.Plug.Tick`) and `Protocol.Machine.Compose` read `kᴳ`'s trace.
-module Loop (A B X : Set) (S : MC.State)
-            (k : MC.obj S × (A ⊎ X) → Dₚ (MC.obj S × (B ⊎ X)))
-            where
-
-  tracedᴹ : MC.Machine A B
-  tracedᴹ = MT.traceᴹ A B X (MC.mk S k)
-
-  body : Body (MC.obj S) X B
-  body p = k (proj₁ p , inj₂ (proj₂ p))
-
-  private
-    solveᵗ : MC.obj S × (B ⊎ X) → Dₚ (MC.obj S × B)
-    solveᵗ = MT.solve S A B X k
-
-    bodyᵗ : Body (MC.obj S) X B
-    bodyᵗ = MT.loopBody S A B X k
-
-    -- The junctions the Kleisli tensor spends on a pure relabelling.
-    loop-red : (p : MC.obj S × X) → bodyᵗ p ≈ₚ body p
-    loop-red (st , x) = bindˣ (>>=ₚ-identityˡ st _)
-                  ⟨≈⟩ bindˣ (>>=ₚ-identityˡ (inj₂ x) _)
-                  ⟨≈⟩ >>=ₚ-identityˡ (st , inj₂ x) k
-
-    -- The distributor's case split IS the loop's continuation.
-    solve-red : (r : MC.obj S × (B ⊎ X)) → solveᵗ r ≈ₚ contᵢ bodyᵗ r
-    solve-red (st , inj₁ o) = >>=ₚ-identityˡ (inj₁ (st , o)) _
-    solve-red (st , inj₂ x) = >>=ₚ-identityˡ (inj₂ (st , x)) _
-
-  solve-cont : (r : MC.obj S × (B ⊎ X)) → solveᵗ r ≈ₚ contᵢ body r
-  solve-cont (st , inj₁ o) = solve-red (st , inj₁ o)
-  solve-cont (st , inj₂ x) =
-    solve-red (st , inj₂ x) ⟨≈⟩ iterₚ-cong bodyᵗ body loop-red (st , x)
-
-  step-red : (st : MC.obj S) (y : A)
-           → MC.step tracedᴹ (st , y) ≈ₚ (k (st , inj₁ y) >>=ₚ contᵢ body)
-  step-red st y = bindˣ (bindˣ (>>=ₚ-identityˡ st _)
-                    ⟨≈⟩ bindˣ (>>=ₚ-identityˡ (inj₁ y) _)
-                    ⟨≈⟩ >>=ₚ-identityˡ (st , inj₁ y) k)
-            ⟨≈⟩ bindᶠ solve-cont
-
-  loop-pass : (st : MC.obj S) (x : X) (st′ : MC.obj S) (o : B ⊎ X)
-            → k (st , inj₂ x) ≈ₚ returnₚ (st′ , o)
-            → iterₚ body (st , x) ≈ₚ contᵢ body (st′ , o)
-  loop-pass st x st′ o eq =
-    iterₚ-fix body (st , x) ⟨≈⟩ bindˣ eq ⟨≈⟩ >>=ₚ-identityˡ (st′ , o) (contᵢ body)
-
-  loop-bot : (st : MC.obj S) (x : X) → k (st , inj₂ x) ≈ₚ botₚ → iterₚ body (st , x) ≈ₚ botₚ
-  loop-bot st x eq = iterₚ-fix body (st , x) ⟨≈⟩ bindˣ eq ⟨≈⟩ bot-bind-≈ₚ (contᵢ body)
+  collapse≈ : MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺) (MC.mk Sᴳ kᴳ) MS.≈ᴹ 𝒢._∘_ g f
+  collapse≈ = MS.⟺ᴹ collapseᵀ MS.○ᴹ compose-raw≈∘ᴳ

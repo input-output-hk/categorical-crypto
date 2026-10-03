@@ -1,7 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Sliding a closed morphism out of a one-hole context (`Hole.slide`), and the
--- centrality of scalars.
+-- Sliding a closed morphism out of a one-hole context (`Hole.slide`).
 --
 -- `J` and `ℓ⇐` are parameters rather than the monoidal unit and its unitor
 -- because at the intended instance they are NOT that: the machine layer's closed
@@ -17,7 +16,6 @@ open import Categories.Category.Monoidal.Core
 module Categories.Category.Monoidal.Properties.Ext
   {o ℓ e} {C : Category o ℓ e} (M : Monoidal C) where
 
-open import Categories.Category.Monoidal.Properties M
 open import Categories.Category.Monoidal.Reasoning M
 open import Categories.Category.Monoidal.Utilities M
 open import Categories.Morphism.Reasoning C
@@ -25,20 +23,6 @@ open import Categories.Morphism.Reasoning C
 open Category C
 open Monoidal M
 open Shorthands
-
--- Kelly–Laplaza: scalars are central, so a pair of them merges into their
--- composite across `λ⇐`.
-scalar-λ⇐ : (σ τ : unit ⇒ unit) → σ ⊗₁ τ ∘ λ⇐ ≈ λ⇐ ∘ (σ ∘ τ)
-scalar-λ⇐ σ τ = begin
-  σ ⊗₁ τ ∘ λ⇐              ≈⟨ serialize₁₂ ⟩∘⟨refl ⟩
-  (σ ⊗₁ id ∘ id ⊗₁ τ) ∘ λ⇐ ≈⟨ assoc ⟩
-  σ ⊗₁ id ∘ (id ⊗₁ τ ∘ λ⇐) ≈˘⟨ refl⟩∘⟨ unitorˡ-commute-to ⟩
-  σ ⊗₁ id ∘ (λ⇐ ∘ τ)       ≈⟨ refl⟩∘⟨ (coherence-inv₃ ⟩∘⟨refl) ⟩
-  σ ⊗₁ id ∘ (ρ⇐ ∘ τ)       ≈⟨ sym-assoc ⟩
-  (σ ⊗₁ id ∘ ρ⇐) ∘ τ       ≈˘⟨ unitorʳ-commute-to ⟩∘⟨refl ⟩
-  (ρ⇐ ∘ σ) ∘ τ             ≈⟨ assoc ⟩
-  ρ⇐ ∘ (σ ∘ τ)             ≈˘⟨ coherence-inv₃ ⟩∘⟨refl ⟩
-  λ⇐ ∘ (σ ∘ τ)             ∎
 
 private variable A K₁ K₂ L P W W′ X Y : Obj
 

@@ -26,6 +26,7 @@ import ProbabilisticLogic.Distribution.Uniform.Birthday as UB
 
 open import CategoricalCrypto.Examples.ChimericLedger
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Machine.Agree

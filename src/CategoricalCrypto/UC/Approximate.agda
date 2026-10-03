@@ -1,26 +1,19 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Decay classes of rational sequences, and the bounds graded by them.
---
--- `Negligible` sits beside `_→0` because a cryptographic bound has to beat
--- every inverse polynomial and mere convergence does not — `1/n` is `_→0`.  The
--- error algebra these bounds are measured in is `Approx.Error`.
+-- The bounds graded by a decay class of rational sequences (`_→0`,
+-- `Negligible`: `ProbabilisticLogic.Distribution.Uniform.Decay`).  The error
+-- algebra these bounds are measured in is `Approx.Error`.
 
-open import Data.Integer.Base using (+_)
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Nat.Poly
 open import Data.Nat.Positive
 open import Data.Product.Base
 open import Data.Rational as ℚ
 open import Level using (Level)
-open import Data.Rational.Properties using (*-distribˡ-+; *-identityˡ; *-zeroʳ)
-open import Relation.Binary.PropositionalEquality
 
-open import ProbabilisticLogic.Distribution.Uniform.Decay using (_→0; →0-cong; →0-0)
+open import ProbabilisticLogic.Distribution.Uniform.Decay
 
 module CategoricalCrypto.UC.Approximate where
-
-open ProbabilisticLogic.Distribution.Uniform.Decay using (→0-+) public
 
 -- The grade a slack or an error is held to — a decay class, unrelated to the
 -- UC grade an adversary interface is.  The two bound disciplines below are one
@@ -37,15 +30,6 @@ GradedBound G ε = (p : ℕ → ℕ) → Poly p → G (λ n → ε n (p n))
 -- closes over (`UC.Family.absorb`).
 VanishingBound : (ℕ → ℕ → ℚ) → Set
 VanishingBound = GradedBound _→0
-
--- Negligible: eventually below every inverse polynomial, which is strictly more
--- than `_→0` (`1/n` vanishes and is not negligible).  Stated by MAGNIFICATION:
--- every polynomially magnified copy still vanishes.
-Negligible : (ℕ → ℚ) → Set
-Negligible s = (p : ℕ → ℕ) → Poly p → (λ n → (+ p n / 1) ℚ.* s n) →0
-
-Negligible⇒→0 : {s : ℕ → ℚ} → Negligible s → s →0
-Negligible⇒→0 {s} neg = →0-cong (λ n → *-identityˡ (s n)) (neg (λ _ → 1) (poly-const 1))
 
 -- The discipline asked of a concrete two-argument bound: it is
 -- admitted when `ε(n, p n)` is NEGLIGIBLE at every polynomial allowance `p`,
@@ -74,13 +58,6 @@ saturated-map g h p Pp = let ν , neg , b = h p Pp in ν , neg , λ n → g n (p
 -- `GradedBound` at the allowance is already that grade, by definition.  Both
 -- grades close, `Negligible`'s case being the vanishing one under the
 -- magnifying polynomial.
-
-Negligible-0 : Negligible (λ _ → 0ℚ)
-Negligible-0 p _ = →0-cong (λ n → sym (*-zeroʳ (+ p n / 1))) →0-0
-
-Negligible-+ : {s t : ℕ → ℚ} → Negligible s → Negligible t → Negligible (λ n → s n ℚ.+ t n)
-Negligible-+ {s} {t} ns nt p Pp =
-  →0-cong (λ n → sym (*-distribˡ-+ (+ p n / 1) (s n) (t n))) (→0-+ (ns p Pp) (nt p Pp))
 
 -- …and the two-argument discipline inherits it: reading a sum at the allowance
 -- is the sum of the two readings, so the grade's own closure is all it costs.

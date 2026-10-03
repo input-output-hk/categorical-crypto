@@ -123,9 +123,9 @@ Attains d Q v = Σ[ n ∈ ℕ ] ((i : ℕ) → cum (n + i) d Q ≡ v)
 -- The reading transports along `_≈ₚ_` although `Settles` does not (`Halts` is
 -- about the tree): monotone `cum` families that dominate each other cofinally
 -- attain the same value (`docs/fcom-uc.md` §1).
-cum-settled-≈ₚ : (d e : Dₚ A) (Q : A → ℚ) → NNF Q → (v : ℚ)
+Attains-≈ₚ : (d e : Dₚ A) (Q : A → ℚ) → NNF Q → (v : ℚ)
                → Attains d Q v → d ≈ₚ e → Attains e Q v
-cum-settled-≈ₚ d e Q nn v (n , rd) (de , ed) =
+Attains-≈ₚ d e Q nn v (n , rd) (de , ed) =
   let m , le = de Q nn n in
   m , λ i → ≤-antisym (capₑ (m + i))
               (≤-trans (≤-trans (≤-reflexive (sym rd₀)) le) (cum-mono (m≤m+n m i) e Q nn))

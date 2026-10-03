@@ -28,6 +28,7 @@ open import ProbabilisticLogic.Dp.Coin
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.UC.Machine
 
 module CategoricalCrypto.Examples.CoinToss.Ideal (k : ℕ) where

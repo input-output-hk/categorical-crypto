@@ -55,14 +55,14 @@ open import CategoricalCrypto.GamePlaying.Partial
 open import CategoricalCrypto.GamePlaying.Potential
 open import CategoricalCrypto.GamePlaying.Test
 open import CategoricalCrypto.Strategy
+open import CategoricalCrypto.Machines.Run.Lax
+open import CategoricalCrypto.Machines.Run.Raw
+open import CategoricalCrypto.Machines.Run.Trace
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Machine.Agree
 open import CategoricalCrypto.Protocol.Machine.Compose
 open import CategoricalCrypto.Protocol.Machine.Pin
-open import CategoricalCrypto.Protocol.Machine.Raw
-open import CategoricalCrypto.Protocol.Machine.Run.Lax
-open import CategoricalCrypto.Protocol.Machine.Trace
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Protocol.Safety
 open import CategoricalCrypto.Approx.FilteredTests
@@ -98,7 +98,6 @@ open import CategoricalCrypto.Examples.ROCommitment.UC
 
 
 import Categories.Category.Construction.Kleisli.Distributive
-import Categories.Category.Distributive.Monoidal
 import Categories.Category.Monoidal.Distributive.Instance.Rels
 import Categories.Functor.Monoidal.CurriedTensor.Properties
 import Categories.Monad.Graded.Uncurried

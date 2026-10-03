@@ -49,12 +49,6 @@ private variable A B P X Z : Obj
 ------------------------------------------------------------------------
 -- ⊕-side helpers
 
-[]-δ⇐ : {S A₁ A₂ B₁ B₂ : Obj} {p : S ⊗₀ B₁ ⇒ Z} {t : S ⊗₀ B₂ ⇒ Z}
-        (r : A₁ ⇒ B₁) (s : A₂ ⇒ B₂)
-      → [ p , t ] ∘ δ⇐ ∘ id ⊗₁ (r +₁ s) ≈ [ p ∘ id ⊗₁ r , t ∘ id ⊗₁ s ] ∘ δ⇐
-[]-δ⇐ r s = (refl⟩∘⟨ ((refl⟩∘⟨ ⟺ (tstep-str r s)) ○ cancelˡ distributeˡ.isoˡ))
-          ○ sym-assoc ○ ([]∘+₁ ⟩∘⟨refl)
-
 private
   ν : B + X ⇒ B + (X + P)
   ν = id +₁ i₁

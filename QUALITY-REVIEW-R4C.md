@@ -44,43 +44,7 @@
 
 ## Suggestions (ranked by complexity removed)
 
-1. **`Machines/Base.agda :: MC`: finish the "one public `MC`" move across the tree.** About 25 out-of-scope modules still `open Core (𝒱ₚ 0ℓ)`, a second application of the module that `Base`'s own comment warns against:
-   - **UC:** `Slide`, `Composite`, `QueryBound.Compose.Step`, `Monitor.Agree`, `Wire`, `Dictionary`.
-   - **Examples:** `ROCommitment{,.Transport,.Hiding,.Resource,.Realization.Bisim,.Realization.Machine}`, `HashForward`, `CoinToss{,.Hiding,.Ideal,.Ideal.Hybrid,.Ideal.Machine,.Ideal.Reach,.Ideal.Receiver,.Ideal.Receiver.Hybrid,.Ideal.Receiver.Machine,.Ideal.Receiver.Reach}`.
-   - **Stage 1 (mechanical, as done here for Pure and Sandwich):** `open Core (𝒱ₚ 0ℓ)` → `open MC`, and drop the `Core` import. About −25 lines.
-   - **Stage 2:** about 13 `Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)` applications live under four names (`S`, `Sm`, `MS`, and bare `open`): `Budget`, `UC.Machine`, `Adequacy.Wiring`, `Dominated`, `Plug`, `QueryBound`, `MD.QueryBound`, `Pure`, `Sandwich`, `Slide`, `Monitor.Agree`, `Dictionary`, `ROCommitment*`, `CoinToss*`, `HashForward`. Put one `module MS = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)` next to `MC` in `Base`; `Base` already imports `Bundle`, which reaches `Sim`.
-   - **Stage 3:** fold `Pointwise`'s public alias layer (`S`/`Cat`/`T`/`V`/`K`/`KP`, reached as `Pw.S.` 11×, `Pw.T.` 4×, plus five `module S = Pw.S`) into `Base` next to `MC`/`MS`.
-   - Net change about −40 lines, and one spelling per instance.
-   - **Crux:** a local `module MS = …` in an opener of `Base` becomes ambiguous, so each stage must delete the local copies in the same commit. Unspiked here; it is cross-part.
-2. **`Protocol/Machine.agda :: Closed, resumeᴹ, runᴹFrom, runᴹ`: the module does two jobs.**
-   - **The two jobs:** the semantics functor (`MSt`, `drive`, `stepᴹ`, `morphism`), and the closed run of any machine.
-   - **Who uses only the run half:** `Raw`, `Run`, `Run.Lax`, `Trace` and `GamePlaying.Defer.Run` contain no protocol content. 13 of the 37 importers use only the run half.
-   - **Proposal:** split the run half and those modules into a `Machines.Run` family (`Machines.Run`, `.Raw`, `.Sim`, `.Lax`, `.Trace`, `.Defer`).
-   - **Second spelling:** `Closed B` is `UC.Machine.Proc unitᴵ B`, which only `Proc`'s placement prevents from being one name. Moving `Proc` down into `Protocol.Machine` (spiked) needs an import in 26 out-of-scope modules that see `Proc` only through `UC.Machine`. The split is the natural moment to do both.
-   - About 0 lines; the gain is that every module name says what it does.
-3. **`GamePlaying/Defer/Run.agda`: belongs with the run modules.** It is a Dₚ machine-run lemma. It imports `Protocol.Machine`, not `GamePlaying.Defer`, and needs `--guardedness`. Move it to `Protocol.Machine.Defer`, or `Machines.Run.Defer` under item 2. That touches one importer (`CoinToss.Ideal.Receiver.Machine`) and two doc lines (`coin-toss.md:423`, `rcom-icom-b1.md:274`). 0 lines.
-4. **`Machines/Collapse.agda :: Loop`: G-free, in a G-composite module.** It reads a traced machine's step at a point. Move it to `Machines.Pointwise`; its consumers are `Plug`, `Monitor` (×2) and `Protocol.Machine.Compose`. 0 lines; the gain is that `Collapse` becomes one job.
-5. **`UC/Machine.agda :: initˢ` vs `Protocol/Machine/Compose.agda :: stateᶜ`.**
-   - `initˢ` is the generic "state at a pure point" (17 consumer files) but sits in `UC.Machine`.
-   - Move it to `Machines.Pointwise` or `Base`. `Compose.stateᶜ` and `morphism`'s inlined record then become `initˢ CSt (both …)` and `initˢ (MSt P) (idle (init P))`.
-   - About −3 lines. It needs `UC.Machine`'s two lines deleted (Part B).
-6. **Unused imports left by the `Run` move (out of scope).**
-   - `UC/Machine.agda`, `UC/Machine/StateEvent/Read.agda` and `UC/Machine/Monitor/Agree.agda` import `Protocol.Machine.Run` and use none of its names.
-   - `UC/Machine/Bridge.agda` imports `Protocol.Machine` and uses nothing from it.
-   - −4 lines; first confirm none is a deliberate perf pin.
-7. **`Machines/Pure.agda :: midᴹ, midᴹ-pure, enter-pure, exit-pure, swapᴵ, ⌜⌝-pureᴹ`: about 70 lines with only one consumer, `UC.Machine.Dictionary`.**
-   - `midᴹ` re-spells `GConstructionTrace.mid` at ℳₚ; Dictionary needs `unfolding midᴹ GM._⊗₁ᴳ_` to identify the two.
-   - Option (a): state `midᴹ-pure` about `mid` directly and delete `midᴹ`, about −4 lines. Needs a perf check of Dictionary.
-   - Option (b): move the Dictionary-only part into Dictionary.
-   - The header then only covers `…ᵏ`/`…ᴵ`/`pureᶠ`.
-8. **Generic ⊕ lemmas exported from machine modules.**
-   - `Machines/Trace/Fubini.agda :: norm, α+⇒-β+, β+-α+⇐` each have one consumer, `k₂-relabel`; `norm` is a very generic exported name.
-   - `Machines/Trace/Vanishing.agda :: []-δ⇐` is used by Vanishing and Fubini.
-   - Move them to `Categories.Category.Monoidal.Distributive.Properties` / `Cocartesian.Ext` (Part D), or make them private (rule 32 judgment). 0 lines.
-9. **`Protocol/Machine/Compose.agda :: CSt, stateᶜ, serveᶜ, graftᶜ, stepᶜ, machineᶜ`: public one-off proof scaffolding.** The only outside consumer of this module is `Seam.Grounded`, and it uses only `morphismCompose`. Make them `private` (rule 32 judgment; `coin-toss.md:330` names `machineᶜ` only as a method). 0 lines.
-10. **`Examples/ROCommitment/Hiding/Defer.agda :: _≋J_` (Part A).** After e452c5b4 the flag conjunct `flagP s ≡ false` in `_≋J_` existed only to feed the deleted `good-J`. If `join-J` does not use it, drop it (small).
-11. **`Categories/Category/Monoidal/Properties/Ext.agda :: scalar-λ⇐` (Part D).** Its only consumer was `⊛-point₂ˡ`, which is now deleted. It is a general library fact (scalars are central); keep or delete is Part D's call. About −12 lines if deleted.
-12. **`Protocol/Machine/Trace.agda :: dispatch-f, dispatch-g, K∘-enter, exit-out, exit-loop`: restatements with one consumer.** They restate `E⊥-map`/`E⊥-bind`/`E⊥-return` at Trace's parameters, for one consumer, `Realization.Bisim` (8 sites). Inline them there only if the types still infer; they may be type pins like `outF`/`outG`. Unspiked; low confidence. About −20 lines.
+12. **`Machines/Run/Trace.agda :: dispatch-f, dispatch-g, K∘-enter, exit-out, exit-loop`: restatements with one consumer.** They restate `E⊥-map`/`E⊥-bind`/`E⊥-return` at Trace's parameters, for one consumer, `Realization.Bisim` (8 sites). Inline them there only if the types still infer; they may be type pins like `outF`/`outG`. Unspiked; low confidence. About −20 lines.
 
 ## Tried, not worth it
 
@@ -93,5 +57,4 @@
 
 ## Not reached
 
-- A partial `runWith-join⊥` from which both `Coupling⊥.FLGP⊥` (55 lines) and the total `runWith-join` follow, about −30..−40 lines. Unspiked.
 - The `Iteration.Elgot` fields beyond `iter-cong` (e.g. whether `iter-ctx` follows from `iter-transfer`). Unexamined.

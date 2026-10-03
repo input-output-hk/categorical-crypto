@@ -37,6 +37,7 @@ open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 open import ProbabilisticLogic.Distribution.RationalDist.Partial
 open import ProbabilisticLogic.Distribution.Uniform
+open import ProbabilisticLogic.Distribution.Uniform.Decay
 open import ProbabilisticLogic.Dp.Advantage
 
 open import CategoricalCrypto.Examples.ChimericLedger

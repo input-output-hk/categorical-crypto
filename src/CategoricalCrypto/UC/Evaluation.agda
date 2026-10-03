@@ -17,7 +17,7 @@ open import Level
 open import Relation.Binary.Bundles
 import Relation.Binary.Construct.On as On
 
-module CategoricalCrypto.UC.Core where
+module CategoricalCrypto.UC.Evaluation where
 
 record Evaluation {o ℓ e} (𝒞 : Category o ℓ e) (cs ℓs : Level) : Set (o ⊔ ℓ ⊔ e ⊔ suc cs ⊔ suc ℓs) where
   open Category 𝒞

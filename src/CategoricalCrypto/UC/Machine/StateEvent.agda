@@ -29,7 +29,8 @@ open import ProbabilisticLogic.Dp.Reasoning
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pointwise
-open import CategoricalCrypto.Protocol.Machine.Run
+open import CategoricalCrypto.Machines.Run
+open import CategoricalCrypto.Machines.Run.Sim
 open import CategoricalCrypto.UC.Machine
 
 module CategoricalCrypto.UC.Machine.StateEvent where
@@ -42,7 +43,7 @@ module _ {A B : Iface} where
   StateTest : Proc A B → Set
   StateTest M = MC.St M → Bool
 
-  pullTest : {M N : Proc A B} (σ : M S.≲ N) → StateTest N → StateTest M
+  pullTest : {M N : Proc A B} (σ : M MS.≲ N) → StateTest N → StateTest M
   pullTest σ Q = Q ∘ ϕ σ
 
 ------------------------------------------------------------------------
@@ -53,7 +54,7 @@ Annotated A B = Σ[ M ∈ Proc A B ] StateTest M
 
 record EventSim {A B : Iface} (x y : Annotated A B) : Set₁ where
   field
-    sim    : proj₁ x S.≲ proj₁ y
+    sim    : proj₁ x MS.≲ proj₁ y
     compat : (s : MC.St (proj₁ x)) → proj₂ x s ≡ proj₂ y (ϕ sim s)
 
 open EventSim public
@@ -106,7 +107,7 @@ module _ {A B : Iface} {M N : Proc A B} {P : StateTest M} {Q : StateTest N}
            ⟨≈⟩ ≈sym (>>=ₚ-assoc (MC.step M (s , x)) _ _)
            ⟨≈⟩ bindˣ (step-sim σ (s , x))
 
-  ▷-≲ : (M ▷ P) S.≲ (N ▷ Q)
+  ▷-≲ : (M ▷ P) MS.≲ (N ▷ Q)
   ▷-≲ = simFn (map₁ (ϕ σ)) pt st
     where
     -- Named on purpose: inlined into `simFn`, this module's check takes 184 s, not 18 s.

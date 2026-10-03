@@ -24,6 +24,7 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.UC.Machine
 
 module CategoricalCrypto.Examples.ROCommitment.Resource (k : ℕ) where

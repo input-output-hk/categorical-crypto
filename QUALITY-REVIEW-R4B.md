@@ -110,12 +110,6 @@ Ranked by complexity removed.
 6. `src/CategoricalCrypto/UC/Seam/Grounded.agda :: closedᵒ` — `closedᵒ = stageᵒ`, two spellings; consumers
    `Model/Family/Emulation` and `Examples/ChimericLedger/Transfer`. Also the module is about the seal's trivial
    grade, not the seam (`UC.Model.TrivialGrade`?).
-7. `src/CategoricalCrypto/UC/Core.agda` — now holds only `Evaluation`; rename `UC.Evaluation` (5 importers, all in
-   scope; `Approx.Evaluation` imports it, a `UC`→`Approx` boundary inversion either way).
-8. `src/CategoricalCrypto/UC/Approximate.agda :: Negligible, Negligible-0/+/≤/cong` — generic facts about
-   `ℕ → ℚ` sequences beside `_→0` (`ProbabilisticLogic.Distribution.Uniform.Decay`); 17 importers. Also its
-   `open … Decay using (→0-+) public` is a forwarding re-export (rule 19) with one consumer
-   (`Examples/ChimericLedger/Transfer`, needs one import line there).
 9. `src/CategoricalCrypto/UC/Robust.agda :: Factors` vs `UC/Graded.agda :: Factors` — two unrelated public
    notions with one name; rename Robust's (`PulledFrom V`), consumer `Robust/Model`.
 

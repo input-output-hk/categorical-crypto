@@ -44,10 +44,28 @@ private
 Γ-mono : ∀ t j → Γ t j ≤ Γ t (suc j)
 Γ-mono t j = ≤-trans (Γ-monoˡ t j) (Γ-suc t j)
 
+-- Gauss at the pool of one: the textbook `q(q+1)/2ⁿ⁺¹`.
+birthday : ∀ q → Γ 1 q ≡ fromℕ (q ℕ.* suc q) * inv-pow-2 (suc n)
+birthday q = sym (begin
+  fromℕ (q ℕ.* suc q) * (½ * ε)        ≡⟨ cong (λ m → fromℕ m * (½ * ε)) (sym twice) ⟩
+  fromℕ (2 ℕ.* S) * (½ * ε)            ≡⟨ cong (_* (½ * ε)) (trans (fromℕ-* 2 S) (*-comm (fromℕ 2) (fromℕ S))) ⟩
+  fromℕ S * fromℕ 2 * (½ * ε)          ≡⟨ *-assoc (fromℕ S) (fromℕ 2) (½ * ε) ⟩
+  fromℕ S * (fromℕ 2 * (½ * ε))        ≡⟨ cong (fromℕ S *_) (trans (sym (*-assoc (fromℕ 2) ½ ε)) (*-identityˡ ε)) ⟩
+  fromℕ S * ε                          ∎)
+  where
+  open ≡-Reasoning
+  S = sumN 1 q
+  twice : 2 ℕ.* S ≡ q ℕ.* suc q
+  twice = ℕₚ.+-cancelʳ-≡ q _ _
+    (trans (sumN-closed 1 q) (trans (ℕₚ.*-suc q (suc q)) (ℕₚ.+-comm q (q ℕ.* suc q))))
+
+-- Twice `Γ 1 q`, at `2⁻ⁿ`: the schedule `Examples.ChimericLedger` publishes.
 birthday-bound : ℕ → ℚ
 birthday-bound q = fromℕ (q ℕ.* q ℕ.+ q) * inv-pow-2 n
 
--- Loose by a factor 2: `Γ 1 q` is `q(q+1)/2ⁿ⁺¹`.
-birthday : ∀ q → Γ 1 q ≤ birthday-bound q
-birthday q = *-monoʳ-≤-nonNeg ε ⦃ nonNegative (0≤inv-pow-2 n) ⦄ (fromℕ-mono-≤
-  (ℕₚ.≤-trans (sumN-≤ 1 q) (ℕₚ.≤-reflexive (trans (ℕₚ.*-suc q q) (ℕₚ.+-comm q (q ℕ.* q))))))
+birthday-≤ : ∀ q → Γ 1 q ≤ birthday-bound q
+birthday-≤ q = ≤-trans (≤-reflexive (birthday q))
+  (≤-trans (*-monoˡ-≤-nonNeg (fromℕ (q ℕ.* suc q)) ⦃ nonNegative (0≤fromℕ (q ℕ.* suc q)) ⦄
+             (≤-trans (p≤p+q (½ * ε) (0≤inv-pow-2 (suc n))) (≤-reflexive (½*+½* ε))))
+           (≤-reflexive (cong (λ m → fromℕ m * ε)
+             (trans (ℕₚ.*-suc q q) (ℕₚ.+-comm q (q ℕ.* q))))))

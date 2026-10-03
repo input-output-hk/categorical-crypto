@@ -30,9 +30,10 @@ open import ProbabilisticLogic.Dp.Reasoning
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pointwise
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Machines.Sandwich
 open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Machine.Run
+open import CategoricalCrypto.Machines.Run.Sim
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Bridge
@@ -55,9 +56,9 @@ private module 𝒫 = Category 𝒫ᴵ
 embeds : (B : Iface) (d : Strat (Neg B) (Pos B)) → 𝒫._≈_ (stratTest B d 𝒫.∘ λᴵ⇐) (strategyEnv B d)
 embeds B d =
       𝒫.∘-resp-≈ˡ (stratTest-embeds B d)
-  S.○ᴹ 𝒫.assoc
-  S.○ᴹ 𝒫.∘-resp-≈ʳ (𝒫.∘-resp-≈ʳ (𝒫.Equiv.sym 𝒫.identityʳ) S.○ᴹ unit-cancel 𝒫.id)
-  S.○ᴹ 𝒫.identityʳ
+  MS.○ᴹ 𝒫.assoc
+  MS.○ᴹ 𝒫.∘-resp-≈ʳ (𝒫.∘-resp-≈ʳ (𝒫.Equiv.sym 𝒫.identityʳ) MS.○ᴹ unit-cancel 𝒫.id)
+  MS.○ᴹ 𝒫.identityʳ
 
 -- The closed flagged context at `stratTest`, as the flag reader over the
 -- strategy environment.
@@ -66,15 +67,15 @@ flag-tower : (B : Iface) (u : Proc unitᴵ (B ⊗ᴵ Ωᴵ)) (d : Strat (Neg B) 
                             (Collapsed.readᴹ B (strategyEnv B d) 𝒫.∘ u)
 flag-tower B u d =
      𝒫.assoc
-  S.○ᴹ 𝒫.∘-resp-≈ʳ (S.⟺ᴹ (λ-nat u))
-  S.○ᴹ 𝒫.sym-assoc
-  S.○ᴹ 𝒫.∘-resp-≈ˡ
+  MS.○ᴹ 𝒫.∘-resp-≈ʳ (MS.⟺ᴹ (λ-nat u))
+  MS.○ᴹ 𝒫.sym-assoc
+  MS.○ᴹ 𝒫.∘-resp-≈ˡ
        ( 𝒫.assoc
-    S.○ᴹ 𝒫.∘-resp-≈ʳ ( 𝒫.assoc
-                   S.○ᴹ 𝒫.∘-resp-≈ʳ λ-tri
-                   S.○ᴹ S.⟺ᴹ (sub-∘ (stratTest B d) λᴵ⇐)
-                   S.○ᴹ sub-resp-≈ (embeds B d))
-    S.○ᴹ Collapsed.read-collapse B (strategyEnv B d))
+    MS.○ᴹ 𝒫.∘-resp-≈ʳ ( 𝒫.assoc
+                   MS.○ᴹ 𝒫.∘-resp-≈ʳ λ-tri
+                   MS.○ᴹ MS.⟺ᴹ (sub-∘ (stratTest B d) λᴵ⇐)
+                   MS.○ᴹ sub-resp-≈ (embeds B d))
+    MS.○ᴹ Collapsed.read-collapse B (strategyEnv B d))
 
 ------------------------------------------------------------------------
 -- One tick of the collapsed composite

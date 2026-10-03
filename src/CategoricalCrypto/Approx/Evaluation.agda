@@ -21,7 +21,7 @@ open import Relation.Binary.Core using (Rel)
 open import Relation.Binary.Structures
 
 open import CategoricalCrypto.Approx.Error
-open import CategoricalCrypto.UC.Core
+open import CategoricalCrypto.UC.Evaluation
 
 module CategoricalCrypto.Approx.Evaluation
   {es ℓe : Level} (E : OrderedErrorAlgebra es ℓe) where

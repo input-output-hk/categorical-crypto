@@ -25,10 +25,9 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Wire
-
-import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.Examples.HashForward (Msg Dig : Set) where
 
@@ -36,7 +35,7 @@ private
   module 𝒫 = Category 𝒫ᴵ
 
 open MC
-open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
+open MS
 
 ------------------------------------------------------------------------
 -- Interfaces

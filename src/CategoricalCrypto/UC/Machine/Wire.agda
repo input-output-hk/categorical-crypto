@@ -17,7 +17,6 @@
 
 open import Categories.Category
 open import Categories.Category.Monoidal.Bundle
-import Categories.Category.Construction.Kleisli.Discrete as KD
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.GConstructionEmbedding as GE
 
@@ -28,31 +27,27 @@ open import Level
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pure
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Machines.Sandwich
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Dictionary
 
-import CategoricalCrypto.Machines.Category as MCat
-import CategoricalCrypto.Machines.Core as Core
-import CategoricalCrypto.Machines.Sim as Sim
-import CategoricalCrypto.Machines.Tensor as Tensor
 import CategoricalCrypto.Machines.Tensor.Structural as Struct
 
 module CategoricalCrypto.UC.Machine.Wire where
 
 private
   module ℳ = SymmetricMonoidalCategory (ℳₚ 0ℓ)
-  module 𝒱 = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
   module 𝒫 = Category 𝒫ᴵ
   module 𝒢 = Category (𝒢ₚ 0ℓ)
 
-open Core (𝒱ₚ 0ℓ)
-open KD (Dₚ-DiscreteMonad {0ℓ})
+open MC
+open K
 open MD.MonoidalDistributive (distₚ 0ℓ)
-open MCat (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
-open Sim (𝒱ₚ 0ℓ)  (𝒫ₚ 0ℓ)
+open Cat
+open MS
 open Struct (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ)
-open Tensor (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ)
+open T
 
 ------------------------------------------------------------------------
 -- Absorption
@@ -72,11 +67,11 @@ private
              ≈ᴹ ((q ⊗ᵉ idᴹ) ∘ᴹ (f ∘ᴹ (p ⊗ᵉ idᴹ)))
   absorbʳᵂ = GE.Embed.WithTrace.absorbʳ ℳ.U ℳ.monoidal (Tracedₚ 0ℓ) (TraceLawsₚ 0ℓ)
 
-  idˡ-pure : {V W V′ : Set} (h : V → W) → 𝒱._≈_ (𝒱.id {V′} +₁ pureᵏ h) (pureᵏ (Sum.map₂ h))
-  idˡ-pure h = +₁-pureᵏ pure-idᵏ (𝒱.Equiv.refl {x = pureᵏ h})
+  idˡ-pure : {V W V′ : Set} (h : V → W) → V._≈_ (V.id {V′} +₁ pureᵏ h) (pureᵏ (Sum.map₂ h))
+  idˡ-pure h = +₁-pureᵏ pure-idᵏ (V.Equiv.refl {x = pureᵏ h})
 
-  idʳ-pure : {V W V′ : Set} (h : V → W) → 𝒱._≈_ (pureᵏ h +₁ 𝒱.id {V′}) (pureᵏ (Sum.map₁ h))
-  idʳ-pure h = +₁-pureᵏ (𝒱.Equiv.refl {x = pureᵏ h}) pure-idᵏ
+  idʳ-pure : {V W V′ : Set} (h : V → W) → V._≈_ (pureᵏ h +₁ V.id {V′}) (pureᵏ (Sum.map₁ h))
+  idʳ-pure h = +₁-pureᵏ (V.Equiv.refl {x = pureᵏ h}) pure-idᵏ
 
 ------------------------------------------------------------------------
 -- Composing with a wire
@@ -91,8 +86,8 @@ module _ {A B C : Iface} (up : Pos B → Pos C) (down : Neg C → Neg B) where
     ○ᴹ absorbˡᵂ
     ○ᴹ ∘ᴹ-resp-≈ᴹ (≲⇒≈ᴹ (⊗ᵉ-pureˡ (pureᵏ up)))
                   (∘ᴹ-resp-≈ᴹ reflᴹ (≲⇒≈ᴹ (⊗ᵉ-pureˡ (pureᵏ down))))
-    ○ᴹ ∘ᴹ-resp-≈ᴹ reflᴹ (≲⇒≈ᴹ (pure-∘ʳ (𝒱.id +₁ pureᵏ down) f))
-    ○ᴹ ≲⇒≈ᴹ (pure-∘ˡ (𝒱.id +₁ pureᵏ up) _)
+    ○ᴹ ∘ᴹ-resp-≈ᴹ reflᴹ (≲⇒≈ᴹ (pure-∘ʳ (V.id +₁ pureᵏ down) f))
+    ○ᴹ ≲⇒≈ᴹ (pure-∘ˡ (V.id +₁ pureᵏ up) _)
     ○ᴹ squeeze f _ _ (idˡ-pure down) (idˡ-pure up)
 
 module _ {A B C : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A) where
@@ -105,6 +100,6 @@ module _ {A B C : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A) where
     ○ᴹ absorbʳᵂ
     ○ᴹ ∘ᴹ-resp-≈ᴹ (≲⇒≈ᴹ (⊗ᵉ-pureʳ (pureᵏ down)))
                   (∘ᴹ-resp-≈ᴹ reflᴹ (≲⇒≈ᴹ (⊗ᵉ-pureʳ (pureᵏ up))))
-    ○ᴹ ∘ᴹ-resp-≈ᴹ reflᴹ (≲⇒≈ᴹ (pure-∘ʳ (pureᵏ up +₁ 𝒱.id) f))
-    ○ᴹ ≲⇒≈ᴹ (pure-∘ˡ (pureᵏ down +₁ 𝒱.id) _)
+    ○ᴹ ∘ᴹ-resp-≈ᴹ reflᴹ (≲⇒≈ᴹ (pure-∘ʳ (pureᵏ up +₁ V.id) f))
+    ○ᴹ ≲⇒≈ᴹ (pure-∘ˡ (pureᵏ down +₁ V.id) _)
     ○ᴹ squeeze f _ _ (idʳ-pure up) (idʳ-pure down)

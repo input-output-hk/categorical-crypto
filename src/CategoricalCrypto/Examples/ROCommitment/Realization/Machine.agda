@@ -2,7 +2,7 @@
 
 -- The closed real commitment system `real 𝒫.∘ resource` as a kernel: it
 -- settles, so its `Dₚ` run is a run of a `Dist⊥` kernel
--- (`Protocol.Machine.Trace`).
+-- (`Machines.Run.Trace`).
 --
 -- The composite's loop needs a rank: 1 on a resource query and 0 on an
 -- answer, because the receiver never answers the resource with a further
@@ -32,8 +32,8 @@ open import ProbabilisticLogic.Dp.Settle.Iter
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
-open import CategoricalCrypto.Protocol.Machine.Raw
-open import CategoricalCrypto.Protocol.Machine.Trace
+open import CategoricalCrypto.Machines.Run.Raw
+open import CategoricalCrypto.Machines.Run.Trace
 
 import CategoricalCrypto.Machines.Collapse as Col
 

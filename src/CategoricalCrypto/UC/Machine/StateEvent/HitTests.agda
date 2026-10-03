@@ -26,6 +26,7 @@ open import ProbabilisticLogic.Dp.Settle
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pointwise
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Observe
@@ -127,7 +128,7 @@ zero-branch-reads = reads flips id zero-branch refl
 module _ {A B : Iface} where
 
   -- A simulation carries a test back by inverse image, compatibly.
-  rename : {M N : Proc A B} (σ : M S.≲ N) (Q : StateTest N) → EventSim (M , pullTest σ Q) (N , Q)
+  rename : {M N : Proc A B} (σ : M MS.≲ N) (Q : StateTest N) → EventSim (M , pullTest σ Q) (N , Q)
   rename σ Q = record { sim = σ ; compat = λ _ → refl }
 
   -- An unused state component, carried along untouched.
@@ -155,7 +156,7 @@ erased = MC.mk (initˢ ⊤ tt) λ where
   (_ , inj₁ ())
   (_ , inj₂ _) → returnₚ (tt , inj₂ true)
 
-erase : ghost S.≲ erased
+erase : ghost MS.≲ erased
 erase = simFn (λ _ → tt) (λ _ → >>=ₚ-identityˡ false _) λ where
   (_ , inj₁ ())
   (b , inj₂ _) → >>=ₚ-identityˡ (not b , inj₂ true) _
@@ -167,9 +168,9 @@ ghost-no-descent (Q , e) = case trans (compat e true) (sym (compat e false)) of 
 erase-transport : {q : ℕ} {r : ℚ} → StateBoundedAt q r erased (λ _ → false) → StateBoundedAt q r ghost (λ _ → false)
 erase-transport = transportᵉ (record { sim = erase ; compat = λ _ → refl })
 
-pullTest-id : {A B : Iface} {M : Proc A B} (Q : StateTest M) (s : MC.St M) → pullTest (S.≲-refl {f = M}) Q s ≡ Q s
+pullTest-id : {A B : Iface} {M : Proc A B} (Q : StateTest M) (s : MC.St M) → pullTest (MS.≲-refl {f = M}) Q s ≡ Q s
 pullTest-id Q s = refl
 
-pullTest-∘ : {A B : Iface} {M N L : Proc A B} (σ : M S.≲ N) (τ : N S.≲ L) (Q : StateTest L) (s : MC.St M)
-           → pullTest (S.≲-trans σ τ) Q s ≡ pullTest σ (pullTest τ Q) s
+pullTest-∘ : {A B : Iface} {M N L : Proc A B} (σ : M MS.≲ N) (τ : N MS.≲ L) (Q : StateTest L) (s : MC.St M)
+           → pullTest (MS.≲-trans σ τ) Q s ≡ pullTest σ (pullTest τ Q) s
 pullTest-∘ σ τ Q s = refl

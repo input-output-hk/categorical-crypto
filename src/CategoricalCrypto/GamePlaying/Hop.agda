@@ -3,10 +3,9 @@
 -- Assembling a game hop: `runWith-bisim` identifies a coupling's marginals with
 -- the reference kernels they stand for, and `hop-bound` then bounds the
 -- advantage between the two reference kernels by the coupling's `SuperCert`.
--- `runWith-join` is the identical-until-bad step for two kernels on their OWN
--- state spaces (each step exhibits a joint draw with the two kernels as
--- marginals): where the games' states part once the flag is up, one coupled
--- state would have to carry both.  `FLGP` is its instance at `Coupling`.
+-- `runWith-join` is `Partial.runWith-join⊥`, the identical-until-bad step for
+-- two kernels on their OWN state spaces, at total kernels.  `FLGP` is its
+-- instance at `Coupling`.
 
 open import categorical-crypto.Prelude hiding (_>>=_)
 
@@ -80,80 +79,23 @@ module _ {Q R S S′ : Type} (resp : S → Q → Dist-ℚ (S × R))
          (_≋_ : S → S′ → Type) where
 
   JoinStep : Type
-  JoinStep = ∀ s s′ → s ≋ s′ → ∀ q → JoinAt bad _≋_ (resp s q) (resp′ s′ q)
+  JoinStep = ∀ s s′ → s ≋ s′ → bad s ≡ false → ∀ q → JoinAt bad _≋_ (resp s q) (resp′ s′ q)
 
+  -- `Partial.runWith-join⊥` at the embedded kernels.
   runWith-join : JoinStep → ∀ d s s′ → s ≋ s′
                → ∣ Pr₁ (runWith resp s d) -ℚ Pr₁ (runWith resp′ s′ d) ∣ℚ
                  ≤ℚ badProb resp bad s d
-
-  private
-    join-good : JoinStep → ∀ d s s′ → s ≋ s′ → bad s ≡ false
-              → ∣ Pr₁ (runWith resp s d) -ℚ Pr₁ (runWith resp′ s′ d) ∣ℚ
-                ≤ℚ badProb resp bad s d
-    join-good jn (out b) s s′ rel g =
-      subst (_≤ℚ bool→ℚ (bad s)) (sym (∣x-x∣≡0 (Pr₁ (return-ℚ b)))) (0≤bool (bad s))
-    join-good jn (ask q k) s s′ rel g =
-        ≤-trans (≤-reflexive (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ) eqL eqR))
-       (≤-trans (E-abs-diff ν AL AR)
-       (≤-trans (E-mono-on ν (λ p → ∣ AL p -ℚ AR p ∣ℚ) BB (ListAll.map dominated sup))
-                (≤-reflexive (trans (mL (λ t → badProb resp bad (proj₁ t) (k (proj₂ t))))
-                             (trans (sym (Eⱼ (resp s q) _))
-                                    (sym (badProb⊥-ask (embedᵏ resp) bad s q k g)))))))
-      where
-        jnq = jn s s′ rel q
-        ν   = proj₁ jnq
-        mL  = proj₁ (proj₂ jnq)
-        mR  = proj₁ (proj₂ (proj₂ jnq))
-        sup = proj₂ (proj₂ (proj₂ jnq))
-
-        KL = λ (t  : S  × R) → runWith resp  (proj₁ t ) (k (proj₂ t ))
-        KR = λ (t′ : S′ × R) → runWith resp′ (proj₁ t′) (k (proj₂ t′))
-
-        AL AR BB : (S × R) × (S′ × R) → ℚ
-        AL p = Pr₁ (KL (proj₁ p))
-        AR p = Pr₁ (KR (proj₂ p))
-        BB p = badProb resp bad (proj₁ (proj₁ p)) (k (proj₂ (proj₁ p)))
-
-        eqL : Pr₁ (runWith resp s (ask q k)) ≡ E ν AL
-        eqL = trans (Pr₁-bind (resp s q) KL) (sym (mL (λ t → Pr₁ (KL t))))
-
-        eqR : Pr₁ (runWith resp′ s′ (ask q k)) ≡ E ν AR
-        eqR = trans (Pr₁-bind (resp′ s′ q) KR) (sym (mR (λ t′ → Pr₁ (KR t′))))
-
-        dominated : ∀ {p} → (bad (proj₁ (proj₁ p)) ≡ true)
-                          ⊎ ((proj₁ (proj₁ p) ≋ proj₁ (proj₂ p))
-                             × (proj₂ (proj₁ p) ≡ proj₂ (proj₂ p)))
-                  → ∣ AL p -ℚ AR p ∣ℚ ≤ℚ BB p
-        dominated {p} (inj₁ bd) =
-          subst (∣ AL p -ℚ AR p ∣ℚ ≤ℚ_)
-                (sym (badProb⊥-bad (embedᵏ resp) bad (proj₁ (proj₁ p)) (k (proj₂ (proj₁ p))) bd))
-                (∣Pr-Pr∣≤1 (KL (proj₁ p)) (KR (proj₂ p)))
-        dominated {p} (inj₂ (rel′ , ans)) =
-          subst (λ z → ∣ AL p -ℚ Pr₁ (runWith resp′ (proj₁ (proj₂ p)) (k z)) ∣ℚ ≤ℚ BB p)
-                ans (runWith-join jn (k (proj₂ (proj₁ p)))
-                       (proj₁ (proj₁ p)) (proj₁ (proj₂ p)) rel′)
-    join-good jn (coin μ k) s s′ rel g =
-        ≤-trans (≤-reflexive (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ)
-                               (Pr₁-bind μ (λ b → runWith resp  s  (k b)))
-                               (Pr₁-bind μ (λ b → runWith resp′ s′ (k b)))))
-       (≤-trans (E-abs-diff μ AL AR)
-       (≤-trans (E-mono μ (λ b → ∣ AL b -ℚ AR b ∣ℚ) BB
-                  (λ b → runWith-join jn (k b) s s′ rel))
-                (≤-reflexive (sym (badProb⊥-coin (embedᵏ resp) bad s μ k g)))))
-      where
-        AL AR BB : Bool → ℚ
-        AL b = Pr₁ (runWith resp  s  (k b))
-        AR b = Pr₁ (runWith resp′ s′ (k b))
-        BB b = badProb resp bad s (k b)
-
-  runWith-join jn d s s′ rel = split (bad s) refl
+  runWith-join jn d s s′ rel =
+    subst₂ (λ x y → ∣ x -ℚ y ∣ℚ ≤ℚ badProb resp bad s d) (total⇒⊥ resp s d) (total⇒⊥ resp′ s′ d)
+      (runWith-join⊥ (embedᵏ resp) (embedᵏ resp′) bad _≋_ jn⊥ d s s′ rel)
     where
-    split : ∀ b → bad s ≡ b → ∣ Pr₁ (runWith resp s d) -ℚ Pr₁ (runWith resp′ s′ d) ∣ℚ
-                              ≤ℚ badProb resp bad s d
-    split true  eqb = subst (∣ Pr₁ (runWith resp s d) -ℚ Pr₁ (runWith resp′ s′ d) ∣ℚ ≤ℚ_)
-                        (sym (badProb⊥-bad (embedᵏ resp) bad s d eqb))
-                        (∣Pr-Pr∣≤1 (runWith resp s d) (runWith resp′ s′ d))
-    split false eqb = join-good jn d s s′ rel eqb
+    jn⊥ : JoinStep⊥ (embedᵏ resp) (embedᵏ resp′) bad _≋_
+    jn⊥ s s′ rel g q =
+      let ν , mL , mR , sup = jn s s′ rel g q in
+        Dmap just ν
+      , (λ F  → trans (Eⱼ ν _) (trans (mL F ) (sym (Eⱼ (resp s q) F ))))
+      , (λ F′ → trans (Eⱼ ν _) (trans (mR F′) (sym (Eⱼ (resp′ s′ q) F′))))
+      , OnSupport-Dmap just ν sup
 
 module _ {Q R St : Type} (bad : St → Bool)
          (respB : St → Q → Dist-ℚ (St × (R × R))) where
@@ -162,7 +104,7 @@ module _ {Q R St : Type} (bad : St → Bool)
 
   private
     coupled : JoinStep realK idealK bad _≡_
-    coupled s .s refl q =
+    coupled s .s refl _ q =
         Dmap (λ t → fR t , fI t) (respB s q)
       , (λ F → trans (lookupᴰℚ-Dmap _ (respB s q) _) (sym (lookupᴰℚ-Dmap fR (respB s q) F)))
       , (λ F → trans (lookupᴰℚ-Dmap _ (respB s q) _) (sym (lookupᴰℚ-Dmap fI (respB s q) F)))

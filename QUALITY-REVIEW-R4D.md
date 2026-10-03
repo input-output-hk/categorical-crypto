@@ -50,7 +50,7 @@ Only `cum-bindʳ` (and through it `mass`, `mass-≤1`, `cum-≤1`, `leafₚ-≤1
 (`UC/Machine/StateEvent/Lift.agda:183,370`). Everything else — the `≼ᵐ` domination, `Total`/`ASTotal`, `astotal-bind`,
 `squeeze`/`squeeze-astotal` — has no consumer, and with it go `Data.Rational.Properties.Ext`'s "Masses within ε of one"
 section (`1-ε≤m⇒1-m≤ε`, `x≤m*x+ε`, `1-[ε+ε]≤a*b`, `x≤y+c⇒x-c≤y`), `Uniform.indᵇ-≤1` and `Dp.cum-add`.
-Not committed because `Protocol/Machine/Run/Lax.agda:5-6` (ruled KEEP) names `Dp.Mass.astotal-bind` as the route that
+Not committed because `Machines/Run/Lax.agda:5-6` (ruled KEEP; was `Protocol/Machine/Run/Lax.agda`, which the patch still names) names `Dp.Mass.astotal-bind` as the route that
 turns a lax prefix into an ε-agreement: the development is the one notion of almost-sure termination the layer has, and
 whether that planned use justifies keeping it is your call. Spiked green (root + all leaves):
 `QUALITY-REVIEW-R4D.d/mass-trim.patch` (+5/−140; Run.Lax's comment line then needs a one-line edit, part C).
@@ -60,36 +60,9 @@ Their only consumers were `Partial`'s `>>=⊥-identityʳ`/`>>=⊥-comm`, deleted
 commutativity laws of `Dist-ℚ` itself, so they were kept as the module's defining facts; by the "no consumer ⇒ delete"
 test they go too (`>>=ᴹ-assoc`, `>>=ᴹ-identityˡ` stay, both used).
 
-### 3. `src/Categories/Monad/Discrete.agda :: Elementwise, module Comm` — fold into `DiscreteMonad` (−16)
-`Elementwise` was split off for `Monad.Setoids.Discrete`, which no longer exists; it now has one use (the
-`elementwise` field) and costs a `module Comm` parameter plus `open … public hiding (module Comm)`. One record, with
-`>>=-comm` as a second `field` block and `>>=-comm-y` after it. Spiked green (`Monad.Discrete`, `Class.Monad.Ext`,
-`Machines.Base`): `QUALITY-REVIEW-R4D.d/elementwise-flatten.patch`. Not committed: the two producers
-(`Machines/Base.agda:62`, `Class/Monad/Ext.agda:46`) are outside this part.
-Same module: `<$>ᴹ-cong`, `<$>ᴹ-∘`, `>>=-<$>ᴹ` have no consumer (−9); kept as general functor-law facts (Categories/
-exception), delete if you disagree.
-
-### 4. `src/Categories/LocallyGraded/Monoidal.agda :: GradedMonoidalFunctor, Trivial-monoidal` — consumerless notion (≈ −55)
-After `2bb4772b` (deleting `forgetᴹ`/`GradedMonoidal-forget`), the graded monoidal functor record and the trivial
-graded monoidal structure have no consumer. Kept because they are the general notion of the `LocallyGraded` library
-(Categories/ exception); delete with the header line 7 and the `Trivial` import if the library is not meant to grow.
-
-### 5. `src/Categories/Category/Distributive/Monoidal.agda` (whole module) — root-only (−26)
-`Cartesian-SymmetricMonoidal`/`MonoidalDistributive-Cartesian`: no importer except the root's index line. Unlike
-`Kleisli.Distributive` and `Rels` it is not covered by a ruling. It is a general fact (a distributive category is
-monoidal-distributive under ×) a user would look for; delete module + root line, or rule KEEP.
-
-### 6. `src/ProbabilisticLogic/Dp/Settle.agda :: cum-settled-≈ₚ` → `Attains-≈ₚ` (0 LOC, fossil name)
-It transports `Attains`, not `Settles`. Sites: `UC/Machine/StateEvent/Adequacy.agda:182`,
-`Protocol/Machine/Trace.agda:19,286`, `docs/fcom-uc.md:115`, `docs/rcom-icom-b1.md:268` — mostly outside this part.
-
 ### 7. `src/ProbabilisticLogic/Dp/Advantage.agda :: Pr≤` — second spelling of `Pr≤[ true ]` (−3)
 One use (`Upper`). Cited in `docs/mathematical-guide.md:15`, `docs/state-event-contract.md:44`,
 `docs/simplification-options.md:133` and a comment in `Protocol/Machine/Agree.agda:112`; replace all by `Pr≤[ true ]`.
-
-### 8. `src/ProbabilisticLogic/Dp/Elgot.agda :: padₛ, iterₚ-ctx` (−8)
-`padₛ θ` is stdlib `Data.Product.Base.map₁ θ`; `iterₚ-ctx` is a one-line wrapper with one consumer
-(`Machines/Base.agda:206`). Both changes land in `Machines.Base` (part C, perf-sensitive). Unspiked.
 
 ### 9. `src/Categories/Monad/Graded/FromMonad.agda :: sub-identityˡ, μ-identityʳ, μ-assoc`
 `sub-identityˡ` is verbatim `Categories.Monad.Graded.Ext.sub-identityˡ` (stated for any triple); `μ-identityʳ`/`μ-assoc`
@@ -102,10 +75,6 @@ general. But `PureSub` is documented as a wide *symmetric monoidal subcategory*,
 them changes which standard notion the record is. Your call.
 
 ### Smaller items
-- `CategoricalCrypto/Machines/Base.agda :: MC` vs 8 re-applications of `Core (𝒱ₚ 0ℓ)` (`UC/Machine/{Slide:69,Composite:109,
-  Dictionary:50,Monitor/Agree:41}`, `UC/QueryBound/Compose/Step:27`, `Examples/{CoinToss:34,ROCommitment:41}`,
-  `Machines/Sandwich:30`): two spellings of one module application, three files mixing both (`MC.x` and unqualified).
-  Replace each by `open MC` (parts B/C). Unspiked; check each for ambiguity and time `Composite`.
 - `Categories/Category/Monoidal/Traced/Ext.agda` re-exports `β` (`… Symmetric.Properties.Ext symmetric public using (β)`)
   only so `GConstructionTrace` can re-export it again; sourcing it directly in GT clashes with GT's later full
   `open … Symmetric.Properties.Ext symmetric` (two applications), so it needs that block reshaped. 0 LOC.
@@ -120,8 +89,6 @@ them changes which standard notion the record is. Your call.
 - `Categories/LocallyGraded/SubCategory.agda :: Predicate` is the certified-arrow hom record, not a predicate (rename,
   importers in UC).
 - `Data/Nat/Positive.agda :: value-injective` has no consumer; kept as the general fact about a refinement type.
-- `CategoricalCrypto/GamePlaying/Partial.agda` (part A) takes 92 s warm (`--profile=modules`, measured here), within its
-  rule-5 budget but the slowest module of the `RationalDist` cone.
 
 ## Tried, not worth it
 - `src/ProbabilisticLogic/Distribution/RationalDist.agda :: mass, mass-L` — one mass notion (`mass μ = Lin.mass-L (toList μ)`,
@@ -142,16 +109,6 @@ Key statements checked against their standard form: `Dp`'s `_≼ₚ_`/`_≈ₚ_`
 `LocallyGraded.{Family,SubCategory}`. No vacuous statement, `refl`-theorem or rigged equivalence. Prose that overclaimed
 was fixed in `6d027b89`. Statement changes that need your call:
 
-- `src/ProbabilisticLogic/Distribution/Uniform/Duplicate.agda :: Φ-init` and `Uniform/Birthday.agda :: birthday,
-  birthday-bound` — the proof establishes the textbook `Φ m [] = Γ 0 m = (0+…+(m−1))/2ⁿ = m(m−1)/2ⁿ⁺¹`, but publishes
-  `(m²+m)/2ⁿ`, losing the pool shift (`Γ 0 → Γ 1`) and a factor 2 (`sumN-≤ t j : sumN t j ≤ j * (t + j)` drops the ½).
-  Tighter: `birthday : ∀ q → Γ 1 q ≡ fromℕ (q * suc q) * inv-pow-2 (suc n)` (needs a closed-form `sumN`), and
-  `Φ-init` stated against `Γ 0 m` or `m(m−1)/2ⁿ⁺¹`. Consumers (`ChimericLedger.{Birthday,Property}`,
-  `MerkleDamgard.Core`, `GamePlaying.*`) then decide whether to weaken. `ChimericLedger/Birthday.agda:244` explains the
-  loose bound as "`q²` fresh-hash pairs", which misreads the slack.
-- `src/ProbabilisticLogic/Dp/Elgot.agda :: iterₚ-ctx` — the hypothesis quantifies over every `c` but the proof uses only
-  the given one; `(c : C) → (∀ sa → v (padₛ (c ,_) sa) ≈ₚ …) → …` is strictly stronger. It is then
-  `iterₚ-uniform u v (c ,_)` verbatim, so the wrapper can go (Suggestion 8; consumer `Machines/Base.agda:122,206`).
 - `src/ProbabilisticLogic/Dp/Settle/Iter.agda :: Ranked, Settles-iter` — `Ranked` asks the drop at every depth `i`;
   `Settles-iter` spends it only at depth `proj₁ (bodyS w)`. Narrowing the hypothesis to that depth is strictly stronger;
   6 consumer sites (`Protocol/Machine/Trace.agda`, `Examples/ROCommitment/Realization/Machine.agda`), low priority.

@@ -32,6 +32,8 @@ open import Data.Rational as ℚ using (ℚ; 0ℚ)
 open import Level
 open import Relation.Binary.PropositionalEquality using (cong; trans)
 
+open import ProbabilisticLogic.Distribution.Uniform.Decay
+
 open import CategoricalCrypto.Approx.Error
 open import CategoricalCrypto.Approx.Evaluation ℚ-ordered
 open import CategoricalCrypto.UC.Approximate

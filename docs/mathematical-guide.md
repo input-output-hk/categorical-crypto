@@ -16,7 +16,7 @@ supremum of its finite approximants, so divergence carries no mass.
   `k`, the one-sided bound "every approximant is at most `r`", two-sided closeness.
 - `ProbabilisticLogic.Distribution.RationalDist.Partial :: Dist⊥` and
   `ProbabilisticLogic.Distribution.RationalDist.Expectation :: Pr₁⊥`: the exact layer 1.
-- `UC.Approximate :: Negligible`, `NegligibleBound`: decay faster than every inverse
+- `ProbabilisticLogic.Distribution.Uniform.Decay :: Negligible`, `UC.Approximate :: NegligibleBound`: decay faster than every inverse
   polynomial, for a schedule and for a schedule read at every polynomial allowance.
 
 ## 2. Machines
@@ -40,9 +40,10 @@ state simulations connects them.
 A process is a `𝒢ₚ`-hom between interfaces, and a protocol is a state machine on call
 trees that compiles to a process.
 
-- `UC.Machine :: Proc`, `𝒫ᴵ`, `Ωᴵ`: processes, their category, the verdict interface.
-- `Protocol :: Protocol`; `Protocol.Machine :: morphism`, `MSt`, `runᴹ`: a protocol, its
-  compiled process (state `idle | wait`), and a process's run against a strategy.
+- `Machines.Run :: Proc`, `runᴹ`; `UC.Machine :: 𝒫ᴵ`, `Ωᴵ`: processes, a closed
+  process's run against a strategy, their category, the verdict interface.
+- `Protocol :: Protocol`; `Protocol.Machine :: morphism`, `MSt`: a protocol and its
+  compiled process (state `idle | wait`).
 - `Strategy :: Strat`, `asks≤`: a finite adaptive environment tree with coin nodes, and
   its query count (a cap of 0 is allowed).
 - `UC.Model.Family.Emulation :: Systems`: `(n : ℕ) → Protocol unitᴵ (B n)`, a
@@ -60,7 +61,7 @@ and it agrees with the machine run past some finite depth.
   environment process observes what `runᴹ` observes.
 - `UC.Model.Seal :: 𝔾ᵒ`, `unprocᵒ`: the opaque seal that the abstract theory sees, and
   the coercion that every state read must cross.
-- `UC.Core :: Evaluation`, `Standard2 :: StdUC`, `UCSetup :: UCSetup`,
+- `UC.Evaluation :: Evaluation`, `Standard2 :: StdUC`, `UCSetup :: UCSetup`,
   `Abstract2 :: _≤UC_`, `dummy-complete`: the generic UC order: some simulator makes the
   two sides agree in every environment.
 

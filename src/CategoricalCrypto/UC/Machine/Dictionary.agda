@@ -15,7 +15,6 @@ open import Categories.Category using (Category)
 open import Categories.Category.Monoidal.Bundle
 open import Categories.Monad.Discrete
 import Categories.Category.Cocartesian.Ext as CE
-import Categories.Category.Construction.Kleisli.Discrete as KD
 import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Utilities as MU
 import Categories.GConstructionMonoidal as GM
@@ -31,45 +30,46 @@ open import ProbabilisticLogic.Dp
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pure
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.UC.Machine
 
-import CategoricalCrypto.Machines.Category as MCat
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Frame as Frame
-import CategoricalCrypto.Machines.Sim as Sim
-import CategoricalCrypto.Machines.Tensor as Tensor
 
 module CategoricalCrypto.UC.Machine.Dictionary where
 
 private
-  module 𝒱 = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
   module 𝔾 = MonoidalCategory (𝒢ₚᴹ 0ℓ)
   module 𝒫 = Category 𝒫ᴵ
 
-open Core (𝒱ₚ 0ℓ)
+open MC
 open MD.MonoidalDistributive (distₚ 0ℓ)
-open CE 𝒱.U cocartesian
+open CE V.U cocartesian
 open DiscreteMonad (Dₚ-DiscreteMonad {0ℓ})
   renaming (_≈ᴹ_ to _≈ᵈ_; module ≈ᴹ to ≈ᵈ)
 open Frame (𝒱ₚ 0ℓ)
-open KD (Dₚ-DiscreteMonad {0ℓ})
-open MCat (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
-open MU.Shorthands 𝒱.monoidal
-open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
-open Tensor (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ)
+open K
+open Cat
+open MU.Shorthands V.monoidal
+open MS
+open T
 
-open import Categories.Category.Monoidal.Reasoning 𝒱.monoidal
+open import Categories.Category.Monoidal.Reasoning V.monoidal
 
 open MU.Shorthands 𝔾.monoidal using () renaming (α⇒ to α⇒ᴳ; α⇐ to α⇐ᴳ)
 
 private
-  variable V X : 𝒱.Obj
+  variable P Q R S V W V′ W′ X : V.Obj
 
 private
+  -- An embedding `⌜ u , v ⌝` of two pure machines is pure.
+  ⌜⌝-pureᴹ : (u : V._⇒_ V W) (v : V._⇒_ V′ W′)
+           → (σᴹ ∘ᴹ (pureᴹ u ⊗ᵉ pureᴹ v)) ≲ pureᴹ (V._∘_ +-swap (u +₁ v))
+  ⌜⌝-pureᴹ u v = ≲-trans (∘ᴹ-resp-≲ ≲-refl (⊗ᵉ-pureᴹ u v)) (pureᴹ-∘ +-swap (u +₁ v))
+
   wireStep-copair : {A B : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
-                  → 𝒱._≈_ (wireStep {A} {B} up down)
-                      (𝒱._⊗₁_ 𝒱.id [ 𝒱._∘_ i₂ (pureᵏ up) , 𝒱._∘_ i₁ (pureᵏ down) ])
+                  → V._≈_ (wireStep {A} {B} up down)
+                      (V._⊗₁_ V.id [ V._∘_ i₂ (pureᵏ up) , V._∘_ i₁ (pureᵏ down) ])
   wireStep-copair _ _ (_ , inj₁ _) =
     ≈ᵈ.sym (≈ᵈ.trans >>=-identityˡ-≈
                      (≈ᵈ.trans (>>=-cong-x >>=-identityˡ-≈) >>=-identityˡ-≈))
@@ -81,8 +81,8 @@ private
 -- The ancilla reassociators are the 𝒢-associator
 
 wire-pure : {A B : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
-            (u : 𝒱._⇒_ (Pos A) (Pos B)) (v : 𝒱._⇒_ (Neg B) (Neg A))
-          → 𝒱._≈_ u (pureᵏ up) → 𝒱._≈_ v (pureᵏ down)
+            (u : V._⇒_ (Pos A) (Pos B)) (v : V._⇒_ (Neg B) (Neg A))
+          → V._≈_ u (pureᵏ up) → V._≈_ v (pureᵏ down)
           → 𝒫._≈_ {A} {B} (wireᴹ up down) (σᴹ ∘ᴹ (pureᴹ u ⊗ᵉ pureᴹ v))
 wire-pure up down u v eu ev =
     ≲⇒≈ᴹ (mk-cong (wireStep-copair up down ○ ⟺ (refl⟩⊗⟨ bridge)))
@@ -94,7 +94,7 @@ wire-⌜⌝ : {A B : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
         → 𝒫._≈_ {A} {B} (wireᴹ up down)
             (σᴹ ∘ᴹ (pureᴹ (pureᵏ up) ⊗ᵉ pureᴹ (pureᵏ down)))
 wire-⌜⌝ up down =
-  wire-pure up down (pureᵏ up) (pureᵏ down) 𝒱.Equiv.refl 𝒱.Equiv.refl
+  wire-pure up down (pureᵏ up) (pureᵏ down) V.Equiv.refl V.Equiv.refl
 
 a⇐-α⇐ : {X Y A : Iface}
       → 𝒫._≈_ {X ⊗ᴵ (Y ⊗ᴵ A)} {(X ⊗ᴵ Y) ⊗ᴵ A}
@@ -124,16 +124,16 @@ drop⇒ʳ = Sum.[ (λ a → a) , ⊥-elim ]
 private
   -- The cocartesian unitors are pure: `to` is an injection on the nose, and
   -- `from` is the copairing whose empty leg has no clause.
-  unitˡᵏ : 𝒱._≈_ (⊕.unitorˡ.from {V}) (pureᵏ drop⇒ˡ)
+  unitˡᵏ : V._≈_ (⊕.unitorˡ.from {V}) (pureᵏ drop⇒ˡ)
   unitˡᵏ (inj₂ _) = ≈ᵈ.refl
 
-  unitʳᵏ : 𝒱._≈_ (⊕.unitorʳ.from {V}) (pureᵏ drop⇒ʳ)
+  unitʳᵏ : V._≈_ (⊕.unitorʳ.from {V}) (pureᵏ drop⇒ʳ)
   unitʳᵏ (inj₁ _) = ≈ᵈ.refl
 
-  unitˡᵏ⁻ : 𝒱._≈_ (⊕.unitorˡ.to {V}) (pureᵏ inj₂)
+  unitˡᵏ⁻ : V._≈_ (⊕.unitorˡ.to {V}) (pureᵏ inj₂)
   unitˡᵏ⁻ _ = ≈ᵈ.refl
 
-  unitʳᵏ⁻ : 𝒱._≈_ (⊕.unitorʳ.to {V}) (pureᵏ inj₁)
+  unitʳᵏ⁻ : V._≈_ (⊕.unitorʳ.to {V}) (pureᵏ inj₁)
   unitʳᵏ⁻ _ = ≈ᵈ.refl
 
 λᴵ : {A : Iface} → Proc (𝟭ᴵ ⊗ᴵ A) A
@@ -164,13 +164,61 @@ plugᴹ a = λᴵ 𝒫.∘ subᴵ a
 -- The two relays are the 𝒢-tensor with an identity
 
 private
+  -- The interchange the G-tensor conjugates by, as a function on sums.
+  midfn : (P ⊎ Q) ⊎ (R ⊎ S) → (P ⊎ R) ⊎ (Q ⊎ S)
+  midfn (inj₁ (inj₁ p)) = inj₁ (inj₁ p)
+  midfn (inj₁ (inj₂ q)) = inj₂ (inj₁ q)
+  midfn (inj₂ (inj₁ r)) = inj₁ (inj₂ r)
+  midfn (inj₂ (inj₂ s)) = inj₂ (inj₂ s)
+
+  -- `GConstructionTrace.mid` at `ℳₚ`, kept nominal after proving its expansion
+  -- once: stated at `mid` itself, `T₁-⊗₁` and `sub-⊗₁` measured 60 s each and
+  -- the module 170 s instead of 20 s.
+  opaque
+    midᴹ : Machine ((P + Q) + (R + S)) ((P + R) + (Q + S))
+    midᴹ = α⇐ᴹ ∘ᴹ ((idᴹ ⊗ᵉ (α⇒ᴹ ∘ᴹ ((σᴹ ⊗ᵉ idᴹ) ∘ᴹ α⇐ᴹ))) ∘ᴹ α⇒ᴹ)
+
+  opaque
+    unfolding midᴹ
+
+    midᴹ-pure : midᴹ {P} {Q} {R} {S} ≈ᴹ pureᶠ midfn
+    midᴹ-pure =
+        ∘-pureᴹ reflᴹ
+          (∘-pureᴹ
+            (⊗-pureᴹ (idᶠ _)
+              (∘-pureᴹ reflᴹ (∘-pureᴹ (⊗-pureᴹ reflᴹ (idᶠ _)) reflᴹ)))
+            reflᴹ)
+      ○ᴹ ≲⇒≈ᴹ (pureᴹ-cong
+        (∘-pureᵏ assocˡᵏ
+          (∘-pureᵏ (+₁-pureᵏ pure-idᵏ
+                     (∘-pureᵏ assocʳᵏ
+                       (∘-pureᵏ (+₁-pureᵏ swapᵏ pure-idᵏ) assocˡᵏ)))
+                   assocʳᵏ)
+         ○ pureᵏ-cong λ where
+             (inj₁ (inj₁ _)) → refl
+             (inj₁ (inj₂ _)) → refl
+             (inj₂ (inj₁ _)) → refl
+             (inj₂ (inj₂ _)) → refl))
+
+  swapᴵ : (r : X × (V ⊎ W))
+        → V._⊗₁_ (V.id {X}) +-swap r ≈ᵈ returnₚ (proj₁ r , Sum.swap (proj₂ r))
+  swapᴵ {X = X} {V} {W} r = ≈ᵈ.trans (padded r) (pureᴵ Sum.swap r)
+    where
+    padded : V._≈_ {X × (V ⊎ W)} {X × (W ⊎ V)}
+                   (V._⊗₁_ V.id +-swap) (V._⊗₁_ V.id (pureᵏ Sum.swap))
+    padded = refl⟩⊗⟨ swapᵏ
+
+  exit-pure : (h : V → W) (x : X) (v : V)
+            → (returnₚ (x , v) >>= V._⊗₁_ (V.id {X}) (pureᵏ h)) ≈ᵈ returnₚ (x , h v)
+  exit-pure h x v = ≈ᵈ.trans >>=-identityˡ-≈ (pureᴵ h (x , v))
+
   -- Both relays collapse to the same shape: the conjugation of a `tstep` by the
   -- interchange, which is what `_⊗₁ᴳ_` is once its two `mid`s are absorbed.
   T₁-step : {Y A B : Iface} (f : Proc A B)
-          → 𝒱._≈_
-              (𝒱._∘_ (𝒱._⊗₁_ 𝒱.id (pureᵏ midfn))
-                     (𝒱._∘_ (tstep (𝒱._⊗₁_ 𝒱.id +-swap) (step f))
-                            (𝒱._⊗₁_ 𝒱.id (pureᵏ midfn))))
+          → V._≈_
+              (V._∘_ (V._⊗₁_ V.id (pureᵏ midfn))
+                     (V._∘_ (tstep (V._⊗₁_ V.id +-swap) (step f))
+                            (V._⊗₁_ V.id (pureᵏ midfn))))
               (step (T₁ᴵ Y {A} {B} f))
   T₁-step f (s , inj₁ (inj₁ y)) =
     ≈ᵈ.trans (>>=-cong-x (≈ᵈ.trans (enter-pure midfn _ s (inj₁ (inj₁ y))) relabel))
@@ -200,10 +248,10 @@ private
                           (s′ , inj₂ b′) → exit-pure midfn s′ (inj₂ (inj₂ b′))))
 
   sub-step : {X Y A : Iface} (s : Proc X Y)
-           → 𝒱._≈_
-               (𝒱._∘_ (𝒱._⊗₁_ 𝒱.id (pureᵏ midfn))
-                      (𝒱._∘_ (tstep (step s) (𝒱._⊗₁_ 𝒱.id +-swap))
-                             (𝒱._⊗₁_ 𝒱.id (pureᵏ midfn))))
+           → V._≈_
+               (V._∘_ (V._⊗₁_ V.id (pureᵏ midfn))
+                      (V._∘_ (tstep (step s) (V._⊗₁_ V.id +-swap))
+                             (V._⊗₁_ V.id (pureᵏ midfn))))
                (step (subᴵ {X} {Y} {A} s))
   sub-step s (t , inj₁ (inj₂ a)) =
     ≈ᵈ.trans (>>=-cong-x (≈ᵈ.trans (enter-pure midfn _ t (inj₁ (inj₂ a))) relabel))

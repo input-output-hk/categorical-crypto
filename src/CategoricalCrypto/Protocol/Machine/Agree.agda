@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- `prAgree`: past a budget the machine image's cumulative mass IS layer 1's
--- verdict probability.  It is `Protocol.Machine.Raw.rawPr` at the image, whose
+-- verdict probability.  It is `Machines.Run.Raw.rawPr` at the image, whose
 -- step kernel is layer 1's `kernel` read on idle states: each activation
 -- settles by induction on the call tree it drives (`drive-settles`), and the
 -- kernel's run is layer 1's run by a bisimulation on `idle`.
@@ -30,9 +30,10 @@ open import ProbabilisticLogic.Dp.Settle
 open import CategoricalCrypto.GamePlaying.Partial
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Interaction
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Machine.Raw
+open import CategoricalCrypto.Machines.Run.Raw
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
 

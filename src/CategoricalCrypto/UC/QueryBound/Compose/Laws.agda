@@ -21,9 +21,6 @@ open import CategoricalCrypto.UC.QueryBound
 open import CategoricalCrypto.UC.QueryBound.Compose
 open import CategoricalCrypto.UC.QueryBound.Object
 
-import CategoricalCrypto.Machines.Core as Core
-import CategoricalCrypto.Machines.Pointwise as Pw
-
 module CategoricalCrypto.UC.QueryBound.Compose.Laws where
 
 private module 𝒢 = Category (𝒢ₚ 0ℓ)
@@ -36,9 +33,9 @@ qb-∘-category : (A B C : Iface) {c c′ : ℕ}
                   (𝒢._∘_ {Pos A , Neg A} {Pos B , Neg B} {Pos C , Neg C} g f)
 qb-∘-category A B C g f (Ng , cg , eg) (Nf , cf , ef) =
   Nᶜ A B C Ng Nf , QC.qbᵢ-∘ᵍ (unfoldᶜ A B C Ng Nf) cg cf ,
-  (eq-∘ᶜ A B C Ng Nf Pw.S.○ᴹ 𝒢.∘-resp-≈ {Pos A , Neg A} {Pos B , Neg B} {Pos C , Neg C} eg ef)
+  (eq-∘ᶜ A B C Ng Nf MS.○ᴹ 𝒢.∘-resp-≈ {Pos A , Neg A} {Pos B , Neg B} {Pos C , Neg C} eg ef)
   where
-    open Core (𝒱ₚ 0ℓ)
+    open MC
     module QC = Compose {A} {B} {C} (St Ng) (St Nf) (point (state Ng) tt) (point (state Nf) tt)
                         (pointᶜ A B C Ng Nf) (step Ng) (step Nf) (stepᶜ A B C Ng Nf) (solveᶜ A B C Ng Nf)
 

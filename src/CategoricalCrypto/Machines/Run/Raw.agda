@@ -34,11 +34,11 @@ open import ProbabilisticLogic.Dp.Settle
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.Machines.Base
-open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Strategy
 
 
-module CategoricalCrypto.Protocol.Machine.Raw where
+module CategoricalCrypto.Machines.Run.Raw where
 
 -- A kernel's answer read in the machine's output alphabet: a closed machine's
 -- domain summand is empty, so every output of its is one of these.  Stated at
@@ -46,7 +46,7 @@ module CategoricalCrypto.Protocol.Machine.Raw where
 ansᴹ : {S R : Set} → S × R → S × (⊥ ⊎ R)
 ansᴹ (m , r) = m , inj₂ r
 
-module _ {B : Iface} (M : Closed B)
+module _ {B : Iface} (M : Proc unitᴵ B)
          (K : MC.St M → Neg B → Dist⊥ (MC.St M × Pos B)) where
 
   -- What replaces the inner induction: every activation settles, at a fuel of

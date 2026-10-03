@@ -46,6 +46,7 @@ open import ProbabilisticLogic.Distribution.RationalDist
 open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 open import ProbabilisticLogic.Distribution.Uniform
 
+import ProbabilisticLogic.Distribution.Uniform.Birthday as Birthday
 import ProbabilisticLogic.Distribution.Uniform.Duplicate as Dup
 
 module CategoricalCrypto.GamePlaying.Potential where
@@ -137,6 +138,7 @@ drift-∧ k g false p = ≤-trans
 
 module _ (n : ℕ) where
 
+  open Birthday n
   open Dup n
 
   -- Read at an ARBITRARY integrand of the log: a statement about the log's
@@ -158,8 +160,9 @@ module _ (n : ℕ) where
     ; φ-nn   = λ m s _ → 0≤Φ m (log s)
     ; φ-bad  = λ m s _ → dup⇒1≤Φ m (log s)
     ; φ-step = λ m s q _ → step m s q
-    ; φ-init = λ m → subst (λ L → Φ m L ≤ℚ fromℕ (m * m + m) *ℚ inv-pow-2 n)
-                           (sym init) (Φ-init m)
+    ; φ-init = λ m → subst (λ L → Φ m L ≤ℚ fromℕ (m * m + m) *ℚ inv-pow-2 n) (sym init)
+                       (≤-trans (≤-reflexive (+-identityˡ (Γ 0 m)))
+                                (≤-trans (Γ-monoˡ 0 m) (birthday-≤ m)))
     }
     where
       step : ∀ m s q → E (resp s q) (λ sr → Φ m (log (proj₁ sr))) ≤ℚ Φ (suc m) (log s)

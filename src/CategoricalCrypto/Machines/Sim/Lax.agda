@@ -7,7 +7,7 @@
 -- `σ : unit ⇒ unit` buried in a composite contributes its own initialization to
 -- the run and nothing else, and no state map makes that disappear.  `_≲ˡ[_]_`
 -- records exactly that gap — step and state map as strict as `_≲_`, the point
--- only up to a scalar prefix; its run-level reading is `Protocol.Machine.Run.Lax`.
+-- only up to a scalar prefix; its run-level reading is `Machines.Run.Lax`.
 
 open import Categories.Category.Monoidal.Bundle
 open import Categories.Category.Monoidal.Pure

@@ -27,6 +27,7 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.UC.Machine
 
 import CategoricalCrypto.Machines.Pointwise as Pw
@@ -45,7 +46,6 @@ open import CategoricalCrypto.Examples.ROCommitment.Resource k
 open MC
 
 private
-  module S  = Pw.S
   module 𝒫  = Category 𝒫ᴵ
 
 ------------------------------------------------------------------------
@@ -163,7 +163,7 @@ private
 -- The machine equality
 
 private
-  idl-sim : coinᶜ S.≲ Iᴺ
+  idl-sim : coinᶜ MS.≲ Iᴺ
   idl-sim = Pw.simFn θᴵ
                   (λ x → >>=ₚ-identityˡ (preᶜ []) _
                      ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _
@@ -173,5 +173,5 @@ private
                         ⟨≈⟩ idlStep (proj₁ z) (proj₂ z))
 
 coin-machine : 𝒫._≈_ {unitᴵ} {Cᵗ} hybridᴹ idealᴹ
-coin-machine = hybrid-eq S.○ᴹ S.≲⇒≈ᴹ idl-sim
-          S.○ᴹ CS.eq-∘ᶜ unitᴵ (Lkᴵᶜ ⊗ᴵ Honᴵᶜ) Cᵗ simᴵᵈ Fcoin
+coin-machine = hybrid-eq MS.○ᴹ MS.≲⇒≈ᴹ idl-sim
+          MS.○ᴹ CS.eq-∘ᶜ unitᴵ (Lkᴵᶜ ⊗ᴵ Honᴵᶜ) Cᵗ simᴵᵈ Fcoin

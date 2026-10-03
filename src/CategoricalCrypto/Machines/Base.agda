@@ -26,7 +26,7 @@ import Categories.Category.Monoidal.Distributive as MD
 import Categories.Category.Monoidal.Traced.Ext as TE
 
 open import Data.Product.Base
-open import Data.Sum.Base
+open import Data.Sum.Base hiding (map₁)
 open import Level
 open import Relation.Binary.Bundles
 
@@ -39,10 +39,13 @@ open import ProbabilisticLogic.Dp.Iter.Out
 open import ProbabilisticLogic.Dp.Iter.Transfer
 
 import CategoricalCrypto.Machines.Bundle as Bundle
+import CategoricalCrypto.Machines.Category as MCat
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.G as G
 import CategoricalCrypto.Machines.Iteration as Iteration
+import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Tensor as Tensor
+import CategoricalCrypto.Machines.Trace as Trace
 
 module CategoricalCrypto.Machines.Base where
 
@@ -61,16 +64,14 @@ Dₚ-setoid A = record
 
 Dₚ-DiscreteMonad : DiscreteMonad ℓ
 Dₚ-DiscreteMonad = record
-  { elementwise = record
-      { ≈ᴹ-setoid       = Dₚ-setoid
-      ; return          = returnₚ
-      ; _>>=_           = _>>=ₚ_
-      ; >>=-cong        = λ {_} {_} {x} {y} {f} {g} → >>=ₚ-cong x y f g
-      ; >>=-identityˡ-≈ = λ {_} {_} {a} {h} → >>=ₚ-identityˡ a h
-      ; >>=-identityʳ-≈ = >>=ₚ-identityʳ
-      ; >>=-assoc-≈     = λ m {g} {h} → >>=ₚ-assoc m g h
-      }
-  ; >>=-comm    = λ {_} {_} {x} {y} → >>=ₚ-comm x y
+  { ≈ᴹ-setoid       = Dₚ-setoid
+  ; return          = returnₚ
+  ; _>>=_           = _>>=ₚ_
+  ; >>=-cong        = λ {_} {_} {x} {y} {f} {g} → >>=ₚ-cong x y f g
+  ; >>=-identityˡ-≈ = λ {_} {_} {a} {h} → >>=ₚ-identityˡ a h
+  ; >>=-identityʳ-≈ = >>=ₚ-identityʳ
+  ; >>=-assoc-≈     = λ m {g} {h} → >>=ₚ-assoc m g h
+  ; >>=-comm        = λ {_} {_} {x} {y} → >>=ₚ-comm x y
   }
 
 𝒱ₚ : (ℓ : Level) → SymmetricMonoidalCategory (suc ℓ) ℓ ℓ
@@ -85,7 +86,16 @@ distₚ ℓ = KDD.MonoidalDistributiveᵏ (Dₚ-DiscreteMonad)
 
 -- The machine layer at the base, applied once: a second application is a
 -- distinct module whose names clash with this one's in any common opener.
-module MC = Core (𝒱ₚ 0ℓ)
+module MC  = Core (𝒱ₚ 0ℓ)
+module MS  = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
+module Cat = MCat (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
+module T   = Tensor (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ)
+module V   = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
+module K   = KD (Dₚ-DiscreteMonad {0ℓ})
+module KP  = KDP (Dₚ-DiscreteMonad {0ℓ})
+
+initˢ : (S : Set) → S → MC.State
+initˢ S s = record { obj = S ; point = λ _ → returnₚ s }
 
 module Elgotᵏ (ℓ : Level) where
   open DiscreteMonad (Dₚ-DiscreteMonad {ℓ})
@@ -103,9 +113,9 @@ module Elgotᵏ (ℓ : Level) where
   --------------------------------------------------------------------
   -- The structural morphisms, computed
 
-  onR-padₛ : (w : S × X → Dₚ (S × Y)) (c : P) (sx : S × X)
-           → onR w (padₛ (c ,_) sx) ≈ᴹ mapₚ (padₛ (c ,_)) (w sx)
-  onR-padₛ w c (s , x) = begin
+  onR-map₁ : (w : S × X → Dₚ (S × Y)) (c : P) (sx : S × X)
+           → onR w (map₁ (c ,_) sx) ≈ᴹ mapₚ (map₁ (c ,_)) (w sx)
+  onR-map₁ w c (s , x) = begin
     ((α⇒ᵏ ((c , s) , x) >>= (return ⊗ᵏ w)) >>= α⇐ᵏ)
       ≈⟨ >>=-cong-x >>=-identityˡ-≈ ⟩
     ((return ⊗ᵏ w) (c , s , x) >>= α⇐ᵏ)
@@ -114,7 +124,7 @@ module Elgotᵏ (ℓ : Level) where
       ≈⟨ >>=-identityˡ-≈ ⟩
     (w (s , x) >>= λ r → α⇐ᵏ (c , r))
       ≈⟨ >>=-cong-f (λ where (_ , _) → ≈ᴹ.refl) ⟩
-    mapₚ (padₛ (c ,_)) (w (s , x)) ∎
+    mapₚ (map₁ (c ,_)) (w (s , x)) ∎
 
   -- `undistribute` is exactly the case split `contᵢ` performs, so the two
   -- differ by the one junction `δ⇐` spends.
@@ -203,9 +213,9 @@ module Elgotᵏ (ℓ : Level) where
   iter-ctxₚ : (q : (P × S) × A) → iterₚ (onR u) q ≈ᴹ onR (iterₚ u) q
   iter-ctxₚ {u = u} ((c , s) , x) = begin
     iterₚ (onR u) ((c , s) , x)
-      ≈⟨ iterₚ-ctx u (onR u) (onR-padₛ u) c (s , x) ⟩
-    mapₚ (padₛ (c ,_)) (iterₚ u (s , x))
-      ≈˘⟨ onR-padₛ (iterₚ u) c (s , x) ⟩
+      ≈⟨ iterₚ-uniform u (onR u) (c ,_) (onR-map₁ u c) (s , x) ⟩
+    mapₚ (map₁ (c ,_)) (iterₚ u (s , x))
+      ≈˘⟨ onR-map₁ (iterₚ u) c (s , x) ⟩
     onR (iterₚ u) ((c , s) , x) ∎
 
   iter-transferₚ : (κ : S × A → Dₚ (T × A′)) (μ : S × B → Dₚ (T × B′))
@@ -261,6 +271,8 @@ Elgotₚ ℓ = record
   where
   open Elgotᵏ ℓ
   open KDP (Dₚ-DiscreteMonad)
+
+module MT = Trace (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
 
 ------------------------------------------------------------------------
 -- The machine category

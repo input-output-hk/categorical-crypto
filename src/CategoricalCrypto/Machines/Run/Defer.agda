@@ -29,17 +29,17 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
-open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Strategy
 
 
-module CategoricalCrypto.GamePlaying.Defer.Run where
+module CategoricalCrypto.Machines.Run.Defer where
 
 -- `f` is the PLANTED side, run at a family of states indexed by the secret;
 -- `g` is the DEFERRING side, run at a single state.  The relation compares a
 -- family with one state, which is what carries "the secret is fixed here and
 -- not yet drawn there".
-module _ {V : Set} (μ : Dₚ V) {B : Iface} (f g : Closed B) (_≋_ : (V → MC.St f) → MC.St g → Set) where
+module _ {V : Set} (μ : Dₚ V) {B : Iface} (f g : Proc unitᴵ B) (_≋_ : (V → MC.St f) → MC.St g → Set) where
 
   -- One activation, averaged.  A family of outcomes counts as related when its
   -- states are and its answer does not depend on the secret; at the step that

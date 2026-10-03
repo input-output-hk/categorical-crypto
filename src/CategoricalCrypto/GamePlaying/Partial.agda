@@ -4,7 +4,7 @@
 -- kernel, which is the general case.
 --
 -- A machine's step DIVERGES where a game's kernel idles, so the transport of
--- `Protocol.Machine.Raw` lands on a `Dist⊥`-valued kernel.  The sink scores 0,
+-- `Machines.Run.Raw` lands on a `Dist⊥`-valued kernel.  The sink scores 0,
 -- which only helps the supermartingale and which the coupling carries through untouched.
 
 open import categorical-crypto.Prelude hiding (_>>=_)
@@ -138,6 +138,88 @@ module _ {resp : St → Q → Dist⊥ (St × R)} {bad : St → Bool} {s₀ : St}
 ------------------------------------------------------------------------
 -- The coupled Fundamental Lemma of Game-Playing, partially
 
+-- A joint draw with marginals `μ` and `μ′` whose every outcome is flagged or
+-- related at a common answer.
+module _ {R S S′ : Type} (bad : S → Bool) (_≋_ : S → S′ → Type) where
+
+  JoinAt⊥ : Dist⊥ (S × R) → Dist⊥ (S′ × R) → Type
+  JoinAt⊥ μ μ′ = Σ[ ν ∈ Dist⊥ ((S × R) × (S′ × R)) ]
+                   ( (∀ F  → E⊥ ν (λ p → F  (proj₁ p)) ≡ E⊥ μ  F )
+                   × (∀ F′ → E⊥ ν (λ p → F′ (proj₂ p)) ≡ E⊥ μ′ F′)
+                   × OnSupport⊥ (λ p → (bad (proj₁ (proj₁ p)) ≡ true)
+                                     ⊎ ((proj₁ (proj₁ p) ≋ proj₁ (proj₂ p))
+                                        × (proj₂ (proj₁ p) ≡ proj₂ (proj₂ p)))) ν )
+
+-- The identical-until-bad step for two kernels on their OWN state spaces:
+-- where the games' states part once the flag is up, one coupled state would
+-- have to carry both.
+module _ {Q R S S′ : Type} (resp : S → Q → Dist⊥ (S × R))
+         (resp′ : S′ → Q → Dist⊥ (S′ × R)) (bad : S → Bool)
+         (_≋_ : S → S′ → Type) where
+
+  JoinStep⊥ : Type
+  JoinStep⊥ = ∀ s s′ → s ≋ s′ → bad s ≡ false → ∀ q → JoinAt⊥ bad _≋_ (resp s q) (resp′ s′ q)
+
+  runWith-join⊥ : JoinStep⊥ → ∀ d s s′ → s ≋ s′
+                → ∣ Pr₁⊥ (runWith⊥ resp s d) -ℚ Pr₁⊥ (runWith⊥ resp′ s′ d) ∣ℚ
+                  ≤ℚ badProb⊥ resp bad s d
+  runWith-join⊥ jn (out b) s s′ rel =
+    subst (_≤ℚ bool→ℚ (bad s)) (sym (∣x-x∣≡0 (Pr₁⊥ (return⊥ b)))) (0≤bool (bad s))
+  runWith-join⊥ jn (ask q k) s s′ rel with bad s in g
+  ... | true  = ∣Pr⊥-Pr⊥∣≤1 (runWith⊥ resp s (ask q k)) (runWith⊥ resp′ s′ (ask q k))
+  ... | false =
+      ≤-trans (≤-reflexive (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ) eqL eqR))
+     (≤-trans (E⊥-abs-diff ν AL AR)
+     (≤-trans (E⊥-mono-on ν (λ p → ∣ AL p -ℚ AR p ∣ℚ) BB (OnSupport-mono ν sink sup))
+              (≤-reflexive (mL (λ t → badProb⊥ resp bad (proj₁ t) (k (proj₂ t)))))))
+    where
+      jnq = jn s s′ rel g q
+      ν   = proj₁ jnq
+      mL  = proj₁ (proj₂ jnq)
+      mR  = proj₁ (proj₂ (proj₂ jnq))
+      sup = proj₂ (proj₂ (proj₂ jnq))
+
+      KL = λ (t  : S  × R) → runWith⊥ resp  (proj₁ t ) (k (proj₂ t ))
+      KR = λ (t′ : S′ × R) → runWith⊥ resp′ (proj₁ t′) (k (proj₂ t′))
+
+      AL AR BB : (S × R) × (S′ × R) → ℚ
+      AL p = Pr₁⊥ (KL (proj₁ p))
+      AR p = Pr₁⊥ (KR (proj₂ p))
+      BB p = badProb⊥ resp bad (proj₁ (proj₁ p)) (k (proj₂ (proj₁ p)))
+
+      eqL : Pr₁⊥ (runWith⊥ resp s (ask q k)) ≡ E⊥ ν AL
+      eqL = trans (E⊥-bind (resp s q) KL bool→ℚ) (sym (mL (λ t → Pr₁⊥ (KL t))))
+
+      eqR : Pr₁⊥ (runWith⊥ resp′ s′ (ask q k)) ≡ E⊥ ν AR
+      eqR = trans (E⊥-bind (resp′ s′ q) KR bool→ℚ) (sym (mR (λ t′ → Pr₁⊥ (KR t′))))
+
+      sink : (x : Maybe ((S × R) × (S′ × R)))
+           → Mb (λ p → (bad (proj₁ (proj₁ p)) ≡ true)
+                     ⊎ ((proj₁ (proj₁ p) ≋ proj₁ (proj₂ p))
+                        × (proj₂ (proj₁ p) ≡ proj₂ (proj₂ p)))) x
+           → Mb (λ p → ∣ AL p -ℚ AR p ∣ℚ ≤ℚ BB p) x
+      sink nothing  _ = tt
+      sink (just p) (inj₁ bd) =
+        subst (∣ AL p -ℚ AR p ∣ℚ ≤ℚ_)
+              (sym (badProb⊥-bad resp bad (proj₁ (proj₁ p)) (k (proj₂ (proj₁ p))) bd))
+              (∣Pr⊥-Pr⊥∣≤1 (KL (proj₁ p)) (KR (proj₂ p)))
+      sink (just p) (inj₂ (rel′ , ans)) =
+        subst (λ z → ∣ AL p -ℚ Pr₁⊥ (runWith⊥ resp′ (proj₁ (proj₂ p)) (k z)) ∣ℚ ≤ℚ BB p)
+              ans (runWith-join⊥ jn (k (proj₂ (proj₁ p))) (proj₁ (proj₁ p)) (proj₁ (proj₂ p)) rel′)
+  runWith-join⊥ jn (coin μ k) s s′ rel with bad s
+  ... | true  = ∣Pr⊥-Pr⊥∣≤1 (runWith⊥ resp s (coin μ k)) (runWith⊥ resp′ s′ (coin μ k))
+  ... | false =
+      ≤-trans (≤-reflexive (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ)
+                             (E-bind μ (λ b → runWith⊥ resp  s  (k b)) mb)
+                             (E-bind μ (λ b → runWith⊥ resp′ s′ (k b)) mb)))
+     (≤-trans (E-abs-diff μ AL AR)
+              (E-mono μ (λ b → ∣ AL b -ℚ AR b ∣ℚ) BB (λ b → runWith-join⊥ jn (k b) s s′ rel)))
+    where
+      AL AR BB : Bool → ℚ
+      AL b = Pr₁⊥ (runWith⊥ resp  s  (k b))
+      AR b = Pr₁⊥ (runWith⊥ resp′ s′ (k b))
+      BB b = badProb⊥ resp bad s (k b)
+
 module Coupling⊥ (bad : St → Bool)
                  (respB : St → Q → Dist⊥ (St × (R × R))) where
 
@@ -149,60 +231,28 @@ module Coupling⊥ (bad : St → Bool)
   realK  s q = Dmap⊥ fR (respB s q)
   idealK s q = Dmap⊥ fI (respB s q)
 
+  private
+    coupled : JoinStep⊥ realK idealK bad _≡_
+    coupled s .s refl _ q =
+        Dmap⊥ (λ t → fR t , fI t) (respB s q)
+      , (λ F → trans (E⊥-map _ (respB s q) _) (sym (E⊥-map fR (respB s q) F)))
+      , (λ F → trans (E⊥-map _ (respB s q) _) (sym (E⊥-map fI (respB s q) F)))
+      , OnSupport-bind (respB s q) (kmaybe (λ t → return⊥ (fR t , fI t))) (OnSupport-⊤ (respB s q)) λ where
+          (just t) _ → OnSupport-return (pt t)
+          nothing  _ → OnSupport-return tt
+      where
+      pt : ∀ t → (bad (proj₁ t) ≡ true)
+               ⊎ ((proj₁ t ≡ proj₁ t)
+                  × (proj₁ (proj₂ t) ≡ cond (bad (proj₁ t)) (proj₂ (proj₂ t)) (proj₁ (proj₂ t))))
+      pt t with bad (proj₁ t)
+      ... | true  = inj₁ refl
+      ... | false = inj₂ (refl , refl)
+
   FLGP⊥ : ∀ s₀ d → ∣ Pr₁⊥ (runWith⊥ idealK s₀ d) -ℚ Pr₁⊥ (runWith⊥ realK s₀ d) ∣ℚ
                  ≤ℚ badProb⊥ realK bad s₀ d
-  FLGP⊥ s (out b) =
-    subst (_≤ℚ bool→ℚ (bad s)) (sym (∣x-x∣≡0 (Pr₁⊥ (return⊥ b)))) (0≤bool (bad s))
-  FLGP⊥ s (ask q k) with bad s
-  ... | true  = ∣Pr⊥-Pr⊥∣≤1 (runWith⊥ idealK s (ask q k)) (runWith⊥ realK s (ask q k))
-  ... | false =
-      ≤-trans (≤-reflexive (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ) eqI eqR))
-     (≤-trans (E⊥-abs-diff (respB s q) AI AR)
-     (≤-trans (E⊥-mono (respB s q) (λ t → ∣ AI t -ℚ AR t ∣ℚ) BB pointwise)
-              (≤-reflexive (sym eqB))))
-    where
-      KI KR : St × R → Dist⊥ Bool
-      KI sr = runWith⊥ idealK (proj₁ sr) (k (proj₂ sr))
-      KR sr = runWith⊥ realK  (proj₁ sr) (k (proj₂ sr))
-
-      AI AR BB : St × (R × R) → ℚ
-      AI t = Pr₁⊥ (KI (fI t))
-      AR t = Pr₁⊥ (KR (fR t))
-      BB t = badProb⊥ realK bad (proj₁ t) (k (proj₁ (proj₂ t)))
-
-      eqI : Pr₁⊥ (runWith⊥ idealK s (ask q k)) ≡ E⊥ (respB s q) AI
-      eqI = trans (E⊥-bind (idealK s q) KI bool→ℚ)
-                  (E⊥-map fI (respB s q) (λ sr → Pr₁⊥ (KI sr)))
-
-      eqR : Pr₁⊥ (runWith⊥ realK s (ask q k)) ≡ E⊥ (respB s q) AR
-      eqR = trans (E⊥-bind (realK s q) KR bool→ℚ)
-                  (E⊥-map fR (respB s q) (λ sr → Pr₁⊥ (KR sr)))
-
-      eqB : E⊥ (realK s q) (λ sr → badProb⊥ realK bad (proj₁ sr) (k (proj₂ sr)))
-          ≡ E⊥ (respB s q) BB
-      eqB = E⊥-map fR (respB s q)
-              (λ sr → badProb⊥ realK bad (proj₁ sr) (k (proj₂ sr)))
-
-      pointwise : ∀ t → ∣ AI t -ℚ AR t ∣ℚ ≤ℚ BB t
-      pointwise t with bad (proj₁ t) in eqt
-      ... | false = FLGP⊥ (proj₁ t) (k (proj₁ (proj₂ t)))
-      ... | true  =
-        subst (λ z → ∣ Pr₁⊥ (KI (proj₁ t , proj₂ (proj₂ t))) -ℚ AR t ∣ℚ ≤ℚ z)
-              (sym (badProb⊥-bad realK bad (proj₁ t) (k (proj₁ (proj₂ t))) eqt))
-              (∣Pr⊥-Pr⊥∣≤1 (KI (proj₁ t , proj₂ (proj₂ t))) (KR (fR t)))
-  FLGP⊥ s (coin μ k) with bad s
-  ... | true  = ∣Pr⊥-Pr⊥∣≤1 (runWith⊥ idealK s (coin μ k)) (runWith⊥ realK s (coin μ k))
-  ... | false =
-      ≤-trans (≤-reflexive (cong₂ (λ x y → ∣ x -ℚ y ∣ℚ)
-                             (E-bind μ (λ b → runWith⊥ idealK s (k b)) mb)
-                             (E-bind μ (λ b → runWith⊥ realK s (k b)) mb)))
-     (≤-trans (E-abs-diff μ AI AR)
-              (E-mono μ (λ b → ∣ AI b -ℚ AR b ∣ℚ) BB (λ b → FLGP⊥ s (k b))))
-    where
-      AI AR BB : Bool → ℚ
-      AI b = Pr₁⊥ (runWith⊥ idealK s (k b))
-      AR b = Pr₁⊥ (runWith⊥ realK  s (k b))
-      BB b = badProb⊥ realK bad s (k b)
+  FLGP⊥ s d = subst (_≤ℚ badProb⊥ realK bad s d)
+                    (∣-∣-comm (Pr₁⊥ (runWith⊥ realK s d)) (Pr₁⊥ (runWith⊥ idealK s d)))
+                    (runWith-join⊥ realK idealK bad _≡_ coupled d s s refl)
 
 ------------------------------------------------------------------------
 -- Coupled partial kernels run alike

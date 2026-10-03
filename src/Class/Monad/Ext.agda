@@ -44,11 +44,9 @@ record CommutativeMonad (M : Type↑) ⦃ Monad-M : Monad M ⦄ ⦃ _ : MonadLaw
   >>=-comm-y : ∀ ⦃ _ : ExtensionalMonad M ⦄ {X Y Z : Type} {x : M X} {y : M Y} (f : X → Y → M Z)
     → (x >>= λ x → y >>= λ y → f x y) ≡ (y >>= λ y → x >>= λ x → f x y)
   >>=-comm-y = DiscreteMonad.>>=-comm-y record
-    { elementwise = record
-        { ≈ᴹ-setoid = ≡-setoid ∘ M ; return = return ; _>>=_ = _>>=_ ; >>=-cong = _⟩>>=⟨_
-        ; >>=-identityˡ-≈ = >>=-identityˡ ; >>=-identityʳ-≈ = >>=-identityʳ ; >>=-assoc-≈ = >>=-assoc }
-    ; >>=-comm = >>=-comm
-    }
+    { ≈ᴹ-setoid = ≡-setoid ∘ M ; return = return ; _>>=_ = _>>=_ ; >>=-cong = _⟩>>=⟨_
+    ; >>=-identityˡ-≈ = >>=-identityˡ ; >>=-identityʳ-≈ = >>=-identityʳ ; >>=-assoc-≈ = >>=-assoc
+    ; >>=-comm = >>=-comm }
 
 open CommutativeMonad ⦃...⦄ public
 

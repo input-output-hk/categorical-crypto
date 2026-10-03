@@ -42,43 +42,38 @@ import CategoricalCrypto.Machines.Pointwise as Pw
 
 module CategoricalCrypto.Protocol.Machine.Compose where
 
-open Col using (module MT)
-open Pw using (module S)
-
 module _ {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B) where
 
   ------------------------------------------------------------------------
   -- The reachable-configuration machine
 
-  data CSt : Set where
-    both : St P₂ → St P₁ → CSt
-    susp : (Pos B → Calls B (St P₂ × Pos C)) → (Pos A → Calls A (St P₁ × Pos B)) → CSt
+  private
+    data CSt : Set where
+      both : St P₂ → St P₁ → CSt
+      susp : (Pos B → Calls B (St P₂ × Pos C)) → (Pos A → Calls A (St P₁ × Pos B)) → CSt
 
-  stateᶜ : MC.State
-  stateᶜ = record { obj = CSt ; point = λ _ → returnₚ (both (init P₂) (init P₁)) }
+    mutual
+      serveᶜ : (Pos B → Calls B (St P₂ × Pos C)) → Calls A (St P₁ × Pos B)
+             → Dₚ (CSt × (Neg A ⊎ Pos C))
+      serveᶜ k₂ (ret (s₁ , b⁺)) = graftᶜ (k₂ b⁺) s₁
+      serveᶜ k₂ (call a k₁)     = returnₚ (susp k₂ k₁ , inj₁ a)
+      serveᶜ k₂ (coin μ k₁)     = coinₚ μ >>=ₚ λ b → serveᶜ k₂ (k₁ b)
+      serveᶜ k₂ dead            = botₚ
 
-  mutual
-    serveᶜ : (Pos B → Calls B (St P₂ × Pos C)) → Calls A (St P₁ × Pos B)
-           → Dₚ (CSt × (Neg A ⊎ Pos C))
-    serveᶜ k₂ (ret (s₁ , b⁺)) = graftᶜ (k₂ b⁺) s₁
-    serveᶜ k₂ (call a k₁)     = returnₚ (susp k₂ k₁ , inj₁ a)
-    serveᶜ k₂ (coin μ k₁)     = coinₚ μ >>=ₚ λ b → serveᶜ k₂ (k₁ b)
-    serveᶜ k₂ dead            = botₚ
+      graftᶜ : Calls B (St P₂ × Pos C) → St P₁ → Dₚ (CSt × (Neg A ⊎ Pos C))
+      graftᶜ (ret (s₂ , c⁺)) s₁ = returnₚ (both s₂ s₁ , inj₂ c⁺)
+      graftᶜ (call b k₂)     s₁ = serveᶜ k₂ (step P₁ s₁ b)
+      graftᶜ (coin μ k₂)     s₁ = coinₚ μ >>=ₚ λ x → graftᶜ (k₂ x) s₁
+      graftᶜ dead            s₁ = botₚ
 
-    graftᶜ : Calls B (St P₂ × Pos C) → St P₁ → Dₚ (CSt × (Neg A ⊎ Pos C))
-    graftᶜ (ret (s₂ , c⁺)) s₁ = returnₚ (both s₂ s₁ , inj₂ c⁺)
-    graftᶜ (call b k₂)     s₁ = serveᶜ k₂ (step P₁ s₁ b)
-    graftᶜ (coin μ k₂)     s₁ = coinₚ μ >>=ₚ λ x → graftᶜ (k₂ x) s₁
-    graftᶜ dead            s₁ = botₚ
+    stepᶜ : CSt × (Pos A ⊎ Neg C) → Dₚ (CSt × (Neg A ⊎ Pos C))
+    stepᶜ (both s₂ s₁ , inj₂ c⁻) = graftᶜ (step P₂ s₂ c⁻) s₁
+    stepᶜ (susp k₂ k₁ , inj₁ a⁺) = serveᶜ k₂ (k₁ a⁺)
+    stepᶜ (both _  _  , inj₁ _)  = botₚ
+    stepᶜ (susp _  _  , inj₂ _)  = botₚ
 
-  stepᶜ : CSt × (Pos A ⊎ Neg C) → Dₚ (CSt × (Neg A ⊎ Pos C))
-  stepᶜ (both s₂ s₁ , inj₂ c⁻) = graftᶜ (step P₂ s₂ c⁻) s₁
-  stepᶜ (susp k₂ k₁ , inj₁ a⁺) = serveᶜ k₂ (k₁ a⁺)
-  stepᶜ (both _  _  , inj₁ _)  = botₚ
-  stepᶜ (susp _  _  , inj₂ _)  = botₚ
-
-  machineᶜ : MC.Machine (Pos A ⊎ Neg C) (Neg A ⊎ Pos C)
-  machineᶜ = MC.mk stateᶜ stepᶜ
+    machineᶜ : MC.Machine (Pos A ⊎ Neg C) (Neg A ⊎ Pos C)
+    machineᶜ = MC.mk (initˢ CSt (both (init P₂) (init P₁))) stepᶜ
 
   ------------------------------------------------------------------------
   -- Into the grafted machine
@@ -111,7 +106,7 @@ module _ {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B) where
     π-step (susp _  _  , inj₂ _)  = bot-bind-≈ₚ (Pw.padϕ π)
 
   private
-    π-sim : machineᶜ S.≲ morphism (P₂ ∘ᵖ P₁)
+    π-sim : machineᶜ MS.≲ morphism (P₂ ∘ᵖ P₁)
     π-sim = Pw.simFn π (λ _ → >>=ₚ-identityˡ (both (init P₂) (init P₁)) _) π-step
 
   ------------------------------------------------------------------------
@@ -125,7 +120,7 @@ module _ {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B) where
        → Dₚ (MC.obj Sᴳ × ((Neg A ⊎ Pos C) ⊎ (Neg B ⊎ Pos B)))
     kᴳ = Col.kᴳ {Pos A} {Neg A} {Pos B} {Neg B} (morphism P₂) (morphism P₁)
 
-    open Col.Loop (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B) Sᴳ kᴳ
+    open Pw.Loop (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B) Sᴳ kᴳ
 
     exit : MC.obj Sᴳ × ((Neg A ⊎ Pos C) ⊎ (Neg B ⊎ Pos B)) → Dₚ (MC.obj Sᴳ × (Neg A ⊎ Pos C))
     exit = contᵢ body
@@ -193,7 +188,7 @@ module _ {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B) where
       ⟨≈⟩ ≈sym (step-red (wait k₂ , wait k₁) (inj₂ c⁻) ⟨≈⟩ bindˣ (bot-bind-≈ₚ _) ⟨≈⟩ bot-bind-≈ₚ exit)
 
   private
-    ι-sim : machineᶜ S.≲ MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B) (MC.mk Sᴳ kᴳ)
+    ι-sim : machineᶜ MS.≲ MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B) (MC.mk Sᴳ kᴳ)
     ι-sim = Pw.simFn ι
               (λ x → >>=ₚ-identityˡ (both (init P₂) (init P₁)) _
                    ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _
@@ -207,7 +202,7 @@ module _ {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B) where
   -- Every polarity is passed explicitly, for the reason at `UC.Machine.𝒫ᴵ`.
   morphismCompose : 𝒢ₚ 0ℓ [ morphism (P₂ ∘ᵖ P₁) ≈ 𝒢ₚ 0ℓ [ morphism P₂ ∘ morphism P₁ ] ]
   morphismCompose =
-         S.⟺ᴹ (S.≲⇒≈ᴹ π-sim)
-    S.○ᴹ S.≲⇒≈ᴹ ι-sim
-    S.○ᴹ Col.collapse≈ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C}
+         MS.⟺ᴹ (MS.≲⇒≈ᴹ π-sim)
+    MS.○ᴹ MS.≲⇒≈ᴹ ι-sim
+    MS.○ᴹ Col.collapse≈ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C}
                        (morphism P₂) (morphism P₁)

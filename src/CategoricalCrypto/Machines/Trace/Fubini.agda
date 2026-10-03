@@ -12,6 +12,7 @@ open import Categories.Category.Monoidal.Pure
 import Categories.Category.Cocartesian as Cocart
 import Categories.Category.Cocartesian.Ext as CE
 import Categories.Category.Monoidal.Distributive as MD
+import Categories.Category.Monoidal.Distributive.Properties as MDP
 
 import CategoricalCrypto.Machines.Category as MCat
 import CategoricalCrypto.Machines.Core as Core
@@ -35,6 +36,7 @@ open Iteration.Elgot E
 open MCat 𝒱 𝒫
 open MD.MonoidalDistributive dist
 open CE U cocartesian
+open MDP 𝒱 dist
 open PureSub 𝒫
 open Sim 𝒱 𝒫
 open Tensor 𝒱 dist 𝒫
@@ -44,7 +46,7 @@ open Vanishing 𝒱 dist 𝒫 E
 open import Categories.Category.Monoidal.Properties.Ext monoidal
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Category.Monoidal.Symmetric.Properties.Ext
-  (Cocart.CocartesianSymmetricMonoidal.+-symmetric U cocartesian) using () renaming (β to β+)
+  (Cocart.CocartesianSymmetricMonoidal.+-symmetric U cocartesian) using () renaming (β to β+; α⇒-β to α+⇒-β+; β-α⇐ to β+-α+⇐)
 open import Categories.Morphism.Reasoning U
 
 private variable A B P X : Obj
@@ -55,12 +57,6 @@ private variable A B P X : Obj
 -- `Traced.Ext.β` at the machine layer.
 βᴹ : Machine ((A + B) + P) ((A + P) + B)
 βᴹ = α⇐ᴹ ∘ᴹ (idᴹ ⊗ᵉ σᴹ) ∘ᴹ α⇒ᴹ
-
-α+⇒-β+ : α+⇒ {A} {P} {X} ∘ β+ {A} {X} {P} ≈ (id +₁ +-swap) ∘ α+⇒
-α+⇒-β+ = cancelˡ ⊕.associator.isoʳ
-
-β+-α+⇐ : β+ {A} {P} {X} ∘ α+⇐ ≈ α+⇐ {A} {X} {P} ∘ (id +₁ +-swap)
-β+-α+⇐ = assoc ○ (refl⟩∘⟨ (assoc ○ (refl⟩∘⟨ ⊕.associator.isoʳ) ○ identityʳ))
 
 βᴹ-pure : βᴹ {A} {X} {P} ≈ᴹ pureᴹ β+
 βᴹ-pure = ∘ᴹ-resp-≈ᴹ reflᴹ inner ○ᴹ ≲⇒≈ᴹ (pureᴹ-∘ α+⇐ _)
@@ -115,12 +111,13 @@ module _ (V : State) (A B X X′ : Obj) (s : X ⇒ X′) (s⁻ : X′ ⇒ X)
 ------------------------------------------------------------------------
 -- Exchanging the two loops
 
-norm : {S A₁ A₂ A₃ B₁ B₂ B₃ : Obj} (r₁ : A₁ ⇒ A₂) (r₂ : A₂ ⇒ A₃)
-       (l₁ : B₁ ⇒ B₂) (l₂ : B₂ ⇒ B₃) (n : S ⊗₀ A₃ ⇒ S ⊗₀ B₁)
-     → id ⊗₁ l₂ ∘ ((id ⊗₁ l₁ ∘ (n ∘ id ⊗₁ r₂)) ∘ id ⊗₁ r₁)
-     ≈ id ⊗₁ (l₂ ∘ l₁) ∘ (n ∘ id ⊗₁ (r₂ ∘ r₁))
-norm _ _ _ _ _ = (refl⟩∘⟨ assoc) ○ sym-assoc
-               ○ (merge₂ˡ ⟩∘⟨ (assoc ○ (refl⟩∘⟨ merge₂ˡ)))
+private
+  norm : {S A₁ A₂ A₃ B₁ B₂ B₃ : Obj} (r₁ : A₁ ⇒ A₂) (r₂ : A₂ ⇒ A₃)
+         (l₁ : B₁ ⇒ B₂) (l₂ : B₂ ⇒ B₃) (n : S ⊗₀ A₃ ⇒ S ⊗₀ B₁)
+       → id ⊗₁ l₂ ∘ ((id ⊗₁ l₁ ∘ (n ∘ id ⊗₁ r₂)) ∘ id ⊗₁ r₁)
+       ≈ id ⊗₁ (l₂ ∘ l₁) ∘ (n ∘ id ⊗₁ (r₂ ∘ r₁))
+  norm _ _ _ _ _ = (refl⟩∘⟨ assoc) ○ sym-assoc
+                 ○ (merge₂ˡ ⟩∘⟨ (assoc ○ (refl⟩∘⟨ merge₂ˡ)))
 
 module _ (V : State) (A B X P : Obj)
   (m : obj V ⊗₀ ((A + X) + P) ⇒ obj V ⊗₀ ((B + X) + P)) where

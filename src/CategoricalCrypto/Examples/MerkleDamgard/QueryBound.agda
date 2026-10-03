@@ -33,19 +33,16 @@ open import ProbabilisticLogic.Dp.Reasoning
 open import CategoricalCrypto.Examples.MerkleDamgard
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.QueryBound
 
 import CategoricalCrypto.Machines.Pointwise as Pw
-import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.Examples.MerkleDamgard.QueryBound
   (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
-
-private
-  module S  = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 
 open MD n k IV
 
@@ -150,5 +147,5 @@ private
 
 qbᴹᴰ : QB k (morphism md)
 qbᴹᴰ = mdᴹ , certifiedᴹᴰ
-  , S.≲⇒≈ᴹ (Pw.simFn θᴰ (λ _ → >>=ₚ-identityˡ nothing _) θ-step)
+  , MS.≲⇒≈ᴹ (Pw.simFn θᴰ (λ _ → >>=ₚ-identityˡ nothing _) θ-step)
 

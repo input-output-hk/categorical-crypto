@@ -29,6 +29,7 @@ open import Relation.Binary.PropositionalEquality using (cong₂)
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Dictionary

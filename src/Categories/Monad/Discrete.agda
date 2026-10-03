@@ -17,7 +17,7 @@ import Relation.Binary.Reasoning.Setoid as R-Setoid
 
 module Categories.Monad.Discrete where
 
-record Elementwise (ℓ : Level) : Set (suc ℓ) where
+record DiscreteMonad (ℓ : Level) : Set (suc ℓ) where
   infix  4 _≈ᴹ_
   infixl 1 _>>=_
   infixr 1 _<=<_
@@ -59,50 +59,9 @@ record Elementwise (ℓ : Level) : Set (suc ℓ) where
   >>=-cong-x : {A B : Set ℓ} {x y : M A} {f : A → M B} → x ≈ᴹ y → (x >>= f) ≈ᴹ (y >>= f)
   >>=-cong-x x≈y = >>=-cong x≈y λ _ → ≈ᴹ.refl
 
-  <$>ᴹ-cong : {A B : Set ℓ} {h : A → B} {m n : M A} → m ≈ᴹ n → (h <$>ᴹ m) ≈ᴹ (h <$>ᴹ n)
-  <$>ᴹ-cong = >>=-cong-x
-
   <$>ᴹ->>= : {A B C : Set ℓ} (h : A → B) (m : M A) (g : B → M C)
            → ((h <$>ᴹ m) >>= g) ≈ᴹ (m >>= (g ∘ h))
   <$>ᴹ->>= h m g = ≈ᴹ.trans (>>=-assoc-≈ m) (>>=-cong-f λ _ → >>=-identityˡ-≈)
-
-  <$>ᴹ-∘ : {A B C : Set ℓ} (k : B → C) (h : A → B) (m : M A)
-         → (k <$>ᴹ (h <$>ᴹ m)) ≈ᴹ ((k ∘ h) <$>ᴹ m)
-  <$>ᴹ-∘ k h m = <$>ᴹ->>= h m (return ∘ k)
-
-  >>=-<$>ᴹ : {A B C : Set ℓ} (h : B → C) (m : M A) (g : A → M B)
-           → (h <$>ᴹ (m >>= g)) ≈ᴹ (m >>= λ a → h <$>ᴹ g a)
-  >>=-<$>ᴹ h m g = >>=-assoc-≈ m
-
-  module Comm (>>=-comm : {A B : Set ℓ} {x : M A} {y : M B}
-                        → (x >>= λ a → y >>= λ b → return (a , b))
-                        ≈ᴹ (y >>= λ b → x >>= λ a → return (a , b))) where
-
-    >>=-comm-y : {A B C : Set ℓ} {x : M A} {y : M B} (f : A → B → M C)
-               → (x >>= λ a → y >>= f a) ≈ᴹ (y >>= λ b → x >>= λ a → f a b)
-    >>=-comm-y {x = x} {y} f = begin
-      (x >>= λ a → y >>= λ b → f a b)
-        ≈⟨ >>=-cong-f (λ _ → >>=-cong-f λ _ → ≈ᴹ.sym >>=-identityˡ-≈) ⟩
-      (x >>= λ a → y >>= λ b → return (a ,′ b) >>= λ (a , b) → f a b)
-        ≈⟨ >>=-cong-f (λ _ → ≈ᴹ.sym (>>=-assoc-≈ y)) ⟩
-      (x >>= λ a → (y >>= λ b → return (a ,′ b)) >>= λ (a , b) → f a b)
-        ≈⟨ ≈ᴹ.sym (>>=-assoc-≈ x) ⟩
-      ((x >>= λ a → y >>= λ b → return (a ,′ b)) >>= λ (a , b) → f a b)
-        ≈⟨ >>=-cong-x >>=-comm ⟩
-      ((y >>= λ b → x >>= λ a → return (a ,′ b)) >>= λ (a , b) → f a b)
-        ≈⟨ >>=-assoc-≈ y ⟩
-      (y >>= λ b → (x >>= λ a → return (a ,′ b)) >>= λ (a , b) → f a b)
-        ≈⟨ >>=-cong-f (λ _ → >>=-assoc-≈ x) ⟩
-      (y >>= λ b → x >>= λ a → return (a ,′ b) >>= λ (a , b) → f a b)
-        ≈⟨ >>=-cong-f (λ _ → >>=-cong-f λ _ → >>=-identityˡ-≈) ⟩
-      (y >>= λ b → x >>= λ a → f a b) ∎
-      where open ≈ᴹ-Reasoning
-
-record DiscreteMonad (ℓ : Level) : Set (suc ℓ) where
-  field
-    elementwise : Elementwise ℓ
-
-  open Elementwise elementwise public hiding (module Comm)
 
   field
     -- Commutativity at the *discrete* objects: what a cartesian tensor over
@@ -113,4 +72,22 @@ record DiscreteMonad (ℓ : Level) : Set (suc ℓ) where
              → (x >>= λ a → y >>= λ b → return (a , b))
              ≈ᴹ (y >>= λ b → x >>= λ a → return (a , b))
 
-  open Elementwise.Comm elementwise >>=-comm public
+  >>=-comm-y : {A B C : Set ℓ} {x : M A} {y : M B} (f : A → B → M C)
+             → (x >>= λ a → y >>= f a) ≈ᴹ (y >>= λ b → x >>= λ a → f a b)
+  >>=-comm-y {x = x} {y} f = begin
+    (x >>= λ a → y >>= λ b → f a b)
+      ≈⟨ >>=-cong-f (λ _ → >>=-cong-f λ _ → ≈ᴹ.sym >>=-identityˡ-≈) ⟩
+    (x >>= λ a → y >>= λ b → return (a ,′ b) >>= λ (a , b) → f a b)
+      ≈⟨ >>=-cong-f (λ _ → ≈ᴹ.sym (>>=-assoc-≈ y)) ⟩
+    (x >>= λ a → (y >>= λ b → return (a ,′ b)) >>= λ (a , b) → f a b)
+      ≈⟨ ≈ᴹ.sym (>>=-assoc-≈ x) ⟩
+    ((x >>= λ a → y >>= λ b → return (a ,′ b)) >>= λ (a , b) → f a b)
+      ≈⟨ >>=-cong-x >>=-comm ⟩
+    ((y >>= λ b → x >>= λ a → return (a ,′ b)) >>= λ (a , b) → f a b)
+      ≈⟨ >>=-assoc-≈ y ⟩
+    (y >>= λ b → (x >>= λ a → return (a ,′ b)) >>= λ (a , b) → f a b)
+      ≈⟨ >>=-cong-f (λ _ → >>=-assoc-≈ x) ⟩
+    (y >>= λ b → x >>= λ a → return (a ,′ b) >>= λ (a , b) → f a b)
+      ≈⟨ >>=-cong-f (λ _ → >>=-cong-f λ _ → >>=-identityˡ-≈) ⟩
+    (y >>= λ b → x >>= λ a → f a b) ∎
+    where open ≈ᴹ-Reasoning

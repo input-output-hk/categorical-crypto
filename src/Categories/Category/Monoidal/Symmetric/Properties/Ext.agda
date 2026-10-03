@@ -31,6 +31,12 @@ private variable A B K₁ K₂ L P Q R X Y Z : Obj
 β : (P ⊗₀ Q) ⊗₀ R ⇒ (P ⊗₀ R) ⊗₀ Q
 β = α⇐ ∘ id ⊗₁ σ⇒ ∘ α⇒
 
+α⇒-β : α⇒ ∘ β {P} {Q} {R} ≈ id ⊗₁ σ⇒ ∘ α⇒
+α⇒-β = cancelˡ associator.isoʳ
+
+β-α⇐ : β {P} {Q} {R} ∘ α⇐ ≈ α⇐ ∘ id ⊗₁ σ⇒
+β-α⇐ = assoc ○ (refl⟩∘⟨ (assoc ○ (refl⟩∘⟨ associator.isoʳ) ○ identityʳ))
+
 β-β : β ∘ β ≈ id {(P ⊗₀ Q) ⊗₀ X}
 β-β = center (cancelʳ associator.isoʳ) ○ refl⟩∘⟨ cancelˡ (pad-inv commutative)
     ○ associator.isoˡ

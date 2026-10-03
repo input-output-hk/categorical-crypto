@@ -42,7 +42,6 @@ open import CategoricalCrypto.Examples.ROCommitment.Resource k
 open MC
 
 private
-  module S  = Pw.S
   module 𝒫  = Category 𝒫ᴵ
 
 private module St = Stage k Lkᴵ Honᴵ Advᴵᶜ Honᴵᶜ toss downᶠ upᶠ
@@ -147,7 +146,7 @@ private
            ⟨≈⟩ honᴴ doneᵖ (t , just b₁) refusedᴴ
            ⟨≈⟩ bot-bind-≈ₚ _ )
 
-  hyb-sim : coinᶜ′ S.≲ Hᴺ
+  hyb-sim : coinᶜ′ MS.≲ Hᴺ
   hyb-sim = Pw.simFn θᴴ
                   (λ x → >>=ₚ-identityˡ (preᶜ []) _
                      ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _

@@ -44,9 +44,10 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Machines.Sandwich
 open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Machine.Run
+open import CategoricalCrypto.Machines.Run.Sim
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Bridge
@@ -57,8 +58,6 @@ open import CategoricalCrypto.UC.QueryBound
 open import CategoricalCrypto.UC.QueryBound.Compose.Laws
 
 import Categories.Category.Monoidal.Properties.Ext as MPExt
-import CategoricalCrypto.Machines.Core as Core
-import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.UC.Machine.Slide where
 
@@ -66,8 +65,8 @@ private
   module 𝒫 = Category 𝒫ᴵ
   module 𝔾 = MonoidalCategory (𝒢ₚᴹ 0ℓ)
 
-open Core (𝒱ₚ 0ℓ)
-open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
+open MC
+open MS
 
 private variable A B C F X Y : Iface
 
