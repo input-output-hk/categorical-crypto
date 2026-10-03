@@ -28,7 +28,7 @@ sub-modules. A plain `grep -rlF CategoricalCrypto.M` would count those as well.
 | `UC.Family` | 169 | 2 |  | `𝒞^ω`, the indexed family layer: `Categories.LocallyGraded.Family` at `Poly⁺` admissibility over the resource grading, with an asymptotic observation on top |
 | `UC.Family.Negligible` | 110 | 1 |  | the negligible tier as a second observation on the family category, the one-way bridge into it, and its canonical `UCSetup` (`Canonicalᴺ`, `ucSetupᴺ`) |
 | `UC.Graded` | 79 | 3 |  | emulation at a nontrivial grade, from a machine-level factoring |
-| `UC.Machine` | 143 | 56 |  | the intended model: the UC layer over the machine layer (`retᴵ`, the inverse of `Protocol.Machine`'s `⟦_⟧ᴵ`; `𝒫ᴵ`) |
+| `UC.Machine` | 143 | 57 |  | the intended model: the UC layer over the machine layer (`retᴵ`, the inverse of `Protocol.Machine`'s `⟦_⟧ᴵ`; `𝒫ᴵ`) |
 | `UC.Machine.Bridge` | 45 | 10 |  | the unitor wires at `unitᴵ`, and what a budgeted ancilla context observes of a plugged process (`ctxRun`) |
 | `UC.Machine.Composite` | 223 | 5 |  | a `𝒢ₚ`-composite of two processes as one product-state machine, and the six equations (`Unfolding`) that read its step off |
 | `UC.Machine.Dictionary` | 295 | 11 |  | the ancilla dictionary: `UC.Machine`'s direct relays read as the monoidal spellings of the same processes |
@@ -42,10 +42,10 @@ sub-modules. A plain `grep -rlF CategoricalCrypto.M` would count those as well.
 | `UC.Machine.Slide` | 281 | 4 |  | a closed ancilla context with a hole is a plain context on the hole (`Kctx`, `ctxRun-slide`) |
 | `UC.Machine.StateEvent` | 122 | 6 |  | state predicates over machine presentations (`EventSim`), and the flag-wire machine `M ▷ P` that turns a Boolean state test into an interface event |
 | `UC.Machine.StateEvent.Adequacy` | 223 | 3 |  | at a protocol image the state-event reading is `PrHit` past a depth, and `BoundedHit` ⇔ `StateBoundedAt` at the same cap |
-| `UC.Machine.StateEvent.Agree` | 183 | 2 |  | the state-event reading at embedded strategies is the closed run of `M ▷ P` at `flagStrat d` (`_≈ₚ_`) |
+| `UC.Machine.StateEvent.Agree` | 178 | 2 |  | the state-event reading at embedded strategies is the closed run of `M ▷ P` at `flagStrat d` (`_≈ₚ_`) |
 | `UC.Machine.StateEvent.HitTests` | 175 | 1 | yes | the distinguishing cases of the state-event reading, through its public entry points |
 | `UC.Machine.StateEvent.Lift` | 390 | 2 |  | the strategy-to-contexts lift for state events (`stateLift`), at the same cap and with no slack |
-| `UC.Machine.StateEvent.Read` | 221 | 7 |  | reading a state event in an ordinary experiment: the completion reader `flagReader` and its collapse over a test (`Collapsed`), `stateRead`, and `StateBoundedAt`/`StateBoundedᴺ` as `EventBounds` instances |
+| `UC.Machine.StateEvent.Read` | 220 | 7 |  | reading a state event in an ordinary experiment: the completion reader `flagReader` and its collapse over a test (`Collapsed`), `stateRead`, and `StateBoundedAt`/`StateBoundedᴺ` as `EventBounds` instances |
 | `UC.Machine.Transfer` | 334 | 1 |  | the extracted strategy observes what the context observes, at one verdict |
 | `UC.Machine.Wire` | 110 | 5 |  | composing with a wire costs no trace |
 | `UC.Model.Dominated` | 141 | 1 |  | `UC.Machine.Dominated.dominated` at seal objects |
@@ -61,7 +61,7 @@ sub-modules. A plain `grep -rlF CategoricalCrypto.M` would count those as well.
 | `UC.Quantitative.EventLift` | 99 | 4 | yes | event bounds at the monitored readout (`HitsAt`, `Hitsᴺ`), the lift `hitsᵘ` via `stateLift`, and `agree`/`hits⇒bounded` back at the strategy level |
 | `UC.Quantitative.Family` | 242 | 1 |  | the quantitative contextual relation on families of graded morphisms, the emulation witness over it, and its composition laws |
 | `UC.Quantitative.Query` | 119 | 1 |  | the query-sensitive test model as a filtered space: tests compared through certified closures |
-| `UC.QueryBound` | 464 | 32 |  | query bounds with content: the amortised-potential certificate `QBᵢ`, its `≈ᴹ`-closure `QB` and closure laws, and the trace `traceᵍ`/`behᵍ` that counting reads |
+| `UC.QueryBound` | 464 | 31 |  | query bounds with content: the amortised-potential certificate `QBᵢ`, its `≈ᴹ`-closure `QB` and closure laws, and the trace `traceᵍ`/`behᵍ` that counting reads |
 | `UC.QueryBound.Compose` | 248 | 1 |  | the query bound multiplies along composition: the two-position token walk |
 | `UC.QueryBound.Compose.Laws` | 52 | 6 |  | the composition closure of `QB`, at the hom level and at 𝒢's own objects |
 | `UC.QueryBound.Counting` | 108 | 1 | yes | what `QBᵢ`'s potential means on a run: at most `c` downward outputs per activation from above |
