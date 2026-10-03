@@ -31,19 +31,15 @@ import Categories.Morphism as Mor
 
 module Embed {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced Monoidal) where
 
-  private
-    module C where
-      open Category C public
-      open Traced Traced public
-      open U.Shorthands Monoidal public
-      open import Categories.Category.Monoidal.Reasoning Monoidal public
-        using (⊗-distrib-over-∘; _⟩⊗⟨_)
-      open import Categories.Morphism.Reasoning C public using (elimʳ; pullˡ)
-      open BProps.Shorthands braided public
+  open Category C
+  open Traced Traced
+  open U.Shorthands Monoidal
+  open import Categories.Category.Monoidal.Reasoning Monoidal
+    using (⊗-distrib-over-∘; _⟩⊗⟨_)
+  open import Categories.Morphism.Reasoning C using (elimʳ; pullˡ)
+  open BProps.Shorthands braided
+  open GT C Monoidal Traced using (Cˢ)
 
-    open GT C Monoidal Traced using (Cˢ)
-
-  open C
   open HomReasoning
 
   ⌜_,_⌝ : ∀ {A⁺ A⁻ B⁺ B⁻ : Obj} → A⁺ ⇒ B⁺ → B⁻ ⇒ A⁻ → A⁺ ⊗₀ B⁻ ⇒ A⁻ ⊗₀ B⁺

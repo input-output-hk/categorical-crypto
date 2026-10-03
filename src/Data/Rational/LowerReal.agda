@@ -9,6 +9,7 @@ open import Data.Nat
 open import Data.Product
 open import Data.Rational as ℚ
 open import Data.Rational.Properties
+open import Data.Rational.Properties.Ext using (0<½*; ½*+½*)
 open import Function.Bundles
 open import Level
 open import Relation.Binary
@@ -70,18 +71,11 @@ x ≲ y = (δ : ℚ) → 0ℚ ℚ.< δ → x ≼[ δ ] y
 _≈_ : Rel (ℕ → ℚ) 0ℓ
 x ≈ y = (δ : ℚ) → 0ℚ ℚ.< δ → x ≼[ δ ] y × y ≼[ δ ] x
 
-private
-  halves : (δ : ℚ) → ½ ℚ.* δ ℚ.+ ½ ℚ.* δ ≡ δ
-  halves δ = subst (_≡ δ) (*-distribʳ-+ δ ½ ½) (*-identityˡ δ)
-
-  half-pos : 0ℚ ℚ.< δ → 0ℚ ℚ.< ½ ℚ.* δ
-  half-pos {δ} δ>0 = positive⁻¹ _ ⦃ pos*pos⇒pos ½ δ ⦃ ℚ.positive δ>0 ⦄ ⦄
-
 ≈-trans : x ≈ y → y ≈ z → x ≈ z
 ≈-trans {x} {y} {z} h k δ δ>0 =
-  let xy , yx = h (½ ℚ.* δ) (half-pos δ>0) ; yz , zy = k (½ ℚ.* δ) (half-pos δ>0)
-  in subst (x ≼[_] z) (halves δ) (≼[]-trans x y z xy yz)
-   , subst (z ≼[_] x) (halves δ) (≼[]-trans z y x zy yx)
+  let xy , yx = h (½ ℚ.* δ) (0<½* δ>0) ; yz , zy = k (½ ℚ.* δ) (0<½* δ>0)
+  in subst (x ≼[_] z) (½*+½* δ) (≼[]-trans x y z xy yz)
+   , subst (z ≼[_] x) (½*+½* δ) (≼[]-trans z y x zy yx)
 
 ≈-isEquivalence : IsEquivalence _≈_
 ≈-isEquivalence = record

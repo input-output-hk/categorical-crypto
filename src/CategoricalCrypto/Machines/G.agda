@@ -208,9 +208,7 @@ Mealy-TraceLaws = record
   ; trace-comm   = trace-comm _
   }
 
--- States and processes over the machine layer, monoidal.  One application, and
--- consumers project from it: writing the category and its monoidal structure as
--- two separate `GConstruction*` applications instead makes Agda compare two
--- `GConstruction` record values field by field, which does not fit in 8 GB.
+-- States and processes over the machine layer, monoidal: consumers project
+-- from this one application (see `GConstructionMonoidalCategory` for why).
 Mealy-Gᴹ : MonoidalCategory o (o ⊔ ℓ) (o ⊔ ℓ ⊔ e)
 Mealy-Gᴹ = GConstructionMonoidalCategory Mealy-Category Mealy-Monoidal Mealy-Traced Mealy-TraceLaws

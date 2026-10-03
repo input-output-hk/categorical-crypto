@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --without-K #-}
 
--- `β` swaps the outer two factors of a triple tensor; with it, the braiding
+-- `β` swaps the last two factors of `(P ⊗ Q) ⊗ R`; with it, the braiding
 -- facts the machine layer's state shuffles and the G construction's trace run on.
 
 open import Categories.Category
@@ -76,7 +76,7 @@ unbraid {L = L} h = (refl⟩∘⟨ pad-braid L h ⟩∘⟨refl) ○ (refl⟩∘�
 β-natural′ : (g : X ⇒ Y) → β {P} {Y} {Q} ∘ (id ⊗₁ g) ⊗₁ id ≈ id ⊗₁ g ∘ β
 β-natural′ g = ⟺ (β-nat id g id) ○ ((⊗.identity ⟩⊗⟨refl) ⟩∘⟨refl)
 
-σ-unit : σ⇒ ≈ id
+σ-unit : σ⇒ {unit} {unit} ≈ id
 σ-unit = insertˡ unitorˡ.isoˡ ○ (refl⟩∘⟨ (braiding-coherence ○ ⟺ coherence₃))
        ○ unitorˡ.isoˡ
 

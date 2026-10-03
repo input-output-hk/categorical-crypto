@@ -115,7 +115,6 @@ private
 -- `DistData` (one that distributes over `⁺++⁺` and pulls scalars out
 -- of `scale-ℚ`) evaluates on a `bindᴰ-cons` to the obvious weighted
 -- sum over kernel outputs.
--- TODO: wouldn't this be more compact
 bindᴰ-cons-eval : (H : DistData B → ℚ)
   → (∀ μ ν → H (μ NE.⁺++⁺ ν) ≡ H μ ℚ.+ H ν) → (∀ q μ → H (scale-ℚ q μ) ≡ q ℚ.* H μ)
   → (q : ℚ) (a : A) (rest : List (ℚ × A)) (k : A → DistData B)
@@ -170,8 +169,7 @@ nn-bindᴰ : (μ : DistData A) (k : A → DistData B)
 nn-bindᴰ (e NE.∷ rest) k = nn-bindᴰ-cons e rest k
 
 ------------------------------------------------------------------------
--- The `Dist-ℚ` monad: `return-ℚ`, `_>>=ᴹ_`, plus the comonoid
--- "primitives" `del-ℚ` and `copy-ℚ`.
+-- The `Dist-ℚ` monad
 
 return-ℚ : A → Dist-ℚ A
 return-ℚ a = mk-Dist ((1ℚ , a) NE.∷ []) (+-identityʳ 1ℚ) (0≤1ℚ All.∷ All.[])
@@ -181,12 +179,6 @@ _>>=ᴹ_ : Dist-ℚ A → (A → Dist-ℚ B) → Dist-ℚ B
 μ >>=ᴹ k = mk-Dist (entries μ >>=ᴰ entries ∘ k)
                    (trans (mass-bindᴰ (entries μ) (entries ∘ k) (mass-1 ∘ k)) (mass-1 μ))
                    (nn-bindᴰ (entries μ) (entries ∘ k) (weights-nn μ) (weights-nn ∘ k))
-
-del-ℚ : A → Dist-ℚ ⊤
-del-ℚ _ = return-ℚ tt
-
-copy-ℚ : A → Dist-ℚ (A × A)
-copy-ℚ a = return-ℚ (a , a)
 
 ------------------------------------------------------------------------
 -- Extensional equality for `Dist-ℚ`
@@ -357,20 +349,6 @@ lookupᴰℚ-Dmap f μ Q = trans
   (lookupᴰℚ-bind (entries μ) (λ a → entries (return-ℚ (f a))) Q)
   (lookupᴰℚ-cong-P (entries μ) λ a → ret-eval (Q (f a)))
 
--- Functor laws for `Dmap` (in the `_≈Mℚ_` setoid).
-
-Dmap-id : (μ : Dist-ℚ A) → Dmap (λ x → x) μ ≈Mℚ μ
-Dmap-id = lookupᴰℚ-Dmap id
-
-Dmap-∘ : (f : A → B) (g : B → C) (μ : Dist-ℚ A) → Dmap (λ a → g (f a)) μ ≈Mℚ Dmap g (Dmap f μ)
-Dmap-∘ f g μ P = trans (lookupᴰℚ-Dmap (g ∘ f) μ P)
-  (sym (trans (lookupᴰℚ-Dmap g (Dmap f μ) P) (lookupᴰℚ-Dmap f μ (P ∘′ g))))
-
-Dmap-cong-fn : {f g : A → B} → (∀ a → f a ≡ g a)
-             → ∀ (μ : Dist-ℚ A) → Dmap f μ ≈Mℚ Dmap g μ
-Dmap-cong-fn {f = f} {g} f≗g μ P = trans (lookupᴰℚ-Dmap f μ P)
-  (trans (lookupᴰℚ-cong-P (entries μ) (cong P ∘ f≗g)) (sym (lookupᴰℚ-Dmap g μ P)))
-
 Dmap->>= : (f : A → B) (μ : Dist-ℚ A) (k : B → Dist-ℚ C)
          → (Dmap f μ >>=ᴹ k) ≈Mℚ (μ >>=ᴹ (k ∘ f))
 Dmap->>= f μ k P = trans
@@ -447,10 +425,6 @@ OnSupport-mono : {P Q : A → Type ℓ′} (μ : Dist-ℚ A)
                → (∀ a → P a → Q a) → OnSupport P μ → OnSupport Q μ
 OnSupport-mono μ f = All.map (λ {e} → f (proj₂ e))
 
-OnSupport-∧ : {P : A → Type ℓ′} {Q : A → Type ℓ″} (μ : Dist-ℚ A)
-            → OnSupport P μ → OnSupport Q μ → OnSupport (λ a → P a × Q a) μ
-OnSupport-∧ μ pp qq = All.zip (pp , qq)
-
 OnSupport-bind-return : {Q : B → Type ℓ″} (a : A) (h : A → Dist-ℚ B)
                       → OnSupport Q (h a) → OnSupport Q (return-ℚ a >>=ᴹ h)
 OnSupport-bind-return {Q = Q} a h os =
@@ -484,9 +458,7 @@ lookupᴰℚ-mono (h NE.∷ t) = lookup-L-mono (h ∷ t)
 ------------------------------------------------------------------------
 -- Class instances: `Dist-ℚ`
 --
--- Note we don't provide `MonadLaws Dist-ℚ` because the laws only hold
--- up to `_≈Mℚ_`, not `_≡_`; the setoid analogue lives in
--- `ProbabilisticLogic.Distribution.RationalDist.Setoid`.
+-- No `MonadLaws Dist-ℚ`: the laws only hold up to `_≈Mℚ_`, not `_≡_`.
 
 instance
   Functor-Dist-ℚ : Functor Dist-ℚ
@@ -499,98 +471,3 @@ instance
   Monad-Dist-ℚ : Monad Dist-ℚ
   Monad-Dist-ℚ .return = return-ℚ
   Monad-Dist-ℚ ._>>=_  = _>>=ᴹ_
-
-------------------------------------------------------------------------
--- Markov category structure: Kleisli morphisms, comonoid laws,
--- discard naturality.
-
-infix 4 _∼_
-
-_∼_ : (f g : X → Dist-ℚ Y) → Type _
-f ∼ g = ∀ x → f x ≈Mℚ g x
-
-idᴷ : A → Dist-ℚ A
-idᴷ = return-ℚ
-
-infixr 9 _∘ᴷ_
-_∘ᴷ_ : (B → Dist-ℚ C) → (A → Dist-ℚ B) → (A → Dist-ℚ C)
-(g ∘ᴷ f) x = f x >>=ᴹ g
-
-infixr 5 _⊗ᴷ_
-_⊗ᴷ_ : (A → Dist-ℚ B) → (C → Dist-ℚ D) → (A × C → Dist-ℚ (B × D))
-(f ⊗ᴷ g) (a , c) = f a >>=ᴹ λ b → g c >>=ᴹ λ d → return-ℚ (b , d)
-
-------------------------------------------------------------------------
--- Comonoid laws
-
-private
-  ⊗ᴷ-on-copy : (a : A) (b₀ : B) (d₀ : D) (f : A → Dist-ℚ B) (g : A → Dist-ℚ D)
-             → f a ≡ return-ℚ b₀ → g a ≡ return-ℚ d₀
-             → ((f ⊗ᴷ g) ∘ᴷ copy-ℚ) a ≈Mℚ return-ℚ (b₀ , d₀)
-  ⊗ᴷ-on-copy a b₀ d₀ f g fa≡ ga≡ P = begin
-    lookupᴰℚ (entries (return-ℚ (a , a) >>=ᴹ (f ⊗ᴷ g))) P
-      ≡⟨ >>=ᴹ-identityˡ (a , a) (f ⊗ᴷ g) P ⟩
-    lookupᴰℚ (entries (f a >>=ᴹ (λ b → g a >>=ᴹ return-ℚ ∘ (b ,_)))) P
-      ≡⟨ cong (λ x → lookupᴰℚ (entries (x >>=ᴹ (λ b → g a >>=ᴹ return-ℚ ∘ (b ,_)))) P) fa≡ ⟩
-    lookupᴰℚ (entries (return-ℚ b₀ >>=ᴹ (λ b → g a >>=ᴹ return-ℚ ∘ (b ,_)))) P
-      ≡⟨ >>=ᴹ-identityˡ b₀ (λ b → g a >>=ᴹ return-ℚ ∘ (b ,_)) P ⟩
-    lookupᴰℚ (entries (g a >>=ᴹ return-ℚ ∘ (b₀ ,_))) P
-      ≡⟨ cong (λ x → lookupᴰℚ (entries (x >>=ᴹ return-ℚ ∘ (b₀ ,_))) P) ga≡ ⟩
-    lookupᴰℚ (entries (return-ℚ d₀ >>=ᴹ return-ℚ ∘ (b₀ ,_))) P
-      ≡⟨ >>=ᴹ-identityˡ d₀ (return-ℚ ∘ (b₀ ,_)) P ⟩
-    lookupᴰℚ (entries (return-ℚ (b₀ , d₀))) P ∎
-    where open ≡-Reasoning
-
-counit-left : ((del-ℚ ⊗ᴷ idᴷ {A = A}) ∘ᴷ copy-ℚ) ∼ (λ a → return-ℚ (tt , a))
-counit-left a = ⊗ᴷ-on-copy a tt a del-ℚ idᴷ refl refl
-
-counit-right : ((idᴷ {A = A} ⊗ᴷ del-ℚ) ∘ᴷ copy-ℚ) ∼ (λ a → return-ℚ (a , tt))
-counit-right a = ⊗ᴷ-on-copy a a tt idᴷ del-ℚ refl refl
-
-coassoc-l : ((copy-ℚ ⊗ᴷ idᴷ {A = A}) ∘ᴷ copy-ℚ) ∼ (λ a → return-ℚ ((a , a) , a))
-coassoc-l a = ⊗ᴷ-on-copy a (a , a) a copy-ℚ idᴷ refl refl
-
-coassoc-r : ((idᴷ {A = A} ⊗ᴷ copy-ℚ) ∘ᴷ copy-ℚ) ∼ (λ a → return-ℚ (a , (a , a)))
-coassoc-r a = ⊗ᴷ-on-copy a a (a , a) idᴷ copy-ℚ refl refl
-
-swap-pure : A × A → Dist-ℚ (A × A)
-swap-pure (x , y) = return-ℚ (y , x)
-
-cocomm : (swap-pure {A = A} ∘ᴷ copy-ℚ) ∼ copy-ℚ
-cocomm a P = >>=ᴹ-identityˡ (a , a) swap-pure P
-
-mid-swap : (A × A) × (B × B) → Dist-ℚ ((A × B) × (A × B))
-mid-swap ((a₁ , a₂) , (b₁ , b₂)) = return-ℚ ((a₁ , b₁) , (a₂ , b₂))
-
-copy-monoidal : (mid-swap ∘ᴷ (copy-ℚ {A = A} ⊗ᴷ copy-ℚ {A = B})) ∼ copy-ℚ
-copy-monoidal (a , b) P = begin
-  lookupᴰℚ (entries ((copy-ℚ ⊗ᴷ copy-ℚ) (a , b) >>=ᴹ mid-swap)) P
-    ≡⟨ >>=ᴹ-assoc (copy-ℚ a) (λ x → copy-ℚ b >>=ᴹ return-ℚ ∘ (x ,_)) mid-swap P ⟩
-  lookupᴰℚ (entries (copy-ℚ a >>=ᴹ λ x → copy-ℚ b >>=ᴹ return-ℚ ∘ (x ,_) >>=ᴹ mid-swap)) P
-    ≡⟨ >>=ᴹ-identityˡ (a , a) (λ x → copy-ℚ b >>=ᴹ return-ℚ ∘ (x ,_) >>=ᴹ mid-swap) P ⟩
-  lookupᴰℚ (entries ((copy-ℚ b >>=ᴹ return-ℚ ∘ ((a , a) ,_)) >>=ᴹ mid-swap)) P
-    ≡⟨ >>=ᴹ-assoc (copy-ℚ b) (return-ℚ ∘ ((a , a) ,_)) mid-swap P ⟩
-  lookupᴰℚ (entries (copy-ℚ b >>=ᴹ (λ y → return-ℚ ((a , a) , y) >>=ᴹ mid-swap))) P
-    ≡⟨ >>=ᴹ-identityˡ (b , b) (λ y → return-ℚ ((a , a) , y) >>=ᴹ mid-swap) P ⟩
-  lookupᴰℚ (entries (return-ℚ ((a , a) , (b , b)) >>=ᴹ mid-swap)) P
-    ≡⟨ >>=ᴹ-identityˡ ((a , a) , (b , b)) mid-swap P ⟩
-  lookupᴰℚ (entries (return-ℚ ((a , b) , (a , b)))) P ∎
-  where open ≡-Reasoning
-
-------------------------------------------------------------------------
--- Markov axiom
-
-discard-natural : (f : A → Dist-ℚ B) → (del-ℚ ∘ᴷ f) ∼ del-ℚ {A = A}
-discard-natural f a P = begin
-  lookupᴰℚ (entries (f a >>=ᴹ del-ℚ)) P
-    ≡⟨ lookupᴰℚ-bind (entries (f a)) (λ _ → entries (del-ℚ tt)) P ⟩
-  lookupᴰℚ (entries (f a)) (λ _ → 1ℚ ℚ.* P tt ℚ.+ 0ℚ)
-    ≡⟨ lookupᴰℚ-cong-P (entries (f a)) (λ _ → ret-eval (P tt)) ⟩
-  lookupᴰℚ (entries (f a)) (λ _ → P tt)
-    ≡⟨ mass-as-const (entries (f a)) (P tt) ⟩
-  mass (entries (f a)) ℚ.* P tt
-    ≡⟨ cong (ℚ._* P tt) (mass-1 (f a)) ⟩
-  1ℚ ℚ.* P tt
-    ≡⟨ sym (+-identityʳ (1ℚ ℚ.* P tt)) ⟩
-  1ℚ ℚ.* P tt ℚ.+ 0ℚ ∎
-  where open ≡-Reasoning

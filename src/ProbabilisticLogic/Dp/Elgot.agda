@@ -1,7 +1,9 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- Uniformity of `iterₚ` along an arbitrary pure state map `θ : S → S′` (no
--- invertibility); the context law is its `θ = (c ,_)` instance.  `φ k m`
+-- invertibility), applied to the exit state as well — the loop points and the
+-- exits share one state type; `Iter.Transfer.iterₚ-transfer` takes the two maps
+-- separately.  The context law is its `θ = (c ,_)` instance.  `φ k m`
 -- case-splits on the `⊎`-summand while a padded state map does not, so the two
 -- agree only pointwise; `Dp.Reasoning.map-eq` bridges that.
 

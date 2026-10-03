@@ -7,9 +7,9 @@
 -- because at the intended instance they are NOT that: the machine layer's closed
 -- interface and the G construction's tensor unit are the empty interface spelled
 -- with two different empty types, and identifying them is a measured 150 s.
--- The two facts the slide actually
--- spends — naturality of the wire, and the slide at the hole `J` itself — are
--- cheap at the instance, so they are what the module asks for.
+-- The two facts the slide actually spends — naturality of the wire, and the
+-- slide at the hole `J` itself — are cheap at the instance, so they are what the
+-- module asks for.
 
 open import Categories.Category
 open import Categories.Category.Monoidal.Core

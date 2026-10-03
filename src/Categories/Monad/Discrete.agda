@@ -8,8 +8,6 @@
 -- ℓ ℓ)` because a monad whose equality quantifies over arbitrary tests on the
 -- carrier has no `unit` congruence at a non-discrete setoid, while every
 -- consumer below only ever applies the monad at `≡-setoid A`.
--- `Elementwise` is the vocabulary without commutativity, which
--- `Categories.Monad.Setoids.Discrete` reads off a full triple.
 
 open import Data.Product
 open import Function.Base

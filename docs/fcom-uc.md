@@ -26,7 +26,6 @@ Settles-stepᵢ  : (n j : ℕ) (u : Body S A B) (x : Dₚ (S × (B ⊎ A)))
                → Settles n x ν → Supp n x (λ p → Settles (suc j) (contᵢ u p) (κ p))
                → Settles (n + suc j) (stepᵢ u x) (ν >>=⊥ κ)
 Settles-stepᵢˢ : …  -- the budgets maxed over the depth-`n` support
-Settles-stepᵢ⋆ : …  -- the all-points convenience
 ```
 
 `stepᵢ u x` is `x >>=ₚ contᵢ u` with the exits taken one step earlier
@@ -34,16 +33,14 @@ Settles-stepᵢ⋆ : …  -- the all-points convenience
 `tagᵢ` in place of `tagₚ`. The `suc j` in the hypothesis is not slack: an exit
 is a `returnₚ`, whose reading a budget of 0 does not yet see. **No fixpoint
 law is spent**: `iterₚ u w` IS `stepᵢ u (u w)` definitionally, so
-`Settles-stepᵢ⋆ … (u w) …` is already the one-turn loop lemma and none of
+`Settles-stepᵢˢ … (u w) …` is already the one-turn loop lemma and none of
 `iterₚ-fix`'s `≈ₚ` appears — which matters, because `Settles` is NOT
 `≈ₚ`-stable (below).
 
 The round-trip bound:
 
 ```agda
-module Loop {S A B : Set} (u : Body S A B) (Ku : S × A → Dist⊥ (S × (B ⊎ A)))
-            (bodyS : (w : S × A) → Σ[ i ∈ ℕ ] Settles i (u w) (Ku w)) where
-
+module Loop {S A B : Set} (Ku : S × A → Dist⊥ (S × (B ⊎ A))) where
   loopK : ℕ → S × A → Dist⊥ (S × B)
   exitK : ℕ → S × (B ⊎ A) → Dist⊥ (S × B)
   loopK zero    w = return-ℚ nothing
@@ -51,16 +48,19 @@ module Loop {S A B : Set} (u : Body S A B) (Ku : S × A → Dist⊥ (S × (B ⊎
   exitK f (s , inj₁ b) = return⊥ (s , b)
   exitK f (s , inj₂ p) = loopK f (s , p)
 
-  module _ (rank : S × A → ℕ) where
-    Drops : ℕ → S × (B ⊎ A) → Set
-    Drops r (_ , inj₁ _) = ⊤
-    Drops r (s , inj₂ p) = rank (s , p) < r
+module _ {S A B : Set} (rank : S × A → ℕ) where
+  Drops : ℕ → S × (B ⊎ A) → Set
+  Drops r (_ , inj₁ _) = ⊤
+  Drops r (s , inj₂ p) = rank (s , p) < r
 
-    Ranked : Set
-    Ranked = (w : S × A) (i : ℕ) → Supp i (u w) (Drops (rank w))
+  Ranked : Body S A B → Set
+  Ranked u = (w : S × A) (i : ℕ) → Supp i (u w) (Drops (rank w))
 
-    Settles-iter : Ranked → (f : ℕ) (w : S × A) → rank w < f
-                 → Σ[ i ∈ ℕ ] Settles i (iterₚ u w) (loopK f w)
+module _ {S A B : Set} (u : Body S A B) (Ku : S × A → Dist⊥ (S × (B ⊎ A)))
+         (bodyS : (w : S × A) → Σ[ i ∈ ℕ ] Settles i (u w) (Ku w)) where
+  open Loop Ku
+  Settles-iter : (rank : S × A → ℕ) → Ranked rank u → (f : ℕ) (w : S × A) → rank w < f
+               → Σ[ i ∈ ℕ ] Settles i (iterₚ u w) (loopK f w)
 ```
 
 Three things about this shape are the point.

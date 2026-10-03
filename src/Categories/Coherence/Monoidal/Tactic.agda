@@ -24,7 +24,7 @@ open import Reflection
 open import Reflection.AST.Argument
 open import Reflection.AST.Term
 open import Reflection.TCM.Syntax
-open import Agda.Builtin.Reflection using (primQNameEquality)
+open import Reflection.AST.Name using () renaming (_≡ᵇ_ to _==_)
 
 open import Reflection.Utils.Args
 open import Reflection.Utils.Core
@@ -68,9 +68,6 @@ private
   blocked : List Name
   blocked = `∘ ∷ `id ∷ `hom ∷ `≈ ∷ `⊗₁ ∷ `⊗₀ ∷ `unit
           ∷ `λiso ∷ `ρiso ∷ `αiso ∷ `from ∷ `to ∷ `F₀ ∷ `⊗f ∷ []
-
-  _==_ : Name → Name → Bool
-  _==_ = primQNameEquality
 
   -- emission targets
   `Var   = quote FreeMonoidalHelper.Var
@@ -144,9 +141,6 @@ private
     ; encodeEq     = λ _ _ _ → unknown   -- single terms only, never equations
     ; finishSolve  = λ _ body _ → body
     }
-
-  objFuel : ℕ
-  objFuel = 1024
 
   -- The `prepIndex` pre-pass: bring an object term onto the shape the
   -- PURE object operators can recognise. `f₀parse` needs
@@ -279,7 +273,7 @@ private
   morTheory = record
     { macroName    = "solve-mor"
     ; indexTheory  = objTheory
-    ; prepIndex    = expandObj objFuel
+    ; prepIndex    = expandObj 1024
     ; operators    = mkOp `∘    (fixedArity 2 (node2 `∘ᴹ))
                    ∷ mkOp `⊗₁   (fixedArity 2 (node2 `⊗₁ᴹ))
                    ∷ mkOp `F₁   f₁parse
@@ -315,14 +309,8 @@ private
       ⟨∷⟩ unknown ⟅∷⟆ `vec sig
       ⟨∷⟩ 2 ⋯⟅∷⟆ lhs ⟨∷⟩ rhs ⟨∷⟩ unknown ⟅∷⟆ [])
 
-------------------------------------------------------------------------
--- The macro.
-
-solve-mor-macro : Term → Term → TC ⊤
-solve-mor-macro 𝒞 hole = do
-  𝒞' ← checkType 𝒞 (def (quote MonoidalCategory) (3 ⋯⟨∷⟩ []))
-  solveByTwoLevelTheory morTheory 𝒞' hole
-
 macro
   solve-mor : Term → Term → TC ⊤
-  solve-mor = solve-mor-macro
+  solve-mor 𝒞 hole = do
+    𝒞' ← checkType 𝒞 (def (quote MonoidalCategory) (3 ⋯⟨∷⟩ []))
+    solveByTwoLevelTheory morTheory 𝒞' hole

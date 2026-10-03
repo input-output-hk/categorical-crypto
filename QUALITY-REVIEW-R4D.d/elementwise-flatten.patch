@@ -1,0 +1,122 @@
+diff --git a/src/CategoricalCrypto/Machines/Base.agda b/src/CategoricalCrypto/Machines/Base.agda
+index a4b197ef..9d314e16 100644
+--- a/src/CategoricalCrypto/Machines/Base.agda
++++ b/src/CategoricalCrypto/Machines/Base.agda
+@@ -61,16 +61,14 @@ Dₚ-setoid A = record
+ 
+ Dₚ-DiscreteMonad : DiscreteMonad ℓ
+ Dₚ-DiscreteMonad = record
+-  { elementwise = record
+-      { ≈ᴹ-setoid       = Dₚ-setoid
+-      ; return          = returnₚ
+-      ; _>>=_           = _>>=ₚ_
+-      ; >>=-cong        = λ {_} {_} {x} {y} {f} {g} → >>=ₚ-cong x y f g
+-      ; >>=-identityˡ-≈ = λ {_} {_} {a} {h} → >>=ₚ-identityˡ a h
+-      ; >>=-identityʳ-≈ = >>=ₚ-identityʳ
+-      ; >>=-assoc-≈     = λ m {g} {h} → >>=ₚ-assoc m g h
+-      }
+-  ; >>=-comm    = λ {_} {_} {x} {y} → >>=ₚ-comm x y
++  { ≈ᴹ-setoid       = Dₚ-setoid
++  ; return          = returnₚ
++  ; _>>=_           = _>>=ₚ_
++  ; >>=-cong        = λ {_} {_} {x} {y} {f} {g} → >>=ₚ-cong x y f g
++  ; >>=-identityˡ-≈ = λ {_} {_} {a} {h} → >>=ₚ-identityˡ a h
++  ; >>=-identityʳ-≈ = >>=ₚ-identityʳ
++  ; >>=-assoc-≈     = λ m {g} {h} → >>=ₚ-assoc m g h
++  ; >>=-comm        = λ {_} {_} {x} {y} → >>=ₚ-comm x y
+   }
+ 
+ 𝒱ₚ : (ℓ : Level) → SymmetricMonoidalCategory (suc ℓ) ℓ ℓ
+diff --git a/src/Categories/Monad/Discrete.agda b/src/Categories/Monad/Discrete.agda
+index 98346278..bad4cb4d 100644
+--- a/src/Categories/Monad/Discrete.agda
++++ b/src/Categories/Monad/Discrete.agda
+@@ -17,7 +17,7 @@ import Relation.Binary.Reasoning.Setoid as R-Setoid
+ 
+ module Categories.Monad.Discrete where
+ 
+-record Elementwise (ℓ : Level) : Set (suc ℓ) where
++record DiscreteMonad (ℓ : Level) : Set (suc ℓ) where
+   infix  4 _≈ᴹ_
+   infixl 1 _>>=_
+   infixr 1 _<=<_
+@@ -74,36 +74,6 @@ record Elementwise (ℓ : Level) : Set (suc ℓ) where
+            → (h <$>ᴹ (m >>= g)) ≈ᴹ (m >>= λ a → h <$>ᴹ g a)
+   >>=-<$>ᴹ h m g = >>=-assoc-≈ m
+ 
+-  module Comm (>>=-comm : {A B : Set ℓ} {x : M A} {y : M B}
+-                        → (x >>= λ a → y >>= λ b → return (a , b))
+-                        ≈ᴹ (y >>= λ b → x >>= λ a → return (a , b))) where
+-
+-    >>=-comm-y : {A B C : Set ℓ} {x : M A} {y : M B} (f : A → B → M C)
+-               → (x >>= λ a → y >>= f a) ≈ᴹ (y >>= λ b → x >>= λ a → f a b)
+-    >>=-comm-y {x = x} {y} f = begin
+-      (x >>= λ a → y >>= λ b → f a b)
+-        ≈⟨ >>=-cong-f (λ _ → >>=-cong-f λ _ → ≈ᴹ.sym >>=-identityˡ-≈) ⟩
+-      (x >>= λ a → y >>= λ b → return (a ,′ b) >>= λ (a , b) → f a b)
+-        ≈⟨ >>=-cong-f (λ _ → ≈ᴹ.sym (>>=-assoc-≈ y)) ⟩
+-      (x >>= λ a → (y >>= λ b → return (a ,′ b)) >>= λ (a , b) → f a b)
+-        ≈⟨ ≈ᴹ.sym (>>=-assoc-≈ x) ⟩
+-      ((x >>= λ a → y >>= λ b → return (a ,′ b)) >>= λ (a , b) → f a b)
+-        ≈⟨ >>=-cong-x >>=-comm ⟩
+-      ((y >>= λ b → x >>= λ a → return (a ,′ b)) >>= λ (a , b) → f a b)
+-        ≈⟨ >>=-assoc-≈ y ⟩
+-      (y >>= λ b → (x >>= λ a → return (a ,′ b)) >>= λ (a , b) → f a b)
+-        ≈⟨ >>=-cong-f (λ _ → >>=-assoc-≈ x) ⟩
+-      (y >>= λ b → x >>= λ a → return (a ,′ b) >>= λ (a , b) → f a b)
+-        ≈⟨ >>=-cong-f (λ _ → >>=-cong-f λ _ → >>=-identityˡ-≈) ⟩
+-      (y >>= λ b → x >>= λ a → f a b) ∎
+-      where open ≈ᴹ-Reasoning
+-
+-record DiscreteMonad (ℓ : Level) : Set (suc ℓ) where
+-  field
+-    elementwise : Elementwise ℓ
+-
+-  open Elementwise elementwise public hiding (module Comm)
+-
+   field
+     -- Commutativity at the *discrete* objects: what a cartesian tensor over
+     -- this monad needs and what every instance proves.  The general-setoid
+@@ -113,4 +83,22 @@ record DiscreteMonad (ℓ : Level) : Set (suc ℓ) where
+              → (x >>= λ a → y >>= λ b → return (a , b))
+              ≈ᴹ (y >>= λ b → x >>= λ a → return (a , b))
+ 
+-  open Elementwise.Comm elementwise >>=-comm public
++  >>=-comm-y : {A B C : Set ℓ} {x : M A} {y : M B} (f : A → B → M C)
++             → (x >>= λ a → y >>= f a) ≈ᴹ (y >>= λ b → x >>= λ a → f a b)
++  >>=-comm-y {x = x} {y} f = begin
++    (x >>= λ a → y >>= λ b → f a b)
++      ≈⟨ >>=-cong-f (λ _ → >>=-cong-f λ _ → ≈ᴹ.sym >>=-identityˡ-≈) ⟩
++    (x >>= λ a → y >>= λ b → return (a ,′ b) >>= λ (a , b) → f a b)
++      ≈⟨ >>=-cong-f (λ _ → ≈ᴹ.sym (>>=-assoc-≈ y)) ⟩
++    (x >>= λ a → (y >>= λ b → return (a ,′ b)) >>= λ (a , b) → f a b)
++      ≈⟨ ≈ᴹ.sym (>>=-assoc-≈ x) ⟩
++    ((x >>= λ a → y >>= λ b → return (a ,′ b)) >>= λ (a , b) → f a b)
++      ≈⟨ >>=-cong-x >>=-comm ⟩
++    ((y >>= λ b → x >>= λ a → return (a ,′ b)) >>= λ (a , b) → f a b)
++      ≈⟨ >>=-assoc-≈ y ⟩
++    (y >>= λ b → (x >>= λ a → return (a ,′ b)) >>= λ (a , b) → f a b)
++      ≈⟨ >>=-cong-f (λ _ → >>=-assoc-≈ x) ⟩
++    (y >>= λ b → x >>= λ a → return (a ,′ b) >>= λ (a , b) → f a b)
++      ≈⟨ >>=-cong-f (λ _ → >>=-cong-f λ _ → >>=-identityˡ-≈) ⟩
++    (y >>= λ b → x >>= λ a → f a b) ∎
++    where open ≈ᴹ-Reasoning
+diff --git a/src/Class/Monad/Ext.agda b/src/Class/Monad/Ext.agda
+index 646d07b0..82aeffe4 100644
+--- a/src/Class/Monad/Ext.agda
++++ b/src/Class/Monad/Ext.agda
+@@ -44,11 +44,9 @@ record CommutativeMonad (M : Type↑) ⦃ Monad-M : Monad M ⦄ ⦃ _ : MonadLaw
+   >>=-comm-y : ∀ ⦃ _ : ExtensionalMonad M ⦄ {X Y Z : Type} {x : M X} {y : M Y} (f : X → Y → M Z)
+     → (x >>= λ x → y >>= λ y → f x y) ≡ (y >>= λ y → x >>= λ x → f x y)
+   >>=-comm-y = DiscreteMonad.>>=-comm-y record
+-    { elementwise = record
+-        { ≈ᴹ-setoid = ≡-setoid ∘ M ; return = return ; _>>=_ = _>>=_ ; >>=-cong = _⟩>>=⟨_
+-        ; >>=-identityˡ-≈ = >>=-identityˡ ; >>=-identityʳ-≈ = >>=-identityʳ ; >>=-assoc-≈ = >>=-assoc }
+-    ; >>=-comm = >>=-comm
+-    }
++    { ≈ᴹ-setoid = ≡-setoid ∘ M ; return = return ; _>>=_ = _>>=_ ; >>=-cong = _⟩>>=⟨_
++    ; >>=-identityˡ-≈ = >>=-identityˡ ; >>=-identityʳ-≈ = >>=-identityʳ ; >>=-assoc-≈ = >>=-assoc
++    ; >>=-comm = >>=-comm }
+ 
+ open CommutativeMonad ⦃...⦄ public
+ 

@@ -15,17 +15,14 @@ module Categories.LocallyGraded.Family where
 
 open import Data.Nat.Base using (ℕ)
 open import Data.Product using (Σ-syntax; _×_; _,_; proj₁; proj₂)
-open import Data.Unit.Polymorphic using (⊤; tt)
 open import Level
 
 open import Categories.Category.Core using (Category)
 open import Categories.Category.Monoidal using (monoidalHelper)
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory)
 open import Categories.Functor.Bifunctor using (Bifunctor)
-open import Categories.Functor.Monoidal using (StrongMonoidalFunctor)
 open import Categories.LocallyGraded
 open import Categories.LocallyGraded.SubCategory
-open import Categories.NaturalTransformation.NaturalIsomorphism using (niHelper)
 
 module Families {oi ℓi ei o ℓ e p a}
   {ℐ : MonoidalCategory oi ℓi ei} {C : MonoidalCategory o ℓ e}
@@ -134,43 +131,3 @@ module Families {oi ℓi ei o ℓ e p a}
       ; pentagon        = λ _ → pentagon
       }
     }
-
--- The forgetful interpretation into unrestricted C-families: every certificate
--- and every schedule admitted. Strong, with identity comparison maps.
-module _ {oi ℓi ei o ℓ e p a}
-  {ℐ : MonoidalCategory oi ℓi ei} {C : MonoidalCategory o ℓ e}
-  (G : GradedSubCat ℐ C p) (Ix : Set) (κ : Ix → ℕ)
-  (Admissible : (ℕ → MonoidalCategory.Obj ℐ) → Set a)
-  (adm-unit : Admissible (λ _ → MonoidalCategory.unit ℐ))
-  (adm-⊗ : ∀ {s t} → Admissible s → Admissible t
-         → Admissible (λ n → MonoidalCategory._⊗₀_ ℐ (s n) (t n))) where
-
-  private
-    module F = Families G Ix κ Admissible adm-unit adm-⊗
-    module U = Families (unrestricted {p = 0ℓ} ℐ C) Ix κ (λ _ → ⊤ {0ℓ}) tt (λ _ _ → tt)
-  open MonoidalCategory C
-
-  forgetᴹ : StrongMonoidalFunctor F.Famᴹ U.Famᴹ
-  forgetᴹ = record
-    { F = record
-      { F₀ = λ A → A
-      ; F₁ = λ f → F.schedOf f , tt , λ i → GradedSubCat.⌊ G ⌋ (F.hom f i) , tt
-      ; identity = λ _ → Equiv.refl ; homomorphism = λ _ → Equiv.refl
-      ; F-resp-≈ = λ f≈g → f≈g }
-    ; isStrongMonoidal = record
-      { ε = record { from = U.unit^ω λ _ → id , tt ; to = U.unit^ω λ _ → id , tt
-                   ; iso = record { isoˡ = λ _ → identity² ; isoʳ = λ _ → identity² } }
-      ; ⊗-homo = niHelper record
-        { η = λ _ → U.unit^ω λ _ → id , tt ; η⁻¹ = λ _ → U.unit^ω λ _ → id , tt
-        ; commute = λ _ _ → Equiv.trans identityˡ (Equiv.sym identityʳ)
-        ; iso = λ _ → record { isoˡ = λ _ → identity² ; isoʳ = λ _ → identity² } }
-      ; associativity = λ _ → Equiv.trans id-cancelʳ (Equiv.sym id-cancelˡ)
-      ; unitaryˡ = λ _ → id-cancelʳ
-      ; unitaryʳ = λ _ → id-cancelʳ
-      }
-    }
-    where
-    id-cancelʳ : ∀ {A B D} {f : A ⊗₀ B ⇒ D} → f ∘ id ∘ id {A} ⊗₁ id {B} ≈ f
-    id-cancelʳ = Equiv.trans (∘-resp-≈ʳ (Equiv.trans identityˡ ⊗.identity)) identityʳ
-    id-cancelˡ : ∀ {A D E} {f : A ⇒ D ⊗₀ E} → id ∘ id {D} ⊗₁ id {E} ∘ f ≈ f
-    id-cancelˡ = Equiv.trans identityˡ (Equiv.trans (∘-resp-≈ˡ ⊗.identity) identityˡ)

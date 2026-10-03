@@ -23,26 +23,23 @@ open import Data.Product
 import Categories.Category.Monoidal.Braided.Properties as BProps
 import Categories.Category.Monoidal.Utilities as U
 import Categories.GConstructionHomCoherence as HCoh
-import Categories.GConstructionLoop as GL
 import Categories.GConstructionTrace as GT
 
 module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
 
-  private
-    module C where
-      open Category C public
-      open Traced T public
-      open U M public using (triangle-inv; pentagon-inv)
-      open U.Shorthands M public
-      open import Categories.Category.Monoidal.Reasoning M public
-        using (⊗-distrib-over-∘; _⟩⊗⟨_)
-      open import Categories.Morphism.Reasoning C public using (pullˡ; pullʳ; cancelʳ)
-      open BProps.Shorthands braided public
+  open Category C
+  open Traced T
+  open U M using (triangle-inv; pentagon-inv)
+  open U.Shorthands M
+  open import Categories.Category.Monoidal.Reasoning M
+    using (⊗-distrib-over-∘; _⟩⊗⟨_)
+  open import Categories.Morphism.Reasoning C using (pullˡ; pullʳ; cancelʳ)
+  open BProps.Shorthands braided
 
+  private
     module E₀ = Embed C M T
     module W = GT C M T
 
-  open C
   open HomReasoning
   open E₀
   open W
@@ -88,7 +85,6 @@ module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
       module G = Category G'
 
     open E₀.WithTrace L
-    open GL.WithTrace C M T L
     open W.WithTrace L
 
     ⌜⌝-⊗ˡ : ∀ {A⁺ A⁻ D⁺ D⁻ E⁺ E⁻ : Obj} {p : D⁺ ⇒ E⁺} {q : E⁻ ⇒ D⁻} →

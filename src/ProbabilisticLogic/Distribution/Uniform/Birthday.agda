@@ -47,6 +47,7 @@ private
 birthday-bound : ℕ → ℚ
 birthday-bound q = fromℕ (q ℕ.* q ℕ.+ q) * inv-pow-2 n
 
+-- Loose by a factor 2: `Γ 1 q` is `q(q+1)/2ⁿ⁺¹`.
 birthday : ∀ q → Γ 1 q ≤ birthday-bound q
 birthday q = *-monoʳ-≤-nonNeg ε ⦃ nonNegative (0≤inv-pow-2 n) ⦄ (fromℕ-mono-≤
   (ℕₚ.≤-trans (sumN-≤ 1 q) (ℕₚ.≤-reflexive (trans (ℕₚ.*-suc q q) (ℕₚ.+-comm q (q ℕ.* q))))))

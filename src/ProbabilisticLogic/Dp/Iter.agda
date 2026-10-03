@@ -152,10 +152,9 @@ mutual
 -- level.
 module _ {S A B : Set ℓ} (u u′ : Body S A B) (h : ∀ sa → u sa ≼ₚ u′ sa) where
 
-  iterₚ-congᵖ : (n : ℕ) (sa : S × A) (P : S × B → ℚ) → NNF P
-              → Σ[ m ∈ ℕ ] (cum n (iterₚ u sa) P ℚ.≤ cum m (iterₚ u′ sa) P)
-  iterₚ-congᵖ zero    sa P nn = 0 , ≤-refl
-  iterₚ-congᵖ (suc n) sa P nn =
+  iterₚ-≼ : (sa : S × A) → iterₚ u sa ≼ₚ iterₚ u′ sa
+  iterₚ-≼ sa P nn zero    = 0 , ≤-refl
+  iterₚ-≼ sa P nn (suc n) =
     let i  , le = h sa (Tᵗ u P n) (Tᵗ-nn u P n nn) (suc n)
         i′ , sp = uniformize Φ up wit i (u′ sa)
     in i +ℕ i′
@@ -172,10 +171,7 @@ module _ {S A B : Set ℓ} (u u′ : Body S A B) (h : ∀ sa → u sa ≼ₚ u�
 
     wit : ∀ r → Σ[ i ∈ ℕ ] Φ r i
     wit (s , inj₁ b) = 0 , ≤-refl
-    wit (s , inj₂ p) = iterₚ-congᵖ n (s , p) P nn
-
-  iterₚ-≼ : (sa : S × A) → iterₚ u sa ≼ₚ iterₚ u′ sa
-  iterₚ-≼ sa P nn n = iterₚ-congᵖ n sa P nn
+    wit (s , inj₂ p) = iterₚ-≼ (s , p) P nn n
 
 iterₚ-cong : (u u′ : Body S A B) → (∀ sa → u sa ≈ₚ u′ sa)
            → (sa : S × A) → iterₚ u sa ≈ₚ iterₚ u′ sa

@@ -4,8 +4,9 @@
 -- The wiring and trace algebra the G construction runs on: the
 -- loop-body wiring `α`, `γ` of a G-composite, `mid` for its monoidal
 -- structure, and the consequences of `TE.Laws` its laws need;
--- `right-superposing` is the one needing a coherence step (`RS`, in
--- `Categories.GConstructionIdentityCoherence`).
+-- `right-superposing` and `⊗-trace-mid` each spend one solver coherence step
+-- (`RS` in `Categories.GConstructionIdentityCoherence`, `TM` in
+-- `Categories.GConstructionTraceCoherence`).
 ------------------------------------------------------------------------
 
 open import Categories.Category
@@ -16,7 +17,6 @@ import Categories.Category.Monoidal.Traced.Ext as TE
 module Categories.GConstructionTrace
   {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Traced Monoidal) where
 
-
 import Categories.Category.Monoidal.Braided.Properties as BProps
 import Categories.Category.Monoidal.Interchange.Braided as IB
 import Categories.Category.Monoidal.Interchange.Symmetric as IS
@@ -24,17 +24,14 @@ import Categories.Category.Monoidal.Utilities as U
 import Categories.GConstructionIdentityCoherence as GCohId
 import Categories.GConstructionTraceCoherence as TCoh
 
-private
-  module C where
-    open Category C public
-    open Traced Traced public
-    open U.Shorthands Monoidal public
-    open import Categories.Category.Monoidal.Reasoning Monoidal public
-      using (serialize₁₂; refl⟩⊗⟨_)
-    open import Categories.Morphism.Reasoning C public using (introˡ; pullʳ; elimʳ; switch-fromtoʳ)
-    open BProps.Shorthands braided public
+open Category C
+open Traced Traced
+open U.Shorthands Monoidal
+open import Categories.Category.Monoidal.Reasoning Monoidal
+  using (serialize₁₂; refl⟩⊗⟨_; ⊗-distrib-over-∘; _⟩⊗⟨_)
+open import Categories.Morphism.Reasoning C using (introˡ; pullʳ; elimʳ; switch-fromtoʳ; cancelʳ)
+open BProps.Shorthands braided
 
-open C
 open HomReasoning
 
 open TE Traced public using (β)
@@ -67,11 +64,8 @@ mid-natural : ∀ {P P′ Q Q′ R R′ S S′ : Obj}
               ≈ (f ⊗₁ h) ⊗₁ (g ⊗₁ k) ∘ mid
 mid-natural = IB.swapInner-natural braided
 
-mid-braiding : ∀ {P Q R S : Obj} → mid ∘ σ⇒ ⊗₁ σ⇒ ∘ mid {P} {Q} {R} {S} ≈ σ⇒
-mid-braiding = IB.swapInner-braiding braided
-
 mid-σ : ∀ {P Q R S : Obj} → mid ∘ σ⇒ ⊗₁ σ⇒ ≈ σ⇒ ∘ mid {P} {R} {Q} {S}
-mid-σ = switch-fromtoʳ (IS.swapInner-iso symmetric) (assoc ○ mid-braiding)
+mid-σ = switch-fromtoʳ (IS.swapInner-iso symmetric) (assoc ○ IB.swapInner-braiding braided)
 
 -- The unitor and associator squares of `f ⊗₁ᴳ g = mid ∘ f ⊗ g ∘ mid`
 -- (`GConstructionMonoidal`, after `absorbˡ`/`absorbʳ`).  `⊗` is strong monoidal
@@ -80,12 +74,12 @@ mid-σ = switch-fromtoʳ (IS.swapInner-iso symmetric) (assoc ○ mid-braiding)
 module _ where
   open import Categories.Category.Construction.Core C
   open import Categories.Category.Monoidal.Properties Monoidal
-  open import Categories.Category.Monoidal.Reasoning Monoidal using (⊗-distrib-over-∘; _⟩⊗⟨_; _⟩⊗⟨refl)
+  open import Categories.Category.Monoidal.Reasoning Monoidal using (_⟩⊗⟨refl)
   open import Categories.Category.Monoidal.Symmetric.Properties.Ext symmetric
   open import Categories.Category.Monoidal.Utilities Monoidal using (_⊗ᵢ_)
   open import Categories.Morphism C
   open import Categories.Morphism.IsoEquiv C
-  open import Categories.Morphism.Reasoning C hiding (introˡ; pullʳ; elimʳ; switch-fromtoʳ)
+  open import Categories.Morphism.Reasoning C hiding (introˡ; pullʳ; elimʳ; switch-fromtoʳ; cancelʳ)
   open import Categories.Tactic.Category
   open Kelly's
   open Shorthands
@@ -206,11 +200,6 @@ module WithTrace (L : TE.Laws Traced) where
                 trace (g ⊗₁ id ∘ β {Y} {X} {X}) ≈ g
   trace-gyank = ⟺ trace-∘ˡ ○ elimʳ trace-βyank
 
-  trace-conj : ∀ {X A A' B B'} {t : A ⊗₀ X ⇒ B ⊗₀ X}
-                 {h : A' ⇒ A} {k : B ⇒ B'} →
-               k ∘ trace t ∘ h ≈ trace (k ⊗₁ id ∘ t ∘ h ⊗₁ id)
-  trace-conj = (refl⟩∘⟨ trace-∘ʳ) ○ trace-∘ˡ
-
   -- Right superposing, the mirror of `Traced.superposing`.
   right-superposing : ∀ {X Y A' B'} {f' : A' ⊗₀ X ⇒ B' ⊗₀ X} →
     trace f' ⊗₁ id {Y} ≈ trace (β ∘ f' ⊗₁ id ∘ β)
@@ -259,3 +248,10 @@ module WithTrace (L : TE.Laws Traced) where
     ⊗-trace
     ○ trace-resp-≈ (trace-resp-≈ (TCoh.Transport.WithGens.TM Cˢ A A' B B' X Y u v))
     ○ vanishing₂
+
+  -- Re-bracketing the loop object along `mid`: slide, then `mid`'s involution.
+  trace-mid : ∀ {A B P Q R S : Obj}
+                {f : A ⊗₀ ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S)) ⇒ B ⊗₀ ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S))} →
+              trace f ≈ trace (id ⊗₁ mid {P} {R} {Q} {S} ∘ f ∘ id ⊗₁ mid {P} {Q} {R} {S})
+  trace-mid = ⟺ (TE.trace-slide Traced L ○ trace-resp-≈ (cancelʳ
+    (⟺ ⊗-distrib-over-∘ ○ (identityˡ ⟩⊗⟨ mid-involutive) ○ ⊗.identity)))

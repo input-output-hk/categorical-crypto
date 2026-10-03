@@ -1,10 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Laws of a traced symmetric monoidal category (Joyal–Street–Verity) that
--- agda-categories' `Traced` omits although its own header cites a *natural*
--- family: congruence, naturality on both sides, and Fubini (exchange of two
--- nested traces).  Dinaturality (sliding) is not a field: it follows
--- (`trace-slide`).
+-- Trace laws agda-categories' `Traced` omits although its own header cites a
+-- *natural* family: congruence, naturality on both sides, and Fubini (exchange
+-- of two nested traces).  With `Traced`'s fields this is Joyal–Street–Verity with
+-- Fubini in place of dinaturality (sliding), which follows (`trace-slide`).
 
 open import Categories.Category
 open import Categories.Category.Monoidal

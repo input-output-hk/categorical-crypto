@@ -63,6 +63,14 @@ indᵇ-≤1 : ∀ b c → indᵇ b c ≤ 1ℚ
 indᵇ-≤1 true  = bool≤1
 indᵇ-≤1 false = bool≤1 ∘ not
 
+indᵇ-not : (b : Bool) → indᵇ b (not b) ≡ 0ℚ
+indᵇ-not true  = refl
+indᵇ-not false = refl
+
+indᵇ-cover : {v b : Bool} → (v ≡ true → b ≡ true) → indᵇ true v ≤ indᵇ true b
+indᵇ-cover {false} {b} h = ≤-trans (≤-reflexive (indᵇ-not true)) (indᵇ-nn true b)
+indᵇ-cover {true}      h = ≤-reflexive (cong (indᵇ true) (sym (h refl)))
+
 δ : ∀ {k} → Vec Bool k → Vec Bool k → ℚ
 δ y x = bool→ℚ ⌊ x ≟ y ⌋
 
@@ -84,12 +92,6 @@ private
   δ-cons-eq true  ys xs with xs ≟ ys
   ... | yes _ = refl
   ... | no  _ = refl
-
-  δ-cons-fT : ∀ {k} (ys xs : Vec Bool k) → δ (false ∷ ys) (true  ∷ xs) ≡ 0ℚ
-  δ-cons-fT _ _ = refl
-
-  δ-cons-tF : ∀ {k} (ys xs : Vec Bool k) → δ (true  ∷ ys) (false ∷ xs) ≡ 0ℚ
-  δ-cons-tF _ _ = refl
 
 ------------------------------------------------------------------------
 -- ℕ → ℚ and `1/2^k`, both defined recursively so that the recursion
@@ -268,11 +270,11 @@ P-uniform-Vec (suc k) (b ∷ bs) = trans (P-expand b) (P-collapse b)
     P-collapse : ∀ c → pair (L c false) (L c true) ≡ (+ 1 / 2) * inv-pow-2 k
     P-collapse false =
       trans (cong₂ pair (lookupᴰℚ-cong-P μk (δ-cons-eq false bs))
-                        (lookupᴰℚ-cong-P μk (δ-cons-fT bs)))
+                        (lookupᴰℚ-cong-P μk λ _ → refl))
       (trans (cong₂ pair (P-uniform-Vec k bs) (lookupᴰℚ-zero μk))
              collapse-IZ)
     P-collapse true  =
-      trans (cong₂ pair (lookupᴰℚ-cong-P μk (δ-cons-tF bs))
+      trans (cong₂ pair (lookupᴰℚ-cong-P μk λ _ → refl)
                         (lookupᴰℚ-cong-P μk (δ-cons-eq true bs)))
       (trans (cong₂ pair (lookupᴰℚ-zero μk) (P-uniform-Vec k bs))
              collapse-ZI)

@@ -110,11 +110,6 @@ record Settles (n : ℕ) (d : Dₚ A) (ν : Dist⊥ A) : Set where
 
 open Settles public
 
-E⊥-nn : (ν : Dist⊥ A) (Q : A → ℚ) → NNF Q → 0ℚ ℚ.≤ E⊥ ν Q
-E⊥-nn ν Q nn = E-nn ν (maybeℚ Q) λ where
-  (just p) → nn p
-  nothing  → ≤-refl
-
 Settles-cum : Settles n d ν → NNF P → (m : ℕ) → n ≤ m → cum m d P ≡ E⊥ ν P
 Settles-cum {n = n} {d = d} {P = P} (settles h e) nn m le =
   trans (trans (cong (λ i → cum i d P) (sym (m+[n∸m]≡n le)))

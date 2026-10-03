@@ -56,15 +56,8 @@ r · s = value r * value s , *-mono-≤ (proj₂ r) (proj₂ s)
 positive : ℕ → ℕ⁺
 positive c = c ⊔ 1 , m≤n⊔m c 1
 
--- `positive` is not multiplicative at 0; this is what does hold
-positive-· : ∀ c d → value (positive c · positive d) ≡ (c ⊔ 1) * (d ⊔ 1)
-positive-· c d = refl
-
 scale : ℕ → ℕ⁺ → ℕ
 scale q r = q * value r
-
-scale-zero : ∀ r → scale 0 r ≡ 0
-scale-zero r = refl
 
 scale-unit : ∀ q → scale q 1⁺ ≡ q
 scale-unit = *-identityʳ
@@ -74,9 +67,6 @@ scale-· q r s = sym (*-assoc q (value r) (value s))
 
 scale-comm : ∀ q r s → scale (scale q r) s ≡ scale (scale q s) r
 scale-comm q r s = *-CS.xy∙z≈xz∙y q (value r) (value s)
-
-q≤scale : ∀ q r → q ≤ scale q r
-q≤scale q r = ≤-trans (≤-reflexive (sym (*-identityʳ q))) (*-monoʳ-≤ q (proj₂ r))
 
 value-injective : ∀ {r s} → value r ≡ value s → r ≡ s
 value-injective {m , p} {_ , q} refl = cong (m ,_) (≤-irrelevant p q)
@@ -96,9 +86,6 @@ poly⁺-1 = poly-const 1
 
 poly⁺-· : ∀ {p q} → Poly⁺ p → Poly⁺ q → Poly⁺ (λ n → p n · q n)
 poly⁺-· = poly-*
-
-poly⁺-positive : ∀ {c} → Poly c → Poly⁺ (positive ∘ c)
-poly⁺-positive pc = poly-⊔ pc (poly-const 1)
 
 poly-scale : ∀ {q p} → Poly q → Poly⁺ p → Poly (λ n → scale (q n) (p n))
 poly-scale = poly-*

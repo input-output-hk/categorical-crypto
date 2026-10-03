@@ -37,16 +37,10 @@ outκ k (s , inj₂ p) = returnₚ (s , inj₂ p)
 bodyₒ : {S A B C : Set ℓ} → Body S A B → (S × B → Dₚ (S × C)) → Body S A C
 bodyₒ u k sa = u sa >>=ₚ outκ k
 
-Tᵗ-inlₒ : {S A C : Set ℓ} (v : Body S A C) (P : S × C → ℚ) (j : ℕ) (sc : S × C)
-        → Tᵗ v P j (inlₒ sc) ≡ P sc
-Tᵗ-inlₒ v P j (s , c) = refl
-
 outκ-inj₁ : {S A B C : Set ℓ} (n : ℕ) (k : S × B → Dₚ (S × C)) (v : Body S A C)
             (P : S × C → ℚ) (j : ℕ) (s : S) (b : B)
           → cum (suc n) (outκ {A = A} k (s , inj₁ b)) (Tᵗ v P j) ≡ cum n (k (s , b)) P
-outκ-inj₁ n k v P j s b =
-  trans (mapₚ-cum n inlₒ (k (s , b)) (Tᵗ v P j))
-        (cum-cong-P n (k (s , b)) (Tᵗ v P j ∘′ inlₒ) P (Tᵗ-inlₒ v P j))
+outκ-inj₁ n k v P j s b = mapₚ-cum n inlₒ (k (s , b)) (Tᵗ v P j)
 
 outκ-inj₂ : {S A B C : Set ℓ} (n : ℕ) (k : S × B → Dₚ (S × C)) (v : Body S A C)
             (P : S × C → ℚ) (j : ℕ) (s : S) (p : A)
