@@ -1,12 +1,25 @@
 # Open items
 
 Open suggestions from the quality-review rounds and the retired plans, verified against `src/` at
-`8f05fb41` and trimmed after the round-3 leftovers landed; maintainer rulings are excluded. Each
+`8f05fb41`, trimmed after the round-3 leftovers landed, and joined by what the round-4 review
+ledgers (R4A–D) left open after their implementation; maintainer rulings are excluded. Each
 line: `module :: definition` — size — why.
 
 ## Foundations
 
 - `ProbabilisticLogic/Distribution/{Bernoulli,Binomial}` (deleted) — ~370 LOC, restate at `Dist-ℚ` — no biased coin, binomial `pᵏ` or expected count `k·m/(m+n)` in the live library; retirement review disagreed with the deletion.
+- `ProbabilisticLogic/Dp/Mass.agda :: _≼ᵐ_, Total, ASTotal, astotal-*, const-bind-*, squeeze*, verdict-mass, mass-bind*` — ≈ −135 LOC — almost-sure termination with no consumer (only `cum-bindʳ` and its `mass`/`mass-≤1`/`cum-≤1`/`leafₚ-≤1` are used, by `StateEvent/Lift`); takes `Rational.Properties.Ext`'s "Masses within ε of one" section, `Uniform.indᵇ-≤1` and `Dp.cum-add` with it. Kept because `Machines/Run/Lax.agda`'s header names `astotal-bind` as the planned lax-prefix route; spiked green (+5/−140, `QUALITY-REVIEW-R4D.d/mass-trim.patch` at `22c6981c`).
+- `ProbabilisticLogic/Distribution/RationalDist.agda :: >>=ᴹ-identityʳ, >>=ᴹ-comm` — ≈ −25 LOC — consumerless since `Partial`'s `>>=⊥-identityʳ`/`>>=⊥-comm` went; kept so far as `Dist-ℚ`'s defining laws.
+- `ProbabilisticLogic/Dp/Advantage.agda :: Pr≤` — −3 LOC — second spelling of `Pr≤[ true ]` (one use, `Upper`); also cited in `mathematical-guide.md`, `state-event-contract.md`, `simplification-options.md` and a `Protocol/Machine/Agree` comment.
+- `Categories/Monad/Graded/FromMonad.agda :: sub-identityˡ, μ-identityʳ, μ-assoc` — small — `sub-identityˡ` is verbatim `Monad.Graded.Ext.sub-identityˡ`, the other two have no consumer; whether `FromMonad` presents a full monad or only what is used.
+- `Categories/Category/Monoidal/Pure.agda :: PureSub.pure-λ⇐, pure-ρ⇐, pure-α⇐` — −6 LOC — never projected; dropping them generalises every `Machines.*` theorem but `PureSub` stops being a symmetric monoidal subcategory.
+- `ProbabilisticLogic/Dp/Settle/Iter.agda :: Ranked, Settles-iter` — statement strengthening — `Ranked` asks the drop at every depth, `Settles-iter` spends it only at `proj₁ (bodyS w)`; 6 consumer sites (`Machines/Run/Trace`, `ROCommitment/Realization/Machine`).
+- `Categories/Category/Monoidal/Traced/Ext.agda` re-export of `β` — 0 LOC — exists only for `GConstructionTrace` to re-export it again; sourcing it directly clashes with GT's later full `Symmetric.Properties.Ext` open.
+- `Categories/GConstructionEmbedding.agda :: ⌜⌝-≅` — statement change, 0 LOC — takes `B⁻ ≅ A⁻`, so all three callers pass `MC.≅.sym x`.
+- `ProbabilisticLogic/Dp/Coin.agda :: uniform-balanced` (`refl`, two uses in `CoinToss/Ideal/{,Receiver/}Machine`), `Dp/Settle.agda :: Settlesᵀ*, uniformₚ-settles` (47 lines, one consumer `ROCommitment/Transport`) — placement.
+- `Data/Nat/Poly.agda` private `[2*n]^d≡2^d*n^d` — small, on `main` — is `Data.Nat.Properties.Ext.^-distribʳ-* d 2 n`.
+- `Categories/LocallyGraded/SubCategory.agda :: Predicate` — rename — it is the certified-arrow hom record, not a predicate; importers in UC.
+- `ProbabilisticLogic/Dp` one-consumer wrappers `node-nn, node-zero, cofinal-refl, dom≤⇒cofinal, upper-dom, map-map` — ≤ 3 LOC each — unspiked.
 
 ## Machines / Protocols
 
@@ -24,6 +37,9 @@ line: `module :: definition` — size — why.
 - Comment pass remainder over the R3C scope: the `Machine/Core` TODOs.
 - `CategoricalCrypto/UC/Machine/Dictionary.agda :: midᴹ` (moved from `Machines.Pure` in round 4) — 0 LOC — second spelling of `GConstructionTrace.mid`. Declined round 4 (measured): stated at `mid` itself, `T₁-⊗₁`/`sub-⊗₁` take 60 s each and the module 170 s instead of 20 s; `midᴹ` stays an opaque name.
 - `CategoricalCrypto/Machines/Trace/Fubini.agda :: norm` → a library module — placement — made private instead in round 4: a one-off five-morphism reassociation for `k₂-relabel`, not a ⊕ fact.
+- `CategoricalCrypto/Machines/Run/Trace.agda :: dispatch-f, dispatch-g, K∘-enter, exit-out, exit-loop` — ≈ −20 LOC — restate `E⊥-map`/`E⊥-bind`/`E⊥-return` for one consumer (`ROCommitment/Realization/Bisim`, 8 sites); inline if the types still infer (they may be type pins). Unspiked.
+- `CategoricalCrypto/Machines/Iteration.agda :: Elgot` — unexamined — whether fields beyond `iter-cong` (e.g. `iter-ctx`) follow from `iter-transfer`.
+- `CategoricalCrypto/OracleCall.agda :: mapCall, reCall` — small — `Sum.map f (map₂ (f ∘_))` / `map₂ (map f (_∘ g))`; one consumer (`ChimericLedger/System`). Unspiked.
 
 ## UC core
 
@@ -37,10 +53,14 @@ line: `module :: definition` — size — why.
 - `CategoricalCrypto/Abstract.agda :: Iᵤ, car, grd, U-≋, atk-idˡ`, `Abstract2 :: UC-compose re-binding f g` — ≈ −20 LOC — dead names in the kept island.
 - `CategoricalCrypto/UC/Seam/Grounded.agda` — module move — it is about the seal's trivial grade, not the seam (`UC.Model.TrivialGrade`?); declined in round 4 (I1, which landed its `closedᵒ = stageᵒ` half): a module rename is a tree-wide change and the suggested home is tentative.
 - State-event transport for open systems — ~150–250 LOC proof work — `stateLift` handles closed systems only; a bound carried through a simulator needs a `collapseᵀ`-compatible projection or a permitted-class route.
+- `CategoricalCrypto/UC/Machine/Grading.agda :: qb-T₁ᴳ, qb-subᴳ` — −6 LOC — single use each, but the header's opaque/perf split needs a measurement; `UC/Machine/Dominated.agda :: Decompose` (one use) could be `skeleton`'s `where` (−3).
+- `CategoricalCrypto/UC/Model/Family/Emulation.agda :: ≈ctx⇒≈ℰ[], ≤UC[]⇒≈ℰⁿ` — −6 LOC — single-use chain into `≤UC[]⇒≤UCᴺ`, but `quantitative-family.md` §5 presents them as API.
 
 ## Quantitative
 
 - `CategoricalCrypto/UC/Quantitative/EventLift.agda :: agree` — small — public, single use (`hits⇒upper`); kept in round 3: it is cited.
+- `CategoricalCrypto/UC/Approximate/Local.agda :: _∼ᴺ_` — 0 LOC, one spelling — the header says it IS `_∼Small_ familySpace`; define it so. `zeroᶠ` is defined twice (`Approx/Separating`, `UC/Approximate/LocalTests`); `Local :: ∼ᴺ-gap` and `Approx.Error :: ℕ-ordered` are consumed only by tests.
+- `CategoricalCrypto/UC/Quantitative/Family.agda` — perf watch — applies `Families Rg ℕ (λ n → n) …` a second time beside `UC.Family`'s, and both meet in the examples (the two-spellings risk `Query`'s header warns about); green today, first suspect if those examples slow down.
 
 ## Examples
 
@@ -65,11 +85,19 @@ line: `module :: definition` — size — why.
 - `CategoricalCrypto/Examples/ChimericLedger/Birthday.agda :: presTree, φ-step` — repeat the `with shape …` cascade (one activation view); declined in round 4: the view must carry `freshInv`'s three equations and both step equations, ≈ −5 net for a 25-line data type.
 - `CategoricalCrypto/Examples/ROCommitment :: sim-hash-count` — design call — the simulator queries the oracle at the opening.
 - Merkle–Damgård as the ledger's hash instance — proof work — would discharge the hash premise above together with the padding adapter.
+- `CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Machine.agda :: Pointᶜ` — ≈ −5 LOC — re-spells `Machines.Run.Defer.DeferStep`'s inner point hypothesis; name it there (`DeferPoint`).
+- `ROCommitment/UC :: realᵒ, idealᵒ`, `Hiding/UC :: realʰᵒ, idealʰᵒ`, `CoinToss/UC :: tossᵒ`, `CoinToss/Hiding/UC :: tossʰᵒ` vs `CoinToss/Compose :: realᶠ, idealᶠ, tossᶠ, …` — ≈ −12 LOC — two alias layers for one graded hom, the ᵒ layer consumed only by the ᶠ layer and the QB types; keep one, as a whole family (rule 26).
+- `CategoricalCrypto/Examples/ChimericLedger/Property.agda :: ideal-truthful` — −3 LOC — no code consumer, a one-line instance of `Observable.auditWatch-complete`; cited by `mathematical-guide.md` §8, `state-event-contract.md` row 23, `end-to-end.md` §6 — keep, or delete with those lines.
+- `CategoricalCrypto/Examples/ChimericLedger.agda :: checkWdrls-[]`, `System.agda :: ledger-keeps-accts-[]` — −17 LOC — no code consumer; the checked evidence behind `chimeric-not-preserving`'s initialization gap (above). Keep unless the prose alone suffices.
+- `CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda :: coin-from-Rcom, coin-from-Rcomʰ` — −8 LOC — one consumer each (`assembly`/`assemblyʰ`); inline, though they mirror the named `coin-toss-from-com`.
+- `CategoricalCrypto/Examples/MerkleDamgard/Core.agda :: cm-01, collC-01, cm0-all, sc0-ap` — ≈ −15 LOC — exist because `countMatch` is ℚ-valued; an ℕ-valued count under `fromℕ` makes them case splits (touches `Uniform.Collision`, `Uniform.Duplicate`). Unspiked.
+- `CategoricalCrypto/Examples/CoinToss/Ideal/Reach.agda :: coinᶜ`, `Receiver/Reach :: eagerᶜʰ, deferᶜʰ`, `Ideal/Stage :: hybrid-eq` — ≈ −2 LOC — `sandwichᴹ c (Sum.map₂ assocʳ) (Sum.map₂ assocˡ)` written four times; one `rebracketᴹ` in `Ideal/Stage`.
 
 ## Docs / Tests
 
 - Per-layer pin gaps — new test lines — `Dp.Elgot`'s laws and `Machines.Base`'s `ℳₚ`/`Tracedₚ`/`𝒢ₚ` have no behavioural pin; `UC/QueryBound/Counting` and `UC/Family/Quantitative`'s `≤UC` pair likewise. Round 4: no few-line pin for `Dp.Elgot` or `Machines.Base` — both are `≈ₚ`/category laws over arbitrary bodies, so a pin needs a hand-built instance and depth sampling.
 - Unfinished sweep classes (toolkit): `implicit-drop`, `binder-drop`, `join-lines`, `using-minimize`, `import-drop` over the R3 scopes (A: 60 files; B: 92; C: 24 remaining; D: 63 / 42 remaining); `enum-with` (A 93, C 23, D 11 sites) and `enum-where` (A 192, B 125, C 126, D 162 sites) enumerated but not dispositioned; `StateEvent/Lift.agda` needs a by-hand sweep (toolkit parse error). `import-drop` over `Examples/{ROCommitment,MerkleDamgard,HashForward}/**` (~700 import lines) never run. Run after a store GC, one session. The canonical `.claude/sweeps/{with_case,where_inline}.py` still carry the W2 bugs (unparenthesised `yes p` inside `λ where`, needless parens around an atomic RHS, `with` matched inside comments) — two one-line fixes.
+- Comment-narration pass (rules 21–22) over the R4A examples scope beyond the files round 4 touched, and over the `GConstruction*Coherence` perf-split modules and `Coherence/Monoidal/Tactic` beyond the macro (R4D read them for boundaries and consumers only).
 
 ## Deferred by maintainer
 

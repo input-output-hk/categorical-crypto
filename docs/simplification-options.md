@@ -83,7 +83,7 @@ structural: a quantitative setup with an `Approx`-valued presheaf compares two
 *elements*, but `_≈ctx[_]_` reads its error at the allowance of the *context*, which is
 no longer visible once the compared hom has been pulled through it; an element-level
 closeness that reads an allowance off the two elements cannot be transitive unless it
-ignores the allowance (the spike's `AllowanceNoGo`). What survives is a `Filt`-valued setup with the
+ignores the allowance (the spike's `AllowanceNoGo`). What survives is an `Approx.Filtered.FilteredSpace`-valued setup with the
 admitted agreement `_≈ᵃ[_]_` as its comparison: at the rated base it reproduces
 `_≈ᵁᵠ[_]_` exactly and the spike's generic `at-trans`/`at-compose` produce exactly `seqError`
 and `composeError`. That is a win in structure, not size (the parallel ε-theory is
