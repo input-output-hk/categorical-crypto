@@ -182,7 +182,7 @@ identifies those with the pruned game kernels, and `hop-boundᵇ⊥` at
 `Game.cert`-via-`prune-cert` is the bound.
 
 **The real leg is a theorem.** `Examples.ROCommitment.Realization.Bisim`:
-`toQ`/`toR` (with section `fromR`) relabel the interface onto the game's
+`toQ`/`fromR` relabel the interface onto the game's
 alphabet, `deadR` names the two off-protocol cell activations, and
 `bisimᴿ : StepBisim⊥ʳ … respR⊥ …` at `respR⊥ = prune deadR respR`.
 `Realization.Bound`: `real-run`, `game-bound⊥`, and `extraction-real`, which

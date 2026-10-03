@@ -3,7 +3,7 @@
 -- What one transaction does to `total`, with the hash answered by an
 -- arbitrary oracle: value is lost only when the hash keying the new outputs
 -- already keys a live UTxO entry, whose output `unionNew` then swallows
--- (`applyTx-total-fresh`, `conservation`).
+-- (`conservation`).
 
 open import categorical-crypto.Prelude using (DecEq-×′)
 open import Class.DecEq
@@ -87,22 +87,22 @@ checkIns-balance u (i ∷ is) v u′ eq with checkIns-∷ u i is v u′ eq
 -- Withdrawing (the account side), and paying out
 ------------------------------------------------------------------------
 
-acctΣ-subOne : ∀ a x v → T (v ≤ᵇ acctOf a x) → acctΣ a ≡ v + acctΣ (subOne x v a)
-acctΣ-subOne []            x v le =
+valΣ-subOne : ∀ a x v → T (v ≤ᵇ acctOf a x) → valΣ a ≡ v + valΣ (subOne x v a)
+valΣ-subOne []            x v le =
   trans (sym (n≤0⇒n≡0 (≤ᵇ⇒≤ v 0 le))) (sym (+-identityʳ v))
-acctΣ-subOne ((y , w) ∷ a) x v le with x ≟ y
-... | yes _ = trans (cong (_+ acctΣ a) (sym (m+[n∸m]≡n (≤ᵇ⇒≤ v w le))))
-                    (+-assoc v (w ∸ v) (acctΣ a))
-... | no  _ = trans (cong (w +_) (acctΣ-subOne a x v le))
-                    (x∙yz≈y∙xz w v (acctΣ (subOne x v a)))
+valΣ-subOne ((y , w) ∷ a) x v le with x ≟ y
+... | yes _ = trans (cong (_+ valΣ a) (sym (m+[n∸m]≡n (≤ᵇ⇒≤ v w le))))
+                    (+-assoc v (w ∸ v) (valΣ a))
+... | no  _ = trans (cong (w +_) (valΣ-subOne a x v le))
+                    (x∙yz≈y∙xz w v (valΣ (subOne x v a)))
 
-checkWdrls-acctΣ : ∀ a ws a′ → checkWdrls a ws ≡ just a′ → acctΣ a ≡ wdrlΣ ws + acctΣ a′
-checkWdrls-acctΣ a []             a′ eq = cong acctΣ (just-injective eq)
-checkWdrls-acctΣ a ((x , v) ∷ ws) a′ eq with v ≤ᵇ acctOf a x in eqb
+checkWdrls-valΣ : ∀ a ws a′ → checkWdrls a ws ≡ just a′ → valΣ a ≡ valΣ ws + valΣ a′
+checkWdrls-valΣ a []             a′ eq = cong valΣ (just-injective eq)
+checkWdrls-valΣ a ((x , v) ∷ ws) a′ eq with v ≤ᵇ acctOf a x in eqb
 ... | false = ⊥-just eq
-... | true  = trans (acctΣ-subOne a x v (subst T (sym eqb) tt))
-                (trans (cong (v +_) (checkWdrls-acctΣ (subOne x v a) ws a′ eq))
-                       (sym (+-assoc v (wdrlΣ ws) (acctΣ a′))))
+... | true  = trans (valΣ-subOne a x v (subst T (sym eqb) tt))
+                (trans (cong (v +_) (checkWdrls-valΣ (subOne x v a) ws a′ eq))
+                       (sym (+-assoc v (valΣ ws) (valΣ a′))))
 
 -- The index bound keeps the induction honest: the entries `outsAt` creates
 -- are pairwise distinct, so only the indices not yet inserted must be free.
@@ -267,9 +267,7 @@ lookupU-insertNew : ∀ u kv k → k ≢ proj₁ kv → lookupU u k ≡ nothing
                   → lookupU (insertNew u kv) k ≡ nothing
 lookupU-insertNew u (k₀ , v) k ne hyp with is-just (lookupU u k₀)
 ... | true  = hyp
-... | false with k ≟ k₀
-...   | yes p = ⊥-elim (ne p)
-...   | no  _ = hyp
+... | false = lookupU-cons-≢ k₀ v u k ne hyp
 
 lookupU-unionNew-outsAt : ∀ u h i os k → proj₁ k ≢ h → lookupU u k ≡ nothing
                         → lookupU (unionNew u (outsAt h i os)) k ≡ nothing
@@ -302,13 +300,13 @@ module _ (ser : Tx → List Bool) where
 
     reject-bal : ∀ vr s tx {vIn u′ a′} → checkIns (proj₁ s) (proj₁ tx) ≡ just (vIn , u′)
                → checkWdrls (proj₂ s) (proj₁ (proj₂ tx)) ≡ just a′
-               → ((vIn + wdrlΣ (proj₁ (proj₂ tx))) ≡ᴺ valΣ (proj₂ (proj₂ tx))) ≡ false
+               → ((vIn + valΣ (proj₁ (proj₂ tx))) ≡ᴺ valΣ (proj₂ (proj₂ tx))) ≡ false
                → applyTx vr s tx ≡ pureᶜ (s , false)
     reject-bal vr (u , a) (ins , wds , outs) e₁ e₂ eb rewrite e₁ | e₂ | eb = refl
 
     reject-con : ∀ vr s tx {vIn u′ a′} → checkIns (proj₁ s) (proj₁ tx) ≡ just (vIn , u′)
                → checkWdrls (proj₂ s) (proj₁ (proj₂ tx)) ≡ just a′
-               → ((vIn + wdrlΣ (proj₁ (proj₂ tx))) ≡ᴺ valΣ (proj₂ (proj₂ tx))) ≡ true
+               → ((vIn + valΣ (proj₁ (proj₂ tx))) ≡ᴺ valΣ (proj₂ (proj₂ tx))) ≡ true
                → consumes vr (proj₁ tx) ≡ false
                → applyTx vr s tx ≡ pureᶜ (s , false)
     reject-con vr (u , a) (ins , wds , outs) e₁ e₂ eb ec
@@ -316,7 +314,7 @@ module _ (ser : Tx → List Bool) where
 
     accept-eq : ∀ vr s tx {vIn u′ a′} → checkIns (proj₁ s) (proj₁ tx) ≡ just (vIn , u′)
               → checkWdrls (proj₂ s) (proj₁ (proj₂ tx)) ≡ just a′
-              → ((vIn + wdrlΣ (proj₁ (proj₂ tx))) ≡ᴺ valΣ (proj₂ (proj₂ tx))) ≡ true
+              → ((vIn + valΣ (proj₁ (proj₂ tx))) ≡ᴺ valΣ (proj₂ (proj₂ tx))) ≡ true
               → consumes vr (proj₁ tx) ≡ true
               → applyTx vr s tx
                 ≡ callᶜ (ser tx)
@@ -328,7 +326,7 @@ module _ (ser : Tx → List Bool) where
     accepted : (vIn : ℕ) (u′ : Utxo) (a′ : Accts)
              → checkIns (proj₁ s) (proj₁ tx) ≡ just (vIn , u′)
              → checkWdrls (proj₂ s) (proj₁ (proj₂ tx)) ≡ just a′
-             → ((vIn + wdrlΣ (proj₁ (proj₂ tx))) ≡ᴺ valΣ (proj₂ (proj₂ tx))) ≡ true
+             → ((vIn + valΣ (proj₁ (proj₂ tx))) ≡ᴺ valΣ (proj₂ (proj₂ tx))) ≡ true
              → consumes vr (proj₁ tx) ≡ true
              → applyTx vr s tx
                ≡ callᶜ (ser tx)
@@ -340,35 +338,31 @@ module _ (ser : Tx → List Bool) where
   ... | nothing = rejected (reject-ins vr s tx e₁)
   ... | just (vIn , u′) with checkWdrls a wds in e₂
   ...   | nothing = rejected (reject-wds vr s tx e₁ e₂)
-  ...   | just a′ with (vIn + wdrlΣ wds) ≡ᴺ valΣ outs in eb
+  ...   | just a′ with (vIn + valΣ wds) ≡ᴺ valΣ outs in eb
   ...     | false = rejected (reject-bal vr s tx e₁ e₂ eb)
   ...     | true with consumes vr ins in ec
   ...       | false = rejected (reject-con vr s tx e₁ e₂ eb ec)
   ...       | true  = accepted vIn u′ a′ e₁ e₂ eb ec (accept-eq vr s tx e₁ e₂ eb ec)
 
-  applyTx-total-fresh : ∀ vr s tx h → (∀ j → lookupU (proj₁ s) (h , j) ≡ nothing)
-                      → total (after vr s tx h) ≡ total s
-  applyTx-total-fresh vr s tx h fresh with shape vr s tx
+  conservation : ∀ vr s tx hs h → (∀ k → k ∈ keysU (proj₁ s) → proj₁ k ∈ hs)
+               → ¬ (h ∈ hs) → total (after vr s tx h) ≡ total s
+  conservation vr s tx hs h hashed h∉ with shape vr s tx
   ... | rejected eq = cong (λ c → total (proj₁ (runCall (λ _ → h) c))) eq
-  applyTx-total-fresh vr s@(u , a) tx@(ins , wds , outs) h fresh
+  conservation vr s@(u , a) tx@(ins , wds , outs) hs h hashed h∉
     | accepted vIn u′ a′ e₁ e₂ eb ec eq = begin
       total (after vr s tx h)
         ≡⟨ cong (λ c → total (proj₁ (runCall (λ _ → h) c))) eq ⟩
-      balance (unionNew u′ (outsAt h 0 outs)) + acctΣ a′
-        ≡⟨ cong (_+ acctΣ a′)
+      balance (unionNew u′ (outsAt h 0 outs)) + valΣ a′
+        ≡⟨ cong (_+ valΣ a′)
              (balance-unionNew-outsAt u′ h 0 outs
-               (λ j _ → checkIns-lookupU u ins vIn u′ (h , j) e₁ (fresh j))) ⟩
-      (balance u′ + valΣ outs) + acctΣ a′
-        ≡⟨ shuffle vIn (balance u′) (wdrlΣ wds) (acctΣ a′) (valΣ outs)
-             (≡ᵇ⇒≡ (vIn + wdrlΣ wds) (valΣ outs) (subst T (sym eb) tt)) ⟩
-      (vIn + balance u′) + (wdrlΣ wds + acctΣ a′)
+               (λ j _ → checkIns-lookupU u ins vIn u′ (h , j) e₁
+                          (∉-lookupU u (h , j) λ mem → h∉ (hashed (h , j) mem)))) ⟩
+      (balance u′ + valΣ outs) + valΣ a′
+        ≡⟨ shuffle vIn (balance u′) (valΣ wds) (valΣ a′) (valΣ outs)
+             (≡ᵇ⇒≡ (vIn + valΣ wds) (valΣ outs) (subst T (sym eb) tt)) ⟩
+      (vIn + balance u′) + (valΣ wds + valΣ a′)
         ≡⟨ cong₂ _+_ (sym (checkIns-balance u ins vIn u′ e₁))
-                     (sym (checkWdrls-acctΣ a wds a′ e₂)) ⟩
-      balance u + acctΣ a
+                     (sym (checkWdrls-valΣ a wds a′ e₂)) ⟩
+      balance u + valΣ a
         ∎
       where open ≡-Reasoning
-
-  conservation : ∀ vr s tx hs h → (∀ k → k ∈ keysU (proj₁ s) → proj₁ k ∈ hs)
-               → ¬ (h ∈ hs) → total (after vr s tx h) ≡ total s
-  conservation vr s tx hs h hashed h∉ = applyTx-total-fresh vr s tx h λ j →
-    ∉-lookupU (proj₁ s) (h , j) λ mem → h∉ (hashed (h , j) mem)

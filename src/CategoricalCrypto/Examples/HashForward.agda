@@ -28,7 +28,6 @@ open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Wire
 
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.Examples.HashForward (Msg Dig : Set) where
@@ -36,7 +35,7 @@ module CategoricalCrypto.Examples.HashForward (Msg Dig : Set) where
 private
   module 𝒫 = Category 𝒫ᴵ
 
-open Core (𝒱ₚ 0ℓ)
+open MC
 open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 
 ------------------------------------------------------------------------

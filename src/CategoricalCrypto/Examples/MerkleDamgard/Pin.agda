@@ -39,7 +39,7 @@ module CategoricalCrypto.Examples.MerkleDamgard.Pin where
 
 module OneBlock where
 
-  open MD 1 1 (false ∷ []) public
+  open MD 1 1 (false ∷ [])
 
   hash : Vec Bool 1 → Strat (Neg Generalᴵ) (Pos Generalᴵ)
   hash m = ask (zero , m) λ a → out (head (proj₂ a))
@@ -79,7 +79,7 @@ module OneBlock where
 
 module TwoBlocks where
 
-  open MD 1 2 (false ∷ []) public
+  open MD 1 2 (false ∷ [])
 
   collide : Strat (Neg Generalᴵ) (Pos Generalᴵ)
   collide = ask (zero , false ∷ false ∷ []) λ a →

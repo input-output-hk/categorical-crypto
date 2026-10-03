@@ -137,9 +137,9 @@ of a table, so a collision in the answer log costs it nothing.
 against the protocol that draws its randomness at the commitment: `m` guesses
 at the programming point, `m` at the plant, `m` fresh tests.
 
-`Hiding.Asymptotic`: `εʰ n q = q·2⁻ⁿ` and `εᵗ n q = (q + (q + q))·2⁻ⁿ`, with
-`εʰ-negligible`/`εᵗ-negligible` and the levelwise `hiding-boundⁿ`/
-`hiding-boundᵗ`. `Hiding.Test` instantiates them at `k = 5` against live
+`Hiding.Asymptotic`: `εᵗ n q = (q + (q + q))·2⁻ⁿ`, with `εᵗ-negligible` and
+the levelwise `hiding-boundᵗ`. `Hiding.Test` instantiates `hiding-bound` and
+`hiding-boundᵗ` at `k = 5` against live
 attacks: `bounded`/`bounded-total` at the three-activation attack — commit,
 query a guessed opening point *before* the opening, report whether it came back
 with the published digest — and `bounded-preq` at a two-activation one that
@@ -155,11 +155,13 @@ module _ {Q R V StE StL : Type} (μ : Dist-ℚ V)
          (resp : StE → Q → Dist-ℚ (StE × R)) (resp′ : StL → Q → Dist-ℚ (StL × R))
          (_≋_ : (V → StE) → StL → Type) where
 
+  AvgPoint : (StE × R → ℚ) → (StL × R → ℚ) → Type
+  AvgPoint F F′ = ∀ (g : V → StE × R) t → (λ v → proj₁ (g v)) ≋ proj₁ t
+                → (∀ v → proj₂ (g v) ≡ proj₂ t) → E μ (λ v → F (g v)) ≡ F′ t
+
   AvgBisim : Type
   AvgBisim = ∀ f s → f ≋ s → ∀ q (F : StE × R → ℚ) (F′ : StL × R → ℚ)
-           → (∀ (g : V → StE × R) t → (λ v → proj₁ (g v)) ≋ proj₁ t
-              → (∀ v → proj₂ (g v) ≡ proj₂ t) → E μ (λ v → F (g v)) ≡ F′ t)
-           → E μ (λ v → E (resp (f v) q) F) ≡ E (resp′ s q) F′
+           → AvgPoint F F′ → E μ (λ v → E (resp (f v) q) F) ≡ E (resp′ s q) F′
 
   runWith-avg : AvgBisim → ∀ d f s → f ≋ s
               → E μ (λ v → Pr₁ (runWith resp (f v) d)) ≡ Pr₁ (runWith resp′ s d)

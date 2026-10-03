@@ -31,7 +31,6 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.UC.Machine
 
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.Examples.ROCommitment.Hiding (k : ℕ) where
@@ -39,7 +38,7 @@ module CategoricalCrypto.Examples.ROCommitment.Hiding (k : ℕ) where
 open import CategoricalCrypto.Examples.ROCommitment k
 open import CategoricalCrypto.Examples.ROCommitment.Extraction k
 
-open Core (𝒱ₚ 0ℓ)
+open MC
 open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 
 ------------------------------------------------------------------------

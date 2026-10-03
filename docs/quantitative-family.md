@@ -79,7 +79,7 @@ Its homs `_⇒^ω_` carry a `Poly⁺` rate schedule `schedOf` with admissibility
 
 At the machine, `UC.Model.Enrichment.gradingᵒ` is the grading.
 `qbᵒ`/`qb-gradedᵒ` turn a machine query bound `UC.QueryBound.QB (value r) f`
-into a `Pred r`, and `imageᵒ` turns that into an `Image forget r`.
+into a `Pred r`, and `pred⇒image` turns that into an `Image forget r`.
 
 ## 2. Transport: moving a certified morphism into the context
 
@@ -326,7 +326,7 @@ strategy, one adversary and one closed input. *inst*.
 | `… :: coin-toss-idealᵇ` | cond | `realᶠ ≤UC[ sf , εf ] idealᶠ → (λ n → (tossᶠ ∙ᶠ realᶠ) n ∘ resᶠ n) ≤UC[ simᶜⁱ sf , εᶜⁱ εf ] Fcoinᶠ`. `≤UC[]-dom` closes the boundary over the installed resource, then `≤UC[]-trans` |
 | `… :: coin-toss-ideal`, `coin-toss-idealᶜ`, `coin-toss-idealᴺ` | cond | existential packaging; `ᶜ` narrows the premise to `realᶠ ≈ctx[ εᶜ ] subᶠ comSim idealᶠ`; `ᴺ` crosses with `≤UC[]⇒≤UCᴺ`, keeping the simulator but not the schedule |
 | `… :: ideal-ε` | inst | `εᶜⁱ εᶜ n q ≡ fromℕ (q * q + q + q) *ℚ inv-pow-2 n`: the commitment's error, unrescaled |
-| `Examples.CoinToss.Ideal.Receiver.Compose :: coin-hybridʳᵇ`, `coin-toss-idealʳᵇ`, `coin-toss-idealʳ`, `coin-toss-idealʳᴺ`, `ideal-εʳ` | cond / inst | the corrupted-receiver twin. Its second hop is not exact: only the runs agree, and carrying that into a context costs `ηʰ n _ = 0ℚ ℚ.+ inv-pow-2 n`, so `ideal-εʳ` pins `fromℕ (q + (q + q)) *ℚ inv-pow-2 n ℚ.+ inv-pow-2 n` |
+| `Examples.CoinToss.Ideal.Receiver.Compose :: coin-hybridʳᵇ`, `coin-toss-idealʳᵇ`, `coin-toss-idealʳ`, `coin-toss-idealʳᴺ`, `ideal-εʳ` | cond / inst | the corrupted-receiver twin. Its second hop is not exact: only the runs agree, and carrying that into a context costs `ηʰ n _ = inv-pow-2 n`, so `ideal-εʳ` pins `fromℕ (q + (q + q)) *ℚ inv-pow-2 n ℚ.+ inv-pow-2 n` |
 | `Examples.ROCommitment.Realization.Assembly :: assembly`, `assemblyʰ`, `pin`, `pinʰ` | cond on `Realization` | `Realization = Rcom ≤UC^ωᵉ Icom` at the resource-installed boundary is a hypothesis. `pin` is `refl` |
 | `Examples.ROCommitment.Realization.Bound :: extraction-real` | inst, partial | bounds the closed real *machine* against the pruned ideal *game*; not a machine realization |
 

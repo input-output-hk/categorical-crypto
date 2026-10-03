@@ -5,10 +5,8 @@ module CategoricalCrypto.Examples.RandomOracle where
 open import categorical-crypto.Prelude hiding (_/_; _>>=_; _*_)
 
 open import Data.Fin using (Fin)
-open import Data.List.Properties using (length-map)
 open import Data.List.Relation.Unary.Any using (here; there)
 open import Data.Maybe.Properties using (just-injective)
-open import Data.Rational using (ℚ; 0ℚ; 1ℚ; _+_; _*_)
 open import Data.Vec hiding (length; map)
 open import Function.Base
 import Relation.Binary.Reasoning.Setoid as RS
@@ -22,8 +20,6 @@ open import ProbabilisticLogic.Distribution.RationalDist.Setoid
 open import ProbabilisticLogic.Distribution.Uniform
 
 module RandomOracle (p : ℕ) (In : Type) ⦃ _ : DecEq In ⦄ (outN : ℕ) where
-
-  open import ProbabilisticLogic.Distribution.Uniform.Collision outN
 
   Out : Type
   Out = Vec Bool outN
@@ -111,23 +107,3 @@ module RandomOracle (p : ℕ) (In : Type) ⦃ _ : DecEq In ⦄ (outN : ℕ) wher
         F  = λ h → ret ((q , h) ∷ s , (i , h))
         Rt = λ h → return-ℚ ((q , h) ∷ s , i , h)
         open RS (Mℚ-setoid _)
-
-  --------------------------------------------------------------------
-  -- Collision counting
-
-  count-matches : Table → Out → ℚ
-  count-matches s = countMatch (map proj₂ s)
-
-  E-collisions : ∀ s
-               → lookupᴰℚ (entries uniform-Out) (count-matches s)
-               ≡ (fromℕ (length s)) * inv-pow-2 outN
-  E-collisions s =
-    trans (E-countMatch (map proj₂ s)) (cong (λ l → fromℕ l * inv-pow-2 outN) (length-map proj₂ s))
-
-  triangle : ℕ → ℚ
-  triangle zero    = 0ℚ
-  triangle (suc k) = fromℕ k + triangle k
-
-  state-collisions : Table → ℚ
-  state-collisions []             = 0ℚ
-  state-collisions ((_ , h) ∷ ps) = count-matches ps h + state-collisions ps

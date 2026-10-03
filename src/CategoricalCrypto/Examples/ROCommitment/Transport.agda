@@ -33,8 +33,6 @@ open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Machine.Raw
 open import CategoricalCrypto.Strategy
 
-import CategoricalCrypto.Machines.Core as Core
-
 module CategoricalCrypto.Examples.ROCommitment.Transport (k : ℕ) where
 
 open import CategoricalCrypto.Examples.ROCommitment k
@@ -42,7 +40,7 @@ open import CategoricalCrypto.Examples.ROCommitment.Extraction k
 open import CategoricalCrypto.Examples.ROCommitment.Oracle k
 open import CategoricalCrypto.Examples.ROCommitment.Resource k
 
-open Core (𝒱ₚ 0ℓ)
+open MC
 
 ------------------------------------------------------------------------
 -- The kernel

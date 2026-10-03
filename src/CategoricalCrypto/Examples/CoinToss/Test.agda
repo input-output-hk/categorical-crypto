@@ -1,8 +1,9 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- Acceptance instances for the composed statements: their schedules where they
--- bite, and one live round of each ideal coin and joint simulator, read
--- through `UC.QueryBound.behᴾ` at the processes the theorems name.
+-- bite, and one live round of each real protocol, ideal coin and joint
+-- simulator, read through `UC.QueryBound.behᴾ` at the processes the theorems
+-- name.
 --
 -- The schedules are pinned at security parameter 5 and three queries; at the
 -- machines' own `k = 3` all three are at least 1 (15/8, 15/8 and 5/4), so a
@@ -52,7 +53,19 @@ ideal-boundʳ : ∀ e → proj₁ (proj₂ (coin-toss-idealʳᶜ e)) 5 3 ≡ + 5
 ideal-boundʳ _ = refl
 
 ------------------------------------------------------------------------
--- The ideal coin, and the simulator that lands the toss on it
+-- The protocol, the ideal coin, and the simulator that lands the toss on it
+
+toss-round : (b₁ : Bool)
+           → behᴾ toss (inj₁ rcptᴴ ∷ inj₁ (openedᴴ b₁) ∷ [])
+             ≈ₚ (coinₚ uniform-Bool >>=ₚ λ b₂ →
+                   returnₚ (inj₂ (inj₁ (shareᴬ b₂)) ∷ inj₂ (inj₂ (tossedᶜ (b₁ xor b₂))) ∷ []))
+toss-round b₁ =
+      >>=ₚ-identityˡ freshᵖ _
+  ⟨≈⟩ >>=ₚ-assoc (coinₚ uniform-Bool) _ _
+  ⟨≈⟩ bindᶠ λ b₂ → >>=ₚ-identityˡ (heldᵖ b₂ , inj₂ (inj₁ (shareᴬ b₂))) _
+               ⟨≈⟩ map-arg _ (>>=ₚ-identityˡ (doneᵖ , inj₂ (inj₂ (tossedᶜ (b₁ xor b₂)))) _
+                              ⟨≈⟩ >>=ₚ-identityˡ [] _)
+               ⟨≈⟩ >>=ₚ-identityˡ _ _
 
 coin-round : behᴾ Fcoin (inj₂ (inj₁ sampleᵏ) ∷ inj₂ (inj₁ deliverᵏ) ∷ [])
              ≈ₚ (coinₚ uniform-Bool >>=ₚ λ c →
@@ -90,6 +103,20 @@ sim-round b₁ c =
 
 ------------------------------------------------------------------------
 -- …and at the other corruption
+
+toss-roundʰ : (b₂ : Bool)
+            → behᴾ tossʰ (inj₂ (inj₂ goᶜ) ∷ inj₂ (inj₁ (shareᴬʰ b₂)) ∷ inj₂ (inj₂ getᶜ) ∷ [])
+              ≈ₚ (coinₚ uniform-Bool >>=ₚ λ b₁ →
+                    returnₚ (inj₁ (commitᴱ b₁) ∷ inj₁ openᴱ ∷ inj₂ (inj₂ (tossedᶜ (b₁ xor b₂))) ∷ []))
+toss-roundʰ b₂ =
+      >>=ₚ-identityˡ freshᵗ _
+  ⟨≈⟩ >>=ₚ-assoc (coinₚ uniform-Bool) _ _
+  ⟨≈⟩ bindᶠ λ b₁ → >>=ₚ-identityˡ (comᵗ b₁ , inj₁ (commitᴱ b₁)) _
+               ⟨≈⟩ map-arg _ (>>=ₚ-identityˡ (openᵗ b₁ b₂ , inj₁ openᴱ) _
+                   ⟨≈⟩ map-arg _ (>>=ₚ-identityˡ (doneᵗ , inj₂ (inj₂ (tossedᶜ (b₁ xor b₂)))) _
+                                  ⟨≈⟩ >>=ₚ-identityˡ [] _)
+                   ⟨≈⟩ >>=ₚ-identityˡ _ _)
+               ⟨≈⟩ >>=ₚ-identityˡ _ _
 
 coin-roundʰ : behᴾ Fcoinʰ (inj₂ (inj₂ goᶜ) ∷ inj₂ (inj₁ sampleᵏʰ) ∷ inj₂ (inj₂ getᶜ) ∷ [])
               ≈ₚ (coinₚ uniform-Bool >>=ₚ λ c →

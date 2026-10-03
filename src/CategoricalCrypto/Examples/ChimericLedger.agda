@@ -79,17 +79,11 @@ module Ledger (ℓ : ℕ) where
   balance : Utxo → ℕ
   balance u = sum (map (proj₂ ∘ proj₂) u)
 
-  acctΣ : Accts → ℕ
-  acctΣ a = sum (map proj₂ a)
+  valΣ : List (Addr × ℕ) → ℕ
+  valΣ = sum ∘ map proj₂
 
   total : LState → ℕ
-  total (u , a) = balance u + acctΣ a
-
-  valΣ : List TxOut → ℕ
-  valΣ os = sum (map proj₂ os)
-
-  wdrlΣ : List (Addr × ℕ) → ℕ
-  wdrlΣ ws = sum (map proj₂ ws)
+  total (u , a) = balance u + valΣ a
 
   ------------------------------------------------------------------------
   -- The step rule: sequential validation
@@ -129,7 +123,7 @@ module Ledger (ℓ : ℕ) where
     applyTx vr s@(u , a) tx@(ins , wds , outs) =
       case checkIns u ins , checkWdrls a wds of λ where
         (just (vIn , u′) , just a′) →
-          if (vIn + wdrlΣ wds ≡ᴺ valΣ outs) ∧ consumes vr ins
+          if (vIn + valΣ wds ≡ᴺ valΣ outs) ∧ consumes vr ins
             then callᶜ (ser tx) (λ h → (unionNew u′ (outsAt h 0 outs) , a′) , true)
             else pureᶜ (s , false)
         _ → pureᶜ (s , false)

@@ -76,7 +76,7 @@ nothing here has an error term.
 ## The one structural fact that makes it affordable
 
 `sub s ∘ gradedᵒ g` is, at the machine layer, `subᴵ s ∘ g` in `𝒢ₚ`
-(`UC.Model.Graded.sub-gradedᵒ`, one `refl` past
+(`UC.Model.Graded.sub-gradedᵒ`, one `∘-resp-≈ˡ` past
 `UC.Machine.Dictionary.sub-⊗₁`). `𝒢ₚ`'s composition is a ⊕-trace, and there are
 three ways in this repository to get one in readable form:
 
@@ -168,7 +168,7 @@ weightings — `δ` on the outputs being counted, `cost` on the letters that pay
 them — and a ledger `Λ` of what a state still owes:
 
 ```agda
-Λ s + cost x ≡ δ o + Λ s′                           -- per step
+δ o + Λ s′ ≡ Λ s + cost x                           -- per step
 weight δ (outputs) + Λ (final) ≡ weight cost (word) -- per run (exactᴱ)
 mapₚ … (exactᴱ w) ≈ₚ behᵍ S point step w            -- and it IS the run (exactᴱ-erases)
 ```
@@ -188,7 +188,7 @@ produces `leakˢ`, then `hashˢ` AT THE LEAKED MESSAGE, then the digest — whic
 witnesses that the words the count quantifies over are inhabited by a live run and
 not only by divergent ones.
 
-The upper bound the grading consumes is derived from the exact one:
+The upper bound `hf-bounded` consumes is derived from the exact one:
 `simCert : Certified 2 simulator` is `exact⇒certified simExactAll`, and
 `simQB : QB 2 simulator` its closure. Query bounds are not runtime bounds and nothing
 here claims PPT.
