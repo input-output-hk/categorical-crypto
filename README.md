@@ -98,12 +98,11 @@ is independent of any particular machine implementation:
 
 - `Data.Nat.Poly` — polynomial bounds on ℕ-functions and their closure
   properties.
-- `UC.Core` — observables, their test presheaf `ℰᴼ`, and evaluations; each
+- `UC.Evaluation` — observables, their test presheaf `ℰᴼ`, and evaluations; each
   consumer instantiates `Standard2.StdUC` at `ℰᴼ`, whose `_≈ᵁ_` is the
   ancilla-quantified indistinguishability.
-- `UC.Family` / `UC.Family.Vanishing` / `UC.Family.Negligible` — the
-  security-parameter family category, and the vanishing and negligible tiers
-  over it.
+- `UC.Family` — the security-parameter family category, and the negligible
+  tier over it.
 - `Approx.*` and `UC.Quantitative.*` — quantitative UC: approximate-space-valued
   test presheaves, the query-sensitive contextual comparison with an explicit
   error schedule, and its family form.
