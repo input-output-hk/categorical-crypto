@@ -14,12 +14,9 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.UC.Machine.Monitor
 
-import CategoricalCrypto.Machines.Core as Core
 
 module CategoricalCrypto.UC.Machine.MonitorTests
   {B : Iface} (report : Neg B → Pos B → Bool) (acc : Bool) where
-
-private module MC = Core (𝒱ₚ 0ℓ)
 
 monitor-query : (p : Maybe (Neg B)) (q : Neg B)
               → MC.step (monitorᴹ report) ((acc , p) , inj₂ (inj₁ q))

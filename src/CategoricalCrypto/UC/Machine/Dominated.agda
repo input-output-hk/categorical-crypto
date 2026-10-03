@@ -33,7 +33,7 @@
 -- `dominated` below is all the ancilla, the closure and the grade cost.
 --
 -- `skeleton` assembles the ε-arithmetic of the branchwise decomposition whose
--- moving parts are `UC.Seam.Plug`, `UC.Seam.Extract` and `UC.Seam.Transfer`;
+-- moving parts are `UC.Machine.Plug`, `UC.Machine.Extract` and `UC.Machine.Transfer`;
 -- the extraction is chosen once the observation's budget is known.
 --
 -- The hypothesis forces `0 ℚ.≤ ε` on its own (`0≤hyp`), so the statement need
@@ -68,18 +68,16 @@ open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.Slide
 open import CategoricalCrypto.UC.QueryBound
-open import CategoricalCrypto.UC.Seam.Plug
+open import CategoricalCrypto.UC.Machine.Plug
 
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
-import CategoricalCrypto.UC.Seam.Extract as Ext
-import CategoricalCrypto.UC.Seam.Transfer as Tr
+import CategoricalCrypto.UC.Machine.Extract as Ext
+import CategoricalCrypto.UC.Machine.Transfer as Tr
 
 module CategoricalCrypto.UC.Machine.Dominated where
 
 private
   module 𝒫 = Category 𝒫ᴵ
-  module MC = Core (𝒱ₚ 0ℓ)
   module Sm = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 
 ------------------------------------------------------------------------
@@ -111,7 +109,7 @@ module Refine (B : Iface) (K N : Proc B Ωᴵ) (q : ℕ) (cert : Certified q N)
 
     private
       refine : ⟦ K 𝒫.∘ u ⟧ᴼ ≈ₚ (pointᵍ >>=ₚ obsᵍ)
-      refine = ≈sym (obs-resp B u N K e)
+      refine = ≈sym (obs-resp-ctx B u N K e)
          ⟨≈⟩ T.observe-≈
          ⟨≈⟩ bindˣ (≈sym coh₀)
          ⟨≈⟩ bind-map pointᵍ proj₁ _

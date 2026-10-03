@@ -30,7 +30,7 @@ open import CategoricalCrypto.UC.Machine.Wire
 
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Pointwise as Pw
-import CategoricalCrypto.UC.QueryBound.Compose.Step as CS
+import CategoricalCrypto.UC.Machine.Composite as CS
 
 module CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Hybrid (k : ℕ) where
 
@@ -96,7 +96,7 @@ private
 
   askᴴʰ : (sg : QSt) (r : RState) (b : Neg (Advᴵᶜʰ ⊗ᴵ Honᴵᶜʰ))
         → stepᴴ ((sg , r) , inj₂ (inj₂ b))
-        ≈ₚ (τStep (sg , inj₂ b) >>=ₚ λ w → Hᶜ.resumeG r (proj₁ w , outT (proj₂ w)))
+        ≈ₚ (τStep (sg , inj₂ b) >>=ₚ λ w → Hᶜ.resumeG r (proj₁ w , Sum.map inj₂ inj₂ (proj₂ w)))
   askᴴʰ sg r b =
         Hᵁ.step-R sg r (inj₂ b)
     ⟨≈⟩ >>=ₚ-assoc (τStep (sg , inj₂ b)) _ (Hᶜ.resumeG r)

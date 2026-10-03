@@ -46,14 +46,12 @@ open import CategoricalCrypto.UC.Seam
 
 import Categories.Category.Construction.Kleisli.Discrete as KD
 import Categories.Category.Construction.Kleisli.Discrete.Pure as KDP
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.UC.Seam.Budget where
 
 private
   module K = KD (Dₚ-DiscreteMonad {0ℓ})
-  module MC = Core (𝒱ₚ 0ℓ)
   module P = KDP (Dₚ-DiscreteMonad {0ℓ})
   module S = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
   module V = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)

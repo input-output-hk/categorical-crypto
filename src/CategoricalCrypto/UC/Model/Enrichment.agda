@@ -23,7 +23,6 @@ open import Relation.Binary.PropositionalEquality
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Dictionary
 open import CategoricalCrypto.UC.Machine.Grading
 open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.QueryBound using (QB)
@@ -52,18 +51,3 @@ opaque
   qb-gradedᵒ : {A P B : Iface} {r : ℕ⁺} {f : Proc A (P ⊗ᴵ B)}
              → QB (value r) f → Pred r (gradedᵒ f)
   qb-gradedᵒ {A} {P} {B} = qb-to-image A (P ⊗ᴵ B)
-
-  -- An adversary machine filling a grade: its codomain is the bundle's own
-  -- unit, which `UC.Machine.Dictionary.𝟭ᴵ` names on the machine side and the
-  -- seal hides, so `procᵒ` does not serve and this is a coercion of its own.
-  -- It sits here rather than beside the graded shapes it serves because its
-  -- certificate does, and the two cannot be separated: `qbᵘ`'s body needs
-  -- `procᵘ` transparent, which only the block declaring it is.
-  procᵘ : {X : Iface} → Proc X 𝟭ᴵ → ifaceᵒ X G.⇒ G.unit
-  procᵘ a = a
-
-  qbᵘ : {X : Iface} {r : ℕ⁺} {a : Proc X 𝟭ᴵ} → QB (value r) a → Pred r (procᵘ a)
-  qbᵘ {X} = qb-to-image X 𝟭ᴵ
-
-imageᵒ : {A B : G.Obj} {r : ℕ⁺} {f : A G.⇒ B} → Pred r f → Image forget r f
-imageᵒ {f = f} p = (f , p) , G.Equiv.refl

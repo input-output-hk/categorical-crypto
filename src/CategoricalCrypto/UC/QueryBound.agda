@@ -42,14 +42,12 @@ open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.UC.Machine
 
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Pointwise as Pw
 import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.UC.QueryBound where
 
 private
-  module MC = Core (𝒱ₚ 0ℓ)
   module S = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
   module 𝒫 = Category 𝒫ᴵ
   module V = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)

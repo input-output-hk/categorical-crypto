@@ -51,7 +51,7 @@ import CategoricalCrypto.Machines.Pointwise as Pw
 module CategoricalCrypto.Protocol.Machine.Trace where
 
 open Col using (module 𝒢; module MT)
-open Pw using (module K; module MC; module V)
+open Pw using (module K; module V)
 
 ------------------------------------------------------------------------
 -- A traced machine's kernel

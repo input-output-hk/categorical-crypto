@@ -22,15 +22,13 @@ open import CategoricalCrypto.Protocol.Machine.Run using (runFrom-ϕ)
 open import CategoricalCrypto.Strategy
 
 import Categories.Category.Construction.Kleisli.Discrete.Pure as KDP
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim.Lax as Lax
 
 module CategoricalCrypto.Protocol.Machine.Run.Lax where
 
 private
-  module MC = Core (𝒱ₚ 0ℓ)
   module P  = KDP (Dₚ-DiscreteMonad {0ℓ})
-  module L  = Lax (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
+  module L  = Lax (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
   module V  = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
 
 module _ {B : Iface} {σ : V.unit V.⇒ V.unit} {f g : Closed B}

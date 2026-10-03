@@ -82,7 +82,7 @@ coin-toss-idealᵇ : (sf : Lkᶠ ⇒^ω Advᶠ) (εf : ℕ → ℕ → ℚ)
                  → (λ n → (tossᶠ ∙ᶠ realᶠ) n ∘ resᶠ n) ≤UC[ simᶜⁱ sf , εᶜⁱ εf ] Fcoinᶠ
 coin-toss-idealᵇ sf εf ef =
   ≤UC[]-trans (simᶜᵗ sf) simᶜᶠ (εᶜᵗ εf) (λ _ _ → 0ℚ)
-    (≤UC[]-dom resᶠ (λ n → imageᵒ (ROU.resourceQBᵒ n)) (simᶜᵗ sf) (εᶜᵗ εf)
+    (≤UC[]-dom resᶠ (λ n → pred⇒image (ROU.resourceQBᵒ n)) (simᶜᵗ sf) (εᶜᵗ εf)
                (coin-toss-from-comᵇ sf εf ef))
     coin-hybridᵇ
 

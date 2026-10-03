@@ -32,6 +32,14 @@ runWith⊥ resp s (out b)    = return⊥ b
 runWith⊥ resp s (ask q k)  = resp s q >>=⊥ λ sr → runWith⊥ resp (proj₁ sr) (k (proj₂ sr))
 runWith⊥ resp s (coin μ k) = μ >>=ᴹ λ b → runWith⊥ resp s (k b)
 
+-- The completed-run hit: the flag accumulates `bad` over every post-state an
+-- answer leaves, and divergence weighs 0.
+hitWith⊥ : (St → Q → Dist⊥ (St × R)) → (St → Bool) → Bool → St → Strat Q R → Dist⊥ Bool
+hitWith⊥ resp bad acc s (out _)    = return⊥ acc
+hitWith⊥ resp bad acc s (ask q k)  =
+  resp s q >>=⊥ λ sr → hitWith⊥ resp bad (acc ∨ bad (proj₁ sr)) (proj₁ sr) (k (proj₂ sr))
+hitWith⊥ resp bad acc s (coin μ k) = μ >>=ᴹ λ b → hitWith⊥ resp bad acc s (k b)
+
 -- Along a state embedding: a partial kernel that is, on the image of `emb`,
 -- the embedded image of a total one runs like that total one at EVERY
 -- distinguisher.  The embedding is what lets a system carry ancillary state

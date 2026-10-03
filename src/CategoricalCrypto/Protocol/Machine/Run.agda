@@ -28,13 +28,11 @@ open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Strategy
 
 import Categories.Category.Construction.Kleisli.Discrete.Pure as KDP
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.Protocol.Machine.Run where
 
 private
-  module MC = Core (𝒱ₚ 0ℓ)
   module P = KDP (Dₚ-DiscreteMonad {0ℓ})
   module S = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 

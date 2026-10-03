@@ -7,7 +7,7 @@
 -- out of `Pos unitᴵ = ⊥` written as such.
 --
 -- `compose-≈ᴹ` is stated at the composite's canonical collapsed representative
--- (`UC.Seam.Plug.Plugged.tracedᴹ`), avoiding the otherwise dominant conversion
+-- (`UC.Machine.Plug.Plugged.tracedᴹ`), avoiding the otherwise dominant conversion
 -- back from the G-category's `_∘_` projection.
 -- Measured warm cost: 9.9 s, down from 87 s for the named raw composite and
 -- 282 s for the projected category composite.
@@ -29,10 +29,9 @@ open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Seam
-open import CategoricalCrypto.UC.Seam.Plug
+open import CategoricalCrypto.UC.Machine.Plug
 
 import CategoricalCrypto.Machines.Collapse as Col
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Trace as Trace
 import CategoricalCrypto.Machines.Trace.Congruence as TraceCong
@@ -40,23 +39,12 @@ import CategoricalCrypto.Machines.Trace.Congruence as TraceCong
 module CategoricalCrypto.UC.Seam.Adequacy.Wiring where
 
 private
-  module MC = Core (𝒱ₚ 0ℓ)
   module MT = Trace (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
   module S  = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
   module TC = TraceCong (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
 
 ------------------------------------------------------------------------
 -- The collapsed step
-
-module _ (B : Iface) where
-
-  outE : Neg B ⊎ Bool → (⊥ ⊎ Bool) ⊎ (Neg B ⊎ Pos B)
-  outE (inj₁ n) = inj₂ (inj₁ n)
-  outE (inj₂ v) = inj₁ (inj₂ v)
-
-  outU : ⊥ ⊎ Pos B → (⊥ ⊎ Bool) ⊎ (Neg B ⊎ Pos B)
-  outU (inj₁ e) = ⊥-elim e
-  outU (inj₂ p) = inj₂ (inj₂ p)
 
 module _ (B : Iface) (u : Proc unitᴵ B) where
 

@@ -139,9 +139,7 @@ module _ (P : Protocol unitᴵ B) where
   module _ (Bad : St P → Bool) where
 
     hitFrom : Bool → St P → Strat (Neg B) (Pos B) → Dist⊥ Bool
-    hitFrom acc s (out _)    = return⊥ acc
-    hitFrom acc s (ask q k)  = kernel s q >>=⊥ λ (s′ , r) → hitFrom (acc ∨ Bad s′) s′ (k r)
-    hitFrom acc s (coin μ k) = μ >>=ᴹ λ b → hitFrom acc s (k b)
+    hitFrom = hitWith⊥ kernel Bad
 
     hitRun : Strat (Neg B) (Pos B) → Dist⊥ Bool
     hitRun = hitFrom (Bad (init P)) (init P)

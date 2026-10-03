@@ -75,6 +75,9 @@ record GradedSubCat {oi ℓi ei o ℓ e} (ℐ : MonoidalCategory oi ℓi ei)
     { F₀ = λ A → A ; F₁ = ⌊_⌋ ; F-resp-≈ = λ h≈h′ → h≈h′
     ; F-sub = Equiv.refl ; identity = Equiv.refl ; homomorphism = Equiv.refl }
 
+  pred⇒image : ∀ {X A B} {f : A ⇒ B} → Pred X f → Image forget X f
+  pred⇒image {f = f} p = (f , p) , Equiv.refl
+
   module _ (Braided-ℐ : Braided ℐ.monoidal) where
 
     monoidalᴸ : GradedMonoidal Braided-ℐ L

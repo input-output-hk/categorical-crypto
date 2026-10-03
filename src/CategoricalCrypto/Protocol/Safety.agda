@@ -7,7 +7,8 @@
 --
 -- `PrHit` is the COMPLETED-RUN event, `badProb⊥` the PREFIX-REACHABILITY one
 -- (it stops at the first bad state); they differ only on runs that hit and
--- then diverge (`docs/state-event-contract.md` §1, row 11).
+-- then diverge (`docs/state-event-contract.md` §1, row 11).  Both sample the
+-- state only at activation boundaries (`Protocol.Observe`).
 
 open import Data.Bool.Base
 open import Data.Maybe.Base

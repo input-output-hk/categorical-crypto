@@ -69,10 +69,12 @@ private
 open Core (𝒱ₚ 0ℓ)
 open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 
+private variable A B C F X Y : Iface
+
 ------------------------------------------------------------------------
 -- The hole wire
 
-T₁-wire : (Y : Iface) {A B : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
+T₁-wire : (Y : Iface) (up : Pos A → Pos B) (down : Neg B → Neg A)
         → 𝒫._≈_ {Y ⊗ᴵ A} {Y ⊗ᴵ B} (T₁ᴵ Y (wireᴹ up down))
             (wireᴹ (Sum.map₂ up) (Sum.map₂ down))
 T₁-wire Y up down = ≲⇒≈ᴹ (mk-cong pt)
@@ -83,9 +85,9 @@ T₁-wire Y up down = ≲⇒≈ᴹ (mk-cong pt)
   pt (s , inj₂ (inj₁ y)) = ≈refl
   pt (s , inj₂ (inj₂ b)) = >>=ₚ-identityˡ _ _
 
-λ-nat : {A B : Iface} (f : Proc A B)
+λ-nat : (f : Proc A B)
       → 𝒫._≈_ {A} {unitᴵ ⊗ᴵ B} (λᴵ⇐ 𝒫.∘ f) (T₁ᴵ unitᴵ f 𝒫.∘ λᴵ⇐)
-λ-nat {A} {B} f =
+λ-nat f =
      wire-∘ᴹ inj₂ [ ⊥-elim , id ] f
   ○ᴹ ⟺ᴹ relayed
   ○ᴹ ⟺ᴹ (∘-wireᴹ inj₂ [ ⊥-elim , id ] (T₁ᴵ unitᴵ f))
@@ -104,7 +106,7 @@ T₁-wire Y up down = ≲⇒≈ᴹ (mk-cong pt)
       λ where (_ , inj₁ _) → refl
               (_ , inj₂ _) → refl
 
-sub-wire : {A B C : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
+sub-wire : (up : Pos A → Pos B) (down : Neg B → Neg A)
          → 𝒫._≈_ {A ⊗ᴵ C} {B ⊗ᴵ C} (subᴵ (wireᴹ up down))
              (wireᴹ (Sum.map₁ up) (Sum.map₁ down))
 sub-wire up down = ≲⇒≈ᴹ (mk-cong pt)
@@ -115,9 +117,8 @@ sub-wire up down = ≲⇒≈ᴹ (mk-cong pt)
   pt (s , inj₂ (inj₁ b)) = >>=ₚ-identityˡ _ _
   pt (s , inj₂ (inj₂ c)) = ≈refl
 
-λ-tri : {B F : Iface}
-      → 𝒫._≈_ {B ⊗ᴵ F} {(unitᴵ ⊗ᴵ B) ⊗ᴵ F} (a⇐ᴵ 𝒫.∘ λᴵ⇐) (subᴵ λᴵ⇐)
-λ-tri {B} {F} =
+λ-tri : 𝒫._≈_ {B ⊗ᴵ F} {(unitᴵ ⊗ᴵ B) ⊗ᴵ F} (a⇐ᴵ 𝒫.∘ λᴵ⇐) (subᴵ λᴵ⇐)
+λ-tri {B = B} {F = F} =
      ∘-wireᴹ inj₂ [ ⊥-elim , id ] (a⇐ᴵ {unitᴵ} {B} {F})
   ○ᴹ ≲⇒≈ᴹ (mk-cong pt)
   ○ᴹ ⟺ᴹ (sub-wire inj₂ [ ⊥-elim , id ])
@@ -129,12 +130,11 @@ sub-wire up down = ≲⇒≈ᴹ (mk-cong pt)
   pt (s , inj₂ (inj₁ (inj₂ _))) = >>=ₚ-identityˡ _ _
   pt (s , inj₂ (inj₂ _))        = >>=ₚ-identityˡ _ _
 
-ρᴵ⇒ : {Y : Iface} → Proc (Y ⊗ᴵ unitᴵ) Y
+ρᴵ⇒ : Proc (Y ⊗ᴵ unitᴵ) Y
 ρᴵ⇒ = wireᴹ [ id , ⊥-elim ] inj₁
 
-ρ-tri : {Y B : Iface}
-      → 𝒫._≈_ {(Y ⊗ᴵ unitᴵ) ⊗ᴵ B} {Y ⊗ᴵ B} (T₁ᴵ Y λᴵ⇒ 𝒫.∘ a⇒ᴵ) (subᴵ ρᴵ⇒)
-ρ-tri {Y} {B} =
+ρ-tri : 𝒫._≈_ {(Y ⊗ᴵ unitᴵ) ⊗ᴵ B} {Y ⊗ᴵ B} (T₁ᴵ Y λᴵ⇒ 𝒫.∘ a⇒ᴵ) (subᴵ ρᴵ⇒)
+ρ-tri {Y = Y} {B = B} =
      𝒫.∘-resp-≈ˡ (T₁-wire Y [ ⊥-elim , id ] inj₂)
   ○ᴹ wire-∘ᴹ (Sum.map₂ [ ⊥-elim , id ]) (Sum.map₂ inj₂)
              (a⇒ᴵ {Y} {unitᴵ} {B})
@@ -148,13 +148,13 @@ sub-wire up down = ≲⇒≈ᴹ (mk-cong pt)
   pt (s , inj₂ (inj₁ _))         = >>=ₚ-identityˡ _ _
   pt (s , inj₂ (inj₂ _))         = >>=ₚ-identityˡ _ _
 
-ρ-tri-sub : {Y X : Iface} (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
+ρ-tri-sub : (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
           → 𝒫._≈_ {unitᴵ ⊗ᴵ X} {Y ⊗ᴵ X} (T₁ᴵ Y λᴵ⇒ 𝒫.∘ (a⇒ᴵ 𝒫.∘ subᴵ m)) (subᴵ (ρᴵ⇒ 𝒫.∘ m))
 ρ-tri-sub m = 𝒫.sym-assoc ○ᴹ 𝒫.∘-resp-≈ˡ ρ-tri ○ᴹ ⟺ᴹ (sub-∘ ρᴵ⇒ m)
 
 -- The only live activation is a query on `Y`: every other summand of a closed
 -- interface is empty.
-λ-slide : {Y : Iface} (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
+λ-slide : (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
         → 𝒫._≈_ {unitᴵ} {Y ⊗ᴵ (unitᴵ ⊗ᴵ unitᴵ)}
             (T₁ᴵ Y λᴵ⇐ 𝒫.∘ m) (a⇒ᴵ 𝒫.∘ (subᴵ m 𝒫.∘ λᴵ⇐))
 λ-slide {Y} m =
@@ -203,14 +203,14 @@ private
 
   module H = MPExt.Hole 𝔾.monoidal {J = ⟦ unitᴵ ⟧ᴵ} (λ {B} → λᴵ⇐ {retᴵ B}) natᴳ slideᴳ
 
-Kctx : {B Y : Iface} → Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ → Proc unitᴵ (Y ⊗ᴵ unitᴵ)
+Kctx : Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ → Proc unitᴵ (Y ⊗ᴵ unitᴵ)
      → Proc B Ωᴵ
 Kctx E m = E 𝒫.∘ (a⇒ᴵ 𝒫.∘ (subᴵ m 𝒫.∘ λᴵ⇐))
 
-slideᴹ : {B Y : Iface} (E : Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
+slideᴹ : (E : Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
          (x : Proc unitᴵ B)
        → 𝒫._≈_ {unitᴵ} {Ωᴵ} ((E 𝒫.∘ T₁ᴵ Y (conjᴵ x)) 𝒫.∘ m) (Kctx E m 𝒫.∘ x)
-slideᴹ {B} {Y} E m x =
+slideᴹ {Y = Y} {B = B} E m x =
      𝒫.assoc
   ○ᴹ 𝒫.∘-resp-≈ʳ (𝒫.∘-resp-≈ˡ (T₁-⊗₁ {Y} {unitᴵ} {unitᴵ ⊗ᴵ B} (conjᴵ x))
                  ○ᴹ H.slide {⟦ Y ⟧ᴵ} {⟦ B ⟧ᴵ} m x
@@ -218,7 +218,7 @@ slideᴹ {B} {Y} E m x =
                       (𝒫.∘-resp-≈ˡ (⟺ᴹ (sub-⊗₁ {unitᴵ} {Y ⊗ᴵ unitᴵ} {B} m)))))
   ○ᴹ 𝒫.sym-assoc
 
-ctxRun-slide : {B Y : Iface} (E : Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ)
+ctxRun-slide : (E : Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ)
                (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ)) (x : Proc unitᴵ B)
              → ctxRun Y E m (conjᴵ x) ≈ₚ ⟦ Kctx E m 𝒫.∘ x ⟧ᴼ
 ctxRun-slide E m x = runᴹ-resp-≈ᴹ {Ωᴵ} (slideᴹ E m x) (ask tt out)
@@ -226,7 +226,7 @@ ctxRun-slide E m x = runᴹ-resp-≈ᴹ {Ωᴵ} (slideᴹ E m x) (ask tt out)
 ------------------------------------------------------------------------
 -- Closing the hole again
 
-unit-cancel : {B : Iface} (x : Proc unitᴵ B) → 𝒫._≈_ {unitᴵ} {B} (λᴵ⇒ 𝒫.∘ conjᴵ x) x
+unit-cancel : (x : Proc unitᴵ B) → 𝒫._≈_ {unitᴵ} {B} (λᴵ⇒ 𝒫.∘ conjᴵ x) x
 unit-cancel {B} x =
      𝒫.∘-resp-≈ʳ (wire-∘ᴹ inj₂ [ ⊥-elim , id ] x)
   ○ᴹ wire-∘ᴹ [ ⊥-elim , id ] inj₂ (sandwichᴹ x i₁ o₁)
@@ -249,15 +249,15 @@ unit-cancel {B} x =
   o₂ : Neg unitᴵ ⊎ Pos (unitᴵ ⊗ᴵ B) → Neg unitᴵ ⊎ Pos B
   o₂ = Sum.map₂ [ ⊥-elim , id ]
 
-T₁-conj : {Y B : Iface} (x : Proc unitᴵ B)
+T₁-conj : (x : Proc unitᴵ B)
         → 𝒫._≈_ {Y ⊗ᴵ unitᴵ} {Y ⊗ᴵ B} (T₁ᴵ Y x) (T₁ᴵ Y (λᴵ⇒ {B}) 𝒫.∘ T₁ᴵ Y (conjᴵ x))
-T₁-conj {Y} {B} x =
+T₁-conj {B = B} x =
   T₁-resp-≈ (𝒫.Equiv.sym (unit-cancel x)) ○ᴹ T₁-∘ (λᴵ⇒ {B}) (conjᴵ x)
 
-ctxRun-conj : {B Y : Iface} (E : Proc (Y ⊗ᴵ B) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
+ctxRun-conj : (E : Proc (Y ⊗ᴵ B) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
               (x : Proc unitᴵ B)
             → ctxRun Y E m x ≈ₚ ctxRun Y (E 𝒫.∘ T₁ᴵ Y (λᴵ⇒ {B})) m (conjᴵ x)
-ctxRun-conj {B} {Y} E m x =
+ctxRun-conj {Y = Y} {B = B} E m x =
   runᴹ-resp-≈ᴹ {Ωᴵ}
     (𝒫.∘-resp-≈ˡ (𝒫.∘-resp-≈ʳ (T₁-conj x) ○ᴹ 𝒫.sym-assoc)) (ask tt out)
 
@@ -269,9 +269,9 @@ private
   budget c c′ = cong (c *_) (trans (*-identityˡ ((c′ ⊔ 1) * 1))
                                    (*-identityʳ (c′ ⊔ 1)))
 
-qb-Kctx : {B Y : Iface} (E : Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
+qb-Kctx : (E : Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
           {c c′ : ℕ} → QB c E → QB c′ m → QB (scale c (positive c′)) (Kctx E m)
-qb-Kctx {B} {Y} E m {c} {c′} qE qm =
+qb-Kctx {Y = Y} {B = B} E m {c} {c′} qE qm =
   qb-mono (≤-reflexive (budget c c′))
     (qb-∘-category B (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ E _ qE
       (qb-∘-category B ((Y ⊗ᴵ unitᴵ) ⊗ᴵ B) (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) a⇒ᴵ _

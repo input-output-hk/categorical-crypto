@@ -9,14 +9,14 @@
 -- RELATION, never of the computation category, and `runᵠ` is `Query.pullᵠ`'s
 -- underlying map with no filtered structure on it.
 --
--- `_≈ᵁᵠ[ ε ]_` IS `Approx.Filtered._≈ᵃ[_]_` for `Query.Qᵠ` read at the
+-- `_≈ᵁᵠ[ ε ]_` IS `Approx.Filtered._≈ᵃ[_]_` for `Query.filteredᵠ` read at the
 -- schedule `λ q r′ → ε (value (q · r′))`: `ctx⇒agree`/`agree⇒ctx` differ by the
 -- order in which the closure and the test's certificate are taken and by
 -- nothing else.  Both substitution principles are then one datum of a filtered
 -- map — `absorb-testᵠ` moves a certified morphism in front of the TEST, which
 -- is `pullᵠ`'s allowance map, and `absorb-closureᵠ` moves one behind the
--- CLOSURE, which is `pullᵠ`'s control — and `scale-comm`/`scale-·` (as
--- `Query.absorb-test`/`absorb-closure`) are what makes each of them exact.
+-- CLOSURE, which is `pullᵠ`'s control — and `scale-comm`/`scale-·` are what
+-- makes each of them exact.
 
 open import Categories.Category.Instance.Rates
 open import Categories.Category.Monoidal.Bundle
@@ -125,7 +125,7 @@ ctx-resp ε ef eg h = agree⇒ctx ε λ W →
 -- The two absorptions, each one datum of a filtered map
 
 -- Moving a certified morphism in front of the TEST is `pullᵠ`'s ALLOWANCE
--- map, and `scale-comm` (as `absorb-test`) is what makes the resulting
+-- map, and `scale-comm` is what makes the resulting
 -- substitution `scale _ r` exact rather than a bound.
 absorb-testᵠ : (ε : ℕ → ℚ) (r : ℕ⁺) {C D D′ : Obj}
                {φ φ′ : Tᵠ.Test D → Tᵠ.Test C} {ψ ψ′ : Tᵠ.Test D′ → Tᵠ.Test C}
@@ -135,11 +135,11 @@ absorb-testᵠ : (ε : ℕ → ℚ) (r : ℕ⁺) {C D D′ : Obj}
              → Agreeᵠ ε φ φ′ → Agreeᵠ (λ q → ε (scale q r)) ψ ψ′
 absorb-testᵠ ε r ck stepr stepr′ h =
   ≈ᵃ-resp₀ (λ E → cast₀ (stepr E)) (λ E → cast₀ (Equiv.sym (stepr′ E)))
-    (≈ᵃ-mono (λ q → proj₁ (absorb-test q r ε))
+    (≈ᵃ-mono (λ q r′ → ℚₚ.≤-reflexive (cong ε (scale-comm (value q) r r′)))
              (≈ᵃ-pre (Tᵠ.pullᵠ (r , Tᵠ.certifiedᴴ ck)) h))
 
 -- …and moving one behind the CLOSURE is `pullᵠ`'s CONTROL, which multiplies
--- the closure's rate, and `scale-·` (as `absorb-closure`) makes the same
+-- the closure's rate, and `scale-·` makes the same
 -- substitution exact.  The test may move along a structural `k` at the same
 -- time, which is what an absorption that changes the ancilla needs.
 absorb-closureᵠ : (ε : ℕ → ℚ) (r : ℕ⁺) {C C′ D D′ : Obj}
@@ -156,7 +156,7 @@ absorb-closureᵠ ε r ck ct stepr stepr′ h =
   le : (q r′ : ℕ⁺) → ε (value (q · 1⁺ · (r′ · r))) ℚ.≤ ε (scale (value (q · r′)) r)
   le q r′ = ℚₚ.≤-trans
     (ℚₚ.≤-reflexive (cong (λ j → ε (scale j (r′ · r))) (scale-unit (value q))))
-    (proj₁ (absorb-closure q r ε) r′)
+    (ℚₚ.≤-reflexive (cong ε (scale-· (value q) r′ r)))
 
 ctx-absorb : (ε : ℕ → ℚ) (r : ℕ⁺) {A B X B′ X′ : Obj}
              {f g : A ⇒ X ⊗₀ B} {f′ g′ : A ⇒ X′ ⊗₀ B′}

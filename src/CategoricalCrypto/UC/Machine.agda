@@ -23,7 +23,7 @@ open import Categories.Category
 
 open import Data.Bool.Base
 open import Data.Product.Base
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂) renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)
+open import Data.Sum.Base as Sum using (_⊎_; inj₁; inj₂) renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)
 open import Data.Unit.Base
 import Data.Unit.Polymorphic.Base as PolyUnit
 open import Level
@@ -47,7 +47,6 @@ import CategoricalCrypto.Machines.Sim as Sim
 module CategoricalCrypto.UC.Machine where
 
 private
-  module MC = Core (𝒱ₚ 0ℓ)
   module MS = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 
 ------------------------------------------------------------------------
@@ -136,32 +135,24 @@ spaceᴹ = record { Carrier = Dₚ Bool ; approx = Approximationᴹ }
 ------------------------------------------------------------------------
 -- The ancilla relays, as data
 
-outT : {Nʸ Pʸ N P : Set} → N ⊎ P → (Nʸ ⊎ N) ⊎ (Pʸ ⊎ P)
-outT (inj₁ a) = inj₁ (inj₂ a)
-outT (inj₂ b) = inj₂ (inj₂ b)
-
 T₁ᴵ : (Y : Iface) {A B : Iface} → Proc A B → Proc (Y ⊗ᴵ A) (Y ⊗ᴵ B)
 T₁ᴵ Y {A} {B} f = MC.mk (MC.state f) stepT
   where
   stepT : MC.St f × ((Pos Y ⊎ Pos A) ⊎ (Neg Y ⊎ Neg B))
         → Dₚ (MC.St f × ((Neg Y ⊎ Neg A) ⊎ (Pos Y ⊎ Pos B)))
   stepT (s , inj₁ (inj₁ y)) = returnₚ (s , inj₂ (inj₁ y))
-  stepT (s , inj₁ (inj₂ a)) = mapₚ (map₂ outT) (MC.step f (s , inj₁ a))
+  stepT (s , inj₁ (inj₂ a)) = mapₚ (map₂ (Sum.map inj₂ inj₂)) (MC.step f (s , inj₁ a))
   stepT (s , inj₂ (inj₁ y)) = returnₚ (s , inj₁ (inj₁ y))
-  stepT (s , inj₂ (inj₂ b)) = mapₚ (map₂ outT) (MC.step f (s , inj₂ b))
+  stepT (s , inj₂ (inj₂ b)) = mapₚ (map₂ (Sum.map inj₂ inj₂)) (MC.step f (s , inj₂ b))
 
 subᴵ : {X Y A : Iface} → Proc X Y → Proc (X ⊗ᴵ A) (Y ⊗ᴵ A)
 subᴵ {X} {Y} {A} s = MC.mk (MC.state s) stepS
   where
-  outS : Neg X ⊎ Pos Y → (Neg X ⊎ Neg A) ⊎ (Pos Y ⊎ Pos A)
-  outS (inj₁ x) = inj₁ (inj₁ x)
-  outS (inj₂ y) = inj₂ (inj₁ y)
-
   stepS : MC.St s × ((Pos X ⊎ Pos A) ⊎ (Neg Y ⊎ Neg A))
         → Dₚ (MC.St s × ((Neg X ⊎ Neg A) ⊎ (Pos Y ⊎ Pos A)))
-  stepS (t , inj₁ (inj₁ x)) = mapₚ (map₂ outS) (MC.step s (t , inj₁ x))
+  stepS (t , inj₁ (inj₁ x)) = mapₚ (map₂ (Sum.map inj₁ inj₁)) (MC.step s (t , inj₁ x))
   stepS (t , inj₁ (inj₂ a)) = returnₚ (t , inj₂ (inj₂ a))
-  stepS (t , inj₂ (inj₁ y)) = mapₚ (map₂ outS) (MC.step s (t , inj₂ y))
+  stepS (t , inj₂ (inj₁ y)) = mapₚ (map₂ (Sum.map inj₁ inj₁)) (MC.step s (t , inj₂ y))
   stepS (t , inj₂ (inj₂ a)) = returnₚ (t , inj₁ (inj₂ a))
 
 a⇐ᴵ : {X Y A : Iface} → Proc (X ⊗ᴵ (Y ⊗ᴵ A)) ((X ⊗ᴵ Y) ⊗ᴵ A)

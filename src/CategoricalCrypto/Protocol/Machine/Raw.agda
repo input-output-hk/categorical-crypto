@@ -37,11 +37,8 @@ open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Strategy
 
-import CategoricalCrypto.Machines.Core as Core
 
 module CategoricalCrypto.Protocol.Machine.Raw where
-
-private module MC = Core (𝒱ₚ 0ℓ)
 
 -- A kernel's answer read in the machine's output alphabet: a closed machine's
 -- domain summand is empty, so every output of its is one of these.  Stated at

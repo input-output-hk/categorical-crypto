@@ -13,13 +13,8 @@
 -- transition is `g`'s own downward output, hence strictly decreasing, and the
 -- return leg leaves `Φᵍ` alone, so one cycle charges one unit.
 --
--- `Unfolding` is the whole interface to the composite's step.  A `𝒢ₚ`-composite
--- is a ⊕-trace whose loop wire is the intermediate interface in both
--- directions, so its step solves that loop within one external step; the six
--- equations say what the solved loop does in each of its positions, and nothing
--- below unfolds a trace or an iteration.  Everything is stated over
--- state/point/step PARAMETERS for the reason noted above
--- `UC.QueryBound.Certificate`.
+-- The walk reads the composite's step only through `UC.Machine.Composite`'s
+-- `Unfolding`, so nothing below unfolds a trace or an iteration.
 
 open import Data.Empty
 open import Data.Nat.Base as ℕ
@@ -35,6 +30,7 @@ open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.UC.Machine.Composite
 open import CategoricalCrypto.UC.QueryBound
 
 module CategoricalCrypto.UC.QueryBound.Compose where
@@ -51,55 +47,7 @@ module Compose {A B C : Iface} (Sg Sf : Set)
                        → Dₚ ((Sg × Sf) × (Neg A ⊎ Pos C)))
                where
 
-  -- Once the token leaves `f` (resp. `g`), an output on the composite's own
-  -- interface exits and one on `B` crosses the loop wire to the other factor.
-  resumeF : Sg → Sf × (Neg A ⊎ Pos B) → Dₚ ((Sg × Sf) × (Neg A ⊎ Pos C))
-  resumeF sg (sf , inj₁ a) = solveᶜ ((sg , sf) , inj₁ (inj₁ a))
-  resumeF sg (sf , inj₂ b) = solveᶜ ((sg , sf) , inj₂ (inj₂ b))
-
-  resumeG : Sf → Sg × (Neg B ⊎ Pos C) → Dₚ ((Sg × Sf) × (Neg A ⊎ Pos C))
-  resumeG sf (sg , inj₁ b) = solveᶜ ((sg , sf) , inj₂ (inj₁ b))
-  resumeG sf (sg , inj₂ p) = solveᶜ ((sg , sf) , inj₁ (inj₂ p))
-
-  record Unfolding : Set where
-    field
-      point-eq  : pointᶜ ≈ₚ (pointg >>=ₚ λ sg → mapₚ (sg ,_) pointf)
-      step-L    : (sg : Sg) (sf : Sf) (a : Pos A)
-                → stepᶜ ((sg , sf) , inj₁ a) ≈ₚ (stepf (sf , inj₁ a) >>=ₚ resumeF sg)
-      step-R    : (sg : Sg) (sf : Sf) (n : Neg C)
-                → stepᶜ ((sg , sf) , inj₂ n) ≈ₚ (stepg (sg , inj₂ n) >>=ₚ resumeG sf)
-      solve-out : (s : Sg × Sf) (o : Neg A ⊎ Pos C)
-                → solveᶜ (s , inj₁ o) ≈ₚ returnₚ (s , o)
-      solve-B⁻  : (sg : Sg) (sf : Sf) (b : Neg B)
-                → solveᶜ ((sg , sf) , inj₂ (inj₁ b))
-                ≈ₚ (stepf (sf , inj₂ b) >>=ₚ resumeF sg)
-      solve-B⁺  : (sg : Sg) (sf : Sf) (b : Pos B)
-                → solveᶜ ((sg , sf) , inj₂ (inj₂ b))
-                ≈ₚ (stepg (sg , inj₁ b) >>=ₚ resumeG sf)
-
-  -- One external step of the composite, at the shapes a consumer reading it
-  -- off needs: `g` refuses, `g` calls `f`, and `f` answers `g`, which exits.
-  module Walk (u : Unfolding) where
-    open Unfolding u
-
-    R-bot : (sg : Sg) (sf : Sf) (n : Neg C) → stepg (sg , inj₂ n) ≈ₚ botₚ
-          → stepᶜ ((sg , sf) , inj₂ n) ≈ₚ botₚ
-    R-bot sg sf n eq = step-R sg sf n ⟨≈⟩ bindˣ eq ⟨≈⟩ bot-bind-≈ₚ _
-
-    R-down : (sg : Sg) (sf : Sf) (n : Neg C) (sg′ : Sg) (b : Neg B)
-           → stepg (sg , inj₂ n) ≈ₚ returnₚ (sg′ , inj₁ b)
-           → {D : Dₚ (Sf × (Neg A ⊎ Pos B))} → stepf (sf , inj₂ b) ≈ₚ D
-           → stepᶜ ((sg , sf) , inj₂ n) ≈ₚ (D >>=ₚ resumeF sg′)
-    R-down sg sf n sg′ b eq eqf =
-      step-R sg sf n ⟨≈⟩ bindˣ eq ⟨≈⟩ >>=ₚ-identityˡ (sg′ , inj₁ b) (resumeG sf)
-      ⟨≈⟩ solve-B⁻ sg′ sf b ⟨≈⟩ bindˣ eqf
-
-    F-up : (sg : Sg) (sf : Sf) (b : Pos B) (sg′ : Sg) (p : Pos C)
-         → stepg (sg , inj₁ b) ≈ₚ returnₚ (sg′ , inj₂ p)
-         → resumeF sg (sf , inj₂ b) ≈ₚ returnₚ ((sg′ , sf) , inj₂ p)
-    F-up sg sf b sg′ p eq =
-      solve-B⁺ sg sf b ⟨≈⟩ bindˣ eq ⟨≈⟩ >>=ₚ-identityˡ (sg′ , inj₂ p) (resumeG sf)
-      ⟨≈⟩ solve-out (sg′ , sf) (inj₂ p)
+  open Unfold {A} {B} {C} Sg Sf pointg pointf pointᶜ stepg stepf stepᶜ solveᶜ
 
   module _ {c c′ : ℕ} (u : Unfolding)
            (qg : QBᵢ {B} {C} Sg pointg stepg c)

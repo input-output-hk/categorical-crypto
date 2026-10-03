@@ -221,7 +221,7 @@ dominatedᵍᵠ : {P B : Iface} (W : G.Obj)
 takes agreement at every strategy of the context's budget to agreement at every
 certified model test at every seal-object ancilla, at a nontrivial grade. Its
 proof is `UC.Machine.Dominated`'s fuel-indexed extraction of a budgeted test
-into finite strategies (`UC.Seam.Extract`'s header states the finiteness
+into finite strategies (`UC.Machine.Extract`'s header states the finiteness
 obstruction and how the fuel answers it). So:
 
 * **the test** — closed by `dominatedᵍᵠ`. That a strategy embeds as an

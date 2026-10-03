@@ -33,6 +33,7 @@ open import CategoricalCrypto.GamePlaying.Hop
 open import CategoricalCrypto.GamePlaying.Partial
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Interaction
+open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Machine.Trace
 open import CategoricalCrypto.Strategy
@@ -61,7 +62,7 @@ private
   σ₀ᴿ : Dist⊥ (RSt × RState)
   σ₀ᴿ = return⊥ m₀
 
-  pointᴿ : Σ[ i ∈ ℕ ] Settles i (Pw.MC.point (Col.Sᴳ real resource) tt) σ₀ᴿ
+  pointᴿ : Σ[ i ∈ ℕ ] Settles i (MC.point (Col.Sᴳ real resource) tt) σ₀ᴿ
   pointᴿ = Settles-ret⋆ (tt , tt) _ σ₀ᴿ
              (Settles-ret⋆ (waitᴿ nothing) _ σ₀ᴿ
                (Settles-ret⋆ ([] , nothing) _ σ₀ᴿ (1 , Settles-return m₀)))

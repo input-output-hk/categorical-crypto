@@ -44,7 +44,7 @@ import CategoricalCrypto.Machines.Pointwise as Pw
 module CategoricalCrypto.Protocol.Machine.Compose where
 
 open Col using (module MT)
-open Pw using (module MC; module S)
+open Pw using (module S)
 
 module _ {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B) where
 
@@ -206,8 +206,8 @@ module _ {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B) where
 morphism-∘ : {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B)
            → morphism (P₂ ∘ᵖ P₁) S.≈ᴹ
              Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
-               (Col.W.α {Neg A} {Pos B} {Neg B} Pw.MC.∘ᴹ
-                 ((morphism P₂ Pw.T.⊗ᵉ morphism P₁) Pw.MC.∘ᴹ
+               (Col.W.α {Neg A} {Pos B} {Neg B} MC.∘ᴹ
+                 ((morphism P₂ Pw.T.⊗ᵉ morphism P₁) MC.∘ᴹ
                    Col.W.γ {Pos A} {Pos B} {Neg B}))
 morphism-∘ {A} {B} {C} P₂ P₁ =
        S.⟺ᴹ (S.≲⇒≈ᴹ (π-sim P₂ P₁))

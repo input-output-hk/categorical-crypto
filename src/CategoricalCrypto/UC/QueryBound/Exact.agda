@@ -2,17 +2,14 @@
 
 -- Exact output counts: what a query BOUND cannot say.
 --
--- `UC.QueryBound.QBᵢ` is an amortised UPPER bound — "at most `c` completed
--- activations below per activation from above" — and `UC.QueryBound.Counting`
--- turns it into `#downward ≤ c · #upward`.  A statement that a process
--- *performs* a query is the other side of that: it needs the count itself, not
--- a ceiling on it.
+-- `UC.QueryBound.QBᵢ` is an amortised UPPER bound (`UC.QueryBound.Counting`);
+-- a statement that a process *performs* a query needs the count itself, not a
+-- ceiling on it.
 --
--- `QEᵢ` is the exact form, and the generalization it needs is small.  `δ`
--- weights the OUTPUTS that are being counted — `δ = 1` on downward outputs
--- counts queries, `δ = 1` on one query CONSTRUCTOR counts queries of that kind
--- — and `cost` weights the input letters that pay for them.  `Λ` is the ledger:
--- the weight still owed at a state.  The potential of an upper bound is
+-- `QEᵢ` is the exact form.  `δ` weights the OUTPUTS that are being counted —
+-- `δ = 1` on downward outputs counts queries, `δ = 1` on one query CONSTRUCTOR
+-- counts queries of that kind — and `cost` weights the input letters that pay
+-- for them.  `Λ` is the ledger: the weight still owed at a state.  The potential of an upper bound is
 -- replaced by an EQUATION per step, and the run-level conclusion is an equation
 -- too:
 --

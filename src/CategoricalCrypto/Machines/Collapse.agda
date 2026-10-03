@@ -123,13 +123,10 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
                     S.≈ᴹ composeᴳ g f
     compose-raw≈ᴳ = ℳ.Equiv.sym (GC.composeᴳ-raw ℳ.U ℳ.monoidal (Tracedₚ 0ℓ))
 
-    compose≈∘ᴳ : composeᴳ g f S.≈ᴹ 𝒢._∘_ g f
-    compose≈∘ᴳ = S.reflᴹ
-
     compose-raw≈∘ᴳ : MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺)
                        (W.α MC.∘ᴹ ((g T.⊗ᵉ f) MC.∘ᴹ W.γ))
                      S.≈ᴹ 𝒢._∘_ g f
-    compose-raw≈∘ᴳ = compose-raw≈ᴳ S.○ᴹ compose≈∘ᴳ
+    compose-raw≈∘ᴳ = compose-raw≈ᴳ
 
   Sᴳ : MC.State
   Sᴳ = MC.state g MC.⊛ MC.state f
@@ -233,7 +230,7 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
 
 -- One pass of the loop, then the loop: stated at an arbitrary state and
 -- pre-trace step, which is how both a closed composite's tick
--- (`UC.Seam.Plug.Tick`) and `Protocol.Machine.Compose` read `kᴳ`'s trace.
+-- (`UC.Machine.Plug.Tick`) and `Protocol.Machine.Compose` read `kᴳ`'s trace.
 module Loop (A B X : Set) (S : MC.State)
             (k : MC.obj S × (A ⊎ X) → Dₚ (MC.obj S × (B ⊎ X)))
             where

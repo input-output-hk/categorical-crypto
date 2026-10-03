@@ -38,14 +38,12 @@ open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.QueryBound
 
 import CategoricalCrypto.Machines.Pointwise as Pw
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.Examples.MerkleDamgard.QueryBound
   (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
 
 private
-  module MC = Core (𝒱ₚ 0ℓ)
   module S  = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 
 open MD n k IV

@@ -12,7 +12,8 @@
 -- Keep that re-indexing opaque: reducing `QBᴳ` at a tensor-produced object
 -- otherwise makes conversion invert the composite machine interface.  The two
 -- image bridges expose the definitional inverse only inside this module's
--- controlled unfolding block.
+-- controlled unfolding block.  Its composition law, `qb-∘ᴳ`, is in
+-- `UC.QueryBound.Compose.Laws`.
 
 open import Categories.Category
 
