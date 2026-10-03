@@ -18,8 +18,7 @@
 -- an `EqClosure` needs (`(wait , idle)` never surfaces: `traceᴹ` solves the
 -- loop inside one step).
 --
--- `morphism-∘` is stated at the trace, before `𝒢ₚ`'s `_∘_`, for the reason in
--- `Machines.Collapse`'s header.  Measured warm cost: 11 s.
+-- Measured warm cost: 11 s.
 
 open import Categories.Category
 
@@ -205,22 +204,10 @@ module _ {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B) where
   ------------------------------------------------------------------------
   -- Functoriality
 
-  morphism-∘ : morphism (P₂ ∘ᵖ P₁) S.≈ᴹ
-               Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
-                 (Col.W.α {Neg A} {Pos B} {Neg B} MC.∘ᴹ
-                   ((morphism P₂ Pw.T.⊗ᵉ morphism P₁) MC.∘ᴹ
-                     Col.W.γ {Pos A} {Pos B} {Neg B}))
-  morphism-∘ =
+  -- Every polarity is passed explicitly, for the reason at `UC.Machine.𝒫ᴵ`.
+  morphismCompose : 𝒢ₚ 0ℓ [ morphism (P₂ ∘ᵖ P₁) ≈ 𝒢ₚ 0ℓ [ morphism P₂ ∘ morphism P₁ ] ]
+  morphismCompose =
          S.⟺ᴹ (S.≲⇒≈ᴹ π-sim)
     S.○ᴹ S.≲⇒≈ᴹ ι-sim
-    S.○ᴹ S.⟺ᴹ (Col.collapseᵀ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C}
-                             (morphism P₂) (morphism P₁))
-
--- …and at `𝒢`'s own composition.  Every polarity is passed explicitly, for
--- the reason at `UC.Machine.𝒫ᴵ`.
-morphismCompose : {A B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol A B)
-                → 𝒢ₚ 0ℓ [ morphism (P₂ ∘ᵖ P₁) ≈ 𝒢ₚ 0ℓ [ morphism P₂ ∘ morphism P₁ ] ]
-morphismCompose {A} {B} {C} P₂ P₁ =
-  morphism-∘ P₂ P₁ S.○ᴹ
-  Col.compose-raw≈∘ᴳ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C}
-                     (morphism P₂) (morphism P₁)
+    S.○ᴹ Col.collapse≈ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C}
+                       (morphism P₂) (morphism P₁)

@@ -249,7 +249,6 @@ module Elgotᵏ (ℓ : Level) where
 Elgotₚ : (ℓ : Level) → Iteration.Elgot (𝒱ₚ ℓ) (distₚ ℓ) (𝒫ₚ ℓ)
 Elgotₚ ℓ = record
   { iter          = iterₚ
-  ; iter-cong     = iter-congₚ
   ; iter-fix      = iter-fixₚ
   ; iter-out      = iter-outₚ
   ; iter-ctx      = iter-ctxₚ

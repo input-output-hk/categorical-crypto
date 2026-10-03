@@ -105,28 +105,13 @@ module _ {A⁻ B⁺ B⁻ C⁺ : Set} where
   outᵍ (inj₁ b) = inj₂ (inj₁ b)
   outᵍ (inj₂ c) = inj₁ (inj₂ c)
 
-opaque
-  composeᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set} →
-             MC.Machine (B⁺ ⊎ C⁻) (B⁻ ⊎ C⁺) →
-             MC.Machine (A⁺ ⊎ B⁻) (A⁻ ⊎ B⁺) →
-             MC.Machine (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺)
-  composeᴳ = GC.composeᴳ ℳ.U ℳ.monoidal (Tracedₚ 0ℓ)
-
 module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
          (g : MC.Machine (B⁺ ⊎ C⁻) (B⁻ ⊎ C⁺)) (f : MC.Machine (A⁺ ⊎ B⁻) (A⁻ ⊎ B⁺)) where
 
-  opaque
-    unfolding composeᴳ
-
-    compose-raw≈ᴳ : MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺)
-                      (W.α MC.∘ᴹ ((g T.⊗ᵉ f) MC.∘ᴹ W.γ))
-                    S.≈ᴹ composeᴳ g f
-    compose-raw≈ᴳ = ℳ.Equiv.sym (GC.composeᴳ-raw ℳ.U ℳ.monoidal (Tracedₚ 0ℓ))
-
-    compose-raw≈∘ᴳ : MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺)
-                       (W.α MC.∘ᴹ ((g T.⊗ᵉ f) MC.∘ᴹ W.γ))
-                     S.≈ᴹ 𝒢._∘_ g f
-    compose-raw≈∘ᴳ = compose-raw≈ᴳ
+  compose-raw≈∘ᴳ : MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺)
+                     (W.α MC.∘ᴹ ((g T.⊗ᵉ f) MC.∘ᴹ W.γ))
+                   S.≈ᴹ 𝒢._∘_ g f
+  compose-raw≈∘ᴳ = ℳ.Equiv.sym (GC.composeᴳ-raw ℳ.U ℳ.monoidal (Tracedₚ 0ℓ))
 
   Sᴳ : MC.State
   Sᴳ = MC.state g MC.⊛ MC.state f
@@ -224,6 +209,9 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
                   ((g T.⊗ᵉ f) MC.∘ᴹ W.γ))
               S.≈ᴹ MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺) (MC.mk Sᴳ kᴳ)
   collapseᵀ = TC.trace-resp-≈ᴹ outer
+
+  collapse≈ : MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺) (MC.mk Sᴳ kᴳ) S.≈ᴹ 𝒢._∘_ g f
+  collapse≈ = S.⟺ᴹ collapseᵀ S.○ᴹ compose-raw≈∘ᴳ
 
 ------------------------------------------------------------------------
 -- A traced machine's step at a point

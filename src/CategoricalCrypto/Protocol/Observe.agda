@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- Observing a closed protocol: play a strategy against it and read the verdict
--- distribution.  `hitRun` samples the state only at activation boundaries: a
+-- distribution.  `PrHit` samples the state only at activation boundaries: a
 -- protocol step is atomic, so a bad state entered and left inside one step is
 -- not observed.
 
@@ -141,11 +141,8 @@ module _ (P : Protocol unitᴵ B) where
     hitFrom : Bool → St P → Strat (Neg B) (Pos B) → Dist⊥ Bool
     hitFrom = hitWith⊥ kernel Bad
 
-    hitRun : Strat (Neg B) (Pos B) → Dist⊥ Bool
-    hitRun = hitFrom (Bad (init P)) (init P)
-
     PrHit : Strat (Neg B) (Pos B) → ℚ
-    PrHit d = Pr₁⊥ (hitRun d)
+    PrHit d = Pr₁⊥ (hitFrom (Bad (init P)) (init P) d)
 
 ------------------------------------------------------------------------
 -- Statements

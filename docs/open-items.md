@@ -25,7 +25,7 @@ line: `module :: definition` — size — why.
 
 ## UC core
 
-- `CategoricalCrypto/UC/QueryBound.agda :: QB` / `QueryBound/Counting.agda :: qbᵢ⇒count, CountBound` — ~15 LOC proof work + a test — the counting bound is proved for the certified representative `N`, nothing carries it to `M` (`N ≈ᴹ M`); needs a `traceᵍ`-simulation off `Run.step-sim`; `Counting` itself has no consumer, pin it (rule 33).
+- `CategoricalCrypto/UC/QueryBound.agda :: QB` / `QueryBound/Counting.agda :: qbᵢ⇒count, CountBound` — ~15 LOC proof work + a test — the counting bound is proved for the certified representative `N`, nothing carries it to `M` (`N ≈ᴹ M`); needs a `traceᵍ`-simulation off `Pointwise.step-sim`; `Counting` itself has no consumer, pin it (rule 33).
 - `CategoricalCrypto/UC/QueryBound/Compose/Laws.agda :: qb-∘` — −12 LOC — only consumer `qb-∘-category`, which can go raw≈∘ᴳ, ⟺, raw≈∘ᴳ; kept in round 3: one consumer.
 - `CategoricalCrypto/UC/Machine/StateEvent/Lift.agda :: FlagCert, flagSkeleton, flag-slide` vs `UC/Machine/Dominated.agda`'s certificate — ≈ −250..−400 LOC — two "+1 certificate" developments; `Monitor.monitor-flag` (`monitorᴹ report ∘ u ≈ accᴹ ▷ reported`) is the simulation that would let `Dominated`'s certificate read off the flag one, but the merge itself is unspiked.
 - `CategoricalCrypto/UC/Machine/StateEvent/Agree.agda :: embeds` vs `Seam/Budget.agda :: stratTest-embeds` — ≈ −6 LOC — two wire proofs of one embedding; skipped in round 3: needs `λᴵ⇒ ∘ λᴵ⇐ ≈ id` in 𝒫ᴵ. Re-tried round 4: crux stands.

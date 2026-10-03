@@ -362,9 +362,6 @@ private
 ------------------------------------------------------------------------
 -- The coupling, up to the flag
 
-good-J : (s : StPʰ) (s′ : StRʰ) → s ≋J s′ → flagP s ≡ false
-good-J (r , t , m , f) (mr , t′ , z) (ef , _) = ef
-
 join-J : JoinStep respPʰ respRʰ flagP _≋J_
 join-J (r , t , m , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) (askQʰ x) =
   νa , mgL , mgR , sup
@@ -680,7 +677,7 @@ per-plant : (d : Strat Qʰ Rʰ) (r : Dig)
           → ∣ Pr₁ (runWith respPʰ (sP₀ r) d)
               -ℚ Pr₁ (runWith respRʰ (just r , [] , nothing) d) ∣ℚ
             ≤ℚ badProb respPʰ flagP (sP₀ r) d
-per-plant d r = runWith-join respPʰ respRʰ flagP _≋J_ good-J join-J d (sP₀ r)
+per-plant d r = runWith-join respPʰ respRʰ flagP _≋J_ join-J d (sP₀ r)
   (just r , [] , nothing) (refl , refl , refl , (λ y → refl) , (λ b → refl))
 
 defer-hiding : (m : ℕ) (d : Strat Qʰ Rʰ) → asks≤ m d

@@ -19,7 +19,6 @@ open import ProbabilisticLogic.Dp.Reasoning
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pure
 
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.Machines.Sandwich where
@@ -27,7 +26,7 @@ module CategoricalCrypto.Machines.Sandwich where
 private
   module 𝒱 = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
 
-open Core (𝒱ₚ 0ℓ)
+open MC
 open KD (Dₚ-DiscreteMonad {0ℓ})
 open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 

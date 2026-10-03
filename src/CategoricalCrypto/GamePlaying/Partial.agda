@@ -101,50 +101,39 @@ record SuperCert⊥ (resp : St → Q → Dist⊥ (St × R)) (bad : St → Bool)
 ------------------------------------------------------------------------
 -- The supermartingale bound
 
-badProb⊥-super :
-  (resp : St → Q → Dist⊥ (St × R)) (bad : St → Bool)
-  (Inv : St → Type) (φ : ℕ → St → ℚ)
-  → Preserved⊥ Inv resp
-  → (∀ m s → Inv s → 0ℚ ≤ℚ φ m s)
-  → (∀ m s → Inv s → bad s ≡ true → 1ℚ ≤ℚ φ m s)
-  → (∀ m s q → Inv s → E⊥ (resp s q) (λ sr → φ m (proj₁ sr)) ≤ℚ φ (suc m) s)
-  → ∀ m d s → asks≤ m d → Inv s → badProb⊥ resp bad s d ≤ℚ φ m s
-badProb⊥-super resp bad Inv φ pres nn lb step m (out b) s le inv with bad s in eqb
-... | true  = lb m s inv eqb
-... | false = nn m s inv
-badProb⊥-super resp bad Inv φ pres nn lb step zero (ask q kd) s () inv
-badProb⊥-super resp bad Inv φ pres nn lb step (suc m) (ask q kd) s le inv
-  with bad s in eqb
-... | true  = lb (suc m) s inv eqb
-... | false = ≤-trans
-    (E⊥-mono-on (resp s q)
-      (λ sr → badProb⊥ resp bad (proj₁ sr) (kd (proj₂ sr)))
-      (λ sr → φ m (proj₁ sr))
-      (ListAll.map (λ {e} → sink (proj₂ e)) (pres s q inv)))
-    (step m s q inv)
-  where
-  sink : (x : Maybe _)
-       → Mb (λ sr → Inv (proj₁ sr)) x
-       → Mb (λ sr → badProb⊥ resp bad (proj₁ sr) (kd (proj₂ sr)) ≤ℚ φ m (proj₁ sr)) x
-  sink (just sr) inv′ = badProb⊥-super resp bad Inv φ pres nn lb step m
-                          (kd (proj₂ sr)) (proj₁ sr) (le (proj₂ sr)) inv′
-  sink nothing   _    = tt
-badProb⊥-super resp bad Inv φ pres nn lb step m (coin μ kd) s le inv with bad s in eqb
-... | true  = lb m s inv eqb
-... | false = ≤-trans
-    (E-mono μ (λ b → badProb⊥ resp bad s (kd b)) (λ _ → φ m s)
-      (λ b → badProb⊥-super resp bad Inv φ pres nn lb step m (kd b) s (le b) inv))
-    (≤-reflexive (E-const μ (φ m s)))
+module _ {resp : St → Q → Dist⊥ (St × R)} {bad : St → Bool} {s₀ : St} {ε : ℕ → ℚ}
+         (c : SuperCert⊥ resp bad s₀ ε) where
 
-badProb⊥-bounded :
-  {resp : St → Q → Dist⊥ (St × R)} {bad : St → Bool} {s₀ : St} {ε : ℕ → ℚ}
-  → SuperCert⊥ resp bad s₀ ε
-  → ∀ m d → asks≤ m d → badProb⊥ resp bad s₀ d ≤ℚ ε m
-badProb⊥-bounded {resp = resp} {bad} {s₀} c m d le = ≤-trans
-  (badProb⊥-super resp bad (SuperCert⊥.Inv c) (SuperCert⊥.φ c) (SuperCert⊥.pres c)
-    (SuperCert⊥.φ-nn c) (SuperCert⊥.φ-bad c) (SuperCert⊥.φ-step c)
-    m d s₀ le (SuperCert⊥.inv₀ c))
-  (SuperCert⊥.φ-init c m)
+  open SuperCert⊥ c
+
+  badProb⊥-super : ∀ m d s → asks≤ m d → Inv s → badProb⊥ resp bad s d ≤ℚ φ m s
+  badProb⊥-super m (out b) s le inv with bad s in eqb
+  ... | true  = φ-bad m s inv eqb
+  ... | false = φ-nn m s inv
+  badProb⊥-super zero (ask q kd) s () inv
+  badProb⊥-super (suc m) (ask q kd) s le inv with bad s in eqb
+  ... | true  = φ-bad (suc m) s inv eqb
+  ... | false = ≤-trans
+      (E⊥-mono-on (resp s q)
+        (λ sr → badProb⊥ resp bad (proj₁ sr) (kd (proj₂ sr)))
+        (λ sr → φ m (proj₁ sr))
+        (ListAll.map (λ {e} → sink (proj₂ e)) (pres s q inv)))
+      (φ-step m s q inv)
+    where
+    sink : (x : Maybe _)
+         → Mb (λ sr → Inv (proj₁ sr)) x
+         → Mb (λ sr → badProb⊥ resp bad (proj₁ sr) (kd (proj₂ sr)) ≤ℚ φ m (proj₁ sr)) x
+    sink (just sr) inv′ = badProb⊥-super m (kd (proj₂ sr)) (proj₁ sr) (le (proj₂ sr)) inv′
+    sink nothing   _    = tt
+  badProb⊥-super m (coin μ kd) s le inv with bad s in eqb
+  ... | true  = φ-bad m s inv eqb
+  ... | false = ≤-trans
+      (E-mono μ (λ b → badProb⊥ resp bad s (kd b)) (λ _ → φ m s)
+        (λ b → badProb⊥-super m (kd b) s (le b) inv))
+      (≤-reflexive (E-const μ (φ m s)))
+
+  badProb⊥-bounded : ∀ m d → asks≤ m d → badProb⊥ resp bad s₀ d ≤ℚ ε m
+  badProb⊥-bounded m d le = ≤-trans (badProb⊥-super m d s₀ le inv₀) (φ-init m)
 
 ------------------------------------------------------------------------
 -- The coupled Fundamental Lemma of Game-Playing, partially

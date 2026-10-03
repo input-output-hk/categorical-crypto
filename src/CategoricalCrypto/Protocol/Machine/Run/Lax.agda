@@ -5,8 +5,6 @@
 -- touches; `Dp.Mass.astotal-bind` turns the prefix into an ε-agreement when
 -- `σ` is almost surely total.
 
-open import Categories.Category.Monoidal.Bundle
-
 open import Data.Product.Base
 open import Data.Unit.Polymorphic.Base
 open import Level
@@ -16,27 +14,24 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
-open import CategoricalCrypto.Machines.Pointwise using (fnStep)
+open import CategoricalCrypto.Machines.Pointwise using (fnStep; module KP; module V)
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Machine.Run using (runFrom-ϕ)
 open import CategoricalCrypto.Strategy
 
-import Categories.Category.Construction.Kleisli.Discrete.Pure as KDP
 import CategoricalCrypto.Machines.Sim.Lax as Lax
 
 module CategoricalCrypto.Protocol.Machine.Run.Lax where
 
 private
-  module P  = KDP (Dₚ-DiscreteMonad {0ℓ})
   module L  = Lax (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
-  module V  = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
 
 module _ {B : Iface} {σ : V.unit V.⇒ V.unit} {f g : Closed B}
          (l : f L.≲ˡ[ σ ] g) where
 
   private
     ϕ : MC.St f → MC.St g
-    ϕ = P.fn (L.θˡ-pure l)
+    ϕ = KP.fn (L.θˡ-pure l)
 
     runFrom-lax : (m : MC.St f) (d : Strat (Neg B) (Pos B))
                 → runᴹFrom f m d ≈ₚ runᴹFrom g (ϕ m) d
@@ -44,7 +39,7 @@ module _ {B : Iface} {σ : V.unit V.⇒ V.unit} {f g : Closed B}
 
     point-lax : mapₚ ϕ (MC.point (MC.state f) tt)
               ≈ₚ (σ tt >>=ₚ λ _ → MC.point (MC.state g) tt)
-    point-lax = bindᶠ (λ s → ≈sym (P.is-fn (L.θˡ-pure l) s)) ⟨≈⟩ L.θˡ-point l tt
+    point-lax = bindᶠ (λ s → ≈sym (KP.is-fn (L.θˡ-pure l) s)) ⟨≈⟩ L.θˡ-point l tt
 
   run-lax : (d : Strat (Neg B) (Pos B)) → runᴹ f d ≈ₚ (σ tt >>=ₚ λ _ → runᴹ g d)
   run-lax d = bindᶠ (λ m → runFrom-lax m d)

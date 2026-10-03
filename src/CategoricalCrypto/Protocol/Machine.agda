@@ -62,11 +62,9 @@ module _ (P : Protocol A B) where
   stepᴹ (idle _ , inj₁ _)  = botₚ
   stepᴹ (wait _ , inj₂ _)  = botₚ
 
-  stateᴹ : MC.State
-  stateᴹ = record { obj = MSt ; point = λ _ → returnₚ (idle (init P)) }
-
 morphism : Protocol A B → 𝒢ₚ 0ℓ [ ⟦ A ⟧ᴵ , ⟦ B ⟧ᴵ ]
-morphism P = MC.mk (stateᴹ P) (stepᴹ P)
+morphism P =
+  MC.mk (record { obj = MSt P ; point = λ _ → returnₚ (idle (init P)) }) (stepᴹ P)
 
 ------------------------------------------------------------------------
 -- The closed-machine run

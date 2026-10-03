@@ -80,7 +80,7 @@ nothing here has an error term.
 `UC.Machine.Dictionary.sub-⊗₁`). `𝒢ₚ`'s composition is a ⊕-trace, and there are
 exactly two ways in this repository to get one in readable form:
 
-* `Protocol.Machine.Compose.morphism-∘`, when BOTH factors are protocol images;
+* `Protocol.Machine.Compose.morphismCompose`, when BOTH factors are protocol images;
 * `UC.Machine.Wire.∘-wireᴹ`, when the lower factor is a WIRE — the loop is then
   solved generically by `GConstructionEmbedding`'s absorption and the composite
   is the upper factor with its interface renamed, same state.
