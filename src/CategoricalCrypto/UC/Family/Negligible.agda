@@ -69,11 +69,8 @@ Evaluationᴺ : Evaluation Fam os ℓa
 Evaluationᴺ =
   RS.qualBy QEvaluationᴺ ∼ᴺ-isEquivalence λ h → (λ _ → 0ℚ) , Negligible-0 , h
 
--- The relation the tier is FOR, renamed apart from `UC.Family`'s.  Its
--- metatheory is not renamed alongside: it is
--- `Standard2.StdUC Famᴹ` at `Evaluationᴺ`'s test presheaf, and a second
--- copy of it under ᴺ names would be the parallel API this tier is meant not to
--- be.  The tier's EMULATION ORDER is `Abstract2`'s at `ucSetupᴺ` below.
+-- The tier's relation, renamed apart from `UC.Family`'s; its emulation order
+-- is `Abstract2`'s at `ucSetupᴺ` below.
 module Canonicalᴺ = Std2.StdUC Famᴹ (Evaluation.ℰᴼ Evaluationᴺ)
 
 open Canonicalᴺ public using () renaming (_≈ᵁ_ to _≈ℰᴺ_)
@@ -98,18 +95,8 @@ open Canonicalᴺ public using () renaming (_≈ᵁ_ to _≈ℰᴺ_)
 ------------------------------------------------------------------------
 -- The canonical setup
 
--- The same four fields as `UC.Family.ucSetup^ω`, at `Evaluationᴺ`: the whole of
--- `Abstract2` — `≤UC-refl`, `dummy-complete`, `≤UC-trans`, `UC-compose`,
--- `≈ᵁ⇒≈ℰ` — is inherited at the negligible tier instead of restated there.
 ucSetupᴺ : UCSetup o (ℓ ⊔ qs) e o (ℓ ⊔ qs) e (ℓ ⊔ qs) (ℓ ⊔ qs ⊔ ℓa)
 ucSetupᴺ = Canonicalᴺ.StdSetup
-
--- A concrete budget-indexed bound reaches the INHERITED order directly; the
--- homs are EXPLICIT for `≈ℰⁿ⇒≈ℰᴺ`'s reason.
-≈ℰⁿ⇒≤UC : {A B X : Canonicalᴺ.Channel}
-          (f g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
-        → f ≈ℰⁿ g → Canonicalᴺ._≤UC_ f g
-≈ℰⁿ⇒≤UC f g h = Canonicalᴺ.≈ᵁ⇒≤UC {f = f} {g} (≈ℰⁿ⇒≈ℰᴺ f g h)
 
 -- `ucSetup^ω` is the VANISHING setup — `Evaluation^ω`'s comparison is vanishing
 -- advantage, `Approx.Evaluation.qual₊` having quantified the error away — and

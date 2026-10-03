@@ -58,14 +58,6 @@ record EventSim {A B : Iface} (x y : Annotated A B) : Set₁ where
 
 open EventSim public
 
-module _ {A B : Iface} where
-
-  eventSim-refl : {x : Annotated A B} → EventSim x x
-  eventSim-refl = record { sim = S.≲-refl ; compat = λ _ → refl }
-
-  eventSim-trans : {x y z : Annotated A B} → EventSim x y → EventSim y z → EventSim x z
-  eventSim-trans σ τ = record { sim = S.≲-trans (sim σ) (sim τ) ; compat = λ s → trans (compat σ s) (compat τ _) }
-
 ------------------------------------------------------------------------
 -- The flag-wire machine
 

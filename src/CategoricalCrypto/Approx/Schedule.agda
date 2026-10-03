@@ -2,17 +2,13 @@
 
 -- Schedule-valued errors, and allowance reindexing as a control.
 --
--- `Approx` is already generic in its error structure, so schedule-valued
--- errors are an INSTANCE rather than a second category: the instances in use are `pointwise ℕ ℚ-ordered` over
--- the security parameter and `pointwise ℕ⁺ ℚ-ordered` over closure rates
--- (`UC.Quantitative.Query.Sched`).
+-- `Approx` is generic in its error structure, so schedule-valued errors are an
+-- INSTANCE: `pointwise ℕ ℚ-ordered` over the security parameter and
+-- `pointwise ℕ⁺ ℚ-ordered` over closure rates (`UC.Quantitative.Query.Sched`).
 --
 -- Substituting an allowance is the control `ε ∘ ρ`, and it is EXACT — both its
--- zero and its additivity law hold by reflexivity — so the schedule
--- substitutions the existing composition theorems perform
--- (`UC.Quantitative.Family`'s
--- `λ n q → ε n (scale q (schedOf s n))`) are instances of composing controlled
--- maps, not a UC-specific axiom.
+-- zero and its additivity law hold by reflexivity.  `UC.Quantitative.Query.pullᵠ`
+-- spends it at a closure's rate (`reindex (_· r)`).
 
 open import Data.Product.Base
 open import Level

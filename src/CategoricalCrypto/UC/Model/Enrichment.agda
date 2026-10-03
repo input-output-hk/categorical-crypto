@@ -12,7 +12,6 @@
 -- needs 12 GiB (measured).
 
 open import Categories.Category.Instance.Rates
-open import Categories.Category.Monoidal.Bundle
 open import Categories.LocallyGraded
 open import Categories.LocallyGraded.SubCategory
 
@@ -30,9 +29,6 @@ open import CategoricalCrypto.UC.QueryBound.Object
 
 module CategoricalCrypto.UC.Model.Enrichment where
 
-private
-  module G = MonoidalCategory 𝔾ᵒ
-
 gradingᵒ : GradedSubCat Rates.monoidalCategory 𝔾ᵒ (suc 0ℓ)
 gradingᵒ = subst (λ M → GradedSubCat Rates.monoidalCategory M (suc 0ℓ)) (sym sealᵒ) gradingᴹ
 
@@ -42,7 +38,7 @@ opaque
   unfolding sealᵒ
 
   -- The certificates that grading accepts, at the machine-layer spelling
-  -- (`UC.Seam.Budget`); under `unfolding sealᵒ` the transport above is `refl`.
+  -- (`UC.QueryBound.QB`); under `unfolding sealᵒ` the transport above is `refl`.
   qbᵒ : {A B : Iface} {r : ℕ⁺} {f : Proc A B} → QB (value r) f → Pred r (procᵒ f)
   qbᵒ {A} {B} = qb-to-image A B
 

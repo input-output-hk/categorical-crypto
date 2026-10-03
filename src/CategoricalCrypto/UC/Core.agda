@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The extra structure on a category that the UC models here are generated
--- from.
+-- Observation by evaluation: a reading of closed homs into a setoid
+-- (`Evaluation`) and the test presheaf `ℰᴼ` it induces.
 
 open import categorical-crypto.Prelude using (PredS)
 
@@ -15,12 +15,10 @@ open import Function using (_∘′_)
 open import Function.Bundles
 open import Level
 open import Relation.Binary.Bundles
-open import Relation.Binary.Structures
 import Relation.Binary.Construct.On as On
 
 module CategoricalCrypto.UC.Core where
 
--- Observation by evaluation
 record Evaluation {o ℓ e} (𝒞 : Category o ℓ e) (cs ℓs : Level) : Set (o ⊔ ℓ ⊔ e ⊔ suc cs ⊔ suc ℓs) where
   open Category 𝒞
 
@@ -64,9 +62,6 @@ record Evaluation {o ℓ e} (𝒞 : Category o ℓ e) (cs ℓs : Level) : Set (o
 
   _≋_ : Test A → Test A → Set (ℓ ⊔ ℓs)
   _≋_ {A} = Setoid._≈_ (ℰ₀ A)
-
-  ≋-isEquivalence : IsEquivalence (_≋_ {A})
-  ≋-isEquivalence {A} = Setoid.isEquivalence (ℰ₀ A)
 
   ≈⇒≋ : {t u : Test A} → t ≈ u → t ≋ u
   ≈⇒≋ t≈u m = read-resp (∘-resp-≈ˡ t≈u)

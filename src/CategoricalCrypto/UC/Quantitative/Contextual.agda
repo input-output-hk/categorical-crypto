@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The query-sensitive contextual comparison, as the admitted agreement of the
--- filtered test presheaf.
+-- The query-sensitive contextual comparison, as the admitted agreement of a
+-- filtered space of tests.
 --
 -- The compared morphisms are NOT certified — only the test and the closure
 -- are, which is what keeps certified simulators from forcing every compared
@@ -21,6 +21,7 @@
 open import Categories.Category.Instance.Rates
 open import Categories.Category.Monoidal.Bundle
 import Categories.Category.Monoidal.Reasoning as MonR
+import Categories.Morphism.Reasoning as MR
 
 open import Categories.LocallyGraded
 open import Categories.LocallyGraded.Monoidal
@@ -34,6 +35,7 @@ open import Level
 open import Relation.Binary.PropositionalEquality
 
 open import CategoricalCrypto.Approx.Error
+open import CategoricalCrypto.Approx.Evaluation ℚ-ordered
 open import CategoricalCrypto.UC.Quantitative.Query
 
 import Data.Nat.Properties as ℕₚ
@@ -42,12 +44,10 @@ import Data.Rational.Properties as ℚₚ
 module CategoricalCrypto.UC.Quantitative.Contextual
   {o ℓ e os ℓa qs : Level}
   (M : MonoidalCategory o ℓ e) (Rg : GradedSubCat Rates.monoidalCategory M qs)
-  {Obs : Set os} (Ap : Approximation Obs ℚ-ordered ℓa)
-  (𝟙 Ω : MonoidalCategory.Obj M)
-  (⟦_⟧ : MonoidalCategory._⇒_ M 𝟙 Ω → Obs)
-  (obs-resp : {u v : MonoidalCategory._⇒_ M 𝟙 Ω}
-            → MonoidalCategory._≈_ M u v → Approximation._≈[_]_ Ap ⟦ u ⟧ 0ℚ ⟦ v ⟧)
+  (qro : QEvaluation (MonoidalCategory.U M) os ℓa)
   where
+
+open QEvaluation qro hiding (X) renaming (J to 𝟙)
 
 open MonoidalCategory M
 open Fl
@@ -56,9 +56,7 @@ open GradedSubCat Rg
 module L = LocallyGradedCategory L
 open GradedMonoidal (monoidalᴸ Rates.braided) using () renaming (_⊗₁_ to _⊗ʰ_)
 
-module Tᵠ = Tests M Rg Ap 𝟙 Ω ⟦_⟧ obs-resp
-
-private module A = Approximation Ap
+module Tᵠ = Tests M Rg qro
 
 private variable A B X Y Z : Obj
 
@@ -71,7 +69,7 @@ _≈ᵁᵠ[_]_ : A ⇒ X ⊗₀ B → (ℕ → ℚ) → A ⇒ X ⊗₀ B → Set
 _≈ᵁᵠ[_]_ {A} {X} {B} f ε g =
   (W : Obj) (E : W ⊗₀ (X ⊗₀ B) ⇒ Ω) (m : 𝟙 ⇒ W ⊗₀ A) {c r′ : ℕ⁺}
   → Image forget c E → Image forget r′ m
-  → ⟦ (E ∘ id ⊗₁ f) ∘ m ⟧ A.≈[ ε (value (c · r′)) ] ⟦ (E ∘ id ⊗₁ g) ∘ m ⟧
+  → read ((E ∘ id ⊗₁ f) ∘ m) ≈[ ε (value (c · r′)) ] read ((E ∘ id ⊗₁ g) ∘ m)
 
 -- Two pullbacks of tests agreeing on the ADMITTED ones, at the schedule this
 -- layer reads: the test's own rate scaled by the closure's.
@@ -93,7 +91,7 @@ agree⇒ctx _ h W E m qE qm = admitted (h W) qE m _ qm
 
 -- Zero error in a test space is the ambient hom equality, observed exactly.
 cast₀ : {C : Obj} {E F : C ⇒ Ω} → E ≈ F → E Tᵠ.≈ᵠ[ (λ _ → 0ℚ) ] F
-cast₀ eq m _ _ = obs-resp (∘-resp-≈ˡ eq)
+cast₀ eq m _ _ = read-resp₀ (∘-resp-≈ˡ eq)
 
 ------------------------------------------------------------------------
 -- The enrichment kit, levelwise from `Approx.Filtered`
@@ -166,12 +164,8 @@ ctx-absorb : (ε : ℕ → ℚ) (r : ℕ⁺) {A B X B′ X′ : Obj}
            → ((W : Obj) → id ⊗₁ g′ ≈ κ W ∘ id ⊗₁ g)
            → f ≈ᵁᵠ[ ε ] g → f′ ≈ᵁᵠ[ (λ q → ε (scale q r)) ] g′
 ctx-absorb ε r κ cκ stepf stepg h = agree⇒ctx (λ q → ε (scale q r)) λ W →
-  absorb-testᵠ ε r (cκ W) (λ _ → cut (stepf W)) (λ _ → cut (stepg W))
+  absorb-testᵠ ε r (cκ W) (λ _ → MR.pushʳ U (stepf W)) (λ _ → MR.pushʳ U (stepg W))
                (ctx⇒agree ε h W)
-  where
-  cut : {C D : Obj} {E : D ⇒ Ω} {a : C ⇒ D} {k : Obj} {b : k ⇒ D} {c : C ⇒ k}
-      → a ≈ b ∘ c → E ∘ a ≈ (E ∘ b) ∘ c
-  cut eq = Equiv.trans (∘-resp-≈ʳ eq) sym-assoc
 
 -- …and at a simulator's action, certified by whiskering the simulator's
 -- certificate at rate `1⁺` on both sides, the substitution is `scale _ r`.

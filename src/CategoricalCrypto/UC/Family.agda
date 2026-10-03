@@ -160,17 +160,10 @@ carried-negligible : {ε : ℕ → ℕ → ℚ} → NegligibleBound ε → Carri
 carried-negligible neg Y Et m {pc} Ppc _ =
   neg (λ n → value (pc n · schedOf m n)) (poly⁺-· {pc} {schedOf m} Ppc (schedOf-adm m))
 
--- A sufficient condition into the SAME `≈ᵁ`: the grade is spent going in and
--- cannot be read back out (header).
-absorb-negl : {A B X : Obj^ω} {f g : A ⇒^ω (X ⊛ω B)} {ε : ℕ → ℕ → ℚ}
-            → f ≈ℰ[ ε ] g → NegligibleBound ε → f ≈ᵁ g
-absorb-negl {A} {B} {X} {f} {g} {ε} bnd neg =
-  absorb {A} {B} {X} {f} {g} {ε} bnd (NegligibleBound⇒VanishingBound {ε} neg)
-
 infix 4 _≈ℰⁿ_
 
 -- Reading the grade back out means not throwing the witness away: `_≈ℰⁿ_` is
--- `absorb-negl`'s premise with its `ε` KEPT, so a property whose slack must
+-- `absorb`'s premise at a negligible `ε`, KEPT, so a property whose slack must
 -- stay negligible survives it where `_≈ᵁ_` loses it.
 _≈ℰⁿ_ : {A B : Obj^ω} → A ⇒^ω B → A ⇒^ω B → Set (o ⊔ ℓ ⊔ e ⊔ ℓa ⊔ qs)
 f ≈ℰⁿ g = Σ[ ε ∈ (ℕ → ℕ → ℚ) ] CarriedNegligible ε × f ≈ℰ[ ε ] g

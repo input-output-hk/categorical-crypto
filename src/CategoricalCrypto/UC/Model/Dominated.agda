@@ -95,25 +95,21 @@ private
 -- `UC.Machine.Dominated.dominated` with its ancilla quantified over the
 -- seal's objects and its rates read off `gradingᵒ`: the shape
 -- `UC.Family._≈ℰ[_]_` presents at one level, at a hole that is a real grade.
--- `ctxRunᵒ` crosses the seal at an arbitrary grade; what is in the way is the
--- unitor `conjᴵ` leaves in front of the process, and
--- `UC.Machine.Slide.ctxRun-conj` cancels it.  That unitor costs the test one
--- activation, and `*-identityʳ` takes the product back to the test's own rate.
 -- At a positive closure rate the machine layer's guarded allowance
 -- `scale c (positive c′)` is the product of the two rates (`value-positive`),
 -- so the hypothesis is read at `value (c · c′)`.
 dominatedᵍᵠ : {P B : Iface} (W : G.Obj)
               (E : W G.⊗₀ (ifaceᵒ P G.⊗₀ ifaceᵒ B) G.⇒ Ωᵒ) (m : 𝟘ᵒ G.⇒ W G.⊗₀ 𝟘ᵒ)
               {c c′ : ℕ⁺} → Image forget c E → Image forget c′ m
-            → (u v : Proc unitᴵ (P ⊗ᴵ B)) (ε δ : ℚ) → 0ℚ ℚ.< δ
+            → (u v : Proc unitᴵ (P ⊗ᴵ B)) (ε : ℚ)
             → ((d : Strat (Neg (P ⊗ᴵ B)) (Pos (P ⊗ᴵ B))) → asks≤ (value (c · c′)) d
                → runᴹ u d ≈ₚ[ ε ] runᴹ v d)
             → Obs ((E G.∘ T₁ᵒ W (gradedᵒ u)) G.∘ m)
-              ≈ₚ[ ε ℚ.+ δ ] Obs ((E G.∘ T₁ᵒ W (gradedᵒ v)) G.∘ m)
-dominatedᵍᵠ {P} {B} W E m {c} {c′} qE qm u v ε δ 0<δ h =
+              ≈ₚ[ ε ] Obs ((E G.∘ T₁ᵒ W (gradedᵒ v)) G.∘ m)
+dominatedᵍᵠ {P} {B} W E m {c} {c′} qE qm u v ε h =
   ≈ₚ[]-resp (≈ₚ-sym _ _ (open-hole u)) (≈ₚ-sym _ _ (open-hole v))
     (dominated (P ⊗ᴵ B) (objᵒ W) Eᶜ (unclosᵒ W m) qEᶜ (unqb-closᵒ W qm)
-               u v ε δ 0<δ (guard {c} {c′} h))
+               u v ε (guard {c} {c′} h))
   where
   Eᶜ : Proc (objᵒ W ⊗ᴵ (unitᴵ ⊗ᴵ (P ⊗ᴵ B))) Ωᴵ
   Eᶜ = untestᵒ W E 𝒫.∘ T₁ᴵ (objᵒ W) (λᴵ⇒ {P ⊗ᴵ B})
@@ -137,9 +133,9 @@ dominatedᵍᵠ {P} {B} W E m {c} {c′} qE qm u v ε δ 0<δ h =
 dominatedᵍ : {P B : Iface} (W : G.Obj)
              (E : W G.⊗₀ (ifaceᵒ P G.⊗₀ ifaceᵒ B) G.⇒ Ωᵒ) (m : 𝟘ᵒ G.⇒ W G.⊗₀ 𝟘ᵒ)
              {c c′ : ℕ⁺} → Image forget c E → Image forget c′ m
-           → (u v : Proc unitᴵ (P ⊗ᴵ B)) (ε δ : ℚ) → 0ℚ ℚ.< δ
+           → (u v : Proc unitᴵ (P ⊗ᴵ B)) (ε : ℚ)
            → ((d : Strat (Neg (P ⊗ᴵ B)) (Pos (P ⊗ᴵ B))) → runᴹ u d ≈ₚ[ ε ] runᴹ v d)
            → Obs ((E G.∘ T₁ᵒ W (gradedᵒ u)) G.∘ m)
-             ≈ₚ[ ε ℚ.+ δ ] Obs ((E G.∘ T₁ᵒ W (gradedᵒ v)) G.∘ m)
-dominatedᵍ W E m {c} {c′} qE qm u v ε δ 0<δ h =
-  dominatedᵍᵠ W E m {c} {c′} qE qm u v ε δ 0<δ (λ d _ → h d)
+             ≈ₚ[ ε ] Obs ((E G.∘ T₁ᵒ W (gradedᵒ v)) G.∘ m)
+dominatedᵍ W E m {c} {c′} qE qm u v ε h =
+  dominatedᵍᵠ W E m {c} {c′} qE qm u v ε (λ d _ → h d)

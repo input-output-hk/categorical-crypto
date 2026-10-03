@@ -11,7 +11,7 @@
 -- `Proc unitᴵ (unitᴵ ⊗ᴵ B)`, where the empty summand can never fire), even
 -- though `ctxRun` itself is stated at a general `A`.  At that instance: once
 -- every strategy the context's carried budget can afford leaves the two direct
--- runs ε-close, the context itself separates them by no more than ε + δ.  That
+-- runs ε-close, the context itself separates them by no more than ε.  That
 -- is what makes an abstract query bound contribute — with no such law, `QB`
 -- may as well be `⊤`.  Whether the closed, unit-hole case suffices for a
 -- general `f g : Proc A B` at a general hole is not settled here.
@@ -21,10 +21,6 @@
 -- `scale c (positive c′)`.  Not one dominating strategy: a finite strategy
 -- mentions finitely many first queries, so none reflects a context that
 -- samples an unbounded-support question at query bound one.
---
--- The slack δ is positive rather than zero because the model's readout, hence
--- `_≈ℰ_`, quantifies over every positive slack anyway, so it costs a consumer
--- nothing; the decomposition never needs it.
 --
 -- `UC.Machine.Slide` turns the bridge's ancilla context into a plain closed
 -- context `Kctx` carrying `scale c (positive c′)`, so what is left of the obligation
@@ -45,8 +41,7 @@ open import Data.Bool.Base
 open import Data.Nat.Base as ℕ
 open import Data.Product.Base
 open import Data.Rational as ℚ
-open import Data.Rational.Properties as ℚP
-open import Data.Rational.Properties.Ext
+open import Data.Rational.Properties
 open import Data.Unit.Base
 open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)
 open import Level
@@ -193,10 +188,10 @@ skeleton B K (N , cert , e) u v ε h =
 dominated : (B Y : Iface)
             (E : Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
             {c c′ : ℕ} → QB c E → QB c′ m
-          → (u v : Proc unitᴵ B) (ε δ : ℚ) → 0ℚ ℚ.< δ
+          → (u v : Proc unitᴵ B) (ε : ℚ)
           → ((d : Strat (Neg B) (Pos B)) → asks≤ (ℕ⁺.scale c (ℕ⁺.positive c′)) d
              → runᴹ u d ≈ₚ[ ε ] runᴹ v d)
-          → ctxRun Y E m (conjᴵ u) ≈ₚ[ ε ℚ.+ δ ] ctxRun Y E m (conjᴵ v)
-dominated B Y E m qE qm u v ε δ 0<δ h =
+          → ctxRun Y E m (conjᴵ u) ≈ₚ[ ε ] ctxRun Y E m (conjᴵ v)
+dominated B Y E m qE qm u v ε h =
   ≈ₚ[]-resp (≈ₚ-sym _ _ (ctxRun-slide E m u)) (≈ₚ-sym _ _ (ctxRun-slide E m v))
-    (≈ₚ[]-mono (p≤p+q ε (ℚP.<⇒≤ 0<δ)) (skeleton B (Kctx E m) (qb-Kctx E m qE qm) u v ε h))
+    (skeleton B (Kctx E m) (qb-Kctx E m qE qm) u v ε h)

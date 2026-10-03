@@ -1,11 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- `Approx.Filtered` at the pointwise poset of cost profiles `ℕ → ℕ` (stdlib's
--- `IndexedPoset.poset`; `Approx.Filtered`'s header says why allowance maps are
--- compared by `_≈_`): the doublings `n + n` and `2 * n`, identified by `Filt`
--- before and after composition.  Last, `ℕ-ordered` has no `Refinement`.
-
-open import Categories.Category
+-- `IndexedPoset.poset`): admission moves along the doublings `n + n` and
+-- `2 * n`, which agree pointwise but not as functions without funext.  Last,
+-- `ℕ-ordered` has no `Refinement`.
 
 open import Data.Nat.Base
 open import Data.Product.Base
@@ -66,23 +64,11 @@ along ρ = record
   ; admits     = _∘ ρ
   }
 
-module F = Category (Filt 0ℓ 0ℓ 0ℓ)
-
-along-resp : {ρ σ : ℕ → ℕ} → ((n : ℕ) → ρ n ≡ σ n) → along ρ F.≈ along σ
-along-resp eq = (≐-reflexive refl , λ x n → cong x (eq n)) , λ a n → cong a (eq n)
-
-doubled : along (λ n → n + n) F.≈ along (2 *_)
-doubled = along-resp λ n → cong (n +_) (sym (ℕₚ.+-identityʳ n))
-
-doubled² : along (λ n → n + n) F.∘ along (λ n → n + n) F.≈ along (2 *_) F.∘ along (2 *_)
-doubled² = F.∘-resp-≈ {f = along λ n → n + n} {h = along (2 *_)}
-                      {g = along λ n → n + n} {i = along (2 *_)} doubled doubled
-
--- Admission moves along the allowance's `_≈_`, not along `≡`.
 admitted-doubled : {a x : ℕ → ℕ} → FilteredSpace.Admit Runs a x
                  → FilteredSpace.Admit Runs (a ∘ (2 *_)) (x ∘ λ n → n + n)
 admitted-doubled {a} h =
-  FilteredSpace.admit-resp Runs (proj₂ doubled a) (Filtered.admits (along λ n → n + n) h)
+  FilteredSpace.admit-resp Runs (λ n → cong a (cong (n +_) (sym (ℕₚ.+-identityʳ n))))
+    (Filtered.admits (along λ n → n + n) h)
 
 ------------------------------------------------------------------------
 -- Counts admit no refinement

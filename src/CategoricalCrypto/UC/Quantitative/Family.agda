@@ -33,6 +33,7 @@ open import Level
 open import Relation.Binary.PropositionalEquality using (cong; trans)
 
 open import CategoricalCrypto.Approx.Error
+open import CategoricalCrypto.Approx.Evaluation ℚ-ordered
 open import CategoricalCrypto.UC.Approximate
 
 import Data.Rational.Properties as ℚₚ
@@ -40,14 +41,12 @@ import Data.Rational.Properties as ℚₚ
 module CategoricalCrypto.UC.Quantitative.Family
   {o ℓ e os ℓa qs : Level}
   (M : MonoidalCategory o ℓ e) (Rg : GradedSubCat Rates.monoidalCategory M qs)
-  {Obs : Set os} (Ap : Approximation Obs ℚ-ordered ℓa)
-  (𝟙 Ω : MonoidalCategory.Obj M)
-  (⟦_⟧ : MonoidalCategory._⇒_ M 𝟙 Ω → Obs)
-  (obs-resp : {u v : MonoidalCategory._⇒_ M 𝟙 Ω}
-            → MonoidalCategory._≈_ M u v → Approximation._≈[_]_ Ap ⟦ u ⟧ 0ℚ ⟦ v ⟧)
+  (qro : QEvaluation (MonoidalCategory.U M) os ℓa)
   where
 
-open import CategoricalCrypto.UC.Quantitative.Contextual M Rg Ap 𝟙 Ω ⟦_⟧ obs-resp
+open QEvaluation qro hiding (X) renaming (J to 𝟙)
+
+open import CategoricalCrypto.UC.Quantitative.Contextual M Rg qro
 
 open MonoidalCategory M
 open FromMonad (curriedTensor M)

@@ -39,18 +39,13 @@ VanishingBound : (ℕ → ℕ → ℚ) → Set
 VanishingBound = GradedBound _→0
 
 -- Negligible: eventually below every inverse polynomial, which is strictly more
--- than `_→0` (`1/n` vanishes and is not negligible).  Stated by MAGNIFICATION —
--- every polynomially magnified copy still vanishes — rather than as
--- `s n ≤ 1/p n`: the same condition, reusing `Poly` and `_→0` instead of a
--- second ε-quantifier, and with no nonzero-denominator side condition in the
--- statement.
+-- than `_→0` (`1/n` vanishes and is not negligible).  Stated by MAGNIFICATION:
+-- every polynomially magnified copy still vanishes.
 Negligible : (ℕ → ℚ) → Set
 Negligible s = (p : ℕ → ℕ) → Poly p → (λ n → (+ p n / 1) ℚ.* s n) →0
 
 Negligible⇒→0 : {s : ℕ → ℚ} → Negligible s → s →0
-Negligible⇒→0 {s} neg ε ε>0 =
-  let N , bnd = neg (λ _ → 1) (poly-const 1) ε ε>0
-  in N , λ n le → subst (ℚ._≤ ε) (*-identityˡ (s n)) (bnd n le)
+Negligible⇒→0 {s} neg = →0-cong (λ n → *-identityˡ (s n)) (neg (λ _ → 1) (poly-const 1))
 
 -- The discipline asked of a concrete two-argument bound: it is
 -- admitted when `ε(n, p n)` is NEGLIGIBLE at every polynomial allowance `p`,
@@ -59,9 +54,6 @@ Negligible⇒→0 {s} neg ε ε>0 =
 -- exponential, `q`.
 NegligibleBound : (ℕ → ℕ → ℚ) → Set
 NegligibleBound = GradedBound Negligible
-
-NegligibleBound⇒VanishingBound : {ε : ℕ → ℕ → ℚ} → NegligibleBound ε → VanishingBound ε
-NegligibleBound⇒VanishingBound neg p Pp = Negligible⇒→0 (neg p Pp)
 
 -- One negligible slack per polynomial cap, chosen before the security
 -- parameter.

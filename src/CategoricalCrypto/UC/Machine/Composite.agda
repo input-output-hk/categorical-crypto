@@ -17,7 +17,6 @@
 
 open import Categories.Category
 open import Categories.Category.Monoidal.Bundle
-import Categories.Category.Monoidal.Distributive as MD
 
 open import Data.Product.Base
 open import Data.Sum.Base
@@ -26,6 +25,7 @@ open import Function.Base
 open import Level
 
 open import ProbabilisticLogic.Dp
+open import ProbabilisticLogic.Dp.Iter
 open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
@@ -35,7 +35,6 @@ open import CategoricalCrypto.UC.Machine
 import CategoricalCrypto.Machines.Collapse as Col
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Pointwise as Pw
-import CategoricalCrypto.Machines.Trace as Trace
 
 module CategoricalCrypto.UC.Machine.Composite where
 
@@ -103,39 +102,9 @@ module Unfold {A B C : Iface} (Sg Sf : Set)
 
 private
   module V  = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
-  module VD = MD.MonoidalDistributive (distₚ 0ℓ)
   module 𝒫  = Category 𝒫ᴵ
 
 open Core (𝒱ₚ 0ℓ)
-open Trace (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
-
-------------------------------------------------------------------------
--- Pure base morphisms, at a point
-
-private
-  Pt : {X Y : Set} → (X → Dₚ Y) → (X → Y) → Set
-  Pt {X} k h = (x : X) → k x ≈ₚ returnₚ (h x)
-
-  pt-id : {X : Set} → Pt (V.id {X}) id
-  pt-id _ = ≈refl
-
-  pt-pre : {X Y Z : Set} {l : X → Dₚ Y} {m : X → Y} → Pt l m
-         → (k : Y → Dₚ Z) (x : X) → (k V.∘ l) x ≈ₚ k (m x)
-  pt-pre {m = m} pl k x = bindˣ (pl x) ⟨≈⟩ >>=ₚ-identityˡ (m x) k
-
-  pt-⊗ : {S T X Y : Set} {k : S → Dₚ T} {h : S → T} {l : X → Dₚ Y} {m : X → Y}
-       → Pt k h → Pt l m → Pt (k V.⊗₁ l) (λ p → h (proj₁ p) , m (proj₂ p))
-  pt-⊗ {h = h} {l = l} {m} pk pl p =
-        bindˣ (pk (proj₁ p))
-    ⟨≈⟩ >>=ₚ-identityˡ (h (proj₁ p)) (λ b → l (proj₂ p) >>=ₚ λ d → returnₚ (b , d))
-    ⟨≈⟩ bindˣ (pl (proj₂ p))
-    ⟨≈⟩ >>=ₚ-identityˡ (m (proj₂ p)) (λ d → returnₚ (h (proj₁ p) , d))
-
-  pt-i₁ : {X Y : Set} → Pt (VD.i₁ {X} {Y}) inj₁
-  pt-i₁ _ = ≈refl
-
-  pt-i₂ : {X Y : Set} → Pt (VD.i₂ {X} {Y}) inj₂
-  pt-i₂ _ = ≈refl
 
 ------------------------------------------------------------------------
 -- The two wires of a `𝒢`-composite
@@ -157,14 +126,15 @@ module _ (A B C : Iface) where
              → Dₚ ((Sg × Sf) × ((Neg A ⊎ Pos C) ⊎ (Neg B ⊎ Pos B)))
     bodyStep = Col.kᴳ g f
 
+    private module L = Col.Loop (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B) Sᶜ bodyStep
+
     Nᶜ : Proc A C
-    Nᶜ = Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
-           (MC.mk (Col.Sᴳ g f) (Col.kᴳ g f))
+    Nᶜ = L.tracedᴹ
 
     pointᶜ = point Sᶜ tt
     stepᶜ  = step Nᶜ
 
-    solveᶜ = solve Sᶜ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B) bodyStep
+    solveᶜ = contᵢ L.body
 
     module CP = Unfold {A} {B} {C} Sg Sf (point (state g) tt) (point (state f) tt)
                         pointᶜ stepg stepf stepᶜ solveᶜ
@@ -208,23 +178,6 @@ module _ (A B C : Iface) where
       resumeG-pad sf (sg , inj₁ b) = ≈refl
       resumeG-pad sf (sg , inj₂ p) = ≈refl
 
-      step-in : (s : Sg × Sf) (z : Pos A ⊎ Neg C)
-              → stepᶜ (s , z) ≈ₚ (bodyStep (s , inj₁ z) >>=ₚ solveᶜ)
-      step-in s z = bindˣ (pt-pre (pt-⊗ pt-id pt-i₁) bodyStep (s , z))
-
-      solve-outᶜ : (s : Sg × Sf) (o : Neg A ⊎ Pos C) → solveᶜ (s , inj₁ o) ≈ₚ returnₚ (s , o)
-      solve-outᶜ s o =
-            ≈sym (pt-pre (pt-⊗ pt-id pt-i₁) solveᶜ (s , o))
-        ⟨≈⟩ solve-i₁ Sᶜ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B) bodyStep (s , o)
-
-      solve-loopᶜ : (s : Sg × Sf) (y : Neg B ⊎ Pos B)
-                  → solveᶜ (s , inj₂ y) ≈ₚ (bodyStep (s , inj₂ y) >>=ₚ solveᶜ)
-      solve-loopᶜ s y =
-            ≈sym (pt-pre (pt-⊗ pt-id pt-i₂) solveᶜ (s , y))
-        ⟨≈⟩ solve-i₂ Sᶜ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B) bodyStep (s , y)
-        ⟨≈⟩ solve-loop Sᶜ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B) bodyStep (s , y)
-        ⟨≈⟩ bindˣ (pt-pre (pt-⊗ pt-id pt-i₂) bodyStep (s , y))
-
       resumedF : (sg : Sg) (sf : Sf) (v : Pos A ⊎ Neg B)
                → (mapₚ (padF sg) (stepf (sf , v)) >>=ₚ solveᶜ)
                ≈ₚ (stepf (sf , v) >>=ₚ CP.resumeF sg)
@@ -241,20 +194,20 @@ module _ (A B C : Iface) where
     unfoldᶜ = record
         { point-eq  = >>=ₚ-identityˡ (tt , tt) (point (state g) V.⊗₁ point (state f))
         ; step-L    = λ sg sf a →
-              step-in (sg , sf) (inj₁ a)
+              L.step-red (sg , sf) (inj₁ a)
           ⟨≈⟩ bindˣ (bodyF sg sf (inj₁ a))
           ⟨≈⟩ resumedF sg sf (inj₁ a)
         ; step-R    = λ sg sf n →
-              step-in (sg , sf) (inj₂ n)
+              L.step-red (sg , sf) (inj₂ n)
           ⟨≈⟩ bindˣ (bodyG sg sf (inj₂ n))
           ⟨≈⟩ resumedG sg sf (inj₂ n)
-        ; solve-out = solve-outᶜ
+        ; solve-out = λ _ _ → ≈refl
         ; solve-B⁻  = λ sg sf b →
-              solve-loopᶜ (sg , sf) (inj₁ b)
+              iterₚ-fix L.body ((sg , sf) , inj₁ b)
           ⟨≈⟩ bindˣ (bodyF sg sf (inj₂ b))
           ⟨≈⟩ resumedF sg sf (inj₂ b)
         ; solve-B⁺  = λ sg sf q →
-              solve-loopᶜ (sg , sf) (inj₂ q)
+              iterₚ-fix L.body ((sg , sf) , inj₂ q)
           ⟨≈⟩ bindˣ (bodyG sg sf (inj₁ q))
           ⟨≈⟩ resumedG sg sf (inj₁ q)
         }

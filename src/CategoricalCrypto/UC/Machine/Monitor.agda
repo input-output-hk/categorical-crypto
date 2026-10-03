@@ -1,21 +1,19 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- A watch as a process, and the reader that turns a test into its event.
+-- A watch as a process.
 --
--- `monitorᴹ` relays the honest leg and accumulates the report.  A relay alone
--- cannot detect completion, so `flagReader` puts `flagReadᴹ` ABOVE the test:
--- it waits for the verdict, discards it and answers with the flag; a
--- monitored experiment is `flagReader B` read over `monitorᴹ report ∘ u`.  A
--- test never sees the flag port and cannot forge the bit that replaces its
--- verdict; a test that diverges leaves `flagReadᴹ` in `waitE`, so a flag
--- raised before a divergence is not reported.
+-- `monitorᴹ` relays the honest leg and accumulates the report; a monitored
+-- experiment is `UC.Machine.StateEvent.Read.flagReader B` read over
+-- `monitorᴹ report ∘ u`.
 --
 -- On the process side the monitor collapses with the process it watches into
 -- `accᴹ`, whose state carries the accumulator, and the composite IS that
 -- accumulator's flag wire (`monitor-flag`): `▷` samples `f ∨ acc′` with
 -- `f = acc` and `acc′ = acc ∨ report q b`.  A monitored event is therefore a
--- state event (`UC.Machine.StateEvent`).  Agreement with the strategy-level
--- watch is `UC.Quantitative.EventLift.agree`.
+-- state event (`UC.Machine.StateEvent`).  At `flagStrat d` that flag wire IS
+-- the watched run (`flag-agree`), because the flag equals the accumulator along
+-- the run; agreement with the strategy-level watch is
+-- `UC.Quantitative.EventLift.agree`.
 
 open import Categories.Category
 
@@ -26,6 +24,7 @@ open import Data.Nat.Base as ℕ
 open import Data.Product.Base
 open import Data.Sum.Base as Sum
 open import Data.Unit.Base
+open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)
 open import Function.Base
 open import Level
 open import Relation.Binary.PropositionalEquality
@@ -37,9 +36,13 @@ open import ProbabilisticLogic.Dp.Reasoning
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pointwise
+open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Machine.Run
+open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.EventBounds
 open import CategoricalCrypto.UC.Machine.StateEvent
+open import CategoricalCrypto.UC.Machine.StateEvent.Read
 open import CategoricalCrypto.UC.QueryBound
 
 import CategoricalCrypto.Machines.Collapse as Col
@@ -223,140 +226,31 @@ module _ {A B : Iface} (report : Neg B → Pos B → Bool) (u : Proc A B) where
     S.○ᴹ S.≲⇒≈ᴹ col≲flag
 
 ------------------------------------------------------------------------
--- Reading the flag when the test finishes
+-- Agreement
 
-data FlagSt : Set where
-  idle waitE waitF : FlagSt
-
-flagReadStep : FlagSt × ((Bool ⊎ Bool) ⊎ ⊤) → Dₚ (FlagSt × ((⊤ ⊎ ⊤) ⊎ Bool))
-flagReadStep (idle  , inj₂ _)        = returnₚ (waitE , inj₁ (inj₁ tt))
-flagReadStep (waitE , inj₁ (inj₁ _)) = returnₚ (waitF , inj₁ (inj₂ tt))
-flagReadStep (waitF , inj₁ (inj₂ b)) = returnₚ (idle  , inj₂ b)
-flagReadStep _                       = botₚ
-
-flagReadᴹ : Proc (Ωᴵ ⊗ᴵ Ωᴵ) Ωᴵ
-flagReadᴹ = MC.mk (initˢ FlagSt idle) flagReadStep
-
-flagReader : (B : Iface) → Reader B (B ⊗ᴵ Ωᴵ)
-flagReader B Y E = flagReadᴹ 𝒫.∘ (subᴵ E 𝒫.∘ a⇐ᴵ)
-
-------------------------------------------------------------------------
--- The test with the flag reader over it, as one machine
-
--- `flagReadᴹ ∘ subᴵ E` collapsed: the loop between the two runs at most two
--- passes, so the composite's step is the test's own, post-processed by where
--- the flag reader is in its cycle.
-module Read (D : Iface) (E : Proc D Ωᴵ) where
-  open MC
-  open S
-
-
-  efOut : FlagSt → St E × (Neg D ⊎ Bool) → Dₚ ((FlagSt × St E) × ((Neg D ⊎ ⊤) ⊎ Bool))
-  efOut fs    (se , inj₁ q) = returnₚ ((fs    , se) , inj₁ (inj₁ q))
-  efOut waitE (se , inj₂ _) = returnₚ ((waitF , se) , inj₁ (inj₂ tt))
-  efOut idle  (se , inj₂ _) = botₚ
-  efOut waitF (se , inj₂ _) = botₚ
-
-  readStep : (FlagSt × St E) × ((Pos D ⊎ Bool) ⊎ ⊤)
-           → Dₚ ((FlagSt × St E) × ((Neg D ⊎ ⊤) ⊎ Bool))
-  readStep ((fs    , se) , inj₁ (inj₁ p)) = step E (se , inj₁ p) >>=ₚ efOut fs
-  readStep ((idle  , se) , inj₁ (inj₂ _)) = botₚ
-  readStep ((waitE , se) , inj₁ (inj₂ _)) = botₚ
-  readStep ((waitF , se) , inj₁ (inj₂ b)) = returnₚ ((idle , se) , inj₂ b)
-  readStep ((idle  , se) , inj₂ _)        = step E (se , inj₂ tt) >>=ₚ efOut waitE
-  readStep ((waitE , se) , inj₂ _)        = botₚ
-  readStep ((waitF , se) , inj₂ _)        = botₚ
-
-  readᴹ : Proc (D ⊗ᴵ Ωᴵ) Ωᴵ
-  readᴹ = mk (Col.Sᴳ {Pos D ⊎ Bool} {Neg D ⊎ ⊤} {Bool ⊎ Bool} {⊤ ⊎ ⊤} {Bool} {⊤}
-                     flagReadᴹ (subᴵ E))
-             readStep
+module _ {B : Iface} (report : Neg B → Pos B → Bool) (u : Proc unitᴵ B) where
 
   private
-    Sᴿ : State
-    Sᴿ = Col.Sᴳ {Pos D ⊎ Bool} {Neg D ⊎ ⊤} {Bool ⊎ Bool} {⊤ ⊎ ⊤} {Bool} {⊤}
-                flagReadᴹ (subᴵ E)
+    w = accᴹ report u ▷ reported report u
 
-    kᴿ : obj Sᴿ × (((Pos D ⊎ Bool) ⊎ ⊤) ⊎ ((⊤ ⊎ ⊤) ⊎ (Bool ⊎ Bool)))
-       → Dₚ (obj Sᴿ × (((Neg D ⊎ ⊤) ⊎ Bool) ⊎ ((⊤ ⊎ ⊤) ⊎ (Bool ⊎ Bool))))
-    kᴿ = Col.kᴳ {Pos D ⊎ Bool} {Neg D ⊎ ⊤} {Bool ⊎ Bool} {⊤ ⊎ ⊤} {Bool} {⊤}
-                flagReadᴹ (subᴵ E)
+    run-flag : (s : MC.St u) (a : Bool) (p : Maybe (Neg B)) (f : Bool) → f ≡ a
+             → (d : Strat (Neg B) (Pos B))
+             → runᴹFrom w ((s , (a , p)) , f) (flagStrat d) ≈ₚ runᴹFrom u s (watchFrom report a d)
+    run-flag s a p f refl (out _)    = >>=ₚ-identityˡ _ _
+    run-flag s a p f eq   (coin μ k) = bindᶠ λ c → run-flag s a p f eq (k c)
+    run-flag s a p f eq   (ask q k)  =
+          bind-map (MC.step u (s , inj₂ q) >>=ₚ settle report u (a , just q)) _ _
+      ⟨≈⟩ >>=ₚ-assoc (MC.step u (s , inj₂ q)) _ _
+      ⟨≈⟩ bindᶠ λ where
+            (_  , inj₁ ())
+            (s′ , inj₂ b) →
+                  >>=ₚ-identityˡ _ _
+              ⟨≈⟩ run-flag s′ (a ∨ report q b) nothing _
+                    (trans (cong (_∨ (a ∨ report q b)) eq) (∨-idemˡ a (report q b)))
+                    (k b)
 
-  open Col.Loop ((Pos D ⊎ Bool) ⊎ ⊤) ((Neg D ⊎ ⊤) ⊎ Bool) ((⊤ ⊎ ⊤) ⊎ (Bool ⊎ Bool)) Sᴿ kᴿ
-
-  private
-    relayᴰ : FlagSt → St E × (Neg D ⊎ Bool)
-           → Dₚ ((FlagSt × St E) × (((Neg D ⊎ ⊤) ⊎ Bool) ⊎ ((⊤ ⊎ ⊤) ⊎ (Bool ⊎ Bool))))
-    relayᴰ fs (se , inj₁ q) = returnₚ ((fs , se) , inj₁ (inj₁ (inj₁ q)))
-    relayᴰ fs (se , inj₂ v) = returnₚ ((fs , se) , inj₂ (inj₂ (inj₁ v)))
-
-    verdict-pass : (fs : FlagSt) (se : St E) (v : Bool)
-                 → iterₚ body ((fs , se) , inj₂ (inj₁ v)) ≈ₚ efOut fs (se , inj₂ v)
-    verdict-pass idle  se v = loop-bot (idle  , se) (inj₂ (inj₁ v)) (bot-bind-≈ₚ _)
-    verdict-pass waitF se v = loop-bot (waitF , se) (inj₂ (inj₁ v)) (bot-bind-≈ₚ _)
-    verdict-pass waitE se v =
-        loop-pass (waitE , se) (inj₂ (inj₁ v)) (waitF , se) (inj₂ (inj₁ (inj₂ tt)))
-                  (>>=ₚ-identityˡ (waitF , inj₁ (inj₂ tt)) _)
-      ⟨≈⟩ loop-pass (waitF , se) (inj₁ (inj₂ tt)) (waitF , se) (inj₁ (inj₁ (inj₂ tt)))
-                    (>>=ₚ-identityˡ (se , inj₁ (inj₂ tt)) _)
-
-    pump : (fs : FlagSt) (dE : Dₚ (St E × (Neg D ⊎ Bool)))
-         → ((dE >>=ₚ relayᴰ fs) >>=ₚ contᵢ body) ≈ₚ (dE >>=ₚ efOut fs)
-    pump fs dE = >>=ₚ-assoc dE (relayᴰ fs) (contᵢ body) ⟨≈⟩ bindᶠ out-case
-      where
-      out-case : (z : St E × (Neg D ⊎ Bool))
-               → (relayᴰ fs z >>=ₚ contᵢ body) ≈ₚ efOut fs z
-      out-case (se , inj₁ q) = >>=ₚ-identityˡ ((fs , se) , inj₁ (inj₁ (inj₁ q))) _
-      out-case (se , inj₂ v) = >>=ₚ-identityˡ ((fs , se) , inj₂ (inj₂ (inj₁ v))) _
-                         ⟨≈⟩ verdict-pass fs se v
-
-    relay-red : (fs : FlagSt) (se : St E) (x : Pos D ⊎ ⊤)
-              → (step (subᴵ E) (se , Sum.map inj₁ inj₁ x) >>=ₚ
-                 λ r → returnₚ ((fs , proj₁ r) , Col.outᶠ (proj₂ r)))
-                ≈ₚ (step E (se , x) >>=ₚ relayᴰ fs)
-    relay-red fs se (inj₁ p) = bind-map (step E (se , inj₁ p)) _ _
-                         ⟨≈⟩ bindᶠ λ where (_ , inj₁ _) → ≈refl
-                                           (_ , inj₂ _) → ≈refl
-    relay-red fs se (inj₂ _) = bind-map (step E (se , inj₂ tt)) _ _
-                         ⟨≈⟩ bindᶠ λ where (_ , inj₁ _) → ≈refl
-                                           (_ , inj₂ _) → ≈refl
-
-    read-step : (z : obj Sᴿ × ((Pos D ⊎ Bool) ⊎ ⊤)) → step tracedᴹ z ≈ₚ readStep z
-    read-step ((fs , se) , inj₁ (inj₁ p)) =
-        step-red (fs , se) (inj₁ (inj₁ p))
-      ⟨≈⟩ bindˣ (relay-red fs se (inj₁ p)) ⟨≈⟩ pump fs (step E (se , inj₁ p))
-    read-step ((idle  , se) , inj₁ (inj₂ b)) =
-        step-red (idle , se) (inj₁ (inj₂ b))
-      ⟨≈⟩ bindˣ (>>=ₚ-identityˡ (se , inj₂ (inj₂ b)) _)
-      ⟨≈⟩ >>=ₚ-identityˡ ((idle , se) , inj₂ (inj₂ (inj₂ b))) _
-      ⟨≈⟩ loop-bot (idle , se) (inj₂ (inj₂ b)) (bot-bind-≈ₚ _)
-    read-step ((waitE , se) , inj₁ (inj₂ b)) =
-        step-red (waitE , se) (inj₁ (inj₂ b))
-      ⟨≈⟩ bindˣ (>>=ₚ-identityˡ (se , inj₂ (inj₂ b)) _)
-      ⟨≈⟩ >>=ₚ-identityˡ ((waitE , se) , inj₂ (inj₂ (inj₂ b))) _
-      ⟨≈⟩ loop-bot (waitE , se) (inj₂ (inj₂ b)) (bot-bind-≈ₚ _)
-    read-step ((waitF , se) , inj₁ (inj₂ b)) =
-        step-red (waitF , se) (inj₁ (inj₂ b))
-      ⟨≈⟩ bindˣ (>>=ₚ-identityˡ (se , inj₂ (inj₂ b)) _)
-      ⟨≈⟩ >>=ₚ-identityˡ ((waitF , se) , inj₂ (inj₂ (inj₂ b))) _
-      ⟨≈⟩ loop-pass (waitF , se) (inj₂ (inj₂ b)) (idle , se) (inj₁ (inj₂ b))
-                    (>>=ₚ-identityˡ (idle , inj₂ b) _)
-    read-step ((idle , se) , inj₂ _) =
-        step-red (idle , se) (inj₂ tt)
-      ⟨≈⟩ bindˣ (>>=ₚ-identityˡ (waitE , inj₁ (inj₁ tt)) _)
-      ⟨≈⟩ >>=ₚ-identityˡ ((waitE , se) , inj₂ (inj₁ (inj₁ tt))) _
-      ⟨≈⟩ iterₚ-fix body ((waitE , se) , inj₁ (inj₁ tt))
-      ⟨≈⟩ bindˣ (relay-red waitE se (inj₂ tt))
-      ⟨≈⟩ pump waitE (step E (se , inj₂ tt))
-    read-step ((waitE , se) , inj₂ _) =
-        step-red (waitE , se) (inj₂ tt) ⟨≈⟩ bindˣ (bot-bind-≈ₚ _) ⟨≈⟩ bot-bind-≈ₚ _
-    read-step ((waitF , se) , inj₂ _) =
-        step-red (waitF , se) (inj₂ tt) ⟨≈⟩ bindˣ (bot-bind-≈ₚ _) ⟨≈⟩ bot-bind-≈ₚ _
-
-  read-collapse : 𝒫._≈_ {D ⊗ᴵ Ωᴵ} {Ωᴵ} (flagReadᴹ 𝒫.∘ subᴵ E) readᴹ
-  read-collapse =
-       ⟺ᴹ (Col.compose-raw≈∘ᴳ {Pos D ⊎ Bool} {Neg D ⊎ ⊤} {Bool ⊎ Bool} {⊤ ⊎ ⊤} {Bool} {⊤}
-                              flagReadᴹ (subᴵ E))
-    ○ᴹ Col.collapseᵀ {Pos D ⊎ Bool} {Neg D ⊎ ⊤} {Bool ⊎ Bool} {⊤ ⊎ ⊤} {Bool} {⊤}
-                     flagReadᴹ (subᴵ E)
-    ○ᴹ ≲⇒≈ᴹ (mk-cong read-step)
+  flag-agree : (d : Strat (Neg B) (Pos B))
+             → runᴹ (accᴹ report u ▷ reported report u) (flagStrat d) ≈ₚ runᴹ u (watchFrom report false d)
+  flag-agree d = bind-map (mapₚ _ (MC.point (MC.state u) ttᵛ)) _ _
+             ⟨≈⟩ bind-map (MC.point (MC.state u) ttᵛ) _ _
+             ⟨≈⟩ bindᶠ (λ s → run-flag s false nothing false refl d)

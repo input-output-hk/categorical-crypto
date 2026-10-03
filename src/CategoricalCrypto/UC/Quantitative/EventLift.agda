@@ -30,9 +30,9 @@ open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.EventBounds
 open import CategoricalCrypto.UC.Machine.Monitor
-open import CategoricalCrypto.UC.Machine.Monitor.Agree
 open import CategoricalCrypto.UC.Machine.StateEvent.Agree
 open import CategoricalCrypto.UC.Machine.StateEvent.Lift
+open import CategoricalCrypto.UC.Machine.StateEvent.Read
 open import CategoricalCrypto.UC.QueryBound
 open import CategoricalCrypto.UC.Seam
 open import CategoricalCrypto.UC.Seam.Budget

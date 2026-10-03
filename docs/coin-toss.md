@@ -318,10 +318,10 @@ idealᴹ  = subᴵ simJ ∘ Fcoin
 (`Examples.CoinToss.Ideal.Machine`, `…Ideal.Hybrid`.) Both sides are ⊕-traces
 of two STATEFUL machines, so `UC.Machine.Wire.∘-wireᴹ` does not apply — the
 obstruction `docs/hash-forward.md` §"The one structural fact that makes it
-affordable" prices. What does apply is `UC.QueryBound.Compose.Step`'s reading
+affordable" prices. What does apply is `UC.Machine.Composite`'s reading
 of a `𝒢ₚ`-composite: `Nᶜ` is the composite as ONE machine with the product
 state, `unfoldᶜ` the equations for its solved loop, `eq-∘ᶜ` the equality to
-the category's composite, and `UC.QueryBound.Compose`'s `Walk` (`R-bot`,
+the category's composite, and its `Unfold.Walk` (`R-bot`,
 `R-down`, `F-up`) the generic per-letter walks. Nothing here unrolls a trace.
 
 The two sides' loop objects differ — `Lkᴵ ⊗ᴵ Honᴵ` against `Lkᴵᶜ ⊗ᴵ Honᴵᶜ` —
@@ -374,7 +374,7 @@ The closed form is therefore §3's, unrescaled — **`(q² + 2q)·2⁻ⁿ`** —
 `Test.ideal-bound` evaluates it.
 
 `coin-toss-idealᴺ` is the same statement in the canonical LOCAL-NEGLIGIBLE
-`UCSetup` (`UC.Family.Negligible.Setup.ucSetupᴺ`), through
+`UCSetup` (`UC.Family.Negligible.ucSetupᴺ`), through
 `UC.Model.Family.Emulation.≤UC[]⇒≤UCᴺ`: that forgetting stops at `_≈ℰⁿ_` and
 reads it in `ucSetupᴺ`'s own kernel instead of going through the vanishing
 collapse, so the negligible witness survives (the certified simulator and a
@@ -438,12 +438,12 @@ ideal-εʳ          : εᶜʳ εᵗ n q ≡ fromℕ (q + (q + q)) *ℚ inv-pow-2
 coin-toss-idealʳᴺ : realʰᶠ ≤UC^ωᵉ idealʰᶠ → coinRealʰʷ Canonicalᴺ.≤UC Fcoinʰʷ
 ```
 
-(`Examples.CoinToss.Ideal.Receiver.Compose`.) Carrying a run agreement into a
-CONTEXT is what costs: `UC.Model.Dominated.dominatedᵍ` — domination at a
-NONTRIVIAL grade, at every strategy — charges a positive slack, paid here at
-`2⁻ⁿ` (`ηʰ n _ = 0ℚ + inv-pow-2 n`), so the second hop's schedule is `ηʰ` and
-the composed one `εᶜʳ ε = εᶜᵗ ε + ηʰ`. That is the whole difference from the
-committer's exact hop. `UC.Graded.regrade` identifies the two spellings of a
+(`Examples.CoinToss.Ideal.Receiver.Compose`.) The run agreement is carried
+into a CONTEXT by `UC.Model.Dominated.dominatedᵍ` — domination at a
+NONTRIVIAL grade, at every strategy — which is exact; the second hop still
+states the schedule `ηʰ n _ = inv-pow-2 n`, so the composed one is
+`εᶜʳ ε = εᶜᵗ ε + ηʰ`. That is the whole difference from the committer's exact
+hop. `UC.Graded.regrade` identifies the two spellings of a
 tensor grade the seal keeps apart (`sub-graded₂` at the IDENTITY process).
 
 `Fcoinʰ` has no abort query: the corrupted receiver's only way to stop the toss
@@ -453,12 +453,9 @@ nothing (see the header of `Examples.CoinToss.Ideal.Receiver`).
 ## 6. Not delivered
 
 1. **No EXACT corrupted-receiver hop.** `coin-toss-idealʳ` is at `+2⁻ⁿ` where
-   the committer's is at `0`, and that slack is not an artefact of the proof:
-   `UC.Machine.Dominated.dominated`'s conclusion is at `ε + δ` with `0 < δ`, so
-   a run agreement — which is all a deferred sampling gives — has no zero
-   instance to hand a context. An exact graded statement would need the
-   domination to be sharp at `δ = 0`, which the machine layer does not claim,
-   or a machine equality, which §5's last subsection rules out.
+   the committer's is at `0`. The slack is no longer forced:
+   `UC.Machine.Dominated.dominated` is sharp (`≈ₚ[ ε ]`), so `ηʰ` can be `0`
+   and the hop exact; the statements have not been restated yet.
 2. **No exact-factoring form.** `UC.Graded.≤UCᵍ` consumes a `Factors` — an
    exact machine equality — and the composed statement is approximate, as
    the commitment's own is. The fixed-data `ᵇ` forms keep the certified simulator and the

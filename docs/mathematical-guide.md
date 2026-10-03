@@ -60,7 +60,7 @@ and it agrees with the machine run past some finite depth.
   environment process observes what `runᴹ` observes.
 - `UC.Model.Seal :: 𝔾ᵒ`, `unprocᵒ`: the opaque seal that the abstract theory sees, and
   the coercion that every state read must cross.
-- `UC.Core :: Observable`, `Standard2 :: StdUC`, `UCSetup :: UCSetup`,
+- `UC.Core :: Evaluation`, `Standard2 :: StdUC`, `UCSetup :: UCSetup`,
   `Abstract2 :: _≤UC_`, `dummy-complete`: the generic UC order: some simulator makes the
   two sides agree in every environment.
 
@@ -91,43 +91,38 @@ comparison bounds every admitted context's advantage by a schedule read at that 
 An approximate space is a carrier with closeness indexed by an ordered error. A map
 keeps a bound (nonexpansive), transforms it (controlled), or also reindexes which tests
 an allowance admits (filtered); the query-sensitive comparison of §5 is the admitted
-agreement of one filtered test presheaf.
+agreement of one filtered space of tests.
 
 - `Approx.Error :: OrderedErrorAlgebra`, `Approximation`, `Refinement`, `_∼ᵃ_`: errors
   (a preorder with a monotone sum and a unit `ε₀` up to `⊑` in one direction, not an
   ordered monoid), closeness at an error, the positivity the all-positive collapse
   needs, and that collapse. `ℚ-ordered` is the instance in use; `ℕ-unrefinable` shows a
   refinement is extra data.
-- `Approx.Space :: ApproxSpace`, `Nonexpansive`, `Approx`, `F₀`: spaces, bound-keeping
-  maps, their category (hom equality is agreement at zero error, so a functor into
-  `Approx` transports every bound exactly), and the exact forgetful functor to setoids.
-- `Approx.Forget :: F₊`: the all-positive forgetful functor; it agrees with `F₀` on
-  carriers but is not isomorphic to it, so an exact bound stays in `Approx`.
-- `Approx.Separating :: Sequences`, `F₊-identifies`, `F₀-separates`: rational sequences
-  under eventual closeness, where `2⁻ⁿ` and `0` are identified by `F₊` and separated by
-  `F₀`. `Approx.Error.ℚ-metric` is the faithful metric a negative closeness statement
+- `Approx.Space :: ApproxSpace`, `zeroSetoid`: spaces, and their equality at zero
+  error.
+- `Approx.Separating :: Sequences`, `positive-identifies`, `zero-separates`: rational
+  sequences under eventual closeness, where `2⁻ⁿ` and `0` are identified at every
+  positive error and separated at zero error, so an exact bound is not asked to respect
+  the all-positive collapse. `Approx.Error.ℚ-metric` is the faithful metric a negative closeness statement
   needs at the model level.
 - `Approx.Small :: SmallClass`, `Collapse._∼Small_`: closeness at some error of a class
   containing zero and closed under addition, an equivalence with no refinement spent;
   `UC.Approximate.Local._∼ᴺ_` is it at the negligible class.
-- `Approx.Controlled :: Control`, `Controlled`, `_≐ᶜ_`: a monotone, zero-preserving,
-  subadditive error transformation, the maps that transform their bound by one, and
-  comparison of controls in the errors' own order (no funext).
+- `Approx.Controlled :: Control`, `Controlled`: a monotone, zero-preserving,
+  subadditive error transformation, and the maps that transform their bound by one.
 - `Approx.Schedule :: pointwise`: schedule-valued errors as an instance, over the
-  security parameter or over rates; substituting an allowance is an exact control, so
-  the schedule substitutions of `UC.Quantitative.Family` compose as controlled maps.
-- `Approx.Filtered :: FilteredSpace`, `Filtered`, `Filt`, `_≈ᵃ[_]_`: spaces with an
+  security parameter or over rates; substituting an allowance is an exact control.
+- `Approx.Filtered :: FilteredSpace`, `Filtered`, `_≈ᵃ[_]_`: spaces with an
   allowance-indexed admission, maps carrying a control and a monotone allowance map,
-  their category, and closeness on admitted elements.
+  and closeness on admitted elements.
 - `Approx.Evaluation :: QEvaluation`, `qual₊`, `qualBy`: the quantitative
   readout, observing the hom equality exactly, and the qualitative readouts it induces.
-- `UC.Quantitative.Query :: filteredᵠ`, `pullᵠ`, `Qᵠ`: tests compared through
-  certified closures at a schedule read off the closure's rate, pullback along a rated
-  morphism as a filtered map (both indices reindexed by the rate), and the filtered
-  test presheaf on rated morphisms.
+- `UC.Quantitative.Query :: filteredᵠ`, `pullᵠ`: tests compared through
+  certified closures at a schedule read off the closure's rate, and pullback along a
+  rated morphism as a filtered map (both indices reindexed by the rate).
 - `UC.Quantitative.Contextual :: _≈ᵁᵠ[_]_`, `ctx⇒agree`, `agree⇒ctx`, `absorb-testᵠ`,
   `absorb-closureᵠ`: the query-sensitive comparison, which certifies only the test and
-  the closure, never the compared morphisms; it is `_≈ᵃ[_]_` for `Qᵠ`, and its two
+  the closure, never the compared morphisms; it is `_≈ᵃ[_]_` for `filteredᵠ`, and its two
   substitution principles are the allowance map and the control of `pullᵠ`, both exact.
 - `UC.Quantitative.EventLift`: event bounds at the compiled monitor (§7).
 
@@ -142,10 +137,11 @@ over every admitted context that reads it through a monitor.
   probability, and its bound at a capped allowance.
 - `Protocol.Safety :: hit≤badProb⊥`, `hit-bounded`: domination by prefix reachability,
   and a supermartingale certificate that discharges `BoundedHit`.
-- `Strategy :: watchFrom`; `UC.Machine.Monitor :: monitorᴹ`, `flagReader`, `accᴹ`,
-  `monitor-flag`: a watched strategy, the same watch as a process, the event `Reader`
-  that reads its flag, and the monitored process as the flag wire of its accumulator
-  (`monitorᴹ report ∘ u ≈ accᴹ report u ▷ reported report u`).
+- `Strategy :: watchFrom`; `UC.Machine.Monitor :: monitorᴹ`, `accᴹ`, `monitor-flag`;
+  `UC.Machine.StateEvent.Read :: flagReader`: a watched strategy, the same watch as a
+  process, the monitored process as the flag wire of its accumulator
+  (`monitorᴹ report ∘ u ≈ accᴹ report u ▷ reported report u`), and the event `Reader`
+  that reads its flag.
 - `UC.Machine.EventBounds :: Reader`, `BoundedAt`, `Boundedᴺ`: event bounds against
   certified contexts, for fixed and negligible schedules. The slack is chosen after the
   allowance and uniformly over contexts.
@@ -157,7 +153,7 @@ over every admitted context that reads it through a monitor.
 - `UC.Quantitative.EventLift :: Hitsᴺ`, `hitsᵘ`, `hits⇒bounded`: event bounds at the
   monitored readout. `hitsᵘ` lifts a bound on strategies at cap `q` to all contexts at
   cap `q` (it is `stateLift` at `accᴹ`, through `monitor-flag` and
-  `Monitor.Agree.flag-agree`); `hits⇒bounded` reads a context bound back at a strategy.
+  `Monitor.flag-agree`); `hits⇒bounded` reads a context bound back at a strategy.
 - `UC.Machine.StateEvent :: _▷_`, `EventSim`: a state event as a flag port of the
   machine, and the simulations that respect the event.
 - `UC.Machine.StateEvent.Read :: stateRead`, `StateBoundedAt`, `StateBoundedᴺ`: the flag

@@ -34,6 +34,10 @@ open import CategoricalCrypto.UC.QueryBound.Exact
 
 module CategoricalCrypto.UC.QueryBound.Counting where
 
+fromAbove : {P Q : Set} → P ⊎ Q → ℕ
+fromAbove (inj₁ _) = 0
+fromAbove (inj₂ _) = 1
+
 module _ {A B : Iface} (S : Set) (point : Dₚ S)
          (step : S × (Pos A ⊎ Neg B) → Dₚ (S × (Neg A ⊎ Pos B)))
          where

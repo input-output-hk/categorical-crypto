@@ -138,7 +138,7 @@ resume f s = resumeᴹ u λ su′ p → run su′ (tgtᴷ f s p)
 mutual
   loopFwd : (f : ℕ) (s : SK) (su : SU) (x : Loop) (j : ℕ) → j ℕ.≤ f
           → Σ[ m ∈ ℕ ] (cum j (Runᴿ ((s , su) , x)) Q ℚ.≤ cum m (run su (strat f s x)) Q)
-  loopFwd f s su (inj₁ n) j le = uFwd n f s (MC.step u (su , inj₂ n)) j le
+  loopFwd f s su (inj₁ n) j le = uFwd f s (MC.step u (su , inj₂ n)) j le
   loopFwd f s su (inj₂ p) j le = treeFwd f (Φ s) (onLᵍ s p) su j le
 
   treeFwd : (f r : ℕ) (X : Dₚ (Ansᶜ r)) (su : SU) (j : ℕ) → j ℕ.≤ f
@@ -175,29 +175,29 @@ mutual
     1 , ≤-trans (≤-reflexive (dirac-node _))
           (≤-trans (returnₚ-cum-≤ j v Q nnQ) (≤-reflexive (sym (returnₚ-cum 0 v Q))))
 
-  uFwd : (n : Neg B) (f : ℕ) (s : SK) (V : Dₚ (SU × (⊥ ⊎ Pos B))) (j : ℕ) → j ℕ.≤ f
+  uFwd : (f : ℕ) (s : SK) (V : Dₚ (SU × (⊥ ⊎ Pos B))) (j : ℕ) → j ℕ.≤ f
        → Σ[ m ∈ ℕ ] (cum j (Stepᴿ (mapₚ (ρᵁ s) V)) Q ℚ.≤ cum m (V >>=ₚ resume f s) Q)
-  uFwd n f s V zero    le = 0 , ≤-refl
-  uFwd n f s V (suc j) le =
+  uFwd f s V zero    le = 0 , ≤-refl
+  uFwd f s V (suc j) le =
     suc (k₁ ⊔ k₂)
     , node-mono (wt V true) (wt V false) (wt-nn V true) (wt-nn V false)
         (≤-trans (proj₂ w₁) (leafₚ-mono (ℕP.m≤m⊔n k₁ k₂) (tagₚ (br V true) (resume f s)) Q nnQ))
         (≤-trans (proj₂ w₂) (leafₚ-mono (ℕP.m≤n⊔m k₁ k₂) (tagₚ (br V false) (resume f s)) Q nnQ))
     where
     le′ = ℕP.≤-trans (ℕP.n≤1+n j) le
-    w₁ = uFwdL n f s (br V true) j le′
-    w₂ = uFwdL n f s (br V false) j le′
+    w₁ = uFwdL f s (br V true) j le′
+    w₂ = uFwdL f s (br V false) j le′
     k₁ = proj₁ w₁
     k₂ = proj₁ w₂
 
-  uFwdL : (n : Neg B) (f : ℕ) (s : SK) (y : (SU × (⊥ ⊎ Pos B)) ⊎ Dₚ (SU × (⊥ ⊎ Pos B)))
+  uFwdL : (f : ℕ) (s : SK) (y : (SU × (⊥ ⊎ Pos B)) ⊎ Dₚ (SU × (⊥ ⊎ Pos B)))
           (j : ℕ) → j ℕ.≤ f
         → Σ[ m ∈ ℕ ] (leafₚ j (tagₚ (tagᵢ bodyᴿ (tagₚ y (returnₚ ∘′ ρᵁ s))) verdict) Q
                       ℚ.≤ leafₚ m (tagₚ y (resume f s)) Q)
-  uFwdL n f s (inj₂ V′)             j       le = uFwd n f s V′ j le
-  uFwdL n f s (inj₁ (su′ , inj₁ e)) j       le = ⊥-elim e
-  uFwdL n f s (inj₁ (su′ , inj₂ p)) zero    le = 0 , ≤-refl
-  uFwdL n f s (inj₁ (su′ , inj₂ p)) (suc j) le =
+  uFwdL f s (inj₂ V′)             j       le = uFwd f s V′ j le
+  uFwdL f s (inj₁ (su′ , inj₁ e)) j       le = ⊥-elim e
+  uFwdL f s (inj₁ (su′ , inj₂ p)) zero    le = 0 , ≤-refl
+  uFwdL f s (inj₁ (su′ , inj₂ p)) (suc j) le =
     let m , bd = loopFwd f s su′ (inj₂ p) j (ℕP.≤-trans (ℕP.n≤1+n j) le)
     in m , ≤-trans (≤-reflexive (dirac-node _)) bd
 

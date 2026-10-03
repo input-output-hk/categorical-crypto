@@ -38,7 +38,6 @@ Predℰ A p = (W : ℐ.Obj) → PredS (ℰ.₀ (T₀ W A)) p
 Admissible : (A : 𝒞.Obj) (d : Level) → Set (o ⊔ cs ⊔ suc d)
 Admissible A d = ∀ W X → Env (T₀ (W ⊗₀ X) A) → Set d
 
--- A morphism that preserves admissibility
 ClosedUnder : Admissible A d → X ℐ.⇒ Y → Set (o ⊔ cs ⊔ d)
 ClosedUnder {X = X} {Y} Adm s = ∀ W e → Adm W Y e → Adm W X (regradeEnv W s e)
 
@@ -59,7 +58,6 @@ module _ (P : Predℰ A p) (Adm : Admissible B d) where
   ------------------------------------------------------------------------
   -- Preservation
 
-  -- Preservation at a fixed simulator
   uc-preserves-at : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B} (s : Y ℐ.⇒ X)
                   → f ≈ᵁ sub s 𝒞.∘ g → ClosedUnder Adm s → Robust g → Robust f
   uc-preserves-at s u cl rob = robust-resp-≈ᵁ u (robust-sub s cl rob)

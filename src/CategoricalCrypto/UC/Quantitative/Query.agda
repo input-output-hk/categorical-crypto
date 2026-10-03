@@ -10,9 +10,9 @@
 -- admitted allowance is reindexed by `_· r` too.  That is exactly a
 -- `Approx.Filtered` map, error control and allowance map together.
 --
--- The base is therefore the RATED morphisms, not `𝒞`: an arbitrary morphism
--- induces no controlled map on bounded tests, and a control has to be
--- determined by the morphism, so the rate is part of the hom.  Closure schedules and test allowances are both indexed by `ℕ⁺`,
+-- `pullᵠ` therefore takes a RATED morphism: an arbitrary morphism induces no
+-- controlled map on bounded tests, and a control has to be determined by the
+-- morphism.  Closure schedules and test allowances are both indexed by `ℕ⁺`,
 -- so no schedule is read at a rate no certificate has.  Only the non-tensor part
 -- of the graded subcategory is spent.
 
@@ -28,6 +28,7 @@ open import Level
 open import Relation.Binary.Morphism.Bundles
 
 open import CategoricalCrypto.Approx.Error
+open import CategoricalCrypto.Approx.Evaluation ℚ-ordered
 open import CategoricalCrypto.Approx.Schedule
 
 import CategoricalCrypto.Approx.Filtered as Filteredᴹ
@@ -50,12 +51,9 @@ open Reindexing {I = ℕ⁺} ℚ-ordered
 module Tests
   {o ℓ e os ℓa qs : Level} (M : MonoidalCategory o ℓ e)
   (Rg : GradedSubCat Rates.monoidalCategory M qs)
-  {Obs : Set os} (Ap : Approximation Obs ℚ-ordered ℓa)
-  (𝟙 Ω : MonoidalCategory.Obj M)
-  (⟦_⟧ : MonoidalCategory._⇒_ M 𝟙 Ω → Obs)
-  (obs-resp : {u v : MonoidalCategory._⇒_ M 𝟙 Ω}
-            → MonoidalCategory._≈_ M u v → Approximation._≈[_]_ Ap ⟦ u ⟧ 0ℚ ⟦ v ⟧)
-  where
+  (qro : QEvaluation (MonoidalCategory.U M) os ℓa) where
+
+  open QEvaluation qro renaming (J to 𝟙)
 
   open MonoidalCategory M
   open GradedSubCat Rg
@@ -63,7 +61,6 @@ module Tests
 
   private
     module Sp = Spaceᴹ Sched
-    module A  = Approximation Ap
 
   Test Closure : Obj → Set ℓ
   Test C    = C ⇒ Ω
@@ -82,16 +79,16 @@ module Tests
 
   _≈ᵠ[_]_ : {C : Obj} → Test C → (ℕ⁺ → ℚ) → Test C → Set (ℓ ⊔ e ⊔ ℓa ⊔ qs)
   _≈ᵠ[_]_ {C} E τ F =
-    (m : Closure C) (r′ : ℕ⁺) → Image forget r′ m → ⟦ E ∘ m ⟧ A.≈[ τ r′ ] ⟦ F ∘ m ⟧
+    (m : Closure C) (r′ : ℕ⁺) → Image forget r′ m → read (E ∘ m) ≈[ τ r′ ] read (F ∘ m)
 
   approxᵠ : (C : Obj)
           → Approximation (Test C) Sched (ℓ ⊔ e ⊔ ℓa ⊔ qs)
   approxᵠ C = record
     { _≈[_]_    = _≈ᵠ[_]_
-    ; ≈[]-refl  = λ _ _ _ → A.≈[]-refl
-    ; ≈[]-sym   = λ h m r′ cm → A.≈[]-sym (h m r′ cm)
-    ; ≈[]-trans = λ h k m r′ cm → A.≈[]-trans (h m r′ cm) (k m r′ cm)
-    ; ≈[]-mono  = λ le h m r′ cm → A.≈[]-mono (le r′) (h m r′ cm)
+    ; ≈[]-refl  = λ _ _ _ → ≈[]-refl
+    ; ≈[]-sym   = λ h m r′ cm → ≈[]-sym (h m r′ cm)
+    ; ≈[]-trans = λ h k m r′ cm → ≈[]-trans (h m r′ cm) (k m r′ cm)
+    ; ≈[]-mono  = λ le h m r′ cm → ≈[]-mono (le r′) (h m r′ cm)
     }
 
   spaceᵠ : Obj → Sp.ApproxSpace ℓ (ℓ ⊔ e ⊔ ℓa ⊔ qs)
@@ -104,22 +101,15 @@ module Tests
     ; admit-mono = λ le (Ê , Ê≈E) → L.sub[ le ] Ê , Ê≈E }
 
   ------------------------------------------------------------------------
-  -- The rated base
-
-  -- The Σ-total of `L`.
-  Budgeted : Obj → Obj → Set (ℓ ⊔ qs)
-  Budgeted C D = Σ[ r ∈ ℕ⁺ ] L.Hom r C D
-
-  ------------------------------------------------------------------------
   -- Pullback moves both indices, each by one law of the grading
 
-  pullᵠ : {C D : Obj} → Budgeted C D → Fl.Filtered (filteredᵠ D) (filteredᵠ C)
+  pullᵠ : {C D : Obj} → Σ[ r ∈ ℕ⁺ ] L.Hom r C D → Fl.Filtered (filteredᵠ D) (filteredᵠ C)
   pullᵠ (r , ĥ) = record
     { underlying = record
         { map     = λ E → E ∘ ⌊ ĥ ⌋
         ; control = reindex (_· r)
         ; preserves = λ hyp n r″ (n̂ , n̂≈n) →
-            ≈[]-resp₀ ℚ-ordered Ap (obs-resp assoc) (obs-resp sym-assoc)
+            ≈[]-resp₀ ℚ-ordered approx (read-resp₀ assoc) (read-resp₀ sym-assoc)
               (hyp (⌊ ĥ ⌋ ∘ n) (r″ · r) (ĥ L.∙ n̂ , ∘-resp-≈ʳ n̂≈n))
         }
     ; allowance = mkPosetHomo ≤⁺-poset ≤⁺-poset (_· r) (ℕₚ.*-monoˡ-≤ (value r))

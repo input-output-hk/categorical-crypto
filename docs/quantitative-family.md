@@ -30,7 +30,7 @@ to be certified. So the allowance indexes the *relation*, never the
 computation category. A morphism a theorem moves into a context is asked for
 its own `Image` certificate as a premise of that theorem (§2).
 
-**It is the admitted agreement of the filtered test presheaf.** `Agreeᵠ ε r r′`
+**It is the admitted agreement of the filtered space of tests.** `Agreeᵠ ε r r′`
 is `Approx.Filtered._≈ᵃ[_]_` for `Query.filteredᵠ` at the schedule
 `λ q r′ → ε (value (q · r′))`: two test-pullback maps that agree on the
 *admitted* tests. `ctx⇒agree`/`agree⇒ctx` convert between the two forms. They
@@ -45,7 +45,7 @@ a theorem moves.
 The enrichment kit, levelwise from `Approx.Filtered`: `ctx-refl` (zero
 schedule), `ctx-trans` (schedules add; both are explicit because unification
 cannot split a sum), `ctx-mono`, `ctx-resp`. Zero error is the ambient hom
-equality, observed exactly through the `obs-resp` parameter (`cast₀`).
+equality, observed exactly through the readout's `read-resp₀` (`cast₀`).
 
 ### 1.2 Families
 
@@ -245,9 +245,9 @@ In `module _ {A X Y B : Obj^ω} (s : Y ⇒^ω X) (ε : ℕ → ℕ → ℚ) (neg
 ≤UC[]⇒≤UCᴺ : f Cᴺ.≤UC g
 ```
 
-with `Cᴺ = UC.Family.Negligible.Setup.Canonicalᴺ`. The route is
+with `Cᴺ = UC.Family.Negligible.Canonicalᴺ`. The route is
 `carried-negligible` into `_≈ℰⁿ_`, then `≈ℰⁿ⇒≈ℰᴺ`, then `dummy-complete` at `s`.
-It does not pass through the vanishing collapse (`absorb-negl`), so it lands in
+It does not pass through the vanishing collapse (`absorb`), so it lands in
 the local-negligible setup, not only in `Canonical^ω`.
 
 **What survives:** the certified simulator. **What does not:** the global
@@ -332,18 +332,12 @@ strategy, one adversary and one closed input. *inst*.
 
 ## 7. The observation the layer is stated over
 
-`UC.Quantitative.Contextual` and `UC.Quantitative.Family` take an
-`Approximation Obs ℚ-ordered ℓa`, a reading `⟦_⟧ : 𝟙 ⇒ Ω → Obs`, and
-`obs-resp`, which says the reading observes hom equality at error `0ℚ`.
+`UC.Quantitative.Contextual` and `UC.Quantitative.Family` take a
+`QEvaluation`: a reading `read : J ⇒ Ω → Carrier` into an approximate space,
+with `read-resp₀`, which says it observes hom equality at error `0ℚ`.
 
-- `UC.Core.Observable 𝒞 c ℓ′`: a result object `Ω`, a setoid presheaf `P`, and a
-  readout `θ` with naturality `θ-natural`. It is not a natural transformation,
-  so that `P` may sit at levels of its own. `Θ` is derived. The environment
-  presheaf is `ℰᴼ`, the image of `θ`, with `t ≋ u = θ t ≈ θ u`. `P` itself
-  must not be used as `ℰ`: its equality is strictly finer than observational
-  agreement.
 - `UC.Core.Evaluation`: `J Ω S eval`, with `observe t m = read (t ∘ m)` and the
-  presheaf `Pᴱ`. `J` is not assumed to be the monoidal unit.
+  test presheaf `ℰᴼ` (tests up to what they observe). `J` is not assumed to be the monoidal unit.
 - `Approx.Evaluation.QEvaluation`: the reading lands in an approximate space and
   observes hom equality exactly (`eval₀` into `zeroSetoid`). `qualBy` coarsens
   only the equality: `qual₊` is closeness at every positive error. So `Evaluation.read (qualBy Q _ _)` *is*
@@ -352,9 +346,9 @@ strategy, one adversary and one closed input. *inst*.
   at) with `evaluationᵒ = qual₊ ℚ-refinement qevaluationᵒ`,
   `UC.Family.QEvaluation^ω`, and
   `UC.Family.Negligible.Evaluationᴺ`, which is `qualBy` at the negligible class.
-- `Approx.Forget`'s `F₀` and `F₊` agree on carriers but are not isomorphic
-  (`Approx.Separating`). An exact bound therefore stays in
-  `Approx` rather than being asked to respect `F₊`'s coarser equality.
+- Zero error (`Approx.Space.zeroSetoid`) and every positive error
+  (`Approx.Error.AllPositive`) agree on carriers but not on equality
+  (`Approx.Separating`), so an exact bound is not asked to respect the coarser one.
 
 ## 8. Deferred assumptions
 

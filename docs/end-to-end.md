@@ -165,7 +165,7 @@ Three design points are worth the reader's attention.
   internal state is read, which is why a UC emulation can carry it (a
   trajectory bound cannot, and comes back only under an extra hypothesis:
   §6, claim 2).
-  `UC.Machine.Monitor.flagReader` reads the environment's own test over
+  `UC.Machine.StateEvent.Read.flagReader` reads the environment's own test over
   `auditMonitorᶠ n ∘ R n`, so the experiment's **verdict is the flag**: the bound is a probability of
   that event, not of an arbitrary Boolean the test might return. And the
   environment is an arbitrary certified context of the machine model
