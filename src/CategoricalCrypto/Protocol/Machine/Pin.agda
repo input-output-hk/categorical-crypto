@@ -3,8 +3,8 @@
 -- Computed pins for the semantics functor: layer 1's verdict probability and
 -- the machine image's cumulative mass are the same rational, by `refl`.  The
 -- whole pipeline evaluates — `graft`/`serve`, `drive`, `coinₚ` and the delay
--- monad's `cum`; `agree` samples `Protocol.Machine.Agree.prAgree`'s conclusion
--- at one budget.
+-- monad's `cum`; `agree` is `Protocol.Machine.Agree.prAgree`'s conclusion at a
+-- computed witness.
 --
 -- The same pin for `𝒢`'s own composition is out of reach: `cum n` expands `2ⁿ`
 -- branches, while a point-free composite in `𝒢` spends one delay junction per
@@ -20,6 +20,7 @@ open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Distribution.Uniform
 open import ProbabilisticLogic.Dp
+open import ProbabilisticLogic.Dp.Settle
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol
@@ -50,27 +51,18 @@ layer₁ = refl
 layer₁-false : Prᵇ flip false echo ≡ ½
 layer₁-false = refl
 
--- Five steps: the coin's branch, and the `>>=ₚ` junctions the point, the
--- machine's step and the strategy's resumption each spend.
-machine : cum 5 (runᴹ (morphism flip) echo) bool→ℚ ≡ ½
-machine = refl
-
-agree : cum 6 (runᴹ (morphism flip) echo) bool→ℚ ≡ Pr flip echo
-agree = refl
-
--- `prAgree` asserts the mass STAYS at the verdict probability past its witness,
--- so one budget is a point sample: these pin the next two.
-agree₊₁ : cum 7 (runᴹ (morphism flip) echo) bool→ℚ ≡ Pr flip echo
-agree₊₁ = refl
-
-agree₊₂ : cum 8 (runᴹ (morphism flip) echo) bool→ℚ ≡ Pr flip echo
-agree₊₂ = refl
+-- `prAgree`'s conclusion at a computed witness: from five steps on (the coin's
+-- branch, and the `>>=ₚ` junctions the point, the machine's step and the
+-- strategy's resumption each spend) the mass IS the verdict probability, at
+-- every larger budget.
+agree : Attains (runᴹ (morphism flip) echo) bool→ℚ (Pr flip echo)
+agree = 5 , λ _ → refl
 
 -- …and at the other verdict, which is the reading `prAgree` is stated at:
 -- `indᵇ true` IS `bool→ℚ`, so `agree` above is its `b = true` instance and only
 -- this one exercises `indᵇ false`.
-agree-false : cum 6 (runᴹ (morphism flip) echo) (indᵇ false) ≡ Prᵇ flip false echo
-agree-false = refl
+agree-false : Attains (runᴹ (morphism flip) echo) (indᵇ false) (Prᵇ flip false echo)
+agree-false = 5 , λ _ → refl
 
 -- Divergence: `drive dead` is `botₚ`, whose mass `cum` never counts, and layer
 -- 1's `evalC dead` parks the same mass on `nothing`.
@@ -109,10 +101,7 @@ relayed = wireᵖ ∘ᵖ flip
 layer₁-∘ : Pr relayed echo ≡ ½
 layer₁-∘ = refl
 
-machine-∘ : cum 8 (runᴹ (morphism relayed) echo) bool→ℚ ≡ ½
-machine-∘ = refl
-
 -- `prAgree` at a layer-1 composite: `graft`/`serve` evaluated on both sides.
 -- `𝒢`'s own composition is not reached (see the header).
-agree-∘ : cum 8 (runᴹ (morphism relayed) echo) bool→ℚ ≡ Pr relayed echo
-agree-∘ = refl
+agree-∘ : Attains (runᴹ (morphism relayed) echo) bool→ℚ (Pr relayed echo)
+agree-∘ = 8 , λ _ → refl

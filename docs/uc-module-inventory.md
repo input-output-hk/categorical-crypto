@@ -30,9 +30,9 @@ sub-modules. A plain `grep -rlF CategoricalCrypto.M` would count those as well.
 | `UC.Graded` | 79 | 3 |  | emulation at a nontrivial grade, from a machine-level factoring |
 | `UC.Machine` | 162 | 59 |  | the intended model: the UC layer over the machine layer (`⟦_⟧ᴵ`/`retᴵ`, `𝒫ᴵ`) |
 | `UC.Machine.Bridge` | 49 | 11 |  | the bridge between the environment layer and layer 1's concrete statements |
-| `UC.Machine.Composite` | 270 | 6 |  | a `𝒢ₚ`-composite of two processes as one product-state machine, and the six equations (`Unfolding`) that read its step off |
+| `UC.Machine.Composite` | 270 | 5 |  | a `𝒢ₚ`-composite of two processes as one product-state machine, and the six equations (`Unfolding`) that read its step off |
 | `UC.Machine.Dictionary` | 295 | 12 |  | the ancilla dictionary: `UC.Machine`'s direct relays read as the monoidal spellings of the same processes |
-| `UC.Machine.Dominated` | 205 | 2 |  | `dominated`, the bridge's context domination, via the two-machine skeleton |
+| `UC.Machine.Dominated` | 202 | 2 |  | `dominated`, the bridge's context domination, via the two-machine skeleton |
 | `UC.Machine.EventBounds` | 144 | 6 |  | event bounds at the machine: the capped-allowance presentation, the absorption of a morphism into the context, and an adversary as a reader (`advReader`, `AdvBoundedAt`) |
 | `UC.Machine.Extract` | 65 | 3 |  | a budgeted context, read off its certificate as a (fuel-indexed) strategy |
 | `UC.Machine.Grading` | 141 | 4 |  | the machine model's graded subcategory `gradingᴹ`: `UC.QueryBound`'s certificate at a positive rate |
@@ -48,8 +48,8 @@ sub-modules. A plain `grep -rlF CategoricalCrypto.M` would count those as well.
 | `UC.Machine.StateEvent.Lift` | 391 | 2 |  | the strategy-to-contexts lift for state events (`stateLift`), at the same cap and with no slack |
 | `UC.Machine.StateEvent.Read` | 85 | 6 |  | reading a state event in an ordinary experiment: `stateRead`, and `StateBoundedAt`/`StateBoundedᴺ` as `EventBounds` instances |
 | `UC.Machine.Transfer` | 334 | 1 |  | the extracted strategy observes what the context observes, at one verdict |
-| `UC.Machine.Wire` | 110 | 6 |  | composing with a wire costs no trace |
-| `UC.Model.Dominated` | 145 | 9 |  | `UC.Machine.Dominated.dominated` at seal objects |
+| `UC.Machine.Wire` | 110 | 5 |  | composing with a wire costs no trace |
+| `UC.Model.Dominated` | 145 | 1 |  | `UC.Machine.Dominated.dominated` at seal objects |
 | `UC.Model.Enrichment` | 53 | 16 |  | the rate grading at the sealed model, and the seal coercions that certify into it |
 | `UC.Model.Family` | 25 | 6 |  | `UCSetup` at the machine family: `UC.Family` at the sealed bundle, with `Canonical^ω` and the negligible tier |
 | `UC.Model.Family.Contextual` | 19 | 6 |  | `UC.Quantitative.Family` at the sealed machine bundle: `_≈ctx[_]_` and `_≤UC^ωᵉ_` |

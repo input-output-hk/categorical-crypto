@@ -13,7 +13,6 @@ open import Data.Maybe.Base
 open import Data.Nat.Base
 open import Data.Product.Base
 open import Data.Sum.Base as Sum
-open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)
 open import Data.Unit.Polymorphic.Base
 open import Level
 open import Relation.Binary.PropositionalEquality
@@ -27,13 +26,10 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
-open import CategoricalCrypto.Machines.Sandwich
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Wire
 
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Pointwise as Pw
-import CategoricalCrypto.UC.Machine.Composite as CS
 
 module CategoricalCrypto.Examples.CoinToss.Ideal.Hybrid (k : ℕ) where
 
@@ -49,30 +45,9 @@ private
   module S  = Pw.S
   module 𝒫  = Category 𝒫ᴵ
 
-------------------------------------------------------------------------
--- The composite
-
-resᴵᵈ : Proc unitᴵ (Lkᴵ ⊗ᴵ Honᴵ)
-resᴵᵈ = sandwichᴹ resource (Sum.map₂ downᶠ) (Sum.map₂ upᶠ)
-
-stageᴴ : Proc (Lkᴵ ⊗ᴵ Honᴵ) Cⁱ
-stageᴴ = T₁ᴵ Lkᴵ toss
-
--- The hybrid as `UC.Graded.ext-graded`/`graded₂-∘` leave it.
-hybridᴹ : Proc unitᴵ Cᵗ
-hybridᴹ = 𝒫._∘_ {unitᴵ} {Resᴵ} {Cᵗ}
-            (𝒫._∘_ {Resᴵ} {Cⁱ} {Cᵗ} a⇐ᴵ (𝒫._∘_ {Resᴵ} {Lkᴵ ⊗ᴵ Honᴵ} {Cⁱ} stageᴴ ideal))
-            resource
-
-private
-  module Hᶜ = CS.CP unitᴵ (Lkᴵ ⊗ᴵ Honᴵ) Cⁱ stageᴴ resᴵᵈ
-  module Hᵁ = Hᶜ.Unfolding (CS.unfoldᶜ unitᴵ (Lkᴵ ⊗ᴵ Honᴵ) Cⁱ stageᴴ resᴵᵈ)
-  module Hᵂ = Hᶜ.Walk (CS.unfoldᶜ unitᴵ (Lkᴵ ⊗ᴵ Honᴵ) Cⁱ stageᴴ resᴵᵈ)
-
-  Hᴺ : Proc unitᴵ Cⁱ
-  Hᴺ = CS.Nᶜ unitᴵ (Lkᴵ ⊗ᴵ Honᴵ) Cⁱ stageᴴ resᴵᵈ
-
-  stepᴴ = CS.stepᶜ unitᴵ (Lkᴵ ⊗ᴵ Honᴵ) Cⁱ stageᴴ resᴵᵈ
+private module St = Stage Lkᴵ Honᴵ Advᴵᶜ Honᴵᶜ toss downᶠ upᶠ
+open St public using (hybridᴹ)
+open St hiding (hybrid-eq)
 
 ------------------------------------------------------------------------
 -- The state map, and the composite's loop at each letter
@@ -89,16 +64,6 @@ private
   posᵖ : Neg Honᴵ ⊎ Pos (Advᴵᶜ ⊗ᴵ Honᴵᶜ) → Pos Cⁱ
   posᵖ (inj₁ ())
   posᵖ (inj₂ y) = inj₂ y
-
-  hearᴴ : (sg : PSt) (t : Tbl) (m : Maybe Bool) (q : LkQ)
-          {D : Dₚ (RState × (Neg unitᴵ ⊎ Pos Resᴵ))}
-        → step resource ((t , m) , inj₂ (downᶠ (inj₁ q))) ≈ₚ D
-        → stepᴴ ((sg , (t , m)) , inj₂ (inj₁ q))
-        ≈ₚ (D >>=ₚ λ w → Hᶜ.resumeF sg (proj₁ w , Sum.map₂ upᶠ (proj₂ w)))
-  hearᴴ sg t m q eq =
-        Hᵂ.R-down sg (t , m) (inj₁ q) sg (inj₁ q) ≈refl (bindˣ eq)
-    ⟨≈⟩ >>=ₚ-assoc _ _ _
-    ⟨≈⟩ bindᶠ (λ _ → >>=ₚ-identityˡ _ _)
 
   honᴴ : (sg : PSt) (r : RState) (a : HonA)
        → Hᶜ.resumeF sg (r , inj₂ (inj₂ a))
@@ -182,26 +147,16 @@ private
            ⟨≈⟩ honᴴ doneᵖ (t , just b₁) refusedᴴ
            ⟨≈⟩ bot-bind-≈ₚ _ )
 
-hyb-sim : coinᶜ′ S.≲ Hᴺ
-hyb-sim = Pw.simFn θᴴ
-                (λ x → >>=ₚ-identityˡ (preᶜ []) _
-                   ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _
-                          ⟨≈⟩ >>=ₚ-identityˡ freshᵖ _
-                          ⟨≈⟩ >>=ₚ-identityˡ ([] , nothing) _))
-                (uncurry hybStep)
+  hyb-sim : coinᶜ′ S.≲ Hᴺ
+  hyb-sim = Pw.simFn θᴴ
+                  (λ x → >>=ₚ-identityˡ (preᶜ []) _
+                     ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _
+                            ⟨≈⟩ >>=ₚ-identityˡ freshᵖ _
+                            ⟨≈⟩ >>=ₚ-identityˡ ([] , nothing) _))
+                  (uncurry hybStep)
 
 ------------------------------------------------------------------------
 -- …and the composite, read as `coinᶜ`
 
-private
-  reassoc : 𝒫._≈_ {unitᴵ} {Cᵗ} hybridᴹ
-              (𝒫._∘_ {unitᴵ} {Cⁱ} {Cᵗ} a⇐ᴵ
-                (𝒫._∘_ {unitᴵ} {Lkᴵ ⊗ᴵ Honᴵ} {Cⁱ} stageᴴ resᴵᵈ))
-  reassoc = 𝒫.assoc
-       S.○ᴹ 𝒫.∘-resp-≈ʳ (𝒫.assoc S.○ᴹ 𝒫.∘-resp-≈ʳ (wire-∘ᴹ upᶠ downᶠ resource))
-
 hybrid-eq : 𝒫._≈_ {unitᴵ} {Cᵗ} hybridᴹ coinᶜ
-hybrid-eq = reassoc
-       S.○ᴹ 𝒫.∘-resp-≈ʳ ( S.⟺ᴹ (CS.eq-∘ᶜ unitᴵ (Lkᴵ ⊗ᴵ Honᴵ) Cⁱ stageᴴ resᴵᵈ)
-                     S.○ᴹ S.≲⇒≈ᴹ˘ hyb-sim )
-       S.○ᴹ wire-∘ᴹ ⊎assocˡ ⊎assocʳ coinᶜ′
+hybrid-eq = St.hybrid-eq coinᶜ′ hyb-sim

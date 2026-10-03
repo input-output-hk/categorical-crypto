@@ -1,8 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- The ℕ facts `Data.Nat.Properties` does not export: one `_∸_` unfolding, one
--- `_≡ᵇ_` value, `_^_` over a product base, and the growth comparisons that make
--- `2 ^ n` outrun every polynomial.
+-- `_≡ᵇ_` value, `_^_` over a product base, the run of consecutive summands
+-- `t + (t+1) + … + (t+j-1)`, and the growth comparisons that make `2 ^ n`
+-- outrun every polynomial.
 
 module Data.Nat.Properties.Ext where
 
@@ -33,6 +34,25 @@ n≡ᵇsuc (suc n) = n≡ᵇsuc n
 ^-distribʳ-* zero    m n = refl
 ^-distribʳ-* (suc d) m n = trans (cong (m * n *_) (^-distribʳ-* d m n))
                                  ([m*n]*[o*p]≡[m*o]*[n*p] m n (m ^ d) (n ^ d))
+
+------------------------------------------------------------------------
+-- Consecutive summands `t + (t+1) + … + (t+j-1)`
+------------------------------------------------------------------------
+
+sumN : ℕ → ℕ → ℕ
+sumN t zero    = 0
+sumN t (suc j) = t + sumN (suc t) j
+
+sumN-mono : ∀ t j → sumN t j ≤ sumN (suc t) j
+sumN-mono t zero    = z≤n
+sumN-mono t (suc j) = +-mono-≤ (n≤1+n t) (sumN-mono (suc t) j)
+
+sumN-≤ : ∀ t j → sumN t j ≤ j * (t + j)
+sumN-≤ t zero    = z≤n
+sumN-≤ t (suc j) =
+  subst (λ z → sumN t (suc j) ≤ suc j * z) (sym (+-suc t j))
+    (≤-trans (+-monoʳ-≤ t (sumN-≤ (suc t) j))
+      (+-monoˡ-≤ (j * suc (t + j)) (≤-trans (m≤m+n t j) (n≤1+n (t + j)))))
 
 ------------------------------------------------------------------------
 -- 2 ^ n outgrows every polynomial

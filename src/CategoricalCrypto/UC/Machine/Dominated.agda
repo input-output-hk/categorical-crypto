@@ -46,6 +46,7 @@ open import Data.Nat.Base as ℕ
 open import Data.Product.Base
 open import Data.Rational as ℚ
 open import Data.Rational.Properties as ℚP
+open import Data.Rational.Properties.Ext
 open import Data.Unit.Base
 open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)
 open import Level
@@ -198,8 +199,4 @@ dominated : (B Y : Iface)
           → ctxRun Y E m (conjᴵ u) ≈ₚ[ ε ℚ.+ δ ] ctxRun Y E m (conjᴵ v)
 dominated B Y E m qE qm u v ε δ 0<δ h =
   ≈ₚ[]-resp (≈ₚ-sym _ _ (ctxRun-slide E m u)) (≈ₚ-sym _ _ (ctxRun-slide E m v))
-    (≈ₚ[]-mono ε≤ε+δ (skeleton B (Kctx E m) (qb-Kctx E m qE qm) u v ε h))
-  where
-  ε≤ε+δ : ε ℚ.≤ ε ℚ.+ δ
-  ε≤ε+δ = ℚP.≤-trans (ℚP.≤-reflexive (sym (ℚP.+-identityʳ ε)))
-                     (ℚP.+-monoʳ-≤ ε (ℚP.<⇒≤ 0<δ))
+    (≈ₚ[]-mono (p≤p+q ε (ℚP.<⇒≤ 0<δ)) (skeleton B (Kctx E m) (qb-Kctx E m qE qm) u v ε h))

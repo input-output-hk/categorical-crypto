@@ -185,21 +185,21 @@ private
   idlStepʰ (comᴰ t)       (inj₂ (inj₂ getᶜ)) =
     bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (bypᴵʰ (midʲʰ t) waitᵏʰ getᶜ ≈refl ⟨≈⟩ bot-bind-≈ₚ _)
   idlStepʰ (opnᴰ t b₁ b₂) (inj₂ (inj₂ getᶜ)) =
-        >>=ₚ-identityˡ (endᴰ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜʰ (b₁ xor b₂))))) _
+        >>=ₚ-identityˡ (endᴰ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜ (b₁ xor b₂))))) _
     ⟨≈⟩ ≈sym ( bypᴵʰ (endʲʰ t) (heldᵏʰ (b₁ xor b₂)) getᶜ ≈refl
-           ⟨≈⟩ >>=ₚ-identityˡ (doneᵏʰ , inj₂ (inj₂ (tossedᶜʰ (b₁ xor b₂)))) _
-           ⟨≈⟩ Iᵂ.F-up (endʲʰ t) doneᵏʰ (inj₂ (tossedᶜʰ (b₁ xor b₂))) (endʲʰ t) _ ≈refl )
+           ⟨≈⟩ >>=ₚ-identityˡ (doneᵏʰ , inj₂ (inj₂ (tossedᶜ (b₁ xor b₂)))) _
+           ⟨≈⟩ Iᵂ.F-up (endʲʰ t) doneᵏʰ (inj₂ (tossedᶜ (b₁ xor b₂))) (endʲʰ t) _ ≈refl )
   idlStepʰ (endᴰ t b₁)    (inj₂ (inj₂ getᶜ)) =
     bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (bypᴵʰ (endʲʰ t) doneᵏʰ getᶜ ≈refl ⟨≈⟩ bot-bind-≈ₚ _)
 
-idl-simʰ : deferᶜʰ S.≲ Iᴺ
-idl-simʰ = Pw.simFn θᴵʰ
-                 (λ x → >>=ₚ-identityˡ (preᴰ []) _
-                    ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _
-                           ⟨≈⟩ >>=ₚ-identityˡ (preʲʰ []) _
-                           ⟨≈⟩ >>=ₚ-identityˡ freshᵏʰ _))
-                 (λ z → map-map (dStep (proj₁ z , Sum.map₂ ⊎assocʳ (proj₂ z))) _ _
-                       ⟨≈⟩ idlStepʰ (proj₁ z) (proj₂ z))
+  idl-simʰ : deferᶜʰ S.≲ Iᴺ
+  idl-simʰ = Pw.simFn θᴵʰ
+                   (λ x → >>=ₚ-identityˡ (preᴰ []) _
+                      ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _
+                             ⟨≈⟩ >>=ₚ-identityˡ (preʲʰ []) _
+                             ⟨≈⟩ >>=ₚ-identityˡ freshᵏʰ _))
+                   (λ z → map-map (dStep (proj₁ z , Sum.map₂ ⊎assocʳ (proj₂ z))) _ _
+                         ⟨≈⟩ idlStepʰ (proj₁ z) (proj₂ z))
 
 ideal-eqʰ : 𝒫._≈_ {unitᴵ} {Cᵗʰ} deferᶜʰ idealᴹʰ
 ideal-eqʰ = S.≲⇒≈ᴹ idl-simʰ S.○ᴹ CS.eq-∘ᶜ unitᴵ (Lkᴵᶜʰ ⊗ᴵ Honᴵᶜʰ) Cᵗʰ simᴵᵈʰ Fcoinʰ
@@ -311,12 +311,12 @@ private
   coreᶜ (comᴰ _)       (inj₂ (inj₂ getᶜ)) L L′ _ = botᶜ L L′
   coreᶜ (opnᴰ t b₁ b₂) (inj₂ (inj₂ getᶜ)) L L′ pt =
         bindᶠ (λ _ → >>=ₚ-identityˡ
-                       (endᴱ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜʰ (b₁ xor b₂))))) L)
-    ⟨≈⟩ pt (λ _ → endᴱ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜʰ (b₁ xor b₂)))))
-           (endᴰ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜʰ (b₁ xor b₂)))))
+                       (endᴱ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜ (b₁ xor b₂))))) L)
+    ⟨≈⟩ pt (λ _ → endᴱ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜ (b₁ xor b₂)))))
+           (endᴰ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜ (b₁ xor b₂)))))
            (λ _ → refl) (λ _ → refl)
     ⟨≈⟩ ≈sym (>>=ₚ-identityˡ
-                (endᴰ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜʰ (b₁ xor b₂))))) L′)
+                (endᴰ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜ (b₁ xor b₂))))) L′)
   coreᶜ (endᴰ _ _)     (inj₂ (inj₂ getᶜ)) L L′ _ = botᶜ L L′
 
   padʰ : {S : Set} → S × (Neg unitᴵ ⊎ Pos Cⁱʰ) → S × (Neg unitᴵ ⊎ Pos Cᵗʰ)

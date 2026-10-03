@@ -5,9 +5,11 @@ module CategoricalCrypto.Examples.RandomOracle where
 open import categorical-crypto.Prelude hiding (_/_; _>>=_; _*_)
 
 open import Data.Fin using (Fin)
+open import Data.List.Properties using (length-map)
+open import Data.List.Relation.Unary.Any using (here; there)
+open import Data.Maybe.Properties using (just-injective)
 open import Data.Rational using (ℚ; 0ℚ; 1ℚ; _+_; _*_)
-open import Data.Rational.Properties using (*-zeroˡ)
-open import Data.Vec hiding (length)
+open import Data.Vec hiding (length; map)
 open import Function.Base
 import Relation.Binary.Reasoning.Setoid as RS
 
@@ -20,6 +22,8 @@ open import ProbabilisticLogic.Distribution.RationalDist.Setoid
 open import ProbabilisticLogic.Distribution.Uniform
 
 module RandomOracle (p : ℕ) (In : Type) ⦃ _ : DecEq In ⦄ (outN : ℕ) where
+
+  open import ProbabilisticLogic.Distribution.Uniform.Collision outN
 
   Out : Type
   Out = Vec Bool outN
@@ -46,6 +50,11 @@ module RandomOracle (p : ℕ) (In : Type) ⦃ _ : DecEq In ⦄ (outN : ℕ) wher
   lookup-bs-there s q h q′ ne with q′ ≟ q
   ... | yes p = ⊥-elim (ne p)
   ... | no  _ = refl
+
+  lookup-bs-∈ : ∀ s q h → lookup-bs s q ≡ just h → (q , h) ∈ˡ s
+  lookup-bs-∈ ((k , v) ∷ xs) q h eq with q ≟ k | eq
+  ... | yes refl | eq′ = here (cong (q ,_) (just-injective (sym eq′)))
+  ... | no  _    | eq′ = there (lookup-bs-∈ xs q h eq′)
 
   step : Table × Input → Dist-ℚ (Table × Output)
   step (s , i , q) = case lookup-bs s q of λ where
@@ -107,40 +116,13 @@ module RandomOracle (p : ℕ) (In : Type) ⦃ _ : DecEq In ⦄ (outN : ℕ) wher
   -- Collision counting
 
   count-matches : Table → Out → ℚ
-  count-matches []             _ = 0ℚ
-  count-matches ((_ , v) ∷ xs) h = δ v h + count-matches xs h
-
-  -- `|s| · 2⁻ᵒᵘᵗᴺ`, by recursion on `s` so that `E-collisions-rec` can follow it.
-  private
-    sum-bound : Table → ℚ
-    sum-bound []       = 0ℚ
-    sum-bound (_ ∷ xs) = inv-pow-2 outN + sum-bound xs
-
-    sum-bound-closed : ∀ s → sum-bound s ≡ fromℕ (length s) * inv-pow-2 outN
-    sum-bound-closed []       = sym (*-zeroˡ (inv-pow-2 outN))
-    sum-bound-closed (_ ∷ xs) =
-      trans (cong (inv-pow-2 outN +_) (sum-bound-closed xs))
-            (suc·c (fromℕ (length xs)) (inv-pow-2 outN))
+  count-matches s = countMatch (map proj₂ s)
 
   E-collisions : ∀ s
                → lookupᴰℚ (entries uniform-Out) (count-matches s)
                ≡ (fromℕ (length s)) * inv-pow-2 outN
-  E-collisions s = trans (E-collisions-rec s) (sum-bound-closed s)
-    where
-      open ≡-Reasoning
-      E-collisions-rec : ∀ s
-                       → lookupᴰℚ (entries uniform-Out) (count-matches s) ≡ sum-bound s
-      E-collisions-rec []             = lookupᴰℚ-zero (entries uniform-Out)
-      E-collisions-rec ((_ , v) ∷ xs) = begin
-          lookupᴰℚ (entries uniform-Out) (λ h → δ v h + count-matches xs h)
-            ≡⟨ lookupᴰℚ-+ (entries uniform-Out) (δ v) (count-matches xs) ⟩
-          lookupᴰℚ (entries uniform-Out) (δ v)
-            + lookupᴰℚ (entries uniform-Out) (count-matches xs)
-            ≡⟨ cong (_+ lookupᴰℚ (entries uniform-Out) (count-matches xs))
-                   (P-uniform-Vec outN v) ⟩
-          inv-pow-2 outN + lookupᴰℚ (entries uniform-Out) (count-matches xs)
-            ≡⟨ cong (inv-pow-2 outN +_) (E-collisions-rec xs) ⟩
-          inv-pow-2 outN + sum-bound xs ∎
+  E-collisions s =
+    trans (E-countMatch (map proj₂ s)) (cong (λ l → fromℕ l * inv-pow-2 outN) (length-map proj₂ s))
 
   triangle : ℕ → ℚ
   triangle zero    = 0ℚ

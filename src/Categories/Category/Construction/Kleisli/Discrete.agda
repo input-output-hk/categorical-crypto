@@ -20,8 +20,10 @@ open import Categories.NaturalTransformation.NaturalIsomorphism using (niHelper)
 open import Data.Product
 open import Data.Unit.Polymorphic
 open import Function.Base
+open import Function.Indexed.Relation.Binary.Equality
 open import Level
-open import Relation.Binary using (IsEquivalence)
+open import Relation.Binary using (IsEquivalence; Setoid)
+open import Relation.Binary.Indexed.Heterogeneous.Construct.Trivial
 open import Relation.Binary.PropositionalEquality
 
 module Categories.Category.Construction.Kleisli.Discrete {ℓ} (Mo : DiscreteMonad ℓ) where
@@ -41,11 +43,7 @@ _≈ᵏ_ : (A → M B) → (A → M B) → Set ℓ
 f ≈ᵏ g = ∀ a → f a ≈ᴹ g a
 
 ≈ᵏ-isEquivalence : IsEquivalence (_≈ᵏ_ {A} {B})
-≈ᵏ-isEquivalence = record
-  { refl  = λ _ → ≈ᴹ.refl
-  ; sym   = λ f≈g a → ≈ᴹ.sym (f≈g a)
-  ; trans = λ f≈g g≈h a → ≈ᴹ.trans (f≈g a) (g≈h a)
-  }
+≈ᵏ-isEquivalence {A} {B} = Setoid.isEquivalence (≡-setoid A (indexedSetoid (≈ᴹ-setoid B)))
 
 Klᴹ : Category (suc ℓ) ℓ ℓ
 Klᴹ = categoryHelper record

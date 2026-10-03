@@ -14,6 +14,7 @@
 --------------------------------------------------------------------------------
 
 open import Data.Bool.Base
+open import Data.Empty
 open import Data.Fin.Base
 open import Data.List.Base
 open import Data.Maybe.Base
@@ -88,12 +89,12 @@ private
   -- Entering deposits `k` units and spends one on the first block; the block
   -- list has length `k`, which is where the rate comes from.
   onEnter : (i : Fin p) (bs : List Blk) → length bs ≡ k → Dₚ (Answer k)
-  onEnter i []       e = returnₚ (inj₂ ((nothing , z≤n) , (i , IV)))
+  onEnter i []       e = ⊥-elim (≢-nonZero⁻¹ k (sym e))
   onEnter i (b ∷ bs) e = returnₚ (inj₁ ((just (i , 2 , bs) , ≤-reflexive e) , (i₀ , pack IV b 1)))
 
   onEnter-coh : (i : Fin p) (bs : List Blk) (e : length bs ≡ k)
               → mapₚ forget (onEnter i bs e) ≈ₚ returnₚ (advance i 1 bs IV)
-  onEnter-coh i []       e = >>=ₚ-identityˡ _ _
+  onEnter-coh i []       e = ⊥-elim (≢-nonZero⁻¹ k (sym e))
   onEnter-coh i (b ∷ bs) e = >>=ₚ-identityˡ _ _
 
   onAdvance : (i : Fin p) (idx : ℕ) (bs : List Blk) (h : CV) → Dₚ (Answer (length bs))

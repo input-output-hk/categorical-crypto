@@ -1,8 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Uniform sampling on bit-strings of fixed length, with the basic
--- probability lemma `P-uniform-Vec`: each specific bit-string is
--- sampled with probability `1/2^k`.
+-- Uniform sampling on bit-strings of fixed length (`P-uniform-Vec`: each one
+-- has probability `1/2^k`), over the ℚ toolkit it is stated in: Boolean
+-- indicators, the recursive `fromℕ` and `inv-pow-2`, and ℚ's Archimedean
+-- property.
 
 module ProbabilisticLogic.Distribution.Uniform where
 

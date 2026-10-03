@@ -10,7 +10,6 @@ open import Data.Maybe.Base
 open import Data.Nat.Base
 open import Data.Product.Base
 open import Data.Sum.Base as Sum
-open import Data.Sum.Base using () renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)
 open import Data.Unit.Polymorphic.Base
 open import Level
 open import Relation.Binary.PropositionalEquality
@@ -24,13 +23,10 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
-open import CategoricalCrypto.Machines.Sandwich
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Wire
 
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Pointwise as Pw
-import CategoricalCrypto.UC.Machine.Composite as CS
 
 module CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Hybrid (k : ℕ) where
 
@@ -47,29 +43,9 @@ private
   module S  = Pw.S
   module 𝒫  = Category 𝒫ᴵ
 
-------------------------------------------------------------------------
--- The composite
-
-resᴵᵈʰ : Proc unitᴵ (Lkᴵʰ ⊗ᴵ Honᴵʰ)
-resᴵᵈʰ = sandwichᴹ resource (Sum.map₂ downᶠʰ) (Sum.map₂ upᶠʰ)
-
-stageᴴʰ : Proc (Lkᴵʰ ⊗ᴵ Honᴵʰ) Cⁱʰ
-stageᴴʰ = T₁ᴵ Lkᴵʰ tossʰ
-
-hybridᴹʰ : Proc unitᴵ Cᵗʰ
-hybridᴹʰ = 𝒫._∘_ {unitᴵ} {Resᴵ} {Cᵗʰ}
-             (𝒫._∘_ {Resᴵ} {Cⁱʰ} {Cᵗʰ} a⇐ᴵ (𝒫._∘_ {Resᴵ} {Lkᴵʰ ⊗ᴵ Honᴵʰ} {Cⁱʰ} stageᴴʰ idealʰ))
-             resource
-
-private
-  module Hᶜ = CS.CP unitᴵ (Lkᴵʰ ⊗ᴵ Honᴵʰ) Cⁱʰ stageᴴʰ resᴵᵈʰ
-  module Hᵁ = Hᶜ.Unfolding (CS.unfoldᶜ unitᴵ (Lkᴵʰ ⊗ᴵ Honᴵʰ) Cⁱʰ stageᴴʰ resᴵᵈʰ)
-  module Hᵂ = Hᶜ.Walk (CS.unfoldᶜ unitᴵ (Lkᴵʰ ⊗ᴵ Honᴵʰ) Cⁱʰ stageᴴʰ resᴵᵈʰ)
-
-  Hᴺ : Proc unitᴵ Cⁱʰ
-  Hᴺ = CS.Nᶜ unitᴵ (Lkᴵʰ ⊗ᴵ Honᴵʰ) Cⁱʰ stageᴴʰ resᴵᵈʰ
-
-  stepᴴ = CS.stepᶜ unitᴵ (Lkᴵʰ ⊗ᴵ Honᴵʰ) Cⁱʰ stageᴴʰ resᴵᵈʰ
+private module St = Stage Lkᴵʰ Honᴵʰ Advᴵᶜʰ Honᴵᶜʰ tossʰ downᶠʰ upᶠʰ
+open St public using () renaming (hybridᴹ to hybridᴹʰ)
+open St hiding (hybridᴹ; hybrid-eq)
 
 ------------------------------------------------------------------------
 -- The state map, and the composite's loop at each letter
@@ -83,16 +59,6 @@ private
 private
   padᴴʰ : EStʰ × (Neg unitᴵ ⊎ Pos Cⁱʰ) → (QSt × RState) × (Neg unitᴵ ⊎ Pos Cⁱʰ)
   padᴴʰ w = θᴴʰ (proj₁ w) , proj₂ w
-
-  hearᴴʰ : (sg : QSt) (t : Tbl) (m : Maybe Bool) (q : LkQʰ)
-           {D : Dₚ (RState × (Neg unitᴵ ⊎ Pos Resᴵ))}
-         → step resource ((t , m) , inj₂ (downᶠʰ (inj₁ q))) ≈ₚ D
-         → stepᴴ ((sg , (t , m)) , inj₂ (inj₁ q))
-         ≈ₚ (D >>=ₚ λ w → Hᶜ.resumeF sg (proj₁ w , Sum.map₂ upᶠʰ (proj₂ w)))
-  hearᴴʰ sg t m q eq =
-        Hᵂ.R-down sg (t , m) (inj₁ q) sg (inj₁ q) ≈refl (bindˣ eq)
-    ⟨≈⟩ >>=ₚ-assoc _ _ _
-    ⟨≈⟩ bindᶠ (λ _ → >>=ₚ-identityˡ _ _)
 
   askᴴʰ : (sg : QSt) (r : RState) (b : Neg (Advᴵᶜʰ ⊗ᴵ Honᴵᶜʰ))
         → stepᴴ ((sg , r) , inj₂ (inj₂ b))
@@ -122,7 +88,7 @@ private
   hashᴴʰ φ sg m hyp t x w eqL =
         lazy-bind _ κ (λ z → returnₚ (padᴴʰ z)) (λ u d → ret≡ (cong (_, inj₂ (inj₁ (digᶠ d))) (hyp u)))
                   t x w eqL
-    ⟨≈⟩ ≈sym ( hearᴴʰ sg t m (relayᶠ x) (≈ₚ-refl _)
+    ⟨≈⟩ ≈sym ( hearᴴ sg t m (relayᶠ x) (≈ₚ-refl _)
            ⟨≈⟩ lazy-bind (λ u d → (u , m) , inj₂ (digᴿ d)) κ _
                          (λ u d → Hᵂ.F-up sg (u , m) (inj₁ (digᶠ d)) sg _ ≈refl) t x w eqL )
     where κ = λ u d → (sg , (u , m)) , inj₂ (inj₁ (digᶠ d))
@@ -179,33 +145,24 @@ private
         bot-bind-≈ₚ _
     ⟨≈⟩ ≈sym (askᴴʰ (comᵗ b₁) (t , just b₁) (inj₂ getᶜ) ⟨≈⟩ bot-bind-≈ₚ _)
   hybStep (opnᴱ t b₁ b₂) (inj₂ (inj₂ (inj₂ getᶜ))) =
-        >>=ₚ-identityˡ (endᴱ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜʰ (b₁ xor b₂))))) _
+        >>=ₚ-identityˡ (endᴱ t b₁ , inj₂ (inj₂ (inj₂ (tossedᶜ (b₁ xor b₂))))) _
     ⟨≈⟩ ≈sym ( askᴴʰ (openᵗ b₁ b₂) (t , just b₁) (inj₂ getᶜ)
-           ⟨≈⟩ >>=ₚ-identityˡ (doneᵗ , inj₂ (inj₂ (tossedᶜʰ (b₁ xor b₂)))) _
-           ⟨≈⟩ Hᵁ.solve-out (doneᵗ , (t , just b₁)) (inj₂ (inj₂ (inj₂ (tossedᶜʰ (b₁ xor b₂))))) )
+           ⟨≈⟩ >>=ₚ-identityˡ (doneᵗ , inj₂ (inj₂ (tossedᶜ (b₁ xor b₂)))) _
+           ⟨≈⟩ Hᵁ.solve-out (doneᵗ , (t , just b₁)) (inj₂ (inj₂ (inj₂ (tossedᶜ (b₁ xor b₂))))) )
   hybStep (endᴱ t b₁)    (inj₂ (inj₂ (inj₂ getᶜ))) =
         bot-bind-≈ₚ _
     ⟨≈⟩ ≈sym (askᴴʰ doneᵗ (t , just b₁) (inj₂ getᶜ) ⟨≈⟩ bot-bind-≈ₚ _)
 
-hyb-simʰ : eagerᶜʰ′ S.≲ Hᴺ
-hyb-simʰ = Pw.simFn θᴴʰ
-                 (λ x → >>=ₚ-identityˡ (preᴱ []) _
-                    ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _
-                           ⟨≈⟩ >>=ₚ-identityˡ freshᵗ _
-                           ⟨≈⟩ >>=ₚ-identityˡ ([] , nothing) _))
-                 (uncurry hybStep)
+  hyb-simʰ : eagerᶜʰ′ S.≲ Hᴺ
+  hyb-simʰ = Pw.simFn θᴴʰ
+                   (λ x → >>=ₚ-identityˡ (preᴱ []) _
+                      ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _
+                             ⟨≈⟩ >>=ₚ-identityˡ freshᵗ _
+                             ⟨≈⟩ >>=ₚ-identityˡ ([] , nothing) _))
+                   (uncurry hybStep)
 
 ------------------------------------------------------------------------
 -- …and the composite, read as `eagerᶜʰ`
 
-private
-  reassocʰ : 𝒫._≈_ {unitᴵ} {Cᵗʰ} hybridᴹʰ
-               (𝒫._∘_ {unitᴵ} {Cⁱʰ} {Cᵗʰ} a⇐ᴵ
-                 (𝒫._∘_ {unitᴵ} {Lkᴵʰ ⊗ᴵ Honᴵʰ} {Cⁱʰ} stageᴴʰ resᴵᵈʰ))
-  reassocʰ = 𝒫.assoc S.○ᴹ 𝒫.∘-resp-≈ʳ (𝒫.assoc S.○ᴹ 𝒫.∘-resp-≈ʳ (wire-∘ᴹ upᶠʰ downᶠʰ resource))
-
 hybrid-eqʰ : 𝒫._≈_ {unitᴵ} {Cᵗʰ} hybridᴹʰ eagerᶜʰ
-hybrid-eqʰ = reassocʰ
-        S.○ᴹ 𝒫.∘-resp-≈ʳ ( S.⟺ᴹ (CS.eq-∘ᶜ unitᴵ (Lkᴵʰ ⊗ᴵ Honᴵʰ) Cⁱʰ stageᴴʰ resᴵᵈʰ)
-                      S.○ᴹ S.≲⇒≈ᴹ˘ hyb-simʰ )
-        S.○ᴹ wire-∘ᴹ ⊎assocˡ ⊎assocʳ eagerᶜʰ′
+hybrid-eqʰ = St.hybrid-eq eagerᶜʰ′ hyb-simʰ

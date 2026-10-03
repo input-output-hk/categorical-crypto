@@ -105,11 +105,7 @@ bind-≼ᵐ : (d : Dₚ A) (k : A → Dₚ B) → (d >>=ₚ k) ≼ᵐ d
 bind-≼ᵐ d k n = n , mass-bindˡ n d k
 
 mapₚ-≼ᵐ : (d : Dₚ A) (h : A → B) → d ≼ᵐ mapₚ h d
-mapₚ-≼ᵐ d h n =
-  n +ℕ 1
-  , ≤-trans (≤-reflexive (cum-cong-P n d _ (λ p → cum 1 (returnₚ (h p)) (λ _ → 1ℚ))
-                                     λ p → sym (returnₚ-cum 0 (h p) (λ _ → 1ℚ))))
-            (>>=ₚ-boundB n 1 d _ (λ _ → 1ℚ) λ _ → 0≤1ℚ)
+mapₚ-≼ᵐ d h n = suc n , ≤-reflexive (sym (mapₚ-cum n h d _))
 
 -- The hypothesis is budget-uniform: a per-branch cofinal bound cannot be maxed
 -- out over a support the budget does not bound.
@@ -124,14 +120,6 @@ bindʳ-≼ᵐ d k e le n = n , mass-bindʳ n d k (mass n e) (mass-nn n e) λ p �
 Total : Dₚ Bool → Set
 Total d = Σ[ n ∈ ℕ ] (1ℚ ℚ.≤ Pr≤[ true ] n d ℚ.+ Pr≤[ false ] n d)
 
-total-resp-≼ₚ : (d e : Dₚ Bool) → d ≼ₚ e → Total d → Total e
-total-resp-≼ₚ d e le (n , tot) =
-  let m₁ , b₁ = le (indᵇ true)  (indᵇ-nn true)  n
-      m₂ , b₂ = le (indᵇ false) (indᵇ-nn false) n
-  in m₁ ⊔ m₂
-   , ≤-trans tot (+-mono-≤ (≤-trans b₁ (Pr≤-mono true  e (m≤m⊔n m₁ m₂)))
-                           (≤-trans b₂ (Pr≤-mono false e (m≤n⊔m m₁ m₂))))
-
 ASTotal : Dₚ A → Set
 ASTotal d = (ε : ℚ) → 0ℚ ℚ.< ε → Σ[ n ∈ ℕ ] (1ℚ ℚ.- ε ℚ.≤ mass n d)
 
@@ -145,39 +133,6 @@ astotal-returnₚ : (x : A) → ASTotal (returnₚ x)
 astotal-returnₚ x ε ε>0 =
   1 , ≤-trans (x-y≤x 1ℚ (<⇒≤ ε>0)) (≤-reflexive (sym (returnₚ-cum 0 x (λ _ → 1ℚ))))
 
-private
-  open +-*-Solver
-
-  split : (m x : ℚ) → m ℚ.* x ℚ.+ (1ℚ ℚ.- m) ℚ.* x ≡ x
-  split = solve 2 (λ m x → m :* x :+ (con 1ℚ :- m) :* x := x) refl
-
-  1-≤ : (m ε : ℚ) → 1ℚ ℚ.- ε ℚ.≤ m → 1ℚ ℚ.- m ℚ.≤ ε
-  1-≤ m ε le = ≤-trans (+-monoʳ-≤ 1ℚ (neg-antimono-≤ le)) (≤-reflexive (1-[1-x] ε))
-
-  scale : (m x ε : ℚ) → m ℚ.≤ 1ℚ → 1ℚ ℚ.- ε ℚ.≤ m → 0ℚ ℚ.≤ x → x ℚ.≤ 1ℚ
-        → x ℚ.≤ m ℚ.* x ℚ.+ ε
-  scale m x ε m≤1 close 0≤x x≤1 =
-    ≤-trans (≤-reflexive (sym (split m x)))
-            (+-monoʳ-≤ (m ℚ.* x)
-              (≤-trans (*-monoˡ-≤-nonNeg (1ℚ ℚ.- m) ⦃ ℚ.nonNegative (0≤1- m≤1) ⦄ x≤1)
-              (≤-trans (≤-reflexive (*-identityʳ (1ℚ ℚ.- m))) (1-≤ m ε close))))
-
-  expand : (ε : ℚ) → 1ℚ ℚ.- (ε ℚ.+ ε) ≡ ((1ℚ ℚ.- ε) ℚ.+ (1ℚ ℚ.- ε)) ℚ.- 1ℚ
-  expand = solve 1 (λ ε →
-    con 1ℚ :- (ε :+ ε) := ((con 1ℚ :- ε) :+ (con 1ℚ :- ε)) :- con 1ℚ) refl
-
-  collect : (a b : ℚ) → ((a ℚ.+ b) ℚ.- 1ℚ) ℚ.+ ((1ℚ ℚ.- a) ℚ.* (1ℚ ℚ.- b)) ≡ a ℚ.* b
-  collect = solve 2 (λ a b →
-    ((a :+ b) :- con 1ℚ) :+ ((con 1ℚ :- a) :* (con 1ℚ :- b)) := a :* b) refl
-
-  product : (a b ε : ℚ) → a ℚ.≤ 1ℚ → b ℚ.≤ 1ℚ → 1ℚ ℚ.- ε ℚ.≤ a → 1ℚ ℚ.- ε ℚ.≤ b
-          → 1ℚ ℚ.- (ε ℚ.+ ε) ℚ.≤ a ℚ.* b
-  product a b ε a≤1 b≤1 ea eb =
-    ≤-trans (≤-reflexive (expand ε))
-    (≤-trans (+-monoˡ-≤ (ℚ.- 1ℚ) (+-mono-≤ ea eb))
-    (≤-trans (p≤p+q ((a ℚ.+ b) ℚ.- 1ℚ) (0≤* (0≤1- a≤1) (0≤1- b≤1)))
-             (≤-reflexive (collect a b))))
-
 const-bind-astotal : (d : Dₚ A) (e : Dₚ B) → ASTotal d → ASTotal e
                    → ASTotal (d >>=ₚ λ _ → e)
 const-bind-astotal d e td te ε ε>0 =
@@ -185,7 +140,7 @@ const-bind-astotal d e td te ε ε>0 =
       n , bd′ = te (½ ℚ.* ε) (0<½* ε>0)
   in k +ℕ n
    , ≤-trans (subst (λ c → 1ℚ ℚ.- c ℚ.≤ mass k d ℚ.* mass n e) (½*+½* ε)
-                    (product (mass k d) (mass n e) (½ ℚ.* ε)
+                    (1-[ε+ε]≤a*b (mass k d) (mass n e) (½ ℚ.* ε)
                              (mass-≤1 k d) (mass-≤1 n e) bd bd′))
              (const-bindB k n d e (λ _ → 1ℚ) λ _ → 0≤1ℚ)
 
@@ -202,7 +157,7 @@ module _ (p : Dₚ A) (e : Dₚ Bool) where
   const-bind-≽ tot ε ε>0 b n =
     let k , close = tot ε ε>0
     in k +ℕ n
-     , ≤-trans (scale (mass k p) (Pr≤[ b ] n e) ε (mass-≤1 k p) close
+     , ≤-trans (x≤m*x+ε (mass k p) (Pr≤[ b ] n e) ε (mass-≤1 k p) close
                       (cum-nn n e (indᵇ b) (indᵇ-nn b))
                       (cum-≤1 n e (indᵇ b) (indᵇ-≤1 b)))
                (+-monoˡ-≤ ε (const-bindB k n p e (indᵇ b) (indᵇ-nn b)))
@@ -214,8 +169,7 @@ module _ (p : Dₚ A) (e : Dₚ Bool) where
 -- The squeeze
 
 private
-  shift : (x y c : ℚ) → x ℚ.≤ y ℚ.+ c → x ℚ.- c ℚ.≤ y
-  shift x y c le = ≤-trans (+-monoˡ-≤ (ℚ.- c) le) (≤-reflexive (+-−-cancel y c))
+  open +-*-Solver
 
   pair : (x₁ x₂ ε : ℚ) → (x₁ ℚ.+ ε) ℚ.+ (x₂ ℚ.+ ε) ≡ (x₁ ℚ.+ x₂) ℚ.+ (ε ℚ.+ ε)
   pair = solve 3 (λ x₁ x₂ ε →
@@ -223,7 +177,7 @@ private
 
 squeeze : (x z : Dₚ Bool) (p : Dₚ A) (ε : ℚ) → Total x → z ≼ᵐ p → x ≼ₚ[ ε ] z
         → Σ[ m ∈ ℕ ] (1ℚ ℚ.- (ε ℚ.+ ε) ℚ.≤ mass m p)
-squeeze x z p ε (n , tot) bnd dom = m′ , shift 1ℚ (mass m′ p) (ε ℚ.+ ε)
+squeeze x z p ε (n , tot) bnd dom = m′ , x≤y+c⇒x-c≤y 1ℚ (mass m′ p) (ε ℚ.+ ε)
   (≤-trans tot
   (≤-trans (+-mono-≤ (proj₂ (dom true n)) (proj₂ (dom false n)))
   (≤-trans (+-mono-≤ (+-monoˡ-≤ ε (Pr≤-mono true z (m≤m⊔n m₁ m₂)))

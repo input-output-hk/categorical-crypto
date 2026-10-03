@@ -120,7 +120,7 @@ mb : Maybe Bool → ℚ
 mb = maybeℚ bool→ℚ
 
 Prᵇ⊥ : Bool → Dist⊥ Bool → ℚ
-Prᵇ⊥ b μ = E μ (maybeℚ (indᵇ b))
+Prᵇ⊥ b μ = E⊥ μ (indᵇ b)
 
 Pr₁⊥ : Dist⊥ Bool → ℚ
 Pr₁⊥ = Prᵇ⊥ true
