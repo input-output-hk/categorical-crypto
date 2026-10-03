@@ -37,17 +37,13 @@ open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.Dictionary
-open import CategoricalCrypto.UC.Machine.Monitor
 open import CategoricalCrypto.UC.Machine.Slide
 open import CategoricalCrypto.UC.Machine.StateEvent
 open import CategoricalCrypto.UC.Machine.StateEvent.Read
 open import CategoricalCrypto.UC.Machine.Wire
 open import CategoricalCrypto.UC.Seam
-open import CategoricalCrypto.UC.Seam.Adequacy.Wiring
 open import CategoricalCrypto.UC.Seam.Budget
 open import CategoricalCrypto.UC.Machine.Plug
-
-import CategoricalCrypto.Machines.Collapse as Col
 
 module CategoricalCrypto.UC.Machine.StateEvent.Agree where
 
@@ -57,21 +53,17 @@ private module 𝒫 = Category 𝒫ᴵ
 -- The embedded strategy, below the flag reader
 
 embeds : (B : Iface) (d : Strat (Neg B) (Pos B)) → 𝒫._≈_ (stratTest B d 𝒫.∘ λᴵ⇐) (strategyEnv B d)
-embeds B d = ∘-wireᴹ inj₂ [ ⊥-elim , id ] (stratTest B d) S.○ᴹ S.≲⇒≈ᴹ (S.mk-cong pt)
-  where
-  pt : (z : _) → _
-  pt (se , inj₁ p) = map-fuse (stepˢ B (se , inj₁ p)) _ _ (λ q → q) (λ where
-    (_ , inj₁ _) → refl
-    (_ , inj₂ _) → refl) ⟨≈⟩ >>=ₚ-identityʳ _
-  pt (se , inj₂ _) = map-fuse (stepˢ B (se , inj₂ tt)) _ _ (λ q → q) (λ where
-    (_ , inj₁ _) → refl
-    (_ , inj₂ _) → refl) ⟨≈⟩ >>=ₚ-identityʳ _
+embeds B d =
+      𝒫.∘-resp-≈ˡ (stratTest-embeds B d)
+  S.○ᴹ 𝒫.assoc
+  S.○ᴹ 𝒫.∘-resp-≈ʳ (𝒫.∘-resp-≈ʳ (𝒫.Equiv.sym 𝒫.identityʳ) S.○ᴹ unit-cancel 𝒫.id)
+  S.○ᴹ 𝒫.identityʳ
 
 -- The closed flagged context at `stratTest`, as the flag reader over the
 -- strategy environment.
 flag-tower : (B : Iface) (u : Proc unitᴵ (B ⊗ᴵ Ωᴵ)) (d : Strat (Neg B) (Pos B))
       → 𝒫._≈_ ((flagReader B unitᴵ (stratTest B d) 𝒫.∘ T₁ᴵ unitᴵ u) 𝒫.∘ λᴵ⇐ {unitᴵ})
-                            (Read.readᴹ B (strategyEnv B d) 𝒫.∘ u)
+                            (Collapsed.readᴹ B (strategyEnv B d) 𝒫.∘ u)
 flag-tower B u d =
      𝒫.assoc
   S.○ᴹ 𝒫.∘-resp-≈ʳ (S.⟺ᴹ (λ-nat u))
@@ -82,7 +74,7 @@ flag-tower B u d =
                    S.○ᴹ 𝒫.∘-resp-≈ʳ λ-tri
                    S.○ᴹ S.⟺ᴹ (sub-∘ (stratTest B d) λᴵ⇐)
                    S.○ᴹ sub-resp-≈ (embeds B d))
-    S.○ᴹ Read.read-collapse B (strategyEnv B d))
+    S.○ᴹ Collapsed.read-collapse B (strategyEnv B d))
 
 ------------------------------------------------------------------------
 -- One tick of the collapsed composite
@@ -94,34 +86,12 @@ module _ {B : Iface} (M : Proc unitᴵ B) (P : StateTest M) (d : Strat (Neg B) (
     u = M ▷ P
     E = strategyEnv B d
 
-  open Read B E
+  open Collapsed B E
   open Plugged B′ readᴹ u
 
   private
     SK = FlagSt × EnvSt B
     SU = MC.St M × Bool
-
-    -- `Col.kᴳ` at this closed shape, case-split so that the loop reduces.
-    kᶜ : (SK × SU) × ((⊥ ⊎ ⊤) ⊎ (Neg B′ ⊎ Pos B′)) → Dₚ ((SK × SU) × ((⊥ ⊎ Bool) ⊎ (Neg B′ ⊎ Pos B′)))
-    kᶜ ((sk , su) , inj₁ (inj₁ ()))
-    kᶜ ((sk , su) , inj₁ (inj₂ _)) =
-      readStep (sk , inj₂ tt) >>=ₚ λ q → returnₚ ((proj₁ q , su) , outE B′ (proj₂ q))
-    kᶜ ((sk , su) , inj₂ (inj₁ n)) =
-      MC.step u (su , inj₂ n) >>=ₚ λ q → returnₚ ((sk , proj₁ q) , outU B′ (proj₂ q))
-    kᶜ ((sk , su) , inj₂ (inj₂ p)) =
-      readStep (sk , inj₁ p) >>=ₚ λ q → returnₚ ((proj₁ q , su) , outE B′ (proj₂ q))
-
-    k-red : (z : _) → kᴷ z ≈ₚ kᶜ z
-    k-red ((sk , su) , inj₁ (inj₁ ()))
-    k-red ((sk , su) , inj₁ (inj₂ _)) = bindᶠ λ where
-      (_ , inj₁ _) → ≈refl
-      (_ , inj₂ _) → ≈refl
-    k-red ((sk , su) , inj₂ (inj₁ n)) = bindᶠ λ where
-      (_ , inj₁ ())
-      (_ , inj₂ _) → ≈refl
-    k-red ((sk , su) , inj₂ (inj₂ p)) = bindᶠ λ where
-      (_ , inj₁ _) → ≈refl
-      (_ , inj₂ _) → ≈refl
 
     pass : (st : SK × SU) (x : Neg B′ ⊎ Pos B′) → iterₚ body (st , x) ≈ₚ (kᶜ (st , inj₂ x) >>=ₚ contᵢ body)
     pass st x = iterₚ-fix body (st , x) ⟨≈⟩ bindˣ (k-red (st , inj₂ x))

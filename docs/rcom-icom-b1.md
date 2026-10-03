@@ -195,33 +195,17 @@ The game bound, merged into one numerator (`Examples.ROCommitment.Asymptotic`):
 εᶜ n q = fromℕ (q * q + q + q) *ℚ inv-pow-2 n          -- (q² + 2q)·2⁻ⁿ
 ```
 
-**Zero allowance.** `εᶜ n 0 = 0ℚ`, so `εᶜ` is NOT strictly positive
-uniformly in `q` and cannot serve as the domination slack. `_≈ᵁᵠ[_]_` reads
-its error only at `value (c · r′)` with `c r′ : ℕ⁺`, which is never `0`; the
-slack below does not depend on the allowance at all.
-
-**The slack that does work.** `dominatedᵍᵠ`/`dominatedᵍ` take `δ : ℚ` with
-`0ℚ ℚ.< δ` chosen per instance, so it may depend on `n` alone. Take
-`δ = inv-pow-2 n`, strictly positive at every `n`
-(`UC.Approximate.Decay.0<inv-pow-2`). This is exactly the pattern the
-corrupted-receiver second hop already spends
-(`Examples.CoinToss.Ideal.Receiver.Compose.ηʰ`, `ηʰ-negligible` via
-`UC.Approximate.Decay.negligible-slack`).
-
-**Candidate realization schedules.**
+**No slack.** `dominatedᵍᵠ`/`dominatedᵍ` are exact (`≈ₚ[ ε ]`), so the
+realization schedules are the game bounds themselves:
 
 ```agda
-εᴿ  n q = εᶜ n q ℚ.+ inv-pow-2 n          -- = (q+1)²·2⁻ⁿ         (corrupted committer)
-εᴿʰ n q = εᵗ n q ℚ.+ inv-pow-2 n          -- = (3q+1)·2⁻ⁿ         (corrupted receiver)
+εᴿ  = εᶜ          -- (q² + 2q)·2⁻ⁿ        (corrupted committer)
+εᴿʰ = εᵗ          -- 3q·2⁻ⁿ               (corrupted receiver)
 ```
 
 with `εᵗ n q = fromℕ (q + (q + q)) *ℚ inv-pow-2 n`
-(`Examples.ROCommitment.Hiding.Asymptotic`). The closed forms are `fromℕ-+`
-plus `*-distribʳ-+`, the shape of `collect` (`Hiding.Asymptotic`) and `merge`
-(`Asymptotic`); `q*q + q + q + 1 = (q+1)*(q+1)` and `q + (q+q) + 1 = 3q+1`.
-Negligibility is `GradedBound-+[ Negligible ] Negligible-+ …` at
-`εᶜ-negligible` (resp. `εᵗ-negligible`) and `negligible-slack`, copying
-`ηʰ-negligible`.
+(`Examples.ROCommitment.Hiding.Asymptotic`); negligibility is `εᶜ-negligible`
+(resp. `εᵗ-negligible`).
 
 **Every allowance transformation, in order.**
 
@@ -230,7 +214,7 @@ Negligibility is `GradedBound-+[ Negligible ] Negligible-+ …` at
 | 1. game bound | `asks≤ m d` on `Strat Q R` (`Game.extraction-bound`) | — |
 | 2. game ports ↔ machine ports | `Game.Q`/`Game.R` against `Neg`/`Pos (Advᴵ ⊗ᴵ Honᴵ)`; the relabelling is 1:1 on asks (`idleR` is outside the image) | ×1 (`Realization.Bisim.toQ`/`toR`, B2-M7) |
 | 3. per-strategy → per-context | `dominatedᵍᵠ`: hypothesis at `asks≤ (value (c · c′)) d`, conclusion read at `ε (value (c · c′))` — exactly `_≈ᵁᵠ[_]_`'s convention | identity |
-| 4. domination slack | `+ δ`, taken as `+ inv-pow-2 n` | `+ 2⁻ⁿ` |
+| 4. domination | `dominatedᵍᵠ` is exact | identity |
 | 5. assembly, inner leg | `≤UC[]-compose`'s `composeError` reads `εf n (scale q (1⁺ · 1⁺))`; `scale q 1⁺ = q ℕ.* 1` (`scale-unit`) | identity |
 | 6. assembly, outer leg | the upper stage compared with itself at the zero schedule | `+ 0ℚ` |
 | 7. second hop | `≤UC[]-trans`'s `seqError` reads it at `scale q (schedOf s n)`; the hop's own schedule is `0ℚ` (committer, `coin-hybridᵇ`) or `ηʰ`, which ignores its allowance (receiver, `coin-hybridʳᵇ`) | `+ 0ℚ` / `+ 2⁻ⁿ` |
@@ -239,8 +223,8 @@ Composed candidates, in the existing pins' own expressions (`εᶜⁱ`,
 `Examples.CoinToss.Ideal.Compose`; `εᶜʳ`, `…Receiver.Compose`):
 
 ```text
-committer :  εᶜⁱ εᴿ  n q  =  (q+1)²·2⁻ⁿ
-receiver  :  εᶜʳ εᴿʰ n q  =  (3q+1)·2⁻ⁿ + 2⁻ⁿ  =  (3q+2)·2⁻ⁿ
+committer :  εᶜⁱ εᴿ  n q  =  (q² + 2q)·2⁻ⁿ
+receiver  :  εᶜʳ εᴿʰ n q  =  3q·2⁻ⁿ + 2⁻ⁿ  =  (3q+1)·2⁻ⁿ
 ```
 
 Neither replaces `ideal-ε` or `ideal-εʳ`: those pin the schedule as a FUNCTION

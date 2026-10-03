@@ -211,11 +211,11 @@ every ancilla, at every certified closure. Two of the three are not a gap:
 dominatedᵍᵠ : {P B : Iface} (W : G.Obj)
               (E : W G.⊗₀ (ifaceᵒ P G.⊗₀ ifaceᵒ B) G.⇒ Ωᵒ) (m : 𝟘ᵒ G.⇒ W G.⊗₀ 𝟘ᵒ)
               {c c′ : ℕ⁺} → Image forget c E → Image forget c′ m
-            → (u v : Proc unitᴵ (P ⊗ᴵ B)) (ε δ : ℚ) → 0ℚ ℚ.< δ
+            → (u v : Proc unitᴵ (P ⊗ᴵ B)) (ε : ℚ)
             → ((d : Strat (Neg (P ⊗ᴵ B)) (Pos (P ⊗ᴵ B))) → asks≤ (value (c · c′)) d
                → runᴹ u d ≈ₚ[ ε ] runᴹ v d)
             → Obs ((E G.∘ T₁ᵒ W (gradedᵒ u)) G.∘ m)
-              ≈ₚ[ ε ℚ.+ δ ] Obs ((E G.∘ T₁ᵒ W (gradedᵒ v)) G.∘ m)
+              ≈ₚ[ ε ] Obs ((E G.∘ T₁ᵒ W (gradedᵒ v)) G.∘ m)
 ```
 
 takes agreement at every strategy of the context's budget to agreement at every
@@ -226,7 +226,7 @@ obstruction and how the fuel answers it). So:
 
 * **the test** — closed by `dominatedᵍᵠ`. That a strategy embeds as an
   environment only one way is not the obstruction: the converse is not an
-  inclusion of contexts but a *domination up to δ*, and that exists.
+  inclusion of contexts but a *domination*, and that exists.
 * **the ancilla** — closed: `W : G.Obj` is arbitrary.
 * **the closure** — open at the OPEN resource domain, and not a density
   question. The game fixes the lazily sampled oracle and the one-shot cell, and
@@ -237,12 +237,6 @@ obstruction and how the fuel answers it). So:
   closure to supply, which is why the target theorem moved there
   ([`docs/rcom-icom-b1.md`](rcom-icom-b1.md)).
 
-**The `+ δ`, and why it is absorbable.** `_≈ctx[_]_` demands a fixed schedule,
-and `(∀ δ > 0. d ≈ₚ[ ε + δ ] e) → d ≈ₚ[ ε ] e` needs the cofinal supremum to be
-attained, which it is not constructively. It need not be: `δ` is chosen per
-level, so `δ = 2⁻ⁿ` (`UC.Approximate.Decay.0<inv-pow-2`) — the slack the
-corrupted-receiver second hop already spends
-(`Examples.CoinToss.Ideal.Receiver.Compose.ηʰ`, `ηʰ-negligible`) — gives the
-schedule `εᶜ n q + 2⁻ⁿ = (q+1)²·2⁻ⁿ`, negligible by `GradedBound-+` at
-`Asymptotic.εᶜ-negligible` and `negligible-slack`. One additive `2⁻ⁿ` is the
-whole price of the test and ancilla quantifiers.
+**No slack.** `dominatedᵍᵠ` is exact, so the realization schedule is the game
+bound `εᶜ` itself, negligible by `Asymptotic.εᶜ-negligible`: the test and
+ancilla quantifiers cost nothing.

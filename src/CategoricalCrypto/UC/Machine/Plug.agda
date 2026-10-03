@@ -31,12 +31,14 @@ open import CategoricalCrypto.UC.Machine
 import CategoricalCrypto.Machines.Collapse as Col
 import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Trace as Trace
+import CategoricalCrypto.Machines.Trace.Congruence as TraceCong
 
 module CategoricalCrypto.UC.Machine.Plug where
 
 private
   module MT = Trace (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
   module Sm = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
+  module TC = TraceCong (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
   module 𝒫 = Category 𝒫ᴵ
 
 ------------------------------------------------------------------------
@@ -105,6 +107,34 @@ module Plugged (B : Iface) (K : Proc B Ωᴵ) (u : Proc unitᴵ B) where
   kᴷ = Col.kᴳ {⊥} {⊥} {Pos B} {Neg B} {Bool} {⊤} K u
 
   open Tick (Neg B ⊎ Pos B) Sᴷ kᴷ public
+
+  -- `kᴷ` case-split so that the loop reduces, with the two maps out of
+  -- `Pos unitᴵ = ⊥` written as such.
+  kᶜ : MC.obj Sᴷ × ((⊥ ⊎ ⊤) ⊎ (Neg B ⊎ Pos B)) → Dₚ (MC.obj Sᴷ × ((⊥ ⊎ Bool) ⊎ (Neg B ⊎ Pos B)))
+  kᶜ ((sk , su) , inj₁ (inj₁ ()))
+  kᶜ ((sk , su) , inj₁ (inj₂ _)) =
+    MC.step K (sk , inj₂ tt) >>=ₚ λ q → returnₚ ((proj₁ q , su) , outE B (proj₂ q))
+  kᶜ ((sk , su) , inj₂ (inj₁ n)) =
+    MC.step u (su , inj₂ n) >>=ₚ λ q → returnₚ ((sk , proj₁ q) , outU B (proj₂ q))
+  kᶜ ((sk , su) , inj₂ (inj₂ p)) =
+    MC.step K (sk , inj₁ p) >>=ₚ λ q → returnₚ ((proj₁ q , su) , outE B (proj₂ q))
+
+  k-red : (z : _) → kᴷ z ≈ₚ kᶜ z
+  k-red ((sk , su) , inj₁ (inj₁ ()))
+  k-red ((sk , su) , inj₁ (inj₂ _)) = bindᶠ λ where
+    (_ , inj₁ _) → ≈refl
+    (_ , inj₂ _) → ≈refl
+  k-red ((sk , su) , inj₂ (inj₁ n)) = bindᶠ λ where
+    (_ , inj₁ ())
+    (_ , inj₂ _) → ≈refl
+  k-red ((sk , su) , inj₂ (inj₂ p)) = bindᶠ λ where
+    (_ , inj₁ _) → ≈refl
+    (_ , inj₂ _) → ≈refl
+
+  -- Stated at the collapsed representative rather than at `K 𝒫.∘ u`: the
+  -- conversion back from the G-category's `_∘_` projection dominates otherwise.
+  traced≈ : tracedᴹ Sm.≈ᴹ MT.traceᴹ (⊥ ⊎ ⊤) (⊥ ⊎ Bool) (Neg B ⊎ Pos B) (MC.mk Sᴷ kᶜ)
+  traced≈ = Sm.≲⇒≈ᴹ (TC.trace-resp-≲ (Sm.mk-cong k-red))
 
   -- The composite `𝒫ᴵ` names and the collapsed trace this module is about are
   -- the same machine; the projection out of the G-construction record is paid

@@ -67,9 +67,6 @@ opaque
   objᵒ : G.Obj → Iface
   objᵒ X = retᴵ X
 
-  ifaceᵒ-onto : (X : G.Obj) → ifaceᵒ (objᵒ X) ≡ X
-  ifaceᵒ-onto _ = refl
-
   procᵒ : {A B : Iface} → Proc A B → ifaceᵒ A G.⇒ ifaceᵒ B
   procᵒ f = f
 

@@ -6,19 +6,11 @@
 -- those two are exactly its reflexivity and its transitivity, so nothing about
 -- approaching zero is assumed and no halving is spent.
 --
--- This is NOT the all-positive collapse of `Approx.Forget`: taking `Small` to
--- be everything gives mere existence of a bound, which is indiscrete wherever
--- every pair admits one — as it is for a bounded observation distance.
---
 -- `UC.Approximate.Local._∼ᴺ_` IS this relation at the negligible class over
 -- rational sequences, and takes its equivalence from here.
 
-open import Categories.Category.Instance.Setoids
-open import Categories.Functor
-
 open import Data.Product.Base
 open import Level
-open import Relation.Binary.Bundles
 open import Relation.Binary.Structures
 
 open import CategoricalCrypto.Approx.Error
@@ -53,25 +45,3 @@ module Collapse {ℓs : Level} (S : SmallClass ℓs) (c ℓa : Level) where
       ; sym   = λ (ε , sε , h) → ε , sε , ≈[]-sym h
       ; trans = λ (ε , sε , h) (δ , sδ , k) → ε ⊕ δ , small-⊕ sε sδ , ≈[]-trans h k
       }
-
-  smallSetoid : ApproxSpace c ℓa → Setoid c (es ⊔ ℓs ⊔ ℓa)
-  smallSetoid X = record
-    { Carrier = ApproxSpace.Carrier X
-    ; _≈_ = _∼Small_ X
-    ; isEquivalence = ∼Small-isEquivalence X
-    }
-
-  -- Reflexivity with the space named, for the reason `Approx.Space` names it.
-  ∼Small-refl : (X : ApproxSpace c ℓa) {x : ApproxSpace.Carrier X} → _∼Small_ X x x
-  ∼Small-refl X = ε₀ , small-ε₀ , ApproxSpace.≈[]-refl X
-
-  FSmall : Functor (Approx c ℓa) (Setoids c (es ⊔ ℓs ⊔ ℓa))
-  FSmall = record
-    { F₀ = smallSetoid
-    ; F₁ = λ f → record
-        { to = Nonexpansive.map f
-        ; cong = λ (ε , sε , h) → ε , sε , Nonexpansive.preserves f h }
-    ; identity     = λ {A} → ∼Small-refl A
-    ; homomorphism = λ {_} {_} {Z} → ∼Small-refl Z
-    ; F-resp-≈     = λ {_} {B} e {x} → ε₀ , small-ε₀ , e x
-    }

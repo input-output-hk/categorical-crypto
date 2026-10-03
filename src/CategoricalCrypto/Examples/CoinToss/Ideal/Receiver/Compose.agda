@@ -19,7 +19,7 @@ open import Data.Nat.Positive
 open import Data.Nat.Properties using (*-identityʳ; ≤-refl)
 open import Data.Product.Base
 open import Data.Rational as ℚ using (ℚ; 0ℚ) renaming (_*_ to _*ℚ_)
-open import Data.Rational.Properties using (+-identityˡ; ≤-reflexive)
+open import Data.Rational.Properties using (+-identityˡ; <⇒≤)
 open import Relation.Binary.PropositionalEquality hiding ([_])
 
 open import ProbabilisticLogic.Distribution.Uniform
@@ -89,9 +89,9 @@ flatᶜʰ = (λ _ → 1⁺) , poly⁺-1 , λ n → CTRU.flatʰ n , CTRU.flatʰQB
 ηʰ-negligible _ _ = negligible-slack (λ _ → ≤-refl)
 
 coin-ctxʰ : hybʰᶠ ≈ctx[ ηʰ ] idlʰᶠ
-coin-ctxʰ n W E m qE qm = ≈ₚ[]-mono (≤-reflexive (+-identityˡ (inv-pow-2 n)))
+coin-ctxʰ n W E m qE qm = ≈ₚ[]-mono (<⇒≤ (0<inv-pow-2 n))
   (dominatedᵍ W E m qE qm (CTRH.hybridᴹʰ n) (CTRM.idealᴹʰ n)
-              0ℚ (inv-pow-2 n) (0<inv-pow-2 n) (λ d → ≈ₚ⇒≈ₚ[0] (CTRM.coin-runʰ n d)))
+              0ℚ (λ d → ≈ₚ⇒≈ₚ[0] (CTRM.coin-runʰ n d)))
 
 -- …regraded to the spelling the composition produces, which costs nothing:
 -- the regrading is the identity process, so `scale _ 1⁺` reads the schedule

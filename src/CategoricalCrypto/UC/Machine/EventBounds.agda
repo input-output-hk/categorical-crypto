@@ -7,7 +7,7 @@
 -- on what a certified context observes.  What makes a context read an EVENT
 -- rather than an arbitrary verdict is a `Reader` — a way of building the test
 -- the environment is run inside — and nothing below knows how one is built.
--- `UC.Machine.Monitor.flagReader` is one; `advReader` is another, an adversary
+-- `UC.Machine.StateEvent.Read.flagReader` is one; `advReader` is another, an adversary
 -- between the test and the process, and absorbing a simulator into the
 -- process is absorbing it into that adversary (`readRun-absorb`).
 --

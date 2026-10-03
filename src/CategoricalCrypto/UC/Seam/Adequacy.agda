@@ -30,9 +30,7 @@ open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Machine.Run
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Dictionary
 open import CategoricalCrypto.UC.Seam
-open import CategoricalCrypto.UC.Seam.Adequacy.Wiring
 open import CategoricalCrypto.UC.Machine.Plug
 
 
@@ -43,7 +41,8 @@ private
 
 module _ (B : Iface) (u : Proc unitᴵ B) (d : Strat (Neg B) (Pos B)) where
 
-  open Tick (Neg B ⊎ Pos B) (stateˢ B d MC.⊛ MC.state u) (kᵂ B u)
+  private module P = Plugged B (strategyEnv B d) u
+  open Tick (Neg B ⊎ Pos B) P.Sᴷ P.kᶜ
 
   point-red : (x : ⊤ᵛ) → MC.point (stateˢ B d MC.⊛ MC.state u) x
                         ≈ₚ (MC.point (MC.state u) x >>=ₚ λ su → returnₚ (play d , su))
@@ -80,7 +79,7 @@ module _ (B : Iface) (u : Proc unitᴵ B) (d : Strat (Neg B) (Pos B)) where
       ⟨≈⟩ play-run su′ (k p)
 
   step-run : (su : MC.St u)
-           → runᴹFrom (pairedᴹ B d u) (play d , su) (ask tt out) ≈ₚ runᴹFrom u su d
+           → runᴹFrom tracedᴹ (play d , su) (ask tt out) ≈ₚ runᴹFrom u su d
   step-run su =
       tick-run (play d , su)
     ⟨≈⟩ >>=ₚ-assoc (playˢ B d) _ cont
@@ -91,7 +90,7 @@ adequacy : (B : Iface) (u : Proc unitᴵ B) (d : Strat (Neg B) (Pos B))
          → ⟦ strategyEnv B d 𝒫.∘ u ⟧ᴼ ≈ₚ runᴹ u d
 adequacy B u d =
     Plugged.collapse B (strategyEnv B d) u
-  ⟨≈⟩ runᴹ-resp-≈ᴹ {Ωᴵ} (compose-≈ᴹ B d u) (ask tt out)
+  ⟨≈⟩ runᴹ-resp-≈ᴹ {Ωᴵ} (Plugged.traced≈ B (strategyEnv B d) u) (ask tt out)
   ⟨≈⟩ bindˣ (point-red B u d ttᵛ)
   ⟨≈⟩ >>=ₚ-assoc (MC.point (MC.state u) ttᵛ) _ _
   ⟨≈⟩ bindᶠ (λ su → >>=ₚ-identityˡ (play d , su) _)

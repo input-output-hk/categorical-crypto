@@ -131,9 +131,6 @@ module AllPositive {E : OrderedErrorAlgebra es ℓe} (R : Refinement E)
   zero⇒positive : {x y : Obs} → x ≈[ ε₀ ] y → x ∼ᵃ y
   zero⇒positive h _ pos = ≈[]-mono (ε₀-least pos) h
 
-  positiveSetoid : Setoid os (es ⊔ ℓe ⊔ ℓa)
-  positiveSetoid = record { Carrier = Obs ; _≈_ = _∼ᵃ_ ; isEquivalence = ∼ᵃ-isEquivalence }
-
 ------------------------------------------------------------------------
 -- Instances
 

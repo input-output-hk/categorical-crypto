@@ -2,10 +2,8 @@
 
 -- The verdict object and what a closed process shows at it.
 --
--- `Ωᵒ` is TICKED, for `UC.Machine.Ωᴵ`'s reason: a machine is reactive, so a
--- verdict interface with an empty negative side could never be activated and
--- would observe nothing.  The tick is the environment's single activation and
--- `Obs` is the one-ask closed run at it.
+-- `Ωᵒ` is TICKED, for `UC.Machine.Ωᴵ`'s reason, and `Obs` is the one-ask closed
+-- run at it.
 --
 -- The identification of observations is TWO-SIDED and comes ready-made:
 -- `_≈ₚ[_]_` compares BOTH verdict masses (`Dp.Advantage`'s header — the
@@ -64,7 +62,13 @@ obs-resp e = runᴹ-resp-≈ᴹ (≈ᵒ⇒≈ᴹ e) (ask tt out)
 -- `Ap._∼ᵃ_` collapses instead of a second, parallel record.
 qevaluationᵒ : QEvaluation ∣𝔾ᵒ∣ 0ℓ 0ℓ
 qevaluationᵒ = record
-  { J = 𝟘ᵒ ; Ω = Ωᵒ ; X = spaceᴹ
+  { J = 𝟘ᵒ ; Ω = Ωᵒ
+  ; X = record
+    { Carrier = Dₚ Bool
+    ; approx  = record
+      { _≈[_]_ = _≈ₚ[_]_ ; ≈[]-refl = ≈ₚ[]-refl ; ≈[]-sym = ≈ₚ[]-sym
+      ; ≈[]-trans = ≈ₚ[]-trans ; ≈[]-mono = ≈ₚ[]-mono }
+    }
   ; eval₀ = record { to = Obs ; cong = λ e → ≈ₚ⇒≈ₚ[0] (obs-resp e) }
   }
 

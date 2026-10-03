@@ -10,34 +10,23 @@ open import Categories.Category
 
 open import Data.Nat.Base as ℕ
 open import Data.Product.Base
-open import Data.Sum.Base using (_⊎_)
+open import Data.Unit.Polymorphic.Base
 open import Level
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.UC.Machine
+open import CategoricalCrypto.UC.Machine.Composite
 open import CategoricalCrypto.UC.QueryBound
-open import CategoricalCrypto.UC.QueryBound.Compose.Step
+open import CategoricalCrypto.UC.QueryBound.Compose
 open import CategoricalCrypto.UC.QueryBound.Object
 
-import CategoricalCrypto.Machines.Collapse as Col
+import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Pointwise as Pw
 
 module CategoricalCrypto.UC.QueryBound.Compose.Laws where
 
 private module 𝒢 = Category (𝒢ₚ 0ℓ)
-
-qb-∘ : (A B C : Iface) {c c′ : ℕ} (g : Proc B C) (f : Proc A B)
-     → QB {B} {C} c g → QB {A} {B} c′ f
-     → QB {A} {C} (c ℕ.* c′)
-         (Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
-           (Col.W.α MC.∘ᴹ ((g Pw.T.⊗ᵉ f) MC.∘ᴹ Col.W.γ)))
-qb-∘ A B C g f (Ng , cg , eg) (Nf , cf , ef) =
-  qb-resp-≈ {A} {C}
-    (Col.compose-raw≈∘ᴳ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C} Ng Nf
-     Pw.S.○ᴹ 𝒢.∘-resp-≈ {Pos A , Neg A} {Pos B , Neg B} {Pos C , Neg C} eg ef
-     Pw.S.○ᴹ Pw.S.⟺ᴹ (Col.compose-raw≈∘ᴳ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C} g f))
-    (qbᵢ-∘ A B C Ng Nf cg cf)
 
 qb-∘-category : (A B C : Iface) {c c′ : ℕ}
               → (g : 𝒢ₚ 0ℓ [ (Pos B , Neg B) , (Pos C , Neg C) ])
@@ -45,10 +34,13 @@ qb-∘-category : (A B C : Iface) {c c′ : ℕ}
               → QB {B} {C} c g → QB {A} {B} c′ f
               → QB {A} {C} (c ℕ.* c′)
                   (𝒢._∘_ {Pos A , Neg A} {Pos B , Neg B} {Pos C , Neg C} g f)
-qb-∘-category A B C {c} {c′} g f qg qf =
-  qb-resp-≈ {A} {C}
-    (Col.compose-raw≈∘ᴳ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C} g f)
-    (qb-∘ A B C {c} {c′} g f qg qf)
+qb-∘-category A B C g f (Ng , cg , eg) (Nf , cf , ef) =
+  Nᶜ A B C Ng Nf , QC.qbᵢ-∘ᵍ (unfoldᶜ A B C Ng Nf) cg cf ,
+  (eq-∘ᶜ A B C Ng Nf Pw.S.○ᴹ 𝒢.∘-resp-≈ {Pos A , Neg A} {Pos B , Neg B} {Pos C , Neg C} eg ef)
+  where
+    open Core (𝒱ₚ 0ℓ)
+    module QC = Compose {A} {B} {C} (St Ng) (St Nf) (point (state Ng) tt) (point (state Nf) tt)
+                        (pointᶜ A B C Ng Nf) (step Ng) (step Nf) (stepᶜ A B C Ng Nf) (solveᶜ A B C Ng Nf)
 
 opaque
   unfolding QBᴳ

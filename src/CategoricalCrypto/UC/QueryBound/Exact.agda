@@ -134,16 +134,9 @@ module Ledger = Ledgerᴿ _≡_ isPreorder (cong₂ _+_)
 
 open Ledger public
 
-------------------------------------------------------------------------
--- Inhabitation
-
 downward : {Q R : Set} → Q ⊎ R → ℕ
 downward (inj₁ _) = 1
 downward (inj₂ _) = 0
-
-fromAbove : {P Q : Set} → P ⊎ Q → ℕ
-fromAbove (inj₁ _) = 0
-fromAbove (inj₂ _) = 1
 
 ------------------------------------------------------------------------
 -- An exact count is a bound

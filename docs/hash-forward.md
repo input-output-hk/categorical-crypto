@@ -78,12 +78,14 @@ nothing here has an error term.
 `sub s ∘ gradedᵒ g` is, at the machine layer, `subᴵ s ∘ g` in `𝒢ₚ`
 (`UC.Model.Graded.sub-gradedᵒ`, one `refl` past
 `UC.Machine.Dictionary.sub-⊗₁`). `𝒢ₚ`'s composition is a ⊕-trace, and there are
-exactly two ways in this repository to get one in readable form:
+three ways in this repository to get one in readable form:
 
 * `Protocol.Machine.Compose.morphismCompose`, when BOTH factors are protocol images;
 * `UC.Machine.Wire.∘-wireᴹ`, when the lower factor is a WIRE — the loop is then
   solved generically by `GConstructionEmbedding`'s absorption and the composite
-  is the upper factor with its interface renamed, same state.
+  is the upper factor with its interface renamed, same state;
+* `UC.Machine.Composite.unfoldᶜ`, for any two processes: the composite as one
+  product-state machine, read through `Unfolding`'s six equations.
 
 The first is unavailable: `subᴵ s` is not a `morphism` image and cannot be one.
 The mismatch is the one `Protocol.Machine`'s own header records — a layer-1

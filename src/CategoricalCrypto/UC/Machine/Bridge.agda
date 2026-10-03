@@ -1,11 +1,7 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- The bridge between the environment layer and layer 1's concrete statements.
---
--- It lives under `UC.Machine` because it is a statement about the `Dₚ` MODEL,
--- not about UC: reading "given this answer, the next query" off a context needs
--- an inspectable step, and the budget it charges is that model's resource
--- doctrine.  Nothing in the qualitative core mentions a strategy.
+-- The unitor wires at `unitᴵ`, and what a budgeted ancilla context observes of
+-- a process plugged into it (`ctxRun`).
 
 open import Categories.Category using (Category)
 

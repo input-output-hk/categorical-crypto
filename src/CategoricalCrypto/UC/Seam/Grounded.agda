@@ -65,18 +65,12 @@ closedᵒ = stageᵒ
 -- only interface the factoring exposes.  `factorᵖ` holds in 𝒞's own
 -- equality, strictly finer than `_≈ᵁ_`.
 
--- `closedᵒ w` is `return ∘ procᵒ w` on the nose, which is what lets a pure
--- composite be recognized as one.
-factorᵒ : {B C : Iface} (g : Proc B C) (w : Proc unitᴵ B)
-        → sub λ⇒ ∘ (stageᵒ g ∙ closedᵒ w) ≈ ιᴳ C ∘ (procᵒ g ∘ procᵒ w)
-factorᵒ g w = ∙-return (stageᵒ g) (procᵒ w) ○ assoc
-
 factorᵖ : {B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol unitᴵ B)
         → closedᵒ (morphism (P₂ ∘ᵖ P₁))
           ≈ sub λ⇒ ∘ (stageᵒ (morphism P₂) ∙ closedᵒ (morphism P₁))
 factorᵖ P₂ P₁ =
   (refl⟩∘⟨ (≈ᴹ⇒≈ᵒ (morphismCompose P₂ P₁) ○ procᵒ-∘ (morphism P₂) (morphism P₁)))
-  ○ ⟺ (factorᵒ (morphism P₂) (morphism P₁))
+  ○ ⟺ (∙-return (stageᵒ (morphism P₂)) (procᵒ (morphism P₁)) ○ assoc)
 
 ------------------------------------------------------------------------
 -- The degenerate ancilla

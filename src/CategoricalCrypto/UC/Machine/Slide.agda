@@ -226,27 +226,27 @@ ctxRun-slide E m x = runᴹ-resp-≈ᴹ {Ωᴵ} (slideᴹ E m x) (ask tt out)
 ------------------------------------------------------------------------
 -- Closing the hole again
 
-unit-cancel : (x : Proc unitᴵ B) → 𝒫._≈_ {unitᴵ} {B} (λᴵ⇒ 𝒫.∘ conjᴵ x) x
-unit-cancel {B} x =
+unit-cancel : (x : Proc A B) → 𝒫._≈_ {A} {B} (λᴵ⇒ 𝒫.∘ (λᴵ⇐ 𝒫.∘ x)) x
+unit-cancel {A} {B} x =
      𝒫.∘-resp-≈ʳ (wire-∘ᴹ inj₂ [ ⊥-elim , id ] x)
   ○ᴹ wire-∘ᴹ [ ⊥-elim , id ] inj₂ (sandwichᴹ x i₁ o₁)
   ○ᴹ sandwich-∘ x i₁ o₁ i₂ o₂
   ○ᴹ sandwich-id x (λ z → i₁ (i₂ z)) (λ y → o₂ (o₁ y))
-       (λ where (inj₁ ())
+       (λ where (inj₁ _) → refl
                 (inj₂ _) → refl)
-       (λ where (inj₁ ())
+       (λ where (inj₁ _) → refl
                 (inj₂ _) → refl)
   where
-  i₁ : Pos unitᴵ ⊎ Neg (unitᴵ ⊗ᴵ B) → Pos unitᴵ ⊎ Neg B
+  i₁ : Pos A ⊎ Neg (unitᴵ ⊗ᴵ B) → Pos A ⊎ Neg B
   i₁ = Sum.map₂ [ ⊥-elim , id ]
 
-  o₁ : Neg unitᴵ ⊎ Pos B → Neg unitᴵ ⊎ Pos (unitᴵ ⊗ᴵ B)
+  o₁ : Neg A ⊎ Pos B → Neg A ⊎ Pos (unitᴵ ⊗ᴵ B)
   o₁ = Sum.map₂ inj₂
 
-  i₂ : Pos unitᴵ ⊎ Neg B → Pos unitᴵ ⊎ Neg (unitᴵ ⊗ᴵ B)
+  i₂ : Pos A ⊎ Neg B → Pos A ⊎ Neg (unitᴵ ⊗ᴵ B)
   i₂ = Sum.map₂ inj₂
 
-  o₂ : Neg unitᴵ ⊎ Pos (unitᴵ ⊗ᴵ B) → Neg unitᴵ ⊎ Pos B
+  o₂ : Neg A ⊎ Pos (unitᴵ ⊗ᴵ B) → Neg A ⊎ Pos B
   o₂ = Sum.map₂ [ ⊥-elim , id ]
 
 T₁-conj : (x : Proc unitᴵ B)

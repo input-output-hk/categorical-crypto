@@ -4,6 +4,7 @@
 -- setup, and its acceptance test at a selected environment class.
 
 open import Data.Empty
+open import Data.Product.Base
 open import Data.Sum.Base
 
 open import CategoricalCrypto.Iface
@@ -14,7 +15,7 @@ open import CategoricalCrypto.UC.Model.Setup
 
 module CategoricalCrypto.UC.Robust.Model where
 
-open import CategoricalCrypto.UC.Robust StdSetup using (Factors; Robust; factors-closed; uc-preserves-at)
+open import CategoricalCrypto.UC.Robust StdSetup using (Factors; Robust; factors-closed; uc-preserves)
 open import Relation.Binary.Properties.Setoid.Ext S
 
 -- The stateless relay that exposes its own caller interface as its adversary
@@ -25,12 +26,10 @@ relayᵒ : (A : Iface) → ifaceᵒ A ⇒ T₀ (ifaceᵒ A) (ifaceᵒ unitᴵ)
 relayᵒ A = gradedᵒ (wireᴹ inj₁ [ (λ n → n) , ⊥-elim ])
 
 -- The acceptance test the top class cannot give: a nontrivial `Adm`
--- (`UC.Robust.Factors`), a simulator that is a real machine — `relayᵒ` — and
--- the preservation applied at that explicit witness rather than at an
--- all-simulators closure, at the trivial agreement (`≈ᵁ-refl`).
+-- (`UC.Robust.Factors`) and a simulator that is a real machine, `relayᵒ`.
 relay-selectedᵒ : (𝔄 : Iface) (r : S.Carrier) (V : Channel)
                 → Robust (λ W → always {D = T₀ W (ifaceᵒ 𝔄)} ∼[ r ]) (Factors V) (relayᵒ 𝔄)
                 → Robust (λ W → always {D = T₀ W (ifaceᵒ 𝔄)} ∼[ r ]) (Factors V)
                          (sub (relayᵒ 𝔄) ∘ relayᵒ 𝔄)
-relay-selectedᵒ 𝔄 r V = uc-preserves-at (λ W → always {D = T₀ W (ifaceᵒ 𝔄)} ∼[ r ]) (Factors V)
-                                         (relayᵒ 𝔄) ≈ᵁ-refl (factors-closed V (relayᵒ 𝔄))
+relay-selectedᵒ 𝔄 r V = uc-preserves (λ W → always {D = T₀ W (ifaceᵒ 𝔄)} ∼[ r ]) (Factors V)
+                                      (factors-closed V) (dummy-complete (relayᵒ 𝔄 , ≈ᵁ-refl))

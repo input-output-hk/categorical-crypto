@@ -52,7 +52,6 @@ open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.Dictionary
 open import CategoricalCrypto.UC.Machine.Dominated
 open import CategoricalCrypto.UC.Machine.Grading
-open import CategoricalCrypto.UC.Machine.Monitor
 open import CategoricalCrypto.UC.Machine.Slide
 open import CategoricalCrypto.UC.Machine.StateEvent
 open import CategoricalCrypto.UC.Machine.StateEvent.Read
@@ -213,7 +212,7 @@ module _ {B : Iface} (M : Proc unitᴵ B) (P : StateTest M) where
 
 module FlagCert (B : Iface) (N : Proc B Ωᴵ) {k : ℕ} (qN : Certified k N) where
 
-  open Read B N
+  open Collapsed B N
   private module qN = QBᵢ qN
 
   pendF : FlagSt → ℕ
@@ -231,7 +230,7 @@ module FlagCert (B : Iface) (N : Proc B Ωᴵ) {k : ℕ} (qN : Certified k N) wh
     Aᶠ : ℕ → Set
     Aᶠ = Ans Φᶠ (Neg B ⊎ ⊤) Bool
 
-    -- `Read.efOut` with the potentials attached: the test's query costs what
+    -- `Collapsed.efOut` with the potentials attached: the test's query costs what
     -- it cost the test, its verdict becomes the flag ask, paid by `pendF`.
     fAns : (fs : FlagSt) {rN r : ℕ} → rN ℕ.+ pendF fs ℕ.≤ r → Aᴺ rN → Dₚ (Aᶠ r)
     fAns fs le (inj₁ ((se , lo) , q)) =
@@ -345,8 +344,8 @@ module FlagCert (B : Iface) (N : Proc B Ωᴵ) {k : ℕ} (qN : Certified k N) wh
 -- The lift
 
 read-≈ : (B : Iface) {N D : Proc B Ωᴵ} → N S.≈ᴹ D
-       → 𝒫._≈_ (Read.readᴹ B N) (flagReadᴹ 𝒫.∘ subᴵ D)
-read-≈ B {N} e = S.⟺ᴹ (Read.read-collapse B N) S.○ᴹ 𝒫.∘-resp-≈ʳ (sub-resp-≈ e)
+       → 𝒫._≈_ (Collapsed.readᴹ B N) (flagReadᴹ 𝒫.∘ subᴵ D)
+read-≈ B {N} e = S.⟺ᴹ (Collapsed.read-collapse B N) S.○ᴹ 𝒫.∘-resp-≈ʳ (sub-resp-≈ e)
 
 flagSkeleton : (B : Iface) (D : Proc B Ωᴵ) {k : ℕ} → QB k D
              → (M : Proc unitᴵ B) (P : StateTest M) (r : ℚ)
@@ -361,7 +360,7 @@ flagSkeleton B D {k} (N , certN , e) M P r h n =
       (n₂ , le₂) → ≤-trans le₁ (≤-trans le₂ (bound n₁ n₂))
   where
   open FlagCert B N certN
-  open Refine (B ⊗ᴵ Ωᴵ) (flagReadᴹ 𝒫.∘ subᴵ D) (Read.readᴹ B N) (k ℕ.+ 1) certᶠ (read-≈ B e)
+  open Refine (B ⊗ᴵ Ωᴵ) (flagReadᴹ 𝒫.∘ subᴵ D) (Collapsed.readᴹ B N) (k ℕ.+ 1) certᶠ (read-≈ B e)
 
   u = M ▷ P
 

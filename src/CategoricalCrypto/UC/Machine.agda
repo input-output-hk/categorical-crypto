@@ -29,19 +29,13 @@ import Data.Unit.Polymorphic.Base as PolyUnit
 open import Level
 
 open import ProbabilisticLogic.Dp
-open import ProbabilisticLogic.Dp.Advantage
 
-open import CategoricalCrypto.Approx.Error
-open import CategoricalCrypto.Approx.Evaluation ℚ-ordered
-open import CategoricalCrypto.Approx.Space ℚ-ordered
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Machine.Run
 open import CategoricalCrypto.Strategy
-open import CategoricalCrypto.UC.Core
 
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.UC.Machine where
@@ -57,7 +51,7 @@ private
 -- rather than as `𝒢ₚ 0ℓ [ ⟦ A ⟧ᴵ , ⟦ B ⟧ᴵ ]` (definitionally the same): an
 -- implicit inferred from the hom form is `𝒢ₚ`'s object sum, under which sits
 -- the δ-unfolded Mealy category record, and every term mentioning it carries
--- that copy (`UC.Machine.Monitor.Agree`: 2.4 → 1.2 GiB residency).
+-- that copy (`UC.Machine.Monitor.flag-agree`: 2.4 → 1.2 GiB residency).
 Proc : Iface → Iface → Set₁
 Proc A B = MC.Machine (Pos A ⊎ Neg B) (Neg A ⊎ Pos B)
 
@@ -117,19 +111,6 @@ initˢ S s = record { obj = S ; point = λ _ → returnₚ s }
 
 ⟦_⟧ᴼ : Proc unitᴵ Ωᴵ → Dₚ Bool
 ⟦ M ⟧ᴼ = runᴹ M (ask tt out)
-
--- Compares both verdict masses (`ProbabilisticLogic.Dp.Advantage`'s header).
-Approximationᴹ : Approximation (Dₚ Bool) ℚ-ordered 0ℓ
-Approximationᴹ = record
-  { _≈[_]_    = _≈ₚ[_]_
-  ; ≈[]-refl  = ≈ₚ[]-refl
-  ; ≈[]-sym   = ≈ₚ[]-sym
-  ; ≈[]-trans = ≈ₚ[]-trans
-  ; ≈[]-mono  = ≈ₚ[]-mono
-  }
-
-spaceᴹ : ApproxSpace 0ℓ 0ℓ
-spaceᴹ = record { Carrier = Dₚ Bool ; approx = Approximationᴹ }
 
 
 ------------------------------------------------------------------------
