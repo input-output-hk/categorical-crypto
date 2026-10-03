@@ -29,14 +29,12 @@ open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 
 import CategoricalCrypto.Machines.Collapse as Col
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Trace as Trace
 
-module CategoricalCrypto.UC.Seam.Plug where
+module CategoricalCrypto.UC.Machine.Plug where
 
 private
-  module MC = Core (𝒱ₚ 0ℓ)
   module MT = Trace (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ) (Elgotₚ 0ℓ)
   module Sm = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
   module 𝒫 = Category 𝒫ᴵ
@@ -82,6 +80,20 @@ module Tick (X : Set) (S : MC.State)
 ------------------------------------------------------------------------
 -- …at a closed composite
 
+-- Where the context's and the process's emissions go: a query re-enters the
+-- loop, a verdict leaves (`Machines.Collapse`'s `outᵍ`/`outᶠ`, case-split so
+-- that the loop reduces).
+module _ (B : Iface) where
+
+  outE : Neg B ⊎ Bool → (⊥ ⊎ Bool) ⊎ (Neg B ⊎ Pos B)
+  outE (inj₁ n) = inj₂ (inj₁ n)
+  outE (inj₂ v) = inj₁ (inj₂ v)
+
+  outU : ⊥ ⊎ Pos B → (⊥ ⊎ Bool) ⊎ (Neg B ⊎ Pos B)
+  outU (inj₁ e) = ⊥-elim e
+  outU (inj₂ p) = inj₂ (inj₂ p)
+
+
 -- Every interface is EXPLICIT (see `UC.Machine.𝒫ᴵ`).
 module Plugged (B : Iface) (K : Proc B Ωᴵ) (u : Proc unitᴵ B) where
 
@@ -93,13 +105,6 @@ module Plugged (B : Iface) (K : Proc B Ωᴵ) (u : Proc unitᴵ B) where
   kᴷ = Col.kᴳ {⊥} {⊥} {Pos B} {Neg B} {Bool} {⊤} K u
 
   open Tick (Neg B ⊎ Pos B) Sᴷ kᴷ public
-
-  -- The paired state's point is the two factors', in order; the junction is
-  -- the one `λ⇐` spends.
-  point-red : MC.point Sᴷ ttᵛ
-            ≈ₚ (MC.point (MC.state K) ttᵛ >>=ₚ λ sk →
-                MC.point (MC.state u) ttᵛ >>=ₚ λ su → returnₚ (sk , su))
-  point-red = >>=ₚ-identityˡ (ttᵛ , ttᵛ) _
 
   -- The composite `𝒫ᴵ` names and the collapsed trace this module is about are
   -- the same machine; the projection out of the G-construction record is paid
@@ -113,7 +118,7 @@ module Plugged (B : Iface) (K : Proc B Ωᴵ) (u : Proc unitᴵ B) where
 -- A composite is observed through a representative of its context factor,
 -- which is what a `QB` certificate is carried on (`UC.QueryBound`'s `QB` is
 -- the `≈`-closure of `Certified`).
-obs-resp : (B : Iface) (u : Proc unitᴵ B) (N K : Proc B Ωᴵ) → N Sm.≈ᴹ K
+obs-resp-ctx : (B : Iface) (u : Proc unitᴵ B) (N K : Proc B Ωᴵ) → N Sm.≈ᴹ K
          → ⟦ N 𝒫.∘ u ⟧ᴼ ≈ₚ ⟦ K 𝒫.∘ u ⟧ᴼ
-obs-resp B u N K e =
+obs-resp-ctx B u N K e =
   runᴹ-resp-≈ᴹ {Ωᴵ} (𝒫.∘-resp-≈ˡ {unitᴵ} {B} {Ωᴵ} {N} {K} {u} e) (ask tt out)

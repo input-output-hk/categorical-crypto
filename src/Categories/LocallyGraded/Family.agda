@@ -9,7 +9,7 @@
 -- certificates, so two homs whose upper-bound annotations differ can still be
 -- equal. That is what makes the family category monoidal with every law read
 -- off C, and what separates it from an exact-grade category whose equality
--- keeps the grade (`CategoricalCrypto.UC.Quantitative.Query.𝒞ᵇ`).
+-- keeps the grade.
 
 module Categories.LocallyGraded.Family where
 

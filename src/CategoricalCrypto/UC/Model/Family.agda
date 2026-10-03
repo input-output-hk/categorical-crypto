@@ -1,10 +1,9 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- `UCSetup` at the machine FAMILY: `UC.Family` instantiated at the
--- sealed bundle, so the inherited metatheory is available asymptotically, with
--- `UC.Family.Vanishing` on the same ingredients supplying `Canonical^ω`, the
--- INHERITED order, where `UC-compose` is, and `UC.Family.Negligible{,.Setup}`
--- the negligible tier's readout and emulation order.
+-- sealed bundle, so the inherited metatheory is available asymptotically:
+-- `Canonical^ω` is the INHERITED order, where `UC-compose` is, and
+-- `UC.Family.Negligible` the negligible tier's readout and emulation order.
 
 open import Data.Nat.Base
 
@@ -18,13 +17,7 @@ module CategoricalCrypto.UC.Model.Family where
 open import CategoricalCrypto.UC.Family
   𝔾ᵒ qevaluationᵒ gradingᵒ ℕ (λ n → n) public
 
-open import CategoricalCrypto.UC.Family.Vanishing
-  𝔾ᵒ qevaluationᵒ gradingᵒ ℕ (λ n → n) public
-
 open import CategoricalCrypto.UC.Family.Negligible
-  𝔾ᵒ qevaluationᵒ gradingᵒ ℕ (λ n → n) public
-
-open import CategoricalCrypto.UC.Family.Negligible.Setup
   𝔾ᵒ qevaluationᵒ gradingᵒ ℕ (λ n → n) public
 
 -- An interface family as an object family of the seal.

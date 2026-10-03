@@ -16,7 +16,6 @@
 
 open import Categories.Category.Core
 open import Categories.Category.Monoidal.Bundle
-open import Categories.Category.Monoidal.Core
 open import Categories.Category.Monoidal.Pure
 open import Categories.Category.Monoidal.Traced
 open import Categories.Monad.Discrete
@@ -83,6 +82,10 @@ distₚ ℓ = KDD.MonoidalDistributiveᵏ (Dₚ-DiscreteMonad)
 -- The pure state maps: `iterₚ` transfers along these and no others.
 𝒫ₚ : (ℓ : Level) → PureSub (𝒱ₚ ℓ)
 𝒫ₚ ℓ = KDP.PureSubᵏ (Dₚ-DiscreteMonad)
+
+-- The machine layer at the base, applied once: a second application is a
+-- distinct module whose names clash with this one's in any common opener.
+module MC = Core (𝒱ₚ 0ℓ)
 
 module Elgotᵏ (ℓ : Level) where
   open DiscreteMonad (Dₚ-DiscreteMonad {ℓ})
@@ -284,6 +287,3 @@ TraceLawsₚ ℓ = G.Mealy-TraceLaws (𝒱ₚ ℓ) (distₚ ℓ) (𝒫ₚ ℓ) (
 
 𝒢ₚ : (ℓ : Level) → Category (suc ℓ) (suc ℓ) (suc ℓ)
 𝒢ₚ ℓ = MonoidalCategory.U (𝒢ₚᴹ ℓ)
-
-𝒢ₚ-Monoidal : (ℓ : Level) → Monoidal (𝒢ₚ ℓ)
-𝒢ₚ-Monoidal ℓ = MonoidalCategory.monoidal (𝒢ₚᴹ ℓ)

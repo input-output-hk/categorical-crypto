@@ -6,9 +6,6 @@
 -- closed, and one space is enough to show that they do: rational sequences
 -- compared by EVENTUAL closeness.  `2⁻ⁿ` is eventually within every positive ε
 -- of the zero sequence and is never eventually equal to it.
---
--- The plan's own witness is the model-level one; this is the same phenomenon on
--- the smallest carrier that exhibits it.
 
 open import Data.Nat.Base as ℕ
 open import Data.Product.Base

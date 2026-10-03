@@ -4,6 +4,7 @@
 -- through its two aggregate masses.
 
 open import Data.Bool.Base
+open import Data.List.Base using ([]; _∷_)
 open import Data.Nat.Base
 open import Data.Product.Base
 open import Data.Rational as ℚ
@@ -13,6 +14,9 @@ open import Data.Vec.Base as Vec using (Vec)
 open import Function.Base
 open import Level using (Level)
 open import Relation.Binary.PropositionalEquality
+
+import Data.List.NonEmpty as NE
+import Data.List.Relation.Unary.All as All
 
 open import ProbabilisticLogic.Distribution.RationalDist
 
@@ -60,6 +64,16 @@ coinₚ-cum μ n P = trans branches (trans (cong₂ ℚ._+_ (pull bool→ℚ _) 
                         (ℚP.+-identityʳ (P true))
     split false = trans (cong₂ ℚ._+_ (ℚP.*-zeroˡ (P true)) (ℚP.*-identityˡ (P false)))
                         (ℚP.+-identityˡ (P false))
+
+-- A node's two weights, as a coin.
+coinᵈ : {A : Set} → Dₚ A → Dist-ℚ Bool
+coinᵈ X = mk-Dist ((wt X true , true) NE.∷ ((wt X false , false) ∷ []))
+                  (trans (cong (wt X true ℚ.+_) (ℚP.+-identityʳ (wt X false))) (wt-1 X))
+                  (wt-nn X true All.∷ wt-nn X false All.∷ All.[])
+
+E-coinᵈ : {A : Set} (X : Dₚ A) (F : Bool → ℚ)
+        → E (coinᵈ X) F ≡ wt X true ℚ.* F true ℚ.+ wt X false ℚ.* F false
+E-coinᵈ X F = cong (wt X true ℚ.* F true ℚ.+_) (ℚP.+-identityʳ (wt X false ℚ.* F false))
 
 ------------------------------------------------------------------------
 -- A balanced coin is blind to a flip

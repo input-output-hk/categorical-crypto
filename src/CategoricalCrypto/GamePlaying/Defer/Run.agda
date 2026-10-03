@@ -32,11 +32,8 @@ open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Strategy
 
-import CategoricalCrypto.Machines.Core as Core
 
 module CategoricalCrypto.GamePlaying.Defer.Run where
-
-private module MC = Core (𝒱ₚ 0ℓ)
 
 -- `f` is the PLANTED side, run at a family of states indexed by the secret;
 -- `g` is the DEFERRING side, run at a single state.  The relation compares a

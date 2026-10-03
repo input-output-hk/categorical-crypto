@@ -4,9 +4,8 @@
 -- object, the wire that inflates a process to it, the images of open and
 -- closed processes there, and how the degenerate ancilla reads back.
 --
--- The grade is the sealed bundle's OWN monoidal unit, not `unitᴵ`: the two are
--- the empty interface spelled with two different empty types, and the iso
--- between them costs >150 s to check.
+-- The grade is the sealed bundle's OWN monoidal unit, not `unitᴵ`; the two
+-- empty interfaces are not identified (`UC.Model.Observation`).
 
 open import Categories.Category
 import Categories.Category.Monoidal.Reasoning as MonR

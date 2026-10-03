@@ -20,6 +20,6 @@ import CategoricalCrypto.Standard2 as Std2
 module CategoricalCrypto.UC.Model.Setup where
 
 open Evaluation evaluationᵒ public
-open Observable observable public using (Test; _≋_; ≋-isEquivalence; ℰ₀)
+  hiding (pull; pull-cong)
   renaming (≈⇒≋ to ≈ᵒ⇒≋; ℰᴼ to ℰᵒ)
 open Std2.StdUC 𝔾ᵒ ℰᵒ public

@@ -79,20 +79,20 @@ Evaluation^ω = qual₊ ℚ-refinement QEvaluation^ω
 
 module R^ω = Evaluation Evaluation^ω
 
-open R^ω public using (Closure; observe)
+open R^ω public using (Closure; observe; Test; _≋_) renaming (ℰᴼ to ℰ^ω)
 
-open Observable R^ω.observable public using (Test; _≋_) renaming (ℰᴼ to ℰ^ω)
+-- The INHERITED order: `absorb` below concludes a `_≈ᵁ_` witness, hence one
+-- for `Canonical^ω._≤UC_` through `Canonical^ω.≈ᵁ⇒≤UC`.
+module Canonical^ω = Std2.StdUC Famᴹ ℰ^ω
 
-private module Std^ω = Std2.StdUC Famᴹ ℰ^ω
+open Canonical^ω public using (_≈ᵁ_; ≈ᵁ-refl; ≈ᵁ-sym; ≈ᵁ-trans; ≈ᵁ-setoid; ≈C⇒≈ᵁ; sub-cong)
 
-open Std^ω public using (_≈ᵁ_; ≈ᵁ-refl; ≈ᵁ-sym; ≈ᵁ-trans; ≈ᵁ-setoid; ≈C⇒≈ᵁ; sub-cong)
-
--- Spelled through `Std^ω`, as a consumer's `Std2.StdUC` application is: the
+-- Spelled through `Canonical^ω`, as a consumer's `Std2.StdUC` application is: the
 -- direct `Std2.StdUC.StdSetup Famᴹ ℰ^ω` makes the `refl` of
--- `UC.Family.Negligible.Setup.shared-computational` unfold the curried tensor
+-- `UC.Family.Negligible.shared-computational` unfold the curried tensor
 -- past a 16 GiB heap (measured), where this spelling checks in seconds.
 ucSetup^ω : UCSetup o (ℓ ⊔ qs) e o (ℓ ⊔ qs) e (ℓ ⊔ qs) (ℓ ⊔ qs ⊔ ℓa)
-ucSetup^ω = Std^ω.StdSetup
+ucSetup^ω = Canonical^ω.StdSetup
 
 infix 4 _≈ℰ[_]_
 
@@ -108,9 +108,9 @@ _≈ℰ[_]_ : {A B : Obj^ω} → A ⇒^ω B → (ℕ → ℕ → ℚ) → A ⇒^
 _≈ℰ[_]_ {A} {B} f ε g =
   (Y : Obj^ω) (Et : Test (Y ⊛ω B)) (m : Closure (Y ⊛ω A)) {pc : ℕ → ℕ⁺} → Poly⁺ pc
   → ((i : Ix) → Image forget (pc (κ i)) ⌊ hom Et i ⌋) → (i : Ix)
-  → observe (Et Std^ω.∘ Std^ω.id Std^ω.⊗₁ f) m i
+  → observe (Et Canonical^ω.∘ Canonical^ω.id Canonical^ω.⊗₁ f) m i
       ≈[ ε (κ i) (value (pc (κ i) · schedOf m (κ i))) ]
-    observe (Et Std^ω.∘ Std^ω.id Std^ω.⊗₁ g) m i
+    observe (Et Canonical^ω.∘ Canonical^ω.id Canonical^ω.⊗₁ g) m i
 
 -- `_≈ᵁ_` plugs a process into a test behind the prefix `α⇐ ∘ id ⊗₁ w`, and
 -- `_≈ℰ[_]_` into the same test at `Et ∘ α⇐`: one reassociation apart, at any
@@ -120,8 +120,8 @@ module Reassoc {cs ℓs : Level} (R : Evaluation Fam cs ℓs) {A B X Y : Obj^ω}
   private module R = Evaluation R
 
   plugα plugᵁ : A ⇒^ω (X ⊛ω B) → R.Closure R.Ω
-  plugα w = ((Et Std^ω.∘ Std^ω.α⇐ {Y} {X} {B}) Std^ω.∘ Std^ω.id Std^ω.⊗₁ w) Std^ω.∘ m
-  plugᵁ w = (Et Std^ω.∘ Std^ω.α⇐ {Y} {X} {B} Std^ω.∘ Std^ω.id Std^ω.⊗₁ w) Std^ω.∘ m
+  plugα w = ((Et Canonical^ω.∘ Canonical^ω.α⇐ {Y} {X} {B}) Canonical^ω.∘ Canonical^ω.id Canonical^ω.⊗₁ w) Canonical^ω.∘ m
+  plugᵁ w = (Et Canonical^ω.∘ Canonical^ω.α⇐ {Y} {X} {B} Canonical^ω.∘ Canonical^ω.id Canonical^ω.⊗₁ w) Canonical^ω.∘ m
 
   reassoc : {f g : A ⇒^ω (X ⊛ω B)} → R.read (plugα f) R.S.≈ R.read (plugα g)
           → R.read (plugᵁ f) R.S.≈ R.read (plugᵁ g)
@@ -133,8 +133,8 @@ module Reassoc {cs ℓs : Level} (R : Evaluation Fam cs ℓs) {A B X Y : Obj^ω}
 -- own rate — and `poly⁺-·` closes it.
 absorb : {A B X : Obj^ω} {f g : A ⇒^ω (X ⊛ω B)} {ε : ℕ → ℕ → ℚ}
        → f ≈ℰ[ ε ] g → VanishingBound ε → f ≈ᵁ g
-absorb {A} {B} {X} {f} {g} {ε} bnd van Y = Std^ω.KE.mk∼ λ {Et} m →
-  let Et′ = Et Std^ω.∘ Std^ω.α⇐ {Y} {X}
+absorb {A} {B} {X} {f} {g} {ε} bnd van Y = Canonical^ω.KE.mk∼ λ {Et} m →
+  let Et′ = Et Canonical^ω.∘ Canonical^ω.α⇐ {Y} {X}
   in Reassoc.reassoc Evaluation^ω {A} {B} {X} {Y} Et m {f} {g} λ δ δ>0 →
        let N , hN = van (λ n → value (schedOf Et′ n · schedOf m n))
                         (poly⁺-· {schedOf Et′} {schedOf m} (schedOf-adm Et′) (schedOf-adm m))

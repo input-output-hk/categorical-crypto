@@ -18,17 +18,19 @@ open import Categories.Category.Instance.Rates
 open import Categories.Category.Monoidal.Bundle
 open import Categories.LocallyGraded.SubCategory
 
-open import Data.Nat.Base as ℕ
+open import Data.Nat.Base as ℕ hiding (_⊔_)
 open import Data.Nat.Positive
 open import Data.Product.Base
 open import Data.Rational using (0ℚ)
 open import Level
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 open import CategoricalCrypto.Approx.Error
 open import CategoricalCrypto.Approx.Evaluation ℚ-ordered
 open import CategoricalCrypto.Approx.Schedule
 open import CategoricalCrypto.UC.Approximate
 open import CategoricalCrypto.UC.Core
+open import CategoricalCrypto.UCSetup
 
 import CategoricalCrypto.Approx.Evaluation as Evaluationᴹ
 import CategoricalCrypto.Standard2 as Std2
@@ -71,11 +73,10 @@ Evaluationᴺ =
 -- metatheory is not renamed alongside: it is
 -- `Standard2.StdUC Famᴹ` at `Evaluationᴺ`'s test presheaf, and a second
 -- copy of it under ᴺ names would be the parallel API this tier is meant not to
--- be.  The tier's EMULATION ORDER is `Abstract2`'s at `ucSetupᴺ`
--- (`UC.Family.Negligible.Setup`).
-private module N = Std2.StdUC Famᴹ (Observable.ℰᴼ (Evaluation.observable Evaluationᴺ))
+-- be.  The tier's EMULATION ORDER is `Abstract2`'s at `ucSetupᴺ` below.
+module Canonicalᴺ = Std2.StdUC Famᴹ (Evaluation.ℰᴼ Evaluationᴺ)
 
-open N public using () renaming (_≈ᵁ_ to _≈ℰᴺ_)
+open Canonicalᴺ public using () renaming (_≈ᵁ_ to _≈ℰᴺ_)
 
 ------------------------------------------------------------------------
 -- The one-way bridge
@@ -86,10 +87,37 @@ open N public using () renaming (_≈ᵁ_ to _≈ℰᴺ_)
 -- `Poly` arithmetic against 8 s.  The test's rate schedule is explicit for
 -- the same reason.
 ≈ℰⁿ⇒≈ℰᴺ : {A B X : Obj^ω} (f g : A ⇒^ω (X ⊛ω B)) → f ≈ℰⁿ g → f ≈ℰᴺ g
-≈ℰⁿ⇒≈ℰᴺ {A} {B} {X} f g (ε , neg , bnd) Y = N.KE.mk∼ λ {Et} m →
-  let Et′ = Et N.∘ N.α⇐ {Y} {X}
+≈ℰⁿ⇒≈ℰᴺ {A} {B} {X} f g (ε , neg , bnd) Y = Canonicalᴺ.KE.mk∼ λ {Et} m →
+  let Et′ = Et Canonicalᴺ.∘ Canonicalᴺ.α⇐ {Y} {X}
       Pc  = schedOf-adm Et′ ; c = λ i → hom Et′ i , MonoidalCategory.Equiv.refl M
   in Reassoc.reassoc Evaluationᴺ {A} {B} {X} {Y} Et m {f} {g}
        ( (λ n → ε n (value (schedOf Et′ n · schedOf m n)))
        , neg Y Et′ m {schedOf Et′} Pc c
        , bnd Y Et′ m {schedOf Et′} Pc c )
+
+------------------------------------------------------------------------
+-- The canonical setup
+
+-- The same four fields as `UC.Family.ucSetup^ω`, at `Evaluationᴺ`: the whole of
+-- `Abstract2` — `≤UC-refl`, `dummy-complete`, `≤UC-trans`, `UC-compose`,
+-- `≈ᵁ⇒≈ℰ` — is inherited at the negligible tier instead of restated there.
+ucSetupᴺ : UCSetup o (ℓ ⊔ qs) e o (ℓ ⊔ qs) e (ℓ ⊔ qs) (ℓ ⊔ qs ⊔ ℓa)
+ucSetupᴺ = Canonicalᴺ.StdSetup
+
+-- A concrete budget-indexed bound reaches the INHERITED order directly; the
+-- homs are EXPLICIT for `≈ℰⁿ⇒≈ℰᴺ`'s reason.
+≈ℰⁿ⇒≤UC : {A B X : Canonicalᴺ.Channel}
+          (f g : Canonicalᴺ._⇒_ A (Canonicalᴺ.T₀ X B))
+        → f ≈ℰⁿ g → Canonicalᴺ._≤UC_ f g
+≈ℰⁿ⇒≤UC f g h = Canonicalᴺ.≈ᵁ⇒≤UC {f = f} {g} (≈ℰⁿ⇒≈ℰᴺ f g h)
+
+-- `ucSetup^ω` is the VANISHING setup — `Evaluation^ω`'s comparison is vanishing
+-- advantage, `Approx.Evaluation.qual₊` having quantified the error away — and
+-- `ucSetupᴺ` the LOCAL-NEGLIGIBLE one, which keeps the witness.  They differ in
+-- the presheaf and in nothing else: the category, the grades and the graded
+-- monad are shared.
+shared-computational :
+    (UCSetup.𝒞 ucSetup^ω ≡ UCSetup.𝒞 ucSetupᴺ)
+  × (UCSetup.ℐ ucSetup^ω ≡ UCSetup.ℐ ucSetupᴺ)
+  × (UCSetup.ℳ ucSetup^ω ≡ UCSetup.ℳ ucSetupᴺ)
+shared-computational = refl , refl , refl

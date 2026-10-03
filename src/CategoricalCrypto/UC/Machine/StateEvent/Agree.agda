@@ -28,6 +28,7 @@ open import ProbabilisticLogic.Dp.Iter
 open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pointwise
 open import CategoricalCrypto.Machines.Sandwich
 open import CategoricalCrypto.Protocol.Machine
@@ -44,7 +45,7 @@ open import CategoricalCrypto.UC.Machine.Wire
 open import CategoricalCrypto.UC.Seam
 open import CategoricalCrypto.UC.Seam.Adequacy.Wiring
 open import CategoricalCrypto.UC.Seam.Budget
-open import CategoricalCrypto.UC.Seam.Plug
+open import CategoricalCrypto.UC.Machine.Plug
 
 import CategoricalCrypto.Machines.Collapse as Col
 
@@ -188,7 +189,7 @@ module _ {B : Iface} (M : Proc unitᴵ B) (P : StateTest M) (d : Strat (Neg B) (
   flag-adequacy =
       collapse
     ⟨≈⟩ observe
-    ⟨≈⟩ bindˣ (point-red
+    ⟨≈⟩ bindˣ (point-⊛ (MC.state readᴹ) (MC.state u) ttᵛ
                ⟨≈⟩ bindˣ (point-⊛ (MC.state flagReadᴹ) (MC.state E) ttᵛ
                           ⟨≈⟩ >>=ₚ-identityˡ idle _ ⟨≈⟩ >>=ₚ-identityˡ (play d) _)
                ⟨≈⟩ >>=ₚ-identityˡ (idle , play d) _)

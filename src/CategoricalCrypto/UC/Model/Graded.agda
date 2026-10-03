@@ -26,7 +26,7 @@ private
   module M = Category (𝒢ₚ 0ℓ)
 
 opaque
-  unfolding gradedᵒ procᵘ
+  unfolding gradedᵒ
 
   ≈ᴹ⇒≈ᵍ : {A X B : Iface} {f g : Proc A (X ⊗ᴵ B)}
         → 𝒢ₚ 0ℓ [ f ≈ g ] → gradedᵒ f G.≈ gradedᵒ g
@@ -69,17 +69,3 @@ opaque
                 G.≈ graded₂ᵒ (M._∘_ (a⇐ᴵ {X} {P} {C}) (M._∘_ (T₁ᴵ X k) f))
   ext-gradedᵒ k f =
     G.∘-resp-≈ (G.Equiv.sym a⇐-α⇐) (G.∘-resp-≈ˡ (G.Equiv.sym (T₁-⊗₁ k)))
-
-  procᵘ-∘ : {X Y : Iface} (a : Proc X 𝟭ᴵ) (s : Proc Y X)
-          → procᵘ (M._∘_ a s) G.≈ procᵘ a G.∘ procᵒ s
-  procᵘ-∘ _ _ = G.Equiv.refl
-
-  -- The filled grade is the unit, which the unitor deflates (`λ⇒-λᴳ` is that
-  -- unitor as a wire): the graded reading of `UC.Seam.Grounded.plug-run`'s
-  -- `unprocᵒ-∘`.
-  plug-gradedᵒ : {A B X : Iface} (a : Proc X 𝟭ᴵ) (f : Proc A (X ⊗ᴵ B))
-               → (G.unitorˡ.from G.∘ ((procᵘ a G.⊗₁ G.id {ifaceᵒ B}) G.∘ gradedᵒ f))
-                 G.≈ procᵒ (M._∘_ (plugᴹ a) f)
-  plug-gradedᵒ a f =
-    G.Equiv.trans (G.∘-resp-≈ (G.Equiv.sym λ⇒-λᴳ) (G.∘-resp-≈ˡ (G.Equiv.sym (sub-⊗₁ a))))
-                  G.sym-assoc

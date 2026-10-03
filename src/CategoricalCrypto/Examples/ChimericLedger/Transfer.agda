@@ -138,7 +138,7 @@ module _ (vr : Variant) (s : (n : ℕ) → Ledger.LState n) where
 
     ledgerᶠ-qb : (n : ℕ) → Image forgetᴳ 1⁺ (ledgerᶠ n)
     ledgerᶠ-qb n =
-      imageᵒ (pred-sub ≤-refl (pred-∘ pred-λ⇐ (qbᵒ {r = 1⁺}
+      pred⇒image (pred-sub ≤-refl (pred-∘ pred-λ⇐ (qbᵒ {r = 1⁺}
         (qb-oneCall (AtLevel.ledger n vr (s n)) (AtLevel.ledgerCall n vr) λ _ _ → refl))))
 
     factorᴿ : (hash : Systems HashIf^ω) (n : ℕ)

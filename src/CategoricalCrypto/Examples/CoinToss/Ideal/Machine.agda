@@ -31,7 +31,7 @@ open import CategoricalCrypto.UC.Machine
 
 import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Pointwise as Pw
-import CategoricalCrypto.UC.QueryBound.Compose.Step as CS
+import CategoricalCrypto.UC.Machine.Composite as CS
 
 module CategoricalCrypto.Examples.CoinToss.Ideal.Machine (k : ℕ) where
 

@@ -31,7 +31,7 @@ qb-∘ : (A B C : Iface) {c c′ : ℕ} (g : Proc B C) (f : Proc A B)
      → QB {B} {C} c g → QB {A} {B} c′ f
      → QB {A} {C} (c ℕ.* c′)
          (Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
-           (Col.W.α Pw.MC.∘ᴹ ((g Pw.T.⊗ᵉ f) Pw.MC.∘ᴹ Col.W.γ)))
+           (Col.W.α MC.∘ᴹ ((g Pw.T.⊗ᵉ f) MC.∘ᴹ Col.W.γ)))
 qb-∘ A B C g f (Ng , cg , eg) (Nf , cf , ef) =
   qb-resp-≈ {A} {C}
     (Col.compose-raw≈∘ᴳ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C} Ng Nf

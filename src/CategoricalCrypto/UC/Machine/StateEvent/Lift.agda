@@ -61,7 +61,7 @@ open import CategoricalCrypto.UC.QueryBound.Compose.Laws
 
 import Categories.Category.Monoidal.Reasoning as MR
 import Categories.Category.Monoidal.Utilities as MU
-import CategoricalCrypto.UC.Seam.Extract as Ext
+import CategoricalCrypto.UC.Machine.Extract as Ext
 
 module CategoricalCrypto.UC.Machine.StateEvent.Lift where
 

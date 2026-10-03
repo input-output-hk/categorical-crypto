@@ -20,7 +20,6 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Dictionary
-open import CategoricalCrypto.UC.Model.Enrichment
 open import CategoricalCrypto.UC.Model.Graded
 open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.Model.Setup
@@ -38,14 +37,8 @@ Factors : Proc A (X ⊗ᴵ B) → Proc Y X → Proc A (Y ⊗ᴵ B) → Set₁
 Factors f s g = 𝒢ₚ 0ℓ [ f ≈ subᴵ s M.∘ g ]
 
 -- `UC.Model.Graded`'s coercion lemmas re-typed into the setup's vocabulary
--- (`sub`, `unitorˡ`, `∘` of `UC.Model.Setup`), which `Model.Graded` cannot
--- open (see its header).
-plug-graded : (a : Proc X 𝟭ᴵ) (f : Proc A (X ⊗ᴵ B))
-            → unitorˡ.from ∘ (sub (procᵘ a) ∘ gradedᵒ f) ≈ procᵒ (plugᴹ a M.∘ f)
-plug-graded = plug-gradedᵒ
-
--- …and the reading a COMPOSED system needs:
--- `UC.Quantitative.Family._∙ᶠ_` is `ext X k ∘ f`, and `ext` is
+-- (`sub`, `∘` of `UC.Model.Setup`), which `Model.Graded` cannot open (see its
+-- header).  `UC.Quantitative.Family._∙ᶠ_` is `ext X k ∘ f`, and `ext` is
 -- `α⇐ ∘ id ⊗₁ _` on the nose, so a stage plugged on top of a graded image is
 -- again one machine composite.
 ext-graded : {P : Iface} (k : Proc B (P ⊗ᴵ C)) (f : Proc A (X ⊗ᴵ B))

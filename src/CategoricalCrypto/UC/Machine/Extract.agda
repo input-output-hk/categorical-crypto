@@ -5,7 +5,7 @@
 -- A `Strat` is a finite tree and a `Dₚ` context's coin tree is not, so no
 -- single strategy simulates a context: the extraction is FUEL-indexed, and
 -- past the fuel it answers `out (not b)`, the verdict that scores 0 under
--- `indᵇ b` (what that buys each direction: `UC.Seam.Transfer`).
+-- `indᵇ b` (what that buys each direction: `UC.Machine.Transfer`).
 --
 -- It reads the certificate's REFINED emissions rather than the step itself,
 -- and that is what makes the ask bound free: a downward output lands in
@@ -13,47 +13,26 @@
 -- is then the same induction as the extraction.
 
 open import Data.Bool.Base
-open import Data.List.Base
 open import Data.Nat.Base as ℕ
 open import Data.Product.Base
-open import Data.Rational as ℚ
-open import Data.Rational.Properties
 open import Data.Sum.Base
 open import Data.Unit.Base
-open import Level
-open import Relation.Binary.PropositionalEquality
 
-import Data.List.NonEmpty as NE
-import Data.List.Relation.Unary.All as All
-
-open import ProbabilisticLogic.Distribution.RationalDist
-open import ProbabilisticLogic.Distribution.RationalDist.Expectation
 open import ProbabilisticLogic.Dp
+open import ProbabilisticLogic.Dp.Coin
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.QueryBound
 
-module CategoricalCrypto.UC.Seam.Extract
+module CategoricalCrypto.UC.Machine.Extract
   (B : Iface) (K : Proc B Ωᴵ) (q : ℕ) (cert : Certified q K) where
 
 open QBᵢ cert public
 
 Ansᶜ : ℕ → Set
 Ansᶜ r = Ans Φ (Neg B) Bool r
-
-------------------------------------------------------------------------
--- A node's two weights, as a distribution
-
-coinᵈ : {A : Set} → Dₚ A → Dist-ℚ Bool
-coinᵈ X = mk-Dist ((wt X true , true) NE.∷ ((wt X false , false) ∷ []))
-                  (trans (cong (wt X true ℚ.+_) (+-identityʳ (wt X false))) (wt-1 X))
-                  (wt-nn X true All.∷ wt-nn X false All.∷ All.[])
-
-E-coinᵈ : {A : Set} (X : Dₚ A) (F : Bool → ℚ)
-        → E (coinᵈ X) F ≡ wt X true ℚ.* F true ℚ.+ wt X false ℚ.* F false
-E-coinᵈ X F = cong (wt X true ℚ.* F true ℚ.+_) (+-identityʳ (wt X false ℚ.* F false))
 
 ------------------------------------------------------------------------
 -- The extraction

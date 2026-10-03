@@ -20,9 +20,7 @@
 --
 -- Two controls are compared in the ERRORS' OWN ORDER (`_≐ᶜ_`), not by
 -- propositional equality: at a schedule-valued error `at φ ε` is itself a
--- function, and agreement of two such is not an equation without funext — the
--- query model needs `τ ∘ (1 *_)` to count as the identity control and cannot
--- prove it otherwise.
+-- function, and agreement of two such is not an equation without funext.
 
 open import Data.Product.Base using (_×_; _,_)
 open import Level

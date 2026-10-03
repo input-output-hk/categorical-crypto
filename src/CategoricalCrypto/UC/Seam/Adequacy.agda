@@ -33,14 +33,12 @@ open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Dictionary
 open import CategoricalCrypto.UC.Seam
 open import CategoricalCrypto.UC.Seam.Adequacy.Wiring
-open import CategoricalCrypto.UC.Seam.Plug
+open import CategoricalCrypto.UC.Machine.Plug
 
-import CategoricalCrypto.Machines.Core as Core
 
 module CategoricalCrypto.UC.Seam.Adequacy where
 
 private
-  module MC = Core (𝒱ₚ 0ℓ)
   module 𝒫 = Category 𝒫ᴵ
 
 module _ (B : Iface) (u : Proc unitᴵ B) (d : Strat (Neg B) (Pos B)) where

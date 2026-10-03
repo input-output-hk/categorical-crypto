@@ -54,17 +54,16 @@ open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.QueryBound
-open import CategoricalCrypto.UC.Seam.Plug
+open import CategoricalCrypto.UC.Machine.Plug
 
-import CategoricalCrypto.Machines.Core as Core
-import CategoricalCrypto.UC.Seam.Extract as Ext
+import CategoricalCrypto.Machines.Pointwise as Pw
+import CategoricalCrypto.UC.Machine.Extract as Ext
 
-module CategoricalCrypto.UC.Seam.Transfer
+module CategoricalCrypto.UC.Machine.Transfer
   (B : Iface) (K : Proc B Ωᴵ) (q : ℕ) (cert : Certified q K)
   (u : Proc unitᴵ B) (b : Bool) where
 
 private
-  module MC = Core (𝒱ₚ 0ℓ)
   module 𝒫 = Category 𝒫ᴵ
 
 open Ext B K q cert
@@ -98,19 +97,14 @@ dirac-node x = node-dirac x x
 ------------------------------------------------------------------------
 -- The refined loop
 
--- Where the context's emission goes: a query re-enters the loop, a verdict
--- leaves.  This is `Machines.Collapse`'s `outᵍ`, paired with the process's
--- state and case-split so that the loop reduces.
 ρᴷ : SU → SK × (Neg B ⊎ Bool) → St × ((⊥ ⊎ Bool) ⊎ Loop)
-ρᴷ su (s , inj₁ n) = (s , su) , inj₂ (inj₁ n)
-ρᴷ su (s , inj₂ v) = (s , su) , inj₁ (inj₂ v)
+ρᴷ su (s , x) = (s , su) , outE B x
 
 hᴷ : SU → (r : ℕ) → Ansᶜ r → St × ((⊥ ⊎ Bool) ⊎ Loop)
 hᴷ su r y = ρᴷ su (forget y)
 
 ρᵁ : SK → SU × (⊥ ⊎ Pos B) → St × ((⊥ ⊎ Bool) ⊎ Loop)
-ρᵁ s (su , inj₁ e) = ⊥-elim e
-ρᵁ s (su , inj₂ p) = (s , su) , inj₂ (inj₂ p)
+ρᵁ s (su , x) = (s , su) , outU B x
 
 bodyᴿ : Body St Loop (⊥ ⊎ Bool)
 bodyᴿ ((s , su) , inj₁ n) = mapₚ (ρᵁ s) (MC.step u (su , inj₂ n))
@@ -319,7 +313,7 @@ observe-≈ : ⟦ K 𝒫.∘ u ⟧ᴼ
               MC.point (MC.state u) ttᵛ >>=ₚ obsᴿ sk)
 observe-≈ = collapse
       ⟨≈⟩ observe
-      ⟨≈⟩ bindˣ point-red
+      ⟨≈⟩ bindˣ (Pw.point-⊛ (MC.state K) (MC.state u) ttᵛ)
       ⟨≈⟩ >>=ₚ-assoc (MC.point (MC.state K) ttᵛ) _ _
       ⟨≈⟩ bindᶠ λ sk → >>=ₚ-assoc (MC.point (MC.state u) ttᵛ) _ _
                  ⟨≈⟩ bindᶠ λ su → >>=ₚ-identityˡ (sk , su) _ ⟨≈⟩ tick-red sk su

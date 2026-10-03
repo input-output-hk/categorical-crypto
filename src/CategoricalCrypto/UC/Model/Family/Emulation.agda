@@ -2,7 +2,7 @@
 
 -- The family UC premise on protocol images, with its error KEPT: `_≈ᶠᴺ_`.
 -- `≤UC[]⇒≤UCᴺ` carries a fixed-data bound into the canonical negligible order
--- (`UC.Family.Negligible.Setup.Canonicalᴺ`), which keeps the certified simulator
+-- (`UC.Family.Negligible.Canonicalᴺ`), which keeps the certified simulator
 -- but not the schedule: a caller that needs the number keeps the bound's data.
 
 import Categories.Category.Monoidal.Reasoning as MonR

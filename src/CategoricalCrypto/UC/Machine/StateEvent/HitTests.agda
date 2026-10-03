@@ -24,6 +24,7 @@ open import ProbabilisticLogic.Dp.Reasoning
 open import ProbabilisticLogic.Dp.Settle
 
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pointwise
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine

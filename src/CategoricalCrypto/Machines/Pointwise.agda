@@ -20,13 +20,11 @@ open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pure
 
 import CategoricalCrypto.Machines.Category as MCat
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Tensor as Tensor
 
 module CategoricalCrypto.Machines.Pointwise where
 
-module MC  = Core (𝒱ₚ 0ℓ)
 module S   = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 
 module Cat = MCat (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)

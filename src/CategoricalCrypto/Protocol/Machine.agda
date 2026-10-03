@@ -35,12 +35,9 @@ open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Strategy
 
-import CategoricalCrypto.Machines.Core as Core
 
 module CategoricalCrypto.Protocol.Machine where
 
-private
-  module MC = Core (𝒱ₚ 0ℓ)
 
 private variable A B : Iface
 

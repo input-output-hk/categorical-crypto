@@ -55,11 +55,3 @@ module Reindexing {i es ℓe : Level} {I : Set i} (V : OrderedErrorAlgebra es �
     ; preserves-ε₀ = λ _ → V.⊑-refl
     ; preserves-⊕  = λ _ → V.⊑-refl
     }
-
-  -- Substitutions agreeing at every allowance reindex the same way.  This is
-  -- how a model's own allowance identity becomes a control equality — the
-  -- query model's three presheaf laws are each one instance
-  -- (`UC.Quantitative.Query.Qᵠ`).
-  reindex-cong : {ρ₁ ρ₂ : I → I} → ((j : I) → ρ₁ j ≡ ρ₂ j) → reindex ρ₁ ≐ᶜ reindex ρ₂
-  reindex-cong {ρ₁} eq = (λ ε j → subst (ε (ρ₁ j) V.⊑_) (cong ε (eq j)) V.⊑-refl)
-                       , λ ε j → subst (V._⊑ ε (ρ₁ j)) (cong ε (eq j)) V.⊑-refl

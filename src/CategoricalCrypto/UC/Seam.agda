@@ -23,12 +23,9 @@ open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 
-import CategoricalCrypto.Machines.Core as Core
 
 module CategoricalCrypto.UC.Seam where
 
-private
-  module MC = Core (𝒱ₚ 0ℓ)
 
 ------------------------------------------------------------------------
 -- A strategy as an environment
