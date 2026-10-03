@@ -25,11 +25,13 @@ open import Data.Rational using (0ℚ)
 open import Level
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
+open import ProbabilisticLogic.Distribution.Uniform.Decay
+
 open import CategoricalCrypto.Approx.Error
 open import CategoricalCrypto.Approx.Evaluation ℚ-ordered
 open import CategoricalCrypto.Approx.Schedule
 open import CategoricalCrypto.UC.Approximate
-open import CategoricalCrypto.UC.Core
+open import CategoricalCrypto.UC.Evaluation
 open import CategoricalCrypto.UCSetup
 
 import CategoricalCrypto.Approx.Evaluation as Evaluationᴹ

@@ -36,8 +36,8 @@ open import ProbabilisticLogic.Dp.Reasoning
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pointwise
-open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Machine.Run
+open import CategoricalCrypto.Machines.Run
+open import CategoricalCrypto.Machines.Run.Sim
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.EventBounds
@@ -137,7 +137,7 @@ module _ {A B : Iface} (report : Neg B → Pos B → Bool) (u : Proc A B) where
 
     kᴹ = Col.kᴳ {Pos A} {Neg A} {Pos B} {Neg B} {Pos B ⊎ Bool} {Neg B ⊎ ⊤} (monitorᴹ report) u
 
-  open Col.Loop (Pos A ⊎ (Neg B ⊎ ⊤)) (Neg A ⊎ (Pos B ⊎ Bool)) (Neg B ⊎ Pos B) Sᴹ kᴹ
+  open Loop (Pos A ⊎ (Neg B ⊎ ⊤)) (Neg A ⊎ (Pos B ⊎ Bool)) (Neg B ⊎ Pos B) Sᴹ kᴹ
 
   private
     Out : Set
@@ -201,7 +201,7 @@ module _ {A B : Iface} (report : Neg B → Pos B → Bool) (u : Proc A B) where
           ≈ₚ mapₚ (sample accᴹ reported (proj₁ mq)) (d >>=ₚ settle mq)
     via mq d = >>=ₚ-assoc d _ _ ⟨≈⟩ bindᶠ (sampled mq) ⟨≈⟩ ≈sym (>>=ₚ-assoc d _ _)
 
-    col≲flag : MC.mk Sᴹ colStep S.≲ (accᴹ ▷ reported)
+    col≲flag : MC.mk Sᴹ colStep MS.≲ (accᴹ ▷ reported)
     col≲flag = simFn ψ pt st
       where
       pt : (x : _) → (MC.point Sᴹ x >>=ₚ λ s → returnₚ (ψ s)) ≈ₚ MC.point (▷state accᴹ reported) x
@@ -219,11 +219,11 @@ module _ {A B : Iface} (report : Neg B → Pos B → Bool) (u : Proc A B) where
   -- The crux: the monitor over the process is the accumulator's flag wire.
   monitor-flag : 𝒫._≈_ (monitorᴹ report 𝒫.∘ u) (accᴹ ▷ reported)
   monitor-flag =
-         S.⟺ᴹ (Col.compose-raw≈∘ᴳ {Pos A} {Neg A} {Pos B} {Neg B} {Pos B ⊎ Bool} {Neg B ⊎ ⊤}
+         MS.⟺ᴹ (Col.compose-raw≈∘ᴳ {Pos A} {Neg A} {Pos B} {Neg B} {Pos B ⊎ Bool} {Neg B ⊎ ⊤}
                                   (monitorᴹ report) u)
-    S.○ᴹ Col.collapseᵀ {Pos A} {Neg A} {Pos B} {Neg B} {Pos B ⊎ Bool} {Neg B ⊎ ⊤} (monitorᴹ report) u
-    S.○ᴹ S.≲⇒≈ᴹ (S.mk-cong col-step)
-    S.○ᴹ S.≲⇒≈ᴹ col≲flag
+    MS.○ᴹ Col.collapseᵀ {Pos A} {Neg A} {Pos B} {Neg B} {Pos B ⊎ Bool} {Neg B ⊎ ⊤} (monitorᴹ report) u
+    MS.○ᴹ MS.≲⇒≈ᴹ (MS.mk-cong col-step)
+    MS.○ᴹ MS.≲⇒≈ᴹ col≲flag
 
 ------------------------------------------------------------------------
 -- Agreement

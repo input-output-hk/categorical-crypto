@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- `Protocol.Machine.Raw`'s hypothesis discharged at a TRACED machine, and then
+-- `Machines.Run.Raw`'s hypothesis discharged at a TRACED machine, and then
 -- at a G-COMPOSITE, which is a traced machine whose step has a kernel.
 --
 -- `Machines.Trace.traceStep` is `solve ∘ k ∘ id ⊗₁ i₁`: the two wirings are
@@ -14,9 +14,9 @@
 --
 -- A G-composite's step is `Machines.Collapse.kᴳ`, whose kernel is the two
 -- factors' kernels routed the same way (`Kᴳ`).  What `𝒢ₚ` hands over is only
--- `S.≈ᴹ`-equal to that trace, so the crossing happens once, at the settled
+-- `MS.≈ᴹ`-equal to that trace, so the crossing happens once, at the settled
 -- reading of a CLOSED run: `rawPr` is applied to the collapsed machine and
--- `Dp.Settle.cum-settled-≈ₚ` carries its `cum` family over to `g 𝒢.∘ f`.
+-- `Dp.Settle.Attains-≈ₚ` carries its `cum` family over to `g 𝒢.∘ f`.
 
 open import Data.Bool.Base using (Bool)
 open import Data.Empty
@@ -40,18 +40,16 @@ open import ProbabilisticLogic.Dp.Settle.Iter
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.Machines.Base
-open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Machine.Raw
-open import CategoricalCrypto.Protocol.Machine.Run
+open import CategoricalCrypto.Machines.Run
+open import CategoricalCrypto.Machines.Run.Raw
+open import CategoricalCrypto.Machines.Run.Sim
 open import CategoricalCrypto.Strategy
 
 import CategoricalCrypto.Machines.Collapse as Col
-import CategoricalCrypto.Machines.Pointwise as Pw
 
-module CategoricalCrypto.Protocol.Machine.Trace where
+module CategoricalCrypto.Machines.Run.Trace where
 
-open Col using (module 𝒢; module MT)
-open Pw using (module K; module V)
+open Col using (module 𝒢)
 
 ------------------------------------------------------------------------
 -- A traced machine's kernel
@@ -122,7 +120,7 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
   where
 
   traceᴳ : MC.Machine (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺)
-  traceᴳ = Col.MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺) (MC.mk (Col.Sᴳ g f) (Col.kᴳ g f))
+  traceᴳ = MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺) (MC.mk (Col.Sᴳ g f) (Col.kᴳ g f))
 
   -- `Machines.Collapse`'s routings with their object implicits pinned; left
   -- open they are four metas per clause and none of them solves.
@@ -224,7 +222,7 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
 -- …and at a CLOSED composite, where the run lives
 
 -- The domain summand is empty, so the trace's answers are all on the right and
--- the kernel is `Protocol.Machine.Raw`'s.
+-- the kernel is `Machines.Run.Raw`'s.
 module _ {B⁺ B⁻ : Set} {C : Iface}
          (g : MC.Machine (B⁺ ⊎ Neg C) (B⁻ ⊎ Pos C)) (f : MC.Machine (⊥ ⊎ B⁻) (⊥ ⊎ B⁺))
          (Kg : MC.St g → B⁺ ⊎ Neg C → Dist⊥ (MC.St g × (B⁻ ⊎ Pos C)))
@@ -280,7 +278,7 @@ module _ {B⁺ B⁻ : Set} {C : Iface}
                  (b : Bool) (d : Strat (Neg C) (Pos C))
                → Attains (runᴹ (𝒢._∘_ g f) d) (indᵇ b) (E⊥ (σ₀ >>=⊥ λ m → runWith⊥ Kᶜˡ m d) (indᵇ b))
     compose-pr σ₀ n₀ pt b d =
-      cum-settled-≈ₚ (runᴹ (traceᴳ g f) d) _ (indᵇ b) (indᵇ-nn b)
+      Attains-≈ₚ (runᴹ (traceᴳ g f) d) _ (indᵇ b) (indᵇ-nn b)
         (E⊥ (σ₀ >>=⊥ λ m → runWith⊥ Kᶜˡ m d) (indᵇ b))
         (rawPr (traceᴳ g f) Kᶜˡ compose-StepSettles σ₀ n₀ pt b d)
         (runᴹ-resp-≈ᴹ (Col.collapse≈ g f) d)

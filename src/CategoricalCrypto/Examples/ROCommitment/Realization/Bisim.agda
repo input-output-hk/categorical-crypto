@@ -32,8 +32,8 @@ open import ProbabilisticLogic.Dp
 open import CategoricalCrypto.GamePlaying.Partial
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
-open import CategoricalCrypto.Protocol.Machine.Raw
-open import CategoricalCrypto.Protocol.Machine.Trace
+open import CategoricalCrypto.Machines.Run.Raw
+open import CategoricalCrypto.Machines.Run.Trace
 
 module CategoricalCrypto.Examples.ROCommitment.Realization.Bisim (k : ℕ) where
 

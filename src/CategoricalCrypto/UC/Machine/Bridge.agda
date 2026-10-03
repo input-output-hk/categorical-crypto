@@ -13,7 +13,7 @@ open import Function.Base
 open import ProbabilisticLogic.Dp
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.QueryBound
 

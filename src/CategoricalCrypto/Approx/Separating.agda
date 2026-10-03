@@ -17,6 +17,7 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 
 open import ProbabilisticLogic.Distribution.Uniform
+open import ProbabilisticLogic.Distribution.Uniform.Decay
 
 open import CategoricalCrypto.Approx.Error
 open import CategoricalCrypto.UC.Approximate

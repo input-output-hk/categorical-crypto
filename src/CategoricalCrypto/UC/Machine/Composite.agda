@@ -30,10 +30,10 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.UC.Machine
 
 import CategoricalCrypto.Machines.Collapse as Col
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Pointwise as Pw
 
 module CategoricalCrypto.UC.Machine.Composite where
@@ -101,10 +101,9 @@ module Unfold {A B C : Iface} (Sg Sf : Set)
       ⟨≈⟩ solve-out (sg′ , sf) (inj₂ p)
 
 private
-  module V  = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
   module 𝒫  = Category 𝒫ᴵ
 
-open Core (𝒱ₚ 0ℓ)
+open MC
 
 ------------------------------------------------------------------------
 -- The two wires of a `𝒢`-composite
@@ -116,7 +115,7 @@ module _ (A B C : Iface) where
     Sg = St g
     Sf = St f
 
-    Sᶜ : MC.State
+    Sᶜ : State
     Sᶜ = Col.Sᴳ g f
 
     stepg = step g
@@ -126,7 +125,7 @@ module _ (A B C : Iface) where
              → Dₚ ((Sg × Sf) × ((Neg A ⊎ Pos C) ⊎ (Neg B ⊎ Pos B)))
     bodyStep = Col.kᴳ g f
 
-    private module L = Col.Loop (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B) Sᶜ bodyStep
+    private module L = Pw.Loop (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B) Sᶜ bodyStep
 
     Nᶜ : Proc A C
     Nᶜ = L.tracedᴹ
@@ -212,12 +211,12 @@ module _ (A B C : Iface) where
           ⟨≈⟩ resumedG sg sf (inj₁ q)
         }
 
-    eqᶜ : Nᶜ Pw.S.≈ᴹ
-            Col.MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
-              (Col.W.α MC.∘ᴹ ((g Pw.T.⊗ᵉ f) MC.∘ᴹ Col.W.γ))
-    eqᶜ = Pw.S.⟺ᴹ
+    eqᶜ : Nᶜ MS.≈ᴹ
+            MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
+              (Col.W.α ∘ᴹ ((g T.⊗ᵉ f) ∘ᴹ Col.W.γ))
+    eqᶜ = MS.⟺ᴹ
       (Col.collapseᵀ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C} g f)
 
-    eq-∘ᶜ : Nᶜ Pw.S.≈ᴹ (𝒫._∘_ {A} {B} {C} g f)
-    eq-∘ᶜ = eqᶜ Pw.S.○ᴹ
+    eq-∘ᶜ : Nᶜ MS.≈ᴹ (𝒫._∘_ {A} {B} {C} g f)
+    eq-∘ᶜ = eqᶜ MS.○ᴹ
             Col.compose-raw≈∘ᴳ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C} g f

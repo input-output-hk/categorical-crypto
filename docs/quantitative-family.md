@@ -336,7 +336,7 @@ strategy, one adversary and one closed input. *inst*.
 `QEvaluation`: a reading `read : J ⇒ Ω → Carrier` into an approximate space,
 with `read-resp₀`, which says it observes hom equality at error `0ℚ`.
 
-- `UC.Core.Evaluation`: `J Ω S eval`, with `observe t m = read (t ∘ m)` and the
+- `UC.Evaluation.Evaluation`: `J Ω S eval`, with `observe t m = read (t ∘ m)` and the
   test presheaf `ℰᴼ` (tests up to what they observe). `J` is not assumed to be the monoidal unit.
 - `Approx.Evaluation.QEvaluation`: the reading lands in an approximate space and
   observes hom equality exactly (`eval₀` into `zeroSetoid`). `qualBy` coarsens

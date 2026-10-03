@@ -9,7 +9,7 @@
 -- simulation (a state FUNCTION) cannot relate a point mass to a mixture
 -- (`docs/coin-toss.md` §5).  So `deferᶜʰ`, the reachable machine drawing at
 -- `shareᴬʰ`, is the ideal side (`ideal-eqʰ`, one `coin-flip` step through
--- `θᴵʰ`), and `eagerᶜʰ` runs like `deferᶜʰ` by `GamePlaying.Defer.Run`.
+-- `θᴵʰ`), and `eagerᶜʰ` runs like `deferᶜʰ` by `Machines.Run.Defer`.
 
 open import Data.Bool.Base
 open import Data.Bool.Properties
@@ -32,11 +32,11 @@ open import ProbabilisticLogic.Dp.Coin
 open import ProbabilisticLogic.Dp.Commutative
 open import ProbabilisticLogic.Dp.Reasoning
 
-open import CategoricalCrypto.GamePlaying.Defer.Run
+open import CategoricalCrypto.Machines.Run
+open import CategoricalCrypto.Machines.Run.Defer
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
-open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Machine.Run
+open import CategoricalCrypto.Machines.Run.Sim
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 
@@ -56,7 +56,6 @@ open import CategoricalCrypto.Examples.ROCommitment.Hiding k
 open MC
 
 private
-  module S  = Pw.S
   module 𝒫  = Category 𝒫ᴵ
 
 ------------------------------------------------------------------------
@@ -191,7 +190,7 @@ private
   idlStepʰ (endᴰ t b₁)    (inj₂ (inj₂ getᶜ)) =
     bot-bind-≈ₚ _ ⟨≈⟩ ≈sym (bypᴵʰ (endʲʰ t) doneᵏʰ getᶜ ≈refl ⟨≈⟩ bot-bind-≈ₚ _)
 
-  idl-simʰ : deferᶜʰ S.≲ Iᴺ
+  idl-simʰ : deferᶜʰ MS.≲ Iᴺ
   idl-simʰ = Pw.simFn θᴵʰ
                    (λ x → >>=ₚ-identityˡ (preᴰ []) _
                       ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _
@@ -201,7 +200,7 @@ private
                          ⟨≈⟩ idlStepʰ (proj₁ z) (proj₂ z))
 
 ideal-eqʰ : 𝒫._≈_ {unitᴵ} {Cᵗʰ} deferᶜʰ idealᴹʰ
-ideal-eqʰ = S.≲⇒≈ᴹ idl-simʰ S.○ᴹ CS.eq-∘ᶜ unitᴵ (Lkᴵᶜʰ ⊗ᴵ Honᴵᶜʰ) Cᵗʰ simᴵᵈʰ Fcoinʰ
+ideal-eqʰ = MS.≲⇒≈ᴹ idl-simʰ MS.○ᴹ CS.eq-∘ᶜ unitᴵ (Lkᴵᶜʰ ⊗ᴵ Honᴵᶜʰ) Cᵗʰ simᴵᵈʰ Fcoinʰ
 
 ------------------------------------------------------------------------
 -- Moving the draw

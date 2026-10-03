@@ -11,7 +11,7 @@
 -- functor: `StdSetup` against the copy checks by `refl` in 80 s where
 -- `StdSetup` against this one is at the 9 s startup floor.
 
-open import CategoricalCrypto.UC.Core
+open import CategoricalCrypto.UC.Evaluation
 open import CategoricalCrypto.UC.Model.Observation
 open import CategoricalCrypto.UC.Model.Seal
 

@@ -7,7 +7,6 @@
 
 open import Categories.Category.Monoidal.Bundle
 open import Categories.Monad.Discrete
-import Categories.Category.Construction.Kleisli.Discrete as KD
 
 open import Data.Product.Base
 open import Level
@@ -19,18 +18,13 @@ open import ProbabilisticLogic.Dp.Reasoning
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pure
 
-import CategoricalCrypto.Machines.Sim as Sim
-
 module CategoricalCrypto.Machines.Sandwich where
 
-private
-  module 𝒱 = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
-
 open MC
-open KD (Dₚ-DiscreteMonad {0ℓ})
-open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
+open K
+open MS
 
-open import Categories.Category.Monoidal.Reasoning 𝒱.monoidal
+open import Categories.Category.Monoidal.Reasoning V.monoidal
 
 private
   variable X Y X′ Y′ X″ Y″ : Set
@@ -57,18 +51,18 @@ sandwich-id f i o ei eo = ≲⇒≈ᴹ (mk-cong pt)
            ⟨≈⟩ >>=ₚ-identityʳ (step f (s , z))
 
 squeeze : (f : Machine X Y) (h : X′ → X) (k : Y → Y′)
-          {H : 𝒱._⇒_ X′ X} {K : 𝒱._⇒_ Y Y′}
-        → 𝒱._≈_ H (pureᵏ h) → 𝒱._≈_ K (pureᵏ k)
-        → mk (state f) (𝒱._∘_ (𝒱._⊗₁_ 𝒱.id K) (𝒱._∘_ (step f) (𝒱._⊗₁_ 𝒱.id H)))
+          {H : V._⇒_ X′ X} {K : V._⇒_ Y Y′}
+        → V._≈_ H (pureᵏ h) → V._≈_ K (pureᵏ k)
+        → mk (state f) (V._∘_ (V._⊗₁_ V.id K) (V._∘_ (step f) (V._⊗₁_ V.id H)))
           ≈ᴹ sandwichᴹ f h k
 squeeze f h k {H} {K} eH eK = ≲⇒≈ᴹ (mk-cong pt)
   where
   -- Both paddings are ascribed: left to inference, the identity factor of
   -- `refl⟩⊗⟨` is a meta the Kleisli `return` blocks.
-  padH : 𝒱._≈_ (𝒱._⊗₁_ (𝒱.id {St f}) H) (𝒱._⊗₁_ (𝒱.id {St f}) (pureᵏ h))
+  padH : V._≈_ (V._⊗₁_ (V.id {St f}) H) (V._⊗₁_ (V.id {St f}) (pureᵏ h))
   padH = refl⟩⊗⟨ eH
 
-  padK : 𝒱._≈_ (𝒱._⊗₁_ (𝒱.id {St f}) K) (𝒱._⊗₁_ (𝒱.id {St f}) (pureᵏ k))
+  padK : V._≈_ (V._⊗₁_ (V.id {St f}) K) (V._⊗₁_ (V.id {St f}) (pureᵏ k))
   padK = refl⟩⊗⟨ eK
 
   pt : (p : _) → _

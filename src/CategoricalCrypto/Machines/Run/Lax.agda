@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- What a lax simulation does to a closed run: it prefixes it with `σ`.  The
--- simulation is lax only at the point, which `Protocol.Machine.Run.runFrom-ϕ` never
+-- simulation is lax only at the point, which `Machines.Run.Sim.runFrom-ϕ` never
 -- touches; `Dp.Mass.astotal-bind` turns the prefix into an ε-agreement when
 -- `σ` is almost surely total.
 
@@ -14,19 +14,19 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
-open import CategoricalCrypto.Machines.Pointwise using (fnStep; module KP; module V)
-open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Machine.Run using (runFrom-ϕ)
+open import CategoricalCrypto.Machines.Pointwise using (fnStep)
+open import CategoricalCrypto.Machines.Run
+open import CategoricalCrypto.Machines.Run.Sim using (runFrom-ϕ)
 open import CategoricalCrypto.Strategy
 
 import CategoricalCrypto.Machines.Sim.Lax as Lax
 
-module CategoricalCrypto.Protocol.Machine.Run.Lax where
+module CategoricalCrypto.Machines.Run.Lax where
 
 private
   module L  = Lax (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 
-module _ {B : Iface} {σ : V.unit V.⇒ V.unit} {f g : Closed B}
+module _ {B : Iface} {σ : V.unit V.⇒ V.unit} {f g : Proc unitᴵ B}
          (l : f L.≲ˡ[ σ ] g) where
 
   private

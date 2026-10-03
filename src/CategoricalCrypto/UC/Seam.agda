@@ -20,6 +20,7 @@ open import ProbabilisticLogic.Dp.Coin
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 

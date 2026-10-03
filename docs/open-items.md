@@ -22,6 +22,8 @@ line: `module :: definition` — size — why.
 - `CategoricalCrypto/Protocol/Observe.agda :: transfer, transfer-at, ≤-shift` (deleted) — ~20 LOC, restore — the elementary game-hop step (bad-event bound carries to an `≈adv`-close `P′`) has no replacement.
 - `Machines.*` at the `Rels` base (old `SFunM.Spike.Instance.Rel`) — ~100–170 LOC test — nothing checks the general Mealy layer at a non-Kleisli base.
 - Comment pass remainder over the R3C scope: the `Machine/Core` TODOs.
+- `CategoricalCrypto/UC/Machine/Dictionary.agda :: midᴹ` (moved from `Machines.Pure` in round 4) — 0 LOC — second spelling of `GConstructionTrace.mid`. Declined round 4 (measured): stated at `mid` itself, `T₁-⊗₁`/`sub-⊗₁` take 60 s each and the module 170 s instead of 20 s; `midᴹ` stays an opaque name.
+- `CategoricalCrypto/Machines/Trace/Fubini.agda :: norm` → a library module — placement — made private instead in round 4: a one-off five-morphism reassociation for `k₂-relabel`, not a ⊕ fact.
 
 ## UC core
 
@@ -41,6 +43,7 @@ line: `module :: definition` — size — why.
 
 ## Examples
 
+- `ProbabilisticLogic/Distribution/Uniform/Birthday.agda :: birthday-bound` at its consumers (`ChimericLedger.Property.εᴸ`, `GamePlaying.Potential.collision-cert` → `ROCommitment.Game.ε`) — statement tightening — `birthday` is now the exact `q(q+1)/2ⁿ⁺¹`; the published schedules stay at `(q²+q)/2ⁿ` (`birthday-≤`). Declined round 4 (machines part): tightening them moves pinned test numbers and the `negligibleBound-inv-pow-2` instances of the examples part.
 - `CategoricalCrypto/Examples/ROCommitment/Realization/Assembly.agda :: Realization, Realizationʰ` — proof work — the F_com UC-level ε-statement is still a hypothesis; the binding ideal hop (B2-M3/M4) is blocked by the `simStep` defect below, the hiding counterpart (`raw-emulationʰ`) was never started.
 - `CategoricalCrypto/UC/Model/Graded.agda :: graded-∘ᵒ` — small (`G.Equiv.refl`) — B2-M6 of `docs/rcom-icom-b1.md`, absent; re-add with the `Realization` proof.
 - `CategoricalCrypto/Examples/CoinToss/Ideal/Receiver/Compose.agda :: coin-toss-idealʳ, ηʰ` — statement edit — no exact receiver hop yet; `dominated` is now sharp (round 4: the `0 < δ` slack was dropped), so `ηʰ = 0` and the `+2⁻ⁿ` in `εᶜʳ`/`ideal-εʳ` can go.

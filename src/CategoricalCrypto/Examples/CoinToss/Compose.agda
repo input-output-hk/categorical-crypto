@@ -19,6 +19,7 @@ open import Data.Rational.Properties using (+-identityˡ)
 open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Distribution.Uniform
+open import ProbabilisticLogic.Distribution.Uniform.Decay
 
 open import CategoricalCrypto.Examples.ROCommitment.Asymptotic
 open import CategoricalCrypto.UC.Approximate

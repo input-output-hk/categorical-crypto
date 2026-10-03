@@ -20,6 +20,7 @@ open import Data.Rational.Properties using (+-identityʳ)
 open import Relation.Binary.PropositionalEquality hiding ([_])
 
 open import ProbabilisticLogic.Distribution.Uniform
+open import ProbabilisticLogic.Distribution.Uniform.Decay
 
 open import CategoricalCrypto.Examples.CoinToss.Compose
 open import CategoricalCrypto.Examples.ROCommitment.Asymptotic

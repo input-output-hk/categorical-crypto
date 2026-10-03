@@ -21,6 +21,7 @@ open import Level
 open import Relation.Binary.PropositionalEquality
 
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Grading
 open import CategoricalCrypto.UC.Model.Seal

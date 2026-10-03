@@ -110,6 +110,3 @@ dup⇒1≤Φ m L fl = subst (λ b → 1ℚ ≤ℚ bool→ℚ b +ℚ Γ (length L
         pointwise h = ≤-trans
           (≤-reflexive (cong bool→ℚ (trans (cong (memb h L ∨_) fl) (∨-identityʳ (memb h L)))))
           (indicator-≤ L h)
-
-Φ-init : ∀ m → Φ m [] ≤ℚ fromℕ (m * m + m) *ℚ inv-pow-2 n
-Φ-init m = ≤-trans (≤-reflexive (+-identityˡ (Γ 0 m))) (≤-trans (Γ-monoˡ 0 m) (birthday m))

@@ -26,6 +26,8 @@ open import Level
 open import Relation.Binary.PropositionalEquality
 open import Relation.Binary.Structures
 
+open import ProbabilisticLogic.Distribution.Uniform.Decay
+
 open import CategoricalCrypto.Approx.Error
 open import CategoricalCrypto.Approx.Schedule
 open import CategoricalCrypto.UC.Approximate

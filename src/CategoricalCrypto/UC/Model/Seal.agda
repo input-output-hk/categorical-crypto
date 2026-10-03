@@ -20,7 +20,7 @@
 --      without breaking it (`UC.Model.Setup`).
 --
 -- `ifaceᵒ` is `Protocol.Machine.⟦_⟧ᴵ`, so a hom of the seal at interface objects
--- IS a `UC.Machine.Proc`; and `UC.Machine.retᴵ` inverts `⟦_⟧ᴵ` definitionally,
+-- IS a `Machines.Run.Proc`; and `UC.Machine.retᴵ` inverts `⟦_⟧ᴵ` definitionally,
 -- so a hom at an ARBITRARY object is one too (`objᵒ`, `untestᵒ`, `unclosᵒ`) —
 -- which is what an ℰ-agreement's ancilla quantifier, ranging over every
 -- object, needs from statements written at `Iface`.
@@ -33,6 +33,7 @@ open import Relation.Binary.PropositionalEquality
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.UC.Machine
 

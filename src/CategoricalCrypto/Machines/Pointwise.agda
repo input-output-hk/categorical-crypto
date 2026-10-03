@@ -4,34 +4,21 @@
 -- along a function (`simFn`) and back (`fnStep`, at a simulation `step-sim`), and
 -- the paired point and the state actions evaluated at a point.
 
-open import Categories.Category.Monoidal.Bundle
-import Categories.Category.Construction.Kleisli.Discrete as KD
-import Categories.Category.Construction.Kleisli.Discrete.Pure as KDP
 
 open import Data.Product.Base
+open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)
 open import Function.Base
 open import Level
 
 open import ProbabilisticLogic.Dp
+open import ProbabilisticLogic.Dp.Iter
 open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pure
 
-import CategoricalCrypto.Machines.Category as MCat
-import CategoricalCrypto.Machines.Sim as Sim
-import CategoricalCrypto.Machines.Tensor as Tensor
-
 module CategoricalCrypto.Machines.Pointwise where
-
-module S   = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
-
-module Cat = MCat (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
-module T   = Tensor (𝒱ₚ 0ℓ) (distₚ 0ℓ) (𝒫ₚ 0ℓ)
-module V   = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
-module K   = KD (Dₚ-DiscreteMonad {0ℓ})
-module KP  = KDP (Dₚ-DiscreteMonad {0ℓ})
 
 open import Categories.Category.Monoidal.Symmetric.Properties.Ext V.symmetric
 
@@ -54,8 +41,8 @@ simFn : {S T : MC.State} {k : MC.obj S × X → Dₚ (MC.obj S × Y)}
         {k′ : MC.obj T × X → Dₚ (MC.obj T × Y)} (h : MC.obj S → MC.obj T)
       → ((x : V.unit) → (MC.point S x >>=ₚ λ s → returnₚ (h s)) ≈ₚ MC.point T x)
       → ((p : MC.obj S × X) → (k p >>=ₚ padϕ h) ≈ₚ k′ (h (proj₁ p) , proj₂ p))
-      → MC.mk S k S.≲ MC.mk T k′
-simFn {k′ = k′} h hp hs = S.sim (K.pureᵏ h) (KP.structural h) hp λ p →
+      → MC.mk S k MS.≲ MC.mk T k′
+simFn {k′ = k′} h hp hs = MS.sim (K.pureᵏ h) (KP.structural h) hp λ p →
   bindᶠ (⊗-pureˡ h) ⟨≈⟩ hs p
   ⟨≈⟩ ≈sym (bindˣ (⊗-pureˡ h p) ⟨≈⟩ >>=ₚ-identityˡ (h (proj₁ p) , proj₂ p) k′)
 
@@ -70,17 +57,17 @@ fnStep {P = P} {k′ = k′} {θ = θ} θp step p =
   pad-fn (s , z) = bindˣ (KP.is-fn θp s) ⟨≈⟩ >>=ₚ-identityˡ (KP.fn θp s) _ ⟨≈⟩ >>=ₚ-identityˡ z _
 
 -- …and what a simulation supplies, read at a point.
-module _ {X Y : Set} {f g : MC.Machine X Y} (sim : f S.≲ g) where
+module _ {X Y : Set} {f g : MC.Machine X Y} (sim : f MS.≲ g) where
 
   ϕ : MC.St f → MC.St g
-  ϕ = KP.fn (S.θ-pure sim)
+  ϕ = KP.fn (MS.θ-pure sim)
 
   step-sim : (p : MC.St f × X)
            → (MC.step f p >>=ₚ padϕ ϕ) ≈ₚ MC.step g (ϕ (proj₁ p) , proj₂ p)
-  step-sim = fnStep (S.θ-pure sim) (S.θ-step sim)
+  step-sim = fnStep (MS.θ-pure sim) (MS.θ-step sim)
 
   point-sim : mapₚ ϕ (MC.point (MC.state f) ttᵛ) ≈ₚ MC.point (MC.state g) ttᵛ
-  point-sim = bindᶠ (λ s → ≈sym (KP.is-fn (S.θ-pure sim) s)) ⟨≈⟩ S.θ-point sim ttᵛ
+  point-sim = bindᶠ (λ s → ≈sym (KP.is-fn (MS.θ-pure sim) s)) ⟨≈⟩ MS.θ-point sim ttᵛ
 
 ------------------------------------------------------------------------
 -- The paired point and the state actions, at a point
@@ -111,3 +98,58 @@ onR-pt k p q x =
   bindˣ (>>=ₚ-identityˡ (p , q , x) _ ⟨≈⟩ >>=ₚ-identityˡ p _)
   ⟨≈⟩ >>=ₚ-assoc (k (q , x)) _ _
   ⟨≈⟩ bindᶠ (λ where (q′ , y) → >>=ₚ-identityˡ (p , q′ , y) _)
+
+------------------------------------------------------------------------
+-- A traced machine's step at a point
+
+-- One pass of the loop, then the loop: stated at an arbitrary state and
+-- pre-trace step, which is how both a closed composite's tick
+-- (`UC.Machine.Plug.Tick`) and `Protocol.Machine.Compose` read `kᴳ`'s trace.
+module Loop (A B X : Set) (S : MC.State)
+            (k : MC.obj S × (A ⊎ X) → Dₚ (MC.obj S × (B ⊎ X)))
+            where
+
+  tracedᴹ : MC.Machine A B
+  tracedᴹ = MT.traceᴹ A B X (MC.mk S k)
+
+  body : Body (MC.obj S) X B
+  body p = k (proj₁ p , inj₂ (proj₂ p))
+
+  private
+    solveᵗ : MC.obj S × (B ⊎ X) → Dₚ (MC.obj S × B)
+    solveᵗ = MT.solve S A B X k
+
+    bodyᵗ : Body (MC.obj S) X B
+    bodyᵗ = MT.loopBody S A B X k
+
+    -- The junctions the Kleisli tensor spends on a pure relabelling.
+    loop-red : (p : MC.obj S × X) → bodyᵗ p ≈ₚ body p
+    loop-red (st , x) = bindˣ (>>=ₚ-identityˡ st _)
+                  ⟨≈⟩ bindˣ (>>=ₚ-identityˡ (inj₂ x) _)
+                  ⟨≈⟩ >>=ₚ-identityˡ (st , inj₂ x) k
+
+    -- The distributor's case split IS the loop's continuation.
+    solve-red : (r : MC.obj S × (B ⊎ X)) → solveᵗ r ≈ₚ contᵢ bodyᵗ r
+    solve-red (st , inj₁ o) = >>=ₚ-identityˡ (inj₁ (st , o)) _
+    solve-red (st , inj₂ x) = >>=ₚ-identityˡ (inj₂ (st , x)) _
+
+  solve-cont : (r : MC.obj S × (B ⊎ X)) → solveᵗ r ≈ₚ contᵢ body r
+  solve-cont (st , inj₁ o) = solve-red (st , inj₁ o)
+  solve-cont (st , inj₂ x) =
+    solve-red (st , inj₂ x) ⟨≈⟩ iterₚ-cong bodyᵗ body loop-red (st , x)
+
+  step-red : (st : MC.obj S) (y : A)
+           → MC.step tracedᴹ (st , y) ≈ₚ (k (st , inj₁ y) >>=ₚ contᵢ body)
+  step-red st y = bindˣ (bindˣ (>>=ₚ-identityˡ st _)
+                    ⟨≈⟩ bindˣ (>>=ₚ-identityˡ (inj₁ y) _)
+                    ⟨≈⟩ >>=ₚ-identityˡ (st , inj₁ y) k)
+            ⟨≈⟩ bindᶠ solve-cont
+
+  loop-pass : (st : MC.obj S) (x : X) (st′ : MC.obj S) (o : B ⊎ X)
+            → k (st , inj₂ x) ≈ₚ returnₚ (st′ , o)
+            → iterₚ body (st , x) ≈ₚ contᵢ body (st′ , o)
+  loop-pass st x st′ o eq =
+    iterₚ-fix body (st , x) ⟨≈⟩ bindˣ eq ⟨≈⟩ >>=ₚ-identityˡ (st′ , o) (contᵢ body)
+
+  loop-bot : (st : MC.obj S) (x : X) → k (st , inj₂ x) ≈ₚ botₚ → iterₚ body (st , x) ≈ₚ botₚ
+  loop-bot st x eq = iterₚ-fix body (st , x) ⟨≈⟩ bindˣ eq ⟨≈⟩ bot-bind-≈ₚ (contᵢ body)

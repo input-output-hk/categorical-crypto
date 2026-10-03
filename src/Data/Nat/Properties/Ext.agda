@@ -9,6 +9,7 @@ module Data.Nat.Properties.Ext where
 open import Data.Bool.Base using (false)
 open import Data.Nat
 open import Data.Nat.Properties
+open import Data.Nat.Solver using (module +-*-Solver)
 open import Data.Product
 open import Relation.Binary.PropositionalEquality
 
@@ -37,12 +38,22 @@ sumN-mono : ∀ t j → sumN t j ≤ sumN (suc t) j
 sumN-mono t zero    = z≤n
 sumN-mono t (suc j) = +-mono-≤ (n≤1+n t) (sumN-mono (suc t) j)
 
-sumN-≤ : ∀ t j → sumN t j ≤ j * (t + j)
-sumN-≤ t zero    = z≤n
-sumN-≤ t (suc j) =
-  subst (λ z → sumN t (suc j) ≤ suc j * z) (sym (+-suc t j))
-    (≤-trans (+-monoʳ-≤ t (sumN-≤ (suc t) j))
-      (+-monoˡ-≤ (j * suc (t + j)) (≤-trans (m≤m+n t j) (n≤1+n (t + j)))))
+-- Gauss, spelled without `∸`: twice the run is `j(2t + j − 1)`.
+sumN-closed : ∀ t j → 2 * sumN t j + j ≡ j * (2 * t + j)
+sumN-closed t zero    = refl
+sumN-closed t (suc j) = begin-equality
+  2 * (t + sumN (suc t) j) + suc j               ≡⟨ lhs t (sumN (suc t) j) j ⟩
+  2 * t + suc (2 * sumN (suc t) j + j)           ≡⟨ cong (λ z → 2 * t + suc z) (sumN-closed (suc t) j) ⟩
+  2 * t + suc (j * (2 * suc t + j))              ≡⟨ rhs t j ⟩
+  suc j * (2 * t + suc j)                        ∎
+  where
+  open +-*-Solver
+  lhs : ∀ t s j → 2 * (t + s) + suc j ≡ 2 * t + suc (2 * s + j)
+  lhs = solve 3 (λ t s j → con 2 :* (t :+ s) :+ (con 1 :+ j)
+                         := con 2 :* t :+ (con 1 :+ (con 2 :* s :+ j))) refl
+  rhs : ∀ t j → 2 * t + suc (j * (2 * suc t + j)) ≡ suc j * (2 * t + suc j)
+  rhs = solve 2 (λ t j → con 2 :* t :+ (con 1 :+ j :* (con 2 :* (con 1 :+ t) :+ j))
+                       := (con 1 :+ j) :* (con 2 :* t :+ (con 1 :+ j))) refl
 
 ------------------------------------------------------------------------
 -- 2 ^ n outgrows every polynomial

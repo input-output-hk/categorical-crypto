@@ -34,8 +34,8 @@ open import CategoricalCrypto.GamePlaying.Partial
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.Machines.Base
-open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Machine.Trace
+open import CategoricalCrypto.Machines.Run
+open import CategoricalCrypto.Machines.Run.Trace
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 

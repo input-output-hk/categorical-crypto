@@ -23,12 +23,12 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
-open import CategoricalCrypto.Machines.Pointwise using (padϕ; ϕ; step-sim; point-sim; module S)
-open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Machines.Pointwise using (padϕ; ϕ; step-sim; point-sim)
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Strategy
 
 
-module CategoricalCrypto.Protocol.Machine.Run where
+module CategoricalCrypto.Machines.Run.Sim where
 
 ------------------------------------------------------------------------
 -- The induction, over a state map and its step law
@@ -36,7 +36,7 @@ module CategoricalCrypto.Protocol.Machine.Run where
 -- A state map and the law relating the two steps through it is ALL the
 -- induction on the strategy tree spends, so it is parameterized by that pair
 -- rather than by a simulation.
-module _ {B : Iface} {f g : Closed B} (ϕ : MC.St f → MC.St g)
+module _ {B : Iface} {f g : Proc unitᴵ B} (ϕ : MC.St f → MC.St g)
          (step-law : (p : MC.St f × (⊥ ⊎ Neg B))
                    → (MC.step f p >>=ₚ padϕ ϕ) ≈ₚ MC.step g (ϕ (proj₁ p) , proj₂ p))
          where
@@ -66,7 +66,7 @@ module _ {B : Iface} {f g : Closed B} (ϕ : MC.St f → MC.St g)
 ------------------------------------------------------------------------
 -- …hence a whole closed run is invisible to it
 
-module _ {B : Iface} {f g : Closed B} (sim : f S.≲ g) where
+module _ {B : Iface} {f g : Proc unitᴵ B} (sim : f MS.≲ g) where
 
   run-sim : (d : Strat (Neg B) (Pos B)) → runᴹ f d ≈ₚ runᴹ g d
   run-sim d = bindᶠ (λ m → runFrom-ϕ (ϕ sim) (step-sim sim) m d)
@@ -76,7 +76,7 @@ module _ {B : Iface} {f g : Closed B} (sim : f S.≲ g) where
 module _ {B : Iface} where
 
   private
-    Runs : Closed B → Closed B → Set
+    Runs : Proc unitᴵ B → Proc unitᴵ B → Set
     Runs f g = (d : Strat (Neg B) (Pos B)) → runᴹ f d ≈ₚ runᴹ g d
 
     Runs-isEquivalence : IsEquivalence Runs
@@ -86,6 +86,6 @@ module _ {B : Iface} where
       ; trans = λ h k d → h d ⟨≈⟩ k d
       }
 
-  runᴹ-resp-≈ᴹ : {f g : Closed B} → f S.≈ᴹ g
+  runᴹ-resp-≈ᴹ : {f g : Proc unitᴵ B} → f MS.≈ᴹ g
                → (d : Strat (Neg B) (Pos B)) → runᴹ f d ≈ₚ runᴹ g d
   runᴹ-resp-≈ᴹ = EqC.fold Runs-isEquivalence run-sim

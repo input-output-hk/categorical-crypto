@@ -14,7 +14,7 @@
 -- unit.  Both objects are the empty interface, differing only in which empty
 -- type spells each polarity — `Data.Empty.⊥` against the base's polymorphic
 -- one — and `𝟘ᵒ` is the spelling the machine layer's closed run is already
--- typed at (`Protocol.Machine.Closed`), which is what lets that run and its
+-- typed at (`Machines.Run.Proc`), which is what lets that run and its
 -- simulation-invariance be reused unchanged.  The two are not identified: the
 -- metatheorems are ℰ-generic and never see the closure object, and the iso
 -- costs >150 s.
@@ -31,9 +31,9 @@ open import ProbabilisticLogic.Dp.Advantage
 open import CategoricalCrypto.Approx.Error
 open import CategoricalCrypto.Approx.Evaluation ℚ-ordered
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Protocol.Machine.Run
+open import CategoricalCrypto.Machines.Run.Sim
 open import CategoricalCrypto.Strategy
-open import CategoricalCrypto.UC.Core
+open import CategoricalCrypto.UC.Evaluation
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Model.Seal
 
@@ -49,7 +49,7 @@ private
 Obs : 𝟘ᵒ G.⇒ Ωᵒ → Dₚ Bool
 Obs u = ⟦ unprocᵒ u ⟧ᴼ
 
--- A simulation is invisible to a closed run (`Protocol.Machine.Run`), so the seal's
+-- A simulation is invisible to a closed run (`Machines.Run.Sim`), so the seal's
 -- hom equality is observed EXACTLY, not merely up to every positive slack.
 obs-resp : {u v : 𝟘ᵒ G.⇒ Ωᵒ} → u G.≈ v → Obs u ≈ₚ Obs v
 obs-resp e = runᴹ-resp-≈ᴹ (≈ᵒ⇒≈ᴹ e) (ask tt out)

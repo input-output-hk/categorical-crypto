@@ -1,7 +1,7 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- The concrete resource crosses the `Dₚ`/`Dist-ℚ` boundary: every activation
--- settles (`resource-settles`, inhabiting `Protocol.Machine.Raw.StepSettles`
+-- settles (`resource-settles`, inhabiting `Machines.Run.Raw.StepSettles`
 -- at a machine that samples), so its closed `Dₚ` run is a kernel run, and on
 -- the oracle half that kernel is the closed game's (`resKᵀ`).  The
 -- kernel is `Dist⊥`-valued because the two off-protocol cell activations are
@@ -29,8 +29,8 @@ open import ProbabilisticLogic.Dp.Settle
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Interaction
 open import CategoricalCrypto.Machines.Base
-open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Machine.Raw
+open import CategoricalCrypto.Machines.Run
+open import CategoricalCrypto.Machines.Run.Raw
 open import CategoricalCrypto.Strategy
 
 module CategoricalCrypto.Examples.ROCommitment.Transport (k : ℕ) where

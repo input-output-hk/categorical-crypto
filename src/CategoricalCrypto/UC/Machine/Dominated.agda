@@ -58,7 +58,7 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
-open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Bridge
@@ -66,7 +66,6 @@ open import CategoricalCrypto.UC.Machine.Slide
 open import CategoricalCrypto.UC.QueryBound
 open import CategoricalCrypto.UC.Machine.Plug
 
-import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.UC.Machine.Extract as Ext
 import CategoricalCrypto.UC.Machine.Transfer as Tr
 
@@ -74,7 +73,6 @@ module CategoricalCrypto.UC.Machine.Dominated where
 
 private
   module 𝒫 = Category 𝒫ᴵ
-  module Sm = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
 
 ------------------------------------------------------------------------
 -- The decomposition
@@ -82,7 +80,7 @@ private
 -- Everything the decomposition does before a slack is chosen, shared with
 -- `UC.Machine.StateEvent.Lift.flagSkeleton`.
 module Refine (B : Iface) (K N : Proc B Ωᴵ) (q : ℕ) (cert : Certified q N)
-              (e : N Sm.≈ᴹ K) where
+              (e : N MS.≈ᴹ K) where
 
   open Ext B N q cert public
 
@@ -95,18 +93,18 @@ module Refine (B : Iface) (K N : Proc B Ωᴵ) (q : ℕ) (cert : Certified q N)
                                    (extract-asks b f (Φ s ℕ.+ q) (onRᵍ s tt))
 
   module _ (u : Proc unitᴵ B) (b : Bool) where
-    private module T = Tr B N q cert u b
+    private module Trᵘ = Tr B N q cert u b
 
     -- The observation, with the point refined as well: the certificate's
     -- initial states are the machine's, and it is over those that the
     -- strategy is chosen.
     obsᵍ : AtMost Φ 0 → Dₚ Bool
-    obsᵍ z = MC.point (MC.state u) ttᵛ >>=ₚ T.obsᴿ (proj₁ z)
+    obsᵍ z = MC.point (MC.state u) ttᵛ >>=ₚ Trᵘ.obsᴿ (proj₁ z)
 
     private
       refine : ⟦ K 𝒫.∘ u ⟧ᴼ ≈ₚ (pointᵍ >>=ₚ obsᵍ)
       refine = ≈sym (obs-resp-ctx B u N K e)
-         ⟨≈⟩ T.observe-≈
+         ⟨≈⟩ Trᵘ.observe-≈
          ⟨≈⟩ bindˣ (≈sym coh₀)
          ⟨≈⟩ bind-map pointᵍ proj₁ _
 
@@ -121,15 +119,15 @@ module Refine (B : Iface) (K N : Proc B Ωᴵ) (q : ℕ) (cert : Certified q N)
 
     fwd : (f : ℕ) → Dom≤ (indᵇ b) f (pointᵍ >>=ₚ obsᵍ) (plays f)
     fwd f = dom≤-bind (indᵇ b) (indᵇ-nn b) f pointᵍ obsᵍ _
-                      λ z → T.runFwd f (proj₁ z)
+                      λ z → Trᵘ.runFwd f (proj₁ z)
 
     bwd : (f : ℕ) → Cofinal (indᵇ b) (indᵇ b) (plays f) (pointᵍ >>=ₚ obsᵍ)
     bwd f = cofinal-bind (indᵇ b) (indᵇ-nn b) pointᵍ _ obsᵍ
-                         λ z → T.runBwd f (proj₁ z)
+                         λ z → Trᵘ.runBwd f (proj₁ z)
 
 private
   module Decompose (B : Iface) (K N : Proc B Ωᴵ) (q : ℕ) (cert : Certified q N)
-                   (e : N Sm.≈ᴹ K) (ε : ℚ) (0≤ε : 0ℚ ℚ.≤ ε) where
+                   (e : N MS.≈ᴹ K) (ε : ℚ) (0≤ε : 0ℚ ℚ.≤ ε) where
 
     open Refine B K N q cert e
 

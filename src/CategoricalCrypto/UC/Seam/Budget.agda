@@ -36,6 +36,7 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Bridge
@@ -44,17 +45,9 @@ open import CategoricalCrypto.UC.QueryBound
 open import CategoricalCrypto.UC.QueryBound.Compose.Laws
 open import CategoricalCrypto.UC.Seam
 
-import Categories.Category.Construction.Kleisli.Discrete as KD
-import Categories.Category.Construction.Kleisli.Discrete.Pure as KDP
-import CategoricalCrypto.Machines.Sim as Sim
-
 module CategoricalCrypto.UC.Seam.Budget where
 
 private
-  module K = KD (Dₚ-DiscreteMonad {0ℓ})
-  module P = KDP (Dₚ-DiscreteMonad {0ℓ})
-  module S = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
-  module V = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
   module 𝒫 = Category 𝒫ᴵ
 
 module _ (B : Iface) (c : ℕ) where
@@ -142,12 +135,12 @@ module _ (B : Iface) (c : ℕ) where
     step-erase (playᶜ _ _   , inj₁ _) = bot-bind-≈ₚ _
     step-erase (suspᶜ _ _ _ , inj₂ _) = bot-bind-≈ₚ _
 
-  simᶜ : (d : Strat (Neg B) (Pos B)) (h : asks≤ c d) → envᶜ d h S.≲ strategyEnv B d
-  simᶜ d h = S.sim θᶜ (P.structural forgetᶜ) (λ _ → >>=ₚ-identityˡ (playᶜ d h) θᶜ) λ p →
+  simᶜ : (d : Strat (Neg B) (Pos B)) (h : asks≤ c d) → envᶜ d h MS.≲ strategyEnv B d
+  simᶜ d h = MS.sim θᶜ (KP.structural forgetᶜ) (λ _ → >>=ₚ-identityˡ (playᶜ d h) θᶜ) λ p →
     bindᶠ pad ⟨≈⟩ step-erase p ⟨≈⟩ ≈sym (>>=ₚ-identityˡ _ (stepˢ B)) ⟨≈⟩ ≈sym (bindˣ (pad p))
 
   qb-strategyEnv : (d : Strat (Neg B) (Pos B)) → asks≤ c d → QB c (strategyEnv B d)
-  qb-strategyEnv d h = envᶜ d h , certᶜ d h , S.≲⇒≈ᴹ (simᶜ d h)
+  qb-strategyEnv d h = envᶜ d h , certᶜ d h , MS.≲⇒≈ᴹ (simᶜ d h)
 
 ------------------------------------------------------------------------
 -- A strategy embedded as a test
@@ -170,7 +163,7 @@ stratTest B d = MC.mk (stateˢ B d) (stepᵁ B)
 stratTest-embeds : (B : Iface) (d : Strat (Neg B) (Pos B))
                  → 𝒫._≈_ {unitᴵ ⊗ᴵ B} {Ωᴵ} (stratTest B d) (strategyEnv B d 𝒫.∘ λᴵ⇒)
 stratTest-embeds B d =
-  S.⟺ᴹ (∘-wireᴹ [ ⊥-elim , id ] inj₂ (strategyEnv B d) S.○ᴹ S.≲⇒≈ᴹ (S.mk-cong pt))
+  MS.⟺ᴹ (∘-wireᴹ [ ⊥-elim , id ] inj₂ (strategyEnv B d) MS.○ᴹ MS.≲⇒≈ᴹ (MS.mk-cong pt))
   where
   pt : (z : _) → _
   pt (se , inj₁ (inj₁ ()))

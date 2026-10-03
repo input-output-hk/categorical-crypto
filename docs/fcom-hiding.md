@@ -199,7 +199,7 @@ the OPENING — the first answer that depends on the plant, where the two
 averages merge.
 
 **(b) One coupling per plant, up to the flag.** `join-J` is a
-`Hop.JoinStep`: at each related pair of states a joint draw whose marginals are
+`Hop.JoinStep`: at each related pair of states with the flag down a joint draw whose marginals are
 the planted deferred kernel and the planted real kernel, and whose every outcome
 either stays related with the same answer or raises the flag.
 `Hop.runWith-join` turns that into `|Pr − Pr| ≤ badProb`. It is `FLGP`

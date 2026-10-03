@@ -44,8 +44,9 @@ open import ProbabilisticLogic.Dp.Reasoning
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pointwise
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Machine.Run
+open import CategoricalCrypto.Machines.Run.Sim
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Bridge
@@ -343,9 +344,9 @@ module FlagCert (B : Iface) (N : Proc B Ωᴵ) {k : ℕ} (qN : Certified k N) wh
 ------------------------------------------------------------------------
 -- The lift
 
-read-≈ : (B : Iface) {N D : Proc B Ωᴵ} → N S.≈ᴹ D
+read-≈ : (B : Iface) {N D : Proc B Ωᴵ} → N MS.≈ᴹ D
        → 𝒫._≈_ (Collapsed.readᴹ B N) (flagReadᴹ 𝒫.∘ subᴵ D)
-read-≈ B {N} e = S.⟺ᴹ (Collapsed.read-collapse B N) S.○ᴹ 𝒫.∘-resp-≈ʳ (sub-resp-≈ e)
+read-≈ B {N} e = MS.⟺ᴹ (Collapsed.read-collapse B N) MS.○ᴹ 𝒫.∘-resp-≈ʳ (sub-resp-≈ e)
 
 flagSkeleton : (B : Iface) (D : Proc B Ωᴵ) {k : ℕ} → QB k D
              → (M : Proc unitᴵ B) (P : StateTest M) (r : ℚ)

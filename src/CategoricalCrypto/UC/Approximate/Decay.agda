@@ -31,21 +31,6 @@ private variable p r sch : ℕ → ℕ
                  t : ℕ → ℕ → ℕ
 
 ------------------------------------------------------------------------
--- Closure
-
-Negligible-cong : ((n : ℕ) → s n ≡ u n) → Negligible s → Negligible u
-Negligible-cong eq neg r Pr = →0-cong (λ n → cong ((+ r n ℚ./ 1) ℚ.*_) (eq n)) (neg r Pr)
-
--- Negligibility is a BOUND, so it passes to anything dominated pointwise: the
--- magnified copies are dominated too, the magnifier being nonnegative.
-Negligible-≤ : ((n : ℕ) → s n ℚ.≤ u n) → Negligible u → Negligible s
-Negligible-≤ {s} {u} s≤u neg r Pr = →0-≤ mono (neg r Pr)
-  where
-  mono : (n : ℕ) → (+ r n ℚ./ 1) ℚ.* s n ℚ.≤ (+ r n ℚ./ 1) ℚ.* u n
-  mono n = subst (λ z → z ℚ.* s n ℚ.≤ z ℚ.* u n) (fromℕ-/ (r n))
-             (*-monoˡ-≤-nonNeg (fromℕ (r n)) ⦃ nonNegative (0≤fromℕ (r n)) ⦄ (s≤u n))
-
-------------------------------------------------------------------------
 -- The exponential schedule
 
 -- `2^-sch(j)` at a polynomial numerator, magnified by one more polynomial: the

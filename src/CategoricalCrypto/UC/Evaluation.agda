@@ -22,7 +22,7 @@ open import Relation.Binary.Structures
 import Relation.Binary.Construct.On as On
 import Relation.Binary.Reasoning.Setoid as SetoidR
 
-module CategoricalCrypto.UC.Core where
+module CategoricalCrypto.UC.Evaluation where
 
 -- Categories where morphisms into Ω can be observed. Observation is a
 -- natural transformation Θ : hom(-, Ω) => P for some presheaf P.

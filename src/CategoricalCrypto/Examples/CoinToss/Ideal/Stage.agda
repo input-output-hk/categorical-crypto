@@ -18,12 +18,12 @@ open import Categories.Category
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Machines.Sandwich
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Wire
 
 import CategoricalCrypto.Examples.ROCommitment as RO
-import CategoricalCrypto.Machines.Pointwise as Pw
 import CategoricalCrypto.UC.Machine.Composite as CS
 
 module CategoricalCrypto.Examples.CoinToss.Ideal.Stage
@@ -37,7 +37,6 @@ open import CategoricalCrypto.Examples.ROCommitment.Resource k
 open MC
 
 private
-  module S  = Pw.S
   module 𝒫  = Category 𝒫ᴵ
 
   Cⁱ Cᵗ : Iface
@@ -75,10 +74,10 @@ hearᴴ sg t m q eq =
   ⟨≈⟩ >>=ₚ-assoc _ _ _
   ⟨≈⟩ bindᶠ (λ _ → >>=ₚ-identityˡ _ _)
 
-hybrid-eq : (c′ : Proc unitᴵ Cⁱ) → c′ S.≲ Hᴺ
+hybrid-eq : (c′ : Proc unitᴵ Cⁱ) → c′ MS.≲ Hᴺ
           → 𝒫._≈_ {unitᴵ} {Cᵗ} hybridᴹ (sandwichᴹ c′ (Sum.map₂ Sum.assocʳ) (Sum.map₂ Sum.assocˡ))
 hybrid-eq c′ sim =
        𝒫.assoc
-  S.○ᴹ 𝒫.∘-resp-≈ʳ (𝒫.assoc S.○ᴹ 𝒫.∘-resp-≈ʳ (wire-∘ᴹ upᶠ downᶠ resource))
-  S.○ᴹ 𝒫.∘-resp-≈ʳ (S.⟺ᴹ (CS.eq-∘ᶜ unitᴵ (Lk ⊗ᴵ Hon) Cⁱ stageᴴ resᴵᵈ) S.○ᴹ S.≲⇒≈ᴹ˘ sim)
-  S.○ᴹ wire-∘ᴹ Sum.assocˡ Sum.assocʳ c′
+  MS.○ᴹ 𝒫.∘-resp-≈ʳ (𝒫.assoc MS.○ᴹ 𝒫.∘-resp-≈ʳ (wire-∘ᴹ upᶠ downᶠ resource))
+  MS.○ᴹ 𝒫.∘-resp-≈ʳ (MS.⟺ᴹ (CS.eq-∘ᶜ unitᴵ (Lk ⊗ᴵ Hon) Cⁱ stageᴴ resᴵᵈ) MS.○ᴹ MS.≲⇒≈ᴹ˘ sim)
+  MS.○ᴹ wire-∘ᴹ Sum.assocˡ Sum.assocʳ c′

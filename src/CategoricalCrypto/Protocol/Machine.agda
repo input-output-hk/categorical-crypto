@@ -20,11 +20,8 @@
 
 open import Categories.Category
 
-open import Data.Bool.Base
-open import Data.Empty
 open import Data.Product.Base
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
-open import Data.Unit.Polymorphic.Base
 open import Level
 
 open import ProbabilisticLogic.Dp
@@ -33,11 +30,8 @@ open import ProbabilisticLogic.Dp.Coin
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Protocol
-open import CategoricalCrypto.Strategy
-
 
 module CategoricalCrypto.Protocol.Machine where
-
 
 private variable A B : Iface
 
@@ -63,31 +57,4 @@ module _ (P : Protocol A B) where
   stepᴹ (wait _ , inj₂ _)  = botₚ
 
 morphism : Protocol A B → 𝒢ₚ 0ℓ [ ⟦ A ⟧ᴵ , ⟦ B ⟧ᴵ ]
-morphism P =
-  MC.mk (record { obj = MSt P ; point = λ _ → returnₚ (idle (init P)) }) (stepᴹ P)
-
-------------------------------------------------------------------------
--- The closed-machine run
-
--- The shape of a closed protocol's image, both polarities of `unitᴵ` being
--- empty; `runᴹ` runs a strategy against any machine of it.  The initial state
--- is `point`, which at a Kleisli base is itself effectful.
-Closed : Iface → Set₁
-Closed B = MC.Machine (⊥ ⊎ Neg B) (⊥ ⊎ Pos B)
-
-module _ (M : Closed B) where
-
-  -- Named rather than `where`-local so that a lemma about a run can quantify
-  -- over it (`Protocol.Machine.Run.resume-ϕ`).
-  resumeᴹ : (MC.St M → Pos B → Dₚ Bool) → MC.St M × (⊥ ⊎ Pos B) → Dₚ Bool
-  resumeᴹ c (_  , inj₁ a) = ⊥-elim a
-  resumeᴹ c (m′ , inj₂ r) = c m′ r
-
-  runᴹFrom : MC.St M → Strat (Neg B) (Pos B) → Dₚ Bool
-  runᴹFrom m (out b)    = returnₚ b
-  runᴹFrom m (coin μ k) = coinₚ μ >>=ₚ λ b → runᴹFrom m (k b)
-  runᴹFrom m (ask q k)  =
-    MC.step M (m , inj₂ q) >>=ₚ resumeᴹ λ m′ r → runᴹFrom m′ (k r)
-
-  runᴹ : Strat (Neg B) (Pos B) → Dₚ Bool
-  runᴹ d = MC.point (MC.state M) tt >>=ₚ λ m → runᴹFrom m d
+morphism P = MC.mk (initˢ (MSt P) (idle (init P))) (stepᴹ P)

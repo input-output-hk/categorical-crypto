@@ -32,28 +32,14 @@ open import ProbabilisticLogic.Dp
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Machine.Run
 open import CategoricalCrypto.Strategy
-
-import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.UC.Machine where
 
-private
-  module MS = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
-
 ------------------------------------------------------------------------
 -- Processes on interfaces
-
--- A `𝒢ₚ`-hom read at interfaces: `Machine (A⁺ + B⁻) (A⁻ + B⁺)`, a process that
--- answers queries from above and issues queries below.  Spelled with `_⊎_`
--- rather than as `𝒢ₚ 0ℓ [ ⟦ A ⟧ᴵ , ⟦ B ⟧ᴵ ]` (definitionally the same): an
--- implicit inferred from the hom form is `𝒢ₚ`'s object sum, under which sits
--- the δ-unfolded Mealy category record, and every term mentioning it carries
--- that copy (`UC.Machine.Monitor.flag-agree`: 2.4 → 1.2 GiB residency).
-Proc : Iface → Iface → Set₁
-Proc A B = MC.Machine (Pos A ⊎ Neg B) (Neg A ⊎ Pos B)
 
 -- A consumer passes every object implicit of `𝒫ᴵ` explicitly.  Left to
 -- inference, each asks Agda to invert `Machine (Pos A ⊎ Neg B) (Neg A ⊎ Pos B)`
@@ -62,7 +48,7 @@ Proc A B = MC.Machine (Pos A ⊎ Neg B) (Neg A ⊎ Pos B)
 -- exhausts a 10 GiB heap.
 --
 -- `FullSubCategory (𝒢ₚ 0ℓ) ⟦_⟧ᴵ` field for field, except that `_⇒_` and `_≈_`
--- are spelled at the interface sums, for the reason given at `Proc`.
+-- are spelled at the interface sums, for the reason given at `Machines.Run.Proc`.
 𝒫ᴵ : Category (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)
 𝒫ᴵ = record
   { Obj       = Iface
@@ -100,9 +86,6 @@ wireStep up down (s , inj₂ n) = returnₚ (s , inj₁ (down n))
 wireᴹ : {A B : Iface} → (Pos A → Pos B) → (Neg B → Neg A) → Proc A B
 wireᴹ up down = MC.mk MC.Iˢ (wireStep up down)
 
-initˢ : (S : Set) → S → MC.State
-initˢ S s = record { obj = S ; point = λ _ → returnₚ s }
-
 ------------------------------------------------------------------------
 -- The observation
 
@@ -111,7 +94,6 @@ initˢ S s = record { obj = S ; point = λ _ → returnₚ s }
 
 ⟦_⟧ᴼ : Proc unitᴵ Ωᴵ → Dₚ Bool
 ⟦ M ⟧ᴼ = runᴹ M (ask tt out)
-
 
 ------------------------------------------------------------------------
 -- The ancilla relays, as data

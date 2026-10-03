@@ -306,12 +306,12 @@ Fresh : Comʰ → Dig → Tbl → Set
 Fresh nothing  r t = ∀ b → lookupPt t (b ∷ᵛ r) ≡ nothing
 Fresh (just _) _ _ = ⊤
 
--- The two planted games, in step at the same plant.  It holds only while the
--- flag is down — past that the coupling drops it and neither game has to be
--- tracked inside the other.
+-- The two planted games, in step at the same plant.  The coupling only
+-- tracks them while the flag is down (`Hop.JoinStep`); past that neither game
+-- has to be tracked inside the other.
 _≋J_ : StPʰ → StRʰ → Set
-(r , t , m , f) ≋J (mr , t′ , z) =
-  (f ≡ false) × (mr ≡ just r) × (z ≡ recOf m r)
+(r , t , m , _) ≋J (mr , t′ , z) =
+  (mr ≡ just r) × (z ≡ recOf m r)
   × (∀ y → lookupPt t′ y ≡ TblAt m r t y) × Fresh m r t
 
 private
@@ -360,7 +360,7 @@ private
 -- The coupling, up to the flag
 
 join-J : JoinStep respPʰ respRʰ flagP _≋J_
-join-J (r , t , m , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) (askQʰ x) =
+join-J (r , t , m , false) (mr , t′ , z) (refl , refl , tbl , frs) refl (askQʰ x) =
   νa , mgL , mgR , sup
   where
   κa : Tbl × Dig → Dig → (StPʰ × Rʰ) × (StRʰ × Rʰ)
@@ -406,11 +406,11 @@ join-J (r , t , m , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) (askQʰ 
     good (inj₁ (pu , hit))
       rewrite pu
             | fetchR-hit t′ x (proj₂ u) (proj₂ u)
-                (trans (same-at m r t t′ x tbl eqg) hit) = (refl , refl , refl , tbl , frs) , refl
+                (trans (same-at m r t t′ x tbl eqg) hit) = (refl , refl , tbl , frs) , refl
     good (inj₂ (pu , miss))
       rewrite pu
             | fetchR-miss t′ x (proj₂ u) (trans (same-at m r t t′ x tbl eqg) miss) =
-      (refl , refl , refl , tbl-∷ m r t t′ x (proj₂ u) tbl eqg
+      (refl , refl , tbl-∷ m r t t′ x (proj₂ u) tbl eqg
       , fresh-∷ m r t x (proj₂ u) frs eqg) , refl
 
   sup : OnSupport (λ p → (flagP (proj₁ (proj₁ p)) ≡ true)
@@ -418,7 +418,7 @@ join-J (r , t , m , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) (askQʰ 
                           × (proj₂ (proj₁ p) ≡ proj₂ (proj₂ p)))) νa
   sup = OnSupport-bind (fetchT id t x) (λ u → uniform-Vec k >>=ᴹ λ ρ → return-ℚ (κa u ρ))
           (fetchT-sup t x) λ u us → OnSupport-map (uniform-Vec k) _ λ ρ → stp u ρ us
-join-J (r , t , nothing , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) (comQʰ b) =
+join-J (r , t , nothing , false) (mr , t′ , z) (refl , refl , tbl , frs) refl (comQʰ b) =
   νc , mgL , mgR , sup
   where
   κc : Dig → (StPʰ × Rʰ) × (StRʰ × Rʰ)
@@ -446,7 +446,7 @@ join-J (r , t , nothing , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) (c
       → ((r , t , just (c , b , false) , false)
            ≋J (just r , (b ∷ᵛ r , c) ∷ t′ , just (c , b , r , false)))
         × (comRʰ c ≡ comRʰ c)
-  stp c = (refl , refl , refl , tblc , tt) , refl
+  stp c = (refl , refl , tblc , tt) , refl
     where
     tblc : ∀ y → lookupPt ((b ∷ᵛ r , c) ∷ t′) y ≡ lookupPt ((b ∷ᵛ r , c) ∷ t) y
     tblc y with y ≟ (b ∷ᵛ r)
@@ -457,23 +457,23 @@ join-J (r , t , nothing , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) (c
                        ⊎ ((proj₁ (proj₁ p) ≋J proj₁ (proj₂ p))
                           × (proj₂ (proj₁ p) ≡ proj₂ (proj₂ p)))) νc
   sup = OnSupport-map (uniform-Vec k) κc (inj₂ ∘ stp)
-join-J (r , t , just mm , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) (comQʰ b) =
+join-J (r , t , just mm , false) (mr , t′ , z) (refl , refl , tbl , frs) refl (comQʰ b) =
   join-return flagP _≋J_ ((r , t , just mm , false) , idleRʰ)
                          ((just r , t′ , recOf (just mm) r) , idleRʰ)
-                         (refl , refl , refl , tbl , frs) refl
-join-J (r , t , just (c , b , false) , f) (mr , t′ , z)
-       (refl , refl , refl , tbl , frs) opnQʰ =
+                         (refl , refl , tbl , frs) refl
+join-J (r , t , just (c , b , false) , false) (mr , t′ , z)
+       (refl , refl , tbl , frs) refl opnQʰ =
   join-return flagP _≋J_ (outOpnP r t c b false)
                          ((just r , t′ , just (c , b , r , true)) , opnRʰ b r)
-                         (refl , refl , refl , tbl , tt) refl
-join-J (r , t , just (c , b , true) , f) (mr , t′ , z)
-       (refl , refl , refl , tbl , frs) opnQʰ =
+                         (refl , refl , tbl , tt) refl
+join-J (r , t , just (c , b , true) , false) (mr , t′ , z)
+       (refl , refl , tbl , frs) refl opnQʰ =
   join-return flagP _≋J_ ((r , t , just (c , b , true) , false) , idleRʰ)
                          ((just r , t′ , just (c , b , r , true)) , idleRʰ)
-                         (refl , refl , refl , tbl , frs) refl
-join-J (r , t , nothing , f) (mr , t′ , z) (refl , refl , refl , tbl , frs) opnQʰ =
+                         (refl , refl , tbl , frs) refl
+join-J (r , t , nothing , false) (mr , t′ , z) (refl , refl , tbl , frs) refl opnQʰ =
   join-return flagP _≋J_ ((r , t , nothing , false) , idleRʰ) ((just r , t′ , nothing) , idleRʰ)
-                         (refl , refl , refl , tbl , frs) refl
+                         (refl , refl , tbl , frs) refl
 
 ------------------------------------------------------------------------
 -- The flag's average drift: 2⁻ᵏ for the guess, 2⁻ᵏ for the test
@@ -675,7 +675,7 @@ per-plant : (d : Strat Qʰ Rʰ) (r : Dig)
               -ℚ Pr₁ (runWith respRʰ (just r , [] , nothing) d) ∣ℚ
             ≤ℚ badProb respPʰ flagP (sP₀ r) d
 per-plant d r = runWith-join respPʰ respRʰ flagP _≋J_ join-J d (sP₀ r)
-  (just r , [] , nothing) (refl , refl , refl , (λ y → refl) , (λ b → refl))
+  (just r , [] , nothing) (refl , refl , (λ y → refl) , (λ b → refl))
 
 defer-hiding : (m : ℕ) (d : Strat Qʰ Rʰ) → asks≤ m d
              → ∣ Pr₁ (runWith respLʰ sL₀ d) -ℚ Pr₁ (runWith respRʰ sR₀ d) ∣ℚ

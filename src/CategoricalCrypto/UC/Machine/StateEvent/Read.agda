@@ -31,7 +31,7 @@ open import ProbabilisticLogic.Dp.Reasoning
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Pointwise
-open import CategoricalCrypto.Protocol.Machine.Run
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Machine.Dictionary
@@ -70,7 +70,7 @@ flagReader B Y E = flagReadᴹ 𝒫.∘ (subᴵ E 𝒫.∘ a⇐ᴵ)
 -- the flag reader is in its cycle.
 module Collapsed (D : Iface) (E : Proc D Ωᴵ) where
   open MC
-  open S
+  open MS
 
   efOut : FlagSt → St E × (Neg D ⊎ Bool) → Dₚ ((FlagSt × St E) × ((Neg D ⊎ ⊤) ⊎ Bool))
   efOut fs    (se , inj₁ q) = returnₚ ((fs    , se) , inj₁ (inj₁ q))
@@ -102,7 +102,7 @@ module Collapsed (D : Iface) (E : Proc D Ωᴵ) where
     kᴿ = Col.kᴳ {Pos D ⊎ Bool} {Neg D ⊎ ⊤} {Bool ⊎ Bool} {⊤ ⊎ ⊤} {Bool} {⊤}
                 flagReadᴹ (subᴵ E)
 
-  open Col.Loop ((Pos D ⊎ Bool) ⊎ ⊤) ((Neg D ⊎ ⊤) ⊎ Bool) ((⊤ ⊎ ⊤) ⊎ (Bool ⊎ Bool)) Sᴿ kᴿ
+  open Loop ((Pos D ⊎ Bool) ⊎ ⊤) ((Neg D ⊎ ⊤) ⊎ Bool) ((⊤ ⊎ ⊤) ⊎ (Bool ⊎ Bool)) Sᴿ kᴿ
 
   private
     relayᴰ : FlagSt → St E × (Neg D ⊎ Bool)
@@ -217,4 +217,4 @@ module _ {A B : ℕ → Iface} (M : (n : ℕ) → Proc (A n) (B n))
 transportᵉ : {A B : Iface} {q : ℕ} {r : ℚ} {R I : Proc A B} {P : StateTest R} {Q : StateTest I}
            → EventSim (R , P) (I , Q) → StateBoundedAt q r I Q → StateBoundedAt q r R P
 transportᵉ {B = B} e h Y E m qE qm le =
-  upper-≈ (readRun-resp-≈ Y (S.≲⇒≈ᴹ (▷-≲ e)) (flagReader B) E m) (h Y E m qE qm le)
+  upper-≈ (readRun-resp-≈ Y (MS.≲⇒≈ᴹ (▷-≲ e)) (flagReader B) E m) (h Y E m qE qm le)

@@ -32,7 +32,7 @@ The verbatim signatures are in §1.1, keyed by row number.
 | 3 | `_≈ᶠᴺ_` | `UC.Model.Family.Emulation` | `Σ ε`, then `NegligibleBound ε × R ≈ᶠ[ ε ] I`: one global schedule, chosen before any allowance | G | as row 2 | `NegligibleBound ε = ∀ p → Poly p → Negligible (λ n → ε n (p n))` | consumed only through its components; symmetric and simulator-free, with no map into `_≤UC^ωᵉ_` |
 | 4 | `≈ᶠ-runs` | `UC.Model.Family.Emulation` | `{B R I}` `ε` `h` `n` `(q : ℕ⁺)` `d` `asks≤ (value q) d` | G → M runs at S | rate `q : ℕ⁺` (no zero), closure at `1⁺` | `ε n (value q)` via `*-identityʳ` | it *is* the adequacy step: row 2 at ancilla `Gr.𝟘ᴳ`, test `auditTest _ d`, closure `Gr.ιᴳ unitᴵ`, certificate `audit-qb`, then `audit-run` (beside it) |
 | 5 | `≤UC[]⇒≤UCᴺ` | `UC.Model.Family.Emulation` | `[{A X Y B} s ε neg f g e]` | G | simulator `s : Y ⇒^ω X` | fixed `ε`, forgotten into `Canonicalᴺ._≤UC_` | not on the ledger chain; consumers `Examples.CoinToss.Ideal.Compose`, `….Receiver.Compose` |
-| 6 | `Strat` | `Strategy` | `Q R : Set` | S (`out`/`ask`/`coin`, coin `Dist-ℚ Bool`) | — | — | layer-1 run `runWith⊥`; machine run `runᴹ` (`Protocol.Machine`); embedding `strategyEnv` (`UC.Seam`) with `adequacy : ⟦ strategyEnv B d 𝒫.∘ u ⟧ᴼ ≈ₚ runᴹ u d` (`UC.Seam.Adequacy`); `stratTest`/`stratTest-embeds` (`UC.Seam.Budget`) |
+| 6 | `Strat` | `Strategy` | `Q R : Set` | S (`out`/`ask`/`coin`, coin `Dist-ℚ Bool`) | — | — | layer-1 run `runWith⊥`; machine run `runᴹ` (`Machines.Run`); embedding `strategyEnv` (`UC.Seam`) with `adequacy : ⟦ strategyEnv B d 𝒫.∘ u ⟧ᴼ ≈ₚ runᴹ u d` (`UC.Seam.Adequacy`); `stratTest`/`stratTest-embeds` (`UC.Seam.Budget`) |
 | 7 | `asks≤` | `Strategy` | `(n : ℕ)` then `d`; `{Q R}` generalized | S | cap `ℕ`, 0 allowed (`asks≤ zero (ask …) = ⊥`, coins free) | — | `qb-stratTest : asks≤ q d → QB q (stratTest B d)`; `audit-qb` (row 4) |
 | 8 | `watchFrom` | `Strategy` | `report acc d`; `asks≤-watch` keeps the cap | S → S | cap preserved | — | process form `monitorᴹ` (`UC.Machine.Monitor`); `flag-agree` (`UC.Machine.Monitor`) |
 | 9 | `Pr` (and `Prᵇ`, `runObs`, `runFrom = runWith⊥ kernel`) | `Protocol.Observe` | `[P]` `d`; `{B}` generalized | P × S | none: structural recursion on the tree | exact `ℚ` over `Dist⊥`; a `dead` branch weighs 0 | `prAgree`, `upper-run`, `run-upper` (`Protocol.Machine.Agree`) |
@@ -58,7 +58,7 @@ The verbatim signatures are in §1.1, keyed by row number.
 | 29 | `State` / `Machine` / `St` | `Machines.Core` | `[𝒱]` `A B` | M | — | — | `State = obj, point : unit ⇒ obj`, where `point` may be effectful (in a Kleisli category `unit` is not initial); `St = obj state`. There is no `discard`: machines are pointed only |
 | 30 | `_∘ᴹ_` | `Machines.Core` (in an `opaque` block) | `[𝒱]` `g f` | M | — | — | composite state is `state g ⊛ state f`; opaque, so laws opt in with `unfolding` |
 | 31 | `_≲_` | `Machines.Sim` | `[𝒱 𝒫]` `{A B}` `f g`, fields `θ θ-pure θ-point θ-step` | M | — | — | a state simulation, not invertible. `θ` is drawn from the pure subcategory `𝒫`; at the probabilistic model its underlying function is `Machines.Pointwise.ϕ = KP.fn (S.θ-pure sim)` (`fn = proj₁` of `IsPure f = Σ h. f ≈ᵏ pureᵏ h`) |
-| 32 | `_≈ᴹ_` | `Machines.Sim` | `[𝒱 𝒫]` `EqClosure _≲_` | M | — | — | `runᴹ-resp-≈ᴹ` (`Protocol.Machine.Run`); `obs-resp` (`UC.Model.Observation`); the hom equality of the machine category |
+| 32 | `_≈ᴹ_` | `Machines.Sim` | `[𝒱 𝒫]` `EqClosure _≲_` | M | — | — | `runᴹ-resp-≈ᴹ` (`Machines.Run.Sim`); `obs-resp` (`UC.Model.Observation`); the hom equality of the machine category |
 | 33 | `Protocol`, `morphism`, `MSt` | `Protocol`; `Protocol.Machine` | `A B`; `St init step` | P → M | — | — | the image state is `MSt = idle (St P) \| wait k`; `drive` returns to `idle` only on an answer (`ret`); adequacy by `prAgree` |
 | 34 | Seal: `𝔾ᵒ`, `sealᵒ`, `procᵒ`/`unprocᵒ`, `≈ᴹ⇒≈ᵒ`/`≈ᵒ⇒≈ᴹ`, `unprocᵒ-∘`/`procᵒ-∘` | `UC.Model.Seal` | — | G ↔ M | — | — | a seal hom at interface objects *is* a `Proc`, and its equality *is* `𝒢ₚ`'s; no state is exposed through `𝔾ᵒ`'s interface, and every state read crosses `unprocᵒ` |
 | 35 | `Certified` / `QB` | `UC.QueryBound` | `{A B}` `c M`; `QB c M = Σ N. Certified c N × N ≈ᴹ M` | M | count `c : ℕ`, 0 allowed | — | `Certified` is not `≈ᴹ`-invariant, so `QB` is its closure; `qb-resp-≈`, `qb-closed : QB 0 M` for closed `M` |
@@ -127,12 +127,12 @@ Row count: **41**.
 `asks≤ (p n) d₀`. `ε` is the schedule inside the premise
 `em : R ≈ᶠᴺ Ideal a V`.
 
-1. **`birthday`** (`ProbabilisticLogic.Distribution.Uniform.Birthday`, module
+1. **`birthday-≤`** (`ProbabilisticLogic.Distribution.Uniform.Birthday`, module
    parameter `n` = hash width): `∀ q → Γ 1 q ≤ birthday-bound q`, with
    `birthday-bound q = fromℕ (q ℕ.* q ℕ.+ q) * inv-pow-2 n`,
    `Γ t j = fromℕ (sumN t j) * ε` and `sumN 1 q = 1 + 2 + … + q`. The
-   inequality goes through `sumN-≤ : sumN t j ≤ j * (t + j)`, so the stated
-   bound is loose by a factor of about 2 against the potential.
+   potential itself is exact, `birthday : Γ 1 q ≡ q(q+1)/2ⁿ⁺¹` (Gauss,
+   `sumN-closed`); the published schedule is twice it.
 2. **`cert : HitCert Sys₀ Bad birthday-bound`**
    (`Examples.ChimericLedger.Birthday`). The potential is
    `φ m st = Φ m (Hs (proj₂ st))`, with

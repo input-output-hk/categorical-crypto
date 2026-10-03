@@ -241,10 +241,9 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
             (λ h → ret ((qs , h) ∷ tbl , (fzero , h)))
             (freshInv s tbl ins wds outs u′ a′ vIn e₁ ec eq inv)
 
-      -- `birthday-bound q` is `q²` fresh-hash pairs, plus `q` chances for a
-      -- fresh hash to hit `h₀` itself: the genesis key is in the namespace the
-      -- oracle samples from, and an output keyed by an already-present key is
-      -- swallowed by `unionNew`.
+      -- The pool starts at one, `Γ 1`: the genesis key `h₀` is in the namespace
+      -- the oracle samples from, and an output keyed by an already-present key
+      -- is swallowed by `unionNew`.  `birthday-bound` is twice `Γ 1`.
       cert : HitCert Sys₀ Bad birthday-bound
       cert = record
         { Inv    = Inv
@@ -260,7 +259,7 @@ module _ (h₀ : Hash) (ser-inj : {t u : Tx} → ser t ≡ ser u → t ≡ u) wh
         ; φ-nn   = λ m st _ → 0≤Φ m (Hs (proj₂ st))
         ; φ-bad  = φ-bad
         ; φ-step = φ-step
-        ; φ-init = λ m → ≤-trans (≤-reflexive (+-identityˡ (Γ 1 m))) (birthday m)
+        ; φ-init = λ m → ≤-trans (≤-reflexive (+-identityˡ (Γ 1 m))) (birthday-≤ m)
         }
         where
         φ-bad : ∀ m st → Inv st → Bad st ≡ true → 1ℚ ≤ℚ φ m st

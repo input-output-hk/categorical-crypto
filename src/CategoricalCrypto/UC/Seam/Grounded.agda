@@ -16,18 +16,18 @@ open import Data.Unit.Base
 open import ProbabilisticLogic.Dp
 
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Machine.Compose
-open import CategoricalCrypto.Protocol.Machine.Run
+open import CategoricalCrypto.Machines.Run.Sim
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Model.Observation
 open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.Model.Setup
 open import CategoricalCrypto.UC.Seam
-
-import CategoricalCrypto.Machines.Pointwise as Pw
 
 module CategoricalCrypto.UC.Seam.Grounded where
 
@@ -83,4 +83,4 @@ plug-λ t w = (assoc ○ (refl⟩∘⟨ unitorˡ-commute-from) ○ sym-assoc) �
 -- The environment's composite, read across the seal.
 plug-run : (B : Iface) (d : Strat (Neg B) (Pos B)) (w : Proc unitᴵ B)
          → ⟦ strategyEnv B d 𝒫.∘ w ⟧ᴼ ≈ₚ Obs (procᵒ (strategyEnv B d) ∘ procᵒ w)
-plug-run B d w = runᴹ-resp-≈ᴹ (Pw.S.⟺ᴹ (unprocᵒ-∘ (strategyEnv B d) w)) (ask tt out)
+plug-run B d w = runᴹ-resp-≈ᴹ (MS.⟺ᴹ (unprocᵒ-∘ (strategyEnv B d) w)) (ask tt out)

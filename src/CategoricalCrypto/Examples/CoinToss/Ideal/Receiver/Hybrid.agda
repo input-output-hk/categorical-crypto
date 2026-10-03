@@ -40,7 +40,6 @@ open import CategoricalCrypto.Examples.ROCommitment.Resource k
 open MC
 
 private
-  module S  = Pw.S
   module 𝒫  = Category 𝒫ᴵ
 
 private module St = Stage k Lkᴵʰ Honᴵʰ Advᴵᶜʰ Honᴵᶜʰ tossʰ downᶠʰ upᶠʰ
@@ -153,7 +152,7 @@ private
         bot-bind-≈ₚ _
     ⟨≈⟩ ≈sym (askᴴʰ doneᵗ (t , just b₁) (inj₂ getᶜ) ⟨≈⟩ bot-bind-≈ₚ _)
 
-  hyb-simʰ : eagerᶜʰ′ S.≲ Hᴺ
+  hyb-simʰ : eagerᶜʰ′ MS.≲ Hᴺ
   hyb-simʰ = Pw.simFn θᴴʰ
                    (λ x → >>=ₚ-identityˡ (preᴱ []) _
                       ⟨≈⟩ ≈sym ( >>=ₚ-identityˡ (tt , x) _

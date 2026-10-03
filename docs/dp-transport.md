@@ -5,7 +5,7 @@ delay monad), the game cone on `Dist-ℚ`. The RO commitment's systems are raw
 machines, not layer-1 protocol images
 ([`docs/hash-forward.md`](hash-forward.md) §"Why `real` is a raw machine").
 This document is the transport at RAW machines: generic in
-`ProbabilisticLogic.Dp.Settle` and `Protocol.Machine.Raw`, inhabited at a
+`ProbabilisticLogic.Dp.Settle` and `Machines.Run.Raw`, inhabited at a
 machine that really samples in `Examples.ROCommitment.Transport`. Its
 continuation to two-factor composites and partial game kernels is
 [`docs/fcom-uc.md`](fcom-uc.md).
@@ -89,10 +89,10 @@ type unfolds to a `Σ` the value is compared through `E⊥`, a value left implic
 eta-expands into entries and weights, and unification blocks on a weight. With
 a rigid head and explicit values every such meta is solved by the type.
 
-## `Protocol.Machine.Raw` — the machine half
+## `Machines.Run.Raw` — the machine half
 
 ```agda
-StepSettles : Set              -- at M : Closed B, K : St M → Neg B → Dist⊥ (St M × Pos B)
+StepSettles : Set              -- at M : Proc unitᴵ B, K : St M → Neg B → Dist⊥ (St M × Pos B)
 StepSettles = (m : MC.St M) (q : Neg B)
             → Σ[ n ∈ ℕ ] Settles n (MC.step M (m , inj₂ q)) (Dmap⊥ ansᴹ (K m q))
 

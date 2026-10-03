@@ -22,16 +22,15 @@ open import ProbabilisticLogic.Dp.Coin
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.UC.Machine
-
-import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.Examples.CoinToss (k : ℕ) where
 
 open import CategoricalCrypto.Examples.ROCommitment k
 
 open MC
-open Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
+open MS
 
 ------------------------------------------------------------------------
 -- Interfaces

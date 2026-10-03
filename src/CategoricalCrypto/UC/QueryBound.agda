@@ -18,9 +18,6 @@
 open import Categories.Category
 open import Categories.Category.Monoidal.Bundle
 
-import Categories.Category.Construction.Kleisli.Discrete as KD
-import Categories.Category.Construction.Kleisli.Discrete.Pure as KDP
-
 open import Data.Empty
 open import Data.List.Base
 open import Data.Nat.Base as ℕ
@@ -37,22 +34,18 @@ open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.OracleCall
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.UC.Machine
 
 import CategoricalCrypto.Machines.Pointwise as Pw
-import CategoricalCrypto.Machines.Sim as Sim
 
 module CategoricalCrypto.UC.QueryBound where
 
 private
-  module S = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
   module 𝒫 = Category 𝒫ᴵ
-  module V = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
-  module K = KD (Dₚ-DiscreteMonad {0ℓ})
-  module KP = KDP (Dₚ-DiscreteMonad {0ℓ})
 
   -- `opaque`: the chain is shared, not normalized into each certificate.
   opaque
@@ -204,14 +197,14 @@ behᴾ M = behᵍ (MC.St M) (MC.point (MC.state M) tt) (MC.step M)
 -- other's states outside its image, and none can be pulled back for want of a
 -- right inverse.  The hom-level predicate is therefore the `≈`-closure, which
 -- makes `qb-resp-≈` hold by construction and identifies nothing a test can tell
--- apart (`Protocol.Machine.Run.runᴹ-resp-≈ᴹ`).  Store that underlying machine
+-- apart (`Machines.Run.Sim.runᴹ-resp-≈ᴹ`).  Store that underlying machine
 -- equality directly: projecting the definitionally identical relation from
 -- `𝒫ᴵ` forces the whole G-construction record at composite witnesses.
 QB : {A B : Iface} → ℕ → Proc A B → Set₁
-QB {A} {B} c M = Σ[ N ∈ Proc A B ] Certified c N × (N S.≈ᴹ M)
+QB {A} {B} c M = Σ[ N ∈ Proc A B ] Certified c N × (N MS.≈ᴹ M)
 
 certified⇒QB : {A B : Iface} {c : ℕ} {M : Proc A B} → Certified c M → QB c M
-certified⇒QB {M = M} q = M , q , S.reflᴹ
+certified⇒QB {M = M} q = M , q , MS.reflᴹ
 
 qb-wire : {A B : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
         → QB 1 (wireᴹ {A} {B} up down)
@@ -221,8 +214,8 @@ qb-closed : {B : Iface} (M : Proc unitᴵ B) → QB 0 M
 qb-closed M = certified⇒QB (qbᵢ-closed (MC.St M) (MC.point (MC.state M) tt) (MC.step M))
 
 qb-resp-≈ : {A B : Iface} {c : ℕ} {M N : Proc A B}
-          → M S.≈ᴹ N → QB c M → QB c N
-qb-resp-≈ e (P , q , e′) = P , q , e′ S.○ᴹ e
+          → M MS.≈ᴹ N → QB c M → QB c N
+qb-resp-≈ e (P , q , e′) = P , q , e′ MS.○ᴹ e
 
 qb-mono : {A B : Iface} {c c′ : ℕ} {M : Proc A B} → c ℕ.≤ c′ → QB c M → QB c′ M
 qb-mono le (N , q , e) = N , qbᵢ-mono _ _ _ le q , e
@@ -322,13 +315,13 @@ module OneCall {A B : Iface} (P : Protocol A B)
       bot-bind-≈ₚ _
       ⟨≈⟩ ≈sym (bindˣ (Pw.⊗-pureˡ θᴺ (inj₂ k , inj₂ b)) ⟨≈⟩ >>=ₚ-identityˡ _ _)
 
-    θ-sim : oneCallᴹ S.≲ morphism P
-    θ-sim = S.sim (K.pureᵏ θᴺ) (KP.structural θᴺ)
+    θ-sim : oneCallᴹ MS.≲ morphism P
+    θ-sim = MS.sim (K.pureᵏ θᴺ) (KP.structural θᴺ)
                   (λ _ → >>=ₚ-identityˡ (inj₁ (init P)) _)
                   θ-step
 
   qb-oneCall : QB 1 (morphism P)
-  qb-oneCall = oneCallᴹ , certifiedᴺ , S.≲⇒≈ᴹ θ-sim
+  qb-oneCall = oneCallᴹ , certifiedᴺ , MS.≲⇒≈ᴹ θ-sim
 
 open OneCall public using (qb-oneCall)
 

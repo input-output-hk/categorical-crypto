@@ -20,6 +20,7 @@ open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Advantage
 
 open import CategoricalCrypto.Iface
+open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Strategy

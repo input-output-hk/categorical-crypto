@@ -29,8 +29,8 @@ open import ProbabilisticLogic.Dp.Advantage
 open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
-open import CategoricalCrypto.Protocol.Machine
-open import CategoricalCrypto.Protocol.Machine.Run
+open import CategoricalCrypto.Machines.Run
+open import CategoricalCrypto.Machines.Run.Sim
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Graded
 open import CategoricalCrypto.UC.Machine
