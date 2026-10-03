@@ -22,9 +22,11 @@
 open import Categories.Category
 
 open import Data.Bool.Base
+open import Data.Empty
 open import Data.Product.Base
 open import Data.Sum.Base as Sum using (_⊎_; inj₁; inj₂) renaming (assocˡ to ⊎assocˡ; assocʳ to ⊎assocʳ)
 open import Data.Unit.Base
+open import Function.Base using (id)
 import Data.Unit.Polymorphic.Base as PolyUnit
 open import Level
 
@@ -123,3 +125,13 @@ a⇐ᴵ = wireᴹ ⊎assocˡ ⊎assocʳ
 
 a⇒ᴵ : {X Y A : Iface} → Proc ((X ⊗ᴵ Y) ⊗ᴵ A) (X ⊗ᴵ (Y ⊗ᴵ A))
 a⇒ᴵ = wireᴹ ⊎assocʳ ⊎assocˡ
+
+-- The unitor wires.  `Proc unitᴵ B` is a closed process at `B`; a graded
+-- statement wants it at the degenerate grade `unitᴵ ⊗ᴵ B`, where the empty
+-- summand can never fire.  `λᴵ⇒` closes a hole a graded statement has already
+-- opened (`UC.Machine.Slide.unit-cancel`).
+λᴵ⇐ : {B : Iface} → Proc B (unitᴵ ⊗ᴵ B)
+λᴵ⇐ = wireᴹ inj₂ Sum.[ ⊥-elim , id ]
+
+λᴵ⇒ : {B : Iface} → Proc (unitᴵ ⊗ᴵ B) B
+λᴵ⇒ = wireᴹ Sum.[ ⊥-elim , id ] inj₂

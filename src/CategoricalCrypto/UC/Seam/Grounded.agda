@@ -45,15 +45,11 @@ open MR ∣machines∣
 ιᴳ : (B : Iface) → ifaceᵒ B ⇒ T₀ 𝟘ᴳ (ifaceᵒ B)
 ιᴳ _ = unitorˡ.to
 
--- A protocol image at the trivial grade, OPEN at the port the component below
+-- A protocol image at the trivial grade, open at the port the component below
 -- it answers on (`factorᵖ`, where two are the factors of a closed two-stage
--- system)…
+-- system); at `A = unitᴵ` it is a closed one, as the UC layer sees it.
 stageᵒ : {A B : Iface} → Proc A B → ifaceᵒ A ⇒ T₀ 𝟘ᴳ (ifaceᵒ B)
 stageᵒ {B = B} g = ιᴳ B ∘ procᵒ g
-
--- …and a CLOSED one, as the UC layer sees it.
-closedᵒ : {B : Iface} → Proc unitᴵ B → ifaceᵒ unitᴵ ⇒ T₀ 𝟘ᴳ (ifaceᵒ B)
-closedᵒ = stageᵒ
 
 ------------------------------------------------------------------------
 -- A closed two-stage system as a categorical composite
@@ -66,8 +62,8 @@ closedᵒ = stageᵒ
 -- equality, strictly finer than `_≈ᵁ_`.
 
 factorᵖ : {B C : Iface} (P₂ : Protocol B C) (P₁ : Protocol unitᴵ B)
-        → closedᵒ (morphism (P₂ ∘ᵖ P₁))
-          ≈ sub λ⇒ ∘ (stageᵒ (morphism P₂) ∙ closedᵒ (morphism P₁))
+        → stageᵒ (morphism (P₂ ∘ᵖ P₁))
+          ≈ sub λ⇒ ∘ (stageᵒ (morphism P₂) ∙ stageᵒ (morphism P₁))
 factorᵖ P₂ P₁ =
   (refl⟩∘⟨ (≈ᴹ⇒≈ᵒ (morphismCompose P₂ P₁) ○ procᵒ-∘ (morphism P₂) (morphism P₁)))
   ○ ⟺ (∙-return (stageᵒ (morphism P₂)) (procᵒ (morphism P₁)) ○ assoc)

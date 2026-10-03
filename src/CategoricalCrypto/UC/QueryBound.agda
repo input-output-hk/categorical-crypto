@@ -35,12 +35,7 @@ open import ProbabilisticLogic.Dp.Reasoning
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Run
-open import CategoricalCrypto.OracleCall
-open import CategoricalCrypto.Protocol
-open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.UC.Machine
-
-import CategoricalCrypto.Machines.Pointwise as Pw
 
 module CategoricalCrypto.UC.QueryBound where
 
@@ -151,17 +146,28 @@ qbᵢ-zero S point step onL cohL tag untag = record
                    ⟨≈⟩ >>=ₚ-identityʳ (step (s , inj₂ b))
   }
 
--- `Neg unitᴵ` is empty, so a closed process has no downward output and is
--- certified at rate 0 with nothing known about it.
+-- A process whose domain has no downward letters is certified at rate 0 with
+-- nothing known about it.
+qbᵢ-noDown : {A B : Iface} (S : Set) (point : Dₚ S)
+             (step : S × (Pos A ⊎ Neg B) → Dₚ (S × (Neg A ⊎ Pos B)))
+           → (Neg A → ⊥) → QBᵢ S point step 0
+qbᵢ-noDown {A} {B} S point step noDown =
+  qbᵢ-zero S point step (λ s a → mapₚ up (step (s , inj₁ a)))
+    (λ s a → map-fuse (step (s , inj₁ a)) up forget id untag ⟨≈⟩ >>=ₚ-identityʳ (step (s , inj₁ a)))
+    up untag
+  where
+  up : S × (Neg A ⊎ Pos B) → Ans {S} (λ _ → 0) (Neg A) (Pos B) 0
+  up (_ , inj₁ e) = ⊥-elim (noDown e)
+  up (s , inj₂ p) = inj₂ ((s , z≤n) , p)
+
+  untag : (y : S × (Neg A ⊎ Pos B)) → forget (up y) ≡ y
+  untag (_ , inj₁ e) = ⊥-elim (noDown e)
+  untag (_ , inj₂ _) = refl
+
 qbᵢ-closed : {B : Iface} (S : Set) (point : Dₚ S)
              (step : S × (Pos unitᴵ ⊎ Neg B) → Dₚ (S × (Neg unitᴵ ⊎ Pos B)))
            → QBᵢ S point step 0
-qbᵢ-closed {B} S point step = qbᵢ-zero S point step (λ _ ()) (λ _ ()) up
-  λ { (_ , inj₁ e) → ⊥-elim e ; (_ , inj₂ _) → refl }
-  where
-  up : S × (Neg unitᴵ ⊎ Pos B) → Ans {S} (λ _ → 0) (Neg unitᴵ) (Pos B) 0
-  up (_ , inj₁ e) = ⊥-elim e
-  up (s , inj₂ p) = inj₂ ((s , z≤n) , p)
+qbᵢ-closed S point step = qbᵢ-noDown S point step λ ()
 
 -- At potential 0 and rate 1 the half from above needs no hypothesis: a
 -- downward output fits `0 < 1` and an upward one `0 ≤ 1`.  Only the half from
@@ -210,6 +216,9 @@ qb-wire : {A B : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
         → QB 1 (wireᴹ {A} {B} up down)
 qb-wire up down = certified⇒QB (qbᵢ-wire up down)
 
+qb-λᴵ⇒ : {B : Iface} → QB 1 (λᴵ⇒ {B})
+qb-λᴵ⇒ = qb-wire Sum.[ ⊥-elim , id ] inj₂
+
 qb-closed : {B : Iface} (M : Proc unitᴵ B) → QB 0 M
 qb-closed M = certified⇒QB (qbᵢ-closed (MC.St M) (MC.point (MC.state M) tt) (MC.step M))
 
@@ -219,111 +228,6 @@ qb-resp-≈ e (P , q , e′) = P , q , e′ MS.○ᴹ e
 
 qb-mono : {A B : Iface} {c c′ : ℕ} {M : Proc A B} → c ℕ.≤ c′ → QB c M → QB c′ M
 qb-mono le (N , q , e) = N , qbᵢ-mono _ _ _ le q , e
-
--- A protocol whose every step is a `CategoricalCrypto.OracleCall.Call` asks at
--- most one query per activation and the answer to it only returns, so it is
--- 1-bounded.  The potential CANNOT be read off `Protocol.Machine.MSt`: its
--- `wait` holds the parked continuation as a FUNCTION over arbitrary call trees,
--- and a certificate must answer at every state, reachable or not — the
--- obstruction `Examples.MerkleDamgard.QueryBound`'s header records.  `QB`'s
--- `≈ᴹ`-closure is what that is for: `oneCallᴹ` is the same relay with its
--- suspension named by the continuation `fromCall` parks, whose potential is
--- constantly zero because no second call can follow.
-module OneCall {A B : Iface} (P : Protocol A B)
-               (call₁ : St P → Neg B → Call (Neg A) (Pos A) (St P × Pos B))
-               (factors : (s : St P) (b : Neg B) → step P s b ≡ fromCall (call₁ s b))
-               where
-
-  private
-    Sᴺ : Set
-    Sᴺ = St P ⊎ (Pos A → St P × Pos B)
-
-    driveᶜ : Call (Neg A) (Pos A) (St P × Pos B) → Sᴺ × (Neg A ⊎ Pos B)
-    driveᶜ (inj₁ (s , b)) = inj₁ s , inj₂ b
-    driveᶜ (inj₂ (q , k)) = inj₂ k , inj₁ q
-
-    stepᴺ : Sᴺ × (Pos A ⊎ Neg B) → Dₚ (Sᴺ × (Neg A ⊎ Pos B))
-    stepᴺ (inj₁ s , inj₂ b) = returnₚ (driveᶜ (call₁ s b))
-    stepᴺ (inj₂ k , inj₁ a) = returnₚ (inj₁ (proj₁ (k a)) , inj₂ (proj₂ (k a)))
-    stepᴺ (inj₁ _ , inj₁ _) = botₚ
-    stepᴺ (inj₂ _ , inj₂ _) = botₚ
-
-    stateᴺ : MC.State
-    stateᴺ = initˢ Sᴺ (inj₁ (init P))
-
-    oneCallᴹ : Proc A B
-    oneCallᴹ = MC.mk stateᴺ stepᴺ
-
-    Φᴺ : Sᴺ → ℕ
-    Φᴺ _ = 0
-
-    Answer = Ans Φᴺ (Neg A) (Pos B)
-
-    onCall : (c : Call (Neg A) (Pos A) (St P × Pos B)) → Dₚ (Answer 1)
-    onCall (inj₁ (s , b)) = returnₚ (inj₂ ((inj₁ s , z≤n) , b))
-    onCall (inj₂ (q , k)) = returnₚ (inj₁ ((inj₂ k , s≤s z≤n) , q))
-
-    onCall-coh : (c : Call (Neg A) (Pos A) (St P × Pos B))
-               → mapₚ forget (onCall c) ≈ₚ returnₚ (driveᶜ c)
-    onCall-coh (inj₁ _) = >>=ₚ-identityˡ _ _
-    onCall-coh (inj₂ _) = >>=ₚ-identityˡ _ _
-
-    certifiedᴺ : Certified 1 oneCallᴹ
-    certifiedᴺ = record
-      { Φ      = Φᴺ
-      ; pointᵍ = returnₚ (inj₁ (init P) , z≤n)
-      ; coh₀   = >>=ₚ-identityˡ _ _
-      ; onLᵍ   = onL
-      ; onRᵍ   = onR
-      ; cohL   = λ where (inj₁ _) _ → bot-bind-≈ₚ _
-                         (inj₂ _) _ → >>=ₚ-identityˡ _ _
-      ; cohR   = λ where (inj₁ s) b → onCall-coh (call₁ s b)
-                         (inj₂ _) _ → bot-bind-≈ₚ _
-      }
-      where
-      onL : (s : Sᴺ) (a : Pos A) → Dₚ (Answer (Φᴺ s))
-      onL (inj₁ _) _ = botₚ
-      onL (inj₂ k) a = returnₚ (inj₂ ((inj₁ (proj₁ (k a)) , z≤n) , proj₂ (k a)))
-
-      onR : (s : Sᴺ) (b : Neg B) → Dₚ (Answer (Φᴺ s ℕ.+ 1))
-      onR (inj₁ s) b = onCall (call₁ s b)
-      onR (inj₂ _) _ = botₚ
-
-    θᴺ : Sᴺ → MSt P
-    θᴺ (inj₁ s) = idle s
-    θᴺ (inj₂ k) = wait λ r → ret (k r)
-
-    drive-one : (c : Call (Neg A) (Pos A) (St P × Pos B))
-              → (returnₚ (driveᶜ c) >>=ₚ (K.pureᵏ θᴺ V.⊗₁ V.id)) ≈ₚ drive P (fromCall c)
-    drive-one (inj₁ x) = >>=ₚ-identityˡ _ _ ⟨≈⟩ Pw.⊗-pureˡ θᴺ (driveᶜ (inj₁ x))
-    drive-one (inj₂ x) = >>=ₚ-identityˡ _ _ ⟨≈⟩ Pw.⊗-pureˡ θᴺ (driveᶜ (inj₂ x))
-
-    θ-step : (z : Sᴺ × (Pos A ⊎ Neg B))
-           → (stepᴺ z >>=ₚ (K.pureᵏ θᴺ V.⊗₁ V.id))
-             ≈ₚ ((K.pureᵏ θᴺ V.⊗₁ V.id) z >>=ₚ stepᴹ P)
-    θ-step (inj₁ s , inj₂ b) =
-      subst (λ t → (stepᴺ (inj₁ s , inj₂ b) >>=ₚ (K.pureᵏ θᴺ V.⊗₁ V.id)) ≈ₚ drive P t)
-            (sym (factors s b)) (drive-one (call₁ s b))
-      ⟨≈⟩ ≈sym (bindˣ (Pw.⊗-pureˡ θᴺ (inj₁ s , inj₂ b)) ⟨≈⟩ >>=ₚ-identityˡ _ _)
-    θ-step (inj₂ k , inj₁ a) =
-      >>=ₚ-identityˡ _ _ ⟨≈⟩ Pw.⊗-pureˡ θᴺ (inj₁ (proj₁ (k a)) , inj₂ (proj₂ (k a)))
-      ⟨≈⟩ ≈sym (bindˣ (Pw.⊗-pureˡ θᴺ (inj₂ k , inj₁ a)) ⟨≈⟩ >>=ₚ-identityˡ _ _)
-    θ-step (inj₁ s , inj₁ a) =
-      bot-bind-≈ₚ _
-      ⟨≈⟩ ≈sym (bindˣ (Pw.⊗-pureˡ θᴺ (inj₁ s , inj₁ a)) ⟨≈⟩ >>=ₚ-identityˡ _ _)
-    θ-step (inj₂ k , inj₂ b) =
-      bot-bind-≈ₚ _
-      ⟨≈⟩ ≈sym (bindˣ (Pw.⊗-pureˡ θᴺ (inj₂ k , inj₂ b)) ⟨≈⟩ >>=ₚ-identityˡ _ _)
-
-    θ-sim : oneCallᴹ MS.≲ morphism P
-    θ-sim = MS.sim (K.pureᵏ θᴺ) (KP.structural θᴺ)
-                  (λ _ → >>=ₚ-identityˡ (inj₁ (init P)) _)
-                  θ-step
-
-  qb-oneCall : QB 1 (morphism P)
-  qb-oneCall = oneCallᴹ , certifiedᴺ , MS.≲⇒≈ᴹ θ-sim
-
-open OneCall public using (qb-oneCall)
 
 ------------------------------------------------------------------------
 -- The three trace-free closure properties

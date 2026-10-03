@@ -2,7 +2,7 @@
 
 -- A closed ancilla context with a hole is a plain context on the hole.
 --
--- `UC.Machine.Bridge.ctxRun` observes a process plugged into `E ∘ T₁ Y ⌷ ∘ m`:
+-- `UC.Machine.EventBounds.ctxRun` observes a process plugged into `E ∘ T₁ Y ⌷ ∘ m`:
 -- a test above, an ancilla `Y` beside, a closure `m` below.  `Kctx` is that
 -- context with the hole exposed — `E` precomposed with the closure slid into
 -- the ancilla slot — and `ctxRun-slide` says the two observations agree.  The
@@ -50,8 +50,8 @@ open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Machines.Run.Sim
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.Dictionary
+open import CategoricalCrypto.UC.Machine.EventBounds
 open import CategoricalCrypto.UC.Machine.Grading
 open import CategoricalCrypto.UC.Machine.Wire
 open import CategoricalCrypto.UC.QueryBound
@@ -248,17 +248,11 @@ unit-cancel {A} {B} x =
   o₂ : Neg A ⊎ Pos (unitᴵ ⊗ᴵ B) → Neg A ⊎ Pos B
   o₂ = Sum.map₂ [ ⊥-elim , id ]
 
-T₁-conj : (x : Proc unitᴵ B)
-        → 𝒫._≈_ {Y ⊗ᴵ unitᴵ} {Y ⊗ᴵ B} (T₁ᴵ Y x) (T₁ᴵ Y (λᴵ⇒ {B}) 𝒫.∘ T₁ᴵ Y (conjᴵ x))
-T₁-conj {B = B} x =
-  T₁-resp-≈ (𝒫.Equiv.sym (unit-cancel x)) ○ᴹ T₁-∘ (λᴵ⇒ {B}) (conjᴵ x)
-
 ctxRun-conj : (E : Proc (Y ⊗ᴵ B) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
               (x : Proc unitᴵ B)
             → ctxRun Y E m x ≈ₚ ctxRun Y (E 𝒫.∘ T₁ᴵ Y (λᴵ⇒ {B})) m (conjᴵ x)
-ctxRun-conj {Y = Y} {B = B} E m x =
-  runᴹ-resp-≈ᴹ {Ωᴵ}
-    (𝒫.∘-resp-≈ˡ (𝒫.∘-resp-≈ʳ (T₁-conj x) ○ᴹ 𝒫.sym-assoc)) (ask tt out)
+ctxRun-conj {Y = Y} E m x =
+  readRun-resp-≈ Y (𝒫.Equiv.sym (unit-cancel x)) (λ _ E → E) E m ⟨≈⟩ ctxRun-∘ Y E m λᴵ⇒ (conjᴵ x)
 
 ------------------------------------------------------------------------
 -- …and the budget it carries

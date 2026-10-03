@@ -3,8 +3,8 @@
 -- Acceptance instances for the hiding bounds (`GamePlaying.Test`'s sense):
 -- adaptive attacks that reach the places the games differ — `attackʰ` queries
 -- a guessed opening point while the commitment is outstanding, `preqʰ` queries
--- the committer's point before it commits.  Read at `Hiding.Game.hiding-bound`
--- and `Hiding.Asymptotic.hiding-boundᵗ` at digest length 5, where every bound
+-- the committer's point before it commits.  Read at
+-- `Hiding.Asymptotic.hiding-boundᵗ` at digest length 5, where every bound
 -- bites (at 3, `εᵗ 3 3` is 9/8).
 
 open import Class.DecEq
@@ -47,11 +47,6 @@ attackʰ d₀ r = ask (comQʰ true) λ a →
 attack-asks : (d₀ r : Dig) → asks≤ 3 (attackʰ d₀ r)
 attack-asks d₀ r _ _ _ = tt
 
-bounded : (d₀ r : Dig)
-        → ∣ Pr₁ (runWith (G.respIʰ 5) (G.sI₀ 5) (attackʰ d₀ r))
-            -ℚ Pr₁ (runWith (G.respLʰ 5) (G.sL₀ 5) (attackʰ d₀ r)) ∣ℚ ≤ℚ εᴸ 3
-bounded d₀ r = hiding-bound 3 (attackʰ d₀ r) (attack-asks d₀ r)
-
 preqʰ : Dig → Dig → Strat Qʰ Rʰ
 preqʰ d₀ r = ask (askQʰ (true ∷ᵛ r)) λ v →
              ask (comQʰ true) λ a → out (echoed (published d₀ a) v)
@@ -71,8 +66,8 @@ bounded-total : (d₀ r : Dig)
                 ≤ℚ εᵗ 5 3
 bounded-total d₀ r = hiding-boundᵗ 5 3 (attackʰ d₀ r) (attack-asks d₀ r)
 
-bites : εᴸ 3 ≡ + 3 / 32
-bites = refl
+bites-preq : εᵗ 5 2 ≡ + 3 / 16
+bites-preq = refl
 
 bites-total : εᵗ 5 3 ≡ + 9 / 32
 bites-total = refl

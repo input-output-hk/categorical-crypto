@@ -94,8 +94,8 @@ qbᵢ⇒count : {A B : Iface} (S : Set) (point : Dₚ S)
             (step : S × (Pos A ⊎ Neg B) → Dₚ (S × (Neg A ⊎ Pos B))) (c : ℕ)
           → QBᵢ S point step c → CountBound S point step c
 qbᵢ⇒count {A} {B} S point step c q = record
-  { runs   = λ w → mapₚ (drop w) (L.exactᴱ qe w)
-  ; erases = λ w → map-map (L.exactᴱ qe w) (drop w) proj₁ ⟨≈⟩ L.exactᴱ-erases qe w
+  { runs   = λ w → mapₚ (drop w) (Refined.runs (L.exactᴱ qe w))
+  ; erases = λ w → map-map (Refined.runs (L.exactᴱ qe w)) (drop w) proj₁ ⟨≈⟩ Refined.erases (L.exactᴱ qe w)
   }
   where
   module L = Budget S point step downward (costᶜ c)

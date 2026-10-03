@@ -20,9 +20,9 @@ comparison boundary to be CLOSED. Closing it is free.
 For the corrupted RECEIVER the coin is drawn in one activation and combined
 with the adversary's share in another, so no state map — hence no
 `Machines.Sim._≲_` — relates the two worlds, and the hop is a RUN equality
-carried into a context. That is exact at the run layer and costs one positive
-slack at the context layer, so it lands at `2⁻ⁿ` where the committer's lands
-at `0` (§5, last subsection).
+carried into a context. That is exact at the run layer, and the domination
+carries it into every context exactly, so it lands at `0` as the committer's
+does (§5, last subsection).
 
 The commitment's own UC-level ε-statement is the one hypothesis of every
 theorem here; it is an argument, not a postulate, and its resource-installed
@@ -31,7 +31,7 @@ restatement and remaining obligations are `docs/rcom-icom-b1.md`.
 ## 1. The placement, and the interface algebra
 
 The composition law is `UC.Quantitative.Family.≤UC[]-compose` (at the sealed
-model through `UC.Model.Family.Contextual`):
+model through `UC.Model.Family`):
 
 ```text
   (sf : Y ⇒^ω X) (t : Q ⇒^ω P) (rf rv : ℕ → ℕ⁺) (εf εu : ℕ → ℕ → ℚ)
@@ -112,7 +112,7 @@ domain that is not the unit. `tossʰCert` at rate 1 is the hiding half's stage,
 which does drive `F_com`: at most one `commitᴱ` or `openᴱ` per activation from above,
 nothing owed afterwards.
 
-`UC.QueryBound.qb-oneCall` does not apply to these — it is stated over a
+`Examples.ChimericLedger.OneCall.qb-oneCall` does not apply to these — it is stated over a
 `Protocol A B`, and these are raw machines (`docs/hash-forward.md` §"Why
 `real` is a raw machine") — so `recvCert`, `comCert`,
 `tossʰCert`, `simJCert` and `simJʰCert` are all `UC.QueryBound.qbᵢ-upward`,
@@ -375,10 +375,9 @@ The closed form is therefore §3's, unrescaled — **`(q² + 2q)·2⁻ⁿ`** —
 `Test.ideal-bound` evaluates it.
 
 `coin-toss-idealᴺ` is the same statement in the canonical LOCAL-NEGLIGIBLE
-`UCSetup` (`UC.Family.Negligible.ucSetupᴺ`), through
+`UCSetup` (`UC.Family.ucSetupᴺ`), through
 `UC.Model.Family.Emulation.≤UC[]⇒≤UCᴺ`: that forgetting stops at `_≈ℰⁿ_` and
-reads it in `ucSetupᴺ`'s own kernel instead of going through the vanishing
-collapse, so the negligible witness survives (the certified simulator and a
+reads it in `ucSetupᴺ`'s own kernel, so the negligible witness survives (the certified simulator and a
 per-context negligible witness — not `εᶜⁱ` itself, which stays at
 `coin-toss-idealᵇ`). Both compared processes are closed, so the `Fam`-homs it
 wants (`Fcoinʷ`, `coinRealʷ`) carry the unit rate — `qb-closed` raised by
@@ -435,16 +434,15 @@ coin-runʰ         : (d : Strat (Neg Cᵗʰ) (Pos Cᵗʰ)) → runᴹ hybridᴹ�
 coin-hybridʳ      : (λ n → (tossʰᶠ ∙ᶠ idealʰᶠ) n ∘ resᶠ n) ≤UC^ωᵉ Fcoinʰᶠ
 coin-toss-idealʳ  : realʰᶠ ≤UC^ωᵉ idealʰᶠ
                   → (λ n → (tossʰᶠ ∙ᶠ realʰᶠ) n ∘ resᶠ n) ≤UC^ωᵉ Fcoinʰᶠ
-ideal-εʳ          : εᶜʳ εᵗ n q ≡ fromℕ (q + (q + q)) *ℚ inv-pow-2 n ℚ.+ inv-pow-2 n
+ideal-εʳ          : εᶜʳ εᵗ n q ≡ fromℕ (q + (q + q)) *ℚ inv-pow-2 n
 coin-toss-idealʳᴺ : realʰᶠ ≤UC^ωᵉ idealʰᶠ → coinRealʰʷ Canonicalᴺ.≤UC Fcoinʰʷ
 ```
 
 (`Examples.CoinToss.Ideal.Receiver.Compose`.) The run agreement is carried
 into a CONTEXT by `UC.Model.Dominated.dominatedᵍ` — domination at a
-NONTRIVIAL grade, at every strategy — which is exact; the second hop still
-states the schedule `ηʰ n _ = inv-pow-2 n`, so the composed one is
-`εᶜʳ ε = εᶜᵗ ε + ηʰ`. That is the whole difference from the committer's exact
-hop. `UC.Graded.regrade` identifies the two spellings of a
+NONTRIVIAL grade, at every strategy — which is exact, so the second hop is at
+the zero schedule as the committer's is, and `εᶜʳ ε = εᶜᵗ ε + 0`.
+`UC.Graded.regrade` identifies the two spellings of a
 tensor grade the seal keeps apart (`sub-graded₂` at the IDENTITY process).
 
 `Fcoinʰ` has no abort query: the corrupted receiver's only way to stop the toss
@@ -453,16 +451,12 @@ nothing (see the header of `Examples.CoinToss.Ideal.Receiver`).
 
 ## 6. Not delivered
 
-1. **No EXACT corrupted-receiver hop.** `coin-toss-idealʳ` is at `+2⁻ⁿ` where
-   the committer's is at `0`. The slack is no longer forced:
-   `UC.Machine.Dominated.dominated` is sharp (`≈ₚ[ ε ]`), so `ηʰ` can be `0`
-   and the hop exact; the statements have not been restated yet.
-2. **No exact-factoring form.** `UC.Graded.≤UCᵍ` consumes a `Factors` — an
+1. **No exact-factoring form.** `UC.Graded.≤UCᵍ` consumes a `Factors` — an
    exact machine equality — and the composed statement is approximate, as
    the commitment's own is. The fixed-data `ᵇ` forms keep the certified simulator and the
    schedule; the `Canonicalᴺ._≤UC_` forms keep the simulator and forget the
    schedule.
-3. **No closed-game bound for the composed system or the ideal coin.** The
+2. **No closed-game bound for the composed system or the ideal coin.** The
    acceptance instance's probability bound is the commitment's, and `Test`'s
    `coin-round`/`sim-round`/`coin-roundʰ`/`sim-roundʰ` are live runs, not
    probability statements. A `Dist-ℚ` statement about the coin-toss experiment

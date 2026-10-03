@@ -1,6 +1,6 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- `dominated`, the bridge's (`UC.Machine.Bridge`) context domination, via the
+-- `dominated`, context domination at `UC.Machine.EventBounds.ctxRun`, via the
 -- two-machine skeleton.
 --
 -- An ℰ-statement quantifies over ancilla CONTEXTS; a hand-written security
@@ -61,7 +61,7 @@ open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Bridge
+open import CategoricalCrypto.UC.Machine.EventBounds
 open import CategoricalCrypto.UC.Machine.Slide
 open import CategoricalCrypto.UC.QueryBound
 open import CategoricalCrypto.UC.Machine.Plug

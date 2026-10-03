@@ -31,7 +31,7 @@ open import Data.List.Base using (List; []; _∷_; map)
 open import Data.Nat.Base
 open import Data.Nat.ListAction
 open import Data.Nat.Properties
-open import Data.Product.Base using (Σ-syntax; _×_; _,_; proj₁; proj₂)
+open import Data.Product.Base using (Σ; Σ-syntax; _×_; _,_; proj₁; proj₂; map₂)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Polymorphic.Base
 open import Function.Base
@@ -50,6 +50,19 @@ module CategoricalCrypto.UC.QueryBound.Exact where
 
 weight : {X : Set} → (X → ℕ) → List X → ℕ
 weight w xs = sum (map w xs)
+
+-- A run whose final state and output word satisfy `P` and which IS `beh`.  A
+-- record, not a Σ: `P` and `beh` mention the input word only through
+-- non-injective functions (`weight`, `behᵍ`), see `UC.QueryBound.Counting`.
+record Refined {S O : Set} (P : S × List O → Set) (beh : Dₚ (List O)) : Set where
+  field
+    runs   : Dₚ (Σ (S × List O) P)
+    erases : mapₚ (proj₂ ∘ proj₁) runs ≈ₚ beh
+
+refined-map : {S O : Set} {P Q : S × List O → Set} {beh : Dₚ (List O)}
+            → (∀ {p} → P p → Q p) → Refined P beh → Refined Q beh
+refined-map f r = record { runs = mapₚ (map₂ f) runs ; erases = map-map runs _ _ ⟨≈⟩ erases }
+  where open Refined r
 
 module Ledgerᴿ (_∼_ : ℕ → ℕ → Set) (∼-isPreorder : IsPreorder _≡_ _∼_)
                (+-mono-∼ : _+_ Preserves₂ _∼_ ⟶ _∼_ ⟶ _∼_)
@@ -71,6 +84,9 @@ module Ledgerᴿ (_∼_ : ℕ → ℕ → Set) (∼-isPreorder : IsPreorder _≡
 
   Balanced : (Λ : S → ℕ) → ℕ → S × List (Neg A ⊎ Pos B) → Set
   Balanced Λ c p = (weight δ (proj₂ p) + Λ (proj₁ p)) ∼ c
+
+  Counted : (Λ : S → ℕ) → List (Pos A ⊎ Neg B) → Set
+  Counted Λ w = Refined (Balanced Λ (weight cost w)) (behᵍ S point step w)
 
   module _ (q : QEᵢ) where
     open QEᵢ q
@@ -115,20 +131,17 @@ module Ledgerᴿ (_∼_ : ℕ → ℕ → Set) (∼-isPreorder : IsPreorder _≡
                ⟨≈⟩ >>=ₚ-assoc (stepᴱ s x) _ _
                ⟨≈⟩ bindᶠ (λ r → >>=ₚ-identityˡ (proj₁ r) _))
 
-    exactᴱ : (w : List (Pos A ⊎ Neg B))
-           → Dₚ (Σ[ p ∈ S × List (Neg A ⊎ Pos B) ] Balanced Λ (weight cost w) p)
-    exactᴱ w = pointᴱ >>=ₚ λ r →
-      mapₚ (λ z → proj₁ z , ∼-trans (proj₂ z) (+-mono-∼ (proj₂ r) ∼-refl))
-           (runᴱ (proj₁ r) w)
-
-    exactᴱ-erases : (w : List (Pos A ⊎ Neg B))
-                  → mapₚ (λ z → proj₂ (proj₁ z)) (exactᴱ w) ≈ₚ behᵍ S point step w
-    exactᴱ-erases w =
-        >>=ₚ-assoc pointᴱ _ _
-      ⟨≈⟩ bindᶠ (λ r → map-map (runᴱ (proj₁ r) w) _ _ ⟨≈⟩ runᴱ-erases (proj₁ r) w)
-      ⟨≈⟩ ≈sym ( bindˣ (≈sym (coh₀))
-               ⟨≈⟩ >>=ₚ-assoc pointᴱ _ _
-               ⟨≈⟩ bindᶠ (λ r → >>=ₚ-identityˡ (proj₁ r) _))
+    exactᴱ : (w : List (Pos A ⊎ Neg B)) → Counted Λ w
+    exactᴱ w = record
+      { runs   = pointᴱ >>=ₚ λ r →
+          mapₚ (λ z → proj₁ z , ∼-trans (proj₂ z) (+-mono-∼ (proj₂ r) ∼-refl)) (runᴱ (proj₁ r) w)
+      ; erases =
+            >>=ₚ-assoc pointᴱ _ _
+          ⟨≈⟩ bindᶠ (λ r → map-map (runᴱ (proj₁ r) w) _ _ ⟨≈⟩ runᴱ-erases (proj₁ r) w)
+          ⟨≈⟩ ≈sym ( bindˣ (≈sym coh₀)
+                   ⟨≈⟩ >>=ₚ-assoc pointᴱ _ _
+                   ⟨≈⟩ bindᶠ (λ r → >>=ₚ-identityˡ (proj₁ r) _))
+      }
 
 module Ledger = Ledgerᴿ _≡_ isPreorder (cong₂ _+_)
 

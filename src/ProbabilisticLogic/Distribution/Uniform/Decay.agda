@@ -1,8 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
--- Vanishing bounds: polynomially many `1/2^j`-sized parts tend to 0.  `_→0` and
--- `Negligible` are the two grades `CategoricalCrypto.UC.Approximate`'s bounds
--- are stated at, so these lemmas inhabit them on the nose.
+-- Vanishing bounds: polynomially many `1/2^j`-sized parts tend to 0, and
+-- `Negligible`, the grade `CategoricalCrypto.UC.Approximate`'s bounds are
+-- stated at.
 
 module ProbabilisticLogic.Distribution.Uniform.Decay where
 

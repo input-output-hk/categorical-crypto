@@ -80,59 +80,10 @@ Ranked by complexity removed.
 
 ### Public API / module layout
 
-1. `src/CategoricalCrypto/UC/Machine/StateEvent.agda :: Annotated, EventSim, pullTest, ▷-≲` with
-   `StateEvent/Read.agda :: transportᵉ` and `StateEvent/HitTests.agda`'s "Annotations along simulations" section —
-   ≈ −120 LOC. Zero consumers outside `HitTests`; the layer is the presentation-invariance of a state event along a
-   compatible simulation. `HitTests :: pullTest-id, pullTest-∘` are `refl` pins of how `Machines.Sim` computes `ϕ`
-   (true of any `pullTest`), `rename` is a library lemma living in a test file, `unused` distinguishes nothing.
-   Options: (a) delete the layer, keep `ghost-no-descent` (the negative result the header cites, needs only
-   `EventSim`'s shape — or restate it as "no `Q` with `Q ∘ ϕ erase ≡ id`"); (b) keep it for the open-system transport
-   open item, then at least drop `Annotated` (`EventSim {M N} P Q`, −3) and the two `refl` pins.
-2. `src/CategoricalCrypto/UC/Family.agda` vanishing tier :: `Approximation^ω, _≈^ω[_]_, space^ω, QEvaluation^ω,
-   Evaluation^ω, R^ω, ℰ^ω, Canonical^ω, ucSetup^ω, absorb` + `Family/Negligible.agda :: shared-computational` —
-   ≈ −70..−90 LOC. No consumer outside the two modules (the five `Model.Family` importers use `Canonicalᴺ`,
-   `_≈ℰⁿ_`, `carried-negligible`, `_≈ctx[_]_`, `_≤UC^ωᵉ_`). Kept public deliberately in the last pass, hence a
-   suggestion. Staged: (i) respell `_≈ℰ[_]_`/`Reassoc` via `Canonicalᴺ` and measure (the header records a heap cliff
-   on a spelling change — crux); (ii) delete the tier; (iii) `UC.Approximate :: VanishingBound, Grade,
-   GradedBound-+[_], GradedBound-reindex` then collapse to `NegligibleBound`, `NegligibleBound-+`
-   (−15..−20; the generic forms are used only at `Negligible`).
-3. `src/CategoricalCrypto/UC/Machine/Bridge.agda` — ≈ −10 LOC, −1 module. The unitor wires are split across
-   three files (`λᴵ⇐`/`λᴵ⇒` here, `ρᴵ⇒` in `Slide`, siblings `a⇐ᴵ`/`a⇒ᴵ` in `UC.Machine`). Move the wires next to
-   `a⇐ᴵ`, `qb-λᴵ⇒` next to `qb-wire` (`UC.QueryBound`), `conjᴵ`/`ctxRun` to `EventBounds` (its `readRun` is
-   `ctxRun`); all 10 importers are in scope. Cost to weigh: names added to `UC.Machine` (56 importers).
-4. `src/CategoricalCrypto/UC/QueryBound.agda :: module OneCall` (≈ 104 LOC) — single consumer
-   `Examples/ChimericLedger/Transfer.agda`; it is the only user of `OracleCall`, `KD`, `Protocol`'s `MSt`/`drive`
-   in a module with 33 importers. Move it beside its consumer (out of scope; docs `end-to-end.md:308`,
-   `coin-toss.md:115`). Then inline `stateᴺ`, `θ-sim` (−5).
-5. `src/CategoricalCrypto/UC/Model/Family/Contextual.agda` (13 LOC) → merge into `UC/Model/Family.agda`: the two
-   modules have the identical six importers, so no new clash or cone cost; −1 module, but five importers are
-   `Examples/**` (one import line each).
-6. `src/CategoricalCrypto/UC/Seam/Grounded.agda :: closedᵒ` — `closedᵒ = stageᵒ`, two spellings; consumers
-   `Model/Family/Emulation` and `Examples/ChimericLedger/Transfer`. Also the module is about the seal's trivial
-   grade, not the seam (`UC.Model.TrivialGrade`?).
-9. `src/CategoricalCrypto/UC/Robust.agda :: Factors` vs `UC/Graded.agda :: Factors` — two unrelated public
-   notions with one name; rename Robust's (`PulledFrom V`), consumer `Robust/Model`.
-
-### Statement audit
-
-10. `src/CategoricalCrypto/UC/QueryBound/Exact.agda :: exactᴱ` — `(w) → Dₚ (Σ … Balanced …)` is inhabited by
-   `λ _ → botₚ`, so the example statements built on it alone are **vacuous**:
-   `Examples/ROCommitment/UC :: sim-hash-count, sim-message-count`, `Examples/HashForward/UC :: sim-hash-count,
-   sim-query-count, sim-hash-count-settled`. The content is `exactᴱ-erases` (the run IS `behᵍ`), which only
-   `Counting.CountBound` packages. Fix: a `Counted` record in `Ledgerᴿ` (`runs = exactᴱ`, `erases = exactᴱ-erases`;
-   a record, not Σ, for `Counting`'s meta-stranding reason), the five statements restated as `Counted …` — strictly
-   stronger; `CountBound` becomes `Counted` at `Budget` plus `drop`. Docs `hash-forward.md:179`, `fcom-extraction.md:132`
-   ("exactly one `hashˢ` per `peekᴬ`") overclaim until then.
-11. `Examples/CoinToss/Ideal/Receiver/Compose.agda :: ηʰ, coin-toss-idealʳ` (part A) — with `dominated` exact
-   (`8b0dfafc`), `ηʰ = 0` and the receiver hop is exact; `εᶜʳ`/`ideal-εʳ` lose the `+ 2⁻ⁿ`. Recorded in
-   `open-items.md`.
+6. `src/CategoricalCrypto/UC/Seam/Grounded.agda` — the module is about the seal's trivial grade, not the seam
+   (`UC.Model.TrivialGrade`?).
 
 ### Simplifications not committed (judgment needed)
-
-- `src/CategoricalCrypto/UC/Machine/Slide.agda :: T₁-conj, ctxRun-conj` — `ctxRun-conj` follows from
-  `EventBounds :: ctxRun-∘` and `readRun-resp-≈` at `unit-cancel` (the `readRun-absorb` pattern), deleting the
-  single-use `T₁-conj` (−4); `ctxRun-∘` is a general `ctxRun` fact misplaced in `EventBounds` (rule 27). Needs
-  `Slide` to import `EventBounds` or `ctxRun-∘` to move to `Bridge`/`Slide` — import cost unmeasured.
 
 12. `src/CategoricalCrypto/UC/Machine/Grading.agda :: qb-T₁ᴳ, qb-subᴳ` (single use each, −6, but the header's opaque/perf split needs a
    measurement); `UC/Machine/Dominated.agda :: Sm` is `Machines.Pointwise.S` under another name (−2);

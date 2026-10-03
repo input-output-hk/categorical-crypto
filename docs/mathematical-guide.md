@@ -155,8 +155,7 @@ over every admitted context that reads it through a monitor.
   monitored readout. `hitsᵘ` lifts a bound on strategies at cap `q` to all contexts at
   cap `q` (it is `stateLift` at `accᴹ`, through `monitor-flag` and
   `Monitor.flag-agree`); `hits⇒bounded` reads a context bound back at a strategy.
-- `UC.Machine.StateEvent :: _▷_`, `EventSim`: a state event as a flag port of the
-  machine, and the simulations that respect the event.
+- `UC.Machine.StateEvent :: _▷_`: a state event as a flag port of the machine.
 - `UC.Machine.StateEvent.Read :: stateRead`, `StateBoundedAt`, `StateBoundedᴺ`: the flag
   read at completion in an ordinary experiment, and its bounds as instances of
   `EventBounds`.

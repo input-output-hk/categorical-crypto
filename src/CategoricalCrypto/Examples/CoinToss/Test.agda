@@ -6,7 +6,7 @@
 -- name.
 --
 -- The schedules are pinned at security parameter 5 and three queries; at the
--- machines' own `k = 3` all three are at least 1 (15/8, 15/8 and 5/4), so a
+-- machines' own `k = 3` all three are at least 1 (15/8, 15/8 and 9/8), so a
 -- pin there would test the arithmetic only.
 
 open import Data.Bool.Base
@@ -39,6 +39,7 @@ open import CategoricalCrypto.Examples.ROCommitment 3
 open import CategoricalCrypto.Examples.ROCommitment.Asymptotic
 open import CategoricalCrypto.Examples.ROCommitment.Hiding 3
 open import CategoricalCrypto.Examples.ROCommitment.Hiding.Asymptotic
+open import CategoricalCrypto.Examples.ROCommitment.Realization.Assembly
 
 ------------------------------------------------------------------------
 -- The schedules
@@ -49,8 +50,15 @@ attack-bound _ = refl
 ideal-bound : ∀ e → proj₁ (proj₂ (coin-toss-idealᶜ e)) 5 3 ≡ + 15 / 32
 ideal-bound _ = refl
 
-ideal-boundʳ : ∀ e → proj₁ (proj₂ (coin-toss-idealʳᶜ e)) 5 3 ≡ + 5 / 16
+ideal-boundʳ : ∀ e → proj₁ (proj₂ (coin-toss-idealʳᶜ e)) 5 3 ≡ + 9 / 32
 ideal-boundʳ _ = refl
+
+-- The resource-installed premise carries the open premise's schedule.
+assembly-ε : (w : Realization) → proj₁ (proj₂ (assembly w)) ≡ εᶜⁱ (proj₁ (proj₂ w))
+assembly-ε _ = refl
+
+assembly-εʳ : (w : Realizationʰ) → proj₁ (proj₂ (assemblyʰ w)) ≡ εᶜʳ (proj₁ (proj₂ w))
+assembly-εʳ _ = refl
 
 ------------------------------------------------------------------------
 -- The protocol, the ideal coin, and the simulator that lands the toss on it

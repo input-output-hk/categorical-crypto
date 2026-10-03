@@ -79,10 +79,10 @@ and not vacuously safe: a probability of 0 means nothing if the ledger is
 deadlocked. `…Replay.Genesis ℓ ser h₀ a V` proves that at every width too
 (`genesis-live`, `genesis-moves`); `genesis-preserves` stays a `ℓ = 1` pin.
 
-The original `ℓ = 1` statements (`initial-total`, `preserved`, `destroyed`,
-`rejected`, `chimeric-loses-value`, `consuming-preserves-value`, `genesis-*`)
-remain at the bottom of the module as regression checks, still `refl`, oracle
-sampling and ℚ arithmetic included.
+The `ℓ = 1` statements the general proofs do not already give (`initial-total`,
+`destroyed`, `chimeric-loses-value`, `consuming-preserves-value`, `genesis-live`,
+`genesis-preserves`) remain at the bottom of the module as regression checks,
+still `refl`, oracle sampling and ℚ arithmetic included.
 
 ### The attack against the family property
 
@@ -305,7 +305,7 @@ The ledger does not go that way: it stays at `_≈ᶠ[_]_` throughout.
 The talk's last slide. The closed system factors through a hash port —
 `ledger-factor`, on `UC.Seam.Grounded.factorᵖ` — and `hash-liftᵇ` pushes an
 ε-comparison across that factoring: `≈ctx-ext` absorbs the ledger into the test
-at its own query bound (`Transfer`'s `ledgerᶠ-qb`: `UC.QueryBound.qb-oneCall` at
+at its own query bound (`Transfer`'s `ledgerᶠ-qb`: `Examples.ChimericLedger.OneCall.qb-oneCall` at
 `System.ledgerCall`), `≈ctx-sub` absorbs the unit regrading, and
 `ledger-factor` reads both sides back as the closed systems `_≈ᶠ[_]_` compares.
 The schedule it produces is `εᴴ ε n q = ε n (scale (scale q 1⁺) 1⁺)`, two

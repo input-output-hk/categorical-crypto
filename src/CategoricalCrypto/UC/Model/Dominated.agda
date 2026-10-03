@@ -28,15 +28,15 @@ open import CategoricalCrypto.Machines.Run
 open import CategoricalCrypto.Machines.Run.Sim
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.Dictionary
 open import CategoricalCrypto.UC.Machine.Dominated
+open import CategoricalCrypto.UC.Machine.EventBounds
 open import CategoricalCrypto.UC.Machine.Grading
 open import CategoricalCrypto.UC.Machine.Slide
 open import CategoricalCrypto.UC.Model.Enrichment
 open import CategoricalCrypto.UC.Model.Observation
 open import CategoricalCrypto.UC.Model.Seal
-open import CategoricalCrypto.UC.QueryBound using (QB; qb-resp-≈)
+open import CategoricalCrypto.UC.QueryBound using (QB; qb-λᴵ⇒; qb-resp-≈)
 open import CategoricalCrypto.UC.QueryBound.Compose.Laws
 open import CategoricalCrypto.UC.QueryBound.Object
 

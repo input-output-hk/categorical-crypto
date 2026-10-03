@@ -71,9 +71,9 @@ module _ (P : Predℰ A p) (Adm : Admissible B d) where
 -- environments that arise via pullback from environments on V
 
 module _ (V : ℐ.Obj) where
-  Factors : Admissible B (ℓ ⊔ cs ⊔ ℓs)
-  Factors {B = B} W X e = ∃[ a ] Σ[ d ∈ Env (T₀ (W ⊗₀ V) B) ] e Env.≈ regradeEnv W a d
+  PulledFrom : Admissible B (ℓ ⊔ cs ⊔ ℓs)
+  PulledFrom {B = B} W X e = ∃[ a ] Σ[ d ∈ Env (T₀ (W ⊗₀ V) B) ] e Env.≈ regradeEnv W a d
 
-  factors-closed : (s : Y ℐ.⇒ X) → ClosedUnder (Factors {B}) s
-  factors-closed s W e (a , d , p) =
+  pulledFrom-closed : (s : Y ℐ.⇒ X) → ClosedUnder (PulledFrom {B}) s
+  pulledFrom-closed s W e (a , d , p) =
     a ℐ.∘ s , d , Env.trans (pull-cong (sub (ℐ.id ⊗₁ s)) p) (regrade-∘ W a s d)

@@ -27,7 +27,7 @@ The verbatim signatures are in §1.1, keyed by row number.
 
 | # | Definition | Owner | Quantifiers | Repr. | Resource | Error | Adequacy / operational counterpart |
 |---|---|---|---|---|---|---|---|
-| 1 | `Systems` | `UC.Model.Family.Emulation` | `B`, then level `n` | P family | — | — | image `imgᶠ B R n = Gr.closedᵒ (morphism (R n))` |
+| 1 | `Systems` | `UC.Model.Family.Emulation` | `B`, then level `n` | P family | — | — | image `imgᶠ B R n = Gr.stageᵒ (morphism (R n))` |
 | 2 | `_≈ᶠ[_]_` | `UC.Model.Family.Emulation` | `{B}` `R` `ε` `I`; unfolds through `_≈ctx[_]_` to `∀ n W E m {c r′ : ℕ⁺} → Image forget c E → Image forget r′ m → …` | G (images of P) | rates `c r′ : ℕ⁺` on test and closure | `ε : ℕ → ℕ → ℚ`, read at `ε n (value (c · r′))` under `≈[_]` (two-sided) | `≈ᶠ-runs` (row 4); `≈ctx⇒≈ℰ[]` to `UC.Family._≈ℰ[_]_` (an implication, not an identification) |
 | 3 | `_≈ᶠᴺ_` | `UC.Model.Family.Emulation` | `Σ ε`, then `NegligibleBound ε × R ≈ᶠ[ ε ] I`: one global schedule, chosen before any allowance | G | as row 2 | `NegligibleBound ε = ∀ p → Poly p → Negligible (λ n → ε n (p n))` | consumed only through its components; symmetric and simulator-free, with no map into `_≤UC^ωᵉ_` |
 | 4 | `≈ᶠ-runs` | `UC.Model.Family.Emulation` | `{B R I}` `ε` `h` `n` `(q : ℕ⁺)` `d` `asks≤ (value q) d` | G → M runs at S | rate `q : ℕ⁺` (no zero), closure at `1⁺` | `ε n (value q)` via `*-identityʳ` | it *is* the adequacy step: row 2 at ancilla `Gr.𝟘ᴳ`, test `auditTest _ d`, closure `Gr.ιᴳ unitᴵ`, certificate `audit-qb`, then `audit-run` (beside it) |
@@ -62,14 +62,13 @@ The verbatim signatures are in §1.1, keyed by row number.
 | 33 | `Protocol`, `morphism`, `MSt` | `Protocol`; `Protocol.Machine` | `A B`; `St init step` | P → M | — | — | the image state is `MSt = idle (St P) \| wait k`; `drive` returns to `idle` only on an answer (`ret`); adequacy by `prAgree` |
 | 34 | Seal: `𝔾ᵒ`, `sealᵒ`, `procᵒ`/`unprocᵒ`, `≈ᴹ⇒≈ᵒ`/`≈ᵒ⇒≈ᴹ`, `unprocᵒ-∘`/`procᵒ-∘` | `UC.Model.Seal` | — | G ↔ M | — | — | a seal hom at interface objects *is* a `Proc`, and its equality *is* `𝒢ₚ`'s; no state is exposed through `𝔾ᵒ`'s interface, and every state read crosses `unprocᵒ` |
 | 35 | `Certified` / `QB` | `UC.QueryBound` | `{A B}` `c M`; `QB c M = Σ N. Certified c N × N ≈ᴹ M` | M | count `c : ℕ`, 0 allowed | — | `Certified` is not `≈ᴹ`-invariant, so `QB` is its closure; `qb-resp-≈`, `qb-closed : QB 0 M` for closed `M` |
-| 36 | `StateTest`, `pullTest`, `_▷_` | `UC.Machine.StateEvent` | `{A B}` `M`; `P : MC.St M → Bool` | M | — | — | `M ▷ P : Proc A (B ⊗ᴵ Ωᴵ)` samples `P` at the (possibly effectful) initial state and at every completed activation (an answer on `B`), and answers the accumulated flag on one extra `Ωᴵ` port. |
+| 36 | `StateTest`, `_▷_` | `UC.Machine.StateEvent` | `{A B}` `M`; `P : MC.St M → Bool` | M | — | — | `M ▷ P : Proc A (B ⊗ᴵ Ωᴵ)` samples `P` at the (possibly effectful) initial state and at every completed activation (an answer on `B`), and answers the accumulated flag on one extra `Ωᴵ` port. |
 | 37 | `stateRead`, `StateBoundedAt` / `StateBoundedᶠ` / `StateBoundedᴺ` | `UC.Machine.StateEvent.Read` | `Y M P E m`; rows 15-17 at `M ▷ P` and `flagReader B` | M | as rows 15-17 | as rows 15-17 | completed-run, as row 11 (`flagReadᴹ` waits for the verdict). At an embedded strategy the reading is `flagStrat` (`stateRead-agree`); at a protocol image it is `PrHit` past a depth (`stateRead-hit`, `stateBounded⇒hit`, `hit⇒stateBounded` at `idleTest`) |
 | 38 | `stateLift` | `UC.Machine.StateEvent.Lift` | `{B}` `M P q {r}` `h`; `h : ∀ d → asks≤ q d → Upper (runᴹ (M ▷ P) (flagStrat d)) r` | S premise → M conclusion | the same cap `q`; certificate `FlagCert` at the test's count plus one, the flag ask | `r`, no slack | every extracted strategy is `FlagShaped` (`B`-asks, at most one flag ask, then only coins and a verdict), and its run is dominated by `flagStrat` of its `B`-part (`shaped-run`) |
 | 39 | `StateSafe`, `preservesValue⇒stateSafe`, `ledger-uc-to-state` | `Examples.ChimericLedger.Property`; `….Transfer` | `StateSafe R bad = StateBoundedᴺ (λ n → morphism (R n)) (λ n → idleTest (R n) (bad n))` | M | as row 17 | `ε n (q + q)`: `withAudits` doubles the allowance | `hitᴺ⇒stateᴺ` of (row 22 at `p + p`, then `TruthfulAudit`, then `asks≤-withAudits`) |
 | 40 | `BoundedHitᴺ`, `hitᴺ⇒stateᴺ` / `stateᴺ⇒hitᴺ`, `boundedHit⇒stateᶠ` | `UC.Machine.StateEvent.Adequacy` | `[{B} P Bad]`, then `BoundedHitᴺ = Saturated (λ n q r → ∀ d → asks≤ q d → PrHit (P n) (Bad n) d ≤ r)`; the conversions under `[T bd]`, `bd : T n (idle s) ≡ Bad n s` | P × S ↔ M | cap preserved | `ε`, `ν` unchanged in both directions | `saturated-map` of `hit⇒stateBounded` / `stateBounded⇒hit` |
-| 41 | `EventSim`, `▷-≲`, `transportᵉ` | `UC.Machine.StateEvent`; `….Read` | `(M , P) (N , Q)`; fields `sim : M S.≲ N`, `compat : P s ≡ Q (ϕ sim s)` | M | — | — | a test moves only along a test-compatible simulation; machine equality alone does not transport it (`UC.Machine.StateEvent.HitTests.ghost-no-descent`) |
 
-Row count: **41**.
+Row count: **40**.
 
 ### 1.1 Verbatim signatures
 
@@ -114,12 +113,11 @@ Row count: **41**.
 33. `record Protocol (A B : Iface) : Set₁ where field St : Set; init : St; step : St → Neg B → Calls A (St × Pos B)` · `morphism : Protocol A B → 𝒢ₚ 0ℓ [ ⟦ A ⟧ᴵ , ⟦ B ⟧ᴵ ]` · `data MSt : Set where idle : St P → MSt; wait : (Pos A → Calls A (St P × Pos B)) → MSt`
 34. `𝔾ᵒ : MonoidalCategory (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)` (opaque) · `sealᵒ : 𝔾ᵒ ≡ 𝒢ₚᴹ 0ℓ` · `procᵒ : {A B : Iface} → Proc A B → ifaceᵒ A G.⇒ ifaceᵒ B` · `unprocᵒ : {A B : Iface} → ifaceᵒ A G.⇒ ifaceᵒ B → Proc A B` · `≈ᴹ⇒≈ᵒ : {A B : Iface} {f g : Proc A B} → 𝒢ₚ 0ℓ [ f ≈ g ] → procᵒ f G.≈ procᵒ g` · `≈ᵒ⇒≈ᴹ : {A B : Iface} {f g : ifaceᵒ A G.⇒ ifaceᵒ B} → f G.≈ g → 𝒢ₚ 0ℓ [ unprocᵒ f ≈ unprocᵒ g ]` · `unprocᵒ-∘ : {A B C : Iface} (g : Proc B C) (f : Proc A B) → 𝒢ₚ 0ℓ [ unprocᵒ (procᵒ g G.∘ procᵒ f) ≈ M._∘_ g f ]`
 35. `Certified : {A B : Iface} → ℕ → Proc A B → Set` · `QB : {A B : Iface} → ℕ → Proc A B → Set₁` · `QB {A} {B} c M = Σ[ N ∈ Proc A B ] Certified c N × (N S.≈ᴹ M)`
-36. `StateTest : Proc A B → Set` · `StateTest M = MC.St M → Bool` · `pullTest : {M N : Proc A B} (σ : M S.≲ N) → StateTest N → StateTest M` · `_▷_ : Proc A (B ⊗ᴵ Ωᴵ)` (in `module _ {A B : Iface} (M : Proc A B) (P : StateTest M)`)
+36. `StateTest : Proc A B → Set` · `StateTest M = MC.St M → Bool` · `_▷_ : Proc A (B ⊗ᴵ Ωᴵ)` (in `module _ {A B : Iface} (M : Proc A B) (P : StateTest M)`)
 37. `stateRead : {A B : Iface} (Y : Iface) (M : Proc A B) → StateTest M → Proc (Y ⊗ᴵ B) Ωᴵ → Proc unitᴵ (Y ⊗ᴵ A) → Dₚ Bool` · `stateRead {B = B} Y M P = readRun Y (M ▷ P) (flagReader B)` · `StateBoundedAt : {A B : Iface} → ℕ → ℚ → (M : Proc A B) → StateTest M → Set₁` · `StateBoundedAt {B = B} q r M P = BoundedAt q r (M ▷ P) (flagReader B)`
 38. `stateLift : {B : Iface} (M : Proc unitᴵ B) (P : StateTest M) (q : ℕ) {r : ℚ} → ((d : Strat (Neg B) (Pos B)) → asks≤ q d → Upper (runᴹ (M ▷ P) (flagStrat d)) r) → StateBoundedAt q r M P`
 39. `StateSafe : (R : Systems LedgerIf^ω) → ((n : ℕ) → St (R n) → Bool) → (ℕ → ℕ → ℚ) → Set₁` · `preservesValue⇒stateSafe : (R : Systems LedgerIf^ω) (bad : (n : ℕ) → St (R n) → Bool) {ε : ℕ → ℕ → ℚ} → Hitsᴺ (λ n → morphism (R n)) auditMonitorᶠ ε → TruthfulAudit R bad → StateSafe R bad (λ n q → ε n (q ℕ.+ q))` · `ledger-uc-to-state : SerInj → (R : Systems LedgerIf^ω) (badR : (n : ℕ) → St (R n) → Bool) → R ≈ᶠᴺ Ideal a V → TruthfulAudit (genesisTotal V) R badR → StateSafe R badR (λ n q → εᴸ n (q ℕ.+ q))`
 40. `BoundedHitᴺ : (ℕ → ℕ → ℚ) → Set` · `hitᴺ⇒stateᴺ : (ε : ℕ → ℕ → ℚ) → BoundedHitᴺ ε → StateBoundedᴺ (λ n → morphism (P n)) T ε` · `stateᴺ⇒hitᴺ : (ε : ℕ → ℕ → ℚ) → StateBoundedᴺ (λ n → morphism (P n)) T ε → BoundedHitᴺ ε`
-41. `record EventSim {A B : Iface} (x y : Annotated A B) : Set₁ where field sim : proj₁ x S.≲ proj₁ y; compat : (s : MC.St (proj₁ x)) → proj₂ x s ≡ proj₂ y (ϕ sim s)` · `▷-≲ : EventSim (M , P) (N , Q) → (M ▷ P) S.≲ (N ▷ Q)` · `transportᵉ : EventSim (R , P) (I , Q) → StateBoundedAt q r I Q → StateBoundedAt q r R P`
 
 ## 2. The proof path, ideal birthday bound → `ledger-hit-family-negligible`
 
@@ -245,10 +243,9 @@ the extra `Ωᴵ` port. Three consequences:
   from `drive` returning to `idle`, so a suspended `wait` state is never
   sampled. `idleTest` is the default boundary interpretation, and any test
   agreeing with `Bad` on `idle` gives the same reading (`bd`, row 40).
-- *Transport.* A predicate lives on one representative's state type. It moves
-  only along a test-compatible simulation (`EventSim`, row 41), by `pullTest`
-  along its pure state map `ϕ`. Machine equality does not transport it: an
-  erased state component gives no descent (`HitTests.ghost-no-descent`).
+- *Transport.* A predicate lives on one representative's state type. Machine
+  equality does not transport it: an erased state component gives no descent
+  (`HitTests.ghost-no-descent`).
 - *Event convention.* `flagReadᴹ` waits for the verdict, so the reading is the
   completed-run event of row 11, not prefix reachability. The lift (row 38)
   depends on this. A strategy that read the flag early and then continued would

@@ -2,7 +2,7 @@
 
 -- The family UC premise on protocol images, with its error KEPT: `_≈ᶠᴺ_`.
 -- `≤UC[]⇒≤UCᴺ` carries a fixed-data bound into the canonical negligible order
--- (`UC.Family.Negligible.Canonicalᴺ`), which keeps the certified simulator
+-- (`UC.Family.Canonicalᴺ`), which keeps the certified simulator
 -- but not the schedule: a caller that needs the number keeps the bound's data.
 
 import Categories.Category.Monoidal.Reasoning as MonR
@@ -27,8 +27,7 @@ open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Approximate
 open import CategoricalCrypto.UC.Machine
 open import CategoricalCrypto.UC.Model.Enrichment
-open import CategoricalCrypto.UC.Model.Family hiding (observe)
-open import CategoricalCrypto.UC.Model.Family.Contextual
+open import CategoricalCrypto.UC.Model.Family
 open import CategoricalCrypto.UC.Model.Observation
 open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.Model.Setup
@@ -57,7 +56,7 @@ gradedᶠ : (B : ℕ → Iface) → Obj^ω
 gradedᶠ B = Δ Gr.𝟘ᴳ ⊛ω ifaceᶠ B
 
 imgᶠ : (B : ℕ → Iface) (R : Systems B) (n : ℕ) → 𝟘ᵒ ⇒ gradedᶠ B n
-imgᶠ B R n = Gr.closedᵒ (morphism (R n))
+imgᶠ B R n = Gr.stageᵒ (morphism (R n))
 
 infix 4 _≈ᶠ[_]_
 
@@ -74,7 +73,7 @@ R ≈ᶠᴺ I = Σ[ ε ∈ (ℕ → ℕ → ℚ) ] NegligibleBound ε × R ≈�
 ------------------------------------------------------------------------
 -- The witness form, and the `_≈ℰⁿ_` tier it lands in
 
--- `ε` is EXPLICIT here and in `≈ᶠ-runs`, for `UC.Approximate.GradedBound-+[_]`'s
+-- `ε` is EXPLICIT here and in `≈ᶠ-runs`, for `UC.Approximate.NegligibleBound-+`'s
 -- reason.  An implication, not an identification: `_≈ℰ[_]_` quantifies over
 -- levelwise FAMILIES of contexts carrying one polynomial, where the contextual
 -- relation quantifies each level's context separately.
@@ -116,9 +115,9 @@ module _ (B : Iface) (e : Strat (Neg B) (Pos B)) where
       (pred-∘ (pred-∘ (qbᵒ {r = q} (qb-strategyEnv B (value q) e a)) pred-λ⇒) pred-λ⇒)
 
   audit-run : (w : Proc unitᴵ B)
-            → observe (auditTest ∘ id ⊗₁ closedᵒ w) (ιᴳ unitᴵ) ≈ₚ runᴹ w e
+            → observe (auditTest ∘ id ⊗₁ stageᵒ w) (ιᴳ unitᴵ) ≈ₚ runᴹ w e
   audit-run w =
-    ≈ₚ-trans _ _ _ (obs-resp (plug-λ test (closedᵒ w) ○ cancelInner unitorˡ.isoʳ))
+    ≈ₚ-trans _ _ _ (obs-resp (plug-λ test (stageᵒ w) ○ cancelInner unitorˡ.isoʳ))
       (≈ₚ-trans _ _ _ (≈ₚ-sym _ _ (plug-run B e w)) (adequacy B w e))
 
 -- At a unitor closure at `1⁺` (hence `*-identityʳ`), the premise's `ε` lands

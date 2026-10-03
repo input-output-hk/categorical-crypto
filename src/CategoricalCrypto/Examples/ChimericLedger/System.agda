@@ -55,7 +55,7 @@ oracle = RO.Lazy.oracle
 submitCall : Call (List Bool) Hash (LState × Bool) → Call (Neg HashIf) (Pos HashIf) (LState × Answer)
 submitCall = reCall (fzero ,_) proj₂ ∘ mapCall (λ sb → proj₁ sb , ok (proj₂ sb))
 
--- At most one oracle call per activation: `UC.QueryBound.qb-oneCall`'s hypothesis.
+-- At most one oracle call per activation: `Examples.ChimericLedger.OneCall.qb-oneCall`'s hypothesis.
 ledgerCall : Variant → LState → Query → Call (Neg HashIf) (Pos HashIf) (LState × Answer)
 ledgerCall vr s (submit tx) = submitCall (applyTx vr s tx)
 ledgerCall _  s audit       = pureᶜ (s , totalIs (total s))

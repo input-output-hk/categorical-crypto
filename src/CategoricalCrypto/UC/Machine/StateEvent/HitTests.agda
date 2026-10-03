@@ -3,8 +3,7 @@
 -- The distinguishing cases of the state-event reading, through its public
 -- entry points (`stateRead-hit`, `stateBounded⇒hit`): each value is the
 -- eventual finite approximant of `stateRead` at an embedded strategy.  The
--- last section pins test annotations along simulations (`EventSim`), among
--- them the no-descent counterexample `ghost-no-descent`.
+-- last section is the no-descent counterexample `ghost-no-descent`.
 
 open import Data.Bool.Base
 open import Data.Empty
@@ -32,7 +31,6 @@ open import CategoricalCrypto.Protocol.Machine
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
 open import CategoricalCrypto.UC.Machine
-open import CategoricalCrypto.UC.Machine.Bridge
 open import CategoricalCrypto.UC.Machine.StateEvent
 open import CategoricalCrypto.UC.Machine.StateEvent.Adequacy
 open import CategoricalCrypto.UC.Machine.StateEvent.Read
@@ -123,26 +121,7 @@ zero-branch-reads : Reads flips (idleTest flips id) zero-branch ½
 zero-branch-reads = reads flips id zero-branch refl
 
 ------------------------------------------------------------------------
--- Annotations along simulations
-
-module _ {A B : Iface} where
-
-  -- A simulation carries a test back by inverse image, compatibly.
-  rename : {M N : Proc A B} (σ : M MS.≲ N) (Q : StateTest N) → EventSim (M , pullTest σ Q) (N , Q)
-  rename σ Q = record { sim = σ ; compat = λ _ → refl }
-
-  -- An unused state component, carried along untouched.
-  padᴹ : (T : Set) → T → Proc A B → Proc A B
-  padᴹ T t M = MC.mk (record { obj = MC.St M × T ; point = λ x → mapₚ (_, t) (MC.point (MC.state M) x) })
-                     λ p → mapₚ (λ r → (proj₁ r , proj₂ (proj₁ p)) , proj₂ r) (MC.step M (proj₁ (proj₁ p) , proj₂ p))
-
-  -- …preserves every test pulled back from the original state.
-  unused : (T : Set) (t : T) (M : Proc A B) (Q : StateTest M) → EventSim (padᴹ T t M , Q ∘ proj₁) (M , Q)
-  unused T t M Q = record
-    { sim    = simFn proj₁ (λ x → bind-map (MC.point (MC.state M) x) _ _ ⟨≈⟩ >>=ₚ-identityʳ _)
-                     λ ((s , _) , x) → bind-map (MC.step M (s , x)) _ _ ⟨≈⟩ >>=ₚ-identityʳ _
-    ; compat = λ _ → refl
-    }
+-- No descent along a simulation
 
 -- A ghost bit: flipped at every activation, never observed.  Erasing it is a
 -- simulation, and the two states it identifies disagree on the bit.
@@ -161,16 +140,5 @@ erase = simFn (λ _ → tt) (λ _ → >>=ₚ-identityˡ false _) λ where
   (_ , inj₁ ())
   (b , inj₂ _) → >>=ₚ-identityˡ (not b , inj₂ true) _
 
-ghost-no-descent : ¬ (Σ[ Q ∈ StateTest erased ] EventSim (ghost , λ b → b) (erased , Q))
-ghost-no-descent (Q , e) = case trans (compat e true) (sym (compat e false)) of λ ()
-
--- …while a test that ignores the bit descends, and its bounds transport back.
-erase-transport : {q : ℕ} {r : ℚ} → StateBoundedAt q r erased (λ _ → false) → StateBoundedAt q r ghost (λ _ → false)
-erase-transport = transportᵉ (record { sim = erase ; compat = λ _ → refl })
-
-pullTest-id : {A B : Iface} {M : Proc A B} (Q : StateTest M) (s : MC.St M) → pullTest (MS.≲-refl {f = M}) Q s ≡ Q s
-pullTest-id Q s = refl
-
-pullTest-∘ : {A B : Iface} {M N L : Proc A B} (σ : M MS.≲ N) (τ : N MS.≲ L) (Q : StateTest L) (s : MC.St M)
-           → pullTest (MS.≲-trans σ τ) Q s ≡ pullTest σ (pullTest τ Q) s
-pullTest-∘ σ τ Q s = refl
+ghost-no-descent : ¬ (Σ[ Q ∈ StateTest erased ] ((b : Bool) → b ≡ Q (ϕ erase b)))
+ghost-no-descent (Q , e) = case trans (e true) (sym (e false)) of λ ()

@@ -192,12 +192,8 @@ simQB : QB 2 simulator
 simQB = certified⇒QB simCert
 
 -- `Λᴴ` is 0 because each relay is issued in the step that pays for it.
-sim-hash-count : (w : List (Pos Lkᴵ ⊎ Neg Advᴵ))
-               → Dₚ (Σ[ p ∈ SSt × List (Neg Lkᴵ ⊎ Pos Advᴵ) ]
-                      EH.Balanced Λᴴ (weight points w) p)
+sim-hash-count : (w : List (Pos Lkᴵ ⊎ Neg Advᴵ)) → EH.Counted Λᴴ w
 sim-hash-count = EH.exactᴱ simExactHash
 
-sim-message-count : (w : List (Pos Lkᴵ ⊎ Neg Advᴵ))
-                  → Dₚ (Σ[ p ∈ SSt × List (Neg Lkᴵ ⊎ Pos Advᴵ) ]
-                         EA.Balanced Φˢ (weight perMessage w) p)
+sim-message-count : (w : List (Pos Lkᴵ ⊎ Neg Advᴵ)) → EA.Counted Φˢ w
 sim-message-count = EA.exactᴱ simExactAll

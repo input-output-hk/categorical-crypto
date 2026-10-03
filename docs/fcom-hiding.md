@@ -138,9 +138,9 @@ against the protocol that draws its randomness at the commitment: `m` guesses
 at the programming point, `m` at the plant, `m` fresh tests.
 
 `Hiding.Asymptotic`: `εᵗ n q = (q + (q + q))·2⁻ⁿ`, with `εᵗ-negligible` and
-the levelwise `hiding-boundᵗ`. `Hiding.Test` instantiates `hiding-bound` and
+the levelwise `hiding-boundᵗ`. `Hiding.Test` instantiates
 `hiding-boundᵗ` at `k = 5` against live
-attacks: `bounded`/`bounded-total` at the three-activation attack — commit,
+attacks: `bounded-total` at the three-activation attack — commit,
 query a guessed opening point *before* the opening, report whether it came back
 with the published digest — and `bounded-preq` at a two-activation one that
 queries the point the committer is about to hash BEFORE it commits and compares

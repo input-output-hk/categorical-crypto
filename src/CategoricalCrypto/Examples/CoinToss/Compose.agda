@@ -25,7 +25,6 @@ open import CategoricalCrypto.Examples.ROCommitment.Asymptotic
 open import CategoricalCrypto.UC.Approximate
 open import CategoricalCrypto.UC.Model.Enrichment
 open import CategoricalCrypto.UC.Model.Family
-open import CategoricalCrypto.UC.Model.Family.Contextual
 open import CategoricalCrypto.UC.Model.Seal
 open import CategoricalCrypto.UC.Model.Setup
 
