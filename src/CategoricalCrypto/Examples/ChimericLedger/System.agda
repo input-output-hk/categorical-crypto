@@ -97,6 +97,6 @@ ledger-keeps-accts-[] vr _ u (submit (ins , wds , outs))
   with checkIns u ins | checkWdrls [] wds in eq
 ... | nothing        | _       = refl
 ... | just _         | nothing = refl
-... | just (vIn , _) | just _ with (vIn + wdrlΣ wds ≡ᴺ valΣ outs) ∧ consumes vr ins
+... | just (vIn , _) | just _ with (vIn + valΣ wds ≡ᴺ valΣ outs) ∧ consumes vr ins
 ...     | false = refl
 ...     | true  = λ _ → checkWdrls-[] wds eq

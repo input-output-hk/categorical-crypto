@@ -125,7 +125,7 @@ functionality's wire `ideal = wireᴹ upᶠ downᶠ`:
 Certificates the theorem needs all exist: `comSim`/`comSimʰ` for the witness;
 `Examples.ROCommitment.UC.resourceQBᵒ` (the rate-0 `qb-closed` raised by
 `qb-mono`) for the resource at the unit rate; `RcomQB`/`RcomʰQB` (Assembly)
-and `ROU.idealQB`/`ROHU.idealʰQB` for the compared families. No rate schedule
+for the real families. No rate schedule
 on the compared families is needed for `Realization` itself: `_≤UC^ωᵉ_` does
 not carry one.
 
@@ -140,7 +140,7 @@ Read off the interfaces and the machines.
 | R1 | The oracle is the lazily-sampled table of `resource`: a repeat point is answered from the table, a fresh one draws `uniformₚ k` and is kept | `Examples.ROCommitment.Resource.lazyₚ`, `lazy-hit`/`lazy-miss` | a definition; the theorem is about this resource and quantifies over no other |
 | R2 | The commitment cell is one-shot and faithful: first `putᴿ` receipts and stores, `getᴿ` returns what was stored, `nakᴿ` refuses | `resStep`, pinned by `cell-put`/`cell-get`/`cell-nak` | holds at the concrete resource. This is exactly what the OPEN domain does not give — `docs/coin-toss.md` §5 exhibits a closure answering every `getᴿ` with `outᴿ true` |
 | R3 | ONE resource, shared by both compared systems | the statement's shape: `_∘ resᶠ n` on both sides | structural |
-| R4 | The resource is closed and asks nothing downward: `QB 0`, entering the grading at `1⁺` | `resourceQB = qb-closed resource`, `resourceQBᵒ` | theorem |
+| R4 | The resource is closed and asks nothing downward: `QB 0`, entering the grading at `1⁺` | `qb-closed resource`, `resourceQBᵒ` | theorem |
 | R5 | Off-protocol resource activations diverge (`botₚ`): a second `putᴿ`, a `getᴿ` before one | `resStep` | part of the model; the proof must PRESERVE it (residual B2-M3) |
 
 ### 4.2 Encoding assumptions
@@ -212,7 +212,7 @@ with `εᵗ n q = fromℕ (q + (q + q)) *ℚ inv-pow-2 n`
 | step | what moves the allowance | factor |
 |---|---|---|
 | 1. game bound | `asks≤ m d` on `Strat Q R` (`Game.extraction-bound`) | — |
-| 2. game ports ↔ machine ports | `Game.Q`/`Game.R` against `Neg`/`Pos (Advᴵ ⊗ᴵ Honᴵ)`; the relabelling is 1:1 on asks (`idleR` is outside the image) | ×1 (`Realization.Bisim.toQ`/`toR`, B2-M7) |
+| 2. game ports ↔ machine ports | `Game.Q`/`Game.R` against `Neg`/`Pos (Advᴵ ⊗ᴵ Honᴵ)`; the relabelling is 1:1 on asks (`idleR` is outside the image) | ×1 (`Realization.Bisim.toQ`/`fromR`, B2-M7) |
 | 3. per-strategy → per-context | `dominatedᵍᵠ`: hypothesis at `asks≤ (value (c · c′)) d`, conclusion read at `ε (value (c · c′))` — exactly `_≈ᵁᵠ[_]_`'s convention | identity |
 | 4. domination | `dominatedᵍᵠ` is exact | identity |
 | 5. assembly, inner leg | `≤UC[]-compose`'s `composeError` reads `εf n (scale q (1⁺ · 1⁺))`; `scale q 1⁺ = q ℕ.* 1` (`scale-unit`) | identity |
@@ -257,7 +257,7 @@ number.
 | B2-8, B2-M5 | the density lemma at a NONTRIVIAL grade, budgeted | `UC.Model.Dominated.dominatedᵍᵠ` (hypothesis at `asks≤ (value (c · c′)) d`) and its unbudgeted instance `dominatedᵍ`, in use at `Examples.CoinToss.Ideal.Receiver.Compose` |
 | B2-9 | the run-agreement deferred-sampling engine | `GamePlaying.Defer.Run`: `DeferStep`, `runFrom-defer`, `run-defer` |
 | B2-M2 (real) | `Ranked` at the real side | `Examples.ROCommitment.Realization.Machine.rankedᴿ` (`real 𝒫.∘ resource`, rank bound `boundᴿ`), step-table fact `real-up`, closed kernel `Kᴿ`; generic support clauses `ProbabilisticLogic.Dp.Supp-bot`/`Supp-return`/`Supp-bind` |
-| B2-M7 | the ask-preserving relabelling `Neg (Advᴵ ⊗ᴵ Honᴵ) ↔ Game.Q`, `Pos (Advᴵ ⊗ᴵ Honᴵ) ↪ Game.R` | `Examples.ROCommitment.Realization.Bisim`: `toQ`, `toR` with its section `fromR`, `verdict-realOpen`. `idleR` is outside `toR`'s image and `fromR` sends it anywhere, which is sound because `prune deadR` removes exactly the activations that produce it. Strategy half: `Strategy.mapStrat`, `asks≤-mapStrat` |
+| B2-M7 | the ask-preserving relabelling `Neg (Advᴵ ⊗ᴵ Honᴵ) ↔ Game.Q`, `Game.R → Pos (Advᴵ ⊗ᴵ Honᴵ)` | `Examples.ROCommitment.Realization.Bisim`: `toQ`, `fromR`, `verdict-realOpen`. `idleR` is no interface answer and `fromR` sends it anywhere, which is sound because `prune deadR` removes exactly the activations that produce it. Strategy half: `Strategy.mapStrat`, `asks≤-mapStrat` |
 | B2-M8 | `comSimʰ` | `Examples.CoinToss.Compose` |
 
 ### Missing (verified absent)

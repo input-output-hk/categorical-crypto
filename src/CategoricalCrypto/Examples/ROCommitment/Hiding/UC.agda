@@ -138,6 +138,3 @@ simCertʰ = record
 
 simQBʰ : QB 1 simulatorʰ
 simQBʰ = certified⇒QB simCertʰ
-
-idealʰQB : QB 1 idealʰ
-idealʰQB = qb-wire upᶠʰ downᶠʰ

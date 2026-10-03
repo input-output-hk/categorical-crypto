@@ -31,6 +31,7 @@ open import Data.Vec using (Vec; []; _∷_; toList) renaming (take to takeᵛ; d
 import Data.Vec as DV
 open import Data.List
 open import Data.List.Properties
+open import Data.List.Membership.Propositional.Properties using (∈-filter⁺)
 open import Class.DecEq.Ext
 open import Data.Maybe.Ext
 import Data.List.Relation.Unary.Any as ListAny
@@ -67,6 +68,7 @@ open import ProbabilisticLogic.Distribution.RationalDist.Partial
 open import ProbabilisticLogic.Distribution.RationalDist.Setoid
 open import ProbabilisticLogic.Distribution.Uniform
 import ProbabilisticLogic.Distribution.Uniform.Birthday as Birthday
+import ProbabilisticLogic.Distribution.Uniform.Collision as Collision
 
 module CategoricalCrypto.Examples.MerkleDamgard.Core where
 
@@ -91,6 +93,21 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   -- an independent random oracle per (length, index).
   module Comp    = RandomOracle p (CV × Blk × ℕ × ℕ) n
   module General = RandomOracle p (Vec Bool (k * n)) n
+
+  count-matches : Comp.Table → Comp.Out → ℚ
+  count-matches s = Collision.countMatch n (Data.List.map proj₂ s)
+
+  E-collisions : ∀ s → E Comp.uniform-Out (count-matches s) ≡ fromℕ (length s) *ℚ inv-pow-2 n
+  E-collisions s = trans (Collision.E-countMatch n (Data.List.map proj₂ s))
+                         (cong (λ l → fromℕ l *ℚ inv-pow-2 n) (length-map proj₂ s))
+
+  triangle : ℕ → ℚ
+  triangle zero    = 0ℚ
+  triangle (suc j) = fromℕ j +ℚ triangle j
+
+  state-collisions : Comp.Table → ℚ
+  state-collisions []             = 0ℚ
+  state-collisions ((_ , h) ∷ ps) = count-matches ps h +ℚ state-collisions ps
 
   pack : CV → Blk → ℕ → CV × Blk × ℕ × ℕ
   pack h b idx = (h , b , k , idx)
@@ -120,11 +137,11 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   -- chaining values} (interior = outputs of NON-final calls, idx < len).  A
   -- collision among FINAL hashes is harmless — those values are never extended,
   -- and the ideal RO has exactly such coincidences.
+  interior? : (((_ , _ , len , idx) , _) : (CV × Blk × ℕ × ℕ) × CV) → Dec (idx < len)
+  interior? ((_ , _ , len , idx) , _) = idx <? len
+
   interior : Comp.Table → Comp.Table
-  interior []                                   = []
-  interior (e@((_ , _ , len , idx) , _) ∷ es) = case idx <? len of λ where
-    (yes _) → e ∷ interior es
-    (no  _) → interior es
+  interior = filter interior?
 
   ivEntry : (CV × Blk × ℕ × ℕ) × CV
   ivEntry = ((IV , IV , 0 , 0) , IV)
@@ -136,10 +153,10 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   pool sc = length (poolL sc)
 
   collC : Comp.Table → ℚ
-  collC sc = Comp.state-collisions (poolL sc)
+  collC sc = state-collisions (poolL sc)
 
   bound : ℕ → ℚ
-  bound q = Comp.triangle (q * k) *ℚ inv-pow-2 n
+  bound q = triangle (q * k) *ℚ inv-pow-2 n
 
   ------------------------------------------------------------------------
   -- The coupling: one kernel `respB` over (bad flag, compression table, ghost
@@ -253,10 +270,8 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     ErasesTo : FState → Comp.Table → Type
     ErasesTo s sc = tblᶠ s ≡ sc
 
-    stepR : ∀ s i M (F : FState × General.Output → ℚ) (F′ : Comp.Table × General.Output → ℚ)
-          → (∀ t t′ → ErasesTo (proj₁ t) (proj₁ t′) → proj₂ t ≡ proj₂ t′ → F t ≡ F′ t′)
-          → E (C.realK s (i , M)) F ≡ E (respR (tblᶠ s) (i , M)) F′
-    stepR (f , sc , sg) i M F F′ agree = aux (General.lookup-bs sg M)
+    stepR-bisim : StepBisim C.realK respR ErasesTo
+    stepR-bisim (f , sc , sg) _ refl (i , M) F F′ agree = aux (General.lookup-bs sg M)
       where
         μW = walk sc IV (toBlocks M) 1
         μM = mdRun sc IV (toBlocks M) 1
@@ -296,11 +311,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
          (trans (lookupᴰℚ-cong-P (entries μW)
                   (λ w → newAnsE (hitʷ w ∨ f) (proj₁ w) (cvʷ w)))
                 walkE))
-
-    stepR-bisim : StepBisim C.realK respR ErasesTo
-    stepR-bisim s sc rel (i , M) F F′ agree =
-      subst (λ z → E (C.realK s (i , M)) F ≡ E (respR z (i , M)) F′) rel
-            (stepR s i M F F′ agree)
 
   ghost-erase : ∀ f sc sg d
               → Pr₁ (runWith C.realK (f , sc , sg) d) ≡ Pr₁ (runWith respR sc d)
@@ -343,11 +353,8 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     Ghosts : General.Table → FState → Type
     Ghosts sgG s = ghostᶠ s ≡ sgG
 
-    stepI : ∀ f sc sg i M (F : General.Table × General.Output → ℚ)
-              (F′ : FState × General.Output → ℚ)
-          → (∀ t t′ → Ghosts (proj₁ t) (proj₁ t′) → proj₂ t ≡ proj₂ t′ → F t ≡ F′ t′)
-          → E (respG sg (i , M)) F ≡ E (C.idealK (f , sc , sg) (i , M)) F′
-    stepI f sc sg i M F F′ agree = aux (General.lookup-bs sg M) refl
+    stepI-bisim : StepBisim respG C.idealK Ghosts
+    stepI-bisim _ (f , sc , sg) refl (i , M) F F′ agree = aux (General.lookup-bs sg M) refl
       where
         μW = walk sc IV (toBlocks M) 1
 
@@ -411,11 +418,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
                     (lookupᴰℚ-cong-P (entries μW)
                       (λ w → newAnsVal (hitʷ w ∨ f) (proj₁ w) (cvʷ w)))))
 
-    stepI-bisim : StepBisim respG C.idealK Ghosts
-    stepI-bisim sgG (f , sc , sg) rel (i , M) F F′ agree =
-      subst (λ z → E (respG z (i , M)) F ≡ E (C.idealK (f , sc , sg) (i , M)) F′) rel
-            (stepI f sc sg i M F F′ agree)
-
   ideal-marginal : ∀ d
     → Pr₁ (runWith respG [] d) ≡ Pr₁ (runWith C.idealK (false , [] , []) d)
   ideal-marginal d =
@@ -439,52 +441,39 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   φMD m s = φsc m (tblᶠ s)
 
   private
-    tri-mono : ∀ {a b} → a ≤ b → Comp.triangle a ≤ℚ Comp.triangle b
+    tri-mono : ∀ {a b} → a ≤ b → triangle a ≤ℚ triangle b
     tri-mono le = go _ _ (ℕP.≤⇒≤′ le)
-      where go : ∀ a b → a ≤′ b → Comp.triangle a ≤ℚ Comp.triangle b
+      where go : ∀ a b → a ≤′ b → triangle a ≤ℚ triangle b
             go a .a ≤′-refl        = ≤-refl
             go a _ (≤′-step {b} pf) = ≤-trans (go a b pf) (p≤q+p _ (0≤fromℕ b))
 
-    sumR-tri : ∀ t j → Comp.triangle t +ℚ sumR t j ≡ Comp.triangle (t + j)
-    sumR-tri t zero    = trans (+-identityʳ _) (cong Comp.triangle (sym (ℕP.+-identityʳ t)))
+    sumR-tri : ∀ t j → triangle t +ℚ sumR t j ≡ triangle (t + j)
+    sumR-tri t zero    = trans (+-identityʳ _) (cong triangle (sym (ℕP.+-identityʳ t)))
     sumR-tri t (suc j) =
-      trans (cong (Comp.triangle t +ℚ_) (fromℕ-+ t (sumN (suc t) j)))
-     (trans (sym (+-assoc (Comp.triangle t) (fromℕ t) (sumR (suc t) j)))
-     (trans (cong (_+ℚ sumR (suc t) j) (+-comm (Comp.triangle t) (fromℕ t)))
-     (trans (sumR-tri (suc t) j) (cong Comp.triangle (sym (ℕP.+-suc t j))))))
+      trans (cong (triangle t +ℚ_) (fromℕ-+ t (sumN (suc t) j)))
+     (trans (sym (+-assoc (triangle t) (fromℕ t) (sumR (suc t) j)))
+     (trans (cong (_+ℚ sumR (suc t) j) (+-comm (triangle t) (fromℕ t)))
+     (trans (sumR-tri (suc t) j) (cong triangle (sym (ℕP.+-suc t j))))))
 
-    cm-nn : ∀ s h → 0ℚ ≤ℚ Comp.count-matches s h
-    cm-nn []            h = ≤-refl
-    cm-nn ((_ , v) ∷ s) h = 0≤+ (0≤bool ⌊ h ≟ v ⌋) (cm-nn s h)
+    cm-nn : ∀ s h → 0ℚ ≤ℚ count-matches s h
+    cm-nn s = Collision.0≤countMatch n (Data.List.map proj₂ s)
 
-    sc-nn : ∀ s → 0ℚ ≤ℚ Comp.state-collisions s
+    sc-nn : ∀ s → 0ℚ ≤ℚ state-collisions s
     sc-nn []            = ≤-refl
     sc-nn ((_ , v) ∷ s) = 0≤+ (cm-nn s v) (sc-nn s)
 
-    interior-cons< : ∀ hh bb ii vv sc → ii < k
-      → interior (((hh , bb , k , ii) , vv) ∷ sc) ≡ ((hh , bb , k , ii) , vv) ∷ interior sc
-    interior-cons< hh bb ii vv sc lt with ii <? k
-    ... | yes _  = refl
-    ... | no ¬lt = ⊥-elim (¬lt lt)
-
-    interior-consᶠ : ∀ hh bb ii vv sc → ¬ (ii < k)
-      → interior (((hh , bb , k , ii) , vv) ∷ sc) ≡ interior sc
-    interior-consᶠ hh bb ii vv sc ¬lt with ii <? k
-    ... | yes lt = ⊥-elim (¬lt lt)
-    ... | no _   = refl
-
     collC-cons< : ∀ hh bb ii vv sc → ii < k
       → collC (((hh , bb , k , ii) , vv) ∷ sc)
-      ≡ Comp.count-matches (poolL sc) vv +ℚ collC sc
+      ≡ count-matches (poolL sc) vv +ℚ collC sc
     collC-cons< hh bb ii vv sc lt =
-      trans (cong (λ z → Comp.state-collisions (ivEntry ∷ z))
-              (interior-cons< hh bb ii vv sc lt))
-     (trans (cong (_+ℚ (Comp.count-matches (interior sc) vv
-                        +ℚ Comp.state-collisions (interior sc)))
-              (cong (_+ℚ Comp.count-matches (interior sc) IV) (δ-sym vv IV)))
-            (interchange (δ IV vv) (Comp.count-matches (interior sc) IV)
-                     (Comp.count-matches (interior sc) vv)
-                     (Comp.state-collisions (interior sc))))
+      trans (cong (λ z → state-collisions (ivEntry ∷ z))
+              (filter-accept interior? lt))
+     (trans (cong (_+ℚ (count-matches (interior sc) vv
+                        +ℚ state-collisions (interior sc)))
+              (cong (_+ℚ count-matches (interior sc) IV) (δ-sym vv IV)))
+            (interchange (δ IV vv) (count-matches (interior sc) IV)
+                     (count-matches (interior sc) vv)
+                     (state-collisions (interior sc))))
 
     interior-step : ∀ idx m → idx + suc (suc m) ≡ suc k → idx < k × suc idx + suc m ≡ suc k
     interior-step idx m pr = ℕP.≤-trans (ℕP.m<m+n idx ℕP.0<1+n) (ℕP.≤-reflexive eq) , cong suc eq
@@ -505,12 +494,8 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     walk-φ m sc h [] idx pr =
       ≤-reflexive (lookupᴰℚ-return (sc , h , true) (λ (w : Walked) → φsc m (proj₁ w)))
     walk-φ m sc h (b ∷ []) idx pr =
-      walk-φL m sc h b idx (Comp.lookup-bs sc (pack h b idx)) (ℕP.<-irrefl idx≡k)
-      where
-        idx≡k : idx ≡ k
-        idx≡k = ℕP.suc-injective
-          (trans (cong suc (sym (ℕP.+-identityʳ idx)))
-                 (trans (sym (ℕP.+-suc idx zero)) pr))
+      walk-φL m sc h b idx (Comp.lookup-bs sc (pack h b idx))
+        (ℕP.<-irrefl (ℕP.suc-injective (trans (ℕP.+-comm 1 idx) pr)))
     walk-φ m sc h (b ∷ b' ∷ bs) idx pr =
       walk-φC m sc h b (b' ∷ bs) idx (Comp.lookup-bs sc (pack h b idx)) (proj₁ i) (proj₂ i)
       where i = interior-step idx (length bs) pr
@@ -521,9 +506,9 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
       (trans (lookupᴰℚ-Dmap (λ hm → (pack h b idx , hm) ∷ sc , hm , false) Comp.uniform-Out
                (λ (w : Walked) → φsc m (proj₁ w)))
       (trans (lookupᴰℚ-cong-P (entries Comp.uniform-Out) (λ hm →
-                cong (λ z → Comp.state-collisions (ivEntry ∷ z)
+                cong (λ z → state-collisions (ivEntry ∷ z)
                              +ℚ Γ (length (ivEntry ∷ z)) (m * (k ∸ 1)))
-                  (interior-consᶠ h b idx hm sc ¬lt)))
+                  (filter-reject interior? ¬lt)))
              (E-const Comp.uniform-Out (φsc m sc))))
 
     walk-φC m sc h b [] idx mv lt pr =
@@ -561,14 +546,14 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
          (trans (lookupᴰℚ-cong-P (entries Comp.uniform-Out) (λ hm →
                    trans (cong₂ (λ x y → x +ℚ Γ y ((length bs'') + m * (k ∸ 1)))
                            (collC-cons< h b idx hm sc lt)
-                           (cong (λ z → length (ivEntry ∷ z)) (interior-cons< h b idx hm sc lt)))
-                         (+-assoc (Comp.count-matches (poolL sc) hm) (collC sc)
+                           (cong (λ z → length (ivEntry ∷ z)) (filter-accept interior? lt)))
+                         (+-assoc (count-matches (poolL sc) hm) (collC sc)
                                   (Γ (suc (pool sc)) ((length bs'') + m * (k ∸ 1))))))
          (trans (E-add Comp.uniform-Out
-                  (λ hm → Comp.count-matches (poolL sc) hm)
+                  (λ hm → count-matches (poolL sc) hm)
                   (λ _ → collC sc +ℚ Γ (suc (pool sc)) ((length bs'') + m * (k ∸ 1))))
          (trans (cong₂ _+ℚ_
-                  (Comp.E-collisions (poolL sc))
+                  (E-collisions (poolL sc))
                   (E-const Comp.uniform-Out
                     (collC sc +ℚ Γ (suc (pool sc)) ((length bs'') + m * (k ∸ 1)))))
          (trans (x∙yz≈y∙xz (fromℕ (pool sc) *ℚ inv-pow-2 n) (collC sc)
@@ -638,7 +623,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
                  (tri-mono arith)))
       where
         N = suc m * (k ∸ 1)
-        sumR1 : sumR 1 N ≡ Comp.triangle (suc N)
+        sumR1 : sumR 1 N ≡ triangle (suc N)
         sumR1 = trans (sym (+-identityˡ (sumR 1 N)))
                (trans (cong (_+ℚ sumR 1 N) (sym (+-identityʳ 0ℚ)))
                       (sumR-tri 1 N))
@@ -689,13 +674,12 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   -- Preservation: the collision count is monotone along the walk, and the
   -- flagged branch of `MDInv`.
   private
-    -- Inlined so the single `with ii <? k` reduces `collC` directly —
-    -- delegating to `collC-cons<` would create a mismatched second `with`-neutral.
     collC-mono1 : ∀ hh bb ii vv sc → collC sc ≤ℚ collC (((hh , bb , k , ii) , vv) ∷ sc)
     collC-mono1 hh bb ii vv sc with ii <? k
-    ... | yes lt = +-mono-≤ (p≤q+p (Comp.count-matches (interior sc) IV) (0≤bool ⌊ IV ≟ vv ⌋))
-                            (p≤q+p (Comp.state-collisions (interior sc)) (cm-nn (interior sc) vv))
-    ... | no ¬lt = ≤-refl
+    ... | yes lt = ≤-trans (p≤q+p (collC sc) (cm-nn (poolL sc) vv))
+                           (≤-reflexive (sym (collC-cons< hh bb ii vv sc lt)))
+    ... | no ¬lt = ≤-reflexive (cong (λ z → state-collisions (ivEntry ∷ z))
+                                     (sym (filter-reject interior? ¬lt)))
 
     callC-collC-mono : ∀ c sc h b idx → c ≤ℚ collC sc
                      → OnSupport (λ w → c ≤ℚ collC (proj₁ w)) (callC sc h b idx)
@@ -797,9 +781,6 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
     ⊒-refl : ∀ sc → sc ⊒ sc
     ⊒-refl sc key x e = e
 
-    ⊒-trans : ∀ a b c → a ⊒ b → b ⊒ c → a ⊒ c
-    ⊒-trans a b c ab bc key x e = ab key x (bc key x e)
-
     present≢fresh : ∀ sc (k₀ : CV × Blk × ℕ × ℕ) key x
                   → Comp.lookup-bs sc key ≡ just x → Comp.lookup-bs sc k₀ ≡ nothing → key ≢ k₀
     present≢fresh sc k₀ key x pres absent refl = nothing≢just (trans (sym absent) pres)
@@ -872,7 +853,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
              → ∀ w2 → FKout (proj₁ w) (cvʷ w) bs' (suc idx) w2
              → FKout sc v (b ∷ bs') idx w2
         mapc w (exth , steph , finalrev) w2 (ext2 , seg2 , dich2) =
-          ⊒-trans (proj₁ w2) (proj₁ w) sc ext2 exth
+          (λ key x e → ext2 key x (exth key x e))
           , trans (runPath-step (stepT (proj₁ w2)) v (b , idx) (cvʷ w)
                     (labels bs' (suc idx)) (ext2 (pack v b idx) (cvʷ w) steph)) seg2
           , dd
@@ -905,26 +886,17 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
   ------------------------------------------------------------------------
   -- Birthday descent: collC ≡ 0 ⇒ interior co-determinism
   private
-    cm0-all : ∀ L h → Comp.count-matches L h ≡ 0ℚ → ListAll.All (λ e → h ≢ proj₂ e) L
+    cm0-all : ∀ L h → count-matches L h ≡ 0ℚ → ListAll.All (λ e → h ≢ proj₂ e) L
     cm0-all []             h _   = ListAll.[]
     cm0-all ((key , v) ∷ xs) h eq0 with h ≟ v | eq0
     ... | yes _ | eq0' = ⊥-elim (1≢0 (≤-antisym (≤-trans (p≤p+q 1ℚ (cm-nn xs h)) (≤-reflexive eq0')) 0≤1ℚ))
-    ... | no ¬p | eq0' = ¬p ListAll.∷ cm0-all xs h (trans (sym (+-identityˡ (Comp.count-matches xs h))) eq0')
+    ... | no ¬p | eq0' = ¬p ListAll.∷ cm0-all xs h (trans (sym (+-identityˡ (count-matches xs h))) eq0')
 
-    sc0-ap : ∀ L → Comp.state-collisions L ≡ 0ℚ → AllPairs (λ e e' → proj₂ e ≢ proj₂ e') L
+    sc0-ap : ∀ L → state-collisions L ≡ 0ℚ → AllPairs (λ e e' → proj₂ e ≢ proj₂ e') L
     sc0-ap []             _   = []
     sc0-ap ((key , h) ∷ ps) eq0 =
-      let s = nonNeg+nonNeg≡0 (Comp.count-matches ps h) (Comp.state-collisions ps) (cm-nn ps h) (sc-nn ps) eq0
+      let s = nonNeg+nonNeg≡0 (count-matches ps h) (state-collisions ps) (cm-nn ps h) (sc-nn ps) eq0
       in cm0-all ps h (proj₁ s) ∷ sc0-ap ps (proj₂ s)
-
-    ∈interior : ∀ sc v b j w → j < k → ((v , b , k , j) , w) ∈ˡ sc
-              → ((v , b , k , j) , w) ∈ˡ interior sc
-    ∈interior (_ ∷ es) v b j w lt (ListAny.here refl) with j <? k
-    ... | yes _   = ListAny.here refl
-    ... | no ¬lt = ⊥-elim (¬lt lt)
-    ∈interior (((cv' , b' , len' , idx') , val') ∷ es) v b j w lt (ListAny.there a) with idx' <? len'
-    ... | yes _ = ListAny.there (∈interior es v b j w lt a)
-    ... | no  _ = ∈interior es v b j w lt a
 
     allpairs-mem : ∀ {A : Type} {R : A → A → Type} {xs} → AllPairs R xs
                  → ∀ {x y} → x ∈ˡ xs → y ∈ˡ xs → (x ≡ y) ⊎ (R x y ⊎ R y x)
@@ -939,8 +911,8 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
           → (v₁ , b₁ , k , j₁) ≡ (v₂ , b₂ , k , j₂)
     codet sc' c0 v₁ b₁ j₁ v₂ b₂ j₂ w lt₁ lt₂ e₁ e₂ =
       go (allpairs-mem (sc0-ap (poolL sc') c0)
-           (ListAny.there (∈interior sc' v₁ b₁ j₁ w lt₁ (Comp.lookup-bs-∈ sc' (v₁ , b₁ , k , j₁) w e₁)))
-           (ListAny.there (∈interior sc' v₂ b₂ j₂ w lt₂ (Comp.lookup-bs-∈ sc' (v₂ , b₂ , k , j₂) w e₂))))
+           (ListAny.there (∈-filter⁺ interior? (Comp.lookup-bs-∈ sc' (v₁ , b₁ , k , j₁) w e₁) lt₁))
+           (ListAny.there (∈-filter⁺ interior? (Comp.lookup-bs-∈ sc' (v₂ , b₂ , k , j₂) w e₂) lt₂)))
       where
         go : (((v₁ , b₁ , k , j₁) , w) ≡ ((v₂ , b₂ , k , j₂) , w))
            ⊎ ((w ≢ w) ⊎ (w ≢ w)) → (v₁ , b₁ , k , j₁) ≡ (v₂ , b₂ , k , j₂)
@@ -948,14 +920,14 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
         go (inj₂ (inj₁ r)) = ⊥-elim (r refl)
         go (inj₂ (inj₂ r)) = ⊥-elim (r refl)
 
-    cm-01 : ∀ L h → (Comp.count-matches L h ≡ 0ℚ) ⊎ (1ℚ ≤ℚ Comp.count-matches L h)
+    cm-01 : ∀ L h → (count-matches L h ≡ 0ℚ) ⊎ (1ℚ ≤ℚ count-matches L h)
     cm-01 []             h = inj₁ refl
     cm-01 ((_ , v) ∷ xs) h with h ≟ v | cm-01 xs h
     ... | yes _ | _         = inj₂ (p≤p+q 1ℚ (cm-nn xs h))
     ... | no  _ | inj₂ c≥1 = inj₂ (subst (1ℚ ≤ℚ_) (sym (+-identityˡ _)) c≥1)
     ... | no  _ | inj₁ c0  = inj₁ (trans (+-identityˡ _) c0)
 
-    collC-01 : ∀ L → (Comp.state-collisions L ≡ 0ℚ) ⊎ (1ℚ ≤ℚ Comp.state-collisions L)
+    collC-01 : ∀ L → (state-collisions L ≡ 0ℚ) ⊎ (1ℚ ≤ℚ state-collisions L)
     collC-01 []             = inj₁ refl
     collC-01 ((_ , h) ∷ ps) with cm-01 ps h | collC-01 ps
     ... | inj₂ cm≥1 | _         = inj₂ (≤-trans cm≥1 (p≤p+q _ (sc-nn ps)))
@@ -1025,8 +997,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
       let i1 = stepT<k-inv sc' a  b1  j1  w e1
           i2 = stepT<k-inv sc' a' b1' j1' w e2
           keq = codet sc' c0 a b1 j1 a' b1' j1' w (proj₁ i1) (proj₁ i2) (proj₂ i1) (proj₂ i2)
-      in cong₂ _,_ (cong (λ z → proj₁ z) keq)
-                   (cong₂ _,_ (cong (λ z → proj₁ (proj₂ z)) keq) (cong (λ z → proj₂ (proj₂ (proj₂ z))) keq))
+      in cong (λ (v , b , _ , j) → v , b , j) keq
 
   -- A new message whose final call hits an existing entry re-meets a recorded
   -- chain M' ≠ M.  If collC ≡ 0 the interior transition system is co-deterministic,
@@ -1042,7 +1013,7 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
                  → 1ℚ ≤ℚ collC (proj₁ w)
   walk-hit-collC sc sg M w eq ext allold ol seg = go (collC-01 (poolL (proj₁ w)))
     where
-      go : (Comp.state-collisions (poolL (proj₁ w)) ≡ 0ℚ) ⊎ (1ℚ ≤ℚ Comp.state-collisions (poolL (proj₁ w)))
+      go : (state-collisions (poolL (proj₁ w)) ≡ 0ℚ) ⊎ (1ℚ ≤ℚ state-collisions (poolL (proj₁ w)))
          → 1ℚ ≤ℚ collC (proj₁ w)
       go (inj₂ ge1) = ge1
       go (inj₁ c0)  = ⊥-elim (nothing≢just (trans (sym eq) M-recorded))

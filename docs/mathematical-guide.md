@@ -149,7 +149,7 @@ over every admitted context that reads it through a monitor.
   a `Reader` between the test and the process, a bound at every adversary of a rate, and
   its carry along an exact factoring `f ≈ subᴵ s ∘ g` — the simulator's rate multiplies
   the adversary's, the context cap is untouched, and no slack is paid. The toy instance
-  is `Examples.HashForward.UC :: hf-pr-bound`.
+  is `Examples.HashForward.UC :: hf-bounded`.
 - `UC.Quantitative.EventLift :: Hitsᴺ`, `hitsᵘ`, `hits⇒bounded`: event bounds at the
   monitored readout. `hitsᵘ` lifts a bound on strategies at cap `q` to all contexts at
   cap `q` (it is `stateLift` at `accᴹ`, through `monitor-flag` and

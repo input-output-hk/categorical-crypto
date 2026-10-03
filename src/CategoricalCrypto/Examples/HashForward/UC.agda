@@ -11,7 +11,7 @@
 -- `simExactHash` counts oracle queries, `simExactAll` all downward outputs, so
 -- "one hash query per `peekᴬ`" and "two queries per `peekᴬ`" are equations,
 -- not ceilings.  `simCert` (`exact⇒certified` of `simExactAll`) is the upper
--- bound the grading consumes.
+-- bound `hf-bounded` consumes.
 
 open import Categories.Category
 
@@ -145,17 +145,11 @@ sim-hash-count-settled : (w : List (Pos Lkᴵ ⊎ Neg Advᴵ))
                        → Dₚ (Σ[ p ∈ SSt × List (Neg Lkᴵ ⊎ Pos Advᴵ) ]
                               (Φˢ (proj₁ p) ≡ 0
                                → weight hashes (proj₂ p) ≡ weight peeks w))
-sim-hash-count-settled w = mapₚ settle (sim-hash-count w)
-  where
-  settle : Σ[ p ∈ SSt × List (Neg Lkᴵ ⊎ Pos Advᴵ) ] EH.Balanced Φˢ (weight peeks w) p
-         → Σ[ p ∈ SSt × List (Neg Lkᴵ ⊎ Pos Advᴵ) ]
-             (Φˢ (proj₁ p) ≡ 0 → weight hashes (proj₂ p) ≡ weight peeks w)
-  settle z = proj₁ z , λ nil →
-    trans (sym (+-identityʳ _))
-          (trans (cong (weight hashes (proj₂ (proj₁ z)) +_) (sym nil)) (proj₂ z))
+sim-hash-count-settled w = mapₚ (λ (p , b) → p , λ nil →
+    trans (sym (+-identityʳ _)) (trans (cong (weight hashes (proj₂ p) +_) (sym nil)) b))
+  (sim-hash-count w)
 
--- A live run: the words `sim-hash-count` quantifies over are not only
--- divergent ones.
+-- One live round of each side, on the word one `peekᴬ` drives.
 round : Msg → Dig → List (Pos Lkᴵ ⊎ Neg Advᴵ)
 round m d = inj₂ peekᴬ ∷ inj₁ (lkˢ m) ∷ inj₁ (digˢ d) ∷ []
 
@@ -176,6 +170,25 @@ sim-round m d =
                 (inj₁ (lkˢ m) ∷ inj₁ (digˢ d) ∷ [])
               ≈ₚ returnₚ (inj₁ (hashˢ m) ∷ inj₂ (wireᴬ d) ∷ [])
   afterLeak = >>=ₚ-identityˡ (awaitD , inj₁ (hashˢ m)) _
+            ⟨≈⟩ map-arg _ afterDigest ⟨≈⟩ >>=ₚ-identityˡ _ _
+
+real-round : (m : Msg) (d : Dig)
+           → behᴾ real (inj₂ (inj₁ peekᴬ) ∷ inj₁ (lkᴿ m) ∷ inj₁ (digᴿ d) ∷ [])
+             ≈ₚ returnₚ (inj₁ leakᴿ ∷ inj₁ (hashᴿ m) ∷ inj₂ (inj₁ (wireᴬ d)) ∷ [])
+real-round m d =
+    >>=ₚ-identityˡ idleˢ _
+  ⟨≈⟩ >>=ₚ-identityˡ (awaitL , inj₁ leakᴿ) _
+  ⟨≈⟩ map-arg _ afterLeak
+  ⟨≈⟩ >>=ₚ-identityˡ _ _
+  where
+  afterDigest : traceᵍ SSt (returnₚ idleˢ) realStep awaitD (inj₁ (digᴿ d) ∷ [])
+                ≈ₚ returnₚ (inj₂ (inj₁ (wireᴬ d)) ∷ [])
+  afterDigest = >>=ₚ-identityˡ (idleˢ , inj₂ (inj₁ (wireᴬ d))) _ ⟨≈⟩ >>=ₚ-identityˡ [] _
+
+  afterLeak : traceᵍ SSt (returnₚ idleˢ) realStep awaitL
+                (inj₁ (lkᴿ m) ∷ inj₁ (digᴿ d) ∷ [])
+              ≈ₚ returnₚ (inj₁ (hashᴿ m) ∷ inj₂ (inj₁ (wireᴬ d)) ∷ [])
+  afterLeak = >>=ₚ-identityˡ (awaitD , inj₁ (hashᴿ m)) _
             ⟨≈⟩ map-arg _ afterDigest ⟨≈⟩ >>=ₚ-identityˡ _ _
 
 ------------------------------------------------------------------------

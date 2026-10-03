@@ -1,8 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The hiding bounds at the security parameter, and their negligibility at the
--- identity schedule.  The contextual relation this ε would sit in is not
--- proved: `docs/fcom-hiding.md`.
+-- The end-to-end hiding bound at the security parameter, and its
+-- negligibility at the identity schedule.  The contextual relation this ε
+-- would sit in is not proved: `docs/fcom-hiding.md`.
 
 open import Data.Nat.Base
 open import Data.Nat.Poly
@@ -23,21 +23,6 @@ import CategoricalCrypto.Examples.ROCommitment.Hiding.Defer as D
 import CategoricalCrypto.Examples.ROCommitment.Hiding.Game as G
 
 module CategoricalCrypto.Examples.ROCommitment.Hiding.Asymptotic where
-
-εʰ : ℕ → ℕ → ℚ
-εʰ n q = fromℕ q *ℚ inv-pow-2 n
-
-εʰ-negligible : NegligibleBound εʰ
-εʰ-negligible = negligibleBound-inv-pow-2 {t = λ _ q → q}
-  (λ _ Pq → Pq) (λ _ → ≤-refl)
-
-hiding-boundⁿ : (n m : ℕ) (d : Strat (G.Qʰ n) (G.Rʰ n)) → asks≤ m d
-  → ∣ Pr₁ (runWith (G.respIʰ n) (G.sI₀ n) d) -ℚ Pr₁ (runWith (G.respLʰ n) (G.sL₀ n) d) ∣ℚ
-    ≤ℚ εʰ n m
-hiding-boundⁿ n = G.hiding-bound n
-
-------------------------------------------------------------------------
--- …against the real protocol
 
 -- `m·2⁻ⁿ` for the programming hop plus `2m·2⁻ⁿ` for the deferral hop
 -- (`Hiding.Defer.defer-hiding`).

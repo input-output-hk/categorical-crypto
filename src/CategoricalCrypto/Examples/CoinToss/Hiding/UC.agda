@@ -1,8 +1,9 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- The corrupted-receiver coin-toss stage at the UC model, with the certificate
--- `UC.Quantitative.Family.≤UC[]-compose` demands: each activation from above buys exactly one downward
--- message (`commitᴱ`/`openᴱ`) and nothing is owed afterwards, so it is
+-- `UC.Quantitative.Family.≤UC[]-compose` demands: each activation from above
+-- buys at most one downward message (`commitᴱ`/`openᴱ`) and nothing is owed
+-- afterwards, so it is
 -- `Certified 1` at potential 0.  The honest committer's is
 -- `Examples.ROCommitment.Hiding.UC.comCert`.
 

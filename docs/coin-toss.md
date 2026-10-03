@@ -109,7 +109,7 @@ half's stage makes no downward call whatever: `Neg Honᴵ` is empty, so no outpu
 of `toss` can be downward, the potential stays at zero, and the rate is zero —
 the same reason `UC.QueryBound.qbᵢ-closed` gives for a closed process, at a
 domain that is not the unit. `tossʰCert` at rate 1 is the hiding half's stage,
-which does drive `F_com`: one `commitᴱ` or `openᴱ` per activation from above,
+which does drive `F_com`: at most one `commitᴱ` or `openᴱ` per activation from above,
 nothing owed afterwards.
 
 `UC.QueryBound.qb-oneCall` does not apply to these — it is stated over a
@@ -144,8 +144,8 @@ about the morphisms it MOVES is proved:
 
 | obligation | discharge |
 |---|---|
-| `Image forget (rf n) (f n)`, `rf n = 1⁺` | `imageᵒ recvQB` / `imageᵒ comQB` — the real `F_com` protocol's own bound |
-| `Image forget (rv n) (v n)`, `rv n = 1⁺` | `imageᵒ tossQB` / `imageᵒ tossʰQB` |
+| `Image forget (rf n) (f n)`, `rf n = 1⁺` | `pred⇒image recvQB` / `pred⇒image comQB` — the real `F_com` protocol's own bound |
+| `Image forget (rv n) (v n)`, `rv n = 1⁺` | `pred⇒image tossQB` / `pred⇒image tossʰQB` |
 | `u ≤UC[ t , εu ] v` at `t = Category.id Fam`, `εu = 0` | `≈C⇒≈ctx` off `sub-identityˡ` |
 | negligibility of the composed schedule | `εᶜᵗ-negligible`, by `composeError-negligible` at `poly⁺-1` and `Negligible-0` |
 
@@ -304,7 +304,7 @@ machine on both halves of the hybrid's grade. It runs the random oracle ITSELF
 — the table is its state, nothing sits below it but the coin — answers
 `hashˢ`, buys the coin at `commitˢ b₁` and publishes `shareᴬ (b₁ xor c)`,
 which is what makes the hybrid's `b₁ xor share` land on `c`. Its certificate
-is `Certified 1`: one downward `Lkᴵᶜ` message per activation from above,
+is `Certified 1`: at most one downward `Lkᴵᶜ` message per activation from above,
 constantly-zero potential, exactly `recvCert`'s shape.
 
 #### The machine equality
@@ -315,14 +315,15 @@ hybridᴹ = (a⇐ᴵ ∘ (T₁ᴵ Lkᴵ toss ∘ ideal)) ∘ resource
 idealᴹ  = subᴵ simJ ∘ Fcoin
 ```
 
-(`Examples.CoinToss.Ideal.Machine`, `…Ideal.Hybrid`.) Both sides are ⊕-traces
-of two STATEFUL machines, so `UC.Machine.Wire.∘-wireᴹ` does not apply — the
-obstruction `docs/hash-forward.md` §"The one structural fact that makes it
-affordable" prices. What does apply is `UC.Machine.Composite`'s reading
-of a `𝒢ₚ`-composite: `Nᶜ` is the composite as ONE machine with the product
-state, `unfoldᶜ` the equations for its solved loop, `eq-∘ᶜ` the equality to
-the category's composite, and its `Unfold.Walk` (`R-bot`,
-`R-down`, `F-up`) the generic per-letter walks. Nothing here unrolls a trace.
+(`Examples.CoinToss.Ideal.Machine`; `hybridᴹ` is `Examples.CoinToss.Ideal.Stage`'s,
+instantiated in `…Ideal.Hybrid`.) Both sides are ⊕-traces of two STATEFUL
+machines, so `UC.Machine.Wire.∘-wireᴹ` does not apply — the obstruction
+`docs/hash-forward.md` §"The one structural fact that makes it affordable"
+prices. What does apply is `UC.Machine.Composite`'s reading of a
+`𝒢ₚ`-composite: `Nᶜ` is the composite as ONE machine with the product state,
+`unfoldᶜ` the equations for its solved loop, `eq-∘ᶜ` the equality to the
+category's composite, and its `Unfold.Walk` (`R-bot`, `R-down`, `F-up`) the
+generic per-letter walks. Nothing here unrolls a trace.
 
 The two sides' loop objects differ — `Lkᴵ ⊗ᴵ Honᴵ` against `Lkᴵᶜ ⊗ᴵ Honᴵᶜ` —
 so no simulation runs between them. `Examples.CoinToss.Ideal.Reach.coinᶜ` is a
@@ -394,8 +395,8 @@ the reason is not budget. Run its hybrid — `tossʰ` over `idealʰ` over
 2. `shareᴬʰ b₂`  (the corrupted receiver sends its share)
 3. `getᶜ`        (the environment collects)
 
-The outputs are `rcptᶠ`, `bitᶠ b₁`, `tossedᶜʰ (b₁ xor b₂)` with `b₁` drawn at
-step 1. An ideal coin's must be `rcptᶠ`, `bitᶠ (c xor b₂)`, `tossedᶜʰ c` with
+The outputs are `rcptᶠ`, `bitᶠ b₁`, `tossedᶜ (b₁ xor b₂)` with `b₁` drawn at
+step 1. An ideal coin's must be `rcptᶠ`, `bitᶠ (c xor b₂)`, `tossedᶜ c` with
 `c` the functionality's own bit. The two distributions ARE equal — substitute
 `c = b₁ xor b₂` — but that bijection depends on `b₂`, which the environment
 chooses at step 2, AFTER the draw.

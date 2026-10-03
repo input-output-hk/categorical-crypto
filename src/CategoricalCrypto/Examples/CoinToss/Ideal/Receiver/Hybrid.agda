@@ -25,7 +25,7 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.UC.Machine
 
-import CategoricalCrypto.Machines.Core as Core
+import CategoricalCrypto.Examples.CoinToss.Ideal.Stage as Stage
 import CategoricalCrypto.Machines.Pointwise as Pw
 
 module CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Hybrid (k : ℕ) where
@@ -37,13 +37,13 @@ open import CategoricalCrypto.Examples.ROCommitment.Extraction k
 open import CategoricalCrypto.Examples.ROCommitment.Hiding k
 open import CategoricalCrypto.Examples.ROCommitment.Resource k
 
-open Core (𝒱ₚ 0ℓ)
+open MC
 
 private
   module S  = Pw.S
   module 𝒫  = Category 𝒫ᴵ
 
-private module St = Stage Lkᴵʰ Honᴵʰ Advᴵᶜʰ Honᴵᶜʰ tossʰ downᶠʰ upᶠʰ
+private module St = Stage k Lkᴵʰ Honᴵʰ Advᴵᶜʰ Honᴵᶜʰ tossʰ downᶠʰ upᶠʰ
 open St public using () renaming (hybridᴹ to hybridᴹʰ)
 open St hiding (hybridᴹ; hybrid-eq)
 

@@ -32,8 +32,6 @@ open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.UC.Machine
 
-import CategoricalCrypto.Machines.Core as Core
-
 module CategoricalCrypto.Examples.CoinToss.Ideal.Receiver (k : ℕ) where
 
 open import CategoricalCrypto.Examples.CoinToss.Hiding k
@@ -41,7 +39,7 @@ open import CategoricalCrypto.Examples.ROCommitment.Extraction k
 open import CategoricalCrypto.Examples.ROCommitment.Resource k
 open import CategoricalCrypto.Examples.ROCommitment.Hiding k
 
-open Core (𝒱ₚ 0ℓ)
+open MC
 
 ------------------------------------------------------------------------
 -- The simulator-facing port of the ideal coin

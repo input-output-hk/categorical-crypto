@@ -139,10 +139,6 @@ f ≋D s = (Σ[ t ∈ Tbl ] Σ[ m ∈ Comʰ ] Σ[ φ ∈ (Dig → Bool) ]
              × (s ≡ (t , just (c , b , true)))))
 
 private
-  PtD : (StPʰ × Rʰ → ℚ) → (StLʰ × Rʰ → ℚ) → Set
-  PtD F F′ = (g : Dig → StPʰ × Rʰ) (w : StLʰ × Rʰ) → (λ r → proj₁ (g r)) ≋D proj₁ w
-           → (∀ r → proj₂ (g r) ≡ proj₂ w) → E (uniform-Vec k) (λ r → F (g r)) ≡ F′ w
-
   const-collapse : (q : Qʰ) (F : StPʰ × Rʰ → ℚ) {f : Dig → StPʰ} {w : StPʰ}
                  → (∀ r → f r ≡ w)
                  → E (uniform-Vec k) (λ r → E (respPʰ (f r) q) F) ≡ E (respPʰ w q) F
@@ -151,7 +147,7 @@ private
             (λ r → cong (λ z → E (respPʰ z q) F) (ff r)))
           (E-const (uniform-Vec k) (E (respPʰ w q) F))
 
-  hereD : (F : StPʰ × Rʰ → ℚ) (F′ : StLʰ × Rʰ → ℚ) → PtD F F′
+  hereD : (F : StPʰ × Rʰ → ℚ) (F′ : StLʰ × Rʰ → ℚ) → AvgPoint (uniform-Vec k) _≋D_ F F′
         → (r₀ : Dig) (t : Tbl) (c : Dig) (b fl : Bool) (a : Rʰ)
         → F ((r₀ , t , just (c , b , true) , fl) , a) ≡ F′ ((t , just (c , b , true)) , a)
   hereD F F′ pt r₀ t c b fl a =
@@ -280,7 +276,8 @@ avg-commit f s (inj₂ ff) q F F′ pt = trans
   (lookupᴰℚ-cong-P (entries (respRʰ s q))
     (λ w → avg-here (uniform-Vec k) _≋P_ F F′ pt w _ (inj₂ (λ _ → refl))))
 
--- `docs/fcom-extraction.md` "Not delivered" §2's `defer`, at this game.
+-- The shape of `docs/fcom-extraction.md` "Not delivered" §2's `defer`, at the
+-- hiding game (the extraction game has no instance).
 defer-commit : (d : Strat Qʰ Rʰ)
              → E (uniform-Vec k) (λ r → Pr₁ (runWith respRʰ (just r , [] , nothing) d))
                ≡ Pr₁ (runWith respRʰ sR₀ d)

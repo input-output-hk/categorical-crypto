@@ -5,7 +5,7 @@
 -- `Game.Q` is `Neg (Advᴵ ⊗ᴵ Honᴵ)` renamed and `Game.R` is
 -- `Pos (Advᴵ ⊗ᴵ Honᴵ)` plus `idleR`, the game's answer where the machine
 -- diverges.  `deadR` names those activations and `prune` cuts them, after
--- which the relabelling is a bijection on asks and a section on answers, as
+-- which the relabelling is a bijection on asks, as
 -- `GamePlaying.Partial.runWith⊥-bisimʳ` needs.  The ideal half is blocked:
 -- see "Where the ideal leg stops".
 
@@ -35,8 +35,6 @@ open import CategoricalCrypto.Machines.Base
 open import CategoricalCrypto.Protocol.Machine.Raw
 open import CategoricalCrypto.Protocol.Machine.Trace
 
-import CategoricalCrypto.Machines.Core as Core
-
 module CategoricalCrypto.Examples.ROCommitment.Realization.Bisim (k : ℕ) where
 
 open import CategoricalCrypto.Examples.ROCommitment k
@@ -47,7 +45,7 @@ open import CategoricalCrypto.Examples.ROCommitment.Realization.Machine k
 open import CategoricalCrypto.Examples.ROCommitment.Resource k
 open import CategoricalCrypto.Examples.ROCommitment.Transport k
 
-open Core (𝒱ₚ 0ℓ)
+open MC
 
 ------------------------------------------------------------------------
 -- The alphabets
@@ -57,14 +55,8 @@ toQ (inj₁ (queryᴬ x))  = askQ x
 toQ (inj₁ (commitᴬ c)) = comQ c
 toQ (inj₁ (openᴬ b r)) = opnQ b r
 
-toR : Pos (Advᴵ ⊗ᴵ Honᴵ) → R
-toR (inj₁ (ansᴬ d))    = ansR d
-toR (inj₂ rcptᴴ)       = rcptR
-toR (inj₂ (openedᴴ b)) = outR b
-toR (inj₂ refusedᴴ)    = failR
-
--- A section of `toR`; its value at `idleR` is arbitrary, and no pruned
--- activation reaches it.
+-- The game's answers read back at the interface; the value at `idleR` is
+-- arbitrary, and no pruned activation reaches it.
 fromR : R → Pos (Advᴵ ⊗ᴵ Honᴵ)
 fromR (ansR d)  = inj₁ (ansᴬ d)
 fromR rcptR     = inj₂ rcptᴴ

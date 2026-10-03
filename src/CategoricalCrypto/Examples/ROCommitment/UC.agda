@@ -85,7 +85,7 @@ recvQB : Pred 1⁺ (gradedᵒ real)
 recvQB = qb-gradedᵒ (certified⇒QB recvCert)
 
 resourceQBᵒ : Pred 1⁺ (procᵒ resource)
-resourceQBᵒ = qbᵒ (qb-mono z≤n resourceQB)
+resourceQBᵒ = qbᵒ (qb-mono z≤n (qb-closed resource))
 
 ------------------------------------------------------------------------
 -- The allowance
@@ -96,9 +96,6 @@ resourceQBᵒ = qbᵒ (qb-mono z≤n resourceQB)
 Φˢ (waitˢ _ _)        = 0
 Φˢ (relayˢ _ _ _)     = 0
 Φˢ (checkˢ _ _ _ _ _) = 1
-
-idealQB : QB 1 ideal
-idealQB = qb-wire upᶠ downᶠ
 
 -- One oracle relay (`hashes`) per adversary message that names a point
 -- (`points`) — its own query, and the opening the receiver would have hashed

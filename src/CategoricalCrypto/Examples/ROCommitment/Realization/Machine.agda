@@ -36,7 +36,6 @@ open import CategoricalCrypto.Protocol.Machine.Raw
 open import CategoricalCrypto.Protocol.Machine.Trace
 
 import CategoricalCrypto.Machines.Collapse as Col
-import CategoricalCrypto.Machines.Core as Core
 
 module CategoricalCrypto.Examples.ROCommitment.Realization.Machine (k : ℕ) where
 
@@ -44,7 +43,7 @@ open import CategoricalCrypto.Examples.ROCommitment k
 open import CategoricalCrypto.Examples.ROCommitment.Resource k
 open import CategoricalCrypto.Examples.ROCommitment.Transport k
 
-open Core (𝒱ₚ 0ℓ)
+open MC
 
 ------------------------------------------------------------------------
 -- The honest receiver's kernel
