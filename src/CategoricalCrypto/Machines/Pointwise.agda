@@ -1,8 +1,8 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
 -- The `Kl(Dₚ)` point-level calculus machine steps are read with: simulations
--- along a function (`simFn`) and back (`fnStep`), and the paired point and the
--- state actions evaluated at a point.
+-- along a function (`simFn`) and back (`fnStep`, at a simulation `step-sim`), and
+-- the paired point and the state actions evaluated at a point.
 
 open import Categories.Category.Monoidal.Bundle
 import Categories.Category.Construction.Kleisli.Discrete as KD
@@ -68,6 +68,19 @@ fnStep {P = P} {k′ = k′} {θ = θ} θp step p =
   where
   pad-fn : {Z : Set} (q : P × Z) → (θ V.⊗₁ V.id) q ≈ₚ padϕ (KP.fn θp) q
   pad-fn (s , z) = bindˣ (KP.is-fn θp s) ⟨≈⟩ >>=ₚ-identityˡ (KP.fn θp s) _ ⟨≈⟩ >>=ₚ-identityˡ z _
+
+-- …and what a simulation supplies, read at a point.
+module _ {X Y : Set} {f g : MC.Machine X Y} (sim : f S.≲ g) where
+
+  ϕ : MC.St f → MC.St g
+  ϕ = KP.fn (S.θ-pure sim)
+
+  step-sim : (p : MC.St f × X)
+           → (MC.step f p >>=ₚ padϕ ϕ) ≈ₚ MC.step g (ϕ (proj₁ p) , proj₂ p)
+  step-sim = fnStep (S.θ-pure sim) (S.θ-step sim)
+
+  point-sim : mapₚ ϕ (MC.point (MC.state f) ttᵛ) ≈ₚ MC.point (MC.state g) ttᵛ
+  point-sim = bindᶠ (λ s → ≈sym (KP.is-fn (S.θ-pure sim) s)) ⟨≈⟩ S.θ-point sim ttᵛ
 
 ------------------------------------------------------------------------
 -- The paired point and the state actions, at a point

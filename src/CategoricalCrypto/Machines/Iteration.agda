@@ -52,8 +52,6 @@ record Elgot : Set (levelOfTerm 𝒱) where
   field
     iter : (S ⊗₀ A ⇒ S ⊗₀ (B + A)) → S ⊗₀ A ⇒ S ⊗₀ B
 
-    iter-cong : u ≈ v → iter u ≈ iter v
-
     -- Elgot's fixpoint: run one pass, then exit or recurse.
     iter-fix : iter u ≈ [ id , iter u ] ∘ δ⇐ ∘ u
 
@@ -82,6 +80,13 @@ record Elgot : Set (levelOfTerm 𝒱) where
     pure-i₁ : Pure (i₁ {A} {B})
     pure-i₂ : Pure (i₂ {A} {B})
     pure-[] : {f : A ⇒ C} {g : B ⇒ C} → Pure f → Pure g → Pure [ f , g ]
+
+  -- `iter-transfer` along the identity.
+  iter-cong : u ≈ v → iter u ≈ iter v
+  iter-cong {u = u} {v} e =
+    ⟺ (⟺ identityʳ ○ iter-transfer id id pure-id pure-id {u} {v} hyp ○ identityˡ)
+    where
+    hyp = identityʳ ○ ⟺ e ○ ⟺ ((tstep-id ⟩∘⟨refl) ○ identityˡ)
 
   pure-+₁ : {f : A ⇒ B} {g : C ⇒ P} → Pure f → Pure g → Pure (f +₁ g)
   pure-+₁ pf pg = pure-resp-≈ (+-unique +₁∘i₁ +₁∘i₂)

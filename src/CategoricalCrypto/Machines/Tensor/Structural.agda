@@ -74,11 +74,8 @@ private variable A B C D X Y : Obj
 ------------------------------------------------------------------------
 -- Coherence
 
-pure-iso : {h : A ⇒ B} {h⁻ : B ⇒ A} → h⁻ ∘ h ≈ id → (pureᴹ h⁻ ∘ᴹ pureᴹ h) ≲ idᴹ
-pure-iso eq = ≲-trans (pureᴹ-∘ _ _) (≲-trans (pureᴹ-cong eq) pureᴹ-id)
-
 σᴹ-involutive : (σᴹ ∘ᴹ σᴹ {A} {B}) ≲ idᴹ
-σᴹ-involutive = pure-iso +-swap∘swap
+σᴹ-involutive = ≲-trans (pureᴹ-∘ _ _) (≲-trans (pureᴹ-cong +-swap∘swap) pureᴹ-id)
 
 triangleᴹ : ((idᴹ {A} ⊗ᵉ λ⇒ᴹ {B}) ∘ᴹ α⇒ᴹ) ≈ᴹ (ρ⇒ᴹ ⊗ᵉ idᴹ)
 triangleᴹ = (≲⇒≈ᴹ (⊗ᵉ-pureˡ ⊕.unitorˡ.from) ⟩∘ᴹ⟨reflᴹ)

@@ -157,6 +157,19 @@ opaque
 ⊗ᵉ-identity = collapseˡ ((refl⟩∘⟨ (tstep-cong onL-id onR-id ○ tstep-id))
                          ○ identityʳ ○ ⟺ identityˡ)
 
+-- Tensoring with a pure machine keeps the other factor's state.  `ˡ`/`ʳ` name
+-- the pure factor's side, unlike `Tensor.Structural`'s `⊗ᵉ-pureˡ`/`⊗ᵉ-pureʳ`,
+-- which name the `idᴹ` side.
+pure⊗-stateˡ : (h : A ⇒ B) (M : Machine C D)
+             → (pureᴹ h ⊗ᵉ M) ≲ mk (state M) (tstep (id ⊗₁ h) (step M))
+pure⊗-stateˡ h M = collapseˡ ((refl⟩∘⟨ tstep-cong (onL-id⊗ h) Equiv.refl)
+                              ○ tstep-sim (⟺ (pad-transport λ⇒ h)) onR-collapseˡ)
+
+pure⊗-stateʳ : (M : Machine A B) (h : C ⇒ D)
+             → (M ⊗ᵉ pureᴹ h) ≲ mk (state M) (tstep (step M) (id ⊗₁ h))
+pure⊗-stateʳ M h = collapseʳ ((refl⟩∘⟨ tstep-cong Equiv.refl (onR-id⊗ h))
+                              ○ tstep-sim onL-collapseʳ (⟺ (pad-transport ρ⇒ h)))
+
 ------------------------------------------------------------------------
 -- The structural machines
 

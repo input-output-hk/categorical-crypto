@@ -124,9 +124,6 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
   traceᴳ : MC.Machine (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺)
   traceᴳ = Col.MT.traceᴹ (A⁺ ⊎ C⁻) (A⁻ ⊎ C⁺) (B⁻ ⊎ B⁺) (MC.mk (Col.Sᴳ g f) (Col.kᴳ g f))
 
-  collapse≈ : traceᴳ Pw.S.≈ᴹ 𝒢._∘_ {A⁺ , A⁻} {B⁺ , B⁻} g f
-  collapse≈ = Pw.S.⟺ᴹ (Col.collapseᵀ g f) Pw.S.○ᴹ Col.compose-raw≈∘ᴳ g f
-
   -- `Machines.Collapse`'s routings with their object implicits pinned; left
   -- open they are four metas per clause and none of them solves.
   outF : A⁻ ⊎ B⁺ → (A⁻ ⊎ C⁺) ⊎ (B⁻ ⊎ B⁺)
@@ -286,4 +283,4 @@ module _ {B⁺ B⁻ : Set} {C : Iface}
       cum-settled-≈ₚ (runᴹ (traceᴳ g f) d) _ (indᵇ b) (indᵇ-nn b)
         (E⊥ (σ₀ >>=⊥ λ m → runWith⊥ Kᶜˡ m d) (indᵇ b))
         (rawPr (traceᴳ g f) Kᶜˡ compose-StepSettles σ₀ n₀ pt b d)
-        (runᴹ-resp-≈ᴹ (collapse≈ g f) d)
+        (runᴹ-resp-≈ᴹ (Col.collapse≈ g f) d)

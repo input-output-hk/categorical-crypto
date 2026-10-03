@@ -28,7 +28,7 @@ sub-modules. A plain `grep -rlF CategoricalCrypto.M` would count those as well.
 | `UC.Family` | 176 | 2 |  | `𝒞^ω`, the indexed family layer: `Categories.LocallyGraded.Family` at `Poly⁺` admissibility over the resource grading, with an asymptotic observation on top |
 | `UC.Family.Negligible` | 123 | 1 |  | the negligible tier as a second observation on the family category, the one-way bridge into it, and its canonical `UCSetup` (`Canonicalᴺ`, `ucSetupᴺ`) |
 | `UC.Graded` | 79 | 3 |  | emulation at a nontrivial grade, from a machine-level factoring |
-| `UC.Machine` | 162 | 59 |  | the intended model: the UC layer over the machine layer (`⟦_⟧ᴵ`/`retᴵ`, `𝒫ᴵ`) |
+| `UC.Machine` | 162 | 59 |  | the intended model: the UC layer over the machine layer (`retᴵ`, the inverse of `Protocol.Machine`'s `⟦_⟧ᴵ`; `𝒫ᴵ`) |
 | `UC.Machine.Bridge` | 49 | 11 |  | the bridge between the environment layer and layer 1's concrete statements |
 | `UC.Machine.Composite` | 270 | 5 |  | a `𝒢ₚ`-composite of two processes as one product-state machine, and the six equations (`Unfolding`) that read its step off |
 | `UC.Machine.Dictionary` | 295 | 12 |  | the ancilla dictionary: `UC.Machine`'s direct relays read as the monoidal spellings of the same processes |

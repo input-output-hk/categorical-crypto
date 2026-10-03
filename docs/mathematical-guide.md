@@ -22,7 +22,8 @@ supremum of its finite approximants, so divergence carries no mass.
 ## 2. Machines
 
 A machine `A → B` is a Mealy machine in the Kleisli category of `Dₚ`: machines compose
-by Elgot iteration over their shared interface, and they are equal when a zig-zag of
+in sequence (`_∘ᴹ_`), processes (`𝒢ₚ`-homs) by Elgot iteration over their shared
+interface (the ⊕-trace), and machines are equal when a zig-zag of
 state simulations connects them.
 
 - `Machines.Core :: State`, `Machine`, `St`, `_∘ᴹ_`: pointed state object, machine,

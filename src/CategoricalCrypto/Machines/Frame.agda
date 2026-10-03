@@ -24,7 +24,6 @@ open Core 𝒱
 open MonoidalUtilities.Shorthands monoidal
 
 open import Categories.Category.Monoidal.Properties monoidal
-open import Categories.Category.Monoidal.Properties.Ext monoidal
 
 open import Categories.Category.Monoidal.Reasoning monoidal
 open import Categories.Category.Monoidal.Symmetric.Properties.Ext symmetric
@@ -64,9 +63,6 @@ onL-id⊗ g = (refl⟩∘⟨ (⟺ (β-natural g))) ○ pullˡ β-β ○ identity
 
 onR-id⊗ : (h : W ⇒ W′) → onR {Q = Q} {P = P} (id ⊗₁ h) ≈ id ⊗₁ h
 onR-id⊗ h = pullˡ assoc-commute-to ○ cancelʳ associator.isoˡ ○ (⊗.identity ⟩⊗⟨refl)
-
-onR-⊗id : (h : W ⇒ W′) → onR {P = P} (h ⊗₁ id {X}) ≈ (id ⊗₁ h) ⊗₁ id
-onR-⊗id _ = pullˡ assoc-commute-to ○ cancelʳ associator.isoˡ
 
 ------------------------------------------------------------------------
 -- Both actions carry a square natural in the interface
@@ -178,15 +174,6 @@ onL-collapseʳ = pullˡ ρ-β ○ pullˡ unitorʳ-commute-from ○ assoc
          → u ∘ point S ≈ point T → v ∘ point S′ ≈ point T′
          → u ⊗₁ v ∘ point (S ⊛ S′) ≈ point (T ⊛ T′)
 ⊛-point₂ _ _ _ _ e₁ e₂ = pullˡ (⟺ ⊗.homomorphism ○ (e₁ ⟩⊗⟨ e₂))
-
--- The scalar prefixes merge because scalars are central (`scalar-λ⇐`).
-⊛-point₂ˡ : (S T S′ T′ : State) {u : obj S ⇒ obj T} {v : obj S′ ⇒ obj T′}
-            {σ τ : unit ⇒ unit}
-          → u ∘ point S ≈ point T ∘ σ → v ∘ point S′ ≈ point T′ ∘ τ
-          → u ⊗₁ v ∘ point (S ⊛ S′) ≈ point (T ⊛ T′) ∘ (σ ∘ τ)
-⊛-point₂ˡ _ _ _ _ {σ = σ} {τ} e₁ e₂ =
-    pullˡ (⟺ ⊗.homomorphism ○ (e₁ ⟩⊗⟨ e₂) ○ ⊗.homomorphism)
-  ○ assoc ○ (refl⟩∘⟨ scalar-λ⇐ σ τ) ○ sym-assoc
 
 λ-point : (S : State) → λ⇒ ∘ point (Iˢ ⊛ S) ≈ point S
 λ-point S = pullˡ unitorˡ-commute-from ○ cancelʳ unitorˡ.isoʳ

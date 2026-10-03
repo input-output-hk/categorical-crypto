@@ -15,16 +15,19 @@
 open import Data.Bool.Base
 open import Data.Product.Base
 open import Data.Rational
+open import Data.Rational.Properties using (≤-refl)
 open import Data.Unit.Base
 open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Distribution.Uniform
 open import ProbabilisticLogic.Dp
+open import ProbabilisticLogic.Dp.Advantage
 open import ProbabilisticLogic.Dp.Settle
 
 open import CategoricalCrypto.Iface
 open import CategoricalCrypto.Protocol
 open import CategoricalCrypto.Protocol.Machine
+open import CategoricalCrypto.Protocol.Machine.Agree
 open import CategoricalCrypto.Protocol.Observe
 open import CategoricalCrypto.Strategy
 
@@ -72,8 +75,8 @@ stuck = record { St = ⊤ ; init = tt ; step = λ _ _ → dead }
 layer₁-dead : Pr stuck echo ≡ 0ℚ
 layer₁-dead = refl
 
-machine-dead : cum 8 (runᴹ (morphism stuck) echo) bool→ℚ ≡ 0ℚ
-machine-dead = refl
+machine-dead : Upper (runᴹ (morphism stuck) echo) 0ℚ
+machine-dead = upper-run stuck echo ≤-refl
 
 -- …and what observing the SECOND verdict buys, at that instance: `nay` answers
 -- `false` where `stuck` diverges, so the two agree on the `true`-mass and are a
@@ -88,8 +91,8 @@ nay-true = refl
 nay-false : cum 8 (runᴹ (morphism nay) echo) (indᵇ false) ≡ 1ℚ
 nay-false = refl
 
-stuck-false : cum 8 (runᴹ (morphism stuck) echo) (indᵇ false) ≡ 0ℚ
-stuck-false = refl
+stuck-false : Attains (runᴹ (morphism stuck) echo) (indᵇ false) 0ℚ
+stuck-false = prAgree false stuck echo
 
 ------------------------------------------------------------------------
 -- Through a composite

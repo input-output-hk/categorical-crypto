@@ -32,7 +32,7 @@ asymmetry the decision costs.
 The reason is [`docs/hash-forward.md`](hash-forward.md) §"The one structural
 fact that makes it affordable": `sub s ∘ gradedᵒ g` is `subᴵ s ∘ g` in `𝒢ₚ`,
 whose composition is a ⊕-trace, and there are exactly two readable ways to get
-one — `Protocol.Machine.Compose.morphism-∘` (both factors protocol images,
+one — `Protocol.Machine.Compose.morphismCompose` (both factors protocol images,
 unavailable because `subᴵ s` is not one) and `UC.Machine.Wire.∘-wireᴹ` (the
 lower factor a wire). A stateful `F_com` would cost the trace argument again,
 for a `subᴵ` that cannot be a `morphism` image.

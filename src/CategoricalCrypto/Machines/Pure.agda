@@ -24,7 +24,6 @@ open import ProbabilisticLogic.Dp
 open import CategoricalCrypto.Machines.Base
 
 import CategoricalCrypto.Machines.Category as MCat
-import CategoricalCrypto.Machines.Core as Core
 import CategoricalCrypto.Machines.Frame as Frame
 import CategoricalCrypto.Machines.Sim as Sim
 import CategoricalCrypto.Machines.Tensor as Tensor
@@ -34,7 +33,7 @@ module CategoricalCrypto.Machines.Pure where
 private
   module 𝒱 = SymmetricMonoidalCategory (𝒱ₚ 0ℓ)
 
-open Core (𝒱ₚ 0ℓ)
+open MC
 open MD.MonoidalDistributive (distₚ 0ℓ)
 open CE 𝒱.U cocartesian
 open DiscreteMonad (Dₚ-DiscreteMonad {0ℓ})
@@ -198,19 +197,6 @@ opaque
            (inj₁ (inj₂ _)) → refl
            (inj₂ (inj₁ _)) → refl
            (inj₂ (inj₂ _)) → refl))
-
--- Tensoring with a pure machine keeps the other factor's state.  `ˡ`/`ʳ` name
--- the pure factor's side, unlike `Tensor.Structural`'s `⊗ᵉ-pureˡ`/`⊗ᵉ-pureʳ`,
--- which name the `idᴹ` side.
-pure⊗-stateˡ : (h : 𝒱._⇒_ V W) (M : Machine V′ W′)
-             → (pureᴹ h ⊗ᵉ M) ≲ mk (state M) (tstep (𝒱._⊗₁_ 𝒱.id h) (step M))
-pure⊗-stateˡ h M = collapseˡ ((refl⟩∘⟨ tstep-cong (onL-id⊗ h) 𝒱.Equiv.refl)
-                              ○ tstep-sim (⟺ (pad-transport λ⇒ h)) onR-collapseˡ)
-
-pure⊗-stateʳ : (M : Machine V W) (h : 𝒱._⇒_ V′ W′)
-             → (M ⊗ᵉ pureᴹ h) ≲ mk (state M) (tstep (step M) (𝒱._⊗₁_ 𝒱.id h))
-pure⊗-stateʳ M h = collapseʳ ((refl⟩∘⟨ tstep-cong 𝒱.Equiv.refl (onR-id⊗ h))
-                              ○ tstep-sim onL-collapseʳ (⟺ (pad-transport ρ⇒ h)))
 
 ------------------------------------------------------------------------
 -- Every wire is an embedding

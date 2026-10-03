@@ -2,7 +2,7 @@
 
 -- The supermartingale bound for a flag that reads a PLANTED secret.
 --
--- No `SuperCert` bounds such a flag (see `GamePlaying.Potential`): what is
+-- No `SuperCert` bounds such a flag (see `GamePlaying.Defer`): what is
 -- small is the AVERAGE of that flag over the plant, and `badProb-avg` is the bound in
 -- that shape: the run is read at a FAMILY of initial states indexed by the
 -- plant, and the potential is the average of the flag plus the remaining
