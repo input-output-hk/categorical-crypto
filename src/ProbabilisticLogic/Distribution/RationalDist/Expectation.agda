@@ -32,7 +32,7 @@ E-add : (μ : Dist-ℚ A) (f g : A → ℚ) → E μ (λ a → f a +ℚ g a) ≡
 E-add μ = lookupᴰℚ-+ (entries μ)
 
 E-const : (μ : Dist-ℚ A) (c : ℚ) → E μ (λ _ → c) ≡ c
-E-const = lookupᴰℚ-const
+E-const μ c = trans (mass-as-const (entries μ) c) (trans (cong (_*ℚ c) (mass-1 μ)) (*-identityˡ c))
 
 E-+const : (μ : Dist-ℚ A) (f : A → ℚ) (c : ℚ) → E μ (λ a → f a +ℚ c) ≡ E μ f +ℚ c
 E-+const μ f c = trans (E-add μ f (λ _ → c)) (cong (E μ f +ℚ_) (E-const μ c))
@@ -153,6 +153,11 @@ E-mono μ f g pt = E-mono-on μ f g
 
 E-nn : (μ : Dist-ℚ A) (f : A → ℚ) → (∀ a → 0ℚ ≤ℚ f a) → 0ℚ ≤ℚ E μ f
 E-nn μ f nn = ≤-trans (≤-reflexive (sym (E-const μ 0ℚ))) (E-mono μ (λ _ → 0ℚ) f nn)
+
+E⊥-nn : (ν : Dist⊥ A) (Q : A → ℚ) → (∀ a → 0ℚ ≤ℚ Q a) → 0ℚ ≤ℚ E⊥ ν Q
+E⊥-nn ν Q nn = E-nn ν (maybeℚ Q) λ where
+  (just p) → nn p
+  nothing  → ≤-refl
 
 E-cong-on : (μ : Dist-ℚ A) (f g : A → ℚ) → OnSupport (λ a → f a ≡ g a) μ → E μ f ≡ E μ g
 E-cong-on μ f g sp = ≤-antisym (E-mono-on μ f g (ListAll.map ≤-reflexive sp))

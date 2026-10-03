@@ -2,7 +2,8 @@
 
 -- `Dp.Settle` at `Dp.Iter`'s loop.  At an arbitrary body the loop need not exit,
 -- so settling needs a round-trip bound: a rank on loop points that strictly
--- drops at every re-entry the body's support can produce (`Ranked`).  The loop's
+-- drops at every re-entry in the body's tree, zero-weight branches included
+-- (`Ranked`: `Supp` is syntactic).  The loop's
 -- kernel is the body's kernel unrolled (`loopK`), the round past the last read as
 -- divergence.
 
@@ -117,12 +118,6 @@ module _ {S A B : Set} where
     bump : (p : S × (B ⊎ A)) → Ψ p → Φ⋆ p
     bump p (i , t) = i , Settles-mono (n≤1+n i) t
 
-  Settles-stepᵢ⋆ : (n : ℕ) (u : Body S A B) (x : Dₚ (S × (B ⊎ A)))
-                   (ν : Dist⊥ (S × (B ⊎ A))) (κ : S × (B ⊎ A) → Dist⊥ (S × B))
-                 → Settles n x ν
-                 → ((p : S × (B ⊎ A)) → Σ[ i ∈ ℕ ] Settles i (contᵢ u p) (κ p))
-                 → Σ[ i ∈ ℕ ] Settles i (stepᵢ u x) (ν >>=⊥ κ)
-  Settles-stepᵢ⋆ n u x ν κ s w = Settles-stepᵢˢ n u x ν κ s (Supp-all _ w n x)
 
 ------------------------------------------------------------------------
 -- The round-trip bound

@@ -6,7 +6,6 @@
 module Categories.LocallyGraded.SubCategory where
 
 open import Data.Product
-open import Data.Unit.Polymorphic
 open import Level
 
 open import Categories.Category.Monoidal.Braided
@@ -67,9 +66,6 @@ record GradedSubCat {oi ℓi ei o ℓ e} (ℐ : MonoidalCategory oi ℓi ei)
   ⌊_⌋ : ∀ {X A B} → L.Hom X A B → A ⇒ B
   ⌊_⌋ = Predicate.arr
 
-  U-faithful : ∀ {X A B} {h h′ : L.Hom X A B} → ⌊ h ⌋ ≈ ⌊ h′ ⌋ → h L.≈ h′
-  U-faithful h≈h′ = h≈h′
-
   forget : LocallyGradedFunctor L (Trivial ℐ U)
   forget = record
     { F₀ = λ A → A ; F₁ = ⌊_⌋ ; F-resp-≈ = λ h≈h′ → h≈h′
@@ -101,26 +97,3 @@ record GradedSubCat {oi ℓi ei o ℓ e} (ℐ : MonoidalCategory oi ℓi ei)
       ; triangle        = triangle
       ; pentagon        = pentagon
       }
-
-    GradedMonoidal-forget : GradedMonoidalFunctor monoidalᴸ (Trivial-monoidal Braided-ℐ C) forget
-    GradedMonoidal-forget = record
-      { ε              = id
-      ; ⊗-homo         = id
-      ; ⊗-homo-commute = Equiv.trans identityˡ (Equiv.sym identityʳ)
-      ; associativity  = Equiv.trans id-cancel (Equiv.sym id-cancelˡ)
-      ; unitaryˡ       = id-cancel
-      ; unitaryʳ       = id-cancel
-      }
-      where
-      id-cancel : ∀ {A B D} {f : A ⊗₀ B ⇒ D} → f ∘ id ∘ id {A} ⊗₁ id {B} ≈ f
-      id-cancel = Equiv.trans (∘-resp-≈ʳ (Equiv.trans identityˡ ⊗.identity)) identityʳ
-      id-cancelˡ : ∀ {A D E} {f : A ⇒ D ⊗₀ E} → id ∘ id {D} ⊗₁ id {E} ∘ f ≈ f
-      id-cancelˡ = Equiv.trans identityˡ (Equiv.trans (∘-resp-≈ˡ ⊗.identity) identityˡ)
-
--- the entire category
-unrestricted : ∀ {oi ℓi ei o ℓ e p} (ℐ : MonoidalCategory oi ℓi ei) (C : MonoidalCategory o ℓ e)
-             → GradedSubCat ℐ C p
-unrestricted ℐ C = record
-  { Pred = λ _ _ → ⊤ ; pred-resp = λ _ _ → tt ; pred-sub = λ _ _ → tt ; pred-id = tt
-  ; pred-∘ = λ _ _ → tt ; pred-⊗ = λ _ _ → tt ; pred-α⇒ = tt ; pred-α⇐ = tt
-  ; pred-λ⇒ = tt ; pred-λ⇐ = tt ; pred-ρ⇒ = tt ; pred-ρ⇐ = tt }

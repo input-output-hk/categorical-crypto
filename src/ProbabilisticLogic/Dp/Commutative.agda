@@ -27,38 +27,22 @@ private variable
 ------------------------------------------------------------------------
 -- Commutativity
 
-pairₚ : Dₚ A → Dₚ B → Dₚ (A × B)
-pairₚ d e = d >>=ₚ λ p → mapₚ (p ,_) e
-
-pairₚ′ : Dₚ A → Dₚ B → Dₚ (A × B)
-pairₚ′ d e = e >>=ₚ λ q → mapₚ (_, q) d
-
-pairₚ-≼ : (d : Dₚ A) (e : Dₚ B) → pairₚ d e ≼ₚ pairₚ′ d e
-pairₚ-≼ d e P nn n = n +ℕ suc n ,
-  ≤-trans (>>=ₚ-boundA n d (λ p → mapₚ (p ,_) e) P nn)
-  (≤-trans (cum-mono-P n d (λ p → cum n (mapₚ (p ,_) e) P) (λ p → cum n e (λ q → P (p , q)))
-                       (λ p → mapₚ-≤ n (p ,_) e P nn))
-  (≤-trans (≤-reflexive (cum-fubini n n d e (λ p q → P (p , q))))
-  (≤-trans (≤-reflexive (cum-cong-P n e (λ q → cum n d (λ p → P (p , q)))
-                                        (λ q → cum (suc n) (mapₚ (_, q) d) P)
-                                        (λ q → sym (mapₚ-cum n (_, q) d P))))
-           (>>=ₚ-boundB n (suc n) e (λ q → mapₚ (_, q) d) P nn))))
-
-pairₚ′-≼ : (d : Dₚ A) (e : Dₚ B) → pairₚ′ d e ≼ₚ pairₚ d e
-pairₚ′-≼ d e P nn n = n +ℕ suc n ,
-  ≤-trans (>>=ₚ-boundA n e (λ q → mapₚ (_, q) d) P nn)
-  (≤-trans (cum-mono-P n e (λ q → cum n (mapₚ (_, q) d) P) (λ q → cum n d (λ p → P (p , q)))
-                       (λ q → mapₚ-≤ n (_, q) d P nn))
-  (≤-trans (≤-reflexive (sym (cum-fubini n n d e (λ p q → P (p , q)))))
-  (≤-trans (≤-reflexive (cum-cong-P n d (λ p → cum n e (λ q → P (p , q)))
-                                        (λ p → cum (suc n) (mapₚ (p ,_) e) P)
-                                        (λ p → sym (mapₚ-cum n (p ,_) e P))))
-           (>>=ₚ-boundB n (suc n) d (λ p → mapₚ (p ,_) e) P nn))))
+pair-≼ : (f : A → B → C) (d : Dₚ A) (e : Dₚ B)
+       → (d >>=ₚ λ p → mapₚ (f p) e) ≼ₚ (e >>=ₚ λ q → mapₚ (λ p → f p q) d)
+pair-≼ f d e P nn n = n +ℕ suc n ,
+  ≤-trans (>>=ₚ-boundA n d (λ p → mapₚ (f p) e) P nn)
+  (≤-trans (cum-mono-P n d (λ p → cum n (mapₚ (f p) e) P) (λ p → cum n e (λ q → P (f p q)))
+                       (λ p → mapₚ-≤ n (f p) e P nn))
+  (≤-trans (≤-reflexive (cum-fubini n n d e (λ p q → P (f p q))))
+  (≤-trans (≤-reflexive (cum-cong-P n e (λ q → cum n d (λ p → P (f p q)))
+                                        (λ q → cum (suc n) (mapₚ (λ p → f p q) d) P)
+                                        (λ q → sym (mapₚ-cum n (λ p → f p q) d P))))
+           (>>=ₚ-boundB n (suc n) e (λ q → mapₚ (λ p → f p q) d) P nn))))
 
 >>=ₚ-comm : (d : Dₚ A) (e : Dₚ B)
           → (d >>=ₚ λ p → e >>=ₚ λ q → returnₚ (p , q))
           ≈ₚ (e >>=ₚ λ q → d >>=ₚ λ p → returnₚ (p , q))
->>=ₚ-comm d e = pairₚ-≼ d e , pairₚ′-≼ d e
+>>=ₚ-comm d e = pair-≼ _,_ d e , pair-≼ (λ q p → p , q) e d
 
 >>=ₚ-swap : (d : Dₚ A) (e : Dₚ B) (h : A → B → Dₚ C)
           → (d >>=ₚ λ p → e >>=ₚ λ q → h p q) ≈ₚ (e >>=ₚ λ q → d >>=ₚ λ p → h p q)

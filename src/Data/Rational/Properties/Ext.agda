@@ -12,7 +12,7 @@ module Data.Rational.Properties.Ext where
 open import Data.Integer as ℤ using (ℤ)
 open import Data.Nat as ℕ using (ℕ; suc)
 open import Data.Rational using
-  (ℚ; 0ℚ; 1ℚ; ½; _+_; _-_; -_; _*_; _/_; ∣_∣; _≤_; _≤?_; _<_; _<?_; nonNegative; toℚᵘ)
+  (ℚ; 0ℚ; 1ℚ; ½; _+_; _-_; -_; _*_; _/_; ∣_∣; _≤_; _≤?_; _<_; nonNegative; toℚᵘ)
 open import Data.Rational.Properties using
   ( +-0-abelianGroup; +-assoc; +-comm; +-identityˡ; +-identityʳ; +-inverseˡ; +-inverseʳ
   ; +-mono-≤; +-monoˡ-≤; +-monoʳ-≤; ≤-antisym; ≤-refl; ≤-reflexive; ≤-total; ≤-trans
@@ -21,15 +21,14 @@ open import Data.Rational.Properties using
   ; *-monoʳ-<-pos; *-zeroʳ
   ; toℚᵘ-cancel-≤; toℚᵘ-fromℚᵘ; toℚᵘ-homo-*; toℚᵘ-homo-+; toℚᵘ-injective )
 open import Data.Rational.Solver using (module +-*-Solver)
-open import Data.Rational.Unnormalised.Base as ℚᵘ using (mkℚᵘ; *≡*; *≤*)
+open import Data.Rational.Unnormalised.Base as ℚᵘ using (mkℚᵘ; *≤*)
 open import Data.Product.Base using (_×_; _,_)
 open import Data.Sum.Base using (inj₁; inj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong; subst)
-open import Relation.Nullary.Decidable.Core using (toWitness; toWitnessFalse)
+open import Relation.Nullary.Decidable.Core using (toWitnessFalse)
 open import Relation.Nullary.Negation.Core using (¬_)
 
 import Algebra.Properties.AbelianGroup as AbelianGroupProperties
-import Data.Integer.Properties as ℤₚ
 import Data.Rational.Unnormalised.Properties as ℚᵘₚ
 
 private module AG = AbelianGroupProperties +-0-abelianGroup
@@ -40,10 +39,10 @@ neg-sub : ∀ p q → p - q ≡ - (q - p)
 neg-sub p q = sym (AG.⁻¹-anti-homo‿- q p)
 
 +-−-cancel : ∀ x d → (x + d) - d ≡ x
-+-−-cancel x d = trans (+-assoc x d (- d)) (trans (cong (x +_) (+-inverseʳ d)) (+-identityʳ x))
++-−-cancel x d = AG.//-rightDividesʳ d x
 
 −-+-cancel : ∀ x d → (x - d) + d ≡ x
-−-+-cancel x d = trans (+-assoc x (- d) d) (trans (cong (x +_) (+-inverseˡ d)) (+-identityʳ x))
+−-+-cancel x d = AG.//-rightDividesˡ d x
 
 telescope : ∀ a b c → (a - b) + (b - c) ≡ a - c
 telescope a b c = trans (+-assoc a (- b) (b - c))
@@ -53,9 +52,6 @@ telescope a b c = trans (+-assoc a (- b) (b - c))
 0≤1ℚ : 0ℚ ≤ 1ℚ
 0≤1ℚ = 0≤∣p∣ 1ℚ
 
-0<1ℚ : 0ℚ < 1ℚ
-0<1ℚ = toWitness {a? = 0ℚ <? 1ℚ} _
-
 p≤p+q : ∀ x → 0ℚ ≤ y → x ≤ x + y
 p≤p+q x 0≤y = ≤-trans (≤-reflexive (sym (+-identityʳ x))) (+-monoʳ-≤ x 0≤y)
 
@@ -63,7 +59,7 @@ p≤q+p : ∀ x → 0ℚ ≤ y → x ≤ y + x
 p≤q+p x 0≤y = ≤-trans (≤-reflexive (sym (+-identityˡ x))) (+-monoˡ-≤ x 0≤y)
 
 0≤+ : 0ℚ ≤ x → 0ℚ ≤ y → 0ℚ ≤ x + y
-0≤+ 0≤x 0≤y = ≤-trans 0≤x (p≤p+q _ 0≤y)
+0≤+ = +-mono-≤
 
 nonNeg+nonNeg≡0 : ∀ x y → 0ℚ ≤ x → 0ℚ ≤ y → x + y ≡ 0ℚ → x ≡ 0ℚ × y ≡ 0ℚ
 nonNeg+nonNeg≡0 x y 0≤x 0≤y s0 =
@@ -98,11 +94,8 @@ nonNeg+nonNeg≡0 x y 0≤x 0≤y s0 =
 0≤* {x} {y} 0≤x 0≤y = nonNegative⁻¹ (x * y)
   {{nonNeg*nonNeg⇒nonNeg x {{nonNegative 0≤x}} y {{nonNegative 0≤y}}}}
 
-neg≤0 : 0ℚ ≤ y → (- y) ≤ 0ℚ
-neg≤0 = neg-antimono-≤
-
 x-y≤x : ∀ x → 0ℚ ≤ y → (x - y) ≤ x
-x-y≤x x 0≤y = ≤-trans (+-monoʳ-≤ x (neg≤0 0≤y)) (≤-reflexive (+-identityʳ x))
+x-y≤x x 0≤y = ≤-trans (+-monoʳ-≤ x (neg-antimono-≤ 0≤y)) (≤-reflexive (+-identityʳ x))
 
 p≤∣p∣ : ∀ p → p ≤ ∣ p ∣
 p≤∣p∣ p with ≤-total 0ℚ p
@@ -185,22 +178,12 @@ x≤y+c⇒x-c≤y x y c le = ≤-trans (+-monoˡ-≤ (- c) le) (≤-reflexive (+
 -- Arithmetic and order for the `_/_` constructor
 ------------------------------------------------------------------------
 
--- All four go through ℚᵘ, where `_/_` IS the constructor and `_≤_`, `_+_`,
+-- All three go through ℚᵘ, where `_/_` IS the constructor and `_≤_`, `_+_`,
 -- `_*_` are the naive numerator/denominator formulas (no normalization).
 
 private
   toℚᵘ-/ : ∀ (i : ℤ) (n : ℕ) .{{_ : ℕ.NonZero n}} → toℚᵘ (i / n) ℚᵘ.≃ i ℚᵘ./ n
   toℚᵘ-/ i (suc n) = toℚᵘ-fromℚᵘ (mkℚᵘ i n)
-
-  -- ℚᵘ addition cross-multiplies even when the denominators already agree.
-  /ᵘ-+-same : ∀ (i j : ℤ) (n : ℕ) .{{_ : ℕ.NonZero n}}
-            → (i ℚᵘ./ n) ℚᵘ.+ (j ℚᵘ./ n) ℚᵘ.≃ (i ℤ.+ j) ℚᵘ./ n
-  /ᵘ-+-same i j (suc n-1) = *≡*
-    (trans (cong (ℤ._* d) (sym (ℤₚ.*-distribʳ-+ d i j)))
-      (trans (ℤₚ.*-assoc (i ℤ.+ j) d d)
-             (cong ((i ℤ.+ j) ℤ.*_) (sym (ℤₚ.pos-* D D)))))
-    where D = suc n-1
-          d = ℤ.+ D
 
 /-mono-≤ : ∀ (i : ℤ) (n : ℕ) (j : ℤ) (m : ℕ) .{{_ : ℕ.NonZero n}} .{{_ : ℕ.NonZero m}}
          → i ℤ.* (ℤ.+ m) ℤ.≤ j ℤ.* (ℤ.+ n) → i / n ≤ j / m
@@ -224,11 +207,3 @@ private
   (ℚᵘₚ.≃-trans (toℚᵘ-homo-+ (i / n) (j / m))
     (ℚᵘₚ.≃-trans (ℚᵘₚ.+-cong (toℚᵘ-/ i n) (toℚᵘ-/ j m))
                  (ℚᵘₚ.≃-sym (toℚᵘ-/ (i ℤ.* (ℤ.+ m) ℤ.+ j ℤ.* (ℤ.+ n)) (n ℕ.* m)))))
-
--- The common-denominator case of `/-+-/`: cross-multiplying there would square
--- the denominator.
-/-+-/-same : ∀ (i j : ℤ) (n : ℕ) .{{_ : ℕ.NonZero n}} → (i / n) + (j / n) ≡ (i ℤ.+ j) / n
-/-+-/-same i j n@(suc _) = toℚᵘ-injective
-  (ℚᵘₚ.≃-trans (toℚᵘ-homo-+ (i / n) (j / n))
-    (ℚᵘₚ.≃-trans (ℚᵘₚ.+-cong (toℚᵘ-/ i n) (toℚᵘ-/ j n))
-      (ℚᵘₚ.≃-trans (/ᵘ-+-same i j n) (ℚᵘₚ.≃-sym (toℚᵘ-/ (i ℤ.+ j) n)))))

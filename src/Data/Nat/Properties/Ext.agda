@@ -1,9 +1,8 @@
 {-# OPTIONS --safe --without-K #-}
 
--- The ℕ facts `Data.Nat.Properties` does not export: one `_∸_` unfolding, one
--- `_≡ᵇ_` value, `_^_` over a product base, the run of consecutive summands
--- `t + (t+1) + … + (t+j-1)`, and the growth comparisons that make `2 ^ n`
--- outrun every polynomial.
+-- The ℕ facts `Data.Nat.Properties` does not export: one `_≡ᵇ_` value, `_^_`
+-- over a product base, the run of consecutive summands `t + (t+1) + … + (t+j-1)`,
+-- and the growth comparisons that make `2 ^ n` outrun every polynomial.
 
 module Data.Nat.Properties.Ext where
 
@@ -15,20 +14,11 @@ open import Relation.Binary.PropositionalEquality
 
 open ≤-Reasoning
 
--- `Data.Nat.Combinatorics` keeps this step private under the name
--- `[n-k]≡1+[n-k-1]`.
-m∸n≡suc[m∸suc[n]] : ∀ {m n} → n < m → m ∸ n ≡ suc (m ∸ suc n)
-m∸n≡suc[m∸suc[n]] = +-∸-assoc 1
-
 -- The Boolean value, not the `T`-shaped `≡⇒≡ᵇ`/`≡ᵇ⇒≡` pair: a `not (_ ≡ᵇ _)`
 -- test only reduces at an abstract argument once it is rewritten away.
 n≡ᵇsuc : ∀ n → (n ≡ᵇ suc n) ≡ false
 n≡ᵇsuc zero    = refl
 n≡ᵇsuc (suc n) = n≡ᵇsuc n
-
-------------------------------------------------------------------------
--- `_^_` over a product base
-------------------------------------------------------------------------
 
 ^-distribʳ-* : ∀ d m n → (m * n) ^ d ≡ m ^ d * n ^ d
 ^-distribʳ-* zero    m n = refl

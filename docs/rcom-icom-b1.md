@@ -264,7 +264,7 @@ number.
 
 | item | content | where |
 |---|---|---|
-| B2-1 | `Settles` at a loop junction | `ProbabilisticLogic.Dp.Settle.Iter`: `Settles-stepᵢ`, `Settles-stepᵢˢ`, `Settles-stepᵢ⋆`, `Ranked`, `Settles-iter` |
+| B2-1 | `Settles` at a loop junction | `ProbabilisticLogic.Dp.Settle.Iter`: `Settles-stepᵢ`, `Settles-stepᵢˢ`, `Ranked`, `Settles-iter` |
 | B2-2, B2-M1 | `StepSettles` at a traced machine and at a `𝒢ₚ`-composite | `Protocol.Machine.Trace`: `trace-settles`; `Kᴳ`/`kᴳ-settles`, `ranked-from-kᴳ`, `compose-settles`, `compose-StepSettles`, `compose-pr`. No `Settles` witness rides an `S.≈ᴹ` to `𝒢ₚ`'s own `_∘_`, but the CLOSED RUN's conclusion does, by `ProbabilisticLogic.Dp.Settle.cum-settled-≈ₚ` |
 | B2-3 | the `Dₚ`→kernel transport at an arbitrary closed machine | `Protocol.Machine.Raw`: `StepSettles`, `rawAgree`, `rawPr` |
 | B2-4 | the RESOURCE's own instance of it | `Examples.ROCommitment.Transport`: `resK`, `resource-settles`, `resource-run`, `resKᵀ` (the game's `fetchT`, relabelled) |

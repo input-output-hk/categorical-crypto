@@ -5,7 +5,7 @@
 --
 -- `Machines.Trace.traceStep` is `solve ∘ k ∘ id ⊗₁ i₁`: the two wirings are
 -- pure, so `Settles-ret⋆` takes them one step at a time, and the loop is
--- `Dp.Settle.Iter.Loop.Settles-iter`, which needs a round-trip bound.
+-- `Dp.Settle.Iter.Settles-iter`, which needs a round-trip bound.
 --
 -- Everything is built at the literal `traceStep` term, which IS the bind chain
 -- below definitionally: `Settles` carries a syntactic `Halts` and a supremum can

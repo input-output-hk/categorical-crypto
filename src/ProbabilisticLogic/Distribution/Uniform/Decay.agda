@@ -10,12 +10,9 @@ open import Data.Nat as ℕ using (ℕ; suc)
 open import Data.Nat.Poly using (Poly; poly-*; poly-const; poly-≤2^)
 import Data.Nat.Properties as ℕₚ
 open import Data.Product using (Σ-syntax; _,_)
-open import Data.Rational using
-  (ℚ; 0ℚ; 1ℚ; ½; 1/_; _+_; _*_; _≤_; _<_; _>_; nonNegative; positive; >-nonZero)
+open import Data.Rational using (ℚ; 0ℚ; 1ℚ; ½; _+_; _*_; _≤_; _>_; nonNegative; positive)
 open import Data.Rational.Properties using
-  ( *-assoc; *-cancelˡ-≤-pos; *-identityˡ; *-inverseʳ; *-monoʳ-≤-nonNeg
-  ; *-monoˡ-≤-nonNeg; +-mono-≤; 1/pos⇒pos; pos*pos⇒pos; positive⁻¹; <⇒≤; ≤-trans
-  ; module ≤-Reasoning )
+  (*-assoc; *-cancelˡ-≤-pos; *-monoʳ-≤-nonNeg; +-mono-≤; <⇒≤; ≤-trans; module ≤-Reasoning)
 open import Data.Rational.Properties.Ext using (0<½*; ½*+½*)
 open import Relation.Binary.PropositionalEquality using (_≡_; cong; sym; subst)
 
@@ -45,24 +42,6 @@ s →0 = ∀ ε → ε > 0ℚ → Σ[ N ∈ ℕ ] ∀ n → N ℕ.≤ n → s n 
 
 →0-0 : (λ (_ : ℕ) → 0ℚ) →0
 →0-0 _ ε>0 = 0 , λ _ _ → <⇒≤ ε>0
-
--- Scaling by a positive constant: `ε` is asked of `s` shrunk by `1/c`.
-→0-*ˡ : ∀ c → 0ℚ < c → s →0 → (λ n → c * s n) →0
-→0-*ˡ {s} c 0<c h ε ε>0 = let (N , bnd) = h (r * ε) 0<rε in N , λ n N≤n → begin
-  c * s n      ≤⟨ *-monoˡ-≤-nonNeg c ⦃ nonNegative (<⇒≤ 0<c) ⦄ (bnd n N≤n) ⟩
-  c * (r * ε)  ≡⟨ sym (*-assoc c r ε) ⟩
-  c * r * ε    ≡⟨ cong (_* ε) (*-inverseʳ c ⦃ c≢0 ⦄) ⟩
-  1ℚ * ε       ≡⟨ *-identityˡ ε ⟩
-  ε            ∎
-  where
-  c≢0 = >-nonZero 0<c
-  r = (1/ c) ⦃ c≢0 ⦄
-
-  0<rε : 0ℚ < r * ε
-  0<rε = positive⁻¹ (r * ε)
-    ⦃ pos*pos⇒pos r ⦃ 1/pos⇒pos c ⦃ positive 0<c ⦄ ⦄ ε ⦃ positive ε>0 ⦄ ⦄
-
-  open ≤-Reasoning
 
 →0-+ : s →0 → t →0 → (λ n → s n + t n) →0
 →0-+ {s} {t} hs ht ε ε>0 =
@@ -101,20 +80,3 @@ poly-inv-pow-2-→0 {p} {n} Pp j≤n ε ε>0 =
       (N , dom)  = poly-≤2^ (poly-* (poly-const (suc M)) Pp)
   in N , λ j N≤j →
     step M (p j) (n j) 1≤Mε (ℕₚ.≤-trans (dom j N≤j) (ℕₚ.^-monoʳ-≤ 2 (j≤n j)))
-
--- `VanishingBound (λ j q → t j (q · k j) · 2^-(n j))` unfolded: a birthday-shaped
--- numerator against a schedule whose hash width keeps up with the level and a
--- polynomial block count.  A concrete numerator supplies only its quadratic
--- bound `t j m ≤ fromℕ (m · m)`.
-vanishing-bound : ∀ (t : ℕ → ℕ → ℚ) (n k : ℕ → ℕ)
-                → (∀ j m → t j m ≤ fromℕ (m ℕ.* m)) → (∀ j → j ℕ.≤ n j) → Poly k
-                → ∀ p → Poly p → (λ j → t j (p j ℕ.* k j) * inv-pow-2 (n j)) →0
-vanishing-bound t n k t≤ j≤n Pk p Pp = →0-≤ dominates
-  (poly-inv-pow-2-→0 (poly-* Ppk Ppk) j≤n)
-  where
-  Ppk = poly-* Pp Pk
-
-  dominates : ∀ j → t j (p j ℕ.* k j) * inv-pow-2 (n j)
-                  ≤ fromℕ ((p j ℕ.* k j) ℕ.* (p j ℕ.* k j)) * inv-pow-2 (n j)
-  dominates j = *-monoʳ-≤-nonNeg (inv-pow-2 (n j)) ⦃ nonNegative (0≤inv-pow-2 (n j)) ⦄
-                                 (t≤ j (p j ℕ.* k j))

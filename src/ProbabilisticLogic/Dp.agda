@@ -279,38 +279,6 @@ mutual
   leafₚ-mono-Supp n (inj₁ p)  P Q s = s
   leafₚ-mono-Supp n (inj₂ d′) P Q s = cum-mono-Supp n d′ P Q s
 
-mutual
-  Supp-mono : (Φ : A → ℕ → Set b) → (∀ p → j ≤ℕ k → Φ p j → Φ p k)
-            → j ≤ℕ k → (n : ℕ) (d : Dₚ A)
-            → Supp n d (λ p → Φ p j) → Supp n d (λ p → Φ p k)
-  Supp-mono Φ up le zero    d s         = tt
-  Supp-mono Φ up le (suc n) d (s₁ , s₂) =
-    SuppL-mono Φ up le n (br d true) s₁ , SuppL-mono Φ up le n (br d false) s₂
-
-  SuppL-mono : (Φ : A → ℕ → Set b) → (∀ p → j ≤ℕ k → Φ p j → Φ p k)
-             → j ≤ℕ k → (n : ℕ) (x : A ⊎ Dₚ A)
-             → SuppL n x (λ p → Φ p j) → SuppL n x (λ p → Φ p k)
-  SuppL-mono Φ up le n (inj₁ p)  s = up p le s
-  SuppL-mono Φ up le n (inj₂ d′) s = Supp-mono Φ up le n d′ s
-
-mutual
-  uniformize : (Φ : A → ℕ → Set b) → (∀ p {i i′} → i ≤ℕ i′ → Φ p i → Φ p i′)
-             → (∀ p → Σ[ i ∈ ℕ ] Φ p i)
-             → (n : ℕ) (d : Dₚ A) → Σ[ i ∈ ℕ ] Supp n d (λ p → Φ p i)
-  uniformize Φ up w zero    d = 0 , tt
-  uniformize Φ up w (suc n) d =
-    let i₁ , s₁ = uniformizeL Φ up w n (br d true)
-        i₂ , s₂ = uniformizeL Φ up w n (br d false)
-    in i₁ ⊔ i₂
-     , SuppL-mono Φ (λ p → up p) (m≤m⊔n i₁ i₂) n (br d true) s₁
-     , SuppL-mono Φ (λ p → up p) (m≤n⊔m i₁ i₂) n (br d false) s₂
-
-  uniformizeL : (Φ : A → ℕ → Set b) → (∀ p {i i′} → i ≤ℕ i′ → Φ p i → Φ p i′)
-              → (∀ p → Σ[ i ∈ ℕ ] Φ p i)
-              → (n : ℕ) (x : A ⊎ Dₚ A) → Σ[ i ∈ ℕ ] SuppL n x (λ p → Φ p i)
-  uniformizeL Φ up w n (inj₁ p)  = w p
-  uniformizeL Φ up w n (inj₂ d′) = uniformize Φ up w n d′
-
 -- `Supp` is not `_≈ₚ_`-stable, so it is computed at the literal terms
 -- (`Supp-bot`/`Supp-return`/`Supp-bind`).
 
@@ -357,8 +325,8 @@ mutual
   SuppL-all Φ w n (inj₁ p)  = w p
   SuppL-all Φ w n (inj₂ d′) = Supp-all Φ w n d′
 
--- `uniformizeˢ` is `uniformize` with the per-value witness assumed only on the
--- support: an unreachable loop re-entry has no bound at all (`Dp.Settle.Iter`).
+-- The per-value witness is assumed only on the support: an unreachable loop
+-- re-entry has no bound at all (`Dp.Settle.Iter`).
 mutual
   uniformizeˢ : (Φ : A → ℕ → Set b) → (∀ p {i i′} → i ≤ℕ i′ → Φ p i → Φ p i′)
               → (n : ℕ) (d : Dₚ A) → Supp n d (λ p → Σ[ i ∈ ℕ ] Φ p i)
@@ -368,14 +336,21 @@ mutual
     let i₁ , t₁ = uniformizeLˢ Φ up n (br d true)  s₁
         i₂ , t₂ = uniformizeLˢ Φ up n (br d false) s₂
     in i₁ ⊔ i₂
-     , SuppL-mono Φ (λ p → up p) (m≤m⊔n i₁ i₂) n (br d true) t₁
-     , SuppL-mono Φ (λ p → up p) (m≤n⊔m i₁ i₂) n (br d false) t₂
+     , SuppL-map (λ p → Φ p i₁) (λ p → Φ p (i₁ ⊔ i₂)) (λ p → up p (m≤m⊔n i₁ i₂))
+                 n (br d true) t₁
+     , SuppL-map (λ p → Φ p i₂) (λ p → Φ p (i₁ ⊔ i₂)) (λ p → up p (m≤n⊔m i₁ i₂))
+                 n (br d false) t₂
 
   uniformizeLˢ : (Φ : A → ℕ → Set b) → (∀ p {i i′} → i ≤ℕ i′ → Φ p i → Φ p i′)
                → (n : ℕ) (x : A ⊎ Dₚ A) → SuppL n x (λ p → Σ[ i ∈ ℕ ] Φ p i)
                → Σ[ i ∈ ℕ ] SuppL n x (λ p → Φ p i)
   uniformizeLˢ Φ up n (inj₁ p)  s = s
   uniformizeLˢ Φ up n (inj₂ d′) s = uniformizeˢ Φ up n d′ s
+
+uniformize : (Φ : A → ℕ → Set b) → (∀ p {i i′} → i ≤ℕ i′ → Φ p i → Φ p i′)
+           → (∀ p → Σ[ i ∈ ℕ ] Φ p i)
+           → (n : ℕ) (d : Dₚ A) → Σ[ i ∈ ℕ ] Supp n d (λ p → Φ p i)
+uniformize Φ up w n d = uniformizeˢ Φ up n d (Supp-all _ w n d)
 
 ------------------------------------------------------------------------
 -- The equivalence: cofinal domination of the cumulative masses
