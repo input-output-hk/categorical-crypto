@@ -11,7 +11,7 @@ open import Relation.Binary
 
 record OrderedMonoid c ℓ₁ ℓ₂ : Set (suc (c ⊔ ℓ₁ ⊔ ℓ₂)) where
   field poset : Poset c ℓ₁ ℓ₂
-  open Poset poset using (Carrier; _≈_; _≤_)
+  open Poset poset
   field
     _∙_      : Op₂ Carrier
     ε        : Carrier
@@ -20,7 +20,7 @@ record OrderedMonoid c ℓ₁ ℓ₂ : Set (suc (c ⊔ ℓ₁ ⊔ ℓ₂)) where
 
 record OrderedCommutativeMonoid c ℓ₁ ℓ₂ : Set (suc (c ⊔ ℓ₁ ⊔ ℓ₂)) where
   field poset : Poset c ℓ₁ ℓ₂
-  open Poset poset using (Carrier; _≈_; _≤_)
+  open Poset poset
   field
     _∙_                 : Op₂ Carrier
     ε                   : Carrier

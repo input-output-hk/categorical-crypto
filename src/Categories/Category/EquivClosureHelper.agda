@@ -7,13 +7,13 @@
 
 module Categories.Category.EquivClosureHelper where
 
-open import Level using (Level; suc; _⊔_)
+open import Level
 open import Relation.Binary using (Rel; IsEquivalence)
 import Relation.Binary.Construct.Closure.Equivalence as EqC
-open EqC using (EqClosure)
+open EqC
 
-open import Categories.Category.Core using (Category)
-open import Categories.Category.Helper using (categoryHelper)
+open import Categories.Category.Core
+open import Categories.Category.Helper
 
 private
   variable

@@ -50,12 +50,10 @@ module Oplax {o ℓ e o′ ℓ′ e′ : Level}
               δ ∘ F₁ (f C.⊗₁ g) ≈ F₁ f ⊗₁ F₁ g ∘ δ
   δ-commute f g = ⊗-homo.⇐.commute (f , g)
 
-  δ-commuteˡ : ∀ {X Y Y′} (g : Y C.⇒ Y′) → δ {X} {Y′} ∘ F₁ (C.id C.⊗₁ g)
-                                         ≈ id ⊗₁ F₁ g ∘ δ
+  δ-commuteˡ : ∀ {X Y Y′} (g : Y C.⇒ Y′) → δ {X} ∘ F₁ (C.id C.⊗₁ g) ≈ id ⊗₁ F₁ g ∘ δ
   δ-commuteˡ g = δ-commute C.id g ○ ((identity ⟩⊗⟨refl) ⟩∘⟨refl)
 
-  δ-commuteʳ : ∀ {X X′ Y} (f : X C.⇒ X′) → δ {X′} {Y} ∘ F₁ (f C.⊗₁ C.id)
-                                         ≈ F₁ f ⊗₁ id ∘ δ
+  δ-commuteʳ : ∀ {X X′ Y} (f : X C.⇒ X′) → δ {X′} {Y} ∘ F₁ (f C.⊗₁ C.id) ≈ F₁ f ⊗₁ id ∘ δ
   δ-commuteʳ f = δ-commute f C.id ○ ((refl⟩⊗⟨ identity) ⟩∘⟨refl)
 
   private
@@ -68,16 +66,14 @@ module Oplax {o ℓ e o′ ℓ′ e′ : Level}
     ⊗-cancel₂ : ∀ {A B W} {f : A ⇒ B} {g : B ⇒ A} → f ∘ g ≈ id → id {W} ⊗₁ f ∘ id ⊗₁ g ≈ id
     ⊗-cancel₂ eq = merge₂ʳ ○ refl⟩⊗⟨ eq ○ ⊗.identity
 
-  δ-assoc : ∀ {X Y Z} → δ {X} ⊗₁ id ∘ δ ∘ F₁ CS.α⇐
-                      ≈ α⇐ ∘ id ⊗₁ δ {Y} {Z} ∘ δ
+  δ-assoc : ∀ {X Y Z} → δ {X} ⊗₁ id ∘ δ ∘ F₁ CS.α⇐ ≈ α⇐ ∘ id ⊗₁ δ {Y} {Z} ∘ δ
   δ-assoc = inv-resp
     (sym-assoc ⟩∘⟨refl ○ cancelInner (F-cancel C.associator.isoˡ) ○ cancelInner δψ ○ ⊗-cancel₁ δψ)
     (sym-assoc ⟩∘⟨refl ○ cancelInner associator.isoʳ ○ cancelInner (⊗-cancel₂ ψδ) ○ ψδ)
     associativity
 
   -- `δ-assoc` with the leading `δ ⊗₁ id` cancelled away and the trailing `δ` exposed
-  δ-assoc′ : ∀ {X Y Z} → δ {X C.⊗₀ Y} ∘ F₁ (CS.α⇐ {X} {Y} {Z})
-           ≈ (ψ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ δ) ∘ δ
+  δ-assoc′ : ∀ {X Y Z} → δ ∘ F₁ (CS.α⇐ {X} {Y} {Z}) ≈ (ψ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ δ) ∘ δ
   δ-assoc′ = introˡ (⊗-cancel₁ ψδ) ○ assoc ○ (refl⟩∘⟨ δ-assoc) ○ assoc²εβ
 
   δ-unitorˡ : ∀ {X} → δ {C.unit} {X} ∘ F₁ CS.λ⇐ ≈ ε.from ⊗₁ id ∘ λ⇐

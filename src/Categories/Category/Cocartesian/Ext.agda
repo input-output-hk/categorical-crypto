@@ -34,10 +34,10 @@ module ⊕ = Cocart.CocartesianMonoidal C cocart
 α+⇐ : A + (B + D) ⇒ (A + B) + D
 α+⇐ = +-assocʳ
 
-α+⇒-i₁i₁ : α+⇒ {A} {B} {D} ∘ i₁ {A + B} {D} ∘ i₁ {A} {B} ≈ i₁
+α+⇒-i₁i₁ : α+⇒ ∘ i₁ {A + B} {D} ∘ i₁ {A} ≈ i₁
 α+⇒-i₁i₁ = pullˡ inject₁ ○ inject₁
 
-α+⇒-i₁i₂ : α+⇒ {A} {B} {D} ∘ i₁ {A + B} {D} ∘ i₂ {A} {B} ≈ i₂ ∘ i₁
+α+⇒-i₁i₂ : α+⇒ {A} ∘ i₁ {A + B} {D} ∘ i₂ {A} ≈ i₂ ∘ i₁
 α+⇒-i₁i₂ = pullˡ inject₁ ○ inject₂
 
 α+⇒-i₂ : α+⇒ {A} {B} {D} ∘ i₂ ≈ i₂ ∘ i₂
@@ -46,10 +46,10 @@ module ⊕ = Cocart.CocartesianMonoidal C cocart
 α+⇐-i₁ : α+⇐ {A} {B} {D} ∘ i₁ ≈ i₁ ∘ i₁
 α+⇐-i₁ = inject₁
 
-α+⇐-i₂i₁ : α+⇐ {A} {B} {D} ∘ i₂ {A} {B + D} ∘ i₁ {B} {D} ≈ i₁ ∘ i₂
+α+⇐-i₂i₁ : α+⇐ {A} {B} ∘ i₂ {A} ∘ i₁ {B} {D} ≈ i₁ ∘ i₂
 α+⇐-i₂i₁ = pullˡ inject₂ ○ inject₁
 
-α+⇐-i₂i₂ : α+⇐ {A} {B} {D} ∘ i₂ {A} {B + D} ∘ i₂ {B} {D} ≈ i₂
+α+⇐-i₂i₂ : α+⇐ ∘ i₂ {A} ∘ i₂ {B} {D} ≈ i₂
 α+⇐-i₂i₂ = pullˡ inject₂ ○ inject₂
 
 α+⇐-i₂ : α+⇐ {A} {B} {D} ∘ i₂ ≈ i₂ +₁ id

@@ -8,21 +8,21 @@
 
 module Categories.GradedKleisli where
 
-open import Level using (Level; _⊔_) renaming (suc to lsuc)
+open import Level renaming (suc to lsuc)
 
 open import Categories.Adjoint
 open import Categories.Category
 open import Categories.Category.EquivClosureHelper
 open import Categories.Category.Monoidal
 import Categories.Category.Monoidal.Reasoning as MonR
-open import Categories.Coherence.Monoidal using (module MorAtoms; module MorSolve)
+open import Categories.Coherence.Monoidal
 open import Categories.Functor using (Functor)
 open import Categories.Monad.Graded
 import Categories.Morphism.Reasoning as MR
-open import Categories.NaturalTransformation using (NaturalTransformation; ntHelper)
+open import Categories.NaturalTransformation using (ntHelper)
 open import Categories.Tactic.Category
 
-open import Data.Fin using (#_)
+open import Data.Fin
 open import Data.Product
 open import Data.Vec using (_∷_; [])
 
@@ -45,7 +45,7 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
   open Functor
   open GradedKleisliTriple M
   open import Categories.Category.Monoidal.Utilities (I.monoidal)
-  open import Categories.Category.Monoidal.Properties (I.monoidal) using (coherence₃)
+  open import Categories.Category.Monoidal.Properties (I.monoidal)
   open import Categories.GradedKleisli.Coherence I
   open Shorthands
 
@@ -164,10 +164,10 @@ module _ {o ℓ e o′ ℓ′ e′ : Level}
     }
 
   private
-    subλ⇐λ⇒ : ∀ {X A} → C [ sub (λ⇐ {X}) C.∘ sub λ⇒ ≈ C.id {T₀ (I.unit ⊗₀ X) A} ]
+    subλ⇐λ⇒ : ∀ {X A} → C [ sub (λ⇐) C.∘ sub λ⇒ ≈ C.id {T₀ (I.unit ⊗₀ X) A} ]
     subλ⇐λ⇒ = let open C in ⟺ sub-homomorphism ○ sub-resp-≈ I.unitorˡ.isoˡ ○ sub-identity
 
-    subλ⇒λ⇐ : ∀ {X A} → C [ sub λ⇒ C.∘ sub (λ⇐ {X}) ≈ C.id {T₀ X A} ]
+    subλ⇒λ⇐ : ∀ {X A} → C [ sub λ⇒ C.∘ sub (λ⇐) ≈ C.id {T₀ X A} ]
     subλ⇒λ⇐ = let open C in ⟺ sub-homomorphism ○ sub-resp-≈ I.unitorˡ.isoʳ ○ sub-identity
 
     μ-ret : ∀ {v A} → C [ μ I.unit v C.∘ return {T₀ v A} ≈ sub λ⇐ ]

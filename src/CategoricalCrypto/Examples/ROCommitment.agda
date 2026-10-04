@@ -19,7 +19,6 @@ open import Data.Maybe.Base
 open import Data.Nat.Base
 open import Data.Product.Base
 open import Data.Sum.Base
-open import Data.Unit.Polymorphic.Base
 open import Data.Vec.Base using () renaming (_∷_ to _∷ᵛ_)
 open import Function.Base
 open import Level

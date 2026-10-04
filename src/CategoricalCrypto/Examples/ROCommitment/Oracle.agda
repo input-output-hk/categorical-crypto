@@ -56,8 +56,7 @@ fetchT-sup : (t : Tbl) (x : Pt)
                        (fetchT id t x)
 fetchT-sup t x with lookupPt t x
 ... | just d  = OnSupport-return (inj₁ (refl , refl))
-... | nothing = OnSupport-map (uniform-Vec k) _
-                  (λ h → inj₂ (refl , refl))
+... | nothing = OnSupport-map (uniform-Vec k) _ (λ h → inj₂ (refl , refl))
 
 -- The fetch with the fresh sample supplied, so that a coupling can feed it
 -- another game's draw; read against `fetchT` at a table that misses no more

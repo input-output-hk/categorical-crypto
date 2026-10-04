@@ -79,14 +79,14 @@ traceStep-cong S A B X e =
 -- The braiding's loop body exits on its first pass, so `iter` collapses after
 -- one unfolding.
 private
-  iter-σᴹ : {X : Obj} → iter (loopBody Iˢ X X X (step (σᴹ {X} {X}))) ≈ id
+  iter-σᴹ : iter (loopBody Iˢ X X X (step σᴹ)) ≈ id
   iter-σᴹ = iter-fix ○ (refl⟩∘⟨ refl⟩∘⟨ (merge₂ʳ ○ refl⟩⊗⟨ inject₂))
           ○ (refl⟩∘⟨ δ⇐-i₁) ○ inject₁
 
-  yank-step : {X : Obj} → traceStep Iˢ X X X (step (σᴹ {X} {X})) ≈ id
+  yank-step : traceStep Iˢ X X X (step σᴹ) ≈ id
   yank-step {X} = (refl⟩∘⟨ (merge₂ʳ ○ refl⟩⊗⟨ inject₁)) ○ solve-i₂ Iˢ X X X _ ○ iter-σᴹ
 
-yankingᴹ : {X : Obj} → traceᴹ X X X (σᴹ {X} {X}) ≲ idᴹ
+yankingᴹ : traceᴹ X X X σᴹ ≲ idᴹ
 yankingᴹ = mk-cong yank-step
 
 ------------------------------------------------------------------------
@@ -96,13 +96,13 @@ yankingᴹ = mk-cong yank-step
 -- entered: `tstep-i₁` routes the input straight past `solve`.
 private
   van₁-step : {A B : Obj} (f : Machine A B)
-            → traceStep (state (f ⊗ᵉ idᴹ {⊥})) A B ⊥ (step (f ⊗ᵉ idᴹ {⊥}))
+            → traceStep (state (f ⊗ᵉ idᴹ {⊥})) A B ⊥ (step (f ⊗ᵉ idᴹ))
             ≈ onL (step f)
   van₁-step {A = A} {B} f =
       (refl⟩∘⟨ tstep-i₁) ○ sym-assoc
     ○ (solve-i₁ (state (f ⊗ᵉ idᴹ {⊥})) A B ⊥ _ ⟩∘⟨refl) ○ identityˡ
 
-vanishing₁ᴹ : {A B : Obj} (f : Machine A B) → traceᴹ A B ⊥ (f ⊗ᵉ idᴹ {⊥}) ≲ f
+vanishing₁ᴹ : {A B : Obj} (f : Machine A B) → traceᴹ A B ⊥ (f ⊗ᵉ idᴹ) ≲ f
 vanishing₁ᴹ f = ≲-trans (mk-cong (van₁-step f)) (collapseʳ onL-collapseʳ)
 
 ------------------------------------------------------------------------
@@ -114,13 +114,10 @@ traceStep-∘ʳ : (S : State) (A B C X : Obj)
                (k : obj S ⊗₀ (A + X) ⇒ obj S ⊗₀ (B + X))
                (n : obj S ⊗₀ C ⇒ obj S ⊗₀ A)
              → traceStep S A B X k ∘ n ≈ traceStep S C B X (k ∘ tstep n id)
-traceStep-∘ʳ S A B C X k n = assoc ○ ⟺ (sv ⟩∘⟨ ent)
+traceStep-∘ʳ S A B C X k n = assoc ○ ⟺ (([]-cong₂ refl (iter-cong lb) ⟩∘⟨refl) ⟩∘⟨ ent)
   where
     lb : loopBody S C B X (k ∘ tstep n id) ≈ loopBody S A B X k
     lb = assoc ○ (refl⟩∘⟨ (tstep-i₂ ○ identityʳ))
-
-    sv : solve S C B X (k ∘ tstep n id) ≈ solve S A B X k
-    sv = []-cong₂ refl (iter-cong lb) ⟩∘⟨refl
 
     ent : (k ∘ tstep n id) ∘ id ⊗₁ i₁ ≈ (k ∘ id ⊗₁ i₁) ∘ n
     ent = assoc ○ (refl⟩∘⟨ tstep-i₁) ○ sym-assoc

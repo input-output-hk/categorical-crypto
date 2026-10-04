@@ -6,10 +6,10 @@
 
 module Data.Maybe.Ext where
 
-open import Data.Bool.Base using (T)
-open import Data.Maybe.Base using (Maybe; just; nothing; is-just)
-open import Level using (Level)
-open import Relation.Binary.PropositionalEquality using (_≢_)
+open import Data.Bool.Base
+open import Data.Maybe.Base
+open import Level
+open import Relation.Binary.PropositionalEquality
 
 private
   variable

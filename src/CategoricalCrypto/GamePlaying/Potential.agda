@@ -31,8 +31,7 @@ open import Data.Product.Base
 open import Data.Rational using (ℚ; 0ℚ; 1ℚ)
   renaming (_+_ to _+ℚ_; _*_ to _*ℚ_; _≤_ to _≤ℚ_)
 open import Data.Rational.Properties using
-  ( +-assoc; +-identityˡ; +-identityʳ; +-mono-≤; +-monoˡ-≤; +-monoʳ-≤; ≤-reflexive
-  ; ≤-trans )
+  (+-assoc; +-identityˡ; +-mono-≤; +-monoˡ-≤; ≤-reflexive; ≤-trans)
 open import Data.Rational.Properties.Ext
 open import Data.Sum.Base
 open import Data.Unit.Base
@@ -120,8 +119,7 @@ drift-∧ k g false p = ≤-trans
   module C₁ = SuperCert c₁
   module C₂ = SuperCert c₂
 
-  bad : ∀ m s → C₁.Inv s × C₂.Inv s → (f s ∨ g s) ≡ true
-      → 1ℚ ≤ℚ C₁.φ m s +ℚ C₂.φ m s
+  bad : ∀ m s → C₁.Inv s × C₂.Inv s → (f s ∨ g s) ≡ true → 1ℚ ≤ℚ C₁.φ m s +ℚ C₂.φ m s
   bad m s i e with f s in ef
   ... | true  = ≤-trans (C₁.φ-bad m s (proj₁ i) ef) (p≤p+q _ (C₂.φ-nn m s (proj₂ i)))
   ... | false = ≤-trans (C₂.φ-bad m s (proj₂ i) e) (p≤q+p _ (C₁.φ-nn m s (proj₁ i)))

@@ -80,11 +80,11 @@ assocʳᵏ (inj₂ _)        = >>=-identityˡ-≈
 
 -- A pure interface relabelling spends two junctions and keeps the state.
 pureᴵ : (h : V → W) (r : X × V)
-      → V._⊗₁_ (V.id {X}) (pureᵏ h) r ≈ᵈ returnₚ (proj₁ r , h (proj₂ r))
+      → V._⊗₁_ V.id (pureᵏ h) r ≈ᵈ returnₚ (proj₁ r , h (proj₂ r))
 pureᴵ h = pureᵏ-⊗ (λ x → x) h
 
 enter-pure : {A : V.Obj} (h : V → W) (K : X × W → Dₚ A) (x : X) (v : V)
-           → (V._⊗₁_ (V.id {X}) (pureᵏ h) (x , v) >>= K) ≈ᵈ K (x , h v)
+           → (V._⊗₁_ V.id (pureᵏ h) (x , v) >>= K) ≈ᵈ K (x , h v)
 enter-pure h K x v = ≈ᵈ.trans (>>=-cong-x (pureᴵ h (x , v))) >>=-identityˡ-≈
 
 -- Entering a `tstep` on one summand runs that arm and retags its answer.
@@ -130,7 +130,7 @@ idᶠ _ = ≲⇒≈ᴹ˘ pureᴹ-id
 ⊗ᶠ : {f : Machine V W} {g : Machine V′ W′} {h : V → W} {k : V′ → W′}
    → f ≈ᴹ pureᶠ h → g ≈ᴹ pureᶠ k → (f ⊗ᵉ g) ≈ᴹ pureᶠ (Sum.map h k)
 ⊗ᶠ {h = h} e₁ e₂ = ⊗-pureᴹ e₁ e₂
-  ○ᴹ ≲⇒≈ᴹ (pureᴹ-cong (+₁-pureᵏ {h = h} V.Equiv.refl V.Equiv.refl))
+  ○ᴹ ≲⇒≈ᴹ (pureᴹ-cong (+₁-pureᵏ V.Equiv.refl V.Equiv.refl))
 
 α⇒ᶠ : (P Q R : V.Obj) → α⇒ᴹ {P} {Q} {R} ≈ᴹ pureᶠ ⊎assocʳ
 α⇒ᶠ _ _ _ = ≲⇒≈ᴹ (pureᴹ-cong assocʳᵏ)

@@ -55,12 +55,12 @@ unbraid {L = L} h = (refl⟩∘⟨ pad-braid L h ⟩∘⟨refl) ○ (refl⟩∘�
 σ-splitˡ : σ⇒ {P} {Q ⊗₀ X} ≈ (α⇐ ∘ (id ⊗₁ σ⇒ ∘ (α⇒ ∘ σ⇒ ⊗₁ id))) ∘ α⇐
 σ-splitˡ {P} {Q} {X} = insertʳ associator.isoʳ
                      ○ (⟺ (cancelˡ associator.isoˡ) ⟩∘⟨refl)
-                     ○ ((refl⟩∘⟨ ⟺ (hexagon₁ {P} {Q})) ⟩∘⟨refl)
+                     ○ ((refl⟩∘⟨ ⟺ (hexagon₁ {P})) ⟩∘⟨refl)
 
 σ-splitʳ : σ⇒ {P ⊗₀ Q} {X} ≈ α⇒ ∘ (((σ⇒ ⊗₁ id ∘ α⇐) ∘ id ⊗₁ σ⇒) ∘ α⇒)
 σ-splitʳ {P} {Q} {X} = insertˡ associator.isoʳ
                      ○ (refl⟩∘⟨ insertʳ associator.isoˡ)
-                     ○ (refl⟩∘⟨ (⟺ (hexagon₂ {P} {Q}) ⟩∘⟨refl))
+                     ○ (refl⟩∘⟨ (⟺ (hexagon₂ {P}) ⟩∘⟨refl))
 
 β-nat : (u : P ⇒ R) (v : Q ⇒ Z) (t : X ⇒ Y) → (u ⊗₁ t) ⊗₁ v ∘ β ≈ β ∘ (u ⊗₁ v) ⊗₁ t
 β-nat u v t = begin

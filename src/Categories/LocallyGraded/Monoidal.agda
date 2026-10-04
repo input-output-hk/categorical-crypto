@@ -76,4 +76,4 @@ record GradedMonoidal {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e
     triangle : ∀ {A B} → sub[ ℐ.id ℐ.⊗₁ I.λ⇒ ] ((id ⊗₁ λ⇒) ∙ α⇒) ≈ ρ⇒ {A} ⊗₁ id {B}
     pentagon : ∀ {A B C D} → sub[ (I.λ⇒ ℐ.∘ I.λ⇒ ℐ.⊗₁ ℐ.id) ℐ.⊗₁ I.λ⇒ ]
                                ((id ⊗₁ α⇒) ∙ α⇒ ∙ (α⇒ ⊗₁ id))
-             ≈ α⇒ {A} {B} {C ⊗₀ D} ∙ α⇒ {A ⊗₀ B} {C} {D}
+             ≈ α⇒ {A} {B} ∙ α⇒ {A ⊗₀ B} {C} {D}

@@ -131,9 +131,8 @@ record UCSetup (o ℓ e o′ ℓ′ e′ cs ℓs : Level) : Set (suc (o ⊔ ℓ 
   regrade-∘ : ∀ {V} (W : ℐ.Obj) (a : X ℐ.⇒ V) (s : Y ℐ.⇒ X) (d : Env (T₀ (W ⊗₀ V) B))
             → regradeEnv W s (regradeEnv W a d) Env.≈ regradeEnv W (a ℐ.∘ s) d
   regrade-∘ W a s d =
-    Env.trans (Env.sym (pull-∘ (sub (ℐ.id ⊗₁ a)) (sub (ℐ.id ⊗₁ s)) d)) (pull-resp-≈ merge d)
-    where merge : sub (ℐ.id ⊗₁ a) 𝒞.∘ sub (ℐ.id ⊗₁ s) 𝒞.≈ sub (ℐ.id ⊗₁ (a ℐ.∘ s))
-          merge = 𝒞.⟺ sub-homomorphism 𝒞.○ sub-resp-≈ (MonR.merge₂ʳ ℐ.monoidal)
+    Env.trans (Env.sym (pull-∘ (sub (ℐ.id ⊗₁ a)) (sub (ℐ.id ⊗₁ s)) d))
+      (pull-resp-≈ (𝒞.⟺ sub-homomorphism 𝒞.○ sub-resp-≈ (MonR.merge₂ʳ ℐ.monoidal)) d)
 
   run-sub : (W : ℐ.Obj) (s : Y ℐ.⇒ X) (g : A 𝒞.⇒ T₀ Y B) (e : Env (T₀ (W ⊗₀ X) B))
           → run W (sub s 𝒞.∘ g) e Env.≈ run W g (regradeEnv W s e)

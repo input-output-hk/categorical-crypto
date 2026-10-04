@@ -12,7 +12,6 @@ open import Categories.Category.Monoidal.Bundle
 import Categories.Category.Monoidal.Braided.Properties as BraidedProps
 import Categories.Category.Monoidal.Utilities as MonoidalUtilities
 
-open import Data.Product.Base
 
 import CategoricalCrypto.Machines.Core as Core
 

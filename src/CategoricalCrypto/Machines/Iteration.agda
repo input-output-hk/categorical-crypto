@@ -42,7 +42,6 @@ open MDP 𝒱 dist
 open PureSub 𝒫
 open Tensor 𝒱 dist 𝒫
 
-open import Categories.Category.Monoidal.Properties.Ext monoidal
 open import Categories.Category.Monoidal.Reasoning monoidal
 
 private variable A B C P S T : Obj
@@ -96,6 +95,6 @@ record Elgot : Set (levelOfTerm 𝒱) where
                → {v : T ⊗₀ A ⇒ T ⊗₀ (B + A)}
                → v ∘ θ ⊗₁ id ≈ θ ⊗₁ id ∘ u → iter v ∘ θ ⊗₁ id ≈ θ ⊗₁ id ∘ iter u
   iter-uniform {A = A} {B} {u} θ θᵖ {v} hyp =
-    iter-transfer (θ ⊗₁ id {A}) (θ ⊗₁ id {B})
-                  (pure-⊗₁ θᵖ pure-id) (pure-⊗₁ θᵖ pure-id) {u} {v}
+    iter-transfer (θ ⊗₁ id) (θ ⊗₁ id)
+                  (pure-⊗₁ θᵖ pure-id) (pure-⊗₁ θᵖ pure-id)
                   (hyp ○ (⟺ (tstep-pad θ) ⟩∘⟨refl))

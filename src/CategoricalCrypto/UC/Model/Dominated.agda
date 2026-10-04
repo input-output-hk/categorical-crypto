@@ -138,4 +138,4 @@ dominatedᵍ : {P B : Iface} (W : G.Obj)
            → Obs ((E G.∘ T₁ᵒ W (gradedᵒ u)) G.∘ m)
              ≈ₚ[ ε ] Obs ((E G.∘ T₁ᵒ W (gradedᵒ v)) G.∘ m)
 dominatedᵍ W E m {c} {c′} qE qm u v ε h =
-  dominatedᵍᵠ W E m {c} {c′} qE qm u v ε (λ d _ → h d)
+  dominatedᵍᵠ W E m qE qm u v ε (λ d _ → h d)

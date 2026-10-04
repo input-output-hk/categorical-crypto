@@ -18,8 +18,7 @@ open import Data.List.Membership.Propositional public
   using () renaming (_∈_ to _∈ˡ_; _∉_ to _∉ˡ_)
 open import Data.Maybe public
   hiding (_>>=_; align; alignWith; ap; fromMaybe; map; zip; zipWith)
-open import Data.Unit public
-  using (⊤; tt)
+open import Data.Unit public using (⊤; tt)
 open import Data.Sum public
   hiding (assocʳ; assocˡ; map; map₁; map₂; reduce; swap)
 open import Data.Product public
@@ -27,11 +26,8 @@ open import Data.Product public
 open import Data.Nat public
   hiding (_≟_; _≤_; _≤?_; _<_; _<?_; _≤ᵇ_; _≡ᵇ_; _≥_; _>_; less-than-or-equal)
   renaming (_+_ to _+ℕ_)
-open import Data.Integer as ℤ public
-  using (ℤ)
-  renaming (_+_ to _+ℤ_)
-open import Data.String public
-  using (String; _<+>_)
+open import Data.Integer as ℤ public using (ℤ) renaming (_+_ to _+ℤ_)
+open import Data.String public using (String; _<+>_)
 
 open import Relation.Nullary public
 open import Relation.Nullary.Negation public
@@ -45,8 +41,7 @@ open import Relation.Binary public
 open import Relation.Binary.PropositionalEquality public
   hiding (preorder; isPreorder; setoid; [_])
 
-open import Class.Functor public
-  renaming (fmap to map)
+open import Class.Functor public renaming (fmap to map)
 open import Class.Bifunctor public
 open import Class.Semigroup public
 open import Class.Monoid public
@@ -58,7 +53,7 @@ open import Class.Decidable public
 open import Class.Show public
 
 open import Relation.Binary.Bundles
-open import Function.Properties.Equivalence using (⇔-setoid)
+open import Function.Properties.Equivalence
 -- predicates on a setoid
 PredS : ∀ {c ℓ} (S : Setoid c ℓ) (p : Level) → Set (c ⊔ˡ ℓ ⊔ˡ sucˡ p)
 PredS A p = Func A (⇔-setoid p)

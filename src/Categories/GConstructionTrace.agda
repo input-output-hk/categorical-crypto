@@ -43,8 +43,7 @@ Cˢ = record { U = C ; monoidal = Monoidal ; symmetric = symmetric }
 α = α⇒ ∘ σ⇒ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ (σ⇒ ⊗₁ id) ∘ id ⊗₁ α⇐ ∘ α⇒
 
 γ : ∀ {A⁺ B⁺ B⁻ C⁻ : Obj} → (A⁺ ⊗₀ C⁻) ⊗₀ (B⁻ ⊗₀ B⁺) ⇒ (B⁺ ⊗₀ C⁻) ⊗₀ (A⁺ ⊗₀ B⁻)
-γ = α⇒ ∘ σ⇒ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ (σ⇒ ⊗₁ id)
-  ∘ id ⊗₁ α⇐ ∘ α⇒ ∘ id ⊗₁ σ⇒
+γ = α⇒ ∘ σ⇒ ⊗₁ id ∘ α⇐ ∘ id ⊗₁ (σ⇒ ⊗₁ id) ∘ id ⊗₁ α⇐ ∘ α⇒ ∘ id ⊗₁ σ⇒
 
 -- The middle-four interchange, the only structural morphism the
 -- G-construction's tensor of morphisms needs.  It is upstream's
@@ -106,19 +105,19 @@ module _ where
     mid-λ = switch-fromtoʳ (≅.sym (unitorˡ ⊗ᵢ idᵢ))
               (switch-fromtoˡ (unitorˡ ⊗ᵢ unitorˡ) (IB.swapInner-unitˡ braided)) ○ assoc
 
-    mid-λ′ : ∀ {X Y} → mid {unit} {X} {unit} {Y} ≈ λ⇐ ⊗₁ id ∘ λ⇐ ∘ λ⇒ ⊗₁ λ⇒
+    mid-λ′ : ∀ {X Y} → mid {unit} {X} {unit} ≈ λ⇐ ⊗₁ id ∘ λ⇐ ∘ λ⇒ ⊗₁ λ⇒
     mid-λ′ {X} {Y} = ⟺ (elimʳ inv) ○ cancelˡ mid-involutive
       where inv : mid {unit} {unit} {X} {Y} ∘ λ⇐ ⊗₁ id ∘ λ⇐ ∘ λ⇒ ⊗₁ λ⇒ ≈ id
             inv = pullˡ (switch-fromtoˡ (unitorˡ ⊗ᵢ unitorˡ) (IB.swapInner-unitˡ braided))
                   ○ assoc ○ refl⟩∘⟨ cancelˡ unitorˡ.isoʳ ○ (⟺ ⊗-distrib-over-∘ ○ (unitorˡ.isoˡ ⟩⊗⟨ unitorˡ.isoˡ) ○ ⊗.identity)
 
-    mid-ρ : ∀ {X Y} → mid {X} {Y} {unit} {unit} ≈ ρ⇐ ⊗₁ ρ⇐ ∘ ρ⇒ ∘ id ⊗₁ λ⇒
+    mid-ρ : ∀ {X Y} → mid {X} {Y} ≈ ρ⇐ ⊗₁ ρ⇐ ∘ ρ⇒ ∘ id ⊗₁ λ⇒
     mid-ρ = switch-fromtoʳ (≅.sym (idᵢ ⊗ᵢ unitorˡ))
               (switch-fromtoˡ (unitorʳ ⊗ᵢ unitorʳ) (IB.swapInner-unitʳ braided)) ○ assoc
 
-    mid-ρ′ : ∀ {X Y} → mid {X} {unit} {Y} {unit} ≈ id ⊗₁ λ⇐ ∘ ρ⇐ ∘ ρ⇒ ⊗₁ ρ⇒
+    mid-ρ′ : ∀ {X Y} → mid {X} {unit} {Y} ≈ id ⊗₁ λ⇐ ∘ ρ⇐ ∘ ρ⇒ ⊗₁ ρ⇒
     mid-ρ′ {X} {Y} = ⟺ (elimʳ inv) ○ cancelˡ mid-involutive
-      where inv : mid {X} {Y} {unit} {unit} ∘ id ⊗₁ λ⇐ ∘ ρ⇐ ∘ ρ⇒ ⊗₁ ρ⇒ ≈ id
+      where inv : mid {X} ∘ id ⊗₁ λ⇐ ∘ ρ⇐ ∘ ρ⇒ ⊗₁ ρ⇒ ≈ id
             inv = pullˡ (switch-fromtoˡ (unitorʳ ⊗ᵢ unitorʳ) (IB.swapInner-unitʳ braided))
                   ○ assoc ○ refl⟩∘⟨ cancelˡ unitorʳ.isoʳ ○ (⟺ ⊗-distrib-over-∘ ○ (unitorʳ.isoˡ ⟩⊗⟨ unitorʳ.isoˡ) ○ ⊗.identity)
 
@@ -193,16 +192,15 @@ module WithTrace (L : TE.Laws Traced) where
 
   open TE.Laws L
 
-  trace-βyank : ∀ {Y X : Obj} → trace (β {Y} {X} {X}) ≈ id
+  trace-βyank : ∀ {Y X : Obj} → trace (β {Y} {X}) ≈ id
   trace-βyank = superposing ○ (refl⟩⊗⟨ yanking) ○ ⊗.identity
 
-  trace-gyank : ∀ {Y X B' : Obj} {g : Y ⊗₀ X ⇒ B'} →
-                trace (g ⊗₁ id ∘ β {Y} {X} {X}) ≈ g
+  trace-gyank : ∀ {Y X B' : Obj} {g : Y ⊗₀ X ⇒ B'} → trace (g ⊗₁ id ∘ β) ≈ g
   trace-gyank = ⟺ trace-∘ˡ ○ elimʳ trace-βyank
 
   -- Right superposing, the mirror of `Traced.superposing`.
   right-superposing : ∀ {X Y A' B'} {f' : A' ⊗₀ X ⇒ B' ⊗₀ X} →
-    trace f' ⊗₁ id {Y} ≈ trace (β ∘ f' ⊗₁ id ∘ β)
+    trace f' ⊗₁ id ≈ trace (β ∘ f' ⊗₁ id ∘ β)
   right-superposing {X} {Y} {A'} {B'} {f'} = begin
     trace f' ⊗₁ id
       ≈⟨ introˡ commutative ○ pullʳ (braiding.⇒.commute _) ⟩
@@ -235,8 +233,8 @@ module WithTrace (L : TE.Laws Traced) where
       ≈⟨ trace-resp-≈ trace-∘ˡ ⟩
     trace (trace (body₁ ⊗₁ id ∘ β ∘ body₂ ⊗₁ id ∘ β))
     ∎
-    where body₁ = β ∘ u ⊗₁ id {B'} ∘ β
-          body₂ = α⇐ ∘ id {A} ⊗₁ v ∘ α⇒
+    where body₁ = β ∘ u ⊗₁ id ∘ β
+          body₂ = α⇐ ∘ id ⊗₁ v ∘ α⇒
 
   -- The traced category's own "trace is monoidal", with no G-construction
   -- wiring in it: `TM` identifies `⊗-trace`'s β-conjugated body with
@@ -252,6 +250,6 @@ module WithTrace (L : TE.Laws Traced) where
   -- Re-bracketing the loop object along `mid`: slide, then `mid`'s involution.
   trace-mid : ∀ {A B P Q R S : Obj}
                 {f : A ⊗₀ ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S)) ⇒ B ⊗₀ ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S))} →
-              trace f ≈ trace (id ⊗₁ mid {P} {R} {Q} {S} ∘ f ∘ id ⊗₁ mid {P} {Q} {R} {S})
+              trace f ≈ trace (id ⊗₁ mid ∘ f ∘ id ⊗₁ mid)
   trace-mid = ⟺ (TE.trace-slide Traced L ○ trace-resp-≈ (cancelʳ
     (⟺ ⊗-distrib-over-∘ ○ (identityˡ ⟩⊗⟨ mid-involutive) ○ ⊗.identity)))

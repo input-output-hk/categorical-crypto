@@ -35,9 +35,9 @@ open import Data.Product.Base using (Σ; Σ-syntax; _×_; _,_; proj₁; proj₂;
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
 open import Data.Unit.Polymorphic.Base
 open import Function.Base
-open import Relation.Binary.Core using (_Preserves₂_⟶_⟶_)
+open import Relation.Binary.Core
 open import Relation.Binary.PropositionalEquality
-open import Relation.Binary.Structures using (IsPreorder)
+open import Relation.Binary.Structures
 
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Reasoning
@@ -108,7 +108,7 @@ module Ledgerᴿ (_∼_ : ℕ → ℕ → Set) (∼-isPreorder : IsPreorder _≡
                      Balanced Λ (Λ (proj₁ (proj₁ r)) + weight cost w) p)
             → Balanced Λ (Λ s + weight cost (x ∷ w)) (cons (proj₂ (proj₁ r)) z)
       chain r z =
-        ∼-trans (∼-reflexive (+-assoc (δ o) (weight δ os) (Λ s″)))
+        ∼-trans (∼-reflexive (+-assoc (δ o) (weight δ os) (Λ (proj₁ (proj₁ z)))))
           (∼-trans (+-mono-∼ (∼-refl {δ o}) (proj₂ z))
             (∼-trans (∼-reflexive (sym (+-assoc (δ o) (Λ s′) (weight cost w))))
               (∼-trans (+-mono-∼ (proj₂ r) ∼-refl)
@@ -116,7 +116,6 @@ module Ledgerᴿ (_∼_ : ℕ → ℕ → Set) (∼-isPreorder : IsPreorder _≡
         where
         o  = proj₂ (proj₁ r)
         s′ = proj₁ (proj₁ r)
-        s″ = proj₁ (proj₁ z)
         os = proj₂ (proj₁ z)
 
     runᴱ-erases : (s : S) (w : List (Pos A ⊎ Neg B))

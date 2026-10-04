@@ -79,7 +79,7 @@ tstep-relabel s = tstep-cong (⟺ ⊗.identity) Equiv.refl ○ tstep-str id s
 -- A padded state map relabels a sum interface summandwise, hence is its own
 -- `tstep`: the distributor is natural in the state.
 tstep-pad : {S T X Y : Obj} (θ : S ⇒ T)
-          → tstep (θ ⊗₁ id {X}) (θ ⊗₁ id {Y}) ≈ θ ⊗₁ id {X + Y}
+          → tstep (θ ⊗₁ id) (θ ⊗₁ id) ≈ θ ⊗₁ id {X + Y}
 tstep-pad θ = δ-unique (tstep-i₁ ○ pad-transport θ i₁) (tstep-i₂ ○ pad-transport θ i₂)
 
 tstep-sim : {X′ : Obj} {v : X ⇒ X′} {k : X ⊗₀ A ⇒ X ⊗₀ B} {k′ : X′ ⊗₀ A ⇒ X′ ⊗₀ B}

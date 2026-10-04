@@ -221,15 +221,15 @@ module FreeMonoidalHelper (v : Variant) (X : Set ℓ′) where
     open Category.HomReasoning FreeMonoidal
 
     id⊗-∘ : ∀ {Z} {A B C} (P : HomTerm B C) (Q : HomTerm A B)
-          → id {Z} ⊗₁ P ∘ id {Z} ⊗₁ Q ≈Term id {Z} ⊗₁ (P ∘ Q)
+          → id ⊗₁ P ∘ id ⊗₁ Q ≈Term id {Z} ⊗₁ (P ∘ Q)
     id⊗-∘ P Q = merge₂ʳ
 
     id⊗-∘3 : ∀ {Z} {A B C D} (P : HomTerm C D) (Q : HomTerm B C) (R : HomTerm A B)
-           → id {Z} ⊗₁ P ∘ id {Z} ⊗₁ Q ∘ id {Z} ⊗₁ R ≈Term id {Z} ⊗₁ (P ∘ Q ∘ R)
+           → id ⊗₁ P ∘ id ⊗₁ Q ∘ id ⊗₁ R ≈Term id {Z} ⊗₁ (P ∘ Q ∘ R)
     id⊗-∘3 {Z} P Q R = (refl⟩∘⟨ id⊗-∘ Q R) ○ id⊗-∘ P (Q ∘ R)
 
     id⊗-cancel : ∀ {Z} {A B} {P : HomTerm B A} {Q : HomTerm A B}
-               → P ∘ Q ≈Term id → id {Z} ⊗₁ P ∘ id {Z} ⊗₁ Q ≈Term id
+               → P ∘ Q ≈Term id → id ⊗₁ P ∘ id {Z} ⊗₁ Q ≈Term id
     id⊗-cancel {P = P} {Q} PQ = id⊗-∘ P Q ○ (refl⟩⊗⟨ PQ) ○ id⊗id≈id
 
     ⊗-cancel : ∀ {A A' B B'} {f : HomTerm A' A} {f' : HomTerm A A'}
@@ -314,19 +314,19 @@ module FreeMonoidalHelper (v : Variant) (X : Set ℓ′) where
       private
         hexagon₂
           : ∀ {X Y Z : ObjTerm}
-          → (σ {A = X} {B = Z} ⊗₁ id {A = Y}) ∘ α⇐ {A = X} {B = Z} {C = Y}
-              ∘ (id {A = X} ⊗₁ σ {A = Y} {B = Z})
-            ≈Term α⇐ {A = Z} {B = X} {C = Y} ∘ σ {A = X ⊗₀ Y} {B = Z}
+          → (σ ⊗₁ id) ∘ α⇐
+              ∘ (id ⊗₁ σ)
+            ≈Term α⇐ ∘ σ
               ∘ α⇐ {A = X} {B = Y} {C = Z}
         hexagon₂ = ≈-Term-sym assoc ○ S-hexagon₂ ○ assoc
 
       σ-A⊗B-expand
         : ∀ {A B C : ObjTerm}
-        → σ {A = A ⊗₀ B} {B = C}
-          ≈Term α⇒ {A = C} {B = A} {C = B}
-                  ∘ (σ {A = A} {B = C} ⊗₁ id {A = B})
-                  ∘ α⇐ {A = A} {B = C} {C = B}
-                  ∘ (id {A = A} ⊗₁ σ {A = B} {B = C})
+        → σ
+          ≈Term α⇒
+                  ∘ (σ ⊗₁ id)
+                  ∘ α⇐
+                  ∘ (id ⊗₁ σ)
                   ∘ α⇒ {A = A} {B = B} {C = C}
       σ-A⊗B-expand =
         ⟺ ( (refl⟩∘⟨ assoc²εβ)
@@ -360,7 +360,7 @@ module FreeMonoidalHelper (v : Variant) (X : Set ℓ′) where
     bind M₁.ρ⇐        = M₂.ρ⇐
     bind M₁.α⇒        = M₂.α⇒
     bind M₁.α⇐        = M₂.α⇐
-    bind (M₁.σ ⦃ s ⦄) = M₂.σ ⦃ s ⦄
+    bind (M₁.σ ⦃ s ⦄) = M₂.σ
 
     -- bind preserves the equational theory (each axiom maps to the same axiom).
     bind-resp-≈ : ∀ {A B} {f g : M₁.HomTerm A B} → f M₁.≈Term g → bind f M₂.≈Term bind g
@@ -385,9 +385,9 @@ module FreeMonoidalHelper (v : Variant) (X : Set ℓ′) where
     bind-resp-≈ M₁.α-comm                  = M₂.α-comm
     bind-resp-≈ M₁.triangle                = M₂.triangle
     bind-resp-≈ M₁.pentagon                = M₂.pentagon
-    bind-resp-≈ (M₁.σ∘σ≈id ⦃ s ⦄)          = M₂.σ∘σ≈id ⦃ s ⦄
-    bind-resp-≈ (M₁.σ∘[f⊗g]≈[g⊗f]∘σ ⦃ s ⦄) = M₂.σ∘[f⊗g]≈[g⊗f]∘σ ⦃ s ⦄
-    bind-resp-≈ (M₁.hexagon ⦃ s ⦄)         = M₂.hexagon ⦃ s ⦄
+    bind-resp-≈ (M₁.σ∘σ≈id ⦃ s ⦄)          = M₂.σ∘σ≈id
+    bind-resp-≈ (M₁.σ∘[f⊗g]≈[g⊗f]∘σ ⦃ s ⦄) = M₂.σ∘[f⊗g]≈[g⊗f]∘σ
+    bind-resp-≈ (M₁.hexagon ⦃ s ⦄)         = M₂.hexagon
 
 record FreeMonoidalData {ℓ′ : Level} : Set (suc ℓ′) where
   field v : Variant

@@ -17,12 +17,12 @@ open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 open import Data.Maybe.Base as Maybe using (Maybe; just; nothing)
 open import Data.Nat.Base
 open import Data.Product.Base using (Σ-syntax; _,_)
-open import Function.Base using (case_of_)
+open import Function.Base
 open import Relation.Binary.Definitions
 open import Relation.Binary.PropositionalEquality.Core
 open import Relation.Nullary.Decidable.Core
 
-≡-irrelevant : ∀ {a} {A : Set a} → DecidableEquality A → Irrelevant {A = List A} _≡_
+≡-irrelevant : ∀ {a} {A : Set a} → DecidableEquality A → Irrelevant _≡_
 ≡-irrelevant _≟_ = Decidable⇒UIP.≡-irrelevant (≡-dec _≟_)
 
 -- `Data.List.Effectful.MonadProperties.associative` is this at a single level.

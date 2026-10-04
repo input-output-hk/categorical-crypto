@@ -39,7 +39,7 @@ module _ (L : Laws) where
                 trace (id ⊗₁ g ∘ h) ≈ trace (h ∘ id ⊗₁ g)
   trace-slide {X} {Y} {A} {B} {h} {g} = ⟺ (begin
     trace (h ∘ id ⊗₁ g)
-      ≈⟨ trace-resp-≈ (refl⟩∘⟨ (refl⟩⊗⟨ g-trace)) ⟩
+      ≈⟨ trace-resp-≈ (refl⟩∘⟨ (refl⟩⊗⟨ (⟺ identityˡ ○ (⟺ yanking ⟩∘⟨refl) ○ trace-∘ʳ))) ⟩
     trace (h ∘ id ⊗₁ trace (σ⇒ ∘ g ⊗₁ id))
       ≈⟨ trace-resp-≈ (refl⟩∘⟨ ⟺ superposing) ⟩
     trace (h ∘ trace (α⇐ ∘ id ⊗₁ (σ⇒ ∘ g ⊗₁ id) ∘ α⇒))
@@ -60,10 +60,7 @@ module _ (L : Laws) where
     open import Categories.Morphism.Reasoning C
     open import Data.Product
 
-    g-trace : g ≈ trace (σ⇒ ∘ g ⊗₁ id)
-    g-trace = ⟺ identityˡ ○ (⟺ yanking ⟩∘⟨refl) ○ trace-∘ʳ
-
-    unloop : trace (β ∘ id ⊗₁ g) ≈ id {B} ⊗₁ g
+    unloop : trace (β ∘ id ⊗₁ g) ≈ id ⊗₁ g
     unloop = trace-resp-≈ (assoc ○ (refl⟩∘⟨ assoc) ○ (refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ (⟺ ⊗.identity ⟩⊗⟨refl))
                           ○ (refl⟩∘⟨ refl⟩∘⟨ assoc-commute-from)
                           ○ (refl⟩∘⟨ pullˡ (⟺ ⊗-distrib-over-∘ ○ (identityˡ ⟩⊗⟨ Equiv.refl))))
@@ -82,5 +79,5 @@ module _ (L : Laws) where
         ≈⟨ (refl⟩∘⟨ identityʳ) ○ (refl⟩∘⟨ (⊗.identity ⟩⊗⟨refl)) ○ ⟺ ⊗-distrib-over-∘ ○ (identityʳ ⟩⊗⟨ identityˡ) ⟩
       h ⊗₁ g ∎
       where
-      swap-g : σ⇒ ∘ g ⊗₁ id ∘ σ⇒ ≈ id {X} ⊗₁ g
+      swap-g : σ⇒ ∘ g ⊗₁ id ∘ σ⇒ ≈ id ⊗₁ g
       swap-g = (refl⟩∘⟨ ⟺ (braiding.⇒.commute (id , g))) ○ cancelˡ commutative

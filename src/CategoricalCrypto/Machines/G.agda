@@ -175,7 +175,7 @@ module _ where
               ≈ᴹ (idᴹ ⊗ᵉ traceᴹ A B X f)
   superposing {A} {B} {P} {X} f =
     ≲⇒≈ᴹ (≲-trans (trace-resp-≲ (≲-trans (∘ᴹ-resp-≲ ≲-refl (pure-∘ʳ α+⇒ M))
-                                         (pure-∘ˡ α+⇐ (mk V k))))
+                                         (pure-∘ˡ α+⇐ (mk V (step M ∘ id ⊗₁ α+⇒)))))
                   (mk-cong (traceStep-cong V (P + A) (P + B) X
                               (refl⟩∘⟨ (tstep-cong onL-id refl ⟩∘⟨refl))
                             ○ super-step V P A B X (onR (step f))
@@ -183,9 +183,6 @@ module _ where
     where
       M = idᴹ ⊗ᵉ f
       V = state M
-
-      k : obj V ⊗₀ ((P + A) + X) ⇒ obj V ⊗₀ (P + (B + X))
-      k = step M ∘ id ⊗₁ α+⇒
 
 ------------------------------------------------------------------------
 -- The traced category and its G construction

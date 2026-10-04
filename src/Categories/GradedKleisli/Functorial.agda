@@ -182,7 +182,7 @@ module _ {o ℓ e o′ ℓ′ e′ : Level} (𝒞 : Category o′ ℓ′ e′) w
     ∘G : ∀ {A B D} → Hom B D → Hom A B → Hom A D
     ∘G {𝒦 , P} {𝒥 , N} {ℐ , M} (Φ , κρ , ρ) (Ψ , κπ , π) =
       ∘-Monoidal Φ Ψ , κρ 𝒞.∘ κπ
-      , composeFillerId {P = P} {N = N} {M = M} {Ψ = Ψ} {Φ = Φ} {κρ = κρ} {κπ = κπ} ρ π
+      , composeFillerId ρ π
 
   Kl₀ : Obj → Category (o ⊔ o′) (o ⊔ ℓ ⊔ ℓ′) (o ⊔ ℓ ⊔ ℓ′ ⊔ e ⊔ e′)
   Kl₀ (ℐ , M) = GradedKleisli 𝒞 ℐ M
@@ -204,7 +204,7 @@ module _ {o ℓ e o′ ℓ′ e′ : Level} (𝒞 : Category o′ ℓ′ e′) w
   opaque
     unfolding idG ∘G KlMap
 
-    Kl-identity : ∀ {A} → _≡F_ {C = Kl₀ A} {D = Kl₀ A} (KlMap {A} {A} (idG {A})) (idF {C = Kl₀ A})
+    Kl-identity : ∀ {A} → _≡F_ (KlMap {A} {A} idG) idF
     Kl-identity {ℐ , M} = record
       { eq₀ = λ _ → refl
       ; eq₁ = λ h → let open Category (Kl₀ (ℐ , M)); open HomReasoning in
@@ -219,9 +219,9 @@ module _ {o ℓ e o′ ℓ′ e′ : Level} (𝒞 : Category o′ ℓ′ e′) w
 
     Kl-homomorphism
       : ∀ {A B D} {g : Hom B D} {f : Hom A B}
-      → _≡F_ {C = Kl₀ A} {D = Kl₀ D}
-          (KlMap {A} {D} (∘G {A} {B} {D} g f))
-          (_∘F_ {C = Kl₀ A} {D = Kl₀ B} {E = Kl₀ D} (KlMap {B} {D} g) (KlMap {A} {B} f))
+      → _≡F_
+          (KlMap {A} {D} (∘G {A} g f))
+          (_∘F_ (KlMap {B} {D} g) (KlMap {A} {B} f))
     Kl-homomorphism {𝒦 , P} {𝒥 , N} {ℐ , M} {Φ , _ , ρ} {Ψ , _ , π} = record
       { eq₀ = λ _ → refl
       ; eq₁ = λ where

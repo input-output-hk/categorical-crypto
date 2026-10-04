@@ -122,7 +122,7 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
   -- wires.
   --------------------------------------------------------------------------------
   padʷ : (pre suf : List X) {a b : List X} → WTerm a b → WTerm (pre ++ (a ++ suf)) (pre ++ (b ++ suf))
-  padʷ pre suf g = idʷ {n = pre} ⊗ʷ (g ⊗ʷ idʷ {n = suf})
+  padʷ pre suf g = idʷ {n = pre} ⊗ʷ (g ⊗ʷ idʷ)
 
   --------------------------------------------------------------------------------
   -- The equational theory, parametrised by an engine relation `R`.  Besides the
@@ -150,10 +150,10 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
       inter : ∀ {nl ml kl nr mr kr} {g : WTerm ml kl} {f : WTerm nl ml} {g' : WTerm mr kr} {f' : WTerm nr mr} → (g ∘ʷ f) ⊗ʷ (g' ∘ʷ f') ≈ʷ (g ⊗ʷ g') ∘ʷ (f ⊗ʷ f')
       -- the left unit is definitional on OBJECTS (`[] ++ n = n`) but not on
       -- terms; it is the strictness axiom "left unitor = identity".
-      unitˡ : (f : WTerm n m) → idʷ {n = []} ⊗ʷ f ≈ʷ f
+      unitˡ : (f : WTerm n m) → idʷ ⊗ʷ f ≈ʷ f
       -- cast-mediated axioms: associativity and the right unit
       ⊗-assoc : ∀ {n₁ m₁ n₂ m₂ n₃ m₃} (f : WTerm n₁ m₁) (g : WTerm n₂ m₂) (h : WTerm n₃ m₃) → castʷᵈ (++-assoc n₁ n₂ n₃) (castʷ (++-assoc m₁ m₂ m₃) ((f ⊗ʷ g) ⊗ʷ h)) ≈ʷ f ⊗ʷ (g ⊗ʷ h)
-      unitʳ : (f : WTerm n m) → castʷᵈ (++-identityʳ n) (castʷ (++-identityʳ m) (f ⊗ʷ idʷ {n = []})) ≈ʷ f
+      unitʳ : (f : WTerm n m) → castʷᵈ (++-identityʳ n) (castʷ (++-identityʳ m) (f ⊗ʷ idʷ)) ≈ʷ f
       -- the engine relation
       axiom : R f g → f ≈ʷ g
 
@@ -209,10 +209,10 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
     coeʷ-fuse refl refl = idˡ
 
     -- whiskering a `coeʷ` by an idle block on either side lifts to a `coeʷ`
-    coeʷ-⊗ˡ : (e : m ≡ m') (r : List X) → coeʷ e ⊗ʷ idʷ {n = r} ≈ʷ coeʷ (cong (_++ r) e)
+    coeʷ-⊗ˡ : (e : m ≡ m') (r : List X) → coeʷ e ⊗ʷ idʷ ≈ʷ coeʷ (cong (_++ r) e)
     coeʷ-⊗ˡ refl r = id⊗id
 
-    coeʷ-⊗ʳ : (l : List X) (e : m ≡ m') → idʷ {n = l} ⊗ʷ coeʷ e ≈ʷ coeʷ (cong (l ++_) e)
+    coeʷ-⊗ʳ : (l : List X) (e : m ≡ m') → idʷ ⊗ʷ coeʷ e ≈ʷ coeʷ (cong (l ++_) e)
     coeʷ-⊗ʳ l refl = id⊗id
 
     --------------------------------------------------------------------------------
@@ -225,7 +225,7 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
 
       -- right-unitor / associator naturality: the `unitʳ` / `⊗-assoc` axiom
       -- moved to the caller's `castʷ`-form through the two `coeʷ` bridges.
-      unitorʳ-commuteˢ : {f : WTerm n m} → coeʷ (++-identityʳ m) ∘ʷ (f ⊗ʷ idʷ {n = []}) ≈ʷ f ∘ʷ coeʷ (++-identityʳ n)
+      unitorʳ-commuteˢ : {f : WTerm n m} → coeʷ (++-identityʳ m) ∘ʷ (f ⊗ʷ idʷ) ≈ʷ f ∘ʷ coeʷ (++-identityʳ n)
       unitorʳ-commuteˢ {n} {m} {f} = begin
         coeʷ (++-identityʳ m) ∘ʷ (f ⊗ʷ idʷ)
           ≈⟨ coeʷ-∘ (++-identityʳ m) (f ⊗ʷ idʷ) ⟩
@@ -250,7 +250,7 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
           ≈⟨ coeʷ-∘ʳ (++-assoc n₁ n₂ n₃) (f ⊗ʷ (g ⊗ʷ h)) ⟨
         (f ⊗ʷ (g ⊗ʷ h)) ∘ʷ coeʷ (++-assoc n₁ n₂ n₃) ∎
 
-      triangleˢ : {x y : List X} → (idʷ {n = x} ⊗ʷ idʷ) ∘ʷ coeʷ (++-assoc x [] y) ≈ʷ coeʷ (++-identityʳ x) ⊗ʷ idʷ {n = y}
+      triangleˢ : {x y : List X} → (idʷ ⊗ʷ idʷ) ∘ʷ coeʷ (++-assoc x [] y) ≈ʷ coeʷ (++-identityʳ x) ⊗ʷ idʷ
       triangleˢ {x} {y} = begin
         (idʷ {n = x} ⊗ʷ idʷ) ∘ʷ coeʷ (++-assoc x [] y)
           ≈⟨ ∘-resp-≈ id⊗id reflʷ ⟩
@@ -260,11 +260,11 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
           ≈⟨ coeʷ-irr (++-assoc x [] y) (cong (_++ y) (++-identityʳ x)) ⟩
         coeʷ (cong (_++ y) (++-identityʳ x))
           ≈⟨ coeʷ-⊗ˡ (++-identityʳ x) y ⟨
-        coeʷ (++-identityʳ x) ⊗ʷ idʷ {n = y} ∎
+        coeʷ (++-identityʳ x) ⊗ʷ idʷ ∎
 
       pentagonˢ : {x y z w : List X}
-                → (idʷ {n = x} ⊗ʷ coeʷ (++-assoc y z w))
-                    ∘ʷ (coeʷ (++-assoc x (y ++ z) w) ∘ʷ (coeʷ (++-assoc x y z) ⊗ʷ idʷ {n = w}))
+                → (idʷ ⊗ʷ coeʷ (++-assoc y z w))
+                    ∘ʷ (coeʷ (++-assoc x (y ++ z) w) ∘ʷ (coeʷ (++-assoc x y z) ⊗ʷ idʷ))
                   ≈ʷ coeʷ (++-assoc x y (z ++ w)) ∘ʷ coeʷ (++-assoc (x ++ y) z w)
       pentagonˢ {x} {y} {z} {w} = begin
         (idʷ ⊗ʷ coeʷ aYZW) ∘ʷ (coeʷ aXYZ,W ∘ʷ (coeʷ aXYZ ⊗ʷ idʷ))
@@ -350,17 +350,17 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
     -- The pad regroupings as cast-free `≋` statements: `pad-nestᴶ` at a split
     -- prefix, `pad-nestRᴶ` at a split suffix, and `nest3ᴶ` the threefold nesting.
     --------------------------------------------------------------------------------
-    pad-nestᴶ : (p q suf : List X) {a b : List X} (g : WTerm a b) → padʷ (p ++ q) suf g ≋ (idʷ {n = p} ⊗ʷ padʷ q suf g)
-    pad-nestᴶ p q suf g = ≋-trans (≈ʷ→≋ (⊗-resp-≈ʷ (symʷ id⊗id) reflʷ)) (⊗-assocᴶ (idʷ {n = p}) (idʷ {n = q}) (g ⊗ʷ idʷ {n = suf}))
+    pad-nestᴶ : (p q suf : List X) {a b : List X} (g : WTerm a b) → padʷ (p ++ q) suf g ≋ (idʷ ⊗ʷ padʷ q suf g)
+    pad-nestᴶ p q suf g = ≋-trans (≈ʷ→≋ (⊗-resp-≈ʷ (symʷ id⊗id) reflʷ)) (⊗-assocᴶ idʷ idʷ (g ⊗ʷ idʷ))
 
-    pad-nestRᴶ : (pre suf rt : List X) {a b : List X} (g : WTerm a b) → padʷ pre (suf ++ rt) g ≋ (padʷ pre suf g ⊗ʷ idʷ {n = rt})
+    pad-nestRᴶ : (pre suf rt : List X) {a b : List X} (g : WTerm a b) → padʷ pre (suf ++ rt) g ≋ (padʷ pre suf g ⊗ʷ idʷ)
     pad-nestRᴶ pre suf rt g =
       ≋-trans (≈ʷ→≋ (⊗-resp-≈ʷ reflʷ (⊗-resp-≈ʷ reflʷ (symʷ id⊗id))))
-        (≋-trans (≋-cong-⊗ʳ (idʷ {n = pre}) (≋-sym (⊗-assocᴶ g (idʷ {n = suf}) (idʷ {n = rt}))))
-                 (≋-sym (⊗-assocᴶ (idʷ {n = pre}) (g ⊗ʷ idʷ {n = suf}) (idʷ {n = rt}))))
+        (≋-trans (≋-cong-⊗ʳ idʷ (≋-sym (⊗-assocᴶ g idʷ idʷ)))
+                 (≋-sym (⊗-assocᴶ idʷ (g ⊗ʷ idʷ) idʷ)))
 
-    nest3ᴶ : (p q r suf : List X) {a b : List X} (g : WTerm a b) → padʷ (p ++ (q ++ r)) suf g ≋ (idʷ {n = p} ⊗ʷ (idʷ {n = q} ⊗ʷ padʷ r suf g))
-    nest3ᴶ p q r suf g = ≋-trans (pad-nestᴶ p (q ++ r) suf g) (≋-cong-⊗ʳ (idʷ {n = p}) (pad-nestᴶ q r suf g))
+    nest3ᴶ : (p q r suf : List X) {a b : List X} (g : WTerm a b) → padʷ (p ++ (q ++ r)) suf g ≋ (idʷ ⊗ʷ (idʷ ⊗ʷ padʷ r suf g))
+    nest3ᴶ p q r suf g = ≋-trans (pad-nestᴶ p (q ++ r) suf g) (≋-cong-⊗ʳ idʷ (pad-nestᴶ q r suf g))
 
     pad-nest : (p q suf : List X) {a b : List X} (g : WTerm a b)
              → padʷ (p ++ q) suf g
@@ -380,7 +380,7 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
       pad-nestR : (pre suf rt : List X) {a b : List X} (g : WTerm a b)
                   (dd : (pre ++ (a ++ suf)) ++ rt ≡ pre ++ (a ++ (suf ++ rt)))
                   (dc : (pre ++ (b ++ suf)) ++ rt ≡ pre ++ (b ++ (suf ++ rt)))
-                → padʷ pre (suf ++ rt) g ≈ʷ castʷᵈ dd (castʷ dc (padʷ pre suf g ⊗ʷ idʷ {n = rt}))
+                → padʷ pre (suf ++ rt) g ≈ʷ castʷᵈ dd (castʷ dc (padʷ pre suf g ⊗ʷ idʷ))
       pad-nestR pre suf rt g dd dc = ≋→cast-formˢ (≋-sym (pad-nestRᴶ pre suf rt g)) dd dc
 
       nest3 : (p q r suf : List X) {a b : List X} (g : WTerm a b)
@@ -424,7 +424,7 @@ module FreeStrictMonoidalHelper {X : Set} (Gen : List X → List X → Set) wher
         fy-core : FY ∘ʷ (idʷ {n = P} ⊗ʷ (idʷ {n = ay} ⊗ʷ Fx)) ≈ʷ CANON
         fy-core = transʷ (symʷ inter) (⊗-resp-≈ʷ idˡ (symʷ serialize₁₂))
 
-        fy-core' : (idʷ {n = P} ⊗ʷ (idʷ {n = by} ⊗ʷ Fx)) ∘ʷ FYi ≈ʷ CANON
+        fy-core' : (idʷ ⊗ʷ (idʷ ⊗ʷ Fx)) ∘ʷ FYi ≈ʷ CANON
         fy-core' = transʷ (symʷ inter) (⊗-resp-≈ʷ idˡ (symʷ serialize₂₁))
 
         core-in : WTerm (P ++ (ay ++ (mid ++ (ax ++ s)))) (P ++ (ay ++ (mid ++ (bx ++ s))))

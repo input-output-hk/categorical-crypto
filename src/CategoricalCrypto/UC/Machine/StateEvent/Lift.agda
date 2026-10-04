@@ -15,14 +15,14 @@
 -- the flag earlier and then continues would NOT be dominated: completed-run
 -- hits are not prefix hits.
 
-open import Categories.Category using (Category)
+open import Categories.Category
 open import Categories.Category.Monoidal.Bundle
 
 open import Data.Bool.Base
 open import Data.Empty
 open import Data.Nat.Base as ℕ
 open import Data.Product.Base
-open import Data.Rational as ℚ using (ℚ; 0ℚ)
+open import Data.Rational as ℚ using (ℚ)
 open import Data.Rational.Properties
 open import Data.Sum.Base as Sum
 open import Data.Unit.Base
@@ -98,7 +98,7 @@ flag-slide Y B E m = begin
   w : Proc unitᴵ Y
   w = ρᴵ⇒ 𝒫.∘ m
 
-  bottom : {X : Iface} → 𝒫._≈_ {X} {Y ⊗ᴵ X}
+  bottom : {X : Iface} → 𝒫._≈_ {X}
              (T₁ᴵ Y λᴵ⇒ 𝒫.∘ (a⇒ᴵ 𝒫.∘ (subᴵ m 𝒫.∘ λᴵ⇐))) (subᴵ w 𝒫.∘ λᴵ⇐)
   bottom = (refl⟩∘⟨ 𝒫.sym-assoc) ○ 𝒫.sym-assoc ○ (ρ-tri-sub m ⟩∘⟨refl)
 
@@ -115,8 +115,7 @@ flag-slide Y B E m = begin
     subᴵ (subᴵ w) 𝒫.∘ a⇐ᴵ ∎
 
   core : 𝒫._≈_ (a⇐ᴵ 𝒫.∘ (subᴵ w 𝒫.∘ λᴵ⇐)) (subᴵ (subᴵ w 𝒫.∘ λᴵ⇐))
-  core = 𝒫.sym-assoc ○ (a⇐-sub ⟩∘⟨refl) ○ 𝒫.assoc ○ (refl⟩∘⟨ λ-tri)
-       ○ ⟺ (sub-∘ (subᴵ w) λᴵ⇐)
+  core = 𝒫.sym-assoc ○ (a⇐-sub ⟩∘⟨refl) ○ 𝒫.assoc ○ (refl⟩∘⟨ λ-tri) ○ ⟺ (sub-∘ (subᴵ w) λᴵ⇐)
 
 stateRead-closed : {B : Iface} (Y : Iface) (M : Proc unitᴵ B) (P : StateTest M)
                    (E : Proc (Y ⊗ᴵ B) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))

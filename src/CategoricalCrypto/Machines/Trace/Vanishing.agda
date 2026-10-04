@@ -104,40 +104,39 @@ module _ (V : State) (A B X P : Obj)
                            ○ sym-assoc))
                ○ sym-assoc
 
-    k′-i₁i₁ : k′ ∘ id ⊗₁ (i₁ {A + X} {P} ∘ i₁ {A} {X})
-            ≈ id ⊗₁ α+⇐ ∘ (k ∘ id ⊗₁ i₁ {A} {X + P})
+    k′-i₁i₁ : k′ ∘ id ⊗₁ (i₁ ∘ i₁) ≈ id ⊗₁ α+⇐ ∘ (k ∘ id ⊗₁ i₁)
     k′-i₁i₁ = assoc ○ (refl⟩∘⟨ pullʳ (merge₂ˡ ○ (refl⟩⊗⟨ α+⇒-i₁i₁)))
 
-    k′-i₁i₂ : k′ ∘ id ⊗₁ (i₁ {A + X} {P} ∘ i₂ {A} {X}) ≈ c ∘ id ⊗₁ i₁ {X} {P}
+    k′-i₁i₂ : k′ ∘ id ⊗₁ (i₁ ∘ i₂) ≈ c ∘ id ⊗₁ i₁ {X}
     k′-i₁i₂ = k′-enter α+⇒-i₁i₂
 
-    k′-i₂ : loopBody V (A + X) (B + X) P k′ ≈ c ∘ id ⊗₁ i₂ {X} {P}
+    k′-i₂ : loopBody V (A + X) (B + X) P k′ ≈ c ∘ id ⊗₁ i₂ {X}
     k′-i₂ = k′-enter α+⇒-i₂
 
-    h-loop : loopBody V A B X h ≈ q ∘ id ⊗₁ i₁ {X} {P}
+    h-loop : loopBody V A B X h ≈ q ∘ id ⊗₁ i₁
     h-loop = assoc ○ (refl⟩∘⟨ (assoc ○ (refl⟩∘⟨ merge₂ˡ) ○ k′-i₁i₂)) ○ sym-assoc
 
-    h-enter : h ∘ id ⊗₁ i₁ {A} {X} ≈ solve′ ∘ (id ⊗₁ α+⇐ ∘ (k ∘ id ⊗₁ i₁))
+    h-enter : h ∘ id ⊗₁ i₁ {A} ≈ solve′ ∘ (id ⊗₁ α+⇐ ∘ (k ∘ id ⊗₁ i₁))
     h-enter = assoc ○ (refl⟩∘⟨ (assoc ○ (refl⟩∘⟨ merge₂ˡ) ○ k′-i₁i₁))
 
-    solve′-c : [ id , iter (c ∘ id ⊗₁ i₂ {X} {P}) ] ∘ δ⇐ ≈ solve′
+    solve′-c : [ id , iter (c ∘ id ⊗₁ i₂ {X}) ] ∘ δ⇐ ≈ solve′
     solve′-c = ⟺ ([]-cong₂ refl (iter-cong k′-i₂) ⟩∘⟨refl)
 
     w-enter : (j : Z ⇒ Y) → w ∘ id ⊗₁ j ≈ id ⊗₁ (ν +₁ i₂) ∘ (c ∘ id ⊗₁ j)
     w-enter j = ((split₂ˡ ⟩∘⟨refl) ⟩∘⟨refl) ○ (assoc ⟩∘⟨refl) ○ assoc
 
-    q-i₂ : q ∘ id ⊗₁ i₂ {X} {P} ≈ iter (c ∘ id ⊗₁ i₂)
+    q-i₂ : q ∘ id ⊗₁ i₂ ≈ iter (c ∘ id ⊗₁ i₂)
     q-i₂ = assoc ○ (refl⟩∘⟨ ⟺ k′-i₂) ○ ⟺ (solve-loop V (A + X) (B + X) P k′)
          ○ iter-cong k′-i₂
 
-    iterw-i₂ : iter w ∘ id ⊗₁ i₂ {X} {P} ≈ id ⊗₁ ν ∘ iter (c ∘ id ⊗₁ i₂)
+    iterw-i₂ : iter w ∘ id ⊗₁ i₂ ≈ id ⊗₁ ν ∘ iter (c ∘ id ⊗₁ i₂)
     iterw-i₂ = iter-transfer (id ⊗₁ i₂) (id ⊗₁ ν)
                  (pure-⊗₁ pure-id pure-i₂)
                  (pure-⊗₁ pure-id (pure-+₁ pure-id pure-i₁))
-                 {u = c ∘ id ⊗₁ i₂} {v = w}
+
                  (w-enter i₂ ○ ⟺ (tstep-str ν i₂ ⟩∘⟨refl))
 
-    iterw-i₁ : iter w ∘ id ⊗₁ i₁ {X} {P} ≈ id ⊗₁ ν ∘ (q ∘ id ⊗₁ i₁)
+    iterw-i₁ : iter w ∘ id ⊗₁ i₁ ≈ id ⊗₁ ν ∘ (q ∘ id ⊗₁ i₁)
     iterw-i₁ = (iter-fix ⟩∘⟨refl) ○ assoc
              ○ (refl⟩∘⟨ (assoc ○ (refl⟩∘⟨ w-enter i₁)))
              ○ (refl⟩∘⟨ sym-assoc) ○ sym-assoc
@@ -153,15 +152,15 @@ module _ (V : State) (A B X P : Obj)
     iterv : iter v ≈ iter b
     iterv = iter-cong (⟺ iterw) ○ iter-cod w ○ iter-cong (cancelˡ (pad-inv ∇ψ))
 
-    iterv-i₁ : iter v ∘ id ⊗₁ i₁ {X} {P} ≈ iter (q ∘ id ⊗₁ i₁)
+    iterv-i₁ : iter v ∘ id ⊗₁ i₁ ≈ iter (q ∘ id ⊗₁ i₁)
     iterv-i₁ = iter-transfer (id ⊗₁ i₁) id (pure-⊗₁ pure-id pure-i₁) pure-id
-                 {u = q ∘ id ⊗₁ i₁} {v = v} (assoc ○ ⟺ (tstep-relabel i₁ ⟩∘⟨refl))
+                 {u = q ∘ id ⊗₁ i₁} (assoc ○ ⟺ (tstep-relabel i₁ ⟩∘⟨refl))
              ○ identityˡ
 
-    solve-h : solve V A B X h ≈ [ id , iter (q ∘ id ⊗₁ i₁ {X} {P}) ] ∘ δ⇐
+    solve-h : solve V A B X h ≈ [ id , iter (q ∘ id ⊗₁ i₁ {X}) ] ∘ δ⇐
     solve-h = []-cong₂ refl (iter-cong h-loop) ⟩∘⟨refl
 
-    iterv-i₂ : iter v ∘ id ⊗₁ i₂ {X} {P} ≈ solve V A B X h ∘ iter (c ∘ id ⊗₁ i₂)
+    iterv-i₂ : iter v ∘ id ⊗₁ i₂ ≈ solve V A B X h ∘ iter (c ∘ id ⊗₁ i₂)
     iterv-i₂ = (iter-fix ⟩∘⟨refl) ○ assoc
              ○ (refl⟩∘⟨ (assoc ○ (refl⟩∘⟨ (assoc ○ (refl⟩∘⟨ q-i₂)))))
              ○ (refl⟩∘⟨ sym-assoc) ○ sym-assoc
@@ -206,7 +205,7 @@ vanishing₂ : {A B P X : Obj} (f : Machine (A + (X + P)) (B + (X + P)))
            → traceᴹ A B X (traceᴹ (A + X) (B + X) P (α⇐ᴹ ∘ᴹ f ∘ᴹ α⇒ᴹ))
            ≈ᴹ traceᴹ A B (X + P) f
 vanishing₂ {A} {B} {P} {X} f = ≲⇒≈ᴹ
-  (≲-trans (trace-resp-≲ {A} {B} {X} (trace-resp-≲ {A + X} {B + X} {P} reconcile))
+  (≲-trans (trace-resp-≲ (trace-resp-≲ reconcile))
            (mk-cong (vanish-step (state f) A B X P (step f))))
   where
     reconcile : (α⇐ᴹ ∘ᴹ f ∘ᴹ α⇒ᴹ) ≲ mk (state f) (id ⊗₁ α+⇐ ∘ (step f ∘ id ⊗₁ α+⇒))

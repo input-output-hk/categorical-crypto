@@ -134,9 +134,9 @@ module Plugged (B : Iface) (K : Proc B Ωᴵ) (u : Proc unitᴵ B) where
   -- the same machine; the projection out of the G-construction record is paid
   -- once, here (`Machines.Collapse`'s header).
   collapse : ⟦ K 𝒫.∘ u ⟧ᴼ ≈ₚ ⟦ tracedᴹ ⟧ᴼ
-  collapse = runᴹ-resp-≈ᴹ {Ωᴵ}
-    (MS.⟺ᴹ (Col.compose-raw≈∘ᴳ {⊥} {⊥} {Pos B} {Neg B} {Bool} {⊤} K u)
-     MS.○ᴹ Col.collapseᵀ {⊥} {⊥} {Pos B} {Neg B} {Bool} {⊤} K u)
+  collapse = runᴹ-resp-≈ᴹ
+    (MS.⟺ᴹ (Col.compose-raw≈∘ᴳ K u)
+     MS.○ᴹ Col.collapseᵀ K u)
     (ask tt out)
 
 -- A composite is observed through a representative of its context factor,
@@ -144,5 +144,4 @@ module Plugged (B : Iface) (K : Proc B Ωᴵ) (u : Proc unitᴵ B) where
 -- the `≈`-closure of `Certified`).
 obs-resp-ctx : (B : Iface) (u : Proc unitᴵ B) (N K : Proc B Ωᴵ) → N MS.≈ᴹ K
          → ⟦ N 𝒫.∘ u ⟧ᴼ ≈ₚ ⟦ K 𝒫.∘ u ⟧ᴼ
-obs-resp-ctx B u N K e =
-  runᴹ-resp-≈ᴹ {Ωᴵ} (𝒫.∘-resp-≈ˡ {unitᴵ} {B} {Ωᴵ} {N} {K} {u} e) (ask tt out)
+obs-resp-ctx B u N K e = runᴹ-resp-≈ᴹ (𝒫.∘-resp-≈ˡ e) (ask tt out)

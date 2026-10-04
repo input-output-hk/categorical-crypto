@@ -124,7 +124,7 @@ module _ (B : Iface) (c : ℕ) where
     θᶜ : CSt → Dₚ (EnvSt B)
     θᶜ = K.pureᵏ forgetᶜ
 
-    pad : {Z : Set} (q : CSt × Z) → V._⊗₁_ θᶜ (V.id {Z}) q ≈ₚ returnₚ (map₁ forgetᶜ q)
+    pad : {Z : Set} (q : CSt × Z) → V._⊗₁_ θᶜ V.id q ≈ₚ returnₚ (map₁ forgetᶜ q)
     pad = K.pureᵏ-⊗ forgetᶜ id
 
     step-erase : (p : CSt × (Pos B ⊎ ⊤))
@@ -160,7 +160,7 @@ stratTest : (B : Iface) → Strat (Neg B) (Pos B) → Proc (unitᴵ ⊗ᴵ B) Ω
 stratTest B d = MC.mk (stateˢ B d) (stepᵁ B)
 
 stratTest-embeds : (B : Iface) (d : Strat (Neg B) (Pos B))
-                 → 𝒫._≈_ {unitᴵ ⊗ᴵ B} {Ωᴵ} (stratTest B d) (strategyEnv B d 𝒫.∘ λᴵ⇒)
+                 → 𝒫._≈_ (stratTest B d) (strategyEnv B d 𝒫.∘ λᴵ⇒)
 stratTest-embeds B d =
   MS.⟺ᴹ (∘-wireᴹ [ ⊥-elim , id ] inj₂ (strategyEnv B d) MS.○ᴹ MS.≲⇒≈ᴹ (MS.mk-cong pt))
   where

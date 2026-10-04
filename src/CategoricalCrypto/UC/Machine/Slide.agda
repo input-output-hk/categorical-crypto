@@ -74,7 +74,7 @@ private variable A B C F X Y : Iface
 -- The hole wire
 
 T₁-wire : (Y : Iface) (up : Pos A → Pos B) (down : Neg B → Neg A)
-        → 𝒫._≈_ {Y ⊗ᴵ A} {Y ⊗ᴵ B} (T₁ᴵ Y (wireᴹ up down))
+        → 𝒫._≈_ (T₁ᴵ Y (wireᴹ up down))
             (wireᴹ (Sum.map₂ up) (Sum.map₂ down))
 T₁-wire Y up down = ≲⇒≈ᴹ (mk-cong pt)
   where
@@ -84,8 +84,7 @@ T₁-wire Y up down = ≲⇒≈ᴹ (mk-cong pt)
   pt (s , inj₂ (inj₁ y)) = ≈refl
   pt (s , inj₂ (inj₂ b)) = >>=ₚ-identityˡ _ _
 
-λ-nat : (f : Proc A B)
-      → 𝒫._≈_ {A} {unitᴵ ⊗ᴵ B} (λᴵ⇐ 𝒫.∘ f) (T₁ᴵ unitᴵ f 𝒫.∘ λᴵ⇐)
+λ-nat : (f : Proc A B) → 𝒫._≈_ (λᴵ⇐ 𝒫.∘ f) (T₁ᴵ unitᴵ f 𝒫.∘ λᴵ⇐)
 λ-nat f =
      wire-∘ᴹ inj₂ [ ⊥-elim , id ] f
   ○ᴹ ⟺ᴹ relayed
@@ -106,7 +105,7 @@ T₁-wire Y up down = ≲⇒≈ᴹ (mk-cong pt)
               (_ , inj₂ _) → refl
 
 sub-wire : (up : Pos A → Pos B) (down : Neg B → Neg A)
-         → 𝒫._≈_ {A ⊗ᴵ C} {B ⊗ᴵ C} (subᴵ (wireᴹ up down))
+         → 𝒫._≈_ {A ⊗ᴵ C} (subᴵ (wireᴹ up down))
              (wireᴹ (Sum.map₁ up) (Sum.map₁ down))
 sub-wire up down = ≲⇒≈ᴹ (mk-cong pt)
   where
@@ -132,7 +131,7 @@ sub-wire up down = ≲⇒≈ᴹ (mk-cong pt)
 ρᴵ⇒ : Proc (Y ⊗ᴵ unitᴵ) Y
 ρᴵ⇒ = wireᴹ [ id , ⊥-elim ] inj₁
 
-ρ-tri : 𝒫._≈_ {(Y ⊗ᴵ unitᴵ) ⊗ᴵ B} {Y ⊗ᴵ B} (T₁ᴵ Y λᴵ⇒ 𝒫.∘ a⇒ᴵ) (subᴵ ρᴵ⇒)
+ρ-tri : 𝒫._≈_ {(Y ⊗ᴵ unitᴵ) ⊗ᴵ B} (T₁ᴵ Y λᴵ⇒ 𝒫.∘ a⇒ᴵ) (subᴵ ρᴵ⇒)
 ρ-tri {Y = Y} {B = B} =
      𝒫.∘-resp-≈ˡ (T₁-wire Y [ ⊥-elim , id ] inj₂)
   ○ᴹ wire-∘ᴹ (Sum.map₂ [ ⊥-elim , id ]) (Sum.map₂ inj₂)
@@ -148,13 +147,13 @@ sub-wire up down = ≲⇒≈ᴹ (mk-cong pt)
   pt (s , inj₂ (inj₂ _))         = >>=ₚ-identityˡ _ _
 
 ρ-tri-sub : (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
-          → 𝒫._≈_ {unitᴵ ⊗ᴵ X} {Y ⊗ᴵ X} (T₁ᴵ Y λᴵ⇒ 𝒫.∘ (a⇒ᴵ 𝒫.∘ subᴵ m)) (subᴵ (ρᴵ⇒ 𝒫.∘ m))
+          → 𝒫._≈_ {unitᴵ ⊗ᴵ X} (T₁ᴵ Y λᴵ⇒ 𝒫.∘ (a⇒ᴵ 𝒫.∘ subᴵ m)) (subᴵ (ρᴵ⇒ 𝒫.∘ m))
 ρ-tri-sub m = 𝒫.sym-assoc ○ᴹ 𝒫.∘-resp-≈ˡ ρ-tri ○ᴹ ⟺ᴹ (sub-∘ ρᴵ⇒ m)
 
 -- The only live activation is a query on `Y`: every other summand of a closed
 -- interface is empty.
 λ-slide : (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
-        → 𝒫._≈_ {unitᴵ} {Y ⊗ᴵ (unitᴵ ⊗ᴵ unitᴵ)}
+        → 𝒫._≈_
             (T₁ᴵ Y λᴵ⇐ 𝒫.∘ m) (a⇒ᴵ 𝒫.∘ (subᴵ m 𝒫.∘ λᴵ⇐))
 λ-slide {Y} m =
      𝒫.∘-resp-≈ˡ (T₁-wire Y inj₂ [ ⊥-elim , id ])
@@ -208,7 +207,7 @@ Kctx E m = E 𝒫.∘ (a⇒ᴵ 𝒫.∘ (subᴵ m 𝒫.∘ λᴵ⇐))
 
 slideᴹ : (E : Proc (Y ⊗ᴵ (unitᴵ ⊗ᴵ B)) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
          (x : Proc unitᴵ B)
-       → 𝒫._≈_ {unitᴵ} {Ωᴵ} ((E 𝒫.∘ T₁ᴵ Y (conjᴵ x)) 𝒫.∘ m) (Kctx E m 𝒫.∘ x)
+       → 𝒫._≈_ ((E 𝒫.∘ T₁ᴵ Y (conjᴵ x)) 𝒫.∘ m) (Kctx E m 𝒫.∘ x)
 slideᴹ {Y = Y} {B = B} E m x =
      𝒫.assoc
   ○ᴹ 𝒫.∘-resp-≈ʳ (𝒫.∘-resp-≈ˡ (T₁-⊗₁ {Y} {unitᴵ} {unitᴵ ⊗ᴵ B} (conjᴵ x))
@@ -225,7 +224,7 @@ ctxRun-slide E m x = runᴹ-resp-≈ᴹ {Ωᴵ} (slideᴹ E m x) (ask tt out)
 ------------------------------------------------------------------------
 -- Closing the hole again
 
-unit-cancel : (x : Proc A B) → 𝒫._≈_ {A} {B} (λᴵ⇒ 𝒫.∘ (λᴵ⇐ 𝒫.∘ x)) x
+unit-cancel : (x : Proc A B) → 𝒫._≈_ (λᴵ⇒ 𝒫.∘ (λᴵ⇐ 𝒫.∘ x)) x
 unit-cancel {A} {B} x =
      𝒫.∘-resp-≈ʳ (wire-∘ᴹ inj₂ [ ⊥-elim , id ] x)
   ○ᴹ wire-∘ᴹ [ ⊥-elim , id ] inj₂ (sandwichᴹ x i₁ o₁)
@@ -250,7 +249,7 @@ unit-cancel {A} {B} x =
 
 ctxRun-conj : (E : Proc (Y ⊗ᴵ B) Ωᴵ) (m : Proc unitᴵ (Y ⊗ᴵ unitᴵ))
               (x : Proc unitᴵ B)
-            → ctxRun Y E m x ≈ₚ ctxRun Y (E 𝒫.∘ T₁ᴵ Y (λᴵ⇒ {B})) m (conjᴵ x)
+            → ctxRun Y E m x ≈ₚ ctxRun Y (E 𝒫.∘ T₁ᴵ Y λᴵ⇒) m (conjᴵ x)
 ctxRun-conj {Y = Y} E m x =
   readRun-resp-≈ Y (𝒫.Equiv.sym (unit-cancel x)) (λ _ E → E) E m ⟨≈⟩ ctxRun-∘ Y E m λᴵ⇒ (conjᴵ x)
 

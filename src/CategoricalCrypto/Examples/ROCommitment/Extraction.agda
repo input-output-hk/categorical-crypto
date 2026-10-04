@@ -19,7 +19,7 @@ open import Data.List.Relation.Unary.All using (All; []; _∷_)
 open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Maybe.Properties
 open import Data.Nat.Base
-open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
+open import Data.Product.Base using (_×_; _,_; proj₂)
 open import Data.Vec.Base using (Vec; head)
 open import Function.Base
 open import Relation.Binary.PropositionalEquality

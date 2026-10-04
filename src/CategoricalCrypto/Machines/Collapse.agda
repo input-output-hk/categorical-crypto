@@ -193,9 +193,7 @@ module _ {A⁺ A⁻ B⁺ B⁻ C⁺ C⁻ : Set}
        MS.○ᴹ MS.≲⇒≈ᴹ (T.pure-∘ʳ (K.pureᵏ ĉ) (g T.⊗ᵉ f))
 
   -- The body of `𝒢ₚ`'s composite, both legs absorbed.
-  outer : (W.α MC.∘ᴹ
-            ((g T.⊗ᵉ f) MC.∘ᴹ W.γ))
-          MS.≈ᴹ MC.mk Sᴳ kᴳ
+  outer : (W.α MC.∘ᴹ ((g T.⊗ᵉ f) MC.∘ᴹ W.γ)) MS.≈ᴹ MC.mk Sᴳ kᴳ
   outer = Cat.∘ᴹ-resp-≈ᴹ (α-pure B⁻ C⁺ A⁻ B⁺) inner
      MS.○ᴹ MS.≲⇒≈ᴹ (T.pure-∘ˡ (K.pureᵏ â) mid)
      MS.○ᴹ MS.≲⇒≈ᴹ (MS.mk-cong stepEq)

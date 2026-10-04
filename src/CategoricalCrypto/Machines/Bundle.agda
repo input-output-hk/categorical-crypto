@@ -8,7 +8,6 @@
 -- `Tensor.Structural` proves each law only once.
 
 open import Categories.Category.Monoidal
-open import Categories.Category.Monoidal.Bundle
 open import Categories.Category.Monoidal.Pure
 open import Categories.Category.Monoidal.Symmetric
 open import Categories.Functor.Bifunctor

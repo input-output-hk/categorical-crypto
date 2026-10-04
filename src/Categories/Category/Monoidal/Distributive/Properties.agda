@@ -21,10 +21,10 @@ private variable A B X Y : Obj
                ○ (∘-distribˡ-[] ○ []-cong₂ e₁ e₂ ○ ⟺ ∘-distribˡ-[]) ⟩∘⟨refl
                ○ cancelʳ distributeˡ.isoʳ
 
-δ⇐-i₁ : δ⇐ ∘ id {X} ⊗₁ i₁ ≈ i₁ {X ⊗₀ A} {X ⊗₀ B}
+δ⇐-i₁ : δ⇐ ∘ id ⊗₁ i₁ ≈ i₁ {X ⊗₀ A} {X ⊗₀ B}
 δ⇐-i₁ = (refl⟩∘⟨ ⟺ inject₁) ○ cancelˡ distributeˡ.isoˡ
 
-δ⇐-i₂ : δ⇐ ∘ id {X} ⊗₁ i₂ ≈ i₂ {X ⊗₀ A} {X ⊗₀ B}
+δ⇐-i₂ : δ⇐ ∘ id ⊗₁ i₂ ≈ i₂ {X ⊗₀ A} {X ⊗₀ B}
 δ⇐-i₂ = (refl⟩∘⟨ ⟺ inject₂) ○ cancelˡ distributeˡ.isoˡ
 
 []-δ⇐ : {S A₁ A₂ B₁ B₂ : Obj} {p : S ⊗₀ B₁ ⇒ Y} {t : S ⊗₀ B₂ ⇒ Y}
@@ -37,7 +37,7 @@ private variable A B X Y : Obj
               ○ pullˡ inject₂ ○ ⟺ (pullʳ δ⇐-i₂ ○ inject₂))
 
 private
-  ⊥+⊥-isoˡ : i₁ ∘ [ id {⊥} , id ] ≈ id
+  ⊥+⊥-isoˡ : i₁ ∘ [ id , id ] ≈ id
   ⊥+⊥-isoˡ = ⟺ (+-unique (pullʳ inject₁ ○ identityʳ)
                          (pullʳ inject₂ ○ identityʳ ○ ¡-unique₂ i₁ i₂)) ○ +-η
 
@@ -57,6 +57,6 @@ private
 ⊥-unique : {u v : X ⊗₀ ⊥ ⇒ Y} → u ≈ v
 ⊥-unique = ⟺ inject₁ ○ (refl⟩∘⟨ i-collapse) ○ inject₂
   where
-    i-collapse : i₁ {X ⊗₀ ⊥} {X ⊗₀ ⊥} ≈ i₂
+    i-collapse : i₁ ≈ i₂
     i-collapse = insertˡ ψ-isoˡ ○ (refl⟩∘⟨ ψ-i₁) ○ identityʳ
                ○ ⟺ (insertˡ ψ-isoˡ ○ (refl⟩∘⟨ ψ-i₂) ○ identityʳ)

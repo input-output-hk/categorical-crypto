@@ -222,8 +222,7 @@ qb-λᴵ⇒ = qb-wire Sum.[ ⊥-elim , id ] inj₂
 qb-closed : {B : Iface} (M : Proc unitᴵ B) → QB 0 M
 qb-closed M = certified⇒QB (qbᵢ-closed (MC.St M) (MC.point (MC.state M) tt) (MC.step M))
 
-qb-resp-≈ : {A B : Iface} {c : ℕ} {M N : Proc A B}
-          → M MS.≈ᴹ N → QB c M → QB c N
+qb-resp-≈ : {A B : Iface} {c : ℕ} {M N : Proc A B} → M MS.≈ᴹ N → QB c M → QB c N
 qb-resp-≈ e (P , q , e′) = P , q , e′ MS.○ᴹ e
 
 qb-mono : {A B : Iface} {c c′ : ℕ} {M : Proc A B} → c ℕ.≤ c′ → QB c M → QB c′ M

@@ -65,7 +65,7 @@ module _ {𝕊 : UCSetup o₁ ℓ₁ e₁ o₁′ ℓ₁′ e₁′ cs ℓs}
   composeᵁ : UCSetupMorphism 𝕊′ 𝕊″ → UCSetupMorphism 𝕊 𝕊′ → UCSetupMorphism 𝕊 𝕊″
   composeᵁ 𝕄′ 𝕄 = record
     { effect = composeMorphism 𝕄′.effect 𝕄.effect
-    ; ν = _∘ᵛ_ {G = 𝕄.F} {F = 𝕄′.F} 𝕄′.ν 𝕄.ν }
+    ; ν = _∘ᵛ_ 𝕄′.ν 𝕄.ν }
     where module 𝕄 = UCSetupMorphism 𝕄
           module 𝕄′ = UCSetupMorphism 𝕄′
 

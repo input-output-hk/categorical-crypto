@@ -282,7 +282,7 @@ mutual
 -- `Supp` is not `_≈ₚ_`-stable, so it is computed at the literal terms
 -- (`Supp-bot`/`Supp-return`/`Supp-bind`).
 
-Supp-bot : (Φ : A → Set b) (n : ℕ) → Supp n (botₚ {A = A}) Φ
+Supp-bot : (Φ : A → Set b) (n : ℕ) → Supp n botₚ Φ
 Supp-bot Φ zero    = tt
 Supp-bot Φ (suc n) = Supp-bot Φ n , Supp-bot Φ n
 
@@ -359,7 +359,7 @@ uniformize Φ up w n d = uniformizeˢ Φ up n d (Supp-all _ w n d)
 -- `d′`.  For a fixed non-negative test the two `cum` families are monotone, so
 -- this says exactly `sup ≤ sup` — with rational witnesses and no supremum.
 
-cumₛ : {A : Set a} → Dₚ A → (A → ℚ) → ℕ → ℚ
+cumₛ : Dₚ A → (A → ℚ) → ℕ → ℚ
 cumₛ d P n = cum n d P
 
 -- `Cofinal` is exact rather than `Dom` at `0ℚ`: `+ 0ℚ` does not reduce, so every
@@ -442,7 +442,7 @@ laterₚ-≈ₚ d = shift⇒≈ₚ (laterₚ d) d (λ P n → laterₚ-cum n d P
 returnₚ-cum : (n : ℕ) (p : A) (P : A → ℚ) → cum (suc n) (returnₚ p) P ≡ P p
 returnₚ-cum n p P = dirac-cum n (inj₁ p) P
 
-botₚ-cum : (n : ℕ) (P : A → ℚ) → cum n (botₚ {A = A}) P ≡ 0ℚ
+botₚ-cum : (n : ℕ) (P : A → ℚ) → cum n botₚ P ≡ 0ℚ
 botₚ-cum zero    P = refl
 botₚ-cum (suc n) P = trans (dirac-cum n (inj₂ botₚ) P) (botₚ-cum n P)
 

@@ -12,7 +12,6 @@ open import Data.Empty
 open import Data.Nat.Base
 open import Data.Product.Base
 open import Data.Sum.Base
-open import Data.Unit.Polymorphic.Base
 open import Function.Base
 open import Level
 

@@ -81,8 +81,7 @@ module Tests
   _≈ᵠ[_]_ {C} E τ F =
     (m : Closure C) (r′ : ℕ⁺) → Image forget r′ m → read (E ∘ m) ≈[ τ r′ ] read (F ∘ m)
 
-  approxᵠ : (C : Obj)
-          → Approximation (Test C) Sched (ℓ ⊔ e ⊔ ℓa ⊔ qs)
+  approxᵠ : (C : Obj) → Approximation (Test C) Sched (ℓ ⊔ e ⊔ ℓa ⊔ qs)
   approxᵠ C = record
     { _≈[_]_    = _≈ᵠ[_]_
     ; ≈[]-refl  = λ _ _ _ → ≈[]-refl

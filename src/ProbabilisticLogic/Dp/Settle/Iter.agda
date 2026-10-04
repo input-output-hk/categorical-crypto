@@ -7,7 +7,7 @@
 -- kernel is the body's kernel unrolled (`loopK`), the round past the last read as
 -- divergence.
 
-open import Data.Bool.Base using (Bool; true; false)
+open import Data.Bool.Base using (true; false)
 open import Data.Maybe.Base
 open import Data.Nat.Base
 open import Data.Nat.Properties using (m≤n+m; n≤1+n)

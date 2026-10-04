@@ -61,7 +61,7 @@ module Embed {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Trac
       module G = Category G'
       module MG = Mor G'
 
-    ⌜⌝-id : ∀ {A⁺ A⁻ : Obj} → ⌜ id {A⁺} , id {A⁻} ⌝ ≈ G.id {A⁺ , A⁻}
+    ⌜⌝-id : ∀ {A⁺ A⁻ : Obj} → ⌜ id , id ⌝ ≈ G.id {A⁺ , A⁻}
     ⌜⌝-id = elimʳ ⊗.identity
 
     opaque
@@ -69,7 +69,7 @@ module Embed {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Trac
 
       absorbˡ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : Obj} {u : B⁺ ⇒ D⁺} {v : D⁻ ⇒ B⁻}
                   {g : A⁺ ⊗₀ B⁻ ⇒ A⁻ ⊗₀ B⁺} →
-                G._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {D⁺ , D⁻} ⌜ u , v ⌝ g
+                G._∘_ ⌜ u , v ⌝ g
                   ≈ id ⊗₁ u ∘ g ∘ id ⊗₁ v
       absorbˡ {A⁺} {A⁻} {B⁺} {B⁻} {D⁺} {D⁻} {u} {v} {g} =
         trace-resp-≈ (ECoh.L.Transport.WithGens.AL Cˢ A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ g u v)
@@ -79,7 +79,7 @@ module Embed {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Trac
 
       absorbʳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : Obj} {p : A⁺ ⇒ B⁺} {q : B⁻ ⇒ A⁻}
                   {f : B⁺ ⊗₀ D⁻ ⇒ B⁻ ⊗₀ D⁺} →
-                G._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {D⁺ , D⁻} f ⌜ p , q ⌝
+                G._∘_ f ⌜ p , q ⌝
                   ≈ q ⊗₁ id ∘ f ∘ p ⊗₁ id
       absorbʳ {A⁺} {A⁻} {B⁺} {B⁻} {D⁺} {D⁻} {p} {q} {f} =
         trace-resp-≈ (ECoh.R.Transport.WithGens.AR Cˢ A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ f p q)
@@ -89,13 +89,13 @@ module Embed {a b c} (C : Category a b c) (Monoidal : Monoidal C) (Traced : Trac
 
     ⌜⌝-∘ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ : Obj} {u : B⁺ ⇒ D⁺} {v : D⁻ ⇒ B⁻}
              {p : A⁺ ⇒ B⁺} {q : B⁻ ⇒ A⁻} →
-           G._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {D⁺ , D⁻} ⌜ u , v ⌝ ⌜ p , q ⌝
+           G._∘_ ⌜ u , v ⌝ ⌜ p , q ⌝
              ≈ ⌜ u ∘ p , q ∘ v ⌝
     ⌜⌝-∘ {A⁻ = A⁻} {u = u} {v} {p} {q} = absorbˡ ○ (begin
       id ⊗₁ u ∘ (σ⇒ ∘ p ⊗₁ q) ∘ id ⊗₁ v
         ≈⟨ refl⟩∘⟨ assoc ⟩
       id ⊗₁ u ∘ σ⇒ ∘ p ⊗₁ q ∘ id ⊗₁ v
-        ≈⟨ pullˡ (⟺ (braiding.⇒.commute (u , id {A⁻}))) ⟩
+        ≈⟨ pullˡ (⟺ (braiding.⇒.commute (u , id))) ⟩
       (σ⇒ ∘ u ⊗₁ id) ∘ p ⊗₁ q ∘ id ⊗₁ v
         ≈⟨ assoc ⟩
       σ⇒ ∘ u ⊗₁ id ∘ p ⊗₁ q ∘ id ⊗₁ v

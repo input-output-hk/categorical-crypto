@@ -75,10 +75,10 @@ hitsᵘ {B} report u q h Y E m qE qm le =
 -- The monitored process is the accumulator's flag wire (`monitor-flag`), so
 -- this is `stateRead-agree` followed by `flag-agree`.
 agree : (B : Iface) (report : Neg B → Pos B → Bool) (u : Proc unitᴵ B) (d : Strat (Neg B) (Pos B))
-      → readRun unitᴵ (monitorᴹ report 𝒫.∘ u) (flagReader B) (stratTest B d) (λᴵ⇐ {unitᴵ})
+      → readRun unitᴵ (monitorᴹ report 𝒫.∘ u) (flagReader B) (stratTest B d) (λᴵ⇐)
         ≈ₚ runᴹ u (watchFrom report false d)
 agree B report u d =
-      readRun-resp-≈ unitᴵ (monitor-flag report u) (flagReader B) (stratTest B d) (λᴵ⇐ {unitᴵ})
+      readRun-resp-≈ unitᴵ (monitor-flag report u) (flagReader B) (stratTest B d) (λᴵ⇐)
   ⟨≈⟩ stateRead-agree (accᴹ report u) (reported report u) d
   ⟨≈⟩ flag-agree report u d
 
@@ -89,7 +89,7 @@ hits⇒upper : {B : Iface} (report : Neg B → Pos B → Bool) (u : Proc unitᴵ
            → (d : Strat (Neg B) (Pos B)) → asks≤ q d → Upper (runᴹ u (watchFrom report false d)) r
 hits⇒upper {B} report u q h d a =
   upper-≈ (≈sym (agree B report u d))
-          (h unitᴵ (stratTest B d) (λᴵ⇐ {unitᴵ}) (qb-stratTest B d a) (qb-closed (λᴵ⇐ {unitᴵ})) (ℕP.≤-reflexive (scale-unit q)))
+          (h unitᴵ (stratTest B d) (λᴵ⇐) (qb-stratTest B d a) (qb-closed (λᴵ⇐)) (ℕP.≤-reflexive (scale-unit q)))
 
 hits⇒bounded :
     {B : Iface} (report : Neg B → Pos B → Bool)

@@ -16,7 +16,6 @@ open import Categories.Category.Core
 open import Function.Base
 open import Function.Bundles
 open import Level
-open import Relation.Binary.Bundles
 open import Relation.Binary.Core using (Rel)
 open import Relation.Binary.Structures
 

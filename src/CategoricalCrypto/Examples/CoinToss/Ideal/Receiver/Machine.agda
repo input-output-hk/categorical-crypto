@@ -199,7 +199,7 @@ private
                    (λ z → map-map (dStep (proj₁ z , Sum.map₂ ⊎assocʳ (proj₂ z))) _ _
                          ⟨≈⟩ idlStepʰ (proj₁ z) (proj₂ z))
 
-ideal-eqʰ : 𝒫._≈_ {unitᴵ} {Cᵗʰ} deferᶜʰ idealᴹʰ
+ideal-eqʰ : 𝒫._≈_ deferᶜʰ idealᴹʰ
 ideal-eqʰ = MS.≲⇒≈ᴹ idl-simʰ MS.○ᴹ CS.eq-∘ᶜ unitᴵ (Lkᴵᶜʰ ⊗ᴵ Honᴵᶜʰ) Cᵗʰ simᴵᵈʰ Fcoinʰ
 
 ------------------------------------------------------------------------

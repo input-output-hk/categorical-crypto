@@ -2,16 +2,16 @@
 
 module Categories.NaturalTransformationHelper where
 
-open import Level using (Level)
+open import Level
 
-open import Categories.Category using (Category; _[_,_])
-open import Categories.Category.Product using (Product)
-open import Categories.Functor using (Functor)
-open import Categories.Functor.Bifunctor using (Bifunctor)
-open import Categories.Functor.Bifunctor.Properties using ([_]-decompose₁)
-open import Categories.Tactic.Category using (solve)
+open import Categories.Category
+open import Categories.Category.Product
+open import Categories.Functor
+open import Categories.Functor.Bifunctor
+open import Categories.Functor.Bifunctor.Properties
+open import Categories.Tactic.Category
 
-open import Data.Product using (_,_)
+open import Data.Product
 
 private
   variable

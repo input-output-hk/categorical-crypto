@@ -43,8 +43,7 @@ Go = Bool ⇿ ⊤
 
 -- The reading of the test `T` at `d` eventually equals `v`.
 Reads : (P : Protocol unitᴵ Go) → (MSt P → Bool) → Strat ⊤ Bool → ℚ → Set
-Reads P T d v =
-  Attains (stateRead unitᴵ (morphism P) T (stratTest Go d) (λᴵ⇐ {unitᴵ})) (indᵇ true) v
+Reads P T d v = Attains (stateRead unitᴵ (morphism P) T (stratTest Go d) (λᴵ⇐)) (indᵇ true) v
 
 private
   reads : (P : Protocol unitᴵ Go) (Bad : St P → Bool) (d : Strat ⊤ Bool) {v : ℚ}

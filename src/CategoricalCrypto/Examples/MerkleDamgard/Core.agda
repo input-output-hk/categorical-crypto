@@ -312,10 +312,8 @@ module MD (n k : ℕ) ⦃ _ : NonZero k ⦄ (IV : Vec Bool n) where
                   (λ w → newAnsE (hitʷ w ∨ f) (proj₁ w) (cvʷ w)))
                 walkE))
 
-  ghost-erase : ∀ f sc sg d
-              → Pr₁ (runWith C.realK (f , sc , sg) d) ≡ Pr₁ (runWith respR sc d)
-  ghost-erase f sc sg d =
-    runWith-bisim C.realK respR ErasesTo stepR-bisim d (f , sc , sg) sc refl
+  ghost-erase : ∀ f sc sg d → Pr₁ (runWith C.realK (f , sc , sg) d) ≡ Pr₁ (runWith respR sc d)
+  ghost-erase f sc sg d = runWith-bisim C.realK respR ErasesTo stepR-bisim d (f , sc , sg) sc refl
 
   private
     dInt : (CV → ℚ) → Bool → Walked → ℚ

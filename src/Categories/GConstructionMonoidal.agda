@@ -109,11 +109,11 @@ module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
                         {f′ : B⁺ ⊗₀ D⁻ ⇒ B⁻ ⊗₀ D⁺}
                         {g : P⁺ ⊗₀ Q⁻ ⇒ P⁻ ⊗₀ Q⁺}
                         {g′ : Q⁺ ⊗₀ R⁻ ⇒ Q⁻ ⊗₀ R⁺} →
-                      G._∘_ {A⁺ , A⁻} {B⁺ , B⁻} {D⁺ , D⁻} f′ f
-                        ⊗₁ᴳ G._∘_ {P⁺ , P⁻} {Q⁺ , Q⁻} {R⁺ , R⁻} g′ g
+                      G._∘_ {A⁺ , A⁻} {B⁺ , B⁻} f′ f
+                        ⊗₁ᴳ G._∘_ {P⁺ , P⁻} g′ g
                         ≈ G._∘_ {A⁺ ⊗₀ P⁺ , A⁻ ⊗₀ P⁻}
                                   {B⁺ ⊗₀ Q⁺ , B⁻ ⊗₀ Q⁻}
-                                  {D⁺ ⊗₀ R⁺ , D⁻ ⊗₀ R⁻}
+
                                   (f′ ⊗₁ᴳ g′) (f ⊗₁ᴳ g)
       homomorphismᴳ {A⁺} {A⁻} {B⁺} {B⁻} {D⁺} {D⁻} {P⁺} {P⁻} {Q⁺} {Q⁻} {R⁺} {R⁻}
                     {f} {f′} {g} {g′} =
@@ -185,25 +185,25 @@ module _ {a b c} (C : Category a b c) (M : Monoidal C) (T : Traced M) where
       triangleᴳ = G.∘-resp-≈ˡ ⌜⌝-⊗ˡ ○ ⌜⌝-∘ ○ ⌜⌝-resp-≈ triangle triangle-inv ○ ⟺ ⌜⌝-⊗ʳ
 
       pentagonᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ D⁺ D⁻ E⁺ E⁻ : Obj} →
-                  G._∘_ (G.id {A⁺ , A⁻} ⊗₁ᴳ ⌜ α⇒ {B⁺} {D⁺} {E⁺} , α⇐ {B⁻} {D⁻} {E⁻} ⌝)
+                  G._∘_ (G.id {A⁺ , A⁻} ⊗₁ᴳ ⌜ α⇒ {B⁺} {D⁺} , α⇐ {B⁻} {D⁻} ⌝)
                         (G._∘_ ⌜ α⇒ , α⇐ ⌝
                                (⌜ α⇒ , α⇐ ⌝ ⊗₁ᴳ G.id {E⁺ , E⁻}))
-                    ≈ G._∘_ ⌜ α⇒ {A⁺} {B⁺} {D⁺ ⊗₀ E⁺} , α⇐ ⌝
-                              ⌜ α⇒ {A⁺ ⊗₀ B⁺} {D⁺} {E⁺} , α⇐ ⌝
-      pentagonᴳ = G.∘-resp-≈ (⌜⌝-⊗ˡ {p = α⇒}) (G.∘-resp-≈ʳ ⌜⌝-⊗ʳ ○ ⌜⌝-∘)
+                    ≈ G._∘_ ⌜ α⇒ {A⁺} , α⇐ ⌝
+                              ⌜ α⇒ , α⇐ ⌝
+      pentagonᴳ = G.∘-resp-≈ ⌜⌝-⊗ˡ (G.∘-resp-≈ʳ ⌜⌝-⊗ʳ ○ ⌜⌝-∘)
                 ○ ⌜⌝-∘
                 ○ ⌜⌝-resp-≈ pentagon pentagon-inv
                 ○ ⟺ ⌜⌝-∘
 
       unitorˡ-commuteᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ : Obj}
                            {f : A⁺ ⊗₀ B⁻ ⇒ A⁻ ⊗₀ B⁺} →
-                         G._∘_ ⌜ λ⇒ , λ⇐ ⌝ (G.id {unitᴳ} ⊗₁ᴳ f)
+                         G._∘_ ⌜ λ⇒ , λ⇐ ⌝ (G.id ⊗₁ᴳ f)
                            ≈ G._∘_ f ⌜ λ⇒ , λ⇐ ⌝
       unitorˡ-commuteᴳ = absorbˡ ○ mid-unitˡ ○ ⟺ absorbʳ
 
       unitorʳ-commuteᴳ : ∀ {A⁺ A⁻ B⁺ B⁻ : Obj}
                            {f : A⁺ ⊗₀ B⁻ ⇒ A⁻ ⊗₀ B⁺} →
-                         G._∘_ ⌜ ρ⇒ , ρ⇐ ⌝ (f ⊗₁ᴳ G.id {unitᴳ})
+                         G._∘_ ⌜ ρ⇒ , ρ⇐ ⌝ (f ⊗₁ᴳ G.id)
                            ≈ G._∘_ f ⌜ ρ⇒ , ρ⇐ ⌝
       unitorʳ-commuteᴳ = absorbˡ ○ mid-unitʳ ○ ⟺ absorbʳ
 

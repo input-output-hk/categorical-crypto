@@ -23,7 +23,7 @@ open import Data.Nat.Base
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Rational using (ℚ)
   renaming (_+_ to _+ℚ_; _*_ to _*ℚ_; _-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
-open import Data.Rational.Properties using (+-identityʳ; +-monoʳ-≤; ≤-reflexive; ≤-trans)
+open import Data.Rational.Properties using (≤-reflexive; ≤-trans)
 open import Data.Sum.Base using (_⊎_; inj₁; inj₂; map)
 open import Data.Unit.Base
 open import Data.Vec.Base using (head; tail) renaming (_∷_ to _∷ᵛ_)

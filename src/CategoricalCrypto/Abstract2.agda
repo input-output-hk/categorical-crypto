@@ -67,8 +67,7 @@ module AbstractUC
       (≈ℰ-trans (≈ℰ-cong-post (sub (ℐ.id ⊗₁ c)) (e Y))
                 (≈ℰ-sym (≈C⇒≈ℰ (sub-decomp c x′ Y))))
 
-  ext-cong : (k : B 𝒞.⇒ T₀ P C′)
-           → f ≈ᵁ f′ → ext X k 𝒞.∘ f ≈ᵁ ext X k 𝒞.∘ f′
+  ext-cong : (k : B 𝒞.⇒ T₀ P C′) → f ≈ᵁ f′ → ext X k 𝒞.∘ f ≈ᵁ ext X k 𝒞.∘ f′
   ext-cong {X = X} {f = f} {f′} k e W = ≈ℰ-trans (≈C⇒≈ℰ (∙-decomp k f W))
       (≈ℰ-trans (≈ℰ-cong-post (sub α⇒ 𝒞.∘ ext (W ⊗₀ X) k) (e W))
                 (≈ℰ-sym (≈C⇒≈ℰ (∙-decomp k f′ W))))
@@ -89,22 +88,19 @@ module AbstractUC
   subλ⇐λ⇒ = let open 𝒞 in ⟺ sub-homomorphism ○ (sub-resp-≈ ℐ.unitorˡ.isoˡ ○ sub-identity)
 
   λ-cancel : (x : A 𝒞.⇒ T₀ X B) → sub λ⇒ 𝒞.∘ sub λ⇐ 𝒞.∘ x 𝒞.≈ x
-  λ-cancel x = 𝒞.cancelˡ subλ⇒λ⇐
-    where subλ⇒λ⇐ : sub λ⇒ 𝒞.∘ sub λ⇐ 𝒞.≈ 𝒞.id
-          subλ⇒λ⇐ = let open 𝒞 in ⟺ sub-homomorphism ○ (sub-resp-≈ ℐ.unitorˡ.isoʳ ○ sub-identity)
+  λ-cancel x = let open 𝒞 in
+    cancelˡ (⟺ sub-homomorphism ○ (sub-resp-≈ ℐ.unitorˡ.isoʳ ○ sub-identity))
 
   unit-comp : (f : A 𝒞.⇒ T₀ X B)
             → (μ ℐ.unit X 𝒞.∘ T₁ ℐ.unit f) 𝒞.∘ return 𝒞.≈ sub λ⇐ 𝒞.∘ f
-  unit-comp {X = X} f = let open 𝒞 in pullʳ (⟺ return-commute) ○ pullˡ μunit-return
-    where μunit-return : μ ℐ.unit X 𝒞.∘ return 𝒞.≈ sub λ⇐
-          μunit-return = let open 𝒞 in introˡ subλ⇐λ⇒ ○ pullʳ μ-identityˡ ○ identityʳ
+  unit-comp f = let open 𝒞 in
+    pullʳ (⟺ return-commute) ○ pullˡ (introˡ subλ⇐λ⇒ ○ pullʳ μ-identityˡ ○ identityʳ)
 
   ≈ᵁ⇒≈ℰ : f ≈ᵁ g → f ≈ℰ g
   ≈ᵁ⇒≈ℰ {f = f} {g} e = ≈ℰ-trans (≈ℰ-sym (≈C⇒≈ℰ (λ-cancel f)))
-      (≈ℰ-trans (≈ℰ-cong-post (sub λ⇒) key) (≈C⇒≈ℰ (λ-cancel g)))
-    where key : (sub λ⇐ 𝒞.∘ f) ≈ℰ (sub λ⇐ 𝒞.∘ g)
-          key = ≈ℰ-trans (≈ℰ-sym (≈C⇒≈ℰ (unit-comp f)))
-                  (≈ℰ-trans (≈ℰ-cong-pre return (e ℐ.unit)) (≈C⇒≈ℰ (unit-comp g)))
+      (≈ℰ-trans (≈ℰ-cong-post (sub λ⇒) (≈ℰ-trans (≈ℰ-sym (≈C⇒≈ℰ (unit-comp f)))
+                   (≈ℰ-trans (≈ℰ-cong-pre return (e ℐ.unit)) (≈C⇒≈ℰ (unit-comp g)))))
+        (≈C⇒≈ℰ (λ-cancel g)))
 
   bridge : GradeStable → f ≈ℰ g → f ≈ᵁ g
   bridge gs e Y = ≈ℰ-cong-post (μ Y _) (gs Y e)
@@ -143,9 +139,8 @@ module AbstractUC
                     (≈ᵁ-trans e (≈C⇒≈ᵁ (𝒞.∘-resp-≈ʳ eg)))
 
   dummy-complete : f ≤UCᵈ g → f ≤UC g
-  dummy-complete {g = g} (s₀ , e) a = a ℐ.∘ s₀ , ≈ᵁ-trans (sub-cong a e) (≈C⇒≈ᵁ strict)
-    where strict : sub a 𝒞.∘ sub s₀ 𝒞.∘ g 𝒞.≈ sub (a ℐ.∘ s₀) 𝒞.∘ g
-          strict = let open 𝒞 in sym-assoc ○ ⟺ sub-homomorphism ⟩∘⟨refl
+  dummy-complete (s₀ , e) a = a ℐ.∘ s₀ , ≈ᵁ-trans (sub-cong a e)
+    (≈C⇒≈ᵁ (let open 𝒞 in sym-assoc ○ ⟺ sub-homomorphism ⟩∘⟨refl))
 
   ≈ᵁ⇒≤UC : f ≈ᵁ g → f ≤UC g
   ≈ᵁ⇒≤UC {g = g} h = dummy-complete (ℐ.id , ≈ᵁ-trans h (≈ᵁ-sym (≈C⇒≈ᵁ (sub-identityˡ g))))

@@ -40,12 +40,12 @@ cond-diag false x = refl
 
 badProb⊥ : (St → Q → Dist⊥ (St × R)) → (St → Bool) → St → Strat Q R → ℚ
 badProb⊥ resp bad s (out _)    = bool→ℚ (bad s)
-badProb⊥ resp bad s (ask q k)  with bad s
-... | true  = 1ℚ
-... | false = E⊥ (resp s q) (λ sr → badProb⊥ resp bad (proj₁ sr) (k (proj₂ sr)))
-badProb⊥ resp bad s (coin μ k) with bad s
-... | true  = 1ℚ
-... | false = E μ (λ b → badProb⊥ resp bad s (k b))
+badProb⊥ resp bad s (ask q k)  = case bad s of λ where
+  true → 1ℚ
+  false → E⊥ (resp s q) (λ sr → badProb⊥ resp bad (proj₁ sr) (k (proj₂ sr)))
+badProb⊥ resp bad s (coin μ k) = case bad s of λ where
+  true → 1ℚ
+  false → E μ (λ b → badProb⊥ resp bad s (k b))
 
 badProb⊥-bad : (resp : St → Q → Dist⊥ (St × R)) (bad : St → Bool)
              → ∀ s (d : Strat Q R) → bad s ≡ true → badProb⊥ resp bad s d ≡ 1ℚ

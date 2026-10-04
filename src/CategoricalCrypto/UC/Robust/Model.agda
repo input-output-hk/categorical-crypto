@@ -28,8 +28,8 @@ relayᵒ A = gradedᵒ (wireᴹ inj₁ [ (λ n → n) , ⊥-elim ])
 -- The acceptance test the top class cannot give: a nontrivial `Adm`
 -- (`UC.Robust.PulledFrom`) and a simulator that is a real machine, `relayᵒ`.
 relay-selectedᵒ : (𝔄 : Iface) (r : S.Carrier) (V : Channel)
-                → Robust (λ W → always {D = T₀ W (ifaceᵒ 𝔄)} ∼[ r ]) (PulledFrom V) (relayᵒ 𝔄)
-                → Robust (λ W → always {D = T₀ W (ifaceᵒ 𝔄)} ∼[ r ]) (PulledFrom V)
+                → Robust (λ W → always ∼[ r ]) (PulledFrom V) (relayᵒ 𝔄)
+                → Robust (λ W → always ∼[ r ]) (PulledFrom V)
                          (sub (relayᵒ 𝔄) ∘ relayᵒ 𝔄)
-relay-selectedᵒ 𝔄 r V = uc-preserves (λ W → always {D = T₀ W (ifaceᵒ 𝔄)} ∼[ r ]) (PulledFrom V)
+relay-selectedᵒ 𝔄 r V = uc-preserves (λ W → always ∼[ r ]) (PulledFrom V)
                                       (pulledFrom-closed V) (dummy-complete (relayᵒ 𝔄 , ≈ᵁ-refl))

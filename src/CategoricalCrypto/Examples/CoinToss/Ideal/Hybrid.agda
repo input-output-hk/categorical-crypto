@@ -157,5 +157,5 @@ private
 ------------------------------------------------------------------------
 -- …and the composite, read as `coinᶜ`
 
-hybrid-eq : 𝒫._≈_ {unitᴵ} {Cᵗ} hybridᴹ coinᶜ
+hybrid-eq : 𝒫._≈_ hybridᴹ coinᶜ
 hybrid-eq = St.hybrid-eq coinᶜ′ hyb-sim

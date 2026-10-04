@@ -214,9 +214,7 @@ module _ (A B C : Iface) where
     eqᶜ : Nᶜ MS.≈ᴹ
             MT.traceᴹ (Pos A ⊎ Neg C) (Neg A ⊎ Pos C) (Neg B ⊎ Pos B)
               (Col.W.α ∘ᴹ ((g T.⊗ᵉ f) ∘ᴹ Col.W.γ))
-    eqᶜ = MS.⟺ᴹ
-      (Col.collapseᵀ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C} g f)
+    eqᶜ = MS.⟺ᴹ (Col.collapseᵀ {Pos A} {Neg A} {Pos B} {Neg B} g f)
 
-    eq-∘ᶜ : Nᶜ MS.≈ᴹ (𝒫._∘_ {A} {B} {C} g f)
-    eq-∘ᶜ = eqᶜ MS.○ᴹ
-            Col.compose-raw≈∘ᴳ {Pos A} {Neg A} {Pos B} {Neg B} {Pos C} {Neg C} g f
+    eq-∘ᶜ : Nᶜ MS.≈ᴹ (𝒫._∘_ {A} {B} g f)
+    eq-∘ᶜ = eqᶜ MS.○ᴹ Col.compose-raw≈∘ᴳ g f
