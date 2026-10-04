@@ -240,7 +240,7 @@ module _ {oᵢ ℓᵢ eᵢ oⱼ ℓⱼ eⱼ oₖ ℓₖ eₖ o ℓ e o′ ℓ′
     ; Φ = ∘-Monoidal ρ.Φ π.Φ
     ; κ = ρ.κ 𝒞″.∘ ρ.F.₁ π.κ
     ; isGradedKleisliMorphism =
-        composeFiller {G = π.F} {F = ρ.F} {Ψ = π.Φ} {Φ = ρ.Φ} {κρ = ρ.κ} {κπ = π.κ}
+        composeFiller
           ρ.isGradedKleisliMorphism π.isGradedKleisliMorphism
     }
     where

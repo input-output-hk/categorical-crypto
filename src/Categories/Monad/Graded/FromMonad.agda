@@ -17,7 +17,7 @@ module Categories.Monad.Graded.FromMonad
 
 open import Data.Product
 
-open import Categories.Category.Monoidal.Utilities (MonoidalCategory.monoidal ℐ) using (module Shorthands)
+open import Categories.Category.Monoidal.Utilities (MonoidalCategory.monoidal ℐ)
 open import Categories.Functor using (Functor)
 open import Categories.Functor.Monoidal
 import Categories.Morphism.Reasoning as MR
@@ -31,7 +31,7 @@ private
   module ℐ = MonoidalCategory ℐ
   module M = MonoidalFunctor ℳ
   module Mu (u : ℐ.Obj) = Functor (M.₀ u)
-  open NaturalTransformation using (η; commute)
+  open NaturalTransformation
 
 triple : GradedKleisliTriple ℐ 𝒞
 triple = GradedMonad⇒GradedKleisliTriple ℳ

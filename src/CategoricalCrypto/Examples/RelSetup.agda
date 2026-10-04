@@ -148,7 +148,7 @@ leaky-not-secure p =
   let _ , e = p id
       eq = ≈ᵁ⇒≈ e
       (u , _) , _ , s·true , _ =
-        proj₁ eq {true} {true , true} ((true , true) , (refl , refl) , lift refl , lift refl)
+        proj₁ eq {true} ((true , true) , (refl , refl) , lift refl , lift refl)
       _ , (t₀≡false , _) , lift t₀≡true , _ =
-        proj₂ eq {false} {true , false} ((u , false) , refl , s·true , lift refl)
+        proj₂ eq ((u , false) , refl , s·true , lift refl)
   in contradiction (trans (sym t₀≡true) t₀≡false) λ ()

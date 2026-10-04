@@ -16,7 +16,6 @@ open import Data.Nat.Base as ℕ
 open import Data.Nat.Poly
 open import Data.Rational as ℚ
 open import Data.Rational.Properties
-open import Data.Rational.Properties.Ext
 open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Distribution.Uniform

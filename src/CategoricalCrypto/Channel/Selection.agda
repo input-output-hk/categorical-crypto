@@ -6,7 +6,6 @@ open import CategoricalCrypto.Channel.Core
 open import Relation.Nullary
 open import Meta.Prelude
 open import Meta.Init
-open import Data.Sum hiding (reduce)
 open import Data.List renaming (map to mapₗ)
 open import Reflection.AST.Term
 open import Reflection.Tactic
@@ -66,10 +65,8 @@ instance _ = Functor-M
       unifyWithGoal $ prependLams (mapₗ (\{(s , arg (arg-info v _) _) → (s , v)}) args) solution
     where
     handle-pattern : Term → Term → Term → Term → TC Term
-    handle-pattern A m m' B
-      with isYes (A ≟ B ×-dec m ≟ m')
-    ... | true
-      = return $ quote ⇒-refl ∙
+    handle-pattern A m m' B with isYes (A ≟ B ×-dec m ≟ m')
+    ... | true = return $ quote ⇒-refl ∙
     ... | false
     ------------------------
     -- Inspecting the LHS --

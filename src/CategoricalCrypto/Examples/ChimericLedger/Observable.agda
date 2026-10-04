@@ -13,7 +13,7 @@ open import Data.Bool.Properties using (T-≡; ≤-minimum) renaming (≤-reflex
 open import Data.Bool.Properties.Ext
 open import Data.List.Base
 open import Data.Maybe.Base
-open import Data.Nat.Base using (ℕ; zero; suc) renaming (_+_ to _+ᴺ_; _≡ᵇ_ to _≡ᴺ_)
+open import Data.Nat.Base using (ℕ; suc) renaming (_+_ to _+ᴺ_; _≡ᵇ_ to _≡ᴺ_)
 open import Data.Nat.Properties using (+-suc; ≡⇒≡ᵇ)
 open import Data.Product.Base
 open import Data.Rational using (ℚ) renaming (_≤_ to _≤ℚ_)

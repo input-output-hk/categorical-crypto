@@ -159,11 +159,10 @@ private
           → returnₚ (h (g x)) ≈ₚ mapₚ h (mapₚ g (returnₚ x))
   relayed g h x = ≈sym (bindˣ (>>=ₚ-identityˡ x _) ⟨≈⟩ >>=ₚ-identityˡ (g x) _)
 
-  dead : {A B C : Set} (g : A → B) (h : B → C) → botₚ ≈ₚ mapₚ h (mapₚ g (botₚ {A = A}))
+  dead : {A B C : Set} (g : A → B) (h : B → C) → botₚ ≈ₚ mapₚ h (mapₚ g botₚ)
   dead g h = ≈sym (bindˣ (bot-bind-≈ₚ _) ⟨≈⟩ bot-bind-≈ₚ _)
 
-real-factors : 𝒫._≈_ {Resᴵ} {Advᴵ ⊗ᴵ Honᴵ} real
-                 (𝒫._∘_ (subᴵ {Lkᴵ} {Advᴵ} {Honᴵ} simulator) ideal)
+real-factors : 𝒫._≈_ real (𝒫._∘_ (subᴵ simulator) ideal)
 real-factors = ≲⇒≈ᴹ (mk-cong pt) ○ᴹ ⟺ᴹ (∘-wireᴹ upᶠ downᶠ (subᴵ simulator))
   where
   pt : (p : _) → _

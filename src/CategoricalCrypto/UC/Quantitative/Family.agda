@@ -101,7 +101,7 @@ _∙ᶠ_ {X = X} k f n = ext (X n) (k n) ∘ f n
          → (ε : ℕ → ℕ → ℚ) {f g : Homᶠ A X B} → f ≈ctx[ ε ] g
          → (k ∙ᶠ f) ≈ctx[ (λ n q → ε n (scale q (rk n))) ] (k ∙ᶠ g)
 ≈ctx-ext {X = X} k rk ck ε h n =
-  ctx-absorb (ε n) (rk n) (λ W → id {W} ⊗₁ ext (X n) (k n)) (λ _ → cκ)
+  ctx-absorb (ε n) (rk n) (λ W → id ⊗₁ ext (X n) (k n)) (λ _ → cκ)
              (λ _ → split₂ʳ) (λ _ → split₂ʳ) (h n)
   where
   cκ : {W : Obj} → Image forget (rk n) (id {W} ⊗₁ ext (X n) (k n))
@@ -119,16 +119,15 @@ _∙ᶠ_ {X = X} k f n = ext (X n) (k n) ∘ f n
     absorb-closureᵠ (ε n) (rf n) (cκ W) (cθ W) (λ _ → cut W (u n)) (λ _ → cut W (v n))
       (ctx⇒agree (ε n) (h n) (W ⊗₀ X n))
   where
-  cκ : (W : Obj) → Image forget 1⁺ (id {W} ⊗₁ α⇐ {X n} {P n} {C n} ∘ α⇒)
+  cκ : (W : Obj) → Image forget 1⁺ (id ⊗₁ α⇐ {X n} {P n} ∘ α⇒)
   cκ W = L.sub[ ≤-refl ] ((L.id ⊗ʰ α⇐ʰ) L.∙ α⇒ʰ) , Equiv.refl
 
-  cθ : (W : Obj) → Image forget (rf n) (α⇐ {W} {X n} {B n} ∘ id ⊗₁ f n)
+  cθ : (W : Obj) → Image forget (rf n) (α⇐ ∘ id ⊗₁ f n)
   cθ W = L.sub[ ≤-reflexive (trans (*-identityʳ _) (*-identityˡ _)) ]
            (α⇐ʰ L.∙ (L.id ⊗ʰ Tᵠ.certifiedᴴ (cf n)))
        , Equiv.refl
 
-  slide : (W : Obj) (x : B n ⇒ P n ⊗₀ C n)
-        → α⇒ ∘ id {W ⊗₀ X n} ⊗₁ x ∘ α⇐ ≈ id ⊗₁ (id ⊗₁ x)
+  slide : (W : Obj) (x : B n ⇒ P n ⊗₀ C n) → α⇒ ∘ id ⊗₁ x ∘ α⇐ ≈ id ⊗₁ (id ⊗₁ x)
   slide W x = begin
     α⇒ ∘ id ⊗₁ x ∘ α⇐         ≈⟨ refl⟩∘⟨ (⟺ ⊗.identity ⟩⊗⟨refl) ⟩∘⟨refl ⟩
     α⇒ ∘ (id ⊗₁ id) ⊗₁ x ∘ α⇐ ≈⟨ pullˡ assoc-commute-from ⟩
@@ -198,7 +197,7 @@ seqError-negligible s ε δ nε nδ =
     (ctx-mono (λ q → ε n (scale q 1⁺)) (ε n) (λ q → ℚₚ.≤-reflexive (cong (ε n) (scale-unit q)))
       (agree⇒ctx (λ q → ε n (scale q 1⁺)) λ W →
         absorb-closureᵠ (ε n) 1⁺ (L.id , Equiv.refl)
-          (L.sub[ ≤-refl ] (L.id {W} ⊗ʰ Tᵠ.certifiedᴴ (cp n)) , Equiv.refl)
+          (L.sub[ ≤-refl ] (L.id ⊗ʰ Tᵠ.certifiedᴴ (cp n)) , Equiv.refl)
           (λ _ → cut) (λ _ → cut) (ctx⇒agree (ε n) (e n) W)))
   where
   cut : {W D : Obj} {x : _ ⇒ D} {E : W ⊗₀ D ⇒ Ω}
@@ -226,7 +225,7 @@ composeError-negligible rf rtv εf εu Prf Prtv nf nu =
 ≤UC[]-compose {X = X} {Y = Y} {C = C} {f = f} {g} {v = v} sf t rf rv εf εu cf cv ef eu n =
   ctx-trans (λ q → εu n (scale q (rf n))) (λ q → εf n (scale q (rtv n)))
     (≈ctx-pre f rf cf εu eu n)
-    (ctx-resp (λ q → εf n (scale q (rtv n))) Equiv.refl strict-final
+    (ctx-resp (λ q → εf n (scale q (rtv n))) Equiv.refl (pullˡ sub-commute ○ assoc)
               (≈ctx-ext (subᶠ t v) rtv ctv εf ef n))
   where
   rtv : ℕ → ℕ⁺
@@ -234,11 +233,9 @@ composeError-negligible rf rtv εf εu Prf Prtv nf nu =
 
   ctv : (m : ℕ) → Image forget (rtv m) (subᶠ t v m)
   ctv m = L.sub[ ≤-reflexive (cong (value (rv m) ℕ.*_) (*-identityʳ _)) ]
-            ((hom t m ⊗ʰ L.id {C m}) L.∙ Tᵠ.certifiedᴴ (cv m))
+            ((hom t m ⊗ʰ L.id) L.∙ Tᵠ.certifiedᴴ (cv m))
         , Equiv.refl
 
   s₁ = sim sf n
   t₁ = sim t n
 
-  strict-final : ext (X n) (sub t₁ ∘ v n) ∘ sub s₁ ∘ g n ≈ sub (s₁ ⊗₁ t₁) ∘ ext (Y n) (v n) ∘ g n
-  strict-final = pullˡ sub-commute ○ assoc

@@ -68,7 +68,7 @@ private
   ⌜⌝-pureᴹ u v = ≲-trans (∘ᴹ-resp-≲ ≲-refl (⊗ᵉ-pureᴹ u v)) (pureᴹ-∘ +-swap (u +₁ v))
 
   wireStep-copair : {A B : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
-                  → V._≈_ (wireStep {A} {B} up down)
+                  → V._≈_ (wireStep up down)
                       (V._⊗₁_ V.id [ V._∘_ i₂ (pureᵏ up) , V._∘_ i₁ (pureᵏ down) ])
   wireStep-copair _ _ (_ , inj₁ _) =
     ≈ᵈ.sym (≈ᵈ.trans >>=-identityˡ-≈
@@ -83,7 +83,7 @@ private
 wire-pure : {A B : Iface} (up : Pos A → Pos B) (down : Neg B → Neg A)
             (u : V._⇒_ (Pos A) (Pos B)) (v : V._⇒_ (Neg B) (Neg A))
           → V._≈_ u (pureᵏ up) → V._≈_ v (pureᵏ down)
-          → 𝒫._≈_ {A} {B} (wireᴹ up down) (σᴹ ∘ᴹ (pureᴹ u ⊗ᵉ pureᴹ v))
+          → 𝒫._≈_ (wireᴹ up down) (σᴹ ∘ᴹ (pureᴹ u ⊗ᵉ pureᴹ v))
 wire-pure up down u v eu ev =
     ≲⇒≈ᴹ (mk-cong (wireStep-copair up down ○ ⟺ (refl⟩⊗⟨ bridge)))
   ○ᴹ ≲⇒≈ᴹ˘ (⌜⌝-pureᴹ u v)
@@ -219,7 +219,7 @@ private
               (V._∘_ (V._⊗₁_ V.id (pureᵏ midfn))
                      (V._∘_ (tstep (V._⊗₁_ V.id +-swap) (step f))
                             (V._⊗₁_ V.id (pureᵏ midfn))))
-              (step (T₁ᴵ Y {A} {B} f))
+              (step (T₁ᴵ Y f))
   T₁-step f (s , inj₁ (inj₁ y)) =
     ≈ᵈ.trans (>>=-cong-x (≈ᵈ.trans (enter-pure midfn _ s (inj₁ (inj₁ y))) relabel))
              (exit-pure midfn s (inj₁ (inj₂ y)))

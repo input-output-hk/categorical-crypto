@@ -13,7 +13,7 @@ open import Data.Empty
 open import Data.List.Base
 open import Data.List.Membership.Propositional
 open import Data.List.Relation.Unary.Any using (here; there)
-open import Data.Maybe.Base using (Maybe; just; nothing; is-just)
+open import Data.Maybe.Base using (just; nothing; is-just)
 open import Data.Maybe.Properties
 open import Data.Nat.Base renaming (_≡ᵇ_ to _≡ᴺ_)
 open import Data.Nat.Properties using
@@ -256,12 +256,12 @@ keysU-insertNew u (k₀ , v) k mem with is-just (lookupU u k₀)
 keysU-unionNew-outsAt : ∀ u h i os k → k ∈ keysU (unionNew u (outsAt h i os))
                       → k ∈ keysU u ⊎ proj₁ k ≡ h
 keysU-unionNew-outsAt u h i []       k mem = inj₁ mem
-keysU-unionNew-outsAt u h i (o ∷ os) k mem
-  with keysU-unionNew-outsAt (insertNew u ((h , i) , o)) h (suc i) os k mem
-... | inj₂ eq = inj₂ eq
-... | inj₁ m₁ = case keysU-insertNew u ((h , i) , o) k m₁ of λ where
-  (inj₁ m₂) → inj₁ m₂
-  (inj₂ p) → inj₂ (cong proj₁ p)
+keysU-unionNew-outsAt u h i (o ∷ os) k mem =
+  case keysU-unionNew-outsAt (insertNew u ((h , i) , o)) h (suc i) os k mem of λ where
+    (inj₂ eq) → inj₂ eq
+    (inj₁ m₁) → case keysU-insertNew u ((h , i) , o) k m₁ of λ where
+      (inj₁ m₂) → inj₁ m₂
+      (inj₂ p) → inj₂ (cong proj₁ p)
 
 lookupU-insertNew : ∀ u kv k → k ≢ proj₁ kv → lookupU u k ≡ nothing
                   → lookupU (insertNew u kv) k ≡ nothing

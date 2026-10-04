@@ -57,7 +57,7 @@ module _ {B : Iface} {f g : Proc unitᴵ B} (ϕ : MC.St f → MC.St g)
   runFrom-ϕ m (out b)    = ≈refl
   runFrom-ϕ m (coin μ k) = bindᶠ (λ b → runFrom-ϕ m (k b))
   runFrom-ϕ m (ask q k)  =
-      bindᶠ (resume-ϕ {cᵍ = contᵍ k} (λ m′ r → runFrom-ϕ m′ (k r)))
+      bindᶠ (resume-ϕ (λ m′ r → runFrom-ϕ m′ (k r)))
     ⟨≈⟩ ≈sym (bindᶠ (λ p → >>=ₚ-identityˡ (ϕ (proj₁ p) , proj₂ p)
                                           (resumeᴹ g (contᵍ k))))
     ⟨≈⟩ ≈sym (>>=ₚ-assoc (MC.step f (m , inj₂ q)) (padϕ ϕ) (resumeᴹ g (contᵍ k)))

@@ -42,10 +42,8 @@ E-const+ μ c f = trans (E-add μ (λ _ → c) f) (cong (_+ℚ E μ f) (E-const 
 
 E-sub : (μ : Dist-ℚ A) (a b : A → ℚ) → E μ (λ x → a x -ℚ b x) ≡ E μ a -ℚ E μ b
 E-sub μ a b = trans (sym (+-−-cancel (E μ (λ x → a x -ℚ b x)) (E μ b)))
-                    (cong (_-ℚ E μ b) eq)
-  where eq : E μ (λ x → a x -ℚ b x) +ℚ E μ b ≡ E μ a
-        eq = trans (sym (E-add μ (λ x → a x -ℚ b x) b))
-                   (lookupᴰℚ-cong-P (entries μ) (λ x → −-+-cancel (a x) (b x)))
+  (cong (_-ℚ E μ b) (trans (sym (E-add μ (λ x → a x -ℚ b x) b))
+                           (lookupᴰℚ-cong-P (entries μ) (λ x → −-+-cancel (a x) (b x)))))
 
 E-bind : (μ : Dist-ℚ A) (h : A → Dist-ℚ B) (P : B → ℚ)
        → E (μ >>=ᴹ h) P ≡ E μ (λ a → E (h a) P)

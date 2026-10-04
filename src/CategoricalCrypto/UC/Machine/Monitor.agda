@@ -219,9 +219,9 @@ module _ {A B : Iface} (report : Neg B → Pos B → Bool) (u : Proc A B) where
   -- The crux: the monitor over the process is the accumulator's flag wire.
   monitor-flag : 𝒫._≈_ (monitorᴹ report 𝒫.∘ u) (accᴹ ▷ reported)
   monitor-flag =
-         MS.⟺ᴹ (Col.compose-raw≈∘ᴳ {Pos A} {Neg A} {Pos B} {Neg B} {Pos B ⊎ Bool} {Neg B ⊎ ⊤}
+         MS.⟺ᴹ (Col.compose-raw≈∘ᴳ
                                   (monitorᴹ report) u)
-    MS.○ᴹ Col.collapseᵀ {Pos A} {Neg A} {Pos B} {Neg B} {Pos B ⊎ Bool} {Neg B ⊎ ⊤} (monitorᴹ report) u
+    MS.○ᴹ Col.collapseᵀ (monitorᴹ report) u
     MS.○ᴹ MS.≲⇒≈ᴹ (MS.mk-cong col-step)
     MS.○ᴹ MS.≲⇒≈ᴹ col≲flag
 

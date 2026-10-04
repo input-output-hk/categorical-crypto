@@ -101,8 +101,8 @@ record Actegory {o ℓ e o′ ℓ′ e′} (ℐ : MonoidalCategory o ℓ e)
       (ℐ.id ∗₁ f) ∘ unitor.to ∎
 
   multiplicator-commute-to : ∀ {x x′ y y′ A B} {v : x ℐ.⇒ x′} {w : y ℐ.⇒ y′} {f : A ⇒ B}
-    → multiplicator.to {x′} {y′} {B} ∘ (v ∗₁ (w ∗₁ f))
-        ≈ ((v ⊗₁ w) ∗₁ f) ∘ multiplicator.to {x} {y} {A}
+    → multiplicator.to {x′} ∘ (v ∗₁ (w ∗₁ f))
+        ≈ ((v ⊗₁ w) ∗₁ f) ∘ multiplicator.to {x} {y}
   multiplicator-commute-to {v = v} {w} {f} = begin
       multiplicator.to ∘ (v ∗₁ (w ∗₁ f))
     ≈⟨ refl⟩∘⟨ insertʳ multiplicator.isoʳ ⟩
@@ -116,9 +116,9 @@ record Actegory {o ℓ e o′ ℓ′ e′} (ℐ : MonoidalCategory o ℓ e)
 
   private
     assoc-core : ∀ {x y z A}
-               → multiplicator.from {x} {y ⊗₀ z} {A}
-                   ∘ ((α⇒ ∗₁ 𝒞.id) ∘ (multiplicator.to {x ⊗₀ y} {z} {A}
-                       ∘ multiplicator.to {x} {y} {z ∗₀ A}))
+               → multiplicator.from
+                   ∘ ((α⇒ ∗₁ 𝒞.id) ∘ (multiplicator.to
+                       ∘ multiplicator.to {x}))
                  ≈ ℐ.id ∗₁ multiplicator.to {y} {z} {A}
     assoc-core = begin
         multiplicator.from ∘ ((α⇒ ∗₁ 𝒞.id) ∘ (multiplicator.to ∘ multiplicator.to))
@@ -134,8 +134,8 @@ record Actegory {o ℓ e o′ ℓ′ e′} (ℐ : MonoidalCategory o ℓ e)
         ℐ.id ∗₁ multiplicator.to ∎
 
   assoc-coherence-to : ∀ {x y z A}
-    → (α⇒ ∗₁ 𝒞.id) ∘ (multiplicator.to {x ⊗₀ y} {z} {A} ∘ multiplicator.to {x} {y} {z ∗₀ A})
-        ≈ multiplicator.to {x} {y ⊗₀ z} {A} ∘ (ℐ.id ∗₁ multiplicator.to {y} {z} {A})
+    → (α⇒ ∗₁ 𝒞.id) ∘ (multiplicator.to {x ⊗₀ y} {z} ∘ multiplicator.to {x})
+        ≈ multiplicator.to {x} {y ⊗₀ z} ∘ (ℐ.id ∗₁ multiplicator.to {y} {z} {A})
   assoc-coherence-to = Switch.switch-fromtoˡ multiplicator assoc-core
 
   unitˡ-coherence-to : ∀ {y A}
@@ -368,7 +368,7 @@ module _ {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e} {𝒞 : Cat
           ○ M.unitaryʳ)
         ○ identityˡ)
 
-    E2 : ∀ {x y z A} → η (M.F₁ (α⇒ {x} {y} {z})) A
+    E2 : ∀ {x y z A} → η (M.F₁ (α⇒ {x})) A
        ≈ ((η (M.⊗-homo.⇒.η (x , y ⊗₀ z)) A
             ∘ F₁ (M.F₀ x) (η (M.⊗-homo.⇒.η (y , z)) A))
           ∘ η (M.⊗-homo.⇐.η (x , y)) (F₀ (M.F₀ z) A))

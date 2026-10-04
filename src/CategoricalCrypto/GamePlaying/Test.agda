@@ -13,7 +13,7 @@ open import Data.Rational using (ℚ) renaming (_*_ to _*ℚ_; _≤_ to _≤ℚ_
 open import Data.Rational.Properties using (≤-reflexive; ≤-trans)
 open import Data.Sum.Base
 open import Data.Unit.Base
-open import Data.Vec.Base using (Vec)
+open import Data.Vec.Base
 open import Function.Base
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary.Decidable.Core

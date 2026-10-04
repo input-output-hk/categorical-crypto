@@ -83,7 +83,7 @@ module _ {Rs Adv Lk Hon Advᶜ Honᶜ : ℕ → Channel} {real : Homᶠ Rs Adv H
   toss-overᵇ : (sf : Lk ⇒^ω Adv) (εf : ℕ → ℕ → ℚ) → real ≤UC[ sf , εf ] ideal
              → (toss ∙ᶠ real) ≤UC[ simᶜᵗ sf , εᶜᵗ εf ] (toss ∙ᶠ ideal)
   toss-overᵇ sf εf ef =
-    ≤UC[]-compose {u = toss} {v = toss} sf (Category.id Fam) (λ _ → 1⁺) (λ _ → 1⁺) εf (λ _ _ → 0ℚ)
+    ≤UC[]-compose sf (Category.id Fam) (λ _ → 1⁺) (λ _ → 1⁺) εf (λ _ _ → 0ℚ)
       (λ n → pred⇒image (cr n)) (λ n → pred⇒image (ct n)) ef
       (≈C⇒≈ctx λ n → Equiv.sym (sub-identityˡ (toss n)))
 

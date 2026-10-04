@@ -97,7 +97,7 @@ module _ {oᵢ ℓᵢ eᵢ oⱼ ℓⱼ eⱼ o ℓ e o′ ℓ′ e′ : Level}
     module F = Functor F
     module Φ = MonoidalFunctor Φ
     module MR𝒞 = MR 𝒞
-    open MonoidalUtilities.Shorthands ℐ.monoidal using (ρ⇒)
+    open MonoidalUtilities.Shorthands ℐ.monoidal
     open MonoidalUtilities.Shorthands ℐ′.monoidal using () renaming (ρ⇒ to ρ⇒′)
     open 𝒞′.HomReasoning
     open MR 𝒞′

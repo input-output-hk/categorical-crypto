@@ -39,7 +39,7 @@ bodyₒ u k sa = u sa >>=ₚ outκ k
 
 outκ-inj₁ : {S A B C : Set ℓ} (n : ℕ) (k : S × B → Dₚ (S × C)) (v : Body S A C)
             (P : S × C → ℚ) (j : ℕ) (s : S) (b : B)
-          → cum (suc n) (outκ {A = A} k (s , inj₁ b)) (Tᵗ v P j) ≡ cum n (k (s , b)) P
+          → cum (suc n) (outκ k (s , inj₁ b)) (Tᵗ v P j) ≡ cum n (k (s , b)) P
 outκ-inj₁ n k v P j s b = mapₚ-cum n inlₒ (k (s , b)) (Tᵗ v P j)
 
 outκ-inj₂ : {S A B C : Set ℓ} (n : ℕ) (k : S × B → Dₚ (S × C)) (v : Body S A C)

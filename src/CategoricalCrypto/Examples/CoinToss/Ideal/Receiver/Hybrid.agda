@@ -163,5 +163,5 @@ private
 ------------------------------------------------------------------------
 -- …and the composite, read as `eagerᶜʰ`
 
-hybrid-eqʰ : 𝒫._≈_ {unitᴵ} {Cᵗʰ} hybridᴹʰ eagerᶜʰ
+hybrid-eqʰ : 𝒫._≈_ hybridᴹʰ eagerᶜʰ
 hybrid-eqʰ = St.hybrid-eq eagerᶜʰ′ hyb-simʰ

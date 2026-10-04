@@ -50,8 +50,8 @@ module Compose {A B C : Iface} (Sg Sf : Set)
   open Unfold {A} {B} {C} Sg Sf pointg pointf pointᶜ stepg stepf stepᶜ solveᶜ
 
   module _ {c c′ : ℕ} (u : Unfolding)
-           (qg : QBᵢ {B} {C} Sg pointg stepg c)
-           (qf : QBᵢ {A} {B} Sf pointf stepf c′) where
+           (qg : QBᵢ Sg pointg stepg c)
+           (qf : QBᵢ Sf pointf stepf c′) where
 
     private
       module qg = QBᵢ qg
@@ -241,7 +241,7 @@ module Compose {A B C : Iface} (Sg Sf : Set)
         ⟨≈⟩ bindˣ qg.coh₀
         ⟨≈⟩ ≈sym point-eq
 
-    qbᵢ-∘ᵍ : QBᵢ {A} {C} (Sg × Sf) pointᶜ stepᶜ (c ℕ.* c′)
+    qbᵢ-∘ᵍ : QBᵢ (Sg × Sf) pointᶜ stepᶜ (c ℕ.* c′)
     qbᵢ-∘ᵍ = record
       { Φ = Φᶜ ; pointᵍ = pointᵍᶜ ; coh₀ = coh₀ᶜ ; onLᵍ = onLᶜᵍ ; onRᵍ = onRᶜᵍ
       ; cohL = cohLᶜ ; cohR = cohRᶜ

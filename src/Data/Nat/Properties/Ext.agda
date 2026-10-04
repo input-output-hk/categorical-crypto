@@ -83,13 +83,12 @@ private
 
   m≤2*[m∸d] : ∀ d m → 2 * d ≤ m → m ≤ 2 * (m ∸ d)
   m≤2*[m∸d] d m 2d≤m = begin
-    m                  ≡⟨ sym (m+[n∸m]≡n d≤m) ⟩
+    m                  ≡⟨ sym (m+[n∸m]≡n (≤-trans (m≤m+n d d) d+d≤m)) ⟩
     d + (m ∸ d)        ≤⟨ +-monoˡ-≤ (m ∸ d) d≤m∸d ⟩
     (m ∸ d) + (m ∸ d)  ≡⟨ sym (2*≡+ (m ∸ d)) ⟩
     2 * (m ∸ d)        ∎
     where
     d+d≤m = ≤-trans (≤-reflexive (sym (2*≡+ d))) 2d≤m
-    d≤m   = ≤-trans (m≤m+n d d) d+d≤m
     d≤m∸d = ≤-trans (≤-reflexive (sym (m+n∸n≡m d d))) (∸-monoˡ-≤ d d+d≤m)
 
 -- The ratio (1 + 1/m)^d ≤ m/(m ∸ d), with no binomial expansion: the `m ∸ d`

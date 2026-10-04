@@ -9,7 +9,7 @@ module ProbabilisticLogic.Distribution.Uniform where
 
 open import categorical-crypto.Prelude hiding (_/_; _>>=_; _*_)
 
-open import Algebra.Bundles using (CommutativeMonoid)
+open import Algebra.Bundles
 open import Data.Integer as ℤ using (+_; +≤+)
 import Data.Integer.Properties as ℤₚ
 import Data.List.NonEmpty as NE
@@ -21,8 +21,8 @@ open import Data.Rational.Properties using
   ( *-zeroˡ; *-zeroʳ; *-identityˡ; *-identityʳ; *-1-commutativeMonoid
   ; +-assoc; +-identityˡ; +-identityʳ; +-monoˡ-≤; +-monoʳ-≤; *-distribʳ-+
   ; ≤-refl; ≤-reflexive; ≤-trans; <-≤-trans; /-cong; positive⁻¹; ↥p/↧p≡p )
-open import Data.Rational.Properties.Ext using (0<½*; 0≤1ℚ; 0≤*; p≤p+q; p≤q+p; /-*-/; /-+-/; /-mono-≤)
-open import Data.Vec using (Vec; []; _∷_)
+open import Data.Rational.Properties.Ext
+open import Data.Vec
 
 import Algebra.Properties.CommutativeSemigroup as CommutativeSemigroupProperties
 import Data.Rational.Properties as ℚₚ
@@ -124,8 +124,7 @@ suc·c n c = trans (cong (_+ n * c) (sym (*-identityˡ c)))
 0≤fromℕ (suc m) = ≤-trans (0≤fromℕ m) (p≤q+p (fromℕ m) 0≤1ℚ)
 
 0<fromℕ-suc : ∀ m → 0ℚ < fromℕ (suc m)
-0<fromℕ-suc m = <-≤-trans (positive⁻¹ 1ℚ)
-  (p≤p+q 1ℚ (0≤fromℕ m))
+0<fromℕ-suc m = <-≤-trans (positive⁻¹ 1ℚ) (p≤p+q 1ℚ (0≤fromℕ m))
 
 fromℕ-mono-≤ : ∀ {m n} → m ℕ.≤ n → fromℕ m ≤ fromℕ n
 fromℕ-mono-≤ {n = n} z≤n = 0≤fromℕ n

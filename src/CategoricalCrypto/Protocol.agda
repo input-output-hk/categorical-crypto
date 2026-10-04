@@ -17,7 +17,6 @@ open import Data.Unit.Base
 open import Data.Vec.Base using (Vec; []; _∷_)
 
 open import ProbabilisticLogic.Distribution.RationalDist
-open import ProbabilisticLogic.Distribution.RationalDist.Partial
 open import ProbabilisticLogic.Distribution.Uniform
 
 open import CategoricalCrypto.Iface

@@ -2,14 +2,14 @@
 
 module Categories.Discrete where
 
-open import Level using (0ℓ)
+open import Level
 
-open import Categories.Category using (Category; _[_,_]; _[_≈_]; _[_∘_])
-open import Categories.Category.Helper using (categoryHelper)
-open import Categories.Functor using (Functor)
+open import Categories.Category
+open import Categories.Category.Helper
+open import Categories.Functor
 
-open import Data.Unit using (⊤)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; trans)
+open import Data.Unit
+open import Relation.Binary.PropositionalEquality
 
 module Discrete (X : Set) where
 

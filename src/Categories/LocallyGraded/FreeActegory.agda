@@ -233,13 +233,11 @@ module _ {o ℓ e o′ ℓ′ e′} {ℐ : MonoidalCategory o ℓ e}
 
   ∗∮-reindex : ∀ {x x′ i i′ A} (v : x ℐᵁ.⇒ x′) (c : i ℐᵁ.⇒ i′)
              → v ∗∮ reindex {A = A} c ≈∮ reindex (v ⊗₁ c)
-  ∗∮-reindex {x} {x′} {i} {i′} v c = ι-resp L.Equiv.refl
-    (solve-mor ℐ)
+  ∗∮-reindex {x} {x′} {i} {i′} v c = ι-resp L.Equiv.refl (solve-mor ℐ)
 
   ∗∮-id : ∀ {x x′ i A} (v : x ℐᵁ.⇒ x′)
         → v ∗∮ ∮C.id {(i , A)} ≈∮ reindex (v ⊗₁ ℐ.id)
-  ∗∮-id {x} {x′} {i} v = ι-resp L.Equiv.refl
-    (solve-mor ℐ)
+  ∗∮-id {x} {x′} {i} v = ι-resp L.Equiv.refl (solve-mor ℐ)
 
   ∮-actegory : Actegory ℐ ∮
   ∮-actegory = record

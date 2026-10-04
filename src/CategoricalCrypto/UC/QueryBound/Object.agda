@@ -32,26 +32,26 @@ private module 𝒢 = Category (𝒢ₚ 0ℓ)
 
 opaque
   QBᴳ : (A B : 𝒢.Obj) → ℕ → 𝒢ₚ 0ℓ [ A , B ] → Set₁
-  QBᴳ A B = QB {retᴵ A} {retᴵ B}
+  QBᴳ A B = QB
 
 opaque
   unfolding QBᴳ
 
   qb-resp-≈ᴳ : (A B : 𝒢.Obj) {c : ℕ} {M N : 𝒢ₚ 0ℓ [ A , B ]}
              → 𝒢ₚ 0ℓ [ M ≈ N ] → QBᴳ A B c M → QBᴳ A B c N
-  qb-resp-≈ᴳ A B = qb-resp-≈ {retᴵ A} {retᴵ B}
+  qb-resp-≈ᴳ A B = qb-resp-≈
 
   qb-monoᴳ : (A B : 𝒢.Obj) {c c′ : ℕ} {M : 𝒢ₚ 0ℓ [ A , B ]}
            → c ℕ.≤ c′ → QBᴳ A B c M → QBᴳ A B c′ M
-  qb-monoᴳ A B = qb-mono {retᴵ A} {retᴵ B}
+  qb-monoᴳ A B = qb-mono
 
-  qb-idᴳ : (A : 𝒢.Obj) → QBᴳ A A 1 (𝒢.id {A})
-  qb-idᴳ A = qb-idᴹ {retᴵ A}
+  qb-idᴳ : (A : 𝒢.Obj) → QBᴳ A A 1 𝒢.id
+  qb-idᴳ A = qb-idᴹ
 
   qb-to-image : (A B : Iface) {c : ℕ} {M : 𝒢ₚ 0ℓ [ ⟦ A ⟧ᴵ , ⟦ B ⟧ᴵ ]}
-              → QB {A} {B} c M → QBᴳ ⟦ A ⟧ᴵ ⟦ B ⟧ᴵ c M
+              → QB c M → QBᴳ ⟦ A ⟧ᴵ ⟦ B ⟧ᴵ c M
   qb-to-image A B q = q
 
   qb-from-image : (A B : Iface) {c : ℕ} {M : 𝒢ₚ 0ℓ [ ⟦ A ⟧ᴵ , ⟦ B ⟧ᴵ ]}
-                → QBᴳ ⟦ A ⟧ᴵ ⟦ B ⟧ᴵ c M → QB {A} {B} c M
+                → QBᴳ ⟦ A ⟧ᴵ ⟦ B ⟧ᴵ c M → QB c M
   qb-from-image A B q = q

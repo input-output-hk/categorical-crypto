@@ -78,7 +78,7 @@ R ≈ᶠᴺ I = Σ[ ε ∈ (ℕ → ℕ → ℚ) ] NegligibleBound ε × R ≈�
 -- levelwise FAMILIES of contexts carrying one polynomial, where the contextual
 -- relation quantifies each level's context separately.
 ≈ctx⇒≈ℰ[] : {A X B : Obj^ω} (ε : ℕ → ℕ → ℚ) (f g : A ⇒^ω (X ⊛ω B))
-          → sim f ≈ctx[ ε ] sim g → _≈ℰ[_]_ {A} {X ⊛ω B} f ε g
+          → sim f ≈ctx[ ε ] sim g → _≈ℰ[_]_ f ε g
 ≈ctx⇒≈ℰ[] _ _ _ h Y Et m _ cE n =
   h n (Y n) ⌊ hom Et n ⌋ ⌊ hom m n ⌋ (cE n) (hom m n , Equiv.refl)
 
@@ -86,7 +86,7 @@ module _ {A X Y B : Obj^ω} (s : Y ⇒^ω X) (ε : ℕ → ℕ → ℚ)
          (neg : NegligibleBound ε) (f : A ⇒^ω (X ⊛ω B)) (g : A ⇒^ω (Y ⊛ω B))
          (e : sim f ≤UC[ s , ε ] sim g) where
 
-  ≤UC[]⇒≈ℰⁿ : _≈ℰⁿ_ {A} {X ⊛ω B} f (Cᴺ.sub s Cᴺ.∘ g)
+  ≤UC[]⇒≈ℰⁿ : _≈ℰⁿ_ {A} f (Cᴺ.sub s Cᴺ.∘ g)
   ≤UC[]⇒≈ℰⁿ = ε , carried-negligible {ε = ε} neg
             , ≈ctx⇒≈ℰ[] ε f (Cᴺ.sub s Cᴺ.∘ g) e
 
@@ -128,6 +128,6 @@ module _ (B : Iface) (e : Strat (Neg B) (Pos B)) where
 ≈ᶠ-runs ε h n q d a =
   subst (λ k → _ ≈ₚ[ ε n k ] _) (*-identityʳ (value q))
         (≈ₚ[]-resp (audit-run _ d _) (audit-run _ d _)
-                   (h n Gr.𝟘ᴳ (auditTest _ d) (Gr.ιᴳ unitᴵ) {q} {1⁺}
+                   (h n Gr.𝟘ᴳ (auditTest _ d) (Gr.ιᴳ unitᴵ)
                       ((auditTest _ d , audit-qb _ d q a) , Equiv.refl)
                       ((Gr.ιᴳ unitᴵ , pred-λ⇐) , Equiv.refl)))

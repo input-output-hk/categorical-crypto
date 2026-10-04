@@ -61,7 +61,7 @@ _>>=⊥_ : Dist⊥ A → (A → Dist⊥ B) → Dist⊥ B
 >>=⊥-identityˡ a h = >>=ᴹ-identityˡ (just a) (kmaybe h)
 
 >>=⊥-congʳ : (f : A → Dist⊥ B) (μ ν : Dist⊥ A) → μ ≈Mℚ ν → (μ >>=⊥ f) ≈Mℚ (ν >>=⊥ f)
->>=⊥-congʳ f μ ν μ≈ν = >>=⊥-cong {μ = μ} {ν} {f} {f} μ≈ν (λ a → Eq.refl {x = f a})
+>>=⊥-congʳ f μ ν μ≈ν = >>=⊥-cong {μ = μ} {ν} μ≈ν (λ a → Eq.refl {x = f a})
 
 Dmap⊥ : (A → B) → Dist⊥ A → Dist⊥ B
 Dmap⊥ f μ = μ >>=⊥ (return⊥ ∘ f)

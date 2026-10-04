@@ -2,13 +2,13 @@
 
 module Categories.Properties where
 
-open import Categories.Category using (Category)
-open import Categories.Category.Product using (Product; _⁂_; _※_; _※ⁿⁱ_)
-open import Categories.Functor as F using (Functor; _∘F_)
-open import Categories.Functor.Construction.Constant using (const; constʳ)
-open import Categories.Morphism using (IsIso)
-open import Categories.Morphism.Properties using (id-is-iso)
-open import Categories.NaturalTransformation.NaturalIsomorphism as NI using (NaturalIsomorphism; niHelper; Functor-NI-setoid)
+open import Categories.Category
+open import Categories.Category.Product
+open import Categories.Functor as F
+open import Categories.Functor.Construction.Constant
+open import Categories.Morphism
+open import Categories.Morphism.Properties
+open import Categories.NaturalTransformation.NaturalIsomorphism as NI
 
 import Relation.Binary.Reasoning.Setoid as SetoidR
 
@@ -35,7 +35,7 @@ module _ {a b c} where
           open E.HomReasoning
 
   -×_ : {C D : Category a b c} → D .Category.Obj → Functor C (Product C D)
-  -×_ {C} {D} d = constʳ {C = D} {D = C} d
+  -×_ {C} {D} d = constʳ d
 
   ⁂-× : {C D E : Category a b c} → (G : Functor D E) → (d : D .Category.Obj)
       → NaturalIsomorphism ((F.id {C = C} ⁂ G) ∘F -× d) (-× Functor.F₀ G d)

@@ -177,7 +177,7 @@ module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
                   (cong (λ a → E⊥ (hitFrom P Bad a (init P) d) (indᵇ true)) (bd (init P))))))
 
     stateRead-hit : (d : Strat (Neg B) (Pos B))
-                  → Attains (stateRead unitᴵ (morphism P) T (stratTest B d) (λᴵ⇐ {unitᴵ})) (indᵇ true) (PrHit P Bad d)
+                  → Attains (stateRead unitᴵ (morphism P) T (stratTest B d) (λᴵ⇐)) (indᵇ true) (PrHit P Bad d)
     stateRead-hit d =
       Attains-≈ₚ _ _ (indᵇ true) (indᵇ-nn true) (PrHit P Bad d) (run-hit d)
                      (≈ₚ-sym _ _ (stateRead-agree (morphism P) T d))
@@ -187,7 +187,7 @@ module _ {B : Iface} (P : Protocol unitᴵ B) (Bad : St P → Bool) where
                      → (d : Strat (Neg B) (Pos B)) → asks≤ q d → PrHit P Bad d ℚ.≤ r
     stateBounded⇒hit q h d a =
       let n , eq = stateRead-hit d
-          up = h unitᴵ (stratTest B d) (λᴵ⇐ {unitᴵ}) (qb-stratTest B d a) (qb-closed (λᴵ⇐ {unitᴵ})) (ℕP.≤-reflexive (scale-unit q))
+          up = h unitᴵ (stratTest B d) (λᴵ⇐) (qb-stratTest B d a) (qb-closed (λᴵ⇐)) (ℕP.≤-reflexive (scale-unit q))
       in ℚP.≤-trans (ℚP.≤-reflexive (sym (eq 0))) (up (n ℕ.+ 0))
 
     -- …and lifted to every admitted experiment at the same cap.

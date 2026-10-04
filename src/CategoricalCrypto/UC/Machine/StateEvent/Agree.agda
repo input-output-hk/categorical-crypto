@@ -62,7 +62,7 @@ embeds B d =
 -- The closed flagged context at `stratTest`, as the flag reader over the
 -- strategy environment.
 flag-tower : (B : Iface) (u : Proc unitᴵ (B ⊗ᴵ Ωᴵ)) (d : Strat (Neg B) (Pos B))
-      → 𝒫._≈_ ((flagReader B unitᴵ (stratTest B d) 𝒫.∘ T₁ᴵ unitᴵ u) 𝒫.∘ λᴵ⇐ {unitᴵ})
+      → 𝒫._≈_ ((flagReader B unitᴵ (stratTest B d) 𝒫.∘ T₁ᴵ unitᴵ u) 𝒫.∘ λᴵ⇐)
                             (Collapsed.readᴹ B (strategyEnv B d) 𝒫.∘ u)
 flag-tower B u d =
      𝒫.assoc

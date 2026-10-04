@@ -68,10 +68,10 @@ private
   absorbʳᵂ = GE.Embed.WithTrace.absorbʳ ℳ.U ℳ.monoidal (Tracedₚ 0ℓ) (TraceLawsₚ 0ℓ)
 
   idˡ-pure : {V W V′ : Set} (h : V → W) → V._≈_ (V.id {V′} +₁ pureᵏ h) (pureᵏ (Sum.map₂ h))
-  idˡ-pure h = +₁-pureᵏ pure-idᵏ (V.Equiv.refl {x = pureᵏ h})
+  idˡ-pure h = +₁-pureᵏ pure-idᵏ V.Equiv.refl
 
   idʳ-pure : {V W V′ : Set} (h : V → W) → V._≈_ (pureᵏ h +₁ V.id {V′}) (pureᵏ (Sum.map₁ h))
-  idʳ-pure h = +₁-pureᵏ (V.Equiv.refl {x = pureᵏ h}) pure-idᵏ
+  idʳ-pure h = +₁-pureᵏ V.Equiv.refl pure-idᵏ
 
 ------------------------------------------------------------------------
 -- Composing with a wire

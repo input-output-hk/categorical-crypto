@@ -12,7 +12,7 @@ open import Data.Nat.Base
 open import Data.Product.Base
 open import Data.Vec.Base using (Vec; fromList; toList) renaming ([] to []ᵛ; _∷_ to _∷ᵛ_)
 open import Data.Vec.Properties using (toList∘fromList)
-open import Level using (Level; _⊔_)
+open import Level using (Level)
 open import Relation.Binary.PropositionalEquality
 
 module Data.Bits.Codec where

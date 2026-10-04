@@ -419,7 +419,7 @@ join-J (r , t , m , false) (mr , t′ , z) (refl , refl , tbl , frs) refl (askQ�
   sup = OnSupport-bind (fetchT id t x) (λ u → uniform-Vec k >>=ᴹ λ ρ → return-ℚ (κa u ρ))
           (fetchT-sup t x) λ u us → OnSupport-map (uniform-Vec k) _ λ ρ → stp u ρ us
 join-J (r , t , nothing , false) (mr , t′ , z) (refl , refl , tbl , frs) refl (comQʰ b) =
-  νc , mgL , mgR , sup
+  νc , mgL , mgR , OnSupport-map (uniform-Vec k) κc (inj₂ ∘ stp)
   where
   κc : Dig → (StPʰ × Rʰ) × (StRʰ × Rʰ)
   κc c = outComP r t b false c
@@ -453,10 +453,6 @@ join-J (r , t , nothing , false) (mr , t′ , z) (refl , refl , tbl , frs) refl 
     ... | yes _ = refl
     ... | no  _ = tbl y
 
-  sup : OnSupport (λ p → (flagP (proj₁ (proj₁ p)) ≡ true)
-                       ⊎ ((proj₁ (proj₁ p) ≋J proj₁ (proj₂ p))
-                          × (proj₂ (proj₁ p) ≡ proj₂ (proj₂ p)))) νc
-  sup = OnSupport-map (uniform-Vec k) κc (inj₂ ∘ stp)
 join-J (r , t , just mm , false) (mr , t′ , z) (refl , refl , tbl , frs) refl (comQʰ b) =
   join-return flagP _≋J_ ((r , t , just mm , false) , idleRʰ)
                          ((just r , t′ , recOf (just mm) r) , idleRʰ)

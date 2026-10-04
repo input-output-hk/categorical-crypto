@@ -10,9 +10,7 @@
 open import Data.Bool.Base
 open import Data.Empty
 open import Data.Nat.Base as ℕ
-open import Data.Product.Base
 open import Data.Unit.Base
-open import Relation.Binary.PropositionalEquality
 
 open import ProbabilisticLogic.Distribution.RationalDist
 

@@ -11,7 +11,7 @@ open import Class.DecEq
 
 open import Data.Bool.Base
 open import Data.Integer.Base using (+_)
-open import Data.Rational using (ℚ; _/_)
+open import Data.Rational using (_/_)
   renaming (_-_ to _-ℚ_; ∣_∣ to ∣_∣ℚ; _≤_ to _≤ℚ_)
 open import Data.Unit.Base
 open import Data.Vec.Base using () renaming (_∷_ to _∷ᵛ_)

@@ -13,7 +13,7 @@ open import Data.Nat.Base as ℕ
 open import Data.Product.Base
 open import Data.Rational as ℚ
 open import Data.Rational.Properties
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
+open import Data.Sum.Base using (_⊎_; inj₂)
 open import Relation.Binary.PropositionalEquality
 
 import Data.Nat.Properties as ℕP

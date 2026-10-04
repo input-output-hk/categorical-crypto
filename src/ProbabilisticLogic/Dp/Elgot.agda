@@ -29,7 +29,7 @@ private variable ℓ : Level
 -- Uniformity along an arbitrary PURE state map
 
 φ-map₁ : {S S′ A B : Set ℓ} (θ : S → S′) (r : S × (B ⊎ A))
-       → φ (map₁ {C = A} θ) (map₁ {C = B} θ) r ≡ map₁ θ r
+       → φ (map₁ θ) (map₁ θ) r ≡ map₁ θ r
 φ-map₁ θ (s , inj₁ b) = refl
 φ-map₁ θ (s , inj₂ p) = refl
 

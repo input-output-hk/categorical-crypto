@@ -18,7 +18,7 @@ open import Categories.Category.Equivalence using (StrongEquivalence)
 open import Categories.Functor
 open import Categories.Functor.Equivalence
 open import Categories.GradedKleisli
-open import Categories.LocallyGraded.FreeActegory using (∮)
+open import Categories.LocallyGraded.FreeActegory
 open import Categories.LocallyGraded.Kleisli
 import Categories.Morphism.Reasoning as MR
 open import Categories.NaturalTransformation.NaturalIsomorphism using (niHelper)
@@ -63,7 +63,7 @@ Obj-≡ = refl
 Hom-≡ : ∀ {X Y} → (X K∮.⇒ Y) ≡ (X K.⇒ Y)
 Hom-≡ = refl
 
-id-≡ : ∀ {X} → K∮.id {X} ≡ K.id {X}
+id-≡ : ∀ {X} → K∮.id ≡ K.id {X}
 id-≡ = refl
 
 ∘-≡ : ∀ {X Y Z} {g : Y K∮.⇒ Z} {f : X K∮.⇒ Y} → (K∮ [ g ∘ f ]) ≡ (K [ g ∘ f ])

@@ -172,6 +172,6 @@ private
                   (λ z → map-map (cStep (proj₁ z , Sum.map₂ ⊎assocʳ (proj₂ z))) _ _
                         ⟨≈⟩ idlStep (proj₁ z) (proj₂ z))
 
-coin-machine : 𝒫._≈_ {unitᴵ} {Cᵗ} hybridᴹ idealᴹ
+coin-machine : 𝒫._≈_ hybridᴹ idealᴹ
 coin-machine = hybrid-eq MS.○ᴹ MS.≲⇒≈ᴹ idl-sim
           MS.○ᴹ CS.eq-∘ᶜ unitᴵ (Lkᴵᶜ ⊗ᴵ Honᴵᶜ) Cᵗ simᴵᵈ Fcoin

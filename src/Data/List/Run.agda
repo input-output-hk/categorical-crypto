@@ -11,6 +11,7 @@ open import Data.List.Properties
 open import Data.Maybe.Base
 open import Data.Nat.Properties
 open import Data.Product
+open import Function.Base using (case_of_)
 open import Level
 open import Relation.Binary.PropositionalEquality
 
@@ -21,9 +22,9 @@ module _ {V : Set v} {L : Set ℓ} (step : V → L → Maybe V) where
 
   runPath : V → List L → Maybe V
   runPath v []       = just v
-  runPath v (l ∷ ls) with step v l
-  ... | just w  = runPath w ls
-  ... | nothing = nothing
+  runPath v (l ∷ ls) = case step v l of λ where
+    (just w) → runPath w ls
+    nothing → nothing
 
   runPath-single : ∀ r l → runPath r (l ∷ []) ≡ step r l
   runPath-single r l with step r l

@@ -6,7 +6,6 @@
 -- machine, renamed.
 
 open import Categories.Category.Monoidal.Bundle
-open import Categories.Monad.Discrete
 
 open import Data.Product.Base
 open import Level
@@ -59,10 +58,10 @@ squeeze f h k {H} {K} eH eK = ≲⇒≈ᴹ (mk-cong pt)
   where
   -- Both paddings are ascribed: left to inference, the identity factor of
   -- `refl⟩⊗⟨` is a meta the Kleisli `return` blocks.
-  padH : V._≈_ (V._⊗₁_ (V.id {St f}) H) (V._⊗₁_ (V.id {St f}) (pureᵏ h))
+  padH : V._≈_ (V._⊗₁_ V.id H) (V._⊗₁_ V.id (pureᵏ h))
   padH = refl⟩⊗⟨ eH
 
-  padK : V._≈_ (V._⊗₁_ (V.id {St f}) K) (V._⊗₁_ (V.id {St f}) (pureᵏ k))
+  padK : V._≈_ (V._⊗₁_ V.id K) (V._⊗₁_ V.id (pureᵏ k))
   padK = refl⟩⊗⟨ eK
 
   pt : (p : _) → _

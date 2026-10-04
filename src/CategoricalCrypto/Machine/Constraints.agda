@@ -41,9 +41,8 @@ record IsConstrained
 
   -- Retrieves the response to a given query
   queryCompute : ∀ query (s : State) → (QueryReturnType query × State)
-  queryCompute query s with completeness {query} {s}
-  ... | response' , s' , p with correctness p
-  ... | response , _ = response , s'
+  queryCompute query s = case completeness {query} {s} of λ (_ , s' , p) →
+    case correctness p of λ (response , _) → response , s'
 
 -- Ensures that a certain constrained machine does not change its inner state
 -- when receiving a specific constrained query

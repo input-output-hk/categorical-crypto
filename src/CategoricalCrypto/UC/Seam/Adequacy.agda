@@ -90,7 +90,7 @@ adequacy : (B : Iface) (u : Proc unitᴵ B) (d : Strat (Neg B) (Pos B))
          → ⟦ strategyEnv B d 𝒫.∘ u ⟧ᴼ ≈ₚ runᴹ u d
 adequacy B u d =
     Plugged.collapse B (strategyEnv B d) u
-  ⟨≈⟩ runᴹ-resp-≈ᴹ {Ωᴵ} (Plugged.traced≈ B (strategyEnv B d) u) (ask tt out)
+  ⟨≈⟩ runᴹ-resp-≈ᴹ (Plugged.traced≈ B (strategyEnv B d) u) (ask tt out)
   ⟨≈⟩ bindˣ (point-red B u d ttᵛ)
   ⟨≈⟩ >>=ₚ-assoc (MC.point (MC.state u) ttᵛ) _ _
   ⟨≈⟩ bindᶠ (λ su → >>=ₚ-identityˡ (play d , su) _)

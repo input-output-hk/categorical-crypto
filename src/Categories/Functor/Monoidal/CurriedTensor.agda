@@ -12,10 +12,10 @@ open import Categories.Category
 open import Categories.Category.Construction.Functors
 open import Categories.Category.Monoidal.Construction.Endofunctors
 open import Categories.Category.Product
-open import Categories.Coherence.Monoidal.Tactic using (solve-mor)
+open import Categories.Coherence.Monoidal.Tactic
 open import Categories.Functor renaming (id to idF)
 open import Categories.Functor.Monoidal
-open import Categories.Monad.Graded using (GradedMonad)
+open import Categories.Monad.Graded
 open import Categories.NaturalTransformation
 
 private
@@ -72,26 +72,26 @@ curriedTensor = record { F = F ; isMonoidal = isMon }
   ⊗-homo = ntHelper record { η = homo-η ; commute = homo-commute }
 
   assoc-law : ∀ {X Y Z x} →
-      α⇒ {X} {Y} {Z} ⊗₁ 𝒞.id {x}
-    𝒞.∘ α⇐ {X ⊗₀ Y} {Z} {x}
-    𝒞.∘ 𝒞.id {X ⊗₀ Y} ⊗₁ 𝒞.id {Z ⊗₀ x}
-    𝒞.∘ α⇐ {X} {Y} {Z ⊗₀ x}
-    𝒞.≈ α⇐ {X} {Y ⊗₀ Z} {x}
-    𝒞.∘ (𝒞.id {X} ⊗₁ α⇐ {Y} {Z} {x} 𝒞.∘ 𝒞.id) 𝒞.∘ 𝒞.id
+      α⇒ ⊗₁ 𝒞.id
+    𝒞.∘ α⇐
+    𝒞.∘ 𝒞.id ⊗₁ 𝒞.id
+    𝒞.∘ α⇐ {X} {Y}
+    𝒞.≈ α⇐ {X}
+    𝒞.∘ (𝒞.id ⊗₁ α⇐ {Y} {Z} {x} 𝒞.∘ 𝒞.id) 𝒞.∘ 𝒞.id
   assoc-law = solve-mor M
 
   unitˡ-law : ∀ {X x} →
-      λ⇒ {X} ⊗₁ 𝒞.id {x}
-    𝒞.∘ α⇐ {unit} {X} {x}
-    𝒞.∘ 𝒞.id {unit} ⊗₁ 𝒞.id {X ⊗₀ x}
-    𝒞.∘ λ⇐ {X ⊗₀ x}
+      λ⇒ ⊗₁ 𝒞.id
+    𝒞.∘ α⇐ {unit}
+    𝒞.∘ 𝒞.id ⊗₁ 𝒞.id
+    𝒞.∘ λ⇐
     𝒞.≈ 𝒞.id {X ⊗₀ x}
   unitˡ-law = solve-mor M
 
   unitʳ-law : ∀ {X x} →
-      ρ⇒ {X} ⊗₁ 𝒞.id {x}
-    𝒞.∘ α⇐ {X} {unit} {x}
-    𝒞.∘ 𝒞.id {X} ⊗₁ λ⇐ {x}
+      ρ⇒ ⊗₁ 𝒞.id
+    𝒞.∘ α⇐ {X}
+    𝒞.∘ 𝒞.id ⊗₁ λ⇐
     𝒞.∘ 𝒞.id
     𝒞.≈ 𝒞.id {X ⊗₀ x}
   unitʳ-law = solve-mor M

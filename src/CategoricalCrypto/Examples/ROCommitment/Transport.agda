@@ -12,7 +12,7 @@ open import Data.List.Base
 open import Data.Maybe.Base
 open import Data.Nat.Base
 open import Data.Product.Base
-open import Data.Rational using (ℚ)
+open import Data.Rational
 open import Data.Sum.Base
 open import Level
 open import Relation.Binary.PropositionalEquality
