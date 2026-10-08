@@ -1,16 +1,18 @@
 {-# OPTIONS --safe --without-K #-}
 
--- `≤UC` is equivalent to robust hyperproperty preservation (see
--- `Universal Composability is Robust Compilation`). We don't have
--- traces in generic models, so what they call hyperproperties are
--- just regular properties for us. In models where morphisms are sets
--- of traces, this instantiates exactly to their hyperproperties.
+-- Robust properties
+--
+-- Properties that are preserved by `≤UC` under reasonable assumptions
 
 open import categorical-crypto.Prelude using (PredS)
 open import Data.Product
+open import Data.Unit
 open import Function.Bundles
+open import Function.Properties.Equivalence
 
 open import Level
+
+open import Categories.Functor
 
 open import CategoricalCrypto.Abstract2
 open import CategoricalCrypto.UCSetup
@@ -22,36 +24,68 @@ open AbstractUC setup public
 
 private variable
   A B : 𝒞.Obj
-  X Y : ℐ.Obj
-  p : Level
-  f : A 𝒞.⇒ T₀ X B
-  g : A 𝒞.⇒ T₀ Y B
+  W X X′ Y : ℐ.Obj
+  d p : Level
+
+module ℰ = Functor ℰ
+
+-- predicates on ℰ.₀ (T₀ W A) that preserve the setoid equality
+Predℰ : (A : 𝒞.Obj) (p : Level) → Set (o ⊔ cs ⊔ ℓs ⊔ suc p)
+Predℰ A p = (W : ℐ.Obj) → PredS (ℰ.₀ (T₀ W A)) p
 
 ------------------------------------------------------------------------
--- Robust properties
+-- Admissible environments
+
+Admissible : (A : 𝒞.Obj) (d : Level) → Set (o ⊔ cs ⊔ suc d)
+Admissible A d = ∀ W X → Env (T₀ (W ⊗₀ X) A) → Set d
+
+⊤ᴬ : Admissible A 0ℓ
+⊤ᴬ _ _ _ = ⊤
+
+Respects≈Env : Admissible A d → Set (o ⊔ cs ⊔ ℓs ⊔ d)
+Respects≈Env Adm = ∀ {W X u v} → u Env.≈ v → Adm W X u → Adm W X v
+
+-- A morphism that preserves admissibility
+ClosedUnder : Admissible A d → X ℐ.⇒ Y → Set (o ⊔ cs ⊔ d)
+ClosedUnder {X = X} {Y} Adm s = ∀ W e → Adm W Y e → Adm W X (regradeEnv W s e)
+
 ------------------------------------------------------------------------
+-- Robustness
 
-Predᵁ : (A B : 𝒞.Obj) (p : Level) → Set (o ⊔ ℓ′ ⊔ cs ⊔ ℓs ⊔ suc p)
-Predᵁ A B p = (X : ℐ.Obj) → PredS (≈ᵁ-setoid A B X) p
+module _ (P : Predℰ A p) (Adm : Admissible B d) where
+  Robust : A 𝒞.⇒ T₀ X B → Set (o ⊔ cs ⊔ d ⊔ p)
+  Robust {X = X} f = ∀ W e → Adm W X e → P W ⟨$⟩ run W f e
 
--- `Robust P f`: `f` robustly satisfies `P`
-Robust : Predᵁ A B p → A 𝒞.⇒ T₀ X B → Set (o ⊔ ℓ ⊔ p)
-Robust {X = X} P f = ∀ {X′} (a : X ℐ.⇒ X′) → P X′ ⟨$⟩ (sub a 𝒞.∘ f)
+  robust-resp-≈ᵁ : {f g : A 𝒞.⇒ T₀ X B} → f ≈ᵁ g → Robust g → Robust f
+  robust-resp-≈ᵁ u rob W e adm = Equivalence.from (Func.cong (P W) (KE.run∼ (u W))) (rob W e adm)
 
--- `Emu g` selects all morphisms that emulate `g`
-Emu : A 𝒞.⇒ T₀ Y B → Predᵁ A B (o ⊔ ℓ ⊔ cs ⊔ ℓs)
-Emu {Y = Y} g X′ = record
-  { to = _≤UCᵈ g
-  ; cong = λ u → mk⇔ (λ (s , v) → s , ≈ᵁ-trans (≈ᵁ-sym u) v) (λ (s , v) → s , ≈ᵁ-trans u v) }
+  robust-sub : {g : A 𝒞.⇒ T₀ Y B} (s : Y ℐ.⇒ X) → ClosedUnder Adm s → Robust g → Robust (sub s 𝒞.∘ g)
+  robust-sub {g = g} s cl rob W e adm =
+    Equivalence.from (Func.cong (P W) (run-sub W s g e)) (rob W (regradeEnv W s e) (cl W e adm))
 
-RHP : ∀ {A B X Y} (f : A 𝒞.⇒ T₀ X B) (g : A 𝒞.⇒ T₀ Y B) → Set (suc o ⊔ suc ℓ ⊔ ℓ′ ⊔ suc cs ⊔ suc ℓs)
-RHP f g = ∀ (P : Predᵁ _ _ (o ⊔ ℓ ⊔ cs ⊔ ℓs)) → Robust P f → Robust P g
+  ------------------------------------------------------------------------
+  -- Preservation
 
-uc-preserves : f ≤UC g → RHP g f
-uc-preserves uc P rob a = let s , u = uc a in Equivalence.from (Func.cong (P _) u) (rob s)
+  -- Preservation at a fixed simulator
+  uc-preserves-at : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B} (s : Y ℐ.⇒ X)
+                  → f ≈ᵁ sub s 𝒞.∘ g → ClosedUnder Adm s → Robust g → Robust f
+  uc-preserves-at s u cl rob = robust-resp-≈ᵁ u (robust-sub s cl rob)
 
-robust⇒≤UC : RHP g f → f ≤UC g
-robust⇒≤UC {g = g} rhp = rhp (Emu g) (≤UC-refl g)
+  -- When admissible environments form a presheaf, robustness is always preserved
+  uc-preserves : {f : A 𝒞.⇒ T₀ X B} {g : A 𝒞.⇒ T₀ Y B} → ((s : Y ℐ.⇒ X) → ClosedUnder Adm s)
+               → f ≤UC g → Robust g → Robust f
+  uc-preserves cl le = let s , u = ≤UC⇒dummy le in uc-preserves-at s u (cl s)
 
-≤UC⇔robust : f ≤UC g ⇔ RHP g f
-≤UC⇔robust = mk⇔ uc-preserves robust⇒≤UC
+------------------------------------------------------------------------
+-- environments that arise via pullback from environments on V
+
+module _ (V : ℐ.Obj) where
+  Factors : Admissible B (ℓ ⊔ cs ⊔ ℓs)
+  Factors {B = B} W X e = ∃[ a ] Σ[ d ∈ Env (T₀ (W ⊗₀ V) B) ] e Env.≈ regradeEnv W a d
+
+  factors-resp : Respects≈Env (Factors {B})
+  factors-resp eq (a , d , p) = a , d , Env.trans (Env.sym eq) p
+
+  factors-closed : (s : Y ℐ.⇒ X) → ClosedUnder (Factors {B}) s
+  factors-closed s W e (a , d , p) =
+    a ℐ.∘ s , d , Env.trans (pull-cong (sub (ℐ.id ⊗₁ s)) p) (regrade-∘ W a s d)

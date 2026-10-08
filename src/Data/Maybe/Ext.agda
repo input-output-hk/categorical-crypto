@@ -1,25 +1,20 @@
 {-# OPTIONS --safe --without-K #-}
 
-------------------------------------------------------------------------
--- Extensions to `Data.Maybe`.
-------------------------------------------------------------------------
-
 module Data.Maybe.Ext where
 
-open import Data.Bool.Base using (T)
+open import Data.Bool.Base using (T; true)
 open import Data.Maybe.Base using (Maybe; just; nothing; is-just)
 open import Level using (Level)
-open import Relation.Binary.PropositionalEquality using (_≢_)
+open import Relation.Binary.PropositionalEquality using (_≢_; _≡_)
 
 private
   variable
     a : Level
     A : Set a
 
--- `T ∘ is-just`: a `Set` that NORMALISES to `⊤` on `just` and to `⊥` on
--- `nothing`.  Unlike the `Any`-based `Data.Maybe.Is-just` it computes, so an
--- implicit `{IsJust x}` is auto-discharged (by `⊤`'s eta) exactly when `x`
--- reduces to a `just`.  Eliminate it with `Data.Maybe.to-witness-T`.
+-- Unlike the similarly named Any-based predicate, this lets ⊤'s eta discharge
+-- an implicit witness when the search reduces to just. Eliminate the witness
+-- with Data.Maybe.to-witness-T.
 IsJust : Maybe A → Set
 IsJust x = T (is-just x)
 
@@ -28,3 +23,6 @@ just≢nothing ()
 
 nothing≢just : {x : A} → nothing ≢ just x
 nothing≢just ()
+
+force! : (m : Maybe A) → is-just m ≡ true → A
+force! (just x) _ = x
