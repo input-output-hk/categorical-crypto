@@ -14,11 +14,13 @@
 -- here but deliberately not re-exported.
 --
 -- Example leaves: `Examples.HashForward.Audit` (the nontrivial-grade toy),
--- `Examples.ROCommitment.*` (a commitment that carries an error: UC images,
--- extraction and hiding games, transport, and the resource-installed
--- realization — `docs/fcom-extraction.md`, `docs/fcom-hiding.md`,
--- `docs/rcom-icom-b1.md`) and `Examples.CoinToss.*` (Blum coin-tossing over it,
--- both corruptions, to an ideal coin — `docs/coin-toss.md`).  Tests:
+-- `Examples.RelSetup` (`Abstract2` at relations; it reaches
+-- `UC.Robust.Compilation`), `Examples.ROCommitment.*` (a commitment that
+-- carries an error: UC images, extraction and hiding games, transport, and
+-- the resource-installed realization — `docs/fcom-extraction.md`,
+-- `docs/fcom-hiding.md`, `docs/rcom-icom-b1.md`) and `Examples.CoinToss.*`
+-- (Blum coin-tossing over it, both corruptions, to an ideal coin —
+-- `docs/coin-toss.md`).  Tests:
 -- `GamePlaying.Test`, `Protocol.Machine.Pin`, `SFunM.Test.Possibility`,
 -- `UC.Machine.MonitorTests`, `UC.Machine.StateEvent.HitTests`.
 -- Outside, checked per file through their leaves: `Examples.ChimericLedger`
@@ -89,6 +91,7 @@ open import CategoricalCrypto.Examples.Commitment
 open import CategoricalCrypto.Examples.Signatures
 open import CategoricalCrypto.Examples.RandomOracle
 open import CategoricalCrypto.Examples.HashForward.Audit
+open import CategoricalCrypto.Examples.RelSetup
 open import CategoricalCrypto.Examples.CoinToss.Compose
 open import CategoricalCrypto.Examples.CoinToss.Ideal.Compose
 open import CategoricalCrypto.Examples.CoinToss.Ideal.Receiver.Compose
