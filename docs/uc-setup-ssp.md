@@ -1,6 +1,6 @@
 # State-separating proofs as a UC setup
 
-Plan, 2026-10-09. A1–A7, C1 and C3 are built on branch `ssp-setup`; §6 records their names, warm
+Plan, 2026-10-09. A1–A7, C1, C3 and part of C2 are built on branch `ssp-setup`; §6 records their names, warm
 times and deviations. Every other claim about a module is a design claim. Line references are
 to the `uc-setup-landscape` worktree.
 
@@ -331,20 +331,20 @@ module _ {A B : SSP.Iface} where             -- Proc (flat A) (flat B), `UC/Mach
   data Phase : Set where
     idle : Phase ; serving : Ch B → Phase ; calling : Ch B → Ch A → Phase
   data Opp : Phase → Flat.Pos (flat A) ⊎ Flat.Neg (flat B) → Phase → Set where   -- legal environment moves
-    query : Opp idle (inj₂ (b , q)) (serving b)
-    reply : Opp (calling b a) (inj₁ (a , r)) (serving b)                         -- on the same channel a
+    query  : Opp idle (inj₂ (b , q)) (serving b)
+    return : Opp (calling b a) (inj₁ (a , r)) (serving b)                        -- on the same channel a
   data Ply : Phase → Flat.Neg (flat A) ⊎ Flat.Pos (flat B) → Phase → Set where   -- ours: call below, or answer on b
     call   : Ply (serving b) (inj₁ (a , q)) (calling b a)
     answer : Ply (serving b) (inj₂ (b , r)) idle
   record W (f : Proc (flat A) (flat B)) : Set₁ where           -- on legal plays, play legally
     field I      : MC.St f → Phase → Set
           I-init : ∀ n → Supp n (MC.point (MC.state f) tt) λ s → I s idle
-          I-step : I s φ → Opp φ x φ′ → ∀ n
-                 → Supp n (MC.step f (s , x)) λ (s′ , y) → Σ[ φ″ ∈ Phase ] Ply φ′ y φ″ × I s′ φ″
+          I-step : I s φ → Opp φ x φ′ → ∀ n → Supp n (MC.step f (s , x)) (Legal I φ′)
+-- as built: Phase/Opp/Ply/Legal take A B as (implicit) parameters; Legal I φ′ (s′ , y) = Σ[ φ″ ∈ Phase A B ] Ply φ′ y φ″ × I s′ φ″
 ```
 
 - `W` is CryptHOL's respectfulness (lochbihler2019cc Def. 3) moved to 𝔾ᵒ.
-- `morphism-W : W (morphism (toProtocol P))`, with invariant `I (idle s) idle` and `I (wait b a k) (calling b a)`. The proof is one induction on `drive`.
+- `morphism-W : W (morphism (toProtocol P))`, with invariant `I (idle s) idle` and `I (wait k) (calling b a) = ∀ r → Bracketed B b (k (a , r))`. The proof is one induction on `drive` (as built: `UC/Bracket`).
 
 Closure under the 𝔾ᵒ structure:
 
@@ -540,7 +540,7 @@ Status: warm single-module check (one `Checking` line, `+RTS -M3G -H1G`, free ga
 | A7 | `SSP/Reduction` (optional) | `_≈ᵍ[_]_`, `≈ᵍ-trans` (Lemma 5), `reduction` (Lemma 6), `≈ᵍ-reduce`, `closed-bridge` | exports `closed-bridge` | ✓ 108 lines, 10.3 s |
 | B1 | `SSP/Obstruction` (optional, `--guardedness`) | `morphism-not-unital`, `morphism-not-monoidal` (first-step invariant as `UC.Machine.Run.step-sim`, new `¬ botₚ ≈ₚ returnₚ x`) | both exported: §4.1 checkable | not started |
 | C1 | `SSP/Compile`; flat `Protocol/Sim`, `Protocol/Machine/Resp` | `Protocol/Sim`: flat `_≈ᶜ_`, `_≲ᵖ_` (`θ`, `θ-init`, `θ-step`), `_≈ᵖ_`. `Protocol/Machine/Resp`: `RSt`, `driveʳ`, `stepʳ`, `machineʳ`, `π-sim`, `π′-sim`, `morphism-sim`, `morphism-resp`. `SSP/Compile`: `reply`, `reply-refl`, `reply-≈`, `toCalls`, `toCalls-sim`, `toProtocol`, `toProtocol-sim`, `toProtocol-resp`, `toProtocol-∘` | exports `morphism-resp` | ✓ `Protocol/Sim` 36 lines, 7.5 s; `Resp` 120 lines, 12.6 s; `Compile` 112 lines, 7.9 s |
-| C2 | `UC/Bracket` (+ `Dp` `Supp-iterₚ`) | `Phase`/`Opp`/`Ply`/`W`, closure lemmas, `morphism-W`, `𝒲ᴹ`, `ιᴹ` and its `StdUCMorphism` | exports `morphism-W` and the inclusion | not started |
+| C2 | `UC/Bracket` (+ `Dp/Iter/Supp`) | built: `Phase`, `Opp` (`query`, `return`), `Ply` (`call`, `answer`), `Legal`, `W` (`I`, `I-init`, `I-step`), `Bracketed`, `toCalls-bracketed`, `morphism-W`, `id-W`, `wire-W`; `Dp/Iter/Supp`: `Turn`, `Supp-stepᵢ`, `SuppL-tagᵢ`, `Supp-iterₚ`. Not built: closure under `∘` and `⊗`, `𝒲ᴹ`, `ιᴹ` and its `StdUCMorphism` | exports `morphism-W` and the inclusion | partial: `UC/Bracket` 160 lines, 12.8 s; `Dp/Iter/Supp` 44 lines, 5.5 s |
 | C3 | `Standard2/UKernel` (generic; uses the RS plan's step 1, `Categories/Category/Monoidal/Construction/Quotient`) | module parameters `𝕄 ℰ`; `_∼_`, `∼-equiv`, `≈⇒∼`, `∘-resp-∼`, `⊗-resp-∼`, `uKernel : MonoidalCongruence 𝕄 (o ⊔ cs ⊔ ℓs)`, `∼⇒≈ℰ`, `∼⇒≈ᵁ` | `--safe --without-K`; exports `uKernel` | ✓ 125 lines, 10.3 s; `Quotient` copied verbatim from `rs-quotient` `e5eddcdb`, 105 lines, 4.1 s |
 | C4 | `UC/Bracket/Setup` | `evaluationᵂ`, `ℰᵂ`, `PM[wb]ᴹ = quotient 𝒲ᴹ (uKernel 𝒲ᴹ ℰᵂ)`, `ℰ[wb] = descend …`, `q = StdUCMorphism … quotientF descendᵛ` | `PM[wb].StdSetup` and `q` typecheck | not started |
 | C5 | `UC/Bracket/Monitor` | `e`, `e-idem`, `monitor-invisible`, `⊗-monitor` | exports `monitor-invisible` | not started |
@@ -556,6 +556,7 @@ Order: A1–A6 deliver the standalone setup (the primary deliverable); C1–C6 d
 - **A5.** `runᵖ` maps `proj₂` on the tree before `evalC`. `runᵖ-resp` is exact (`≈Mℚ`, by `EqC.gfold` of `runᵖ-sim`), and `≈Mℚ⇒≈[0]` turns it into zero error. The `refl` pins live in the leaf `SSP/Pin`, which nothing imports.
 - **A7.** Lemma 6 is `reduction = runᵖ-sim (∘ᵖ-assoc D M G)`, the associativity simulation read out, rather than `pull-∘` plus associativity.
 - **C1.** The flat simulation and `morphism-resp` are facts about the flat layer, so they live there (`Protocol/Sim`, `Protocol/Machine/Resp`, beside `Protocol/Machine/Compose`); `SSP/Compile` holds the compilation and needs no `--guardedness`. Channels are compared with `Class.DecEq` (`⦃ DecEq (Ch A) ⦄`), the tree's class, and the reply check `reply (c′ ≟ c)` reduces at a matching channel through `≡-≟-identity` (`reply-refl`), with no K. `toProtocol-∘` is a simulation with `θ = id`. `morphism-resp` is not one induction on `drive` (§3.3): both legs are simulations out of `machineʳ`, whose states pair the two configurations with their `≈ᶜ` proof.
+- **C2.** The environment's return is `Opp.return` (`reply` is `SSP.Compile`'s check). `Legal I φ′` names the post-move predicate of `I-step`. The compiled invariant needs no channels in the machine state: `I (idle s) idle = ⊤` and `I (wait k) (calling b a) = ∀ r → Bracketed B b (k (a , r))`, where `Bracketed` is the shape of a compiled step tree (answers only on `b`, well-bracketed at every return on the called channel). `𝒢ₚ`'s identity is definitionally `σᴹ = pureᴹ +-swap`, so `id-W` is stated at `Category.id 𝒫ᴵ`. **Open:** `W` reads `Supp` off the actual step term, and `Supp` is not `≈ₚ`-invariant, so closure under `𝒢ₚ`'s composite must follow its Kleisli plumbing and its loop (`Supp-iterₚ`). The cheaper route is to compose in `𝒲ᴹ` by `Machines.Collapse`'s single traced machine (`Col.kᴳ`, invariant `Σ b. I_g (calling c b) × I_f (calling b a)` on loop letters), which `collapseᵀ`/`compose-raw≈∘ᴳ` relate to `𝒢ₚ`'s composite by `≈ᴹ`. That `≈ᴹ` is then `ιᴹ`'s homomorphism law. `⊗` likewise goes through a direct relabelled tensor (the `UC.Machine.T₁ᴵ` relays), related to `𝒢ₚ`'s tensor through `UC.Machine.Dictionary`.
 - **C3.** `uKernel` is a definition inside the module `Standard2.UKernel 𝕄 ℰ` rather than a function of `𝕄` and `ℰ`.
 
 ## 7. Sources
