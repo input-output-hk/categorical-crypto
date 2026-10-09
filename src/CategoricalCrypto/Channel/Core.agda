@@ -3,7 +3,7 @@
 module CategoricalCrypto.Channel.Core where
 
 open import categorical-crypto.Prelude hiding ([_])
-open import Data.Sum.Base using (swap ; assocʳ ; assocˡ)
+open import Data.Sum.Base
 open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
 
 ------------------------------------
@@ -27,6 +27,7 @@ infixr 10 ¬ₘ_
 -------------------------------
 -- Channels of communication --
 -------------------------------
+
 infix 10 _⇿_
 
 record Channel : Type₁ where
@@ -67,14 +68,19 @@ A ᵀ = A .outType ⇿ A .inType
 
 infix 4 _[_]⇒[_]_
 
+-- The combinators below are written with the constructor `mk⇒` rather than
+-- a `record { app = … }` expression on purpose. Agda turns a record
+-- expression on a right-hand side into copattern clauses, so a term
+-- never reduces unless it is projected.
 record _[_]⇒[_]_ (A : Channel) (mᵢ : Mode) (mₒ : Mode) (B : Channel) : Type where
+  constructor mk⇒
   field
     app : modeType mᵢ A → modeType mₒ B
 
 open _[_]⇒[_]_ public
 
 ⇒-trans : ∀ {A B C m m₁ m₂} → A [ m ]⇒[ m₁ ] B → B [ m₁ ]⇒[ m₂ ] C → A [ m ]⇒[ m₂ ] C
-⇒-trans p q = record {app = app q ∘ app p}
+⇒-trans p q = mk⇒ (app q ∘ app p)
 
 _⇒ₜ_ : ∀ {A B C m m₁ m₂} → A [ m ]⇒[ m₁ ] B → B [ m₁ ]⇒[ m₂ ] C → A [ m ]⇒[ m₂ ] C
 _⇒ₜ_ = ⇒-trans
@@ -82,7 +88,7 @@ _⇒ₜ_ = ⇒-trans
 infixr 10 _⇒ₜ_
 
 ⇒-refl' : ∀ {m A B} → A ≡ B → A [ m ]⇒[ m ] B
-⇒-refl' refl = record { app = id }
+⇒-refl' refl = mk⇒ id
 
 ⇒-refl : ∀ {m A} → A [ m ]⇒[ m ] A
 ⇒-refl = ⇒-refl' refl
@@ -104,8 +110,8 @@ infixr 10 _⇒ₜ_
 ⇒-double-negate-right {m} rewrite (¬ₘ-idempotent {m}) = ⇒-refl
 
 ⇒-negate-transpose-right : ∀ {m A} → A [ m ]⇒[ ¬ₘ m ] A ᵀ
-⇒-negate-transpose-right {Out} = record { app = id }
-⇒-negate-transpose-right {In} = record { app = id }
+⇒-negate-transpose-right {Out} = mk⇒ id
+⇒-negate-transpose-right {In} = mk⇒ id
 
 ⇒-negate-transpose-left : ∀ {m A} → A ᵀ [ ¬ₘ m ]⇒[ m ] A
 ⇒-negate-transpose-left = ⇒-negate-transpose-right ⇒ₜ ⇒-double-negate-left
@@ -116,13 +122,18 @@ infixr 10 _⇒ₜ_
 ⇒-negate-left-transpose-right : ∀ {m A} → A [ ¬ₘ m ]⇒[ m ] A ᵀ
 ⇒-negate-left-transpose-right {A = A} rewrite ᵀ-idempotent {A} = ⇒-negate-transpose-left {A = A ᵀ}
 
+-- `_⊗₀_` and the forwarders in the `opaque` block below are `opaque` because
+-- the message types are sums; letting them reduce everywhere would make every
+-- machine-layer goal a nest of `inj`s.  That is why every downstream proof in
+-- the machine layer carries a long `unfolding` list.
+
 -----------------------------------
 -- Tensorial product on Channels --
 -----------------------------------
 
 infixr 9 _⊗₀_
 
-opaque 
+opaque
   _⊗₀_ : Fun₂ Channel
   A ⊗₀ B = (inType A ⊎ inType B) ⇿ (outType A ⊎ outType B)
 
@@ -130,47 +141,51 @@ opaque
   destruct-⊗ {m = Out} = id
   destruct-⊗ {m = In} = id
 
+  construct-⊗ : ∀ {A B m} → modeType m A ⊎ modeType m B → modeType m (A ⊗₀ B)
+  construct-⊗ {m = Out} = id
+  construct-⊗ {m = In}  = id
+
 -----------------------------------
 -- Forwarding tensorial products --
 -----------------------------------
 
   ⊗-sym : ∀ {m A B} → A ⊗₀ B [ m ]⇒[ m ] B ⊗₀ A
-  ⊗-sym {Out} = record { app = swap }
-  ⊗-sym {In} = record { app = swap }
+  ⊗-sym {Out} = mk⇒ swap
+  ⊗-sym {In} = mk⇒ swap
 
   ⊗-right-assoc : ∀ {m A B C} → (A ⊗₀ B) ⊗₀ C [ m ]⇒[ m ] A ⊗₀ B ⊗₀ C
-  ⊗-right-assoc {Out} = record { app = assocʳ }
-  ⊗-right-assoc {In} = record { app = assocʳ }
+  ⊗-right-assoc {Out} = mk⇒ assocʳ
+  ⊗-right-assoc {In} = mk⇒ assocʳ
 
   ⊗-left-assoc : ∀ {m A B C} → A ⊗₀ B ⊗₀ C [ m ]⇒[ m ] (A ⊗₀ B) ⊗₀ C
-  ⊗-left-assoc {Out} = record { app = assocˡ }
-  ⊗-left-assoc {In} = record { app = assocˡ }
+  ⊗-left-assoc {Out} = mk⇒ assocˡ
+  ⊗-left-assoc {In} = mk⇒ assocˡ
 
   ⊗-right-intro : ∀ {m A B} → A [ m ]⇒[ m ] A ⊗₀ B
-  ⊗-right-intro {Out} = record { app = inj₁ }
-  ⊗-right-intro {In} = record { app = inj₁ }
+  ⊗-right-intro {Out} = mk⇒ inj₁
+  ⊗-right-intro {In} = mk⇒ inj₁
 
   ⊗-ᵀ-distrib : ∀ {m A B} → (A ⊗₀ B) ᵀ [ m ]⇒[ m ] A ᵀ ⊗₀ B ᵀ
-  ⊗-ᵀ-distrib {Out} = record { app = id }
-  ⊗-ᵀ-distrib {In} = record { app = id }
+  ⊗-ᵀ-distrib {Out} = mk⇒ id
+  ⊗-ᵀ-distrib {In} = mk⇒ id
 
   ⊗-ᵀ-factor : ∀ {m A B} → A ᵀ ⊗₀ B ᵀ [ m ]⇒[ m ] (A ⊗₀ B) ᵀ
-  ⊗-ᵀ-factor {Out} = record { app = id }
-  ⊗-ᵀ-factor {In} = record { app = id }
+  ⊗-ᵀ-factor {Out} = mk⇒ id
+  ⊗-ᵀ-factor {In} = mk⇒ id
 
   ⊗-right-neutral : ∀ {m A} → A ⊗₀ I [ m ]⇒[ m ] A
-  ⊗-right-neutral {Out} = record { app = λ {(inj₁ x) → x} }
-  ⊗-right-neutral {In} = record { app = λ {(inj₁ x) → x} }
+  ⊗-right-neutral {Out} = mk⇒ (λ {(inj₁ x) → x} )
+  ⊗-right-neutral {In} = mk⇒ (λ {(inj₁ x) → x} )
 
   ⊗-fusion : ∀ {m A} → A ⊗₀ A [ m ]⇒[ m ] A
-  ⊗-fusion {Out} = record { app = [ id , id ] }
-  ⊗-fusion {In} = record { app = [ id , id ] }
+  ⊗-fusion {Out} = mk⇒ ([ id , id ] )
+  ⊗-fusion {In} = mk⇒ ([ id , id ] )
 
   ⊗-combine : ∀ {m m₁ A B C D} → A [ m ]⇒[ m₁ ] B → C [ m ]⇒[ m₁ ] D → A ⊗₀ C [ m ]⇒[ m₁ ] B ⊗₀ D
-  ⊗-combine {Out} {Out} p q = record { app = λ { (inj₁ x) → inj₁ (p .app x) ; (inj₂ y) → inj₂ (q .app y)} }
-  ⊗-combine {Out} {In} p q = record { app = λ { (inj₁ x) → inj₁ (p .app x) ; (inj₂ y) → inj₂ (q .app y)} }
-  ⊗-combine {In} {Out} p q = record { app = λ { (inj₁ x) → inj₁ (p .app x) ; (inj₂ y) → inj₂ (q .app y)} }
-  ⊗-combine {In} {In} p q = record { app = λ { (inj₁ x) → inj₁ (p .app x) ; (inj₂ y) → inj₂ (q .app y)} }
+  ⊗-combine {Out} {Out} p q = mk⇒ (λ { (inj₁ x) → inj₁ (p .app x) ; (inj₂ y) → inj₂ (q .app y)} )
+  ⊗-combine {Out} {In} p q = mk⇒ (λ { (inj₁ x) → inj₁ (p .app x) ; (inj₂ y) → inj₂ (q .app y)} )
+  ⊗-combine {In} {Out} p q = mk⇒ (λ { (inj₁ x) → inj₁ (p .app x) ; (inj₂ y) → inj₂ (q .app y)} )
+  ⊗-combine {In} {In} p q = mk⇒ (λ { (inj₁ x) → inj₁ (p .app x) ; (inj₂ y) → inj₂ (q .app y)} )
 
 ⊗-left-intro : ∀ {m A B} → B [ m ]⇒[ m ] A ⊗₀ B
 ⊗-left-intro = ⊗-right-intro ⇒ₜ ⊗-sym

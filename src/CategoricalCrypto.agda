@@ -10,6 +10,8 @@
 -- layer (`docs/uc-module-inventory.md`), whose lines below are its leaves the
 -- examples do not reach.  At the model, the parameterized UC modules are fed
 -- `𝒢ₚᴹ 0ℓ`, `UC.Machine.Grading.gradingᴹ` and `UC.Machine.Evaluationᴹ`.
+-- `Machine.UC`, `Machine.UC.Kleisli` and `Examples.Channels` are typechecked
+-- here but deliberately not re-exported.
 --
 -- Example leaves: `Examples.HashForward.Audit` (the nontrivial-grade toy),
 -- `Examples.ROCommitment.*` (a commitment that carries an error: UC images,
@@ -30,21 +32,18 @@
 
 module CategoricalCrypto where
 
--- Open problems
-
--- We want to conveniently specify a machine that, on an input, sends
--- messages to other machines, waits for replies and then continues
--- execution.
-
--- Can we write constructors more monadically?
-
--- Improve syntax generally
-
 open import CategoricalCrypto.Channel.Category public
 open import CategoricalCrypto.Channel.Core public
 open import CategoricalCrypto.Channel.Selection public
 open import CategoricalCrypto.Machine.Constraints public
 open import CategoricalCrypto.Machine.Core public
+open import CategoricalCrypto.Machine.Iso public
+open import CategoricalCrypto.Machine.Category public
+open import CategoricalCrypto.Machine.Monoidal public
+open import CategoricalCrypto.Machine.MonoidalCategory public
+open import CategoricalCrypto.Machine.UC
+import CategoricalCrypto.Machine.UC.Kleisli
+open import CategoricalCrypto.Machine.NAry public
 open import CategoricalCrypto.SFunM public
 open import CategoricalCrypto.SFunM.Test.Possibility
 open import CategoricalCrypto.SFunPartial public
@@ -83,6 +82,7 @@ open import CategoricalCrypto.UC.Quantitative.EventLift
 open import CategoricalCrypto.UC.QueryBound.Counting
 open import CategoricalCrypto.UC.Robust.Model
 open import CategoricalCrypto.Examples.Basic
+import CategoricalCrypto.Examples.Channels
 open import CategoricalCrypto.Examples.Commitment
 open import CategoricalCrypto.Examples.Signatures
 open import CategoricalCrypto.Examples.RandomOracle
