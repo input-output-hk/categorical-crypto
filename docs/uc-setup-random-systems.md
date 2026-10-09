@@ -1,8 +1,9 @@
 # Random systems as a UC setup
 
-Plan, 2026-10-09.  Design only: nothing here was typechecked; every claim about a module that
-does not exist yet is a design claim.  It refines `docs/uc-setup-landscape.md` §4 (random
-systems) and corrects its full-abstraction remark (§5.3).
+Plan, 2026-10-09.  §3–§5 are the design; steps 1–8 of §6 are implemented on branch
+`rs-quotient`, and §6 records what landed, under which names, and where it departs from the
+design.  It refines `docs/uc-setup-landscape.md` §4 (random systems) and corrects its
+full-abstraction remark (§5.3).
 
 ## 1. Summary
 
@@ -15,7 +16,7 @@ machines and tests); none back.  ITM, IPDL and machine-category (deterministic f
 RS; symbolic does not, and nothing leaves RS for causal boxes.  **Hard part:** congruence of
 `_≈ᴿ_` for G-composition (maurer2002 Lemmas 4(i), 5(ii)), by absorbing contexts into truncated
 distinguishers.  **Full abstraction:** `ℰᵒ`'s bare kernel `≈ℰ` is not behavioural equality
-(counterexample; `ℰᵒ` is not `GradeStable`); its U-kernel `≈ᵁ` is (planned proof).
+(counterexample; `ℰᵒ` is not `GradeStable`); its U-kernel `≈ᵁ` is (`≈ᵁ⇒≈ᴿ`, §6 step 8).
 
 ## 2. The source model
 
@@ -401,8 +402,8 @@ equal to `∼ᴿ`, i.e. is `ℰᴿ` `Faithful` (`UCSetup.agda:149-151`)?
 | inclusion | status |
 |---|---|
 | `∼ᴿ ⊆ ≈ℰ` (soundness) | holds: it is `ℰᴿ`'s `F-resp-≈` |
-| `≈ℰ ⊆ ∼ᴿ` | **false** (§5.3); so `ℰᴿ` is not faithful, and neither RS nor 𝔾ᵒ is `GradeStable` (same `T₁`, same `≈ℰ`) |
-| `≈ᵁ` (grade unit) `⊆ ∼ᴿ` | expected, planned: ancilla `Y = Neg A ⇿ Pos A`, closure `cup : 𝟘ᵒ ⇒ Y ⊗ A` forwarding, test `tstᵈ : Y ⊗ B ⇒ Ωᵒ` running `d`; adequacy `Obs (tstᵈ ∘ T₁ Y f ∘ cup) ∼ᵃ runˢ f d` by `Absorbs` with the trivial outer strategy.  With `≈ᴿ⇒≈ᵁ`: **`∼ᴿ = ≈ᵁ`** |
+| `≈ℰ ⊆ ∼ᴿ` | **false** (§5.3, `¬gradeStableᵒ`); so `ℰᴿ` is not faithful, and neither RS nor 𝔾ᵒ is `GradeStable` (same `T₁`, same `≈ℰ`) |
+| `≈ᵁ` `⊆ ∼ᴿ` | proved (`FullAbstraction.≈ᵁ⇒≈ᴿ`, at any grade): ancilla `A* = Neg A ⇿ Pos A`, closure the cup `𝟘ᵒ ⇒ A* ⊗ A`, test `strategyEnv` running `d`; `play-cup : Obs (tstᵈ ∘ T₁ A* f ∘ cup) ≈ₚ runˢ f d` (§6 step 8).  With `≈ᴿ⇒≈ᵁ`: **`∼ᴿ = ≈ᵁ`** |
 | `≈ᴮ ⊆ ∼ᴿ` (Def 3 ⇒ adaptive) | classical (lochbihler2019cc Thm 2); constructive for deterministic machines (`det-≈ᴮ⇒≈ᴿ`) and finite input alphabets with decidable equality (`≈ᴮ⇒≈ᴿ-fin`: indicator decomposition of the strategy's next query, `cum-add`, `cum-*ₗ`); open for bare `Set`s |
 | `∼ᴿ ⊆ ≈ᴹ` | false (lazy vs eager sampling; lochbihler2019cc Fig. 6) |
 
@@ -483,18 +484,46 @@ under Seal.agda's four disciplines; (ii) `congᴿ`'s body is checked with 𝔾�
 
 ## 6. Work breakdown
 
-| # | module(s) | content | acceptance |
+Status 2026-10-09.  "Warm" is a single-module check (`+RTS -M3G -H1G -RTS`, one `Checking`
+line) on a ≈12 s startup floor; `UC.Model.Setup` itself measures 13.7 s.  Every landed row is
+green with an empty warning gate.
+
+| # | module(s) | landed (exports) | warm |
 |---|---|---|---|
-| 1 | `Categories/Category/Monoidal/Construction/Quotient.agda` | `MonoidalCongruence`, `quotient`, `quotientF`, `descend`, `descendᵛ` (+ `Mono`, `Epi`) | green; exports `quotientF : StrongMonoidalFunctor 𝕄 (quotient 𝕄 Q)` |
-| 2 | `UC/Machine/Behaviour.agda`; `UC/Machine/Run.agda` | `runˢ`, `_≈ᴿ_`, `≈ᴿ-isEquivalence`, `runFromˢ-ϕ`, `≈ᴹ⇒≈ᴿ`, `runᴹ≈runˢ`, `runᴸ`, `_≈ᴮ_`, `≈ᴿ⇒≈ᴮ`, `det-≈ᴮ⇒≈ᴿ`; `runFrom-ϕ` re-derived | exports `≈ᴹ⇒≈ᴿ`; `Run`, `Run/Lax`, `StateEvent` green, statements unchanged |
-| 3 | `UC/Machine/Behaviour/Absorb.agda` | `Absorbs`, `absorbs⇒resp`, `absorbs-∘`, `wtᴰ`, `unfoldˢ` + its sandwich | exports `absorbs⇒resp` |
-| 4 | `…/Behaviour/Trace.agda`, `…/Behaviour/Congruence.agda`; `GConstructionMonoidal.agda` | five instances; `composeᴳ-resp-≈ᴿ`, `⊗₁ᴳ-resp-≈ᴿ`; `⊗₁ᴳ-raw` | exports both congruences; warm checks within rule-5 budgets |
-| 5 | `UC/RandomSystems/Seal.agda` | `congᴿ`, `∼ᴿ⇒Obs`, `≈ᴿ⇒∼ᴿ`, `∼ᴿ⇒≈ᴿ` | green |
-| 6 | `UC/RandomSystems/Setup.agda` | `𝔾ᴿ`, `ℰᴿ`, `open StdUC` | warm time comparable to `UC.Model.Setup` |
-| 7 | `UC/RandomSystems/Morphism.agda` | `rewrite⇒RS`, `≈ᴿ⇒≈ᵁ`, `≤UC-resp-≈ᴿ` | exports `rewrite⇒RS : UCSetupMorphism Sᵒ.StdSetup Sᴿ.StdSetup` |
-| 8 | `UC/RandomSystems/FullAbstraction.agda` | `¬gradeStableᵒ` (§5.3), `≈ᵁ⇒≈ᴿ` (§4.2) | exports both |
-| 9 | `UC/Machine/Behaviour/Finite.agda` | `≈ᴮ⇒≈ᴿ-fin` | exports it (IPDL's receiving end) |
-| 10 | `src/CategoricalCrypto.agda`; `docs/uc-setup-landscape.md` §4 | entry point; correct the `Mono` remark | closure check (`*Tests` + `CategoricalCrypto`); escape-hatch baseline unchanged |
+| 1 | `Categories/Category/Monoidal/Construction/Quotient.agda` | `MonoidalCongruence` (with `module ∼`), `quotient`, `quotientF : StrongMonoidalFunctor 𝕄 (quotient 𝕄 Q)`, `descend`, `descendᵛ`, `descendᵛ-mono`, `descendᵛ-epi` | 4.4 s |
+| 2 | `UC/Machine/Run.agda`; `UC/Machine/Behaviour.agda` | Run: `resumeˢ`, `runFromˢ`, `runˢ`, `runFromˢ-ϕ`, `closeˢ`, `runᴹFrom≈runFromˢ`, `runᴹ≈runˢ`, `runˢ-sim`, `runˢ-resp-≈ᴹ`; `runFrom-ϕ`, `run-sim`, `runᴹ-resp-≈ᴹ` re-derived with their statements unchanged.  Behaviour: `_≈ᴿ_`, `≈ᴿ-isEquivalence`, `≈ᴹ⇒≈ᴿ` | 12.8 s; 12.0 s |
+| 3 | `UC/Machine/Behaviour/Absorb.agda` | `wtᴰ`, `unfoldˢ`, `module Approximation` (`Approx`, `approx-ret`, `approx-≈`, `bind-cofinal`, `approx-bind`, `approx-unfold`), `Absorbs`, `absorbs⇒resp`, `absorbs-∘`, `absorbs-resp`, `absorbs-≈ᴹ`, `approx⇒absorbs` | 12.7 s |
+| 4 | `…/Behaviour/Trace.agda`; `…/Behaviour/Congruence.agda` | Trace: `loop`, `traceˢ`, `trace-step`, `trace-run`, `loop-approx`, `trace-approx`, `traceᴹ-absorb`.  Congruence: `⊗ᵉ-absorbˡ`, `⊗ᵉ-absorbʳ`, `∘ᴹ-absorbˡ`, `∘ᴹ-absorbʳ` (from `besideˡ`, `besideʳ`, `after`, `before` and their `-approx`), `composeᴳ-resp-≈ᴿ`, `⊗₁ᴳ-raw`, `⊗₁ᴳ-resp-≈ᴿ` | 12.6 s; 21.7 s |
+| 5 | `UC/RandomSystems/Seal.agda` | `congᴿ`, `∼ᴿ⇒Obs`, `≈ᴿ⇒∼ᴿ`, `∼ᴿ⇒≈ᴿ` | 12.8 s |
+| 6 | `UC/RandomSystems/Setup.agda` | `𝔾ᴿ`, `∼ᴿ⇒≋`, `ℰᴿ`, `open StdUC 𝔾ᴿ ℰᴿ public` | 13.8 s |
+| 7 | `UC/RandomSystems/Morphism.agda` | `rewrite⇒RS : UCSetupMorphism Sᵒ.StdSetup Sᴿ.StdSetup`, `≈ᴿ⇒≈ᵁ`, `≤UC-resp-≈ᴿ` | 13.7 s |
+| 8 | `UC/Machine/Cup.agda`; `UC/RandomSystems/FullAbstraction.agda` | Cup: `dualᴵ`, `cupᴵ`, `bendᴹ`, `bend-run`, `cup-≈`, `cup-run`.  FullAbstraction: `≈ᵁ⇒≈ᴿ`, `T₁-≈ℰ⇒∼ᴿ`, `play-cup`, `¬gradeStableᵒ`, `reveal-≈ℰ`; the counterexample `Aʳ`, `Bʳ`, `revealᴹ`, `reveal-∘`, `reveal-≉ᴿ`; seal coercions `dualᵒ`, `unhomᵒ`, `∼ᴿ-intro`, `playᵒ`, `cupᵒ`, `reveal-∘≈`, `reveal-≁ᴿ` | 12.2 s; 13.1 s |
+| 9 | `UC/Machine/Behaviour/Finite.agda` | `≈ᴮ⇒≈ᴿ-fin` | not landed (below) |
+| 10 | `src/CategoricalCrypto.agda`; `docs/uc-setup-landscape.md` §4 | entry point; correct the `Mono` remark | not started |
+
+Departures from §3–§5:
+
+- **Step 2.**  The strategy runs live in `UC/Machine/Run.agda`, where `runFrom-ϕ` is re-derived
+  from them, not in `Behaviour.agda`.  `runᴸ`, `_≈ᴮ_`, `≈ᴿ⇒≈ᴮ` and `det-≈ᴮ⇒≈ᴿ` did not land.
+- **Step 3.**  `Absorbs` carries an abstract budget type `Ix` and existential depths
+  (`lower : … → Σ[ i ∈ Ix ] Σ[ m ∈ ℕ ] cum j (runˢ (C f) d) (indᵇ b) ℚ.≤ cum m (runˢ f (♯ d b i)) (indᵇ b)`)
+  instead of `♯ d k v` with a `depth` function; `Approximation b` packages the cut-off calculus.
+- **Step 4.**  `⊗₁ᴳ-raw` sits in `Behaviour/Congruence.agda` (opaque, unfolding `midᴹ` and
+  `_⊗₁ᴳ_`); `GConstructionMonoidal.agda` is unchanged.
+- **Step 8.**  §5.3's counterexample is replaced by a smaller one with the same mechanism:
+  `Aʳ = ⊥ ⇿ Bool`, `Bʳ = ⊥ ⇿ ⊤`, and `revealᴹ b` stateless, answering the query from `B` by
+  sending `b` on `A`.  A closure of `A` hears `b` and, `Pos Aʳ` being empty, can answer nothing,
+  so both composites with it never land and are `≈ᴹ` (`reveal-∘`); hence
+  `revealᴹ true ≈ℰ revealᴹ false` (`reveal-≈ℰ`), while the one-ask strategy reads `b`
+  (`reveal-≉ᴿ`).  `¬gradeStableᵒ` then follows from `T₁-≈ℰ⇒∼ᴿ` at the ancilla
+  `Aʳ* = Bool ⇿ ⊥`, which is §5.3's `Y`.  `≈ᵁ⇒≈ᴿ` holds at every grade and uses that one
+  ancilla only: the closure is the cup `I → A* ⊗ A` (new module `UC/Machine/Cup.agda`, whose
+  composite with `T₁ᴵ A* f` is `f` read as a closed process, `cup-≈`), the test is
+  `UC.Seam.strategyEnv`, and the adequacy is `UC.Seam.Adequacy.adequacy` — no `Absorbs`.  The
+  `Dₚ` fact that two runs over an empty type are `≈ₚ` (`≈ₚ-void`) belongs in
+  `ProbabilisticLogic.Dp`; it is private to FullAbstraction because editing `Dp` rebuilds the
+  whole library.
+- **Step 9** did not land: it needs step 2's missing `runᴸ` and `_≈ᴮ_` first.
 
 Order: 1 ∥ 2; 2 → 3 → … → 8; 9 after 2.  Steps 1–7 give setup and morphism, 8–9 the characterisation.
 
