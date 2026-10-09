@@ -114,8 +114,24 @@ module Approximation (b : Bool) where
                     in n , m , ≤-trans le le′
     ; upper = λ n → cofinal-trans (F n) D D′ (upper a n) (proj₁ eq χ χ-nn) }
 
+  -- `>>=ₚ-congᵖ` at the one test, the first factor shared.
+  bind-cofinal : (e : Dₚ Z) {K H : Z → Dₚ Bool} → (∀ z → Cofinal χ χ (K z) (H z))
+               → Cofinal χ χ (e >>=ₚ K) (e >>=ₚ H)
+  bind-cofinal {Z} e {K} {H} cof j =
+    let i , sp = uniformize Ψ up (λ z → cof z j) j e
+    in j +ℕ i
+     , ≤-trans (>>=ₚ-boundA j e K χ χ-nn)
+       (≤-trans (cum-mono-Supp j e (λ z → cum j (K z) χ) (λ z → cum i (H z) χ) sp)
+                (>>=ₚ-boundB j i e H χ χ-nn))
+    where
+    Ψ : Z → ℕ → Set
+    Ψ z i = cum j (K z) χ ℚ.≤ cum i (H z) χ
+
+    up : (z : Z) {i i′ : ℕ} → i ≤ℕ i′ → Ψ z i → Ψ z i′
+    up z le h = ≤-trans h (cum-mono le (H z) χ χ-nn)
+
   -- A bind the cut-off and the run share: `uniformize` picks one budget for the
-  -- finitely many values the depth-`j` support reaches, as in `>>=ₚ-congᵖ`.
+  -- finitely many values the depth-`j` support reaches.
   approx-bind : (e : Dₚ Z) {K : ℕ → Z → Dₚ Bool} {H : Z → Dₚ Bool}
               → (∀ z → Approx (λ n → K n z) (H z)) → Approx (λ n → e >>=ₚ K n) (e >>=ₚ H)
   approx-bind {Z} e {K} {H} a = record
@@ -125,11 +141,7 @@ module Approximation (b : Bool) where
                      , ≤-trans (>>=ₚ-boundA j e H χ χ-nn)
                        (≤-trans (cum-mono-Supp j e (λ z → cum j (H z) χ) (λ z → cum i (K i z) χ) sp)
                                 (>>=ₚ-boundB j i e (K i) χ χ-nn))
-    ; upper = λ n j → let i , sp = uniformize (Ψ n j) (up′ n j) (λ z → upper (a z) n j) j e
-                      in j +ℕ i
-                       , ≤-trans (>>=ₚ-boundA j e (K n) χ χ-nn)
-                         (≤-trans (cum-mono-Supp j e (λ z → cum j (K n z) χ) (λ z → cum i (H z) χ) sp)
-                                  (>>=ₚ-boundB j i e H χ χ-nn)) }
+    ; upper = λ n → bind-cofinal e (λ z → upper (a z) n) }
     where
     Φ : ℕ → Z → ℕ → Set
     Φ j z i = cum j (H z) χ ℚ.≤ cum i (K i z) χ
@@ -141,12 +153,6 @@ module Approximation (b : Bool) where
     wit j z = let n , m , h = lower (a z) j
               in n ⊔ m , ≤-trans h (≤-trans (mono (a z) (m≤m⊔n n m) m)
                                             (cum-mono (m≤n⊔m n m) (K (n ⊔ m) z) χ χ-nn))
-
-    Ψ : ℕ → ℕ → Z → ℕ → Set
-    Ψ n j z i = cum j (K n z) χ ℚ.≤ cum i (H z) χ
-
-    up′ : (n j : ℕ) (z : Z) {i i′ : ℕ} → i ≤ℕ i′ → Ψ n j z i → Ψ n j z i′
-    up′ n j z le h = ≤-trans h (cum-mono le (H z) χ χ-nn)
 
   -- A `Dₚ` tree the run takes and the cut-off unfolds into coins.
   module _ (f : MC.Machine X Y) (m : MC.St f) {Z : Set} (κ : ℕ → Z → Strat X Y)
