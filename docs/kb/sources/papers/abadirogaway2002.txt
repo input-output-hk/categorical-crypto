@@ -1,0 +1,1245 @@
+J. Cryptology (2002) 15: 103–127
+DOI: 10.1007/s00145-001-0014-7
+© 2001 International Association for
+Cryptologic Research
+
+Reconciling Two Views of Cryptography
+(The Computational Soundness of Formal Encryption)∗
+Martı́n Abadi∗∗
+Computer Science Department,
+University of California at Santa Cruz,
+Santa Cruz, CA 95064, U.S.A.
+abadi@cs.ucsc.edu
+www.soe.ucsc.edu/˜abadi/
+
+Phillip Rogaway∗∗∗
+Department of Computer Science,
+University of California at Davis,
+Davis, CA 95616, U.S.A.
+rogaway@cs.ucdavis.edu
+www.cs.ucdavis.edu/˜rogaway
+Communicated by Andrew M. Odlyzko
+Received July 2000 and revised January 2001
+Online publication 19 October 2001
+Abstract. Two distinct, rigorous views of cryptography have developed over the years,
+in two mostly separate communities. One of the views relies on a simple but effective
+formal approach; the other, on a detailed computational model that considers issues
+of complexity and probability. There is an uncomfortable and interesting gap between
+these two approaches to cryptography. This paper starts to bridge the gap, by providing
+a computational justification for a formal treatment of encryption.
+Key words. Cryptography, Encryption, Formal reasoning, Provable security, Soundness.
+
+1. Two Views of Cryptography
+A fairly abstract view of cryptographic operations is often adequate for the design,
+analysis, and implementation of systems that use cryptography. For example, it is often
+∗ An abridged version of this paper appears as [6].
+
+∗∗ This work was done while the author was at Bell Labs Research, Lucent Technologies.
+
+∗∗∗ Supported by NSF CAREER Award CCR-9624560, MICRO Award 98-129, and a gift from CISCO
+Systems. Some of this work was done while the author was visiting the Department of Computer Science,
+Faculty of Science, Chiang Mai University, Thailand.
+
+103
+
+104
+
+M. Abadi and P. Rogaway
+
+convenient to ignore the details of an encryption function, and to work instead with a
+high-level description of what encryption is supposed to achieve.
+At least two distinct abstract views of cryptographic operations have developed over
+the years. They are both consistent and they have both been useful, but they come
+from two mostly separate communities and they are quite different. In one of them,
+cryptographic operations are seen as functions on a space of symbolic (formal) expressions; their security properties are also modeled formally (e.g., [5], [14], [17]–[19],
+[29]–[31], [33], [35]–[38], and [42]).1 In the other, cryptographic operations are seen as
+functions on strings of bits; their security properties are defined in terms of the probability and computational complexity of successful attacks (e.g., [8]–[10], [12], [23]–[27],
+and [45]).
+There is an uncomfortable gap between these two views. In this paper we call attention
+to this gap and start to bridge it. Representing the two views, we give two accounts of
+symmetric (shared-key) encryption: a simple one, based on a formal system, and a more
+elaborate one, based on a computational model. Our main theorem is a soundness result
+that relates the two accounts. It establishes that secrecy properties that can be proved in
+the formal world are true in the computational world. Thus, we obtain a computational
+justification for the formal treatment of encryption.
+As we relate the two accounts of encryption, we identify and make explicit some
+important choices. In particular, our main theorem excludes certain encryption cycles
+(such as encrypting a key with itself). A restriction along these lines is essential within the
+prevailing computational approach; in contrast, formal methods typically ignore cycles.
+We also consider, for example, whether two ciphertexts may manifest whether they were
+produced using the same key.
+We believe that this paper suggests a profitable line of further research. It will take a
+significant research effort to relate the views of the people who invent, implement, break,
+and use cryptography. Continuing this work, it would be worthwhile to consider other
+cryptographic operations (such as signatures and hash functions), and to treat complete
+security protocols (such as key-distribution protocols) in addition to basic algorithms.
+Connections between the formal view and the computational view should ultimately
+benefit both:
+• These connections should strengthen the foundations of formal cryptology, and
+help in elucidating implicit assumptions and gaps in formal methods. They should
+confirm or improve the relevance of formal proofs about a protocol to concrete
+instantiations of the protocol, making explicit requirements on the implementations
+of cryptographic operations.
+• Methods for high-level reasoning seem necessary for computational cryptology
+as it treats increasingly complex systems. Formal approaches suggest such highlevel reasoning principles, and even permit automated proofs. In addition, some
+formal approaches capture naive but powerful intuitions about cryptography; a link
+with those intuitions should increase the appeal and accessibility of computational
+cryptology.
+1 In this context, “formal” means “symbolic,” as in “formal languages” and “formal logic.” It does not mean
+“rigorous”—and indeed both views of cryptography have led to rigorous definitions and proofs.
+
+Reconciling Two Views of Cryptography
+
+105
+
+The next section is a more detailed discussion of the two views of cryptography; it
+also mentions related work. The rest of the paper proceeds as follows.
+In Section 3 we define a class of expressions and an equivalence relation on those
+expressions. The expressions represent data, of the sort used in messages in security
+protocols; the equivalence relation captures when two pieces of data “look the same”
+to an adversary, treating encryption as a formal operator. These definitions are simple
+and purely syntactic. In particular, they do not require any notion of probability or
+computational complexity. They are typical of the definitions given in formal treatments
+of cryptography, and directly inspired by some of them.
+Then, in Section 4, we present a computational model with strings of bits, probabilities,
+and complexities. In this model we define secure encryption in terms of computational
+indistinguishability; our definition is similar, but not identical, to those of semantic
+security [8], [25].
+Finally, in Section 5, we relate equivalence to computational indistinguishability. We
+associate a probability ensemble with each formal expression; our main theorem establishes that equivalent expressions induce computationally indistinguishable ensembles.
+For example, the two expressions that represent two pieces of data encrypted under a fresh
+key will be equivalent. This equivalence can be read as a secrecy property, namely that
+the ciphertexts do not reveal the data. Our main theorem implies that the two expressions
+correspond to computationally indistinguishable ensembles.
+
+2. Background and Related Work
+This section explains the two views of cryptography, still informally. It points to a few
+examples of work informed by those two views; there are many more. It also describes
+some related research.
+The Formal View
+There is a large body of literature that treats cryptographic operations as purely formal.
+There, for example, the expression {M} K may represent an encrypted message, with
+plaintext M and key K . All of {M} K , M, and K are formal expressions, rather than
+sequences of bits. Various functions can be applied to such expressions, yielding other
+expressions. One of them is decryption, which produces M from {M} K and K . Crucially,
+there is no way to recover M or K from {M} K alone. Thus, the idealized security
+properties of encryption are modeled (rather than defined). They are built into the model
+of computation on expressions.
+This body of literature starts with the work of Dolev and Yao [18], DeMillo et al. [16],
+Millen et al. [36], Kemmerer [31], Burrows et al. [14], and Meadows [35]. It includes
+many different agendas and approaches, with a variety of techniques from the fields of
+rewriting, modal logic, process algebra, and others. Over the years it has been used in the
+design of protocols, it has helped develop confidence in some existing protocols, and it
+has enabled the discovery of many attacks. It has also led to the development of effective
+methods and tools for automated protocol analysis; Lowe’s and Paulson’s works are two
+recent examples of these advances [33], [38].
+
+106
+
+M. Abadi and P. Rogaway
+
+This formal perspective is fairly easy to apply for the users of encryption, for example
+for protocol designers. It captures an important intuition: an encrypted message reveals
+its plaintext only to those that know the corresponding decryption key, and it reveals
+nothing to others. This assertion is a simple (and simplistic) all-or-nothing statement,
+which can be conveniently built into a formal method. In particular, it does not require
+any notion of probability or of computational complexity: there is no need to say that
+an adversary may obtain some data but only with low probability or after an expensive
+computation. (However, probability and computational complexity are compatible with
+formalism, as demonstrated by the work of Lincoln et al. [32].)
+Those who employ the formal definitions often warn that a formal proof does not
+imply a guarantee of security. One of the reasons for this caveat is the gap between
+the representation of encryption in a formal model and its concrete implementation. At
+the very least, it is desirable to know what assumptions about encryption are necessary.
+Those assumptions have seldom been stated explicitly, and not in enough detail to permit
+systematic discussion and rigorous proofs. We aim to remedy this situation.
+A somewhat similar situation arises from the use of the random-oracle model in cryptography [11]: proofs that assume random oracles do not automatically yield guarantees
+when the oracles are instantiated. However, we do not know of any natural examples
+where this gap has manifested itself (see [15]).
+The Computational View
+Another school of cryptographic research is based on the framework of computational
+complexity theory. A typical member of that school would probably say that the formal perspective is naive and disconnected from the realities of concrete cryptographic
+algorithms and protocols. Keys, plaintexts, and ciphertexts are all just strings of bits.
+An encryption function is just an algorithm. An adversary is essentially a Turing machine. Good protocols are those in which adversaries cannot do “something bad” too
+often and efficiently enough. These definitions are all about success probabilities and
+computational cost.
+This computational view originates in the work of Blum and Micali [12], Yao [45],
+and Goldwasser and Micali [25]. It has strengthened the scientific foundations of cryptography with a sophisticated body of definitions and theorems. It has also played a
+significant role in the development and study of particular protocols.
+As an important example of the computational approach, we sketch a notion of secure
+encryption. Specifically, we choose to treat symmetric encryption, following Bellare
+et al. [8]. An encryption scheme is defined as a triple of algorithms 5 = (K, E, D).
+Algorithm K (the key generator) makes random choices and then outputs a string k.
+Algorithm E (the encryption algorithm) flips random coins r to map strings k and m into
+a string Ek (m, r ). Algorithm D (the decryption algorithm) maps strings k and c into a
+string Dk (c). We expect that Dk (Ek (m, r )) = m for appropriate k, m, and r .
+An adversary for an encryption scheme 5 = (K, E, D) is a Turing machine which has
+access to an oracle. We imagine realizing this oracle in one of two ways. In the first, the
+oracle chooses (once and for all) a random key k, and then encrypts each query x using
+Ek and fresh random coins. In the second, the oracle chooses (once and for all) a key
+k, and then, when presented with a query x, encrypts a string of 0 bits of equal length,
+
+Reconciling Two Views of Cryptography
+
+107
+
+using fresh random coins. An adversary’s advantage is the probability that the adversary
+outputs 1 when the oracle is realized in the first way minus the probability that the
+adversary outputs 1 when the oracle is realized in the second way. An encryption scheme
+is regarded as good if an adversary’s maximal advantage is a slow-growing function of
+the adversary’s computational resources. This definition of security can be worked out
+rigorously and elegantly in both asymptotic and concrete versions (see Section 4.3). In
+any case, it is based on notions of probability and computational power.
+Related Work
+The desire to relate the two views of cryptography is not entirely new (e.g., [3], [28],
+and [34]). Nevertheless, there have been hardly any research efforts in this general direction. The work of Pfitzmann et al. [39] (which is simultaneous to ours and independent)
+starts from motivations similar to our own. It proves that some reactive, cryptographic
+systems satisfy high-level (noncryptographic) specifications, under computational assumptions on cryptographic operations. These results do not concern a formal model of
+cryptography, such as the one studied in this paper, but the relation to a formal model
+of cryptography is mentioned as an interesting subject for further work. Also relevant is
+the work of Lincoln et al. [32], which develops a rich process-algebraic framework that
+draws on both views of cryptography. Further afield, Abadi et al. [1], [2] and Lynch [34]
+relate the formal view of cryptography with higher-level (noncryptographic) descriptions of security mechanisms. Finally, Volpano and Smith [43] analyze the complexity
+of attacking programs written in a simple, typed language; however, this language does
+not include cryptographic primitives.
+As we compare two accounts of encryption, we arrive at the concept of which-key
+concealing encryption, with which ciphertexts do not manifest whether they were produced using the same key (see Section 4.2). Independently and concurrently, the work of
+Fischlin and that of Bellare et al. study this concept from different perspectives [7], [20].
+3. Formal Encryption and Expression Equivalence
+In this section we present the formal view of cryptography, specifically treating symmetric encryption. We describe the space of expressions on which encryption operates,
+and what it means for two expressions to be equivalent.
+As explained in the introduction, the expressions represent data, of the sort used in
+messages in security protocols. Expressions are built up from bits and keys by pairing and
+encryption. The equivalence relation captures when two pieces of data “look the same”
+to an adversary that has no prior knowledge of the keys used in the data. For example,
+an adversary (with no prior knowledge) cannot obtain the key K from the ciphertexts
+{0} K and {1} K ; therefore, the adversary cannot decrypt and distinguish these ciphertexts,
+so they are equivalent. Similarly, the pairs (0, {0} K ) and (0, {1} K ) are equivalent. On
+the other hand, the pairs (K , {0} K ) and (K , {1} K ) are not equivalent, since an adversary
+can obtain K from them, then decrypt {0} K or {1} K and obtain 0 or 1, respectively,
+thus distinguishing the pairs. In this section we formalize these informal arguments
+about equivalence; the soundness theorem of Section 5 provides a further justification
+for them.
+
+108
+
+M. Abadi and P. Rogaway
+
+3.1. Expressions
+We write Bool for the set of bits {0, 1}. These bits can be used to spell out numbers
+and principal names, for example. We write Keys for a fixed, nonempty set of symbols disjoint from Bool. The symbols K , K 0 , K 00 , . . . and K 1 , K 2 , . . . are all in Keys.
+Informally, elements of the set Keys represent cryptographic keys, generated randomly
+by a principal that is constructing an expression. Formally, however, keys are atomic
+symbols, not strings of bits. We write Exp for the set of expressions defined by the
+grammar:2
+M, N ::=
+K
+i
+(M, N )
+{M} K
+
+expressions
+key (for K ∈ Keys)
+bit (for i ∈ Bool)
+pair
+encryption (for K ∈ Keys)
+
+Informally, (M, N ) represents the pairing of M and N , which might be implemented by
+concatenation plus markers, and {M} K represents the encryption of M under K , which
+might be implemented using a symmetric algorithm like DES, in CBC mode and with a
+random initialization vector. Pairing and encryption can be nested, as in the expression
+({{(0, K 0 )} K } K 0 , K ).
+We emphasize that the elements of Exp are formal expressions (essentially, parse
+trees, abstract syntax trees) rather than actual keys, bits, concatenations, or encryptions.
+In particular, they are unambiguous: for example, (M, N ) equals (M 0 , N 0 ) if and only
+if M equals M 0 and N equals N 0 , and it never equals {M 0 } K . Similarly, {M} K equals
+{M 0 } K 0 if and only if M equals M 0 and K equals K 0 . However, according to definitions
+given below, {M} K and {M 0 } K 0 are equivalent even when M and M 0 are different and
+when K and K 0 are different.
+There are several possible extensions of the set of expressions:
+• We could allow expressions of the form {M} N , where an arbitrary expression N is
+used as the encryption key.
+• We could distinguish encryption keys from decryption keys, as in public-key cryptosystems.
+These extensions are useful in modeling realistic protocols, but would complicate our
+definitions and theorems. We therefore leave them for further work.
+It is also important to consider a restriction to the set of expressions. We say that K
+encrypts K 0 in M if there exists an expression N such that {N } K is a subexpression of M
+and K 0 occurs in N . For example, K encrypts both K 1 and K 2 in ({{K 1 } K 2 } K , 0). For each
+M, this defines a binary relation on keys, the “encrypts” relation. (As a variant, a more
+liberal definition that ignores occurrences of K 0 as a subscript may also be adequate for
+2 An equivalent way to define Exp is as the language generated by the context-free grammar with start
+symbol E, nonterminals E and K, terminals “0”, “1”, “(”, “)”, “,”, “{”, “}”, and the set of elements in Keys,
+and the productions:
+
+E −→ 0 | 1 | (E, E) | K | {E}K ,
+K −→ K
+
+for each
+
+K ∈ Keys.
+
+Reconciling Two Views of Cryptography
+
+109
+
+our purposes.) We say that M is cyclic (or acyclic) if its associated “encrypts” relation is
+cyclic (or acyclic, respectively). For example, {K } K and ({K } K 0 , {K 0 } K ) are both cyclic,
+while ({K } K 0 , {0} K ) is acyclic.
+Cycles, such as encrypting a key under itself, are a source of errors in practice (e.g.,
+[44]); they also lead to weaknesses in common computational models, as explained in
+Section 4. Moreover, cycles can often be avoided in practice—and they should generally
+be avoided given what is, and is not, known about them. The soundness theorem of
+Section 5 deals only with acyclic expressions. In contrast, cycles are typically permitted
+(without discussion!) in formal methods.
+3.2. Equivalence
+Next we give a formal definition of equivalence of expressions. It draws on definitions
+from the works of Syverson and van Oorschot, Schneider, Paulson, and others [38], [40],
+[41]. Some of the auxiliary definitions concern how expressions can be analyzed and
+synthesized; such definitions are quite common in formal methods for protocol analysis.
+Equivalence relations are useful in semantics of modal logics: in such semantics, one says
+that two states in a computation “look the same” to a principal only if the principal has
+equivalent expressions in those states. Equivalence relations also appear in bisimulation
+proof techniques [4], [13], where one requires that bisimilar processes produce equivalent
+messages.
+First, we define an entailment relation M ` N , where M and N are expressions.
+Intuitively, M ` N means that N can be computed from M. Formally, we define the
+relation inductively, as the least relation with the following properties:
+• M ` 0 and M ` 1,
+• M ` M,
+• if M ` N1 and M ` N2 , then M ` (N1 , N2 ),
+• if M ` (N1 , N2 ), then M ` N1 and M ` N2 ,
+• if M ` N and M ` K , then M ` {N } K ,
+• if M ` {N } K and M ` K , then M ` N .
+This definition of M ` N models what an attacker can obtain from M without any prior
+knowledge of the keys used in M. For example, we have
+({{K 1 } K 2 } K 3 , K 3 ) ` K 3
+and
+({{K 1 } K 2 } K 3 , K 3 ) ` {K 1 } K 2
+but not
+({{K 1 } K 2 } K 3 , K 3 ) ` K 1
+
+(false).
+
+It is simple to derive a more general definition from this one: obtaining N from M
+with prior knowledge of K is equivalent to obtaining N from (M, K ) with no prior
+knowledge.
+Next, we introduce the box symbol 2, which represents a ciphertext that an attacker
+cannot decrypt. We define the set Pat of patterns as an extension of the set of expressions,
+
+110
+
+M. Abadi and P. Rogaway
+
+with the grammar:3
+P, Q ::=
+K
+i
+(P, Q)
+{P} K
+2
+
+patterns
+key (for K ∈ Keys)
+bit (for i ∈ Bool)
+pair
+encryption (for K ∈ Keys)
+undecryptable
+
+Intuitively, a pattern is an expression that may have some parts that an attacker cannot
+decrypt.
+We define a function that, given a set of keys T and an expression M, reduces M to
+a pattern. Intuitively, this is the pattern that an attacker can see in M if the attacker has
+the keys in T :
+p(K , T ) = K
+(for K ∈ Keys),
+p(i, T ) = i
+(for i ∈ Bool),
+p((M, N ), T ) = (p(M, T ), p(N , T )),
+(
+if K ∈ T,
+{p(M, T )} K
+p({M} K , T ) =
+2
+otherwise.
+Further, we define a pattern for an expression without an auxiliary set T , but using the
+set of keys obtained from the expression itself:
+pattern(M) = p(M, {K ∈ Keys | M ` K }).
+Intuitively, this is the pattern that an attacker can see in M using the set of keys obtained
+from M. (As above, we assume that the attacker has no prior knowledge of the keys used
+in M, without loss of generality.) For example, we have
+pattern(({{K 1 } K 2 } K 3 , K 3 )) = ({2} K 3 , K 3 )
+because {K ∈ Keys | ({{K 1 } K 2 } K 3 , K 3 ) ` K } is {K 3 } and
+p(({{K 1 } K 2 } K 3 , K 3 ), {K 3 }) = ({2} K 3 , K 3 ).
+Finally, we say that two expressions are equivalent if they yield the same pattern:
+M≡N
+
+if and only if
+
+pattern(M) = pattern(N ).
+
+For example, we have
+{{K 1 } K 2 } K 3 , K 3 ) ≡ ({{0} K 1 } K 3 , K 3 )
+since both expressions yield the pattern ({2} K 3 , K 3 ).
+3 An equivalent way to define Pat is as the language generated by the context-free grammar with start
+symbol P, nonterminals P and K, terminals “0”, “1”, “(”, “)”, “,”, “{”, “}”, “2”, and the set of elements in
+Keys, and the productions:
+
+P −→ 0 | 1 | (P, P) | K | {P}K | 2,
+K −→ K
+
+for each
+
+K ∈ Keys.
+
+Reconciling Two Views of Cryptography
+
+111
+
+We may view keys as bound names, subject to renaming (as in the spi calculus [5]). For
+example, although ({0} K , K ) and ({0} K 0 , K 0 ) are not equivalent, we may say that they
+are equivalent up to renaming. More generally, we define equivalence up to renaming,
+∼
+=, as follows:
+M∼
+=N
+
+if and only if there exists a bijection σ on Keys such that
+
+M ≡ N σ,
+
+where N σ is the result of applying σ as a substitution to N . Although this relation ∼
+= is
+looser than ≡, our soundness theorem treats it smoothly, without difficulty. Therefore,
+we focus on ∼
+=. In informal discussions, we often do not distinguish the two relations,
+calling them both equivalence.
+3.3. Some Examples and Some Subtleties
+In this section we give a few more examples. Some of the examples indicate assumptions
+and choices built into the definition of equivalence. These are fairly subtle but important,
+and it is useful to be explicit about them. We revisit them in Section 4.
+• 0∼
+= 0, of course.
+• 0 6∼
+= 1, of course.
+• {0} K ∼
+= {1} K .
+• (K , {0} K ) 6∼
+= (K , {1} K ), but (K , {({0} K 0 , 0)} K ) ∼
+= (K , {({1} K 0 , 0)} K ).
+• K 6≡ K 0 and K ∼
+= K 0 , since keys are subject to renaming with ∼
+= but not with ≡.
+• {0} K ∼
+= {1} K 0 and even {0} K ≡ {1} K 0 , although the two ciphertexts are under
+different keys.
+• ({K 0 } K , {0} K ) ∼
+= ({K 0 } K , {1} K 0 ) and even ({K 0 } K , {0} K ) ≡ ({K 0 } K , {1} K 0 ), similarly.
+• {0} K ∼
+= {K } K , despite the encryption cycle in {K } K .
+• {(((1, 1), (1, 1)), ((1, 1), (1, 1)))} K ∼
+= {0} K .
+Informally, we are assuming that a plaintext of any size can be encrypted, and
+that the size of the plaintext cannot be deduced from the resulting ciphertext without
+knowledge of the corresponding decryption key. This property justifies equivalences
+such as the one above, where the two plaintexts are of different sizes. In an implementation, it can be guaranteed by padding plaintexts up to a maximum size, and
+truncating larger expressions or mapping them to some fixed string (see Section 4).
+We could easily refine the equivalence relation to make it sensitive to sizes, for
+example, by introducing a symbol 2n for each size n. The resulting definitions
+would be heavier.
+• ({0} K , {0} K ) ∼
+= ({0} K , {1} K ).
+Informally, we are assuming that an attacker who does not have a key cannot even
+detect whether two plaintexts encrypted under the key are identical. For example,
+the attacker should not be able to tell that the same plaintext appears twice under
+K in ({0} K , {0} K ), hence ({0} K , {0} K ) ∼
+= ({0} K , {1} K ). In an implementation, this
+sort of equivalence can be guaranteed by randomization of the encryption function
+(see Section 4).
+We could easily refine the equivalence relation to make it sensitive to message
+identities (for example, as in [4]); but, again, the resulting definitions would be
+heavier.
+
+112
+
+M. Abadi and P. Rogaway
+
+• ({0} K , {1} K ) ∼
+= ({0} K , {1} K 0 ).
+Informally, we are assuming that an attacker who does not have a key cannot
+even detect whether two ciphertexts use that same key. For example, the attacker
+should not be able to tell that the same key is used twice in ({0} K , {1} K ), hence
+({0} K , {1} K ) ∼
+= ({0} K , {1} K 0 ).
+Again, an alternative definition would be possible, with some complications.
+4. The Computational View: Encryption Schemes and Indistinguishability
+In this section we provide a computational treatment for symmetric encryption (adapting those of [8] and [25]). First we describe the functions that constitute a symmetric
+encryption scheme, and then we describe when an encryption scheme should be called
+secure. Actually, there are a few different possibilities for defining security, and we discuss several of them. The notion that we focus on—which we call type-0 security—is
+stronger than the customary notion of security (that is, semantic security, and notions
+equivalent to it [8], [21], [25]). Nonetheless, one can achieve type-0 security under standard complexity-theoretic assumptions. We focus on type-0 security because it matches
+up with the formal definitions of Section 3. Other computational notions of security can
+be paired with analogous formal ones.
+4.1. Preliminaries
+Elements of an encryption scheme. Let String = {0, 1}∗ be the set of all finite strings,
+and let |x| be the length of string x. Let Plaintext, Ciphertext, and Key be nonempty
+sets of finite strings. Let 0 be a particular string in Plaintext. Encrypting a string not in
+Plaintext will result in a ciphertext that decrypts to 0. We assume that if x ∈ Plaintext,
+then x 0 ∈ Plaintext for all x 0 of the same length as x. Let Key be endowed with some
+fixed distribution. (If Key is finite, the distribution on Key is the uniform one.) Let Coins
+be a synonym for {0, 1}ω (the set of infinite strings), and Parameter (the set of security
+parameters) be a synonym for 1∗ (the set of finite strings of 1 bits).
+An encryption scheme, 5, is a triple of algorithms (K, E, D), where
+K:
+E:
+D:
+
+Parameter × Coins → Key,
+Key ×String × Coins → Ciphertext,
+Key ×String → Plaintext,
+
+and each algorithm is computable in time polynomial in the size of its input (but without
+consideration for the size of Coins input). Algorithm K is called the key-generation algorithm, E is called the encryption algorithm, and D is called the decryption algorithm. We
+usually write the first argument to E or D, the key, as a subscript. When we omit mention
+of the final argument to K or E this indicates the corresponding probability space, or, when
+used as a set, the support of that probability space (that is, the strings which are output with
+nonzero probability). We require that for all η ∈ Parameter, k ∈ K(η), and r ∈ Coins, if
+m ∈ Plaintext, then Dk (Ek (m, r )) = m, while if m 6∈ Plaintext, then Dk (Ek (m, r )) = 0.
+For example, the encryption function could treat an out-of-domain message as though it
+was 0. We insist that |Ek (x)| depends only on η and |x| when k ∈ K(η).
+
+Reconciling Two Views of Cryptography
+
+113
+
+The definition above is for probabilistic, stateless encryption. One can be a bit more
+general, allowing the encryption algorithm to maintain state. We do not pursue this
+generalization here.
+Other basic concepts. A function ε: N → R is negligible if ε(η) ∈ η−ω(1) . This
+means that for all c > 0 there exists Nc such that ε(η) ≤ η−c for all η ≥ Nc . An
+ensemble (or probability ensemble) is a collection of distributions on strings, D =
+R
+{Dη }, one for each η. We write x ← Dη to indicate that x is sampled from Dη , and
+R
+write Pr[x ← Dη : E] for the probability of event E when x is sampled from Dη . Let
+D = {Dη } and D 0 = {Dη0 } be ensembles. We say that D and D 0 are indistinguishable
+(or computationally indistinguishable), and write D ≈ D 0 , if for every probabilistic
+polynomial-time adversary A, the function
+ε(η) = Pr[x ← Dη : A(η, x) = 1] − Pr[x ← Dη0 : A(η, x) = 1]
+def
+
+R
+
+R
+
+is negligible.
+4.2. Aspects of Encryption-Scheme Security
+In this section we consider some possible attributes of encryption schemes, and also
+consider encryption cycles. These issues already appear in Section 3 in a formal setting;
+here we explore them further in a computational setting.
+Attributes (present or absent) of a secure encryption scheme. We single out three
+characteristics of an encryption scheme. The first and third are well known, while the
+second seems not to have received attention till now.
+• Repetition concealing versus repetition revealing.
+Given ciphertexts c and c0 , can one tell if their underlying plaintexts are equal? If
+so, we call the scheme repetition revealing; otherwise, it is repetition concealing. A
+repetition-concealing scheme must be probabilistic (or stateful); making encryption
+schemes repetition concealing is one motivation for probabilistic encryption [25].
+• Which-key concealing versus which-key revealing.
+If one encrypts messages under various keys, can one tell which messages were
+encrypted under the same keys? If so, we call the scheme which-key revealing;
+otherwise, it is which-key concealing. Though some standard instantiations of encryption schemes are which-key concealing, others are not (for example, standard asymmetric encryption methods based on RSA), and standard definitions for
+encryption-scheme security (like those in [8] and [25]) do not guarantee which-key
+concealment. Demanding that an encryption scheme be which-key concealing is
+useful in contexts beyond that of the present paper (for example, in achieving forms
+of anonymity). The current work of Bellare et al. undertakes a thorough treatment
+of which-key concealing encryption [7].
+• Message-length concealing versus message-length revealing.
+Does a ciphertext reveal the length of its underlying plaintext? If so, we call the
+scheme message-length revealing; otherwise, it is message-length concealing. Most
+encryption schemes are message-length revealing. The reason is that implementing
+
+114
+
+M. Abadi and P. Rogaway
+
+message-length concealing encryption invariably entails padding messages to some
+maximal length, and it may therefore be quite inefficient. Message-length concealing encryption is possible when the message space is finite, or when all ciphertexts
+are infinite streams (rather than finite strings as stated in our definitions).
+These three characteristics are orthogonal, and all eight combinations make sense. We
+call these eight notions of security type-0, type-1, . . . , type-7, with the numbering determined as follows: concealing corresponds to a 0 bit and revealing to a 1 bit, and we
+interpret the three characteristics above as a 3-bit binary number, the most significant
+bit being for repetition concealing or revealing, then which-key concealing or revealing,
+finally message-length concealing or revealing. With this terminology, the conventional
+concept of encryption-scheme security, ever since the work of Goldwasser and Micali [25], has been type-3 security: a ciphertext may reveal the length of the message
+and which key is being used, but it should not reveal if two ciphertexts are encryptions of the same message. However, this concept of security is not the only reasonable
+one.
+Encryption cycles. Given a type-n (n ∈ {0, . . . , 7}) secure encryption scheme 5 =
+(K, E, D), one can construct a type-n secure encryption scheme 50 = (K, E 0 , D0 ) with
+the following property: 50 would be completely insecure if the adversary were given (for
+R
+example, as an additional input) even a single encryption c ← Ek0 (k) of the underlying
+key k. Goldwasser and Micali were aware of this (in the public-key setting) when they
+published their work [25].
+It is not only encrypting k under k that is problematic; longer cycles may also cause
+problems. For example, even if an encryption scheme is type-3 secure, it may not be safe
+to encrypt a message b under a key a and then, reversing the roles of a and b, to encrypt a
+under b. For all we know, the concatenation of the two ciphertexts might trivially reveal
+both a and b. For probabilistic encryption, for cycles of length greater than one, we do
+not have any example to demonstrate that this problem can actually arise, but the hybrid
+arguments [25] often used to prove encryption schemes secure, and which we use here,
+do not work in the presence of such cycles.
+Therefore, as discussed in Section 3, we focus on expressions without encryption cycles. In return, we can rely on standard-looking definitions and tools in the computational
+setting.
+4.3. Definitions of Encryption-Scheme Security (Types 0, 1, 3)
+The formal treatment in Section 3 corresponds to type-0 security (repetition concealing,
+which-key concealing, and message-length concealing), so we define this notion more
+precisely. An explanation of the notation follows the definition.
+Definition 1 (Type-0 Security). Let 5 = (K, E, D) be an encryption scheme, let η ∈
+Parameter be a security parameter, and let A be an adversary. Define
+Adv05[η] (A) = Pr[k, k 0 ← K(η): AEk (·), Ek 0 (·) (η) = 1]
+def
+
+R
+
+− Pr[k ← K(η): AEk (0), Ek (0) (η) = 1].
+R
+
+Reconciling Two Views of Cryptography
+
+115
+
+Encryption scheme 5 is type-0 secure if for every probabilistic polynomial-time adversary A, Adv05[η] (A) is negligible (as a function of η).
+We are looking at the difference of two probabilities:
+• First, we focus on the first probability. The quantity in brackets describes an experiment that is performed, and then an event. In this experiment, one first chooses two
+keys, k and k 0 , independently, by running the key-generation algorithm K. Then
+one runs adversary A, with two oracles: a left oracle f and a right oracle g. If the
+adversary asks the left oracle f a query m ∈ String, the oracle returns a random
+R
+encryption of m under key k. That is, the oracle computes c ← Ek (m) and returns
+c. If the adversary asks the right oracle g a query m ∈ String, the oracle returns a
+random encryption of m under key k 0 , similarly. Independent coins are used each
+time a string is encrypted (but the keys k and k 0 stay fixed).
+• Next, we consider the second probability. In this experiment, a single key k is
+selected by running the key-generation algorithm K. The adversary again has two
+oracles, a left oracle f and a right oracle g, and these oracles again expect queries
+m ∈ String. However, now the oracles behave in the same way. When asked a query
+R
+m, the oracles ignore the query, sample c ← Ek (0), and return c. Independent coins
+are used each time a string is encrypted (but the key k stays fixed).
+The type-0 advantage is the difference in the above probabilities. One can imagine that
+the adversary is trying to distinguish a good encryption box from a false one. A good
+encryption box encrypts the specified query using the selected key. A false encryption
+box ignores the query and encrypts a fixed message under a fixed random key. Intuitively,
+a scheme is type-0 secure if no computationally efficient adversary can do a good job of
+telling apart the two encryption boxes on the basis of their input/output behavior.
+Various other equivalent formalizations for type-0 encryption are possible. For example, it adds no power for there to be more than two oracles. (In the first experiment,
+each oracle would encrypt queries under its own key; in the second, every oracle would
+encrypt 0 under a common key.) Likewise, it takes away no power if Ek 0 (·) is replaced
+with Ek 0 (0) in the first experiment.
+We also give detailed definitions of type-1 and type-3 security. (Recall that type-1
+means repetition concealing and which-key concealing, and that type-3 means repetition
+concealing.) The definitions resemble that of type-0 security. In these definitions, Ek (·)
+R
+is an oracle that returns c ← Ek (m) on input m, as above, and Ek (0|·| ) is an oracle that
+R
+returns c ← Ek (0|m| ) on input m.
+Definition 2 (Type-1 Security). Let 5 = (K, E, D) be an encryption scheme, let η ∈
+Parameter be a security parameter, and let A be an adversary. Define
+Adv15[η] (A) = Pr[k, k 0 ← K(η): AEk (·),Ek 0 (·) (η) = 1]
+def
+
+R
+
+|·|
+
+|·|
+
+− Pr[k ← K(η): AEk (0 ),Ek (0 ) (η) = 1].
+R
+
+Encryption scheme 5 is type-1 secure if for every probabilistic polynomial-time adversary A, Adv15[η] (A) is negligible (as a function of η).
+
+116
+
+M. Abadi and P. Rogaway
+
+Definition 3 (Type-3 Security). Let 5 = (K, E, D) be an encryption scheme, let η ∈
+Parameter be a security parameter, and let A be an adversary. Define
+Adv35[η] (A) = Pr[k ← K(η): AEk (·) (η) = 1]
+def
+
+R
+
+|·|
+
+− Pr[k ← K(η): AEk (0 ) (η) = 1].
+R
+
+Encryption scheme 5 is type-3 secure if for every probabilistic polynomial-time adversary A, Adv35[η] (A) is negligible (as a function of η).
+4.4. Achieving Type-0 and Type-1 Security with Standard Tools
+Since type-3 security is standard but type-0 and type-1 security are not, we show that
+type-0 and type-1 security can be achieved using standard assumptions and constructions.
+Although this fact is not necessary for our soundness theorem, it provides support for
+the hypotheses of the theorem.
+Block ciphers. Let β ≥ 1 be a number (the blocksize) and let Block = {0, 1}β . Let Key
+be a finite nonempty set. Then a block cipher is a function E: Key ×Block → Block such
+that, for every k ∈ Key, we have that E k (·) = E(k, ·) is a permutation. Example block
+ciphers include those specified in NIST’s Data Encryption Standard (DES) and NIST’s
+Advanced Encryption Standard (AES).
+One measure of security for a block cipher is
+Adv E (A) = Pr[k ← Key: A E k (·) = 1] − Pr[π ← Perm(β): Aπ(·) = 1].
+prp
+
+R
+
+R
+
+Here Perm(β) denotes the set of all permutations on {0, 1}β . Informally, the adversary
+A is trying to distinguish the block cipher E, as it behaves on a random key k, from a
+prp
+random permutation π. We think of E as a good block cipher if Adv E (A) is small as
+long as A is of reasonable computational complexity.
+Block cipher modes of operation. Block ciphers are the most common building block
+for making symmetric encryption schemes. Two well-known ways to do this are CBC
+mode and CTR mode. In CBC mode (with a random initialization vector) the encryption
+of a plaintext x = x1 · · · xn using key k ∈ Key, where n ≥ 1 and |xi | = {0, 1}β , is
+R
+y0 y1 · · · yn where y0 ← Block and yi = E k (yi−1 ⊕xi ) for all 1 ≤ i ≤ n. In CTR mode the
+R
+encryption of a plaintext x using key k is the concatenation of r ← Block with the xor of x
+and the |x|-bit prefix of the concatenation of E k (r ), E k (r +1), E k (r +2), . . . . Here r +i is
+the β-bit string that encodes the sum of r (treated as an unsigned number) and i, modulo
+2β . In [8], Bellare et al. establish the (type-3) security of these two modes of operation.
+CBC and CTR modes are which-key concealing. Even though the results just mentioned
+do not indicate that CBC mode or CTR mode are which-key concealing, these schemes
+are in fact which-key concealing and those results can be used to show it, as we now
+sketch. Let 5 = (K, E, D) be an encryption scheme, let A be an adversary, and define
+Ek (·)
+Advrand
+(η) = 1]
+5[η] = Pr[k ← Key(η): A
+R
+
+R
+
+|Ek (·)|
+
+− Pr[k ← Key(η): A$
+
+(η) = 1].
+
+Reconciling Two Views of Cryptography
+
+117
+
+By $|Ek (·)| we denote an oracle which, on input m, computes c ← Ek (m) and returns a
+random string of length |c|. (By an assumption stated above, |c| depends only on η and
+|m|.) Informally, the adversary cannot tell if it is given a real encryption oracle or an
+oracle that returns a random string (of the appropriate length) in response to every query.
+The proofs of security in [8] actually establish that CBC mode and CTR mode are
+good schemes according to Advrand , assuming that the underlying block cipher E is secure
+according to Advprp . To complete the picture, we claim that any good scheme according
+to Advrand is also type-1 secure. (This claim is not hard to prove, though we omit doing
+so here.) Therefore, CBC mode and CTR mode (as defined above) are type-1 secure:
+repetition concealing, which-key concealing, but message-length revealing.
+R
+
+Hiding message lengths for type-0 security. Finally, we have to conceal message
+lengths. This step is standard, provided the message space is finite. Let 5 = (K, E, D)
+be a type-1 secure encryption scheme with Plaintext = {0, 1}∗ . Let Plaintext0 ⊆ String be
+a finite set, with a particular element 00 . To make a type-0 secure encryption scheme we
+just encode all messages of Plaintext0 into strings of some fixed length, and then encrypt
+these using E. That is, we choose any convenient function encode(·) which (reversibly)
+takes strings in Plaintext0 to a subset of {0, 1}` , for some number `. The encryption
+scheme 50 = (K, E 0 , D0 ), with message space Plaintext0 , is defined by letting Ek0 (m) =
+Ek (encode(m)) for m ∈ Plaintext0 , setting Ek0 (m) = Ek0 (00 ) for m 6∈ Plaintext0 , and defining
+D0 in the obvious way. Type-1 security of 5 immediately implies type-0 security of 50 .
+5. The Computational Soundness of Formal Equivalence
+In this section we relate the two views of cryptography. We proceed in two steps. First,
+we show how to associate an ensemble to an expression M, given an encryption scheme
+5. Then we show that, under appropriate assumptions, equivalent expressions give rise
+to indistinguishable ensembles.
+5.1. Associating an Ensemble to an Expression
+Let 5 = (K, E, D) be an encryption scheme and let η ∈ Parameter be a security parameter. We associate to each formal expression M ∈ Exp a distribution on strings [[ M ]]5[η] ,
+and thereby an ensemble [[ M ]]5 . This association constitutes concrete semantics for expressions (in the style of programming-language semantics or logic semantics); it works
+as follows:
+• First, we map each key symbol K that occurs in M to a string of bits τ (K ), using
+the key generator K(η).
+• We map the formal bits 0 and 1 to standard string representations for them.
+• We obtain the image of a formal pair (M, N ) by concatenating the images of the
+components M and N .
+• We obtain the image of a formal encryption {M} K by calculating Eτ (K ) (x), where
+x is the image of M.
+• In all cases we tag string representations with their types (that is, with the strings
+“key”, “bool”, “pair”, “ciphertext”) in order to avoid any ambiguities.
+
+118
+
+M. Abadi and P. Rogaway
+
+Fig. 1. How to map (probabilistically) an expression M to a string CONVERT(M), given an encryption scheme
+5 = (K, E, D) and a security parameter η.
+
+This association is defined more precisely in Fig. 1. In the figure we write Keys(M) for
+the set of all key symbols that occur in M, and write hx1 , . . . , xk i for an ordinary string
+encoding of the tuple x1 , . . . , xk . The auxiliary initialization procedure INITIALIZEη (M)
+maps every key symbol in Keys(M) to an independently chosen key τ (K ). The probability
+of a string in [[ M ]]5[η] is that induced by the algorithm CONVERT(M) of Fig. 1.
+5.2. Equivalence Implies Indistinguishability
+Next we prove that equivalent expressions correspond to indistinguishable ensembles
+(that is, M ∼
+= N implies [[ M ]]5 ≈ [[ N ]]5 ), assuming that the expressions are acyclic
+and that the underlying encryption scheme is type-0 secure.
+We start with a few simple examples, instantiating the claim that M ∼
+= N implies
+[[ M ]]5 ≈ [[ N ]]5 :
+• Since 0 ∼
+= 0, we conclude that [[0]]5 ≈ [[0]]5 . The two ensembles being compared
+put all the probability mass on a single point, h0, “bool”i.
+• Since K ∼
+= K 0 , we conclude that [[ K ]]5 ≈ [[ K 0 ]]5 . The two ensembles being
+compared are identical: they are induced by the key generator K.
+• Since {0} K ∼
+= {1} K , we conclude that [[{0} K ]]5 ≈ [[{1} K ]]5 . This indistinguishability is nontrivial: it relies on the assumption that the encryption scheme is type-0
+secure.
+• Although {0} K ∼
+= {K } K , we cannot conclude anything about how [[{0} K ]]5 may
+relate to [[{K } K ]]5 , because of the encryption cycle in {K } K .
+Reconsidering some of the other examples of Section 3.3 can also be instructive.
+Our theorem is:
+Theorem 1. Let M and N be acyclic expressions and let 5 be a type-0 secure encryption scheme. Suppose that M ∼
+= N . Then [[ M ]]5 ≈ [[ N ]]5 .
+
+Reconciling Two Views of Cryptography
+
+119
+
+Proof. The proof is a hybrid argument, as in [25]. (See [22] for a discussion of this
+technique.) One must be particularly careful in forming the hybrids, relying on acyclicity.
+Because of the generality of the claim, the description of the hybrid argument is somewhat
+complex. Therefore, we include a running example, in italics. We also break up the proof
+into several phases.
+Key renaming. The first phase of the proof deals with renaming keys. Roughly, its
+goal is to modify the expressions M and N by renaming keys so that pattern(M) =
+pattern(N ), still, and M has “hidden” keys K 1 , . . . , K m and N has “hidden” keys
+K 1 , . . . , K n , where K I encrypts K i only when I ≥ i, and both M and N have “recoverable” keys J1 , . . . , Jµ .
+As above, Keys(M) is the set of all keys that occur in M. First we partition Keys(M),
+separating those keys that the adversary can recover from the rest:
+recoverable(M) = {K ∈ Keys(M) | M ` K },
+hidden(M) = Keys(M) − recoverable(M).
+Let µ = | recoverable(M)| and let m = | hidden(M)|. We form a directed graph G M =
+(VM , E M ) whose vertices are VM = hidden(M) and where there is an arc K → K 0 in
+E M if and only if K encrypts K 0 in M. (Recall that K encrypts K 0 in M if there is a
+subexpression {M1 } K of M where K 0 occurs in M1 .) The acyclicity of M means that
+G M is acyclic and, as a consequence, we can rename the keys in Keys(M) so that the
+hidden keys are K 1 , . . . , K m , the recoverable keys are J1 , . . . , Jµ , and K I → K i ∈ E M
+implies I ≥ i. In other words, a deeper key of M gets a smaller number. We let M 0 be
+the resulting expression.
+We start our running example. Suppose that M is the expression:
+{0} K 6 {K 1 1} K 4 K 2 {0} K 3 {K 6 } K 4 {K 1 K 3 } K 4 {1 1 1} K 5 0 {K 1 } K 6 {K 5 } K 2 .
+Here we have omitted commas, for readability, and also parentheses. The parentheses
+are irrelevant in this example, but we should hold them fixed as the example is developed;
+for concreteness, we may think of elements as being grouped left-to-right, so that a b c d
+is short for (((a, b), c), d). In this example, we have
+Keys(M) = {K 1 , K 2 , K 3 , K 4 , K 5 , K 6 },
+recoverable(M) = {K 2 , K 5 },
+hidden(M) = {K 1 , K 3 , K 4 , K 6 }.
+The graph G M = (VM , E M ) has vertices VM = {K 1 , K 3 , K 4 , K 6 } and arcs K 4 →
+K 1 , K 4 → K 3 , K 4 → K 6 , and K 6 → K 1 . We rename (K 1 , K 2 , K 3 , K 4 , K 5 , K 6 ) to
+(K 1 , J1 , K 2 , K 4 , J2 , K 3 ), obtaining a new expression M 0 :
+{0} K 3 {K 1 1} K 4 J1 {0} K 2 {K 3 } K 4 {K 1 K 2 } K 4 {1 1 1} J2 0 {K 1 } K 3 {J2 } J1 .
+
+120
+
+M. Abadi and P. Rogaway
+
+Because M ∼
+= N , and by the definition of equivalence up to renaming, there exists
+a function σ on Keys(N ) such that pattern(M) = pattern(N σ ). The keys that occur
+in this pattern are those in the sets recoverable(M) and recoverable(N σ ), which are
+therefore equal. Moreover, the value of σ on hidden(N ) is irrelevant, since the keys
+in this set get obliterated with the symbol 2. So, by acyclicity, we can again rename
+those keys to K 1 , . . . , K n in such a way that K I encrypts K i only if I ≥ i. This renaming is much as in M, so we omit its justification. We obtain a function σ 0 and
+an expression N 0 such that N 0 = N σ 0 , M 0 ≡ N 0 , recoverable(M 0 ) = recoverable(N 0 )
+= {J1 , . . . , Jµ }, hidden(N 0 ) = {K 1 , . . . , K n }, and K I encrypts K i in N 0 only if
+I ≥ i.
+Continuing our example, let N be the expression
+{1 1} K 2 {K 3 } K 2 K 1 {K 3 } K 2 {K 8 } K 2 {1} K 5 {1 1 1} K 3 0 {0 0} K 8 {K 3 } K 1 ,
+so recoverable(N ) = {K 1 , K 3 } and hidden(N ) = {K 2 , K 5 , K 8 }. We rename (K 1 , K 2 ,
+K 3 , K 5 , K 8 ) to (J1 , K 3 , J2 , K 1 , K 2 ), obtaining a corresponding expression N 0 :
+{1 1} K 3 {J2 } K 3 J1 {J2 } K 3 {K 2 } K 3 {1} K 1 {1 1 1} J2 0 {0 0} K 2 {J2 } J1 .
+Note that N 0 (and N ) have a different number of hidden keys than M 0 (and M). On the
+other hand, they have the same number of recoverable keys; this equality is implied by
+the definition of equivalence.
+In sum, we can thus apply renamings to M and N , obtaining M 0 and N 0 such that
+pattern(M 0 ) = pattern(N 0 ), M 0 has hidden keys K 1 , . . . , K m , N 0 has hidden keys
+K 1 , . . . , K n , if K I encrypts K i , then I ≥ i in both M 0 and N 0 , and both have recoverable
+keys J1 , . . . , Jµ .
+The hybrid patterns Mi and N j . In the next phase of the proof we introduce patterns
+(that is, extended expressions) M0 , M1 , . . . , Mm and N0 , N1 , . . . , Nn so that these patterns form a chain between M 0 and N 0 . Relying on the function p from Section 3.2, we
+let
+Mi = p(M 0 , recoverable(M 0 ) ∪ {K 1 , . . . , K i }),
+where K 1 , . . . , K m are the hidden keys of M 0 and i ∈ {0, . . . , m}. In particular, we have
+M0 = pattern(M 0 ) and Mm = M 0 . Similarly, for j ∈ {0, . . . , n}, we let
+N j = p(N 0 , recoverable(N 0 ) ∪ {K 1 , . . . , K j })
+and in particular obtain N0 = pattern(N 0 ) and Nn = N 0 . Intuitively, Mi and Ni are
+the patterns that the adversary sees in M 0 and N 0 , respectively, if the adversary has a
+priori knowledge of the otherwise hidden keys K 1 , . . . , K i . The ordering of the keys
+guarantees that this knowledge does not permit the discovery of other hidden keys.
+
+Reconciling Two Views of Cryptography
+
+121
+
+In our example, we have:
+M0
+k
+M4 : {0} K 3 {K 1 1} K 4 J1 {0} K 2 {K 3 } K 4 {K 1 K 2 } K 4 {1 1 1} J2 0 {K 1 } K 3 {J2 } J1
+M3 : {0} K 3
+2
+J1 {0} K 2
+2
+2
+{1 1 1} J2 0 {K 1 } K 3 {J2 } J1
+M2 :
+2
+2
+J1 {0} K 2
+2
+2
+{1 1 1} J2 0 2 {J2 } J1
+M1 :
+2
+2
+J1 2
+2
+2
+{1 1 1} J2 0 2 {J2 } J1
+M0 :
+2
+2
+J1 2
+2
+2
+{1 1 1} J2 0 2 {J2 } J1
+k
+2
+2
+J1 2
+2
+2
+{1 1 1} J2 0 2 {J2 } J1
+N0 :
+N1 :
+2
+2
+J1 2
+2
+{1} K 1 {1 1 1} J2 0 2 {J2 } J1
+N2 :
+2
+2
+J1 2
+2
+{1} K 1 {1 1 1} J2 0 {0 0} K 2 {J2 } J1
+N3 : {1 1} K 3 {J2 } K 3 J1 {J2 } K 3 {K 2 } K 3 {1} K 1 {1 1 1} J2 0 {0 0} K 2 {J2 } J1
+k
+N0
+Note that pattern(M 0 ) = M0 = N0 = pattern(N 0 ).
+Defining ensembles for the patterns Mi and N j . Next we map each of the patterns
+M0 , . . . , Mm , N0 , . . . , Nn to an ensemble [[ M0 ]]5 , . . . , [[ Mm ]]5 , [[ N0 ]]5 , . . . , [[ Nn ]]5 ,
+respectively. We define this mapping by extending the conversion algorithm of Fig. 1 so
+that it applies to patterns, not just to expressions. The extension is simple: any time it
+encounters the symbol 2, it returns the encryption of 0 using a new, fixed key, which is
+used for no other purpose. More precisely, we extend the algorithm of Fig. 1 by adding
+to INITIALIZE the line
+R
+
+τ (K 0 ) ← K(η)
+and adding to CONVERT the lines
+if M = 2 then
+R
+y ← Eτ (K 0 ) (0)
+return hy, “ciphertext”i
+Finding a large gap. Clearly [[ M ]]5 = [[ M 0 ]]5 , since M and M 0 differ only in
+their indexing, and similarly [[ N ]]5 = [[ N 0 ]]5 . Therefore, our goal is to show that
+[[ M 0 ]]5 ≈ [[ N 0 ]]5 .
+We argue by contradiction: we assume that there is an adversary A that distinguishes
+[[ M 0 ]]5 and [[ N 0 ]]5 , in order to contradict the type-0 security of 5. According to the
+definitions, the adversary A runs in polynomial time, and the function
+λ(η) = Pr[y ← [[ M 0 ]]5 : A(η, y) = 1] − Pr[y ← [[ N 0 ]]5 : A(η, y) = 1]
+R
+
+R
+
+is not negligible, that is, for some constant c, for some infinite set N , λ(η) > η−c for all
+η ∈ N . For 0 ≤ i ≤ m and 1 ≤ j ≤ n, we define
+R
+
+pi (η) = Pr[y ← [[ Mi ]]5[η] : A(η, y) = 1],
+R
+
+qi (η) = Pr[y ← [[ N j ]]5[η] : A(η, y) = 1].
+
+122
+
+M. Abadi and P. Rogaway
+
+Below, we sometimes omit the argument η for notational simplicity. Since M 0 = Mm
+and N 0 = Nn , we have that λ = pm − qn . In addition, we have that p0 = q0 because M 0
+and N 0 yield the same pattern, so we also have that
+λ = ( pm − pm−1 ) + ( pm−1 − pm−2 ) + · · · + ( p1 − p0 )
++ (q0 − q1 ) + (q1 − q2 ) + · · · + (qn−1 − qn ).
+We thus have m + n summands that add up to λ. By the triangle inequality, there is either
+i ∈ {1, . . . , m} such that pi − pi−1 ≥ λ/(m + n) or there is j ∈ {1, . . . , n} such that
+qi−1 − qi ≥ λ/(m + n). Moreover, a suitable index i or j exists for each η ∈ N , so there
+is an index i or j that works for infinitely many η ∈ N , since the number of summands
+is finite and fixed. Let i be such an index; the case of an index j is exactly analogous.
+Hence, there exists an infinite set N 0 ⊆ N such that pi (η) − pi−1 (η) ≥ λ(η)/(m + n)
+for each η ∈ N 0 .
+In our example we are assuming that there is some adversary A with a good advantage, say 0.50, in distinguishing [[ M4 ]]5[η] and [[ N3 ]]5[η] , that is, [[ M ]]5[η] and
+[[ N ]]5[η] . So the adversary A will distinguish one of the following with advantage at least
+0.50/7: [[ M4 ]]5[η] and [[ M3 ]]5[η] ; [[ M3 ]]5[η] and [[ M2 ]]5[η] ; [[ M2 ]]5[η] and [[ M1 ]]5[η] ;
+[[ M1 ]]5[η] and [[ M0 ]]5[η] ; [[ N0 ]]5[η] and [[ N1 ]]5[η] ; [[ N1 ]]5[η] and [[ N2 ]]5[η] ; or [[ N2 ]]5[η]
+and [[ N3 ]]5[η] . For example, suppose that it is [[ M3 ]]5[η] and [[ M2 ]]5[η] . Then A answers
+1 substantially more often when given samples from [[ M3 ]]5[η] than when given samples
+from [[ M2 ]]5[η] .
+This step of the proof (finding a large gap) is nonconstructive. The nonconstructiveness
+is convenient for our exposition. However, it can be avoided using standard methods, as
+in [21]: one may simply choose the gap location at random.
+Contradicting the type-0 security of 5. Using A, we construct an adversary A0 that
+violates the type-0 security of 5. The definition of A0 is in Fig. 2. Since A0 attacks the
+type-0 security of an encryption scheme, it has access to two oracles, f and g. Those
+oracles can be instantiated in one of two ways. In one case the oracle f is Eki (·), for
+R
+a randomly chosen ki ← K(η), while the oracle g is Ek0 (·), for a randomly chosen
+R
+R
+k0 ← K(η). In the other case the oracle f is Ek0 (0), for a randomly chosen k0 ← K(η),
+while the oracle g is again Ek0 (0).
+We have
+R
+
+Ek (·), Ek0 (·)
+
+pi (η) = Pr[ki , k0 ← K(η): A0 i
+R
+
+pi−1 (η) = Pr[k0 ← K(η):
+
+(η) = 1],
+
+Ek (0), Ek0 (0)
+A0 0
+(η) = 1].
+
+These equalities hold because CONVERT2(M 0 ) returns a sample from [[ Mi ]]5 when
+f = Eki (·) and g = Ek0 (·), and CONVERT2(M 0 ) returns a sample from [[ Mi−1 ]]5 when
+f = Ek0 (0) and g = Ek0 (0). In both cases, notice that encryption under a recoverable key K corresponds to encryption under the associated key τ (K ). Encryption under
+a hidden key K in {K 1 , . . . , K i−1 } also corresponds to encryption under the associated key τ (K ), while encryption under a hidden key in {K i+1 , . . . , K n } results in 0
+
+Reconciling Two Views of Cryptography
+
+123
+
+0 ]] , the adversary A violates the type-0
+Fig. 2. Given an adversary A that distinguishes [[ Mi0 ]]5 from [[ Mi−1
+5
+0
+security of 5, using the oracles f and g. As in the rest of the proof, K 1 , . . . , K m are the hidden keys and
+J1 , . . . , Jµ are the recoverable keys of M 0 .
+
+encrypted under k0 . For the first equality, encryption under the hidden key K i corresponds to encryption under ki ; for the second, encryption under K i results in 0 encrypted
+under k0 .
+We therefore also have
+R
+
+Ek (·), Ek0 (·)
+
+R
+
+Ek (0), Ek0 (0)
+
+Adv05[η] (A0 ) = Pr[ki , k0 ← K(η): A0 i
+
+− Pr[k0 ← K(η): A0 0
+
+(η) = 1]
+(η) = 1]
+
+= pi (η) − pi−1 (η).
+For infinitely many values of η (those greater than (m + n) in N 0 ), we obtain
+Adv05[η] (A0 ) ≥ λ(η)/(m + n)
+
+> η−c /(m + n)
+> η−(c+1) .
+Hence, the function Adv05[η] (A0 ) is not negligible. This conclusion contradicts the hypothesis that the encryption scheme 5 is type-0 secure, as desired.
+
+124
+
+M. Abadi and P. Rogaway
+
+Completing our example, we suppose that A answers 1 substantially more often when
+given samples from [[ M3 ]]5[η] than when given samples from [[ M2 ]]5[η] , as above. We
+use A to show that the encryption scheme 5 is not type-0 secure by constructing a
+successful adversary A0 against 5. This adversary relies on two oracles f and g, with
+two instantiations each. The two instantiations come from the definition of type-0 security.
+With the first instantiation, A0 creates a sample from [[ M3 ]]5[η] and then calls A. With the
+second instantiation, A0 creates a sample from [[ M2 ]]5[η] and then calls A. Therefore,
+A0 answers 1 substantially more often in the first case.
+Theorem 1 gives an asymptotic statement of security. From its proof one can, as
+always, extract a corresponding concrete-security statement. This statement would say
+the following. Let M and N be acyclic expressions with m and n keys and lengths |M| and
+|N |, respectively. (The length of an expression is just the number of rules used to generate
+it.) Suppose that M ∼
+= N . Assume further that m, n ≥ 1, thus excluding only trivial
+cases. Fix a security parameter η and an encryption scheme 5. Let A be an adversary
+R
+that runs in time t and achieves advantage ε(η) = Pr[y ← [[ M ]]5[η] : A(η, y) = 1]
+R
+− Pr[y ← [[ N ]]5[η] : A(η, y) = 1] in distinguishing [[ M ]]5[η] and [[ N ]]5[η] . Then
+there exists an adversary A0 that breaks the type-0 security of 5[η] with advantage
+ε0 = Adv05[η] (A0 ) ≥ ε/(m + n). Moreover, there exist constants α and α 0 such that
+A0 makes at most max{m, n} queries to its encryption oracles, these queries having
+length at most α 0 · max{|M|, |N |}; and the running time of A0 is at most t + α · T5[η] ·
+(|M| + |N |), where T5[η] is the maximum time to choose a key from K(η) plus the
+time to encrypt a message of length at most α 0 · max{|M|, |N |} bits using the key. The
+numbers α and α 0 depend only on encoding conventions and details of the model of
+computation.
+One may wonder whether a converse to Theorem 1 holds, that is, whether indistinguishability implies equivalence. Such a converse fails for a fairly trivial reason: if
+applying the algorithm of Fig. 1 to the expressions M and M 0 gives rise to encryptions of strings outside the message space Plaintext of the encryption scheme 5, then
+identical ensembles may be associated with M and M 0 even when M and M 0 are not
+equivalent. We have not explored whether the converse holds when Plaintext is large
+enough.
+6. Conclusions
+The formal approach to cryptography often deals with simple, all-or-nothing assertions
+about security. The computational approach, on the other hand, makes delicate use of
+probability and computational complexity. However, one may intuit that the formal assertions are valid in computational models, if not absolutely at least with high probability
+and against adversaries of limited computational power. In this paper we develop this intuition, applying it to the study of encryption. We prove that the intuition is correct under
+substantial but reasonable hypotheses. This study of encryption is a step—perhaps modest but hopefully suggestive—toward treating security protocols and complete systems,
+and toward combining the sophistication of computational models with the simplicity
+and power of formal reasoning.
+
+Reconciling Two Views of Cryptography
+
+125
+
+Acknowledgments
+Anand Desai, Andy Gordon, and Jan Jürjens suggested improvements to the presentation
+of drafts of this paper.
+References
+[1] Martı́n Abadi. Protection in programming-language translations. In Proceedings of the 25th International
+Colloquium on Automata, Languages and Programming, volume 1443 of Lecture Notes in Computer Science, pages 868–883. Springer-Verlag, Berlin, July 1998. Also Digital Equipment Corporation Systems
+Research Center Report No. 154, April 1998.
+[2] Martı́n Abadi, Cédric Fournet, and Georges Gonthier. Secure implementation of channel abstractions. In
+Proceedings of the Thirteenth Annual IEEE Symposium on Logic in Computer Science, pages 105–116,
+June 1998.
+[3] Martı́n Abadi and Andrew D. Gordon. A calculus for cryptographic protocols: the Spi Calculus. In
+Proceedings of the Fourth ACM Conference on Computer and Communications Security, pages 36–47,
+1997.
+[4] Martı́n Abadi and Andrew D. Gordon. A bisimulation method for cryptographic protocols. Nordic Journal
+of Computing, 5(4):267–303, Winter 1998.
+[5] Martı́n Abadi and Andrew D. Gordon. A calculus for cryptographic protocols: the spi calculus. Information and Computation, 148(1):1–70, January 1999. An extended version appeared as Digital Equipment
+Corporation Systems Research Center Report No. 149, January 1998.
+[6] Martı́n Abadi and Phillip Rogaway. Reconciling two views of cryptography (The computational soundness of formal encryption). In Proceedings of the First IFIP International Conference on Theoretical
+Computer Science, volume 1872 of Lecture Notes in Computer Science, pages 3–22. Springer-Verlag,
+Berlin, August 2000.
+[7] Mihir Bellare, Alexandra Boldyreva, Anand Desai, and David Pointcheval. Key-privacy in public-key
+encryption. In Advances in Cryptology—Asiacrypt 2001, Lecture Notes in Computer Science. SpringerVerlag, Berlin, 2001.
+[8] Mihir Bellare, Anand Desai, Eron Jokipii, and Phillip Rogaway. A concrete security treatment of symmetric encryption: analysis of the DES modes of operation. In Proceedings of 38th Annual Symposium
+on Foundations of Computer Science (FOCS 97), 1997.
+[9] Mihir Bellare, Joe Kilian, and Phillip Rogaway. The security of the cipher block chaining message
+authentication code. Journal of Computer and System Sciences, 61(3): 362–399, December 2000. Earlier
+version in CRYPTO ’94.
+[10] Mihir Bellare and Phillip Rogaway. Entity authentication and key distribution. In Advances in
+Cryptology—CRYPTO ’94, volume 773 of Lecture Notes in Computer Science, pages 232–249. SpringerVerlag, Berlin, 1993.
+[11] Mihir Bellare and Phillip Rogaway. Random oracles are practical: a paradigm for designing efficient
+protocols. In Proceedings of the 1st ACM Conference on Computer and Communications Security,
+pages 62–73, 1993.
+[12] Manuel Blum and Silvio Micali. How to generate cryptographically strong sequences of pseudo random
+bits. In Proceedings of the 23rd Annual Symposium on Foundations of Computer Science (FOCS 82),
+pages 112–117, 1982.
+[13] Michele Boreale, Rocco De Nicola, and Rosario Pugliese. Proof techniques for cryptographic processes.
+In Proceedings of the Fourteenth Annual IEEE Symposium on Logic in Computer Science, pages 157–166,
+July 1999.
+[14] Michael Burrows, Martı́n Abadi, and Roger Needham. A logic of authentication. Proceedings of the Royal
+Society of London, Series A, 426:233–271, 1989. A preliminary version appeared as Digital Equipment
+Corporation Systems Research Center Report No. 39, February 1989.
+[15] Ran Canetti, Oded Goldreich, and Shai Halevi. The random oracle methodology, revisited (preliminary
+version). In Proceedings of the Twentieth Annual ACM Symposium on Theory of Computing, pages 209–
+218, 1998.
+
+126
+
+M. Abadi and P. Rogaway
+
+[16] Richard A. DeMillo, Nancy A. Lynch, and Michael Merritt. Cryptographic protocols. In Proceedings of
+the Fourteenth Annual ACM Symposium on Theory of Computing, pages 383–400, 1982.
+[17] Danny Dolev, Shimon Even, and Richard Karp. On the security of ping-pong protocols. In Advances in
+Cryptology—CRYPTO ’82, pages 177–186. Plenum, New York, 1983.
+[18] Danny Dolev and Andrew C. Yao. On the security of public key protocols. IEEE Transactions on
+Information Theory, IT-29(12):198–208, March 1983.
+[19] Shimon Even and Oded Goldreich. On the security of multi-party ping-pong protocols. In Proceedings
+of 24h Annual Symposium on Foundations of Computer Science (FOCS 83), pages 34–39, 1983.
+[20] Marc Fischlin. Pseudorandom function tribe ensembles based on one-way permutations: improvements
+and applications. In Advances in Cryptology—Eurocrypt ’99, volume 1592 of Lecture Notes in Computer
+Science, pages 429–444. Springer-Verlag, Berlin, 1999.
+[21] Oded Goldreich. A uniform complexity treatment of encryption and zero-knowledge. Journal of Cryptology, 6(1):21–53, 1993.
+[22] Oded Goldreich. Foundations of cryptography (Fragments of a book). Manuscript, on the Web at
+http://theory.lcs.mit.edu/∼oded, February 1995.
+[23] Oded Goldreich, Silvio Micali, and Avi Wigderson. How to play any mental game. In Proceedings of the
+Nineteenth Annual ACM Symposium on Theory of Computing, pages 218–229, 1987.
+[24] Oded Goldreich, Silvio Micali, and Avi Wigderson. Proofs that yield nothing but their validity or All
+languages in NP have zero-knowledge proof systems. Journal of the ACM, 38(3):691–729, 1991.
+[25] Shafi Goldwasser and Silvio Micali. Probabilistic encryption. Journal of Computer and System Sciences,
+28:270–299, April 1984.
+[26] Shafi Goldwasser, Silvio Micali, and Charles Rackoff. The knowledge complexity of interactive proof
+systems. SIAM Journal on Computing, 18(1):186–208, February 1989.
+[27] Shafi Goldwasser, Silvio Micali, and Ronald Rivest. A digital signature scheme secure against adaptive
+chosen-message attack. SIAM Journal on Computing, 17:281–308, 1988.
+[28] James W. Gray, III, Kin Fai Epsilon Ip, and King-Shan Lui. Provable security for cryptographic
+protocols—exact analysis and engineering applications. In Proceedings of the 10th IEEE Computer
+Security Foundations Workshop, pages 45–58, 1997.
+[29] James W. Gray, III, and John McLean. Using temporal logic to specify and verify cryptographic protocols
+(progress report). In Proceedings of the 8th IEEE Computer Security Foundations Workshop, pages 108–
+116, 1995.
+[30] Richard A. Kemmerer, Catherine Meadows, and Jonathan K. Millen. Three systems for cryptographic
+protocol analysis. Journal of Cryptology, 7(2):79–130, Spring 1994.
+[31] Richard A. Kemmerer. Analyzing encryption protocols using formal verification techniques. IEEE Journal on Selected Areas in Communications, 7(4):448–457, May 1989.
+[32] P. Lincoln, John C. Mitchell, Mark Mitchell, and A. Scedrov. A probabilistic poly-time framework
+for protocol analysis. In Proceedings of the Fifth ACM Conference on Computer and Communications
+Security, pages 112–121, 1998.
+[33] Gavin Lowe. Breaking and fixing the Needham–Schroeder public-key protocol using FDR. In Tools and
+Algorithms for the Construction and Analysis of Systems, volume 1055 of Lecture Notes in Computer
+Science, pages 147–166. Springer-Verlag, Berlin, 1996.
+[34] Nancy Lynch. I/O automaton models and proofs for shared-key communication systems. In Proceedings
+of the 12th IEEE Computer Security Foundations Workshop, pages 14–29, 1999.
+[35] Catherine Meadows. A system for the specification and analysis of key management protocols. In Proceedings of the 1991 IEEE Symposium on Research in Security and Privacy, pages 182–195, 1991.
+[36] Jonathan K. Millen, Sidney C. Clark, and Sheryl B. Freedman. The Interrogator: protocol security
+analysis. IEEE Transactions on Software Engineering, SE-13(2):274–288, February 1987.
+[37] John C. Mitchell, Mark Mitchell, and Ulrich Stern. Automated analysis of cryptographic protocols using
+Murφ. In Proceedings of the 1997 IEEE Symposium on Security and Privacy, pages 141–151, 1997.
+[38] Lawrence C. Paulson. The inductive approach to verifying cryptographic protocols. Journal of Computer
+Security, 6(1–2):85–128, 1998.
+[39] Birgit Pfitzmann, Matthias Schunter, and Michael Waidner. Cryptographic security of reactive systems
+(extended abstract). Electronic Notes in Theoretical Computer Science, 32, April 2000.
+[40] Steve Schneider. Security properties and CSP. In Proceedings of the 1996 IEEE Symposium on Security
+and Privacy, pages 174–187, 1996.
+
+Reconciling Two Views of Cryptography
+
+127
+
+[41] Paul F. Syverson and Paul C. van Oorschot. On unifying some cryptographic protocol logics. In Proceedings of the 1994 IEEE Computer Society Symposium on Research in Security and Privacy, pages 14–28,
+1994.
+[42] F. Javier Thayer Fábrega, Jonathan C. Herzog, and Joshua D. Guttman. Strand spaces: why is a security
+protocol correct? In Proceedings of the 1998 IEEE Symposium on Security and Privacy, pages 160–171,
+May 1998.
+[43] Dennis Volpano and Geoffrey Smith. Verifying secrets and relative secrecy. In Proceedings of the 27th
+ACM Symposium on Principles of Programming Languages, pages 268–276, 2000.
+[44] David Wagner. Re: Security of DES key encrypted with its self???? On the Web at http://www.cs.
+berkeley.edu/∼daw/my-posts/key-as-iv-broken-again, 1996.
+[45] Andrew C. Yao. Theory and applications of trapdoor functions. In Proceedings of the 23rd Annual
+Symposium on Foundations of Computer Science (FOCS 82), pages 80–91, 1982.
+
+

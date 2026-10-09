@@ -1,0 +1,2705 @@
+arXiv:1811.06460v2 [math.CT] 13 Dec 2018
+
+1
+
+Don’t Try This at Home:
+No-Go Theorems for Distributive Laws
+MAAIKE ZWART and DAN MARSDEN∗
+Department of Computer Science, University of Oxford
+(e-mail: maaike.zwart@cs.ox.ac.uk, daniel.marsden@cs.ox.ac.uk)
+
+Abstract
+Beck’s distributive laws provide sufficient conditions under which two monads can be composed,
+and monads arising from distributive laws have many desirable theoretical properties. Unfortunately,
+finding and verifying distributive laws, or establishing if one even exists, can be extremely difficult
+and error-prone.
+We develop general-purpose techniques for showing when there can be no distributive law between two monads. Two approaches are presented. The first widely generalizes ideas from a counterexample attributed to Plotkin, yielding general-purpose theorems that recover the previously known
+situations in which no distributive law can exist. Our second approach is entirely novel, encompassing
+new practical situations beyond our generalization of Plotkin’s approach. It negatively resolves the
+open question of whether the list monad distributes over itself.
+Our approach adopts an algebraic perspective throughout, exploiting a syntactic characterization
+of distributive laws. This approach is key to generalizing beyond what has been achieved by direct
+calculations in previous work. We show via examples many situations in which our theorems can
+be applied. This includes a detailed analysis of distributive laws for members of an extension of the
+Boom type hierarchy, well known to functional programmers.
+
+1 Introduction
+Monads have become a key tool in computer science. They are, amongst other things, used
+to provide semantics for computational effects such as state, exceptions and IO (Moggi,
+1991), and to structure functional programs (Wadler, 1995; Peyton Jones, 2001). They even
+appear explicitly in the standard library of the Haskell programming language (Hudak et al.,
+1992).
+Monads are a categorical concept. A monad on a category C consists of an endofunctor T and two natural transformations 1 ⇒ T and µ : T ◦ T ⇒ T satisfying axioms
+described in Section 2.1. Given two monads with underlying functors S and T , it is natural
+to ask if T ◦ S always carries the structure of a monad. This would, for example, provide
+a modular way to model complex computational effects by combining simpler monads
+together. Unfortunately, in general monads cannot be combined in this way. Beck has
+shown that the existence of a distributive law provides sufficient conditions for T ◦ S to
+
+∗ Authors are ordered according to the outcome of a random number generator.
+
+2
+
+M. Zwart and D. Marsden
+
+form a monad (Beck, 1969). A distributive law is a natural transformation of type:
+S◦T ⇒ T ◦S
+satisfying four equations described in Section 2.2. This important idea has since been
+generalized to identify notions of a distributive law for combining monads with comonads, monads with pointed endofunctors, endofunctors with endofunctors and various other
+combinations.
+General purpose techniques have been developed for constructing distributive laws (Manes & Mulry,
+2007, 2008; Bonsangue et al., 2013; Dahlqvist et al., 2017). These general-purpose techniques are highly valuable, for as stated in Bonsangue et al. (2013): “It can be rather
+difficult to prove the defining axioms of a distributive law.”. In fact, it can be so difficult that
+on occasion a distributive law has been published which later turned out to be incorrect;
+see Klin & Salamanca (2018) for an overview of such cases involving the powerset monad.
+The literature has tended to focus on positive results, either demonstrating specific distributive laws, or developing general-purpose techniques for constructing them. By comparison, there is a relative paucity of negative results, showing when no distributive law can
+exist. The most well-known result of this type appears in Varacca & Winskel (2006), where
+it is shown that there is no distributive law combining the powerset and finite probability
+distribution monads, via a proof credited to Plotkin. This result was later strengthened
+by Dahlqvist & Neves (2018), who showed that the composite functor carries no monad
+structure at all. Recently, the same proof technique was used by Klin & Salamanca (2018)
+to show that composing the covariant powerset functor with itself yields an endofunctor
+that does not carry any monad structure, correcting an earlier error in the literature. To the
+best our knowledge, these are currently the only impossibility results in the literature.
+In this paper we significantly extend the understanding of when no distributive law
+between two monads can exist. We restrict our attention to distributive laws between
+monads on the category of sets and functions, presenting several theorems for proving
+the non-existence of distributive laws for large classes of monads on this category. These
+results can roughly be divided into two classes:
+• Firstly, we generalize Plotkin’s method to a general-purpose theorem covering all
+the existing published no-go results about distributive laws, and yielding new results
+as well.
+• Secondly, we identify an entirely new approach, distinct from Plotkin’s method. This
+novel technique leads to new general-purpose theorems, covering combinations of
+monads that were previously out of reach.
+As one application of our second method, we show that the list monad cannot distribute
+over itself, resolving an open question in the literature (Manes & Mulry, 2007, 2008). In
+addition, the no-go theorems produced by the second method revealed yet another faulty
+distributive law in the literature, involving list and exception monads.
+Monads have deep connections with universal algebra. We exploit this algebraic viewpoint by using an explicit description of the algebraic nature of distributive laws in Pirog & Staton
+(2017), which was inspired by the work in Cheng (2011). Formulating our results in
+algebraic form is a key contribution of our work, simplifying and clarifying the essentials
+of our proofs, which can be obscured by more direct calculations.
+
+No-Go Theorems for Distributive Laws
+
+3
+
+In physics, theorems proving the impossibility of certain things are called no-go theorems, because they clearly identify theoretical directions that cannot succeed. We follow
+this example, and hope that by sharing our results, we prevent others from wasting time on
+forlorn searches for distributive laws that cannot exist.
+1.1 Contributions
+We briefly outline our contribution.
+• We demonstrate the non-existence of distributive laws for large classes of monads
+by taking an algebraic perspective, using a characterisation of distributive laws as
+described in Pirog & Staton (2017):
+— In Theorems 3.5 and 3.12 we widely generalize the essentials of a counterexample of Plotkin. Our general theorems reveal precisely which properties are key to
+the proof, hence capturing an infinite class of monads sharing these properties.
+— In Section 4 we present three entirely new no-go theorems:
+– Theorem 4.7 states when having more than one constant in a theory is problematic. The usefulness of this theorem is demonstrated by exhibiting a previously unidentified error in a theorem in the literature.
+– Theorem 4.17 is a no-go theorem for monads that do not satisfy the abides
+equation. This theorem negatively answers the open question of whether the
+list monad distributes over itself.
+– Theorem 4.24 is a no-go theorem focussing on the combination of idempotence and units. It proves there is no distributive law for the powerset monad
+over the multiset monad: PM ⇒ MP.
+• Also in Section 4, Theorem 4.13 gives conditions under which at most one distributive law can exist.
+• Section 5 compares the algebraic methods used in our proofs to the standard categorical approach which directly uses Beck’s axioms for distributive laws.
+• Finally, we illustrate the scope of the no-go theorems in this paper by studying an
+extended version of the Boom hierarchy (Meertens, 1986). We establish whether or
+not a distributive law exists for many combinations of monads within this hierarchy,
+greatly expanding what was previously known.
+Throughout this paper we restrict our attention to monads on the category of sets and
+functions, as this is already an incredibly rich setting.
+2 Preliminaries
+We assume the reader has some familiarity with category theory, in particular the notions of
+category, functor, natural transformation and adjunction. We recommend Awodey (2010);
+Barr & Wells (1990) and the standard reference Mac Lane (2013) as sources of background
+material in category theory. A good source for basic monad theory is Barr & Wells (1985).
+In this section, we review the definitions of monads and distributive laws, and briefly
+explain the connection between monads and universal algebra. We also introduce the algebraic notation we use in the rest of this paper.
+
+4
+
+M. Zwart and D. Marsden
+
+As we will need several different types of compositions of functors and natural transformations, we first introduce some notation:
+• Composition of functors S and T will be written as T ◦ S.
+• Horizontal composition of natural transformations will also be written with ◦. In
+addition, compositions involving the identity natural transformation 1T : T ⇒ T and
+natural transformation α will be written as α ◦ T and T ◦ α rather than α ◦ 1T and
+1T ◦ α .
+• Vertical composition of two natural transformations α and α ′ will be written as
+α′ · α.
+We will leave the symbols ◦, · out whenever this can be done without causing confusion.
+2.1 Monads
+We introduce monads in what is sometimes referred to as monoid form, see Manes (1976),
+this is the standard approach used by category theorists, and is most convenient for later
+developments. This definition is equivalent to the definition commonly used by functional
+programmers, the connection between these two formulations can be found in Manes
+(1976).
+Definition 2.1 (Monad)
+For any category C , a monad hT, η , µ i on C consists of:
+• An endofunctor T : C → C .
+• A natural transformation η : 1 ⇒ T called the unit.
+• A natural transformation µ : T T ⇒ T called the multiplication.
+such that the following axioms hold:
+
+µ · T η = id
+
+(unit 1)
+
+µ · η T = id
+
+(unit 2)
+
+µ · T µ = µ · µT
+
+(associativity)
+
+Or, as commuting diagrams:
+TX
+
+ηT
+
+µ
+
+Tη
+
+TTX
+
+TTX
+
+µ
+
+TX
+
+TTTX
+
+µT
+
+µ
+
+Tµ
+
+TTX
+
+TTX
+
+µ
+
+TX
+
+All the monads in this paper will be monads on the category Set of sets and functions.
+We give a few examples, all of which will play important roles later on.
+
+No-Go Theorems for Distributive Laws
+
+5
+
+Example 2.2 (The Exception and Lift Monads)
+For any set E, the exception monad h(− + E), η E , µ E i is given by:
+• (− + E) : Set → Set maps a set X to the disjoint union X + E of X and E.
+• ηXE : X → X + E is the left inclusion morphism il : X → X + E.
+• µXE : ((X + E) + E) → (X + E) is the identity on X, and collapses the two copies E
+down to a single copy.
+When E is a singleton set, this monad is also known as the maybe monad or the lift monad,
+written as (−)⊥ .
+Example 2.3 (The List Monad)
+The list monad hL, η L , µ L i is given by:
+• L : Set → Set maps a set X to the set containing all finite lists with elements taken
+from X.
+• ηXL : X → LX maps an element x ∈ X to the singleton list [x].
+• µXL : LLX → LX concatenates a list of lists to form a single list.
+
+µXL ([[a, b], [c, d, e], [ f ]]) = [a, b] +
++ [c, d, e] +
++ [ f ] = [a, b, c, d, e, f ]
+For reasons that will become clear later on, this monad is also known as the monoid monad.
+Example 2.4 (The Powerset Monad)
+The finite covariant powerset monad hP, η P , µ P i is given by:
+• P : Set → Set maps a set X to the set containing all finite subsets of X.
+• ηXP : X → PX maps an element x ∈ X to the singleton set {x}.
+• µXP : PPX → PX takes a union of sets.
+
+µXP {{a, b, c}, {b, c}, {c, d, e}} = {a, b, c} ∪ {b, c} ∪ {c, d, e} = {a, b, c, d, e}
+Example 2.5 (The Binary Tree Monad)
+The binary tree monad hB, η B , µ B i is given by:
+• B : Set → Set maps a set X to the set containing all binary trees with leaves labelled
+by elements from X.
+• ηXB : X → BX maps an element x ∈ X to the tree consisting of a single leaf labelled
+with x.
+• µXB : BBX → BX flattens a tree of trees.
+Example 2.6 (The Reader Monad)
+For any set of states R, the reader monad h(−)R , η R , µ R i is given by:
+• (−)R : Set → Set maps a set X to the set of functions X R from R to X.
+• ηXR : X → X R maps an element x ∈ X to the constant function constx .
+• µXR : (X R )R → X R works as follows: let f : R → X R be an element of (X R )R . Then for
+any r ∈ R, f (r) is a function from R to X. So:
+
+µXR ( f ) = λ r → ( f (r))(r)
+For our final two examples, the following notion will be useful.
+
+6
+
+M. Zwart and D. Marsden
+
+Definition 2.7
+A function with codomain the natural numbers or positive reals is said to have finite
+support if only finitely many elements of X are mapped to non-zero values.
+Example 2.8 (The Multiset and Abelian Group Monads)
+A multiset with elements in set X is a function from X to the natural numbers, mapping
+each element to its multiplicity. A finite multiset is a multiset with finite support. As we
+will only be interested in finite multisets, we will abuse terminology and simply refer to
+them as multisets from this point. Multisets will be described using a set theoretic notation,
+for example the function:
+a 7→ 1
+
+b 7→ 2
+
+c 7→ 0
+
+will be written as:
+{a : 1, b : 2}
+Elements with zero multiplicity may be omitted when the underlying set is clear from the
+context.
+The multiset monad hM, η M , µ M i is given by:
+• M : Set → Set maps a set X to the set containing all finite multisets with elements
+taken from X.
+• ηXM : X → MX maps an element x ∈ X to the singleton {x : 1}.
+• µXM : MMX → MX takes a union of multisets, carefully accounting for all multiplicities.
+
+µXM {{a : 1, b : 2} : 1, {b : 1} : 3} = {a : (1 · 1), b : (1 · 2 + 3 · 1)} = {a : 1, b : 5}
+We can generalize the notion of multiset to take multiplicities in the integers. This
+results in another monad, the Abelian group monad.
+Example 2.9 (The Distribution Monad)
+The finite probability distribution monad hD, η D , µ D i is given by:
+• D : Set → Set maps a set X to the set containing all finite probability distributions
+over X. That is, the set of all functions d : X → [0, 1] which have finite support and:
+
+∑
+
+d(x) = 1
+
+x∈supp(d)
+
+• ηXD : X → DX maps an element x ∈ X to the distribution δx , where:
+(
+1, if y = x
+δx (y) =
+0, otherwise.
+• µ D : DDX → DX takes a weighted average. If e : DX → [0, 1] is in DDX, then:
+
+µXD (e) = λ x →
+
+∑
+d∈supp(e)
+
+e(d)d(x)
+
+7
+
+No-Go Theorems for Distributive Laws
+2.2 Distributive Laws
+
+Distributive laws are particular natural transformations, introduced by Beck (1969), to
+facilitate monad compositions. We begin with the formal definition.
+Definition 2.10 (Distributive Law)
+Given monads S and T , a distributive law for monad composition T S is a natural transformation λ : ST ⇒ T S satisfying the following axioms:
+
+λ · η ST = T η S
+
+(unit1)
+
+T
+
+(unit2)
+
+T
+
+λ · Sη = η S
+λ · µ S T = T µ S · λ S · Sλ
+T
+
+(multiplication1)
+
+T
+
+λ · Sµ = µ S · T λ · λ T
+
+(multiplication2)
+
+Or, as commuting diagrams:
+ηST
+
+Sη T
+
+S
+λ
+
+SST
+
+T ηS
+
+λ
+
+ST
+
+ST
+
+T
+
+Sλ
+
+ST S
+
+λS
+
+µST
+
+TS
+
+T µS
+
+λ
+
+ST
+ST T
+
+ηT S
+
+λT
+
+T ST
+
+Sµ T
+
+TS
+
+ST
+
+T SS
+TS
+
+Tλ
+
+TTS
+µT S
+
+λ
+
+TS
+
+The axioms of distributive laws may appear somewhat cryptic on first examination. In fact
+they are entirely natural when viewed in the graphical language of string diagrams; the
+interested reader may wish to consult Hinze & Marsden (2016) for further details.
+Remark 2.11
+For a pair of monads S, T the expression “T distributes over S” is often used. This phrasing
+is somewhat ambiguous and prone to errors. It could mean the underlying natural transformation has type T S ⇒ ST or ST ⇒ T S, and conventions are applied inconsistently in the
+literature. We will therefore avoid this approach, and explicitly state the type of the natural
+transformation, for example “there is a distributive law of type T S ⇒ ST ”.
+Theorem 2.12 (Beck (1969))
+Let C be a category, and hS, η S , µ S i and hT, η T , µ T i two monads on C . If λ : ST ⇒ T S is
+a distributive law, then T S carries a monad structure with:
+• Unit given by η T η S .
+• Multiplication given by µ T µ S · T λ S
+Example 2.13 (The Ring Monad)
+The most famous example of a distributive law involves the list monad and the Abelian
+group monad, λ : LA ⇒ AL (Beck, 1969). It captures exactly the distributivity of multiplication over addition. Writing a list as a formal product and a multiset with integer values
+
+8
+
+M. Zwart and D. Marsden
+
+as a formal sum, the distributive law can be written as:
+!
+n
+
+λ
+
+mi
+
+∏ ∑ xi ji
+i=0 ji =0
+
+m0
+
+mn n
+
+j0 =0
+
+jn i=0
+
+= ∑ · · · ∑ ∏ xi ji
+
+or more simply:
+
+λ (a · (b + c)) = (a · b) + (a · c)
+
+(1)
+
+The resulting composite monad is the ring monad, which like the Abelian group monad is
+named after its algebras rather than its monad action.
+The term distributive law is motivated by the distributivity of multiplication over addition seen in this example, and in fact many other distributive laws exploit similar algebraic
+properties. Caution is needed though: the validity of an equation such as (1) does not
+automatically imply the existence of a distributive law.
+Example 2.14 (Multiset Monad Composed with Itself )
+The multiset monad distributes over itself. The distributive law is best described as taking
+a Cartesian product. For a multiset of multisets M , λ (M ) is computed as follows: take the
+Cartesian product of all the multisets in M . Then, for each tuple of this Cartesian product,
+gather the elements of the tuple into a multiset. The multiset of all thus created multisets is
+the result of λ (M ). So for example:
+
+λ ({{a : 1, b : 2} : 2}) = λ ({{a, b, b}, {a, b, b}})
+= {{a, a}, {a, b}, {a, b},
+{b, a}, {b, b}, {b, b},
+{b, a}, {b, b}, {b, b}}
+= {{a : 2} : 1, {a : 1, b : 1} : 4, {b : 2} : 4}
+Notice that this is again similar to the distribution of multiplication over addition:
+
+λ ({{a : 1} : 1, {b : 1, c : 1} : 1}) = {{a : 1, b : 1} : 1, {a : 1, c : 1} : 1}
+Not all distributive laws resemble this distributivity of times over plus. Distributive laws
+need not even be unique. Manes and Mulry present three different distributive laws for the
+non-empty list monad over itself, none of which are like times over plus:
+Example 2.15 (Non-Empty List Monad Composed with Itself )
+There are at least three distributive laws for the non-empty list monad over itself:
+[1] The first distributive law, from Manes & Mulry (2007), is given by a syntactic manipulation. It is best illustrated by an example. Given the list of lists [[a], [b, c, d], [e, f ]],
+every comma ‘,’ in between two elements is replaced by bracket-comma-bracket
+‘], [’, and every occurrence of ‘], [’ in the list is replaced by a comma ‘,’:
+
+λ ([[a], [b, c, d], [e, f ]]) = [[a, b], [c], [d, e], [ f ]]
+[2] The second distributive law for the non-empty list monad over itself, given in Manes & Mulry
+(2008), is recursively defined as:
+
+λ ([[a1 , . . . , an ]]) = [[a1 ], . . . , [an ]]
+λ (L1 +
++ L2 ) = [head(λ (L1 )) +
++ head(λ (L2 ))]
+
+No-Go Theorems for Distributive Laws
+
+9
+
+So:
+
+λ ([[a], [b, c], [d, e]]) = [head(λ [[a]]) +
++ head(λ [[b, c]]) +
++ head(λ [[d, e]])]
+= [head([[a]]) +
++ head([[b], [c]]) +
++ head([[d], [e]])]
+= [[a, b, d]]
+[3] The third distributive law for non-empty list over itself, also from Manes & Mulry
+(2008), is similar to the second, only now instead of consistently taking the first
+element of the list, the distributive law picks the last element.
+2.3 Algebraic view
+There is an intimate connection between monads and universal algebra (Lawvere, 1963;
+Linton, 1966; Manes, 1976). This connection will be essential to the results in later sections, where we analyze monads and distributive laws from an algebraic perspective. To do
+this, we exploit the explicit algebraic formulation of distributive laws in terms of composite
+theories, described in Pirog & Staton (2017). In this section we explain these connections,
+and establish the notation and vocabulary that we will use in subsequent sections.
+2.3.1 Algebraic Theories
+Firstly, we make precise what we mean by an algebraic theory.
+Definition 2.16 (Algebraic Theory)
+An algebraic signature is a set of operation symbols Σ, each with an associated natural
+number referred to as its arity. The set of Σ-terms over a set X of variables is defined
+inductively as follows:
+• Each element x ∈ X is a term.
+• If t1 , ...,tn are terms, and σ ∈ Σ has arity n, then σ (t1 , ...,tn ) is a term.
+An algebraic theory T consists of:
+• An algebraic signature ΣT .
+• A set of pairs of Σ-terms over X, E T , referred to as the equations or axioms of T.
+We will often write a pair (s,t) ∈ E T as the more readable s = t when convenient.
+The following terminology and notational conventions will be used:
+• Operations of arity n, will be referred to as n-ary. Operations of arity 1,2 and 3 will
+be referred to as unary, binary and ternary operations. 0-ary terms will be referred
+to as constants.
+• Variable contexts: If Y ⊆ X is a set of variables and t is a term, then we write Y ⊢ t
+to mean that the free variables in t are a subset of Y . When we wish to make the
+algebraic theory of interest explicit, we will write Y ⊢T t meaning t is a term of the
+algebraic theory T in variable context Y .
+• Set of free variables: If we need the precise set of free variables in a term t, we write
+var(t). In addition, # var(t) denotes the cardinality of the set var(t).
+
+10
+
+M. Zwart and D. Marsden
+(s,t) ∈ E T
+s =T t
+
+Axiom:
+Reflexivity:
+
+t =T t
+
+Symmetry:
+
+t =T t ′
+t ′ =T t
+
+Transitivity:
+
+t =T t ′
+t ′ =T t ′′
+′
+t =T t ′′
+
+For any n-ary operation symbol σ :
+
+t1 =T t1′ , . . . ,tn =T tn′
+
+σ (t1 , . . . ,tn ) =T σ (t1′ , . . . ,tn′ )
+t =T t ′
+t[ f ] =T t ′ [ f ]
+
+For any substitution f:
+
+Fig. 1. Inference rules of equational logic
+
+• Equality of terms: When two terms t1 ,t2 in T can be proved equal using equational
+logic and axioms of T as outlined in Figure 1, we write t1 =T t2 . When we wish to
+be specific about which variables may appear in t1 and t2 , we will write:
+X ⊢T t1 = t2
+
+iff
+
+X ⊢ t1 and X ⊢ t2 and t1 =T t2
+
+• Substitution: For a term in context Y ⊢T t and partial function f mapping variables
+in Y to T-terms, we will write t[ f ] or t[ f (y)/y] for the corresponding substitution of
+terms for variables where f is defined.
+• Extended infix and postfix notation: We will extend our notation in the natural way to
+include infix notation for binary function symbols with symbolic names, for example
+a + b, and postfix notation when it is standard to do so, for example to indicate a
+multiplicative inverse a−1 .
+We give a few examples of common algebraic theories that will be of particular interest
+to us.
+Example 2.17 (Pointed Sets)
+The algebraic theory of pointed sets has a signature with one constant, and no equations.
+Example 2.18 (Monoids)
+The algebraic theory of monoids has a signature containing one constant e and one binary
+operation ∗, satisfying the axioms:
+e∗a = a
+
+(left unit)
+
+a∗e= a
+
+(right unit)
+
+(a ∗ b) ∗ c = a ∗ (b ∗ c)
+
+(associativity)
+
+The theory of commutative monoids extends this theory with one further equation:
+a∗b = b∗a
+
+(commutativity)
+
+11
+
+No-Go Theorems for Distributive Laws
+
+The theory of join semilattices extends the theory of commutative monoids with the additional axiom:
+a∗a = a
+
+(idempotence)
+
+These theories are part of a hierarchy of theories called the Boom hierarchy, which will be
+investigated in detail in Section 6.
+Example 2.19 (Abelian Groups)
+The algebraic theory of Abelian groups has an additional operation beyond the signature of
+monoids. In addition to a constant e and binary operation ∗, it has a unary operation (·)−1 .
+The axioms are: left and right unit, associativity, commutativity, and:
+a−1 ∗ a = e
+
+(left inverse)
+
+−1
+
+(right inverse)
+
+a∗a
+
+=e
+
+2.3.2 Algebras and the Free / Forgetful Adjunction
+We now describe the notion of algebra for an algebraic theory. The category of such
+algebras will lead us to an adjunction of free and forgetful functors, which we need to
+explain the connection between algebraic theories and monads.
+Definition 2.20 (Σ-algebra)
+For a signature Σ, a Σ-algebra consists of:
+• An underlying set A.
+• For each n-ary operation σ ∈ ΣT a function Jσ K : An → A.
+A homomorphism of Σ-algebras of type (A, J−KA ) → (B, J−KB ) is a function h : A → B
+such that for each n-ary σ ∈ Σ:
+h(Jσ KA (x1 , ..., xn )) = Jσ KB (h(x1 ), ..., h(xn ))
+For a fixed Σ-algebra, every Σ-term {1, . . ., n} ⊢ t induces a function JtK : An → A, defined
+inductively as follows:
+• For variable 1 ≤ i ≤ n:
+JiK(x1 , ..., xn ) = xi
+• For m-ary operation σ ∈ Σ:
+Jσ (t1 , ...,tm )K(x1 , ..., xn ) = Jσ K(Jt1 K(x1 , ..., xn ), ..., Jtm K(x1 , ..., xn ))
+An algebra satisfies equation {1, . . . , n} ⊢ s = t if:
+JsK = JtK
+Definition 2.21 ((Σ, E)-algebra)
+For an algebraic theory (Σ, E), a (Σ, E)-algebra is a Σ-algebra that satisfies all the equations in E. A (Σ, E)-algebra homomorphism is just a Σ-algebra homomorphism between (Σ, E)-algebras. (Σ, E)-algebras and their homomorphisms form a category (Σ, E)-Alg.
+
+12
+
+M. Zwart and D. Marsden
+
+Example 2.22 (Monoids on the Natural Numbers)
+The natural numbers with either addition and 0, or multiplication and 1, are algebras for
+the theory of monoids.
+Remark 2.23
+It is not uncommon to have two algebraic theories that give rise to isomorphic categories
+of algebras. For instance, consider the following algebraic theory, having a signature with
+exactly one n-ary operation φn for each n ∈ N, and flattening equations saying:
+
+φn (φm1 (x11 , ..., x1m1 ), ..., φmn (xn1 , ..., xnmn )) = φ∑i mi (x11 , ..., xnmn )
+Then the category of algebras for this theory is isomorphic to the category of algebras for
+the theory of monoids.
+Given a set A, there is a canonical way to construct a (Σ, E)-algebra on it.
+Theorem 2.24
+For an algebraic theory T, there is a left adjoint F T to the obvious forgetful functor U T :
+(ΣT , E T )-Alg → Set. The functor F T is defined as follows:
+• For set A, F T (A) is the set of equivalence classes of ΣT -terms under provable equality
+in equational logic, as described in Figure 1.
+• The action on a function h : A → B is defined inductively on representatives as
+follows:
+F T (h)(a) = h(a)
+
+for a ∈ A
+
+F T (h)(σ (t1 , ...,tn )) = σ (F T (h)(t1 ), ..., F T (h)(tn ))
+
+for n-ary σ ∈ ΣT
+
+2.3.3 Algebraic Perspective on Monads
+We now have all the ingredients to describe monads algebraically.
+Definition 2.25 (Free model monad)
+For an algebraic theory T, the free model monad induced by T is the monad induced by
+the free/forgetful adjunction U T ◦ F T .
+It is well known that every finitary monad on the category of sets arises as a free model
+monad for some algebraic theory. In fact, every monad arises from a generalization of
+algebraic theories, if we allow infinite arities, see Linton (1966); Manes (1976). All the
+monads appearing in the present work are finitary, so we remain in the realm of conventional universal algebra. Note that although every finitary monad will arise from a choice
+of operations and equations (Σ, E), this choice is not unique, see Remark 2.23.
+Definition 2.26
+We will say that monad T corresponds to theory T or has presentation/is presented
+by T if T is a free model monad induced by T. In general, a monad has more than one
+presentation. Even so, if a certain presentation is commonly used for a monad, we refer to
+it as the theory corresponding to the monad.
+
+No-Go Theorems for Distributive Laws
+
+13
+
+Example 2.27
+Many of the monads we have seen so far correspond to familiar algebraic theories. Some
+monads are even named in acknowledgment of this correspondence.
+[1] The lift monad of Example 2.2 corresponds to the theory of pointed sets described
+in Example 2.17.
+[2] The list, multiset and finite powerset monads of Examples 2.3, 2.8 and 2.4 correspond respectively to the theories of monoids, commutative monoids and join
+semilattices described in Example 2.18.
+[3] The Abelian group monad of Example 2.8 corresponds to the theory of Abelian
+groups described in Example 2.19.
+[4] The ring monad, which was constructed using a distributive law in Example 2.13,
+corresponds to the theory of rings.
+Some monads have presentations that are less familiar:
+[5] The algebraic theory corresponding to the exception monad has a signature containing a constant for each exception, and no axioms.
+[6] The algebraic theory corresponding to the distribution monad of Example 2.9 is the
+theory of convex, or barycentric, algebras (Jacobs, 2010; Stone, 1949). These can be
+described as follows. For each p ∈ (0, 1), the signature contains a binary operation
++ p , and these satisfy the following axioms:
+x +p x = x
+x + p y = y +1−p x
+p
+
+x + p (y +r z) = (x + p+(1−p)r y) + p+(1−p)r z
+Note that convex algebras are often described using binary operations for p in the
+closed interval [0, 1], the less redundant theory above is equivalent.
+[7] The algebraic theory corresponding to the reader monad has a signature containing
+just an n-ary operation, where n is the cardinality of the set of states R used in the
+reader monad. For the case n = 2 we introduce a binary operation ∗, with the intuitive
+reading of x ∗ y being “if the state is 1 do x else do y”, the extension to larger state
+spaces has an analogous formulation describing how to proceed conditional on the
+state that is read. The axioms in the binary case are:
+x∗x = x
+(w ∗ x) ∗ (y ∗ z) = w ∗ z
+The first axiom is idempotence and generalises easily to the general case. The second
+axiom generalises to taking a diagonal. The algebraic formulation of computational
+monads such as this one is described in Plotkin & Power (2002).
+2.3.4 Algebraic Perspective on Distributive Laws
+Given monads S and T , a distributive law is used to compose the two monads to form a
+monad T S. Analogously, a composite theory is used to ‘compose’ two algebraic theories
+S and T in such a way that each term in the composite theory can be uniquely written as a
+T-term over S-terms.
+
+14
+
+M. Zwart and D. Marsden
+
+Definition 2.28 (Composite Theories)
+Let S and T be two algebraic theories, and let U be an algebraic theory that contains both
+S and T. Then U is a composite of S and T if it satisfies the following two conditions:
+1. Separation: Every term u in U is equal to a term t in T built from terms si in S:
+u =U t[si /xi ].
+2. Essential uniqueness: The separation of U-terms into T-terms of S-terms is unique
+modulo S, T. That is, for terms X ⊢T t, X ′ ⊢T t ′ and Yi ⊢S si , Yi′′ ⊢S s′i′ such that
+t[si /xi ] =U t ′ [s′i′ /x′i′ ], there is a set of variables Z and there are functions f : X → Z,
+f ′ : X ′ → Z satisfying:
+(a) t[ f (xi )/xi ] =T t ′ [ f ′ (x′i′ )/x′i′ ].
+(b) For all i, j: f (xi ) = f (x j ) ⇔ si =S s j .
+(c) For all i′ , j′ : f ′ (x′i′ ) = f ′ (x′j′ ) ⇔ s′i′ =S s′j′ .
+(d) For all i, j′ : f (xi ) = f ′ (x′j′ ) ⇔ si =S s′j′ .
+Theorem 2.29 (Piróg & Staton)
+Let S and T be Set-monads with corresponding algebraic theories S and T. Every distributive law ST ⇒ T S induces a monad that is the free model monad of a composite theory
+of S and T.
+In particular, if there exists a distributive law ST ⇒ T S, then there exists an algebraic theory
+that is a composite of algebraic theories S and T corresponding to the monads S and T . We
+will frequently use the contrapositive of this statement:
+Corollary 2.30
+If there is no composite theory of algebraic theories S and T, then there is no distributive
+law ST ⇒ T S for the corresponding free model monads.
+The correspondence between distributive laws and composite theories is particularly useful
+because the axioms of a distributive law are difficult to prove. Depending on the definition
+of a particular distributive law, applying it to prove the multiplication axioms could require
+various separate case distinctions and difficult manipulations of one data structure within
+another. On the algebraic side, the manipulation of terms is restricted to equational logic.
+This greatly simplifies the proofs.
+3 General Plotkin Theorems
+In this section we develop an algebraic generalization of the counterexample attributed to
+Gordon Plotkin in Varacca & Winskel (2006). This counterexample showed that there is
+no distributive law of type:
+D◦P ⇒ P◦D
+where D is the distribution monad of Example 2.9 and P is the finite powerset monad of
+Example 2.4. In fact the counterexample is actually shown for what is known as the free
+real cone or finite valuation monad, as this requires slightly weaker assumptions. We state
+it here for the distribution monad simply to avoid the distraction of introducing yet another
+monad. This is essentially a cosmetic decision, and our results are equally applicable to the
+original counterexample for the free real cone monad.
+
+15
+
+No-Go Theorems for Distributive Laws
+
+Our aim in this section is to extract general methods for showing no-go results for constructing distributive laws, derived from the essentials of why this counterexample works.
+In order to do this, we isolate sufficient conditions on algebraic theories inducing two
+monads, such that there can be no distributive law between them. Earlier generalizations
+of this counterexample have appeared in Klin & Salamanca (2018); Dahlqvist & Neves
+(2018). All the existing approaches involve direct calculations involving the distributive
+law axioms, leading to somewhat opaque conditions. They also remain limited to the case
+where one of the two monads is the powerset monad, restricting their scope of application.
+3.1 The Original Counterexample
+This section presents a very slight rephrasing of Plotkin’s original counterexample, as presented in Varacca & Winskel (2006), adjusted to the case of the powerset and distribution
+monads used in this paper. We will augment the proof with commentary aimed at providing
+motivation for the main proof ideas. Hopefully this will provide a useful stepping stone
+towards understanding the general theorems of Section 3.2.
+Counterexample 3.1 (Probability does not distribute over non-determinism)
+Assume, for contradiction, that there is a distributive law of type λ : DP ⇒ PD. Fix the
+set X = {a, b, c, d}, and consider the element Ξ ∈ DP(X) defined by:
+1
+
+Ξ = {a, b} + 2 {c, d}
+We introduce three functions on our underlying set X:
+f1 : X → X
+
+f2 : X → X
+
+f3 : X → X
+
+a 7→ a
+
+a 7→ a
+
+a 7→ a
+
+b 7→ b
+
+b 7→ b
+
+b 7→ a
+
+c 7→ a
+
+c 7→ b
+
+c 7→ c
+
+d 7→ b
+
+d 7→ a
+
+d 7→ c
+
+The plan of the proof is to analyze how Ξ travels around the naturality square for λ , for
+each of our three functions. The element Ξ and the three functions have been carefully
+chosen so that the distributive law unit axioms can be applied during the proof.
+DP(X)
+
+λX
+
+DP( fi )
+DP(X)
+
+PD(X)
+PD( fi )
+
+λX
+
+(2)
+
+PD(X)
+
+We proceed as follows:
+• Trace Ξ around the naturality square (2) for both f1 and f2 . We note that as {−, −}
+1
+is commutative, and + 2 is idempotent:
+D
+DP( f1 )(Ξ) = ηPX
+{a, b} = DP( f2 )(Ξ)
+
+16
+
+M. Zwart and D. Marsden
+Idempotence and commutativity will be important ideas for any general theorem.
+For both f1 and f2 we can apply one of the distributive law unit axioms to conclude
+that:
+
+λX ◦ DP( f1 )(Ξ) = {ηXD (a), ηXD (b)} = λX ◦ DP( f2 )(Ξ)
+Now a careful consideration of the actions PD( f1 ) and PD( f2 ) allows us to deduce
+that λX (Ξ) must be a subset of:
+{ηXD (a), ηXD (b), ηXD (c), ηXD (d)}
+This step is one of more awkward components to generalize. In principle it involves
+inverse images of equivalence classes of terms in one algebraic theory, with variables
+labelled by equivalence classes of terms in a second algebraic theory, and motivates
+our move to an explicitly algebraic formulation. We can see this whole step as
+establishing an upper bound on the set of variables appearing in λX (Ξ).
+• We then trace Ξ around the naturality square (2) for f3 . In this case, we exploit the
+idempotence of the operation {−, −} to conclude:
+1
+
+DP( f3 )(Ξ) = {a} + 2 {c}
+
+(3)
+
+This indicates idempotence is actually an important aspect of both monads for this
+argument to work. Equation (3) allows us to apply the second unit axiom for λ to
+conclude:
+1
+
+λX ◦ DP( f3 )(Ξ) = {a + 2 c}
+By considering the action of PD( f3 ) as before, we conclude that λX (Ξ) must contain
+1
+an element mapped onto a + 2 c by PD( f3 ), placing a lower bound on the set of
+variables that appear in λX (Ξ).
+• The lower and upper bounds established in the previous two steps contradict each
+other, and so no distributive law of type DP ⇒ PD can exist.
+In summary, the argument requires two components:
+• Some operations satisfying certain algebraic equational properties such as idempotence and commutativity.
+• Some slightly more mysterious properties of our monads, making the “inverse image” parts of the argument work correctly.
+The axioms in Section 3.2 distill these imprecise intuitions into concrete axioms that can
+be used to yield general theorems.
+
+3.2 The General Theorems
+We now move to our generalizations of the Plotkin counterexample outlined in Section 3.1,
+adopting many of the notational conventions of Varacca & Winskel (2006); Pirog & Staton
+(2017) whenever possible to ease comparison with those papers. The composite theories
+as described in Definition 2.28 will be used heavily, as will the algebraic characterization
+of distributive laws of Theorem 2.29.
+
+No-Go Theorems for Distributive Laws
+
+17
+
+We introduce terminology for some special sets of terms in an algebraic theory. The
+theorems are stated in terms of these special sets, which in some cases can restrict the scope
+for which certain “global” conditions need to apply, broadening the range of applicability.
+Definition 3.2 (Universal Terms)
+For an algebraic theory, we say that a set of terms T is:
+• Universal if every term is provably equal to a term in T .
+• Stable if T is closed under substitution of variables for variables.
+Example 3.3
+Some examples of universal and stable sets:
+[1] For any theory, the set of all terms is a stable universal set.
+[2] For the theory of real vector spaces, every term is equal to a term in which scaling
+by the zero element does not appear. Terms that do not contain the scale by zero
+operation are clearly also stable under variable renaming. Therefore the terms not
+containing the scale by zero operation are a stable universal set.
+[3] In the theory of groups, every term is equal to a term in which no subterm and its
+inverse are “adjacent”. This set is therefore universal. It is not stable, as variable
+renaming may introduce a subterm adjacent to its inverse.
+Remark 3.4
+On first reading, it is probably easiest to consider Theorems 3.5 and 3.12 with the universal
+algebraic sets taken to be the set of all terms in a theory, as this is by far the most common
+case.
+Throughout this section, the variable labels for any algebraic theory will range over the
+natural numbers. We will also write n for the set {1, ..., n}, so, for example:
+2⊢t
+means t is a term containing (at most) two variables.
+We proceed in two steps. Theorem 3.5 is an algebraic generalization of Plotkin’s counterexample, capturing the algebraic properties required of both theories in order for a proof
+of this type to work. In Theorem 3.12 we generalize further, removing the restriction to
+binary terms that was sufficient for the original application. This generalization complicates the proof slightly, and so to clarify the methods involved we present two separate
+Theorems.
+Theorem 3.5
+Let P and V be two algebraic theories, TP a stable universal set of P-terms, and TV a stable
+universal set of V-terms. If there are terms:
+2 ⊢P p
+
+and
+
+2 ⊢V v
+
+such that:
+(P1) p is commutative:
+2 ⊢ p(1, 2) = p(2, 1)
+
+18
+
+M. Zwart and D. Marsden
+
+(P2) p is idempotent:
+1 ⊢ p(1, 1) = 1
+(P3) For all p′ ∈ TP :
+n ⊢ p(1, 2) = p′
+
+⇒
+
+2 ⊢ p′
+
+(V1) v is idempotent:
+1 ⊢ v(1, 1) = 1
+(V2) For all v′ ∈ TV , and x a variable:
+Γ ⊢ V x = v′
+
+⇒
+
+{x} ⊢ v′
+
+(V3) For all v′ ∈ TV :
+Γ ⊢ v(1, 2) = v′
+
+⇒
+
+¬({1} ⊢ v′ ∨ {2} ⊢ v′ )
+
+Then there is no composite theory of P and V.
+Remark 3.6
+Properties (P3), (V2), and (V3) are constraints on the variables appearing in certain terms,
+which is needed for the “inverse image” part of the Plotkin argument to work. Property (P3)
+states that any term equal to the special binary term p can have at most two free variables.
+Property (V2) states that any term equal to a variable can only contain that variable, and
+property (V3) states that any term equal to the special binary term v must have at least two
+free variables. Notice that the upper/lower bound principle from the argument is reflected
+in these conditions.
+Proof
+Assume for contradiction that a composite theory U of P and V exists. Then as U is
+composite, there exist X ⊢ p′ and 4 ⊢ v′i such that:
+4 ⊢U v(p(1, 2), p(3, 4)) = p′ [v′i /xi ]
+Without loss of generality, we may assume p′ ∈ TP and v′i ∈ TV by universality. Define
+partial function f1 as follows:
+f1 (1) = f1 (3) = 1
+f1 (2) = f1 (4) = 2
+then using assumption (V1):
+4 ⊢ p(1, 2) = p′ [v′i [ f1 ]/xi ]
+As TP is stable, any variable renaming of p′ is also in TP . Therefore by essential uniqueness
+and assumption (P3):
+4 ⊢ 1 = v′i [ f1 ]
+
+∨
+
+4 ⊢ 2 = v′i [ f1 ]
+
+∨
+
+{2, 4} ⊢ v′i
+
+Then using assumption (V2), for all v′i :
+{1, 3} ⊢ v′i
+
+(4)
+
+No-Go Theorems for Distributive Laws
+
+19
+
+Define a second partial function f2 as follows:
+f2 (1) = f2 (4) = 1
+f2 (2) = f2 (3) = 2
+By assumptions (P1) and (V1):
+4 ⊢ p(1, 2) = p′ [v′i [ f2 ]/xi ]
+Again, as TP is stable, any variable renaming of p′ is also in TP . Therefore by essential
+uniqueness and assumption (P3):
+4 ⊢ 1 = v′i [ f2 ]
+
+∨
+
+4 ⊢ 2 = v′i [ f2 ]
+
+(5)
+
+∨
+
+{2, 3} ⊢ v′i
+
+(6)
+
+and so, using assumption (V2), for all v′i :
+{1, 4} ⊢ v′i
+Combining conditions (4) and (6), for all v′i :
+_
+
+{n} ⊢ v′i
+
+(7)
+
+n∈4
+
+Finally, we define a third partial function f3 as follows:
+f3 (1) = f3 (2) = 1
+f3 (3) = f3 (4) = 2
+Using (P2):
+4 ⊢ v(1, 3) = p′ [v′i [ f3 ]/xi ]
+Using essential uniqueness (and consistency of P), there exists i such that:
+4 ⊢ v(1, 3) = v′i [ f3 ]
+As TV is stable, each v′ [ f3 ] is a element of TV , and so by (V3) this contradicts Equation (7).
+Therefore the assumed composite theory cannot exist.
+Really the point of Theorem 3.5 is to describe algebraic conditions under which distributive
+laws will not exist. The following corollary makes this explicit:
+Corollary 3.7
+If monads P and V have presentations P and V such that the conditions of Theorem 3.5 can
+be satisfied, then there is no distributive law:
+V P ⇒ PV
+Proof
+Immediate from (Pirog & Staton, 2017, Theorem 5).
+Example 3.8 (Powerset and Distribution Monads)
+Consider the term 1 ∨ 2 in the theory of join semilattices, corresponding to the powerset
+1
+monad, and the term 1 + 2 2 in the theory of convex algebras, corresponding to the finite
+probability distribution monad. Since both of these terms are binary, commutative, and
+idempotent, Theorem 3.5 captures the following previously known results:
+
+20
+
+M. Zwart and D. Marsden
+• There is no distributive law DP ⇒ PD (Varacca & Winskel, 2006).
+• There is no distributive law PP ⇒ PP (Klin & Salamanca, 2018).
+
+In addition, Theorem 3.5 yields the following new results, completing the picture:
+• There is no distributive law PD ⇒ DP.
+• There is no distributive law DD ⇒ DD.
+Example 3.9 (Powerset and Distribution Monads again)
+We can also consider the distribution monad to be presented by binary operations + p
+with p in the closed interval [0, 1], and in fact this is the more common formulation. In
+this case, Theorem 3.5 can still be directly applied, without having to move to the more
+parsimonious presentation. We simply note that the terms not involving the operations +1
+and +0 form a stable universal set satisfying the required axioms. The results discussed
+in the previous example can then be recovered using the conventional presentation of the
+distribution monad.
+Counterexample 3.10 (Reader Monad)
+It is well known that the Reader monad distributes over itself. Looking at the presentation
+of the reader monad given in Example 2.27, we see that although it has idempotent terms,
+there is no commutative term and hence Theorem 3.5 does not apply.
+A natural question to ask with regard to Theorem 3.5 is whether the choice of binary
+terms for both p and v is necessary. We thank Prakash Panangaden for posing this question
+during an informal presentation of an earlier version of this work (Panangaden, 2018).
+The answer is that we can generalize to terms with any arities strictly greater than one.
+Before presenting the appropriate generalization of Theorem 3.5, we require a small, but
+important, technical lemma.
+In Section 3.1 we described our intuition for the first part of Plotkin’s proof as an attempt
+to establish an upper bound on the variables appearing in certain terms. In Theorem 3.12
+we apply this tactic again. Well-chosen substitutions will give us a family of sets giving
+upper bounds on the set of variables that may appear in a certain special term. The crucial
+Lemma 3.11 exploits the structure of these sets to combine this family of upper bounds
+into a single, tighter bound.
+Lemma 3.11
+Let n, m be strictly positive natural numbers, and σ a fixed point free permutation of {1, ..., m}.
+For distinct variables aij , 1 ≤ i ≤ m, 1 ≤ j ≤ n, the sets:
+{a1i1 , a2i1 , a3i1 , . . . , ani1 }
+{a1i2 , aσ2 (i2 ) , a3i2 , . . . , ani2 }
+..
+.
+{a1in , a2in , a3in , . . . , anσ (in ) }
+have at most one common element. Here, each ik is an element of {i | 1 ≤ i ≤ m}, not
+necessarily unique.
+
+No-Go Theorems for Distributive Laws
+
+21
+
+Proof
+We proceed by induction on n. The base case n = 1 is trivially true. For n = n′ + 1, we
+consider the first two rows of our table of sets. There are two cases.
+1. If i1 = σ (i2 ), then the first two rows can only agree at their second element by the
+assumption that σ is fixed point free, and the claim follows.
+2. If i1 6= σ (i2 ) then the first two rows disagree in the second column. Therefore the
+elements common to all the sets cannot appear in the second column. We then
+remove both row and column 2, and invoke the induction hypothesis for n = n′ .
+
+We now present our widest generalization of Plotkin’s original counterexample.
+Theorem 3.12
+Let P and V be two algebraic theories, TP a stable universal set of P-terms, and TV a stable
+universal set of V-terms. If there are terms:
+m ⊢P p
+
+n ⊢V v
+
+and
+
+and a fixed point free permutation σ : m → m such that:
+(P1) p is stable under the permutation σ :
+m ⊢ p = p[σ ]
+(P2) p is idempotent:
+1 ⊢ p[1/i] = 1
+(P3) For all p′ ∈ TP :
+Γ ⊢ p = p′
+
+⇒
+
+m ⊢ p′
+
+(V1) v is idempotent:
+1 ⊢ v[1/i] = 1
+′
+
+(V2) For all v ∈ TV , and x a variable:
+Γ ⊢ V x = v′
+
+⇒
+
+x ⊢ v′
+
+(V3) For all v′ ∈ TV :
+Γ⊢v=v
+
+′
+
+⇒
+
+¬
+
+_
+
+{i} ⊢ v
+
+i∈Γ
+
+′
+
+!
+
+Then there is no composite theory of P and V.
+Remark 3.13
+Again, properties (P3), (V2), and (V3) are constraints on the variables appearing in certain
+terms. Property (P3) states that any term equal to the special term p can have at most m
+free variables, property (V2) states that any term equal to a variable can only contain that
+variable, and property (V3) states that any term equal to the special term v must have at
+least two free variables.
+
+22
+
+M. Zwart and D. Marsden
+
+Proof
+Assume for contradiction that a composite theory U of P and V exists. Let aij , 1 ≤ i ≤ m,
+1 ≤ j ≤ n denote distinct natural numbers. Then as U is composite, there exist X ⊢ p′
+and m ∗ n ⊢ v′i such that:
+m ∗ n ⊢U v(p(a11 , . . . , a1m ), . . . , p(an1 , . . . , anm )) = p′ [v′l /xl ]
+Without loss of generality, we may assume p′ ∈ TP and v′i ∈ TV by universality.
+Define substitution f1 as follows:
+f1 (aij ) = a1i
+We then have:
+m ∗ n ⊢U v(p(a11 , . . . , a1m ), . . . , p(a11 , . . . , a1m )) = p′ [v′l [ f1 ]/xl ]
+By assumption (V1)
+m ∗ n ⊢U p(a11 , . . . , a1m ) = p′ [v′l [ f1 ]/xl ]
+As TP is stable, any variable renaming of p′ is also in TP . Therefore by essential uniqueness
+and (P3):
+∀l ∃i : m ∗ n ⊢ a1i = v′l [ f1 ]
+By assumption (V2):
+∀l ∃i : {a1i } ⊢ v′l [ f1 ]
+And so:
+∀l ∃i : {a1i , . . . , ani } ⊢ v′l
+
+(8)
+
+Now we define a family of substitutions for 2 ≤ k ≤ n as follows:
+(
+akσ (i) if j = k
+j
+fk (ai ) =
+aki otherwise
+If we follow a similar argument as before, also exploiting assumption (P1), we conclude
+that:
+∀l, k ∃ik : {akik } ⊢ v′l [ fk ]
+And so:
+∀l, k ∃ik : {aσj −1 (i ) | j = k} ∪ {aijk | j 6= k} ⊢ v′l
+k
+
+(9)
+
+Then we note that by Lemma 3.11, conditions (8) and (9) that:
+j
+
+∀l ∃i, j : {ai } ⊢ v′l
+Define another substitution:
+j
+
+j
+
+fn+1 (ai ) = a1
+Applying this substitution:
+m ∗ n ⊢ v(p(a11 , . . . , a11 ), . . . , p(an1 , . . . , an1 )) = p′ [v′l [ fn+1 ]/xl ]
+Using assumption (P2):
+m ∗ n ⊢ v(a11 , . . . , an1 ) = p′ [v′l [ fn+1 ]/xl ]
+
+(10)
+
+No-Go Theorems for Distributive Laws
+
+23
+
+By essential uniqueness and consistency:
+∃l : m ∗ n ⊢ v(a11 , . . . , an1 ) = v′l [ fn+1 ]
+As TV is stable, each v′ [ fn+1 ] is a element of TV , and so by assumption (V3), v′l must contain
+at least two variables, but this contradicts conclusion (10), and so the assumed composite
+theory cannot exist.
+It is clear that the simpler Theorem 3.5 is a special case of Theorem 3.12. Beyond simply
+providing greater generality, the main point of Theorem 3.12 is that it clearly demonstrates
+that there is nothing special about binary terms. This further clarifies our understanding
+of what abstract properties make the original Plotkin counterexample work. By moving to
+such a high level of abstraction, it is also easier to see that our second method, described
+in Section 4 is not simply a further generalization of Plotkin’s counterexample, as it makes
+fundamentally different assumptions upon the underlying algebraic theories.
+
+4 No-Go Theorems beyond Plotkin
+So far, all negative results about monad compositions involve monads with an idempotent
+term in their corresponding algebraic theories. But the absence of an idempotent term does
+not guarantee that a distributive law exists. We will derive several new no-go theorems
+by turning our attention towards theories that have constants satisfying unit equations. In
+addition, we will see that some of the existing distributive laws are unique.
+The motivation for this section is the question of whether the list monad distributes over
+itself, to which we give a negative answer. We will use this monad as a leading example
+throughout the section, although the material we present is far more general.
+We will again use the algebraic method, starting from the assumption that there is a
+composite theory of two algebraic theories. The properties we require from our algebraic
+theories are comparable to the ones we needed in the generalisation of Plotkin’s proof.
+Some properties will limit the variables that may appear in certain terms, while others
+require specific equations to hold in our theory. Of special interest is the abides equation:
+(a ∗ b) ∗ (c ∗ d) = (a ∗ c) ∗ (b ∗ d)
+
+(11)
+
+We will be looking at theories in which this equation does not hold.
+More specifically, if S and T are the algebraic theories of interest, then for S we will
+need various combinations of the following properties:
+(S1) For any two terms s1 , s2 :
+/0 ⊢ s1 ∧ Γ ⊢ s1 = s2
+
+⇒
+
+/0 ⊢ s2
+
+(S2) For any term s and variable x:
+Γ⊢s=x
+
+⇒
+
+{x} ⊢ s
+
+(S3) For every n-ary operation φn (n ≥ 1) in the signature ΣS , there is a constant eφ , which
+acts as a unit for φn . If f is the substitution xi 7→ eφ for all but one i 6= n, then:
+{x} ⊢ φn [ f ] = x
+
+24
+
+M. Zwart and D. Marsden
+
+(S4) S has a binary term s such that:
+(a) es is a unit for s:
+{x} ⊢ s(x, es ) = x = s(es , x)
+(b) s is idempotent:
+{x} ⊢ s(x, x) = x
+The first two properties are constraints on the variables appearing in terms: terms equal
+to a term with no variables cannot have any variables themselves, while terms equal to
+a single variable must only contain that variable. The other properties require the units
+or idempotence equations to hold. Notice that property (S3) implies that for any unary
+operation φ1 in signature ΣS , we must have φ1 (s) =S s.
+For T, we will assume combinations of these properties:
+(T1) For any two terms t1 ,t2 :
+/0 ⊢ t1 ∧ Γ ⊢ t1 = t2
+
+⇒
+
+/0 ⊢ t2
+
+(T2) For any term t and variable y:
+Γ⊢t =y
+
+⇒
+
+{y} ⊢ t
+
+(T3) T has a constant et .
+(T4) T has a binary term t such that:
+(a) et is a unit for t:
+{y} ⊢ t(y, et ) = y = t(et , y)
+(b) The abides equation does not hold in T:
+Γ ⊢ t(t(y1 , y2 ), t(y3 , y4 )) = t(t(y1 , y3 ), t(y2 , y4 ))
+
+⇒
+
+#Γ ≤ 3.
+
+Again the first two properties are constraints on the variables in terms, while the others
+concern equations.
+Example 4.1
+[1] List monad: The algebraic theory of monoids, which corresponds to the list monad,
+has a binary operation ∗ and a constant e, satisfying the unit equations, see Example 2.18. It is easy to check that this theory satisfies (S1) and (S2). Since e is indeed
+the unit for ∗, it also satisfies (S3), and the binary term for (S4)a is easily found:
+x ∗ y. The theory of monoids does not satisfy (S4)b, as none of the binary terms are
+idempotent.
+The only way for a monoid to satisfy (x ∗ y) ∗ (z ∗ w) = (x ∗ z) ∗ (y ∗ w) is to have y = z,
+and so the theory satisfies all of (T1), (T2), (T3), (T4)a, and (T4)b.
+[2] Powerset monad: The algebraic theory of join semilattices, which corresponds to
+the powerset monad, describes commutative and idempotent monoids. Therefore, it
+satisfies (S4)b in addition to (S1), (S2), (S3), and (S4)a. However, because of the
+additional commutativity, join semilattices satisfy abides:
+(x ∗ y) ∗ (z ∗ w) = x ∗ ((y ∗ z) ∗ w)
+= x ∗ ((z ∗ y) ∗ w)
+= (x ∗ z) ∗ (y ∗ w)
+
+No-Go Theorems for Distributive Laws
+
+25
+
+Therefore, this theory does not have property (T4)b. Properties (T1), (T2), (T3), and
+(T4)a still hold.
+[3] Exception monad: The algebraic theory corresponding to the exception monad, from
+Example 2.27, satisfies (S1), (S2), and (S3). But since there are no binary terms, it
+does not satisfy (S4)a and (S4)b. Similarly, it satisfies (T1), (T2), and (T3), but not
+(T4)a and (T4)b.
+Given these properties, we will first consider when an S-term of T-terms is equal to the
+constant promised by property (T3), yielding Theorem 4.5. For the list monad, this means
+that if a distributive law would exist, it would have to map any list of lists containing the
+empty list to the empty list:
+
+λ [L1 , . . . , Ln ] = [] if there is an i s.t. Li = []
+If the theory T has more than one constant, this immediately leads to a contradiction, and
+hence gives us the no-go theorem formulated in Corollary 4.7.
+Then building on Theorem 4.5, we derive conditions in which a distributive law has to
+behave like the distributivity of times over plus (Equation (1)), resulting in Theorem 4.13.
+Again this theorem holds for the list monad, so we see there can be at most one distributive
+law for the list monad over itself. It follows that if there is a distributive law between two
+monads satisfying the criteria of this theorem, then it is unique.
+Finally, in Theorems 4.17 and 4.24 we identify properties that together with Theorem 4.13 lead to a contradiction, giving us two more no-go theorems. The first property is
+a lack of the abides equation, which yields Theorem 4.17. From this theorem we conclude
+that there is no distributive law for the list monad over itself. Theorem 4.24 requires
+idempotence, and proves that there is no distributive law PM ⇒ MP for the multiset monad
+M over the powerset monad P.
+Remark 4.2
+The proofs in this section tend to be quite long. To keep the line of reasoning clear,
+we formulate intermediate results in lemmas and corollaries. The main results are then
+presented in either theorems or named corollaries.
+4.1 Multiplicative Zeroes
+Our first focus is on properties (S3) and (T3). The goal is to prove that in a composite of
+theories S and T, the constant et behaves like a multiplicative zero, consuming any S-term
+it appears in. More precisely, we will show that any term made from an S-term with the
+constant et substituted into one its free variables, is equal to et . To get there we first prove
+the statement for any S-term made of variables and a single operation symbol. Then we
+generalise using substitutions and induction.
+Lemma 4.3
+Let S be an algebraic theory with property (S3), and T an algebraic theory with properties
+(T1) and (T3). Finally, let U be a composite of S and T. Then for every n-ary operation
+(n ≥ 1) in the signature ΣS and any index k ≤ n, the following equation holds in U:
+
+φn [et /xk ] =U et
+
+26
+
+M. Zwart and D. Marsden
+
+where et is the constant in T promised by (T3).
+Proof
+The statement is trivial in the case that φn is a unary operation, so we may assume that
+n ≥ 2. From the fact that U is a composite of the theories S and T, we know that every term
+in U is equal to a T- term built over S-terms. And so, there is a T-term Y ⊢ t and there are
+S-terms X1 ⊢ s1 , . . . , Xm ⊢ sm such that:
+
+φn [et /xk ] =U t[s j /y j ]
+
+(12)
+
+Since we assume property (S3), we know φn has unit eφ . Consider the substitution
+xi 7→ eφ for all i 6= k. Then:
+
+φn [et /xk ] =U t[s j /y j ]
+⇔ { Substitution: }
+
+φn [et /xk , eφ /xi ] =U t[s j [eφ /xi ]/y j ]
+
+⇔
+eφ is a unit for φn
+et =U t[s j [eφ /xi ]/y j ]
+
+Because of essential uniqueness (see Definition 2.28), we conclude that there are functions
+f : /0 → Z, f ′ : Y → Z such that:
+et =T t[ f ′ (y j )/y j ]
+
+By assumption (T1) we may conclude that t does not have any variables and hence we have
+t =T et . Going back to Equation (12), we see that:
+
+φn [et /xk ] =U t[s j /y j ]
+⇔ { var(t) = /0 }
+
+φn [et /xk ] =U t
+⇔ { t = et }
+
+φn [et /xk ] =U et
+proving the lemma.
+This immediately leads to a slightly more general statement:
+Corollary 4.4
+Let S and T be algebraic theories with properties (S3), and (T1) and (T3) respectively, and
+let et be the constant in T promised by (T3). Any composite theory U of S and T is such
+that for every n-ary operation φn (n ≥ 1) in the signature ΣS and any terms u1 , . . . , un in U,
+the following equation holds if there is a k ≤ n with uk = et :
+
+φn [ui /xi ] =U et
+We use induction to prove that the statement holds not just for operations in the signature,
+but for any S-term that has et substituted into one of its free variables.
+
+No-Go Theorems for Distributive Laws
+
+27
+
+Theorem 4.5
+Given algebraic theories S and T with properties (S3), and (T1) and (T3) respectively, let
+U be a composite of S and T. Then for any S-term s with n ≥ 1 free variables, and any
+terms u1 , . . . , un in U: if there is a k ≤ n such that uk = et , then:
+s[ui /xi ] =U et
+Proof
+Proof by induction. The base case is when s is just a variable, in which case the statement
+is trivially true: s[ui /xi ] =U x[et /x] =U et .
+Now suppose that for the terms s1 , . . . , sm (m ≥ 1) our statement holds, and suppose
+S
+S
+that m
+i=1 var(si ) = {x1 , . . . , xn }. Let φm be any m-ary operation from the signature Σ and
+consider
+
+φm [s j /x j ]
+We need to show that if u1 , . . . , un are terms in U such that there is a k ≤ n with uk = et ,
+then:
+
+φm [s j [ui /xi ]/x j ] =U et
+To see this, find 1 ≤ l ≤ m such that sl contains the variable xk , so that we know one of the
+free variables in sl is replaced by et . By the induction hypothesis, we know that for sl we
+have the equality:
+sl [ui /xi ] =U et
+Therefore, we know that φm [s j [ui /xi ]/x j ] satisfies the premiss of Corollary 4.4. We conclude that:
+
+φm [s j [ui /xi ]/x j ] =U et
+And hence, by induction, the statement is true for all S-terms.
+Example 4.6
+[1] List monad: Since the theory of monoids, corresponding to the list monad, satisfies
+(S3), (T1), and (T3), we know that a candidate distributive law for the list monad
+over itself has to map any list of lists containing the empty list to the empty list. This
+is the first step in showing that there is no distributive law for the list monad over
+itself.
+[2] List and lift monad: Since the theory of pointed sets, corresponding to the lift monad,
+satisfies (T1) and (T3), we also know that any distributive law L(−)⊥ ⇒ (−)⊥ L has
+to map every list containing the constant ⊥ to ⊥.
+[3] Multiset and powerset monad: The algebraic theories of commutative monoids and
+join semilattices, corresponding to the multiset monad and powerset monad respectively, both satisfy all three requirements (S3), (T1), and (T3). So any distributive
+law MP ⇒ PM has to map every multiset containing the empty set to the empty
+set. Also, any distributive law PM ⇒ MP has to map every set containing the empty
+multiset to the empty multiset, although we will later see that such a distributive law
+does not exist.
+If T has more than one constant, this could lead to inconsistencies. Our next no-go
+theorem makes this precise:
+
+28
+
+M. Zwart and D. Marsden
+
+Corollary 4.7 (No-Go Theorem: Too Many Constants)
+Let S and T be algebraic theories with properties (S3) and (T1) respectively. Further
+assume that there is a term s in S with at least two free variables. Then if T has more
+than one constant, there exists no composite theory of S and T.
+Proof
+Suppose that U is a composite theory of S and T and let c1 and c2 be distinct constants in
+T. Then by Theorem 4.5 we have:
+c1 =U s[c1 /x1 , c2 /x2 ] =U c2
+Contradiction. So U cannot be a composite of S and T.
+By Corollary 2.30, this also yields a no-go theorem for distributive laws. We give a few
+examples of monads that do not distribute over one another as a consequence of this no-go
+theorem.
+Example 4.8 (Spotting a mistake in the literature: list and exception monad)
+We have seen in Example 4.6 that the theory of monoids, corresponding to the list monad,
+satisfies (S3). It also has a term with two free variables, namely x ∗ y, where ∗ is the binary
+operation in the signature of the theory. The exception monad satisfies (T1), so when
+the exception monad has more than one exception, Corollary 4.7 states that there is no
+distributive law L ◦ (− + E) ⇒ (− + E) ◦ L.
+However, Manes & Mulry (2008, Example 4.12) claim to have a distributive law of this
+type for the case where E = {a, b}, given by:
+
+λ [] = []
+
+(13)
+
+λ [e] = e for any exception e ∈ E
+
+(14)
+
+λ L = L if no element of L is in E
+
+(15)
+
+λ L = a otherwise.
+
+(16)
+
+We check more concretely that this cannot be a distributive law by showing that it fails the
+first multiplication axiom from Definition 2.10:
+[[b], []]
+
+L(λX )
+
+[b, []]
+
+λLX
+
+a
+
+L
+µEX
+
+[b]
+
+E( µXL )
+
+λX
+
+b 6= a
+
+The given distributive law seems to follow directly from Manes & Mulry (2008, Theorem
+4.6). This would indicate that in its current form, this theorem produces falsehoods. We
+leave identifying the scope of the problem with this theorem to later work.
+It is important to notice that Corollary 4.7 does not contradict the well-known result that
+the exception monad distributes over every set monad S; that result is for the other direction
+(− + E) ◦ S ⇒ S ◦ (− + E).
+Example 4.9 (Monads that are themselves compositions of other monads)
+[1] Ring monad. We saw in Example 2.13 how the composition of the list monad and
+the Abelian group monad resulted in the ring monad. Since the ring monad has two
+
+No-Go Theorems for Distributive Laws
+
+29
+
+constants, it satisfies the conditions for T in the no-go theorem. Therefore none of
+the monads list, multiset, or powerset distribute over the ring monad; they all satisfy
+the conditions for S in the no-go theorem.
+[2] A similar story holds for the composition of the multiset monad with itself. Because
+of Corollary 4.7, there is no distributive law M ◦ (M ◦ M) ⇒ (M ◦ M) ◦ M. There
+could, however, still be a distributive law (M ◦ M) ◦ M ⇒ M ◦ (M ◦ M).
+Counterexample 4.10
+It is well known that the exception monad distributes over itself. Even though the corresponding theory satisfies properties (S3) and (T1), there are no terms with more than one
+free variable, and hence Corollary 4.7 does not apply.
+4.2 The One Distributive Law, If It Exists
+Needing just the properties (S3), (T1), and (T3), Theorem 4.5 already greatly restricts the
+possibilities for a distributive law between monads S and T . We will now see that if both S
+and T have binary terms with unit (properties (S4)a and (T4)a), then in a composite theory,
+the binary of S distributes over the binary of T like times over plus in Equation (1). For the
+monads corresponding to these theories, this could mean that there is only one distributive
+law, if there exists a distributive law at all.
+We derive this distributional behaviour in three stages, relying heavily on the separation
+property of a composite theory: every term can be written as a T-term of S-terms. If s is the
+binary in S, and t the binary in T, and t0 [si /yi ] is the separated term equal to s(t(y1 , y2 ), x0 ),
+then we derive the following about t0 [si /yi ]:
+1. First, we prove which variables appear in the S-terms of the separated term: either
+both y1 and x0 or both y2 and x0 , and nothing else.
+2. Then, we prove that each of the S-terms of the separated term is either equal to
+s(y1 , x0 ) or s(y2 , x0 ).
+3. Finally, we derive that the separated term t0 [si /yi ] has to be equal to t(s(y1 , x0 ), s(y2 , x0 )).
+The first step:
+Lemma 4.11
+Let S and T be two algebraic theories satisfying (S1), (S2), (S3), and (S4)a and (T1), (T3),
+and (T4)a respectively. Let U be a composite theory of S and T. Then there is a T-term t0
+and there are S-terms si , 1 ≤ i ≤ # var(t0 ) such that:
+s(t(y1 , y2 ), x0 ) =U t0 [si /y′i ]
+and for each 1 ≤ i ≤ # var(t0 ):
+var(si ) = {y1 , x0 }
+
+or
+
+var(si ) = {y2 , x0 }
+
+Furthermore, there is an i such that var(si ) = {y1 , x0 } and an i such that var(si ) = {y2 , x0 }.
+Similarly, there is a T-term t1 and there are S-terms s j , 1 ≤ j ≤ # var(t1 ) such that:
+s(x0 , t(y1 , y2 )) =U t1 [s j /y′j ]
+and for each 1 ≤ j ≤ # var(t1 ):
+var(s j ) = {y1 , x0 }
+
+or
+
+var(s j ) = {y2 , x0 }
+
+30
+
+M. Zwart and D. Marsden
+
+Furthermore, there is a j such that var(s j ) = {y1 , x0 } and a j such that var(s j ) = {y2 , x0 }
+Proof
+We only explicitly prove the statements for s(t(y1 , y2 ), x0 ). The proof for s(x0 , t(y1 , y2 )) is
+similar.
+From the fact that U is a composite of the theories S and T, we know that every term in
+U is separated. And so, there is a t0 and there are si , 1 ≤ i ≤ # var(t0 ) such that:
+s(t(y1 , y2 ), x0 ) =U t0 [si /y′i ]
+
+(17)
+
+To prove the second part of the statement, we substitute x0 7→ es in Equation (17). This
+yields:
+s(t(y1 , y2 ), es ) =U t0 [si [es /x0 ]/y′i ]
+⇒ { es is the unit of s }
+t(y1 , y2 ) =U t0 [si [es /x0 ]/y′i ]
+
+(18)
+
+By the essential uniqueness property (see Definition 2.28), we conclude that there are
+functions:
+f : {y1 , y2 } → Z, f ′ : {y′i | 1 ≤ i ≤ # var(t0 )} → Z
+such that:
+t[ f (y1 )/y1 , f (y2 )/y2 ] =T t0 [ f ′ (y′i )/y′i ]
+
+(19)
+
+Furthermore, whenever f (y1 ) = f ′ (y′i ) or f (y2 ) = f ′ (y′i ), we have respectively:
+y1 =S si [es /x0 ]
+
+(20)
+
+y2 =S si [es /x0 ]
+
+(21)
+
+Since we assume variables y1 and y2 to be distinct, essential uniqueness also gives us
+f (y1 ) 6= f (y2 ).
+We analyse Equation (19) more closely, comparing the variables appearing in both
+t[ f (y1 )/y1 , f (y2 )/y2 ] and t0 [ f ′ (y′i )/y′i ].
+Firstly, we show that { f ′ (y′i ) | 1 ≤ i ≤ # var(t0 )} ⊆ { f (y1 ), f (y2 )}. This follows from the
+following equalities:
+et
+=T { et is the unit for t }
+t(et , et )
+=T { Substitution }
+t( f (y1 ), f (y2 ))[et / f (y1 ), et / f (y2 )]
+=T { Equation (19) }
+t0 [ f ′ (y′i )/y′i ][et / f (y1 ), et / f (y2 )]
+So: et =T t0 [ f ′ (y′i )/y′i ][et / f (y1 ), et / f (y2 )]. Then by assumption (T1):
+var(t0 [ f ′ (y′i )/y′i ][et / f (y1 ), et / f (y2 )]) = /0
+
+No-Go Theorems for Distributive Laws
+
+31
+
+Therefore, t0 [ f ′ (y′i )/y′i ] can contain no other variables than f (y1 ) and f (y2 ). That is:
+{ f ′ (y′i ) | 1 ≤ i ≤ # var(t0 )} ⊆ { f (y1 ), f (y2 )}
+
+(22)
+
+Next, we show that both f (y1 ) and f (y2 ) need to appear in t0 [ f ′ (y′i )/y′i ]. Suppose that f (y1 )
+does not appear in t0 [ f ′ (y′i )/y′i ]. Then from Equation (22) we know that for all y′i ∈ var(t0 ),
+f ′ (y′i ) = f (y2 ). Then:
+f (y1 )
+=T { et is the unit for t }
+t( f (y1 ), et )
+=T { Substitution }
+t( f (y1 ), f (y2 ))[et / f (y2 )]
+=T { Equation (19) }
+t0 [ f ′ (y′i )/y′i ][et / f (y2 )]
+
+=T
+For all i, f ′ (y′i ) = f (y2 )
+t0 [et /y′i ]
+
+So: f (y1 ) =T t0 [et /y′i ], but this contradicts assumption (T1), because var(t0 [et /y′i ]) = /0,
+since every free variable in t0 has been substituted with the constant et , and var( f (y1 )) =
+{ f (y1 )} 6= /0.
+So f (y1 ) has to appear in t0 [ f ′ (y′i )/y′i ]. A similar line of reasoning yields the same
+conclusion for f (y2 ). Therefore, there is an y′i such that f ′ (y′i ) = f (y1 ) and there is an
+y′i such that f ′ (y′i ) = f (y2 ).
+In summary, if we define:
+I1 = {i | f ′ (y′i ) = f (y1 )}
+I2 = {i | f ′ (y′i ) = f (y2 )}
+then we know that neither I1 nor I2 is empty and that I1 ∪ I2 = {1, . . . , # var(t0 )}.
+We finally consider Equations (20) and (21) to reach a conclusion about the variables
+appearing in the terms si .
+Since for all i ∈ I1 : f ′ (y′i ) = f (y1 ), we have by Equation (20) that si [es /x0 ] =S y1 .
+Similarly, for all i ∈ I2 , si [es /x0 ] =S y2 . By assumption (S2), we conclude that:
+∀i ∈ I1 : {x0 , y1 } ⊢ si
+
+(23)
+
+∀i ∈ I2 : {x0 , y2 } ⊢ si
+
+(24)
+
+In addition, since y1 =S si [es /x0 ], we would have y1 equal to a constant if y1 would not
+appear in si (for i ∈ I1 ), contradicting assumption (S1). Similarly for y2 and si for i ∈ I2 .
+And so:
+
+.
+
+∀i ∈ I1 : y1 ∈ var(si )
+
+(25)
+
+∀i ∈ I2 : y2 ∈ var(si )
+
+(26)
+
+32
+
+M. Zwart and D. Marsden
+
+To prove that x0 ∈ var(si ) for all 1 ≤ i ≤ # var(t0 ), we substitute x0 7→ et in Equation (17):
+s(t(y1 , y2 ), et ) =U t0 [si [et /x0 ]/y′i ]
+By Theorem 4.5, s(t(y1 , y2 ), et ) =U et . Therefore we must have that also t0 [si [et /x0 ]/y′i ] =U
+et . Hence by assumption (T1), var(t0 [si [et /x0 ]/y′i ]) = /0. There are two cases:
+• There is a 1 ≤ k ≤ # var(t0 ) such that x0 ∈
+/ var(sk ). Then substituting x0 7→ et has no
+effect on this sk : sk [et /x0 ] =U sk . Suppose that k ∈ I1 . Then y1 ∈ var(sk ) and hence:
+y1 ∈ var(t0 [si [et /x0 ]/y′i ]), contradiction. We get a similar contradiction if k ∈ I2 .
+• All si contain the variable x0 . Then by Theorem 4.5:
+si [et /x0 ] =U et
+Then t0 [si [et /x0 ]/y′i ] =U t0 [et /y′i ], agreeing with the fact that var(t0 [si [et /x0 ]/y′i ]) = /0.
+And so, for all 1 ≤ i ≤ # var(t0 ), x0 ∈ var(si ).
+This, together with Equations (23), (24), (25) and (26), proves that:
+var(si ) = {y1 , x0 }
+
+or
+
+var(si ) = {y2 , x0 }
+
+The fact that neither I1 nor I2 are empty means that this proves the lemma.
+With the first step done, we move on to the second step:
+Lemma 4.12
+Let S and T be two algebraic theories satisfying (S1), (S2), (S3), and (S4)a and (T1), (T2),
+(T3), and (T4)a respectively. Let U be a composite theory of S and T. Then there is a
+T-term t0 and there are S-terms si , 1 ≤ i ≤ # var(t0 ) such that:
+s(t(y1 , y2 ), x0 ) =U t0 [si /y′i ]
+and for each 1 ≤ i ≤ # var(t0 ):
+si =S s(y1 , x0 )
+
+or
+
+si =S s(y2 , x0 )
+
+Furthermore, there is an i such that si =S s(y1 , x0 ) and there is an i such that si =S s(y2 , x0 ).
+Similarly, there is a T-term t1 and there are S-terms s j , 1 ≤ j ≤ # var(t1 ) such that:
+s(x0 , t(y1 , y2 )) =U t1 [s j /y′j ]
+and for each 1 ≤ j ≤ # var(t1 ):
+s j =S s(x0 , y1 )
+
+or
+
+s j =S s(x0 , y2 )
+
+Furthermore, there is a j such that s j =S s(y1 , x0 ) and there is an j such that s j =S s(y2 , x0 ).
+Proof
+Again, we only explicitly prove the statements for s(t(y1 , y2 ), x0 ). The second half of the
+claim follows similarly.
+From Lemma 4.11 we know that there is a T-term t0 and there are S-terms si with
+1 ≤ i ≤ # var(t0 )
+such that:
+s(t(y1 , y2 ), x0 ) =U t0 [si /y′i ]
+
+No-Go Theorems for Distributive Laws
+
+33
+
+We substitute y1 7→ et :
+s(t(et , y2 ), x0 ) =U t0 [si [et /y1 ]/y′i ]
+⇒ { et is the unit of t }
+s(y2 , x0 ) =U t0 [si [et /y1 ]/y′i ]
+⇒ { Substitution }
+z[s(y2 , x0 )/z] =U t0 [si [et /y1 ]/y′i ]
+
+(27)
+
+Where z is just a variable, so that z[s(y2 , x0 )/z] is a T-term built out of S-terms.
+To use essential uniqueness from Definition 2.28, we need two terms written as T-terms
+of S-terms. However, t0 [si [et /y1 ]/y′i ] is a T-term built out of S-terms with possibly a Tconstant in them. So we need to write t0 [si [et /y1 ]/y′i ] into a form where it is just a Tterm built out of S-terms. We use Theorem 4.5 in combination with our knowledge from
+Lemma 4.11 about the variables appearing in each si to do just that. Define:
+I1 = {i | 1 ≤ i ≤ # var(t0 ), var(si ) = {y1 , x0 }}
+I2 = {i | 1 ≤ i ≤ # var(t0 ), var(si ) = {y2 , x0 }}
+From Lemma 4.11 we know that neither I1 nor I2 is empty and their union contains all
+1 ≤ i ≤ # var(t0 ). For each i ∈ I1 , we use Theorem 4.5 to rewrite si [et /y1 ] =U et . For each
+i ∈ I2 , we know that since y1 does not appear in si , si [et /y1 ] =U si . Therefore:
+t0 [si [et /y1 ]/y′i ] =T t0 [et /y′i (i ∈ I1 ), si /y′i (i ∈ I2 )]
+Next, define:
+t0′ = t0 [et /y′i (i ∈ I1 )]
+Then t0′ is a T-term with free variables {y′i | i ∈ I2 }. We have:
+t0′ [si /y′i ]
+
+=T
+Definition of t0′
+
+t0 [et /y′i (i ∈ I1 ), si /y′i (i ∈ I2 )]
+
+=T t0 [si [et /y1 ]/y′i ]
+=T { Equation (27) }
+z[s(y2 , x0 )/z]
+Now we can use the essential uniqueness property, and conclude that there are functions
+f : {z} → Z, f ′ : {y′i | i ∈ I2 } → Z such that:
+z[ f (z)/z] =T t0′ [ f ′ (y′i )/y′i ]
+
+(28)
+
+Furthermore, whenever f ′ (y′i ) = f (z), we have:
+si =S s(y2 , x0 )
+
+(29)
+
+From Equation (28) and assumption (T2) we conclude that { f (z)} ⊢ t0′ [ f ′ (y′i )/y′i ]. And
+hence for all i ∈ I2 , f ′ (y′i ) = f (z). So by Equation (29), for each i ∈ I2 : si =S s(y2 , x0 ),
+which gives us half of the desired conclusion about each si (1 ≤ i ≤ # var(t0 )).
+Finally, a similar argument using the substitution y2 7→ et instead of y1 7→ et leads to the
+conclusion that for each i ∈ I1 , si =S s(y1 , x0 ).
+
+34
+
+M. Zwart and D. Marsden
+
+And finally, the last step, proving that s distributes over t:
+Theorem 4.13 (Times over Plus Theorem)
+Let S and T be two algebraic theories satisfying (S1), (S2), (S3), and (S4)a and (T1), (T2),
+(T3), and (T4)a respectively. Let U be a composite theory of S and T. Then s distributes
+over t:
+s(t(y1 , y2 ), x0 ) =U t(s(y1 , x0 ), s(y2 , x0 ))
+
+(30)
+
+s(x0 , t(y1 , y2 )) =U t(s(x0 , y1 ), s(x0 , y2 ))
+
+(31)
+
+Proof
+Again, we only explicitly prove the first statement, as the proof of the second statement is
+similar.
+From Lemma 4.12 we know that there is a T-term t0 and there are S-terms si with:
+1 ≤ i ≤ # var(t0 )
+such that either si = s(y1 , x0 ) or si = s(y2 , x0 ) and:
+s(t(y1 , y2 ), x0 ) =U t0 [si /y′i ]
+Define:
+I1 = {i | 1 ≤ i ≤ # var(t0 ), si = s(y1 , x0 )}
+I2 = {i | 1 ≤ i ≤ # var(t0 ), si = s(y2 , x0 )}
+Then, using the substitution x0 7→ es , we get:
+t(y1 , y2 )
+=U { es is the unit of s }
+s(t(y1 , y2 ), es )
+=U { Substitution }
+s(t(y1 , y2 ), x0 )[es /x0 ]
+=U { Lemma 4.12 }
+t0 [si [es /x0 ]/y′i ]
+=U { si = s(y1 , x0 ) or si = s(y2 , x0 ) and es is the unit of s }
+t0 [y1 /y′i (i ∈ I1 ), y2 /y′i (i ∈ I2 )]
+So:
+t(y1 , y2 ) =U t0 [y1 /y′i (i ∈ I1 ), y2 /y′i (i ∈ I2 )]
+We also have:
+t0 [si /y′i ]
+=U { Lemma 4.12 }
+t0 [s(y1 , x0 )/y′i (i ∈ I1 ), s(y2 , x0 )/y′i (i ∈ I2 )]
+=U { Substitution: term = y[term/y] }
+t0 [y1 [s(y1 , x0 )/y1 ]/y′i (i ∈ I1 ), y2 [s(y2 , x0 )/y2 ]/y′i (i ∈ I2 )]
+
+(32)
+
+No-Go Theorems for Distributive Laws
+
+35
+
+So we conclude:
+t0 [si /y′i ]
+=U t0 [y1 [s(y1 , x0 )/y1 ]/y′i (i ∈ I1 ), y2 [s(y2 , x0 )/y2 ]/y′i (i ∈ I2 )]
+=U { Equation (32) }
+t(y1 , y2 )[s(y1 , x0 )/y1 , s(y2 , x0 )/y2 ]
+=U t(s(y1 , x0 ), s(y2 , x0 ))
+Which proves the theorem.
+This greatly reduces the search space for distributive laws, and in some cases even
+narrows it down to precisely one possibility:
+Corollary 4.14 (Upper Limit)
+Let S and T be two monads with corresponding algebraic theories S and T that have
+signatures with one constant and one binary operation, and nothing else. If for both theories
+the constant acts as a unit for the binary operation and the theories further satisfy (S1)
+and (S2), and (T1) and (T2) respectively, then there exists at most one distributive law
+ST ⇒ T S.
+Example 4.15 (List Monad)
+Corollary 4.14 applies to the list monad, and hence there is at most one distributive law for
+this list monad over itself: the one that distributes lists of lists like times over plus.
+Example 4.16 (Unique Distributive Laws)
+Let S be any of the monads tree, list, or multiset. Then the corresponding algebraic theory
+S contains only linear equations. Let T be either the multiset or powerset monad. Since the
+multiset and powerset monads are commutative monads, it follows from Manes & Mulry
+(2007, Theorem 4.3.4) that there is a distributive law ST ⇒ T S. Corollary 4.14 states that
+this distributive law is unique. In particular, the distributive law for the multiset monad
+over itself mentioned in Example 2.14 is unique.
+4.3 Lacking the Abides Property: a No-Go Theorem
+With Theorem 4.13 narrowing down the possible distributive laws for two monads, it is
+easier to find cases in which no distributive law can exist at all. We found two properties
+that clash with Theorem 4.13, one for T and one for S. In this section we show that not
+satisfying the abides equation, property (T4)b, in combination with Theorem 4.13 prevents
+the existence of a distributive law. In the next section we do the same for idempotence,
+property (S4)b. Both properties are quite common, making the resulting no-go theorems
+hold for significant classes of monads.
+Theorem 4.17 (No-Go Theorem: Lacking Abides)
+If S and T are algebraic theories satisfying the conditions of Theorem 4.13 and T additionally satisfies (T4)b, then there does not exist a composite theory of S and T.
+
+36
+
+M. Zwart and D. Marsden
+
+Proof
+Suppose there exists a composite theory U. Given Theorem 4.13, we compute a separated
+term equal in U to s(t(y1 , y2 ), t(y3 , y4 )):
+s(t(y1 , y2 ), t(y3 , y4 ))
+=U { Substitution }
+s(t(y1 , y2 ), x0 )[t(y3 , y4 )/x0 ]
+=U { Equation (30) from Theorem 4.13 }
+t(s(y1 , x0 ), s(y2 , x0 ))[t(y3 , y4 )/x0 ]
+=U { Substitution }
+t(s(y1 , t(y3 , y4 )), s(y2 , t(y3 , y4 )))
+=U { Equation (31) from Theorem 4.13 }
+t(t(s(y1 , y3 ), s(y1 , y4 )), t(s(y2 , y3 ), s(y2 , y4 )))
+
+(33)
+
+Notice that we made a choice, taking out the right t term in
+s(t(y1 , y2 ), t(y3 , y4 )) =U s(t(y1 , y2 ), x0 )[t(y3 , y4 )/x0 ]
+rather than the left:
+s(t(y1 , y2 ), t(y3 , y4 )) =U s(x0 , t(y3 , y4 ))[t(y1 , y2 )/x0 ]
+The latter option yields:
+s(t(y1 , y2 ), t(y3 , y4 ))
+=U { Substitution }
+s(x0 , t(y3 , y4 ))[t(y1 , y2 )/x0 ]
+=U { Equation (31) from Theorem 4.13 }
+t(s(x0 , y3 ), s(x0 , y4 ))[t(y1 , y2 )/x0 ]
+=U { Substitution }
+t(s(t(y1 , y2 ), y3 ), s(t(y1 , y2 ), y4 ))
+=U { Equation (30) from Theorem 4.13 }
+t(t(s(y1 , y3 ), s(y2 , y3 )), t(s(y1 , y4 ), s(y2 , y4 ))
+
+(34)
+
+Of course, both computations are equally valid, so the terms in Equations (33) and (34)
+must be equal:
+t(t(s(y1 , y3 ), s(y1 , y4 )), t(s(y2 , y3 ), s(y2 , y4 )))
+=U t(t(s(y1 , y3 ), s(y2 , y3 )), t(s(y1 , y4 ), s(y2 , y4 )))
+Since these are two separated terms that are equal, we can apply the essential uniqueness
+property, stating that there exist functions:
+f : {y′1 , y′2 , y′3 , y′4 } → Z
+f ′ : {y′1 , y′2 , y′3 , y′4 } → Z
+
+No-Go Theorems for Distributive Laws
+
+37
+
+such that:
+• Equality in T:
+t(t( f (y′1 ), f (y′2 )), t( f (y′3 ), f (y′4 )))
+=T t(t( f ′ (y′1 ), f ′ (y′2 )), t( f ′ (y′3 ), f ′ (y′4 )))
+• f (y′i ) = f ′ (y′j ) iff the S-terms substituted for y′i and y′j in Equations (33) and (34) are
+equal.
+From the second part of essential uniqueness we get that:
+f (y′1 ) = f ′ (y′1 )
+
+f (y′3 ) = f ′ (y′2 )
+
+f (y′2 ) = f ′ (y′3 )
+
+f (y′4 ) = f ′ (y′4 )
+
+Putting this in the first part then yields:
+t(t( f (y′1 ), f (y′2 )), t( f (y′3 ), f (y′4 )))
+=T t(t( f (y′1 ), f (y′3 )), t( f (y′2 ), f (y′4 )))
+And so by property (T4)b: # var(t(t( f (y′1 ), f (y′2 )), t( f (y′3 ), f (y′4 )))) ≤ 3. So there must be
+i, j such that i 6= j and f (y′i ) = f (y′j ). Suppose without loss of generality that f (y′1 ) = f (y′2 ).
+Then we must have that s(y1 , y3 ) =S s(y1 , y4 ). But then also:
+y1
+=S { es is a unit for s }
+s(y1 , es )
+=S { Substitution }
+s(y1 , y3 )[es /y3 ]
+=S { s(y1 , y3 ) = s(y1 , y4 ) }
+s(y1 , y4 )[es /y3 ]
+=S { Substitution: no y3 in s(y1 , y4 ) }
+s(y1 , y4 )
+But then, by property (S2): {y1 } ⊢ s(y1 , y4 ), and so we must have y4 = y1 , contradiction.
+The same argument holds for any other i, j pair. Therefore, the existence of a composite
+theory leads to a contradiction. In other words, no such composite theory exists.
+Corollary 4.18
+By Corollary 2.30, if the algebraic theories S and T corresponding to monads S and T
+satisfy (S1), (S2), (S3), and (S4)a and (T1), (T2), (T3), (T4)a, and (T4)b respectively, then
+there does not exist a distributive law ST ⇒ T S.
+Example 4.19 (No Distributive Law for the List Monad over Itself )
+This finally settles the question of whether the list monad distributes over itself, posed
+by Manes & Mulry (2007, 2008). As mentioned in Example 4.1, the algebraic theory
+corresponding to the list monad satisfies all of (S1), (S2), (S3), (S4)a, (T1), (T2), (T3),
+(T4)a, and (T4)b. Hence there is no distributive law for the list monad over itself.
+
+38
+
+M. Zwart and D. Marsden
+
+Remark 4.20
+Although there is no distributive law for the list monad over itself, the functor LL does still
+carry a monad structure. We are very grateful to Bartek Klin for pointing this out to us. The
+monad structure on LL can be described as follows:
+• There is a distributive law for the list monad over the non-empty list monad LL+ ⇒
+L+ L (Manes & Mulry, 2007).
+• There is a distributive law for the resulting monad over the lift monad (L+ L)(−)⊥ ⇒
+(−)⊥ (L+ L), derived from general principles (Manes & Mulry, 2007).
+• The resulting functor (−)⊥ (L+ L) is isomorphic to LL, and carries a monad structure. Hence LL carries a monad structure, but not one that can be derived from a
+distributive law LL ⇒ LL.
+Example 4.21 (No Distributive Law of the Binary Tree Monad over Itself )
+The algebraic theory corresponding to the binary tree monad satisfies all of (S1), (S2),
+(S3), (S4)a, (T1), (T2), (T3), (T4)a, and (T4)b. And so, like the list monad, there is no
+distributive law for the binary tree monad over itself.
+Example 4.22 (Ternary and n-ary Trees)
+The algebraic theory corresponding to ternary trees has a signature consisting of one
+constant e and one ternary operation φ , with the following unit equations:
+
+φ (x, e, e) = x
+
+φ (e, x, e) = x
+
+φ (e, e, x) = x
+
+These trees satisfy all of (S1), (S2), (S3), (S4)a, (T1), (T2), (T3), (T4)a, and (T4)b. To see
+this, take for properties requiring a binary term the term t(x, y), defined as:
+t(x, y) = φ (x, y, e)
+Then t(x, e) = φ (x, e, e) = x and t(e, x) = φ (e, x, e) = x so t satisfies (S4)a and (T4)a, and
+since there are no other equations, t also satisfies (T4)b. And so by Theorem 4.17 there is
+no distributive law for the ternary tree monad over itself.
+This idea generalises to n-ary trees, meaning that for these too, there is no distributive
+law. In fact, there is no distributive law for any n-ary tree monad over any m-ary tree monad
+(m, n ≥ 2).
+There are many more examples for Theorem 4.17, some of which will be explored in
+Section 6. For now, we illustrate the importance of property (T4)b with a monad that has
+all properties required by Theorem 4.17, except for (T4)b.
+Counterexample 4.23 (Multiset Monad)
+The multiset monad is closely related to the list monad, with an algebraic theory having just
+one extra equation compared to the list monad: commutativity. Because of this equation,
+the theory does not have property (T4)b, but it still has properties (S1), (S2), (S3), (S4)a,
+(T1), (T2), (T3), and (T4)a. As we have seen in Example 4.16, there is a unique distributive
+law for the multiset monad over itself.
+
+No-Go Theorems for Distributive Laws
+
+39
+
+4.4 Yet Another No-Go Theorem Caused by Idempotence
+In Section 3 we learned that having idempotent terms in both algebraic theories could prevent the existence of a distributive law. We will now see that together with Theorem 4.13,
+having an idempotent term in S is enough. This fills in the remaining unknown combination
+of the multiset and powerset monad: there is no distributive law PM ⇒ MP.
+Theorem 4.24 (No-Go Theorem: Idempotence and Units)
+Let S and T be algebraic theories satisfying (S1), (S2), (S3), (S4)a, and (S4)b and (T1),
+(T2), (T3), and (T4)a respectively. Then there exists no composite theory of S and T.
+Proof
+Suppose such a composite theory U exists. Then we have:
+t(y1 , y2 )
+=U { (S4)b: s is idempotent }
+s(t(y1 , y2 ), t(y1 , y2 ))
+=U { Substitution }
+s(t(y1 , y2 ), x0 )[t(y1 , y2 )/x0 ]
+=U { Equation (30) from Theorem 4.13 }
+t(s(y1 , x0 ), s(y2 , x0 ))[t(y1 , y2 )/x0 ]
+=U { Substitution }
+t(s(y1 , t(y1 , y2 )), s(y2 , t(y1 , y2 )))
+=U { Equation (31) from Theorem 4.13 }
+t(t(s(y1 , y1 ), s(y1 , y2 )), t(s(y2 , y1 ), s(y2 , y2 )))
+=U { (S4)b: s is idempotent }
+t(t(y1 , s(y1 , y2 )), t(s(y2 , y1 ), y2 ))
+So from the essential uniqueness property, we may conclude that there are functions
+f : {y1 , y2 } 7→ Z, f ′ : {y′1 , y′2 , y′3 , y′4 } 7→ Z such that:
+t( f (y1 ), f (y2 )) =T t(t( f ′ (y′1 ), f ′ (y′2 )), t( f ′ (y′3 ), f ′ (y′4 )))
+And f (yi ) = f ′ (y′j ) if and only if the S-terms substituted for yi and y′j in t(y1 , y2 ) and
+t(t(y1 , s(y1 , y2 )), t(s(y2 , y1 ), y2 )) are equal. From this we immediately get:
+f (y1 ) = f ′ (y′1 )
+f (y2 ) = f ′ (y′4 )
+Also, from property (T2) we know f (y1 ) 6= f (y2 ).
+We show that { f ′ (y′2 ), f ′ (y′3 )} ⊆ { f (y1 ), f (y2 )}. Since we have:
+t( f (y1 ), f (y2 )) =T t(t( f ′ (y′1 ), f ′ (y′2 )), t( f ′ (y′3 ), f ′ (y′4 )))
+
+40
+
+M. Zwart and D. Marsden
+
+We also have:
+t( f (y1 ), f (y2 ))[et / f (y1 ), et / f (y2 )]
+=T t(t( f ′ (y′1 ), f ′ (y′2 )), t( f ′ (y′3 ), f ′ (y′4 )))[et / f (y1 ), et / f (y2 )]
+
+⇒
+Substitution, and f (y1 ) = f ′ (y′1 ), f (y2 ) = f ′ (y′4 )
+t(et , et ) =T t(t(et , f ′ (y′2 )), t( f ′ (y′3 ), et ))[et / f (y1 ), et / f (y2 )]
+
+⇒ { (T4)a: et is the unit of t }
+et =T t( f ′ (y′2 ), f ′ (y′3 ))[et / f (y1 ), et / f (y2 )]
+So by (T1), var(t( f ′ (y′2 ), f ′ (y′3 ))[et / f (y1 ), et / f (y2 )]) = /0. So we must have:
+{ f ′ (y′2 ), f ′ (y′3 )} ⊆ { f (y1 ), f (y2 )}
+But then, by the second part of the essential uniqueness property:
+s(y1 , y2 ) =S y1
+
+or s(y1 , y2 ) =S y2
+
+Both contradict (S2). Therefore, the composite theory U cannot exist.
+Corollary 4.25
+By Corollary 2.30, if algebraic theories S and T corresponding to monads S and T satisfy
+(S1), (S2), (S3), (S4)a, and (S4)b and (T1), (T2), (T3), and (T4)a respectively, there does
+not exist a distributive law ST ⇒ T S.
+Example 4.26 (Again: No Distributive Law for the Powerset over Itself )
+Recall from Example 4.1 that the theory of join semilattices, corresponding to the powerset
+monad, satisfies all of (S1), (S2), (S3), (S4)a, (S4)b, (T1), (T2), (T3), and (T4)a. Therefore,
+there is no distributive law for the powerset monad over itself. This was already shown by
+Klin & Salamanca (2018) using similar methods as in Section 3. Theorem 4.24 gives a
+second, independent proof of this fact.
+Example 4.27 (Filling in the Gap: Multiset and Powerset Monads)
+From Manes & Mulry (2007) we know that there are distributive laws MM ⇒ MM and
+MP ⇒ PM, where M is the multiset monad and P the powerset monad. So the only
+combination of multiset and powerset that is not covered by previous theorems is PM ⇒
+MP. Theorem 4.24 fills this gap, saying there is no distributive law of that type.
+Counterexample 4.28 (The Sweet Spot)
+We come back to the multiset monad once more. In Counterexample 4.23 we saw that the
+algebraic theory corresponding to the multiset monad had one extra equation compared to
+the theory for the list monad: commutativity. Because of this equation, property (T4)b did
+not hold, and therefore Theorem 4.17 did not apply.
+There is a similar relation between the multiset monad and the powerset monad. Compared to the powerset monad, the theory corresponding to the multiset monad lacks just
+one equation: idempotence, which is exactly what property (S4)b requires. The lack of this
+equation in the theory for the multiset monad therefore means that Theorem 4.24 does not
+apply to multiset either. So multiset holds a sort of ‘sweet spot’ in between the two no-go
+theorems, where a distributive law still can and does exist.
+
+No-Go Theorems for Distributive Laws
+
+41
+
+5 Algebraic Method vs Direct Verification
+We have now seen several proofs of no-go theorems using the algebraic method. These
+proofs simplify calculations and can be more insightful than the more direct approach
+showing the distributive law axioms cannot be satisfied. In this section we point out some
+of the connections between the algebraic method and the traditional proofs, and compare
+the two strategies.
+
+5.1 Translation between Categorical and Algebraic Proofs
+The two main ingredients of the algebraic proofs are substitution and the separation and
+essential uniqueness axioms of composite theories (see Definition 2.28). The categorical
+versions of the proofs use naturality and Beck’s four defining axioms of distributive laws:
+two unit axioms and two multiplication axioms. We show how each of these correspond to
+specific steps in the algebraic proofs.
+• Naturality of the distributive law embodies that variable labels are opaque, and that
+the choice of the set of variable labels is not significant. For the algebraic perspective,
+naturality implies that substituting variables for variables preserves equations.
+• The unit axioms are even simpler than naturality in the algebraic setting. They state
+that the variable x, seen as an S-term, with T-term t substituted into it, is equal to the
+term t with all its variables seen as S-term substitutions. This simply means that:
+x[t/x] =U t[xi /xi ]
+Algebraically, this is trivial and so the unit law is handled implicitly in the algebraic
+proofs.
+• The multiplication axioms do not show up directly in the algebraic proofs, but they
+can be spotted by the careful observer. Whenever there is a substitution of T-terms
+in S-terms and all terms involved are more complicated than just variables, that
+would be an application of the multiplication axioms in a categorical proof. Using
+separation, the fact that in a composite theory all terms can be uniquely written as
+a T-term of S-terms, corresponds to following one of the paths in the multiplication
+axioms. A good example is the following compressed line of reasoning taken from
+the proof of Theorem 4.17, which clearly echoes the pattern ST T → T ST → T T S
+seen in the second multiplication axiom:
+s(x0 , t(y3 , y4 ))[t(y1 , y2 )/x0 ]
+=U t(s(t(y1 , y2 ), y3 ), s(t(y1 , y2 ), y4 ))
+=U t(t(s(y1 , y3 ), s(y2 , y3 )), t(s(y1 , y4 ), s(y2 , y4 ))
+Plotkin’s original proof (Varacca & Winskel, 2006) uses the naturality of distributive
+laws and Beck’s unit axioms, but not the multiplication axioms. We see this echoed in the
+proof of Theorem 3.5, which only uses substitutions of variables for variables. The theorems in Section 4 frequently use substitutions of more complicated terms, corresponding
+to the use of the multiplication axioms in a categorical proof. This once again shows the
+differences between the techniques used in the proofs of Section 3 and 4.
+
+42
+
+M. Zwart and D. Marsden
+5.2 Comparing Categorical and Algebraic Proofs
+
+In Plotkin’s original proof, certain cleverly chosen terms are chased around naturality
+diagrams. As part of these arguments, we implicitly need to understand inverse images
+of the action of functions under the application of both monads. If we think about the
+monads involved as being presented by two algebraic theories, this will involve reasoning
+about inverse images of equivalence classes of terms in one theory with variables labelled
+by equivalence classes of terms in a second theory. This clarifies why generalizing this
+argument directly turns out to be awkward to do, and helps to explain the need to restrict
+to the powerset monad in previous generalizations of this approach.
+The proofs in Section 4 implicitly use three iterated applications of the monads involved,
+and so would incur even more complexity. Dealing with these proofs using three layers of
+equivalence classes and inverse images would become simply unmanageable. By using an
+explicitly algebraic approach, we can reason using equational logic, avoiding any explicit
+use of equivalence classes and difficulties with inverse images.
+6 Case Study: Boom Hierarchy
+The Boom hierarchy is a family of monadic data structures related by their corresponding
+algebraic theories. It contains the monads tree, list, multiset and powerset. When we look
+at their algebraic theories we see that they all have the same signature, consisting of a
+constant and a binary operation. Their axioms grow increasingly, as shown in Table 1.
+Table 1. The Boom hierarchy
+theory
+
+unit associative commutative idempotent
+
+tree
+list
+multiset
+powerset
+
+Y
+Y
+Y
+Y
+
+N
+Y
+Y
+Y
+
+N
+N
+Y
+Y
+
+N
+N
+N
+Y
+
+In this section, we will consider different compositions of these monads and find out
+which compositions yield new monads via distributive laws. Studying the patterns of existing and non-existing distributive laws for this hierarchy is what originally inspired the
+search for the various no-go theorems presented in this paper. We now use the same
+hierarchy to demonstrate both the scope and limitations of each of the no-go theorems,
+and their relation to some of the positive results about distributive laws from the literature.
+We first look at the original Boom hierarchy. Later we expand the hierarchy to include
+more exotic data structures that are not used as much as those from the original hierarchy,
+but do give us a better overview of the scope of the various theorems about distributive
+laws. Similar expansions of the Boom hierarchy have been studied in Uustalu (2016).
+Remark 6.1
+The Boom hierarchy is named after the Dutchman H.J. Boom. Lambert Meertens is the
+first to mention this hierarchy in the literature (Meertens, 1986), and he attributes the idea
+to Boom. Also, ‘boom’ happens to be the Dutch word for tree.
+
+No-Go Theorems for Distributive Laws
+
+43
+
+6.1 Original Boom Hierarchy
+For S, T each being one of the monads tree, list, multiset or powerset, we have a complete
+picture of whether there exists a distributive law ST ⇒ T S, shown in Table 2. The positive
+results involve the monads multiset or powerset. These monads are both commutative,
+and hence they combine well with monads described by linear equations, according to
+Manes & Mulry (2007, Theorem 4.3.4). Our Theorem 4.13 proves that these distributive
+laws are unique. The negative result for PP ⇒ PP was already shown by Klin & Salamanca
+(2018) and is confirmed by both our Theorems 3.5 and 4.24. The other negative results
+follow from either Theorem 4.17 or 4.24, and sometimes both, such as the non-existence
+of a distributive law PL ⇒ LP.
+Table 2. Distributive laws for the Boom hierarchy
+Overview of the existence of distributive laws [row][column] ⇒ [column][row] (Y/N), with the
+monads from the Boom hierarchy: tree (B), list (L), multiset (M), and powerset (P). In each case,
+the theorems confirming the results are indicated.
+B
+B
+L
+M
+P
+a
+b
+c
+d
+e
+
+L
+
+M
+
+Na Na Yb
+Na Na Yb
+Na Na Yb
+Na c Nac Nc
+
+P
+Yb
+Yb
+Yb
+Nc d e
+
+Theorem 4.17
+Manes & Mulry (2007, Theorem 4.3.4)
+Theorem 4.24
+Klin & Salamanca (2018, Theorem 3.2)
+Theorem 3.5
+
+6.2 Extended Boom Hierarchy
+Tree, list, multiset and powerset are frequently-used data structures, which makes their
+grouping in the Boom hierarchy so compelling. However, it is rather restrictive if we
+hope to spot any patterns in the (non)-existence of distributive laws. Therefore we take
+a look at an extension of the Boom hierarchy, where instead of incrementally adding
+the properties of associativity, commutativity and idempotence, we look at all possible
+combinations of these properties. This yields the 8 different data structures tree, idempotent
+tree, commutative tree, commutative idempotent tree, list (= associative tree), associative
+idempotent tree, multiset (= associative commutative tree), and powerset (= associative
+commutative idempotent tree). Table 3 shows for which combinations of these there is a
+distributive law, and for which there is not, together with the theorems that prove it.
+We see that it is only in the relatively special circumstances of Manes & Mulry (2007,
+Theorem 4.3.4) that distributive laws exist.
+
+44
+
+M. Zwart and D. Marsden
+
+Table 3. Distributive laws for the extended Boom hierarchy
+Overview of the existence of distributive laws [row][column] ⇒ [column][row] (Y/N), with the
+monads tree (B), idempotent tree (I), commutative tree (C), commutative idempotent tree (CI),
+list/associative tree (L), associative idempotent tree (AI), multiset/associative commutative tree (M),
+and powerset/associative commutative idempotent tree (P). In each case, the theorems confirming the
+results are indicated.
+B
+B
+I
+C
+CI
+L
+AI
+M
+P
+a
+b
+c
+d
+e
+
+I
+
+C
+
+CI
+
+L
+
+AI
+
+M
+
+Na Na Na Na Na Na Yb
+Nac Nac Nac Nace Nac Nac Nc
+Na Na Na Na Na Na Yb
+Nac Nac Nac Nace Nac Nac Nc
+Na Na Na Na Na Na Yb
+Nac Nac Nac Nace Nac Nac Nc
+Na Na Na Na Na Na Yb
+Na c Nac Nac Nace Nac Nac Nc
+
+P
+Yb
+Nce
+Yb
+Nce
+Yb
+Nce
+Yb
+Nc d e
+
+Theorem 4.17
+Manes & Mulry (2007, Theorem 4.3.4)
+Theorem 4.24
+Klin & Salamanca (2018, Theorem 3.2)
+Theorem 3.5
+
+6.3 Fully Extended Boom Hierarchy
+There is no distributive law for the list monad over itself, but as Manes and Mulry pointed
+out, there are at least three distributive laws for the non-empty list monad over itself.
+Allowing the empty structure, or in algebraic terms: a unit, clearly makes an important
+difference. Indeed, Theorems 4.17 and 4.24 rely heavily on it. Consider now the fully extended Boom hierarchy, where every algebraic property (unit, associativity, commutativity,
+and idempotence) is varied to get a total of 16 different data structures. In Table 4, we list
+all combinations of these data structures, and present our knowledge about the existence
+of distributive laws between them. As expected, Theorems 4.17 and 4.24 do not contribute
+any new insights compared to Table 3. Theorem 3.5, however, does have more to offer.
+From this data, there is not yet a clear pattern emerging that allows us to predict whether
+a combination of monads will have a distributive law or not. It is our hope that by completing this table, we will learn more about the predictability or unpredictability of distributive
+laws between monads.
+
+45
+
+No-Go Theorems for Distributive Laws
+Table 4. Distributive laws for the fully extended Boom hierarchy
+
+Overview of the existence of distributive laws [row][column] ⇒ [column][row] (Y/N), with the
+following monads: tree (B), idempotent tree (I), commutative tree (C), commutative idempotent tree
+(CI), list/associative tree (L), associative idempotent tree (AI), multiset/associative commutative tree
+(M), powerset/associative commutative idempotent tree (P), and all their non-empty versions labelled
+by an additional +. Where neither Y or N are indicated, the existence of a distributive law is still
+unknown.
+B
+B
+I
+C
+CI
+L
+AI
+M
+P
+B+
+I+
+C+
+CI+
+L+
+AI+
+M+
+P+
+a
+b
+c
+d
+e
+f
+g
+h
+
+I
+
+C
+
+CI
+
+L
+
+AI
+
+M
+
+Na Na Na Na Na Na Yb
+Nac Nac Nac Nace Nac Nac Nc
+Na Na Na Na Na Na Yb
+Nac Nac Nac Nace Nac Nac Nc
+Na Na Na Na Na Na Yb
+Nac Nac Nac Nace Nac Nac Nc
+Na Na Na Na Na Na Yb
+Na c Nac Nac Nace Nac Nac Nc
+Yb
+Ne
+Yb
+Ne
+Yb
+Ne
+Yb
+e
+N
+
+P
+
+B+
+
+Yb Yh
+Nce
+Yb Yh
+Nce
+Yb Yh
+Nce
+Yb Yh
+Nc d e
+Yb Yf
+Ne
+Yb Yh
+Ne
+Yb Yh
+Ne
+Yb Yh
+Ne
+
+I+
+
+C+
+
+CI+
+
+L+
+
+Ne
+
+P+
+
+Yb
+
+Yb
+Ne
+Yb
+Ne
+Yb
+Ne
+Yb
+Ne
+Yb
+Ne
+Yb
+Ne
+Yb
+Ne
+Yb
+Ne
+
+Yb
+
+Ne
+
+Yb
+
+Ne
+
+Yb
+
+Ne
+
+Yb
+
+Ne
+
+Ne
+
+M+
+
+Yb
+
+Ne
+
+Ne
+
+AI+
+
+Yg
+
+Yb
+Yb
+
+Theorem 4.17
+Manes & Mulry (2007, Theorem 4.3.4)
+Theorem 4.24
+Klin & Salamanca (2018, Theorem 3.2)
+Theorem 3.5
+Manes & Mulry (2008, Example 3.9)
+Manes & Mulry (2007, Example 5.1.10) and Manes & Mulry (2008, Example 4.10)
+Manes & Mulry (2008, Example 4.9)
+
+7 Conclusion and Future Work
+We have shown there can be no distributive law between large classes of monads:
+• Section 3 developed general theorems for demonstrating when distributive laws cannot exist, derived from a classical counterexample of Plotkin.
+• Section 4 went further, showing a new approach, yielding counterexamples beyond
+those possible in Section 3.
+• Section 6 then demonstrated the praciticality of our theorems, by investigating many
+combinations within an extension of the Boom type hierarchy.
+We strongly advocated the use of algebraic methods. These techniques were used for all of
+our proofs. Taking this approach, rather than direct calculations involving Beck’s axioms,
+
+46
+
+M. Zwart and D. Marsden
+
+enabled us to single out the essentials of each proof, so that the resulting theorems could
+be stated in full generality.
+The four no-go theorems together reveal that many combinations of monads from the
+extended Boom hierarchy do not compose via distributive laws. There are, however, still
+gaps to be filled. Since this hierarchy has inspired us in finding many of the theorems
+presented in this paper, completing Table 4 will no doubt lead to more useful insights.
+Another logical direction to expand this work is generalising the results beyond the
+category Set.
+Lastly, we would like to mention that generalising the Plotkin counterexample is not the
+only way for this example to be useful. Julian Salamanca has demonstrated that understanding the general idea behind the example is just as important. He has shown that there
+is no distributive law of the group monad over the powerset monad GP ⇒ PG (Salamanca,
+2018). Although the idea of his proof is very similar to the Plotkin counterexample, the
+proof itself uses techniques beyond our generalisations.
+
+8 Acknowledgements
+We are very grateful to Jeremy Gibbons, Bartek Klin and Hector Miller-Bakewell for
+their helpful discussions, as well as their feedback on earlier versions of our proofs and
+this paper. We also would like to thank Prakash Panangaden, Julian Salamanca, Fredrik
+Dahlqvist, Louis Parlant, Sam Staton, Ohad Kammar, Jules Hedges, and Ralf Hinze for
+inspiring discussions, which all had a positive influence on this paper.
+This work was partially supported by Institute for Information & communications Technology Promotion(IITP) grant funded by the Korea government(MSIT) (No.2015-0-00565,
+Development of Vulnerability Discovery Technologies for IoT Software Security).
+Bibliography
+Awodey, S. (2010). Category theory. Oxford University Press.
+Barr, Michael, & Wells, Charles. (1985). Toposes, triples and theories. Vol. 278. SpringerVerlag New York.
+Barr, Michael, & Wells, Charles. (1990). Category theory for computing science. Vol. 49.
+Prentice Hall New York.
+Beck, Jon. (1969). Distributive laws. Pages 119–140 of: Eckmann, B. (ed), Seminar on
+Triples and Categorical Homology Theory. Springer Berlin Heidelberg.
+Bonsangue, Marcello M., Hansen, Helle Hvid, Kurz, Alexander, & Rot, Jurriaan. (2013).
+Presenting distributive laws. Pages 95–109 of: Heckel, Reiko, & Milius, Stefan (eds),
+Algebra and Coalgebra in Computer Science. Berlin, Heidelberg: Springer Berlin
+Heidelberg.
+Cheng, Eugenia. (2011). Distributive laws for Lawvere theories. Algebra universalis.
+arXiv 1112.3076.
+Dahlqvist, Fredrik, & Neves, Renato. (2018). Compositional semantics for new paradigms:
+Probabilistic, hybrid and beyond. CoRR. arXiv 1804.04145.
+Dahlqvist, Fredrik, Parlant, Louis, & Silva, Alexandra. (2017). Layer by layer - combining
+monads. CoRR. arXiv 1712.01113.
+
+*
+
+47
+
+Hinze, Ralf, & Marsden, Dan. (2016). Dragging proofs out of pictures. Cham: Springer
+International Publishing. Pages 152–168.
+Hudak, Paul, Peyton Jones, Simon, Wadler, Philip, Boutel, Brian, Fairbairn, Jon, Fasel,
+Joseph, Guzmán, Marı́a M, Hammond, Kevin, Hughes, John, Johnsson, Thomas, et al.
+. (1992). Report on the programming language haskell: a non-strict, purely functional
+language version 1.2. ACM SigPlan notices, 27(5), 1–164.
+Jacobs, Bart. (2010). Convexity, duality and effects. Pages 1–19 of: IFIP International
+Conference on Theoretical Computer Science. Springer.
+Klin, Bartek, & Salamanca, Julian. (2018). Iterated covariant powerset is not a monad.
+Proceedings 34th Conference on the Mathematical Foundations of Programming
+Semantics, MFPS 2018.
+Lawvere, F. William. (1963). Functorial semantics of algebraic theories. Proceedings of
+the national academy of sciences of the united states of america, 50(5), 869–872.
+Linton, Fred EJ. (1966). Some aspects of equational categories. Pages 84–94 of:
+Proceedings of the Conference on Categorical Algebra. Springer.
+Mac Lane, Saunders. (2013). Categories for the working mathematician. Vol. 5. Springer
+Science & Business Media.
+Manes, E. G. (1976). Algebraic theories. Vol. 26. Springer.
+Manes, Ernest, & Mulry, Philip. (2007). Monad compositions I: general constructions and
+recursive distributive laws. Theory and applications of categories, 18(04), 172–208.
+Manes, Ernie, & Mulry, Philip. (2008). Monad compositions II: Kleisli strength.
+Mathematical structures in computer science, 18(3), 613643.
+Meertens, Lambert. (1986). Algorithmics, towards programming as a mathematical
+activity. Pages 289–334 of: De Bakker, J.W., Hazewinkel, M., & Lenstra, J.K. (eds),
+Mathematics and Computer Science: Proceedings of the CWI Symposium, November
+1983. CWI monographs. North-Holland.
+Moggi, Eugenio. (1991). Notions of computation and monads. Information and
+computation, 93(1), 55 – 92. Selections from 1989 IEEE Symposium on Logic in
+Computer Science.
+Panangaden, P. (2018). Private communication.
+Peyton Jones, Simon. (2001). Tackling the awkward squad: monadic input/output,
+concurrency, exceptions, and foreign-language calls in Haskell. Amsterdam: IOS press.
+Pages 47–96.
+Pirog, Maciej, & Staton, Sam. (2017). Backtracking with cut via a distributive law and
+left-zero monoids. Journal of functional programming, 27.
+Plotkin, Gordon, & Power, John. (2002). Notions of computation determine monads.
+Pages 342–356 of: International Conference on Foundations of Software Science and
+Computation Structures. Springer.
+Salamanca, J. (2018). Private communication.
+Stone, Marshall Harvey. (1949). Postulates for the barycentric calculus. Annali di
+matematica pura ed applicata, 29(1), 25–30.
+Uustalu, Tarmo. (2016). A divertimento on MonadPlus and nondeterminism. Journal of
+logical and algebraic methods in programming, 85(5, Part 2), 1086 – 1094.
+Varacca, Daniele, & Winskel, Glynn. (2006). Distributing probability over nondeterminism. Mathematical structures in computer science, 16(1), 87–113.
+
+48
+
+M. Zwart and D. Marsden
+
+Wadler, Philip. (1995). Monads for functional programming. Pages 24–52 of: Jeuring,
+Johan, & Meijer, Erik (eds), Advanced Functional Programming. Berlin, Heidelberg:
+Springer Berlin Heidelberg.
+
+

@@ -10,6 +10,12 @@ Format: `<filename> — <bibkey or "no bib entry"> — <authors, short title, ve
 
 - `abadi2018applied.pdf` — abadi2018applied — Abadi, Blanchet, Fournet, The applied pi calculus: mobile values, new names, and secure communication, JACM 2018 (arXiv:1609.03003; subsumes Abadi–Fournet, POPL 2001)
 - `abadicortier2006.pdf` — abadicortier2006 — Abadi, Cortier, Deciding knowledge in security protocols under equational theories, TCS 2006; PDF is the full version, INRIA Research Report RR-5169 (2004) — the only openly available version
+- `abadirogaway2002.pdf` — abadirogaway2002 — Abadi, Rogaway, Reconciling two views of cryptography (the computational soundness of formal encryption), J. Cryptology 2002
+- `abadirogaway2002.txt` — abadirogaway2002 — pdftotext extract of abadirogaway2002.pdf
+- `abate2019journey.pdf` — abate2019journey — Abate, Blanco, Garg, Hriţcu, Patrignani, Thibault, Journey beyond full abstraction: exploring robust property preservation for secure compilation, CSF 2019 (arXiv:1807.04603v6)
+- `abate2019journey.txt` — abate2019journey — pdftotext extract of abate2019journey.pdf
+- `backes2003library.pdf` — backes2003library — Backes, Pfitzmann, Waidner, A composable cryptographic library with nested operations, ACM CCS 2003; archived PDF is the ePrint 2003/015 full version, A universally composable cryptographic library (converted from PostScript)
+- `backes2003library.txt` — backes2003library — pdftotext extract of backes2003library.pdf
 - `backes2007rsim.pdf` — backes2007rsim — Backes, Pfitzmann, Waidner, The reactive simulatability (RSIM) framework for asynchronous systems, Inf. & Comput. 2007
 - `badertscher2020ucgs.pdf` — badertscher2020ucgs — Badertscher, Canetti, Hesse, Tackmann, Zikas, Universal composition with global subroutines, TCC 2020
 - `baelde2022squirrel.pdf` — baelde2022squirrel — Baelde, Delaune, Jacomme, Koutsos, Moreau, An interactive prover for protocol verification (Squirrel), IEEE S&P 2021
@@ -17,6 +23,10 @@ Format: `<filename> — <bibkey or "no bib entry"> — <authors, short title, ve
 - `barthe2017.txt` — barthe2017 — pdftotext extract of barthe2017.pdf
 - `bhargavan2021dystar.pdf` — bhargavan2021dystar — Bhargavan, Bichhawat, Do, Hosseyni, Küsters, Schmitz, Würtele, DY*: A modular symbolic verification framework, EuroS&P 2021
 - `blanchet2016proverif.pdf` — blanchet2016proverif — Blanchet, Modeling and verifying security protocols with the applied pi calculus and ProVerif, Found. & Trends Privacy and Security 2016
+- `bohlunruh2013.pdf` — bohlunruh2013 — Böhl, Unruh, Symbolic universal composability, IEEE CSF 2013; archived PDF is the 107-page full version, IACR ePrint 2013/062
+- `bohlunruh2013.txt` — bohlunruh2013 — pdftotext extract of bohlunruh2013.pdf (the PDF font encoding drops some letters, including c)
+- `bonchi2022.pdf` — bonchi2022 — Bonchi, Sokolova, Vignudelli, The theory of traces for systems with nondeterminism, probability, and termination, LMCS 18(2) 2022 (arXiv:1808.00923v7; extended version of the LICS 2019 paper, bib key bonchi2019)
+- `bonchi2022.txt` — bonchi2022 — pdftotext extract of bonchi2022.pdf
 - `bonchidilavore2025.pdf` — bonchidilavore2025 — Bonchi, Di Lavore, Román, Effectful Mealy machines, LICS 2025 (extended version, arXiv:2410.10627)
 - `broadbent2022.pdf` — broadbent2022 — Broadbent, Karvonen, Categorical composable cryptography, FoSSaCS 2022
 - `broadbent2023.pdf` — broadbent2023 — Broadbent, Karvonen, Categorical composable cryptography: extended version, LMCS 2023
@@ -34,7 +44,13 @@ Format: `<filename> — <bibkey or "no bib entry"> — <authors, short title, ve
 - `capucci2022.txt` — capucci2022 — pdftotext extract of capucci2022.pdf
 - `chevalier2026.pdf` — chevalier2026 — Chevalier, Sageloli, Diving deep into UC, IACR Comm. Cryptology 2026 (ePrint 2025/934)
 - `comfort2026.pdf` — comfort2026 — Comfort, de Felice, Finite observations, infinite behaviour: bicategorical semantics for stateful monoidal processes, arXiv:2607.03996 (2026)
+- `comonlundhcortier2008.pdf` — comonlundhcortier2008 — Comon-Lundh, Cortier, Computational soundness of observational equivalence, ACM CCS 2008; archived PDF is the author-hosted full report, version 2 revised December 2008 (RR-6508; draft cover leaves the report number unset)
+- `comonlundhcortier2008.txt` — comonlundhcortier2008 — pdftotext extract of comonlundhcortier2008.pdf
+- `delaune2009simulation.pdf` — delaune2009simulation — Delaune, Kremer, Pereira, Simulation based security in the applied pi calculus, FSTTCS 2009, LIPIcs 4:169–180
+- `delaune2009simulation.txt` — delaune2009simulation — pdftotext extract of delaune2009simulation.pdf
 - `demay2013.pdf` — demay2013 — Demay, Gaži, Hirt, Maurer, Resource-restricted indifferentiability, EUROCRYPT 2013
+- `dolevyao1983.pdf` — dolevyao1983 — Dolev, Yao, On the security of public key protocols, IEEE Trans. Inf. Theory 1983
+- `dolevyao1983.txt` — dolevyao1983 — pdftotext extract of dolevyao1983.pdf
 - `forster2023.pdf` — forster2023 — Forster, Schröder, Wild, Beohar, Gurke, König, Messing, Quantitative graded semantics and spectra of behavioural metrics, arXiv:2306.01487 (2025)
 - `forster2023.txt` — forster2023 — pdftotext extract of forster2023.pdf
 - `free-gs-monoidal-markov-2204.02284.pdf` — no bib entry — Fritz, Liang, Free gs-monoidal categories and free Markov categories, arXiv:2204.02284 (2023); background reading, not cited in the review
@@ -47,6 +63,8 @@ Format: `<filename> — <bibkey or "no bib entry"> — <authors, short title, ve
 - `fujii2016.pdf` — fujii2016 — Fujii, Katsumata, Melliès, Towards a formal theory of graded monads, FoSSaCS 2016
 - `fujii2016.txt` — fujii2016 — pdftotext extract of fujii2016.pdf
 - `gancher2023ipdl.pdf` — gancher2023ipdl — Gancher, Sojakova, Fan, Shi, Morrisett, A core calculus for equational proofs of cryptographic protocols (IPDL), POPL 2023
+- `goncharov2018.pdf` — goncharov2018 — Goncharov, Schröder, Guarded traced categories, FoSSaCS 2018 (arXiv:1802.08756)
+- `goncharov2018.txt` — goncharov2018 — pdftotext extract of goncharov2018.pdf
 - `gucanetti2007.pdf` — gucanetti2007 — Canetti, Dodis, Pass, Walfish, Universally composable security with global setup, TCC 2007
 - `hofheinz2013-eprint-full.pdf` — hofheinz2013 — Hofheinz, Unruh, Müller-Quade, Polynomial runtime and composability, ePrint 2009/023 full version (variant of hofheinz2013.pdf)
 - `hofheinz2013.pdf` — hofheinz2013 — Hofheinz, Unruh, Müller-Quade, Polynomial runtime and composability, J. Cryptology 2013
@@ -66,11 +84,17 @@ Format: `<filename> — <bibkey or "no bib entry"> — <authors, short title, ve
 - `mardare2018.pdf` — mardare2018 — Mardare, Panangaden, Plotkin, On the axiomatizability of quantitative algebras, LICS 2017 (arXiv:1804.01682)
 - `mardare2018.txt` — mardare2018 — pdftotext extract of mardare2018.pdf
 - `mathoverflow247891.html` — mathoverflow247891 — MathOverflow user goblin, The category of sets and "stateful" functions, MathOverflow Q 247891 (2016)
+- `matt2018.pdf` — matt2018 — Matt, Maurer, Portmann, Renner, Tackmann, Toward an algebraic theory of systems, TCS 2018 (arXiv:1609.04293v2)
+- `matt2018.txt` — matt2018 — pdftotext extract of matt2018.pdf
 - `maurer2002.pdf` — maurer2002 — Maurer, Indistinguishability of random systems, EUROCRYPT 2002
 - `maurer2007.pdf` — maurer2007 — Maurer, Pietrzak, Renner, Indistinguishability amplification, CRYPTO 2007
 - `maurer2011.pdf` — maurer2011 — Maurer, Renner, Abstract cryptography, ICS 2011
 - `maurer2011cc.pdf` — maurer2011cc — Maurer, Constructive cryptography — a new paradigm for security definitions and proofs, TOSCA 2011
 - `maurerrenner2016.pdf` — maurerrenner2016 — Maurer, Renner, From indifferentiability to constructive cryptography (and back), TCC-B 2016
+- `patrignani2024.pdf` — patrignani2024 — Patrignani, Künnemann, Wahby, Cecchetti, Universal composability is robust compilation, TOPLAS 2024; archived PDF is arXiv:1910.08634v3 (Dec 2022), whose theorem numbering the docs cite
+- `patrignani2024.txt` — patrignani2024 — pdftotext extract of patrignani2024.pdf
+- `patrignani2024csf.pdf` — patrignani2024csf — Künnemann, Patrignani, Cecchetti, Computationally bounded robust compilation and universally composable security, CSF 2024 (arXiv:2401.15041v1)
+- `patrignani2024csf.txt` — patrignani2024csf — pdftotext extract of patrignani2024csf.pdf
 - `paulson1998inductive.pdf` — paulson1998inductive — Paulson, The inductive approach to verifying cryptographic protocols, J. Computer Security 1998 (author version, minor corrections 2000)
 - `pavlovic2014chasing.pdf` — pavlovic2014chasing — Pavlovic, Chasing diagrams in cryptography, Lambek Festschrift 2014 (arXiv:1401.6488)
 - `portmann2017.pdf` — portmann2017 — Portmann, Matt, Maurer, Renner, Tackmann, Causal boxes, IEEE Trans. Inf. Theory 2017 (arXiv:1512.02240)
@@ -79,7 +103,16 @@ Format: `<filename> — <bibkey or "no bib entry"> — <authors, short title, ve
 - `ristenpart2011.pdf` — ristenpart2011 — Ristenpart, Shacham, Shrimpton, Careful with composition: limitations of the indifferentiability framework, EUROCRYPT 2011
 - `sargsyan2026.pdf` — sargsyan2026 — Sargsyan, A cubical formalisation of conditional independence, Bayesian conditioning, and Pearl's d-separation soundness, arXiv:2606.20351 (2026)
 - `sargsyan2026.txt` — sargsyan2026 — pdftotext extract of sargsyan2026.pdf
+- `segala1995.pdf` — segala1995 — Segala, Modeling and verification of randomized distributed real-time systems, PhD thesis, MIT 1995 (MIT/LCS/TR-676; retrieved from the Wayback Machine copy of publications.csail.mit.edu)
+- `segala1995.txt` — segala1995 — pdftotext extract of segala1995.pdf (ligatures "fi"/"ff" are dropped)
 - `ssprove2023.pdf` — ssprove2023 — Haselwarter, Rivas, Van Muylder, Winterhalter, Abate, Sidorenco, Hriţcu, Maillard, Spitters, SSProve: A foundational framework for modular cryptographic proofs in Coq, TOPLAS 2023
 - `stubbe2005.pdf` — stubbe2005 — Stubbe, Categorical structures enriched in a quantaloid: categories, distributors and functors, TAC 2005 (arXiv:math/0409473)
 - `stubbe2005.txt` — stubbe2005 — pdftotext extract of stubbe2005.pdf
+- `varacca2006.pdf` — varacca2006 — Varacca, Winskel, Distributing probability over non-determinism, MSCS 16(1) 2006 (author copy from www.cl.cam.ac.uk/~gw104, retrieved from the Wayback Machine)
+- `varacca2006.txt` — varacca2006 — pdftotext extract of varacca2006.pdf
 - `wiesner2025.pdf` — wiesner2025 — Wiesner, Chaoui, Kessler, Pappa, Karvonen, Why quantum state verification cannot be both efficient and secure, arXiv:2411.04767 (2025)
+- `zwart2019nogo.pdf` — zwart2019nogo — Zwart, Marsden, No-go theorems for distributive laws, LICS 2019; archived PDF is arXiv:1811.06460v2 (Dec 2018, 48 pp., titled "Don't try this at home: no-go theorems for distributive laws"), the long preprint whose journal version is zwart2022
+- `zwart2019nogo.txt` — zwart2019nogo — pdftotext extract of zwart2019nogo.pdf
+- `gancher2023ipdl.txt` — gancher2023ipdl — pdftotext extract of gancher2023ipdl.pdf
+- `gancher2023ipdl-tech-report.pdf` — gancher2023ipdl — Gancher, Sojakova, Fan, Shi, Morrisett, A core calculus for equational proofs of cryptographic protocols: full version with appendices (context typing Fig. 18, proofs of Lemma C.2 / Thm C.5), `tech_report.pdf` of github.com/ipdl/ipdl (variant of gancher2023ipdl.pdf)
+- `gancher2023ipdl-tech-report.txt` — gancher2023ipdl — pdftotext extract of gancher2023ipdl-tech-report.pdf

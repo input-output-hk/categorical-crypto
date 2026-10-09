@@ -1,0 +1,1992 @@
+Distributing probability over nondeterminism
+D A N I E L E V A R A C C A1† and G L Y N N W I N S K E L2
+1
+2
+
+Department of Computing, Imperial College London.
+Computer Laboratory, Cambridge University.
+
+Received 24 October 2005
+
+We study the combination of probability and nondeterminism from a categorical point of view. In
+category theory, nondeterminism and probability are represented by suitable monads. Those two
+monads do not combine well, as they are. To overcome this problem we introduce the notion of
+indexed valuations. This notion is used to define a new monad that can be combined with the usual
+nondeterministic monad via a categorical distributive law. We give an equational characterization of
+our construction. We discuss the computational meaning of indexed valuations, and we show how
+they can be used by giving a denotational semantics of a simple imperative language.
+
+1. Introduction
+Nondeterminism and probability are computational effects whose semantics has been thoroughly
+studied. The combination of the two appears to be essential in giving models for concurrent processes (Vardi, 1985; Hansson, 1991; Segala and Lynch, 1995). Denotationally, nondeterminism is
+handled by the notion of powerdomain functor in a suitable category of domains (Plotkin, 1983),
+while probabilistic behaviour is handled by the powerdomain of valuations (Jones and Plotkin,
+1989; Jones, 1990; Kirch, 1993). They happen to be monads, thus fitting the general idea, introduced by Moggi, of monads as models for computational effects (Moggi, 1991). As many other
+computational monads, they are freely generated from suitable equational theories (Plotkin and
+Power, 2002).
+There are various ways of combining two monads. When they are freely generated from equational theories, we can first combine the theories in some way and then freely generate a new
+monad. In (Hyland et al., 2002) three main ways of combining theories are identified: sum, commutative combination, distributive combination. In the first case, the two equational theories are
+combined by joining the operations and the equations, without adding new equations. In the second case, one adds equations expressing that every operation of one theory commutes with every
+operation of the other theory. In the third case, one adds equations expressing distributivity of
+every operation of one theory over every operation of the other theory. This last approach can
+sometimes be followed more categorically using the notion of distributive law (Beck, 1969). The
+† This work was carried out while the first author was PhD student at BRICS, Aarhus, DK.
+
+D. Varacca and G. Winskel
+
+2
+
+leading example is given by the theory of abelian groups and the theory of monoids. Their distributive combination (distributing the monoid over the group) yields the theory of rings. The
+free ring monad can also be obtained by giving a categorical distributive law between the free
+abelian group monad and the free monoid monad.
+The study of the operational semantics of systems combining probability and nondeterminism suggests that, in some cases, probabilistic choice should distribute over nondeterministic
+choice (Morgan et al., 1994; Bandini and Segala, 2001). As we will explain, there is no categorical distributive law between the nondeterministic monad and the probabilistic monad. Two
+solutions are possible at this point.
+We can still form the distributive combination of the equational theories and generate a new
+monad. This is the path followed by Tix (Tix, 1999; Tix et al., 2005) and Mislove (Mislove,
+2000) who, independently, define the notion of geometrically convex powerdomain P T M . When
+X is a real cone (a structure similar to a vector space), P T M (X) is, roughly speaking, the set of
+all convex subsets of X. The nondeterministic choice is interpreted as union followed by convex
+closure. We will briefly recall this construction later.
+The other possibility, the one we follow in this work, is to modify the definition of one of
+the monads, so as to allow the existence of a categorical distributive law. Analysing the reasons
+behind the failure of the distributive law, we are led to define the notion of an indexed valuation.
+Mathematically, indexed valuations arise as a free algebra for an equational theory obtained
+from the theory of valuations by removing one equation. In the category of sets, there exists a
+distributive law between indexed valuations and the finite nonempty powerset. Moreover, indexed
+valuations have an interesting concrete representation. The price we pay is that, since we modify
+the equational characterisation, indexed valuations do not satisfy all the laws usually satisfied by
+probability distributions.
+Besides their categorical justification, indexed valuations have a computational meaning, which
+we present by giving semantics to an imperative language containing both random assignment
+and nondeterministic choice. The operational semantics is given in terms of probabilistic automata. Such a model comes equipped with a notion of a scheduler for resolving the nondeterminism. In the literature there are two main notions of scheduler: deterministic and probabilistic.
+Using indexed valuations, we give a denotational semantics which is adequate with respect to deterministic schedulers. A semantics in terms of the Tix-Mislove construction, instead, is adequate
+with respect to probabilistic schedulers.
+Finally we briefly sketch the various possible ways to extend the construction above to some
+category of domains.
+This work is part of the first author’s PhD thesis (Varacca, 2003). An extended abstract appeared as part of (Varacca, 2002).
+
+2. Background
+In this section we outline some of the mathematical notions we need for our work. We assume a
+working knowledge of Category Theory (MacLane, 1971) and Universal Algebra (Cohn, 1981).
+All notions we need are dealt with in detail in Chapter 2 of (Varacca, 2003). The notation we use
+should be self-explanatory.
+
+Distributing probability over nondeterminism
+
+3
+
+2.1. Monads
+A monad on a category C is an endofunctor T : C → C together with two natural transformations, η T : Id C → T , the unit, and µT : T 2 → T , the multiplication, satisfying the following
+axioms:
+— µT ◦ T η T = Id T = η T T ◦ µT ;
+— µT ◦ T µ T = µT ◦ µT T .
+
+If T is a monad and if f : X → T (Y ), the Kleisli extension f † : T (X) → T (Y ) is defined
+
+as T (X)
+
+T (f )
+
+/ T (T (Y ))
+
+µT
+Y
+
+/ T (Y ). The Kleisli Category of the monad T , denoted by C T has
+f
+
+f
+
+the same objects as C, and X −→Y in CT if and only if X −→T (Y ) in C. The identity is the unit
+of the monad, while composition is defined using the Kleisli extension. Monads can equivalently
+be defined using the Kleisli extension as a primitive notion and deriving the multiplication by
+µTX := Id †T (X) .
+In a category C, an algebra for an endofunctor F is an object A together with a morphism
+k : F (A) → A. An algebra for a monad (T, η T , µT ) is an algebra (A, k) for the functor T ,
+satisfying the following compatibility axioms:
+T
+— k ◦ ηA
+= Id A ;
+— k ◦ T (k) = k ◦ µTA .
+
+φ
+
+Algebras for a monad (T, η T , µT ) in C form a category CT , where a morphism (A, k)−→(A0 , k 0 )
+φ
+
+is given by a morphism A−→A0 such that φ ◦ k = k 0 ◦ T (φ).
+Every adjunction (F, G, η, ) : C → D generates a monad on GF : C → C, with η GF := η
+and µGF := GF . Conversely, given a monad T , there is an adjunction F T a U T : C → CT ,
+where U T is the forgetful functor sending an algebra to its carrier
+(X, k)
+UT :
+
+φ
+
+
+(X 0 , k 0 )
+
+X
+7→
+
+φ
+
+
+X0
+
+while F T sends an object to its multiplication (the free algebra)
+(T X, µTX )
+
+X
+FT: φ
+
+7→
+
+
+X0
+
+T (φ)
+
+
+
+(T X 0 , µTX 0 ) .
+
+This adjunction generates precisely the monad (T, η T , µT ).
+Suppose we have an adjunction (F, G, η, ) : C → D generating a monad (T, η T , µT ). Such
+a monad generates the adjunction (F T , U T , η T , T ). There is a “comparison” functor K : D →
+CT , defined as
+D
+K: f
+
+
+D0
+
+(G(D), G(D ))
+7→
+
+G(f )
+
+
+
+(G(D 0 ), G(D0 ))
+
+D. Varacca and G. Winskel
+
+4
+
+satisfying U T K = G and KF = F T . An adjunction is monadic if the comparison functor K
+defined above is an equivalence of categories. A functor is monadic if it is the right adjoint of a
+monadic adjunction.
+2.2. Free algebras and monads
+Given a category C of algebraic structures defined by an equational theory, the forgetful functor
+U : C → SET has a left adjoint F and is monadic. This means that U F supports a monad
+structure in SET and that C is equivalent to the category of U F -algebras. In such a case the
+monad U F is called the free algebra for the structures in C. It is equivalently characterised
+by the following universal property (where, as customary, we omit the mention of the forgetful
+functor): there exists a family of functions η X : X → F (X), such that for every set X, for
+every structure Z of C, and for every function f : X → Z, there exists a unique morphism
+f : F (X) → Z (the “homomorphic extension”) that satisfies f ◦ η X = f . We say that F (X) is
+the free algebra over X (with respect to C).
+In the following, we present some relevant examples.
+2.3. The nondeterministic monad
+Assume that ∪
+– (formal union) represents some kind of nondeterministic choice operator: A ∪
+–B
+offers to the environment the choice between A and B. Usually such an operator satisfies the
+following equations:
+— A∪
+– B=B ∪
+– A;
+— A∪
+– (B ∪
+– C) = (A ∪
+– B) ∪
+– C;
+— A∪
+– A = A.
+
+Since ∪
+– is associative and commutative, we can introduce the following convention. If X is
+a set where ∪
+– is defined, and (xi )i∈I is a finite family of elements of X, we write
+[
+`a xi
+i∈I
+
+to denote the formal union of all xi ’s. A similar convention will be used for the operation ⊕
+(formal sum) which will also be associative and commutative (but not idempotent).
+A model for the above theory is a semilattice. The category of semilattices is denoted by
+SLAT. It is well known that the free semilattice functor can be concretely represented as (is
+naturally isomorphic to) the finite nonempty powerset functor P : SET → SLAT, where the
+symbol ∪
+– is interpreted as union. If X is a set, Z is a semilattice and f : X → Z is a function,
+the unique homomorphic extension f : P (X) → Z is defined by
+[
+f (Y ) = `a f (y) .
+y∈Y
+
+The corresponding monad P : SET → SET has the following unit and multiplication
+P
+ηX
+(x) =
+
+µP
+X (S) =
+
+{x} ;
+[
+S.
+
+Distributing probability over nondeterminism
+
+5
+
+2.4. The probabilistic monad
+Assume that ⊕p represents a probabilistic choice operator of some programming language:
+A ⊕p B is choosing A with probability p and B with probability (1 − p). This operator comes
+with an equational theory: for example it usually satisfies A ⊕ p A = A, because the choice between two equivalent possibilities is considered to be the same as not making any choice at all.
+Note that this assumes that the act of making the choice is invisible: the coin is always flipped
+behind one’s back.
+We are going to study a more general equational theory, that subsumes the one of the probabilistic choice.
+Definition 2.1. A real cone is an algebra for the following equational theory in the category
+SET (the reason for the numbering will be apparent in the sequel).
+(1) A ⊕ B = B ⊕ A;
+(2) A ⊕ (B ⊕ C) = (A ⊕ B) ⊕ C;
+(3) A ⊕ 0 = A;
+(4) 0A = 0;
+(5) 1A = A;
+(6) p(A ⊕ B) = pA ⊕ pB, p ∈ [0, +∞[;
+(7) p(qA) = (pq)A, p, q ∈ [0, +∞[;
+(13) (p + q)A = pA ⊕ qA, p, q ∈ [0, +∞[.
+
+We call RCONE the category of real cones and homomorphisms.
+In a real cone, the probabilistic choice operator is coded as convex combination: pA⊕(1−p)B.
+We choose to deal with the more general notion of real cone because its equational theory is nicer
+than the theory of the probabilistic choice. We are now going to characterise concretely the free
+real cone.
+Definition 2.2. A discrete valuation on a set X is any function v : X → [0, +∞].
+The support of a discrete valuation v on X is the set
+Supp(v) := {x ∈ X | v(x) > 0} .
+The set of discrete valuations on X is denoted by V ∞ (X). A discrete valuation v on a set X is a
+P
+discrete probability distribution if x∈X v(x) = 1. The set of discrete probability distributions
+1
+on X is denoted by V∞
+(X). Discrete valuations taking values in [0, +∞[ are called weightings
+(Jonsson et al., 2001). A finite valuation is a weighting whose support is finite. The set of finite
+valuations over a set X is denoted by V (X). For each x ∈ X, the finite valuation η x defined by
+
+1 y = x;
+ηx (y) =
+0 y 6= x;
+is called a point valuation.
+Two operations of sum and scalar product are defined pointwise on V (X):
+v ⊕ w(x) = v(x) + w(x);
+pv(x) = p(v(x)), p ∈ [0, +∞[.
+
+D. Varacca and G. Winskel
+
+6
+
+If X is a set, the set V (X) with the pointwise operations defined above is a real cone. Moreover:
+Proposition 2.3. The finite valuations over a set X form the free real cone over X.
+V
+Let f : X → R be a function, where R is a real cone. Define the family of functions η X
+:
+V
+X → V (X) by ηX (x) = ηx The unique real cone homomorphism f : V (X) → R which
+extends f is defined as follows:
+M
+f (ν) =
+ν(x)f (x) .
+x∈Supp(ν)
+
+The multiplication of the generated monad is defined as:
+M
+µVX (Ξ)(x) =
+Ξ(ν)ν(x) .
+ν∈Supp(Ξ)
+
+2.5. Distributive Laws
+A general way for combining two monads is by defining a distributive law (Beck, 1969). Suppose
+we have two monads (T, η T , µT ), (S, η S , µS ) on some category. A distributive law of S over T
+·
+is a natural transformation d : ST −→T S satisfying the following axioms:
+— d ◦ ηS T = T ηS ;
+— d ◦ Sη T = η T S;
+— d ◦ µS T = T µS ◦ dS ◦ Sd;
+— d ◦ SµT = µT S ◦ T d ◦ dT .
+
+·
+
+A distributive law defines a monad
+on the functor T S. If d : ST −→T S is a distributive law,
+
+then T S, η T η S , (µT µS ) ◦ T dS is a monad.
+T ST S
+
+·
+
+T dS
+
+/ T T SS
+
+·
+
+/ TS
+
+µT µS
+
+·
+
+A monad morphism between T and S is a natural transformation α : T −→S which suitably
+commutes with units and multiplications. A lifting of the monad T to the category of S-algebras
+is a monad (T̃ , η T̃ , µT̃ ) on CS , such that, if U S : CS → C is the forgetful functor then
+— U S T̃ = T U S ;
+— U S η T̃ = η T U S ;
+— U S µT̃ = µT U S .
+
+Beck has proved the following theorem (Beck, 1969).
+Theorem 2.4. Suppose we have two monads (T, η T , µT ), (S, η S , µS ) on some category C.
+Then the existence of each one of the following implies the existence of the other two:
+·
+
+1 A distributive law d : ST −→T S.
+·
+2 A multiplication µ : T ST S −→T S, such that
+— (T S, η T η S , µ) is a monad;
+
+·
+
+·
+
+— the natural transformations η T S : S −→T S and T η S : T −→T S, are monad morphisms;
+
+Distributing probability over nondeterminism
+
+7
+
+— the following middle unit law holds:
+T ηS ηT S
+
+/ T ST S
+TS L
+LLL
+LLL
+LL
+µ
+Id T S LLL
+LL
+% 
+TS .
+3 A lifting T̃ of the monad T to CS .
+The way to obtain (2) from (1) has been sketched above. To obtain a lifting from a distributive
+law we define T̃ (A, σ) as the S-algebra
+ST (A)
+
+dA
+
+/ T S(A)
+
+T (σ)
+
+/ T (A) .
+
+Conversely if we have the multiplication µ we can define d by
+ST
+
+η T T Sη S
+
+/ T ST S
+
+µ
+
+/ TS .
+
+If we have a lifting T̃ , we define d by
+T Sη S
+
+/ ST S
+ST OO
+OOO
+OOO
+OOO
+d
+OO'
+TS
+
+USF ST USF S
+
+U S F S U S T̃ F S
+
+T USF S
+
+
+U S T̃ F S ,
+
+U S T̃ F S
+
+where  is the counit of the adjunction F S a U S .
+The correctness of the above constructions is shown by several diagram chases (Beck, 1969).
+When the two monads involved are the free algebras of some equational theory, an equational
+distributive law may or may not correspond to a categorical distributive law. We discuss this issue
+in the next section.
+3. The failure of the distributive law
+Distributing probabilistic choice over nondeterministic choice amounts to the following equation:
+A ⊕p (B ∪
+– C) = (A ⊕p B) ∪
+– (A ⊕p C) .
+Intuitively this expresses indifference to whether the environment chooses before or after the
+probabilistic choice is made. Once we accept the distributive law, the extra convexity law (Bandini
+and Segala, 2001)
+A∪
+–B=A ∪
+–B ∪
+– (A ⊕p B) ∪
+– (B ⊕p A)
+
+must be also accepted, because
+
+A∪
+– B = (A ∪
+– B) ⊕p (A ∪
+– B) = (A ⊕p A) ∪
+– (B ⊕p B) ∪
+– (A ⊕p B) ∪
+– (B ⊕p A).
+If the equational distributive law corresponded to a categorical distributive law, by Beck’s
+theorem (Theorem 2.4) the nondeterministic monad would lift to the category of algebras for the
+
+D. Varacca and G. Winskel
+
+8
+
+probabilistic monad. In the category SET this means that the powerset monad would lift to the
+category of real cones. The convexity law suggests that this is not possible, because not all sets
+satisfy the convexity law. In fact, the following general theorem says that the obvious definition
+of the operations for the powerset cannot satisfy A ⊕ p A = A. Suppose we have an equational
+theory. Take a model X for it. We can extend every operation f of arity n to the subsets of X by
+f (X1 , . . . , Xn ) = {f (x1 , . . . , xn ) | xi ∈ Xi , i ∈ In }.
+Theorem 3.1 (Gautam, 1957). A necessary and sufficient condition for the operations defined
+on the powerset of X to satisfy an equation of the theory is that each individual variable occurs
+at most once on each side of the equation.
+Equations satisfying the above condition are called affine. The equation A⊕ p A = A is not affine,
+thus cannot be satisfied in the powerset. This would not exclude the possibility of lifting the
+operations in a different way, thus obtaining another distributive law. However, it turns out that
+there is no distributive law at all between the two monads. If (P, η P , µP ) is the finite nonempty
+powerset monad, and (V, η V , µV ) is the finite valuation monad in the category SET, we have
+Proposition 3.2. There is no distributive law of V over P .
+Proof. See the Appendix.
+Our solution consists in changing the definition of probabilistic monad by removing the equation A ⊕p A = A. In our presentation, the probabilistic monad is generated by the theory of
+real cones and the probabilistic choice A ⊕p B is coded as convex combination pA ⊕ (1 − p)B.
+We remove the equation pA ⊕ qA = (p + q)A from the theory of real cones. In the category
+SET, the monad freely generated by the new equational theory is called the finite indexed valuation monad IV . By Theorem 3.1, we can lift the operations to the powerset, thus obtaining a
+distributive law. The next section is devoted to this construction.
+4. Indexed valuations
+In this section we present the definition of the indexed valuation monad in the category SET,
+and we show the existence of the categorical distributive law between indexed valuations and the
+finite nonempty powerset.
+4.1. Definition
+We first introduce the concrete characterisation of our construction.
+Definition 4.1. Let X be a set. A discrete indexed valuation (DIV) on X is a pair (Ind, v) where
+Ind : I → X is a function and v is a discrete valuation on I, for some set I.
+Note that we do not require that Ind be injective. This is indeed the main point of this construction: we want to divide the probability of an element among its indices. One possible interpretation is that indices in I represent computations, while elements of X represent observations.
+The semantics we present in Section 6 will confirm this intuition.
+
+Distributing probability over nondeterminism
+
+9
+
+We shall also write xi for Ind(i) and pi for v(i). A discrete indexed valuation ξ := (Ind, v)
+will also be denoted as (xi , pi )i∈I .
+We are now going to define an equivalence relation on the class of DIVs. Recall that Supp(v) =
+{i ∈ I | v(i) > 0}.
+Definition 4.2. Let (Ind, v) = (xi , pi )i∈I and (Ind0 , w) = (yj , qj )j∈J be two discrete indexed
+valuations. We set
+(Ind, v) ∼ (Ind0 , w)
+
+if and only if there exists a bijection h : Supp(v) → Supp(w) such that
+∀i ∈ Supp(v). yh(i) = xi ,
+∀i ∈ Supp(v). qh(i) = pi .
+This says that two DIVs are equivalent up to renaming of the indices, and that only indices
+in the support matter. Indices are used to distinguish between different computations, but their
+precise character is unimportant. What is important is to keep track of the different computations
+there are, and how they relate to observations. Moreover, we may as well ignore computations
+with probability 0.
+From now on we will use the term “discrete indexed valuations” to denote equivalence classes
+under ∼.
+Given a set X and an infinite cardinal number α we define the set IV α (X) as follows:
+IV α (X) := {(xi , pi )i∈I | |I| < α}/ ∼ .
+It is easy to realise that IV α (X) is indeed a set. For every cardinal number β < α, choose a set
+Iβ such that |Iβ | = β. The class {Iβ | β < α} is a set. And clearly IV α (X) is a quotient of
+S
+Iβ
+× [0, +∞]Iβ . In particular IV ℵ0 (X) is the set of discrete indexed valuations whose
+β<α X
+indexing set is finite.
+Definition 4.3. A finite indexed valuation on X is an element of IV ℵ0 (X) for which pi < +∞
+for all indices i ∈ I. The set of finite indexed valuations on X is denoted by IV (X).
+The construction above can be extended to a functor IV : SET → SET as follows. If f : X →
+Y then
+IV (f )([(xi , pi )i∈I ]∼ ) := [(f (xi ), pi )i∈I ]∼ .
+
+It is easy to check that this construction is well defined (i.e. does not depend on the representative).
+From now on we will drop the explicit mention of equivalence classes, and work with representatives to simplify the reading.
+4.2. Equational characterisation
+We define two operations on discrete indexed valuations.
+Definition 4.4. Let ν := (Ind, v) = (xi , pi )i∈I , ξ := (Ind 0 , w) = (yj , qj )j∈J be two DIVs
+on a set X. Assume that I ∩ J = ∅. This is not restrictive, because we can always reindex.
+
+D. Varacca and G. Winskel
+
+10
+
+We define ν ⊕ ξ to be (Ind ∪ Ind 0 , v ∪ w). For p ∈ [0, +∞[ we define pν to be (xi , ppi )i∈I .
+With 0 we denote the DIV whose indexing set is empty.
+Note, in particular, that when p ∈]0, 1[, we have pν ⊕ (1 − p)ν 6∼ ν, because the indexing sets
+do not have the same cardinality.
+Consider the following equational theory:
+(1) A ⊕ B = B ⊕ A;
+(2) A ⊕ (B ⊕ C) = (A ⊕ B) ⊕ C;
+(3) A ⊕ 0 = A;
+(4) 0A = 0;
+(5) 1A = A;
+(6) p(A ⊕ B) = pA ⊕ pB p ∈ [0, +∞[;
+(7) p(qA) = (pq)A p, q ∈ [0, +∞[.
+
+These axioms are almost the ones defining a real cone. The difference is that we have dropped
+the equation (p + q)A = (pA ⊕ qA).
+Definition 4.5. A real quasi-cone is an algebra for the equational theory (1)–(7) in the category
+SET. The category of real quasi-cones is denoted by QCONES.
+Proposition 4.6. The finite indexed valuations over a set X form the free real quasi-cone over
+X.
+Proof. For any set X, it is clear that IV (X) with the operations defined above is a quasi-cone.
+IV
+Define the family of functions ηX
+: X → IV (X) by
+IV
+ηX
+(x) = (x, 1)∗∈{∗} .
+
+Let Q be a quasi-cone and let f : X → Q be a function. We have to show that there is a unique
+IV
+quasi-cone homomorphism f : IV (X) → Q such that f (η X
+(x)) = f (x). The homomorphism
+condition forces us to define
+M
+pi f (xi ) .
+f (xi , pi )i∈I =
+i∈I
+
+Equations (1)–(4) guarantee that the definition does not depend on the representative for
+(xi , pi )i∈I . Equation (5) guarantees that f (x, 1) = f (x). The homomorphism condition for the
+sum (and 0) are obvious, while for the scalar product we have to use equations (6) and (7).
+The above proposition tells us that the functor IV extends to a monad. Its multiplication is as
+follows:
+µIV
+X :
+
+IV (IV (X))
+(((xiλ , piλ )iλ ∈Iλ , πλ )λ∈Λ )
+
+where
+J=
+
+]
+
+λ∈Λ
+
+→
+
+7→
+
+IV (X)
+(xj , qj )j∈J ;
+
+Iλ , qj = pj πλ if j ∈ Iλ .
+
+To simplify the definition of µ, recall that a DIV is in fact an equivalence class. We can therefore assume that Iλ = I for every λ ∈ Λ because we can always reindex and add indices with
+
+Distributing probability over nondeterminism
+
+11
+
+probability 0. Therefore
+((xiλ , piλ )iλ ∈Iλ , πλ )λ∈Λ ∼ ((xλi , pλi )i∈I , πλ )λ∈Λ .
+This allows us to use a simpler expression for the multiplication:
+
+((xλi , pλi )i∈I , πλ )λ∈Λ = (xλi , πλ pλi )(i,λ)∈I×Λ .
+µIV
+X
+4.3. The distributive law
+Since all the equations in the theory of real quasi-cones are affine, Gautam’s theorem guarantees
+that the operations lift to the powerset. Such a lifting boils down to a lifting of the finite nonempty
+powerset monad P to the category of real quasi-cones (IV -algebras). This, by Theorem 2.4,
+·
+guarantees the existence of a distributive law d : IV ◦P −→P ◦ IV .
+We construct this lifting explicitly, in order to show the correspondence of the categorical
+distributive law with the equational one. Recall that a semilattice is a model of the following
+theory:
+(8) A ∪
+–B=B ∪
+– A;
+(9) A ∪
+– (B ∪
+– C) = (A ∪
+– B) ∪
+– C;
+(10) A ∪
+– A = A.
+
+We have seen that the finite nonempty powerset is the free semilattice. Consider now the combined equational theory (1)–(10) augmented with the following equations:
+(11) p(A ∪
+– B) = pA ∪
+– pB;
+(12) A ⊕ (B ∪
+– C) = (A ⊕ B) ∪
+– (A ⊕ C).
+
+Equations (11)–(12) express that the probabilistic operators distribute over the nondeterministic
+one.
+
+Definition 4.7. A quasi-cone semilattice is a model of the theory (1)–(12). The corresponding
+category is denoted by QCS.
+To show that P lifts to a monad in the category of real quasi-cones we show that it is left adjoint
+of the forgetful functor U : QCS → QCONES. The first observation is that when Z is a
+real quasi-cone, then P (Z) is in QCS. By defining sum and multiplication pointwise, it is not
+difficult to verify that all the equations (1)–(12) are satisfied. Then we have to show the following
+universal property: for every real quasi-cone Z, for every quasi-cone semilattice W and for every
+real quasi-cone homomorphism f : Z → W there exists a unique extension f : P (Z) → W
+which is a quasi-cone semilattice homomorphism, and for which f ({z}) = f (z).
+ZE
+EE
+EEf
+EE
+ηP
+EE
+
+"
+_
+_
+_/ W
+P (Z)
+f
+
+The homomorphism condition forces us to define, for Y ⊆ f in Z,
+[
+f (z) ,
+f (Y ) =
+z∈Y
+
+D. Varacca and G. Winskel
+
+12
+
+which gives us uniqueness. It is routine to verify that it is well defined and a homomorphism.
+Since the extension is defined exactly as the extension of the monad P in the category of sets,
+what we have defined is indeed a lifting of P . Using Theorem 2.4, we deduce the existence of
+the distributive law.
+Concretely, for every set X the component dX : IV (P (X)) → P (IV (X)) is defined as
+follows:
+dX ((Si , pi )i∈I ) = {(h(i), pi )i∈I | h : I → X, h(i) ∈ Si } .
+
+Note, in particular, the use of the “choice function” h.
+A direct proof of the fact that the above family of functions is a distributive law can be found
+in (Varacca, 2003).
+5. The convex powerset
+Another solution for combining the nondeterministic and probabilistic monad consists in forming
+the distributive combinations of the theories, thus freely generating a new monad. The convexity
+law suggests a way of representing this construction concretely. This section is inspired by the
+work of Tix and Mislove, although they are concerned with DCPOs, while we work here in the
+category SET.
+5.1. Finitely generated convex sets
+Recall that a real cone is a real quasi-cone satisfying the extra equation
+(13) (p + q)A = pA ⊕ qA.
+Definition 5.1. A subset X of a real cone is convex if for every x, y ∈ X, p ∈ [0, 1], we have
+px ⊕ (1 − p)y ∈ X. Given a set X, its convex closure X is the smallest convex set containing
+X. A convex set X is finitely generated if there exists a finite set X 0 such that X = X0 . Given
+a finite set I, elements xi , i ∈ I, of a real cone and nonnegative real numbers p i , i ∈ I, such that
+P
+L
+i∈I pi = 1, the element
+i∈I pi xi is said to be a convex combination of the x i .
+The following result is standard.
+
+Proposition 5.2. For a set X, we have that X is the set of convex combinations of elements of
+X.
+Definition 5.3. For a real cone Z we define
+PT M (Z) = {Y ⊆ Z | Y is convex and finitely generated} .
+5.2. Equational characterisation
+We characterise the functor PT M as a free construction.
+Definition 5.4. A real cone-semilattice is a model for the theory (1)–(13). The corresponding
+category is called RCS.
+Given a real cone Z, we define the following operations on P T M (Z):
+
+Distributing probability over nondeterminism
+
+13
+
+— pY := {py | y ∈ Y };
+— Y ⊕ Y 0 := {y ⊕ y 0 | y ∈ Y, y 0 ∈ Y 0 };
+— 0 := {0};
+— Y ∪
+– Y 0 := Y ∪ Y 0 = {py ⊕ (1 − p)y 0 | p ∈ [0, 1], y ∈ Y, y 0 ∈ Y 0 }.
+
+The above operations are well defined: if Y, Y 0 are convex sets, it is easy to show that the sets
+pY, Y ⊕ Y 0 , Y ∪
+– Y are also convex; if Y0 , Y00 are finite generators for Y, Y 0 then pY0 is a finite
+generator for pY , Y0 ⊕ Y00 is a finite generator for Y ⊕ Y 0 and Y0 ∪ Y00 is a finite generator for
+Y ∪
+– Y 0.
+The above operations satisfy (1)–(13) so as to make P T M (Z) a real cone-semilattice. The only
+nontrivial ones to verify are (12)-(13): here is where convexity is needed.
+We now show the universal property characterising freeness. For every real cone Z, real conesemilattice H and real cone homomorphism f : Z → H, there exists a unique RCS-morphism
+f : PT M (Z) → H such that f ({z}) = f (z). For every Y ∈ PT M (Z) let Y0 be one of its finite
+generators. Then define
+[
+f (Y ) := `a f (y) .
+y∈Y0
+
+We need to show that the above definition does not depend on the chosen finite generator. This
+requires some lemmas.
+Proposition 5.5. In a real cone-semilattice, if w is a convex combination of y, y 0 then
+y ∪
+– y0 = y ∪
+– y0 ∪
+– w.
+Proof. Let w = py ⊕ (1 − p)y 0 . Then
+y ∪
+– y0
+
+=
+=
+=
+
+p(y ∪
+– y 0 ) ⊕ (1 − p)(y ∪
+– y0)
+
+y ∪
+– y0 ∪
+– (py ⊕ (1 − p)y 0 ) ∪
+– (py 0 ⊕ (1 − p)y)
+y ∪
+– y0 ∪
+– (py ⊕ (1 − p)y 0 )
+
+as in any semilattice, if x = x ∪
+– x0 ∪
+– x00 , then x = x ∪
+– x0 .
+Lemma 5.6. Let H be a real cone-semilattice, let Y 0 , Z0 be finite subsets of H. If Y0 = Z0 , then
+S
+S
+`a Y0 = `a Z0
+
+Proof. We prove this for the simple case where Y 0 = {y, y 0 }, Z0 = {z, z 0 }. The general case
+can be proved in a similar way. We want to prove that y ∪
+– y0 = z ∪
+– z 0 . It is enough to prove
+0
+0
+0
+that y ∪
+–y = y ∪
+–y ∪
+–z ∪
+– z , which, by symmetry, implies our result. Note that, from the
+assumption, z, z 0 must be convex combinations of y, y 0 . The statement is thus a consequence of
+Proposition 5.5.
+S
+Now pick two different finite generators Y0 , Y00 for Y . We want to prove that `a f (Y0 ) =
+S
+`a f (Y00 ). Since f is a homomorphism of real cones we have that f (Y 0 ) = f (Y0 ) = f (Y ).
+S
+S
+Therefore f (Y0 ) = f (Y00 ). By Lemma 5.6 we have `a f (Y0 ) = `a f (Y00 ).
+It is easy to verify that f respects the operations, using the equational distributive laws (11)(12), and the fact that f is already a homomorphism of real cones. Moreover the homomorphism
+condition implies uniqueness.
+We have thus proved the following:
+
+D. Varacca and G. Winskel
+
+14
+
+Proposition 5.7. The operator PT M with the operations as above defines a functor RCONE →
+RCS which is left adjoint of the forgetful functor.
+The combination of the two adjunctions
+/
+SET o ⊥ RCONE o
+
+⊥
+
+/
+
+RCS
+
+gives rise to a monad in SET. Note that the monad P T M on RCONE is not a lifting of the
+monad P , because, in general, convex sets are not finite. Therefore the monad P T M ◦ V on SET
+·
+is not obtained from any distributive law V ◦ P −→P ◦ V .
+6. Semantics of programs
+We give an example of how to use the constructions of the previous sections by giving a denotational semantics to a simple imperative language with probabilistic and nondeterministic
+primitives. We give the language an operational semantics in terms of a simplified version of
+probabilistic automata. We present two denotational semantics: one in terms of indexed valuations and the standard powerset, the other in terms of the standard valuations and the convex
+powerset. We show adequacy theorems relating the first semantics to deterministic schedulers,
+and the second semantics to probabilistic schedulers. Finally we discuss the computational intuition lying behind the mathematics.
+6.1. Probabilistic automata
+Probabilistic automata were introduced as such in (Segala, 1995). Their relationships with other
+probabilistic models are well known (Bartels et al., 2003; Stoelinga, 2002). We are going to adapt
+1
+that general framework to our needs. We recall that if Y is a subset of V ∞
+(X), by Y we denote
+the set of convex combinations of elements of Y .
+Let P⊥ (X) denote P (X) ∪ {∅}. A probabilistic automaton on a set of states X is a function
+1
+k : X → P⊥ (V∞
+(X)) together with an initial state x0 ∈ X. We will use the notation of (Herescu
+and Palamidessi, 2000): whenever ν ∈ k(x) we write
+pi
+
+x(−→xi )i∈I
+
+p
+
+p
+
+where xi ∈ X, i 6= j =⇒ xi 6= xj , and ν(xi ) = pi . We also write −→x for (−→x)i∈{∗} . A finite
+1
+path of a probabilistic automaton is an element in (X × V ∞
+(X))∗ X, written as x0 ν1 x1 . . . νn xn ,
+such that νi (xi ) > 0. The path is deterministic if νi+1 ∈ k(xi ). It is probabilistic if νi+1 ∈ k(xi ).
+The last state of a path s is denoted by l(s). The probability of a path s := x 0 ν1 x1 . . . νn xn is
+defined as
+Y
+Π(s) =
+νi (xi ) .
+1≤i≤n
+
+A probabilistic scheduler for a probabilistic automaton k is a partial function
+1
+1
+S : (X × V∞
+(X))∗ X → V∞
+(X)
+
+such that, if k(l(r)) 6= ∅, then S(r) is defined and S(r) ∈ k(l(r)). Equivalently, a probabilistic
+
+Distributing probability over nondeterminism
+
+15
+
+•x
+kk 0 SSSSSS
+kkk
+SSSS
+k
+k
+kk
+SSSS
+kkk
+k
+SSSS
+k
+k
+k
+◦G
+◦k
+E
+1
+1
+ww GGG 13
+yy EEE 12
+2 yy
+3 ww 1
+GG
+E
+w 3
+EE
+GG
+yy
+ww
+E
+G
+yy
+ww
+•y1
+•z2
+•y2
+•z1
+•z3
+6
+
+
+
+
+
+
+
+6
+
+
+
+
+6
+
+Fig. 1. A probabilistic automaton
+
+scheduler can be defined as a partial function
+1
+1
+S : (X × V∞
+(X))∗ X → V 1 (V∞
+(X)) ,
+
+requiring that Supp(S(r)) ⊆ k(l(r)).
+A deterministic scheduler is a probabilistic scheduler that does not make use of the convex
+combinations. That is for a deterministic scheduler we have S(r) ∈ k(l(r)).
+Now given a state x ∈ X and a scheduler S for k, we consider the set B(k, S) of maximal
+paths, obtained from k by the action of S. That is the paths x 0 ν1 x1 . . . νn xn such that for every
+i < n, νi+1 = S(x0 ν1 . . . xi ), and k(xn ) = ∅. A deterministic scheduler generates deterministic
+paths, a probabilistic scheduler generates probabilistic paths.
+A good way of visualising probabilistic automata is by using alternating trees (Hansson, 1991).
+Figure 1 shows an example of an alternating tree, where black nodes represent states, while
+hollow nodes represent probability distributions. The use of trees instead of graphs is a way of
+keeping track of the paths: a deterministic scheduler is thus a function that, for every black node,
+chooses one of its hollow sons.
+6.2. A simple imperative language
+We present a small imperative language L. It has the following (abstract) syntactic categories:
+— integers Num, ranged over by n;
+— locations Loc, ranged over by X;
+— finite probability distributions over integers Prob, ranged over by χ;
+— arithmetical expressions Aexp, ranged over by a;
+— boolean expressions Bexp, ranged over by b;
+— commands Comm, ranged over by c.
+The (abstract) BNF for the last three syntactic categories are as follows:
+a
+b
+c
+
+::= n | X | a + a | a − a | a ∗ a ;
+
+::= true | false | a ≤ a | ¬b | b ∧ b ;
+
+::= skip | X := a | X := χ| c; c | if b then c else c | c or c .
+
+We also need the notion of state. A state is a function σ : Loc → Num. We call Σ the set of
+states. We call any pair hc, σi a configuration. We denote the set of all configurations by Γ. The
+
+D. Varacca and G. Winskel
+
+16
+1
+
+hskip, σi−→h, σi
+1
+
+hX := a, σi−→h, σ[n/X]i where n = [[a]]σ
+χ(n)
+
+hX := χ, σi(−→h, σ[n/X]i )n∈Num
+p
+
+i
+hc, σi(−→hc
+i , σi i)i∈I
+
+p
+
+i
+0
+hc; c0 , σi(−→hc
+i ; c , σi i)i∈I
+
+1
+
+hif b then c0 else c1 , σi−→hc1 , σi if[[b]]σ = false
+1
+
+hif b then c0 else c1 , σi−→hc0 , σi if[[b]]σ = true
+p
+
+i
+hc, σi(−→γ
+i )i∈I
+
+p
+
+i
+hc or c0 , σi(−→γ
+i )i∈I
+
+pj
+
+hc0 , σi(−→γj )j∈J
+pj
+
+hc or c0 , σi(−→γj )j∈J
+
+Fig. 2. Operational semantics of L
+
+set Γ is ranged over by γ. To make the notation more uniform we introduce (at the metalevel) the
+empty command . We use it with the following meaning:
+h, σi ≡ σ , ; c ≡ c;  ≡ c .
+Consequently, we extend the notion of configuration so that a state σ is a configuration hc, σi
+where c = .
+It is straightforward to define the value of arithmetic and boolean expressions in a given state
+so as to have
+[[a]]σ ∈ Num and [[b]]σ ∈ {true, false} .
+6.3. The operational semantics
+The operational semantics of L is given in terms of probabilistic automata on the set of configurations. For every configuration γ0 we have the probabilistic automaton Mγ0 = (Γ, k, γ0 ) where
+k is defined inductively using the rules in Figure 2.
+Definition 6.1. Let S be a scheduler for Mhc, σi. To simplify the notation we say that S is a
+scheduler for hc, σi. We define B(c, σ, S) to be the set of maximal paths of Mhc, σi generated
+by S. We define Val (S, c, σ) to be the probability distribution such that
+X
+Val (S, c, σ)(σ 0 ) =
+Π(s) .
+s∈B(c,σ,S)
+l(s)=σ 0
+
+We define Ival(S, c, σ) to be the discrete indexed valuation
+(l(s), Π(s))s∈B(c,σ,S) .
+The last definition is a formalisation of the intuitive interpretation of indexed valuations. Here
+the indexing set is the set of paths (the computations) while the elements considered are the final
+states (the observations).
+
+Distributing probability over nondeterminism
+
+[[skip]]σ
+
+=
+
+[[X := a]]σ
+
+=
+
+[[X := χ]]σ
+
+=
+
+[[c0 ; c1 ]]
+
+=
+
+[[c0 or c1 ]]σ
+
+=
+
+[[if b then c0 else c1 ]]σ
+
+=
+
+17
+{(σ, 1)}
+
+{(σ[n/X], 1)} where n = [[a]]σ
+
+{(σ[n/X], χ(n))n∈Supp(χ) }
+[[c1 ]]† ◦ [[c0 ]]
+
+[[c1 ]]σ ∪ [[c0 ]]σ
+(
+[[c0 ]](σ)
+if [[b]]σ = true
+[[c1 ]](σ)
+if [[b]]σ = false
+
+Fig. 3. Denotational semantics of L using indexed valuations
+
+[[skip]]T M σ
+
+=
+
+[[X := a]]T M σ
+
+=
+
+[[X := χ]]T M σ
+
+=
+
+[[c0 ; c1 ]]T M
+
+=
+
+[[c0 or c1 ]]T M σ
+
+=
+
+[[if b then c0 else c1 ]]T M σ
+
+=
+
+{ησ }
+
+{ησ[n/X] } where n = [[a]]σ
+(
+χ(n)
+if σ 0 = σ[n/X]
+0
+λσ ∈ Σ.
+0
+otherwise
+[[c1 ]]†T M ◦ [[c0 ]]T M
+
+[[c1 ]]T M σ ∪
+– [[c0 ]]T M σ
+(
+[[c0 ]]T M (σ)
+if [[b]]σ = true
+[[c1 ]]T M (σ)
+if [[b]]σ = false
+
+Fig. 4. Denotational semantics of L using the convex powerset
+
+One could prove directly (by structural induction on the commands) that Val (S, c, σ) is a
+probability distribution. However, this is also a consequence of the adequacy theorem.
+6.4. Two adequate denotational semantics
+The denotational semantics
+[[c]] : Σ → P (IV (Σ))
+
+is defined in Figure 3. The indexed valuation (σ, p) ∗∈{∗} is denoted as (σ, p). If X, Y are sets
+and f : X → P (IV (Y )) then f † : P (IV (X)) → P (IV (Y )) is the Kleisli extension of f for
+the monad P ◦ IV .
+There is a very tight correspondence between the denotational and the operational semantics.
+Theorem 6.2 (Adequacy). Let c be a command of L and ν be a finite indexed valuation in
+IV (Σ). Then ν ∈ [[c]]σ if and only if there exists a scheduler S for hc, σi s.t. ν = Ival(S, c, σ).
+Proof. See the Appendix.
+The main feature of Theorem 6.2 is the use of deterministic schedulers. A semantics in terms
+of the convex powerset functor is adequate with respect to probabilistic schedulers.
+
+D. Varacca and G. Winskel
+
+18
+•
+
+•0
+◦
+
+◦ UUUU 1/2
+1/2 iiiii
+UUUU
+ii
+UUUU
+i
+i
+i
+ii
+
+1
+
+1
+
+0 L
+LLL
+rrr
+LL
+rrr
+1
+
+•0
+
+◦
+
+•
+
+•
+
+◦
+
+•1
+
+0 L
+LLL
+rrr
+LL
+rrr
+
+◦
+
+◦
+
+•1
+
+•0
+
+1
+
+1
+
+1
+
+◦
+
+•1
+
+Fig. 5. The automaton of c1 ; c2 ; c3
+
+The new denotational semantics [[c]]T M : Σ → PT M (V (Σ)) is defined in Figure 4. Here, if
+X, Y are sets and f : X → PT M (V (Y )) then f † : PT M (V (X)) → PT M (V (Y )) is the Kleisli
+extension of f for the monad PT M ◦ V .
+Theorem 6.3 (Adequacy). Let c be a command of L and ν be a finite valuation in V (Σ). Then
+ν ∈ [[c]]T M σ if and only if there exists a probabilistic scheduler S for hc, σi s.t. ν = Val (S, c, σ)
+Proof. See the Appendix.
+6.5. Discussion
+We have seen the mathematical reasons why there is no distributive law between the functors
+P and V . We can exemplify this with a program in our language. Suppose the denotation of a
+command c is to be defined as a function [[c]] : Σ → P (V (Σ)). If we want it to be compositional,
+we have to define [[c1 ; c2 ]] in terms of [[c1 ]], [[c2 ]]. The first intuitive idea would be to define it as
+X
+
+ν(σ 00 ) · h(σ 00 )(σ 0 ) | ν ∈ [[c1 ]](σ), h : Σ → V (Σ), h(σ 00 ) ∈ [[c2 ]](σ 00 ) .
+[[c1 ; c2 ]](σ) = λσ 0 .
+σ 00 ∈Σ
+
+However, this definition would make sequential composition non-associative. To see this with an
+example, let
+— c1 be the command X := χ, where χ(0) = 1/2, χ(1) = 1/2;
+— c2 be the command X := 0;
+— c3 be the command X := 0 or X := 1;
+and consider the program c1 ; c2 ; c3 .
+In this example we can assume there are only two states: Σ = {0, 1}. For i = 0, 1 we have
+
+— [[c1 ]](i) = { 21 η0 + 12 η1 };
+— [[c2 ]](i) = {η0 };
+— [[c1 ; c2 ]](i) = {η0 };
+— [[c3 ]](i) = {η0 , η1 };
+— [[c2 ; c3 ]](i) = {η0 , η1 }.
+
+Distributing probability over nondeterminism
+
+19
+
+If we read c1 ; c2 ; c3 as c1 ; (c2 ; c3 ), then [[c1 ; c2 ; c3 ]](i) = {η0 , 12 η0 + 12 η1 , η1 }.
+If we read c1 ; c2 ; c3 as (c1 ; c2 ); c3 , then [[c1 ; c2 ; c3 ]](i) = {η0 , η1 }.
+In the second case the function h (which roughly speaking does the job of the scheduler),
+when choosing a valuation in [[c3 ]](0) does not “remember” that the process has reached the state
+0 by two different paths. Therefore we miss one valuation in the final set. When the denotation
+is given in terms of indexed valuations, the function h is given enough information to remember
+this. Indeed, in the case of indexed valuations, h chooses with regard to at the paths, rather than
+only with regard to the states.
+However, a memoryless scheduler can simulate the combination of schedulers with memory by
+flipping a coin. That is why a semantics that is adequate with respect to probabilistic schedulers
+does not need to be given in terms of indexed valuations (see the proofs in the Appendix for
+more details). A similar phenomenon was recently observed in the context of Stochastic Games
+(Chatterjee et al., 2004).
+
+7. Indexed valuations and domains
+In this section, we sketch how to extend the above discussion to domain theory. Recall that a
+domain is a partial order with lubs of directed subsets (and some extra properties). When doing
+universal algebra on domains, instead of equational theories we have inequational theories, while
+operations and homomorphisms are required to be continuous (Abramsky and Jung, 1994).
+Consider the equational theory of semilattices. In the category of continuous domains its free
+algebra functor is known as the Plotkin powerdomain. However, we can also modify the equational theory by adding an extra inequation. If we add A v A ∪
+– B, we obtain the theory of joinsemilattices. The free join-semilattice functor is known as the Hoare powerdomain. If instead we
+add the inequality A ∪
+– B v A, we obtain the theory of meet-semilattices. The corresponding
+free algebra functor is known as the Smyth powerdomain. Being freely generated by a theory, all
+the above functors give rise to monads.
+In the category of continuous domains, the theory of real cones generates the monads of continuous valuations (Jones and Plotkin, 1989; Jones, 1990; Kirch, 1993). In this category, we can
+weaken the theory of real cones by removing the equation pA ⊕ qA = (p + q)A, or by transforming it into an inequation: pA ⊕ qA w (p + q)A or pA ⊕ qA v (p + q)A. Also, we can decide
+whether the scalar multiplication is continuous with the respect to the domain of scalars [0, +∞],
+or not. All these choices have an important effect on the corresponding monad. Some results were
+already presented in (Varacca, 2002; Varacca, 2003), where the existence of certain distributive
+laws is shown, and the relation between indexed valuations and continuous valuations is studied.
+A recent related work is (Mislove, 2005).
+A detailed study of all the cases, with particular attention to a concrete characterisation of the
+monads, is the subject of ongoing work.
+
+Acknowledgments
+Thanks to Andrzej Filinski who showed us how the nondeterministic and probabilistic monads
+are combined in ML. Thanks to Michael Mislove, Gordon Plotkin, Luigi Santocanale and Zhe
+
+D. Varacca and G. Winskel
+
+20
+
+Yang for useful discussions. Daniele Varacca acknowledges the contribution of the Danish National Research Foundation, and of the EPSRC grant GR/T04724/01. Glynn Winskel acknowledges the contribution of the EPSRC grant GR/T22049/01.
+Appendix: Proofs
+We produce here the proofs of three results: Proposition 3.2, which states the lack of a distributive
+law between the nondeterministic and the probabilistic monad, and the two adequacy theorems,
+Theorem 6.2 and Theorem 6.3.
+Proof of Proposition 3.2 The idea for this proof is due to Gordon Plotkin † . Assume that d :
+·
+V P −→P V is a distributive law in the category SET. Consider the set X := {a, b, c, d}. Take
+Ξ := 21 η{a,b} + 12 η{c,d} ∈ V P (X). We try to find out what R := dX (Ξ) is.
+Let Y := {a, b}. Consider:
+
+a 7→ a
+
+
+
+b 7→ b
+f :X→Y f :
+
+c
+7→ a
+
+
+d 7→ b
+
+a
+
+
+
+b
+f0 : X → Y f0 :
+
+c
+
+
+d
+
+7→
+7→
+7→
+7→
+
+a
+b
+b
+a.
+
+We have that V P (f )(Ξ) = ηY = V P (f 0 )(Ξ). Consider the naturality diagram for f :
+Ξ
+_
+
+dX
+
+
+
+/R
+_
+P V (f )
+
+V P (f )
+
+
+η 
+Y
+
+dY
+
+
+/ S.
+
+One of the unit laws for d tells us that S := dY (ηY ) = {ηa , ηb }. Therefore, considering the
+functorial action of P V , we must have that
+
+∅ 6= R ⊆ pηa + (1 − p)ηc | p ∈ [0, 1]} ∪ {qηb + (1 − q)ηd | q ∈ [0, 1] .
+
+Consider the same diagram for f 0 :
+
+Ξ
+_
+
+
+
+dX
+
+V P (f 0 )
+
+/R
+_
+P V (f 0 )
+
+
+η 
+Y
+
+dY
+
+
+/ S.
+
+This tells us that
+
+∅ 6= R ⊆ p0 ηa + (1 − p0 )ηd | p0 ∈ [0, 1]} ∪ {q 0 ηb + (1 − q 0 )ηc | q 0 ∈ [0, 1] .
+† Personal communication
+
+Distributing probability over nondeterminism
+
+21
+
+Combining these pieces of information, we conclude that R must be a nonempty subset of
+{ηa , ηb , ηc , ηd }.
+Now let Z := {a, c}. Consider
+
+a 7→ a
+
+
+
+b 7→ a
+f 00 : X → Z f 00 :
+
+c
+7→ c
+
+
+d 7→ c .
+We have that V P (f 00 )(Ξ) = 12 η{a} + 12 η{c} . Let us look at the naturality diagram for f 00 :
+Ξ
+_
+
+
+
+dX
+
+/R
+_
+
+V P (f 00 )
+
+P V (f 00 )
+
+
+
+1
+1
+η
++
+{a}
+2
+2 η{c}
+
+dZ
+
+
+/ T.
+
+Since T = P V (f 00 )(R), then T must be a nonempty subset of {ηa , ηc }. But the other unit law
+for d tells us that T = d( 12 η{a} + 21 η{c} ) = { 21 ηa + 21 ηc }. Contradiction.
+Before proving Theorem 6.2, we need to look concretely at the Kleisli extension of the monad
+P ◦ IV generated by the distributive law. Let f : X → P (IV (Y )) be a function. Consider a
+finite set of indexed finite valuations A ∈ P (IV (X)). Let f † : P (IV (X)) → P (IV (Y )) be the
+Kleisli extension of f . Wewant to evaluate f † (A).
+When A is a singleton (xi , pi )i∈I , we have that
+ M
+
+f † (xi , pi )i∈I
+=
+pi f (xi ) .
+i∈I
+
+By induction on the size of I one can prove that
+n
+o
+M
+pi f (xi ) =
+(yji , pi qji )(j,i)∈J×I | h : I → IV (Y ), h(i) = (yji , qji )j∈J ∈ f (xi ) .
+i∈I
+
+(Since I and all f (xi ) are finite, it is not restrictive to assume that all the valuations involved are
+indexed by the same set J.) The functions h above are “choice” functions: For every i ∈ I, h
+chooses an indexed valuation in f (xi ).
+For general A we have
+[
+f † ({ξ}) .
+f † (A) =
+ξ∈A
+
+Proof of Theorem 6.2 By structural induction. The nontrivial case is the sequential composition. A maximal path of Mhc0 ; c1 , σi is the concatenation of a maximal path r of Mhc 0 , σi
+together with a maximal path t in Mhc1 , l(r)i, renaming the configurations of the first part.
+Therefore a scheduler S for hc0 ; c1 , σi can be thought of as a scheduler S0 for hc0 , σi together
+with schedulers Sr for hc1 , l(r)i for every maximal path r of Mhc0 , σi.
+By the induction hypothesis we have (l(r), Π(r)) r∈B(c0 ,σ,S0 ) ∈ [[c0 ]]σ and for every r,
+(l(t), Π(t))t∈B(c1 ,l(r),Sr ) ∈ [[c1 ]]l(r). We have to show that
+(l(s), Π(s))s∈B(c0 ;c1 ,σ,S) ∈ [[c1 ]]† ([[c0 ]]σ) .
+
+D. Varacca and G. Winskel
+
+22
+
+Recalling the characterisation of f † , it is enough to show that
+
+(l(s), Π(s))s∈B(c0 ;c1 ,σ,S) ∈ [[c1 ]]† { (l(r), Π(r))r∈B(c0 ,σ,S0 ) } .
+
+Let us define the choice function h : B(c0 , σ, S0 ) → IV (Σ) as
+
+h(r) = (l(t), Π(t))t∈B(c1 ,l(r),Sr ) ∈ [[c1 ]]l(r) .
+Therefore by the characterisation of f † :
+
+(l(t), Π(r)Π(t)) r∈B(c0 ,σ,S0 ) ∈ [[c1 ]]† { (l(r), Π(r))r∈B(c0 ,σ,S0 ) } .
+t∈B(c1 ,l(r),Sr )
+
+Since a path in B(c0 ; c1 , σ, S) is the concatenation of a path r in B(c0 , σ, S0 ) together with a path
+t in B(c1 , l(r), Sr ), we have
+(l(t), Π(r)Π(t)) r∈B(c0 ,σ,S0 ) = (l(s), Π(s))s∈B(c0 ;c1 ,σ,S) .
+t∈B(c1 ,l(r),Sr )
+
+Conversely suppose ν ∈ [[c1 ]]† ([[c0 ]]σ). By the characterisation of the Kleisli extension, there
+exist (σi , pi )i∈I ∈ [[c0 ]]σ and h : I → IV (Σ), h(i) = (yji , qji )j∈J ∈ [[c1 ]]σi such that
+ν = (yji , pi qji )(j,i)∈J×I .
+By the induction hypothesis there exists a scheduler S 0 , such that
+I = B(c0 , σ, S0 ), pr = Π(r), σr = l(r) .
+And for every r ∈ B(c0 , σ, S0 ), there is a scheduler Sr such that
+h(r) = (l(t), Π(t))t∈B(c1 ,l(r),Sr ) .
+Combining S0 with the Sr we obtain a scheduler S for hc0 ; c1 , σi. In order to obtain an overall
+scheduler S, formally we have to define it also for the paths not in B(c 0 , σ, S0 ). But this choice
+can be arbitrary, because it does not influence the definition of B(c 0 ; c1 , σ, S). Therefore
+ν = (yji , pi qji )(j,i)∈J×I = (l(t), Π(r)Π(t)) r∈B(c0 ,σ,S0 )
+t∈B(c1 ,l(r),Sr )
+
+= (l(s), Π(s))s∈B(c0 ;c1 ,σ,S) .
+Before proving Theorem 6.3 we need to look concretely at the Kleisli extension of the monad
+PT M ◦ V defined in Section 5.
+Take f : X → PT M (V (Y )), say f (x) = Bx . We have that f † : PT M (V (X)) → PT M (V (Y ))
+is defined as
+[ M
+f † (A) = `a
+ξ(x)Bx .
+ξ∈A0 x∈X
+
+We have following characterisation:
+(
+)
+[ M
+M
+†
+f (A) =
+ξ(x)Bx =
+ξ(x)h(x) | h : X → V (Y ), h(x) ∈ Bx , ξ ∈ A .
+ξ∈A x∈X
+
+In order to prove it, let’s call
+
+x∈X
+
+Distributing probability over nondeterminism
+
+23
+
+L
+S
+— V := ξ∈A0 x∈X ξ(x)Bx ;
+L
+S
+— U := `aξ∈A0 x∈X ξ(x)Bx ;
+S
+L
+— W := ξ∈A x∈X ξ(x)Bx .
+
+Remember that U = V , by definition. We have to prove that U = W .
+Clearly V ⊆ W . Moreover W is convex:
+M
+M
+M
+pξ(x)h(x) ⊕ (1 − p)ξ 0 (x)h0 (x) .
+ξ 0 (x)h0 (x) =
+ξ(x)h(x) ⊕ (1 − p)
+p
+x∈X
+
+x∈X
+
+x∈X
+
+0
+
+(1−p)ξ (x) 0
+Define ξ 00 = pξ ⊕ (1 − p)ξ 0 ∈ A, and h00 (x) = ξpξ(x)
+00 (x) h(x) +
+ξ 00 (x) h (x). Since Bx is convex,
+00
+00
+00
+then h (x) ∈ Bx . (If ξ (x) = 0 then h (x) can be set equal to any element of Bx .) We have
+
+ξ 00 (x)h00 (x) = pξ(x)h(x) ⊕ (1 − p)ξ 0 (x)h0 (x) .
+Therefore U ⊆ W .
+L
+L
+For the other direction take x∈X ξ(x)h(x). We know that ξ = i∈I pi ξi with ξi ∈ A0 . So
+M M
+MM
+M
+ξi (x)h(x)
+pi
+pi ξi (x)h(x) =
+ξ(x)h(x) =
+x∈X i∈I
+
+x∈X
+
+i∈I
+
+x∈X
+
+which is a convex combination of elements of V .
+It is worth making the following observation. Suppose f : X → P T M (V (Y )) is such that the
+range of f contains only probability distributions (rather than general finite valuations). Suppose
+W is a finitely generated convex sets containing only probability distributions. Then, it is not
+difficult to show that f † (W ) contains only probability distributions. This observation can be
+used to show that the denotational semantics of L uses probability distributions only.
+Proof of Theorem 6.3 By structural induction. Note that the probabilistic schedulers are necessary for the semantics of the nondeterministic choice, because the operator ∪
+– is defined as
+union followed by convex closure.
+Again the nontrivial case is sequential composition. Take a scheduler S for hc 0 ; c1 , σi. Such
+an S can be thought of as a scheduler S0 for hc0 , σi together with schedulers Sr for hc1 , l(r)i for
+every maximal path in r of Mhc0 , σi.
+By the induction hypothesis we have that Val (S0 , c0 , σ) ∈ [[c0 ]]T M σ and that for every r,
+Val (Sr , c1 , l(r)) ∈ [[c1 ]]T M l(r). We have to show that
+X
+Π(s) ∈ [[c1 ]]†T M ([[c0 ]]T M σ) .
+λσ 0 .
+l(s)=σ 0
+s∈B(c0 ;c1 ,σ,S)
+
+Recall the characterisation of the Kleisli extension: if f : X → P T M (V (Y )), then
+(
+)
+M
+†
+f (A) =
+ξ(x)h(x) | h : X → V (Y ), h(x) ∈ f (x), ξ ∈ A
+x∈X
+
+To prove our claim it is then enough to show that
+X
+Π(s) ∈ [[c1 ]]†T M ( { Val(S0 , c0 , σ) }) .
+λσ 0 .
+l(s)=σ 0
+s∈B(c0 ;c1 ,σ,S)
+
+D. Varacca and G. Winskel
+
+24
+
+Let us define h : Σ → V (Σ) as
+h(σ 00 ) =
+
+X
+
+Π(r)
+Val (Sr , c1 , σ 00 ) .
+Val (S0 , c0 , σ)(σ 00 )
+
+X
+
+Π(r) = Val (S0 , c0 , σ)(σ 00 ) .
+
+X
+
+Π(r)
+=1.
+Val (S0 , c0 , σ)(σ 00 )
+
+l(r)=σ 00
+r∈B(c0 ,σ,S0 )
+
+Remember that, by definition:
+
+l(r)=σ 00
+r∈B(c0 ,σ,S0 )
+
+Therefore
+l(r)=σ 00
+r∈B(c0 ,σ,S0 )
+
+Since [[c1 ]]T M σ 00 is convex, then h(σ 00 ) ∈ ([[c1 ]]T M σ 00 ). Therefore, by the characterisation of the
+Kleisli extension,
+X
+Val (S0 , c0 , σ)(σ 00 )h(σ 00 ) ∈ [[c1 ]]†T M ( { Val(S0 , c0 , σ) }) .
+σ 00 ∈Σ
+
+But
+
+X
+
+Val (S0 , c0 , σ)(σ 00 )h(σ 00 )(σ 0 )
+
+σ 00 ∈Σ
+
+=
+
+
+
+X 
+
+
+
+00
+
+σ ∈Σ
+
+=
+
+
+
+X 
+
+
+
+00
+
+σ ∈Σ
+
+=
+
+
+
+X 
+
+
+
+00
+
+σ ∈Σ
+
+
+
+X
+
+l(r)=σ 00
+r∈B(c0 ,σ,S0 )
+
+
+
+Π(r) 
+
+
+X
+
+
+
+l(r)=σ 00
+r∈B(c0 ,σ,S0 )
+
+
+Π(r)
+00
+0 
+Val
+(S
+,
+c
+,
+σ
+)(σ
+)
+
+r
+1
+Val (S0 , c0 , σ)(σ 00 )
+
+
+
+X
+
+l(r)=σ 00
+r∈B(c0 ,σ,S0 )
+
+
+Π(r)
+
+
+00
+Val (S0 , c0 , σ)(σ ) 
+
+X
+
+l(r)=σ 00
+r∈B(c0 ,σ,S0 )
+
+
+
+X
+
+l(r)=σ 00
+r∈B(c0 ,σ,S0 )
+
+=
+
+
+Π(r)
+
+
+Val (S0 , c0 , σ)(σ 00 )  
+
+
+
+Π(r) Val(Sr , c1 , σ 00 )(σ 0 )
+
+
+l(r)=σ 00
+r∈B(c0 ,σ,S0 )
+
+
+
+X 
+
+
+
+00
+
+σ ∈Σ
+
+X
+
+X
+
+l(r)=σ 00
+r∈B(c0 ,σ,S0 )
+
+
+
+
+
+
+
+Π(r) Val(Sr , c1 , σ 00 )(σ 0 )
+
+
+
+
+
+Π(r) Val(Sr , c1 , σ 00 )(σ 0 )
+
+
+Distributing probability over nondeterminism
+
+=
+
+X 
+
+
+
+00
+
+σ ∈Σ
+
+=
+
+X
+
+l(r)=σ 00
+r∈B(c0 ,σ,S0 )
+
+25
+
+
+
+
+Π(r) 
+
+
+l(t)=σ 0
+t∈B(c1 ,σ 00 ,Sr )
+
+
+
+X
+
+r∈B(c0 ,σ,S0 )
+
+=
+
+X
+
+
+
+
+
+Π(r) 
+
+
+X
+
+l(t)=σ 0
+t∈B(c1 ,l(r),Sr )
+
+X
+
+Π(s) ,
+
+
+
+Π(t)
+
+
+
+
+
+Π(t)
+
+
+l(s)=σ 0
+s∈B(c0 ;c1 ,σ,S)
+
+and the claim is proved. For the last step, note that a path s ∈ B(c 0 ; c1 , σ, S) is the concatenation
+of a path r ∈ B(c0 , σ, S0 ) together with a path t ∈ B(c1 , l(r), Sr ).
+Conversely, suppose that ν ∈ [[c1 ]]†T M ([[c0 ]]T M σ). Then there exist ξ ∈ [[c0 ]]T M σ and h : Σ →
+P
+00
+00
+V (Σ) such that h(σ 00 ) ∈ [[c1 ]]T M σ 00 and ν =
+σ 00 ξ(σ )h(σ ). By the induction hypothesis
+there exist schedulers S0 , Sσ00 such that ξ = Val (S0 , c0 , σ), and h(σ 00 ) = Val (Sσ00 , c1 , σ 00 ).
+As earlier with deterministic schedulers, we combine them to get a scheduler S such that ν =
+Val (S, c0 ; c1 , σ). Notice that in this case the combined scheduler has some memoryless character: it behaves the same for every subautomaton starting at a configuration hc 1 , σ 00 i, regardless of
+the previous history.
+
+References
+Abramsky, S. and Jung, A. (1994). Domain theory. In Handbook of Logic in Computer Science, volume 3.
+Clarendon Press.
+Bandini, E. and Segala, R. (2001). Axiomatizations for probabilistic bisimulation. In Proceedings of 28th
+ICALP, volume 2076 of LNCS, pages 370–381. Springer.
+Bartels, F., Sokolova, A., and de Vink, E. (2003). A hierarchy of probabilistic system types. In Electronic
+Notes in Theoretical Computer Science, volume 82. Elsevier.
+Beck, J. (1969). Distributive laws. In Seminar on Triples and Categorical Homology Theory, volume 80 of
+Lecture Notes in Mathematics, pages 119–140. Springer.
+Chatterjee, K., de Alfaro, L., and Henzinger, T. A. (2004). Trading memory for randomness. In Proceedings
+of first QEST, pages 206–217.
+Cohn, P. M. (1981). Universal Algebra. Reidel.
+Gautam, N. (1957). The validity of equations of complex algebras. Archiv f ür Mathematische Logik und
+Grundlagenforschung, 3:117–124.
+Hansson, H. (1991). Time and Probability in Formal Design of Distributed systems. PhD thesis, Uppsala
+University.
+Herescu, M. and Palamidessi, C. (2000). Probabilistic asynchronous π-calculus. In Proceedings of 3rd
+FoSSaCS, volume 1784 of LNCS, pages 146–160. Springer.
+Hyland, M., Plotkin, G. D., and Power, J. (2002). Combining computational effects: Commutativity and
+sum. In Proceedings of IFIP TCS, pages 474–484. Kluwer.
+
+D. Varacca and G. Winskel
+
+26
+
+Jones, C. (1990). Probabilistic Non-determinism. PhD thesis, University of Edinburgh.
+Jones, C. and Plotkin, G. D. (1989). A probabilistic powerdomain of evaluations. In Proceedings of 4th
+LICS, pages 186–195. IEEE Computer Society.
+Jonsson, B., Larsen, K., and Yi, W. (2001). Probabilistic extensions of process algebras. In Handbook of
+Process Algebras. Elsevier.
+Kirch, O. (1993). Bereiche und Bewertungen. Master’s thesis, Technische Hochschule Darmstadt.
+MacLane, S. (1971). Categories for the Working Mathematician. Springer.
+Mislove, M. (2000). Nondeterminism and probabilistic choice: Obeying the law. In Proceedings of 11th
+CONCUR, volume 1877 of LNCS, pages 350–364. Springer.
+Mislove, M. (2005). Discrete random variables over domains. In Proceedings of 32nd ICALP, volume 3580
+of LNCS. Springer.
+Moggi, E. (1991). Notions of computation and monads. Information and Computation, 93(1):55–92.
+Morgan, C. et al. (1994). Refinement-oriented probability for CSP. Technical Report PRG-TR-12-94,
+Oxford University Computing Laboratory.
+Plotkin, G. D. (1983). Domains. University of Edinburgh.
+Plotkin, G. D. and Power, J. (2002). Notions of computation determine monads. In Proc of 5th FOSSACS,
+volume 2303 of LNCS, pages 342–256. Springer.
+Segala, R. (1995). Modeling and Verification of Randomized Distributed Real-Time Systems. PhD thesis,
+M.I.T.
+Segala, R. and Lynch, N. (1995). Probabilistic simulations for probabilistic processes. Nordic Journal of
+Computing, 2(2):250–273. An extended abstract appears in Proceedings of 5th CONCUR, volume 836
+of LNCS, pages 481–496. Springer.
+Stoelinga, M. (2002). An introduction to probabilistic automata. Bulletin of the European Association for
+Theoretical Computer Science, 78:176–198.
+Tix, R. (1999). Continuous D-Cones: Convexity and Powerdomain Constructions. PhD thesis, Technische
+Universität Darmstadt.
+Tix, R., Keimel, K., and Plotkin, G. D. (2005). Semantic domains for combining probability and nondeterminism. Electronic Notes in Theoretical Computer Science, 129:1–104.
+Varacca, D. (2002). The powerdomain of indexed valuations. In Proceedings of 17th LICS. IEEE Computer
+Society.
+Varacca, D. (2003). Probability, Nondeterminism and Concurrency. Two Denotational Models for Probabilistic Computation. PhD thesis, BRICS - Aarhus University. Available at www.brics.dk/DS/03/14.
+Vardi, M. Y. (1985). Automatic verification of probabilistic concurrent finite-state programs. In Proceedings
+of 26th FOCS, pages 327–338.
+
+

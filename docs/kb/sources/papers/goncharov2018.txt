@@ -1,0 +1,1812 @@
+Guarded Traced Categories
+Sergey Goncharov and Lutz Schröder
+
+arXiv:1802.08756v1 [cs.LO] 23 Feb 2018
+
+Friedrich-Alexander-Universität Erlangen-Nürnberg
+
+Abstract. Notions of guardedness serve to delineate the admissibility of
+cycles, e.g. in recursion, corecursion, iteration, or tracing. We introduce
+an abstract notion of guardedness structure on a symmetric monoidal
+category, along with a corresponding notion of guarded traces, which are
+defined only if the cycles they induce are guarded. We relate structural
+guardedness, determined by propagating guardedness along the operations of the category, to geometric guardedness phrased in terms of a
+diagrammatic language. In our setup, the Cartesian case (recursion) and
+the co-Cartesian case (iteration) become completely dual, and we show
+that in these cases, guarded tracedness is equivalent to presence of a
+guarded Conway operator, in analogy to an observation on total traces by
+Hasegawa and Hyland. Moreover, we relate guarded traces to unguarded
+categorical uniform fixpoint operators in the style of Simpson and Plotkin.
+Finally, we show that partial traces based on Hilbert-Schmidt operators
+in the category of Hilbert spaces are an instance of guarded traces.
+
+1
+
+Introduction
+
+In models of computation, various notions of guardedness serve to control cyclic
+behaviour by allowing only guarded cycles, with the aim to ensure properties such
+as solvability of recursive equations or productivity. Typical examples are guarded
+process algebra specifications [29,6], coalgebraic guarded (co-)recursion [34,27],
+finite delay in online Turing machines [9], and productive definitions in intensional
+type theory [1,30], but also contractive maps in (ultra-)metric spaces [24].
+A highly general model for unrestricted cyclic computations, on the
+other hand, are traced monoidal categories [22]; besides recursion and iteration, they cover further kinds
+of cyclic behaviour, e.g. in Girard’s Geometry of Interaction [14,4] and quantum programming [3,35]. In
+the present paper we parametrize the framework of
+traced symmetric monoidal categories with a notion
+Fig. 1: Guarded trace
+of guardedness, arriving at (abstractly) guarded traced
+categories, which effectively vary between two extreme cases: symmetric monoidal
+categories (nothing is guarded) and traced symmetric monoidal categories (everything is guarded). In terms of the standard diagrammatic language for traced
+monoidal categories, we decorate input and output gates of boxes to indicate
+guardedness; the diagram governing trace formation would then have the general
+form depicted in Figure 1 – that is, we can only form traces connecting guarded
+
+(black) output gates to input gates that are unguarded (black), i.e. not assumed
+to be already guarded.
+We provide basic structural results on our notion of abstract guardedness,
+and identify a wide array of examples. Specifically, we establish a geometric
+characterization of guardedness in terms of paths in diagrams; we identify a
+notion of guarded ideal, along with a construction of guardedness structures from
+guarded ideals and simplifications of this construction for the (co-)Cartesian and
+the Cartesian closed case; and we describe ‘vacuous’ guardedness structures where
+traces do not actually generate proper diagrammatic cycles. In terms of examples,
+we begin with the case where the monoidal structure is either product (Cartesian),
+corresponding to guarded recursion, or coproduct (co-Cartesian), for guarded
+iteration; the axioms for guardedness allow for a basic duality that indeed makes
+these two cases precisely dual. For total traces in Cartesian categories, Hasegawa
+and Hyland observed that trace operators are in one-to-one correspondence
+with Conway fixpoint operators [18,19]; we extend this correspondence to the
+guarded case, showing that guarded trace operators on a Cartesian category
+are in one-to-one correspondence with guarded Conway operators. In a more
+specific setting, we relate guarded traces in Cartesian categories to unguarded
+categorical uniform fixpoints as studied by Crole and Pitts [11] and by Simpson
+and Plotkin [38,39]. Concluding with a case where the monoidal structure is a
+proper tensor product, we show that the partial trace operation on (infinitedimentional) Hilbert spaces is an instance of vacuous guardedness; this result
+relates to work by Abramsky, Blute, and Panangaden on traces over nuclear
+ideals, in this case over Hilbert-Schmidt operators [2].
+Related work Abstract guardedness serves to determine definedness of a
+guarded trace operation, and thus relates to work on partial traces. We discuss
+work on nuclear ideals [2] in Section 6. In partial traced categories [17,26], traces
+are governed by a partial equational version (consisting of both strong and
+directed equations) of the Joyal-Street-Verity axioms; morphisms for which trace
+is defined are called trace class. A key difference to the approach via guardedness
+is that being trace class applies only to morphisms with inputs and outputs of
+matching types while guardedness applies to arbitrary morphisms, allowing for
+compositional propagation. Also, the axiomatizations are incomparable: Unlike
+for trace class morphisms [17, Remark 2.2], we require guardedness to be closed
+under composition with arbitrary morphisms (thus covering contractivity but not,
+e.g., monotonicity as in the modal µ-calculus); on the other hand, as noted by
+Jeffrey [21], guarded traces, e.g. of contractions, need not satisfy Vanishing II as
+a Kleene equality as assumed in partial traced categories. Some approaches treat
+traces as partial over objects [8,20]. In concrete algebraic categories, partial traces
+can be seen as induced by total traces in an ambient category of relations [5].
+We discuss work on guardedness via endofunctors in Remark 23.
+
+2
+
+Preliminaries
+
+We recall requisite categorical notions; see [25] for a comprehensive introduction.
+
+Symmetric Monoidal Categories A symmetric monoidal category pC, b, Iq
+consists of a category C (with object class |C|), a bifunctor b (tensor product),
+and a (tensor) unit I P |C|, and coherent isomorphisms witnessing that b is,
+up to isomorphism, a commutative monoid structure with unit I. For the latter,
+we reserve the notation αA,B,C : pA b Bq b C – A b pB b Cq (associator ),
+γA,B : A b B – B b A (symmetry), and υA : I b A – A (left unitor ); the right
+unitor υ̂A : A b I – A is expressible via the symmetry. A symmetric monoidal
+category is Cartesian if the monoidal structure is finite product (i.e. b “ ˆ, and
+I “ 1 is a terminal object), and, dually, co-Cartesian if the monoidal structure
+is finite coproduct (i.e. b “ `, and I “ ∅ is an initial object). Coproduct
+injections are written ini : Xi Ñ X1 ` X2 (i “ 1, 2), and product projections pri :
+X1 ˆX2 Ñ Xi . Various notions of algebraic tensor products also induce symmetric
+monoidal structures; see Section 6 for the case of Hilbert spaces. One has an
+obvious expression language for objects and morphisms in symmetric monoidal
+categories [37], the former obtained by postulating basic objects and closing under
+I and b, and the latter by postulating basic morphisms of given profile and closing
+under b, I, composition, identities, and the monoidal isomorphisms, subject
+to the evident notion of well-typedness. Morphism expressions are conveniently
+represented as diagrams consisting of boxes representing the basic morphisms,
+with input and output gates corresponding to the given profile. Tensoring is
+represented by putting boxes on top of each other, and composition by wires
+connecting outputs to inputs [37]. In a traced symmetric monoidal category one
+has an additional operation (trace) that essentially enables the formation of loops
+in diagrams, as in Figure 1 (but without decorations).
+Monads and (Co-)algebras A(n F -)coalgebra for a functor F : C Ñ C
+is a pair pX, f : X Ñ F Xq where X P |C|, thought of as modelling states and
+generalized transitions [34]. A final coalgebra is a final object in the category of
+coalgebras (with C-morphisms h : X Ñ Y such that pF hqf “ gh as morphisms
+pX, f q Ñ pY, gq), denoted pνF, out : νF Ñ F νF q if it exists. Dually, an F -algebra
+has the form pX, f : F X Ñ Xq. A monad T “ pT, µ, ηq on a category C consists
+of an endofunctor T on C and natural transformations η : Id Ñ T (unit) and
+µ : T 2 Ñ T (multiplication) subject to standard equations [25]. As observed by
+Moggi [32], monads can be seen as capturing computational effects of programs,
+with T X read as a type of computations with side effects from T and results
+in X. In this view, the Kleisli category CT of T, which has the same objects as
+C and HomCT pX, Y q “ HomC pX, T Y q, is a category of side-effecting programs.
+A monad is strong if it is equipped with a strength, i.e. a natural transformation
+X ˆ T Y Ñ T pX ˆ Y q satisfying evident coherence conditions (e.g. [32]). A T algebra pA, aq is an (Eilenberg-Moore) T-algebra (for the monad T) if additionally
+a η “ id and apT aq “ aµA ; the category of T-algebras is denoted CT .
+
+3
+
+Guarded Categories
+
+We now introduce our notion of guarded structure. A standard example of
+guardedness are guarded definitions in process algebra. E.g. in the definition
+
+A
+A
+
+B
+
+D
+
+B
+
+A
+
+C
+
+A
+
+F
+E
+
+D
+C
+
+B'
+B
+A'
+A
+
+D'
+D
+C'
+C
+
+Fig. 2: Axioms of guarded categories
+P “ a.P , the right hand occurrence of P is guarded, ensuring unique solvability
+(by a process that keeps outputting a). A further example is contractivity of
+maps between complete metric spaces. We formulate abstract closure properties
+for partial guardedness where only some of the inputs and outputs of a morphism
+are guarded. Specifically, we distinguish guarded outputs and guarded inputs (D
+and B, respectively, in the following definition), with the intended reading that
+guarded outputs yield guarded data provided guarded data is already provided
+at guarded inputs, while unguarded inputs may be fed arbitrarily.
+Definition 1 (Guarded category). An (abstractly) guarded category is a
+symmetric monoidal category pC, b, Iq equipped with distinguished subsets
+Hom‚ pA b B, C b Dq Ď HompA b B, C b Dq of partially guarded morphisms for
+A, B, C, D P |C|, satisfying the following conditions:
+(unib ) γI,A P Hom‚ pI b A, A b Iq;
+(vacb ) f b g P Hom‚ pA b B, C b Dq for all f : A Ñ C, g : B Ñ D;
+(cmpb ) g P Hom‚ pA b B, E b F q and f P Hom‚ pE b F, C b Dq imply f g P
+Hom‚ pA b B, C b Dq;
+(parb ) for f P Hom‚ pA b B, C b Dq, g P Hom‚ pA1 b B 1 , C 1 b D1 q, the evident
+transpose of f b g is in Hom‚ ppA b A1 q b pB b B 1 q, pC b C 1 q b pD b D1 qq.
+We emphasize that Hom‚ pA b B, C b Dq is meant to depend individually on A,
+B, C, D and not just on A b B and C b D.
+One easily derives a weakening rule stating that if f P Hom‚ ppA b A1 q b B, C b
+pD1 bDqq, then the obvious transpose of f is in Hom‚ pAbpA1 bBq, pC bD1 qbDq.
+We extend the standard diagram language for symD
+B
+metric monoidal categories (Section 2), representing
+A
+C
+morphisms f P Hom‚ pAbB, C bDq by decorated boxes
+as shown on the right, with black bars marking the unguarded input gates A and
+the guarded output gates D. Weakening then corresponds to shrinking the black
+bars of decorated boxes. Figure 2 depicts the above axioms in this language. Solid
+boxes represent the assumptions, while dashed boxes represent the conclusions.
+The latter only occur in the derivation process and do not form part of the actual
+diagrams representing concrete morphisms. We silently identify object expressions
+and sets of gates in diagrams. Given a (well-typed) morphism expression e, a
+judgement e P Hom‚ pA b B, C b Dq, called a guardedness typing of e, is derivable
+if it can be derived from the assumed guardedness typing of the constituent basic
+boxes of e using the rules in Definition 1. We have an obvious notion of (directed)
+paths in diagrams; a path is guarded if it passes some basic box f through an
+unguarded input gate and a guarded output gate (intuitively, guardedness is
+
+(vacˆ )
+
+f :XÑZ
+f pr1 : X ˆ Y Ñpr2 Z
+
+(vac` )
+
+f :XÑZ
+in1 f : X Ñin2 Z ` Y
+
+f : X ˆ Y Ñpr2 Z
+
+f : X Ñin2 Y ` Z
+
+σ
+
+(cmpˆ )
+
+g:V Ñ X
+h:V ÑY
+f hg, hi : V Ñσ Z
+
+(cmp` )
+
+g : Y Ñσ V
+h:ZÑV
+rg, hs f : X Ñσ V
+
+(parˆ )
+
+f : X Ñσ Y
+g : X Ñσ Z
+σ
+hf, gi : X Ñ Y ˆ Z
+
+(par` )
+
+f : X Ñσ Z
+f : Y Ñσ Z
+rf, gs : X ` Y Ñσ Z
+
+Fig. 3: Axioms of Cartesian (left) and co-Cartesian (right) guarded categories
+then introduced along the path as the passage through f will guarantee guarded
+output without assuming guarded input). We then have the following geometric
+characterization of guardedness typing:
+Theorem 2. For a well-typed morphism expression e P HompA b B, C b Dq, the
+guardedness typing e P Hom‚ pA b B, C b Dq is derivable iff in the diagram of e,
+every path from an input gate in A to an output gate in D is guarded.
+Every symmetric monoidal category has both a largest (Hom‚ pA b B, C b Dq “
+HompA b B, C b Dq) and a least guarded structure:
+Lemma and Definition 3 (Vacuous guardedness). Every symmetric
+monoidal category is guarded under taking f P Hom‚ pAbB, C bDq iff f factors as
+id bg
+
+hbid
+
+A b B ÝÝAÝÝÑ A b E b D ÝÝÝÝD
+ÑC bD
+(eliding associativity) with g : B Ñ E b D, h : A b E Ñ C. This is the least
+guarded structure on C, the vacuous guarded structure.
+E.g. the natural guarded structure on Hilbert spaces (Section 6) is vacuous.
+Remark 4 (Duality). The rules and axioms in Figure 2 are stable under
+1800 -rotation, that is, under reversing arrows and applying the monoidal symmetry
+on both sides (this motivates decorating the unguarded inputs). Consequently,
+if C is guarded, then so is the dual category Cop , with guardedness given by
+f P Hom‚Cop pAbB, C bDq iff the obvious transpose of f is in Hom‚C pDbC, BbAq.
+In case b is coproduct, we can simplify the description of partial guardedness:
+Proposition 5. Partial guardedness in a co-Cartesian category pC, `, ∅q is
+equivalently determined by distinguished subsets Homσ pX, Y q Ď HompX, Y q with
+σ ranging over coproduct injections Y2 Ñ Y1 ` Y2 – Y , subject to the rules on the
+right hand side of Figure 3, where f : X Ñσ Y denotes f P Homσ pX, Y q, with
+f P Hom‚ pX1 ` X2 , Y1 ` Y2 q iff pf in1 q P Homin2 pX1 , Y1 ` Y2 q.
+
+We have used the mentioned rules for Ñσ in previous work on guarded iteration [16] (with (vacˆ ) called (trv), and together with weakening, which as
+indicated above turns out to be derivable). By duality (Remark 4), we immediately
+have a corresponding description for the Cartesian case:
+Corollary 6. Partial guardedness in a Cartesian category pC, ˆ, 1q is equivalently determined by distinguished subsets Homσ pX, Y q Ď HompX, Y q with σ
+ranging over product projections X – X1 ˆ X2 Ñ X1 , subject to the rules on
+the left hand side of Figure 3, where f : X Ñσ Y denotes f P Homσ pX, Y q, with
+f P Hom‚ pX1 ˆ X2 , Y1 ˆ Y2 q iff pr2 f P Hompr1 pX1 ˆ X2 , Y2 q.
+Remark 7. In a co-Cartesian category, vacuous guardedness (Lemma 3) can
+equivalently be described by f P Hom‚ pA ` B, C ` Dq iff f decomposes as
+f “ rin1 h, gs (uniquely provided that in1 is monic), or in terms of the description
+from Proposition 5, u P Homin2 pX, Y ` Zq iff u factors through in1 . Of course,
+the dual situation obtains in Cartesian categories.
+Example 8 (Process algebra). Fix a monad T on pC, `, ∅q and an endofunctor Σ : C Ñ C such that the generalized coalgebraic resumption transform
+TΣ “ νγ. T p-- `Σγq exists; we think of TΣ X as a type of processes that have
+side-effects in T and perform communication actions from Σ, seen as a generalized
+signature. The Kleisli category CTΣ of TΣ is again co-Cartesian. Putting
+f : X Ñin2 TΣ pY `Zq ðñ out f P {T pin1 `idqg | g : X Ñ T pY `ΣTΣ pY `Zqq}
+(cf. Section 2 for notation), we make CTΣ into a guarded category [16]. The
+standard motivating example of finitely nondeterministic processes is obtained
+by taking T “ Pω (finite powerset monad) and Σ “ A ˆ -- (action prefixing).
+Example 9 (Metric spaces). Let C be the Cartesian category of metric spaces
+and non-expansive maps. Taking f : X ˆ Y Ñpr2 Z iff λy. f px, yq is contractive
+for every x P X makes C into a guarded Cartesian category.
+
+4
+
+Guardedness via Guarded Ideals
+
+Most of the time, the structure of a guarded category is determined by morphisms
+with only unguarded inputs and guarded outputs, which form an ideal :
+Definition 10 (Guarded morphisms). A morphism f : X Ñ Y in a guarded
+category is guarded (as opposed to only partially guarded) if υY-1 f υ̂X P Hom‚ pX b
+I, I b Y q; we write HomI pX, Y q for the set of guarded morphisms f : X Ñ Y .
+Definition 11 (Guarded ideal). A family G of subsets GpX, Y q Ď HompX, Y q
+(X, Y P |C|) in a monoidal category pC, b, Iq is a guarded ideal if it is closed
+under b and under composition with arbitrary C-morphisms on both sides, and
+GpI, Iq “ HompI, Iq.
+There is always a least guarded ideal, GpX, Y q “ {g f | f : X Ñ I, g : I Ñ Y }.
+Moreover, as indicated above:
+
+Lemma and Definition 12. In a guarded category, the sets HomI pX, Y q form
+a guarded ideal, the guarded ideal induced by the guarded structure.
+Conversely, it is clear that every guarded ideal generates a guarded structure by
+just closing under the rules of Definition 1.
+Definition 13 (Ideally guarded category). A guarded category is ideal or
+ideally guarded (over G) if it is generated by some guarded ideal (G).
+We give a more concrete description:
+Theorem 14. Let pC, b, Iq be ideally guarded over G. Then Hom‚ pAbB, C bDq
+consists of the morphisms of the form
+p
+
+n
+
+1
+
+n
+
+1
+
+n
+
+1
+
+q
+
+for gi in G and arbitrary p, q, fi , hi .
+The transitions between guarded ideals and guarded structures are not in general
+mutually inverse: The guarded structure generated the guarded ideal induced by
+a guarded structure may be smaller than the original one (Example 21), and the
+guarded ideal induced by the guarded structure generated by a guarded ideal G
+may be larger than G (Remark 16). We proceed to analyse details.
+Proposition 15. On every symmetric monoidal category, the least guarded
+structure (Lemma 3) is ideal.
+Remark 16. Vacuously guarded categories need not induce the least guarded
+ideal (although by the next results, this does hold in the Cartesian and the coCartesian case). In fact, by Lemma 3, the guarded ideal induced by the vacuous
+guarded structure consists of the morphisms of the form phbidD qpidA bgq (eliding
+associativity and the unitor) where g : I Ñ E b D, h : A b E Ñ I:
+g
+h
+
+(1)
+
+This ideal will resurface in the discussion of Hilbert spaces (Section 6).
+The situation is simpler in the Cartesian and, dually, in the co-Cartesian case.
+Lemma 17. Let C be ideally guarded over G, and suppose that every f P
+GpX b Y , Zq factors through fˆ b id : X b Y Ñ V b Y for some fˆ P GpX, V q.
+Then the guardedness structure of C induces G.
+If b “ `, the premise of the lemma is automatic, since f P GpX ` Y, Zq can be
+represented as rf in1 , f in2 s “ rid, f in2 s pf in1 `idq where f in1 P GpX, Zq by the
+closure properties of guarded ideals. Hence, we obtain
+
+Theorem 18. The guarded structure generated by a guarded ideal G on a coCartesian category is equivalently described by Homin2 pX, Y ` Zq “ {rin1 , gsh |
+g P GpW, Y ` Zq, h : X Ñ Y ` W }, and hence induces G.
+Corollary 19. The guarded structure generated by a guarded ideal G on a Cartesian category is equivalently described by Hompr1 pX ˆ Y, Zq “ {h hg, pr2 i | g P
+GpX ˆ Y, W q, h : W ˆ Y Ñ Z}, and hence induces G.
+The description can be further simplified in the Cartesian closed case.
+Corollary 20. Given a guarded ideal G on a Cartesian closed category, put
+f : X ˆ Y Ñpr1 Z iff curry f P GpX, Z Y q. This describes the guarded structure
+induced by G iff G is exponential, i.e. f P GpX, Y q implies f V P GpX V , Y V q.
+(We leave it as an open question whether a similar characterization holds in the
+monoidal closed case.) Natural examples of both ideal and non-ideal guardedness
+are found in metric spaces:
+Example 21 (Metric spaces). The guarded structure on metric spaces from
+Example 9 fails to be ideal: It induces the guarded ideal of contractive maps, which
+however generates the (ideal) guarded structure described by f : X ˆ Y Ñpr2 Z
+iff f px, yq is uniformly contractive in y, i.e. there is c ă 1 such that for every x,
+λy. f px, yq is contractive with contraction factor c.
+A large class of ideally guarded structures arises as follows.
+Proposition 22. Let C be a Cartesian category equipped with an endofunctor
+I : C Ñ C and a natural transformation next : Id Ñ I. Then the following
+definition yields a guarded ideal in C: GpX, Y q “ {f next | f : I X Ñ Y }. The
+arising guarded structure is Hompr1 pX ˆ Y, Zq “ {f hnext, pr2 i | f : IpX ˆ Y q ˆ
+Y Ñ Z}. If moreover next : X ˆ Y Ñ IpX ˆ Y q factors through next ˆid :
+X ˆ Y Ñ I X ˆ Y , then Hompr1 pX ˆ Y, Zq “ {f pnext ˆidq | f : I X ˆ Y Ñ Z}.
+Remark 23. Proposition 22 connects our approach to previous work based
+precisely on the assumptions of the proposition [28] (in fact, the term guarded
+traced category is already used there, with different meaning). A limitation of
+the approach via a functor I arises from the need to fix I globally, so that,
+e.g., the ideal guarded structure on metric spaces (Example 21) is not covered –
+capturing contractivity via I requires fixing a single global contraction factor.
+The following instance of Proposition 22 has received extensive recent interest in
+programming semantics:
+Example 24 (Topos of Trees). Let C be the topos of trees [7], i.e. the presheaf
+op
+category Setω where ω is the preorder of natural numbers (starting from
+1) ordered by inclusion. An object X of C is thus a family pXpnqqn“1,2... of
+sets with restriction maps rn : Xpn ` 1q Ñ Xpnq. The later -endofunctor I :
+C Ñ C is defined by I Xp1q “ {‹} and I Xpn ` 1q “ Xpnq, and the natural
+transformation nextX : X Ñ I X by nextX p1q “ ! : Xp1q Ñ {‹}, nextX pn ` 1q “
+rn`1 : Xpn ` 1q Ñ Xpnq. Guarded morphisms according to Proposition 22 are
+called contractive, generalizing the metric setup. Contractive morphisms form
+an exponential ideal, so partial guardedness is described as in Corollary 20, and
+hence agrees with contractivity in part of the input as in [7, Definition 2.2].
+
+(a) Vanishing I
+
+(b) Sliding I
+
+(c) Vanishing II
+
+(d) Sliding II
+
+(e) Superposing
+
+(f) Sliding III
+
+(g) Tightening
+
+(h) Yanking
+
+Fig. 4: Axioms of guarded traced categories
+
+5
+
+Guarded Traces
+
+As indicated previously, the main purpose of our notion of abstract guardedness
+is to enable fine-grained control over the formation of feedback loops, viz, traces.
+Definition 25 (Guarded traced category). We call a guarded category
+pC, b, Iq guarded traced if it is equipped with a guarded trace operator
+‚
+‚
+trU
+A,B,C,D : Hom ppA b U q b B, C b pD b U qq Ñ Hom pA b B, C b Dq,
+
+visually corresponding to the diagram formation rule in Figure 1, so that the adaptation of the Joyal-Street-Verity axiomatization of traced symmetric monoidal
+categories [22] shown in Figure 4 is satisfied.
+Remark 26. The versions of the sliding axiom in Figure 4 differ in the way the
+loop is guarded. They are in line with duality (Remark 4): Sliding II arises from
+Sliding I by 1800 rotation, and Sliding III is symmetric under 1800 rotation.
+We proceed to investigate the geometric properties of guarded traced categories, partly extending Theorem 2. The syntactic setting extends the one
+for guarded categories by additionally closing morphism expressions under
+the trace operator (interpreted diagrammatically as in Figure 1), obtaining
+traced morphism expressions. Term formation thus becomes mutually recursive with guardedness typing: if e is a traced morphism expression such that
+
+e P Hom‚ ppA b U q b B, C b pD b U qq is derivable, then trA,B,C,D peq is a traced
+morphism expression, and trA,B,C,D peq P Hom‚ pAbB, C bDq is derivable. Traced
+diagrams consists of finitely many (decorated) basic boxes and wires connecting
+output gates of basic boxes to input gates, with each gate attached to at most
+one wire; open gates are regarded as inputs or outputs, respectively, of the whole
+diagram. Of course, acyclicity is not required. We first note that the easy direction
+of Theorem 2 adapts straightforwardly to the setting with traces:
+Proposition 27. Let e be a traced morphism expression such that e P Hom‚ pA b
+B, C b Dq is derivable. Then in the diagram of e, all loops and all paths from
+input gates in A to output gates in D are guarded (p. 4).
+Remarkably, the converse of Proposition 27 in general fails in several ways:
+Example 28. The left diagram below
+(2)
+shows that guardedness typing is not closed under equality of traced morphism
+expressions: Write e for the expression inducing the dashed box. By Proposition 27, e, and hence trpeq, fail to type as indicated. However, trpeq “ gf , for
+which the overall guardedness typing indicated is easily derivable.
+Moreover, the diagram on the right above satisfies the necessary condition
+from Proposition 27 but is not induced by an expression for which the indicated
+guardedness typing is derivable, essentially because both ways of cutting the loop
+violate the necessary condition from Proposition 27.
+However, if C is ideally guarded over a guarded ideal G, we do have a converse
+to Proposition 27: By Theorem 14, we can then restrict basic boxes in diagrams
+to be either guarded, i.e. have only black gates, or unguarded, i.e. have only
+white gates. We call the correspondingly restricted diagrams ideally guarded. (We
+emphasize that the guardedness typing of composite ideally guarded diagrams
+still needs to mix guarded and unguarded inputs and outputs.) A path in an
+ideally guarded diagram is guarded iff it passes through a guarded basic box.
+The left-hand diagram in (2) is in fact ideally guarded, so guardedness typing
+fails to be closed under equality also in the ideally guarded case. However, for
+ideally guarded diagrams we have the following converse of Proposition 27.
+Theorem 29. Let ∆ be an ideally guarded diagram, with sets of input and output
+gates disjointly decomposed as A Ÿ B and C Ÿ D, respectively. If every loop in ∆
+and every path from a gate in A to a gate in D is guarded, then ∆ is induced by
+a traced morphism expression e such that e P Hom‚ pA b B, C b Dq is derivable.
+We next take a look at the Cartesian and co-Cartesian cases. Recall that by
+Proposition 5, the definition of guarded category can be simplified if b “ ` (and
+dually if b “ ˆ). This simplification extends to guarded traced categories by
+generalizing Hyland-Hasegawa’s equivalence between Cartesian trace operators
+and Conway fixpoint operators [18,19].
+
+Definition 30 (Guarded Conway operators). Let C be a guarded coCartesian category. We call an operator p--q: of profile
+f P Homσ`id pX, Y ` Xq ÞÑ f : P Homσ pX, Y q
+
+(3)
+
+a guarded iteration operator if it satisfies
+fixpoint: f : “ rid, f : sf for f : X Ñin2 Y ` X;
+and a Conway iteration operator if it additionally satisfies
+naturality: g f : “ ppg ` idq f q: for f : X Ñin2 Y ` X, g : Y Ñ Z;
+dinaturality: prin1 , hsgq: “ rid, prin1 , gshq: sg for g : X Ñin2 Y ` Z and
+h : Z Ñ Y ` X or g : X Ñ Y ` Z and h : Z Ñin2 Y ` X;
+(co)diagonal: prid, in2 sf q: “ f :: for f : X Ñin2 `id pY ` Xq ` X.
+Furthermore, we distinguish the following principles:
+squaring [12]: f : “ prin1 , f sf q: for f : X Ñin2 Y ` X;
+uniformity w.r.t. a subcategory S of C: pid ` hq f “ g h implies f : “ g : h for
+all f : X Ñin2 Z ` X, g : Y Ñin2 Z ` Y and h : Y Ñ X from S;
+and call p--q: squarable or uniform if it satisfies squaring or uniformity, respectively.
+Guarded (Conway) recursion operators p--q: on guarded Cartesian categories are
+defined dually in a straightforward manner. We collect the following facts about
+guarded iteration operators for further reference.
+Lemma 31. Let p--q: be a guarded iteration operator on pC, `, ∅q.
+1. If p--q: is uniform w.r.t. some co-Cartesian subcategory of C and satisfies the
+codiagonal identity then it is squarable.
+2. If p--q: is squarable and uniform w.r.t. coproduct injections then it is dinatural.
+3. If p--q: is Conway then it is uniform w.r.t. coproduct injections.
+Proposition 32. A guarded co-Cartesian category C is traced iff it is equipped
+with a guarded Conway iteration operator p--q: , with mutual conversions like in
+the total case [18,19].
+Example 33 (Guarded Conway operators). We list some examples of
+guarded Conway iteration/recursion operators. In all cases except 2, Conwayness
+follows from uniqueness of fixpoints [16, Theorem 17].
+1. In a vacuously guarded co-Cartesian category (Remark 7), f : X Ñin2
+Y ` Z iff f “ in1 g for some g : X Ñ Y . If coproduct injections are monic, then
+g is uniquely determined, and f : “ g defines a guarded Conway operator.
+2. Every Cartesian category C is guarded under Homπ pX, Y q “ HompX, Y q
+(making every morphism guarded). Then C has a guarded Conway recursion
+operator iff C is a Conway category [13], i.e. models standard total recursion.
+3. The guarded Cartesian category of complete metric spaces as in Example 9
+is traced: For f : X ˆ Y Ñpr2 Y , define f : pxq as the unique fixpoint of λy. f px, yq
+according to Banach’s fixpoint theorem.
+
+4. Similarly, the topos of trees, ideally guarded as in Example 24, has a
+guarded Conway recursion operator obtained by taking unique fixpoints [7,
+Theorem 2.4].
+5. The guarded co-Cartesian category CTΣ of side-effecting processes (Example 8) has a guarded Conway iteration operator obtained by taking unique
+fixpoints, thanks to the universal property of the final coalgebra TΣ X [33].
+Guarded vs. unguarded recursion We proceed to present a class of examples
+relating guarded and unguarded recursion. For motivation, consider the category
+pCpo, ˆ, 1q of complete partial orders (cpos) and continuous maps. This category
+nearly supports recursion via least fixpoints, except that, e.g., id : X Ñ X only
+has a least fixpoint if X has a bottom. The following equivalent approaches involve
+the lifting monad p--qK , which adjoins a fresh bottom K to a given X P |Cpo|.
+Classical approach [40,39]: Define a total recursion operator p´q; on the
+category CpoK of pointed cpos and continuous maps, using least fixpoints.
+Guarded approach (cf. [28]): Extend Cpo to a guarded category: f : X ˆ
+Y Ñpr2 Z iff f P {g pid ˆ ηq | g : X ˆ YK Ñ Z} (see Proposition 22), and
+define a guarded recursion operator sending f “ g pid ˆ ηq : Y ˆ X Ñpr2 X
+to f: “ g hid, fˆi : Y Ñ X with fˆpyq P XK calculated as the least fixpoint of
+λz. ηgpy, zq.
+Pointed cpos happen to be always of the form XK with X P |Cpo|, which
+indicates that p--q; is a special case of p--q: . This is no longer true in more general
+cases when the connection between p--q; and p--q: is more intricate. We show that
+p--q; and p--q: are nevertheless equivalent under reasonable assumptions.
+Definition 34 ([11]). A let-ccc with a fixpoint object is a tuple pC, T, Ω, ωq,
+consisting of a Cartesian closed category C, a strong monad T on it, an initial
+T -algebra pΩ, inq and an equalizer ω : 1 Ñ Ω of in η : Ω Ñ Ω and id : Ω Ñ Ω.
+The key requirement is the last one, satisfied, e.g., for Cpo and the lifting monad.
+Given a monad T on C, CT‹ denotes the category of T-algebras and C-morphisms
+(instead of T-algebra homomorphisms).
+Proposition 35 ([38, Theorem 4.6]). Let pC, T, Ω, ωq be a let-ccc with a
+fixpoint object. Then CT‹ has a unique CT -uniform recursion operator p--q; .
+By [39, Theorem 4], the operator p--q; in Proposition 35 is Conway, in particular, by Lemma 31, squarable, if C has a natural numbers object and T
+is an equational lifting monad [10], such as p´qK . There are however further
+squarable operators obtained via Proposition 35, e.g. for the partial state monad
+T X “ pX ˆ SqSK [11]. By Lemma 31, the following result applies in particular in
+the setup of Proposition 35 under the additional assumption of squarability.
+Theorem 36. Let T be a strong monad on a Cartesian category C. The following
+gives a bijective correspondence between squarable dinatural recursive operators
+p--q; on CT‹ and squarable dinatural guarded recursive operators p--q: on C ideally
+guarded over HomI pX, Y q “ {f η | f : T X Ñ Y }:
+pf : B ˆ A Ñ Aq; “ apηf pid ˆ aqq:
+
+for pA, aq P |CT‹ |
+
+(4)
+
+pf “ g pid ˆ ηq : Y ˆ X Ñ Xq: “ ghid, pηgq; i
+
+(5)
+
+(in (5) we call on a slight extension of p--q; (Lemma 46); the right hand side
+of (4) is defined because ηf pid ˆ aq factors as ηf pid ˆ apT aqηq). Moreover, p--q:
+is Conway iff so is p--q; .
+
+6
+
+Vacuous Guardedness and Nuclear Ideals
+
+We proceed to discuss traces in vacuously guarded categories (Lemma 3), and show
+that the partial trace operation in the category of (possibly infinite-dimensional)
+Hilbert spaces [2] in fact lives over the vacuous guarded structure. We first note
+that vacuous guarded structures are traced as soon as a simple rewiring operation
+satisfies a suitable well-definedness condition (similar to one defining traced
+nuclear ideals [2, Definition 8.14]):
+Proposition 37. Let pC, b, Iq be vacuously guarded. If for f P Hom‚ pA b B,
+C b Dq with factorization f “ ph b idDbU qpidAbU b gq (eliding associativity),
+g : B Ñ E b D b U , h : A b U b E Ñ C as per Lemma 3, the composite
+id bg
+
+hbid
+
+A b B ÝÝAÝÝÑ A b E b D b U – A b U b E b D ÝÝÝÝD
+ÑC bD
+
+(6)
+
+depends only on f , then C is guarded traced, with trU
+A,B,C,D pf q defined as (6).
+Diagrammatically, the trace in a vacuously guarded category is thus given by
+U
+B
+A
+
+g
+
+E
+
+h
+
+C
+
+B
+
+D
+
+A
+
+U
+
+g
+E
+
+C
+h
+
+D
+
+We proceed to instantiate the above to Hilbert spaces. On a more abstract level,
+a dagger symmetric monoidal category [36] (or tensored ˚-category [2]) is a symmetric monoidal category pC, b, Iq equipped with an identity-on-objects strictly
+involutive functor p--q: : C Ñ Cop coherently preserving the symmetric monoidal
+structure. The main motivation for dagger symmetric monoidal categories is
+to capture categories that are similar to (dagger) compact closed categories in
+that they admit a canonical trace construction for certain morphisms, but fail
+to be closed, much less compact closed. The “compact closed part” of a dagger
+symmetric monoidal category is axiomatized as follows.
+Definition 38 (Nuclear Ideal, [2]). A nuclear ideal N in a dagger symmetric
+monoidal category pC, b, I, p--q: q is a family of subsets NpX, Y q Ď HomC pX, Y q,
+X, Y P |C|, satisfying the following conditions:
+1. N is closed under b, p--q: , and composition with arbitrary morphisms on
+both sides;
+2. There is a bijection θ : NpX, Y q Ñ HomC pI, X : b Y q, natural in X and Y ,
+coherently preserving the dagger symmetric monoidal structure.
+
+3. (Compactness) For f P NpB, Aq and g P NpB, Cq, the following diagram
+commutes:
+A
+
+–
+
+AbI
+
+idA bθpgq
+
+A b pB : b Cq
+
+g f:
+
+C
+
+–
+–
+
+I bC
+
+:
+
+pθpf qq: bidC
+
+pB b Aq b C
+
+The above definition is slightly simplified in that we elide a covariant involutive
+functor p--q : C Ñ C, capturing, e.g. complex conjugation; i.e., we essentially
+restrict to spaces over the reals.
+We proceed to present a representative example of a nuclear ideal in the
+category of Hilbert spaces. Recall that a Hilbert space [23] H over the field R of
+reals is a vector space with an inner product h--, --i : H p
+ˆ H Ñ R that is complete
+as a normed space under the induced norm ||x|| “ hx, xi. Let Hilb be the
+category of Hilbert spaces and bounded linear operators.
+Clearly, R itself is a Hilbert space; linear operators X Ñ R are conventionally
+called functionals. More generally, we consider (multi-)linear functionals X1 ˆ
+. . . ˆ Xn Ñ R, i.e. maps that are linear in every argument. Such a functional is
+bounded if |f px1 , . . . , xn q| ď c||x1 || ¨ ¨ ¨ ||xn || for some constant c P R. We can move
+between bounded linear operators and bounded linear functionals, similarly as
+we can move between relations and functions to the Booleans:
+Proposition 39 ([23, Theorem 2.4.1]). Given a bounded linear operator f :
+X Ñ Y , f ˝ px, yq “ hf x, yi defines a bounded linear functional f ˝ , and every
+bounded linear functional X ˆ Y Ñ R arises in this way.
+Definition 40 (Hilbert-Schmidt operators/functionals). A bounded linear functional f : X1 ˆ . . . ˆ Xn Ñ R is Hilbert-Schmidt if the sum
+P
+P
+2
+x1 PB1 . . .
+xn PBn pf px1 , . . . , xn qq
+is finite for some, and then any, orthonormal bases B1 , . . . , Bn of X1 , . . . , Xn , respectively. A bounded linear operator f : X Ñ Y is Hilbert-SchmidtP
+if the induced
+functional f ˝ (Proposition 39) is Hilbert-Schmidt, equivalently if xPB ||f x||2 is
+finite for some, and then any, orthonormal basis B of X. We denote by HSpX, Y q
+the space of all Hilbert-Schmidt operators from X to Y .
+For X, Y P |Hilb|, the space of Hilbert-Schmidt functionals X ˆ Y Ñ R is
+itself a Hilbert space, denoted X bPY , with
+P the pointwise vector space structure1
+and the inner product hf, gi “
+xPB
+yPB 1 f px, yqgpx, yq. where B and B
+are orthonormal bases of X and Y , respectively. By virtue of the equivalence
+between f and f ˝ , thispinduces
+a Hilbert space structure on HSpX, Y q, with
+P
+2
+induced norm ||f ||2 “
+xPB ||f x|| . The operator b forms part of a dagger
+symmetric monoidal structure on Hilb, with unit R. For a bounded linear
+operator f : X Ñ Y , f : : Y Ñ X is the adjoint operator uniquely determined by
+equation hx, f : yi “ hf x, yi. The tensor product of f : A Ñ B and g : C Ñ D is
+the functional sending h : A ˆ C Ñ R to h pf : ˆ g : q : B ˆ D Ñ R. Given a P A
+and c P C, let us denote by a b c P A b C the functional pa1 , c1 q ÞÑ ha, a1 i hc, c1 i,
+and so, with the above f and g, pf b gqpa b cq “ f paq b gpcq.
+
+Proposition 41. [2] The Hilbert-Schmidt operators form a nuclear ideal in Hilb
+with θ : HSpX, Y q – HompR, X : b Y q defined by
+θpf : X Ñ Y qpr : Rqpx : X, y : Y q “ r hf x, yi.
+A crucial fact underlying the proof of Proposition 41 is that HSpX, Y q is isomorphic to X : b Y , naturally in X and Y . We emphasize that what makes the
+case of Hilb significant is that we do not restrict to finite-dimensional Hilbert
+spaces. In that case all bounded linear operators would be Hilbert-Schmidt and
+the corresponding category would be (dagger) compact closed [36]. In the infinitedimensional case, identities need not be Hilbert-Schmidt, so HS is indeed only
+an ideal and not a subcategory.
+Let N2 pX, Y q “ {g : h : X Ñ Y | h P NpX, Zq, g P NpY, Zq} for any nuclear
+ideal N. The main theorem of the section now can be stated as follows.
+Theorem 42.
+1. The guarded ideal induced by the vacuous guarded structure
+on Hilb (see (1)) is precisely HS2 , and Hilb is guarded traced over HS2 .
+2. Guarded traces in Hilb commute with p´q: in the sense that if f P
+Hom‚ ppA b U q b B, C b pD b U qq, then γB,AbU f : γDbU,C P Hom‚ ppD b U q b
+:
+U
+:
+C, B b pA b U qq and trU
+D,C,B,A pγB,AbU f γDbU,C q “ γA,B ptrA,B,C,D pf qq γC,D .
+Clause 1 is a generalization of the result in [2, Theorem 8.16] to parametrized
+traces. Specifically, we obtain agreement with the
+P conventional mathematical
+definition of trace: given f P HS2 pX, Xq, trpf q “ i hf pei q, ei i for any choice of
+an orthonormal basis pei qi , and HS2 pX, Xq contains precisely those f for which
+this sum is absolutely convergent independently of the basis.
+
+7
+
+Conclusions and Further Work
+
+We have presented and investigated a notion of abstract guardedness and guarded
+traces, focusing on foundational results and important classes of examples. We
+have distinguished a more specific notion of ideal guardedness, which in many
+respects appears to be better behaved than the unrestricted one, in particular
+ensures closer agreement between structural and geometric guardedness. An
+unexpectedly prominent role is played by ‘vacuous’ guardedness, characterized by
+the absence of paths connecting unguarded inputs to guarded outputs; e.g., partial
+traces in Hilbert spaces [2] turn out to be based on this form of guardedness.
+Further research will concern a coherence theorem for guarded traced categories
+generalizing the well-known unguarded case [22,35], and a generalization of the
+Int-construction [22], which would relate guarded traced categories to a suitable
+guarded version of compact closed categories. Also, we plan to investigate guarded
+traced categories as a basis for generalized Hoare logics, extending and unifying
+previous work [5,15].
+
+References
+1. A. Abel and B. Pientka. Wellfounded recursion with copatterns: A unified approach to termination and productivity. In International Conference on Functional
+Programming, ICFP 2013, pp. 185–196. ACM, 2013.
+2. S. Abramsky, R. Blute, and P. Panangaden. Nuclear and trace ideals in tensored
+*-categories. J. Pure Appl. Algebra, 143:3–47, 1999.
+3. S. Abramsky and B. Coecke. A categorical semantics of quantum protocols. In
+Logic in Computer Science, LICS 2004, pp. 415–425. IEEE Computer Society, 2004.
+4. S. Abramsky, E. Haghverdi, and P. Scott. Geometry of interaction and linear
+combinatory algebras. Math. Struct. Comput. Sci., 12(5):625–665, 2002.
+5. R. Arthan, U. Martin, E. Mathiesen, and P. Oliva. A general framework for sound
+and complete Floyd-Hoare logics. ACM Trans. Comput. Log., 11:7:1–7:31, 2009.
+6. J. Baeten, T. Basten, and M. Reniers. Process algebra: equational theories of
+communicating processes. Cambridge University Press, 2010.
+7. L. Birkedal, R. Møgelberg, J. Schwinghammer, and K. Støvring. First steps in
+synthetic guarded domain theory: Step-indexing in the topos of trees. Log. Meth.
+Comput. Sci., 8(4:1):1–45, 2012.
+8. R. Blute, R. Cockett, and R. Seely. Feedback for linearly distributive categories:
+traces and fixpoints. J. Pure Appl. Algebra, 154:27–69, 2000.
+9. R. Book and S. Greibach. Quasi-realtime languages. Math. Systems Theory,
+4(2):97–111, 1970.
+10. A. Bucalo, C. Führmann, and A. Simpson. An equational notion of lifting monad.
+Theoret. Comput. Sci., 294:31 – 60, 2003.
+11. R. Crole and A. Pitts. New foundations for fixpoint computations. In Logic in
+Computer Science, LICS 1990, pp. 489–497. IEEE Computer Society, 1990.
+12. Z. Ésik. Axiomatizing iteration categories. Acta Cybern., 14(1):65–82, 1999.
+13. Z. Ésik. Equational properties of fixed point operations in Cartesian categories:
+An overview. In Mathematical Foundations of Computer Science, MFCS 2015, vol.
+9234 of LNCS, pp. 18–37. Springer, 2015.
+14. J.-Y. Girard. Towards a geometry of interaction. Contemporary Mathematics,
+92(69-108):6, 1989.
+15. S. Goncharov and L. Schröder. A relatively complete generic Hoare logic for orderenriched effects. In Proc. 28th Annual Symposium on Logic in Computer Science
+(LICS 2013), pp. 273–282. IEEE, 2013.
+16. S. Goncharov, L. Schröder, C. Rauch, and M. Piróg. Unifying guarded and unguarded iteration. In Foundations of Software Science and Computation Structures,
+FOSSACS 2017, vol. 10203 of LNCS, pp. 517–533. Springer, 2017.
+17. E. Haghverdi and P. Scott. Towards a typed geometry of interaction. Math. Struct.
+Comput. Sci., 20:473–521, 2010.
+18. M. Hasegawa. Recursion from cyclic sharing: Traced monoidal categories and
+models of cyclic lambda calculi. In Typed Lambda Calculi and Applications, TLCA
+1997, vol. 1210 of LNCS, pp. 196–213. Springer, 1997.
+19. M. Hasegawa. Models of Sharing Graphs: A Categorical Semantics of Let and Letrec.
+Springer, 1999.
+20. A. Jeffrey. Premonoidal categories and flow graphs. In Higher-Order Operational
+Techniques in Semantics, HOOTS 1997, vol. 10 of ENTCS, page 51. Elsevier, 1997.
+21. A. Jeffrey. LTL types FRP: linear-time temporal logic propositions as types,
+proofs as functional reactive programs. In Programming Languages meets Program
+Verification, PLPV 2012, pp. 49–60. ACM, 2012.
+
+22. A. Joyal, R. Street, and D. Verity. Traced monoidal categories. Math. Proc. Camb.
+Phil. Soc., 119:447–468, 1996.
+23. R. Kadison and J. Ringrose. Fundamentals of the Theory of Operator Algebras:
+Advanced theory, vol. 2. AMS, 1997.
+24. N. Krishnaswami and N. Benton. Ultrametric semantics of reactive programs. In
+Logic in Computer Science, LICS 2011, pp. 257–266. IEEE Computer Society, 2011.
+25. S. Mac Lane. Categories for the Working Mathematician. Springer, 1971.
+26. O. Malherbe, P. J. Scott, and P. Selinger. Partially traced categories. J. Pure Appl.
+Algebra, 216:2563 – 2585, 2012.
+27. S. Milius. Completely iterative algebras and completely iterative monads. Inf.
+Comput., 196:1–41, 2005.
+28. S. Milius and T. Litak. Guard your daggers and traces: Properties of guarded
+(co-)recursion. Fund. Inf., 150:407–449, 2017.
+29. R. Milner. Communication and concurrency. Prentice-Hall, Inc., 1989.
+30. R. Møgelberg. A type theory for productive coprogramming via guarded recursion.
+In Computer Science Logic / Logic in Computer Science, CSL-LICS 2014, pp.
+71:1–71:10. ACM, 2014.
+31. E. Moggi. A modular approach to denotational semantics. In Category Theory and
+Computer Science, CTCS 1991, vol. 530 of LNCS, pp. 138–139. Springer, 1991.
+32. E. Moggi. Notions of computation and monads. Inf. Comput., 93:55–92, 1991.
+33. M. Piróg and J. Gibbons. The coinductive resumption monad. In Mathematical
+Foundations of Programming Semantics, MFPS 2014, vol. 308 of ENTCS, pp.
+273–288, 2014.
+34. J. Rutten. Universal coalgebra: A theory of systems. Theoret. Comput. Sci.,
+249:3–80, 2000.
+35. P. Selinger. Towards a quantum programming language. Math. Struct. Comput.
+Sci., 14:527–586, 2004.
+36. P. Selinger. Dagger compact closed categories and completely positive maps. In
+Quantum Programming Languages, QPL 2005, vol. 170 of ENTCS, pp. 139–163.
+Elsevier, 2007.
+37. P. Selinger. A survey of graphical languages for monoidal categories. In B. Coecke,
+ed., New Structures for Physics, pp. 289–355. Springer, 2011.
+38. A. Simpson. Recursive types in Kleisli categories. Technical report, University of
+Edinburgh, 1992.
+39. A. Simpson and G. Plotkin. Complete axioms for categorical fixed-point operators.
+In Logic in Computer Science, LICS 2000, pp. 30–41, 2000.
+40. G. Winskel. The Formal Semantics of Programming Languages. MIT Press, 1993.
+
+A
+
+Appendix: Omitted Details and Proofs
+
+A.1
+
+Derivability of Weakening (Section 3)
+
+We show that we can weaken on the right (output) side; by duality, we can then
+also weaken on the input side, and the claim follows by weakening first on the
+output and then on the input side. That is, we assume that f P Hom‚ pA b B, C b
+pD1 b Dqq and derive f P Hom‚ pA b B, pC b D1 q b Dq.
+First note that by (cmpb ) and (vacb ), guardedness annotations are stable
+under rearranging guarded output gates via monoidal isomorphims, and similarly
+for the unguarded output gates and both types of input gates. We obtain by
+(vacb ) that idC b I P Hom‚ pC b I, C b Iq and I b idD P Hom‚ pI b D, I b Dq. By
+(unib ), (parb ), and stability under monoidal isomorphisms, we derive
+idC b γI,D1 b idD P Hom‚ ppC b Iq b pD1 b Dq, pC b D1 q b pI b Dqq,
+(eliding associativity throughout) and hence, again using stability under monoidal
+isomorphisms,
+idC b idD1 b idD P Hom‚ pC b pD1 b Dq, pC b D1 q b Dq.
+Our goal then follows by (cmpb ).
+A.2
+
+Proof of Theorem 2
+
+For purposes of this proof, call a path leading from an input gate in A to an
+output gate in D as in the claim critical. That is, we are to show that e types as
+requested iff all critical paths in its diagram are guarded.
+‘Only if ’: By induction on the derivation of e P Hom‚ pA b B, C b Dq. The
+base case (introduction of morphism symbols) is trivial. The cases for the rules
+from Definition 1, diagrammatically represented according to Figure 2, are as
+follows. In the cases for rules (unib ) and (vacb ), there are no critical paths.
+For rule (parb ), just note that every critical path in the diagram for f b g is
+either a critical path in the diagram for f or a critical path in the diagram for g.
+For (cmpb ), let π be a critical path in the diagram for gf . We distinguish cases
+on whether π leaves f through a guarded or an unguarded output gate. By the
+symmetry manifest in Figure 2, we can w.l.o.g. assume the latter. As can, again,
+be seen in Figure 2, π then enters g through an unguarded input gate and leaves g
+through a guarded output, so by the inductive hypothesis, the part of π that
+leads through g is guarded, and then of course π itself is guarded.
+‘If ’: We can regard the diagrammatic rules in Figure 2 as a set of rules for
+establishing guardedness of diagrams (essentially, this lets us use the known
+coherence theorem for symmetric monoidal categories to avoid bookkeeping with
+associativity etc.). In terms of diagrams, object expressions (such as A and D
+in the claim) correspond to sets of gates, and we will henceforth conflate the
+two notions. Let us denote by Ge pE, Oq the statement that the diagram of e
+is provably unguarded in a set E of input gates and simultaneously guarded
+
+in a set O of output gates (i.e. that the corresponding gates can be marked
+black according to the rules in Figure 2). We thus have to show Ge pA, Dq. We
+proceed by structural induction over e. For the case where e is a basic box f , note
+that the assumption implies that the unguarded gates of the given diagram are
+contained in those given in the basic guardedness assumption for f , similarly for
+the guarded outputs, so that Ge pA, Dq by weakening. The other base cases are
+straightforward, as they do not contain any basic boxes, so that the assumption
+implies that there are no critical paths; to make one example implicit: if e is an
+identity, then absence of critical paths implies that one of A and D is empty, so
+that Ge pA, Dq by (vacb ). The other cases are as follows.
+The expression e is a composite e2 e1 . Let M be the set of joint gates W
+of e1 and e2 such that all paths from W to gates in D in the diagram of e2 are
+guarded, and analogously, let N be the set of joint gates W of e1 and e2 such that
+all paths from gates in A to W are guarded. Note that the union N Y M consists
+of all joint gates of e1 and e2 : If there was a joint gate W R N Y M , then there
+would be an unguarded path from some X in A to W and an unguarded path from
+W to some Y in D; then the concatenated path would be critical (for e2 e1 ) and
+also unguarded, contradicting the assumption. Now by induction Ge1 pA, N q and
+Ge2 pM, Dq, and by the above, the complement N of N is N “ pM Y N qzN Ď M .
+By weakening, we therefore have Ge2 pN , Dq, so Ge pA, Dq by (the diagrammatic
+version of) (cmpb ).
+The expression e is a tensor e1 b e2 . Then A and D are disjoint unions
+A “ A1 Y A2 , D “ D1 Y D2 where the gates in A1 and D1 are contributed by e1
+and those in A2 and D2 by e2 . Every path in the diagram of e1 from a gate in
+A1 to a gate in D1 is a critical path in e1 b e2 , hence guarded by assumption;
+hence Ge1 pA1 , D1 q by induction. Analogously, Ge2 pA2 , D2 q, and thus Ge pA, Dq
+by (the diagrammatic version of) (parb ).
+\
+[
+A.3
+
+Proof of Lemma 3
+
+Any morphism that factors as ph b idD qpidA b gq as in the statement is guarded
+in any guarded structure by rules (vacb ) and (cmpb ) (plus weakening). This
+proves that the putative guarded structure described is contained in all guarded
+structures on C. It remains to show that the axioms of Definition 1 are satisfied.
+The rules (unib ) and (vacb )) are clear, and closure under rule (parb ) is easily
+seen by rearranging boxes and gates using commutativity and associativity of b.
+For closure under rule (cmpb ), finally, assume that f1 “ ph1 b idqpid b g1 q,
+f2 “ ph2 b idqpid b g2 q such that f2 f1 is defined. Then f2 f1 factors, omitting
+associativity isomorphisms, into id b ppid b g2 qg1 q and ph2 ph1 b idqq b id.
+A.4
+
+Proof of Proposition 5
+
+For brevity, given coproduct injections σ : X1 Ñ X1 ` X2 – X, θ : Y2 Ñ
+Y1 ` Y2 – Y , we write
+f : X Ñσ,θ Y
+
+for
+
+f in1 : X1 Ñθ Y,
+
+i.e. for f in1 P Hom‚ pX1 ` X2 , Y1 ` Y2 q.
+We need the following lemma:
+Lemma 43. Given f : X Ñσ,θ Z, g : Y Ñσ1 ,θ Z, then rf, gs : X ` Y Ñσ`σ1 ,θ Z.
+Proof. By (parb ), f ` g : X ` Y Ñσ`σ1 ,θ`θ Z ` Z. Assume w.l.o.g. that Z “
+Z 1 ` Z 2 , θ “ in2 : Z 2
+Z and θ̄ “ in2 : Z 1
+Z. Then Z ` Z is a coproduct of
+1
+1
+2
+2
+Z `Z and Z `Z , hence we obtain f `g : X `Y Ñσ`σ1 ,in2 pZ 1 `Z 1 q`pZ 2 `Z 2 q.
+By (cmpb ), ∇ ` ∇ : pZ 1 ` Z 1 q ` pZ 2 ` Z 2 q Ñin2 ,in2 Z 1 ` Z 2 , and so by (cmpb ),
+rf, gs : X ` Y Ñσ`σ1 ,θ Z.
+\
+[
+The proof of Proposition 5 then proceeds as follows. Suppose that pC, `, ∅q is
+guarded and let us show first of all that the above condition uniquely determines
+the Homin2 pX, Y ` Zq. Indeed, on the one hand we obtain as the definition:
+f P Homin2 pX, Y ` Zq if rf, !s P Hom‚ pX ` ∅, Y ` Zq. On the other hand if
+f “ g in1 then g P Hom‚ pX ` X 1 , Y ` Zq implies rf, !s “ rg in1 , !s “ rg in1 , ! in2 s “
+g pid ` !q P Hom‚ pX ` ∅, Y ` Zq by (vacb ) and (cmpb ), that is, decomposition
+of X different than X ` ∅ do not affect the definition of Homin2 pX, Y ` Zq.
+We proceed to prove the required properties.
+(vac` ) Let f : X Ñ Z. Then by (vacb ), f ` ! : X ` ∅ Ñin2 ,in2 Z ` Y .
+Modulo the fact that X is a coproduct of X and ∅, this is equivalent to f in1 :
+X Ñ!,in2 Z ` Y .
+(cmp` ) Suppose that f P Homin2 pX, Y ` Zq, g P Homσ pY, V q and h : Z Ñ
+V . Then f : X Ñ!,in2 Y ` Z and we would be done by Lemma 43 if we showed
+g : Y Ñ!,σ V and h : Z Ñid,σ V . The former of these two judgements is an
+assumption. To prove the latter one, note that h : Z Ñid,id V by (vacb ) and
+id : V Ñid,σ V by (unib ). Hence, indeed h : Z Ñid,σ V by (cmpb ).
+(par` ) The assumption read as f : X Ñ!,σ Z, g : Y Ñ!,σ Z. By Lemma 43,
+rf, gs : X ` Y Ñ!,σ Z, which is the goal.
+We proceed to show the converse implication.
+(unib ) Note that γ∅,A “ r!, in1 s : ∅ ` A Ñ A ` ∅, hence γ∅,A in1 “ ! “
+in1 ! P Homin2 pA ` ∅q by (vac` ).
+(vacb ) Let f : A Ñ B and g : C Ñ D. Note that in1 : A Ñin2 A ` C
+and in1 f : A Ñin2 B ` D by (vac` ), and therefore, by (cmp` ), pf ` gq in1 “
+rin1 f, in2 gs in1 : A Ñin2 B ` D, which is equivalent to the goal.
+(cmpb ) Since f g in1 “ rf in1 , f in2 sg in1 and by assumption g in1 P
+Homin2 pA, C ` Dq, by (cmp` ), we reduce the goal to f in1 P Homin2 pC, E ` F q,
+which is again part of the assumption.
+(parb ) By assumption, f in1
+P
+Homin2 pA, C ` Dq and
+g in1
+P
+Homin2 pA1 , C 1 ` D1 q. And we need to show that for
+rpin1 ` in1 qf, pin2 ` in2 qgspin1 ` in1 q P Homin2 pA`A1 , pC `C 1 q`pD`D1 qq. Indeed,
+by assumption f in1 P Homin2 pA, C ` Dq and hence by (vac` ) and (cmp` ),
+pin1 ` in1 q f in1 “ rin1 in1 , in2 in1 sf in1 P Homin2 pA, pC ` C 1 q ` pD ` D1 qq.
+Symmetrically, pin2 ` in2 q g in1 P Homin2 pA1 , pC ` C 1 q ` pD ` D1 qq, and thus we
+are done by (par` ).
+\
+[
+
+A.5
+
+Proof of Lemma 12
+
+Note that by (vacb ), HomI pI, Iq “ HompI, Iq The closure conditions are instances of diagrams from Figure 2.
+
+\
+[
+A.6
+
+Existence of Non-Ideal Guarded Structures (Section 4)
+
+Example 44. Let T be the monad on Set for the algebraic theory of commutative semigroups with the additional law x ˚ y “ x. The Kleisli category SetT is co-Cartesian with coproducts inherited from Set, and so we put
+f : X Ñ2 T pY ` Zq iff f “ pT in1 q g for some g : X Ñ T Y . According to this
+definition, f P HomI pX, T Y q iff f factors through T ∅ “ ∅, i.e. when X “ ∅
+and f “ !T Y . This induces a different guarded category structure on SetT :
+f : X Ñ2 T pY ` Zq iff Z “ ∅. Consider the term x ˚ y P T pX ` Y q (seen as a
+morphism 1 Ñ T pX ` Y q) with x P X and y P Y . It is in2 -guarded under the
+original definition, for it is equivalent to the term x P T pX ` ∅q, but not under
+the new definition unless Y “ ∅.
+A.7
+
+Proof of Theorem 14
+
+By the axioms of guarded categories (or more quickly by Theorem 2), it is clear
+that morphisms of the given form must be in Hom‚ pA b B, C b Dq. It remains to
+check closure under the axioms of Definition 1. To that end, consider a generic
+morphism pq b idqwn . . . w1 pid b pq where p : B Ñ B1 b C1 , q : Bn b Cn Ñ C,
+A1 “ A, Cn “ D and each wi : Ai b pBi b Ci q Ñ Ai`1 b pBi`1 b Ci`1 q has the
+form
+i
+i
+
+(7)
+
+i
+
+In order to capture (unib ) and (vacb ) it suffices to take n “ 0, and select
+p and q in the obvious way. Axiom (cmpb ) is clear by definition. Let us ver1
+ify (parb ). Given f “ pqbidq wn . . . w1 pidbpq and f 1 “ pq 1 bidq wm
+. . . w11 pidbp1 q,
+we assume them to be an input to the (parb ) rule. W.l.o.g. we assume that
+n “ m (missing sections of the form (7) with a middle wire of type I can obviously
+be added by need either to f or to f 1 ). Note that the tensor product of two
+sections of the form (7) can again be arranged in a diagram in the same form:
+i
+i
+i
+
+'i
+
+'i
+
+'i
+
+where we make use of the fact that gi b gi1 belongs to the guarded ideal, for gi
+and gi1 individually do. By induction over n this implies that the combination of
+f and f 1 figuring in (parb ) rule has the specified format.
+A.8
+
+Proof of Lemma 17
+
+Consider a composite of (7) with a diagram of the form
+
+i
+i
+
+(8)
+
+i
+
+We argue that this composite is equivalent to a diagram of the same form as
+on the right of (8). Indeed by the axioms of guarded ideals, we can replace the
+tensor product of gi and g with a single guarded morphism, and then compose
+the result with fi to obtain another guarded morphism, say h P GpX, Y b Zq.
+By assumption, the latter can be represented as e pĥ b idq, i.e. in summary we
+obtain
+e
+
+i
+
+ĥ
+
+This is clearly reducible to the a diagram in the same form as on the right of (8).
+Now, assuming a morphism f P Hom‚ pA b B, C b Dq as defined in clause (1)
+with B “ C “ I, note that pq b idq : pAn b Bn q b D Ñ I b D falls into the format
+specified by the diagram on the right of (8) (one takes g “ id : I Ñ I, which
+belongs to GpI, Iq). By inductively applying the above argument we contract
+f “ pq b idq wn . . . w1 pid b pq to the form
+p
+ĥ
+
+Here p is a guarded morphism because it factors through id : I Ñ I P GpI, Iq.
+The obtained diagram clearly yields a guarded morphism, and we are done. \
+[
+A.9
+
+Proof of Proposition 15
+
+Immediate from Lemma 45.1 below and the assumption that C is equipped with
+the least guarded structure.
+Lemma 45. Let pC, b, Iq be a guarded category, with induced guarded ideal
+GpX, Y q “ HomI pX, Y q. Then
+
+1. The guarded structure on C induced by G is contained in the original one.
+2. If C is ideally guarded, then G induces the guarded structure of C.
+Proof. 1. Immediate from the fact that the guarded structure induced by G is
+the least one containing G.
+2. The given guarded ideal inducing the guarded structure of C is contained in
+G, so the given guarded structure on C is contained in the one induced by
+C. Part 1 then implies equality.
+\
+[
+
+A.10
+
+Proof of Theorem 18
+
+First of all, note that Lemma 17 applies to the case at hand, for any f P
+GpX `Y, Zq can be represented as follows f “ rf in1 , f in2 s “ rid, f in2 s pf in1 `idq
+where f in1 P GpX, Zq, by closure properties of guarded ideals. It remains to
+prove (1) that the
+Homin2 pX, Y ` Zq “ {rin1 , gsh | g P GpW, Y ` Zq, h : X Ñ Y ` W }
+
+(9)
+
+is a correct definition of a guardedness structure, and (2) that it is contained in
+the guardedness structure generated by G.
+1. It suffices to verify closure under the rules on the right of Figure 3. E.g.
+for (cmp` ), we have to prove that rrin1 , g 1 su, f s rin1 , gsh P Homin2 pX, V ` W q
+provided g P GpY 1 , Y ` Zq, h : X Ñ Y ` Y 1 , f : Z Ñ V ` W , u : Y Ñ V ` V 1 ,
+g 1 P GpV 1 , V ` W q. Indeed,
+rrin1 , g 1 su, f s rin1 , gsh “ rrin1 , g 1 su, rrin1 , g 1 su, f sgsh
+“ rrin1 , g 1 s, rrin1 , g 1 su, f sgs pu ` idq h
+“ rin1 , rg 1 , rrin1 , g 1 su, f sgssαV,V 1 ,Y 1 pu ` idqh
+and the latter is in Homin2 pX, V ` W q by definition and the fact that
+rg 1 , rrin1 , g 1 su, f sgs P GpV 1 ` Y 1 , V ` W q by axioms of guarded ideals.
+2. By Proposition 5 the general form of a partially guarded morphism induced
+by (9) is rrin1 , gsh, us : A ` B Ñ C ` D with u : B Ñ C ` D, h : A Ñ C ` D1 ,
+g : D1 Ñ C ` D, which can be structured as follows:
+
+u
+
+and this indeed fits the format specified by Theorem 14.
+
+\
+[
+
+A.11
+
+Proof of Corollary 20
+
+Record first of all that G is exponential iff f P GpX ˆ Y, Zq implies curry f P
+GpX, Z Y q, for given f P GpX ˆ Y, Zq, curry f “ f Y currypidXˆY q, and given
+g P GpX, Y q, g V “ currypg evq.
+The given construction produces a guarded category only if G is exponential,
+for f P GpX ˆ Y, Zq must by weakening imply f : X ˆ Y Ñpr1 Z, whence, by
+definition, curry f P GpX, Z Y q.
+Conversely, suppose that G is exponential. We proceed to show that the
+description of the guarded structure on C according to Corollary 19 is equivalent
+to the current one, which will finish the argument. On the one hand, if curry f P
+GpX, Z Y q then f “ ev pcurry f ˆ idq “ ev hpcurry f qpr1 , pr2 i, i.e. f is pr1 -guarded
+in the sense of Corollary 19; on the other hand, if f “ hhg, pr2 i for some
+g P GpX ˆ Y, W q, then curry f “ curryph hev, pr2 iq pcurry gq P GpX, Z Y q.
+\
+[
+A.12
+
+Proof of Proposition 22
+
+The axioms of guarded ideals are easy to check. As an example let us verify
+closedness under ˆ: given f : A Ñ B, g : C Ñ D,
+f next ˆg next “ hf next pr1 , g next pr2 i “ hf pI pr1 q, g pI pr2 qi next . \
+[
+A.13
+
+Proof of Proposition 27
+
+Induction on e. All cases except the one for the trace operation are analogous
+to Theorem 2. So let e have the form trA,B,C,D pe1 q where e1 P Hom‚ ppA b U q b
+B, C b pD b U qq. Every path from an input gate in A to an output gate in D in
+the diagram of trA,B,C,D pe1 q is also such a path in e1 , hence guarded by induction.
+The only new loops in the diagram of trA,B,C,D pe1 q are the ones generated by the
+current application of the trace operator. Every such loop π incorporates a path
+from an input gate in U to an output gate in U , which is guarded by induction;
+thus, π itself is guarded.
+A.14
+
+Details for Example 28 (Right Hand Diagram)
+
+To see that the necessary condition from Proposition 27 holds, note that both
+the loop through f and g and the path from the unguarded input to the guarded
+output of the diagram are guarded. We show that the diagram is not induced by
+an expression for which the indicated overall guardedness typing of the diagram
+(one unguarded input, one guarded output) is derivable: The paths connecting the
+unguarded input and the guarded output of the diagram with the loop preclude
+a derivation using (vacb ); the only way that remains is to apply the rule for tr.
+But both ways of cutting the loop (in either case marking the newly open input
+gate of the diagram as unguarded and the new output gate as guarded in order
+to enable application of tr) lead to diagrams that have an unguarded path from
+an unguarded input to a guarded output, violating the necessary condition from
+Proposition 27.
+
+A.15
+
+Proof of Theorem 29
+
+Induction on the number of loops in ∆, with Theorem 2 (plus the standard
+fact that, disregarding guardedness, every acyclic diagram is induced by some
+trace-free morphism expression) as the base case. The inductive step is as follows.
+Recall that there are only two types of basic boxes regarding their decoration,
+the basic generic guards and boxes with only guarded inputs and only unguarded
+outputs. In reference to the colour of the decorations, we call the former black
+and the latter white.
+Let U denote the set of nodes n in ∆ that have an unguarded path from
+their inputs to some output gate in D (i.e. the unguarded path includes n itself);
+dually, let V denote the set of nodes in ∆ that have an unguarded path from some
+input gate in A to their outputs. By the simplified characterization of guarded
+paths in ideally guarded diagrams, all nodes in U Y V must be white.
+Then the assumption implies that
+U X V “ ∅.
+
+(10)
+
+Since we are in the inductive step, there exists a loop π in ∆.
+Claim 1: There is some wire w belonging to π that connects an output gate O
+of a basic box f R V to an input gate I of a basic box g R U .
+To see this, assume for a contradiction that w fails to exist, i.e. every wire in π is
+attached either to an output of a box in V or to an input of a box in U . Pick
+some wire v on π, and assume w.l.o.g. that v is attached to an input of a box
+in U . Then by (10), the same must hold for the next wire on π. Continuing
+around the loop, we find that all boxes on π are in U , in particular are white,
+contradicting the assumption that π is guarded. This proves Claim 1.
+Now take w as in Claim 1. Briefly, we can cut w, apply the inductive assumption and then reintroduce w by means of the trace operator. In detail, let the
+diagram ∆1 arise from ∆ by cutting w, let A1 consist of the gates in A and the
+newly open input gate I, and let D1 consist of the gates in D and the newly open
+output gate O. Now since f R V and g R U , every path π 1 from an input gate
+in A1 to an output gate in D1 falls within one of the following cases.
+π 1 runs from a gate in A to a gate in D. Since π 1 is already present in ∆, π 1
+is then guarded by assumption.
+π 1 runs from I to O. Then the nodes of π 1 form a loop in ∆, so that π 1 is
+guarded by assumption.
+π 1 runs from I to a gate in D. Since g R U , π 1 is guarded.
+Dually, π 1 is guarded if it runs from a gate in A to O.
+Finally, all loops in ∆1 are already present in ∆, hence guarded by assumption.
+By the inductive hypothesis, we therefore have e P Hom‚ pA1 b B, C b D1 q “
+Hom‚ ppA b U q b B, C b pD b U qq inducing ∆1 , where U is the joint type of I
+and O. Then, ∆ is induced the expression trpe1 q.
+\
+[
+
+A.16
+
+Proof of Lemma 31
+
+1. Suppose, p--q: is uniform. Given, f : X Ñin2 Y ` X, let
+w “ rin1 pid ` in2 qf, pin1 ` in1 qf s : X ` X Ñin2 pY ` pX ` Xqq ` pX ` Xqq.
+We are going to show that prin1 , f sf q: “ w:: in2 and prid, in2 swq: in2 “ f : which
+implies the identity in question by the codiagonal axiom. On the one hand,
+w: in2 “ rid, w: sw in2
+
+// fixpoint
+
+:
+
+“ rid, w spin1 ` in1 qf
+“ rin1 , w: in1 sf
+“ rin1 , rid, w: sw in1 sf
+
+// fixpoint
+
+:
+
+“ rin1 , rid, w s in1 pid ` in2 qf sf
+“ rin1 , pid ` in2 qf sf
+“ pid ` in2 qrin1 , f sf.
+By uniformity this implies w:: in2 “ prin1 , f sf q: . To show prid, in2 swq: in2 “ f : ,
+observe that
+prid, in2 swq: in2 “ rpid ` in2 qf, rin1 , in2 in1 sf s: in2
+“ rpid ` in2 qf, pid ` in1 qf s: in2 .
+Since
+pid ` ∇q rpid ` in2 qf, pid ` in1 qf s “ rf, f s “ f ∇,
+by uniformity, rpid ` in2 qf, pid ` in1 qf s: “ f : ∇, and therefore prid, in2 swq: in2 “
+f : ∇ in2 “ f : .
+2. Assume that p--q: is squarable and uniform w.r.t. coproduct injections.
+Consider g : X Ñin2 Y ` Z and f : Z Ñ Y ` X (and omit the analogous
+symmetric option g : X Ñ Y ` Z and f : Z Ñin2 Y ` X). We introduce
+h “ rpid ` in2 q g, pid ` in1 q f s : X ` Z Ñin2 pY ` pX ` Zqq
+where the guardedness annotation is provable by (cmp` ) and (par` ) and apply
+the squaring identity to it. Thus, h: “ rrin1 , pid ` in1 q f sg, rin1 , pid ` in2 q gsf s: .
+Since rrin1 , pid`in1 q f sg, rin1 , pid`in2 q gsf s in1 “ pid`in1 q rin1 , f sg, by uniformity
+this implies h: in1 “ prin1 , f sgq: and, analogously, h: in2 “ prin1 , gsf q: . Now,
+prin1 , f sgq: “ h: in1 “ rid, h: sh in1 “ rid, h: in2 sg “ rid, prin1 , gsf q: sg,
+and we are done.
+3. Assume that p--q: is Conway. First, we show uniformity w.r.t. isomorphisms.
+Let f : X Ñin1 Y ` X and let for some i : X Ñ X 1 , j : X 1 Ñ X, i j “ id, j i “ id,
+pid ` iq f “ g i. Then
+f : “ pf j iq:
+
+“ ppid ` iqf jq: i
+
+// dinaturality
+
+:
+
+“ pg i jq i
+“ g : i.
+We proceed with the proof of the general case, and now we can stick w.l.o.g. to
+the coproduct injections of the form in1 : X Ñ X ` Y . Suppose that for some
+f : X Ñin1 Z ` X and h : X ` Y Ñin1 Z ` pX ` Y q, pid ` in1 qf “ h in1 and show
+that f : “ h: in1 . Note that by assumption, h “ rpid ` in1 q f, gs where g “ h in2 ,
+so we only need to show
+rpid ` in1 qf, gs: in1 “ f : .
+
+(11)
+
+First we tackle the following special case of (11):
+rpid ` in1 qf, pid ` in1 qgs: in1 “ f :
+
+(12)
+
+We have
+rpid ` in1 qf,pid ` in1 q gs: in1
+“ ppid ` in1 q rf, gsq: in1
+
+// dinaturality
+
+“ prf, gs in1 q:
+“ f :.
+Finally, let us show (11) in the general form. Let w “ rin1 pid `
+in1 qf, pin1 `idqgs : X ` Y Ñin2 pZ ` pX ` Y qq ` pX ` Y q. It is straightforward that prid, in2 swq: “ rpid ` in1 q f, gs: , so, by the codiagonal identity, we are
+left to show that w:: in1 “ f : . Indeed,
+w:: in1 “ pprin1 , pid ` in1 qf s ` idq rin1 in2 , pin1 `idqgsq:: in1
+“ prin1 , pid ` in1 qf s rin1 in2 , pin1 `idq gs: q: in1
+
+// naturality
+
+:
+
+“f .
+
+// (12)
+
+and we are done.
+
+\
+[
+
+A.17
+
+Proof of Theorem 36
+
+We denote the strength of T by τX,Y : X ˆ T Y Ñ T pX ˆ Y q, and its transpose
+pT γY,X qτY,X γT X,Y by τ̂X,Y : T X ˆ Y Ñ T pX ˆ Y q.
+We need the following technical fact.
+Lemma 46. Let C be a Cartesian category, and let T be a strong monad on C.
+Suppose p--q; is a recursion operator on CT‹ satisfying naturality. Then p--q; extends
+to morphisms of the form f : V ˆ A Ñ A with pA, aq P |CT‹ | and V P |C|. The
+extended operator satisfies f; “ papT f q τ̂ : T V ˆ A Ñ Aq; η for f : V ˆ A Ñ A.
+
+Proof. Given a monad algebra pA, aq for T and f : V ˆ A Ñ A as in the claim,
+put f; “ papT f q τ̂ q; η, where the application of the original p--q; on the right
+hand side is defined because it involves the free algebra pT V, µq instead of V .
+We have to check that this definition agrees with the original one on CT‹ . So let
+f : B ˆ A Ñ A with pB, βq P |CT‹ |. Then
+papT f q τ̂ q; η “ pa pT f q τ̂ pη ˆ idqq;
+“ pa pT f qηq;
+“ paη f q;
+“ f; .
+This argument also shows that the extended operator satisfies f; “ papT f q τ̂ q; η.
+\
+[
+The proof of Theorem 36 then proceeds as follows. Let us first check that the
+definition of p--q: via p--q; does not depend on the factorization of f as g pid ˆ ηq.
+Suppose f “ g 1 pid ˆ ηq “ g pid ˆ ηq. Then
+ghid, pηgq; i “ ghid, pηg hpr1 , ηgiq; i
+
+// squaring
+
+1
+
+“ ghid, pηg hpr1 , ηgiq; i
+1
+
+// assumption
+1
+
+“ ghid, ηg hid, pηg hpr1 , ηg iq; ii
+
+// dinaturality
+
+“ g 1 hid, ηg 1 hid, pηg 1 hpr1 , ηg 1 iq; ii
+
+// assumption (twice)
+
+“ g 1 hid, ηg 1 hid, pηg 1 q; ii
+1
+
+1
+
+“ g hid, pηg q; i
+
+// squaring
+// fixpoint
+
+Let us check that the mutual transformations between p--q; and p--q: are
+mutually inverse.
+p--q; Ñ p--q: Ñ p--q; : given f : B ˆ A Ñ A with pA, aq P |CT |,
+aη f pid ˆ apT aqqhid, pηη f pid ˆ apT aqqq; i
+“ f hid, apT aq pηη f pid ˆ apT aqqq; i
+“ f hid, apT aqηη pf pid ˆ apT aqηηqq; i
+
+// dinaturality
+
+“ f hid, f; i
+“ f; .
+
+// fixpoint
+
+p--q: Ñ p--q; Ñ p--q: : given f “ g pid ˆ ηq : Y ˆ X Ñ X,
+ghid, µpηηgpid ˆ µqq: i
+“ ghid, µηη pgpid ˆ µηηqq: i
+
+// dinaturality
+
+“ ghid, η pg pid ˆ ηqq: i
+“ pg pid ˆ ηqq:
+
+// fixpoint
+
+“ f: .
+Next, let us verify that the properties of fixpoints transfer along the transitions
+p--q; Ñ p--q: and p--q: Ñ p--q; . It suffices to handle the fixpoint, naturality, squaring,
+and diagonal laws. Consider the transition p--q: Ñ p--q; .
+fixpoint:
+f; “ apηf pid ˆ aqq:
+“ f pid ˆ aqhid, pηf pid ˆ aqq: i
+“ f hid, apηf pid ˆ aqq: i
+
+// fixpoint
+
+“ f hid, f: i
+naturality:
+f; g “ apηf pid ˆ aqq: g
+“ apηf pg ˆ aqq:
+
+// naturality
+
+“ pf pg ˆ idqq;
+squaring:
+f; “ apηf pid ˆ aqq:
+“ apηf pid ˆ aqq:
+“ apηf pid ˆ aq hpr1 , ηf pid ˆ aqiq:
+
+// squaring
+
+“ apηf hpr1 , f pid ˆ aqiq:
+“ apηf hpr1 , f ipid ˆ aqq:
+“ pf hpr1 , f iq; .
+dinaturality:
+pg hpr1 , hiq; “ apηg hpr1 , hipid ˆ aqq:
+“ aη g hid, phpid ˆ aq hpr1 , ηgiq: i
+
+// dinaturality
+
+“ g hid, phhpr1 , giq: i
+“ g hid, paηhhpr1 , giq: i
+“ g hid, apηhhpr1 , gipid ˆ aqq: i
+“ g hid, phhpr1 , giq; i.
+diagonal:
+pf hid, pr2 iq; “ a pηf hid, pr2 ipid ˆ aqq:
+“ a pηf hpid ˆ aq, apr2 iq:
+
+// dinaturality
+
+“ apηf ppid ˆ aq ˆ aq hid, pr2 iq:
+“ appηf ppid ˆ aq ˆ aqq::
+
+// diagonal
+
+“ appηf pid ˆ aqq: pid ˆ aqq:
+
+// naturality
+
+“ a ηappηf pid ˆ aqq: pid ˆ aηaqq:
+“ apηapηf pid ˆ aqq: pid ˆ aqq:
+
+// dinaturality
+
+“ f;; .
+Next, consider the transition p--q; Ñ p--q: .
+fixpoint:
+pg pid ˆ ηqq: “ ghid, pηgq; i
+“ ghid, ηghid, pηgq; ii
+
+// fixpoint
+
+“ pg ˆ ηqhid, ghid, pηgq; ii
+“ pg ˆ ηqhid, pg pid ˆ ηqq: i
+naturality:
+pg pid ˆ ηqq: f “ ghid, pηgq; if
+“ ghf, pηg pf ˆ idqq; i
+
+// naturality
+
+“ g pf ˆ idqhid, pηg pf ˆ idqq; i
+“ pg pf ˆ ηqq:
+squaring:
+pg pid ˆ ηqq: “ ghid, pηgq; i
+“ ghid, ηg hid, pηgq; ii
+
+// fixpoint
+
+“ ghid, ηg hid, pηg hpr1 , ηgiq; ii
+
+// squaring
+
+“ g hpr1 , ηgihid, pηg hpr1 , ηgiq; i
+“ pg hpr1 , ηgi pid ˆ ηqq:
+“ pg pid ˆ ηqhpr1 , g pid ˆ ηqiq: .
+dinaturality:
+pg hpr1 , hpid ˆ ηqiq:
+“ pg hpr1 , hipid ˆ ηqq:
+“ g hpr1 , hihid, pηg hpr1 , hiq; i
+“ g hid, hhid, ppT gqτ hpr1 , ηhiq; ii
+“ g hid, hhid, pT gq τ hid, pηhhpr1 , pT gq τ iq; iii
+“ g hid, hhpr1 , pT gq τ i pηhhpr1 , pT gq τ iq; i
+
+// dinaturality
+
+“ g hid, phhpr1 , pT gq τ i pid ˆ ηqq: i
+“ g hid, phhpr1 , ηgiq: i
+“ g hid, phpid ˆ ηq hpr1 , giq: i.
+(the case of g pid ˆ ηq and h instead of g and hpid ˆ ηq is analogous.)
+We are left to check the diagonal identity. First, we do it in the nonparametrized case, i.e. for the morphisms of type g : 1 ˆ T pX ˆ Xq Ñ X. We
+identify such g for brevity with g : T pX ˆ Xq Ñ X with the implied simplification
+of notation therefore. Our goal thus is the equation
+pg η∆q: “ ppg ηq: q: .
+We transform the left and the right hand sides as follows:
+ppg ηq: q: “ ppg τ pid ˆ ηqq: q:
+“ pg τ hid, pηg τ q; iq:
+
+// definition of p--q;
+
+“ pg τ̂ ‹ τ hη, pηg τ̂ ‹ τ pη ˆ idqq; iq:
+“ pg τ̂ ‹ τ hη, pηg τ̂ ‹ τ q; ηiq:
+‹
+
+// naturality
+
+‹
+
+“ pg τ̂ τ hid, pηg τ̂ τ q; i ηq:
+“ pg τ̂ ‹ τ hid, ηgpτ̂ ‹ τ pid ˆ ηgqq; i ηq:
+
+// dinaturality
+
+“ pg τ̂ hid, gpτ̂ pid ˆ gqq; i ηq:
+“ pg τ̂ pid ˆ gqhid, pτ̂ pid ˆ gqq; i ηq:
+“ pg pτ̂ pid ˆ gqq; ηq:
+“ g pτ̂ pid ˆ gqq; pηg pτ̂ pid ˆ gqq; q;
+“ g pτ̂ pid ˆ gqq; ηg ppτ̂ pid ˆ gqq; ηgq;
+“ g pτ̂ pηg ˆ gqq; ppτ̂ pηg ˆ gqq; q;
+
+// fixpoint
+// definition of p--q;
+// dinaturality
+// naturality
+
+“ g pη pg ˆ gqq; ppηpg ˆ gqq; q;
+“ g ppηpg ˆ gqq; q;
+
+// fixpoint
+
+pg η∆q: “ g pT ∆q pηg pT ∆qq;
+“ g ppT ∆q ηgq;
+
+// dinaturality
+
+“ g pη pg ˆ gq ∆q; .
+The computed vales are equal by the diagonal axiom for p--q; .
+To extend this calculation to the parametrized case, we observe that the whole
+situation lifts to the co-Kleisli category CY for the comonad p´q ˆ Y for any
+parametrizing object Y P |C|. In more detail, the monad T lifts to a strong monad
+T̄ on CY by means of the strength, with T̄ f “ T f τ̂ and all other components of
+the monad structure (unit, multiplication, strength) arising by precomposition
+with pr1 . The monad and strength laws are checked straightforwardly in the
+internal languages of T [31]. Then a co-Kleisli morphism X ˆ Z Ñ W is guarded
+in X iff the corresponding C-morphism X ˆ Z ˆ Y Ñ W is guarded in X, using
+the simplified description from Proposition 22, which applies here because T is
+
+strong. A recursion operator on CT‹ is then essentially the same as a recursion
+operator on the full subcategory CT̄Y,‹ of CT̄Y spanned by the objects in CT‹ – the
+only difference is that the latter operator has a parameter of type Y hardwired
+into the base category, and recursion operators are parametrized to begin with.
+(Going in the other direction, the parameter Y can just be projected out.) The
+same applies to guarded recursive operators on C and CY , respectively, thanks to
+the previous observation that guardedness is the same in C and in CY . Equational
+laws of recursion operators transfer between C and CY in the process, as the
+operators essentially do not change. By the previous calculations applied to
+CY , we obtain that p´q: satisfies the unparametrized diagonal law in CY . But
+this implies that p´q: satisfies the parametrized diagonal law in C. We do this
+last step in more detail: Let f : X ˆ X ˆ Y Ñ X in C, guarded in the first
+two arguments. Then f : X ˆ X Ñ X in CY (guarded in both arguments),
+¯ : in CY ,
+so by the unparametrized diagonal law in CY , we have pf: q: “ pf ∆q
+¯
+where ∆ : X Ñ X ˆ X is the diagonal in CY . The left hand side is the same
+as pf: q: in C. Translating the right-hand side into C, we have ∆¯ “ ∆pr1 in
+C where ∆ : X Ñ X ˆ X is the diagonal in C, and the composite f ∆¯ in CY
+then becomes, expanding the definition of co-Kleisli composition, f h∆pr1 , pr2 i
+in C. Again noting that p´q: is the same in CY as in C, we have shown that
+pf: q: “ pf h∆pr1 , pr2 iq: “ pf p∆ ˆ idqq: in C, which is the (parametrized) diagonal
+law up to rebracketing of the product X ˆ X ˆ Y .
+\
+[
+
+A.18
+
+Proof of Proposition 37
+
+It is clear that by the assumption in the statement, the trace operation is welldefined. It remains to check the equational axioms given in Figure 4. We argue
+diagrammatically, using the standard coherence result for symmetric monoidal
+categories. Note first that in all equations in Figure 4, the two sides constitute
+isomorphic diagrams (abstracting away the dotted boxes, and recalling that the
+dotted line in Vanishing I connects gates of type I and hence is, for diagrammatic
+purposes, not really there). Now replace all basic (i.e. solid) boxes in the diagrams
+by the pattern for vacuous guardedness,
+
+g
+h
+
+(or simplified versions thereof with fewer gates, to adjust to the number of gates
+of the corresponding basic box in the original diagram). This makes the diagrams
+acyclic, as the back-edges appearing in trace formation now no longer close any
+loops due to the absence of paths from unguarded (black) input gates to guarded
+(black) output gates in the above pattern. Notice next that the diagrammatic
+definition of the trace operation
+
+U
+B
+A
+
+g
+
+E
+
+h
+
+C
+
+B
+
+D
+
+A
+
+U
+
+g
+E
+
+C
+h
+
+D
+
+just transforms the given diagram into an isomorphic one. Summing up, after
+calculating traces in the above manner, the left and right hand side of every
+axiom in Figure 4 are now isomorphic acyclic diagrams, so the corresponding
+equations are valid over symmetric monoidal categories by the standard coherence
+theorem [37].
+\
+[
+A.19
+
+Proof of Theorem 42
+
+Lemma 47. Let g P HSpA, Cq, f P HSpB, Cq. Then, hgpaq, f pbqi “ hb b θpg : q,
+θpf q b ai, for any a P A, b P B.
+Proof.
+hgpaq, f pbqi “ hb, f : pgpaqqi
+“ hb b 1, pidB b pθpg : qq: qpθpf q b idA qp1, aqi
+“ hb b θpg : q, θpf q b ai.
+\
+[
+We proceed with the proof of the theorem. 1.: By Remark 16, f : A Ñ D
+belongs to the guarded ideal induced by the vacuously guarded structure iff
+´1
+υD
+f υ̂A : A b I Ñ I b D is of the form
+id bg
+
+h: bid
+
+A b I ÝÝAÝÝÑ A b E b D ÝÝÝÝÝD
+ÑI bD
+for suitable g : I Ñ E b D and h : I Ñ A b E (eliding the associativity
+isomorphism). By the compactness property of nuclear ideals (Definition 38), the
+condition f P HS2 pA, Dq is characterized by the same condition with g replaced
+with a morphism of the form θpg 1 q and h replaced with a morphism of the form
+pθph1 qq: (for Hilbert-Schmidt operators g 1 , h1 ). Since both θ and p´q: are bijective,
+the two conditions are equivalent as claimed.
+Next we have to establish the well-definedness condition from Proposition 37.
+To that end, first let us argue that a bounded linear operator f : A b B Ñ C
+is determined by its values on arguments of the form a b b where a P A, b P B.
+Indeed, we have
+f : pcqpa, bq “ ha b b, f : pcqi “ hf pa b bq, ci
+for all c P C.
+Now let f P Hom‚ pA b U q b B, C b pD b U qq, with factorization f “ ph b
+idDbU qpidAbU bgq (eliding associativity), g : B Ñ E bD bU , h : AbU bE Ñ C,
+
+as per Lemma 3. Write w for the result of calculating trU
+A,B,C,D pf q w.r.t. this
+factorization according to (6). By the above argument we need to check that the
+values wpa b bqpc, dq, for a P A, b P B, c P C and d P D, depend only on f .
+By Proposition 41, there are gb : D b U Ñ E and hc : A b U Ñ E such that
+gpbq “ θpgb: q, hpcq “ θphc q (where we identify elements of a space X with linear
+operators R Ñ X). Moreover, let ĥ : C b A Ñ U b E and ĝ : B b D Ñ U b E
+be defined by ĥpc b aqpu, eq “ hpcqpa, u, eq, ĝpb b dqpu, eq “ gpbqpe, d, uq. Let
+u : A b E b D b U Ñ A b U b E b D be the permutation isomorphism involved
+in (6). Then
+wpa b bqpc, dq “ hph: b idD q u pa b gpbqq, c b di
+“ hupa b gpbqq, hpcq b di
+
+// defn. of :
+
+“ hĝpb b dq, ĥpc b aqi
+X
+“
+hpcqpa, uj , ei qgpbqpei , d, uj q
+i,j
+X
+“
+hgb pd b ui q, ej ihej , hc pa b ui qi
+i,j
+X
+“
+hgb pd b ui q, hc pa b ui qi
+i
+X
+“
+ha b ui b θpgb: q, θphc q b d b ui i
+i
+X
+“
+ha b ui b gpbq, hpcq b d b ui i
+Xi
+“
+ha b ui , hpcqi hgpbq, d b ui i
+Xi
+“
+hh: pa b ui q, ci hgpbq, d b ui i
+i
+X
+“
+hh: pa b ui q b gpbq, c b d b ui i
+i
+X
+“
+hph: b idDbU q pa b ui b gpbqq, c b d b ui i
+i
+X
+“
+hf pa b ui b bq, c b d b ui i
+
+// Lemma 47
+
+// Lemma 47
+
+i
+
+depends only on f , as required.
+2.: Since p´q: preserves the monoidal structure, its combination with the
+symmetry as in the statement can be seen as just realizing the duality discussed
+in Remark 4. In particular, the given factorization of f witnessing the guardedness typing assumed in the statement induces a corresponding factorization
+of γB,AbU f : γDbU,C , so that indeed γB,AbU f : γDbU,C P Hom‚ ppD b U q b C, B b
+pA b U qq; the same observation implies the claimed equality.
+\
+[
+
+

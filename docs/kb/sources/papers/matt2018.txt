@@ -1,0 +1,2213 @@
+Toward an Algebraic Theory of Systems∗
+Christian Matt†1 , Ueli Maurer1 , Christopher Portmann‡2 ,
+Renato Renner2 , and Björn Tackmann§3
+
+arXiv:1609.04293v2 [cs.OH] 22 Sep 2018
+
+1
+
+Department of Computer Science, ETH Zurich, 8092 Zurich, Switzerland.
+cmatt@cs.ucsb.edu, maurer@inf.ethz.ch
+2
+Institute for Theoretical Physics, ETH Zurich, 8093 Zurich, Switzerland.
+chportma@inf.ethz.ch, renner@phys.ethz.ch
+3
+Department of Computer Science and Engineering, University of California, San Diego,
+La Jolla, CA 92093, USA.
+bta@zurich.ibm.com
+
+Abstract
+We propose the concept of a system algebra with a parallel composition operation and an
+interface connection operation, and formalize composition-order invariance, which postulates
+that the order of composing and connecting systems is irrelevant, a generalized form of
+associativity. Composition-order invariance explicitly captures a common property that is
+implicit in any context where one can draw a figure (hiding the drawing order) of several
+connected systems, which appears in many scientific contexts. This abstract algebra captures
+settings where one is interested in the behavior of a composed system in an environment and
+wants to abstract away anything internal not relevant for the behavior. This may include
+physical systems, electronic circuits, or interacting distributed systems.
+One specific such setting, of special interest in computer science, are functional system
+algebras, which capture, in the most general sense, any type of system that takes inputs
+and produces outputs depending on the inputs, and where the output of a system can be
+the input to another system. The behavior of such a system is uniquely determined by the
+function mapping inputs to outputs. We consider several instantiations of this very general
+concept. In particular, we show that Kahn networks form a functional system algebra and
+prove their composition-order invariance.
+Moreover, we define a functional system algebra of causal systems, characterized by the
+property that inputs can only influence future outputs, where an abstract partial order
+relation captures the notion of “later”. This system algebra is also shown to be compositionorder invariant and appropriate instantiations thereof allow to model and analyze systems
+that depend on time.
+
+Keywords: Systems, composition, abstraction, order invariance, fixed points, causality.
+∗
+
+c 2018. This manuscript version is made available under the CC-BY-NC-ND 4.0 license https://
+creativecommons.org/licenses/by-nc-nd/4.0/. The version published in Theoretical Computer Science is
+available at https://doi.org/10.1016/j.tcs.2018.06.001.
+†
+Present address: Department of Computer Science, University of California, Santa Barbara, CA 93106, USA.
+‡
+Present address: Department of Computer Science, ETH Zurich, 8092 Zurich, Switzerland.
+§
+Present address: IBM Research – Zurich, 8803 Rüschlikon, Switzerland.
+
+1
+
+1
+
+Introduction
+
+1.1
+
+Motivation
+
+A universal concept in many disciplines is to characterize the behavior of an object, often called
+a module or a system, and thereby to intentionally ignore internal aspects considered irrelevant.
+We will here use the term system. The purpose of a system is to be used or embedded in an
+environment, which can for example consist of several other systems. A system’s behavior is the
+exact characterization of the effect a system can have when embedded in an environment. In
+such a consideration, anything internal, not affecting the behavior, is by definition considered
+irrelevant, and two systems with the same behavior are considered to be equal. Which aspects
+are considered irrelevant, and hence are not modeled as part of the behavior, depends strongly on
+the concrete investigated question. For example, if for a software module computing a function,
+one is only interested in the input-output behavior, then this function characterizes the behavior
+of the software module, and aspects like the underlying computational model, the program, the
+complexity, timing guarantees, etc., are irrelevant. In another consideration, for example, one
+may want to include the timing aspects as part of the observable (and hence relevant) behavior.
+In yet another consideration one may be interested in the memory requirements for the specific
+computational model, etc.
+One can think of a system as connecting to the environment via an interface. More generally,
+if one wants to model a system composed of several (sub-)systems, then one can consider each
+system to have several interfaces and that systems can be composed by connecting an interface
+of one system with an interface of another system. The term “interface” is here used in the
+sense of capturing the potential connection to another system; it is indeed used in some contexts
+to refer to the specification of the behavior of an object, such as a software module, but here
+we use the term in a more general and more abstract sense. Our notion of connected systems
+corresponds to drawing a diagram with boxes, each having several lines (interfaces), and where
+some interfaces of systems are connected (by lines) and some interfaces remain free, i.e., accessible
+by the environment; see Figure 1. A composed system appears to the environment as having
+only the free (not connected) interfaces and its behavior is observed only via these free interfaces;
+the internal topology becomes irrelevant and is not part of the behavior.
+In some applications, certain internal details of a system matter. One can then define the
+j2
+s1
+
+j1
+
+i1
+
+j3
+
+s2
+
+i2
+
+j4
+k1
+
+s3
+
+k2
+
+k3
+
+s4
+l1
+
+Figure 1: A system composed of the four subsystems s1 , s2 , s3 , and s4 . Interfaces are labeled to
+allow specifying connections, e.g., i1 and j1 are connected, and s4 is not connected to the other
+systems. The resulting system has interfaces j2 , j3 , k3 , and l1 .
+
+2
+
+r1
+
+r1
+
+b1
+
+sa
+
+sa
+
+e
+r2
+
+b2
+
+(a) Correctness:
+b1 = b2 = a.
+
+r1
+
+e
+
+b1
+
+r2
+
+b2
+
+(b) Dishonest s:
+∀e (b1 = b2 ).
+
+b1
+
+s0
+
+r1
+
+b1
+
+s1
+
+r2
+
+b2
+
+sa
+r2
+
+b2
+
+(c) Dishonest r1 :
+∀e (b2 = a).
+
+e
+(d) Dishonest r2 :
+∀e (b1 = a).
+
+(e) Main proof figure.
+
+Figure 2: The impossibility of broadcast for three parties with one dishonest party. Figures 2a
+to 2d correspond to the requirements for a broadcast protocol. Figure 2e can be subdivided in
+different ways and is used in the proof. Interface labels are omitted to increase readability.
+relevant internal aspects as being part of the behavior, to make them, by definition, visible from
+the outside. If too many internal details become relevant, our approach might be less suitable
+than directly using a model of systems that considers these internals. Indeed, a majority of
+existing work models systems by defining their internal operations, e.g., via states and transition
+functions. In many cases, however, such a detailed description of the internal operations is
+unnecessary and cumbersome, and our abstract approach would be beneficial. We now describe
+two examples for which ignoring internal details appear particularly useful.
+Distributed systems. In distributed systems, where systems are connected to other systems
+with which they can communicate, one is often interested in certain properties of the composed
+system. As an example, we present a simple impossibility proof of bit-broadcast for three parties
+with one dishonest party. This famous result was first proven by Lamport et al. [LSP82; PSL80];
+the proof we present here is in the spirit of that given by Fisher et al. [FLM86]. This proof
+only requires that the involved systems can be connected and rearranged as described; the
+communication between them and how they operate internally is irrelevant. Ignoring these
+internal details not only simplifies the proof but also makes the result more general, e.g., it also
+holds if the systems communicate via some sort of analog signals.
+The goal of a bit-broadcast protocol is to allow a sender to send a bit such that all honest
+receivers output the same bit (consistency) and if the sender is honest, they output the bit that
+was sent (validity). Assume an honest sender uses the system sa for broadcasting a bit a ∈ {0, 1},
+and honest receivers use systems r1 and r2 that decide on a bit b1 , and b2 , respectively. If
+these systems implement a broadcast protocol with the required guarantees, each condition in
+Figures 2a to 2d must hold for all systems e, which capture the possible behaviors of a dishonest
+party. Assume toward a contradiction that this is the case and consider the system in Figure 2e.
+We can view the system in the dotted box composed of s0 and s1 as a system e in Figure 2b
+to obtain b1 = b2 . We can also view the system in the densely dotted box composed of s0 and
+r1 as a system e in Figure 2c to obtain b2 = 1. Finally, the system in the dashed box can be
+viewed as a system e in Figure 2d, which implies b1 = 0, a contradiction. Hence, there are no
+systems s0 , s1 , r1 , and r2 that satisfy these constraints. In Section 3.2, we provide a more formal
+proof within our theory.
+Cryptography. Cryptographic schemes are often defined as some sort of efficient algorithms.
+While efficiency is of course relevant in practice, one can separate the computational aspects
+from the functionality to simplify the analysis. Constructive cryptography by Maurer and
+
+3
+
+Key
+enc
+
+SecChannel
+dec
+sim
+
+AuthChannel
+
+Figure 3: The systems appearing in the construction of a secure channel from an authenticated
+channel and a shared secret key via symmetric encryption. The construction notion requires the
+two systems in the dashed boxes to be indistinguishable.
+Renner [MR11; Mau12] allows one to model what cryptographic protocols achieve using a system
+algebra that abstracts away cumbersome details. To this end, one considers so-called resource
+systems, which provide a certain functionality to the parties connected to their interfaces, and
+converter systems, which can be connected to resources to obtain a new resource. Typical resources
+with interfaces for two honest parties and an adversary are a shared secret key, which provides
+a randomly generated key at the interfaces for the honest parties and nothing at the interface
+for the adversary,1 and different types of channels with different capabilities for the adversary.
+The goal of a cryptographic protocol is then to construct a resource S from a resource R. Such
+a protocol consists of a converter for each honest party, and it achieves the construction if the
+system obtained from R by connecting the protocol converters to the interfaces of the honest
+parties is indistinguishable from the system obtained from S by connecting some converter system,
+called simulator, to the interface of the adversary. The notion of indistinguishability can be
+defined in several ways leading to different types of security, e.g., as the systems being identical
+or via a certain class of distinguishers.
+A crucial property of this construction notion is that it is composable, i.e., if some protocol
+constructs a resource S from a resource R and another protocol constructs a resource T from S,
+these protocols can be composed to obtain a construction of T from R. Turned around, one can
+also decompose the construction of T from R into two separate constructions. Since these two
+constructions can be analyzed independently, this approach provides modularity and simplifies
+the analysis of complex protocols by breaking them down into smaller parts.
+An example of a construction is that of a secure channel, which leaks only the length of the
+sent messages to the adversary and does not allow modifications of them, from the resource
+consisting of a shared secret key and an authenticated channel, which leaks the sent messages
+to the adversary but also does not allow modifications of them, by a symmetric encryption
+scheme. See Figure 3 for an illustration of the involved systems. To achieve this construction,
+the simulator must, knowing only the length of the sent messages, output bit-strings that are
+indistinguishable from encryptions of these messages. If the used encryption scheme is, e.g., the
+one-time pad, the two systems in Figure 3 are identical for an appropriate simulator, i.e., they
+have the same input-output behavior [Mau12], which provides the strongest possible security
+guarantee. Note that internally, these systems are very different, but this is intentionally ignored.
+1
+One could also view a shared secret key as having no interface for the adversary, but as defined in constructive
+cryptography, all resources involved in a construction have an interface for each party.
+
+4
+
+1.2
+
+Contributions
+
+We develop a theory of systems with different levels of abstraction. To achieve generality and to
+strive for simplicity, theorems are proved at the highest level of abstraction at which they hold.
+See Figure 4 for an overview of the types of systems we consider. This is not meant to be a
+complete picture of all systems one can consider; systems we do not consider in this paper but
+could be treated within our theory include probabilistic systems, physical systems, circuits, etc.
+systems
+(Section 3)
+functional systems
+(Section 4)
+monotone systems
+(Section 5.1)
+
+continuous systems
+(Section 5.2)
+
+causal systems
+(Section 6)
+
+Kahn networks
+(Section 5.4)
+Figure 4: The hierarchy of the systems treated in this paper, where systems at lower levels are
+special cases of their parents.
+
+Abstract system algebras and composition-order invariance. At the highest level of
+abstraction, we do not specify what systems are, but only postulate two operations k and γ,
+depicted in Figure 5; the former for combining two systems in parallel as in Figure 5a and the
+latter for connecting interfaces as in Figure 5b. Using these operations one can build “graphs”
+such as those depicted in Figure 1, by first taking the systems in parallel and then connecting the
+interfaces. We call a set of systems together with these operations, and the specification which
+interfaces a system has and which of them can be connected, a system algebra, see Section 3.
+1
+
+2
+
+3
+
+s1
+4
+
+1
+
+A B
+
+2
+
+s2
+5
+
+3
+
+s1
+4
+
+C D E
+
+(a) The system s1 ks2 obtained as the parallel
+composition of s1 and s2 .
+
+5
+
+(b) The system γ{3,4} (s1 ) obtained by connecting the interfaces 3 and 4 of system s1 .
+
+Figure 5: Composition operations in a system algebra.
+A natural property of such an algebra that can be specified at this level of abstraction is
+composition-order invariance, that is, a composed system is completely described by its “graph”,
+and the order in which the operations are applied to build the graph does not matter. This
+property is not only very natural, but also necessary for many applications. For example, the
+
+5
+
+impossibility proof for broadcast sketched above relies on it since otherwise, rearranging and
+subdividing systems as in Figure 2e would not be allowed. To illustrate this, we formalize
+the systems occurring in that figure in an abstract system algebra and show how compositionorder invariance appears in the proof in Section 3.2. Composition-order invariance was also
+used by Maurer and Renner to prove the composition theorem of constructive cryptography
+[MR11]. While appearing natural and innocent, examples throughout our paper indicate that
+composition-order invariance is actually a nontrivial property and requires a proof.
+Functional system algebras. An important type of system in computer science takes inputs
+and produces outputs depending on these inputs. The behavior of such a system can be fully
+described by a function mapping inputs to outputs. We define a type of system algebra, called
+functional system algebra, in Section 4.1 where the systems have input interfaces and output
+interfaces and correspond to such functions. Connecting an input interface to an output interface
+is understood as setting the value input at the former to be equal to the value output at the
+latter. Determining the resulting system thus involves finding a fixed point of the underlying
+function; if multiple fixed points exist, the system algebra has to specify which one to select. By
+appropriately choosing the domains and functions, various types of systems can be modeled in
+this way, including interactive systems that take many inputs in different rounds and systems
+that depend on time.
+We prove several basic results at this level of abstraction, i.e., without specifying which
+functions are considered in Section 4.2. For example, we show that not all functional system
+algebras are composition-order invariant, but if there are always unique fixed points for interface
+connections and connections can be reordered, composition-order invariance holds.
+While this paper focuses on the deterministic case, we point out that functional systems can
+be used as a basis to model probabilistic systems. For example, one can consider systems that
+take randomness as an explicit input at a dedicated interface, one can include random variables
+in the domains of the functions, or one can consider probability distributions over deterministic
+systems. Systematically understanding probabilistic systems in this way is future work.
+Instantiations of functional system algebras. To instantiate the concept of a functional
+system algebra, we need to specify the domains of the functions and the set of functions to
+consider. To be able to define the interface connection, we have to ensure that all functions have
+the required fixed points. One way to guarantee fixed points that is well-studied in mathematics,
+especially domain theory, is to equip the domain with a partial order such that all chains have
+a supremum and to consider monotone functions. A related concept are continuous functions,
+which are defined as preserving these suprema. In both cases the functions have a least fixed point.
+While continuity is a stronger requirement than monotonicity, a slightly weaker assumption on
+the domains is sufficient to guarantee least fixed points. We show in Section 5.1 and Section 5.2
+that if least fixed points are chosen for interface connections, monotone and continuous functions
+form a functional system algebra, respectively. Under the additional assumption that nonempty
+chains have an infimum, we show in Section 5.3 that these system algebras are composition-order
+invariant.
+Monotone and continuous functions are not only a mathematical convenience to obtain
+fixed points, but they also encompass as a special case an intuitive and useful model known as
+Kahn networks [Kah74] (or Kahn process networks; in Kahn’s paper only defined for continuous
+functions, but monotone functions can be used as well), which we consider in Section 5.4. Kahn
+
+6
+
+networks have been developed to provide a semantics for parallel programming languages [Kah74],
+but they have also been used in other contexts, including embedded systems [SZT+04] and
+signal processing [LP95]. The domains of the functions there consist of sequences of values and
+the partial order is defined to be the initial segment (or prefix) relation. An interpretation of a
+function is that it maps input histories to output histories. Such functions therefore correspond
+to interactive systems that take one input after the other at each input interface and produce
+outputs depending on the inputs. Monotonicity means that additional inputs can only yield
+additional outputs, an output cannot be “taken back”. Even though it appears to be a very
+natural question whether the order in which interfaces of Kahn networks are connected matters,
+we are not aware of any result in this direction. Our proof of composition-order invariance, which
+indeed turned out to be nontrivial, therefore also provides new insights into this well-studied
+model.
+In Section 6, we finally provide an instantiation of functional system algebras consisting of
+causal systems in which inputs to the system can only influence “later” outputs. We formalize
+this by considering a partially ordered set (where “less than” can be interpreted as “before”) and
+letting the domains of the functions consist of subsets thereof. As an example, consider the
+partially ordered set containing pairs (v, t), which can be interpreted as the value v being input
+(or output) at time t, where the order is naturally defined as the one induced by the second
+component. The domains are then sets of such pairs. This allows us, as for Kahn networks,
+to model systems that take several inputs at each input interface and produce several outputs.
+We define causality for such systems and prove that the corresponding functions have unique
+fixed points. Therefore, we obtain a composition-order invariant functional system algebra. This
+system algebra can in particular be used to model and analyze systems that depend on time,
+such as clocks and channels with certain delays.
+
+1.3
+
+Related Work
+
+There exists a large body of work on modeling certain types of systems mathematically. Some
+models can be understood as special cases in our theory, but also very general theories and
+models that do not fit in our theory exist. The work we are aware of, however, only captures
+partial aspects of our theory. We now describe some of this work and compare it to ours.
+Abstract models. The abstract concept of a system algebra in which complex systems are
+built from components has been informally described in the context of cryptography by Maurer
+and Renner [MR11]. They also, again informally, introduced composition-order independence,
+which corresponds to our composition-order invariance. We provide in this paper a formalization
+that matches their requirements.
+Hardy has developed an abstract theory, in which composition-order invariance (there called
+order independence) plays an important role [Har13]. That work, however, focuses on physical
+systems. Lee and Sangiovanni-Vincentelli [LS98] also introduce an abstract system model, but it
+is specific to systems that consider some form of time and does not follow an algebraic approach.
+Closely related to our abstract system algebras are block algebras as introduced by de Alfaro
+and Henzinger in the context of interface theories [dAH01b]. Our systems and interfaces are there
+called blocks and ports, respectively, and they also define parallel composition and port connection
+operations. A major difference compared to our system algebras is that port connections do
+not hide the connected ports. Moreover, while de Alfaro and Henzinger require the parallel
+composition to be commutative and associative, they do not define a notion that corresponds to
+
+7
+
+our composition-order invariance, i.e., their port connections not necessarily commute with other
+port connections and parallel composition.
+Process algebras allow the modeling of communicating concurrent processes [BBR09], which
+correspond to our systems. Examples of process algebras include Milner’s Calculus of Communicating Systems (CCS) [Mil80] and Hoare’s Communicating Sequential Processes (CSP) [Hoa78].
+These theories are similar to ours in that they consider certain operations, including parallel
+composition, on processes and postulate axioms they need to satisfy. These axioms also include
+guarantees similar to our composition-order invariance. In contrast to our theory, CCS does
+not have an explicit operation for connecting interfaces, there called ports. Rather, ports with
+matching labels are implicitly connected when systems are taken in parallel. As in the work by
+de Alfaro and Henzinger [dAH01b] discussed above, ports are not hidden by this connection;
+hiding them is an explicit operation in CCS. In CSP, processes communicate via special input
+and output commands. As opposed to our abstract level, these process algebras differentiate
+between inputs and outputs and allow to specify the behavior of processes. Thus, with respect
+to the level of abstraction, they belong somewhere between our abstract and functional levels, or
+even below.
+Milner’s Flowgraphs [Mil79] model composed systems as generalized graphs, in which the
+nodes correspond to subsystems. This is considerably different from our theory since we abstract
+away all internal details of a system, in particular the subsystems that compose a system.
+Functional models. A line of work on system models based on functions has been initiated
+by Kahn’s seminal paper [Kah74] on networks of autonomous computing systems. These systems
+may be sensitive to the order in which messages arrive on one interface, but they are oblivious to
+the relative order of incoming messages on different interfaces. He shows that least fixed points
+exist, based on earlier work by Tarski [Tar55], Scott [Sco70], and Milner [Mil73],2 and therefore
+connecting systems is well-defined. Tackmann [Tac14] considered the case where systems are fully
+oblivious to the order of their incoming messages, which can be seen as a special case of Kahn
+networks where each interface contains at most one message. Micciancio and Tessaro [MT13]
+start from the same type as Kahn but extend it to tolerate certain types of order-dependent
+behavior within complex systems.
+Timed models. Several works have defined causal system models. Lee and SangiovanniVincentelli [LS98] define delta causality, which intuitively requires that each output must be
+provoked by an input that occurred at least a δ-difference earlier. They show that fixed points
+exist, based on Banach’s theorem. Cataldo et al. [CLL+06] generalize this to a notion of
+“superdense” time where multiple events may occur simultaneously. Portmann et al. [PMM+17],
+in the quantum scenario, describe a type of strict causality based on a causality function that
+can be seen as a generalization of delta causality. Naundorf [Nau00] considers strict causality
+without any minimal time distance, and proves that fixed points still exist. Matsikoudis and
+Lee [ML15] then show a constructive fixed point theorem for the same notion, which they refer to
+as strictly contracting. They show that it is implied by a more natural notion of (strict) causality
+where outputs can be influenced only by inputs that occur strictly earlier, under the assumption
+that the ordering of inputs is well-founded3 . We show in Appendix A that the strict causality
+notion of [ML15] is essentially equivalent to the definition we introduce in this work.
+2
+3
+
+Other sources attribute the original theorem to Kleene or Knaster, see [LNS82].
+A partial order on a set T is well-founded if every nonempty subset of T has one or more minimal elements.
+
+8
+
+Except for the work of Portmann et al., none of the previously mentioned definitions of
+causal functions explicitly capture systems with multiple interfaces as the work of Kahn [Kah74]
+or our work. Also, the mentioned papers investigating causal functions do not define how
+to connect systems such that one obtains a system of the same type, and therefore they do
+not provide a system algebra as we do. The model by Portmann et al. [PMM+17] captures
+quantum information-processing systems and can be seen as a generalization of our causal systems.
+Restricting that model to classical, deterministic inputs and outputs yields, however, a more
+complex and less general model than our causal systems. For example, the causality definition in
+that paper is more restrictive and in contrast to our causal systems, the systems there are not
+allowed to produce infinitely many outputs in finite time.
+Partial orders have also been used to model causal or temporal dependencies, for example in
+Pratt’s theory of partially ordered multisets (pomsets) [Pra86; Pra85]. As in our causal systems,
+there is a partial order on the possible events. In contrast to our causal systems, however, systems
+in that theory are not necessarily functions and can exhibit nondeterminism. Our model is
+therefore more specific, which allows a more accessible presentation.
+Stateful models. Several models of systems have been proposed that model the systems as
+objects that explicitly contain state. I/O automata initially discussed by Lynch and Tuttle [LT89]
+and interface automata by de Alfaro and Henzinger [dAH01a] enhance stateful automata by
+interactive communication. Timed automata by Alur and Dill [AD94] and timed I/O automata
+by Kaynar et al. [KLSV10] extend them to include a notion of time as our causal systems.
+Interactive Turing machines basically equip Turing machines with additional tapes that they
+share with other machines and have been used widely in (complexity-theoretic) cryptography
+[Gol01; Can01]. All these models are substantially different from ours since we want to hide all
+internal details of systems, including their state.
+
+2
+
+Preliminaries
+
+2.1
+
+Functions and Notation for Sets and Tuples
+
+A function f : X → Y is a subset of X × Y such that for every x ∈ X, there is exactly one y ∈ Y
+such that (x, y) ∈ f , where we will usually write f (x) = y instead of (x, y) ∈ f . For two sets X and
+Y , the set of all functions X → Y is denoted by Y X . A partial function f : X → Y is a function
+X 0 → Y for some X 0 ⊆ X. For a subset S ⊆ X, f (S) := {f (s) | s ∈ S} denotes the image of S
+0
+under f . For X 0 ⊆ X, we define the restriction of f to X 0 as f |X 0 := {(x, y) ∈ f | x ∈ X 0 } ∈ Y X .
+Note that for z ∈
+/ X and y ∈ Y , we have f ∪{(z, y)} ∈ Y X∪{z} . An element in Y X can equivalently
+be interpreted as a tuple of elements in Y indexed by elements in X. In case we interpret a
+function as a tuple, we usually use a boldface symbol to denote it. For a tuple x ∈ X I with
+x(i) = xi for all i ∈ I, we also write x = (xi )i∈I and if I = {i1 , . . . , in }, we write x = (xi1 , . . . , xin ).
+The symmetric difference of two sets X and Y is defined as
+X 4 Y := (X \ Y ) ∪ (Y \ X).
+Finally, we denote the power set of a set X by P(X) := {S | S ⊆ X}.
+
+2.2
+
+Order Relations
+
+We first recall some basic definitions about relations.
+
+9
+
+Definition 2.1. Let X be a set. A (binary) relation on X is a subset of X × X. We write
+x R y for (x, y) ∈ R. A relation R ⊆ X × X is called reflexive if x R x for all x ∈ X. It is called
+symmetric if x R y =⇒ y R x for all x, y ∈ X and antisymmetric if (x R y ∧ y R x) =⇒ x = y.
+A relation R ⊆ X × X is called transitive if (x R y ∧ y R z) =⇒ x R z for all x, y, z ∈ X.
+For sets X and I and a binary relation R on X, we define the relation R on X I as the
+componentwise relation, i.e., for x, y ∈ X I ,
+
+x R y ⇐⇒ ∀i ∈ I x(i) R y(i) .
+Definition 2.2. A partial order on X is a binary relation on X that is reflexive, antisymmetric,
+and transitive. A partially ordered set (poset) (X, ) is a set X together with a partial order 
+on X.
+We will typically denote partial orders by ≤, , or v, and define the relation < by x <
+y :⇐⇒ x ≤ y ∧ x 6= y, and analogously ≺ and @.
+Definition 2.3. Let (X, ) be a poset. Two elements x, y ∈ X are comparable if x  y or y  x,
+and incomparable otherwise. If all x, y ∈ X are comparable, X is totally ordered. A totally
+ordered subset of a poset is called a chain.
+Definition 2.4. Let (X, ) be a poset. An element x ∈ X is the least element of X if x  y for
+all y ∈ X. Similarly, x ∈ X is the greatest element of X if y  x for all y ∈ X. The least element
+and greatest element of X are denoted by min X and max X, respectively. An element x ∈ X is
+a minimal element of X if there is no y ∈ X with y ≺ x, and x is a maximal element if there is
+no y ∈ X, y  x. For a subset S ⊆ X, x ∈ X is a lower bound of S if x  s for all s ∈ S and an
+upper bound of S if x  s for all s ∈ S. If the set of lower bounds has a greatest element, it is
+called the infimum of S, denoted inf S; the supremum of S, denoted sup S, is the least upper
+bound of S.
+Definition 2.5. A poset (X, ) is well-ordered if every nonempty subset of X has a least
+element.
+Note that every well-ordered poset (X, ) is totally ordered because {x, y} has a least element.
+Definition 2.6. Let (X, ≤) and (Y, ) be posets. An order isomorphism is a bijection ψ : X → Y
+such that ψ(x1 )  ψ(x2 ) ⇐⇒ x1 ≤ x2 for all x1 , x2 ∈ X. The posets (X, ≤) and (Y, ) are
+called order isomorphic if such order isomorphism exists.
+
+2.3
+
+Ordinals and Transfinite Induction
+
+We briefly recall some basics of set theory, following Halbeisen [Hal12] and Jech [Jec03]. A class
+is a collection of sets. More formally, a class C corresponds to a logical formula and we write
+x ∈ C if x satisfies that formula. Every set is a class but not all classes are sets; for example,
+the class of all sets and the class of all ordinals are not sets. A class that is not a set is called a
+proper class.
+Definition 2.7. An ordinal is a set α such that ∀x ∈ α (x ⊆ α), ∀x1 , x2 ∈ α (x1 ∈ x2 ∨ x1 =
+x2 ∨ x2 ∈ x1 ), and ∀S ⊆ α, S 6= ∅ ∃x ∈ S ∀y ∈ x (y ∈
+/ S).
+
+10
+
+For ordinals α, β with α ∈ β, we write α < β. For all ordinals α 6= β, we have either α < β
+or β < α (but not both) and α ≮ α. It can be shown that every nonempty class of ordinals has a
+least element (according to the relation <) [Hal12, Theorem 3.12]. For an ordinal α, we define
+α + 1 := α ∪ {α}.
+We have that α + 1 is the least ordinal greater than α [Hal12, Corollary 3.13]. An ordinal α is
+called successor ordinal if α = β + 1 for some ordinal β. A limit ordinal is an ordinal that is not
+a successor ordinal.
+Every well-ordered set X is order isomorphic to exactly one ordinal [Jec03, Theorem 2.12].
+This ordinal is called the order type of X.
+We define the natural numbers as 0 := ∅, 1 := 0 + 1 = {0}, 2 := 1 + 1 = {0, 1}, and so on.
+That is, a number n ∈ N is the set of all numbers less than n. The set of natural numbers N is
+also an ordinal, denoted by ω. Note that 0 and ω = N are limit ordinals and all nonzero natural
+numbers are successor ordinals. A method for proving a statement about all ordinals is via the
+transfinite induction theorem [Jec03, Theorem 2.14].
+Theorem 2.8 (Transfinite Induction). Let C be a class of ordinals such that
+(i) 0 ∈ C,
+(ii) if α ∈ C, then α + 1 ∈ C, and
+(iii) if α is a nonzero limit ordinal and β ∈ C for all β < α, then α ∈ C.
+Then, C is the class of all ordinals.
+The following lemma will later be useful.
+Lemma 2.9. Let (X, ) be a poset and assume that for every ordinal α, there is an xα ∈ X
+such that xβ  xα for all β ≤ α.4 Then, there exists an ordinal α̂ such that xα̂ = xα̂+1 .
+Proof. A result by Hartogs implies that for any set S, there exists an ordinal η(S) such that
+there is no injective function η(S) → S [Joh87, Lemma 7.1]. Hence, there exist ordinals α̂ < β
+such that xα̂ = xβ , since otherwise the function η(X) → X, γ 7→ xγ would be injective. Since
+α̂ ≤ α̂ + 1 ≤ β, we have xα̂  xα̂+1  xβ . Thus, xα̂ = xβ implies that xα̂ = xα̂+1 .
+
+2.4
+
+Complete Posets and Fixed Points of Monotone and Continuous Functions
+
+A natural requirement for functions between posets is that they preserve order. Order-preserving
+functions are also called monotone and are defined below.
+Definition 2.10. Let (X, ≤) and (Y, ) be posets. A function f : X → Y is monotone if
+
+∀x1 , x2 ∈ X x1 ≤ x2 → f (x1 )  f (x2 ) .
+Note that a monotone bijection is not necessarily an order isomorphism: For X = {x0 , x1 }
+with incomparable x0 and x1 and Y = {0, 1} with 0  1, the bijection f : X → Y, xi 7→ i is
+trivially monotone but not an order isomorphism.
+4
+
+More formally, we consider a class function F from the class of all ordinals to X, and write xα for F (α).
+
+11
+
+Definition 2.11. Let X be a set and f : X → X be a function. Then, x ∈ X is called a fixed
+point of f if f (x) = x.
+Definition 2.12. A complete partially ordered set (CPO) is a poset in which every chain has a
+supremum.
+Note that the empty set is a chain and every element is an upper bound of ∅. Therefore, a
+CPO contains a least element.
+Theorem 2.13 ([Ési09, Theorem 2.5]). Let (X, ) be a CPO and f : X → X be monotone. Then,
+f has a least fixed point, which equals xα̂ for some ordinal α̂, where x0 = min(X), xα+1 = f (xα )
+for any ordinal α, and for nonzero limit ordinals α, xα = sup{xβ | β < α}. We further have
+xα ≤ xβ for α ≤ β.
+The above theorem is constructive in the sense that it not only guarantees the existence
+of a least fixed point, but also provides a procedure to find it. However, this procedure might
+only terminate after transfinitely many steps. The situation improves if the function is not only
+monotone but also continuous in the sense that it preserves suprema. In this case, a weaker
+requirement on the domain of the function is sufficient, namely only chains that correspond to
+infinite sequences need to have a supremum.
+Definition 2.14. Let (X, ) be a poset. An ω-chain in X is a sequence (xn )n∈ω such that
+xi  xj for all i ≤ j. We say (X, ) is an ω-chain complete partially ordered set (ω-CPO) if it
+has a least element and every ω-chain has a supremum.
+Definition 2.15. Let (X, ≤) and (Y, ) be ω-CPOs. A function f : X → Y is ω-continuous if
+for every ω-chain C = (xn )n∈ω in X, sup f (C) exists and f (sup C) = sup f (C).
+The next lemma shows that ω-continuity implies monotonicity (the converse is not true).
+Lemma 2.16. Let (X, ≤) and (Y, ) be ω-CPOs and f : X → Y an ω-continuous function.
+Then, f is monotone.
+Proof. Let x1 , x2 ∈ X such that x1 ≤ x2 . Then, {x1 , x2 , x2 , x2 , . . .} is an ω-chain. Therefore,
+
+
+f (x1 )  sup f {x1 , x2 , x2 , . . .} = f sup{x1 , x2 , x2 , . . .} = f (x2 ).
+Theorem 2.17 ([DP02, Theorem 8.15]). Let (X, ) be an ω-CPO and f : X → X be ωcontinuous. Then, f has a least fixed point, which equals sup{xn | n ∈ ω}, where x0 = min(X)
+and xn+1 = f (xn ) for n ∈ ω.
+Remark. In the literature, CPOs and continuity are often defined in terms of so-called directed
+subsets instead of chains [DP02; Ési09]. For our purposes, chains are more intuitive and directly
+applicable in our proofs. This definitional inconsistency is not an issue since the two types of
+definitions have been shown to be equivalent [Mar76].
+
+3
+
+Abstract System Algebras
+
+We first define system algebras at an abstract level described, but not formalized, by Maurer
+and Renner [MR11], where systems are objects with interfaces via which they can be connected
+to other systems. Our motivation for defining system algebras at this level of abstraction is
+
+12
+
+twofold: First, we thereby introduce a common language and notation that can be used for more
+concrete system algebras in later sections as well as in future papers. Secondly, one can already
+make meaningful statements and prove theorems at this level of abstraction. As examples, we
+provide a proof of broadcast impossibility in Section 3.2 and refer to the paper by Maurer and
+Renner [MR11], where the composition theorem of constructive cryptography is proven based on
+abstract systems. Whenever a proof is possible at this level of abstraction, it is clearly preferable
+to proofs at lower levels due to increased generality and simplicity.
+
+3.1
+
+Definitions
+
+A system algebra is a set of systems with certain operations that allow one to compose several
+systems to obtain a new system. In this way, complex systems can be decomposed into independent
+components. At this level of abstraction, we only specify how systems can be composed, but not
+what systems are or how they interact with other systems. In the same sense as the elements
+of an algebraic ring are abstract objects without concrete meaning, abstract systems have no
+particular meaning attached, beyond how they can be composed. In a concrete instantiation,
+systems could, e.g., communicate via discrete inputs and outputs at their interfaces or via analog
+signals, et cetera. We define two operations; an operation k for taking two systems in parallel, and
+an operation γ for connecting two interfaces of a system. See Figure 5 for a depiction of these two
+operations. Several systems can be connected by first taking them in parallel and then connecting
+their interfaces. A similar definition has been given by Tackmann [Tac14, Definition 3.4].
+Definition 3.1. Let Λ be a set (the set of interface labels). A Λ-system algebra (S, λ, k, Γ, γ)
+consists of a set S (the set of systems), a function λ : S → P(Λ) (assigning to each system its
+set of interface labels),a partial function
+ k : S × S → S (the parallel composition operation),
+a function Γ : S → P {i, i0 } | i, i0 ∈ Λ (specifying 
+for each system the set of interface-label
+pairs that can be connected), and a partial function γ : {i, i0 } | i, i0 ∈ Λ × S → S (the interface
+connection operation), such that
+• for all s ∈ S, λ(s) is finite and for all {i, i0 } ∈ Γ(s), we have i, i0 ∈ λ(s),
+• for s1 , s2 ∈ S, k(s1 , s2 ), denoted s1 k s2 , is defined if and only if λ(s1 ) ∩ λ(s2 ) = ∅, and
+in this case, λ(s1 k s2 ) = λ(s1 ) ∪ λ(s2 ) and for j ∈ {1, 2} and for all i, i0 ∈ λ(sj ), we have
+{i, i0 } ∈ Γ(s1 k s2 ) ⇐⇒ {i, i0 } ∈ Γ(sj ), and
+0
+• for i, i0 ∈ Λ and s ∈ S, γ({i, i0 }, s),
+ denoted by 0γ{i,i0 } (s), is defined if and only if {i, i } ∈
+Γ(s), and in this case, λ γ{i,i0 } (s) = λ(s) \ {i, i }.
+
+We will usually identify a system algebra with the set of systems S and use the same symbols
+λ, k, Γ, and γ for different system algebras. The parallel composition of two system is only
+allowed if they have disjoint interface sets. This means in particular that one cannot consider the
+parallel composition of a system with itself. One can imagine that each system exists only once
+and therefore cannot be used twice within another system. This is not an issue because S can
+contain many “copies” of a system with different interface labels, and different systems can have
+different interface labels. One could also introduce an interface-renaming operation, but we will
+not formalize this because it is not needed here. The set Γ(s) determines which interfaces of a
+system s are compatible, i.e., can be connected to each other. It might or might not be possible
+to connect an interface to itself. Figuratively speaking, one could imagine that interfaces come
+with different types of plugs and one can only connect interfaces with matching plugs, where
+
+13
+
+Γ(s) contains all unordered pairs of matching interfaces. For example, we will later consider
+system algebras with separate interfaces for inputs and outputs, where one can only connect input
+interfaces to output interfaces, but not two interfaces of the same type. Since the connection
+operation is defined for unordered pairs of interfaces, one always connects two interfaces to each
+other, without a direction. The condition on Γ for the parallel composition ensures that if one
+can connect two interfaces of a system, one can still do so after taking another system in parallel
+(i.e., {i, i0 } ∈ Γ(sj ) =⇒ {i, i0 } ∈ Γ(s1 k s2 ) for j ∈ {1, 2}), and additional connections are only
+created between the two systems, not for a single system (i.e., for j ∈ {1, 2} and i, i0 ∈ λ(sj ),
+{i, i0 } ∈ Γ(s1 ks2 ) =⇒ {i, i0 } ∈ Γ(sj )). The intuition behind this condition is that the two systems
+are independent and do not influence what is possible for the other system. After connecting
+interfaces, however, it is possible that connections that were allowed before become disallowed.
+For example, one might want to consider a system algebra in which one cannot create cycles
+by connecting systems, e.g., when modeling systems that correspond to Boolean circuits. Then,
+certain connections are only allowed as long as other interfaces are not connected.
+We restrict ourselves to systems with finitely many interfaces because we are only interested
+in systems that are composed of finitely many components. Therefore, we can define parallel
+composition as a binary operation and interface connection for a single pair of interfaces, whereas
+in general, one would define the parallel composition of potentially infinitely many systems and
+the connection of potentially infinitely many pairs of interfaces. In our simplified setting, repeated
+applications of the binary parallel composition and the connection of two interfaces are sufficient.
+An important property system algebras can have is composition-order invariance (called
+composition-order independence by Maurer and Renner [MR11]). Loosely speaking, it guarantees
+that a system that is composed of several systems is independent of the order in which they have
+been composed. Put differently, a figure in which several systems are connected by lines uniquely
+determines the overall system; the order in which the figure was drawn is irrelevant.
+Definition 3.2. For a Λ-system algebra (S, λ, k, Γ, γ), we say Γ permits reordering if for all
+
+s ∈ S, {i, i0 } ∈ Γ(s), and {j, j 0 } ∈ Γ γ{i,i0 } (s) , we have
+{j, j 0 } ∈ Γ(s) and {i, i0 } ∈ Γ γ{j,j 0 } (s) .
+
+If additionally γ{j,j 0 } γ{i,i0 } (s) = γ{i,i0 } γ{j,j 0 } (s) , (S, λ, k, Γ, γ) is called connection-order
+invariant. A connection-order invariant system algebra is called composition-order invariant if
+the operation k is associative and commutative and for all s1 , s2 ∈ S and {i, i0 } ∈ Γ(s1 ) such
+that λ(s1 ) ∩ λ(s2 ) = ∅, we have γ{i,i0 } (s1 ) k s2 = γ{i,i0 } (s1 k s2 ).
+All system algebras we consider in this paper have associative and commutative parallel
+composition. Note however, that one can also imagine system algebras where this is not the case:
+Consider a set of systems that correspond to software components that are compiled together
+when two systems are composed in parallel. Depending on compiler optimizations, the efficiency
+of the resulting program might depend on the order in which components are compiled together.
+
+3.2
+
+An Abstract Proof of Broadcast Impossibility
+
+In this section, we provide a formal proof at the level of abstract systems of the impossibility of
+bit-broadcast for three parties with one dishonest party, as sketched in the introduction. This
+exemplifies how a proof that involves drawing figures can be justified at the level of abstract
+systems and why composition-order invariance is crucial for doing so. Since there is no notion
+of outputting a bit for abstract systems, one cannot directly formulate the requirements for
+broadcast at this level. We therefore first prove a more abstract statement and afterwards argue
+how this implies the impossibility for more concrete systems. We assume in the following that we
+
+14
+
+have a system algebra that allows to connect systems arbitrarily, i.e., two (different) interfaces of
+a system can always be connected (formally, {i, i0 } ∈ Γ(s) for all i, i0 ∈ λ(s) with i 6= i0 ). This is
+a reasonable assumption, e.g., in a setting where the systems communicate with other systems
+by sending messages over channels.
+Theorem
+Let (S, λ, k, Γ, γ) be a composition-order invariant Λ-system algebra such that
+ 3.3.
+0
+Γ(s) ⊇ {i, i } | i, i0 ∈ λ(s) ∧ i 6= i0 for all s ∈ S. Let s0 , s1 , r1 , r2 ∈ S such that λ(s0 ), λ(s1 ),
+λ(r1 ), and λ(r2 ) are pairwise disjoint and s10 , s20 ∈ λ(s0 ), s11 , s21 ∈ λ(s1 ), r11 , r12 ∈ λ(r1 ), and
+r21 , r22 ∈ λ(r2 ), where these eight interface labels are distinct. Further let
+
+S0 := γ{r12 ,e2 } (γ{s20 ,e1 } (γ{s10 ,r11 } (s0 k r1 k e))) | e ∈ S ∧ λ(e) ∩ λ(s0 ) = ∅ = λ(e) ∩ λ(r1 )
+∧ e1 , e2 ∈ λ(e) ∧ e1 6= e2 ,
+
+S1 := γ{e2 ,r22 } (γ{s21 ,r21 } (γ{s11 ,e1 } (s1 k e k r2 ))) | e ∈ S ∧ λ(e) ∩ λ(s1 ) = ∅ = λ(e) ∩ λ(r2 )
+∧ e1 , e2 ∈ λ(e) ∧ e1 6= e2 ,
+
+
+S= := γ{r12 ,r22 } (γ{e2 ,r21 } (γ{e1 ,r11 } (e k r1 k r2 ))) | e ∈ S ∧ λ(e) ∩ λ(r1 ) = ∅ = λ(e) ∩ λ(r2 )
+∧ e1 , e2 ∈ λ(e) ∧ e1 6= e2 .
+Then, S0 ∩ S1 ∩ S= 6= ∅.
+Proof. Note that S0 corresponds to the set of systems for all possible e and a = 0 in Figure 2d,
+S1 corresponds to Figure 2c for a = 1, and S= corresponds to the systems in Figure 2b. Let
+t := γ{r12 ,r22 } (γ{s21 ,r21 } (γ{s10 ,r11 } (γ{s20 ,s11 } (s0 k s1 k r1 k r2 ))))
+be the system in Figure 2e. By composition-order invariance, we have for e = γ{s20 ,s11 } (s0 k s1 ),
+e k r1 k r2 = γ{s20 ,s11 } (s0 k s1 ) k r1 k r2 = γ{s20 ,s11 } (s0 k s1 k r1 k r2 ).
+Hence, we obtain for e1 = s10 , and e2 = s21 , that t = γ{r12 ,r22 } (γ{e2 ,r21 } (γ{e1 ,r11 } (e k r1 k r2 ))) ∈ S= .
+Again using composition-order invariance, we further have for ê = γ{s21 ,r21 } (s1 k r2 ), ê1 = s11 , and
+ê2 = r22 ,
+t = γ{r12 ,r22 } (γ{s20 ,s11 } (γ{s10 ,r11 } (γ{s21 ,r21 } (s1 k r2 k s0 k r1 ))))
+= γ{r12 ,ê2 } (γ{s20 ,ê1 } (γ{s10 ,r11 } (ê k s0 k r1 ))) ∈ S0 .
+Finally, we have for ẽ = γ{s10 ,r11 } (s0 k r1 ), ẽ1 = s20 , and ẽ2 = r12 ,
+t = γ{r12 ,r22 } (γ{s21 ,r21 } (γ{s20 ,s11 } (γ{s10 ,r11 } (s0 k r1 k s1 k r2 ))))
+= γ{ẽ2 ,r22 } (γ{s21 ,r21 } (γ{ẽ1 ,s11 } (ẽ k s1 k r2 ))) ∈ S1 .
+Therefore, we have t ∈ S0 ∩ S1 ∩ S= 6= ∅.
+To see why this implies the claimed impossibility, assume a protocol for broadcast exists and
+let sa for a ∈ {0, 1} be a system that implements the protocol for the sender to broadcast the
+bit a and let r1 and r2 be systems for the two receivers such that these systems have distinct
+interface labels.5 The validity of the broadcast protocol implies that for all systems in S0 , the
+5
+
+Since interface labels are only used for connecting systems and typical protocols do not depend on them, it is
+reasonable to assume that such systems with distinct interface labels exist.
+
+15
+
+subsystem r1 decides on the bit 0 (say with probability more than 32 ) and for all systems in S1 ,
+the subsystem r2 decides on the bit 1 (with probability more than 23 ). The consistency condition
+further implies that for all systems in S= , r1 and r2 decide on the same bit (with probability
+more than 23 ). Now Theorem 3.3 says that there is a system that satisfies all three constraints,
+which is impossible. Therefore no such protocol exists.
+
+4
+
+Functional System Algebras
+
+4.1
+
+Definitions
+
+We now introduce special system algebras for functional systems that take inputs at dedicated
+input interfaces and produce outputs at their output interfaces, where the outputs are computed
+as a function of the inputs. This not only allows us to model systems that take a single input at
+each input interface and produce a single output at each output interface, but also much more
+general systems. For example, to model interactive systems that successively take inputs and
+produce outputs, one can consider the set of sequences of values as the domain of the functions.
+The function corresponding to a system then maps an entire input history to the output history
+and is a compact description of the system.
+We define the parallel composition of two systems to be the function that evaluates both
+systems independently. Interface connection is defined in a way such that after connecting an
+input interface to an output interface, the input at the former equals the output at the latter.
+This corresponds to having a fixed point of a certain function determined by the connected
+interfaces and the system. One therefore has to choose Γ such that fixed points for all allowed
+connections exist. Ideally, there is always a unique fixed point, because in this case, the interface
+connection operation is uniquely determined by this condition. If there are several fixed points,
+one has to be chosen in each case. A functional system algebra is therefore characterized by a set
+of functions S, a function Γ determining the allowed interface connections, and an appropriate
+choice of fixed points φ. We use boldface letters for functional systems to distinguish them from
+abstract systems.
+X I
+Definition 4.1. Let Λ and X be sets, let for all finite disjoint I, O ⊆ Λ, SI,O ⊆ X O
+be a
+set of functions s : X I → X O , and let S be the union of all SI,O . For s ∈ SI,O , i ∈ I, o ∈ O,
+and x ∈ X I\{i} , let
+
+
+Φsi,o,x := xi ∈ X | s x ∪ {(i, xi )} (o) = xi
+
+
+be the set of fixed points of the function xi 7→ s x ∪ {(i, xi )} (o). Further let Γ : S → P {i, o} |
+i, o ∈ Λ such that for all s ∈ SI,O and {i, o} ∈ Γ(s), we have i ∈ I, o ∈ O (or i ∈ O, o ∈ I),6
+and for all x ∈ X I\{i} , we have Φsi,o,x 6= ∅. Finally let φsi,o : X I\{i} → X for s ∈ SI,O and
+{i, o} ∈ Γ(s) be a function such that for all x ∈ X I\{i} , we have φsi,o (x) ∈ Φsi,o,x . Then, we define
+F(S, Γ, φ) := (S, λ, k, Γ, γ),
+where φ is the set of all φsi,o and
+• for s ∈ SI,O , we have λ(s) = I ∪ O,
+6
+We formally cannot require i ∈ I and o ∈ O because {i, o} is unordered. To simplify the notation we will,
+however, always assume that i ∈ I and o ∈ O when we write {i, o} ∈ Γ(s), and similarly for {i0 , o0 }, {i1 , o1 }, etc.
+
+16
+
+• for pairwise disjoint I1 , I2 , O1 , O2 ⊆ Λ, s1 ∈ SI1 ,O1 , and s2 ∈ SI2 ,O2 , we have s1 k
+s2 : X I1 ∪I2 → X O1 ∪O2 with
+
+∀x ∈ X I1 ∪I2 ∀j ∈ {1, 2} ∀oj ∈ Oj (s1 k s2 )(x)(oj ) = sj x|Ij (oj ),
+(1)
+• and for s ∈ SI,O and {i, o} ∈ Γ(s), we have γ{i,o} (s) : X I\{i} → X O\{o} with
+∀x ∈ X I\{i} γ{i,o} (s)(x) = s x ∪
+
+
+
+i, φsi,o (x)
+
+ 
+
+|O\{o} .
+
+If S is closed under k and γ,7 and if for all s1 , s2 ∈ S with λ(s1 ) ∩ λ(s2 ) = ∅, for j ∈ {1, 2},
+and for all i, o ∈ λ(sj ), we have {i, o} ∈ Γ(s1 k s2 ) ⇐⇒ {i, o} ∈ Γ(sj ), then F(S, Γ, φ) is a
+Λ-system algebra. In this case, we say F(S, Γ, φ) is a functional Λ-system algebra over X .
+Remark. Our definition of interface connections via fixed points implies that the “line” connecting
+two systems has no effect on the values. This means in particular that it does not introduce
+delays or transmission errors. If, e.g., delays are required (and the domains and functions are
+defined at a level such that delays can be specified, see Section 6), one can allow the connection
+of systems only via dedicated channel systems that introduce the desired delays.
+The choice of fixed points is crucial for obtaining a system algebra with desired properties.
+For example, if the system algebra is supposed to model a class of real-world systems, the chosen
+fixed point should correspond to the value generated by the real system. The choice of the fixed
+point can also influence whether connection-order invariance holds. If fixed points are not unique,
+a reasonable requirement is that they are consistently chosen in the sense that whenever two
+systems have the same set of fixed points for a specific interface connection, the same fixed point
+is chosen for both systems.
+Definition 4.2. Let (S, λ, k, Γ, γ) be a functional Λ-system algebra over X . We say it has
+unique fixed points if Φsi,o,x = 1 for all s ∈ SI,O , {i, o} ∈ Γ(s), and x ∈ X I\{i} . If there exists8
+φ such that (S, λ, k, Γ, γ) = F(S, Γ, φ) and for all s ∈ SI,O , s0 ∈ SI 0 ,O0 , {i, o} ∈ Γ(s) ∩ Γ(s0 ),
+0
+x ∈ X I\{i} , and x0 ∈ X I \{i} ,
+0
+
+Φsi,o,x = Φsi,o,x0
+
+0
+
+=⇒ φsi,o (x) = φsi,o (x0 ),
+
+we say (S, λ, k, Γ, γ) has consistently chosen fixed points.
+
+4.2
+
+Basic Properties
+
+It is easy to find functional system algebras that are not connection-order invariant if fixed points
+are not chosen consistently. Consider for example a system s with two fixed points x, x0 for
+connecting interfaces i and o regardless of inputs at other interfaces. It is possible that x is
+chosen for γ{i,o} (s) but for the system s0 := γ{i0 ,o0 } (s), which has the sametwo fixed points for
+
+connecting i and o, x0 is chosen. In this case, one can have γ{i0 ,o0 } γ{i,o} (s) 6= γ{i,o} γ{i0 ,o0 } (s) .
+As the following example shows, consistently chosen fixed points are, however, not sufficient to
+guarantee connection-order invariance.
+7
+
+That is, for s1 , s2 ∈ S for which k is defined, s1 k s2 ∈ S, and for s ∈ S and {i, o} ∈ Γ(s), γ{i,o} (s) ∈ S.
+While φ uniquely determines γ, the converse is not true. For example, if s, i, and o are such that the input
+at interface i does not influence the outputs of s at interfaces different from o, the choice of φsi,o (·) is irrelevant.
+Hence, we only require for consistently chosen fixed points that γ can be explained consistently.
+8
+
+17
+
+Consistently chosen fixed points do not imply connection-order invariance. Let
+X = {0, 1} and consider a system algebra where 0 is preferred to 1 as a fixed point, i.e.,
+Φsi,o,x = {0, 1} ⇒ φsi,o (x) = 0. This clearly guarantees consistently chosen fixed points. Now con
+sider the system s ∈ S{i1 ,i2 },{o1 ,o2 ,o3 } , s {(i1 , x1 ), (i2 , x2 )} = {(o1 , 1 − x1 ), (o2 , 1 − x2 ), (o3 , x1 )}.
+If we connect i2 and o1 , there is exactly one fixed point for each input at i1 because we essen
+tially compose two functions, which both invert their input bit. Thus, γ{i2 ,o1 } (s) {(i1 , x1 )} =
+{(o2 , x1 ), (o3 , x1 )}. If we now connect
+ i1 and o2 , both 0 and 1 are fixed points and 0 is
+chosen, i.e., we get γ{i1 ,o2} γ{i2 ,o1 } (s) (∅) = {(o3 , 0)}. However, first connecting i1 and o2
+yields γ{i1 ,o2 } (s) {(i2 , x2 )} = {(o1 , x2 ), (o3 , 1 − x2 )}. If we then connect i2 and o1 , 0 is
+again the preferred
+γ{i2 ,o1 } γ{i1 ,o2 } (s) (∅) = {(o3 , 1)}, which implies
+ fixed point and therefore
+
+γ{i2 ,o1 } γ{i1 ,o2 } (s) 6= γ{i1 ,o2 } γ{i2 ,o1 } (s) .
+While consistently chosen fixed points are not sufficient, the next lemma shows that connectionorder invariance follows from unique fixed points if Γ permits reordering.
+Lemma 4.3. Functional system algebras with unique fixed points and Γ that permits reordering
+are connection-order invariant.
+Proof. Let Λ and X be sets, and let (S, λ, k, Γ, γ) = F(S, Γ, φ) be a functional Λ-system algebra
+over X with unique fixedpoints such that Γ permits reordering. Further
+let s ∈ S, {i,o} ∈ Γ(s),
+
+and {i0 , o0 } ∈ Γ γ{i,o} (s) . We have to show that γ{i0 ,o0 } γ{i,o} (s) = γ{i,o} γ{i0 ,o0 } (s) . To this
+0
+end, let x ∈ X I\{i,i } . By Definition 4.1, there exist xi , xi0 , x0i , x0i0 ∈ X such that
+
+
+
+ 
+γ{i0 ,o0 } γ{i,o} (s) (x) = s x ∪ i, xi , i0 , xi0
+|O\{o,o0 } ,
+
+
+ 0 0 
+0
+γ{i,o} γ{i0 ,o0 } (s) (x) = s x ∪ i, xi , i , xi0
+|O\{o,o0 } .
+We further have xi ∈ Φsi,o,x∪{(i0 ,x 0 )} and since fixed points are unique, xi is chosen for connecting
+i
+
+γ
+(s)
+0
+s
+i and o on input x ∪ {(i0 , xi0 )}. This implies xi0 ∈ Φi0{i,o}
+,o0 ,x . Moreover, xi ∈ Φi,o,x∪{(i0 ,x0 0 )} and
+i
+γ
+(s)
+γ{i,o} (s)
+0 . Therefore, Φs
+0
+thus x0i0 ∈ Φi0{i,o}
+.
+Because
+Φ
+=
+1,
+this
+implies
+x
+=
+x
+0
+0
+0
+0
+0
+i
+i
+,o ,x
+i ,o ,x
+i,o,x∪{(i ,xi0 )} =
+
+
+s
+0
+Φi,o,x∪{(i0 ,x0 )} and we obtain xi = xi . We conclude γ{i0 ,o0 } γ{i,o} (s) (x) = γ{i,o} γ{i0 ,o0 } (s) (x).
+0
+i
+
+We next prove that the parallel composition operation of functional system algebras is always
+associative and commutative.
+Lemma 4.4. For any functional system algebra, parallel composition is associative and commutative.
+Proof. Let Λ and X be sets, and let (S, λ, k, Γ, γ) = F(S, Γ, φ) be a functional Λ-system algebra
+over X . Further let I1 , I2 , I3 , O1 , O2 , O3 ⊆ Λ be pairwise disjoint, let sj ∈ SIj ,Oj for j ∈ {1, 2, 3},
+and let x ∈X I1 ∪I2 ∪I3 and o∈ Ok for some k ∈ {1, 2, 3}. If k = 3, we have by equation
+ (1),
+(s1 ks2)ks3 (x)(o) = s3 x|I3 (o). If k 6= 3, we have (s1 ks2 )ks3 (x)(o) = (s1 ks2 ) x|I1 ∪I2 (o) =
+sk x|Ik (o). Similarly, s1 k (s2 k s3 ) (x)(o) = sk x|Ik (o). Hence, (s1 k s2 ) k s3 = s1 k (s2 k s3 ),
+i.e., k is associative. Commutativity follows directly from equation
+(1): for x ∈ X I1 ∪I2 and
+
+o ∈ Ok for some k ∈ {1, 2}, we have (s1 k s2 )(x)(o) = sk x|Ik (o) = (s2 k s1 )(x)(o).
+We further show that connection-order invariance implies composition-order invariance for
+functional system algebras with consistently chosen fixed points.
+
+18
+
+Lemma 4.5. A functional system algebra with consistently chosen fixed points is compositionorder invariant if and only if it is connection-order invariant.
+Proof. By definition, a functional system algebra that is not connection-order invariant is
+not composition-order invariant. For the other direction, let (S, λ, k, Γ, γ) = F(S, Γ, φ) be a
+connection-order invariant functional Λ-system algebra over X with consistently chosen fixed
+points. Associativity and commutativity of k follows from Lemma 4.4. It remains to show that
+γ{i,o} (s1 ) k s2 = γ{i,o} (s1 k s2 ) for all s1 ∈ SI1 ,O1 , s2 ∈ SI2 ,O2 , and {i, o} ∈ Γ(s1 ) such that
+λ(s1 ) ∩ λ(s2 ) = ∅. To this end, let x ∈ X (I1 ∪I2 )\{i} , o1 ∈ O1 \ {o}, and o2 ∈ O2 . Because inputs
+to s1 do not affect the outputs of s2 , we have
+
+
+γ{i,o} (s1 ) k s2 (x)(o2 ) = s2 (x|I2 )(o2 ) = γ{i,o} (s1 k s2 ) (x)(o2 ).
+By the same reasoning, the set of fixed points for connecting interfaces i and o is not influenced
+s1 ks2
+s1 ks2
+1
+1
+by s2 , i.e., Φi,o,x
+= Φsi,o,x|
+. Consistently chosen fixed points imply φi,o
+(x) = φsi,o
+(x|I1 ) and
+I1
+hence
+
+
+
+ 
+1
+γ{i,o} (s1 ) k s2 (x)(o1 ) = γ{i,o} (s1 )(x|I1 )(o1 ) = s1 x|I1 ∪ i, φsi,o
+(x|I1 )
+(o1 )
+
+n
+o
+s1 ks2
+= s1 x|I1 ∪ i, φi,o
+(x)
+(o1 )
+
+n
+o
+s1 ks2
+= (s1 k s2 ) x ∪ i, φi,o
+(x)
+(o1 )
+
+= γ{i,o} (s1 k s2 ) (x)(o1 ).
+Therefore, γ{i,o} (s1 ) k s2 = γ{i,o} (s1 k s2 ) and hence composition-order invariance holds.
+Since unique fixed points imply consistently chosen fixed points, we can combine Lemma 4.3
+and Lemma 4.5 to obtain the following result.
+Theorem 4.6. Functional system algebras with unique fixed points and Γ that permits reordering
+are composition-order invariant.
+
+4.3
+
+Merging Input and Output Interfaces
+
+It is often desirable to have a system algebra that allows arbitrary interface connections, as we
+have assumed in Section 3.2. A functional system algebra does not provide this because one can
+only connect input interfaces to output interfaces. A single interface connection in a functional
+system algebra also allows only communication in one direction, while one might prefer to connect
+systems to each other such that they can communicate in both directions. These drawbacks can be
+mitigated easily by considering an interface as a pair of an input interface and an output interface
+and by defining interface connection as connecting both interfaces of the corresponding pair: Let
+(S, λ, k, Γ, γ) be a functional (Λ × {0, 1})-system algebra
+that allows connecting arbitrary input
+
+interface to arbitrary output interfaces (i.e., Γ(s) = {i, o} | i ∈ I, o ∈ O for s ∈ SI,O ). We then
+define the Λ-system algebra (S0 , λ0 , k0 , Γ0 , γ 0 ) via S0 := {s ∈ SL×{1},L×{0} | L ⊆ Λ}, λ0 (s) = L for
+
+
+0
+s ∈ SL×{1},L×{0} , k0 = k, Γ(s) = {i, i0 } | i, i0 ∈ λ(s) , γ{i,i
+0 } (s) = γ{(i0 ,1),(i,0)} γ{(i,1),(i0 ,0)} (s) .
+See Figure 6 for a depiction of a system and the connection operation in (S0 , λ0 , k0 , Γ0 , γ 0 ). Note
+that the system algebra (S0 , λ0 , k0 , Γ0 , γ 0 ) is composition-order invariant if (S, λ, k, Γ, γ) is.
+By doing this, one can use functional system algebras as the ones we develop in later sections
+to instantiate system algebras with undirected interfaces.
+
+19
+
+i1
+
+i2
+
+(i1 , 1) (i1 , 0)
+
+(i2 , 1) (i2 , 0)
+(i3 , 0)
+
+s
+
+(i3 , 1)
+
+i3
+
+0
+Figure 6: The system γ{i
+(s) in the system algebra with merged input and output interfaces.
+1 ,i2 }
+
+Remark. As defined above, Γ0 allows connecting an interface to itself. While this is well-defined,
+one might want to exclude it since it is typically not needed.
+
+5
+
+The System Algebras of Monotone and Continuous Systems
+
+By Theorem 2.13 and Theorem 2.17, monotone functions on CPOs and ω-continuous functions on
+ω-CPOs have least fixed points. We can use this to define a functional system algebra consisting
+of such functions. While fixed points of monotone functions are well-studied in domain theory, we
+still need to show that choosing the least fixed point yields a functional system algebra with the
+desired properties. To obtain a system algebra, we need to prove that the set of system is closed
+under interface connections defined via choosing the least fixed point. We prove that this is the
+case both for monotone and continuous functions. Furthermore, we show that composition-order
+invariance holds for both system algebras under the additional assumption on the CPO that
+every nonempty chain has an infimum. Finally, we describe Kahn networks as a special case of
+the system algebra of continuous systems.
+
+5.1
+
+Monotone Systems
+
+Let (X , ) be a CPO. Recall that for a set I, we also write  for the partial order on X I where
+for x, y ∈ X I , x  y if x(i)  y(i) for all i ∈ I. Monotonicity is therefore also defined for
+functions on such tuples. Let Λ be a set and define for finite disjoint I, O ⊆ Λ,
+
+MI,O := s : X I → X O | s is monotone .
+We can use the existence of least fixed points to define a system algebra. Before we do so, we
+need the following simple lemma.
+Lemma 5.1. Let I, O ⊆ Λ be finite disjoint sets, let s ∈ MI,O , and
+ let i ∈ I, o ∈ O. Then, for
+I\{i}
+all x ∈ X
+, there exists a least xi ∈ X such that s x ∪ {(i, xi )} (o) = xi .
+Proof. For x ∈ X I\{i} , let f : X → X , xi 7→ s(x ∪ {(i, xi )})(o) andnote that the fixed points of f
+precisely correspond to the values xi ∈ X such that s x ∪ {(i, xi )} (o) = xi . Since s is monotone,
+so is f , and therefore f has a least fixed point by Theorem 2.13.
+Definition 5.2. We define F(M,
+ Γ, φ), the Λ-system algebra of monotone systems over X , as
+follows: For s ∈ MI,O , Γ(s) := {i, o} | i ∈ I, o ∈ O and φsi,o (x) is the least element of Φsi,o,x
+for all i ∈ I, o ∈ O, and x ∈ X I\{i} .
+
+20
+
+For this to actually be a functional system algebra, we need that the parallel composition of
+systems and connecting interfaces of a system again yield a system in our algebra, i.e., a monotone
+function. While this is straightforward for parallel composition, it is nontrivial for interface
+connections. The essence of the proof we provide below is showing that φsi,o (x1 )  φsi,o (x2 )
+whenever x1  x2 . To this end, we exploit the constructive nature of Theorem 2.13 that can be
+used to find the fixed points φsi,o (x1 ) and φsi,o (x2 ).
+Theorem 5.3. (M, λ, k, Γ, γ) = F(M, Γ, φ) is a functional Λ-system algebra over X .
+Proof. Since the relation  is defined componentwise, it is clear from the definition of parallel
+composition by equation (1) that M is closed under k. It remains to show that M is also
+closed under connecting interfaces. To this end, let I, O ⊆ Λ be finite disjoint sets and
+let s ∈ MI,O . Further let i ∈ I, o ∈ O. We have to show that γ{i,o} (s) ∈ MI\{i},O\{o} .
+I\{i} , such that x  x . We then have
+To show that γ{i,o} (s) is monotone,
+1
+2
+  let x1 , x2 ∈ X
+s
+γ{i,o} (s)(xk ) = s xk ∪ i, φi,o (xk ) |O\{o} for k ∈ {1, 2}, where φsi,o (xk ) is the least fixed point
+of the function xi 7→ s(xk ∪ {(i, xi )})(o). Let xαk for ordinals α be as in Theorem 2.13 such that
+φsi,o (xk ) = xα̂k k for some ordinal α̂k . We show by transfinite induction over α that xα1  xα2 for
+all ordinals α.
+(i) For α = 0, we have xα1 = min(X ) = xα2 .
+(ii) Assume xα1  xα2 for some ordinal α. We then have x1 ∪ {(i, xα1 )}  x2 ∪ {(i, xα2 )} and
+since s is monotone,
+
+
+xα+1
+= s x1 ∪ {(i, xα1 )} (o)  s x2 ∪ {(i, xα2 )} (o) = xα+1
+.
+1
+2
+(iii) Let α be a nonzero limit ordinal and assume xβ1  xβ2 for all β < α. We then have
+
+
+xα1 = sup xβ1 β < α  sup xβ2 β < α = xα2 .
+Thus, xα1  xα2 for all ordinals α. It is easy to see (by transfinite induction) that xα1 = xα̂1 1
+for all α ≥ α̂1 , and xα2 = xα̂2 2 for all α ≥ α̂2 . We can therefore conclude
+max{α̂1 ,α̂2 }
+
+φsi,o (x1 ) = xα̂1 1 = x1
+
+max{α̂1 ,α̂2 }
+
+ x2
+
+= xα̂2 2 = φsi,o (x2 ).
+
+Using monotonicity of s, this implies
+
+ 
+
+ 
+γ{i,o} (s)(x1 ) = s x1 ∪ i, φsi,o (x1 ) |O\{o}  s x2 ∪ i, φsi,o (x2 )
+|O\{o} = γ{i,o} (s)(x2 ).
+Hence, γ{i,o} (s) is monotone and therefore γ{i,o} (s) ∈ MI\{i},O\{o} .
+
+5.2
+
+Continuous Systems
+
+Let Λ be a set and let (X , ) be an ω-CPO. It is easily verified that X I is again an ω-CPO for
+I ⊆ Λ, and the supremum of an ω-chain in X I corresponds to the tuple of the component-wise
+suprema. We define for finite disjoint I, O ⊆ Λ,
+
+NI,O := s : X I → X O | s is ω-continuous .9
+The following lemma can be proven analogously to Lemma 5.1.
+9
+
+We use the symbol N because continuity is stronger than monotonicity and C will be used for the system
+algebra of causal systems in Section 6.
+
+21
+
+Lemma 5.4. Let I, O ⊆ Λ be finite disjoint sets, let s ∈ NI,O , and
+ let i ∈ I, o ∈ O. Then, for
+all x ∈ X I\{i} , there exists a least xi ∈ X such that s x ∪ {(i, xi )} (o) = xi .
+Definition 5.5. We define F(N,
+ Γ, φ), the Λ-system algebra of continuous systems over X , as
+follows: For s ∈ NI,O , Γ(s) := {i, o} | i ∈ I, o ∈ O and φsi,o (x) is the least element of Φsi,o,x for
+all i ∈ I, o ∈ O, and x ∈ X I\{i} .
+We again need to show that connecting interfaces of a system yields a system in our algebra,
+i.e., in this case an ω-continuous function. We do so by proving that for an ω-chain (xn )n∈ω ,
+{φsi,o (xn ) | n ∈ ω} is an ω-chain as well, and φsi,o (sup{xn | n ∈ ω}) = sup{φsi,o (xn ) | n ∈ ω}. We
+then use ω-continuity of s to conclude that γ{i,o} (s) is ω-continuous.
+Theorem 5.6. (N, λ, k, Γ, γ) = F(N, Γ, φ) is a functional Λ-system algebra over X .
+Proof. As in the proof of Theorem 5.3, it is straightforward to verify that N is closed under
+parallel composition. To show that N is closed under connecting interfaces, let I, O ⊆ Λ be finite
+disjoint sets and let s ∈ NI,O . Further let i ∈ I, o ∈ O. To show that γ{i,o} (s) ∈ NI\{i},O\{o} ,
+
+ 
+let (xn )n∈ω be an ω-chain in X I\{i} . We then have γ{i,o} (s)(xn ) = s xn ∪ i, φsi,o (xn )
+|O\{o}
+for all n ∈ ω, where φsi,o (xn ) is the least fixed point of the function xi 7→ s(xn ∪ {(i, xi )})(o).
+Let x̂ := sup{xn | n ∈ ω}. Since s is monotone by Lemma 2.16, one can show as in the proof of
+Theorem 5.3 that φsi,o (x)  φsi,o (x0 ) for all x, x0 ∈ X I\{i} with x  x0 . Thus, {φsi,o (xn ) | n ∈ ω}
+is an ω-chain. Because we also have φsi,o (xn )  φsi,o (x̂) for all n ∈ ω, we obtain sup{φsi,o (xn ) |
+n ∈ ω}  φsi,o (x̂). Using ω-continuity of s, we further have
+
+n
+
+n
+o
+
+o
+
+
+s x̂ ∪ i, sup φsi,o (xn ) n ∈ ω
+(o) = s sup xn ∪ i, φsi,o (xn )
+n ∈ ω (o)
+n 
+o
+
+ 
+= sup s xn ∪ i, φsi,o (xn )
+(o) n ∈ ω
+= sup{φsi,o (xn ) | n ∈ ω}.
+
+This implies that sup{φsi,o (xn ) | n ∈ ω} is a fixed point of xi 7→ s x̂ ∪ {(i, xi )} (o). Since φsi,o (x̂)
+is the least fixed point of that function, we have φsi,o (x̂)  sup{φsi,o (xn ) | n ∈ ω}, and thus
+φsi,o (x̂) = sup{φsi,o (xn ) | n ∈ ω}. Together with ω-continuity of s, this implies
+
+
+ 
+γ{i,o} (s)(sup{xn | n ∈ ω}) = γ{i,o} (s) x̂ = s x̂ ∪ i, φsi,o (x̂) |O\{o}
+
+n
+o
+
+
+= s sup xn ∪ i, φsi,o (xn )
+n ∈ ω |O\{o}
+n
+o
+
+ 
+= sup s xn ∪ i, φsi,o (xn ) |O\{o} n ∈ ω
+
+= sup γ{i,o} (s)(xn ) n ∈ ω .
+We conclude that γ{i,o} (s) is ω-continuous and therefore γ{i,o} (s) ∈ NI\{i},O\{o} .
+
+5.3
+
+Composition-Order Invariance of Monotone and Continuous Systems
+
+We want to show that the system algebras of monotone and continuous systems are compositionorder invariant. We can do so if we additionally require that all nonempty chains in X have an
+infimum. Before we prove the main result of this section, we need the following lemma about
+fixed points (cf. [GD03, (A.6) in Chapter I, §2.6]).
+
+22
+
+Lemma 5.7. Let (X , ) be a poset such that every nonempty chain in X has an infimum. Let
+f : X → X be a monotone function and let x ∈ X such that f (x)  x. Then there exists x̂ ∈ X
+such that f (x̂) = x̂  x.
+Proof. Let x0 := x, xα+1 := f (xα ) for any ordinal α, and xα := inf{xβ | β < α} for nonzero
+limit ordinals α (where we show below that this infimum exists). We claim that we have for all
+ordinals α
+∀β ≤ α f (xα )  xα  xβ .
+We prove this claim by transfinite induction over α. For α = 0, the claim follows since f (x)  x.
+Assume the claim is true for some ordinal α. We then have xα+1 = f (xα )  xα . For β ≤ α,
+we therefore have by assumption xα+1  xα  xβ . For β = α + 1, we trivially have xα+1  xβ .
+Since f is monotone, we thus have for all β ≤ α + 1,
+f (xα+1 )  f (xα ) = xα+1  xβ .
+Now let α be a nonzero limit ordinal and assume that for all α0 < α, we have f (xα0 )  xα0  xβ
+for all β ≤ α0 . This implies that {xβ | β < α} is a chain and therefore the infimum exists. We
+then have by definition of xα that xα  xβ for all β ≤ α. By monotonicity of f , we further have
+for all α0 < α,
+f (xα ) = f (inf{xβ | β < α})  f (xα0 )  xα0 .
+Hence, f (xα ) is a lower bound of {xβ | β < α}, and therefore f (xα )  inf{xβ | β < α} = xα  xβ
+for all β ≤ α. Thus, the claim holds for all ordinals α.
+Our claim and Lemma 2.9 applied to the poset (X , ) yield that there exists an ordinal α̂
+such that xα̂ = xα̂+1 . This implies f (xα̂ ) = xα̂+1 = xα̂  x0 = x.
+We now use this lemma to prove composition-order invariance. For showing connection-order
+invariance, we consider a system s and connecting interfaces i to o, and i0 to o0 . For an input x
+2
+2
+at the remaining interfaces, consider the function
+ f0 : X → X that maps (x0 , x1 ) to the outputs
+0
+of s at interfaces o and o on input x ∪ i, x0 , i , x1 . When we first connect i to o, and then
+i0 to o0 , the system algebra chooses fixed points xi and xi0 for the two connections, where (xi , xi0 )
+is a fixed point of f . We show that it is the least fixed point, and that the same is true for
+connecting the interfaces in the other order, which implies that the two resulting systems are
+equal.
+Note that (xi , xi0 ) being the least fixed point of f is not trivial: We know by definition of the
+connection operation that xi is the least fixed point of f (·, xi0 )(0), but for some x1 ≺ xi0 , the
+function f (·, x1 )(0) could have a fixed point x0 ≺ xi such that (x0 , x1 ) is a fixed point of f that
+does not get chosen for the connections since x0 is not the least fixed point of f (·, x1 )(0). Our
+proof proceeds as follows: For the least fixed point x̂0 , x̂1 of f , we prove that x̂0 is the least
+fixed point of f (·, x̂1 )(0) by showing that if there were a fixed point less than x̂0 , we could use
+the lemma above to obtain a fixed point of f less than x̂0 , x̂1 . We then use this to conclude
+that (xi , xi0 ) = (x̂0 , x̂1 ).
+Theorem 5.8. Let Λ be a set, let (X , ) be a CPO and let (S, λ, k, Γ, γ) = F(M, Γ, φ) be the
+Λ-system algebra of monotone systems over X , or let (X , ) be an ω-CPO and let (S, λ, k, Γ, γ) =
+F(N, Γ, φ) be the Λ-system algebra of continuous systems over X . If every nonempty chain in X
+has an infimum, the system algebra is composition-order invariant.
+
+23
+
+Proof. Since the least fixed points are chosen, F(M, Γ, φ) and F(N, Γ, φ) have consistently chosen
+fixed points. Hence, Lemma 4.5 implies that we only have to prove connection-order invariance.
+Let I, O ⊆ Λ be finite disjoint sets and let s ∈ SI,O . Further
+let i, i0 ∈ I and o, o0 ∈ O be
+
+distinct elements. We have to show that γ{i0 ,o0 } γ{i,o} (s) = γ{i,o} γ{i0 ,o0 } (s) . To this end, let
+0
+x ∈ X I\{i,i } . By Definition 4.1, there exist xi , xi0 , x0i , x0i0 ∈ X such that
+
+
+
+ 
+γ{i0 ,o0 } γ{i,o} (s) (x) = s x ∪ i, xi , i0 , xi0
+|O\{o,o0 } ,
+
+
+
+
+
+γ{i,o} γ{i0 ,o0 } (s) (x) = s x ∪ i, x0i , i0 , x0i0
+|O\{o,o0 } .
+Let f : X 2 → X 2 be the function with
+
+
+
+ 
+
+
+  0 
+f (x0 , x1 ) = s x ∪ i, x0 , i0 , x1
+(o), s x ∪ i, x0 , i0 , x1
+(o ) .
+We then have by definition of φ and γ that xi is the least fixed point of f (·, xi0 )(0) and that x0i0
+is the least fixed point of f (x0i , ·)(1). We further have that (xi , xi0 ) and (x0i , x0i0 ) are fixed points
+of f . We will show that (xi , xi0 ) and (x0i , x0i0 ) are the least fixed point of f and therefore equal.
+Note that if (X , ) is a CPO or an ω-CPO, then (X 2 , ) is a CPO or an ω-CPO, respectively.
+Moreover, if s is monotone, so is f , and if s is ω-continuous,
+ so is f ; in both cases, f is monotone
+by Lemma 2.16. Hence, f has a least fixed point x̂0 , x̂1 by Theorem 2.13 and Theorem 2.17.
+This implies that x̂0 is a fixed point of f (·, x̂1 )(0). We claim that it is the least fixed point of
+that function. Assume toward a contradiction that x̃0 ≺ x̂0 is the least fixed point of f (·, x̂1 )(0).
+We then have by monotonicity of f for some y1 ∈ X ,
+(x̃0 , y1 ) = f (x̃0 , x̂1 )  f (x̂0 , x̂1 ) = (x̂0 , x̂1 ).
+Therefore, f (x̃0 , x̂1 ) = (x̃0 , y1 )  (x̃0 , x̂1 ). Thus, Lemma 5.7 implies that f has a fixed
+point (x̄0 , x̄1 )  (x̃0 , x̂1 ) ≺ (x̂0 , x̂1 ), which contradicts (x̂0 , x̂1 ) being the least fixed point
+of f .
+Since x̂0 is the least fixed point of f (·, x̂1 )(0) and (x̂0 , x̂1 ) is a fixed point of f , we have
+γ
+
+(s)
+
+γ
+
+(s)
+
+{i,o}
+0
+x̂1 ∈ Φi0{i,o}
+and x̂1  xi0 . This
+,o0 ,x . We also have that xi is the least element of Φi0 ,o0 ,x
+implies x̂1 = xi0 . As we have seen before, xi is the least fixed point of f (·, xi0 )(0) and x̂0
+is the least fixed point of f (·, x̂1 )(0). Thus, xi = x̂0 . An analogous
+argument shows
+that
+
+
+(x0i , x0i0 ) = (x̂0 , x̂1 ) = (xi , xi0 ). We therefore have γ{i0 ,o0 } γ{i,o} (s) (x) = γ{i,o} γ{i0 ,o0 } (s) (x).
+
+5.4
+
+Kahn Networks
+
+Kahn networks [Kah74] are an instantiation of the system algebra of continuous systems. There,
+the set X consists of sequences over some set of values V. The interpretation is that the
+systems successively take inputs from V at each interface and produce outputs in V. An input
+(v1 , v2 , v3 ) ∈ X to an interface then corresponds to the input history where v1 was input first,
+then v2 , and finally v3 . Hence, in this model the order of inputs at each interface is relevant, but
+the order of inputs at different interfaces is not modeled.
+More formally, let V be some nonempty set of values, let
+
+X := (vα )α∈β ∈ V β | β ≤ ω ,
+and let v be the initial segment relation on X , i.e,
+
+
+
+vα1 α∈β1 v vα2 α∈β2 :⇐⇒ β1 ≤ β2 ∧ ∀α ∈ β1 vα1 = vα2 .
+
+24
+
+It is straightforward to verify that (X , v) is a CPO: For a chain C ⊆ X , the supremum of C is
+the sequence v in which for α ≤ ω, vα is defined if and only if there is a sequence v 0 in C in
+which vα0 is defined, and in this case, vα = vα0 . This is well-defined since all elements in C are
+comparable and thus, if two sequences in C define vα0 and ṽα , we have vα0 = ṽα . One can therefore
+consider the system algebra of continuous systems over X . Such systems correspond to Kahn
+networks [Kah74]. By Theorem 5.8, the system algebra is composition-order invariant since every
+chain also has an infimum (replace “there is a sequence in C” by “for all sequences in C” in the
+argument for the supremum).
+Example. As a simple example of a system in this model, consider the system s with input
+interface i and output interfaces o1 , o2 that forwards all inputs to both o1 and o2 . Formally, the
+system is described by the function s : X {i} → X {o1 ,o2 } with
+s(x)(o1 ) = s(x)(o2 ) = x(i).
+This function is clearly ω-continuous and therefore s is a Kahn network. We can now connect
+interfaces i and o1 to obtain the system γ{i,o1 } (s) with no input interfaces and a single output
+interface o2 . To determine the output at that interface, we have to find the least fixed point of
+the function xi 7→ s({(i, xi )})(o1 ) = xi . Since all x ∈ X are fixed points of this function, the least
+fixed point is min X , i.e., the empty sequence. This also matches the intuition that γ{i,o1 } (s)
+should not output anything because every other output would have to be caused by itself.
+Generalizations. Kahn only considered ω-continuous systems and argued that continuity in
+contrast to monotonicity prevents a system from only outputting a value after receiving infinitely
+many inputs [Kah74]. Note, however, that allowing all monotone systems also yields a valid
+composition-order invariant system algebra.
+Another generalization is to not only consider finite and infinite sequences, but also include
+transfinite sequences of inputs and outputs. By doing so, one can model systems that output
+something after infinitely many other outputs. This makes sense if one considers systems that can
+produce infinitely many outputs in finite time. Conversely, one can
+ also place a finite upper bound
+on the number of inputs and outputs per interface, i.e., X := (vα )α∈β ∈ V β | β ≤ n for some
+n ∈ N. The special case n = 1 has been considered by Tackmann [Tac14]. Note, however, that it
+is not possible in this model to allow arbitrarily many but only finitely many inputs and outputs,
+because this does not yield an ω-CPO: The supremum of an ω-chain C0 v C1 v C2 v . . ., where
+Cn contains n elements, is infinite.
+
+6
+
+The System Algebra of Causal Systems
+
+6.1
+
+Causal Systems
+
+We now develop a system algebra where the inputs and outputs of systems are (partially) ordered,
+i.e., a single input or output of a system is an element of some poset (P, ). An input or output
+history at some interface is then a subset of P . We interpret p1 ≺ p2 as p2 could causally depend
+on p1 , but not vice versa. This can (but does not need to) mean that p1 occurred at an earlier
+time than p2 . For the ease of presentation, we will say that p1 is before p2 and p2 is after p1 if
+p1 ≺ p2 , keeping in mind that  does not necessarily correspond to a relation on time. As a
+
+25
+
+natural instantiation in which time is made explicit and ≺ does mean at an earlier time, consider
+P = V × T for some set V and a poset (T , ≤) and let
+(v1 , t1 )  (v2 , t2 ) :⇐⇒ t1 < t2 ∨ (v1 , t1 ) = (v2 , t2 ).
+
+(2)
+
+We can then interpret (v, t) as the value v being input or output at time t.
+We again fix some arbitrary set Λ of interface labels and define a functional system algebra
+where a system is a function that for each input interface takes an input history as an input
+and outputs the output history for each output interface. That is, we define a functional system
+algebra over X , where X consists of subsets of P . We only allow well-ordered subsets, which
+means that at each input interface, if there are inputs, there is a first one, and one input is given
+after another. Inputs at different interfaces (which can be connected to different systems) can
+however be incomparable (e.g., occur at the same time). Only considering well-ordered inputs per
+interface seems to be a reasonable restriction if systems in computer science are to be modeled,
+because such systems are typically discrete and are started at some point, i.e., there is a first
+output. This restriction is discussed further below. Formally, we define
+X := {X ⊆ P | (X, ) is well-ordered}.
+The systems we consider respect causality, i.e., an output can only depend on inputs that are
+given before that output. We formalize this by requiring that for every change in the output
+history, there is an earlier change in the input history.
+Definition 6.1. For finite disjoint I, O ⊆ Λ, a causal (I, O)-system over X is a function
+s : X I → X O such that
+
+
+∀X, X0 ∈ X I ∀o ∈ O ∀y ∈ s(X)(o) 4 s(X0 )(o) ∃i ∈ I ∃x ∈ X(i) 4 X0 (i) x ≺ y.
+We denote the set of causal (I, O)-systems over X by CI,O .
+As we show in Appendix A, our definition corresponds to a generalization of strict causality
+as considered by Matsikoudis and Lee [ML15] to systems with several interfaces.
+We define the relation v on X such that X1 v X2 if X1 is an initial segment of X2 , i.e., X2
+contains all elements from X1 and all additional elements are greater than all elements in X1 :
+X1 v X2 :⇐⇒ X1 ⊆ X2 ∧ ∀x1 ∈ X1 ∀x2 ∈ X2 \ X1 (x1 ≺ x2 ).
+It is easy to verify that (X , v) is a poset.
+Examples and comparison to Kahn networks. In this paragraph, we consider the intuitive
+special case P = V × R with the partial order as defined in (2). In contrast to Kahn networks,
+causal systems for this choice of P directly allow modeling systems that produce outputs
+depending on the precise time of the inputs. As we will see below, there are also more subtle
+differences.
+If we ignore the concrete times and only keep the order of the elements in an input or output
+X ∈ X , we obtain a sequence of values in V, i.e., an element of the domain of Kahn networks.
+Moreover, the relation v on X then corresponds to the relation v on sequences we defined for
+
+26
+
+Kahn networks. However, causality does not imply that the function is monotone with respect
+to v. To see this, consider the function s : X {i} → X {o} with
+(
+{(1, 1)}, (1, 0) ∈ X(i),
+s(X)(o) =
+{(0, 1)}, (1, 0) ∈
+/ X(i).
+This function corresponds to a system with one input interface i and one output interface o
+that outputs at time 1 a bit indicating whether 1 has been input at time 0. This is a causal
+system with respect to Definition 6.1 because outputs can only change at time 1, and if they do,
+the inputs must have changed at time 0, which is before time 1. On the other hand, s is not
+monotone with respect to v: We have ∅ v {(1, 0)}, but on input ∅, the system outputs {(0, 1)},
+and on input {(1, 0)}, the system outputs {(1, 1)}, where {(0, 1)} 6v {(1, 1)}.
+Note that our definition of causality requires that for every change in the outputs, there is a
+change in the inputs strictly before that. Including systems that produce outputs without any
+delay makes it impossible to allow arbitrary connections: Consider a system that at one interface
+takes as input a bit b and outputs 1 − b at another interface at the same time, and outputs there
+the bit 0 at time 1 if no inputs are given at that time. If we now connect these two interfaces,
+one cannot consistently assign a value to that interface.
+This restriction means in particular that the function X {i} → X {o1 ,o2 } that maps the input
+to itself at both output interface is not a causal system, because changing an input at some
+point in time results in a change of the outputs at the same time. To model a causal system that
+corresponds to the Kahn network we gave as an example in Section 5.4, which forwards all inputs
+to both output interfaces, we therefore need to add some delay to the inputs. For the sake of
+simplicity, we here add a fixed delay δ > 0 to all inputs. We obtain the function s : X {i} → X {o1 ,o2 }
+with
+s(X)(o1 ) = s(X)(o2 ) = {(v, t + δ) | (v, t) ∈ X(i)}.
+One can easily verify that this function does satisfy Definition 6.1. For connecting interfaces i and
+o1 , ∅ is the unique fixed point: It clearly is a fixed point, and there is no other fixed point since if
+there is some input, the output is delayed by δ and hence different from the input. Therefore, the
+resulting system produces no output, which is consistent with our analysis of the corresponding
+Kahn network. Note, however, that in contrast to the Kahn network, we here have a unique
+fixed point, so the output ∅ is not only intuitive, but also formally the only option. We show in
+Section 6.2 that causality always guarantees unique fixed points.
+On the restriction to well-ordered subsets. One cannot in general define a consistent
+system algebra of causal systems for X = P(P ). To see this, let P = Q and let  be the
+usual order on Q. For this poset, an output t ∈ Q can be interpreted as an output from a
+unary set at time t. Consider a system s with input interface i and output interfaces o and
+o0 that for all n ∈ N \ {0} generates an output at time 1/n at both output interfaces if and
+only if it did not receive an input before time 1/n. Formally, s({(i, X)}) = {(o, Y ), (o0 , Y )} with
+Y = {1/n | n ∈ N \ {0} ∧ ∀t ∈ X (t ≥ 1/n)}. This system clearly respects causality, but, e.g., for
+X = ∅, the output is not well-ordered because for each output, there is another output before.
+When we connect interfaces i and o, the resulting system does not have a well-defined behavior:
+If it outputs something at time 1/n at interface o0 , it did not receive any input before, i.e., it
+did not output anything at interface o before. In particular, it did not output anything before
+time 1/2n. But then, it would output something at time 1/2n, a contradiction. Hence, the
+
+27
+
+system cannot output anything at all. But then, it would output something at time 1, also a
+contradiction.
+This example shows that we at least have to exclude infinite descending chains, i.e., X
+can only contain subsets of P on which the ordering is well-founded. This is implied by only
+considering well-ordered subsets as we do. One could generalize X to include non-well-ordered
+sets that contain no infinite descending chains, as done by Matsikoudis and Lee [ML15]. A
+nonempty subset of such sets contains minimal elements, but not necessarily a unique minimum,
+allowing for incomparable or concurrent inputs and outputs. Since our systems, in contrast to
+the functions considered by Matsikoudis and Lee, can have multiple interfaces, we do not lose
+much generality by restricting ourselves to well-ordered sets: At different interfaces, we can still
+have inputs or outputs at incomparable or equal times. We also find it natural to have several
+interfaces for potentially simultaneous inputs or outputs because this makes the assumptions
+on the concurrency explicit. Moreover, well-ordered sets are easier to handle and allow more
+intuitive proofs.
+
+6.2
+
+Fixed Points of Causal Functions
+
+To define interface connection for causal systems, we need to prove a result about fixed points.
+We show that causal functions, which correspond to a single-interface variant of Definition 6.1,
+have a unique fixed point. We also show how this fixed point can be obtained, i.e., we provide
+a constructive proof. A similar result was proven non-constructively by Naundorf [Nau00];
+Matsikoudis and Lee have provided a constructive proof of a related result [ML15]. However, we
+find that our construction is simpler and better applicable in our setting.
+The intuition is similar to that of other constructive fixed point theorems: Start with X0 = ∅
+and then apply the function f over and over again until a fixed point is reached. In contrast to
+monotone functions (see Theorem 2.13 and Theorem 2.17), simply setting Xα+1 = f (Xα ) does
+not work because an input can prevent future outputs; consider for example a function f that on
+input ∅ outputs {x0 , x1 } with x0 ≺ x1 , and on input {x0 } outputs {x0 }. This does not contradict
+causality but the fixed point {x0 } is not reached if we set Xα+1 = f (Xα ) and f ({x0 , x1 }) 6= {x0 }.
+We therefore only add the least new element in f (Xα ) to Xα to obtain Xα+1 . This means for
+the example
+S above that X1 = X0 ∪ {min(f (X0 ) \ X0 )} = {x0 }. For nonzero limit ordinals α, we
+set Xα = β<α Xβ .
+Theorem 6.2. Let X be as above and f : X → X such that
+
+
+∀X, X 0 ∈ X ∀y ∈ f (X) 4 f X 0 ∃x ∈ X 4 X 0 x ≺ y.
+
+(3)
+
+Then, f has a unique fixed point. This fixed point equals Xα̂ for some ordinal α̂, where
+
+for any ordinal α,
+and for nonzero limit ordinals α,
+
+X0 = ∅,
+(
+Xα ,
+Xα+1 =
+Xα ∪ {min(f (Xα ) \ Xα )},
+[
+Xα =
+Xβ .
+
+f (Xα ) \ Xα = ∅,
+otherwise,
+
+β<α
+
+Proof. Note that Xα+1 is well-defined if Xα is well-ordered, which is implied by the following
+claim.
+
+28
+
+Claim 1. For all ordinals α, Xα is well-ordered, we have Xβ v Xα for all β ≤ α, and
+∀x1 ∈ Xα ∀x2 ∈ f (Xα ) \ Xα (x1 ≺ x2 ).
+Proof of claim. The proof is by transfinite induction over α.
+(i) For α = 0, there is nothing to show since Xα = ∅.
+(ii) Assume the claim holds for some ordinal α. If Xα+1 = Xα , the claim also holds for
+α + 1. Otherwise, Xα+1 = Xα ∪ {min(f (Xα ) \ Xα )}. To see that Xα+1 is well-ordered, let
+S ⊆ Xα+1 , S 6= ∅. If S ∩ Xα = ∅, S contains only one element, which is then the least
+element. Otherwise, the least element of S is min(S ∩ Xα ) because Xα+1 \ Xα only contains
+the element min(f (Xα ) \ Xα ), and since the claim holds for α, this element is greater than
+all elements in Xα .
+Since the claim holds for α, we have ∀x1 ∈ Xα ∀x2 ∈ f (Xα ) \ Xα (x1 ≺ x2 ). This implies
+Xα v Xα+1 . Since Xβ v Xα for all β ≤ α, we also have Xβ v Xα+1 for all β ≤ α + 1.
+Let x1 ∈ Xα+1 and x2 ∈ f (Xα+1 ) \ Xα+1 . We then have x1  min(f (Xα ) \ Xα ). If
+x2 ∈ f (Xα ), then x2 ∈ (f (Xα ) \ Xα ) \ {min(f (Xα ) \ Xα )}; hence, x1 ≺ x2 . Otherwise,
+x2 ∈ f (Xα+1 ) \ f (Xα ). By (3), we then have min(f (Xα ) \ Xα ) ≺ x2 , and since x1 
+min(f (Xα ) \ Xα ), we also have x1 ≺ x2 . Thus, the claim holds for α + 1.
+(iii) Now let α be a nonzero limit ordinal and assume the claim holds for all β < α. To show
+that Xα is well-ordered, let S ⊆ Xα , S 6= ∅. Let β be the least ordinal such that S ∩ Xβ 6= ∅.
+By definition of Xα , we have β < α and therefore, s := min(S ∩ Xβ ) exists. To see that s
+is the least element of S, let x ∈ S \ Xβ . Then, x ∈ Xγ for some γ with β < γ < α. This
+implies Xβ v Xγ , and therefore s ≺ x. Hence, Xα is well-ordered.
+To show that Xβ v Xα for all β ≤ α, note that Xβ ⊆ Xα and let x1 ∈ Xβ , x2 ∈ Xα \ Xβ .
+Then, there exists some ordinal γ such that x2 ∈ Xγ \ Xβ and β < γ < α. Because we
+assume that the claim holds for all ordinals less than α, we obtain Xβ v Xγ . Hence,
+x1 ≺ x2 and thus Xβ v Xα .
+Let x1 ∈ Xα and x2 ∈ f (Xα ) \ Xα . By definition of Xα , there exists some β < α such that
+x1 ∈ Xβ . As shown above, we have Xβ v Xα . Therefore, x2 ∈ f (Xα ) \ Xβ . If x2 ∈ f (Xβ ),
+we have x1 ≺ x2 since x2 ∈ f (Xβ ) \ Xβ and the claim holds for β. Otherwise, we have
+x2 ∈ f (Xα ) \ f (Xβ ). By (3), this implies min(Xα \ Xβ ) ≺ x2 . Because x1 ∈ Xβ v Xα , we
+conclude x1 ≺ min(Xα \ Xβ ) ≺ x2 . Altogether, the claim holds for Xα .
+By Theorem 2.8, the claim holds for all ordinals α.
+
+♦
+
+We now have by Claim 1 and Lemma 2.9 that there exists an ordinal α̂ such that Xα̂ = Xα̂+1 .
+Therefore, f (Xα̂ ) \ Xα̂ = ∅. To conclude that Xα̂ is a fixed point of f , we show that Xα̂ ⊆ f (Xα̂ ),
+and hence f (Xα̂ ) = Xα̂ .
+Claim 2. For all ordinals α, Xα ⊆ f (Xα ).
+Proof of claim. We prove the claim by transfinite induction over α.
+(i) For α = 0, the claim trivially holds.
+
+29
+
+(ii) Assume the claim holds for some ordinal α and let x ∈ Xα+1 . Then, x ∈ f (Xα ) because
+either x ∈ Xα ⊆ f (Xα ) or x = min(f (Xα ) \ Xα ) ∈ f (Xα ). Assume toward a contradiction
+that x ∈
+/ f (Xα+1 ). We then have x ∈ f (Xα ) \ f (Xα+1 ). By (3) and the definition of Xα+1 ,
+this implies min(f (Xα ) \ Xα ) ≺ x. Since x ∈ Xα+1 , we either have x = min(f (Xα ) \ Xα )
+or x ∈ Xα and therefore x ≺ min(f (Xα ) \ Xα ) by Claim 1. In both cases, we obtain
+x  min(f (Xα ) \ Xα ) ≺ x, a contradiction. Hence, x ∈ f (Xα+1 ).
+(iii) Let α be a nonzero limit ordinal and assume Xβ ⊆ f (Xβ ) for all β < α. Let x ∈ Xα .
+Then, x ∈ Xβ ⊆ f (Xβ ) for some β < α. By Claim 1, we have Xβ v Xα . Assume toward
+a contradiction that x ∈
+/ f (Xα ). Then, (3) implies min(Xα \ Xβ ) ≺ x. However, since
+x ∈ Xβ v Xα , we also have x ≺ min(Xα \ Xβ ), a contradiction. Thus, Xα ⊆ f (Xα ).
+♦
+To prove uniqueness, let Y1 and Y2 be fixed points of f . If Y1 6= Y2 , we can assume without
+loss of generality that Y1 \ Y2 6= ∅ and
+
+∀y ∈ Y2 \ Y1 y 6≺ min(Y1 \ Y2 )
+(4)
+(otherwise, swap the roles of Y1 and Y2 ). Since min(Y1 \ Y2 ) ∈ Y1 \ Y2 = f (Y1 ) \ f (Y2 ), we have
+by (3) that there exists some y ∈ Y1 4 Y2 such that y ≺ min(Y1 \ Y2 ). Then, y ∈ Y1 \ Y2 implies
+y ≺ y, and y ∈ Y2 \ Y1 contradicts (4). Therefore, we must have Y1 = Y2 . This concludes the
+proof.
+While for some functions, α̂ will be a small finite number, using ordinals beyond ω cannot be
+avoided in general. To illustrate this, and to show that the iteration can still be carried out in
+this case, consider the following example. Again let P = Q and let  be the usual order on Q.
+Let f be the function that on the empty input outputs N, and for each input x ∈ Q, additionally
+outputs (x + bx + 1c)/2  x. That is
+f (X) = N ∪ {(x + bx + 1c)/2 | x ∈ X}.
+We then have
+
+
+
+
+n−1
+X0 = ∅, X1 = min f (∅) = {0}, X2 = 0, 21 , X3 = 0, 12 , 34 , . . . , Xn = 0, 12 , . . . , 2 2n−1−1 , . . .
+ n
+S
+n ∈ N . We then continue as before:
+Taking the first limit, we obtain Xω = β<ω Xβ = 2 2−1
+n
+
+n−1
+Xω+1 = Xω ∪ {1}, Xω+2 = Xω ∪ {1, 1 + 21 }, . . . , Xω+n = Xω ∪ 1, 1 + 12 , . . . , 1 + 2 2n−1−1 , . . .
+
+n
+For the next limit we have Xω+ω = Xω·2 = m + 2 2−1
+m ∈ {0, 1}, n ∈ N . Continuing this
+n
+process, we arrive at
+
+n
+Xω·ω = m + 2 2−1
+m, n ∈ N .
+n
+It is easy to see that Xω·ω is a fixed point of f and therefore α̂ = ω · ω.
+If we again interpret an output t ∈ Q as an output from a unary set at time t, the system
+corresponding to the function f after connecting interfaces generates infinitely many outputs in a
+finite time. This is often called Zeno behavior, named after Zeno’s paradoxes. Such behavior can
+be avoided by requiring delta causality instead of just causality, which places a lower bound δ on
+the reaction time of a system [LS98; ML15]. While this seems to be a reasonable restriction in
+practice, it makes the definitions more cumbersome. Also, the system described above does have
+a well-defined behavior, and the fixed point is what one expects. Having less restrictions on the
+type of system can also improve mathematical convenience when modeling systems.
+
+30
+
+6.3
+
+Defining the System Algebra
+
+We can apply Theorem 6.2 to show that causal systems have a unique fixed point for arbitrary
+interface connections.
+Corollary 6.3. Let I, O ⊆ Λ be finite disjoint sets, let s ∈ CI,O , and let i ∈ I, o ∈ O. Then,
+for all X ∈ X I\{i} , there exists a unique Xi ∈ X such that s X ∪ {(i, Xi )} (o) = Xi .
+Proof. For X ∈ X I\{i} , let f : X → X , X 7→ s(X ∪ {(i, X)})(o) and note
+ that the fixed points
+of f precisely correspond to the values Xi ∈ X such that s X ∪ {(i, Xi )} (o) = Xi . It is therefore
+sufficient to show that f has a unique fixed point. To verify that f satisfies the condition of
+Theorem 6.2, let X, X 0 ∈ X and let y ∈ f (X) 4 f (X 0 ) . Then, y ∈ s(X ∪ {(i, X)})(o) 4 s(X ∪
+{(i, X 0 )})(o) . We therefore have by Definition 6.1 that there exists x ∈ X 4 X 0 such that x ≺ y.
+Hence, Theorem 6.2 implies that f has a unique fixed point.
+Definition 6.4. We define
+F(C, Γ, φ), the Λ-system algebra of causal systems over X , as follows:
+
+For s ∈ CI,O , Γ(s) := {i, o} | i ∈ I, o ∈ O and φsi,o (X) is the unique element of Φsi,o,X for all
+i ∈ I, o ∈ O, and X ∈ X I\{i} .
+To show that causal systems form a functional system algebra, we have to prove that
+connecting interfaces of a causal system again yields a causal system. To this end, we first show
+that changing an input X can only change the fixed point after that change in X.
+Lemma 6.5. Let I, O ⊆ Λ be finite disjoint sets, let s ∈ CI,O , and let i ∈ I, o ∈ O. Further let
+X, X0 ∈ X I\{i} . We then have
+∀y ∈ φsi,o (X) 4 φsi,o (X0 ) ∃i0 ∈ I \ {i} ∃x ∈ X(i0 ) 4 X0 (i0 ) (x ≺ y).
+Proof. Let
+
+E := y ∈ φsi,o (X) 4 φsi,o (X0 ) | ∀i0 ∈ I \ {i} ∀x ∈ X(i0 ) 4 X0 (i0 ) (x 6≺ y)
+and assume toward a contradiction that E 6= ∅. Then, there exists y0 ∈ E such that ∀y ∈
+E (y 6≺ y0 ) because φsi,o (X) and φsi,o (X0 ) are well-ordered and E ⊆ φsi,o (X) ∪ φsi,o (X0 ). Since
+
+
+φsi,o (X) = s X∪{(i, φsi,o (X))} (o) and φsi,o (X0 ) = s X0 ∪{(i, φsi,o (X0 ))} (o), Definition 6.1 implies
+
+
+that there exists i0 ∈ I and x ∈ X ∪ {(i, φsi,o (X))} (i0 ) 4 X0 ∪ {(i, φsi,o (X0 ))} (i0 ) such that
+x ≺ y0 . Because y0 ∈ E, we have i0 = i, i.e., x ∈ φsi,o (X) 4 φsi,o (X0 ). We further have x ∈
+/E
+since x ≺ y0 and ∀y ∈ E (y 6≺ y0 ). Thus, there exist i00 ∈ I \ {i} and x0 ∈ X(i00 ) 4 X0 (i00 ) such
+that x0 ≺ x. This implies x0 ≺ y0 , contradicting y0 ∈ E. Hence, we have E = ∅.
+Theorem 6.6. (C, λ, k, Γ, γ) = F(C, Γ, φ) is a composition-order invariant functional Λ-system
+algebra over X .
+Proof. Note that C is closed under parallel composition since the causality condition in Definition 6.1 is placed on each output interface separately. To show that C is also closed under
+connecting interfaces, let I, O ⊆ Λ be finite disjoint sets, let s ∈ CI,O , i ∈ I, and let o ∈ O.
+Further let X, X0 ∈ X I\{i} , o0 ∈ O \ {o}, and y ∈ γ{i,o} (s)(X)(o0 ) 4 γ{i,o} (s)(X0 )(o0 ) . We
+have to show that ∃i0 ∈ I \ {i} ∃x ∈ (X(i0 ) 4 X0 (i0 )) x ≺ y. By the definition of γ{i,o} (s) and
+Definition 6.1, we have
+
+∃i0 ∈ I ∃x ∈ (X ∪ {(i, φsi,o (X))})(i0 ) 4 (X0 ∪ {(i, φsi,o (X0 ))})(i0 ) x ≺ y.
+
+31
+
+If i0 6= i, we are done. Otherwise, let x ∈ φsi,o (X) 4 φsi,o (X0 ) such that x ≺ y. Lemma 6.5 then
+
+implies that ∃i00 ∈ I \ {i} ∃x0 ∈ X(i00 ) 4 X0 (i00 ) x0 ≺ x ≺ y. Hence, we have γ{i,o} (s) ∈ C. This
+shows that F(C, Γ, φ) is a functional system algebra. Using Corollary 6.3 and Theorem 4.6, we
+conclude that it is composition-order invariant.
+
+7
+
+Conclusion and Future Work
+
+We have introduced the concept of a system algebra, which captures the composition of systems
+as algebraic operations, and identified composition-order invariance as an important property of
+a system algebra. We have then introduced functional system algebras, which consist of systems
+that correspond to functions mapping inputs to outputs. As instantiations of functional system
+algebras, we have considered monotone and continuous systems, where Kahn networks are an
+important special case of them. We have shown their composition-order invariance, providing
+further insights into these well-studied systems. We have finally introduced the system algebra
+of causal systems, which allows to model systems that depend on time.
+Future work includes using the system algebra of causal systems to analyze protocols that
+deal with time such as clock synchronization protocols. We are further developing a theory of
+probabilistic system algebras that can be used to describe and study cryptographic protocols.
+Acknowledgments. Ueli Maurer was supported by the Swiss National Science Foundation
+(SNF), project No. 200020-132794. Christopher Portmann and Renato Renner are supported by
+the European Commission FP7 Project RAQUEL (grant No. 323970), US Air Force Office of
+Scientific Research (AFOSR) via grant FA9550-16-1-0245, the Swiss National Science Foundation
+(via the National Centre of Competence in Research ‘Quantum Science and Technology’), and
+the European Research Council – ERC (grant No. 258932). Björn Tackmann was supported by
+the Swiss National Science Foundation (SNF) via Fellowship No. P2EZP2_155566 and in part
+by the NSF grants CNS-1228890 and CNS-1116800.
+
+A
+
+Comparison with Strict Causality by Matsikoudis and Lee
+
+We show below that the definition of strict causality by Matsikoudis and Lee [ML15] and our
+definition of causality are equivalent up to syntactical differences for functions that are compatible
+with both formalisms. Beforehand, we recall the relevant definitions from [ML15]. The domains of
+the functions considered there consist of so-called signals. A signal is a partial function σ : T̃ → V,
+for some poset (T̃ , ) and some set V [ML15, Definition 2.2]. We denote the set of all signals
+by Σ. Strict causality is then defined as follows.
+Definition A.1. Let F : Σ → Σ be a partial function. Then, F is strictly causal if there is a
+partial function f : Σ × T̃ → Σ such that for all σ in the domain of F and for all τ ∈ T̃ ,
+
+F (σ)(τ ) = f σ|{τ 0 ∈T̃ |τ 0 ≺τ } , τ ,
+where equality here means that either both terms are undefined, or they are both defined and
+equal.
+To be compatible with these definitions, we only consider the special case of our system
+algebra where X = {X ⊆ P | (X, ) is well-ordered} for a poset (P, ) with P = V × T for
+
+32
+
+some set V and a poset (T , ≤), and (v1 , t1 )  (v2 , t2 ) if and only if t1 < t2 or (v1 , t1 ) = (v2 , t2 ).
+Let Λ be a set and consider the poset T̃ ,  , where T̃ := Λ × T and (i1 , t1 )  (i2 , t2 ) if and
+only if t1 < t2 or (i1 , t1 ) = (i2 , t2 ). This means that, intuitively, the interface identifier i ∈ Λ in
+our model becomes part of the “time” τ ∈ T̃ during the translation to the model of [ML15]. For
+I ⊆ Λ, a tuple X ∈ X I can then be viewed as a signal via the injection
+
+
+ϕI : X I → Σ, X 7→ (i, t), v ∈ (I × T ) × V | i ∈ I ∧ (v, t) ∈ X(i) .
+Note that ϕI (X) is indeed a partial function T̃ → V because for each (i, t) ∈ I × T , there is at
+most one v ∈ V such that (v, t) ∈ X(i) since X(i) is well-ordered.
+The following lemma shows that the Definitions 6.1 and A.1 are essentially equivalent for the
+functions considered here.
+Lemma A.2. Let I and O be finite disjoint sets and let s : X I → X O . Then, s is a causal
+(I, O)-system over X in the sense of Definition 6.1 if and only if ϕO ◦ s ◦ ϕ−1
+I is strictly causal
+in the sense of Definition A.1.10
+Proof. First assume that s is a causal (I, O)-system over X and consider the partial function f : Σ × T → Σ defined by
+f (σ, τ ) := ϕO ◦ s ◦ ϕ−1
+I (σ)(τ ).
+Now let σ ∈ Σ and X ∈ X I such that ϕI (X) = σ. Further let τ = (o, t) ∈ O × T . We then have
+by Definition 6.1 for X0 := ϕ−1
+I σ|{τ 0 ∈T̃ |τ 0 ≺τ } ,
+
+
+∀y ∈ s(X)(o) 4 s(X0 )(o) ∃i ∈ I ∃x ∈ X(i) 4 X0 (i) x ≺ y.
+
+By definition of X0 , there are no i ∈ I and (v 0 , t0 ) ∈  X(i) 4 X0 (i) with t0 < t. This implies that
+there is no v ∈ V with (v, t) ∈ s(X)(o) 4 s(X0 )(o) , and therefore
+
+−1
+0
+ϕO ◦ s ◦ ϕ−1
+I (σ)(τ ) = ϕO ◦ s(X)(τ ) = ϕO ◦ s(X )(τ ) = ϕO ◦ s ◦ ϕI σ|{τ 0 ∈T̃ |τ 0 ≺τ } (τ )
+
+= f σ|{τ 0 ∈T̃ |τ 0 ≺τ } , τ .
+Hence, ϕO ◦ s ◦ ϕ−1
+I is strictly causal.
+To prove the opposite direction, assume ϕO ◦ s ◦ ϕ−1
+I is strictly causal and let f : Σ × T → Σ
+be a partial function such that for all σ in the
+domain
+of ϕO ◦ s ◦ ϕ−1
+I and for all τ ∈ T̃ , we
+
+−1
+0
+I
+have ϕO ◦ s ◦ ϕI (σ)(τ ) = f σ|{τ 0 ∈T̃ |τ 0 ≺τ } , τ . Now let X, X ∈ X , o ∈ O, and (v, t) = y ∈
+
+s(X)(o) 4 s(X0 )(o) . We then have ϕO (s(X))(o, t) 6= ϕO (s(X0 ))(o, t) and thus for τ := (o, t),
+
+
+f ϕI (X)|{τ 0 ∈T̃ |τ 0 ≺τ } , τ = ϕO ◦ s(X)(τ ) 6= ϕO ◦ s(X0 )(τ ) = f ϕI (X0 )|{τ 0 ∈T̃ |τ 0 ≺τ } , τ .
+Hence, ϕI (X)|{τ 0 ∈T̃ |τ 0 ≺τ } 6= ϕI (X0 )|{τ 0 ∈T̃ |τ 0 ≺τ } . Therefore, there exist i ∈ I and x ∈ X(i) 4
+
+X0 (i) with x ≺ y. This shows that s satisfies Definition 6.1 and concludes the proof.
+Note that for all finite I ⊆ Λ and for all X ∈ X I , the relation ≺ is well-founded on the
+domain of ϕI (X): If it contained an infinite descending chain, then there would also be an infinite
+descending chain in X(i) for some i ∈ I (since I is finite), contradicting that X(i) is well-ordered.
+Thus, [ML15, Theorem 4.10] can be applied, which together with Lemma A.2 implies that for all
+causal (I, O)-systems s over X , the partial function ϕO ◦ s ◦ ϕ−1
+I is strictly contracting. Hence,
+all results in [ML15] about strictly contracting partial functions can be used.
+10
+
+I
+The domain of ϕO ◦ s ◦ ϕ−1
+with ϕI (X) = σ.
+I is the set of all σ ∈ Σ such that there exists X ∈ X
+
+33
+
+References
+[AD94]
+
+R. Alur and D. Dill, “A theory of timed automata”, Theoretical Computer Science,
+vol. 126, no. 2, pp. 183–235, 1994. doi: 10.1016/0304-3975(94)90010-8.
+
+[BBR09]
+
+J. C. M. Baeten, T. Basten, and M. A. Reniers, Process algebra: Equational theories
+of communicating processes. Cambridge University Press, 2009, Cambridge Books
+Online. doi: 10.1017/CBO9781139195003.
+
+[Can01]
+
+R. Canetti, “Universally composable security: A new paradigm for cryptographic
+protocols”, in Foundations of Computer Science, 2001. Proceedings. 42nd IEEE
+Symposium on, Oct. 2001, pp. 136–145. doi: 10.1109/SFCS.2001.959888.
+
+[CLL+06]
+
+A. Cataldo, E. Lee, X. Liu, E. D. Matsikoudis, and H. Zheng, “A constructive
+fixed-point theorem and the feedback semantics of timed systems”, in Discrete
+Event Systems, 2006 8th International Workshop on, Jul. 2006, pp. 27–32. doi:
+10.1109/WODES.2006.1678403.
+
+[DP02]
+
+B. A. Davey and H. A. Priestley, Introduction to lattices and order, Second. Cambridge University Press, 2002. doi: 10.1017/CBO9780511809088.
+
+[dAH01a]
+
+L. de Alfaro and T. A. Henzinger, “Interface automata”, in Proceedings of the 8th
+European Software Engineering Conference Held Jointly with 9th ACM SIGSOFT
+International Symposium on Foundations of Software Engineering, ser. ESEC/FSE9, Vienna, Austria: ACM, 2001, pp. 109–120. doi: 10.1145/503209.503226.
+
+[dAH01b]
+
+——, “Interface theories for component-based design”, in Embedded Software: First
+International Workshop, EMSOFT 2001 Tahoe City, CA, USA, October 8–10, 2001
+Proceedings, T. A. Henzinger and C. M. Kirsch, Eds., Berlin, Heidelberg: Springer
+Berlin Heidelberg, 2001, pp. 148–165. doi: 10.1007/3-540-45449-7_11.
+
+[Ési09]
+
+Z. Ésik, “Fixed point theory”, in Handbook of Weighted Automata, M. Droste, W.
+Kuich, and H. Vogler, Eds., Berlin, Heidelberg: Springer Berlin Heidelberg, 2009,
+pp. 29–65. doi: 10.1007/978-3-642-01492-5_2.
+
+[FLM86]
+
+M. J. Fischer, N. A. Lynch, and M. Merritt, “Easy impossibility proofs for distributed
+consensus problems”, Distributed Computing, vol. 1, no. 1, pp. 26–39, 1986. doi:
+10.1007/BF01843568.
+
+[Gol01]
+
+O. Goldreich, Foundations of cryptography: Basic tools. Cambridge University Press,
+2001, vol. 1. doi: 10.1017/CBO9780511546891.
+
+[GD03]
+
+A. Granas and J. Dugundji, Fixed point theory. Springer New York, 2003. doi:
+10.1007/978-0-387-21593-8.
+
+[Hal12]
+
+L. J. Halbeisen, Combinatorial set theory: With a gentle introduction to forcing, ser.
+Springer Monographs in Mathematics. Springer London, 2012. doi: 10.1007/9781-4471-2173-2.
+
+[Har13]
+
+L. Hardy, “On the theory of composition in physics”, in Computation, Logic, Games,
+and Quantum Foundations. The Many Facets of Samson Abramsky: Essays Dedicated
+to Samson Abramsky on the Occasion of His 60th Birthday, B. Coecke, L. Ong,
+and P. Panangaden, Eds., Berlin, Heidelberg: Springer Berlin Heidelberg, 2013,
+pp. 83–106. doi: 10.1007/978-3-642-38164-5_7.
+
+34
+
+[Hoa78]
+
+C. A. R. Hoare, “Communicating sequential processes”, Commun. ACM, vol. 21,
+no. 8, pp. 666–677, Aug. 1978. doi: 10.1145/359576.359585.
+
+[Jec03]
+
+T. Jech, Set theory, Third Millennium, ser. Springer Monographs in Mathematics.
+Springer Berlin Heidelberg, 2003. doi: 10.1007/3-540-44761-X.
+
+[Joh87]
+
+P. T. Johnstone, Notes on logic and set theory. Cambridge University Press, 1987.
+doi: 10.1017/CBO9781139172066.
+
+[Kah74]
+
+G. Kahn, “The semantics of a simple language for parallel programming”, in
+Information Processing 74, J. L. Rosenfeld, Ed., North-Holland, 1974, pp. 471–475.
+
+[KLSV10]
+
+D. Kaynar, N. Lynch, R. Segala, and F. Vaandrager, “The theory of timed I/O
+automata, second edition”, Synthesis Lectures on Distributed Computing Theory,
+vol. 1, no. 1, pp. 1–137, 2010. doi: 10.2200/S00310ED1V01Y201011DCT005.
+
+[LSP82]
+
+L. Lamport, R. Shostak, and M. Pease, “The byzantine generals problem”, ACM
+Transactions on Programming Languages and Systems, vol. 4, no. 3, pp. 382–401,
+Jul. 1982. doi: 10.1145/357172.357176.
+
+[LNS82]
+
+J.-L. Lassez, V. L. Nguyen, and E. A. Sonenberg, “Fixed point theorems and
+semantics: A folk tale”, Information Processing Letters, vol. 14, no. 3, pp. 112–116,
+May 1982. doi: 10.1016/0020-0190(82)90065-5.
+
+[LP95]
+
+E. A. Lee and T. M. Parks, “Dataflow process networks”, Proceedings of the IEEE,
+vol. 83, no. 5, pp. 773–801, May 1995. doi: 10.1109/5.381846.
+
+[LS98]
+
+E. A. Lee and A. Sangiovanni-Vincentelli, “A framework for comparing models of
+computation”, IEEE Transactions on Computer-Aided Design or Integrated Circuits
+and Systems, vol. 17, no. 12, pp. 1217–1229, Dec. 1998. doi: 10.1109/43.736561.
+
+[LT89]
+
+N. A. Lynch and M. R. Tuttle, “An introduction to input/output automata”, CWI
+Quaterly, vol. 2, no. 3, pp. 219–246, Sep. 1989.
+
+[Mar76]
+
+G. Markowsky, “Chain-complete posets and directed sets with applications”, Algebra
+universalis, vol. 6, no. 1, pp. 53–68, Dec. 1976. doi: 10.1007/BF02485815.
+
+[ML15]
+
+E. Matsikoudis and E. A. Lee, “The fixed-point theory of strictly causal functions”,
+Theoretical Computer Science, vol. 574, pp. 39–77, 2015. doi: 10.1016/j.tcs.2015.
+01.036.
+
+[Mau12]
+
+U. Maurer, “Constructive cryptography – a new paradigm for security definitions
+and proofs”, in Theory of Security and Applications: Joint Workshop, TOSCA 2011,
+Saarbrücken, Germany, March 31 - April 1, 2011, Revised Selected Papers, S. Mödersheim and C. Palamidessi, Eds., Berlin, Heidelberg: Springer Berlin Heidelberg,
+2012, pp. 33–56. doi: 10.1007/978-3-642-27375-9_3.
+
+[MR11]
+
+U. Maurer and R. Renner, “Abstract cryptography”, in The Second Symposium on
+Innovations in Computer Science, ICS 2011, B. Chazelle, Ed., Tsinghua University
+Press, Jan. 2011, pp. 1–21.
+
+[MT13]
+
+D. Micciancio and S. Tessaro, “An equational approach to secure multi-party
+computation”, in The Fourth Symposium on Innovations in Theoretical Computer
+Science, ITCS 2013, R. Kleinberg, Ed., ACM Press, Jan. 2013, pp. 355–372. doi:
+10.1145/2422436.2422478.
+
+35
+
+[Mil73]
+
+R. Milner, “Models for LCF”, Stanford Artificial Intelligence Laboratory, Tech. Rep.
+STAN-CS-73-332, Jan. 1973, pp. 1–10.
+
+[Mil79]
+
+——, “Flowgraphs and flow algebras”, J. ACM, vol. 26, no. 4, pp. 794–818, Oct.
+1979. doi: 10.1145/322154.322167.
+
+[Mil80]
+
+——, A calculus of communicating systems. Berlin, Heidelberg: Springer Berlin
+Heidelberg, 1980. doi: 10.1007/3-540-10235-3.
+
+[Nau00]
+
+H. Naundorf, “Strictly causal functions have a unique fixed point”, Theoretical
+Computer Science, vol. 238, no. 1–2, pp. 483–488, 2000. doi: 10.1016/S03043975(99)00165-6.
+
+[PSL80]
+
+M. Pease, R. Shostak, and L. Lamport, “Reaching agreement in the presence of
+faults”, J. ACM, vol. 27, no. 2, pp. 228–234, Apr. 1980. doi: 10.1145/322186.
+322188.
+
+[PMM+17] C. Portmann, C. Matt, U. Maurer, R. Renner, and B. Tackmann, “Causal boxes:
+Quantum information-processing systems closed under composition”, IEEE Transactions on Information Theory, vol. 63, no. 5, pp. 3277–3305, May 2017. doi:
+10.1109/TIT.2017.2676805.
+[Pra85]
+
+V. Pratt, “The pomset model of parallel processes: Unifying the temporal and the
+spatial”, in Seminar on Concurrency, S. D. Brookes, A. W. Roscoe, and G. Winskel,
+Eds., Berlin, Heidelberg: Springer Berlin Heidelberg, 1985, pp. 180–196.
+
+[Pra86]
+
+——, “Modeling concurrency with partial orders”, International Journal of Parallel
+Programming, vol. 15, no. 1, pp. 33–71, Feb. 1986. doi: 10.1007/BF01379149.
+
+[Sco70]
+
+D. Scott, “Outline of a mathematical theory of computation”, in 4th Annual Princeton Conference on Information Sciences and Systems, 1970, pp. 169–176.
+
+[SZT+04]
+
+T. Stefanov, C. Zissulescu, A. Turjan, B. Kienhuis, and E. Deprettere, “System
+design using Kahn process networks: The Compaan/Laura approach”, in Design,
+Automation and Test in Europe Conference and Exhibition, 2004. Proceedings, vol. 1,
+Feb. 2004, 340–345 Vol.1. doi: 10.1109/DATE.2004.1268870.
+
+[Tac14]
+
+B. Tackmann, “A theory of secure communication”, PhD thesis, ETH Zürich, 2014.
+doi: 10.3929/ethz-a-010250961.
+
+[Tar55]
+
+A. Tarski, “A lattice-theoretical fixpoint theorem and its applications”, Pacific
+Journal of Mathematics, vol. 5, no. 2, pp. 285–309, 1955. doi: 10.2140/pjm.1955.
+5.285.
+
+36
+
+

@@ -137,3 +137,17 @@ Reachability notes for the next retrieval pass (measured this session): `arxiv.o
 `www.cl.cam.ac.uk`, `www.cs.cornell.edu`, `www.cs.cmu.edu`, `dspace.mit.edu`,
 `api.semanticscholar.org` (rate-limited, ~15 s spacing) are reachable;
 `eprint.iacr.org` HTML pages are reachable but its PDF endpoint returns a Cloudflare 403.
+
+## Update 2026-10-09 (`docs/uc-setup-symbolic.md`)
+
+`dolevyao1983` is now archived, so the "Not retrieved" entry above no longer applies. The copy
+is the `web.archive.org` snapshot of the `www.cs.huji.ac.il` file. Pointers, all on printed
+IEEE pages:
+- attacker assumptions: §I pp. 198–199;
+- cascade protocols, with `E_X D_X = D_X E_X = 1`: §II-A p. 200, Defs 1–3 p. 200;
+- name-stamp operators and cancellation rules: §III-A–B p. 202;
+- the impatient saboteur: §IV p. 205.
+
+The same pass archived five more papers, each with pointers in `docs/uc-setup-symbolic.md` §2:
+`abadirogaway2002`, `backes2003library`, `comonlundhcortier2008`, `delaune2009simulation`, and
+`bohlunruh2013`.

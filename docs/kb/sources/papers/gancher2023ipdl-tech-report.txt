@@ -1,0 +1,2298 @@
+A Core Calculus for Equational Proofs of Cryptographic
+Protocols
+JOSHUA GANCHER, Carnegie Mellon University, USA
+KRISTINA SOJAKOVA, INRIA, France
+XIONG FAN, Rutgers University, USA
+ELAINE SHI, Carnegie Mellon University, USA
+GREG MORRISETT, Cornell University, USA
+Many proofs of interactive cryptographic protocols (e.g., as in Universal Composability) operate by proving
+the protocol at hand to be observationally equivalent to an idealized specification. While pervasive, formal tool
+support for observational equivalence of cryptographic protocols is still a nascent area of research. Current
+mechanization efforts tend to either focus on diff-equivalence, which establishes observational equivalence
+between protocols with identical control structures, or require an explicit witness for the observational
+equivalence in the form of a bisimulation relation.
+   Our goal is to simplify proofs for cryptographic protocols by introducing a core calculus, IPDL, for cryp-
+tographic observational equivalences. Via IPDL, we aim to address a number of theoretical issues for cryp-
+tographic proofs in a simple manner, including probabilistic behaviors, distributed message-passing, and
+resource-bounded adversaries and simulators. We demonstrate IPDL on a number of case studies, including a
+distributed coin toss protocol, Oblivious Transfer, and the GMW multi-party computation protocol. All proofs
+of case studies are mechanized via an embedding of IPDL into the Coq proof assistant.
+CCS Concepts: • Security and privacy → Logic and verification; • Theory of computation → Equational
+logic and rewriting.
+Additional Key Words and Phrases: cryptographic protocols, equational reasoning, observational equivalence
+ACM Reference Format:
+Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett. 2023. A Core Calculus for
+Equational Proofs of Cryptographic Protocols. Proc. ACM Program. Lang. 7, POPL, Article 30 (January 2023),
+43 pages. https://doi.org/10.1145/3571223
+
+1   INTRODUCTION
+An important area in the design of secure systems is the use of computer-aided proofs for certifying
+the design of cryptographic protocols [Barbosa et al. 2021a]. As new and complex cryptographic
+mechanisms become deployed, it becomes increasingly important to mechanize security proofs in
+order to rule out unforeseen attacks not captured in on-paper proof developments.
+   While a number of sophisticated protocols have been proven secure using existing tools [Barthe
+et al. 2011, 2015; Blanchet 2006, 2013; Lochbihler and Sefidgar 2018; Meier et al. 2013; Petcher and
+                                                                                                                               30
+Morrisett 2015], work to mechanize proofs for distributed message-passing protocols in the style
+of Universal Composability (UC) [Canetti 2000] is only in its initial stages [Barbosa et al. 2021b;
+Canetti et al. 2019; Lochbihler et al. 2019]. Since UC provides an extremely expressive and general
+Authors’ addresses: Joshua Gancher, Carnegie Mellon University, USA; Kristina Sojakova, INRIA, France; Xiong Fan, Rutgers
+University, USA; Elaine Shi, Carnegie Mellon University, USA; Greg Morrisett, Cornell University, USA.
+
+Permission to make digital or hard copies of part or all of this work for personal or classroom use is granted without fee
+provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and
+the full citation on the first page. Copyrights for third-party components of this work must be honored. For all other uses,
+contact the owner/author(s).
+© 2023 Copyright held by the owner/author(s).
+2475-1421/2023/1-ART30
+https://doi.org/10.1145/3571223
+
+
+                                  Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:2                                      Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+framework for defining the security of protocols in a modular way, it has the potential to serve as a
+common framework for verified security proofs across cryptographic domains.
+
+   Challenge for Verification: Observational Equivalence. In UC and related frameworks [Maurer
+2012], cryptographic protocols are judged secure when they are judged observationally equivalent
+to an idealization which guarantees security using a trusted third party. Observational equivalence
+of protocols is ubiquitous in cryptography, as it provides a uniform framework for a broad spectrum
+of security properties, easily capturing privacy, integrity, and availability.
+   However, message-passing protocols pose semantic challenges for proving observational equiva-
+lence, due to the presence of distributed computations and interactivity. Distributed protocols raise
+issues of nondeterminism if two parties wish to concurrently send messages, while interactivity
+requires observational equivalence to be established using bisimulations on the protocol states,
+drastically raising the proof effort.
+   To date, these added complexities have not yet been fully addressed by verification methods. Prior
+verification efforts are either libraries [Canetti et al. 2019; Lochbihler et al. 2019] based on sequential
+program logics [Barthe et al. 2011; Lochbihler and Sefidgar 2018; Petcher and Morrisett 2015], which
+require explicit bisimulation witnesses, or are based on symbolic model checking [Blanchet 2013;
+Meier et al. 2013], or specialized security-preserving program transformations [Blanchet 2006],
+lacking enough expressivity to encode observational equivalences for general classes of message-
+passing systems.
+
+   Equational Reasoning for Protocols. In this paper, we address this gap in the literature by in-
+troducing a core language, IPDL (standing for Interactive Probabilistic Dependency Logic), for
+mechanizing observational equivalences between message-passing protocols. By designing an
+equational proof system for equivalences of interactive protocols, we deliver new, simplified proofs
+of protocol security in a style similar to UC without requiring hand-written bisimulation relations.
+   The core idea of IPDL is that while distributed message-passing can in general introduce a
+number of complexities due to scheduling, these issues do not typically arise in cryptographic
+protocols. Accordingly, we restrict our attention to the well-behaved (but still expressive) subset of
+confluent protocols, which are guaranteed to not introduce races due to scheduling. By restricting
+our attention to confluent protocols, we obtain equational proof principles which would not be
+sound in the more general setting.
+   We mechanize the equational logic of IPDL and demonstrate it on a number of case studies,
+including secure communication protocols employing encryptions and Diffie-Hellman key ex-
+change, protocols for Oblivious Transfer [Goldreich et al. 1987], the GMW protocol for secure
+two-party computation [Goldreich et al. 1987], and a multi-party protocol for secure randomness
+generation [Blum 1983]. All proofs are written in a purely equational style, without requiring
+explicit bisimulation relations. Our proof developments are open-source.1
+   While we present IPDL through a stand-alone formalization and mechanization, we do not
+intend for IPDL to capture all desirable proof strategies in cryptography. Indeed, our confluent
+semantics and equational proof techniques are likely to excel “on top” of a lower-level probabilistic
+program logic, such as EasyCrypt [Barthe et al. 2011]. Indeed, EasyCrypt could be used to validate
+lower-level probabilistic reasoning steps currently out of scope for IPDL, while IPDL could handle
+all high-level equational reasoning for message passing.
+
+
+
+1 https://github.com/ipdl/ipdl
+
+
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                   30:3
+
+
+1.1    Contributions
+      • We introduce IPDL, a core language for distributed, interactive message-passing in crypto-
+        graphic protocols. IPDL is packaged with an equational logic for protocols, enabling simple,
+        high-level proofs without explicit bisimulations.
+      • We prove the equational logic of IPDL sound in the computational model: informally, whenever
+        the logic proves that two families of protocols (indexed by the security parameter) are
+        approximately equivalent, then no probabilistic polynomial-time distinguisher can distinguish
+        them with greater than negligible error.
+      • We mechanize the core logic IPDL in Coq, and demonstrate it on a number of case studies,
+        including basic communication and authentication protocols, a multi-party protocol for
+        secure randomness generation [Blum 1983], and the GMW protocol for two-party computa-
+        tion [Goldreich et al. 1987].
+
+
+2     RELATED WORK
+EasyCrypt [Barthe et al. 2011], CryptHOL [Lochbihler and Sefidgar 2018], and FCF [Petcher and
+Morrisett 2015] are all probabilistic program logics for sequential programs. While very expressive for
+probabilistic reasoning, these tools by design provide no built-in support for interactive protocols
+with distributed message-passing behaviors. While a number of interactive protocols have been
+proven secure in these tools [Butler et al. 2020; Defrawy and Pereira 2019], these proof efforts
+employ ad-hoc techniques for reasoning about message passing.
+   To make message passing less ad-hoc, EasyUC [Canetti et al. 2019] for EasyCrypt, and the
+Constructive Cryptography effort for CryptHOL [Lochbihler et al. 2019] both encode general forms
+of interactive message passing into their ambient program logics. However, neither tool provides
+sophisticated proof techniques for conducting equivalence proofs, requiring the user to hand-write
+tedious bisimulation relations, which does not scale for larger protocols. Additionally, [Barbosa et al.
+2021b] work to encode UC proofs in a modular fashion in EasyCrypt, but still rely on bisimulations
+for basic proof steps. The purpose of IPDL is, in part, to eliminate such hand-written bisimulations.
+   CryptoVerif [Blanchet 2006] is a tool for equivalence-based computational reasoning for security
+protocols in which parties communicate over fully untrusted networks asynchronously. While
+excellent at semi-automated proofs for privacy and authentication properties, CryptoVerif cannot
+express observational equivalences between dissimilar protocols, nor reason compositionally in the
+sense of embedding security proofs for subprotocols into larger proof developments. In contrast,
+IPDL directly encodes observational equivalences in a modular way.
+   Squirrel [Baelde et al. 2021] and its associated BC logic [Bana and Comon-Lundh 2014] proves
+similar properties to CryptoVerif and related symbolic tools [Blanchet 2013; Meier et al. 2013]
+through a first-order logic sound against polynomial time adversaries. While Squirrel does allow
+for diff-equivalence, which establishes observational equivalence between protocols with identical
+control structures, it cannot establish modular observational equivalences between dissimilar
+protocols. Indeed, both Squirrel and CryptoVerif assume that the prover knows the entire protocol
+all at once, which is incompatible with modular proofs.
+   Both Squirrel and CryptoVerif assume that protocol participants only communicate through
+the adversary, who controls the untrusted network. Through arbitrary manipulation of channels,
+IPDL can express many more kinds of dataflow in protocols, such as ideal communication channels
+between parties and functionalities. Indeed, our main case studies (such as the GMW protocol [Gol-
+dreich et al. 1987]) cannot even be expressed in Squirrel or Cryptoverif, due to a lack of generality
+in communication topology. We believe that IPDL sits in a sweet spot of modularity between
+
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:4                                      Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+expressive tools requiring explicit bisimulations (EasyUC and the CryptHOL-based framework)
+and tools for easy whole-protocol analyses (CryptoVerif and Squirrel).
+   Tamarin [Meier et al. 2013], Proverif [Blanchet 2013], and others [Bhargavan et al. 2021; Cremers
+2008] are symbolic [Dolev and Yao 1983] protocol analysis tools, which abstract cryptographic
+mechanisms into term algebras. As described by Squirrel [Baelde et al. 2021], symbolic tools
+enumerate what actions attackers may do, while computational tools (including IPDL) state what
+the attacker cannot do. Thus, the computational model subsumes the symbolic one, and does not
+carry a risk that the attacker is not modeled with enough computational power. While a significant
+line of work has proven that the symbolic model is sufficient to guarantee computational soundness
+under certain conditions [Abadi and Rogaway 2002; Backes et al. 2012; Cortier and Warinschi 2011],
+such arguments require intricate completeness arguments not required by IPDL.
+   IPDL rests upon a long lineage of using observational equivalences to model cryptographic
+protocol security, both in the symbolic setting [Abadi and Rogaway 2002; Blanchet 2013; Lowe
+1996; Meier et al. 2013; Schneider 1996] and in the computational one [Backes et al. 2007; Baelde
+et al. 2021; Canetti 2000]. The main novelty of IPDL is enabling computationally sound formal
+proofs of observational equivalence between cryptographic protocols without any explicit use of
+bisimulation relations.
+   ILC [Liao et al. 2019] uses programming language techniques such as affine typing to capture
+the semantics of Universal Composability [Canetti 2000] faithfully. Through two restrictions –
+processes may only send a single message after receiving a single message, and no two processes
+may listen on the same channel – ILC guarantees confluence, as is claimed by the native semantics
+of Universal Composability. ILC’s main contribution is its core language, and does not deliver any
+proof methods for establishing observational equivalences. In contrast, IPDL makes a different set
+of restrictions to guarantee confluence (blocking reads, rather than single messages), and is attached
+to an equational proof system for protocol equivalence. Additionally, via its “choice” construct,
+protocols in ILC may make use of nontrivial timing information, such as deciding what to do next
+based on which channel receives input. IPDL explicitly rules out dependence on timing information
+in order to achieve simple equational rules.
+   Pirouette [Hirsch and Garg 2022] is a language for higher-order choreographies, which give a
+similarly concise syntax for specifying distributed protocols. Additionally similar to IPDL, Pirouette
+contains an equational proof system for reasoning about protocol behaviors. While the focus
+for Pirouette is higher-order programming of distributed protocols with endpoint projections to
+individual components, the focus for IPDL is using the proof system to conduct computationally
+sound reasoning for cryptographic protocols.
+
+3      OVERVIEW OF IPDL
+Before we turn to the formal details of IPDL, we outline the main ideas behind expressing security
+of protocols and proofs in IPDL.
+
+3.1     Background on Simulation-Based Security
+To motivate our setting of distributed cryptographic protocols, we give some details about UC-style
+security modeling independent of any formal framework. Simulation-based security in the style
+of UC [Canetti 2000] and Constructive Cryptography [Maurer 2012] provides an expressive and
+general way to model security for distributed cryptographic protocols, such as secure multi-party
+computation (MPC) [Lindell 2020]. The core idea is that cryptographic protocols 𝜋 are modeled as
+open, message-passing systems of parties and functionalities, i.e., services assumed by the protocol
+to be secure, such as an authenticated communication channel.
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                   30:5
+
+
+   Interfaces. Virtually all protocols have two disjoint interfaces with the external world: an en-
+vironmental interface, and an attacker interface (also called the backdoor in UC [Canetti 2000]).
+The environmental interface is used to model the high-level I/O of the protocol, and is used by the
+parties; e.g., the inputs and outputs of a particular circuit for MPC, or the input votes and output
+decision of a secure voting protocol. In contrast, the attacker interface specifies how an attacker
+may subvert specific implementation details of the protocol, such as interacting with corrupted
+parties, or eavesdropping on communication channels.
+   Protocol Security. We define security for protocols 𝜋 by comparing them to idealizations Ideal
+in which all computations are replaced by a trusted functionality that provides security by fiat.
+The external interfaces of 𝜋 and Ideal are identical, but the attacker interfaces are not. Typically,
+the attacker may corrupt parties and eavesdrop on intermediate communications in 𝜋, while in
+Ideal the attacker is severely limited, such as only deciding whether or not the computation may
+complete. To compare the two protocols, we ask for a simulator Sim which converts the attacker’s
+interface of Ideal to that of 𝜋. The simulator’s role is to demonstrate that attacks in 𝜋 are no more
+powerful than attacks in Ideal; indeed, this is the case if no attacker can tell the difference between
+interacting with 𝜋 and Sim + Ideal, where + connects subcomponents by interface composition.
+We formalize this idea by stating that 𝜋 realizes Ideal if 𝜋 ≈obs Sim + Ideal, where ≈obs expresses
+observational equivalence. Following the Dummy Adversary Theorem in UC [Canetti 2000], it is
+fully general to allow the environment (supplying high-level inputs and outputs to 𝜋 and Ideal)
+to coincide with the attacker (attacking either 𝜋 or Sim + Ideal). In the cryptographic domain,
+observational equivalence is expressed through resource-bounded, probabilistic machines that output
+a decision Boolean.
+   Proof Strategies. Proofs of security for complex protocols are rarely conducted in one single step.
+Instead, cryptographers use hybrids, or intermediate protocol equivalences, which allow the proof
+to be written modularly. Prototypically, proofs of security appear as chains of exact equivalences
+and approximate congurence steps:
+                        𝜋 = 𝑅1 + 𝐻 1 ≈ 𝑅1 + 𝐻 1′ = · · · = 𝑅𝑘 + 𝐻𝑘 ≈ 𝑅𝑘 + 𝐻𝑘′ = Ideal,                             (1)
+where each 𝑅𝑖 is an intermediate reduction, and each pair (𝐻𝑖 , 𝐻𝑖′ ) is an indistinguishability as-
+sumption of the form 𝐻𝑖 ≈ 𝐻𝑖′ . In this format, each exact equivalence = is semantic equivalence
+of the two protocols, while each approximate equivalence ≈ is simply an application of a single
+indistinguishability assumption, using the fact that ≈ is a congruence for +. Crucially, the above
+proof strategy does not involve any cryptographic reasoning other than proper identification of
+the reductions 𝑅𝑖 and assumptions 𝐻𝑖 ≈ 𝐻𝑖′ . All nontrivial proof effort is discharged in proving
+semantic equivalences =, which in general require bisimulations, i.e., relational invariants across
+the states of the two protocols in question.
+
+3.2   Key Ideas of IPDL
+Motivated by UC-style security, the purpose of IPDL is to enable cryptographers to state and prove
+observational equivalences, such as those in Equation 1, as easily as possible.
+   Channels and Reactions. As discussed in Section 3.1, UC-style proofs typically require hand-
+written bisimulations to prove one protocol semantically equivalent to another. While expressive,
+bisimulations are tedious to write and too low-level for serious proof efforts, thus diverting the proof
+effort away from the high-level security proof. We eliminate the need for hand-written bisimulations
+by choosing a language for protocols which is simultaneously expressive and well-behaved enough
+to admit equational reasoning principles.
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:6                                      Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+                                        𝑞 (𝜆)                      𝑞 (𝜆)                       𝑞 (𝜆) 
+         protocol P {In𝑖 : {0, 1}𝐿 (𝜆) }𝑖=1 , {Out𝑖 : {0, 1}𝐿 (𝜆) }𝑖=1 , {Leak𝑖 : {0, 1}𝐶 (𝜆) }𝑖=1 B
+                   
+
+          new Key : {0, 1}len𝐾 (𝜆) in
+                                       𝑞 (𝜆)
+          new {Ctxt𝑖 : {0, 1}𝐶 (𝜆) }𝑖=1 in
+                                         
+            Key B samp (unif len𝐾 (𝜆) ) ||
+             𝑞 (𝜆)
+              || Ctxt𝑖 B 𝑥 ← read In𝑖 ; 𝑘 ← read Key; samp (enc(𝑘, 𝑥)) ||
+                                                                                              
+              𝑖=1
+             𝑞 (𝜆)
+              || Out𝑖 B 𝑐 ← read Ctxt𝑖 ; 𝑘 ← read Key; ret (dec(𝑘, 𝑐)) ||
+                                                                                          
+              𝑖=1
+             𝑞 (𝜆)
+              || Leak𝑖 B read Ctxt𝑖
+                                           
+              𝑖=1
+
+                                   Fig. 1. Simple encryption protocol in IPDL.
+
+
+   At its core, IPDL is a process calculus for describing networks of interacting probabilistic compu-
+tations, communicating via write-once channels. The basic computational unit in IPDL is channel
+assignment (𝑐 B 𝑅), which assigns the reaction 𝑅 to channel 𝑐. Reactions are simple monadic
+programs which may read from other channels, perform probabilistic sampling, and branch with if
+statements. We enforce through typing that channels in IPDL carry one unique reaction.
+   Reactions interact through protocols 𝑃, which, other than channel assignment, are built out of
+parallel composition 𝑃 || 𝑄 and local channel generation, new 𝑐 : 𝜏 in 𝑃, where 𝜏 is a data type. To
+ensure parity with semantics for computational cryptography, all data types represent bitstrings of
+a given length.
+   Protocol Families. Throughout, we make extensive use of protocol families, i.e., structured families
+of protocols {𝑃𝑖 }𝑖=1
+                  𝑁 , indexed by natural numbers. Given a family of protocols {𝑃 } , we write
+                                                                                        𝑖 𝑖          ||𝑖 𝑃𝑖
+for the protocol 𝑃 1 || . . . || 𝑃 𝑁 . Similarly, we write new {c𝑖 : 𝜏 }𝑖=1 in 𝑃 for the protocol given by
+                                                                        𝑁
+
+new c1 : 𝜏 in . . . new c𝑁 : 𝜏 in 𝑃. We do not give explicit syntax for protocol families, instead
+deferring their construction to the meta-language through the above abbreviations.
+   IPDL does not have an explicit construct for unbounded recursion. Since cryptographic protocols
+are typically constrained to run in polynomial time, virtually all candidate uses of recursion can be
+unfolded into a protocol family bounded by a polynomial in the security parameter.
+   Similarly, IPDL’s assumption that all channels are write-once is not a practical restriction, since
+any channel 𝑜 that carries multiple succesive messages can be split into a family {𝑜𝑖 } of channels,
+again bounded by a polynomial in the security parameter.
+
+3.3    Example: Secure Message Communication
+We demonstrate IPDL on a simple example using encryption to communicate 𝑞 secret messages
+over an authenticated (but not private) communication network. Assuming that a key for symmetric
+encryption has been distributed ahead of time, the sender may send encrypted messages over the
+network, which the receiver will be able to decrypt correctly. We assume the attacker may view
+the in-flight (encrypted) messages.
+   We model this protocol (simplified for brevity) in Figure 1, where all channel names are uppercase
+to enhance readability. Throughout, 𝜆 ∈ N is the security parameter, used to define computational
+soundness. The protocol operates as follows: it is parameterized by three collections of free channels,
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                    30:7
+
+
+{In𝑖 }, {Out𝑖 }, and {Leak𝑖 }. The channels In𝑖 and Out𝑖 are the inputs and outputs of the sender
+and receiver respectively, while channels Leak𝑖 carry the in-flight messages observable by the
+adversary. Through typing, we will obtain that Out𝑖 and Leak𝑖 are outputs of the protocol, while In𝑖
+are inputs. All channels are typed with a length of values they carry. First, the protocol generates
+local channels: Key for key and the family {Ctxt𝑖 } for ciphertexts. We choose the key uniformly by
+assigning Key the reaction that samples from unif len𝐾 (𝜆) , where len𝐾 (𝜆) is the length of the key.
+To generate a ciphertext, we assign Ctxt𝑖 the reaction enc(𝑘, 𝑥), where 𝑘 is read from Key, and 𝑥
+is read from In𝑖 . We leak the value of Ctxt𝑖 to the adversary along channel Leak𝑖 , and output the
+decryption of Ctxt𝑖 under 𝑘 along channel Out𝑖 .
+   While the protocol in Figure 1 is written monolithically, realistic developments in IPDL define
+the code for each party separately. This is easy to do using the parallel composition operator || that
+supports arbitrary interleaving of protocols. Indeed, Figure 1 is derived from a simplification of
+the corresponding case study in Section 5, which is specified via two parties, the sender and the
+receiver, and two functionalities: an authenticated network and a trusted key distribution service.
+   Confluence via Blocking Reads. Crucially, the semantics of read(𝑐) in reactions is to block until a
+value is available along 𝑐. This is in contrast to UC [Canetti 2000], which operates under an actor
+model: in UC, protocol code can check for the absence of a message, which is disallowed in IPDL.
+This subtle difference in expressiveness has large consequences for the semantics of protocols.
+Since protocols in UC may make decisions based on the absence of a message, the order in which
+messages are scheduled may influence party state; in turn, any presence of nondeterminism in
+scheduling is a potential security leak, and has to be ruled out by enforcing a programming model
+that only allows one in-flight message to exist at a time. While well-understood formally [Canetti
+et al. 2019; Liao et al. 2019], this programming model introduces subtle complexities around timing
+that complicate both protocol design and security proofs.
+   In IPDL, we instead prove a confluence theorem, guaranteeing that the order in which messages
+are delivered (e.g., whether Out𝑖 or Leak𝑖 fires first) cannot affect any data present in the protocol.
+Through confluence, we are able to express protocols in a precise, simple way, avoiding all low-level
+issues around the sensitivity of timing in the semantics.
+   While our case studies in Section 5 show that IPDL is expressive enough to capture a wide variety
+of cryptographic protocols, there are other protocols which are currently out of scope. Consensus-
+like protocols such as PBFT [Castro et al. 1999] exhibit threshold behaviors (do X if 𝑛 out of 𝑚
+messages are received), which do not currently fit into the protocol formalism of IPDL. However, it
+is likely possible to expand the confluence theorem of IPDL to include theshold behaviors.
+   Equational Reasoning. The unique structure of protocols in IPDL is designed to enable easy
+equational proofs of observational equivalence. In line with the proof skeleton in Equation 1, we
+have two judgments for observational equality. First is exact equivalence, Δ ⊢ 𝑃 = 𝑄, where Δ is a
+channel context, specifying free channels common to both 𝑃 and 𝑄. Intuitively, Δ ⊢ 𝑃 = 𝑄 holds
+when 𝑃 and 𝑄 coincide semantically, guaranteeing that no observer, regardless of resources, may
+distinguish them. To establish exact equivalences, we additionally use the judgment Δ, Γ ⊢ 𝑅1 = 𝑅2
+for reactions, where Γ is a type context for variables.2
+   Approximate equivalence is captured through comparing two families of IPDL protocols, {𝑃𝜆 }𝜆
+and {𝑄 𝜆 }𝜆 . Informally, we say that {𝑃𝜆 }𝜆 ≈𝜆 {𝑄 𝜆 }𝜆 when no polynomial time distinguisher can
+distinguish 𝑃𝜆 from 𝑄 𝜆 with probability greater than a negligible function of 𝜆. Formally, we express
+this through the judgment Δ ⊢ 𝑃𝜆 ≈𝜆(𝑘,𝑙 ) 𝑄 𝜆 . Here, 𝑘 and 𝑙 are used to bound the size of the proof,
+2 Formally, we attach extra typing information to the judgments for both exact and approximate equivalences. We suppress
+
+them here for readability.
+
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:8                                      Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+used for computational soundness: 𝑘 bounds the number of approximate steps used, while 𝑙 bounds
+the size of contexts used for approximate equivalences. As noted in Section 3.1, the bulk of security
+proofs establish exact equivalences, while approximate equivalences are mostly used to apply
+indistinguishability assumptions.
+   We will now demonstrate equational reasoning in IPDL by proving that the protocol in Figure 1
+does not induce any dataflow from In𝑖 to Leak𝑖 . We do so by establishing an approximate equivalence
+to another protocol where this is guaranteed syntactically.
+   Decryption Soundness. The first step of the proof is to appeal to the decryption soundness assump-
+tion, which guarantees that encrypted values always decrypt correctly: dec(𝑘, enc(𝑘, 𝑥)) = 𝑥. We
+express this assumption in IPDL as the following exact equivalence axiom (with types suppressed):
+                                                                          
+    K, I, C, O ⊢ 𝜋 || (O B (𝑐 ← read C; 𝑘 ← read K; ret (dec(𝑘, 𝑐))) = 𝜋 || (O B read I)),
+where 𝜋 is the protocol
+                                                                                      
+           (K B samp (unif len𝐾 (𝜆) )) || C B 𝑥 ← read I; 𝑘 ← read K; samp (enc(𝑘, 𝑥)) .
+Intuitively, the above equivalence states that whenever the key K is correctly sampled, any reaction
+which decrypts an encryption of message I may be replaced with a reaction which reads directly
+from I.
+   Since in IPDL protocol equivalence is a congruence for the connectives || and new, we apply the
+                                                                                          𝑞 (𝜆)
+above axiom to Figure 1 𝑞 times to replace the definitions of Out𝑖 with || 𝑖=1 (Out𝑖 B read In𝑖 ).
+   Structural Rules. We may now apply some equational simplifications to the protocol. Since the
+channel Out𝑖 no longer refers to encryption, the locally generated channel Ctxt𝑖 that performs
+the ciphertext sampling is only used in one place: the leakage channel Leak𝑖 . In this case, we are
+allowed to fold the definition of Ctxt𝑖 into Leak𝑖 , thereby removing this intermediate computation:
+                     𝑞 (𝜆)
+                      || Leak𝑖 B 𝑥 ← read In𝑖 ; 𝑘 ← read Key; samp (enc(𝑘, 𝑥)) .
+                                                                                                    
+                     𝑖=1
+
+Inlining channel definitions in this way is only permitted in certain special circumstances: e.g., if
+the channel being inlined is not used in the rest of the protocol, as in this case, or if it does not use
+any probabilistic sampling.
+   Semantic Security. In the next step we employ a standard variant of semantic security: if the key
+K is secret, observing 𝑞 encryptions of arbitrary messages is equivalent to observing 𝑞 encryptions
+of a fixed message, e.g., the all-zero message of length 𝐿. We express this in IPDL through the
+axiom for approximate equivalence in Figure 2. To use this axiom, we move the composition
+         𝑞 (𝜆)
+. . . || || 𝑖=1 (Out𝑖 B read In𝑖 ) out of the scope of the local channel new K : {0, 1}len𝐾 (𝜆) in . . .; we
+                                                                                            𝑞 (𝜆)
+can do this since the channels Out𝑖 no longer refer to Key. The protocol || 𝑖=1 (Out𝑖 ::= read In𝑖 )
+is thus our reduction, and the axiom in Figure 2 is the indistinguishability assumption. Taking
+the bottom protocol from Figure 2 and moving the channels Out𝑖 back into the scope of new K :
+{0, 1}len𝐾 (𝜆) in . . . yields the protocol in Figure 3. The leaked ciphertexts are now independent of
+the values of In𝑖 , from which security follows.
+
+4      CORE LANGUAGE AND LOGIC
+IPDL is built from two main layers: protocols are networks of interacting channels, each of which is
+assigned a reaction: a simple monadic, probabilistic program that may read from other channels.
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                      30:9
+
+                                                         𝑞 (𝜆)                    𝑞 (𝜆) 
+                     protocol EncReal {I𝑖 : {0, 1}𝐿 (𝜆) }𝑖=1 , {O𝑖 : {0, 1}𝐶 (𝜆) }𝑖=1 B
+                                     
+
+                      new K : {0, 1}len𝐾 (𝜆) in
+                                                    
+                           K B samp (unif len𝐾 (𝜆) ) ||
+                           𝑞 (𝜆)
+                            || O𝑖 B 𝑥 ← read I𝑖 ; 𝑘 ← read K; samp (enc(𝑘, 𝑥))
+                                                                                                
+                           𝑖=1
+                      ≈𝜆
+                                                         𝑞 (𝜆)                    𝑞 (𝜆) 
+                     protocol EncZero {I𝑖 : {0, 1}𝐿 (𝜆) }𝑖=1 , {O𝑖 : {0, 1}𝐶 (𝜆) }𝑖=1 B
+                                     
+
+                      new K : {0, 1}len𝐾 (𝜆) in
+                                                    
+                           K B samp (unif len𝐾 (𝜆) ) ||
+                           𝑞 (𝜆)
+                            || O𝑖 B 𝑥 ← read I𝑖 ; 𝑘 ← read K; samp (enc(𝑘, 0𝐿 ))
+                                                                                                    
+                           𝑖=1
+
+                                             Fig. 2. Semantic Security in IPDL.
+
+                                        𝑞 (𝜆)                      𝑞 (𝜆)                       𝑞 (𝜆) 
+         protocol P {In𝑖 : {0, 1}𝐿 (𝜆) }𝑖=1 , {Out𝑖 : {0, 1}𝐿 (𝜆) }𝑖=1 , {Leak𝑖 : {0, 1}𝐶 (𝜆) }𝑖=1 B
+                   
+
+          new Key : {0, 1}len𝐾 (𝜆) in
+                                         
+              Key B samp (unif len𝐾 (𝜆) ) ||
+             𝑞 (𝜆)
+              || Out𝑖 B read In𝑖 ||
+                                         
+             𝑖=1
+             𝑞 (𝜆)
+              || Leak𝑖 B _ ← read In𝑖 ; 𝑘 ← read Key; samp (enc(𝑘, 0𝐿 ))
+                                                                                            
+             𝑖=1
+
+Fig. 3. The result of applying equational reasoning in IPDL to the encryption protocol in Figure 1. No dataflow
+dependency exists between In𝑖 and Leak𝑖 .
+
+4.1   Core Syntax
+The syntax of IPDL is outlined in Figure 4, and is parameterized by a user-defined signature, Σ:
+   Definition 4.1 (Signature). An IPDL signature Σ is a collection of:
+    • type symbols, t;
+    • typed function symbols, f : 𝜏 → 𝜏 ′ ; and
+    • typed distribution symbols, d : 𝜏 → 𝜏 ′ .
+   We let Σ be implicitly parameterized throughout our formal developments. We assume a minimal
+set of data types, including the unit type 1, Booleans, products, as well as arbitrary type symbols t,
+drawn from the signature Σ.
+   Expressions are used for non-probabilistic computations, and are standard. All values in IPDL
+are bitstrings of a length given by data types, so we annotate the operations fst𝜏1 ×𝜏2 and snd𝜏1 ×𝜏2
+with the type of the pair to determine the index to split the pair into two.
+   Function symbols f must appear in the signature Σ, and are assigned a typing Σ ⊢ f : 𝜏 → 𝜏 ′ . We
+similarly assume a set of typed distribution symbols in Σ, which at least contains flip, returning
+bool.
+
+                                   Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:10                                      Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+          Data Types                  𝜏                     ::= 1 | bool | 𝜏 × 𝜏 | t
+          Expressions                 𝑒                     ::= () | true | false | f 𝑒
+                                                              | (𝑒 1, 𝑒 2 ) | fst𝜏1 ×𝜏2 𝑒 | snd𝜏1 ×𝜏2 𝑒
+          Distributions               𝐷                     ::= flip | d 𝑒
+          Channels                    𝑖, 𝑜, 𝑐
+          Reactions                   𝑅, 𝑆                  ::= ret (𝑒) | samp (𝐷) | read 𝑐
+                                                              | if 𝑒 then 𝑅1 else 𝑅2 | 𝑥 : 𝜏 ← 𝑅; 𝑆
+          Protocols                   𝑃, 𝑄                  ::= 𝑜 B 𝑅 | 𝑃 || 𝑄 | new 𝑜 : 𝜏 in 𝑃
+
+          Channel Sets        𝐼, 𝑂                          ::=    {𝑐 1, . . . , 𝑐𝑛 }
+          Channel Contexts    Δ                             ::=    · | Δ, 𝑐 : 𝜏
+          Type Contexts       Γ                             ::=    · | Γ, 𝑥 : 𝜏
+          Expression Typing   Γ ⊢𝑒 :𝜏
+          Distribution Typing Γ ⊢ 𝐷 : 𝜏
+          Reaction Typing     Δ; Γ ⊢ 𝑅 : 𝐼 → 𝜏
+          Protocol Typing     Δ⊢𝑃 :𝐼 →𝑂
+
+                                                Fig. 4. Syntax of IPDL.
+
+
+
+   As mentioned above, reactions are monadic programs which may return expressions, sample
+from distributions, read from channels, branch on a value of type bool, and sequentially compose.
+   Protocols in IPDL are given by a simple but expressive syntax: channel assignment 𝑜 B 𝑅
+assigns the reaction 𝑅 to channel 𝑜; parallel composition 𝑃 || 𝑄 allows 𝑃 and 𝑄 to freely interact
+concurrently; and channel generation new 𝑜 : 𝜏 in 𝑃 creates a new, internal channel for use in 𝑃.
+We identify protocols up to alpha equivalence of channels created by new.
+
+   Typing. We restrict our attention to well-typed IPDL reactions and protocols. In addition to
+respecting data types, the typing judgments guarantee that all reads from channels in reactions are
+in scope, and that all channels are assigned at most one reaction in protocols.
+   The two main typing judgments in IPDL are for reactions, Δ; Γ ⊢ 𝑅 : 𝐼 → 𝜏, and protocols,
+Δ; Γ ⊢ 𝑃 : 𝐼 → 𝑂. Here, Δ is a channel context – populated by free, external channels, as well as
+internal channels generated by new – while Γ is a type context, used for sequential computations
+inside reactions.
+   Figure 5 shows the typing rules for reactions. Intuitively, Δ; Γ ⊢ 𝑅 : 𝐼 → 𝜏 holds when 𝑅 uses
+variables in Γ, reads from channels in 𝐼 typed according to Δ, and returns a value of type 𝜏. The
+typing rules for reactions are largely straightforward. We make use of standard typing rules for
+expressions, which we omit. Typing rules for distributions are likewise straightforward, with
+Γ ⊢ flip : bool.
+   Figure 6 gives the typing rules for protocols: Δ ⊢ 𝑃 : 𝐼 → 𝑂 holds when 𝑃 uses inputs in 𝐼 to
+assign reactions to the channels in 𝑂, all typed according to Δ. Channel assignment 𝑜 B 𝑅 has the
+type 𝐼 → {𝑜} when 𝑅 is well-typed with an empty variable context, making use of inputs from 𝐼 as
+well as 𝑜. We allow 𝑅 to read from its own output 𝑜 to express divergence: the protocol 𝑜 B read 𝑜
+cannot reduce, which is useful for (conditionally) deactivating certain outputs.
+   The typing rule for parallel composition 𝑃 || 𝑄 states that 𝑃 may use the outputs of 𝑄 as inputs
+while defining its own outputs, and vice versa. Importantly, the typing rules ensure that the outputs
+of 𝑃 and 𝑄 are disjoint so that each channel carries a unique reaction. Finally, the rule for channel
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                 30:11
+
+
+                                                Γ ⊢𝑒 :𝜏                                 Γ ⊢𝐷 :𝜏
+          Δ; Γ ⊢ 𝑅 : 𝐼 → 𝜏              Δ; Γ ⊢ ret (𝑒) : 𝐼 → 𝜏                Δ; Γ ⊢ samp (𝐷) : 𝐼 → 𝜏
+
+        (𝑖 : 𝜏) ∈ Δ       𝑖∈𝐼             Γ ⊢ 𝑒 : bool        Δ; Γ ⊢ 𝑅1 : 𝐼 → 𝜏          Δ; Γ ⊢ 𝑅2 : 𝐼 → 𝜏
+        Δ; Γ ⊢ read 𝑖 : 𝐼 → 𝜏                           Δ; Γ ⊢ if 𝑒 then 𝑅1 else 𝑅2 : 𝐼 → 𝜏
+
+                                Δ; Γ ⊢ 𝑅 : 𝐼 → 𝜏          Δ; Γ, 𝑥 : 𝜏 ⊢ 𝑆 : 𝐼 → 𝜎
+                                        Δ; Γ ⊢ (𝑥 : 𝜏 ← 𝑅; 𝑆) : 𝐼 → 𝜎
+
+                                        Fig. 5. Typing for IPDL reactions.
+
+
+                                               𝑜 :𝜏 ∈ Δ        𝑜 ∉𝐼         Δ; · ⊢ 𝑅 : 𝐼 ∪ {𝑜} → 𝜏
+               Δ⊢𝑃 :𝐼 →𝑂                                     Δ ⊢ (𝑜 B 𝑅) : 𝐼 → {𝑜}
+
+        Δ ⊢ 𝑃 : 𝐼 ∪ 𝑂2 → 𝑂1           Δ ⊢ 𝑄 : 𝐼 ∪ 𝑂1 → 𝑂2                    Δ, 𝑜 : 𝜏 ⊢ 𝑃 : 𝐼 → 𝑂 ∪ {𝑜}
+                      Δ ⊢ 𝑃 || 𝑄 : 𝐼 → 𝑂 1 ∪ 𝑂 2                          Δ ⊢ (new 𝑜 : 𝐴 in 𝑃) : 𝐼 → 𝑂
+
+                                        Fig. 6. Typing for IPDL protocols.
+
+
+generation allows a protocol to select a fresh channel name 𝑜, assign it a type 𝜏, and use it for
+internal computation and communication.
+   Protocol typing plays a crucial role for modeling security. Simulation-based security in IPDL is
+modeled by existence of a simulator Sim with an appropriate typing judgment, Δ ⊢ Sim : 𝐼 → 𝑂.
+Restricting the behavior of Sim to only use inputs along 𝐼 is necessary to rule out trivial results
+(e.g., Sim simply copies a secret from the specification).
+
+4.2    Semantics
+The semantics of IPDL is given in two steps. First, we define an operational semantics for reactions
+and protocols. Our operational semantics is used to validate the exact fragment of our equational
+logic, which proves perfect observational equivalence.
+   The second step is to define an interaction, or security game, between an IPDL program and a
+resource-bounded, probabilistic distinguisher. The interaction semantics is used to validate approxi-
+mate observational equivalences: these are used for cryptographic hardness assumptions, such as
+security of encryption schemes or Diffie-Hellman, as well as top-level statements of security for
+protocols.
+   To give semantics to user-defined symbols, we first define interpretations:
+   Definition 4.2 (Interpretation). An interpretation I for a signature Σ assigns:
+      • for each type symbol t, a bitstring length JtK I ∈ N;
+                                                                                           I
+      • to each function symbol f : 𝜎 → 𝜏 a function JfK from bitstrings {0, 1}J𝜎 K to bitstrings
+                  I
+        {0, 1}J𝜏 K ;
+                                                                                         I
+      • to each distribution symbol d : 𝜎 → 𝜏 a function JdK I from bitstrings {0, 1}J𝜎 K to distributions
+                                I
+        on bitstrings {0, 1}J𝜏 K .
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:12                                      Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+  Above, we naturally lift the interpretation J·K I to data types by setting JboolK I = 1, J1K I = 0,
+and J𝜏 × 𝜏 ′ K I = J𝜏K I + J𝜏 ′ K I . When the interpretation is clear from context, we omit it and simply
+write J·K.
+4.2.1 Operational Semantics. To define our operational semantics, we first augment the syntax of
+protocols and reactions to contain intermediate values, where 𝑣 is a bitstring:
+                                        Expressions 𝑒       ::=    ... | 𝑣
+                                        Reactions   𝑅       ::=    . . . | val(𝑣)
+                                        Protocols   𝑃       ::=    ... | 𝑜 B 𝑣
+    Throughout this section, we assume an ambient interpretation I for the signature Σ. Our
+semantics builds on a big-step semantics 𝑒 ⇓ 𝑣 for expressions. The semantics is standard, except
+that pairing is given by bitstring concatenation, and the projections fst𝜏2 , snd𝜏1 unambiguously
+split the pair according to J𝜏2 K and J𝜏1 K, respectively. User defined function symbols f are given
+semantics through the ambient interpretation I.
+    Our semantics uses finitely supported distributions throughout. We let unit(𝑣) be the distribution
+assigning unit massÍto 𝑣. Additionally,Í given a family of distributions 𝜂𝑖 and constants 𝑐𝑖 ∈ [0, 1]
+for 𝑖 = 1 . . . 𝑘 with 𝑖 𝑐𝑖 = 1, we let 𝑖 𝑐𝑖 𝜂𝑖 be the distribution induced by the linear combination.
+    We give semantics to reactions in Figure 7. Reactions have a straightforward small-step semantics
+                                                                                            Í
+of the form 𝑅 → 𝜂, where 𝜂 is a probability distribution over reactions. All sums 𝑖 𝑐𝑖 𝜂𝑖 are
+implicitly finitely supported. Crucially, there is no semantic rule for stepping read 𝑐: we model
+communication via semantics for protocols, which substitute all instances of read for values.
+    Semantics for protocols are given in Figure 8. We give semantics to protocols via two main
+small-step rules, and a big-step rule which coordinates the small steps. First is the output relation
+    𝑜 B𝑣
+𝑃 ↦−−−−→ 𝑄, which is enabled when the reaction for channel 𝑜 in 𝑃 terminates, resulting in value 𝑣.
+When this happens, the value of 𝑜 is broadcast to all other protocols set in parallel composition
+with 𝑃, resulting in read 𝑜 commands in other reactions to be substituted with val(𝑣). Note that
+the value of 𝑜 is not broadcast above a new when the local channel is equal to 𝑜.
+    Secondly, we have the internal stepping relation 𝑃 → 𝜂, specified similarly to the small-step
+relation for reactions. The first rule lifts the stepping relation of 𝑅 to the stepping relation for
+(𝑜 B 𝑅), while the next three rules simply propagate the stepping relation through parallel
+composition and new. The last rule links the output relation with the stepping relation: whenever
+𝑃 steps to 𝑄, resulting in the output 𝑐 B 𝑣, we have that new 𝑐 : 𝜏 in 𝑃 steps with unit mass to
+new 𝑐 : 𝜏 in 𝑄.
+    Finally, we have the big-step relation 𝑃 ⇓ 𝜂, meaning that 𝑃 takes as many steps as possible,
+resulting in a distribution 𝜂. The big-step relation applies as many output and internal steps as
+possible until the protocol cannot perform either.
+    Note that while the semantics for reactions is sequential, both output and internal step relations
+for protocols are nondeterministic. Indeed, any two channels in a protocol may produce outputs in
+any order. Ordinarily, this presents a problem for reasoning about cryptography, since nondeter-
+ministic choice may present a security leak. However, our language introduces no way to exploit
+this extra nondeterminism, essentially due to read commands in reactions being blocking. This is
+formalized by a confluence result for IPDL:
+   Lemma 4.3 (Confluence). If Δ ⊢ 𝑃 : 𝐼 → 𝑂, then:
+             𝑜 B𝑣              𝑜 B 𝑣′
+    • If 𝑃 ↦−−−−→ 𝑄 and 𝑃 ↦−−−−→ 𝑄 ′ , then 𝑣 = 𝑣 ′ ∧ 𝑄 = 𝑄 ′ ;
+             𝑜 1 B 𝑣1          𝑜 2 B 𝑣2                                                       𝑜 2 B 𝑣2
+    • If 𝑃 ↦−−−−−→ 𝑄 1 and 𝑃 ↦−−−−−→ 𝑄 2 with 𝑜 1 ≠ 𝑜 2 , then there exists 𝑄 such that 𝑄 1 ↦−−−−−→ 𝑄 and
+            𝑜 1 B 𝑣1
+      𝑄 2 ↦−−−−−→ 𝑄.
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                    30:13
+
+
+
+                                                         𝑅 →𝜂
+
+                               𝑒 ⇓𝑣                                             𝑒⇓1
+                   ret (𝑒) → unit(val(𝑣))                       if 𝑒 then 𝑅1 else 𝑅2 → unit(𝑅1 )
+
+                               𝑒⇓0
+           if 𝑒 then 𝑅1 else 𝑅2 → unit(𝑅2 )                      𝑥 : 𝜏 ← val(𝑣); 𝑆 → unit(𝑆 [𝑥 := 𝑣])
+                      ∑︁                                                         ∑︁
+                𝐷⇓         𝑐𝑖 unit(𝑣𝑖 )                                     𝑅→           𝑐𝑖 unit(𝑅𝑖 )
+                       𝑖                                                             𝑖
+                           ∑︁                                                    ∑︁
+        samp (𝐷) →              𝑐𝑖 unit(val(𝑣𝑖 ))            𝑥 : 𝜏 ← 𝑅; 𝑆 →              𝑐𝑖 unit(𝑥 : 𝜏 ← 𝑅𝑖 ; 𝑆)
+                           𝑖                                                         𝑖
+
+
+                                            Fig. 7. Semantics for reactions.
+
+            𝑜 B𝑣                                                              𝑜 B𝑣                𝜂B′
+    • If 𝑃 ↦−−−−→ 𝑄 and 𝑃 → 𝜂, then there exists 𝜂 ′ such that 𝜂 ↦−−−−→ 𝜂 ′ and 𝑄 ↦−−−−→.
+    • If 𝑃 → 𝜂 1 and 𝑃 → 𝜂 2 , then either 𝜂 1 = 𝜂 2 , or there exists 𝜂 such that 𝜂 1 → 𝜂 and 𝜂 2 → 𝜂.
+                                                                              𝑜 B𝑣
+  In the above definitions, we lift the two stepping relations ↦−−−−→ and → to distributions in the
+natural way. The confluence result guarantees that the big-step relation for protocols is well-defined:
+  Corollary 4.4 (Determinism of ⇓). Suppose Δ ⊢ 𝑃 : 𝐼 → 𝑂. Then there exists a unique 𝜂 such
+that 𝑃 ⇓ 𝜂.
+  When ranging over multiple interpretations I, we index our operational semantics by I, obtain-
+                      𝑜 B𝑣
+ing ⇓ I , → I , and ↦−−−−→ I .
+4.2.2 Computational Semantics. While the operational semantics is useful for validating exact
+observational equivalences between IPDL programs, we need more machinery to validate approxi-
+mate equivalences. First, we define distinguishers, or resource-bounded algorithms who interact
+with IPDL protocols in a well-defined interaction.
+   Second, we define a notion of size for protocols, which constraints them to be polynomial time.
+Computing sizes for protocol contexts is necessary for soundness, as approximate equivalences are
+only sound against polynomial time distinguishers and program contexts.
+   We distinguish IPDL protocols using general polynomial time algorithms since IPDL protocols
+are not fully general. Indeed, IPDL protocols cannot test for the presence or non-presence of a value
+along a certain channel, while our distinguishers can. This extra expressivity in our distinguishers
+ensures that not only do IPDL protocols not use timing information, but they do not present any
+leaks through timing channels either.
+   Distinguishers and Interactions. Let I be an interpretation for Σ. Then, given channel sets 𝐼, 𝑂
+for channel context Δ, we define the set Query I,Δ,𝐼,𝑂 to be:
+         Query I,Δ,𝐼,𝑂 := {Input(𝑖, 𝑣) | 𝑖 ∈ 𝐼, 𝑣 ∈ {0, 1}JΔ(𝑖 ) K }} ∪ {Get(𝑜), 𝑜 ∈ 𝑂 } ∪ {Step}.
+                                                                        I
+
+
+
+   Definition 4.5 (Δ-Distinguisher). Given an interpretation I, A (I, Δ, 𝐼, 𝑂)-distinguisher A is a
+triple of probabilistic algorithms (Astep, Aout, Adecide ) where:
+    • Astep : {0, 1}∗ → {0, 1}∗ × Query I,Δ,𝐼,𝑂 takes input a state 𝑠 (encoded as a bitstring), and
+       returns a new state and a query;
+
+                                   Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:14                                        Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+                                                              𝑜 B𝑣
+                                                        𝑃 ↦−−−−→ 𝑄
+
+                                                                                       𝑜 B𝑣
+                                                                                   𝑃 ↦−−−−→ 𝑃 ′
+                                 𝑜 B𝑣                                      𝑜 B𝑣
+              𝑜 B val(𝑣) ↦−−−−→ 𝑜 B 𝑣                             𝑃 || 𝑄 ↦−−−−→ 𝑃 ′ || 𝑄 [read 𝑜 B val(𝑣)]
+
+                                 𝑜 B𝑣                                                   𝑜 B𝑣
+                           𝑄 ↦−−−−→ 𝑄 ′                                             𝑃 ↦−−−−→ 𝑄           𝑜 ≠𝑐
+                    𝑜 B𝑣                                                                       𝑜 B𝑣
+         𝑃 || 𝑄 ↦−−−−→ 𝑃 [read 𝑜 B val(𝑣)] || 𝑄 ′                          new 𝑐 : 𝜏 in 𝑃 ↦−−−−→ new 𝑐 : 𝜏 in 𝑄
+
+                                                          𝑃 →𝜂
+             ∑︁                                          ∑︁                                               ∑︁
+        𝑅→         𝑐𝑖 unit(𝑅𝑖 )                   𝑃→              𝑐𝑖 unit(𝑃𝑖 )                    𝑄→            𝑐𝑖 unit(𝑄𝑖 )
+              𝑖                                           𝑖                                                 𝑖
+             ∑︁                                          ∑︁                                               ∑︁
+𝑜 B𝑅→              𝑐𝑖 unit(𝑜 B 𝑅𝑖 )          𝑃 || 𝑄 →             𝑐𝑖 unit(𝑃𝑖 || 𝑄)            𝑃 || 𝑄 →          𝑐𝑖 unit(𝑃 || 𝑄𝑖 )
+              𝑖                                           𝑖                                                 𝑖
+                           ∑︁
+                     𝑃→           𝑐𝑖 unit(𝑃𝑖 )
+                             𝑖                                                                    𝑐 B𝑣
+                           ∑︁                                                                  𝑃 ↦−−−−→ 𝑄
+    new 𝑐 : 𝜏 in 𝑃 →              𝑐𝑖 unit(new 𝑐 : 𝜏 in 𝑃𝑖 )
+                             𝑖                                              new 𝑐 : 𝜏 in 𝑃 → unit(new 𝑐 : 𝜏 in 𝑄)
+
+                                                           𝑃 ⇓𝜂
+                                                  ∑︁
+                                            𝑃→          𝑐𝑖 unit(𝑃𝑖 )             𝑃𝑖 ⇓ 𝜂 𝑖
+                            𝑜 B𝑣                    𝑖                                                 𝑜 B𝑣
+   𝑃 ̸→           ∀𝑜, 𝑣. 𝑃 ↦−−̸−−→                                ∑︁                               𝑃 ↦−−−−→ 𝑄          𝑄 ⇓𝜂
+                                                        𝑃⇓             𝑐 𝑖 𝜂𝑖
+           𝑃 ⇓ unit(𝑃)                                             𝑖                                            𝑃 ⇓𝜂
+
+                                             Fig. 8. Semantics for protocols
+
+
+    • Aout : {0, 1}∗ × (𝑜 : 𝑂) × (1 + {0, 1}JΔ(𝑜 ) K ) → {0, 1}∗ takes a state 𝑠, a channel 𝑜, an optional
+                                                              I
+
+
+      value 𝑣 for 𝑜, and returns a new state; and
+    • Adecide : {0, 1}∗ → {0, 1} takes a state and returns a single bit.
+   We bound the running time of distinguishers by bounding the running time of each algorithm:
+   Definition 4.6 (𝑘-Bounded Distinguisher). A (I, Δ, 𝐼, 𝑂)-distinguisher is 𝑘-bounded when its
+algorithms (Astep, Aout, Adecide ) all run in at most 𝑘 time steps.
+   For compositional reasoning, we do not wish to penalize the time bound of A for indexing into
+the channel sets 𝐼 and 𝑂. Thus, in the above definitions, our model of computation for distinguishers
+consists of probabilistic Turing machines over the alphabet 𝐼 ∪ 𝑂 ∪ {0, 1}. Increasing the alphabet
+size of A will not introduce unrealistic assumptions about our timing model: asymptotically, the
+size of Δ will be bounded by a polynomial (so will 𝐼 and 𝑂), which allows simulation of the alphabets
+𝐼 and 𝑂 using logarithmically many bits.
+   We then define the interaction of distinguishers and IPDL protocols in Figure 9.
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                 30:15
+
+
+  Definition 4.7 (Interaction). Let I be an interpretation for the ambient signature Σ, Δ ⊢ 𝑃 : 𝐼 → 𝑂,
+and A be a 𝑘-bounded (I, Δ, 𝐼, 𝑂)-distinguisher. Then, we let A𝑘 (𝑃 I ) be the probability distribution
+on bits induced by the algorithm given in Figure 9.
+                                                In Figure 9, we let the distinguisher interact with the pro-
+                                             tocol through a number of rounds, which we also bound by 𝑘.
+      Algorithm A𝑘 (𝑃 I ):
+                                             The distinguisher maintains a state variable 𝑠, which we ini-
+ 𝑠 := 𝜖                                      tialize to the empty bitstring 𝜀. Each round, the distinguisher
+ For 𝑘 rounds:                               outputs a query 𝑞 ∈ Query, which may optionally deliver
+  (𝑠 ′, 𝑞) ← Astep (𝑠)                       an input or ask for an output If 𝑞 = Input(𝑖, 𝑣) with 𝑖 ∈ 𝐼 ,
+                                             we substitute read 𝑖 with val(𝑣) in 𝑃. (This has no effect if
+  𝑠 := 𝑠 ′
+                                             𝑖 already was assigned an input.) If 𝑞 = Get(𝑜) with 𝑜 ∈ 𝑂,
+  If 𝑞 = Input(𝑖, 𝑣) :                       we check whether 𝑜 has already been computed in 𝑃, which
+    𝑃 := 𝑃 [read 𝑖 := ret (𝑣)]               happens when (𝑜 B 𝑣) ∈ 𝑃 for some 𝑣. If such a value 𝑣
+  If 𝑞 = Get(𝑜) :                            exists, we output it to the distinguisher as Some(𝑣); other-
+                                             wise, we return None. If 𝑞 is Step, we simply proceed to the
+    If (𝑜 B 𝑣) ∈ 𝑃 for some 𝑣 :
+                                             next round. After 𝑘 rounds, we obtain a decision bit from the
+     𝑠 := Aout (𝑠, 𝑜, Some(𝑣))               distinguisher based on its current state.
+    Else :                                      To define approximate equivalence, we make use of prob-
+     𝑠 := Aout (𝑠, 𝑜, None)                  abilistic polynomial-time (PPT) families of distinguishers:
+  𝑃 ← 𝜂, where 𝑃 ⇓ I 𝜂                     Definition 4.8 (PPT Distinguishers). Let {I𝜆 } be a fam-
+                                        ily of interpretations for Σ, indexed by natural numbers
+ return Adecide (𝑠)
+                                        𝜆. Additionally, let {Δ𝜆 , 𝐼𝜆 , 𝑂 𝜆 }𝜆 be a family of channel
+                                        contexts Δ𝜆 and channel sets for Δ𝜆 . Then a PPT distin-
+Fig. 9. Interaction of IPDL program Δ ⊢ guisher for {Δ , 𝐼 , 𝑂 } is a family {A } such that A is
+                                                        𝜆 𝜆   𝜆                    𝜆 𝜆            𝜆
+𝑃 : 𝐼 → 𝑂 with 𝑘-bounded (I, Δ, 𝐼, 𝑂) a (I , Δ , 𝐼 , 𝑂 )-distinguisher, along with a polynomial 𝑝
+                                            𝜆 𝜆 𝜆      𝜆
+distinguisher A.
+                                        such that A𝜆 is 𝑝 (𝜆)-bounded for all 𝜆.
+                                          Ensuring PPT for Protocols. To ensure that we apply approx-
+imate equivalences soundly, we need to ensure that they are only applied in polynomial-time IPDL
+contexts.
+   To capture probablistic polynomial time (PPT) for IPDL, we first consider PPT families of
+interpretations I𝜆 . Intuitively, the family I𝜆 is PPT when it assigns polynomial lengths to type
+symbols t, and PPT computable functions to function symbols f and distribution symbols d.
+   To give semantics to distribution symbols, we need to allow for probabilistic algorithms which
+only succeed with negligible probability. Recall that a negligible function 𝜀 : N → Q is one that is
+eventually smaller than the inverse of any polynomial: ∀𝐾, ∃𝑁 , ∀𝑛 > 𝑁 , 𝜀 (𝑛) < 𝑛1𝐾 .
+   Definition 4.9 (Realizable Distribution). Let 𝐷 be a map from bitstrings to probability distributions
+over bitstrings, and let 𝑇 be a probabilistic Turing machine. We say that 𝑇 realizes 𝐷 with error 𝜀 if,
+for all 𝑥 and 𝑦, | Pr[𝑇 (𝑥) = 𝑦] − 𝐷 (𝑥) (𝑦)| ≤ 𝜀.
+   Definition 4.10 (PPT Interpretation). Given an IPDL signature Σ, a family {I𝜆 }𝜆 of interpretations
+is polynomial if there exists a 𝐾 ∈ N such that:
+    • for all type symbols t, JtK I𝜆 ≤ 𝜆𝐾 for all sufficiently large 𝜆;
+    • for all function symbols f, that JfK I𝜆 (·) is computable by a Turing machine in time at most
+       𝜆𝐾 , for all sufficiently large 𝜆; and
+    • for all distribution symbols d, there exists a negligible function 𝜀 such that for all sufficiently
+       large 𝜆, JdK I𝜆 is realizable by a probabilistic Turing machine running in time at most 𝜆𝐾 with
+       error 𝜀 (𝜆).
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:16                                        Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+   Enforcing PPT for Protocols. Since IPDL protocols are finite networks of channels and do not
+contain recursion, we ensure polynomial time for protocols by simply counting the number of
+function symbols applied in reactions, and the number of channel bindings in protocols. Assuming
+that the interpretation I is bounded by a reasonable running time, we will obtain that the protocol
+is as well.
+   This count is given by a symbolic size | · |, defined for expressions, reactions, and protocols. Since
+we assume that function and distribution symbols are PPT, our symbolic size for expressions and
+reactions simply counts the number of variables and function applications present in the syntax.
+(For example, |f 𝑒 | := |𝑒 | + 1, while |(𝑒 1, 𝑒 2 )| := |𝑒 1 | + |𝑒 2 |.) The only subtle rule is for ifs inside of
+reactions, where we take the max: |if 𝑒 then 𝑅1 else 𝑅2 | := |𝑒 | + max(|𝑅1 |, |𝑅2 |). We formally define
+symbolic size in the full version [Gancher et al. 2022].
+   IPDL Contexts. To support compositional reasoning, we additionally define typed protocol contexts
+for IPDL:
+             Program Contexts            C    ::=   ◦ | 𝜃 ★ (C) | C || 𝑄 | 𝑃 || C | new 𝑜 : 𝜏 in C
+Contexts are essentially protocols with a single hole. The exception is channel embedding, 𝜃 ★ (C),
+where 𝜃 : Δ1 → Δ2 is an injection from channels in a smaller context to a larger one. Channel
+embeddings operate naturally on programs, channel sets, and contexts, forming 𝜃 ★ (𝐼 ), 𝜃 ★ (𝑃), and
+𝜃 ★ (C), respectively.
+    Contexts have a straightforward typing judgment C : (Δ ⊢ 𝐼 → 𝑂) → (Δ′ ⊢ 𝐼 ′ → 𝑂 ′ )
+transforming well-typed protocols to well-typed protocols, given in the full version [Gancher et al.
+2022]. We write 𝐶 (𝑃) for the application of 𝑃 to the context 𝐶. Symbolic sizes are lifted to contexts
+in a straightforward manner.
+    Given symbolic sizes for contexts, we say that the family {𝐶𝜆 : (Δ𝜆 ⊢ 𝐼𝜆 → 𝑂 𝜆 ) → (Δ𝜆′ ⊢ 𝐼𝜆′ →
+  ′
+𝑂 𝜆 )} is PPT when there exists a polynomial 𝑝 such that |𝐶𝜆 | ≤ 𝑝 (𝜆) for all 𝜆, and |Δ𝜆 | ≤ 𝑝 (𝜆) for
+all 𝜆.
+  Approximate Equivalence. Given two families {𝑃𝜆 }𝜆 and {𝑄 𝜆 }𝜆 of IPDL programs, we define
+them approximately equivalent when no PPT distinguisher can distinguish them up to PPT contexts:
+   Definition 4.11 (Approximate Equivalence). Let Δ𝜆 ⊢ 𝑃𝜆 : 𝐼𝜆 → 𝑂 𝜆 and Δ𝜆 ⊢ 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 be
+two families of IPDL protocols with identical typing judgments. Then, we say that 𝑃𝜆 and 𝑄 𝜆 are
+indistinguishable under PPT interpretation, written I𝜆 ; Δ𝜆 ⊨ 𝑃𝜆 ≈𝜆 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 , when: |Δ𝜆 | is
+bounded by a polynomial in 𝜆; and for any PPT family of program contexts {𝐶𝜆 : (Δ𝜆 ⊢ 𝐼𝜆 →
+𝑂 𝜆 ) → (Δ𝜆′ ⊢ 𝐼𝜆′ → 𝑂 𝜆′ )}, and for all PPT families of distinguishers {A𝜆 } for {Δ𝜆′ , 𝐼𝜆 , 𝑂 𝜆 } bounded
+by 𝑝 (·), there exists a negligible function 𝜀 such that
+                                 𝑝 (𝜆)                           𝑝 (𝜆)
+                         | Pr[A𝜆         (𝐶𝜆 (𝑃𝜆 ) I𝜆 )] − Pr[A𝜆         (𝐶𝜆 (𝑄 𝜆 ) I𝜆 )] | ≤ 𝜀 (𝜆).
+
+4.3     Equational Logic
+We now present the equational logic of IPDL. The logic is divided into two halves: exact rules
+establish semantic equivalences between protocols, while approximate rules are used to discharge
+indistinguishability assumptions.
+4.3.1 Exact Equivalences. The bulk of the reasoning in IPDL is done using exact equivalences. We
+have rules for reaction equivalence and protocol equivalence.
+  Reaction Equivalence. Reaction equivalence Δ; Γ ⊢ 𝑅1 = 𝑅2 : 𝐼 → 𝜏 states when reactions 𝑅1
+and 𝑅2 behave identically, reading from input channels in 𝐼 and returning values of type 𝜏. We
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                 30:17
+
+
+informally highlight select rules here, and defer the formal rules to the full version [Gancher et al.
+2022].
+   Since the nontrivial effects for reactions are reading from channels and probabilistic sampling,
+we have that reactions form a commutative monad: that is, (𝑥 ← 𝑅1 ; 𝑦 ← 𝑅2 ; 𝑅3 𝑥 𝑦) = (𝑦 ←
+𝑅2 ; 𝑥 ← 𝑅1 ; 𝑅3 𝑥 𝑦) holds whenever 𝑅2 does not depend on 𝑥. All expected equivalences for
+commutative monads hold for reactions, including the usual monad laws and congruence of
+equivalence under monadic bind. The samp-pure rule allows us to drop an unused sampling:
+(_ : 𝜏 ← samp (𝐷); 𝑆) = 𝑆. The read-det rule allows us to replace two reads from the same
+channel by a single one:
+                                                                                    
+                (𝑥 : 𝜏 ← read 𝑖; 𝑦 : 𝜏 ← read 𝑖; 𝑆) = 𝑥 : 𝜏 ← read 𝑖; 𝑆 [𝑦 B 𝑥] .
+The rule flip-unif states that the distribution flip on Booleans is indeed uniform:
+                       (𝑥 ← samp (flip); if 𝑥 then false else true) = samp (flip).
+Finally, we have rules which allow us to manipulate conditionals. The rules if-left and if-right
+allow us to rewrite inside of conditionals on either branch, while if-ext allows us to expand a
+conditional:
+                       𝑅 [𝑥 B 𝑒] = if 𝑒 then 𝑅 [𝑥 B true] else 𝑅(𝑥 B false).
+   Protocol Equivalence. Exact protocol equivalences allow reasoning about communication between
+subprotocols, functional correctness, and simplifying intermediate computations. We will see in
+Section 4.4 that exact equivalence implies the existence of a bisimulation on protocols, which in
+turn implies indistinguishability against an arbitrary distinguisher.
+   Our proof rules make use of equivalence axioms, which are used to specify user-defined assump-
+tions about functional equivalence (e.g., correctness of decryption). We collect such axioms into an
+exact theory:
+  Definition 4.12 (Exact Theory). Given an ambient signature Σ, an exact theory T= is a finite set of
+axioms of the form Δ ⊢ 𝑃 = 𝑄 : 𝐼 → 𝑂, where Δ ⊢ 𝑃 : 𝐼 → 𝑂 and Δ ⊢ 𝑄 : 𝐼 → 𝑂.
+   Our proof rules for protocol equivalence assume an ambient exact theory T= .
+   The rules for the exact equivalence of protocols are in Figures 10 and 11; we now describe them
+informally. The embed rule states that exact equivalence is invariant under channel embeddings
+𝜃 : Δ1 → Δ2 . The axiom rule incorporates axioms into the equational theory for exact equivalences.
+   The remaining equational rules in Figure 11 use red to distinguish the differences between the
+left and right hand sides. The comp-new rule allows us to permute parallel composition and the
+creation of a new channel, and the same as scope extrusion in process calculi [Milner et al. 1992]. The
+absorb-left rule allows us to discard a component in a parallel composition if it has no outputs;
+this allows us to eliminate internal channels once they are no longer used. The symmetric rule
+absorb-right (not shown) is derivable. The diverge rule allows us to simplify diverging reactions:
+if a channel reads from itself and continues as an arbitrary reaction 𝑅, then we can safely discard 𝑅
+as we will never reach it in the first place.
+   The (un)folding rules fold-if-left and fold-bind allow us to simplify composite reactions by
+bringing their components into the protocol level as separate internal channels. (We also have the
+symmetric rule fold-if-right.) Finally, the three rules subsume, subst, and unused allow us to
+manipulate channel dependencies. The rule subsume states that dependency is transitive: if we
+depend on 𝑜 1 and 𝑜 1 itself depends on 𝑜 0 , then we depend on 𝑜 0 and this dependency can be made
+explicit.
+   The subst rule allows inlining reactions into read commands. Inlining (𝑜 1 := 𝑅1 ) into (𝑜 2 :=
+(𝑥 ← read 𝑜 1 ; 𝑅2 )) is only sound when 𝑅1 is duplicable: observing two independent results
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:18                                        Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+                                               Δ⊢𝑃 :𝐼 →𝑂                              Δ ⊢ 𝑃1 = 𝑃2 : 𝐼 → 𝑂
+                                                                       refl                                 sym
+          Δ⊢𝑃 =𝑄 :𝐼 →𝑂                       Δ⊢𝑃 =𝑃 :𝐼 →𝑂                             Δ ⊢ 𝑃2 = 𝑃1 : 𝐼 → 𝑂
+
+                               Δ ⊢ 𝑃1 = 𝑃2 : 𝐼 → 𝑂               Δ ⊢ 𝑃2 = 𝑃3 : 𝐼 → 𝑂
+                                                                                        trans
+                                              Δ ⊢ 𝑃1 = 𝑃3 : 𝐼 → 𝑂
+
+        ⊢ 𝜃 : Δ1 → Δ2           Δ1 ⊢ 𝑃 = 𝑄 : 𝐼 → 𝑂                            (Δ ⊢ 𝑃 = 𝑄 : 𝐼 → 𝑂) ∈ T=
+                                                              embed                                        axiom
+         Δ2 ⊢ 𝜃 (𝑃) = 𝜃 (𝑄) : 𝜃 (𝐼 ) → 𝜃 (𝑂)
+                ★          ★          ★              ★
+                                                                                   Δ⊢𝑃 =𝑄 :𝐼 →𝑂
+
+                               𝑜 :𝜏 ∈ Δ        Δ; · ⊢ 𝑅 = 𝑅 ′ : 𝐼 ∪ {𝑜} → 𝜏
+                                                                                   cong-react
+                                  Δ ⊢ (𝑜 B 𝑅) = (𝑜 B 𝑅 ′ ) : 𝐼 → {𝑜 }
+
+                                  𝑖 ∉ 𝐼, 𝑂       Δ⊢𝑃 =𝑄 :𝐼 →𝑂
+                                                                            input-unused
+                                      Δ ⊢ 𝑃 = 𝑄 : 𝐼 ∪ {𝑖} → 𝑂
+
+                     Δ ⊢ 𝑃 = 𝑃 ′ : 𝐼 ∪ 𝑂2 → 𝑂1                Δ ⊢ 𝑄 : 𝐼 ∪ 𝑂1 → 𝑂2
+                                                                                      cong-comp-left
+                                Δ ⊢ 𝑃 || 𝑄 = 𝑃 || 𝑄 : 𝐼 → 𝑂 1 ∪ 𝑂 2
+                                                 ′
+
+
+                                     Δ, 𝑜 : 𝜏 ⊢ 𝑃 = 𝑃 ′ : 𝐼 → 𝑂 ∪ {𝑜}
+                                                                                       cong-new
+                          Δ ⊢ (new 𝑜 : 𝜏 in 𝑃) = (new 𝑜 : 𝜏 in 𝑃 ′ ) : 𝐼 → 𝑂
+
+                                 Δ ⊢ 𝑃1 : 𝐼 → 𝑂 1             Δ ⊢ 𝑃2 : 𝐼 → 𝑂 2
+                                                                                  comp-comm
+                                 Δ ⊢ 𝑃1 || 𝑃2 = 𝑃2 || 𝑃1 : 𝐼 → 𝑂 1 ∪ 𝑂 2
+
+                                     Δ ⊢ 𝑃1 : 𝐼 ∪ 𝑂 2 ∪ 𝑂 3 → 𝑂 1
+                    Δ ⊢ 𝑃2 : 𝐼 ∪ 𝑂 1 ∪ 𝑂 3 → 𝑂 2      Δ ⊢ 𝑃2 : 𝐼 ∪ 𝑂 1 ∪ 𝑂 3 → 𝑂 1
+                                                                                              comp-assoc
+                     Δ ⊢ (𝑃1 || 𝑃2 ) || 𝑃3 = 𝑃1 || (𝑃 2 || 𝑃3 ) : 𝐼 → 𝑂 1 ∪ 𝑂 2 ∪ 𝑂 3
+
+                                 Δ, 𝑜 1 : 𝜏1, 𝑜 2 : 𝜏2 ⊢ 𝑃 : 𝐼 → 𝑂 ∪ {𝑜 1, 𝑜 2 }
+                                                                                                        new-exch
+        Δ ⊢ (new 𝑜 1 : 𝜏1 in new 𝑜 2 : 𝜏2 in 𝑃) = (new 𝑜 2 : 𝜏2 in new 𝑜 1 : 𝜏1 in 𝑃) : 𝐼 → 𝑂
+
+                    Δ ⊢ 𝑃 : 𝐼 ∪ 𝑂2 → 𝑂1                  Δ, 𝑜 : 𝜏 ⊢ 𝑄 : 𝐼 ∪ 𝑂 1 → 𝑂 2 ∪ {𝑜}
+                                                                                                comp-new
+                Δ ⊢ 𝑃 || (new 𝑜 : 𝜏 in 𝑄) = new 𝑜 : 𝜏 in (𝑃 || 𝑄) : 𝐼 → 𝑂 1 ∪ 𝑂 2
+
+                                Δ⊢𝑃 :𝐼 →𝑂                  Δ ⊢ 𝑄 : 𝐼 ∪𝑂 → ∅
+                                                                                  absorb-left
+                                          Δ ⊢ 𝑃 || 𝑄 = 𝑃 : 𝐼 → 𝑂
+
+                                   𝑜 :𝜏 ∈ Δ              Δ; · ⊢ 𝑅 : 𝐼 ∪ {𝑜} → 𝜏
+                                                                                              diverge
+                       Δ ⊢ (𝑜 B 𝑥 : 𝜏 ← read 𝑜; 𝑅) = (𝑜 B read 𝑜) : 𝐼 → {𝑜}
+
+                Fig. 10. Exact equality for IPDL protocols. Additional rules are given in Figure 11.
+
+
+
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                    30:19
+
+
+
+                                                Δ⊢𝑃 =𝑄 :𝐼 →𝑂
+
+                                             𝑜 :𝜏 ∈ Δ
+  Δ; · ⊢ 𝑅 : 𝐼 ∪ {𝑜 } → bool           Δ; · ⊢ 𝑆 1 : 𝐼 ∪ {𝑜} → 𝜏          Δ; · ⊢ 𝑆 2 : 𝐼 ∪ {𝑜} → 𝜏
+                                                                                                      fold-if-left
+        Δ ⊢ (new 𝑙 : 𝜏 in 𝑜 B 𝑥 : bool ← 𝑅; if 𝑥 then read 𝑙 else 𝑆 2 || 𝑙 B 𝑆 1 ) =
+                            (𝑜 B 𝑥 : bool ← 𝑅; if 𝑥 then 𝑆 1 else 𝑆 2 ) : 𝐼 → {𝑜 }
+
+              𝑜 :𝐵        Δ; · ⊢ 𝑅 : 𝐼 ∪ {𝑜} → 𝜏           Δ; 𝑥 : 𝜏 ⊢ 𝑆 : 𝐼 ∪ {𝑜 } → 𝐵
+                                                                                                       fold-bind
+   Δ ⊢ (new 𝑐 : 𝜏 in 𝑜 B 𝑥 : 𝜏 ← read 𝑐; 𝑆 || 𝑐 B 𝑅) = (𝑜 B 𝑥 : 𝜏 ← 𝑅; 𝑆) : 𝐼 → {𝑜 }
+
+                  𝑜1 ≠ 𝑜2       𝑜 0 : 𝜏0, 𝑜 1 : 𝜏1, 𝑜 2 : 𝜏2 ∈ Δ       𝑜 0 ∈ 𝐼 ∪ {𝑜 1, 𝑜 2 }
+          Δ; 𝑥 0 : 𝜏0 ⊢ 𝑅1 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏1          Δ; 𝑥 1 : 𝜏1 ⊢ 𝑅2 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏2
+                                                                                                            subsume
+ Δ ⊢ (𝑜 1 B 𝑥 0 : 𝜏0 ← read 𝑜 0 ; 𝑅1 || 𝑜 2 B 𝑥 0 : 𝜏0 ← read 𝑜 0 ; 𝑥 1 : 𝜏1 ← read 𝑜 1 ; 𝑅2 ) =
+        (𝑜 1 B 𝑥 0 : 𝜏0 ← read 𝑜 0 ; 𝑅1 || 𝑜 2 B 𝑥 1 : 𝜏1 ← read 𝑜 1 ; 𝑅2 ) : 𝐼 → {𝑜 1, 𝑜 2 }
+
+                                  𝑜1 ≠ 𝑜2         𝑜 1 : 𝜏1, 𝑜 2 : 𝜏2 ∈ Δ
+            Δ; · ⊢ 𝑅1 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏1         Δ; 𝑥 1 : 𝜏1 ⊢ 𝑅2 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏2
+Δ; · ⊢ 𝑥 1 ← 𝑅1 ; 𝑥 1′ ← 𝑅1 ; ret ((𝑥 1, 𝑥 1′ )) = 𝑥 1 ← 𝑅1 ; ret ((𝑥 1, 𝑥 1 ) ) : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏1 × 𝜏1
+                                                                                                                subst
+   Δ ⊢ (𝑜 1 B 𝑅1 || 𝑜 2 B 𝑥 1 ← read 𝑜 1 ; 𝑅2 ) = (𝑜 1 B 𝑅1 || 𝑜 2 B 𝑥 1 ← 𝑅1 ; 𝑅2 ) : 𝐼 → {𝑜 1, 𝑜 2 }
+
+               𝑜1 ≠ 𝑜2          𝑜 1 : 𝜏1, 𝑜 2 : 𝜏2 ∈ Δ        Δ; · ⊢ 𝑅1 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏1
+     Δ; · ⊢ 𝑅2 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏2           Δ; · ⊢ (𝑥 1 : 𝜏1 ← 𝑅1 ; 𝑅2 ) = 𝑅2 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏2
+                                                                                                           unused
+       Δ ⊢ (𝑜 1 B 𝑅1 || 𝑜 2 B 𝑥 1 ← read 𝑜 1 ; 𝑅2 ) = (𝑜 1 B 𝑅1 || 𝑜 2 B 𝑅2 ) : 𝐼 → {𝑜 1, 𝑜 2 }
+
+Fig. 11. Additional rules for exact equality of IPDL protocols. Distinguishing changes of equalities are
+highlighed in red.
+
+of evaluating 𝑅1 is equivalent to observing the same result twice. This side condition is easily
+discharged whenever 𝑅1 does not contain probabilistic sampling.
+   Finally, the unused rule allows dropping unused reads from channels. Due to timing dependencies
+between channels, we only allow dropping reads from (𝑜 1 := 𝑅1 ) in the context of (𝑜 2 := (_ ←
+read 𝑜 1 ; 𝑅2 )) when we have that (_ ← 𝑅1 ; 𝑅2 ) = 𝑅2 . This side condition is met whenever all reads
+present in 𝑅1 are also present in 𝑅2 .
+4.3.2 Approximate Equivalence. We now turn to approximate equivalence, which establishes indis-
+tinguishability between families of protocols {𝑃𝜆 } and {𝑄 𝜆 } against PPT adversaries. Similar to
+exact theories T= , we collect axioms for indistinguishability into an approximate theory, T≈ .
+   Definition 4.13 (Approximate Theory). Let Σ be a signature. An approximate theory T≈ is a finite
+set of axioms of the form {Δ𝜆 ⊢ 𝑃𝜆 ≈𝜆 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 }, indexed by natural numbers 𝜆.
+  We establish approximate equivalences between protocol families {𝑃𝜆 } and {𝑄 𝜆 } by proving an
+appropriate equivalence between 𝑃𝜆 and 𝑄 𝜆 for each security parameter 𝜆.
+  To maintain soundness, our main approximate equivalence judgment Δ ⊢ 𝑃 ≈𝜆(𝑘,𝑙 ) 𝑄 : 𝐼 → 𝑂
+uses two parameters, 𝑘 and 𝑙 to track negligibility and resource-bounded contexts. The axiom
+parameter, 𝑘, simply counts the number of invocations of axioms applied during the proof: 𝑘 is 1
+when applying a single axiom in T≈ , and the transitivity rule adds the two values of 𝑘 together.
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:20                                        Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+                                                                     Δ ⊢Σ, T 𝑃 = 𝑄 : 𝐼 → 𝑂
+                                                                                                strict
+                     Δ ⊢ 𝑃1 ≈𝜆(𝑘,𝑙 ) 𝑃 2 : 𝐼 → 𝑂                     Δ ⊢ 𝑃 ≈𝜆(0,0) 𝑄 : 𝐼 → 𝑂
+
+   Δ ⊢ 𝑃 ≈𝜆(𝑘1,𝑙1 ) 𝑄 : 𝐼 → 𝑂            𝑘1 ≤ 𝑘2          𝑙1 ≤ 𝑙2                    Δ ⊢ 𝑃 1 ≈𝜆(𝑘,𝑙 ) 𝑃2 : 𝐼 → 𝑂
+                                                                    subsume                                        sym
+                    Δ ⊢ 𝑃 ≈𝜆(𝑘2,𝑙2 ) 𝑄 : 𝐼 → 𝑂                                       Δ ⊢ 𝑃 2 ≈𝜆(𝑘,𝑙 ) 𝑃1 : 𝐼 → 𝑂
+
+                        Δ ⊢ 𝑃1 ≈𝜆(𝑘1,𝑙1 ) 𝑃2 : 𝐼 → 𝑂          Δ ⊢ 𝑃2 ≈𝜆(𝑘2,𝑙2 ) 𝑃3 : 𝐼 → 𝑂
+                                                                                             trans
+                                     Δ ⊢ 𝑃 1 ≈𝜆(𝑘1 +𝑘2,max(𝑙1,𝑙2 ) ) 𝑃3 : 𝐼 → 𝑂
+
+  𝜃 : Δ1 → Δ2             Δ1 ⊢ 𝑃 ≈𝜆(𝑘,𝑙 ) 𝑄 : 𝐼 → 𝑂                     {Δ𝑛 ⊢ 𝑃𝑛 ≈𝜆 𝑄𝑛 : 𝐼𝑛 → 𝑂𝑛 } ∈ T≈
+                                                          embed                                                    axiom
+ Δ2 ⊢ 𝜃   ★
+              (𝑃) ≈𝜆(𝑘,𝑙 ) 𝜃 ★ (𝑄) : 𝜃 ★ (𝐼 ) → 𝜃 ★ (𝑂)                       Δ ⊢ 𝑃𝜆 ≈𝜆(1,0) 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆
+
+                               𝑖 ∉ 𝐼 ∪𝑂         Δ ⊢ 𝑃 ≈𝜆(𝑘,𝑙 ) 𝑄 : 𝐼 → 𝑂
+                                                                               input-unused
+                                    Δ ⊢ 𝑃 ≈𝜆(𝑘,𝑙 ) 𝑄 : 𝐼 ∪ {𝑖} → 𝑂
+
+                  Δ ⊢ 𝑃 ≈𝜆(𝑘,𝑙 ) 𝑃 ′ : 𝐼 ∪ 𝑂 2 → 𝑂 1         Δ ⊢Σ 𝑄 : 𝐼 ∪ 𝑂 1 → 𝑂 2
+                                                                                        cong-comp-left
+                                      (𝑘,𝑙+|𝑄 | ) ′
+                          Δ ⊢ 𝑃 || 𝑄 ≈𝜆          𝑃 || 𝑄 : 𝐼 → 𝑂 1 ∪ 𝑂 2
+
+                                  Δ, 𝑜 : 𝐴 ⊢ 𝑃 ≈𝜆(𝑘,𝑙 ) 𝑃 ′ : 𝐼 → 𝑂 ∪ {𝑜 }
+                                                                                          cong-new
+                       Δ ⊢ (new 𝑜 : 𝐴 in 𝑃) ≈𝜆(𝑘,𝑙 ) (new 𝑜 : 𝐴 in 𝑃 ′ ) : 𝐼 → 𝑂
+
+                                                            ∀𝜆, Δ𝜆 ⊢ 𝑃𝜆 ≈𝜆(𝑘𝜆 ,𝑙𝜆 ) 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆
+                                               𝑘𝜆 = 𝑂 (poly(𝜆))    𝑙𝜆 = 𝑂 (poly(𝜆))           |Δ𝜆 | = 𝑂 (poly(𝜆))
+ ⊢ {Δ𝜆 ⊢ 𝑃𝜆 ≈𝜆 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 }
+                                                                    ⊢ {Δ𝜆 ⊢ 𝑃𝜆 ≈𝜆 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 }
+
+                                  Fig. 12. Approximate equality for IPDL protocols.
+
+
+Our soundness result will bound 𝑘 by a polynomial in the security parameter to ensure that we do
+not apply exponentially many axioms.
+   The second parameter, 𝑙, tracks the largest size of protocol contexts applied to axioms in T≈ . While
+our PPT interpretations (Definition 4.10) ensure that each function symbol is PPT, exponentially
+large IPDL contexts can encode non-PPT computations. Thus, our soundness result also requires
+that 𝑙 is polynomial in the security parameter to ensure that all IPDL contexts are PPT.
+   The top of Figure 12 shows the rules for approximate equivalence. Since most nontrivial reasoning
+in IPDL is done in the exact half, the approximate equivalence rules are used mostly to apply
+indistinguishability axioms deeply nested inside protocols. Crucially, rule strict allows us to
+descend to the exact half of the proof system.
+   Finally, the bottom of Figure 12 defines when two protocol families {𝑃𝜆 } and {𝑄 𝜆 } are indis-
+tinguishable. This holds when, for each choice of 𝜆, Δ𝜆 ⊢ 𝑃𝜆 ≈𝜆(𝑘 (𝜆),𝑙 (𝜆) ) 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 , and the
+parameters 𝑘 (𝜆) and 𝑙 (𝜆) only grow polynomially with 𝜆, as does the size |Δ𝜆 | of each channel
+context.
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                 30:21
+
+
+4.4   Soundness
+We now sketch our soundness results for IPDL; full proofs are given in Section B. Our main result
+is that our judgment for approximate equivalence is sound. To state soundness, we first need to
+introduce our notion of soundness for exact protocol equality:
+   Definition 4.14 (Protocol bisimulation). Given an interpretation I for a signature Σ, a protocol
+bisimulation ∼ is a binary relation on distributions on protocols Δ ⊢ 𝑃 : 𝐼 → 𝑂 satisfying the
+following conditions:
+                                                                Í                    Í
+    • Closure under Í joint convex combinations: We have 𝑖 B1,...,𝑘 𝑐𝑖 𝜂𝑖 ∼ 𝑖 B1,...,𝑘 𝑐𝑖 𝜀𝑖 for any
+      coefficients 𝑖 B1,...,𝑘 𝑐𝑖 = 1 and distributions 𝜂𝑖 ∼ 𝜀𝑖 for 𝑖 B 1, . . . , 𝑘.
+    • Closure under input assignment: For any distributions 𝜂 ∼ 𝜇, channel 𝑖 : 𝜏 ∈ Δ, and value
+                    I
+      𝑣 ∈ {0, 1}J𝜏 K , we have that 𝜂 [read 𝑖 := val(𝑣)] ∼ 𝜇 [read 𝑖 := val(𝑣)].
+    • Closure under evaluation: For any distributions 𝜂 ∼ 𝜇, if 𝜂 ⇓ 𝜂 ′ and 𝜇 ⇓ 𝜇 ′ , then 𝜂 ′ ∼ 𝜇 ′ .
+    • Valuation property: For anyÍoutput channel Í   𝑜 and any distributions 𝜂 ∼ 𝜇, there exists a joint
+      convex combination 𝜂 = 𝑖 B1,...,𝑘 𝑐𝑖 𝜂𝑖 ∼ 𝑖 B1,...,𝑘 𝑐𝑖 𝜇𝑖 = 𝜇 such that for each 𝑖 B 1, . . . , 𝑘,
+      the distributions 𝜂𝑖 ∼ 𝜇𝑖 have the same value 𝑣, or lack thereof, on the channel 𝑜.
+   In the above definition, we write 𝜂 [read 𝑖 := val(𝑣)] by applying the corresponding substitution
+pointwise     to each protocol in the support of 𝜂. Similarly,    we write 𝜂 ⇓ 𝜂 ′ by expressing 𝜂 =
+Í                                      ′            ′ Í       ′
+  𝑖 𝑐 𝑖 unit(𝑃𝑖 ) and evaluating 𝑃𝑖 ⇓ 𝜂𝑖 to obtain 𝜂 = 𝑖 𝑐 𝑖 𝜂𝑖 .
+   Given the above notion of protocol bisimulation, we now state when exact and approximate
+theories are sound:
+  Definition 4.15 (Soundness for Exact Theories). The exact theory T= is sound if for all Δ ⊢ 𝑃 = 𝑄 :
+𝐼 → 𝑂 in T= , there exists a protocol bisimulation unit(𝑃) ∼ unit(𝑄).
+   Definition 4.16 (Soundness for Approximate Theories). The approximate theory T≈ is sound under
+PPT interpretation I𝜆 if, whenever {Δ𝜆 ⊢ 𝑃𝜆 ≈𝜆 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 } ∈ T≈ , we have that I𝜆 ; Δ𝜆 ⊨ 𝑃𝜆 ≈𝜆
+𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 .
+  Our main result is that if T= and T≈ are sound, then our proof rules for approximate equivalence
+are sound:
+  Theorem 4.17 (Soundness theorem for the approximate eqality of IPDL protocols). Let
+Σ be an IPDL signature, and let T= and T≈ be sound exact and approximate theories with respect to a
+PPT interpretation {I𝜆 }. If ⊢ {Δ𝜆 ⊢ 𝑃𝜆 ≈𝜆 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 }, then I𝜆 ; Δ𝜆 ⊨ 𝑃𝜆 ≈𝜆 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 .
+  The proof of Theorem 4.17 relies on the following soundness lemmas for exact equality. First, we
+have that exact equality guarantees observational equivalence:
+  Lemma 4.18 (Observational Eqivalence). Suppose unit(𝑃) ∼ unit(𝑄) under interpretation I.
+Then, for any A and 𝑘, and any well-typed IPDL context 𝐶, Pr[A𝑘 (𝐶 (𝑃) I )] = Pr[A𝑘 (𝐶 (𝑄) I )].
+   Proof. An immediate consequence of the definition of protocol bisimulation.                                       □
+   Next, we have that our proof system for exact equivalence is sound:
+  Lemma 4.19 (Soundness of Exact Eqivalence). Suppose T= is sound under interpretation I. If
+Δ ⊢ 𝑃 = 𝑄 : 𝐼 → 𝑂, then unit(𝑃) ∼ unit(𝑄).
+   We establish Lemma 4.19 by exhibiting a bisimulation for each proof rule. Rules Sym and Trans
+correspond to symmetry and transitivity lemmas for protocol bisimulation, while the congurence
+rules comp-cong-left and cong-new require proving corresponding congruence rules for bisimu-
+lations. For example, if 𝜂 ∼ 𝜇, then 𝜂 || 𝑄 ∼ 𝜇 || 𝑄 (lifting || to act on distributions).
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:22                                     Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+Table 1. Case Studies in IPDL. Lines of code are separated into definitions (relevant IPDL axioms, function-
+alities, and protocol parties) and proofs. The last column points out nontrivial cryptographic axioms and
+functionalities used in the protocol.
+
+    Case study                                        LoC (Defs)      LoC (Proof)         Axioms/Primitives Used
+    A2S: CPA [Maurer 2012]                            97 LoC          128 LoC             IND-CPA
+    A2S: DHKE [Barbosa et al. 2021b]                  183 LoC         532 LoC             DDH
+    OT: Trapdoor [Goldreich et al. 1987]              131 LoC         517 LoC             Hard-core Predicates
+    OT: 1-out-of-4 [Naor and Pinkas 1999]             128             835 LoC             Underlying OT
+    OT: Pre-Processing [Beaver 1995]                  79 LoC          401 LoC             Underlying OT
+    Two-Party GMW [Goldreich et al. 1987]             285 Loc         1859 LoC            Underlying OT
+    Multi-Party Coin Flip [Blum 1983]                 114 LoC         1905 LoC            Commitments
+
+
+   Rules which manipulate reactions, such as subst, bind, and unused, require a notion of bisimu-
+lation of reactions, along with a corresponding soundness lemma for reaction equality.
+
+5     IPDL CASE STUDIES
+In this section, we briefly describe the case studies we have completed in IPDL, and outline several
+key proof steps that conveniently employ equational reasoning. Our case studies range from simple
+communication protocols to a two-party GMW protocol and a multi-party coin flip protocol. We
+demonstrate through lines of code that the proof effort of IPDL scales well with increasing protocol
+complexity, see Table 1. All lines of code count both protocol-specific definitions and proofs.
+
+5.1     Coq Mechanization
+We have mechanized the proof system of IPDL along with our case studies in Coq. The embedding
+is shallow: we use functions in the metalanguage instead of function symbols derived from a
+signature (e.g., xor over bitstrings). Channels are embedded shallowly as well, making use of an
+abstract type chan t of channels of type t.
+   Throughout our developments, we take advantage of the metalanguage to define IPDL protocols
+                                                                              𝑞−1
+inductively based on parameters. For example, the parallel composition || 𝑖=0 𝑃𝑖 is written in Coq
+as \||_(i < q) P i, using the bigop library from ssreflect [Mahboubi and Tassi 2021].
+   Due to the shallow embedding, the mechanization has a few differences from the proof rules in
+Section 4. The notion of size |𝑃 | for protocols does not track the size of reactions, since reactions
+are embedded shallowly into Coq (and thus would require runtime analysis of Coq expressions).
+In its place, one must check that all protocols used in the approximate congruence rules comp-
+cong-left/comp-cong-right and cong-new only use efficiently computable functions, and use
+fixed-size reactions. This check is easily guaranteed by all of our proofs. However, we do capture
+the number of reactions used in protocols.
+   Additionally, we take advantage of channels being shallowly embedded to restrict inputs of
+protocols based on scoping in Coq, rather than restricting them via the typing judgment.
+   Finally, for convenience we add an additional constructor, 0, to IPDL protocols, representing an
+inert protocol, serving as an identity for parallel composition. The protocol 0 can easily be encoded
+in IPDL as new 𝑐 : 1 in 𝑐 B ret (()).
+
+5.2     Communication Protocols
+We prove secure two different communication protocols that construct a secure communication
+channel from an authenticated one. The authenticated channels allow the adversary to observe
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                 30:23
+
+
+in-flight messages and schedule delivery of them; in contrast, the secure communication channels
+only allow the adversary to observe the presence of the channel, but none of the message contents.
+
+5.2.1 Secure Communication from CPA Security. This case study is a generalization of our example
+from Section 3 to allow for the adversary to schedule delivery of each message. In line with
+Section 3.1, we prove that a CPA-secure encryption scheme may be used alongside an authenticated
+channel to achieve a secure one. This case study is similar to one used in other proof frameworks,
+such as Constructive Cryptography [Maurer 2012].
+
+5.2.2 One-Time Pad from Diffie-Hellman Key Exchange. We complete a one-time pad example
+using Diffie-Hellman key exchange, in comparison with EasyUC [Canetti et al. 2019] and Barbosa
+et al. [Barbosa et al. 2021b]. Similar to both, this example constructs a one-time use secure channel
+by performing Diffie-Hellman key exchange to establish a shared secret, then using the shared
+secret as a one-time pad. Our proof is similarly modular: we first prove the key exchange secure,
+then prove the one-time pad protocol secure, assuming an idealized key exchange. The simulator
+for the final protocol is naturally the composition of the simulators for the two sub-protocols.
+   We stress that while the comparable proof by Barbosa et al. [Barbosa et al. 2021b] is also relatively
+short, the IPDL proof technique requires a much lower proof density than their formalization. Indeed,
+our Coq proof involves one equational rewrite per line (e.g., substitute channel 𝑐 into channel
+𝑑), while their proof requires hand-written explicit bisimulations on states. While succinct once
+written, bisimulation relations are quite intricate and error-prone to invent.
+
+5.3   OT Protocols
+We next prove several Oblivious Transfer (OT) constructions secure. These examples are proven
+in the semi-honest (or honest-but-curious) setting, where we assume the parties operate correctly,
+but corrupted parties leak all private data to the adversary. We prove that leaked values reveal no
+private information about the uncorrupted parties. To encode semi-honest corruption, we augment
+the protocols with leakage functions that send all values visible to the corrupted party to the
+adversary. In turn, the simulator must take as input the leakages in the ideal protocol (usually
+minimal), and output suitable leakages in the real protocol.
+   In (1-out-of-2) OT, Bob wishes to obtain exactly one of Alice’s two messages, without revealing his
+choice [Goldreich et al. 1987]. Alice doesn’t learn which message Bob asked for, while Bob doesn’t
+learn the other of the two messages. The ideal functionality simply receives the two messages
+𝑚 0, 𝑚 1 from the sender, the choice bit 𝑖 from the receiver, and outputs 𝑚𝑖 . In each construction, we
+analyze the most interesting case when the Bob is semi-honest and the Alice is honest. Hence, the
+real-world leakages are derived solely from the input 𝑖 coming from the receiver and the output 𝑚𝑖
+coming from the ideal functionality, with no access to any information about message 𝑚 1−𝑖 .
+   We prove the security of three main OT constructions from the literature: first, we show that
+1-out-of-4 OT, which is used by our GMW example, can be realized from three instances of an ideal
+1-out-of-2 OT [Naor and Pinkas 1999]; then, we show a preprocessing result for OT, which allows
+Alice and Bob to establish an OT in an offline phase, then use this OT for a fast online phase [Beaver
+1995]; finally, we show that 1-out-of-2 OT can be realized using a trapdoor permutation and a
+hard-core bit predicate [Goldreich et al. 1987].
+   To illustrate how IPDL allows us to carry out probabilistic reasoning, we outline here a few key
+steps from the second construction. In the pre-processing phase, Alice randomly generates a new
+pair of keys (𝑘 0, 𝑘 1 ), while Bob randomly decides on one of these keys, obtaining a choice bit 𝑗.
+They then use the underlying (idealized) OT to securely transfer the randomly chosen key 𝑘 𝑗 to
+Bob.
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:24                                     Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+   In the online phase, Bob encrypts his actual choice bit 𝑖 by xor-ing it with 𝑗, chosen randomly
+in the prior phase. He sends his encrypted choice 𝑖 ⊕ 𝑗 to Alice, who responds by first swapping
+her two keys if 𝑖 ⊕ 𝑗 is true, then sending Bob her two keys, xor-ed with their respective messages.
+Bob has enough information to recover his chosen message, but the other one appears uniformly
+random.
+   To prove that Bob does not learn any information about the message he did not ask for, we carry
+out two probabilistic arguments. The first, which we call decoupling, observes that selecting two
+keys 𝑘 0, 𝑘 1 from the same distribution 𝜇, and then randomly deciding to return either (𝑘 0, 𝑘 1 ) or
+(𝑘 1, 𝑘 0 ) is perfectly indistinguishable from just returning (𝑘 0, 𝑘 1 ). To see this, consider the protocol
+below:
+
+        KeyPair B 𝑓 ← samp (flip); if 𝑓 then 𝑘 0 ← samp (𝜇); 𝑘 1 ← samp (𝜇); ret ((𝑘 1, 𝑘 0 ))
+                 KeyPair B 𝑓 ← Flip; if 𝑓 else 𝑘 0 ← samp (𝜇); 𝑘 1 ← samp (𝜇); ret ((𝑘 0, 𝑘 1 ))
+
+    Since the two samplings inside each branch of the if are interchangeable, we may commute
+𝑘 0 ← samp (𝜇) with 𝑘 1 ← samp (𝜇) inside of the then branch. This shows that the two branches
+behave exactly the same, so we may just as well not flip. We emphasize that no complex probabilistic
+reasoning is necessary in the argument, but only a few simple application of equational proof rules.
+    The second probabilistic argument concerns the distribution 𝜇, which represents uniform ran-
+domness. Rather than modeling uniform randomness intrinsically in Coq, we only need to introduce
+the (sound) axiom that 𝜇 = (𝑥 ← 𝜇; unit(𝑥 ⊕ 𝑦)) for any bitstring 𝑦. We include a full proof of this
+case study in our repository [Gancher et al. 2022].
+
+5.4     Two-Party GMW Protocol
+Our first large case study for IPDL is the GMW protocol [Goldreich et al. 1987], where two parties
+securely compute a function given by an arbitrary Boolean circuit. The protocol utilizes a 1-out-of-4
+OT instance for each multiplication gate in the circuit. We analyze the GMW protocol in the
+semi-honest setting, with Alice (the sender of the OTs) corrupted.
+   Taking advantage of Coq as our metalanguage, we prove the GMW protocol secure for arbitrary
+circuits. We model circuits in Coq as finitely supported functions from wire IDs [1, . . . , 𝑛] to
+operations, where each operation may only reference wires that have been previously defined. Our
+model supports multiple circuit outputs and is reactive, in that the protocol does not dictate that all
+inputs must come in before starting the computation. Similarly, outputs are shared as soon as they
+are available, which may happen before other, unrelated inputs arrive. Our ideal functionality is
+similarly reactive.
+   The simulator for the GMW proof operates by evaluating a censored version of the real protocol
+in its head, having access to only Alice’s private data (since she is corrupt), but not Bob’s. The
+proof proceeds by establishing an inductive invariant between the real protocol and the ideal
+functionality: Bob’s view of wire 𝑤 in the real protocol is equal to the xor of the true value of 𝑤,
+along with Alice’s simulated view (coming from the simulator).
+
+5.5     Multi-Party Coin Flip Protocol
+Our second large case study is for a protocol that allows an arbitrary number of mutually distrusting
+parties to collaboratively generate fair randomness, due to Blum [Blum 1983]. To do so, each
+party locally generates randomness, and commits it to all other parties. We assume an idealized
+commitment functionality which also bakes in a notion of broadcast, to prevent equivocation. Each
+party decommits their randomness once all other commitments have been collected; the output of
+the protocol is the Boolean sum of all decommitments.
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                 30:25
+
+
+  Unlike previous examples, this example is secure in the malicious model. We model malicious
+parties by assigning them a shell, which simply forwards all information between the protocol and
+the adversary. The entire worked-out example is available in our repostiroy [Gancher et al. 2022].
+
+5.6    Proof Effort
+We have collected our case studies and their required lines of code in Table 1, in ascending order
+of complexity. All proof scripts for the case studies, together with the IPDL Coq library, take less
+than five minutes to verify on a 2020 MacBook Pro. Most proofs take only a few seconds to verify,
+while some – such as our Multi-Party Coin Flip example, or the 1-out-of-4 OT example – take a
+few minutes, due to the use of Coq tactics to aid verification.
+   We highlight our example of Diffie-Hellman Key Exchange + OTP, which totals 736 lines of code
+for definitions and proofs. This compares favorably to EasyUC [Canetti et al. 2019], which performs
+a similar case study using 18,000 lines of code in EasyCrypt [Barthe et al. 2011], and Barbosa
+et al. [Barbosa et al. 2021b], which takes over 2000 lines of code, also in EasyCrypt (albeit with
+reasoning about running time, which we do not explicitly perform). While difficult to compare line
+counts exactly, our relative simplicity is derived from the use of a high-level logic for cryptographic
+protocols along with a lack of hand-written bisimulations. Achieving similarly concise proofs in
+EasyCrypt will likely require further engineering for proof automation.
+   The largest examples – the Two-Party GMW, and the Multi-Party Coin Flip – are less than 2200
+lines of code. While the number of lines is moderate, the complexity of the proof script is low: most
+of the lines consist of repetitive tactic invocations and intermediate rewriting steps. These proofs
+can be likely condensed further with additional proof engineering.
+
+6     CONCLUSION AND FUTURE WORK
+We introduce IPDL, a core language and proof system for equational security proofs of cryptographic
+protocols. Our core technical result is that IPDL is computationally sound: approximate equivalences
+in IPDL are sound against arbitrary probabilistic polynomial-time adversaries. We demonstrate the
+use of IPDL in a number of case studies, including the GMW protocol [Goldreich et al. 1987] for
+multi-party computation. All case studies have been mechanized in an embedding of IPDL in Coq.
+We now outline a few directions for future work:
+   Proof Automation. While we explored the use of interactive equational proofs in this work, we
+expect IPDL proofs to be amenable to proof automation. Indeed, directed applications of substitution
+and channel folding could likely drive a proof engine towards discharging many low-level equational
+steps, leaving the user to only specify a high-level outline of the proof.
+  Integration with Cryptographic Proof Assistants. As described in the introduction, IPDL is not
+designed to handle all subtleties of cryptographic proofs, such as rewinding, probabilistic coupling
+arguments, or complex cost analysis, all of which are expressible in probabilistic program logics
+such as EasyCrypt [Barbosa et al. 2021b; Barthe et al. 2011; Firsov and Unruh 2022]. Combining the
+simplicity of IPDL with the expressivity of EasyCrypt is likely to enable new proof developments
+which are out of reach of each system individually.
+
+ACKNOWLEDGEMENTS
+This material is based upon work supported by the National Science Foundation under Grants
+No. 1704788 and No. 1801369. This work was partly supported by ANR TECAP (decision number
+ANR-17-CE39-0004-03). This work was also supported by a Packard Fellowship and an ONR YIP
+award. This project was partially funded through the NGI Assure Fund, a fund established by NLnet
+with financial support from the European Commission’s Next Generation Internet programme,
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:26                                               Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+under the aegis of DG Communications Networks, Content and Technology under grant agreement
+No 957073.
+
+A       ADDITIONAL FIGURES
+
+                         |𝑥 | := 1
+                        |✓| := 1                                                       |ret (𝑒)| := |𝑒 |
+                     |true| := 1                                                   |samp (𝐷)| := |𝐷 |
+                    |false| := 1                                                       |read 𝑐 | := 1
+                       |f 𝑒 | := |𝑒 | + 1                               |if 𝑒 then 𝑅1 else 𝑅2 | := |𝑒 | + max(|𝑅1 |, |𝑅2 |)
+                 |(𝑒 1, 𝑒 2 )| := |𝑒 1 | + |𝑒 2 |                              |𝑥 : 𝜏 ← 𝑅; 𝑆 | := |𝑅| + |𝑆 |
+                    |fst 𝑒 | := |𝑒 | + 1                                               |𝑜 B 𝑅| := |𝑅|
+                   |snd 𝑒 | := |𝑒 | + 1                                               |𝑃1 || 𝑃2 | := |𝑃 1 | + |𝑃2 |
+                      |flip| := 1                                             |new 𝑐 : 𝜏 in 𝑃 | := |𝑃 |
+                      |d 𝑒 | := |𝑒 | + 1
+                                                                   |◦| B0
+                                                               ★
+                                                             |𝜃 (C)| B |C|
+                                                             |C || 𝑄 | B |C| + |𝑄 |
+                                                              |𝑃 || C| B |𝑃 | + |C|
+                                                    |new 𝑜 : 𝜏 in C| B |C|.
+
+Fig. 13. Symbolic sizes | · | in IPDL. Left: sizes for expressions and distributions. Middle: sizes for reactions
+and protocols. Right: sizes for protocol contexts.
+
+
+
+         C : (Δ1 ⊢Σ 𝐼 1 → 𝑂 1 ) → (Δ2 ⊢Σ 𝐼 2 → 𝑂 2 )                         ◦ : (Δ ⊢Σ 𝐼 → 𝑂) → (Δ ⊢Σ 𝐼 → 𝑂)
+
+                         𝜃 : Δ1 → Δ2                  C : (Δ★ ⊢Σ 𝐼★ → 𝑂★) → (Δ2 ⊢Σ 𝐼 → 𝑂)
+                            𝜃 ★ (C) : (Δ★ ⊢Σ 𝐼★ → 𝑂★) → (Δ1 ⊢Σ 𝜃 ★ (𝐼 ) → 𝜃 ★ (𝑂))
+
+               C : (Δ★ ⊢Σ 𝐼★ → 𝑂★) → (Δ ⊢Σ 𝐼 ∪ 𝑂 2 → 𝑂 1 )                            Δ ⊢Σ 𝑄 : 𝐼 ∪ 𝑂 1 → 𝑂 2
+                                C || 𝑄 : (Δ★ ⊢Σ 𝐼★ → 𝑂★) → (Δ ⊢ 𝐼 → 𝑂 1 ∪ 𝑂 2 )
+
+               Δ ⊢Σ 𝑃 : 𝐼 ∪ 𝑂 2 → 𝑂 1                    C : (Δ★ ⊢Σ 𝐼★ → 𝑂★) → (Δ ⊢Σ 𝐼 ∪ 𝑂 1 → 𝑂 2 )
+                                𝑃 || C : (Δ★ ⊢Σ 𝐼★ → 𝑂★) → (Δ ⊢Σ 𝐼 → 𝑂 1 ∪ 𝑂 2 )
+
+                               C : (Δ★ ⊢Σ 𝐼★ → 𝑂★) → (Δ, 𝑜 : 𝐴 ⊢Σ 𝐼 → 𝑂 ∪ {𝑜 })
+                              new 𝑜 : 𝐴 in C : (Δ★ ⊢Σ 𝐼★ → 𝑂★) → (Δ ⊢Σ 𝐼 → 𝑂)
+
+                                               Fig. 14. Typing for IPDL contexts.
+
+
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                 30:27
+
+
+
+                                             Δ; Γ ⊢ 𝑅1 = 𝑅2 : 𝐼 → 𝜏
+
+                               Γ ⊢𝑒 :𝜏         Δ; Γ, 𝑥 : 𝜏 ⊢ 𝑅 : 𝐼 → 𝜎
+                                                                                   ret-bind
+                          Δ; Γ ⊢ (𝑥 ← ret (𝑒); 𝑅) = 𝑅 [𝑥 B 𝑒] : 𝐼 → 𝜎
+
+                                          Δ; Γ ⊢ 𝑅 : 𝐼 → 𝜏
+                                                                              bind-ret
+                              Δ; Γ ⊢ (𝑥 ← 𝑅; ret (𝑥)) = 𝑅 : 𝐼 → 𝜏
+
+      Δ; Γ ⊢ 𝑅1 : 𝐼 → 𝜏1     Δ; Γ, 𝑥 1 : 𝜏1 ⊢ 𝑅2 : 𝐼 → 𝜏2   Δ; Γ, 𝑥 2 : 𝜏2 ⊢ 𝑅3 : 𝐼 → 𝜏3
+                                                                                              bind-bind
+ Δ; Γ ⊢ 𝑥 2 : 𝜏2 ← (𝑥 1 : 𝜏1 ← 𝑅1 ; 𝑅2 ); 𝑅3 = (𝑥 1 : 𝜏1 ← 𝑅1 ; 𝑥 2 : 𝜏2 ← 𝑅2 ; 𝑅3 ) : 𝐼 → 𝜏3
+                                              
+
+
+         Δ; Γ ⊢ 𝑅1 : 𝐼 → 𝜏1         Δ; Γ ⊢ 𝑅2 : 𝐼 → 𝜏2             Δ; Γ, 𝑥 1 : 𝜏1, 𝑥 2 : 𝜏2 ⊢ 𝑆 : 𝐼 → 𝜎
+                                                                                                          exch
+       Δ; Γ ⊢ (𝑥 1 : 𝜏1 ← 𝑅1 ; 𝑥 2 : 𝜏2 ← 𝑅2 ; 𝑆) = (𝑥 2 : 𝜏2 ← 𝑅2 ; 𝑥 1 : 𝜏1 ← 𝑅1 ; 𝑆) : 𝐼 → 𝜎
+
+                                  Γ ⊢𝑑 :𝜏         Δ; Γ ⊢ 𝑆 : 𝐼 → 𝜎
+                                                                                samp-pure
+                          Δ; Γ ⊢ (𝑥 : 𝜏 ← samp (𝐷); 𝑆) = 𝑆 : 𝐼 → 𝜎
+
+                         𝑖 :𝜏 ∈ Δ        𝑖∈𝐼         Δ; Γ, 𝑥 : 𝜏, 𝑦 : 𝜏 ⊢ 𝑆 : 𝜎
+                                                                                     read-det
+      Δ; Γ ⊢ (𝑥 : 𝜏 ← read 𝑖; 𝑦 : 𝜏 ← read 𝑖; 𝑆) = 𝑥 : 𝜏 ← read 𝑖; 𝑆 [𝑦 B 𝑥] : 𝐼 → 𝜎
+                                                                            
+
+                                                                                                     flip-unif
+       Δ; Γ ⊢ (𝑥 ← samp (flip); if 𝑥 then false else true) = samp (flip) : 𝐼 → bool
+
+                              Δ; Γ ⊢ 𝑅1 : 𝐼 → 𝜏          Δ; Γ ⊢ 𝑅2 : 𝐼 → 𝜏
+                                                                                   if-left
+                            Δ; Γ ⊢ if true then 𝑅1 else 𝑅2 = 𝑅1 : 𝐼 → 𝜏
+
+                             Δ; Γ ⊢ 𝑅1 : 𝐼 → 𝜏          Δ; Γ ⊢ 𝑅2 : 𝐼 → 𝜏
+                                                                                   if-right
+                           Δ; Γ ⊢ if false then 𝑅1 else 𝑅2 = 𝑅2 : 𝐼 → 𝜏
+
+                             Δ; Γ, 𝑥 : bool ⊢ 𝑅 : 𝐼 → 𝜏             Γ ⊢ 𝑒 : bool
+                                                                                                 if-ext
+              Δ; Γ ⊢ 𝑅 [𝑥 B 𝑒] = if 𝑒 then 𝑅 [𝑥 B true] else 𝑅(𝑥 B false) : 𝐼 → 𝜏
+
+                                      Fig. 15. Equality for IPDL reactions.
+
+
+
+
+B     SOUNDNESS FOR IPDL
+We prove soundness for IPDL through proving soundness for the exact fragment (Lemma 4.19),
+then proving soundness for the approximate fragment (Lemma 4.17).
+
+B.1     Soundness for Exact Fragment
+Throughout, we use an implicit interpretation I, interpreting the semantics J·K. Soundness of
+equality at the expression level means that if we substitute the same valued expression for each
+free variable, the resulting closed expressions will compute to the same value:
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:28                                     Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+  Definition B.1. An axiom Γ ⊢ 𝑒 1 = 𝑒 2 : 𝜏 is sound if for any valued substitution 𝜃 : · → Γ, we
+have that 𝜃 ★ (𝑒 1 ) ⇓ 𝑣 and 𝜃 ★ (𝑒 2 ) ⇓ 𝑣 for the same value 𝑣 ∈ {0, 1}J𝜏 K .
+The ambient IPDL theory for expressions is said to be sound if each of its axioms is sound. It is
+straightforward to show that this implies overall soundness:
+   Lemma B.2 (Soundness of eqality of expressions). If the ambient IPDL theory for expressions
+is sound, then for any equal expressions Γ ⊢ 𝑒 1 = 𝑒 2 : 𝜏 and any valued substitution 𝜃 : · → Γ, we have
+that 𝜃 ★ (𝑒 1 ) ⇓ 𝑣 and 𝜃 ★ (𝑒 1 ) ⇓ 𝑣 for the same value 𝑣 ∈ {0, 1}J𝜏 K .
+   At the reaction level, two equal reactions should behave in a way that is indistinguishable by
+an external observer. We formally capture this notion of indistinguishability by a logical relation
+known as a bisimulation – a binary relation on measures on reactions that satisfies certain closure
+properties, together with the crucial valuation property that allows us to jointly partition two
+related measures so that any two corresponding components are again related and have the same
+value: a reaction 𝑅 is said to have value 𝑣 if 𝑅 is of the form val 𝑣 (otherwise the value is undefined),
+and we lift this notion to measures on reactions in the obvious way. At the reaction level, we only
+require the valuation property for measures that are final, i.e., no reaction in the support steps.
+   We work with (finitely-supported) measures rather than just distributions purely out of conve-
+nience; importantly, however, we rule out the zero measure. We denote the total measure assigned
+by a measure 𝜂 to the set of all reactions by Σ 𝜂.
+  Definition B.3 (Reaction bisimulation). A reaction bisimulation ∼ is a binary relation on measures
+on reactions Δ; · ⊢ 𝑅 : 𝐼 → 𝜏 satisfying the following conditions:
+    • Closure under input assignment: For any measures 𝜂 ∼ 𝜀, input channel 𝑖 ∈ 𝐼 of type 𝜏, and
+      value 𝑣 ∈ {0, 1}J𝜏 K , we have 𝜂 [read 𝑖 B val 𝑣] ∼ 𝜀 [read 𝑖 B val 𝑣].
+    • Closure under computation: For any measures 𝜂 ∼ 𝜀, if 𝜂 ⇓ 𝜂 ′ and 𝜀 ⇓ 𝜀 ′ , then 𝜂 ′ ∼ 𝜀 ′ .
+    • Measure property: For any measures 𝜂 ∼ 𝜀, we have Σ 𝜂 = Σ 𝜀.
+    • Valuation property: For any measures 𝜂 ∼ 𝜀 that are final, there exists a joint sum
+                                             ∑︁        ∑︁
+                                         𝜂=     𝜂𝑖 ∼      𝜀𝑖 = 𝜀
+                                                    𝑖           𝑖
+        such that
+        – the respective components 𝜂𝑖 ∼ 𝜀𝑖 are again related, and
+        – the measures 𝜂𝑖 and 𝜀 𝑗 have the same value 𝑣, or lack thereof, if and only if 𝑖 = 𝑗.
+Crucially, we note that the joint sum in the valuation property is unique up to the order of the
+summands.
+   Lemma B.4. We have the following:
+    • The identity relation is a reaction bisimulation.
+    • The inverse of a reaction bisimulation is a reaction bisimulation.
+    • The composition of two reaction bisimulations is a reaction bisimulation.
+We now describe one canonical way to construct reaction bisimulations:
+  Definition B.5. Let ∼ be an arbitrary binary relation on measures on reactions Δ; · ⊢ 𝑅 : 𝐼 → 𝜏.
+The lifting ∼ L is the closure of ∼ under joint linear combinations. Explicitly, ∼ L is defined by
+                                       ∑︁              ∑︁
+                                            𝑐 𝑖 𝜂𝑖 ∼ L    𝑐 𝑖 𝜀𝑖
+                                                𝑖                   𝑖
+for coefficients 𝑐𝑖 > 0 and measures 𝜂𝑖 ∼ 𝜀𝑖 .
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                 30:29
+
+
+  Lemma B.6. Let ∼ be a binary relation on measures on reactions Δ; · ⊢ 𝑅 : 𝐼 → 𝜏 with the following
+properties:
+    • Closure under input assignment: For any measures 𝜂 ∼ 𝜀, input channel 𝑖 ∈ 𝐼 of type 𝜏, and
+      value 𝑣 ∈ {0, 1}J𝜏 K , we have 𝜂 [read 𝑖 B val 𝑣] ∼ 𝜀 [read 𝑖 B val 𝑣].
+    • Lifting closure under computation: For any measures 𝜂 ∼ 𝜀, if 𝜂 ⇓ 𝜂 ′ and 𝜀 ⇓ 𝜀 ′ , then 𝜂 ′ ∼ L 𝜀 ′ .
+    • Measure property: For any measures 𝜂 ∼ 𝜀, we have Σ 𝜂 = Σ 𝜀.
+    • Valuation property: For any measures 𝜂 ∼ 𝜀 that are final, there exists a joint sum
+                                              ∑︁       ∑︁
+                                         𝜂=      𝜂𝑖 ∼      𝜀𝑖 = 𝜀
+                                                   𝑖           𝑖
+      such that
+     – the respective components 𝜂𝑖 ∼ 𝜀𝑖 are again related, and
+     – the measures 𝜂𝑖 and 𝜀 𝑗 have the same value 𝑣, or lack thereof, if and only if 𝑖 = 𝑗.
+Then the lifting ∼ L is a reaction bisimulation.
+  Example B.7. If the expressions · ⊢ 𝑒 1 : 𝜎 and · ⊢ 𝑒 2 : 𝜎 evaluate to the same value 𝑣 ∈ {0, 1}J𝜎 K ,
+then the relation ∼ defined by
+    • unit(𝑅(𝑥 B 𝑒 1 )) ∼ unit(𝑅(𝑥 B 𝑒 2 )) for reaction Δ; 𝑥 : 𝜎 ⊢ 𝑅 : 𝐼 → 𝜏
+satisfies the hypotheses of Lemma B.6. In particular, ∼ L is a reaction bisimulation.
+Having defined reaction bisimulations, we can now formally state what it means for reaction
+equality to be sound:
+  Definition B.8. An axiom Δ; Γ ⊢ 𝑅1 = 𝑅2 : 𝐼 → 𝜏 is sound if there is a reaction bisimulation ∼
+such that for any valued substitution 𝜃 : · → Γ, we have unit(𝜃 ★ (𝑅1 )) ∼ unit(𝜃 ★ (𝑅2 )).
+The ambient IPDL theory for reactions is said to be sound if each of its axioms is sound. We now
+show that this implies overall soundness:
+   Lemma B.9 (Soundness of eqality of reactions). If the ambient IPDL theory for reactions
+is sound, then for any equal reactions Δ; Γ ⊢ 𝑅1 = 𝑅2 : 𝐼 → 𝜏, there exists a reaction bisimulation ∼
+such that for any valued substitution 𝜃 : · → Γ, we have unit(𝜃 ★ (𝑅1 )) ∼ unit(𝜃 ★ (𝑅2 )).
+  Proof. We first replace the exchange rule exch by the three rules exch-samp-samp, exch-samp-
+read, and exch-read-read in Figure 16; it is easy to see that this new set of rules is equivalent to
+the original one. We now proceed by induction on the alternative set of rules for reaction equality.
+We will freely use a measure in place of a value (rule exch-samp-read) or a reaction (rules embed,
+cong-bind) to indicate the obvious lifting of the corresponding construct to measures on reactions.
+    • refl: Our desired bisimulation is the identity relation.
+    • sym: Our desired bisimulation is the inverse of the bisimulation obtained from the premise.
+    • trans: Our desired bisimulation is the composition of the two bisimulations obtained from
+      the two premises.
+    • axiom: The desired bisimulation exists by assumption.
+    • subst: Our desired bisimulation is precisely the bisimulation obtained from the premise.
+    • embed: Let ∼ be the bisimulation obtained from the premise. Our desired bisimulation ∼𝜙 is
+      defined by
+      – 𝜙 ★ (𝜂) ∼𝜙 𝜙 ★ (𝜀) if 𝜂 ∼ 𝜀
+    • input-unused: Our desired bisimulation is precisely the bisimulation obtained from the
+      premise, seen as a bisimulation on measures on reactions with the additional input 𝑖.
+    • cong-ret: Our desired bisimulation is the lifting of the relation ∼ defined by
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:30                                     Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+      – unit(ret (𝑒)) ∼ unit(ret (𝑒 ′ )) for
+        ∗ expressions · ⊢ 𝑒 : 𝜏 and · ⊢ 𝑒 ′ : 𝜏, and value 𝑣 ∈ {0, 1}J𝜏 K such that 𝑒 ⇓ 𝑣 and 𝑒 ′ ⇓ 𝑣
+      – unit(val 𝑣) ∼ unit(val 𝑣) for value 𝑣 ∈ {0, 1}J𝜏 K
+    • cong-samp: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(samp ((d 𝑒))) ∼ unit(samp ((d 𝑒 ′ ))) for
+        ∗ expressions · ⊢ 𝑒 : 𝜎 and · ⊢ 𝑒 ′ : 𝜎, and value 𝑣 ∈ {0, 1}J𝜎 K such that 𝑒 ⇓ 𝑣 and 𝑒 ′ ⇓ 𝑣
+      – unit(val 𝑣) ∼ unit(val 𝑣) for value 𝑣 ∈ {0, 1}J𝜏 K
+    • cong-if: Let ∼1 and ∼2 be the two bisimulations obtained from the two premises. Our desired
+      bisimulation is the lifting of the relation ∼if defined by
+      – unit(if 𝑒 then 𝑅1 else 𝑅2 ) ∼if unit(if 𝑒 ′ then 𝑅1′ else 𝑅2′ ) for
+        ∗ expressions · ⊢ 𝑒 : bool and · ⊢ 𝑒 ′ : bool, and value 𝑣 ∈ {0, 1} such that 𝑒 ⇓ 𝑣 and 𝑒 ′ ⇓ 𝑣
+        ∗ reactions Δ; · ⊢ 𝑅1 : 𝐼 → 𝜏 and Δ; · ⊢ 𝑅1′ : 𝐼 → 𝜏 such that unit(𝑅1 ) ∼1 unit(𝑅1′ )
+        ∗ reactions Δ; · ⊢ 𝑅2 : 𝐼 → 𝜏 and Δ; · ⊢ 𝑅2′ : 𝐼 → 𝜏 such that unit(𝑅2 ) ∼2 unit(𝑅2′ )
+      – 𝜂 1 ∼if 𝜂 1′ if 𝜂 1 ∼1 𝜂 1′
+      – 𝜂 2 ∼if 𝜂 2′ if 𝜂 2 ∼2 𝜂 2′
+    • cong-bind: Let ∼1 and ∼2 be the two bisimulations obtained from the two premises. Our
+      desired bisimulation is the lifting of the relation ∼bind defined by
+      – (𝑥 ← 𝜂; 𝑆) ∼bind (𝑥 ← 𝜂 ′ ; 𝑆 ′ ) for
+        ∗ measures 𝜂 ∼1 𝜂 ′
+        ∗ reactions Δ; 𝑥 : 𝜎 ⊢ 𝑆 : 𝐼 → 𝜏 and Δ; 𝑥 : 𝜎 ⊢ 𝑆 ′ : 𝐼 → 𝜏 such that for any value
+           𝑣 ∈ {0, 1}J𝜎 K , we have unit(𝑆 (𝑥 B 𝑣)) ∼2 unit(𝑆 ′ (𝑥 B 𝑣))
+      – 𝜀 ∼bind 𝜀 ′ if 𝜀 ∼2 𝜀 ′
+    • ret-bind: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(𝑥 ← ret (𝑒); 𝑅) ∼ unit(𝑅(𝑥 B 𝑒)) for expression · ⊢ 𝑒 : 𝜎 and reaction Δ; 𝑥 : 𝜎 ⊢ 𝑅 :
+        𝐼 →𝜏
+      – unit(𝑅(𝑥 B 𝑣)) ∼ unit(𝑅(𝑥 B 𝑒)) for
+        ∗ reaction Δ; 𝑥 : 𝜎 ⊢ 𝑅 : 𝐼 → 𝜏
+        ∗ expression · ⊢ 𝑒 : 𝜎 and value 𝑣 ∈ {0, 1}J𝜎 K such that 𝑒 ⇓ 𝑣
+    • bind-ret: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(𝑥 ← 𝑅; ret (𝑥)) ∼ unit(𝑅) for reaction Δ; · ⊢ 𝑅 : 𝐼 → 𝜏
+      – unit(val 𝑣) ∼ unit(val 𝑣) for value 𝑣 ∈ {0, 1}J𝜏 K
+    • bind-bind: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(𝑥 2 ← (𝑥 1 ← 𝑅1 ; 𝑅2 ); 𝑆) ∼ unit(𝑥 1 ← 𝑅1 ; 𝑥 2 ← 𝑅2 ; 𝑆) for
+        ∗ reaction Δ; · ⊢ 𝑅1 : 𝐼 → 𝜎1
+        ∗ reaction Δ; 𝑥 1 : 𝜎1 ⊢ 𝑅2 : 𝐼 → 𝜎2
+        ∗ reaction Δ; 𝑥 2 : 𝜎2 ⊢ 𝑆 : 𝐼 → 𝜏
+      – unit(𝑥 2 ← 𝑅2 ; 𝑆) ∼ unit(𝑥 2 ← 𝑅2 ; 𝑆) for
+        ∗ reaction Δ; · ⊢ 𝑅2 : 𝐼 → 𝜎2
+        ∗ reaction Δ; 𝑥 2 : 𝜎2 ⊢ 𝑆 : 𝐼 → 𝜏
+      – unit(𝑆) ∼ unit(𝑆) for reaction Δ; · ⊢ 𝑆 : 𝐼 → 𝜏
+    • samp-pure: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(𝑥 ← samp ((d 𝑒)); 𝑅) ∼ unit(𝑅) for reaction Δ; · ⊢ 𝑅 : 𝐼 → 𝜏
+      – unit(𝑅) ∼ unit(𝑅) for reaction Δ; · ⊢ 𝑅 : 𝐼 → 𝜏
+    • read-det: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(𝑥 ← read 𝑖; 𝑦 ← read 𝑖; 𝑅) ∼ unit(𝑥 ← read 𝑖; 𝑅(𝑦 B 𝑥)) for reaction Δ; 𝑥 : 𝜎, 𝑦 :
+        𝜎 ⊢𝑅 :𝐼 →𝜏
+      – unit(𝑥 ← val 𝑣; 𝑦 ← val 𝑣; 𝑅) ∼ unit(𝑥 ← val 𝑣; 𝑅(𝑦 B 𝑥)) for
+
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                 30:31
+
+
+        ∗ reaction Δ; 𝑥 : 𝜎, 𝑦 : 𝜎 ⊢ 𝑅 : 𝐼 → 𝜏
+        ∗ value 𝑣 ∈ {0, 1}J𝜎 K
+      – unit(𝑅) ∼ unit(𝑅) for reaction Δ; · ⊢ 𝑅 : 𝐼 → 𝜏
+    • if-left: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(if true then 𝑅1 else 𝑅2 ) ∼ unit(𝑅1 ) for reactions Δ; · ⊢ 𝑅1 : 𝐼 → 𝜏 and Δ; · ⊢ 𝑅2 : 𝐼 → 𝜏
+      – unit(𝑅1 ) ∼ unit(𝑅1 ) for reaction Δ; · ⊢ 𝑅1 : 𝐼 → 𝜏
+    • if-right: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(if false then 𝑅1 else 𝑅2 ) ∼ unit(𝑅2 ) for valued reactions Δ; · ⊢ 𝑅1 : 𝐼 → 𝜏 and
+        Δ; · ⊢ 𝑅2 : 𝐼 → 𝜏
+      – unit(𝑅2 ) ∼ unit(𝑅2 ) for reaction Δ; · ⊢ 𝑅2 : 𝐼 → 𝜏
+    • if-ext: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(𝑅(𝑥 B 𝑒)) ∼ unit(if 𝑒 then 𝑅(𝑥 B true) else 𝑅(𝑥 B false)) for
+        ∗ reaction Δ; 𝑥 : bool ⊢ 𝑅 : 𝐼 → 𝜏
+        ∗ expression · ⊢ 𝑒 : bool
+      – unit(𝑅(𝑥 B 𝑒)) ∼ unit(𝑅(𝑥 B true)) for
+        ∗ reaction Δ; 𝑥 : bool ⊢ 𝑅 : 𝐼 → 𝜏
+        ∗ expression · ⊢ 𝑒 : bool such that 𝑒 ⇓ 1
+      – unit(𝑅(𝑥 B 𝑒)) ∼ unit(𝑅(𝑥 B false)) for
+        ∗ reaction Δ; 𝑥 : bool ⊢ 𝑅 : 𝐼 → 𝜏
+        ∗ expression · ⊢ 𝑒 : bool such that 𝑒 ⇓ 0
+    • exch-samp-samp: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(𝑥 1 ← samp ((d1 𝑒 1 )); 𝑥 2 ← samp ((d2 𝑒 2 )); ret ((𝑥 1, 𝑥 2 ))) ∼
+        unit(𝑥 2 ← samp ((d2 𝑒 2 )); 𝑥 1 ← samp ((d1 𝑒 1 )); ret ((𝑥 1, 𝑥 2 ))) for
+        ∗ expressions · ⊢ 𝑒 1 : 𝜎1 and · ⊢ 𝑒 2 : 𝜎2
+      – unit(val 𝑣 1𝑣 2 ) ∼ unit(val 𝑣 1𝑣 2 ) for values 𝑣 1 ∈ {0, 1}J𝜏1 K and 𝑣 2 ∈ {0, 1}J𝜏2 K
+    • exch-samp-read: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(𝑥 1 ← samp ((d 𝑒)); 𝑥 2 ← read 𝑖; ret ((𝑥 1, 𝑥 2 ))) ∼ unit(𝑥 2 ← read 𝑖; 𝑥 1 ←
+        samp ((d 𝑒)); ret ((𝑥 1, 𝑥 2 ))) for
+        ∗ expression · ⊢ 𝑒 : 𝜎
+      – unit(𝑥 1 ← samp ((d 𝑒)); 𝑥 2 ← val 𝑣 2 ; ret ((𝑥 1, 𝑥 2 ))) ∼ unit(𝑥 2 ← val 𝑣 2 ; 𝑥 1 ←
+        samp ((d 𝑒)); ret ((𝑥 1, 𝑥 2 ))) for
+        ∗ expression · ⊢ 𝑒 : 𝜎
+        ∗ value 𝑣 2 ∈ {0, 1}J𝜏2 K              
+      – 𝑥 2 ← read 𝑖; ret ((JdK(𝑣), 𝑥 2 )) ∼ unit(𝑥 2 ← read 𝑖; 𝑥 1 ← samp ((d 𝑒)); ret ((𝑥 1, 𝑥 2 )))
+        for
+        ∗ expression · ⊢ 𝑒 : 𝜎 and value 𝑣 ∈ {0, 1}J𝜎 K such that 𝑒 ⇓ 𝑣
+      – 𝑥 2 ← val 𝑣 2 ; ret ((JdK(𝑣), 𝑥 2 )) ∼ unit(𝑥 2 ← val 𝑣 2 ; 𝑥 1 ← samp ((d 𝑒)); ret ((𝑥 1, 𝑥 2 )))
+        for
+        ∗ expression · ⊢ 𝑒 : 𝜎 and value 𝑣 ∈ {0, 1}J𝜎 K such that 𝑒 ⇓ 𝑣
+        ∗ value 𝑣 2 ∈ {0, 1}J𝜏2 K
+      – unit(val 𝑣 1𝑣 2 ) ∼ unit(val 𝑣 1𝑣 2 ) for values 𝑣 1 ∈ {0, 1}J𝜏1 K and 𝑣 2 ∈ {0, 1}J𝜏2 K
+    • exch-read-read: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(𝑥 1 ← read 𝑖 1 ; 𝑥 2 ← read 𝑖 2 ; ret ((𝑥 1, 𝑥 2 ))) ∼ unit(𝑥 2 ← read 𝑖 2 ; 𝑥 1 ← read 𝑖 1 ; ret ((𝑥 1, 𝑥 2 )))
+      – unit(𝑥 1 ← val 𝑣 1 ; 𝑥 2 ← read 𝑖 2 ; ret ((𝑥 1, 𝑥 2 ))) ∼ unit(𝑥 2 ← read 𝑖 2 ; 𝑥 1 ← val 𝑣 1 ; ret ((𝑥 1, 𝑥 2 )))
+        for
+        ∗ value 𝑣 1 ∈ {0, 1}J𝜏1 K
+
+
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:32                                       Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+        – unit(𝑥 1 ← read 𝑖 1 ; 𝑥 2 ← val 𝑣 2 ; ret ((𝑥 1, 𝑥 2 ))) ∼ unit(𝑥 2 ← val 𝑣 2 ; 𝑥 1 ← read 𝑖 1 ; ret ((𝑥 1, 𝑥 2 )))
+          for
+          ∗ value 𝑣 2 ∈ {0, 1}J𝜏2 K
+        – unit(𝑥 1 ← val 𝑣 1 ; 𝑥 2 ← val 𝑣 2 ; ret ((𝑥 1, 𝑥 2 ))) ∼ unit(𝑥 2 ← val 𝑣 2 ; 𝑥 1 ← val 𝑣 1 ; ret ((𝑥 1, 𝑥 2 )))
+          for
+          ∗ values 𝑣 1 ∈ {0, 1}J𝜏1 K and 𝑣 2 ∈ {0, 1}J𝜏2 K
+        – unit(𝑥 2 ← read 𝑖 2 ; ret ((𝑣 1, 𝑥 2 ))) ∼ unit(𝑥 2 ← read 𝑖 2 ; 𝑥 1 ← val 𝑣 1 ; ret ((𝑥 1, 𝑥 2 ))) for
+          value 𝑣 1 ∈ {0, 1}J𝜏1 K
+        – unit(𝑥 1 ← read 𝑖 1 ; 𝑥 2 ← val 𝑣 2 ; ret ((𝑥 1, 𝑥 2 ))) ∼ unit(𝑥 1 ← read 𝑖 1 ; ret ((𝑥 1, 𝑣 2 ))) for
+          value 𝑣 2 ∈ {0, 1}J𝜏2 K
+        – unit(𝑥 2 ← val 𝑣 2 ; ret ((𝑣 1, 𝑥 2 ))) ∼ unit(𝑥 2 ← val 𝑣 2 ; 𝑥 1 ← val 𝑣 1 ; ret ((𝑥 1, 𝑥 2 ))) for
+          ∗ values 𝑣 1 ∈ {0, 1}J𝜏1 K and 𝑣 2 ∈ {0, 1}J𝜏2 K
+        – unit(𝑥 1 ← val 𝑣 1 ; 𝑥 2 ← val 𝑣 2 ; ret ((𝑥 1, 𝑥 2 ))) ∼ unit(𝑥 1 ← val 𝑣 1 ; ret ((𝑥 1, 𝑣 2 ))) for
+          ∗ values 𝑣 1 ∈ {0, 1}J𝜏1 K and 𝑣 2 ∈ {0, 1}J𝜏2 K
+        – unit(val 𝑣 1𝑣 2 ) ∼ unit(val 𝑣 1𝑣 2 ) for values 𝑣 1 ∈ {0, 1}J𝜏1 K and 𝑣 2 ∈ {0, 1}J𝜏2 K
+                                                                                                                      □
+
+
+              d1 : 𝜎1 → 𝜏1, d2 : 𝜎2 → 𝜏2 ∈ Σ                 Γ ⊢ 𝑒 1 : 𝜎1    Γ ⊢ 𝑒 2 : 𝜎2
+                                                                                           exch-samp-samp
+  Δ; Γ ⊢ 𝑥 1 : 𝜏1 ← samp ((d1 𝑒 1 )); 𝑥 2 : 𝜏2 ← samp ((d2 𝑒 2 )); ret ((𝑥
+                                                                                       
+                                                                             1, 𝑥 2 )) =
+ 𝑥 2 : 𝜏2 ← samp ((d2 𝑒 2 )); 𝑥 1 : 𝜏1 ← samp ((d1 𝑒 1 )); ret ((𝑥 1, 𝑥 2 )) : 𝐼 → 𝜏1 × 𝜏2
+
+                  d : 𝜎 → 𝜏1 ∈ Σ           Γ ⊢𝑒 :𝜎             𝑖 : 𝜏2 ∈ Δ     𝑖∈𝐼
+                                                                                    exch-samp-read
+         Δ; Γ ⊢ 𝑥 1 : 𝜏1 → samp ((d 𝑒)); 𝑥 2 : 𝜏2 ← read 𝑖; ret ((𝑥
+                                                                                
+                                                                      1, 𝑥 2 )) =
+        𝑥 2 : 𝜏2 ← read 𝑖; 𝑥 1 : 𝜏1 ← samp ((d 𝑒)); ret ((𝑥 1, 𝑥 2 )) : 𝐼 → 𝜏1 × 𝜏2
+
+                                𝑖 1 : 𝜏1, 𝑖 2 : 𝜏2 ∈ Δ        𝑖 1, 𝑖 2 ∈ 𝐼
+                                                                                          exch-read-read
+    Δ; Γ ⊢ 𝑥 1 : 𝜏1 ← read 𝑖 1 ; 𝑥 2 : 𝜏2 ← read 𝑖 2 ; ret ((𝑥 1, 𝑥 2 )) =
+                                                                        
+              𝑥 2 : 𝜏2 ← read 𝑖 2 ; 𝑥 1 : 𝜏1 ← read 𝑖 1 ; ret ((𝑥 1, 𝑥 2 )) : 𝐼 → 𝜏1 × 𝜏2
+
+                     Fig. 16. Alternative formulation of the exch rule for reaction equality.
+
+
+   At last we get to the protocol level. A protocol bisimulation is entirely analogous to a reaction
+bisimulation, except we require the valuation property to hold: i) per output channel 𝑜, and ii) for
+all measures (not necessarily final).
+  Definition B.10 (Protocol bisimulation). A protocol bisimulation ∼ is a binary relation on measures
+on protocols Δ ⊢ 𝑃 : 𝐼 → 𝑂 satisfying the following conditions:
+   • Closure under input assignment: For any measures 𝜂 ∼ 𝜀, input channel 𝑖 ∈ 𝐼 of type 𝜏, and
+     value 𝑣 ∈ {0, 1}J𝜏 K , we have 𝜂 [read 𝑖 B val 𝑣] ∼ 𝜀 [read 𝑖 B val 𝑣].
+   • Closure under computation: For any measures 𝜂 ∼ 𝜀, if 𝜂 ⇓ 𝜂 ′ and 𝜀 ⇓ 𝜀 ′ , then 𝜂 ′ ∼ 𝜀 ′ .
+   • Measure property: For any measures 𝜂 ∼ 𝜀, we have Σ 𝜂 = Σ 𝜀.
+   • Valuation property: For any output channel 𝑜 ∈ 𝑂, and any measures 𝜂 ∼ 𝜀, there exists a
+      joint sum                             ∑︁        ∑︁
+                                        𝜂=     𝜂𝑖 ∼       𝜀𝑖 = 𝜀
+                                                         𝑖            𝑖
+        such that
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                 30:33
+
+
+       – the respective components 𝜂𝑖 ∼ 𝜀𝑖 are again related, and
+       – the measures 𝜂𝑖 and 𝜀 𝑗 have the same value 𝑣, or lack thereof, on 𝑜 if and only if 𝑖 = 𝑗.
+   Lemma B.11. We have the following:
+    • The identity relation is a protocol bisimulation.
+    • The inverse of a protocol bisimulation is a protocol bisimulation.
+    • The composition of two protocol bisimulations is a protocol bisimulation.
+  Definition B.12. Let ∼ be an arbitrary binary relation on measures on protocols Δ ⊢ 𝑃 : 𝐼 → 𝑂.
+The lifting ∼ L is the closure of ∼ under joint linear combinations. Explicitly, ∼ L is defined by
+                                       ∑︁              ∑︁
+                                            𝑐 𝑖 𝜂𝑖 ∼ L    𝑐 𝑖 𝜀𝑖
+                                               𝑖                   𝑖
+for coefficients 𝑐𝑖 > 0 and measures 𝜂𝑖 ∼ 𝜀𝑖 .
+  Lemma B.13. Let ∼ be a binary relation on measures on protocols Δ ⊢ 𝑃 : 𝐼 → 𝑂 with the following
+properties:
+    • Closure under input assignment: For any measures 𝜂 ∼ 𝜀, input channel 𝑖 ∈ 𝐼 of type 𝜏, and
+      value 𝑣 ∈ {0, 1}J𝜏 K , we have 𝜂 [read 𝑖 B val 𝑣] ∼ 𝜀 [read 𝑖 B val 𝑣].
+    • Lifting closure under computation: For any measures 𝜂 ∼ 𝜀, if 𝜂 ⇓ 𝜂 ′ and 𝜀 ⇓ 𝜀 ′ , then 𝜂 ′ ∼ L 𝜀 ′ .
+    • Measure property: For any measures 𝜂 ∼ 𝜀, we have Σ 𝜂 = Σ 𝜀.
+    • Valuation property: For any output channel 𝑜 ∈ 𝑂, and any measures 𝜂 ∼ 𝜀, there exists a joint
+      sum                                     ∑︁       ∑︁
+                                         𝜂=      𝜂𝑖 ∼      𝜀𝑖 = 𝜀
+                                                   𝑖           𝑖
+      such that
+     – the respective components 𝜂𝑖 ∼ 𝜀𝑖 are again related, and
+     – the measures 𝜂𝑖 and 𝜀 𝑗 have the same value 𝑣, or lack thereof, on 𝑜 if and only if 𝑖 = 𝑗.
+Then the lifting ∼ L is a protocol bisimulation.
+We can now formally state what it means for exact protocol equality to be sound:
+  Definition B.14. An axiom Δ ⊢ 𝑃 1 = 𝑃2 : 𝐼 → 𝑂 is sound if there is a protocol bisimulation ∼ such
+that unit(𝑃1 ) ∼ unit(𝑃2 ).
+The ambient IPDL theory for protocols is said to be sound if each of its axioms is sound. We now
+show that this implies overall soundness for exact equality:
+  Lemma B.15 (Soundness of exact eqality of protocols). If the ambient IPDL theory for
+protocols is sound, then for any equal protocols Δ ⊢ 𝑃1 = 𝑃2 : 𝐼 → 𝑂, there exists a protocol bisimulation
+∼ such that unit(𝑃 1 ) ∼ unit(𝑃2 ).
+   Proof. We first replace the rules fold-if-left and fold-if-right by the equivalent formulation
+in Figure 17. We now proceed by induction on this alternative set of rules for exact protocol
+equality. We will freely use a measure in place of a reaction (rule cong-react) or a protocol (rules
+embed, absorb-left) to indicate the obvious lifting of the corresponding construct to measures on
+protocols.
+    • refl: Our desired bisimulation is the identity relation.
+    • sym: Our desired bisimulation is the inverse of the bisimulation obtained from the premise.
+    • trans: Our desired bisimulation is the composition of the two bisimulations obtained from
+      the two premises.
+    • axiom: The desired bisimulation exists by assumption.
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:34                                     Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+    • embed: Let ∼ be the bisimulation obtained from the premise. Our desired bisimulation ∼𝜙 is
+      defined by
+      – 𝜙 ★ (𝜂) ∼𝜙 𝜙 ★ (𝜀) if 𝜂 ∼ 𝜀
+    • input-unused: Our desired bisimulation is precisely the bisimulation obtained from the
+      premise, seen as a bisimulation on measures on protocols with the additional input 𝑖.
+    • cong-react: Let ∼ be the reaction bisimulation obtained from the premise. Our desired
+      bisimulation is the lifting of the relation ∼react defined by
+      – (𝑜 B 𝜂) ∼react (𝑜 B 𝜂 ′ ) for measures 𝜂 ∼ 𝜂 ′
+      – unit(𝑜 B 𝑣) ∼react unit(𝑜 B 𝑣) for value 𝑣 ∈ {0, 1}J𝜏 K
+    • cong-comp-left: Let ∼ be the bisimulation obtained from the premise. Our desired bisimula-
+      tion is the lifting of the relation ∼par defined by
+      – (𝜂 || 𝑄) ∼par (𝜂 ′ || 𝑄) for 𝜂 ∼ 𝜂 ′ and protocol Δ ⊢ 𝑄 : 𝐼 ∪ 𝑂 1 → 𝑂 2
+    • cong-new: Let ∼ be the bisimulation obtained from the premise. Our desired bisimulation
+      ∼new is defined by
+      – (new 𝑜 : 𝜏 in 𝜂) ∼new (new 𝑜 : 𝜏 in 𝜂 ′ ) if 𝜂 ∼ 𝜂 ′
+    • comp-comm: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(𝑃1 || 𝑃2 ) ∼ unit(𝑃2 || 𝑃 1 ) for protocols Δ ⊢ 𝑃1 : 𝐼 ∪ 𝑂 2 → 𝑂 1 and Δ ⊢ 𝑃2 : 𝐼 ∪ 𝑂 1 → 𝑂 2
+    • comp-assoc:
+                     Our desired
+                                 bisimulationis the lifting of the relation ∼ defined by
+      – 1 (𝑃1 || 𝑃2 ) || 𝑃3 ∼ 1 𝑃1 || (𝑃2 || 𝑃3 ) for
+        ∗ protocol Δ ⊢ 𝑃1 : 𝐼 ∪ 𝑂 2 ∪ 𝑂 3 → 𝑂 1
+        ∗ protocol Δ ⊢ 𝑃 2 : 𝐼 ∪ 𝑂 1 ∪ 𝑂 3 → 𝑂 2
+        ∗ protocol Δ ⊢ 𝑃 3 : 𝐼 ∪ 𝑂 1 ∪ 𝑂 2 → 𝑂 3
+    • new-exch: The desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(new 𝑜 1 : 𝜏1 in new 𝑜 2 : 𝜏2 in 𝑃) ∼ unit(new 𝑜 2 : 𝜏2 in new 𝑜 1 : 𝜏1 in 𝑃) for
+        ∗ protocol Δ, 𝑜 1 : 𝜏1, 𝑜 2 : 𝜏2 ⊢ 𝑃 : 𝐼 → 𝑂 ∪ {𝑜 1, 𝑜 2 }
+    • comp-new: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(𝑃 || (new 𝑜 : 𝜏 in 𝑄)) ∼ unit(new 𝑜 : 𝜏 in (𝑃 || 𝑄)) for
+        ∗ protocol Δ ⊢ 𝑃 : 𝐼 ∪ 𝑂 2 → 𝑂 1
+        ∗ protocol Δ, 𝑜 : 𝜏 ⊢ 𝑄 : 𝐼 ∪ 𝑂 1 → 𝑂 2 ∪ {𝑜}
+    • absorb-left: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(𝑃 || 𝑄) ∼ unit(𝑃) for protocols Δ ⊢ 𝑃 : 𝐼 → 𝑂 and Δ ⊢ 𝑄 : 𝐼 ∪ 𝑂 → ∅
+    • diverge: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(𝑜 B 𝑥 ← read 𝑜; 𝑅) ∼ unit(𝑜 B read 𝑜) for reaction Δ; · ⊢ 𝑅 : 𝐼 ∪ {𝑜 } → 𝜏
+    • fold-if-left: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(new 𝑙 : 𝜏 in 𝑜 B 𝑥 ← read 𝑏; if 𝑥 then read 𝑙 else 𝑆 2 || 𝑙 B 𝑥 ← read 𝑏; 𝑆 1 ) ∼
+         unit(𝑜 B 𝑥 ← read 𝑏; if 𝑥 then 𝑆 1 else 𝑆 2 ) for
+        ∗ reaction Δ; · ⊢ 𝑆 1 : 𝐼 ∪ {𝑜 } → 𝜏
+        ∗ reaction Δ; · ⊢ 𝑆 2 : 𝐼 ∪ {𝑜 } → 𝜏
+      – unit(new 𝑙 : 𝜏 in 𝑜 B 𝑥 ← val 𝑣; if 𝑥 then read 𝑙 else 𝑆 2 || 𝑙 B 𝑥 ← val 𝑣; 𝑆 1 ) ∼
+         unit(𝑜 B 𝑥 ← val 𝑣; if 𝑥 then 𝑆 1 else 𝑆 2 ) for
+        ∗ value 𝑣 ∈ {0, 1}
+        ∗ reaction Δ; · ⊢ 𝑆 1 : 𝐼 ∪ {𝑜 } → 𝜏
+        ∗ reaction Δ; · ⊢ 𝑆 2 : 𝐼 ∪ {𝑜 } → 𝜏
+      – unit(new 𝑙 : 𝜏 in 𝑜 B read 𝑙 || 𝑙 B 𝑆 1 ) ∼ unit(𝑜 B 𝑆 1 ) for reaction Δ; · ⊢ 𝑆 1 : 𝐼 ∪ {𝑜} → 𝜏
+      – unit(new 𝑙 : 𝜏 in 𝑜 B 𝑆 2 || 𝑙 B 𝑆 1 ) ∼ unit(𝑜 B 𝑆 2 ) for
+        ∗ reaction Δ; · ⊢ 𝑆 1 : 𝐼 ∪ {𝑜 } → 𝜏
+        ∗ reaction Δ; · ⊢ 𝑆 2 : 𝐼 ∪ {𝑜 } → 𝜏
+
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                 30:35
+
+
+      – unit(new 𝑙 : 𝜏 in 𝑜 B 𝑣 2 || 𝑙 B 𝑆 1 ) ∼ unit(𝑜 B 𝑣 2 ) for
+        ∗ reaction Δ; · ⊢ 𝑆 1 : 𝐼 ∪ {𝑜 } → 𝜏
+        ∗ value 𝑣 2 ∈ {0, 1}J𝜏 K
+      – unit(new 𝑙 : 𝜏 in 𝑜 B 𝑆 2 || 𝑙 B 𝑣 1 ) ∼ unit(𝑜 B 𝑆 2 ) for
+        ∗ value 𝑣 1 ∈ {0, 1}J𝜏 K
+        ∗ reaction Δ; · ⊢ 𝑆 2 : 𝐼 ∪ {𝑜 } → 𝜏
+      – unit(new 𝑙 : 𝜏 in 𝑜 B 𝑣 2 || 𝑙 B 𝑣 1 ) ∼ unit(𝑜 B 𝑣 2 ) for values 𝑣 1, 𝑣 2 ∈ {0, 1}J𝜏 K
+    • fold-if-right: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(new 𝑟 : 𝜏 in 𝑜 B 𝑥 ← read 𝑏; if 𝑥 then 𝑆 1 else read 𝑟 || 𝑟 B 𝑥 ← read 𝑏; 𝑆 2 ) ∼
+        unit(𝑜 B 𝑥 ← read 𝑏; if 𝑥 then 𝑆 1 else 𝑆 2 ) for
+        ∗ reaction Δ; · ⊢ 𝑆 1 : 𝐼 ∪ {𝑜 } → 𝜏
+        ∗ reaction Δ; · ⊢ 𝑆 2 : 𝐼 ∪ {𝑜 } → 𝜏
+      – unit(new 𝑟 : 𝜏 in 𝑜 B 𝑥 ← val 𝑣; if 𝑥 then 𝑆 1 else read 𝑟 || 𝑟 B 𝑥 ← val 𝑣; 𝑆 2 ) ∼
+        unit(𝑜 B 𝑥 ← val 𝑣; if 𝑥 then 𝑆 1 else 𝑆 2 ) for
+        ∗ value 𝑣 ∈ {0, 1}
+        ∗ reaction Δ; · ⊢ 𝑆 1 : 𝐼 ∪ {𝑜 } → 𝜏
+        ∗ reaction Δ; · ⊢ 𝑆 2 : 𝐼 ∪ {𝑜 } → 𝜏
+      – unit(new 𝑟 : 𝜏 in 𝑜 B read 𝑟 || 𝑟 B 𝑆 2 ) ∼ unit(𝑜 B 𝑆 2 ) for reaction Δ; · ⊢ 𝑆 2 : 𝐼 ∪ {𝑜 } → 𝜏
+      – unit(new 𝑟 : 𝜏 in 𝑜 B 𝑆 1 || 𝑟 B 𝑆 2 ) ∼ unit(𝑜 B 𝑆 1 ) for
+        ∗ reaction Δ; · ⊢ 𝑆 1 : 𝐼 ∪ {𝑜 } → 𝜏
+        ∗ reaction Δ; · ⊢ 𝑆 2 : 𝐼 ∪ {𝑜 } → 𝜏
+      – unit(new 𝑟 : 𝜏 in 𝑜 B 𝑣 1 || 𝑟 B 𝑆 2 ) ∼ unit(𝑜 B 𝑣 1 ) for
+        ∗ value 𝑣 1 ∈ {0, 1}J𝜏 K
+        ∗ reaction Δ; · ⊢ 𝑆 2 : 𝐼 ∪ {𝑜 } → 𝜏
+      – unit(new 𝑟 : 𝜏 in 𝑜 B 𝑆 1 || 𝑟 B 𝑣 2 ) ∼ unit(𝑜 B 𝑆 1 ) for
+        ∗ reaction Δ; · ⊢ 𝑆 1 : 𝐼 ∪ {𝑜 } → 𝜏
+        ∗ value 𝑣 2 ∈ {0, 1}J𝜏 K
+      – unit(new 𝑟 : 𝜏 in 𝑜 B 𝑣 1 || 𝑟 B 𝑣 2 ) ∼ unit(𝑜 B 𝑣 1 ) for values 𝑣 1, 𝑣 2 ∈ {0, 1}J𝜏 K
+    • fold-bind: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(new 𝑐 : 𝜏1 in 𝑜 B 𝑥 ← read 𝑐; 𝑅2 || 𝑐 B 𝑅1 ) ∼ unit(𝑜 B 𝑥 ← 𝑅1 ; 𝑅2 ) for
+        ∗ reaction Δ; · ⊢ 𝑅1 : 𝐼 ∪ {𝑜 } → 𝜏1
+        ∗ reaction Δ; 𝑥 : 𝜏1 ⊢ 𝑅2 : 𝐼 ∪ {𝑜} → 𝜏2
+      – unit(new 𝑐 : 𝜏1 in 𝑜 B 𝑅2 || 𝑐 B 𝑣 1 ) ∼ unit(𝑜 B 𝑅2 ) for
+        ∗ value 𝑣 1 ∈ {0, 1}J𝜏1 K
+        ∗ reaction Δ; · ⊢ 𝑅2 : 𝐼 ∪ {𝑜 } → 𝜏2
+      – unit(new 𝑐 : 𝜏1 in 𝑜 B 𝑣 2 || 𝑐 B 𝑣 1 ) ∼ unit(𝑜 B 𝑣 2 ) for
+        ∗ values 𝑣 1 ∈ {0, 1}J𝜏1 K and 𝑣 2 ∈ {0, 1}J𝜏2 K
+    • subsume: Our desired bisimulation is the lifting of the relation ∼ defined by
+      – unit(𝑜 1 B 𝑥 0 ← read 𝑜 0 ; 𝑅1 || 𝑜 2 B 𝑥 0 ← read 𝑜 0 ; 𝑥 1 ← read 𝑜 1 ; 𝑅2 ) ∼
+        unit(𝑜 1 B 𝑥 0 ← read 𝑜 0 ; 𝑅1 || 𝑜 2 B 𝑥 1 ← read 𝑜 1 ; 𝑅2 ) for
+        ∗ reaction Δ; 𝑥 0 : 𝜏0 ⊢ 𝑅1 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏1
+        ∗ reaction Δ; 𝑥 1 : 𝜏1 ⊢ 𝑅2 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏2
+      – unit(𝑜 1 B 𝑥 0 ← val 𝑣 0 ; 𝑅1 || 𝑜 2 B 𝑥 0 ← val 𝑣 0 ; 𝑥 1 ← read 𝑜 1 ; 𝑅2 ) ∼
+        unit(𝑜 1 B 𝑥 0 ← val 𝑣 0 ; 𝑅1 || 𝑜 2 B 𝑥 1 ← read 𝑜 1 ; 𝑅2 ) for
+        ∗ value 𝑣 0 ∈ {0, 1}J𝜏0 K
+        ∗ reaction Δ; 𝑥 0 : 𝜏0 ⊢ 𝑅1 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏1
+        ∗ reaction Δ; 𝑥 1 : 𝜏1 ⊢ 𝑅2 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏2
+      – unit(𝑜 1 B 𝑅1 || 𝑜 2 B 𝑥 1 ← read 𝑜 1 ; 𝑅2 ) ∼ unit(𝑜 1 B 𝑅1 || 𝑜 2 B 𝑥 1 ← read 𝑜 1 ; 𝑅2 ) for
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:36                                     Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+         ∗ reaction Δ; · ⊢ 𝑅1 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏1
+         ∗ reaction Δ; 𝑥 1 : 𝜏1 ⊢ 𝑅2 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏2
+      – unit(𝑜 1 B 𝑣 1 || 𝑜 2 B 𝑅2 ) ∼ unit(𝑜 1 B 𝑣 1 || 𝑜 2 B 𝑅2 ) for
+         ∗ value 𝑣 1 ∈ {0, 1}J𝜏1 K
+         ∗ reaction Δ; · ⊢ 𝑅2 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏2
+      – unit(𝑜 1 B 𝑣 1 || 𝑜 2 B 𝑣 2 ) ∼ unit(𝑜 1 B 𝑣 1 || 𝑜 2 B 𝑣 2 ) for values 𝑣 1 ∈ {0, 1}J𝜏1 K and
+         𝑣 2 ∈ {0, 1}J𝜏2 K
+    • subst: Let ∼ be the reaction bisimulation obtained from the premise. Our desired bisimulation
+      is the lifting of the relation ∼subst defined
+                                                        by                               
+      – 𝑜 1 B 𝜂 || 𝑜 2 B 𝑥 1 ← read 𝑜 1 ; 𝑅2 ∼subst 𝑜 1 B 𝜂 || 𝑜 2 B 𝑥 1 ← 𝜂; 𝑅2 for
+         ∗ distribution 𝜂 on reactions Δ; · ⊢ 𝑅1 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏1
+         ∗ reaction Δ; · ⊢ 𝑅1 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏1 evaluating to the same distribution as 𝜂
+         ∗ reaction Δ; 𝑥 1 : 𝜏1 ⊢ 𝑅2 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏2
+         such that unit(𝑥 1 ← 𝑅1 ; 𝑥 1′ ← 𝑅1 ; ret ((𝑥 1, 𝑥 1′ ))) ∼ unit(𝑥 1 ← 𝑅1 ; ret ((𝑥 1, 𝑥 1 )))
+      – unit(𝑜 1 B 𝑣 1 || 𝑜 2 B 𝑅2 ) ∼subst unit(𝑜 1 B 𝑣 1 || 𝑜 2 B 𝑅2 ) for
+         ∗ value 𝑣 1 ∈ {0, 1}J𝜏1 K
+         ∗ reaction Δ; · ⊢ 𝑅2 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏2
+      – unit(𝑜 1 B 𝑣 1 || 𝑜 2 B 𝑣 2 ) ∼subst unit(𝑜 1 B 𝑣 1 || 𝑜 2 B 𝑣 2 ) for values 𝑣 1 ∈ {0, 1}J𝜏1 K and
+         𝑣 2 ∈ {0, 1}J𝜏2 K
+    • drop: Let ∼ be the reaction bisimulation obtained from the premise. Our desired bisimulation
+      is the lifting of the relation ∼drop defined     by                        
+      – 𝑜 1 B 𝜂 1 || 𝑜 2 B 𝑥 1 ← read 𝑜 1 ; 𝑅2 ∼drop 𝑜 1 B 𝜂 1 || 𝑜 2 B 𝜂 2 for
+         ∗ measure 𝜂 1 on reactions Δ; · ⊢ 𝑅1 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏1
+         ∗ reaction Δ; · ⊢ 𝑅1 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏1 such that
+            i) 𝑅1 either evaluates to the same distribution as 𝜂 1 , or
+           ii) there exists a measure 𝜂 1 on reactions Δ; · ⊢ 𝑅1 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏1 such that 𝑅1
+               evaluates to the same distribution as 𝜂 1 + 𝜂 1
+         ∗ distribution 𝜂 2 on reactions Δ; · ⊢ 𝑅2 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏2
+         ∗ reaction Δ; · ⊢ 𝑅2 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏2 evaluating to the same distribution as 𝜂 2
+         such that unit(𝑥 1 ← 𝑅1 ; 𝑅2 ) ∼ unit(𝑅2 )
+      – (𝑜 1 B 𝑣 1 || 𝑜 2 B 𝑅2 ) ∼drop (𝑜 1 B 𝑣 1 || 𝑜 2 B 𝑅2 ) for
+         ∗ value 𝑣 1 ∈ {0, 1}J𝜏1 K
+         ∗ reaction Δ; · ⊢ 𝑅2 : 𝐼 ∪ {𝑜 1, 𝑜 2 } → 𝜏2
+      – (𝑜 1 B 𝑣 1 || 𝑜 2 B 𝑣 2 ) ∼drop (𝑜 1 B 𝑣 1 || 𝑜 2 B 𝑣 2 ) for values 𝑣 1 ∈ {0, 1}J𝜏1 K and 𝑣 2 ∈ {0, 1}J𝜏2 K
+                                                                                                                 □
+
+
+   𝑜 ∉𝐼        𝑏∈𝐼         𝑏 : bool, 𝑜 : 𝜏 ∈ Δ        Δ; · ⊢ 𝑆 1 : 𝐼 ∪ {𝑜 } → 𝜏
+                                                                          Δ; · ⊢ 𝑆 2 : 𝐼 ∪ {𝑜 } → 𝜏
+ Δ ⊢ new 𝑙 : 𝜏 in 𝑜 B 𝑥 : bool ← read 𝑏; if 𝑥 then read 𝑙 else 𝑆2 || 𝑙 B 𝑥 : bool ← read 𝑏; 𝑆 1 =
+                                                                                                  
+                    𝑜 B 𝑥 : bool ← read 𝑏; if 𝑥 then 𝑆 1 else 𝑆 2 : 𝐼 → {𝑜}
+
+   𝑜 ∉𝐼        𝑏∈𝐼         𝑏 : bool, 𝑜 : 𝜏 ∈ Δ        Δ; · ⊢ 𝑆 1 : 𝐼 ∪ {𝑜 } → 𝜏
+                                                                          Δ; · ⊢ 𝑆 2 : 𝐼 ∪ {𝑜 } → 𝜏
+Δ ⊢ new 𝑟 : 𝜏 in 𝑜 B 𝑥 : bool ← read 𝑏; if 𝑥 then 𝑆 1 else read 𝑟 || 𝑟 B 𝑥 : bool ← read 𝑏; 𝑆 2 =
+                                                                                                  
+                  𝑜 B 𝑥 : bool ← read 𝑏; if 𝑥 then 𝑆 1 else 𝑆 2 : 𝐼 → {𝑜 }
+
+          Fig. 17. Alternative formulation of the rules fold-if-left(top) and fold-if-right(bottom).
+
+
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                 30:37
+
+
+   Definition B.16 (Sound exact theory). Fix a signature Σ and an interpretation I. An exact IPDL
+theory T is a triple (T𝑒 , T𝑟 , T𝑝 ) of expression-level, reaction-level, and protocol-level IPDL theories,
+respectively. The exact theory T is sound with respect to I, written I ⊨ T, if each of T𝑒 , T𝑟 , and T𝑝
+is sound with respect to I.
+
+B.2    Soundness for Approximate Fragment
+Recall that the equational theory for the approximate fragment is composed of two judgments:
+⊢ {Δ𝜆 ⊢ 𝑃𝜆 ≈𝜆 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 }, for top-level asymptotic equality against polynomial time adversaries,
+and Δ ⊢ 𝑃 1 ≈𝜆(𝑘,𝑙 ) 𝑃2 : 𝐼 → 𝑂, for soundness against a specific security parameter 𝜆. We begin with
+the latter.
+
+
+        Program Contexts         C     ::= ◦ | C [◦ : _ ∪ {𝑖} → _]
+                                         | C [𝜃 ★ (◦)] | C [◦ || 𝑄] | C [𝑃 || ◦] | C [new 𝑜 : 𝜏 in ◦]
+
+
+
+
+          C : (Δ1 ⊢ 𝐼 1 → 𝑂 1 ) → (Δ2 ⊢ 𝐼 2 → 𝑂 2 )                 ◦ : (Δ ⊢ 𝐼 → 𝑂) → (Δ ⊢ 𝐼 → 𝑂)
+
+                        𝑖 ∉ 𝐼 ∪𝑂          C : (Δ ⊢ 𝐼 ∪ {𝑖} → 𝑂) → (Δ★ ⊢ 𝐼★ → 𝑂★)
+                          C [◦ : _ ∪ {𝑖} → _] : (Δ ⊢ 𝐼 → 𝑂) → (Δ★ ⊢ 𝐼★ → 𝑂★)
+
+                 Δ ⊢ 𝑄 : 𝐼 ∪ 𝑂1 → 𝑂2            C : (Δ ⊢ 𝐼 → 𝑂 1 ∪ 𝑂 2 ) → (Δ★ ⊢ 𝐼★ → 𝑂★)
+                            C [◦ || 𝑄] : (Δ ⊢ 𝐼 ∪ 𝑂 2 → 𝑂 1 ) → (Δ★ ⊢ 𝐼★ → 𝑂★)
+
+                 Δ ⊢ 𝑃 : 𝐼 ∪ 𝑂2 → 𝑂1            C : (Δ ⊢ 𝐼 → 𝑂 1 ∪ 𝑂 2 ) → (Δ★ ⊢ 𝐼★ → 𝑂★)
+                            C [𝑃 || ◦] : (Δ ⊢ 𝐼 ∪ 𝑂 1 → 𝑂 2 ) → (Δ★ ⊢ 𝐼★ → 𝑂★)
+
+                                     C : (Δ1 ⊢ 𝐼 1 → 𝑂 1 ) → (Δ2 ⊢ 𝐼 2 → 𝑂 2 )
+                    C [new 𝑜 : 𝜏 in ◦] : (Δ1, 𝑜 : 𝜏 ⊢ 𝐼 → 𝑂 ∪ {𝑜 }) → (Δ2 ⊢ 𝐼 2 → 𝑂 2 )
+
+                   𝜃 : Δ1 → Δ2           C : (Δ1 ⊢ 𝜃 ★ (𝐼 ) → 𝜃 ★ (𝑂)) → (Δ★ ⊢ 𝐼★ → 𝑂★)
+                               C [𝜃 ★ (◦)] : (Δ2 ⊢ 𝐼 → 𝑂) → (Δ★ ⊢ 𝐼★ → 𝑂★)
+
+                                         Fig. 18. Typing for IPDL contexts.
+
+
+
+
+                                                           |◦| B0
+                                        |C [◦ : _ ∪ {𝑖} → _]| B |C| + 1
+                                                  |C [𝜃 ★ (◦)]| B |C|
+                                                  |C [◦ || 𝑄]| B |C| + |𝑄 |
+                                                   |C [𝑃 || ◦]| B |C| + |𝑃 |
+                                          |C [new 𝑜 : 𝜏 in ◦]| B |C|
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:38                                        Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+C       APPROXIMATE EQUIVALENCE
+For approximate equivalence of IPDL protocols, we assume a finite set T≈ of ambient approximate
+axioms of the form Δ ⊢ 𝑃 ≈ 𝑄 : 𝐼 → 𝑂. An approximate equivalence of two protocols Δ ⊢ 𝑃 : 𝐼 → 𝑂
+and Δ ⊢ 𝑄 : 𝐼 → 𝑂 with identical typing judgements takes the form of a judgement Δ ⊢ 𝑃 ≈ (𝑘,𝑙 ) 𝑄 :
+𝐼 → 𝑂, where 𝑘, 𝑙 are natural numbers. When we need to make the theory T≈ explicit, we write
+the judgement as T≈ ⇒ Δ ⊢ 𝑃 ≈ (𝑘,𝑙 ) 𝑄 : 𝐼 → 𝑂.
+   Definition C.1 (Errors). An error 𝜀 is a function N → N → [0, 1] that is monotonically increasing
+in both arguments. Given a signature Σ, an interpretation I, and two protocols Δ ⊢ 𝑃 : 𝐼 → 𝑂 and
+Δ ⊢ 𝑄 : 𝐼 → 𝑂 with identical typing judgements, we write I ⊨ Δ ⊢ 𝑃 ≈𝜀 𝑄 : 𝐼 → 𝑂 to mean that
+for any two natural numbers 𝑝, 𝑞 ∈ N, any program context C : (Δ ⊢ 𝐼 → 𝑂) → (Δ′ ⊢ 𝐼 ′ → 𝑂 ′ )
+bounded by 𝑝, and any distinguisher A for Δ′ ⊢ 𝐼 ′ → 𝑂 ′ bounded by 𝑞, we have
+                                   Pr[A (C [𝑃]) I ] − Pr[A (C [𝑄]) I ] ≤ 𝜀 (𝑝, 𝑞)
+  Informally, soundness for approximate equivalence means that if 𝑃 approximately rewrites to 𝑄,
+then we can derive an error for this judgement that is a reasonable combination of the errors for
+each axiom.
+   Lemma C.2 (Soundness of approximate eqivalence of protocols). Fix a signature Σ, an
+interpretation I, an ambient approximate theory Δ1 ⊢ 𝑃 1 ≈ 𝑄 1 : 𝐼 1 → 𝑂 1, . . . , Δ𝑛 ⊢ 𝑃𝑛 ≈ 𝑄𝑛 : 𝐼𝑛 →
+𝑂𝑛 , errors 𝜀 1, . . . , 𝜀𝑛 such that I ⊨ Δ𝑖 ⊢ 𝑃𝑖 ≈𝜀𝑖 𝑄𝑖 : 𝐼𝑖 → 𝑂𝑖 , and two protocols Δ ⊢ 𝑃 : 𝐼 → 𝑂
+and Δ ⊢ 𝑄 : 𝐼 → 𝑂 with identical typing judgments. Then Δ ⊢ 𝑃 ≈ (𝑘,𝑙 ) 𝑄 : 𝐼 → 𝑂 implies
+I ⊨ Δ ⊢ 𝑃 =𝜀𝑘 𝑄 : 𝐼 → 𝑂, where
+               𝑙
+                                                                                          
+                                 𝜀𝑙𝑘 (𝑝, 𝑞) B 𝑘 max 𝜀 1 (𝑝 + 𝑙, 𝑞), . . . , 𝜀𝑛 (𝑝 + 𝑙, 𝑞)
+    Proof. We proceed by induction on the derivation.
+     • strict By the soundness of exact equivalence, the hypothesis implies that 𝑃 and 𝑄 are
+       perfectly computationally indistinguishable. Thus, we have
+                                     Pr[A (C [𝑃1 ]) I ] − Pr[A (C [𝑃2 ]) I ] ≤ 0
+       as desired.
+     • sym We have
+               Pr[A (C [𝑃 2 ]) I ] − Pr[A (C [𝑃1 ]) I ] = Pr[A (C [𝑃1 ]) I ] − Pr[A (C [𝑃2 ]) I ]
+                                                                                                      
+                                                        ≤ 𝑘 max 𝜀 1 (𝑝 + 𝑙, 𝑞), . . . , 𝜀𝑛 (𝑝 + 𝑙, 𝑞)
+       as desired.
+     • trans We have
+               Pr[A (C [𝑃1 ]) I ] − Pr[A (C [𝑃 3 ]) I ]
+               ≤ Pr[A (C [𝑃 1 ]) I ] − Pr[A (C [𝑃2 ]) I ] + Pr[A (C [𝑃 2 ]) I ] − Pr[A (C [𝑃3 ]) I ]
+                                                                                                                      
+               ≤ 𝑘 1 max 𝜀 1 (𝑝 + 𝑙 1, 𝑞), . . . , 𝜀𝑛 (𝑝 + 𝑙 1, 𝑞) + 𝑘 2 max 𝜀 1 (𝑝 + 𝑙 2, 𝑞), . . . , 𝜀𝑛 (𝑝 + 𝑙 2, 𝑞)
+                                                                                         
+               ≤ 𝑘 1 max 𝜀 1 (𝑝 + max(𝑙 1, 𝑙 2 ), 𝑞), . . . , 𝜀𝑛 (𝑝 + max(𝑙 1, 𝑙 2 ), 𝑞)
+                                                                                                
+                     + 𝑘 2 max 𝜀 1 (𝑝 + max(𝑙 1, 𝑙 2 ), 𝑞), . . . , 𝜀𝑛 (𝑝 + max(𝑙 1, 𝑙 2 ), 𝑞)
+                                                                                                  
+               = (𝑘 1 + 𝑘 2 ) max 𝜀 1 (𝑝 + max(𝑙 1, 𝑙 2 ), 𝑞), . . . , 𝜀𝑛 (𝑝 + max(𝑙 1, 𝑙 2 ), 𝑞)
+         as desired.
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                  30:39
+
+
+    • axiom By assumption, we have
+                                                                                                              
+              Pr[A (C [𝑃𝑖 ]) I ] − Pr[A (C [𝑄𝑖 ]) I ] ≤ 𝜀𝑖 (𝑝, 𝑞) ≤ max 𝜀 1 (𝑝, 𝑞), . . . , 𝜀𝑛 (𝑝, 𝑞)
+      as desired.
+    • subsume We have
+              Pr[A (C [𝑃]) I ] − Pr[A (C [𝑄]) I ]
+                                                                                                              
+                                                        ≤ 𝑘 1 max 𝜀 1 (𝑝 + 𝑙 1, 𝑞), . . . , 𝜀𝑛 (𝑝 + 𝑙 1, 𝑞)
+                                                                                                              
+                                                        ≤ 𝑘 2 max 𝜀 1 (𝑝 + 𝑙 2, 𝑞), . . . , 𝜀𝑛 (𝑝 + 𝑙 2, 𝑞)
+      as desired.
+    • input-unused Plugging the protocols 𝑃 : 𝐼 ∪ {𝑖} → 𝑂 and 𝑄 : 𝐼 ∪ {𝑖} → 𝑂 into the
+      context C is the same as plugging the protocols 𝑃 : 𝐼 → 𝑂 and 𝑄 : 𝐼 → 𝑂 into the context
+      C [◦ : _ ∪ {𝑖} → _], so we have
+                     Pr[A (C [𝑃 : _ ∪ {𝑖} → _]) I ] − Pr[A (C [𝑄 : _ ∪ {𝑖} → _]) I ]
+                                                                           
+                     ≤ 𝑘 max 𝜀 1 (𝑝 + 1 + 𝑙, 𝑞), . . . , 𝜀𝑛 (𝑝 + 1 + 𝑙, 𝑞)
+      as desired.
+    • embed Plugging the protocols 𝜃 ★ (𝑃) and 𝜃 ★ (𝑄) into the context C is the same as plugging
+      the protocols 𝑃 and 𝑄 into the context C [𝜃 ★ (◦)], so we have
+                                                                                                       
+         Pr[A (C [𝜃 ★ (𝑃)]) I ] − Pr[A (C [𝜃 ★ (𝑄)]) I ] ≤ 𝑘 max 𝜀 1 (𝑝 + 𝑙, 𝑞), . . . , 𝜀𝑛 (𝑝 + 𝑙, 𝑞)
+      as desired.
+    • cong-comp-left Plugging the protocols 𝑃 || 𝑄 and 𝑃 ′ || 𝑄 into the context C is the same as
+      plugging the protocols 𝑃 and 𝑃 ′ into the context C [◦ || 𝑄], so we have
+    Pr[A (C [𝑃 || 𝑄]) I ] − Pr[A (C [𝑃 ′ || 𝑄]) I ] ≤ 𝑘 max 𝜀 1 (𝑝 + |𝑄 | + 𝑙, 𝑞), . . . , 𝜀𝑛 (𝑝 + |𝑄 | + 𝑙, 𝑞)
+                                                                                                                
+
+      as desired.
+    • cong-new Plugging the protocols new 𝑜 : 𝐴 in 𝑃 and new 𝑜 : 𝐴 in 𝑃 ′ into the context C is
+      the same as plugging the protocols 𝑃 and 𝑃 ′ into the context C [new 𝑜 : 𝜏 in ◦], so we have
+ Pr[A (C [new 𝑜 : 𝐴 in 𝑃]) I ] − Pr[A (C [new 𝑜 : 𝐴 in 𝑃 ′ ]) I ] ≤ 𝑘 max 𝜀 1 (𝑝 + 𝑙, 𝑞), . . . , 𝜀𝑛 (𝑝 + 𝑙, 𝑞)
+                                                                                                                          
+
+       as desired.
+                                                                                                                     □
+   For asymptotic equivalence of IPDL protocols, lift the notion of approximate equivalence to
+protocol families, indexed by the security parameter 𝜆 ∈ N. We assume a finite set Tpoly of ambient
+axiom families of the form {Δ𝜆 ⊢ 𝑃𝜆 ≈ 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 }𝜆∈N . The asymptotic equivalence of two
+protocol families {Δ𝜆 ⊢ 𝑃𝜆 : 𝐼𝜆 → 𝑂 𝜆 }𝜆∈N and {Δ𝜆 ⊢ 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 }𝜆∈N with identical typing
+judgements takes the form of the judgement Tpoly ⇒ {Δ𝜆 ⊢ 𝑃𝜆 ≈ 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 }𝜆∈N . When we
+need to make the underlying exact theory T explicit, we write the judgement as T; Tpoly ⇒ {Δ𝜆 ⊢
+𝑃𝜆 ≈ 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 }𝜆∈N .
+   Specifically, for any fixed 𝜆, we obtain an approximate theory by selecting from each axiom
+family the particular axiom corresponding to this value of 𝜆. Similarly, from each protocol family
+we select the protocol corresponding to the given 𝜆, which gives us two concrete protocols. For the
+asymptotic judgement to hold, these 𝜆-specific protocols must be approximately equivalent with
+respect to the 𝜆-specific approximate theory we constructed earlier. We recall that an approximate
+judgement is tagged by a pair of parameters 𝑘 and 𝑙. Ranging over all values of 𝜆 thus gives us
+two functions 𝑘 (𝜆) and 𝑙 (𝜆), and we require that these be bounded by a polynomial. Informally,
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:40                                        Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+
+ {Δ𝜆1 ⊢ 𝑃𝜆1 ≈ 𝑄 𝜆1 : 𝐼𝜆1 → 𝑂 𝜆1 }𝜆∈N }, . . . , {Δ𝑛𝜆 ⊢ 𝑃𝜆𝑛 ≈ 𝑄 𝜆𝑛 : 𝐼𝜆𝑛 → 𝑂 𝜆𝑛 }𝜆∈N ⇒ {Δ𝜆 ⊢ 𝑃𝜆 ≈ 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 }𝜆∈N }
+
+        ∀𝜆, Δ𝜆1 ⊢ 𝑃𝜆1 ≈ 𝑄 𝜆1 : 𝐼𝜆1 → 𝑂 𝜆1 , . . . , Δ𝑛𝜆 ⊢ 𝑃𝜆𝑛 ≈ 𝑄 𝜆𝑛 : 𝐼𝜆𝑛 → 𝑂 𝜆𝑛 ⇒ Δ𝜆 ⊢ 𝑃𝜆 ≈ (𝑘𝜆 ,𝑙𝜆 ) 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆
+                                      𝑘𝜆 = O(poly(𝜆))                  𝑙𝜆 = O(poly(𝜆))
+{Δ𝜆1 ⊢ 𝑃𝜆1 ≈ 𝑄 𝜆1 : 𝐼𝜆1 → 𝑂 𝜆1 }𝜆∈N, . . . , {Δ𝑛𝜆 ⊢ 𝑃𝜆𝑛 ≈ 𝑄 𝜆𝑛 : 𝐼𝜆𝑛 → 𝑂 𝜆𝑛 }𝜆∈N ⇒ {Δ𝜆 ⊢ 𝑃𝜆 ≈ 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 }𝜆∈N
+
+                             Fig. 19. Asymptotic equivalence for IPDL protocol families.
+
+
+we can summarize the asymptotic judgement as saying that the protocol families are pointwise
+approximately equivalent, and the size of the derivation does not grow too fast in 𝜆.
+   Definition C.3 (Computational Indistinguishability). Fix a signature Σ, a family of interpretations
+{I𝜆 }𝜆∈N , and two families of protocols {Δ𝜆 ⊢ 𝑃𝜆 : 𝐼𝜆 → 𝑂 𝜆 }𝜆∈N and {Δ𝜆 ⊢ 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 }𝜆∈N
+with identical typing judgments. Then we say that {𝑃𝜆 } and {𝑄 𝜆 } are indistinguishable under
+{I𝜆 }𝜆∈N , written {I𝜆 }𝜆∈N ⊨ {Δ𝜆 ⊢ 𝑃𝜆 ≈ 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 }𝜆∈N , if for any two polynomials 𝑝 (𝜆)
+and 𝑞(𝜆) there exists a negligible function 𝜀 (𝜆) such that for any 𝜆 ∈ N, any program context
+C : (Δ𝜆 ⊢ 𝐼𝜆 → 𝑂 𝜆 ) → (Δ𝜆′ ⊢ 𝐼𝜆′ → 𝑂 𝜆′ ) bounded by 𝑝 (𝜆), and any distinguisher A for
+Δ𝜆′ ⊢ 𝐼𝜆′ → 𝑂 𝜆′ bounded by 𝑞(𝜆), we have
+                                   Pr[A (C [𝑃𝜆 ]) I𝜆 ] − Pr[A (C [𝑄 𝜆 ]) I𝜆 ] ≤ 𝜀 (𝜆)
+    Definition C.4 (Sound asymptotic theory). Fix a signature Σ and a family of interpretations {I𝜆 }𝜆∈N .
+An asymptotic theory {Δ𝜆1 ⊢ 𝑃𝜆1 ≈ 𝑄 𝜆1 : 𝐼𝜆1 → 𝑂 𝜆1 }𝜆∈N }, . . . , {Δ𝑛𝜆 ⊢ 𝑃𝜆𝑛 ≈ 𝑄 𝜆𝑛 : 𝐼𝜆𝑛 → 𝑂 𝜆𝑛 }𝜆∈N is
+sound under {I𝜆 }𝜆∈N , written {I𝜆 }𝜆∈N ⊨ {Δ𝜆1 ⊢ 𝑃𝜆1 ≈ 𝑄 𝜆1 : 𝐼𝜆1 → 𝑂 𝜆1 }𝜆∈N }, . . . , {Δ𝑛𝜆 ⊢ 𝑃𝜆𝑛 ≈ 𝑄 𝜆𝑛 :
+𝐼𝜆𝑛 → 𝑂 𝜆𝑛 }𝜆∈N , if each axiom family is computationally indistinguishable under {I𝜆 }𝜆∈N , that is
+{I𝜆 }𝜆∈N ⊨ {Δ𝑖𝜆 ⊢ 𝑃𝜆𝑖 ≈ 𝑄 𝜆𝑖 : 𝐼𝜆𝑖 → 𝑂 𝜆𝑖 }𝜆∈N .
+  Theorem C.5 (Soundness of asymptotic eqivalence of protocols). Fix a signature Σ, a PPT
+family of interpretations {I𝜆 }𝜆∈N , an exact theory T such that I𝜆 ⊨ T for each 𝜆 ∈ N, an asymptotic
+theory Tpoly such that {I𝜆 }𝜆∈N ⊨ Tpoly , and two protocol families {Δ𝜆 ⊢ 𝑃𝜆 : 𝐼𝜆 → 𝑂 𝜆 }𝜆∈N and
+{Δ𝜆 ⊢ 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 }𝜆∈N with identical typing judgments such that |𝐼𝜆 | and |𝑂 𝜆 | are polynomial in 𝜆.
+Then T; Tpoly ⇒ {Δ𝜆 ⊢ 𝑃𝜆 ≈ 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 }𝜆∈N implies {I𝜆 }𝜆∈N ⊨ {Δ𝜆 ⊢ 𝑃𝜆 ≈ 𝑄 𝜆 : 𝐼𝜆 → 𝑂 𝜆 }𝜆∈N .
+  Proof. Let {Δ𝜆1 ⊢ 𝑃𝜆1 ≈ 𝑄 𝜆1 : 𝐼𝜆1 → 𝑂 𝜆1 }𝜆∈N, . . . , {Δ𝑛𝜆 ⊢ 𝑃𝜆𝑛 ≈ 𝑄 𝜆𝑛 : 𝐼𝜆𝑛 → 𝑂 𝜆𝑛 }𝜆∈N be the
+axioms comprising the asymptotic theory Tpoly . Since Tpoly is sound with respect to the family
+{I𝜆 }𝜆∈N of interpretations, each axiom family {Δ𝑖𝜆 ⊢ 𝑃𝜆𝑖 ≈ 𝑄 𝜆𝑖 : 𝐼𝜆𝑖 → 𝑂 𝜆𝑖 }𝜆∈N is computationally
+indistinguishable with respect to {I𝜆 }𝜆∈N .
+  The top-level asymptotic equivalence judgement gives us two polynomials 𝑘 (𝜆) and 𝑙 (𝜆) that
+bind the derivation size. Fix polynomials 𝑝 (𝜆) and 𝑞(𝜆). By assumption on the computational
+indistinguishability of each axiom family applied to the polynomials 𝑝 (𝜆) + 𝑙 (𝜆) and 𝑞(𝜆), there
+exist negligible functions 𝜖 1 (𝜆), . . . , 𝜖 𝑛 (𝜆), one for each axiom family, such that
+                                   Pr[A (C [𝑃𝜆𝑖 ]) I𝜆 ] − Pr[A (C [𝑄 𝜆𝑖 ]) I𝜆 ] ≤ 𝜖 𝑖 (𝜆)
+Define                                                                   
+                                𝜖 (𝜆) B 𝑘 (𝜆) max 𝜖1 (𝜆), . . . , 𝜖𝑛 (𝜆)
+for any 𝜆 ∈ N, program context C : (Δ𝑖𝜆 ⊢ 𝐼𝜆𝑖 → 𝑂 𝜆𝑖 ) → (Δ′ ⊢ 𝐼 ′ → 𝑂 ′ ) bounded by 𝑝 (𝜆) + 𝑙 (𝜆),
+and distinguisher A for Δ′ ⊢ 𝐼 ′ → 𝑂 ′ bounded by 𝑞(𝜆). Clearly 𝜖 (𝜆) is negligible. Define an error
+                                     
+                    𝜀 𝑖 (𝑝, 𝑞) B sup Pr[A (C [𝑃𝜆𝑖 ]) I𝜆 ] − Pr[A (C [𝑄 𝜆𝑖 ]) I𝜆 ]
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                 30:41
+
+
+to be the supremum of the distinguishing advantages taken over all program contexts C : (Δ𝑖𝜆 ⊢
+𝐼𝜆𝑖 → 𝑂 𝜆𝑖 ) → (Δ′ ⊢ 𝐼 ′ → 𝑂 ′ ) bounded by 𝑝, and all distinguishers A for Δ′ ⊢ 𝐼 ′ → 𝑂 ′ bounded by
+𝑞. Then by construction, I𝜆 ⊨ Δ𝑖𝜆 ⊢ 𝑃𝜆𝑖 ≈𝜀𝑖 𝑄 𝜆𝑖 : 𝐼𝜆𝑖 → 𝑂 𝜆𝑖 .
+    For a fixed 𝜆, program context C : (Δ𝜆 ⊢ 𝐼𝜆 → 𝑂 𝜆 ) → (Δ𝜆′ ⊢ 𝐼𝜆′ → 𝑂 𝜆′ ) bounded by 𝑝 (𝜆), and
+distinguisher A for Δ𝜆′ ⊢ 𝐼𝜆′ → 𝑂 𝜆′ bounded by 𝑞(𝜆), we therefore have
+                                                                                                                          
+ Pr[A (C [𝑃𝜆 ]) I𝜆 ] − Pr[A (C [𝑄 𝜆 ]) I𝜆 ] ≤ 𝑘 (𝜆) max 𝜀 1 (𝑝 (𝜆) + 𝑙 (𝜆), 𝑞(𝜆)), . . . , 𝜀 𝑛 (𝑝 (𝜆) + 𝑙 (𝜆), 𝑞(𝜆))
+                                                                               
+                                            ≤ 𝑘 (𝜆) max 𝜖1 (𝜆), . . . , 𝜖𝑛 (𝜆)
+                                              = 𝜖 (𝜆)
+where the first inequality follows from the soundness theorem for approximate equivalence, and
+the second from the definition of supremum.
+                                                                                             □
+
+
+
+
+                                Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+30:42                                       Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett
+
+
+REFERENCES
+Martin Abadi and Phillip Rogaway. 2002. Reconciling two views of cryptography (the computational soundness of formal
+   encryption). Journal of cryptology 15, 2 (2002), 103–127.
+Michael Backes, Ankit Malik, and Dominique Unruh. 2012. Computational Soundness without Protocol Restrictions. In
+   Proceedings of the 2012 ACM Conference on Computer and Communications Security (Raleigh, North Carolina, USA) (CCS
+   ’12). Association for Computing Machinery, New York, NY, USA, 699–711. https://doi.org/10.1145/2382196.2382270
+Michael Backes, Birgit Pfitzmann, and Michael Waidner. 2007. The reactive simulatability (RSIM) framework for asynchro-
+   nous systems. Information and Computation 205, 12 (2007), 1685–1720. https://doi.org/10.1016/j.ic.2007.05.002
+David Baelde, Stéphanie Delaune, Charlie Jacomme, Adrien Koutsos, and Solène Moreau. 2021. An Interactive Prover
+   for Protocol Verification in the Computational Model. In SP 2021 - 42nd IEEE Symposium on Security and Privacy. San
+   Fransisco / Virtual, United States. https://hal.archives-ouvertes.fr/hal-03172119
+Gergei Bana and Hubert Comon-Lundh. 2014. A Computationally Complete Symbolic Attacker for Equivalence Properties.
+   Proceedings of the ACM Conference on Computer and Communications Security (11 2014). https://doi.org/10.1145/2660267.
+   2660276
+M. Barbosa, G. Barthe, K. Bhargavan, B. Blanchet, C. Cremers, K. Liao, and B. Parno. 2021a. SoK: Computer-Aided
+   Cryptography. In 2021 2021 IEEE Symposium on Security and Privacy (SP). IEEE Computer Society, Los Alamitos, CA,
+   USA, 777–795. https://doi.org/10.1109/SP40001.2021.00008
+Manuel Barbosa, Gilles Barthe, Benjamin Grégoire, Adrien Koutsos, and Pierre-Yves Strub. 2021b. Mechanized Proofs of
+   Adversarial Complexity and Application to Universal Composability. In Proceedings of the 2021 ACM SIGSAC Conference
+   on Computer and Communications Security (Virtual Event, Republic of Korea) (CCS ’21). Association for Computing
+   Machinery, New York, NY, USA, 2541–2563. https://doi.org/10.1145/3460120.3484548
+G. Barthe, B. Grégoire, S. Heraud, and Santiago Zanella Béguelin. 2011. Computer-Aided Security Proofs for the Working
+   Cryptographer. In CRYPTO.
+Gilles Barthe, Benjamin Grégoire, and Benedikt Schmidt. 2015. Automated proofs of pairing-based cryptography. In
+   Proceedings of the 22nd ACM SIGSAC Conference on Computer and Communications Security. 1156–1168.
+Donald Beaver. 1995. Precomputing oblivious transfer. In Annual International Cryptology Conference. Springer, 97–109.
+Karthikeyan Bhargavan, Abhishek Bichhawat, Quoc Huy Do, Pedram Hosseyni, Ralf Küsters, Guido Schmitz, and Tim
+   Würtele. 2021. DY* : A Modular Symbolic Verification Framework for Executable Cryptographic Protocol Code. In
+   EuroS&P 2021 - 6th IEEE European Symposium on Security and Privacy. Virtual, Austria. https://hal.inria.fr/hal-03178425
+Bruno Blanchet. 2006. A Computationally Sound Mechanized Prover for Security Protocols. 140–154. https://doi.org/10.
+   1109/SP.2006.1
+Bruno Blanchet. 2013. Automatic verification of security protocols in the symbolic model: The verifier proverif. In
+   Foundations of security analysis and design VII. Springer, 54–87.
+Manuel Blum. 1983. Coin flipping by telephone a protocol for solving impossible problems. ACM SIGACT News 15, 1 (1983),
+   23–27.
+David Butler, David Aspinall, and Adrià Gascón. 2020. Formalising Oblivious Transfer in the Semi-Honest and Malicious
+   Model in CryptHOL. In Proceedings of the 9th ACM SIGPLAN International Conference on Certified Programs and Proofs
+   (New Orleans, LA, USA) (CPP 2020). Association for Computing Machinery, New York, NY, USA, 229–243. https:
+   //doi.org/10.1145/3372885.3373815
+Ran Canetti. 2000. Universally Composable Security: A New Paradigm for Cryptographic Protocols. Cryptology ePrint
+   Archive, Report 2000/067. https://ia.cr/2000/067.
+Ran Canetti, Alley Stoughton, and Mayank Varia. 2019. EasyUC: Using EasyCrypt to Mechanize Proofs of Universally
+   Composable Security. In 32nd IEEE Computer Security Foundations Symposium. https://eprint.iacr.org/2019/582.
+Miguel Castro, Barbara Liskov, et al. 1999. Practical byzantine fault tolerance. In OsDI, Vol. 99. 173–186.
+Veronique Cortier and Bogdan Warinschi. 2011. A Composable Computational Soundness Notion. In Proceedings of the 18th
+   ACM Conference on Computer and Communications Security (Chicago, Illinois, USA) (CCS ’11). Association for Computing
+   Machinery, New York, NY, USA, 63–74. https://doi.org/10.1145/2046707.2046717
+Cas J. F. Cremers. 2008. The Scyther Tool: Verification, Falsification, and Analysis of Security Protocols. In Computer Aided
+   Verification, Aarti Gupta and Sharad Malik (Eds.). Springer Berlin Heidelberg, Berlin, Heidelberg, 414–418.
+Karim M. El Defrawy and Vitor Pereira. 2019. A High-Assurance Evaluator for Machine-Checked Secure Multiparty
+   Computation. Proceedings of the 2019 ACM SIGSAC Conference on Computer and Communications Security (2019).
+Danny Dolev and Andrew Yao. 1983. On the security of public key protocols. IEEE Transactions on information theory 29, 2
+   (1983), 198–208.
+Denis Firsov and Dominique Unruh. 2022. Reflection, Rewinding, and Coin-Toss in EasyCrypt. In Proceedings of the 11th
+   ACM SIGPLAN International Conference on Certified Programs and Proofs (Philadelphia, PA, USA) (CPP 2022). Association
+   for Computing Machinery, New York, NY, USA, 166–179. https://doi.org/10.1145/3497775.3503693
+
+
+
+Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+A Core Calculus for Equational Proofs of Cryptographic Protocols                                                     30:43
+
+
+Joshua Gancher, Kristina Sojakova, Xiong Fan, Elaine Shi, and Greg Morrisett. 2022. A Core Calculus for Equational Proofs
+    of Distributed Cryptographic Protocols: Supplemental Material. https://github.com/ipdl/ipdl.
+Oded Goldreich, Silvio Micali, and Avi Wigderson. 1987. How to play any mental game. In Proceedings of the nineteenth
+    annual ACM symposium on Theory of computing. ACM, 218–229.
+Andrew K. Hirsch and Deepak Garg. 2022. Pirouette: Higher-Order Typed Functional Choreographies. Proc. ACM Program.
+    Lang. 6, POPL, Article 23 (jan 2022), 27 pages. https://doi.org/10.1145/3498684
+Kevin Liao, Matthew A. Hammer, and Andrew Miller. 2019. ILC: A Calculus for Composable, Computational Cryptography.
+    In Proceedings of the 40th ACM SIGPLAN Conference on Programming Language Design and Implementation (Phoenix, AZ,
+    USA) (PLDI 2019). Association for Computing Machinery, New York, NY, USA, 640–654. https://doi.org/10.1145/3314221.
+    3314607
+Yehuda Lindell. 2020. Secure Multiparty Computation. Commun. ACM 64, 1 (dec 2020), 86–96. https://doi.org/10.1145/
+    3387108
+Andreas Lochbihler and S. Reza Sefidgar. 2018. A tutorial introduction to CryptHOL. Cryptology ePrint Archive, Report
+    2018/941. https://ia.cr/2018/941.
+Andreas Lochbihler, S. Reza Sefidgar, David Basin, and Ueli Maurer. 2019. Formalizing Constructive Cryptography us-
+    ing CryptHOL. In 32nd IEEE Computer Security Foundations Symposium. http://www.andreas-lochbihler.de/pub/
+    lochbihler2019csf.pdf.
+Gavin Lowe. 1996. Breaking and fixing the Needham-Schroeder Public-Key Protocol using FDR. In Tools and Algorithms
+    for the Construction and Analysis of Systems, Tiziana Margaria and Bernhard Steffen (Eds.). Springer Berlin Heidelberg,
+    Berlin, Heidelberg, 147–166.
+Assia Mahboubi and Enrico Tassi. 2021. Mathematical Components. Zenodo. https://doi.org/10.5281/zenodo.4457887
+Ueli Maurer. 2012. Constructive Cryptography – A New Paradigm for Security Definitions and Proofs. In Theory of Security
+    and Applications, Sebastian Mödersheim and Catuscia Palamidessi (Eds.). Springer Berlin Heidelberg, Berlin, Heidelberg,
+    33–56.
+Simon Meier, Benedikt Schmidt, Cas Cremers, and David Basin. 2013. The TAMARIN Prover for the Symbolic Analysis
+    of Security Protocols. In Computer Aided Verification, Natasha Sharygina and Helmut Veith (Eds.). Springer Berlin
+    Heidelberg, Berlin, Heidelberg, 696–701.
+Robin Milner, Joachim Parrow, and David Walker. 1992. A calculus of mobile processes, I. Information and Computation 100,
+   1 (1992), 1–40. https://doi.org/10.1016/0890-5401(92)90008-4
+Moni Naor and Benny Pinkas. 1999. Oblivious transfer and polynomial evaluation. In Proceedings of the thirty-first annual
+    ACM symposium on Theory of computing. 245–254.
+Adam Petcher and Greg Morrisett. 2015. The Foundational Cryptography Framework. In Principles of Security and Trust,
+    Riccardo Focardi and Andrew Myers (Eds.). Springer Berlin Heidelberg, Berlin, Heidelberg, 53–72.
+S. Schneider. 1996. Security properties and CSP. In Proceedings 1996 IEEE Symposium on Security and Privacy. 174–187.
+    https://doi.org/10.1109/SECPRI.1996.502680
+
+Received 2022-07-07; accepted 2022-11-07
+
+
+
+
+                                 Proc. ACM Program. Lang., Vol. 7, No. POPL, Article 30. Publication date: January 2023.
+

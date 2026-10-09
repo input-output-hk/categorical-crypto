@@ -1,0 +1,1414 @@
+198
+
+[5]
+[6]
+[7]
+
+IEEE TRANSACTIONS
+
+Discrete Memoryless Systems. New York: Academic, 1981.
+G. Dueck and J. Kiimer, “Reliability function of a discrete memoryless channel at rates above capacity,” IEEE Trans. Inform.
+Theory, vol. IT-25, pp. 82-85, Jan. 1979.
+G. Longo and A. Sgarro, “The source coding theorem revisited: A
+combinatorial approach,” IEEE Trans. Inform. Theory, vol. IT-25,
+pp. 544-548, Sept. 1979.
+R. E. Blahut, “Information
+bounds of the Fano-Kullback type,”
+
+[S]
+[9]
+[IO]
+
+ON INFORMATION
+
+THEORY,
+
+VOL.
+
+IT-29, NO. 2, MARCH 1983
+
+IEEE Trans. Inform. Theory, vol. IT-22, pp. 410-421, July 1976.
+A. Sgarro, “An informational divergence geometry for stochastic
+matrices,” Calcolo, vol. XV, fast. I, pp. 41-49, Jan.-March 1978.
+I. Csis&, “I-divergence geometry of probability distributions and
+minimization problems,” Ann. Prob., vol. 3, 1, pp. 146-158, 1975.
+G. Galasso and G. Longo, “An application of informational divergence to Huffman codes,” IEEE Trans. Inform. Theory, vol. IT-28,
+pp. 36-43, Jan. 1982.
+
+On the Security of Public Key Protocols
+DANNY DOLEV AND ANDREW
+
+Abstract-Recently
+the use of public key encryption to provide secure
+network communication has received considerable attention. Such public
+key systems are usually effective against passive eavesdroppers, who merely
+tap the lines and try to decipher the message. It has been pointed out,
+however, that an improperly designed protocol could be vulnerable to an
+active saboteur, one who may impersonate another user or alter the
+message being transmitted. Several models are formulated in which the
+security of protocols can be discussed precisely. Algorithms and characterizations that can be used to determine protocol security in these models are
+given.
+
+I.
+
+INTRODUCTION
+
+T
+
+HE USE of public key encryption [ 11,[ 1l] to provide
+secure network communication has received considerable attention 121,[7], [8], [lo]. Such public key systems are
+usually very effective against a “passive” eavesdropper,
+namely, one who merely taps the communication line and
+tries to decipher the intercepted message. However, as
+pointed out in Needham and Schroeder [8], an improperly
+designed protocol could be vulnerable to an “active”
+saboteur, one who may impersonate another user and may
+alter or replay the message.As a protocol might be compromised in a complex way, informal arguments that assert
+the security for a protocol are prone to errors. It is thus
+desirable to have a formal model in which the security
+Manuscript received July 15, 1981; revised August 8, 1982. This work
+was supported in part by ARPA under Grant MDA-903-80-C-102 and by
+National Science Foundation under Grant MCS-77-053 13-A0 1. This paper
+was partially presented at the 22nd Annual IEEE Symposium on Foundations of Computer Science, Nashville, TN, October 28-30, 1981.
+D. Dolev was with the Computer Science Department, Stanford University, Stanford, CA. He is now with the Institute of Mathematics and
+Computer Science, Hebrew University, Jerusalem, Israel.
+A. C. Yao is with the Computer Science Department, Stanford University, Stanford, CA 94305.
+
+c.
+
+YAO, MEMBER, IEEE
+
+issues can be discussedprecisely. The models we introduce
+will enable us to study the security problem for families of
+protocols, with very few assumptions on the behavior of
+the saboteur.
+We briefly recall the essenceof public key encryption
+(see [ 11,[ 1l] for more information): In a public key system,
+every user X has an encryptionfunction E, and a decryption
+function D,, both are mappings from (0, l}* (the set of all
+finite binary sequences)into (0, l}*. A secure public directory contains all the (X, E,) pairs, while the decryption
+function D, is known only to user X. The main requirements on E,, D, are:
+1) E,Dx = D,E, = 1, and
+2) knowing E,(M) and the public directory does not
+reveal anything about the value M.
+Thus everyone can send X a messageE,(M), X will be
+able to decode it by forming D,( E,(M)) = M, but nobody
+other than X will be able to find M even if E,(M) is
+available to them.
+We will be interested mainly in protocols for transmitting a secret plaintext M between two users. To give an
+idea of the way a saboteur may break a system, we
+consider a few examples.A messagesent between parties in
+the network consists of three fields: the sender’sname, the
+receiver’sname, and the text. The text is the encrypted part
+of the message.We will write a messagein the format:
+sender’sname, text, receiver’s name.
+Example 1: Consider the following protocol for sending
+a plaintext M between A and B:
+a) A sends B the message(A, EB( M), B),
+b) B answersA with the message(B, E,(M), A).
+
+0018-9448/83/0300-0198$01.00 01983 IEEE
+
+DOLEV
+
+AND
+
+YAO:
+
+SECURITY
+
+OF PUBLIC
+
+KEY PROTOCOLS
+
+This protocol is easy to break by a saboteur 2 in the
+following way:
+1) 2 intercepts the messagesent from A to B in step a).
+2) 2 sendsto B the message(2, EB( M), B).
+3) B answersZ according to the protocol (step b)) by
+(B, E,(M), Z>.
+4) Z decodesE,(M) to find the plaintext M .
+One way to overcomethe weaknessin the above protocol is to encode the n a m e of the sender together with the
+plaintext in the encrypted text. Consider the following
+variation of a protocol suggested in Needham and
+Schroeder[ 81.
+Example 2: Consider the following protocol (MA denotes concatenationof M and A):
+a) A sendsB the message(A, E,(MA), B),
+b) B answersA by sending(B, EA( MB), A).
+W e will prove later in this paper that this protocol is secure
+against arbitrary behavior of the saboteur.What will happen if one tries to improve the above protocol by adding
+another layer of encryption?
+Example 3: Consider the following protocol:
+a) A sendsB the message(A, E,(E,(M)A), B),
+b) B answersby sending(B, EA( EA(M) B), A).
+Surprisingly, this protocol is breakable in the following
+way:
+
+1) 2 takes the messagesent back from B to A in step b),
+i.e., (4 EA(EA(WB),-4.
+Denote EA(M)B by M , then Z can extract E,(li;r>
+from the above message.
+2) Z initiates a conversationwith A, sending
+(Z J%(J%@~), A),
+accordingto the protocol (step a)).
+3) A, as a receiver,answersZ by
+(A> E,(Ez(ti)A),
+
+Z).
+
+$!l from the messagehe receivedin step 3).
+4) 2 de_codes
+As M = E,(M)B, Z now possesses
+E,(M).
+5) Z establishesa new connection and sends to A the
+message
+(z, EA(EA(WZL
+
+4
+
+6) Now A should answerby (A, E,( E,( M) A), Z).
+7) At this step Z is able to find the plaintext M .
+The precise mathematical m o d e ls will be defined in the
+ensuing sections. Below we list the basic assumptionson
+the systemthat we wish to m o d e l.
+
+1) In a perfect public key system,
+a) the one-way functions used are unbreakable;
+b) the public directory is secure and cannot be
+tamperedwith;
+c) everyonehas accessto all E,;
+d) only X knows 0,.
+
+199
+
+2) In a two-party protocol, only the two userswho wish
+
+to communicateare involved in the transmissionprocess; the assistanceof a third party in decryption or
+encryption is not needed.
+3) In a uniform protocol, the same format is used by
+every pair of users that wish to communicate.In the
+three examples given previously, the user’s names
+A, B are symbolic parameters and can be any two
+names.
+4) W ith respectto the behavior of the saboteur,we will
+focus attention on saboteurs who are “active”
+eavesdroppers.That means someonewho first taps
+the communication line to obtain messagesand then
+tries everything he can in order to discoverthe plaintext. More precisely, we will assumethe following
+about a saboteur:
+a>,He can obtain any messagepassingthrough the
+network.
+b! He is a legitimate user of the network, and thus
+in particular can initiate a conversation with
+any other user.
+c>He will have the opportunity to be a receiverto
+any userA. (More generally,we allow the possibility that any user B may becomea receiverto
+any other user A.)
+W e give a summaryof the results obtained in this paper.
+Two m o d e lswill be developed.
+1) The CascadeProtocols: These are protocols in which
+the users can apply the public key encryption-decryption
+operations to form messages;severallayers of such operators may be applied, however.A simple exampleof cascade
+protocol is given in Example 1.
+2) The Name-Stamp Protocols: These are protocols in
+which the users are allowed to append, delete, and check
+namesencryptedtogetherwith the plaintext. A name-stamp
+protocol can also contain layers of encryptions (as in
+Examples2 and 3).
+In Section II we prove that a cascadeprotocol is secure
+if and only if both the following conditions are satisfied:
+1) the messagestransmitted between X and Y always
+contains some layers of encryption functions E, or
+E,;
+2) in generating a reply message,each participant A
+(A = X, Y) never applies DA without also applying
+EA’
+This gives a simple characterizationof security and also an
+efficient algorithm for deciding whether a given cascade
+protocol is secure.
+In Section III we give a polynomial-time algorithm for
+deciding if a given name-stamp protocol is secure. In
+Section IV we consider the question whether a saboteur
+can break the protocol without waiting for others to initiate a conversation.This correspondsto the use of items a)
+and b) only in the previous discussionof the behavior of
+the saboteur.W e give extensionsof the results in Sections
+II and III to this case.
+
+200
+
+IEEE TRANSACTIONS
+
+To end this introduction, we remark that other types of
+sabotage activities exist that may defeat the purpose of a
+public-key protocol (or any protocol). We refer the readers
+to Needham and Schroeder[8] for further discussions.The
+problem of sabotagein network communications also arises
+in other context (see Dolev [3], Peaseet al. [9]).
+II.
+
+CASCADEPROTOCOLS
+
+ON INFORMATION
+
+THEORY,
+
+VOL.
+
+IT-29, NO. 2, MARCH 1983
+
+symbols z,, z2, zs, z4, respectively, replaced by
+E,, E,, D,, 4.
+Clearly, ari(X, Y) E (E,, E,, D,)* and &(X, Y) E
+(E,, E,, D,}*. When user X wants to transmit a secret
+plaintext M to user Y, they exchangemessageaccording to
+Tin the following way:
+X sends Y the message(Y,(X, Y)M;
+Y applies p,( X, Y) to the received messageand sends it
+to x;
+X applies az( X, Y) to the received messageand sends it
+to Y,
+Y applies a( X, Y) to the received messageand sends it
+to x;
+
+In this section we consider a simple class of protocols in
+which the only operations the users employ to generate
+messages are the encryption-decryption operators. Our
+goal is to analyze the security of such protocols against
+saboteurs. To achieve that, we have to develop a formal
+model. We have to specify 1) the syntax of the protocol,
+i.e., what operations the users apply at each step to gener- Note that the protocol is uniform in that q(A, B) and
+ate a message,and 2) the inference rules that the traitor &(A, B), for any users A, B, can be obtained from
+can use to discover the plaintext.
+(Y~
+(X, Y), pi (X, Y) by substituting X by A and Y by B. For
+convenience, we assume that Ei and Bi are such that
+A. Notation
+ai( X, Y), &(X, Y) are in reduced form.
+Definition 2: Let T be a two-party cascade protocol
+Let Z be a finite set of distinct symbols. We use Z* to
+denote the set of all finite sequencescomposed of the specified by {&, b’]l G i G t, 1 <j G t’}, and let X, Y be
+symbols in Z; the set Z* also contains the empty string X. two distinct users. Define
+We define Z+= Z* - (h}, i.e., the set of all nonempty
+N,(X, Y) = q(X, Y>,
+words over Z. The concatenationof the words (Yand /3 is
+Nzj(X, Y> = b”(X, Y)Nzj-,(X>Y>> 1 <j < t’,
+denoted by @. Let y = ofi be a word, then (Yis called a
+prefix of y, and f3 is a suffix of y.
+N2r+l(X, Y) = cUi+,(X, Y)N,i(X, Y),
+1 < i < t - 1.
+The basic properties of the public-key operators are
+E,D, = DIE, = 1, the identity function. As a result, any When X wishes to send a plaintext M to Y, the message
+string of operators of the form aE,D,a’ will be equivalent exchanged are then Ni(X, Y)M, where i = 1,2; . ., t + t’.
+Example: Consider the protocol T given by (6, = z2zg,
+to uu’, in the sense that (uE,D,u’)P = (au’) P for all
+p,
+= z,z4z,z,z4}. One has a,(X, Y) = E,D, and p,(X, Y)
+P E (0, l}*. We will say that uE,D,u’ (or uD,E,u’) can be
+=
+E,D,E,E,D,.
+For a plaintext M, the messagestransreducedto uu’. For any string y of operators, let ylx denote
+mitted
+are
+N,(X,
+Y)M = E,D,M
+and N,(X, Y)M =
+the complete reduced string obtained from y by deleting all
+E,D.E,M.
+E, D, and D,E, pairs iteratively, until no further reduction
+So far we have discussed the syntax of the cascade
+is possible. Denote by 7 the string obtained from y by
+protocol.
+We will now define the notion of security for a
+complete reduction with respect to all users X in the
+cascade
+protocol,
+i.e., when will a saboteur be able to
+system, 7 is the reducedform of y. Notice that y], and 7 are
+deduce
+the
+plaintext
+M being transmitted between two
+all unique.
+users.
+We
+first
+give
+a
+formal
+definition. Let E be the set of
+For convenience we sometimes write D, as Ei, the
+all
+EA
+and
+D
+the
+set
+of
+all
+DA.
+Let X, Y, Z denote distinct
+complementof E,. Similarly, E, is also written as 0,‘. Let
+user
+names.
+Y = a, w. 1 a, be a word of n symbols, each of which is an
+Definition 3: Let T be a two-party cascade protocol
+E or a D. Define
+specified
+by { Ei,,fij}. Define
+yc
+= ai . ai-, . . . . . af.
+z,(Z) = E u {D,),
+The word y ’ is complementof y, and it satisfies yy ’ = y ‘y
+Z, = {ai(A, B)] for allA * Band i > 2},
+= 1 when y and yc are considered as operators. For any
+string y, let It(y) be the set of symbols in y.
+Z, = {&(A, B)(forallA * Bandi >, 1).
+B. The Model
+
+We will say that T is insecureif some y E (Z,(Z)
+Z,)* exists such that
+
+u Z,
+
+u
+
+Definition I: A two-party cascadeprotocol T is specified
+Ylv,(X,Y)
+=A
+by a series of finite strings
+l<i<t
+Ei,E {z,, z2, zj)*,
+for some Ni( X, Y); T is secureotherwise.
+Remark: Clearly, the definition of security for T is inde1 < i < t’,
+Pi E {zI> ‘2, '4)*?
+pendent of the choice of X, Y, Z.
+We now give the motivation behind the definition. Supwhere t' = t or t - 1. For each pair of distinct users X and
+Y, let ai(X, Y), p,(X, Y) denote the strings Gi, pi with the pose X is trying to send a plaintext M to Y (using protocol
+
+DOLEV
+
+AND
+
+YAO:
+
+SECURITY
+
+OF PUBLIC
+
+201
+
+KEY PROTOCOLS
+
+T). The actual messagestransmitted between them are
+Proof: Let Z be a user n a m e distinct from X and Y.
+then Ni(X, Y)M (i = 1,2,. .. ) and may fall into the
+A) Necessity: Assumethat either property 1) or 2) is not
+hands of the saboteur Z. Taking any Ni( X, Y) M , the true. W e will show that T is insecure,i.e., y E (Z,(Z) U Z,
+saboteur Z has the chance to transform it by repeatedly U Z,)* exists such that yNi( X, Y) = X for some i.
+applying any of the following three types of operators:
+If 1) is not true, then yN,( X, Y) = X where y = af E
+Z,(
+Z j*, and we are done. W e can thus assumethat 2) is
+a) any u E Z,(Z);
+false,
+i.e., T is not balanced. By definition, either some
+b) any u E 2,: Z can initiate a plaintext transmission
+pk(
+X,
+Y) contains D, but not E, or some(ui(X, Y) (i & 2)
+with a user B, claiming himself to be A, and send any
+contains
+D, but not E,. W e first restrict ourselvesto the
+string P to B in the (2i - 1)st message;Z then gets
+former
+case
+(fik contains D, but not E,); the latter case
+back &( A, B)P, effectively putting the operator
+will
+be
+treated
+later. W e will establishunder this restriction
+pi (A, B) on any chosenP;
+the
+following
+stronger
+For any 6 E ({E,, E,} u D)*,
+c>any u E 2,: let u = q(A, B); there is a chancethat y E (Z,(Z) U {fik(Z, result.
+X),
+Pk(Z,
+Y)})* exists such that y8
+A may wish to transmit a plaintext to B some tim e in
+=
+A.
+The
+proof
+will
+be
+carried
+out
+by induction on r, the
+the future; Z may intercept the (i - 1)st reply from B
+number
+of
+E,
+and
+E,
+in
+the
+string
+6.
+to A, prevent it from reachingA, and replaceit with
+If r = 0 then y = 6’ E (Z,(Z))* satisfies the requireany chosen string P and receive from A the string
+ment.
+Now let r > 0 and assumethat the result has been
+q(A, B)P.
+establishedfor all smaller values of r. Let 6 be a string
+As a result, Z has the opportunity to obtain the string containing exactly r E,‘s and E,‘s. W ithout loss of generyN](X, Y)M for any y E (Z,(Z) U Z, U X3)*. This ality, we can assumethat the leftmost E is an E,. Write
+means Z may deduce M , if yNi ( X, Y) = h for some 6 = u,E,u,, where lt(u,) n {E,, E,} = 0; clearly, a; E
+(Z,(Z))*. By assumption, Pk(Z, Y) contains D, but not
+Y E (q(z)
+u x2 u q>*.
+W e wish to point out that, in order to obtain ai( A, B) P E,; hence we can write Pk(Z, Y) = Q-,D,~,, where 7, E
+from P, Z has to wait for A to initiate a conversationwith (E,, Dy}* and r2 E {E,}*. Clearly, r: E (Z,(Z))* for i =
+B. It may or may not happen. Thus our definition of 1,2. Now a, contains r - 1 E ‘s, and by the inductive
+security is a conservativeone, in the sense that we are hypothesis, y’ E (Z,(Z) U (Pk(Z, X), Pk(Z, Y)})* exists
+concernedwith the worst-casepossibility.
+such that y’uz = X. Define y = y’~pJ?~(z,Y)QF. Then
+y E (Z,(Z) U {Pk(Z, X), Pk(Z, Y)})* from the above disC. A Characterizationof SecureProtocols
+cussions.Furthermore,
+Definition 4: Let 7~E {E, D>* be a string and A be a
+user name. W e say that 7~has the balancingproperty with
+respectto A if
+DA E It(r)
+
+implies EA E h(r).
+
+-;-s = ~‘T;&(Z, Y)$$u,E,u,
+= y’u,
+= A.
+
+This completesthe inductive step.
+As will be seen,the balancingproperty is inherent in secure
+Still to be shown is that T is insecure when some
+cascadeprotocols.
+a;( X, Y) (i 2 2) contains D, but not E,. One can prove the
+Definition 5’ Let X, Y be two distinct user names. A following stronger result: For any 6 E ({E,, E,} u D)*,
+two-party cascade protocol T = {&, bj} is a balanced y E (Z,(Z) U {ai(X, Z), cw,(Y,Z)})* exists satisfying y8
+cascadeprotocol if
+= X. The proof is almost identical to the previous proof
+1) for every i > 2, oi( X, Y) has the balancing property
+with respectto X, and
+2) for every i > 1, &(X, Y) has the balancing property
+with respectto Y.
+
+and will not be repeated.
+B) Sufficiency: Assume that both properties 1) and 2)
+are satisfied; we will prove that T is secure.
+Suppose, to the contrary, a y E (Z,(Z) U Z, U Z,)*
+existssuch that yNj( X, Y) = X for somei. W e will derive a
+contradiction. Write yN, (X, Y) = Pa, (X, Y) such that P
+E (Z,(Z) U Z, U Z,)*. By definition of y, we have
+
+Remark: W e emphasizethat oi( X, Y), /3,(X, Y) are in
+reducedform for i, j > 1.
+L e m m a 1: Let Z be a user n a m e and T be a balanced
+cascadeprotocol. Then for every string 11in (Z,(Z) U Z,
+&(x,
+Y) = A.
+(1)
+U &)*, ?j has the balancing property with respectto every
+By the definition of a protocol, h(a,(X, Y)) c
+A * Z.
+(E,, D,, E,}. W e distinguish two cases.
+The proof is given in Appendix I.
+CaseBl, E, E ft(a,( X, Y)): As the string OL,doesnot
+W e are ready now to state and prove the m a in result of
+contain D,, the only possibility for (1) to hold is that p
+this section. Let X, Y be two distinct user names.
+contains some D, but no E,. This meansthat P does not
+Theorem1: A two-party cascadeprotocol T = {gi, b,} have the balancing property with respect to Y. As Y f Z,
+is secureif and only if
+this is a contradiction to L e m m a 1.
+Case B2, E, G h(a,(X, Y)): In this case D, @
+1) Nq(X, Y>>n {E,, E,) * 0, and
+2) T is balanced.
+/t( Ly,(X, Y)), because(Y,(X, Y) is in reducedform and the
+
+202
+
+IEEE TRANSACTIONS
+
+protocol satisfies property 1) in the lemma. This implies
+that (Y,(X, Y) = Ei . Similarly to Case Bl, the only possibility for (1) to hold is that p contains D, and does not
+0
+contain E,, which again contradicts Lemma 1.
+A cascadeprotocol T is called doubly verified if for some
+i, Zt(Ni( X, Y)) c {Ey, D,, D,) and for some j > 2,
+M$(X Y>> c (4, 4, 4).
+Theorem 2: Every doubly verified protocol is insecure.
+Proof: Let T be a doubly verified protocol such that
+It(&)
+
+G {Ey, 4,
+
+Dy),
+
+(2)
+
+ON INFORMATION
+
+THEORY,
+
+VOL.
+
+IT-D,
+
+NO.
+
+2, MARCH
+
+1983
+
+string y:
+a) encryptionE,;
+b) decryptionD,;
+c) appendingi,; with i,y = yX,
+d) name-matchingd,; with d,y = head(y) if tail(y) = X
+and undefined otherwise;
+e) deletion d, with dy = head(y).
+The name X can be any user’s name, but the only decryption Y can apply is D,. The following equations are clearly
+true. For any name X,
+E,D, = D,E, = 1,
+and
+
+and
+
+lt(g,) c (E,, D,, D,).
+
+(3)
+
+(We have used the abbreviations pi for N,( X, Y).) Write
+fl, = a,(X, Y), flk = yka,(X, Y) and N,= y[a,(X, Y),
+where ri E (Z, U Es)*. SupposeT is secure.We will derive
+a contradiction.
+By Theorem 1, T has to be balanced.
+Case 1, E, E Zt(a,(X, Y)): Clearly, (3) demands that 7,
+should contain D, but no E,. This contradicts Lemma 1.
+Case 2, E,E Zt(cy,(X, Y)) and E, G Zt(a,(X, Y)): In
+this case, (2) requires that yk contains D, but no E,,
+0
+contradicting Lemma 1.
+
+d,i,=
+
+di,=
+
+1.
+
+(4)
+
+We remark that i,d, * 1.
+Under a name-stamp protocol, any text transmitted by a
+user is obtained by applying a sequenceof operations a)-e)
+to the most recently received text. In particular, when a d,
+is applied to a string y, the transmission will not proceed
+unless tail(y) = X. To ensure the completion of the communication, we will require that any text transmitted between two normal users X, Y will be of a form
+y~{E~,D~,i~,d~,dlallusersA}*M
+
+such that no d, remains after (4) is repeatedly applied.
+As before, a saboteur is allowed to intercept all the texts
+Theorem 2 implies that in a securecascadeprotocol T, if
+between
+X and Y, modify them with operations a)-e), and
+the receiver Y is able to decode the encrypted messageM,
+use
+them
+freely in any conversation, initiated either by him
+then the sender X cannot obtain M by simply decrypting
+or
+by
+others.
+In this fashion he can obtain numerous
+some of the messagessent back to X. That means X should
+strings
+y
+E
+{EA,
+DA, i,, d,, dl all A}*M. If any of the
+not be able to reconstruct M if X has thrown away M after
+obtained
+y
+can
+be
+reduced to M by the repeated use of (4),
+the first transmission. This theorem implies that the protothen
+the
+saboteur
+will have succeededin the quest for M.
+col in Example 1 is not secure (a fact we demonstrated
+before). It also implies that the protocol suggestedin Diffie
+and Hellman [2] (the message exchanges being B. Some Notation
+Es(DA(M)), EA(DB(M)))
+for obtaining public-key
+Consider the following set of rules:
+authentication is not secure.
+E.&y*
+A,
+D,E, -+ A,
+We wish to emphasizethat our security concept is based
+d,i, + X,
+di, -+ h.
+on the assumption that the plaintext M is arbitrary. If the
+(5)
+structure of M is known and a consistency check can be For any string y E {EA, DA, d,, i,, dl all user A}*, let 7
+made, then the protocol is no longer considered to be a denote a string obtained when the rules in (5) have been
+cascadeprotocol. In the next section, we consider a case in used to reduce y until no further replacement can be made.
+which the internal structure of the messagecan be used to Clearly, yis unique, independent of the order of the reducachieve security.
+tion. Call 7 the reduced form of y. A string y is irreducible
+if 7 = y.
+III. NAME-STAMP PROTOCOLS
+C. Formal Model
+In Section I we discussedseveral protocols that append
+names to the messagebefore the encryption. We will now
+Definition 6: A two-party name-stamp protocol T is
+introduce a model that includes such protocols.
+specified by a set of strings
+A. Informal Description
+Assume that the names of all users are of the same
+length, say, m bits. For any string y E (0, l}*, we will write
+y = head(y)ta
+where tail(y) is a suffix of m bits. A
+user Y can apply any of the following operations to a
+
+4 E (F - <z,>>*,
+
+Bj E (F - <ZI>>*
+
+where F = {z,, z2,. . . , z9}, 1 < i < t, and 1 6 j < t’(t’ = t
+or t - 1). Let a,( X, Y) and /3,(X, Y) denote the strings Gi
+and bj when z,, z2; 1*, zg are each replaced by D,, D,,
+E,, E,, ix, i,, d,, d,, d. Let N,(X, Y) = cu,(X,Y),
+
+DOLEV
+
+AND
+
+YAO:
+
+SECURITY
+
+OF PUBLIC
+
+KEY PROTOCOLS
+
+N,(X, y> = P,(X, Y)N,(X, Y), N,(X, y> =
+as(X,V&(X, n- . ., N2i(x3
+‘) = PiCx3
+y)N2i-,(x3
+‘>>
+
+203
+
+1) If W * X, then v,N,(X, Y) = E,i,d,ix,
+and 7
+f X.
+= v,v* *. . VI-,E,i,d,i,
+2) If W = X, then v,N,(X, Y) = Exi, = N,(X, Y),
+and hence the string y’ = v,v2 . . . vl- ,N2( X, Y)
+satisfies7’ = 7 = A, contradicting the m inimality of
+
+Nzi+ ,( X, Y) = (Y~+
+,(X, Y)N,,( X, Y), . . . . W e require that
+Ni ( X, Y) do not contain any dA.
+Remark: {Ni(X, Y)M} is the sequenceof texts transm itted betweenX and Y, when X wishes to send plaintext
+Y.
+M to Y. That N, ( X, Y) contains no dA means the i th
+0
+This completesthe proof.
+transmissionis well-defined.
+Definition 7: Let X, Y, Z be three given distinct users.A
+two-party name-stamp protocol T is insecureif a string F. An Algorithm for CheckingProtocol Security
+Y E v;,.@xx> 0) exists such that 7 = X; the set V,, r is
+W e will give an algorithm that can decide if a given
+defined by
+name-stampprotocol is secure.In particular, one can run
+this algorithm to give an alternative proof of security for
+VZ,T = {a,(A, B)l all A f B allj > 2)
+the protocol 1) in the precedingsection.
+G iven a two-party name-stampprotocol T, specified by
+U {/3,(A, B)I allA * B, allj}
+{ai, fi,}, we will use n to denote the input length Bilail +
+U {EA, i,, d,, dl all A) U CD,>.
+(6) Z,lp,l. The rest of this subsectionis devoted to a proof of
+the following theorem.
+O therwise, T is secure.
+Remark: The security of T in the above definition is
+Theorem3: There is an algorithm that can decide in
+clearly independent of the choice of X, Y, Z. The motiva- tim e O(n8) whether a given two-party name-stampprototion for the definition is similar to the cascadecase (see col T is secure.
+Section II-B) and will not be elaborated.
+W e will prove as an intermediate step Theorem4, which
+is
+of interest by itself. In principle, the saboteur Z may
+D. Examples
+start a conversationwith any user in the network. The next
+1) Consider the protocol given in Example 2. In the lemma shows that we can assumethat Z only speaksto X
+present notation, “,(X9 Y) = E,i,,
+P,(X, Y) = and Y. This reduction is very useful for constructing an
+W e also have N,( X, Y) = E,i,
+and algorithm. Let us define
+E,i,d,D,.
+N,(X, Y) = E,i,.
+S = {q(A, B)IA, B E {X, Y, Z}, A * B, i > 2)
+2) The protocol in Example 3 correspondsto the case
+u @ ,(A, B)IA, B E (X, Y, Z),A f B)
+(Y,(X, Y) 2 E,i,E,,
+p,(Xy Y) = E,i,i,D,d,D,.
+We
+then have N, (X, Y) = E,i,E, and N,( X, Y) = E,i,E,.
+U {EA, i,, d,, dlA = X, Y, Z> U 1%).
+(7)
+This protocol is insecure,as the string
+L e m m a 2: The protocol T is insecure if and only if a
+string
+y E S*{&. ( X, Y)} exists such that 7 = X.
+Y = D,dD,P,(Z X)ExizdDzdDzP,(Z X)
+Proof: It suffices to show that, if T is insecure, then
+such a y exists. In this situation, let y’ E Vg,&N, (X, Y)}
+satisfies 7 = A. (This particular y actually correspondsto be a string such that y’ = A. Replacein y’ all the EA, i,, d,
+the sequenceof operations used by the saboteur in Exam- when A @ {X, Y, Z} by E,, i,, d,, and let y denote the
+ple 3.)
+resultinmng.
+Clearly, 7 = A. Observe also that y E
+S*{N,( X, Y)}, as q(A, B) and &(A: B) becomeaj(Z, Z)
+E. A SecureProtocol
+and &( Z, Z) E S if A, B 6 {X, Y, Z}, and ai( A’, B’) and
+fii( A’, B’) with A’, B’ E {X, Y, Z), A’ # B’, otherwise. 0
+W e now prove that the protocol in Example 2 is secure
+in our m o d e l. Suppose to the contrary, a y E
+Definition 8: Let 17E {EA, DA, i,, d]A = X, Y}* be an
+exists
+with
+7
+=
+X.
+W
+e
+will
+derive
+a
+conirreducible
+string. Denote by C(q) the set of all irreducible
+vg.uYv> y>>
+tradiction.
+strings 6 E { EA, DA, i,, d,, dl all A}* satisfying & = A.
+Take such a y = v,v2 . . . v,Ni( X, Y) with a m inimum
+L e m m a 3: If 17contains any d, then C(q) = 0. O thernumber of vk E V&. Assume i = 1 (the other casei = 2 wise, let q = b,, 6,;. ., b,, then C(q) consists of all the
+can be treated similarly). From the previous subsection,we strings b,“b,C_
+, . . . by, where (EA)’ = DA, (DA)’ = EA, (iA)C
+have Ni( X, Y) = E,i, and N,( X, Y) = E,i,. Since 7 = = d, or d.
+X, there must be a D, in y that cancelsthe Ey in N, ( X, Y).
+Proof: It follows from the fact that d has no left
+Let vj be the word that contains this D,, then vj = inverse,and the fact that bF are the only irreducible strings
+/3,(W, Y) = E,i,d,D,
+for some W(as D, occursonly in satisfying bfb, = A.
+q
+j3,. This implies j = 1, otherwise y’ = U,V* . . . v,N, ( X, Y)
+Write pk = Nk ( X, Y), and let pi,, piz,. . +, p,>be those pk
+would be an instance shorter than y. There are now two
+that do not contain d.
+cases.
+
+.E,i,J$(X, Y) E VS,T(N,(X,Y> >
+
+204
+
+IEEE TRANSACTIONS
+
+Lemma 4: The protocol T is insecure if and only if a
+string y E S* exists such that 7 E C(pi,) for some 1 6 j <
+s.
+Proof:
+Sufficiency: If y E S* and 7 E C(p,), then y’ = yp;, E
+s*m(x, yh and 7 = A. Thus T is insecure by Lemma 2.
+~&?ssitv:‘~If T is insecure, then by Lemma 2 a string
+Y’ = Y&ix
+y> exists with y E S* and 7 = X. This implies jipk = X, and thus by Lemma 3 7 E C(pi,) for somej.
+0
+We will show the following.
+Proposition I: Given a set of strings S = (h,, h,; . ., hp}
+and a string p, where
+h, E {EAT DA, i,.,, d,, dlA = X, Y, Z>*
+
+ON INFORMATION
+
+THEORY,
+
+VOL.
+
+IT-29,
+
+NO.
+
+2, MARCH
+
+1983
+
+undecidable (see,e.g., Hopcroft and Ullman [5]). However,
+we will show that the problem is solvable in polynomial
+time for a special class of the inputs.
+Definition 9: A transformation rule of the form a,a, + h
+is called a cancellationrule.
+Theorem 4: Let Z: be an alphabet and I a set of cancellation rules. Then the extended word problem for (Z, I?)
+can be solved in time O(n7), where n is the input length.
+Theorem 4 implies Proposition 1 by the following argument. Let
+2 = (DA, EA, i,, d,, djA = X, Y, Z},
+r=(DAEA -X,E,D,
++X,d,i,
+-h,
+di, + AIA = X, Y, Z}.
+
+The problem stated in Proposition 1 with inputs
+h,, h,; . -7 h,, p can be solved as an extended word probP E {EA, DA, iAlA = X, Y>*,
+lem for (Z, I?). The inputs are a,, 6,; * *, 13,and a subset
+G4, where ai = hi and TJis such that
+one can decide in time O(q7) if a string y E S* exists such string11 = G,,G,;*.,
+L(q) = C(p). The input lengths are linearly related. Thus
+that 7 E C(p). (q is defined to be Cf,,lhil + IpI.)
+Proposition 1 implies Theorem 3 by the followiug argu- proving Theorem 4 will complete the proof of Theorem 3.
+To prepare for the proof of Theorem 4 we define a few
+ment. Given a protocol T specified by (ai, pi>, we first
+compute N, ( X, Y) and then pi = N, ( X, Y) for all i in time terms. Let a,, 6,; 1., 8, be the input words in Z*, and let
+O(n*). (Observe that each Nj( X, Y) is of length at most II = G,, G,,. . ., G4 be the input sequenceof subsets(Gi c
+O(n).) Consider those pi that contain no d. For each such Z). Without loss of generality, we can assume that aj * X
+for all i. Denote by I, I’ the set of all proper prefixes and
+pi, use Proposition 1 to decide if a y E S” exists such that
+jr E C(p,), where S is given by (6). By Lemma 4 the suffixes of a,, 6,; * ., 8, (including h, but not Si). Let J be
+protocol is then insecure if and only if such a y for some pi the set of all substrings of 17and J, the set of all substrings
+of 17of length 1. For each w E J, let
+exists. The total time is
+and
+
+O[Z( Cla,l + ClPjl + IPil)‘] = O( Zn7) = OtnS)i
+
+j
+
+J
+
+i
+
+Proposition 1 remains to be proved. We wilI consider a
+more general setting.
+G. The Extended Word Problem
+
+R, = ((8, b)lg E I’, b E I, e E {4,~,,.. ., s,>*
+exists such that geb - r L ( a)}.
+We emphasize that each w E J is of the form
+Gi>Gi+l>. . ‘7 Gj, where G, c Z.
+Lemma 5: R, can be computed in time O(n7).
+The proof is given in Appendix II.
+
+Let Z = {a,, u2;.., a,} be an alphabet, i.e., a set of
+Proof of Theorem4: We compute R, for w E J, inducdistinct symbols. We call u --, v a transformation rule, tively on 1 by “dynamic programming.” Initially, we comwhere u E Z+ and v E Z*. Let P ={u, -+ v,, u2 -+ pute R,. Now let I > 0, and suppose R, have been comV2,’ * -7 uq + v~} be a set of transformation rules. For two puted for all w E J, U J, U . . . U J,- I. For each w E Jj,
+strings y, 6 E Z*, we will write y ~~6 if y can be trans- we will compute R,. Let w = Gju. For each g E I’, b E I,
+formed into 6 by repeatedly using rules in P, i.e., replacing let us decide if (g, b) E R,. Suppose gaipiZ . . . 6,$bjT
+substrings ui by vi. For a string of subsets Gi of Z, L(G,u). Since cancellation rules do not create new symv = G,, $2. .-> GqT let L(v) = (YIY = g,, g2,-+-, g,, bols, gSi,8iZ. . * Sisbmust be of the form pa,p’ for some
+where gi’E Gi}. We will use the notation y m&(q)
+if uk E Gj with p jrX and p’ *rL(u).
+To cover all the
+y H rp for some p E L( 7). The extendedword problem for possible breaking points for p and p’, we employ the
+(Z, r) can be stated as follows.
+following procedure:
+Given a set of input strings S,, 8,; * a, S,,(S,E Z*) and a
+1) If g = akg, with ak E Gj, determine if (g,, b) E R,.
+string of subsetsTJ= G,, G,; . a, G,(Gi c Z; Gi * 0), de2) For each 8, and each occurrence of a symbol uk E Gj
+termine if a concantenation A = a,,, a,,,* * +, ais exists such
+in Sj, write 8, = SCI~S’.Determine if both (g, s) E R,
+that A ~j~L(q).
+and (s’, b) E R,.
+Remark: The input length n is defined to be Zi]Si] +
+3) If b = b,b, with b, E L(w), determine if (g, b,) E
+“,IGjI.
+RAIn general, the extended word problem is known to be
+undecidable becauseit includes as a special case the mem- Set (g, b) E R, if any of the above tests yields a “yes”
+bership problem for a type-0 language, well-known to be answer; otherwise (g, b) e R,. To check that the above
+
+DOLEV
+
+AND
+
+YAO:
+
+SECURITY
+
+OF PUBLIC
+
+KEY
+
+PROTOCOLS
+
+205
+
+procedurecorrectly determinesif (g, b) E R, is easy. To
+Definition 11: A string q is strongly A-balancedif every
+find the running time, note that each triplet (w, g, b) takes A substring r has the balancing property with respectto A.
+tim e at most
+L e m m a 6: Let 7 be strongly A-balanced string.
+
+O(lR,I + n(IW + IRA) + PAI + lR,I + n>
+= O(nlJl . 11’1)= O(n3).
+Thus the tim e neededto compute R, for all w E J, is
+O(lJtI . 111+ 11’1)1n3 = O(n6).
+The total computing tim e for I = 1,2,. . . , 1~1is thus
+O(n7). Since the extendedword problem has a solution if
+and only if (h, X) E R,, the proof of Theorem 4 is completed.
+q
+IV.
+
+THE IMPATIENT SABOTEUR
+
+1) If 7 = q1D,q2 with B f A, then 77,and q2 are both
+strongly A-balanced.
+2) If 11= 9,~~ and EA P lt(q2), then 17,is strongly Abalanced.
+Proof: It is easy to see that 7 is strongly A-balanced
+iff every A substring that does not contain any D, for
+B * A has the balancing property with respect to A. This
+implies 1).
+The balancing property with respect to A is concerned
+with the appearanceof EA in case that DA appears.Therefore, by removing a suffix or prefix which does not contain
+EA, we cannot changethe balancingproperty or the strongly
+q
+balancedproperty. This proves2).
+
+To break a protocol that is insecure as defined in the
+previoussections,a saboteurmay need to be the receiverof
+a conversation. In this section, we are interested in the
+The key idea in the proof of Theorem 6 is the property
+characterizations (or decision procedures) for protocols presentedin the following lemma.
+that can be compromisedby an impatientsaboteur,i.e., one
+L e m m a 7: Let y, 6 be any strongly A-balanced strings
+who only initiates conversations(and does not rely on given in a reducedform. If
+being spoken to).
+(It(u) u It(S)) n {EA, DA) * 0
+For the name-stamp protocols, this corresponds to a
+m o d ification of the definition of security (Definition 7). then y8 * A.
+That is, one should o m it the term (a,( A, B)} from the
+Proof: W e prove the lemma by induction on n, the
+definition of V., r (see(6)).
+number of DA in the word ~6.
+Theorem5: An algorithm exists that can decide in tim e
+The lemma is trivially true for n = 0. Assume now that
+0( n8) whether a given two-party name-stampprotocol T is one DA appearsin y13.W e will assumethat it is in y and
+secureagainst an impatient saboteur.
+that 6 contains no DA. (The case where DA is in 6 can be
+Proof: The proof is identical to the proof of Theorem similarly treated.) By assumption, the strings y, 6 are in
+3 except that the (q(A, B)) term should be o m itted from reduced form. Therefore, yS = h implies that y does not
+contain any EA, which contradicts the balancing property
+q
+(7).
+of y. The lemma is thus true for n = 1.
+For the cascade protocols, the definition of security
+For the inductive step, let n > 1. Assumethat the lemma
+(Definition 3) should be m o d ified as follows. T is insecure holds for every y’, 6’ such that ~‘8’contains at most n - 1
+(againstan impatient saboteur)if somey E (Z,(Z) U IX,)*
+DA’s. Let y, 6 be such that y8 contains nD,‘s, and that y, 6
+exists such that yNj( X, Y) = A for some Ni( X, Y); T is satisfy the induction hypothesis.W e wish to prove 2 * X.
+secureotherwise. W e can obtain a characterizationsimilar
+W e prove by contradiction. Suppose2 = A. By assumpto that in Theorem 1.
+tion y and 6 are in reduced form; thus 6 = yc. It follows
+Theorem6: Let X, Y bedistinct usernames.A two-party that y and 8 contain the same number of operators from
+cascadeprotocol T = ( Ei, /i,} is secureagainst an impatient the set ( EA, DA}. Let us assumethat y = y2DA+y, where
+h(y,) n (EA, DA} = 0. (The case y = y2E,+yl is similar.)
+saboteurif and only if, for every k 2 1,
+In this caseS = 8, EA+a2where 6, = yf and 6, = yi.
+1) W ,,(X, Y>> n (E,, E,) * 0,
+The string y is strongly A-balanced.Therefore,y2 should
+2) Pk(X, Y) has the balancing property with respect to be of the form y3EX for some X f A. (Otherwise, y =
+Y.
+y3DxD,+yl for X * A and where EA @ It(y,), which conAlthough the statementof this result is simple, the proof tradicts the fact that DA+y,has the balancing property with
+is quite involved. The rest of this section is devoted to a respectto A.) This implies that 6, = D,S, and 6, = yt.
+By L e m m a 6 and the fact that Zt(yl) n {EA, DA} = 0,
+proof of Theorem6. In the following, a string alwaysrefers
+we conclude that y3 and 6, are strongly A-balanced. Moreto a string of E’s and D ‘s. Let A be any user name.
+Definition 10: Let q be a string. A substring r of TJis over, the fact that y = y3ExDA+y,and EA G lt(y,) implies
+called an A-substring if one of the following is true for that EA E lt(y3), which implies that DA E lt(S,). The inductive assumptionimplies that y23 * A, which is a consomeX,Y*A:
+q
+tradiction to our assumptionthat y8 = h.
+1) 11= v,DpDr~;
+L e m m a 8: Let Z, = (&(X, Y)l for all i and all users
+2) v = v,Dp;
+X}.
+If every member of Z, has the balancingproperty with
+3) 77 = 77&?/2.
+
+206
+
+IEEE TRANSACTIONS
+
+ON INFORMATION
+
+THEORY,
+
+VOL.
+
+IT-29, NO. 2, M A R C H
+
+1983
+
+balancing property with respect to A. Moreover, n does not
+contain any D, with u * A. Let n = D,6D,, where X, Y * A, be
+v E (2, u E U {DJX*
+Y>>*,
+a substring of D=J.LTJD~. If D, E It(p),
+then r is A-balanced
+becausep satisfies the linkage property. Otherwise, D, should be
+7~is strongly Y-balanced.
+the rightmost D,, n cannot contain D, (as Y * A).
+Proof: The proof is very similar to the proof of Lemma
+In this case n = D,S’sD,, where 6 = 6’17, because D, also
+1 given in Appendix I. The property of being strongly cannot be in n. We have to prove that if 81, contains DA then it
+balanced is a special case of having the linkage property must contain E,. Assume to the contrary that 61, contains DA
+(Appendix I). The proof can be carried along the sameline, but no E,. It can be shown that either n or 6’1, should contain
+with attention paid to only one party Yin the present case. Da with no E,, because at most one block of DA+ or Ei can be
+cancelled in 61, (since only A-reductions can be done in it). This
+q
+leads to a contradiction of either the assumption that n has the
+We are now ready to prove Theorem 6.
+balancing property or the assumption that p has the linkage
+•1
+Proof of Theorem 6: The necessity part is exactly as property.
+
+respect to Y, then for every string
+
+that of Theorem 1.
+Sufficiency: Assume to the contrary that P E (Z,(Z)
+Z,)* exists such that for some k
+PN,
+
+U
+
+= A.
+
+(We will use the abbreviation Nk for Nk( X, Y).)
+Case A, Zf E, 4 It(p,): Property 2) and Lemma 8
+imply that the string & is strongly Y-balanced.Therefore,
+Fk cannot contain any D,. We thus have &?k= E$ , otherwise 1) would not hold. This means p = D$. Now, condition 2) states that /3,.(A, X) have the balancing property
+with respect to X, for every A. Therefore, by Lemma 8 Pis
+strongly X-balanced, which contradicts the fact that p =
+0;.
+
+Lemma 10: Let T be a balanced cascadeprotocol. Then every
+string n E (8, u 2, u Es)* has the linkage property.
+Proof: For each n E (Z, U 2, U X3)*, write n = w, . ... .
+w,, where each wi is either in Z: or 2, or 8,. One can finish the
+proof by a simple induction on n, the number of words in 7,
+using Lemma 9.
+0
+Lemma 11: For any string q and any Z, if n has the linkage
+property, then ?j also has the same property.
+Proof: It suffices to prove that, if a string has the property,
+then so does the new string obtained by a reduction of any pair
+D,E, or E,D,, for any X. Let n be any string which has the
+linkage property. Assume
+
+v = v,E,vDxvz.
+
+Case B, E, E lt(F,): In this case, by Lemma 8, rk
+and pare strongly Y-balanced.However, Lemma 7 implies Let A be any user other than Z. We have to show that every
+substring of Dzq,q2 D, is A-balanced.
+that
+If A = X, then every substring of Dtq,q12D, is A-balanced
+which provides the desired contradiction.
+APPENDIX I
+PROOF OF L E M M A 1
+
+q
+
+because the corresponding substring of D,qD, is A-balanced. In
+the following, we assumeA * X.
+Let D, be the first D, from the right of D,q, other than DA,
+and let D, be the first such D,,( V * A) from the left of TJ*D,.
+Then we can write
+
+D,d?z = 4W,E,W,bvd’.
+Let Z be a distinguished user name. We will explore the The fact that n has the linkage property implies that D,6, E,D,
+structure of strings in (8, u Z, u Es)*, from which we will and D,6, D, are A-balanced. It is then easy to seethat D,S,& D,
+derive Lemma 1. (We use 2, for 2, ( Z) throughout this appendix.) is also A-balanced. This completes the proof.
+0
+Definition: Let 7~be a string and A be a user name. We say that
+Note that the lemma does not hold in the reverse direction,
+v is A-balanced if the following condition holds: rt = D,SD,,
+that
+is, if ?j has the linkage property, it does not imply that n has
+where X, Y * A and lt( SIA) n D c (DA) implies that 61, has the
+it.
+balancing property with respect to A.
+Example: Let 11= E,D,E,EYD,DYE,,
+then ij has the linkA string 7 is said to have the linkageproperty if every substring
+age property but TJdoes not have it.
+r of D,qD, is A-balanced for all A * Z.
+Lemma 9: Let T be a balanced cascadeprotocol. Let p be any
+Proof of Lemma 1: We have to prove that for every string
+string having the linkage property. For every string n from either 11E (C, u 2, u x.3)*, the reduced string ?j has the balancing
+2: or Z, or Z,, pn and n)~satisfy the linkage property.
+propertywith respect to every A * Z.
+Assume to the contrary that, for some A, -?jdoes not have the
+Proof: It suffices to prove that ~7 has the linkage property;
+balancing
+property with respect to A. It follows that ?j contains a
+the other case follows by symmetry. Let A * Z be any user of the
+network. We have to show that every substring of D,pqD, is D,., but does not contain any EA. This implies that ?j does not
+have the linkage property. However, ?j must have the linkage
+A-balanced.
+property
+by Lemmas 10 and 11. This leads to a contradiction. 0
+Consider first the case that TVdoes not contain DA. In this case
+the number of DA in oJn)la cannot increase, and therefore, every
+APPENDIX II
+substring of D,pqDz is A-balanced since every substring of
+PROOF OF L E M M A 5
+D,p D, is A-balanced.
+The purpose of this appendix is to show that R, can be
+Next, assume n contains DA. In this case n should be some
+01~(A, B) or Pk( B, A) for some users A and B. Thus n has the computed in 0(n’) time. (See Section III for notations.) For
+
+DOLEV
+
+AND
+
+1=0,1,2;..,
+
+YAO:
+
+SECURITY
+
+OF PUBLIC
+
+207
+
+KEY PROTOCOLS
+
+Case 4, g = u,g,, b = b,aj:
+
+let
+
+Step a) Test if both (uku, + X) E F and (g,, b,) E V,; let
+(g, b) E V, if the answer is “yes.”
+Step b) For each 1 B k < p and every partition 6, = st (s, t
+may be A), test if both (g, s) E V,-, and (t, b) E
+V,- ,; let (g, b) E V, if the answer is “yes.”
+
+Q,={(g,b)~g~Z’,b~Z,3i,,i,;~~,ijwithOdj<l
+such that gSi,6i2. . . 6;,b P rX}.
+Clearly,
+R, = It; Q ,.
+
+I=0
+
+(8)
+
+Comment: If (g, b) is not included in V, after these steps, then
+(g, b) @ v,.
+End ProcedureK.
+
+Define V, = Q,. W e will give a procedure K which generatesa
+It is easy to check that, for each pair (g, b), the needed time in
+set V, c Z’ x Z once V,-, is given. Consider the sequence
+v,, v,, v,, . . . generated by this procedure iteratively. W e will its processingis at most 0( nlZl . 1Z’l)= 0( n3). Thus cost(K) =
+O(n31Z( . IZ’I) = O(n5).
+show that the sequence(V,} satisfies the following properties:
+W e can now complete the proof of the lemma by showing that
+Pl) for all I > 0, V, c V,,, and V, E R,;
+the sequence(V,) satisfies Pl)-P3). W e observe that, whenever a
+P2) for all I B 0, Q, E V,;
+(g, b) is added to 6 in procedure K, the conditions give a natural
+P3) for all I > 111. IZ’I, V,,, = V,.
+construction of a string y E g(S,}*b that can be reduced to A. W e
+omit a straightforward proof. This establishesPl).
+It follows from (8) and Pl)-P3) that
+To prove P3), observe that the construction of V, from V,-,
+does
+not explicitly depend on 1. Thus once we find V, = V,- ,,
+with
+1
+=
+111
+.
+IZ’
+I.
+R, = v,,
+(9)
+then V, = V,,, = V,,, = . . . This condition must be reached
+Thus, if we first compute V, = Q,, followed by lZ1 1 /Z’l applica- for some 14 111. IZ’I, as at most 111. IZ’I elementsexist in any 6.
+tions of procedure K, we will have obtained the desired R,. The This proves P3).
+W e prove P2) by induction on I. The case I= 0 is trivial, as
+time needed to compute V, is easily seen to be O(nlZl . 11’1).Let
+cost (K) denote the maximum running time of procedure K, then V, = Q,. Now assumethat we have proved P2) for all values less
+than I, and we will prove P2) for I (I > 0).
+the total time to compute Rx is O((n + cost( K))lZl . IZ’I) =
+W e need to show that, for any (g, b) E Q,, one must have
+O(n3 + n2 cost(K)). W e will show that cost(K) = 0(n5), thus
+(g, b) E v/. W e prove this by induction on the value s = lgl + IhI.
+giving a 0( n7) total running time.
+W e now give a description of procedure K. Assume that V,.. , is For any s > 0, let us assumethat the statement is true for all
+given in a matrix representation of dimension 11’1x 111,we will (g, b) with lgl + Ibl < s; we will prove the statement when lgl +
+lb1 = s. There are four cases to be considered, depending on
+describe how v/ is generated.
+whether lgl = 0 and whether lb] = 0. W e will consider the case
+lgl > 0 and IhI z 0, and leave the other three casesas an exercise.
+Procedure K
+If (g, b) E Q,- ,, then by induction hypothesis, (g, b) E I’-,
+W e process the pairs (g, b) in I’ X Z one at a time in the c V,. W e can thus assumethat (g, b) E Q, -- Q,- ,. Write g =
+increasing order of the length s = lgl + Ibl. For each (g, b), we a,g,, b = b,u,, and suppose
+include (g, b) in V, if it is in V,_ , , and otherwise we execute the
+following steps according to the cases:
+~~glSr,Si2. . S,,b,a, PI-X.
+Case 1, lgl = 0, lb/ = 0:
+
+Step a) For each 1 Q k, j <p, test if both (a,~, -+ X) E l?
+and (S;, 8;) E V,-, where 6, = ais;, Sj = 6,‘~~; let
+(g, b) E V, if the answer is “yes.”
+Step b) For each 1 < j < p and every partition S, = st (s, t
+may be X), test if both (g, s) E V,- , and (t, b) E
+ye ,; let (g, b) E V, if the answer is “yes.”
+Case 2, lg( = 0, b = b,u,:
+Step a) For each 1 < k < p, test if both (a,~, + X) E l?
+and(6;, b,) E V,-,,where6, = u,6;; let(g, b) E V,
+if the answer is “yes.”
+Step b) For each 1 Q k < p and every partition 6, = st (s, t
+may be h), test if both (g, s) E V,- , and (t, b) E
+v/- ,; let (g, b) E v( if the answer is “yes.”
+Case 3, g = u,g,, Ibl = 0:
+Stepa) Foreachl <j<~,testifboth(u,u,-+X)~Fand
+(g,3 S/) E v,- 1, where S, = $‘a,; let (g, b) E v/ if
+the answer is “yes.”
+Step b) For each 1 < k < p and every partition 6, = st, test
+if both (g,s) E V,-, and (t, b) E V,-,; let (g, b) E
+v/ if the answer is “yes.”
+
+In a reduction processto A, either the last step is uku, -+ h or the
+cancellation of the leftmost uk is with a symbol a, in some 6,“. In
+the former case (g,, b,) E Q, and, since lg,J + lb,1 < s, we have
+(g,, b,) E h by induction hypothesis; this means (g, b) will be
+included in V, during the execution of procedure K (Case 4, Step
+a). In the latter case a partition S,”= st exists such that (g, s) E
+Q,- , and (t, b) E Q,- ,; this means (g, b) is added to V, in the
+process(Case 4, Step b). This completes the induction.
+W e have proved P2), and hence Lemma 5.
+REFERENCES
+W . Diffie and M. Hellman, “New directions in cryptography,”
+IEEE Truns. Inform. Theory, vol. IT-22, pp. 644-654, 1976.
+PI W . Diffie and M. Hellman, “Multiuser cryptographic techniques,”
+in Proc. AFIPS 1976 NCC. Montvale, NJ, AFIPS Press, pp.
+109-l 12.
+[31 D. Dolev, “Byzantine Generals strike again,” J. Algorithms, vol. 3,
+pp. 14-30, 1982.
+[41 M. A. Harrison, W . L. Ruzzo, and J. D. Ullman, “Protection in
+operating systems,” Comm. ACM, vol. 19, pp. 461-471, 1976.
+[51 J. E. Houcroft and J. D. Ullman. Formul Larznuaws and Their
+R&ion ;o Autommru. Reading, MA: Addison-W-e&y, 1969.
+[61 R. Lipton and L. Snyder, “A linear time algorithm for deciding
+
+[II
+
+208
+
+[7]
+[8]
+[9]
+
+IEEE TRANSACTIONS
+
+subject security,” J. Ass. Comput. Much., vol. 24, pp. 455-464, 1977.
+R. C. Merkle, “Protocols for public key cryptography,” BNR Tech.
+Rep. Palo Alto, CA, 1980.
+R. M. Needham and M. D. Schroeder, “Using encryption for
+authentication in large networks of computers,” Comm. ACM, vol.
+2, pp. 993-999, 1978.
+M. Pease, R. Shostak, and L. Lamport, “Reaching agreement in the
+presence of faults,” J. Ass. Comput. Much., vol. 27, pp. 228-234,
+
+[lo]
+
+[I l]
+
+ON INFORMATION
+
+THEORY,
+
+VOL.
+
+IT-29, NO. 2, MARCH 1983
+
+1980.
+G. J. Popek and C. S. Kline, “Encryption protocols, public key
+algorithms, and digital signatures in computer networks,” in Foundations of Secure Computation, R. A. Demillo et al., Eds. New
+York: Academic, 1978.
+R. L. Rivest, A. Shamir, and L. Adleman, “A method for obtaining
+digital signatures and public-key cryptosystems,” Comm. ACM, vol.
+21, pp. 120-126, 1978.
+
+A Modular Approach to Key Safeguarding
+CHARLES ASMUTH AND JOHN BLOOM
+
+sacrificing some of this sharpnessif there were compensating improvements in some other feature, e.g., speed.
+The polynomial interpolation method of Shamir [4] is
+one of maximum sharpness.A set of numbers {x0, x,, . . *,
+xn} in some field is chosen.A polynomial P of degreer - 1
+is constructed so that P(x,) = x. The numbers y, = P(x,)
+for i = 1 to n are the shadows. The key is recovered by
+I. INTRODUCTION
+evaluating a Lagrange interpolating polynomial at x0. As
+E CONSIDER the following problem. Given a key we shall see, this method is somewhat sensitive to errors.
+x, one wishes to decomposeit into shadowsy,, . . . , Also, key recovery by the usual interpolation formula
+y,, in such a way that the key x is recoverablefrom any r of requires O(r log* r) operations. The modular method of
+the y,, but essentially no information is derivable from s or this paper requires only O(r) operations. It also is maxiany fewer y,. (See[I], also [4].) We will refer to any method mally sharp. Furthermore, it is easily modified to include
+that accomplishes this as a “key safeguarding scheme.” the option of checking the validity of the shadows before
+Such schemesare also called threshold schemesand have recovery of the key.
+uses other than key safeguarding.
+II. THE BASIC METHOD
+The value of such a scheme depends on a number of
+features. Some of these are
+A set of integers {p, m, < m2 < . . . < m,} is chosen
+1) the efficiency with which keys are decomposed and subject to the fo11owing’
+recovered,
+1) (m,, mj) = 1 for i fj,
+2) the sensitivity of the method to random error or
+2) (p, m;) = 1 for all i,
+deliberate tampering,
+3) TIl=Imi > pFI~Z:mn-ii,.
+3) the relation between r, s, and n.
+To have r = s + 1 would be best. This is the sharpest Here, as before, n denotes the number of shadows. Any r
+possible arrangement. However, one might consider shadows will suffice for key recovery. Estimates of the
+density of primes show that one could easily find primes mj
+to satisfy 3). To find composite m; is still easier.Finally, let
+Abstract-A
+method is proposed for a key safeguarding scheme
+(threshold scheme) in which the shadows are congruence classes of a
+number associated with the original key. A variation of this scheme
+provides efficient error detection and even exposes deliberate tampering.
+Certain underlying similarities of this scheme with Shamir’s interpolation
+method make it possible to incorporate these protective features in that
+method as well.
+
+W
+
+Manuscript received March 10, 1981; revised July 20, 1982. This paper
+was presented at the National Telecommunications Conference, Houston,
+TX, December 3, 1980.
+C. Asmuth is with the Department of Mathematics, Texas A & M
+University, College Station, TX 77843.
+J. Bloom is with Chevron Oilfield Research Corporation, La Habra,
+CA.
+
+M = nf=
+
+,&
+
+The decomposition process begins with the key x; we
+assume that 0 < x < p. Let y = x + Ap where A is an
+arbitrary integer subject to the condition0 < y < M. Then
+let y, = y(mod mi) be the shadows.
+
+0018-9448,‘83/0300-0208$01.0001983 IEEE
+
+

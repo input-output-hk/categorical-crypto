@@ -1,0 +1,6303 @@
+Logical Methods in Computer Science
+Volume 18, Issue 2, 2022, pp. 21:1–21:66
+https://lmcs.episciences.org/
+
+Submitted
+Published
+
+Apr. 02, 2020
+Jun. 17, 2022
+
+THE THEORY OF TRACES FOR SYSTEMS WITH
+NONDETERMINISM, PROBABILITY, AND TERMINATION
+FILIPPO BONCHI a , ANA SOKOLOVA b , AND VALERIA VIGNUDELLI c
+a
+
+University of Pisa, Italy
+
+b
+
+University of Salzburg, Austria
+
+c
+
+Univ Lyon, CNRS, ENS de Lyon, UCB Lyon 1, LIP, France
+
+Abstract. This paper studies trace-based equivalences for systems combining nondeterministic and probabilistic choices. We show how trace semantics for such processes can be
+recovered by instantiating a coalgebraic construction known as the generalised powerset
+construction. We characterise and compare the resulting semantics to known definitions of
+trace equivalences appearing in the literature. Most of our results are based on the exciting
+interplay between monads and their presentations via algebraic theories.
+
+1. Introduction
+Systems exhibiting both nondeterministic and probabilistic behaviour are abundantly used
+in verification [BK08, HKK14, KNP02, DJKV17, Var85, Han91, SL95], AI [CPP09, KLC98,
+RN09], and studied from semantics perspective [HKSH17, SYW+ 16, HPS+ 11]. Probability
+is needed to quantitatively model uncertainty and belief, whereas nondeterminism enables
+modelling of incomplete information, unknown environment, implementation freedom, or
+concurrency. At the same time, the interplay of nondeterminism and probability has
+been posing some remarkable challenges [VW06, KP17, Mio14, Jac08, Var03, Mis00, J.G08,
+TKP09]. Figure 1 shows a nondeterministic probabilistic system (NPLTS) that we use as a
+running example.
+Traces and trace semantics [Gla01] for nondeterministic probabilistic systems have
+been studied for several decades within concurrency theory and AI using resolutions or
+Key words and phrases: probabilistic automata and semantics for probability and nondeterminism and
+trace semantics and determinisation and coalgebra and convex subsets of distributions monad.
+∗
+This paper is an extended version of a LICS 2019 paper “The Theory of Traces for Systems with
+Nondeterminism and Probability”. It contains all the proofs, additional explanations, material, and examples.
+Filippo Bonchi has been supported by the Ministero dell’Università e della Ricerca of Italy under Grant
+No. 201784YSZ5, PRIN2017 – ASPRA (Analysis of Program Analyses).
+Valeria Vignudelli has been partially supported by the French projects ANR-20-CE48-0005 QuaReMe,
+the European Research Council (ERC) under the European Union’s Horizon 2020 programme (CoVeCe,
+grant agreement No 678157), the LABEX MILYON (ANR-10-LABX-0070) of Université de Lyon, within
+the program “Investissements d’Avenir” (ANR-11-IDEX-0007) operated by the French National Research
+Agency (ANR).
+
+l
+
+LOGICAL METHODS
+IN COMPUTER SCIENCE
+
+©
+DOI:10.46298/LMCS-18(2:21)2022
+
+CC
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+Creative Commons
+
+21:2
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+schedulers—entities that resolve the nondeterminism. Most proposals of trace semantics
+in the literature [Seg95b, Seg95a, BDL14b, BDL14a] are based on such auxiliary notions
+of resolutions and differ on how these resolutions are defined and combined. We call such
+approaches local-view approaches.
+On the other hand, the theory of coalgebra [Rut00, Jac16] provides uniform generic
+approaches to trace semantics of various kinds of systems and automata, via Kleisli
+traces [HJS07], generalised determinisation [SBBR10], providing e.g. an abstract treatment of language equivalence for automata, or logics [KR16]. We use the term global-view
+approaches for the coalgebraic methods via generalised determinisation.
+In this paper, we propose a theory of trace semantics for nondeterministic probabilistic
+systems that unifies the local and the global view. We start by taking the global-view
+approach founded on algebras and coalgebras and inspired by automata theory, and study
+determinisation of NPLTS in this framework. Then we find a way to mimic the local-view
+approach and show that we can recover known trace semantics from the literature. We
+introduce now the main pieces of our puzzle, and show how everything combines together in
+the theory of traces for NPLTS.
+In order to illustrate our approach, it is convenient to recall nondeterministic automata
+(NDA) and Rabin probabilistic automata (PA) [Rab63]. Both NDA and PA can be described
+as maps ho, ti : X → O × (M X)A where X is a set of states, A is the set of labels, o : X → O
+is the output function assigning to each state in X an observation, and t : X → (M X)A
+is the transition function that assigns to each state x in X and to each letter a of the
+alphabet A an element of M X that describes the choice of a next state. For NDA, this is a
+nondeterministic choice; for PA, the choice is governed by a probability distribution. An
+NDA state observes one of two possible values which qualify the state as accepting (output
+1) or not (output 0). A state in a PA observes a real number in [0, 1]. Below we depict an
+example NDA (on the left) and an example PA (on the right) with labels A = {a, b} and
+with outputs denoted by ↓.
+a
+x ↓0
+
+b
+
+1
+2
+
+a
+
+a, b
+
+y ↓1
+
+x ↓0
+
+1
+2
+
+a, b
+y ↓1
+
+The type of choice, modelled abstractly by a monad M , is often linked to a concrete
+algebraic theory, the presentation of M . Having such a presentation is a valuable tool,
+since it provides a finite syntax for describing finite branching. For nondeterministic choice
+this is the algebraic theory of semilattices (with bottom), for probabilistic choice it is the
+algebraic theory of convex algebras. Once we have such an algebraic presentation, we have a
+determinised automaton (as depicted below) and we inductively compute the output value
+after executing a trace by following the algebraic structure.
+x ↓0
+
+b
+x ↓0
+
+a
+
+a
+x ⊕ y ↓1
+
+a, b
+x +1 y ↓1
+2
+
+2
+
+a, b
+
+b
+? ↓0
+
+x +1 y ↓3
+4
+
+a, b
+
+4
+
+a, b
+..
+.
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:3
+
+Here x ⊕ y denotes the nondeterministic choice of x or y, and x +p y the probabilistic choice
+where x is chosen with probability p and y with probability 1 − p. For example, in the
+a
+a
+determinised PA we have, since x → x + 1 y and y → y:
+2
+
+a
+
+x + 1 y → (x + 1 y) + 1 y = x + 1 y
+2
+
+2
+
+2
+
+4
+
+and hence the output of x + 1 y is o(x) + 1 o(y) = 34 giving us the probability of x executing
+4
+4
+the trace aa. Our computation is enabled by having the right algebraic structure on the
+set of observations: a semilattice on {0, 1} and a convex algebra on [0, 1]. The induced
+semantics is language equivalence and probabilistic language equivalence, respectively.
+This is the approach of trace semantics via a determinisation [SBBR10], founded in the
+abstract understanding of automata as coalgebras and computational effects as monads.
+We develop a theory of traces for NPLTS using such approach, by first identifying NPLTS
+as a special class of automata. For this purpose we take the monad for nondeterminism and
+probability [Jac08] with origins in [Mis00, J.G08, TKP09, Var03, VW06], namely, the monad
+C of nonempty convex subsets of distributions, and provide all necessary and convenient
+infrastructure for generalised determinisation. The necessary part is having an algebra of
+observations, the convenient part is giving an algebraic presentation in terms of convex
+semilattices. These are algebras that are at the same time a semilattice and a convex
+algebra, with a distributivity axiom distributing probability over nondeterminism. Having
+the presentation we can write, for example,
+a
+
+x → x1 ⊕ (x3 + 1 x2 )
+2
+
+for the NPLTS from Figure 1.
+The presentation for C is somewhat known, although not explicitly proven, in the
+community — proving it and putting it to good use is part of our contribution which, in
+our opinion, clarifies and simplifies the trace theory of systems with nondeterminism and
+probability.
+Remarkably, necessity and convenience go hand in hand on this journey. Having the
+presentation enables us to clearly identify what are the interesting algebras necessary
+for describing trace and testing semantics (with tests being finite traces). We identify
+three different algebraic theories: the theory of pointed convex semilattices, the theory of
+convex semilattices with bottom, and the theory of convex semilattices with top. These
+theories give rise to three interesting semantics arising in a canonical way by taking as
+algebras of observations those freely generated by a singleton set. We prove their concrete
+characterisations: the free convex semilattice with bottom is carried by [0, 1] with max as
+semilattice operation and standard convex algebra operations; the free convex semilattice
+with top is carried by [0, 1] with min as semilattice operation; and the pointed convex
+semilattice freely generated by 1 is carried by the set of closed intervals in [0, 1] where the
+semilattice operation combines two intervals by taking their minimum and their maximum,
+and the convex operations are given by Minkowski sum.
+We call the resulting three semantics may trace, must trace and may-must trace semantics
+since there is a close correspondence with probabilistic testing semantics [YL92, JHSY94,
+DGH+ 07, DGHM09] when tests are taken to be just the finite traces in A∗ . Indeed, the
+may trace semantics gives the greatest probability with which a state passes a given test;
+the must trace semantics gives the smallest probability with which a state passes a given
+
+21:4
+
+Vol. 18:2
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+y
+
+x
+1
+2
+
+a
+
+a
+
+x1
+
+∆2
+
+c
+
+∆1
+
+1
+2
+
+1
+2
+
+x2
+b
+
+x3
+
+a a
+y1
+
+1
+2
+
+b
+
+1
+2
+
+Θ1
+1
+2
+
+Θ2
+1
+2
+
+b
+1
+2
+
+y2
+b
+
+a
+
+c
+Θ3
+
+1
+4
+
+1
+2
+1
+4
+
+y3
+
+y4
+
+Figure 1: NPLTS
+test, and the may-must trace semantics gives the closed interval ranging from the smallest
+to the greatest.
+From the abstract theory, we additionally get that:
+(1) The induced equivalence can be proved coinductively by means of proof-techniques
+known as bisimulations up-to [Mil89]. More precisely, it holds that up-to ⊕ and up-to
++p are compatible [PS12] techniques.
+(2) The equivalence is implied by the standard branching-time equivalences for NPLTS,
+namely bisimilarity and convex bisimilarity [SL95, Seg95b].
+(3) The equivalence is backward compatible w.r.t. trace equivalence for LTS and for reactive
+probabilistic systems (RPLTS): When regarding an LTS and RPLTS as a nondeterministic probabilistic system, standard trace equivalence coincides with our may trace
+equivalence and with our three semantics, respectively.
+Last but certainly not least, we show that the global view coincides with the local one,
+namely that our three semantics can be elegantly characterised in terms of resolutions. The
+may-trace semantics assigns to each trace the greatest probability with which the trace
+can be performed, with respect to any resolution of the system; the must-trace semantics
+assigns the smallest one. It is important to remark here that our resolutions differ from
+those previously proposed in the literature in the fact that they are reactive rather than
+fully probabilistic. We observe that however this difference does not affect the greatest
+probability, and we can therefore show that the may-trace coincides with the randomized
+t-trace equivalence in [Cas18, BDL14b, BDL14a].
+Our theory is stated using the language of algebras, coalgebras and, more generally,
+category theory: this fact, on the one hand, guarantees some sort of canonicity of the
+constructions we introduce and, on the other, it allows for reusing general results and thus
+simplifying proofs. Throughout the paper, we make an effort of keeping the presentation
+as accessible as possible also for those readers which are not familiar with the categorical
+language.
+Synopsis We start by illustrating our global-view results concretely, i.e., without relying
+on categorical notions, in a process algebraic fashion, in Section 2. We recall monads and
+algebraic theories in Section 3. We provide a presentation for the monad C in Section 4
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:5
+
+a
+
+a
+
+s2 → s02
+
+−
+
+−
+
+s1 → s01
+
+x → termX (t(x)(a))
+
+?→?
+
+a
+
+s1 ⊕ s2 → s01 ⊕ s02
+
+a
+
+a
+
+a
+
+a
+
+s2 → s02
+
+s1 → s01
+a
+
+s1 +p s2 → s01 +p s02
+
+(a) Transition function.
+−
+x ↓1
+
+−
+? ↓0
+
+s1 ↓o1 s2 ↓o2
+s1 ⊕ s2 ↓max(o1 ,o2 )
+
+s1 ↓o1 s2 ↓o2
+s1 +p s2 ↓p·o1 +(1−p)·o2
+
+(b) Output function for may trace (≡B ): o1 , o2 ∈ [0, 1].
+−
+x ↓1
+
+−
+? ↓0
+
+s1 ↓o1 s2 ↓o2
+s1 ⊕ s2 ↓min(o1 ,o2 )
+
+s1 ↓o1 s2 ↓o2
+s1 +p s2 ↓p·o1 +(1−p)·o2
+
+(c) Output function for must trace (≡T ): o1 , o2 ∈ [0, 1].
+−
+x ↓[1,1]
+
+−
+? ↓[0,0]
+
+s1 ↓o1 s2 ↓ o2
+s1 ⊕ s2 ↓min-max(o1 ,o2 )
+
+s1 ↓o1 s2 ↓o2
+s1 +p s2 ↓o1 +Ip o2
+
+(d) Output function for may-must trace (≡): o1 , o2 ∈ I = {[x, y] | x, y ∈ [0, 1] ∧ x ≤ y}. For
+all [x1 , y1 ], [x2 , y2 ] ∈ I, min-max([x1 , y1 ], [x2 , y2 ]) = [min(x1 , x2 ), max(y1 , y2 )] and
+[x1 , y1 ] +Ip [x2 , y2 ] = [p · x1 + (1 − p) · x2 , p · y1 + (1 − p) · y2 ].
+Table 1: Structural Operational Semantics (GSOS) for NPLTS.
+(Theorem 4.7) and combine it with termination in Section 5. We then recall, in Section 6, the
+generalised determinisation and show an additional useful result (Theorem 6.8). All these
+pieces are put together in Section 7, where we introduce our three semantics and discuss
+their properties. The correspondence of the global view with the local one is illustrated in
+Section 8 (Theorem 8.4).
+2. Trace semantics for NPLTS, concretely
+A nondeterministic probabilistic transition system with labels in A is a pair hX, ti where X
+is the set of states and t : X → (PDX)A is a function assigning to each state x ∈ X and
+label a ∈ A a set of probability distributions over X.1
+The idea is to construct for each NPLTS hX, ti, a process calculus where the states in
+X act as constants and the behaviour of such constants is determined by t. The terms of
+the calculus are defined inductively by the following grammar.
+s ::= x ∈ X | ? | s ⊕ s | s +p s
+
+for all p ∈ [0, 1]
+
+The inference rules in Table 1.(a) define a transition function over the terms of this
+grammar. The rules for ?, ⊕ and +p are self-explanatory. The rule for the constants x ∈ X
+requires some explanation: the transitions of x are defined using the transition function t of
+the original NPLTS. Observe that for a ∈ A, t(x)(a) is an element of PDX. The function
+termX assigns to each of these elements its representation as term of the grammar. Indeed,
+1To be completely precise, we should say a finite set of finitely supported distributions. This will be
+
+explained in full details in Section 3.
+
+21:6
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+sets of distributions, namely the elements of PDX, can be represented by the syntax above:
+distributions are represented by terms of the shape (. . . ((x0 +p0 x1 ) +p2 x2 ) . . . ) +pn xn ; sets
+of probability distributions by terms of the shape (. . . (d0 ⊕ d1 ) ⊕ dn−1 ) . . . ⊕ dn where each
+di is a term representing a distribution. The empty set is represented by ?.
+For instance, when starting with the NPLTS in the left of Figure 1, the axiom for
+constants get instantiated to the following transitions:
+a
+
+b
+
+2
+
+a
+
+x→?
+
+b
+
+c
+
+x 1 → x + 1 x3 x1 → ?
+
+x1 → ?
+
+b
+
+2
+
+c
+
+x2 → ?
+
+a
+
+x2 → x 3
+
+x2 → x
+
+a
+
+x3 → ?
+
+b
+
+x3 → ?
+
+x3 → ?
+a
+
+c
+
+x→?
+
+x → x1 ⊕ (x2 + 1 x3 )
+
+c
+
+a
+
+Note that x → ? means x 6→, i.e. x cannot perform a transition with label a. Now, with
+these axioms and the three other rules in Table 1(a) one can compute transitions for arbitrary
+terms of the syntax. For instance, starting from x, one obtains the transition system partially
+depicted below.
+a,b,c
+
+
+
+a,b,c
+
+? ⊕ (? + 1 ?)
+
+9 ?O
+
+O
+
+. .O .
+
+2
+
+a
+
+b,c
+
+x
+
+a
+
+a,b,c
+
+/ x1 ⊕ (x2 + 1 x3 ) b
+
+/ (x + 1 x3 ) ⊕ (x3 + 1 ?)
+
+2
+
+2
+
+2
+
+c
+
+
+
+a,b,c
+
+? ⊕ (x + 1 ?)
+
+/ ···
+
+2
+
+It is important to note that this transition systems is deterministic: for each term s and
+a
+for each letter a ∈ A, there exists exactly one term s0 such that s → s0 . Therefore, for each
+word w ∈ A∗ , there exists exactly one term reachable from s with w. We denote this term
+by tw (s).
+Furthermore, in order to define trace semantics, we decorate each term s with an output
+value: the trace semantics of s, written [[s]], is the function that maps each word w ∈ A∗ into
+the output value of tw (s). In Table 1(b),(c),(d), we define three different ways of decorating
+terms with outputs: we write s ↓o to mean that the output of s is o. These three different
+ways lead to three different trace semantics: may (≡B ), must (≡T ) and may-must (≡).
+For instance, the may trace and the must trace semantics of x from Figure 1 are partially
+depicted as on the left and, respectively, on the right below.
+ε
+a
+b
+c
+aa
+ab
+ac
+...
+
+7→
+7→
+7→
+7→
+7→
+7→
+7→
+7→
+
+1
+1
+0
+0
+0
+1
+1
+2
+
+...
+
+ε
+a
+b
+c
+aa
+ab
+ac
+...
+
+7→
+7→
+7→
+7→
+7→
+7→
+7→
+7→
+
+1
+1
+0
+0
+0
+1
+2
+
+0
+...
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:7
+
+In the rest of the paper we study the three semantics that we have described so far. Our
+abstract treatment provides an explanation for each element of the above construction: all
+design choices of this semantics have a mathematical justification and nothing is arbitrary.
+Moreover, these semantics enjoy many desirable properties that can be easily proven by
+means of our abstract construction. We will come back to NPLTS and these trace semantics
+in Section 7, but first we need to set up the necessary algebraic (Sections 3, 4 and 5) and
+coalgebraic (Section 6) playground.
+
+3. Monads and Algebraic Theories
+In this paper, on the algebraic side, we deal with Eilenberg-Moore algebras of a monad on
+the category Sets of sets and functions, for which we also give presentations in terms of
+operations and equations, i.e., algebraic theories.
+3.1. Monads. A monad on Sets is a functor M : Sets → Sets together with two natural
+transformations: a unit η : Id ⇒ M and multiplication µ : M 2 ⇒ M that satisfy the laws
+MX
+
+ηM
+
+/ M 2X o
+
+
+Mη
+
+MX
+
+µ
+
+M 3X
+Mµ
+
+
+
+M 2X
+
+MX
+
+µM
+
+/ M 2X
+
+
+µ
+
+µ
+
+/ MX
+
+We next introduce several monads on Sets, relevant to this paper. Each monad can be
+seen as giving side-effects.
+Nondeterminism The finite powerset monad P maps a set X to its finite powerset
+PX = {U | U ⊆ X, U is finite} and a function f : X → Y to Pf : PX → PY , Pf (U ) =
+{f (u) | u ∈ U }. The unit η of P isSgiven by singleton, i.e., η(x) = {x} and the multiplication
+µ is given by union, i.e., µ(S) = U ∈S U for S ∈ PPX. Of particular interest to us in this
+paper is the submonad Pne of non-empty finite subsets, that acts on functions just like the
+(finite) powerset monad, and has the same unit and multiplication. We rarely mention the
+unrestricted (not necessarily finite) powerset monad, which we denote by Pu . We sometimes
+write f for Pu f in this paper.
+Probability The finitely supported probability distribution monad D is defined, for a set
+X and a function f : X → Y , as
+DX = {ϕ : X → [0, 1] |
+
+X
+
+ϕ(x) = 1, supp(ϕ) is finite}
+
+x∈X
+
+Df (ϕ)(y) =
+
+X
+
+ϕ(x).
+
+x∈f −1 (y)
+
+The support set of a distribution ϕ ∈ DX is supp(ϕ) = {x ∈ X | ϕ(x) 6= 0}. The unit
+of D is given by
+multiplication
+Pa Dirac distribution η(x) = δx = (x 7→ 1) for x ∈ X and theP
+by µ(Φ)(x) = ϕ∈supp(Φ) Φ(ϕ) · ϕ(x) for Φ ∈ DDX. We sometimes write i∈I pi xi for a
+distribution ϕ with supp(ϕ) = {xi | i ∈ I} and ϕ(xi ) = pi .
+
+21:8
+
+Vol. 18:2
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Termination The termination monad, also called lift and denoted by · + 1 maps a set X to
+the set X + 1, where + denotes the coproduct in Sets, which amounts to disjoint union, and
+1 = {?}. For a coproduct A + B we write in l : A → A + B and in r : B → A + B for the left
+and right coproduct injections, respectively. This monad maps a function f : X → Y to the
+function f + 1 : X + 1 → Y + 1 defined, as expected, by (f + 1)(in l (x)) = in l (f (x)) for x ∈ X
+and (f +1)(in r (?)) = in r (?). The unit of the termination monad is given by the left injection,
+η : X → X + 1 with η(x) = in l (x) and the multiplication by µ(in l ◦ in l (x)) = in l (x) for
+x ∈ X, µ(in l ◦ in r (?)) = in r (?), and µ(in r (?)) = in r (?). If clear from the context, we may
+omit explicit mentioning of the injections, and write for example (f + 1)(x) = x for x ∈ X
+and (f + 1)(?) = ?.
+3.2. Monad Maps, Quotients and Submonads. A monad map from a monad M to
+a monad M̂ is a natural transformation σ : M ⇒ M̂ that makes the following diagrams
+commute, with η, µ and η̂, µ̂ denoting the unit and multiplication of M and M̂ , respectively,
+and σσ denoting σ M̂ ◦ M σ = M̂ σ ◦ σM .
+η
+
+X
+
+η̂
+
+/ MX
+%
+
+MMX
+
+σ
+
+µ
+
+M̂ X
+
+MX
+
+σσ
+
+/ M̂ M̂ X
+ µ̂
+/ M̂ X
+
+
+
+σ
+
+If σ : M ⇒ M̂ is an epi monad map, then M̂ is a quotient of M . If it is a mono, then
+M is a submonad of M̂ . If it is an iso, the two monads are isomorphic.
+3.3. Distributive Laws. Let (M, η, µ) be a monad and F a functor. A natural transformation λ : M F ⇒ F M is a functor distributive law of the monad M over the functor F if it
+commutes appropriately with the unit and the multiplication of M , i.e.,
+FX
+
+ηF
+
+/ MFX
+'
+
+Fη
+
+µF
+
+MMFX
+
+λ
+
+Mλ 
+
+FMX
+
+MFMX
+
+λM
+
+/ FMMX
+
+/ MFX
+Fµ
+
+λ
+/ FMX
+
+Let (M, η, µ) and (M̂ , η̂, µ̂) be two monads. A monad distributive law of M over M̂ is a
+natural transformation λ : M M̂ ⇒ M̂ M that commutes appropriately with the units and
+the multiplications of the monads, i.e.,
+
+MX
+
+M η̂
+
+η̂M
+
+'
+
+/ M M̂ X o ηM̂
+λ
+w
+
+M̂ M X
+
+M̂ X
+
+M µ̂
+
+M M̂ M̂ X
+λM̂ 
+
+M̂ η
+
+/ M̂ M̂ M X
+
+M̂ M M̂ X
+M̂ λ
+
+and
+µM̂
+
+M M M̂ X
+Mλ 
+
+M M̂ M X
+
+λM
+
+/ M M̂ X
+λ
+/ M̂ M X
+
+/ M̂ M M X
+M̂ µ
+
+/ M M̂ X
+
+µ̂M
+
+λ
+/ M̂ M X
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:9
+
+Given a monad distributive law λ : M M̂ ⇒ M̂ M , we get a composite monad M̄ = M̂ M
+with unit η̄ = η̂η and multiplication µ̄ = µ̂µ ◦ M̂ λM .
+For any monad M on Sets, there exists a distributive law ι : M + 1 ⇒ M (· + 1) defined
+as
+
+[M in l ,ηX+1 ◦in r ]
+/ M (X + 1) .
+ιX = M X + 1
+(3.1)
+As a consequence, M (· + 1) is a monad. Moreover, we get the following useful property.
+Lemma 3.1. Whenever σ : M ⇒ M̂ is a monad map, also σ(· + 1) : M (· + 1) ⇒ M̂ (· + 1)
+is a monad map. Injectivity of σ implies injectivity of σ(· + 1).
+Lemma 3.1 follows directly from Lemma 3.3 and Lemma 3.4 below. Before we state and
+prove these, let us consider another example of a distributive law in the other direction.
+Example 3.2. We have that D + 1 is a monad, since β : D(· + 1) ⇒ D + 1 given by
+
+ϕX ∗ 6∈ supp(ϕ) ∧ ∀x ∈ X. ϕX (x) = ϕ(in l (x))
+β(ϕ) =
+∗
+∗ ∈ supp(ϕ)
+is a monad distributive law. This β corresponds to termination as a “black-hole” of [SW18].
+Lemma 3.3. Given three monads M , M̂ , and T , two monad distributive laws λ : T M ⇒ M T
+and λ̂ : T M̂ ⇒ M̂ T , ensuring that M T and M̂ T are monads, and a monad map σ : M ⇒ M̂ .
+If the following diagram commutes, in which case we say that σ is a map of distributive laws,
+TM
+Tσ
+
+λ
+
+
+
+/ MT
+
+
+σT
+
+/ M̂ T
+
+T M̂
+λ̂
+
+then σT : M T ⇒ M̂ T is a monad map. If σ is injective, then σT is as well.
+Proof. We denote by η, µ the unit and multiplication of M , by η̂, µ̂ those of M̂ and by
+η T , µT those of T . Note that σTX = σT X and hence, using that σ is a monad map, we get
+T = η̂
+T
+immediately σTX ◦ ηT X ◦ ηX
+T X ◦ ηX .
+The following diagram commutes since σ is a monad map.
+σM T /
+
+MMTX
+µT
+
+
+
+M̂ M T X
+
+M̂ σT /
+
+(3.2)
+
+ µ̂T
+
+/ M̂ T X
+
+σT
+
+MTX
+
+M̂ M̂ T X
+
+From the naturality of σ, the following diagram also commutes.
+MMTTX
+M M µT
+
+
+
+MMTX
+
+σM T T/
+
+σM T
+
+M̂ M T T X
+ M̂ M µ
+
+/ M̂ M T X
+
+M̂ σT T/
+T
+
+M̂ σT
+
+M̂ M̂ T T X
+
+(3.3)
+T
+
+ M̂ M̂ µ
+
+/ M̂ M̂ T X
+
+Using once again the naturality of σ, for the left square, and the assumption that σ is a map
+of distributive laws, for the square on the right, we get the commutativity of the following
+
+21:10
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+diagram.
+MTMTX
+M λT
+
+
+
+MMTTX
+
+σT M T/
+
+M̂ T M T X
+ M̂ λT
+
+σM T T/
+
+M̂ M T T X
+
+M̂ T σT/
+
+M̂ T M̂ T X
+
+(3.4)
+
+ M̂ λ̂T
+
+M̂ σT T/
+
+M̂ M̂ T T X
+
+Stacking diagram (3.4) on top of diagram (3.3) and further on top of diagram (3.2) gives
+the commutativity of
+σT σT /
+
+MTMTX
+µM T
+
+M̂ T M̂ T X
+M̂ T
+
+µ
+
+
+
+MTX
+
+/ M̂ T X
+
+σT
+
+with µM T and µM̂ T the multiplications of the monads M T and M̂ T , respectively. This
+completes the proof that σT is a monad map. Clearly, if all components of σ are injective,
+then all components of σT (which are the components of σ at T X) are injective as well.
+Lemma 3.4. Let M and M̂ be two monads and σ : M ⇒ M̂ be a monad map. Then the
+following commutes.
+MX + 1
+σX +id1
+
+ιX
+
+/ M (X + 1)
+
+
+
+
+M̂ X + 1
+
+ιX
+
+σX+1
+
+/ M̂ (X + 1)
+
+Proof. First observe that the following commutes: the left square commutes trivially; the
+right commutes since σ is a monad map.
+1
+id1
+
+
+
+1
+
+in r
+
+ηX+1
+
+/ X +1
+
+/ M (X + 1)
+
+idX+1
+in r
+
+
+
+
+
+/ X +1
+
+σX+1
+
+/ M̂ (X + 1)
+
+η̂X+1
+
+The following diagram commutes by naturality of σ.
+MX
+σX
+
+
+
+M̂ X
+
+M in l
+
+/ M (X + 1)
+
+
+σX+1
+
+/ M̂ (X + 1)
+M̂ in l
+
+The statement of the lemma follows from the commutativity of the two above diagrams and
+the universal property of the coproduct.
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:11
+
+3.4. Algebraic Theories. With a monad M one associates the Eilenberg-Moore category
+EM(M ) of M -algebras. Objects of EM(M ) are pairs A = (A, a) of a set A ∈ Sets and a
+map a : M A → A, making the first two diagrams below commute.
+A
+
+η
+
+/ MA
+a
+
+A
+
+M 2A
+µ
+
+M a/
+
+
+
+MA
+
+a
+
+MA
+
+MA
+
+a
+
+a 
+
+/A
+
+A
+
+M h/
+
+h
+
+MB
+b
+/B
+
+A homomorphism from an algebra A = (A, a) to an algebra B = (B, b) is a map h : A → B
+between the underlying sets making the third diagram above commute. Hence the second
+diagram tells us that a is a homomorphism from (M A, µ) to (A, a). It is direct to check
+that (M A, µ) is an Eilenberg-Moore algebra. Moreover, (M A, µ) the free Eilenberg-Moore
+algebra generated by A.
+In this paper we care for both categorical algebra, algebras of a monad, and their
+presentations in terms of algebraic theories and their models. An algebraic theory is a
+pair (Σ, E) of signature Σ (a set of operation symbols) and a set of equations E (a set of
+pairs of terms). A (Σ, E)-algebra, or a model of the algebraic theory (Σ, E) is an algebra
+A = (A, ΣA ) with carrier set A and a set of operations ΣA , one for each operation symbol in
+Σ, that satisfies the equations in E. A homomorphism from a (Σ, E)-algebra A = (A, ΣA ) to
+a (Σ, E)-algebra B = (B, ΣB ) is a function h : A → B that commutes with the operations,
+i.e., h ◦ fA = fB ◦ hn for all n-ary f ∈ Σ, and fA , fB its interpretations in A, B, respectively.
+(Σ, E)-algebras together with their homomorphisms form a category.
+Every algebraic theory gives rise to a monad, defined by the free a forgetful adjunction,
+see e.g. [Mac71, V.6]. We now explicitly recall the construction. In this construction, free
+algebras play an important role. Recall that FX = (F X, ΣF X ) is the free (Σ, E)-algebra
+generated by X ⊆ F X if for any (Σ, E)-algebra A = (A, ΣA ), any function f : X → A extends
+to a unique homomorphism f # : FX → A. Free algebras are unique up to isomorphism. For
+any set X, the free (Σ, E)-algebra generated by X is isomorphic to the algebra with carrier
+the set of Σ-terms with variable in X modulo E-equations. The adjunction give rise to the
+monad TΣ,E of Σ-terms modulo E-equations. We next describe this monad.
+Given a signature Σ, the monad TΣ of Σ-terms maps a set X to the set of all Σ-terms
+with variables in X, and f : X → Y to the function that maps a term over X to a term over
+Y obtained by substitution according to f . The unit maps a variable in X to itself, and
+the multiplication is term composition. Given an algebraic theory (Σ, E), the monad TΣ,E
+of Σ-terms modulo E-equations is defined analogously, using equivalence classes of terms
+rather than plain terms. The monad TΣ,E is a quotient of TΣ . Moreover, for two sets of
+equations E1 ⊆ E2 , the monad TΣ,E2 is a quotient of TΣ,E1 .
+Definition 3.5. A presentation of a monad M is an algebraic theory (Σ, E) such that the
+monad TΣ,E is isomorphic to M .
+Clearly, (Σ, E) is a presentation of the monad TΣ,E .
+Remark 3.6. A direct, syntactic, way to prove that (Σ, E) is a presentation of a monad
+M is to provide a monad isomorphism from TΣ,E to M . We give such a direct syntactic
+proof for our monad of interest in [BSV21]. We now briefly discuss other ways to prove that
+(Σ, E) presents M , which justify our proof of the presentation in this paper (Theorem 4.7).
+Let U : A → Sets be the forgetful functor from the category A of (Σ, E)-algebras to
+Sets and let FΣ,E be the left adjoint to U mapping a set X to the (Σ, E)-algebra of Σ-terms
+
+21:12
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+modulo E-equations. We have TΣ,E = U FΣ,E . Now, suppose that F is another left adjoint to
+U . Since adjoints are unique up to isomorphism, there exists an isomorphism ι : FΣ,E ⇒ F .
+It is not difficult to derive from this that U ι : U FΣ,E ⇒ U F is an isomorphism from the
+monad TΣ,E = U FΣ,E to the monad U F . Hence, in order to prove that (Σ, E) presents a
+monad M , it suffices to show that there exists some left adjoint F to the forgetful functor U
+such that M = U F . This is what we use to prove the presentation in this paper, in the proof
+of Proposition 4.3 below. The proposition itself identifies sufficient conditions for M = U F
+to hold, for an adjoint F to the forgetful functor U .
+One can also work on the level of the categories of algebras. The main observation is
+the following: a monad M is isomorphic to a monad T if and only if there is a concrete 2
+isomorphism I between their categories of Eilenberg-Moore algebras, as in the following
+diagram:
+I
+
+EM(M )
+
+EM(T )
+
+UM
+
+UT
+
+Sets
+In such a case, using uniqueness of adjoints up to isomorphism, we also have an
+isomorphism ι : F T ⇒ IF M with F M and F T being the left adjoints of the forgetful functors
+U M and U T , respectively, and the monad isomorphism is given by
+U T ι−1
+
+M = U M F M = U T IF M =⇒ U T F T = T.
+In the other direction, given a monad isomorphism σ : M ⇒ T , we have that
+
+
+
+
+MX
+TX
+
+
+
+
+σX 
+
+
+
+
+
+
+
+
+
+ aT  7→ 
+
+
+T
+X
+
+
+
+
+
+
+
+
+
+
+
+aT 
+
+
+X
+
+
+
+X
+
+is a concrete isomorphism of the algebras. Hence, another way to prove that (Σ, E) is a
+presentation of M is to provide a concrete isomorphism between EM(TΣ,E ) and EM(M ).
+Moreover, as a consequence of Beck’s theorem (see [Mac71, Theorem VI.8.1]), there is
+a concrete isomorphism between (Σ, E)-algebras and EM(TΣ,E ) given by the comparison
+functor. Hence we get that (Σ, E) is a presentation of M if and only if there is a concrete
+isomorphism between the category of (Σ, E)-algebras and EM(M ). This leads us to a
+third way to prove that (Σ, E) is a presentation of M : providing a concrete isomorphism
+between (Σ, E)-algebras and EM(M ). This way of providing a presentation was used
+in [MV20, MSV21].
+Such concrete isomorphism can be also obtained using again [Mac71, Theorem VI.8.1].
+The theorem states that if M is the monad that arises from an adjunction F a U for the
+forgetful functor U : A → Sets, then the comparison functor provides a concrete isomorphism
+2We thank Aloı̈s Rosset for reminding us of the necessity of a concrete isomorphism. Previous versions of
+this paper omitted mentioning that the isomorphism needs to be concrete, although our presentation proofs
+were not affected by this.
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:13
+
+from (Σ, E)-algebras to EM(M ). Hence, our proof of the presentation using Proposition 4.3
+can also be (indirectly) justified this way.
+In the sequel, we present several algebraic theories that give presentations to the monads
+of interest.
+Presenting the monad Pne Let ΣN be the signature consisting of a binary operation
+⊕. Let EN be the following set of axioms, stating that ⊕ is associative, commutative, and
+idempotent, respectively.
+(A)
+
+(x ⊕ y) ⊕ z
+
+=
+
+(C)
+
+x⊕y
+
+=
+
+(I)
+
+x⊕x
+
+=
+
+x ⊕ (y ⊕ z)
+y⊕x
+x
+
+The algebraic theory (ΣN , EN ) of semilattices provides a presentation for the monad
+Pne . We refer to this theory as the theory of nondeterminism. To avoid confusion later, it is
+convenient to fix here the interpretation of ⊕ as a join (rather than a meet) and, thus, to
+think of the induced order as x v y iff x ⊕ y = y.
+Presenting the monad D Let ΣP be the signature consisting of binary operations +p
+for all p ∈ (0, 1). Let EP be the following set of axioms.
+(x +q y) +p z
+
+(Ap )
+
+=
+
+x +pq (y + p(1−q) z)
+1−pq
+
+(Cp )
+
+x +p y
+
+=
+
+(Ip )
+
+x +p x
+
+=
+
+y +1−p x
+x
+
+Here, (Ap ), (Cp ), and (Ip ) are the axioms of parametric associativity, commutativity, and
+idempotence. The algebraic theory (ΣP , EP ) of convex algebras, see [Ś74, Sem73, Dob06,
+Dob08, Jac10], provides a presentation for the monad D.
+Another presentation of convex algebras is given by the algebraic theory with infinitely
+many operations denoting arbitrary
+(ΣP̂ , EP̂ )
+Pn (and not only binary) convex combinations
+n such that
+where
+Σ
+consists
+of
+operations
+(·)
+for
+all
+n
+∈
+N
+and
+(p
+,
+.
+.
+.
+,
+p
+)
+∈
+[0,
+1]
+p
+1
+n
+i=1 i i
+P̂
+Pn
+i=1 pi = 1 and EP̂ is the set of the following two axioms.
+n
+X
+
+(P )
+
+p i xi = xj
+
+if pj = 1
+
+i=0
+n
+X
+i=0
+
+
+
+!
+m
+m
+n
+X
+(BC) X X
+pi 
+qi,j xj  =
+pi qi,j xj .
+j=0
+
+j=0
+
+i=0
+
+Here, (P ) stands for projection, and (BC) for barycentre. This allows us to interchangeably
+use binary convex combinations or arbitrary convex combinations whenever more convenient.
+Moreover, we can write binary convex combinations +p for p ∈ [0, 1] and not just p ∈ (0, 1).
+Convex algebras are known under many names: “convex modules” in [PR95], “positive
+convex structures” in [Dob06] (where X is taken to be endowed with the discrete topology),
+“sets with a convex structure” in [Ś74], and barycentric algebras [Sto49]. We refer to the
+theory of convex algebras as the algebraic theory for probability.
+
+21:14
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+Remark 3.7. Let X be a (ΣP̂ , EP̂ )-algebra. Then (for pn 6= 1 and pn = 1 − pn )
+n
+X
+
+
+
+n−1
+X
+
+pi xi = pn 
+
+i=1
+
+j=1
+
+
+pj 
+xj + p n xn .
+pn
+
+(3.5)
+
+Hence, an n-ary convex combination can be written as a binary convex combination using
+an (n − 1)-ary convex combination.
+One can also see Equation (3.5) as a definition — the classical definition of Stone [Sto49,
+Definition 1]. The following property, whose proof follows by induction along the lines
+of [Sto49, Lemma 1–Lemma 4], gives the connection:
+Let X be the carrier of a (ΣP , EP )-algebra. Define n-ary convex operations inductively
+by the projection axiom and the formula (3.5). Then X becomes an algebra in (ΣP̂ , EP̂ ).
+
+Presenting · + 1 The algebraic theory (ΣT , ET ) for the termination monad consists of
+a single constant (nullary operation symbol) ΣT = {?} and no equations ET = ∅. This is
+called the theory of pointed sets.
+Combining Algebraic Theories Algebraic theories can be combined in a number of
+general ways: by taking their coproduct, their tensor, or by means of distributive laws (see
+e.g. [HPP02]). Unfortunately, these abstract constructions do not lead to a presentation for
+the monad we are interested in. We will thus devote the next section to show a “hand-made”
+presentation for this monad.
+We conclude this section with a well known fact that can be easily proved, for instance
+using the distributive law in (3.1): given a presentation (Σ, E) for a monad M , the monad
+M (· + 1) is presented by the theory (Σ0 , E) where Σ0 is Σ together with an extra constant ?.
+For instance, the subdistributions monad D(·+1) is presented by the theory (ΣP ∪ΣT , EP ) of
+pointed convex algebras, also known as positive convex algebras. The theory (ΣN ∪ ΣT , EN ) of
+pointed semilattices provides instead a presentation for the monad Pne (· + 1). It is interesting
+to observe that the powerset monad P is presented by adding to (ΣN ∪ ΣT , EN ) the equation
+
+x⊕?
+
+(B)
+
+=
+
+x
+
+leading to the theory of semilattices with bottom. The theory of semilattices with top can be
+obtained by adding instead the following equation:
+
+x⊕?
+
+(T )
+
+=
+
+?.
+
+Similar axioms can be added to the theory of pointed convex algebras (ΣP ∪ ΣT , EP ). The
+axiom
+x +p ?
+
+(Bp )
+
+=
+
+x
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:15
+
+makes the probabilistic structure collapse, i.e., x +p y = x +q y holds for any p, q ∈ (0, 1):
+x +p y
+
+(Bp )
+
+=
+
+(Ap )
+
+=
+
+(x +q ?) +p y
+x +pq (? + p(1−q) y)
+1−pq
+
+(Bp )
+
+=
+
+(Bp )
+
+=
+
+x +pq y
+x +pq (? + q(1−p) y)
+1−pq
+
+(Ap )
+
+=
+
+(x +p ?) +q y
+
+(Bp )
+
+=
+
+x +q y
+
+At the monad level, adding the axioms (Bp ) can be seen as the quotient of monads
+supp : D(· + 1) ⇒ P mapping each sub-distribution into its support (e.g., (x +p y) +q ?
+becomes x + y).
+On the other hand, the axiom
+x +p ?
+
+(Tp )
+
+=
+
+?
+
+quotients the monad D(· + 1) into D + 1, recall Example 3.2. Intuitively, each term of this
+theory is either a sum of only variables (a distribution) or an extra element (?). This axiom
+describes the unique functorial way of adding termination to a convex algebra, the so-called
+black-hole behaviour of ?, cf. [SW18].
+
+4. Algebraic Theory for Nondeterminism and Probability
+In this section we recall the definition of the monad C for probability and nondeterminism,
+give its presentation via convex semilattices, and present examples of C-algebras.
+
+4.1. The monad C of convex subsets of distributions. The monad C origins in the field
+of domain theory [Mis00, J.G08, TKP09], and in the work of Varacca and Winskel [Var03,
+VW06]. Jacobs [Jac08] gives a detailed study of (a generalisation of) this monad.
+For a set X, CX is the set of non-empty, finitely-generated convex subsets of distributions
+on X, i.e.,
+CX = {S ⊆ DX | S 6= ∅, conv(S) = S, S is finitely generated}.
+Recall that, for a subset S of a convex algebra, conv(S) is the convex closure of S, i.e., the
+smallest convex set that contains S, i.e.,
+X
+X
+conv(S) = {
+pi xi | pi ∈ [0, 1],
+pi = 1, xi ∈ S}.
+We say that a convex set S is generated by its subset B if S = conv(B). In such a case we
+also say that B is a basis for S. A convex set S is finitely generated if it has a finite basis.
+For a function f : X → Y , Cf : CX → CY is given by
+Cf (S) = {Df (d) | d ∈ S} = Df (S).
+The unit of C is η : X → CX given by η(x) = {δx }.
+
+21:16
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+The multiplication of C, µ : CCX → CX can be expressed in concrete terms as
+follows [Jac08]. Given S ∈ CCX,
+[
+X
+µ(S) =
+{
+Φ(U ) · d | d ∈ U }.
+Φ∈S U ∈supp(Φ)
+
+Hence, d ∈ µ(S) if and
+P only if there exists Φ ∈ S and for all U ∈ supp(Φ) there exists
+dU ∈ U such that d = U ∈supp(Φ) Φ(U ) · dU .
+For later use it is convenient to observe that the assignment S 7→ conv(S) gives rise to
+a natural transformation [Mio14, BSS17], that we refer hereafter as
+conv : Pne D ⇒ C
+
+(4.1)
+
+The following lemma summarises the relationship between the monads Pne , D, and C. Note
+here that Pne D is not a monad.
+Lemma 4.1. Consider the natural transformations depicted in the diagram on the left below.
+CKS
+conv
+
+D
+
++3 Pne D ks
+
+Pne
+ηD
+
+Pne η D
+
+Pne
+
+Then
+(1) χPne = conv ◦ Pne η D is an injective monad map.
+Pne
+(2) χD = conv ◦ ηD
+is an injective monad map.
+Proof. Here, it is most important to notice that χD (ϕ) = {ϕ}, for any distribution ϕ, as
+singleton sets are convex, and χPne (S) = DS. Keeping this in mind, it is not difficult to
+check that the diagrams needed for χD and χPne to be monad maps indeed commute. For
+the unit diagrams, we have:
+χD ◦ η D (x) = χD (δx ) = {δx } = η C (x)
+and
+χPne ◦ η Pne (x) = χPne ({x}) = {δx } = η C (x).
+For the multiplication diagrams, we derive, given Φ ∈ DDX,
+
+
+ 
+ X
+
+X
+χD ◦ µD (Φ) = χD 
+Φ(ϕ) · ϕ =
+Φ(ϕ) · ϕ
+
+
+ϕ∈DX
+
+ϕ∈DX
+
+and
+µC ◦ CχD ◦ χD D(Φ) = µC ◦ CχD ({Φ})
+
+
+X
+= µC 
+Φ(ϕ) · {ϕ}
+ϕ∈DX
+
+=
+
+
+ X
+
+
+ϕ∈DX
+
+
+
+Φ(ϕ) · ϕ .
+
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:17
+
+Given S = {Si | i ∈ I} for Si ⊆ X, Si 6= ∅, I 6= ∅, that is S ∈ Pne Pne (X), we have
+!
+!
+[
+[
+χPne ◦ µPne (S) = χPne
+Si = D
+Si
+i∈I
+
+i∈I
+
+and
+µC ◦ χPne C ◦ Pne χPne (S) = µC ◦ χPne C({DSi | i ∈ I})
+= µC (D{DSi | i ∈ I})
+!
+[
+= D
+Si
+i∈I
+
+where the inclusion ⊆ in the last equality is obvious, and the inclusion
+derived by
+ ⊇ can be P
+S
+simple grouping and normalisation, as follows. Given d ∈ D i∈I Si , i.e., d = j∈J pj xj
+S
+where xj ∈ P
+i∈I Si , let (Ji |i ∈ I) be a partition of J with the property j ∈ Ji ⇒ xj ∈ Si ,
+and let pi = j∈Ji pj . Let, moreover,
+X pj
+di =
+· xj
+pi
+j∈Ji
+P
+if pi 6= 0, and di = δx for some x ∈ Si otherwise. Then d = i∈I pi di ∈ D{DSi | i ∈ I}.
+Injectivity follows directly from χD (ϕ) = {ϕ} and χPne (S) = DS, the latter since
+DS = DS 0 if and only if S = S 0 .
+
+4.2. The presentation of C. We now introduce the algebraic theory (ΣN P , EN P ) of convex
+semilattices, that gives us the presentation of C and thus provides an algebraic theory for
+nondeterminism and probability.
+A convex semilattice A is an algebra A = (A, ⊕, +p ) with a binary operation ⊕ and for
+each p ∈ (0, 1) a binary operation +p satisfying the axioms (A), (C), (I) of a semilattice, the
+axioms (Ap ), (Cp ), (Ip ) for a convex algebra, and the following distributivity axiom:
+(D)
+
+(x ⊕ y) +p z = (x +p z) ⊕ (y +p z)
+Hence, (ΣN P , EN P ) is given by ΣN P = ΣN ∪ ΣP and EN P = EN ∪ EP ∪ {(D)}.
+In every convex semilattice there also holds a convexity law, of which we directly present
+the generalised version in the following lemma.
+Lemma 4.2. Let A = (A, ⊕, +p ) P
+be a convex semilattice. Then for all n ∈ N, all a1 , . . . , an ∈
+A and all p1 , . . . , pn ∈ [0, 1] with ni=1 pi = 1 we have
+a1 ⊕ . . . ⊕ an ⊕
+
+n
+X
+
+(C)
+
+pi ai = a1 ⊕ . . . ⊕ an .
+
+i=1
+
+Proof. For n = 1 the property amounts to idempotence. Assume n > 1 and the property
+holds for n − 1.
+Below, we will write (D) also for generalised distributivity as in
+M
+M (D) M
+ai +p
+bj =
+(ai +p bj ).
+i
+
+j
+
+i,j
+
+21:18
+
+Vol. 18:2
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+First, we observe that
+a1 ⊕ . . . ⊕ an = a1 ⊕ . . . ⊕ an ⊕
+
+M
+
+(ai +p1
+
+M
+
+i
+
+aj )
+
+(4.2)
+
+j6=i
+
+which follows from
+a1 ⊕ . . . ⊕ an
+
+(Ip )
+
+=
+
+(D)
+
+=
+
+(a1 ⊕ . . . ⊕ an ) +p1 (a1 ⊕ . . . ⊕ an )
+M
+(ai +p1 aj )
+i,j
+
+(Ip ,D)
+
+=
+
+M
+
+a1 ⊕ . . . ⊕ an ⊕
+
+(ai +p1
+
+i
+
+M
+
+aj )
+
+j6=i
+
+Recall that
+P we write p for 1 − p if p ∈ [0, 1]. Furthermore, having in mind that
+a1 +p1 ( ni=2 pp1i ai ) we have
+M
+a1 +p1 (
+aj )
+
+IH
+
+=
+
+j6=1
+(D)
+
+=
+
+i=1 pi ai =
+
+M
+X pj
+aj )
+a1 +p1 (
+aj ⊕
+p1
+j6=1
+
+j6=1
+
+(a1 +p1
+
+M
+
+aj ) ⊕ (a1 +p1
+
+(a1 +p1
+
+M
+
+j6=1
+
+=
+
+Pn
+
+X pj
+j6=1
+
+aj ) ⊕
+
+X
+
+p1
+
+aj )
+
+p i ai .
+
+i
+
+j6=1
+
+Using this in the second equality below, we get
+a1 ⊕ . . . ⊕ an ⊕
+
+n
+X
+
+n
+M
+M
+X
+pi ai = a1 ⊕ . . . ⊕ an ⊕
+(ai +p1
+aj ) ⊕
+pi ai
+(4.2)
+
+i=1
+
+i
+
+= a1 ⊕ . . . ⊕ an ⊕
+
+M
+i
+
+(ai +p1
+
+j6=i
+
+M
+
+i=1
+
+aj )
+
+j6=i
+
+(4.2)
+
+= a1 ⊕ . . . ⊕ an .
+
+We next formulate a property that provides a way to prove that an algebraic theory is
+a presentation for a monad, which we will later apply in the proof that (ΣN P , EN P ) is a
+presentation for C.
+Proposition 4.3. Let A be the category of (Σ, E)-algebras with signature Σ and equations
+E. Let U : A → Sets be the forgetful functor. In order to prove that (Σ, E) is a presentation
+for a monad (M, η, µ), it suffices to:
+1. For any set X, define Σ-operations ΣX on M X and prove that with these operations
+(M X, ΣX ) is an algebra in A. Moreover prove that for any map f : X → Y , M f is an
+A-homomorphism from (M X, ΣX ) to (M Y, ΣY ).
+2. Prove that (M X, ΣX ) is the free algebra in A generated by X, i.e., for any algebra A =
+(A, ΣA ) in A and any map f : X → A, there is a unique homomorphism f # : (M X, ΣX ) →
+A that extends f , i.e., that satisfies f = U f # ◦ η.
+3. Prove that µX = (idM X )# .
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:19
+
+Proof. Assume that 1.-3. hold. We show that M is presented by (Σ, E), as explained in
+Remark 3.6. We provide a left adjoint to the forgetful functor such that M is the monad
+that arises from this adjunction. We start with defining the adjunction explicitly.
+Let F : Sets → A be the functor defined on objects as F X = (M X, ΣX ). Hence,
+U F X = M X. On arrows f : X → Y , we set F f = (η ◦ f )# .
+Then F is a left adjoint of the forgetful functor U , and the adjunction is given by
+the bijective correspondence (f : X → U A) 7→ (f # : F X → A). This is injective since:
+f # = g # ⇒ f = U f # ◦ η = U g # ◦ η = g. It is surjective since: for a homomorphism
+h∗ : F X → A, we consider h = U h∗ ◦ η and since h# is the unique homomorphism such that
+h = U h# ◦ η, we get that h# = h∗ .
+Next, we see that U F f = M f as a consequence of naturality of η. Namely, we have that
+F f = (η ◦ f )# is the unique homomorphism with the property U F f ◦ η = η ◦ f . Hence,
+using 1., since M f ◦ η = η ◦ f by naturality of η, we get U F f = M f .
+Let (T, η̄, µ̄) be the monad of this adjunction. This means that, see e.g. [Mac71, VI.1,
+IV.1], T = U F , (η̄)# = id F X and µ̄ = U εF where εA = (id U A )# is the counit of the
+adjunction, and hence µ̄X = (id M X )# . We next show that η # = id F X which implies η̄ = η.
+All we need to observe is that U id F X ◦ η = id U F X ◦ η = η and since η # is the unique
+homomorphism with U η # ◦ η = η and id F X is a homomorphism from F X to itself, we get
+η # = id F X . Finally, item 3. proves that µ̄ = µ.
+For p ∈ [0, 1] we set p = 1 − p. Let X be an arbitrary set. We define ΣN P -operations on
+CX by
+S1 ⊕ S2 = conv(S1 ∪ S2 )
+and for p ∈ (0, 1)
+S1 +p S2 = {ϕ | ϕ = pϕ1 + pϕ2 for some ϕ1 ∈ S1 , ϕ2 ∈ S2 }
+where pϕ1 + pϕ2 = ϕ1 +p ϕ2 is the binary convex combination of ϕ1 and ϕ2 in DX, defined
+point-wise. Note that S1 +p S2 is the Minkowski sum of two convex sets. If convenient, we
+may sometimes also write, as usual, pS1 + pS2 for the Minkowski sum S1 +p S2 .
+The proof of the presentation follows the structure of Proposition 4.3 via the following
+three lemmas.
+Lemma 4.4. With the above defined operations (CX, ⊕, +p ) is a convex semilattice, for any
+set X. Moreover, for a map f : X → Y , the map Cf : CX → CY is a convex semilattice
+homomorphism from (CX, ⊕, +p ) to (CY, ⊕, +p ).
+Lemma 4.5. The convex semilattice (CX, ⊕, +p ) is the free convex semilattice generated
+by η(X).
+Lemma 4.6. The multiplication µ of the monad C satisfies µ = (idCX )# .
+All detailed proofs are in Section 4.3, where we also list some additional helpful properties. Now all ingredients are in place and we get the presentation for C directly from
+Proposition 4.3.
+Theorem 4.7. The theory for nondeterminism and probability (ΣN P , EN P ), i.e., the theory
+of convex semilattices, is a presentation for the monad C.
+Remark 4.8. Theorem 4.7 is to some extent known3 but we could not find a proof of it
+in the literature. In [Var03, VW06] a monad for probability and nondeterminism is given
+3Personal communication with Gordon Plotkin.
+
+21:20
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+starting from a similar algebraic theory (with somewhat different basic algebraic structure).
+The observation that the distributive law (D) gives rise to convex subsets was known at
+least since [MOW03]. Indeed, all the axioms in EN P already appear in [MOW03] that
+additionally contains the axiom (B) and (Tp ) for dealing with termination. Nevertheless,
+in [MOW03] these axioms are not related to any particular monad. There is also another
+possible way of combining probability with nondeterminism, by distributing ⊕ over +p (see
+e.g. [KP17, DPS18]).
+Remark 4.9. Having the presentation enables us to identify and interchangeably use convex
+subsets of distributions and terms in ΣN P modulo equations in EN P . This is particularly
+useful in examples and our further developments. Note that in the syntactic view η(x) is
+identified with the term x.
+The presentation is a valuable tool in many situations where reasoning with algebraic
+theories is more convenient than reasoning with monads. For instance, it is much easier to
+check whether a certain algebra is a (ΣN P , EN P )-model, than to check that it is an algebra
+for the monad C. We illustrate this with three (ΣN P , EN P ) models that play a key role in
+our further results and exposition.
+The max convex semilattice Max = ([0, 1], max, +p ) is a (ΣN P , EN P )-algebra when
+taking ⊕ to be max : [0, 1]×[0, 1] → [0, 1] and +p the standard convex combination +p : [0, 1]×
+[0, 1] → [0, 1] with x +p y = p · x + p · y for x, y ∈ [0, 1]. To check that this is a (ΣN P , EN P )
+model, it is enough to prove that max satisfies the axioms in EN , that +p satisfies the axioms
+in EP , and that they satisfy the axiom (D), namely that max(x, y)+p z = max(x+p z, y +p z).
+The min convex semilattice Min = ([0, 1], min, +p ) is obtained similarly by taking ⊕ to
+be min : [0, 1] × [0, 1] → [0, 1] rather than max, and gives another example of a (ΣN P , EN P )algebra. It is indeed very simple to check that ([0, 1], min) forms a semilattice and that the
+distributivity law holds.
+The min-max interval convex semilattice We consider the algebraic structure MI =
+(I, min-max, +Ip ) for I the set of intervals on [0, 1], i.e.,
+I = {[x, y] | x, y ∈ [0, 1] and x ≤ y}.
+For [x1 , y1 ], [x2 , y2 ] ∈ I, we define min-max : I × I → I as
+min-max([x1 , y1 ], [x2 , y2 ]) = [min(x1 , x2 ), max(y1 , y2 )]
+and +Ip : I × I → I by
+[x1 , y1 ] +Ip [x2 , y2 ] = [x1 +p x2 , y1 +p y2 ].
+The fact that this is a model for (ΣN P , EN P ) follows easily from the fact that Max and Min
+are models for (ΣN P , EN P ).
+Remark 4.10. The fact that Max and Min are C-algebras on [0, 1] was already proven
+in [vHHOS18], without an algebraic presentation. Having the algebraic presentation significantly simplifies the proofs.
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:21
+
+4.3. Auxiliary Lemmas for the Proof of the Presentation of C. Before we proceed
+with the proof of the presentation, we recall several properties that are known or immediate
+to check, but very helpful in our further proofs.
+Lemma 4.11. Let A and B be two convex algebras, and f : A → B a convex homomorphism.
+Then for all X ∈ Pu A, for Pu being the unrestricted (not necessarily finite) powerset,
+convB f (X) = f (convA X). In particular, if X is convex then also f (X) is convex.
+Proof. For ⊆, for an arbitrary pf (x) + pf (y) ∈ convB f (X) with x, y ∈ X, we have
+(∗)
+
+pf (x) + pf (y) = f (px + py) ∈ f (convA X)
+where the equality marked by (∗) holds by the assumption that f is a convex homomorphism.
+For ⊇, consider f (a) ∈ f (convA X). Then a = px + py for some x, y ∈ X. Since f is convex,
+f (a) = pf (x) + pf (y) and f (x), f (y) ∈ f (X). Hence f (a) ∈ convB f (X).
+Lemma 4.12. Let A and B be two convex algebras, and f : A → B a convex homomorphism.
+Then the image map f = Pu f : Pu A → Pu B, for Pu being the unrestricted (not necessarily
+finite) powerset, is a convex map, i.e. if S = X +p Y for X ∈ Pu A, Y ∈ Pu B, then
+f (S) = f (X) +p f (Y ).
+Proof. Let S = X +p Y for X ∈ Pu A, Y ∈ Pu B. Then
+f (S)
+
+=
+=
+(∗)
+
+{f (s) | s ∈ S}
+{f (px + py) | x ∈ X, y ∈ Y }
+
+=
+
+{pf (x) + pf (y) | x ∈ X, y ∈ Y }
+
+=
+
+pf (X) + pf (Y ).
+
+and here, again, (∗) holds since f is convex.
+Lemma 4.13.
+S Let X be a set and let S ∈ Pu CX be a convex set with respect to Minkowski
+sum. Then S ∈ CX.
+S
+Proof. Let S = {Si | i ∈ I}. Let Φ, Ψ ∈ S. Then there exist i, j ∈ I with Φ ∈ Si and
+Ψ ∈ Sj . We have pΦ + pΨ ∈ pSi + pSj ∈ S as S is convex.
+We can now prove Lemmas 4.4, 4.5, and 4.6 announced in the previous section, from
+which the presentation of C follows.
+Proof of Lemma 4.4. We want to prove the following: (CX, ⊕, +p ) is a convex semilattice,
+for any set X. Moreover, for a map f : X → Y , the map Cf : CX → CY is a convex
+semilattice homomorphism from (CX, ⊕, +p ) to (CY, ⊕, +p ).
+In any convex algebra A for S, T ⊆ A we have
+conv(conv(S) ∪ T ) = conv(S ∪ T ).
+As a consequence, using the associativity of union, we get that the axiom (A) holds. For
+S1 , S2 , S3 ∈ CX:
+S1 ⊕ (S2 ⊕ S3 ) =
+=
+=
+=
+=
+
+conv(S1 ∪ conv(S2 ∪ S3 ))
+conv(S1 ∪ (S2 ∪ S3 ))
+conv((S1 ∪ S2 ) ∪ S3 )
+conv(conv(S1 ∪ S2 ) ∪ S3 )
+(S1 ⊕ S2 ) ⊕ S3 .
+
+21:22
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+Commutativity and idempotence hold due to commutativity and idempotence of union.
+Defining convex operations on CX using Minkowski sum, see [BSS17], leads to a convex
+algebra, i.e., (Ap ), (Cp ), (Ip ) hold.
+The axiom (D) holds as:
+(S1 ⊕ S2 ) +p S3
+= p conv(S1 ∪ S2 ) + pS3
+= {pqd1 + pqd2 + pd3 | q ∈ [0, 1], di ∈ Si }
+= conv((pS1 + pS3 ) ∪ (pS2 + pS3 )).
+Finally, Cf is a homomorphism from (CX, ⊕, +p ) to (CY, ⊕, +p ) as
+Cf (S1 ⊕ S2 )
+
+=
+(a)
+
+Df (S1 ⊕ S2 )
+
+=
+
+conv(Df (S1 ∪ S2 ))
+
+=
+
+conv(Df (S1 ) ∪ Df (S2 ))
+
+=
+=
+
+Df (S1 ) ⊕ Df (S2 )
+Cf (S1 ) ⊕ Cf (S2 )
+
+where the equality marked by (a) holds by Lemma 4.11. Similarly
+Cf (S1 +p S2 ) = Df (S1 +p S2 )
+(b)
+
+= Df (S1 ) +p Df (S2 )
+= Cf (S1 ) +p Cf (S2 ).
+
+where the equality marked by (b) holds by Lemma 4.12.
+Proof of Lemma 4.5. We want to prove the following: The convex semilattice (CX, ⊕, +p )
+is the free convex semilattice generated by η(X).
+We need to show that for any map f : X → A for a convex semilattice A = (A, ⊕, +p ),
+there is a unique convex semilattice homomorphism f # : (CX, ⊕, +p ) → A such that
+U f # ◦ η = f . So, let A = (A, ⊕, +p ) be a convex semilattice, and let f : X → A be a map.
+We use the same notation for the operations in A and in CX for simplicity.
+Note that, since any convex semilattice is a convex algebra, there is a unique convex
+homomorphism fD# : DX → (A, +p ), as DX is the free convex algebra generated by ηD (X).
+Hence, U fD# ◦ ηD = f .
+Now, given a convex set S = conv{d1 , . . . , dn } ∈ CX we put
+f # (S) = fD# (d1 ) ⊕ fD# (d2 ) ⊕ . . . ⊕ fD# (dn ).
+We first prove that f # is well defined, which is the most important step. We show that
+whenever
+conv{d1 , . . . , dn } = conv{e1 , . . . , em }
+(4.3)
+then
+#
+#
+#
+f#
+D (d1 ) ⊕ . . . ⊕ fD (dn ) = fD (e1 ) ⊕ . . . ⊕ fD (em ).
+
+Clearly, if Equation (4.3) holds, then for all i ∈ {1, . . . , n}, di ∈ conv{e1 , . . . , em } and for all
+j ∈ {1, . . . , m}, ej ∈ conv{d1 , . . . , dn }. Hence,
+conv{d1 , . . . , dn , e1 , . . . , em } = conv{d1 , . . . , dn } = conv{e1 , . . . , en }.
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:23
+
+If we can prove that whenever e ∈ conv{d1 , . . . , dn } then
+fD# (d1 ) ⊕ . . . ⊕ fD# (dn ) ⊕ fD# (e) = fD# (d1 ) ⊕ . . . ⊕ fD# (dn ),
+we would be done with well defined-ness as then
+fD# (d1 ) ⊕ . . . ⊕ fD# (dn )
+=
+
+fD# (d1 ) ⊕ . . . ⊕ fD# (dn ) ⊕ fD# (e1 ) ⊕ . . . ⊕ fD# (em )
+
+fD# (e1 ) ⊕ . . . ⊕ fD# (em ).
+P
+So, let e ∈ conv{d1 , . . . , dn }. Then e = i pi di and since fD# is a convex algebra homomorP
+phism, fD# (e) = i pi fD# (di ). Now, by the convexity law, Lemma 4.2, we have
+X
+fD# (d1 ) ⊕ . . . ⊕ fD# (dn ) ⊕ fD# (e) = fD# (d1 ) ⊕ . . . ⊕ fD# (dn ) ⊕
+pi fD# (di )
+=
+
+i
+
+=
+
+fD# (d1 ) ⊕ . . . ⊕ fD# (dn ).
+
+It remains to show that f # is a homomorphism and that it is uniquely extending f on
+η(X). Let S, T ∈ CX. Let S = conv{d1 , . . . , dn }, T = conv{e1 , . . . , em }.
+Then S ⊕ T = conv(S ∪ T ) = conv{d1 , . . . , dn , e1 , . . . , em } and we get
+f # (S ⊕ T ) = fD# (d1 ) ⊕ . . . ⊕ fD# (dn ) ⊕ fD# (e1 ) ⊕ . . . ⊕ fD# (em ) = f # (S) ⊕ f # (T ).
+Next, we first notice that S +p T = conv{pdi + pej | i ∈ {1, . . . , n}, j ∈ {1, . . . , m}}. For
+⊇, we see that
+X
+X
+X
+qi,j (pdi + pej ) = p
+qi,j di + p
+qi,j ej ∈ S +p T.
+i,j
+
+i,j
+
+i,j
+
+P
+
+For ⊆, take pd + pe ∈ S +p T . So, d = i qi di and e =
+X
+X
+pd + pe = p
+qi di + p
+rj ej
+i
+
+X
+i
+
+X
+
+=
+
+j rj ej and we have
+
+j
+
+
+= p
+
+P
+
+qi 
+
+
+X
+
+rj  di + p
+
+j
+
+!
+X
+j
+
+rj
+
+X
+
+qi
+
+ej
+
+i
+
+qi rj (pdi + pej ).
+
+i,j
+
+Now
+f # (S +p T )
+
+=
+
+M
+
+=
+
+M
+
+=
+
+M
+
+fD# (pdi + pej )
+
+i,j
+
+pfD# (di ) + pfD# (ej )
+
+i,j
+
+fD# (di ) +p fD# (ej )
+
+i,j
+(D)
+
+=
+
+(fD# (d1 ) ⊕ . . . ⊕ fD# (dn )) +p (fD# (e1 ) ⊕ . . . ⊕ fD# (em ))
+
+=
+
+f # (S) +p f # (T ).
+
+21:24
+
+Vol. 18:2
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Finally, assume f ∗ : (CX, ⊕, +p ) → A is another homomorphism that extends f on
+η(X), i.e., such that U f ∗ ◦ η = f . Then
+f ∗ ({δx })P= f # ({δx }) = f (x). Since both f # and
+P
+f ∗ are convex homomorphisms, and { i pi xi } = i pi {δxi }, we get
+X
+X
+X
+X
+f ∗ ({
+pi xi }) =
+pi f ∗ ({δxi }) =
+pi f # ({δxi }) = f # ({
+pi xi }).
+i
+
+i
+
+i
+
+i
+
+Further on, for S = conv{d1 , . . . , dn } we have S = {d1 } ⊕ . . . ⊕ {dn } and hence f ∗ (S) =
+f ∗ ({d1 }) ⊕ . . . ⊕ f ∗ ({dn }) = f # ({d1 }) ⊕ . . . ⊕ f # ({dn }) = f # (S) shows that f ∗ = f # and
+completes the proof.
+The final missing property for the presentation, Lemma 4.6, is an easy consequence of
+the next property that clarifies the definition of f # .
+Lemma 4.14. Let X be a set and f : X → CY a map. Then for all S in CX
+[ #
+[
+X
+f # (S) =
+fD (S) =
+Φ(u) · f (u).
+Φ∈S u∈supp(Φ)
+
+S
+Proof. The first task is to prove that f # (S) = fD# (S). Before we proceed, let’s recall
+all the types. We have f : X → CY (and CY is the carrier of a convex semilattice), so
+f # : CX → CY . Also, fD# : DX → CY and hence fD# : Pu DX
+S → Pu CY for Pu denoting the
+unrestricted (and not just finite) powerset. Finally, here : Pu Pu DY → Pu DY . Clearly,
+CZ ⊆ Pu DZ for any set Z.
+Now, since S is convex, by Lemma 4.11 also fD# (S) is convex. Each element of fD# (S) is
+of the form fD# (Φ) for Φ ∈ S and hence it is in CY , i.e., is convex. By Lemma 4.13, we get
+S
+that fD# (S) is convex.
+Let Ψ1 , . . . , Ψn ∈ DX be such that S = conv{Ψ1 , . . . , Ψn }. Clearly, Ψ1 , . . . , Ψn ∈ S.
+Now, we have
+{fD# (Ψi ) | i = 1, . . . , n} ⊆ {fD# (Φ) | Φ ∈ S}
+and hence
+[ #
+[
+[ #
+{fD (Ψi ) | i = 1, . . . , n} ⊆ {fD# (Φ) | Φ ∈ S} =
+fD (S)
+and since the set on the right hand side is convex, as we noted above,
+M #
+[
+[
+f # (S) =
+fD (Ψi ) = conv {fD# (Ψi ) | i = 1, . . . , n} ⊆ {fD# (Φ) | Φ ∈ S},
+i
+
+where the first equality is simply the definition of f # .
+For the other inclusion, let Φ ∈ S. Then S = conv{Ψ1 , . . . , Ψn , Φ} and
+[
+f # (S) = conv {fD# (Ψ1 ), . . . , fD# (Ψn ), fD# (Φ)}
+by the definition of f # . Therefore, fD# (Φ) ⊆ f # (S) and since Φ was arbitrary,
+[ #
+{fD (Φ) | Φ ∈ S} ⊆ f # (S).
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:25
+
+This proves the first equality of our statement. For the second equality, note that
+[ #
+f # (S) =
+{fD (Φ) | Φ ∈ S}
+X
+(∗) [
+Φ(u) · f (u) | Φ ∈ S}
+=
+{
+u∈supp(Φ)
+
+=
+
+[
+
+X
+
+Φ(u) · f (u)
+
+Φ∈S u∈supp(Φ)
+
+where the equality (∗) holds as fD# is convex.
+Proof of Lemma 4.6. Using Lemma 4.14, we immediately get
+[
+X
+(id CX )# (S) =
+Φ(A) · A = µX (S).
+Φ∈S A∈supp(Φ)
+
+5. Adding termination
+So far, we have provided a presentation for the monad C which combines probability and
+nondeterminism. In order to properly model NPLTS, we need a last ingredient: termination.
+As discussed in Section 3, termination is given by the monad · + 1 which can always be
+safely combined with any monad. Following the discussion at the end of Section 3, the
+theory PCS = (ΣN P ∪ ΣT , EN P ) presents the monad C(· + 1) which is the monad of finitely
+generated non empty convex sets of subdistributions. We call this theory PCS since algebras
+for this theory are pointed convex semilattices, namely convex semilattices with a pointed
+element denoted by ?.
+Like for the monad Pne , there exist more than one interesting way of combining C
+with · + 1. Rather than pointed convex semilattices, one can consider convex semilattices
+with bottom, namely algebras for the theory CSB = (ΣN P ∪ ΣT , EN P ∪ {(B)}) obtained
+by adding (B) to PCS. Otherwise, one can add the axiom (T ) and obtain the theory
+CST = (ΣN P ∪ ΣT , EN P ∪ {(T )}) of convex semilattices with top. We denote by TCSB and
+TCST the corresponding monads.
+As we will illustrate in Section 6, particularly relevant for defining trace semantics
+is the free algebra µ : M M {•} → M {•} generated by a singleton {•}. In the next three
+propositions we respectively identify these algebras for the monad TPCS (that is, C(· + 1)),
+the monad TCSB , and the monad TCST in concrete terms.
+Proposition 5.1. MI,[0,0] = (I, min-max, +Ip , [0, 0]) is the free pointed convex semilattice
+generated by a singleton set 1 = {•}.
+Proof. Recall that MI = (I, min-max, +Ip ) is the convex semilattice of intervals from Section 4.
+Then, by interpreting the pointed element ? as the interval [0, 0] we have that MI,[0,0] is a
+pointed convex semilattice.
+Let 2 = {•, ?}. Note that the carrier of the free pointed semilattice generated by {•}
+is C(1 + 1) = C(2). Recall that (C(2), ⊕, +p ), where ⊕ is the convex union and +p is the
+Minkowski sum, is the free convex semilattice generated by 2.
+We next show that (C(2), ⊕, +p ) is isomorphic to MI . Indeed D(2) is isomorphic to
+[0, 1]: the real number 0 corresponds to δ? , 1 to δ• and p ∈ (0, 1) to • +p ?. Furthermore, the
+
+21:26
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+non-empty finitely-generated convex subsets of [0, 1] are the closed intervals. To conclude, it
+suffices to see that min-max is ⊕ on I and +Ip is the Minkowski sum.
+Proposition 5.2. MaxB = ([0, 1], max, +p , 0) is the free convex semilattice with bottom
+generated by 1 = {•}.
+Proof. By Proposition 5.1, we know that C(2) is isomorphic to I. We show that MI,[0,0]
+modulo the axiom (B) is isomorphic to MaxB . We have
+(B)
+
+min-max([x, y], [0, 0]) = [x, y],
+for [x, y] ∈ I. From
+[0, y] = min-max([x, y], [0, 0]) = [x, y],
+we derive that [x1 , y] = [x2 , y] for any x1 , x2 , y. Hence, we define the isomorphism [x, y] 7→ y
+mapping any interval [x, y] to its upper bound y.
+The interval [0, 0] is mapped to the bottom element 0, and the operations are such that:
+min-max([x1 , y1 ], [x2 , y2 ]) = min-max([0, y1 ], [0, y2 ])
+= [0, max(y1 , y2 )]
+hence min-max([x1 , y1 ], [x2 , y2 ]) 7→ max(y1 , y2 ) and
+[x1 , y1 ] +p [x2 , y2 ] = [0, y1 ] +p [0, y2 ] = [0, y1 +p y2 ] 7→ y1 +p y2 .
+Proposition 5.3. MinT = ([0, 1], min, +p , 0) is the free convex semilattice with top generated
+by 1 = {•}.
+Proof. We show that MI,[0,0] modulo the (T) axiom
+(T )
+
+min-max([x, y], [0, 0]) = [0, 0]
+is isomorphic to MinT . First, we derive [x, y1 ] = [x, y2 ] for any x, y1 , y2 as follows. For x = 1
+the property trivially holds. For x = 0 we have
+(T )
+
+(T )
+
+[0, y1 ] = min-max([x, y1 ], [0, 0]) = [0, 0] = min-max([x, y2 ], [0, 0]) = [0, y2 ]
+
+(5.1)
+
+Finally, for x ∈ (0, 1) and y1 , y2 ≥ x we derive
+y1 − x (5.1)
+y2 − x
+[x, y1 ] = [1, 1] +x [0,
+] = [1, 1] +x [0,
+] = [x, y2 ].
+1−x
+1−x
+Hence, we can now map every interval [x, y] to its lower bound x. Then [0, 0] is mapped to
+the top element 0, and
+min-max([x1 , y1 ], [x2 , y2 ]) = [min(x1 , x2 ), max(y1 , y2 )] 7→ min(x1 , x2 )
+[x1 , y1 ] +p [x2 , y2 ] = [x1 +p x2 , y1 +p y2 ] 7→ x1 +p x2 .
+At this point the reader may wonder what happens when one considers the axioms
+(Bp ) and (Tp ) in place of (B) and (T ). We have already shown at the end of Section 3.4,
+that the axiom (Bp ) makes the probabilistic structure collapse. When focussing on the free
+algebra generated by {•}, also quotienting by (Tp ) is not really interesting: one can show
+by induction on the terms in TΣN P ∪ΣT ({•}) that every term is equal via EN P ∪ {(Tp )} to
+either • or ? or • ⊕ ?.
+So, we have found three interesting ways of combining termination with probability and
+nondeterminism. Table 2 summarises these theories, their monads, and their algebras.
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:27
+
+Theory (Σ, E)
+
+free algebra µ1 : M M 1 → M 1
+
+Monad M
+
+PCS = (ΣN P ∪ ΣT , EN P )
+C(· + 1) = TPCS MI,[0,0] = (I, min-max, +Ip , [0, 0])
+CSB = (ΣN P ∪ ΣT , EN P ∪ {(B)})
+TCSB
+MaxB = ([0, 1], max, +p , 0)
+CST = (ΣN P ∪ ΣT , EN P ∪ {(T )})
+TCST
+MinT = ([0, 1], min, +p , 0)
+Table 2: The theories of pointed convex semilattices, with bottom, and with top.
+This completes our exploration of monads and algebras. In the next section, we will
+commence investigating coalgebras. But first, we show a useful result that illustrates the
+relationships among the monads encountered so far, where SB and ST are respectively the
+theory of semilattices with bottom and the theory of semilattices with top.
+Lemma 5.4. There exist the following monad maps:
+TSB ks
+eB
+
+qB
+
+qT
+
+χPne (·+1)
+
+
+
+
+
+TCSB ks
+
+Pne (· + 1)
+
+qB
+
+C(· + 1)
+KS
+
++3 TST
+
+
+qT
+
+eT
+
++3 TCST
+
+χD (·+1)
+
+D(· + 1)
+Moreover: 1. the vertical maps are injective; 2. the diagonal maps q B ◦ χD (· + 1) and
+q T ◦ χD (· + 1) are injective; 3. the two squares commute.
+Proof. We define eB : TSB ⇒ TCSB by eX ([t]SB ) = [t]CSB for any term t with variables in X
+in signature ΣN ∪ ΣT , where [t]SB on the left denotes the equivalence class of t modulo
+EN ∪ {(B)} and [t]CSB on the right the equivalence class of t modulo EN P ∪ {(B)}. This is
+justified as every TSB -term is a TCSB -term as well. This is easily seen to be a monad map,
+we need to check well-definedness and injectivity: t =SB t0 ⇔ t =CSB t0 . Well-definedness,
+the implication left-to-right, is immediate as the equations of a semilattice with bottom are
+included in the equations of a convex semilattice with bottom. Assume t =CSB t0 . Let s̄
+denote the term obtained from a term s in TCSB by replacing every occurrence of +p by ⊕.
+Then we have
+s1 =CSB s2 ⇒ s̄1 =SB s̄2
+which is easy to show by checking that it holds for each of the equations.
+Now, let t = t1 =CSB t2 · · · =CSB tn = t0 . Then t = t̄1 =SB t̄2 · · · =SB t̄n = t0 where the
+first and last equality hold since t and t0 are terms in ΣN ∪ {(B)} showing injectivity.
+The definition and the proof for eT : TST ⇒ TCST are as above but replacing axiom (B)
+by (T ). The maps χPne (· + 1) and χD (· + 1) are injective monad maps due to Lemma 3.1
+applied to the injective monad maps χPne and χD from Lemma 4.1. The horizontal maps
+are obtained by quotienting by axioms (B) and (T ) the monads TPS = Pne (· + 1) and
+TPCS = C(· + 1). Since, for every ∆ ∈ D(X + 1), χD (· + 1)X (∆) is a singleton set, the
+quotients q B and q T do not affect such set: both q B ◦ χD (· + 1) and q T ◦ χD (· + 1) are
+injective. Commutation of the two squares is immediate.
+
+21:28
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+6. Coalgebras and Determinisation
+In this section, we briefly introduce coalgebra (Section 6.1) and the generalised determinisation [SBBR10] construction (Section 6.2), as well as several examples of transitions systems
+and automata featuring either nondeterministic or probabilistic behaviour. We present some
+simple facts and a novel general result (Section 6.3) that will be useful in Section 7 to
+prove some key properties for systems featuring –at the same time– nondeterminism and
+probability. At the end of this section (Section 6.4), we provide a general notion of trace
+semantics for transition systems and we illustrate some important examples.
+
+6.1. Coalgebra. The theory of coalgebra provides an abstract framework for state-based
+transition systems and automata. A coalgebra for a functor F in Sets (also called F -coalgebra)
+is a pair (S, c) of a state space S and a function c : S → F S where F : Sets → Sets specifies
+the type of transitions. Sometimes we say the coalgebra c : S → F S, meaning the coalgebra
+(S, c).
+A coalgebra homomorphism from a coalgebra (S, c) to a coalgebra (T, d) is a function
+h : S → T that satisfies d ◦ h = F h ◦ c. Coalgebras for a functor F and their coalgebra
+homomorphisms form a category, denoted by Coalg (F ).
+The
+final object in Coalg (F ), when it exists, is the final F -coalgebra. We write
+∼
+=
+ζ : Z −→ F Z for the final F -coalgebra. For every coalgebra c : S → F S, there is a unique
+homomorphism J·Kc to the final one, the final coalgebra map, making the diagram below
+commute:
+S
+c 
+
+FS
+
+∃! J·Kc
+F J·Kc
+
+/Z
+∼
+=  ζ
+
+/ FZ
+
+The final coalgebra semantics ∼ is the kernel of the final coalgebra map, i.e., two states s
+and t are equivalent in the final coalgebra semantics iff JsKc = JtKc .
+Even without a final coalgebra, coalgebras over a concrete category are equipped with
+a generic behavioural equivalence. Let (S, c) be an F -coalgebra on Sets. An equivalence
+relation R ⊆ S × S is a kernel bisimulation (synonymously, a cocongruence) [Sta11, Kur00,
+Wol00] if it is the kernel of a homomorphism, i.e., R = ker h = {(s, t) ∈ S × S | h(s) = h(t)}
+for some coalgebra homomorphism h : (S, c) → (T, d) to some F -coalgebra (T, d). Two
+states s, t of a coalgebra are behaviourally equivalent (notation: s ≈ t) iff there is a kernel
+bisimulation R with (s, t) ∈ R. If a final coalgebra exists, then the behavioural equivalence
+and the final coalgebra semantics coincide, i.e., ≈ = ∼.
+The following are well-known examples of F -coalgebras that will be useful later on:
+(1) Labelled transition systems, LTS, are coalgebras for the functor F = (P(·))A . Behavioural
+equivalence coincides with strong bisimilarity.
+(2) Nondeterministic automata, NA, are coalgebras for F = 2 × (P(·))A where 2 = {0, 1} is
+needed to differentiate whether a state is accepting or not.
+(3) Deterministic automata, DA, are coalgebras for F = 2 × (·)A . The final coalgebra is
+∗
+carried by the set of all languages 2A .
+(4) Moore automata, MA, are a slight generalisation of deterministic automata with observations O: they are coalgebras for F = O × (·)A . The final coalgebra is carried by the
+∗
+set of all O-valued languages OA .
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:29
+
+(5) Reactive probabilistic labelled transition systems, RPLTS, are coalgebras for F =
+(D(·) + 1)A . Behavioural equivalence coincides with Larsen-Skou bisimilarity [LS91].
+(6) (Rabin) Probabilistic automata [Rab63], PA, are coalgebras for F = [0, 1] × D(·)A .
+The following definition generalises the examples above.
+Definition 6.1 (Systems and Automata with M -effects). Let M be a monad and O be a
+set. We call an M A -coalgebra a system with M -effects, and we call an O × M A -coalgebra
+an automaton with M -effects and observations in O. We write c = ho, ti for an automaton
+with M -effects and observations in O, where o : X → O is the observation map assigning
+observations to states, and t : X → (M X)A is the transition structure.
+For instance, LTS are systems with P-effects while NA are automata with P-effects and
+observations in 2. Similarly, RPLTS are systems with D + 1-effects, while PA are automata
+with D-effects and observations in [0, 1]. Both DA and MA are automata with no effects
+(M = Id) and observations in 2 and O, respectively.
+a
+
+We write x → m for t(x)(a) = m with a ∈ A, x ∈ X, m ∈ M X in a system or automaton
+with M -effects. We also write x ↓ ox for o(x) = ox with ox ∈ O. For an LTS t : X → (PX)A
+a
+
+a
+
+we also write, as usual, x → y for y ∈ t(x)(a) and x 6→ if t(x)(a) = ∅; for an RPLTS
+a
+
+a
+
+t : X → (DX + 1)A , we may also write x →p y for t(x)(a)(y) = p and again x 6→ if
+t(x)(a) = ?. Note that in all our examples of systems and automata there is an implicit
+finite branching property ensured by the use of P and D involving only finite subsets and
+finitely supported distributions.
+6.2. Determinising Automata with M -effects and Observations in O. The construction of generalised determinisation was originally discovered in [SBBR10, Bar04]. It enables
+us to obtain trace semantics for coalgebras of type c : X → F M X where F is a functor and
+M a monad. The result is a determinised F -coalgebra c# : M X → F M X and the semantics
+is derived from behavioural equivalence for F -coalgebras.
+Let c : X → F M X be a coalgebra and λ : M F ⇒ F M a functor distributive law. Then
+the determinisation is the F -coalgebra
+c] = M X
+
+M c/
+
+MFMX
+
+λ
+
+/ FMMX Fµ / FMX .
+
+(6.1)
+
+It is easy to show that c] ◦ η = c which justifies the notation c] : the carrier M X carries the
+M -algebra µX : M M X → M X, the free M -algebra generated by X, F M X carries the M algebra F µ ◦ λ : M F M X → F M X, and c] is the unique extension of c to a homomorphism
+from the free M -algebra (M X, µ) to the M -algebra (F M X, F µ ◦ λ).
+In this paper, we only consider determinisation of automata with M -effects and observations in O, namely, F M -coalgebras for the Moore-automata functor F = O × (·)A , where
+O is some set of observations. The following proposition shows that determinising automata
+with M -effects and observations in O is always possible when the observations carry an
+M -algebra [SBBR10, JSS15].
+Proposition 6.2. For an Eilenberg-Moore algebra a : M O → O, for F = O × (·)A and any
+monad M on Sets there is a canonical distributive law λ : M F ⇒ F M given by
+M O×X A
+
+
+
+hM π1 ,M π2 i
+
+/ M O×M (X A ) a×st / O×(M X)A
+
+21:30
+
+Vol. 18:2
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+where st is the map st : M (X A ) → (M X)A defined, for all labels a ∈ A, by st(ϕ)(a) =
+M eva (ϕ) with eva : X A → X the evaluation map given as eva (ϕ) = ϕ(a).
+As a consequence, we can determinise c = ho, ti : X → O × (M X)A to c] = ho] , t] i where
+o] =
+
+MX
+
+t] =
+
+MX
+
+Mo
+
+/ O and
+
+/ MO
+
+a
+
+Mt
+
+/ M (M X)A
+
+st
+
+/ (M M X)A
+
+µA
+X
+
+/ (M X)A .
+
+∗
+
+The final F -coalgebra, for F = O × (·)A , is carried by the set OA of O-valued languages
+over alphabet A, i.e., functions ϕ : A∗ → O. The final coalgebra is
+∗
+
+∗
+
+ζ = h, deri : OA → O × (OA )A
+∗
+
+∗
+
+∗
+
+∗
+
+where for all ϕ ∈ OA ,  : OA → O is defined as (ϕ) = ϕ(ε) and der : OA → (OA )A as
+der(ϕ)(a)(w) = ϕ(aw).
+∗
+The morphism into the final coalgebra [[·]]c] : M X → OA is defined (see e.g. [Jac16])
+for all m ∈ M X and w ∈ A∗ inductively as below on the right.
+
+η
+
+X
+c=ho,ti
+
+
+
+y
+
+O × M XA
+
+/ MX
+
+c] =ho] ,t] i
+idO ×[[·]]A]
+c
+
+[[·]]c]
+
+/ O A∗
+
+
+ζ=h,deri
+
+[[m]]c] (ε)
+= o] (m)
+[[m]]c] (aw) = [[t] (m)(a)]]c] (w)
+
+/ O × (O A∗ )A
+
+(6.2)
+Definition 6.3 (Language semantics for automata). Let (M, η, µ) be a monad and c =
+ho, ti : X → O × M X A be an automaton with M -effects and observations in O. Let
+a : M O → O be a M -algebra. Two states x, y ∈ X are language equivalent, written x ≡ y iff
+[[η(x)]]c] = [[η(y)]]c]
+]
+where c is the determinisation w.r.t. a of c = ho, ti.
+The commuting diagram on the left in Eq. 6.2 summarises our setting. An important
+∗
+observation is that OA carries an M -algebra defined as the point-wise extension of a : M O →
+∗
+O. Similarly, O × (OA )A also carries an M -algebra and the final F -coalgebra ζ = h, deri
+is actually an M -algebra homomorphism. Recall that also c] = ho] , t] i : M X → O × M X A
+is at the same time an F -coalgebra and an M -algebra homomorphism: both h, deri and
+ho] , t] i are indeed examples of λ-bialgebras [DP97, Kli11]. Most importantly, the unique
+∗
+coalgebra morphism [[·]]c] : M X → OA is also an M -algebra homomorphism4. The latter
+entails the first item of the following.
+Theorem 6.4 [SBBR10, BPPR17]. The following hold for any coalgebra c : X→F M X and
+its determinisation c] : M X→F M X:
+(1) Behavioural equivalence for (M X, c] ) is a congruence for the algebraic structure of M .
+4From a more abstract perspective, the distributive law λ allows for lifting the functor F to EM(M ) as
+well as the rightmost commuting square in (6.2): all objects are M -algebras and all arrows are M -algebra
+homomorphism. We refer the interested reader to [Kli11] for a gentle introduction to the subject.
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:31
+
+(2) Behavioural equivalence for (X, c) implies language equivalence.
+(3) Up-to context is a compatible [PS12] proof technique.
+The second item will be exploited in Section 7 to show that convex bisimilarity implies trace
+equivalence for NPLTS, while the third item will be fundamental in Section 7.2 to prove the
+soundness of an effective proof technique. Below we give a more concrete description of the
+overall construction by relying on a presentation (Σ, E) for the monad M .
+For an n-ary operation symbol f ∈ Σ and a (Σ, E)-algebra A = (A, ΣA ) we write f A for
+the n-ary operation on A that is the interpretation of f . We have that c] = ho] , t] i can be
+defined as follows.
+o] (x) = o(x) o] (f M X (s1 , . . . , sn )) = f O (o] (s1 ), . . . , o] (sn ))
+(6.3)
+t] (x) = t(x) t] (f M X (s1 , . . . , sn ))(a) = f M X (t] (s1 )(a), . . . , t] (sn )(a))
+Remark 6.5. Technically, the above definition is telling us that o] : M X → O is the unique
+M -algebra homomorphism extending the function o : X → O and similarly for t] : M X →
+M X A . Such a definition (of a function on E-equivalence classes of Σ-terms) can also be seen
+as arising from an inductively defined function on Σ-terms. To be precise, it is important
+to recall that defining a function over equivalence classes based on representatives always
+requires to check whether the function is well-defined, in the sense that it is independent
+of the choice of a representative. Fortunately enough, monad properties guarantee that
+o] : M X → O and t] : M X → M X A are well-defined in this respect5 and thus (6.3) can
+effectively be thought of as an inductive definition on terms. In the remainder of this paper,
+we will instantiate (6.3) to several examples in this way, without mentioning again that o]
+and t] are well-defined.
+∗
+
+The M -algebra structure over the final F -coalgebra is given for ϕi ∈ OA and w ∈ A∗ as
+fO
+
+A∗
+
+(ϕ1 , . . . , ϕn )(w) = f O (ϕ1 (w), . . . , ϕn (w))
+∗
+
+The fact that [[·]]c] : M X → OA is an M -algebra homomorphism just means that
+[[f M X (s1 , . . . , sn )]]c] = f O
+
+A∗
+
+([[s1 ]]c] , . . . [[sn ]]c] )
+
+(6.4)
+
+for all n-ary operator f in Σ. Clearly this fact immediately entails that ≈ is a congruence
+w.r.t. the operations in Σ.
+Example 6.6 (Determinisation of Nondeterministic Automata). Applying this construction
+to F = 2×(·)A and M = P, one transforms c : X → 2×(PX)A into c] : PX → 2×(PX)A . The
+former is a nondeterministic automaton and the latter is a deterministic automaton which has
+∗
+PX as states space. The set of all languages 2A (seen as functions in 2 = {0, 1}) carries the
+∗
+∗
+final F -coalgebra h, deri : 2A → 2×(2A )A which is exactly the emptiness operation and the
+∗
+derivatives operations by Brzozowski [Brz64]. The final coalgebra morphism [[·]]c] : PX → 2A
+maps each state of the determinised automaton into the language that it accepts.
+In [SBBR10], see also [JSS15], it is shown that, using the distributive law from Proposition 6.2, as 2 = P1 is the carrier of the free P-algebra µ1 : PP1 → P1, this amounts exactly
+to the standard determinisation from automata theory and justifies the term generalised
+determinisation.
+5It is enough to observe that (a) the function ô] : T X → O defined inductively on terms in T X is the
+Σ
+Σ
+
+unique Σ-algebra homomorphism extending o; (b) that there is a monad quotient q E : TΣ ⇒ M and (c)
+E
+E
+qX
+: TΣ X → M X is a Σ-algebra homomorphism. By uniqueness, ô] = o] ◦ qX
+.
+
+21:32
+
+Vol. 18:2
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Recalling that P is presented by the algebraic theory of semilattices with bottom gives
+us a more concrete understanding. The set of observations 2 = {0, 1} carries the semilattice
+with bottom 0 v 1 with supremum operation denoted by t. The interpretation of ⊕ and ?
+in this algebra are defined for all b1 , b2 ∈ 2 as
+b1 ⊕2 b2 = b1 t b2
+
+?2 = 0.
+
+By instantiating (6.3), one has that the determinisation c] = ho] , t] i : PX → 2 × (PX)A is
+defined inductively for all S ∈ PX and a ∈ A as
+
+
+if S = η(x);
+o(x)
+o] (S) = ?2
+if S = ?PX ;
+
+ ]
+2
+]
+PX
+o (S1 ) ⊕ o (S2 ) if S = S1 ⊕ S2 ;
+
+if S = {x};
+o(x)
+= 0
+if S = ∅;
+
+ ]
+]
+o (S1 ) t o (S2 ) if S = S1 ∪ S2 ;
+
+
+if S = η(x);
+t(x)(a)
+]
+PX
+t (S)(a) = ?
+if S = ?PX ;
+
+]
+PX ]
+PX
+t (S1 ) ⊕ t (S2 ) if S = S1 ⊕ S2 ;
+
+if S = {x};
+t(x)(a)
+= ∅
+if S = ∅;
+
+]
+]
+t (S1 ) ∪ t (S2 ) if S = S1 ∪ S2 ;
+since ⊕PX is union of subsets and ?PX is the empty set. We have seen an example of this
+construction in Section 1.
+∗
+The semilattice with bottom over the final F -coalgebra 2A is defined as the pointwise
+∗
+extension of the semilattice over 2, that is, for all ϕ1 , ϕ2 ∈ 2A and w ∈ A∗
+A∗
+
+(ϕ1 ⊕2
+
+A∗
+
+?2
+
+ϕ2 )(w) = ϕ1 (w) t ϕ2 (w)
+
+A∗
+
+∗
+2A
+
+Observe that ⊕2 is just the union of languages and ?
+instantiating (6.4), one has that
+A∗
+
+[[S1 ⊕PX S2 ]]c] = [[S1 ]]c] ⊕2
+
+[[S2 ]]c]
+
+(w) = 0
+
+is the empty language. By
+A∗
+
+[[?PX ]]c] = ?2
+
+meaning that (a) the language accepted by the union of two sets of states is exactly the
+union of the languages accepted by the two sets and (b) the empty set accepts the empty
+language. This immediately entails the first item of Theorem 6.4. The second item, intuitively
+corresponds to the usual fact that bisimilarity implies language equivalence. The third item
+allows for exploiting bisimulations up-to ⊕ and, consequently, for an efficient algorithm to
+check language equivalence [BP13].
+Example 6.7 (Determinisation of Probabilistic Automata). Applying the construction
+for F = [0, 1] × (·)A and M = D, one transforms c : X → [0, 1] × (DX)A into c] : DX →
+[0, 1] × (DX)A . The former is a probabilistic automaton and the latter is a Moore automaton
+∗
+with set of observations O = [0, 1]. The set of all [0, 1]-valued languages [0, 1]A carries the
+final F -coalgebra. Since [0, 1] = D(2), the set [0, 1] carries the D-algebra µ2 : DD(2) → D(2)
+which amounts to taking convex combinations in [0, 1]. By exploiting this algebra for the
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:33
+
+distributive law in Proposition 6.2, one obtains a final coalgebra semantics that coincides
+with probabilistic language equivalence of [Rab63] (see [SBBR10]).
+Next we illustrate more concretely this construction by relying on the presentation of D
+as the algebraic theory of convex algebras. For p ∈ [0, 1], the interpretation of the operation
+[0,1]
++p in [0, 1] is as expected: q1 +p q2 = p · q1 + (1 − p) · q2 . By instantiating (6.3), one has
+that the determinisation c] = ho] , t] i : DX → [0, 1] × (DX)A is defined inductively for all
+∆ ∈ DX and a ∈ A as
+(
+o(x)
+if ∆ = η(x) = δx ;
+o] (∆) =
+[0,1] ]
+]
+o (∆1 ) +p o (∆2 ) if ∆ = ∆1 +DX
+∆2 ;
+p
+(
+t(x)(a)
+if ∆ = η(x) = δx ;
+t] (∆)(a) =
+]
+DX
+]
+t (∆1 ) +p t (∆2 ) if ∆ = ∆1 +DX
+∆2 ;
+p
+We have seen an example of this construction in Section 1. The convex algebra over the
+∗
+final coalgebra [0, 1]A is defined as the pointwise extension of the algebra over [0, 1], that is
+A∗
+
+(ϕ1 +[0,1]
+p
+
+ϕ2 )(w) = ϕ1 (w) +[0,1]
+ϕ2 (w)
+p
+
+∗
+
+for ϕ1 , ϕ2 ∈ [0, 1]A and w ∈ A∗ . By instantiating (6.4), one has that
+[[∆1 +DX
+∆2 ]]c] = [[∆1 ]]c] +[0,1]
+p
+p
+
+A∗
+
+[[∆2 ]]c] .
+
+We will apply similar methods to obtain languages and language equivalence for automata
+with both nondeterminism and probability in the rest of the paper.
+6.3. Invariance of the Semantics. We next state a theorem that guarantees invariance of
+the language semantics for automata with M -effects and observations in O, under controlled
+changes of the monad or the algebra of observations.
+Theorem 6.8 (Invariance Theorem). Let (M, η, µ) be a monad and a : M O → O an M algebra. Let c = ho, ti : X → O × (M X)A be an automaton with M -effects and observations
+∗
+in O and J·K : M X → OA be the semantic map induced by the generalised determinisation
+w.r.t. a, i.e., J·K = J·Kc]
+(1) Transitions: Let (M̂ , η̂, µ̂) be a monad and σ : M ⇒ M̂ a monad map. Let â : M̂ O → O
+be an M̂ -algebra. Consider the coalgebra
+A
+ĉ = ho, t̂ i = ho, σX
+◦ ti : X → O × (M̂ X)A
+
+ˆ : M̂ X → OA∗ be the semantic map induced by its generalised determinisation
+and let [[·]]
+ˆ ◦ η̂X .
+wrt. â. If a = â ◦ σO , then [[·]] ◦ ηX = [[·]]
+(2) Observations: Let â : M Ô → Ô be an M -algebra and let h : (O, a) → (Ô, â) be an
+M -algebra morphism. Consider the coalgebra
+ĉ = hô, ti = hh ◦ o, ti : X → Ô × (M X)A
+ˆ : M X → ÔA∗ be induced by the generalised determinisation wrt. â. Then
+and let [[·]]
+∗
+ˆ = hA ◦ [[·]].
+[[·]]
+Proof. We prove the two items separately:
+
+21:34
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+(1) Transitions: The proof proceeds in two steps. First, we show that the following
+diagram commutes
+σF X
+
+MFX
+λX
+
+/ M̂ F X
+
+
+
+
+FMX
+
+F σX
+
+(6.5)
+
+λ̂X
+
+/ F M̂ X
+
+where σ is the monad map from the hypothesis, and λ and λ̂ are the distributive laws
+from Proposition 6.2 used for the determinisation of F M - and F M̂ -coalgebras using the
+ˆ respectively.
+algebras a and â, and the strengths st and st,
+The following diagram commutes by naturality of σ:
+σX A
+
+M (X A )
+M eva
+
+/ M̂ (X A )
+ M̂ eva
+
+
+
+MX
+
+/ M̂ X
+
+σX
+
+Using this, by definition of the strength, see Proposition 6.2, we have
+A
+(σX
+◦ st(ϕ))(a)
+
+=
+
+A
+σX
+(st(ϕ)(a))
+
+=
+
+A
+σX
+(M eva (ϕ))
+
+=
+
+A
+(σX
+◦ M eva )(ϕ)
+
+(∗)
+
+=
+
+M̂ eva ◦ σX A (ϕ)
+
+=
+=
+
+M̂ eva (σX A (ϕ))
+ˆ X A (ϕ))(a)
+st(σ
+
+=
+
+ˆ ◦ σX A (ϕ))(a).
+(st
+
+where the equality marked by (∗) holds by the commutativity of the diagram above.
+Hence, the following diagram commutes.
+M (X A )
+st
+
+σX A
+
+/ M̂ (X A )
+
+
+
+
+(M X)A
+
+A
+σX
+
+ˆ
+st
+
+/ (M̂ X)A
+
+Recall now that by hypothesis a = â ◦ σO . Therefore, the following commutes.
+M O × M (X A )
+a×st
+
+σO ×σX A
+
+
+
+
+
+O × (M X)A
+
+/ M̂ O × M̂ (X A )
+
+A
+idO ×σX
+
+ˆ
+â×st
+
+/ O × (M̂ X)A
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:35
+
+Finally, the following two squares commute by naturality of σ.
+M (O × X A )
+M π1
+
+σO×X A
+
+/ M̂ (O × X A )
+
+
+
+
+MO
+
+M (O × X A )
+M π2
+
+M̂ π1
+
+/ M̂ O
+
+σO
+
+σO×X A
+
+/ M̂ (O × X A )
+
+
+
+
+M (X A )
+
+σX A
+
+M̂ π2
+
+/ M̂ (X A )
+
+By pasting together the last three diagrams, we obtain that the following commutes.
+σO×X A
+
+M (O × X A )
+hM π1 ,M π2 i
+
+
+
+hM̂ π1 ,M̂ π2 i
+
+
+
+σO ×σX A
+
+M O × M (X A )
+a×st
+
+/ M̂ (O × X A )
+
+/ M̂ O × M̂ (X A )
+
+
+
+
+O × M (X)A
+
+ˆ
+â×st
+
+/ O × M̂ (X)A
+
+A
+idO ×σX
+
+Observe that, by the definition of the distributive law (Proposition 6.2), this diagram is
+exactly (6.5). Using (6.5), we can now easily show that the following commutes.
+MX
+M ho,ti
+
+
+
+MFMX
+λM X
+
+σX
+
+/ M̂ X
+
+σF M X
+
+M̂ ho,ti
+
+
+
+/ M̂ F M X
+M̂ F σX
+
+λ̂M X
+
+
+
+FMMX
+
+
+/ F M̂ M X
+
+F σM X
+
+F M̂ σX
+
+
+x
+
+&
+
+M̂ F M̂ X
+λ̂M̂ X
+
+F M̂ M̂ X
+
+Fµ
+
+
+
+
+
+FMX
+
+F σX
+
+F µ̂X
+
+/ F M̂ X
+
+Indeed, commutativity of the topmost square is given by naturality of σ. The fact that σ
+is a monad morphism entails commutativity of the bottom square. The rightmost square
+commutes by naturality of λ̂. The missing square, the one in the centre, is exactly (6.5).
+Now observe that the leftmost border in the above diagram, the morphism M X →
+F M X, equals c] = ho] , t] i, see (6.1). The determinisation ĉ] of ĉ = ho, t̂ i = ho, (σX )A ◦ ti
+obtained using â and λ̂ coincides with the rightmost border of the above diagram, the
+morphism M̂ X → F M̂ X. The commuting of the above diagram means that σX is a
+homomorphism of F -coalgebras. By postcomposing this homomorphism with the unique
+ˆ : M̂ X → OA∗ , one obtains an F -coalgebra morphism of type
+F -coalgebra morphism [[·]]
+∗
+ˆ ◦ σX follows.
+M X → OA . Since [[·]] is the unique such morphism, [[·]] = [[·]]
+
+21:36
+
+Vol. 18:2
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+[[·]]
+
+MX
+c]
+
+
+
+FMX
+
+σX
+
+F σX
+
+ˆ
+[[·]]
+
+/ M̂ X
+
+
+'
+/ O A∗
+∼
+= ζ
+
+ĉ]
+ˆ
+F [[·]]
+
+/ F M̂ X
+
+
+/ F (O A∗ )
+7
+
+F [[·]]
+
+ˆ ◦ σX ◦ ηX = [[·]]
+ˆ ◦ η̂X .
+Now, since σ is a monad map, η̂ = σ ◦ η. Therefore [[·]] ◦ ηX = [[·]]
+(2) Observations: Consider the following diagram in Sets.
+[[·]]
+
+MX
+
+/ Ô A∗
+
+∼
+= ζ
+
+c]
+
+
+
+O × (M X)A
+h×id(M X)A
+
+∗
+
+hA
+
+/ O A∗
+
+idO
+
+×[[·]]A
+
+
+
+
+/ O × (O A∗ )A
+
+
+Ô × (M X)A
+
+idÔ ×[[·]]A
+
+∼
+= ζ̂
+
+h×id(OA∗ )A
+
+/ Ô × (O A∗ )A
+
+∗
+
+idÔ ×(hA )A
+
+
+/ Ô × (Ô A∗ )A
+
+Both squares on the left trivially commute by definition. To prove that also the square
+∗
+∗
+∗
+on the right commutes, it is enough to show that hA : OA → ÔA coincides with the
+unique coalgebra morphism [[·]]d from the coalgebra
+∗
+
+∗
+
+d = (h × id(OA∗ )A ) ◦ ζ : OA → Ô × (OA )A
+to the final Ô × (·)A -coalgebra ζ̂.
+From the inductive definition of [[·]]d , see Eq. 6.2, we get [[ϕ]]d = λw ∈ A∗ . h ◦ ((ϕ)w )
+∗
+where (ϕ)w (u) = ϕ(wu) which easily leads to [[ϕ]]d = h ◦ ϕ = hA (ϕ).
+Now observe that h ◦ o] is equal to (h ◦ o)] , since h is an algebra morphism.
+From this observation and the commuting of the above diagram, it follows that
+∗
+hA ◦ [[·]] is the unique coalgebra morphism from ĉ] = h(h ◦ o)] , t] i to the final Ô × (·)A ˆ
+coalgebra, and hence it equals [[·]].
+Whenever the monad M has a presentation (Σ, E), the first part of the theorem above
+provides a convenient technique that allows one to work with syntactic terms in TΣ and
+forget about the axioms in E. Let q E : TΣ ⇒ M be the monad morphism quotienting TΣ by
+E , namely q E ◦ r = id
+the axioms in E and let rX : M X → TΣ X be a right inverse of qX
+X
+MX .
+X
+A
+Now, the automaton with M -effects c = ho, ti : X → O × (M X) can be translated into an
+automaton with TΣ -effects by taking
+A
+c0 = ho, t0 i = ho, rX
+◦ ti : X → O × (TΣ X)A .
+
+Similarly the M -algebra of observation a : M O → O gives rise to the TΣ -algebra
+E
+a 0 = a ◦ qO
+: TΣ O → O.
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:37
+
+Now, rather than determinise c with respect to a, one can determinise c0 w.r.t. a0 and, by
+virtue of Theorem 6.8.1, the semantics does not change.
+Corollary 6.9. Let M be a monad with presentation (Σ, E). Let c = ho, ti : X → O×(M X)A
+E ◦ t0 = t. Let a : M O → O be an M and c0 = ho, t0 i : X → O × (TΣ X)A be such that qX
+algebra. Let [[·]] and [[·]]0 be the semantics maps induced by the determinisation of c w.r.t.
+E . Let η and η 0 be the units of M and T . Then,
+a and, respectively, c0 w.r.t. a0 = a ◦ qO
+Σ
+0
+[[·]] ◦ ηX = [[·]] ◦ ηX .
+Proof. The property follows immediately by Theorem 6.8.1, but the reader has to be careful
+not to be mislead: Theorem 6.8.1 cannot be applied to rX , since this is not a monad map
+(actually, it is not even a natural transformation). The monad map σ : M ⇒ M̂ in the
+statement of the theorem is the quotient q E : TΣ ⇒ M in the corollary, indeed the monads
+M and M̂ in the theorem correspond to the monads TΣ and M in the corollary, respectively.
+Similarly, the automaton with M -effects c in the theorem is c0 in the corollary, while ĉ is c in
+the corollary. The algebras â and a in the theorem correspond to a and a0 in the corollary,
+respectively.
+Determinising c0 rather than c, makes our approach similar to processes calculi. Indeed,
+in c0] = ho0] , t0] i : TΣ X → O × TΣ X A , states are syntactic terms rather than elements in
+M X, e.g., sets, distributions, . . . . The output and transition functions o0] , t0] can be defined
+by means of GSOS rules. For each n-ary operator f in Σ, we have one rule for output and
+one rule per action a ∈ A for transitions:
+s i ↓ oi
+
+a
+
+si → s0i
+
+i ∈ 1...n
+O
+
+f (s1 , . . . , sn ) ↓ f (o1 , . . . , on )
+
+i ∈ 1...n
+a
+
+f (s1 , . . . , sn ) → f (s01 , . . . , s0n )
+
+(6.6)
+
+Here f O is the interpretation of f in the algebra of observation a : M O → O. For each
+x ∈ X, we have the following axioms:
+−
+x ↓ o(x)
+
+−
+
+(6.7)
+
+a
+
+x → t0 (x)(a)
+
+Remark 6.10. The rules in (6.6) and (6.7) are equivalent — modulo the axioms in E —
+to the definition of o] and t] provided by (6.3)6. However, the two rules above provide
+a specification which is closer to (the standard way of giving) the structured operational
+semantics via so-called GSOS rules where states are syntactic terms and transitions are
+derived by the structure of terms. A notable difference, beyond the outputs, is that the
+a
+transitions specified by (6.6) and (6.7) are deterministic: s → s0 means that t0] (s)(a) = s0
+and not that s0 ∈ t0 (s)(a) as common in structured operational semantics.
+The connection between GSOS rules and bialgebras was first identified in the seminal
+work by Turi and Plotkin [DP97]: they show that GSOS rules are in one-to-one correspondence with certain natural transformations that, in turn, give rise to distributive laws of type
+λ : M F ⇒ F M , see Section 3.3, for F = P(·)A and M the term monad TΣ for some signature
+Σ. The rules in (6.6) instead can be regarded as a natural transformation ρ : ΣF ⇒ F Σ, for
+Σ the functor corresponding to a signature and F = O × (·)A . In [Kli11], it is shown that
+natural transformations of this kind, that are named there “simple distributive laws”, give
+6The reader can easily check by induction that o] ◦ q E = o0] and that t] ◦ q E = (q E )A ◦ t0] .
+X
+
+X
+
+X
+
+21:38
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+rise to a distributive law of type λ : TΣ F ⇒ F TΣ . In our case, the rules in (6.6) give rise
+exactly to the distributive law from Proposition 6.2 for M = TΣ .
+6.4. From Systems to Automata and the Role of Termination. So far, we have seen
+how language semantics arises by determinisation of automata. However, our initial interest
+concerns trace semantics. Trace semantics is closely related to language semantics, but
+it concerns systems that lack the notion of observation. At the same time, dealing with
+automata, i.e., having observations, is crucial for determinisation. In this section, we discuss
+the move from systems to automata that enables defining trace semantics with help of
+language semantics. The intuition can easily be explained in the case of LTS: Create an
+automaton from an LTS by making every state accepting. Then trace equivalence for the
+LTS is language equivalence for the created automaton.
+More precisely, starting from an LTS t : X → (PX)A , we can add observations in 2 = P1
+in the simplest possible way, making every state an accepting state:
+η1
+
+!
+
+o = (X −→ 1 −→ P1 = 2)
+and determinise the NA ho, ti : X → 2 × (PX)A w.r.t. the algebra µ1 : PP1 → P1. The
+induced language semantics on the state space X is the standard trace semantics for
+LTS [BBC+ 16].
+This same approach can be applied in the case of any system with M -effects t : X →
+(M X)A . We can add observations in O = M 1 by
+!
+
+η1
+
+o = (X −→ 1 −→ M 1),
+
+(6.8)
+
+determinise the automaton ho, ti with M -effects using the free algebra on M 1, and consider
+the induced language semantics. This idea is summarised in the following definition.
+Definition 6.11 (Trace semantics for systems with M -effects). Let (M, η, µ) be a monad
+and t : X → M X A be a system with M -effects. Two states x, y ∈ X are trace equivalent,
+written x ≡ y iff
+[[η(x)]]c] = [[η(y)]]c]
+]
+where c is the determinisation w.r.t. µ1 : M M 1 → M 1 of c = ho, ti : M X → M 1 × M X A
+for o defined as in (6.8).
+However, not everything is settled yet, as shown by the following example — the way
+we model systems, i.e., the choice of the monad involved, may make a huge difference in the
+semantics that we obtain.
+Example 6.12. Let us apply Definition 6.11 to an RPLTS t : X → (DX + 1)A , namely a
+system with D + 1-effects. Recall the monad D + 1 from Example 3.2. By taking as sets
+of observations O = M 1, one would obtain that O = D(1) + 1 which is isomorphic to 2.
+∗
+Therefore, the final coalgebra would be 2A making impossible to distinguish probabilistic
+behaviours.
+The problem is not in the choice of observations but already in the monad D + 1. Indeed,
+even by allowing different observations, determinising w.r.t. such monad would lead a too
+coarse semantics. Consider for instance the RPLTS in the top of Figure 2. The states x
+and y should not be trace equivalent, since x has probability 12 of performing trace ab, and
+y has probability 14 of performing trace ab. Let us look at what happens, however, if we
+determinise this system with respect to the monad D + 1. The determinised transition
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:39
+
+y
+
+x
+a
+
+b
+
+x ↓1
+
+∆
+1
+2
+x1
+
+1
+2
+
+x2
+
+a/
+
+x1 + 1 x2 ↓1
+
+b
+
+
+
+?↓
+9 O 0 og
+b
+
+y2
+/ ...
+
+2
+
+b
+
+w
+
+a,b
+b
+
+a
+
+a/
+
+3
+4
+
+/ x +1 ? ↓1 a
+2
+
+a
+
+%
+
+Θ
+1
+4
+y1
+
+2
+
+b
+
+y ↓1
+
+a
+
+b
+
+b
+
+y1 + 1 y2 ↓1
+
+/ y +1 ? ↓1 a
+
+4
+
+[[η(·)]]c]
+
+4
+
+/ ...
+
+4
+
+ε a b ab
+
+x
+
+1 1 0
+
+y
+
+1 1 0
+
+1
+2
+1
+4
+
+Figure 2: An RPLTS (top), part of its determinisation (center) and of its trace semantics
+(bottom)
+function t] will give us states in DX + 1, i.e., states that are either full distributions or the
+element ? ∈ 1 and we have
+t] (x)(a) = x1 + 1 x2
+
+t] (y)(a) = y1 + 1 y2
+
+2
+
+4
+
+t] (x1 + 1 x2 )(b) = t(x1 )(b) + 1 t(x2 )(b) = ?
+
+However,
+
+2
+
+2
+
+]
+
+t (y1 + 1 y2 )(b) = t(y1 )(b) + 1 t(y2 )(b) = ?
+4
+
+4
+
+Hence, whatever (D + 1)-algebra of observation we take, these states in the determinised
+system will return the same observation, i.e., o] (x)(ab) = o] (y)(ab). As a consequence, x
+and y will be equivalent.
+The example above suggests that the general trace equivalence given in Definition 6.11
+when dealing with systems with effects in a monad of shape M + 1 might not provide the
+best results. Indeed, the state space of the determinised system for such a monad would
+always be of the shape M X + 1, intuitively either an M -combination of states in X or ? ∈ 1.
+The solution that we propose here is to work with the monad M (· + 1) rather than M + 1.
+In order to do this it is enough to recall the morphism ι : M + 1 → M (· + 1) from (3.1),
+transform any system t : X → (M X + 1)A into
+t̄ : X
+
+t
+
+/ (M X + 1)A
+
+ιA
+X
+
+/ (M (X + 1))A
+
+(6.9)
+
+21:40
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+a
+
+zo
+
+a
+
+a
+
+
+
+xo
+
+Vol. 18:2
+
+x0 o
+
+b
+
+y
+
+
+b
+
+y0
+
+a
+
+"
+
+x0 ↓{•} o
+
+y 0 ↓{•}
+
+b
+
+a
+
+b
+
+b
+a
+
+x ↓{•}
+
+[[η(·)]]c]
+
+%
+
+9
+
+
+
+? ↓{?} ~ a,b
+b
+
+a
+
+/ y ⊕ z ↓{•}
+
+ε
+
+. O. .
+
+g
+
+O
+
+a
+
+a
+
+b
+
+/ x ⊕ ? ↓{•,?}
+
+b
+
+ab
+
+x
+
+{•} {•} {?} {•, ?}
+
+x0
+
+{•} {•} {?}
+
+{•}
+
+Figure 3: An LTS (top), part of its may-must determinisation (center); and the corresponding
+may-must semantics (bottom)
+and then adopt Definition 6.11. With this recipe, we can recover the appropriate definition
+of trace equivalence for RPLTS.
+Example 6.13 (Trace semantics for RPLTS). We first turn an RPLTS t : X → (DX + 1)A
+into a system with D(· + 1)-effects by postcomposing with ιA , as in (6.9). Observe that the
+monad map ι : D + 1 ⇒ D(· + 1) only changes the type by embedding distributions into
+subdistributions and regards the unique element of 1 as the empty subdistribution (namely
+the one mapping everything to 0).
+Now, we can apply Definition 6.11. The set of observation is [0, 1] = D(1 + 1) equipped
+with the free D(· + 1)-algebra generated by 1. The observation function o : X → [0, 1] maps
+∗
+every state x ∈ X into the element 1 ∈ [0, 1]. The function J·Kc] ◦ η : X → [0, 1]A obtained
+via the generalised determinisation of c = ho, t̄i assigns to each state x ∈ X and trace w ∈ A∗
+the probability of reaching from x any other state via w. We write ≡RP for the induced
+trace equivalence. A similar construction has been used in [FZ14, YJZ17].
+Figure 2 illustrates the semantics obtained in this way: observe that, differently from
+the semantics from Example 6.12, now x 6≡RP y since [[η(x)]]c] (ab) = 12 and [[η(y)]]c] (ab) = 14 .
+For LTS, we have already seen that Definition 6.11 leads to the standard notion of trace
+semantics. However, by recalling that P = Pne + 1, one could first transform an LTS into a
+systems with Pne (· + 1)-effects by (6.9) and then use Definition 6.11. The following example
+illustrates the alternative trace equivalence obtained in this way.
+Example 6.14 (May/Must trace semantics for LTS). Given an LTS t : X → (PX)A , we
+define t̄ : X → Pne (X + 1)A as in (6.9) by recalling that P = Pne + 1. The embedding
+ιX : PX → Pne (X + 1) maps the empty set ∅ ∈ PX into the singleton {?}, where ? is the
+unique element of 1, and any nonempty subset to itself.
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:41
+
+To obtain the algebra of observations we take the free Pne (· + 1)-algebra generated by
+the singleton set 1 = {•}. This is the semilattice
+{•, ?}
+{•}
+
+(6.10)
+{?}
+
+with point {?}. Hereafter we refer to this as 3. The observation function o : X → 3 maps
+every state x ∈ X into the element {•} ∈ 3. We rely on a testing scenario to give an intuition
+∗
+of the semantic map J·Kc] ◦ η : X → 3A obtained via the generalised determinisation of
+∗
+c = ho, t̄i: words w ∈ A can be thought as tests to be performed on each state x ∈ X
+of the original LTS; the outcome of a test is ? if x does not pass the test, namely it
+gets stuck during the execution of w; the outcome is • if x passes the test, namely it
+has entirely executed w; since the system is nondeterministic different runs of the same
+test on the same state can lead to different outcomes. If the outcome is always •, then
+JxKc] (w) = {•}; if it is always ?, then JxKc] (w) = {?}; if instead the outcome is sometimes
+• and sometimes ?, then JxKc] (w) = {•, ?}. Figure 3 illustrates an LTS and the obtained
+semantics. Observe that [[η(x0 )]](a) = [[η(x)]](a) = {•} since both x and x0 always pass the
+test a, while [[η(x0 )]](b) = [[η(x)]](b) = {?} since both x and x0 always fail the test b. The
+behaviours of x0 and x differ on the test ab: x0 always passes ab, while x may fail it. Indeed,
+by reading a, x can go to z and then get stuck when reading b.
+S , and we call it may-must trace equivalence
+We denote the induced equivalence by ≡LT
+∗
+for LTS. Such a name is justified below by introducing may trace and must trace semantics,
+and in Remark 6.15.
+Recall the presentation of the monad Pne (· + 1) from Section 3.4 and its two possible
+quotients by the axioms (B) and (T). Let us denote the corresponding quotient maps by q B
+B )A ◦ t̄ and (q T )A ◦ t̄ one obtains
+and q T , respectively. By applying Definition 6.11 to (qX
+X
+S
+two different semantics which we call may trace equivalence, denoted by ≡LT
+B , and must
+S . To better illustrate both of them, we focus on their
+trace equivalence, denoted by ≡LT
+T
+algebras of observations.
+By quotienting the pointed semilattice (6.10) by (B) and (T), one obtains, respectively,
+the semilattice with bottom and the semilattice with top freely generated by 1, depicted on
+the left and on the right below.
+{•} = {•, ?}
+
+{?} = {•, ?}
+
+{?}
+
+{•}
+
+In the semilattice on the left, the top element is assigned when a state x may pass a test
+w, while the bottom element when x always fails. In the semilattice on the right, the top
+element is assigned when x can fail, while the bottom element is assigned when x always
+passes the test. Figure 4 illustrates an example of the may semantics and the must semantics.
+We conclude by observing that, since the quotient of Pne (· + 1) by (B) is exactly P and,
+S is the standard trace semantics for LTS.
+since q B ◦ ι = id, then ≡LT
+B
+Remark 6.15. The testing scenario described in Example 6.14, using the three free algebras
+generated by the singleton set 1 = {•} as possible outcomes of tests, is exactly the one of
+the standard theory of testing equivalences [DH84], when taking as class of tests the set of
+
+21:42
+
+Vol. 18:2
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+a
+
+a
+
+"
+
+x0 ↓{•} o
+
+b
+
+a
+
+b
+
+b
+a
+
+x ↓{•}
+c
+
+[[η(·)]]c]
+x
+x0
+
+x0 ↓{•} o
+
+y 0 ↓{•}
+%
+
+9
+
+"
+
+y 0 ↓{•}
+
+b
+
+a
+
+b
+
+
+
+%
+
+? ↓{?} ~ a,b
+O
+
+9
+
+b
+
+a
+
+/ y ⊕ z ↓{•}
+
+x ↓{•}
+
+a
+
+
+
+? ↓{?} ~ a,b
+O
+
+a,b
+
+/ y ⊕ z ↓{•}
+
+b
+
+ε
+
+a
+
+b
+
+ab
+
+[[η(·)]]c]
+
+{•} {•} {?} {•}
+{•} {•} {?} {•}
+
+x
+x0
+
+ε
+
+a
+
+b
+
+ab
+
+{•} {•} {?} {?}
+{•} {•} {?} {•}
+
+Figure 4: May trace (left) and must trace (right) semantics for the LTS in Figure 3
+S , ≡LT S , and ≡LT S are
+finite traces. Hence, in this testing scenario the equivalences ≡LT
+∗
+B
+T
+respectively the equivalences known as may-must (or test) testing equivalence, may testing
+equivalence, and must testing equivalence.
+
+In Section 7, we will introduce may-must, may and must semantics for systems with
+probability and nondeterminism, by basically applying the recipe described in this section
+to the three monads introduced in Section 5. It is worth to announce here that the obtained
+semantics will be “backward compatible” —in a sense that will be clarified later— with
+S , ≡LT S and ≡LT S . To prove this property we will need the following corollary of
+≡LT
+∗
+B
+T
+Theorem 6.8.
+Corollary 6.16. Let (M, η, µ) be a submonad of (M̂ , η̂, µ̂) via an injective monad map
+σ : M ⇒ M̂ . Let t : X → (M X)A be a system with M -effects and let t̂ be the system with
+A ◦ t : X → (M̂ X)A . Let ≡, ≡
+ˆ ⊆ X × X be the trace equivalences for t and t̂,
+M̂ -effects σX
+respectively. Then ≡ = ˆ
+≡.
+
+
+η1
+η̂1
+!
+!
+Proof. We fix o = X −→ 1 −→ M 1 and ô = X −→ 1 −→ M̂ 1 .
+We first transform the automaton c = ho, ti to ĉ = hô, ti and apply Theorem 6.8.2 and
+then transform ĉ = hô, ti to ĉˆ = hô, t̂ i and apply Theorem 6.8.1.
+For the determinisation, take for a in Theorem 6.8.2 the free algebra µ1 : M M 1 → M 1
+and as â the M -algebra (µ̂ ◦ σM̂ 1 ) : M M̂ 1 → M̂ 1. It is easy to see that â is indeed an
+M -algebra using that σ is a monad map, its naturality, and the associativity of µ̂. Since
+σ is a monad map, the following diagram commutes showing that σ1 is an M -algebra
+homomorphism.
+MM1
+
+M σ1
+
+/ M M̂ 1
+ σM̂ 1
+
+M̂ M̂ 1
+
+µ
+
+
+
+M1
+
+σ1
+
+ µ̂
+/ M̂ 1
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:43
+
+ˆ =
+Observe that ô = σ1 ◦ o, again since σ is a monad map. Then, by Theorem 6.8.2 J·K
+∗
+ˆ is the semantics obtained by determinisation of ĉ and [[·]] the one after
+σ1A ◦ J·K where [[·]]
+∗
+determinisation of c. Since σ1 is injective, also σ1A is injective and we have that for all
+ˆ = [[η(y)]]
+ˆ iff [[η(x)]] = [[η(y)]], i.e., the semantics remains the same.
+x, y ∈ X, [[η(x)]]
+For the second step, take ˆ
+â = µ̂ : M̂ M̂ 1 → M̂ 1 for the determinisation of ˆ
+ĉ. By definition
+ˆ
+â = â ◦ σÔ . Therefore Theorem 6.8.1 guarantees that the language semantics of ĉˆ (i.e., trace
+semantics of t̂) again remains the same as the language semantics of ĉ (i.e, trace semantics
+of t).
+
+7. May / Must Traces for NPLTS
+In this section, we put all the pieces together and give, using the general recipe from Section 6.4, trace semantics for systems featuring nondeterminism, probability, and termination.
+We work with the monad TPCS = C(· + 1) and consider its two quotients TCSB and TCST
+that we have illustrated in Section 5. Each of these choices gives us a meaningful trace
+equivalence.
+We start by recalling three types of coalgebras.
+NPLTS Nondeterministic probabilistic labelled transition systems, NPLTS, also known as
+simple Segala systems, are coalgebras for the functor F = (PD(·))A . Behavioural equivalence
+coincides with strong probabilistic bisimilarity [BSV04, Sok11].
+Convex NPLTS Convex NPLTS are coalgebras for (C + 1)A . Behavioural equivalence
+coincides with convex probabilistic bisimilarity [Mio14].
+NPA Nondeterministic Probabilistic automata, NPA, with observations in O are (for us in
+this paper) coalgebras for F = O × (C(· + 1))A . We explained in Section 6.4 above how to
+move from (convex) NPLTS to NPA, which involves two steps: (1) Adding observations and
+(2) Dealing with termination.
+In order to define trace semantics for NPLTS via the general recipe from Section 6.4, we
+first need to transform them into convex NPLTS which are systems with C + 1-effects. Then,
+following Section 6.4, we transform them into systems with C(· + 1)-effects and, finally, we
+add observations, so to obtain automata with C(· + 1)-effects, namely NPA.
+We exploit the natural transformations conv from (4.1) and ι from (3.1). Given an
+NPLTS t : X → (PDX)A we fix
+t̄ = X
+
+t
+
+/ (Pne DX + 1)A
+
+(convX +1)A
+
+/ (CX + 1)A
+
+ιA
+X
+
+/ (C(X + 1))A
+
+
+
+(7.1)
+and add observations as prescribed in (6.8)
+!
+
+η1
+
+ō = X −
+→ 1 −→ C(1 + 1)
+
+
+
+(7.2)
+
+Now recall from Proposition 5.1 that the pointed convex semilattice freely generated by 1 is
+MI,[0,0] and thus C(1 + 1) = I: We easily derive that
+ō(x) = η1 (!(x)) = η1 (•) = {δ• } = [1, 1]
+
+21:44
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+for all x ∈ X, as δ• = 1 (see proof of Proposition 5.1).
+Let hō] , t̄] i : C(X + 1) → I × C(X + 1)A be the determinisation of ho, ti w.r.t. such
+∗
+algebra and J·K : C(X + 1) → IA be the final coalgebra map.
+η
+
+X
+hō,t̄i
+
+
+
+w
+
+/ C(X + 1)
+
+[[·]]
+
+/ IA∗
+
+
+hō] ,t̄] i
+
+I × C(X + 1)A
+
+h,deri
+
+[[S]](ε)
+= ō] (S)
+[[S]](aw) = [[t̄] (S)(a)]](w)
+
+/ I × (IA∗ )A
+
+idI ×[[·]]A
+
+Definition 7.1. We say that two states x, y ∈ X are may-must trace equivalent, written
+x ≡ y, if and only if [[η(x)]] = [[η(y)]].
+By instantiating (6.3) and using the presentation of the monad C(· + 1), we can obtain
+a convenient inductive definition of hō] , t̄] i:
+
+[1, 1]
+if S = x;
+
+
+
+[0, 0]
+if S = ?;
+ō] (S) =
+]
+]
+
+ō (S1 ) min-max ō (S2 ) if S = S1 ⊕ S2 ;
+
+
+ ]
+ō (S1 ) +p ō] (S2 )
+if S = S1 +p S2 .
+
+t̄(x)(a)
+
+
+
+?
+t̄] (S)(a) =
+
+t̄] (S1 )(a) ⊕ t̄] (S2 )(a)
+
+
+]
+t̄ (S1 )(a) +p t̄] (S2 )(a)
+
+if S = x;
+if S = ?;
+if S = S1 ⊕ S2 ;
+if S = S1 +p S2 .
+
+May trace equivalence and must trace equivalence Now one may want to treat
+termination in a different way and exploit the monads TCSB and TCST discussed in Section 5.
+Given the monad morphisms q B : TPCS ⇒ TCSB and q T : TPCS ⇒ TCST quotienting TPCS by
+(B) and (T ), respectively, one can construct the transition functions
+B A
+t̄B = (qX
+) ◦ t̄ : X → (TCSB X)A
+
+and
+
+T A
+t̄T = (qX
+) ◦ t̄ : X → (TCST X)A .
+
+(7.3)
+
+For the observations, we always use the general recipe of Section 6.4 and take the observation
+functions:
+η1
+!
+
+ōB = X −
+→1−
+→ TCSB 1
+
+and
+
+η1
+!
+
+ōT = X −
+→1−
+→ TCST 1 .
+
+Recall from Proposition 5.2 and Proposition 5.3 that MaxB = ([0, 1], max, +p , 0) and
+MinT = ([0, 1], min, +p , 0) are, the free convex semilattice with bottom and, respectively,
+with top, generated by the singleton set 1. Therefore these algebraic structures gives us
+the determinisation of ōB and ōT . Since ōB (x) = 1 and ōT (x) = 1 for all x ∈ X, the
+determinisation ō]B : TCSB X → [0, 1] and ō]T : TCST X → [0, 1] enjoy the following inductive
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:45
+
+definition.
+
+1
+
+
+
+0
+ō]B (S) =
+
+ō] (S1 ) max ō] (S2 )
+
+
+ ]
+ō (S1 ) +p ō] (S2 )
+
+1
+
+
+
+0
+ō]T (S) =
+
+ō] (S1 ) min ō] (S2 )
+
+
+ ]
+ō (S1 ) +p ō] (S2 )
+
+if S = x;
+if S = ?;
+if S = S1 ⊕ S2 ;
+if S = S1 +p S2 .
+if S = x;
+if S = ?;
+if S = S1 ⊕ S2 ;
+if S = S1 +p S2 .
+
+The transition functions t̄]B : TCSB X → (TCSB X)A and t̄]T : TCST X → (TCST X)A are defined
+in the same way like t̄] above.
+∗
+The coalgebras hō]B , t̄]B i and hō]T , t̄]T i give rise to morphisms [[·]]B : TCSB X → [0, 1]A and
+∗
+[[·]]T : TCST X → [0, 1]A and corresponding behavioural equivalences.
+Definition 7.2. The may trace equivalence for the NPLTS is denoted by ≡B and defined as
+x ≡B y
+
+⇔
+
+[[η(x)]]B = [[η(y)]]B
+
+where η is the unit of the monad TCSB . The must trace equivalence for the NPLTS is denoted
+by ≡T and defined by
+x ≡T y ⇔ [[η(x)]]T = [[η(y)]]T
+for η denoting now the unit of the monad TCST .
+Remark 7.3. One might exploit the generalised determinisation in different ways, but these
+always lead to the above semantics.
+Consider the coalgebra hōB , t̄i : X → TCSB 1 × (TPCS X)A and observe that the algebra
+MaxB = ([0, 1], max, +p , 0), namely µ1 : TCSB TCSB 1 → TCSB 1, is also a pointed convex
+semilattice—formally this is µ1 ◦ q B : TPCS TCSB 1 → TCSB 1. One could thus perform the
+generalised determinisation w.r.t. this algebra and the monad TPCS and obtain an equivalence
+that we denote by ≡0B . Theorem 6.8.1 guarantees however that ≡0B = ≡B . Similarly, one
+could start with the coalgebra hōT , t̄i, apply the same construction and end up with an
+equivalence which, by Theorem 6.8.1, coincides with ≡T .
+Remark 7.4. By recalling that the monad C(· + 1) is presented by the algebraic theory
+PCS = (ΣN P ∪ ΣT , EN P ), one can use Corollary 6.9 to determinise w.r.t. the term monad
+TΣN P ∪ΣT without changing the resulting semantics. The states of the systems determinised
+in this way are now syntactic terms, i.e, without the axioms in EN P , and the determinisation
+can be expressed by means of GSOS rules. Indeed, by instantiating the GSOS rules (6.6)
+and (6.7) for an arbitrary signature to the signature ΣN P ∪ ΣT , one obtains exactly the
+rules displayed in Table 1.
+The rule on the right in (6.6) gives rise to the rules for ?, ⊕ and +p in Table 1.(a). The
+rule on the left gives rise to the rules for ?, ⊕ and +p in Table 1.(b), (c) and (d) when taking
+as algebras of observations MaxB , MinT and MI,[0,0] , respectively.
+The rules in (6.7) require more explanation. In the rule on the left, o should be instatiated
+with ōB , ōT and ō. By recalling that for all x ∈ X, ōB (x) = ōT (x) = 1 and ō(x) = [1, 1] one
+obtains the rules for x in Table 1.(b), (c) and (d). In order to see that the rule on the right
+
+21:46
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+of (6.7) gives rise to the rule for x in Table 1.(a), one should take t0 as (termX )A ◦ t and
+EN P A
+observe that (qX
+) ◦ t0 coincides with t̄.
+Example 7.5. Consider the convex closure of the NPLTS from Figure 1. Following
+Remark 7.4, we can syntactically describe the convex sets of subdistributions reached by a
+state when performing a transition as follows:
+a
+
+x −→ x1 ⊕ (x3 + 1 x2 )
+2
+
+a
+
+y −→ y1 ⊕ (y4 + 1 y2 ) ⊕ ((y2 + 1 y4 ) + 1 y3 )
+2
+
+2
+
+b
+
+b
+
+x1 −→ x + 1 x3
+
+y1 −→ y + 1 y4
+
+2
+
+b
+
+2
+
+c
+
+b
+
+x2 −→ x3
+x2 −→ x
+In the determinised system, we have
+a
+
+2
+
+c
+
+y2 −→ y4
+
+b
+
+a
+
+y3 −→ y
+b
+
+y −→ S10 −→ S20
+
+x −→ S1 −→ S2
+For
+S1 = x1 ⊕ (x3 + 1 x2 )
+2
+
+S2 = (x + 1 x3 ) ⊕ (? + 1 x3 )
+2
+
+2
+
+S10
+
+= y1 ⊕ (y4 + 1 y2 ) ⊕ ((y2 + 1 y4 ) + 1 y3 )
+
+S20
+
+= (y + 1 y4 ) ⊕ (? + 1 y4 ) ⊕ ((y4 + 1 ?) + 1 ?)
+
+2
+
+2
+
+2
+
+2
+
+2
+
+2
+
+2
+
+Consider now the observations associated to the terms in the may-must semantics. We
+have ō] (x) = [1, 1] = ō] (y) and hence
+ō] (S1 ) = [1, 1] min-max([1, 1] + 1 [1, 1]) = [1, 1].
+2
+
+Analogously, ō] (S10 ) = [1, 1]. Furtheron
+1
+ō] (S2 ) = ([1, 1] + 1 [1, 1]) min-max([0, 0] + 1 [1, 1]) = [ , 1]
+2
+2
+2
+and in the same way we derive ō] (S20 ) = [ 14 , 1].
+Hence, x and y are not may-must trace equivalent: [[x]](ab) = ō] (S2 ) 6= ō] (S20 ) = [[y]](ab).
+However, using MaxB , we get ō]B (S2 ) = ō]B (S20 ) as the intervals obtained via the maymust observation over S2 , S20 have the same upper bound 1, which is the value returned by
+both ō]B (S2 ) and ō]B (S20 ). Hence, [[x]]B (ab) = ō]B (S2 ) = ō]B (S20 ) = [[y]]B (ab). More generally,
+it holds that x and y are may trace equivalent. We can elegantly prove this by using up-to
+techniques, as shown in Section 7.2.
+7.1. Properties of the semantics. The three notions of trace equivalence for NPLTS
+that we have introduced above, ≡, ≡B and ≡T , enjoy several desirable properties that,
+on the one hand, confirm the appropriateness of our semantics and, on the other, provide
+useful techniques for reasoning about them. In this section we show such properties while in
+Section 7.2, we illustrate such techniques at work.
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:47
+
+7.1.1. Bisimilarity implies trace equivalence. For NPLTS, there exist two main notions of
+bisimilarity, which are usually called (strong) probabilistic bisimilarity and convex probabilistic
+bisimilarity [SL94]. Originally, these relations were called (strong) bisimulation and (strong)
+probabilistic bisimulation, respectively. We show here that both imply may-must, may, and
+must trace equivalence. For this purpose, we will repeatedly use the following result from
+the general theory of coalgebra.
+Lemma 7.6 [Rut00, Theorem 15.1]. Let F and G be two endofunctors on Sets and
+c : X → F X be an F -coalgebra. If there exists a natural transformation α : F ⇒ G, then
+behavioural equivalence for c implies behavioural equivalence for α ◦ c.
+Theorem 7.7. Probabilistic bisimilarity (called bisimilarity in the original paper) and convex
+probabilistic bisimilarity (called probabilistic bisimilarity in the original paper) from [SL94]
+imply ≡, ≡B , and ≡T .
+Proof. Given an NPLTS, namely a coalgebra t : X → (PDX)A , we know from [BSV04, Sok11]
+that probabilistic bisimilarity of [SL94] (denoted ≈p ) coincides with behavioural equivalence.
+Moreover, by [Mio14], behavioural equivalence for (convX +1)A ◦ t coincides with convex
+probabilistic bisimilarity (≈c ). Using Lemma 7.6 twice, we have that ≈p ⊆ ≈c ⊆ ≈ι where
+A
+≈ι is behavioural equivalence for ιA
+X ◦ (convX +1) ◦ t, namely t̄ from (7.1).
+∼
+=
+
+η1 ×id
+
+Now, by postcomposing t̄ with the natural transformation C(·+1)A ⇒ 1×C(·+1)A ⇒
+C(1 + 1) × C(· + 1)A instantiated at X, one obtains exactly c = hō, t̄i. Again by Lemma 7.6,
+≈ι ⊆ ≈ where ≈ denotes here behavioural equivalence for c. By Theorem 6.4.2, we now can
+conclude that ≈ ⊆ ≡. A similar argument applies for ≡B and ≡T .
+
+7.1.2. Backward compatibility. Both LTS and RPLTS can be regarded as special cases of
+NPLTS: LTS are NPLTS where all distributions are Dirac distributions; RPLTS are NPLTS
+where all subsets are at most singletons. Formally, we can express this using the natural
+transformations Pne η D : Pne ⇒ Pne D and η Pne D : D ⇒ Pne D. Given an LTS t : X → (PX)A
+we call
+t̃ = X
+
+t
+
+/ (Pne X + 1)A
+
+D +1)A
+(Pne ηX
+
+/ (Pne DX + 1)A
+
+the corresponding NPLTS. Similarly, the NPLTS corresponding to an RPLTS t : X →
+(DX + 1)A is
+t̃ = X
+
+t
+
+/ (DX + 1)A
+
+(η Pne DX +1)A
+
+/ (Pne DX + 1)A
+
+The following two theorems state that ≡B , ≡T , and ≡ generalize—through these
+translations—the trace equivalences for RPLTS and LTS introduced in Example 6.13 and
+Example 6.14.
+Theorem 7.8 (Backward Compatibility for RPLTSs). Let ≡RP be trace equivalence defined
+on an RPLTS t and ≡B , ≡T and ≡ the may, must and may-must equivalences defined on
+the corresponding NPLTS t̃. Then
+≡RP = ≡ = ≡B = ≡T
+Proof. We prove ≡RP = ≡ by applying Corollary 6.16 to the injective monad map χD (· + 1)
+from Lemma 5.4. In order to do so, it is enough to observe that the following diagram
+
+21:48
+
+Vol. 18:2
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+commutes: the two triangles by definition of t̃ and χD from Lemma 4.1; the square by
+Lemma 3.4.
+
+t̃
+
+(η Pne DX +1)A
+
+
+
+y
+
+(Pne DX + 1)A
+
+ιA
+X
+
+/ (DX + 1)A
+
+t
+
+X
+
+(convX +1)A
+
+/ D(X + 1)A
+
+A
+(χD
+X +1)
+
+
+/ (CX + 1)A
+
+χD (·+1)A
+X
+
+ιA
+X
+
+
+/ C(X + 1)A
+
+In the diagram above, the topmost arrow is exactly t̄ : X → D(X + 1)A used to define
+A
+≡RP over t (Example 6.13). The down-and-right arrow ιA
+X ◦ (convX +1) ◦ t̃ is exactly the
+¯
+arrow t̃ used to define ≡ over t̃, see (7.1). Commutativity of the above diagram states that
+¯
+RP = ≡.
+(χD (· + 1))A
+X ◦ t̄ = t̃ which, by Corollary 6.16 entails that ≡
+B ◦χD (·+1)
+To prove ≡RP = ≡B we use Corollary 6.16 with the injective monad map qX
+X
+from Example 5.4. Observe that the commutativity of the above diagram gives us also that
+B ◦ χD (· + 1) )A ◦ t̄ = (q B )A ◦ t̃¯ and that (q B )A ◦ t̃¯ is exactly the system used to define
+(qX
+X
+X
+X
+≡B on t̃, see (7.3).
+The proof for ≡RP = ≡T is obtained by replacing in the previous paragraph B by T .
+S
+LT S , and ≡LT S be may,
+Theorem 7.9 (Backward Compatibility for LTSs). Let ≡LT
+∗
+B , ≡T
+must, and may-must trace equivalences on an LTS t and ≡B , ≡T , and ≡ the equivalences
+defined on the corresponding NPLTS t̃. Then
+S
+≡LT
+=≡
+∗
+
+S
+≡LT
+= ≡B
+B
+
+S
+≡LT
+= ≡T
+T
+
+S = ≡ is like the one for ≡RP = ≡, but replacing D by P . The
+Proof. The proof for ≡LT
+ne
+∗
+proof for ≡B requires one additional step: in the diagram below, the rightmost square
+commutes by Lemma 5.4.3.
+t
+
+X
+
+t̃
+
+/ (Pne X + 1)A
+
+
+
+D +1)A
+(Pne ηX
+
+x
+
+(Pne DX + 1)A
+
+(convX +1)A
+
+ιA
+X
+
+A
+ne
+(χP
+X +1)
+
+
+/ (CX + 1)A
+
+ιA
+X
+
+/ Pne (X + 1)A
+
+B )A
+(qX
+
+(χPne (·+1))A
+X
+
+
+/ C(X + 1)A
+
+B )A
+(qX
+
+/ TSB (X)A
+A
+(eB
+X)
+
+
+/ TCSB (X)A
+
+Like in the case of RPLTS, the two triangles commute by definition of t̃ and χPne and the
+central square by Lemma 3.4. So, the whole diagram commutes. Observe that the topmost
+B )A ◦ t̄ used to define ≡LT S over t (Example 6.14). The down-and-right
+arrow is exactly (qX
+B
+B )A ◦ ιA ◦ (conv +1)A ◦ t̃ is exactly the arrow (q B )A ◦ t̃¯ used to define ≡ over t̃
+arrow (qX
+X
+B
+X
+X
+(see (7.3)). By using Corollary 6.16 with the injective monad map eB from Lemma 5.4, we
+S = ≡ . The proof for ≡LT S = ≡ is obtained by replacing in the previous
+obtain that ≡LT
+B
+T
+B
+T
+paragraph B by T .
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:49
+
+7.1.3. The bialgebra of probabilistic traces. The generalised determinisation outlined in
+Section 6.2 allows to think of the final coalgebra as a denotational universe of behaviours
+and of the final map [[·]] as a denotational semantics assigning to each state its behaviour.
+We better illustrate this idea here by considering the may-must semantics, but the same
+arguments hold for the may and the must cases.
+∗
+
+The set IA of nondeterministic-probabilistic languages, namely functions ϕ : A∗ → I,
+∗
+∗
+carries at the same time the final coalgebra h, deri : IA → I × IA (defined as in Section 6.2
+for O = I) and a pointed convex semilattice. The latter is defined as the pointwise extension
+of the algebra of observations MI,[0,0] , see Proposition 5.1. This means that the structure of
+∗
+pointed convex semilattice is defined as follows for all ϕ1 , ϕ2 ∈ IA and for all w ∈ A∗ .
+A∗
+
+(ϕ1 ⊕I ϕ2 )(w) = ϕ1 (w) min-max ϕ2 (w)
+A∗
+(ϕ1 +Ip ϕ2 )(w) = ϕ1 (w) +Ip ϕ2 (w)
+A∗
+?I (w) = [0, 0]
+By the generalised determinisation, we know that the final coalgebra map [[·]] : C(X +1) → IA
+is also a homomorphism of pointed convex semilattices which means that
+A∗
+
+[[S1 ⊕ S2 ]] = [[S1 ]] ⊕I
+
+A∗
+
+[[S2 ]], [[S1 +p S2 ]] = [[S1 ]] +Ip
+
+[[S2 ]] and [[?]] = ?I
+
+∗
+
+A∗
+
+for all S1 , S2 ∈ C(X + 1). This guarantees the following result.
+Theorem 7.10. Let ∼
+=, ∼
+=B and ∼
+=T be the kernels of [[·]], [[·]]B , and [[·]]T , respectively. Then
+∼
+∼
+∼
+=, =B , and =T are congruences w.r.t. ⊕ and +p .
+The theorem above is an instantiation of Theorem 6.4.1 to our construction for NPLTS.
+By instantiating Theorem 6.4.3, we have the following useful fact.
+Theorem 7.11. Up-to context is compatible for each of the three equivalences.
+In the next section, we illustrate the implication of such result. Since x ≡ y iff
+η(x) ∼
+= η(y), hereafter we will sometimes write ≡ instead of ∼
+=. Similarly for ≡B and ≡T .
+7.2. Coinduction Up-to. As anticipated in Theorem 7.11, ≡, ≡B , and ≡T can be proved
+coinductively by means of bisimulation up-to. In order to define uniformly the proof
+techniques for the three equivalences, we let ≡i to range over ≡, ≡B , and ≡T ; Ti to range
+over TPCS , TCSB , and TCST ; t̄]i , over t̄] , t̄]B , and t̄]T ; ō]i over ō] , ō]B , and ō]T .
+Definition 7.12. Let (X, t) be an NPLTS and (Ti X, hō]i , t̄]i i) the corresponding determinised
+system. A relation R ⊆ Ti X × Ti X is a bisimulation iff for all (S1 , S2 ) ∈ R it holds that
+(1) ō]i (S1 ) = ō]i (S2 ) and
+(2) t̄]i (S1 )(a) R t̄]i (S2 )(a) for all a ∈ A.
+The coinduction proof principle (see e.g. [BPPR17]) asserts that for all x, y ∈ X, x ≡i y iff
+there exists a bisimulation R such that x R y.
+We can now prove that states x, y in Figure 1 are may trace equivalent by showing that
+there exists a bisimulation R such that x R y on the system determinized using as algebra
+of observations MaxB .
+
+21:50
+
+Vol. 18:2
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+b
+
+x
+
+y
+
+a
+S1
+
+a
+S10
+
+c
+
+b
+
+S2
+
+S20
+
+S3
+a
+
+S30
+
+a
+
+a
+
+(S1 + 1 ?) ⊕ ?
+2
+b
+c
+(S2 + 1 ?) ⊕ ?
+
+(S3 + 1 ?) ⊕ ?
+
+2
+
+a
+(S1 + 1 ?) ⊕ ?
+4
+b
+c
+
+2
+
+a
+
+a
+(S10 + 1 ?) ⊕ ?
+4
+b
+c
+
+(S3 + 1 ?) ⊕ ?
+
+(S20 + 1 ?) ⊕ ?
+
+4
+
+a
+
+a
+
+(S30 + 1 ?) ⊕ ?
+
+2
+
+a
+
+4
+
+(S10 + 1 ?) ⊕ ?
+2
+b
+c
+
+(S20 + 1 ?) ⊕ ?
+
+2
+
+(S2 + 1 ?) ⊕ ?
+
+c
+
+(S30 + 1 ?) ⊕ ?
+
+4
+
+a
+(S1 + 1 ?) ⊕ ?
+
+4
+
+a
+
+8
+
+a
+(S10 + 1 ?) ⊕ ?
+8
+
+..
+.
+
+..
+.
+Figure 5: Determinization
+
+Example 7.13. Consider the NPLTS (X, t) depicted in Figure 1, and discussed in Example
+Figure 5 shows the determinization of the system, where the terms are, as already partially
+mentioned in Example as follows
+S1 = x1 ⊕ (x3 + 1 x2 )
+2
+
+S2 = (x + 1 x3 ) ⊕ (? + 1 x3 )
+2
+
+2
+
+S10 = y1 ⊕ (y4 + 1 y2 ) ⊕ ((y2 + 1 y4 ) + 1 y3 )
+2
+2
+2
+S20 = (y + 1 y4 ) ⊕ (? + 1 y4 ) ⊕ ((y4 + 1 ?) + 1 ?)
+2
+
+2
+
+2
+
+2
+
+S30 = ? ⊕ (? + 1 y)
+
+S3 = ? ⊕ (? + 1 x)
+2
+
+2
+
+and the depicted transitions are those given by t̄] .
+The determinized NPLTS is a system with infinitely many states, which are given by
+the presence of cycles in the original system. In the determinization of the automaton with
+algebra of observation MaxB , each state S is assigned an observation ō]B (S) ∈ [0, 1]. We
+prove that x and y are may trace equivalent by exhibiting the following bisimulation R:
+R ={(x, y), (S1 , S10 ), (S2 , S20 ), (S3 , S30 )}
+∪ {((Si + 1n ?) ⊕ ?, (Si0 + 1n ?) ⊕ ?)| 1 ≤ i ≤ 3, n ≥ 1}
+2
+
+2
+
+The relation satisfies the two clauses required by Definition 7.12 of bisimulation. As it
+emerges from Figure 5, the clause on transitions (clause 2) is satisfied by each pair in the
+relation. As to the clause on the observation (clause 1), we can derive as in Example 7.5
+that for every pair (S, S 0 ) ∈ {(x, y), (S1 , S10 ), (S2 , S20 ), (S3 , S30 )} it holds ō]B (S) = ō]B (S 0 ).
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:51
+
+Finally, clause 1 also holds for the remaining pairs, since for 1 ≤ i ≤ 3 and n ≥ 1 we
+have
+ō]B ((Si + 1n ?) ⊕ ?) = (ō]B (Si ) + 1n 0) max 0 = (ō]B (Si0 ) + 1n 0) max 0 = ō]B ((Si0 + 1n ?) ⊕ ?)
+2
+
+2
+
+2
+
+2
+
+Hence, R is a bisimulation.
+As shown in Example 7.5, x, y are not bisimilar if the algebra of observations for the
+must equivalence, i.e, MinT , is used instead of the one for the may equivalence, since
+ō]T (S2 ) 6= ō]T (S20 ). Analogously, they are not equivalent if we take the may-must algebra of
+observation MI,[0,0] .
+To make this proof principle more effective, one can use up-to techniques [Mil89, PS12].
+Particularly relevant for us is up-to contextual closure which, for all relations R ⊆ Ti (X) ×
+Ti (X), is defined inductively by the following rules.
+S R S0
+S Ctx (R) S 0
+
+−
+∗ Ctx (R) ∗
+
+S1 Ctx (R) S10
+S2 Ctx (R) S20
+S1 ⊕ S2 Ctx (R) S10 ⊕ S20
+S1 Ctx (R) S10
+S2 Ctx (R) S20
+S1 +p S2 Ctx (R) S10 +p S20
+
+Definition 7.14. Bisimulations up-to context are defined as in Definition 7.12, but with
+Ctx (R) instead of R in point (2).
+By virtue of the general theory in [BPPR17], one has that Ctx is a sound up-to technique,
+that is x ≡i y iff there exists a bisimulation up-to context R such that x R y. Actually, the
+theory in [BPPR17] guarantees a stronger property known as compatibility [San98, Pou07,
+PS12]. Intuitively, this means that the technique is sound and it can be safely combined with
+other compatible up-to techniques. We refer the interested reader to [PS12] for a detailed
+introduction to compatible up-to techniques.
+We conclude with an example illustrating a finite bisimulation up-to context witnessing
+that the states x and y from Figure 1 are in ≡B .
+Example 7.15. Consider the NPLTS depicted in Figure 1. We have seen in Example 7.13
+how to prove that x ≡B y by exhibiting a bisimulation on (TCSB X, hō]B , t̄]B i) relating them.
+However, due to the presence of cycles, the determinization of the NPLTS is infinite and the
+bisimulation relation contains infinitely many pairs.
+With bisimulations up-to, only few pairs are necessary. Indeed, we prove that the
+relation
+R = {(x, y), (x1 , y1 ), (x3 , y4 ),
+(x3 + 1 x2 , (y4 + 1 y2 ) ⊕ ((y2 + 1 y4 ) + 1 y3 ))}
+2
+
+2
+
+2
+
+2
+
+is a bisimulation up-to context. First, note that the observation is trivially the same for
+all pairs in the relation, since ō]B (S) = 1 for all S in the relation. heck that the clauses
+
+21:52
+
+Vol. 18:2
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+of bisimulation up-to context on the transitions are satisfied. Consider the first pair. In
+(TCSB X, hō]B , t̄]B i), we have
+a
+
+x −→ x1 ⊕ (x3 + 1 x2 )
+2
+
+a
+
+y −→ y1 ⊕ (y4 + 1 y2 ) ⊕ ((y2 + 1 y4 ) + 1 y3 )
+2
+
+2
+
+2
+
+The reached states are in Ctx (R) by the second and fourth pairs of R. For any action a0 6= a,
+a0
+
+a0
+
+we have x −→ ?, y −→ ? and ? Ctx (R) ?.
+The second and the third pairs can be checked in a similar way. For the fourth pair, we
+have
+b
+x3 + 1 x2 −→ ? + 1 x3
+2
+
+2
+
+b
+
+(y4 + 1 y2 ) ⊕ ((y2 + 1 y4 ) + 1 y3 ) −→ (? + 1 y4 ) ⊕ ((? + 1 y4 ) + 1 ?)
+2
+
+2
+
+2
+
+2
+
+2
+
+2
+
+We observe that
+(? + 1 y4 ) ⊕ ((? + 1 y4 ) + 1 ?)
+2
+
+2
+
+2
+
+(B)
+
+= (? + 1 y4 ) ⊕ ((? + 1 y4 ) + 1 ?) ⊕ ?
+2
+
+2
+
+2
+
+(C)
+
+= (? + 1 y4 ) ⊕ ?
+2
+
+(B)
+
+= ? + 1 y4
+2
+
+and we conclude by ? + 1 x3 Ctx (R) ? + 1 y4 . The cases for a and c are simpler.
+2
+
+2
+
+8. From the global to the local perspective
+Usually trace semantics for NPLTS is defined in terms of schedulers, or resolutions: intuitively,
+a scheduler resolves the nondeterminism by choosing, at each step of the execution of an
+NPLTS, one of its possible transitions; the transition systems resulting from these choices
+are called resolutions.
+This perspective on trace semantics is somehow opposed to ours, where the generalised
+determinisation keeps track of all possible executions at once. In this sense, the determinisation provides a perspective which is global, opposite to those of resolutions that are local. In
+this section, we show that our semantics can be characterised through such local views, by
+means of resolutions, defined as follows.
+Definition 8.1. Let t : X → (PDX)A be an NPLTS. A (randomized) resolution for t is a
+triple R = (Y, corr, r) where Y is a set of states, corr : Y → X is the correspondence function,
+and r : Y → (DY + 1)A is an RPLTS such that for all y ∈ Y and a ∈ A,
+(1) r(y)(a) = ? iff t(corr(y))(a) = ?,
+(2) if r(y)(a) 6= ? then D(corr)(r(y)(a)) ∈ conv(t(corr(y))(a)).
+Intuitively, this means that a resolution of an NPLTS is built from the original system by
+discarding internal nondeterminism (the possibility to perform multiple transitions labelled
+with the same action) and in such a way that the structure of the original system is preserved.
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:53
+
+x
+
+1
+2
+
+x
+
+x
+a
+x1
+b
+∆1
+1
+2
+
+a
+1 ∆3
+
+1
+2
+
+2
+
+x1
+b
+∆1
+
+x3
+
+c
+1
+4
+
+b
+1
+2
+
+2
+
+1
+2
+
+x2
+
+1
+4
+
+a
+∆2 1
+x2
+
+b
+x3
+
+x3
+
+1
+2
+
+c
+x4
+a
+x1
+b
+∆1
+
+1
+2
+
+Figure 6: The resolutions R1 (left), R2 (center), and R3 (right).
+Example 8.2. Consider the NPLTS on the left of Figure 1. The RPLTSs R1 and R2 in
+Figure 6 are two resolutions for it, both having the identity as correspondence function.
+In the resolution R1 , the nondeterministic choice of x is resolved by choosing the leftmost
+a-transition. The resolution R2 is obtained by taking a convex combination of the two
+distributions δx1 and ∆2 , assigning one half probability to each of them.
+The reason why we take arbitrary corr functions, rather than just injective ones, is that
+the original NPLTS might contain cycles, in which case we want to allow the resolution to
+take different choices at different times.
+Example 8.3. In order to understand how a resolution allows to resolve differently nondeterministic choices at different times, when cycles occur in the original system, consider the
+NPLTS on the left of Figure 1 and its resolution R3 in Figure 6. In the latter, the state space
+is enlarged with state x4 , which is mapped to x by the correspondence function. On the
+remaining states, the correspondence function is the identity over X. In this resolution, x
+first chooses the right-hand transition of the original NPLTS, and at the next cycle iteration,
+represented by x4 , the left-hand transition is chosen. Observe that probR3 (x)(abab) = 0.
+∗
+
+Given a resolution R = (Y, corr, r), we define the function probR : Y → [0, 1]A inductively for y ∈ Y and w ∈ A∗ as
+probR (y)(ε)
+probR (y)(aw)
+
+=
+
+1;
+(
+0
+P
+=
+
+0
+0
+y 0 ∈supp(∆) ∆(y ) · probR (y )(w)
+
+if r(y)(a) = ?;
+if r(y)(a) = ∆.
+
+Intuitively, for all states y ∈ Y , probR (y)(w) gives the probability of y performing the trace w.
+3
+For instance, in the resolutions in Figure 6, probR1 (x)(abab) = 12 and probR2 (x)(abab) = 16
+.
+∗
+A
+∗
+Now, given an NPLTS (X, t), define bb·cc : X → [0, 1] by, for x ∈ X and w ∈ A ,
+G
+bbxcc(w) = {probR (y)(w) | R = (Y, corr, r) is a resolution of (X, t) and corr(y) = x}.
+Similarly, we define
+l
+ddxee(w) = {probR (y)(w) | R = (Y, corr, r) is a resolution of (X, t) and corr(y) = x}.
+
+21:54
+
+Vol. 18:2
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+The following theorem states that the global view of trace semantics developed in
+Section 7 coincides with the trace semantics defined locally via resolutions.
+Theorem 8.4 (Global/local correspondence). Let (X, t) be an NPLTS. For all x ∈ X and
+w ∈ A∗ , it holds that
+[[x]](w) = [ ddxee(w), bbxcc(w) ].
+Corollary 8.5. Let (X, t) be an NPLTS. For all x ∈ X and w ∈ A∗ , [[x]]B (w) = bbxcc(w)
+and [[x]]T (w) = ddxee(w).
+Theorem 8.4 and Corollary 8.5 provide a characterisation of ≡, ≡B and ≡T in terms of
+resolutions. Their proofs are presented in Section 8.1. Moreover, we show in Section 8.2 that
+≡B coincides with the randomized t-trace equivalence investigated in [Cas18] and inspired
+by [BDL14b, BDL14a].
+8.1. Proof of the global/local correspondence theorems. Given a resolution R =
+∗
+(Y, corr, r), we define the function reachR : Y → (D(Y + 1))A inductively as
+reachR (y)(ε)
+
+=
+
+reachR (y)(aw)
+
+=
+
+δy ;
+(
+δ?
+P
+
+y 0 ∈supp(∆)
+
+∆(y 0 ) · reach
+
+R
+
+(y 0 )(w)
+
+if r(y)(a) = ?;
+if r(y)(a) = ∆.
+
+Intuitively, this assigns to each state y ∈ Y and word w ∈ A∗ a subdistribution over Y ,
+which is the state of the determinised system that y reaches via w.
+Let o0] : D(Y + 1) → [0, 1] be the function assigning to a subdistribution ∆ its total
+mass, namely 1 − ∆(?). More formally, this is defined inductively as
+
+
+if ∆ = δ? ;
+0
+0]
+o (∆) = 1
+if ∆ = δy for y ∈ Y ;
+
+ 0]
+0]
+o (∆1 ) +p o (∆2 ) if ∆ = ∆1 +p ∆2 .
+Lemma 8.6. o0] ◦ reachR = probR .
+Proof. We prove that o0] (reachR (y)(w)) = probR (y)(w) for all y ∈ Y and w ∈ A∗ . The proof
+proceeds by induction on w.
+Base case: w = ε.
+probR (y)(ε) = 1 = o0] (δy ) = o0] (reachR (y)(ε))
+Inductive case: w = aw0 . If r(y)(a) = ?, then
+probR (y)(aw0 ) = 0 = o0] (δ? ) = o0] (reachR (y)(aw0 )).
+If r(y)(a) = ∆, then
+probR (y)(aw0 ) =
+
+X
+
+∆(y 0 ) · probR (y 0 )(w0 )
+
+(definition)
+
+y 0 ∈supp(∆)
+
+=
+
+X
+
+∆(y 0 ) · o0] (reachR (y 0 )(w0 ))
+
+(IH)
+
+y 0 ∈supp(∆)
+
+= o0] (
+
+X
+
+∆(y 0 ) · (reachR (y 0 )(w0 )))
+
+(o0] hom.)
+
+y 0 ∈supp(∆)
+
+= o0] (probR (y)(aw0 ))
+
+(definition)
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:55
+
+∗
+
+Given an NPLTS (X, t), we define the function reach : X → (C(X + 1))A inductively as
+reach(x)(ε)
+reach(x)(aw)
+
+={δx };
+
+
+{δM
+?}
+=
+
+
+
+X
+
+0
+
+0
+
+∆(x ) · reach(x )(w)
+
+if t(x)(a) = ?;
+if t(x)(a) = S.
+
+∆∈conv(S) x0 ∈supp(∆)
+∗
+
+For each NPLTS (X, t), we have a function hh·ii : C(X + 1) → C(X + 1)A defined for
+all S ∈ C(X + 1) and w ∈ A∗ as
+hhSii(ε)
+= S;
+hhSii(aw) = hht̄] (S)(a)ii(w).
+The following property follows directly from the inductive definitions of [[·]] and hh·ii.
+Lemma 8.7. [[·]] = ō] ◦ hh·ii
+Lemma 8.8. hh·ii ◦ η = reach
+Proof. The proof goes by induction on w ∈ A∗ .
+Base case: if w = ε, then reach(x)(ε) = {δx } = η(x) = hhη(x)ii(ε).
+Inductive case: w = aw0 . If t(x)(a) = ?, then hhη(x)ii(aw0 ) = hht̄] ({δx })(a)ii(w0 ) =
+hh{δ? }ii(w0 ) = {δ? } = reach(x)(aw0 ).
+L
+P
+If t(x)(a) = S, then reach(x)(aw) = ∆∈conv(S) x0 ∈supp(∆) ∆(x0 ) · reach(x0 )(w). By
+L
+P
+0
+0
+0
+induction hypothesis, the latter is equal to
+∆∈conv(S)
+x0 ∈supp(∆) ∆(x ) · hhη(x )ii(w ).
+Since t̄] is a homomorphism of convex semilattices,
+then
+L
+Phh·ii is a homomorphism of convex
+semilattices. Hence, the latter is equal to hh ∆∈conv(S) x0 ∈supp(∆) ∆(x0 ) · η(x0 )ii(w) that is
+hhconv(S)ii(w0 ) = hht̄] ({δx })(a)ii(w0 ) = hhη(x)ii(aw0 ).
+Proposition 8.9. [[·]] ◦ η = ō] ◦ reach
+Proof. By Lemma 8.7, [[·]] ◦ η = ō] ◦ hh·ii ◦ η. By Lemma 8.8, ō] ◦ hh·ii ◦ η = ō] ◦ reach.
+Proposition 8.10. Let (X, t) be an NPLTS and let R = (Y, corr, r) be one of its resolutions.
+Let x ∈ X and y ∈ Y such that corr(y) = x. For all w ∈ A∗ ,
+D(corr +1)(reachR (y)(w)) ∈ reach(x)(w).
+Proof. By induction on the structure of w. If w =  then
+D(corr +1)(reachR (y)()) = D(corr +1)(δy )
+= δx
+∈ {δx }
+= reach(x)()
+If w = aw0 and t(x)(a) = ?, then r(y)(a) = ?, and
+D(corr +1)(reachR (y)(aw0 )) = D(corr +1)(δ? )
+= δ?
+∈ {δ? }
+= reach(x)(aw0 )
+
+21:56
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+If t(x)(a) 6= ? then we have r(y)(a) 6= ?. Let r(y)(a) = ∆ ∈ D(Y ). We have:
+D(corr +1)(reachR (y)(aw0 ))
+X
+∆(y 0 ) · reachR (y 0 )(w0 ))
+= D(corr +1)(
+y 0 ∈supp(∆)
+
+=
+
+X
+
+∆(y 0 ) · D(corr +1)(reachR (y 0 )(w0 ))
+
+y 0 ∈supp(∆)
+
+By the inductive hypothesis, for each y 0 we have
+D(corr +1)(reachR (y 0 )(w0 )) ∈ reach(corr(y 0 ))(w0 ).
+Hence, by the definition of Minkowski sum,
+X
+∆(y 0 ) · D(corr +1)(reachR (y 0 )(w0 )) ∈
+y 0 ∈supp(∆)
+
+X
+
+∆(y 0 ) · reach(corr(y 0 ))(w0 )
+
+y 0 ∈supp(∆)
+
+0
+Since R is a resolution,
+such that D(corr)(∆) = ∆0 . The latter
+Pthere is a ∆ ∈ conv(t(x)(a))
+0
+0
+0
+means that ∆ (x ) = {y0 ∈supp(∆)| corr(y0 )=x0 } ∆(y ), and thus:
+X
+X
+∆(y 0 ) · reach(corr(y 0 ))(w0 ) =
+∆0 (x0 ) · reach(x0 )(w0 )
+y 0 ∈supp(∆)
+
+x0 ∈supp(∆0 )
+
+as easily follows from the axioms of convex algebras. We can then conclude by the definition
+of reach(x)(aw0 )
+X
+M
+X
+∆0 (x0 ) · reach(x0 )(w0 ) ⊆
+∆0 (x0 ) · reach(x0 )(w0 )
+x0 ∈supp(∆0 )
+
+∆0 ∈conv(t(a)(x)) x0 ∈supp(∆0 )
+0
+
+= reach(x)(aw ).
+
+Proposition 8.11. Let (X, t) be an NPLTS. For all x ∈ X and w ∈ A∗ , if ∆ ∈ reach(x)(w)
+then there exists a resolution R = (Y, corr, r) and a state y ∈ Y such that
+(1) corr(y) = x and
+(2) D(corr +1)(reachR (y)(w)) = ∆.
+Proof. The proof proceeds by induction on w ∈ A∗ .
+In the base case w = ε. For all x ∈ X and a ∈ A such that t(x)(a) 6= ?, we can choose
+one distribution ∆x,a ∈ t(x)(a). Then, we take R = (X, idX , r) where r : X → (DX + 1)A is
+defined for all x ∈ X and a ∈ A as
+(
+?
+if t(x)(a) = ?;
+r(x)(a) =
+∆x,a otherwise.
+By construction R is a resolution. Then we take x as the selected state y of the resolution R.
+Since the correspondence function is idX , (1) is immediately satisfied. Now, by definition,
+reachR (x)(ε) = δx and reach(x)(ε) = {δx }. We conclude by observing that D(idX + 1)(δx ) =
+δx ∈ {δx } = reach(x)(ε).
+In the inductive case w = aw0 . Now we have two cases to consider: either t(x)(a) = ?
+or t(x)(a) = S for S ∈ Pne D(X).
+Assume t(x)(a) = ?. Then reach(x)(aw0 ) = {δ? }. Let R = (X, idX , r) be the resolution
+defined as in the base case, and take x as the selected state y of the resolution R. Since
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:57
+
+the correspondence function is idX , (1) is immediately satisfied. Since R is a resolution,
+t(x)(a) = ? implies r(x)(a) = ?. Hence, reachR (x)(a) = δ? and reach(x)(a) = {δ? }. We
+conclude by D(idX + 1)(δ? ) = δ? ∈ {δ? } = reach(x)(a).
+Assume t(x)(a) = S. Then
+M
+X
+reach(x)(aw0 ) =
+∆0 (x0 ) · reach(x0 )(w0 ).
+∆0 ∈conv(S) x0 ∈supp(∆0 )
+
+By Lemma 4.14, it holds that
+reach(x)(aw0 ) =
+
+[
+
+X
+
+∆0 (x0 ) · reach(x0 )(w0 ).
+
+∆0 ∈conv(S) x0 ∈supp(∆0 )
+
+Hence, ∆ ∈ reach(x)(aw0 ) if and only if there exists a ∆0 ∈ conv(S) such that
+X
+∆∈
+∆0 (x0 ) · reach(x0 )(w0 ).
+x0 ∈supp(∆0 )
+
+This is in turn equivalent to saying (by the definition of Minkowski sum) that for every
+x0 ∈ supp(∆0 ) there exists a ∆0x0 ∈ reach(x0 )(w0 ) such that
+X
+∆=
+∆0 (x0 ) · ∆0x0 .
+x0 ∈supp(∆0 )
+
+We can now use the induction hypothesis on ∆0x0 ∈ reach(x0 )(w0 ): for each ∆0x0 ∈ reach(x0 )(w0 )
+there exists a resolution Rx0 = (Yx0 , corrx0 , rx0 ) and a yx0 ∈ Yx0 such that
+(c) corrx0 (yx0 ) = x0 and
+(d) D(corrx0 +1)(reachRx0 (yx0 )(w)) = ∆0x0 .
+Now we construct the coproduct of all the resolutions Rx0 . Take Z to be the disjoint union of
+all the Yx0 and define corrZ : Z → X as corrZ (z) = corrx0 (z) if z ∈ Yx0 . Similarly, we define
+rZ : Z → (DZ + 1)A as rZ (z) = rx0 (z) if z ∈ Yx0 . By construction, RZ = (Z, corrZ , rZ ) is a
+resolution of (X, t).
+Let R0 = (X, idX , r0 ) be a resolution defined as in the base case, i.e., by arbitrarily
+choosing a distribution ∆x,a ∈ t(x)(a), for any x and a, as value of r0 (x)(a), whenever
+t(x)(a) 6= ?. We define the resolution R = (Y, corr, r) needed to conclude the proof as
+follows: the state space is Y = Z + X + {y}, namely the disjoint union of Z, of X, and of
+the singleton containing a fresh state y; the correspondence function corr : Y → X and the
+transition function r : Y → (DY + 1)A are defined for all u ∈ Y as
+
+
+corrZ (u) if u ∈ Z,
+corr(u) = idX (u)
+if u ∈ X,
+
+
+x
+if u = y,
+
+
+rZ (u)(b)
+
+
+
+0
+
+
+r (u)(b)
+r(u)(b) = ∆x,b
+
+
+
+?
+
+
+
+∆00
+
+if u ∈ Z,
+if u ∈ X,
+if u = y, a 6= b, t(x)(b) 6= ?,
+if u = y, a 6= b, t(x)(b) = ?,
+if u = y, a = b
+
+21:58
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+where ∆00 is the distribution having as support the set of states {yx0 |x0 ∈ supp(∆)} ⊆ Z,
+and such that ∆00 (yx0 ) = ∆0 (x0 ). Note that ∆00 is a distribution, since ∆0 is and since we are
+taking exactly one yx0 for each x0 ∈ supp(∆0 ).
+The fact that R is a resolution follows from RZ and R0 being resolutions and y respecting
+— by construction — the conditions of resolution: indeed corr(y) = x, and
+• if a 6= b and t(x)(b) 6= ?, then r(y)(b) = ∆x,b and D(corr)(∆x,b ) = D(idX )(∆x,b ) = ∆x,b ∈
+t(x)(b)
+• if a 6= b and t(x)(b) = ?, then r(y)(b) = ?;
+• if a = b, then r(y)(b) = ∆00 , and D(corr)(∆00 ) = ∆0 , with ∆0 ∈ conv(t(x)(a)).
+To conclude the proof we only need to show that (1) and (2) hold. The former is trivially
+satisfied by definition of corr. For (2), we derive:
+D(corr +1)(reachR (y)(aw0 )) = D(corr +1)(
+
+X
+
+(∆00 (yx0 ) · reachR (yx0 )(w0 )))
+
+yx0 ∈supp(∆00 )
+
+= D(corr +1)(
+
+X
+
+(∆0 (x0 ) · reachR (yx0 )(w0 )))
+
+x0 ∈supp(∆0 )
+
+X
+
+=
+
+∆0 (x0 ) · (D(corr +1)(reachR (yx0 )(w0 )))
+
+x0 ∈supp(∆0 )
+
+X
+
+=
+
+∆0 (x0 ) · ∆0x0
+
+x0 ∈supp(∆0 )
+
+=∆
+Proof of Theorem 8.4. Before starting with the actual proof, we need the following elementary observation: for all f : X → Y and ∆ ∈ D(X + 1), it holds that
+o0] (D(f + 1)(∆)) = o0] (∆),
+
+(8.1)
+
+namely, the total mass is preserved by applying D(f + 1).
+Now, suppose that [[η(x)]](w) = [p, q] for some p, q ∈ [0, 1] with p ≤ q. By Proposition 8.9, it holds that ō] (reach(x)(w)) = [p, q]. By definition of ō] there exists ∆min , ∆max ∈
+reach(x)(w) such that the total mass of ∆min = p, the total mass of ∆max = q and for an
+arbitrary ∆ ∈ reach(x), its total mass is in between p and q. In other words,
+(a) o0] (∆min ) = p,
+(b) o0] (∆max ) = q and
+(c) p ≤ o0] (∆) ≤ q for all ∆ ∈ reach(x).
+By Proposition 8.10, for all resolutions R, states y such that corr(y) = x, and distributions
+∆0 such that reachR (y)(w) = ∆0 , one has that D(corr +1)(∆0 ) ∈ reach(x)(w). By (c), p ≤
+o0] (D(corr +1)(∆0 )) ≤ q and, by (8.1), p ≤ o0] (∆0 ) ≤ q. This means p ≤ o0] (reachR (y)(w)) ≤
+q that, by Lemma 8.6, coincides with p ≤ probR (y)(w) ≤ q. This proves that ddxee(w) ≥ p
+and bbxcc(w) ≤ q.
+We now prove that ddxee(w) ≤ p; the proof for bbxcc(w) ≥ q is analogous.
+By Proposition 8.11, there exist resolutions R, a state y and a distribution ∆00 such that
+(d) corr(y) = x,
+(e) D(corr +1)(∆00 ) = ∆min ,
+(f) reachR (y)(w) = ∆00 .
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:59
+
+By (e) and (8.1), one immediately has that o0] (∆00 ) = o0] (∆min ) = p. By (f), the latter means
+that o0] (reachR (y)(w)) = p that, by Lemma 8.6, allows to conclude that probR (y)(w) = p.
+This proves that ddxee(w) ≤ p.
+Proof of Corollary 8.5. Consider the monad morphism q B : TPCS ⇒ TCSB quotienting TPCS
+by (B) (see Section 7), and let η B , µB respectively denote the unit and multiplication of the
+monad TCSB . Following Remark 7.3 (by Theorem 6.8.1) we have
+[[·]]B ◦ η B = [[·]]B 0 ◦ η
+∗
+
+where [[·]]B 0 : TPCS X → TCSB 1A is the semantic map induced by the determinisation of
+B
+hōB , t̄i : X → TCSB 1 × (TPCS X)A using the algebra µB
+1 ◦ qTCSB 1 : TPCS TCSB 1 → TCSB 1. The
+monad map q B : TPCS ⇒ TCSB gives a TPCS -algebra morphism q1B : (TPCS 1, µ1 ) → (TCSB 1, µB
+1 ◦
+qTBPCS 1 ). By Theorem 6.8.2 we have
+[[·]]B 0 = q1B
+
+A∗
+
+◦ [[·]].
+
+Hence, we derive
+A∗
+
+[[·]]B ◦ η B = q1B ◦ [[·]] ◦ η.
+For an interval [p, q], q1B ([p, q]) = q. Then by Theorem 8.4 we conclude
+(q1B
+
+A∗
+
+◦ [[η(x)]])(w) = q1B ([[η(x)]](w))
+= q1B ([ ddxee(w), bbxcc(w) ])
+= bbxcc(w).
+
+To prove that [[η(·)]]T = dd·ee we proceed in the same way, but taking the monad morphism
+q T : TPCS ⇒ TCST quotienting TPCS by (T ).
+8.2. Coincidence with randomized t-trace equivalence. Let t : X → (PDX)A be an
+NPLTS. A fully probabilistic resolution for t is a triple R = (Y, corr, r) such that Y is a set,
+corr : Y → X, and r : Y → (A × DY ) + 1 such that for every y ∈ Y and a ∈ A:
+if r(y) = ha, ∆i then D(corr)(∆) ∈ conv(t(corr(y))(a)).
+While resolutions resolve only internal nondeterminism, fully probabilistic resolutions
+resolve both internal and external nondeterminism. Indeed, in a resolution a state can
+perform transitions with different labels, while in a fully probabilistic resolution a state
+can perform at most one transition. Moreover, a state y in a fully probabilistic resolutions
+might not perform any transition (i.e., r(y) = ?), even if the corresponding state corr(y)
+may perform a transition (i.e., t(corr(y))(a) 6= ? for some a).
+Example 8.12. As in Example 8.2, consider the NPLTS on the left of Figure 1. The
+resolution R1 in Figure 6 is a fully probabilistic resolution, while R2 and R3 are not, since
+x2 is allowed to perform more than one transition, even if labelled by different actions.
+In Figure 7, we show three examples of fully probabilistic resolutions of the same NPLTS.
+Note that neither of them is a resolution. In R1 , state x1 does not satisfy the first clause
+of the definition of resolution, since x1 does not move while its corresponding state in
+the original NPLTS does. In R2 and R3 , state x2 respectively only performs a b-labelled
+transition and only performs a c-labelled transition. In a resolution, it should perform both.
+
+21:60
+
+Vol. 18:2
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+x
+
+x
+x
+a
+x1
+
+a
+1 ∆3
+
+1
+2
+
+2
+
+x1
+b
+∆1
+
+1
+2
+
+1
+4
+
+x2
+
+1
+4
+
+b
+1
+2
+
+x3
+
+a
+1 ∆3
+2
+
+x1
+b
+∆1
+
+c
+1
+4
+
+x2
+
+1
+4
+
+x3
+
+1
+2
+
+Figure 7: Fully probabilistic resolutions (R1 , R2 , R3 , from left to right)
+∗
+
+As for resolutions, we can define probR : Y → [0, 1]A for R = (Y, corr, r) a fully
+probabilistic resolution inductively for all y ∈ Y and all w ∈ A∗ as
+probR (y)(ε)
+
+=
+
+probR (y)(aw)
+
+=
+
+1;
+(P
+
+0
+0
+y 0 ∈supp(∆) ∆(y ) · probR (y )(w)
+
+0
+
+if r(y) = ha, ∆i,
+otherwise.
+
+Given an NPLTS (X, t), we define for x ∈ X and w ∈ A∗ :
+G
+bbxccf p (w) = {probR (y)(w) | R = (Y, corr, r) is a fully probabilistic
+resolution of (X, t) and corr(y) = x}.
+In [Cas18] (following [BDL14b, BDL14a]), two states x and y are defined to be randomized t-trace equivalent whenever bbxccf p (w) = bbyccf p (w), for all w ∈ A∗ .7 The following
+proposition guarantees that such equivalence coincides with ≡B .
+Proposition 8.13. Let (X, t) be an NPLTS. For all x ∈ X and w ∈ A∗ , it holds that
+[[x]]B (w) = bbxcc(w) = bbxccf p (w).
+Proof. We first prove that bbxcc(w) ≤ bbxccf p (w).
+Let R = (Y, corr, r) be a resolution of (X, t), x ∈ X, and w ∈ A∗ . Let y ∈ Y such that
+corr(y) = x. We show that there exists a fully probabilistic resolution R0 of (X, t) with
+a state z such that z is mapped by the correspondence function of R0 to x and such that
+probR (y)(w) = probR0 (z)(w).
+We define R0 = (Y ×A∗ , corr0 , r0 ) as follows. The correspondece function corr0 : Y ×A∗ →
+Y is corr ◦ π1 , namely corr0 (y, w0 ) = corr(y) for all w0 ∈ A∗ . To define r0 , we use the notation
+∆w0 ∈ D(Y × A∗ ) to denote, for all ∆ ∈ D(Y ) and w0 ∈ A∗ , the distribution over Y × A∗
+given as
+(
+∆(y) if w0 = w00 ,
+∆w0 (y, w00 ) =
+0
+otherwise.
+7Actually, [Cas18, BDL14b, BDL14a] use a notion of resolution which is equal to our fully-probabilistic
+resolution modulo a tiny modification due to a mistake in [BDL14b, BDL14a], as confirmed by the authors
+in a personal communication.
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:61
+
+Now r0 : Y × A∗ → (A × D(Y × A∗ )) + 1 is defined as:
+r0 (y, ) = (
+?
+ha, ∆w0 i
+r0 (y, aw0 ) =
+?
+
+if r(y)(a) = ∆ 6= ?
+otherwise.
+
+First, it is necessary to observe that R0 is indeed a fully probabilistic system, that is, for
+every state there is at most one transition that can be performed. Indeed, by taking as set of
+states of R0 the set Y × A∗ , we guarantee that despite a state y in R might perform different
+transitions reaching distributions over states (one for each label), only one of these transitions
+is actually performed by a corresponding state (y, aw0 ) in R0 , namely the transition with
+label a. This allows us to move from a (reactive) resolution R to a fully probabilistic
+resolution R0 , while preserving the probability of performing traces. As we will prove below,
+for all w and y it holds probR (y)(w) = probR0 (y, w)(w). To illustrate this with an example,
+suppose the resolution R is the RPLTS with two states y, y 0 and with r(y)(a) = δy and
+r(y)(b) = δy0 . Take the trace ab, for which we have probR (y)(ab) = 1. Then in R0 we have
+r0 (y, ab) = ha, δ(y,b) i and r0 (y, b) = hb, δ(y0 ,) i, which gives probR0 (y, ab)(ab) = 1.
+We proceed by proving that R0 is a fully probabilistic resolution of (X, t). Suppose
+that r0 (y, w0 ) 6= ?. Then w0 = aw00 , and r0 (y, w0 ) = ha, ∆w00 i with ∆ = r(y)(a). Hence,
+D(corr0 )(∆w00 ) = D(corr)(∆). Since R is a resolution, D(corr)(∆) ∈ conv(t(x)(a)) and
+therefore R0 is a fully probabilistic resolution.
+We now prove that for all w0 ∈ A∗ and for all y ∈ Y , it holds that probR (y)(w0 ) =
+probR0 (y, w0 )(w0 ). The proof goes by induction on w0 .
+If w0 =  then, probR (y)() = 1 = probR0 (y, )().
+If w0 = aw00 and r(y)(a) = ?, then r0 (y, w0 ) = ? and probR0 (y, w0 )(w0 ) = 0 =
+probR (y)(w0 ).
+If w0 = aw00 and r(y)(a) = ∆ 6= ?, then r0 (y, aw00 ) = ha, ∆w00 i and
+X
+probR (y)(w0 ) =
+∆(y 0 ) · probR (y 0 )(w00 )
+y 0 ∈supp(∆)
+(IH)
+
+=
+
+X
+
+∆(y 0 ) · probR0 (y 0 , w00 )(w00 )
+
+y 0 ∈supp(∆)
+
+=
+
+X
+
+∆w00 (y 0 , w00 ) · probR0 (y 0 , w00 )(w00 )
+
+(y 0 ,w00 )∈supp(∆w00 )
+
+=
+
+probR0 (y, aw00 )(aw00 )
+
+Hence, probR (y)(w) = probR0 (y, w)(w), with corr(y) = corr0 (y, w) = x.
+We now prove that bbxcc(w) ≥ bbxccf p (w).
+Let R = (Y, corr, r) be a fully probabilistic resolution of (X, t), x ∈ X, and w ∈ A∗ . Let
+corr(y) = x. We show that there exists a resolution R0 = (Y 0 , corr0 , r0 ) of (X, t) with a state
+z such that corr0 (z) = x and probR (y)(w) ≤ probR0 (z)(w). We define R0 = (Y 0 , corr0 , r0 ) as
+follows:
+• Y 0 = Y + X is the (disjoint) union of Y and X
+
+21:62
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+• corr0 = corr + idX that is for all y 0 ∈ Y 0
+(
+corr(y 0 )
+corr0 (y 0 ) =
+idX (y 0 )
+• r0 : Y 0 → (D(Y 0 ) + 1)A is defined as:
+
+
+?
+0
+0
+r (y )(a) =
+∆
+
+
+∆corr0 (y0 ),a
+
+Vol. 18:2
+
+if y 0 ∈ Y ;
+if y 0 ∈ X.
+
+if t(corr0 (y 0 ))(a) = ?
+if y 0 ∈ Y and r(y 0 ) = ha, ∆i
+otherwise
+
+where ∆x,a are defined like in the base case of the proof of Proposition 8.11 (namely,
+an arbitrary choice amongst the distributions in t(x)(a)).
+We prove that R0 is a resolution. For elements y 0 ∈ X the conditions of Definition 8.1
+are trivially satisfied (see the analogous construction used in the base case in the proof of
+Proposition 8.11). Suppose y 0 ∈ Y .
+(1) By definition, r0 (y 0 )(a) = ? iff t(corr0 (y 0 ))(a) = ?.
+(2) If r0 (y 0 )(a) 6= ?, then we are either in the second or in the third case of the definition
+of r0 . If we are in the second case, r0 (y 0 )(a) = ∆ with r(y 0 ) = ha, ∆i. Since ∆ ∈
+DY we have D(corr0 )(∆) = D(corr)(∆), and by the definition of fully probabilistic
+resolution, it holds that D(corr)(∆) ∈ conv(t(corr(y 0 ))(a)). Therefore D(corr0 )(∆) ∈
+conv(t(corr0 (y 0 ))(a)). If we are in the third case, we have r0 (y 0 )(a) = ∆corr0 (y0 ),a , with
+∆corr0 (y0 ),a ∈ t(corr0 (y 0 ))(a). By definition of corr0 , D(corr0 )(∆corr0 (y0 ),a ) = ∆corr0 (y0 ),a .
+Therefore D(corr0 )(∆corr0 (y0 ),a ) ∈ conv(t(corr0 (y 0 ))(a)).
+We conclude by showing that for all y ∈ Y and for all w0 , probR (y, w0 ) ≤ probR0 (y, w0 ). The
+proof goes by induction on w0 . The case w0 =  is trivial, since probR (y, ) = 1 = probR0 (y, ).
+For the inductive case, take w0 = aw00 . Suppose r(y) = ha, ∆i. Then, by definition of r0 ,
+r0 (y)(a) = ∆, and
+X
+probR (y)(aw00 ) =
+∆(y 0 ) · probR (y 0 )(w00 )
+y 0 ∈supp(∆)
+
+≤
+
+X
+
+∆(y 0 ) · probR0 (y 0 )(w00 )
+
+(by IH)
+
+y 0 ∈supp(∆)
+
+= probR0 (y)(aw00 )
+Now suppose that r(y) 6= ha, ∆i. Then r(y) = ? and, by definition of probR , probR (y)(aw00 ) =
+0, so there is nothing to prove.
+Hence, probR (y)(w) ≤ probR0 (y)(w), with corr(y) = corr0 (y) = x.
+Remark 8.14. The correspondence in Proposition 8.13 does not hold when infima are
+F
+considered,
+instead of suprema. Indeed define ddxeef p (w) as expected, namely, by replacing
+d
+with in bbxccf p (w). Then for any state x of an arbitrary NPLTS it holds that ddxeef p (w) = 0
+for all w 6= ε. To see this, observe that R0 = ({y}, corr0 , r0 ) with corr0 (y) = x and r0 (y) = ?
+is always a fully probabilistic resolution, and that probR0 (y)(w) = 0.
+To avoid this problem, one typically modifies the definition of dd·eef p by restricting only
+to those fully probabilistic resolutions that can perform a certain trace (see e.g. [BDL14b,
+BDL14a]). Instead, with our notion of resolution based on RPLTSs (Definition 8.1), this
+problem does not arise and the definition of dd·ee is totally analogous to the one of bb·cc.
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:63
+
+Why may, must, may-must? Trace equivalences as testing equivalences The
+notion of resolution is at the basis not just of the definitions of trace equivalences for
+NPLTS investigated in the literature, but also of testing equivalences for nondeterministic
+and probabilistic processes [YL92, JHSY94, DGH+ 07, DGHM09], extending the theory of
+testing equivalences for purely nondeterministic processes [DH84] (see Remark 6.15). In
+testing equivalences for nondeterministic and probabilistic processes, we say that x, y are may
+testing equivalent if, for every test, they have the same greatest probabilities of passing the
+test, with respect to any resolution R of the system resulting from the interaction between
+the test and the NPLTS. Analogously, x, y are must testing equivalent if the smallest
+probabilities coincide, and the may-must testing equivalence requires both the greatest and
+the smallest probabilities to coincide.
+Now, take tests to be finite traces, and the probability of passing a given test in a
+resolution as the probability of performing the trace in the resolution. Then it becomes
+clear, by the correspondence between the local and the global view proven in Theorem 8.4,
+that each of our three trace equivalences indeed coincides with the corresponding testing
+equivalence, when tests are finite traces.
+9. Conclusion and future work
+We developed an algebra-and-coalgebra-based trace theory for systems with nondeterminism
+and probability, that covers intricate trace semantics from the literature. The abstract
+approach sheds light on all choices and leaves no space for ad-hoc solutions.
+Although the combination of nondeterminism and probability has been posing challenges
+to abstract approaches, this new algebraic theory of traces for NPLTS shows that it can be
+dealt with in a smooth and uniform way.
+In [Jac08], Jacobs leaves open the question of whether the semantics that he obtains by
+exploiting the Kleisli traces [HJS07] for the monad C coincides with some scheduler based
+semantics. We would like to answer that such semantics corresponds to the may-must trace
+equivalence by our results and the correspondence between Kleisli traces and generalised
+determinisation studied in [JSS15]. However, we cannot directly derive this: for technical
+reasons (namely, the absence of a bottom element in the Kleisli category of C), Jacobs has
+to hack the general framework in [HJS07] and therefore the correspondence does not follow
+from known results. Providing an answer to this interesting question is left as future work.
+References
+[Bar04]
+[BBC+ 16]
+
+[BDL14a]
+[BDL14b]
+
+[BK08]
+[BP13]
+
+F. Bartels. On generalised coinduction and probabilistic specification formats: distributive laws
+in coalgebraic modelling. PhD thesis, Vrije Universiteit, Amsterdam, 2004.
+F. Bonchi, M.M. Bonsangue, G. Caltais, J. Rutten, and A. Silva. A coalgebraic view on
+decorated traces. Mathematical Structures in Computer Science, 26(7):1234–1268, 2016. doi:
+10.1017/S0960129514000449.
+M. Bernardo, R. De Nicola, and M. Loreti. Relating strong behavioral equivalences for processes
+with nondeterminism and probabilities. Theoretical Computer Science, 2014.
+M. Bernardo, R. De Nicola, and M. Loreti. Revisiting trace and testing equivalences for nondeterministic and probabilistic processes. Logical Methods in Computer Science, 10(1:16):1–42,
+2014.
+C. Baier and J.P. Katoen. Principles of model checking. MIT Press, 2008.
+F. Bonchi and D. Pous. Checking NFA equivalence with bisimulations up to congruence. In
+Proc. POPL 2013, pages 457–468. ACM, 2013.
+
+21:64
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+F. Bonchi, D. Petrisan, D. Pous, and J. Rot. A general account of coinduction up-to. Acta
+Informatica, 54(2):127–190, 2017. doi:10.1007/s00236-016-0271-4.
+[Brz64]
+J.A. Brzozowski. Derivatives of regular expressions. Journal of the ACM, pages 481–494, 1964.
+[BSS17]
+F. Bonchi, A. Silva, and A. Sokolova. The Power of Convex Algebras. In Proc. CONCUR 2017,
+volume 85, pages 23:1–23:18. LIPIcs, 2017. doi:10.4230/LIPIcs.CONCUR.2017.23.
+[BSV04]
+F. Bartels, A. Sokolova, and E.P. de Vink. A hierarchy of probabilistic system types. Theoretical
+Computer Science, 327:3–22, 2004.
+[BSV21]
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli. Presenting convex sets of probability
+distributions by convex semilattices and unique bases ((co)algebraic pearls). In Proc. CALCO
+2021, volume 211, pages 11:1–11:18. LIPIcs, 2021. doi:10.4230/LIPIcs.CALCO.2021.11.
+[Cas18]
+V. Castiglioni. Trace and testing metrics on nondeterministic probabilistic processes. In Proc. Express/SOS 2018., pages 19–36, 2018. doi:10.4204/EPTCS.276.4.
+[CPP09]
+P.S. Castro, P. Panangaden, and D. Precup. Equivalence relations in fully and partially observable
+markov decision processes. In Proc. IJCAI 2009, pages 1653–1658, 2009.
+[DGH+ 07] Y. Deng, R.J. van Glabbeek, M. Hennessy, C. Morgan, and C. Zhang. Characterising testing
+preorders for finite probabilistic processes. In Proc. LICS 2007, pages 313–325. IEEE-CS Press,
+2007.
+[DGHM09] Y. Deng, R.J. van Glabbeek, M. Hennessy, and C. Morgan. Testing finitary probabilistic processes.
+In Proc. CONCUR 2009, volume 5710 of LNCS, pages 274–288. Springer, 2009.
+[DH84]
+R. De Nicola and M. Hennessy. Testing equivalences for processes. Theoretical Computer Science,
+34:83–133, 1984.
+[DJKV17] C. Dehnert, S. Junges, J.P. Katoen, and M. Volk. A storm is coming: A modern probabilistic
+model checker. In Proc. CAV 2017, volume 10427 of LNCS, pages 592–600, 2017.
+[Dob06]
+E.E. Doberkat. Eilenberg-Moore algebras for stochastic relations. Information and Computation,
+204(12):1756–1781, 2006. doi:10.1016/j.ic.2006.09.001.
+[Dob08]
+E.E. Doberkat. Erratum and addendum: Eilenberg-Moore algebras for stochastic relations
+[mr2277336]. Information and Computation, 206(12):1476–1484, 2008. doi:10.1016/j.ic.2008.
+08.002.
+[DP97]
+D.Turi and G. D. Plotkin. Towards a mathematical operational semantics. In Proc. LICS 1997,
+pages 280–291, 1997. doi:10.1109/LICS.1997.614955.
+F. Dahlqvist, L. Parlant, and A. Silva. Layer by layer - combining monads. In Proc. ICTAC
+[DPS18]
+2018, pages 153–172, 2018. doi:10.1007/978-3-030-02508-3\_9.
+Y. Feng and L. Zhang. When equivalence and bisimulation join forces in probabilistic automata.
+[FZ14]
+In Cliff Jones, Pekka Pihlajasaari, and Jun Sun, editors, Proc. FM 2014, pages 247–262, Cham,
+2014. Springer International Publishing.
+[Gla01]
+R.J. van Glabbeek. The linear time - branching time spectrum i. the semantics of concrete,
+sequential processes. In J. A. Bergstra, A. Ponse, and S.A. Smolka, editors, Handbook of Process
+Algebra, pages 3–99. Elsevier, Amsterdam, 2001.
+[Han91]
+H. A. Hansson. Time and probability in formal design of distributed systems. PhD thesis, Uppsala
+University, 1991.
+[HJS07]
+I. Hasuo, B. Jacobs, and A. Sokolova. Generic trace semantics via coinduction. Logical Methods
+in Computer Science, 3(4), 2007. doi:10.2168/LMCS-3(4:11)2007.
+[HKK14]
+H. Hermanns, J. Krcál, and J. Kretı́nský. Probabilistic bisimulation: Naturally on distributions.
+In Proc. CONCUR 2014, volume 8704 of LNCS, pages 249–265, 2014.
+[HKSH17] C. Heunen, O. Kammar, S. Staton, and H.Yang. A convenient category for higher-order probability
+theory. CoRR, abs/1701.02547, 2017. URL: http://arxiv.org/abs/1701.02547.
+[HPP02]
+M. Hyland, G.D. Plotkin, and J. Power. Combining computational effects: Commutativity and
+sum. In Foundations of Information Technology in the Era of Network and Mobile Computing,
+pages 474–484. Springer, 2002.
+[HPS+ 11] H. Hermanns, A. Parma, R. Segala, B. Wachter, and L. Zhang. Probabilistic logical characterization. Information and Computation, 209(2):154–172, 2011.
+[Jac08]
+B. Jacobs. Coalgebraic trace semantics for combined possibilitistic and probabilistic systems.
+Electronic Notes in Theoretical Computer Science, 203(5):131–152, 2008.
+[BPPR17]
+
+Vol. 18:2 TRACES FOR SYSTEMS WITH NONDETERMINISM, PROBABILITY, AND TERMINATION 21:65
+
+[Jac10]
+
+[Jac16]
+[J.G08]
+[JHSY94]
+
+[JSS15]
+[KLC98]
+[Kli11]
+[KNP02]
+[KP17]
+[KR16]
+[Kur00]
+[LS91]
+[Mac71]
+[Mil89]
+[Mio14]
+[Mis00]
+[MOW03]
+
+[MSV21]
+
+[MV20]
+
+[Pou07]
+[PR95]
+[PS12]
+
+[Rab63]
+[RN09]
+[Rut00]
+[Ś74]
+
+B. Jacobs. Convexity, duality and effects. In Theoretical computer science, volume 323 of IFIP Adv.
+Inf. Commun. Technol., pages 1–19. Springer, Berlin, 2010. doi:10.1007/978-3-642-15240-5\
+_1.
+B. Jacobs. Introduction to Coalgebra: Towards Mathematics of States and Observation. Cambridge
+University Press, 2016.
+J.G.-Larrecq. Prevision domains and convex powercones. In Proc. FOSSACS 2008, pages 318–333.
+LNCS 4962, 2008. doi:10.1007/978-3-540-78499-9\_23.
+B. Jonsson, C. Ho-Stuart, and W. Yi. Testing and refinement for nondeterministic and probabilistic processes. In Proc. FTRTFT 1994, volume 863 of LNCS, pages 418–430. Springer,
+1994.
+B. Jacobs, A. Silva, and A. Sokolova. Trace semantics via determinization. Journal of Computer
+and System Sciences, 81(5):859–879, 2015.
+L.P. Kaelbling, M.L. Littman, and A.R. Cassandra. Planning and Acting in Partially Observable
+Stochastic Domains. Artificial Intelligence, 1998.
+B. Klin. Bialgebras for structural operational semantics: An introduction. Theoretical Computer
+Science, 412(38):5043–5069, 2011. doi:10.1016/j.tcs.2011.03.023.
+M. Z. Kwiatkowska, G. Norman, and D. Parker. Prism: Probabilistic symbolic model checker. In
+Proc. TOOLS 2002, pages 200–204. LNCS 2324, 2002.
+K. Keimel and G.D. Plotkin. Mixed powerdomains for probability and nondeterminism. Logical
+Methods in Computer Science, 13(1), 2017. doi:10.23638/LMCS-13(1:2)2017.
+B. Klin and J. Rot. Coalgebraic trace semantics via forgetful logics. Logical Methods in Computer
+Science, 12(4), 2016. doi:10.2168/LMCS-12(4:10)2016.
+A. Kurz. Logics for Coalgebras and Applications to Computer Science. PhD thesis, LudwigMaximilians-Universität München, 2000.
+K. G. Larsen and A. Skou. Bisimulation through probabilistic testing. Information and Computation, 94:1–28, 1991.
+S. MacLane. Categories for the working mathematician. Springer-Verlag, 1971.
+R. Milner. Communication and Concurrency. Prentice Hall, 1989.
+M. Mio. Upper-expectation bisimilarity and lukasiewicz µ-calculus. In Proc. FOSSACS 2014,
+volume 8412 of LNCS, pages 335–350, 2014.
+M.W. Mislove. Nondeterminism and probabilistic choice: Obeying the laws. In Proc. CONCUR
+2000, pages 350–364. LNCS 1877, 2000. doi:10.1007/3-540-44618-4\_26.
+M. Mislove, J. Ouaknine, and J. Worrell. Axioms for probability and nondeterminism. In
+Proc. EXPRESS 2003, volume 96 of Electronic Notes in Theoretical Computer Science, pages
+7–28. Elsevier, 2003.
+Matteo Mio, Ralph Sarkis, and Valeria Vignudelli. Combining nondeterminism, probability, and
+termination: Equational and metric reasoning. In Proc. LICS 2021, pages 1–14. IEEE, 2021.
+doi:10.1109/LICS52264.2021.9470717.
+Matteo Mio and Valeria Vignudelli. Monads and quantitative equational theories for nondeterminism and probability. In Proc. CONCUR 2020, volume 171 of LIPIcs, pages 28:1–28:18, 2020.
+doi:10.4230/LIPIcs.CONCUR.2020.28.
+D. Pous. Complete lattices and up-to techniques. In Proc. APLAS 2007, volume 4807, pages
+351–366, 2007. doi:10.1007/978-3-540-76637-7_24.
+Dieter Pumplün and Helmut Röhrl. Convexity theories. IV. Klein-Hilbert parts in convex modules.
+Applied Categorical Structures, 3(2):173–200, 1995. doi:10.1007/BF00877635.
+D. Pous and D. Sangiorgi. Enhancements of the bisimulation proof method. In Davide Sangiorgi
+and Jan Rutten, editors, Advanced Topics in Bisimulation and Coinduction. Cambridge University
+Press, 2012.
+M.O. Rabin. Probabilistic automata. Information and Control, 6:230–245, 1963.
+S. Russell and P. Norvig. Artificial Intelligence: A Modern Approach. Prentice Hall, 2009.
+J.J.M.M. Rutten. Universal coalgebra: A theory of systems. Theoretical Computer Science,
+249:3–80, 2000.
+T. Świrszcz. Monadic functors and convexity. Bull. Acad. Polon. Sci. Sér. Sci. Math. Astronom.
+Phys., 22:39–42, 1974.
+
+21:66
+
+Filippo Bonchi, Ana Sokolova, and Valeria Vignudelli
+
+Vol. 18:2
+
+D. Sangiorgi. On the bisimulation proof method. Mathematical Structures in Computer Science,
+8(5):447–479, 1998.
+[SBBR10] A. Silva, F. Bonchi, M. Bonsangue, and J. Rutten. Generalizing the powerset construction, coalgebraically. In Proc. FSTTCS 2010, volume 8 of Leibniz International Proceedings in Informatics
+(LIPIcs), pages 272–283, 2010.
+[Seg95a]
+R. Segala. A compositional trace-based semantics for probabilistic automata. In Proc. CONCUR
+1995, volume 962 of LNCS, pages 234–248. Springer, 1995.
+[Seg95b]
+R. Segala. Modeling and verification of randomized distributed real-time systems. PhD thesis,
+MIT, 1995.
+[Sem73]
+Zbigniew Semadeni. Monads and their Eilenberg-Moore algebras in functional analysis. Queen’s
+University, Kingston, Ont., 1973.
+[SL94]
+R. Segala and N.A. Lynch. Probabilistic simulations for probabilistic processes. In Proc. CONCUR
+1994, pages 481–496. LNCS 836, 1994.
+[SL95]
+R. Segala and N. Lynch. Probabilistic simulations for probabilistic processes. Nordic Journal of
+Computing, 2(2):250–273, 1995.
+A. Sokolova. Probabilistic systems coalgebraically: A survey. Theoretical Computer Science,
+[Sok11]
+412(38):5095–5110, 2011.
+[Sta11]
+S. Staton. Relating coalgebraic notions of bisimulation. Logical Methods in Computer Science,
+7(1), 2011.
+[Sto49]
+M.H. Stone. Postulates for the barycentric calculus. Annali di Matematica Pura ed Applicata.
+Serie Quarta, 29:25–30, 1949. doi:10.1007/BF02413910.
+A. Sokolova and H. Woracek. Termination in convex sets of distributions. Logical Methods in
+[SW18]
+Computer Science, 14(4), 2018.
+[SYW+ 16] S. Staton, H. Yang, F. Wood, C. Heunen, and O. Kammar. Semantics for probabilistic programming: higher-order functions, continuous distributions, and soft constraints. In Proc. LICS 2016,
+pages 525–534, 2016. doi:10.1145/2933575.2935313.
+R. Tix, K. Keimel, and G.D. Plotkin. Semantic domains for combining probability and non[TKP09]
+determinism. Electronic Notes in Theoretical Computer Science, 222:3–99, 2009. doi:10.1016/j.
+entcs.2009.01.002.
+[Var85]
+M.Y. Vardi. Automatic verification of probabilistic concurrent finite state programs. In
+Proc. FOCS 1985, pages 327–338. IEEE, 1985.
+[Var03]
+D. Varacca. Probability, Nondeterminism and Concurrency: Two Denotational Models for
+Probabilistic Computation. PhD thesis, Univ. Aarhus, 2003.
+[vHHOS18] G. van Heerdt, J. Hsu, J. Ouaknine, and A. Silva. Convex Language Semantics for Nondeterministic Probabilistic Automata. In Proc. ICTAC 2018, pages 472–492, 2018.
+[VW06]
+D. Varacca and G. Winskel. Distributing probabililty over nondeterminism. Mathematical
+Structures in Computer Science, 16(1):87–113, 2006.
+U. Wolter. On corelations, cokernels, and coequations. Electronic Notes in Theoretical Computer
+[Wol00]
+Science, 33, 2000.
+[YJZ17]
+P. Yang, D.N. Jansen, and L. Zhang. Distribution-based bisimulation for labelled markov processes.
+In Proc. FORMATS 2017, pages 170–186, 2017. doi:10.1007/978-3-319-65765-3\_10.
+[YL92]
+W. Yi and K.G. Larsen. Testing probabilistic and nondeterministic processes. In Proc. PSTV
+1992, pages 47–61. North-Holland, 1992.
+[San98]
+
+This work is licensed under the Creative Commons Attribution License. To view a copy of this
+license, visit https://creativecommons.org/licenses/by/4.0/ or send a letter to Creative
+Commons, 171 Second St, Suite 300, San Francisco, CA 94105, USA, or Eisenacher Strasse 2,
+10777 Berlin, Germany
+
+

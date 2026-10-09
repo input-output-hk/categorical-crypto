@@ -1,0 +1,909 @@
+                                                Computationally Bounded Robust Compilation
+                                                   and Universally Composable Security
+                                                              Robert Künnemann                                     Marco Patrignani                    Ethan Cecchetti
+                                            CISPA Helmholtz Center for Information Security                       University of Trento        University of Wisconsin–Madison∗
+                                                     robert.kuennemann@cispa.de                                  marco.patrignani@unitn.it            cecchetti@wisc.edu
+
+
+
+                                                                                                                       arbitrary hyperproperties. Unfortunately, the connection they
+
+
+
+
+arXiv:2401.15041v1 [cs.CR] 26 Jan 2024
+                                            Abstract—Universal Composability (UC) is the gold standard
+                                         for cryptographic security, but mechanizing proofs of UC is                   identify considers only perfect UC security, where the pro-
+                                         notoriously difficult. A recently-discovered connection between               tocol and ideal functionality exhibit identical behaviors. Real
+                                         UC and Robust Compilation (RC )—a novel theory of secure
+                                         compilation—provides a means to verify UC proofs using tools                  cryptographic protocols are almost never perfectly secure, they
+                                         that mechanize equality results. Unfortunately, the existing meth-            rely on cryptographic primitives whose security depends on
+                                         ods apply only to perfect UC security, and real-world protocols               computational hardness assumptions. As a result, real “UC-
+                                         relying on cryptography are only computationally secure.                      secure” protocols rely on a computational definition of UC
+                                            This paper addresses this gap by lifting the connection between            security, which allows the protocol to behave differently from
+                                         UC and RC to the computational setting, extending techniques
+                                         from the RC setting to apply to computational UC security.                    the ideal functionality, but only in ways that are indistinguish-
+                                         Moreover, it further generalizes the UC–RC connection beyond                  able to a computationally bounded adversary. Since the results
+                                         computational security to arbitrary equalities, providing a frame-            of Patrignani et al. [43] apply only to the perfect case, they
+                                         work to subsume the existing perfect case, and to instantiate                 provide little help in verifying the far more prevalent proofs
+                                         future theories with more complex notions of security. This                   of computational UC security.
+                                         connection allows the use of tools for proofs of computational in-
+                                         distinguishability to properly mechanize proofs of computational                 For example, consider the following single-bit commitment
+                                         UC security. We demonstrate this power by using C RYPTOV ERIF                 protocol due to Canetti and Fischlin [17]. To commit to bit b,
+                                         to mechanize a proof that parts of the Wireguard protocol are                 generate a 4n-bit pseudo-random value pr , and output pr if
+                                         computationally UC secure. Finally, all proofs of the framework               b = 0 and pr ⊕ σ if b = 1 where σ is a public 4n-bit truly
+                                         itself are verified in Isabelle/HOL.                                          random value. This protocol does not perfectly UC emulate a
+                                                                  I. I NTRODUCTION                                     functionality that simply indicates a bit has been committed by
+                                                                                                                       does nothing else before opening. An unbounded attacker can
+                                            In cryptography, universal composability (UC) [16] is a
+                                                                                                                       simply check if the commitment is one of the (exponentially
+                                         framework for the specification and analysis of cryptographic
+                                                                                                                       many) possible pseudo-random values and correctly guess the
+                                         protocols with a key guarantee about compositionality [15,
+                                                                                                                       value of b with overwhelming probability. The protocol is,
+                                         36, 53]: If a protocol is UC-secure, it behaves like some
+                                                                                                                       however, computationally UC secure given a pseudo-random
+                                         high-level, secure-by-construction ideal functionality no matter
+                                                                                                                       generator with the right structure [17], a proof that relies on a
+                                         what the protocol interacts with. If that protocol is then used
+                                                                                                                       polynomial adversary’s inability to distinguish pr from a truly
+                                         as a building block inside a larger protocol, it is safe to
+                                                                                                                       random value.
+                                         replace the smaller protocol with its ideal functionality when
+                                                                                                                          This work addresses the limitation of Patrignani et al. [43]
+                                         reasoning about the security of the larger protocol. In other
+                                                                                                                       by lifting their results to the computational case, allowing us to
+                                         words, UC protocols are secure even when composed with
+                                                                                                                       consider the security of protocols like Canetti and Fischlin’s
+                                         larger protocols.
+                                                                                                                       commitment. To accomplish this goal, we replace equality
+                                            Proving that a protocol attains UC security is notoriously
+                                                                                                                       of behaviors with computational indistinguishability in both
+                                         complex and error-prone, so it is important to provide ways
+                                                                                                                       the UC and RC theories. Making this switch in both the UC
+                                         to mechanize these proofs. Patrignani et al. [43] recently
+                                                                                                                       and RC contexts produces a notion of robust compilation that
+                                         identified a simple and scalable way to define proofs of UC
+                                                                                                                       corresponds precisely to the already-established definition of
+                                         by relying on a surprising connection between UC and Robust
+                                                                                                                       computational UC security.
+                                         Compilation (RC ).
+                                                                                                                          On the RC side, the change requires two fundamental
+                                            RC is a hierarchy of criteria for secure compilation intro-
+                                                                                                                       modifications. First, Patrignani et al. [43] describe programs
+                                         duced by Abate et al. [2, 3]. The criteria describe the security
+                                                                                                                       as producing probability distributions over possible traces and
+                                         of a compiler by which (hyper)properties [21] it preserves.
+                                                                                                                       consider a protocol (or compiler) secure if the ideal func-
+                                            Patrignani et al. [43] identify that UC security is deeply
+                                                                                                                       tionality (source program) and protocol (compiled program)
+                                         connected to Robust Hyperproperty-Preserving Compila-
+                                                                                                                       produce identical distributions. Computational indistinguisha-
+                                         tion (RHC ), the RC requirement that a compiler preserve
+                                                                                                                       bility, however, does not relate individual distributions. It
+                                           ∗ Work done in part while author was at the University of Maryland.         relates families of distributions {Xn } and {Yn } indexed by
+a security parameter n, and requires an adversary’s ability          The rest of this paper provides background notions related to
+to distinguish between Xn and Yn to shrink quickly as n              the main results (Section II), interesting details of the proofs
+grows. We thus expand the definition of program behavior to          of our main theorems (Section V), the presentation of related
+include explicit security parameters. Second, RC definitions         work (Section VII), and conclusions (Section VIII).
+in general define robustness for all programs against all              All theorems in Sections III, IV, and V are verified in
+adversaries, while computational UC-security concerns only           the Isabelle/HOL theorem prover [32], while theorems in
+polynomial-time programs and attackers. We therefore extend          Section VI are verified in C RYPTOV ERIF [13]. The proof
+the RC framework to consider specific classes of protocols           development is available at: https://uc-is-sc.github.io/.
+and attackers.
+   With these two modifications to the RC theory of Abate                                  II. BACKGROUND
+et al. [2], we can define a new class of hyperproperties, CH ,          This section presents relevant background notions on Uni-
+where each hyperproperty is the set of behaviors that are            versal Composability (Section II-A), Robust Compilation
+computationally indistinguishable from some ideal function-          (Section II-B) and their connection (Section II-C).
+ality. We also define a notion of Computationally-Robust                For aide reading [40], throughout the paper we will use
+Hyperproperty-Preserving Compilation (CRHC ), a new no-              blue italic for functionalities and source programs, bold red
+tion of RC that preserves CH against polynomial-time at-             for protocols and target programs, and black for terms not
+tackers. Finally, we prove that computational UC security is         specific to either context.
+equivalent to CRHC .
+                                                                     A. Universally Composable Security
+   Technically, proving CRHC amounts to proving that some
+source program (an ideal functionality), linked with an ex-             Universally Composable (UC) security [16] defines a se-
+istentially bound attacker (a simulator) is computationally          curity notion that combines functional correctness and privacy
+indistinguishable from a target program (a protocol). Fortu-         and is both transitive as well as closed under protocol composi-
+nately, existing tools such as C RYPTOV ERIF [13] provide            tion. This is achieved by refinement: a “secure” protocol is one
+ways to mechanize such proofs. Thus, we showcase the                 that is “at least as secure” as a protocol where all parties for-
+ability to provide scalable proofs of computational UC via           ward their communication to a single entity that (a) computes
+proofs of CRHC by using C RYPTOV ERIF to mechanize a                 the correct output (which they forward to the environment)
+proof of computational indistinguishability for the Wireguard        and (b) leaks only the minimal amount of information via the
+protocol [37].                                                       network (which is conservatively modelled by sending this
+   Notably, the results of lifting the connection between UC         information to the attacker). There is a distinction between
+and RC to the computational case contain nothing specific            the environment, which models the trusted input and output
+about computational indistinguishability and polynomial time.        from either higher-level protocols or the user of the system,
+As a result, we are able to substantially generalize the the-        and the attacker, which models the hostile network. Together,
+ory by using any equivalence ≡ defining indistinguishable            the environment Z, protocol π and attacker A constitute a
+behaviors, and an arbitrary predicate Q on programs and              system that can be executed. The execution ends when the
+contexts to define the class of programs and contexts. Doing         environment decides whether it is interacting with the real
+so produces a notion of UC security up-to ≡, an RC notion            protocol or an ideal simulation and outputs a final bit to
+of Q -robust preservation of ≡-hyperproperties, and a proof          indicate its guess. Let E XEC(Z, A, π) be a random variable
+that the two are equivalent. This result immediately subsumes        describing the outcome of this probabilistic process.
+the original connection of Patrignani et al. [43], using = as ≡         The strongest notion of “at least as secure as” says that any
+and the trivial predicates allowing all programs and contexts,       attack on a protocol can be simulated using the functionality.
+our lifted result, using computational indistinguishability as the   That is, only knowing the “acceptable” leakage built into
+equivalence and polynomial time as the predicate, and suggests       the functionality is enough to convincingly reproduce any
+more definitions and connections to explore.                         real attacker’s behavior. For an encryption functionality, for
+   To summarize, the main contributions of this paper are:           instance, this leakage is the message length.
+                                                                        If this simulation can always produce identical behavior to
+  • Section III explicitly models security parameters and            the real attacker, the protocol is said to perfectly emulate the
+    computational indistinguishability in the RC framework,          ideal functionality.
+    and uses these structures to extend the result of Patrignani
+    et al. [43] to computational security.                           Definition 1 (Perfect UC Emulation). A protocol π perfectly
+                                                                                                                  =
+  • Section IV generalizes the computational result to arbi-
+                                                                     UC-emulates a functionality F , denoted π ⊢UC  F if, for all
+    trary indistinguishability relations, making perfect secu-       (unbounded) adversaries A, there is a simulator S , such that
+    rity, computational security, and many other interesting         for all environments Z,
+    equivalences special cases of a general theorem.                               E XEC(Z, A, π) = E XEC(Z, S , F )
+  • Section VI uses these results to mechanize the proof of
+    UC for the WireGuard protocol using the C RYPTOV ERIF              For realistic cryptographic protocols, however, perfect em-
+    tool, which provides computational security guarantees.          ulation is impossible. Their security almost invariably relies
+on computational hardness assumptions, so an unbounded              Definition 4 (Robust Hyperproperty-Preserving Compiler).
+attacker or environment can easily glean information beyond                        def
+the ideal functionality’s “acceptable” leakage. As a result, the    ⊢ J·K : RHC = ∀P , A. ∃A. ∀t. A ⊲⊳ JP K        t iff A ⊲⊳ P   t
+random variables will not be identically distributed.
+                                                                       For a compiler to preserve arbitrary hyperproperties, the
+   To still recover a meaningful notion of security, we include
+                                                                    traces exhibited by any compiled component while interacting
+a security parameter n and compare the behaviors asymptoti-
+                                                                    with an arbitrary target context must be the same to the
+cally in n. That is, instead of considering E XEC(Z, A, π) to
+                                                                    traces exhibited by a the source component linked with an
+be a single random variable, we consider it to be a family
+                                                                    existentially quantified source context.
+of random variables, {E XECn (Z, A, π)}, one for each value
+of n. Two such families are indistinguishable if the difference     C. Existing UC–RC Connection
+between them shrinks very rapidly (usually exponentially) as n
+grows. This notion is defined formally as follows.                     As Patrignani et al. [43] prove, Definition 1 and Definition 4
+                                                                    are equivalent. By inspecting the quantifiers, and their order
+Definition 2 (Indistinguishability [16]). Two ensembles of          (which match), it is possible to see that UC functionalities
+binary probability distributions X = {Xn } and Y = {Yn }            correspond to RC source components, UC protocols corre-
+are indistinguishable, denoted X ≈ Y , if, for all c ∈ N, there     spond to RC compiled components, and UC environments
+is some N ∈ N such that                                             correspond to RC traces. The elements that provide a central
+                                                                    role in the security argument are also related. The universally
+         ∀n > N. | Pr[Xn = 1] − Pr[Yn = 1]| < n−c
+                                                                    quantified UC protocol attackers are still universally quantified
+   Indistinguishability is not enough by itself. The computa-       RC target contexts and the existentially quantified UC simu-
+tional hardness assumptions of the cryptographic primitives         lators are still existentially quantified RC source contexts.
+force us to limit the computational power of the parties               With this equivalence, Patrignani et al. [43] demonstrate that
+within the system. In particular, the UC framework demands          by providing an RHC proof for a compiler that translates a
+that all protocols, attackers, and environments execute in          program encoding a functionality into its protocol, one can ob-
+polynomial time. The result is the following formal definition      tain a UC proof. More importantly, since Definition 4 amounts
+of computational UC security.                                       to proving trace equivalence between programs, Patrignani
+                                                                    et al. [43] use the Deepsec tool [20] in order to provide the
+Definition 3 (Computational UC Emulation [16]). A poly-time
+                                                                    RHC proof and thus the first mechanized proof of UC.
+protocol π computationally UC-emulates a functionality F ,
+             ≈                                                         However, the equivalence formalized by Patrignani et al.
+denoted π ⊢UC  F if, for all PPT adversaries A, there is a PPT
+                                                                    [43] only amounts to a perfect notion of UC. In the following
+simulator S , such that for all PPT environments Z,
+                                                                    section, we set out to lift this limitation.
+              E XEC(Z, A, π) ≈ E XEC(Z, S , F )
+                                                                         III. C OMPUTATIONAL ROBUST H YPERPROPERTY
+B. Robust Compilation                                                                   P RESERVATION
+   The Robust Compilation (RC ) framework [2, 3] formalizes            To see the connection between perfect UC and RHC , we
+security of compilers as their ability to preserve arbitrary        look at the relationship between the definition of UC security
+classes of (hyper)properties [21] robustly, i.e., in the presence   and the behavior of a program W , denoted Behav(W ).
+of active adversaries linked with compiled code.                    Patrignani et al. [43] define Behav(W ) = {t | W          t} as
+   Compilers (denoted by J·K) are functions that translate          the set of traces W can produce, and a trace t as a pair (τ , ρ),
+components, or partial programs (P ), from a source lan-            where τ is a (potentially infinite) sequence of actions and ρ
+guage (S ) to a target language (T). In both languages, a partial   is the probability that W will produce τ . They also include
+program P can link with a program context A to form a whole         all actions of the environment in τ (including outputting the
+program, denoted A ⊲⊳ P . Whole programs come equipped with         final bit), so we can view Behav(W ) as containing different
+an operational semantics called a robust trace semantics ( ),       probability distributions for different environments. If we let
+which captures all security-relevant behavior of A ⊲⊳ P in a        Behav(W )|Z denote the probability distribution over final bits
+trace of events (t) where each event indicates whether it comes     for just the subset of behaviors consistent with environment Z,
+from the context or the program.                                    the structure of RHC begins to look very much like the
+   In their original work, Abate et al. [2] define what criteria    structure of UC security.
+compilers must meet to prove that they preserve:                       Indeed, we can rephrase Definition 4 to require equality
+   • trace properties, including all trace properties, safety       of behaviors and then universally quantify over environments.
+     properties, and dense properties, a variation of liveness,     The result is the following definition of RHC .
+   • hyperproperties, including all hyperproperties, subset-
+     closed hyperproperties, and 2-hypersafety, and                   ∀P , A. ∃A. ∀Z. Behav(A ⊲⊳ JPK)|Z = Behav(A ⊲⊳ P )|Z
+   • relational hyperproperties.
+                                                                    And recall from Definition 1 that π perfectly UC-emulates F if
+A compiler that robustly preserves all hyperproperties satisfies
+RHC , defined formally as follows.                                         ∀A. ∃S . ∀Z. E XEC(Z, A, π) = E XEC(Z, S , F )
+   These definitions have a nearly-identical structure, which        Definition 5 (Computational Indistinguishability of Programs).
+we use as a guide for moving to computational security.              Whole programs W1 and W2 have computationally indistin-
+There are two main differences between perfect UC and                guishable behavior if
+computational UC that we need to represent in the language
+                                                                              ∀Z ∈ PPT. Behav(W1 )|Z ≈ Behav(W2 )|Z
+of robust compilation. First, the equality on distributions is
+replaced with computational indistinguishability. Second, the        We denote this equivalence by ≅ for both whole programs
+relationship between real and ideal protocols (and thus target       and sets of traces. That is, the above equivalence defines both
+and source programs, respectively) is further loosened to            W1 ≅ W2 and Behav(W1 ) ≅ Behav(W2 ).
+consider only attackers, simulators, and programs that are
+polynomial time.                                                     B. Computational Robust Compilation
+   This section now presents these changes to the existing RC           Recall that computational UC security allows not only this
+theory (Section III-A) followed by the novel notion of com-          looser computational notion of indistinguishability, but also re-
+putational robust compilation (CRHC , Section III-B). Then,          stricts all protocols, attackers, and simulators to be polynomial
+it presents what class of hyperproperties CRHC preserves             time. The language of robust compilation, however, quantifies
+(Section III-C) before presenting the main result of this paper,     over all programs and contexts, not just poly-time ones.
+connecting omputational UC and CRHC (Section III-D).                    Without bounding the computational power of programs
+                                                                     and contexts, we cannot hope to represent computational UC
+A. Computational Indistinguishability                                security. To see why, consider the single-bit commitment
+                                                                     protocol due to Canetti and Fischlin [17] discussed in Sec-
+   Defining indistinguishability of program behaviors requires       tion I. In the RC context, if we consider a compiler that
+modifying the structures introduced by Patrignani et al. [43].       takes Canetti and Fischlin’s commitment ideal functionality
+Recall from Section II-A that indistinguishability, denoted          and produces their commitment protocol, we would hope to
+X ≈ Y , is defined over families of distributions, X = {Xn }         call that compiler robust. But because the language of RC
+and Y = {Yn }, and requires the ability of an adversary              always considers all contexts (attackers) and a computationally
+to separate Xn from Yn to shrink rapidly as n grows. To              unbounded attacker can break the protocol, we cannot. To
+modify the above definition of RHC to match the struc-               address this concern, we expand the framework with a notion
+ture of computational UC security, we would like to say              of computationally-robust preservation of hyperproperties that
+Behav(W1 )|Z ≈ Behav(W2 )|Z .                                        considers only polynomial-time programs and contexts.
+   Unfortunately, with Behav(W ) structured as a set of                 As in UC, execution complexity depends on the context
+pairs (τ , ρ), as described above, we can interpret Behav(W )|Z      (adversary), the program (protocol), and how they interact. We
+as a single probability distribution, but not the requisite family   therefore define a poly-time predicate over whole programs.
+of them. Luckily, because the semantics of the program are left      As with the program semantics, we leave this predicate ab-
+abstract, we can straightforwardly introduce a security param-       stract to avoid the need to restrict to a specific computational
+eter n. We thus define a program execution by a triple (τ , ρ, n)    model with specific execution times. Because the source and
+instead of a pair. Here τ and ρ are the same as before, and          target languages may have different semantics and computa-
+n is a security parameter. With this change, we can view             tional models, we include both a source-language predicate
+Behav(W ) as a family of behaviors, indexed by n, which              poly and a target-language predicate poly.
+we can similarly restrict by an environment to get a family of          These predicates are sufficient to define a more permis-
+distributions. That is,                                              sive notion of robust compilation: the computationally-robust
+                          def                                        hyperproperty-preserving compiler (CRHC ).
+           Behavn (W ) = {(τ , ρ) | W        (τ , ρ, n)}
+                          def
+             Behav(W ) = {Behavn (W )}                               Definition 6 (Computationally-Robust Hyperproperty-Preser-
+                          def
+                                                                     vating Compiler).
+          Behav(W )|Z = {Behavn (W )|Z }                                             def
+                                                                     ⊢ J·K : CRHC = ∀P . ∀A. poly(A ⊲⊳ JP K) =⇒
+Definition 2 now applies with these families of distributions.                             ∃A. poly(A ⊲⊳ P ) ∧ (A ⊲⊳ JP K ≅ A ⊲⊳ P )
+   Quantifying over all possible environments, however, results
+in a definition of statistical indistinguishability, not computa-       This computational notion considers only executions of
+tional indistinguishability. Achieving the computational goal        poly-time programs in both the source and target language.
+requires restricting to only polynomial-time environments.           It demands that, for any target context A where A ⊲⊳ JP K is
+Because we assume the program interfaces of the different            poly-time, there must be a source context A such that A ⊲⊳ P
+languages match, the space of environments is the same, we           is also poly-time and the behaviors of the whole programs are
+use the same PPT set to represent all probabilistic poly-time        computationally indistinguishable.
+environments.                                                              CRHC and Optimizations: CRHC demands that, if
+   These two modifications are sufficient to define computa-         there is any target context A such that A ⊲⊳ JP K is poly-time,
+tionally indistinguishable program behaviors.                        then there must be some source context A such that A ⊲⊳ P
+                                                                     is also poly-time. This requirement has an odd ramification:
+a CRHC compiler may not optimize a super-polynomial pro-           Theorem 1 (CRHC is Computational Preservation of CH ).
+gram into a poly-time one, say, by introducing memoization.
+                                                                    ⊢ J·K : CRHC ⇐⇒ ∀H ∈ CH .
+This may appear to be a limitation, but from a security
+standpoint it is not. Computational UC security considers              ∀P . (∀A. poly(A ⊲⊳ P ) =⇒ Behav(A ⊲⊳ P ) ∈ H ) =⇒
+only the behavior of poly-time programs and poly-time ideal                 (∀A. poly(A ⊲⊳ JP K) =⇒ Behav(A ⊲⊳ JP K) ∈ H )
+functionalities. It says nothing about the security of a system
+                                                                      This theorem, proven in Isabelle/HOL (compRHCisRHPX),
+with super-polynomial protocols, adversaries, environments, or
+                                                                   is a special case of Theorem 3 (see Section IV).
+ideal functionalities. Correspondingly, the security defined by
+                                                                      Theorem 1 shows that CRHC is equivalent to preserving
+CRHC does not aim to be meaningful for super-polynomial
+                                                                   secure emulation. That is, a compiler J·K satisfies CRHC if
+programs. Instead, it demands that the compiler produce super-
+                                                                   and only if, whenever a source program P computationally
+polynomial outputs on any super-polynomial inputs, allowing
+                                                                   emulates some functionality F in the source language, then the
+us to restrict all relevant analysis to the polynomial case.
+                                                                   compiled JP K also computationally emulates F in the target
+C. Identifying Preserved Hyperproperties                           language.
+   In the original work defining RHC , Abate et al. [2] identify   D. Connecting Computational UC and CRHC
+that RHC is equivalent to a compiler robustly preserving all
+                                                                      This equivalence between CRHC and secure emulation
+hyperproperties. Recall that a hyperproperty is a set of sets
+                                                                   of functionalities suggests a similarly deep connection to
+of traces. This means that, for J·K to be RHC , then for any
+                                                                   computational UC security. Indeed, the modifications to get
+hyperproperty H and partial program P , if the behavior of P
+                                                                   from RHC to CRHC were designed explicitly to mirror the
+is in H for every possible source context, then the behavior
+                                                                   differences between perfect UC and computational UC. To
+of JP K is in H for every possible target context.
+                                                                   prove this correspondence formally, we rely on four axioms
+   More formally, let T = {t} be the set of all traces and
+                                                                   laid out by Patrignani et al. [43] to move between the Inter-
+T = P(T ) be the set of sets of traces. Then
+                                                                   active Turing Machine (ITM) semantics of the UC framework
+     ⊢ J·K : RHC ⇐⇒                                                and the abstract semantics of the RC framework. We modify
+             ∀H ⊆ T. ∀P . (∀A. Behav(A ⊲⊳ P ) ∈ H ) =⇒             Axioms 1, 2, and 4 only to add the security parameter n.
+                          (∀A. Behav(A ⊲⊳ JP K) ∈ H )                 The first uses the function z(m) to define a canonical
+                                                                   environment for a trace prefix m that produces exactly this
+   This connection with RHC raises a question in our context:      prefix and then halts the execution with final bit 1. It says
+what hyperproperties does computational robustness preserve?       that a trace prefix is possible if and only if a corresponding
+Or, more generally speaking: which class of (hyper)properties      execution is possible for the ITM.
+can UC security actually express? One might guess that
+CRHC is equivalent to computationally-preserving all hy-           Axiom 1 (UC and RC Semantics [43]). If m = (µ, ρ, n) and
+perproperties. That is, preserving all hyperproperties when        µ is a finite sequence of actions, then
+considering only poly-time programs. However, restricting to       A ⊲⊳ P     m ⇐⇒ Pr[E XEC Tn (z(m), A, P ) = µ] = ρ > 0.
+poly-time environments, which attempt to distinguish program
+behaviors, makes this guess incorrect. Instead, CRHC corre-          The second axiom requires that the canonical environment
+sponds to preserving a narrower class of hyperproperties, CH ,     for a trace correctly represent the behavior of all environments
+which represent computationally-indistinguishable programs.        that produce the same trace.
+   To define CH , we first define CH (F ), a single hyperprop-     Axiom 2 (Canonical Environment Correctness [43]). If Z is
+erty representing the family of behaviors that are computation-    non-probabilistic, m = (µ, ρ, n), and for some A′ and π ′ ,
+ally indistinguishable from what F can produce when given          Pr[E XEC Tn (Z, A′ , π ′ ) = µ] > 0, then for all A and π,
+an appropriate context. Formally,
+         def
+                                                                   Pr[E XEC Tn (Z, A, π) = µ] = Pr[E XEC Tn (z(m), A, π) = µ]
+CH (F ) = {T ∈ T | ∃S. poly(S ⊲⊳ F )
+                                                                     This axiom assumed that the environment Z is non-
+                    ∧ (∀Z ∈ PPT. T |Z ≈ Behav(S ⊲⊳ F )|Z )}
+                                                                   probabilistic, meaning the probability of m depends only
+Intuitively, Behav(W ) ∈ CH (F ) means that there is some          on the randomness of A and π. This assumption simplifies
+simulator S such that the behavior of S ⊲⊳ F cannot be             reasoning and is not a limitation, because we also assume
+distinguished from the behavior of W . If we instead consider      that anything a probabilistic environment can do, a non-
+a partial program P and quantify over poly-time contexts,          probabilistic one can do as well.
+       ∀A. poly (A ⊲⊳ P ) =⇒ Behav(A ⊲⊳ P ) ∈ CH (F )              Axiom 3 (Non-Probabilistic Environment Completeness). For
+                                                                   any Z ∈ PPT, if E XEC (Z, A, π) 6≈ E XEC (Z, S , F ), then
+means that P computationally emulates F .
+                                                                   there exists some non-probabilistic poly-time Z ′ such that
+   The class CH that a CRHC compiler preserves (for poly-
+                                                                   E XEC (Z ′ , A, π) 6≈ E XEC (Z ′ , S , F ).
+time programs) is precisely the set of all of these hyperprop-
+                              def
+erties. That is, we define CH = {H | ∃F. H = CH (F )} and             Patrignani et al.’s [43] version of Axiom 3 uses (in)equality
+obtain the following result.                                       instead of (in)distinguishability and does not bound Z and Z ′ ,
+but is otherwise the same. Intuitively, this axiom is valid          poly-time as well. There is nothing special about poly-time
+because, for any distinguishing Z, one can select from the           in that process. Indeed, we could instead have used abstract
+random choices made by Z (but not the attacker or protocol)          predicates Q and Q over source and target programs.
+the ones that maximize Z’s ability to distinguish the real and          Making this change leads to a more general notion of
+ideal worlds. Fixing those choices produces a deterministic          predicate-robust hyperproperty preservation (PRHC ) param-
+environment that distinguishes at least as well as Z.                eterized on an equivalence and two predicates.
+  Finally, we assume that trace prefixes specify whether or
+                                                                     Definition 7 (Predicate-Robust Hyperproperty-Preservating
+not the environment has decided on a final bit b, and if so,
+                                                                     Compiler).
+what that value is. The UC framework assumes the environ-
+                                                                                                def
+ment terminates execution with that final bit, but we follow         ⊢ J·K : PRHC (≡, Q, Q) = ∀P . ∀A. Q(A ⊲⊳ JP K) =⇒
+Patrignani et al. [43] and abstract this process over an arbitrary        ∃A. Q (A ⊲⊳ P ) ∧ (Behav(A ⊲⊳ JP K) ≡ Behav(A ⊲⊳ P ))
+encoding with an extraction function β : µ → {0, 1, ⊥} with
+the following property.                                                 That is, source contexts linked with source programs can
+                                                                     produce all the behavior of compiled programs linked with
+Axiom 4 (Finite Traces Contain the Final Bit [43]).                  target contexts (up to ≡) when only considering programs
+           Pr[E XECn (Z, A, π) = b]                                  satisfying Q and Q, the respective predicates for the source
+                  X                                                  and target language.
+              =        Pr[E XEC Tn (Z, A, π) = µ]                       This notion generalizes both RHC and CRHC . If we
+                  β(µ)=b                                             instantiate ≡ with set equality (=) and both Q and Q
+  Using these axioms, we are able to prove the desired               with the trivial predicate True that holds for all programs,
+correspondence between UC security and CRHC .                        PRHC (=, True, True) requires source contexts to produce
+                                                                     exactly the behavior of target contexts when considering all
+Theorem 2 (Computational UC and CRHC Coincide).                      programs—precisely RHC .
+                                       ≈
+             ⊢ J·K : CRHC ⇐⇒ ∀P . JPK ⊢UC P                          Proposition 1 (PRHC expresses RHC ).
+This theorem is verified in Isabelle/HOL (compRHCeqUC).                               ⊢ J·K : PRHC (=, True, True)
+   As we will see in Section VI, Theorem 2 creates a powerful                                               m
+new means of mechanizing a proof of UC. It is now sufficient
+                                                                           ∀P . ∀A. ∃A. Behav(A ⊲⊳ JPK) = Behav(A ⊲⊳ P )
+to show that the compiler that translates F into π satisfies
+CRHC or, equivalently, preserves CH for polynomial-time              which is the definition of ⊢ J·K : RHC .
+programs. That is, it suffices to prove computational indis-
+                                                                       Similarly, we can instantiate ≡ with computational indistin-
+tinguishability between F and π, given the correct simula-
+                                                                     guishability (≅), interpreting traces as families of distributions
+tor S . These proofs can be carried out using existing tools.
+                                                                     and restricting to poly-time environments, Q with poly , and
+We will use C RYPTOV ERIF [13] and discuss alternatives in
+                                                                     Q with poly. Here PRHC (≅, poly, poly) says that source
+Section VII.
+                                                                     contexts must produce behavior indistinguishable from tar-
+  IV. G ENERALIZING E QUIVALENCES AND P REDICATES                    get contexts when considering only polynomial programs—
+                                                                     precisely CRHC .
+   In Sections III-A and III-B we modified RHC to obtain the
+computational analogue CRHC . Very little about that process,        Proposition 2 (PRHC expresses CRHC ).
+however, was specific to polynomial time or computational
+                                                                          ⊢ J·K : PRHC (≅, poly, poly ) ⇐⇒ ⊢ J·K : CRHC
+indistinguishability. Indeed, we can generalize nearly all of
+those modifications and achieve a far more general result that          We also generalize the result from Section III-C identi-
+subsumes our results from Section III, as well as the perfect        fying which hyperproperties CRHC compilers preserve. To
+security results of Patrignani et al. [43], and points to other      formalize this idea, we extend robust preservation of a specific
+notions of security as well.                                         class X of hyperproperties, due to Abate et al. [2], with
+   In Section III-A, we loosened the requirement of equality of      predicates in the same way that PRHC extends RHC , produc-
+behaviors to computational indistinguishability. This change         ing the following definition of predicate-robust hyperproperty
+required modifying the definition of traces to interpret a set       preservation (PRHP ).
+of traces as a family of probability distributions. To capture
+                                                                     Definition 8 (Predicate-Robust Hyperproperty Preservation).
+both the original equality view and this looser view, we can
+                                                                                                      def
+generalize to an arbitrary equivalence relation ≡ over sets of         ⊢ J·K : PRHP (X, Q, Q) = ∀H ∈ X. ∀P .
+traces, which we will apply to program behaviors.                               (∀A. Q (A ⊲⊳ P ) =⇒ Behav(A ⊲⊳ P ) ∈ H ) =⇒
+   In Section III-B, we expanded the robust compilation
+                                                                                (∀A. Q(A ⊲⊳ JP K) =⇒ Behav(A ⊲⊳ JP K) ∈ H )
+framework with polynomial-time predicates. We required that
+behaviors only be preserved for poly-time programs, though             That is, a PRHP (X, Q, Q) compiler is one where, for
+we restricted the existentially quantified source contexts to be     any hyperproperty H ∈ X, if a source program P produces
+only behaviors in H when restricting to source contexts that          Taking this view, the predicates Q and Q represent restric-
+satisfy Q, then the compiled program JPK must also produce         tions on the behavior of the protocols, ideal functionalities,
+only behaviors in H when considering only target contexts          attackers, and simulators, and the equivalence ≡ must specify
+satisfying Q.                                                      any restrictions on environments as well as how similar the
+   As with PRHC , this generalizes previous notions. It can        behaviors must be. Setting the predicates to True and ≡ to =,
+express robust preservation of all hyperproperties through         as we did above, yields that requirement that behaviors must
+PRHP(P(T), True, True), setting X to all hyperproperties           be identical, with no restriction on protocols, functionalities,
+and Q and Q to True to consider all contexts. It can               attackers, simulators, or environments. That definition corre-
+also express computationally-robust preservation of CH (Sec-       sponds precisely to perfect UC security (Definition 1). Since
+tion III-C), by setting X = CH and Q and Q to poly and             we have already shown the same assignments produce the
+poly , respectively.                                               definition of RHC , this correspondence immediately re-proves
+   Finally, we can relate PRHC and PRHP by defining the            the result of Patrignani et al. [43].
+class of hyperproperties that a PRHC compiler preserves in            Similarly, if we use poly and poly as predicates and
+terms of the equivalence ≡ and the predicates Q and Q. As in       computational indistinguishability, we recover a definition of
+Section III-C, we define the class of hyperproperties by the set   computational UC security (Definition 3), and immediately
+of functionalities F that a program securely emulates. Where       recover Theorem 2.
+CH (F ) is the set of behaviors computationally indistinguish-        We are not, however, limited to these two cases. For
+able from F , the general hyperproperty Hyp ≡,Q (F ) is the set    instance, consider using the trivial predicate True to leave
+of behaviors equivalent to F up to ≡ when considering only         protocols and attackers unrestricted, and instantiating ≡ with
+whole programs that satisfy predicate Q . Formally,                ∼
+                                                                   =, which leaves environments unrestricted but demands only
+                  def
+                                                                   indistinguishable behaviors. That is,
+    Hyp ≡,Q (F ) =
+                                                                                    T1 ∼
+                                                                                            def
+                                                                                       = T2 = ∀Z. T1 |Z ≈ T2 |Z
+         {T ∈ T | ∃S. Q (S ⊲⊳ F ) ∧ T ≡ Behav(S ⊲⊳ F )}
+                                                                   The result is not perfect UC security, as the behaviors may
+As with CH , we again define a class of hyperproperties as the     differ, but it is also not computational, as there is no restriction
+set of all of these hyperproperties:                               on the complexity of any component of the system. Instead,
+                        def
+         HypCls ≡,Q = {H | ∃F. H = Hyp ≡,Q (F )}.                  PRHC (∼   =, True, True) corresponds to a third version of UC
+                                                                   security: statistical UC security, where the distributions of
+   This is precisely the class we are looking for. When            behaviors must be statistically close, but not identical.
+using the same equivalence and the source-language predi-             There are also other indistinguishability notions that appear
+cate Q , predicate-robustly preserving this class is equivalent    in both the cryptography and language-based security litera-
+to predicate-robustly preserving behavior up to ≡.                 tures, and this result can connect them to each other. Examples
+                                                                   from the cryptographic domain include Rényi divergence [9],
+Theorem 3 (PRHC is PRHP ).                                         which is often used in lattice-based cryptography as it provides
+                                                                   a definition for when a search problem is computationally
+                   ⊢ J·K : PRHC (≡, Q, Q)
+                                                                   difficult, Kullback-Leibler divergence [39], which has been
+                               m                                   used to to simplify proofs relating to fundamental definitions
+              ⊢ J·K : PRHP(HypCls ≡,Q , Q, Q)                      like adversarial advantage, and more [e.g. 5].
+                                                                      In language-based security, properties like noninterfer-
+This theorem is verified in Isabelle/HOL (RHPXeqRRHC).             ence [28] and observational determinism [38, 47] are often de-
+  Note that, for all F , CH (F ) = Hyp ≅,poly (F ), meaning        fined using an equivalence that erases certain (secret) parts of
+CH = HypCls ≅,poly . Theorem 1 therefore follows as a special      the trace and demands the remaining (public) portion be iden-
+case of Theorem 3 using Proposition 2.                             tical [21, 48, 55]. Different variations of these equivalences
+                                                                   define different notions of noninterference (e.g., termination-
+A. Connecting to UC Security                                       sensitive or insensitive, timing sensitive, or constant time), or
+   One obvious question this generalization raises is: how         generalize to programs that include explicit declassifications
+do these generalized notions of RC correspond to UC se-            or endorsements [19, 49, 54]. Even other equivalence notions,
+curity? Recall that the definitional structure of UC security      like differential privacy [22], may be possible, particularly in
+is extremely similar to the structure of RHC (and CRHC             combination with existing language-based results [51, 52, 57].
+and PRHC ). UC security explicit demands environments that            By inserting these equivalences into our framework, we
+distinguish between executions while PRHC allows arbitrary         immediately obtain a formal definition for the security they
+equivalence relations over behaviors, but otherwise they are       define from both a robust compilation and a UC standpoint.
+nearly identical. Because the equivalence relation is arbitrary,   The result is a meaningful way to relate more cryptographic
+we can consider the class of equivalences that consider differ-    security to secure compilation and more language-based se-
+ences in behaviors between the source and target program for       curity to cryptography. Moreover, it provides the language
+each environment separately, as we did in Section III.             needed to combine the two. For example, some existing work
+                                                                Theorem 3
+                                 ⊢ J·K : PRHC (≡, Q, Q )                      ⊢ J·K : PRHP(HypCls ≡,Q , Q, Q)
+                                   Lemma 1                                                           Lemma 3
+                                                               Lemma 4
+                             ∀P . P ∈ Emul ≡,Q,Q (JP K)                   ∀P . Emul ≡,Q,Q (P ) ⊆ Emul ≡,Q,Q (JP K)
+                                             (a) Proof structure of Theorem 3 using arbitrary ≡, Q, and Q.
+
+                                                                        Theorem 2
+                                                        ≈
+                                             ∀P . JP K ⊢UC P                                ⊢ J·K : CRHC
+                                          Lemma 2                                                     Proposition 2
+                                                                         Lemma 1
+                                    ∀P . P ∈ Emul ≅,poly,poly (JP K)              ⊢ J·K : PRHC (≅, poly, poly)
+                                                            (b) Proof structure of Theorem 2.
+
+Fig. 1. Visual depiction of the proofs of our main theorems. We prove solid black implications directly, derive dotted the orange implication as a special
+case, and conclude dashed purple results.
+
+
+
+combines noninterference-style definitions with computational                    Moreover, Axioms 1 – 4 (Section III-D) directly connect this
+hardness [25, 26], and our work gives a way to situate those                  definition to UC-style semantics. For instance, the following
+equivalences more broadly points to ways to extend and                        results hold.
+expand them.
+                                                                              Lemma 2 (Emulation is UC).
+   Finally, the relation ≡ does not need to be an equivalence
+                                                                                               =
+relation. Our proofs demand only that it is reflexive and                                   π ⊢UC F ⇐⇒ F ∈ Emul =,True,True (π)
+transitive (i.e., a preorder), not symmetric. Indeed, instantiating                            ≈
+                                                                                            π ⊢UC F ⇐⇒ F ∈ Emul ≅,poly,poly (π)
+≡ with ⊆ produces a notion of behavioral refinement.
+                                                                                Lemmas 1 and 2 combine to provide direct proofs for the
+                       V. P ROOF A PPROACH                                    perfect security result of Patrignani et al. [43] and Theorem 2.
+                                                                                Emulation sets are also helpful in stating the class of
+   To prove Theorems 1 and 3, we develop an approach that                     hyperproperties a PRHC compiler preserves, making them
+connects directly to the definition of UC security, and allows                useful in the proof of Theorem 3. In particular, a program P ’s
+a simple and direct proof of Theorem 2. Extending it with the                 behavior is in Hyp ≡,Q ′ (F ) in any context satisfying predi-
+generalization in Section IV provides similar proof connecting                cate Q precisely when F ∈ Emul ≡,Q,Q ′ (P ). That is,
+RHC to perfect UC security, simplifying and clarifying the
+proof by contradiction of Patrignani et al. [43].                                   ∀A. Q(A ⊲⊳ P) =⇒ Behav(A ⊲⊳ P) ∈ Hyp ≡,Q (F )
+   Our proofs rely on the idea of an emulation set, which we                                             m
+denote Emul (P ), that represents the set of functionalities that                                 F ∈ Emul ≡,Q,Q (P)
+P securely emulates. As in Section IV, we use a completely                    Applying this insight to PRHP (Definition 8) yields the
+general definition of “securely emulates” and parameterize                    following result.
+Emul on an arbitrary equivalence ≡ and predicates Q and Q ′ .
+                                                                              Lemma 3 (Emululation specifies PRHP).
+                           def
+      Emul ≡,Q,Q ′ (P ) =
+                                                                                              ⊢ J·K : PRHP (HypCls ≡,Q , Q, Q)
+       {F | ∀A. Q (A ⊲⊳ P ) =⇒ ∃S. Q ′ (S ⊲⊳ F )
+                                                                                                               m
+                       ∧ Behav(A ⊲⊳ P ) ≡ Behav(S ⊲⊳ F )}.                                 ∀P . Emul ≡,Q,Q (P ) ⊆ Emul ≡,Q,Q (JPK)
+This definition follows a very similar structure to PRHC .                      The final hurdle to proving Theorem 3 is to notice that this
+Setting ≡ to set equality (=) and both predicates to True                     subset relationship is equivalent to containment.
+again yields a definition of perfect emulation, while setting ≡
+                                                                              Lemma 4 (Emulation Subset is Containment).
+to computational indistinguishability (≅) and the predicates to
+poly produces a definition of computational emulation. The                    F ∈ Emul ≡,Q,Q (P) ⇐⇒ Emul ≡,Q,Q (F ) ⊆ Emul ≡,Q,Q (P)
+structure also allows for a very simple proof that a compiler                   This result relies on the reflexivity of ≡ to show that
+is PRHC if and only if all compiled programs securely                         F ∈ Emul ≡,Q,Q (F ), and the transitivity of ≡ to show that
+emulate their source program (using the same predicates and                   anything that F emulates P also emulates. Notably, there is
+equivalence).                                                                 no need for ≡ to be symmetric.
+Lemma 1 (Emulation is PRHC ).                                                   The proofs of all theorems in Sections III and IV, which are
+                                                                              verified in Isabelle/HOL, follow directly from the combination
+ ⊢ J·K : PRHC (≡, Q, Q) ⇐⇒ ∀P . P ∈ Emul ≡,Q,Q (JP K)                         of these four lemmas using the structures shown in Figure 1.
+   VI. A M ECHANIZED PROOF OF UC FOR W IREGUARD                     the attacker can use n different copies of the oracle, each with
+                                                                    their own state.
+   We now describe how to leverage the results from Sec-
+tion III into a mechanized proof of UC security for the
+                                                                    B. The Wireguard Protocol
+Wireguard protocol using the C RYPTOV ERIF tool. In particu-
+lar, Theorem 2 means we can prove UC security by proving               Wireguard is a widely-used protocol for establishing a
+that a compiler that transforms the Wireguard ideal function-       VPN tunnel between two remote hosts in order to securely
+ality into the Wireguard protocol satisfies CRHC . We encode        encapsulate all Internet Protocol (IP) traffic between them. It
+our notion of whole programs as C RYPTOV ERIF games, and            consists of two parts: a key exchange and a record subprotocol.
+since C RYPTOV ERIF is designed to analyze computational            To establish a tunnel, the key exchange subprotocol requires
+equivalence ≅ between two games, we can use it to verify            the IP address and long-term public key for the remote host.
+CRHC .                                                              It then uses an instantiation of the Noise framework for
+   We begin with some background on C RYPTOV ERIF and               key exchange with fast, modern cryptographic primitives, like
+Wireguard (Sections VI-A and VI-B) before describing how            Curve25519 and BLAKE2, to establishes two ephemeral keys
+we model Wireguard in C RYPTOV ERIF (Section VI-C). Fi-             (one per direction) that parties use to encrypt and authenticated
+nally, we discuss the computational indistinguishability proof      messages in the subsequent record subprotocol. The record
+itself and limitations (Sections VI-D and VI-E).                    subprotocol can then use these symmetric keys to construct a
+                                                                    secure channel.
+A. The C RYPTOV ERIF Tool                                              We verify a model of Wireguard introduced by Lipp
+                                                                    et al. [37], which is already encoded in C RYPTOV ERIF.1 For
+   C RYPTOV ERIF is a mechanized prover for properties of
+                                                                    the sake of simplicity, we focus on the 2-party version of
+security protocols in the computational model. A C RYP -
+                                                                    Wireguard, with a sender and receiver who are both honest
+TOV ERIF proof is a polynomial-length sequence of crypto-
+                                                                    throughout the run.
+graphic games—where an active attacker attempts to break
+some security property and is allowed to run multiple ses-             We also only model the record protocol, where payloads are
+sions in parallel. Each game is represented in a language           transmitted after parties have agreed on a common, ephemeral
+with a probabilistic semantics where all computations run in        symmetric session key. The compositional nature of UC secu-
+polynomial time, and the goal is to show that each game             rity means that one could obtain a proof of the full Wireguard
+is indistinguishable from the next. C RYPTOV ERIF proofs            protocol simply by combining our proof with a corresponding
+are thus proofs of computational indistinguishability between       proof for the key exchange protocol, which we leave for future
+two games, one of which is generally trivially secure (e.g.,        work. We make this choice due to a conceptual challenge in
+distinguishing between two encryptions of 0).                       proving the security of key exchange. The key confirmation
+                                                                    message in Wireguard—as well as other secure channel proto-
+   We use the game language of C RYPTOV ERIF as an instance
+                                                                    cols like TLS—leaks a very small amount of information about
+for both the source and target languages of the compilers
+                                                                    the key, complicating composition arguments. Fischlin et al.
+described in Section III. Those languages require semantics
+                                                                    [24] discuss this problem and provide a (non-composable)
+that are probabilistic and where processes run in polynomial
+                                                                    solution, while the model of Lipp et al. [37, p. 242] omits
+time, assumptions which C RYPTOV ERIF satisfies. Our strategy
+                                                                    this message altogether.
+is to encode both the ideal functionality and the protocol as
+games, and prove that they are computationally indistinguish-          Finally, we introduce a modification to the original model.
+able. This, in turn, shows that the compiler that translates the    As an argument to the protocol, Lipp et al. [37] include a secret
+functionality into the protocol (and does nothing else) satisfies   bit that the two parties share. Before sending a payload, a party
+CRHC , and thus the protocol UC-realises the functionality.         waits for two messages from the adversary and uses the secret
+                                                                    bit to determine which one to transmit. The attacker must then
+   C RYPTOV ERIF provides two input languages, channels and
+                                                                    determine the value of this secret bit. This modeling choice
+oracles. We use the oracle language, as it is closer to C RYP -
+                                                                    deviates from any actual Wireguard implementation, which
+TOV ERIF ’s internal representation and thus grants more flexi-
+                                                                    should not include this secret bit or a second payload. Instead,
+bility in the encoding. In this model, the parties to a protocol
+                                                                    a more faithful model would take this direction from the
+are represented by oracles, which are simple probabilistic pro-
+                                                                    environment, not the adversary. To represent this more realistic
+grams with shared state. The adversary controls the network as
+                                                                    model, we build a simple model of communication between
+well as the scheduling of messages by invoking these oracles.
+                                                                    the Wireguard parties (sender and receiver), add a dummy
+An adversary invoking an oracle models sending a message to
+                                                                    adversary, and use the C RYPTOV ERIF attacker to model the
+a party and then receiving a response. This structure supports
+                                                                    environment. We then add functionality from Lipp et al.’s
+the attacker injecting messages—by invoking an oracle with
+                                                                    model in a piece-wise fashion until we have recovered the
+an input it generated—dropping messages—by declining to
+                                                                    full record protocol.
+send the output of one oracle as the input to another—or
+simply observing all network traffic. C RYPTOV ERIF models             1 They    provide several models. We build on a model
+parties that answer many requests in a uniform way, such as         in     which    long-term  keys can  be dynamically corrupted
+servers, by replicating an oracle: given some finite bound n,       (WG.25519.AB-BA.S_i_compr.S_r_compr.replay_prot.cv).
+C. Modeling Wireguard in C RYPTOV ERIF                              tive, this method is often preferred by cryptographers for its
+      Model Structure: Recall that C RYPTOV ERIF proves             simplicity, so we rely on the exposure of oracle states to model
+computational indistinguishability between two cryptographic        private communication between them. If oracles are replicated
+games, one representing the “real world,” which we denote           (as in the case here), their variables must be accessed as arrays.
+Ad ⊲⊳ PWG , and one representing the “ideal world,” which we        For instance, zm[simId] would access the variable zm defined
+denote SWG ⊲⊳ PWG . The real world consists of the sender and       on line 6 of the copy of the above Sim oracle with ID simId.
+the receiver (both in PWG ) and the dummy attacker (Ad ). The       Concretely, this means any oracle with the following code
+ideal world consists of the sender and receiver’s functionalities   snippet could access zm.
+(PWG ) and a simulator (SWG ) that we devise to carry out the           find simId <= n_M suchthat defined(zm[simId])
+UC proof. Both the real and the ideal worlds interact with the              then return(zm[simId]).
+same environment. In our model, the role of the environment         Here, the construct find ... suchthat non-deterministically
+is taken by the C RYPTOV ERIF attacker.                             sets such an index matching the specified requirements:
+      The Simulator: The simulator plays a key role in UC           simId ≤ n_M, and oracle simId has initialized zm.
+proofs, since it determines the success of the proof itself.           In the real world, the only necessary private communication
+Our simulator is inspired by simulators used in UC proofs of        is between the protocol (PWG ) and the dummy attacker (Ad ).
+encryption functionalities. As the simulator performs multiple      Since the dummy attacker Ad is just a proxy that forwards
+input/output steps, it is split over multiple oracles. The oracle   all messages between PWG and the environment, represented
+below is the part of the simulator that receives a cyphertext       by the C RYPTOV ERIF attacker, we elide the dummy attacker
+from the environment and sends it to the functionality.             and have PWG communicate directly with the environment
+                                                                    / C RYPTOV ERIF attacker. For example, the Sender directly
+      1 let Sim() =
+      2  foreach i_Nrr <= n_M do (                                  returns to the C RYPTOV ERIF attacker in Oe2S, without calling
+      3   Oe2aR (xc:bitstring, xn:counter_t) :=                     the dummy attacker.
+      4     get rcvd_counters(xn) in yield
+      5     else insert rcvd_counters(xn);                           1 let Sender(ks:key_t) =
+      6          get simtable(zm,tc,tn)                              2   foreach i_Nis <= n_M do (
+      7          suchthat tc = xc && tn = xn                         3      Oe2S(m:bitstring, counter:counter_t) :=
+      8          in run SenderFSim(xn)).                             4        let preparemsgsucc(cipher_data:bitstring)
+                                                                     5            = prepare_msg(m, counter, ks)
+Line 2 creates nM instances of the simulator, indexed by             6        in return(cipher_data)
+iN rr . Line 3 declares nM many instances of the Oe2aR oracle        7   ).
+(Oracles modelling communication from the environment via              The ideal world requires more interesting private com-
+the dummy attacker to the Receiver), which together constitute      munication between the ideal functionality (PWG ) and the
+the simulator. Each Oe2aR instance receives a message con-          simulator (SWG ). However, SWG is not stateless, so we need
+taining a bitstring xc and a counter xn from the environment.       to manually inline the receiving party where it is called. We
+Then it checks if the counter has been received in the past. If     carefully track names to ensure that the receiving entity only
+it has, the simulator aborts (yield), otherwise it registers the    accesses information that would be passed by communication.
+counter. Finally, each oracle instance checks if it has already     Unfortunately, this manual encoding can be error prone, since
+received the bitstring with the same counter, and continues as      C RYPTOV ERIF allows the receiver to access any part of the
+SenderFsim, which forwards the bitstring to the sender part of
+                                                                    sender state without a warning.
+the functionality.                                                     To illustrate this private communication, see the following
+      Using C RYPTOV ERIF Oracles: We use the oracle inter-         SenderFSim oracle, which accesses the variables m, counter,
+face of C RYPTOV ERIF to describe both games and the attacker.      and c that are defined outside of its scope, in the oracle Sender
+Concretely, each C RYPTOV ERIF game provides the attacker           above.
+with a set of oracles that can be queried by the attacker.
+C RYPTOV ERIF does not provide private communication (e.g.,               1 let SenderFSim(xn:counter_t) =
+private channels), and this affects both the protocols and the            2   find senderid <= n_M
+                                                                          3     suchthat defined(m[senderid],
+various parties encoded in the real and ideal games.                      4                      counter[senderid],
+      Modeling Private Communication: Private communica-                  5                      c[senderid])
+tion between protocol/functionality and attacker/simulator is             6       && counter[senderid] = xn
+                                                                          7   then return(m[senderid]).
+necessary to ensure that the trace does not immediately reveal
+whether a run is in the real world or ideal world. In a process     SenderFSim constitutes the adversary/simulator interface of the
+calculus, private channels can serve this purpose [12, 20]. In      sender part of the functionality (whereas Sender constitutes
+a stateful language, shared state is sufficient, but it requires    the environment interface and sets m). Because we model
+proper encoding [10, 44]. C RYPTOV ERIF does not provide            multiple sessions of the overall protocol running in parallel,
+private communication natively, so we must encode it.               the simulator may receive an out-of-order message from the
+   Oracles are allowed to share state and access each others        environment, so the simulator needs to identify the correct
+variables directly. While unusual from a semantics perspec-         session of the functionality. It does so by providing the
+(public) counter xn, which SenderFSim uses to search the           commitment protocols [16, 36] are UC secure in the static as
+correct (internal) session identifier. First, the functionality    well as in the dynamic corruption cases.
+finds the session, identified via senderid, that emitted the
+cyphertext. The functionality searches for a session that (a) is   A. Universally Composable Cryptographic Models
+terminated, i.e., one where m[senderid], Fcounter[senderid            Universal composability [16] extended simulated-based no-
+] and c[senderid]) are defined, and (b) where the oracle’s         tions of correctness and privacy for multi-party computa-
+counter Fcounter[senderid] matches the counter xn received         tion [29] to the interactive case, additionally ensuring that
+from the simulator. Up to now, we have simply encoded that         security guarantees are preserved when a protocol is used
+the functionality, after producing its output to the simulator,    as a subroutine within a larger protocol. Many competing
+waits for another message that it matches against xn; this is      frameworks [7, 15, 30, 35, 53] followed to improve on
+necessary because oracles can only produce one output per          perceived inadequacies in the model or to correct subtle errors
+input. Finally, the functionality returns the message of the       in the proofs. Currently, the original UC framework is in
+session now identified: m[senderid].                               its sixth version. A common point of contention is how to
+   The final model is around 200 lines of C RYPTOV ERIF code.      define polynomial runtime in a reactive system. Hofheinz
+                                                                   et al. [31] explain the problem in great detail and propose a
+D. Computational Indistinguishability Proof                        solution that is (conceptually) reflected in all these frameworks
+   We prove our two models (real and ideal) are computation-       [15, 16, 30, 35, 53], at least in their latest versions. Our abstract
+ally indistinguishable through a series of eight C RYPTOV ERIF     poly-time predicate over attacker-protocol combinations (see
+games that the tool does not find automatically. Two of            Section III) can capture the poly-time notions in each of them.
+those games are cryptographic reductions, while the others are        These frameworks define UC bottom-up, fixing a plethora of
+perfect equivalences. We guide C RYPTOV ERIF to these games        technical details like the machine model (often interactive Tur-
+with a proof script consisting of seven steps.                     ing Machines), message formats, message and process sched-
+   The scrip starts from the real world Ad ⊲⊳ PWG . The first      ulers, virtualisation mechanisms, addressing mechanisms, etc.
+step applies the IND-CTXT assumption of the encryption             None of these details are at all similar to how networks and
+scheme, which guarantees ciphertext integrity. This check          programs operate in the real world, yet many of the differences
+matches a structural check in the ideal functionality and          between the frameworks boil down to technical minutia at very
+ensures that every received ciphertext was sent by the sender.     low-level of abstraction. This is reflected in the proofs, which
+The second step applies the IND-CPA assumption of the en-          are as hard to formalize as they are to write down.
+cryption scheme, which guarantees ciphertext confidentiality.         By contrast, our results operate at a much higher level of
+This step replaces message encryptions with encryptions of         abstraction. Patrignani et al. [43] provide a high-level compo-
+zero. The other five steps consist of removing dead code,          sition proof for this model, which we verified in Isabelle/HOL
+inlining variables, and minimally modifying code structure to      is not impacted by any of our modifications (composition).
+produce exactly the ideal world SWG ⊲⊳ PWG .                       Indeed, that result relies on a small set of assumptions [43,
+                                                                   Axioms 5 to 7] that most likely hold for any of the frameworks
+E. Discussion                                                      discussed above.
+   The lack of private communication such as private channels         Canetti, Stoughton, and Varia [18] confirmed these is-
+led us to use cross-oracle state sharing to transfer information   sues, when they mechanized parts of UC in EasyCrypt [10],
+between oracles and to inline parties where they are called.       lamenting that “despite the relative simplicity [of their case
+This is a manual process that is highly prone to encoding          studies], [proving UC] took an immense amount of work.”
+errors, and we believe adding private channels to C RYP -          It is thus unsurprising that other attempts to mechanize the
+TOV ERIF would mitigate this issue. Indeed, this feature seems     concept [4, 11, 36] avoid this technical baggage and build their
+available internally, but we confirmed through the manual and      frameworks on formal languages that provide a much higher
+communication with the maintainers that is is not exposed to       degree of abstraction. Still, all these frameworks perceive UC
+the user. In the long term, the addition of a module system        as a property between programs written in one and the same
+that allows for compositional proofs might be even better,         language. With Theorem 2, one can use RC as a tool to
+as it could syntactically ensure that composition is correctly     transfer such properties across language boundaries.
+encoded, for example according to Patrignani et al. [43, Axiom
+5 to 7]. In addition, such a system could easily validate that     B. Alternative Tools for C RYPTOV ERIF
+states are properly encapsulated, e.g., that simulator oracles        We verified our case study in C RYPTOV ERIF, but there are
+cannot directly access the state of the functionality.             a variety of other tools for cryptographic verification.
+                                                                      EasyCrypt [23] is a stand-alone theorem prover with focus
+                    VII. R ELATED W ORK                            on cryptographic primitives and small protocols. It reasons
+  The most closely-related work is that of Patrignani et al.       at at a code level using probabilistic relational Hoare logic
+[43], which highlights the UC–RC connection but does not           and external SMT solvers. There are also various embeddings
+broach the topic of computational indistinguishability. The        of probabilistic languages in general-purpose theorem provers
+authors use the connection to mechanize the proof that 1-bit       like CryptHOL [11] and FCF [44]. They all require most of
+the proof to be written out, although some automated proof           the connection further to arbitrary indistinguishability relations
+tactics can help with simple steps.                                  and predicates over programs. We showcased the benefits of
+   Squirrel [8] is a protocol-specific prover for computational      this expanded connection by using C RYPTOV ERIF, a tool
+indistinguishability based on a computationally-sound attacker       for proving computational indistinguishability, to mechanize
+model that can be symbolically reasoned about. In contrast           a proof of UC security for the Wireguard protocol.
+to C RYPTOV ERIF and EasyCrypt, which focus on program                  These results let us conclude that C RYPTOV ERIF can be
+transformations to deduce equivalences, Squirrel’s reasoning         used to modularize cryptographic proofs, which are currently
+focusses on (symbolic) traces. Currently Squirrel proofs are         very monolithic. We believe our demonstrated connections will
+as detailed as proofs in EasyCrypt and similar tools, though         extend similar benefits to other tools, though we leave this
+the project aims to reduce the complexity.                           investigation for future work.
+   Only EasyCrypt has previously been used for UC-style                 Additionally, there exists a compiler from C RYPTOV ERIF
+proofs [18]. Leveraging our results, we were able to produce a       into OCaml [14] that the authors proved, already in 2013,
+proof in C RYPTOV ERIF, which we chose because it promised           robustly preserves hyperproperties. Though the RC framework
+a higher degree of automation. Our case study confirms this          was only developed years later, the result is equivalent. Since
+promise, though manual guidance was still required.                  translating from the ideal functionality into the protocol is
+                                                                     a compiler, we can create a toolchain that translates C RYP -
+C. Language-Based Tools for Cryptographic Security                   TOV ERIF ideal functionalities all the way to executable OCaml
+   Several language-based tools exist with the goal of easing        protocols. This toolchain would combine properties of sequen-
+the process of developing and verifying secure cryptographic         tial composition of compilers [34] and our results to ensure
+protocols. Languages like Wysteria [45], Wys∗ [46] and Sym-          end-to-end guarantees of UC security for real-world executable
+phony [50] are designed to simplify the design and imple-            protocols. However, as we hint at the end of Section VI,
+mentation of secure distributed systems using cryptography.          a module system in C RYPTOV ERIF would streamline the
+Viaduct [6] and Jif/Split [56, 58] use security policies specified   creation of this toolchain, which we also leave for future work.
+by information flow labels to automatically partition programs,
+synthesizing uses of particular cryptographic primitives when                            ACKNOWLEDGMENTS
+necessary. These systems generally do not contain formal               Thanks to the anonymous reviewers for their insightful
+proofs of security, and we hope our results will make it easier      comments and suggestions. This work was partially supported
+to provide them with UC-style guarantees.                            by a gift from: the Italian Ministry of Education through
+   Security type systems can also help prove security. An            funding for the Rita Levi Montalcini grant (call of 2019).
+information-flow type system can ensure proper combination
+of specific cryptographic primitives [25, 26]. Owl [27] uses a                                R EFERENCES
+security type system with built-in primitives to enforce com-         [1] C. Abate, A. Azevedo de Amorim, R. Blanco, A. N.
+putational guarantees. While these builtins do not fit our goal           Evans, G. Fachini, C. Hriţcu, T. Laurent, B. C. Pierce,
+of abstracting (any) primitive via functionalities, they provide          M. Stronati, and A. Tolmach, “When good components
+a meaningful level of composition and are worth investigating.            go bad: Formally secure compilation despite dynamic
+In general, type-systems are fast and compositional.                      compromise,” in 25th ACM Conference on Computer and
+                                                                          Communication Security (CCS ’18), Oct. 2018.
+D. Robust Compilation                                                 [2] C. Abate, R. Blanco, D. Garg, C. Hriţcu, M. Patrignani,
+   Abate et al. [2] introduced a large hierarchy of RC criteria           and J. Thibault, “Journey beyond full abstraction: Explor-
+that have been used to reason about the security of compilers             ing robust property preservation for secure compilation,”
+that preserve memory safety [1, 41], absence of speculation               in 32nd IEEE Computer Security Foundations Symposium
+leaks [42], and cryptographic constant time [33, 34]. They                (CSF ’19), Jun. 2019.
+require source and target languages to have the same trace            [3] C. Abate, R. Blanco, Ş. Ciobâcă, A. Durier, D. Garg,
+model, though they show how to lift that limitation in subse-             C. Hriţcu, M. Patrignani, E. Tanter, and J. Thibault, “An
+quent work [3]. While we also require our languages to share              extended account of trace-relating compiler correctness
+a trace model, we make that choice for simplicity. The same               and secure compilation,” ACM Transactions on Program-
+approach should generalize our result as well. Interestingly,             ming Languages and Systems (TOPLAS), vol. 43, no. 4,
+lifting the same limitation in UC would let us formalize the              Nov. 2021.
+existence of two distinct, but related, environments, one in the      [4] C. Abate, P. G. Haselwarter, E. Rivas, A. V. Muylder,
+real and one in the ideal world. We are unaware of a notion               T. Winterhalter, C. Hriţcu, K. Maillard, and B. Spitters,
+of UC with distinct environments; after all, they are all just            “SSProve: A foundational framework for modular crypto-
+(interactive) Turing Machines.                                            graphic proofs in Coq,” in 34th IEEE Computer Security
+                                                                          Foundations Symposium (CSF ’21), Jun. 2021.
+                     VIII. C ONCLUSION                                [5] M. Abboud and T. Prest, “Cryptographic divergences:
+ In this work, we have generalized the connection between                 New techniques and new applications,” in Security and
+UC and RC to the computational setting, and then generalized              Cryptography for Networks (SCN), 2020.
+ [6] C. Acay, R. Recto, J. Gancher, A. C. Myers, and E. Shi,           information flow control,” in 24th ACM Conference on
+     “Viaduct: An extensible, optimizing compiler for secure           Computer and Communication Security (CCS ’17), Oct.
+     distributed programs,” in 42nd ACM SIGPLAN Confer-                2017.
+     ence on Programming Language Design and Implemen-            [20] V. Cheval, S. Kremer, and I. Rakotonirina, “DEEPSEC:
+     tation (PLDI ’21), Jun. 2021.                                     Deciding equivalence properties in security protocols
+ [7] M. Backes, B. Pfitzmann, and M. Waidner, “The reactive            theory and practice,” in 39th IEEE Symposium on Security
+     simulatability (RSIM) framework for asynchronous sys-             and Privacy (IEEE S&P ’18), May 2018.
+     tems,” Information and Computation, vol. 205, no. 12,        [21] M. R. Clarkson and F. B. Schneider, “Hyperproperties,”
+     pp. 1685–1720, Dec. 2007.                                         Journal of Computer Security (JCS), vol. 18, no. 6, pp.
+ [8] D. Baelde, S. Delaune, C. Jacomme, A. Koutsos, and                1157–1210, 2010.
+     S. Moreau, “An interactive prover for protocol verifica-     [22] C. Dwork, “Differential privacy,” in 33rd International
+     tion in the computational model,” in 42nd IEEE Sym-               Colloquium on Automata, Languages, and Programming
+     posium on Security and Privacy (IEEE S&P ’21), May                (ICALP ’06), Jul. 2006.
+     2021.                                                        [23] EasyCrypt Development Team, “EasyCrypt: Computer-
+ [9] S. Bai, T. Lepoint, A. Roux-Langlois, A. Sakzad,                  aided cryptographic proofs,” 2023. [Online]. Available:
+     D. Stehlé, and R. Steinfeld, “Improved security proofs in        https://github.com/EasyCrypt/easycrypt
+     lattice-based cryptography: Using the Rényi divergence      [24] M. Fischlin, F. Günther, B. Schmidt, and B. Warinschi,
+     rather than the statistical distance,” Journal of Cryptol-        “Key confirmation in key exchange: A formal treatment
+     ogy, vol. 31, no. 2, pp. 610–640, Apr. 2018.                      and implications for TLS 1.3,” in 37th IEEE Symposium
+[10] G. Barthe, B. Grégoire, S. Heraud, and S. Z. Béguelin,          on Security and Privacy (S&P ’16), May 2016.
+     “Computer-aided security proofs for the working cryp-        [25] C. Fournet and T. Rezk, “Cryptographically sound imple-
+     tographer,” in 31st International Cryptology Conference           mentations for typed information-flow security,” in 35th
+     (CRYPTO ’11), Aug. 2011.                                          ACM SIGPLAN Symposium on Principles of Program-
+[11] D. Basin, A. Lochbihler, U. Maurer, and S. R. Sefidgar,           ming Languages (POPL ’08), Jan. 2008.
+     “Abstract modeling of system communication in con-           [26] C. Fournet, J. Planul, and T. Rezk, “Information-flow
+     structive cryptography using CryptHOL,” in 34th IEEE              types for homomorphic encryptions,” in 18th ACM
+     Computer Security Foundations Symposium (CSF ’21),                Conference on Computer and Communication Security
+     Jun. 2021.                                                        (CCS ’11), Oct. 2011.
+[12] B. Blanchet, “An efficient cryptographic protocol verifier   [27] J. Gancher, S. Gibson, P. Singh, S. Dharanikota, and
+     based on prolog rules,” in 14th IEEE Computer Security            B. Parno, “Owl: Compositional verification of security
+     Foundations Workshop (CSFW ’01), Jun. 2001.                       protocols via an information-flow type system,” in 44th
+[13] ——, “CryptoVerif: Cryptographic protocol ver-                     IEEE Symposium on Security and Privacy (S&P ’23),
+     ifier    in    the    computational      model,”    2022,         May 2023.
+     accessed      May       2023.      [Online].    Available:   [28] J. A. Goguen and J. Meseguer, “Security policies and
+     https://bblanche.gitlabpages.inria.fr/CryptoVerif/                security models,” in 3rd IEEE Symposium on Security
+[14] D. Cadé and B. Blanchet, “Proved generation of imple-            and Privacy (S&P ’82), Apr. 1982.
+     mentations from computationally secure protocol speci-       [29] O. Goldreich, Foundations of Cryptography: Volume 1.
+     fications,” Journal of Computer Security (JCS), vol. 23,          New York, NY, USA: Cambridge University Press, 2006.
+     no. 3, pp. 331–402, 2015.                                    [30] D. Hofheinz and V. Shoup, “GNUC: A new univer-
+[15] J. Camenisch, S. Krenn, R. Küsters, and D. Rausch,               sal composability framework,” Journal of Cryptology,
+     “iUC: Flexible universal composability made simple,”              vol. 28, no. 3, pp. 423–508, Oct. 2015.
+     in 25th International Conference on The Theory and           [31] D. Hofheinz, D. Unruh, and J. Müller-Quade, “Polyno-
+     Application of Cryptology and Information Security (Asi-          mial runtime and composability,” Journal of Cryptology,
+     aCrypt ’19), Dec. 2019.                                           vol. 26, no. 3, pp. 375–441, Jul. 2013.
+[16] R. Canetti, “Universally composable security: a new          [32] Isabelle Development Team, “Isabelle/HOL proof
+     paradigm for cryptographic protocols,” in 42nd IEEE               assistant,” 2022, accessed May 2023. [Online]. Available:
+     Symposium on Foundations of Computer Science                      https://isabelle.in.tum.de/
+     (FOCS ’01), Oct. 2001.                                       [33] M. Kolosick, B. A. Shivakumar, S. Cauligi,
+[17] R. Canetti and M. Fischlin, “Universally composable               M. Patrignani, M. Vassena, R. Jhala, and
+     commitments,” in 21st International Cryptology Confer-            D. Stefan, “Robust constant-time cryptography,” in
+     ence (CRYPTO ’01), Aug. 2001.                                     6th Workshop on Principles of Secure Compilation
+[18] R. Canetti, A. Stoughton, and M. Varia, “EasyUC:                  (PriSC ’23), Jan. 2023. [Online]. Available:
+     Using EasyCrypt to mechanize proofs of universally                https://kolosick.com/robust-crypto-prisc.pdf
+     composable security,” in 32nd IEEE Computer Security         [34] M. Kruse, M. Backes, and M. Patrignani, “Secure
+     Foundations Symposium (CSF ’19), Jun. 2019.                       composition of robust and optimising compilers,” Tech.
+[19] E. Cecchetti, A. C. Myers, and O. Arden, “Nonmalleable            Rep. arXiv:2307.08681, Jun. 2023. [Online]. Available:
+     https://arxiv.org/abs/2307.08681                                     and M. Hicks, “Symphony: Expressive secure multiparty
+[35] R. Küsters, M. Tuengerthal, and D. Rausch, “The IITM                computation with coordination,” in 7th International Con-
+     model: a simple and expressive model for universal                   ference on the Art, Science, and Engineering of Program-
+     composability,” Journal of Cryptology, vol. 33, no. 4,               ming (〈Programming〉 ’23), Mar. 2023.
+     pp. 1461–1584, Jul. 2020.                                       [51] Y. Wang, Z. Ding, G. Wang, D. Kifer, and D. Zhang,
+[36] K. Liao, M. A. Hammer, and A. Miller, “ILC: A calculus               “Proving differential privacy with shadow execution,”
+     for composable, computational cryptography,” in 40th                 in 40th ACM SIGPLAN Conference on Programming
+     ACM SIGPLAN Conference on Programming Language                       Language Design and Implementation (PLDI ’19), Jun.
+     Design and Implementation (PLDI ’19), Jun. 2019.                     2019.
+[37] B. Lipp, B. Blanchet, and K. Bhargavan, “A mechanised           [52] Y. Wang, Z. Ding, Y. Xiao, D. Kifer, and D. Zhang,
+     cryptographic proof of the WireGuard virtual private                 “DPGen: Automated program synthesis for differential
+     network protocol,” in 4th IEEE European Symposium on                 privacy,” in 28th ACM Conference on Computer and
+     Security and Privacy (EuroS&P ’19), Jun. 2019.                       Communication Security (CCS ’21), Nov. 2021.
+[38] J. McLean, “Proving noninterference and functional cor-         [53] D. Wikström, “Simplified universal composability frame-
+     rectness using traces,” Journal of Computer Security                 work,” in 13th IACR Theory of Cryptography Conference
+     (JCS), vol. 1, no. 1, pp. 37–57, Jan. 1992.                          (TCC ’16), Jan. 2016.
+[39] D. Micciancio and M. Walter, “Gaussian sampling over            [54] S. Zdancewic and A. C. Myers, “Robust declassification,”
+     the integers: Efficient, generic, constant-time,” in 27th In-        in 14th IEEE Computer Security Foundations Workshop
+     ternational Cryptology Conference (CRYPTO ’07), Aug.                 (CSFW ’01), Jun. 2001.
+     2017.                                                           [55] ——, “Observational determinism for concurrent pro-
+[40] M. Patrignani, “Why should anyone use colours?                       gram security,” in 16th IEEE Computer Security Foun-
+     or, syntax highlighting beyond code snippets,”                       dations Workshop (CSFW ’03), Jun. 2003.
+     CoRR, vol. abs/2001.11334, 2020. [Online]. Available:           [56] S. Zdancewic, L. Zheng, N. Nystrom, and A. C. Myers,
+     https://arxiv.org/abs/2001.11334                                     “Secure program partitioning,” ACM Transactions on
+[41] M. Patrignani and D. Garg, “Robustly safe compila-                   Computer Systems (TOCS), vol. 20, no. 3, pp. 283–328,
+     tion, an efficient form of secure compilation,” ACM                  Aug. 2002.
+     Transactions on Programming Languages and Systems               [57] D. Zhang and D. Kifer, “LightDP: Towards automat-
+     (TOPLAS), vol. 43, no. 1, Feb. 2021.                                 ing differential privacy proofs,” in 44th ACM SIGPLAN
+[42] M. Patrignani and M. Guarnieri, “Exorcising spectres                 Symposium on Principles of Programming Languages
+     with secure compilers,” in 28th ACM Conference on                    (POPL ’17), Jan. 2017.
+     Computer and Communication Security (CCS ’21), Nov.             [58] L. Zheng, S. Chong, A. C. Myers, and S. Zdancewic,
+     2021.                                                                “Using replication and partitioning to build secure dis-
+[43] M. Patrignani, R. Künnemann, and R. S. Wahby,                       tributed systems,” in 24th IEEE Symposium on Security
+     “Universal composability is robust compilation,” Tech.               and Privacy (S&P ’04), May 2003.
+     Rep. arXiv:1910.08634, Dec. 2022. [Online]. Available:
+     https://arxiv.org/abs/1910.08634
+[44] A. Petcher and G. Morrisett, “The foundational cryptog-
+     raphy framework,” in 4th Principles of Security and Trust
+     (POST ’15), Apr. 2015.
+[45] A. Rastogi, M. A. Hammer, and M. Hicks, “Wyste-
+     ria: A programming language for generic, mixed-mode
+     multiparty computations,” in 35th IEEE Symposium on
+     Security and Privacy (S&P ’14), May 2014.
+[46] A. Rastogi, N. Swamy, and M. Hicks, “Wys∗ : A DSL for
+     verified secure multi-party computations,” in 8th Princi-
+     ples of Security and Trust (POST ’19), Apr. 2019.
+[47] A. Roscoe, “CSP and determinism in security mod-
+     elling,” in 16th IEEE Symposium on Security and Privacy
+     (S&P ’95), May 1995.
+[48] A. Sabelfeld and A. C. Myers, “Language-based
+     information-flow security,” IEEE Journal on Selected
+     Areas in Communications, vol. 21, no. 1, pp. 5–19, Jan.
+     2003.
+[49] ——, “A model for delimited information release,” in In-
+     ternational Symposium on Software Security, Nov. 2003.
+[50] I. Sweet, D. Darais, D. Heath, R. Estes, W. Harris,
+

@@ -1,0 +1,506 @@
+# Random systems as a UC setup
+
+Plan, 2026-10-09.  Design only: nothing here was typechecked; every claim about a module that
+does not exist yet is a design claim.  It refines `docs/uc-setup-landscape.md` §4 (random
+systems) and corrects its full-abstraction remark (§5.3).
+
+## 1. Summary
+
+**RS** `= quotient 𝔾ᵒ congᴿ`: protocol-rewrite's machine category (`UC/Model/Seal.agda:41-43`)
+with the same objects, machines, G-composition and ⊎-tensor, but hom equality *behavioural* —
+`_≈ᴿ_`: every `Strategy.Strat` distinguisher has advantage 0 (maurer2002 Defs 9–10) — instead of
+simulation (`Machines/Sim.agda:_≈ᴹ_`); tests are `ℰᵒ` descended along the quotient.
+**Morphisms:** `rewrite⇒RS : protocol-rewrite → RS` is a `StdUCMorphism` (identity on objects,
+machines and tests); none back.  ITM, IPDL and machine-category (deterministic fragment) land in
+RS; symbolic does not, and nothing leaves RS for causal boxes.  **Hard part:** congruence of
+`_≈ᴿ_` for G-composition (maurer2002 Lemmas 4(i), 5(ii)), by absorbing contexts into truncated
+distinguishers.  **Full abstraction:** `ℰᵒ`'s bare kernel `≈ℰ` is not behavioural equality
+(counterexample; `ℰᵒ` is not `GradeStable`); its U-kernel `≈ᵁ` is (planned proof).
+
+## 2. The source model
+
+**Systems, equality.** An (X,Y)-random automaton (maurer2002 Def 2) is a state machine
+`fᵢ : X × R → Y` with a distribution over randomness and initial state; its random system (Def 3)
+is the sequence of conditionals `p_{Yᵢ|XⁱYⁱ⁻¹}`, and `F ≡ G` iff these agree wherever defined, or
+equivalently (Def 3, fn. 6) iff the products `p_{Yⁱ|Xⁱ}` agree for all i.  Query types join into
+one alphabet (remark after Def 3), so a G-hom `A ⇒ B` is a `(Pos A ⊎ Neg B, Neg A ⊎ Pos B)`-system,
+as in lochbihler2019cc §IV.  `Machines/Core.agda:Machine` (state, effectful `point`, step in
+Kl(Dₚ)) is bonchidilavore2025 §3.1's effectful machine, `_≈ᴹ_` its bisimilarity (Def 3.6:
+connectedness by homomorphisms, ours pure).  Maurer's systems are total; ours may diverge, like
+CryptHOL's sub-probabilistic resources (lochbihler2019cc fn. 1).
+
+**Composition, tensor.** Cascade `FG` (maurer2002 Def 8) and invocation `C(·)`, which calls `F`
+zero, one or several times per input (§3.3, Fig. 4); in constructive cryptography a cryptographic
+algebra ⟨Φ, Σ⟩: resources with parallel composition `||`, converters attached at an interface
+(`αⁱR`), converter composition `αβ` (maurer2011cc §4.3 Def 1).  Here both are G-composition,
+`composeᴳ f g = trace (α ∘ f ⊗ g ∘ γ)` (`GConstruction.agda:55-56`): an invocation whose
+ping-pong is an unguarded Elgot loop inside one activation (`Machines/Trace.agda:74-75`,
+`Dp/Iter.agda:iterₚ`).  `R₁ || R₂` routes queries by tag (lochbihler2019cc Def 2): `_⊗ᵉ_`
+(`Machines/Tensor.agda:98-99`), on G-homs `_⊗₁ᴳ_ = mid ∘ f ⊗ g ∘ mid` (`GConstructionMonoidal.agda:58-64`).
+
+**Distinguishers, advantage, equality.** A distinguisher for (X,Y)-systems is a (Y,X)-system with
+an initial query that outputs a bit after k queries (maurer2002 Def 9);
+`Δₖ(F,G) = max_D |P^{DF}(Eₖ) − P^{DG}(Eₖ)|` (Def 10); in CC `d(R,S) = Δ^𝒟(R,S) =
+sup_{D∈𝒟} Δ^D(R,S)` (maurer2011cc §4.5).  `Strategy.Strat` (`Strategy.agda:24-27`) is Def 9 with
+rational coins, `asks≤ k` the query bound.  Trace equivalence, defined by conditioning on observed
+outputs (lochbihler2019cc Def 5), holds iff `D ⊳ R₁ = D ⊳ R₂` for every distinguisher (Thm 2);
+bisimilar ⇒ trace equivalent (Cor 1), not conversely (Fig. 6); bonchidilavore2025 Thm 7.19:
+effectful streams coincide with causal processes, stochastic case included.
+
+**Composition theorems.** `F ≡ G ⇒ C(F) ≡ C(G)` (maurer2002 Lemma 4(i); proof: the joint law is
+the product of the conditionals of F and of C(·)); `Δₖ(C(F),C(G)) ≤ Δ_{m_C(k)}(F,G)` (Lemma
+5(ii); proof: "by simulating C(·) one can construct a distinguisher for F and G"); `Δ^𝒟` is
+compatible with `||` and converters when 𝒟 is closed under emulating converters and parallel
+resources (maurer2011cc Lemma 1; "non-expanding", maurerrenner2016 Def 2).
+
+## 3. The `StdUC` instantiation
+
+### 3.1 Decisions
+
+**Carrier: `Machine` with a coarser setoid, not a behavioural presentation.**  (1) Conditionals
+need conditioning on an observed output, i.e. division by a mass that in Dₚ is a lower real never
+formed (`Dp.agda:112-117`): Lochbihler's `trace` (Def 5) is not definable.  (2) Families
+`List X → Dₚ (List Y)` need a causality condition and a composition that *is* the adaptive product
+(below), and every 𝒢ₚᴹ law would be re-proved; effectful streams are a setoid too (dinaturality,
+bonchidilavore2025 §1.2), with free feedback (Thm 4.4), not the Elgot trace.  (3) No quotient types.
+
+**Setoid: adaptive.**
+
+| | definition | congruence for `∘ᴳ` | role |
+|---|---|---|---|
+| `_≈ᴮ_` (Def 3, fn. 6) | ∀ xs, `runᴸ f xs` and `runᴸ g xs` agree on every [0,1]-test | Lemma 4's product formula: pick the context's next query by an indicator on X, i.e. decidable equality on every message type (`Iface` fields are bare `Set`s) | derived |
+| **`_≈ᴿ_`** (Defs 9–10) | ∀ `d : Strat X Y`, `runˢ f d ∼ᵃ runˢ g d` | absorb the context into a truncated distinguisher; no decidability | **hom equality** |
+| `≈ᵁ` of `ℰᵒ` (grade unit) | ∀ Y, `T₁ Y f ≈ℰ T₁ Y g` | free (AbstractUC) | `= _≈ᴿ_`, planned (§4.2) |
+
+`origin/machine-category` hit the non-adaptive wall: its `Machine/Trace.agda` header records
+that `_∘ᵖ_` is not provably a congruence for trace equivalence.
+
+**Dₚ equality: `∼ᵃ`, not `_≈ₚ_`.** `_≈ₚ_` is cofinal domination with exact rational witnesses
+(`Dp.agda:427-431`, `LowerReal.agda:32-33`).  A rejection-sampled bit (⅓ true, ⅓ false, ⅓ retry,
+as a G-composite loop produces) has true-mass at most `½(1 − 3⁻ⁿ)` at depth n, never the ½ that
+`coinₚ` has at depth 2: one random system, two `_≈ₚ_`-classes.  (Per-activation `_≈ₚ_` equality
+is `_≈ᴮ_` with `_≈ₚ_`: too fine, and non-adaptive.)  `∼ᵃ`, every positive slack of `_≈ₚ[_]_` on
+both verdict masses (`Dp/Advantage.agda:48-52`, `Approx/Error.agda:118-119`), is equality of
+lower-real masses, i.e. Δ = 0, and is what `ℰᵒ` reads (`UC/Model/Observation.agda:45`).  Cost:
+no slack-0 readout, hence no `QEvaluation` over 𝔾ᴿ (`Approx/Evaluation.agda:5-7, 43`) and no
+`UC.Family` tier on RS (a slack-closed space, `d ≈[ε] e := ∀ δ > 0, d ≈ₚ[ε + δ] e`, would
+restore it; not planned).
+
+### 3.2 The behavioural setoid (`UC/Machine/Behaviour.agda`)
+
+Beside `UC/Machine/Run.agda` (closed runs against `Strat`), reusing `UC.Machine.Approximationᴹ`.
+`runᴹ` stays: `runᴹFrom`/`resumeᴹ` are named in 11 modules.
+
+```agda
+{-# OPTIONS --safe --without-K --guardedness #-}
+
+module CategoricalCrypto.UC.Machine.Behaviour where
+-- imports: Dp{,.Advantage,.Coin,.Reasoning}, Approx.Error, Machines.{Base,Core,Pointwise,Sim},
+-- Protocol.Machine (Closed, runᴹ), Strategy, UC.Machine (Approximationᴹ)
+
+private
+  module Ap = AllPositive ℚ-refinement Approximationᴹ
+  module MC = Core (𝒱ₚ 0ℓ)
+  module MS = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
+  variable X Y : Set
+
+-- `Protocol.Machine.runᴹ` at any alphabet pair: a distinguisher (maurer2002 Def 9) run.
+module _ (M : MC.Machine X Y) where
+  resumeˢ : (MC.St M → Y → Dₚ Bool) → MC.St M × Y → Dₚ Bool
+  resumeˢ c (m′ , y) = c m′ y
+
+  runFromˢ : MC.St M → Strat X Y → Dₚ Bool
+  runFromˢ m (out b)    = returnₚ b
+  runFromˢ m (coin μ k) = coinₚ μ >>=ₚ λ b → runFromˢ m (k b)
+  runFromˢ m (ask x k)  = MC.step M (m , x) >>=ₚ resumeˢ λ m′ y → runFromˢ m′ (k y)
+
+  runˢ : Strat X Y → Dₚ Bool
+  runˢ d = MC.point (MC.state M) tt >>=ₚ λ m → runFromˢ m d
+
+-- Δ^D(f, g) = 0 for every distinguisher D (maurer2002 Def 10).
+_≈ᴿ_ : MC.Machine X Y → MC.Machine X Y → Set
+f ≈ᴿ g = (d : Strat X Y) → runˢ f d Ap.∼ᵃ runˢ g d
+
+≈ᴿ-isEquivalence : IsEquivalence (_≈ᴿ_ {X} {Y})      -- pointwise Ap.∼ᵃ-isEquivalence
+
+-- UC.Machine.Run.runFrom-ϕ at any X Y: induction on the strategy, one ask per activation
+runFromˢ-ϕ : {f g : MC.Machine X Y} (ϕ : MC.St f → MC.St g)
+           → ((p : MC.St f × X) → (MC.step f p >>=ₚ padϕ ϕ) ≈ₚ MC.step g (ϕ (proj₁ p) , proj₂ p))
+           → (m : MC.St f) (d : Strat X Y) → runFromˢ f m d ≈ₚ runFromˢ g (ϕ m) d
+runˢ-sim : {f g : MC.Machine X Y} → f MS.≲ g → (d : Strat X Y) → runˢ f d ≈ₚ runˢ g d
+
+≈ᴹ⇒≈ᴿ : {f g : MC.Machine X Y} → f MS.≈ᴹ g → f ≈ᴿ g
+≈ᴹ⇒≈ᴿ = EqC.fold ≈ᴿ-isEquivalence λ s d ε ε>0 → ≈ₚ[]-mono (ℚ.<⇒≤ ε>0) (≈ₚ⇒≈ₚ[0] (runˢ-sim s d))
+closeˢ : Strat (Neg B) (Pos B) → Strat (⊥ ⊎ Neg B) (⊥ ⊎ Pos B)
+closeˢ = mapStrat inj₂ [ ⊥-elim , id ]
+runᴹ≈runˢ : (M : Closed B) (d : Strat (Neg B) (Pos B)) → runᴹ M d ≈ₚ runˢ M (closeˢ d)
+
+-- Def 3, fn. 6: p_{Yⁱ|Xⁱ}, tested by [0,1]-valued events
+runᴸ : MC.Machine X Y → List X → Dₚ (List Y)
+_≈ᴮ_ : MC.Machine X Y → MC.Machine X Y → Set
+f ≈ᴮ g = (xs : List X) (P : List Y → ℚ) → (∀ ys → 0ℚ ℚ.≤ P ys × P ys ℚ.≤ 1ℚ)
+       → (ε : ℚ) → 0ℚ ℚ.< ε → Dom P ε (runᴸ f xs) (runᴸ g xs) × Dom P ε (runᴸ g xs) (runᴸ f xs)
+
+≈ᴿ⇒≈ᴮ : f ≈ᴿ g → f ≈ᴮ g             -- ask xs in turn, then coin with bias P ys: Pr[true] = E P
+det-≈ᴮ⇒≈ᴿ : Deterministic f → Deterministic g → f ≈ᴮ g → f ≈ᴿ g
+-- steps are `detₚ`; induction on d, transporting depth-n verdict masses as ℚ-valued tests of
+-- the answer, so no decidable equality is needed
+```
+
+**F-resp-≈, "simulation ⇒ behavioural equality".**  `runFromˢ-ϕ` is `UC/Machine/Run.agda:63-72`
+with `resumeᴹ` generalised: induction on the strategy, i.e. the activation count; each step law is
+`fnStep (θ-pure s) (θ-step s)` (pureness yields the state *function* ϕ), the start `point-sim`
+(`Run.agda:86-87`), the closure `EqC.fold`.  No new coinduction: the Dₚ side is `>>=ₚ-cong`
+(`Dp.agda:626-630`, via `bindᶠ`/`bindˣ`).  Same change: re-derive `Run.agda:runFrom-ϕ` from
+`runFromˢ-ϕ` and `runᴹ≈runˢ`, statement unchanged (`Run/Lax.agda`, `StateEvent.agda` use it).
+
+### 3.3 Congruence: Maurer's composition theorem, constructively
+
+`Strat` is well-founded while a context may loop or diverge, so the context is simulated up to a
+budget, spending a default verdict `v` on exhaustion.  That truncation scores 0 under
+`indᵇ (not v)` — the situation `Dp/Dominate.agda` (header, lines 3-7) was written for.
+
+```agda
+-- UC/Machine/Behaviour/Absorb.agda (--safe --without-K --guardedness)
+-- maurer2002 Lemma 5(ii), maurer2011cc Lemma 1: a context that a distinguisher can simulate
+-- preserves Δ = 0.
+record Absorbs {A B P Q : Set} (C : MC.Machine A B → MC.Machine P Q) : Set₁ where
+  field
+    ♯     : Strat P Q → ℕ → Bool → Strat A B          -- strategy, budget, verdict on exhaustion
+    depth : ℕ → ℕ
+    lower : (f : MC.Machine A B) (d : Strat P Q) (v : Bool) (k : ℕ)
+          → cum k (runˢ (C f) d) (indᵇ (not v)) ℚ.≤ cum (depth k) (runˢ f (♯ d k v)) (indᵇ (not v))
+    upper : (f : MC.Machine A B) (d : Strat P Q) (v : Bool) (k : ℕ)
+          → Cofinal (indᵇ (not v)) (indᵇ (not v)) (runˢ f (♯ d k v)) (runˢ (C f) d)
+
+absorbs⇒resp : Absorbs C → f ≈ᴿ f′ → C f ≈ᴿ C f′
+-- per verdict b, v := not b:  cum k (C f) ≤ cum (depth k) (f , ♯ d k v)            lower
+--   ≤ cum m (f′ , ♯ d k v) + ε   (hypothesis at strategy ♯ d k v)  ≤ cum m′ (C f′) + ε   upper
+
+absorbs-∘ : Absorbs C → Absorbs C′ → Absorbs (C ∘′ C′)
+-- ♯ d k v = 𝔹.♯ (𝔸.♯ d k v) (𝔸.depth k) v; depth = 𝔹.depth ∘′ 𝔸.depth;
+-- lower by ≤-trans (𝔸.lower …) (𝔹.lower …), upper by cofinal-trans (𝔹.upper …) (𝔸.upper …)
+wtᴰ : Dₚ R → Dist-ℚ Bool        -- (wt d true , true) ∷ (wt d false , false); wt-1, wt-nn
+-- a Dₚ computation inside a strategy; recursion on the budget, as Dp.flatten
+unfoldˢ : ℕ → Bool → Dₚ R → (ℕ → R → Strat Q′ A) → Strat Q′ A
+unfoldˢ zero    v d k = out v
+unfoldˢ (suc n) v d k = coin (wtᴰ d) λ c → [ k n , (λ d′ → unfoldˢ n v d′ k) ] (br d c)
+```
+
+The five instances simulate a fixed machine `h` beside or around `f`, or the loop:
+
+```agda
+-- UC/Machine/Behaviour/Congruence.agda; the trace instance in …/Behaviour/Trace.agda
+⊗ᵉ-absorbʳ : (h : MC.Machine C D) → Absorbs {A} {B} (h ⊗ᵉ_)
+⊗ᵉ-absorbˡ : (h : MC.Machine C D) → Absorbs {A} {B} (_⊗ᵉ h)
+∘ᴹ-absorbʳ : (h : MC.Machine B C) → Absorbs {A} {B} (h ∘ᴹ_)
+∘ᴹ-absorbˡ : (h : MC.Machine C A) → Absorbs {A} {B} (_∘ᴹ h)
+traceᴹ-absorb : Absorbs {A ⊎ X} {B ⊎ X} {A} {B} (traceᴹ A B X)
+
+-- ⊗ᵉ-absorbʳ h: h's state threads through the strategy, its steps become coins
+go : MC.St h → Strat (C ⊎ A) (D ⊎ B) → ℕ → Bool → Strat A B
+go s (out b)          n v = out b
+go s (coin μ k)       n v = coin μ λ c → go s (k c) n v
+go s (ask (inj₂ a) k) n v = ask a λ b → go s (k (inj₂ b)) n v
+go s (ask (inj₁ c) k) n v = unfoldˢ n v (MC.step h (s , c)) λ n′ (s′ , e) → go s′ (k (inj₁ e)) n′ v
+♯ d n v = unfoldˢ n v (MC.point (MC.state h) tt) λ n′ s → go s d n′ v
+
+-- traceᴹ-absorb: re-ask f's loop letters; the budget is per activation
+loop : ℕ → Bool → (B → Strat (A ⊎ X) (B ⊎ X)) → B ⊎ X → Strat (A ⊎ X) (B ⊎ X)
+loop n       v k (inj₁ b) = k b
+loop zero    v k (inj₂ x) = out v
+loop (suc n) v k (inj₂ x) = ask (inj₂ x) (loop n v k)
+♯ (out b)    n v = out b
+♯ (coin μ k) n v = coin μ λ c → ♯ (k c) n v
+♯ (ask a k)  n v = ask (inj₁ a) (loop n v λ b → ♯ (k b) n v)
+```
+
+`lower` holds with budget k because each Dₚ node of `h` and each `iterₚ` turn costs at least one
+depth level of the composite run (`Dp.agda:13-14`, `Dp/Iter.agda:37-38`); `depth` is linear (a
+`coinₚ` costs two levels, `Dp/Coin.agda:42-43`).  `upper` holds because every not-v verdict of the
+truncated run is a composite run with the same weights.  At the G-level (homs of `𝒢ₚ 0ℓ`, object
+implicits passed explicitly as `𝒫ᴵ` does, `UC/Machine.agda:65-69`):
+
+```agda
+composeᴳ-resp-≈ᴿ : f ≈ᴿ f′ → g ≈ᴿ g′ → (f G.∘ g) ≈ᴿ (f′ G.∘ g′)
+-- f G.∘ g ≈ᴹ traceᴹ _ _ _ (α ∘ᴹ (f ⊗ᵉ g) ∘ᴹ γ) by GConstruction.composeᴳ-raw, then ≈ᴹ⇒≈ᴿ;
+-- in f the context is traceᴹ ∘ (α ∘ᴹ_) ∘ (_∘ᴹ γ) ∘ (_⊗ᵉ g), absorbed by absorbs-∘; g alike
+⊗₁ᴳ-resp-≈ᴿ : f ≈ᴿ f′ → g ≈ᴿ g′ → (f ⊗₁ᴳ g) ≈ᴿ (f′ ⊗₁ᴳ g′)
+-- mid ∘ᴹ (f ⊗ᵉ g) ∘ᴹ mid, by a new ⊗₁ᴳ-raw beside ⊗₁ᴳ-resp-≈ (GConstructionMonoidal.agda:66-73)
+```
+
+### 3.4 Quotient, `𝔾ᴿ`, `ℰᴿ`
+
+Neither agda-categories 0.3.0 nor the tree has a quotient category; it is generic, beside
+`Monoidal/Construction/Thin.agda`.
+
+```agda
+{-# OPTIONS --safe --without-K #-}
+
+module Categories.Category.Monoidal.Construction.Quotient where
+-- imports: Categories.{Category,Category.Monoidal,Functor.Monoidal{,.Properties},Functor.Presheaf{,.Morphism}}
+
+record MonoidalCongruence {o ℓ e} (𝕄 : MonoidalCategory o ℓ e) (e′ : Level)
+       : Set (o ⊔ ℓ ⊔ e ⊔ suc e′) where
+  open MonoidalCategory 𝕄
+  field
+    _∼_      : {A B : Obj} → Rel (A ⇒ B) e′
+    ∼-equiv  : {A B : Obj} → IsEquivalence (_∼_ {A} {B})
+    ≈⇒∼      : {A B : Obj} {f g : A ⇒ B} → f ≈ g → f ∼ g
+    ∘-resp-∼ : {A B C : Obj} {f h : B ⇒ C} {g i : A ⇒ B} → f ∼ h → g ∼ i → (f ∘ g) ∼ (h ∘ i)
+    ⊗-resp-∼ : {A B C D : Obj} {f h : A ⇒ B} {g i : C ⇒ D} → f ∼ h → g ∼ i → (f ⊗₁ g) ∼ (h ⊗₁ i)
+
+module _ {o ℓ e e′} (𝕄 : MonoidalCategory o ℓ e) (Q : MonoidalCongruence 𝕄 e′) where
+  private module M = MonoidalCategory 𝕄
+  open MonoidalCongruence Q
+
+  quotient : MonoidalCategory o ℓ e′
+  quotient = record { U = 𝒬 ; monoidal = monoidalHelper 𝒬 record
+    { ⊗ = record { F₀ = M.⊗.F₀ ; F₁ = M.⊗.F₁ ; identity = ≈⇒∼ M.⊗.identity
+                 ; homomorphism = ≈⇒∼ M.⊗.homomorphism ; F-resp-≈ = λ (p , q) → ⊗-resp-∼ p q }
+    ; unit = M.unit ; unitorˡ = lift≅ M.unitorˡ ; unitorʳ = lift≅ M.unitorʳ
+    ; associator = lift≅ M.associator
+    ; unitorˡ-commute = ≈⇒∼ M.unitorˡ-commute-from ; unitorʳ-commute = ≈⇒∼ M.unitorʳ-commute-from
+    ; assoc-commute = ≈⇒∼ M.assoc-commute-from ; triangle = ≈⇒∼ M.triangle
+    ; pentagon = ≈⇒∼ M.pentagon } }
+    where
+    𝒬 : Category o ℓ e′
+    𝒬 = record { Obj = M.Obj ; _⇒_ = M._⇒_ ; _≈_ = _∼_ ; id = M.id ; _∘_ = M._∘_
+               ; assoc = ≈⇒∼ M.assoc ; sym-assoc = ≈⇒∼ M.sym-assoc ; identityˡ = ≈⇒∼ M.identityˡ
+               ; identityʳ = ≈⇒∼ M.identityʳ ; identity² = ≈⇒∼ M.identity²
+               ; equiv = ∼-equiv ; ∘-resp-≈ = ∘-resp-∼ }
+    lift≅ : {A B : M.Obj} → M.U [ A ≅ B ] → 𝒬 [ A ≅ B ]          -- same arrows, ≈⇒∼ on isoˡ/ʳ
+
+  -- identity on objects and morphisms; the laws are idF's, read through ≈⇒∼
+  quotientF : StrongMonoidalFunctor 𝕄 quotient
+  quotientF = record
+    { F = record { F₀ = λ A → A ; F₁ = λ f → f ; identity = ∼-refl ; homomorphism = ∼-refl
+                 ; F-resp-≈ = ≈⇒∼ }
+    ; isStrongMonoidal = record
+      { ε = ≅-refl ; ⊗-homo = idⁿ-components   -- η = M.id, commute = ≈⇒∼ id-comm-sym
+      ; associativity = ≈⇒∼ (IsStrongMonoidalFunctor.associativity (idF-IsStrongMonoidal 𝕄))
+      ; unitaryˡ = ≈⇒∼ (IsStrongMonoidalFunctor.unitaryˡ (idF-IsStrongMonoidal 𝕄))
+      ; unitaryʳ = ≈⇒∼ (IsStrongMonoidalFunctor.unitaryʳ (idF-IsStrongMonoidal 𝕄)) } }
+
+  -- a presheaf blind to ∼ descends with its tests untouched
+  descend : (P : Presheaf M.U (Setoids cs ℓs))
+          → ({A B : M.Obj} {f g : A M.⇒ B} → f ∼ g → Setoids cs ℓs [ Functor.₁ P f ≈ Functor.₁ P g ])
+          → Presheaf (MonoidalCategory.U quotient) (Setoids cs ℓs)
+  descend P resp = record { F₀ = P.₀ ; F₁ = P.₁ ; identity = P.identity
+                          ; homomorphism = P.homomorphism ; F-resp-≈ = resp }
+
+  descendᵛ : PresheafMorphism (StrongMonoidalFunctor.F quotientF) P (descend P resp)
+  descendᵛ = record { ν = ntHelper record
+    { η = λ _ → record { to = λ x → x ; cong = λ e → e } ; commute = λ _ → Setoid.refl _ } }
+```
+
+The congruence is built where the seal is transparent, as `UC/Model/Seal.agda` does (header,
+disciplines 1–4), so 𝔾ᴿ quotients the *sealed* 𝔾ᵒ.
+
+```agda
+-- UC/RandomSystems/Seal.agda (--safe --without-K --guardedness)
+opaque
+  unfolding 𝔾ᵒ unprocᵒ procᵒ
+
+  congᴿ : MonoidalCongruence 𝔾ᵒ 0ℓ
+  congᴿ = record
+    { _∼_ = λ {X} {Y} → _≈ᴿ_ {proj₁ X ⊎ proj₂ Y} {proj₂ X ⊎ proj₁ Y}
+    ; ∼-equiv = ≈ᴿ-isEquivalence ; ≈⇒∼ = ≈ᴹ⇒≈ᴿ
+    ; ∘-resp-∼ = composeᴳ-resp-≈ᴿ ; ⊗-resp-∼ = ⊗₁ᴳ-resp-≈ᴿ }
+
+  ∼ᴿ⇒Obs : {u v : 𝟘ᵒ G.⇒ Ωᵒ} → MonoidalCongruence._∼_ congᴿ u v → Obs u Ap.∼ᵃ Obs v
+  ∼ᴿ⇒Obs e ε pos = ≈ₚ[]-resp (≈sym (runᴹ≈runˢ _ _)) (≈sym (runᴹ≈runˢ _ _))
+                              (e (closeˢ (ask tt out)) ε pos)
+
+  -- one coercion per shape, both ways: ≈ᴿ⇒∼ᴿ (Proc, via procᵒ) and ∼ᴿ⇒≈ᴿ (via unprocᵒ)
+```
+
+```agda
+{-# OPTIONS --safe --without-K --guardedness #-}
+
+-- Random systems (maurer2002 Defs 3, 9, 10): 𝔾ᵒ with simulation coarsened to behavioural
+-- equality.  See docs/uc-setup-random-systems.md.
+
+open import Categories.Category.Instance.Setoids
+open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Construction.Quotient
+open import Categories.Functor.Presheaf
+open import Level
+
+-- `using`: UC.Model.Setup re-exports StdUC 𝔾ᵒ ℰᵒ, which clashes with the open below
+open import CategoricalCrypto.UC.Model.Seal using (𝔾ᵒ)
+open import CategoricalCrypto.UC.Model.Setup using (ℰᵒ)
+open import CategoricalCrypto.UC.RandomSystems.Seal
+import CategoricalCrypto.Standard2 as Std2
+
+module CategoricalCrypto.UC.RandomSystems.Setup where
+
+𝔾ᴿ : MonoidalCategory (suc 0ℓ) (suc 0ℓ) 0ℓ
+𝔾ᴿ = quotient 𝔾ᵒ congᴿ
+
+-- tests t : B ⇒ Ωᵒ, t ≋ t′ ⟺ ∀ m : 𝟘ᵒ ⇒ B, Obs (t ∘ m) ∼ᵃ Obs (t′ ∘ m): ℰᵒ's, by descent
+ℰᴿ : Presheaf (MonoidalCategory.U 𝔾ᴿ) (Setoids (suc 0ℓ) (suc 0ℓ))
+ℰᴿ = descend 𝔾ᵒ congᴿ ℰᵒ ∼ᴿ⇒≋     -- ∼ᴿ⇒≋ e m = ∼ᴿ⇒Obs (∘-resp-∼ (∘-resp-∼ ∼-refl e) ∼-refl)
+
+open Std2.StdUC 𝔾ᴿ ℰᴿ public
+```
+
+### 3.5 Levels, options, layout
+
+Objects, machines, `id = σ⇒`, `∘ = composeᴳ`, `⊗ = _⊗₁ᴳ_`, unit `(⊥ , ⊥)`, unitors and associator
+are 𝔾ᵒ's verbatim; only `_≈_` changes.  `_≈ᴿ_ : Set` (it quantifies over `Strat X Y : Set` and ℚ),
+so `𝔾ᴿ : MonoidalCategory (suc 0ℓ) (suc 0ℓ) 0ℓ` and `StdSetup : UCSetup (suc 0ℓ) (suc 0ℓ) 0ℓ
+(suc 0ℓ) (suc 0ℓ) 0ℓ (suc 0ℓ) (suc 0ℓ)`; `ℰᴿ` keeps `ℰᵒ`'s `cs = ℓs = suc 0ℓ`, as
+`UCSetupMorphism` requires (`UCSetup/Morphism.agda:25-26`), and `StdUCMorphism` allows `e = 0ℓ`
+against 𝔾ᵒ's `suc 0ℓ`.  OPTIONS: `--safe --without-K` for the generic `Quotient`;
+`--safe --without-K --guardedness` for `UC/Machine/Behaviour{,/Absorb,/Trace,/Congruence,/Finite}`
+and `UC/RandomSystems/{Seal,Setup,Morphism,FullAbstraction}` (Dₚ).  Layout: §6.
+
+## 4. Morphisms
+
+### 4.1 `protocol-rewrite → RS`
+
+`StdUCMorphism` applies: `quotientF` is strong monoidal on the nose.
+
+```agda
+-- UC/RandomSystems/Morphism.agda (--safe --without-K --guardedness)
+import CategoricalCrypto.UC.Model.Setup as Sᵒ
+import CategoricalCrypto.UC.RandomSystems.Setup as Sᴿ
+
+rewrite⇒RS : UCSetupMorphism Sᵒ.StdSetup Sᴿ.StdSetup
+rewrite⇒RS = StdUCMorphism 𝔾ᵒ Sᴿ.𝔾ᴿ ℰᵒ Sᴿ.ℰᴿ (quotientF 𝔾ᵒ congᴿ) (descendᵛ 𝔾ᵒ congᴿ ℰᵒ ∼ᴿ⇒≋)
+
+-- the payoff: a behavioural equality is a UC-equivalence of protocol-rewrite
+≈ᴿ⇒≈ᵁ : {f g : A Sᵒ.⇒ Sᵒ.T₀ X B} → MonoidalCongruence._∼_ congᴿ f g → f Sᵒ.≈ᵁ g
+≈ᴿ⇒≈ᵁ e Y = Transfer.mono⇒reflects-≈ℰ rewrite⇒RS (λ x → x) (Sᴿ.≈C⇒≈ᵁ e Y)
+
+≤UC-resp-≈ᴿ : f ∼ᴿ f′ → g ∼ᴿ g′ → f Sᵒ.≤UC g → f′ Sᵒ.≤UC g′    -- dummy-complete + ≈ᵁ-trans
+```
+
+| component | value | obligation | discharged by |
+|---|---|---|---|
+| `F` | `F₀ A = A`, `F₁ f = f` | F-resp-≈: `≈ᴹ ⇒ ∼ᴿ` | `≈ᴹ⇒≈ᴿ` (§3.2), as `congᴿ`'s `≈⇒∼` |
+| | | identity, homomorphism up to `∼ᴿ` | `∼-refl`: on the nose |
+| `Φ` | `StrongMonoidalFunctor.monoidalFunctor quotientF` | lax-monoidal laws | `≈⇒∼` of `idF-IsStrongMonoidal 𝔾ᵒ` |
+| `κ` | `Oplax.δ`, i.e. `id` | κ-return, κ-sub, κ-ext | `Standard2/Morphism.agda:43-55`, generic |
+| `ν` | `descendᵛ`, identity `Func`s | cong; naturality | `λ e → e` (same setoid `ℰᵒ.₀ A`); refl (both sides `t ∘ f`) |
+
+Reused: `StdUCMorphism`, `Oplax`, `idF-IsStrongMonoidal`, `Transfer.mono⇒reflects-≈ℰ`
+(`Abstract2/Morphism.agda:51-52`), `ℰᵒ`.  New: `quotient`, `quotientF`, `descend`, `descendᵛ`,
+`congᴿ`, `∼ᴿ⇒Obs`.  There is no morphism back: with `F = id`, F-resp-≈ would be `∼ᴿ ⇒ ≈ᴹ`
+(false, §4.2), and another F would need canonical representatives of behaviours, i.e. a quotient;
+RS-proved equalities reach protocol-rewrite through `≈ᴿ⇒≈ᵁ` and `≤UC-resp-≈ᴿ` instead.
+
+### 4.2 Full abstraction, and what `Mono` does and does not say
+
+`descendᵛ` is `Mono` and `Epi` (`Presheaf/Morphism.agda:47-52`) by `λ e → e` and `y , refl`: tests
+and `_≋_` are unchanged, so `Transfer.epi⇒preserves-≈ℰ`/`mono⇒reflects-≈ℰ` only say that F
+leaves the kernel alone.  Full abstraction is about *morphisms*: is `ℰᴿ`'s kernel (`ℰᵒ`'s `≈ℰ`)
+equal to `∼ᴿ`, i.e. is `ℰᴿ` `Faithful` (`UCSetup.agda:149-151`)?
+
+| inclusion | status |
+|---|---|
+| `∼ᴿ ⊆ ≈ℰ` (soundness) | holds: it is `ℰᴿ`'s `F-resp-≈` |
+| `≈ℰ ⊆ ∼ᴿ` | **false** (§5.3); so `ℰᴿ` is not faithful, and neither RS nor 𝔾ᵒ is `GradeStable` (same `T₁`, same `≈ℰ`) |
+| `≈ᵁ` (grade unit) `⊆ ∼ᴿ` | expected, planned: ancilla `Y = Neg A ⇿ Pos A`, closure `cup : 𝟘ᵒ ⇒ Y ⊗ A` forwarding, test `tstᵈ : Y ⊗ B ⇒ Ωᵒ` running `d`; adequacy `Obs (tstᵈ ∘ T₁ Y f ∘ cup) ∼ᵃ runˢ f d` by `Absorbs` with the trivial outer strategy.  With `≈ᴿ⇒≈ᵁ`: **`∼ᴿ = ≈ᵁ`** |
+| `≈ᴮ ⊆ ∼ᴿ` (Def 3 ⇒ adaptive) | classical (lochbihler2019cc Thm 2); constructive for deterministic machines (`det-≈ᴮ⇒≈ᴿ`) and finite input alphabets with decidable equality (`≈ᴮ⇒≈ᴿ-fin`: indicator decomposition of the strategy's next query, `cum-add`, `cum-*ₗ`); open for bare `Set`s |
+| `∼ᴿ ⊆ ≈ᴹ` | false (lazy vs eager sampling; lochbihler2019cc Fig. 6) |
+
+To make `ℰᴿ` faithful, replace its tests by ancilla-closed pairs `(Y , t : Y ⊗ B ⇒ Ωᵒ)` as
+machine-iso does (`Machine/UC.agda:14-19`): the kernel becomes `≈ᵁ = ∼ᴿ`, `GradeStable` is
+hypothesis-free, and ν (`t ↦ (unit , t)`) stays `Mono` but stops being `Epi`.  Optional.
+
+### 4.3 Other setups
+
+- **ITM → RS** (`docs/uc-setup-itm.md`): `composeᵁ rewrite⇒RS itm⇒prot`; nothing on this side.
+- **machine-iso → RS**: through protocol-rewrite after landscape §2's three changes, by `composeᵁ`.
+- **IPDL → RS** (`docs/uc-setup-ipdl.md`): strong monoidal (⊎ both sides).  RS provides `∼ᴿ`, the
+  `Absorbs` congruences (IPDL's composition rules), `≈ᴹ⇒≈ᴿ`, `≈ᴮ⇒≈ᴿ-fin` (IPDL's value types are
+  finite, so axioms may be checked non-adaptively), `≈ᴿ⇒≈ᵁ`.  `≈_ε` with ε > 0 does not land here.
+- **origin/machine-category → RS**: `≈ᵗ` is possibilistic, so only the deterministic fragment
+  maps (landscape §2 items 2–3: `detₚ` steps, silence ↦ `botₚ`; `Machineᵖ` already has `init`).
+  F-resp-≈: `≈ᵗ` gives equal deterministic runs, hence `≈ᴮ`, hence `det-≈ᴮ⇒≈ᴿ`, with no
+  decidable equality.  Reflection (`∼ᴿ ⇒ ≈ᵗ` on images) needs decidable equality on messages;
+  with it, RS supplies the `∘ᵖ`-congruence that branch could not prove.
+- **symbolic** (`docs/uc-setup-symbolic.md`): none.  Exact soundness fails once names exist (a
+  sampled nonce is guessed with positive probability, canettiherzog2006; backes2003library §5.3),
+  and negligible soundness needs a `QEvaluation`, which 𝔾ᴿ lacks (§3.1): that plan targets 𝔾ᵒ's tier.
+- **Causal boxes** (`docs/uc-setup-causal-boxes.md`): none, either direction (§4.1–4.2 there).
+- **SSP** (`docs/uc-setup-ssp.md`): none.  `morphism wireᵖ` is not the G-identity under any
+  distinguisher equality — a `Strat` may send an unsolicited answer (`Protocol/Machine.agda:14-19`).
+
+## 5. Hard parts and risks
+
+### 5.1 The absorption proofs
+
+Five `cum` sandwiches in the style of `Dp/Iter.agda` (`stepᵢ-boundA/B`, `Tᵗ`) and
+`Dp/Dominate.agda` (`Dom≤`, `dom≤⇒cofinal`, `cofinal-bind`).  The trace instance is the largest:
+`loop` is matched against `iterₚ`'s `stepᵢ` through the `returnₚ` junctions of Kleisli `traceStep`
+(`Machines/Base.agda:12-15`).  Estimate 1–1.5 kLOC, the trace instance in its own module
+(`Machines/G.agda:50-51`: a co-located trace proof measured 397 s against 7 s + 7 s).
+**Fallback** if it stalls: `congᴿ := uKernel` (`Standard2/UKernel`, planned in
+`docs/uc-setup-ssp.md`), the two-sided ancilla closure `∀ Y Z → (id {Y} ⊗₁ f) ⊗₁ id {Z} ≈ℰ
+(id {Y} ⊗₁ g) ⊗₁ id {Z}` (two-sided: 𝔾ᵒ exports no braiding), whose congruence is pre/post-
+composition plus associators.  Its level is `suc 0ℓ` (it quantifies over objects), so 𝔾ᴿ's `e`
+becomes `suc 0ℓ`; §3.4–§4.1 are otherwise unchanged, and the absorption lemmas move to the
+characterisation `≈ᵁ ⇔ ≈ᴿ`.
+
+### 5.2 Coinduction, quotients, K, performance
+
+`--guardedness` wherever Dₚ appears (infective).  No new coinductive definition: `Strat` is
+inductive, and `runˢ`, `unfoldˢ`, `♯`, `loop` recurse on the tree or the budget, as `Dp.flatten`
+does (`Dp.agda:208-209`); the landscape's "coinductively in Dₚ" is already inside `>>=ₚ-cong`.
+Setoids only: `MonoidalCongruence` + `quotient`; the presheaf descends rather than being rebuilt
+(a rebuilt `ℰᵒ` costs 80 s against 9 s, `UC/Model/Setup.agda:8-12`).  `--without-K` throughout;
+seal coercions are `refl` inside opaque blocks.  Performance: (i) 𝔾ᴿ quotients the sealed 𝔾ᵒ,
+so `open StdUC 𝔾ᴿ ℰᴿ` should sit at `UC.Model.Setup`'s floor — if not, seal 𝔾ᴿ as one bundle
+under Seal.agda's four disciplines; (ii) `congᴿ`'s body is checked with 𝔾ᵒ unfolded, so every
+`_≈ᴿ_` at G-homs takes explicit sum implicits (`UC/Machine.agda:65-69`: inference normalises 𝒢ₚ,
+10 GiB); (iii) `composeᴳ`, `_⊗₁ᴳ_` stay opaque, used only through `composeᴳ-raw` and `⊗₁ᴳ-raw`.
+
+### 5.3 Disagreements with the landscape
+
+1. "Whether `ℰᵒ`'s kernel already *is* behavioural equivalence is … whether this morphism is
+   `Mono`": `Mono` compares *tests* (`Presheaf/Morphism.agda:50-52`) and holds trivially for
+   ν = identity (§4.2).  And the kernel is **not** behavioural equivalence.  Counterexample at
+   `A = ⊤ ⇿ Bool`, `B = Bool ⇿ Cmd`, `Cmd = {go, reveal}`, state `Maybe Bool`:
+   - `revealᶠ`: on `go`, flip c, store c, answer c on B; on `reveal`, send c on A; on any
+     answer on A, `botₚ`.
+   - `revealᵍ`: the same, but `go` answers a fresh independent c′.
+
+   They are `≈ℰ`-equal: a closure `m : 𝟘ᵒ ⇒ A` hears c only after `reveal`, and every run that
+   reaches m diverges (m can only answer f, which then diverges), so the verdict depends on the
+   pre-reveal views, i.i.d. fair bits under both.  They are not `T₁ (Bool ⇿ ⊥)`-`≈ℰ`-equal: m
+   forwards c on the ancilla and t compares it with the bit it got (always equal under ᶠ, half
+   the time under ᵍ); the `Strat` `ask go; ask reveal; out (x == c)` separates them likewise.
+   Hence `¬ GradeStable` for `ℰᵒ`: `bridge` (`Abstract2.agda:124-125`) is unusable there, and an
+   `ROData` at `ℰᵒ` would have an unsatisfiable `stable` (`RandomOracle2.agda:73-74`); `≈ᴿ⇒≈ᵁ`
+   is the route to `≈ᵁ` artefacts instead.
+2. "tests unchanged": in carrier and `≋` yes, but the presheaf is re-based on the quotient with a
+   new `F-resp-≈` (`descend`); the term `ℰᵒ` cannot be reused as-is.
+3. "Coarser machine equalities go to random systems": yes, but `origin/machine-category`'s `≈ᵗ`
+   is possibilistic, so only its deterministic fragment maps (§4.3).
+
+## 6. Work breakdown
+
+| # | module(s) | content | acceptance |
+|---|---|---|---|
+| 1 | `Categories/Category/Monoidal/Construction/Quotient.agda` | `MonoidalCongruence`, `quotient`, `quotientF`, `descend`, `descendᵛ` (+ `Mono`, `Epi`) | green; exports `quotientF : StrongMonoidalFunctor 𝕄 (quotient 𝕄 Q)` |
+| 2 | `UC/Machine/Behaviour.agda`; `UC/Machine/Run.agda` | `runˢ`, `_≈ᴿ_`, `≈ᴿ-isEquivalence`, `runFromˢ-ϕ`, `≈ᴹ⇒≈ᴿ`, `runᴹ≈runˢ`, `runᴸ`, `_≈ᴮ_`, `≈ᴿ⇒≈ᴮ`, `det-≈ᴮ⇒≈ᴿ`; `runFrom-ϕ` re-derived | exports `≈ᴹ⇒≈ᴿ`; `Run`, `Run/Lax`, `StateEvent` green, statements unchanged |
+| 3 | `UC/Machine/Behaviour/Absorb.agda` | `Absorbs`, `absorbs⇒resp`, `absorbs-∘`, `wtᴰ`, `unfoldˢ` + its sandwich | exports `absorbs⇒resp` |
+| 4 | `…/Behaviour/Trace.agda`, `…/Behaviour/Congruence.agda`; `GConstructionMonoidal.agda` | five instances; `composeᴳ-resp-≈ᴿ`, `⊗₁ᴳ-resp-≈ᴿ`; `⊗₁ᴳ-raw` | exports both congruences; warm checks within rule-5 budgets |
+| 5 | `UC/RandomSystems/Seal.agda` | `congᴿ`, `∼ᴿ⇒Obs`, `≈ᴿ⇒∼ᴿ`, `∼ᴿ⇒≈ᴿ` | green |
+| 6 | `UC/RandomSystems/Setup.agda` | `𝔾ᴿ`, `ℰᴿ`, `open StdUC` | warm time comparable to `UC.Model.Setup` |
+| 7 | `UC/RandomSystems/Morphism.agda` | `rewrite⇒RS`, `≈ᴿ⇒≈ᵁ`, `≤UC-resp-≈ᴿ` | exports `rewrite⇒RS : UCSetupMorphism Sᵒ.StdSetup Sᴿ.StdSetup` |
+| 8 | `UC/RandomSystems/FullAbstraction.agda` | `¬gradeStableᵒ` (§5.3), `≈ᵁ⇒≈ᴿ` (§4.2) | exports both |
+| 9 | `UC/Machine/Behaviour/Finite.agda` | `≈ᴮ⇒≈ᴿ-fin` | exports it (IPDL's receiving end) |
+| 10 | `src/CategoricalCrypto.agda`; `docs/uc-setup-landscape.md` §4 | entry point; correct the `Mono` remark | closure check (`*Tests` + `CategoricalCrypto`); escape-hatch baseline unchanged |
+
+Order: 1 ∥ 2; 2 → 3 → … → 8; 9 after 2.  Steps 1–7 give setup and morphism, 8–9 the characterisation.
+
+## 7. Sources
+
+`maurer2002` (Defs 2, 3, 8–10; §3.3; Lemmas 4, 5), `maurer2011cc` (§4.3 Defs 1–2, §4.5 Lemma 1),
+`maurer2011` (cryptographic algebra, background), `maurerrenner2016` (Def 2), `lochbihler2019cc`
+(§IV, Def 2, §V Defs 4–5, Thm 1, Cor 1, Fig. 6, §VI Def 6, Thm 2), `bonchidilavore2025` (§3.1,
+Def 3.6, Thm 7.19); `portmann2017`, `gancher2023ipdl` only for §4.3.  All already archived.

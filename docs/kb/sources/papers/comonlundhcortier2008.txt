@@ -1,0 +1,2456 @@
+INSTITUT NATIONAL DE RECHERCHE EN INFORMATIQUE ET EN AUTOMATIQUE
+
+Computational soundness of observational
+equivalence
+Hubert Comon-Lundh — Véronique Cortier
+
+N° ???? — version 2
+initial version Avril 2008 — revised version Décembre 2008
+
+ISSN 0249-6399
+
+apport
+de recherche
+
+ISRN INRIA/RR--????--FR+ENG
+
+Thème SYM
+
+Computational soundness of observational equivalence
+Hubert Comon-Lundh∗ , Véronique Cortier†
+Thème SYM — Systèmes symboliques
+Équipes-Projets Cassis et Secsi
+Rapport de recherche n° ???? — version 2 — initial version Avril 2008 — revised version
+Décembre 2008 — 38 pages
+
+Abstract: Many security properties are naturally expressed as indistinguishability between two
+versions of a protocol. In this paper, we show that computational proofs of indistinguishability
+can be considerably simplified, for a class of processes that covers most existing protocols. More
+precisely, we show a soundness theorem, following the line of research launched by Abadi and
+Rogaway in 2000: computational indistinguishability in presence of an active attacker is implied
+by the observational equivalence of the corresponding symbolic processes.
+Up to our knowledge, the only result of this kind is Adão and Fournet [7], in which, however,
+cryptographic primitives are not part of the syntax. Otherwise, previous works either considered
+a passive attacker, or, in case of active attackers, proved a soundness result for properties that can
+be defined on execution traces of the protocol. Anonymity for instance does not fall in the latter
+category.
+We prove our result for symmetric encryption, but the same techniques can be applied to other security primitives such as signatures and public-key encryption. The proof requires the introduction
+of new concepts, which are general and can be reused in other settings.
+Key-words:
+processes
+
+computational soundness, cryptographic protocols, verification, communicating
+
+This work has been partially supported by the grants ARA FormaCrypt and ANR AVOTÉ.
+∗ ENS Cachan and Research Center for Information Security (RCIS), National Institute of Advanced Industrial
+Science and Technology (AIST)
+† LORIA, CNRS & INRIA project Cassis
+
+Centre de recherche INRIA Nancy – Grand Est
+LORIA, Technopôle de Nancy-Brabois, Campus scientifique,
+615, rue du Jardin Botanique, BP 101, 54602 Villers-Lès-Nancy
+Téléphone : +33 3 83 59 30 00 — Télécopie : +33 3 83 27 83 19
+
+Correction calculatoire de l’équivalence observationelle
+Résumé : De nombreuses propriétés de sécurité s’expriment naturellement comme l’indistingabilité
+(c’est-à-dire l’impossibilité de distinguer) deux versions d’un protocole. Dans ce document, nous
+montrons que les preuves calculatoires de l’indistingabilité peuvent être considérablement simplifiées, pour une classe de processus qui couvrent la plupart des protocoles existants. Plus
+précisément, nous prouvons un théorème de correction - dans la lignée des travaux inités par
+Abadi et Rogaway en 2000: l’indistingabilité calculatoire en présence d’un intrus actif est assurée
+par l’équivalence observationelle des processus symboliques correspondants.
+À notre connaissance, le seul résultat de cette sorte est celui de Adão et Fournet [7]. Cependant,
+dans cet article, la syntaxe ne comprend pas de primitives cryptographiques. En dehors de ce
+résultat, les travaux existants considèrent un attaquant passif ou, dans le cas d’attaquants actifs,
+obtiennent des résultats de correction pour des propriétés qui peuvent être définies sur les traces
+d’exécution d’un protocole; ce qui n’est pas le cas de l’anonymat par exemple.
+Nous prouvons notre résultat pour le chiffrement asymétrique mais les mêmes techniques pourraient être appliquées aux autres primitives de sécurité telles que la signature ou le chiffrement
+à clef publique. Les techniques de preuves ont demandé l’introduction de nouveaux concepts
+généraux qui pourront être réutilisés dans d’autres contextes.
+Mots-clés :
+municants
+
+correction calculatoire, protocoles cryptographiques, vérification, processus com-
+
+Computational soundness of observational equivalence
+
+1
+
+3
+
+Introduction
+
+Two families of models have been designed for the rigorous analysis of security protocols: the
+so-called Dolev-Yao (symbolic, formal) models on the one hand and the cryptographic (computational, concrete) models on the other hand. In symbolic models messages are formal terms and
+the adversary can only perform a fixed set of operations on them. The main advantage of the
+symbolic approach is its relative simplicity which makes it amenable to automated analysis tools
+(see, e.g., [18, 8]). In cryptographic models, messages are bit strings and the adversary is an
+arbitrary probabilistic polynomial-time (ppt) Turing machine. While the proofs in such models
+yield strong security guarantees, they are often quite involved and seldom suitable for automation.
+Starting with the seminal work of Abadi and Rogaway [5], a lot of efforts has been directed to
+bridging the gap between the two approaches. The goal is to obtain the best of both worlds: simple,
+automated security proofs that entail strong security guarantees. The numerous relevant works
+can be divided into two categories. In the first one ([1, 16, 36] and many others), the authors
+generalize Abadi and Rogaway result, typically considering a larger set of security primitives.
+However, they still only consider a passive adversary. This rules out the so-called “man-in-themiddle attacks”. Analyzing real protocols requires to consider active adversaries, which is the aim
+of the second category of papers (e.g. [11, 22, 25, 35]). It is also the aim of the present paper. We
+consider however a wider class of security properties.
+Trace properties vs. Equivalence properties. We call here a trace property a formal statement that something bad never occurs on any trace of a protocol. (Formally, this is a property
+definable in linear time temporal logic). Integrity and authentication are examples of trace properties. That is why they were the first for which computational guarantees were derived out of
+symbolic ones [13, 37].
+There are however several security properties, which cannot be defined (or cannot be naturally
+defined) as trace properties. We give now some examples, both in the computational and in the
+symbolic worlds.
+ Anonymity states that any two execution traces, in which names are swapped, cannot be distinguished by an attacker. More precisely, anonymity requires two instances of the protocol
+PAB and PBA , the names A, B being switched in the second copy. An adversary interacting
+with one of the two copies should not be able to tell (with non-negligible probability) with
+which copy he is interacting. There is no known way to reduce this problem to a property
+of a single protocol copy.
+Privacy related properties involved in electronic voting protocols [26] also use an equivalence
+and cannot be expressed in linear temporal logic.
+ Similarly, in the computational worlds, anonymity of group signatures [6] is defined through
+the indistinguishability of two games where different identities are used in each game. A
+similar definition is proposed for “blindness” of signatures in [32]. More details will be
+provided in the core of the paper.
+ The “computational secrecy” states that the protocol does not leak any piece of the secret
+(this is sometimes called “real or random”). Such a property is naturally expressed as an
+indistinguishability property: the attacker cannot distinguish between two games, one of
+which is the real protocol, and, in the other one, the secret has been replaced by a random
+string. There are several works [37, 12, 25, 29, 22, 24, 31] showing how to soundly abstract
+it as a trace property in the symbolic model, in a number of particular cases. It is not clear,
+however, that such a property can be expressed as a trace property in general. Consider e.g.
+the case of a hash function and assume that a protocol reveals the hash h(s) of some secret s.
+Then s cannot be computed (by one-wayness of h), which, from the trace property point of
+view, would be sufficient for confidentiality. On the other hand, an attacker certainly learns
+something about s and the computational secrecy is not preserved.
+
+RR n° 0123456789
+
+4
+
+H. Comon-Lundh & V. Cortier
+
+ Strong (also called “black-box”) simulatability [14, 34], states that, given a real protocol P
+and an ideal functionality F , there is a simulator S such that P cannot be distinguished
+from SkF by any environment. Again, this is not a property of any particular trace, but
+rather a relationship between the real traces and the ideal ones. Various notions of universal
+composability [21, 23] can be defined in a similar way.
+
+This shows the importance and generality of indistinguishability properties compared to trace
+properties.
+The main question is then: “is it possible to get sound abstraction results for computational
+indistinguishability, analogous to the results obtained so far for trace properties ?” This is the
+question, which we want to address in this paper, for a sample set of cryptographic primitives.
+Our contribution. There is a well-known similar notion in concurrency theory: observational
+equivalence, introduced by Milner and Hoare in the early 80s. Two processes P and Q are observationally equivalent, denoted by P ∼o Q, if for any process O (a symbolic observer) the processes
+P kO and QkO are equally able to emit on a given channel. This means that O cannot observe
+any difference between P and Q. Observational equivalence is therefore a natural candidate for
+the symbolic counterpart of indistinguishability, the attacker being replaced by the observer. And
+indeed, we show in this paper a result of the form “two networks of machines are indistinguishable
+if the processes they implement are observationally equivalent”. As a consequence, proving computational indistinguishability can be reduced to proving observational equivalence (for a class of
+protocols and assuming some standard security hypotheses on the cryptographic primitives). This
+is a simpler task, which can be completely formalized and sometimes automated [19, 27].
+We prove our result for symmetric encryption and pairing, using a fragment of the applied picalculus [3] for specifying protocols and relying on standard cryptographic assumptions (IND-CPA
+and INT-CTXT) as well as hypotheses, which are similar to those of [11]. The main difference
+with this latter work is that we prove the soundness of observational equivalence, which covers
+more properties. The fragment of applied pi-calculus we consider allows to express an arbitrary
+(unbounded) number of sessions of a protocol.
+To prove our result, we need first to show that any computational trace is, with overwhelming
+probability, an instance of a symbolic one. This lemma is similar to [25, 29], though with different
+hypotheses and in a different model. A naive idea would be then to consider any pair of related
+symbolic traces: by observational equivalence (and actually labeled bisimilarity) the two traces
+are statically equivalent. Then we could try to apply soundness of static equivalence on these
+traces (using results in the passive case, e.g. [5, 1, 16, 36]). This idea does not work, since the
+computational traces could be spread over the symbolic ones: if there is only one computational
+trace corresponding to a given symbolic trace, then the symbolic traces indistinguishability does
+not tell us anything relevant on the computational ones.
+That is why we need a new tool; the main technical ingredient of our proof is the introduction
+of tree soundness in the case of passive attackers and the use of intermediate structures, which
+we called computation trees: on one end such trees roughly correspond to the labeled transition
+semantics of some process algebra, and, on the other end, they are interpreted as an encryption
+oracle, scheduled by the attacker. These notions are defined independently of the cryptographic
+setting. Tree soundness captures the fact that even a passive attacker can adaptively choose its
+requests. It seems related to “adaptive soundness of static equivalence” as defined in [33] though no
+precise relationship has been established yet. We can then derive a general method for proving that
+observational equivalence implies computational indistinguishability. We believe our techniques
+are general and can be reused in other settings. In particular, using our generic approach, it should
+not be difficult to extend our result to other security primitives like asymmetric encryption and
+signatures.
+Related Work. In a series of papers starting with Micciancio and Warinschi [37] and continued
+with e.g. [25, 29], the authors show trace mapping properties: for some selected primitives (publickey encryption and signatures in the above-cited papers) they show that a computational trace
+INRIA
+
+Computational soundness of observational equivalence
+
+5
+
+is an instance of a symbolic trace, with overwhelming probability. We have a similar result for
+symmetric encryption in the present paper, but this is not our main contribution: this is only a
+step towards the lifting of indistinguishability.
+There is a huge amount of work on simulatability/universal composability, especially the work
+of Backes et. al. and Canetti [21, 14, 13, 11, 12]. When the ideal functionality is the symbolic
+version of the protocol, then the black-box simulatability implies the trace mapping property [10],
+therefore showing a safe abstraction. But, again, this does not show that (and how) indistinguishability properties can be soundly abstracted.
+Simulatability itself (this time, not necessarily with an ideal functionality, which is given by the
+symbolic protocol), given a simulator, is an indistinguishability property. So, our result could help
+simplifying and maybe automating simulatability proofs, provided the simulator is given. Indeed,
+thanks to our result, it is now possible to prove simulatability in the symbolic setting.
+Our work can also be seen as a generalization of soundness results for static equivalence [5, 15,
+16] from a passive attacker to an active one. However, as we sketched above and as we will see
+on an example later, these results cannot be used directly in the active attacker case, which is the
+one we consider.
+In [22] the authors show how to encode an equivalence property (actually computational secrecy
+for a given set of primitives) in the symbolic trace, using patterns. This allows to show how an
+indistinguishability property can be lifted to the symbolic case. The method, contrary to ours, is
+however dedicated to this particular property.
+The work of Mitchell et. al. [38] also aims at faithfully abstracting the model of interactive
+Turing machines. Their results concern general processes and not only a small fragment, as we
+do here. In this respect, they are much more general than us. However, on the other hand, they
+abstract much less: there are still computations, coin tossing and probabilistic transitions in their
+model. Our aim is really to show that it makes no difference if the attacker is given only a fixed set
+of operations (encryption, decryption, name generation...) and if there is no probabilities nor coin
+tossing. In the present paper, we start from a simple model of communicating Turing machines,
+but we could have started from a higher-level language such as the probabilistic process algebras
+of [38], without changing the core of our contribution.
+To our knowledge, the only previous work formally connecting observational equivalence and
+computational indistinguishability is [7]. In this paper, the authors give soundness and completeness results of a cryptographic implementation of processes. The major difference with our work
+is that they do not have explicit cryptographic constructions in the formal model. For instance
+encryption keys cannot be sent or leaked since they are implicit. Most standard security protocols
+cannot be described at this level of abstraction without possibly missing attacks. The results of [7]
+are useful in designing secure implementations of abstract functionalities, not for the verification
+of existing protocols.
+Finally, the work on automation and decision of static equivalence [2] and observational equivalence [28, 19, 27] is related to our work, as it shows that there exist systematic ways of deriving
+such equivalences in the symbolic world.
+Organization of the paper. We first give the definitions of our computational model in section
+2. Next we recall some of the general definitions of applied π-calculus in section 3. Note that, in
+the following, we only consider a fragment of the calculus for the protocol description (as usual),
+and we will only consider a particular equational theory corresponding to symmetric encryption.
+The relationship between the two models, as well as the protocol description language is given in
+section 4. In section 5 we give our main result and outline the proof. The notions of computation
+trees, tree oracles, tree soundness are introduced in section 6. Intermediate lemmas and full proofs
+are provided in section 7.
+
+RR n° 0123456789
+
+6
+
+2
+
+H. Comon-Lundh & V. Cortier
+
+Communicating Turing machines
+
+Randomized Turing machines are Turing machines with an additional random tape. We assume
+w.l.o.g. that these machine first draw an infinite random input string on the random tape, and then
+compute deterministically. Communicating Turing machines are randomized machines equipped
+with input/output tapes and two special instructions: send and receive. They are restricted to
+work in polynomial time with respect to their original input (see [14, 34] for a discussion). As
+in [14], we assume that, for each machine M , there is a polynomial PM such that the number of
+computation steps of M is bounded by PM (η) where η is the length of the initial input of M . So, in
+our framework, a communicating Turing machine is actually a pair of a machine and a polynomial
+and, in an initialization phase, the machine will compute PM (η). In further computations M
+will subtract 1 from the result after each computation step (not including the very substraction
+operation, of course). When the machine reaches the computation bounds, it simply performs
+a fixed number of moves, typically writing an error message on the output tape, and stops. In
+order to keep light notations, we will abstract out this, essential but straightforward, issue in the
+following and forget about the polynomial PM . Randomized machines equipped with such a time
+complexity control device will be called PPT.
+Definition 1 A communicating Turing machine (CTM) is a PPT, equipped with two additional
+tapes. One is the sending tape and is write only and the other is the receiving tape and is read
+only. The machine has two special instructions: receive and send.
+We assume that there are two final states: an accepting one and a failure one (written ⊥) and
+that final states can only be reached after a send action and that there is no deadlock, except in
+final states.
+The final assumptions are not restrictions as the machines can always be completed in order
+to fulfill these additional requirements.
+Definition 2 The adversary is a PPT with three additional working tapes: a reading tape (TR ), a
+writing tape (TW ) and a scheduling tape (TS ) The adversary has three additional instructions: new,
+send and receive. A network F kA consists of an adversary A and a family of CTMs F = (Mn )n∈N .
+Each machine Mn has a type, which is a positive integer. We also call F the environment of A.
+This model is a simplification of interactive Turing machines of [21], keeping only the essential
+features. The type of a machine represents the program implemented by the machine. For instance,
+protocols are usually described as parallel a composition of finitely many roles, each of which is a
+reactive program executed on a single machine. In this case, the type of the machine is the role,
+which is implemented by the machine.
+In the initial configuration, each machine of the network has the security parameter in unary
+on its input tape and possibly other data on their input tapes such as secret keys. For simplicity
+we do not model here the key distribution. Moves between configurations are defined according
+to the attacker’s view: in each configuration, the attacker decides to perform an internal move,
+to ask for the initialization of a new machine or to schedule a communication. In the latter case,
+the identity of the recipient is written on the scheduling tape and either a send or a receive action
+is performed. In case of a send, the contents of the sending tape is copied to the receiving tape
+of the scheduled recipient, who performs (in one single step) all its computations, until (s)he is
+waiting for another communication. In case of a receive action, the whole content of the sending
+tape of the scheduled machine is copied on the receiving tape of the attacker. More formally:
+Definition 3 A configuration of the network consists in
+1. a local configuration γn for each machine Mn
+2. a local configuration γ of the adversary
+3. a list of active machines lam : this is a list of triples (n, j, p) where n is a machine number,
+j a machine type and p ∈ N a pid.
+INRIA
+
+Computational soundness of observational equivalence
+
+7
+
+′
+Given a configuration ({γn }n∈N , γ, lam ) the network moves to the configuration ({γn′ }n∈N , γ ′ , lam
+),
+which is defined as follows:
+
+ If the move of the adversary A does not involve any of its special actions new, send, receive,
+′
+then γn′ = γn for all n, lam = lam
+and γ ′ is obtained by the move of A
+ If A performs a receive action, p is the content of the scheduling tape of A
+– if (i, j, p) ∈ lam , and Mi is ready to perform a send action and w is the content of the
+sending tape of Mi , then γn′ = γn for all n 6= i, TR is set to w and the control is given
+to Mi , which moves until it reaches a final state or is ready to perform a receive action
+′
+or a send action. This yields a configuration γi′ of Mi , A moves to γ ′ and lam
+= lam .
+′
+– Otherwise, γn′ = γn for all n, lam
+= lam , TR is set to ⊥ and A moves to γ ′ .
+
+ If A performs a send action, p is the content of the scheduling tape of A and w is the content
+of TW
+– if (i, j, p) ∈ lam , and Mi is ready to perform a receive action, then γn′ = γn for all n 6= i,
+w is copied on the receiving tape of Mi and the control is passed to Mi , which moves
+until it reaches a final state or is ready to perform a receive action or a send action.
+′
+This yields a configuration γi′ of Mi , A moves to γ ′ and lam
+= lam .
+′
+– Otherwise, γn′ = γn for all n, lam
+= lam , TR is set to ⊥ and A moves to γ ′ .
+
+ if A performs a new action, and j is on the scheduling tape of A,
+– if there is at least one machine Mn whose type is j and such that there is no triple
+(n, j, x) ∈ lam , we let n be the minimal such index. Then, in the new configuration,
+γn′ = γn for all n, TR is set to a pid p drawn (on the random tape), A moves to γ ′ and
+′
+lam
+= lam ∪ {(n, j, p)}
+– otherwise, TR is set to ⊥, lam and all γi are unchanged and A moves to γ ′ .
+The number of CTMs in the network is unbounded. Note that this setting does not allow
+dynamically corrupted parties as in most results relating symbolic and computational models;
+there is simply a type for corrupted parties playing a given role. Corrupted machines, in addition
+to the expected program implementing the role, also send all their private data on the network.
+There is no limitation in the messages size, which are inputs of the machines. However, because
+of polynomial time restrictions, unexpectedly long messages cannot be read entirely anyway.
+We say that a function f : N → N is negligible if, for every polynomial P , ∃N ∈ N, ∀η >
+1
+N, f (η) < P (η)
+. We write Pr{x : P (x)} the probability of event P (x) when the sample x is drawn
+according to an appropriate distribution (the key distribution or the uniform distribution; this is
+kept implicit).
+Two families of machines are indistinguishable if any adversary cannot tell with which family
+he is connected with non negligible probability:
+Definition 4 Two environments F and F ′ are indistinguishable, which we write F ≈ F ′ , if, for
+every attacker A,
+|Pr{r, r : (F(r) k A(r))(0η ) = 1} − Pr{r, r : (F ′ (r) k A(r))(0η ) = 1}|
+is negligible. r is the sequence of random inputs of the machines in F (resp. F ′ ), including keys.
+r is the random input of the attacker.
+Example 2.1 As described in introduction, the computational secrecy of s can be expressed as
+follows. In F0 , the machines using s are set with s0 while in F1 , they are set with s1 . The
+values s0 and s1 could also be chosen by the attacker. Then the data s is computationally secret
+if F0 ≈ F1 . Note that the environments Fb may contain corrupted machines, not holding si , that
+start by leaking their private information to the adversary.
+RR n° 0123456789
+
+8
+
+H. Comon-Lundh & V. Cortier
+
+Example 2.2 Anonymity of group signatures [6] is defined through the following game: the adversary chooses a message m and two identities i0 and i1 . Then in F0 , the machines sign m with
+identity i0 while in F1 , the machines sign m with identity i1 . Again the property is defined by
+F0 ≈ F1 .
+Example 2.3 More generally, security properties can be defined by specifying the ideal behavior
+Pideal of a protocol P and requiring that the two protocols are indistinguishable. For example, in [4],
+authenticity is defined through the specification of a process where the party B magically received
+the message sent by the party A. This process should be indistinguishable from the initial one.
+
+3
+
+The applied pi-calculus
+
+We use the applied π-calculus of [3] as a symbolic model. We recall the definitions in this section. Note that we will only consider a small fragment of the applied-π-calculus for the protocol
+descriptions and only a particular equational theory for our main result.
+
+3.1
+
+Syntax
+
+A signature is a finite set of function symbols with an arity. It represents the security primitives
+(e.g. encryption, pairing, decryption). Given a signature Σ, an infinite set N of names and an
+infinite set X of variables, T (N , X ) is the set of terms, defined as follows:
+s, t, u ::=
+x, y, z
+a, b, c, k, n, r
+f (s1 , . . . , sk )
+
+terms
+variable
+name
+function application
+
+where f ∈ Σ and k is the arity of f .
+We assume that Σ always contains a binary pairing function < u, v >, the corresponding
+projections functions π1 , π2 and constants newj for j ∈ N. We assume infinitely many names of
+any length. Terms represent messages and names stand for (randomly) generated data. α, β, . . .
+are meta-variables that range over names and variables. u stands for a sequence u1 , . . . , un .
+σ = {x1 7→ s1 , . . . , xk 7→ sk } is the substitution that replaces the variable xi with the term si .
+The domain of σ, denoted by dom(σ) is the set {x1 , . . . , xk }.
+Example 3.1 Σ0 is the signature consisting of the binary pairing < ·, · >, the two associated
+projections π1 , π2 , the binary decryption dec and the ternary symbol {·}·· for symmetric encryption:
+{x}rk stands for the encryption of x with the key k and the random r. Σ0 also contains constants
+with in particular a constant 0l of length l for every l.
+Terms are also (as usual) identified with ranked trees, i.e. mappings from a prefix closed set
+of positions Pos(t) to labels. t(p) is then the label at position p and t|p is the subtree rooted at
+position p.
+Example 3.2 Let t = {<< k1 , k1 >, k2 >}rk3 . Then Pos(t) = {ǫ, 1, 2, 3, 11, 12, 111, 112}, t(ǫ) =
+{·}·· , t(3) = r, t(11) =< ·, · >, t(111) = k1 . t|12 = k3 , t|1 =<< k1 , k1 >, k2 >.
+The syntax of processes and extended processes is displayed in Figure 1. In what follows,
+we restrict ourselves to processes with public channels, that is, there is no restriction on name
+channel. We assume a set P of predicate symbols with an arity. Such a definition, as well as its
+operational semantics coincides with [3], hence will not be recalled in details, except for one minor
+point: we consider conditionals with arbitrary predicates. This leaves some flexibility in modeling
+various levels of assumptions on the cryptographic primitives. Typical examples are the ability (or
+not) to check whether a decryption succeeds, or the ability (or not) to check that two ciphertexts
+are produced using the same encryption key. Other examples are typing predicates, which we
+INRIA
+
+Computational soundness of observational equivalence
+
+Φ1 , Φ2 ::=
+p(s1 , . . . , sn )
+Φ1 ∧ Φ2
+
+conditions
+predicate application
+conjunction
+
+P, Q, R ::=
+c(x).P
+c(s).P
+0
+P kQ
+!P
+(να)P
+if Φ then P else Q
+
+processes
+input
+output
+terminated process
+parallel composition
+replication
+restriction
+conditional
+
+A, B, C ::=
+P
+AkB
+(να)A
+{x 7→ s}
+
+extended processes
+plain process
+parallel composition
+restriction
+active substitution
+
+9
+
+Figure 1: Syntax of processes
+may want (or not). In [3] the condition is always an equality. Encoding the predicate semantics
+with equalities is often possible, at least when there is no negative condition: it suffices then to
+express when a predicate is true. It is however not possible in general to express equationally the
+truth and falsity of a predicate. We believe that predicates allow to better reflect the ability of
+the adversary, with less coding.
+In the paper, we often confuse “process” an “extended process” (and do not follow the lexicographic convention A, B... vs P.Q, ...).
+
+3.2
+
+Operational semantics
+
+We briefly recall the operational semantics of the applied pi-calculus (see [3] for details). E is a
+set of equations on the signature Σ, defining an equivalence relation =E on T (N ), which is closed
+under context. =E is meant to capture several representations of the same message. This yields
+a quotient algebra T (N )/ =E , representing the messages. and under substitutions of terms for
+variables.
+Predicate symbols are interpreted as relations over T (N )/ =E . This yields a structure M.
+Example 3.3 The equations E0 corresponding to Σ0 are
+dec({x}zy , y) = x
+
+π1 (< x, y >) = x
+
+π2 (< x, y >) = y
+
+They can be oriented, yielding a convergent rewrite system: every term s has a unique normal
+form s ↓. We may also consider the following predicates:
+
+ M is unary and holds on a (ground) term s iff s ↓ does not contain any projection nor
+decryption symbols and for any {u}rv subterm of s, v and r must be names. This forbids
+compound keys for instance.
+ EQ is binary and holds on s, t iff M (s), M (t) and s ↓= t ↓: this is a strict interpretation of
+equality.
+ Psamekey is binary and holds on ciphertexts using the same encryption key: M |= Psamekey (s, t)
+′
+iff ∃k, u, v, r, r′ .EQ(s, {u}rk ) ∧ EQ(t, {v}rk ).
+RR n° 0123456789
+
+10
+
+H. Comon-Lundh & V. Cortier
+
+Ak0
+AkB
+(A k B) k C
+(να)(νβ)A
+(να)(A k B)
+(νx){x 7→ s}
+(να)0
+!P
+{x 7→ s} k A
+{x 7→ s}
+
+≡
+≡
+≡
+≡
+≡
+≡
+≡
+≡
+≡
+≡
+
+A
+BkA
+A k (B k C)
+(νβ)(να)A
+A k (να)B
+if α ∈
+/ fn(A) ∪ fv(A)
+0
+0
+P k !P
+{x 7→ s} k A{x 7→ s}
+{x 7→ t}
+if s =E t
+
+Figure 2: Structural equivalence
+
+ EL is binary and holds on s, t iff M (s), M (t) and s, t have the same length.
+The structural equivalence is the smallest equivalence relation on processes that is closed under
+context application and that satisfies the relations of Figure 2. fn(P ) (resp. fv(P )) is the set of
+names (resp. variables) that occur free in P . Bound names are renamed thus avoiding captures.
+P {x 7→ s} is the process P in which free occurrences of x are replaced by s. An evaluation context
+is a process C = (να)([·] k P ) where P is a process. We write C[Q] for (να)(Q k P ). A context
+(resp. a process) C is closed when fv(C) = ∅ (there might be free names).
+Possible evolutions of processes are captured by the relation →, which is the smallest relation,
+compatible with the process algebra and such that:
+(Com)
+c(x).P k c(s).Q
+(Cond1) if Φ then P else Q
+(Cond2) if Φ then P else Q
+∗
+
+−
+→
+
+→ {x 7→ s} k P k Q
+→ P
+if M |= Φ
+→ Q
+if M 6|= Φ
+
+is the smallest transitive relation on processes containing ≡ and
+c(t)
+
+−
+→
+
+and closed by
+
+c(t)
+
+application of contexts. We write P −−→ Q (resp. P −−→ Q) if there exists P ′ such that
+∗
+
+∗
+
+∗
+
+∗
+
+→ Q).
+P −
+→ c(x).P ′ and {x 7→ t}kP ′ −
+→ Q (resp. P −
+→ c(t).P ′ and P ′ −
+Definition 5 The observational equivalence relation ∼o is the largest symmetric relation S on
+closed extended processes such that ASB implies:
+1. if, for some context C, term s and process A′ ,
+∗
+∗
+→ C ′ [c(s′ ) · B ′ ].
+A −
+→ C[c(s) · A′ ] then for some context C ′ , term s′ and process B ′ , B −
+∗
+
+∗
+
+2. if A −
+→ A′ then, for some B ′ , B −
+→ B ′ and A′ SB ′
+3. C[A]SC[B] for all closed evaluation contexts C
+Example 3.4 (Group signature) Group signature as defined in [6] can be modeled as observational equivalence as follows. Let P (x, i) be the protocol for signing message x with identity i. Let
+P1 = c(y).P (π1 (y), π1 (π2 (y))) and P2 = c(y).P (π1 (y), π2 (π2 (y))). Intuitively, the adversary will
+send < m, < i1 , i2 >> where m is a message to be signed and i1 , i2 are two identities. P1 signs m
+with i1 while P2 signs m with i2 . Then P preserves anonymity if P1 ∼o P2 .
+
+3.3
+
+Simple processes
+
+We do not need the full applied pi-calculus to symbolically represent CTMs. For example, CTMs
+do not communicate directly: all communications are controlled by the attacker and there is
+
+INRIA
+
+Computational soundness of observational equivalence
+
+11
+
+no private channel. Thus we consider the fragment of simple processes built on basic processes.
+Simple processes capture the usual fragment used for security protocols. A basic process represents
+a session of a protocol role where a party waits for a message of a certain form and when all equality
+tests succeed, outputs a message accordingly. Then the party waits for another message and so
+on. The sets of basic processes B(i, n, x), where x is a variable sequence, i is a name, called pid,
+standing for the process id and n is a name sequence (including for instance fresh and long-term
+keys), are the least sets of processes such that 0 ∈ B(i, n, x) and
+ If B ∈ B(i, n, x), s ∈ T (n, x), Φ is a conjunction of EQ and M atomic formulas such that
+fn(Φ) ⊆ n and fv(Φ) ⊆ x, ⊥ is a special error message, then
+
+if Φ ∧ M (s) then cout (s) · B else cout (⊥) · 0
+
+∈ B(i, n, x).
+
+Intuitively, if all tests are satisfied and if s is a well-formed message (no destructors, no
+composed keys), the process sends a message depending on its inputs.
+ if B ∈ B(i, n, x, x) and x ∈
+/ x, then
+
+cin (x). if EQ(π1 (x), i) then B else cout (⊥) · 0
+
+∈ B(i, n, x).
+
+Intuitively, on input x, the basic process first checks that it is the expected recipient of the
+message, before processing it.
+cout and cin are two special names, representing resp. the send tape and the receive tape.
+Example 3.5 The Wide Mouth Frog [20] is a simple protocol where a server transmits a session
+key from an agent A to an agent B.
+A→S
+S→B
+
+: A, {Na , B, Kab }Kas
+: {Nb , A, Kab }Kbs
+
+A session of role A played by agent a can be modeled by the basic process
+A(a, b)
+
+def
+
+=
+
+if true then cout (< a, {< na , < b, kab >>}rkas >) · 0 else cout (⊥) · 0
+
+Similarly a session of role S played for agents a, b can be modeled by
+def
+
+S(a, b) = cin (x). if EQ(π1 (x), l) then
+if π1 (π2 (x)) = a ∧ π1 (π2 (deckas (π2 (π2 (x))))) = b then
+cout ({< nb , < a, π2 (π2 (deckas (π2 (π2 (x))))) >>}rkbs ) · 0
+else cout (⊥) · 0 else cout (⊥) · 0
+A simple process is obtained by composing and replicating basic processes and frames, hiding
+some names and all local variables:
+(νn)[ (νx1 , n1 B1 kσ1 )k · · · k(νxk , nk Bk kσk )k
+!(νy1 , l1 , m1 cout (l1 )B1′ ) k · · · k !(νyn , ln , mn .cout (ln )Bn′ ) ]
+where Bj ∈ B(ij , n⊎nj , xj ), dom(σj ) ⊆ xj , Bj′ ∈ B(lj , n⊎mj , yj ). Note that each basic process
+′
+Bj first publishes its identifier lj , so that an attacker can communicate with it. Each process of
+the form !((νyi , li )cout (li ).Bi′ ) is a replicated process.
+In the definition of simple processes, we assume that for any subterm {t}vk occurring in a simple
+process, v is a name that does not occur in any other term, and belongs to the set of restricted
+names n. (Still, there may be several occurrences of {t}vk , unlike in [5]).
+Example 3.6 Continuing Example 3.5, a simple process representing unbounded number of sessions in which A plays a (with b) and s plays S (with a, b) for the Wide Mouth Frog protocol
+is
+ν(kas , kbs )
+
+(
+
+!((νkab , na , r, l)cout (l).A(a, b))k
+
+!((νx, nb , r, l)cout (l).S(a, b))
+
+For simplicity, we have only considered sessions with the same agent names a, b.
+RR n° 0123456789
+
+)
+
+12
+
+H. Comon-Lundh & V. Cortier
+
+σ⊢s
+
+if ∃x ∈ dom(σ)
+s.t. xσ = s
+or s ∈ N r n
+
+σ ⊢ s1 . . . φ ⊢ sℓ
+σ ⊢ f (s1 , . . . , sℓ )
+
+σ⊢s
+σ ⊢ s′
+
+f ∈Σ
+
+M |= s = s′
+
+Figure 3: Deduction rules
+σ ⊢< {n2 }rn21 , {n3 }rn32 >
+
+σ ⊢ {n1 }rk11
+
+σ ⊢ k1
+
+σ ⊢ π1 (< {n2 }rn21 , {n3 }rn32 >)
+
+σ ⊢ dec({n1 }rk11 , k1 )
+
+σ ⊢ {n2 }rn21
+
+σ ⊢ n1
+
+σ ⊢< {n2 }rn21 , {n3 }rn32 >
+σ ⊢ π2 (< {n2 }rn21 , {n3 }rn32 >)
+
+σ ⊢ dec({n2 }rn21 , n1 )
+
+σ ⊢ {n3 }rn32
+
+σ ⊢ n2
+σ ⊢ dec({n3 }rn32 , n2 )
+σ ⊢ n3
+Figure 4: An example of formal proof
+
+3.4
+
+Deduction and static equivalence
+
+At a particular point in time, while engaging in one or more sessions of one or more protocols,
+an attacker may know a sequence of messages s1 , . . . , sℓ . This means that he knows each message
+but he also knows in which order he obtained the messages. So it is not enough for us to say
+that the attacker knows the set of terms {s1 , . . . , sℓ } since the information about the order is lost.
+Furthermore, we should distinguish those names that the attacker knows from those that were
+freshly generated by others and which are a priori secret from the attacker; both kinds of names
+may appear in the terms.
+As in the applied pi calculus [3], message sequences are recorded in frames φ = νn.σ, where n
+is a finite set of names, and σ is a ground substitution. The variables enable references to each
+sequence element. and we always assume that the terms si are ground. n stands for fresh names
+that are a priori unknown to the attacker.
+Deduction. Given a frame φ = νn.σ that represents the information available to an attacker,
+a ground term s is deducible, which we write νn.(σ ⊢ s) if σ ⊢ s can be inferred using the rules
+displayed in Figure 3.
+Example 3.7 Consider the signature and equational theory of example 3.3.
+Let φ = νn1 , n2 , n3 , r1 , r2 , r3 .σ with σ = {x1 7→ {n1 }rk11 , x2 7→< {n2 }rn21 , {n3 }rn32 >}. Then
+νn1 , n2 , n3 , r1 , r2 , r3 .(σ ⊢ n3 ). The full proof is displayed in figure 4.
+Static equivalence. Deduction is not sufficient for expressing the attacker’s knowledge. We
+have also to consider its distinguishing capabilities. Using the predicate symbols, we get the
+following slight extension of static equivalence:
+Definition 6 (static equivalence) Let φ be a frame, p be a predicate and s1 , . . . , sk be terms.
+We say that φ |= p(s1 , . . . , sk ) if there exists n such that φ = νn.σ, fn(si ) ∩ n = ∅ for any 1 ≤ i ≤ k
+and M |= p(s1 , . . . , sk )σ. We say that two frames φ1 = νn.σ1 and φ2 = νn′ .σ2 are statically
+equivalent, and write φ1 ∼ φ2 when dom(φ1 ) = dom(φ2 ), and
+∀s1 , . . . , sk ∈ T (N , X ), ∀p ∈ P.
+
+φ1 |= p(s1 , . . . , sk ) ⇔ φ2 |= p(s1 , . . . , sk ).
+INRIA
+
+Computational soundness of observational equivalence
+
+13
+
+If the only predicate is the equality predicate modulo the equational theory, we retrieve exactly
+the definition of static equivalence [3].
+Example 3.8 Consider (again for the theory of Example 3.3).
+The two frames φ1 = νn1 , r1 , r2 .{x 7→ {{k}rn11 }rn21 } and φ2 = νn2 , r3 .{x 7→ {s}rn32 }. If s has the
+same length as {k}rn11 , then the two frames are statically equivalent, as there is no way to access
+the term below the encryption with n1 (resp. n2 ).
+It also sometimes convenient to forget the variable names in a frame, when they are irrelevant: if
+L1 = (s11 , . . . , s1m ), L2 = (s21 , . . . , s2m ) are two sequences of terms, νn1 .L1 ∼ νn2 .L2 if, by definition,
+νn1 {x1 7→ s11 ; . . . ; xn 7→ s1m } ∼ νn2 {x1 7→ s21 ; . . . ; xn 7→ s2m }
+We also sometimes confuse νn.(s1 , . . . , sm ) with the frame νn.{x1 7→ s1 ; . . . , xm 7→ sm }, for a
+(fixed) given sequence of variables xi , i ∈ N.
+
+4
+
+Computational interpretation
+
+4.1
+
+Computational interpretation of terms and conditions
+
+Given a security parameter η and a mapping τ from names to actual bitstrings of the appropriate
+length, which depends on η, the computational interpretation [[s]]τη of a term s is defined as a
+F-homomorphism: for each function symbol f there is a polynomially computable function [[f ]]
+def
+and [[f (t1 , . . . , tn )]]τη = [[f ]]([[t1 ]]τη , . . . , [[tn ]]τη ).
+def
+
+In addition, for names, [[n]]τη = τ (n). Such an interpretation must be compatible with the
+equational theory: ∀s, t, η, τ. s =E t ⇒ [[s]]τη = [[t]]τη .
+Similarly, each predicate symbol p gets a computational interpretation [[p]] as a PPT that
+outputs a Boolean value. This is extended to conditions, using the standard interpretation of
+logical connectives.
+Given the structure M, which defines the symbolic interpretation of the predicates symbols,
+Definition 7 [[p]] is an implementation of p ⊆ (T (N ))n , if, for every t1 , . . . , tn ∈ T (N ), which
+are in normal form,
+R
+
+Pr{(x1 , . . . , xn ) ←− [[t1 , . . . , tn ]]η : [[p]](x1 , . . . , xn ) = 1 − b}
+is negligible, where b = 1 if M |= p(t1 , . . . , tn ) and 0 otherwise.
+We assume that, for every predicate symbol p, [[p]] is an implementation of p.
+Example 4.1 Consider the predicate symbols of Example 3.3. Assume that the decryption and
+projection functions return an error message ⊥ when they fail. Then here are possible interpretations of some predicates:
+
+ [[M ]] is the set of bitstrings, which are distinct from ⊥. [[M ]] implements M if the encryption
+scheme is confusion-free (a consequence of INT-CTXT [36]).
+ [[EQ]] is the set of pairs of identical bitstrings, which are distinct from ⊥. It is an implementation of EQ as soon as [[M ]] implements M .
+The interpretation of terms with variables also depends on the variable bindings: if σ is a
+substitution (and assuming that there is no reminding free variables), [[t]]τ,σ
+is defined as [[tσ]]τη .
+η
+Now, conditions are interpreted as expected:
+def
+
+τ,σ
+= [[Φ1 ]]τ,σ
+[[Φ1 ∧ Φ2 ]]τ,σ
+η ∧ [[Φ2 ]]η
+η
+
+and
+
+def
+
+τ,σ
+= [[p]]([[s1 ]]τ,σ
+[[p(s1 , . . . , sn )]]τ,σ
+η , . . . , [[sn ]]η ).
+η
+def
+
+Finally, if L is a list of ground terms whose free names are in the domain of τ , [[νn.L]]τ = [[L]]τ .
+RR n° 0123456789
+
+14
+
+H. Comon-Lundh & V. Cortier
+
+4.2
+
+Computational interpretation of basic processes
+
+Given a basic process B ∈ B(i, n, x), a substitution σ whose domain is contained in x and codomain
+does not contain free variable, a security parameter η and a binding τ for all free names occurring
+in B, we define the (deterministic) machine [[Bkσ]]τη as follows. Irrelevant details are omitted and
+(relevant information on the) configurations of the machine are written as triples [q, τ0 , θ] where q
+is the state of the machine and τ0 , θ represent the (relevant part of) the working tape.
+ The initial configuration of the machine is [B, τ0 , [[σ]]τ ]: the machine is in state B and its
+working tape contains τ0 , the restriction of τ to names and random symbols occurring in
+B, and the binding for variables in x; [[{x1 7→ t1 , . . . xn 7→ tn }]]τ is, by definition, {x1 7→
+[[t1 ]]τ , . . . xn 7→ [[tn ]]τ }. Note that τ0 includes the random input tape of the machine.
+ [0, τ0 , θ] is a final configuration: 0 is a final state
+ If the machine is in a configuration
+
+[cin (y). if EQ(π1 (y), i) then B1 k{x 7→ π2 (y)} else B2 , τ0 , σ]
+then it may (only) perform a receive action (which will be triggered only when the attacker
+schedules it, see Definition 3) then copies the content m of the reading tape on its working
+tape, keeping thereof the binding for y in its memory, yielding a configuration
+[if EQ(π1 (y), i) then B1 k{x 7→ π2 (y)} else B2 , τ0 , σ ⊎ {y 7→ m}]
+Next, the machine checks that m is a pair ([[i]]τ0 , m1 ). If so, it moves to the configuration
+[B1 , τ0 , σ ⊎ {y 7→ m, x 7→ m1 }]
+Otherwise it moves to [B2 , τ0 , σ].
+If x or y was bound in σ, the new bindings replace the former ones.
+ If the machine is in configuration [if Φ then cout (< i, s >).B1 else B2 , τ0 , σ] it
+first computes [[Φ]]ητ0 ,σ . If some variables are unbound or if the evaluation result is not 1,
+then it moves to [B2 , τ0 , σ], otherwise it computes [[s]]τ,σ
+η , writes it on the sending tape and
+performs a send action (which will be triggered when the attacker schedules it). This yields
+the configuration [B1 , τ0 , σ].
+
+4.3
+
+Computational interpretation of simple processes
+
+Consider now a simple process
+P ≡ (νn)[(νx1 , n1 .B1 kσ1 )k · · · νxk , nk .Bk kσk )k
+!(νy1 , l1 , m1 .cout (l1 ).B1′ )k · · ·!(νyn , ln , mn .cout (ln ).Bn′ )]
+such that Bi ∈ B(ji , n ∪ ni , xi ) and dom(σi ) ⊆ xi , Bi′ ∈ B(li , n ∪ mi , yj ).
+Then, given a security parameter η, [[P ]]η is (the distribution of) an infinite family of CTMs,
+obtained, for each sample τ of n, n1 , . . . , nk , m1,λ , . . . , mn,λ , l1,λ , . . . , ln,λ , λ ∈ N, (depending on
+the security parameter η) by:
+ interpreting each Bi kσi by [[Bi kσi ]]τη
+ interpreting each !(νyi , li , mi .cout (li ).Bi′ ) as an infinite network of machines Mi,λ = [[if x =
+′
+′
+else 0]]τη , where each Bi,λ
+is obtained from Bi′ by renaming li in li,λ ,
+newi then cout (li,λ ).Bi,λ
+mi in mi,λ and yi in yi.λ , for λ ∈ N, where each of these machine has type i.
+
+INRIA
+
+Computational soundness of observational equivalence
+
+5
+
+15
+
+Main result
+
+In this section, we state our main result and give an outline of the proof. We first start by stating
+our assumptions.
+
+5.1
+
+Assumptions
+
+As in [11, 30], we avoid the so-called commitment problem by requiring that honest keys are never
+revealed. This hypothesis is implied by our notion of key hierarchy that is defined next.
+Cryptographic assumptions Let us start with the assumptions on the encryption scheme: we
+assume that it is IND-CPA (more precisely “type 3”-secure of [5]) and INT-CTXT, as defined in
+[17]. In what follows, for randomized machines, we distinguish the input tape and the random
+tape, by separatin the inputs with a |. For instance A(m | r) is the result of the computation of
+A, on input m, with random input r.
+Definition 8 A symmetric encryption scheme is IND-CPA, if, for any non-null polynomial P
+with positive integer coefficients, for every PPT A with one oracle, there is a N such that, for all
+η > N,
+R
+
+R
+
+|Pr{k ←− KG (η), r, r ←− U : AOk (0η | r) = 1}−
+R
+
+R
+
+′
+
+Pr{k ←− KG (η), r, r ←− U : AOk (0η | r) = 1}| ≤
+
+1
+P (η)
+
+where r is the sequence of random inputs r1 , . . . , rn of the oracles, Ok is the oracle, which, on request x, returns E(x, k | ri ) and Ok′ is the oracle which, on request x, returns
+E(0l(x) , k | ri ).
+Definition 9 ([17]) A symmetric encryption scheme is INT-CTXT if, for any non-null polynomial P with positive integer coefficients, for every PPT A with one oracle, there is a N such that,
+for all η > N ,
+R
+
+R
+
+′
+
+/ S} ≤
+Pr{k ←− KG (η), r, r ←− U : ∃x, r′ .AOk (0η | r) = {x}rk ∧ x ∈
+
+1
+P (η)
+
+where S = {x1 , . . . , xn } is the sequence of requests to the oracle, Ok (xi ) = {xi }rki and r is the
+sequence (r1 , . . . , rn ).
+Adversary’s key generation. We assume the adversary only uses correctly generated keys.
+The parties are supposed to check that the keys they are using have been properly generated.
+The assumption could be achieved by assuming that keys are provided by a trusted server that
+properly generates keys together with a certificate. Then when a party receives a key, it would
+check that it comes with a valid certificate, guaranteeing that the key has been issued by the
+server. Of course, the adversary could obtain from the server as many valid keys as he wants.
+However, this assumption is rather strong compared to usual implementation of symmetric
+keys. It is however necessary to deal with natural examples of protocols. We provide below
+several successive examples.
+Example 5.1 A sends out a message of the form {c}Kab where c is a constant. Note that c could
+also be a ciphertext. This can be formally represented by the process
+A = (νr)cout (< c, {c}rkab >).0
+
+RR n° 0123456789
+
+16
+
+H. Comon-Lundh & V. Cortier
+
+B expects a key y and a message of the form {{b}y }Kab where b is the identity of B, in which
+case, it sends out a secret s (or goes in a bad state).
+A
+B : k, {{b}k }Kab
+
+→ B : c, {c}Kab
+→A: s
+
+This can be formally modeled by the process
+B = cin (z). if EQ(b, dec(dec(π2 (z), kab ), π1 (z)) then cout (s) else 0
+Then symbolically, the process (νkab )(νs)AkB would never emit s. However, a computational
+adversary can forge a key k such that any bitstring can be successfully decrypted to b using k. In
+particular, at the computational level, we have dec(c, k) = b. Thus by sending < k, {c}rkab > to B,
+the adversary would obtain the secret s.
+This is due to the fact that security of encryption schemes only provide guarantees on properly
+generated keys. More precisely, given an IND-CCA2 (authenticated) encryption scheme (G, E, D),
+it is easy to build another IND-CCA2 (authenticated) encryption scheme (G ′ , E ′ , D′ ), which allows
+to mount the preceding attack. Indeed, consider G ′ = 0 · G (all honest keys begin with the bit 0),
+E ′ (m, i.k) = E(m, k) for i ∈ {0, 1} and D′ defined as follows:
+ D′ (c, k) = D(c, k ′ ) if k = 0 · k ′
+ D′ (c, k) = k ′ if k = 1 · k ′
+
+It is easy to check that (G ′ , E ′ , D′ ) remains IND-CCA2 and allows an adversary to chose a key
+that decrypts to anything he wants.
+To capture this kind of computational attacks, an idea (from M. Backes [9]) is to enrich the
+symbolic setting with a rule that allows an intruder, given a ciphertext c and a message m, to
+forge a key such that c decrypts to m. This could be modeled e.g. by adding a functional symbol
+fakekey of arity 2 together with the equation
+dec(x, fakekey(x, y)) = y
+Going back to Example 5.1, this would allow a symbolic intruder to send the message < fakekey(c, b), {c}rkab >
+to the B process and the process (νkab )(νs)AkB would emit s.
+This solution appears however to be insufficient to cover the next examples.
+Example 5.2 (hidden cyphertext) It might not possible to obtain the ciphertext in clear. We
+′
+consider a protocol where A sends << A, k >, {{k ′}rk }rkab > where k and k ′ are freshly generated
+keys. B recovers k ′ and sends it encrypted with kab . In case A receives her name encrypted with
+kab , A emits a secret s.
+A → B : A, k, {{k ′ }k }Kab
+B
+A : {A}Kab
+
+→ A : {k ′ }Kab
+→B: s
+
+This protocol is formally described below:
+′
+
+A = (νr, r′ , k, k ′ )cout (<< a, k >, {{k ′ }rk }rkab >).cin (z). if EQ(a, dec(z, kab )) then cout (s) else 0
+and
+B = (νr)cin (z).cout ({dec(dec(π2 (z), kab )), π2 (π1 (z)}rkab )
+Then symbolically, the process (νkab )(νs)AkB would never emit s while again, a computational
+adversary can forge a key k such that any bitstring can be successfully decrypted to b using k.
+
+INRIA
+
+Computational soundness of observational equivalence
+
+17
+
+This attack could be captured by considering a stronger equation for the primitive fakekey,
+requiring that the key can be forged not knowing the cyphertext. This can be modeled by the
+equation
+dec(x, fakekey(y)) = y
+where fakekey would be now a primitive of arity 1. Some attacks may however require the decryption to depend from the cyphertext as shown in the next example.
+Example 5.3 (simultaneous cyphertexts) Consider the following protocol where A sends to
+B p cyphertexts c1 , . . . , cp . Then B encrypts all cyphertexts with a shared key kab together with a
+fresh value nb and commits to p other nonces N1 , . . . , Np . Then A simply forwards the cyphertext
+together with a fresh key k. Then B checks whether each inside cyphertext ci decrypts to Ni using
+the key k received from A, in which case he sends out a secret s.
+A
+
+→B:
+
+c1 , . . . , cp
+
+B
+A
+
+→A:
+→B:
+
+{Nb , c1 , . . . , cp }Kab , N1 , . . . , Np
+{Nb , c1 , . . . , cp }Kab , k
+
+B : {Nb , {N1 }k , . . . , {Np }k }Kab , k
+
+→A:s
+
+This protocol is formally described below:
+A = (νk)cout (< c1 , < . . . , cp >>).cin (z).cout (< π1 (z), k >).0
+and
+B = (νnb , n1 , . . . , np , r)cin (x).cout (< {< nb , x >}rkab , < n1 , < . . . , np >>>).cin(y).
+if EQ(nb , π1 ((dec(y, kab )))
+∧ EQ(n1 , π1 (π2 (dec(y, kab ))))
+∧ EQ(n2 , π1 (π2 (π2 (dec(y, kab )))))
+∧ · · · ∧ EQ(np , π2 (· · · (π2 (dec(y, kab )))))
+then cout (s) else 0
+Then symbolically, the process (νkab )(νs)AkB would never emit s since the Ni are generated
+after having received the ci and the nonce Nb protects the protocol from replay attacks. However,
+having seen the ci and the Ni , a computational adversary can forge a key k such that each bitstring
+ci can be successfully decrypted to Ni using k. More precisely, given an IND-CCA2 (authenticated)
+encryption scheme (G, E, D), it is easy to build another IND-CCA2 (authenticated) encryption
+scheme (G ′ , E ′ , D′ ), which allows to mount the preceding attack. Indeed, consider G ′ = 0 · G (all
+honest keys begin with the bit 0), E ′ (m, i.k) = E(m, k) for i ∈ {0, 1} and D′ defined as follows:
+
+ D′ (c, k) = D(c, k ′ ) if k = 0 · k ′
+ D′ (c, k) = n if k = 1 · c1 , n1 , · · · c, n · · · cp , np
+ D′ (c, k) = ⊥ otherwise
+It is easy to check that (G ′ , E ′ , D′ ) remains IND-CCA2 and allows an adversary to chose a key
+that decrypts to anything he wants.
+To capture this attack, we would need to consider a symbol of arity 2p for any p and an
+equation of the form
+dec(xi , fakekey(x1 , . . . , xp , y1 , . . . , yp )) = yi
+But this would still not be sufficient as shown but the last example below.
+
+RR n° 0123456789
+
+18
+
+H. Comon-Lundh & V. Cortier
+
+Example 5.4 (Dishonest encryption) Consider a protocol where an agent B expects a message of the form {Na }Kab from A and expects a key k from an agent C. Then B transmits to
+A the message k, {{Na}k }Kab where Na is encrypted by k and then by Kab . In case A receives
+k, {{Na , Na }k }Kab , she emits a secret s.
+A
+
+→B:
+
+{Na }Kab
+
+C
+B
+
+→B:
+→A:
+
+k
+k, {{Na}k }Kab
+
+A : k, {{Na, Na }k }Kab
+
+→B:s
+
+This protocol is formally described below:
+A = (νna , r)cout ({na }rkab ).cin (z). if EQ(< na , na >, dec(dec(π2 (z), kab )), π1 (z)) then cout (s) else 0
+and
+
+′
+
+B = (νr, r′ )cin (x).cin (y).cout ({{dec(x, kab )}ry }rkab ).0
+
+Then symbolically, the process (νkab )(νs)AkB would never emit s while again, the adversary could chose a key such that decryption duplicates what is inside. Of course, we can build
+many similar examples using the same idea, where A would expects e.g. {{Na , Na , Na }k }Kab or
+{{Na , A}k }Kab .
+Intuitively, decrypting with adversarial key may produce a function depending on the underlying plaintext and on any previously known data. We do not know how these counter-examples
+are handled in [11] and [30].
+Key hierarchy We say that a term u is a plaintext subterm of t if it is a subterm of t such
+that at least one occurrence of u in t is not at a key or a randomness position. More formally,
+the set pst(t) of plaintext subterms of t is defined as follows: pst(a) = {a} if a is a name, a
+constant or a variable, pst(< t1 , t2 >) = pst(t1 ) ∪ pst(t2 ) and pst({u}rv ) = pst(u). For example,
+pst(< k1 , {{a}rk22 }rk11 >) = {a, k1 }.
+We say that k encrypts k ′ in a set of terms S if S contains a subterm of the form {u}rk such
+that k ′ is a plaintext subterm of u. There is a key cycle in S if there exist k1 , . . . , kn such that
+ki+1 encrypts ki for 1 ≤ i ≤ n − 1 and k1 encrypts kn .
+We require a hierarchy on keys to prevent key cycles. To define an order on keys, we need
+some convention on the renaming of names in processes. This renaming occurs in particular when
+a process is replicated: !((νn)P ) → (νn)P k!((νn)P ). We will assume by convention that the name
+n is successively renamed in n1 , n2 , n3 , . . .
+More formally, let
+P = (νn[B1 kσ1 k · · · kBk kσk kS1 k · · · kSn ])
+be a simple process where the Bi are basic processes and Si =!((νk Si )Si′ ) are replicated processes.
+We assume by renaming that all names occurring in P (bounded or free) are distinct. Let K =
+Sn
+Si be the set of bounded names occuring under a replication and N be the set of all remaining
+i=1 k
+names of P that are not in K. The set of extended names of P is N ∪ {k i | k ∈ K, i ∈ N}. By
+convention, we assume that each time a replicated process Si is duplicated: Si → (νk Si )Si′ kSi ,
+the process (νk Si )Si′ is renamed in (νk Si ,p )Si′ [kjSi 7→ kjSi ,p ] where p is the least integer that has
+not been used yet for renaming the names of k Si .
+We say that v visibly occurs in u if u = v or u =< u1 , u2 > and v visibly occurs in u1 or u2 . We
+say that a key is immediately revealed if it is (visibly) disclosed before being used. More formally,
+Definition 10 A key k is immediately revealed in a simple process
+P = (νn[B1 kσ1 k · · · kBk kσk kS1 k · · · kSn ])
+
+INRIA
+
+Computational soundness of observational equivalence
+
+19
+
+if, whenever cout (s) occurs in some Bi or Si with k occurring in s, that it Bi or Si is of the form
+B = C[cout (s).B ′ ] for some context C then k visibly occurs in s or there is a term u such that k
+visibly occurs in u and cout (u) occurs before in B, that is, C = C ′ [cout (u).C ′′ [ ]] for some contexts
+C ′ , C ′′ .
+Immediately revealed keys typically correspond to keys of corrupted parties. If k ∈ K is immediately revealed then we also say that ki is immediately revealed for any i ∈ N.
+The extended honest names of P are the extended names of P which are not immediately
+revealed.
+Definition 11 We say that a simple process P admits a key hierarchy if there exists an strict
+ordering < on the extended honest names of P such that, for any extended honest names k, k ′ ,
+whenever k encrypts k ′ in the image of σ, for some closed evaluation context C, for some process
+∗
+Q such that C[P ] −
+→ Q and such that νn.σ is a frame of Q, then k ′ < k. We say that νn.σ
+observes the key hierarchy <.
+It is easy to see that if there exists a key hierarchy, no key cycle can be created. Moreover,
+if there exists a key hierarchy then no (extended) honest keys can be learned by the adversary.
+Indeed, if an honest key k were learned by the adversary, he would be able to forge {k}k and thus
+to contradict the key hierarchy property.
+Compared to [30], our hypothesis on keys is more general. In [30], the order is imposed by
+the order in which keys are generated and a key k cannot encrypt keys generated before k. If a
+protocol satisfies the hypothesis of [30], it also admits a key hierarchy for our definition.
+Compared to [11], our hypothesis is more flexible since we do not impose a fixed order. However,
+the two hypotheses are incomparable. In [11], he order is imposed by the order in which keys are
+used for encrypting: if k1 is used for encrypting before k2 is used for encrypting than k1 > k2 .
+(Actually, they require k1 < k2 but they conversely impose that whenever k encrypts k ′ then
+k < k ′ .) This definition allows that the order on the keys depends on the execution of the
+protocol.
+Consider the protocol P1 informally described as follows.
+B→A : N
+A → B : {N, K1 , K2 }Kab , {N, K2 , K1 }Kab
+B → A : {K1 }K2
+Then P1 satisfies the requirement of [11], even if, once A has sent {N, K1 , K2 }Kab , {N, K2 , K1 }Kab ,
+the adversary can choose to obtain {K1 }K2 or {K2 }K1 . (Note that he cannot obtain both.) The
+protocol P1 does not admit a key hierarchy with our definition.
+Consider now the protocol P2 informally described as follows.
+A→B :
+B→A :
+
+{N, K1 , K2 }kab , {N }K1
+{K1 }K2
+
+Then P2 does not satisfy the requirement of [11] while it does admit a key hierarchy by requiring
+N < K1 < K2 .
+Parsing To ease parsing operations, we assume that the pairing, key generation and encryption
+functions add a typing tag (which can be changed by the attacker), which includes which key
+is used in case of encryption. This can be easily achieved by assuming that a symmetric key k
+consists of two parts (k1 , k2 ), k1 being generated by some standard key generation algorithm and
+k2 selected at random. Then one encrypts with k1 and tags the ciphertext with k2 .
+
+RR n° 0123456789
+
+20
+
+5.2
+
+H. Comon-Lundh & V. Cortier
+
+Main theorem
+
+We are now ready to state our main theorem: observational equivalence implies indistinguishability.
+Theorem 12 Let P1 and P2 be two simple processes such that each Pi admits a key hierarchy.
+Assume that the encryption scheme is joint IND-CPA and INT-CTXT. Then P1 ∼o P2 implies
+that [[P1 ]] ≈ [[P2 ]].
+For example, anonymity of group signature as defined in section 2 is soundly abstracted by the
+property defined in Example 3.4. Computational secrecy as defined in section 2 can be soundly
+abstracted by strong secrecy: a secret x is strongly secret in P if P (s) ∼o P (s′ ) for any term s, s′ .
+Note however that strong secrecy implies computational secrecy but might be too strong since
+in the computational games corresponding to strong secrecy, the secret values are given to the
+adversary before it starts interacting with the protocol while these values are given at the end of
+the interaction in the definition of computational secrecy.
+
+5.3
+
+Overview of the proof
+
+The rest of the paper is devoted to the proof of Theorem 12.
+A first approach Let us first show why the naive ideas do not work. Assume we have proved
+that any computational trace is an interpretation (for some sample input) of a symbolic trace.
+Assume moreover that we have a soundness result showing that, if s1 , . . . , sn and u1 , . . . , un are
+two equivalent sequences of terms, then the distributions [[s1 , . . . , sn ]] and [[u1 , . . . , un ]] are indistinguishable. Assume finally that the traces of P1 and the traces of P2 can be pairwise associated
+in statically equivalent traces (as a consequence of observational equivalence).
+One could think that it is possible to conclude, pretending that [[P2 ]] ≈ [[P1 ]] since [[t1 ]] ≈ [[t2 ]]
+for each trace t1 of P1 and the corresponding trace t2 of P2 . This is however incorrect. Indeed,
+an attacker can choose his requests (hence the trace) depending on the sample input. In the
+equivalence [[t1 ]] ≈ [[t2 ]], we use an average on the samples, while the choice of t1 (and t2 ), may
+depend on this sample: there is a circular dependency.
+To be more concrete, here is a toy example. Assume that an attacker, given a random input
+τ , first gets [[s]]τ (in both experiments) and then, schedules his requests depending on the ith bit
+of [[s]]τ : at the ith step, he will get tji (resp. uji in the second experiment), where j is the ith bit
+of [[s]]τ . Assume that, for any sequence of bits j1 , . . . , jn ,
+[[s, tj11 , . . . , tjnn ]] ≈ [[s, uj11 , . . . , ujnn ]]
+but that, for the particular sample τ such that [[s]]τ = j1 · · · jn , the attacker outputs 1 on input
+[[s, tj11 , . . . , tjnn ]]τ and outputs 0 on input [[s, uj11 , . . . , ujnn ]]τ . This may happen as the distributions
+could be indistinguishable while distinguished on one particular sample value. Note that, in the
+distribution equivalence, we draw again a sample, while the choice of j1 , ..., jn depended precisely
+of that sample. Then the attacker always outputs 1 in the first experiment since he precisely chose
+from τ the sequence j1 , ...jn . Similarly, he always outputs 0 in the second experiment: he gets a
+significant advantage, distinguishing the two processes.
+The example shows that we cannot simply use the soundness of static equivalence on traces.
+The idea is to consider trees labeled with terms, instead of sequences of terms. Then we do not
+commit first to a particular trace (as choosing j1 , ..., jn above). Considering such trees requires
+an extension of the results of Abadi and Rogaway, which are proved for sequences of terms.
+Actually standard security definitions such as IND-CPA, IND-CCA, can be recasted as an
+interaction of the attacker with a tree of possible oracle calls. The tree structure reflects the
+adaptivity of the attacker. If we look carefully, in [5], the proof does not use the adaptivity of the
+attacker. Indeed, from a term sequence, all oracle calls are known beforehand and the simulator
+does not need to adapt his oracle calls to the replies.
+INRIA
+
+Computational soundness of observational equivalence
+
+21
+
+Proof sketch We associate a tree TP with each process P , which we call process computation tree
+and define symbolic and computational equivalences (denoted respectively ∼ and ≈) on process
+computation trees (see the definitions in the section 6). Such trees record the possible behaviors
+of the symbolic process, depending on (non-deterministic) choices of the symbolic attacker. We
+use process computation trees as an intermediate step and show the following implications:
+P ∼o Q ⇒ TP ∼ TQ ⇒ TP ≈ TQ ⇒ [[P ]] ≈ [[Q]]
+P ∼o Q ⇒ TP ∼ TQ : (Lemma 15) It holds for any term algebra, relying however on the particular
+fragment of process algebra (simple processes). This is similar to the classical characterization of observational equivalence as labeled bisimilarity.
+TP ∼ TQ ⇒ TP ≈ TQ : (Lemma 19) It uses the (tree) soundness in the ground case. This is a new
+concept, which generalizes the soundness of static equivalence from sequences to trees. It is
+necessary for the preservation of trace equivalences.
+TP ≈ TQ ⇒ [[P ]] ≈ [[Q]] (Lemma 25) It uses trace lifting: we need to prove that a computational
+trace is, with an overwhelming probability, an instance of a symbolic trace.
+The two last implications are proved here in the context of pairing and symmetric encryption
+only. However, we believe that the use of computation trees and the way we get rid of encryption,
+can be extended to other primitives.
+
+6
+
+Computation Trees
+
+Previous results on proving soundness of symbolic models hold either for static equivalences [16]
+or for relating symbolic and computational traces [25]. However, combining soundness of static
+equivalence with trace lifting is not sufficient for relating observational equivalence with indistinguishability. Instead of defining the static equivalence on frames (related to only one, linear,
+execution trace), we move to an equivalence on trees, which records execution traces.
+
+6.1
+
+General Computation Trees
+
+Let S = T (N ) be a set of labels, typically a pair < i, u > of a pid and a term for a request u to
+the process i, or a request to start a new process.
+If L1 , L2 are two sequences of terms νn1 .L1 ⊆ νn2 .L2 if, by definition,
+ n1 ⊆ n2
+ ∃L, L2 = L1 · L (L2 is obtained from L1 by appending a list of terms)
+ (n2 \ n1 ) ∩ fn(L1 ) = ∅: newly restricted names are also newly introduced.
+
+We also write t ∈ νn.L if t is a member of the list L.
+Definition 13 A computation tree T is a mapping from a prefix closed subset of S ∗ (Pos(T ), the
+positions of T ) to pairs (P, φ) where P is a simple process and φ = νn.L is a ground frame over
+T (N ). If p ∈ Pos(T ) and T (p) = (P, φ), we write φ(T, p) the frame φ. Moreover T must satisfy
+the following conditions:
+
+ for every positions p, q, if p > q, then φ(T, q) ⊆ φ(T, p)
+ for every position p · t, t ∈ φ(T, p · t)
+ for every positions p·t, p·u, if t =E u, then t = u. This ensures that there is no two branches
+labeled with the same (equivalent) message.
+
+RR n° 0123456789
+
+22
+
+H. Comon-Lundh & V. Cortier
+
+The trees need not to be finite: they may be both infinitely branching and contain infinite paths.
+Finally, positions need not to be closed lexicographically.
+The definition of static equivalence ∼ is extended to computation trees. T |p is the sub-tree of
+T at position p.
+Definition 14 ∼ is the largest equivalence relation on computation trees such that if T1 ∼ T2 ,
+then φ(T1 , ǫ) ∼ φ(T2 , ǫ) and there is an one-to-one mapping β from T (N ) to itself such that, for
+any length 1 position t of T1 , T1 |t ∼ T2 |β(t) .
+Typically, requests sent by the adversary need not to be identical, but must be equivalent.
+Then β is a mapping, which depends on T1 , T2 , which associates the messages in the labels of T1
+with equivalent messages labeling T2 .
+
+6.2
+
+Process computation trees
+
+We organize all possible symbolic executions of a simple process P in a tree TP . Each node of TP
+is labeled by (Q, φ) where Q is the current state of the process and φ represents the sequence of
+messages sent over the network by P so far.
+Let P ≡ νn, νx. Q1 kσ1 k · · · kQN kσN kS be a simple process where S = S1 k · · · kSk is the
+composition of a finite number of replicated processes Si and every Qi ∈ B(li , ni , xi ) is either 0 or
+a basic process cin (xi ).Pi and σi is a ground substitution whose domain contains only free variables
+of Pi . Note that li is the pid of Qi . The process computation tree TP is defined as follows. The
+labeling and positions are defined by induction on the position length: TP (ǫ) = (P, id) where id
+denotes the empty frame, and, for any p ∈ Pos(TP ), let
+p
+TP (p) = (νnνx. Qp1 kσ1p k · · · kQpN kσN
+kS , νn′ .L)
+
+where each Qpj is either 0 or cin (xpj ).Pjp . Then q = p · α ∈ Pos(TP ) if α =< li , u >, Qpi 6≡ 0,
+νn′ σ ⊢ α and
+cout (α1 )···cout (αm )
+cin (α)
+Qpi −−−→ −−−−−−−−−−−→ Qqi kσip k{xpi 7→ α}
+in which case
+q
+, νn′ . L · (α, α1 , . . . , αm ))
+TP (p · α) = (νnνx.Qq1 kσ1q k · · · kQqN kσN
+
+where, for every j 6= i, Qqj = Qpj , σjq = σjp , Qqi is either 0 or cin (xqi ).P (xqi ) and σiq = σip ◦ {xpi 7→ α}.
+This corresponds to the case where an attacker sends a message to an active process Q of pid li .
+The attacker may also ask for the initialization of a process. S = S1 k · · · kSk and there is a fixed
+ordering on the Sj (which correspond to the roles of the protocol). Then q = p · newj ∈ Pos(TP ),
+where newj is a special constant (1 ≤ j ≤ k). Let Sj =!(νy, l, nj cout (l).B). Then
+p
+TP (p · newj ) = (νnνxνyνlνnj . Qp1 kσ1p k · · · kQpN kσN
+kBkS , νn′ νnj . L · l)
+p
+. Note
+assuming by renaming that the names of y, nj do not appear free in Qp1 kσ1p k · · · kQpN kσN
+that by construction, B ∈ B(l, nj ∪ n, yj ) thus l is the identifier of B. l is first published such that
+the intruder can use it to schedule B.
+A process computation tree is a computation tree. Observational equivalence yields equivalence
+between the corresponding process computation trees:
+
+Lemma 15 Let P and Q be two simple processes. If P ∼o Q then TP ∼ TQ .
+This does not follow directly from [3] since we slightly changed the process algebra, adding
+predicates. Moreover, the tree equivalence does not correspond exactly to labeled bisimilarity.
+Actually, we only prove an implication here (which is all we need).
+Proof : Assume that TP 6∼ TQ and let us construct a process, which distinguishes between P
+and Q. We construct by induction on the length of p ∈ Pos(TP ) a family of one-to-one and onto
+functions (from T (N )/ =E to itself) βp such that
+INRIA
+
+Computational soundness of observational equivalence
+
+23
+
+ if βp is defined, then, for any q < p, βq is defined. We define then (inductively) B by
+B(p · α) = B(p) · βp (α).
+ if βp is defined, then, for any q ≤ p, φ(TP , q) ∼ φ(TQ , B(q))
+ either φ(TP , p) 6∼ φ(TQ , B(p)), in which case βq is undefined for q ≥ p,
+ or βq is defined for any q < p and φ(TP , p) ∼ φ(TQ , B(p)), in which case βp is defined and
+TP |p 6∼ TQ |B(p) implies that, for some α, TP |p·α 6∼ TQ |B(p·α) .
+
+If β is defined on any strict prefix of p and TP |p ∼ TQ |B(p) , we simply use the definition of
+∼: there is a one-to-one and onto function βp such that, for every p · α ∈ Pos(TP ), TP |p·α ∼
+TQ |B(p)·βp (α) .
+If β is defined on any strict prefix of p and TP |p 6∼ TQ |B(p) and φ(TP , p) ∼ φ(TQ , B(p)), then
+we define βp as follows: for every α, if p · α ∈ Pos(TP ), then let φ(TP , p) = νn1 .σ1p . By definition
+of TP , σ1p ⊢ α, therefore there is a term tα such that fn(tα ) ∩ n1 = ∅ and M |= tα σ1p = α. If
+φ(TQ , B(p)) = νn2 .σ2p , then we let βp (α) = tα σ2p . Let us show that βp thus defined is one-to-one
+on T (N )/ =E , hence can be extended to a one-to-one mapping. If βp (α) = βp (α′ ), then there are
+terms t, u such that M |= tσ2p = uσ2p and M |= tσ1 = α ∧ uσ1 = α′ . Since φ(TP , p) ∼ φ(TQ , B(p)),
+M |= tσ2 = uσ2 implies M |= tσ1 = uσ1 , hence M |= α = α′ .
+This completes the construction of the family βp .
+Since TP 6∼ TQ , there must be a minimal position p for which βp is undefined, otherwise the
+family βp yields an equivalence relation R satisfying the conditions of definition 14, hence TP ∼ TQ
+since ∼ is the largest equivalence relation satisfying these conditions.
+Let p = p1 · α, p2 = B(p1 ).
+α cannot be a constant newj since, in that case, νn1 .L1 = φ(TP , p1 ) ∼ φ(TQ , p2 ) = νn2 .L2
+implies φ(TP , p1 · newj ) = νn′1 .L1 · l1 ∼ νn′2 .L2 · l2 = φ(TQ , p2 · newj ).
+Then let
+ TP (p1 ) = νn1 .P1 , νn′1 . L1
+ TQ (p2 ) = νn2 .P2 , νn′2 . L2
+ φ1 = νn′1 . L1 ∼ νn′2 . L2 = φ2 .
+1
+ P1 = (νn1 νx)Q1 kθ11 k · · · kQN kθN
+kS1 where Qi ≡ c(xi ).Q′i
+cin (α)
+
+ Q′i −−−→
+
+cout (α1 ),...cout (αm )
+
+−−−−−−−−−−−−→ Q′′i kθi1 k{xi 7→ α}
+
+ φ(TP , p1 · α) = νn′1 . L1 · (α, α1 , . . . , αm ).
+2
+ P2 = (νn2 νx2 )R1 kθ12 k · · · kRN kθN
+kS2 where Rj = cin (yj ).Rj′
+cin (βp (α))
+
+1
+−−→
+ Rj′ −−−−−
+
+cout (α′1 ),...,cout (α′ ′ )
+
+m
+−−−−−−−−−−−−
+−→ Rj′′ where Rj′′ is 0 or ready to receive a message.
+
+We first construct a process Ip1 with free variables y = {y1 , . . . , yM }, where M is the length
+of the list L1 (which is also the length of L2 ), such that
+∗
+
+Ip1 k(νn′1 L1 )kP1 −
+→ c(a).I1
+while, for any I2 ,
+
+∗
+
+→ c(a).I2
+Ip1 k(νn′2 . L2 )kP2 6−
+
+Since φ(TP , p1 · α) 6∼ φ(TQ , p2 · βp1 (α)), either m 6= m′ , in which case we may assume w.l.o.g
+that m > m′ (possibly exchanging the roles of the processes) and we construct a process
+Ip1 ≡ νx.cin (tα ) · cout (x1 ). · · · cout (xm ).c(a) · 0
+RR n° 0123456789
+
+24
+
+H. Comon-Lundh & V. Cortier
+
+such that f n(Ip1 ) ∩ n′1 = ∅ (following f n(tα ) ∩ n′1 = ∅). Then
+∗
+
+→ c(a).I1 ,
+Ip1 k(νn′1 . L1 )kP1 −
+while the process reaches a deadlock before being able to emit on c, when combined with P2 .
+In case m = m′ , there are terms u1 , . . . , un s.t. fn(ui ) ∩ (n′1 ∪ n′2 ) = ∅ and a predicate
+symbol p such that σ1 |= p(u1 , . . . , un ) while σ2 6|= p(u1 , . . . , un ) (or the converse), if we let
+σ1 , σ2 be the canonical substitutions associated respectively with the lists L1 · (α, α1 , . . . , αm ) and
+L2 · (β(α), α′1 , . . . , α′m ).
+We construct a process Ip1 , which constructs tα as above, receives the m messages and then
+distinguishes the two processes using an appropriate test using the predicate p:
+Ip1 ≡ νx.cin (tα ) · cout (x1 ) · · · cout (xm ) · if p(u1 , . . . , un ) then c(a) · 0 else 0
+Now that we have dinstinguished the processes (and frames) at position p1 , p2 , we have reconstruct, moving up along the paths p1 , p2 , a process which distinguishes the labels of the nodes,
+until we reach the root of the trees, thus distinguishing P and Q.
+For every prefix q of p1 , let
+TP (q) = ((νn1,q νx1,q ) P1,q , νn′1,q . L1,q )
+
+and TQ (q) = ((νn2,q νx2,q ) P2,q , νn′2,q . L2,q ).
+
+We construct, by induction on |p1 | − |q|, a context Iq , which distinguishes between
+((νn1,q νx1,q ) P1,q )k(νn′1,q . L1,q ) and ((νn2,q νx2,q ) P2,q )k(νn′2,q . L2,q ).
+Ip1 is the process, which we constructed above.
+Let q · α be a length n + 1 prefix of p. Assume L1,q·α = L1,q · (α, α1 , . . . , αm ), L2,q·α =
+L2,q · (βq (α), α′1 , . . . , α′m ) and let σ1q , σ2q be the two substitutions associated with L1,q and L2,q
+respectively. There is a term tα such that f n(tα ) ∩ (n′1,q ∪ n′2,q ) = ∅ and M |= tα σ1q = α ∧ tα σ2q =
+βq (α). Iq will then be the process defined by:
+Iq ≡ cin (tα ) · cout (y1 ) · · · cout (ym ) · Iq·α
+Then, for every i = 1, 2,
+∗
+
+Iq k((νni,q νxi,q )Pi,q )k(νn′i,q . Li,q ) −
+→ Iq·α k((νni,q·α νxi,q·α ) Pi,q·α )k(νn′i,q·α . Li,q·α )
+And therefore, we conclude by the induction hypothesis.
+Finally, applying the result when q = ǫ, we get a process Iǫ , which distinguishes between P
+and Q.
+
+
+6.3
+
+Scheduled computation trees
+
+When all behaviors of a concrete attacker are instances of behaviors of a symbolic attacker, the
+concrete attacker can be seen as a machine which schedules the behavior of the symbolic attacker.
+That is what we try to capture here.
+We assume that, given a security parameter η and a mapping τ from names to actual bitstrings,
+there is a parsing function κτη that maps bitstring to their symbolic representation. This parsing
+function is assumed to be total, using possibly constants or new names of the appropriate length.
+In the case of symmetric encryption, we exhibit (in the proof of Lemma 19) such a parsing function,
+computable in polynomial time.
+For any symbolic computation tree T , and random tape τ , we let OT,τ be an oracle, whose
+replies depend on the tree T and the sample τ . Initially, the tree T is a process computation tree.
+Then the oracle can be simply understood as simulating the network and answering to attacker’s
+INRIA
+
+Computational soundness of observational equivalence
+
+25
+
+messages. This is convenient for an intuitive understanding of OT,τ , but we will transform the
+tree T later on. That is why we need a general definition.
+Intuitively, the tree specifies how the oracle can be adaptively queried and what are its answers.
+This is formalized as follows.
+When queried with mn , after being queried successively with m1 , . . . , mn−1 ,
+ the oracle first computes κτη (mn ). Let rj = κτη (mj ) for 1 ≤ j ≤ n.
+ the oracle returns 0 if r1 · · · rn is not a position of T
+ otherwise, let φ1 = νn1 σ1 = φ(T, r1 · · · rn−1 ), φ2 = νn2 σ2 = φ(T, r1 · · · rn ) be the labels of
+the two successive nodes of T . For any name k that occurs in σ2 and not in σ1 , the oracle
+draws a random number τ (k) using its random tape τ . If k ∈
+/ n2 then the oracle returns
+τ (k) (the value is public in that case).
+
+Next, the oracle returns [[xσ2 ]]τ for all x ∈ dom(σ2 ) \ dom(σ1 ). Intuitively, the oracle replies
+by sending back the (interpretation of the) terms labeling the target node of the tree that
+have not been already given.
+In the last case, the oracle answer corresponds, in case T is a process computation tree, to the
+messages sent by the process answering the attacker’s message.
+Definition 16 Given two symbolic computation trees T1 , T2 , the two trees are computationally
+indistinguishable, which we write T1 ≈ T2 if, for any PPT A,
+|Pr{τ, r : AOT1 ,τ (0η | r) = 1} − Pr{τ, r : AOT2 ,τ (0η | r) = 1}|
+is negligible.
+
+7
+
+Main steps of the proof
+
+From now on, we fix the signature Σ0 , the equations E0 and the predicate set P0 , defined in
+Example 3.3 and in the following examples of Section 3.2.
+The set of equations in E0 can be turned in a convergent term rewriting system: we let t ↓ be
+the unique normal form of t with respect to this rewrite system.
+
+7.1
+
+Getting rid of encryption
+
+To prove indistinguishability of processes, we replace ciphertexts by encryption of zeros. We follow
+the key hierarchy, starting from a maximal key. The function Ψk on trees replaces terms under
+encryption by constants 0l of the same length:
+Ψk (n)
+Ψk (< t1 , t2 >)
+Ψk ({t}rk )
+Ψk ({t}rk′ )
+
+=
+=
+=
+=
+
+n if n is a name or a constant
+< Ψk (t1 ), Ψk (t2 ) >
+{0l(t) }rk
+{Ψk (t)}rk′ if k 6= k ′
+
+Note that Ψk is an injective mapping on terms, essentialy because we assumed that two random
+components r of encryptions are distinct as soon as the corresponding plaintext are distinct (this
+correspond to two distinct calls to the encryption algorithm, which draws a random input r each
+time it is called).
+Then Ψk is extended to computation trees by applying Ψk on the requests and frames. Intuitively, the underlying process remains the same but the adversary is given a view of the execution
+where any encryption by k has been replaced by an encryption of zeros by k.
+If k is not deducible, then an intruder cannot tell whether the encryptions by the key k have
+been replaced by encryptions of zeros:
+RR n° 0123456789
+
+26
+
+H. Comon-Lundh & V. Cortier
+
+Lemma 17 For any computation tree T and for any name k such that k is not deducible from
+any frame labeling a node of T , then T ∼ Ψk (T ).
+Proof : β is chosen to be Ψk . It is a one-to-one function on labels, since Ψk is one-to-one. It
+remains to show that for any frame ψ such that ψ 6⊢ k, we have ψ ∼ Ψk (ψ). For any context C,
+C[t1 , . . . , tn ] ↓ [{u}rk 7→ {0l(u) }rk ] = C[t1 , . . . , tn ][{u}rk 7→ {0l(u) }rk ] ↓ by induction on the length of a
+rewrite sequence to the normal form. Moreover, the predicates M, EQ, EL, Psamekey are stable by
+replacement of zeros under encryption: M |= P (t1 , t2 )[{u}rk 7→ {0l(u) }rk ] ⇔ P (t1 , t2 ) This yields
+the desired property.
+
+Now, once every encryption has been replaced by encryption of zeros then static equivalence
+coincides with equality up-to name renaming:
+Lemma 18 Let φ1 and φ2 be two frames such that for any subterm of φ1 or φ2 of the form {u}rk ,
+we have u = 0l for some l ∈ N. If Psamekey is in the set of predicates, then φ1 ∼ φ2 iff φ1 and φ2
+are equal up-to name renaming.
+Proof :
+Only the direction “only if” needs a proof. Assume νn1 σ1 ∼ νn2 σ2 . Let the size of
+σ = {x1 7→ t1 , . . . , xn 7→ tn } be the sum of the sizes of the terms ti . The size of a term is 1 when it
+is a constant (or a name) and, if t = f (t1 , . . . , tn ), then the size of t is |t| = 1 + |t1| + · · · + |tn |. We
+reason by induction on the size of σ1 . When σ1 is empty then σ2 must be empty too. Now if, for
+some x, u, v, xσ1 =< u1 , v1 >, then, since M |= M (π1 (xσ1 )), φ1 ∼ φ2 implies M |= M (π1 (xσ2 )),
+hence xσ2 is a pair < u2 , v2 >. If we let φ′i = νni .σi′ be the frame defined by x1 σi′ = ui , x2 σ1′ = vi ,
+yσi′ = yσi if y ∈ dom(σi )\{x} and whose domain is (dom(σi )\{x})⊎{x1 , x2 }, we have φ′1 ∼ φ′2 : for
+every term t, tσi′ = (t{x1 7→ π1 (x), x2 7→ π2 (x)})σi . Then we can apply the induction hypothesis
+and conclude. Now, we can assume that no variable in either frame is mapped to a pair. This
+means that, for every variable x, xσi is either a ciphertext, a name, or a constant.
+If, for some x, xσ1 is a constant c, then M, φ1 |= EQ(x, c), hence M, φ2 |= EQ(x, c): xσ2 = c.
+Then simply remove x from the domains of the two frames and apply the induction hypothesis.
+If, for some x, y, x 6= y, xσ1 = yσ1 , then M, φ1 |= EQ(x, y), hence M, φ2 |= EQ(x, y) and
+therefore xσ2 = yσ2 . Then simply remove x from the domain of σi and apply the induction
+hypothesis. From now on, we may assume that xσi 6= yσi as soon as x 6= y.
+If, for some variable x, xσ1 is a name k1 , then xσ2 must be a name k2 ; this can be checked
+in several ways.For instance, if it was a ciphertext then Psamekey (xσ2 , xσ2 ) would hold, while it
+would not be true for xσ1 . Consider then all variables whose image in σ1 is an encryption with k1 :
+r1
+by renumbering we may assume it is x1 , . . . , xm . xi σ1 = {u1i }ki1 . M, φ1 |= M (dec(xi , x)), hence
+r2
+
+M, φ2 |= M (dec(xi , x)): there are terms such that xi σ2 = {u2i }ki2 . Then replacing σj with σj′ such
+that x′i σj = uji and replacing xi with x′i , we have φ′1 ∼ φ′2 since tσi′ = (t{x′1 7→ dec(x1 , x), . . . , x′m 7→
+dec(xm , x)})σi .
+If k1 occurs only once in σ1 (in this case m = 0), we simply remove x from the domains of σ1
+and σ2 : by induction hypothesis, the resulting frames are identical, up to renaming. Then adding
+k1 7→ k2 = xσ2 to this renaming, we get a renaming of σ1 into σ2 .
+Now, assume k1 occurs more than once. We can apply the induction hypothesis to φ′1 , φ′2 : these
+two frames are identical, up to a renaming ρ. In particular, we must have k1 ρ = k2 . In addition,
+1
+by consistency of random numbers and since all variable images are distinct, the names r11 , . . . , rm
+2
+1
+2
+′
+1
+2
+2
+and r1 , . . . , rm occur only once in their respective frames. Let ρ = ρ ⊎ {r1 7→ r1 , . . . , rm 7→ rm }.
+ρ′ is a renaming of φ1 into φ2 .
+Finally consider the case where, for every x, xσ1 is a ciphertext. Similarly, xσ2 must be a
+ciphertext (we can apply the above reasoning switching φ1 and φ2 ). Let k1 be a key occurring in
+r1
+
+σ1 (there must be at least one). As above, let x1 , . . . , xm be the variables such that xi σ1 = {u1i }ki1 .
+r2
+
+Now, let x1 σ2 = {u21 }k12 . M, φ1 |= Psamekey (x1 , xi ) for every i = 2, . . . , m. It follows that M, φ2 |=
+INRIA
+
+Computational soundness of observational equivalence
+
+27
+
+r2
+
+Psamekey (x1 , xi ) for i = 2, ..., m. This implies that xi σ2 = {u2i }ki2 for some ri2 , u2i . Now, all symbols
+rij must occur only once, by consistency of the random numbers and since any ciphertext occurs at
+most once in each frame. In addition, since φ1 , φ2 satisfy the same EL predicates, for every i, the
+length of u1i equals the length of u2i . On the other hand, we assumed that only terms 0l have been
+encrypted. It follows that u1i = u2i for every i. Now, if we consider the frames φ′1 , φ′2 obtained by
+removing x1 , . . . , xm from the domain of σ1 , σ2 , there is no longer any occurrence of k1 , k2 , ri1 , ri2
+in φ′1 , φ′2 . By induction hypothesis, there is a renaming ρ such that ρ(φ′1 ) = φ′2 . Then, extending
+1
+2
+ρ with {k1 7→ k2 , r11 7→ r12 , . . . rm
+7→ rm
+}, we get a renaming of φ1 in φ2 .
+
+
+7.2
+
+Soundness of static equivalence on trees
+
+Static equivalence on process trees can be transferred at a computational level.
+Lemma 19 Let P1 and P2 be two simple processes such that each Pi admits a key hierarchy.
+Let TPi be the process computation tree associated to Pi . If TP1 ∼ TP2 then TP1 ≈ TP2 or the
+encryption scheme is not joint IND-CPA and INT-CTXT.
+This key lemma is proved by applying the functions Ψk following the key ordering, to the
+trees TPi . We preserve equivalence on trees thanks to Lemma 17. If we find a key k such that
+Ψk (TPi ) 6≈ TPi , then we can construct an attacker who breaks IND-CPA. Otherwise we are left to
+trees labeled with frames whose only subterms of the form {u}rk are such that u = 0l for some l.
+In this case, we show that equivalence of such frames coincides with equality using Lemma 18.
+Proof :
+Assume there exists a PPT A that distinguishes TP1 from TP2 with non negligible probability.
+A makes at most a polynomial number of queries of the form (j, new). Thus a polynomial number
+n1 (resp. n2 ) of keys can be generated when A is interacting with TP1 (resp. TP2 ).
+Moreover, when A interacts with TPi , it only makes requests up to a certain depth p(η) where
+p is a polynomial. Let TP /n denote the tree obtained from TP by removing nodes at depth greater
+than n. Due to our convention about the renaming of keys when processes are duplicated (see
+section 5.1), we have that TP1 /p(η) (resp. TP2 /p(η) ) contains at most n1 (resp. n2 ) distinct keys.
+Let <i be the key ordering of Pi for i ∈ {1, 2} and let ki1 , . . . , kini be the names of Pi such that
+1
+ki <i ki2 <i · · · <i kini . Let Ti1 = TPi and Tij+1 = Ψkj (Tij ) for 1 ≤ j ≤ nj . By Lemma 17, we
+i
+
+have Tij+1 ∼ Tij . By transitivity of ∼, we deduce T1n1 ∼ T2n2 . Then either A distinguishes T1n1
+from T2n2 or A distinguishes Tij+1 from Tij for some i, j with non negligible probability.
+We first consider the case where A distinguishes Tij+1 from Tij for some i, j with non negligible
+probability. We show that we can break IND-CPA or INT-CTXT for the key kij . W.l.o.g, we
+assume i = 1. We construct a PPT B that simulates the oracle OT j in polynomial time. Initially
+1
+
+B knows the process P1 and generates all the keys k11 , . . . , k1ni by itself except k1j . Then, each time
+A queries w where w is a bitstring then B computes the symbolic representation u of w as follows:
+ Either w is the interpretation of newj , and then the computation result is newj
+ Or w is a pair w1 kw2 , in which case B computes the symbolic representation of w1 and w2 .
+ Or w is an encryption with some key k. If B has already seen w then B already knows
+its symbolic interpretation. Otherwise, B decrypts w by using its own key if k 6= k1j or by
+submitting w to the INT-CTXT oracle. If the decryption fails, B creates three new names
+u, k0 , r and remembers the association between w and its symbolic representation {k}rk0 .
+Otherwise, the decryption yields to a bitstring w′ for which B computes a symbolic representation u. Then B creates a new name r and associate to w the symbolic representation
+{u}rk .
+RR n° 0123456789
+
+28
+
+H. Comon-Lundh & V. Cortier
+
+ Or w is a key. There are two cases, either B has already seen w in which case B already
+knows its symbolic interpretation or B creates a new name u and remembers the association
+between w and its symbolic representation u.
+ Otherwise, we are left to the case where w does not start with the pair tag neither with the
+cyphertext tag or the key tag. There are two cases, either B has already seen w in which
+case B already knows its symbolic interpretation or B creates a new name u and remembers
+the association between w and its symbolic representation u.
+
+Note that parsing performed by B has the following property (bottom-up parsing):
+if u is a subterm of κτη (m), then κτη ([[u]]τη ) = u.
+
+(P)
+
+Once B has computed the symbolic representation u of w, B looks up at the symbolic representation P of the current state of the process and computes the next state Q that is reached:
+cin (u)
+
+cout (u1 )···cout (um )
+
+P −−−→ −−−−−−−−−−−→ Q. It remains to B to give the computational counterpart of u1 , . . . , um .
+B first identifies the maximal subterms of ui for which it already knows the computational counterpart. Then the computational counterpart of u1 , . . . , um is computed by pairing and encrypting
+as follows: for each subterm of the form {v}rk :
+ If k <1 kij , then B encrypts [[v]] with k yielding to a ciphertext c and remembers the
+association between c and {v}rk . Note that v cannot contain k as plaintext subterm due to
+the key hierarchy.
+ If k >1 kij , then B encrypts 0l(v) with k yielding to a ciphertext c and remembers the
+association between c and {v}rk .
+ If k = kij then B submits to IND-CPA oracle the request 0l(v) , [[v]] and gets a ciphertext c.
+Again, B remembers the association between c and {v}rk .
+O
+
+j
+
+O j
+
+O
+
+j+1
+
+When A halts outputting b then B halts outputting b. Then A Ti behaves like B k1 and A Ti
+O′ j
+k
+1
+
+behaves like B
+, except when B submits an encryption to the INT-CTXT oracle. We deduce
+that B breaks the joint INT-CTXT and IND-CPA game.
+We are left to the case where A distinguishes T1n1 from T2n2 with non negligible probability. Let
+β1 be the one-to-one function from T1n1 to T2n2 and β2 be the one-to-one function from T2n2 to T1n1 .
+For any position p of T1n1 not greater than p(η), the frame of T1n1 (p) is equivalent to the frame
+T2n2 (β1 (p)). From Lemma 18, we deduce that the two frames are equal modulo name renaming.
+Since the frames contain the adversary requests at the same position, it implies that β1 is the
+identity (modulo name renaming). Symmetrically β2 is the identity thus we deduce that T1n1 and
+T2n2 are identical up-to renaming and up-to depth p(η). Thus they are a fortiori indistinguishable
+by A.
+
+
+7.3
+
+Relating concrete and symbolic traces
+
+We need here to show that concrete traces are, with overwhelming probability, interpretations of
+symbolic ones.
+We let P be a simple process, τ be a sample of names and F be the family of CTMs obtained
+by interpreting P, with respect to the sample τ (which we write by abuse of notations [[P]]τη ). We
+define what it means for a concrete execution to be fully abstracted by a path in a process tree.
+First, given P, η, τ, A, the behavior of the network [[P]]τη kA is deterministic.
+We let Messages(P, η, τ, A) be the sequence defined as follows: let γnA be the sequence of
+configurations of A (along its deterministic computation), on the sample input τ , when interacting
+with [[P]]τη . Let δnA be the subsequence of γnA of configurations following a new, send or receive action.
+
+INRIA
+
+Computational soundness of observational equivalence
+
+29
+
+ If δnA follows a new action, let j be the content of the scheduling tape in δnA and l be the
+content of the receiving tape in the same configuration. We let then an = s(newj ) · r(l).
+ If δnA follows a send action of A, we let an = s(< i, m >) where i is the content of the
+scheduling tape of A in configuration δnA and m is the content of the sending tape in δnA .
+ If δnA follows a receive action, then an = r(m) where m is the content of the receiving tape
+in δnA .
+
+Messages(P, η, τ, A) is the sequence an obtained in this way.
+Lemma 20 We may assume w.l.o.g. (by changing the adversary) that Messages(P, η, τ, A) is
+a sequence s(m1 ) · R1 · s(m2 ) · R2 · · · · s(mn ) · Rn where every Ri is a sequence of messages
+r(m′1 ) · · · r(m′ni ). In other words, after a modification of the scheduling tape, there cannot be
+a receive event before a send event has been completed.
+In such a situation, Messages(P, η, τ, A) can be more conveniently represented as a sequence
+mn
+m1
+Ln where Li is the increasing sequence of messages: Li+1 = Li · Ri · mi . We
+L2 · · · −−→
+L1 −−→
+also denote the sequence of messages sent by A by SMessages(P, η, τ, A) = (m1 , . . . , mn . . .).
+As for process computation trees, we will also insert in the sequence the configurations of the
+network in order to keep a stronger invariant relating the symbolic processes and their implementations along the computation. If
+P = νn, ∀x.P1 k · · · kPn kS1 k · · · kSk ,
+where P1 , . . . , Pn are basic processes, possibly with substitutions, and S1 , . . . , Sk are replicated
+processes, γ([[Pi ]]τ ) is the corresponding configuration [q, τi , σ] of the machine, as defined in section 4.
+The configuration γ of the network is then given (besides the configuration of A) by the
+sequence γ([[Pi ]]τ ) for i = 1, ..., n (replicated processes do not play any role as long as there is no
+process activation; when a process is activated, it moves out of the scope of the bang).
+Now the computation of the Ak[[P]]τ can be split as follows:
+m
+
+m
+
+n
+1
+γn , Ln
+γ2 , L2 · · · −−→
+γ1 , L1 −−→
+
+If T is a process computation tree and p ∈ P os(T ), p abstracts such a computation sequence
+if p = α1 · · · αn and, for every j ≤ n, [[αj ]]τ = mj and, if T (α1 · · · αj ) = (Qj , φj ) (= (Qj , νnj . Lj ))
+then [[φj ]]τ (= [[Lj ]]τ ) = Lj and [[Qj ]]τ = γj .
+Furthermore, p fully abstracts the computation if γn corresponds to a final configuration. (In
+which case, we succeeded in lifting the concrete trace to a symbolic one).
+In other words, p fully abstracts a computation sequence if it defines a symbolic trace whose
+interpretation is that computation sequence.
+The following characterizes situations in which computations cannot be fully abstracted:
+Lemma 21 Let P be a simple process and TP its process computation tree. Given a sample τ and
+an attacker A, we let Γ be the computation sequence of Ak[[P]]τ .
+There is a path p in P os(TP ) such that one of the following holds:
+1. p fully abstracts Γ
+m
+
+2. or else TP (p) = (Q, φ), there is a a transition γn−1 , Ln−1 −→ γn , Ln in Γ such that [[φ]]τ =
+Ln−1 and there is a message m1 , which is polynomially computable from Ln−1 , which is
+neither a pair, nor an encryption with a known key and such that φ 6⊢ κτη (m1 ).
+3. or else there is a subterm v of φ ∪ {κτη (m)} and a name k such that dec(v, k) is in normal
+form, while D([[v]]τη , τ (k)) 6=⊥.
+
+RR n° 0123456789
+
+30
+
+H. Comon-Lundh & V. Cortier
+
+4. Or else there is a name k occurring in P and a term u occurring as a subterm in
+κτη (SMessages(P, η, τ A)) such that τ (k) = [[u]]τη and k 6= u.
+5. Or else there is a term {v}rk occurring as a subterm in κτη (SMessages(P, η, τ, A)) and a term
+′
+′
+{v}rk such that [[{v}rk ]]τη = [[{v}rk ]]τη .
+The proof relies on a number of simplification lemmas for conditions, whose proofs are given
+in appendix A and which we state below.
+Lemma 22 Every condition Φ is (effectively) logically equivalent to a conjunction of atomic formulas
+
+ M (s1 ), . . . M (sn ) such that, for every i, si does not contain any pairing or encryption symbol
+and does not contain any subterm dec(k, u) where k is a name
+ EQ(t1 , u1 ), . . . EQ(tm , um ) such that, for every j = 1, ...n there is a term C not containing
+any decryption or projection symbol and there are indexes i, i1 , . . . , ik such that {tj , uj } =
+{si , C[si1 , . . . , sik ]}.
+Lemma 23 If s is a term in normal form and M (s) is a simplified condition (as in lemma 22)
+and θ is a substitution such that, for every variable x, M |= M (xθ), then, for every subterm v of
+sθ ↓, if one of the following holds:
+
+ v = dec(w, k) for some w, k, and M |= M (w),
+ v = πi (w) for some w and M |= M (w),
+then there is a variable x such that w is a subterm of xθ
+Proof : (Of lemma 21)
+Let Γ be the computation sequence
+m
+
+m
+
+n
+1
+γn , Ln
+γ2 , L2 · · · −−→
+γ1 , L1 −−→
+
+For simplicity, we assume that there is no message newj in the sequence of messages: these steps
+cannot have any influence on the trace extensibility. We first show that, if ∀j ≤ n − 1,
+ TP (κτη (m1 ) · · · κτη (mj )) = (Qj , φj ),
+ [[φj ]] = Lj , [[Qj ]] = γj and φj ⊢ κτη (mj+1 ),
+ Qj ≡ Rj kσj and σj = {x1 7→ κτη (m1 ), . . . xn−1 7→ κτη (mn−1 )}
+
+then TP (κτη (m1 ) · · · κτη (mn )) = (Qn , φn ) with [[Qn ]] = γn , [[φn ]] = Ln and Qn = Rn kσn and
+σn = σn−1 ⊎ {xn 7→ κτη (mn )} For, let p = κτη (m1 ) · · · κτη (mn−1 ),
+ TP (p) = (Qn−1 , Ln−1 ) and Qn−1 ≡ Qkcin (xi ).Pi kσn−1 ,
+ in configuration γn−1 , the machine Mi , whose pid is the interpretation of Pi ’s pid, is in state
+[cin (xi ) · Pi , τi , [[θi ]]τ ], where θi is the restriction of σn−1 to the variables of its domain that
+occur free in Pi .
+ Pi = if Φ then cout (s) · Q else cout (⊥) · 0 (all tests can be gathered together in a single condition, without loss of generality)
+
+or else Pi = cin (x′i ) · Pi′
+
+INRIA
+
+Computational soundness of observational equivalence
+
+31
+
+In the last case, our claim follows trivially. So, we discard this case in the following.
+Let θ be θi ⊎ {xi 7→ κτη (mn )}. By hypothesis, for any variable x in the domain of θ, φn−1 ⊢ xθ.
+Since Γ is a computation sequence, [[Φ]]τ,θ = 1.
+If M (s) is an atomic formula occurring in Φ and M, θ 6|= M (s), then there is a subterm w of
+sθ ↓ whose head symbol is a projection or a decryption symbol. Assume first that w = dec(v, k)
+is a minimal subterm of sθ ↓ headed with a projection or a decryption. Since [[M (s)]]τ,θ = 1,
+D([[v]]τη , τ (k)) 6=⊥.
+Moreover, v must be a subterm of some xθ by lemma 23, and we fall in case 3. The case
+w = πi (v) is not possible as we must have πi ([[v]]τη ) 6=⊥ (see the assumption on the computational
+interpretation of pairing, at the beginning of section 4).
+Now, if EQ(s, t) is an atomic formula occurring in Φ and M, θ 6|= EQ(s, t), while M, θ |=
+M (s) ∧ M (t), by lemma 22, either s or t only contains decryption symbols, projections and names
+and since M, θ |= M (s) ∧ M (t), sθ ↓ or tθ ↓ is a subterm of some xθ by lemma 23. It follows that
+either sθ ↓ or tθ ↓ is a subterm of φ ∪ {κτη (m)}.
+Consider for instance that it is sθ ↓. Moreover, [[sθ ↓]]τ = [[tθ ↓]]τ by hypothesis and therefore,
+by (P ): sθ ↓= κτη ([[sθ ↓]]τη ) = κτη ([[tθ ↓]]). Now, by lemma 22, t = C[s1 , . . . , sk ] where C does
+not contain the symbols dec, π1 , π2 and s1 , . . . , sk only contain decryption, projections, names and
+variables.
+We prove by induction on C that, if [[tθ]]τη is equal to a some [[u]]τη where u is a subterm of some
+xθ and tθ 6= u, then we fall in either case 3 or 4 or case 5 of the lemma.
+If C is empty, then, by lemma 23, tθ ↓ is a subterm of some xθ, which is not possible, since, in
+that case, thanks to property (P ), tθ ↓= κτη ([[tθ]]τη ) = κτη ([[u]]τη ) = u.
+If t is a name k1 , then we fall in case 4 of the lemma.
+If t is a pair, then u must be a pair and we use the induction hypothesis: one of the direct
+subterms of tθ is distinct from the corresponding subterm of u, while their interpretations are
+identical.
+Now, if t = {t1 }rk11 , u cannot be a pair. If it is a name, then we fall in case 3 of the lemma.
+If it is a ciphertext u = {u1 }rk22 , either k1 6= k2 and we fall again in case 3 of the lemma or else
+k1 = k2 . In this latter case, either t1 6= u1 and we apply the induction hypothesis, or else t1 = u1
+and we fall in the case 5 of the lemma.
+Now, to complete the proof of our preliminary statement, if we are not in case 3 or case 4,
+M, θ |= Φ, since Φ is a conjunction of atomic formulas of the forms M (s) or EQ(s, t). This can
+be iterated if Q itself is a conditional statement (we omit the details here). Then
+cin (κτη (mn ))
+
+cout (s1 ),...,cout (sq )
+
+Qn−1 −−−−−−−→ −−−−−−−−−−−→ Qn
+and, if we let φn = νkn . Ln , φn−1 = νkn−1 . Ln−1 , Ln = Ln−1 · (κτη (mn ), s1 , . . . , sq ), there is indeed
+a position p′ = m1 · · · mn in TP such that TP (p′ ) = (Qn , φn ) with the desired properties.
+Now, we have completed the proof of our preliminary statement. Then, either there is a
+m
+path p such that TP (p) = (Q, φ) and there is a transition γn−1 , Ln−1 −→ γn , Ln in Γ such that
+[[φ]]τη = Ln−1 and φ 6⊢ κτη (m), or else, from the preliminary statement, we can construct, by
+induction on the length of Γ, a path p which fully abstracts Γ.
+In case κτη (mn ) is not deducible, by induction on its size, we construct m, constructable in
+polynomial time from mn and such that m is not a pair or an encryption with a known key: in
+either of the latter cases, we can project or decrypt, getting a smaller term.
+
+Concrete traces can be lifted to symbolic ones with overwhelming probability:
+Lemma 24 Assume that the encryption scheme is INT-CTXT and IND-CPA. Let P be a simple
+process that admits a key ordering and TP be its process computation tree. Let A be a concrete
+attacker. The probability over all samples τ , that there is a path p in TP fully abstracting the
+computation sequence of Ak[[P]]τ is overwhelming.
+RR n° 0123456789
+
+32
+
+H. Comon-Lundh & V. Cortier
+
+To prove this lemma, we first simplify the trees by applying the functions Ψk thanks to Lemmas 19
+and 17. Then, using the lemma 21, in each case, in which a trace cannot be fully abstracted, we
+break either INT-CTXT or IND-CPA.
+Proof :
+From an attacker A, we construct a machine B, which is a scheduler of the tree TP
+(or, more precisely, the tree in TP in which all symbolic traces that have no concrete instances,
+are removed). B behaves as A, except that he gets his answer from the oracle OTP ,τ . Moreover,
+if there is no successor in TP corresponding to A’s request (the trace cannot be lifted any more),
+then we assume that the oracle OTP ,τ sends an error message which depends on the reason of the
+failure (φ is defined as in lemma 21):
+ (guessed ciphertext, m1 ) if a component of the request m is a message m1 such that
+κτη (m1 ) = {w}rk , and φ 6⊢ {w}rk , φ 6⊢ k or κτη (m1 ) = k, and φ 6⊢ k.
+ (confusion, [[v]]τη ) if there is a subterm v of φ ∪ {κτη (m)} such that dec(v, k) is in normal
+form and D([[v]]τη , τ (k)) 6=⊥.
+ (collision1, [[u]]τη ) if u is a term in κτη (SMessages(P, η, τ, A)) and a name k occurring in P
+such that τ (k) = [[u]]τη and k 6= u.
+ (collision2, m), if κτη (m) = {v}rk occurs as a subterm of κτη (SMessages(P, η, τ, A)) and
+′
+′
+there is a term {v}rk , r 6= r′ such that m = [[{v}rk ]]τη
+ other otherwise
+
+In further transformations of the machine and the tree, the above properties might no longer
+be satisfied. That is why, in addition, upon receiving any of these error messages, B checks the
+corresponding message: in case of (guessed ciphertext, m1 ), it checks that m1 ∈
+/ [[φ]]η . If it is
+indeed the case, it stops outputting 1. Otherwise, it outputs 0. In case of (confusion, m), it checks
+that there is a subterm v of φ ∪ {κτη (m)} and a name k such that [[v]]τη = m and D(m, τ (k)) 6=⊥. If
+it is the case, the machine outputs 1, otherwise it outputs 0. In case of (collision1, m), again B
+checks the condition and outputs 1 if it is satisfied, otherwise it outputs 0. In case of collision2,
+there is no possible verification and B simply outputs 1. All these verifications can be performed
+in polynomial time.
+Otherwise, on any fully abstract trace, B stops outputting 0.
+ǫ = Pr{τ, r : B OTP ,τ (0η | r) = 1}
+is the probability that, given a sample τ , the corresponding concrete trace Γ cannot be fully
+abstracted.
+From lemma 21, the above failure cases are the only possible ones. Therefore there is a name
+k (chosen from P (η) possible names) such that for some i ∈ {1, 2, 3, 4}:
+OT
+
+Pr{τ, r : Bi,k P (0η | r) = 1} >
+,τ
+
+ǫ
+4 × P (η)
+
+where B1,k (resp. B2,k , resp. B3,k , resp. B4,k ) is the machine, which behaves as B, except
+that it outputs 1 only in case of guessed ciphertext (resp. only in case of confusion, resp.
+only in case of collision1, resp. only in case collision2).
+Now, let T0 be the tree obtained by applying Ψk1 · · · Ψkn to TP , as in the proof of lemma 19.
+Note that the oracle may not reply the same error message when the adversary is interacting with
+T and with Ψk (T ): first it may be the case that on one tree there is an error message and not
+in the other. Next, the final verifications may succeed in one case and not in the other, as for
+instance m may no longer belong to Ψk (φ); this was the purpose of the verification phase.
+As in the proof of lemma 19, either we break joint INT-CTXT and IND-CPA or else, for some
+i ∈ {1, 2, 3, 4} and some key k,
+OT ,τ
+
+Pr{τ, r : Bi,k 0 (0η | r) = 1} >
+
+ǫ
+4 × P (η)2
+INRIA
+
+Computational soundness of observational equivalence
+
+33
+
+Let us construct, in each case, a machine which breaks joint INT-CTXT and IND-CPA.
+The machine Ci,k behaves as Bi,k , but first draws all names except k, and, instead of querying
+the oracle OT0k ,τ , it performs several computations (as in the proof of lemma 19: first parse
+the request of Bi,k possibly stopping if INT-CTXT is broken. Then retrieve from the process
+component what is the (symbolic) expected reply s1 , . . . , sr . Then compute ti = Ψk1 . . . Ψkm (si ).
+These terms do not contain any occurrence of k, except in expressions {0α }rk . Then compute
+[[t1 , . . . , tr ]]τ , by computing all messages which do not contain k, using the sampled keys and
+querying the encryption oracle for each encryption with k, which the attacker does not already
+have.
+Finally, we distinguish between the three cases:
+1. i = 1: if B1,k outputs 1, then there is two cases.
+ Either it got at the last stage a message m from which it can extract m1 such that
+m1 = [[{w}rk ]]τη and {w}rk is not deducible from Ψk1 · · · Ψkm (φ). In that case, since we
+applied all the functions Ψki , {w}rk cannot occur as a subterm in Ψk1 · · · Ψkm (φ) thus
+[[w]]τη has never been sent as a query to the encryption oracle. So, C1,k simply submits
+m1 to the INT-CTXT oracle.
+ Or it got at the last stage a message m from which it can extract m1 such that m1 = [[k]]τη
+and k is not deducible from Ψk1 · · · Ψkm (φ). Then C1,k builds an encrypted message
+m2 = [[{0α }rk ]]τη using the key m1 = [[k]]τη and submits m2 to the INT-CTXT oracle.
+
+2. i = 2: if B2,k outputs 1, we break “confusion freeness”, hence INT-CTXT (see [36]).
+3. i = 3: Either the term u can be deduced from κτη (SMessages(P, η, τ, A)), in which case the
+attacker can guess τ (k) and break INT-CTXT, or else u is encrypted with k. But in that
+case [[u]]τη = τ (k) must be 0α , a case which cannot occur with probability 4×Pǫ(η)2 .
+4. i = 4: the machine C4,k queries the IND-CPA encryption oracle with 1α , checks the equality
+with the term at hand [[{0α }rk ]]τη . In case of equality, he deduces that he must be talking with
+′
+the oracle encrypting always 0α . The guess is correct if [[{0α }rk ]] = [[{0α }rk ]], and only in this
+′
+case, since we cannot have [[{1α }rk ]] = [[{0α }rk ]] because of the determinacy of decryption.
+This occurs with probability at least 4×Pǫ(η)2 , when r, r′ are chosen randomly: we break
+IND-CPA.
+
+
+7.4
+
+Concluding the proof of the main theorem
+
+In the last lemma, we simply apply the previous result. Since traces can be lifted, an attacker on
+the concrete processes is actually a scheduler of the computation trees, hence distinguishing the
+concrete processes amounts to distinguish the corresponding computation trees.
+Lemma 25 Let P1 and P2 be two simple processes admitting a key hierarchy. Let TPi be the
+process computation tree associated to Pi . If the encryption scheme is joint IND-CPA and INTCTXT, then TP1 ≈ TP2 implies that [[P1 ]] ≈ [[P2 ]].
+Proof :
+
+If A is a CTM, which distinguishes between [[P1 ]]η and [[P2 ]]η , let
+ǫ = |Pr{τ, r : Ak[[P1 ]]τη (0η | r) = 1} − Pr{τ, r : Ak[[P2 ]]τη (0η | r) = 1}|
+
+From lemma 24, for every i ∈ {1, 2}, the probability (over τ, r) that there is a path p in TPi
+fully abstracting the computation sequence Γiτ of Ak[[Pi ]]τη is overwhelming. By definition, if p
+fully abstracts Γiτ , then A behaves as a scheduler of TPi on this sample input:
+O
+
+Pr{τ, r : A TPi ,τ (0η | r) = 1} − Pr{τ, r : Ak[[Pi ]]τη (0η | r) = 1}
+RR n° 0123456789
+
+34
+
+H. Comon-Lundh & V. Cortier
+
+is negligible.
+It follows that
+O
+
+O
+
+|Pr{τ, r : A TP1 ,τ (0η | r) = 1} − Pr{τ, r : A TP2 ,τ (0η | r) = 1}| + ν1 + ν2 ≥ ǫ
+where ν1 , ν2 are negligible.
+Then, if TP1 ≈ TP2 , ǫ is also negligible.
+
+
+
+Theorem 12 is now a straightforward consequence of Lemma 15, 19 and 25.
+
+8
+
+Future work
+
+First, there are several possible extensions. Following our proof scheme, we believe that our results
+can be extended to other security primitives, e.g. public-key encryption or signatures.
+There are harder extensions. For instance, can we drop the requirement that private keys are
+not dynamically disclosed? As explained in [11], there is a commitment problem if we rely on a
+simulator. We could also extend our results to a wider class of equational theories by extending
+in particular Lemma 19.
+Another possible extension is to allow the attacker to generate encryption keys, which are then
+not necessarily obtained through the key generation algorithm. Currently, we assumed that the
+adversary gets keys, upon requesting corrupted users. As explained in section 5.1, this is a non
+trivial question, which may require an extension of the symbolic model.
+Finally, our results could be extended to a wider class of processes, for instance allowing a
+non-trivial else branch in the conditionals. Such extensions may be not very hard.
+Besides extensions of the result, we also wish to apply it to actual protocols, for instance voting
+protocols, getting computational security guarantees.
+We also wish to investigate proofs of simulatability/universal composability, relying on our
+abstraction of indistinguishability.
+
+Acknowledgments
+We thank Steve Kremer and Bogdan Warinschi for many useful comments they gave on earlier
+drafts of this paper.
+
+References
+[1] M. Abadi, M. Baudet, and B. Warinschi. Guessing attacks and the computational soundness of static equivalence. In Foundations of Software Science and Computation Structure
+(FoSSaCS’06), volume 3921 of LNCS, pages 398–412, 2006.
+[2] M. Abadi and V. Cortier. Deciding knowledge in security protocols under (many more)
+equational theories. In Computer Security Foundations Workshop (CSFW’05), pages 62–76,
+2005.
+[3] M. Abadi and C. Fournet. Mobile values, new names, and secure communication. In Principles
+of Program- ming Languages (POPL’01), pages 104–115, 2001.
+[4] M. Abadi and A. Gordon. A calculus for cryptographic protocols: the spi calculus. Information and Computation, 148(1), 1999.
+[5] M. Abadi and P. Rogaway. Reconciling two views of cryptography: the computational soundness of formal encryption. In Int. Conf. on Theoretical Computer Science, volume 1872 of
+LNCS, Sendai, Japan, 2000.
+INRIA
+
+Computational soundness of observational equivalence
+
+35
+
+[6] M. Abdalla and B. Warinschi. On the minimal assumptions of group signature schemes. In
+6th International Conference on Information and Communication Security, pages 1–13, 2004.
+[7] P. Adão and C. Fournet. Cryptographically sound implementations for communicating processes. In International Colloquium on Algorithms, Languages and Programming (ICALP’06),
+2006.
+[8] A. Armando and et al. The AVISPA Tool for the automated validation of internet security
+protocols and applications. In Computer Aided Verification, (CAV’05), volume 3576 of LNCS,
+pages 281–285, 2005.
+[9] M. Backes. Private communication.
+[10] M. Backes, M. Dürmuth, and R. Küsters. On simulatability soundness and mapping soundness
+of symbolic cryptography. In Foundations of Software Technology and Theoretical Computer
+Science (FSTTCS), 2007.
+[11] M. Backes and B. Pfitzmann. Symmetric encryption in a simulatable Dolev-Yao style cryptographic library. In Computer Security Foundations Workshop (CSFW’04), 2004.
+[12] M. Backes and B. Pfitzmann. Relating cryptographic und symbolic key secrecy. In Symp. on
+Security and Privacy (SSP’05), pages 171–182, 2005.
+[13] M. Backes, B. Pfitzmann, and M. Waidner. A com- posable cryptographic library with nested
+operations. In 10th ACM Concerence on Computer and Communications Security (CCS’03),
+2003.
+[14] M. Backes, B. Pfitzmann, and M. Waidner. The reactive simulatability (RSIM) framework
+for asynchronous systems. Information and Computation, 205(12):1685–1720, 2007.
+[15] G. Bana. Soundness and completeness of formal logics of symmetric encryption. Cryptology
+ePrint Archive, Report 2005/101, 2005. http://eprint.iacr.org/.
+[16] M. Baudet, V. Cortier, and S. Kremer. Computationally sound implementations of equational theories against passive adversaries. In Int. Colloquium on Automata, Languages and
+Programming (ICALP’05), volume 3580 of LNCS, 2005.
+[17] M. Bellare and C. Namprempre. Authenticated encryption: relations among notions and
+analysis of the generic composition paradigm. In Advances in Cryptology (ASIACRYPT
+2000), volume 1976 of LNCS, pages 531–545, 2000.
+[18] B. Blanchet. An efficient cryptographic protocol verifier based on Prolog rules. In Computer
+Security Foundations Workshop (CSFW’01), 2001.
+[19] B. Blanchet, M. Abadi, and C. Fournet. Automated verification of selected equivalences for
+security protocols. Journal of Logic and Algebraic Programming, 75(1):3–51, 2008.
+[20] M. Burrows, M. Abadi, and R. Needham. A logic of authentication. Technical Report 39,
+Digital Systems Research Center, February 1989.
+[21] R. Canetti. Universal composable security: a new paradigm for cryptographic protocols. In
+Symposium on Foundations of Computer Science, 2001.
+[22] R. Canetti and J. Herzog. Universally composable symbolic analysis of cryptographic protocols. In Theory of Cryptography Conference (TCC’06), 2006.
+[23] R. Canetti and T. Rabin. Universal composition with joint state. Cryptology ePrint Archive,
+report 2002/47, Nov. 2003.
+
+RR n° 0123456789
+
+36
+
+H. Comon-Lundh & V. Cortier
+
+[24] V. Cortier, S. Kremer, R. Küsters, and B. Warinschi. Computationally sound symbolic secrecy
+in the presence of hash functions. In Fundations of Software Technology and Theoretical
+Computer Science (FSTTCS’06), volume 4337 of LNCS, pages 176–187, 2006.
+[25] V. Cortier and B. Warinschi. Computationally sound, automated proofs for security protocols.
+In European Symposium on Programming (ESOP’05), volume 3444 of LNCS, pages 157–171,
+2005.
+[26] S. Delaune, S. Kremer, and M. D. Ryan. Coercion-resistance and receipt-freeness in electronic
+voting. In Proceedings of the 19th Computer Security Foundations Workshop (CSFW’06),
+pages 28–39, Venice, Italy, July 2006. IEEE Computer Society Press.
+[27] S. Delaune, S. Kremer, and M. D. Ryan. Symbolic bisimulation for the applied pi-calculus.
+In Foundations of Software Technology and Theoretical Computer Science (FSTTCS’07),
+volume 4855 of LNCS, pages 133–145, 2007.
+[28] H. Hüttel. Deciding framed bisimilarity. In Proc. INFINITY’02, 2002.
+[29] R. Janvier, Y. Lakhnech, and L. Mazaré. Completing the picture: Soundness of formal
+encryption in the presence of active adversaries. In European Symposium on Programming
+(ESOP’05), volume 3444 of LNCS, pages 172–185. Springer, 2005.
+[30] R. Janvier, Y. Lakhnech, and L. Mazare. (de)compositions of cryptographic schemes and
+their applications to protocols. Cryptology ePrint Archive, Report 2005/020, 2005.
+[31] R. Janvier, Y. Lakhnech, and L. Mazaré. Computational soundness of symbolic analysis for
+protocols using hash functions. In Workshop on Information and Computer Security (ICS’06),
+ENTCS, 2006.
+[32] A. Juels, M. Luby, and R. Ostrovsky. Security of blind digital signatures. In advances in
+cryptology, (CRYPTO-97), volume 1294 of LNCS, pages 150–164, 1997.
+[33] S. Kremer and L. Mazaré. Adaptive soundness of static equivalence. In European Symposium
+on Research in Computer Security (ESORICS’07), volume 4734 of LNCS, pages 610–625,
+2007.
+[34] R. Küsters and M. Tuengerthal. Joint state theorems for public-key encryption and digital signature functionalities with local computations. In Computer Security Foundations (CSF’08),
+2008.
+[35] P. Laud. Symmetric encryption in automatic analyses for confidentiality against active adversaries. In Symp. on Security and Privacy (SSP’04), pages 71–85, 2004.
+[36] D. Micciancio and B. Warinschi. Completeness theorems for the Abadi-Rogaway language of
+encrypted expressions. Journal of Computer Security, 2004.
+[37] D. Micciancio and B. Warinschi. Soundness of formal encryption in presence of an active
+attacker. In Theory of Cryptography Conference (TCC’04), volume 2951 of LNCS, 2004.
+[38] J. Mitchell, A. Ramanathan, and V. Teague. A probabilistic polynomial-time process calculus
+for the analysis of cryptographic protocols. Theoretical Comput. Sci., 353:118–164, 2006.
+
+INRIA
+
+Computational soundness of observational equivalence
+
+37
+
+Rules for M :
+M (< u, v >)
+M ({u}rk )
+M (s)
+M (s[πi ({u}rw )])
+M (s[πi (k)])
+M (s[dec(< u, v >, w)])
+M (s[dec(u, < v, w >)])
+M (s[dec(u, {v}rw )])
+M (s[dec(k, u)])
+M (s[dec({u}rv , w)])
+M (s[dec({u}yx , z)])
+
+→
+→
+→
+→
+→
+→
+→
+→
+→
+→
+→
+
+M (u) ∧ M (v)
+M (u) ∧ M (k) ∧ M (r)
+⊤
+if s ∈ N
+⊥
+⊥
+if k ∈ N
+⊥
+⊥
+⊥
+⊥
+if k is a name
+⊥
+if v, w ∈ N and v 6= w
+M (s[u]) ∧ M (x) ∧ M (y) ∧ M (z) ∧ EQ(x, z)
+
+Rules for EQ:
+EQ(< u1 , v1 >, < u2 , v2 >)
+EQ(< u1 , v1 >, {u2 }rv2 )
+EQ(< u1 , v1 >, k)
+EQ({u1 }rv11 , {u2 }rv22 )
+EQ({u1 }rv11 , k)
+EQ(x, x)
+EQ(s, t)
+
+→
+→
+→
+→
+→
+→
+→
+
+EQ(u1 , u2 ) ∧ EQ(v1 , v2 )
+⊥
+⊥
+if k ∈ N
+EQ(u1 , u2 ) ∧ EQ(v1 , v2 ) ∧ EQ(r1 , r2 )
+⊥
+if k ∈ N
+M (x)
+∗
+∗
+⊥
+if M (s) −
+→ ⊥ or M (t) −
+→ ⊥
+
+EQ(s[dec({u}yx , z)], t) → EQ(s[u], t) ∧ EQ(x, z)
+EQ(t, s[dec({u}yx , z)]) → EQ(t, s[u]) ∧ EQ(x, z)
+Figure 5: Simplification of atomic formulas
+
+A
+
+Simplifying the atomic formulas
+
+A.1
+
+Proof of lemma 22
+
+Lemma 22.
+formulas
+
+Every condition Φ is (effectively) logically equivalent to a conjunction of atomic
+
+ M (s1 ), . . . M (sn ) such that, for every i, si does not contain any pairing or encryption symbol
+and does not contain any subterm dec(k, u) where k is a name
+ EQ(t1 , u1 ), . . . EQ(tm , um ) such that, for every j = 1, ...n there is a term C not containing
+any decryption or projection symbol and there are indexes i, i1 , . . . , ik such that {tj , uj } =
+{si , C[si1 , . . . , sik ]}.
+
+Proof : First, we may assume w.l.o.g. that for all atomic formulas M (s) or EQ(s, t), s, t are in
+normal form (replacing a term with its normal form does not change the models). Next, for every
+formula EQ(s, t) we add the atomic formulas M (s) and M (t). We use then the transformation
+rules displayed in figure 5. The rules terminate (the multiset of sizes of arguments of predicate
+symbols is strictly decreasing at each step). They are correct: M satisfies a left side iff it satisfies
+a right side. Finally, the normal forms satisfy the conclusion of the lemma:
+ Each time a destructor (a symbol from dec, π1 , π2 ) is applied to a non-variable term, which
+is not headed itself by a destructor, there is at least one applicable rule. This is explicitly
+stated by pattern matching for the M predicate and covered by the 3 last rules for the EQ
+predicate symbol.
+
+RR n° 0123456789
+
+38
+
+H. Comon-Lundh & V. Cortier
+
+ M cannot be applied to a term headed with a constructor (thanks to the first 3 rules)
+ EQ cannot be applied to two terms headed with constructors (thanks to the first rules of
+EQ)
+
+
+In what follows, we assume this simplified version of conditions.
+
+A.2
+
+A useful lemma
+
+Lemma 23. If s is a term in normal form and M (s) is a simplified condition (as in lemma 22)
+and θ is a substitution such that, for every variable x, M |= M (xθ), then, for every subterm v of
+sθ ↓, if one of the following holds:
+
+ v = dec(w, k) for some w, k, and M |= M (w),
+ v = πi (w) for some w and M |= M (w),
+then there is a variable x such that w is a subterm of xθ.
+Proof : We rely on normal forms of conditions (lemma 22). We prove the property for any term
+∗
+t such that sθ −
+→ t, by induction on the length of the reduction sequence.
+If there is no reduction step, let v = dec(w, k) (resp. v = πi (w)) be a subterm of sθ. Since
+M |= M (w) and by lemma 22, w must be a subterm of some xθ.
+Now, assume the property true for t and that t −
+→ t′ . Any subterm t′ |p = dec(w, k) (resp.
+πi (w)) of t′ is either a subterm of t, or else we are in one of the following cases:
+ t|p = dec(dec({w}rk′ , k ′ ), k)
+ t|p = dec(w, dec({k}rk′ , k ′ ))
+ t|p = dec(π1 (< w, w′ >), k)
+ t|p = dec(π2 (< w′ , w >), k)
+ t|p = dec(w, π1 (< k, w′ >))
+ t|p = dec(w, π2 (< w′ , k >))
+
+In all cases, we can apply the induction hypothesis, for instance consider the two first cases: In
+the first case, by induction hypothesis {w}kk′ is a subterm of some xθ, hence w is a subterm of xθ.
+In the second case, w is a subterm of xθ by induction hypothesis.
+
+
+INRIA
+
+Centre de recherche INRIA Nancy – Grand Est
+LORIA, Technopôle de Nancy-Brabois - Campus scientifique
+615, rue du Jardin Botanique - BP 101 - 54602 Villers-lès-Nancy Cedex (France)
+Centre de recherche INRIA Bordeaux – Sud Ouest : Domaine Universitaire - 351, cours de la Libération - 33405 Talence Cedex
+Centre de recherche INRIA Grenoble – Rhône-Alpes : 655, avenue de l’Europe - 38334 Montbonnot Saint-Ismier
+Centre de recherche INRIA Lille – Nord Europe : Parc Scientifique de la Haute Borne - 40, avenue Halley - 59650 Villeneuve d’Ascq
+Centre de recherche INRIA Paris – Rocquencourt : Domaine de Voluceau - Rocquencourt - BP 105 - 78153 Le Chesnay Cedex
+Centre de recherche INRIA Rennes – Bretagne Atlantique : IRISA, Campus universitaire de Beaulieu - 35042 Rennes Cedex
+Centre de recherche INRIA Saclay – Île-de-France : Parc Orsay Université - ZAC des Vignes : 4, rue Jacques Monod - 91893 Orsay Cedex
+Centre de recherche INRIA Sophia Antipolis – Méditerranée : 2004, route des Lucioles - BP 93 - 06902 Sophia Antipolis Cedex
+
+Éditeur
+INRIA - Domaine de Voluceau - Rocquencourt, BP 105 - 78153 Le Chesnay Cedex (France)
+http://www.inria.fr
+
+ISSN 0249-6399
+
+

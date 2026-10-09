@@ -1,0 +1,710 @@
+LIPIcs
+
+Leibniz International Proceedings in Informatics
+
+Simulation based security in the
+applied pi calculus∗
+Stéphanie Delaune1 , Steve Kremer1 , and Olivier Pereira2
+1 LSV, ENS Cachan & CNRS & INRIA, France
+2 Université catholique de Louvain, B-1348 Belgium
+
+A BSTRACT. We present a symbolic framework for refinement and composition of security protocols.
+The framework uses the notion of ideal functionalities. These are abstract systems which are secure
+by construction and which can be combined into larger systems. They can be separately refined in
+order to obtain concrete protocols implementing them. Our work builds on ideas from the “trusted
+party paradigm” used in computational cryptography models. The underlying language we use is
+the applied pi calculus which is a general language for specifying security protocols. In our framework we can express the different standard flavours of simulation-based security which happen to
+all coincide. We illustrate our framework on an authentication functionality which can be realized
+using the Needham-Schroeder-Lowe protocol. For this we need to define an ideal functionality for
+asymmetric encryption and its realization. We show a joint state result for this functionality which
+allows composition (even though the same key material is reused) using a tagging mechanism.
+
+1
+
+Introduction
+
+Symbolic techniques showed to be a very useful approach for the modeling and analysis of
+security protocols: for twenty years, they improved our understanding of security protocols, allowed discovering flaws [17], and provided support for protocol design [9]. These
+techniques also resulted in the creation of powerful automated analysis tools (e.g. [3]), and
+impacted on several protocol standards used every day, e.g., [8].
+Until now, symbolic techniques mostly concentrated on specifying and proving confidentiality and correspondence properties, i.e., showing which symbols are kept secret, and
+on which session parameters participants agree when a protocol session completes. However, such specifications do not provide any information about the behavior of protocols
+when they are used in composition with other protocols, and surprising behaviors are well
+know to happen in such contexts [7]. Moreover, protocols are often expected to provide
+more sophisticated security guarantees, which may be difficult to formalize.
+In this paper, we present a symbolic framework for refinement and composition of security protocols, in which protocols are defined in terms of the behavior of trusted parties,
+or ideal functionalities, following the general outline of simulation-based security [5, 12, 4].
+A lower-level protocol is said to securely emulate a higher-level protocol, or ideal functionality, if any behavior that can be observed from the interaction of an adversary with the
+lower-level protocol can also be observed from the interaction of another adversary (called
+∗ This work has been supported by the ANR-07-SESU-002 project. O. Pereira is a Research Associate of the
+Belgian Fund for Scientific Research FRS-FNRS. Part of this work was done when he was visiting ENS Cachan.
+c Delaune, Kremer, Pereira; licensed under Creative Commons License-NC-ND.
+Foundations of Software Technology and Theoretical Computer Science (Kanpur) 2009.
+Editors: Ravi Kannan and K. Narayan Kumar; pp 169–180
+Leibniz International Proceedings in Informatics (LIPIcs), Schloss Dagstuhl - Leibniz-Zentrum für Informatik, Germany.
+Digital Object Identifier: 10.4230/LIPIcs.FSTTCS.2009.2316
+
+170
+
+S IMULATION BASED SECURITY IN THE APPLIED PI CALCULUS
+the simulator) with the higher-level protocol. As a result, ideal functionalities can be successively refined into more concrete protocols, but also composed to build more complex
+protocols. Functionalities have been proposed for a wide range of protocol tasks, including
+general secure multi-party computation [5]. In the spi-calculus [2], Abadi and Gordon also
+present the idea of a protocol being equivalent to an idealized version. This is however
+more restrictive as they do not have the notion of a simulator.
+Simulation-based security frameworks can typically be decomposed into two “layers”:
+(i) a foundational layer that provides a general model for concurrent computation, and (ii) a
+security layer that provides general security definitions, most importantly the notion of
+secure protocol emulation to be used. While the security layer is essentially common to all
+frameworks [4, 5, 6, 14, 18], including this paper, the foundational layer varies widely. Those
+variations typically lie in the concurrency model (from the most common token-passing
+mechanism to the use of schedulers with various powers) and in the definition of computational bounds. These differences typically result in incomparable security notions.
+Defining simulation-based security while choosing the applied pi calculus [1] as the
+foundational layer brings the main benefits of this approach into the symbolic world:
+• it provides a powerful machinery that can be used to specify a wide range of sophisticated protocol tasks in terms of the behavior of functionalities, and
+• general composition theorems guarantee that protocols keep behaving as expected
+when executed in arbitrary contexts.
+While we tried to stick to the common definitions from the security layer of simulationbased security frameworks, the use of the applied pi calculus as foundational layer raised
+interesting challenges.
+First, at the most fundamental level, one has to adopt a notion of indistinguishability
+of processes. While the symmetric notions of computational indistinguishability and observational equivalence are commonly used in the cryptographic and symbolic worlds, the
+symmetry of such relations appeared to be too restrictive for our purpose. For instance, a
+symmetric equivalence relation makes the addition of an adversary that simply acts as a
+relay visible. The resulting undesired behaviors motivate the introduction of new notions
+of observational preorder and labelled simulation relations in the applied pi calculus.
+Next, our attempts at translating ideal functionalities from the computational world
+into the symbolic world showed to be a non immediate task. For instance, traditional
+ideal functionalities for asymmetric encryption produce ciphertexts by encrypting random
+strings. An association table (plaintext/ciphertext) is then necessary to perform decryption.
+In our symbolic setting we avoid such a table by using two layers of encryption and a secure
+key.
+Eventually, we investigate the statement of general composition theorems, and of a
+specific joint state composition theorem for our asymmetric encryption functionality, as this
+functionality is typically expected to be used in several protocol sessions. While these theorems appear to be the natural counterpart of their computational versions [4, 5, 6, 16], the
+joint state composition theorem brings message tagging constraints that, interestingly, are
+consistent with those obtained by using a completely different symbolic approach (e.g. [13]).
+Because of lack of space the proofs are omitted, but can be found in [10].
+
+D ELAUNE , K REMER , P EREIRA
+
+2
+
+The applied pi calculus
+
+2.1
+
+Syntax and informal semantics
+
+FSTTCS 2009
+
+To describe processes, one starts with a set of names (which are used to name communication channels or other atomic data), a set of variables, and a signature Σ which consists of
+the function symbols which will be used to define terms. In the case of security protocols,
+typical function symbols will include enc for encryption, and dec for decryption. Terms are
+defined as names, variables, and function symbols applied to other terms. Terms and function symbols are sorted. While the details of the sort systems are not essential it is important
+to distinguish sorts of base types and sorts of channel type. Function symbols can only be
+applied and return terms of base type. By the means of an equational theory E we describe
+the equations which hold on terms. We denote =E the equivalence relation induced by E.
+Example 1 In the equational theory {dec(enc( x, k ), k ) = x, test(enc( x, y), y) = ok}, we have that
+test(dec(enc(enc(n, k1 ), k2 ), k2 ), k1 ) =E ok.
+In the applied pi calculus, one has plain processes and extended processes. Plain processes
+(P, Q, R) are built up in a similar way to processes in the pi calculus, except that messages
+can contain terms (rather than just names). Extended processes add active substitutions and
+restriction on variables. Below, M is a term, n is a name, and x a variable.
+A, B, C := P | A | B | νn.A | νx.A | { M / x }
+Active substitutions generalise “let”. The process νx.({ M / x } | P) corresponds exactly
+to the process “let x = M in P”. As usual, names and variables have scopes, which are
+delimited by restrictions and by inputs. We write fv(A), bv(A), fn(A) and bn(A) for the sets
+of free and bound variables and free and bound names of A, respectively. We also assume
+that, in an extended process, there is at most one substitution for each variable, and there is
+exactly one when the variable is restricted. We say that an extended process is closed if all its
+variables are either bound or defined by an active substitution.
+Active substitutions are useful because they allow us to map an extended process A
+to its frame φ( A) by replacing every plain process in A with 0. A frame is an extended
+process built up from 0 and active substitutions by parallel composition and restriction.
+The frame φ( A) can be viewed as an approximation of A that accounts for the static knowledge A exposes to its environment, but not A’s dynamic behaviour. The domain of a frame ϕ,
+denoted by dom( ϕ), is the set of variables for which ϕ defines a substitution (those variables
+that are not under a restriction). An evaluation context C [ ] is an extended process with a hole
+instead of an extended process. A context C [ ] closes A when C [ A] is closed.
+
+2.2
+
+Semantics
+
+The operational semantics of processes in the applied pi calculus is defined by structural
+rules defining two relations: structural equivalence, denoted ≡, and internal reduction, denoted →. Structural equivalence takes into account some basic structural rules, e.g. associativity and commutativity of the parallel operator. Internal reduction → is the smallest
+relation on extended processes closed under structural equivalence and application of evaluation contexts such that:
+
+171
+
+172
+
+S IMULATION BASED SECURITY IN THE APPLIED PI CALCULUS
+out( a, M).P | in( a, x ).Q → P | Q{ M / x }
+if M = N then P else Q → P
+where M =E N
+if M = N then P else Q → Q
+for any terms M and N without variable such that M 6=E N
+The operational semantics is extended by a labelled operational semantics enabling us to
+reason about processes that interact with their environment. Labelled operational semantics
+α
+defines the relation −
+→ where α is either an input in( a, M) (a is a channel name and M is a
+term that can contain names and variables), or νx.out( a, x ) (x is a variable of base type), or
+out( a, c) or νc.out( a, c) (c is a channel name).
+C OMM
+T HEN
+E LSE
+
+in( a,M )
+
+in( a, x ).P −−−−→ P{ M / x }
+
+IN
+O UT-C H
+
+α
+
+S COPE
+
+A −−−−→ A0
+
+c 6= a
+
+νc.out( a,c)
+
+α
+
+νx.out( a,x )
+
+out( a, M).P −−−−−→ P | { M / x }
+x 6∈ fv( P) ∪ fv( M)
+
+A−
+→ A0
+α
+
+PAR
+
+νc.A −−−−−→ A0
+O UT-T
+
+u does not occur in α
+
+→ νu.A0
+νu.A −
+
+out( a,c)
+
+out( a, c).P −−−−→ P
+out( a,c)
+
+O PEN -C H
+
+A−
+→ A0
+
+S TRUCT
+
+bn(α) ∩ fn( B) = ∅
+bv(α) ∩ fv( B) = ∅
+α
+
+→ A0 | B
+A|B−
+A≡B
+
+B−
+→ B0
+α
+
+A0 ≡ B0
+
+α
+
+→ A0
+A−
+Our rules differ slightly from those described in [1]. It is proved in [11] that labelled bisimulation (see Section 2.3) in our system coincides with labelled bisimulation in [1].
+Example 2 Consider the following process P:
+νk. (in(io1 , x ).out(net, enc( x, k )) | in(net, y). if test(y, k) = ok then out(io2 , dec(y, k )) else 0).
+The first component receives a message x on the channel io1 and sends its encryption with the
+key k on the channel net. The second one is waiting for an input y on net, uses the secret key k to
+decrypt it. If the decryption succeeds, then it forwards the resulting plaintext on io2 . We have that:
+in(io1 ,s)
+
+P −−−−→ νk.(out(net, enc(s, k )) | in(net, y). if test(y, k ) = ok then out(io2 , dec(y, k )) else 0)
+
+−→∗
+
+νk.out(io2 , s)
+
+νx.out(io2 ,x )
+
+−−−−−−→ νk.{s / x }
+
+Let A be the resulting process. We have that φ( A) ≡ νk.{s / x }.
+
+2.3
+
+Indistinguishability relations
+
+In [1], it is shown that observational equivalence coincides with labelled bisimilarity. This
+relation is like the usual definition of bisimilarity, except that at each step one additionally
+requires that the processes are statically equivalent.
+D EFINITION 1.Two terms M and N are equal in the frame φ, written ( M =E N )φ, if, and
+only if there exists ñ and a substitution σ such that φ ≡ νñ.σ, Mσ =E Nσ, and ñ ∩ (fn( M ) ∪
+fn( N )) = ∅. Two frames φ1 and φ2 are statically equivalent, φ1 ≈s φ2 , when dom(φ1 ) =
+dom(φ2 ), and for all terms M, N we have that ( M =E N )φ1 if and only if ( M =E N )φ2 .
+Example 3 Let ϕ0 = νs.{enc(s,k) / x } and ϕ1 = νr.{r / x } where k, s and r are names and E be the
+theory given in Example 1. We have that (test( x, k ) =E ok) ϕ0 but not (test( x, k) =E ok) ϕ1 , thus
+ϕ0 6≈s ϕ1 . However, we have that νk.ϕ0 ≈s ϕ1 .
+Now, we introduce the notion of a barb. Given an extended process A and a channel
+name a, we write A ⇓ a when A →∗ C [out( a, M ).P] for some term M, plain process P, and
+
+D ELAUNE , K REMER , P EREIRA
+
+FSTTCS 2009
+
+evaluation context C [ ] that does not bind a.
+D EFINITION 2. Observational preorder () (resp. equivalence (≈)) is the largest (resp.
+largest symmetric) relation on extended processes with same domain s.t. A R B implies
+1. if A ⇓ a then B ⇓ a;
+2. if A →∗ A0 , then B →∗ B0 and A0 R B0 for some B0 ;
+3. C [ A] R C [ B] for all closing evaluation contexts C [ ].
+D EFINITION 3. A relation R on closed extended processes is a simulation if A R B implies
+1. φ( A) ≈s φ( B),
+2. if A → A0 , then B →∗ B0 and A0 R B0 for some B0 ,
+α
+α
+3. if A → A0 and fv(α) ⊆ dom( A) and bn(α) ∩ fn( B) = ∅, then B →∗ →→∗ B0 and
+A0 R B0 for some B0 .
+If R and R−1 are both simulations we say that R is a bisimulation. Labelled similarity (` ),
+resp. labelled bisimilarity (≈` ), is the largest simulation, resp. bisimulation relation.
+Observational preorder and similarity were not introduced in [1]. However, these definitions seem natural for our purposes. Obviously we have that ≈ ⊂  and ≈` ⊂ ` . We
+now show that labelled similarity is a precongruence.
+P ROPOSITION 4. Let A and B be two extended processes such that A ` B. We have that
+C [ A] ` C [ B] for all closing evaluation context C [ ].
+From this proposition it follows that ` ⊆ . Hence, we can use labelled similarity as a
+convenient proof technique for observational preorder. We actually expect the two relations
+to coincide but did not prove it as we did not need it. We have also the following lemma:
+L EMMA 5. Let P and Q be two closed plain processes. We have that: (i) if P ` Q then
+!P ` !Q; (ii) !( P | Q) ` !P |!Q and !P |!Q ` !( P | Q).
+
+3
+
+Simulation based security
+
+3.1
+
+Basic definitions
+
+The simulation-based security approach classically distinguishes between input-output channels, which yield the internal interface of a protocol or functionality to its environment and
+network channels, which allow the adversary to interact with the functionality. We suppose
+that all channels are of one of these two sorts: IO or NET. Moreover the sort system ensures
+that names of sort NET can never be conveyed as data on a channel, i.e. these channels can
+never be transmitted. We write fnet( P) for fn( P) ∩ NET.
+D EFINITION 6. A functionality F is a closed plain process. An adversary for F is an evalf 1 .( A1 | νnet
+f 2 .( A2 | . . . |νnet
+f k .( Ak | ) . . .)) where each Ai
+uation context A[ ] of the form: νnet
+S
+(1 ≤ i ≤ k) is a closed plain process, fnet(F ) ⊆ 1≤i≤k f
+neti ⊆ NET, and fn(A[ ]) ∩ IO = ∅.
+One may note that the nested form of the adversary process allows to express any
+arbitrary context while expliciting the restricted names whose scope ranges on the hole.
+We also note that if A[ ] is an adversary for F then fnet(A[ ]) = fnet(A[F ]).
+
+173
+
+174
+
+S IMULATION BASED SECURITY IN THE APPLIED PI CALCULUS
+L EMMA 7. Let F be a functionality and A1 [ ] be an adversary for F . Then A1 [F ] is a
+functionality. If A2 [ ] is an adversary for A1 [F ], then A2 [A1 [ ]] is an adversary for F .
+While adversaries control the communication of functionalities on NET channels, IO
+contexts model the environment of functionalities, providing inputs and collecting outputs.
+e 1 .(C1 | νio
+e 2 .(C2 |
+D EFINITION 8. An IO context is an evaluation context Cio [ ] of the form νio
+S
+e k .(Ck | ) . . .)) where each Ci (1 ≤ i ≤ k) is a closed plain process, and 1≤i≤k io
+e i ⊆ IO
+. . . |νio
+Note that if F is a functionality and Cio [ ] is an IO context, then Cio [F ] is a functionality.
+
+3.2
+
+Strong simulatability
+
+The notion of strong simulatability [15], which is probably the simplest secure emulation
+notion used in simulation-based security, can be formulated in our setting.
+D EFINITION 9.Let F1 and F2 be two functionalities. F1 emulates F2 in the sense of strong
+simulatability, written F1 ≤SS F2 , if there exists an adversary S for F2 (the simulator) such
+that fnet(F1 ) = fnet(S[F2 ]) and F1  S[F2 ].
+The definition ensures that any behavior of F1 can be matched by F2 executed in the
+presence of a specific adversary S . Hence, there are no more attacks on F1 than attacks
+on F2 . Moreover, the presence of S allows abstract definitions of higher-level functionalities,
+which are independent of a specific realization. One may also note that 0 ≤SS F for any
+functionality F . This seems natural in a simulation based framework which only aims at
+preserving security. Non-triviality conditions may be imposed independently [5].
+Example 4 Let Fcc = in(io1 , xs ).out(netcc , ok).in(netcc , x ). if x = ok then out(io2 , xs ). The functionality models a confidential channel and takes a potentially secret value s as input on channel io1 .
+The adversary is notified via channel netcc that this value is to be transmitted. If the adversary agrees
+the value is output on channel io2 . This functionality can be realized by the process described in Example 2. Let S = νnetcc .in(netcc , x ).νr.out(net, r ).in(net, x ). if x = r then out(netcc , ok) | ). We
+indeed have that P ` S[Fcc ] and fnet( P) = fnet(S[Fcc ]).
+In order to examine the properties of strong simulatability in our specific setting, we
+now define a particular adversary D [ ] which is called a dummy adversary: intuitively, it acts
+as a relay which forwards all messages. The formal definition is technical because D [ ] needs
+to both restrict all names in fnet(F ) and ensure that fnet(F ) = fnet( D [F ]). It therefore relies
+on two internal channels simi/o
+j for inputs, resp. outputs, for each channel in fnet(F ).
+D EFINITION 10. Let F be a functionality. The dummy adversary for F is the adversary D [ ] = ν f
+sim.( D1 | ν f
+net.( D2 | )) where f
+net = fnet(F ) = {net1 , . . . , netn }; f
+sim =
+i
+i
+o
+o
+{sim1 , . . . , simn , sim1 , . . . , simn } ⊆ NET; and
+• D1 = !in(net1 , x ).out(sim1i , x ) | . . . |!in(netn , x ).out(simin , x ) |
+!in(sim1o , x ).out(net1 , x ) | . . . |!in(simon , x ).out(netn , x );
+• D2 = !in(sim1i , x ).out(net1 , x ) | . . . |!in(simin , x ).out(netn , x ) |
+!in(net1 , x ).out(sim1o , x ) | . . . |!in(netn , x ).out(simon , x ).
+By construction we have that fnet( D [F ]) = fnet(F ).
+L EMMA 11. Let F be a functionality and D [ ] be the dummy adversary for F : F  D [F ].
+
+D ELAUNE , K REMER , P EREIRA
+
+FSTTCS 2009
+
+However, we do not have that F ≈ D [F ], since D [F ] has more non-determinism
+than F . A direct consequence of this lemma is that F1  F2 and fnet(F1 ) = fnet(F2 )
+implies that F1 ≤SS F2 : as F2  D [F2 ] we have by transitivity that F1  D [F2 ]. We
+use these observations to show that ≤SS is a preorder (Lemma 12) , which is closed under
+application of IO contexts (Proposition 13) and parallel composition (Proposition 14).
+L EMMA 12. (i) F1 ≤SS F1 ;
+
+(ii) F1 ≤SS F2 and F2 ≤SS F3 ⇒ F1 ≤SS F3 .
+
+P ROPOSITION 13. Let F1 , F2 be two functionalities and Cio be an IO context.
+
+F1 ≤SS F2 =⇒ Cio [F1 ] ≤SS Cio [F2 ].
+P ROPOSITION 14. Let F1 , F2 and F3 be three functionalities. We have that:
+(i) F1 ≤SS F2 ⇒ F1 | F3 ≤SS F2 | F3 ; and (ii) F1 ≤SS F2 ⇒ !F1 ≤SS !F2 .
+While, (i) is a direct consequence of Proposition 13 (notice that
+proof of (ii) is more involved and given in [10].
+
+3.3
+
+| F3 is an IO-context) the
+
+Other notions of simulation based security
+
+Several other notions of simulation based security appear in the literature. We present them,
+and show that they all coincide in our setting. This coincidence is regarded as highly desirable [15, 14], while it does not hold in most simulation-based security frameworks [5, 4].
+D EFINITION 15. Let F1 and F2 be two functionalities and A be any adversary for F1 .
+• F1 emulates F2 in the sense of black box simulatability, F1 ≤BB F2 , iff
+∃S . ∀A. A[F1 ]  A[S[F2 ]] where S is an adversary for F2 with fnet(S[F2 ]) = fnet(F1 ).
+• F1 emulates F2 in the sense of universally composable simulatability, F1 ≤UC F2 , iff
+∀A. ∃S . A[F1 ]  S[F2 ] where S is an adversary for F2 s.t. fnet(A[F1 ]) = fnet(S[F2 ]).
+• F1 emulates F2 in the sense of universally composable simulatability with dummy
+adversary, F1 ≤UCDA F2 , iff ∃S . D [F1 ]  S[F2 ] where D is the dummy adversary
+for F1 and S is an adversary for F2 such that fnet(S[F2 ]) = fnet( D [F1 ]).
+T HEOREM 16. We have that ≤SS = ≤BB = ≤UC = ≤UCDA .
+The above security notions can also be defined replacing observational preorder by obBB
+UC
+UCDA . Surprisingly, the use of obserservational equivalence denoted ≤SS
+≈ , ≤≈ , ≤≈ and ≤≈
+vational equivalence turns out to be too strong, ruling out natural secure emulation cases:
+for instance, the ≤SS
+≈ relation is not reflexive, due to the extra non-determinism that the
+simulator introduces. While symbolic analysis techniques typically rely on bisimulation
+relations, this is however consistent with the definitions proposed in the task-PIOA framework [6], which also allows non-deterministic executions for simulation based security.
+
+4
+
+Applications
+
+We illustrate our framework by showing the secure emulation of a mutual authentication
+functionality by the Needham-Shroeder-Lowe (NSL) protocol [17]. As the NSL protocol
+uses public key encryption we first introduce in Section 4.1 functionalities for asymmetric
+
+175
+
+176
+
+S IMULATION BASED SECURITY IN THE APPLIED PI CALCULUS
+
+Ppke := in(iopke , io1pke ).νsk.out(io1pke , h KEY, pk(sk)i).
+i
+i
+(let iopke
+= io1pke in !Penc | let iopke
+= io2pke in !Penc | !Pdec )
+i
+Penc := in(iopke
+, h= ENC, mi).
+i
+νr2 . let menc = aenc(h TAG0 , mi, pk(sk), r2 ) in out(iopke
+, h CIPHER, menci)
+
+Pdec := in(io1pke , h= DEC, mi).
+let h= TAG0 , m1 i = adec(m, sk ) in out(io1pke , h PLAIN, mi)
+Figure 1: Real encryption functionality
+encryption. Then, we briefly present the mutual authentication functionality and its realization through the NSL protocol. Finally we use the joint state composition result in Section 4.3
+to obtain a result for an unbounded number of concurrent sessions.
+
+4.1
+
+Asymmetric encryption with joint state
+
+We introduce a functionality for asymmetric encryption together with a joint state composition result which is crucial for composition of protocols that share key material. Even though
+encryption in a Dolev-Yao model is already idealized we will see that by introducing an ideal
+functionality for encryption we are able to obtain a joint state composition result. Throughout
+this section we rely on the following equational theory allowing us to model randomized
+asymmetric encryption:
+adec(aenc( x, pk(y), z), y) = x
+testdec(aenc( x, pk(y), z), y) = ok.
+Real encryption. This functionality (decribed in Figure 1) receives a channel name io1pke ,
+which will be used for all sensitive information exchanges. A fresh private key sk is generated and the corresponding public key, i.e. pk(sk ), is sent on io1pke . Then the process is
+ready to receive encryption or decryption requests. Note that encryption requests can be
+sent on the sensitive channel io1pke or on the public channel io2pke which is the channel the environment will typically use. Decryption requests are only available through the sensitive
+channel io1pke and thus will not be used by the attacker. Each time a decryption request is
+received on the channel io1pke , it tries to decrypt the ciphertext and checks whether the tag
+is TAG0 . If so, it outputs the plaintext on the channel io1pke . Otherwise, it does nothing.
+Ideal functionality. We now propose, in Figure 2, an idealized version Fpke of the real
+encryption functionality, which guarantees that the confidentiality of messages is preserved
+independently of any cryptanalytic effort that could be performed on ciphertexts from the
+knowledge of public keys. In various cryptographic settings [4, 5, 16], this is achieved by
+computing ciphertexts as the encryption of random messages instead of the actual plaintext.
+To be able to perform decryption, a table for plaintext/ciphertext associations is maintained.
+The burden of this association table is avoided in our symbolic specification by using two
+layers of encryption: messages are first encrypted using a secure key pk(ssk ), then tagged
+and encrypted with the public key pk(sk) that is published during the initialization step.
+We stress that neither pk(ssk) nor ssk are ever transmitted by Fpke , guaranteeing that it
+is impossible to decrypt such a ciphertext outside the functionality, even if the key sk is
+adversarially chosen, which will be a crucial feature for our joint state composition theorem.
+
+D ELAUNE , K REMER , P EREIRA
+
+FSTTCS 2009
+
+Fpke := in(iopke , io1pke ).out(net, INIT ).in(net, h= ALGO, sk, tagi).out(io1pke , h KEY, pk(sk)i).
+i
+i
+νssk. (let iopke
+= io1pke in !Fenc | let iopke
+= io2pke in !Fenc | !Fdec )
+i
+Fenc := in(iopke
+, h= ENC, mi).νr1 .νr2 .
+let alea = aenc(m, pk(ssk ), r1 ) in let menc = aenc(htag, aleai, pk(sk), r2 ) in
+i
+out(iopke
+, h CIPHER, menci)
+
+Fdec := in(io1pke , h= DEC, mi). let h= tag, m1 i = adec(m, sk) in
+if testdec(m1 , ssk) = ok then out(io1pke , h PLAIN, adec(m1 , ssk )i)
+else out(io1pke , h PLAIN, m1 i)
+Figure 2: Ideal encryption functionality
+During the initialization, the attacker chooses the secret key sk and the tag that will
+be added in each encryption. Then a secure key ssk is generated and now the process is
+ready to receive encryption or decryption requests. Each time the process receives an encryption request, it computes the corresponding ciphertext and outputs the corresponding
+ciphertext. As explained above, the plaintext m is first encrypted using pk(ssk) before being tagged and encrypted with pk(sk). When the process receives a decryption request, it
+tries to decrypt the ciphertext and checks if the tag is the tag provided during the initialization. Then, it checks if the resulting plaintext is encrypted under pk(ssk). If so, this means
+that this ciphertext has been produced by the encryption functionality and thus has to be
+decrypted twice. Otherwise, the ciphertext has been produced by the attacker.
+Realization. The real encryption functionality realizes the ideal one, i.e., Ppke ≤SS Fpke .
+This is witnessed by Apke = νnet.(in(net, = INIT ). νsk. out(net, ( ALGO, sk, TAG0 )) | ).
+Composition with joint state. While ≤SS is stable under replication this is not always sufficient to obtain composition guarantees. Indeed replication of a process also replicates all
+key generation operations. In order to obtain self-composition and inter-protocol composition with common key material we need a joint state functionality, i.e. a functionality that
+realizes !Fpke while reusing the same key material. We actually consider the functionality Fpke , which is a variant of Fpke in which each message is tagged. More precisely, the
+process Fpke is defined as Fpke , except that: (i) the functionality begins with the instructions in(iopke , io1pke ).in(io1pke , sid) instead of in(iopke , io1pke ), (ii) each input of the form in(c, m)
+is replaced by in(c, h= sid, mi), and (iii) each output of the form out(c, m) is replaced by
+out(c, hsid, mi).
+The joint state functionality Pjs [Fpke ] (see Figure 3) uses a single instance of Fpke for all
+protocol sessions. All the requests to the joint state functionality are received on the public
+channel iopke in process Pjs1 . They are then forwarded using the private IO channel cont to Pjs2 .
+The process Pjs2 shares the private channel iopke with Fpke and forwards all the requests after
+concatenating the session identifier to the plaintext. Then the response is again forwarded
+to the process Pjs1 which outputs the result on the public channel iopke .
+We now observe that the following joint state composition result holds. One instance of
+the encryption functionality can be used to emulate an unbounded number of such instances
+using the joint state process: Pjs [Fpke ] ≤SS !Fpke .
+
+177
+
+178
+
+S IMULATION BASED SECURITY IN THE APPLIED PI CALCULUS
+
+Pjs
+
+:= νcont.(Pjs1 | νiopke , io2pke .( Pjs2 | ))
+
+Pjs1
+
+:= in(iopke , io1pke ).in(io1 , sid).out(cont, hsid, INIT i).
+in(cont, (= KEY, pk)).out(io1pke , hsid, KEY, pki).
+i
+i
+(let iopke
+= io1pke in !Pjs1 −enc | let iopke
+= io2pke in !Pjs1 −enc | !Pjs1 −dec |
+!in(iopke , io1pke ).in(io1 , sid).out(io1pke , hsid, KEY, pki).
+i
+i
+(let iopke
+= io1pke in !Pjs1 −enc | let iopke
+= io2pke in !Pjs1 −enc | !Pjs1 −dec ))
+
+i
+Pjs1 −enc := in(iopke
+, h= sid, = ENC, mi). out(cont, hsid, ENC, mi).
+i
+in(cont, h= CIPHER, ci). out(iopke
+, hsid, CIPHER, ci)
+1
+1
+Pjs−dec := in(iopke , h= sid, = DEC, ci). out(cont, hsid, dec, ci).
+in(cont, h= PLAIN, mi). out(iopke , hsid, PLAIN, mi)
+
+Pjs2
+
+0
+0
+:= in(cont, hsid, = INIT i).νiopke
+.out(iopke , iopke
+).
+0
+in(iopke , h= KEY, pki).out(cont, h KEY, pki). (!Pjs2 −enc | !Pjs2 −dec )
+
+0
+Pjs2 −enc := in(cont, h= sid, = ENC, mi). out(iopke
+, h ENC, hsid, mii).
+0
+in(iopke , h= CIPHER, ci). out(cont, h CIPHER, ci)
+0
+, h DEC, ci).
+Pjs2 −dec := in(cont, h= sid, = DEC, ci). out(iopke
+0
+in(iopke , h= PLAIN, mi). out(cont, h PLAIN, mi)
+
+Figure 3: Joint state IO-context
+
+Ajs := νcs.(A1js | νnet.(A2js | ))
+A1js := in(cs, INIT ).out(net, INIT ).in(net, h= ALGO, sk, tagi).out(cs, h ALGO, sk, tagi)
+A2js := in(net, hsid, = INIT i). out(cs, INIT ).
+in(cs, h= ALGO, sk, tagi). out(net, hsid, ALGO, sk, hsid, tagii).
+!in(net, hsid0 , = INIT i).out(net, hsid0 , ALGO, sk, hsid0 , tagii)
+Figure 4: Joint state adversary
+This relation is witnessed by the adversary Ajs described in Figure 4 as we have that:
+Pjs [Fpke ]  Ajs [!Fpke ]. This adversary launches several functionalities with the same
+key sk. However, note that the session identifier sid used to tag each encryption associated
+could be different. The value of these session identifiers is selected by the attacker.
+Note that it is crucial to introduce an ideal encryption functionality. We indeed have
+that Pjs [Ppke ] ≤SS Pjs [Fpke ] ≤SS !Fpke as well as !Ppke ≤SS !Fpke (where Ppke is defined
+from Ppke in the same way as Fpke from Fpke ). However, Pjs [Ppke ] 6≤SS !Ppke . In particular
+!Ppke will provide multiple public keys while Pjs [Ppke ] only provides a single one. Taking
+the more abstract ideal functionality allows this to be avoided by a simulator that chooses
+the same secret key for each instance of the functionality.
+
+4.2
+
+Mutual authentication
+
+Because of lack of space we only briefly sketch the mutual authentication functionality. The
+details of the functionalities and the simulator are given in [10].
+
+D ELAUNE , K REMER , P EREIRA
+
+FSTTCS 2009
+
+Ideal functionality for mutual authentication. The functionality Fauth roughly works as
+follows. Both the initiator (Finit ) and the responder (Fresp ) receive a request for mutual
+authentication on their io channel. They forward this request to the adversary and, if both
+parties are honest, to a trusted host Fth which compares these requests and authorizes going
+further if they match. Eventually, when the adversary asks to finish the protocol, then both
+participants complete the protocol session.
+Realization of mutual authentication. The functionality Fauth can be realized by a functionality Pnsl implementing the well-known Needham-Schroeder-Lowe protocol [17]. We
+have that Pnsl ≤SS Fauth by showing that Pnsl  S[Fauth ] for some S .
+
+4.3
+
+From one to many sessions
+
+We have that Pnsl ≤SS Fauth . This result only shows that Pnsl is as secure as Fauth for a single
+session of the protocol. By Proposition 14 we have that !Pnsl ≤SS !Fauth but this does not
+correspond to the expected security for an unbounded number of sessions, as each session
+uses a different key. To show that !Fauth can be realized with shared key material we use our
+joint state result. To apply this result we need the following technical lemma which allows
+pushing the replication under the restricted channel c.
+L EMMA 17. Let n be a name and c be a channel name such that c 6∈ fn( P) ∪ fn( Q).
+νc. ![νn.(out(c, n) | P) | in(c, x ).Q] ` ! νc.[νn.(out(c, n) | P) | in(c, x ).Q].
+This lemma allows us to apply the joint state result and obtain a result for an unbounded
+number of sessions sharing keys. Note that the joint state context uses a tagging mechanism.
+
+5
+
+Conclusions
+
+This paper proposes a symbolic framework for the analysis of security protocols along the
+lines of the simulation based security approach, while adopting the applied pi calculus as its
+basic layer. We state central definitions and security notions, show general composition theorems and specific joint-state composition results for asymmetric encryption, and illustrate
+their use in the analysis of a mutual authentication protocol.
+This framework brings the benefits of the secure composition theorems associated to
+simulation based security into the symbolic world, and opens the path to the analysis of
+more sophisticated protocols that can naturally be specified by the behavior of an ideal
+functionality. At a more fundamental level, we use preorder notions, which can be established by labeled simulation. While the use of labeled bisimulations is quite common in
+the applied pi calculus and has been integrated in automatic provers, the automation of
+proofs relying on labeled simulation appears as an interesting challenge for future works.
+Another direction for future work is to give a precise characterization of what properties are
+preserved by strong simulatability.
+
+References
+[1] M. Abadi and C. Fournet. Mobile values, new names, and secure communication. In
+Proc. 28th ACM Symp. on Principles of Programming Languages (POPL’01). ACM, 2001.
+
+179
+
+180
+
+S IMULATION BASED SECURITY IN THE APPLIED PI CALCULUS
+[2] M. Abadi and A. D. Gordon. A calculus for cryptographic protocols: The spi calculus.
+Technical Report 149, SRC, 1998.
+[3] A. Armando et al. The AVISPA Tool for the automated validation of internet security
+protocols and applications. In Proc. 17th Int. Conference on Computer Aided Verification
+(CAV’05), LNCS. Springer, 2005.
+[4] M. Backes, B. Pfitzmann, and M. Waidner. The reactive simulatability (RSIM) framework for asynchronous systems. Information and Computation, 205(12):1685–1720, 2007.
+[5] R. Canetti. Universally composable security: A new paradigm for cryptographic protocols. In Proc. 42nd IEEE Symp. on Foundations of Computer Science (FOCS’01), 2001.
+[6] R. Canetti, L. Cheung, D. Kaynar, N. Lynch, and O. Pereira. Compositional security for
+Task-PIOAs. In Proc. 20th Computer Security Foundations Symposium (CSF’07), 2007.
+[7] R. Canetti and J. Herzog. Universally composable symbolic analysis of mutual authentication and key exchange protocols. In Proc. Theory of Cryptography Conference (TCC’06),
+LNCS. Springer, 2006.
+[8] I. Cervesato, A. Jaggard, A. Scedrov, J.-K. Tsay, and C. Walstad. Breaking and fixing
+public-key kerberos. Information and Computation, 206(2-4):402–424, 2008.
+[9] A. Datta, A. Derek, J. C. Mitchell, and D. Pavlovic. Abstraction and refinement in
+protocol derivation. In Proc. 17th Comp. Security Foundations Workshop (CSFW’04), 2004.
+[10] S. Delaune, S. Kremer, and O. Pereira. Simulation based security in the applied pi calculus. Cryptology ePrint Archive, Report 2009/267. http://eprint.iacr.org/.
+[11] S. Delaune, S. Kremer, and M. D. Ryan. Symbolic bisimulation for the applied picalculus. In Proc. 27th Conference on Foundations of Software Technology and Theoretical
+Computer Science (FSTTCS’07), LNCS. Springer, 2007.
+[12] O. Goldreich, S. Micali, and A. Wigderson. How to play any mental game: A completeness theorem for protocols with honest majority. In Proc. 19th ACM Symposium on the
+Theory of Computing (STOC’87). ACM Press, 1987.
+[13] J. D. Guttman and F. J. Thayer. Protocol independence through disjoint encryption. In
+Proc. 13th IEEE Computer Security Foundations Workshop (CSFW’00), 2000.
+[14] R. Küsters. Simulation-Based Security with Inexhaustible Interactive Turing Machines.
+In Proc. 19th IEEE Computer Security Foundations Workshop (CSFW’06), 2006.
+[15] R. Küsters, A. Datta, J. C. Mitchell, and A. Ramanathan. On the relationships between
+notions of simulation-based security. Journal of Cryptology, 21(4):492–546, 2008.
+[16] R. Küsters and M. Tuengerthal. Joint State Theorems for Public-Key Encryption and
+Digitial Signature Functionalities with Local Computation. In Proc. 21st IEEE Computer
+Security Foundations Symposium (CSF’08), 2008.
+[17] G. Lowe. An attack on the Needham-Schroeder public key authentication protocol.
+Information Processing Letters, 56(3):131–133, 1995.
+[18] P. Mateus, J. Mitchell, and A. Scedrov. Composition of cryptographic protocols in a
+probabilistic polynomial-time calculus. In Proc. 14th Conference on Concurrency Theory
+(CONCUR’03), LNCS. Springer, 2003.
+
+This work is licensed under the Creative Commons AttributionNonCommercial-No Derivative Works 3.0 License.
+
+
