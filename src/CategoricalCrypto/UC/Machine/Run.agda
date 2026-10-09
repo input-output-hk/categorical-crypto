@@ -1,11 +1,12 @@
 {-# OPTIONS --safe --without-K --guardedness #-}
 
--- A simulation is invisible to a closed run.
+-- A simulation is invisible to a run.
 --
 -- `Machines.Sim`'s generator carries a PURE state map, so the simulating
 -- machine's step differs from the simulated one's only in a state factor the
--- run discards.  Hence a closed observation is a function of the machine
--- category's own hom equality, which is what makes the UC layer's
+-- run discards.  Hence a run against a strategy — a closed observation among
+-- them, being a run at the closed alphabet (`runᴹ≈runˢ`) — is a function of
+-- the machine category's own hom equality, which is what makes the UC layer's
 -- `⟦⟧-resp-≈` a theorem rather than a field, and the only place where the
 -- machine layer's equality has to be reconciled with `Dₚ`'s.
 
@@ -14,11 +15,13 @@ open import Data.Empty
 open import Data.Product.Base
 open import Data.Sum.Base
 open import Data.Unit.Polymorphic.Base
+open import Function.Base
 open import Level
 open import Relation.Binary.Structures
 import Relation.Binary.Construct.Closure.Equivalence as EqC
 
 open import ProbabilisticLogic.Dp
+open import ProbabilisticLogic.Dp.Coin
 open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Iface
@@ -37,6 +40,23 @@ private
   module MC = Core (𝒱ₚ 0ℓ)
   module P = KDP (Dₚ-DiscreteMonad {0ℓ})
   module S = Sim (𝒱ₚ 0ℓ) (𝒫ₚ 0ℓ)
+  variable X Y : Set
+
+------------------------------------------------------------------------
+-- A run against a strategy, at any alphabet (maurer2002 Def 9)
+
+module _ (M : MC.Machine X Y) where
+
+  resumeˢ : (MC.St M → Y → Dₚ Bool) → MC.St M × Y → Dₚ Bool
+  resumeˢ c (m′ , y) = c m′ y
+
+  runFromˢ : MC.St M → Strat X Y → Dₚ Bool
+  runFromˢ m (out b)    = returnₚ b
+  runFromˢ m (coin μ k) = coinₚ μ >>=ₚ λ b → runFromˢ m (k b)
+  runFromˢ m (ask x k)  = MC.step M (m , x) >>=ₚ resumeˢ λ m′ y → runFromˢ m′ (k y)
+
+  runˢ : Strat X Y → Dₚ Bool
+  runˢ d = MC.point (MC.state M) tt >>=ₚ λ m → runFromˢ m d
 
 ------------------------------------------------------------------------
 -- The induction, over a state map and its step law
@@ -44,37 +64,57 @@ private
 -- A state map and the law relating the two steps through it is ALL the
 -- induction on the strategy tree spends, so it is parameterized by that pair
 -- rather than by a simulation.
+module _ {f g : MC.Machine X Y} (ϕ : MC.St f → MC.St g)
+         (step-law : (p : MC.St f × X)
+                   → (MC.step f p >>=ₚ padϕ ϕ) ≈ₚ MC.step g (ϕ (proj₁ p) , proj₂ p))
+         where
+
+  runFromˢ-ϕ : (m : MC.St f) (d : Strat X Y) → runFromˢ f m d ≈ₚ runFromˢ g (ϕ m) d
+  runFromˢ-ϕ m (out b)    = ≈refl
+  runFromˢ-ϕ m (coin μ k) = bindᶠ (λ b → runFromˢ-ϕ m (k b))
+  runFromˢ-ϕ m (ask x k)  =
+      bindᶠ {l = λ p → resumeˢ g contᵍ (ϕ (proj₁ p) , proj₂ p)}
+            (λ p → runFromˢ-ϕ (proj₁ p) (k (proj₂ p)))
+    ⟨≈⟩ ≈sym (bindᶠ (λ p → >>=ₚ-identityˡ (ϕ (proj₁ p) , proj₂ p) (resumeˢ g contᵍ)))
+    ⟨≈⟩ ≈sym (>>=ₚ-assoc (MC.step f (m , x)) (padϕ ϕ) (resumeˢ g contᵍ))
+    ⟨≈⟩ bindˣ (step-law (m , x))
+    where
+    contᵍ : MC.St g → Y → Dₚ Bool
+    contᵍ m′ y = runFromˢ g m′ (k y)
+
+------------------------------------------------------------------------
+-- A closed run is a run at the closed alphabet
+
+closeˢ : {B : Iface} → Strat (Neg B) (Pos B) → Strat (⊥ ⊎ Neg B) (⊥ ⊎ Pos B)
+closeˢ = mapStrat inj₂ [ ⊥-elim , id ]
+
+module _ {B : Iface} (M : Closed B) where
+
+  runᴹFrom≈runFromˢ : (m : MC.St M) (d : Strat (Neg B) (Pos B))
+                    → runᴹFrom M m d ≈ₚ runFromˢ M m (closeˢ d)
+  runᴹFrom≈runFromˢ m (out b)    = ≈refl
+  runᴹFrom≈runFromˢ m (coin μ k) = bindᶠ (λ b → runᴹFrom≈runFromˢ m (k b))
+  runᴹFrom≈runFromˢ m (ask q k)  = bindᶠ λ where
+    (_  , inj₁ ())
+    (m′ , inj₂ r) → runᴹFrom≈runFromˢ m′ (k r)
+
+  runᴹ≈runˢ : (d : Strat (Neg B) (Pos B)) → runᴹ M d ≈ₚ runˢ M (closeˢ d)
+  runᴹ≈runˢ d = bindᶠ (λ m → runᴹFrom≈runFromˢ m d)
+
 module _ {B : Iface} {f g : Closed B} (ϕ : MC.St f → MC.St g)
          (step-law : (p : MC.St f × (⊥ ⊎ Neg B))
                    → (MC.step f p >>=ₚ padϕ ϕ) ≈ₚ MC.step g (ϕ (proj₁ p) , proj₂ p))
          where
 
-  private
-    contᵍ : (Pos B → Strat (Neg B) (Pos B)) → MC.St g → Pos B → Dₚ Bool
-    contᵍ k m′ r = runᴹFrom g m′ (k r)
-
-    resume-ϕ : {cᶠ : MC.St f → Pos B → Dₚ Bool} {cᵍ : MC.St g → Pos B → Dₚ Bool}
-             → ((m′ : MC.St f) (r : Pos B) → cᶠ m′ r ≈ₚ cᵍ (ϕ m′) r)
-             → (p : MC.St f × (⊥ ⊎ Pos B))
-             → resumeᴹ f cᶠ p ≈ₚ resumeᴹ g cᵍ (ϕ (proj₁ p) , proj₂ p)
-    resume-ϕ h (_  , inj₁ a) = ⊥-elim a
-    resume-ϕ h (m′ , inj₂ r) = h m′ r
-
   runFrom-ϕ : (m : MC.St f) (d : Strat (Neg B) (Pos B))
             → runᴹFrom f m d ≈ₚ runᴹFrom g (ϕ m) d
-  runFrom-ϕ m (out b)    = ≈refl
-  runFrom-ϕ m (coin μ k) = bindᶠ (λ b → runFrom-ϕ m (k b))
-  runFrom-ϕ m (ask q k)  =
-      bindᶠ (resume-ϕ {cᵍ = contᵍ k} (λ m′ r → runFrom-ϕ m′ (k r)))
-    ⟨≈⟩ ≈sym (bindᶠ (λ p → >>=ₚ-identityˡ (ϕ (proj₁ p) , proj₂ p)
-                                          (resumeᴹ g (contᵍ k))))
-    ⟨≈⟩ ≈sym (>>=ₚ-assoc (MC.step f (m , inj₂ q)) (padϕ ϕ) (resumeᴹ g (contᵍ k)))
-    ⟨≈⟩ bindˣ (step-law (m , inj₂ q))
+  runFrom-ϕ m d = runᴹFrom≈runFromˢ f m d ⟨≈⟩ runFromˢ-ϕ ϕ step-law m (closeˢ d)
+              ⟨≈⟩ ≈sym (runᴹFrom≈runFromˢ g (ϕ m) d)
 
 ------------------------------------------------------------------------
 -- What a simulation supplies
 
-module _ {X Y : Set} {f g : MC.Machine X Y} (sim : f S.≲ g) where
+module _ {f g : MC.Machine X Y} (sim : f S.≲ g) where
 
   ϕ : MC.St f → MC.St g
   ϕ = P.fn (S.θ-pure sim)
@@ -86,6 +126,27 @@ module _ {X Y : Set} {f g : MC.Machine X Y} (sim : f S.≲ g) where
   point-sim : mapₚ ϕ (MC.point (MC.state f) tt) ≈ₚ MC.point (MC.state g) tt
   point-sim = bindᶠ (λ s → ≈sym (P.is-fn (S.θ-pure sim) s)) ⟨≈⟩ S.θ-point sim tt
 
+  runˢ-sim : (d : Strat X Y) → runˢ f d ≈ₚ runˢ g d
+  runˢ-sim d = bindᶠ (λ m → runFromˢ-ϕ ϕ step-sim m d)
+         ⟨≈⟩ ≈sym (bind-map (MC.point (MC.state f) tt) ϕ (λ m → runFromˢ g m d))
+         ⟨≈⟩ bindˣ point-sim
+
+module _ {X Y : Set} where
+
+  private
+    Runs : MC.Machine X Y → MC.Machine X Y → Set
+    Runs f g = (d : Strat X Y) → runˢ f d ≈ₚ runˢ g d
+
+    Runs-isEquivalence : IsEquivalence Runs
+    Runs-isEquivalence = record
+      { refl  = λ _ → ≈refl
+      ; sym   = λ h d → ≈sym (h d)
+      ; trans = λ h k d → h d ⟨≈⟩ k d
+      }
+
+  runˢ-resp-≈ᴹ : {f g : MC.Machine X Y} → f S.≈ᴹ g → (d : Strat X Y) → runˢ f d ≈ₚ runˢ g d
+  runˢ-resp-≈ᴹ = EqC.fold Runs-isEquivalence runˢ-sim
+
 ------------------------------------------------------------------------
 -- …hence a whole closed run is invisible to it
 
@@ -96,23 +157,9 @@ module _ {B : Iface} {f g : Closed B} (sim : f S.≲ g) where
   runFrom-sim = runFrom-ϕ (ϕ sim) (step-sim sim)
 
   run-sim : (d : Strat (Neg B) (Pos B)) → runᴹ f d ≈ₚ runᴹ g d
-  run-sim d = bindᶠ (λ m → runFrom-sim m d)
-        ⟨≈⟩ ≈sym (bind-map (MC.point (MC.state f) tt) (ϕ sim) (λ m → runᴹFrom g m d))
-        ⟨≈⟩ bindˣ (point-sim sim)
+  run-sim d = runᴹ≈runˢ f d ⟨≈⟩ runˢ-sim sim (closeˢ d) ⟨≈⟩ ≈sym (runᴹ≈runˢ g d)
 
-module _ {B : Iface} where
-
-  private
-    Runs : Closed B → Closed B → Set
-    Runs f g = (d : Strat (Neg B) (Pos B)) → runᴹ f d ≈ₚ runᴹ g d
-
-    Runs-isEquivalence : IsEquivalence Runs
-    Runs-isEquivalence = record
-      { refl  = λ _ → ≈refl
-      ; sym   = λ h d → ≈sym (h d)
-      ; trans = λ h k d → h d ⟨≈⟩ k d
-      }
-
-  runᴹ-resp-≈ᴹ : {f g : Closed B} → f S.≈ᴹ g
-               → (d : Strat (Neg B) (Pos B)) → runᴹ f d ≈ₚ runᴹ g d
-  runᴹ-resp-≈ᴹ = EqC.fold Runs-isEquivalence run-sim
+runᴹ-resp-≈ᴹ : {B : Iface} {f g : Closed B} → f S.≈ᴹ g
+             → (d : Strat (Neg B) (Pos B)) → runᴹ f d ≈ₚ runᴹ g d
+runᴹ-resp-≈ᴹ {f = f} {g} e d =
+  runᴹ≈runˢ f d ⟨≈⟩ runˢ-resp-≈ᴹ e (closeˢ d) ⟨≈⟩ ≈sym (runᴹ≈runˢ g d)
