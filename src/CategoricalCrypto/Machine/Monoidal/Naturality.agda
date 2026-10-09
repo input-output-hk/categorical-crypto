@@ -5,96 +5,103 @@
 --
 -- Both shuffles are composites of associators and symmetries
 -- (`Machine.Monoidal.Coherence`), and the machine category is symmetric
--- monoidal (`Machine.MonoidalCategory`), so each law is an instance of the
--- naturality of the structural isomorphisms.  The bookkeeping is left to the
--- symmetric coherence solver of `Categories.Coherence.Monoidal`: the abstract
--- machines are opaque generators, and the solver slides them through the
--- structural maps.
---
--- The solver decides coherence, generator slides and σσ-cancellation; it
--- decides NO law relating two different crossing decompositions, so hexagon,
--- Yang-Baxter, block naturality and `ρ⇒ ∘ σ ≈ λ⇒` all come back nothing.
--- Those are proved by hand in `Machine.Monoidal.Coherence`.
+-- monoidal (`Machine.MonoidalCategory`), so each law is the naturality of
+-- the structural isomorphisms, one slide at a time.
 -- ============================================================================
 
 module CategoricalCrypto.Machine.Monoidal.Naturality where
 
 open import categorical-crypto.Prelude hiding (id; _∘_)
-open import Data.Fin
-open import Data.Vec
 
 open import Categories.Category
-open import Categories.Coherence.Monoidal
-open import Categories.FreeMonoidal
+open import Categories.Category.Monoidal
+import Categories.Category.Monoidal.Reasoning as MonoidalR
+import Categories.Morphism.Reasoning as MR
 
 open import CategoricalCrypto.Channel.Core
 open import CategoricalCrypto.Machine.Core
 import CategoricalCrypto.Machine.Core as CC
 open import CategoricalCrypto.Machine.Iso
 open import CategoricalCrypto.Machine.Category
+open import CategoricalCrypto.Machine.Monoidal.Associator using (⊗-assoc⃖-natural)
+open import CategoricalCrypto.Machine.Monoidal.Braiding using (σ-natural)
 open import CategoricalCrypto.Machine.Monoidal.Coherence
   using (∘ᴷ-fwd-decomp; ⊗ᴷ-fwd-decomp; mid4-decomp)
 open import CategoricalCrypto.Machine.MonoidalCategory
 
-open Category MachineCategory using (module HomReasoning)
-open HomReasoning
+open Category MachineCategory using (assoc; sym-assoc)
+open MR MachineCategory
+open Monoidal machine-monoidal using (assoc-commute-from)
+open MonoidalR machine-monoidal
 
 ∘ᴷ-fwd-natural : ∀ {C C' E₁ E₁' E₂ E₂'}
                  (c : Machine C C') (u₁ : Machine E₁ E₁') (u₂ : Machine E₂ E₂')
                → ((c ⊗₁ (u₁ ⊗₁ u₂)) CC.∘ ∘ᴷ-fwd)
                  ≅ᴹ (∘ᴷ-fwd CC.∘ ((c ⊗₁ u₂) ⊗₁ u₁))
-∘ᴷ-fwd-natural {C} {C'} {E₁} {E₁'} {E₂} {E₂'} c u₁ u₂ = begin
+∘ᴷ-fwd-natural c u₁ u₂ = begin
     (c ⊗₁ (u₁ ⊗₁ u₂)) CC.∘ ∘ᴷ-fwd
-  ≈⟨ ∘-resp-≅ᴹ ≅ᴹ-refl ∘ᴷ-fwd-decomp ⟩
+  ≈⟨ refl⟩∘⟨ ∘ᴷ-fwd-decomp ⟩
     (c ⊗₁ (u₁ ⊗₁ u₂)) CC.∘ ((CC.id ⊗₁ ⊗-symₘ) CC.∘ ⊗-assoc)
-  ≈⟨ solveMorσ! lhs rhs ⟩
+  ≈⟨ pullˡ merge₂ʳ ⟩
+    (c ⊗₁ ((u₁ ⊗₁ u₂) CC.∘ ⊗-symₘ)) CC.∘ ⊗-assoc
+  ≈⟨ (refl⟩⊗⟨ ⟺ (σ-natural u₂ u₁)) ⟩∘⟨refl ⟩
+    (c ⊗₁ (⊗-symₘ CC.∘ (u₂ ⊗₁ u₁))) CC.∘ ⊗-assoc
+  ≈⟨ pushˡ split₂ˡ ⟩
+    (CC.id ⊗₁ ⊗-symₘ) CC.∘ ((c ⊗₁ (u₂ ⊗₁ u₁)) CC.∘ ⊗-assoc)
+  ≈⟨ pushʳ (⟺ assoc-commute-from) ⟩
     ((CC.id ⊗₁ ⊗-symₘ) CC.∘ ⊗-assoc) CC.∘ ((c ⊗₁ u₂) ⊗₁ u₁)
-  ≈⟨ ∘-resp-≅ᴹ (≅ᴹ-sym ∘ᴷ-fwd-decomp) ≅ᴹ-refl ⟩
+  ≈⟨ ⟺ ∘ᴷ-fwd-decomp ⟩∘⟨refl ⟩
     ∘ᴷ-fwd CC.∘ ((c ⊗₁ u₂) ⊗₁ u₁)
   ∎
-  where
-  vars = C ∷ C' ∷ E₁ ∷ E₁' ∷ E₂ ∷ E₂' ∷ []
-  open SymAtoms machine-monoidal-category machine-symmetric vars
-  open SymSolve machine-monoidal-category machine-symmetric vars
-    ( ((V (# 0) , V (# 1)) , c)
-    ∷ ((V (# 2) , V (# 3)) , u₁)
-    ∷ ((V (# 4) , V (# 5)) , u₂) ∷ [] )
-  lhs = (gen (# 0) S.⊗₁ (gen (# 1) S.⊗₁ gen (# 2)))
-        S.∘ ((S.id {V (# 0)} S.⊗₁ S.σ {V (# 4)} {V (# 2)}) S.∘ S.α⇒ {V (# 0)} {V (# 4)} {V (# 2)})
-  rhs = ((S.id {V (# 1)} S.⊗₁ S.σ {V (# 5)} {V (# 3)}) S.∘ S.α⇒ {V (# 1)} {V (# 5)} {V (# 3)})
-        S.∘ ((gen (# 0) S.⊗₁ gen (# 2)) S.⊗₁ gen (# 1))
+
+private
+  -- The single crossing inside `mid4-core`, `Q ⊗ (R ⊗ S) → R ⊗ (Q ⊗ S)`.
+  inner : ∀ {Q R S} → Machine (Q ⊗₀ (R ⊗₀ S)) (R ⊗₀ (Q ⊗₀ S))
+  inner = ⊗-assoc CC.∘ ((⊗-symₘ ⊗₁ CC.id) CC.∘ ⊗-assoc⃖)
+
+  inner-natural : ∀ {Q Q' R R' S S'} (q : Machine Q Q') (r : Machine R R') (s : Machine S S')
+                → ((r ⊗₁ (q ⊗₁ s)) CC.∘ inner) ≅ᴹ (inner CC.∘ (q ⊗₁ (r ⊗₁ s)))
+  inner-natural q r s = begin
+      (r ⊗₁ (q ⊗₁ s)) CC.∘ (⊗-assoc CC.∘ ((⊗-symₘ ⊗₁ CC.id) CC.∘ ⊗-assoc⃖))
+    ≈⟨ pullˡ (⟺ assoc-commute-from) ⟩
+      (⊗-assoc CC.∘ ((r ⊗₁ q) ⊗₁ s)) CC.∘ ((⊗-symₘ ⊗₁ CC.id) CC.∘ ⊗-assoc⃖)
+    ≈⟨ assoc ⟩
+      ⊗-assoc CC.∘ (((r ⊗₁ q) ⊗₁ s) CC.∘ ((⊗-symₘ ⊗₁ CC.id) CC.∘ ⊗-assoc⃖))
+    ≈⟨ refl⟩∘⟨ pullˡ merge₁ʳ ⟩
+      ⊗-assoc CC.∘ ((((r ⊗₁ q) CC.∘ ⊗-symₘ) ⊗₁ s) CC.∘ ⊗-assoc⃖)
+    ≈⟨ refl⟩∘⟨ (⟺ (σ-natural q r) ⟩⊗⟨refl) ⟩∘⟨refl ⟩
+      ⊗-assoc CC.∘ (((⊗-symₘ CC.∘ (q ⊗₁ r)) ⊗₁ s) CC.∘ ⊗-assoc⃖)
+    ≈⟨ refl⟩∘⟨ pushˡ split₁ˡ ⟩
+      ⊗-assoc CC.∘ ((⊗-symₘ ⊗₁ CC.id) CC.∘ (((q ⊗₁ r) ⊗₁ s) CC.∘ ⊗-assoc⃖))
+    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ⊗-assoc⃖-natural q r s ⟩
+      ⊗-assoc CC.∘ ((⊗-symₘ ⊗₁ CC.id) CC.∘ (⊗-assoc⃖ CC.∘ (q ⊗₁ (r ⊗₁ s))))
+    ≈⟨ (refl⟩∘⟨ sym-assoc) ○ sym-assoc ⟩
+      (⊗-assoc CC.∘ ((⊗-symₘ ⊗₁ CC.id) CC.∘ ⊗-assoc⃖)) CC.∘ (q ⊗₁ (r ⊗₁ s))
+    ∎
 
 ⊗ᴷ-fwd-natural : ∀ {B₁ B₁' E₁ E₁' B₂ B₂' E₂ E₂'}
                  (b₁ : Machine B₁ B₁') (u₁ : Machine E₁ E₁')
                  (b₂ : Machine B₂ B₂') (u₂ : Machine E₂ E₂')
                → (((b₁ ⊗₁ b₂) ⊗₁ (u₁ ⊗₁ u₂)) CC.∘ ⊗ᴷ-fwd)
                  ≅ᴹ (⊗ᴷ-fwd CC.∘ ((b₁ ⊗₁ u₁) ⊗₁ (b₂ ⊗₁ u₂)))
-⊗ᴷ-fwd-natural {B₁} {B₁'} {E₁} {E₁'} {B₂} {B₂'} {E₂} {E₂'} b₁ u₁ b₂ u₂ = begin
+⊗ᴷ-fwd-natural b₁ u₁ b₂ u₂ = begin
     ((b₁ ⊗₁ b₂) ⊗₁ (u₁ ⊗₁ u₂)) CC.∘ ⊗ᴷ-fwd
-  ≈⟨ ∘-resp-≅ᴹ ≅ᴹ-refl (≅ᴹ-trans ⊗ᴷ-fwd-decomp mid4-decomp) ⟩
-    ((b₁ ⊗₁ b₂) ⊗₁ (u₁ ⊗₁ u₂)) CC.∘ mid4-core
-  ≈⟨ solveMorσ! lhs rhs ⟩
-    mid4-core CC.∘ ((b₁ ⊗₁ u₁) ⊗₁ (b₂ ⊗₁ u₂))
-  ≈⟨ ∘-resp-≅ᴹ (≅ᴹ-sym (≅ᴹ-trans ⊗ᴷ-fwd-decomp mid4-decomp)) ≅ᴹ-refl ⟩
+  ≈⟨ refl⟩∘⟨ (⊗ᴷ-fwd-decomp ○ mid4-decomp) ⟩
+    ((b₁ ⊗₁ b₂) ⊗₁ (u₁ ⊗₁ u₂)) CC.∘ (⊗-assoc⃖ CC.∘ ((CC.id ⊗₁ inner) CC.∘ ⊗-assoc))
+  ≈⟨ pullˡ (⊗-assoc⃖-natural b₁ b₂ (u₁ ⊗₁ u₂)) ⟩
+    (⊗-assoc⃖ CC.∘ (b₁ ⊗₁ (b₂ ⊗₁ (u₁ ⊗₁ u₂)))) CC.∘ ((CC.id ⊗₁ inner) CC.∘ ⊗-assoc)
+  ≈⟨ assoc ⟩
+    ⊗-assoc⃖ CC.∘ ((b₁ ⊗₁ (b₂ ⊗₁ (u₁ ⊗₁ u₂))) CC.∘ ((CC.id ⊗₁ inner) CC.∘ ⊗-assoc))
+  ≈⟨ refl⟩∘⟨ pullˡ merge₂ʳ ⟩
+    ⊗-assoc⃖ CC.∘ ((b₁ ⊗₁ ((b₂ ⊗₁ (u₁ ⊗₁ u₂)) CC.∘ inner)) CC.∘ ⊗-assoc)
+  ≈⟨ refl⟩∘⟨ (refl⟩⊗⟨ inner-natural u₁ b₂ u₂) ⟩∘⟨refl ⟩
+    ⊗-assoc⃖ CC.∘ ((b₁ ⊗₁ (inner CC.∘ (u₁ ⊗₁ (b₂ ⊗₁ u₂)))) CC.∘ ⊗-assoc)
+  ≈⟨ refl⟩∘⟨ pushˡ split₂ˡ ⟩
+    ⊗-assoc⃖ CC.∘ ((CC.id ⊗₁ inner) CC.∘ ((b₁ ⊗₁ (u₁ ⊗₁ (b₂ ⊗₁ u₂))) CC.∘ ⊗-assoc))
+  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ⟺ assoc-commute-from ⟩
+    ⊗-assoc⃖ CC.∘ ((CC.id ⊗₁ inner) CC.∘ (⊗-assoc CC.∘ ((b₁ ⊗₁ u₁) ⊗₁ (b₂ ⊗₁ u₂))))
+  ≈⟨ (refl⟩∘⟨ sym-assoc) ○ sym-assoc ⟩
+    (⊗-assoc⃖ CC.∘ ((CC.id ⊗₁ inner) CC.∘ ⊗-assoc)) CC.∘ ((b₁ ⊗₁ u₁) ⊗₁ (b₂ ⊗₁ u₂))
+  ≈⟨ ⟺ (⊗ᴷ-fwd-decomp ○ mid4-decomp) ⟩∘⟨refl ⟩
     ⊗ᴷ-fwd CC.∘ ((b₁ ⊗₁ u₁) ⊗₁ (b₂ ⊗₁ u₂))
   ∎
-  where
-  mid4-core : ∀ {P Q R S} → Machine ((P ⊗₀ Q) ⊗₀ (R ⊗₀ S)) ((P ⊗₀ R) ⊗₀ (Q ⊗₀ S))
-  mid4-core = ⊗-assoc⃖ CC.∘ ((CC.id ⊗₁ (⊗-assoc CC.∘ ((⊗-symₘ ⊗₁ CC.id) CC.∘ ⊗-assoc⃖))) CC.∘ ⊗-assoc)
-  vars = B₁ ∷ B₁' ∷ E₁ ∷ E₁' ∷ B₂ ∷ B₂' ∷ E₂ ∷ E₂' ∷ []
-  open SymAtoms machine-monoidal-category machine-symmetric vars
-  open SymSolve machine-monoidal-category machine-symmetric vars
-    ( ((V (# 0) , V (# 1)) , b₁)
-    ∷ ((V (# 2) , V (# 3)) , u₁)
-    ∷ ((V (# 4) , V (# 5)) , b₂)
-    ∷ ((V (# 6) , V (# 7)) , u₂) ∷ [] )
-  -- Must mirror the local `mid4-core` exactly; `solveMorσ!` compares the two.
-  core : (p q r s : ObjTerm) → S.HomTerm ((p ⊗ᵒ q) ⊗ᵒ (r ⊗ᵒ s)) ((p ⊗ᵒ r) ⊗ᵒ (q ⊗ᵒ s))
-  core p q r s =
-    S.α⇐ {p} {r} {q ⊗ᵒ s}
-    S.∘ ((S.id {p} S.⊗₁ (S.α⇒ {r} {q} {s} S.∘ ((S.σ {q} {r} S.⊗₁ S.id {s}) S.∘ S.α⇐ {q} {r} {s})))
-         S.∘ S.α⇒ {p} {q} {r ⊗ᵒ s})
-  lhs = ((gen (# 0) S.⊗₁ gen (# 2)) S.⊗₁ (gen (# 1) S.⊗₁ gen (# 3)))
-        S.∘ core (V (# 0)) (V (# 2)) (V (# 4)) (V (# 6))
-  rhs = core (V (# 1)) (V (# 3)) (V (# 5)) (V (# 7))
-        S.∘ ((gen (# 0) S.⊗₁ gen (# 1)) S.⊗₁ (gen (# 2) S.⊗₁ gen (# 3)))

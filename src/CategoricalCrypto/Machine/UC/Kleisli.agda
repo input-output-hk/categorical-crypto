@@ -335,7 +335,7 @@ regroup-coh {D} {E} {E₁} {E₂} = begin
 -- `_⊗ᴷ_` is a Kleisli composite of the two one-sided liftings.  The composite
 -- lands in `T₀ (E₂ ⊗ᵐ E₁) _`, which IS `(B₁ ⊗₀ B₂) ⊗₀ (E₁ ⊗₀ E₂)`, so no grade
 -- swap is needed here.  After `mid4-decomp` both sides share their single
--- crossing and the solver does the rest.
+-- crossing, so it is an opaque generator and the monoidal solver does the rest.
 
 -- The strength `T₀ E₁ B₁ ⊗₀ B₂ → T₀ E₁ (B₁ ⊗₀ B₂)`.
 st : ∀ {B₁ E₁ B₂} → Machine ((B₁ ⊗₀ E₁) ⊗₀ B₂) ((B₁ ⊗₀ B₂) ⊗₀ E₁)
@@ -348,7 +348,7 @@ st {B₁} {E₁} {B₂} =
     ⊗ᴷ-fwd CC.∘ (M₁ ⊗₁ M₂)
   ≈⟨ ≅ᴹ-trans ⊗ᴷ-fwd-decomp mid4-decomp ⟩∘⟨refl ⟩
     mid4-core CC.∘ (M₁ ⊗₁ M₂)
-  ≈⟨ solveMorσ! lhs rhs ⟩
+  ≈⟨ solveMor! lhs rhs ⟩
     (⊗-assoc {B₁ ⊗₀ B₂} {E₁} {E₂} CC.∘ ((st CC.∘ (M₁ ⊗₁ CC.id)) ⊗₁ CC.id))
       CC.∘ (⊗-assoc⃖ {A₁} {B₂} {E₂} CC.∘ (CC.id ⊗₁ M₂))
   ∎
@@ -356,22 +356,24 @@ st {B₁} {E₁} {B₂} =
   mid4-core : Machine ((B₁ ⊗₀ E₁) ⊗₀ (B₂ ⊗₀ E₂)) ((B₁ ⊗₀ B₂) ⊗₀ (E₁ ⊗₀ E₂))
   mid4-core = ⊗-assoc⃖ CC.∘ ((CC.id ⊗₁ (⊗-assoc CC.∘ ((⊗-symₘ ⊗₁ CC.id) CC.∘ ⊗-assoc⃖))) CC.∘ ⊗-assoc)
   vars = A₁ ∷ B₁ ∷ E₁ ∷ A₂ ∷ B₂ ∷ E₂ ∷ []
-  open SymAtoms machine-monoidal-category machine-symmetric vars
-  open SymSolve machine-monoidal-category machine-symmetric vars
+  open MorAtoms machine-monoidal-category vars
+  open MorSolve machine-monoidal-category vars
     ( ((V (# 0) , V (# 1) ⊗ᵒ V (# 2)) , M₁)
-    ∷ ((V (# 3) , V (# 4) ⊗ᵒ V (# 5)) , M₂) ∷ [] )
+    ∷ ((V (# 3) , V (# 4) ⊗ᵒ V (# 5)) , M₂)
+    ∷ ((V (# 2) ⊗ᵒ V (# 4) , V (# 4) ⊗ᵒ V (# 2)) , ⊗-symₘ {E₁} {B₂}) ∷ [] )
   a₁ = V (# 0)
   b₁ = V (# 1)
   e₁ = V (# 2)
   a₂ = V (# 3)
   b₂ = V (# 4)
   e₂ = V (# 5)
+  σ′ = gen (# 2)
   lhs = (S.α⇐ {b₁} {b₂} {e₁ ⊗ᵒ e₂}
-         S.∘ ((S.id {b₁} S.⊗₁ (S.α⇒ {b₂} {e₁} {e₂} S.∘ ((S.σ {e₁} {b₂} S.⊗₁ S.id {e₂}) S.∘ S.α⇐ {e₁} {b₂} {e₂})))
+         S.∘ ((S.id {b₁} S.⊗₁ (S.α⇒ {b₂} {e₁} {e₂} S.∘ ((σ′ S.⊗₁ S.id {e₂}) S.∘ S.α⇐ {e₁} {b₂} {e₂})))
               S.∘ S.α⇒ {b₁} {e₁} {b₂ ⊗ᵒ e₂}))
         S.∘ (gen (# 0) S.⊗₁ gen (# 1))
   rhs = (S.α⇒ {b₁ ⊗ᵒ b₂} {e₁} {e₂}
-         S.∘ (((S.α⇐ {b₁} {b₂} {e₁} S.∘ ((S.id {b₁} S.⊗₁ S.σ {e₁} {b₂}) S.∘ S.α⇒ {b₁} {e₁} {b₂}))
+         S.∘ (((S.α⇐ {b₁} {b₂} {e₁} S.∘ ((S.id {b₁} S.⊗₁ σ′) S.∘ S.α⇒ {b₁} {e₁} {b₂}))
                 S.∘ (gen (# 0) S.⊗₁ S.id {b₂}))
                S.⊗₁ S.id {e₂}))
         S.∘ (S.α⇐ {a₁} {b₂} {e₂} S.∘ (S.id {a₁} S.⊗₁ gen (# 1)))
