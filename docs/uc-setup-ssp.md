@@ -1,6 +1,6 @@
 # State-separating proofs as a UC setup
 
-Plan, 2026-10-09. A1–A7 and C3 are built on branch `ssp-setup`; §6 records their names, warm
+Plan, 2026-10-09. A1–A7, C1 and C3 are built on branch `ssp-setup`; §6 records their names, warm
 times and deviations. Every other claim about a module is a design claim. Line references are
 to the `uc-setup-landscape` worktree.
 
@@ -539,7 +539,7 @@ Status: warm single-module check (one `Checking` line, `+RTS -M3G -H1G`, free ga
 | A6 | `SSP/Setup` | §3.6: the fields of `evaluationᵖ`, `Test`, `_≋_`, `ℰ₀`, `≈ᵖ⇒≋`, `ℰᵖ`, and `StdUC Protᴹ ℰᵖ` (`StdSetup`, `Channel`, `∣machines∣`, the `AbstractUC` names) | `StdSetup : UCSetup (suc 0ℓ)…`; warm time recorded | ✓ 23 lines, 10.2 s |
 | A7 | `SSP/Reduction` (optional) | `_≈ᵍ[_]_`, `≈ᵍ-trans` (Lemma 5), `reduction` (Lemma 6), `≈ᵍ-reduce`, `closed-bridge` | exports `closed-bridge` | ✓ 108 lines, 10.3 s |
 | B1 | `SSP/Obstruction` (optional, `--guardedness`) | `morphism-not-unital`, `morphism-not-monoidal` (first-step invariant as `UC.Machine.Run.step-sim`, new `¬ botₚ ≈ₚ returnₚ x`) | both exported: §4.1 checkable | not started |
-| C1 | `SSP/Compile` | `toProtocol`, `toProtocol-∘`, `toProtocol-resp`, a flat `_≲ᵖ_`, `morphism-resp` | exports `morphism-resp` | not started |
+| C1 | `SSP/Compile`; flat `Protocol/Sim`, `Protocol/Machine/Resp` | `Protocol/Sim`: flat `_≈ᶜ_`, `_≲ᵖ_` (`θ`, `θ-init`, `θ-step`), `_≈ᵖ_`. `Protocol/Machine/Resp`: `RSt`, `driveʳ`, `stepʳ`, `machineʳ`, `π-sim`, `π′-sim`, `morphism-sim`, `morphism-resp`. `SSP/Compile`: `reply`, `reply-refl`, `reply-≈`, `toCalls`, `toCalls-sim`, `toProtocol`, `toProtocol-sim`, `toProtocol-resp`, `toProtocol-∘` | exports `morphism-resp` | ✓ `Protocol/Sim` 36 lines, 7.5 s; `Resp` 120 lines, 12.6 s; `Compile` 112 lines, 7.9 s |
 | C2 | `UC/Bracket` (+ `Dp` `Supp-iterₚ`) | `Phase`/`Opp`/`Ply`/`W`, closure lemmas, `morphism-W`, `𝒲ᴹ`, `ιᴹ` and its `StdUCMorphism` | exports `morphism-W` and the inclusion | not started |
 | C3 | `Standard2/UKernel` (generic; uses the RS plan's step 1, `Categories/Category/Monoidal/Construction/Quotient`) | module parameters `𝕄 ℰ`; `_∼_`, `∼-equiv`, `≈⇒∼`, `∘-resp-∼`, `⊗-resp-∼`, `uKernel : MonoidalCongruence 𝕄 (o ⊔ cs ⊔ ℓs)`, `∼⇒≈ℰ`, `∼⇒≈ᵁ` | `--safe --without-K`; exports `uKernel` | ✓ 125 lines, 10.3 s; `Quotient` copied verbatim from `rs-quotient` `e5eddcdb`, 105 lines, 4.1 s |
 | C4 | `UC/Bracket/Setup` | `evaluationᵂ`, `ℰᵂ`, `PM[wb]ᴹ = quotient 𝒲ᴹ (uKernel 𝒲ᴹ ℰᵂ)`, `ℰ[wb] = descend …`, `q = StdUCMorphism … quotientF descendᵛ` | `PM[wb].StdSetup` and `q` typecheck | not started |
@@ -555,8 +555,8 @@ Order: A1–A6 deliver the standalone setup (the primary deliverable); C1–C6 d
 - **A4.** The interchange law is `⊗ᵖ-homomorphism`. Since `⌜_⌝` is contravariant, `λ⇒ = ⌜ ι₂ ⌝`, `ρ⇒ = ⌜ ι₁ ⌝`, `α⇒ = ⌜ αᴵ⁻¹ ⌝`. Iso laws, triangle, pentagon and hexagon are `≲ᵖ-const` with one `≈ᶜ-refl` per channel case, so the `⌜⌝-∘`/`⌜⌝-⊗`/`⌜⌝-above`/`⌜⌝-below` lemmas were not needed.
 - **A5.** `runᵖ` maps `proj₂` on the tree before `evalC`. `runᵖ-resp` is exact (`≈Mℚ`, by `EqC.gfold` of `runᵖ-sim`), and `≈Mℚ⇒≈[0]` turns it into zero error. The `refl` pins live in the leaf `SSP/Pin`, which nothing imports.
 - **A7.** Lemma 6 is `reduction = runᵖ-sim (∘ᵖ-assoc D M G)`, the associativity simulation read out, rather than `pull-∘` plus associativity.
+- **C1.** The flat simulation and `morphism-resp` are facts about the flat layer, so they live there (`Protocol/Sim`, `Protocol/Machine/Resp`, beside `Protocol/Machine/Compose`); `SSP/Compile` holds the compilation and needs no `--guardedness`. Channels are compared with `Class.DecEq` (`⦃ DecEq (Ch A) ⦄`), the tree's class, and the reply check `reply (c′ ≟ c)` reduces at a matching channel through `≡-≟-identity` (`reply-refl`), with no K. `toProtocol-∘` is a simulation with `θ = id`. `morphism-resp` is not one induction on `drive` (§3.3): both legs are simulations out of `machineʳ`, whose states pair the two configurations with their `≈ᶜ` proof.
 - **C3.** `uKernel` is a definition inside the module `Standard2.UKernel 𝕄 ℰ` rather than a function of `𝕄` and `ℰ`.
-- **C1 (design).** `morphism-resp` is not one induction on `drive` (§3.3).
 
 ## 7. Sources
 
