@@ -161,30 +161,94 @@ simulations needs the minimal automaton as a `Set`, i.e. a quotient, which `--wi
 Agda without HITs does not have.  So `F-resp-≈` fails into `𝔾ᵒ`, and the right target for
 any trace-quotiented machine setup is the behavioural random-systems setup.
 
-## 5. The morphism graph
+## 5. Causal boxes, symbolic, and the other candidates
+
+- **Causal boxes** (Portmann–Matt–Maurer–Renner–Tackmann, `portmann2017`).  Random
+  systems with explicit time and causality: objects = wire sets with message types,
+  morphisms = causal boxes, tensor = ⊎ of wires, composition = wire connection with
+  feedback (a trace); the paper proves the symmetric monoidal category with trace.
+  It is the **coarsest classical target**.  Hypothesised morphisms: `random systems →
+  causal boxes` as an inclusion (one message per activation = the activation count as
+  time; `F` strong monoidal, `ν` = distinguishers as boxes); the asynchronous,
+  scheduler-driven models (RSIM `backes2007rsim`, task-PIOA `canetti2006taskpioa`) land
+  here and not in `𝔾ᵒ`, because a scheduler breaks functoriality of composition on the
+  nose.  Plan: [uc-setup-causal-boxes.md](uc-setup-causal-boxes.md).
+- **Symbolic / Dolev–Yao** (applied π `abadi2018applied`, static equivalence
+  `abadicortier2006`).  A possibilistic reactive setup: messages are terms modulo an
+  equational theory, environments are Dolev–Yao deducers, equality is observational.
+  It lives in the possibilistic world next to `machine-iso`/`Rel`, and
+  `Abstract2/WideSubcategory.agda:3-6` already names "Dolev–Yao-definable morphisms ⇒
+  symbolic security" as a restriction of an ambient setup.  Hypothesised morphisms:
+  `symbolic → machine-iso` (forget the equational theory; terms as plain sets) and,
+  the one with content, **computational soundness** `symbolic → random systems`
+  (`canettiherzog2006`, Backes–Pfitzmann–Waidner, Abadi–Rogaway): `F` interprets terms
+  by a concrete scheme, `ν` interprets DY environments as distinguishers, and the
+  theorem is that `ν` is `Mono` on the kernel under IND-CCA-style hypotheses.  Plan:
+  [uc-setup-symbolic.md](uc-setup-symbolic.md).
+- **Effectful Mealy machines** (`bonchidilavore2025`) and **categorical composable
+  cryptography** (`broadbent2022`, `broadbent2023`): not models but the generic shape.
+  `𝒢ₚᴹ` is an instance of the former; Broadbent–Karvonen's resource theory of attacks
+  is a setup-independent `≤UC`.  Worth one comparison document showing `StdUC` is their
+  construction or where it differs (their composition theorem needs the attack model to
+  be a monoidal subcategory — close to `SetupSubcategory`).  No plan yet.
+- **GNUC / iUC / SUC** (`hofheinz2015gnuc`, `camenisch2019iuc`, `canetti2015suc`): each
+  is a different hom-equality and test class on the ITM setup (responsive environments,
+  "simple UC" restrictions), so `changeKernel` / `WideSubcategory` restrictions of the
+  ITM setup, not separate setups.
+- **ILC** (`liao2019ilc`), **CryptHOL constructive cryptography** (`lochbihler2019cc`):
+  cross-checks for the SSP and random-systems plans (ILC's affine channels are close to
+  IPDL's single-use channels), not new setups.
+- **Indifferentiability** (`maurerrenner2016`, `demay2013`): a theorem schema over random
+  systems (a `≤UC` with a restricted simulator class), not a setup.
+- **Game-based / pRHL** one-shot probabilistic programs: `Rel`'s probabilistic sibling, a
+  `StdUC` over the Kleisli category of a distribution monad with `×`; only interesting as
+  the target where SSP's `≈_ε` reductions are discharged.
+
+## 6. The morphism graph
 
 ```
-cartesian / one-shot world          reactive / ⊎ world
-──────────────────────────          ──────────────────────────────────────────────
-TM functions (×) ──▶ Rel            ITM (ports) ──▶ machine-iso + init, det. fragment
-                                      │                      │
-                                      ▼                      ▼
-                                    protocol-rewrite 𝔾ᵒ ◀── SSP = Protocol A B
-                                      │
-                                      ▼
-                       IPDL ──▶ random systems ◀── machine-category (trace-equiv)
+cartesian / one-shot world     reactive / ⊎ world
+──────────────────────────     ──────────────────────────────────────────────────────
+TM functions (×) ──▶ Rel       symbolic (DY) ──▶ machine-iso ◀── ITM (ports)
+                                  │       (+ init, det. fragment) │         │
+                                  │                               ▼         │
+                                  │   SSP = Protocol A B ──▶ protocol-rewrite 𝔾ᵒ ◀┘
+                                  │                               │
+                                  │ computational soundness       ▼
+                                  └──────────────────────▶ random systems ◀── IPDL
+                                                                  ▲         │
+                                     machine-category (trace) ────┘         ▼
+                                            RSIM / task-PIOA ──▶ causal boxes
 ```
 
 No `StdUCMorphism` crosses between the two worlds: the crossing (one message = one
-value) is a lax functor, which `UCSetupMorphism` cannot express.
+value) is a lax functor, which `UCSetupMorphism` cannot express.  Within the reactive
+world every arrow is a `StdUCMorphism` (strong monoidal `F` over a ⊎-tensor) except the
+two restricted ones from `machine-iso` (§2) and `ITM → machine-iso` (a subcategory
+inclusion).
 
-## 6. Recommended order of construction
+## 7. Plans
+
+One design document per new setup, each with Agda pseudocode for the load-bearing
+definitions and the morphisms' `F`/`Φ`/`κ`/`ν` with their proof obligations:
+
+| Setup | Plan |
+|---|---|
+| interactive Turing machines (ports) | [uc-setup-itm.md](uc-setup-itm.md) |
+| random systems | [uc-setup-random-systems.md](uc-setup-random-systems.md) |
+| state-separating proofs | [uc-setup-ssp.md](uc-setup-ssp.md) |
+| IPDL | [uc-setup-ipdl.md](uc-setup-ipdl.md) |
+| causal boxes | [uc-setup-causal-boxes.md](uc-setup-causal-boxes.md) |
+| symbolic / Dolev–Yao | [uc-setup-symbolic.md](uc-setup-symbolic.md) |
+
+## 8. Recommended order of construction
 
 1. **`ITM → protocol-rewrite`** — self-contained, no change to `machine-iso`, gives the
    "feasible machines" setup directly.
 2. **`SSP → protocol-rewrite`** — `F = Protocol.Machine.morphism` exists; objects
    coincide; the branch carries composition lemmas for it already.
 3. **`protocol-rewrite → random systems`** — a pure quotient; also settles whether `ℰᵒ`
-   is fully abstract.
+   is fully abstract.  Unlocks `IPDL → random systems`, `symbolic → random systems` and
+   `random systems → causal boxes`.
 4. **`machine-iso → protocol-rewrite`** — after the three model changes of §2, or via the
    `machine-category` coarsening into random systems instead.

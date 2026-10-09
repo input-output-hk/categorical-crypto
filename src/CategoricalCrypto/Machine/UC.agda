@@ -31,7 +31,6 @@ open import Categories.Category.Monoidal.Construction.Reverse
 open import Categories.Category.Instance.Setoids
 open import Categories.Category.Monoidal
 open import Categories.Functor.Presheaf
-import Categories.Functor.Monoidal.CurriedTensor.Properties as CurriedTensorProperties
 import Categories.Morphism.Reasoning as MR
 
 open import CategoricalCrypto.Channel.Core
@@ -143,10 +142,9 @@ tests⇒≈ℰ e = KE.mk∼ λ {t} → same (e (proj₁ t) (proj₂ t))
 -- Grade stability.  A test `(Y , E)` on `B ⊗₀ Z` regroups into the test
 -- `(Z ⊗₀ Y , E ∘ ⊗-assoc⃖)` on `B`.
 
-open CurriedTensorProperties machines using (T₁-⊗)
-
+-- `T₁` is the graded monad's functor action, `id ⊗₁ h` in the reversed tensor.
 T₁-⊗ʳ : ∀ Z {A B} (h : Machine A B) → T₁ Z h ≅ᴹ (h ⊗₁ id {Z})
-T₁-⊗ʳ = T₁-⊗
+T₁-⊗ʳ _ _ = ≅ᴹ-refl
 
 private
   regroup : ∀ {A B Z Y} (k : Machine A B) (E : Machine ((B ⊗₀ Z) ⊗₀ Y) ℰ-Out)
