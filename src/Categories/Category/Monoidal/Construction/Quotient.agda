@@ -28,22 +28,20 @@ open import Categories.Morphism.Notation
 open import Categories.NaturalTransformation.Core
 open import Categories.NaturalTransformation.NaturalIsomorphism
 
-module _ {o ℓ e} (𝕄 : MonoidalCategory o ℓ e) where
+-- The telescopes are spelled out, not generalized, so that a consumer can pass
+-- the objects of a hom whose type does not determine them.
+record MonoidalCongruence {o ℓ e} (𝕄 : MonoidalCategory o ℓ e) (e′ : Level)
+       : Set (o ⊔ ℓ ⊔ e ⊔ suc e′) where
   open MonoidalCategory 𝕄
+  field
+    _∼_      : {A B : Obj} → Rel (A ⇒ B) e′
+    ∼-equiv  : {A B : Obj} → IsEquivalence (_∼_ {A} {B})
+    ≈⇒∼      : {A B : Obj} {f g : A ⇒ B} → f ≈ g → f ∼ g
+    ∘-resp-∼ : {A B C : Obj} {f h : B ⇒ C} {g i : A ⇒ B} → f ∼ h → g ∼ i → (f ∘ g) ∼ (h ∘ i)
+    ⊗-resp-∼ : {A B C D : Obj} {f h : A ⇒ B} {g i : C ⇒ D}
+             → f ∼ h → g ∼ i → (f ⊗₁ g) ∼ (h ⊗₁ i)
 
-  private variable
-    A B : Obj
-    f g h i : A ⇒ B
-
-  record MonoidalCongruence (e′ : Level) : Set (o ⊔ ℓ ⊔ e ⊔ suc e′) where
-    field
-      _∼_      : Rel (A ⇒ B) e′
-      ∼-equiv  : IsEquivalence (_∼_ {A} {B})
-      ≈⇒∼      : f ≈ g → f ∼ g
-      ∘-resp-∼ : f ∼ h → g ∼ i → (f ∘ g) ∼ (h ∘ i)
-      ⊗-resp-∼ : f ∼ h → g ∼ i → (f ⊗₁ g) ∼ (h ⊗₁ i)
-
-    module ∼ {A B : Obj} = IsEquivalence (∼-equiv {A} {B})
+  module ∼ {A B : Obj} = IsEquivalence (∼-equiv {A} {B})
 
 module _ {o ℓ e e′} (𝕄 : MonoidalCategory o ℓ e) (Q : MonoidalCongruence 𝕄 e′) where
   private
