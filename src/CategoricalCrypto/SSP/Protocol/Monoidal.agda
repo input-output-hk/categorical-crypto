@@ -1,8 +1,9 @@
 {-# OPTIONS --safe --without-K #-}
 
 -- `Protᴹ`: `Prot` with `_⊗ᵖ_` and relabelling wires (`docs/uc-setup-ssp.md`
--- §3.4).  `⌜_⌝` is contravariant, so each structural iso is the wire of the
--- inverse container map: `λ⇒ = ⌜ ι₂ ⌝`, `ρ⇒ = ⌜ ι₁ ⌝`, `α⇒ = ⌜ αᴵ⁻¹ ⌝`.
+-- §3.4), and `Protˢ` with the braiding `⌜ swapᴵ ⌝`.  `⌜_⌝` is contravariant,
+-- so each structural iso is the wire of the inverse container map:
+-- `λ⇒ = ⌜ ι₂ ⌝`, `ρ⇒ = ⌜ ι₁ ⌝`, `α⇒ = ⌜ αᴵ⁻¹ ⌝`.
 --
 -- Every law is one simulation.  Interchange (brzuska2018 Lemma 4) pairs the
 -- states middle-four and runs one factor's `graft`/`serve` inside the tensor;
@@ -13,7 +14,9 @@
 open import Categories.Category.Core
 open import Categories.Category.Monoidal
 open import Categories.Category.Monoidal.Bundle
+open import Categories.Category.Monoidal.Symmetric
 open import Categories.Functor.Bifunctor
+open import Categories.NaturalTransformation.NaturalIsomorphism using (niHelper)
 
 open import Data.Product.Base
 open import Data.Sum.Base using (inj₁; inj₂)
@@ -190,6 +193,39 @@ module _ (f : Protocol A B) (g : Protocol C D) (h : Protocol E F) where
         (_ , (a , b) , c) (inj₂ (inj₁ y)) q → Slide.go₂ a b c (step g b y q)
         (_ , (a , b) , c) (inj₂ (inj₂ z)) q → Slide.go₃ a b c (step h c z q) }
 
+module _ (f : Protocol A B) (g : Protocol C D) where
+
+  private
+    θσ : ⊤ × St f × St g → (St g × St f) × ⊤
+    θσ (_ , s , t) = (t , s) , tt
+
+    module Swap (s : St f) (t : St g) where
+      go₁ : {y : Ch D} (u : Calls C (St g × R D y))
+          → mapᶜ (map₁ θσ) (serve ⌜ swapᴵ ⌝ (f ⊗ᵖ g) {b = inj₂ y} (λ r → ret (tt , r))
+                              (mapᶜ (map₁ (s ,_)) (reindex ι₂ u)))
+            ≈ᶜ graft (g ⊗ᵖ f) ⌜ swapᴵ ⌝ (mapᶜ (map₁ (_, s)) (reindex ι₁ u)) tt
+      go₁ (ret _)      = ret refl
+      go₁ (call _ _ k) = call λ r → go₁ (k r)
+      go₁ (coin _ k)   = coin λ x → go₁ (k x)
+      go₁ dead         = dead
+
+      go₂ : {x : Ch B} (u : Calls A (St f × R B x))
+          → mapᶜ (map₁ θσ) (serve ⌜ swapᴵ ⌝ (f ⊗ᵖ g) {b = inj₁ x} (λ r → ret (tt , r))
+                              (mapᶜ (map₁ (_, t)) (reindex ι₁ u)))
+            ≈ᶜ graft (g ⊗ᵖ f) ⌜ swapᴵ ⌝ (mapᶜ (map₁ (t ,_)) (reindex ι₂ u)) tt
+      go₂ (ret _)      = ret refl
+      go₂ (call _ _ k) = call λ r → go₂ (k r)
+      go₂ (coin _ k)   = coin λ x → go₂ (k x)
+      go₂ dead         = dead
+
+  -- brzuska2018 Lemma 3, commutativity of `∥`, as naturality of the braiding.
+  ⌜⌝-natσ : ⌜ swapᴵ ⌝ ∘ᵖ (f ⊗ᵖ g) ≲ᵖ (g ⊗ᵖ f) ∘ᵖ ⌜ swapᴵ ⌝
+  ⌜⌝-natσ = record
+    { θ = θσ ; θ-init = refl
+    ; θ-step = λ where
+        (_ , s , t) (inj₁ y) q → Swap.go₁ s t (step g t y q)
+        (_ , s , t) (inj₂ x) q → Swap.go₂ s t (step f s x q) }
+
 ------------------------------------------------------------------------
 -- The monoidal category
 
@@ -237,3 +273,27 @@ Protᴹ = record
         _ (inj₂ (inj₂ (inj₂ _))) _ → ≈ᶜ-refl)
     }
   }
+
+Protˢ : SymmetricMonoidalCategory (suc 0ℓ) (suc 0ℓ) (suc 0ℓ)
+Protˢ = record
+  { U         = Prot
+  ; monoidal  = monoidal
+  ; symmetric = symmetricHelper monoidal record
+    { braiding    = niHelper record
+      { η       = λ _ → ⌜ swapᴵ ⌝
+      ; η⁻¹     = λ _ → ⌜ swapᴵ ⌝
+      ; commute = λ (f , g) → ≲⇒≈ᵖ (⌜⌝-natσ f g)
+      ; iso     = λ _ → record { isoˡ = swap² ; isoʳ = swap² } }
+    ; commutative = swap²
+    ; hexagon     = ≲⇒≈ᵖ (≲ᵖ-const λ where
+        _ (inj₁ _)        _ → ≈ᶜ-refl
+        _ (inj₂ (inj₁ _)) _ → ≈ᶜ-refl
+        _ (inj₂ (inj₂ _)) _ → ≈ᶜ-refl)
+    }
+  }
+  where
+  open MonoidalCategory Protᴹ using (monoidal)
+  swap² : ⌜ swapᴵ {A} {B} ⌝ ∘ᵖ ⌜ swapᴵ ⌝ ≈ᵖ wireᵖ
+  swap² = ≲⇒≈ᵖ (≲ᵖ-const λ where
+    _ (inj₁ _) _ → ≈ᶜ-refl
+    _ (inj₂ _) _ → ≈ᶜ-refl)
