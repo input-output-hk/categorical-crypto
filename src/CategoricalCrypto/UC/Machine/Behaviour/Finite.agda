@@ -93,9 +93,9 @@ module _ (b : Bool) where
   cut (suc n) (ask x k)  = ask x (cut n ∘ k)
 
   -- The first-layer leaves that ask `x`, and the rest; a leaf dropped from
-  -- either answers the verdict `b` does not count.  The decision is an
-  -- argument, so a lemma splits on it rather than on a `with`, which would
-  -- normalise a machine's type in scope.
+  -- either answers the verdict `b` does not count.  Lemmas split on the
+  -- decision through a `Dec` argument (`keep-split`, `keep-step`): with
+  -- `with x ≟ x′` instead, `run-split` did not check within 300 s.
   module _ {x x′ : X} where
 
     keep drop : Dec (x ≡ x′) → (Y → Strat X Y) → Strat X Y

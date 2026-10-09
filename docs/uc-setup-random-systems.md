@@ -1,6 +1,6 @@
 # Random systems as a UC setup
 
-Plan, 2026-10-09.  §3–§5 are the design; steps 1–8 of §6 are implemented on branch
+Plan, 2026-10-09.  §3–§5 are the design; steps 1–9 of §6 are implemented on branch
 `rs-quotient`, and §6 records what landed, under which names, and where it departs from the
 design.  It refines `docs/uc-setup-landscape.md` §4 (random systems) and corrects its
 full-abstraction remark (§5.3).
@@ -404,7 +404,7 @@ equal to `∼ᴿ`, i.e. is `ℰᴿ` `Faithful` (`UCSetup.agda:149-151`)?
 | `∼ᴿ ⊆ ≈ℰ` (soundness) | holds: it is `ℰᴿ`'s `F-resp-≈` |
 | `≈ℰ ⊆ ∼ᴿ` | **false** (§5.3, `¬gradeStableᵒ`); so `ℰᴿ` is not faithful, and neither RS nor 𝔾ᵒ is `GradeStable` (same `T₁`, same `≈ℰ`) |
 | `≈ᵁ` `⊆ ∼ᴿ` | proved (`FullAbstraction.≈ᵁ⇒≈ᴿ`, at any grade): ancilla `A* = Neg A ⇿ Pos A`, closure the cup `𝟘ᵒ ⇒ A* ⊗ A`, test `strategyEnv` running `d`; `play-cup : Obs (tstᵈ ∘ T₁ A* f ∘ cup) ≈ₚ runˢ f d` (§6 step 8).  With `≈ᴿ⇒≈ᵁ`: **`∼ᴿ = ≈ᵁ`** |
-| `≈ᴮ ⊆ ∼ᴿ` (Def 3 ⇒ adaptive) | classical (lochbihler2019cc Thm 2); constructive for deterministic machines (`det-≈ᴮ⇒≈ᴿ`) and finite input alphabets with decidable equality (`≈ᴮ⇒≈ᴿ-fin`: indicator decomposition of the strategy's next query, `cum-add`, `cum-*ₗ`); open for bare `Set`s |
+| `≈ᴮ ⊆ ∼ᴿ` (Def 3 ⇒ adaptive) | classical (lochbihler2019cc Thm 2); proved for a finite query alphabet with decidable equality (`Behaviour/Finite.≈ᴮ⇒≈ᴿ-fin`, §6 step 9); planned for deterministic machines (`det-≈ᴮ⇒≈ᴿ`); open for bare `Set`s |
 | `∼ᴿ ⊆ ≈ᴹ` | false (lazy vs eager sampling; lochbihler2019cc Fig. 6) |
 
 To make `ℰᴿ` faithful, replace its tests by ancilla-closed pairs `(Y , t : Y ⊗ B ⇒ Ωᵒ)` as
@@ -491,20 +491,21 @@ green with an empty warning gate.
 | # | module(s) | landed (exports) | warm |
 |---|---|---|---|
 | 1 | `Categories/Category/Monoidal/Construction/Quotient.agda` | `MonoidalCongruence` (with `module ∼`), `quotient`, `quotientF : StrongMonoidalFunctor 𝕄 (quotient 𝕄 Q)`, `descend`, `descendᵛ`, `descendᵛ-mono`, `descendᵛ-epi` | 4.4 s |
-| 2 | `UC/Machine/Run.agda`; `UC/Machine/Behaviour.agda` | Run: `resumeˢ`, `runFromˢ`, `runˢ`, `runFromˢ-ϕ`, `closeˢ`, `runᴹFrom≈runFromˢ`, `runᴹ≈runˢ`, `runˢ-sim`, `runˢ-resp-≈ᴹ`; `runFrom-ϕ`, `run-sim`, `runᴹ-resp-≈ᴹ` re-derived with their statements unchanged.  Behaviour: `_≈ᴿ_`, `≈ᴿ-isEquivalence`, `≈ᴹ⇒≈ᴿ` | 12.8 s; 12.0 s |
+| 2 | `UC/Machine/Run.agda`; `UC/Machine/Behaviour.agda` | Run: `resumeˢ`, `runFromˢ`, `runˢ`, `runFromˢ-ϕ`, `closeˢ`, `runᴹFrom≈runFromˢ`, `runᴹ≈runˢ`, `runˢ-sim`, `runˢ-resp-≈ᴹ`; `runFrom-ϕ`, `run-sim`, `runᴹ-resp-≈ᴹ` re-derived with their statements unchanged.  Behaviour: `_≈ᴿ_`, `≈ᴿ-isEquivalence`, `≈ᴹ⇒≈ᴿ`, and with step 9 `runᴸFrom`, `runᴸ`, `_≈ᴮ_` | 12.8 s; 12.4 s |
 | 3 | `UC/Machine/Behaviour/Absorb.agda` | `wtᴰ`, `unfoldˢ`, `module Approximation` (`Approx`, `approx-ret`, `approx-≈`, `bind-cofinal`, `approx-bind`, `approx-unfold`), `Absorbs`, `absorbs⇒resp`, `absorbs-∘`, `absorbs-resp`, `absorbs-≈ᴹ`, `approx⇒absorbs` | 12.7 s |
 | 4 | `…/Behaviour/Trace.agda`; `…/Behaviour/Congruence.agda` | Trace: `loop`, `traceˢ`, `trace-step`, `trace-run`, `loop-approx`, `trace-approx`, `traceᴹ-absorb`.  Congruence: `⊗ᵉ-absorbˡ`, `⊗ᵉ-absorbʳ`, `∘ᴹ-absorbˡ`, `∘ᴹ-absorbʳ` (from `besideˡ`, `besideʳ`, `after`, `before` and their `-approx`), `composeᴳ-resp-≈ᴿ`, `⊗₁ᴳ-raw`, `⊗₁ᴳ-resp-≈ᴿ` | 12.6 s; 21.7 s |
 | 5 | `UC/RandomSystems/Seal.agda` | `congᴿ`, `∼ᴿ⇒Obs`, `≈ᴿ⇒∼ᴿ`, `∼ᴿ⇒≈ᴿ` | 12.8 s |
 | 6 | `UC/RandomSystems/Setup.agda` | `𝔾ᴿ`, `∼ᴿ⇒≋`, `ℰᴿ`, `open StdUC 𝔾ᴿ ℰᴿ public` | 13.8 s |
 | 7 | `UC/RandomSystems/Morphism.agda` | `rewrite⇒RS : UCSetupMorphism Sᵒ.StdSetup Sᴿ.StdSetup`, `≈ᴿ⇒≈ᵁ`, `≤UC-resp-≈ᴿ` | 13.7 s |
 | 8 | `UC/Machine/Cup.agda`; `UC/RandomSystems/FullAbstraction.agda` | Cup: `dualᴵ`, `cupᴵ`, `bendᴹ`, `bend-run`, `cup-≈`, `cup-run`.  FullAbstraction: `≈ᵁ⇒≈ᴿ`, `T₁-≈ℰ⇒∼ᴿ`, `play-cup`, `¬gradeStableᵒ`, `reveal-≈ℰ`; the counterexample `Aʳ`, `Bʳ`, `revealᴹ`, `reveal-∘`, `reveal-≉ᴿ`; seal coercions `dualᵒ`, `unhomᵒ`, `∼ᴿ-intro`, `playᵒ`, `cupᵒ`, `reveal-∘≈`, `reveal-≁ᴿ` | 12.2 s; 13.1 s |
-| 9 | `UC/Machine/Behaviour/Finite.agda` | `≈ᴮ⇒≈ᴿ-fin` | not landed (below) |
+| 9 | `UC/Machine/Behaviour/Finite.agda` | `≈ᴮ⇒≈ᴿ-fin : DecidableEquality X → (enum : List X) → (∀ x → x ∈ enum) → f ≈ᴮ g → f ≈ᴿ g`; its steps `Below`, `FirstAsksIn`, `play`, `answer`, `cut`, `keep`, `drop`, `only`, `without`, `next`, the `asks-`/`first-` bounds, `bind-split`, `feed`, `Ψ`, `feed-cong`, `feed-snoc`, `feed-runᴸ`, `feed-cofinal`, `feed-split`, `play-run`, `cut-approx`, `run-split`, `asked`, `only-step`, `Ψ-split`, `Ψ-only`, `Ψ-askfree`, `Ψ-bounded` | 13.1 s |
 | 10 | `src/CategoricalCrypto.agda`; `docs/uc-setup-landscape.md` §4 | entry point; correct the `Mono` remark | not started |
 
 Departures from §3–§5:
 
 - **Step 2.**  The strategy runs live in `UC/Machine/Run.agda`, where `runFrom-ϕ` is re-derived
-  from them, not in `Behaviour.agda`.  `runᴸ`, `_≈ᴮ_`, `≈ᴿ⇒≈ᴮ` and `det-≈ᴮ⇒≈ᴿ` did not land.
+  from them, not in `Behaviour.agda`.  `runᴸ` and `_≈ᴮ_` landed with step 9; `≈ᴿ⇒≈ᴮ` and
+  `det-≈ᴮ⇒≈ᴿ` did not land.
 - **Step 3.**  `Absorbs` carries an abstract budget type `Ix` and existential depths
   (`lower : … → Σ[ i ∈ Ix ] Σ[ m ∈ ℕ ] cum j (runˢ (C f) d) (indᵇ b) ℚ.≤ cum m (runˢ f (♯ d b i)) (indᵇ b)`)
   instead of `♯ d k v` with a `depth` function; `Approximation b` packages the cut-off calculus.
@@ -523,7 +524,14 @@ Departures from §3–§5:
   `Dₚ` fact that two runs over an empty type are `≈ₚ` (`≈ₚ-void`) belongs in
   `ProbabilisticLogic.Dp`; it is private to FullAbstraction because editing `Dp` rebuilds the
   whole library.
-- **Step 9** did not land: it needs step 2's missing `runᴸ` and `_≈ᴮ_` first.
+- **Step 9.**  Not §4.2's indicator decomposition: the first layer of the strategy is split
+  along the enumerated query alphabet, exactly at every depth (`run-split`, `Ψ-split`); a fixed
+  first question moves into the input prefix, the strategy's coins commuting with the machine's
+  step (`>>=ₚ-swap` in `only-step`, `Ψ-only`); the induction is on the ask bound and the
+  enumeration, halving the slack per split (`Ψ-bounded`); an ask-free remainder is a
+  `[0,1]`-valued test of the prefix's outputs, read at depth `j` as `cum j`, which is what
+  `_≈ᴮ_` compares (`Ψ-askfree`); an unbounded strategy is the limit of its cut-offs
+  (`cut-approx`).  Only the query alphabet is finite; the answer alphabet is arbitrary.
 
 Order: 1 ∥ 2; 2 → 3 → … → 8; 9 after 2.  Steps 1–7 give setup and morphism, 8–9 the characterisation.
 
