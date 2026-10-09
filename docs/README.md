@@ -15,6 +15,13 @@ stay in place so the citation keeps resolving. Classified at `fa45eaf5`.
 | [state-event-contract.md](state-event-contract.md) | current | the state-event theorem contract: definitions, quantifier orders, operational counterparts |
 | [simplification-options.md](simplification-options.md) | current | the model's size by layer and the options for simplifying it |
 | [uc-setup-landscape.md](uc-setup-landscape.md) | current | the `UCSetup` instances in the tree and worth adding (ITM, random systems, SSP, IPDL), and which morphisms between them exist or are blocked |
+| [uc-setup-itm.md](uc-setup-itm.md) | current | plan: the interactive-Turing-machine setup `StdUC 𝕋ᴹ ℰᵀ` and its morphism into `𝔾ᵒ` |
+| [uc-setup-random-systems.md](uc-setup-random-systems.md) | current | plan: Maurer's random systems as the behavioural quotient `𝔾ᴿ` of `𝔾ᵒ`, with `rewrite⇒RS` |
+| [uc-setup-ssp.md](uc-setup-ssp.md) | current | plan: state-separating proofs / the call-return interaction discipline as a standalone setup and its chain into the well-bracketed quotient of `𝔾ᵒ` |
+| [uc-setup-ipdl.md](uc-setup-ipdl.md) | current | plan: IPDL reaction networks as a setup; why it is an island |
+| [uc-setup-causal-boxes.md](uc-setup-causal-boxes.md) | current | plan: causal boxes as a setup; why no `UCSetupMorphism` reaches them |
+| [uc-setup-symbolic.md](uc-setup-symbolic.md) | current | plan: the Dolev–Yao setup and computational soundness as a morphism into the negligible tier |
+| [uc-setup-nondeterministic.md](uc-setup-nondeterministic.md) | current | plan: demonic nondeterministic choice over the call-return setup, schedulers resolved at observation |
 | [rcom-icom-b1.md](rcom-icom-b1.md) | current | specification of the `Rcom → Icom` boundary the coin-toss headlines still assume |
 | [event-bounds-in-setup.md](event-bounds-in-setup.md) | current | plan and audit record for event bounds in the setup's own vocabulary |
 | [chimeric-ledger-proof-boundaries-plan.md](chimeric-ledger-proof-boundaries-plan.md) | current | four bounded work items strengthening the ledger example's proof boundaries |

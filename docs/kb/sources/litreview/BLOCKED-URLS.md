@@ -43,3 +43,17 @@ Later addition, 2026-10-09 (`docs/uc-setup-symbolic.md`): the Dolev–Yao 1983 e
 resolved. `dolevyao1983.pdf` was archived from the `web.archive.org` snapshot of the
 `www.cs.huji.ac.il` copy; the direct host now answers with an HTML page instead of the PDF.
 Nothing else for that plan was blocked.
+
+Later addition, 2026-10-09 (`docs/uc-setup-nondeterministic.md`):
+
+- Goy, Petrişan, Combining probabilistic and non-deterministic choice via weak distributive
+  laws, LICS 2020 (bib key `goy2020`, entry already in `refs.bib`; intended file `goy2020.pdf`)
+  — `https://dl.acm.org/doi/pdf/10.1145/3373718.3394795` (DOI `10.1145/3373718.3394795`).
+  Three attempts 75 s apart, each against `dl.acm.org`, `doi.org`, `www.irif.fr` and
+  `hal.science`: default-deny firewall, 403 "Blocked by network policy" every time (no
+  matching allow rule; not a transient failure); `export.arxiv.org` is blocked the same way.
+  The only text read is the abstract/introduction as returned by a web search: a *weak*
+  distributive law of the powerset monad over the finite distribution monad whose weak
+  lifting to convex algebras is the convex powerset monad. The plan relies on that one
+  statement in §2.4 there and otherwise on `bonchi2022` §4.1 and `varacca2006` §1, which
+  are archived. **Allowlist request: `dl.acm.org`, `hal.science`.**

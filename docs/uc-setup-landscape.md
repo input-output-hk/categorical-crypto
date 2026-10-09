@@ -199,14 +199,23 @@ possibilistic, so only the deterministic fragment maps into RS (`det-≈ᴮ⇒�
   gives completeness, not soundness.  Needs a new `transfer⁺` in `Abstract2/Morphism`
   since `ℰᵒ` is not `GradeStable`.
 - **Nondeterministic choice** (plan: [uc-setup-nondeterministic.md](uc-setup-nondeterministic.md)).
-  The SSP setup plus `choose : (Fin n → Calls A X) → Calls A X`, schedulers resolved
-  only at observation of a closed system, outcome space `Sched → Dist⊥ Bool` under image
-  equality (Segala-style ∀-scheduler semantics; no probability×nondeterminism monad,
-  which does not exist as a distributive law, `varacca2006`, `zwart2019nogo`).  "Order
-  does not matter" becomes an `≈ℰ` equality; adversary-resolvable choices go on a
-  `Schedᴵ` channel in the grade.  Inclusion `SSP → ND` as a `StdUCMorphism`; the relation
-  to protocol-model is through SSP's chain, with the routed-scheduler reading either a
-  theorem or a Kleisli-valued generalisation of `UCSetupMorphism`.
+  The SSP setup plus `choose : (Fin (suc n) → Calls A X) → Calls A X`, schedulers
+  resolved only at observation of a closed system, outcome space `Sched → Dist⊥ Bool`
+  under image equality (Segala-style ∀-scheduler semantics; a probability×nondeterminism
+  monad exists only as the convex powerset, `bonchi2022`, rejected there; no
+  distributive law, `varacca2006`, `zwart2019nogo`).  `Sched` must be history-dependent
+  and see coin tosses, else `choose`-commutativity under a coin fails.  The `choose` laws
+  (`choose-set`, `-unit`, `-join`, `coin-comm`, `coin-dead`) are best made constructors
+  of the call-tree equality with one soundness proof against `run⁺`, so "order does not
+  matter" is a hom-equality reaching `≈ᵁ` by `≈C⇒≈ᵁ` without `GradeStable`.
+  **Corrections:** `SSP → ND` with constant-in-σ tests is **not** a presheaf morphism —
+  a demonic closure sees an SSP test's toss (task-PIOA's leak); what exists is a trivial
+  pullback morphism and a one-way reflection (`ND f ≤UC g ⇒ SSP f ≤UC g` for
+  `choose`-free `f, g`).  The Kleisli-valued generalisation (2b) has no instance
+  (`GradedKleisli` carries no monoidal structure); the recommended relation to SSP is a
+  threaded routing functor with a pointwise transfer theorem.  `P ∥ Q` is not derivable
+  from `choose` and `_⊗ᵖ_` (caller-scheduled interleaving is `(P ⊗ᵖ Q) ∘ ∇`).  Open
+  decision before the first module: global vs site-local scheduler information.
 - **Robust compilation** (plan, on `main`: `docs/uc-robust-compilation.md`).  Not a
   setup: a theorem about the order.  `f ≤UC g ⇔ ∀ H : Predᵁ. Robustᵁ H g → Robustᵁ H f`
   over `≈ᵁ`-respecting predicates on *attacked* programs (UC = RHP; the converse by a
@@ -236,7 +245,7 @@ TM functions (×) ──▶ Rel    Sym≅ ──▶ machine-iso ◀── ITM(de
                              │   𝒲[ι*ℰᵒ] ──▶ protocol-rewrite 𝔾ᵒ ◀── ITM 𝕋ᴹ
                              │    ▲                   │
                              │  SSP ──▶ PM[wb] ◀── 𝒲[ℰᵂ]           ▼
-                             │   │                           random systems 𝔾ᴿ ◀⇢ machine-category (det.)
+                             │   ┆ (≤UC reflection only)    random systems 𝔾ᴿ ◀⇢ machine-category (det.)
                              ▼   ▼
               ucSetupᴺ (negligible tier over 𝔾ᵒ)    ND (nondeterministic)
 
