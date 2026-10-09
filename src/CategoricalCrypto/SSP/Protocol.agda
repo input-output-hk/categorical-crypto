@@ -15,7 +15,7 @@ open import Data.Bool.Base using (Bool)
 open import Data.Product.Base
 open import Data.Sum.Base using (inj₁; inj₂)
 open import Data.Unit.Base
-open import Function.Base using (id; _∘_)
+open import Function.Base using (const; id; _∘_)
 open import Level
 open import Relation.Binary
 open import Relation.Binary.PropositionalEquality
@@ -29,7 +29,7 @@ module CategoricalCrypto.SSP.Protocol where
 
 private variable
   A A′ B C D : Iface
-  X Y Z : Set
+  S S′ X Y Z : Set
 
 ------------------------------------------------------------------------
 -- Call trees
@@ -100,6 +100,16 @@ mapᶜ-∘ f g (call _ _ k) = call λ r → mapᶜ-∘ f g (k r)
 mapᶜ-∘ f g (coin _ k)   = coin λ b → mapᶜ-∘ f g (k b)
 mapᶜ-∘ f g dead         = dead
 
+-- A step simulation survives reindexing the calls and re-pairing the state.
+reindex-sim : (m : A ⇒ᴵ A′) {θ : S → S′} {F : S × Y → X} {F′ : S′ × Y → Z} {G : X → Z}
+            → (∀ x → G (F x) ≡ F′ (map₁ θ x))
+            → (t : Calls A (S × Y)) {t′ : Calls A (S′ × Y)} → mapᶜ (map₁ θ) t ≈ᶜ t′
+            → mapᶜ G (mapᶜ F (reindex m t)) ≈ᶜ mapᶜ F′ (reindex m t′)
+reindex-sim m h (ret x)      (ret refl) = ret (h x)
+reindex-sim m h (call _ _ k) (call e)   = call λ r → reindex-sim m h (k (re m r)) (e (re m r))
+reindex-sim m h (coin _ k)   (coin e)   = coin λ b → reindex-sim m h (k b) (e b)
+reindex-sim m h dead         dead       = dead
+
 ------------------------------------------------------------------------
 -- Protocols
 
@@ -162,6 +172,12 @@ open _≲ᵖ_ public
 ≲ᵖ-refl : {P : Protocol A B} → P ≲ᵖ P
 ≲ᵖ-refl {P = P} = record
   { θ = id ; θ-init = refl ; θ-step = λ s c q → mapᶜ-id (λ _ → refl) (step P s c q) }
+
+-- Into a protocol whose state is a tuple of `⊤`s, as composites of wires are.
+≲ᵖ-const : {P P′ : Protocol A B}
+         → (∀ s c q → mapᶜ (map₁ (const (init P′))) (step P s c q) ≈ᶜ step P′ (init P′) c q)
+         → P ≲ᵖ P′
+≲ᵖ-const {P′ = P′} h = record { θ = const (init P′) ; θ-init = refl ; θ-step = h }
 
 _≈ᵖ_ : Rel (Protocol A B) (suc 0ℓ)
 _≈ᵖ_ = EqC.EqClosure _≲ᵖ_
