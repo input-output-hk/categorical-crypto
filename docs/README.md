@@ -14,6 +14,7 @@ stay in place so the citation keeps resolving. Classified at `fa45eaf5`.
 | [uc-module-inventory.md](uc-module-inventory.md) | current | one row per `UC/` module: LOC, importers, root, purpose |
 | [state-event-contract.md](state-event-contract.md) | current | the state-event theorem contract: definitions, quantifier orders, operational counterparts |
 | [simplification-options.md](simplification-options.md) | current | the model's size by layer and the options for simplifying it |
+| [uc-setup-landscape.md](uc-setup-landscape.md) | current | the `UCSetup` instances in the tree and worth adding (ITM, random systems, SSP, IPDL), and which morphisms between them exist or are blocked |
 | [rcom-icom-b1.md](rcom-icom-b1.md) | current | specification of the `Rcom → Icom` boundary the coin-toss headlines still assume |
 | [event-bounds-in-setup.md](event-bounds-in-setup.md) | current | plan and audit record for event bounds in the setup's own vocabulary |
 | [chimeric-ledger-proof-boundaries-plan.md](chimeric-ledger-proof-boundaries-plan.md) | current | four bounded work items strengthening the ledger example's proof boundaries |
