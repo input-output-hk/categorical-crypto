@@ -6,8 +6,9 @@ compilation (RC) appears here as theorems about the emulation order and about a 
 test presheaves. It is not a new model of computation. Code paths are relative to `src/`
 on branch `uc-setup-landscape` (`protocol-rewrite` ∪ `machine-iso`). `UC/Robust`,
 `UC/Audit`, `UC/Quantitative/*`, `UC/Family/*` and the landscape study
-`docs/uc-setup-landscape.md` (§5–§8 point here) are not on `main` yet. Nothing below has
-been typechecked, and every name marked *new* is a proposal.
+`docs/uc-setup-landscape.md` (§5–§8 point here) are not on `main` yet. §7 records what has
+landed and under which names (`UC/Robust/Compilation.agda`, `Examples/RelSetup.agda`); a
+name marked *new* that §7 does not list as landed is still a proposal.
 
 ## 1. Summary
 
@@ -102,9 +103,10 @@ been typechecked, and every name marked *new* is a proposal.
 
 ## 4. The theorem
 
-All of §4.1–4.4 lives in `UC/Robust.agda`'s module (one `setup`) and uses its names:
-`Predℰ`, `Admissible`, `⊤ᴬ`, `ClosedUnder`, `Robust`, `robust-resp-≈ᵁ`, `robust-sub`,
-`uc-preserves`. Throughout, `f : A 𝒞.⇒ T₀ X B` and `g : A 𝒞.⇒ T₀ Y B`.
+§4.1–4.3 live in `UC/Robust/Compilation.agda`'s module `Within setup` (one `setup`), which
+opens `UC/Robust.agda` and uses its names: `Predℰ`, `Admissible`, `⊤ᴬ`, `ClosedUnder`,
+`Robust`, `robust-resp-≈ᵁ`, `robust-sub`, `uc-preserves`. §4.4 is planned there too.
+Throughout, `f : A 𝒞.⇒ T₀ X B` and `g : A 𝒞.⇒ T₀ Y B`.
 
 ### 4.1 What `Robust` gives, and why its converse fails
 
@@ -115,19 +117,22 @@ environment `e` that produced it. That blindness is deliberate
 the resource grade"). It means the class only characterises outcome inclusion (*new*):
 
 ```agda
-robust⇔outcomes : ((P : Predℰ A (cs ⊔ ℓs)) → Robust P ⊤ᴬ g → Robust P ⊤ᴬ f)
-                ⇔ (∀ W (e : Env (T₀ (W ⊗₀ X) B)) → ∃[ e′ ] run W f e Env.≈ run W g e′)
--- ⇐: transport P along the ≈.   ⇒: P W = record { to = λ x → ∃[ e′ ] x Env.≈ run W g e′ ; … }
+robust⇔outcomes : ((P : Predℰ A (cs ⊔ ℓs)) → Robust P ⊤ᴬ g → Robust P ⊤ᴬ f) ⇔ f ⊆ᵒ g
+-- f ⊆ᵒ g = ∀ W (e : Env (T₀ (W ⊗₀ X) B)) → ∃[ e′ ] run W f e Env.≈ run W g e′
+-- ⇐: `outcomes⇒robust`, level-polymorphic.   ⇒: P W = record { to = λ x → ∃[ e′ ] x Env.≈ run W g e′ ; … }
 ```
 
 The strictness witness is already in the tree. In `Examples/RelSetup.agda`,
 `leaky-not-secure : ¬ relayPlain ≤UC sendIdeal`, yet outcome inclusion holds with
-`e′ ((w , _) , b) := e ((w , b) , b)`. Both sides run to `(w , m) ↦ e ((w , m) , m)`
-(design claim: §7 item 5 proves it). So every environment-blind property that the ideal
-channel robustly has, the leaky relay has as well. This is Abate Thm 3.1 (RTP ⇏ RTINIP) in
-miniature: blind properties cannot state confidentiality.
+`e′ ((w , _) , b) := e ((w , b) , b)`. Both sides run to `(w , m) ↦ e ((w , m) , m)`.
+`relay-outcomes` proves it: `relay-copy : relayPlain ≈ copy ∘ sendIdeal` with
+`copy (_ , m₀) (t , m′) = t ≡ m₀ × m₀ ≡ m′`, so `e′ = pull ((μ W Msg ∘ T₁ W copy) ∘ α⇒) e`.
+So every environment-blind property that the ideal channel robustly has, the leaky relay has
+as well, at every level: `blind-incomplete` refutes the ← direction of the `Predℰ` version.
+This is Abate Thm 3.1 (RTP ⇏ RTINIP) in miniature: blind properties cannot state
+confidentiality.
 
-### 4.2 Single setup, property-full: `≤UC` is RHP (*new*)
+### 4.2 Single setup, property-full: `≤UC` is RHP
 
 ```agda
 Predᵁ : (A B : 𝒞.Obj) (p : Level) → Set (o ⊔ ℓ′ ⊔ cs ⊔ ℓs ⊔ suc p)
@@ -140,7 +145,7 @@ Robustᵁ {X = X} H f = ∀ {X′} (a : X ℐ.⇒ X′) → H X′ ⟨$⟩ (sub 
 Hyp : A 𝒞.⇒ T₀ Y B → Predᵁ A B (o ⊔ ℓ ⊔ cs ⊔ ℓs)
 Hyp {Y = Y} g X′ = record
   { to   = λ h → Σ[ s ∈ Y ℐ.⇒ X′ ] h ≈ᵁ sub s 𝒞.∘ g
-  ; cong = λ u → mk⇔ (map₂ (≈ᵁ-trans (≈ᵁ-sym u))) (map₂ (≈ᵁ-trans u)) }
+  ; cong = λ u → mk⇔ (λ (s , v) → s , ≈ᵁ-trans (≈ᵁ-sym u) v) (λ (s , v) → s , ≈ᵁ-trans u v) }
 
 ≤UC⇒robustᵁ : f ≤UC g → (H : Predᵁ A B p) → Robustᵁ H g → Robustᵁ H f
 ≤UC⇒robustᵁ le H rob a = let s , u = le a in Equivalence.from (Func.cong (H _) u) (rob s)
@@ -149,6 +154,9 @@ robustᵁ⇒≤UC : ((H : Predᵁ A B (o ⊔ ℓ ⊔ cs ⊔ ℓs)) → Robustᵁ
 robustᵁ⇒≤UC pres = pres (Hyp g) (≤UC-refl g)
 
 ≤UC⇔robustᵁ : f ≤UC g ⇔ ((H : Predᵁ A B (o ⊔ ℓ ⊔ cs ⊔ ℓs)) → Robustᵁ H g → Robustᵁ H f)
+
+-- every level above the principal one, via `liftᵁ q H X h = Lift q (H X ⟨$⟩ h)`
+≤UC⇔robustᵁ↑ : f ≤UC g ⇔ ((H : Predᵁ A B (o ⊔ ℓ ⊔ cs ⊔ ℓs ⊔ p)) → Robustᵁ H g → Robustᵁ H f)
 ```
 
 **→** is `robust-resp-≈ᵁ`'s argument moved one level up. Unpack the simulator from `le a`,
@@ -162,7 +170,7 @@ from `≤UC-trans` and `≤UC-refl`. This is the Yoneda lemma for a preorder. RS
 nothing: behaviours are total functions of `e`, so inclusion of graphs is equality. That is
 P24 §8.2.1's collapse, for a structural reason rather than a probabilistic one.
 
-### 4.3 Simulator explicit, per environment: the kernel-equality predicate (*new*)
+### 4.3 Simulator explicit, per environment: the kernel-equality predicate
 
 ```agda
 Traceℰ : (A B : 𝒞.Obj) (X : ℐ.Obj) (p : Level) → Set (o ⊔ cs ⊔ ℓs ⊔ suc p)
@@ -170,7 +178,10 @@ Traceℰ A B X p = (W : ℐ.Obj) → Env (T₀ (W ⊗₀ X) B) → PredS (ℰ.�
 
 Robustᵗ : Traceℰ A B X p → Admissible B d → A 𝒞.⇒ T₀ X B → Set (o ⊔ cs ⊔ d ⊔ p)
 Robustᵗ {X = X} P Adm f = ∀ W e → Adm W X e → P W e ⟨$⟩ run W f e
--- Robust P Adm f is Robustᵗ (λ W _ → P W) Adm f, definitionally
+
+robust≡robustᵗ : (P : Predℰ A p) (Adm : Admissible B d) (f : A 𝒞.⇒ T₀ X B)
+               → Robust P Adm f ≡ Robustᵗ (λ W _ → P W) Adm f
+robust≡robustᵗ _ _ _ = refl
 
 ≈ᵁ⇔robustᵗ : {h k : A 𝒞.⇒ T₀ X B}
            → h ≈ᵁ k ⇔ ((P : Traceℰ A B X ℓs) → Robustᵗ P ⊤ᴬ k → Robustᵗ P ⊤ᴬ h)
@@ -214,7 +225,8 @@ Strictness of the first link in some concrete setup is open (§6).
 ### 4.5 Two setups: the compiler along `𝕄 : UCSetupMorphism 𝕊 𝕊′`
 
 The common trace model is the target. P24 Thm 4, with 𝕊′ playing UCLang, becomes
-definitional (new module `UC/Robust/Compilation.agda`, opening `Transfer 𝕄`):
+definitional (proposed for module `Along 𝕄` of `UC/Robust/Compilation.agda`, which opens
+`Transfer 𝕄`; not landed, §7 item 7):
 
 ```agda
 RHC : A S.𝒞.⇒ S.T₀ Y B → F.₀ A S′.𝒞.⇒ S′.T₀ X′ (F.₀ B) → Set _
@@ -230,8 +242,21 @@ compile epi gs le le′ = S′.≤UC-trans le′ (transfer epi gs le)   -- P24 T
 ```
 
 The property form is §4.2 inside 𝕊′:
-`RHC g f′ ⇔ ∀ H′. S′.Robustᵁ H′ (G g) → S′.Robustᵁ H′ f′`. What `Abstract2/Morphism` gives,
-and where ν enters:
+`RHC g f′ ⇔ ∀ H′. S′.Robustᵁ H′ (G g) → S′.Robustᵁ H′ f′`. At `f′ = G f` it has landed in
+`Along 𝕄`, with `R′ = Within 𝕊′` and `p₀′ = o₂ ⊔ ℓ₂ ⊔ cs ⊔ ℓs`:
+
+```agda
+robustᵁ-transfer  : ν.Epi → S′.GradeStable → f S.≤UC g
+                  → (H : R′.Predᵁ (F.₀ A) (F.₀ B) p) → R′.Robustᵁ H (G g) → R′.Robustᵁ H (G f)
+robustᵁ-reflect   : Full Φ.F → κ-Mono → ν.Mono → S.GradeStable
+                  → ((H : R′.Predᵁ (F.₀ A) (F.₀ B) p₀′) → R′.Robustᵁ H (G g) → R′.Robustᵁ H (G f))
+                  → f S.≤UC g
+≤UC⇔robustᵁ-along : ν.Epi → S′.GradeStable → Full Φ.F → κ-Mono → ν.Mono → S.GradeStable
+                   → f S.≤UC g ⇔ ((H : R′.Predᵁ (F.₀ A) (F.₀ B) p₀′) → R′.Robustᵁ H (G g) → R′.Robustᵁ H (G f))
+```
+
+They are `R′.≤UC⇒robustᵁ ∘ transfer` and `reflects-≤UC ∘ R′.robustᵁ⇒≤UC`. What
+`Abstract2/Morphism` gives, and where ν enters:
 
 | Direction | Lemma | Hypotheses | RC reading |
 |---|---|---|---|
@@ -297,7 +322,8 @@ graph TD
   Agda cannot write "for all p" inside `_⇔_`, because that is `Setω`. So the ← direction
   fixes `p₀ = o ⊔ ℓ ⊔ cs ⊔ ℓs` for `Hyp` (`ℓs` suffices for `∼[_]`, `ℓ ⊔ ℓs` for §4.4,
   `cs ⊔ ℓs` for §4.1). The → directions stay level-polymorphic, and `Lift` covers
-  `p ≥ p₀`. At the model every level is `suc 0ℓ`.
+  `p ≥ p₀`: `≤UC⇔robustᵁ` is the `p₀` form and `≤UC⇔robustᵁ↑` the form at every
+  `p₀ ⊔ p`, through `liftᵁ`. At the model every level is `suc 0ℓ`.
   Impredicativity: RC's ∀H ranges over 2^(2^Trace), which is unproblematic in Isabelle/HOL.
   Here only the principal class is ever instantiated, so the theorem does not depend on
   which level is chosen.
@@ -348,6 +374,22 @@ Every step's acceptance includes
 `pagda --useUntracked false check src/<Path>.agda -- +RTS -M3G -H1G -RTS` green with an
 empty warning grep, plus its in-repo importers. The work ends with the closure check
 (`*Tests`, `CategoricalCrypto`) and an unchanged escape-hatch baseline.
+
+Status (branch `robust-lemma`). All single-setup names are in `Within` of
+`UC/Robust/Compilation.agda`, not in `UC/Robust.agda`, so `UC/Robust.agda` and its importer
+`UC/Robust/Model.agda` are unchanged. `Examples/RelSetup.agda` is now an example leaf of
+the root `CategoricalCrypto`, which makes it reach `UC/Robust/Compilation.agda`.
+
+| Item | Status | Landed names |
+|---|---|---|
+| 1 | landed in `Within` | `Traceℰ`, `Robustᵗ`, `robust≡robustᵗ` (the `refl` test), `robustᵗ-resp-≈ᵁ`, `≈ᵁ⇔robustᵗ` |
+| 2 | landed in `Within` | `Predᵁ`, `Robustᵁ`, `Hyp`, `liftᵁ`, `≤UC⇒robustᵁ`, `robustᵁ⇒≤UC` (`pres (Hyp g) (≤UC-refl g)`, no conversion), `≤UC⇔robustᵁ`, `≤UC⇔robustᵁ↑`, `≤UC⇔robustᵗ` |
+| 3 | open | — |
+| 4 | §4.1 part landed in `Within` | `_⊆ᵒ_`, `outcomes⇒robust`, `robust⇔outcomes`; `_≤RS_`, `Robustᵗ⁺`, `≤RS⇔robustᵗ⁺`, `≤UC⇒≤RS`, `≤RS⇒outcomes` open |
+| 5 | outcome half landed | `copy`, `relay-copy`, `relay-outcomes`, `blind-incomplete` (no `Predℰ` level makes blind robustness imply `≤UC`); `relay-not-RS` open, it needs `_≤RS_` |
+| 6 | open | — |
+| 7 | property form landed in `Along 𝕄` | `robustᵁ-transfer`, `robustᵁ-reflect`, `≤UC⇔robustᵁ-along`; `RHC`, `RHCˢ`, the conversions and `compile` are open. Sharing `RHC⇒RHCˢ`'s step means factoring `reflects-≤UC`'s `dummy` out in `Abstract2/Morphism.agda`, whose importers include `ITM/Setup`, `UC/Family/*` and `UC/RandomSystems/Morphism` |
+| 8–11 | open | — |
 
 1. **`UC/Robust.agda` (traces).** Add `Traceℰ`, `Robustᵗ`, `robustᵗ-resp-≈ᵁ` and
    `≈ᵁ⇔robustᵗ`. *Accept:* `Robust P Adm f` and `Robustᵗ (λ W _ → P W) Adm f` are

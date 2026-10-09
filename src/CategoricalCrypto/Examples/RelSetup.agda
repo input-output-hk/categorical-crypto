@@ -25,6 +25,8 @@ open import Categories.Functor.Presheaf
 open import Categories.Functor.Properties
 
 open import CategoricalCrypto.Standard2
+import CategoricalCrypto.UC.Robust as UCRobust
+open import CategoricalCrypto.UC.Robust.Compilation
 
 Rel : MonoidalCategory (suc 0ℓ) (suc 0ℓ) 0ℓ
 Rel = record { U = Rels 0ℓ 0ℓ ; monoidal = Rels-Monoidal }
@@ -34,9 +36,12 @@ Rel = record { U = Rels 0ℓ 0ℓ ; monoidal = Rels-Monoidal }
 ℰ-tests = Hom[ Rels 0ℓ 0ℓ ][-, ⊤ ]
 
 open StdUC Rel ℰ-tests
+open UCRobust StdSetup using (Predℰ; Robust; ⊤ᴬ)
+open Within StdSetup
 
 private variable
   A B X : Set
+  p : Level
 
 ------------------------------------------------------------------------
 -- ≈ᵁ at this setup is equality of relations
@@ -165,3 +170,32 @@ leaky-not-secure p =
       _ , (t₀≡false , _) , lift t₀≡true , _ =
         proj₂ eq {false} {true , false} ((u , false) , refl , s·true , lift refl)
   in contradiction (trans (sym t₀≡true) t₀≡false) λ ()
+
+------------------------------------------------------------------------
+-- Environment-blind robustness does not characterise ≤UC
+------------------------------------------------------------------------
+
+-- The leaky relay's output repeats its leak, so the leak can be recovered
+-- from the ideal channel's output — by the environment, not by a simulator.
+copy : T₀ unit Msg ⇒ T₀ Msg Msg
+copy (_ , m₀) (t , m′) = t ≡ m₀ × m₀ ≡ m′
+
+relay-copy : relayPlain ≈ copy ∘ sendIdeal
+relay-copy = (λ { {m} (t≡m , m≡m′) → (tt , m) , refl , t≡m , m≡m′ })
+           , λ { (_ , m≡m₀ , t≡m₀ , m₀≡m′) → trans t≡m₀ (sym m≡m₀) , trans m≡m₀ m₀≡m′ }
+
+relay-outcomes : relayPlain ⊆ᵒ sendIdeal
+relay-outcomes W e = pull c e , Env.trans (pull-resp-≈ factor e) (pull-∘ c (prefix W sendIdeal) e)
+  where
+  c : T₀ (W ⊗₀ unit) Msg ⇒ T₀ (W ⊗₀ Msg) Msg
+  c = (μ W Msg ∘ T₁ W copy) ∘ α⇒
+
+  factor : prefix W relayPlain ≈ c ∘ prefix W sendIdeal
+  factor = (𝒞.refl⟩∘⟨ (T-resp-≈ relay-copy 𝒞.○ T-homomorphism))
+    𝒞.○ 𝒞.sym-assoc 𝒞.○ 𝒞.⟺ (𝒞.cancelInner ℐ.associator.isoʳ)
+
+-- Every environment-blind property the ideal channel robustly has, at every
+-- level, the leaky relay has too (docs/uc-robust-compilation.md §4.1)
+blind-incomplete : ¬ (∀ {A B X Y : Set} {f : A ⇒ T₀ X B} {g : A ⇒ T₀ Y B}
+                     → ((P : Predℰ A p) → Robust P ⊤ᴬ g → Robust P ⊤ᴬ f) → f ≤UC g)
+blind-incomplete complete = leaky-not-secure (complete λ P → outcomes⇒robust P relay-outcomes)
