@@ -18,6 +18,67 @@ graded monad's own action (`FromMonad`), so `Machine/UC.agda:T₁-⊗ʳ` is `≅
 root closure `src/CategoricalCrypto.agda` checks (353 modules, warning gate empty).
 `docs/kb` is the knowledge base from branch `pagda`, extended by the plans' sources.
 
+## 0. Status, major findings, decisions pending
+
+**Built and green per module** (three branches merged into `uc-setup-landscape`;
+escape-hatch baseline unchanged):
+
+| setup | what exists | key exports |
+|---|---|---|
+| random systems `𝔾ᴿ` | `Categories/…/Construction/Quotient` (generic), `UC/Machine/Behaviour*` (`_≈ᴿ_`, congruence for G-composition and tensor), `UC/RandomSystems/{Seal,Setup,Morphism,FullAbstraction}` | `rewrite⇒RS : UCSetupMorphism`, `≈ᴿ⇒≈ᵁ`, **`≈ᵁ⇒≈ᴿ`**, **`¬gradeStableᵒ`**, `≈ᴮ⇒≈ᴿ-fin` |
+| ITM `𝕋ᴹ` | `ITM/{Core,Run,Functor,Setup,Relational}`, `FreeMonoidal.freeStrongMonoidal`, `Seal.unitᵒ` | `itm⇒prot` (`ν` Epi+Mono), `≈ℰ⇔`, `itm⇒iso` |
+| SSP (call/return) | `SSP/{Iface,Protocol,Protocol/Category,Protocol/Monoidal,Observation,Setup,Reduction,Compile}`, `Standard2/UKernel`, `Protocol/{Sim,Machine/Resp}`, `UC/Bracket{,/Category}` | `StdSetup`, `Protᴹ`/`Protˢ`, `toProtocol`, `morphism-resp`, `W`, `morphism-W`, `𝒲`, `ι` |
+
+**Major findings** (all proven unless marked):
+
+1. **`≈ᵁ` at protocol-model IS behavioural equivalence of random systems**
+   (`≈ᵁ⇒≈ᴿ` + `≈ᴿ⇒≈ᵁ`).  This fixes the meaning of the library's security notion.
+2. **`ℰᵒ` is not `GradeStable`** (`¬gradeStableᵒ`: a stateless reveal machine).
+   `Abstract2.bridge` is unusable at protocol-model; `≈ᴿ⇒≈ᵁ` replaces it.
+3. **No direct `SSP → 𝔾ᵒ` morphism**: `morphism wireᵖ ≉ᴹ 𝒢.id` and the G-tensor
+   interleaves.  The call/return discipline reaches protocol-model only through the
+   well-bracketed quotient `PM[wb]` (§4); `W`, `𝒲`, `morphism-W` exist, the tensor on
+   `𝒲` and the two headline `≈ᵁ` lemmas are in progress.
+4. **IPDL and causal boxes are islands** for `UCSetupMorphism` (design-level proofs in
+   their plans); **symbolic** reaches only the negligible tier; the first-draft edges
+   `SSP → 𝔾ᵒ`, `IPDL → RS`, `RS → causal boxes` are withdrawn.
+5. **Nondeterminism**: `SSP → ND` with constant tests is not a presheaf morphism (a
+   demonic closure sees a toss); only a one-way `≤UC` reflection exists.  [plan only]
+6. **Robust compilation** holds as `UC = RHP` over `≈ᵁ`-respecting predicates on
+   attacked programs; the outcome-only version is false (`leaky-not-secure`).  [plan;
+   lemma in progress]
+7. **Performance**: `UC.Graded` regressed from 73 s to >30 min after the merges
+   (suspect: the new `unitᵒ` export in the opaque seal); the root closure does not
+   currently complete within the 1800 s ceiling.  Under investigation; until fixed the
+   branch is green per module, not as a closure.  ITM needed an abstract-target trick
+   (`⊗-step`) because unfolding `⟦A ⊗ B⟧` at the transparent machine category is
+   pathological; `pullbackᵛ` against a named presheaf costs 35 s+ (hand-written `ν`).
+
+**Decisions pending from the maintainer:**
+
+- **Interaction discipline**: standalone SSP setup (built) vs the `W`-restricted
+  `𝒲 ⊆ 𝔾ᵒ` (built) — both halves exist; the bridge between them is the missing piece.
+  Which one do examples get written in?
+- **Nondeterminism**: global perfect-information schedulers vs site-local demons
+  (`docs/uc-setup-nondeterministic.md` §5.1) — blocks its first module.
+- **Hom-equality for RS**: adaptive `≈ᴿ` (built) was chosen over Maurer's
+  non-adaptive `≈ᴮ` because congruence under feedback needs decidable message
+  equality; `≈ᴮ⇒≈ᴿ-fin` covers finite alphabets.  Accept, or require `≈ᴮ` generally?
+- **ITM tests**: pulled back `ℰᵒ` (built) vs own computable tests `ℰᶜ` (needs a
+  density theorem; `hofheinz2013`: PPT is not a category, so "feasible" stays a side
+  condition).
+- **`W` reads the step's support**, so it does not respect `≈ₚ` and `𝒲` uses a
+  saturation `W̃`.  Acceptable, or should well-bracketedness be behavioural?
+- **SSP namespace**: parallel `CategoricalCrypto.SSP` with channel-indexed `Iface`
+  (95 importers of the flat one untouched) — keep parallel, or migrate the flat layer?
+- **Disk/memory**: the nix store is 15 GiB of a 20 GiB overlay (`nix-collect-garbage`
+  is yours); `UC.Model.Family` needs >6 GiB to rebuild, which caps parallel agent work.
+
+**In progress** (branches off `uc-setup-landscape`): `ssp-bridge` (𝒲 tensor,
+`SSP→PM[wb]`, transfer corollary), `rs-toolkit` (advantage Δ, composition theorem,
+hybrid lemma, CC construction notion), `otp-example` (one-time pad in SSP, transported),
+`robust-lemma` (`≤UC ⇔ robust preservation`), plus the performance investigation.
+
 ## 1. What a morphism costs
 
 `UCSetup/Morphism.agda:UCSetupMorphism 𝕊 𝕊′` is a `GradedKleisliMorphism S.triple
