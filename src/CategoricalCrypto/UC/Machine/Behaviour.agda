@@ -6,7 +6,7 @@
 -- system but two `_≈ₚ_`-classes.  `_≈ᴮ_` is the non-adaptive equality of
 -- Def 3 (fn. 6).  See docs/uc-setup-random-systems.md §3.1–3.2.
 
-open import Data.List.Base using (List; []; _∷_)
+open import Data.List.Base
 open import Data.Product.Base
 open import Data.Rational as ℚ using (ℚ; 0ℚ; 1ℚ)
 open import Data.Unit.Polymorphic.Base

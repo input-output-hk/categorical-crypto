@@ -12,34 +12,34 @@
 -- outputs, read at depth `j` as the rational `cum j`, which `_≈ᴮ_` compares
 -- (`Ψ-askfree`).  An unbounded strategy is the limit of its cut-offs (`cut-approx`).
 
-open import Algebra.Bundles using (CommutativeMonoid)
+open import Algebra.Bundles
 open import Data.Bool.Base
 open import Data.Empty
 open import Data.List.Base using (List; []; _∷_; _++_; reverseAcc)
-open import Data.List.Membership.Propositional using (_∈_)
-open import Data.List.Relation.Unary.Any using (here; there)
+open import Data.List.Membership.Propositional
+open import Data.List.Relation.Unary.Any
 open import Data.Nat.Base renaming (_+_ to _+ℕ_; _≤_ to _≤ℕ_)
 open import Data.Nat.Properties using (m≤m⊔n; m≤n⊔m)
 open import Data.Product.Base
 open import Data.Rational as ℚ using (ℚ; 0ℚ; 1ℚ; ½)
 open import Data.Rational.Properties
 open import Data.Rational.Properties.Ext
-open import Data.Sum.Base using (_⊎_; inj₁; inj₂)
+open import Data.Sum.Base
 open import Data.Unit.Base
 open import Data.Unit.Polymorphic.Base using () renaming (tt to ttᵛ)
 open import Function.Base
 open import Level using (0ℓ)
-open import Relation.Binary.Definitions using (DecidableEquality)
+open import Relation.Binary.Definitions
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary.Decidable
 import Algebra.Properties.CommutativeSemigroup as CommSemigroup
 
-open import ProbabilisticLogic.Distribution.Uniform using (indᵇ; indᵇ-≤1)
+open import ProbabilisticLogic.Distribution.Uniform
 open import ProbabilisticLogic.Dp
 open import ProbabilisticLogic.Dp.Advantage
 open import ProbabilisticLogic.Dp.Coin
 open import ProbabilisticLogic.Dp.Commutative
-open import ProbabilisticLogic.Dp.Mass using (cum-≤1)
+open import ProbabilisticLogic.Dp.Mass
 open import ProbabilisticLogic.Dp.Reasoning
 
 open import CategoricalCrypto.Machines.Base
@@ -54,7 +54,7 @@ module CategoricalCrypto.UC.Machine.Behaviour.Finite where
 
 private
   module MC = Core (𝒱ₚ 0ℓ)
-  open CommSemigroup (CommutativeMonoid.commutativeSemigroup +-0-commutativeMonoid) using (interchange)
+  open CommSemigroup (CommutativeMonoid.commutativeSemigroup +-0-commutativeMonoid)
   variable
     X Y Z : Set
     n : ℕ
