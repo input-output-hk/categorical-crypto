@@ -28,6 +28,7 @@
 open import Categories.Category
 open import Categories.Category.Monoidal.Bundle
 
+open import Data.Empty.Polymorphic
 open import Level
 open import Relation.Binary.PropositionalEquality
 
@@ -85,6 +86,11 @@ opaque
 
   ⊗ᵒ : (A B : Iface) → ifaceᵒ A G.⊗₀ ifaceᵒ B ≡ ifaceᵒ (A ⊗ᴵ B)
   ⊗ᵒ _ _ = refl
+
+  -- Empty at `𝒱ₚ`'s initial object, so not `ifaceᵒ unitᴵ`
+  -- (`UC.Model.Observation`'s header).
+  unitᵒ : G.unit ≡ ifaceᵒ (⊥ ⇿ ⊥)
+  unitᵒ = refl
 
   -- A graded hom: `T₀ X B` is `X ⊗₀ B`, whose tensor the seal hides.
   gradedᵒ : {A X B : Iface} → Proc A (X ⊗ᴵ B) → ifaceᵒ A G.⇒ ifaceᵒ X G.⊗₀ ifaceᵒ B

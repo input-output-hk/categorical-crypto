@@ -69,6 +69,8 @@ open import CategoricalCrypto.Protocol.Safety
 open import CategoricalCrypto.Approx.FilteredTests
 open import CategoricalCrypto.Approx.Separating
 open import CategoricalCrypto.Approx.Small.Controlled
+open import CategoricalCrypto.ITM.Relational
+open import CategoricalCrypto.ITM.Setup
 open import CategoricalCrypto.UC.Approximate.LocalTests
 open import CategoricalCrypto.UC.Family.Negligible.Quantitative
 open import CategoricalCrypto.UC.Family.Quantitative

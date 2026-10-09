@@ -1,6 +1,8 @@
 # The ITM setup: interactive Turing machines, ports reading
 
-Design plan, 2026-10-09. Nothing here is typechecked; `file:line` refers to this worktree.
+Design plan, 2026-10-09. §6 steps 0–7 are implemented and typechecked on branch `itm-setup`; §6
+records where the tree's names and choices differ from the sketches below, which are otherwise
+not typechecked. `file:line` refers to this worktree.
 This plan refines `docs/uc-setup-landscape.md` §3 and corrects it where §5.7 says so.
 
 ## 1. Summary
@@ -395,9 +397,9 @@ exists, the triangle closes only under four conditions:
    and ascribing such types costs 9–15 min (`Machine/MonoidalCategory.agda:95-98`). `FreeFunctor.CM`
    rebuilds the bundle as `record { U ; monoidal }`. The Seal's rule 2 measured a rebuilt *transparent*
    bundle at an 8 GiB OOM, so `Fᴾ` carries an explicit type and is checked against the sealed `𝔾ᵒ`,
-   where the comparison should only touch neutral projections. The step-0 spike measures all five of
-   these risks. `leafᵒ` is a `subst₂` that never computes, so leaf proofs go through `leafᵒ-∘` and
-   `leafᵒ-resp` (J on `F₀≡`) together with `procᵒ-∘` and `≈ᴹ⇒≈ᵒ`.
+   where the comparison should only touch neutral projections. The step-0 spike measured these
+   risks (§6 step 0). `leafᵒ` is a `subst₂` that never computes, so leaf proofs go through
+   `leafᵒ-∘` and `leafᵒ-resp` (J on `F₀≡`) together with `procᵒ-∘` and `≈ᴹ⇒≈ᵒ`.
 2. **Guardedness.** No new corecursion; only `Run`, `Functor`, `Setup` and `Computable` use the flag.
 3. **Quotients.** None: `_≈Term_` is inductive, and test setoids come from `ℰᵒ` and `ℰ-tests`.
 4. **Levels.** `𝕋ᴹ` sits at `0ℓ`; both arrows share `cs = ℓs = suc 0ℓ` via the pullbacks; `ℰᶜ`
@@ -431,21 +433,56 @@ exists, the triangle closes only under four conditions:
 ## 6. Work breakdown
 
 Every check is `pagda --useUntracked false check src/<Path>.agda`, within budget, with an empty
-warning grep. Each step names its module and acceptance.
+warning grep. Each step names its module and acceptance. Steps 0–7 are done; a time is the warm
+single-module wall clock at `+RTS -M3G -H1G`, of which about 9 s is startup and interface loading.
 
-0. **Spike** `spikes/ITMStdUC.agda` (deleted afterwards): a three-generator `FreeMonoidalData`,
-   `open StdUC 𝕋ᴹ (ℰᵒ ∘F …)`, and `StdUCMorphism` into `𝔾ᵒ` and `Iso.machines`. Warm times within
-   budget; otherwise apply §5.1 first.
-1. `UC/Model/Seal.agda` + `unitᵒ`: green with importers, still at the startup floor.
-2. `Categories/FreeMonoidal.agda`: `freeStrongMonoidal`, unless `docs/uc-setup-symbolic.md` step 2
-   already added it. Accept: hypothesis-free, and both plans' instances check.
-3. `ITM/Core.agda`: `𝕋ᴹ`, `decode`/`encode` with both inverse laws, `ports`.
-4. `ITM/Run.agda`: `runᵀᴹ`, `runᴾ`, and the sanity lemma
-   `runᵀᴹ-send : δ-at M (load M m x) ≡ send o q → runᵀᴹ M (m , x) ≈ₚ returnₚ (…)` (`iterₚ-fix`).
-5. `ITM/Functor.agda`: `Fᴾ : StrongMonoidalFunctor 𝕋ᴹ 𝔾ᵒ`, `leafᵒ-∘`, `leafᵒ-resp`; no `unfolding`.
-6. `ITM/Setup.agda`: `StdSetup`, `itm⇒prot`, and `≈ℰ⇔ : f ≈ℰ g ⇔ Fᴾ f Prot.≈ℰ Fᴾ g`
-   (`epi⇒preserves-≈ℰ`/`mono⇒reflects-≈ℰ`).
-7. `ITM/Relational.agda`: `Fᴿ`, `Rel.StdSetup`, `itm⇒iso`.
+0. **Spike** (done, deleted; `src/Spike/ITMStdUCProt.agda` and `ITMStdUCIso.agda`, since a module
+   must live under `src/`). Three generators, `--profile=definitions`:
+   - `freeStrongMonoidal` must restate the implicits of the coherence laws: inferred through the
+     non-injective `⟦_⟧₀`, they stay unsolved.
+   - `Fᴾ` with its explicit type costs 0.2 s (0.5 s inline): the `CM ≟ 𝔾ᵒ` conversion is cheap
+     and §5.1's 8 GiB OOM does not arise. `ℰᵀ` costs 10 ms; `open StdUC 𝕋ᴹ ℰᵀ` stays at the floor.
+   - `ν = pullbackᵛ (F Fᴾ) ℰᵒ` as §4.1 writes it runs past a 150 s budget (an earlier variant
+     exhausted 3 GiB after 519 s); with `F Fᴾ` named it costs 35 s. Ascribed the spelled-out type
+     `PresheafMorphism F (ℰᵒ ∘F Functor.op F) ℰᵒ` it costs 31 ms, but against `ℰᵀ`, or any other
+     name for that composite, 35 s or a timeout: matching a definition against the composite
+     compares the two composites' law fields. A hand-written `ν` (`ntHelper`, identity
+     components) costs 57–64 ms, and `Transfer`'s `epi⇒preserves-≈ℰ`/`mono⇒reflects-≈ℰ` 15–21 ms.
+   - Totals: 14.8 s for the protocol spike; 16.8 s for the iso spike (`Fᴿ` 0.6 s, `νᴿ` 78 ms,
+     `itm⇒iso` 10 ms), so §5.1's 9–15 min for `itm⇒iso`'s type does not arise either.
+1. **Done**, 12.5 s. `UC/Model/Seal.agda`: `unitᵒ : G.unit ≡ ifaceᵒ (⊥ ⇿ ⊥)`, at
+   `Data.Empty.Polymorphic`'s `⊥`. Importers: after step 7.
+2. **Done**, 6.7 s. `Categories/FreeMonoidal.agda`: `freeStrongMonoidal`, hypothesis-free; `ε` and
+   `⊗-homo` are identities and the laws are `isMonoidal-freeFunctor`'s, implicits restated. The
+   symbolic plan's instance is not in the tree yet; this plan's two instances check (steps 5, 7).
+3. **Done**, 3.0 s. `ITM/Core.agda`. Deviations from §3.2–3.3: one family `Port p A` per polarity
+   and its messages `Msg p A`, with `⟦ A ⟧ = Msg ⁺ A ⇿ Msg ⁻ A`, replace `Port⁺`/`Port⁻`;
+   `decode`/`encode` work per polarity, with `decode-encode` and `encode-decode`, and the hom-level
+   codec is `decodeᴵ`/`encodeᴼ`; `ports n m = wires (replicate n ⁺) ⊗₀ wires (replicate m ⁻)`;
+   `𝕋ᴹ = FreeMonoidal.FMC itmData`. Added: `bit`, `tape`, `move`.
+4. **Done**, 12.2 s. `ITM/Run.agda`: `body` dispatches through `act`; `runᵀᴹ`; `runᴾ`, via
+   `decodeᴵ`/`encodeᴼ`; and `runᵀᴹ-send : δ-at M (load M m x) ≡ send o q → runᵀᴹ M (m , x) ≈ₚ
+   returnₚ ((q , proj₂ m) , o , [])` (`iterₚ-fix`).
+5. **Done**, 12.7 s. `ITM/Functor.agda`: `⟦_⟧ᴾ`, `⟦v⟧ᴾ`, `F₀≡`, `leafᵒ`, `leafᵒ-resp`, `leafᵒ-∘` and
+   `Fᴾ : StrongMonoidalFunctor 𝕋ᴹ 𝔾ᵒ`; no `unfolding`. Both leaf lemmas take their hypothesis
+   at `procᵒ (runᴾ …)`.
+6. **Done**, 14.3 s. `ITM/Setup.agda`: `ℰᵀ`, `open StdUC 𝕋ᴹ ℰᵀ public` (`StdSetup`, …), `itm⇒prot`
+   and `≈ℰ⇔ : f ≈ℰ g ⇔ Fᴾ.₁ f Prot.≈ℰ Fᴾ.₁ g`. Deviation from §4.1: `ν` is `νᵀ`, `pullbackᵛ`
+   written out (step 0), with `νᵀ-epi` and `νᵀ-mono`.
+7. **Done**, 11.3 s. `ITM/Relational.agda` (`--safe`, K, no `--guardedness`): `Halts`, `⟦_⟧ᶜ`,
+   `⟦v⟧ᴿ`, `⊗-step`, `⊗-mirror`, `mode`, `decodeᶜ`/`encodeᶜ`, `decodeᴿ`/`encodeᴿ`, `leafᴿ`, `Fᴿ`,
+   `ℰᴵˢᵒ`, `module Rel`, `νᴿ` with `νᴿ-epi`/`νᴿ-mono`, and `itm⇒iso`. Deviations from §4.2: one
+   big-step relation `Halts` (`halt`, `step`, `toss`) replaces `Steps` and `Sends`, and `ν` is `νᴿ`,
+   as in step 6. A codec that unfolds `⟦ A ⊗₀ B ⟧₀` at the transparent `Iso.machines` costs over
+   a minute per use (at the sealed `𝔾ᵒ` it is free), so `⊗-mirror` instantiates `⊗-step`, the
+   same equation over an abstract target, and the codec transports along it.
+
+   Both `ITM.Setup` and `ITM.Relational` are imported by the root `CategoricalCrypto`. Importers of
+   steps 1–2: the 51 importers of `Seal` and `FreeMonoidal` that do not reach `UC.Model.Family`
+   check green at `-M6G`. `UC.Model.Family` needs more than 6 GiB (`docs/quantitative-family.md`
+   §8 runs it at `-M20G`); it, `UC.Model.Family.Ingest`, `Examples.CoinToss.Ideal.Compose`,
+   `Examples.CoinToss.Ideal.Receiver.Compose`, `Examples.ChimericLedger.Transfer` and the root
+   are left to step 12's closure check.
 8. *(optional; the one hard proof)* `ITM/Flatten.agda`: `flatten : HomTerm A B → Gen A B` with
    `⟦ var (flatten t) ⟧₁ G.≈ ⟦ t ⟧₁`. The `∘` case follows `Protocol/Machine/Compose.agda`
    (reachable-configuration machine, two simulations, `Col.collapseᵀ`), plus `iterₚ-codiagonal`
