@@ -20,3 +20,4 @@ open import CategoricalCrypto.SFunM public
 open import CategoricalCrypto.Examples.Basic
 open import CategoricalCrypto.Examples.Commitment
 open import CategoricalCrypto.Examples.Signatures
+open import CategoricalCrypto.Examples.RelSetup
